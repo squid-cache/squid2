@@ -48,9 +48,9 @@ typedef struct {
  */
 
 /* how often we want to rebuild the digest, seconds */
-static const time_t StoreDigestRebuildPeriod = 60 * 60;
+static const time_t StoreDigestRebuildPeriod = 6 * 60;
 /* how often we want to rewrite the digest, seconds */
-static const time_t StoreDigestRewritePeriod = 60 * 60;
+static const time_t StoreDigestRewritePeriod = 6 * 60;
 /* how many bytes to swap out at a time */
 static const int StoreDigestSwapOutChunkSize = SM_PAGE_SIZE;
 /* portion (0,1] of a hash table to be rescanned at a time */
