@@ -349,15 +349,15 @@ int main(argc, argv)
     /* set malloc option */
     /* use small block algorithm for faster allocation */
     /* grain of small block */
-    mallopt(M_GRAIN, 16);
+    mallopt(M_GRAIN, 64);
 #endif
 #ifdef M_MXFAST
     /* biggest size that is considered a small block */
-    mallopt(M_MXFAST, 512);
+    mallopt(M_MXFAST, 256);
 #endif
 #ifdef M_NBLKS
     /* number of block in each chunk */
-    mallopt(M_NLBLKS, 100);
+    mallopt(M_NLBLKS, 64);
 #endif
 #endif /* HAVE_MALLOPT */
 
