@@ -62,7 +62,9 @@ static wordlist *aclDumpDomainList(void *data);
 static wordlist *aclDumpTimeSpecList(acl_time_data *);
 static wordlist *aclDumpRegexList(relist * data);
 static wordlist *aclDumpIntlistList(intlist * data);
+#ifndef USE_SPLAY_TREE
 static wordlist *aclDumpWordList(wordlist * data);
+#endif
 static wordlist *aclDumpProtoList(intlist * data);
 static wordlist *aclDumpMethodList(intlist * data);
 static wordlist *aclDumpProxyAuthList(acl_proxy_auth * data);
@@ -2023,6 +2025,7 @@ aclDumpIntlistList(intlist * data)
     return W;
 }
 
+#ifndef USE_SPLAY_TREE
 static wordlist *
 aclDumpWordList(wordlist * data)
 {
@@ -2038,6 +2041,7 @@ aclDumpWordList(wordlist * data)
     }
     return W;
 }
+#endif
 
 static wordlist *
 aclDumpProtoList(intlist * data)
