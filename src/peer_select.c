@@ -330,7 +330,7 @@ peerSelectFoo(ps_state * psstate)
     }
 }
 
-void
+static void
 peerPingTimeout(void *data)
 {
     ps_state *psstate = data;

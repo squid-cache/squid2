@@ -283,7 +283,7 @@ gen_default(Entry * head, FILE * fp)
     Entry *entry;
     int rc = 0;
     fprintf(fp,
-	"void\n"
+	"static void\n"
 	"default_line(const char *s)\n"
 	"{\n"
 	"\tLOCAL_ARRAY(char, tmp_line, BUFSIZ);\n"
@@ -294,7 +294,7 @@ gen_default(Entry * head, FILE * fp)
 	"}\n"
 	);
     fprintf(fp,
-	"void\n"
+	"static void\n"
 	"default_all(void)\n"
 	"{\n"
 	"\tcfg_filename = \"Default Configuration\";\n"
@@ -331,7 +331,7 @@ gen_default_if_none(Entry * head, FILE * fp)
 {
     Entry *entry;
     fprintf(fp,
-	"void\n"
+	"static void\n"
 	"defaults_if_none(void)\n"
 	"{\n"
 	);
@@ -400,7 +400,7 @@ gen_dump(Entry * head, FILE * fp)
 {
     Entry *entry;
     fprintf(fp,
-	"void\n"
+	"static void\n"
 	"dump_config(StoreEntry *entry)\n"
 	"{\n"
 	);
@@ -421,7 +421,7 @@ gen_free(Entry * head, FILE * fp)
 {
     Entry *entry;
     fprintf(fp,
-	"void\n"
+	"static void\n"
 	"free_all(void)\n"
 	"{\n"
 	);
