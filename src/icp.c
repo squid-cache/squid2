@@ -266,8 +266,13 @@ icpCachable(icpStateData * icpState)
     char *request = icpState->url;
     request_t *req = icpState->request;
     method_t method = req->method;
+    wordlist *p;
     if (BIT_TEST(icpState->flags, REQ_AUTH))
 	return 0;
+    for (p = Config.cache_stoplist; p; p = p->next) {
+	if (strstr(request, p->key))
+	    return 0;
+    }
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(request, method);
     /* FTP is always cachable */
@@ -1076,20 +1081,22 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 		icpHitObjState->to = from;
 		icpHitObjState->header = header;
 		icpHitObjState->started = current_time;
-		if (storeLockObject(entry, icpHitObjHandler, icpHitObjState) == 0)
+		if (!storeLockObject(entry, icpHitObjHandler, icpHitObjState))
 		    break;
 		/* else, problems */
+		storeRelease(entry);
 		safe_free(icpHitObjState);
+	    } else {
+		icpUdpSend(fd,
+		    url,
+		    &header,
+		    &from,
+		    0,
+		    ICP_OP_HIT,
+		    LOG_UDP_HIT,
+		    p);
+		break;
 	    }
-	    icpUdpSend(fd,
-		url,
-		&header,
-		&from,
-		0,
-		ICP_OP_HIT,
-		LOG_UDP_HIT,
-		p);
-	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
@@ -1211,7 +1218,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 		&header,
 		&from,
 		0,
-		ICP_OP_INVALID,
+		ICP_OP_ERR,
 		LOG_UDP_INVALID,
 		PROTO_NONE);
 	    break;

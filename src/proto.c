@@ -162,7 +162,7 @@ protoDataFree(int fdunused, protodispatch_data * protoData)
 }
 
 /* called when DNS lookup is done by ipcache. */
-int
+void
 protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 {
     edge *e = NULL;
@@ -180,11 +180,11 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
     if (protoData->direct_fetch == DIRECT_YES) {
 	if (hp == NULL) {
 	    protoDNSError(protoData->fd, entry);
-	    return 0;
+	    return;
 	}
 	hierarchyNote(req, HIER_DIRECT, 0, req->host);
 	protoStart(protoData->fd, entry, NULL, req);
-	return 0;
+	return;
     }
     if (protoData->direct_fetch == DIRECT_MAYBE && (Config.local_ip_list || Config.firewall_ip_list)) {
 	if (hp == NULL) {
@@ -194,7 +194,7 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 	    if (ip_access_check(srv_addr, Config.firewall_ip_list) == IP_DENY) {
 		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
 		protoStart(protoData->fd, entry, NULL, req);
-		return 0;
+		return;
 	    } else {
 		protoData->direct_fetch = DIRECT_NO;
 	    }
@@ -203,7 +203,7 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 	    if (ip_access_check(srv_addr, Config.local_ip_list) == IP_DENY) {
 		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
 		protoStart(protoData->fd, entry, NULL, req);
-		return 0;
+		return;
 	    }
 	}
     }
@@ -212,20 +212,20 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 	/* Only one parent for this host, and okay to skip pinging stuff */
 	hierarchyNote(req, HIER_SINGLE_PARENT, 0, e->host);
 	protoStart(protoData->fd, entry, e, req);
-	return 0;
+	return;
     }
     if (protoData->n_edges == 0 && protoData->direct_fetch == DIRECT_NO) {
 	hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents to query and the host is beyond your firewall.");
-	return 0;
+	return;
     }
     if (!neighbors_do_private_keys && !protoData->query_neighbors && (e = getFirstUpParent(req))) {
 	/* for private objects we should just fetch directly (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
 	hierarchyNote(req, HIER_FIRSTUP_PARENT, 0, e->host);
 	protoStart(protoData->fd, entry, e, req);
-	return 0;
+	return;
     } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */
 	if (entry->ping_status != PING_NONE)
@@ -240,7 +240,7 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 	    (PF) getFromDefaultSource,
 	    (void *) entry,
 	    Config.neighborTimeout);
-	return 0;
+	return;
     }
     if (protoData->direct_fetch == DIRECT_NO) {
 	hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
@@ -249,12 +249,11 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
     } else {
 	if (hp == NULL) {
 	    protoDNSError(protoData->fd, entry);
-	    return 0;
+	    return;
 	}
 	hierarchyNote(req, HIER_DIRECT, 0, req->host);
 	protoStart(protoData->fd, entry, NULL, req);
     }
-    return 0;
 }
 
 int

@@ -105,7 +105,7 @@
 #ifndef _IPCACHE_H_
 #define _IPCACHE_H_
 
-typedef int (*IPH) (int, struct hostent *, void *);
+typedef void (*IPH) (int, struct hostent *, void *);
 
 enum {
     IP_CACHED,

@@ -227,6 +227,16 @@
 #
 #hierarchy_stoplist
 
+#  TAG: cache_stoplist
+#	A list of words which, if found in a URL, cause the object to
+#	immediately removed from the cache.  In other words, use this
+#	to force certain objects to never be cached.  You may list this
+#	option multiple times.
+#
+#	The default is to not cache URLs containing 'cgi-bin' or '?'.
+#
+cache_stoplist cgi-bin ?
+
 # OPTIONS WHICH AFFECT THE CACHE SIZE
 #-----------------------------------------------------------------------------
 

@@ -634,7 +634,7 @@ memoryAccounted(void)
 	meta_data.store_entries * sizeof(StoreEntry) +
 	meta_data.ipcache_count * sizeof(ipcache_entry) +
 	meta_data.fqdncache_count * sizeof(fqdncache_entry) +
-	meta_data.hash_links * sizeof(hash_link) +
+	hash_links_allocated * sizeof(hash_link) +
 	sm_stats.total_pages_allocated * sm_stats.page_size +
 	disk_stats.total_pages_allocated * disk_stats.page_size +
 	request_pool.total_pages_allocated * request_pool.page_size +
@@ -796,9 +796,9 @@ info_get(cacheinfo * obj, StoreEntry * sentry)
 
     storeAppendPrintf(sentry, "{\t%-25.25s %7d x %4d bytes = %6d KB}\n",
 	"Hash link",
-	meta_data.hash_links = hash_links_allocated,
+	hash_links_allocated,
 	(int) sizeof(hash_link),
-	(int) (meta_data.hash_links * sizeof(hash_link) >> 10));
+	(int) (hash_links_allocated * sizeof(hash_link) >> 10));
 
     storeAppendPrintf(sentry, "{\t%-25.25s                      = %6d KB}\n",
 	"URL strings",

@@ -250,6 +250,7 @@ typedef int (*QS) (const void *, const void *);
 #include "redirect.h"
 #include "client_side.h"
 #include "icmp.h"
+#include "net_db.h"
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"

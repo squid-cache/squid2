@@ -232,9 +232,7 @@ struct SquidConfig {
     } Addrs;
     int tcpRcvBufsz;
     wordlist *cache_dirs;
-    wordlist *http_stoplist;
-    wordlist *gopher_stoplist;
-    wordlist *ftp_stoplist;
+    wordlist *cache_stoplist;
     wordlist *hierarchy_stoplist;
     wordlist *local_domain_list;
     wordlist *inside_firewall_list;
