@@ -75,7 +75,7 @@ refreshUncompiledPattern(const char *pat)
  *     return 1 if its time to revalidate this entry, 0 otherwise
  */
 int
-refreshCheck(const StoreEntry * entry, const request_t * request, time_t delta)
+refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
 {
     const refresh_t *R;
     const char *uri;
