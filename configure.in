@@ -434,6 +434,12 @@ AC_MSG_RESULT(yes),
 [AC_MSG_RESULT(no)
 AC_DEFINE(NEED_SYS_ERRLIST)])
 
+AC_MSG_CHECKING(for libresolv _dns_ttl_ hack)
+AC_TRY_LINK(extern int _dns_ttl_;,return _dns_ttl_;,
+[AC_MSG_RESULT(yes)
+AC_DEFINE(LIBRESOLV_DNS_TTL_HACK)],
+AC_MSG_RESULT(no))
+
 dnl Need the debugging version of malloc if available
 XTRA_OBJS=''
 if test "$HAVE_LIBMALLOC" = "yes" ; then

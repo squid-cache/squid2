@@ -723,6 +723,16 @@ static int ipcache_parsebuffer(buf, offset, dnsData)
 			    k++;
 			}
 		    }
+		    /* DNS TTL - bne@CareNet.hu */
+		    /* next line is either a $ttl ttl\n or a $end\n */
+		    if (strstr(line_cur->line, "$ttl")) {
+			tmp_ptr = line_cur->line;
+			/* skip the first token */
+			token = strtok(tmp_ptr, w_space);
+			tmp_ptr = NULL;
+			token = strtok(tmp_ptr, w_space);
+			i->expires = squid_curtime + atoi(token);
+		    }
 		    ipcache_call_pending(i);
 		    debug(14, 10, "ipcache_parsebuffer: $name succeeded.\n");
 		}
