@@ -242,6 +242,9 @@
 #define BUFSIZ 4096
 #endif
 
+#ifndef INADDR_NONE
+#define INADDR_NONE -1
+#endif
 
 char *rfc1738_escape _PARAMS((char *));
 void rfc1738_unescape _PARAMS((char *));
