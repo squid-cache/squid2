@@ -1492,7 +1492,7 @@ DOC_START
 	  negative_ttl=n
 	  		TTL for cached negative lookups (default same
 	  		as ttl)
-	  concurrenty=n	Concurrency level / number of processes spawn
+	  concurrency=n	Concurrency level / number of processes spawn
 			to service external acl lookups of this type.
 	  cache=n	result cache size, 0 is unbounded (default)
 	
