@@ -343,23 +343,34 @@ policies would send you stale objects (by your configuration).
 
 Object Purge Policy
 ==============================================================================
-With Squid-1.1 there are two ways that an object gets removed from the
-cache.  First, old objects get "bumped" to make room for new objects.
-This happens as a regular part of the cache maintenance.  When the
-cache disk space reaches the high water mark, the maintenance routes
-enter a "purge mode" and they look for objects to delete.
+Squid attempts to keep the size of the disk cache relatively "smooth"
+or "flat."  That is, objects are removed at the same rate they are
+added.  Earlier versions had a "sawtooth" behavior where objects were
+removed only when disk space reached an upper limit.
 
-In this mode we scan 256 objects every second, sort them by their time
-of last reference, and then remove the eight (8) least-recently-used
-objects.  This continues until the disk space is below the low water
-mark.
+Squid uses a Least-Recently-Used (LRU) replacement algorithm.  Objects
+with large LRU age values are removed before objects with small LRU age
+values.  We dynamically calculate the LRU age threshold, above which
+objects are removed.  The threshold is calculated as an exponential
+function between the high and low water marks.  When the store swap
+size is near the low water mark, the LRU threshold is large.  This
+encourages more objects to be cached.  When the store swap size is near
+the high water mark, the LRU threshold is small, encouraging more
+objects to be removed.  The 'reference_age' configuration parameter
+specifies the upper limit on the LRU age threshold.
 
-The second way that objects can get removed is from the 'reference_age'
-configuration parameter.  If an object has not been accessed for longer
-than the reference_age value, it will be purged.  By default
-reference_age is disabled (set to zero) so that objects are only
-removed by the first method.
+The Squid cache storage is implemented as a hash table with some number
+of "hash buckets."  Squid scans one bucket at a time and sorts all the
+objects in the bucket by their LRU age.  Objects with an LRU age
+over the threshold are removed.  The scan rate is adjusted so that
+it takes approximately 24 hours to scan the entire cache.  The 
+store buckets are randomized so that we don't always scan the same
+buckets at the same time of the day.
 
+If the store swap size somehow exceeds the high water mark, Squid
+performs an "emergency" object purge.  We sort up to 256 objects in a
+store bucket and remove the eight (8) least recently used ones.  This
+continues until the disk space is below the low water mark.
 
 X-Forwarded-For request header
 ==============================================================================
