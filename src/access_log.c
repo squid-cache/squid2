@@ -219,7 +219,7 @@ accessLogOpen(const char *fname)
     LogfileFD = file_open(LogfileName, O_WRONLY | O_CREAT, NULL, NULL, NULL);
     if (LogfileFD == DISK_ERROR) {
 	debug(50, 0) ("%s: %s\n", LogfileName, xstrerror());
-	fatal("Cannot open logfile.");
+	fatalf("Cannot open %s: %s", LogfileName, xstrerror());
     }
     LogfileStatus = LOG_ENABLE;
 }
@@ -327,7 +327,7 @@ accessLogRotate(void)
     if (LogfileFD == DISK_ERROR) {
 	debug(46, 0) ("accessLogRotate: Cannot open logfile: %s\n", fname);
 	LogfileStatus = LOG_DISABLE;
-	fatal("Cannot open logfile.");
+	fatalf("Cannot open %s: %s", fname, xstrerror());
     }
 }
 
