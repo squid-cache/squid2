@@ -205,6 +205,12 @@ static int icpHierarchical(icpState)
 	return 0;
     if (method != METHOD_GET)
 	return 0;
+    /* scan hierarchy_stoplist */
+    for (p = getHierarchyStoplist(); p; p = p->next)
+	if (strstr(request, p->key))
+	    return 0;
+    if (BIT_TEST(icpState->flags, REQ_LOOPDETECT))
+	return 0;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(request, method);
     if (req->protocol == PROTO_FTP)
@@ -214,12 +220,6 @@ static int icpHierarchical(icpState)
     if (req->protocol == PROTO_WAIS)
 	return 0;
     if (req->protocol == PROTO_CACHEOBJ)
-	return 0;
-    /* scan hierarchy_stoplist */
-    for (p = getHierarchyStoplist(); p; p = p->next)
-	if (strstr(request, p->key))
-	    return 0;
-    if (BIT_TEST(icpState->flags, REQ_LOOPDETECT))
 	return 0;
     return 1;
 }
@@ -564,10 +564,13 @@ static void icp_hit_or_miss(fd, icpState)
     debug(12, 4, "icp_hit_or_miss: %s <URL:%s>\n",
 	RequestMethodStr[icpState->method],
 	url);
-
     if (icpState->method == METHOD_CONNECT) {
 	icpState->log_type = LOG_TCP_MISS;
-	sslStart(fd, url, icpState->request, icpState->request_hdr, &icpState->size);
+	sslStart(fd,
+		url,
+		icpState->request,
+		icpState->request_hdr,
+		&icpState->size);
 	return;
     }
     if (icpCachable(icpState))
