@@ -987,6 +987,7 @@ aclDecodeProxyAuth(const char *proxy_auth, char **user, char **password, char *b
     char *sent_auth;
     char *cleartext;
 
+    debug(28, 6) ("aclDecodeProxyAuth: header = '%s'\n", proxy_auth);
     if (proxy_auth == NULL)
 	return 0;
     if (strlen(proxy_auth) < SKIP_BASIC_SZ)
@@ -1007,7 +1008,7 @@ aclDecodeProxyAuth(const char *proxy_auth, char **user, char **password, char *b
     if ((*password = strchr(*user, ':')) != NULL)
 	*(*password)++ = '\0';
     if (*password == NULL) {
-	debug(28, 1) ("aclDecodeProxyAuth: no password in proxy authorization header\n");
+	debug(28, 1) ("aclDecodeProxyAuth: no password in proxy authorization header '%s'\n", proxy_auth);
 	return 0;
     }
     return 1;
