@@ -744,7 +744,7 @@ aclParseAclLine(acl ** head)
     }
     /*
      * Clear AclMatchedName from our temporary hack
-    */
+     */
     AclMatchedName = NULL;	/* ugly */
     if (!new_acl)
 	return;
@@ -1795,12 +1795,15 @@ aclDestroyAcls(acl ** head)
 	case ACL_URL_REGEX:
 	case ACL_URLPATH_REGEX:
 	case ACL_BROWSER:
+	case ACL_SRC_DOM_REGEX:
+	case ACL_DST_DOM_REGEX:
 	    aclDestroyRegexList(a->data);
 	    break;
 	case ACL_PROTO:
 	case ACL_METHOD:
 	case ACL_SRC_ASN:
 	case ACL_DST_ASN:
+	case ACL_NETDB_SRC_RTT:
 	    intlistDestroy((intlist **) & a->data);
 	    break;
 	case ACL_URL_PORT:
