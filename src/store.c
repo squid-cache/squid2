@@ -82,6 +82,7 @@ static void destroy_StoreEntry _PARAMS((StoreEntry *));
 static MemObject *new_MemObject _PARAMS((void));
 static mem_ptr new_MemObjectData _PARAMS((void));
 static StoreEntry *new_StoreEntry _PARAMS((int mem_obj_flag));
+static int storeCheckPurgeMem _PARAMS((StoreEntry *e));
 
 
 /* Now, this table is inaccessible to outsider. They have to use a method
@@ -417,7 +418,6 @@ void storeReleaseRequest(e)
 
 /* unlock object, return -1 if object get released after unlock
  * otherwise lock_count */
-
 int storeUnlockObject(e)
      StoreEntry *e;
 {
@@ -450,7 +450,7 @@ int storeUnlockObject(e)
 	    = strlen(e->mem_obj->e_abort_msg);
 	BIT_RESET(e->flag, ABORT_MSG_PENDING);
 	e->lock_count--;
-    } else if (!storeEntryLocked(e) && store_hotobj_high == 0) {
+    } else if (storeCheckPurgeMem(e)) {
 	storePurgeMem(e);
     }
     return lock_count;
@@ -1167,7 +1167,7 @@ void storeSwapOutHandle(fd, flag, e)
 	/* check if it's request to be released. */
 	if (e->flag & RELEASE_REQUEST)
 	    storeRelease(e);
-	else if (!storeEntryLocked(e) && store_hotobj_high == 0)
+	else if (storeCheckPurgeMem(e))
 	    storePurgeMem(e);
 	return;
     }
@@ -2384,6 +2384,17 @@ int storeClientCopy(e, stateoffset, maxSize, buf, size, fd)
 int storeEntryValidToSend(e)
      StoreEntry *e;
 {
+    /* XXX I think this is not needed since storeCheckPurgeMem() has
+     * been added.  If we never see output from this, lets delete it
+     * in a future version -DW */
+    if ((e->mem_status == NOT_IN_MEMORY) &&	/* Not in memory */
+	(e->swap_status != SWAP_OK) &&	/* Not on disk */
+	(e->store_status != STORE_PENDING)	/* Not being fetched */
+	) {
+	debug(20, 0, "storeEntryValidToSend: Invalid object detected!\n");
+	debug(20, 0, "storeEntryValidToSend: Entry Dump:\n%s\n", storeToString(e));
+	    return 0;
+    }
     if (squid_curtime < e->expires)
 	return 1;
     if (e->expires == 0 && e->store_status == STORE_PENDING && e->mem_status != NOT_IN_MEMORY)
@@ -2779,3 +2790,21 @@ void storeRotateLog()
 	debug(20, 1, "Store logging disabled\n");
     }
 }
+
+/*
+ * Check if its okay to remove the memory data for this object, but 
+ * leave the StoreEntry around.  Designed to be called from
+ * storeUnlockObject() and storeSwapOutHandle().
+ */
+static int storeCheckPurgeMem(e)
+     StoreEntry *e;
+{
+    if (storeEntryLocked(e))
+	return 0;
+    if (e->store_status != STORE_OK)
+	return 0;
+    if (store_hotobj_high)
+	return 0;
+    return 1;
+}
+
