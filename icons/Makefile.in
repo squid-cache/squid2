@@ -57,7 +57,7 @@ $(SHARFILE):
 install: install-mkdirs anthony-xpm.gif
 	@for f in $(ICONS); do \
 		if test -f $(DEFAULT_ICON_DIR)/$$f ; then \
-			echo "$@ will not overwrite existing $(DEFAULT_ICON_DIR)/$$f" ; \
+			:; \
 		else \
 			echo "$(INSTALL_FILE) $$f $(DEFAULT_ICON_DIR)"; \
 			$(INSTALL_FILE) $$f $(DEFAULT_ICON_DIR); \
