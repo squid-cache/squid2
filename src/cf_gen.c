@@ -132,7 +132,7 @@ main(int argc, char *argv[])
 	if (NULL == fgets(buff, MAX_LINE, fp))
 	    break;
 	linenum++;
-	if (t = strchr(buff, '\n'))
+	if ((t = strchr(buff, '\n')))
 	    *t = '\0';
 	switch (state) {
 	case sSTART:
