@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 32    Asynchronous Disk I/O
+ * DEBUG: section 5     Asynchronous Disk I/O
  * AUTHOR: Pete Bentley <pete@demon.net>
  *
  * SQUID Internet Object Cache  http://www.nlanr.net/Squid/
@@ -49,18 +49,17 @@ void aioSigHandler(sig)
 #endif
 }
 
-int aioFileWriteComplete(fd, data)
+int aioFileWriteComplete(fd, entry)
      int fd;
-     void *data;
+     FileEntry *entry;
 {
-    FileEntry *entry = data;
     int rc;
     struct aiocb *aio = &entry->aio_cb;
     dwrite_q *q = NULL;
     int block_complete = 0;
 
     rc = aio_error(aio);
-    file_table[fd].aio_data = NULL;	/* prevent duplicate calls */
+    entry->aio_data = NULL;	/* prevent duplicate calls */
 
     if (rc != 0) {
 	/* disk i/o failure--flushing all outstanding writes  */
@@ -91,7 +90,7 @@ int aioFileWriteComplete(fd, data)
 	return DISK_ERROR;
     }
     rc = aio_return(aio);
-    debug(32, 4, "AIO write on %d returned %d\n", fd, rc);
+    debug(32, 4, "AIO write FD %d returned %d\n", fd, rc);
 
     entry->write_q->cur_offset += rc;
     block_complete = (entry->write_q->cur_offset >= entry->write_q->len);
@@ -140,23 +139,23 @@ int aioFileWriteComplete(fd, data)
     return DISK_OK;
 }
 
-int aioFileReadComplete(fd, data)
+int aioFileReadComplete(fd, ctrl_dat)
      int fd;
-     void *data;
+     dread_ctrl *ctrl_dat;
 {
-    dread_ctrl *ctrl_dat = data;
     int rc;
-    struct aiocb *aio = &file_table[fd].aio_cb;
+    FileEntry *entry = &file_table[fd];
+    struct aiocb *aio = &entry->aio_cb;
 
     rc = aio_error(aio);
-    file_table[fd].aio_data = NULL;	/* prevent multiple calls */
+    entry->aio_data = NULL;	/* prevent multiple calls */
 
     if (rc != 0) {
-	debug(32, 4, "AIO read on %d returned error %d\n", fd, rc);
+	debug(32, 4, "AIO read FD %d returned error %d\n", fd, rc);
 	return DISK_ERROR;
     }
     rc = aio_return(aio);
-    debug(32, 4, "AIO read on %d returned %d bytes\n", fd, rc);
+    debug(32, 4, "AIO read FD %d returned %d bytes\n", fd, rc);
     ctrl_dat->cur_len += rc;
     ctrl_dat->offset += rc;
     if ((rc < ctrl_dat->req_len) && (rc != 0)) {
@@ -173,28 +172,25 @@ int aioFileReadComplete(fd, data)
 
 int aioFileQueueWrite(fd, handler, entry)
      int fd;
-     int (*handler) _PARAMS((int, void *));
+     int (*handler) (int, FileEntry *);
      FileEntry *entry;
 {
     off_t offset;
-    struct aiocb *aio = NULL;
-
-    if (entry != &file_table[fd])
-	fatal_dump("didn't expect this.");
+    struct aiocb *aio;
 
     /*
-     * Asynch. IO either requires O_APPEND to be set or to specify the
-     * offset each time.  Too many things call file_write to trust in
-     * O_APPEND, so we have to make a system call and get the actual
-     * offset.  If squid ever allows multiple writes on the same fd to be
-     * in progress, we're hosed.
+     * Asynch. IO either requires O_APPEND to be set or to specify the offset each
+     * time.  Too many things call file_write to trust in O_APPEND, so we have
+     * to make a system call and get the actual offset.
+     * XXX: If squid ever allows multiple writes on the same fd to be in
+     * progress, we're hosed
      */
-    if ((offset = lseek(fd, 0L, SEEK_END)) < 0)
+    if ((offset = lseek(fd, 0L, SEEK_END)) == (off_t) - 1)
 	return DISK_ERROR;
-    entry->at_eof = YES;
+    file_table[fd].at_eof = YES;
 
-    aio = &entry->aio_cb;
-    memset(aio, '\0', sizeof(struct aiocb));
+    aio = &file_table[fd].aio_cb;
+    memset(aio, 0, sizeof(struct aiocb));
     aio->aio_fildes = fd;
     aio->aio_nbytes = entry->write_q->len - entry->write_q->cur_offset;
     aio->aio_offset = offset;
@@ -202,69 +198,64 @@ int aioFileQueueWrite(fd, handler, entry)
     aio->aio_sigevent.sigev_notify = SIGEV_SIGNAL;
     aio->aio_sigevent.sigev_signo = SIGIO;
 
-    entry->aio_data = entry;	/* self ref, whatever */
-    entry->aio_handler = handler;
-    debug(32, 4, "Queue AIO write, FD %d, handler %p, offset %d, size %d\n",
-	fd,
-	handler,
-	(int) aio->aio_offset,
-	aio->aio_nbytes);
-    if (aio_write(aio) < 0) {
-	debug(32, 0, "aio_write: FD %d: %s\n", fd, xstrerror());
+    entry->aio_data = entry;
+    entry->aio_handler = (void *) handler;
+    debug(32, 4, "Queue AIO write, fd: %d, off: %ld, sz: %d\n", fd,
+	aio->aio_offset, aio->aio_nbytes);
+    if (aio_write(&entry->aio_cb) < 0)
 	return DISK_ERROR;
-    }
     return DISK_OK;
 }
 
 int aioFileQueueRead(fd, handler, ctrl_dat)
      int fd;
-     int (*handler) _PARAMS((int, void *));
+     int (*handler) (int, dread_ctrl *);
      dread_ctrl *ctrl_dat;
 {
-    struct aiocb *aio = NULL;
-    FileEntry *f = &file_table[fd];
+    struct aiocb *aio;
+
     /*
      * XXX: We stash the AIO conrol block for both reads and writes in the
      * appropriate file_table[] slot.  If reads and writes on the same fd
-     * are ever scheduled, we're hosed.
+     * are ever scheduled, we're hosed
      */
-    aio = &f->aio_cb;
-    memset(aio, '\0', sizeof(struct aiocb));
+    aio = &file_table[fd].aio_cb;
+    memset(aio, 0, sizeof(struct aiocb));
     aio->aio_fildes = fd;
     aio->aio_nbytes = ctrl_dat->req_len - ctrl_dat->cur_len;
     aio->aio_offset = ctrl_dat->offset;
     aio->aio_buf = ctrl_dat->buf + ctrl_dat->cur_len;
     aio->aio_sigevent.sigev_notify = SIGEV_SIGNAL;
     aio->aio_sigevent.sigev_signo = SIGIO;
-    f->aio_data = ctrl_dat;
-    f->aio_handler = (void *) handler;
+
+    file_table[fd].aio_data = ctrl_dat;
+    file_table[fd].aio_handler = (void *) handler;
     debug(32, 4, "Queue AIO read, fd: %d, off: %ld, sz: %d\n", fd,
 	aio->aio_offset, aio->aio_nbytes);
-    if (aio_read(aio) < 0) {
-	debug(32, 0, "aio_read: FD %d: %s\n", fd, xstrerror());
+    if (aio_read(aio) < 0)
 	return DISK_ERROR;
-    }
     return DISK_OK;
 }
 
 void aioExamine()
 {
     int fd;
-    FileEntry *f = NULL;
+    int rc;
+    void *data;
+    struct aiocb *aio;
 
-    for (fd = 0; fd < FD_SETSIZE; fd++) {
+    for (fd = 0; fd < FD_SETSIZE; fd++) {	/* XXX: only go up to max used fd */
 	if (fdstatGetType(fd) != FD_FILE)
 	    continue;
-	f = &file_table[fd];
-	if (f->aio_data == NULL)
+	/* Not in progress */
+	if ((data = file_table[fd].aio_data) == NULL)
 	    continue;
-	debug(32, 5, "aioExamine: FD %d is doing async IO\n", fd);
-	if (EINPROGRESS == aio_error(&f->aio_cb))
+	aio = &file_table[fd].aio_cb;
+	rc = aio_error(aio);
+	if (rc == EINPROGRESS)
 	    continue;
-	debug(32, 4, "Call AIO handler for FD %d\n", fd);
-	if (f->aio_handler == NULL)
-	    fatal_dump("NULL AIO handler.");
-	(f->aio_handler) (fd, f->aio_data);
+	debug(32, 4, "Call AIO handler for fd %d\n", fd);
+	(file_table[fd].aio_handler) (fd, data);
     }
 }
 
