@@ -245,6 +245,7 @@ accessLogLog(AccessLogEntry * al)
 	safe_free(erep);
     }
     x = file_write(LogfileFD,
+	-1,
 	xstrdup(log_buf),
 	l,
 	NULL,

@@ -274,6 +274,7 @@ storeDirSwapLog(const StoreEntry * e)
 	e->flag,
 	storeKeyText(e->key));
     file_write(Config.cacheSwap.swapDirs[dirn].swaplog_fd,
+	-1,
 	xstrdup(logmsg),
 	strlen(logmsg),
 	NULL,

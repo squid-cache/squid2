@@ -122,6 +122,7 @@ unlinkdUnlink(const char *path)
     strcpy(buf, path);
     strcat(buf, "\n");
     file_write(unlinkd_fd,
+	-1,
 	buf,
 	l,
 	NULL,			/* Handler */
