@@ -8,7 +8,9 @@
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#if HAVE_STDIO_H
 #include <stdio.h>
+#endif
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -25,7 +27,6 @@
 #include <grp.h>
 #endif
 #if HAVE_MALLOC_H && !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
-/* "Obsolete" Markus Stumpf <maex@Space.NET> */
 #include <malloc.h>
 #endif
 #if HAVE_MEMORY_H
@@ -53,7 +54,9 @@
 #if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>	/* needs sys/time.h above it */
 #endif
+#if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
