@@ -155,7 +155,7 @@ changes to squid-1.0.beta7:
 	- Changed neighbor initialization to continue if DNS lookup fails.
 	- Lint cleanup
 
-beta8:
+Changes to squid-1.0.beta8 (May 22, 1996):
 
 	- More friendly CFLAGS and LDFLAGS for configure
 	- ACL_ALLWEEK bugfix
@@ -176,7 +176,8 @@ beta8:
 	- Change getFirstParent() to getFirstUpParent().
 	- Changed ftpget to use an additional pipe() for crash detection
 	- Added ICP_OP_DENIED message type
-	- Added patches for Nextstep port from Luke Howard <lukeh@vurt.schnet.edu.au>
+	- Added patches for Nextstep port from Luke Howard
+	  <lukeh@vurt.schnet.edu.au>
 	- Added a lifetime to HTTP server connections being deferred.
 	- Added IP address ranges in 'src' ACLs
 	- Added FQDN's in 'src' ACLs
@@ -185,6 +186,6 @@ beta8:
 	- Better compliance with HTTP/1.1 *DRAFT* regarding which reply
 	  codes can be cached.
 	- Added 'hierarchy_stoplist' configuration option.
-	- Changed mallopt option M_MXFAST top 1024 bytes.
+	- Changed mallopt option M_MXFAST to 512 bytes.
 	- Added -Y option to only return UDP_HIT or UDP_DENIED during
 	  store reload.
