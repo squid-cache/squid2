@@ -140,7 +140,7 @@ a_file_write(async_queue_t * q, int fd, off_t offset, void *buf, int len,
 
     /* Initiate aio */
     if (aio_write(&qe->aq_e_aiocb) < 0) {
-	fatalf("Aiee! aio_read() returned error: %s\n", xstrerror());
+	fatalf("Aiee! aio_write() returned error: %s\n", xstrerror());
     }
 }
 

@@ -53,7 +53,6 @@ static off_t storeCossFilenoToDiskOffset(sfileno f, CossInfo *);
 static sfileno storeCossDiskOffsetToFileno(off_t o, CossInfo *);
 static void storeCossMaybeWriteMemBuf(SwapDir * SD, CossMemBuf * t);
 
-static void find_entries_associated_with_membuf(SwapDir * SD, CossMemBuf * t);
 static void membuf_describe(CossMemBuf * t, int level, int line);
 
 CBDATA_TYPE(storeIOState);
@@ -523,7 +522,6 @@ storeCossWriteMemBufDone(int fd, int errflag, size_t len, void *my_data)
     if (errflag)
 	debug(79, 0) ("storeCossMemBufWriteDone: got failure (%d)\n", errflag);
 
-    debug(79, 1) ("storeCossWriteMemBufDone: %p\n", t);
     dlinkDelete(&t->node, &cs->membufs);
     cbdataFree(t);
 }
@@ -542,7 +540,6 @@ storeCossCreateMemBuf(SwapDir * SD, size_t start,
     newmb = cbdataAlloc(CossMemBuf);
     newmb->diskstart = start;
     debug(79, 3) ("storeCossCreateMemBuf: creating new membuf at %ld\n", (long int) newmb->diskstart);
-    debug(79, 1) ("storeCossCreateMemBuf: %p\n", newmb);
     debug(79, 3) ("storeCossCreateMemBuf: at %p\n", newmb);
     newmb->diskend = newmb->diskstart + COSS_MEMBUF_SZ - 1;
     newmb->flags.full = 0;
@@ -553,11 +550,10 @@ storeCossCreateMemBuf(SwapDir * SD, size_t start,
     dlinkAdd(newmb, &newmb->node, &cs->membufs);
 
     /* Print out the list of membufs */
-    debug(79, 1) ("storeCossCreateMemBuf: membuflist:\n");
+    debug(79, 3) ("storeCossCreateMemBuf: membuflist:\n");
     for (m = cs->membufs.head; m; m = m->next) {
 	t = m->data;
-	membuf_describe(t, 1, __LINE__);
-	find_entries_associated_with_membuf(SD, t);
+	membuf_describe(t, 3, __LINE__);
     }
 
     /*
@@ -614,29 +610,6 @@ storeCossDiskOffsetToFileno(off_t o, CossInfo * cs)
 {
     assert(0 == (o & cs->blksz_mask));
     return o >> cs->blksz_bits;
-}
-
-
-static void
-find_entries_associated_with_membuf(SwapDir * SD, CossMemBuf * t)
-{
-    CossInfo *cs = (CossInfo *) SD->fsdata;
-    dlink_node *m;
-    for (m = cs->index.tail; m; m = m->prev) {
-	StoreEntry *e = m->data;
-	off_t o = storeCossFilenoToDiskOffset(e->swap_filen, cs);
-	MemObject *mem;
-	storeIOState *sio;
-	if (o < t->diskstart)
-	    continue;
-	if (o > t->diskend)
-	    continue;
-	if (NULL == (mem = e->mem_obj))
-	    continue;
-	if (NULL == (sio = mem->swapout.sio))
-	    continue;
-	debug(79, 1) ("\tStoreEntry %p\n", e);
-    }
 }
 
 static void
