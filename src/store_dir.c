@@ -75,6 +75,7 @@ storeCreateSwapDirectories(void)
     } while (pid > 0 || (pid < 0 && errno == EINTR));
 }
 
+
 static int
 storeDirSelectSwapDir(void)
 {
@@ -102,7 +103,7 @@ storeDirSelectSwapDir(void)
 
 #if OLD
 /*
- *Spread load across least 3/4 of the store directories
+ * Spread load across least 3/4 of the store directories
  */
 static int
 storeDirSelectSwapDir(void)
