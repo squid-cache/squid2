@@ -2553,7 +2553,7 @@ int swapInError(fd_unused, entry)
      int fd_unused;
      StoreEntry *entry;
 {
-    cached_error(entry, ERR_DISK_IO, xstrerror());
+    cached_error_entry(entry, ERR_DISK_IO, xstrerror());
     return 0;
 }
 

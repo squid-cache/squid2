@@ -1424,7 +1424,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
     if (parser_return_code == 1) {
 	if (check_valid_url(fd, astm) == 0) {
 	    debug(5, "Invalid URL: %s\n", astm->url);
-	    astm->buf = xstrdup(cached_error_url(astm->url, ERR_INVALID_URL));
+	    astm->buf = xstrdup(cached_error_url(astm->url, ERR_INVALID_URL, NULL));
 	    astm->ptr_to_4k_page = NULL;
 	    icpWrite(fd,
 		astm->buf,
