@@ -649,7 +649,7 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
     assert(size >= 0);
     writelen = size;
     if (http->out.offset == 0) {
-	if (Config.logMimeHdrs) {
+	if (Config.onoff.log_mime_hdrs) {
 	    if ((p = mime_headers_end(buf))) {
 		safe_free(http->al.headers.reply);
 		http->al.headers.reply = xcalloc(1 + p - buf, 1);
@@ -1167,7 +1167,7 @@ icpLogIcp(icpUdpData * queue)
 	queue->proto,
 	queue->logcode);
     clientdbUpdate(queue->address.sin_addr, queue->logcode, PROTO_ICP);
-    if (!Config.Options.log_udp)
+    if (!Config.onoff.log_udp)
 	return;
     memset(&al, '\0', sizeof(AccessLogEntry));
     al.icp.opcode = ICP_OP_QUERY;
@@ -1327,7 +1327,7 @@ icpCheckUdpHit(StoreEntry * e, request_t * request)
 	return 0;
     if (!storeEntryValidToSend(e))
 	return 0;
-    if (Config.Options.icp_hit_stale)
+    if (Config.onoff.icp_hit_stale)
 	return 1;
     if (refreshCheck(e, request, 30))
 	return 0;
@@ -2084,7 +2084,7 @@ httpAccept(int sock, void *notused)
     connState->in.buf = xcalloc(connState->in.size, 1);
     meta_data.misc += connState->in.size;
     comm_add_close_handler(fd, connStateFree, connState);
-    if (Config.Log.log_fqdn)
+    if (Config.onoff.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
     commSetTimeout(fd, Config.Timeout.request, requestTimeout, connState);
     commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, connState, 0);

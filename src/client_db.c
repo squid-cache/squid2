@@ -72,7 +72,7 @@ clientdbUpdate(struct in_addr addr, log_type log_type, protocol_t p)
 {
     char *key;
     ClientInfo *c;
-    if (!Config.Options.client_db)
+    if (!Config.onoff.client_db)
 	return;
     key = inet_ntoa(addr);
     c = (ClientInfo *) hash_lookup(client_table, key);
@@ -95,7 +95,7 @@ clientdbDeniedPercent(struct in_addr addr)
     char *key;
     int n = 100;
     ClientInfo *c;
-    if (!Config.Options.client_db)
+    if (!Config.onoff.client_db)
 	return 0;
     key = inet_ntoa(addr);
     c = (ClientInfo *) hash_lookup(client_table, key);

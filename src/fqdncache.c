@@ -912,7 +912,7 @@ fqdnFromAddr(struct in_addr addr)
 {
     const char *n;
     static char buf[32];
-    if (Config.Log.log_fqdn && (n = fqdncache_gethostbyaddr(addr, 0)))
+    if (Config.onoff.log_fqdn && (n = fqdncache_gethostbyaddr(addr, 0)))
 	return n;
     xstrncpy(buf, inet_ntoa(addr), 32);
     return buf;

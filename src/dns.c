@@ -198,7 +198,7 @@ dnsOpenServer(const char *command)
     fclose(debug_log);
     close(fd);
     close(cfd);
-    if (Config.Options.res_defnames)
+    if (Config.onoff.res_defnames)
 	execlp(command, "(dnsserver)", "-D", NULL);
     else
 	execlp(command, "(dnsserver)", NULL);

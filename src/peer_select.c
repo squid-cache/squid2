@@ -96,7 +96,7 @@ peerSelectIcpPing(request_t * request, int direct, StoreEntry * entry)
 	fatal_dump("direct == DIRECT_YES");
     if (!BIT_TEST(entry->flag, HIERARCHICAL) && direct != DIRECT_NO)
 	return 0;
-    if (Config.singleParentBypass && !Config.sourcePing)
+    if (Config.onoff.single_parent_bypass && !Config.onoff.source_ping)
 	if (getSingleParent(request))
 	    return 0;
     if (BIT_TEST(entry->flag, KEY_PRIVATE) && !neighbors_do_private_keys)

@@ -179,7 +179,7 @@ parseConfigFile(const char *file_name)
     }
     if (Config.Announce.period < 1) {
 	Config.Announce.period = 86400 * 365;	/* one year */
-	Config.Announce.on = 0;
+	Config.onoff.announce = 0;
     }
     if (Config.dnsChildren < 0)
 	Config.dnsChildren = 0;

@@ -149,7 +149,7 @@ _db_print(va_alist)
 #endif /* HAVE_SYSLOG */
     /* write to log file */
     vfprintf(debug_log, f, args);
-    if (!Config.Options.buffered_logs)
+    if (!Config.onoff.buffered_logs)
 	fflush(debug_log);
     if (opt_debug_stderr && debug_log != stderr)
 	vfprintf(stderr, f, args);
