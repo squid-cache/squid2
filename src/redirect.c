@@ -263,8 +263,11 @@ GetFirstAvailable(void)
     redirector_t *redirect = NULL;
     for (k = 0; k < NRedirectors; k++) {
 	redirect = *(redirect_child_table + k);
-	if (!(redirect->flags & REDIRECT_FLAG_BUSY))
-	    return redirect;
+	if (BIT_TEST(redirect->flags, REDIRECT_FLAG_BUSY))
+	    continue;
+	if (!BIT_TEST(redirect->flags, REDIRECT_FLAG_ALIVE))
+	    continue;
+	return redirect;
     }
     return NULL;
 }
