@@ -132,6 +132,8 @@ install-mkdirs:
 		mkdir $(localstatedir)/logs; \
 	fi
 
+# Michael Lupp <mike@nemesis.saar.de> wants to know about additions
+# to the install target.
 install: all install-mkdirs
 	@for f in $(PROGS); do \
 		if test -f $(bindir)/$$f; then \
