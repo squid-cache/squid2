@@ -872,9 +872,6 @@ clientCachable(clientHttpRequest * http)
      */
     if (!aclCheckFast(Config.accessList.noCache, &ch))
 	return 0;
-    if (Config.cache_stop_relist)
-	if (aclMatchRegex(Config.cache_stop_relist, url))
-	    return 0;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(method);
     /* FTP is always cachable */
