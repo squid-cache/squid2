@@ -381,7 +381,7 @@ void storePurgeMem(e)
 	}
 	safe_free(e->mem_obj->client_list);
     }
-    put_free_mem_obj(e->mem_obj);
+    destroy_MemObject(e->mem_obj);
     e->mem_obj = NULL;
 }
 
