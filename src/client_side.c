@@ -302,6 +302,7 @@ clientRedirectDone(void *data, char *result)
 	    new_request->body_sz = old_request->body_sz;
 	}
 	new_request->content_length = old_request->content_length;
+	new_request->flags.proxy_keepalive = old_request->flags.proxy_keepalive;
 	requestUnlink(old_request);
 	http->request = requestLink(new_request);
     }
