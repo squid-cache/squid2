@@ -1653,9 +1653,7 @@ DOC_START
 		this feature could make you liable for problems which
 		it causes.
 		
-	Please see the file doc/Release-Notes-1.1.txt for a full
-	description of Squid's refresh algorithm.  Basically a
-	cached object is: (the order is changed from 1.1.X)
+	Basically a cached object is:
 
 		FRESH if expires < now, else STALE
 		STALE if age > max
