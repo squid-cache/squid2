@@ -429,7 +429,9 @@ mainInitialize(void)
 
     _db_init(Config.Log.log, Config.debugOptions);
     fd_open(fileno(debug_log), FD_LOG, Config.Log.log);
-
+#if MEM_GEN_TRACE
+    log_trace_init("/tmp/squid.alloc");
+#endif
     debug(1, 0) ("Starting Squid Cache version %s for %s...\n",
 	version_string,
 	CONFIG_HOST_TYPE);
