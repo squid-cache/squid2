@@ -290,7 +290,7 @@ struct rusage {
 #endif
 
 #if CBDATA_DEBUG
-#define cbdataAdd(a)	cbdataAddDbg(a,__FILE__,__LINE__)
+#define cbdataAdd(a,b)	cbdataAddDbg(a,b,__FILE__,__LINE__)
 #endif
 
 #ifdef USE_GNUREGEX
