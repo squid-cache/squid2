@@ -877,7 +877,7 @@ extern void storeDigestInit(void);
 extern void storeDigestNoteStoreReady(void);
 extern void storeDigestScheduleRebuild(void);
 extern void storeDigestDel(const StoreEntry * entry);
-extern void storeDigestReport(void);
+extern void storeDigestReport(StoreEntry *);
 
 /*
  * store_dir.c
