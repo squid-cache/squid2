@@ -826,7 +826,7 @@ statAvgTick(void *notused)
 	StatCounters *t = &CountHourHist[1];
 	StatCounters *c = &CountHist[N_COUNT_HIST];
 	xmemmove(p, t, (N_COUNT_HOUR_HIST - 1) * sizeof(StatCounters));
-	memcpy(t, c, sizeof(StatCounters));
+	statCountersCopy(t, c);
 	NCountHourHist++;
     }
 }
