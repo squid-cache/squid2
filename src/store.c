@@ -2676,7 +2676,6 @@ storeWriteCleanLog(void)
 	return 0;
     }
     for (e = storeGetFirst(); e; e = storeGetNext()) {
-	debug(20, 5, "storeWriteCleanLog: <URL:%s>\n", e->url);
 	if (e->swap_file_number < 0)
 	    continue;
 	if (e->swap_status != SWAP_OK)

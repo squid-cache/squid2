@@ -158,11 +158,11 @@ dnsOpenServer(char *command)
 	comm_close(cfd);	/* close shared socket with child */
 	/* open new socket for parent process */
 	sfd = comm_open(SOCK_STREAM,
-		0,		/* protocol */
-		local_addr,
-		0,		/* port */
-		0,		/* flags */
-		NULL);	/* blocking! */
+	    0,			/* protocol */
+	    local_addr,
+	    0,			/* port */
+	    0,			/* flags */
+	    NULL);		/* blocking! */
 	if (sfd == COMM_ERROR)
 	    return -1;
 	if (comm_connect(sfd, localhost, port) == COMM_ERROR) {

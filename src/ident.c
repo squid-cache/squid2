@@ -56,11 +56,11 @@ identStart(int sock, icpStateData * icpState)
 
     if (sock < 0) {
 	sock = comm_open(SOCK_STREAM,
-		0,
-		Config.Addrs.tcp_outgoing,
-		0,
-		COMM_NONBLOCKING,
-		"ident");
+	    0,
+	    Config.Addrs.tcp_outgoing,
+	    0,
+	    COMM_NONBLOCKING,
+	    "ident");
 	if (sock == COMM_ERROR)
 	    return;
     }
