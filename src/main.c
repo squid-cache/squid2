@@ -346,7 +346,9 @@ mainReconfigure(void)
     authenticateShutdown();
     storeDirCloseSwapLogs();
     errorClean();
+    enter_suid();		/* root to read config file */
     parseConfigFile(ConfigFile);
+    setEffectiveUser();
     _db_init(Config.Log.log, Config.debugOptions);
     ipcache_restart();		/* clear stuck entries */
     authenticateUserCacheRestart();	/* clear stuck ACL entries */
@@ -720,7 +722,11 @@ main(int argc, char **argv)
 	eventRun();
 	if ((loop_delay = eventNextTime()) < 0)
 	    loop_delay = 0;
+#if HAVE_POLL
+	switch (comm_poll(loop_delay)) {
+#else
 	switch (comm_select(loop_delay)) {
+#endif
 	case COMM_OK:
 	    errcount = 0;	/* reset if successful */
 	    break;
