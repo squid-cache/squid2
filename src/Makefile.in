@@ -89,6 +89,7 @@ OBJS	 	= \
 		client_db.o \
 		client_side.o \
 		comm.o \
+		comm_select.o \
 		debug.o \
 		disk.o \
 		dns.o \

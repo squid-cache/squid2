@@ -599,6 +599,7 @@ main(int argc, char **argv)
 
     /*init comm module */
     comm_init();
+    comm_select_init();
 
     /* we have to init fdstat here. */
     fd_open(0, FD_LOG, "stdin");
