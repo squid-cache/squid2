@@ -3016,7 +3016,7 @@ clientReadRequest(int fd, void *data)
     /* Process next request */
     while (conn->in.offset > 0 && conn->body.size_left == 0) {
 	int nrequests;
-	size_t req_line_sz;
+	size_t req_line_sz = 0;
 	/* Skip leading (and trailing) whitespace */
 	while (conn->in.offset > 0 && xisspace(conn->in.buf[0])) {
 	    xmemmove(conn->in.buf, conn->in.buf + 1, conn->in.offset - 1);

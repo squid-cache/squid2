@@ -2856,7 +2856,7 @@ aclMatchArp(void *dataptr, struct in_addr c)
 #if defined(_SQUID_LINUX_)
     struct arpreq arpReq;
     struct sockaddr_in ipAddr;
-    unsigned char ifbuffer[sizeof(struct ifreq) * 64];
+    char ifbuffer[sizeof(struct ifreq) * 64];
     struct ifconf ifc;
     struct ifreq *ifr;
     int offset;

@@ -123,7 +123,7 @@ ntlm_add_to_payload(char *payload, int *payload_length,
  */
 const char *
 ntlm_make_challenge(char *domain, char *domain_controller,
-    char *challenge_nonce, int challenge_nonce_len)
+    unsigned char *challenge_nonce, int challenge_nonce_len)
 {
     ntlm_challenge ch;
     int pl = 0;

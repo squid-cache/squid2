@@ -832,7 +832,7 @@ htcpRecv(int fd, void *data)
     static char buf[8192];
     int len;
     static struct sockaddr_in from;
-    int flen = sizeof(struct sockaddr_in);
+    socklen_t flen = sizeof(struct sockaddr_in);
     memset(&from, '\0', flen);
     statCounter.syscalls.sock.recvfroms++;
     len = recvfrom(fd, buf, 8192, 0, (struct sockaddr *) &from, &flen);

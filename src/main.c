@@ -807,7 +807,7 @@ mainStartScript(const char *prog)
     xstrncpy(&script[sl], squid_start_script, MAXPATHLEN - sl);
     if ((cpid = fork()) == 0) {
 	/* child */
-	execl(script, squid_start_script, 0);
+	execl(script, squid_start_script, NULL);
 	_exit(0);
     } else {
 	do {
