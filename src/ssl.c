@@ -445,7 +445,7 @@ sslPeerSelectComplete(peer * p, void *data)
 	sslState->port = request->port;
     } else if (p->http_port != 0) {
 	sslState->port = p->http_port;
-    } else if ((g = neighborFindByName(p->host))) {
+    } else if ((g = peerFindByName(p->host))) {
 	sslState->port = g->http_port;
     } else {
 	sslState->port = CACHE_HTTP_PORT;

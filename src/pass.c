@@ -441,7 +441,7 @@ passPeerSelectComplete(peer * p, void *data)
 	passState->port = request->port;
     } else if (p->http_port != 0) {
 	passState->port = p->http_port;
-    } else if ((g = neighborFindByName(p->host))) {
+    } else if ((g = peerFindByName(p->host))) {
 	passState->port = g->http_port;
     } else {
 	passState->port = CACHE_HTTP_PORT;

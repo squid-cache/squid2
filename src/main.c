@@ -434,7 +434,6 @@ mainReconfigure(void)
 {
     debug(1, 0) ("Restarting Squid Cache (version %s)...\n", version_string);
     /* Already called serverConnectionsClose and ipcacheShutdownServers() */
-    neighborsDestroy();
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
     ipcache_restart();		/* clear stuck entries */
