@@ -528,6 +528,8 @@ clientBuildReplyHeader(clientHttpRequest * http,
 	    continue;
 	if (strncasecmp(xbuf, "Connection:", 11) == 0)
 	    continue;
+	if (strncasecmp(xbuf, "Keep-Alive:", 11) == 0)
+	    continue;
 	if (strncasecmp(xbuf, "Set-Cookie:", 11) == 0)
 	    if (isTcpHit(http->log_type))
 		continue;
@@ -1967,6 +1969,7 @@ clientReadRequest(int fd, void *data)
 	    err->http_status = HTTP_BAD_REQUEST;
 	    err->callback = icpErrorComplete;
 	    errorSend(fd, err);
+	    return;
 	}
     }
 }
