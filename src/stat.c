@@ -403,9 +403,9 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
 	    describeTimestamps(entry),
 	    (int) entry->refcount,
 	    storePendingNClients(entry),
-	    entry->object_len,
-	    mem ? mem->swap_length : -1,
-	    (int) mem ? mem->swapout_fd : -2,
+	    (int) entry->object_len,
+	    (int) (mem ? mem->swap_length : -1),
+	    (int) (mem ? mem->swapout_fd : -2),
 	    entry->url);
 	if (mem) {
 	    for (j = 0; j < mem->nclients; j++) {

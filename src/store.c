@@ -363,7 +363,7 @@ storeLog(int tag, const StoreEntry * e)
 	(int) reply->expires,
 	reply->content_type[0] ? reply->content_type : "unknown",
 	reply->content_length,
-	e->object_len - mem->reply->hdr_sz,
+	(int) (e->object_len - mem->reply->hdr_sz),
 	RequestMethodStr[e->method],
 	mem->log_url);
     file_write(storelog_fd,
@@ -956,7 +956,7 @@ storeSwapLog(const StoreEntry * e)
 	(int) e->timestamp,
 	(int) e->expires,
 	(int) e->lastmod,
-	e->object_len,
+	(int) e->object_len,
 	e->url);
     file_write(swaplog_fd,
 	xstrdup(logmsg),
@@ -1984,7 +1984,7 @@ storeWriteCleanLog(void)
 	    (int) e->timestamp,
 	    (int) e->expires,
 	    (int) e->lastmod,
-	    e->object_len,
+	    (int) e->object_len,
 	    e->url);
 	if (x < 0) {
 	    debug(50, 0, "storeWriteCleanLog: %s: %s\n", tmp_filename, xstrerror());
