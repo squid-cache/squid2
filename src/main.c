@@ -615,8 +615,9 @@ main(int argc, char **argv)
 	if (opt_parse_cfg_only)
 	    return parse_err;
     }
-    if (checkRunningPid())
-	exit(1);
+    if (-1 == opt_send_signal)
+	if (checkRunningPid())
+	    exit(1);
 
 #if TEST_ACCESS
     comm_init();
