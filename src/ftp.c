@@ -255,7 +255,6 @@ ftpProcessReplyHeader(FtpStateData * data, const char *buf, int size)
 	case 401:		/* Unauthorized */
 	case 407:		/* Proxy Authentication Required */
 	    /* These should never be cached at all */
-	    storeSetPrivateKey(entry);
 	    storeExpireNow(entry);
 	    BIT_RESET(entry->flag, ENTRY_CACHABLE);
 	    storeReleaseRequest(entry);

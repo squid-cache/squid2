@@ -226,7 +226,6 @@ httpMakePublic(StoreEntry * entry)
 static void
 httpMakePrivate(StoreEntry * entry)
 {
-    storeSetPrivateKey(entry);
     storeExpireNow(entry);
     BIT_RESET(entry->flag, ENTRY_CACHABLE);
     storeReleaseRequest(entry);	/* delete object when not used */
