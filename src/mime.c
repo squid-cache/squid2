@@ -376,14 +376,12 @@ mimeLoadIconFile(const char *icon)
     LOCAL_ARRAY(char, path, MAXPATHLEN);
     LOCAL_ARRAY(char, url, MAX_URL);
     char *buf;
-    const cache_key *key;
     const char *type = mimeGetContentType(icon);
     if (type == NULL)
 	fatal("Unknown icon format while reading mime.conf\n");
     buf = internalLocalUri("/squid-internal-static/icons/", icon);
     xstrncpy(url, buf, MAX_URL);
-    key = storeKeyPublic(url, METHOD_GET);
-    if (storeGet(key))
+    if (storeGetPublic(url, METHOD_GET))
 	return;
     snprintf(path, MAXPATHLEN, "%s/%s", Config.icons.directory, icon);
     fd = file_open(path, O_RDONLY, NULL, NULL, NULL);

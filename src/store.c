@@ -279,6 +279,20 @@ storeGet(const cache_key * key)
     return (StoreEntry *) hash_lookup(store_table, key);
 }
 
+StoreEntry *
+storeGetPublic(const char *uri, const method_t method)
+{
+    cache_key *key;
+    StoreEntry *e;
+    key = storeKeyPublic(uri, method);
+    e = storeGet(key);
+    if (e == NULL && squid_curtime < 909000000) {
+	key = storeKeyPublicOld(uri, method);
+	e = storeGet(key);
+    }
+    return storeGet(key);
+}
+
 static int
 getKeyCounter(void)
 {

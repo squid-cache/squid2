@@ -674,8 +674,7 @@ htcpHandleTstRequest(htcpDataHeader * dhdr, char *buf, int sz, struct sockaddr_i
 	s->version);
     m = urlParseMethod(s->method);
     debug(31, 1) ("htcpHandleTstRequest: %s\n", s->req_hdrs);
-    key = storeKeyPublic(s->uri, m);
-    e = storeGet(key);
+    e = storeGetPublic(s->uri, m);
     if (NULL == e) {
 	/* cache miss */
 	htcpTstReply(dhdr, NULL, NULL, from);

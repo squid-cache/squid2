@@ -243,8 +243,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 		flags |= ICP_FLAG_SRC_RTT;
 	}
 	/* The peer is allowed to use this cache */
-	key = storeKeyPublic(url, METHOD_GET);
-	entry = storeGet(key);
+	entry = storeGetPublic(url, METHOD_GET);
 	debug(12, 5) ("icpHandleIcpV2: OPCODE %s\n", icp_opcode_str[header.opcode]);
 	if (icpCheckUdpHit(entry, icp_request)) {
 	    reply = icpCreateMessage(ICP_HIT, flags, url, header.reqnum, src_rtt);

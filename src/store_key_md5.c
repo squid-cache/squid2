@@ -108,13 +108,32 @@ storeKeyPrivate(const char *url, method_t method, int id)
 }
 
 const cache_key *
-storeKeyPublic(const char *url, method_t method)
+storeKeyPublic(const char *url, const method_t method)
 {
     static cache_key digest[MD5_DIGEST_CHARS];
     MD5_CTX M;
     MD5Init(&M);
     MD5Update(&M, (unsigned char *) &method, sizeof(method));
     MD5Update(&M, (unsigned char *) url, strlen(url));
+    MD5Final(digest, &M);
+    return digest;
+}
+
+/*
+ * Compatibility transition period.  Remove this after Oct 21, 1998
+ */
+const cache_key *
+storeKeyPublicOld(const char *url, method_t method)
+{
+    static cache_key digest[MD5_DIGEST_CHARS];
+    MD5_CTX M;
+    int n;
+    char key_buf[MAX_URL + 100];
+    n = snprintf(key_buf, sizeof(key_buf), "%s %s",
+	RequestMethodStr[method],
+	url);
+    MD5Init(&M);
+    MD5Update(&M, (unsigned char *) key_buf, n);
     MD5Final(digest, &M);
     return digest;
 }
