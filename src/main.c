@@ -147,7 +147,7 @@ Usage: %s [-hsvzCDFRUVY] [-f config-file] [-[au] port]\n\
                  %s\n\
        -h        Print help message.\n\
        -s        Enable logging to syslog.\n\
-       -u port   Specify UDP port number (default: %d), disable with 0.\n\
+       -u port   Specify ICP port number (default: %d), disable with 0.\n\
        -v        Print version.\n\
        -z        Zap disk storage -- deletes all objects in disk cache.\n\
        -C        Do not catch fatal signals.\n\
@@ -264,6 +264,10 @@ void shut_down(sig)
     debug(21, 1, "Waiting %d seconds for active connections to finish\n",
 	getShutdownLifetime());
     shutdown_pending = 1;
+#if SA_RESETHAND == 0
+    signal(SIGTERM, SIG_DFL);
+    signal(SIGINT, SIG_DFL);
+#endif
 }
 
 void serverConnectionsOpen()
