@@ -1386,7 +1386,6 @@ struct _SwapDir {
     } log;
     struct {
 	int blksize;
-	int kperblk;
     } fs;
     void *fsdata;
 };
