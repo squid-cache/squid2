@@ -308,6 +308,9 @@ statObjects(void *data)
 	storeUnlockObject(state->sentry);
 	cbdataFree(state);
 	return;
+    } else if (fwdCheckDeferRead(-1, state->sentry)) {
+        eventAdd("statObjects", statObjects, state, 0.1, 1);
+	return;
     }
     storeBuffer(state->sentry);
     debug(49, 3) ("statObjects: Bucket #%d\n", state->bucket);
