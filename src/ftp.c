@@ -2296,6 +2296,7 @@ ftpAppendSuccessHeader(FtpStateData * ftpState)
 	return;
     ftpState->flags.http_header_sent = 1;
     assert(e->mem_obj->inmem_hi == 0);
+    EBIT_CLR(e->flags, ENTRY_FWD_HDR_WAIT);
     filename = (t = strRChr(urlpath, '/')) ? t + 1 : strBuf(urlpath);
     if (ftpState->flags.isdir) {
 	mime_type = "text/html";
