@@ -277,7 +277,7 @@ destroy_MemObject(MemObject * mem)
     safe_free(mem->clients);
     safe_free(mem->mime_hdr);
     safe_free(mem->reply);
-    safe_free(mem->e_abort_msg);
+    put_free_8k_page(mem->e_abort_msg);
     safe_free(mem->log_url);
     requestUnlink(mem->request);
     mem->request = NULL;
