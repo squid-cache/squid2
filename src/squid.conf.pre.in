@@ -1103,3 +1103,14 @@ minimum_direct_hops 4
 #	Lowering this value increases the total number of buckets and
 #	also the storage maintenance rate.  The default is 50.
 #store_objects_per_bucket 50
+
+#  TAG: http_anonymizer
+#	If you want to filter out certain HTTP request headers for
+#	privacy reasons, enable this option.  There are three
+#	appropriate settings:
+#		'off'		All HTTP request headers are passed.
+#		'standard'	Specific headers are removed
+#		'paranoid'	Only specific headers are allowed.
+#	To see which headers are allowed or denied, please see the
+#	http-anon.c source file.
+#http_anonymizer off

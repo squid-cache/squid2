@@ -156,4 +156,8 @@ extern size_t httpBuildRequestHeader _PARAMS((request_t * request,
 	size_t out_sz,
 	int cfd));
 
+#define ANONYMIZER_NONE		0
+#define ANONYMIZER_STANDARD	1
+#define ANONYMIZER_PARANOID	2
+
 #endif /* HTTP_H */

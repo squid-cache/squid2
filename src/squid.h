@@ -354,6 +354,8 @@ extern int passStart _PARAMS((int fd,
 	int *size_ptr));
 extern void identStart _PARAMS((int, icpStateData *,
 	void       (*callback) _PARAMS((void *))));
+extern int httpAnonAllowed _PARAMS((const char *line));
+extern int httpAnonDenied _PARAMS((const char *line));
 
 extern const char *const dash_str;
 extern const char *const null_string;

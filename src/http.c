@@ -682,27 +682,19 @@ httpSendComplete(int fd, char *buf, int size, int errflag, void *data)
     }
 }
 
-#ifdef USE_ANONYMIZER
-#include "http-anon.c"
-#endif
-
 static void
 httpAppendRequestHeader(char *hdr, const char *line, size_t * sz, size_t max)
 {
     size_t n = *sz + strlen(line) + 2;
     if (n >= max)
 	return;
-#ifdef USE_ANONYMIZER
-#ifdef USE_PARANOID_ANONYMIZER
-    if (httpAnonSearchHeaderField(http_anon_allowed_header, line) == NULL) {
-#else
-    if (httpAnonSearchHeaderField(http_anon_denied_header, line) == NULL) {
-#endif
-	debug(11, 5, "httpAppendRequestHeader: removed for anonymity: <%s>\n",
-	    line);
-	return;
+    if (Config.Options.anonymizer == ANONYMIZER_PARANOID) {
+        if (!httpAnonAllowed(line))
+	    return;
+    } else if (Config.Options.anonymizer == ANONYMIZER_STANDARD) {
+        if (httpAnonDenied(line))
+	    return;
     }
-#endif
     /* allowed header, explicitly known to be not dangerous */
     debug(11, 5, "httpAppendRequestHeader: %s\n", line);
     strcpy(hdr + (*sz), line);

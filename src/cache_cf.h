@@ -271,6 +271,7 @@ struct SquidConfig {
 	int log_udp;
 	int enable_purge;
 	int res_defnames;
+	int anonymizer;
     } Options;
 };
 
