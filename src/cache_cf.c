@@ -411,10 +411,8 @@ static void parseHostDomainLine()
 
     if (!(host = strtok(NULL, w_space)))
 	self_destruct();
-    while ((domain = strtok(NULL, ", \t\n"))) {
-	if (neighbors_cf_domain(host, domain) == 0)
-	    self_destruct();
-    }
+    while ((domain = strtok(NULL, ", \t\n")))
+	neighbors_cf_domain(host, domain);
 }
 
 
