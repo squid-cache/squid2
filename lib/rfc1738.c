@@ -54,7 +54,9 @@ static char rfc1738_unsafe_chars[] =
     (char) 0x3E,		/* > */
     (char) 0x22,		/* " */
     (char) 0x23,		/* # */
+#if 0				/* done in code */
     (char) 0x25,		/* % */
+#endif
     (char) 0x7B,		/* { */
     (char) 0x7D,		/* } */
     (char) 0x7C,		/* | */

@@ -292,7 +292,7 @@ urlParse(method_t method, char *url)
 	case URI_WHITESPACE_ALLOW:
 	    break;
 	case URI_WHITESPACE_ENCODE:
-	    t = rfc1738_escape(urlpath);
+	    t = rfc1738_escape_unescaped(urlpath);
 	    xstrncpy(urlpath, t, MAX_URL);
 	    break;
 	case URI_WHITESPACE_CHOP:
@@ -385,8 +385,8 @@ urlCanonicalClean(const request_t * request)
 	    break;
 	}
     }
-    if (stringHasWhitespace(buf))
-	xstrncpy(buf, rfc1738_escape(buf), MAX_URL);
+    if (stringHasCntl(buf))
+	xstrncpy(buf, rfc1738_escape_unescaped(buf), MAX_URL);
     return buf;
 }
 

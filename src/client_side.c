@@ -2258,10 +2258,10 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	strcpy(http->uri, url);
 	http->flags.accel = 0;
     }
-    if (!stringHasWhitespace(http->uri))
+    if (!stringHasCntl(http->uri))
 	http->log_uri = xstrndup(http->uri, MAX_URL);
     else
-	http->log_uri = xstrndup(rfc1738_escape(http->uri), MAX_URL);
+	http->log_uri = xstrndup(rfc1738_escape_unescaped(http->uri), MAX_URL);
     debug(33, 5) ("parseHttpRequest: Complete request received\n");
     if (free_request)
 	safe_free(url);

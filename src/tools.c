@@ -883,3 +883,14 @@ xrename(const char *from, const char *to)
 	from, to, xstrerror());
     return -1;
 }
+
+int
+stringHasCntl(const unsigned char *s)
+{
+    char c;
+    while ((c = *s++) != '\0') {
+	if (*s <= 0x1f)
+	    return 1;
+    }
+    return 0;
+}
