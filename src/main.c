@@ -226,7 +226,7 @@ static void mainInitialize()
     fd_note(fileno(debug_log), getCacheLogFile());
 
     debug(1, 0, "Starting Squid Cache (version %s)...\n", version_string);
-    debug(1, 1, "With %d file descriptors available\n", getMaxFD());
+    debug(1, 1, "With %d file descriptors available\n", FD_SETSIZE);
 
     if (first_time) {
 	disk_init();		/* disk_init must go before ipcache_init() */
@@ -291,7 +291,7 @@ int main(argc, argv)
 
     setMaxFD();
 
-    for (n = getMaxFD(); n > 2; n--)
+    for (n = FD_SETSIZE; n > 2; n--)
 	close(n);
 
 #if HAVE_MALLOPT

@@ -221,7 +221,7 @@ int comm_open(io_type, port, note)
 }
 
    /*
-    * NOTE: set the listen queue to getMaxFD()/4 and rely on the kernel to      
+    * NOTE: set the listen queue to FD_SETSIZE/4 and rely on the kernel to      
     * impose an upper limit.  Solaris' listen(3n) page says it has   
     * no limit on this parameter, but sys/socket.h sets SOMAXCONN 
     * to 5.  HP-UX currently has a limit of 20.  SunOS is 5 and
@@ -231,9 +231,9 @@ int comm_listen(sock)
      int sock;
 {
     int x;
-    if ((x = listen(sock, getMaxFD() >> 2)) < 0) {
+    if ((x = listen(sock, FD_SETSIZE >> 2)) < 0) {
 	debug(5, 0, "comm_listen: listen(%d, %d): %s\n",
-	    getMaxFD() >> 2,
+	    FD_SETSIZE >> 2,
 	    sock, xstrerror());
 	return x;
     }
@@ -316,7 +316,7 @@ int comm_set_fd_lifetime(fd, lifetime)
      int fd;
      int lifetime;
 {
-    if (fd < 0 || fd > getMaxFD())
+    if (fd < 0 || fd > FD_SETSIZE)
 	return 0;
     if (lifetime < 0)
 	return fd_lifetime[fd] = -1;
@@ -685,8 +685,8 @@ int comm_select(sec, failtime)
 	    /* break on interrupt so outer loop will reset FD_SET's */
 	    if (errno == EINTR)
 		break;
-	    debug(5, 0, "comm_select: select failure: %s (errno %d).\n",
-		xstrerror(), errno);
+	    debug(5, 0, "comm_select: select failure: %s\n",
+		xstrerror());
 	    examine_select(&readfds, &writefds, &exceptfds);
 	    return COMM_ERROR;
 	    /* NOTREACHED */
@@ -978,16 +978,16 @@ struct in_addr *getAddress(name)
  */
 int comm_init()
 {
-    int i, max_fd = getMaxFD();
+    int i;
 
-    fd_table = xcalloc(max_fd, sizeof(FD_ENTRY));
+    fd_table = xcalloc(FD_SETSIZE, sizeof(FD_ENTRY));
     /* Keep a few file descriptors free so that we don't run out of FD's
      * after accepting a client but before it opens a socket or a file.
-     * Since getMaxFD can be as high as several thousand, don't waste them */
-    RESERVED_FD = min(100, getMaxFD() / 4);
+     * Since FD_SETSIZE can be as high as several thousand, don't waste them */
+    RESERVED_FD = min(100, FD_SETSIZE / 4);
     /* hardwired lifetimes */
-    fd_lifetime = xmalloc(sizeof(int) * max_fd);
-    for (i = 0; i < max_fd; i++)
+    fd_lifetime = xmalloc(sizeof(int) * FD_SETSIZE);
+    for (i = 0; i < FD_SETSIZE; i++)
 	comm_set_fd_lifetime(i, -1);	/* denotes invalid */
     zero_tv.tv_sec = 0;
     zero_tv.tv_usec = 0;
@@ -1014,12 +1014,11 @@ static int examine_select(readfds, writefds, exceptfds)
     fd_set write_x;
     fd_set except_x;
     int num;
-    int maxfd = getMaxFD();
     struct timeval tv;
     FD_ENTRY *f = NULL;
 
     debug(5, 0, "examine_select: Examining open file descriptors...\n");
-    for (fd = 0; fd < maxfd; fd++) {
+    for (fd = 0; fd < FD_SETSIZE; fd++) {
 	FD_ZERO(&read_x);
 	FD_ZERO(&write_x);
 	FD_ZERO(&except_x);
@@ -1079,10 +1078,9 @@ static void checkTimeouts()
     int fd;
     int (*tmp) () = NULL;
     FD_ENTRY *f = NULL;
-    int maxfd = fdstat_biggest_fd() + 1;
 
     /* scan for timeout */
-    for (fd = 0; fd < maxfd; ++fd) {
+    for (fd = 0; fd < FD_SETSIZE; ++fd) {
 	f = &fd_table[fd];
 	if ((f->timeout_handler) &&
 	    (f->timeout_time <= squid_curtime)) {
@@ -1098,14 +1096,13 @@ static void checkTimeouts()
 static void checkLifetimes()
 {
     int fd;
-    int max_fd = getMaxFD();
     time_t lft;
     int (*tmp_local) () = NULL;
     int use_lifetime_handler = 0;
     int use_read = 0;
 
     /* scan for hardwired lifetime expires, do the timeouts first though */
-    for (fd = 0; fd < max_fd; fd++) {
+    for (fd = 0; fd < FD_SETSIZE; fd++) {
 	lft = comm_get_fd_lifetime(fd);
 	if ((lft != -1) && (lft < squid_curtime)) {
 	    if (fd_table[fd].lifetime_handler != NULL) {
@@ -1179,12 +1176,12 @@ static void checkLifetimes()
  */
 static void Reserve_More_FDs()
 {
-    if (RESERVED_FD < getMaxFD() - 64) {
+    if (RESERVED_FD < FD_SETSIZE - 64) {
 	RESERVED_FD = RESERVED_FD + 1;
-    } else if (RESERVED_FD == getMaxFD() - 64) {
+    } else if (RESERVED_FD == FD_SETSIZE - 64) {
 	RESERVED_FD = RESERVED_FD + 1;
 	debug(5, 0, "Don't you have a tiny open-file table size of %d\n",
-	    getMaxFD() - RESERVED_FD);
+	    FD_SETSIZE - RESERVED_FD);
     }
 }
 

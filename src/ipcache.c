@@ -175,7 +175,7 @@ int ipcache_create_dnsserver(command)
 
     /* setup filedescriptors */
     dup2(cfd, 3);
-    for (fd = getMaxFD(); fd > 3; fd--) {
+    for (fd = FD_SETSIZE; fd > 3; fd--) {
 	close(fd);
     }
 

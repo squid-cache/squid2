@@ -237,39 +237,6 @@ void sig_child(sig)
     signal(sig, sig_child);
 }
 
-#ifdef OLD_CODE
-/*
- *  getMaxFD - returns the file descriptor table size
- */
-int getMaxFD()
-{
-    static int i = -1;
-
-    if (i == -1) {
-#if HAVE_SYSCONF && defined(_SC_OPEN_MAX)
-	i = sysconf(_SC_OPEN_MAX);	/* prefered method */
-#elif HAVE_GETDTABLESIZE
-	i = getdtablesize();	/* the BSD way */
-#elif defined(OPEN_MAX)
-	i = OPEN_MAX;
-#elif defined(NOFILE)
-	i = NOFILE;
-#elif defined(_NFILE)
-	i = _NFILE;
-#else
-	i = 64;			/* 64 is a safe default */
-#endif
-	debug(21, 10, "getMaxFD set MaxFD at %d\n", i);
-    }
-    return (i);
-}
-#else
-int getMaxFD()
-{
-    return FD_SETSIZE;
-}
-#endif
-
 char *getMyHostname()
 {
     static char host[SQUIDHOSTNAMELEN + 1];

@@ -623,7 +623,7 @@ void info_get(obj, sentry)
     sprintf(line, "{File descriptor usage for %s:}\n", appname);
     storeAppend(sentry, line, strlen(line));
 
-    sprintf(line, "{\tMax number of file desc available:\t%d}\n", getMaxFD());
+    sprintf(line, "{\tMax number of file desc available:\t%d}\n", FD_SETSIZE);
     storeAppend(sentry, line, strlen(line));
 
     sprintf(line, "{\tLargest file desc currently in use:\t%d}\n",
@@ -639,13 +639,13 @@ void info_get(obj, sentry)
     storeAppend(sentry, line, strlen(line));
 
     {
-	int i, max_fd = getMaxFD();
+	int i;
 	char *s = NULL;
 
 	sprintf(line, "{\tActive file descriptors:}\n");
 	storeAppend(sentry, line, strlen(line));
 
-	for (i = 0; i < max_fd; i++) {
+	for (i = 0; i < FD_SETSIZE; i++) {
 	    int lft, to;
 	    if (!fdstat_isopen(i))
 		continue;

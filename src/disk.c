@@ -68,17 +68,15 @@ typedef struct _FileEntry {
 /* table for FILE variable, write lock and queue. Indexed by fd. */
 FileEntry *file_table;
 
-extern int getMaxFD();
 extern void fatal_dump _PARAMS((char *));
 
 /* initialize table */
 int disk_init()
 {
     int fd;
-    int max_fd = getMaxFD();
 
-    file_table = xcalloc(1, sizeof(FileEntry) * max_fd);
-    for (fd = 0; fd < max_fd; fd++) {
+    file_table = xcalloc(1, sizeof(FileEntry) * FD_SETSIZE);
+    for (fd = 0; fd < FD_SETSIZE; fd++) {
 	file_table[fd].filename[0] = '\0';
 	file_table[fd].at_eof = NO;
 	file_table[fd].open_stat = NOT_OPEN;
@@ -218,8 +216,8 @@ int file_close(fd)
 int file_get_fd(filename)
      char *filename;
 {
-    int fd, max_fd = getMaxFD();
-    for (fd = 1; fd < max_fd; fd++) {
+    int fd;
+    for (fd = 1; fd < FD_SETSIZE; fd++) {
 	if (file_table[fd].open_stat == OPEN) {
 	    if (strncmp(file_table[fd].filename, filename, MAX_FILE_NAME_LEN) == 0) {
 		return fd;

@@ -52,15 +52,14 @@ int fdstat_init(preopen)
      int preopen;
 {
     int i;
-    int max_fd = getMaxFD();
 
-    fd_stat_tab = xcalloc(1, sizeof(FDENTRY) * max_fd);
+    fd_stat_tab = xcalloc(1, sizeof(FDENTRY) * FD_SETSIZE);
     for (i = 0; i < preopen; ++i) {
 	fd_stat_tab[i].status = OPEN;
 	fd_stat_tab[i].type = File;
     }
 
-    for (i = preopen; i < max_fd; ++i) {
+    for (i = preopen; i < FD_SETSIZE; ++i) {
 	fd_stat_tab[i].status = CLOSE;
 	fd_stat_tab[i].type = Unknown;
     }
@@ -76,7 +75,7 @@ void fdstat_update(fd, status)
 {
     unsigned int i;
 
-    if (fd >= getMaxFD())
+    if (fd >= FD_SETSIZE)
 	debug(7, 0, "Running out of file descriptors.\n");
 
     if (fd < Biggest_FD) {
@@ -85,7 +84,7 @@ void fdstat_update(fd, status)
     }
     if ((fd > Biggest_FD) && (status == OPEN)) {
 	/* just update the biggest one */
-	Biggest_FD = fd;	/* % getMaxFD(); */
+	Biggest_FD = fd;	/* % FD_SETSIZE; */
 	return;
     }
     if ((fd == Biggest_FD) && (status == CLOSE)) {
@@ -175,7 +174,6 @@ int fdstat_are_n_free_fd(n)
 {
     int fd;
     int n_free_fd = 0;
-    int maxfd = getMaxFD();
 
 #if  FD_TEST
     int lowest_avail_fd;
@@ -185,7 +183,7 @@ int fdstat_are_n_free_fd(n)
 	close(lowest_avail_fd);
     else {
 	int ln_cnt = 0;
-	for (fd = 0; fd < getMaxFD(); ++fd) {
+	for (fd = 0; fd < FD_SETSIZE; ++fd) {
 	    if (fd_stat_tab[fd].status == CLOSE) {
 		if (ln_cnt == 0) {
 		    debug(0, 0, "fdstat_are_n_free_fd: Fd-Free: %3d\n", fd);
@@ -203,15 +201,15 @@ int fdstat_are_n_free_fd(n)
 #endif
 
     if (n == 0) {
-	for (fd = 0; fd < maxfd; ++fd)
+	for (fd = 0; fd < FD_SETSIZE; ++fd)
 	    if (fd_stat_tab[fd].status == CLOSE)
 		++n;
 	return (n);
     }
-    if ((getMaxFD() - Biggest_FD) > n)
+    if ((FD_SETSIZE - Biggest_FD) > n)
 	return 1;
     else {
-	for (fd = maxfd - 1; ((fd > 0) && (n_free_fd < n)); --fd) {
+	for (fd = FD_SETSIZE - 1; ((fd > 0) && (n_free_fd < n)); --fd) {
 	    if (fd_stat_tab[fd].status == CLOSE) {
 		++n_free_fd;
 	    }
