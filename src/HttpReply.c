@@ -416,10 +416,14 @@ int
 httpMsgIsPersistent(float http_ver, const HttpHeader *hdr)
 {
     if (http_ver >= 1.1) {
-	/* for modern versions: persistent if not "close"d */
+	/* for modern versions of HTTP: persistent if not "close"d */
 	return !httpHeaderHasConnDir(hdr, "close");
     } else {
-	/* for old versions: persistent if has "keep-alive" */
+	/* pconns in Netscape 3.x are allegedly broken, return false */
+	const char *agent = httpHeaderGetStr(hdr, HDR_USER_AGENT);
+	if (agent && !strncasecmp(agent, "Mozilla/3.", 10))
+	    return 0;
+	/* for old versions of HTTP: persistent if has "keep-alive" */
 	return httpHeaderHasConnDir(hdr, "keep-alive");
     }
 }
