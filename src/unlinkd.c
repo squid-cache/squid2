@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 12    Unlink Daemon
+ * DEBUG: section 2     Unlink Daemon
  * AUTHOR: Duane Wessels
  *
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
