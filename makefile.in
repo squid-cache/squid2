@@ -14,7 +14,7 @@ SHELL		= /bin/sh
 prefix		= @prefix@
 exec_prefix	= @exec_prefix@
 
-SUBDIRS		= lib @makesnmplib@ scripts src icons errors auth_modules
+SUBDIRS		= lib @makesnmplib@ scripts src icons errors
 
 noargs: all
 
@@ -37,8 +37,6 @@ install-pinger:
 almostclean: clean
 	rm -f config.log makefile
 	rm -f include/paths.h include/autoconf.h include/config.h
-	rm -f auth_modules/dummy
-	rm -f ntlm_auth_modules/dummy
 	@for dir in $(SUBDIRS) contrib; do \
 		echo Making distclean in $$dir; \
 		(cd $$dir; $(MAKE) $(MFLAGS) prefix="$(prefix)" distclean); \
