@@ -103,12 +103,6 @@
 #define assert(EX)  ((EX)?((void)0):xassert("EX", __FILE__, __LINE__))
 #endif
 
-
-/* 32 bit integer compatability */
-#include "squid_types.h"
-#define num32 int32_t
-#define u_num32 u_int32_t
-
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
