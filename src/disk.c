@@ -282,7 +282,7 @@ diskHandleWrite(int fd, FileEntry * entry)
 	rlen += len;
 	r->cur_offset += len;
 	if (r->cur_offset < r->len)
-	    continue;		/* partial write? */
+	    break;		/* partial write? */
 	/* complete write */
 	entry->write_q = r->next;
 	if (r->free)
