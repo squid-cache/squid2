@@ -1089,7 +1089,7 @@ aclMatchProxyAuth(struct _acl_proxy_auth *p, aclCheck_t * checklist)
 	return 0;
     }
     passwd[0] |= 0x80;
-    debug(28, 5) ("proxyAuthenticate: user %s validated OK\n", sent_user);
+    debug(28, 5) ("aclMatchProxyAuth: user %s validated OK\n", sent_user);
     hash_delete(p->hash, sent_user);
     hash_insert(p->hash, xstrdup(sent_user), (void *) xstrdup(passwd));
     return 1;

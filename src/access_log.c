@@ -207,9 +207,11 @@ accessLogLog(AccessLogEntry * al)
     if (Config.onoff.log_mime_hdrs) {
 	char *ereq = log_quote(al->headers.request);
 	char *erep = log_quote(al->headers.reply);
-	if (LOG_BUF_SZ - l > 0)
+	if (LOG_BUF_SZ - l > 0) {
+	    l--;
 	    l += snprintf(log_buf + l, LOG_BUF_SZ - l, " [%s] [%s]\n",
 		ereq, erep);
+	}
 	safe_free(ereq);
 	safe_free(erep);
     }

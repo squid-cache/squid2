@@ -290,7 +290,7 @@ static const char *const op_cmds_descr[] =
     "Network Probe Database",
     "Shutdown Cache",
     "Refresh Object (URL required)",
-    "Persistant Connection Statistics",
+    "Persistent Connection Statistics",
 #ifdef REMOVE_OBJECT
     "Remove Object (URL required)",
 #endif
