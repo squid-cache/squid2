@@ -524,8 +524,6 @@ mainInitialize(void)
 	    eventAdd("start_announce", start_announce, NULL, 3600);
 	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10);
 	eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 15);
-	if (store_digest)
-	    storeDigestScheduleRebuild();
     }
     configured_once = 1;
 }
