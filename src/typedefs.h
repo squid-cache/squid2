@@ -162,7 +162,7 @@ typedef struct _usecEntry usecEntry;
 #endif
 
 /* define AIOCB even without USE_ASYNC_IO */
-typedef void AIOCB(void *, int aio_return, int aio_errno);
+typedef void AIOCB(int fd, void *, int aio_return, int aio_errno);
 typedef void CWCB(int fd, char *, size_t size, int flag, void *data);
 typedef void CNCB(int fd, int status, void *);
 

@@ -96,7 +96,7 @@ aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callba
     if (free_list == NULL) {
 	ret = open(path, oflag, mode);
 	if (callback)
-	    (callback) (callback_data, ret, errno);
+	    (callback) (-1, callback_data, ret, errno);
 	return;
     }
     ctrlp = free_list;
@@ -108,7 +108,7 @@ aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callba
     if (aio_open(path, oflag, mode, &(ctrlp->result)) < 0) {
 	ret = open(path, oflag, mode);
 	if (callback)
-	    (callback) (callback_data, ret, errno);
+	    (callback) (ctrlp->fd, callback_data, ret, errno);
 	return;
     }
     free_list = free_list->next;
@@ -172,7 +172,7 @@ aioCancel(int fd, void *tag)
 	aio_cancel(&(curr->result));
 
 	if (curr->done_handler)
-	    (curr->done_handler) (curr->done_handler_data, -2, -2);
+	    (curr->done_handler) (fd, curr->done_handler_data, -2, -2);
 	if (curr->operation == _AIO_UNLINK)
 	    outunlink--;
 
@@ -203,7 +203,7 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
     if (free_list == NULL) {
 	errno = EWOULDBLOCK;
 	if (callback)
-	    (callback) (callback_data, -1, errno);
+	    (callback) (fd, callback_data, -1, errno);
 	return;
     }
     for (ctrlp = used_list; ctrlp != NULL; ctrlp = ctrlp->next)
@@ -212,7 +212,7 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
     if (ctrlp != NULL) {
 	errno = EWOULDBLOCK;
 	if (callback)
-	    (callback) (callback_data, -1, errno);
+	    (callback) (fd, callback_data, -1, errno);
 	return;
     }
     ctrlp = free_list;
@@ -231,7 +231,7 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
 	if (errno == ENOMEM || errno == EAGAIN || errno == EINVAL)
 	    errno = EWOULDBLOCK;
 	if (callback)
-	    (callback) (callback_data, -1, errno);
+	    (callback) (fd, callback_data, -1, errno);
 	return;
     }
     free_list = free_list->next;
@@ -252,7 +252,7 @@ aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callbac
     if (free_list == NULL) {
 	errno = EWOULDBLOCK;
 	if (callback)
-	    (callback) (callback_data, -1, errno);
+	    (callback) (fd, callback_data, -1, errno);
 	return;
     }
     for (ctrlp = used_list; ctrlp != NULL; ctrlp = ctrlp->next)
@@ -261,7 +261,7 @@ aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callbac
     if (ctrlp != NULL) {
 	errno = EWOULDBLOCK;
 	if (callback)
-	    (callback) (callback_data, -1, errno);
+	    (callback) (fd, callback_data, -1, errno);
 	return;
     }
     ctrlp = free_list;
@@ -280,7 +280,7 @@ aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callbac
 	if (errno == ENOMEM || errno == EAGAIN || errno == EINVAL)
 	    errno = EWOULDBLOCK;
 	if (callback)
-	    (callback) (callback_data, -1, errno);
+	    (callback) (fd, callback_data, -1, errno);
 	return;
     }
     free_list = free_list->next;
@@ -299,7 +299,7 @@ aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data, void
     if (free_list == NULL) {
 	errno = EWOULDBLOCK;
 	if (callback)
-	    (callback) (callback_data, -1, errno);
+	    (callback) (-1, callback_data, -1, errno);
 	return;
     }
     ctrlp = free_list;
@@ -312,7 +312,7 @@ aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data, void
 	if (errno == ENOMEM || errno == EAGAIN || errno == EINVAL)
 	    errno = EWOULDBLOCK;
 	if (callback)
-	    (callback) (callback_data, -1, errno);
+	    (callback) (ctrlp->fd, callback_data, -1, errno);
 	return;
     }
     free_list = free_list->next;
@@ -349,7 +349,7 @@ aioUnlink(const char *path, AIOCB * callback, void *callback_data)
 	    if (errno == ENOMEM || errno == EAGAIN || errno == EINVAL)
 		return;
 	    if (callback)
-		(callback) (callback_data, -1, errno);
+		(callback) (ctrlp->fd, callback_data, -1, errno);
 	    return;
 	}
 	free_list = free_list->next;
@@ -387,7 +387,7 @@ aioCheckCallbacks()
 	else
 	    prev->next = ctrlp->next;
 	if (ctrlp->done_handler)
-	    (ctrlp->done_handler) (ctrlp->done_handler_data,
+	    (ctrlp->done_handler) (ctrlp->fd, ctrlp->done_handler_data,
 		ctrlp->result.aio_return, ctrlp->result.aio_errno);
 	if (ctrlp->operation == _AIO_UNLINK) {
 	    outunlink--;
