@@ -132,12 +132,18 @@ errorConvert(char token, ErrorState * err)
 	break;
     case 'E':
 	snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->errno, strerror(err->errno));
+	p = buf;
 	break;
     case 'w':
-	snprintf(buf, CVT_BUF_SZ, "%s", Config.adminEmail);
+	if (Config.adminEmail) {
+	    snprintf(buf, CVT_BUF_SZ, "%s", Config.adminEmail);
+	    p = buf;
+	} else
+	    p = "UNKNOWN";
 	break;
     case 'h':
 	snprintf(buf, CVT_BUF_SZ, "%s", getMyHostname());
+	p = buf;
 	break;
 /*
  * e - errno                                  x
