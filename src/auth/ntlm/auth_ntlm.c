@@ -151,7 +151,7 @@ authNTLMCfgDump(StoreEntry * entry, const char *name, authScheme * scheme)
     storeAppendPrintf(entry, "\n%s %s children %d\n%s %s max_challenge_reuses %d\n%s %s max_challenge_lifetime %d seconds\n",
 	name, "ntlm", config->authenticateChildren,
 	name, "ntlm", config->challengeuses,
-	name, "ntlm", (int)config->challengelifetime);
+	name, "ntlm", (int) config->challengelifetime);
 
 }
 
@@ -247,10 +247,18 @@ authNTLMInit(authScheme * scheme)
 	ntlmauthenticators->IsAvailable = authenticateNTLMHelperServerAvailable;
 	ntlmauthenticators->OnEmptyQueue = authenticateNTLMHelperServerOnEmpty;
 	helperStatefulOpenServers(ntlmauthenticators);
-	/* TODO: In here send the initial YR to preinitialise the challenge cache */
-	/* Think about this... currently we ask when the challenge is needed. Better? */
+	/*
+	 * TODO: In here send the initial YR to preinitialise the
+	 * challenge cache
+	 */
+	/*
+	 * Think about this... currently we ask when the challenge
+	 * is needed. Better?
+	 */
 	if (!ntlminit) {
-	    cachemgrRegister("ntlmauthenticator", "User NTLM Authenticator Stats", authenticateNTLMStats, 0, 1);
+	    cachemgrRegister("ntlmauthenticator",
+		"NTLM User Authenticator Stats",
+		authenticateNTLMStats, 0, 1);
 	    ntlminit++;
 	}
 	CBDATA_INIT_TYPE(authenticateStateData);
@@ -444,8 +452,9 @@ authenticateNTLMHandleReply(void *data, void *lastserver, char *reply)
 	return S_HELPER_RELEASE;
     }
     if (!reply) {
-        /* TODO: this occurs when a helper crashes. We should clean up that helpers resources
-	 * and queued requests.
+	/*
+	 * TODO: this occurs when a helper crashes. We should clean
+	 * up that helpers resources and queued requests.
 	 */
 	fatal("authenticateNTLMHandleReply: called with no result string\n");
     }
@@ -574,7 +583,7 @@ authenticateNTLMHandleReply(void *data, void *lastserver, char *reply)
 	    authenticateStateFree(r);
 	    debug(29, 9) ("NTLM HandleReply, telling stateful helper : %d\n", result);
 	    return result;
-	} 
+	}
 	/* the helper broke on a KK */
 	/* first the standard KK stuff */
 	debug(29, 4) ("authenticateNTLMHandleReply: Error validating user via NTLM. Error returned '%s'\n", reply);
@@ -585,7 +594,7 @@ authenticateNTLMHandleReply(void *data, void *lastserver, char *reply)
 	ntlm_request->auth_state = AUTHENTICATE_STATE_FAILED;
     } else {
 	/* TODO: only work with auth_user here if it exists */
-        /* TODO: take the request state into consideration */
+	/* TODO: take the request state into consideration */
 	assert(r->auth_user_request != NULL);
 	assert(r->auth_user_request->auth_user->auth_type == AUTH_NTLM);
 	auth_user_request = r->auth_user_request;
@@ -598,7 +607,7 @@ authenticateNTLMHandleReply(void *data, void *lastserver, char *reply)
 	/* **** NOTE THIS CODE IS EFFECTIVELY UNTESTED **** */
 	/* restart the authentication process */
 	ntlm_request->auth_state = AUTHENTICATE_STATE_NONE;
-	assert (ntlm_request->authserver ? ntlm_request->authserver == lastserver : 1);
+	assert(ntlm_request->authserver ? ntlm_request->authserver == lastserver : 1);
 	ntlm_request->authserver = NULL;
     }
     r->handler(r->data, NULL);

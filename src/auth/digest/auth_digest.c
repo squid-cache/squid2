@@ -190,7 +190,7 @@ authenticateDigestNonceNew(void)
     /* the cache's link */
     authDigestNonceLink(newnonce);
     newnonce->flags.incache = 1;
-    debug(29, 5) ("authenticateDigestNonceNew: created nonce %p at %ld\n", newnonce, (long int)newnonce->noncedata.creationtime);
+    debug(29, 5) ("authenticateDigestNonceNew: created nonce %p at %ld\n", newnonce, (long int) newnonce->noncedata.creationtime);
     return newnonce;
 }
 
@@ -261,13 +261,13 @@ authenticateDigestNonceCacheCleanup(void *data)
     digest_nonce_h *nonce;
     debug(29, 3) ("authenticateDigestNonceCacheCleanup: Cleaning the nonce cache now\n");
     debug(29, 3) ("authenticateDigestNonceCacheCleanup: Current time: %ld\n",
-	(long int)current_time.tv_sec);
+	(long int) current_time.tv_sec);
     hash_first(digest_nonce_cache);
     while ((nonce = ((digest_nonce_h *) hash_next(digest_nonce_cache)))) {
-	debug(29, 3) ("authenticateDigestNonceCacheCleanup: nonce entry  : %p '%s'\n", nonce, (char *)nonce->hash.key);
-	debug(29, 4) ("authenticateDigestNonceCacheCleanup: Creation time: %ld\n", (long int)nonce->noncedata.creationtime);
+	debug(29, 3) ("authenticateDigestNonceCacheCleanup: nonce entry  : %p '%s'\n", nonce, (char *) nonce->hash.key);
+	debug(29, 4) ("authenticateDigestNonceCacheCleanup: Creation time: %ld\n", (long int) nonce->noncedata.creationtime);
 	if (authDigestNonceIsStale(nonce)) {
-	    debug(29, 4) ("authenticateDigestNonceCacheCleanup: Removing nonce %s from cache due to timeout.\n", (char *)nonce->hash.key);
+	    debug(29, 4) ("authenticateDigestNonceCacheCleanup: Removing nonce %s from cache due to timeout.\n", (char *) nonce->hash.key);
 	    assert(nonce->flags.incache);
 	    /* invalidate nonce so future requests fail */
 	    nonce->flags.valid = 0;
@@ -370,7 +370,7 @@ authDigestNonceIsStale(digest_nonce_h * nonce)
 	return -1;
     /* has it's max duration expired? */
     if (nonce->noncedata.creationtime + digestConfig->noncemaxduration < current_time.tv_sec) {
-	debug(29, 4) ("authDigestNonceIsStale: Nonce is too old. %ld %d %ld\n", (long int)nonce->noncedata.creationtime, (int)digestConfig->noncemaxduration, (long int)current_time.tv_sec);
+	debug(29, 4) ("authDigestNonceIsStale: Nonce is too old. %ld %d %ld\n", (long int) nonce->noncedata.creationtime, (int) digestConfig->noncemaxduration, (long int) current_time.tv_sec);
 	nonce->flags.valid = 0;
 	return -1;
     }
@@ -585,8 +585,8 @@ authDigestCfgDump(StoreEntry * entry, const char *name, authScheme * scheme)
 	name, "digest", config->digestAuthRealm,
 	name, "digest", config->authenticateChildren,
 	name, "digest", config->noncemaxuses,
-	name, "digest", (int)config->noncemaxduration,
-	name, "digest", (int)config->nonceGCInterval);
+	name, "digest", (int) config->noncemaxduration,
+	name, "digest", (int) config->nonceGCInterval);
 }
 
 void
@@ -884,7 +884,8 @@ authDigestInit(authScheme * scheme)
 	digestauthenticators->ipc_type = IPC_TCP_SOCKET;
 	helperOpenServers(digestauthenticators);
 	if (!init) {
-	    cachemgrRegister("digestauthenticator", "User Authenticator Stats",
+	    cachemgrRegister("digestauthenticator",
+		"Digest User Authenticator Stats",
 		authenticateDigestStats, 0, 1);
 	    init++;
 	}
@@ -944,7 +945,7 @@ authDigestParse(authScheme * scheme, int n_configured, char *param_str)
     } else if (strcasecmp(param_str, "nonce_max_count") == 0) {
 	parse_int(&digestConfig->noncemaxuses);
     } else if (strcasecmp(param_str, "nonce_strictness") == 0) {
-        parse_onoff(&digestConfig->NonceStrictness);
+	parse_onoff(&digestConfig->NonceStrictness);
     } else {
 	debug(28, 0) ("unrecognised digest auth scheme parameter '%s'\n", param_str);
     }
@@ -1114,8 +1115,8 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 	    while (xisspace(*p))
 		p++;
 	    if (*p == '\"')
-	        /* quote mark */
-	        p++;
+		/* quote mark */
+		p++;
 	    digest_request->qop = xstrndup(p, strcspn(p, "\" \t\r\n()<>@,;:\\/[]?={}") + 1);
 	    debug(29, 9) ("authDigestDecodeAuth: Found qop '%s'\n", digest_request->qop);
 	} else if (!strncmp(item, "algorithm", ilen)) {
@@ -1123,9 +1124,9 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 	    while (xisspace(*p))
 		p++;
 	    if (*p == '\"')
-	        /* quote mark */
-	        p++;
-	    digest_request->algorithm = xstrndup(p, strcspn(p, "\" \t\r\n()<>@,;:\\/[]?={}")+1);
+		/* quote mark */
+		p++;
+	    digest_request->algorithm = xstrndup(p, strcspn(p, "\" \t\r\n()<>@,;:\\/[]?={}") + 1);
 	    debug(29, 9) ("authDigestDecodeAuth: Found algorithm '%s'\n", digest_request->algorithm);
 	} else if (!strncmp(item, "uri", ilen)) {
 	    /* white space */
@@ -1265,7 +1266,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
     }
     /* check the algorithm is present and supported */
     if (!digest_request->algorithm)
-        digest_request->algorithm = xstrndup ("MD5", 4);
+	digest_request->algorithm = xstrndup("MD5", 4);
     else if (strcmp(digest_request->algorithm, "MD5")
 	&& strcmp(digest_request->algorithm, "MD5-sess")) {
 	debug(29, 4) ("authenticateDigestDecode: invalid algorithm specified!\n");
