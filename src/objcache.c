@@ -256,6 +256,12 @@ int objcacheStart(fd, url, entry)
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
+    } else if (strcmp(data->request, "stats/filedescriptors") == 0) {
+	BIT_SET(data->entry->flag, DELAY_SENDING);
+	CacheInfo->stat_get(CacheInfo, "filedescriptors", data->entry);
+	BIT_RESET(data->entry->flag, DELAY_SENDING);
+	storeComplete(data->entry);
+
     } else if (strcmp(data->request, "log/status") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
 	CacheInfo->log_status_get(CacheInfo, data->entry);
