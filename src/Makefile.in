@@ -55,7 +55,7 @@ LIBS		= -lregex -lutil $(XTRA_LIBS) $(CRYPT_LIB)
 CLIENT_LIBS	= -lutil $(XTRA_LIBS)
 
 PROGS		= cached 
-UTILS		= client dnsserver
+UTILS		= client dnsserver ftpget
 CGIPROGS	= cachemgr.cgi
 OBJS	 	= comm.o cache_cf.o debug.o disk.o dynamic_array.o \
 		  fdstat.o filemap.o ftp.o gopher.o hash.o \
@@ -76,6 +76,9 @@ dnsserver: dnsserver.o
 
 cachemgr.cgi:	cachemgr.o
 	$(CC) -o $@ $(LDFLAGS) cachemgr.o $(CLIENT_LIBS)
+
+ftpget: ftpget.o
+	$(CC) -o $@ $(LDFLAGS) ftpget.o $(LIBS)
 
 install: all
 	@for f in $(PROGS); do \
