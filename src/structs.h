@@ -290,6 +290,7 @@ struct _aclCheck_t {
 #endif
     PF *callback;
     void *callback_data;
+    external_acl_entry *extacl_entry;
 };
 
 struct _wordlist {
@@ -686,6 +687,7 @@ struct _SquidConfig {
     } warnings;
     char *store_dir_select_algorithm;
     int sleep_after_fork;	/* microseconds */
+    external_acl *externalAclHelperList;
 };
 
 struct _SquidConfig2 {

@@ -1321,4 +1321,17 @@ extern int WIN32_Subsystem_Init(void);
 extern void WIN32_Exit(void);
 #endif
 
+/* external_acl.c */
+extern void parse_externalAclHelper(external_acl **);
+extern void dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl *);
+extern void free_externalAclHelper(external_acl **);
+extern void aclParseExternal(void *curlist);
+extern void aclDestroyExternal(void **curlust);
+extern int aclMatchExternal(void *dataptr, aclCheck_t * ch);
+extern wordlist *aclDumpExternal(void *dataptr);
+typedef void EAH(void *data, void *result);
+extern void externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * handler, void *data);
+extern void externalAclInit(void);
+extern void externalAclShutdown(void);
+
 #endif /* SQUID_PROTOS_H */

@@ -293,3 +293,12 @@ lib/inet_ntoa.c:
 static char sccsid[] = "@(#)inet_ntoa.c        5.6 (Berkeley) 2/24/91";
 
 ==============================================================================
+
+src/external_acl.c
+
+Copyright (C) 2002 MARA Systems AB, Sweden <info@marasystems.com>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
