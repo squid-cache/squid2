@@ -1244,7 +1244,7 @@ extern void delayPoolsReconfigure(void);
 extern void delaySetNoDelay(int fd);
 extern void delayClearNoDelay(int fd);
 extern int delayIsNoDelay(int fd);
-extern delay_id delayClient(request_t *);
+extern delay_id delayClient(clientHttpRequest *);
 extern EVH delayPoolsUpdate;
 extern int delayBytesWanted(delay_id d, int min, int max);
 extern void delayBytesIn(delay_id, int qty);
