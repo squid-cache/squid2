@@ -219,8 +219,6 @@ a_file_callback(async_queue_t * q)
 void
 a_file_setupqueue(async_queue_t * q)
 {
-    int i;
-
     /* Make sure the queue isn't setup */
     assert(q->aq_state == AQ_STATE_NONE);
 
@@ -228,7 +226,6 @@ a_file_setupqueue(async_queue_t * q)
 
     /* Done */
     q->aq_state = AQ_STATE_SETUP;
-
 }
 
 
