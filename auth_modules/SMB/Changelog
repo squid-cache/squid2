@@ -1,3 +1,33 @@
+28 September 1999, version 0.05
+
+- Easier debugging: added the -d option to smb_auth.
+
+- Bugfix: a password containing a backslash character was always
+  denied. Reported by Menno Stevens.
+
+- The -S option now accepts both slashes and backslashes and
+  allows the share name to be preceded by a (back)slash.
+
+5 June 1999, version 0.04
+
+- Allow for both \n and \r\n end-of-line termination in the
+  proxyauth file located on the PDC. This eliminates the most
+  common installation problem.
+
+- The location of the proxyauth file can be changed (for each
+  domain) using the new -S option. Useful when the NETLOGON
+  share is located on a FAT filesystem.
+  Thanks to Colin Manning <colinm@officeinfo.com.au>.
+
+2 Februari 1999, version 0.03
+
+- Support for pass-through authentication (trust relationships)
+  added. Suggested by Matthew Wood <woodm@newsltd.com.au>.
+
+- Bugfix: smb_auth.sh searched for the PDC only.
+
+- Many documentation improvements.
+
 9 December 1998, version 0.02
 
 - smb_auth now uses Samba instead of pam_smb. This simplifies the
