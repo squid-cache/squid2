@@ -48,12 +48,13 @@
  * Here are defined several known-width types, obtained via autoconf
  * from system locations or various attempts. This is just a convenience
  * header to include which takes care of proper preprocessor stuff
+ *
+ * This file is only intended to be included via config.h, do
+ * not include directly.
  */
 
 #ifndef SQUID_TYPES_H
 #define SQUID_TYPES_H
-
-#include "autoconf.h"
 
 /* This should be in synch with what we have in acinclude.m4 */
 #if HAVE_SYS_TYPES_H
