@@ -179,7 +179,7 @@ struct _peer {
     int n_addresses;
     int rr_count;
     struct _peer *next;
-    int ip_lookup_pending;
+    callback_meta *cbm_list;
     int test_fd;
 };
 

@@ -207,7 +207,7 @@ netdbAdd(struct in_addr addr, const char *hostname)
 }
 
 static void
-netdbSendPing(int fdunused, const ipcache_addrs * ia, void *data)
+netdbSendPing(const ipcache_addrs * ia, void *data)
 {
     struct in_addr addr;
     char *hostname = data;
@@ -453,9 +453,9 @@ netdbPingSite(const char *hostname)
 	if (n->next_ping_time > squid_curtime)
 	    return;
     ipcache_nbgethostbyname(hostname,
-	-1,
 	netdbSendPing,
-	(void *) xstrdup(hostname));
+	(void *) xstrdup(hostname),
+	NULL);
 #endif
 }
 

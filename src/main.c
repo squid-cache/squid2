@@ -390,7 +390,7 @@ serverConnectionsOpen(void)
 		icpHandleUdp,
 		NULL, 0);
 	    for (s = Config.mcast_group_list; s; s = s->next)
-		ipcache_nbgethostbyname(s->key, mcastJoinGroups, NULL);
+		ipcache_nbgethostbyname(s->key, mcastJoinGroups, NULL, NULL);
 	    debug(1, 1) ("Accepting ICP connections on port %d, FD %d.\n",
 		(int) port, theInIcpConnection);
 

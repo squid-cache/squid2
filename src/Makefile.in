@@ -78,6 +78,7 @@ OBJS	 	= \
 		aiops.o \
 		async_io.o \
 		cache_cf.o \
+		callback.o \
 		client_db.o \
 		client_side.o \
 		comm.o \

@@ -129,6 +129,7 @@ struct _aclCheck_t {
     acl_lookup_state state[ACL_ENUM_MAX];
     PF *callback;
     void *callback_data;
+    callback_meta *cbm_list;
 };
 
 extern aclCheck_t *aclChecklistCreate _PARAMS((const struct _acl_access *,

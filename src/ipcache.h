@@ -141,9 +141,9 @@ typedef void IPH _PARAMS((const ipcache_addrs *, void *));
 
 extern void ipcache_nbgethostbyname _PARAMS((const char *name,
 	IPH * handler,
-	void *handlerData));
+	void *handlerData,
+	callback_meta **));
 extern EVH ipcache_purgelru;
-extern int ipcacheUnregister _PARAMS((const char *, void *));
 extern const ipcache_addrs *ipcache_gethostbyname _PARAMS((const char *, int flags));
 extern void ipcacheInvalidate _PARAMS((const char *));
 extern void ipcacheReleaseInvalid _PARAMS((const char *));
