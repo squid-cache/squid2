@@ -1,4 +1,4 @@
-#ident "$Id$"
+/* "$Id$" */
 
 /*
  * DEBUG: Section 28          acl
