@@ -427,9 +427,9 @@ static int sslConnect(fd, hp, sslState)
 		(void *) sslState);
 	    return COMM_OK;
 	}
-	if (opt_no_ipcache)
-	    ipcacheInvalidate(sslState->host);
     }
+    if (opt_no_ipcache)
+	ipcacheInvalidate(sslState->host);
     if (Config.sslProxy.host)
 	sslProxyConnected(sslState->server.fd, sslState);
     else

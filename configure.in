@@ -253,6 +253,8 @@ case "$host" in
         	LIBS=`echo $LIBS | sed -e s/-lsocket//`
         	echo "Removing -lnsl for IRIX..."
         	LIBS=`echo $LIBS | sed -e s/-lnsl//`
+		echo "Removing -lbsd for IRIX..."
+		LIBS=`echo $LIBS | sed -e s/-lbsd//`
 		;;
 	*m88k*)
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"

@@ -452,7 +452,5 @@ int main(argc, argv)
 	    continue;
 	}
     }
-    exit(0);
-    /*NOTREACHED */
-    return 0;
+    /* NOTREACHED */
 }

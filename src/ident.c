@@ -78,7 +78,7 @@ void identStart(sock, icpState)
     sprintf(reqbuf, "%d, %d\r\n",
 	ntohs(icpState->peer.sin_port),
 	ntohs(icpState->me.sin_port));
-    (void) comm_write(sock,
+    comm_write(sock,
 	reqbuf,
 	strlen(reqbuf),
 	5,			/* timeout */

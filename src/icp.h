@@ -135,7 +135,7 @@ typedef enum {
     ERR_CANNOT_FETCH,		/* 26 */
     ERR_NO_RELAY,		/* 27 */
     ERR_DISK_IO,		/* 28 */
-    ERR_ZERO_SIZE_OBJECT	/* 29 */
+    ERR_ZERO_SIZE_OBJECT,	/* 29 */
     ERR_PROXY_DENIED		/* 30 */
 } log_type;
 

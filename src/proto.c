@@ -311,7 +311,9 @@ int protoDispatch(fd, url, entry, request)
 	BIT_RESET(protoData->entry->flag, IP_LOOKUP_PENDING);
 	protoData->source_ping = 0;
 	protoData->direct_fetch = DIRECT_NO;
-	protoDispatchDNSHandle(fd, (struct hostent *) NULL, protoData);
+	protoDispatchDNSHandle(fd,
+	    (struct hostent *) NULL,
+	    (void *) protoData);
     } else if (Config.firewall_ip_list) {
 	/* Have to look up the url address so we can compare it */
 	protoData->source_ping = Config.sourcePing;
@@ -347,7 +349,9 @@ int protoDispatch(fd, url, entry, request)
 	/* will fetch from single parent */
 	protoData->direct_fetch = DIRECT_MAYBE;
 	BIT_RESET(protoData->entry->flag, IP_LOOKUP_PENDING);
-	protoDispatchDNSHandle(fd, (struct hostent *) NULL, protoData);
+	protoDispatchDNSHandle(fd,
+	    (struct hostent *) NULL,
+	    (void *) protoData);
     } else {
 	/* will use ping resolution */
 	protoData->source_ping = Config.sourcePing;
