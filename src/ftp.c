@@ -1480,5 +1480,7 @@ ftpAbort(void *data)
 {
     FtpStateData *ftpState = data;
     debug(9, 1) ("ftpAbort: %s\n", ftpState->entry->url);
-    ftpDataTransferDone(ftpState);
+    if (ftpState->data.fd >= 0)
+        comm_close(ftpState->data.fd);
+    comm_close(ftpState->ctrl.fd);
 }
