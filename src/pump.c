@@ -449,16 +449,16 @@ pumpRestart(request_t * r)
     MemObject *mem;
     for (p = pump_head; p && p->req != r; p = p->next);
     if (p == NULL) {
-	debug(61, 1) ("pumpRestart: NO: Can't find pumpState!\n");
+	debug(61, 3) ("pumpRestart: NO: Can't find pumpState!\n");
 	return 0;
     }
     mem = p->request_entry->mem_obj;
     if (mem == NULL) {
-	debug(61, 1) ("pumpRestart: NO: request_entry->mem_obj == NULL!\n");
+	debug(61, 3) ("pumpRestart: NO: request_entry->mem_obj == NULL!\n");
 	return 0;
     }
     if (mem->inmem_lo > 0) {
-	debug(61, 1) ("pumpRestart: NO: mem->inmem_lo == %d\n",
+	debug(61, 3) ("pumpRestart: NO: mem->inmem_lo == %d\n",
 	    (int) mem->inmem_lo);
 	return 0;
     }
