@@ -1092,7 +1092,7 @@ main() {
     }
 #endif /* RLIMIT_NOFILE */
 #endif /* HAVE_SETRLIMIT */
-#if HAVE_GETRLIMIT && defined(RLIMIT_NOFILE)
+#if defined(__linux__) && HAVE_GETRLIMIT && defined(RLIMIT_NOFILE)
 	if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
 		perror("getrlimit: RLIMIT_NOFILE");
 	}
