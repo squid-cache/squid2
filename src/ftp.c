@@ -571,9 +571,10 @@ static void ftpServerClosed(fd, nodata)
 
 void ftpServerClose()
 {
+    /* NOTE: this function will be called repeatedly while shutdown is
+     * pending */
     if (ftpget_server_read < 0)
 	return;
-
     comm_set_select_handler(ftpget_server_read,
 	COMM_SELECT_READ,
 	(PF) NULL,
