@@ -59,6 +59,7 @@ typedef struct iwd {
     char *buf;
     struct timeval start;
     int flags;
+    int size;			/* hack for CONNECT which doesnt use sentry */
 } icpStateData;
 
 static icpUdpData *UdpQueueHead = NULL;
@@ -115,6 +116,10 @@ int icpStateFree(fdunused, icpState)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
 	size = icpState->entry->mem_obj->e_current_len;
+    } else {
+	size = icpState->size;	/* hack added for CONNECT objects */
+    }
+    if (icpState->entry) {
 	http_code = icpState->entry->mem_obj->reply->code;
     } else {
 	http_code = icpState->http_code;
@@ -341,7 +346,7 @@ void icpHandleWrite(fd, rwsm)
     /* A successful write, continue */
     rwsm->offset += len;
     if (rwsm->offset < rwsm->size) {
-	/* Reinstall the read handler and get some more */
+	/* Reinstall the read handler and write some more */
 	comm_set_select_handler(fd,
 	    COMM_SELECT_WRITE,
 	    (PF) icpHandleWrite,
@@ -629,6 +634,11 @@ void icp_hit_or_miss(fd, usm)
 	RequestMethodStr[usm->method],
 	url);
 
+    if (usm->method == METHOD_CONNECT) {
+	usm->log_type = LOG_TCP_MISS;
+	sslStart(fd, url, usm->request, usm->request_hdr, &usm->size);
+	return;
+    }
     if (icpCachable(usm))
 	BIT_SET(usm->flags, REQ_CACHABLE);
     if (icpHierarchical(usm))
