@@ -120,8 +120,8 @@ authenticateInit(void)
 	cachemgrRegister("authenticator",
 	    "User Authenticator Stats",
 	    authenticateStats, 0, 1);
+	init++;
     }
-    init++;
 }
 
 void
