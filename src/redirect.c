@@ -310,7 +310,7 @@ void redirectOpenServers()
     char *prg = getRedirectProgram();
     int k;
     int redirectsocket;
-    static char fd_note_buf[FD_ASCII_NOTE_SZ];
+    LOCAL_ARRAY(char, fd_note_buf, FD_ASCII_NOTE_SZ);
     static int first_time = 0;
 
     if (!do_redirect)

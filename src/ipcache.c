@@ -1027,7 +1027,7 @@ void ipcacheOpenServers()
     char *prg = getDnsProgram();
     int k;
     int dnssocket;
-    static char fd_note_buf[FD_ASCII_NOTE_SZ];
+    LOCAL_ARRAY(char, fd_note_buf, FD_ASCII_NOTE_SZ);
 
     /* free old structures if present */
     if (dns_child_table) {

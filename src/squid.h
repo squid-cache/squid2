@@ -199,6 +199,15 @@ typedef unsigned long u_num32;
 #endif
 #define NUM32LEN sizeof(num32)	/* this should always be 4 */
 
+#if MALLOC_GUARD
+#define LOCAL_ARRAY(type,name,size) \
+        static type *local_##name=NULL; \
+        type *name = local_##name ? local_##name : \
+                ( local_##name = (type *)xcalloc(size, sizeof(type)) )
+#else
+#define LOCAL_ARRAY(type,name,size) static type name[size]
+#endif
+
 #include "GNUregex.h"
 #include "ansihelp.h"
 

@@ -519,7 +519,7 @@ int diskHandleWalk(fd, walk_dat)
     int end_pos;
     int st_pos;
     int used_bytes;
-    static char temp_line[DISK_LINE_LEN];
+    LOCAL_ARRAY(char, temp_line, DISK_LINE_LEN);
 
     lseek(fd, walk_dat->offset, SEEK_SET);
     file_table[fd].at_eof = NO;

@@ -536,7 +536,7 @@ static int protoNotImplemented(fd, url, entry)
      char *url;
      StoreEntry *entry;
 {
-    static char buf[256];
+    LOCAL_ARRAY(char, buf, 256);
 
     debug(17, 1, "protoNotImplemented: Cannot retrieve <URL:%s>\n", url);
 
@@ -555,7 +555,7 @@ static int protoCantFetchObject(fd, entry, reason)
      StoreEntry *entry;
      char *reason;
 {
-    static char buf[2048];
+    LOCAL_ARRAY(char, buf, 2048);
 
     debug(17, 1, "protoCantFetchObject: FD %d %s\n", fd, reason);
     debug(17, 1, "--> <URL:%s>\n", entry->url);

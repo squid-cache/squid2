@@ -33,8 +33,8 @@
 
 void send_announce()
 {
-    static char tbuf[256];
-    static char sndbuf[BUFSIZ];
+    LOCAL_ARRAY(char, tbuf, 256);
+    LOCAL_ARRAY(char, sndbuf, BUFSIZ);
     icpUdpData *qdata = NULL;
     struct hostent *hp = NULL;
     char *host = NULL;

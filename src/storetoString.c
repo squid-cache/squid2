@@ -110,8 +110,8 @@
 char *storeToString(e)
      StoreEntry *e;
 {
-    static char stsbuf[16 << 10];	/* have to make this really big */
-    static char tmpbuf[8 << 10];
+    LOCAL_ARRAY(char, stsbuf, 16 << 10);	/* have to make this really big */
+    LOCAL_ARRAY(char, tmpbuf, 8 << 10);
     time_t t;
 
     if (!e) {

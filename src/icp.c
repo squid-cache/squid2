@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -378,7 +379,7 @@ static int icpSendMoreData(fd, icpState)
     int result = COMM_ERROR;
     int tcode = 555;
     double http_ver;
-    static char scanbuf[20];
+    LOCAL_ARRAY(char, scanbuf, 20);
 
     debug(12, 5, "icpSendMoreData: <URL:%s> sz %d: len %d: off %d.\n",
 	entry->url, entry->object_len,
@@ -1333,7 +1334,7 @@ int icpHandleUdp(sock, not_used)
     int result = 0;
     struct sockaddr_in from;
     int from_len;
-    static char buf[SQUID_UDP_SO_RCVBUF];
+    LOCAL_ARRAY(char, buf, SQUID_UDP_SO_RCVBUF);
     int len;
     icp_common_t *headerp = NULL;
     int icp_version;
@@ -1431,7 +1432,7 @@ static int parseHttpRequest(icpState)
     char *method = NULL;
     char *request = NULL;
     char *req_hdr = NULL;
-    static char http_ver[32];
+    LOCAL_ARRAY(char, http_ver, 32);
     char *token = NULL;
     char *t = NULL;
     char *ad = NULL;
@@ -1881,7 +1882,7 @@ static void icpDetectClientClose(fd, icpState)
      int fd;
      icpStateData *icpState;
 {
-    static char buf[256];
+    LOCAL_ARRAY(char, buf, 256);
     int n;
     StoreEntry *entry = icpState->entry;
     n = read(fd, buf, 256);

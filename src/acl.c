@@ -197,7 +197,9 @@ static struct _acl_ip_data *aclParseIpList()
     struct _acl_ip_data *head = NULL;
     struct _acl_ip_data **Tail = &head;
     struct _acl_ip_data *q = NULL;
-    static char addr1[256], addr2[256], mask[256];
+    LOCAL_ARRAY(char, addr1, 256);
+    LOCAL_ARRAY(char, addr2, 256);
+    LOCAL_ARRAY(char, mask, 256);
 
     while ((t = strtok(NULL, w_space))) {
 	q = xcalloc(1, sizeof(struct _acl_ip_data));
@@ -568,7 +570,7 @@ static int aclMatchEndOfWord(data, word)
 	debug(28, 3, "aclMatchEndOfWord: looking for '%s'\n", data->key);
 	if ((offset = strlen(word) - strlen(data->key)) < 0)
 	    continue;
-	if (strcmp(word + offset, data->key) == 0)
+	if (strcasecmp(word + offset, data->key) == 0)
 	    return 1;
     }
     return 0;

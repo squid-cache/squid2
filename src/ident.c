@@ -49,7 +49,7 @@ void identStart(sock, icpState)
 {
     char *host;
     u_short port;
-    static char reqbuf[BUFSIZ];
+    LOCAL_ARRAY(char, reqbuf, BUFSIZ);
     int status;
 
     host = inet_ntoa(icpState->peer.sin_addr);
@@ -104,7 +104,7 @@ static void identReadReply(fd, icpState)
      int fd;
      icpStateData *icpState;
 {
-    static char buf[BUFSIZ];
+    LOCAL_ARRAY(char, buf, BUFSIZ);
     char *t = NULL;
     int len = -1;
 

@@ -400,7 +400,7 @@ static void httpReadReply(fd, httpState)
      int fd;
      HttpStateData *httpState;
 {
-    static char buf[SQUID_TCP_SO_RCVBUF];
+    LOCAL_ARRAY(char, buf, SQUID_TCP_SO_RCVBUF);
     int len;
     int bin;
     int clen;

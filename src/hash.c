@@ -436,8 +436,8 @@ int main()
 {
     int hid;
     int i;
-    static char buf[BUFSIZ];
-    static char todelete[BUFSIZ];
+    LOCAL_ARRAY(char, buf, BUFSIZ);
+    LOCAL_ARRAY(char, todelete, BUFSIZ);
     hash_link *walker = NULL;
 
     todelete[0] = '\0';
