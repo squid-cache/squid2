@@ -2432,8 +2432,7 @@ clientReadRequest(int fd, void *data)
 		if (request->body_sz < cont_len)
 		    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 		if (cont_len > Config.maxRequestBodySize) {
-		    err = errorCon(ERR_INVALID_REQ,
-			HTTP_REQUEST_ENTITY_TOO_LARGE);
+		    err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE);
 		    err->request = requestLink(request);
 		    http->entry = clientCreateStoreEntry(http,
 			METHOD_NONE, null_request_flags);
