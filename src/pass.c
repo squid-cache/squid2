@@ -63,7 +63,7 @@ static void passClose _PARAMS((PassStateData * passState));
 static void passClientClosed _PARAMS((int fd, void *));
 static void passConnectDone _PARAMS((int fd, int status, void *data));
 static void passStateFree _PARAMS((int fd, void *data));
-static edge *passSelectNeighbor _PARAMS((PassStateData * passState));
+static void passSelectNeighbor _PARAMS((int, const ipcache_addrs *, void *));
 
 static void
 passClose(PassStateData * passState)
@@ -411,7 +411,6 @@ passStart(int fd,
     PassStateData *passState = NULL;
     int sock;
     char *msg = NULL;
-    edge *e = NULL;
 
     debug(39, 3, "passStart: '%s %s'\n",
 	RequestMethodStr[request->method], url);
@@ -451,30 +450,50 @@ passStart(int fd,
     passState->server.fd = sock;
     passState->server.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
     passState->client.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
-    if ((e = passSelectNeighbor(passState))) {
-	passState->proxying = 1;
-	passState->host = e->host;
-	passState->port = e->http_port;
-    } else {
-	passState->proxying = 0;
-	passState->host = request->host;
-	passState->port = request->port;
-    }
     comm_add_close_handler(passState->server.fd,
 	passStateFree,
 	(void *) passState);
     comm_add_close_handler(passState->client.fd,
 	passClientClosed,
 	(void *) passState);
+    if (Config.firewall_ip_list) {
+	/* must look up IP address */
+        ipcache_nbgethostbyname(passState->host,
+            passState->server.fd,
+            passConnect,
+            passState);
+    } else {
+	/* can decide now */
+	passSelectNeighbor(passState->server.fd,
+		NULL,
+		(void *) passState);
+    }
+    return COMM_OK;
+}
+
+static void
+passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
+{
+    PassStateData *passState = data;
+    request_t *request = passState->request;
+    edge *e = NULL;
+    int fw_ip_match = IP_ALLOW;
+    if (ia && Config.firewall_ip_list)
+	fw_ip_match = ip_access_check(ia->in_addrs[ia->cur], Config.firewall_ip_list);
+    if (matchInsideFirewall(request->host)) {
+	hierarchyNote(request, HIER_DIRECT, 0, request->host);
+    } else if (fw_ip_match == IP_DENY) {
+	hierarchyNote(request, HIER_DIRECT, 0, request->host);
+    } else if ((e = getSingleParent(request, NULL))) {
+	hierarchyNote(request, HIER_SINGLE_PARENT, 0, e->host);
+    } else if ((e = getFirstUpParent(request))) {
+        hierarchyNote(request, HIER_FIRSTUP_PARENT, 0, e->host);
+    }
+    passState->proxying = e ? 1 : 0;
+    passState->host = e ? e->host : request->host;
+    passState->port = e ? e->http_port : request->port;
     ipcache_nbgethostbyname(passState->host,
 	passState->server.fd,
 	passConnect,
 	passState);
-    return COMM_OK;
-}
-
-static edge *
-passSelectNeighbor(PassStateData * passState)
-{
-    return NULL;
 }

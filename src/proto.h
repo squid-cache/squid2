@@ -298,6 +298,7 @@ extern void protoUnregister _PARAMS((int fd,
 extern int getFromDefaultSource _PARAMS((int, StoreEntry *));
 extern int protoStart _PARAMS((int, StoreEntry *, edge *, request_t *));
 extern void protoCancelTimeout _PARAMS((int fd, StoreEntry *));
+extern int matchInsideFirewall _PARAMS((const char *));
 
 #define DIRECT_NO    0
 #define DIRECT_MAYBE 1
