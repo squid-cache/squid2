@@ -492,6 +492,7 @@ void ftpSendRequest(fd, data)
     int got_timeout = 0;
     int got_negttl = 0;
     int buflen;
+    struct in_addr outgoingTcpAddr;
 
     debug(9, 5, "ftpSendRequest: FD %d\n", fd);
 
@@ -530,6 +531,11 @@ void ftpSendRequest(fd, data)
     }
     if ((s = getVisibleHostname())) {
 	sprintf(tbuf, "-H %s ", s);
+	strcat(buf, tbuf);
+    }
+    outgoingTcpAddr = getTcpOutgoingAddr();
+    if(outgoingTcpAddr.s_addr != INADDR_NONE) {
+	sprintf(tbuf, "-o %s ", inet_ntoa(outgoingTcpAddr));
 	strcat(buf, tbuf);
     }
     strcat(buf, "-h ");		/* httpify */
