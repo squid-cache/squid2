@@ -356,7 +356,7 @@ static int sslConnect(fd, hp, sslState)
     request_t *request = sslState->request;
     int status;
     char *buf = NULL;
-    if (!ipcache_gethostbyname(request->host, 0)) {
+    if (hp == NULL) {
 	debug(26, 4, "sslConnect: Unknown host: %s\n", request->host);
 	buf = squid_error_url(sslState->url,
 	    request->method,
