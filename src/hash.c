@@ -171,11 +171,10 @@ hash4(const void *data, unsigned int size)
 
     h = 0;
     len = strlen(key);
-    loop = (len + 8 - 1) >> 3;
+    loop = len >> 3;
     switch (len & (8 - 1)) {
     case 0:
-	HASH4;
-	/* FALLTHROUGH */
+	break;
     case 7:
 	HASH4;
 	/* FALLTHROUGH */
@@ -197,7 +196,7 @@ hash4(const void *data, unsigned int size)
     case 1:
 	HASH4;
     }
-    while (--loop) {
+    while (loop--) {
 	HASH4;
 	HASH4;
 	HASH4;
@@ -428,7 +427,7 @@ main(void)
     printf("init\n");
 
     printf("creating hash table\n");
-    if ((hid = hash_create(strcmp, 229, hash_string)) < 0) {
+    if ((hid = hash_create((HASHCMP *) strcmp, 229, hash4)) < 0) {
 	printf("hash_create error.\n");
 	exit(1);
     }
