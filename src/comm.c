@@ -777,7 +777,11 @@ commHandleWrite(int fd, void *data)
 	CommWriteStateCallbackAndFree(fd, nleft ? COMM_ERROR : COMM_OK);
     } else if (len < 0) {
 	/* An error */
-	if (ignoreErrno(errno)) {
+	if (fd_table[fd].flags.socket_eof) {
+	    debug(50, 2) ("commHandleWrite: FD %d: write failure: %s.\n",
+		fd, xstrerror());
+	    CommWriteStateCallbackAndFree(fd, COMM_ERROR);
+	} else if (ignoreErrno(errno)) {
 	    debug(50, 10) ("commHandleWrite: FD %d: write failure: %s.\n",
 		fd, xstrerror());
 	    commSetSelect(fd,
