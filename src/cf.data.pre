@@ -382,7 +382,7 @@ DOC_START
 
 	If 'icp_query_timeout' is set to zero, then this value is
 	ignored.
-icp_query_timeout 2000
+maximum_icp_query_timeout 2000
 DOC_END
 
 NAME: mcast_icp_query_timeout
