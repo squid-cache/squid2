@@ -512,7 +512,8 @@ snmpDecodePacket(snmp_request_t * rq)
     checklist.src_addr = rq->from.sin_addr;
     checklist.snmp_community = (char *) Community;
 
-    allow = aclCheckFast(Config.accessList.snmp, &checklist);
+    if (Community)
+	allow = aclCheckFast(Config.accessList.snmp, &checklist);
     if ((snmp_coexist_V2toV1(PDU)) && (Community) && (allow)) {
 	rq->community = Community;
 	rq->PDU = PDU;
