@@ -967,7 +967,8 @@ ftpWriteCommandCallback(int fd, char *buf, int size, int errflag, void *data)
 	    err->request = requestLink(ftpState->request);
 	    errorAppendEntry(entry, err);
 	}
-	storeAbort(entry, 0);
+	if (entry->store_status == STORE_PENDING)
+	    storeAbort(entry, 0);
 	comm_close(fd);
     }
 }
@@ -1045,7 +1046,8 @@ ftpReadControlReply(int fd, void *data)
 		err->request = requestLink(ftpState->request);
 		errorAppendEntry(entry, err);
 	    }
-	    storeAbort(entry, 0);
+	    if (entry->store_status == STORE_PENDING)
+		storeAbort(entry, 0);
 	    comm_close(fd);
 	}
 	return;
