@@ -408,7 +408,7 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 	return COMM_ERROR;
     }
     /* Establish connection. */
-    if (connect(sock, (const struct sockaddr *) address, sizeof(struct sockaddr_in)) < 0) {
+    if (connect(sock, (struct sockaddr *) address, sizeof(struct sockaddr_in)) < 0) {
 	switch (errno) {
 	case EALREADY:
 	    return COMM_ERROR;
