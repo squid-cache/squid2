@@ -473,10 +473,10 @@ snmp_prfProtoFn(variable_list * Var, snint * ErrP)
 	    x = statHistDeltaMedian(&l->dns.svc_time, &f->dns.svc_time);
 	    break;
         case PERF_MEDIAN_RHR:
-            x = statRequestHitRatio(minutes) * 100;
+            x = statRequestHitRatio(minutes);
             break;
         case PERF_MEDIAN_BHR:
-            x = statByteHitRatio(minutes) * 100;
+            x = statByteHitRatio(minutes);
             break;
 	default:
 	    *ErrP = SNMP_ERR_NOSUCHNAME;
