@@ -380,10 +380,7 @@ httpProcessReplyHeader(HttpStateData * httpState, char *buf, int size)
 	case 502:		/* Bad Gateway */
 	case 503:		/* Service Unavailable */
 	case 504:		/* Gateway Timeout */
-	    if (*reply->expires)
-		httpMakePublic(entry);
-	    else
-		httpCacheNegatively(entry);
+	    httpCacheNegatively(entry);
 	    break;
 	    /* Some responses can never be cached */
 	case 303:		/* See Other */
