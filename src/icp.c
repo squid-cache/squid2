@@ -287,8 +287,6 @@ icpStateFree(int fd, void *data)
     checkFailureRatio(icpState->log_type,
 	hierData ? hierData->code : HIER_NONE);
     safe_free(icpState->inbuf);
-    if (icpState->buf)
-	put_free_8k_page(icpState->buf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
     safe_free(icpState->request_hdr);
@@ -591,17 +589,16 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	/* Log the number of bytes that we managed to read */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    urlParseProtocol(entry->url),
-	    icpState->out_offset);
+	    icpState->size);
 	comm_close(fd);
     } else if (icpState->out_offset < entry->mem_obj->e_current_len) {
 	/* More data available locally; write it now */
 	icpSendMoreData(fd, icpState);
-    } else if (icpState->out_offset == entry->object_len &&
-	entry->store_status != STORE_PENDING) {
+    } else if (icpCheckTransferDone(icpState)) {
 	/* We're finished case */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    icpState->request->protocol,
-	    icpState->out_offset);
+	    icpState->size);
 	if (BIT_TEST(icpState->request->flags, REQ_PROXY_KEEPALIVE)) {
 	    commCallCloseHandlers(fd);
 	    commSetSelect(fd,
@@ -625,39 +622,22 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 {
     StoreEntry *entry = icpState->entry;
     MemObject *mem = entry->mem_obj;
-    int len = 0;
-    int max_len = 8191 - icpState->in_offset;
-    char *p = icpState->buf + icpState->in_offset;
     char *reply = NULL;
-    if (max_len <= 0) {
-	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n",
-	    entry->key ? entry->key : entry->url);
-	icpState->in_offset = 0;
-	put_free_8k_page(icpState->buf);
-	icpState->buf = NULL;
-	return icpProcessMISS(fd, icpState);
-    }
-    storeClientCopy(entry, icpState->in_offset, max_len, p, &len, fd);
-    /* XXX replace this with: if (mem->reply->code == 0) */
-    if (!mime_headers_end(icpState->buf)) {
+    if (mem->reply->code == 0) {
+        if (entry->mem_status == IN_MEMORY)
+	    return icpProcessMISS(fd, icpState);
 	/* All headers are not yet available, wait for more data */
 	storeRegister(entry, fd, icpHandleStoreIMS, (void *) icpState);
 	return COMM_OK;
     }
     /* All headers are available, check if object is modified or not */
     /* Restart the object from the beginning */
-    icpState->in_offset = 0;
     /* Only objects with statuscode==200 can be "Not modified" */
-    /* XXX: Should we ignore this? */
     if (mem->reply->code != 200) {
 	debug(12, 4, "icpGetHeadersForIMS: Reply code %d!=200\n",
 	    mem->reply->code);
-	put_free_8k_page(icpState->buf);
-	icpState->buf = NULL;
 	return icpProcessMISS(fd, icpState);
     }
-    put_free_8k_page(icpState->buf);
-    icpState->buf = NULL;
     icpState->log_type = LOG_TCP_IMS_HIT;
     entry->refcount++;
     if (modifiedSince(entry, icpState->request))
@@ -816,8 +796,6 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	icpSendMoreData(fd, icpState);
 	break;
     case LOG_TCP_IMS_MISS:
-	icpState->buf = get_free_8k_page();
-	memset(icpState->buf, '\0', 8192);
 	icpGetHeadersForIMS(fd, icpState);
 	break;
     case LOG_TCP_REFRESH_MISS:
@@ -1933,7 +1911,7 @@ icpCheckTransferDone(icpStateData * icpState)
     if (entry == NULL)
 	return 0;
     if (entry->store_status != STORE_PENDING)
-	if (icpState->out_offset == entry->object_len)
+	if (icpState->out_offset >= entry->object_len)
 	    return 1;
     if ((mem = entry->mem_obj) == NULL)
 	return 0;
@@ -1959,7 +1937,7 @@ icpDetectClientClose(int fd, void *data)
 	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    HTTPCacheInfo->proto_id(entry->url),
-	    icpState->out_offset);
+	    icpState->size);
 	comm_close(fd);
     } else if ((n = read(fd, buf, 255)) > 0) {
 	buf[n] = '\0';
