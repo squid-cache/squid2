@@ -1400,6 +1400,7 @@ DOC_START
 	may also set different timeout values for individual neighbors
 	with the 'connect-timeout' option on a 'cache_peer' line.
 peer_connect_timeout 30 seconds
+DOC_END
 
 NAME: siteselect_timeout
 COMMENT: time-units
