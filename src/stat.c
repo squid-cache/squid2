@@ -408,7 +408,7 @@ void info_get(obj, sentry)
 
     storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
 
-    sprintf(line, "{Harvest Object Cache: Version %s}\n", version_string);
+    sprintf(line, "{Squid Object Cache: Version %s}\n", version_string);
     storeAppend(sentry, line, strlen(line));
 
     tod = mkrfc850(&squid_starttime);

@@ -45,5 +45,6 @@ extern method_t urlParseMethod _PARAMS((char *));
 extern int urlDefaultPort _PARAMS((protocol_t));
 extern void urlInitialize _PARAMS((void));
 extern request_t *urlParse _PARAMS((method_t, char *));
+extern char *urlCanonical _PARAMS((request_t, char *));
 
 #endif /* _URL_HEADER_ */

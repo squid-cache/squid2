@@ -80,7 +80,7 @@
 #	             requests.
 #
 #	  udp_port:  Used for querying neighbor/parent caches about
-#	             objects.  To have a non-Harvest neighbor/parent
+#	             objects.  To have a non-ICP neighbor/parent
 #	             specify '7' for the udp port and make sure the
 #	             neighbor/parent machine has the UDP echo port
 #	             enabled in its /etc/inetd.conf file.
@@ -92,7 +92,7 @@
 #		     The weight must be an integer.  The default weight
 #		     is 1, larger weights are favored more.
 #
-#	NOTE: when using a non-Harvest neighbor/parent, there is no
+#	NOTE: when using a non-ICP neighbor/parent, there is no
 #	      difference between a neighbor and a parent.
 #
 #cache_host hostname type 3128 3130
@@ -231,10 +231,9 @@
 #
 #  TAG: cache_mem (in megabytes)       
 #	Maximum amout of virtual memory used to cache particularly hot
-#	objects.  In a future release of Harvest this will correspond to
-#	the maximum VM usage of the cache; for now, the cache VM images
-#	will grow larger than this limit because other data are stored in
-#	VM besides just hot objects.  The default is 16 MB.
+#	objects.  Note the cache VM images will grow larger than this
+#	limit because other data are stored in VM besides just hot
+#	objects.  The default is 16 MB.
 #	
 #cache_mem  16
 
@@ -306,7 +305,7 @@ gopher_stop   ?
 #	    bind_address www-slip.my.domain
 
 ###################################################################
-#  Logging paramaters and files for the cache.  Refer to the Harvest 
+#  Logging paramaters and files for the cache.  Refer to the
 #  User's Manual for information on the formats of these files.
 ###################################################################
 
@@ -453,8 +452,7 @@ cache_dns_program @prefix@/bin/dnsserver
 #  TAG: negative_ttl (in minutes)         
 #	Time-to-Live (TTL) for negative caching of retrieved objects.
 #	The default is 5 minutes.  Note that this is different from
-#	negative caching of DNS lookups.  See the Harvest User's Manual
-#	for details.
+#	negative caching of DNS lookups.
 #
 #negative_ttl 5
 
@@ -594,7 +592,7 @@ cache_dns_program @prefix@/bin/dnsserver
 ###################################################################
 #
 #	This section contains parameters for the (optional) cache
-#	announcement service.  This service is provided to help Harvest
+#	announcement service.  This service is provided to help
 #	cache administrators locate one another in order to join or
 #	create cache hierarchies.
 #
@@ -655,7 +653,7 @@ cache_dns_program @prefix@/bin/dnsserver
 # Some ftp server also validate that the email adress is valid
 # (for example perl.com).
 #
-ftp_user Harvest@
+ftp_user squid@
 
 # Maximum allowed request size in kilobyte. If people are using 
 # POST file upload set this to largest filesize + a few kb.
