@@ -789,12 +789,6 @@ fqdncache_restart(void)
 	    continue;
 	if (this->status == FQDN_NEGATIVE_CACHED)
 	    continue;
-#if DONT
-	/* else its PENDING or DISPATCHED; there are no dnsservers
-	 * running, so abort it */
-	this->status = FQDN_NEGATIVE_CACHED;
-	fqdncache_release(this);
-#endif
     }
     fqdncache_high = (long) (((float) MAX_FQDN *
 	    (float) FQDN_HIGH_WATER) / (float) 100);

@@ -946,12 +946,6 @@ ipcache_restart(void)
 	    continue;
 	if (this->status == IP_NEGATIVE_CACHED)
 	    continue;
-#if DONT
-	/* else its PENDING or DISPATCHED; there are no dnsservers
-	 * running, so abort it */
-	this->status = IP_NEGATIVE_CACHED;
-	ipcache_release(this);
-#endif
     }
     /* recalculate these while we're at it */
     ipcache_high = (long) (((float) Config.ipcache.size *
