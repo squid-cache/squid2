@@ -404,7 +404,7 @@ httpHeaderReset(HttpHeader * hdr)
 int
 httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_end)
 {
-    const char *field_start = header_start;
+    const char *field_ptr = header_start;
     HttpHeaderEntry *e, *e2;
 
     assert(hdr);
@@ -414,13 +414,13 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
     if (memchr(header_start, '\0', header_end - header_start)) {
 	debug(55, 1) ("WARNING: HTTP header contains NULL characters '%s'\n",
 	    getStringPrefix(header_start, header_end));
-	return NULL;
+	return httpHeaderReset(hdr);
     }
     /* common format headers are "<name>:[ws]<value>" lines delimited by <CRLF>.
      * continuation lines start with a (single) space or tab */
     while (field_start < header_end) {
+	const char *field_start = field_ptr;
 	const char *field_end;
-	const char *field_ptr = field_start;
 	do {
 	    field_ptr = memchr(field_ptr, '\n', header_end - field_ptr);
 	    if (!field_ptr)
@@ -430,8 +430,14 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	field_end = field_ptr;
 	if (field_end > field_start && field_end[-1] == '\r')
 	    field_end--;
-	if (field_start == field_end)
-	    break;		/* blank line */
+	if (field_start == field_end) {
+	    if (field_ptr < header_end) {
+		debug(55, 1) ("WARNING: unparseable HTTP header field near '%s'\n",
+		    getStringPrefix(field_start, header_end));
+		return httpHeaderReset(hdr);
+	    }
+	    break;		/* terminating blank line */
+	}
 	e = httpHeaderEntryParseCreate(field_start, field_end);
 	if (NULL == e) {
 	    debug(55, 1) ("WARNING: unparseable HTTP header field near '%s'\n",
@@ -452,7 +458,6 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	} else {
 	    httpHeaderAddEntry(hdr, e);
 	}
-	field_start = field_ptr;
     }
     return 1;			/* even if no fields where found, it is a valid header */
 }
