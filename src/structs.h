@@ -1254,12 +1254,12 @@ struct _SwapDir {
     int l2;
     int cur_size;
     int max_size;
-    int read_only;
     int suggest;
     fileMap *map;
     int swaplog_fd;
     struct {
 	unsigned int selected:1;
+        unsigned int read_only:1;
     } flags;
 };
 
