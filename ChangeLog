@@ -1,3 +1,14 @@
+Changes to squid-1.1.18 (October 31, 1997):
+
+	- Added fix for missing S_ISDIR macro on NEXTSTEP (Gerben Wierda).
+	- Fixed another ftpget content type bug (Yoshitane Tachibana)
+	- Fixed ftpget to handle EALREADY from non-blocking connect().
+	- Added ALLOW_HOSTNAME_UNDERSCORES option from Ron Gomes.
+	- Fixed bugs which allowed 302 Temporary Redirects to be cached.
+	- Fixed DST offset bug in parse_rfc1123().
+	- Fixed NEIGHBOR_CLOSEST_ONLY define which had the same value as 
+	  NEIGHBOR_MCAST_RESPONDER.
+
 Changes to squid-1.1.17 (October 19, 1997):
 
 	- Fixed ftpget null pointer coredump for mime encodings.
