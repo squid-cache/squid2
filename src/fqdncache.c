@@ -510,7 +510,8 @@ fqdncache_parsebuffer(const char *inbuf, dnsserver_t * dnsData)
     return &f;
 }
 
-static void fqdncache_dnsHandleRead(int fd, void *data)
+static void 
+fqdncache_dnsHandleRead(int fd, void *data)
 {
     dnsserver_t *dnsData = data;
     int len;
