@@ -22,7 +22,7 @@
 
 #ifndef __CONFIGURE_H__
 #define __CONFIGURE_H__
-@TOP@
+@ TOP @
 /* $Id$ */
 
 /*********************************
@@ -327,6 +327,6 @@
 
 
 
-@BOTTOM@
+@BOTTOM @
 
 #endif /* __CONFIGURE_H__ */
