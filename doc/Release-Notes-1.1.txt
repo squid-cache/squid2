@@ -320,9 +320,9 @@ object is fresh or stale:
     }
     if (AGE > MAX_AGE)
         return STALE
-    if (LM_FACTOR > PERCENT)
-        return STALE
-    return FRESH
+    if (LM_FACTOR < PERCENT)
+        return FRESH
+    return STALE
 
 Note that the Max-Age in a client request takes the highest precedence.
 The 'MIN' value should normally be set to zero since it has higher
