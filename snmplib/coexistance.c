@@ -109,7 +109,9 @@ snmp_coexist_V2toV1(struct snmp_pdu *PDU)
 
     case SNMP_PDU_GET:
     case SNMP_PDU_GETNEXT:
+#ifdef SNMP_PDU_SET
     case SNMP_PDU_SET:
+#endif
 	return (1);
 	break;
 
