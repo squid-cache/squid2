@@ -360,6 +360,6 @@ extern struct snmp_mib_tree *Mib;
  * maintain a digest of cache contents and send the digest to neighbors upon
  * request; if disabled we still can request digests from other caches
  */
-#define SQUID_MAINTAIN_CACHE_DIGEST 1
+#define SQUID_MAINTAIN_CACHE_DIGEST 0
 
 #endif /* SQUID_H */

@@ -497,6 +497,7 @@ mainInitialize(void)
 	pconnInit();
 	eventInit();
     }
+
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0 && (!Config2.Accel.on || Config.onoff.accel_with_proxy))
 	neighbors_open(theOutIcpConnection);
@@ -524,6 +525,8 @@ mainInitialize(void)
 	    eventAdd("start_announce", start_announce, NULL, 3600);
 	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10);
 	eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 15);
+	if (store_digest)
+	    storeDigestScheduleRebuild();
     }
     configured_once = 1;
 }
