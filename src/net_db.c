@@ -859,7 +859,8 @@ netdbGetRowFn(oid * New, oid * Oid)
 
 #if USE_ICMP
     if (!Oid[0] && !Oid[1] && !Oid[2] && !Oid[3]) {
-	c = (netdbEntry *) hash_first(addr_table);
+	hash_first(addr_table);
+	c = (netdbEntry *) hash_next(addr_table);
     } else {
 	snprintf(key, 15, "%d.%d.%d.%d", Oid[0], Oid[1], Oid[2], Oid[3]);
 	c = (netdbEntry *) hash_lookup(addr_table, key);
