@@ -236,7 +236,7 @@ waisSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
     if (size > 0) {
 	fd_bytes(fd, size, FD_WRITE);
 	kb_incr(&Counter.server.all.kbytes_out, size);
-        kb_incr(&Counter.server.other.kbytes_out, size);
+	kb_incr(&Counter.server.other.kbytes_out, size);
     }
     if (errflag == COMM_ERR_CLOSING)
 	return;

@@ -38,8 +38,8 @@
 
 /* object to track per-action memory usage (e.g. #idle objects) */
 typedef struct {
-    size_t level;   /* current level */
-    size_t hwater;  /* high water mark */
+    size_t level;		/* current level */
+    size_t hwater;		/* high water mark */
 } MemMeter;
 
 /* object to track per-pool memory usage (alloc = inuse+idle) */
@@ -54,7 +54,7 @@ typedef struct {
 struct _MemPool {
     const char *label;
     size_t obj_size;
-    Stack pstack;    /* stack for free pointers */
+    Stack pstack;		/* stack for free pointers */
     MemPoolMeter meter;
 };
 
@@ -63,18 +63,27 @@ struct _MemPool {
 /* module globals */
 
 /* huge constant to set mem_idle_limit to "unlimited" */
-static const size_t mem_unlimited_size = 2*1024*MB;
+static const size_t mem_unlimited_size = 2 * 1024 * MB;
 
 /* we cannot keep idle more than this limit */
 static size_t mem_idle_limit = 0;
 
 /* memory pool accounting */
 static MemPoolMeter TheMeter;
-static gb_t mem_traffic_volume = { 0, 0 };
+static gb_t mem_traffic_volume =
+{0, 0};
 static Stack Pools;
 
-static double toMB(size_t size) { return ((double)size)/MB; }
-static size_t toKB(size_t size) { return (size+1024-1)/1024; }
+static double 
+toMB(size_t size)
+{
+    return ((double) size) / MB;
+}
+static size_t 
+toKB(size_t size)
+{
+    return (size + 1024 - 1) / 1024;
+}
 
 
 /* Initialization */
@@ -86,8 +95,7 @@ memConfigure()
     /* set to configured value first */
     if (!Config.onoff.mem_pools)
 	new_pool_limit = 0;
-    else
-    if (Config.MemPools.limit > 0)
+    else if (Config.MemPools.limit > 0)
 	new_pool_limit = Config.MemPools.limit;
     else
 	new_pool_limit = mem_unlimited_size;
@@ -128,30 +136,30 @@ memCleanModule()
 /* MemPoolMeter */
 
 static void
-memPoolMeterReport(const MemPoolMeter *pm, size_t obj_size, 
-    int alloc_count, int inuse_count, int idle_count, StoreEntry *e)
+memPoolMeterReport(const MemPoolMeter * pm, size_t obj_size,
+    int alloc_count, int inuse_count, int idle_count, StoreEntry * e)
 {
     assert(pm);
     storeAppendPrintf(e, "%d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\n",
-	/* alloc */
+    /* alloc */
 	alloc_count,
 	toKB(obj_size * pm->alloc.level),
 	toKB(obj_size * pm->alloc.hwater),
-	(int)rint(xpercent(obj_size * pm->alloc.level, TheMeter.alloc.level)),
-	/* in use */
+	(int) rint(xpercent(obj_size * pm->alloc.level, TheMeter.alloc.level)),
+    /* in use */
 	inuse_count,
 	toKB(obj_size * pm->inuse.level),
 	toKB(obj_size * pm->inuse.hwater),
-	(int)rint(xpercent(pm->inuse.level, pm->alloc.level)),
-	/* idle */
+	(int) rint(xpercent(pm->inuse.level, pm->alloc.level)),
+    /* idle */
 	idle_count,
 	toKB(obj_size * pm->idle.level),
 	toKB(obj_size * pm->idle.hwater),
-	/* (int)rint(xpercent(pm->idle.level, pm->alloc.level)), */
-	/* saved */
-	(int)rint(xpercent(pm->saved.count, mem_traffic_volume.count)),
-	(int)rint(xpercent(obj_size * gb_to_double(&pm->saved), gb_to_double(&mem_traffic_volume))));
-	/* (int)rint(xpercent(obj_size * pm->saved.level, mem_traffic_volume))); */
+    /* (int)rint(xpercent(pm->idle.level, pm->alloc.level)), */
+    /* saved */
+	(int) rint(xpercent(pm->saved.count, mem_traffic_volume.count)),
+	(int) rint(xpercent(obj_size * gb_to_double(&pm->saved), gb_to_double(&mem_traffic_volume))));
+    /* (int)rint(xpercent(obj_size * pm->saved.level, mem_traffic_volume))); */
 }
 
 
@@ -175,14 +183,15 @@ memPoolCreate(const char *label, size_t obj_size)
  * is used at the end of the program only
  */
 void
-memPoolDestroy(MemPool *pool) {
+memPoolDestroy(MemPool * pool)
+{
     assert(pool);
     stackClean(&pool->pstack);
     xfree(pool);
 }
 
 void *
-memPoolAlloc(MemPool *pool)
+memPoolAlloc(MemPool * pool)
 {
     assert(pool);
     memMeterInc(pool->meter.inuse);
@@ -204,7 +213,7 @@ memPoolAlloc(MemPool *pool)
 }
 
 void
-memPoolFree(MemPool *pool, void *obj)
+memPoolFree(MemPool * pool, void *obj)
 {
     assert(pool && obj);
     memMeterDec(pool->meter.inuse);
@@ -223,28 +232,28 @@ memPoolFree(MemPool *pool, void *obj)
 }
 
 int
-memPoolWasUsed(const MemPool *pool)
+memPoolWasUsed(const MemPool * pool)
 {
     assert(pool);
     return pool->meter.alloc.hwater > 0;
 }
 
 int
-memPoolInUseCount(const MemPool *pool)
+memPoolInUseCount(const MemPool * pool)
 {
     assert(pool);
     return pool->meter.inuse.level;
 }
 
 size_t
-memPoolInUseSize(const MemPool *pool)
+memPoolInUseSize(const MemPool * pool)
 {
     assert(pool);
     return pool->obj_size * pool->meter.inuse.level;
 }
 
 void
-memPoolDescribe(const MemPool *pool)
+memPoolDescribe(const MemPool * pool)
 {
     assert(pool);
     debug(63, 0) ("%-20s: obj size: %4d used: count: %4d volume: %5d KB\n",
@@ -253,18 +262,18 @@ memPoolDescribe(const MemPool *pool)
 }
 
 void
-memPoolReport(const MemPool *pool, StoreEntry *e)
+memPoolReport(const MemPool * pool, StoreEntry * e)
 {
     assert(pool);
     storeAppendPrintf(e, "%-20s\t %4d\t ",
 	pool->label, pool->obj_size);
-    memPoolMeterReport(&pool->meter, pool->obj_size, 
+    memPoolMeterReport(&pool->meter, pool->obj_size,
 	pool->meter.alloc.level, pool->meter.inuse.level, pool->meter.idle.level,
 	e);
 }
 
 void
-memReport(StoreEntry *e)
+memReport(StoreEntry * e)
 {
     size_t overhd_size = 0;
     int alloc_count = 0;
@@ -291,11 +300,11 @@ memReport(StoreEntry *e)
 	    inuse_count += pool->meter.inuse.level;
 	    idle_count += pool->meter.idle.level;
 	}
-	overhd_size += sizeof(MemPool) + sizeof(MemPool*) +
-	    strlen(pool->label)+1 +
-	    pool->pstack.capacity*sizeof(void*);
+	overhd_size += sizeof(MemPool) + sizeof(MemPool *) +
+	    strlen(pool->label) + 1 +
+	    pool->pstack.capacity * sizeof(void *);
     }
-    overhd_size += sizeof(Pools) + Pools.capacity*sizeof(MemPool*);
+    overhd_size += sizeof(Pools) + Pools.capacity * sizeof(MemPool *);
     /* totals */
     storeAppendPrintf(e, "%-20s\t %-4s\t ", "Total", "-");
     memPoolMeterReport(&TheMeter, 1, alloc_count, inuse_count, idle_count, e);

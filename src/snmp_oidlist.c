@@ -591,7 +591,7 @@ prfProtoGetFn(oid * Src, long SrcLen)
 {
     debug(49, 5) ("prfProtoGetFn: called with %d\n", SrcLen);
 
-    if (Src[LEN_SQ_PRF+1] == PERF_PROTOSTAT_MEDIAN && SrcLen == LEN_SQ_PRF + 5)
+    if (Src[LEN_SQ_PRF + 1] == PERF_PROTOSTAT_MEDIAN && SrcLen == LEN_SQ_PRF + 5)
 	return snmp_prfProtoFn;
 
     if (SrcLen != LEN_SQ_PRF + 3 || Src[LEN_SQ_PRF] >= PERF_PROTOSTAT_END)

@@ -943,7 +943,7 @@ snmp_fqdncacheFn(variable_list * Var, long *ErrP)
     case NET_FQDN_NAME:
 	Answer->type = SMI_STRING;
 	Answer->val_len = strlen(fq->names[0]);
-	Answer->val.string = (u_char *)xstrdup(fq->names[0]);
+	Answer->val.string = (u_char *) xstrdup(fq->names[0]);
 	break;
     case NET_FQDN_IP:
 	Answer->type = SMI_IPADDRESS;

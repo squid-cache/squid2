@@ -193,7 +193,7 @@ memClean()
     if (dirty_count)
 	debug(13, 2) ("memClean: %d pools are left dirty\n", dirty_count);
     else
-	memCleanModule(); /* will free chunks and stuff */
+	memCleanModule();	/* will free chunks and stuff */
 }
 
 

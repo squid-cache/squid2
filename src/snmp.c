@@ -214,8 +214,8 @@ snmp_agent_parse_done(int errstat, snmp_request_t * snmp_rq)
 	if (snmpFwd_removePending(&snmp_rq->from, this_reqid)) {	/* failed */
 	    debug(49, 2) ("snmp: bogus response from %s.\n",
 		inet_ntoa(snmp_rq->from.sin_addr));
-		if (snmp_rq->community)
-			xfree(snmp_rq->community);
+	    if (snmp_rq->community)
+		xfree(snmp_rq->community);
 	    xfree(snmp_rq->outbuf);
 	    xfree(snmp_rq);
 	    return;
@@ -274,13 +274,12 @@ snmpInit(void)
     init_agent_auth();
     assert(Config.Snmp.mibPath);
     snmplib_debug_hook = snmpSnmplibDebug;
-    
-    if (Mib == NULL) {
-    	debug(49, 5) ("init_mib: calling with %s\n", Config.Snmp.mibPath);
-    	snmplib_debug_hook = snmpSnmplibDebug;
-        init_mib(Config.Snmp.mibPath);
-    }
 
+    if (Mib == NULL) {
+	debug(49, 5) ("init_mib: calling with %s\n", Config.Snmp.mibPath);
+	snmplib_debug_hook = snmpSnmplibDebug;
+	init_mib(Config.Snmp.mibPath);
+    }
     if (!Config.Snmp.communities)
 	debug(49, 2) ("snmpInit: WARNING:communities not defined yet!\n");
     else
