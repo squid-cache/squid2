@@ -645,11 +645,18 @@ httpRequestFree(void *data)
     MemObject *mem = NULL;
     debug(33, 3) ("httpRequestFree: %s\n", storeUrl(http->entry));
     if (!clientCheckTransferDone(http)) {
+#if MYSTERIOUS_CODE
+	/*
+	 * DW: this seems odd here, is it really needed?  It causes
+	 * incomplete transfers to get logged with "000" status
+	 * code because http->entry becomes NULL.
+	 */
 	if ((e = http->entry)) {
 	    http->entry = NULL;
 	    storeUnregister(e, http);
 	    storeUnlockObject(e);
 	}
+#endif
 	if (http->entry && http->entry->ping_status == PING_WAITING)
 	    storeReleaseRequest(http->entry);
     }
