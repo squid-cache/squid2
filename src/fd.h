@@ -21,7 +21,6 @@ enum {
     FD_OPEN
 };
 
-#define FD_AT_EOF		0x01
 #define FD_CLOSE_REQUEST	0x02
 #define FD_WRITE_DAEMON		0x04
 #define FD_WRITE_PENDING	0x08
@@ -55,7 +54,7 @@ typedef struct fde {
     int bytes_read;
     int bytes_written;
 
-    struct {
+    struct _fde_disk {
 	FILE_WRITE_HD *wrt_handle;
 	void *wrt_handle_data;
 	dwrite_q *write_q;
