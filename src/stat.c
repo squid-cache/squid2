@@ -1286,7 +1286,11 @@ statByteHitRatio(int minutes)
     assert(minutes < N_COUNT_HIST);
     c = CountHist[0].client_http.kbytes_out.kb - CountHist[minutes].client_http.kbytes_out.kb;
     s = CountHist[0].server.all.kbytes_in.kb - CountHist[minutes].server.all.kbytes_in.kb;
-    return dpercent(c - s, c);
+    /* size_t might be unsigned */
+    if (c > s)
+    	return dpercent(c - s, c);
+    else
+    	return (-1.0 * dpercent(s - c, c));
 }
 
 #if STAT_GRAPHS
