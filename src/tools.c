@@ -129,6 +129,18 @@ int getpagesize _PARAMS((void));
 int gethostname _PARAMS((char *, int));
 #endif
 
+static void
+releaseServerSockets(void)
+{
+    /* Release the main ports as early as possible */
+    if (theHttpConnection >= 0)
+	(void) close(theHttpConnection);
+    if (theInIcpConnection >= 0)
+	(void) close(theInIcpConnection);
+    if (theOutIcpConnection >= 0 && theOutIcpConnection != theInIcpConnection)
+	(void) close(theOutIcpConnection);
+}
+
 static char *
 dead_msg(void)
 {
@@ -269,11 +281,7 @@ death(int sig)
     signal(SIGBUS, SIG_DFL);
     signal(sig, SIG_DFL);
 #endif
-    /* Release the main ports as early as possible */
-    if (theHttpConnection >= 0)
-	(void) close(theHttpConnection);
-    if (theInIcpConnection >= 0)
-	(void) close(theInIcpConnection);
+    releaseServerSockets();
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
     if (squid_curtime - SQUID_RELEASE_TIME < 864000) {
@@ -308,16 +316,14 @@ void
 setSocketShutdownLifetimes(int lft)
 {
     FD_ENTRY *f = NULL;
-    int cur;
     int i;
-    for (i = fdstat_biggest_fd(); i >= 0; i--) {
+    for (i = Biggest_FD; i >= 0; i--) {
 	f = &fd_table[i];
 	if (!f->read_handler && !f->write_handler)
 	    continue;
 	if (fdstatGetType(i) != FD_SOCKET)
 	    continue;
-	cur = comm_get_fd_lifetime(i);
-	if (cur > 0 && (cur - squid_curtime) <= lft)
+	if (f->lifetime > 0 && (f->lifetime - squid_curtime) <= lft)
 	    continue;
 	comm_set_fd_lifetime(i, lft);
     }
@@ -332,6 +338,8 @@ normal_shutdown(void)
 	safeunlink(Config.pidFilename, 0);
 	leave_suid();
     }
+    releaseServerSockets();
+    unlinkdClose();
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
     storeCloseLog();
@@ -375,6 +383,7 @@ fatal_common(const char *message)
 void
 fatal(const char *message)
 {
+    releaseServerSockets();
     /* check for store_rebuilding flag because fatal() is often
      * used in early initialization phases, long before we ever
      * get to the store log. */
@@ -388,6 +397,7 @@ fatal(const char *message)
 void
 fatal_dump(const char *message)
 {
+    releaseServerSockets();
     if (message)
 	fatal_common(message);
     if (opt_catch_signals)
@@ -488,18 +498,23 @@ leave_suid(void)
     if ((pwd = getpwnam(Config.effectiveUser)) == NULL)
 	return;
     if (Config.effectiveGroup && (grp = getgrnam(Config.effectiveGroup))) {
-	setgid(grp->gr_gid);
+	if (setgid(grp->gr_gid) < 0)
+	    debug(50, 1, "leave_suid: setgid: %s\n", xstrerror());
     } else {
-	setgid(pwd->pw_gid);
+	if (setgid(pwd->pw_gid) < 0)
+	    debug(50, 1, "leave_suid: setgid: %s\n", xstrerror());
     }
     debug(21, 3, "leave_suid: PID %d giving up root, becoming '%s'\n",
 	getpid(), pwd->pw_name);
 #if HAVE_SETRESUID
-    setresuid(pwd->pw_uid, pwd->pw_uid, 0);
+    if (setresuid(pwd->pw_uid, pwd->pw_uid, 0) < 0)
+	debug(50, 1, "leave_suid: setresuid: %s\n", xstrerror());
 #elif HAVE_SETEUID
-    seteuid(pwd->pw_uid);
+    if (seteuid(pwd->pw_uid) < 0)
+	debug(50, 1, "leave_suid: seteuid: %s\n", xstrerror());
 #else
-    setuid(pwd->pw_uid);
+    if (setuid(pwd->pw_uid) < 0)
+	debug(50, 1, "leave_suid: setuid: %s\n", xstrerror());
 #endif
 }
 
@@ -526,10 +541,12 @@ no_suid(void)
     uid = geteuid();
     debug(21, 3, "leave_suid: PID %d giving up root priveleges forever\n", getpid());
 #if HAVE_SETRESUID
-    setresuid(uid, uid, uid);
+    if (setresuid(uid, uid, uid) < 0)
+	debug(50, 1, "no_suid: setresuid: %s\n", xstrerror());
 #else
     setuid(0);
-    setuid(uid);
+    if (setuid(uid) < 0)
+	debug(50, 1, "no_suid: setuid: %s\n", xstrerror());
 #endif
 }
 

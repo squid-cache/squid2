@@ -27,6 +27,8 @@ TABLE OF CONTENTS:
 	Access Log Tags
 	Hierarchy Data Tags
 	Using Multicast ICP
+	Store.log Fields
+	Notes for running Squid under NEXTSTEP
 
 
 Ident (RFC 931) lookups
@@ -66,7 +68,7 @@ a decision.  The input line consists of four fields:
 The ip-address is always given, the fqdn and ident fields will be given if
 available, or will be "-" otherwise.  Note that the ident value will only
 be available if 'ident_lookup' in enabled in the config file.  The
-requestrequest method is GET, POST, etc.
+Rrequest method is GET, POST, etc.
 
 Note that when used in conjunction with the -V option (on a virtual hosted
 machine) this provides a mechanism to use a single Squid cache as a front
@@ -384,45 +386,104 @@ address whatsoever.  This is perhaps the reason why client IP addresses
 have been omitted from the HTTP/1.1 specification.
 
 
-Network Probe Database
+Using ICMP to Measure the Network
 ==============================================================================
-As of its initial release, Squid 1.1 includes an experimental
-work-in-progress called the "Network Probe Database."  This database
-is designed for an improved neighbor selection algorithm.
+As of version 1.1.9, Squid is able to utilize ICMP Round-Trip-Time (RTT)
+measurements to select the optimal location to forward a cache miss.
+Previously, cache misses would be forwarded to the parent cache
+which returned the first ICP reply message.   These were logged
+with FIRST_PARENT_MISS in the access.log file.  Now we can 
+select the parent which is closest (RTT-wise) to the origin 
+server.  
 
-Squid has the ability to route requests based on the domain name of the
-URL (i.e. the cache_host_domain rules).  However, the domain name
-approach is problematic because the domains are basically unrelated to
-network topology.  In general, you cannot predict from the domain name
-alone if a server is close or far away.  In our cache hierarchy we
-always want to forward the request closer to the source.  To do
-that we must know something about the network topology.
+ 1. Supporting ICMP in your Squid cache
 
-The new approach is to build a database of network measurements (e.g.
-round trip time, hop count, bandwidth) and use these measurements for
-selecting neighbor caches.  The database is keyed two ways: by hostname
-and by network address.  The measurements are aggregated by networks.
-Measurements are made by sending ICMP "pings" to the hosts.  The values
-are averaged over time.  A typical database entry might be:
+    It is more important that your parent caches enable the ICMP
+    features.  If you are acting as a parent, then you may want
+    to enable ICMP on your cache.  Also, if your cache makes
+    RTT measurements, it will fetch objects directly if your 
+    cache is closer than any of the parents.
+
+    If you want your Squid cache to measure RTT's to origin servers,
+    Squid must be compiled with the USE_ICMP option.  This is easily
+    accomplished by uncommenting "-DUSE_ICMP=1" in src/Makefile and
+    src/Makefile.in.
+
+    An external program called 'pinger' is responsible for sending and
+    receiving ICMP packets.  It must run with root privileges.  After
+    Squid has been compiled, the pinger program must be installed
+    separately.  A special Makefile target will install 'pinger' with
+    appropriate permissions.
+
+        % make install
+        % su
+        # make install-pinger
+
+    There are three configuration file options for tuning the
+    measurement database on your cache.  'netdb_low' and 'netdb_high'
+    specify high and low water marks for keeping the database to a
+    certain size  (e.g. just like with the IP cache).  The 'netdb_ttl'
+    option specifies the minimum rate for pinging a site.  If
+    'netdb_ttl' is set to 300 seconds (5 minutes) then an ICMP packet
+    will not be sent to the same site more than once every five
+    minutes.  Note that a site is only pinged when an HTTP request for
+    the site is received.
+
+    Another option, 'minimum_direct_hops' can be used to try finding
+    servers which are close to your cache.  If the measured hop count
+    to the origin server is less than or equal to minimum_direct_hops,
+    the request will be forwarded directly to the origin server.
+
+ 2. Utilizing your parents database
+
+    Your parent caches can be asked to include the RTT measurements
+    in their ICP replies.  To do this, you must enable 'query_icmp'
+    in your config file:
+
+        query_icmp on
+
+    This causes a flag to be set in your outgoing ICP queries. 
+
+    If your parent caches return ICMP RTT measurements then 
+    the eighth column of your access.log will have lines 
+    similar to:
+
+        CLOSEST_PARENT_MISS/it.cache.nlanr.net
+
+    In this case, it means that 'it.cache.nlanr.net' returned 
+    the lowest RTT to the origin server.  If your cache measured
+    a lower RTT than any of the parents, the request will
+    be logged with
+
+        CLOSEST_DIRECT/www.sample.com
+
+
+ 3. Inspecting the database
+
+    The measurement database can be viewed from the cachemgr by
+    selecting "Network Probe Database."  Hostnames are aggregated
+    into /24 networks.  All measurements made are averaged over
+    time.  Measurements are made to specific hosts, taken from
+    the URLs of HTTP requests.  The recv and sent fields are the
+    number of ICMP packets sent and received.  At this time they
+    are only informational.
+
+    A typical database entry looks something like this:
 
     Network          recv/sent     RTT  Hops Hostnames
-    198.53.148.0        8/   8    98.6   9.0 www.vaxxine.com www.lexinc.com
+    192.41.10.0        20/  21    82.3   6.0 www.jisedu.org www.dozo.com 
+        bo.cache.nlanr.net        42.0   7.0
+        uc.cache.nlanr.net        48.0  10.0
+        pb.cache.nlanr.net        55.0  10.0
+        it.cache.nlanr.net       185.0  13.0
 
-The cache has seen two hosts which are in the 198.53.148.0 network.
-Eight pings have been sent, and eight have been received.  The averaged
-RTT is 98.6 milliseconds, and this network is roughly 9 hops away.
+    This means we have sent 21 pings to both www.jisedu.org and
+    www.dozo.com.  The average RTT is 82.3 milliseconds.  The 
+    next four lines show the measured values from our parent
+    caches.  Since 'bo.cache.nlanr.net' has the lowest RTT,
+    it would be selected as the location to forward a request
+    for a www.jisedu.org or www.dozo.com URL.
 
-When ICP-queried, neighbor caches can return these measurements in ICP
-replies.  For example if my cache knows nothing about the host
-www.vaxxine.com, it can send an ICP query to all of its neighbors.  The
-ICP replies will include the RTT and hop count.  After collecting all
-the replies, my cache can choose the neighbor "closest" to the source,
-where "closest" might mean least hops, best RTT, or some combination
-depending on local configuration.
-
-There is a configuration option called 'minimum_direct_hops.'  If a
-server is less than minimum_direct_hops away, Squid will fetch it
-directly instead of querying any neighbors.
 
 Planning for Squid's Memory Usage
 ==============================================================================
@@ -683,6 +744,24 @@ Hierarchy Data Tags
 				option 'passthrough_proxy' was used.
 	SSL_PARENT_MISS		The neighbor or proxy defined in the config
 				option 'ssl_proxy' was used.
+	DEFAULT_PARENT		No ICP queries were sent to any parent
+				caches.  This parent was chosen because
+				it was marked as 'default' in the config
+				file.
+	ROUNDROBIN_PARENT	No ICP queries were received from any parent
+				caches.  This parent was chosen because
+				it was marked as 'default' in the config 
+				file and it had the lowest round-robin use
+				count.
+	CLOSEST_PARENT_MISS	This parent was selected because it
+				included the lowest RTT measurement to
+				the origin server.  This only appears
+				with 'query_icmp on' set in the config
+				file.
+	CLOSEST_DIRECT		The object was fetched directly from the
+				origin server because this cache measured
+				a lower RTT than any of the parent caches.
+
 
 Almost any of these may be preceeded by 'TIMEOUT_' if the two-second
 (default) timeout occurs waiting for all ICP replies to arrive from
@@ -718,24 +797,83 @@ requires the following config file entries:
 
 	cache_host foo.sample.com sibling 3128 3130 multicast-responder
 
-Use of multicast creates an interesting delimma; normally Squid sends N
+Use of multicast creates an interesting dilemma; normally Squid sends N
 queries and expects N replies.  But with multicast Squid doesn't really
 know how many replies to expect.  Somehow Squid must know roughly how
 many ICP replies to expect, but at the same time it must be careful to
-not over-esimate and therefore incur many ICP query timeouts.
+not over-estimate and therefore incur many ICP query timeouts.
 
-The current approach is this: Squid counts the number of ICP replies
-which arrive *after* the object fetching has been started.  The number
-of late ICP replies is divided by the number of requests generating ICP
-queries.  The ratio of these two counters provides an average number of
-late replies, presumably due to the multicast group members.   This
-ratio is called the Multicast Fudge Factor.
+The current approach is this: Squid periodically (every 15 minutes)
+sends fake ICP queries to only multicast peers.  The replies are
+counted, up until the 'neighbor_timeout' time.  The count is averaged
+over time with a fast decay so that it adjusts relatively quickly.
+The number of replies to expect is rounded down to the nearest whole
+integer to minimize the chance of suffering the neighbor timeout
+on real ICP queries.
 
-    MulticastFudgeFactor = int (#LateReplies / #RequestQueries)
+Store.log Fields
+==============================================================================
+The file store.log consists of the following fields:
 
-The RequestQueries value is kept small (rescaled) so that the ratio can
-adapt quickly.  The Fudge Factor value is added to the number of
-replies expected for each query.  In this manner, the number of replies
-expected is dynamically adjusted over time so that Squid optimizes the
-chance of receiving a HIT, but minimizes the chance of suffering the
-ICP timeout.
+    time action code date lastmod expires type expect-len/real-len method key
+
+    time       The time this entry was logged.  The value is the
+               raw Unix time plus milliseconds.
+
+    action     One of RELEASE, SWAPIN, or SWAPOUT.
+               RELEASE means the object has been removed from the cache.
+               SWAPOUT means the object has been saved to disk.
+               SWAPIN  means the object existed on disk and has been
+                       swapped into memory.
+
+    code       The HTTP reply code.
+
+    The following three fields are timestamps parsed from the HTTP
+    reply headers.  All are expressed in Unix time.  A missing header
+    is represented with -2 and an unparsable header is represented as -1.
+
+    date       The value of the HTTP Date reply header.  If the Date
+               header is missing or invalid, the time of the request
+               is used instead.
+
+    lastmod    The value of the HTTP Last-Modified: reply header.
+
+    expires    The value of the HTTP Expires: reply header.
+
+    type       The HTTP Content-Type reply header.
+
+    expect-len The value of the HTTP Content-Length reply header.
+               Zero if Content-Length was missing.
+
+    real-len   The number of bytes of content actually read.  If the
+               expect-len is non-zero, and not equal to the real-len,
+               the object will be released from the cache.
+
+    method     HTTP request method
+
+    key        The cache key.  Often this is simply the URL.  Cache objects
+               which never become public will have cache keys that include
+               a unique integer sequence number, the request method, and
+               then the URL.
+
+
+Notes for running Squid under NEXTSTEP
+==============================================================================
+When running Squid under NEXTSTEP 3.x, and when that NEXTSTEP system
+runs a BIND named process (most NEXTSTEPS handle that through netinfo
+and netinfo might contact a BIND named on another system) squid can
+trigger an error in the older BIND named that comes with NEXTSTEP 3.x.
+It is therefore necessary for systems running NEXTSTEP 3.x, which run
+their own BIND named, to run a more recent version of BIND. Luckily you
+don't have to compile BIND yourself, a fat (m68k i486 hppa sparc)
+Installer package for BIND-4.9.5 is available through
+ftp://ftp.nluug.nl/pub/comp/next/Internet.
+
+NB: It might be necessary to have BIND running to run Squid under
+NEXTSTEP releases before NEXTSTEP 3.3+patch. Earlier releases of
+NEXTSTEP did not have a multithreaded netinfo resolver, which means
+that Squid's use of multiple dnsserver processes to prevent blocking is
+thwarted by netinfo blocking on every request.
+
+Gerben Wierda <Gerben_Wierda@RnA.nl>
+

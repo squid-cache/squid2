@@ -115,11 +115,12 @@ struct SquidConfig Config;
 #define DefaultSwapLowWaterMark  90	/* 90% */
 #define DefaultNetdbHigh	1000	/* counts, not percents */
 #define DefaultNetdbLow		 900
+#define DefaultNetdbPeriod       300	/* 5 minutes */
 
 #define DefaultWaisRelayHost	(char *)NULL
 #define DefaultWaisRelayPort	0
 
-#define DefaultReferenceAge	0	/* disabled */
+#define DefaultReferenceAge	(86400*365)	/* 1 year */
 #define DefaultNegativeTtl	(5 * 60)	/* 5 min */
 #define DefaultNegativeDnsTtl	(2 * 60)	/* 2 min */
 #define DefaultPositiveDnsTtl	(360 * 60)	/* 6 hours */
@@ -152,6 +153,7 @@ struct SquidConfig Config;
 #define DefaultFtpgetOptions	""
 #define DefaultDnsserverProgram DEFAULT_DNSSERVER
 #define DefaultPingerProgram    DEFAULT_PINGER
+#define DefaultUnlinkdProgram   DEFAULT_UNLINKD
 #define DefaultRedirectProgram  (char *)NULL	/* default NONE */
 #define DefaultEffectiveUser	(char *)NULL	/* default NONE */
 #define DefaultEffectiveGroup	(char *)NULL	/* default NONE */
@@ -203,6 +205,9 @@ struct SquidConfig Config;
 #define DefaultLevelTwoDirs	256
 #define DefaultOptionsLogUdp	1	/* on */
 #define DefaultOptionsEnablePurge 0	/* default off */
+#define DefaultOptionsClientDb	1	/* default on */
+#define DefaultOptionsQueryIcmp	0	/* default off */
+
 
 int httpd_accel_mode = 0;	/* for fast access */
 const char *DefaultSwapDir = DEFAULT_SWAP_DIR;
@@ -262,6 +267,8 @@ static void parseCachemgrPasswd _PARAMS((void));
 static void parsePathname _PARAMS((char **));
 static void parseProxyLine _PARAMS((peer **));
 static void parseHttpAnonymizer _PARAMS((int *));
+static int parseTimeUnits _PARAMS((const char *unit));
+static void parseTimeLine _PARAMS((int *iptr, const char *units));
 
 static void
 self_destruct(void)
@@ -1209,7 +1216,7 @@ parseConfigFile(const char *file_name)
 	else if (!strcmp(token, "client_lifetime"))
 	    parseMinutesLine(&Config.lifetimeDefault);
 	else if (!strcmp(token, "reference_age"))
-	    parseMinutesLine(&Config.referenceAge);
+	    parseTimeLine(&Config.referenceAge, "minutes");
 
 	else if (!strcmp(token, "shutdown_lifetime"))
 	    parseIntegerValue(&Config.lifetimeShutdown);
@@ -1370,6 +1377,10 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&Config.Options.log_udp);
 	else if (!strcmp(token, "http_anonymizer"))
 	    parseHttpAnonymizer(&Config.Options.anonymizer);
+	else if (!strcmp(token, "client_db"))
+	    parseOnOff(&Config.Options.client_db);
+	else if (!strcmp(token, "query_icmp"))
+	    parseOnOff(&Config.Options.query_icmp);
 
 	else if (!strcmp(token, "minimum_direct_hops"))
 	    parseIntegerValue(&Config.minDirectHops);
@@ -1396,8 +1407,8 @@ parseConfigFile(const char *file_name)
 	    parseIntegerValue(&Config.Netdb.high);
 	else if (!strcmp(token, "netdb_low"))
 	    parseIntegerValue(&Config.Netdb.low);
-	else if (!strcmp(token, "netdb_ttl"))
-	    parseIntegerValue(&Config.Netdb.ttl);
+	else if (!strcmp(token, "netdb_ping_period"))
+	    parseTimeLine(&Config.Netdb.period, "seconds");
 
 	/* If unknown, treat as a comment line */
 	else {
@@ -1475,6 +1486,7 @@ configFreeMemory(void)
     safe_free(Config.Program.ftpget_opts);
     safe_free(Config.Program.dnsserver);
     safe_free(Config.Program.redirect);
+    safe_free(Config.Program.unlinkd);
     safe_free(Config.Program.pinger);
     safe_free(Config.Accel.host);
     safe_free(Config.Accel.prefix);
@@ -1519,6 +1531,7 @@ configSetFactoryDefaults(void)
     Config.Swap.lowWaterMark = DefaultSwapLowWaterMark;
     Config.Netdb.high = DefaultNetdbHigh;
     Config.Netdb.low = DefaultNetdbLow;
+    Config.Netdb.period = DefaultNetdbPeriod;
 
     Config.Wais.relayHost = safe_xstrdup(DefaultWaisRelayHost);
     Config.Wais.relayPort = DefaultWaisRelayPort;
@@ -1569,6 +1582,7 @@ configSetFactoryDefaults(void)
     Config.Program.dnsserver = safe_xstrdup(DefaultDnsserverProgram);
     Config.Program.redirect = safe_xstrdup(DefaultRedirectProgram);
     Config.Program.pinger = safe_xstrdup(DefaultPingerProgram);
+    Config.Program.unlinkd = safe_xstrdup(DefaultUnlinkdProgram);
     Config.Accel.host = safe_xstrdup(DefaultAccelHost);
     Config.Accel.prefix = safe_xstrdup(DefaultAccelPrefix);
     Config.Accel.port = DefaultAccelPort;
@@ -1607,6 +1621,8 @@ configSetFactoryDefaults(void)
     Config.Options.res_defnames = DefaultOptionsResDefnames;
     Config.Options.anonymizer = DefaultOptionsAnonymizer;
     Config.Options.enable_purge = DefaultOptionsEnablePurge;
+    Config.Options.client_db = DefaultOptionsClientDb;
+    Config.Options.query_icmp = DefaultOptionsQueryIcmp;
 }
 
 static void
@@ -1632,4 +1648,51 @@ configDoConfigure(void)
 	Config.appendDomainLen = strlen(Config.appendDomain);
     else
 	Config.appendDomainLen = 0;
+}
+
+/* Parse a time specification from the config file.  Store the
+ * result in 'iptr', after converting it to 'units' */
+static void
+parseTimeLine(int *iptr, const char *units)
+{
+    char *token;
+    double d;
+    int m;
+    int u;
+    if ((u = parseTimeUnits(units)) == 0)
+	self_destruct();
+    if ((token = strtok(NULL, w_space)) == NULL)
+	self_destruct();
+    d = atof(token);
+    m = u;			/* default to 'units' if none specified */
+    if ((token = strtok(NULL, w_space)) != NULL) {
+	if ((m = parseTimeUnits(token)) == 0)
+	    self_destruct();
+    }
+    *iptr = m * d / u;
+}
+
+static int
+parseTimeUnits(const char *unit)
+{
+    if (!strncasecmp(unit, "second", 6))
+	return 1;
+    if (!strncasecmp(unit, "minute", 6))
+	return 60;
+    if (!strncasecmp(unit, "hour", 4))
+	return 3600;
+    if (!strncasecmp(unit, "day", 3))
+	return 86400;
+    if (!strncasecmp(unit, "week", 4))
+	return 86400 * 7;
+    if (!strncasecmp(unit, "fortnight", 9))
+	return 86400 * 14;
+    if (!strncasecmp(unit, "month", 5))
+	return 86400 * 30;
+    if (!strncasecmp(unit, "year", 4))
+	return 86400 * 365.2522;
+    if (!strncasecmp(unit, "decade", 6))
+	return 86400 * 365.2522 * 10;
+    debug(3, 1, "parseTimeUnits: unknown time unit '%s'\n", unit);
+    return 0;
 }

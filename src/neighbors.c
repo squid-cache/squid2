@@ -105,6 +105,9 @@
 
 #include "squid.h"
 
+/* count mcast group peers every 15 minutes */
+#define MCAST_COUNT_RATE 900
+
 static int peerAllowedToUse _PARAMS((const peer *, request_t *));
 static int peerHTTPOkay _PARAMS((const peer *, request_t *));
 static int peerWouldBePinged _PARAMS((const peer *, request_t *));
@@ -118,19 +121,21 @@ static void peerDNSConfigure _PARAMS((int fd, const ipcache_addrs * ia, void *da
 static void peerCheckConnect _PARAMS((void *));
 static void peerCheckConnect2 _PARAMS((int, const ipcache_addrs *, void *));
 static void peerCheckConnectDone _PARAMS((int, int, void *));
+static void peerCountMcastPeersDone _PARAMS((void *data));
+static void peerCountMcastPeersStart _PARAMS((void *data));
+static void peerCountMcastPeersSchedule _PARAMS((peer * p, time_t when));
 
 static icp_common_t echo_hdr;
 static u_short echo_port;
 
 static int NLateReplies = 0;
-static int NObjectsQueried = 0;
-static int MulticastFudgeFactor = 0;
 
 static struct {
     int n;
     peer *peers_head;
     peer *peers_tail;
     peer *first_ping;
+    peer *removed;
 } Peers = {
 
     0, NULL, NULL, NULL
@@ -147,6 +152,8 @@ const char *hier_strings[] =
     "FIRST_UP_PARENT",
     "NO_PARENT_DIRECT",
     "FIRST_PARENT_MISS",
+    "CLOSEST_PARENT_MISS",
+    "CLOSEST_DIRECT",
     "LOCAL_IP_DIRECT",
     "FIREWALL_IP_DIRECT",
     "NO_DIRECT_FAIL",
@@ -394,7 +401,9 @@ neighborRemove(peer * target)
     }
     if (e) {
 	*E = e->next;
-	peerDestroy(e);
+	e->next = Peers.removed;
+	Peers.removed = e;
+	e->stats.ack_deficit = HIER_MAX_DEFICIT;
 	Peers.n--;
     }
     Peers.first_ping = Peers.peers_head;
@@ -412,6 +421,10 @@ neighborsDestroy(void)
 	next = e->next;
 	peerDestroy(e);
 	Peers.n--;
+    }
+    for (e = Peers.removed; e; e = next) {
+	next = e->next;
+	peerDestroy(e);
     }
     memset(&Peers, '\0', sizeof(Peers));
 }
@@ -455,8 +468,7 @@ neighborsUdpPing(protodispatch_data * proto)
     int reqnum = 0;
     int flags;
     icp_common_t *query;
-    int ICP_queries_sent = 0;
-    int ICP_mcasts_sent = 0;
+    int queries_sent = 0;
 
     if (Peers.peers_head == NULL)
 	return 0;
@@ -475,6 +487,8 @@ neighborsUdpPing(protodispatch_data * proto)
     mem->e_pings_n_acks = 0;
     mem->e_pings_first_miss = NULL;
     mem->w_rtt = 0;
+    mem->e_pings_closest_parent = NULL;
+    mem->p_rtt = 0;
     mem->start_ping = current_time;
 
     for (i = 0, e = Peers.first_ping; i++ < Peers.n; e = e->next) {
@@ -486,7 +500,7 @@ neighborsUdpPing(protodispatch_data * proto)
 	debug(15, 4, "neighborsUdpPing: pinging peer %s for '%s'\n",
 	    e->host, url);
 	if (e->type == PEER_MULTICAST)
-	    comm_set_mcast_ttl(theOutIcpConnection, e->mcast_ttl);
+	    comm_set_mcast_ttl(theOutIcpConnection, e->mcast.ttl);
 	reqnum = storeReqnum(entry, request->method);
 	debug(15, 3, "neighborsUdpPing: key = '%s'\n", entry->key);
 	debug(15, 3, "neighborsUdpPing: reqnum = %d\n", reqnum);
@@ -500,7 +514,6 @@ neighborsUdpPing(protodispatch_data * proto)
 		query,
 		LOG_TAG_NONE,
 		PROTO_NONE);
-	    ICP_queries_sent++;
 	} else {
 	    flags = 0;
 	    /* check if we should set ICP_FLAG_HIT_OBJ */
@@ -508,14 +521,16 @@ neighborsUdpPing(protodispatch_data * proto)
 		if (!BIT_TEST(request->flags, REQ_NOCACHE))
 		    if (e->icp_version == ICP_VERSION_2)
 			flags |= ICP_FLAG_HIT_OBJ;
+	    if (Config.Options.query_icmp)
+		flags |= ICP_FLAG_SRC_RTT;
 	    query = icpCreateMessage(ICP_OP_QUERY, flags, url, reqnum, 0);
 	    icpUdpSend(theOutIcpConnection,
 		&e->in_addr,
 		query,
 		LOG_TAG_NONE,
 		PROTO_NONE);
-	    ICP_queries_sent++;
 	}
+	queries_sent++;
 
 	e->stats.ack_deficit++;
 	e->stats.pings_sent++;
@@ -523,7 +538,7 @@ neighborsUdpPing(protodispatch_data * proto)
 	    e->host, e->stats.ack_deficit);
 	if (e->type == PEER_MULTICAST) {
 	    e->stats.ack_deficit = 0;
-	    ICP_mcasts_sent++;
+	    mem->e_pings_n_pings += e->mcast.n_replies_expected;
 	} else if (neighborUp(e)) {
 	    /* its alive, expect a reply from it */
 	    mem->e_pings_n_pings++;
@@ -560,17 +575,16 @@ neighborsUdpPing(protodispatch_data * proto)
 		    query,
 		    LOG_TAG_NONE,
 		    PROTO_NONE);
-		ICP_queries_sent++;
 	    }
 	} else {
 	    debug(15, 6, "neighborsUdpPing: Source Ping: unknown host: %s\n",
 		host);
 	}
     }
-    if ((ICP_queries_sent))
-	NObjectsQueried++;
-    if ((ICP_mcasts_sent))
-	mem->e_pings_n_pings += MulticastFudgeFactor;
+#if LOG_ICP_NUMBERS
+    request->hierarchy.n_sent = queries_sent;
+    request->hierarchy.n_expect = mem->e_pings_n_pings;
+#endif
     return mem->e_pings_n_pings;
 }
 
@@ -605,6 +619,24 @@ neighborCountIgnored(peer * e, icp_opcode op_unused)
 	return;
     e->stats.ignored_replies++;
     NLateReplies++;
+}
+
+/* ignoreMulticastReply
+ * 
+ * We want to ignore replies from multicast peers if the
+ * cache_host_domain rules would normally prevent the peer
+ * from being used
+ */
+static int
+ignoreMulticastReply(peer * e, MemObject * mem)
+{
+    if (e == NULL)
+	return 0;
+    if (!BIT_TEST(e->options, NEIGHBOR_MCAST_RESPONDER))
+	return 0;
+    if (peerHTTPOkay(e, mem->request))
+	return 0;
+    return 1;
 }
 
 /* I should attach these records to the entry.  We take the first
@@ -654,15 +686,11 @@ neighborsUdpAck(int fd, const char *url, icp_common_t * header, const struct soc
     debug(15, 3, "neighborsUdpAck: %s for '%s' from %s \n",
 	opcode_d, url, e ? e->host : "source");
     mem->e_pings_n_acks++;
-    if (e && BIT_TEST(e->options, NEIGHBOR_MCAST_RESPONDER)) {
-	if (!peerHTTPOkay(e, mem->request)) {
-	    neighborCountIgnored(e, opcode);
-	    return;
-	}
-    }
     if (e)
 	ntype = neighborType(e, mem->request);
-    if (opcode == ICP_OP_SECHO) {
+    if (ignoreMulticastReply(e, mem)) {
+	neighborCountIgnored(e, opcode);
+    } else if (opcode == ICP_OP_SECHO) {
 	/* Received source-ping reply */
 	if (e) {
 	    debug(15, 1, "Ignoring SECHO from neighbor %s\n", e->host);
@@ -743,10 +771,27 @@ neighborsUdpAck(int fd, const char *url, icp_common_t * header, const struct soc
 	} else if (ntype != PEER_PARENT) {
 	    (void) 0;		/* ignore MISS from non-parent */
 	} else {
-	    w_rtt = tvSubMsec(mem->start_ping, current_time) / e->weight;
-	    if (mem->w_rtt == 0 || w_rtt < mem->w_rtt) {
-		mem->e_pings_first_miss = e;
-		mem->w_rtt = w_rtt;
+	    /* only use SRC_RTT data if we asked for it */
+	    if (Config.Options.query_icmp) {
+		if (BIT_TEST(header->flags, ICP_FLAG_SRC_RTT)) {
+		    u_num32 p = header->pad;
+		    int rtt = p & 0xFFFF;
+		    int hops = (p >> 16) & 0xFFFF;
+		    if (rtt > 0 && rtt < 0xFFFF)
+			netdbUpdatePeer(mem->request, e, rtt, hops);
+		    if (rtt && (mem->p_rtt == 0 || rtt < mem->p_rtt)) {
+			mem->e_pings_closest_parent = e;
+			mem->p_rtt = rtt;
+		    }
+		}
+	    }
+	    /* set FIRST_MISS if thre is no CLOSEST parent */
+	    if (mem->e_pings_closest_parent == NULL) {
+		w_rtt = tvSubMsec(mem->start_ping, current_time) / e->weight;
+		if (mem->w_rtt == 0 || w_rtt < mem->w_rtt) {
+		    mem->e_pings_first_miss = e;
+		    mem->w_rtt = w_rtt;
+		}
 	    }
 	}
     } else if (opcode == ICP_OP_DENIED) {
@@ -763,7 +808,7 @@ neighborsUdpAck(int fd, const char *url, icp_common_t * header, const struct soc
 		neighborCountIgnored(e, opcode);
 	    }
 	}
-    } else if (opcode == ICP_OP_RELOADING) {
+    } else if (opcode == ICP_OP_MISS_NOFETCH) {
 	if (e)
 	    debug(15, 3, "neighborsUdpAck: %s is RELOADING\n", e->host);
     } else {
@@ -798,7 +843,7 @@ neighborAdd(const char *host,
     e = xcalloc(1, sizeof(peer));
     e->http_port = http_port;
     e->icp_port = icp_port;
-    e->mcast_ttl = mcast_ttl;
+    e->mcast.ttl = mcast_ttl;
     e->options = options;
     e->weight = weight;
     e->host = xstrdup(host);
@@ -951,6 +996,9 @@ peerDestroy(peer * e)
 	return;
     if (!e->tcp_up)
 	eventDelete(peerCheckConnect, e);
+    if (e->type == PEER_MULTICAST)
+	if (e->mcast.count_event_pending)
+	    eventDelete(peerCountMcastPeersStart, e);
     for (l = e->pinglist; l; l = nl) {
 	nl = l->next;
 	safe_free(l->domain);
@@ -960,21 +1008,8 @@ peerDestroy(peer * e)
     safe_free(e);
 }
 
-void
-peerUpdateFudge(void *unused)
-{
-    if ((NObjectsQueried)) {
-	MulticastFudgeFactor = NLateReplies / NObjectsQueried;
-	if (NObjectsQueried > 20) {
-	    /* Re-scale this so it adjusts faster */
-	    NLateReplies = 20 * NLateReplies / NObjectsQueried;
-	    NObjectsQueried = 20;
-	}
-    }
-    eventAdd("peerUpdateFudge", peerUpdateFudge, NULL, 10);
-    debug(15, 3, "peerUpdateFudge: Factor = %d\n", MulticastFudgeFactor);
-}
-
+/* XXX There are FMR bugs here.  The peer structure might be freed
+ * during a reconfigure while this lookup is pending */
 static void
 peerDNSConfigure(int fd, const ipcache_addrs * ia, void *data)
 {
@@ -985,23 +1020,15 @@ peerDNSConfigure(int fd, const ipcache_addrs * ia, void *data)
 	debug(15, 1, "Configuring %s %s/%d/%d\n", neighborTypeStr(e),
 	    e->host, e->http_port, e->icp_port);
 	if (e->type == PEER_MULTICAST)
-	    debug(15, 1, "    Multicast TTL = %d\n", e->mcast_ttl);
+	    debug(15, 1, "    Multicast TTL = %d\n", e->mcast.ttl);
     }
     e->n_addresses = 0;
     if (ia == NULL) {
 	debug(0, 0, "WARNING: DNS lookup for '%s' failed!\n", e->host);
-#ifdef DONT
-	debug(0, 0, "THIS NEIGHBOR WILL BE IGNORED.\n");
-	neighborRemove(e);
-#endif
 	return;
     }
     if ((int) ia->count < 1) {
 	debug(0, 0, "WARNING: No IP address found for '%s'!\n", e->host);
-#ifdef DONT
-	debug(0, 0, "THIS NEIGHBOR WILL BE IGNORED.\n");
-	neighborRemove(e);
-#endif
 	return;
     }
     for (j = 0; j < (int) ia->count && j < PEER_MAX_ADDRESSES; j++) {
@@ -1014,6 +1041,8 @@ peerDNSConfigure(int fd, const ipcache_addrs * ia, void *data)
     ap->sin_family = AF_INET;
     ap->sin_addr = e->addresses[0];
     ap->sin_port = htons(e->icp_port);
+    if (e->type == PEER_MULTICAST)
+	peerCountMcastPeersSchedule(e, 10);
 }
 
 static void
@@ -1076,4 +1105,83 @@ peerCheckConnectStart(peer * p)
     p->tcp_up = 0;
     p->last_fail_time = squid_curtime;
     eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
+}
+
+static void
+peerCountMcastPeersSchedule(peer * p, time_t when)
+{
+    if (p->mcast.count_event_pending)
+	return;
+    eventAdd("peerCountMcastPeersStart",
+	peerCountMcastPeersStart,
+	p,
+	when);
+    p->mcast.count_event_pending = 1;
+}
+
+static void
+peerCountMcastPeersStart(void *data)
+{
+    peer *p = data;
+    StoreEntry *fake;
+    MemObject *mem;
+    icp_common_t *query;
+    LOCAL_ARRAY(char, url, MAX_URL);
+    if (p->type != PEER_MULTICAST)
+	fatal_dump("peerCountMcastPeersStart: non-multicast peer");
+    p->mcast.count_event_pending = 0;
+    sprintf(url, "http://%s/", inet_ntoa(p->in_addr.sin_addr));
+    if ((fake = storeGet(url)) == NULL) {
+	fake = storeCreateEntry(url, NULL, 0, 0, METHOD_GET);
+	fake->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
+    }
+    mem = fake->mem_obj;
+    mem->e_pings_n_pings = 0;
+    mem->e_pings_n_acks = 0;
+    mem->start_ping = current_time;
+    comm_set_mcast_ttl(theOutIcpConnection, p->mcast.ttl);
+    p->mcast.reqnum = storeReqnum(fake, METHOD_GET);
+    query = icpCreateMessage(ICP_OP_QUERY, 0, url, p->mcast.reqnum, 0);
+    icpUdpSend(theOutIcpConnection,
+	&p->in_addr,
+	query,
+	LOG_TAG_NONE,
+	PROTO_NONE);
+    mem->e_pings_n_pings = 255;
+    fake->ping_status = PING_WAITING;
+    eventAdd("peerCountMcastPeersDone",
+	peerCountMcastPeersDone,
+	p,
+	Config.neighborTimeout);
+    peerCountMcastPeersSchedule(p, MCAST_COUNT_RATE);
+}
+
+static void
+peerCountMcastPeersDone(void *data)
+{
+    peer *p = data;
+    StoreEntry *fake;
+    LOCAL_ARRAY(char, url, MAX_URL);
+    const char *key;
+    double old;
+    double new;
+    double D;
+    sprintf(url, "http://%s/", inet_ntoa(p->in_addr.sin_addr));
+    key = storeGeneratePrivateKey(url, METHOD_GET, p->mcast.reqnum);
+    if ((fake = storeGet(key)) == NULL)
+	debug_trap("peerCountMcastPeersDone: can't find fake store entry");
+    D = (double) ++p->mcast.n_times_counted;
+    if (D > 10.0)
+	D = 10.0;
+    old = p->mcast.avg_n_members;
+    new = (double) fake->mem_obj->e_pings_n_acks;
+    p->mcast.avg_n_members = (old * (D - 1.0) + new) / D;
+    debug(15, 1, "Group %s: %d replies, %4.1f average\n",
+	p->host,
+	fake->mem_obj->e_pings_n_acks,
+	p->mcast.avg_n_members);
+    p->mcast.n_replies_expected = (int) p->mcast.avg_n_members;
+    fake->store_status = STORE_ABORTED;
+    storeReleaseRequest(fake);
+    storeUnlockObject(fake);
 }

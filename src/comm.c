@@ -152,8 +152,8 @@ static void commSetTcpNoDelay _PARAMS((int));
 static void commSetTcpRcvbuf _PARAMS((int, int));
 static void commConnectFree _PARAMS((int fd, void *data));
 static void commConnectHandle _PARAMS((int fd, void *data));
+static void commHandleWrite _PARAMS((int fd, RWStateData * state));
 
-static int *fd_lifetime = NULL;
 static struct timeval zero_tv;
 
 void
@@ -273,6 +273,7 @@ comm_open(int sock_type,
     if (note)
 	fd_note(new_socket, note);
     conn->openned = 1;
+    conn->lifetime = -1;
 
     if (!BIT_TEST(flags, COMM_NOCLOEXEC))
 	commSetCloseOnExec(new_socket);
@@ -385,33 +386,19 @@ commConnectHandle(int fd, void *data)
 int
 comm_set_fd_lifetime(int fd, int lifetime)
 {
+    FD_ENTRY *f;
     debug(5, 3, "comm_set_fd_lifetime: FD %d lft %d\n", fd, lifetime);
     if (fd < 0 || fd > Squid_MaxFD)
 	return 0;
+    f = &fd_table[fd];
     if (lifetime < 0)
-	return fd_lifetime[fd] = -1;
+	return f->lifetime = -1;
     if (shutdown_pending || reread_pending) {
 	/* don't increase the lifetime if something pending */
-	if (fd_lifetime[fd] > -1 && (fd_lifetime[fd] - squid_curtime) < lifetime)
-	    return fd_lifetime[fd];
+	if (f->lifetime > -1 && (f->lifetime - squid_curtime) < lifetime)
+	    return f->lifetime;
     }
-    return fd_lifetime[fd] = (int) squid_curtime + lifetime;
-}
-
-int
-comm_get_fd_lifetime(int fd)
-{
-    if (fd < 0)
-	return 0;
-    return fd_lifetime[fd];
-}
-
-int
-comm_get_fd_timeout(int fd)
-{
-    if (fd < 0)
-	return 0;
-    return fd_table[fd].timeout_time;
+    return f->lifetime = (int) squid_curtime + lifetime;
 }
 
 int
@@ -558,10 +545,10 @@ comm_close(int fd)
     }
     conn->openned = 0;
     RWStateCallbackAndFree(fd, COMM_ERROR);
-    comm_set_fd_lifetime(fd, -1);	/* invalidate the lifetime */
     fdstat_close(fd);		/* update fdstat */
     commCallCloseHandlers(fd);
     memset(conn, '\0', sizeof(FD_ENTRY));
+    conn->lifetime = -1;
     close(fd);
 }
 
@@ -794,7 +781,7 @@ comm_select(time_t sec)
 		setSocketShutdownLifetimes(0);
 	}
 	nfds = 0;
-	maxfd = fdstat_biggest_fd() + 1;
+	maxfd = Biggest_FD + 1;
 	httpindex = -1;
 	for (i = 0; i < maxfd; i++) {
 	    pfds[nfds].fd = -1;
@@ -978,7 +965,7 @@ comm_select(time_t sec)
 		setSocketShutdownLifetimes(0);
 	}
 	nfds = 0;
-	maxfd = fdstat_biggest_fd() + 1;
+	maxfd = Biggest_FD + 1;
 	for (i = 0; i < maxfd; i++) {
 	    /* Check each open socket for a handler. */
 	    if (fd_table[i].stall_until > squid_curtime)
@@ -992,7 +979,7 @@ comm_select(time_t sec)
 		FD_SET(i, &writefds);
 	    }
 	}
-	if (!fdstat_are_n_free_fd(RESERVED_FD)) {
+	if (!fdstat_are_n_free_fd(RESERVED_FD) && theHttpConnection >= 0) {
 	    FD_CLR(theHttpConnection, &readfds);
 	}
 	if (shutdown_pending || reread_pending)
@@ -1303,7 +1290,6 @@ comm_init(void)
      * Since Squid_MaxFD can be as high as several thousand, don't waste them */
     RESERVED_FD = min(100, Squid_MaxFD / 4);
     /* hardwired lifetimes */
-    fd_lifetime = xmalloc(sizeof(int) * Squid_MaxFD);
     for (i = 0; i < Squid_MaxFD; i++)
 	comm_set_fd_lifetime(i, -1);	/* denotes invalid */
     meta_data.misc += Squid_MaxFD * sizeof(int);
@@ -1408,8 +1394,10 @@ checkTimeouts(void)
     FD_ENTRY *f = NULL;
     void *data;
     /* scan for timeout */
-    for (fd = 0; fd < Squid_MaxFD; ++fd) {
+    for (fd = 0; fd <= Biggest_FD; fd++) {
 	f = &fd_table[fd];
+	if (!f->openned)
+	    continue;
 	if ((hdl = f->timeout_handler) == NULL)
 	    continue;
 	if (f->timeout_time > squid_curtime)
@@ -1426,18 +1414,19 @@ static void
 checkLifetimes(void)
 {
     int fd;
-    time_t lft;
     FD_ENTRY *fde = NULL;
 
     PF hdl = NULL;
 
-    for (fd = 0; fd < Squid_MaxFD; fd++) {
-	if ((lft = comm_get_fd_lifetime(fd)) == -1)
+    for (fd = 0; fd <= Biggest_FD; fd++) {
+	fde = &fd_table[fd];
+	if (!fde->openned)
 	    continue;
-	if (lft > squid_curtime)
+	if (fde->lifetime < 0)
+	    continue;
+	if (fde->lifetime > squid_curtime)
 	    continue;
 	debug(5, 5, "checkLifetimes: FD %d Expired\n", fd);
-	fde = &fd_table[fd];
 	if ((hdl = fde->lifetime_handler) != NULL) {
 	    debug(5, 5, "checkLifetimes: FD %d: Calling lifetime handler\n", fd);
 	    hdl(fd, fde->lifetime_data);
@@ -1566,5 +1555,4 @@ void
 commFreeMemory(void)
 {
     safe_free(fd_table);
-    safe_free(fd_lifetime);
 }

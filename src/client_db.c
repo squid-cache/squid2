@@ -73,8 +73,12 @@ clientdbInit(void)
 void
 clientdbUpdate(struct in_addr addr, log_type log_type, u_short port)
 {
-    char *key = inet_ntoa(addr);
-    ClientInfo *c = (ClientInfo *) hash_lookup(client_table, key);
+    char *key;
+    ClientInfo *c;
+    if (!Config.Options.client_db)
+	return;
+    key = inet_ntoa(addr);
+    c = (ClientInfo *) hash_lookup(client_table, key);
     if (c == NULL)
 	c = clientdbAdd(addr);
     if (c == NULL)
@@ -91,9 +95,13 @@ clientdbUpdate(struct in_addr addr, log_type log_type, u_short port)
 int
 clientdbDeniedPercent(struct in_addr addr)
 {
-    char *key = inet_ntoa(addr);
+    char *key;
     int n = 100;
-    ClientInfo *c = (ClientInfo *) hash_lookup(client_table, key);
+    ClientInfo *c;
+    if (!Config.Options.client_db)
+	return 0;
+    key = inet_ntoa(addr);
+    c = (ClientInfo *) hash_lookup(client_table, key);
     if (c == NULL)
 	return 0;
     if (c->Icp.n_requests > 100)

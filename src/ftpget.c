@@ -1049,13 +1049,13 @@ read_reply(int fd)
 	if (n == 0)
 	    quit = 1;
 	else
-	    quit = (buf[2] >= '0' && buf[2] <= '9' && buf[3] == ' ');
+	    quit = (buf[0] >= '0' && buf[0] <= '9' && buf[3] == ' ');
 	if (!quit) {
 	    l = xmalloc(sizeof(list_t));
-	    if (sscanf(buf, "%3d-", &n) == 1)
+	    if (buf[0] >= '0' && buf[0] <= '9' && buf[3] == '-')
 		l->ptr = xstrdup(&buf[4]);
 	    else
-		l->ptr = xstrdup(&buf[strspn(buf, w_space)]);
+		l->ptr = xstrdup(buf);
 	    l->next = NULL;
 	    *Tail = l;
 	    Tail = &(l->next);
@@ -1568,7 +1568,7 @@ do_pasv(ftp_request_t * r)
 	sprintf(r->errmsg, "%s, port %d: %s", junk, port, xstrerror());
 	r->rc = 2;
 	pasv_supported = 0;
-	return FAIL_SOFT;
+	return PASV_FAIL;
     }
     r->dfd = sock;
     return PORT_OK;
@@ -2508,7 +2508,7 @@ usage(int argcount)
     fprintf(stderr, "usage: %s options filename host path A,I user pass\n",
 	progname);
     if (argcount != 0)
-	return;
+	exit(1);
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "\t-c num[:delay]  Max connect attempts and retry delay\n");
     fprintf(stderr, "\t-l num[:delay]  Max login attempts and retry delay\n");
@@ -2721,7 +2721,7 @@ main(int argc, char *argv[])
 	    break;
 	default:
 	    usage(argc);
-	    exit(1);
+	    break;
 	}
     }
     argc -= optind;
@@ -2733,12 +2733,20 @@ main(int argc, char *argv[])
     }
     r = xcalloc(1, sizeof(ftp_request_t));
 
+    /* Its a little dangerous to open(argv[0]) especially when
+     * the command line is parsed from the server socket.  This
+     * functionality is not really needed; a holdover from the
+     * Harvest days */
+#ifdef OLD_STUFF
     if (strcmp(argv[0], "-") == 0) {
 	r->cfd = 1;
     } else if ((r->cfd = open(argv[0], O_WRONLY | O_CREAT | O_TRUNC, 0666)) < 0) {
 	perror(argv[0]);
 	exit(1);
     }
+#endif
+    /* Force ftpget to write to stdout */
+    r->cfd = 1;
     r->host = xstrdup(argv[1]);
     r->path = xstrdup(argv[2]);
     r->type = xstrdup(argv[3]);

@@ -181,6 +181,21 @@ file_open(const char *path, int (*handler) _PARAMS((void)), int mode)
     return fd;
 }
 
+void
+file_open_fd(int fd, const char *name, File_Desc_Type type)
+{
+    FileEntry *f = &file_table[fd];
+    fdstat_open(fd, type);
+    commSetCloseOnExec(fd);
+    xstrncpy(f->filename, name, SQUID_MAXPATHLEN);
+    f->at_eof = NO;
+    f->open_stat = FILE_OPEN;
+    f->close_request = NOT_REQUEST;
+    f->write_pending = NO_WRT_PENDING;
+    f->write_daemon = NOT_PRESENT;
+    f->write_q = NULL;
+    memset(&fd_table[fd], '\0', sizeof(FD_ENTRY));
+}
 
 /* close a disk file. */
 int
@@ -304,8 +319,10 @@ file_write(int fd,
 {
     dwrite_q *wq = NULL;
 
-    if (file_table[fd].open_stat == FILE_NOT_OPEN)
+    if (file_table[fd].open_stat == FILE_NOT_OPEN) {
+	debug_trap("file_write: FILE_NOT_OPEN");
 	return DISK_ERROR;
+    }
     /* if we got here. Caller is eligible to write. */
     wq = xcalloc(1, sizeof(dwrite_q));
     wq->buf = ptr_to_buf;
@@ -326,13 +343,14 @@ file_write(int fd,
 	file_table[fd].write_q_tail = wq;
     }
 
-    if (file_table[fd].write_daemon == PRESENT)
-	return DISK_OK;
-    commSetSelect(fd,
-	COMM_SELECT_WRITE,
-	(PF) diskHandleWrite,
-	(void *) &file_table[fd],
-	0);
+    if (file_table[fd].write_daemon != PRESENT) {
+	commSetSelect(fd,
+	    COMM_SELECT_WRITE,
+	    (PF) diskHandleWrite,
+	    (void *) &file_table[fd],
+	    0);
+	file_table[fd].write_daemon = PRESENT;
+    }
     return DISK_OK;
 }
 

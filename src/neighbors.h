@@ -1,4 +1,5 @@
 
+
 /*
  * $Id$
  *
@@ -119,6 +120,8 @@ typedef enum {
     HIER_FIRSTUP_PARENT,
     HIER_NO_PARENT_DIRECT,
     HIER_FIRST_PARENT_MISS,
+    HIER_CLOSEST_PARENT_MISS,
+    HIER_CLOSEST_DIRECT,
     HIER_LOCAL_IP_DIRECT,
     HIER_FIREWALL_IP_DIRECT,
     HIER_NO_DIRECT_FAIL,
@@ -183,19 +186,32 @@ struct _peer {
     struct _acl_list *acls;
     int options;
     int weight;
-    int mcast_ttl;
+    struct {
+	double avg_n_members;
+	int n_times_counted;
+	int n_replies_expected;
+	int ttl;
+	int reqnum;
+	int count_event_pending;
+    } mcast;
     int tcp_up;			/* 0 if a connect() fails */
     time_t last_fail_time;
     struct in_addr addresses[10];
     int n_addresses;
-    struct _peer *next;
     int rr_count;
+    struct _peer *next;
 };
 
 struct _hierarchyLogData {
     hier_code code;
     char *host;
     int timeout;
+#ifdef LOG_ICP_NUMBERS
+    int n_sent;
+    int n_expect;
+    int n_recv;
+    int delay;
+#endif
 };
 
 extern peer *getFirstPeer _PARAMS((void));
@@ -218,7 +234,6 @@ extern peer *getDefaultParent _PARAMS((request_t * request));
 extern peer *getRoundRobinParent _PARAMS((request_t * request));
 extern int neighborUp _PARAMS((const peer * e));
 extern void peerDestroy _PARAMS((peer * e));
-extern void peerUpdateFudge _PARAMS((void *));
 extern char *neighborTypeStr _PARAMS((const peer * e));
 extern void peerCheckConnectStart _PARAMS((peer *));
 

@@ -149,7 +149,7 @@ char *IcpOpcodeStr[] =
     "ICP_OP_UNUSED6",
     "ICP_OP_UNUSED7",
     "ICP_OP_UNUSED8",
-    "ICP_RELOADING",		/* access denied while store is reloading */
+    "ICP_MISS_NOFETCH",
     "ICP_DENIED",
     "ICP_HIT_OBJ",
     "ICP_END"
@@ -221,8 +221,9 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	    }
 	}
     }
-    if ((e = protoData->single_parent) &&
-	(Config.singleParentBypass || protoData->direct_fetch == DIRECT_NO)) {
+    if ((e = protoData->single_parent) && Config.singleParentBypass) {
+	/* Don't execute this block simply because direct == NO, we
+	 * might have some DOWN peers and still need to ping them */
 	/* Only one parent for this host, and okay to skip pinging stuff */
 	hierarchyNote(req, HIER_SINGLE_PARENT, 0, e->host);
 	protoStart(protoData->fd, entry, e, req);
@@ -306,7 +307,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	return protoStart(fd, entry, NULL, request);
     if (request->protocol == PROTO_WAIS)
 	return protoStart(fd, entry, NULL, request);
-
+    netdbPingSite(request->host);
     protoData = xcalloc(1, sizeof(protodispatch_data));
     protoData->fd = fd;
     protoData->url = url;
@@ -458,7 +459,7 @@ getFromDefaultSource(int fd, StoreEntry * entry)
     peer *e = NULL;
     char *url = NULL;
     request_t *request = entry->mem_obj->request;
-
+    int myrtt;
     url = entry->url;
 
     /* if fd != 0 then we were called from comm_select() because the
@@ -472,6 +473,16 @@ getFromDefaultSource(int fd, StoreEntry * entry)
     /* Check if someone forgot to disable the read timer */
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
 	fatal_dump("getFromDefaultSource: object already being fetched");
+    if ((e = entry->mem_obj->e_pings_closest_parent)) {
+	myrtt = netdbHostRtt(request->host);
+	if (myrtt && myrtt < entry->mem_obj->p_rtt) {
+	    hierarchyNote(request, HIER_CLOSEST_DIRECT, fd, request->host);
+	    return protoStart(fd, entry, NULL, request);
+	} else {
+	    hierarchyNote(request, HIER_CLOSEST_PARENT_MISS, fd, e->host);
+	    return protoStart(fd, entry, e, request);
+	}
+    }
     if ((e = entry->mem_obj->e_pings_first_miss)) {
 	hierarchyNote(request, HIER_FIRST_PARENT_MISS, fd, e->host);
 	return protoStart(fd, entry, e, request);
@@ -518,9 +529,16 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	e ? e->host : "source");
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
 	fatal_dump("protoStart: object already being fetched");
+    if (entry->ping_status == PING_WAITING)
+	debug_trap("protoStart: ping_status is PING_WAITING");
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
     protoCancelTimeout(fd, entry);
     netdbPingSite(request->host);
+#ifdef LOG_ICP_NUMBERS
+    request->hierarchy.n_recv = entry->mem_obj->e_pings_n_acks;
+    if (entry->mem_obj->start_ping.tv_sec)
+	request->hierarchy.delay = tvSubMsec(entry->mem_obj->start_ping, current_time);
+#endif
     if (e) {
 	e->stats.fetches++;
 	return proxyhttpStart(url, request, entry, e);
@@ -542,7 +560,6 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     }
     /* NOTREACHED */
 }
-
 
 static int
 protoNotImplemented(int fd, const char *url, StoreEntry * entry)

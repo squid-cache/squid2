@@ -584,8 +584,8 @@ httpReadReply(int fd, void *data)
     errno = 0;
     len = read(fd, buf, SQUID_TCP_SO_RCVBUF);
     debug(11, 5, "httpReadReply: FD %d: len %d.\n", fd, len);
-    comm_set_fd_lifetime(fd, 86400);	/* extend after good read */
     if (len > 0) {
+	comm_set_fd_lifetime(fd, 86400);	/* extend after good read */
 	IOStats.Http.reads++;
 	for (clen = len - 1, bin = 0; clen; bin++)
 	    clen >>= 1;
@@ -701,8 +701,8 @@ httpBuildRequestHeader(request_t * request,
     size_t out_sz,
     int cfd)
 {
+    LOCAL_ARRAY(char, ybuf, MAX_URL + 32);
     char *xbuf = get_free_4k_page();
-    char *ybuf = get_free_8k_page();
     char *viabuf = get_free_4k_page();
     char *fwdbuf = get_free_4k_page();
     char *t = NULL;
@@ -790,7 +790,6 @@ httpBuildRequestHeader(request_t * request,
     }
     httpAppendRequestHeader(hdr_out, null_string, &len, out_sz);
     put_free_4k_page(xbuf);
-    put_free_8k_page(ybuf);
     put_free_4k_page(viabuf);
     put_free_4k_page(fwdbuf);
     if (in_len)

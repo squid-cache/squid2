@@ -1476,23 +1476,23 @@ networkCompare(struct _acl_ip_data *net, struct _acl_ip_data *data)
 static int
 aclIpNetworkCompare(const void *a, splayNode * n)
 {
-    struct in_addr *A = (struct in_addr *) a;
+    struct in_addr A = *(struct in_addr *) a;
     struct _acl_ip_data *q = n->data;
     struct in_addr B = q->addr1;
     struct in_addr C = q->addr2;
     int rc = 0;
-    A->s_addr &= q->mask.s_addr;	/* apply netmask */
+    A.s_addr &= q->mask.s_addr;	/* apply netmask */
     if (C.s_addr == 0) {	/* single address check */
-	if (ntohl(A->s_addr) > ntohl(B.s_addr))
+	if (ntohl(A.s_addr) > ntohl(B.s_addr))
 	    rc = 1;
-	else if (ntohl(A->s_addr) < ntohl(B.s_addr))
+	else if (ntohl(A.s_addr) < ntohl(B.s_addr))
 	    rc = -1;
 	else
 	    rc = 0;
     } else {			/* range address check */
-	if (ntohl(A->s_addr) > ntohl(C.s_addr))
+	if (ntohl(A.s_addr) > ntohl(C.s_addr))
 	    rc = 1;
-	else if (ntohl(A->s_addr) < ntohl(B.s_addr))
+	else if (ntohl(A.s_addr) < ntohl(B.s_addr))
 	    rc = -1;
 	else
 	    rc = 0;

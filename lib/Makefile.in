@@ -21,6 +21,7 @@ LDFLAGS		= @LDFLAGS@
 XTRA_LIBS	= @XTRA_LIBS@
 RM		= @RM@
 LIBOBJS		= @LIBOBJS@
+AR_R		= @AR_R@
 
 INCLUDE		= -I../include -I$(srcdir)/../include
 UTILOBJS	= rfc1123.o \
@@ -43,11 +44,12 @@ $(UTILOBJS): ../include/version.h
 
 libmiscutil.a: $(UTILOBJS)
 	$(RM) -f $@
-	ar r $@ $(UTILOBJS)
+	$(AR_R) $@ $(UTILOBJS)
 	$(RANLIB) $@
 
 libregex.a: $(REGEXOBJS)
-	ar r $@ $(REGEXOBJS)
+	$(RM) -f $@
+	$(AR_R) $@ $(REGEXOBJS)
 	$(RANLIB) $@
 
 clean:

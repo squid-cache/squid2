@@ -116,7 +116,6 @@ typedef struct _dnsserver {
     int flags;
     int inpipe;
     int outpipe;
-    time_t lastcall;
     time_t answer;
     unsigned int offset;
     unsigned int size;

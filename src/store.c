@@ -176,7 +176,7 @@ static HashID storeCreateHashTable _PARAMS((int (*)_PARAMS((const char *, const 
 static int compareLastRef _PARAMS((StoreEntry **, StoreEntry **));
 static int compareBucketOrder _PARAMS((struct _bucketOrder *, struct _bucketOrder *));
 static int storeAddSwapDisk _PARAMS((const char *));
-static int storeCheckExpired _PARAMS((const StoreEntry *));
+static int storeCheckExpired _PARAMS((const StoreEntry *, int flag));
 static int storeClientListSearch _PARAMS((const MemObject *, int));
 static int storeEntryLocked _PARAMS((const StoreEntry *));
 static int storeEntryValidLength _PARAMS((const StoreEntry *));
@@ -201,6 +201,8 @@ static void storeRebuiltFromDisk _PARAMS((struct storeRebuild_data * data));
 static unsigned int getKeyCounter _PARAMS((void));
 static int storeOpenSwapFileWrite _PARAMS((StoreEntry *));
 static void storeCheckDoneWriting _PARAMS((StoreEntry * e));
+static void storePutUnusedFileno _PARAMS((int fileno));
+static int storeGetUnusedFileno _PARAMS((void));
 
 /* Now, this table is inaccessible to outsider. They have to use a method
  * to access a value in internal storage data structure. */
@@ -411,8 +413,10 @@ storeUnlockObject(StoreEntry * e)
     if (e->lock_count)
 	return (int) e->lock_count;
     if (e->store_status == STORE_PENDING) {
+#ifdef COMPLAIN
 	debug_trap("storeUnlockObject: Someone unlocked STORE_PENDING object");
 	debug(20, 1, "   --> Key '%s'\n", e->key);
+#endif
 	e->store_status = STORE_ABORTED;
     }
     if (e->swap_status != SWAP_OK)
@@ -923,13 +927,20 @@ storeSwapLog(const StoreEntry * e)
 	xfree);
 }
 
+
 static int
 storeOpenSwapFileWrite(StoreEntry * e)
 {
     int fd;
+    int x;
     LOCAL_ARRAY(char, swapfilename, SQUID_MAXPATHLEN);
     MemObject *mem = e->mem_obj;
-    swapfileno = (swapfileno + 1) % (MAX_SWAP_FILE);
+    /* Suggest a new swap file number */
+    if ((x = storeGetUnusedFileno()) >= 0)
+	swapfileno = x;
+    else
+	swapfileno = (swapfileno + 1) % (MAX_SWAP_FILE);
+    /* Record the number returned */
     swapfileno = file_map_allocate(swapfileno);
     storeSwapFullPath(swapfileno, swapfilename);
     fd = file_open(swapfilename, NULL, O_WRONLY | O_CREAT | O_TRUNC);
@@ -1029,7 +1040,7 @@ storeDoRebuildFromDisk(void *data)
 	    storeSwapFullPath(sfileno, swapfile);
 	if (x != 6) {
 	    if (opt_unlink_on_reload && swapfile[0])
-		safeunlink(swapfile, 0);
+		storePutUnusedFileno(sfileno);
 	    continue;
 	}
 	if (sfileno < 0 || sfileno >= MAX_SWAP_FILE)
@@ -1234,10 +1245,11 @@ storeComplete(StoreEntry * e)
 {
     debug(20, 3, "storeComplete: '%s'\n", e->key);
     store_swap_size += (int) ((e->object_len + 1023) >> 10);
-    InvokeHandlers(e);
     e->lastref = squid_curtime;
     e->store_status = STORE_OK;
     safe_free(e->mem_obj->mime_hdr);
+    e->mem_obj->mime_hdr = NULL;
+    InvokeHandlers(e);
     storeCheckDoneWriting(e);
 }
 
@@ -1273,12 +1285,11 @@ storePurgeOld(void *unused)
 	}
 	if ((n & 0xFFF) == 0)
 	    debug(20, 2, "storeWalkThrough: %7d objects so far.\n", n);
-	if (storeCheckExpired(e))
+	if (storeCheckExpired(e, 1))
 	    count += storeRelease(e);
     }
     debug(20, 0, "storePurgeOld: Removed %d objects\n", count);
 }
-
 
 static int
 compareLastRef(StoreEntry ** e1, StoreEntry ** e2)
@@ -1352,11 +1363,11 @@ storeGetSwapSpace(int size)
     LRU_list = xcalloc(max_list_count, sizeof(StoreEntry *));
     /* remove expired objects until recover enough or no expired objects */
     for (i = 0; i < store_buckets; i++) {
-	int expired_in_one_bucket = 0;
+	int expired_in_one_bucket;
 	link_ptr = hash_get_bucket(store_table, storeGetBucketNum());
 	if (link_ptr == NULL)
 	    continue;
-	/* this while loop handles one bucket of hash table */
+	/* this for loop handles one bucket of hash table */
 	expired_in_one_bucket = 0;
 	for (; link_ptr; link_ptr = next) {
 	    if (list_count == max_list_count)
@@ -1364,10 +1375,7 @@ storeGetSwapSpace(int size)
 	    scanned++;
 	    next = link_ptr->next;
 	    e = (StoreEntry *) link_ptr;
-	    if (storeCheckExpired(e)) {
-		debug(20, 3, "storeGetSwapSpace: Expired '%s'\n", e->url);
-		expired_in_one_bucket += storeRelease(e);
-	    } else if (!storeEntryLocked(e)) {
+	    if (!storeEntryLocked(e)) {
 		*(LRU_list + list_count) = e;
 		list_count++;
 		scan_count++;
@@ -1375,7 +1383,7 @@ storeGetSwapSpace(int size)
 		locked++;
 		locked_size += e->object_len;
 	    }
-	}			/* while, end of one bucket of hash table */
+	}			/* for, end of one bucket of hash table */
 	expired += expired_in_one_bucket;
 	if (expired_in_one_bucket &&
 	    ((!fReduceSwap && (store_swap_size + kb_size <= store_swap_high)) ||
@@ -1510,7 +1518,7 @@ storeRelease(StoreEntry * e)
 	debug(20, 5, "storeRelease: Release anonymous object\n");
 
     if (e->swap_file_number > -1) {
-	(void) safeunlink(storeSwapFullPath(e->swap_file_number, NULL), 1);
+	storePutUnusedFileno(e->swap_file_number);
 	file_map_bit_reset(e->swap_file_number);
 	e->swap_file_number = -1;
 	e->swap_status = NO_SWAP;
@@ -1921,7 +1929,7 @@ storeMaintainSwapSpace(void *unused)
 		scan_obj++;
 		next = link_ptr->next;
 		e = (StoreEntry *) link_ptr;
-		if (!storeCheckExpired(e))
+		if (!storeCheckExpired(e, 1))
 		    continue;
 		rm_obj += storeRelease(e);
 	    }
@@ -2113,14 +2121,16 @@ storeCheckPurgeMem(const StoreEntry * e)
 #endif
 
 static int
-storeCheckExpired(const StoreEntry * e)
+storeCheckExpired(const StoreEntry * e, int check_lru_age)
 {
-    time_t max_age = storeExpiredReferenceAge();
+    time_t max_age;
     if (storeEntryLocked(e))
 	return 0;
     if (BIT_TEST(e->flag, ENTRY_NEGCACHED) && squid_curtime >= e->expires)
 	return 1;
-    if (max_age <= 0)
+    if (!check_lru_age)
+	return 0;
+    if ((max_age = storeExpiredReferenceAge()) <= 0)
 	return 0;
     if (squid_curtime - e->lastref > max_age)
 	return 1;
@@ -2130,12 +2140,13 @@ storeCheckExpired(const StoreEntry * e)
 /* 
  * storeExpiredReferenceAge
  *
- * The LRU age is scaled exponentially between 1 minute and 1 year, when
- * store_swap_low < store_swap_size < store_swap_high.  This keeps
- * store_swap_size within the low and high water marks.  If the cache is
- * very busy then store_swap_size stays closer to the low water mark, if
- * it is not busy, then it will stay near the high water mark.  The LRU
- * age value can be examined on the cachemgr 'info' page.
+ * The LRU age is scaled exponentially between 1 minute and
+ * Config.referenceAge , when store_swap_low < store_swap_size <
+ * store_swap_high.  This keeps store_swap_size within the low and high
+ * water marks.  If the cache is very busy then store_swap_size stays
+ * closer to the low water mark, if it is not busy, then it will stay
+ * near the high water mark.  The LRU age value can be examined on the
+ * cachemgr 'info' page.
  */
 time_t
 storeExpiredReferenceAge(void)
@@ -2143,11 +2154,11 @@ storeExpiredReferenceAge(void)
     double x;
     double z;
     time_t age;
-    if (Config.referenceAge != 0)
-	return Config.referenceAge;
-    x = 2.0 * (store_swap_high - store_swap_size) / (store_swap_high - store_swap_low);
-    x = x < 0.0 ? 0.0 : x > 2.0 ? 2.0 : x;
-    z = pow(724.0, x);		/* minutes [1:525600] */
+    if (Config.referenceAge == 0)
+	return 0;
+    x = (double) (store_swap_high - store_swap_size) / (store_swap_high - store_swap_low);
+    x = x < 0.0 ? 0.0 : x > 1.0 ? 1.0 : x;
+    z = pow(Config.referenceAge, x);
     age = (time_t) (z * 60.0);
     if (age < 60)
 	age = 60;
@@ -2241,4 +2252,25 @@ storeTimestampsSet(StoreEntry * e)
     else
 	e->lastmod = served_date;
     e->timestamp = served_date;
+}
+
+#define FILENO_STACK_SIZE 128
+static int fileno_stack[FILENO_STACK_SIZE];
+int fileno_stack_count = 0;
+
+static int
+storeGetUnusedFileno(void)
+{
+    if (fileno_stack_count < 1)
+	return -1;
+    return fileno_stack[--fileno_stack_count];
+}
+
+static void
+storePutUnusedFileno(int fileno)
+{
+    if (fileno_stack_count < FILENO_STACK_SIZE)
+	fileno_stack[fileno_stack_count++] = fileno;
+    else
+	unlinkdUnlink(storeSwapFullPath(fileno, NULL));
 }

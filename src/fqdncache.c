@@ -916,3 +916,26 @@ fqdncacheFreeMemory(void)
     xfree(list);
     hashFreeMemory(fqdn_table);
 }
+
+/* call during reconfigure phase to clear out all the
+ * pending and dispatched reqeusts that got lost */
+void
+fqdncache_restart(void)
+{
+    fqdncache_entry *this;
+    fqdncache_entry *next;
+    if (fqdn_table == 0)
+	fatal_dump("fqdncache_restart: fqdn_table == 0\n");
+    next = (fqdncache_entry *) hash_first(fqdn_table);
+    while ((this = next)) {
+	next = (fqdncache_entry *) hash_next(fqdn_table);
+	if (this->status == FQDN_CACHED)
+	    continue;
+	if (this->status == FQDN_NEGATIVE_CACHED)
+	    continue;
+	/* else its PENDING or DISPATCHED; there are no dnsservers
+	 * running, so abort it */
+	this->status = FQDN_NEGATIVE_CACHED;
+	fqdncache_release(this);
+    }
+}

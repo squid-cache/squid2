@@ -123,7 +123,7 @@ typedef enum {
     LOG_UDP_MISS,		/* 13 */
     LOG_UDP_DENIED,		/* 14 */
     LOG_UDP_INVALID,		/* 15 */
-    LOG_UDP_RELOADING,		/* 16 */
+    LOG_UDP_MISS_NOFETCH,	/* 16 */
     ERR_READ_TIMEOUT,		/* 17 */
     ERR_LIFETIME_EXP,		/* 18 */
     ERR_NO_CLIENTS_BIG_OBJ,	/* 19 */

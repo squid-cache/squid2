@@ -127,7 +127,8 @@ struct _iostats IOStats;
 const char *const open_bracket = "{\n";
 const char *const close_bracket = "}\n";
 
-extern char *diskFileName _PARAMS((int));
+extern int unlinkd_count;
+extern int fileno_stack_count;
 
 /* LOCALS */
 static const char *describeStatuses _PARAMS((const StoreEntry *));
@@ -635,6 +636,7 @@ statFiledescriptors(StoreEntry * sentry)
     char *s = NULL;
     int lft;
     int to;
+    FD_ENTRY *f;
 
     storeAppendPrintf(sentry, open_bracket);
     storeAppendPrintf(sentry, "{Active file descriptors:}\n");
@@ -647,6 +649,7 @@ statFiledescriptors(StoreEntry * sentry)
 	"Description");
     storeAppendPrintf(sentry, "{---- ------ ---- ---- --------------------- ------------------------------}\n");
     for (i = 0; i < Squid_MaxFD; i++) {
+	f = &fd_table[i];
 	if (!fdstat_isopen(i))
 	    continue;
 	j = fdstatGetType(i);
@@ -655,9 +658,9 @@ statFiledescriptors(StoreEntry * sentry)
 	    fdstatTypeStr[j]);
 	switch (j) {
 	case FD_SOCKET:
-	    if ((lft = comm_get_fd_lifetime(i)) < 0)
+	    if ((lft = f->lifetime) < 0)
 		lft = 0;
-	    to = comm_get_fd_timeout(i);
+	    to = f->timeout_time;
 	    if (lft > 0)
 		lft = (lft - squid_curtime) / 60;
 	    if (to > 0)
@@ -706,6 +709,7 @@ memoryAccounted(void)
 	meta_data.url_strings +
 	meta_data.netdb_addrs * sizeof(netdbEntry) +
 	meta_data.netdb_hosts * sizeof(struct _net_db_name) +
+                 meta_data.netdb_peers * sizeof(struct _net_db_peer) +
                  meta_data.client_info * client_info_sz +
                  meta_data.misc;
 }
@@ -765,6 +769,10 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	storeGetSwapSize() >> 10);
     storeAppendPrintf(sentry, "{\tStorage LRU Expiration Age:\t%6.2f days}\n",
 	(double) storeExpiredReferenceAge() / 86400.0);
+    storeAppendPrintf(sentry, "{\tRequests given to unlinkd:\t%d}\n",
+	unlinkd_count);
+    storeAppendPrintf(sentry, "{\tUnused fileno stack count:\t%d}\n",
+	fileno_stack_count);
 
 #if HAVE_GETRUSAGE && defined(RUSAGE_SELF)
     storeAppendPrintf(sentry, "{Resource usage for %s:}\n", appname);
@@ -834,7 +842,7 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
     storeAppendPrintf(sentry, "{\tMax number of file desc available:    %4d}\n",
 	Squid_MaxFD);
     storeAppendPrintf(sentry, "{\tLargest file desc currently in use:   %4d}\n",
-	fdstat_biggest_fd());
+	Biggest_FD);
     storeAppendPrintf(sentry, "{\tAvailable number of file descriptors: %4d}\n",
 	fdstat_are_n_free_fd(0));
     storeAppendPrintf(sentry, "{\tReserved number of file descriptors:  %4d}\n",
@@ -916,6 +924,12 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	meta_data.netdb_hosts,
 	(int) sizeof(struct _net_db_name),
 	             (int) (meta_data.netdb_hosts * sizeof(struct _net_db_name) >> 10));
+
+    storeAppendPrintf(sentry, "{\t%-25.25s %7d x %4d bytes = %6d KB}\n",
+	"NetDB Peer Entries",
+	meta_data.netdb_peers,
+	(int) sizeof(struct _net_db_peer),
+	             (int) (meta_data.netdb_peers * sizeof(struct _net_db_peer) >> 10));
 
     storeAppendPrintf(sentry, "{\t%-25.25s %7d x %4d bytes = %6d KB}\n",
 	"ClientDB Entries",
@@ -1080,6 +1094,12 @@ log_append(const cacheinfo * obj,
     hier_code hier_code = HIER_NONE;
     const char *hier_host = dash_str;
     int hier_timeout = 0;
+#ifdef LOG_ICP_NUMBERS
+    int ns = 0;
+    int ne = 0;
+    int nr = 0;
+    int tt = 0;
+#endif
 
     if (obj->logfile_status != LOG_ENABLE)
 	return;
@@ -1103,6 +1123,12 @@ log_append(const cacheinfo * obj,
 	hier_code = hierData->code;
 	hier_host = hierData->host ? hierData->host : dash_str;
 	hier_timeout = hierData->timeout;
+#ifdef LOG_ICP_NUMBERS
+	tt = hierData->delay;
+	ns = hierData->n_sent;
+	ne = hierData->n_expect;
+	nr = hierData->n_recv;
+#endif
     }
     if (Config.commonLogFormat)
 	sprintf(tmp, "%s %s - [%s] \"%s %s\" %s:%s%s %d\n",
@@ -1116,7 +1142,11 @@ log_append(const cacheinfo * obj,
 	    hier_strings[hier_code],
 	    size);
     else
+#ifdef LOG_ICP_NUMBERS
+	sprintf(tmp, "%9d.%03d %6d %s %s/%03d %d %s %s %s %s%s/%s/%d/%d/%d/%d %s\n",
+#else
 	sprintf(tmp, "%9d.%03d %6d %s %s/%03d %d %s %s %s %s%s/%s %s\n",
+#endif
 	    (int) current_time.tv_sec,
 	    (int) current_time.tv_usec / 1000,
 	    msec,
@@ -1130,6 +1160,9 @@ log_append(const cacheinfo * obj,
 	    hier_timeout ? "TIMEOUT_" : null_string,
 	    hier_strings[hier_code],
 	    hier_host,
+#ifdef LOG_ICP_NUMBERS
+	    ns, ne, nr, tt,
+#endif
 	    content_type);
 #if LOG_FULL_HEADERS
     if (Config.logMimeHdrs) {
