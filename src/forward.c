@@ -344,6 +344,9 @@ fwdReforward(FwdState * fwdState)
     }
     if (fwdState->n_tries > 9)
 	return 0;
+    if (pumpMethod(fwdState->request->method))
+	if (0 == pumpRestart(fwdState->request))
+	    return 0;
     assert(fs);
     fwdState->servers = fs->next;
     fwdServerFree(fs);
