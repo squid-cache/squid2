@@ -64,11 +64,10 @@ storeSwapTLVFree(tlv * n)
 tlv *
 storeSwapMetaBuild(StoreEntry * e)
 {
-    MemObject *mem = e->mem_obj;
     tlv *TLV = NULL;		/* we'll return this */
     tlv **T = &TLV;
     const char *url;
-    assert(mem != NULL);
+    assert(e->mem_obj != NULL);
     assert(e->swap_status == SWAPOUT_WRITING);
     url = storeUrl(e);
     debug(20, 3) ("storeSwapMetaBuild: %s\n", url);
