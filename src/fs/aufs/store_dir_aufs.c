@@ -64,7 +64,7 @@ struct _RebuildState {
     struct _store_rebuild_data counts;
 };
 
-static int n_asyncufs_dirs = 0;
+int n_asyncufs_dirs = 0;
 static int *asyncufs_dir_index = NULL;
 MemPool *squidaio_state_pool = NULL;
 MemPool *aufs_qread_pool = NULL;
