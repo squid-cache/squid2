@@ -11,6 +11,7 @@
 
 #include "squid.h"
 
+#define DEFAULT_AGE_PERCENT 0.20
 
 typedef struct _ttl_t {
     char *pattern;
@@ -82,10 +83,12 @@ time_t ttlSet(entry)
     double d;
     int flags = 0;
     struct _http_reply *reply = NULL;
+    request_t *request = NULL;
 
     debug(22, 5, "ttlSet: Choosing TTL for %s\n", entry->url);
 
     reply = entry->mem_obj->reply;
+    request = entry->mem_obj->request;
 
     /* these are case-insensitive compares */
     if (reply->last_modified[0]) {
@@ -136,11 +139,11 @@ time_t ttlSet(entry)
     /*
      * ** Calculate default TTL for later use
      */
-    if (!strncmp(entry->url, "http:", 5))
+    if (request->protocol == PROTO_HTTP)
 	default_ttl = getHttpTTL();
-    else if (!strncmp(entry->url, "ftp:", 4))
+    else if (request->protocol == PROTO_FTP)
 	default_ttl = getFtpTTL();
-    else if (!strncmp(entry->url, "gopher:", 7))
+    else if (request->protocol == PROTO_GOPHER)
 	default_ttl = getGopherTTL();
 
     match = NULL;
@@ -169,9 +172,9 @@ time_t ttlSet(entry)
 	ttl = match->abs_ttl;
 	flags |= TTL_ABSOLUTE;
     } else if (!match && last_modified > 0) {
-	/* No match, use 50% of age if we have last-modified.
+	/* No match, use 20% of age if we have last-modified.
 	 * But limit this to the default TTL. */
-	ttl = ((now - last_modified) / 2);
+	ttl = ((now - last_modified) * DEFAULT_AGE_PERCENT);
 	flags |= TTL_PCTAGE;
 	if (ttl > default_ttl)
 	    ttl = default_ttl;
