@@ -8,9 +8,6 @@
 
 #include "squid.h"
 
-extern unsigned long nconn;
-
-static struct in_addr tmp_in_addr;
 int neighbors_do_private_keys = 1;
 
 static char *log_tags[] =
@@ -57,12 +54,13 @@ typedef struct iwd {
     char *request_hdr;		/* Mime header */
     StoreEntry *entry;
     long offset;
+#ifdef NOT_NEEDED_CODE
     int bytes_needed;		/*  Used for content_length */
+#endif
     int log_type;
     int http_code;
     struct sockaddr_in peer;
     struct sockaddr_in me;
-    int accel_request;
     char *ptr_to_4k_page;
     char *buf;
     struct timeval start;
@@ -603,7 +601,6 @@ void icp_hit_or_miss(fd, usm)
 	url);
 
     pubkey = storeGeneratePublicKey(usm->url, usm->method);
-    tmp_in_addr.s_addr = htonl(usm->header.shostid);
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* This object isn't in the cache.  We do not hold a lock yet */
 	usm->log_type = LOG_TCP_MISS;
@@ -764,7 +761,7 @@ int icpProcessHeader(fd, buf_notused, size, flag, state)
 	icpSendERROR(fd, ICP_ERROR_INTERNAL, "error reading header", state);
 	result = COMM_ERROR;
     } else {
-	short op = ntohs(state->header.opcode);
+	short op = state->header.opcode;
 	if (op == ICP_OP_SEND || op == ICP_OP_SENDA || op == ICP_OP_QUERY) {
 	    /* Read query host id & url. */
 	    hp = &state->header;
@@ -905,6 +902,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
     headerp->reqnum = htonl(reqheaderp->reqnum);
 /*  memcpy(headerp->auth, , ICP_AUTH_SIZE); */
     headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
+    debug(12,5,"icpUdpSend: headerp->reqnum = %d\n", headerp->reqnum);
 
     urloffset = buf + sizeof(icp_common_t);
 
@@ -966,11 +964,12 @@ int icpHandleUdp(sock, not_used)
     /* Get fields from incoming message. */
     headerp = (icp_common_t *) buf;
     header.opcode = headerp->opcode;
+    header.version = headerp->version;
     header.length = ntohs(headerp->length);
-    header.reqnum = ntohs(headerp->reqnum);
-    header.shostid = ntohs(headerp->shostid);
-    header.version = ntohs(headerp->version);
+    header.reqnum = ntohl(headerp->reqnum);
     /*  memcpy(headerp->auth, , ICP_AUTH_SIZE); */
+    header.shostid = ntohl(headerp->shostid);
+    debug(12,5,"icpHandleUdp: header.reqnum = %d\n", header.reqnum);
 
     switch (header.opcode) {
     case ICP_OP_QUERY:
@@ -1232,10 +1231,10 @@ int parseHttpRequest(icpState)
 	    sprintf(icpState->url, "http://%s%s",
 		inet_ntoa(icpState->me.sin_addr), request);
 	}
-	icpState->accel_request = 1;
+	BIT_SET(icpState->flags, REQ_ACCEL);
     } else {
 	icpState->url = xstrdup(request);
-	icpState->accel_request = 0;
+	BIT_RESET(icpState->flags, REQ_ACCEL);
     }
     if ((t = strchr(request, '\r')))	/* remove CR */
 	*t = '\0';
@@ -1258,7 +1257,7 @@ ip_access_type second_ip_acl_check(fd_unused, astm)
      int fd_unused;
      icpStateData *astm;
 {
-    if (astm->accel_request)
+    if (BIT_TEST(icpState->flags, REQ_ACCEL))
 	return ip_access_check(astm->peer.sin_addr, accel_ip_acl);
     return ip_access_check(astm->peer.sin_addr, proxy_ip_acl);
 }
@@ -1415,8 +1414,10 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	 *    is happy with the input
 	 */
 	k = astm->inbufsize - 1 - astm->offset;
+#ifdef NOT_NEEDED_CODE
 	if (0 < astm->bytes_needed && astm->bytes_needed < k)
 	    k = astm->bytes_needed;
+#endif
 	icpRead(fd,
 	    FALSE,
 	    astm->inbuf + astm->offset,
