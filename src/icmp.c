@@ -181,13 +181,7 @@ icmpHandleSourcePing(const struct sockaddr_in *from, const char *buf)
     if (entry->lock_count == 0)
 	return;
     /* call neighborsUdpAck even if ping_status != PING_WAITING */
-    neighborsUdpAck(icmp_sock,
-	url,
-	&header,
-	from,
-	entry,
-	NULL,
-	0);
+    neighborsUdpAck(url, &header, from, entry);
 }
 #endif /* USE_ICMP */
 
