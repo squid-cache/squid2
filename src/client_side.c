@@ -92,7 +92,7 @@ clientAccessCheck(void *data)
     ConnStateData *conn = http->conn;
     char *browser;
     if (Config.onoff.ident_lookup && conn->ident.state == IDENT_NONE) {
-	identStart(-1, conn, clientAccessCheck);
+	identStart(-1, conn, clientAccessCheck, http);
 	return;
     }
     if (checkAccelOnly(http)) {
