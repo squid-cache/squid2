@@ -17,9 +17,8 @@ extern char *sys_errlist[];
 
 #include "autoconf.h"
 
-#define XMALLOC_DEBUG
 
-#ifdef XMALLOC_DEBUG
+#if XMALLOC_DEBUG
 #define DBG_ARRY_SZ (2<<8)
 #define DBG_ARRY_BKTS (2<<8)
 static void *malloc_ptrs[DBG_ARRY_BKTS][DBG_ARRY_SZ];
@@ -108,7 +107,7 @@ void *xmalloc(sz)
 	}
 	exit(1);
     }
-#ifdef XMALLOC_DEBUG
+#if XMALLOC_DEBUG
     check_malloc(p, sz);
 #endif
     return (p);
@@ -120,7 +119,7 @@ void *xmalloc(sz)
 void xfree(s)
      void *s;
 {
-#ifdef XMALLOC_DEBUG
+#if XMALLOC_DEBUG
     check_free(s);
 #endif
     if (s != NULL)
@@ -131,7 +130,7 @@ void xfree(s)
 void xxfree(s)
      void *s;
 {
-#ifdef XMALLOC_DEBUG
+#if XMALLOC_DEBUG
     check_free(s);
 #endif
     free(s);
@@ -159,7 +158,7 @@ void *xrealloc(s, sz)
 	}
 	exit(1);
     }
-#ifdef XMALLOC_DEBUG
+#if XMALLOC_DEBUG
     check_malloc(p, sz);
 #endif
     return (p);
@@ -189,7 +188,7 @@ void *xcalloc(n, sz)
 	}
 	exit(1);
     }
-#ifdef XMALLOC_DEBUG
+#if XMALLOC_DEBUG
     check_malloc(p, sz * n);
 #endif
     return (p);
