@@ -483,8 +483,10 @@ enum {
     ENTRY_NEGCACHED,
     ENTRY_VALIDATED,
     ENTRY_BAD_LENGTH,
-    ENTRY_ABORTED,
-    ENTRY_DONT_LOG		/* hack for gross 'Pump' entries */
+    ENTRY_ABORTED
+#if UNUSED_CODE
+    ENTRY_DONT_LOG
+#endif
 };
 
 typedef enum {
@@ -644,7 +646,6 @@ typedef enum {
     MEM_TLV,
     MEM_SWAP_LOG_DATA,
     MEM_GEN_CBDATA,
-    MEM_PUMP_STATE_DATA,
     MEM_CLIENT_REQ_BUF,
     MEM_MAX
 #ifdef NTLM_CACHING

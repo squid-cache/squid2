@@ -178,7 +178,6 @@ typedef struct _storeIOState storeIOState;
 typedef struct _queued_read queued_read;
 typedef struct _queued_write queued_write;
 typedef struct _link_list link_list;
-typedef struct _PumpStateData PumpStateData;
 typedef struct _storefs_entry storefs_entry_t;
 typedef struct _storerepl_entry storerepl_entry_t;
 typedef struct _diskd_queue diskd_queue;
