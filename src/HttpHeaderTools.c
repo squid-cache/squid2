@@ -135,7 +135,7 @@ httpHeaderPutStrvf(HttpHeader * hdr, http_hdr_type id, const char *fmt, va_list 
 
 /* wrapper arrounf PutContRange */
 void
-httpHeaderAddContRange(HttpHeader * hdr, HttpHdrRangeSpec spec, size_t ent_len)
+httpHeaderAddContRange(HttpHeader * hdr, HttpHdrRangeSpec spec, ssize_t ent_len)
 {
     HttpHdrContRange *cr = httpHdrContRangeCreate();
     assert(hdr && ent_len >= 0);
@@ -146,8 +146,9 @@ httpHeaderAddContRange(HttpHeader * hdr, HttpHdrRangeSpec spec, size_t ent_len)
 
 
 /*
- * return true if a given directive is found in at least one of the "connection" header-fields
- * note: if HDR_PROXY_CONNECTION is present we ignore HDR_CONNECTION
+ * return true if a given directive is found in at least one of
+ * the "connection" header-fields note: if HDR_PROXY_CONNECTION is
+ * present we ignore HDR_CONNECTION.
  */
 int
 httpHeaderHasConnDir(const HttpHeader * hdr, const char *directive)
@@ -276,7 +277,7 @@ httpHeaderParseInt(const char *start, int *value)
 }
 
 int
-httpHeaderParseSize(const char *start, size_t * value)
+httpHeaderParseSize(const char *start, ssize_t * value)
 {
     int v;
     const int res = httpHeaderParseInt(start, &v);
@@ -366,5 +367,6 @@ httpHeaderStrCmp(const char *h1, const char *h2, int len)
 	if (c2)
 	    len2++;
     }
+    /* NOTREACHED */
     return 0;
 }

@@ -1440,20 +1440,30 @@ clientPackRangeHdr(const HttpReply * rep, const HttpHdrRangeSpec * spec, String 
     memBufPrintf(mb, crlf);
 }
 
-/* extracts a "range" from *buf and appends them to mb, updating all offsets and such */
+/*
+ * extracts a "range" from *buf and appends them to mb, updating
+ * all offsets and such.
+ */
 static void
-clientPackRange(clientHttpRequest * http, HttpHdrRangeIter * i, const char **buf, ssize_t * size, MemBuf * mb)
+clientPackRange(clientHttpRequest * http,
+    HttpHdrRangeIter * i,
+    const char **buf,
+    ssize_t * size,
+    MemBuf * mb)
 {
-    const size_t copy_sz = i->debt_size <= *size ? i->debt_size : *size;
+    const ssize_t copy_sz = i->debt_size <= *size ? i->debt_size : *size;
     off_t body_off = http->out.offset - i->prefix_size;
     assert(*size > 0);
     assert(i->spec);
-
-    /* intersection of "have" and "need" ranges must not be empty */
+    /*
+     * intersection of "have" and "need" ranges must not be empty
+     */
     assert(body_off < i->spec->offset + i->spec->length);
     assert(body_off + *size > i->spec->offset);
-
-    /* put boundary and headers at the beginning of a range in a multi-range */
+    /*
+     * put boundary and headers at the beginning of a range in a
+     * multi-range
+     */
     if (http->request->range->specs.count > 1 && i->debt_size == i->spec->length) {
 	assert(http->entry->mem_obj);
 	clientPackRangeHdr(
@@ -1463,18 +1473,22 @@ clientPackRange(clientHttpRequest * http, HttpHdrRangeIter * i, const char **buf
 	    mb
 	    );
     }
-    /* append content */
+    /*
+     * append content
+     */
     debug(33, 3) ("clientPackRange: appending %d bytes\n", copy_sz);
     memBufAppend(mb, *buf, copy_sz);
-
-    /* update offsets */
+    /*
+     * update offsets
+     */
     *size -= copy_sz;
     i->debt_size -= copy_sz;
     body_off += copy_sz;
     *buf += copy_sz;
     http->out.offset = body_off + i->prefix_size;	/* sync */
-
-    /* paranoid check */
+    /*
+     * paranoid check
+     */
     assert(*size >= 0 && i->debt_size >= 0);
 }
 

@@ -134,7 +134,7 @@ httpReplyAbsorb(HttpReply * rep, HttpReply * new_rep)
  * returns true on success.
  */
 int
-httpReplyParse(HttpReply * rep, const char *buf, size_t end)
+httpReplyParse(HttpReply * rep, const char *buf, ssize_t end)
 {
     /*
      * this extra buffer/copy will be eliminated when headers become

@@ -759,7 +759,7 @@ httpBuildRequestHeader(request_t * request,
 
 /* build request prefix and append it to a given MemBuf; 
  * return the length of the prefix */
-size_t
+mb_size_t
 httpBuildRequestPrefix(request_t * request,
     request_t * orig_request,
     StoreEntry * entry,

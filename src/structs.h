@@ -659,8 +659,8 @@ struct _TimeOrTag {
 struct _HttpHdrRangeIter {
     HttpHdrRangePos pos;
     const HttpHdrRangeSpec *spec;	/* current spec at pos */
-    size_t debt_size;		/* bytes left to send from the current spec */
-    size_t prefix_size;		/* the size of the incoming HTTP msg prefix */
+    ssize_t debt_size;		/* bytes left to send from the current spec */
+    ssize_t prefix_size;	/* the size of the incoming HTTP msg prefix */
     String boundary;		/* boundary for multipart responses */
 };
 
@@ -1637,8 +1637,8 @@ struct _storeSwapLogData {
 
 /* object to track per-action memory usage (e.g. #idle objects) */
 struct _MemMeter {
-    size_t level;		/* current level (count or volume) */
-    size_t hwater_level;	/* high water mark */
+    ssize_t level;		/* current level (count or volume) */
+    ssize_t hwater_level;	/* high water mark */
     time_t hwater_stamp;	/* timestamp of last high water mark change */
 };
 

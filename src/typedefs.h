@@ -31,9 +31,6 @@
  *
  */
 
-#ifndef _TYPEDEFS_H_
-#define _TYPEDEFS_H_
-
 typedef unsigned int store_status_t;
 typedef unsigned int mem_status_t;
 typedef unsigned int ping_status_t;
@@ -246,7 +243,7 @@ typedef unsigned char cache_key;
 typedef int Ctx;
 
 /* in case we want to change it later */
-typedef size_t mb_size_t;
+typedef ssize_t mb_size_t;
 
 /* iteration for HttpHdrRange */
 typedef int HttpHdrRangePos;
@@ -267,5 +264,3 @@ typedef unsigned int delay_id;
 #if USE_HTCP
 typedef struct _htcpReplyData htcpReplyData;
 #endif
-
-#endif /* _TYPEDEFS_H_ */

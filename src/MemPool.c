@@ -55,9 +55,9 @@ static gb_t mem_traffic_volume =
 static Stack Pools;
 
 /* local prototypes */
-static void memShrink(size_t new_limit);
+static void memShrink(ssize_t new_limit);
 static void memPoolDescribe(const MemPool * pool);
-static void memPoolShrink(MemPool * pool, size_t new_limit);
+static void memPoolShrink(MemPool * pool, ssize_t new_limit);
 
 
 
@@ -132,9 +132,9 @@ memCleanModule(void)
 
 
 static void
-memShrink(size_t new_limit)
+memShrink(ssize_t new_limit)
 {
-    size_t start_limit = TheMeter.idle.level;
+    ssize_t start_limit = TheMeter.idle.level;
     int i;
     assert(start_limit >= 0 && new_limit >= 0);
     debug(63, 1) ("memShrink: started with %d KB goal: %d KB\n",
@@ -142,7 +142,7 @@ memShrink(size_t new_limit)
     /* first phase: cut proportionally to the pool idle size */
     for (i = 0; i < Pools.count && TheMeter.idle.level > new_limit; ++i) {
 	MemPool *pool = Pools.items[i];
-	const size_t target_pool_size = (size_t) ((double) pool->meter.idle.level * new_limit) / start_limit;
+	const ssize_t target_pool_size = (size_t) ((double) pool->meter.idle.level * new_limit) / start_limit;
 	memPoolShrink(pool, target_pool_size);
     }
     debug(63, 1) ("memShrink: 1st phase done with %d KB left\n", toKB(TheMeter.idle.level));
@@ -266,7 +266,7 @@ memPoolFree(MemPool * pool, void *obj)
 }
 
 static void
-memPoolShrink(MemPool * pool, size_t new_limit)
+memPoolShrink(MemPool * pool, ssize_t new_limit)
 {
     assert(pool);
     assert(new_limit >= 0);

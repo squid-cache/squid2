@@ -187,7 +187,7 @@ httpHdrContRangePackInto(const HttpHdrContRange * range, Packer * p)
 }
 
 void
-httpHdrContRangeSet(HttpHdrContRange * cr, HttpHdrRangeSpec spec, size_t ent_len)
+httpHdrContRangeSet(HttpHdrContRange * cr, HttpHdrRangeSpec spec, ssize_t ent_len)
 {
     assert(cr && ent_len >= 0);
     cr->spec = spec;

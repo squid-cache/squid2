@@ -282,7 +282,7 @@ extern int httpCachable(method_t);
 extern void httpStart(FwdState *);
 extern void httpParseReplyHeaders(const char *, http_reply *);
 extern void httpProcessReplyHeader(HttpStateData *, const char *, int);
-extern size_t httpBuildRequestPrefix(request_t * request,
+extern mb_size_t httpBuildRequestPrefix(request_t * request,
     request_t * orig_request,
     StoreEntry * entry,
     MemBuf * mb,
@@ -348,13 +348,13 @@ extern void httpHdrRangePackInto(const HttpHdrRange * range, Packer * p);
 /* iterate through specs */
 extern HttpHdrRangeSpec *httpHdrRangeGetSpec(const HttpHdrRange * range, HttpHdrRangePos * pos);
 /* adjust specs after the length is known */
-extern int httpHdrRangeCanonize(HttpHdrRange * range, size_t clen);
+extern int httpHdrRangeCanonize(HttpHdrRange *, ssize_t);
 /* other */
 extern String httpHdrRangeBoundaryStr(clientHttpRequest * http);
 extern int httpHdrRangeIsComplex(const HttpHdrRange * range);
 extern int httpHdrRangeWillBeComplex(const HttpHdrRange * range);
-extern size_t httpHdrRangeFirstOffset(const HttpHdrRange * range);
-extern size_t httpHdrRangeLowestOffset(const HttpHdrRange * range, size_t size);
+extern ssize_t httpHdrRangeFirstOffset(const HttpHdrRange * range);
+extern ssize_t httpHdrRangeLowestOffset(const HttpHdrRange * range, ssize_t);
 
 
 /* Http Content Range Header Field */
@@ -366,7 +366,7 @@ extern void httpHdrContRangeDestroy(HttpHdrContRange * crange);
 extern HttpHdrContRange *httpHdrContRangeDup(const HttpHdrContRange * crange);
 extern void httpHdrContRangePackInto(const HttpHdrContRange * crange, Packer * p);
 /* inits with given spec */
-extern void httpHdrContRangeSet(HttpHdrContRange *, HttpHdrRangeSpec, size_t ent_len);
+extern void httpHdrContRangeSet(HttpHdrContRange *, HttpHdrRangeSpec, ssize_t);
 
 /* Http Header Tools */
 extern HttpHeaderFieldInfo *httpHeaderBuildFieldsInfo(const HttpHeaderFieldAttrs * attrs, int count);
@@ -376,14 +376,14 @@ extern int httpHeaderIdByNameDef(const char *name, int name_len);
 extern void httpHeaderMaskInit(HttpHeaderMask * mask, int value);
 extern void httpHeaderCalcMask(HttpHeaderMask * mask, const int *enums, int count);
 extern int httpHeaderHasConnDir(const HttpHeader * hdr, const char *directive);
-extern void httpHeaderAddContRange(HttpHeader * hdr, HttpHdrRangeSpec spec, size_t ent_len);
+extern void httpHeaderAddContRange(HttpHeader *, HttpHdrRangeSpec, ssize_t);
 extern void strListAdd(String * str, const char *item, char del);
 extern int strListIsMember(const String * str, const char *item, char del);
 extern int strListIsSubstr(const String * list, const char *s, char del);
 extern int strListGetItem(const String * str, char del, const char **item, int *ilen, const char **pos);
 extern const char *getStringPrefix(const char *str, const char *end);
 extern int httpHeaderParseInt(const char *start, int *val);
-extern int httpHeaderParseSize(const char *start, size_t * sz);
+extern int httpHeaderParseSize(const char *start, ssize_t * sz);
 extern int httpHeaderReset(HttpHeader * hdr);
 #if STDC_HEADERS
 extern void httpHeaderPutStrf(HttpHeader * hdr, http_hdr_type id, const char *fmt,...);
@@ -452,7 +452,7 @@ extern void httpReplyReset(HttpReply * rep);
 /* absorb: copy the contents of a new reply to the old one, destroy new one */
 extern void httpReplyAbsorb(HttpReply * rep, HttpReply * new_rep);
 /* parse returns -1,0,+1 on error,need-more-data,success */
-extern int httpReplyParse(HttpReply * rep, const char *buf, size_t);
+extern int httpReplyParse(HttpReply * rep, const char *buf, ssize_t);
 extern void httpReplyPackInto(const HttpReply * rep, Packer * p);
 /* ez-routines */
 /* mem-pack: returns a ready to use mem buffer with a packed reply */
