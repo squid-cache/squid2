@@ -1795,7 +1795,7 @@ aclLookupProxyAuthDone(void *data, char *result)
 	checklist->auth_user->passwd_ok = 1;
     else {
 	if (strlen(result) > sizeof("ERR "))
-	    checklist->auth_user->message = xstrdup(result+4);
+	    checklist->auth_user->message = xstrdup(result + 4);
 	checklist->auth_user->passwd_ok = 0;
     }
     aclCheck(checklist);

@@ -328,7 +328,7 @@ void
 accessLogInit(void)
 {
     assert(sizeof(log_tags) == (LOG_TYPE_MAX + 1) * sizeof(char *));
-    if (strcasecmp (Config.Log.access, "none") == 0)
+    if (strcasecmp(Config.Log.access, "none") == 0)
 	return;
     logfile = logfileOpen(Config.Log.access, MAX_URL << 1, 1);
     LogfileStatus = LOG_ENABLE;

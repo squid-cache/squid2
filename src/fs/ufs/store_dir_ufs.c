@@ -670,19 +670,19 @@ storeUfsDirRebuildFromSwapLog(void *data)
 	    /* load new */
 	    (void) 0;
 	}
-       /* update store_swap_size */
-       rb->counts.objcount++;
-       e = storeUfsDirAddDiskRestore(SD, s.key,
-           s.swap_filen,
-           s.swap_file_sz,
-           s.expires,
-           s.timestamp,
-           s.lastref,
-           s.lastmod,
-           s.refcount,
-           s.flags,
-           (int) rb->flags.clean);
-       storeDirSwapLog(e, SWAP_LOG_ADD);
+	/* update store_swap_size */
+	rb->counts.objcount++;
+	e = storeUfsDirAddDiskRestore(SD, s.key,
+	    s.swap_filen,
+	    s.swap_file_sz,
+	    s.expires,
+	    s.timestamp,
+	    s.lastref,
+	    s.lastmod,
+	    s.refcount,
+	    s.flags,
+	    (int) rb->flags.clean);
+	storeDirSwapLog(e, SWAP_LOG_ADD);
     }
     eventAdd("storeRebuild", storeUfsDirRebuildFromSwapLog, rb, 0.0, 1);
 }

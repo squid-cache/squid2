@@ -64,7 +64,7 @@
  * for this to become a problem. (estimation is 10^8 cache
  * turnarounds)
  */
-heap_key 
+heap_key
 HeapKeyGen_StoreEntry_LFUDA(void *entry, double age)
 {
     StoreEntry *e = entry;
@@ -105,7 +105,7 @@ HeapKeyGen_StoreEntry_LFUDA(void *entry, double age)
  * for this to become a problem. (estimation is 10^8 cache
  * turnarounds)
  */
-heap_key 
+heap_key
 HeapKeyGen_StoreEntry_GDSF(void *entry, double age)
 {
     StoreEntry *e = entry;
@@ -128,7 +128,7 @@ HeapKeyGen_StoreEntry_GDSF(void *entry, double age)
  * Don't use it unless you are trying to compare performance among
  * heap-based replacement policies...
  */
-heap_key 
+heap_key
 HeapKeyGen_StoreEntry_LRU(void *entry, double age)
 {
     StoreEntry *e = entry;
