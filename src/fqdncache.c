@@ -303,7 +303,9 @@ fqdncacheParse(fqdncache_entry * f, rfc1035_rr * answers, int nr, const char *er
 	    continue;
 	if (answers[k].class != RFC1035_CLASS_IN)
 	    continue;
-	f->names[f->name_count++] = xstrndup(answers[k].rdata, answers[k].rdlength);
+	if (!answers[k].rdata[0])
+	    continue;
+	f->names[f->name_count++] = xstrdup(answers[k].rdata);
 	if (ttl == 0 || answers[k].ttl < ttl)
 	    ttl = answers[k].ttl;
 	if (f->name_count >= FQDN_MAX_NAMES)

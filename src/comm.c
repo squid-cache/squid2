@@ -411,8 +411,6 @@ commConnectHandle(int fd, void *data)
 	cs->S.sin_family = AF_INET;
 	cs->S.sin_addr = cs->in_addr;
 	cs->S.sin_port = htons(cs->port);
-	if (Config.onoff.log_fqdn)
-	    fqdncache_gethostbyaddr(cs->S.sin_addr, FQDN_LOOKUP_IF_MISS);
     }
     switch (comm_connect_addr(fd, &cs->S)) {
     case COMM_INPROGRESS:
