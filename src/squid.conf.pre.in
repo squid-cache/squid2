@@ -282,71 +282,6 @@ http_stop     ?
 gopher_stop   ?
 
 #
-#  TAG: proxy_allow, proxy_deny
-#	IP-based access control for proxy requests.  Allow or deny
-#	clients based on IP number matching.  The order of the rules is
-#	important, they are read and checked sequentially.  For example,
-#	to allow only hosts on the Class C network 208.125.51.0 and the
-#	Class B subnet 128.126.3.0 to access cached and deny all other
-#	hosts, specify:
-#	
-#	proxy_allow    208.125.51.0/24
-#	proxy_allow    128.126.3.0/24
-#	proxy_deny     all
-#
-#	Permit syntax variations are:
-#	proxy_verb	hostaddr
-#	proxy_verb	network/nbits
-#	proxy_verb	network/mask
-#	proxy_verb	network 	(not recommended)
-#	proxy_verb	all		(equivalent to 0.0.0.0/0.0.0.0)
-#
-#	where:
-#		hostaddr=IP address in dotted quad notation
-#		network =network number in dotted quad notation
-#		nbits   =number of significant bits in network number
-#		mask	=netmask in dotted quad notation.
-#
-#	Note: CIDR notation does not include trailing 0 parts in a network
-#	specification, but proxy_verb syntax *requires* all four parts of
-#	a dotted quad specification.
-#	To specify the host 172.16.5.0, one must use 172.16.5.0/32
-#	or the backwards compatibility will assume 172.16.5.0/24
-#
-proxy_allow    all
-
-#
-#  TAG: accel_allow, accel_deny
-#	IP-based access control for httpd_accel requsts.  Allow or deny
-#	clients based on IP number matching.  The order of the rules is
-#	important, they are read and checked sequentially.  For example,
-#	to allow only hosts on the Class C subnet 128.125.51 and the
-#	Class B subnet 128.126.0 to access cached and deny all other
-#	hosts, specify:
-#	
-#	accel_allow    128.125.51.0
-#	accel_allow    128.126.0.0
-#	accel_deny     all
-#
-accel_allow    all
-
-#
-#  TAG: manager_allow, manager_deny
-#	IP-based access control for cache manager interface.  
-#	Allow or deny clients to access manager interface based on IP
-#	number matching.  The order of the rules is important, they are
-#	read and checked sequentially.  This list will be applied AFTER
-#	general clients' IP access control list. Therefore, a client that
-#	runs manager program must be qualified for BOTH list.
-#	For example, to allow only a host with IP address 128.125.52.5
-#	to access manager interface, specify:
-#	
-#	manager_allow    128.125.52.5
-#	manager_deny     all
-#
-manager_allow    all
-
-#
 #  TAG: quick_abort
 #	By default the cache continues to retrieve objects from
 #	aborted requests.  This may be undesirable on slow (e.g. SLIP)
@@ -723,3 +658,36 @@ request_size 100
 #       (SSL).  The defaults are 443 (https) and 563 (snews).
 #connect_ports 443 563
 
+
+## acl aclname src|domain|time|pattern|port|proto|method string1 ...
+## 
+## acl aclname src      A.B.C.D/a.b.c.d ...
+## acl aclname src      A.B.C.D/N ...
+## acl aclname domain   .foo.com ...
+## acl aclname time     day-abbrevs  h1:m1-h2:m2
+##	day-abbrevs:
+##		S - Sunday
+##		M - Monday
+##		T - Tuesday
+##		W - Wednesday
+##		H - Thursday
+##		F - Friday
+##		A - Saturday
+##	h1:m1 must be less than h2:m2
+## acl aclname pattern  \.gif$ ...
+## acl aclname port     80 70 21 ...
+## acl aclname proto    HTTP FTP ...
+## acl aclname method   GET POST ...
+## 
+## http_access allow|deny [!]aclname ...
+## 
+## icp_access  allow|deny [!]aclname ...
+
+acl manager proto cache_object
+acl localhost src 127.0.0.1/255.255.255.255
+acl all src 0.0.0.0/0.0.0.0
+
+http_access deny manager !localhost
+http_access allow  all
+
+icp_access  allow  all

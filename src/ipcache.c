@@ -912,6 +912,8 @@ int ipcache_dnsHandleRead(fd, data)
 	data->alive = 0;
 	update_dns_child_alive();
 	ipcache_cleanup_pendinglist(data);
+	close(fd);
+	fdstat_close(fd);
 	return 0;
     }
     data->offset += len;

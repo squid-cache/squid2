@@ -96,6 +96,7 @@ typedef unsigned long u_num32;
 #include "fdstat.h"
 #include "filemap.h"
 #include "hash.h"
+#include "url.h"
 #include "proto.h"
 #include "icp.h"
 #include "cached_error.h"	/* must go after icp.h */
@@ -108,7 +109,6 @@ typedef unsigned long u_num32;
 #include "store.h"
 #include "tools.h"
 #include "ttl.h"
-#include "url.h"
 #include "storetoString.h"
 #include "http.h"
 #include "ftp.h"

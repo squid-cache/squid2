@@ -8,7 +8,8 @@ typedef enum {
     ACL_URL_REGEX,
     ACL_URL_PORT,
     ACL_USER,
-    ACL_PROTO
+    ACL_PROTO,
+    ACL_METHOD
 } acl_t;
 
 #define ACL_SUNDAY	0x01
@@ -40,6 +41,7 @@ struct _acl_time_data {
 /* port data is just a intlist */
 /* proto data is just a intlist */
 /* url_regex data is just a relist */
+/* method data is just a intlist */
 
 struct _acl {
     char name[ACL_NAME_SZ + 1];
@@ -62,6 +64,11 @@ struct _acl_access {
     struct _acl_access *next;
 };
 
-extern void aclParseAclLine _PARAMS(());
-extern void aclParseAccessLine _PARAMS(());
-extern int aclCheck _PARAMS((struct in_addr, protocol_t, char *, int, char *));
+extern int aclCheck _PARAMS((struct _acl_access *, struct in_addr, method_t, protocol_t, char *, int, char *));
+extern void aclDestroyAccessList _PARAMS((struct _acl_access **list));
+extern void aclDestroyAcls _PARAMS((void));
+extern void aclParseAccessLine _PARAMS((struct _acl_access **));
+extern void aclParseAclLine _PARAMS((void));
+
+extern struct _acl_access *HTTPAccessList;
+extern struct _acl_access *ICPAccessList;

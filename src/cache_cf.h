@@ -44,7 +44,7 @@ extern ip_acl *proxy_ip_acl;
 extern ip_acl *accel_ip_acl;
 extern ip_acl *manager_ip_acl;
 extern char config_input_line[];
-extern int conifg_lineno;
+extern int config_lineno;
 
 
 /* cache_cf.c */
@@ -115,6 +115,8 @@ wordlist *getLocalDomainList _PARAMS((void));
 wordlist *getCacheDirs _PARAMS((void));
 wordlist *getInsideFirewallList _PARAMS((void));
 wordlist *getBindAddrList _PARAMS((void));
+extern void wordlistDestroy _PARAMS((wordlist **));
+extern void intlistDestroy _PARAMS((intlist **));
 
 
 extern char w_space[];

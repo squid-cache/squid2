@@ -16,17 +16,6 @@
 #define NOTIMPLE_ID  PROTOCOL_SUPPORTED + 3	/* for robustness */
 #endif
 
-typedef enum {
-    PROTO_NONE,
-    PROTO_HTTP,
-    PROTO_FTP,
-    PROTO_GOPHER,
-    PROTO_WAIS,
-    PROTO_CACHEOBJ,
-    PROTO_MAX
-} protocol_t;
-
-
 /* logfile status */
 #define LOG_ENABLE  1
 #define LOG_DISABLE 0
@@ -105,7 +94,7 @@ struct _cacheinfo {
 
     /* protocol specific stat update method */
     /* return a proto_id for a given url */
-         protocol_t(*proto_id) _PARAMS((char *url));
+         protocol_t (*proto_id) _PARAMS((char *url));
 
     /* a new object cached. update obj count, size */
     void (*proto_newobject) _PARAMS((struct _cacheinfo * c, protocol_t proto_id, int len, int flag));
@@ -140,8 +129,6 @@ struct _cacheinfo {
 extern cacheinfo *CacheInfo;
 
 extern void stat_init _PARAMS((cacheinfo **, char *));
-extern protocol_t proto_url_to_id _PARAMS((char *url));
-extern int proto_default_port _PARAMS((protocol_t));
 extern void stat_rotate_log _PARAMS((void));
 
 

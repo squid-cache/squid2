@@ -27,14 +27,6 @@ typedef struct _httpdata {
     int reply_hdr_state;
 } HttpData;
 
-char *RequestMethodStr[] =
-{
-    "NONE",
-    "GET",
-    "POST",
-    "HEAD"
-};
-
 static void httpCloseAndFree(fd, data)
      int fd;
      HttpData *data;
