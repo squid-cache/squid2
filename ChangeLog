@@ -1,4 +1,4 @@
-Changes to Squid-2.4.STABLE7 ():
+Changes to Squid-2.4.STABLE7 (July 2, 2002):
 
 	- Squid now drops any requests using transfer-encoding.
 	  Squid is a HTTP/1.0 proxy and as such do not support
