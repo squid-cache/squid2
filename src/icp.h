@@ -147,6 +147,8 @@ typedef enum {
 #define ERR_MIN ERR_READ_TIMEOUT
 #define ERR_MAX ERR_PROXY_DENIED
 
+typedef void IDCB _PARAMS((void *));
+
 typedef struct wwd {
     struct sockaddr_in address;
     void *msg;
@@ -164,43 +166,54 @@ typedef struct wwd {
 #define IDENT_PENDING 1
 #define IDENT_DONE 2
 
-typedef struct iwd {
-    icp_common_t header;	/* for UDP_HIT_OBJ's */
-    int fd;
-    char *url;
-    char *inbuf;
-    int inbufsize;
-    method_t method;		/* GET, POST, ... */
+typedef struct _ConnStateData ConnStateData;
+
+typedef struct _clientHttpRequest {
+    ConnStateData *conn;
     request_t *request;		/* Parsed URL ... */
-    char *request_hdr;		/* HTTP request header */
+    char *url;
+    struct {
+	char *buf;
+	int offset;
+	int size;
+    } in  , out;
+    char *request_hdr;
     int req_hdr_sz;
+    StoreEntry *entry;
+    StoreEntry *old_entry;
+    log_type log_type;
+    int http_code;
+    int accel;
+    struct timeval start;
+    float http_ver;
+    int redirect_state;
+    aclCheck_t *acl_checklist;	/* need ptr back so we can unreg if needed */
+    struct _clientHttpRequest *next;
+} clientHttpRequest;
+
+struct _ConnStateData {
+    int fd;
+    clientHttpRequest *chr;
 #if LOG_FULL_HEADERS
     char *reply_hdr;		/* HTTP reply header */
 #endif				/* LOG_FULL_HEADERS */
-    StoreEntry *entry;
-    StoreEntry *old_entry;
-    int in_offset;
-    int out_offset;
-    log_type log_type;
-    int http_code;
     struct sockaddr_in peer;
     struct sockaddr_in me;
     struct in_addr log_addr;
-    struct timeval start;
-    int accel;
-    int size;			/* hack for CONNECT which doesnt use sentry */
-    PF *aclHandler;
-    float http_ver;
     struct {
 	int fd;
 	char ident[ICP_IDENT_SZ];
-	void (*callback) _PARAMS((void *));
+	IDCB *callback;
 	int state;
     } ident;
-    int redirect_state;
-    aclCheck_t *acl_checklist;	/* need ptr back so we can unreg if needed */
     CommWriteStateData *commWriteState;
-} icpStateData;
+    int nrequests;
+    int persistent;
+#ifdef UNUSED
+    icp_common_t header;	/* for UDP_HIT_OBJ's */
+    method_t method;		/* GET, POST, ... */
+#endif
+};
 
 extern void *icpCreateMessage _PARAMS((icp_opcode opcode,
 	int flags,
@@ -217,13 +230,13 @@ extern PF asciiHandleConn;
 extern void icpSendERROR _PARAMS((int fd,
 	log_type errorCode,
 	const char *text,
-	icpStateData *,
+	clientHttpRequest *,
 	int httpCode));
 extern void AppendUdp _PARAMS((icpUdpData *));
-extern void icpParseRequestHeaders _PARAMS((icpStateData *));
+extern void icpParseRequestHeaders _PARAMS((clientHttpRequest *));
 extern PF icpDetectClientClose;
-extern void icpProcessRequest _PARAMS((int, icpStateData *));
-extern int icpSendMoreData _PARAMS((int fd, icpStateData *));
+extern void icpProcessRequest _PARAMS((int, clientHttpRequest *));
+extern int icpSendMoreData _PARAMS((int fd, clientHttpRequest *));
 extern PF icpUdpReply;
 extern void vizHackSendPkt _PARAMS((const struct sockaddr_in * from, int type));
 extern CWCB icpSendERRORComplete;

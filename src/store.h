@@ -142,13 +142,12 @@
 #endif
 
 
-typedef void PIF _PARAMS((int, StoreEntry *, void *));
+typedef void STCB _PARAMS((void *));
 
 /* keep track each client receiving data from that particular StoreEntry */
 struct _store_client {
-    int fd;
     int last_offset;
-    PIF *callback;
+    STCB *callback;
     void *callback_data;
 };
 
@@ -178,6 +177,7 @@ struct _MemObject {
     struct timeval start_ping;
     IRCB *icp_reply_callback;
     void *ircb_data;
+    int fd;		/* FD of client creating this entry */
 };
 
 enum {
@@ -260,14 +260,14 @@ extern int storeGetSwapSpace _PARAMS((int));
 extern void storeLockObject _PARAMS((StoreEntry *, SIH *, void *));
 extern int storeRelease _PARAMS((StoreEntry *));
 extern int storeUnlockObject _PARAMS((StoreEntry *));
-extern int storeUnregister _PARAMS((StoreEntry *, int));
+extern int storeUnregister _PARAMS((StoreEntry *, void *));
 extern const char *storeGeneratePublicKey _PARAMS((const char *, method_t));
 extern const char *storeGeneratePrivateKey _PARAMS((const char *, method_t, int));
 extern void storeStartDeleteBehind _PARAMS((StoreEntry *));
-extern int storeClientCopy _PARAMS((StoreEntry *, int, int, char *, int *, int));
+extern int storeClientCopy _PARAMS((StoreEntry *, int, int, char *, int *, void *));
 extern int storePendingNClients _PARAMS((const StoreEntry *));
 extern int storeWriteCleanLogs _PARAMS((void));
-extern int storeRegister _PARAMS((StoreEntry *, int, PIF *, void *));
+extern int storeRegister _PARAMS((StoreEntry *, int, STCB *, void *));
 extern int urlcmp _PARAMS((const char *, const char *));
 extern void storeMaintainSwapSpace _PARAMS((void *unused));
 extern void storeExpireNow _PARAMS((StoreEntry *));
@@ -279,10 +279,9 @@ extern void storeConfigure _PARAMS((void));
 extern void storeNegativeCache _PARAMS((StoreEntry *));
 extern void storeFreeMemory _PARAMS((void));
 extern int expiresMoreThan _PARAMS((time_t, time_t));
-extern int storeClientListAdd _PARAMS((StoreEntry *, int, int));
+extern int storeClientListAdd _PARAMS((StoreEntry *, void *, int));
 extern void InvokeHandlers _PARAMS((StoreEntry *));
 extern int storeEntryValidToSend _PARAMS((StoreEntry *));
-extern int storeFirstClientFD _PARAMS((MemObject * mem));
 extern void storeTimestampsSet _PARAMS((StoreEntry *));
 extern unsigned int storeReqnum _PARAMS((StoreEntry * entry, method_t));
 extern time_t storeExpiredReferenceAge _PARAMS((void));

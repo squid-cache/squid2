@@ -44,7 +44,7 @@ typedef struct {
 	char *buf;
     } client, server;
     time_t timeout;
-    int *size_ptr;		/* pointer to size in an icpStateData for logging */
+    int *size_ptr;		/* pointer to size in an ConnStateData for logging */
     int proxying;
     int ip_lookup_pending;
 } SslStateData;

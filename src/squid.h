@@ -364,7 +364,7 @@ extern int passStart _PARAMS((int fd,
 	char *buf,
 	int buflen,
 	int *size_ptr));
-extern void identStart _PARAMS((int, icpStateData *,
+extern void identStart _PARAMS((int, ConnStateData *,
 	void       (*callback) _PARAMS((void *))));
 extern int httpAnonAllowed _PARAMS((const char *line));
 extern int httpAnonDenied _PARAMS((const char *line));

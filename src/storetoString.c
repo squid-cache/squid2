@@ -259,8 +259,6 @@ storeToString(const StoreEntry * e)
 
 	for (i = 0; i < mem->nclients; ++i) {
 	    struct _store_client *sc = &mem->clients[i];
-	    sprintf(tmpbuf, "    Client[%d]: fd = %d\n", i, sc->fd);
-	    strcat(stsbuf, tmpbuf);
 	    sprintf(tmpbuf, "              : last_offset = %d\n", sc->last_offset);
 	    strcat(stsbuf, tmpbuf);
 	    sprintf(tmpbuf, "              : callback = %p\n", sc->callback);

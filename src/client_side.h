@@ -31,12 +31,12 @@
 #ifndef CLIENT_SIDE_H
 #define CLIENT_SIDE_H
 
-extern void clientAccessCheck _PARAMS((icpStateData *, PF));
+extern void clientAccessCheck _PARAMS((void *));
 extern void clientAccessCheckDone _PARAMS((int, void *));
 extern void icpProcessExpired _PARAMS((int fd, void *));
 extern int modifiedSince _PARAMS((StoreEntry *, request_t *));
-extern char *clientConstructTraceEcho _PARAMS((icpStateData *));
-extern void clientPurgeRequest _PARAMS((icpStateData *));
+extern char *clientConstructTraceEcho _PARAMS((clientHttpRequest *));
+extern void clientPurgeRequest _PARAMS((clientHttpRequest *));
 
 #if USE_PROXY_AUTH
 const char *proxyAuthenticate(const char *headers);
