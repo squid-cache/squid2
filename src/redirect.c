@@ -163,8 +163,8 @@ redirectInit(void)
 	cachemgrRegister("redirector",
 	    "URL Redirector Stats",
 	    redirectStats, 0, 1);
+	init = 1;
     }
-    init++;
 }
 
 void
