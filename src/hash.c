@@ -113,7 +113,7 @@ struct master_table {
     int valid;
     hash_link **buckets;
     int (*cmp) _PARAMS((char *, char *));
-    unsigned int (*hash) _PARAMS((char *, HashID));
+    unsigned int (*hash) _PARAMS((const char *, HashID));
     int size;
     int current_slot;
     hash_link *current_ptr;
@@ -142,7 +142,7 @@ hash_url(char *s, HashID hid)
 }
 
 unsigned int
-hash_string(char *s, HashID hid)
+hash_string(const char *s, HashID hid)
 {
     unsigned int n = 0;
     unsigned int j = 0;
@@ -274,9 +274,9 @@ hash3(keyarg, hid)
 
 /* Hash function from Chris Torek. */
 unsigned int
-hash4(char *keyarg, HashID hid)
+hash4(const char *keyarg, HashID hid)
 {
-    const u_char *key;
+    const char *key;
     size_t loop;
     unsigned int h;
     size_t len;
@@ -342,7 +342,7 @@ hash_init(int hash_sz)
 HashID
 hash_create(int (*cmp_func) (char *, char *),
     int hash_sz,
-    unsigned int (*hash_func) (char *, HashID))
+    unsigned int (*hash_func) (const char *, HashID))
 {
     int hid;
 

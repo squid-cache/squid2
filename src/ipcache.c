@@ -545,7 +545,7 @@ ipcache_parsebuffer(char *inbuf, dnsserver_t * dnsData)
 }
 
 static void
-ipcacheNudgeQueue()
+ipcacheNudgeQueue(void)
 {
     dnsserver_t *dnsData;
     ipcache_entry *i = NULL;

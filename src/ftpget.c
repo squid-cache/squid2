@@ -586,7 +586,7 @@ sigchld_handler(int sig)
 #else
     int status;
 #endif
-    int pid;
+    pid_t pid;
 
 #if defined(_SQUID_NEXT_) && !defined(_POSIX_SOURCE)
     if ((pid = wait4(0, &status, WNOHANG, NULL)) > 0)
