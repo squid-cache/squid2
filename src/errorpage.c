@@ -67,7 +67,7 @@ errorInitialize(void)
     int fd;
     char path[MAXPATHLEN];
     struct stat sb;
-    assert(sizeof(err_string) == (ERR_MAX + 1) * 4);
+    assert(sizeof(err_string) == (ERR_MAX + 1) * sizeof(char *));
     for (i = ERR_NONE + 1; i < ERR_MAX; i++) {
 	snprintf(path, MAXPATHLEN, "%s/%s",
 	    Config.errorDirectory, err_string[i]);

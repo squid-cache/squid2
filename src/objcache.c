@@ -389,5 +389,5 @@ objcacheUnimplemented(StoreEntry * entry)
 void
 objcacheInit(void)
 {
-    assert(sizeof(objcacheOpcodeStr) == (MGR_MAX + 1) * 4);
+    assert(sizeof(objcacheOpcodeStr) == (MGR_MAX + 1) * sizeof(char *));
 }
