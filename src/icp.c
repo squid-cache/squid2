@@ -1869,9 +1869,12 @@ icpDetectClientClose(int fd, void *data)
 		fd_table[fd].ipaddr, xstrerror());
 	commCancelRWHandler(fd);
 	CheckQuickAbort(icpState);
-	if (entry->ping_status == PING_WAITING)
-	    storeReleaseRequest(entry);
-	storeUnregister(entry, fd);
+	if (entry) {
+	    if (entry->ping_status == PING_WAITING)
+		storeReleaseRequest(entry);
+	    storeUnregister(entry, fd);
+	}
+	protoUnregister(fd, entry, icpState->request, icpState->peer.sin_addr);
 	comm_close(fd);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
