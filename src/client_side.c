@@ -1938,6 +1938,11 @@ clientReadRequest(int fd, void *data)
 	size = 0;
     }
     conn->in.offset += size;
+    /* Skip leading (and trailing) whitespace */
+    while (conn->in.offset > 0 && isspace(conn->in.buf[0])) {
+	xmemmove(conn->in.buf, conn->in.buf + 1, conn->in.offset - 1);
+	conn->in.offset--;
+    }
     conn->in.buf[conn->in.offset] = '\0';	/* Terminate the string */
     while (conn->in.offset > 0) {
 	int nrequests;

@@ -458,6 +458,16 @@ httpReadReply(int fd, void *data)
 	    clen >>= 1;
 	IOStats.Http.read_hist[bin]++;
     }
+    if (!httpState->reply_hdr && len > 0) {
+	/* Skip whitespace */
+	while (len > 0 && isspace(*buf))
+	    xmemmove(buf, buf + 1, len--);
+	if (len == 0) {
+	    /* Continue to read... */
+	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
+	    return;
+	}
+    }
     if (len < 0) {
 	debug(50, 2) ("httpReadReply: FD %d: read failure: %s.\n",
 	    fd, xstrerror());
