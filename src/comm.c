@@ -645,8 +645,6 @@ comm_select_incoming(void)
 	if (pfds[i].events == 0)
 	    pfds[i].fd = -1;
     }
-    pfds[N].fd = -1;		/* just in case... */
-    pfds[N].events = 0;
     if (poll(pfds, N, (int) 0) < 1)
 	return;
     getCurrentTime();
