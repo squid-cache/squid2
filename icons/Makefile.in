@@ -47,8 +47,11 @@ ICONS		= anthony-binhex.gif \
 
 all: $(ICONS)
 
-$(ICONS):
-	@$(SHELL) -c "$(SHELL) $(srcdir)/icons.shar"
+.PHONY: extract_icons
+$(ICONS): extract_icons
+
+extract_icons:
+	@$(SHELL) -c "cd $(srcdir); $(SHELL) icons.shar"
 
 icons.shar:
 	shar --no-timestamp $(ICONS) > $@
