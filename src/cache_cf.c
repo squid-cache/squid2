@@ -172,6 +172,7 @@ char *DefaultSwapDir = DEFAULT_SWAP_DIR;
 char *DefaultConfigFile = DEFAULT_CONFIG_FILE;
 char *ConfigFile = NULL;	/* the whole thing */
 char *cfg_filename = NULL;	/* just the last part */
+char ForwardedBy[256];
 
 char w_space[] = " \t\n";
 char config_input_line[BUFSIZ];
@@ -1830,6 +1831,9 @@ static void configDoConfigure()
     neighbor_timeout = (time_t) Config.neighborTimeout;
     single_parent_bypass = Config.singleParentBypass;
     DnsPositiveTtl = Config.positiveDnsTtl;
+    sprintf(ForwardedBy, "Forwarded: by http://%s:%d/",
+            getMyHostname(), getHttpPortNum());
+
 
 #if !ALLOW_HOT_CACHE
     if (!httpd_accel_mode || Config.Accel.withProxy) {

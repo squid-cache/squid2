@@ -52,7 +52,7 @@ extern wordlist *bind_addr_list;
 extern wordlist *ftp_stoplist;
 extern wordlist *gopher_stoplist;
 extern wordlist *http_stoplist;
-
+extern char ForwardedBy[];
 
 /* Global Functions */
 extern char *getAccelPrefix _PARAMS((void));
