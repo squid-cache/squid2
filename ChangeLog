@@ -8,8 +8,6 @@ Changes to squid-1.1.20 (January 9, 1998):
 	  objects will not be saved until some swap files become
 	  available.
 	- Year-2000 fixes (Arjan de Vet).
-	- Fixed netdbSendPing() bug; we never handled the case when a
-	  hostname's IP address changes from one network to another.
 
 Changes to squid-1.1.19 (December 18, 1997):
 
