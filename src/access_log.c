@@ -314,13 +314,13 @@ accessLogRotate(void)
 	i--;
 	snprintf(from, MAXPATHLEN, "%s.%d", fname, i - 1);
 	snprintf(to, MAXPATHLEN, "%s.%d", fname, i);
-	rename(from, to);
+	xrename(from, to);
     }
     /* Rotate the current log to .0 */
     file_close(LogfileFD);	/* always close */
     if (Config.Log.rotateNumber > 0) {
 	snprintf(to, MAXPATHLEN, "%s.%d", fname, 0);
-	rename(fname, to);
+	xrename(from, to);
     }
     /* Reopen the log.  It may have been renamed "manually" */
     LogfileFD = file_open(fname, O_WRONLY | O_CREAT);

@@ -202,6 +202,11 @@ _db_rotate_log(void)
 	    return;
 #endif
 
+    /*
+     * NOTE: we cannot use xrename here without having it in a
+     * separate file -- tools.c has too many dependencies to be
+     * used everywhere debug.c is used.
+     */
     /* Rotate numbers 0 through N up one */
     for (i = Config.Log.rotateNumber; i > 1;) {
 	i--;
