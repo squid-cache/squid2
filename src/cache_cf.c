@@ -1085,5 +1085,5 @@ parseNeighborType(const char *s)
 void
 configFreeMemory(void)
 {
-	free_all();
+    free_all();
 }

@@ -287,7 +287,7 @@ comm_open(int sock_type,
 	    comm_close(new_socket);
 	    return COMM_ERROR;
 	}
-    } 
+    }
     F->local_port = port;
 
     if (BIT_TEST(flags, COMM_NONBLOCKING))

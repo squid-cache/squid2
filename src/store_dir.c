@@ -217,7 +217,7 @@ storeDirSwapLog(const StoreEntry * e)
     dirn = e->swap_file_number >> SWAP_DIR_SHIFT;
     assert(dirn < Config.cacheSwap.n_configured);
     if (BIT_TEST(e->flag, KEY_PRIVATE))
-	debug(0,0)("storeDirSwapLog: PRIVATE: %s\n", e->url);
+	debug(0, 0) ("storeDirSwapLog: PRIVATE: %s\n", e->url);
     /* Note this printf format appears in storeWriteCleanLog() too */
     sprintf(logmsg, "%08x %08x %08x %08x %08x %9d %6d %08x %s\n",
 	(int) e->swap_file_number,
