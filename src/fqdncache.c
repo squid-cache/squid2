@@ -303,8 +303,14 @@ fqdncacheParse(fqdncache_entry * f, rfc1035_rr * answers, int nr, const char *er
 	    continue;
 	if (answers[k].class != RFC1035_CLASS_IN)
 	    continue;
-	if (!answers[k].rdata[0])
+	if (!answers[k].rdata[0]) {
+	    debug(35, 2) ("fqdncacheParse: blank PTR record for '%s'\n", name);
 	    continue;
+	}
+	if (strchr(answers[k].rdata, ' ')) {
+	    debug(35, 2) ("fqdncacheParse: invalid PTR record '%s' for '%s'\n", answers[k].rdata, name);
+	    continue;
+	}
 	f->names[f->name_count++] = xstrdup(answers[k].rdata);
 	if (ttl == 0 || answers[k].ttl < ttl)
 	    ttl = answers[k].ttl;
@@ -312,7 +318,7 @@ fqdncacheParse(fqdncache_entry * f, rfc1035_rr * answers, int nr, const char *er
 	    break;
     }
     if (f->name_count == 0) {
-	debug(35, 1) ("fqdncacheParse: No PTR record\n");
+	debug(35, 1) ("fqdncacheParse: No PTR record for '%s'\n", name);
 	f->error_message = xstrdup("No PTR record");
 	return f;
     }
