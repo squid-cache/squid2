@@ -446,9 +446,6 @@ diskHandleReadComplete(void *data, int len, int errcode)
     int fd = ctrl_dat->fd;
     int rc = DISK_OK;
     errno = errcode;
-
-    xfree(data);
-
     if (len == -2 && errcode == -2) {	/* Read cancelled - cleanup */
 	cbdataUnlock(ctrl_dat->client_data);
 	memFree(MEM_DREAD_CTRL, ctrl_dat);
