@@ -728,9 +728,9 @@ static int ipcache_dnsHandleRead(fd, dnsData)
 	    fd, dnsData->id);
 	dnsData->flags = 0;
 	comm_set_select_handler(fd,
-		COMM_SELECT_WRITE,
-		NULL,
-		NULL);
+	    COMM_SELECT_WRITE,
+	    NULL,
+	    NULL);
 	comm_close(fd);
 	return 0;
     }
@@ -1170,11 +1170,11 @@ void ipcacheShutdownServers()
     for (k = 0; k < getDnsChildren(); k++) {
 	dnsData = *(dns_child_table + k);
 	if (!(dnsData->flags & DNS_FLAG_ALIVE))
-		continue;
+	    continue;
 	if (dnsData->flags & DNS_FLAG_BUSY)
-		continue;
+	    continue;
 	if (dnsData->flags & DNS_FLAG_CLOSING)
-		continue;
+	    continue;
 	debug(14, 3, "ipcacheShutdownServers: sending '$shutdown' to dnsserver #%d\n", dnsData->id);
 	debug(14, 3, "ipcacheShutdownServers: --> FD %d\n", dnsData->outpipe);
 	comm_write(dnsData->outpipe,
