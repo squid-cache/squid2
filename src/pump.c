@@ -37,6 +37,7 @@
 #define PUMP_MAXBUFFER 2*SQUID_UDP_SO_SNDBUF
 
 struct _PumpStateData {
+    FwdState *fwd;
     request_t *req;
     int c_fd;			/* client fd */
     int s_fd;			/* server end */
@@ -131,6 +132,7 @@ pumpStart(int s_fd, FwdState * fwd, CWCB * callback, void *cbdata)
     /*
      * fill in the rest of data needed by the pump
      */
+    p->fwd = fwd;
     p->s_fd = s_fd;
     p->reply_entry = fwd->entry;
     p->callback = callback;
@@ -328,6 +330,8 @@ pumpClose(void *data)
 	storeUnregister(req, p);
     }
     if (rep != NULL && rep->store_status == STORE_PENDING) {
+	ErrorState *err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
+	fwdFail(p->fwd, err);
 	debug(0, 0) ("XXX did the server-side FD (%d) get closed?\n", p->s_fd);
     }
     if (p->s_fd > -1) {
