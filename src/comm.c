@@ -979,8 +979,8 @@ comm_select(time_t sec)
 		FD_SET(i, &writefds);
 	    }
 	}
-	if (!fdstat_are_n_free_fd(RESERVED_FD)) {
-	    FD_CLR(theHttpConnection, &readfds);
+	if (!fdstat_are_n_free_fd(RESERVED_FD) && theHttpConnection >= 0) {
+	        FD_CLR(theHttpConnection, &readfds);
 	}
 	if (shutdown_pending || reread_pending)
 	    debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
@@ -1394,7 +1394,7 @@ checkTimeouts(void)
     FD_ENTRY *f = NULL;
     void *data;
     /* scan for timeout */
-    for (fd = 0; fd < Biggest_FD; ++fd) {
+    for (fd = 0; fd <= Biggest_FD; fd++) {
 	f = &fd_table[fd];
 	if (!f->openned)
 	    continue;
@@ -1418,7 +1418,7 @@ checkLifetimes(void)
 
     PF hdl = NULL;
 
-    for (fd = 0; fd < Biggest_FD; fd++) {
+    for (fd = 0; fd <= Biggest_FD; fd++) {
 	fde = &fd_table[fd];
 	if (!fde->openned)
 	    continue;

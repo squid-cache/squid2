@@ -239,7 +239,7 @@ aioExamine(void)
     void *data;
     struct aiocb *aio;
 
-    for (fd = 0; fd < Biggest_FD; fd++) {
+    for (fd = 0; fd <= Biggest_FD; fd++) {
 	if (fdstatGetType(fd) != FD_FILE)
 	    continue;
 	/* Not in progress */
