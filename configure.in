@@ -359,6 +359,7 @@ AC_CHECK_FUNCS(\
 	bcopy \
 	fchmod \
 	getdtablesize \
+	getpagesize \
 	getrusage \
 	getspnam \
 	lrand48 \
