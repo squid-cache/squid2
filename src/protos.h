@@ -1154,6 +1154,7 @@ extern int internalStaticCheck(const char *urlpath);
 extern char *internalLocalUri(const char *dir, const char *name);
 extern char *internalRemoteUri(const char *, u_short, const char *, const char *);
 extern const char *internalHostname(void);
+extern int internalHostnameIs(const char *);
 
 #if USE_CARP
 extern void carpInit(void);

@@ -321,6 +321,7 @@ struct _SquidConfig {
     char *mimeTablePathname;
     char *visibleHostname;
     char *uniqueHostname;
+    wordlist *hostnameAliases;
     char *errHtmlText;
     struct {
 	char *host;

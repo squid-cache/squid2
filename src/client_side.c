@@ -2393,7 +2393,7 @@ clientReadRequest(int fd, void *data)
 	    request->flags.accelerated = http->flags.accel;
 	    if (!http->flags.internal) {
 		if (internalCheck(strBuf(request->urlpath))) {
-		    if (0 == strcasecmp(request->host, internalHostname()) &&
+		    if (internalHostnameIs(request->host) &&
 			request->port == Config.Port.http->i) {
 			http->flags.internal = 1;
 		    } else if (internalStaticCheck(strBuf(request->urlpath))) {
