@@ -1907,7 +1907,7 @@ static void icpDetectClientClose(fd, icpState)
 	/* XXX Assume write(2) of zero bytes won't block! */
 	/* the other side called shutdown(2) on the socket? */
 	/* just disable read handler */
-	debug(12, 1, "icpDetectClientClose: FD %d Peer issued TCP half-close\n", fd);
+	debug(12, 5, "icpDetectClientClose: FD %d Peer issued TCP half-close\n", fd);
 	comm_set_select_handler(fd,
 	    COMM_SELECT_READ,
 	    NULL,
