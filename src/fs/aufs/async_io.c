@@ -94,6 +94,7 @@ aioFDWasClosed(int fd)
 	fd_close(fd);
 }
 
+
 void
 aioInit(void)
 {
@@ -103,7 +104,6 @@ aioInit(void)
     cachemgrRegister("squidaio_counts", "Async IO Function Counters",
 	aioStats, 0, 1);
     initialised = 1;
-    comm_quick_poll_required();
 }
 
 void
