@@ -118,7 +118,7 @@ static struct {
 #define DefaultNeighborTimeout  2	/* 2 seconds */
 #define DefaultStallDelay	3	/* 3 seconds */
 #define DefaultSingleParentBypass 0	/* default off */
-#define DefaultPidFilename      (char *)NULL    /* default NONE */
+#define DefaultPidFilename      (char *)NULL	/* default NONE */
 
 extern char *config_file;
 

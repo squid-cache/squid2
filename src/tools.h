@@ -1,3 +1,4 @@
+
 /* $Id$ */
 
 extern char *getMyHostname _PARAMS((void));

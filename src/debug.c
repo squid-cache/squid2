@@ -138,7 +138,6 @@ void _db_init(logfile)
 	}
 	xfree(p);
     }
-
     debugOpenLog(logfile);
 
 #if HAVE_SYSLOG
