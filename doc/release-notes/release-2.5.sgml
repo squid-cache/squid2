@@ -76,6 +76,11 @@ for Applied Network Research and members of the Web Caching community.
 	<item>Support for openBSD pf interface in interception mode.
 	<item>It is now possible to send complex arguments to helpers
 	by quoting the arguments by " and/or \ 
+	<item>The directory structure has changed slightly. The squid binary
+	has been moved into sbin, errors and icons into share/, and the libexec
+	programs are now in libexec/ (was previously libexec/squid/). See
+	configure --help for instructions on how to move these around to
+	exacly where you want to have them in your system.
 </itemize>
 
 <sect>Changes to squid.conf
