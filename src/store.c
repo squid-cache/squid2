@@ -452,8 +452,7 @@ void storeReleaseRequest(e)
 int storeUnlockObject(e)
      StoreEntry *e;
 {
-    int e_lock_count;
-
+    int lock_count;
 
     if ((int) e->lock_count > 0)
 	e->lock_count--;
@@ -462,28 +461,28 @@ int storeUnlockObject(e)
     }
     debug(20, 3, "storeUnlockObject: key '%s' count=%d\n", e->key, e->lock_count);
 
+    if (e->lock_count)
+	return e->lock_count;
+
     /* Prevent UMR if we end up freeing the entry */
-    e_lock_count = (int) e->lock_count;
+    lock_count = (int) e->lock_count;
 
-    if (e->lock_count == 0) {
-	if (e->flag & RELEASE_REQUEST) {
-	    storeRelease(e);
-	} else if (e->flag & ABORT_MSG_PENDING) {
-	    /* This is where the negative cache gets storeAppended */
-	    /* Briefly lock to replace content with abort message */
-	    e->lock_count++;
-	    destroy_MemObjectData(e->mem_obj);
-	    e->object_len = 0;
-	    e->mem_obj->data = new_MemObjectData();
-	    storeAppend(e, e->mem_obj->e_abort_msg, strlen(e->mem_obj->e_abort_msg));
-	    e->object_len = e->mem_obj->e_current_len
-		= strlen(e->mem_obj->e_abort_msg);
-	    BIT_RESET(e->flag, ABORT_MSG_PENDING);
-	    e->lock_count--;
-	}
+    if (e->flag & RELEASE_REQUEST) {
+	storeRelease(e);
+    } else if (e->flag & ABORT_MSG_PENDING) {
+	/* This is where the negative cache gets storeAppended */
+	/* Briefly lock to replace content with abort message */
+	e->lock_count++;
+	destroy_MemObjectData(e->mem_obj);
+	e->object_len = 0;
+	e->mem_obj->data = new_MemObjectData();
+	storeAppend(e, e->mem_obj->e_abort_msg, strlen(e->mem_obj->e_abort_msg));
+	e->object_len = e->mem_obj->e_current_len
+	    = strlen(e->mem_obj->e_abort_msg);
+	BIT_RESET(e->flag, ABORT_MSG_PENDING);
+	e->lock_count--;
     }
-    return e_lock_count;
-
+    return lock_count;
 }
 
 /* Lookup an object in the cache. 
