@@ -377,12 +377,18 @@ static void
 mainRotate(void)
 {
     icmpClose();
+    dnsShutdown();
+    redirectShutdown();
+    authenticateShutdown();
     _db_rotate_log();		/* cache.log */
     storeDirWriteCleanLogs(1);
     storeLogRotate();		/* store.log */
     accessLogRotate();		/* access.log */
     useragentRotateLog();	/* useragent.log */
     icmpOpen();
+    dnsInit();
+    redirectInit();
+    authenticateInit();
 }
 
 static void

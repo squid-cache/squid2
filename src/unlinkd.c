@@ -48,6 +48,8 @@ main(int argc, char *argv[])
     int x;
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
+    close(2);
+    open("/dev/null", O_RDWR);
     while (fgets(buf, UNLINK_BUF_LEN, stdin)) {
 	if ((t = strchr(buf, '\n')))
 	    *t = '\0';
