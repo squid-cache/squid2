@@ -358,7 +358,7 @@ diskHandleWriteComplete(void *data, int len, int errcode)
 void
 file_write(int fd,
     off_t file_offset,
-    char *ptr_to_buf,
+    void *ptr_to_buf,
     int len,
     DWCB handle,
     void *handle_data,
