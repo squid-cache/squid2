@@ -313,7 +313,7 @@ pumpClose(void *data)
 	storeAbort(req, 1);
     }
     if (rep != NULL && rep->store_status == STORE_PENDING) {
-	storeAbort(rep, 1);
+	storeAbort(rep, 0);
     }
     if (p->s_fd > -1) {
 	comm_remove_close_handler(p->s_fd, pumpServerClosed, p);
