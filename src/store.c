@@ -772,7 +772,8 @@ storeExpireNow(StoreEntry * e)
 void
 storeCheckDoneWriting(StoreEntry * e)
 {
-    MemObject *mem = e->mem;
+    MemObject *mem = e->mem_obj;
+    protocol_t proto = mem->request ? mem->request->protocol : PROTO_NONE;
     if (e->store_status == STORE_PENDING)
 	return;
     if (e->object_len < mem->swap_length)
@@ -785,7 +786,7 @@ storeCheckDoneWriting(StoreEntry * e)
 	mem->swapout_fd = -1;
     }
     HTTPCacheInfo->proto_newobject(HTTPCacheInfo,
-            mem->request->protocol,
+            proto,
             e->object_len,
             FALSE);
     storeUnlockObject(e);

@@ -11,6 +11,14 @@
 	  the STORE_PENDING state.
 	- Upon "disk full" error, now lower the 'cache_swap' value to
 	  90% of the current cache size.
+	- Added missing proto_newobj() which caused negative counts in
+	  utilization data.
+	- Changed RESERVED_FD to always be Squid_MaxFD/4; was previously
+	  min(100, Squid_MaxFD/4);
+	- Added counter for number of open file descriptors; simplified
+	  fdstat_are_n_free_fd().
+	- Added changing IP cache key for stuck entries.
+	- Fixed NULL mem_obj coredump bug in storeCheckDoneWriting().
 
 Changes to squid-1.NOVM.10 (April 25, 1997):
 

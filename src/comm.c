@@ -815,8 +815,8 @@ comm_select(time_t sec)
 	    debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
 	if (nfds == 0)
 	    return COMM_SHUTDOWN;
+	poll_time = sec > 0 ? 1000 : 0;
 	for (;;) {
-	    poll_time = sec > 0 ? 1000 : 0;
 	    num = poll(pfds, nfds, poll_time);
 	    select_loops++;
 	    getCurrentTime();
@@ -1294,7 +1294,7 @@ comm_init(void)
     /* Keep a few file descriptors free so that we don't run out of FD's
      * after accepting a client but before it opens a socket or a file.
      * Since Squid_MaxFD can be as high as several thousand, don't waste them */
-    RESERVED_FD = min(100, Squid_MaxFD / 4);
+    RESERVED_FD = Squid_MaxFD / 4;
     /* hardwired lifetimes */
     for (i = 0; i < Squid_MaxFD; i++)
 	comm_set_fd_lifetime(i, -1);	/* denotes invalid */

@@ -147,6 +147,7 @@ fdstat_init(void)
 	fd_stat_tab[i].type = FD_UNKNOWN;
     }
     Biggest_FD = -1;
+    Number_FD = 0;
 }
 
 /* call for updating the current biggest fd */
@@ -182,6 +183,8 @@ fdstat_open(int fd, File_Desc_Type type)
     fd_stat_tab[fd].status = FDSTAT_OPEN;
     fd_stat_tab[fd].type = type;
     fdstat_update(fd, FDSTAT_OPEN);
+    if (++Number_FD > Squid_MaxFD)
+	fatal_dump("Number_FD > Squid_MaxFD");
 }
 
 int
@@ -196,34 +199,18 @@ fdstat_close(int fd)
 {
     fd_stat_tab[fd].status = FDSTAT_CLOSE;
     fdstat_update(fd, FDSTAT_CLOSE);
-}
-
-int
-fdstat_are_n_free_fd(int n)
-{
-    int fd;
-    int n_free_fd = 0;
-
-    if (n == 0) {
-	for (fd = 0; fd < Squid_MaxFD; ++fd)
-	    if (fd_stat_tab[fd].status == FDSTAT_CLOSE)
-		++n;
-	return (n);
-    }
-    if ((Squid_MaxFD - Biggest_FD) > n)
-	return 1;
-    else {
-	for (fd = Squid_MaxFD - 1; ((fd > 0) && (n_free_fd < n)); --fd) {
-	    if (fd_stat_tab[fd].status == FDSTAT_CLOSE) {
-		++n_free_fd;
-	    }
-	}
-	return (n_free_fd >= n);
-    }
+    if (--Number_FD < 0)
+	fatal_dump("Number_FD < 0");
 }
 
 void
 fdstatFreeMemory(void)
 {
     safe_free(fd_stat_tab);
+}
+
+int
+fdstat_are_n_free_fd(int n)
+{
+	return ((Squid_MaxFD - Number_FD) > n);
 }

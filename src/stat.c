@@ -845,6 +845,8 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
     storeAppendPrintf(sentry, "{File descriptor usage for %s:}\n", appname);
     storeAppendPrintf(sentry, "{\tMax number of file desc available:    %4d}\n",
 	Squid_MaxFD);
+    storeAppendPrintf(sentry, "{\tNumber of file descriptors in use:    %4d}\n",
+	Number_FD);
     storeAppendPrintf(sentry, "{\tLargest file desc currently in use:   %4d}\n",
 	Biggest_FD);
     storeAppendPrintf(sentry, "{\tAvailable number of file descriptors: %4d}\n",
