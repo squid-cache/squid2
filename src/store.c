@@ -219,6 +219,7 @@ static int compareSize _PARAMS((StoreEntry ** e1, StoreEntry ** e2));
 static int storeClientListSearch _PARAMS((MemObject *, int fd));
 static void storeHashMemInsert _PARAMS((StoreEntry *));
 static void storeHashMemDelete _PARAMS((StoreEntry *));
+static int storeCopy _PARAMS((StoreEntry *, int, int, char *, int *));
 
 /* Now, this table is inaccessible to outsider. They have to use a method
  * to access a value in internal storage data structure. */
@@ -2231,7 +2232,7 @@ int storeEntryLocked(e)
 }
 
 /*  use this for internal call only */
-int storeCopy(e, stateoffset, maxSize, buf, size)
+static int storeCopy(e, stateoffset, maxSize, buf, size)
      StoreEntry *e;
      int stateoffset;
      int maxSize;
