@@ -180,6 +180,7 @@ AC_SUBST(XTRA_LIBS)
 
 dnl Set STD_CFLAGS
 if test -z "$STD_CFLAGS"; then
+    STD_CFLAGS="-g"
     XXXCC=`echo $CC | awk '{print $1}'`
     if test "`basename $XXXCC`" = "gcc"; then
 	STD_CFLAGS="$STD_CFLAGS -Wall"
@@ -189,7 +190,7 @@ AC_SUBST(STD_CFLAGS)
 
 dnl Set STD_LDFLAGS
 if test -z "$STD_LDFLAGS"; then
-    STD_LDFLAGS='-g'
+    STD_LDFLAGS="-g"
 fi
 AC_SUBST(STD_LDFLAGS)
 
