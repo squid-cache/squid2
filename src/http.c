@@ -175,6 +175,7 @@ httpCachableReply(HttpStateData * httpState)
     HttpReply *rep = httpState->entry->mem_obj->reply;
     HttpHeader *hdr = &rep->header;
     const int cc_mask = (rep->cache_control) ? rep->cache_control->mask : 0;
+    const char *v;
     if (EBIT_TEST(cc_mask, CC_PRIVATE))
 	return 0;
     if (EBIT_TEST(cc_mask, CC_NO_CACHE))
@@ -196,6 +197,14 @@ httpCachableReply(HttpStateData * httpState)
      */
     if (httpHeaderHas(hdr, HDR_VARY))
 	return 0;
+    /*
+     * The "multipart/x-mixed-replace" content type is used for
+     * continuous push replies.  These are generally dynamic and
+     * probably should not be cachable
+     */
+    if ((v = httpHeaderGetStr(hdr, HDR_CONTENT_TYPE)))
+	if (!strncasecmp(v, "multipart/x-mixed-replace", 25))
+	    return 0;
     switch (httpState->entry->mem_obj->reply->sline.status) {
 	/* Responses that are cacheable */
     case HTTP_OK:
