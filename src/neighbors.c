@@ -493,6 +493,9 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
     int w_rtt;
     int rtt;
     int n;
+#ifdef UDP_HIT_WITH_OBJ
+    HttpStateData *httpState = NULL;
+#endif
 
     debug(15, 6, "neighborsUdpAck: url=%s (%d chars), header=0x%x, from=0x%x, ent=0x%x\n",
 	url, strlen(url), header, from, entry);
@@ -576,12 +579,19 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    debug(15, 0, "Too late UDP_HIT_OBJ '%s'?\n", entry->url);
 	    return;
 	}
+	/* ACK, how to parse headers? */
+	httpState = xcalloc (1, sizeof(HttpStateData));
+	httpState->entry = entry;
+	httpProcessReplyHeader(httpState, data, data_sz);
 	storeAppend(entry, data, data_sz);
 	storeComplete(entry);
 	hierarchy_log_append(entry->url,
 	    HIER_UDP_HIT_OBJ,
 	    0,
 	    e->host);
+	if (httpState->reply_hdr)
+		put_free_8k_page(httpState->reply_hdr);
+	safe_free(httpState);
 	return;
 #endif
     } else if (header->opcode == ICP_OP_HIT) {
