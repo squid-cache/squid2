@@ -164,7 +164,7 @@ ipcCreate(int type, const char *prog, char *const args[], const char *name, int 
     /* flush or else we get dup data if unbuffered_logs is set */
     logsFlush();
     if ((pid = fork()) < 0) {
-	debug(50, 0) ("ipcCreate: fork: %s\n", xstrerror());
+	debug(50, 1) ("ipcCreate: fork: %s\n", xstrerror());
 	return ipcCloseAllFD(prfd, pwfd, crfd, cwfd);
     }
     if (pid > 0) {		/* parent */

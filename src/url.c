@@ -240,7 +240,7 @@ urlParse(method_t method, char *url)
     if (Config.appendDomain && !strchr(host, '.'))
 	strncat(host, Config.appendDomain, SQUIDHOSTNAMELEN);
     if (port == 0) {
-	debug(23, 0) ("urlParse: Invalid port == 0\n");
+	debug(23, 3) ("urlParse: Invalid port == 0\n");
 	return NULL;
     }
 #ifdef HARDCODE_DENY_PORTS
