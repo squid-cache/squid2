@@ -1,3 +1,5 @@
+Changes to squid-1.0.17 (September 24, 1996):
+
 	- Fixed cachemgr.cgi to handle an arbitrary IP address (Ron
 	  Gomes)
 	- Fixed syslog() calls to use syslog(X, "%s", buf) (Yoichi
