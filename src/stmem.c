@@ -175,12 +175,12 @@ int memGrep(mem, string, nbytes)
 	    str_i = string;
 	}
 
+	i++;
+	blk_idx++;
+
 	/* Return offset of byte beyond the matching string */
 	if (state == goal)
 	    return (i + 1);
-
-	i++;
-	blk_idx++;
 
 	if (blk_idx >= p->len) {
 	    if (p->next) {

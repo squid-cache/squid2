@@ -43,7 +43,8 @@ static char *log_tags[] =
     "ERR_CANNOT_FETCH",
     "ERR_NO_RELAY",
     "ERR_DISK_IO",
-    "ERR_URL_BLOCKED"
+    "ERR_URL_BLOCKED",
+    "ERR_ZERO_SIZE_OBJECT"
 };
 
 typedef struct iwd {
@@ -102,8 +103,7 @@ static void icpFreeBufOrPage(icpState)
      icpStateData *icpState;
 {
     if (icpState->ptr_to_4k_page && icpState->buf)
-	/* XXX should this be fatal? -DW */
-	debug(12, 0, "Shouldn't have both a 4k ptr and a string\n");
+	fatal_dump("icpFreeBufOrPage: Shouldn't have both a 4k ptr and a string");
     if (icpState->ptr_to_4k_page)
 	put_free_4k_page(icpState->ptr_to_4k_page, __FILE__, __LINE__);
     else
@@ -127,6 +127,8 @@ static void icpCloseAndFree(fd, icpState, line)
 	sprintf(tmp_error_buf, "icpCloseAndFree: Called with NULL icpState from %s line %d", __FILE__, line);
 	fatal_dump(tmp_error_buf);
     }
+    if (icpState->log_type < LOG_TAG_MIN || icpState->log_type > ERR_ZERO_SIZE_OBJECT)
+	fatal_dump("icpCloseAndFree: icpState->log_type out of range.");
     if (icpState->entry) {
 	size = icpState->entry->mem_obj->e_current_len;
 	http_code = icpState->entry->mem_obj->http_code;
@@ -680,7 +682,6 @@ static int icpProcessMISS(fd, usm, key)
 	    if (!storeOriginalKey(entry))
 		fatal_dump("ProcessMISS: Object located by changed key?");
 	    storeSetPrivateKey(entry);
-	    BIT_SET(entry->flag, RELEASE_REQUEST);
 	} else {
 	    storeRelease(entry);
 	}

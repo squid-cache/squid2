@@ -155,6 +155,7 @@ extern int storeGetMemSpace _PARAMS((int, int));
 extern int storeGetSwapSize _PARAMS((void));
 extern int storeGetSwapSpace _PARAMS((int));
 extern int storeEntryValidToSend _PARAMS((StoreEntry *));
+extern int storeEntryValidLength _PARAMS((StoreEntry *));
 extern int storeEntryLocked _PARAMS((StoreEntry *));
 extern int storeLockObject _PARAMS((StoreEntry *));
 extern int storeOriginalKey _PARAMS((StoreEntry *));
