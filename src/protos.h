@@ -113,12 +113,14 @@ extern int GetInteger(void);
 extern void cbdataInit(void);
 #if CBDATA_DEBUG
 extern void cbdataAddDbg(const void *p, CBDUNL *, int, const char *, int);
+extern void cbdataLockDbg(const void *p, const char *, int);
+extern void cbdataUnlockDbg(const void *p, const char *, int);
 #else
 extern void cbdataAdd(const void *p, CBDUNL *, int);
-#endif
-extern void cbdataFree(void *p);
 extern void cbdataLock(const void *p);
 extern void cbdataUnlock(const void *p);
+#endif
+extern void cbdataFree(void *p);
 extern int cbdataValid(const void *p);
 extern CBDUNL cbdataXfree;
 
