@@ -97,6 +97,7 @@ if test -z "$PRESET_CFLAGS"; then
 	    ;;
 	alpha-dec-osf4.*)
 	    # Mogul says DEC compilers take both -g and -O2
+	    CFLAGS=`echo $CFLAGS | sed -e 's/-g/-g3/'`
 	    CFLAGS="$CFLAGS -O2"
 	    ;;
 	*)
