@@ -183,7 +183,6 @@ typedef struct {
     edge *edges_head;
     edge *edges_tail;
     edge *first_ping;
-    int fd;
 } neighbors;
 
 struct neighbor_cf {

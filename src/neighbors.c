@@ -394,7 +394,6 @@ void neighbors_open(fd)
     memset(&name, '\0', sizeof(struct sockaddr_in));
     if (getsockname(fd, (struct sockaddr *) &name, &len) < 0)
 	debug(15, 1, "getsockname(%d,%p,%p) failed.\n", fd, &name, &len);
-    friends->fd = fd;
 
     /* Prepare neighbor connections, one at a time */
     E = &friends->edges_head;
@@ -494,9 +493,14 @@ int neighborsUdpPing(proto)
     mem->w_rtt = 0;
     mem->start_ping = current_time;
 
-    if (friends->edges_head == (edge *) NULL)
+    if (friends->edges_head == NULL)
 	return 0;
-
+    if (theOutIcpConnection < 0) {
+	debug(15,0,"neighborsUdpPing: There is no ICP socket!\n");
+	debug(15,0,"Cannot query neighbors for '%s'.\n", url);
+	debug(15,0,"Check 'icp_port' in your config file\n");
+	fatal_dump(NULL);
+    }
     for (i = 0, e = friends->first_ping; i++ < friends->n; e = e->next) {
 	if (e == (edge *) NULL)
 	    e = friends->edges_head;
@@ -529,7 +533,7 @@ int neighborsUdpPing(proto)
 	if (e->icp_port == echo_port) {
 	    debug(15, 4, "neighborsUdpPing: Sending DECHO to dumb cache\n");
 	    echo_hdr.reqnum = reqnum;
-	    icpUdpSend(friends->fd,
+	    icpUdpSend(theOutIcpConnection,
 		url,
 		&echo_hdr,
 		&e->in_addr,
@@ -538,7 +542,7 @@ int neighborsUdpPing(proto)
 		LOG_TAG_NONE);
 	} else {
 	    e->header.reqnum = reqnum;
-	    icpUdpSend(friends->fd,
+	    icpUdpSend(theOutIcpConnection,
 		url,
 		&e->header,
 		&e->in_addr,
@@ -582,7 +586,7 @@ int neighborsUdpPing(proto)
 	    xmemcpy(&to_addr.sin_addr, hep->h_addr, hep->h_length);
 	    to_addr.sin_port = htons(echo_port);
 	    echo_hdr.reqnum = reqnum;
-	    icpUdpSend(friends->fd,
+	    icpUdpSend(theOutIcpConnection,
 		url,
 		&echo_hdr,
 		&to_addr,
