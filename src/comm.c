@@ -1200,7 +1200,7 @@ int
 commSetNonBlocking(int fd)
 {
     int flags;
-    int dummy=0;
+    int dummy = 0;
     if ((flags = fcntl(fd, F_GETFL, dummy)) < 0) {
 	debug(50, 0, "FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
 	return COMM_ERROR;
