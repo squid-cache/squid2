@@ -286,3 +286,7 @@
  */
 #undef USE_UNLINKD
 
+/* 
+ * Enable support for Transparent Proxy on Linux 2.4 systems
+ */
+#undef LINUX_NETFILTER
