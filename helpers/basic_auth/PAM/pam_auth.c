@@ -249,17 +249,19 @@ error:
 	    fprintf(stdout, "ERR\n");
 	}
 	/* cleanup */
+	retval = PAM_SUCCESS;
+#ifdef PAM_AUTHTOK
+	if (ttl != 0) {
+	    if (retval == PAM_SUCCESS)
+		retval = pam_set_item(pamh, PAM_AUTHTOK, NULL);
+	}
+#endif
 	if (ttl == 0 || retval != PAM_SUCCESS) {
 	    retval = pam_end(pamh, retval);
 	    if (retval != PAM_SUCCESS) {
 		fprintf(stderr, "WARNING: failed to release PAM authenticator\n");
 	    }
 	    pamh = NULL;
-#ifdef PAM_AUTHTOK
-	} else if (ttl != 0) {
-	    if (retval == PAM_SUCCESS)
-		retval = pam_set_item(pamh, PAM_AUTHTOK, NULL);
-#endif
 	}
     }
 
