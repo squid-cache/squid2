@@ -43,7 +43,7 @@ static const HttpHeaderFieldAttrs CcAttrs[CC_ENUM_END] =
     {"proxy-revalidate", CC_PROXY_REVALIDATE},
     {"only-if-cached", CC_ONLY_IF_CACHED},
     {"max-age", CC_MAX_AGE},
-    {"Other,", CC_OTHER} /* ',' will protect from matches */
+    {"Other,", CC_OTHER}	/* ',' will protect from matches */
 };
 HttpHeaderFieldInfo *CcFieldsInfo = NULL;
 
