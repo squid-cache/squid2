@@ -830,7 +830,7 @@ ftpCheckUrlpath(FtpStateData * ftpState)
     if ((t = strrchr(request->urlpath, ';')) != NULL) {
 	if (strncasecmp(t + 1, "type=", 5) == 0) {
 	    ftpState->typecode = (char) toupper((int) *(t + 6));
-	    *t = NULL;
+	    *t = '\0';
 	}
     }
 }
