@@ -662,7 +662,7 @@ int
 comm_udp_sendto(int fd,
     const struct sockaddr_in *to_addr,
     int addr_len,
-    const char *buf,
+    const void *buf,
     int len)
 {
     int x;
