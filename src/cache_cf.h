@@ -69,6 +69,7 @@ extern int getCacheSwapMax _PARAMS((void));
 extern int getCleanRate _PARAMS((void));
 extern int getClientLifetime _PARAMS((void));
 extern int getDnSChildren _PARAMS((void));
+extern int getMaxRequestSize _PARAMS((void));
 extern int getFtpMax _PARAMS((void));
 extern int getFtpTTL _PARAMS((void));
 extern int getGopherMax _PARAMS((void));

@@ -54,6 +54,7 @@ typedef struct iwd {
 #endif
     char *url;
     char *inbuf;
+    int inbufsize;
     int method;			/* GET, POST, ... */
     char *mime_hdr;		/* Mime header */
     int html_request;
@@ -412,25 +413,22 @@ int icpSendERROR(fd, errorCode, msg, state)
     if (port == COMM_ERROR) {
 	/* This file descriptor isn't bound to a socket anymore.
 	 * It probably timed out. */
-	debug(12, 2, "icpSendERROR: COMM_ERROR msg: %1.80s\n", msg);
-	/* Force direct call to free up data structures: */
-	state->ptr_to_4k_page = state->buf = NULL;
-	icpSendERRORComplete(fd,
-	    (char *) NULL,
-	    NULL,
-	    COMM_ERROR,
-	    (void *) state);
+	debug(12, 2, "icpSendERROR: COMM_ERROR msg: %80.80s\n", msg);
+	icpCloseAndFree(fd, state, __LINE__);
 	return COMM_ERROR;
-    } else if (port == getAsciiPortNum()) {
-	/* Error message for the ascii port */
-	buf_len = strlen(msg) + 1;	/* XXX: buf_len includes \0? */
-	buf = state->ptr_to_4k_page = get_free_4k_page(__FILE__, __LINE__);
-	state->buf = NULL;
-	memset(buf, '\0', buf_len);
-	strcpy(buf, msg);
-    } else {
-	fatal_dump("This should not happen!");
     }
+    if (port != getAsciiPortNum()) {
+	sprintf(tmp_error_buf, "icpSendERROR: FD %d unexpected port %d.",
+	    fd, port);
+	fatal_dump(tmp_error_buf);
+    }
+    /* Error message for the ascii port */
+    buf_len = strlen(msg);
+    buf_len = buf_len > 4095 ? 4095 : buf_len;
+    buf = state->ptr_to_4k_page = get_free_4k_page(__FILE__, __LINE__);
+    state->buf = NULL;
+    strcpy(buf, msg);
+    *(buf + buf_len) = '\0';
     icpWrite(fd, buf, buf_len, 30, icpSendERRORComplete, (void *) state);
     return COMM_OK;
 }
@@ -588,7 +586,10 @@ int icpDoQuery(fd, state)
 {
     state->buf = state->ptr_to_4k_page = NULL;	/* Nothing to free */
     /* XXX not implemented over tcp. */
-    icpSendERROR(fd, ICP_ERROR_INTERNAL, "not implemented over tcp", state);
+    icpSendERROR(fd,
+	ICP_ERROR_INTERNAL,
+	"not implemented over tcp",
+	state);
     return COMM_OK;
 }
 
@@ -1456,7 +1457,7 @@ static int check_valid_url(fd, astm)
 
 
 
-#define ASCII_INBUF_SIZE 4096
+#define ASCII_INBUF_BLOCKSIZE 4096
 /*
  * asciiProcessInput()
  * 
@@ -1488,20 +1489,30 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	icpCloseAndFree(fd, astm, __LINE__);
 	return;
     }
-    if (astm->offset + size >= ASCII_INBUF_SIZE) {
-	debug(12, 0, "asciiProcessInput: Request won't fit in buffer.\n");
-	debug(12, 0, "--> ASCII_INBUF_SIZE = %d\n", ASCII_INBUF_SIZE);
-	debug(12, 0, "-->     astm->offset = %d\n", astm->offset);
-	debug(12, 0, "-->             size = %d\n", size);
-	astm->buf = NULL;
-	astm->ptr_to_4k_page = NULL;
-	icpSendERROR(fd, ICP_ERROR_INTERNAL, "error reading request", astm);
-	icpCloseAndFree(fd, astm, __LINE__);
-	/* XXX should use icpWrite as below ... */
-	return;
+    if (astm->offset + size >= astm->inbufsize) {
+	if (astm->offset + size >= getMaxRequestSize()) {
+	    /* The request is to large to handle */
+	    debug(12, 0, "asciiProcessInput: Request won't fit in buffer.\n");
+	    debug(12, 0, "-->     max size = %d\n", getMaxRequestSize());
+	    debug(12, 0, "--> astm->offset = %d\n", astm->offset);
+	    debug(12, 0, "-->         size = %d\n", size);
+	    astm->buf = NULL;
+	    astm->ptr_to_4k_page = NULL;
+	    icpSendERROR(fd, ICP_ERROR_INTERNAL, "error reading request", astm);
+	    return;
+	} else {
+	    /* Grow the request memory area to accomodate for a large request */
+	    char *inbuf;
+	    inbuf = xmalloc(astm->inbufsize + ASCII_INBUF_BLOCKSIZE);
+	    memcpy(inbuf, astm->inbuf, astm->inbufsize);
+	    safe_free(astm->inbuf);
+	    astm->inbuf = inbuf;
+	    astm->inbufsize += ASCII_INBUF_BLOCKSIZE;
+	    debug(12, 2, "Handling a large request, inbufsize=%d\n",
+		astm->inbufsize);
+	}
     }
     astm->offset += size;
-
 
     parser_return_code = parseHttpRequest(astm);
     if (parser_return_code == 1) {
@@ -1565,7 +1576,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	 *    Partial request received; reschedule until parseAsciiUrl()
 	 *    is happy with the input
 	 */
-	k = ASCII_INBUF_SIZE - 1 - astm->offset;
+	k = astm->inbufsize - 1 - astm->offset;
 	if (0 < astm->bytes_needed && astm->bytes_needed < k)
 	    k = astm->bytes_needed;
 	icpRead(fd,
@@ -1705,7 +1716,8 @@ int asciiHandleConn(sock, notused)
 	    icpSendERRORComplete,
 	    (void *) astm);
     } else {
-	astm->inbuf = (char *) xcalloc(ASCII_INBUF_SIZE, 1);
+	astm->inbufsize = ASCII_INBUF_BLOCKSIZE;
+	astm->inbuf = (char *) xcalloc(astm->inbufsize, 1);
 	astm->header.shostid = htonl(peer.sin_addr.s_addr);
 	astm->peer = peer;
 	astm->me = me;
@@ -1716,7 +1728,7 @@ int asciiHandleConn(sock, notused)
 	icpRead(fd,
 	    FALSE,
 	    astm->inbuf,
-	    ASCII_INBUF_SIZE - 1,
+	    astm->inbufsize - 1,
 	    30,
 	    asciiProcessInput,
 	    (void *) astm);

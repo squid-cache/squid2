@@ -746,3 +746,9 @@ announce_organization	Your Organization
 # (for example perl.com).
 #
 ftp_user Harvest@
+
+# Maximum allowed request size in kilobyte. If people are using 
+# POST file upload set this to largest filesize + a few kb.
+#
+request_size 100
+

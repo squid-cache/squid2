@@ -105,9 +105,10 @@ static char *tbuf;
 
 int log_errors = 1;
 
-void errorInitialize() {
-	tmp_error_buf = (char *) xmalloc(MAX_URL * 4);
-	tbuf = (char *) xmalloc(MAX_URL * 3);
+void errorInitialize()
+{
+    tmp_error_buf = (char *) xmalloc(MAX_URL * 4);
+    tbuf = (char *) xmalloc(MAX_URL * 3);
 }
 
 

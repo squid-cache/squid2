@@ -102,12 +102,17 @@ time_t ttlSet(entry)
 	    flags |= TTL_SERVERDATE;
 	}
     }
+    now = their_date > 0 ? their_date : cached_curtime;
+
     buf[0] = '\0';
     if (storeMatchMime(entry, "expires: ", buf, 300)) {
-	if ((x = parse_rfc850(buf)) > 0) {
-	    expire = x;
-	    flags |= TTL_EXPIRES;
-	}
+	/*
+	 * The HTTP/1.0 specs says that robust implementations should
+	 * consider bad or malformed Expires header as equivalent to
+	 * "expires immediately."
+	 */
+	flags |= TTL_EXPIRES;
+	expire = ((x = parse_rfc850(buf)) > 0) ? x : now;
     }
     if (last_modified > 0)
 	debug(22, 5, "ttlSet: Last-Modified: %s\n", mkrfc850(&last_modified));
@@ -115,8 +120,6 @@ time_t ttlSet(entry)
 	debug(22, 5, "ttlSet:       Expires: %s\n", mkrfc850(&expire));
     if (their_date > 0)
 	debug(22, 5, "ttlSet:   Server-Date: %s\n", mkrfc850(&their_date));
-
-    now = their_date > 0 ? their_date : cached_curtime;
 
     if (expire > 0) {
 	ttl = (expire - now);
