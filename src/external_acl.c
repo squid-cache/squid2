@@ -689,25 +689,32 @@ externalAclHandleReply(void *data, char *reply)
 
     debug(82, 2) ("externalAclHandleReply: reply=\"%s\"\n", reply);
 
-    status = strwordtok(reply, &t);
-    if (status && strcmp(status, "OK") == 0)
-	result = 1;
+    if (reply) {
+	status = strwordtok(reply, &t);
+	if (status && strcmp(status, "OK") == 0)
+	    result = 1;
 
-    while ((token = strwordtok(NULL, &t))) {
-	value = strchr(token, '=');
-	if (value) {
-	    *value++ = '\0';	/* terminate the token, and move up to the value */
-	    if (strcmp(token, "user") == 0)
-		user = value;
-	    else if (strcmp(token, "error") == 0)
-		error = value;
+	while ((token = strwordtok(NULL, &t))) {
+	    value = strchr(token, '=');
+	    if (value) {
+		*value++ = '\0';	/* terminate the token, and move up to the value */
+		if (strcmp(token, "user") == 0)
+		    user = value;
+		else if (strcmp(token, "error") == 0)
+		    error = value;
+	    }
 	}
     }
-
     dlinkDelete(&state->list, &state->def->queue);
-    if (cbdataReferenceValid(state->def))
-	entry = external_acl_cache_add(state->def, state->key, result, user, error);
-    else
+    if (cbdataReferenceValid(state->def)) {
+	if (reply)
+	    entry = external_acl_cache_add(state->def, state->key, result, user, error);
+	else {
+	    entry = hash_lookup(state->def->cache, state->key);
+	    if (entry)
+		external_acl_cache_delete(state->def, entry);
+	}
+    } else
 	entry = NULL;
 
     do {
