@@ -143,6 +143,7 @@ const char *hier_strings[] =
     "SIBLING_UDP_HIT_OBJ",
     "PARENT_UDP_HIT_OBJ",
     "PASSTHROUGH_PARENT",
+    "SSL_PARENT_MISS",
     "INVALID CODE"
 };
 

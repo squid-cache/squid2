@@ -125,6 +125,7 @@ typedef enum {
     HIER_SIBLING_UDP_HIT_OBJ,
     HIER_PARENT_UDP_HIT_OBJ,
     HIER_PASS_PARENT,
+    HIER_SSL_PARENT,
     HIER_MAX
 } hier_code;
 
