@@ -2136,7 +2136,7 @@ storeExpiredReferenceAge(void)
     time_t age;
     x = (double) (store_swap_high - store_swap_size) / (store_swap_high - store_swap_low);
     x = x < 0.0 ? 0.0 : x > 1.0 ? 1.0 : x;
-    z = pow((double) Config.referenceAge, x);
+    z = pow((double) (Config.referenceAge/60), x);
     age = (time_t) (z * 60.0);
     if (age < 60)
 	age = 60;
