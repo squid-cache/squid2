@@ -598,7 +598,7 @@ passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
     if (matchInsideFirewall(request->host)) {
 	hierarchyNote(request, HIER_DIRECT, 0, request->host);
     } else if (fw_ip_match == IP_DENY) {
-	hierarchyNote(request, HIER_DIRECT, 0, request->host);
+	hierarchyNote(request, HIER_FIREWALL_IP_DIRECT, 0, request->host);
     } else if ((e = Config.passProxy)) {
 	hierarchyNote(request, HIER_PASS_PARENT, 0, e->host);
     } else if ((e = getDefaultParent(request))) {
