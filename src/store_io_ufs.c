@@ -68,7 +68,7 @@ storeUfsRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB * c
 }
 
 void
-storeUfsWrite(storeIOState * sio, char *buf, size_t size, off_t offset)
+storeUfsWrite(storeIOState * sio, char *buf, size_t size, off_t offset, FREE * free_func)
 {
     debug(78, 3) ("storeUfsWrite: fileno %08X, FD %d\n", sio->swap_file_number, sio->fd);
     sio->type.ufs.flags.writing = 1;
@@ -78,7 +78,7 @@ storeUfsWrite(storeIOState * sio, char *buf, size_t size, off_t offset)
 	size,
 	storeUfsWriteDone,
 	sio,
-	NULL);
+	free_func);
 }
 
 void

@@ -1220,7 +1220,6 @@ struct _MemObject {
     struct {
 	off_t queue_offset;	/* relative to in-mem data */
 	storeIOState *sio;
-	FREE *free_write_buf;
     } swapout;
     HttpReply *reply;
     request_t *request;
