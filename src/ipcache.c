@@ -763,7 +763,7 @@ static int ipcache_dnsHandleRead(fd, dnsData)
 	COMM_SELECT_READ,
 	(PF) ipcache_dnsHandleRead,
 	dnsData);
-    while ((i = dnsDequeue()) && (dnsData = dnsGetFirstAvailable()))
+    while ((dnsData = dnsGetFirstAvailable()) && (i = dnsDequeue()))
 	dnsDispatch(dnsData, i);
     return 0;
 }
@@ -869,6 +869,17 @@ static ipcache_entry *dnsDequeue()
 	    dnsQueueTailP = &dnsQueueHead;
 	safe_free(old);
     }
+#ifdef SANITY_CHECK
+    if (i == NULL) {
+	for (i = ipcache_GetFirst(); i; i = ipcache_GetNext()) {
+	    if (i->status == IP_PENDING) {	/* This can't happen */
+		debug(14, 0, "IP Cache inconsistency: %s still pending\n",
+		    i->name);
+	    }
+	}
+	i = NULL;
+    }
+#endif
     return i;
 }
 
