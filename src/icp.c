@@ -1165,7 +1165,7 @@ int parseHttpRequest(icpState)
     *(icpState->request_hdr + req_hdr_sz) = '\0';
 
     debug(12, 5, "parseHttpRequest: Request Header is\n---\n%s\n---\n",
-        icpState->request_hdr);
+	icpState->request_hdr);
 
     if (icpState->method == METHOD_POST) {
 	/* Expect Content-Length: and POST data after the headers */

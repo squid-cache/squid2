@@ -195,7 +195,7 @@ int protoDispatch(fd, url, entry, request)
     if (strncasecmp(url, "cache_object:", 13) == 0)
 	return objcacheStart(fd, url, entry);
 
-#ifdef OLD_CODE /* now in icpAccessCheck() */
+#ifdef OLD_CODE			/* now in icpAccessCheck() */
     /* Check for Proxy request in Accel mode */
     if (httpd_accel_mode &&
 	strncmp(url, getAccelPrefix(), strlen(getAccelPrefix())) &&

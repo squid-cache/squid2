@@ -248,7 +248,7 @@ static void httpReadReply(fd, data)
     clen = entry->mem_obj->e_current_len;
     off = storeGetLowestReaderOffset(entry);
     if ((clen - off) > HTTP_DELETE_GAP) {
-        IOStats.Http.reads_deferred++;
+	IOStats.Http.reads_deferred++;
 	debug(11, 3, "httpReadReply: Read deferred for Object: %s\n",
 	    entry->url);
 	debug(11, 3, "                Current Gap: %d bytes\n", clen - off);
@@ -273,10 +273,10 @@ static void httpReadReply(fd, data)
     len = read(fd, buf, READBUFSIZ);
     debug(11, 5, "httpReadReply: FD %d: len %d.\n", fd, len);
     if (len > 0) {
-    	for (clen=len-1, bin=0; clen; bin++) clen>>=1;
-    	IOStats.Http.read_hist[bin]++;
+	for (clen = len - 1, bin = 0; clen; bin++)
+	    clen >>= 1;
+	IOStats.Http.read_hist[bin]++;
     }
-
     if (len < 0) {
 	debug(11, 2, "httpReadReply: FD %d: read failure: %s.\n",
 	    fd, xstrerror());

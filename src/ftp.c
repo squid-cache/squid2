@@ -263,39 +263,39 @@ int ftpReadReply(fd, data)
 
     entry = data->entry;
     if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
-	    /* we can terminate connection right now */
-	    squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
-	    comm_close(fd);
-	    return 0;
+	/* we can terminate connection right now */
+	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
+	comm_close(fd);
+	return 0;
     }
     /* check if we want to defer reading */
     clen = entry->mem_obj->e_current_len;
     off = storeGetLowestReaderOffset(entry);
     if ((clen - off) > FTP_DELETE_GAP) {
 	IOStats.Ftp.reads_deferred++;
-        debug(11, 3, "ftpReadReply: Read deferred for Object: %s\n",
-            entry->url);
-        debug(11, 3, "                Current Gap: %d bytes\n", clen - off);
-        /* reschedule, so it will be automatically reactivated
-         * when Gap is big enough. */
-        comm_set_select_handler(fd,
-            COMM_SELECT_READ,
-            (PF) ftpReadReply,
-            (void *) data);
+	debug(11, 3, "ftpReadReply: Read deferred for Object: %s\n",
+	    entry->url);
+	debug(11, 3, "                Current Gap: %d bytes\n", clen - off);
+	/* reschedule, so it will be automatically reactivated
+	 * when Gap is big enough. */
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) ftpReadReply,
+	    (void *) data);
 	/* NOTE there is no read timeout handler to disable */
-        /* dont try reading again for a while */
-        comm_set_stall(fd, getStallDelay());
-        return 0;
+	/* dont try reading again for a while */
+	comm_set_stall(fd, getStallDelay());
+	return 0;
     }
     errno = 0;
     IOStats.Ftp.reads++;
     len = read(fd, buf, READBUFSIZ);
     debug(9, 5, "ftpReadReply: FD %d, Read %d bytes\n", fd, len);
     if (len > 0) {
-        for (clen=len-1, bin=0; clen; bin++) clen>>=1;
-        IOStats.Ftp.read_hist[bin]++;
-    }   
-
+	for (clen = len - 1, bin = 0; clen; bin++)
+	    clen >>= 1;
+	IOStats.Ftp.read_hist[bin]++;
+    }
     if (len < 0) {
 	debug(9, 1, "ftpReadReply: read error: %s\n", xstrerror());
 	if (errno == EAGAIN || errno == EWOULDBLOCK) {

@@ -120,38 +120,38 @@ void stat_io_get(obj, sentry)
 
     storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
 
-    sprintf (tempbuf, "{HTTP I/O}\n");
+    sprintf(tempbuf, "{HTTP I/O}\n");
     storeAppend(sentry, tempbuf, strlen(tempbuf));
-    sprintf (tempbuf, "{number of reads: %d}\n", IOStats.Http.reads);
+    sprintf(tempbuf, "{number of reads: %d}\n", IOStats.Http.reads);
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     sprintf(tempbuf, "{deferred reads: %d}\n", IOStats.Http.reads_deferred);
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     sprintf(tempbuf, "{Read Histogram:}\n");
     storeAppend(sentry, tempbuf, strlen(tempbuf));
-    for (i=0; i<16; i++) {
-    	sprintf(tempbuf, "{%5d-%5d: %9d}\n",
-		i ? (1<<(i-1))+1 : 0,
-		1<<i,
-		IOStats.Http.read_hist[i]);
-    	storeAppend(sentry, tempbuf, strlen(tempbuf));
+    for (i = 0; i < 16; i++) {
+	sprintf(tempbuf, "{%5d-%5d: %9d}\n",
+	    i ? (1 << (i - 1)) + 1 : 0,
+	    1 << i,
+	    IOStats.Http.read_hist[i]);
+	storeAppend(sentry, tempbuf, strlen(tempbuf));
     }
 
-    sprintf (tempbuf, "{}\n");
+    sprintf(tempbuf, "{}\n");
     storeAppend(sentry, tempbuf, strlen(tempbuf));
-    sprintf (tempbuf, "{FTP I/O}\n");
+    sprintf(tempbuf, "{FTP I/O}\n");
     storeAppend(sentry, tempbuf, strlen(tempbuf));
-    sprintf (tempbuf, "{number of reads: %d}\n", IOStats.Ftp.reads);
+    sprintf(tempbuf, "{number of reads: %d}\n", IOStats.Ftp.reads);
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     sprintf(tempbuf, "{deferred reads: %d}\n", IOStats.Ftp.reads_deferred);
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     sprintf(tempbuf, "{Read Histogram:}\n");
     storeAppend(sentry, tempbuf, strlen(tempbuf));
-    for (i=0; i<16; i++) {
-    	sprintf(tempbuf, "{%5d-%5d: %9d}\n",
-		i ? (1<<(i-1))+1 : 0,
-		1<<i,
-		IOStats.Ftp.read_hist[i]);
-    	storeAppend(sentry, tempbuf, strlen(tempbuf));
+    for (i = 0; i < 16; i++) {
+	sprintf(tempbuf, "{%5d-%5d: %9d}\n",
+	    i ? (1 << (i - 1)) + 1 : 0,
+	    1 << i,
+	    IOStats.Ftp.read_hist[i]);
+	storeAppend(sentry, tempbuf, strlen(tempbuf));
     }
 
     storeAppend(sentry, close_bracket, strlen(close_bracket));
