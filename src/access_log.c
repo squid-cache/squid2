@@ -195,7 +195,7 @@ accessLogLog(AccessLogEntry * al)
     if (!al->cache.ident || *al->cache.ident == '\0')
 	al->cache.ident = dash_str;
     if (al->icp.opcode)
-	al->private.method_str = IcpOpcodeStr[al->icp.opcode];
+	al->private.method_str = icp_opcode_str[al->icp.opcode];
     else
 	al->private.method_str = RequestMethodStr[al->http.method];
     if (al->hier.host[0] == '\0')

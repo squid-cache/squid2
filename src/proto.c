@@ -115,35 +115,7 @@ typedef struct {
 
 static void protoDispatchComplete(peer * p, void *data);
 static void protoDispatchFail(peer * p, void *data);
-
-char *IcpOpcodeStr[] =
-{
-    "ICP_INVALID",
-    "ICP_QUERY",
-    "ICP_HIT",
-    "ICP_MISS",
-    "ICP_ERR",
-    "ICP_SEND",
-    "ICP_SENDA",
-    "ICP_DATABEG",
-    "ICP_DATA",
-    "ICP_DATAEND",
-    "ICP_SECHO",
-    "ICP_DECHO",
-    "ICP_OP_UNUSED0",
-    "ICP_OP_UNUSED1",
-    "ICP_OP_UNUSED2",
-    "ICP_OP_UNUSED3",
-    "ICP_OP_UNUSED4",
-    "ICP_OP_UNUSED5",
-    "ICP_OP_UNUSED6",
-    "ICP_OP_UNUSED7",
-    "ICP_OP_UNUSED8",
-    "ICP_MISS_NOFETCH",
-    "ICP_DENIED",
-    "ICP_HIT_OBJ",
-    "ICP_END"
-};
+static void protoStart(int, StoreEntry *, peer *, request_t *);
 
 static void
 protoDispatchComplete(peer * p, void *data)
@@ -168,7 +140,59 @@ protoDispatchFail(peer * peernotused, void *data)
     errorAppendEntry(pctrl->entry, err);
     storeAbort(pctrl->entry, 0);
     requestUnlink(pctrl->request);
-    xfree(pctrl);
+    cbdataFree(pctrl);
+}
+
+static void
+protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
+{
+    ErrorState *err;
+    debug(17, 5) ("protoStart: FD %d: Fetching '%s %s' from %s\n",
+	fd,
+	RequestMethodStr[request->method],
+	storeUrl(entry),
+	e ? e->host : "source");
+    assert(!EBIT_TEST(entry->flag, ENTRY_DISPATCHED));
+    assert(entry->ping_status != PING_WAITING);
+    EBIT_SET(entry->flag, ENTRY_DISPATCHED);
+    netdbPingSite(request->host);
+#if defined(LOG_ICP_NUMBERS)
+    request->hierarchy.n_recv = entry->mem_obj->e_pings_n_acks;
+    if (entry->mem_obj->start_ping.tv_sec)
+	request->hierarchy.delay = tvSubUsec(entry->mem_obj->start_ping, current_time);
+#endif
+    if (e) {
+	e->stats.fetches++;
+	httpStart(request, entry, e);
+    } else {
+	switch (request->protocol) {
+	case PROTO_HTTP:
+	    httpStart(request, entry, NULL);
+	    break;
+	case PROTO_GOPHER:
+	    gopherStart(entry);
+	    break;
+	case PROTO_FTP:
+	    ftpStart(request, entry);
+	    break;
+	case PROTO_WAIS:
+	    waisStart(request, entry);
+	    break;
+	case PROTO_CACHEOBJ:
+	    objcacheStart(fd, entry);
+	    break;
+	default:
+	    if (request->method == METHOD_CONNECT) {
+		ErrorState *err;
+		debug(17, 1) ("protoStart: Cannot retrieve '%s'\n",
+			storeUrl(entry));
+		err = errorCon(ERR_UNSUP_REQ, HTTP_BAD_REQUEST);
+		err->request = requestLink(request);
+		errorAppendEntry(entry, err);
+		storeAbort(entry, 0);
+	    }
+	}
+    }
 }
 
 /* PUBLIC FUNCTIONS */
@@ -195,46 +219,6 @@ protoUnregister(StoreEntry * entry, request_t * request)
     errorAppendEntry(entry, err);
     storeAbort(entry, 1);
     return 1;
-}
-
-void
-protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
-{
-    ErrorState *err;
-    debug(17, 5) ("protoStart: FD %d: Fetching '%s %s' from %s\n",
-	fd,
-	RequestMethodStr[request->method],
-	storeUrl(entry),
-	e ? e->host : "source");
-    assert(!EBIT_TEST(entry->flag, ENTRY_DISPATCHED));
-    assert(entry->ping_status != PING_WAITING);
-    EBIT_SET(entry->flag, ENTRY_DISPATCHED);
-    netdbPingSite(request->host);
-#if defined(LOG_ICP_NUMBERS)
-    request->hierarchy.n_recv = entry->mem_obj->e_pings_n_acks;
-    if (entry->mem_obj->start_ping.tv_sec)
-	request->hierarchy.delay = tvSubUsec(entry->mem_obj->start_ping, current_time);
-#endif
-    if (e) {
-	e->stats.fetches++;
-	httpStart(request, entry, e);
-    } else if (request->protocol == PROTO_HTTP) {
-	httpStart(request, entry, NULL);
-    } else if (request->protocol == PROTO_GOPHER) {
-	gopherStart(entry);
-    } else if (request->protocol == PROTO_FTP) {
-	ftpStart(request, entry);
-    } else if (request->protocol == PROTO_WAIS) {
-	waisStart(request, entry);
-    } else if (request->protocol == PROTO_CACHEOBJ) {
-	objcacheStart(fd, entry);
-    } else if (request->method == METHOD_CONNECT) {
-	debug(17, 1) ("protoStart: Cannot retrieve '%s'\n", storeUrl(entry));
-	err = errorCon(ERR_UNSUP_REQ, HTTP_BAD_REQUEST);
-	err->request = requestLink(request);
-	errorAppendEntry(entry, err);
-	storeAbort(entry, 0);
-    }
 }
 
 void

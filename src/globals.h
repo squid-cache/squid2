@@ -94,6 +94,8 @@ extern icpUdpData *UdpQueueHead;	/* NULL */
 extern icpUdpData *UdpQueueTail;	/* NULL */
 extern time_t hit_only_mode_until;	/* 0 */
 extern StatCounters Counter;
+extern char *err_type_str[];
+extern char *icp_opcode_str[];
 
 #ifdef HAVE_SYSLOG
 extern int _db_level;
