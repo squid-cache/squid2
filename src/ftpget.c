@@ -2642,7 +2642,8 @@ main(int argc, char *argv[])
 	    proxy_host = xstrdup(optarg);
 	    break;
 	case 'H':
-	    strcpy(visible_hostname, optarg);
+	    strncpy(visible_hostname, optarg, BUFSIZ);
+	    visible_hostname[BUFSIZ]='\0';
 	    break;
 	case 'P':
 	    port = atoi(optarg);
