@@ -42,6 +42,7 @@ static void fwdConnectStart(void *);	/* should be same as EVH */
 static void fwdStateFree(FwdState * fwdState);
 static PF fwdConnectTimeout;
 static PF fwdServerClosed;
+static PF fwdPeerClosed;
 static CNCB fwdConnectDone;
 static int fwdCheckRetry(FwdState * fwdState);
 static int fwdReforward(FwdState *);
@@ -178,8 +179,12 @@ static void
 fwdServerClosed(int fd, void *data)
 {
     FwdState *fwdState = data;
+    peer *p;
     debug(17, 2) ("fwdServerClosed: FD %d %s\n", fd, storeUrl(fwdState->entry));
     assert(fwdState->server_fd == fd);
+    p = fwdStateServerPeer(fwdState);
+    if (p)
+	p->stats.conn_open--;
     fwdState->server_fd = -1;
     if (fwdCheckRetry(fwdState)) {
 	int originserver = (fwdState->servers->peer == NULL);
@@ -239,8 +244,6 @@ fwdConnectDone(int server_fd, int status, void *data)
 	err->dnsserver_msg = xstrdup(dns_error_message);
 	err->request = requestLink(request);
 	fwdFail(fwdState, err);
-	if (fs->peer)
-	    fs->peer->stats.conn_open--;
 	comm_close(server_fd);
     } else if (status != COMM_OK) {
 	assert(fs);
@@ -255,10 +258,8 @@ fwdConnectDone(int server_fd, int status, void *data)
 	}
 	err->request = requestLink(request);
 	fwdFail(fwdState, err);
-	if (fs->peer) {
+	if (fs->peer)
 	    peerConnectFailed(fs->peer);
-	    fs->peer->stats.conn_open--;
-	}
 	comm_close(server_fd);
     } else {
 	debug(17, 3) ("fwdConnectDone: FD %d: '%s'\n", server_fd, storeUrl(fwdState->entry));
@@ -283,7 +284,6 @@ fwdConnectTimeout(int fd, void *data)
     FwdState *fwdState = data;
     StoreEntry *entry = fwdState->entry;
     ErrorState *err;
-    peer *p = fwdStateServerPeer(fwdState);
     debug(17, 2) ("fwdConnectTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
     assert(fd == fwdState->server_fd);
     if (entry->mem_obj->inmem_hi == 0) {
@@ -298,8 +298,6 @@ fwdConnectTimeout(int fd, void *data)
 	    if (fwdState->servers->peer)
 		peerConnectFailed(fwdState->servers->peer);
     }
-    if (p)
-	p->stats.conn_open--;
     comm_close(fd);
 }
 
@@ -398,6 +396,8 @@ fwdConnectStart(void *data)
 	    fwdState->n_tries++;
 	    if (!fs->peer)
 		fwdState->origin_tries++;
+	    else
+		comm_remove_close_handler(fd, fwdPeerClosed, fs->peer);
 	    comm_add_close_handler(fd, fwdServerClosed, fwdState);
 	    fwdConnectDone(fd, COMM_OK, fwdState);
 	    return;
@@ -544,11 +544,6 @@ fwdDispatch(FwdState * fwdState)
 	     * transient (network) error; its a bug.
 	     */
 	    fwdState->flags.dont_retry = 1;
-	    /*
-	     * this assertion exists because if we are connected to
-	     * a peer, then we need to decrement p->stats.conn_open.
-	     */
-	    assert(NULL == p);
 	    comm_close(fwdState->server_fd);
 	    break;
 	}
@@ -730,16 +725,30 @@ fwdAbort(void *data)
 }
 
 /*
+ * Accounts for closed persistent connections
+ */
+static void
+fwdPeerClosed(int fd, void *data)
+{
+    peer *p = data;
+    p->stats.conn_open--;
+}
+
+/*
  * Frees fwdState without closing FD or generating an abort
  */
 void
 fwdUnregister(int fd, FwdState * fwdState)
 {
+    peer *p;
     debug(17, 3) ("fwdUnregister: %s\n", storeUrl(fwdState->entry));
     assert(fd == fwdState->server_fd);
     assert(fd > -1);
     comm_remove_close_handler(fd, fwdServerClosed, fwdState);
     fwdState->server_fd = -1;
+    p = fwdStateServerPeer(fwdState);
+    if (p)
+	comm_add_close_handler(fd, fwdPeerClosed, p);
 }
 
 /*
