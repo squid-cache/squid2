@@ -551,6 +551,11 @@ icpReadDataDone(int fd, char *buf, int len, int err, void *data)
     if (len == 0 && err == DISK_EOF) {
 	comm_close(icpState->fd);
 	return COMM_OK;
+    } else if (err != DISK_OK) {
+	storeReleaseRequest(icpState->entry);
+	icpState->log_type = LOG_TCP_SWAPIN_FAIL;
+	comm_close(icpState->fd);
+	return COMM_OK;
     }
     if (icpState->out.offset == 0 && entry->object_len > 0)
 	if (mem->reply->code == 0)
