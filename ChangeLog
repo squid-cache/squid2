@@ -11,7 +11,7 @@ Changes to squid-2.5.STABLE5 (1 Mar 2004):
 	- auth_param documentation clarifications and added default realm
 	  values making only the helper program a required attribute
 	- Bug #795: German ERR_DNS_FAIL correction
-	- Bug #803: Lithuantian error messages update
+	- Bug #803: Lithuanian error messages update
 	- Bug #806: Segfault if failing to load error page
 	- Bug #812: Mozilla/Netscape plugins mime type defined (.xpi)
 	- Bug #817: maximum_object_size too large causes squid not to cache
