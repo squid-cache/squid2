@@ -652,6 +652,11 @@ neighborsUdpAck(int fd, const char *url, icp_common_t * header, const struct soc
 		inet_ntoa(from->sin_addr));
 	} else if (entry->object_len != 0) {
 	    debug(15, 1, "Too late UDP_HIT_OBJ '%s'?\n", entry->url);
+	} else if (!opt_udp_hit_obj) {
+	    /* HIT_OBJ poses a security risk since we take the object 
+	     * data from the ICP message */
+	    debug(15, 0, "WARNING!: Received ICP_OP_HIT_OBJ from '%s' with HIT_OBJ disabled!\n");
+	    debug(15, 0, "--> URL '%s'\n", entry->url);
 	} else {
 	    if (e->options & NEIGHBOR_PROXY_ONLY)
 		storeReleaseRequest(entry);
