@@ -411,7 +411,8 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 	F->flags.called_connect = 1;
 	Counter.syscalls.sock.connects++;
 	x = connect(sock, (struct sockaddr *) address, sizeof(*address));
-	debug(5, 9) ("connect FD %d: %s\n", sock, xstrerror());
+	if (x < 0)
+	    debug(5, 9) ("connect FD %d: %s\n", sock, xstrerror());
     } else {
 	errlen = sizeof(err);
 	x = getsockopt(sock, SOL_SOCKET, SO_ERROR, &err, &errlen);

@@ -322,7 +322,7 @@ fatal(const char *message)
     if (!store_rebuilding)
 	storeDirWriteCleanLogs(0);
     fatal_common(message);
-    exit(1);
+    exit(shutting_down ? 0 : 1);
 }
 
 /* printf-style interface for fatal */
@@ -835,4 +835,12 @@ int
 stringHasWhitespace(const char *s)
 {
     return (strcspn(s, w_space) != strlen(s));
+}
+
+void
+xassert(const char *msg, const char *file, int line)
+{
+    debug(0, 0) ("assertion failed: %s:%d: \"%s\"\n", file, line, msg);
+    if (!shutting_down)
+        abort();
 }
