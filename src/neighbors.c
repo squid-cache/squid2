@@ -508,11 +508,6 @@ int neighborsUdpPing(proto)
 	    e = friends->edges_head;
 	debug(15, 5, "neighborsUdpPing: Edge %s\n", e->host);
 
-	/* Don't resolve refreshes through neighbors because we don't resolve
-	 * misses through neighbors */
-	if (e->type == EDGE_SIBLING && BIT_TEST(proto->request->flags, REQ_NOCACHE))
-	    continue;
-
 	/* skip any cache where we failed to connect() w/in the last 60s */
 	if (squid_curtime - e->last_fail_time < 60)
 	    continue;
