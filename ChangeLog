@@ -1,4 +1,4 @@
-Changes to squid-1.0.16 ():
+Changes to squid-1.0.16 (September 16, 1996):
 
 	- Fixed shadow passwd support (John Saunders).
 	- Added checkFailureRatio() to detect high fail:success ratios
@@ -6,6 +6,7 @@ Changes to squid-1.0.16 ():
 	  exceeds 1.
 	- Added ip_acl_destroy() to reset 'local_ip' and 'firewall_ip'
 	  on HUP signal.
+	- Fixed quick_abort parsing bug.
 
 Changes to squid-1.0.15 (September 13, 1996):
 
