@@ -402,7 +402,6 @@ snmpCompare(oid * name1, int len1, oid * name2, int len2)
     if (len2 < len1) {
 	return 1;
     }
-
     return 0;			/* both strings are equal */
 }
 

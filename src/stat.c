@@ -453,7 +453,7 @@ statMemoryAccounted(void)
 	meta_data.ipcache_count * sizeof(ipcache_entry) +
 	meta_data.fqdncache_count * sizeof(fqdncache_entry) +
 	hash_links_allocated * sizeof(hash_link) +
-                 meta_data.netdb_peers * sizeof(struct _net_db_peer) +
+	meta_data.netdb_peers * sizeof(struct _net_db_peer) +
                  meta_data.client_info * client_info_sz +
                  meta_data.misc;
 }
