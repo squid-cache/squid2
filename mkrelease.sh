@@ -11,7 +11,7 @@ startdir=$PWD/
 dst=${2:-$PWD}/
 RELEASE_TIME=`date +%s`
 
-tmpdir=$PWD/${name}-mkrelease
+tmpdir=${TMPDIR:-${PWD}}/${name}-mkrelease
 
 CVSROOT=${CVSROOT:-/server/cvs-server/squid}
 export CVSROOT

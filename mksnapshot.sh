@@ -8,7 +8,7 @@ tag=${1:-HEAD}
 startdir=$PWD
 date=`env TZ=GMT date +%Y%m%d`
 
-tmpdir=$PWD/${package}-${tag}-mksnapshot
+tmpdir=${TMPDIR:-${PWD}}/${package}-${tag}-mksnapshot
 
 CVSROOT=${CVSROOT:-/server/cvs-server/squid}
 export CVSROOT
