@@ -57,6 +57,7 @@ const char *RequestMethodStr[] =
     "BMOVE",
     "BDELETE",
     "BPROPFIND",
+    "BPROPPATCH",
     "SEARCH",
     "%EXT00",
     "%EXT01",
