@@ -480,9 +480,9 @@ struct _SquidConfig {
 #if USE_CACHE_DIGESTS
     struct {
 	int bits_per_entry;
-	int rebuild_period;
-	int rewrite_period;
-	int swapout_chunk_size;
+	time_t rebuild_period;
+	time_t rewrite_period;
+	size_t swapout_chunk_size;
 	int rebuild_chunk_percentage;
     } digest;
 #endif
