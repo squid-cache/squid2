@@ -341,6 +341,8 @@ authBasicParse(authScheme * scheme, int n_configured, char *param_str)
 	parse_eol(&basicConfig->basicAuthRealm);
     } else if (strcasecmp(param_str, "credentialsttl") == 0) {
 	parse_time_t(&basicConfig->credentialsTTL);
+    } else if (strcasecmp(param_str, "casesensitive") == 0) {
+	parse_onoff(&basicConfig->casesensitive);
     } else {
 	debug(28, 0) ("unrecognised basic auth scheme parameter '%s'\n", param_str);
     }
@@ -486,6 +488,8 @@ authenticateBasicDecodeAuth(auth_user_request_t * auth_user_request, const char 
 	local_basic.passwd = xstrndup(cleartext, USER_IDENT_SZ);
     }
 
+    if (!basicConfig->casesensitive)
+	Tolower(local_basic.username);
     /* now lookup and see if we have a matching auth_user structure in memory. */
 
     if ((auth_user = authBasicAuthUserFindUsername(local_basic.username)) == NULL) {

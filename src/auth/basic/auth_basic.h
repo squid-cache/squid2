@@ -41,6 +41,7 @@ struct _auth_basic_config {
     char *basicAuthRealm;
     wordlist *authenticate;
     time_t credentialsTTL;
+    int casesensitive;
 };
 
 typedef struct _auth_basic_config auth_basic_config;
