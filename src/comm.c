@@ -856,6 +856,10 @@ comm_select(time_t sec)
 		break;
 	    if (errno == EINTR)
 		break;
+#ifdef ERESTART
+	    if (errno == ERESTART)
+		break;
+#endif
 	    debug(5, 0, "comm_select: poll failure: %s\n",
 		xstrerror());
 	    if (errno == EINVAL) {
