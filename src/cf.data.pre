@@ -1402,14 +1402,16 @@ DOC_START
 	  # cache_peer_access mycache_mydomain.net deny all
 
 	acl aclname proxy_auth username ...
-	  # Use an EXTERNAL authentication program to check username/password
-	  # combinations (see authenticate_program).
-	  #
+	  # list of valid usernames
 	  # use REQUIRED to accept any valid username.
 	  #
 	  # NOTE: when a Proxy-Authentication header is sent but it is not
 	  # needed during ACL checking the username is NOT logged
 	  # in access.log.
+	  #
+	  # NOTE: proxy_auth requires a EXTERNAL authentication program
+	  # to check username/password combinations (see
+	  # authenticate_program).
 	  #
 
 Examples:
