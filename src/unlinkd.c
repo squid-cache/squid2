@@ -74,6 +74,8 @@ main(int argc, char *argv[])
 
 #include "squid.h"
 
+#if !USE_ASYNC_IO
+
 static int unlinkd_fd = -1;
 
 static int unlinkdCreate(void);
@@ -151,4 +153,5 @@ unlinkdInit(void)
     debug(43, 0) ("Unlinkd pipe opened on FD %d\n", unlinkd_fd);
 }
 
+#endif /* !USE_ASYNC_IO */
 #endif /* ndef UNLINK_DAEMON */

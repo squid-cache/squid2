@@ -445,7 +445,9 @@ mainInitialize(void)
 #endif
 
     if (!configured_once) {
+#if !USE_ASYNC_IO
 	unlinkdInit();
+#endif
 	/* module initialization */
 	urlInitialize();
 	objcacheInit();

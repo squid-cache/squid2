@@ -49,6 +49,7 @@ typedef struct aio_ctrl_t {
     AIOCB *done_handler;
     void *done_handler_data;
     aio_result_t result;
+    void *tag;
 } aio_ctrl_t;
 
 
@@ -67,19 +68,21 @@ static void
 aioInit()
 {
     int i;
+    aio_ctrl_t *node;
 
     if (initialised)
 	return;
     for (i = 0; i < SQUID_MAXFD; i++) {
-	pool[i].next = free_list;
-	free_list = &(pool[i]);
+	node = pool + i;
+	node->next = free_list;
+	free_list = node;
     }
     initialised = 1;
 }
 
 
 void
-aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callback_data)
+aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callback_data, void *tag)
 {
     aio_ctrl_t *ctrlp;
     int ret;
@@ -93,7 +96,8 @@ aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callba
 	return;
     }
     ctrlp = free_list;
-    ctrlp->fd = -1;
+    ctrlp->fd = -2;
+    ctrlp->tag = tag;
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
     ctrlp->operation = _AIO_OPEN;
@@ -117,13 +121,14 @@ aioClose(int fd)
 
     if (!initialised)
 	aioInit();
-    aioCancel(fd);
+    aioCancel(fd, NULL);
     if (free_list == NULL) {
 	close(fd);
 	return;
     }
     ctrlp = free_list;
     ctrlp->fd = fd;
+    ctrlp->tag = NULL;
     ctrlp->done_handler = NULL;
     ctrlp->done_handler_data = NULL;
     ctrlp->operation = _AIO_CLOSE;
@@ -139,20 +144,33 @@ aioClose(int fd)
 
 
 void
-aioCancel(int fd)
+aioCancel(int fd, void *tag)
 {
     aio_ctrl_t *curr;
     aio_ctrl_t *prev;
 
     if (!initialised)
 	aioInit();
-    for (prev = NULL, curr = used_list; curr != NULL;) {
-	if (curr->fd != fd) {
+    prev = NULL;
+    curr = used_list;
+    for(;;) {
+        while(curr != NULL) {
+	    if(curr->fd == fd)
+		break;
+	    if(tag != NULL && curr->tag == tag)
+		break;
 	    prev = curr;
 	    curr = curr->next;
-	    continue;
 	}
+	if(curr == NULL)
+	    break;
+
 	aio_cancel(&(curr->result));
+
+	if (curr->done_handler)
+	    (curr->done_handler) (curr->done_handler_data, -2, -2);
+	if (curr->operation == _AIO_UNLINK)
+	    outunlink--;
 
 	if (prev == NULL)
 	    used_list = curr->next;
@@ -194,6 +212,7 @@ aioWrite(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
     }
     ctrlp = free_list;
     ctrlp->fd = fd;
+    ctrlp->tag = NULL;
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
     ctrlp->operation = _AIO_WRITE;
@@ -235,6 +254,7 @@ aioRead(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
     }
     ctrlp = free_list;
     ctrlp->fd = fd;
+    ctrlp->tag = NULL;
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
     ctrlp->operation = _AIO_READ;
@@ -252,7 +272,7 @@ aioRead(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
 }				/* aioRead */
 
 void
-aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data)
+aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data, void *tag)
 {
     aio_ctrl_t *ctrlp;
 
@@ -265,10 +285,11 @@ aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data)
 	return;
     }
     ctrlp = free_list;
-    ctrlp->fd = -1;
+    ctrlp->fd = -2;
+    ctrlp->tag = tag;
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
-    ctrlp->operation = _AIO_UNLINK;
+    ctrlp->operation = _AIO_STAT;
     if (aio_stat(path, sb, &(ctrlp->result)) < 0) {
 	if (errno == ENOMEM || errno == EAGAIN || errno == EINVAL)
 	    errno = EWOULDBLOCK;
@@ -302,7 +323,7 @@ aioUnlink(const char *path, AIOCB * callback, void *callback_data)
 	if (free_list == NULL || outunlink > 10)
 	    return;
 	ctrlp = free_list;
-	ctrlp->fd = -1;
+	ctrlp->fd = -2;
 	ctrlp->done_handler = callback;
 	ctrlp->done_handler_data = callback_data;
 	ctrlp->operation = _AIO_UNLINK;

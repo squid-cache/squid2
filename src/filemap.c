@@ -174,6 +174,8 @@ file_map_allocate(fileMap * fm, int suggestion)
     int word;
     int bit;
     int count;
+    if (suggestion > fm->max_n_files)
+	suggestion = 0;
     if (!file_map_bit_test(fm, suggestion)) {
 	fm->last_file_number_allocated = suggestion;
 	return file_map_bit_set(fm, suggestion);

@@ -405,7 +405,7 @@ mimeLoadIconFile(const char *icon)
     if (storeGet(key))
 	return;
     snprintf(path, MAXPATHLEN, "%s/%s", Config.icons.directory, icon);
-    fd = file_open(path, O_RDONLY, NULL, NULL);
+    fd = file_open(path, O_RDONLY, NULL, NULL, NULL);
     if (fd < 0) {
 	debug(25, 0) ("mimeLoadIconFile: %s: %s\n", path, xstrerror());
 	return;

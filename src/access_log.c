@@ -190,7 +190,7 @@ accessLogOpen(const char *fname)
 {
     assert(fname);
     xstrncpy(LogfileName, fname, SQUID_MAXPATHLEN);
-    LogfileFD = file_open(LogfileName, O_WRONLY | O_CREAT, NULL, NULL);
+    LogfileFD = file_open(LogfileName, O_WRONLY | O_CREAT, NULL, NULL, NULL);
     if (LogfileFD == DISK_ERROR) {
 	debug(50, 0) ("%s: %s\n", LogfileName, xstrerror());
 	fatal("Cannot open logfile.");
@@ -287,7 +287,7 @@ accessLogRotate(void)
     /* Close and reopen the log.  It may have been renamed "manually"
      * before HUP'ing us. */
     file_close(LogfileFD);
-    LogfileFD = file_open(fname, O_WRONLY | O_CREAT, NULL, NULL);
+    LogfileFD = file_open(fname, O_WRONLY | O_CREAT, NULL, NULL, NULL);
     if (LogfileFD == DISK_ERROR) {
 	debug(46, 0) ("accessLogRotate: Cannot open logfile: %s\n", fname);
 	LogfileStatus = LOG_DISABLE;

@@ -215,6 +215,7 @@ asHandleReply(void *data, char *buf, ssize_t size)
 	memFree(MEM_4K_BUF, buf);
 	return;
     } else if (size < 0) {
+ 	debug(50, 1) ("asHandleReply: Called with size=%d.\n", size);
 	memFree(MEM_4K_BUF, buf);
 	return;
     }
