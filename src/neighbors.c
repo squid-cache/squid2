@@ -561,6 +561,8 @@ neighborsUdpPing(request_t * request,
 	if (Config.Timeout.icp_query_max)
 	    if (*timeout > Config.Timeout.icp_query_max)
 		*timeout = Config.Timeout.icp_query_max;
+	if (*timeout < Config.Timeout.icp_query_min)
+	    *timeout = Config.Timeout.icp_query_min;
     }
     return peers_pinged;
 }

@@ -403,6 +403,7 @@ struct _SquidConfig {
 	time_t deadPeer;
 	int icp_query;		/* msec */
 	int icp_query_max;	/* msec */
+	int icp_query_min;	/* msec */
 	int mcast_icp_query;	/* msec */
 #if USE_IDENT
 	time_t ident;
