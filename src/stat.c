@@ -644,7 +644,7 @@ memoryAccounted(void)
 	mem_obj_pool.total_pages_allocated * mem_obj_pool.page_size +
 	meta_data.url_strings +
 #if USE_ICMP
-	meta_data.netdb * sizeof(struct netdbEntry) +
+	meta_data.netdb * sizeof(netdbEntry) +
 #endif
                meta_data.misc;
 }
