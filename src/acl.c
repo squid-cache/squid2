@@ -152,13 +152,13 @@ static int decode_addr(asc, addr, mask)
 
 	/* Guess netmask */
 	a = ntohl(addr->s_addr);
-	if (!a & 0xFFFFFFFF)
+	if (!(a & 0xFFFFFFFF))
 	    mask->s_addr = htonl(0x00000000);
-	else if (!a & 0x00FFFFFF)
+	else if (!(a & 0x00FFFFFF))
 	    mask->s_addr = htonl(0xFF000000);
-	else if (!a & 0x0000FFFF)
+	else if (!(a & 0x0000FFFF))
 	    mask->s_addr = htonl(0xFFFF0000);
-	else if (!a & 0x000000FF)
+	else if (!(a & 0x000000FF))
 	    mask->s_addr = htonl(0xFFFFFF00);
 	else
 	    mask->s_addr = htonl(0xFFFFFFFF);
