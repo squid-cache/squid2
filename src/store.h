@@ -1,3 +1,4 @@
+
 /*  $Id$ */
 
 #ifndef _STORE_H_
