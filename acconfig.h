@@ -352,6 +352,42 @@
 
 #undef u_int64_t
 
+/* The number of bytes in a __int64.  */
+#undef SIZEOF___INT64
+
+/* The number of bytes in a int16_t.  */
+#undef SIZEOF_INT16_T
+
+/* The number of bytes in a int32_t.  */
+#undef SIZEOF_INT32_T
+
+/* The number of bytes in a int64_t.  */
+#undef SIZEOF_INT64_T
+
+/* The number of bytes in a off_t.  */
+#undef SIZEOF_OFF_T
+
+/* The number of bytes in a size_t.  */
+#undef SIZEOF_SIZE_T
+
+/* The number of bytes in a u_int16_t.  */
+#undef SIZEOF_U_INT16_T
+
+/* The number of bytes in a u_int32_t.  */
+#undef SIZEOF_U_INT32_T
+
+/* The number of bytes in a u_int64_t.  */
+#undef SIZEOF_U_INT64_T
+
+/* The number of bytes in a uint16_t.  */
+#undef SIZEOF_UINT16_T
+
+/* The number of bytes in a uint32_t.  */
+#undef SIZEOF_UINT32_T
+
+/* The number of bytes in a uint64_t.  */
+#undef SIZEOF_UINT64_T
+
 /*
  * Enable support for the X-Accelerator-Vary HTTP header
  */
