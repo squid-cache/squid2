@@ -154,3 +154,9 @@ changes to squid-1.0.beta7:
 	- Added read(2) instrumentation for HTTP and FTP.
 	- Changed neighbor initialization to continue if DNS lookup fails.
 	- Lint cleanup
+
+beta8:
+
+	- More friendly CFLAGS and LDFLAGS for configure
+	- ACL_ALLWEEK bugfix
+	
