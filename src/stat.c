@@ -1282,7 +1282,6 @@ static void
 proto_newobject(cacheinfo * obj, protocol_t proto_id, int size, int restart)
 {
     proto_stat *p = &obj->proto_stat_data[proto_id];
-    debug(0, 0, "proto_newobject: %d, %d\n", proto_id, size);
     p->object_count++;
 
     /* Account for 1KB granularity */
@@ -1299,7 +1298,6 @@ static void
 proto_purgeobject(cacheinfo * obj, protocol_t proto_id, int size)
 {
     proto_stat *p = &obj->proto_stat_data[proto_id];
-    debug(0, 0, "proto_purgeobject: %d, %d\n", proto_id, size);
     p->object_count--;
 
     /* Scale down to KB */

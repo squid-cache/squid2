@@ -775,7 +775,6 @@ storeCheckDoneWriting(StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
     protocol_t proto = mem->request ? mem->request->protocol : PROTO_NONE;
-    debug(0, 0, "storeCheckDoneWriting: mem->request = %p\n", mem->request);
     if (e->store_status == STORE_PENDING)
 	return;
     if (e->object_len < mem->swap_length)
