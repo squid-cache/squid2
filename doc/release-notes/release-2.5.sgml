@@ -11,6 +11,28 @@ for Applied Network Research and members of the Web Caching community.
 </abstract>
 
 <toc>
+<sect>Key changes squid-2.5.STABLE1 to 2.5.STABLE2:
+
+<p>
+<itemize>
+	<item>authentication now works in most access directives if
+	first enforced in http_access
+	<item>contrib files included in the distribution again
+	<item>aufs bugfixes to address both stability and data
+	corruption issues, and some aufs performance improvements.
+	<item>now possible to specify acl values with spaces in them
+	via the "include file" technique
+	<item>winbind helpers updated to work out of the box with Samba-2.2.6
+	or later Samba-2.2.X releases. Current stable Samba release at time of
+	this writing is 2.2.7a.
+	<item>squid_ldap_group updated to correctly handle LDAP groups
+	<item>new experimental configure option --disable-hostname-checks to make Squid not validate that received hostnames are valid for use within HTTP. Required to participate in testbeds for international domain names etc.
+	<item>several assertion or segmentation faults corrected
+	<item>a large number of minor bugfixes. See the list of <url
+	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE1"
+	name="squid-2.5.STABLE1 patches"> for details.
+</itemize>
+
 <sect>Key changes from squid 2.4:
 <p>
 <itemize>
@@ -123,7 +145,6 @@ for Applied Network Research and members of the Web Caching community.
 
 <descrip>
 <tag>deny_info</tag>deny_info only works for http_access, not for the acls listen in http_reply_access 
-<tag>authentication</tag>The proxy authentication acl types only works in http_access and partially in delay_access, not the other acl driven directives (tcp_outoing_address, redirect_access, cache_peer_access, ...)
 </descrip>
 
 </article>

@@ -1,19 +1,42 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.16">
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
  <TITLE>Squid 2.5 release notes</TITLE>
+
+
 </HEAD>
 <BODY>
 <H1>Squid 2.5 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
-<HR>
+<P><HR>
 <EM>This document contains the release notes for version 2.5 of Squid.
 Squid is a WWW Cache application developed by the National Laboratory
 for Applied Network Research and members of the Web Caching community.</EM>
 <HR>
-<H2><A NAME="s1">1. Key changes from squid 2.4:</A></H2>
+<H2><A NAME="s1">1. Key changes squid-2.5.STABLE1 to 2.5.STABLE2:</A></H2>
+
+<P>
+<UL>
+<LI>authentication now works in most access directives if
+first enforced in http_access</LI>
+<LI>contrib files included in the distribution again</LI>
+<LI>aufs bugfixes to address both stability and data
+corruption issues, and some aufs performance improvements.</LI>
+<LI>now possible to specify acl values with spaces in them
+via the "include file" technique</LI>
+<LI>winbind helpers updated to work out of the box with Samba-2.2.6
+or later Samba-2.2.X releases. Current stable Samba release at time of
+this writing is 2.2.7a.</LI>
+<LI>squid_ldap_group updated to correctly handle LDAP groups</LI>
+<LI>new experimental configure option --disable-hostname-checks to make Squid not validate that received hostnames are valid for use within HTTP. Required to participate in testbeds for international domain names etc.</LI>
+<LI>several assertion or segmentation faults corrected</LI>
+<LI>a large number of minor bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE1">squid-2.5.STABLE1 patches</A> for details.</LI>
+</UL>
+<P>
+<H2><A NAME="s2">2. Key changes from squid 2.4:</A></H2>
 
 <P>
 <UL>
@@ -79,30 +102,34 @@ cache_peer option.</LI>
 <LI>Support for openBSD pf interface in interception mode.</LI>
 <LI>It is now possible to send complex arguments to helpers
 by quoting the arguments by " and/or \ </LI>
+<LI>The directory structure has changed slightly. The squid binary
+has been moved into sbin, errors and icons into share/, and the libexec
+programs are now in libexec/ (was previously libexec/squid/). See
+configure --help for instructions on how to move these around to
+exacly where you want to have them in your system.</LI>
 </UL>
-</P>
-
-<H2><A NAME="s2">2. Changes to squid.conf</A></H2>
+<P>
+<H2><A NAME="s3">3. Changes to squid.conf</A></H2>
 
 <P>
 <DL>
-<DT><B>http_port</B><DD><P>Allows ip address specification.</P>
-<DT><B>https_port</B><DD><P>This is an option for use with SSL acceleration - it determines where squid listens for SSL requests.</P>
-<DT><B>ssl_unclean_shutdown</B><DD><P>This is used to handle some bugs in browsers that don't fully support SSL.</P>
-<DT><B>tcp_incoming_address</B><DD><P>This has been removed - use the http_port line to specify ip address's.</P>
-<DT><B>cache_peer</B><DD><P>login= has been extended to allow pass through authentication, fixed password authentication and maximum connection limits.</P>
-<DT><B>hosts_file</B><DD><P>Directs squid to read in a set of name-address associations upon startup and reconfiguration.</P>
-<DT><B>authenticate_program</B><DD>
-<DT><B>authenticate_children</B><DD>
-<DT><B>proxy_auth_realm</B><DD><P>Removed. See auth_param.</P>
-<DT><B>auth_param</B><DD><P>This replaces the authenticate_program directive. It allows configuration of multiple authentication helpers, one for each of the supported authentication schemes. Such schemes include "NTLM", "Digest (from RFC 2617)", and "Basic".</P>
-<DT><B>authenticate_cache_garbage_interval</B><DD><P>This directive sets the garbage collection interval for the authentication cache.</P>
-<DT><B>external_acl_type</B><DD><P>This directive configures the new external ACL Helper interface. VERY useful for authenticating by group membership - i.e. from an LDAP server or NT domain.</P>
-<DT><B>request_body_max_size</B><DD><P>The default for this is now 0 - unlimited.</P>
-<DT><B>reply_body_max_size</B><DD><P>Now multiple size limits are allowed based on ACL lists.</P>
-<DT><B>refresh_pattern</B><DD><P>The default is now blank - users must uncomment the suggested default to use it. This allows the use of a blank refresh pattern if desired.</P>
-<DT><B>request_timeout</B><DD><P>Raised the default to 5 minutes.</P>
-<DT><B>persistent_request_timeout</B><DD><P>New directive - how long to wait after a reply is completed before closing the connection.</P>
+<DT><B>http_port</B><DD><P>Allows ip address specification.
+<DT><B>https_port</B><DD><P>This is an option for use with SSL acceleration - it determines where squid listens for SSL requests.
+<DT><B>ssl_unclean_shutdown</B><DD><P>This is used to handle some bugs in browsers that don't fully support SSL.
+<DT><B>tcp_incoming_address</B><DD><P>This has been removed - use the http_port line to specify ip address's.
+<DT><B>cache_peer</B><DD><P>login= has been extended to allow pass through authentication, fixed password authentication and maximum connection limits.
+<DT><B>hosts_file</B><DD><P>Directs squid to read in a set of name-address associations upon startup and reconfiguration.
+<DT><B>authenticate_program</B><DD><P>
+<DT><B>authenticate_children</B><DD><P>
+<DT><B>proxy_auth_realm</B><DD><P>Removed. See auth_param.
+<DT><B>auth_param</B><DD><P>This replaces the authenticate_program directive. It allows configuration of multiple authentication helpers, one for each of the supported authentication schemes. Such schemes include "NTLM", "Digest (from RFC 2617)", and "Basic".
+<DT><B>authenticate_cache_garbage_interval</B><DD><P>This directive sets the garbage collection interval for the authentication cache.
+<DT><B>external_acl_type</B><DD><P>This directive configures the new external ACL Helper interface. VERY useful for authenticating by group membership - i.e. from an LDAP server or NT domain.
+<DT><B>request_body_max_size</B><DD><P>The default for this is now 0 - unlimited.
+<DT><B>reply_body_max_size</B><DD><P>Now multiple size limits are allowed based on ACL lists.
+<DT><B>refresh_pattern</B><DD><P>The default is now blank - users must uncomment the suggested default to use it. This allows the use of a blank refresh pattern if desired.
+<DT><B>request_timeout</B><DD><P>Raised the default to 5 minutes.
+<DT><B>persistent_request_timeout</B><DD><P>New directive - how long to wait after a reply is completed before closing the connection.
 <DT><B>acl</B><DD><P>New acl types
 <UL>
 <LI>referer_regex (match Referer headers),</LI>
@@ -110,32 +137,28 @@ by quoting the arguments by " and/or \ </LI>
 <LI>rep_mime_type (filter replies based on their content type).</LI>
 <LI>external (use an external helper)</LI>
 </UL>
-</P>
-<DT><B>http_reply_access</B><DD><P>Limit HTTP replies based on ACL's. This is complementary to http_access.</P>
-<DT><B>tcp_outgoing_tos</B><DD>
-<DT><B>tcp_outgoing_ds</B><DD>
-<DT><B>tcp_outgoing_dscp</B><DD><P>These three directives allow marking of outbound connections at the IP level - i.e. for choosing routes based on the usercode.</P>
-<DT><B>tcp_outgoing_address</B><DD><P>Allows mapping of requests onto specific outbound IP address's.</P>
-<DT><B>anonymize_headers</B><DD><P>Removed. See header_access.</P>
-<DT><B>header_access</B><DD><P>Allow granular filtering of HTTP headers.</P>
-<DT><B>header_replace</B><DD><P>Replace specific headers with custom values.</P>
-<DT><B>pipeline_prefetch</B><DD><P>Now defaults to off for bandwidth management and access logging reasons.</P>
-<DT><B>vary_ignore_expire</B><DD><P>Enables a workaround for web servers that immediately expire Varied objects because they think squid is unable to handle Vary:.</P>
-<DT><B>sleep_after_fork</B><DD><P>Give the OS a small amount of time to accomodate the fork+exec used to launch helpers - if squid has a lot of virtual memory allocated the OS may run out of virtual memory during helper spawning otherwise.</P>
-<DT><B>reference_age</B><DD><P>This has been removed - starting with Squid-2.4 this directive have had no effect and has now been fully removed to avoid confusion.</P>
-<DT><B>siteselect_timeout</B><DD><P>This has been removed - it is not referenced anywhere in the source code.</P>
+<DT><B>http_reply_access</B><DD><P>Limit HTTP replies based on ACL's. This is complementary to http_access.
+<DT><B>tcp_outgoing_tos</B><DD><P>
+<DT><B>tcp_outgoing_ds</B><DD><P>
+<DT><B>tcp_outgoing_dscp</B><DD><P>These three directives allow marking of outbound connections at the IP level - i.e. for choosing routes based on the usercode.
+<DT><B>tcp_outgoing_address</B><DD><P>Allows mapping of requests onto specific outbound IP address's.
+<DT><B>anonymize_headers</B><DD><P>Removed. See header_access.
+<DT><B>header_access</B><DD><P>Allow granular filtering of HTTP headers.
+<DT><B>header_replace</B><DD><P>Replace specific headers with custom values.
+<DT><B>pipeline_prefetch</B><DD><P>Now defaults to off for bandwidth management and access logging reasons.
+<DT><B>vary_ignore_expire</B><DD><P>Enables a workaround for web servers that immediately expire Varied objects because they think squid is unable to handle Vary:.
+<DT><B>sleep_after_fork</B><DD><P>Give the OS a small amount of time to accomodate the fork+exec used to launch helpers - if squid has a lot of virtual memory allocated the OS may run out of virtual memory during helper spawning otherwise.
+<DT><B>reference_age</B><DD><P>This has been removed - starting with Squid-2.4 this directive have had no effect and has now been fully removed to avoid confusion.
+<DT><B>siteselect_timeout</B><DD><P>This has been removed - it is not referenced anywhere in the source code.
 </DL>
-</P>
+<P>
+<H2><A NAME="s4">4. Known limitations</A></H2>
 
-<H2><A NAME="s3">3. Known limitations</A></H2>
-
-<P>There is a few limitations to this version of Squid that we hope to correct in a later release</P>
+<P>There is a few limitations to this version of Squid that we hope to correct in a later release
 <P>
 <DL>
-<DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access </P>
-<DT><B>authentication</B><DD><P>The proxy authentication acl types only works in http_access and partially in delay_access, not the other acl driven directives (tcp_outoing_address, redirect_access, cache_peer_access, ...)</P>
+<DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access 
 </DL>
-</P>
-
+<P>
 </BODY>
 </HTML>
