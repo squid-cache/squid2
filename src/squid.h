@@ -270,8 +270,8 @@ typedef int (*QS) (const void *, const void *);
 #include "cache_cf.h"
 #include "comm.h"
 #include "debug.h"
-#include "disk.h"
 #include "fdstat.h"
+#include "disk.h"
 #include "filemap.h"
 #include "hash.h"
 #include "proto.h"		/* must go before neighbors.h */

@@ -192,6 +192,7 @@ struct SquidConfig {
 	char *dnsserver;
 	char *redirect;
 	char *pinger;
+	char *unlinkd;
     } Program;
     int dnsChildren;
     int redirectChildren;

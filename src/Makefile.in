@@ -41,6 +41,7 @@ DEFAULT_STORE_LOG       = $(localstatedir)/logs/store.log
 DEFAULT_PID_FILE        = $(localstatedir)/logs/squid.pid
 DEFAULT_SWAP_DIR        = $(localstatedir)/cache
 DEFAULT_PINGER		= $(libexecdir)/pinger
+DEFAULT_UNLINKD		= $(libexecdir)/unlinkd
 
 CC		= @CC@
 MAKEDEPEND	= @MAKEDEPEND@
@@ -71,7 +72,7 @@ FTPGET_LIBS	= -L../lib -lmiscutil $(XTRA_LIBS)
 PINGER_LIBS	= -L../lib -lmiscutil $(XTRA_LIBS)
 
 PROGS           = squid client
-UTILS           = dnsserver ftpget
+UTILS           = dnsserver ftpget unlinkd
 SUID_UTILS	= pinger
 CGIPROGS	= cachemgr.cgi
 OBJS	 	= \
@@ -130,7 +131,8 @@ DEFAULTS        = \
 	-DDEFAULT_STORE_LOG=\"$(DEFAULT_STORE_LOG)\" \
 	-DDEFAULT_PID_FILE=\"$(DEFAULT_PID_FILE)\" \
 	-DDEFAULT_SWAP_DIR=\"$(DEFAULT_SWAP_DIR)\" \
-	-DDEFAULT_PINGER=\"$(DEFAULT_PINGER)\"
+	-DDEFAULT_PINGER=\"$(DEFAULT_PINGER)\" \
+	-DDEFAULT_UNLINKD=\"$(DEFAULT_UNLINKD)\"
 
 all:    squid.conf $(PROGS) $(UTILS) $(SUID_UTILS) $(CGIPROGS)
 
@@ -156,6 +158,9 @@ ftpget: ftpget.o
 
 pinger: pinger.o
 	$(CC) -o $@ $(LDFLAGS) pinger.o debug.o $(PINGER_LIBS)
+
+unlinkd: unlinkd.c
+	$(CC) $(CFLAGS) -DUNLINK_DAEMON unlinkd.c -o $@ $(LDFLAGS)
 
 squid.conf: squid.conf.pre Makefile
 	sed "\

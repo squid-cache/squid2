@@ -184,5 +184,7 @@ extern int file_walk _PARAMS((int fd,
 extern int disk_init _PARAMS((void));
 extern int diskWriteIsComplete _PARAMS((int));
 extern void diskFreeMemory _PARAMS((void));
+extern void file_open_fd _PARAMS((int fd, const char *name, File_Desc_Type type));
+
 
 #endif /* DISK_H */

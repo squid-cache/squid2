@@ -28,9 +28,52 @@
  *  
  */
 
-#include "squid.h"
+#ifdef UNLINK_DAEMON
 
+/* This is the external unlinkd process */
+
+#include "config.h"
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#if HAVE_STDIO_H
+#include <stdio.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 #define UNLINK_BUF_LEN 1024
+
+int
+main(int argc, char *argv[])
+{
+    char buf[UNLINK_BUF_LEN];
+    char *t;
+    setbuf(stdin, NULL);
+    setbuf(stdout, NULL);
+    setbuf(stderr, NULL);
+    while (fgets(buf, UNLINK_BUF_LEN, stdin)) {
+	if ((t = strchr(buf, '\n')))
+		*t = '\0';
+fprintf (stderr, "unlinkd: %s\n", buf);
+	if (unlink(buf) < 0)
+		perror(buf);
+    }
+fprintf (stderr, "unlinkd exiting\n");
+    exit(0);
+}
+
+#else /* UNLINK_DAEMON */
+
+/* This code gets linked to Squid */
+
+#include "squid.h"
 
 static int unlinkd_fd = -1;
 
@@ -39,89 +82,59 @@ static int unlinkdCreate _PARAMS((void));
 static int
 unlinkdCreate(void)
 {
-    LOCAL_ARRAY(char, buf, UNLINK_BUF_LEN);
-    char *t;
     pid_t pid;
-    struct sockaddr_in S;
     int cfd;
-    int sfd;
-    int len;
-    int fd;
+    int pfd;
+    int squid_to_unlinkd[2] = {-1,-1};
     struct timeval slp;
-    cfd = comm_open(SOCK_STREAM,
-	0,
-	local_addr,
-	0,
-	COMM_NOCLOEXEC,
-	"unlinkd socket");
-    if (cfd == COMM_ERROR) {
-	debug(43, 0, "unlinkdCreate: Failed to create redirector\n");
+    if (pipe(squid_to_unlinkd) < 0) {
+	debug(50, 0, "unlinkdCreate: pipe: %s\n", xstrerror());
 	return -1;
     }
-    len = sizeof(S);
-    memset(&S, '\0', len);
-    if (getsockname(cfd, (struct sockaddr *) &S, &len) < 0) {
-	debug(50, 0, "unlinkdCreate: getsockname: %s\n", xstrerror());
-	comm_close(cfd);
-	return -1;
-    }
-    listen(cfd, 1);
+    cfd = squid_to_unlinkd[0];
+    pfd = squid_to_unlinkd[1];
     if ((pid = fork()) < 0) {
 	debug(50, 0, "unlinkdCreate: fork: %s\n", xstrerror());
-	comm_close(cfd);
+	close(cfd);
+	close(pfd);
 	return -1;
     }
-    if (pid > 0) {		/* parent */
-	comm_close(cfd);	/* close shared socket with child */
-	/* open new socket for parent process */
-	sfd = comm_open(SOCK_STREAM,
-	    0,
-	    local_addr,
-	    0,
-	    0,
-	    NULL);		/* blocking! */
-	if (sfd == COMM_ERROR)
-	    return -1;
-	if (comm_connect_addr(sfd, &S) == COMM_ERROR) {
-	    comm_close(sfd);
-	    return -1;
-	}
-	comm_set_fd_lifetime(sfd, -1);
-	debug(43, 4, "unlinkdCreate: FD %d connected to unlinkd.\n", sfd);
+    if (pid > 0) {		/* parent process */
+	close(cfd);		/* close child's FD */
+	comm_set_fd_lifetime(pfd, -1);
 	slp.tv_sec = 0;
 	slp.tv_usec = 250000;
 	select(0, NULL, NULL, NULL, &slp);
-	return sfd;
+        file_open_fd(pfd, "unlinkd socket", FD_PIPE);
+	return pfd;
     }
     /* child */
     no_suid();			/* give up extra priviliges */
-    if ((fd = accept(cfd, NULL, NULL)) < 0) {
-	debug(50, 0, "unlinkdCreate: FD %d accept: %s\n", cfd, xstrerror());
-	_exit(1);
-    }
-    dup2(fd, 0);
-    dup2(fd, 1);
-    dup2(fileno(debug_log), 2);
+    dup2(cfd, 0);
+    close(cfd);			/* close FD since we dup'd it */
+    close(pfd);			/* close parent's FD */
     fclose(debug_log);
-    close(fd);
-    close(cfd);
-    while (fgets(buf, UNLINK_BUF_LEN, stdin)) {
-	if ((t = strchr(buf, '\n')))
-		*t = '\0';
-	unlink(buf);
-    }
-    exit(0);
+    execlp(Config.Program.unlinkd, "(unlinkd)", NULL);
+    debug(50, 0, "unlinkdCreate: %s: %s\n",
+	Config.Program.unlinkd, xstrerror());
+    _exit(1);
+    return 0;
 }
 
 void
 unlinkdUnlink(const char *path)
 {
+    char *buf;
+    int l;
     if (unlinkd_fd < 0)
 	return;
-    comm_write(unlinkd_fd,
-	xstrdup(path),
-	strlen(path),
-	0,			/* timeout */
+    l = strlen(path) + 1;
+    buf = xcalloc(1, l + 1);
+    strcpy(buf, path);
+    strcat(buf, "\n");
+    file_write(unlinkd_fd,
+	buf,
+	l,
 	NULL,			/* Handler */
 	NULL,			/* Handler-data */
 	xfree);
@@ -140,6 +153,11 @@ void
 unlinkdInit(void)
 {
     unlinkd_fd = unlinkdCreate();
-    if (unlinkd_fd < 0)
+    if (unlinkd_fd < 0) {
 	debug(43, 0, "unlinkdInit: failed to start unlinkd\n");
+	return;
+    }
+    debug(43, 0, "unlinkd opened on FD %d\n", unlinkd_fd);
 }
+
+#endif /* ndef UNLINK_DAEMON */

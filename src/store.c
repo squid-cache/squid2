@@ -2912,21 +2912,21 @@ storeTimestampsSet(StoreEntry * entry)
 
 #define FILENO_STACK_SIZE 128
 static int fileno_stack[FILENO_STACK_SIZE];
-static int fileno_stack_idx = -1;
+static int fileno_stack_count = 0;
 
 static int
 storeGetUnusedFileno(void)
 {
-    if (fileno_stack_idx < 0)
+    if (fileno_stack_count < 1)
 	return -1;
-    return fileno_stack[fileno_stack_idx--];
+    return fileno_stack[--fileno_stack_count];
 }
 
 static void
 storePutUnusedFileno(int fileno)
 {
-    if (fileno_stack_idx < FILENO_STACK_SIZE-1)
-        fileno_stack[fileno_stack_idx++] = fileno;
+    if (fileno_stack_count < FILENO_STACK_SIZE)
+        fileno_stack[fileno_stack_count++] = fileno;
     else
 	unlinkdUnlink(storeSwapFullPath(fileno, NULL));
 }
