@@ -48,8 +48,6 @@ const char *hier_strings[] =
     "SOURCE_FASTEST",
     "SIBLING_UDP_HIT_OBJ",
     "PARENT_UDP_HIT_OBJ",
-    "PASSTHROUGH_PARENT",
-    "SSL_PARENT_MISS",
     "ROUNDROBIN_PARENT",
     "INVALID CODE"
 };
@@ -347,6 +345,7 @@ void
 peerSelectInit(void)
 {
     memset(&PeerStats, '\0', sizeof(PeerStats));
+    assert(sizeof(hier_strings) == (HIER_MAX + 1) * sizeof(char *));
 }
 
 static void
