@@ -15,6 +15,8 @@ prefix		= @prefix@
 exec_prefix	= @exec_prefix@
 
 SUBDIRS		= lib @makesnmplib@ scripts src icons errors 
+AUTHDIRS	= auth_modules/NCSA auth_modules/getpwnam \
+		  auth_modules/PAM
 
 noargs: all
 
@@ -37,9 +39,8 @@ install-pinger:
 almostclean: clean
 	rm -f config.log makefile
 	rm -f include/paths.h include/autoconf.h include/config.h
-	rm -f auth_modules/NCSA/Makefile auth_modules/SMB/Makefile
-	rm -f auth_modules/PAM/Makefile auth_modules/dummy
-	@for dir in $(SUBDIRS) contrib; do \
+	rm -f auth_modules/dummy
+	@for dir in $(SUBDIRS) $(AUTHDIRS) contrib; do \
 		echo Making distclean in $$dir; \
 		(cd $$dir; $(MAKE) $(MFLAGS) prefix="$(prefix)" distclean); \
 	done
