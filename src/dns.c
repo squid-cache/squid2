@@ -178,6 +178,7 @@ dnsOpenServer(char *command)
 	memset(buf, '\0', 128);
 	if (read(sfd, buf, 128) < 0 || strcmp(buf, "$alive\n$end\n")) {
 	    debug(34, 0, "dnsOpenServer: $hello read test failed\n");
+	    debug(34, 0, "--> read: %s\n", xstrerror());
 	    comm_close(sfd);
 	    return -1;
 	}
