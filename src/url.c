@@ -257,7 +257,7 @@ urlParse(method_t method, char *url)
     }
 #endif
     if (stringHasWhitespace(urlpath)) {
-	debug(23, 1) ("urlParse: URI has whitespace: {%s}\n", url);
+	debug(23, 2) ("urlParse: URI has whitespace: {%s}\n", url);
 	switch (Config.uri_whitespace) {
 	case URI_WHITESPACE_DENY:
 	    return NULL;
