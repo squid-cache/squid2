@@ -132,7 +132,8 @@ fdDumpOpen(void)
 	if (i == fileno(debug_log))
 	    continue;
 	debug(51, 1) ("Open FD %s %4d %s\n",
-	    i, F->type == FD_READ ? "reading" : "writing", F->desc);
+	    F->type == FD_READ ? "reading" : "writing",
+	    i, F->desc);
     }
 }
 
