@@ -69,9 +69,15 @@
 
 #elif defined(__linux__)                        /* Linux */
 #define _SQUID_LINUX_
+#if USE_ASYNC_IO
+#define _SQUID_LINUX_THREADS_
+#endif
 
 #elif defined(__FreeBSD__)			/* FreeBSD */
 #define _SQUID_FREEBSD_
+#if USE_ASYNC_IO && defined(LINUXTHREADS)
+#define _SQUID_LINUX_THREADS_
+#endif
 
 #elif defined(__sgi__)	|| defined(sgi) || defined(__sgi) /* SGI */
 #define _SQUID_SGI_
