@@ -950,6 +950,8 @@ minimum_direct_hops 4
 #	* Indicates actions which will not be performed without a
 #	  valid password, others can be performed if not listed here.
 #
+#	To disable an action, set the password to "none".
+#
 #Examples:
 #
 #	cachemgr_passwd secret shutdown
