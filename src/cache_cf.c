@@ -1048,6 +1048,7 @@ int parseConfigFile(file_name)
     configFreeMemory();
     configSetFactoryDefaults();
     aclDestroyAcls();
+    aclDestroyDenyInfoList(&DenyInfoList);
     aclDestroyAccessList(&HTTPAccessList);
     aclDestroyAccessList(&ICPAccessList);
 
@@ -1137,6 +1138,9 @@ int parseConfigFile(file_name)
 
 	else if (!strcmp(token, "acl"))
 	    aclParseAclLine();
+
+	else if (!strcmp(token, "deny_info"))
+	    aclParseDenyInfoLine(&DenyInfoList);
 
 	else if (!strcmp(token, "http_access"))
 	    aclParseAccessLine(&HTTPAccessList);
