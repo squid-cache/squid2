@@ -171,7 +171,6 @@ delayUnregisterDelayIdPtr(delay_id * loc)
     hash_link *lnk;
     if (!delay_id_ptr_hash)
 	return;
-    debug(77, 3) ("delayUnregisterDelayIdPtr: looking for key=%p\n", loc);
     lnk = hash_lookup(delay_id_ptr_hash, loc);
     assert(lnk);
     hash_remove_link(delay_id_ptr_hash, lnk);
