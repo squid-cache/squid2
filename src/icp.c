@@ -2069,23 +2069,24 @@ icpConstruct304reply(struct _http_reply *source)
     memset(reply, '\0', 8192);
     strcpy(reply, "HTTP/1.0 304 Not Modified\r\n");
     if (source->date > -1) {
-	sprintf(line, "Date: %s\n", mkrfc1123(source->date));
+	sprintf(line, "Date: %s\r\n", mkrfc1123(source->date));
 	strcat(reply, line);
     }
     if ((int) strlen(source->content_type) > 0) {
-	sprintf(line, "Content-type: %s\n", source->content_type);
+	sprintf(line, "Content-type: %s\r\n", source->content_type);
 	strcat(reply, line);
     }
     if (source->content_length) {
-	sprintf(line, "Content-length: %d\n", source->content_length);
+	sprintf(line, "Content-length: %d\r\n", source->content_length);
 	strcat(reply, line);
     }
     if (source->expires > -1) {
-	sprintf(line, "Expires: %s\n", mkrfc1123(source->expires));
+	sprintf(line, "Expires: %s\r\n", mkrfc1123(source->expires));
 	strcat(reply, line);
     }
     if (source->last_modified > -1) {
-	sprintf(line, "Last-modified: %s\n", mkrfc1123(source->last_modified));
+	sprintf(line, "Last-modified: %s\r\n",
+		mkrfc1123(source->last_modified));
 	strcat(reply, line);
     }
     sprintf(line, "\r\n");
