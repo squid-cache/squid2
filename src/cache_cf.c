@@ -199,7 +199,7 @@ struct SquidConfig Config;
 #define DefaultIpcacheHigh	95
 #define DefaultMinDirectHops	4
 #define DefaultMaxObjectSize	(4<<20)		/* 4Mb */
-#define DefaultAvgObjectSize	20	/* 20k */
+#define DefaultAvgObjectSize	13	/* 13k */
 #define DefaultObjectsPerBucket	20
 
 #define DefaultLevelOneDirs	16

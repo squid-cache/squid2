@@ -1143,9 +1143,9 @@ minimum_direct_hops 4
 #  TAG: store_avg_object_size
 #	Average object size, used to estimate number of objects your
 #	cache can hold.  See doc/Release-Notes-1.1.txt.  The default is
-#	20K.
+#	13K.
 #
-#store_avg_object_size 20
+#store_avg_object_size 13
 
 #  TAG: store_objects_per_bucket
 #	Target number of objects per bucket in the store hash table.

@@ -2358,7 +2358,7 @@ storeInitHashValues(void)
     int i;
     /* Calculate size of hash table (maximum currently 64k buckets).  */
     i = Config.Swap.maxSize / Config.Store.avgObjectSize;
-    MAX_SWAP_FILE = i * 3 / 2;	/* 150% of estimated objects */
+    MAX_SWAP_FILE = i * 2;	/* 200% of estimated objects */
     debug(20, 1, "Swap maxSize %d, estimated %d objects\n",
 	Config.Swap.maxSize, i);
     i /= Config.Store.objectsPerBucket;
