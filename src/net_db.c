@@ -401,7 +401,7 @@ static void
 netdbReloadState(void)
 {
     LOCAL_ARRAY(char, path, SQUID_MAXPATHLEN);
-    char *buf = memAllocate(MEM_4K_BUF);
+    char *buf;
     char *t;
     FILE *fp;
     netdbEntry *n;
@@ -413,6 +413,7 @@ netdbReloadState(void)
     fp = fopen(path, "r");
     if (fp == NULL)
 	return;
+    buf = memAllocate(MEM_4K_BUF);
     while (fgets(buf, 4095, fp)) {
 	memset(&N, '\0', sizeof(netdbEntry));
 	if ((t = strtok(buf, w_space)) == NULL)
