@@ -307,7 +307,9 @@ normal_shutdown(void)
     fdstatFreeMemory();
     errorpageFreeMemory();
     stmemFreeMemory();
+#if USE_ICMP
     netdbFreeMemory();
+#endif
     ipcacheFreeMemory();
     fqdncacheFreeMemory();
     debug(21, 0, "Squid Cache (Version %s): Exiting normally.\n",
