@@ -363,7 +363,6 @@ storeDirWriteCleanLogs(int reopen)
     struct timeval start;
     double dt;
     SwapDir *sd;
-    RemovalPolicyWalker **walkers;
     int dirn;
     int notdone = 1;
     if (store_dirs_rebuilding) {
@@ -374,7 +373,6 @@ storeDirWriteCleanLogs(int reopen)
     debug(20, 1) ("storeDirWriteCleanLogs: Starting...\n");
     getCurrentTime();
     start = current_time;
-    walkers = xcalloc(Config.cacheSwap.n_configured, sizeof *walkers);
     for (dirn = 0; dirn < Config.cacheSwap.n_configured; dirn++) {
 	sd = &Config.cacheSwap.swapDirs[dirn];
 	if (sd->log.clean.start(sd) < 0) {
