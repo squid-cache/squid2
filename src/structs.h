@@ -2075,7 +2075,7 @@ struct _helper_stateful_server {
 	unsigned int busy:1;
 	unsigned int closing:1;
 	unsigned int shutdown:1;
-	stateful_helper_reserve_t reserved:2;
+	stateful_helper_reserve_t reserved;
     } flags;
     struct {
 	int uses;
