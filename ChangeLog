@@ -1,3 +1,87 @@
+Changes to Squid-2.4.STABLE1 (Jan 12, 2001):
+
+	- Various fixes for CYGWIN
+	- Upgraded MSNT auth module to version 2.0.
+	- Fixed potential problems with HTML by making sure all
+	  HTML output is properly encoded.
+	- Fixed a memory initialization problem with resource records in
+	  lib/rfc1035.c.
+	- Rewrote date parsing in lib/rfc1123.c and made it a little
+	  more lenient.
+	- Added Cache-control: max-stale support.
+	- Fixed 'range_offset_limit' again.  The problem this time
+	  is that client_side.c wouldn't set the we_dont_do_ranges
+	  flag for normal cache misses.  It was only being set for
+	  requests that might have been hits, but we decided to
+	  change to a miss.
+	- Added the Authenticate-Info and Proxy-Authenticate-Info
+	  headers from RFC 2617.
+	- HTTP header lines longer than 64K could cause an assertion.
+	  Now they get ignored.
+	- Fixed an IP address scanning bug that caused "123.foo.com"
+	  to be interpreted as an IP address.
+	- Converted many structure allocations to use mem pools.
+	- Changed proxy authentication to strip leading whitespace
+	  from usernames after decoding.
+	- Prevented NULL pointer access in aclMatchAcl().  Some
+	  ACL types require checklist->request_t, but it won't be
+	  available in some cases (like snmp_access).  Warn the
+	  admin that the ACL can't be checked and that we're denying
+	  it.
+	- Allow zero-size disk caches.
+	- The actual filesystem blocksize is now used to account
+	  for space overheads when calculating on-disk cache size.
+	- Made the maximum memory cache object size configurable.
+	- Added 'minimum_direct_rtt' configuration option.
+	- Added 'ie_refresh' configuration option, which is a hack
+	  to turn IMS requests into no-cache requests.
+	- Added Linux netfilter support for intercepted connections.
+	- Fixed a bug with clientAccessCheck() that allowed proxy
+	  requests in accel mode.
+	- Fixed a bug with 301/302 replies from redirectors.  Now
+	  we force them to be cache misses.
+	- Accommodated changes to the IP-Filter ioctl() interface
+	  for intercepted connections.
+	- Fixed handling of client lifetime timeouts.
+	- Fixed a buffer overflow bug with internal DNS replies
+	  by truncating received packets to 512 bytes, as per
+	  RFC 1035.
+	- Added "forward.log" support, but its work in progress.
+	- Rewrote much of the IP and FQDN cache implementation.
+	  This change gets rid of pending hits.
+	- Changed peerWouldBePinged() to return false if our 
+	  ICP/HTCP port is zero (i.e. disabled).
+	- Changed src/net_db.c to use src/logfile.c routines,
+	  rather than stdio, because of solaris stdio filedescriptor
+	  limits.
+	- Made netdbReloadState() more robust in case of corrupted
+	  data.
+	- Rewrote some freshness/staleness functions in src/refresh.c,
+	  partially inspired to support cache-control max-stale.
+	- Fixed status code logging for SSL/CONNECT requests.
+	- Added a hack to subtract cache digest network traffic
+	  from statistics so that byte hit ratio stays positive
+	  and more closely reflects what people expect it to be.
+	- Fixed a bug with storeCheckTooSmall() that caused
+	  internal icons and cache digests to always be released.
+	- Added statfs(2) support for displaying actual filesystem
+	  usage in the cache manager 'storedir' output.
+	- Changed status reporting for storage rebuilding.  Now it
+	  prints percentage complete instead of number of entries
+	  parsed.
+	- Use mkstemp() rather than problem-prone tempnam().
+	- Changed urlParse() to condense multiple dots in hostnames.
+	- Major rewrite of async-io (src/fs/aufs) to make it behave
+	  a bit more sane with substantially less overhead.  Some
+	  tuning work still remains to make it perform optimal.
+	  See the start of store_asyncufs.h for all the knobs.
+	- Fixed storage FS modules to use individual swap space 
+	  high/low values rather than the global ones.
+	- Fixed storage FS bugs with calling file_map_bit_reset()
+	  before checking the bit value.  Calling with an invalid
+	  value caused memory corruption in random places.
+	- Prevent NULL pointer access in store_repl_lru.c for
+	  entries that exist in the hash but not the LRU list.
 
 Changes to Squid-2.4.DEVEL4 ():
 
