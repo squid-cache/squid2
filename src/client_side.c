@@ -942,7 +942,10 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	    *p = '\0';
 	    writelen = p - buf;
 	    /* force end */
-	    http->out.offset = entry->mem_obj->inmem_hi;
+	    if (entry->store_status == STORE_PENDING)
+	        http->out.offset = entry->mem_obj->inmem_hi;
+	    else
+	        http->out.offset = entry->object_len;
 	}
     }
     comm_write(fd, buf, writelen, clientWriteComplete, http, freefunc);
