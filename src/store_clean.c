@@ -49,25 +49,28 @@
 
 void storeDirClean()
 {
-    static int dirno = 0;
-    static int l1_dirno = 0;
-    static int l2_dirno = 0;
+    static int index = 0;
     static DIR *dp = NULL;
     struct dirent *de = NULL;
-    static char p2[MAXPATHLEN + 1];
-    static char p1[MAXPATHLEN + 1];
+    LOCAL_ARRAY(char,p1, MAXPATHLEN + 1);
+    LOCAL_ARRAY(char,p2, MAXPATHLEN + 1);
     int fileno;
-    int count = 0;
-    sprintf(p1, "%s/%02X/%02X", swappath(dirno), l1_dirno, l2_dirno);
+    static int count;
+    int n = 0;
+    sprintf(p1, "%s/%02X/%02X",
+	swappath(index),
+        (index / ncache_dirs) % SWAP_DIRECTORIES_L1,
+        (index / ncache_dirs) / SWAP_DIRECTORIES_L1 % SWAP_DIRECTORIES_L2);
     debug(36, 3, "storeDirClean: Cleaning directory %s\n", p1);
     if (dp == NULL) {
+	count = 0;
 	dp = opendir(p1);
 	if (dp == NULL) {
 	    debug(36, 0, "storeDirClean: %s: %s\n", p1, xstrerror());
 	    fatal_dump(NULL);
 	}
     }
-    while ((de = readdir(dp))) {
+    while ((de = readdir(dp)) && n < 10) {
 	if (sscanf(de->d_name, "%X", &fileno) != 1)
 	    continue;
 	if (file_map_bit_test(fileno))
@@ -75,24 +78,13 @@ void storeDirClean()
 	sprintf(p2, "%s/%s", p1, de->d_name);
 	debug(36, 3, "storeDirClean: Cleaning file %d\n", fileno);
 	if (safeunlink(p2, 0) == 0)
-	    count++;
-	if (count == 10)
-	    break;
+	    count++, n++;
     }
-    debug(36, count ? 1 : 3, "storeDirClean: Cleaned %d unused files from %s\n",
-	count, p1);
     if (de == NULL) {
+    	debug(36, count ? 1 : 3, "Cleaned %d unused files from %s\n",
+		count, p1);
 	closedir(dp);
 	dp = NULL;
-	if (++l2_dirno == SWAP_DIRECTORIES_L2) {
-	    l2_dirno = 0;
-	    l1_dirno++;
-	}
-	if (++l1_dirno == SWAP_DIRECTORIES_L1) {
-	    l1_dirno = 0;
-	    dirno++;
-	}
-	if (dirno == ncache_dirs)
-	    dirno = 0;
+	index++;
     }
 }
