@@ -163,14 +163,13 @@ static void protoDataFree(fdunused, protoData)
 }
 
 /* called when DNS lookup is done by ipcache. */
-int protoDispatchDNSHandle(unused1, unused2, data)
+int protoDispatchDNSHandle(unused1, hp, data)
      int unused1;		/* filedescriptor */
-     struct hostent *unused2;
+     struct hostent *hp;
      void *data;
 {
     edge *e = NULL;
     struct in_addr srv_addr;
-    struct hostent *hp = NULL;
     protodispatch_data *protoData = (protodispatch_data *) data;
     StoreEntry *entry = protoData->entry;
     request_t *req = protoData->request;
@@ -182,7 +181,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     BIT_RESET(entry->flag, IP_LOOKUP_PENDING);
 
     if (protoData->direct_fetch == DIRECT_YES) {
-	if (ipcache_gethostbyname(req->host, 0) == NULL) {
+	if (hp == NULL) {
 	    protoDNSError(protoData->fd, entry);
 	    return 0;
 	}
@@ -191,7 +190,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_MAYBE && (Config.local_ip_list || Config.firewall_ip_list)) {
-	if ((hp = ipcache_gethostbyname(req->host, 0)) == NULL) {
+	if (hp == NULL) {
 	    debug(17, 1, "Unknown host: %s\n", req->host);
 	} else if (Config.firewall_ip_list) {
 	    xmemcpy(&srv_addr, *(hp->h_addr_list + 0), hp->h_length);
@@ -248,7 +247,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents were queried and the host is beyond your firewall.");
     } else {
-	if (ipcache_gethostbyname(req->host, 0) == NULL) {
+	if (hp == NULL) {
 	    protoDNSError(protoData->fd, entry);
 	    return 0;
 	}
@@ -406,8 +405,8 @@ void protoCancelTimeout(fd, entry)
 }
 
 /*
- *  Called from comm_select() if neighbor pings timeout or from
- *  neighborsUdpAck() if all parents and neighbors miss.
+ *  Called from comm_select() if neighbor pings timeout
+ *  or from neighborsUdpAck() if all neighbors miss.
  */
 int getFromDefaultSource(fd, entry)
      int fd;
