@@ -134,7 +134,7 @@ typedef struct _ipcache_entry {
     ipcache_status_t status:3;
 } ipcache_entry;
 
-extern int ipcache_nbgethostbyname _PARAMS((char *name, int fd, IPH handler, void *handlerData));
+extern void ipcache_nbgethostbyname _PARAMS((char *name, int fd, IPH handler, void *handlerData));
 extern int ipcache_unregister _PARAMS((char *, int));
 extern struct hostent *ipcache_gethostbyname _PARAMS((char *, int flags));
 extern void ipcache_init _PARAMS((void));

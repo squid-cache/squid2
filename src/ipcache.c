@@ -186,6 +186,7 @@ static ipcache_entry *ipcache_get _PARAMS((char *));
 static int dummy_handler _PARAMS((int, struct hostent * hp, void *));
 static int ipcacheExpiredEntry _PARAMS((ipcache_entry *));
 static void ipcacheAddPending _PARAMS((ipcache_entry *, int fd, IPH, void *));
+static struct hostent *ipcacheCheckNumeric _PARAMS((char *name));
 
 static dnsserver_t **dns_child_table = NULL;
 static struct hostent *static_result = NULL;
@@ -879,7 +880,7 @@ static void ipcacheAddPending(i, fd, handler, handlerData)
     *I = pending;
 }
 
-int ipcache_nbgethostbyname(name, fd, handler, handlerData)
+void ipcache_nbgethostbyname(name, fd, handler, handlerData)
      char *name;
      int fd;
      IPH handler;
@@ -887,6 +888,7 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 {
     ipcache_entry *i = NULL;
     dnsserver_t *dnsData = NULL;
+    struct hostent *hp = NULL;
 
     if (!handler)
 	fatal_dump("ipcache_nbgethostbyname: NULL handler");
@@ -897,7 +899,11 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
     if (name == NULL || name[0] == '\0') {
 	debug(14, 4, "ipcache_nbgethostbyname: Invalid name!\n");
 	ipcache_call_pending_badname(fd, handler, handlerData);
-	return 0;
+	return;
+    }
+    if ((hp = ipcacheCheckNumeric(name))) {
+	handler(fd, hp, handlerData);
+	return;
     }
     if ((i = ipcache_get(name))) {
 	if (ipcacheExpiredEntry(i)) {
@@ -923,12 +929,12 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 	    IpcacheStats.hits++;
 	ipcacheAddPending(i, fd, handler, handlerData);
 	ipcache_call_pending(i);
-	return 0;
+	return;
     } else if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
 	debug(14, 4, "ipcache_nbgethostbyname: PENDING for '%s'\n", name);
 	IpcacheStats.pending_hits++;
 	ipcacheAddPending(i, fd, handler, handlerData);
-	return 0;
+	return;
     } else {
 	fatal_dump("ipcache_nbgethostbyname: BAD ipcache_entry status");
     }
@@ -939,7 +945,6 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 	dnsDispatch(dnsData, i);
     else
 	dnsEnqueue(i);
-    return 0;
 }
 
 static void dnsEnqueue(i)
@@ -1149,7 +1154,6 @@ struct hostent *ipcache_gethostbyname(name, flags)
 {
     ipcache_entry *i = NULL;
     struct hostent *hp = NULL;
-    unsigned int ip;
 
     if (!name)
 	fatal_dump("ipcache_gethostbyname: NULL name");
@@ -1175,12 +1179,8 @@ struct hostent *ipcache_gethostbyname(name, flags)
 	}
     }
     IpcacheStats.misses++;
-    /* check if it's already a IP address in text form. */
-    if ((ip = inet_addr(name)) != INADDR_NONE) {
-	*((u_num32 *) (void *) static_result->h_addr_list[0]) = ip;
-	strncpy(static_result->h_name, name, MAX_HOST_NAME);
-	return static_result;
-    }
+    if ((hp = ipcacheCheckNumeric(name)))
+	return hp;
     if (flags & IP_BLOCKING_LOOKUP) {
 	IpcacheStats.ghbn_calls++;
 	hp = gethostbyname(name);
@@ -1326,4 +1326,16 @@ static int ipcacheHasPending(i)
 	if (p->handler)
 	    return 1;
     return 0;
+}
+
+static struct hostent *ipcacheCheckNumeric(name)
+     char *name;
+{
+    unsigned int ip;
+    /* check if it's already a IP address in text form. */
+    if ((ip = inet_addr(name)) == INADDR_NONE)
+	return NULL;
+    *((u_num32 *) (void *) static_result->h_addr_list[0]) = ip;
+    strncpy(static_result->h_name, name, MAX_HOST_NAME);
+    return static_result;
 }
