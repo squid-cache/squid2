@@ -84,7 +84,8 @@ storeCreateSwapDirectories(void)
 	if (fork())
 	    continue;
 	sd = &Config.cacheSwap.swapDirs[i];
-	sd->newfs(sd);
+	if (NULL != sd->newfs)
+	    sd->newfs(sd);
 	exit(0);
     }
     do {
