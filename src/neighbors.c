@@ -354,6 +354,7 @@ void neighborsDestroy()
 	next = e->next;
 	safe_free(e->host);
 	safe_free(e);
+	friends->n--;
     }
     safe_free(friends);
     friends = NULL;
