@@ -517,7 +517,7 @@ parseBytesLine(size_t * bptr, const char *units)
     else if ((m = parseBytesUnits(token)) == 0)
 	self_destruct();
     *bptr = m * d / u;
-    if ((double) *bptr != m * d / u)
+    if ((double) *bptr * 2 != m * d / u * 2)
 	self_destruct();
 }
 
