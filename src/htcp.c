@@ -805,7 +805,7 @@ htcpHandle(char *buf, int sz, struct sockaddr_in *from)
     debug(31, 3) ("htcpHandle: htcpHdr.major = %d\n", (int) htcpHdr.major);
     debug(31, 3) ("htcpHandle: htcpHdr.minor = %d\n", (int) htcpHdr.minor);
     if (sz != htcpHdr.length) {
-	debug(31, 0) ("htcpHandle: sz != htcpHdr.length\n");
+	debug(31, 1) ("htcpHandle: sz != htcpHdr.length\n");
 	return;
     }
     buf += sizeof(htcpHeader);
