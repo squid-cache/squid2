@@ -82,7 +82,9 @@ logfileClose(Logfile * lf)
 void
 logfileRotate(Logfile * lf)
 {
+#ifdef S_ISREG
     struct stat sb;
+#endif
     int i;
     char from[MAXPATHLEN];
     char to[MAXPATHLEN];
