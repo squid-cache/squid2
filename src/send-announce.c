@@ -33,7 +33,7 @@ void send_announce()
 	(int) cached_curtime,
 	mkhttpdlogtime(&cached_curtime));
     strcat(sndbuf, tbuf);
-    l = strlen(buf);
+    l = strlen(sndbuf);
 
     host = getAnnounceHost();
     port = getAnnouncePort();
