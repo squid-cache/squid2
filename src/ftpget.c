@@ -922,7 +922,9 @@ mime_get_type(ftp_request_t * r)
     }
     /* now check for another extension */
     *t = '\0';
-    if (!strcmp(enc, "x-gzip"))
+    if (enc == NULL)
+	goto mime_get_type_done;
+    else if (!strcmp(enc, "x-gzip"))
 	(void) 0;
     else if (!strcmp(enc, "x-compress"))
 	(void) 0;
