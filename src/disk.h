@@ -109,19 +109,13 @@
 #define DISK_OK                   (0)
 #define DISK_ERROR               (-1)
 #define DISK_EOF                 (-2)
-#define DISK_WRT_LOCK_FAIL       (-3)
-#define DISK_WRT_WRONG_CODE      (-4)
 #define DISK_FILE_NOT_FOUND      (-5)
 #define DISK_NO_SPACE_LEFT       (-6)
 
 typedef int (*FILE_READ_HD) (int fd, char *buf, int size, int errflag, void *data);
 typedef void (*FILE_WRITE_HD) (int, int, int, StoreEntry *);
-
 typedef int (*FILE_WALK_HD) (int fd, int errflag, void *data);
-
 typedef int (*FILE_WALK_LHD) (int fd, char *buf, int size, void *line_data);
-
-
 
 typedef struct _dwrite_q {
     char *buf;

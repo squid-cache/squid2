@@ -212,9 +212,6 @@ storeToString(const StoreEntry * e)
 	mem->e_pings_n_pings, mem->e_pings_n_acks);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "SwapAccess: %d\n", mem->e_swap_access);
-    strcat(stsbuf, tmpbuf);
-
     if (!mem->e_abort_msg) {
 	sprintf(tmpbuf, "AbortMsg: NULL.\n");
 	strcat(stsbuf, tmpbuf);

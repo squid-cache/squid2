@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -126,13 +127,15 @@ typedef enum {
     HIER_PARENT_UDP_HIT_OBJ,
     HIER_PASS_PARENT,
     HIER_SSL_PARENT,
+    HIER_ROUNDROBIN_PARENT,
     HIER_MAX
 } hier_code;
 
 typedef enum {
-    EDGE_NONE,
-    EDGE_SIBLING,
-    EDGE_PARENT
+    PEER_NONE,
+    PEER_SIBLING,
+    PEER_PARENT,
+    PEER_MULTICAST
 } neighbor_t;
 
 /* Mark a neighbor cache as dead if it doesn't answer this many pings */
@@ -150,14 +153,16 @@ struct _domain_type {
     struct _domain_type *next;
 };
 
-/* bitfields for edge->options */
+/* bitfields for peer->options */
 #define NEIGHBOR_PROXY_ONLY 0x01
 #define NEIGHBOR_NO_QUERY   0x02
 #define NEIGHBOR_DEFAULT_PARENT   0x04
+#define NEIGHBOR_ROUNDROBIN   0x08
+#define NEIGHBOR_MCAST_RESPONDER 0x10
 
-#define EDGE_MAX_ADDRESSES 10
+#define PEER_MAX_ADDRESSES 10
 #define RTT_AV_FACTOR      1000
-struct _edge {
+struct _peer {
     char *host;
     neighbor_t type;
     struct sockaddr_in in_addr;
@@ -182,7 +187,8 @@ struct _edge {
     time_t last_fail_time;	/* detect down dumb caches */
     struct in_addr addresses[10];
     int n_addresses;
-    struct _edge *next;
+    struct _peer *next;
+    int rr_count;
 };
 
 struct _hierarchyLogData {
@@ -191,10 +197,10 @@ struct _hierarchyLogData {
     int timeout;
 };
 
-extern edge *getFirstEdge _PARAMS((void));
-extern edge *getFirstUpParent _PARAMS((request_t *));
-extern edge *getNextEdge _PARAMS((edge *));
-extern edge *getSingleParent _PARAMS((request_t *));
+extern peer *getFirstPeer _PARAMS((void));
+extern peer *getFirstUpParent _PARAMS((request_t *));
+extern peer *getNextPeer _PARAMS((peer *));
+extern peer *getSingleParent _PARAMS((request_t *));
 extern int neighborsCount _PARAMS((request_t *));
 extern int neighborsUdpPing _PARAMS((protodispatch_data *));
 extern void neighborAddDomainPing _PARAMS((const char *, const char *));
@@ -205,11 +211,14 @@ extern void neighborsUdpAck _PARAMS((int, const char *, icp_common_t *, const st
 extern void neighborAdd _PARAMS((const char *, const char *, int, int, int, int, int));
 extern void neighbors_open _PARAMS((int));
 extern void neighborsDestroy _PARAMS((void));
-extern edge *neighborFindByName _PARAMS((const char *));
+extern peer *neighborFindByName _PARAMS((const char *));
 extern void neighbors_init _PARAMS((void));
-extern edge *getDefaultParent _PARAMS((request_t * request));
-extern int neighborUp _PARAMS((edge * e));
-extern void edgeDestroy _PARAMS((edge * e));
+extern peer *getDefaultParent _PARAMS((request_t * request));
+extern peer *getRoundRobinParent _PARAMS((request_t * request));
+extern int neighborUp _PARAMS((peer * e));
+extern void peerDestroy _PARAMS((peer * e));
+extern void peerUpdateFudge _PARAMS((void *));
+extern char *neighborTypeStr _PARAMS((peer * e));
 
 extern const char *hier_strings[];
 

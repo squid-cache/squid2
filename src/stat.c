@@ -553,19 +553,19 @@ dummyhandler(cacheinfo * obj, StoreEntry * sentry)
 static void
 server_list(const cacheinfo * obj, StoreEntry * sentry)
 {
-    edge *e = NULL;
+    peer *e = NULL;
     struct _domain_ping *d = NULL;
     icp_opcode op;
 
     storeAppendPrintf(sentry, open_bracket);
 
-    if (getFirstEdge() == NULL)
+    if (getFirstPeer() == NULL)
 	storeAppendPrintf(sentry, "{There are no neighbors installed.}\n");
-    for (e = getFirstEdge(); e; e = getNextEdge(e)) {
+    for (e = getFirstPeer(); e; e = getNextPeer(e)) {
 	if (e->host == NULL)
-	    fatal_dump("Found an edge without a hostname!");
+	    fatal_dump("Found an peer without a hostname!");
 	storeAppendPrintf(sentry, "\n{%-11.11s: %s/%d/%d}\n",
-	    e->type == EDGE_PARENT ? "Parent" : "Sibling",
+	    neighborTypeStr(e),
 	    e->host,
 	    e->http_port,
 	    e->icp_port);
@@ -577,6 +577,9 @@ server_list(const cacheinfo * obj, StoreEntry * sentry)
 	storeAppendPrintf(sentry, "{PINGS ACKED: %8d %3d%%}\n",
 	    e->stats.pings_acked,
 	    percent(e->stats.pings_acked, e->stats.pings_sent));
+	storeAppendPrintf(sentry, "{FETCHES    : %8d %3d%%}\n",
+	    e->stats.fetches,
+	    percent(e->stats.fetches, e->stats.pings_acked));
 	storeAppendPrintf(sentry, "{IGNORED    : %8d %3d%%}\n",
 	    e->stats.ignored_replies,
 	    percent(e->stats.ignored_replies, e->stats.pings_acked));
@@ -584,15 +587,11 @@ server_list(const cacheinfo * obj, StoreEntry * sentry)
 	for (op = ICP_OP_INVALID; op < ICP_OP_END; op++) {
 	    if (e->stats.counts[op] == 0)
 		continue;
-	    storeAppendPrintf(sentry, "{%-10.10s : %8d %3d%%}\n",
+	    storeAppendPrintf(sentry, "{    %12.12s : %8d %3d%%}\n",
 		IcpOpcodeStr[op],
 		e->stats.counts[op],
 		percent(e->stats.counts[op], e->stats.pings_acked));
 	}
-	storeAppendPrintf(sentry, "{FETCHES    : %8d %3d%%}\n",
-	    e->stats.fetches,
-	    percent(e->stats.fetches, e->stats.pings_acked));
-
 	if (e->last_fail_time) {
 	    storeAppendPrintf(sentry, "{Last failed connect() at: %s}\n",
 		mkhttpdlogtime(&(e->last_fail_time)));
@@ -1343,9 +1342,11 @@ stat_rotate_log(void)
 
     if ((fname = HTTPCacheInfo->logfilename) == NULL)
 	return;
+#ifdef S_ISREG
     if (stat(fname, &sb) == 0)
 	if (S_ISREG(sb.st_mode) == 0)
 	    return;
+#endif
 
     debug(18, 1, "stat_rotate_log: Rotating\n");
 

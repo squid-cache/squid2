@@ -410,6 +410,7 @@ httpParseReplyHeaders(const char *buf, struct _http_reply *reply)
 	    }
 	} else if (!strncasecmp(t, "Set-Cookie:", 11)) {
 	    EBIT_SET(reply->misc_headers, HDR_SET_COOKIE);
+	    ReplyHeaderStats.misc[HDR_SET_COOKIE]++;
 	}
     }
     put_free_4k_page(headers);
@@ -684,7 +685,11 @@ httpAppendRequestHeader(char *hdr, const char *line, size_t * sz, size_t max)
     if (n >= max)
 	return;
 #ifdef USE_ANONYMIZER
-    if (!httpAnonSearchHeaderField(http_anon_allowed_header, line)) {
+#ifdef USE_PARANOID_ANONYMIZER
+    if (httpAnonSearchHeaderField(http_anon_allowed_header, line) == NULL) {
+#else
+    if (httpAnonSearchHeaderField(http_anon_denied_header, line) == NULL) {
+#endif
 	debug(11, 5, "httpAppendRequestHeader: removed for anonymity: <%s>\n",
 	    line);
 	return;
@@ -873,7 +878,7 @@ int
 proxyhttpStart(const char *url,
     request_t * orig_request,
     StoreEntry * entry,
-    edge * e)
+    peer * e)
 {
     int sock;
     HttpStateData *httpState = NULL;
@@ -950,7 +955,7 @@ httpConnectDone(int fd, int status, void *data)
     HttpStateData *httpState = data;
     request_t *request = httpState->request;
     StoreEntry *entry = httpState->entry;
-    edge *e = NULL;
+    peer *e = NULL;
     if (status != COMM_OK) {
 	if ((e = httpState->neighbor))
 	    e->last_fail_time = squid_curtime;

@@ -162,6 +162,11 @@ struct storeRebuild_data {
     char line_in[4096];
 };
 
+struct _bucketOrder {
+    unsigned int bucket;
+    int index;
+};
+
 /* initializtion flag */
 int store_rebuilding = STORE_REBUILDING_SLOW;
 
@@ -169,7 +174,7 @@ int store_rebuilding = STORE_REBUILDING_SLOW;
 static char *storeSwapFullPath _PARAMS((int, char *));
 static HashID storeCreateHashTable _PARAMS((int (*)_PARAMS((const char *, const char *))));
 static int compareLastRef _PARAMS((StoreEntry **, StoreEntry **));
-static int compareRandom _PARAMS((int *a, int *b));
+static int compareBucketOrder _PARAMS((struct _bucketOrder *, struct _bucketOrder *));
 static int storeAddSwapDisk _PARAMS((const char *));
 static int storeCheckExpired _PARAMS((const StoreEntry *));
 static int storeClientListSearch _PARAMS((const MemObject *, int));
@@ -227,7 +232,7 @@ static int store_buckets;
 int store_maintain_rate;
 static int store_maintain_buckets;
 int scan_revolutions;
-static unsigned int *MaintBucketsOrder;
+static struct _bucketOrder *MaintBucketsOrder = NULL;
 
 static MemObject *
 new_MemObject(void)
@@ -919,7 +924,6 @@ storeSwapLog(const StoreEntry * e)
 	xfree);
 }
 
-
 static int
 storeOpenSwapFileWrite(StoreEntry * e)
 {
@@ -1176,7 +1180,7 @@ storeStartRebuildFromDisk(void)
 	    tmp_filename, xstrerror());
 	fatal("storeStartRebuildFromDisk: Can't open tmp swaplog");
     }
-    /* storeOpenSwapFileWrite the existing swap log for reading */
+    /* Open the existing swap log for reading */
     if ((data->log = fopen(swaplog_file, "r")) == (FILE *) NULL) {
 	sprintf(tmp_error_buf, "storeRebuildFromDisk: %s: %s",
 	    swaplog_file, xstrerror());
@@ -1291,15 +1295,9 @@ compareLastRef(StoreEntry ** e1, StoreEntry ** e2)
 }
 
 static int
-compareRandom(int *a, int *b)
+compareBucketOrder(struct _bucketOrder *a, struct _bucketOrder *b)
 {
-#if HAVE_RANDOM
-    return random() - random();
-#elif HAVE_LRAND48
-    return lrand48() - lrand48();
-#else
-    return rand() - rand();
-#endif
+    return a->index - b->index;
 }
 
 /* returns the bucket number to work on,
@@ -1338,7 +1336,7 @@ storeGetSwapSpace(int size)
     int i;
     StoreEntry **LRU_list;
     hash_link *link_ptr = NULL, *next = NULL;
-    unsigned int kb_size = ((size + 1023) >> 10);
+    int kb_size = ((size + 1023) >> 10);
 
     if (store_swap_size + kb_size <= store_swap_low)
 	fReduceSwap = 0;
@@ -1437,18 +1435,15 @@ storeGetSwapSpace(int size)
     safe_free(LRU_list);
 
     if ((store_swap_size + kb_size > store_swap_high)) {
+	i = 2;
 	if (++swap_help > SWAP_MAX_HELP) {
-	    debug(20, 0, "storeGetSwapSpace: Nothing to free with %d Kbytes in use.\n",
-		store_swap_size);
-	    debug(20, 0, "--> Asking for %d bytes\n", size);
-	    debug(20, 0, "WARNING! Repeated failures to allocate swap space!\n");
-	    debug(20, 0, "WARNING! Please check your disk space.\n");
-	    swap_help = 0;
-	} else {
-	    debug(20, 2, "storeGetSwapSpace: Nothing to free with %d Kbytes in use.\n",
-		store_swap_size);
-	    debug(20, 2, "--> Asking for %d bytes\n", size);
+	    debug(20, 0, "WARNING! Repeated failures to free up disk space!\n");
+	    i = 0;
 	}
+	debug(20, i, "storeGetSwapSpace: Disk usage is over high water mark\n");
+	debug(20, i, "--> store_swap_high = %d KB\n", store_swap_high);
+	debug(20, i, "--> store_swap_size = %d KB\n", store_swap_size);
+	debug(20, i, "--> asking for        %d KB\n", kb_size);
     } else {
 	swap_help = 0;
     }
@@ -1725,6 +1720,32 @@ storeCreateSwapSubDirs(void)
     }
 }
 
+#if HAVE_RANDOM
+#define squid_random random
+#elif HAVE_LRAND48
+#define squid_random lrand48
+#else
+#define squid_random rand
+#endif
+
+static void
+storeRandomizeBuckets(void)
+{
+    int i;
+    struct _bucketOrder *b;
+    if (MaintBucketsOrder == NULL)
+	MaintBucketsOrder = xcalloc(store_buckets, sizeof(struct _bucketOrder));
+    for (i = 0; i < store_buckets; i++) {
+	b = MaintBucketsOrder + i;
+	b->bucket = (unsigned int) i;
+	b->index = (int) squid_random();
+    }
+    qsort((char *) MaintBucketsOrder,
+	store_buckets,
+	sizeof(struct _bucketOrder),
+	             (QS) compareBucketOrder);
+}
+
 static void
 storeInitHashValues(void)
 {
@@ -1748,13 +1769,7 @@ storeInitHashValues(void)
     else
 	store_buckets = 65357, store_maintain_rate = 1;
     store_maintain_buckets = 1;
-    MaintBucketsOrder = xcalloc(store_buckets, sizeof(unsigned int));
-    for (i = 0; i < store_buckets; i++)
-	*(MaintBucketsOrder + i) = (unsigned int) i;
-    qsort((char *) MaintBucketsOrder,
-	store_buckets,
-	sizeof(unsigned int),
-	    (QS) compareRandom);
+    storeRandomizeBuckets();
     debug(20, 1, "Using %d Store buckets, maintain %d bucket%s every %d second%s\n",
 	store_buckets,
 	store_maintain_buckets,
@@ -1873,12 +1888,12 @@ storeMaintainSwapSpace(void *unused)
 {
     static time_t last_time = 0;
     static int bucket_index = 0;
-    static unsigned int bucket;
     hash_link *link_ptr = NULL, *next = NULL;
     StoreEntry *e = NULL;
     int rm_obj = 0;
     int scan_buckets = 0;
     int scan_obj = 0;
+    static struct _bucketOrder *b;
 
     eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 1);
     /* We can't delete objects while rebuilding swap */
@@ -1896,12 +1911,12 @@ storeMaintainSwapSpace(void *unused)
 	    if (bucket_index >= store_buckets) {
 		bucket_index = 0;
 		scan_revolutions++;
-		debug(20, 1, "Completed %d full expiration scans of store table\n",
+		debug(51, 1, "Completed %d full expiration scans of store table\n",
 		    scan_revolutions);
+		storeRandomizeBuckets();
 	    }
-	    bucket = *(MaintBucketsOrder + bucket_index);
-	    bucket_index++;
-	    next = hash_get_bucket(store_table, bucket);
+	    b = MaintBucketsOrder + bucket_index++;
+	    next = hash_get_bucket(store_table, b->bucket);
 	    while ((link_ptr = next)) {
 		scan_obj++;
 		next = link_ptr->next;
@@ -1912,8 +1927,8 @@ storeMaintainSwapSpace(void *unused)
 	    }
 	}
     }
-    debug(20, rm_obj ? 1 : 2, "Removed %d of %d objects from bucket %d\n",
-	rm_obj, scan_obj, (int) bucket);
+    debug(51, rm_obj ? 2 : 9, "Removed %d of %d objects from bucket %d\n",
+	rm_obj, scan_obj, (int) b->bucket);
     /* Scan row of hash table each second and free storage if we're
      * over the high-water mark */
     storeGetSwapSpace(0);
@@ -2043,9 +2058,11 @@ storeRotateLog(void)
 	return;
     if (strcmp(fname, "none") == 0)
 	return;
+#ifdef S_ISREG
     if (stat(fname, &sb) == 0)
 	if (S_ISREG(sb.st_mode) == 0)
 	    return;
+#endif
 
     debug(20, 1, "storeRotateLog: Rotating.\n");
 

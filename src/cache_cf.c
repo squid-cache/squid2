@@ -257,7 +257,7 @@ static void parseMinutesLine _PARAMS((int *));
 static void ip_acl_destroy _PARAMS((ip_acl **));
 static void parseCachemgrPasswd _PARAMS((void));
 static void parsePathname _PARAMS((char **));
-static void parseProxyLine _PARAMS((edge **));
+static void parseProxyLine _PARAMS((peer **));
 
 static void
 self_destruct(void)
@@ -491,12 +491,16 @@ parseCacheHostLine(void)
 	    options |= NEIGHBOR_PROXY_ONLY;
 	} else if (!strcasecmp(token, "no-query")) {
 	    options |= NEIGHBOR_NO_QUERY;
+	} else if (!strcasecmp(token, "multicast-responder")) {
+	    options |= NEIGHBOR_MCAST_RESPONDER;
 	} else if (!strncasecmp(token, "weight=", 7)) {
 	    weight = atoi(token + 7);
 	} else if (!strncasecmp(token, "ttl=", 4)) {
 	    mcast_ttl = atoi(token + 4);
 	} else if (!strncasecmp(token, "default", 7)) {
 	    options |= NEIGHBOR_DEFAULT_PARENT;
+	} else if (!strncasecmp(token, "round-robin", 11)) {
+	    options |= NEIGHBOR_ROUNDROBIN;
 	} else {
 	    debug(3, 0, "parseCacheHostLine: token='%s'\n", token);
 	    self_destruct();
@@ -962,19 +966,19 @@ parseVizHackLine(void)
 }
 
 static void
-parseProxyLine(edge ** E)
+parseProxyLine(peer ** E)
 {
     char *token;
     char *t;
-    edge *e;
+    peer *e;
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
     if (*E) {
-	edgeDestroy(*E);
+	peerDestroy(*E);
 	*E = NULL;
     }
-    e = xcalloc(1, sizeof(edge));
+    e = xcalloc(1, sizeof(peer));
     if ((t = strchr(token, ':'))) {
 	*t++ = '\0';
 	e->http_port = atoi(t);
@@ -1212,6 +1216,8 @@ parseConfigFile(const char *file_name)
 
 	else if (!strcmp(token, "dns_children"))
 	    parseIntegerValue(&Config.dnsChildren);
+	else if (!strcmp(token, "dns_defnames"))
+	    parseOnOff(&Config.Options.res_defnames);
 
 	else if (!strcmp(token, "redirect_program"))
 	    parsePathname(&Config.Program.redirect);
@@ -1461,8 +1467,8 @@ configFreeMemory(void)
     safe_free(Config.Announce.host);
     safe_free(Config.Announce.file);
     safe_free(Config.errHtmlText);
-    edgeDestroy(Config.sslProxy);
-    edgeDestroy(Config.passProxy);
+    peerDestroy(Config.sslProxy);
+    peerDestroy(Config.passProxy);
     wordlistDestroy(&Config.cache_dirs);
     wordlistDestroy(&Config.hierarchy_stoplist);
     wordlistDestroy(&Config.local_domain_list);

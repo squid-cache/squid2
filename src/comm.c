@@ -441,7 +441,7 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 	lft = comm_set_fd_lifetime(sock, Config.lifetimeDefault);
 	debug(5, 10, "comm_connect_addr: FD %d connected to %s:%d, lifetime %d.\n",
 	    sock, conn->ipaddr, conn->remote_port, lft);
-    } else if (status == EINPROGRESS) {
+    } else if (status == COMM_INPROGRESS) {
 	lft = comm_set_fd_lifetime(sock, Config.connectTimeout);
 	debug(5, 10, "comm_connect_addr: FD %d connection pending, lifetime %d\n",
 	    sock, lft);
@@ -957,7 +957,9 @@ comm_select(time_t sec)
 	maxfd = fdstat_biggest_fd() + 1;
 	for (i = 0; i < maxfd; i++) {
 	    /* Check each open socket for a handler. */
-	    if (fd_table[i].read_handler && fd_table[i].stall_until <= squid_curtime) {
+	    if (fd_table[i].stall_until > squid_curtime)
+		continue;
+	    if (fd_table[i].read_handler) {
 		nfds++;
 		FD_SET(i, &readfds);
 	    }
@@ -1010,20 +1012,17 @@ comm_select(time_t sec)
 	for (fd = 0; fd < maxfd; fd++) {
 	    if (!FD_ISSET(fd, &readfds) && !FD_ISSET(fd, &writefds))
 		continue;
-
 	    /*
 	     * Admit more connections quickly until we hit the hard limit.
 	     * Don't forget to keep the UDP acks coming and going.
 	     */
 	    comm_select_incoming();
-
 	    if (fd == theInIcpConnection)
 		continue;
 	    if (fd == theOutIcpConnection)
 		continue;
 	    if (fd == theHttpConnection)
 		continue;
-
 	    if (FD_ISSET(fd, &readfds)) {
 		debug(5, 6, "comm_select: FD %d ready for reading\n", fd);
 		if (fd_table[fd].read_handler) {
@@ -1138,11 +1137,9 @@ int
 comm_set_mcast_ttl(int fd, int mcast_ttl)
 {
 #ifdef IP_MULTICAST_TTL
-    debug(5, 10, "comm_set_mcast_ttl: setting multicast TTL %d on FD %d\n",
-	mcast_ttl, fd);
-    if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL,
-	    (char *) &mcast_ttl, sizeof(char)) < 0)
-	     debug(50, 1, "comm_set_mcast_ttl: FD %d, TTL: %d: %s\n",
+    char ttl = (char) mcast_ttl;
+    if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, 1) < 0)
+	debug(50, 1, "comm_set_mcast_ttl: FD %d, TTL: %d: %s\n",
 	    fd, mcast_ttl, xstrerror());
 #endif
     return 0;
@@ -1154,16 +1151,22 @@ comm_join_mcast_groups(int fd)
 #ifdef IP_MULTICAST_TTL
     struct ip_mreq mr;
     wordlist *s = NULL;
-
+    const ipcache_addrs *ia = NULL;
+    int i;
+    int x;
     for (s = Config.mcast_group_list; s; s = s->next) {
 	debug(5, 10, "comm_join_mcast_groups: joining group %s on FD %d\n",
 	    s->key, fd);
-	mr.imr_multiaddr.s_addr = inet_addr(s->key);
-	mr.imr_interface.s_addr = INADDR_ANY;
-	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-		(char *) &mr, sizeof(struct ip_mreq)) < 0)
-	            debug(5, 1, "comm_join_mcast_groups: FD %d, addr: %s\n",
-		fd, s->key);
+	ia = ipcache_gethostbyname(s->key, IP_BLOCKING_LOOKUP);
+	for (i = 0; i < ia->count; i++) {
+	    mr.imr_multiaddr.s_addr = (ia->in_addrs + i)->s_addr;
+	    mr.imr_interface.s_addr = INADDR_ANY;
+	    x = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+		(char *) &mr, sizeof(struct ip_mreq));
+	    if (x < 0)
+		debug(5, 1, "comm_join_mcast_groups: FD %d, addr: %s [%s]\n",
+		    fd, s->key, inet_ntoa(*(ia->in_addrs + i)));
+	}
     }
 #endif
     return 0;

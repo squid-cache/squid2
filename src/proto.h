@@ -284,9 +284,9 @@ typedef struct _protodispatch_data {
     int direct_fetch;
     int source_ping;
     int query_neighbors;
-    int n_edges;
-    struct _edge *single_parent;
-    struct _edge *default_parent;
+    int n_peers;
+    struct _peer *single_parent;
+    struct _peer *default_parent;
 #if DELAY_HACK
     int delay_fetch;
 #endif
@@ -298,7 +298,7 @@ extern int protoUnregister _PARAMS((int fd,
 	request_t *,
 	struct in_addr));
 extern int getFromDefaultSource _PARAMS((int, StoreEntry *));
-extern int protoStart _PARAMS((int, StoreEntry *, edge *, request_t *));
+extern int protoStart _PARAMS((int, StoreEntry *, peer *, request_t *));
 extern void protoCancelTimeout _PARAMS((int fd, StoreEntry *));
 extern int matchInsideFirewall _PARAMS((const char *));
 

@@ -75,7 +75,7 @@
 #	cache_host littleguy1.usc.edu   sibling   3128  3130  [proxy-only]
 #	cache_host littleguy1.usc.edu   sibling   3128  3130  [proxy-only]
 #
-#	      type:  either 'parent' or 'sibling'.
+#	      type:  either 'parent', 'sibling', or 'multicast'.
 #
 #	proxy_port:  The port number where the cache listens for proxy
 #	             requests.
@@ -91,6 +91,8 @@
 #		     ttl=n
 #		     no-query
 #		     default
+#		     round-robin
+#		     mulsticast-responder
 #
 #		     use 'proxy-only' to specify that objects fetched
 #		     from this cache should not be saved locally.
@@ -102,9 +104,9 @@
 #                    use 'ttl=n' to specify a IP multicast TTL to use
 #                    when sending an ICP request to this address.
 #                    Only useful when sending to a multicast group.
-#                    multicast groups are treated like regular parents and
-#                    neighbo[u]rs, except that we don't expect to see any
-#                    replies from them.
+#		     Because we don't accept ICP replies from random
+#		     hosts, you must configure other group members as
+#		     peers with the 'multicast-responder' option below.
 #
 #		     use 'no-query' to NOT send ICP queries to this
 #		     neighbor.
@@ -113,6 +115,15 @@
 #		     be used as a "last-resort." You should probably
 #		     only use 'default' in situations where you cannot
 #		     use ICP with your parent cache(s).
+#
+#		     use 'round-robin' to define a set of parents which
+#		     should be used in a round-robin fashion in the
+#		     absence of any ICP queries.
+#
+#		     'multicast-responder' indicates that the named peer
+#		     is a member of a multicast group.  ICP queries will
+#		     not be sent directly to the peer, but ICP replies
+#		     will be accepted from it.
 #
 #	NOTE: non-ICP neighbors must be specified as 'parent'.
 #
@@ -526,6 +537,15 @@ debug_options ALL,1
 #	process will BLOCK on DNS lookups!
 #
 #dns_children 5
+
+#  TAG: dns_defnames
+#	Normally the 'dnsserver' disables the RES_DEFNAMES resolver
+#	option (see res_init(3)).  This prevents caches in a hierarchy
+#	from interpreting single-component hostnames locally.  To allow
+#	dnsserver to handle single-component names, enable this
+#	option.
+#
+#dns_defnames off
 
 #  TAG: redirect_program 
 #	Specify the location of the executable for the URL redirector.
@@ -947,6 +967,10 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #
 #	'ignore-domain' is a domain name for which authorization will
 #	*not* be required.
+#
+#	NOTE, proxy_auth support is not compiled into Squid by default.
+#	To use this feature you must enable the USE_PROXY_AUTH option
+#	near the top of src/Makefile.
 #
 #proxy_auth /dev/null
 

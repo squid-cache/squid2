@@ -267,15 +267,17 @@ pingerLog(struct icmphdr *icmp, struct in_addr addr, int rtt, int hops)
 static int
 ipHops(int ttl)
 {
-    if (ttl < 32)
-	return 32 - ttl;
-    if (ttl < 64)
-	return 62 - ttl;	/* 62 = (64+60)/2 */
-    if (ttl < 128)
-	return 128 - ttl;
-    if (ttl < 192)
-	return 192 - ttl;
-    return 255 - ttl;
+    if (ttl < 33)
+	return 33 - ttl;
+    if (ttl < 63)
+	return 63 - ttl;	/* 62 = (64+60)/2 */
+    if (ttl < 65)
+	return 65 - ttl;	/* 62 = (64+60)/2 */
+    if (ttl < 129)
+	return 129 - ttl;
+    if (ttl < 193)
+	return 193 - ttl;
+    return 256 - ttl;
 }
 
 static int

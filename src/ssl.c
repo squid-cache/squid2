@@ -1,5 +1,4 @@
 
-
 /*
  * $Id$
  *
@@ -488,21 +487,23 @@ sslSelectNeighbor(int fd, const ipcache_addrs * ia, void *data)
 {
     SslStateData *sslState = data;
     request_t *request = sslState->request;
-    edge *e = NULL;
-    edge *g = NULL;
+    peer *e = NULL;
+    peer *g = NULL;
     int fw_ip_match = IP_ALLOW;
     if (ia && Config.firewall_ip_list)
 	fw_ip_match = ip_access_check(ia->in_addrs[ia->cur], Config.firewall_ip_list);
-    if ((e = Config.sslProxy)) {
-	hierarchyNote(request, HIER_SSL_PARENT, 0, e->host);
-    } else if (matchInsideFirewall(request->host)) {
+    if (matchInsideFirewall(request->host)) {
 	hierarchyNote(request, HIER_DIRECT, 0, request->host);
     } else if (fw_ip_match == IP_DENY) {
-	hierarchyNote(request, HIER_DIRECT, 0, request->host);
+	hierarchyNote(request, HIER_FIREWALL_IP_DIRECT, 0, request->host);
+    } else if ((e = Config.sslProxy)) {
+	hierarchyNote(request, HIER_SSL_PARENT, 0, e->host);
     } else if ((e = getDefaultParent(request))) {
 	hierarchyNote(request, HIER_DEFAULT_PARENT, 0, e->host);
     } else if ((e = getSingleParent(request))) {
 	hierarchyNote(request, HIER_SINGLE_PARENT, 0, e->host);
+    } else if ((e = getRoundRobinParent(request))) {
+	hierarchyNote(request, HIER_ROUNDROBIN_PARENT, 0, e->host);
     } else if ((e = getFirstUpParent(request))) {
 	hierarchyNote(request, HIER_FIRSTUP_PARENT, 0, e->host);
     }

@@ -1,6 +1,4 @@
 
-
-
 /*
  * $Id$
  *
@@ -158,13 +156,14 @@ struct _store_client {
 /* This structure can be freed while object is purged out from memory */
 struct _MemObject {
     char *mime_hdr;		/* Mime header info */
-    edge *e_pings_first_miss;
+    mem_ptr data;
+    char *e_swap_buf;
+    peer *e_pings_first_miss;
     int w_rtt;			/* weighted RTT in msec */
     struct timeval start_ping;
     unsigned char e_pings_n_pings;
     unsigned char e_pings_n_acks;
     unsigned char pending_list_size;
-    int e_swap_access;
     char *e_abort_msg;
     log_type abort_code;
     struct _store_client *clients;
