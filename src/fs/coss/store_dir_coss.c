@@ -411,12 +411,6 @@ storeCossDirCloseTmpSwapLog(SwapDir * sd)
     char *new_path = xstrdup(storeCossDirSwapLogFile(sd, ".new"));
     int fd;
     file_close(cs->swaplog_fd);
-#ifdef _SQUID_OS2_
-    if (unlink(swaplog_path) < 0) {
-	debug(50, 0) ("%s: %s\n", swaplog_path, xstrerror());
-	fatal("storeCossDirCloseTmpSwapLog: unlink failed");
-    }
-#endif
     if (xrename(new_path, swaplog_path) < 0) {
 	fatal("storeCossDirCloseTmpSwapLog: rename failed");
     }
@@ -613,9 +607,6 @@ storeCossDirWriteCleanDone(SwapDir * sd)
 #ifdef _SQUID_OS2_
 	file_close(state->fd);
 	state->fd = -1;
-	if (unlink(cur) < 0)
-	    debug(50, 0) ("storeCossDirWriteCleanLogs: unlinkd failed: %s, %s\n",
-		xstrerror(), cur);
 #endif
 	xrename(state->new, state->cur);
     }

@@ -1106,12 +1106,6 @@ storeUfsDirCloseTmpSwapLog(SwapDir * sd)
     char *new_path = xstrdup(storeUfsDirSwapLogFile(sd, ".new"));
     int fd;
     file_close(ufsinfo->swaplog_fd);
-#if defined (_SQUID_OS2_) || defined (_SQUID_CYGWIN_)
-    if (unlink(swaplog_path) < 0) {
-	debug(50, 0) ("%s: %s\n", swaplog_path, xstrerror());
-	fatal("storeUfsDirCloseTmpSwapLog: unlink failed");
-    }
-#endif
     if (xrename(new_path, swaplog_path) < 0) {
 	fatal("storeUfsDirCloseTmpSwapLog: rename failed");
     }
@@ -1340,12 +1334,9 @@ storeUfsDirWriteCleanDone(SwapDir * sd)
     fd = state->fd;
     /* rename */
     if (state->fd >= 0) {
-#if defined(_SQUID_OS2_) || defined (_SQUID_CYGWIN_)
+#if defined(_SQUID_OS2_) || defined(_SQUID_CYGWIN_) || defined(_SQUID_MSWIN_)
 	file_close(state->fd);
 	state->fd = -1;
-	if (unlink(state->cur) < 0)
-	    debug(50, 0) ("storeDirWriteCleanLogs: unlinkd failed: %s, %s\n",
-		xstrerror(), state->cur);
 #endif
 	xrename(state->new, state->cur);
     }

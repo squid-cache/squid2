@@ -1320,12 +1320,6 @@ storeDiskdDirCloseTmpSwapLog(SwapDir * sd)
     char *new_path = xstrdup(storeDiskdDirSwapLogFile(sd, ".new"));
     int fd;
     file_close(diskdinfo->swaplog_fd);
-#ifdef _SQUID_OS2_
-    if (unlink(swaplog_path) < 0) {
-	debug(50, 0) ("%s: %s\n", swaplog_path, xstrerror());
-	fatal("storeDiskdDirCloseTmpSwapLog: unlink failed");
-    }
-#endif
     if (xrename(new_path, swaplog_path) < 0) {
 	fatal("storeDiskdDirCloseTmpSwapLog: rename failed");
     }
@@ -1549,9 +1543,6 @@ storeDiskdDirWriteCleanDone(SwapDir * sd)
 #ifdef _SQUID_OS2_
 	file_close(state->fd);
 	state->fd = -1;
-	if (unlink(cur) < 0)
-	    debug(50, 0) ("storeDirWriteCleanLogs: unlinkd failed: %s, %s\n",
-		xstrerror(), cur);
 #endif
 	xrename(state->new, state->cur);
     }
