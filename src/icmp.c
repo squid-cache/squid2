@@ -84,10 +84,10 @@ icmpOpen(void)
 	debug(37, 0, "icmpOpen: child_sock: %s\n", xstrerror());
 	return;
     }
-    getsockname(icmp_sock, &S, &namelen);
+    getsockname(icmp_sock, (struct sockaddr *) &S, &namelen);
     if (comm_connect_addr(child_sock, &S) != COMM_OK)
 	fatal_dump(xstrerror());
-    getsockname(child_sock, &S, &namelen);
+    getsockname(child_sock, (struct sockaddr *) &S, &namelen);
     if (comm_connect_addr(icmp_sock, &S) != COMM_OK)
 	fatal_dump(xstrerror());
     if ((pid = fork()) < 0) {
