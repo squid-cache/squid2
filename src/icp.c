@@ -151,6 +151,7 @@ typedef struct icp_ctrl_t {
 static CWCB icpHandleIMSComplete;
 static PF clientReadRequest;
 static PF connStateFree;
+static PF requestTimeout;
 static STCB icpGetHeadersForIMS;
 static char *icpConstruct304reply _PARAMS((struct _http_reply *));
 static int CheckQuickAbort2 _PARAMS((const clientHttpRequest *));
@@ -696,6 +697,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 		debug(12, 5) ("clientWriteComplete: FD %d Setting read handler for next request\n", fd);
 		fd_note(fd, "Reading next request");
 		commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
+		commSetTimeout(fd, 15, requestTimeout, conn);
 	    }
 	} else {
 	    comm_close(fd);

@@ -947,8 +947,10 @@ httpSendRequest(int fd, void *data)
 	httpSendComplete,
 	httpState,
 	buftype == BUF_TYPE_8K ? put_free_8k_page : xfree);
+#ifdef BREAKS_PCONN_RESTART
     requestUnlink(httpState->orig_request);
     httpState->orig_request = NULL;
+#endif
 }
 
 static int
