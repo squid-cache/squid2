@@ -38,6 +38,7 @@
 
 static int aclFromFile = 0;
 static FILE *aclFile;
+static hash_table *proxy_auth_cache = NULL;
 
 static void aclParseDomainList(void *curlist);
 static void aclParseIpList(void *curlist);
