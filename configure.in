@@ -535,7 +535,7 @@ AC_ARG_ENABLE(arp-acl,
      case "$host" in
 	*-linux-*)
 	    ;;
-	*-solaris-*)
+	*-solaris*)
 	    ;;
 	*-freebsd*)
 	    ;;
