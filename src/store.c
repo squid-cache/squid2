@@ -1338,8 +1338,7 @@ static int storeDoRebuildFromDisk(data)
 	    data->linecount,
 	    sfileno);
 	debug(20, 3, "storeRebuildFromDisk: --> <URL:%s>\n", url);
-	if (opt_unlink_on_reload)
-	    safeunlink(swapfile, 1);
+	/* don't unlink the file!  just skip this log entry */
 	data->clashcount++;
 	return 1;
     }
