@@ -3,6 +3,7 @@ Changes to squid-2.5.STABLE9 (24 Feb 2005)
 	- [Medium] Don't retry requests on 403 errors (Bug #1210)
 	- [Minor] Ignore invalid FQDN DNS responses (Bug #1222)
 	- [Minor] cache_peer related memory leaks on reconfigure (Bug #1246)
+	- [Cosmetic] Ajusted to build cleanly with GCC-4 (Bug #1211)
 	- [Minor] relaxed_header_parser extended to work around even more
 	  broken web servers (Bug #1242)
 	- [Minor] FTP gatewaying URLs cleaned up slightly, mainly to work
