@@ -123,8 +123,8 @@ httpAnonSearchHeaderField(const struct http_anon_struct_header *header_field,
     const char *line)
 {
     const struct http_anon_struct_header *ppc;
-    if (*line == '\0')
-	return 0;
+    if (*line == '\0')	/* the terminating empty line */
+	return 1;
     for (ppc = header_field; ppc->len; ppc++)
 	if (strncasecmp(line, ppc->name, ppc->len) == 0)
 	    return 1;
