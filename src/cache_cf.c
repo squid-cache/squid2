@@ -653,6 +653,7 @@ parse_peer(peer ** head)
     int i;
     ushortlist *u;
     const char *me = null_string;	/* XXX */
+    char *t;
     p = xcalloc(1, sizeof(peer));
     p->http_port = CACHE_HTTP_PORT;
     p->icp_port = CACHE_ICP_PORT;
@@ -666,8 +667,16 @@ parse_peer(peer ** head)
     p->type = parseNeighborType(token);
     GetInteger(i);
     p->http_port = (u_short) i;
-    GetInteger(i);
-    p->icp_port = (u_short) i;
+    if ((token = strtok(NULL, w_space)) == NULL)
+	self_destruct();
+    if (NULL == (t = strchr(token, '/')))
+	p->icp_port = atoi(token);
+    else if (0 == strcmp(t, "/icp"))
+	p->icp_port = atoi(token);
+    else if (0 == strcmp(t, "/htcp"))
+	p->htcp_port = atoi(token);
+    else
+	self_destruct();
     if (strcmp(p->host, me) == 0) {
 	for (u = Config.Port.http; u; u = u->next) {
 	    if (p->http_port != u->i)
