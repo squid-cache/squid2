@@ -654,6 +654,9 @@ int ftpInitialize()
 	return 0;
     }
     /* child */
+    /* give up all extra priviligies */
+    no_suid();
+    /* set up stdin,stdout */
     dup2(p[0], 0);
     dup2(fileno(debug_log), 2);
     close(p[0]);

@@ -346,7 +346,35 @@ void check_suid()
     } else {
 	setgid(pwd->pw_gid);
     }
+#if defined(HAVE_SETRESUID)
+    setresuid(pwd->pw_uid,pwd->pw_uid,0);
+#elif defined(HAVE_SETEUID)
+    seteuid(pwd->pw_uid);
+#else
     setuid(pwd->pw_uid);
+#endif
+}
+
+void get_suid()
+{
+#if defined(HAVE_SETRESUID)
+    setresuid(-1,0,-1);
+#else
+    setuid(0);
+#endif
+}
+
+void no_suid()
+{
+    uid_t uid;
+    check_suid();
+    uid=geteuid();
+#if defined(HAVE_SETRESUID)
+    setresuid(uid,uid,uid);
+#elif
+    setuid(0);
+    setuid(uid);
+#endif
 }
 
 void writePidFile()

@@ -107,6 +107,10 @@ static void mainParseOptions(argc, argv)
 
 void serverConnectionsOpen()
 {
+    /* Get our real priviliges */
+    get_suid();
+    
+    /* Open server ports */
     theAsciiConnection = comm_open(COMM_NONBLOCKING,
 	getAsciiPortNum(),
 	0,
@@ -140,6 +144,9 @@ void serverConnectionsOpen()
 		theUdpConnection);
 	}
     }
+
+    /* And restore our priviliges to normal */
+    check_suid();
 }
 
 void serverConnectionsClose()
@@ -221,7 +228,7 @@ static void mainInitialize()
     malloc_debug(0, malloc_debug_level);
 #endif
 
-    /* do suid checking here */
+    /* do suid checking */
     check_suid();
 
     if (first_time) {
