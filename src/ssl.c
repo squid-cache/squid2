@@ -85,6 +85,10 @@ static int sslClientClosed(fd, sslState)
     debug(26, 3, "sslClientClosed: FD %d\n", fd);
     /* we have been called from comm_close for the client side, so
      * just need to clean up the server side */
+    protoUndispatch(sslState->server.fd,
+	sslState->url,
+	NULL,
+	sslState->request);
     comm_close(sslState->server.fd);
     return 0;
 }
