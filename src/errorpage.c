@@ -166,6 +166,7 @@ errorSend(int fd, ErrorState * err)
     debug(4, 3) ("errorSend: FD %d, err=%p\n", fd, err);
     assert(fd >= 0);
     buf = errorBuildBuf(err, &len);
+    BIT_SET(err->flags, ERR_FLAG_CBDATA);
     cbdataAdd(err);
     comm_write(fd, xstrdup(buf), len, errorSendComplete, err, xfree);
 }
