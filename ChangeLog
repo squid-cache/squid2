@@ -57,6 +57,8 @@ Changes to squid-2.5.STABLE4 (not yet released):
 	- Bug #742: Wrong status code on access denials if delay_access
 	  is used. Most notably 407 instead of 403 could be returned.
 	- Bug #763: segfault if using ntlm in http_reply_access
+	- Bug #638: assertion error if using proxy_auth in delay_access
+	- Bug #756: segmentation fault if using ntlm proxy_auth in delay_access
 
 Changes to squid-2.5.STABLE3 (25 May 2003):
 
