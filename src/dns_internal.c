@@ -139,7 +139,6 @@ idnsParseResolvConf(void)
 	debug(78, 1) ("%s: %s\n", _PATH_RESOLV_CONF, xstrerror());
 	return;
     }
-    idnsFreeNameservers();
     while (fgets(buf, 512, fp)) {
 	t = strtok(buf, w_space);
 	if (t == NULL)
@@ -393,8 +392,8 @@ idnsInit(void)
 	    fatal("Could not create a DNS socket");
 	debug(78, 1) ("DNS Socket created on FD %d\n", DnsSocket);
     }
-    if (0 == nns)
-	idnsParseNameservers();
+    assert(0 == nns);
+    idnsParseNameservers();
     if (0 == nns)
 	idnsParseResolvConf();
     if (!init) {
@@ -413,6 +412,7 @@ idnsShutdown(void)
 	return;
     comm_close(DnsSocket);
     DnsSocket = -1;
+    idnsFreeNameservers();
 }
 
 void
