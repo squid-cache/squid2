@@ -335,6 +335,7 @@ mainReconfigure(void)
     authenticateShutdown();
     storeDirCloseSwapLogs();
     errorClean();
+    mimeFreeMemory();
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
     ipcache_restart();		/* clear stuck entries */
@@ -352,6 +353,7 @@ mainReconfigure(void)
 	    debug(1, 1) ("ICP port disabled in httpd_accelerator mode\n");
     }
     storeDirOpenSwapLogs();
+    mimeInit(Config.mimeTablePathname);
     writePidFile();		/* write PID file */
     debug(1, 1) ("Ready to serve requests.\n");
     reconfiguring = 0;
