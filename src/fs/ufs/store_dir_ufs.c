@@ -324,7 +324,7 @@ storeUfsDirOpenSwapLog(SwapDir * sd)
 	debug(50, 1) ("%s: %s\n", path, xstrerror());
 	fatal("storeUfsDirOpenSwapLog: Failed to open swap log.");
     }
-    debug(47, 3) ("Cache Dir #%d log opened on FD %d\n", sd->index, fd);
+    debug(50, 3) ("Cache Dir #%d log opened on FD %d\n", sd->index, fd);
     ufsinfo->swaplog_fd = fd;
     if (0 == n_ufs_dirs)
 	assert(NULL == ufs_dir_index);
@@ -751,7 +751,7 @@ storeUfsDirGetNextFile(RebuildState * rb, sfileno * filn_p, int *size)
 	    debug(47, 3) ("storeUfsDirGetNextFile: Opening %s\n", rb->fullfilename);
 	    fd = file_open(rb->fullfilename, O_RDONLY | O_BINARY);
 	    if (fd < 0)
-		debug(50, 1) ("storeUfsDirGetNextFile: %s: %s\n", rb->fullfilename, xstrerror());
+		debug(47, 1) ("storeUfsDirGetNextFile: %s: %s\n", rb->fullfilename, xstrerror());
 	    else
 		store_open_disk_fd++;
 	    continue;
@@ -1397,7 +1397,7 @@ storeUfsDirUnrefObj(SwapDir * SD, StoreEntry * e)
 void
 storeUfsDirUnlinkFile(SwapDir * SD, sfileno f)
 {
-    debug(47, 3) ("storeUfsDirUnlinkFile: unlinking fileno %08X\n", f);
+    debug(79, 3) ("storeUfsDirUnlinkFile: unlinking fileno %08X\n", f);
     /* storeUfsDirMapBitReset(SD, f); */
 #if USE_UNLINKD
     unlinkdUnlink(storeUfsDirFullPath(SD, f, NULL));
