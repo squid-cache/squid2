@@ -683,7 +683,7 @@ void neighbors_cf_add(host, type, http_port, icp_port, proxy_only, weight)
 {
     struct neighbor_cf *t, *u;
 
-    t = xcalloc(sizeof(struct neighbor_cf), 1);
+    t = xcalloc(1, sizeof(struct neighbor_cf));
     t->host = xstrdup(host);
     t->type = xstrdup(type);
     t->http_port = http_port;
