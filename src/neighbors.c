@@ -189,6 +189,9 @@ peerHTTPOkay(const peer * p, request_t * request)
 	return 0;
     if (!neighborUp(p))
 	return 0;
+    if (p->max_conn)
+	if (p->stats.conn_open >= p->max_conn)
+	    return 0;
     return 1;
 }
 
@@ -1242,6 +1245,7 @@ dump_peers(StoreEntry * sentry, peer * peers)
 	storeAppendPrintf(sentry, "Status     : %s\n",
 	    neighborUp(e) ? "Up" : "Down");
 	storeAppendPrintf(sentry, "AVG RTT    : %d msec\n", e->stats.rtt);
+	storeAppendPrintf(sentry, "OPEN CONNS : %d\n", e->stats.conn_open);
 	storeAppendPrintf(sentry, "LAST QUERY : %8d seconds ago\n",
 	    (int) (squid_curtime - e->stats.last_query));
 	storeAppendPrintf(sentry, "LAST REPLY : %8d seconds ago\n",

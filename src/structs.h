@@ -1043,6 +1043,7 @@ struct _peer {
 	time_t last_connect_failure;
 	time_t last_connect_probe;
 	int logged_state;	/* so we can print dead/revived msgs */
+	int conn_open;		/* current opened connections */
     } stats;
     struct {
 	int version;
@@ -1109,6 +1110,7 @@ struct _peer {
 #endif
     char *login;		/* Proxy authorization */
     time_t connect_timeout;
+    int max_conn;
 };
 
 struct _net_db_name {
