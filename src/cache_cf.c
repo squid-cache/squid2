@@ -991,6 +991,8 @@ parse_peer(peer ** head)
 #endif
 	} else if (!strncasecmp(token, "login=", 6)) {
 	    p->login = xstrdup(token + 6);
+	} else if (!strncasecmp(token, "connect-timeout=", 16)) {
+	    p->connect_timeout = atoi(token + 16);
 	} else {
 	    debug(3, 0) ("parse_peer: token='%s'\n", token);
 	    self_destruct();

@@ -240,6 +240,7 @@ struct _SquidConfig {
 	time_t read;
 	time_t lifetime;
 	time_t connect;
+	time_t peer_connect;
 	time_t request;
 	time_t pconn;
 	time_t siteSelect;
@@ -1068,6 +1069,7 @@ struct _peer {
     } carp;
 #endif
     char *login;		/* Proxy authorization */
+    time_t connect_timeout;
 };
 
 struct _net_db_name {
