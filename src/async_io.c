@@ -30,10 +30,9 @@
  *  
  */
 
-#if USE_ASYNC_IO
-
 #include "squid.h"
-#include "aiops.h"
+
+#if USE_ASYNC_IO
 
 #define _AIO_OPEN	0
 #define _AIO_READ	1
