@@ -441,7 +441,6 @@ mainReinitialize(void)
     neighborsDestroy();
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
-    neighbors_init();
     dnsOpenServers();
     redirectOpenServers();
     serverConnectionsOpen();
@@ -642,7 +641,6 @@ main(int argc, char **argv)
     /* preinit for debug module */
     debug_log = stderr;
     hash_init(0);
-    neighbors_init();
 
     mainInitialize();
 

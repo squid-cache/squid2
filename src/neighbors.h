@@ -209,7 +209,6 @@ extern neighbors *neighbors_create _PARAMS((void));
 extern void hierarchyNote _PARAMS((request_t *, hier_code, int, const char *));
 extern void neighborsUdpAck _PARAMS((int, const char *, icp_common_t *, const struct sockaddr_in *, StoreEntry *, char *, int));
 extern void neighborAdd _PARAMS((const char *, const char *, int, int, int, int, int));
-extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));
 extern void neighborsDestroy _PARAMS((void));
 extern edge *neighborFindByName _PARAMS((const char *));
