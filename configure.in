@@ -360,7 +360,7 @@ AC_ARG_ENABLE(removal_policies,
     REPL_POLICIES="lru"
   fi
 ])
-echo "Store modules built: $REPL_POLICIES"
+echo "Removal policies built: $REPL_POLICIES"
 AC_SUBST(REPL_POLICIES)
 REPL_OBJS="repl/`echo $REPL_POLICIES|sed -e's% %.a repl/%g'`.a"
 AC_SUBST(REPL_OBJS)
