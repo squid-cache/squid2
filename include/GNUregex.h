@@ -389,7 +389,7 @@ typedef struct {
  * unfortunately clutters up the declarations a bit, but I think it's
  * worth it.  */
 
-#ifdef __STDC__
+#if STDC_HEADERS
 
 #define _RE_ARGS(args) args
 

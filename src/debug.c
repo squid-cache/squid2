@@ -40,7 +40,7 @@ static int Ctx_Lock = 0;
 static const char *debugLogTime(time_t);
 static void ctx_print();
 
-#ifdef __STDC__
+#if STDC_HEADERS
 void
 _db_print(const char *format,...)
 {
@@ -61,7 +61,7 @@ _db_print(va_alist)
     LOCAL_ARRAY(char, tmpbuf, BUFSIZ);
 #endif
 
-#ifdef __STDC__
+#if STDC_HEADERS
     va_start(args, format);
 #if defined(__QNX__)
     va_start(eargs, format);

@@ -141,7 +141,7 @@ packerAppend(Packer * p, const char *buf, int sz)
     p->append(p->real_handler, buf, sz);
 }
 
-#ifdef __STDC__
+#if STDC_HEADERS
 void
 packerPrintf(Packer * p, const char *fmt,...)
 {

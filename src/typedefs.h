@@ -204,7 +204,7 @@ typedef void StatHistBinDumper(StoreEntry *, int idx, double val, double size, i
 
 /* append/vprintf's for Packer */
 typedef void (*append_f) (void *, const char *buf, int size);
-#ifdef __STDC__
+#if STDC_HEADERS
 typedef void (*vprintf_f) (void *, const char *fmt, va_list args);
 #else
 typedef void (*vprintf_f) ();

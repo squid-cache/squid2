@@ -203,7 +203,7 @@ memBufAppend(MemBuf * mb, const char *buf, mb_size_t sz)
 }
 
 /* calls memBufVPrintf */
-#ifdef __STDC__
+#if STDC_HEADERS
 void
 memBufPrintf(MemBuf * mb, const char *fmt,...)
 {

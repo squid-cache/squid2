@@ -326,7 +326,7 @@ fatal(const char *message)
 }
 
 /* printf-style interface for fatal */
-#ifdef __STDC__
+#if STDC_HEADERS
 void
 fatalf(const char *fmt,...)
 {

@@ -419,7 +419,7 @@ storeAppend(StoreEntry * e, const char *buf, int len)
 #endif
 }
 
-#ifdef __STDC__
+#if STDC_HEADERS
 void
 storeAppendPrintf(StoreEntry * e, const char *fmt,...)
 {

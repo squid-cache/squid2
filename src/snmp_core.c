@@ -50,7 +50,7 @@ typedef struct _mib_tree_entry mib_tree_entry;
 
 mib_tree_entry *mib_tree_head;
 
-#ifdef __STDC__
+#if STDC_HEADERS
 static mib_tree_entry *snmpAddNode(oid * name, int len, oid_ParseFn * parsefunction, int children,...);
 static oid *snmpCreateOid(int length,...);
 #else
@@ -813,7 +813,7 @@ snmpTreeEntry(oid entry, snint len, mib_tree_entry * current)
 /*
  * Adds a node to the MIB tree structure and adds the appropriate children
  */
-#ifdef __STDC__
+#if STDC_HEADERS
 mib_tree_entry *
 snmpAddNode(oid * name, int len, oid_ParseFn * parsefunction, int children,...)
 {
@@ -864,7 +864,7 @@ snmpAddNode(va_alist)
 /* 
  * Returns the list of parameters in an oid[]
  */
-#ifdef __STDC__
+#if STDC_HEADERS
 oid *
 snmpCreateOid(int length,...)
 {
