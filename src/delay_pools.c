@@ -139,7 +139,8 @@ static void
 delayIdZero(void *hlink)
 {
     hash_link *h = hlink;
-    *(delay_id *) (h->key) = 0;
+    delay_id *id = (delay_id *) h->key;
+    *id = 0;
     xfree(h);
 }
 
@@ -147,11 +148,11 @@ void
 delayFreeDelayData()
 {
     safe_free(delay_data);
-    if (delay_id_ptr_hash) {
-	hashFreeItems(delay_id_ptr_hash, delayIdZero);
-	hashFreeMemory(delay_id_ptr_hash);
-	delay_id_ptr_hash = NULL;
-    }
+    if (!delay_id_ptr_hash)
+	return;
+    hashFreeItems(delay_id_ptr_hash, delayIdZero);
+    hashFreeMemory(delay_id_ptr_hash);
+    delay_id_ptr_hash = NULL;
 }
 
 void
@@ -170,6 +171,13 @@ delayUnregisterDelayIdPtr(delay_id * loc)
 {
     hash_link *lnk;
     if (!delay_id_ptr_hash)
+	return;
+    /*
+     * If we went through a reconfigure, then all the delay_id's
+     * got set to zero, and they were removed from our hash
+     * table.
+     */
+    if (*loc == 0)
 	return;
     lnk = hash_lookup(delay_id_ptr_hash, loc);
     assert(lnk);
