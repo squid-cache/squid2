@@ -33,21 +33,23 @@
 
 typedef enum {
     HIER_NONE,
-    HIER_DIRECT,
-    HIER_SIBLING_HIT,
-    HIER_PARENT_HIT,
-    HIER_DEFAULT_PARENT,
-    HIER_SINGLE_PARENT,
-    HIER_FIRSTUP_PARENT,
-    HIER_NO_PARENT_DIRECT,
-    HIER_BEST_PARENT_MISS,
-    HIER_NO_DIRECT_FAIL,
-    HIER_SOURCE_FASTEST,
-    HIER_SIBLING_UDP_HIT_OBJ,
-    HIER_PARENT_UDP_HIT_OBJ,
-    HIER_PASS_PARENT,
-    HIER_SSL_PARENT,
-    HIER_ROUNDROBIN_PARENT,
+    DIRECT,
+    SIBLING_HIT,
+    PARENT_HIT,
+    DEFAULT_PARENT,
+    SINGLE_PARENT,
+    FIRSTUP_PARENT,
+    NO_PARENT_DIRECT,
+    FIRST_PARENT_MISS,
+    CLOSEST_PARENT_MISS,
+    CLOSEST_DIRECT,
+    NO_DIRECT_FAIL,
+    SOURCE_FASTEST,
+    SIBLING_UDP_HIT_OBJ,
+    PARENT_UDP_HIT_OBJ,
+    PASS_PARENT,
+    SSL_PARENT,
+    ROUNDROBIN_PARENT,
     HIER_MAX
 } hier_code;
 
@@ -71,7 +73,8 @@ typedef struct {
     PSC callback;
     PSC fail_callback;
     void *callback_data;
-    peer *best_parent;
+    peer *first_parent_miss;
+    peer *closest_parent_miss;
     icp_ping_data icp;
 } ps_state;
 
@@ -81,5 +84,7 @@ extern int peerSelectDirect _PARAMS((request_t *));
 extern peer *peerGetSomeParent _PARAMS((request_t *, hier_code *));
 extern int matchInsideFirewall _PARAMS((const char *));
 extern void peerSelectInit _PARAMS((void));
+extern const char *hier_strings[];
+
 
 #endif /* PEER_SELECT_H */

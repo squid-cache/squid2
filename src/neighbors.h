@@ -1,4 +1,6 @@
 
+
+
 /*
  * $Id$
  *
@@ -163,19 +165,39 @@ struct _peer {
     struct _acl_list *acls;
     int options;
     int weight;
-    int mcast_ttl;
+    struct {
+	double avg_n_members;
+	int n_times_counted;
+	int n_replies_expected;
+	int ttl;
+	int reqnum;
+	int flags;
+    } mcast;
     int tcp_up;			/* 0 if a connect() fails */
     time_t last_fail_time;
     struct in_addr addresses[10];
     int n_addresses;
-    struct _peer *next;
     int rr_count;
+    struct _peer *next;
+    int ip_lookup_pending;
+    int ipcache_fd;
 };
+
+/* flags for peer->mcast.flags */
+#define PEER_COUNT_EVENT_PENDING 1
+#define PEER_COUNTING		 2
 
 struct _hierarchyLogData {
     hier_code code;
     char *host;
     icp_ping_data icp;
+    int timeout;
+#ifdef LOG_ICP_NUMBERS
+    int n_sent;
+    int n_expect;
+    int n_recv;
+    int delay;
+#endif
 };
 
 extern peer *getFirstPeer _PARAMS((void));
@@ -205,10 +227,7 @@ extern peer *getDefaultParent _PARAMS((request_t * request));
 extern peer *getRoundRobinParent _PARAMS((request_t * request));
 extern int neighborUp _PARAMS((const peer * e));
 extern void peerDestroy _PARAMS((peer * e));
-extern void peerUpdateFudge _PARAMS((void *));
 extern char *neighborTypeStr _PARAMS((const peer * e));
 extern void peerCheckConnectStart _PARAMS((peer *));
-
-extern const char *hier_strings[];
 
 #endif /* NEIGHBORS_H */

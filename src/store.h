@@ -137,7 +137,9 @@
 #define DELAY_SENDING 		(1<<3)
 #define CLIENT_ABORT_REQUEST 	(1<<2)
 #define DELETE_BEHIND   	(1<<1)
+#ifdef OLD_CODE
 #define IP_LOOKUP_PENDING      	(1<<0)
+#endif
 
 
 typedef void (*PIF) (int, StoreEntry *, void *);
@@ -157,6 +159,8 @@ struct _MemObject {
     mem_ptr data;
     char *e_swap_buf;
     int w_rtt;			/* weighted RTT in msec */
+    peer *e_pings_closest_parent;	/* parent with best RTT to source */
+    int p_rtt;			/* parent's RTT to source */
     int e_swap_buf_len;
     unsigned char pending_list_size;
     char *e_abort_msg;

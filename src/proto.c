@@ -140,36 +140,11 @@ char *IcpOpcodeStr[] =
     "ICP_OP_UNUSED6",
     "ICP_OP_UNUSED7",
     "ICP_OP_UNUSED8",
-    "ICP_MISSNOFETCH",		/* access denied while store is reloading */
+    "ICP_MISS_NOFETCH",
     "ICP_DENIED",
     "ICP_HIT_OBJ",
     "ICP_END"
 };
-
-void
-protoDispatch(int fd, StoreEntry * entry, request_t * request)
-{
-    pctrl_t *pctrl;
-    debug(17, 3, "protoDispatch: '%s'\n", entry->url);
-    entry->mem_obj->request = requestLink(request);
-    if (request->protocol == PROTO_CACHEOBJ) {
-	protoStart(fd, entry, NULL, request);
-	return;
-    }
-    if (request->protocol == PROTO_WAIS) {
-	protoStart(fd, entry, NULL, request);
-	return;
-    }
-    pctrl = xcalloc(1, sizeof(pctrl_t));
-    pctrl->entry = entry;
-    pctrl->fd = fd;
-    pctrl->request = requestLink(request);
-    peerSelect(request,
-	entry,
-	protoDispatchComplete,
-	protoDispatchFail,
-	pctrl);
-}
 
 static void
 protoDispatchComplete(peer * p, void *data)
@@ -189,21 +164,26 @@ protoDispatchFail(peer * p, void *data)
     xfree(pctrl);
 }
 
+static int
+protoNotImplemented(StoreEntry * entry)
+{
+    debug(17, 1, "protoNotImplemented: Cannot retrieve '%s'\n", entry->url);
+    squid_error_entry(entry, ERR_NOT_IMPLEMENTED, NULL);
+    return 0;
+}
+
+/* PUBLIC FUNCTIONS */
+
 int
 protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr src_addr)
 {
     char *url = entry ? entry->url : NULL;
-    char *host = request ? request->host : NULL;
     protocol_t proto = request ? request->protocol : PROTO_NONE;
     debug(17, 5, "protoUnregister FD %d '%s'\n", fd, url ? url : "NULL");
     if (proto == PROTO_CACHEOBJ)
 	return 0;
-    if (url)
-	redirectUnregister(url, fd);
-    if (src_addr.s_addr != inaddr_none)
+    if (src_addr.s_addr != no_addr.s_addr)
 	fqdncacheUnregister(src_addr, fd);
-    if (host)
-	ipcache_unregister(host, fd);
     if (entry == NULL)
 	return 0;
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
@@ -253,9 +233,16 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	e ? e->host : "source");
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
 	fatal_dump("protoStart: object already being fetched");
+    if (entry->ping_status == PING_WAITING)
+	debug_trap("protoStart: ping_status is PING_WAITING");
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
     protoCancelTimeout(fd, entry);
     netdbPingSite(request->host);
+#ifdef LOG_ICP_NUMBERS
+    request->hierarchy.n_recv = entry->mem_obj->e_pings_n_acks;
+    if (entry->mem_obj->start_ping.tv_sec)
+	request->hierarchy.delay = tvSubMsec(entry->mem_obj->start_ping, current_time);
+#endif
     if (e) {
 	e->stats.fetches++;
 	return proxyhttpStart(request, entry, e);
@@ -277,11 +264,27 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     return 0;
 }
 
-
-static int
-protoNotImplemented(StoreEntry * entry)
+void
+protoDispatch(int fd, StoreEntry * entry, request_t * request)
 {
-    debug(17, 1, "protoNotImplemented: Cannot retrieve '%s'\n", entry->url);
-    squid_error_entry(entry, ERR_NOT_IMPLEMENTED, NULL);
-    return 0;
+    pctrl_t *pctrl;
+    debug(17, 3, "protoDispatch: '%s'\n", entry->url);
+    entry->mem_obj->request = requestLink(request);
+    if (request->protocol == PROTO_CACHEOBJ) {
+	protoStart(fd, entry, NULL, request);
+	return;
+    }
+    if (request->protocol == PROTO_WAIS) {
+	protoStart(fd, entry, NULL, request);
+	return;
+    }
+    pctrl = xcalloc(1, sizeof(pctrl_t));
+    pctrl->entry = entry;
+    pctrl->fd = fd;
+    pctrl->request = requestLink(request);
+    peerSelect(request,
+	entry,
+	protoDispatchComplete,
+	protoDispatchFail,
+	pctrl);
 }

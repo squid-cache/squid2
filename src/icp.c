@@ -126,7 +126,7 @@ char *log_tags[] =
     "UDP_MISS",
     "UDP_DENIED",
     "UDP_INVALID",
-    "UDP_MISSNOFETCH",
+    "UDP_MISS_NOFETCH",
     "ERR_READ_TIMEOUT",
     "ERR_LIFETIME_EXP",
     "ERR_NO_CLIENTS_BIG_OBJ",
@@ -192,7 +192,7 @@ static void icpDetectNewRequest _PARAMS((int fd));
  * the rest of the world.  Here we try to detect frequent failures which
  * make the cache unusable (e.g. DNS lookup and connect() failures).  If
  * the failure:success ratio goes above 1.0 then we go into "hit only"
- * mode where we only return UDP_HIT or UDP_MISSNOFETCH.  Neighbors
+ * mode where we only return UDP_HIT or UDP_MISS_NOFETCH.  Neighbors
  * will only fetch HITs from us if they are using the ICP protocol.  We
  * stay in this mode for 5 minutes.
  * 
@@ -248,7 +248,7 @@ icpStateFree(int fd, void *data)
     if (!icpState)
 	return;
     icpProcessRequestControl(icpState, ICP_OP_DEL);
-    if (icpState->log_type < LOG_TAG_NONE || icpState->log_type > ERR_MAX)
+    if (icpState->log_type > ERR_MAX)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
 	if (icpState->entry->mem_obj) {
@@ -284,6 +284,8 @@ icpStateFree(int fd, void *data)
 	    icpState->log_type,
 	    ntohs(icpState->me.sin_port));
     }
+    if (icpState->redirect_state == REDIRECT_PENDING)
+	redirectUnregister(icpState->url, fd);
     if (icpState->ident.fd > -1)
 	comm_close(icpState->ident.fd);
     checkFailureRatio(icpState->log_type,
@@ -300,10 +302,15 @@ icpStateFree(int fd, void *data)
 	storeUnlockObject(icpState->entry);
 	icpState->entry = NULL;
     }
+    /* old_entry might still be set if we didn't yet get the reply
+     * code in icpHandleIMSReply() */
     if (icpState->old_entry) {
+	storeUnregister(icpState->old_entry, fd);
 	storeUnlockObject(icpState->old_entry);
 	icpState->old_entry = NULL;
     }
+    if (icpState->ip_lookup_pending)
+	ipcache_unregister(icpState->request->host, icpState->fd);
     requestUnlink(icpState->request);
     safe_free(icpState);
     return;
@@ -644,7 +651,19 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	return COMM_OK;
     }
     /* All headers are available, check if object is modified or not */
-    /* Restart the object from the beginning */
+    /* ---------------------------------------------------------------
+     * Removed check for reply->code != 200 because of a potential
+     * problem with ICP.  We will return a HIT for any public, cached
+     * object.  This includes other responses like 301, 410, as coded in
+     * http.c.  It is Bad(tm) to return UDP_HIT and then, if the reply
+     * code is not 200, hand off to icpProcessMISS(), which may disallow
+     * the request based on 'miss_access' rules.  Alternatively, we might
+     * consider requiring returning UDP_HIT only for 200's.  This
+     * problably means an entry->flag bit, which would be lost during
+     * restart because the flags aren't preserved across restarts.
+     * --DW 3/11/96.
+     * ---------------------------------------------------------------- */
+#ifdef CHECK_REPLY_CODE_NOTEQUAL_200
     /* Only objects with statuscode==200 can be "Not modified" */
     if (mem->reply->code != 200) {
 	debug(12, 4, "icpGetHeadersForIMS: Reply code %d!=200\n",
@@ -652,7 +671,9 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	icpProcessMISS(fd, icpState);
 	return COMM_OK;
     }
-    icpState->log_type = LOG_TCP_IMS_HIT;
+    +
+#endif
+	icpState->log_type = LOG_TCP_IMS_HIT;
     entry->refcount++;
     if (modifiedSince(entry, icpState->request))
 	return icpSendMoreData(fd, icpState);
@@ -685,6 +706,7 @@ icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data
 	icpState->request->protocol,
 	size);
     /* Set up everything for the logging */
+    storeUnregister(entry, fd);
     storeUnlockObject(entry);
     icpState->entry = NULL;
     icpState->size += size;
@@ -976,7 +998,11 @@ icpLogIcp(icpUdpData * queue)
 	log_tags[queue->logcode],
 	IcpOpcodeStr[ICP_OP_QUERY],
 	0,
+#ifndef LESS_TIMING
 	tvSubMsec(queue->start, current_time),
+#else
+	0,
+#endif
 	NULL,			/* ident */
 	NULL,			/* hierarchy data */
 #if LOG_FULL_HEADERS
@@ -1054,7 +1080,7 @@ icpCreateMessage(
     headerp->length = htons(buf_len);
     headerp->reqnum = htonl(reqnum);
     headerp->flags = htonl(flags);
-    headerp->pad = pad;
+    headerp->pad = htonl(pad);
     headerp->shostid = htonl(theOutICPAddr.s_addr);
     urloffset = buf + sizeof(icp_common_t);
     if (opcode == ICP_OP_QUERY)
@@ -1091,7 +1117,7 @@ icpCreateHitObjMessage(
     headerp->length = htons(buf_len);
     headerp->reqnum = htonl(reqnum);
     headerp->flags = htonl(flags);
-    headerp->pad = pad;
+    headerp->pad = htonl(pad);
     headerp->shostid = htonl(theOutICPAddr.s_addr);
     urloffset = buf + sizeof(icp_common_t);
     xmemcpy(urloffset, url, strlen(url));
@@ -1124,7 +1150,9 @@ icpUdpSend(int fd,
     data->address = *to;
     data->msg = msg;
     data->len = (int) ntohs(msg->length);
+#ifndef LESS_TIMING
     data->start = current_time;	/* wrong for HIT_OBJ */
+#endif
     data->logcode = logcode;
     data->proto = proto;
     AppendUdp(data);
@@ -1184,7 +1212,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     int pkt_len;
     aclCheck_t checklist;
     icp_common_t *reply;
-    int netdb_gunk = 0;
+    int src_rtt = 0;
     u_num32 flags = 0;
 
     header.opcode = headerp->opcode;
@@ -1193,6 +1221,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     header.reqnum = ntohl(headerp->reqnum);
     header.flags = ntohl(headerp->flags);
     header.shostid = ntohl(headerp->shostid);
+    header.pad = ntohl(headerp->pad);
 
     switch (header.opcode) {
     case ICP_OP_QUERY:
@@ -1216,12 +1245,12 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    }
 	    break;
 	}
-	if (header.flags & ICP_FLAG_NETDB_GUNK) {
+	if (header.flags & ICP_FLAG_SRC_RTT) {
 	    int rtt = netdbHostRtt(icp_request->host);
 	    int hops = netdbHostHops(icp_request->host);
-
-	    netdb_gunk = htonl(((hops & 0xFFFF) << 16) | (rtt & 0xFFFF));
-	    flags |= ICP_FLAG_NETDB_GUNK;
+	    src_rtt = ((hops & 0xFFFF) << 16) | (rtt & 0xFFFF);
+	    if (rtt)
+		flags |= ICP_FLAG_SRC_RTT;
 	}
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
@@ -1233,25 +1262,25 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 		    flags,
 		    url,
 		    header.reqnum,
-		    netdb_gunk,
+		    src_rtt,
 		    entry);
 		icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
 		break;
 	    } else {
-		reply = icpCreateMessage(ICP_OP_HIT, flags, url, header.reqnum, netdb_gunk);
+		reply = icpCreateMessage(ICP_OP_HIT, flags, url, header.reqnum, src_rtt);
 		icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
 		break;
 	    }
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (store_rebuilding == STORE_REBUILDING_CLEAN && opt_reload_hit_only) {
-	    reply = icpCreateMessage(ICP_OP_MISSNOFETCH, flags, url, header.reqnum, netdb_gunk);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_MISSNOFETCH, icp_request->protocol);
+	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, flags, url, header.reqnum, src_rtt);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
-	    reply = icpCreateMessage(ICP_OP_MISSNOFETCH, flags, url, header.reqnum, netdb_gunk);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_MISSNOFETCH, icp_request->protocol);
+	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, flags, url, header.reqnum, src_rtt);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
 	} else {
-	    reply = icpCreateMessage(ICP_OP_MISS, flags, url, header.reqnum, netdb_gunk);
+	    reply = icpCreateMessage(ICP_OP_MISS, flags, url, header.reqnum, src_rtt);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS, icp_request->protocol);
 	}
 	break;
@@ -1262,7 +1291,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     case ICP_OP_DECHO:
     case ICP_OP_MISS:
     case ICP_OP_DENIED:
-    case ICP_OP_MISSNOFETCH:
+    case ICP_OP_MISS_NOFETCH:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
 	    debug(12, 0, "icpHandleIcpV2: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
@@ -1306,6 +1335,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	break;
 
     case ICP_OP_INVALID:
+    case ICP_OP_ERR:
 	break;
 
     default:
@@ -1374,11 +1404,11 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_CLEAN) {
-	    reply = icpCreateMessage(ICP_OP_MISSNOFETCH, 0, url, header.reqnum, 0);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_MISSNOFETCH, icp_request->protocol);
+	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, 0, url, header.reqnum, 0);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
-	    reply = icpCreateMessage(ICP_OP_MISSNOFETCH, 0, url, header.reqnum, 0);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_MISSNOFETCH, icp_request->protocol);
+	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, 0, url, header.reqnum, 0);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
 	} else {
 	    reply = icpCreateMessage(ICP_OP_MISS, 0, url, header.reqnum, 0);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS, icp_request->protocol);
@@ -1391,6 +1421,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     case ICP_OP_DECHO:
     case ICP_OP_MISS:
     case ICP_OP_DENIED:
+    case ICP_OP_MISS_NOFETCH:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
 	    debug(12, 0, "icpHandleIcpV3: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
@@ -1489,7 +1520,8 @@ icpHandleUdp(int sock, void *not_used)
 	/* Some Linux systems seem to set the FD for reading and then
 	 * return ECONNREFUSED when sendto() fails and generates an ICMP
 	 * port unreachable message. */
-	if (errno != ECONNREFUSED)
+	/* or maybe an EHOSTUNREACH "No route to host" message */
+	if (errno != ECONNREFUSED && errno != EHOSTUNREACH)
 #endif
 	    debug(50, 1, "icpHandleUdp: FD %d recvfrom: %s\n",
 		sock, xstrerror());
@@ -1513,46 +1545,11 @@ icpHandleUdp(int sock, void *not_used)
     else if (icp_version == ICP_VERSION_3)
 	icpHandleIcpV3(sock, from, buf, len);
     else
-	debug(12, 0, "Unused ICP version %d received from %s:%d\n",
+	debug(12, 0, "WARNING: Unused ICP version %d received from %s:%d\n",
 	    icp_version,
 	    inet_ntoa(from.sin_addr),
 	    ntohs(from.sin_port));
 }
-
-#ifdef OLD_CODE
-static char *
-do_append_domain(const char *url, const char *ad)
-{
-    char *b = NULL;		/* beginning of hostname */
-    char *e = NULL;		/* end of hostname */
-    char *p = NULL;
-    char *u = NULL;
-    int lo;
-    int ln;
-    int adlen;
-
-    if (!(b = strstr(url, "://")))	/* find beginning of host part */
-	return NULL;
-    b += 3;
-    if (!(e = strchr(b, '/')))	/* find end of host part */
-	e = b + strlen(b);
-    if ((p = strchr(b, '@')) && p < e)	/* After username info */
-	b = p + 1;
-    if ((p = strchr(b, ':')) && p < e)	/* Before port */
-	e = p;
-    if ((p = strchr(b, '.')) && p < e)	/* abort if host has dot already */
-	return NULL;
-    lo = strlen(url);
-    ln = lo + (adlen = strlen(ad));
-    u = xcalloc(ln + 1, 1);
-    strncpy(u, url, (e - url));	/* copy first part */
-    b = u + (e - url);
-    p = b + adlen;
-    strncpy(b, ad, adlen);	/* copy middle part */
-    strncpy(p, e, lo - (e - url));	/* copy last part */
-    return (u);
-}
-#endif
 
 /*
  *  parseHttpRequest()
@@ -1579,7 +1576,6 @@ parseHttpRequest(icpStateData * icpState)
     char *s = NULL;
     int free_request = 0;
     int req_hdr_sz;
-    int len;
     int url_sz;
 
     /* Make sure a complete line has been received */
@@ -1622,9 +1618,8 @@ parseHttpRequest(icpStateData * icpState)
 	xfree(inbuf);
 	return -1;
     }
-    len = (int) (t - token);
     memset(http_ver, '\0', 32);
-    strncpy(http_ver, token, len < 31 ? len : 31);
+    xstrncpy(http_ver, token, 32);
     sscanf(http_ver, "HTTP/%f", &icpState->http_ver);
     debug(12, 5, "parseHttpRequest: HTTP version is '%s'\n", http_ver);
 
@@ -2011,7 +2006,6 @@ icpDetectClientClose(int fd, void *data)
     icpStateData *icpState = data;
     LOCAL_ARRAY(char, buf, 256);
     int n;
-    int x;
     StoreEntry *entry = icpState->entry;
     errno = 0;
     if (icpCheckTransferDone(icpState)) {
@@ -2055,15 +2049,15 @@ icpDetectClientClose(int fd, void *data)
 	    storeUnregister(entry, fd);
 	    storeRegister(entry, fd, icpHandleAbort, (void *) icpState);
 	}
-	x = protoUnregister(fd,
+	protoUnregister(fd,
 	    entry,
 	    icpState->request,
 	    icpState->peer.sin_addr);
-	if (x == 0)
-	    comm_close(fd);
+	comm_close(fd);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
 	comm_set_stall(fd, 10);	/* check again in 10 seconds */
+	commSetSelect(fd, COMM_SELECT_READ, icpDetectClientClose, icpState, 0);
     }
 }
 

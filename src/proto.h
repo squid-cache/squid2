@@ -118,7 +118,7 @@ struct icp_common_s {
 };
 
 #define ICP_FLAG_HIT_OBJ     0x80000000ul
-#define ICP_FLAG_NETDB_GUNK   0x40000000ul
+#define ICP_FLAG_SRC_RTT     0x40000000ul
 
 #define ICP_COMMON_SZ (sizeof(icp_common_t))
 #define ICP_HDR_SZ (sizeof(icp_common_t)+sizeof(u_num32))
@@ -144,7 +144,7 @@ typedef enum {
     ICP_OP_UNUSED6,		/* 18 */
     ICP_OP_UNUSED7,		/* 19 */
     ICP_OP_UNUSED8,		/* 20 */
-    ICP_OP_MISSNOFETCH,		/* 21 access denied while reloading */
+    ICP_OP_MISS_NOFETCH,	/* 21 access denied while reloading */
     ICP_OP_DENIED,		/* 22 access denied (cl<-sv) */
     ICP_OP_HIT_OBJ,		/* 23 hit with object data (cl<-sv) */
     ICP_OP_END			/* 24 marks end of opcodes */
@@ -266,6 +266,7 @@ typedef struct icp_message_s icp_message_t;
 #define ICP_VERSION_CURRENT	ICP_VERSION_2
 
 extern void protoDispatch _PARAMS((int, StoreEntry *, request_t *));
+
 extern int protoUnregister _PARAMS((int fd,
 	StoreEntry *,
 	request_t *,
@@ -276,5 +277,9 @@ extern void protoCancelTimeout _PARAMS((int fd, StoreEntry *));
 #define DIRECT_NO    0
 #define DIRECT_MAYBE 1
 #define DIRECT_YES   2
+
+#define OUTSIDE_FIREWALL 0
+#define INSIDE_FIREWALL  1
+#define NO_FIREWALL      2
 
 #endif /* PROTO_H */

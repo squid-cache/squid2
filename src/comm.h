@@ -161,6 +161,7 @@ typedef struct fde {
     time_t timeout_time;	/* Allow 1-second granularity timeouts */
     time_t timeout_delta;	/* The delta requested */
     void *timeout_data;		/* App. data to associate w/ handled conn. */
+    int lifetime;
     PF lifetime_handler;	/* Lifetime expire handler. */
     void *lifetime_data;	/* App. data to associate w/ handled conn. */
     struct close_handler *close_handler;	/* Linked list of close handlers */
@@ -179,7 +180,6 @@ extern int comm_accept _PARAMS((int fd, struct sockaddr_in *, struct sockaddr_in
 extern void comm_close _PARAMS((int fd));
 extern void commConnectStart _PARAMS((int fd, const char *, u_short, CCH, void *));
 extern int comm_connect_addr _PARAMS((int sock, const struct sockaddr_in *));
-extern int comm_get_fd_lifetime _PARAMS((int fd));
 extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void **));
 extern int comm_init _PARAMS((void));
 extern int comm_listen _PARAMS((int sock));
@@ -196,7 +196,6 @@ extern int comm_udp_send _PARAMS((int fd, const char *host, u_short port, const 
 extern int comm_udp_sendto _PARAMS((int fd, const struct sockaddr_in *, int size, const char *buf, int len));
 extern int fd_of_first_client _PARAMS((StoreEntry *));
 extern void comm_set_stall _PARAMS((int, int));
-extern int comm_get_fd_timeout _PARAMS((int fd));
 extern void comm_write _PARAMS((int fd,
 	char *buf,
 	int size,
