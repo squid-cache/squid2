@@ -541,6 +541,7 @@ htcpTstReply(htcpDataHeader * dhdr, StoreEntry * e, htcpSpecifier * spec, struct
     int hops = 0;
     int samp = 0;
     char cto_buf[128];
+    memset(&stuff, '\0', sizeof(stuff));
     stuff.op = HTCP_TST;
     stuff.rr = RR_RESPONSE;
     stuff.f1 = 0;
