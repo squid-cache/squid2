@@ -38,7 +38,7 @@ URL Redirector
 Squid now has the ability to rewrite requested URLs.  This is implemented
 as an external process, much like the dnsservers.  Every incoming URL
 is written to a 'redirector' process which then returns a new URL, or
-a blank line to inidicate no change.
+a blank line to indicate no change.
 
 The redirector program is NOT provided in the Squid package (although
 there are a couple of user-contributed redirectors in the "contrib/"
@@ -107,7 +107,7 @@ A new ACL type has been added for matching client hostnames:
 
     acl Myusers srcdomain foo.org
 
-The use of this ACL type may cause noticable delay in serving objects
+The use of this ACL type may cause noticeable delay in serving objects
 through the cache.  However, so long as allowed clients are local, the
 reverse lookup should not take very long and the delay may not be
 noticed.
@@ -152,7 +152,7 @@ directories for a total of 16x256x256 = 1,048,576 objects.
 The number of L1 and L2 directories to use is configurable in the
 squid.conf file (swap_level1_dirs, swap_level2_dirs).  To estimate the
 optimal numbers for your installation, we recommend the following
-forumla:
+formula:
 
 given:
 	DS = amount of 'cache_swap' / number of 'cache_dir's
@@ -267,7 +267,7 @@ Refresh Rules and If-Modified-Since
 ==============================================================================
 Squid 1.1 switched from a Time-To-Live based expiration model to a
 Refresh-Rate model.  Objects are no longer purged from the cache when
-they expire.  Instead of assinging TTL's when the object enters the
+they expire.  Instead of assigning TTL's when the object enters the
 cache, we now check freshness requirements when objects are requested.
 If an object is "fresh" it is given directly to the client.  If it is
 "stale" then we make an If-Modified-Since request for it.
@@ -362,7 +362,7 @@ in some early HTTP/1.1 draft documents.  This header had the format
     Forwarded: by cache-host for client-address
 
 Current HTTP/1.1 draft documents instead use the "Via" header, but it
-does not provide any standward way of indicating the client address
+does not provide any standard way of indicating the client address
 in the request.  Since a number of people missed having the originating
 client address in the request, Squid now adds its own request header
 called "X-Forwarded-For" which looks like this:
@@ -426,7 +426,7 @@ Squid-1.1 has better memory management, although still not ideal.  The
 Squid allocates for holding whole objects in VM.  The 'cache_mem'
 memory is allocated as a pool of 4k blocks.  Objects held in memory are
 stored in blocks from this pool.  The 'cache_mem_low' and
-'cache_mem_high' values affect the memory reclaimation algorithm.
+'cache_mem_high' values affect the memory reclamation algorithm.
 
 There are two types of in-memory objects: in-transit objects and
 completed objects.  The in-transit objects are "locked" in memory until
@@ -535,7 +535,7 @@ is found, it is automatically linked in.
 
 GNU regex
 ==============================================================================
-Squid's configure script attemtps to determine whether or not it should
+Squid's configure script attempts to determine whether or not it should
 compile the GNU regex functions supplied in the source distribution.
 If your system appears to have its own POSIX compliant regex functions
 then configure may decide to use those instead of GNU regex.
