@@ -58,6 +58,7 @@ static char *objcacheOpcodeStr[] =
     "storedir",
     "cbdata",
     "pconn",
+    "counters",
     "5min",
     "60min",
     "mem",
