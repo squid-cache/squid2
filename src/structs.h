@@ -266,6 +266,10 @@ struct _SquidConfig {
 #if USE_IDENT
 	time_t ident;
 #endif
+#if !USE_DNSSERVERS
+	time_t idns_retransmit;
+	time_t idns_query;
+#endif
     } Timeout;
     size_t maxRequestHeaderSize;
     size_t maxRequestBodySize;
