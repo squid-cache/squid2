@@ -123,28 +123,40 @@ memPoolMeterReport(const MemPoolMeter * pm, size_t obj_size,
     int alloc_count, int inuse_count, int idle_count, StoreEntry * e)
 {
     assert(pm);
-    storeAppendPrintf(e, "%d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\n",
+    storeAppendPrintf(e, "%d\t %d\t %d\t %.2f\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\n",
     /* alloc */
 	alloc_count,
 	toKB(obj_size * pm->alloc.level),
-	toKB(obj_size * pm->alloc.hwater),
-	(int) rint(xpercent(obj_size * pm->alloc.level, TheMeter.alloc.level)),
+	toKB(obj_size * pm->alloc.hwater_level),
+	(double)((squid_curtime - pm->alloc.hwater_stamp)/3600.),
+	xpercentInt(obj_size * pm->alloc.level, TheMeter.alloc.level),
     /* in use */
 	inuse_count,
 	toKB(obj_size * pm->inuse.level),
-	toKB(obj_size * pm->inuse.hwater),
-	(int) rint(xpercent(pm->inuse.level, pm->alloc.level)),
+	toKB(obj_size * pm->inuse.hwater_level),
+	xpercentInt(pm->inuse.level, pm->alloc.level),
     /* idle */
 	idle_count,
 	toKB(obj_size * pm->idle.level),
-	toKB(obj_size * pm->idle.hwater),
+	toKB(obj_size * pm->idle.hwater_level),
     /* (int)rint(xpercent(pm->idle.level, pm->alloc.level)), */
     /* saved */
-	(int) rint(xpercent(pm->saved.count, mem_traffic_volume.count)),
-	(int) rint(xpercent(obj_size * gb_to_double(&pm->saved), gb_to_double(&mem_traffic_volume))));
+	xpercentInt(pm->saved.count, mem_traffic_volume.count),
+	xpercentInt(obj_size * gb_to_double(&pm->saved), gb_to_double(&mem_traffic_volume)));
     /* (int)rint(xpercent(obj_size * pm->saved.level, mem_traffic_volume))); */
 }
 
+/* MemMeter */
+
+void
+memMeterSyncHWater(MemMeter *m)
+{
+    assert(m);
+    if (m->hwater_level < m->level) {
+	m->hwater_level = m->level;
+	m->hwater_stamp = squid_curtime;
+    }
+}
 
 /* MemPool */
 
@@ -218,7 +230,7 @@ int
 memPoolWasUsed(const MemPool * pool)
 {
     assert(pool);
-    return pool->meter.alloc.hwater > 0;
+    return pool->meter.alloc.hwater_level > 0;
 }
 
 int
@@ -273,9 +285,9 @@ memReport(StoreEntry * e)
     storeAppendPrintf(e, "Current memory usage:\n");
     /* heading */
     storeAppendPrintf(e, "Pool\t Obj Size\t"
-	"Allocated\t\t\t\t In Use\t\t\t\t Idle\t\t\t Allocations Saved\t\t\n"
+	"Allocated\t\t\t\t\t In Use\t\t\t\t Idle\t\t\t Allocations Saved\t\t\n"
 	" \t (bytes)\t"
-	"(#)\t (KB)\t high (KB)\t impact (%%total)\t"
+	"(#)\t (KB)\t high (KB)\t high (hrs)\t impact (%%total)\t"
 	"(#)\t (KB)\t high (KB)\t portion (%%alloc)\t"
 	"(#)\t (KB)\t high (KB)\t"
 	"(%%number)\t (%%volume)"

@@ -224,7 +224,7 @@ cachemgrStart(int fd, request_t * request, StoreEntry * entry)
 	 * add Authenticate header, use 'action' as a realm because
 	 * password depends on action
 	 */
-	httpHeaderSetAuth(&rep->hdr, "Basic", mgr->action);
+	httpHeaderPutAuth(&rep->header, "Basic", mgr->action);
 	/* move info to the mem_obj->reply */
 	httpReplyAbsorb(entry->mem_obj->reply, rep);
 	/* store the reply */

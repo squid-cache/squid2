@@ -216,7 +216,8 @@ memInit(void)
     memDataInit(MEM_HIERARCHYLOGENTRY, "HierarchyLogEntry",
 	sizeof(HierarchyLogEntry), 0);
     memDataInit(MEM_HTTP_STATE_DATA, "HttpStateData", sizeof(HttpStateData), 0);
-    memDataInit(MEM_HTTPREPLY, "http_reply", sizeof(http_reply), 0);
+    memDataInit(MEM_HTTP_REPLY, "HttpReply", sizeof(HttpReply), 0);
+    memDataInit(MEM_HTTP_HDR_ENTRY, "HttpHeaderEntry", sizeof(HttpHeaderEntry), 0);
     memDataInit(MEM_HTTP_HDR_CC, "HttpHdrCc", sizeof(HttpHdrCc), 0);
     memDataInit(MEM_HTTP_HDR_RANGE_SPEC, "HttpHdrRangeSpec", sizeof(HttpHdrRangeSpec), 0);
     memDataInit(MEM_HTTP_HDR_RANGE, "HttpHdrRange", sizeof(HttpHdrRange), 0);

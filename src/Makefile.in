@@ -90,7 +90,6 @@ OBJS	 	= \
 		http.o \
 		http-anon.o \
 		HttpStatusLine.o \
-		HttpHdrExtField.o \
 		HttpHdrCc.o \
 		HttpHdrRange.o \
 		HttpHdrContRange.o \
