@@ -45,7 +45,7 @@
 #include <assert.h>
 
 
-#define DEBUG(LEVEL) if (LEVEL > DebugLevel)
+#define DEBUG(LEVEL) if (LEVEL <= DebugLevel)
 
 typedef struct _file_state file_state;
 
