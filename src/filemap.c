@@ -1,3 +1,4 @@
+#define XTRA_DEBUG 1
 /*
  * $Id$
  *
@@ -146,13 +147,10 @@ int
 file_map_bit_set(int file_number)
 {
     unsigned long bitmask = (1L << (file_number & LONG_BIT_MASK));
-
 #ifdef XTRA_DEBUG
     if (fm->file_map[file_number >> LONG_BIT_SHIFT] & bitmask)
-	debug(8, 0, "file_map_bit_set: WARNING: file number %d is already set!\n",
-	    file_number);
+	debug_trap("file_map_bit_set: WARNING: file number already used");
 #endif
-
     fm->file_map[file_number >> LONG_BIT_SHIFT] |= bitmask;
     fm->n_files_in_map++;
     if (fm->n_files_in_map > fm->max_n_files)
