@@ -404,7 +404,7 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
     /*
      * Check the meta data and make sure we got the right object.
      */
-    for (t = tlv_list; t; t = t->next) {
+    for (t = tlv_list; t && swap_object_ok; t = t->next) {
 	switch (t->type) {
 	case STORE_META_KEY:
 	    assert(t->length == MD5_DIGEST_CHARS);
