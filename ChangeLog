@@ -55,6 +55,8 @@ Changes to squid-2.5.STABLE3 ():
 	  browser bugs if needed.
 	- Bug #644: digest authentication fails on requests with one
 	  or more comma in the requested URL
+	- Bug #648: deny_info TCP_RESET not working. The fix for this also
+	  adds the ability to send redirects.
 
 Changes to squid-2.5.STABLE2 (Mars 17, 2003):
 
