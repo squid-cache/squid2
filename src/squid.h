@@ -313,6 +313,14 @@ extern const char *storeToString _PARAMS((const StoreEntry *));
 extern void timestampsSet _PARAMS((StoreEntry *));
 extern int waisStart _PARAMS((int, const char *, method_t, char *, StoreEntry *));
 extern void storeDirClean _PARAMS((void));
+int
+passStart _PARAMS((int fd,
+        const char *url,
+        request_t * request,
+        char *buf,
+        int buflen,
+        int *size_ptr));
+
 extern const char *const dash_str;
 extern const char *const null_string;
 

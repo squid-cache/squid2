@@ -408,7 +408,7 @@ objcachePasswdAdd(cachemgr_passwd ** list, char *passwd, wordlist * actions)
     for (w = actions; w; w = w->next) {
 	op = objcacheParseRequest(w->key);
 	if (op <= MGR_NONE || op >= MGR_MAX) {
-	    debug(16, 0, "Invalid objcache operation: '%s'\n", w->key);
+	    debug(16, 0, "objcachePasswdAdd: Invalid operation: '%s'\n", w->key);
 	    continue;
 	}
 	q->actions |= (1 << op);

@@ -724,6 +724,15 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	    icpState->request_hdr,
 	    &icpState->size);
 	return;
+    } else if (icpState->method != METHOD_GET) {
+	icpState->log_type = LOG_TCP_MISS;
+	passStart(fd,
+	    url,
+	    icpState->request,
+	    icpState->request_hdr,
+	    icpState->req_hdr_sz,
+	    &icpState->size);
+	return;
     }
     if (icpCachable(icpState))
 	BIT_SET(request->flags, REQ_CACHABLE);
@@ -1606,6 +1615,7 @@ parseHttpRequest(icpStateData * icpState)
     debug(12, 5, "parseHttpRequest: Request Header is\n---\n%s\n---\n",
 	icpState->request_hdr);
 
+#ifdef DONT
     if (icpState->method == METHOD_POST || icpState->method == METHOD_PUT) {
 	/* Expect Content-Length: and POST data after the headers */
 	if ((t = mime_get_header(req_hdr, "Content-Length")) == NULL) {
@@ -1629,6 +1639,7 @@ parseHttpRequest(icpStateData * icpState)
 	    return 0;
 	}
     }
+#endif
     /* Assign icpState->url */
     if ((t = strchr(url, '\n')))	/* remove NL */
 	*t = '\0';
