@@ -680,13 +680,17 @@ storeCossDirShutdown(SwapDir * SD)
 int
 storeCossDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
+    CossInfo *cs = (CossInfo *) SD->fsdata;
+    int loadav;
+
     /* Check if the object is a special object, we can't cache these */
     if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
 	return -1;
 
     /* Otherwise, we're ok */
-    /* Return 900 (90%) load */
-    return 900;
+    /* Return load, cs->aq.aq_numpending out of MAX_ASYNCOP */
+    loadav = cs->aq.aq_numpending * 1000 / MAX_ASYNCOP;
+    return loadav;
 }
 
 
@@ -720,6 +724,7 @@ storeCossDirStats(SwapDir * SD, StoreEntry * sentry)
 	SD->map->n_files_in_map, SD->map->max_n_files,
 	percent(SD->map->n_files_in_map, SD->map->max_n_files));
 #endif
+    storeAppendPrintf(sentry, "Pending operations: %d out of %d\n", cs->aq.aq_numpending, MAX_ASYNCOP);
     storeAppendPrintf(sentry, "Flags:");
     if (SD->flags.selected)
 	storeAppendPrintf(sentry, " SELECTED");
