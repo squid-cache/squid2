@@ -234,7 +234,7 @@ typedef void UH(void *data, wordlist *);
 typedef int DEFER(int fd, void *data);
 typedef int READ_HANDLER(int, char *, int);
 typedef int WRITE_HANDLER(int, const char *, int);
-typedef void CBCB(char *buf, size_t size, void *data);
+typedef void CBCB(char *buf, ssize_t size, void *data);
 
 typedef void STIOCB(void *their_data, int errflag, storeIOState *);
 typedef void STFNCB(void *their_data, int errflag, storeIOState *);

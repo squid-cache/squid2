@@ -1079,7 +1079,7 @@ httpSendRequestEntryDone(int fd, void *data)
 }
 
 static void
-httpRequestBodyHandler(char *buf, size_t size, void *data)
+httpRequestBodyHandler(char *buf, ssize_t size, void *data)
 {
     HttpStateData *httpState = (HttpStateData *) data;
     if (size > 0) {

@@ -2239,7 +2239,7 @@ ftpReadTransferDone(FtpStateData * ftpState)
 
 /* This will be called when there is data available to put */
 static void
-ftpRequestBody(char *buf, size_t size, void *data)
+ftpRequestBody(char *buf, ssize_t size, void *data)
 {
     FtpStateData *ftpState = (FtpStateData *) data;
     debug(9, 3) ("ftpRequestBody: buf=%p size=%d ftpState=%p\n", buf, (int) size, data);
@@ -2249,7 +2249,7 @@ ftpRequestBody(char *buf, size_t size, void *data)
 	comm_write(ftpState->data.fd, buf, size, ftpDataWriteCallback, data, NULL);
     } else if (size < 0) {
 	/* Error */
-	debug(9, 1) ("ftpRequestBody: request aborted");
+	debug(9, 1) ("ftpRequestBody: request aborted\n");
 	ftpFailed(ftpState, ERR_READ_ERROR);
     } else if (size == 0) {
 	/* End of transfer */

@@ -362,7 +362,7 @@ static char *
 htcpBuildPacket(htcpStuff * stuff, ssize_t * len)
 {
     size_t buflen = 8192;
-    size_t s;
+    ssize_t s;
     ssize_t off = 0;
     size_t hdr_sz = sizeof(htcpHeader);
     htcpHeader hdr;

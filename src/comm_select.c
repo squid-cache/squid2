@@ -314,10 +314,10 @@ comm_poll(int msec)
 #endif
     PF *hdl = NULL;
     int fd;
-    int i;
-    int maxfd;
-    unsigned long nfds;
-    unsigned long npending;
+    unsigned int i;
+    unsigned int maxfd;
+    unsigned int nfds;
+    unsigned int npending;
     int num;
     int callicp = 0, callhttp = 0;
     int calldns = 0;
@@ -397,14 +397,14 @@ comm_poll(int msec)
 	    return COMM_ERROR;
 	    /* NOTREACHED */
 	}
-	debug(5, num ? 5 : 8) ("comm_poll: %d+%ld FDs ready\n", num, npending);
+	debug(5, num ? 5 : 8) ("comm_poll: %d+%u FDs ready\n", num, npending);
 	statHistCount(&statCounter.select_fds_hist, num);
 	/* Check timeout handlers ONCE each second. */
 	if (squid_curtime > last_timeout) {
 	    last_timeout = squid_curtime;
 	    checkTimeouts();
 	}
-	if (num == 0 && npending == 0)
+	if (num <= 0 && npending == 0)
 	    continue;
 	/* scan each socket but the accept socket. Poll this 
 	 * more frequently to minimize losses due to the 5 connect 

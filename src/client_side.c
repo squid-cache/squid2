@@ -3126,6 +3126,7 @@ clientReadBody(request_t * request, char *buf, size_t size, CBCB * callback, voi
     debug(33, 2) ("clientReadBody: start fd=%d body_size=%lu in.offset=%ld cb=%p req=%p\n", conn->fd, (unsigned long int) conn->body.size_left, (long int) conn->in.offset, callback, request);
     conn->body.callback = callback;
     conn->body.cbdata = cbdata;
+    cbdataLock(conn->body.cbdata);
     conn->body.buf = buf;
     conn->body.bufsize = size;
     conn->body.request = requestLink(request);
@@ -3141,6 +3142,7 @@ clientProcessBody(ConnStateData * conn)
     void *cbdata = conn->body.cbdata;
     CBCB *callback = conn->body.callback;
     request_t *request = conn->body.request;
+    int valid;
     /* Note: request is null while eating "aborted" transfers */
     debug(33, 2) ("clientProcessBody: start fd=%d body_size=%lu in.offset=%ld cb=%p req=%p\n", conn->fd, (unsigned long int) conn->body.size_left, (long int) conn->in.offset, callback, request);
     if (conn->in.offset) {
@@ -3166,15 +3168,19 @@ clientProcessBody(ConnStateData * conn)
 	if (conn->body.size_left <= 0 && request != NULL)
 	    request->body_connection = NULL;
 	/* Remove clientReadBody arguments (the call is completed) */
+	valid = cbdataValid(conn->body.cbdata);
 	conn->body.request = NULL;
 	conn->body.callback = NULL;
+	cbdataUnlock(conn->body.cbdata);
+	conn->body.cbdata = NULL;
 	conn->body.buf = NULL;
 	conn->body.bufsize = 0;
 	/* Remember that we have touched the body, not restartable */
 	if (request != NULL)
 	    request->flags.body_sent = 1;
 	/* Invoke callback function */
-	callback(buf, size, cbdata);
+	if (valid)
+	    callback(buf, size, cbdata);
 	if (request != NULL)
 	    requestUnlink(request);	/* Linked in clientReadBody */
 	debug(33, 2) ("clientProcessBody: end fd=%d size=%d body_size=%lu in.offset=%ld cb=%p req=%p\n", conn->fd, size, (unsigned long int) conn->body.size_left, (long int) conn->in.offset, callback, request);
@@ -3184,7 +3190,7 @@ clientProcessBody(ConnStateData * conn)
 /* A dummy handler that throws away a request-body */
 static char bodyAbortBuf[SQUID_TCP_SO_RCVBUF];
 static void
-clientReadBodyAbortHandler(char *buf, size_t size, void *data)
+clientReadBodyAbortHandler(char *buf, ssize_t size, void *data)
 {
     ConnStateData *conn = (ConnStateData *) data;
     debug(33, 2) ("clientReadBodyAbortHandler: fd=%d body_size=%lu in.offset=%ld\n", conn->fd, (unsigned long int) conn->body.size_left, (long int) conn->in.offset);
@@ -3194,6 +3200,7 @@ clientReadBodyAbortHandler(char *buf, size_t size, void *data)
 	conn->body.buf = bodyAbortBuf;
 	conn->body.bufsize = sizeof(bodyAbortBuf);
 	conn->body.cbdata = data;
+	cbdataLock(conn->body.cbdata);
     }
 }
 
@@ -3205,6 +3212,7 @@ clientAbortBody(request_t * request)
     char *buf;
     CBCB *callback;
     void *cbdata;
+    int valid;
     request->body_connection = NULL;
     if (!conn || conn->body.size_left <= 0)
 	return 0;		/* No body to abort */
@@ -3212,12 +3220,15 @@ clientAbortBody(request_t * request)
 	buf = conn->body.buf;
 	callback = conn->body.callback;
 	cbdata = conn->body.cbdata;
+	valid = cbdataValid(cbdata);
 	assert(request == conn->body.request);
 	conn->body.buf = NULL;
 	conn->body.callback = NULL;
+	cbdataUnlock(conn->body.cbdata);
 	conn->body.cbdata = NULL;
 	conn->body.request = NULL;
-	callback(buf, -1, cbdata);	/* Signal abort to clientReadBody caller */
+	if (valid)
+	    callback(buf, -1, cbdata);	/* Signal abort to clientReadBody caller */
 	requestUnlink(request);
     }
     clientReadBodyAbortHandler(NULL, -1, conn);		/* Install abort handler */
