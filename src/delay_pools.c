@@ -37,6 +37,7 @@
 
 #if DELAY_POOLS
 #include "squid.h"
+#include "StoreClient.h"
 
 struct _class1DelayPool {
     int class;
@@ -657,7 +658,7 @@ delayMostBytesWanted(const MemObject * mem, int max)
 	    continue;
 	if (sc->type != STORE_MEM_CLIENT)
 	    continue;
-	wanted = sc->copy_size;
+	wanted = sc->copyInto.length;
 	if (wanted > max)
 	    wanted = max;
 	i = delayBytesWanted(sc->delay_id, i, wanted);
@@ -680,7 +681,7 @@ delayMostBytesAllowed(const MemObject * mem)
 	    continue;
 	if (sc->type != STORE_MEM_CLIENT)
 	    continue;
-	j = delayBytesWanted(sc->delay_id, 0, sc->copy_size);
+	j = delayBytesWanted(sc->delay_id, 0, sc->copyInto.length);
 	if (j > jmax) {
 	    jmax = j;
 	    d = sc->delay_id;
