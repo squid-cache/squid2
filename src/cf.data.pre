@@ -3271,5 +3271,16 @@ DOC_START
 	Set this to 'round-robin' as an alternative.
 DOC_END
 
+NAME: forward_log
+IFDEF: WIP_FWD_LOG
+TYPE: string
+DEFAULT: none
+LOC: Config.Log.forward
+DOC_START
+	Logs the server-side requests.
+
+	This is currently work in progress.
+DOC_END
+
 EOF
 

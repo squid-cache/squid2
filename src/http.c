@@ -547,6 +547,9 @@ httpReadReply(int fd, void *data)
 	    httpProcessReplyHeader(httpState, buf, len);
 	    if (httpState->reply_hdr_state == 2) {
 		http_status s = entry->mem_obj->reply->sline.status;
+#if WIP_FWD_LOG
+		fwdStatus(httpState->fwd, s);
+#endif
 		/*
 		 * If its not a reply that we will re-forward, then
 		 * allow the client to get it.

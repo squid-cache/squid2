@@ -684,6 +684,11 @@ extern void fwdComplete(FwdState * fwdState);
 extern void fwdInit(void);
 extern int fwdReforwardableStatus(http_status s);
 extern void fwdServersFree(FwdServer ** FS);
+#if WIP_FWD_LOG
+extern void fwdUninit(void);
+extern void fwdLogRotate(void);
+extern void fwdStatus(FwdState *, http_status);
+#endif
 
 extern void urnStart(request_t *, StoreEntry *);
 

@@ -391,6 +391,9 @@ mainRotate(void)
     accessLogRotate();		/* access.log */
     useragentRotateLog();	/* useragent.log */
     refererRotateLog();		/* referer.log */
+#if WIP_FWD_LOG
+    fwdLogRotate();
+#endif
     icmpOpen();
 #if USE_DNSSERVERS
     dnsInit();
@@ -943,6 +946,9 @@ SquidShutdown(void *unused)
     storeDirSync();		/* Flush log writes */
     storeLogClose();
     accessLogClose();
+#if WIP_FWD_LOG
+    fwdUninit();
+#endif
     storeDirSync();		/* Flush log close */
 #if PURIFY || XMALLOC_TRACE
     storeFsDone();

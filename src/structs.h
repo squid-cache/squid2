@@ -298,6 +298,9 @@ struct _SquidConfig {
 #if USE_REFERER_LOG
 	char *referer;
 #endif
+#if WIP_FWD_LOG
+	char *forward;
+#endif
 	int rotateNumber;
     } Log;
     char *adminEmail;
@@ -1746,6 +1749,9 @@ struct _FwdState {
     ErrorState *err;
     time_t start;
     int n_tries;
+#if WIP_FWD_LOG
+    http_status last_status;
+#endif
     struct {
 	unsigned int dont_retry:1;
 	unsigned int ftp_pasv_failed:1;
