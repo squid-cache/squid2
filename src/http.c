@@ -115,8 +115,8 @@ static void
 httpMakePrivate(StoreEntry * entry)
 {
     storeExpireNow(entry);
-    EBIT_CLR(entry->flag, ENTRY_CACHABLE);
     storeReleaseRequest(entry);	/* delete object when not used */
+    /* storeReleaseRequest clears ENTRY_CACHABLE flag */
 }
 
 /* This object may be negatively cached */
