@@ -128,6 +128,7 @@ logfileWrite(Logfile * lf, void *buf, size_t len)
     if (len > lf->bufsz) {
 	/* too big to fit in buffer */
 	logfileWriteWrapper(lf, buf, len);
+	return;
     }
     /* buffer it */
     xmemcpy(lf->buf + lf->offset, buf, len);
