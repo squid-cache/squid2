@@ -105,4 +105,4 @@
 
 extern void objcachePasswdAdd _PARAMS((cachemgr_passwd **, char *, wordlist *));
 extern void objcachePasswdDestroy _PARAMS((cachemgr_passwd ** a));
-extern int objcacheStart _PARAMS((int fd, StoreEntry *));
+extern void objcacheStart _PARAMS((int fd, StoreEntry *));
