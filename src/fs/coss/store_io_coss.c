@@ -266,7 +266,7 @@ void
 storeCossClose(SwapDir * SD, storeIOState * sio)
 {
     debug(79, 3) ("storeCossClose: offset %d\n", sio->swap_filen);
-    if (sio->mode == O_WRONLY)
+    if (sio->mode & O_WRONLY)
 	storeCossMemBufUnlock(SD, sio);
     storeCossIOCallback(sio, 0);
 }
