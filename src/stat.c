@@ -130,7 +130,7 @@ void stat_io_get(obj, sentry)
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     for (i = 0; i < 16; i++) {
 	sprintf(tempbuf, "{%5d-%5d: %9d}\n",
-	    i ? (1 << (i - 1)) + 1 : 0,
+	    i ? (1 << (i - 1)) + 1 : 1,
 	    1 << i,
 	    IOStats.Http.read_hist[i]);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
@@ -148,7 +148,7 @@ void stat_io_get(obj, sentry)
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     for (i = 0; i < 16; i++) {
 	sprintf(tempbuf, "{%5d-%5d: %9d}\n",
-	    i ? (1 << (i - 1)) + 1 : 0,
+	    i ? (1 << (i - 1)) + 1 : 1,
 	    1 << i,
 	    IOStats.Ftp.read_hist[i]);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
