@@ -212,10 +212,10 @@ PrintRusage(void (*f) (void), FILE * lf)
     getrusage(RUSAGE_SELF, &rusage);
     fprintf(lf, "CPU Usage: user %d sys %d\n",
 	(int) rusage.ru_utime.tv_sec, (int) rusage.ru_stime.tv_sec);
-#if defined(_SQUID_SGI_) || defined(_SQUID_OSF_)
-    fprintf(lf, "Memory Usage: rss %ld KB\n", rusage.ru_maxrss);
+#if defined(_SQUID_SGI_) || defined(_SQUID_OSF_) || defined(BSD4_4)
+    fprintf(lf, "Maximum Resident Size: %ld KB\n", rusage.ru_maxrss);
 #else /* _SQUID_SGI_ */
-    fprintf(lf, "Memory Usage: rss %ld KB\n",
+    fprintf(lf, "Maximum Resident Size: %ld KB\n",
 	(rusage.ru_maxrss * getpagesize()) >> 10);
 #endif /* _SQUID_SGI_ */
     fprintf(lf, "Page faults with physical i/o: %ld\n",
@@ -590,9 +590,9 @@ setMaxFD(void)
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
 	debug(50, 0, "setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
     } else {
-	rl.rlim_cur = SQUID_MAXFD;
+	rl.rlim_cur = Squid_MaxFD;
 	if (rl.rlim_cur > rl.rlim_max)
-	    rl.rlim_cur = rl.rlim_max;
+	    Squid_MaxFD = rl.rlim_cur = rl.rlim_max;
 	if (setrlimit(RLIMIT_NOFILE, &rl) < 0) {
 	    sprintf(tmp_error_buf, "setrlimit: RLIMIT_NOFILE: %s", xstrerror());
 	    fatal_dump(tmp_error_buf);
@@ -602,9 +602,9 @@ setMaxFD(void)
     if (getrlimit(RLIMIT_OFILE, &rl) < 0) {
 	debug(50, 0, "setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
     } else {
-	rl.rlim_cur = SQUID_MAXFD;
+	rl.rlim_cur = Squid_MaxFD;
 	if (rl.rlim_cur > rl.rlim_max)
-	    rl.rlim_cur = rl.rlim_max;
+	    Squid_MaxFD = rl.rlim_cur = rl.rlim_max;
 	if (setrlimit(RLIMIT_OFILE, &rl) < 0) {
 	    sprintf(tmp_error_buf, "setrlimit: RLIMIT_OFILE: %s", xstrerror());
 	    fatal_dump(tmp_error_buf);

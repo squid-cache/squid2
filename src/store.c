@@ -1293,7 +1293,6 @@ storeGetBucketNum(void)
     return (bucket++);
 }
 
-#define SWAP_LRUSCAN_BLOCK 16
 #define SWAP_MAX_HELP (store_buckets/2)
 
 /* The maximum objects to scan for maintain storage space */

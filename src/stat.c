@@ -645,7 +645,7 @@ statFiledescriptors(StoreEntry * sentry)
 	"Remote Address",
 	"Description");
     storeAppendPrintf(sentry, "{---- ------ ---- ---- --------------------- ------------------------------}\n");
-    for (i = 0; i < SQUID_MAXFD; i++) {
+    for (i = 0; i < Squid_MaxFD; i++) {
 	if (!fdstat_isopen(i))
 	    continue;
 	j = fdstatGetType(i);
@@ -773,13 +773,13 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
     storeAppendPrintf(sentry, "{\tCPU Usage: %d%%}\n",
 	percent(rusage.ru_utime.tv_sec + rusage.ru_stime.tv_sec,
 	    squid_curtime - squid_starttime));
-#if defined(_SQUID_SGI_) || defined(_SQUID_OSF_)
-    storeAppendPrintf(sentry, "{\tProcess Size: rss %ld KB}\n",
+#if defined(_SQUID_SGI_) || defined(_SQUID_OSF_) || defined(BSD4_4)
+    storeAppendPrintf(sentry, "{\tMaximum Resident Size: %ld KB}\n",
 	rusage.ru_maxrss);
-#else /* _SQUID_SGI_ */
-    storeAppendPrintf(sentry, "{\tProcess Size: rss %ld KB}\n",
+#else
+    storeAppendPrintf(sentry, "{\tMaximum Resident Size: %ld KB}\n",
 	(rusage.ru_maxrss * getpagesize()) >> 10);
-#endif /* _SQUID_SGI_ */
+#endif
     storeAppendPrintf(sentry, "{\tPage faults with physical i/o: %ld}\n",
 	rusage.ru_majflt);
 #endif
@@ -822,7 +822,7 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 
     storeAppendPrintf(sentry, "{File descriptor usage for %s:}\n", appname);
     storeAppendPrintf(sentry, "{\tMax number of file desc available:    %4d}\n",
-	SQUID_MAXFD);
+	Squid_MaxFD);
     storeAppendPrintf(sentry, "{\tLargest file desc currently in use:   %4d}\n",
 	fdstat_biggest_fd());
     storeAppendPrintf(sentry, "{\tAvailable number of file descriptors: %4d}\n",
@@ -940,13 +940,13 @@ parameter_get(const cacheinfo * obj, StoreEntry * sentry)
 	"{VM-High %d \"# High water mark hot-vm cache (%%)\"}\n",
 	Config.Mem.highWaterMark);
     storeAppendPrintf(sentry,
-	"{VM-Low %d \"# Low water-mark hot-vm cache (%%)\"}\n",
+	"{VM-Low %d \"# Low water mark hot-vm cache (%%)\"}\n",
 	Config.Mem.lowWaterMark);
     storeAppendPrintf(sentry,
 	"{Swap-Max %d \"# Maximum disk cache (MB)\"}\n",
 	Config.Swap.maxSize / (1 << 10));
     storeAppendPrintf(sentry,
-	"{Swap-High %d \"# High Water mark disk cache (%%)\"}\n",
+	"{Swap-High %d \"# High water mark disk cache (%%)\"}\n",
 	Config.Swap.highWaterMark);
     storeAppendPrintf(sentry,
 	"{Swap-Low %d \"# Low water mark disk cache (%%)\"}\n",

@@ -357,6 +357,12 @@ ftpReadReply(int fd, FtpStateData * data)
 	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 	comm_close(fd);
     } else {
+	if (data->got_marker) {
+	    /* oh, this is so gross -- we found the marker at the
+	     * end of the previous read, but theres more data!
+	     * So put the marker back in. */
+	    storeAppend(entry, MAGIC_MARKER, MAGIC_MARKER_SZ);
+	}
 	/* check for a magic marker at the end of the read */
 	data->got_marker = 0;
 	if (len >= MAGIC_MARKER_SZ) {
@@ -716,7 +722,7 @@ ftpInitialize(void)
 	return -1;
     }
     ftpget_port = ntohs(S.sin_port);
-    listen(cfd, SQUID_MAXFD >> 2);
+    listen(cfd, Squid_MaxFD >> 2);
     if ((pid = fork()) < 0) {
 	debug(50, 0, "ftpInitialize: fork: %s\n", xstrerror());
 	comm_close(cfd);
