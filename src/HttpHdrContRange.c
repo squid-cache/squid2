@@ -181,3 +181,11 @@ httpHdrContRangePackInto(const HttpHdrContRange * range, Packer * p)
     else
 	packerPrintf(p, "/%d", range->elength);
 }
+
+void
+httpHdrContRangeSet(HttpHdrContRange *cr, HttpHdrRangeSpec spec, size_t ent_len)
+{
+    assert(cr && ent_len >= 0);
+    cr->spec = spec;
+    cr->elength = ent_len;
+}
