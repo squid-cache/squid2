@@ -2623,8 +2623,8 @@ aclPurgeMethodInUse(acl_access * a)
 #include <sys/ioctl.h>
 #else
 #include <net/if_dl.h>
-#endif
 #include <net/route.h>
+#endif
 #include <net/if.h>
 #if HAVE_NETINET_IF_ETHER_H
 #include <netinet/if_ether.h>
