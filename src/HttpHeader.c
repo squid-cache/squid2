@@ -572,7 +572,7 @@ httpHeaderGetList(const HttpHeader * hdr, http_hdr_type id)
     assert(strBuf(s));
     /* temporary warning: remove it! @?@ @?@ @?@ */
     if (!strLen(s))
-	debug(55, 1) ("empty list header: %s (%d)\n", strBuf(Headers[id].name), id);
+	debug(55, 3) ("empty list header: %s (%d)\n", strBuf(Headers[id].name), id);
     debug(55, 6) ("%p: joined for id %d: %s\n", hdr, id, strBuf(s));
     return s;
 }
