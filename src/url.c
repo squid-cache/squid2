@@ -347,7 +347,7 @@ urlCanonicalClean(const request_t * request)
 	    if (request->port != urlDefaultPort(request->protocol))
 		snprintf(portbuf, 32, ":%d", request->port);
 	    loginbuf[0] = '\0';
-	    if (strlen(request->login) > 0) {
+	    if ((int) strlen(request->login) > 0) {
 		strcpy(loginbuf, request->login);
 		if ((t = strchr(loginbuf, ':')))
 		    *t = '\0';

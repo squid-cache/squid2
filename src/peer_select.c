@@ -328,12 +328,12 @@ peerSelectFoo(ps_state * psstate)
 	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], request->host);
 	hierarchyNote(&request->hier, code, &psstate->icp, request->host);
 	peerSelectCallback(psstate, NULL);
-    } else if ((p = psstate->closest_parent_miss)) {
+    } else if ((p = psstate->closest_parent_miss) != NULL) {
 	code = CLOSEST_PARENT_MISS;
 	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], p->host);
 	hierarchyNote(&request->hier, code, &psstate->icp, p->host);
 	peerSelectCallback(psstate, p);
-    } else if ((p = psstate->first_parent_miss)) {
+    } else if ((p = psstate->first_parent_miss) != NULL) {
 	code = FIRST_PARENT_MISS;
 	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], p->host);
 	hierarchyNote(&request->hier, code, &psstate->icp, p->host);

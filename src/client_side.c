@@ -495,7 +495,7 @@ clientPurgeRequest(clientHttpRequest * http)
 	http->http_code = HTTP_OK;
     }
     msg = httpReplyHeader(1.0, http->http_code, NULL, 0, 0, -1);
-    if (strlen(msg) < 8190)
+    if ((int)strlen(msg) < 8190)
 	strcat(msg, "\r\n");
     comm_write(fd, xstrdup(msg), strlen(msg), clientWriteComplete, http, xfree);
 }
@@ -1004,7 +1004,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	comm_close(fd);
     } else if (entry->store_status == STORE_ABORTED) {
 	comm_close(fd);
-    } else if ((done = clientCheckTransferDone(http)) || size == 0) {
+    } else if ((done = clientCheckTransferDone(http)) != 0 || size == 0) {
 	debug(12, 5) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
 	if (http->entry->mem_obj->reply->content_length < 0 || !done ||

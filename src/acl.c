@@ -1081,7 +1081,6 @@ aclMatchIdent(wordlist * data, const char *ident)
     return 0;
 }
 
-#define SKIP_BASIC_SZ 6
 static int
 aclMatchProxyAuth(struct _acl_proxy_auth *p, aclCheck_t * checklist)
 {
@@ -1784,7 +1783,7 @@ aclReadProxyAuth(struct _acl_proxy_auth *p)
 		passwd = strtok(NULL, "\n");
 		debug(28, 5) ("aclReadProxyAuth: adding new passwords to hash table\n");
 		while (user != NULL) {
-		    if (strlen(user) > 1 && passwd && strlen(passwd) > 1) {
+		    if ((int)strlen(user) > 1 && passwd && (int) strlen(passwd) > 1) {
 			debug(28, 6) ("aclReadProxyAuth: adding %s, %s to hash table\n", user, passwd);
 			hash_insert(p->hash, xstrdup(user), (void *) xstrdup(passwd));
 		    }

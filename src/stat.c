@@ -267,7 +267,7 @@ statObjects(StoreEntry * sentry, int vm_or_not)
     int i;
     struct _store_client *sc;
     next = (StoreEntry *) hash_first(store_table);
-    while (entry = next) {
+    while ((entry = next) != NULL) {
 	next = (StoreEntry *) hash_next(store_table);
 	mem = entry->mem_obj;
 	if (vm_or_not && mem == NULL)

@@ -130,7 +130,7 @@ icmpSend(int fd, void *data)
 {
     icmpQueueData *queue = data;
     int x;
-    while ((queue = IcmpQueueHead)) {
+    while ((queue = IcmpQueueHead) != NULL) {
 	x = send(icmp_sock,
 	    queue->msg,
 	    queue->len,
@@ -258,7 +258,7 @@ icmpClose(void)
     debug(29, 0) ("Closing Pinger socket on FD %d\n", icmp_sock);
     comm_close(icmp_sock);
     icmp_sock = -1;
-    while ((queue = IcmpQueueHead)) {
+    while ((queue = IcmpQueueHead) != NULL) {
 	IcmpQueueHead = queue->next;
 	if (queue->free_func)
 	    queue->free_func(queue->msg);

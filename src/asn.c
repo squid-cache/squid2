@@ -344,10 +344,8 @@ destroyRadixNode(struct radix_node *rn, void *w)
 static void
 destroyRadixNodeInfo(as_info * e_info)
 {
-    intlist *first, *prev;
+    intlist *prev = NULL;
     intlist *data = e_info->as_number;
-    first = data;
-    prev = NULL;
     while (data) {
 	prev = data;
 	data = data->next;

@@ -56,8 +56,6 @@ extern void init_modules();
 static SNMPFV var_cnf;
 static SNMPFV var_peertbl;
 
-static int snmp_dump_packet;
-
 int main_config_read = 0;
 
 struct snmpUdpData {
@@ -382,7 +380,7 @@ snmpHandleUdp(int sock, void *not_used)
     }
     switch (errstat) {
     case 2:			/* we might have to forward */
-	if (Config.Snmp.localPort > 0) {
+	if (Config.Snmp.localPort != 0) {
 	    snmpFwd_insertPending(&from, this_reqid);
 #ifdef SNMP_DIRECT
 	    x = comm_udp_sendto(sock,
@@ -509,7 +507,7 @@ var_cnf(struct variable * vp, oid * name, int *length,
 
     memcpy((char *) newname, (char *) vp->name, (int) vp->namelen * sizeof(oid));
     debug(49, 5) ("snmp var_cnf: hey, here we are.\n");
-    result = compare(name, *length, newname, (int) vp->namelen);
+    result = snmpCompare(name, *length, newname, (int) vp->namelen);
     if ((exact && (result != 0)) || (!exact && (result >= 0))) {
 	debug(49, 5) ("snmp var_cnf: niah, didn't match.\n");
 	return NULL;
@@ -603,7 +601,7 @@ var_peertbl(struct variable * vp, oid * name, int *length,
 
     while (p != NULL) {
 	newname[vp->namelen] = cnt++;
-	result = compare(name, *length, newname, (int) vp->namelen + 1);
+	result = snmpCompare(name, *length, newname, (int) vp->namelen + 1);
 	if ((exact && (result == 0)) || (!exact && (result < 0))) {
 	    debug(49, 5) ("snmp var_peertbl: yup, a match.\n");
 	    break;
@@ -811,7 +809,7 @@ snmpConnectionOpen(void)
 		theOutSnmpConnection, xstrerror());
 	else {
 	    theOutSNMPAddr = xaddr.sin_addr;
-	    if (Config.Snmp.localPort > 0) {
+	    if (Config.Snmp.localPort != 0) {
 		local_snmpd.sin_addr = xaddr.sin_addr;
 		local_snmpd.sin_port = Config.Snmp.localPort;
 	    }
@@ -877,7 +875,7 @@ snmpUdpReply(int fd, void *data)
     int x;
     /* Disable handler, in case of errors. */
     commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
-    while ((queue = snmpUdpHead)) {
+    while ((queue = snmpUdpHead) != NULL) {
 	debug(49, 5) ("snmpUdpReply: FD %d sending %d bytes to %s port %d\n",
 	    fd,
 	    queue->len,
@@ -938,7 +936,7 @@ var_perfsys_entry(struct variable *vp, oid * name, int *length, int exact, int *
     int cnt = 0;
     int num;
 
-    if (vp->magic < PERF_PROTOSTAT_ID) {
+    if (vp->magic < (u_char) PERF_PROTOSTAT_ID) {
 	debug(49, 3) ("snmp: var_perfsys called with magic=%d, *length=%d, *var_len=%d\n",
 	    vp->magic, *length, *var_len);
 	sprint_objid(snbuf, name, *length);
@@ -946,7 +944,7 @@ var_perfsys_entry(struct variable *vp, oid * name, int *length, int exact, int *
 
 	memcpy((char *) newname, (char *) vp->name, (int) vp->namelen * sizeof(oid));
 	debug(49, 5) ("snmp var_perfsys: hey, here we are.\n");
-	result = compare(name, *length, newname, (int) vp->namelen);
+	result = snmpCompare(name, *length, newname, (int) vp->namelen);
 	if ((exact && (result != 0)) || (!exact && (result >= 0))) {
 	    debug(49, 5) ("snmp var_perfsys: niah, didn't match.\n");
 	    return NULL;
@@ -960,7 +958,7 @@ var_perfsys_entry(struct variable *vp, oid * name, int *length, int exact, int *
 	xmemcpy(newname, vp->name, (int) vp->namelen * sizeof(oid));
 
 	*var_len = sizeof(long);
-    } else if (vp->magic >= PERF_PEERSTAT_ID) {
+    } else if (vp->magic >= (u_char) PERF_PEERSTAT_ID) {
 	debug(49, 3) ("snmp: var_perfsys called with magic=%d for peerstat table\n", vp->magic);
 	debug(49, 3) ("snmp: var_perfsys with (%d,%d)\n", *length, *var_len);
 	sprint_objid(snbuf, name, *length);
@@ -976,7 +974,7 @@ var_perfsys_entry(struct variable *vp, oid * name, int *length, int exact, int *
 
 	while (p != NULL) {
 	    newname[vp->namelen] = cnt++;
-	    result = compare(name, *length, newname, (int) vp->namelen + 1);
+	    result = snmpCompare(name, *length, newname, (int) vp->namelen + 1);
 	    if ((exact && (result == 0)) || (!exact && (result < 0))) {
 		debug(49, 5) ("snmp var_perfsys: yup, a match.\n");
 		break;
@@ -995,7 +993,7 @@ var_perfsys_entry(struct variable *vp, oid * name, int *length, int exact, int *
 	debug(49, 5) ("snmp var_perfsys with peerstattable request for %s (%d)\n", snbuf, newname[10]);
 
 	e = p;
-    } else if (vp->magic >= PERF_SYS_FD_NUMBER && vp->magic <= PERF_SYS_FD_NAME) {
+    } else if (vp->magic >= (u_char) PERF_SYS_FD_NUMBER && vp->magic <= (u_char) PERF_SYS_FD_NAME) {
 
 	debug(49, 3) ("snmp: var_perfsys called with magic=%d for fd table\n", vp->magic);
 	debug(49, 3) ("snmp: var_perfsys with (%d,%d)\n", *length, *var_len);
@@ -1013,7 +1011,7 @@ var_perfsys_entry(struct variable *vp, oid * name, int *length, int exact, int *
 	    if (!f->open)
 		continue;
 	    newname[vp->namelen] = num++;
-	    result = compare(name, *length, newname, (int) vp->namelen + 1);
+	    result = snmpCompare(name, *length, newname, (int) vp->namelen + 1);
 	    if ((exact && (result == 0)) || (!exact && (result < 0))) {
 		debug(49, 5) ("snmp var_perfsys: yup, a match.\n");
 		break;
@@ -1166,7 +1164,7 @@ var_net_vars(struct variable * vp, oid * name, int *length, int exact, int
 
     memcpy((char *) newname, (char *) vp->name, (int) vp->namelen * sizeof(oid));
     debug(49, 5) ("snmp var_net_vars: hey, here we are.\n");
-    result = compare(name, *length, newname, (int) vp->namelen);
+    result = snmpCompare(name, *length, newname, (int) vp->namelen);
     if ((exact && (result != 0)) || (!exact && (result >= 0))) {
 	debug(49, 5) ("snmp var_net_vars: niah, didn't match.\n");
 	return NULL;
@@ -1214,7 +1212,7 @@ var_cachesys_entry(struct variable * vp, oid * name, int *length, int exact,
 
     memcpy((char *) newname, (char *) vp->name, (int) vp->namelen * sizeof(oid));
     debug(49, 5) ("snmp var_cachesys_entry: hey, here we are.\n");
-    result = compare(name, *length, newname, (int) vp->namelen);
+    result = snmpCompare(name, *length, newname, (int) vp->namelen);
     if ((exact && (result != 0)) || (!exact && (result >= 0))) {
 	debug(49, 5) ("snmp var_cachesys_entry: niah, didn't match.\n");
 	return NULL;
@@ -1259,7 +1257,7 @@ var_aggreg_entry(struct variable * vp, oid * name, int *length, int exact,
 
     memcpy((char *) newname, (char *) vp->name, (int) vp->namelen * sizeof(oid));
     debug(49, 5) ("snmp var_aggreg_entry: hey, here we are.\n");
-    result = compare(name, *length, newname, (int) vp->namelen);
+    result = snmpCompare(name, *length, newname, (int) vp->namelen);
     if ((exact && (result != 0)) || (!exact && (result >= 0))) {
 	debug(49, 5) ("snmp var_aggreg_entry: niah, didn't match.\n");
 	return NULL;
@@ -1303,7 +1301,7 @@ var_system(struct variable * vp, oid * name, int *length, int exact,
     char *pp;
     xmemcpy((char *) newname, (char *) vp->name, (int) vp->namelen * sizeof(oid));
     newname[8] = 0;
-    result = compare(name, *length, newname, (int) vp->namelen + 1);
+    result = snmpCompare(name, *length, newname, (int) vp->namelen + 1);
     if ((exact && (result != 0)) || (!exact && (result >= 0)))
 	return NULL;
     xmemcpy((char *) name, (char *) newname, ((int) vp->namelen + 1) * sizeof(oid));

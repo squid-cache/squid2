@@ -32,10 +32,10 @@ gettoken(tokenptr)
     char *tp;
     char ch;
 
-    while ((ch = *p) && isspace(ch))
+    while ((ch = *p) != '\0' && isspace(ch))
 	p++;
     tp = p;
-    while ((ch = *p) && !isspace(ch))
+    while ((ch = *p) != '\0' && !isspace(ch))
 	p++;
     if (*p)
 	*p++ = '\0';
@@ -89,8 +89,7 @@ create_view(tokens)
     new->viewType = strcmp(tokens[3], "included") ? VIEWEXCLUDED : VIEWINCLUDED;
 
     new->viewSubtreeLen = sizeof(vp->viewSubtree) / sizeof(oid);
-    if (!read_objid(tokens[2], new->viewSubtree, &new->viewSubtreeLen)) {
-    }
+    read_objid(tokens[2], new->viewSubtree, &new->viewSubtreeLen);
     if (Config.Snmp.views) {
 	for (; vp; prev = vp, vp = vp->next);
 	prev->next = new;

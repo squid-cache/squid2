@@ -198,7 +198,6 @@ accessLogOpen(const char *fname)
     LogfileStatus = LOG_ENABLE;
 }
 
-#define SKIP_BASIC_SZ 6
 void
 accessLogLog(AccessLogEntry * al)
 {

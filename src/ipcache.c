@@ -1087,7 +1087,7 @@ var_ipcache_entry(struct variable *vp, oid * name, int *length, int exact, int *
 
     for (m = lru_list.head; m; m = m->next, cnt++) {
 	newname[vp->namelen] = cnt;
-	result = compare(name, *length, newname, (int) vp->namelen + 1);
+	result = snmpCompare(name, *length, newname, (int) vp->namelen + 1);
 	if ((exact && (result == 0)) || (!exact && (result < 0))) {
 	    debug(49, 5) ("snmp var_ipcache_entry: yup, a match.\n");
 	    break;

@@ -182,7 +182,7 @@ main(int argc, char *argv[])
     dup(1);
 
 
-    while (1) {
+    for(;;) {
 	memset(buf, '\0', RECV_BUF_SIZE);
 	memset(&R, '\0', len = sizeof(R));
 

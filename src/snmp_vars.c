@@ -3,7 +3,7 @@
 #include "mib_module.h"
 
 /* fwd: */
-static int compare_tree();
+static int compare_tree(oid * name1, int len1, oid * name2, int len2);
 
 int snmp_enableauthentraps;
 #define TALLOC(T)	((T *) xmalloc (sizeof(T)))
@@ -195,7 +195,7 @@ mib_register(oid * oid_base, int oid_base_len, struct variable *mib_variables,
      * now hop along the subtrees and chain in: 
      */
     for (sptr = &subtrees; *sptr; sptr = &(*sptr)->next) {
-	if (compare((*sptr)->name, (*sptr)->namelen,
+	if (snmpCompare((*sptr)->name, (*sptr)->namelen,
 		new_subtree->name, new_subtree->namelen) > 0) {
 	    break;
 	}
@@ -377,20 +377,9 @@ getStatPtr(oid * name,
 
 
 int
-compare(oid * name1, int len1, oid * name2, int len2)
+snmpCompare(oid * name1, int len1, oid * name2, int len2)
 {
     int len;
-
-#define cmpprintf	if(0) printf
-    {
-	int i;
-	cmpprintf("comparing ");
-	for (i = 0; i < len1; i++)
-	    cmpprintf("%ld%s", name1[i], i < len1 - 1 ? "." : "");
-	cmpprintf(" with ");
-	for (i = 0; i < len2; i++)
-	    cmpprintf("%ld%s", name2[i], i < len2 - 1 ? "." : "");
-    }
 
     /* len = minimum of len1 and len2 */
     if (len1 < len2)
@@ -400,24 +389,19 @@ compare(oid * name1, int len1, oid * name2, int len2)
     /* find first non-matching byte */
     while (len-- > 0) {
 	if (*name1 < *name2) {
-	    cmpprintf(" giving -1\n");
 	    return -1;
 	}
 	if (*name2++ < *name1++) {
-	    cmpprintf(" giving 1\n");
 	    return 1;
 	}
     }
     /* bytes match up to length of shorter string */
     if (len1 < len2) {
-	cmpprintf(" giving -1\n");
 	return -1;		/* name1 shorter, so it is "less" */
     }
     if (len2 < len1) {
-	cmpprintf(" giving 1\n");
 	return 1;
     }
-    cmpprintf(" giving 0\n");
 
     return 0;			/* both strings are equal */
 }
