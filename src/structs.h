@@ -1706,6 +1706,7 @@ struct _FwdState {
     int n_tries;
     struct {
 	unsigned int dont_retry:1;
+	unsigned int ftp_pasv_failed:1;
     } flags;
 };
 

@@ -1024,7 +1024,7 @@ ftpStart(FwdState * fwd)
     ftpState->data.fd = -1;
     ftpState->size = -1;
     ftpState->mdtm = -1;
-    ftpState->flags.pasv_supported = 1;
+    ftpState->flags.pasv_supported = !fwd->flags.ftp_pasv_failed;
     ftpState->flags.rest_supported = 1;
     ftpState->fwd = fwd;
     comm_add_close_handler(fd, ftpStateFree, ftpState);
@@ -1711,6 +1711,9 @@ ftpPasvCallback(int fd, int status, void *data)
     FtpStateData *ftpState = data;
     debug(9, 3) ("ftpPasvCallback\n");
     if (status != COMM_OK) {
+	debug(9, 2) ("ftpPasvCallback: failed to connect. Retrying without PASV.\n");
+	ftpState->fwd->flags.dont_retry = 0;	/* this is a retryable error */
+	ftpState->fwd->flags.ftp_pasv_failed = 1;
 	ftpFailed(ftpState, ERR_NONE);
 	return;
     }
@@ -1882,7 +1885,9 @@ ftpReadStor(FtpStateData * ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debug(9, 3) ("This is ftpReadStor\n");
-    if (code >= 100 && code < 200) {
+    if (code == 125 || (code == 150 && ftpState->data.host)) {
+	/* Begin data transfer */
+	debug(9, 3) ("ftpReadStor: starting data transfer\n");
 	/*
 	 * Cancel the timeout on the Control socket, pumpStart will
 	 * establish one on the data socket.
@@ -1891,15 +1896,17 @@ ftpReadStor(FtpStateData * ftpState)
 	ftpPutStart(ftpState);
 	debug(9, 3) ("ftpReadStor: writing data channel\n");
 	ftpState->state = WRITING_DATA;
-    } else if (code == 553) {
-	/* directory does not exist, have to create, sigh */
-#if WORK_IN_PROGRESS
-	ftpTraverseDirectory(ftpState);
-#endif
-	ftpSendReply(ftpState);
+    } else if (code == 150) {
+	/* Accept data channel */
+	debug(9, 3) ("ftpReadStor: accepting data channel\n");
+	commSetSelect(ftpState->data.fd,
+	    COMM_SELECT_READ,
+	    ftpAcceptDataConnection,
+	    ftpState,
+	    0);
     } else {
-	debug(9, 3) ("ftpReadStor: that's all folks\n");
-	ftpSendReply(ftpState);
+	debug(9, 3) ("ftpReadStor: Unexpected reply code %s\n", code);
+	ftpFail(ftpState);
     }
 }
 
@@ -2369,7 +2376,7 @@ ftpSendReply(FtpStateData * ftpState)
 	err->ftp.reply = xstrdup(ftpState->ctrl.last_reply);
     errorAppendEntry(ftpState->entry, err);
     storeBufferFlush(ftpState->entry);
-    comm_close(ftpState->ctrl.fd);
+    ftpSendQuit(ftpState);
 }
 
 static void
