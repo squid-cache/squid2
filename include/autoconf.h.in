@@ -575,6 +575,9 @@
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR
 
+/* Define if you have the strtoll function.  */
+#undef HAVE_STRTOLL
+
 /* Define if you have the sysconf function.  */
 #undef HAVE_SYSCONF
 
@@ -883,6 +886,9 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Support large cache files > 2GB */
+#undef LARGE_CACHE_FILES
 
 /* Enable hostname sanity checks */
 #undef CHECK_HOSTNAMES
