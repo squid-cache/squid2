@@ -578,6 +578,7 @@ extern void neighbors_open(int);
 extern peer *peerFindByName(const char *);
 extern peer *getDefaultParent(request_t * request);
 extern peer *getRoundRobinParent(request_t * request);
+extern peer *getAnyParent(request_t * request);
 extern lookup_t peerDigestLookup(peer * p, request_t * request, StoreEntry * entry);
 extern peer *neighborsDigestSelect(request_t * request, StoreEntry * entry);
 extern void peerNoteDigestLookup(request_t * request, peer * p, lookup_t lookup);

@@ -275,6 +275,22 @@ getDefaultParent(request_t * request)
 }
 
 peer *
+getAnyParent(request_t * request)
+{
+    peer *p = NULL;
+    for (p = Config.peers; p; p = p->next) {
+	if (neighborType(p, request) != PEER_PARENT)
+	    continue;
+	if (!peerHTTPOkay(p, request))
+	    continue;
+	debug(15, 3) ("getAnyParent: returning %s\n", p->host);
+	return p;
+    }
+    debug(15, 3) ("getAnyParent: returning NULL\n");
+    return NULL;
+}
+
+peer *
 getNextPeer(peer * p)
 {
     return p->next;

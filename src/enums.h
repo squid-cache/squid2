@@ -295,6 +295,7 @@ typedef enum {
 #if USE_CARP
     CARP,
 #endif
+    ANY_OLD_PARENT,
     HIER_MAX
 } hier_code;
 

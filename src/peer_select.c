@@ -59,6 +59,7 @@ const char *hier_strings[] =
 #if USE_CARP
     "CARP",
 #endif
+    "ANY_PARENT",
     "INVALID CODE"
 };
 
@@ -140,6 +141,10 @@ peerGetSomeParent(request_t * request, hier_code * code)
     }
     if ((p = getFirstUpParent(request))) {
 	*code = FIRSTUP_PARENT;
+	return p;
+    }
+    if ((p = getAnyParent(request))) {
+	*code = ANY_OLD_PARENT;
 	return p;
     }
     return NULL;
