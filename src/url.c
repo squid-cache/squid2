@@ -247,7 +247,7 @@ urlParse(method_t method, char *url)
 	"0123456789-.");
 #endif
     if (l != strlen(host)) {
-	debug(23, 0, "urlParse: Illegal character in hostname '%s'\n", host);
+	debug(23, 1, "urlParse: Illegal character in hostname '%s'\n", host);
 	return NULL;
     }
     /* remove trailing dots from hostnames */
