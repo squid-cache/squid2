@@ -1167,6 +1167,8 @@ aclMatchProxyAuth(void *data, const char *proxy_auth, acl_proxy_auth_user * auth
 		 * this user ID. Deny access
 		 */
 		debug(28, 1) ("aclMatchProxyAuth: user '%s' tries to use multple IP addresses!\n", user);
+		/* need to copy username for logging */
+		xstrncpy(checklist->request->user_ident, user, USER_IDENT_SZ);
 		return 0;
 	    } else {
 		/* user has switched to another IP addr */
