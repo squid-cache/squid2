@@ -17,6 +17,13 @@ Changes to squid-1.0 (June 14, 1996):
 	  UDP_DENIED.
 	- Added BSD->POSIX signal() macros for Solaris
 	- Added accounting for misc memory/data structures
+	- Added 'no-query' option for 'cache_host' config line
+	- Added error reporting to SSL requests.
+	- Fixed SSL bug, client abort was not closing the server
+	  side connection.
+	- Fixed checking hierarchy_stoplist bug.
+	- Fixed ipcache error messages by giving each entry its
+	  own string.
 
 Changes to squid-1.0.beta17 (June 12, 1996):
 
