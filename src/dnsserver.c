@@ -265,9 +265,6 @@ main(int argc, char *argv[])
     int i;
     int c;
 
-#if HAVE_SETSID
-    setsid();
-#endif
     safe_inet_addr("255.255.255.255", &no_addr);
 
 #if HAVE_RES_INIT

@@ -59,7 +59,6 @@ main(int argc, char *argv[])
 {
     char buf[UNLINK_BUF_LEN];
     char *t;
-    setsid();
     setbuf(stdin, NULL);
     while (fgets(buf, UNLINK_BUF_LEN, stdin)) {
 	if ((t = strchr(buf, '\n')))

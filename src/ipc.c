@@ -244,6 +244,9 @@ ipcCreate(int type, const char *prog, char *const args[], const char *name, int 
     if (cwfd != crfd)
 	if (cwfd > 2)
 	    close(cwfd);
+#if HAVE_SETSID
+    setsid();
+#endif
     execvp(prog, args);
     debug(50, 0) ("ipcCreate: %s: %s\n", prog, xstrerror());
     _exit(1);
