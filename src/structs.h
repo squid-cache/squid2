@@ -439,6 +439,7 @@ struct _SquidConfig {
     } mcast_miss;
 #endif
     HttpHeaderMask anonymize_headers;
+    char *coredump_dir;
 };
 
 struct _SquidConfig2 {
@@ -1010,7 +1011,7 @@ struct _peer {
     } htcp;
 #endif
     u_short http_port;
-    domain_ping *pinglist;
+    domain_ping *peer_domain;
     domain_type *typelist;
     acl_access *access;
     struct {
@@ -1254,12 +1255,12 @@ struct _SwapDir {
     int l2;
     int cur_size;
     int max_size;
-    int read_only;
     int suggest;
     fileMap *map;
     int swaplog_fd;
     struct {
 	unsigned int selected:1;
+	unsigned int read_only:1;
     } flags;
 };
 

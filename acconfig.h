@@ -222,3 +222,9 @@
  * Compile in support for Ident (RFC 931) lookups?  Enabled by default.
  */
 #define USE_IDENT 1
+
+/*
+ * If your system has statvfs(), and if it actually works!
+ */
+#undef HAVE_STATVFS
+

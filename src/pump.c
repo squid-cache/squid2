@@ -294,6 +294,7 @@ pumpReadFromClient(int fd, void *data)
     debug(61, 2) ("pumpReadFromClient: finished!\n");
     storeComplete(req);
     commSetDefer(p->c_fd, NULL, NULL);
+    commSetTimeout(p->c_fd, -1, NULL, NULL);
 }
 
 static int

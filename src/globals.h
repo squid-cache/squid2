@@ -66,6 +66,7 @@ extern dnsStatData DnsStats;
 extern fde *fd_table;		/* NULL */
 extern int Biggest_FD;		/* -1 */
 extern int Number_FD;		/* 0 */
+extern int Opening_FD;		/* 0 */
 extern int HttpSockets[MAXHTTPPORTS];
 extern int NDnsServersAlloc;	/* 0 */
 extern int NHttpSockets;	/* 0 */

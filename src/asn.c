@@ -238,10 +238,10 @@ asHandleReply(void *data, char *buf, ssize_t size)
     }
     s = buf;
     while (s - buf < size && *s != '\0') {
-	while (*s && isspace(*s))
+	while (*s && xisspace(*s))
 	    s++;
 	for (t = s; *t; t++) {
-	    if (isspace(*t))
+	    if (xisspace(*t))
 		break;
 	}
 	if (*t == '\0') {

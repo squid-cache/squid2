@@ -177,17 +177,17 @@ main(int argc, char *argv[])
 		(void) 0;
 	    } else if (!strncmp(buff, "COMMENT:", 8)) {
 		ptr = buff + 8;
-		while (isspace(*ptr))
+		while (xisspace(*ptr))
 		    ptr++;
 		curr->comment = xstrdup(ptr);
 	    } else if (!strncmp(buff, "DEFAULT:", 8)) {
 		ptr = buff + 8;
-		while (isspace(*ptr))
+		while (xisspace(*ptr))
 		    ptr++;
 		curr->default_value = xstrdup(ptr);
 	    } else if (!strncmp(buff, "DEFAULT_IF_NONE:", 16)) {
 		ptr = buff + 16;
-		while (isspace(*ptr))
+		while (xisspace(*ptr))
 		    ptr++;
 		curr->default_if_none = xstrdup(ptr);
 	    } else if (!strncmp(buff, "LOC:", 4)) {

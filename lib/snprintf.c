@@ -302,7 +302,7 @@ typedef struct buf_area buffy;
 
 #define STR_TO_DEC( str, num )		\
     num = NUM( *str++ ) ;		\
-    while ( isdigit( *str ) )		\
+    while ( xisdigit( *str ) )		\
     {					\
 	num *= 10 ;			\
 	num += NUM( *str++ ) ;		\
@@ -422,7 +422,7 @@ conv_fp(register char format, register double num,
     /*
      * Check for Infinity and NaN
      */
-    if (isalpha(*p)) {
+    if (xisalpha(*p)) {
 	*len = strlen(strcpy(buf, p));
 	*is_negative = FALSE;
 	return (buf);
@@ -577,7 +577,7 @@ format_converter(register buffy * odp, const char *fmt,
 	    /*
 	     * Try to avoid checking for flags, width or precision
 	     */
-	    if (isascii(*fmt) && !islower(*fmt)) {
+	    if (xisascii(*fmt) && !xislower(*fmt)) {
 		/*
 		 * Recognize flags: -, #, BLANK, +
 		 */
@@ -599,7 +599,7 @@ format_converter(register buffy * odp, const char *fmt,
 		/*
 		 * Check if a width was specified
 		 */
-		if (isdigit(*fmt)) {
+		if (xisdigit(*fmt)) {
 		    STR_TO_DEC(fmt, min_width);
 		    adjust_width = YES;
 		} else if (*fmt == '*') {
@@ -623,7 +623,7 @@ format_converter(register buffy * odp, const char *fmt,
 		if (*fmt == '.') {
 		    adjust_precision = YES;
 		    fmt++;
-		    if (isdigit(*fmt)) {
+		    if (xisdigit(*fmt)) {
 			STR_TO_DEC(fmt, precision);
 		    } else if (*fmt == '*') {
 			precision = va_arg(ap, int);

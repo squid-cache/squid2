@@ -107,6 +107,9 @@ sslStateFree(SslStateData * sslState)
     sslState->host = NULL;
     requestUnlink(sslState->request);
     sslState->request = NULL;
+#if DELAY_POOLS
+    delayUnregisterDelayIdPtr(&sslState->delay_id);
+#endif
     cbdataFree(sslState);
 }
 
@@ -429,6 +432,7 @@ sslStart(int fd, const char *url, request_t * request, size_t * size_ptr)
     cbdataAdd(sslState, cbdataXfree, 0);
 #if DELAY_POOLS
     sslState->delay_id = delayClient(request);
+    delayRegisterDelayIdPtr(&sslState->delay_id);
 #endif
     sslState->url = xstrdup(url);
     sslState->request = requestLink(request);

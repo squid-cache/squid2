@@ -173,7 +173,7 @@ fdDumpOpen(void)
 int
 fdNFree(void)
 {
-    return Squid_MaxFD - Number_FD;
+    return Squid_MaxFD - Number_FD - Opening_FD;
 }
 
 /* Called when we runs out of file descriptors */

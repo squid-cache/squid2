@@ -83,7 +83,7 @@ httpStatusLineParse(HttpStatusLine * sline, const char *start, const char *end)
     if (strncasecmp(start, "HTTP/", 5))
 	return 0;
     start += 5;
-    if (!isdigit(*start))
+    if (!xisdigit(*start))
 	return 0;
     sline->version = atof(start);
     if (!(start = strchr(start, ' ')))

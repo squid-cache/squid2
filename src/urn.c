@@ -143,9 +143,6 @@ urnStart(request_t * r, StoreEntry * e)
 	storeLockObject(urlres_e);
 	storeClientListAdd(urlres_e, urnState);
     }
-#if DELAY_POOLS
-    delaySetStoreClient(urlres_e, urnState, 0);
-#endif
     urnState->urlres_e = urlres_e;
     urnState->urlres_r = requestLink(urlres_r);
     storeClientCopy(urlres_e,
@@ -231,7 +228,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
 	errorAppendEntry(e, err);
 	return;
     }
-    while (isspace(*s))
+    while (xisspace(*s))
 	s++;
     urls = urnParseReply(s, urnState->request->method);
     for (i = 0; NULL != urls[i].url; i++)
