@@ -1,4 +1,31 @@
-/*  $Id$ */
+/*
+ * $Id$
+ *
+ * AUTHOR: Duane Wessels
+ *
+ * SQUID Internet Object Cache  http://www.nlanr.net/Squid/
+ * --------------------------------------------------------
+ *
+ *  Squid is the result of efforts by numerous individuals from the
+ *  Internet community.  Development is led by Duane Wessels of the
+ *  National Laboratory for Applied Network Research and funded by
+ *  the National Science Foundation.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  
+ */
 
 #ifndef _URL_HEADER_
 #define _URL_HEADER_
@@ -10,6 +37,7 @@ typedef enum {
     METHOD_NONE,
     METHOD_GET,
     METHOD_POST,
+    METHOD_PUT,
     METHOD_HEAD,
     METHOD_CONNECT
 } method_t;
@@ -35,6 +63,7 @@ typedef struct _request {
     char host[SQUIDHOSTNAMELEN + 1];
     int port;
     char urlpath[MAX_URL + 1];
+    int link_count;		/* free when zero */
 } request_t;
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));
@@ -45,5 +74,8 @@ extern int urlDefaultPort _PARAMS((protocol_t));
 extern void urlInitialize _PARAMS((void));
 extern request_t *urlParse _PARAMS((method_t, char *));
 extern char *urlCanonical _PARAMS((request_t *, char *));
+extern request_t *requestLink _PARAMS((request_t *));
+extern void requestUnlink _PARAMS((request_t *));
+extern int matchDomainName _PARAMS((char *d, char *h));
 
 #endif /* _URL_HEADER_ */
