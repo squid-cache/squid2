@@ -2041,6 +2041,7 @@ buffered_logs off
 DOC_END
 
 NAME: reload_into_ims
+IFDEF: HTTP_VIOLATIONS
 COMMENT: on|off
 TYPE: onoff
 DEFAULT: off
