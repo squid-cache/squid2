@@ -51,18 +51,6 @@
 #endif
 #endif /* _SQUID_LINUX_ */
 
-/*
- * So if FD_SETSIZE is less than SQUID_MAXFD we'd probably better
- * shrink SQUID_MAXFD so that select(2) doesn't puke even though
- * we might really be able to open more than FD_SETSIZE descriptors.
- * happy happy happy joy joy joy.
- */
-
-#if FD_SETSIZE < SQUID_MAXFD
-#undef SQUID_MAXFD
-#define SQUID_MAXFD FD_SETSIZE
-#endif
-
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -266,6 +254,17 @@ typedef unsigned long u_num32;
 #else /* HAVE_REGEX_H */
 #include "GNUregex.h"
 #endif /* HAVE_REGEX_H */
+
+/*
+ * So if FD_SETSIZE is less than SQUID_MAXFD we'd probably better
+ * shrink SQUID_MAXFD so that select(2) doesn't puke even though
+ * we might really be able to open more than FD_SETSIZE descriptors.
+ * happy happy happy joy joy joy.
+ */
+#if FD_SETSIZE < SQUID_MAXFD
+#undef SQUID_MAXFD
+#define SQUID_MAXFD FD_SETSIZE
+#endif
 
 typedef void (*SIH) (int, void *);	/* swap in */
 typedef int (*QS) (const void *, const void *);
