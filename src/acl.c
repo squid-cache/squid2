@@ -1633,17 +1633,15 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     case ACL_PROXY_AUTH_REGEX:
 	if ((ti = aclAuthenticated(checklist)) != 1)
 	    return ti;
-	ti = aclMatchProxyAuth(ae->data, checklist->auth_user_request,
+	ti = aclMatchProxyAuth(ae->data, r->auth_user_request,
 	    checklist, ae->type);
-	checklist->auth_user_request = NULL;
 	return ti;
 	/* NOTREACHED */
     case ACL_MAX_USER_IP:
 	if ((ti = aclAuthenticated(checklist)) != 1)
 	    return ti;
-	ti = aclMatchUserMaxIP(ae->data, checklist->auth_user_request,
+	ti = aclMatchUserMaxIP(ae->data, r->auth_user_request,
 	    checklist->src_addr);
-	checklist->auth_user_request = NULL;
 	return ti;
 	/* NOTREACHED */
 #if SQUID_SNMP
@@ -1739,6 +1737,10 @@ aclCheckCleanup(aclCheck_t * checklist)
     if (checklist->extacl_entry) {
 	cbdataUnlock(checklist->extacl_entry);
 	checklist->extacl_entry = NULL;
+    }
+    if (checklist->auth_user_request) {
+	authenticateAuthUserRequestUnlock(checklist->auth_user_request);
+	checklist->auth_user_request = NULL;
     }
     checklist->current_acl = NULL;
 }
@@ -1902,11 +1904,19 @@ aclCheckCallback(aclCheck_t * checklist, allow_t answer)
     if (checklist->auth_user_request) {
 	/* the checklist lock */
 	authenticateAuthUserRequestUnlock(checklist->auth_user_request);
+	checklist->auth_user_request = NULL;
 	/* it might have been connection based */
 	assert(checklist->conn);
-	checklist->conn->auth_user_request = NULL;
+	if (checklist->conn->auth_user_request) {
+	    authenticateAuthUserRequestUnlock(checklist->conn->auth_user_request);
+	    checklist->conn->auth_user_request = NULL;
+	}
+	assert(checklist->request);
+	if (checklist->request->auth_user_request) {
+	    authenticateAuthUserRequestUnlock(checklist->request->auth_user_request);
+	    checklist->request->auth_user_request = NULL;
+	}
 	checklist->conn->auth_type = AUTH_BROKEN;
-	checklist->auth_user_request = NULL;
     }
     if (cbdataValid(checklist->callback_data))
 	checklist->callback(answer, checklist->callback_data);
@@ -1983,11 +1993,14 @@ aclLookupProxyAuthDone(void *data, char *result)
 	 * restart the whole process */
 	/* OR the connection was closed, there's no way to continue */
 	authenticateAuthUserRequestUnlock(checklist->auth_user_request);
+	checklist->auth_user_request = NULL;
 	if (checklist->conn) {
-	    checklist->conn->auth_user_request = NULL;
+	    if (checklist->conn->auth_user_request) {
+		authenticateAuthUserRequestUnlock(checklist->conn->auth_user_request);
+		checklist->conn->auth_user_request = NULL;
+	    }
 	    checklist->conn->auth_type = AUTH_BROKEN;
 	}
-	checklist->auth_user_request = NULL;
     }
     aclCheck(checklist);
 }
