@@ -69,12 +69,9 @@ storeDirClean(void *unused)
     int n = 0;
     int k = 0;
     eventAdd("storeDirClean", storeDirClean, NULL, 15);
-    if (store_rebuilding == STORE_REBUILDING_FAST)
+    if (store_rebuilding == STORE_REBUILDING_CLEAN)
 	return;
-    sprintf(p1, "%s/%02X/%02X",
-	swappath(swap_index),
-	(swap_index / ncache_dirs) % Config.levelOneDirs,
-	(swap_index / ncache_dirs) / Config.levelOneDirs % Config.levelTwoDirs);
+    storeSwapSubSubDir(swap_index, p1);
     debug(36, 3, "storeDirClean: Cleaning directory %s\n", p1);
     dp = opendir(p1);
     if (dp == NULL) {
@@ -91,7 +88,7 @@ storeDirClean(void *unused)
     while ((de = readdir(dp)) && k < 20) {
 	if (sscanf(de->d_name, "%X", &swapfileno) != 1)
 	    continue;
-	if (file_map_bit_test(swapfileno))
+	if (storeDirMapBitTest(swapfileno))
 	    continue;
 	files[k++] = swapfileno;
     }

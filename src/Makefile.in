@@ -112,6 +112,7 @@ OBJS	 	= \
 		stmem.o \
 		store.o \
 		store_clean.o \
+		store_dir.o \
 		storetoString.o \
 		tools.o \
 		url.o \

@@ -291,8 +291,8 @@ extern void storeAppendPrintf _PARAMS(());
 
 extern int store_rebuilding;
 #define STORE_NOT_REBUILDING 0
-#define STORE_REBUILDING_SLOW 1
-#define STORE_REBUILDING_FAST 2
+#define STORE_REBUILDING_CLEAN 1
+#define STORE_REBUILDING_DIRTY 2
 
 extern unsigned long store_mem_size;
 
