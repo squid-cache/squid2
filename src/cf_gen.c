@@ -63,7 +63,6 @@
 
 #if SQUID_SNMP
 #include "snmp.h"
-#include "snmp_config.h"
 #endif
 
 #define MAX_LINE	1024	/* longest configuration line */

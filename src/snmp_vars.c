@@ -3,7 +3,6 @@
 #include "squid.h"
 
 #include "mib_module.h"
-#include "snmp_config.h"
 
 /* fwd: */
 static int compare_tree();

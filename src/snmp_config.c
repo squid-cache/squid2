@@ -18,7 +18,6 @@
 #include "asn1.h"
 #include "snmp_api.h"
 #include "snmp_client.h"
-#include "snmp_config.h"
 
 int maintenanceView = 0;
 
