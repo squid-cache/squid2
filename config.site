@@ -1,0 +1,14 @@
+# HP ANSI/ISO C
+CC='cc -Ae'
+
+# SVR4 filesystem layout
+#prefix=/opt/<appname>
+#exec_prefix='${prefix}'
+#bindir='${exec_prefix}/bin'
+#sbindir='${exec_prefix}/sbin'
+libexecdir='${exec_prefix}/lbin'
+#datadir='${prefix}/share'
+sysconfdir='/etc${prefix}'
+localstatedir='/var${prefix}'
+#libdir='${exec_prefix}/lib'
+mandir='${datadir}/man'
