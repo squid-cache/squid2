@@ -704,7 +704,7 @@ ftpParseListing(FtpStateData * ftpState, int len)
 	debug(9, 3) ("ftpParseListing: didn't find end for %s\n", storeUrl(e));
 	return;
     }
-    line = memAllocate(MEM_4K_BUF, 1);
+    line = memAllocate(MEM_4K_BUF);
     end++;
     /* XXX there is an ABR bug here.   We need to make sure buf is
      * NULL terminated */
@@ -1024,7 +1024,7 @@ ftpConnectDone(int fd, int status, void *data)
 	comm_close(ftpState->ctrl.fd);
     } else {
 	ftpState->state = BEGIN;
-	ftpState->ctrl.buf = memAllocate(MEM_4K_BUF, 1);
+	ftpState->ctrl.buf = memAllocate(MEM_4K_BUF);
 	ftpState->ctrl.freefunc = memFree4K;
 	ftpState->ctrl.size = 4096;
 	ftpState->ctrl.offset = 0;

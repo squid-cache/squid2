@@ -336,7 +336,7 @@ passConnectDone(int fdnotused, int status, void *data)
 	return;
     }
     if (passState->proxying) {
-	request = memAllocate(MEM_REQUEST_T, 1);
+	request = memAllocate(MEM_REQUEST_T);
 	passState->proxy_request = requestLink(request);
 	request->method = passState->request->method;
 	xstrncpy(request->urlpath, passState->url, MAX_URL);

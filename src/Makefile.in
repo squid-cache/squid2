@@ -101,6 +101,7 @@ OBJS	 	= \
 		ipcache.o \
 		main.o \
 		mem.o \
+		Mem.o \
 		MemBuf.o \
 		mime.o \
 		multicast.o \

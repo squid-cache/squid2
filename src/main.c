@@ -745,6 +745,7 @@ normal_shutdown(void)
     ipcacheFreeMemory();
     fqdncacheFreeMemory();
     asnFreeMemory();
+    httpHeaderCleanModule();
 #endif
 #if WHY_DO_THIS
     file_close(0);
@@ -753,6 +754,7 @@ normal_shutdown(void)
 #endif
     fdDumpOpen();
     fdFreeMemory();
+    memClean();
 #if XMALLOC_TRACE
     {
 	extern int xmalloc_total;

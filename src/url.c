@@ -267,7 +267,7 @@ urlParse(method_t method, char *url)
 	return NULL;
     }
 #endif
-    request = memAllocate(MEM_REQUEST_T, 1);
+    request = memAllocate(MEM_REQUEST_T);
     request->method = method;
     request->protocol = protocol;
     xstrncpy(request->host, host, SQUIDHOSTNAMELEN);
@@ -284,7 +284,7 @@ urnParse(method_t method, char *urn)
 {
     request_t *request = NULL;
     debug(50, 5) ("urnParse: %s\n", urn);
-    request = memAllocate(MEM_REQUEST_T, 1);
+    request = memAllocate(MEM_REQUEST_T);
     request->method = method;
     request->protocol = PROTO_URN;
     xstrncpy(request->urlpath, &urn[4], MAX_URL);

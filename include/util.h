@@ -190,4 +190,8 @@ extern void stringAppend(String *, const char *, size_t);
 extern void stringFree(String *);
 #define stringLength(S) (S)->off
 
+extern double xpercent(double part, double whole);
+extern double xdiv(double nom, double denom);
+
+
 #endif /* ndef _UTIL_H_ */

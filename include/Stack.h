@@ -35,22 +35,21 @@
 struct _Stack {
     /* public, read only */
     size_t capacity;
-    int is_full;         /* true if the stack is full */
-
-    u_num32 push_count;  /* always grows, might overflow, use for stats only */
-    u_num32 pop_count;   /* always grows, might overflow, use for stats only */
 
     /* protected, do not use these, use interface functions instead */
     size_t count;
-    void **buf;
+    void **items;
 };
 
 typedef struct _Stack Stack;
 
-extern Stack *stackCreate(size_t capacity);
+extern Stack *stackCreate();
+extern void stackInit(Stack * s);
+extern void stackClean(Stack * s);
 extern void stackDestroy(Stack *s);
 extern void *stackPop(Stack *s);
 extern void stackPush(Stack *s, void *obj);
+extern void stackPrePush(Stack * s, int push_count);
 
 
 #endif /* ndef _STACK_H_ */

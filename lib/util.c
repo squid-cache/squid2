@@ -730,3 +730,17 @@ xcountws(const char *str)
     }
     return count;
 }
+
+/* somewhat safer calculation of %s */
+double
+xpercent(double part, double whole)
+{
+    return xdiv(100 * part, whole);
+}
+
+/* somewhat safer division */
+double
+xdiv(double nom, double denom)
+{
+    return (denom != 0.0) ? nom / denom : -1.0;
+}

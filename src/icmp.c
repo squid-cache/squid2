@@ -203,7 +203,7 @@ icmpSourcePing(struct in_addr to, const icp_common_t * header, const char *url)
     debug(37, 3) ("icmpSourcePing: '%s'\n", url);
     if ((ulen = strlen(url)) > MAX_URL)
 	return;
-    payload = memAllocate(MEM_8K_BUF, 1);
+    payload = memAllocate(MEM_8K_BUF);
     len = sizeof(icp_common_t);
     xmemcpy(payload, header, len);
     strcpy(payload + len, url);
