@@ -235,7 +235,7 @@ static void
 destroy_MemObjectData(MemObject * mem)
 {
     debug(20, 3) ("destroy_MemObjectData: destroying %p, %d bytes\n",
-	mem->data, mem->inmem_hi);
+	mem->data, (int) mem->inmem_hi);
     if (mem->data) {
 	stmemFree(mem->data);
 	mem->data = NULL;
@@ -1006,12 +1006,12 @@ storeMemObjectDump(MemObject * mem)
     debug(20, 1) ("MemObject->data: %p\n",
 	mem->data);
     debug(20, 1) ("MemObject->start_ping: %d.%06d\n",
-	mem->start_ping.tv_sec,
-	mem->start_ping.tv_usec);
+	(int) mem->start_ping.tv_sec,
+	(int) mem->start_ping.tv_usec);
     debug(20, 1) ("MemObject->inmem_hi: %d\n",
-	mem->inmem_hi);
+	(int) mem->inmem_hi);
     debug(20, 1) ("MemObject->inmem_lo: %d\n",
-	mem->inmem_lo);
+	(int) mem->inmem_lo);
     debug(20, 1) ("MemObject->clients: %p\n",
 	mem->clients);
     debug(20, 1) ("MemObject->nclients: %d\n",

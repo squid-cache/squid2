@@ -270,7 +270,7 @@ main(int argc, char *argv[])
 	strcat(msg, buf);
     }
     if (put_fd > 0) {
-	snprintf(buf, BUFSIZ, "Content-length: %d\r\n", sb.st_size);
+	snprintf(buf, BUFSIZ, "Content-length: %d\r\n", (int) sb.st_size);
 	strcat(msg, buf);
     }
     if (opt_noaccept == 0) {

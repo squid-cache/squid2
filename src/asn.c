@@ -281,7 +281,7 @@ asnAddNet(char *as_string, int as_number)
     xstrncpy(dbg2, inet_ntoa(in_m), 32);
     addr = ntohl(addr);
     mask = ntohl(mask);
-    debug(53, 3) ("asnAddNet: called for %s/%s (%x/%x)\n", dbg1, dbg2, addr, mask);
+    debug(53, 3) ("asnAddNet: called for %s/%s\n", dbg1, dbg2);
     memset(e, '\0', sizeof(rtentry));
     store_m_int(addr, e->e_addr);
     store_m_int(mask, e->e_mask);

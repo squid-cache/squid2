@@ -605,7 +605,7 @@ ipcache_nbgethostbyname(const char *name, IPH * handler, void *handlerData)
 	IpcacheStats.pending_hits++;
 	ipcacheAddPending(i, handler, handlerData);
 	if (squid_curtime - i->expires > 600) {
-	    debug(14, 0) ("ipcache_nbgethostbyname: '%s' PENDING for %d seconds, aborting\n", name, squid_curtime + Config.negativeDnsTtl - i->expires);
+	    debug(14, 0) ("ipcache_nbgethostbyname: '%s' PENDING for %d seconds, aborting\n", name, (int) (squid_curtime + Config.negativeDnsTtl - i->expires));
 	    ipcacheChangeKey(i);
 	    ipcache_call_pending(i);
 	}
