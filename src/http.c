@@ -264,7 +264,7 @@ static void httpReadReply(fd, data)
 	    (PF) NULL,
 	    (void *) NULL,
 	    (time_t) 0);
-	comm_set_fd_lifetime(fd, 3600);	/* limit during deferring */
+	comm_set_fd_lifetime(fd, 3600);		/* limit during deferring */
 	/* dont try reading again for a while */
 	comm_set_stall(fd, getStallDelay());
 	return;
