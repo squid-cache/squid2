@@ -1,6 +1,12 @@
 /* $Id$ */
 
 #include "squid.h"
+#if HAVE_ARPA_NAMESER_H
+#include <arpa/nameser.h>
+#endif
+#if HAVE_RESOLV_H
+#include <resolv.h>
+#endif
 
 extern int h_errno;
 
@@ -64,6 +70,16 @@ int main(argc, argv)
     int dnsServerTCP = 0;
     int c;
     extern char *optarg;
+
+#if HAVE_RES_INIT
+    res_init();
+#ifdef RES_DEFNAMES
+    _res.options &= ~RES_DEFNAMES;
+#endif
+#ifdef RES_DNSRCH
+    _res.options &= ~RES_DNSRCH;
+#endif
+#endif
 
     while ((c = getopt(argc, argv, "vhdtp:")) != -1) {
 	switch (c) {
