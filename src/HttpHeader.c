@@ -380,7 +380,7 @@ httpHeaderUpdate(HttpHeader * old, const HttpHeader * fresh, const HttpHeaderMas
 int
 httpHeaderReset(HttpHeader * hdr)
 {
-    http_hdr_owner_type ho = hdr->owner;
+    http_hdr_owner_type ho;
     assert(hdr);
     ho = hdr->owner;
     httpHeaderClean(hdr);
