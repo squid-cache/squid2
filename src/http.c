@@ -188,6 +188,8 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
     case METHOD_PROPPATCH:
     case METHOD_MKCOL:
     case METHOD_MOVE:
+    case METHOD_BMOVE:
+    case METHOD_BDELETE:
 	/*
 	 * Remove any cached GET object if it is beleived that the
 	 * object may have changed as a result of other methods

@@ -381,6 +381,9 @@ enum {
     METHOD_MOVE,
     METHOD_LOCK,
     METHOD_UNLOCK,
+    METHOD_BMOVE,
+    METHOD_BDELETE,
+    METHOD_BPROPFIND,
     METHOD_ENUM_END
 };
 typedef unsigned int method_t;

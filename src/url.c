@@ -54,6 +54,9 @@ const char *RequestMethodStr[] =
     "MOVE",
     "LOCK",
     "UNLOCK",
+    "BMOVE",
+    "BDELETE",
+    "BPROPFIND",
     "ERROR"
 };
 
