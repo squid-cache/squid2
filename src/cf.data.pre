@@ -90,7 +90,7 @@ TYPE: https_port_list
 DEFAULT: none
 LOC: Config.Sockaddr.https
 DOC_START
-        Usage:  [ip:]port cert=certificate.pem [key=key.pem] [...]
+        Usage:  [ip:]port cert=certificate.pem [key=key.pem] [options...]
 
         The socket address where Squid will listen for HTTPS client
         requests.
@@ -100,7 +100,7 @@ DOC_START
         accelerator level.
 
 	You may specify multiple socket addresses on multiple lines,
-	each with their own SSL certificate.
+	each with their own SSL certificate and/or options.
 			      
 	Options:
 
