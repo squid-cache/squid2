@@ -122,7 +122,7 @@ void
 icmpClose(void)
 {
     icmpQueueData *queue;
-    debug(29,0,"Closing ICMP socket on FD %d\n", icmp_sock);
+    debug(29, 0, "Closing ICMP socket on FD %d\n", icmp_sock);
     comm_close(icmp_sock);
     comm_set_select_handler(icmp_sock,
 	COMM_SELECT_READ,

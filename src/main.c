@@ -432,7 +432,7 @@ serverConnectionsClose(void)
     }
 #if USE_ICMP
     if (icmp_sock > -1)
-        icmpClose();
+	icmpClose();
 #endif
 }
 

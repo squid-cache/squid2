@@ -883,19 +883,18 @@ fqdncacheFreeMemory(void)
     list = xcalloc(meta_data.fqdncache_count, sizeof(fqdncache_entry *));
     f = (fqdncache_entry *) hash_first(fqdn_table);
     while (f && i < meta_data.fqdncache_count) {
-        *(list + i) = f;
-        i++;
-        f = (fqdncache_entry *) hash_next(fqdn_table);
+	*(list + i) = f;
+	i++;
+	f = (fqdncache_entry *) hash_next(fqdn_table);
     }
     for (j = 0; j < i; j++) {
-        f = *(list + j);
-        for (k = 0; k < (int) f->name_count; k++)
-            safe_free(f->names[k]);
-        safe_free(f->name);
-        safe_free(f->error_message);
-        safe_free(f);
+	f = *(list + j);
+	for (k = 0; k < (int) f->name_count; k++)
+	    safe_free(f->names[k]);
+	safe_free(f->name);
+	safe_free(f->error_message);
+	safe_free(f);
     }
     xfree(list);
     hashFreeMemory(fqdn_table);
 }
-
