@@ -1024,8 +1024,8 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	allow = aclCheck(ICPAccessList, &checklist);
 	put_free_request_t(icp_request);
 	if (!allow) {
-	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s.\n",
-		inet_ntoa(from.sin_addr));
+	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s by %s.\n",
+		inet_ntoa(from.sin_addr), AclMatchedName);
 	    icpUdpSend(fd,
 		url,
 		&header,
@@ -1113,11 +1113,8 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	} else if (entry->lock_count == 0) {
 	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for Entry without locks.\n",
 		IcpOpcodeStr[header.opcode]);
-	} else if (entry->ping_status != PING_WAITING) {
-	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for %s Entry.\n",
-		IcpOpcodeStr[header.opcode],
-		pingStatusStr[entry->ping_status]);
 	} else {
+	    /* call neighborsUdpAck even if ping_status != PING_WAITING */
 	    neighborsUdpAck(fd,
 		url,
 		&header,
@@ -1187,8 +1184,8 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	allow = aclCheck(ICPAccessList, &checklist);
 	put_free_request_t(icp_request);
 	if (!allow) {
-	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s.\n",
-		inet_ntoa(from.sin_addr));
+	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s by %s.\n",
+		inet_ntoa(from.sin_addr), AclMatchedName);
 	    icpUdpSend(fd,
 		url,
 		&header,
@@ -1263,11 +1260,8 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	} else if (entry->lock_count == 0) {
 	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for Entry without locks.\n",
 		IcpOpcodeStr[header.opcode]);
-	} else if (entry->ping_status != PING_WAITING) {
-	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for %s Entry.\n",
-		IcpOpcodeStr[header.opcode],
-		pingStatusStr[entry->ping_status]);
 	} else {
+	    /* call neighborsUdpAck even if ping_status != PING_WAITING */
 	    neighborsUdpAck(fd,
 		url,
 		&header,

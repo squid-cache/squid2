@@ -834,3 +834,6 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	URL to your admin address, or maybe just a link to your 
 #	organizations Web page.
 #err_html_text
+
+#  TAG: deny_info
+#	deny_info URL acl1 acl2 ...

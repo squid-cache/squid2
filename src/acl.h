@@ -69,6 +69,17 @@ struct _acl_time_data {
     struct _acl_time_data *next;
 };
 
+struct _acl_name_list {
+    char name[ACL_NAME_SZ + 1];
+    struct _acl_name_list *next;
+};   
+    
+struct _acl_deny_info_list {
+    char url[MAX_URL+1];
+    struct _acl_name_list *acl_list;
+    struct _acl_deny_info_list *next;
+};
+
 /* domain data is just a wordlist */
 /* user data is just a wordlist */
 /* port data is just a intlist */
@@ -120,6 +131,9 @@ extern void aclDestroyAcls _PARAMS((void));
 extern void aclParseAccessLine _PARAMS((struct _acl_access **));
 extern void aclParseAclLine _PARAMS((void));
 extern struct _acl *aclFindByName _PARAMS((char *name));
+extern char *aclGetDenyInfoUrl _PARAMS((struct _acl_deny_info_list **, char *name));
 
 extern struct _acl_access *HTTPAccessList;
 extern struct _acl_access *ICPAccessList;
+extern struct _acl_deny_info_list *DenyInfoList;
+extern char *AclMatchedName;
