@@ -48,11 +48,8 @@
 
 #undef FORW_VIA_DB
 
-/* Define to use async disk I/O operations */
-#undef USE_ASYNC_IO
-
-/* Defines how many threads to use for async I/O */
-#undef ASYNC_IO_THREADS
+/* Defines how many threads aufs uses for I/O */
+#undef AUFS_IO_THREADS
 
 /*
  * If you want to use Squid's ICMP features (highly recommended!) then
