@@ -157,6 +157,10 @@ typedef struct _CacheDigest CacheDigest;
 typedef struct _Version Version;
 typedef struct _FwdState FwdState;
 typedef struct _FwdServer FwdServer;
+typedef struct _helper helper;
+typedef struct _helper_server helper_server;
+typedef struct _helper_request helper_request;
+typedef struct _generic_cbdata generic_cbdata;
 
 #if SQUID_SNMP
 typedef struct _snmp_request_t snmp_request_t;
@@ -193,6 +197,8 @@ typedef void ERCB(int fd, void *, size_t);
 typedef void OBJH(StoreEntry *);
 typedef void SIGHDLR(int sig);
 typedef void STVLDCB(void *, int, int);
+typedef void HLPCB(void *, char *buf);
+typedef void HLPCMDOPTS(int *argc, char **argv);
 
 typedef double (*hbase_f) (double);
 typedef void StatHistBinDumper(StoreEntry *, int idx, double val, double size, int count);

@@ -107,6 +107,7 @@ OBJS	 	= \
 		ftp.o \
 		globals.o \
 		gopher.o \
+		helper.o \
 		@HTCP_OBJS@ \
 		http.o \
 		http-anon.o \
