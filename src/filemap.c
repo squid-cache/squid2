@@ -96,6 +96,12 @@ file_map_bit_set(fileMap * fm, int file_number)
     return file_number;
 }
 
+/*
+ * WARNING: file_map_bit_reset does not perform array bounds
+ * checking!  It assumes that 'file_number' is valid, and that the
+ * bit is already set.  The caller must verify both of those
+ * conditions by calling file_map_bit_test() first.
+ */
 void
 file_map_bit_reset(fileMap * fm, int file_number)
 {
