@@ -142,15 +142,12 @@ storeKeyFree(const cache_key * key)
 }
 
 int
-storeKeyHashBuckets(int nobj)
+storeKeyHashBuckets(int nbuckets)
 {
-    if (nobj < 0x2000)
-	return 0x2000;
-    if (nobj < 0x4000)
-	return 0x4000;
-    if (nobj < 0x8000)
-	return 0x8000;
-    return 0x10000;
+    int n = 0x2000;
+    while (n < nbuckets)
+	n <<= 1;
+    return n;
 }
 
 int
