@@ -123,27 +123,39 @@ ext_table_entry *mime_ext_to_type(extension)
  *  returns non-zero on error, or 0 on success.
  */
 int mk_mime_hdr(result, ttl, size, lmt, type)
-     char *result, *type;
+     char *result;
+     char *type;
      int size;
-     time_t ttl, lmt;
+     time_t ttl;
+     time_t lmt;
 {
     time_t expiretime;
     time_t t;
     static char date[100];
-    static char expire[100];
-    static char last_modified_time[100];
+    static char expires[100];
+    static char last_modified[100];
+    static char content_length[100];
 
     if (result == NULL)
 	return 1;
-
     t = squid_curtime;
-    expiretime = t + ttl;
-
-    date[0] = expire[0] = last_modified_time[0] = result[0] = '\0';
-    strncpy(date, mkrfc850(&t), 100);
-    strncpy(expire, mkrfc850(&expiretime), 100);
-    strncpy(last_modified_time, mkrfc850(&lmt), 100);
-
-    sprintf(result, "Content-Type: %s\r\nContent-Size: %d\r\nDate: %s\r\nExpires: %s\r\nLast-Modified-Time: %s\r\n", type, size, date, expire, last_modified_time);
+    expiretime = ttl ? t + ttl : 0;
+    date[0] = expires[0] = last_modified[0] = '\0';
+    content_length[0] = result[0] = '\0';
+    sprintf(date, "Date: %s\r\n", mkrfc850(&t));
+    if (ttl >= 0)
+	sprintf(expires, "Expires: %s\r\n", mkrfc850(&expiretime));
+    if (lmt)
+	sprintf(last_modified, "Last-Modified: %s\r\n", mkrfc850(&lmt));
+    if (size > 0)
+	sprintf(content_length, "Content-Length: %d\r\n", size);
+    sprintf(result, "Server: %s/%s\r\n%s%s%sContent-Type: %s\r\n%s",
+	appname,
+	version_string,
+	date,
+	expires,
+	last_modified,
+	type,
+	content_length);
     return 0;
 }
