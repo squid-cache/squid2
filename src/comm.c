@@ -540,7 +540,7 @@ int comm_select(sec, failtime)
     /* use only 1 second granularity */
     timeout = squid_curtime + sec;
 
-    while (timeout >= getCurrentTime()) {
+    do {
 	if (0 < failtime && failtime < squid_curtime)
 	    break;
 
@@ -654,7 +654,7 @@ int comm_select(sec, failtime)
 	    }
 	}
 	return COMM_OK;
-    }
+    } while (timeout > getCurrentTime());
 
     debug(5, 8, "comm_select: time out: %d.\n", squid_curtime);
     return COMM_TIMEOUT;
