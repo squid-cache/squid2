@@ -830,7 +830,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
     if (0 != strncmp(hdr_in, "HTTP/", 5))
 	return 0;
     hdr_len = headersEnd(hdr_in, hdr_in_sz);
-    if (hdr_len < 0) {
+    if (0 == hdr_len) {
 	debug(33, 3) ("clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
 	return 0;
     }
