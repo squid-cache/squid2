@@ -617,6 +617,15 @@ ftpStart(int unusedfd, const char *url, request_t * request, StoreEntry * entry)
 	(PF) ftpStateFree,
 	(void *) ftpData);
 
+#ifdef RETRY_PATCH
+    /* Set timeout handler */
+    commSetSelect(ftpData->ftp_fd,
+	COMM_SELECT_TIMEOUT,
+	(PF) ftpLifetimeExpire,
+	(void *) ftpData,
+	Config.connectTimeout);
+#endif /* RETRY_PATCH */
+
     /* Now connect ... */
     commConnectStart(ftpData->ftp_fd,
 	localhost,

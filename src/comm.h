@@ -143,9 +143,19 @@ typedef struct {
     struct sockaddr_in S;
     CCH callback;
     void *data;
+#ifdef RETRY_PATCH
+    int connstart;
+    time_t conntimeout;		/* Multi-addr retry connect timeout */
+    PF otimeout_handler;	/* previous Timeout handler. */
+    time_t otimeout_delta;	/* previous timeout delta requested */
+    void *otimeout_data;	/* previous App. data w/ timeout handler. */
+    unsigned char tries;
+    unsigned char addrcount;
+#else /* RETRY_PATCH */
 #if RETRY_CONNECT
     int tries;
 #endif
+#endif /* RETRY_PATCH */
 } ConnectStateData;
 
 typedef struct fde {

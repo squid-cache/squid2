@@ -150,6 +150,11 @@ static void commSetTcpNoDelay _PARAMS((int));
 #endif
 static void commSetTcpRcvbuf _PARAMS((int, int));
 static void commConnectFree _PARAMS((int fd, void *data));
+#ifdef RETRY_PATCH
+static int commResetFd _PARAMS((int, ConnectStateData *));
+static time_t commBackoffTimeout _PARAMS((unsigned char));
+static void commConnectRetry _PARAMS((int fd, void *data));
+#endif /* RETRY_PATCH */
 static void commConnectHandle _PARAMS((int fd, void *data));
 static void commHandleWrite _PARAMS((int fd, RWStateData * state));
 
@@ -283,12 +288,33 @@ comm_open(int sock_type,
     }
     if (addr.s_addr != no_addr.s_addr)
 	if (commBind(new_socket, addr, port) != COMM_OK)
+#ifdef RETRY_PATCH
+	{
+	    fdstat_close(new_socket);
+	    memset(conn, '\0', sizeof(FD_ENTRY));
+	    conn->lifetime = -1;
+	    close(new_socket);
 	    return COMM_ERROR;
+	}
+#else /* RETRY_PATCH */
+	    return COMM_ERROR;
+#endif /* RETRY_PATCH */
     conn->local_port = port;
 
     if (BIT_TEST(flags, COMM_NONBLOCKING))
 	if (commSetNonBlocking(new_socket) == COMM_ERROR)
+#ifdef RETRY_PATCH
+	{
+	    fdstat_close(new_socket);
+	    memset(conn, '\0', sizeof(FD_ENTRY));
+	    conn->lifetime = -1;
+	    close(new_socket);
 	    return COMM_ERROR;
+	}
+#else /* RETRY_PATCH */
+	    return COMM_ERROR;
+#endif /* RETRY_PATCH */
+
 #ifdef TCP_NODELAY
     if (sock_type == SOCK_STREAM)
 	commSetTcpNoDelay(new_socket);
@@ -322,11 +348,21 @@ comm_listen(int sock)
 void
 commConnectStart(int fd, const char *host, u_short port, CCH callback, void *data)
 {
+#ifdef RETRY_PATCH
+    FD_ENTRY *conn = &fd_table[fd];
+#endif /* RETRY_PATCH */
+
     ConnectStateData *cs = xcalloc(1, sizeof(ConnectStateData));
     cs->host = xstrdup(host);
     cs->port = port;
     cs->callback = callback;
     cs->data = data;
+#ifdef RETRY_PATCH
+    cs->conntimeout = Config.connectTimeout;
+    cs->otimeout_handler = conn->timeout_handler;
+    cs->otimeout_data = conn->timeout_data;
+    cs->otimeout_delta = conn->timeout_delta;
+#endif /* RETRY_PATCH */
     comm_add_close_handler(fd, commConnectFree, cs);
     commConnectHandle(fd, cs);
 }
@@ -339,6 +375,37 @@ commConnectFree(int fd, void *data)
     xfree(cs);
 }
 
+#ifdef RETRY_PATCH
+/* Resets an FD so that it can be re-connect()ed */
+static int
+commResetFd(int fd, ConnectStateData *cs)
+{
+    int fd2;
+    fd2 = comm_open(SOCK_STREAM,
+			0,
+			Config.Addrs.tcp_outgoing,
+			0,
+			COMM_NONBLOCKING,
+			NULL);
+    if (fd2 == COMM_ERROR) {
+	debug(50,0,"commResetFd: comm_open: %s\n", xstrerror());
+	return FALSE;
+    }
+    fdstat_close(fd2);
+    memset((void *)&fd_table[fd2], '\0', sizeof(FD_ENTRY));
+    comm_set_fd_lifetime(fd2, -1);    /* denotes invalid */
+
+    if (dup2(fd2, fd) < 0) {
+	debug(50,0,"commResetFd: dup2: %s\n", xstrerror());
+	close(fd2);
+	return FALSE;
+    }
+    close(fd2);
+    cs->conntimeout = commBackoffTimeout(cs->addrcount);
+    debug(50,10,"commResetFd: fd %d reset successfully\n", fd);
+    return TRUE;
+}
+#else /* RETRY_PATCH */
 static int
 commRetryConnect(int fd, ConnectStateData * connectState)
 {
@@ -361,8 +428,25 @@ commRetryConnect(int fd, ConnectStateData * connectState)
 #else
     debug(5, 2, "commRetryConnect not supported\n");
     return 0;
-#endif
+#endif /* RETRY_CONNECT */
 }
+#endif /* RETRY_PATCH */
+
+#ifdef RETRY_PATCH
+/* Back off the socket timeout if there's several addresses available */
+static time_t
+commBackoffTimeout(unsigned char numaddrs)
+{
+    time_t timeout;
+    timeout = (time_t)Config.connectTimeout;
+    if (numaddrs > 2) {
+	timeout = (time_t)(Config.connectTimeout / numaddrs);
+	if (timeout < Config.Retry.min_timeout)
+	    timeout = (time_t)Config.Retry.min_timeout;
+    }
+    return timeout;
+}
+#endif /* RETRY_PATCH */
 
 /* Connect SOCK to specified DEST_PORT at DEST_HOST. */
 static void
@@ -382,10 +466,31 @@ commConnectHandle(int fd, void *data)
 	}
 	connectState->S.sin_family = AF_INET;
 	connectState->S.sin_addr = ia->in_addrs[ia->cur];
+#ifdef RETRY_PATCH
+	ipcacheCycleAddr(connectState->host);
+#endif /* RETRY_PATCH */
 	connectState->S.sin_port = htons(connectState->port);
+#ifdef RETRY_PATCH
+	connectState->addrcount = ia->count;
+	connectState->connstart = getCurrentTime();
+	connectState->conntimeout = commBackoffTimeout(ia->count);
+#endif /* RETRY_PATCH */
 	if (Config.Log.log_fqdn)
 	    fqdncache_gethostbyaddr(connectState->S.sin_addr, FQDN_LOOKUP_IF_MISS);
     }
+#ifdef RETRY_PATCH
+
+    /*
+     * Set timeout handler to retry connection
+     */
+    commSetSelect(fd,
+	COMM_SELECT_TIMEOUT,
+	commConnectRetry,
+	(void *) connectState,
+	connectState->conntimeout);
+
+    /* Try connection */
+#endif /* RETRY_PATCH */
     switch (comm_connect_addr(fd, &connectState->S)) {
     case COMM_INPROGRESS:
 	commSetSelect(fd,
@@ -397,10 +502,40 @@ commConnectHandle(int fd, void *data)
     case COMM_OK:
 	if (vizSock > -1)
 	    vizHackSendPkt(&connectState->S, 2);
+#ifdef RETRY_PATCH
+	ipcacheMarkGoodAddr(connectState->host, connectState->S.sin_addr);
+	if (connectState->tries > 0)
+	    if (safe_inet_addr(connectState->host, NULL)) /* numeric? */
+		debug(5,1,
+		    "commConnectHandle: FD %d %s conn succeeded (try %d)\n",
+		    fd,
+		    connectState->host,
+		    connectState->tries + 1);
+	    else
+		debug(5,1,
+		    "commConnectHandle: FD %d %s[%s] conn succeeded (try %d)\n",
+		    fd,
+		    connectState->host,
+		    inet_ntoa(connectState->S.sin_addr),
+		    connectState->tries + 1);
+
+	/* Restore timeout handler */
+	commSetSelect(fd,
+	    COMM_SELECT_TIMEOUT,
+	    connectState->otimeout_handler,
+	    (void *) connectState->otimeout_data,
+	    connectState->otimeout_delta);
+
+	/* connection done */
+#else /* RETRY_PATCH */
 	ipcacheCycleAddr(connectState->host);
+#endif /* RETRY_PATCH */
 	connectState->callback(fd, COMM_OK, connectState->data);
 	break;
     default:
+#ifdef RETRY_PATCH
+	commConnectRetry(fd, connectState);
+#else /* RETRY_PATCH */
 	if (commRetryConnect(fd, connectState)) {
 	    debug(5, 1, "Retrying connection to %s\n", connectState->host);
 	    connectState->S.sin_addr.s_addr = 0;
@@ -412,9 +547,51 @@ commConnectHandle(int fd, void *data)
 		netdbDeleteAddrNetwork(connectState->S.sin_addr);
 	    connectState->callback(fd, COMM_ERROR, connectState->data);
 	}
+#endif /* RETRY_PATCH */
 	break;
     }
 }
+
+#ifdef RETRY_PATCH
+static void
+commConnectRetry(int fd, void *data)
+{
+    ConnectStateData *connectState = data;
+
+    connectState->tries++;
+    ipcacheMarkBadAddr(connectState->host, connectState->S.sin_addr);
+    getCurrentTime();
+/* Retry single addr hosts three times, but only if the connect time
+ * was smaller than half of the default connect timeout.  Timeouts
+ * on multi-addr hosts *are* retried, however */
+    if ((connectState->addrcount == 1
+	    && connectState->tries < Config.Retry.max_single_addr
+	    && (squid_curtime - connectState->connstart) <  /* conn time */
+		(int)(Config.connectTimeout / 2))
+	    || (connectState->addrcount > 1
+	    && connectState->tries <= connectState->addrcount)) {
+	commResetFd(fd, connectState);
+	if (connectState->addrcount == 1)  /* set min timeout for retry */
+	    connectState->conntimeout = commBackoffTimeout((unsigned char)100);
+	if (safe_inet_addr(connectState->host, NULL))  /* numeric? */
+	    debug(5,2,"commConnectHandle: FD %d %s conn fail, retrying\n",
+		fd,
+	    connectState->host);
+	else
+	    debug(5,2,
+		"commConnectHandle: FD %d %s[%s] conn fail, retrying\n",
+		fd,
+		connectState->host,
+		inet_ntoa(connectState->S.sin_addr));
+	connectState->S.sin_addr.s_addr = (long)0;
+	    commConnectHandle(fd, connectState);
+	} else {
+	    if (Config.Options.test_reachability)
+		netdbDeleteAddrNetwork(connectState->S.sin_addr);
+	    connectState->callback(fd, COMM_ERROR, connectState->data);
+	}
+}
+#endif /* RETRY_PATCH */
 
 int
 comm_set_fd_lifetime(int fd, int lifetime)
@@ -455,14 +632,19 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
     if (connect(sock, (struct sockaddr *) address, sizeof(struct sockaddr_in)) < 0) {
 	cerrno = errno;
 	switch (cerrno) {
+#ifndef RETRY_PATCH
 	case EALREADY:
 	    return COMM_ERROR;
 	    /* NOTREACHED */
+#endif /* RETRY_PATCH */
 #if EAGAIN != EWOULDBLOCK
 	case EAGAIN:
 #endif
 	case EWOULDBLOCK:
 	case EINPROGRESS:
+#ifdef RETRY_PATCH
+	case EALREADY:
+#endif /* RETRY_PATCH */
 	    status = COMM_INPROGRESS;
 	    break;
 	case EISCONN:
@@ -488,10 +670,12 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 	lft = comm_set_fd_lifetime(sock, Config.lifetimeDefault);
 	debug(5, 10, "comm_connect_addr: FD %d connected to %s:%d, lifetime %d.\n",
 	    sock, conn->ipaddr, conn->remote_port, lft);
+#ifndef RETRY_PATCH
     } else if (status == COMM_INPROGRESS) {
 	lft = comm_set_fd_lifetime(sock, Config.connectTimeout);
 	debug(5, 10, "comm_connect_addr: FD %d connection pending, lifetime %d\n",
 	    sock, lft);
+#endif /* RETRY_PATCH */
     }
     /* Add new socket to list of open sockets. */
     conn->sender = 1;

@@ -1769,6 +1769,11 @@ clientReadRequest(int fd, void *data)
     char *wbuf = NULL;
     int size;
     int len;
+#ifdef RETRY_PATCH
+    int lft = -1;
+
+    lft = comm_set_fd_lifetime(fd, Config.readTimeout); /* die when the read timeout expires */
+#endif /* RETRY_PATCH */
 
     len = icpState->inbufsize - icpState->in_offset - 1;
     debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
@@ -1829,6 +1834,10 @@ clientReadRequest(int fd, void *data)
 		xfree);
 	    return;
 	}
+#ifdef RETRY_PATCH
+	/* have request, extend life */
+	lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
+#endif /* RETRY_PATCH */
 	icpState->request = requestLink(request);
 	clientAccessCheck(icpState, clientAccessCheckDone);
     } else if (parser_return_code == 0) {
@@ -1926,7 +1935,12 @@ asciiHandleConn(int sock, void *notused)
 	if (vizSock > -1)
 	    vizHackSendPkt(&peer, 1);
 	/* set the hardwired lifetime */
+#ifdef RETRY_PATCH
+	/* if no data, die soon */
+	lft = comm_set_fd_lifetime(fd, Config.connectTimeout);
+#else
 	lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
+#endif /* RETRY_PATCH */
 	ntcpconn++;
 
 	debug(12, 4, "asciiHandleConn: FD %d: accepted, lifetime %d\n", fd, lft);
@@ -2122,7 +2136,11 @@ icpDetectNewRequest(int fd)
     int len;
 
     /* set the hardwired lifetime */
+#ifdef RETRY_PATCH
+    lft = comm_set_fd_lifetime(fd, Config.readTimeout);
+#else
     lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
+#endif /* RETRY_PATCH */
     len = sizeof(struct sockaddr_in);
 
     memset(&me, '\0', len);

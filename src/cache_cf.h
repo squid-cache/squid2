@@ -284,6 +284,12 @@ struct SquidConfig {
 	int test_reachability;
     } Options;
     char *fake_ua;
+#ifdef RETRY_PATCH
+    struct {
+	int min_timeout;
+	int max_single_addr;
+    } Retry;
+#endif /* RETRY_PATCH */
 };
 
 extern struct SquidConfig Config;

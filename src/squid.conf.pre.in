@@ -1225,6 +1225,38 @@ minimum_direct_hops 4
 #
 #icp_hit_stale off
 
+#  TAG: minimum_retry_timeout (Mike Pelletier <mikep@izzy.net>)
+#	This specifies the minimum connect timeout for the retry
+#	patch, for instances when the connect timeout is reduced
+#	to compensate for the availability of multiple IP addresses.
+#
+#	When a connection to a host is initiated, and that host has
+#	several IP addresses, the default connection timeout is
+#	reduced by dividing it by the number of addresses.  So,
+#	a site with 15 addresses would then have a timeout of 8
+#	seconds for each address attempted.  To avoid having the
+#	timeout reduced to the point where even a working host
+#	would not have a chance to respond, this setting is
+#	provided. The default, and the minimum value, is five
+#	seconds, and the maximum value is sixty seconds, or half of
+#	connect_timeout, whichever is greater and less than
+#	connect_timeout.  This feature is not compiled in by
+#	default.  You must add -DRETRY_PATCH in src/Makefile.
+#
+#minimum_retry_timeout 5
+
+#  TAG: maximum_single_addr_tries
+#	This sets the maximum number of connection attempts for a
+#	host that only has one address (for multiple-address hosts,
+#	each address is tried once) for the retry patch.
+#
+#	The default value is three tries, the (not recommended)
+#	maximum is 255 tries.  A warning message will be generated if
+#	it is set to a value greater than ten.  You must add
+#	-DRETRY_PATCH in src/Makefile.
+#
+#maximum_single_addr_tries 3
+
 #  TAG: reload_into_ims
 #	Enable this if you want to turn 'Pragma: no-cache' requests
 #       into If-Modified-Since requests.  Off by default, use at your

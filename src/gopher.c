@@ -966,6 +966,15 @@ gopherStart(int unusedfd, const char *url, StoreEntry * entry)
 	(PF) gopherStateFree,
 	(void *) data);
 
+#ifdef RETRY_PATCH
+    /* set timeout handler */
+    commSetSelect(sock,
+	COMM_SELECT_TIMEOUT,
+	(PF) gopherReadReplyTimeout,
+	(void *) data,
+	Config.connectTimeout);
+#endif /* RETRY_PATCH */
+
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
      * Otherwise, we cannot check return code for connect. */

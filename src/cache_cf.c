@@ -136,6 +136,11 @@ struct SquidConfig Config;
 #define DefaultRedirectChildren	5	/* 5 processes */
 #define DefaultMaxRequestSize	(100 << 10)	/* 100Kb */
 
+#ifdef RETRY_PATCH
+#define DefaultSingleAddrTries 3
+#define DefaultMinRetryTimeout 5
+#endif /* RETRY_PATCH */
+
 #define DefaultHttpPortNum	CACHE_HTTP_PORT
 #define DefaultIcpPortNum	CACHE_ICP_PORT
 
@@ -1400,6 +1405,12 @@ parseConfigFile(const char *file_name)
 	    parseIntegerValue(&Config.Netdb.low);
 	else if (!strcmp(token, "netdb_ping_period"))
 	    parseTimeLine(&Config.Netdb.period, "seconds");
+#ifdef RETRY_PATCH
+	else if (!strcmp(token, "minimum_retry_timeout"))
+	    parseTimeLine(&Config.Retry.min_timeout, "seconds");
+	else if (!strcmp(token, "maximum_single_addr_tries"))
+	    parseIntegerValue(&Config.Retry.max_single_addr);
+#endif /* RETRY_PATCH */
 
 	/* If unknown, treat as a comment line */
 	else {
@@ -1410,6 +1421,44 @@ parseConfigFile(const char *file_name)
     }
 
     /* Sanity checks */
+#ifdef RETRY_PATCH
+/* If connect_timeout is shorter than the default, don't bug the admin
+ * with this message unless retry timeout is greater than connect timeout.  */
+    if (Config.Retry.min_timeout > Config.connectTimeout / 2
+		&& (Config.Retry.min_timeout > 60
+	 	    || Config.Retry.min_timeout >= Config.connectTimeout)) {
+	printf("WARNING: minimum_retry_timeout is more than half of connect_timeout\n");
+	printf("         This can cause very long waits for multi-address host retries.\n");
+	printf("         Resetting half of connect_timeout (%d seconds).\n",
+	    Config.connectTimeout / 2);
+	Config.Retry.min_timeout = Config.connectTimeout / 2;
+	fflush(stdout);
+    }
+/* Make sure we, or they, didn't reset it to below five seconds */
+    if (Config.Retry.min_timeout < 5) {
+	printf("WARNING: minimum_retry_timeout is less than five seconds.\n");
+	printf("         This can cause spurious timeouts on multi-address hosts.\n");
+	printf("         Resetting to 5 seconds.\n");
+	Config.Retry.min_timeout = 5;
+	fflush(stdout);
+    }
+    if (Config.Retry.max_single_addr > 255) { /* value is used in uchar vars */
+	printf("WARNING: maximum_single_addr_tries set to a bad value: %d\n",
+	    Config.Retry.max_single_addr);
+	printf("         Setting it to the maximum (255).\n");
+	Config.Retry.max_single_addr = 255;
+	fflush(stdout);
+    }
+    if (Config.Retry.max_single_addr > 10) {
+	printf("WARNING: maximum_single_addr_tries is larger than 10.\n");
+	printf("         This can cause increased network traffic and very\n");
+	printf("         long delays to display an error for a nonexistant,\n");
+	printf("         busy, or unavailable site.\n");
+	fflush(stdout);
+    } else if (Config.Retry.max_single_addr < 1)
+	Config.Retry.max_single_addr = 1;
+#endif /* RETRY_PATCH */
+
     if (Config.lifetimeDefault < Config.readTimeout) {
 	printf("WARNING: client_lifetime (%d seconds) is less than read_timeout (%d seconds).\n",
 	    Config.lifetimeDefault, Config.readTimeout);
@@ -1618,6 +1667,10 @@ configSetFactoryDefaults(void)
 #ifdef RELOAD_INTO_IMS
     Config.Options.reload_into_ims = 0;
 #endif /* RELOAD_INTO_IMS */
+#ifdef RETRY_PATCH
+    Config.Retry.min_timeout = DefaultMinRetryTimeout;
+    Config.Retry.max_single_addr = DefaultSingleAddrTries;
+#endif /* RETRY_PATCH */
 }
 
 static void

@@ -91,7 +91,11 @@ static error_data ErrorData[] =
 	"Client(s) dropped connection before transmission completed.\nObject fetching is aborted.",},
     {"ERR_CONNECT_FAIL",
 	"Connection Failed",
+#ifdef RETRY_PATCH
+	"The remote site or server may be busy or down.  Please try again later."},
+#else
 	"The remote site or server may be down.  Please try again soon."},
+#endif
     {"ERR_INVALID_REQUEST",
 	"Invalid HTTP request",
 	"Please double check it, or ask for assistance."},
@@ -106,7 +110,11 @@ static error_data ErrorData[] =
 	"The cache is currently very busy.  Please try again."},
     {"ERR_DNS_FAIL",
 	"DNS name lookup failure",
+#ifdef RETRY_PATCH
+	"The specified host does not exist or its address can't be found."},
+#else
 	"The named host probably does not exist."},
+#endif
     {"ERR_NOT_IMPLEMENTED",
 	"Protocol Not Supported",
 	"The cache does not know about the requested protocol."},
