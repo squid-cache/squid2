@@ -1866,9 +1866,9 @@ compareSize(StoreEntry ** e1, StoreEntry ** e2)
 {
     if (!e1 || !e2)
 	fatal_dump(NULL);
-    if ((*e1)->mem_obj->e_current_len > (*e2)->mem_obj->e_current_len)
-	return (1);
     if ((*e1)->mem_obj->e_current_len < (*e2)->mem_obj->e_current_len)
+	return (1);
+    if ((*e1)->mem_obj->e_current_len > (*e2)->mem_obj->e_current_len)
 	return (-1);
     return (0);
 }
@@ -2363,7 +2363,7 @@ storeInitHashValues(void)
     i = Config.Swap.maxSize / Config.Store.avgObjectSize;
     debug(20, 1, "Swap maxSize %d, estimated %d objects\n",
 	Config.Swap.maxSize, i);
-    file_map_create(i<<1);	/* TWICE number of estimated objects */
+    file_map_create(i << 1);	/* TWICE number of estimated objects */
     i /= Config.Store.objectsPerBucket;
     debug(20, 1, "Target number of buckets: %d\n", i);
     /* ideally the full scan period should be configurable, for the
@@ -2721,7 +2721,7 @@ storeShouldPurgeMem(const StoreEntry * e)
 {
     if (storeCheckPurgeMem(e) == 0)
 	return 0;
-    if (sm_stats.n_pages_in_use > store_pages_low)
+    if (sm_stats.n_pages_in_use > store_pages_high)
 	return 1;
     return 0;
 }
