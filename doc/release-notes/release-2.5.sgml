@@ -265,5 +265,26 @@ name="ChangeLog"> file for details.
 	name="ChangeLog"> file for details.
 </itemize>
 	
+<sect>Key changes squid-2.5.STABLE6 to 2.5.STABLE7:
+
+<P>
+<itemize>
+	<item>NTLM bugfix noticed by the Samba group
+	<item>UFS cache_dir bugfix to issue introduced in STABLE6 causing
+	no objects to get cached in some configurations.
+	<item>cache_effective_user now sets supplementary group list
+	if cache_effective_group not set
+	<item>cache_effective_group now used if specified even if not started
+	as root. If you do not start Squid as root you may need to remove this
+	directive from your squid.conf if not set correctly.
+	<item>request_header_max_size directive corrected. You may need to increase
+	this value after upgrading if set very low. The default have been increased
+	from 10 KB to 20 KB which should be sufficient for most uses.
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE6"
+	name="squid-2.5.STABLE6 patches"> and the <url url="ChangeLog"
+	name="ChangeLog"> file for details.
+</itemize>
+	
 </article>
 

@@ -1,3 +1,24 @@
+Changes to squid-2.5.STABLE7 ()
+
+	- Bug #1011: No objects cached in ufs cache_dir type in some
+	  configurations. Issue introduced in 2.5.STABLE6 by the patch for
+	  Bug #676.
+	- LDAP helpers update to correct LDAP connection management and
+	  add support for literal password compare instead of binding.
+	- Bug #852: A large number of queued DNS lookups for the same domain
+	- Bug #899: request_header_max_size configuration partly ignored
+	- Bug #1001: Partial hit results in TCP_HIT, not TCP_MISS
+	- Bug #1012: HEAD requests may return stale information
+	- Bug #918: Warn if cache_dir ufs can not create files
+	- Bug #431: case insensitive authentication
+	- Bug #882: Add delay pools information to active_requests
+	- Bug #833: Apparent memory leak in client_db
+	- Bug #1016: NTLM authentication truncated causing failures
+	- Bug #1030: Unknown %X errorpage codes incorrectly quoted
+	- Bug #1009: Segfaults and other strange crashes when using heap
+          policies
+	- Bug #1021: Supplementary group memberships not set
+
 Changes to squid-2.5.STABLE6 (9 Jul 2004)
 
 	- Bug #937: NTLM assertion error "srv->flags.reserved"
