@@ -1370,8 +1370,8 @@ struct _StatHist {
     double min;
     double max;
     double scale;
-    hbase_f val_in;		/* e.g., log() for log-based histogram */
-    hbase_f val_out;		/* e.g., exp() for log based histogram */
+    hbase_f *val_in;		/* e.g., log() for log-based histogram */
+    hbase_f *val_out;		/* e.g., exp() for log based histogram */
 };
 
 /*
