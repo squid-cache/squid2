@@ -2027,8 +2027,8 @@ static void configDoConfigure()
     neighbor_timeout = (time_t) Config.neighborTimeout;
     single_parent_bypass = Config.singleParentBypass;
     DnsPositiveTtl = Config.positiveDnsTtl;
-    sprintf(ForwardedBy, "Forwarded: by http://%s:%d/",
-	getMyHostname(), getHttpPortNum());
+    sprintf(ForwardedBy, "Forwarded: by http://%s:%d/ (Squid/%s)",
+	getMyHostname(), getHttpPortNum(), SQUID_VERSION);
 
 
 #if !ALLOW_HOT_CACHE
