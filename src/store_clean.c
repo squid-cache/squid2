@@ -84,11 +84,11 @@ void storeDirClean()
     if (de == NULL) {
 	closedir(dp);
 	dp = NULL;
-	if (++l2_dirno == SWAP_L2_DIRECTORIES) {
+	if (++l2_dirno == SWAP_DIRECTORIES_L2) {
 	    l2_dirno = 0;
 	    l1_dirno++;
 	}
-	if (++l1_dirno == SWAP_L1_DIRECTORIES) {
+	if (++l1_dirno == SWAP_DIRECTORIES_L1) {
 	    l1_dirno = 0;
 	    dirno++;
 	}
