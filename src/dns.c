@@ -270,12 +270,18 @@ void dnsShutdownServers()
 
     for (k = 0; k < NDnsServersAlloc; k++) {
 	dnsData = *(dns_child_table + k);
-	if (!(dnsData->flags & DNS_FLAG_ALIVE))
+	if (!(dnsData->flags & DNS_FLAG_ALIVE)) {
+            debug(34, 3, "dnsShutdownServers: #%d is NOT ALIVE.\n", dnsData->id);
 	    continue;
-	if (dnsData->flags & DNS_FLAG_BUSY)
+	}
+	if (dnsData->flags & DNS_FLAG_BUSY) {
+            debug(34, 3, "dnsShutdownServers: #%d is BUSY.\n", dnsData->id);
 	    continue;
-	if (dnsData->flags & DNS_FLAG_CLOSING)
+	}
+	if (dnsData->flags & DNS_FLAG_CLOSING) {
+            debug(34, 3, "dnsShutdownServers: #%d is CLOSING.\n", dnsData->id);
 	    continue;
+	}
 	debug(34, 3, "dnsShutdownServers: sending '$shutdown' to dnsserver #%d\n", dnsData->id);
 	debug(34, 3, "dnsShutdownServers: --> FD %d\n", dnsData->outpipe);
 	comm_write(dnsData->outpipe,
