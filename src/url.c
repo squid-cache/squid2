@@ -398,9 +398,13 @@ urlCheckRequest(const request_t * r)
 	rc = 1;
 	break;
     case PROTO_FTP:
+	if (r->method == METHOD_PUT)
+	    rc = 1;
     case PROTO_GOPHER:
     case PROTO_WAIS:
 	if (r->method == METHOD_GET)
+	    rc = 1;
+	else if (r->method == METHOD_HEAD)
 	    rc = 1;
 	break;
     default:
