@@ -768,9 +768,8 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	String s = httpHeaderGetList(req_hdr, HDR_VIA);
 	/* ThisCache cannot be a member of Via header, "1.0 ThisCache" can */
 	if (strListIsSubstr(&s, ThisCache, ',')) {
-	    debug(33, 1) ("WARNING: Forwarding loop detected for '%s'\n",
-		http->uri);
-	    debug(33, 1) ("--> %s\n", strBuf(s));
+	    debugObj(33, 1, "WARNING: Forwarding loop detected for:\n",
+		request, (ObjPackMethod) & httpRequestPack);
 	    request->flags.loopdetect = 1;
 	}
 #if FORW_VIA_DB
