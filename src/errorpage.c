@@ -81,6 +81,8 @@ static int error_page_count = 0;
 static char *errorTryLoadText(const char *page_name, const char *dir);
 static char *errorLoadText(const char *page_name);
 static const char *errorFindHardText(err_type type);
+static ErrorDynamicPageInfo *errorDynamicPageInfoCreate(int id, const char *page_name);
+static void errorDynamicPageInfoDestroy(ErrorDynamicPageInfo * info);
 static MemBuf errorBuildContent(ErrorState * err);
 static const char *errorConvert(char token, ErrorState * err);
 static CWCB errorSendComplete;
@@ -117,6 +119,20 @@ errorInitialize(void)
 	}
 	assert(error_text[i]);
     }
+}
+
+void
+errorClean(void)
+{
+    if (error_text) {
+	int i;
+	for (i = ERR_NONE + 1; i < error_page_count; i++)
+	    safe_free(error_text[i]);
+	safe_free(error_text);
+    }
+    while (ErrorDynamicPages.count)
+	errorDynamicPageInfoDestroy(stackPop(&ErrorDynamicPages));
+    error_page_count = 0;
 }
 
 static const char *
@@ -208,19 +224,6 @@ errorPageName(int pageId)
 	return ((ErrorDynamicPageInfo*)ErrorDynamicPages.
 		items[pageId - ERR_MAX])->page_name;
     return "ERR_UNKNOWN"; /* should not happen */
-}
-
-
-void
-errorFreeMemory(void)
-{
-    err_type i;
-    for (i = ERR_NONE, i++; i < error_page_count; i++)
-	safe_free(error_text[i]);
-    while (ErrorDynamicPages.count)
-	errorDynamicPageInfoDestroy(stackPop(&ErrorDynamicPages));
-    safe_free(error_text);
-    error_page_count = 0;
 }
 
 /*

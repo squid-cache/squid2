@@ -318,7 +318,7 @@ mainReconfigure(void)
     redirectShutdown();
     authenticateShutdown();
     storeDirCloseSwapLogs();
-    errorFreeMemory();
+    errorClean();
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
     ipcache_restart();		/* clear stuck entries */
@@ -723,7 +723,7 @@ SquidShutdown(void *unused)
     httpHeaderCleanModule();
     statFreeMemory();
     mimeFreeMemory();
-    errorFreeMemory();
+    errorClean();
 #endif
     memClean();
 #if !XMALLOC_TRACE

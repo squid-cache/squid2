@@ -981,13 +981,13 @@ extern void useragentRotateLog(void);
 extern void logUserAgent(const char *, const char *);
 extern peer_t parseNeighborType(const char *s);
 
+extern void errorInitialize(void);
+extern void errorClean(void);
 extern HttpReply *errorBuildReply(ErrorState * err);
 extern void errorSend(int fd, ErrorState *);
 extern void errorAppendEntry(StoreEntry *, ErrorState *);
 extern void errorStateFree(ErrorState * err);
-extern void errorInitialize(void);
 extern int errorReservePageId(const char *page_name);
-extern void errorFreeMemory(void);
 extern ErrorState *errorCon(err_type type, http_status);
 
 extern void pconnPush(int, const char *host, u_short port);
