@@ -902,6 +902,7 @@ mime_get_type(ftp_request_t * r)
     if (!(t = strrchr(filename, '.')))
 	goto mime_get_type_done;
     ext = xstrdup(t + 1);
+    /* CASE SENSITIVE FIRST */
     for (i = 0; i < EXT_TABLE_LEN; i++) {
 	if (!strcmp(ext, ext_mime_table[i].name)) {
 	    type = ext_mime_table[i].mime_type;
@@ -909,6 +910,7 @@ mime_get_type(ftp_request_t * r)
 	    break;
 	}
     }
+    /* CASE INSENSITIVE NEXT */
     if (i == EXT_TABLE_LEN) {
 	for (i = 0; i < EXT_TABLE_LEN; i++) {
 	    if (!strcasecmp(ext, ext_mime_table[i].name)) {
@@ -920,8 +922,11 @@ mime_get_type(ftp_request_t * r)
     }
     /* now check for another extension */
     *t = '\0';
-    /* may not fix all problems, but should fix most common --EK */
-    if ((!(t = strrchr(filename, '.'))) || (!strcasecmp(ext, "txt")))
+    if (!strcmp(enc, "x-gzip"))
+	(void) 0;
+    else if (!strcmp(enc, "x-compress"))
+	(void) 0;
+    else
 	goto mime_get_type_done;
     xfree(ext);
     ext = xstrdup(t + 1);
