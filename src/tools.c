@@ -341,8 +341,10 @@ fatal_common(const char *message)
     fprintf(debug_log, "Squid Cache (Version %s): Terminated abnormally.\n",
 	version_string);
     fflush(debug_log);
-    PrintRusage();
-    dumpMallocStats();
+    if (!shutting_down) {
+	PrintRusage();
+	dumpMallocStats();
+    }
 }
 
 /* fatal */
@@ -357,7 +359,7 @@ fatal(const char *message)
 	storeDirWriteCleanLogs(0);
     fatal_common(message);
     if (shutting_down)
-	exit(0);
+	exit(1);
     else
 	abort();
 }

@@ -361,7 +361,7 @@ decode_addr(const char *asc, struct in_addr *addr, struct in_addr *mask)
     case 4:			/* a dotted quad */
 	if (!safe_inet_addr(asc, addr)) {
 	    debug(28, 0) ("decode_addr: unsafe IP address: '%s'\n", asc);
-	    fatal("decode_addr: unsafe IP address");
+	    self_destruct();
 	}
 	break;
     case 1:			/* a significant bits value for a mask */
@@ -557,9 +557,10 @@ aclParseTimeSpec(void *curlist)
 	} else {
 	    /* assume its time-of-day spec */
 	    if (sscanf(t, "%d:%d-%d:%d", &h1, &m1, &h2, &m2) < 4) {
-		fatalf("aclParseTimeSpec: ERROR: Bad time range in"
+		debug(28, 0) ("aclParseTimeSpec: ERROR: Bad time range in"
 		    "%s line %d: %s\n",
 		    cfg_filename, config_lineno, config_input_line);
+		self_destruct();
 	    }
 	    q = memAllocate(MEM_ACL_TIME_DATA);
 	    q->start = h1 * 60 + m1;
@@ -567,9 +568,10 @@ aclParseTimeSpec(void *curlist)
 	    q->weekbits = weekbits;
 	    weekbits = 0;
 	    if (q->start > q->stop) {
-		fatalf("aclParseTimeSpec: ERROR: Reversed time range in"
+		debug(28, 0) ("aclParseTimeSpec: ERROR: Reversed time range in"
 		    "%s line %d: %s\n",
 		    cfg_filename, config_lineno, config_input_line);
+		self_destruct();
 	    }
 	    if (q->weekbits == 0)
 		q->weekbits = ACL_ALLWEEK;
@@ -787,23 +789,19 @@ aclParseAclLine(acl ** head)
 
     /* snarf the ACL name */
     if ((t = strtok(NULL, w_space)) == NULL) {
-	debug(28, 0) ("%s line %d: %s\n",
-	    cfg_filename, config_lineno, config_input_line);
 	debug(28, 0) ("aclParseAclLine: missing ACL name.\n");
-	return;
+	self_destruct();
     }
     xstrncpy(aclname, t, ACL_NAME_SZ);
     /* snarf the ACL type */
     if ((t = strtok(NULL, w_space)) == NULL) {
-	debug(28, 0) ("%s line %d: %s\n",
-	    cfg_filename, config_lineno, config_input_line);
 	debug(28, 0) ("aclParseAclLine: missing ACL type.\n");
+	self_destruct();
 	return;
     }
     if ((acltype = aclStrToType(t)) == ACL_NONE) {
-	debug(28, 0) ("%s line %d: %s\n",
-	    cfg_filename, config_lineno, config_input_line);
 	debug(28, 0) ("aclParseAclLine: Invalid ACL type '%s'\n", t);
+	self_destruct();
 	return;
     }
     if ((A = aclFindByName(aclname)) == NULL) {
@@ -815,7 +813,8 @@ aclParseAclLine(acl ** head)
 	new_acl = 1;
     } else {
 	if (acltype != A->type) {
-	    debug(28, 0) ("aclParseAclLine: ACL '%s' already exists with different type, skipping.\n", A->name);
+	    debug(28, 0) ("aclParseAclLine: ACL '%s' already exists with different type.\n", A->name);
+	    self_destruct();
 	    return;
 	}
 	debug(28, 3) ("aclParseAclLine: Appending to '%s'\n", aclname);
@@ -887,22 +886,26 @@ aclParseAclLine(acl ** head)
 	break;
     case ACL_PROXY_AUTH:
 	if (authenticateSchemeCount() == 0) {
-	    fatalf("Invalid Proxy Auth ACL '%s' "
+	    debug(28, 0) ("Invalid Proxy Auth ACL '%s' "
 		"because no authentication schemes were compiled.\n", A->cfgline);
+	    self_destruct();
 	} else if (authenticateActiveSchemeCount() == 0) {
-	    fatalf("Invalid Proxy Auth ACL '%s' "
+	    debug(28, 0) ("Invalid Proxy Auth ACL '%s' "
 		"because no authentication schemes are fully configured.\n", A->cfgline);
+	    self_destruct();
 	} else {
 	    aclParseUserList(&A->data);
 	}
 	break;
     case ACL_PROXY_AUTH_REGEX:
 	if (authenticateSchemeCount() == 0) {
-	    fatalf("Invalid Proxy Auth ACL '%s' "
+	    debug(28, 0) ("Invalid Proxy Auth ACL '%s' "
 		"because no authentication schemes were compiled.\n", A->cfgline);
+	    self_destruct();
 	} else if (authenticateActiveSchemeCount() == 0) {
-	    fatalf("Invalid Proxy Auth ACL '%s' "
+	    debug(28, 0) ("Invalid Proxy Auth ACL '%s' "
 		"because no authentication schemes are fully configured.\n", A->cfgline);
+	    self_destruct();
 	} else {
 	    aclParseRegexList(&A->data);
 	}
@@ -1091,9 +1094,8 @@ aclParseAclList(acl_list ** head)
 	debug(28, 3) ("aclParseAccessLine: looking for ACL name '%s'\n", t);
 	a = aclFindByName(t);
 	if (a == NULL) {
-	    debug(28, 0) ("%s line %d: %s\n",
-		cfg_filename, config_lineno, config_input_line);
-	    debug(28, 0) ("aclParseAccessLine: ACL name '%s' not found.\n", t);
+	    debug(28, 0) ("ACL name '%s' not defined!\n", t);
+	    self_destruct();
 	    memFree(L, MEM_ACL_LIST);
 	    continue;
 	}
@@ -1329,7 +1331,7 @@ aclParseUserMaxIP(void *data)
     debug(28, 5) ("aclParseUserMaxIP: Max IP address's %d\n", (int) (*acldata)->max);
     return;
   error:
-    fatal("aclParseUserMaxIP: Malformed ACL %d\n");
+    self_destruct();
 }
 
 void
