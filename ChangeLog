@@ -1,3 +1,8 @@
+Changes to squid-1.novm.9 ():
+
+	- Fixed handling len=0 in storeAppend().
+	- Rearranged storeCheckDoneWriting().
+
 Changes to squid-1.novm.8 ():
 
 	- Merged squid-1.1.7 and 1.1.8 changes
