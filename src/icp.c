@@ -176,14 +176,13 @@ static char *icpConstruct304reply _PARAMS((struct _http_reply *));
 static int CheckQuickAbort2 _PARAMS((const clientHttpRequest *));
 static int icpCheckTransferDone _PARAMS((clientHttpRequest *));
 static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
+#if !DONT_USE_VM
 static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
-static int icpProcessRequestControl _PARAMS((void *, int));
 static void *icpCreateHitObjMessage _PARAMS((icp_opcode, int, const char *, int, int, StoreEntry *));
+#endif
+static int icpProcessRequestControl _PARAMS((void *, int));
 static void CheckQuickAbort _PARAMS((clientHttpRequest *));
 static void checkFailureRatio _PARAMS((log_type, hier_code));
-#if OLD_CODE
-static void icpDetectNewRequest _PARAMS((int fd, void *));
-#endif
 static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpLogIcp _PARAMS((icpUdpData *));
@@ -191,7 +190,6 @@ static void icpProcessMISS _PARAMS((int, clientHttpRequest *));
 static SIH icpProcessRequestComplete;
 static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, size_t));
 size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
-static void icpSendMoreData _PARAMS((int fd, clientHttpRequest *));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -483,7 +481,7 @@ icpSendERRORComplete(int fd, char *buf, int size, int errflag, void *data)
     clientHttpRequest *http = data;
     debug(12, 4, "icpSendERRORComplete: FD %d, %d bytes\n", fd, size);
     if (http)
-        http->out.size += size;
+	http->out.size += size;
     comm_close(fd);
 }
 
@@ -499,14 +497,14 @@ icpSendERROR(int fd,
     char *buf = NULL;
     if (http) {
 	/* http may == NULL from icpSendERROR in clientReadRequest */
-        http->log_type = errorCode;
-        http->http_code = httpCode;
-        if (http->entry && http->entry->mem_obj) {
+	http->log_type = errorCode;
+	http->http_code = httpCode;
+	if (http->entry && http->entry->mem_obj) {
 	    if (http->out.size > 0) {
-	        comm_close(fd);
-	        return;
+		comm_close(fd);
+		return;
 	    }
-        }
+	}
     }
     if (text == NULL) {
 	comm_close(fd);
@@ -605,12 +603,13 @@ clientBuildReplyHeader(clientHttpRequest * http,
     return len;
 }
 
-static void
-icpSendMoreData(int fd, clientHttpRequest * http)
+void
+icpSendMoreData(void *data, char *buf, size_t size)
 {
+    clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
-    int len;
-    char *buf = NULL;
+    ConnStateData *conn = http->conn;
+    int fd = conn->fd;
     char *p = NULL;
     int x;
     size_t hdrlen;
@@ -618,68 +617,81 @@ icpSendMoreData(int fd, clientHttpRequest * http)
     size_t l = 0;
     size_t writelen;
     char *newbuf;
-    FREE *freefunc;
-
-    debug(12, 5, "icpSendMoreData: '%s' sz %d: len %d: off %d.\n",
-	entry->url,
-	entry->object_len,
-	entry->mem_obj ? entry->mem_obj->e_current_len : 0,
-	http->out.offset);
-    buf = get_free_4k_page();
-    freefunc = put_free_4k_page;
-    x = storeClientCopy(http->entry,
-	http->out.offset,
-	ICP_SENDMOREDATA_BUF,
-	buf,
-	&len,
-	http);
-    assert(len <= ICP_SENDMOREDATA_BUF);
-    if (x < 0) {
-	debug(12, 1, "storeClientCopy returned %d for '%s'\n", x, entry->key);
-	put_free_4k_page(buf);
+    FREE *freefunc = put_free_4k_page;
+    assert(size >= 0);
+    assert(size <= ICP_SENDMOREDATA_BUF);
+    if (size < 0) {
+	debug(12, 1, "storeClientCopy returned %d for '%s'\n", size, entry->key);
+	freefunc(buf);
 	comm_close(fd);
 	return;
     }
-    writelen = len;
-
-    if (http->out.offset == 0 && len > 0) {
-	/* make sure 'buf' is null terminated somewhere */
-	if (len == ICP_SENDMOREDATA_BUF)
-	    len--;
-	*(buf + len) = '\0';
-	newbuf = get_free_8k_page();
-	newbuflen = 8192;
-	hdrlen = 0;
-	l = clientBuildReplyHeader(http, buf, &hdrlen, newbuf, newbuflen);
-	if (l != 0) {
-	    writelen = l + len - hdrlen;
-	    assert(writelen <= 8192);
-	    /*
-	     * l is the length of the new headers in newbuf
-	     * hdrlen is the length of the old headers in buf
-	     * len - hdrlen is the amount of body in buf
-	     */
-	    xmemcpy(newbuf + l, buf + hdrlen, len - hdrlen);
-	    /* replace buf with newbuf */
-	    freefunc(buf);
-	    buf = newbuf;
-	    freefunc = put_free_8k_page;
-	} else if (len < ICP_SENDMOREDATA_BUF && entry->store_status == STORE_PENDING) {
-	    /* wait for more to arrive */
-	    storeRegister(entry, icpHandleStore, http, len);
-	    return;
-	}
+    debug(12, 5, "icpSendMoreData: FD %d '%s'\n", fd, entry->url);
+    if (conn->chr != http) {
+	/* there is another object in progress, defer this one */
+	debug(0, 0, "icpSendMoreData: Deferring delivery of\n");
+	debug(0, 0, "--> %s\n", entry->url);
+	debug(0, 0, "--> because other requests are in front\n");
+	freefunc(buf);
+	return;
     }
+    if (entry->store_status == STORE_ABORTED) {
+	debug(12, 3, "icpSendMoreData: abort_code=%d url='%s'\n",
+	    entry->mem_obj->abort_code, entry->url);
+	icpSendERROR(fd,
+	    entry->mem_obj->abort_code,
+	    entry->mem_obj->e_abort_msg,
+	    http,
+	    400);
+	freefunc(buf);
+	return;
+    }
+    writelen = size;
+    if (http->out.offset == 0) {
 #if LOG_FULL_HEADERS
-    if (http->out.offset == 0 && len > 0) {
 	if ((p = mime_headers_end(buf))) {
 	    safe_free(http->reply_hdr);
 	    http->reply_hdr = xcalloc(1 + p - buf, 1);
 	    xstrncpy(http->reply_hdr, buf, p - buf);
 	}
+#endif
+	/* make sure 'buf' is null terminated somewhere */
+	if (size == ICP_SENDMOREDATA_BUF)
+	    size--;
+	*(buf + size) = '\0';
+	newbuf = get_free_8k_page();
+	newbuflen = 8192;
+	hdrlen = 0;
+	l = clientBuildReplyHeader(http, buf, &hdrlen, newbuf, newbuflen);
+	if (l != 0) {
+	    writelen = l + size - hdrlen;
+	    assert(writelen <= 8192);
+	    /*
+	     * l is the length of the new headers in newbuf
+	     * hdrlen is the length of the old headers in buf
+	     * size - hdrlen is the amount of body in buf
+	     */
+	    xmemcpy(newbuf + l, buf + hdrlen, size - hdrlen);
+	    /* replace buf with newbuf */
+	    freefunc(buf);
+	    buf = newbuf;
+	    freefunc = put_free_8k_page;
+	} else if (size < ICP_SENDMOREDATA_BUF && entry->store_status == STORE_PENDING) {
+	    /* wait for more to arrive */
+debug(0,0,"icpSendMoreData: out.offset=%d\n", http->out.offset);
+	    storeClientCopy(entry,
+		http->out.offset,
+		ICP_SENDMOREDATA_BUF,
+		buf,
+		icpSendMoreData,
+		http);
+	    return;
+	}
     }
-#endif /* LOG_FULL_HEADERS */
-    http->out.offset += len;
+debug(0,0,"icpSendMoreData: out.offset=%d\n", http->out.offset);
+debug(0,0,"icpSendMoreData: size=%d\n", size);
+    http->out.offset += size;
+debug(0,0,"icpSendMoreData: out.offset=%d\n", http->out.offset);
     if (http->request->method == METHOD_HEAD) {
 	if ((p = mime_headers_end(buf))) {
 	    *p = '\0';
@@ -688,45 +700,7 @@ icpSendMoreData(int fd, clientHttpRequest * http)
 	    http->out.offset = entry->mem_obj->e_current_len;
 	}
     }
-    comm_write(fd,
-	buf,
-	writelen,
-	clientWriteComplete,
-	http,
-	freefunc);
-}
-
-/* Called by storage manager when more data arrives from source. 
- * Starts state machine towards client with new batch of data or
- * error messages.  We get here by invoking the handlers in the
- * pending list.
- */
-void
-icpHandleStore(void *data)
-{
-    clientHttpRequest *http = data;
-    StoreEntry *entry = http->entry;
-    ConnStateData *conn = http->conn;
-    int fd = http->conn->fd;
-    debug(12, 5, "icpHandleStore: FD %d '%s'\n", fd, entry->url);
-    if (conn->chr != http) {
-	/* there is another object in progress, defer this one */
-	debug(0, 0, "icpHandleStore: Deferring delivery of\n");
-	debug(0, 0, "--> %s\n", entry->url);
-	debug(0, 0, "--> because other requests are in front\n");
-	return;
-    }
-    if (entry->store_status == STORE_ABORTED) {
-	debug(12, 3, "icpHandleStore: abort_code=%d url='%s'\n",
-	    entry->mem_obj->abort_code, entry->url);
-	icpSendERROR(fd,
-	    entry->mem_obj->abort_code,
-	    entry->mem_obj->e_abort_msg,
-	    http,
-	    400);
-	return;
-    }
-    icpSendMoreData(fd, http);
+    comm_write(fd, buf, writelen, clientWriteComplete, http, freefunc);
 }
 
 static void
@@ -738,6 +712,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
     http->out.size += size;
     debug(12, 5, "clientWriteComplete: FD %d, sz %d, err %d, off %d, len %d\n",
 	fd, size, errflag, http->out.offset, entry->object_len);
+    debug(0, 0, "clientWriteComplete: out.offset=%d\n", http->out.offset);
     if (errflag) {
 	CheckQuickAbort(http);
 	/* Log the number of bytes that we managed to read */
@@ -745,9 +720,6 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    urlParseProtocol(entry->url),
 	    http->out.size);
 	comm_close(fd);
-    } else if (http->out.offset < entry->mem_obj->e_current_len) {
-	/* More data available locally; write it now */
-	icpSendMoreData(fd, http);
     } else if (icpCheckTransferDone(http)) {
 	/* We're finished case */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
@@ -758,34 +730,57 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	} else if (BIT_TEST(http->request->flags, REQ_PROXY_KEEPALIVE)) {
 	    conn = http->conn;
 	    httpRequestFree(http);
-	    if (conn->chr)
-		icpSendMoreData(fd, conn->chr);
+	    if ((http = conn->chr))
+		storeClientCopy(entry,
+		    http->out.offset,
+		    ICP_SENDMOREDATA_BUF,
+		    get_free_4k_page(),
+		    icpSendMoreData,
+		    http);
 	} else {
 	    comm_close(fd);
 	}
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
-	storeRegister(http->entry, icpHandleStore, http, http->out.offset);
+	storeClientCopy(entry,
+	    http->out.offset,
+	    ICP_SENDMOREDATA_BUF,
+	    get_free_4k_page(),
+	    icpSendMoreData,
+	    http);
     }
 }
 
 static void
-icpGetHeadersForIMS(void *data)
+icpGetHeadersForIMS(void *data, char *buf, size_t size)
 {
     clientHttpRequest *http = data;
     int fd = http->conn->fd;
     StoreEntry *entry = http->entry;
     MemObject *mem = entry->mem_obj;
     char *reply = NULL;
-
+    assert(size > 0);
+    assert(size <= ICP_SENDMOREDATA_BUF);
+    if (size < 0) {
+	debug(12, 1, "storeClientCopy returned %d for '%s'\n", size, entry->key);
+	put_free_4k_page(buf);
+	comm_close(fd);
+	return;
+    }
     if (mem->reply->code == 0) {
 	if (entry->mem_status == IN_MEMORY) {
+	    put_free_4k_page(buf);
 	    icpProcessMISS(fd, http);
 	    return;
 	}
 	/* All headers are not yet available, wait for more data */
-	storeRegister(entry, icpGetHeadersForIMS, http, http->out.offset);
+	storeClientCopy(entry,
+	    http->out.offset,
+	    ICP_SENDMOREDATA_BUF,
+	    buf,
+	    icpGetHeadersForIMS,
+	    http);
 	return;
     }
     /* All headers are available, check if object is modified or not */
@@ -806,6 +801,7 @@ icpGetHeadersForIMS(void *data)
     if (mem->reply->code != 200) {
 	debug(12, 4, "icpGetHeadersForIMS: Reply code %d!=200\n",
 	    mem->reply->code);
+	put_free_4k_page(buf);
 	icpProcessMISS(fd, http);
 	return;
     }
@@ -814,7 +810,12 @@ icpGetHeadersForIMS(void *data)
 	http->log_type = LOG_TCP_IMS_HIT;
     entry->refcount++;
     if (modifiedSince(entry, http->request)) {
-	icpSendMoreData(fd, http);
+	storeClientCopy(entry,
+	    http->out.offset,
+	    ICP_SENDMOREDATA_BUF,
+	    buf,
+	    icpSendMoreData,
+	    http);
 	return;
     }
     debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
@@ -1041,10 +1042,20 @@ icpProcessRequestComplete(void *data, int status)
     switch (http->log_type) {
     case LOG_TCP_HIT:
 	entry->refcount++;	/* HIT CASE */
-	icpSendMoreData(fd, http);
+	storeClientCopy(entry,
+	    http->out.offset,
+	    ICP_SENDMOREDATA_BUF,
+	    get_free_4k_page(),
+	    icpSendMoreData,
+	    http);
 	break;
     case LOG_TCP_IMS_MISS:
-	icpGetHeadersForIMS(http);
+	storeClientCopy(entry,
+	    http->out.offset,
+	    ICP_SENDMOREDATA_BUF,
+	    get_free_4k_page(),
+	    icpGetHeadersForIMS,
+	    http);
 	break;
     case LOG_TCP_REFRESH_MISS:
 	icpProcessExpired(fd, http);
@@ -1106,7 +1117,12 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     http->out.offset = 0;
     protoDispatch(fd, http->entry, http->request);
     /* Register with storage manager to receive updates when data comes in. */
-    storeRegister(entry, icpHandleStore, http, http->out.offset);
+    storeClientCopy(entry,
+	http->out.offset,
+	ICP_SENDMOREDATA_BUF,
+	get_free_4k_page(),
+	icpSendMoreData,
+	http);
     return;
 }
 
@@ -1220,6 +1236,7 @@ icpCreateMessage(
     return buf;
 }
 
+#if !DONT_USE_VM
 static void *
 icpCreateHitObjMessage(
     icp_opcode opcode,
@@ -1237,7 +1254,6 @@ icpCreateHitObjMessage(
     u_short data_sz;
     int size;
     MemObject *m = entry->mem_obj;
-
     buf_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
     if (opcode == ICP_OP_QUERY)
 	buf_len += sizeof(u_num32);
@@ -1256,7 +1272,7 @@ icpCreateHitObjMessage(
     entryoffset = urloffset + strlen(url) + 1;
     xmemcpy(entryoffset, &data_sz, sizeof(u_short));
     entryoffset += sizeof(u_short);
-    size = m->data->mem_copy(m->data, 0, entryoffset, entry->object_len);
+    size = memCopy(m->data, 0, entryoffset, entry->object_len);
     if (size < 0 || size != entry->object_len) {
 	debug(12, 1, "icpCreateHitObjMessage: copy failed, wanted %d got %d bytes\n",
 	    entry->object_len, size);
@@ -1265,6 +1281,7 @@ icpCreateHitObjMessage(
     }
     return buf;
 }
+#endif
 
 void
 icpUdpSend(int fd,
@@ -1311,6 +1328,7 @@ icpCheckUdpHit(StoreEntry * e, request_t * request)
     return 1;
 }
 
+#if !DONT_USE_VM
 static int
 icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
 {
@@ -1326,6 +1344,7 @@ icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
 #endif
     return 1;
 }
+#endif
 
 static void
 icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
@@ -1704,8 +1723,8 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status)
     char *s = NULL;
     char *end = NULL;
     int free_request = 0;
-    size_t req_hdr_sz;	/* size of headers, not including first line */
-    size_t req_sz;	/* size of whole request */
+    size_t req_hdr_sz;		/* size of headers, not including first line */
+    size_t req_sz;		/* size of whole request */
     size_t url_sz;
     method_t method;
     clientHttpRequest *http = NULL;
@@ -1886,88 +1905,88 @@ clientReadRequest(int fd, void *data)
     conn->in.buf[conn->in.offset] = '\0';	/* Terminate the string */
 
     while (conn->in.offset > 0) {
-    http = parseHttpRequest(conn, &method, &parser_return_code);
-    if (http) {
-	assert(http->req_sz > 0);
-	conn->in.offset -= http->req_sz;
-	assert (conn->in.offset >= 0);
-	if (conn->in.offset > 0) {
-	    tmp = xstrdup(conn->in.buf + http->req_sz);
-	    xstrncpy(conn->in.buf, tmp, conn->in.size);
-	    safe_free(tmp);
-	}
-	/* link */
-        for (H = &conn->chr; *H; H = &(*H)->next);
-        *H = http;
-	conn->nrequests++;
-	commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
-	if ((request = urlParse(method, http->url)) == NULL) {
-	    debug(12, 5, "Invalid URL: %s\n", http->url);
-	    wbuf = squid_error_url(http->url,
-		method,
-		ERR_INVALID_URL,
-		fd_table[fd].ipaddr,
-		400,
-		NULL);
-	    icpSendERROR(fd, ERR_INVALID_URL, wbuf, http, 400);
-	    continue; /* while offset > 0 */
-	}
-	request->http_ver = http->http_ver;
-	if (!urlCheckRequest(request)) {
-	    http->log_type = ERR_UNSUP_REQ;
-	    http->http_code = 501;
-	    wbuf = xstrdup(squid_error_url(http->url,
+	http = parseHttpRequest(conn, &method, &parser_return_code);
+	if (http) {
+	    assert(http->req_sz > 0);
+	    conn->in.offset -= http->req_sz;
+	    assert(conn->in.offset >= 0);
+	    if (conn->in.offset > 0) {
+		tmp = xstrdup(conn->in.buf + http->req_sz);
+		xstrncpy(conn->in.buf, tmp, conn->in.size);
+		safe_free(tmp);
+	    }
+	    /* link */
+	    for (H = &conn->chr; *H; H = &(*H)->next);
+	    *H = http;
+	    conn->nrequests++;
+	    commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
+	    if ((request = urlParse(method, http->url)) == NULL) {
+		debug(12, 5, "Invalid URL: %s\n", http->url);
+		wbuf = squid_error_url(http->url,
 		    method,
-		    ERR_UNSUP_REQ,
+		    ERR_INVALID_URL,
 		    fd_table[fd].ipaddr,
-		    http->http_code,
-		    NULL));
-	    comm_write(fd,
-		wbuf,
-		strlen(wbuf),
-		icpSendERRORComplete,
-		http,
-		xfree);
-	    return;
-	}
-	http->request = requestLink(request);
-	clientAccessCheck(http);
-	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
-	continue; /* while offset > 0 */
-    } else if (parser_return_code == 0) {
-	/*
-	 *    Partial request received; reschedule until parseHttpRequest()
-	 *    is happy with the input
-	 */
-	k = conn->in.size - 1 - conn->in.offset;
-	if (k == 0) {
-	    if (conn->in.offset >= Config.maxRequestSize) {
-		/* The request is too large to handle */
-		debug(12, 0, "clientReadRequest: Request won't fit in buffer.\n");
-		debug(12, 0, "-->     max size = %d\n", Config.maxRequestSize);
-		debug(12, 0, "--> conn->in.offset = %d\n", conn->in.offset);
-		icpSendERROR(fd,
+		    400,
+		    NULL);
+		icpSendERROR(fd, ERR_INVALID_URL, wbuf, http, 400);
+		continue;	/* while offset > 0 */
+	    }
+	    request->http_ver = http->http_ver;
+	    if (!urlCheckRequest(request)) {
+		http->log_type = ERR_UNSUP_REQ;
+		http->http_code = 501;
+		wbuf = xstrdup(squid_error_url(http->url,
+			method,
+			ERR_UNSUP_REQ,
+			fd_table[fd].ipaddr,
+			http->http_code,
+			NULL));
+		comm_write(fd,
+		    wbuf,
+		    strlen(wbuf),
+		    icpSendERRORComplete,
+		    http,
+		    xfree);
+		return;
+	    }
+	    http->request = requestLink(request);
+	    clientAccessCheck(http);
+	    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
+	    continue;		/* while offset > 0 */
+	} else if (parser_return_code == 0) {
+	    /*
+	     *    Partial request received; reschedule until parseHttpRequest()
+	     *    is happy with the input
+	     */
+	    k = conn->in.size - 1 - conn->in.offset;
+	    if (k == 0) {
+		if (conn->in.offset >= Config.maxRequestSize) {
+		    /* The request is too large to handle */
+		    debug(12, 0, "clientReadRequest: Request won't fit in buffer.\n");
+		    debug(12, 0, "-->     max size = %d\n", Config.maxRequestSize);
+		    debug(12, 0, "--> conn->in.offset = %d\n", conn->in.offset);
+		    icpSendERROR(fd,
 			ERR_INVALID_REQ,
 			"error reading request",
 			NULL,
 			400);
-		return;
+		    return;
+		}
+		/* Grow the request memory area to accomodate for a large request */
+		conn->in.size += REQUEST_BUF_SIZE;
+		conn->in.buf = xrealloc(conn->in.buf, conn->in.size);
+		meta_data.misc += REQUEST_BUF_SIZE;
+		debug(12, 2, "Handling a large request, offset=%d inbufsize=%d\n",
+		    conn->in.offset, conn->in.size);
+		k = conn->in.size - 1 - conn->in.offset;
 	    }
-	    /* Grow the request memory area to accomodate for a large request */
-	    conn->in.size += REQUEST_BUF_SIZE;
-	    conn->in.buf = xrealloc(conn->in.buf, conn->in.size);
-	    meta_data.misc += REQUEST_BUF_SIZE;
-	    debug(12, 2, "Handling a large request, offset=%d inbufsize=%d\n",
-		conn->in.offset, conn->in.size);
-	    k = conn->in.size - 1 - conn->in.offset;
+	    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
+	} else {
+	    /* parser returned -1 */
+	    debug(12, 1, "clientReadRequest: FD %d Invalid Request\n", fd);
+	    wbuf = squid_error_request(conn->in.buf, ERR_INVALID_REQ, 400);
+	    icpSendERROR(fd, ERR_INVALID_REQ, wbuf, NULL, 400);
 	}
-	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
-    } else {
-	/* parser returned -1 */
-	debug(12, 1, "clientReadRequest: FD %d Invalid Request\n", fd);
-	wbuf = squid_error_request(conn->in.buf, ERR_INVALID_REQ, 400);
-	icpSendERROR(fd, ERR_INVALID_REQ, wbuf, NULL, 400);
-    }
     }
 }
 
@@ -2124,23 +2143,6 @@ icpCheckTransferDone(clientHttpRequest * http)
 	return 1;
     return 0;
 }
-
-#if OLD_CODE
-static void
-icpDetectNewRequest(int fd, void *data)
-{
-    ConnStateData *connState = data;
-    ntcpconn++;
-    if (vizSock > -1)
-	vizHackSendPkt(&connState->peer, 1);
-    if (fd != connState->fd)
-	fatal_dump("icpDetectNewRequest: FD mismatch");
-    debug(0, 3, "icpDetectNewRequest: FD %d: accepted\n", fd);
-    fd_note(fd, "Reading Request");
-    commSetTimeout(fd, Config.Timeout.request, requestTimeout, conn);
-    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
-}
-#endif
 
 static char *
 icpConstruct304reply(struct _http_reply *source)

@@ -268,7 +268,7 @@ typedef unsigned long u_num32;
 
 typedef void SIH _PARAMS((void *, int));	/* swap in */
 typedef int QS _PARAMS((const void *, const void *));	/* qsort */
-typedef void STCB _PARAMS((void *));	/* store callback */
+typedef void STCB _PARAMS((void *, char *, size_t));	/* store callback */
 
 #include "cache_cf.h"
 #include "fd.h"

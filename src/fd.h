@@ -28,9 +28,9 @@ enum {
 #define FD_DESC_SZ		64
 
 typedef void PF _PARAMS((int, void *));
-typedef void FILE_READ_HD(int fd, const char *buf, int size, int errflag, void *
+typedef void DRCB(int fd, const char *buf, int size, int errflag, void *
     data);
-typedef void FILE_WRITE_HD(int, int, void *);
+typedef void DWCB(int, int, size_t, void *);
 typedef void FILE_WALK_HD(int fd, int errflag, void *data);
 typedef void FILE_WALK_LHD(int fd, const char *buf, int size, void *line_data);
 
@@ -53,14 +53,12 @@ typedef struct fde {
     int flags;
     int bytes_read;
     int bytes_written;
-
     struct _fde_disk {
-	FILE_WRITE_HD *wrt_handle;
+	DWCB *wrt_handle;
 	void *wrt_handle_data;
 	dwrite_q *write_q;
 	dwrite_q *write_q_tail;
     } disk;
-
     PF *read_handler;
     void *read_data;
     PF *write_handler;

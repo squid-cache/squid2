@@ -240,7 +240,7 @@ extern void icpProcessRequest _PARAMS((int, clientHttpRequest *));
 extern PF icpUdpReply;
 extern void vizHackSendPkt _PARAMS((const struct sockaddr_in * from, int type));
 extern CWCB icpSendERRORComplete;
-extern STCB icpHandleStore;
+extern STCB icpSendMoreData;
 
 extern int neighbors_do_private_keys;
 extern char *IcpOpcodeStr[];

@@ -145,6 +145,8 @@
 /* keep track each client receiving data from that particular StoreEntry */
 struct _store_client {
     off_t offset;
+    size_t copy_size;
+    char *copy_buf;
     STCB *callback;
     void *callback_data;
 };
@@ -263,10 +265,17 @@ extern int storeUnregister _PARAMS((StoreEntry *, void *));
 extern const char *storeGeneratePublicKey _PARAMS((const char *, method_t));
 extern const char *storeGeneratePrivateKey _PARAMS((const char *, method_t, int));
 extern void storeStartDeleteBehind _PARAMS((StoreEntry *));
-extern int storeClientCopy _PARAMS((StoreEntry *, int, int, char *, int *, void *));
+extern void storeClientCopy _PARAMS((StoreEntry * e,
+    off_t offset,
+    size_t size,
+    char *buf,
+    STCB *callback,
+    void *data));
 extern int storePendingNClients _PARAMS((const StoreEntry *));
 extern int storeWriteCleanLogs _PARAMS((void));
+#if OLD_CODE
 extern void storeRegister _PARAMS((StoreEntry *, STCB *, void *, off_t));
+#endif
 extern int urlcmp _PARAMS((const char *, const char *));
 extern void storeMaintainSwapSpace _PARAMS((void *unused));
 extern void storeExpireNow _PARAMS((StoreEntry *));

@@ -117,11 +117,6 @@ typedef struct mem_hdr {
     mem_node head;
     mem_node tail;
     int origin_offset;
-    void (*mem_free) (mem_ptr mem);
-    void (*mem_free_data) (mem_ptr mem);
-    int (*mem_free_data_upto) (mem_ptr mem, int target_offset);
-    int (*mem_append) (mem_ptr mem, const char *data, int len);
-    int (*mem_copy) (const mem_ptr mem, int offset, char *buf, int size);
 } Mem_Hdr;
 
 /* To reduce memory fragmentation, we now store the memory version of an
@@ -157,5 +152,11 @@ extern void put_free_request_t _PARAMS((void *));
 extern void put_free_mem_obj _PARAMS((void *));
 extern void stmemInit _PARAMS((void));
 extern void stmemFreeMemory _PARAMS((void));
+
+extern int memFreeDataUpto _PARAMS((mem_ptr, int));
+extern int memAppend _PARAMS((mem_ptr, const char *, int));
+extern size_t memCopy _PARAMS((const mem_ptr, off_t, char *, size_t));
+extern void memFree _PARAMS((mem_ptr));
+extern void memFreeData _PARAMS((mem_ptr));
 
 #endif /* STMEM_H */
