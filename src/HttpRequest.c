@@ -55,7 +55,10 @@ void
 requestDestroy(request_t * req)
 {
     assert(req);
-    safe_free(req->body);
+    if (req->body_connection)
+	clientAbortBody(req);
+    if (req->auth_user_request)
+	authenticateAuthUserRequestUnlock(req->auth_user_request);
     safe_free(req->canonical);
     stringClean(&req->urlpath);
     httpHeaderClean(&req->header);

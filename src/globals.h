@@ -145,6 +145,7 @@ extern int refresh_nocache_hack;	/* 0 */
 extern request_flags null_request_flags;
 extern int store_open_disk_fd;	/* 0 */
 extern const char *SwapDirType[];
+extern authscheme_entry_t *authscheme_list;	/* NULL */
 extern storefs_entry_t *storefs_list;	/* NULL */
 extern storerepl_entry_t *storerepl_list;	/* NULL */
 extern int store_swap_low;	/* 0 */
@@ -152,3 +153,4 @@ extern int store_swap_high;	/* 0 */
 extern int store_pages_max;	/* 0 */
 extern ssize_t store_maxobjsize;	/* -1 */
 extern RemovalPolicy *mem_policy;
+extern hash_table *proxy_auth_username_cache;	/* NULL */

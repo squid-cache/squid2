@@ -349,6 +349,7 @@ mainReconfigure(void)
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
     ipcache_restart();		/* clear stuck entries */
+    authenticateUserCacheRestart();	/* clear stuck ACL entries */
     fqdncache_restart();	/* sigh, fqdncache too */
     parseEtcHosts();
     errorInitialize();		/* reload error pages */
@@ -358,7 +359,7 @@ mainReconfigure(void)
     idnsInit();
 #endif
     redirectInit();
-    authenticateInit();
+    authenticateInit(&Config.authConfig);
 #if USE_WCCP
     wccpInit();
 #endif
@@ -399,7 +400,7 @@ mainRotate(void)
     dnsInit();
 #endif
     redirectInit();
-    authenticateInit();
+    authenticateInit(&Config.authConfig);
 }
 
 static void
@@ -489,7 +490,7 @@ mainInitialize(void)
     idnsInit();
 #endif
     redirectInit();
-    authenticateInit();
+    authenticateInit(&Config.authConfig);
     useragentOpenLog();
     refererOpenLog();
     httpHeaderInitModule();	/* must go before any header processing (e.g. the one in errorInitialize) */
@@ -632,6 +633,7 @@ main(int argc, char **argv)
 	cbdataInit();
 	eventInit();		/* eventInit() is required for config parsing */
 	storeFsInit();		/* required for config parsing */
+	authenticateSchemeInit();	/* required for config parsign */
 	parse_err = parseConfigFile(ConfigFile);
 
 	if (opt_parse_cfg_only)

@@ -1415,8 +1415,6 @@ statClientRequests(StoreEntry * s)
 		ntohs(conn->me.sin_port));
 	    storeAppendPrintf(s, "\tnrequests: %d\n",
 		conn->nrequests);
-	    storeAppendPrintf(s, "\tpersistent: %d\n",
-		conn->persistent);
 	    storeAppendPrintf(s, "\tdefer: n %d, until %d\n",
 		conn->defer.n, conn->defer.until);
 	}

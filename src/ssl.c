@@ -587,6 +587,7 @@ sslPeerSelectComplete(FwdServer * fs, void *data)
 	sslState->request->peer_login = fs->peer->login;
 	sslState->request->flags.proxying = 1;
     } else {
+	sslState->request->peer_login = NULL;
 	sslState->request->flags.proxying = 0;
     }
 #if DELAY_POOLS

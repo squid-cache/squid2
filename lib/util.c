@@ -749,7 +749,7 @@ xitoa(int num)
 }
 
 /* A default failure notifier when the main program hasn't installed any */
-void 
+void
 default_failure_notify(const char *msg)
 {
     write(2, msg, strlen(msg));

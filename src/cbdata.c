@@ -137,6 +137,8 @@ cbdataInit(void)
     CREATE_CBDATA(generic_cbdata);
     CREATE_CBDATA(helper);
     CREATE_CBDATA(helper_server);
+    CREATE_CBDATA(statefulhelper);
+    CREATE_CBDATA(helper_stateful_server);
     CREATE_CBDATA(HttpStateData);
     CREATE_CBDATA(peer);
     CREATE_CBDATA(ps_state);

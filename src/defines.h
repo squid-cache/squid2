@@ -53,7 +53,6 @@
 
 #define DefaultDnsChildrenMax		32	/* 32 processes */
 #define DefaultRedirectChildrenMax	32	/* 32 processes */
-#define DefaultAuthenticateChildrenMax	32	/* 32 processes */
 #define MAXHTTPPORTS			12
 
 #define COMM_OK		  (0)
@@ -133,10 +132,9 @@
 #define REDIRECT_DONE 2
 
 #define AUTHENTICATE_AV_FACTOR 1000
+/* AUTHENTICATION */
 
-#define AUTHENTICATE_NONE 0
-#define AUTHENTICATE_PENDING 1
-#define AUTHENTICATE_DONE 2
+#define NTLM_CHALLENGE_SZ 300
 
 #define  CONNECT_PORT        443
 
