@@ -172,3 +172,4 @@ beta8:
 	  handler.
 	- Added instrumentation of basic IPCache stats.
 	- Fixed calculation of neighbor average RTT.
+	- Added 'outbound_addr_list' to config
