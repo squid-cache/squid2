@@ -181,7 +181,7 @@ extern int swapInError _PARAMS((int fd, StoreEntry *));
 extern int storeCopy _PARAMS((StoreEntry *, int, int, char *, int *));
 extern int storeMaintainSwapSpace _PARAMS((void));
 extern void storeExpireNow _PARAMS((StoreEntry *));
-extern void storeReleaseRequest _PARAMS((StoreEntry *, char *file, int line));
+extern void storeReleaseRequest _PARAMS((StoreEntry *));
 extern void storeRotateLog _PARAMS((void));
 extern unsigned int getKeyCounter _PARAMS((void));
 

@@ -129,7 +129,7 @@ void waisReadReply(fd, data)
 		(PF) waisReadReplyTimeout, (void *) data, getReadTimeout());
 	} else {
 	    BIT_RESET(entry->flag, CACHABLE);
-	    storeReleaseRequest(entry, __FILE__, __LINE__);
+	    storeReleaseRequest(entry);
 	    cached_error_entry(entry, ERR_READ_ERROR, xstrerror());
 	    waisCloseAndFree(fd, data);
 	}

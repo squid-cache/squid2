@@ -100,7 +100,7 @@ static void icpFreeBufOrPage(icpState)
     if (icpState->ptr_to_4k_page && icpState->buf)
 	fatal_dump("icpFreeBufOrPage: Shouldn't have both a 4k ptr and a string");
     if (icpState->ptr_to_4k_page)
-	put_free_4k_page(icpState->ptr_to_4k_page, __FILE__, __LINE__);
+	put_free_4k_page(icpState->ptr_to_4k_page);
     else
 	safe_free(icpState->buf);
     icpState->ptr_to_4k_page = icpState->buf = NULL;
@@ -419,7 +419,7 @@ int icpSendERROR(fd, errorCode, msg, state)
     /* Error message for the ascii port */
     buf_len = strlen(msg);
     buf_len = buf_len > 4095 ? 4095 : buf_len;
-    buf = state->ptr_to_4k_page = get_free_4k_page(__FILE__, __LINE__);
+    buf = state->ptr_to_4k_page = get_free_4k_page();
     state->buf = NULL;
     strcpy(buf, msg);
     *(buf + buf_len) = '\0';
@@ -449,7 +449,7 @@ int icpSendMoreData(fd, state)
 	entry->url, entry->object_len,
 	has_mem_obj(entry) ? entry->mem_obj->e_current_len : 0, state->offset);
 
-    p = state->ptr_to_4k_page = buf = get_free_4k_page(__FILE__, __LINE__);
+    p = state->ptr_to_4k_page = buf = get_free_4k_page();
     state->buf = NULL;
 
     /* Set maxlen to largest amount of data w/o header
@@ -1474,7 +1474,7 @@ void asciiConnLifetimeHandle(fd, data)
     if ((handler != NULL) && (client_data != NULL)) {
 	rw_state = (icpReadWriteData *) client_data;
 	if (rw_state->buf)
-	    put_free_4k_page(rw_state->buf, __FILE__, __LINE__);
+	    put_free_4k_page(rw_state->buf);
 	safe_free(rw_state);
     }
     /* If we have a read handler, we were reading in the get/post URL 
@@ -1611,6 +1611,6 @@ static void CheckQuickAbort(astm)
     if (astm->entry->status == STORE_OK)
 	return;
     BIT_SET(astm->entry->flag, CLIENT_ABORT_REQUEST);
-    storeReleaseRequest(astm->entry, __FILE__, __LINE__);
+    storeReleaseRequest(astm->entry);
     astm->log_type = ERR_CLIENT_ABORT;
 }

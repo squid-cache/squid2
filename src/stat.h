@@ -127,7 +127,7 @@ struct _cacheinfo {
 };
 
 extern cacheinfo *CacheInfo;
-extern int nconn;
+extern unsigned long nconn;
 
 extern void stat_init _PARAMS((cacheinfo **, char *));
 extern void stat_rotate_log _PARAMS((void));
