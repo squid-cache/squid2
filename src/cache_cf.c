@@ -1005,6 +1005,8 @@ parse_peer(peer ** head)
 	} else if (!strncasecmp(token, "digest-url=", 11)) {
 	    p->digest_url = xstrdup(token + 11);
 #endif
+	} else if (!strcasecmp(token, "allow-miss")) {
+	    p->options.allow_miss = 1;
 	} else {
 	    debug(3, 0) ("parse_peer: token='%s'\n", token);
 	    self_destruct();

@@ -866,7 +866,8 @@ httpSendRequest(HttpStateData * httpState)
     else if ((double) p->stats.n_keepalives_recv / (double) p->stats.n_keepalives_sent > 0.50)
 	httpState->flags.keepalive = 1;
     if (httpState->peer)
-	if (neighborType(httpState->peer, httpState->request) == PEER_SIBLING)
+	if (neighborType(httpState->peer, httpState->request) == PEER_SIBLING &&
+		!httpState->peer->options.allow_miss)
 	    httpState->flags.only_if_cached = 1;
     memBufDefInit(&mb);
     httpBuildRequestPrefix(req,

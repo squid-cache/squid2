@@ -1093,6 +1093,7 @@ struct _peer {
 #if DELAY_POOLS
 	unsigned int no_delay:1;
 #endif
+	unsigned int allow_miss:1;
     } options;
     int weight;
     struct {
