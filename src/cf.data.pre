@@ -994,6 +994,19 @@ DOC_START
 authenticate_children 5
 DOC_END
 
+NAME: authenticate_ttl
+TYPE: int
+DEFAULT: 3600
+LOC: Config.authenticateTTL
+DOC_START
+	The time a checked username/password combination remains cached
+	(default 3600). If a wrong password is given for a cached user,
+	the user gets removed from the username/password cache forcing
+	a revalidation.
+
+authenticate_ttl 3600
+DOC_END
+
 COMMENT_START
  OPTIONS FOR TUNING THE CACHE
  -----------------------------------------------------------------------------
@@ -1375,9 +1388,9 @@ DOC_START
 	acl aclname proto    HTTP FTP ...
 	acl aclname method   GET POST ...
 	acl aclname browser  regexp
-	acl aclname user     username ...	# string match on ident output.
-						# use REQUIRED to accept any
-						# non-null ident.
+	acl aclname ident    username ...
+	  # string match on ident output.
+	  # use REQUIRED to accept any non-null ident.
 	acl aclname src_as   number ... 
 	acl aclname dst_as   number ...
 	  # Except for access control, AS numbers can be used for
@@ -1388,22 +1401,16 @@ DOC_START
 	  # cache_peer_access mycache.mydomain.net allow asexample
 	  # cache_peer_access mycache_mydomain.net deny all
 
-	acl aclname proxy_auth [ refresh ]
+	acl aclname proxy_auth username ...
 	  # Use an EXTERNAL authentication program to check username/password
 	  # combinations (see authenticate_program).
 	  #
-	  # 'timeout' is the time a checked username/password combination
-	  # remains cached (default = 3600 secs). If a wrong password
-	  # is given for a cached user, the user gets removed from the
-	  # username/password cache forcing a revalidation.
-	  #
-	  # When using a proxy_auth ACL in an http_access rule, make sure
-	  # it is the *last* in the list and the only proxy_auth ACL in
-	  # the list.
+	  # use REQUIRED to accept any valid username.
 	  #
 	  # NOTE: when a Proxy-Authentication header is sent but it is not
 	  # needed during ACL checking the username is NOT logged
 	  # in access.log.
+	  #
 
 Examples:
 acl myexample dst_as 1241

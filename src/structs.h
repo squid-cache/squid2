@@ -57,11 +57,6 @@ struct _acl_name_list {
     acl_name_list *next;
 };
 
-struct _acl_proxy_auth {
-    int timeout;		/* timeout value for cached usercode:password entries */
-    hash_table *hash;
-};
-
 struct _acl_proxy_auth_user {
     /* first two items must be same as hash_link */
     char *user;
@@ -295,6 +290,7 @@ struct _SquidConfig {
     int dnsChildren;
     int redirectChildren;
     int authenticateChildren;
+    int authenticateTTL;
     struct {
 	char *host;
 	u_short port;

@@ -97,7 +97,7 @@ typedef enum {
     ACL_URLPATH_REGEX,
     ACL_URL_REGEX,
     ACL_URL_PORT,
-    ACL_USER,
+    ACL_IDENT,
     ACL_PROTO,
     ACL_METHOD,
     ACL_BROWSER,
@@ -115,9 +115,7 @@ typedef enum {
     ACL_LOOKUP_NEEDED,
     ACL_LOOKUP_PENDING,
     ACL_LOOKUP_DONE,
-    ACL_PROXY_AUTH_NEEDED,
-    ACL_PROXY_AUTH_USED,
-    ACL_PROXY_AUTH_CHECK
+    ACL_PROXY_AUTH_NEEDED
 } acl_lookup_state;
 
 enum {
