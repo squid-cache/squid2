@@ -182,7 +182,7 @@ static StoreEntry *new_StoreEntry _PARAMS((int mem_obj_flag));
 static int storeCheckPurgeMem _PARAMS((StoreEntry * e));
 static int compareLastRef _PARAMS((StoreEntry ** e1, StoreEntry ** e2));
 static int compareSize _PARAMS((StoreEntry ** e1, StoreEntry ** e2));
-static int storeClientListSearch _PARAMS((StoreEntry *, int fd));
+static int storeClientListSearch _PARAMS((MemObject *, int fd));
 
 /* Now, this table is inaccessible to outsider. They have to use a method
  * to access a value in internal storage data structure. */
@@ -2427,7 +2427,7 @@ void storeClientListAdd(e, fd, last_offset)
 	    xcalloc(mem->client_list_size, sizeof(ClientStatusEntry *));
 	for (i = 0; i < oldsize; i++)
 	    mem->client_list[i] = oldlist[i];
-	safe_free(old);
+	safe_free(oldlist);
     }
     mem->client_list[i] = xcalloc(1, sizeof(ClientStatusEntry));
     mem->client_list[i]->fd = fd;

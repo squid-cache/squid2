@@ -131,7 +131,7 @@ void mail_warranty()
     FILE *fp = NULL;
     char *filename;
     static char command[256];
-    if ((filename = tempnam(NULL, progname)) == NULL)
+    if ((filename = tempnam(NULL, appname)) == NULL)
 	return;
     if ((fp = fopen(filename, "w")) == NULL)
 	return;
