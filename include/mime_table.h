@@ -1,4 +1,4 @@
-#define EXT_TABLE_LEN 89
+#define EXT_TABLE_LEN 91
 static ext_table_entry ext_mime_table[] =
 {
     {"Z", "application/x-compressed", "x-compress", "binary"},
@@ -6,6 +6,7 @@ static ext_table_entry ext_mime_table[] =
     {"aif", "audio/x-aiff", "binary", "sound"},
     {"aifc", "audio/x-aiff", "binary", "sound"},
     {"aiff", "audio/x-aiff", "binary", "sound"},
+    {"arj", "application/x-arj-compressed", "binary", "binary"},
     {"au", "audio/basic", "binary", "sound"},
     {"avi", "video/x-msvideo", "binary", "movie"},
     {"bcpio", "application/x-bcpio", "binary", "binary"},
@@ -35,7 +36,8 @@ static ext_table_entry ext_mime_table[] =
     {"jpeg", "image/jpeg", "binary", "image"},
     {"jpg", "image/jpeg", "binary", "image"},
     {"latex", "application/x-latex", "8bit", "text"},
-    {"lzh", "application/octet-stream", "binary", "binary"},
+    {"lha", "application/x-lha-compressed", "binary", "binary"},
+    {"lzh", "application/x-lha-compressed", "binary", "binary"},
     {"m", "text/plain", "7bit", "text"},
     {"man", "application/x-troff-man", "7bit", "text"},
     {"me", "application/x-troff-me", "7bit", "text"},
