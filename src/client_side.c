@@ -3044,6 +3044,8 @@ clientReadRequest(int fd, void *data)
 			http->flags.internal = 1;
 		    }
 		}
+		if (http->flags.internal)
+		    request->protocol = PROTO_HTTP;
 	    }
 	    /*
 	     * cache the Content-length value in request_t.

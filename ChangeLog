@@ -35,6 +35,8 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	- Bug #853: Sporatic segmentation faults on aborted FTP PUT requests
 	- Bug #571: Need to limit use of persistent connections when
 	  filedescriptor usage is high
+	- Bug #856: FTP/Gopher Icon URLs are unneededly complex and often
+	  does not work properly
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 

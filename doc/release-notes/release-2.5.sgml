@@ -228,6 +228,9 @@ name="ChangeLog"> file for details.
 	which is now forward_timeout), negative_dns_ttl 1 minute (was 5 minutes)
 	and is now also used as minimum positive dns ttl, dns_timeout 2 minutes
 	(was 5 minutes)
+	<item>"short_icon_urls on" can be used to simplify the URLs used for
+	icons etc to avoid issues with proxy host naming and authentication
+	when requesting icons.
 	<item>a large number of minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4"
 	name="squid-2.5.STABLE4 patches"> and the <url url="ChangeLog"

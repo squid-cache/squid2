@@ -636,6 +636,7 @@ struct _SquidConfig {
     } cacheSwap;
     struct {
 	char *directory;
+	int use_short_names;
     } icons;
     char *errorDirectory;
     struct {

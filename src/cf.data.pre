@@ -3112,6 +3112,17 @@ DOC_START
 	@DEFAULT_ICON_DIR@
 DOC_END
 
+NAME: short_icon_urls
+TYPE: onoff
+LOC: Config.icons.use_short_names
+DEFAULT: off
+DOC_START
+	If this is enabled then Squid will use short URLs for icons.
+
+	If off then the URLs for icons will always be absolute URLs
+	including the proxy name and port.
+DOC_END
+
 NAME: error_directory
 TYPE: string
 LOC: Config.errorDirectory
