@@ -831,7 +831,7 @@ dnl during compile.
 	[*-*-solaris2.[0-4]])
 		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
 		;;
-	*-sony-newsos[56]*)
+	[*-sony-newsos[56]*])
 		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
 		;;
 esac
