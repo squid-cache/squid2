@@ -446,7 +446,7 @@ diskHandleReadComplete(void *data, int len, int errcode)
 	rc = DISK_EOF;
     }
     if (cbdataValid(ctrl_dat->client_data))
-        ctrl_dat->handler(fd, ctrl_dat->buf, len, rc, ctrl_dat->client_data);
+	ctrl_dat->handler(fd, ctrl_dat->buf, len, rc, ctrl_dat->client_data);
     cbdataUnlock(ctrl_dat->client_data);
     safe_free(ctrl_dat);
 }

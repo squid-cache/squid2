@@ -666,7 +666,7 @@ httpReadReply(int fd, void *data)
 	httpState->eof = 1;
 	if (httpState->reply_hdr_state < 2)
 	    httpProcessReplyHeader(httpState, buf, len);
-	/* storeAppend(entry, buf, len);	/* invoke handlers! */
+	/* storeAppend(entry, buf, len);        /* invoke handlers! */
 	storeComplete(entry);	/* deallocates mem_obj->request */
 	comm_close(fd);
     } else {
