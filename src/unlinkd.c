@@ -177,7 +177,7 @@ unlinkdUnlink(const char *path)
 	NULL,			/* Handler */
 	NULL,			/* Handler-data */
 	xfree);
-    unlinkd_count++;
+    Counter.unlink.requests++;
 }
 
 void
@@ -194,7 +194,6 @@ unlinkdClose(void)
 void
 unlinkdInit(void)
 {
-    unlinkd_count = 0;
     unlinkd_fd = unlinkdCreate();
     if (unlinkd_fd < 0)
 	fatal("unlinkdInit: failed to start unlinkd\n");
