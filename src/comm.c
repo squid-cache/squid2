@@ -1356,3 +1356,9 @@ comm_write(int fd, char *buf, int size, int timeout, rw_complete_handler * handl
 	(PF) commHandleWrite,
 	fd_table[fd].rwstate);
 }
+
+void
+commFreeMemory(void)
+{
+	safe_free(fd_table);
+}

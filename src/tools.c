@@ -292,11 +292,21 @@ normal_shutdown(void)
     }
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
-    debug(21, 0, "Squid Cache (Version %s): Exiting normally.\n",
-	version_string);
     storeCloseLog();
     statCloseLog();
     fclose(debug_log);
+    configFreeMemory();
+    diskFreeMemory();
+    storeFreeMemory();
+    commFreeMemory();
+    filemapFreeMemory();
+    dnsFreeMemory();
+    redirectFreeMemory();
+    fdstatFreeMemory();
+    errorpageFreeMemory();
+    stmemFreeMemory();
+    debug(21, 0, "Squid Cache (Version %s): Exiting normally.\n",
+	version_string);
     exit(0);
 }
 

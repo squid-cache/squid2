@@ -122,8 +122,6 @@ struct master_table {
 static int default_hash_size = -1;
 struct master_table htbl[MAX_HTABLE];
 
-extern void *xcalloc _PARAMS((int, size_t));
-
 /*
  *  hash_url() - Returns a well-distributed hash function for URLs.
  *  The best way is to sum up the last half of the string.
@@ -411,6 +409,14 @@ hash_get_bucket(HashID hid, unsigned int bucket)
     if (bucket >= htbl[hid].size)
 	return NULL;
     return (htbl[hid].buckets[bucket]);
+}
+
+
+void
+hashFreeMemory (HashID hid)
+{
+	safe_free(htbl[hid].buckets);
+        htbl[hid].valid = 0;
 }
 
 

@@ -273,6 +273,7 @@ extern u_short setHttpPortNum _PARAMS((u_short));
 extern u_short setIcpPortNum _PARAMS((u_short));
 extern void intlistDestroy _PARAMS((intlist **));
 extern void wordlistDestroy _PARAMS((wordlist **));
+extern void configFreeMemory _PARAMS((void));
 
 
 #endif /* ndef  _CACHE_CONFIG_H_ */

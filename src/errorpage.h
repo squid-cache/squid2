@@ -38,5 +38,6 @@ extern char *access_denied_redirect _PARAMS((int, int, char *, char *, char *));
 extern char *proxy_denied_msg _PARAMS((int, int, char *, char *));
 #endif /* USE_PROXY_AUTH */
 extern char *authorization_needed_msg _PARAMS((request_t *, char *));
+extern void errorpageFreeMemory _PARAMS((void));
 
 extern char *tmp_error_buf;

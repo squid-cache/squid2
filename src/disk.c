@@ -586,3 +586,9 @@ diskWriteIsComplete(int fd)
 {
     return file_table[fd].write_q ? 0 : 1;
 }
+
+void
+diskFreeMemory(void)
+{
+	safe_free(file_table);
+}

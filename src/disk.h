@@ -207,5 +207,6 @@ extern int file_walk _PARAMS((int fd,
 extern int file_write_lock _PARAMS((int fd));
 extern int disk_init _PARAMS((void));
 extern int diskWriteIsComplete _PARAMS((int));
+extern void diskFreeMemory _PARAMS((void));
 
 #endif /* DISK_H */

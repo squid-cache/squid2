@@ -257,3 +257,9 @@ fdstat_are_n_free_fd(int n)
 	return (n_free_fd >= n);
     }
 }
+
+void
+fdstatFreeMemory(void)
+{
+	safe_free(fd_stat_tab);
+}

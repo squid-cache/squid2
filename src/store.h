@@ -320,6 +320,7 @@ extern int storeGetLowestReaderOffset _PARAMS((StoreEntry *));
 extern void storeCloseLog _PARAMS((void));
 extern void storeConfigure _PARAMS((void));
 extern void storeNegativeCache _PARAMS((StoreEntry *));
+extern void storeFreeMemory _PARAMS((void));
 
 #if __STDC__
 extern void storeAppendPrintf _PARAMS((StoreEntry *, char *,...));

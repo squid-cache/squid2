@@ -36,3 +36,4 @@ extern void redirectOpenServers _PARAMS((void));
 extern void redirectShutdownServers _PARAMS((void));
 extern void redirectStats _PARAMS((StoreEntry *));
 extern int redirectUnregister _PARAMS((char *url, int fd));
+extern void redirectFreeMemory _PARAMS((void));

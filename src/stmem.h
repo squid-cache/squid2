@@ -155,5 +155,6 @@ extern void put_free_8k_page _PARAMS((void *));
 extern void put_free_request_t _PARAMS((void *));
 extern void put_free_mem_obj _PARAMS((void *));
 extern void stmemInit _PARAMS((void));
+extern void stmemFreeMemory _PARAMS((void));
 
 #endif

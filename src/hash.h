@@ -159,6 +159,7 @@ extern hash_link *hash_next _PARAMS((HashID));
 extern hash_link *hash_get_bucket _PARAMS((HashID, unsigned int));
 extern int hash_url _PARAMS((char *, HashID));
 extern int hash_string _PARAMS((char *, HashID));
+extern void hashFreeMemory _PARAMS((HashID));
 
 extern int hash_links_allocated;
 

@@ -215,6 +215,13 @@ file_map_allocate(int suggestion)
     return (0);			/* NOTREACHED */
 }
 
+void
+filemapFreeMemory(void)
+{
+        safe_free(fm->file_map);
+	safe_free(fm);
+}
+
 #ifdef TEST
 
 #define TEST_SIZE 1<<16

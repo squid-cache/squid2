@@ -2656,6 +2656,10 @@ storeWriteCleanLog(void)
 	    continue;
 	if (e->object_len <= 0)
 	    continue;
+        if (BIT_TEST(e->flag, RELEASE_REQUEST))
+	    continue;
+	if (BIT_TEST(e->flag, KEY_PRIVATE))
+	    continue;
 	storeSwapFullPath(e->swap_file_number, swapfilename);
 	x = fprintf(fp, "%08x %08x %08x %08x %9d %s\n",
 	    (int) e->swap_file_number,
@@ -2837,4 +2841,17 @@ storeNegativeCache(StoreEntry * e)
 {
     e->expires = squid_curtime + Config.negativeTtl;
     BIT_SET(e->flag, ENTRY_NEGCACHED);
+}
+
+void
+storeFreeMemory(void)
+{
+    StoreEntry *e;
+#ifdef THIS_IS_SLOW
+    while ((e = (StoreEntry *) storeFindFirst(store_table))) {
+	storeHashDelete(e);
+	destroy_StoreEntry(e);
+    }
+#endif
+    hashFreeMemory(store_table);
 }
