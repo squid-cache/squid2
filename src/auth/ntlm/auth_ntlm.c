@@ -492,6 +492,10 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
     auth_user_request = r->auth_user_request;
     ntlm_request = auth_user_request->scheme_data;
     assert(ntlm_request != NULL);
+    if (!ntlm_request->authserver)
+	ntlm_request->authserver = srv;
+    else
+	assert(ntlm_request->authserver == srv);
 
     /* seperate out the useful data */
     if (strncasecmp(reply, "TT ", 3) == 0) {
@@ -507,7 +511,6 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 	/* and we satisfy the request that happended on the refresh boundary */
 	/* note this code is now in two places FIXME */
 	assert(ntlm_request->auth_state == AUTHENTICATE_STATE_NEGOTIATE);
-	ntlm_request->authserver = srv;
 	ntlm_request->authchallenge = xstrdup(reply);
 	helperstate->challengeuses = 1;
     } else if (strncasecmp(reply, "AF ", 3) == 0) {
@@ -537,7 +540,6 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 	/* we only expect LD when finishing the handshake */
 	assert(ntlm_request->auth_state == AUTHENTICATE_STATE_RESPONSE);
 	ntlm_user->username = xstrdup(reply);
-	helperstate = helperStatefulServerGetData(ntlm_request->authserver);
 	/* BH code: mark helper as broken */
 	authenticateNTLMResetServer(ntlm_request);
 	debug(29, 4) ("authenticateNTLMHandleReply: Error validating user via NTLM. Error returned '%s'\n", reply);
@@ -561,8 +563,6 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 	ntlm_user = auth_user->scheme_data;
 	ntlm_request = auth_user_request->scheme_data;
 	assert((ntlm_user != NULL) && (ntlm_request != NULL));
-	assert(!ntlm_request->authserver || ntlm_request->authserver == srv);
-	helperstate = helperStatefulServerGetData(ntlm_request->authserver);
 	authenticateNTLMResetServer(ntlm_request);
 	if (ntlm_request->auth_state == AUTHENTICATE_STATE_NEGOTIATE) {
 	    /* The helper broke on YR. It automatically
