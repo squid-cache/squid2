@@ -156,7 +156,8 @@ pumpStart(int s_fd, StoreEntry * reply_entry, request_t * r, CWCB * callback, vo
 	commSetTimeout(p->c_fd, Config.Timeout.read, pumpTimeout, p);
 	commSetDefer(p->c_fd, pumpReadDefer, p);
     }
-    storeClientCopy(p->request_entry, 0, 0, 4096,
+    p->sent = 0;
+    storeClientCopy(p->request_entry, p->sent, p->sent, 4096,
 	memAllocate(MEM_4K_BUF),
 	pumpServerCopy, p);
 }
