@@ -622,7 +622,7 @@ httpAppendRequestHeader(char *hdr, const char *line, size_t * sz, size_t max)
 #ifdef USE_ANONYMIZER
     if (!httpAnonSearchHeaderField(http_anon_allowed_header, line)) {
 	debug(11, 5, "httpAppendRequestHeader: removed for anonymity: <%s>\n",
-		line);
+	    line);
 	return;
     }
 #endif
