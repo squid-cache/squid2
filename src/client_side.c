@@ -1553,6 +1553,7 @@ clientReadRequest(int fd, void *data)
 	EBIT_SET(F->flags, FD_SOCKET_EOF);
 	conn->defer.until = squid_curtime + 1;
 	conn->defer.n++;
+        fd_note(fd, "half-closed");
 	return;
     } else if (size < 0) {
 	if (!ignoreErrno(errno)) {
