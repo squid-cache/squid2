@@ -941,13 +941,13 @@ parameter_get(const cacheinfo * obj, StoreEntry * sentry)
 	"{VM-High %d \"# High water mark hot-vm cache (%%)\"}\n",
 	Config.Mem.highWaterMark);
     storeAppendPrintf(sentry,
-	"{VM-Low %d \"# Low water-mark hot-vm cache (%%)\"}\n",
+	"{VM-Low %d \"# Low water mark hot-vm cache (%%)\"}\n",
 	Config.Mem.lowWaterMark);
     storeAppendPrintf(sentry,
 	"{Swap-Max %d \"# Maximum disk cache (MB)\"}\n",
 	Config.Swap.maxSize / (1 << 10));
     storeAppendPrintf(sentry,
-	"{Swap-High %d \"# High Water mark disk cache (%%)\"}\n",
+	"{Swap-High %d \"# High water mark disk cache (%%)\"}\n",
 	Config.Swap.highWaterMark);
     storeAppendPrintf(sentry,
 	"{Swap-Low %d \"# Low water mark disk cache (%%)\"}\n",
