@@ -1455,7 +1455,7 @@ struct _MemObject {
 #if URL_CHECKSUM_DEBUG
     unsigned int chksum;
 #endif
-    const char *vary_headers;
+    char *vary_headers;
 };
 
 struct _StoreEntry {
