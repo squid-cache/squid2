@@ -22,9 +22,11 @@ for Applied Network Research and members of the Web Caching community.
 	corruption issues, and some aufs performance improvements.
 	<item>now possible to specify acl values with spaces in them
 	via the "include file" technique
-	<item>winbind helpers updated to work out of the box with Samba-2.2.6
-	or later Samba-2.2.X releases. Current stable Samba release at time of
-	this writing is 2.2.7a.
+	<item>winbind helpers updated to match Samba-2.2.7a and should
+	work with Samba-2.2.6 or later (required). For compability with
+	older Samba versions A new configure option --with-samba-sources=...
+	has been added to allow you to specify which Samba version the
+	helpers should be built for if different than the above versions.
 	<item>squid_ldap_group updated to correctly handle LDAP groups
 	<item>new experimental configure option --disable-hostname-checks to make Squid not validate that received hostnames are valid for use within HTTP. Required to participate in testbeds for international domain names etc.
 	<item>several assertion or segmentation faults corrected
