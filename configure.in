@@ -628,7 +628,7 @@ AC_ARG_ENABLE(internal-dns,
   fi
 ])
 if test "$use_dnsserver" = "yes"; then
-    AC_DEFINE(USE_DNSSERVER)
+    AC_DEFINE(USE_DNSSERVERS)
     OPT_DNSSERVER_EXE='$(OPT_DNSSERVER_EXE)'
     DNS_OBJS='dns.o'
 else
