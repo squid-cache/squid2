@@ -185,6 +185,13 @@ storeSwapOut(StoreEntry * e)
     }
     stmemFreeDataUpto(&mem->data_hdr, new_mem_lo);
     mem->inmem_lo = new_mem_lo;
+#if SIZEOF_OFF_T == 4
+    if (mem->inmem_hi > 0x7FFF0000) {
+	debug(20, 0) ("WARNING: preventing off_t overflow for %s\n", storeUrl(e));
+	storeAbort(e);
+	return;
+    }
+#endif
     if (e->swap_status == SWAPOUT_WRITING)
 	assert(mem->inmem_lo <= on_disk);
     if (!storeSwapOutAble(e))

@@ -1749,6 +1749,25 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	if (isTcpHit(http->log_type))
 	    kb_incr(&statCounter.client_http.hit_kbytes_out, size);
     }
+#if SIZEOF_SIZE_T == 4
+    if (http->out.size > 0x7FFF0000) {
+	debug(33, 1) ("WARNING: closing FD %d to prevent counter overflow\n", fd);
+	debug(33, 1) ("\tclient %s\n", inet_ntoa(http->conn->peer.sin_addr));
+	debug(33, 1) ("\treceived %d bytes\n", http->out.size);
+	debug(33, 1) ("\tURI %s\n", http->log_uri);
+	comm_close(fd);
+    } else
+#endif
+#if SIZEOF_OFF_T == 4
+    if (http->out.offset > 0x7FFF0000) {
+	debug(33, 1) ("WARNING: closing FD %d to prevent counter overflow\n", fd);
+	debug(33, 1) ("\tclient %s\n", inet_ntoa(http->conn->peer.sin_addr));
+	debug(33, 1) ("\treceived %d bytes (offset %d)\n", http->out.size,
+	    http->out.offset);
+	debug(33, 1) ("\tURI %s\n", http->log_uri);
+	comm_close(fd);
+    } else
+#endif
     if (errflag) {
 	/*
 	 * just close the socket, httpRequestFree will abort if needed

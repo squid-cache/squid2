@@ -1365,6 +1365,9 @@ AC_CHECK_TYPE(off_t, int)
 AC_CHECK_TYPE(mode_t, u_short)
 AC_CHECK_TYPE(fd_mask, int)
 
+AC_CHECK_SIZEOF_SYSTYPE(off_t, 4)
+AC_CHECK_SIZEOF_SYSTYPE(size_t, 4)
+
 dnl Check for special functions
 AC_FUNC_ALLOCA
 
