@@ -1099,6 +1099,8 @@ int storeSwapInHandle(fd_notused, buf, len, flag, e, offset_notused)
      int offset_notused;
 {
     MemObject *mem = e->mem_obj;
+    SIH handler = NULL;
+    void *data = NULL;
     debug(20, 2, "storeSwapInHandle: '%s'\n", e->key);
 
     if ((flag < 0) && (flag != DISK_EOF)) {
@@ -1107,10 +1109,11 @@ int storeSwapInHandle(fd_notused, buf, len, flag, e, offset_notused)
 	storeSetMemStatus(e, NOT_IN_MEMORY);
 	file_close(mem->swap_fd);
 	swapInError(-1, e);	/* Invokes storeAbort() and completes the I/O */
-	if (mem->swapin_complete_handler) {
-	    (*mem->swapin_complete_handler) (2, mem->swapin_complete_data);
+	if ((handler = mem->swapin_complete_handler)) {
+	    data = mem->swapin_complete_data;
 	    mem->swapin_complete_handler = NULL;
 	    mem->swapin_complete_data = NULL;
+	    handler(2, data);
 	}
 	return -1;
     }
@@ -1147,10 +1150,11 @@ int storeSwapInHandle(fd_notused, buf, len, flag, e, offset_notused)
 	    debug(20, 0, "  --> Only read %d bytes\n",
 		mem->e_current_len);
 	}
-	if (mem->swapin_complete_handler) {
-	    (*mem->swapin_complete_handler) (0, mem->swapin_complete_data);
+	if ((handler = mem->swapin_complete_handler)) {
+	    data = mem->swapin_complete_data;
 	    mem->swapin_complete_handler = NULL;
 	    mem->swapin_complete_data = NULL;
+	    handler(0, data);
 	}
 	if (e->flag & RELEASE_REQUEST)
 	    storeRelease(e);
