@@ -305,7 +305,7 @@ void redirectStart(cfd, icpState, handler, data)
     if (!icpState)
 	fatal_dump("redirectStart: NULL icpState");
     if (Config.Program.redirect == NULL) {
-	(*handler) (data, NULL);
+	handler(data, NULL);
 	return;
     }
     r = xcalloc(1, sizeof(redirectStateData));

@@ -113,7 +113,7 @@ void clientAccessCheck(icpState, handler)
     requestUnlink(icpState->aclChecklist->request);
     safe_free(icpState->aclChecklist);
     icpState->aclHandler = NULL;
-    (*handler) (icpState, answer);
+    handler(icpState, answer);
 }
 
 void clientAccessCheckDone(icpState, answer)
