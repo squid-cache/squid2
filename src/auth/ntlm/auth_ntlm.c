@@ -183,13 +183,13 @@ authNTLMParse(authScheme * scheme, int n_configured, char *param_str)
     } else {
 	debug(28, 0) ("unrecognised ntlm auth scheme parameter '%s'\n", param_str);
     }
-    /* disable client side request pipelining. There is a race with NTLM when the client
-     * sends a second request on an NTLM connection before the authenticate challenge is
-     * sent. 
-     * With this patch, the client may fail to authenticate, but squid's state will be 
-     * preserved.
-     * Caveats: this should be a post-parse test, but that can wait for the modular 
-     * parser to be integrated.
+    /*
+     * disable client side request pipelining. There is a race with
+     * NTLM when the client sends a second request on an NTLM
+     * connection before the authenticate challenge is sent. With
+     * this patch, the client may fail to authenticate, but squid's
+     * state will be preserved.  Caveats: this should be a post-parse
+     * test, but that can wait for the modular parser to be integrated.
      */
     if (ntlmConfig->authenticate)
 	Config.onoff.pipeline_prefetch = 0;
