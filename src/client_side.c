@@ -435,22 +435,16 @@ int icpHandleIMSReply(fd, entry, data)
 	    fatal_dump("icpHandleIMSReply: failed to load headers, lost race");
 	httpParseHeaders(hbuf, entry->mem_obj->reply);
 	ttlSet(entry);
-	if (unlink_request)
+	if (unlink_request) {
 	    requestUnlink(entry->mem_obj->request);
+	    entry->mem_obj->request = NULL;
+	}
     } else {
 	/* the client can handle this reply, whatever it is */
 	icpState->log_type = LOG_TCP_EXPIRED_MISS;
 	storeUnlockObject(icpState->old_entry);
     }
-    /* done with old_entry */
-    icpState->old_entry = NULL;
-    /* switch the handler for incoming data */
-    if (entry->store_status != STORE_OK)
-	storeRegister(icpState->entry,
-	    fd,
-	    (PIF) icpHandleStore,
-	    (void *) icpState);
-    /* give it to the client */
-    icpSendMoreData(fd, icpState);
+    icpState->old_entry = NULL;		/* done with old_entry */
+    icpSendMoreData(fd, icpState);	/* give data to the client */
     return 1;
 }
