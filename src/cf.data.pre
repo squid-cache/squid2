@@ -92,6 +92,8 @@ DOC_START
 	and from neighbor caches.  Default is 4827.  To disable use
 	"0".
 
+	To enable this option, you must use --enable-htcp with the
+	configure script.
 htcp_port 4827
 DOC_END
 
@@ -777,6 +779,9 @@ DOC_START
 	acl ident_aware_hosts src 198.168.1.0/255.255.255.0
 	ident_lookup_access allow ident_aware_hosts
 	ident_lookup_access deny all
+
+	This option may be disabled by using --disable-ident with
+	the configure script.
 ident_lookup_access deny all
 DOC_END
 
@@ -1373,6 +1378,9 @@ DOC_START
 	and you enabled 'ident_lookup', then you might be susceptible
 	to denial-of-service by having many ident requests going at
 	once.
+
+	This option may be disabled by using --disable-ident with
+	the configure script.
 ident_timeout 10 seconds
 DOC_END
 
@@ -2204,6 +2212,8 @@ DOC_START
 	
 	see also refresh_pattern for a more selective approach.
 
+	This option may be disabled by using --disable-http-violations
+	with the configure script.
 reload_into_ims off
 DOC_END
 
@@ -2502,6 +2512,8 @@ DOC_START
 	if you have one class 2 delay pool and one class 3 delays pool, you
 	have a total of 2 delay pools.
 
+	To enable this option, you must use --enable-delay-pools with the
+	configure script.
 delay_pools 0
 DOC_END
 
