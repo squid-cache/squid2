@@ -2295,7 +2295,10 @@ storeEntryValidLength(const StoreEntry * e)
 static void
 storeCreateDirectory(const char *path, int lvl)
 {
-    if (mkdir(path, 0755) == 0) {
+    struct stat st;
+    if (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) {
+	debug(20, lvl, "%s exists\n", path);
+    } else if (mkdir(path, 0755) == 0) {
 	debug(20, lvl, "%s created\n", path);
     } else if (errno == EEXIST) {
 	debug(20, lvl, "%s exists\n", path);
