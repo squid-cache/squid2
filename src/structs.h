@@ -1032,9 +1032,16 @@ struct _ps_state {
     PSC *callback;
     PSC *fail_callback;
     void *callback_data;
-    peer *first_parent_miss;
-    peer *closest_parent_miss;
-    peer *single_parent;
+    /*
+     * Why are these struct sockaddr_in instead of peer *?  Because a
+     * peer structure can become invalid during the peer selection
+     * phase, specifically after a reconfigure.  Thus we need to lookup
+     * the peer * based on the address when we are finally ready to
+     * reference the peer structure.
+     */
+    struct sockaddr_in first_parent_miss;
+    struct sockaddr_in closest_parent_miss;
+    struct sockaddr_in single_parent;
     icp_ping_data icp;
     aclCheck_t *acl_checklist;
 };
