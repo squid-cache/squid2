@@ -68,7 +68,7 @@ a decision.  The input line consists of four fields:
 The ip-address is always given, the fqdn and ident fields will be given if
 available, or will be "-" otherwise.  Note that the ident value will only
 be available if 'ident_lookup' in enabled in the config file.  The
-requestrequest method is GET, POST, etc.
+Rrequest method is GET, POST, etc.
 
 Note that when used in conjunction with the -V option (on a virtual hosted
 machine) this provides a mechanism to use a single Squid cache as a front
@@ -410,7 +410,7 @@ server.
     src/Makefile.in.
 
     An external program called 'pinger' is responsible for sending and
-    receiving ICMP packets.  It must run with root priveleges.  After
+    receiving ICMP packets.  It must run with root privileges.  After
     Squid has been compiled, the pinger program must be installed
     separately.  A special Makefile target will install 'pinger' with
     appropriate permissions.
@@ -779,11 +779,11 @@ requires the following config file entries:
 
 	cache_host foo.sample.com sibling 3128 3130 multicast-responder
 
-Use of multicast creates an interesting delimma; normally Squid sends N
+Use of multicast creates an interesting dilemma; normally Squid sends N
 queries and expects N replies.  But with multicast Squid doesn't really
 know how many replies to expect.  Somehow Squid must know roughly how
 many ICP replies to expect, but at the same time it must be careful to
-not over-esimate and therefore incur many ICP query timeouts.
+not over-estimate and therefore incur many ICP query timeouts.
 
 The current approach is this: Squid counts the number of ICP replies
 which arrive *after* the object fetching has been started.  The number
