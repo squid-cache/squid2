@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.16">
  <TITLE>Squid 2.5 release notes</TITLE>
 </HEAD>
 <BODY>
@@ -129,6 +129,7 @@ exacly where you want to have them in your system.</LI>
 <DT><B>sleep_after_fork</B><DD><P>Give the OS a small amount of time to accomodate the fork+exec used to launch helpers - if squid has a lot of virtual memory allocated the OS may run out of virtual memory during helper spawning otherwise.</P>
 <DT><B>reference_age</B><DD><P>This has been removed - starting with Squid-2.4 this directive have had no effect and has now been fully removed to avoid confusion.</P>
 <DT><B>siteselect_timeout</B><DD><P>This has been removed - it is not referenced anywhere in the source code.</P>
+<DT><B>minimum_retry_timeout</B><DD><P>This has been removed - it is not referenced anywhere in the source code.</P>
 </DL>
 </P>
 
@@ -137,10 +138,17 @@ exacly where you want to have them in your system.</LI>
 <P>There is a few limitations and issues in this version of Squid which we hope to correct in a later release</P>
 <P>
 <DL>
-<DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access </P>
-<DT><B>Bug #616</B><DD><P>Negative cached 404 replies with VARY header never matches</P>
+<DT><B>Bug #267</B><DD><P>Form POSTing troubles with NTLM authentication</P>
+<DT><B>Bug #354</B><DD><P>100% CPU usage on half-closed client connections</P>
+<DT><B>Bug #692</B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
 <DT><B>Bug #592</B><DD><P>always/never_direct and NTLM authentication</P>
 <DT><B>Bug #585</B><DD><P>cache_peer_access fails with NTLM authentication</P>
+<DT><B>Bug #638</B><DD><P>assertion failure if proxy_auth used wrongly in delay_access</P>
+<DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access </P>
+
+<DT><B>Bug #687</B><DD><P>Redirector hook for https requires "$url\n" not just "\n"</P>
+<DT><B>Bug #663</B><DD><P>Username not logged into ACCESS.LOG in case of /407</P>
+<DT><B>Bug #616</B><DD><P>Negative cached 404 replies with VARY header never matches</P>
 <DT><B>Bug #581</B><DD><P>acl max_user_ip and multiple authentication schemes</P>
 <DT><B>Bug #513</B><DD><P>squid -F is starting server sockets to early</P>
 <DT><B>Bug #518</B><DD><P>wb_auth fails on TRU64 and probably other 64 bit platforms</P>
@@ -149,7 +157,6 @@ exacly where you want to have them in your system.</LI>
 <DT><B>Bug #426</B><DD><P>Vary: * does not work</P>
 <DT><B>Bug #410</B><DD><P>unstable if runs out of disk space</P>
 <DT><B>Bug #355</B><DD><P>diskd may appear slow on low loads</P>
-<DT><B>Bug #267</B><DD><P>Form POSTing troubles with NTLM authentication</P>
 </DL>
 </P>
 
@@ -183,6 +190,23 @@ helpers should be built for if different than the above versions.</LI>
 <P>Squid-2.5.STABLE3 is a bugfix release. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE2">squid-2.5.STABLE2 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details on corrected issues.</P>
+
+<H2><A NAME="s6">6. Key changes squid-2.5.STABLE3 to 2.5.STABLE4:</A></H2>
+
+<P>
+<UL>
+<LI>several memory leaks corrected</LI>
+<LI>a crash related to ftpTimeout: timeout in SENT_PASV state corrected</LI>
+<LI>http_reply_access deny now logs the request with
+TCP_DENIED to allow them to be accounted for properly in statistics</LI>
+<LI>minimum_retry_timeout configuration directive removed. If
+you have this directive in your existing squid.conf you will
+need to remove the line. </LI>
+<LI>a large number of minor bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE3">squid-2.5.STABLE1 patches</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
 
 </BODY>
 </HTML>

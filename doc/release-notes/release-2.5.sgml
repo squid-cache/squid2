@@ -179,6 +179,7 @@ name="ChangeLog"> file for details on corrected issues.
 
 <sect>Key changes squid-2.5.STABLE3 to 2.5.STABLE4:
 
+<p>
 <itemize>
 	<item>several memory leaks corrected
 	<item>a crash related to ftpTimeout: timeout in SENT_PASV state corrected
