@@ -586,7 +586,7 @@ responseFinishedOrFailed(HttpReply * rep, StoreIOBuffer recievedData)
 int
 contextStartOfOutput(clientSocketContext * context)
 {
-    return context->http->out.offset == 0 ? 1 : 0;
+    return context->http->out.size == 0 ? 1 : 0;
 }
 
 void
