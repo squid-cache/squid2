@@ -273,3 +273,5 @@ Changes to squid-1.0.beta14 (June 9, 1996):
 	- Changed store rebuidling to unlink the log-last-clean file
 	  in case of a crash during rebuild
 	- Added forwarding loop detection
+	- Changed all memcpy to use xmemcpy which is memmove, bcopy, or
+	  memcpy.
