@@ -1550,6 +1550,8 @@ struct _StatCounters {
 	int clients;
 	int requests;
 	int hits;
+	int mem_hits;
+	int disk_hits;
 	int errors;
 	kb_t kbytes_in;
 	kb_t kbytes_out;

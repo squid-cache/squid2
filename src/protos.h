@@ -728,6 +728,8 @@ extern int stat5minClientRequests(void);
 extern double stat5minCPUUsage(void);
 extern const char *storeEntryFlags(const StoreEntry *);
 extern double statRequestHitRatio(int minutes);
+extern double statRequestHitMemoryRatio(int minutes);
+extern double statRequestHitDiskRatio(int minutes);
 extern double statByteHitRatio(int minutes);
 
 

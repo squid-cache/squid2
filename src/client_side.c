@@ -578,6 +578,10 @@ clientUpdateCounters(clientHttpRequest * http)
     Counter.client_http.requests++;
     if (isTcpHit(http->log_type))
 	Counter.client_http.hits++;
+    if (http->log_type == LOG_TCP_HIT)
+	Counter.client_http.disk_hits++;
+    else if (http->log_type == LOG_TCP_MEM_HIT)
+	Counter.client_http.mem_hits++;
     if (http->request->err_type != ERR_NONE)
 	Counter.client_http.errors++;
     statHistCount(&Counter.client_http.all_svc_time, svc_time);
