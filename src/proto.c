@@ -221,12 +221,17 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	return;
     }
     if (protoData->n_edges == 0 && protoData->direct_fetch == DIRECT_NO) {
-	hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
-	protoCantFetchObject(protoData->fd, entry,
-	    "No neighbors or parents to query and the host is beyond your firewall.");
+	if ((e = protoData->default_parent)) {
+	    hierarchyNote(req, HIER_DEFAULT_PARENT, 0, e->host);
+	    protoStart(protoData->fd, entry, e, req);
+	} else {
+	    hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
+	    protoCantFetchObject(protoData->fd, entry, "No neighbors or parents to query and the host is beyond your firewall.");
+	}
 	return;
     }
-    if (!neighbors_do_private_keys && !protoData->query_neighbors && (e = getFirstUpParent(req))) {
+    if (!neighbors_do_private_keys && !protoData->query_neighbors &&
+	(e = getFirstUpParent(req))) {
 	/* for private objects we should just fetch directly (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
 	hierarchyNote(req, HIER_FIRSTUP_PARENT, 0, e->host);
@@ -257,15 +262,16 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 #endif
 	return;
     }
-    if (protoData->direct_fetch == DIRECT_NO) {
+    if ((e = protoData->default_parent)) {
+	hierarchyNote(req, HIER_DEFAULT_PARENT, protoData->fd, e->host);
+	protoStart(protoData->fd, entry, e, req);
+    } else if (protoData->direct_fetch == DIRECT_NO) {
 	hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents were queried and the host is beyond your firewall.");
+    } else if (ia == NULL) {
+	protoDNSError(protoData->fd, entry);
     } else {
-	if (ia == NULL) {
-	    protoDNSError(protoData->fd, entry);
-	    return;
-	}
 	hierarchyNote(req, HIER_DIRECT, 0, req->host);
 	protoStart(protoData->fd, entry, NULL, req);
     }
@@ -277,7 +283,6 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     protodispatch_data *protoData = NULL;
     const char *method;
     char *request_hdr;
-    int n;
 
     method = RequestMethodStr[request->method];
     request_hdr = entry->mem_obj->mime_hdr;
@@ -302,8 +307,9 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 
     protoData->inside_firewall = matchInsideFirewall(request->host);
     protoData->query_neighbors = BIT_TEST(entry->flag, HIERARCHICAL);
-    protoData->single_parent = getSingleParent(request, &n);
-    protoData->n_edges = n;
+    protoData->single_parent = getSingleParent(request);
+    protoData->default_parent = getDefaultParent(request);
+    protoData->n_edges = neighborsCount(request);
 #ifdef DELAY_HACK
     protoData->delay_fetch = _delay_fetch;
 #endif
@@ -315,6 +321,8 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     debug(17, 2, "protoDispatch:         n_edges = %d\n", protoData->n_edges);
     debug(17, 2, "protoDispatch:   single_parent = %s\n",
 	protoData->single_parent ? protoData->single_parent->host : "N/A");
+    debug(17, 2, "protoDispatch:  default_parent = %s\n",
+	protoData->default_parent ? protoData->default_parent->host : "N/A");
 
     if (Config.firewall_ip_list) {
 	/* Have to look up the url address so we can compare it */
@@ -466,11 +474,9 @@ getFromDefaultSource(int fd, StoreEntry * entry)
     }
     if ((e = getDefaultParent(request))) {
 	hierarchyNote(request, HIER_DEFAULT_PARENT, fd, e->host);
-        return protoStart(fd, entry, e, request);
+	return protoStart(fd, entry, e, request);
     }
-    if ((e = getSingleParent(request, NULL))) {
-	/* last chance effort; maybe there was a single_parent and a ICP
-	 * packet got lost */
+    if ((e = getSingleParent(request))) {
 	hierarchyNote(request, HIER_SINGLE_PARENT, fd, e->host);
 	return protoStart(fd, entry, e, request);
     }

@@ -286,6 +286,7 @@ typedef struct _protodispatch_data {
     int query_neighbors;
     int n_edges;
     struct _edge *single_parent;
+    struct _edge *default_parent;
 #if DELAY_HACK
     int delay_fetch;
 #endif
