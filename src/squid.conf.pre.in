@@ -37,6 +37,9 @@
 #
 #	The defaults behaviour is to not bind to any specific address.
 #
+#	NOTE, udp_incoming_address and udp_outgoing_address can not have
+#	the same value since they both use port @CACHE_ICP_PORT@.
+#
 #tcp_incoming_address 0.0.0.0
 #tcp_outgoing_address 0.0.0.0
 #udp_incoming_address 0.0.0.0
@@ -597,13 +600,14 @@ request_size 100
 #
 # acl aclname acltype string1 ...
 #
-# acltype is one of src dst srcdomain dstdomain time pattern port
-#	            proto method
+# acltype is one of src dst srcdomain dstdomain url_pattern urlpath_pattern
+#	            time port proto method
 # 
 # acl aclname src      ip-address/netmask ... (clients IP address)
+# acl aclname src      addr1/mask1-addr2/mask2 ... (range of addresses)
 # acl aclname dst      ip-address/netmask ... (URL host's IP address)
-# acl aclname srcdomain   .foo.com ... (taken from reverse DNS lookup)
-# acl aclname dstdomain   .foo.com ... (taken from the URL)
+# acl aclname srcdomain   foo.com ... (taken from reverse DNS lookup)
+# acl aclname dstdomain   foo.com ... (taken from the URL)
 # acl aclname time     [day-abbrevs]  [h1:m1-h2:m2]
 #	day-abbrevs:
 #		S - Sunday

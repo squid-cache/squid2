@@ -438,7 +438,6 @@ int getFromDefaultSource(fd, entry)
     /* Check if someone forgot to disable the read timer */
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
 	fatal_dump("getFromDefaultSource: object already being fetched");
-
     if ((e = entry->mem_obj->e_pings_first_miss)) {
 	hierarchyNote(request, HIER_FIRST_PARENT_MISS, fd, e->host);
 	return protoStart(fd, entry, e, request);
@@ -475,24 +474,15 @@ int protoStart(fd, entry, e, request)
 {
     char *url = entry->url;
     char *request_hdr = entry->mem_obj->mime_hdr;
-
-    debug(17, 5, "protoStart: FD %d <URL:%s>\n", fd, entry->url);
-    debug(17, 5, "protoStart: --> type = %s\n",
-	RequestMethodStr[entry->method]);
-    debug(17, 5, "protoStart: --> getting from '%s'\n",
+    debug(17, 5, "protoStart: FD %d: Fetching '%s %s' from %s\n",
+	fd,
+	RequestMethodStr[entry->method],
+	entry->url,
 	e ? e->host : "source");
-
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
 	fatal_dump("protoStart: object already being fetched");
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
-
-    /*
-     * If this is called from our neighbor detection, then we have to
-     * reset the signal handler.  We probably need to check for a race
-     * here on a previous close of the client connection.
-     */
     protoCancelTimeout(fd, entry);
-
     if (e) {
 	e->stats.fetches++;
 	return proxyhttpStart(e, url, entry);

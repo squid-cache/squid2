@@ -127,15 +127,16 @@ typedef enum {
     ERR_CLIENT_ABORT,		/* 18 */
     ERR_CONNECT_FAIL,		/* 19 */
     ERR_INVALID_REQ,		/* 20 */
-    ERR_INVALID_URL,		/* 21 */
-    ERR_NO_FDS,			/* 22 */
-    ERR_DNS_FAIL,		/* 23 */
-    ERR_NOT_IMPLEMENTED,	/* 24 */
-    ERR_CANNOT_FETCH,		/* 25 */
-    ERR_NO_RELAY,		/* 26 */
-    ERR_DISK_IO,		/* 27 */
-    ERR_ZERO_SIZE_OBJECT,	/* 28 */
-    ERR_PROXY_DENIED		/* 29 */
+    ERR_UNSUP_REQ,		/* 21 */
+    ERR_INVALID_URL,		/* 22 */
+    ERR_NO_FDS,			/* 23 */
+    ERR_DNS_FAIL,		/* 24 */
+    ERR_NOT_IMPLEMENTED,	/* 25 */
+    ERR_CANNOT_FETCH,		/* 26 */
+    ERR_NO_RELAY,		/* 27 */
+    ERR_DISK_IO,		/* 28 */
+    ERR_ZERO_SIZE_OBJECT	/* 29 */
+    ERR_PROXY_DENIED		/* 30 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT

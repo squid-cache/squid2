@@ -243,6 +243,11 @@ case "$host" in
 			CFLAGS="`echo $CFLAGS | sed -e s/-O//`"
 		fi
 		;;
+	i386-*-freebsd*)
+        	echo "Removing -lmalloc for FreeBSD..."
+        	LIBS=`echo $LIBS | sed -e s/-lmalloc//`
+        	HAVE_LIBMALLOC="no"
+		;;
 	*-sgi-irix*)
         	echo "Removing -lsocket for IRIX..."
         	LIBS=`echo $LIBS | sed -e s/-lsocket//`

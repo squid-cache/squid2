@@ -308,3 +308,24 @@ int matchDomainName(domain, host)
 	return 1;
     return 0;
 }
+
+int urlCheckRequest(r)
+     request_t *r;
+{
+    int rc = 0;
+    switch (r->protocol) {
+    case PROTO_HTTP:
+    case PROTO_CACHEOBJ:
+	rc = 1;
+	break;
+    case PROTO_FTP:
+    case PROTO_GOPHER:
+    case PROTO_WAIS:
+	if (r->method == METHOD_GET)
+	    rc = 1;
+	break;
+    default:
+	break;
+    }
+    return rc;
+}

@@ -1042,9 +1042,8 @@ int fqdncacheQueueDrain()
     fqdncache_entry *i;
     dnsserver_t *dnsData;
     if (!fqdncacheQueueHead)
-        return 0;
+	return 0;
     while ((dnsData = dnsGetFirstAvailable()) && (i = fqdncacheDequeue()))
-        fqdncache_dnsDispatch(dnsData, i);
+	fqdncache_dnsDispatch(dnsData, i);
     return 1;
 }
-

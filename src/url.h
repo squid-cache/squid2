@@ -78,5 +78,6 @@ extern char *urlCanonical _PARAMS((request_t *, char *));
 extern request_t *requestLink _PARAMS((request_t *));
 extern void requestUnlink _PARAMS((request_t *));
 extern int matchDomainName _PARAMS((char *d, char *h));
+extern int urlCheckRequest _PARAMS((request_t *));
 
 #endif /* _URL_HEADER_ */

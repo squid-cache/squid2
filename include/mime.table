@@ -86,4 +86,6 @@
 .sit       application/stuffit              binary       1.0    binary
 .pict      application/pict                 binary       1.0    image
 .pic       application/pict                 binary       1.0    image
-.lzh       application/octet-stream         binary       1.0    binary
+.arj	   application/x-arj-compressed	    binary	 1.0	binary
+.lzh	   application/x-lha-compressed     binary	 1.0	binary
+.lha	   application/x-lha-compressed	    binary	 1.0	binary
