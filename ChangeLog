@@ -228,7 +228,7 @@ Changes to squid-1.0.beta11 (June 1, 1996):
 
 	- Fixed serious memory leak of MemObject->reply structures.
 
-Changes to squid-1.0.beta12:
+Changes to squid-1.0.beta12 (June 6, 1996):
 
 	- Fixed problem when using udp_outgoing_addr where no ICP
 	  packets would be recieved because they were getting sent
@@ -249,3 +249,9 @@ Changes to squid-1.0.beta12:
 	- Changed handling of IMS requests.  Now will return "304
 	  Not Modified" if the requested object is in the cache
 	  and not expired.
+
+Changes to squid-1.0.beta13 (June 7, 1996):
+
+	- Fixed coredump bug where StoreEntry key was free'd too soon.
+	- Fixed UDP_HIT_OBJ bug: cancel the hierarchy timeout and set
+	  the ping_status to DONE for UDP_HIT_OBJ replies.
