@@ -860,16 +860,15 @@ clientSetKeepaliveFlag(clientHttpRequest * http)
 static int
 clientCheckContentLength(request_t * r)
 {
-    int has_cont_len = (r->content_length >= 0);
     switch (r->method) {
     case METHOD_PUT:
     case METHOD_POST:
 	/* PUT/POST requires a request entity */
-	return has_cont_len;
+	return (r->content_length >= 0);
     case METHOD_GET:
     case METHOD_HEAD:
 	/* We do not want to see a request entity on GET/HEAD requests */
-	return !has_cont_len;
+	return (r->content_length <= 0);
     default:
 	/* For other types of requests we don't care */
 	return 1;
