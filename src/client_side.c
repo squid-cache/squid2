@@ -610,7 +610,7 @@ clientConstructTraceEcho(icpStateData * icpState)
 	buf + len,
 	8192 - len,
 	icpState->fd);
-    icpState->log_type = TCP_MISS;
+    icpState->log_type = LOG_TCP_MISS;
     icpState->http_code = 200;
     return buf;
 }
