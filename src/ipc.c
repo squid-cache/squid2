@@ -228,14 +228,14 @@ ipcCreate(int type, const char *prog, char *const args[], const char *name, int 
 	    return ipcCloseAllFD(prfd, pwfd, crfd, cwfd);
     }
     if (type == IPC_UDP_SOCKET) {
-	x = send(cwfd, hello_string, strlen(hello_string), 0);
+	x = send(cwfd, hello_string, strlen(hello_string) + 1, 0);
 	if (x < 0) {
 	    debug(50, 0) ("sendto FD %d: %s\n", cwfd, xstrerror());
 	    debug(50, 0) ("ipcCreate: CHILD: hello write test failed\n");
 	    _exit(1);
 	}
     } else {
-	if (write(cwfd, hello_string, strlen(hello_string)) < 0) {
+	if (write(cwfd, hello_string, strlen(hello_string) + 1) < 0) {
 	    debug(50, 0) ("write FD %d: %s\n", cwfd, xstrerror());
 	    debug(50, 0) ("ipcCreate: CHILD: hello write test failed\n");
 	    _exit(1);
