@@ -36,30 +36,6 @@
 #define MB ((size_t)1024*1024)
 
 
-/* object to track per-action memory usage (e.g. #idle objects) */
-typedef struct {
-    size_t level;		/* current level */
-    size_t hwater;		/* high water mark */
-} MemMeter;
-
-/* object to track per-pool memory usage (alloc = inuse+idle) */
-typedef struct {
-    MemMeter alloc;
-    MemMeter inuse;
-    MemMeter idle;
-    gb_t saved;
-} MemPoolMeter;
-
-/* a pool is a [growing] space for objects of the same size */
-struct _MemPool {
-    const char *label;
-    size_t obj_size;
-    Stack pstack;		/* stack for free pointers */
-    MemPoolMeter meter;
-};
-
-/* prototypes */
-
 /* module globals */
 
 /* huge constant to set mem_idle_limit to "unlimited" */
@@ -70,8 +46,7 @@ static size_t mem_idle_limit = 0;
 
 /* memory pool accounting */
 static MemPoolMeter TheMeter;
-static gb_t mem_traffic_volume =
-{0, 0};
+static gb_t mem_traffic_volume = {0, 0};
 static Stack Pools;
 
 static double 
@@ -79,6 +54,7 @@ toMB(size_t size)
 {
     return ((double) size) / MB;
 }
+
 static size_t 
 toKB(size_t size)
 {
@@ -122,16 +98,23 @@ memInitModule()
 void
 memCleanModule()
 {
+    int i;
+    int dirty_count = 0;
+    for (i = 0; i < Pools.count; i++) {
+	MemPool *pool = Pools.items[i];
+	if (memPoolInUseCount(pool)) {
+	    memPoolDescribe(pool);
+	    dirty_count++;
+	} else {
+	    memPoolDestroy(pool);
+	    Pools.items[i] = NULL;
+	}
+    }
+    if (dirty_count)
+	debug(13, 2) ("memCleanModule: %d pools are left dirty\n", dirty_count);
+    /* we clean the stack anyway */
     stackClean(&Pools);
 }
-
-/* MemMeter */
-
-#define memMeterCheckHWater(m) { if ((m).hwater < (m).level) (m).hwater = (m).level; }
-#define memMeterInc(m) { (m).level++; memMeterCheckHWater(m); }
-#define memMeterDec(m) { (m).level--; memMeterCheckHWater(m); }
-#define memMeterAdd(m, sz) { (m).level += (sz); memMeterCheckHWater(m); }
-#define memMeterDel(m, sz) { (m).level -= (sz); memMeterCheckHWater(m); }
 
 /* MemPoolMeter */
 
@@ -256,7 +239,7 @@ void
 memPoolDescribe(const MemPool * pool)
 {
     assert(pool);
-    debug(63, 0) ("%-20s: %5d x %4d bytes = %5d KB\n",
+    debug(63, 0) ("%-20s: %6d x %4d bytes = %5d KB\n",
 	pool->label, memPoolInUseCount(pool), pool->obj_size,
 	toKB(memPoolInUseSize(pool)));
 }

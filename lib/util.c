@@ -130,6 +130,9 @@
 #if HAVE_ERRNO_H
 #include <errno.h>
 #endif
+#if HAVE_MATH_H
+#include <math.h>
+#endif
 
 #include "util.h"
 #include "snprintf.h"
@@ -741,6 +744,13 @@ xpercent(double part, double whole)
 {
     return xdiv(100 * part, whole);
 }
+
+int
+xpercentInt(double part, double whole)
+{
+    return (int)rint(xpercent(part, whole));
+}
+
 
 /* somewhat safer division */
 double

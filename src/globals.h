@@ -98,6 +98,7 @@ extern double request_failure_ratio;	/* 0.0 */
 extern int store_hash_buckets;	/* 0 */
 extern hash_table *store_table;	/* NULL */
 extern dlink_list store_list;
+extern const String StringNull; /* { 0, 0, NULL } */
 extern int hot_obj_count;	/* 0 */
 
 #ifdef HAVE_SYSLOG

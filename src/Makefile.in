@@ -124,6 +124,7 @@ OBJS	 	= \
 		ssl.o \
 		stat.o \
 		StatHist.o \
+		String.o \
 		stmem.o \
 		store.o \
 		store_clean.o \

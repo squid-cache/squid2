@@ -381,8 +381,8 @@ whoisConnectDone(int fd, int status, void *data)
 	comm_close(fd);
 	return;
     }
-    snprintf(buf, 128, "%s\r\n", p->request->urlpath + 1);
-    debug(53, 1) ("whoisConnectDone: FD %d, '%s'\n", fd, p->request->urlpath + 1);
+    snprintf(buf, 128, "%s\r\n", strBuf(p->request->urlpath) + 1);
+    debug(53, 1) ("whoisConnectDone: FD %d, '%s'\n", fd, strBuf(p->request->urlpath) + 1);
     comm_write(fd, xstrdup(buf), strlen(buf), NULL, p, xfree);
     commSetSelect(fd, COMM_SELECT_READ, whoisReadReply, p, Config.Timeout.read);
 }

@@ -341,7 +341,11 @@ passConnectDone(int fdnotused, int status, void *data)
 	request = memAllocate(MEM_REQUEST_T);
 	passState->proxy_request = requestLink(request);
 	request->method = passState->request->method;
+#if 0
 	xstrncpy(request->urlpath, passState->url, MAX_URL);
+#else
+	stringReset(&request->urlpath, passState->url);
+#endif
     }
     passState->client.len = httpBuildRequestHeader(request,
 	passState->request,	/* orig_request */
