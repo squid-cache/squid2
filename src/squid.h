@@ -188,6 +188,7 @@ extern int theUdpConnection;	/* main.c */
 extern int shutdown_pending;	/* main.c */
 extern int reread_pending;	/* main.c */
 extern int opt_unlink_on_reload;	/* main.c */
+extern int opt_reload_hit_only;	/* main.c */
 extern int vhost_mode;		/* main.c */
 extern char *version_string;	/* main.c */
 extern char *appname;		/* main.c */

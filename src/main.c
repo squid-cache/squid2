@@ -10,6 +10,7 @@ int theAsciiConnection = -1;
 int theUdpConnection = -1;
 int do_reuse = 1;
 int opt_unlink_on_reload = 0;
+int opt_reload_hit_only = 0;	/* only UDP_HIT during store relaod */
 int catch_signals = 1;
 int do_dns_test = 1;
 int vhost_mode = 0;
@@ -41,6 +42,7 @@ Usage: %s [-Rsehvz] [-f config-file] [-[apu] port]\n\
        -R        Do not set REUSEADDR on port.\n\
        -U        Unlink expired objects on reload.\n\
        -V        Virtual host httpd-accelerator.\n\
+       -Y        Only return UDP_HIT or UDP_DENIED during store reload.\n\
        -f file   Use given config-file instead of\n\
                  %s\n\
        -a port	 Specify ASCII port number (default: %d).\n\
@@ -56,7 +58,7 @@ static void mainParseOptions(argc, argv)
     extern char *optarg;
     int c;
 
-    while ((c = getopt(argc, argv, "vCDRVUbsif:a:p:u:m:zh?")) != -1) {
+    while ((c = getopt(argc, argv, "vCDRVUbsiYf:a:p:u:m:zh?")) != -1) {
 	switch (c) {
 	case 'v':
 	    printf("Squid Cache: Version %s\n", version_string);
@@ -104,6 +106,9 @@ static void mainParseOptions(argc, argv)
 #endif
 	case 'z':
 	    zap_disk_store = 1;
+	    break;
+	case 'Y':
+	    opt_reload_hit_only = 1;
 	    break;
 	case '?':
 	case 'h':

@@ -207,4 +207,6 @@ extern void storeRotateLog _PARAMS((void));
 extern unsigned int getKeyCounter _PARAMS((void));
 extern int storeGetLowestReaderOffset _PARAMS((StoreEntry *));
 
+extern int store_is_rebuilding;
+
 #endif

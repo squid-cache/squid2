@@ -186,3 +186,5 @@ beta8:
 	  codes can be cached.
 	- Added 'hierarchy_stoplist' configuration option.
 	- Changed mallopt option M_MXFAST top 1024 bytes.
+	- Added -Y option to only return UDP_HIT or UDP_DENIED during
+	  store reload.

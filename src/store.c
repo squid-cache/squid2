@@ -72,6 +72,9 @@ struct storeRebuild_data {
     char line_in[4096];
 };
 
+/* initializtion flag */
+int store_is_rebuilding = 1;
+
 /* Static Functions */
 static int storeSwapInStart _PARAMS((StoreEntry *, SIH, void *));
 
@@ -80,9 +83,6 @@ static int storeSwapInStart _PARAMS((StoreEntry *, SIH, void *));
 HashID table = 0;
 /* hash table for in-memory-only objects */
 HashID in_mem_table = 0;
-
-/* initializtion flag */
-static int ok_write_clean_log = 0;
 
 /* current memory storage size */
 static unsigned long store_mem_size = 0;
@@ -1423,7 +1423,7 @@ static void storeRebuiltFromDisk(data)
 	r > 0 ? r : 0, (double) data->objcount / (r > 0 ? r : 1));
     debug(20, 1, "  store_swap_size = %dk\n", store_swap_size);
 
-    ok_write_clean_log = 1;
+    store_is_rebuilding = 0;
 
     fclose(data->log);
     safe_free(data);
@@ -1450,7 +1450,7 @@ void storeStartRebuildFromDisk()
 
     if (stat(swaplog_file, &sb) < 0) {
 	debug(20, 1, "storeRebuildFromDisk: No log file\n");
-	ok_write_clean_log = 1;
+	store_is_rebuilding = 0;
 	return;
     }
     data = xcalloc(1, sizeof(*data));
@@ -2498,10 +2498,10 @@ int storeInit()
     swaplog_lock = file_write_lock(swaplog_fd);
 
     if (!zap_disk_store) {
-	ok_write_clean_log = 0;
+	store_is_rebuilding = 1;
 	storeStartRebuildFromDisk();
     } else {
-	ok_write_clean_log = 1;
+	store_is_rebuilding = 0;
     }
 
     if (dir_created || zap_disk_store)
@@ -2627,7 +2627,7 @@ int storeWriteCleanLog()
     int n = 0;
     time_t start, stop, r;
 
-    if (!ok_write_clean_log) {
+    if (store_is_rebuilding) {
 	debug(20, 1, "storeWriteCleanLog: Not currently OK to rewrite swap log.\n");
 	debug(20, 1, "storeWriteCleanLog: Operation aborted.\n");
 	return 0;

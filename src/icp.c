@@ -1138,6 +1138,16 @@ int icpHandleUdp(sock, not_used)
 	    icpUdpSend(sock, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
 	    break;
 	}
+	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
+	if (opt_reload_hit_only && store_is_rebuilding) {
+	    icpUdpSend(sock,
+		url,
+		&header,
+		&from,
+		ICP_OP_DENIED,
+		LOG_UDP_DENIED);
+	    break;
+	}
 	CacheInfo->proto_miss(CacheInfo,
 	    CacheInfo->proto_id(url));
 	icpUdpSend(sock, url, &header, &from, ICP_OP_MISS, LOG_UDP_MISS);
