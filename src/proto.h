@@ -291,7 +291,7 @@ typedef struct _protodispatch_data {
 } protodispatch_data;
 
 extern int protoDispatch _PARAMS((int, char *, StoreEntry *, request_t *));
-extern void protoUnregister _PARAMS((int fd,
+extern int protoUnregister _PARAMS((int fd,
 	StoreEntry *,
 	request_t *,
 	struct in_addr));
