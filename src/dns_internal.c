@@ -46,6 +46,10 @@
 
 #define IDNS_MAX_TRIES 20
 
+#define MAX_RCODE 6
+#define MAX_ATTEMPT 3
+static int RcodeMatrix[MAX_RCODE][MAX_ATTEMPT];
+
 typedef struct _idns_query idns_query;
 typedef struct _ns ns;
 
@@ -59,6 +63,7 @@ struct _idns_query {
     dlink_node lru;
     IDNSCB *callback;
     void *callback_data;
+    int attempt;
 };
 
 struct _ns {
@@ -85,6 +90,7 @@ static void idnsGrokReply(const char *buf, size_t sz);
 static PF idnsRead;
 static EVH idnsCheckQueue;
 static void idnsTickleQueue(void);
+static void idnsRcodeCount(int, int);
 
 static void
 idnsAddNameserver(const char *buf)
@@ -165,6 +171,7 @@ idnsStats(StoreEntry * sentry)
     dlink_node *n;
     idns_query *q;
     int i;
+    int j;
     storeAppendPrintf(sentry, "Internal DNS Statistics:\n");
     storeAppendPrintf(sentry, "\nThe Queue:\n");
     storeAppendPrintf(sentry, "                       DELAY SINCE\n");
@@ -185,6 +192,16 @@ idnsStats(StoreEntry * sentry)
 	    inet_ntoa(nameservers[i].S.sin_addr),
 	    nameservers[i].nqueries,
 	    nameservers[i].nreplies);
+    }
+    storeAppendPrintf(sentry, "\nRcode Matrix:\n");
+    storeAppendPrintf(sentry, "RCODE");
+    for (i = 0; i < MAX_ATTEMPT; i++)
+	storeAppendPrintf(sentry, " ATTEMPT%d", i + 1);
+    for (j = 0; j < MAX_RCODE; j++) {
+	storeAppendPrintf(sentry, "%5d", j);
+	for (i = 0; i < MAX_ATTEMPT; i++)
+	    storeAppendPrintf(sentry, " %8d", RcodeMatrix[j][i]);
+	storeAppendPrintf(sentry, "\n");
     }
 }
 
@@ -284,8 +301,22 @@ idnsGrokReply(const char *buf, size_t sz)
 	return;
     }
     dlinkDelete(&q->lru, &lru_list);
-    if (n < 0)
+    idnsRcodeCount(n, q->attempt);
+    if (n < 0) {
 	debug(78, 3) ("idnsGrokReply: error %d\n", rfc1035_errno);
+	if (-2 == n && ++q->attempt < MAX_ATTEMPT) {
+	    /*
+	     * RCODE 2 is "Server failure - The name server was
+	     * unable to process this query due to a problem with
+	     * the name server."
+	     */
+	    assert(NULL == answers);
+	    q->start_t = current_time;
+	    q->id = rfc1035RetryQuery(q->buf);
+	    idnsSendQuery(q);
+	    return;
+	}
+    }
     valid = cbdataValid(q->callback_data);
     cbdataUnlock(q->callback_data);
     if (valid)
@@ -380,6 +411,21 @@ idnsCheckQueue(void *unused)
     idnsTickleQueue();
 }
 
+/*
+ * rcode < 0 indicates an error, rocde >= 0 indicates success
+ */
+static void
+idnsRcodeCount(int rcode, int attempt)
+{
+    if (rcode > 0)
+	rcode = 0;
+    else if (rcode < 0)
+	rcode = -rcode;
+    if (rcode < MAX_RCODE)
+	if (attempt < MAX_ATTEMPT)
+	    RcodeMatrix[rcode][attempt]++;
+}
+
 /* ====================================================================== */
 
 void
@@ -410,6 +456,7 @@ idnsInit(void)
 	cachemgrRegister("idns",
 	    "Internal DNS Statistics",
 	    idnsStats, 0, 1);
+	memset(RcodeMatrix, '\0', sizeof(RcodeMatrix));
 	init++;
     }
 }
