@@ -425,10 +425,13 @@ int storeLockObject(e, handler, data)
 	    e->lock_count--;
 	}
 	status = swap_in_stat;
-    } else {
+    } else if (e->mem_status == IN_MEMORY && handler) {
 	/* its already in memory, so call the handler */
-	if (handler)
-	    (*handler) (0, data);
+	(*handler) (0, data);
+    } else if (handler) {
+	debug(20,0,"storeLockObject: handler loses for '%s'\n", e->url);
+	debug(20,0,"storeLockObject: --> mem_status = %d\n",
+		(int) e->mem_status);
     }
     return status;
 }
