@@ -363,7 +363,7 @@ storeDiskdDirInit(SwapDir * sd)
     int i;
     int rfd;
     int ikey;
-    char *args[5];
+    const char *args[5];
     char skey1[32];
     char skey2[32];
     char skey3[32];
