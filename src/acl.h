@@ -62,7 +62,11 @@ struct _acl_ip_data {
     struct in_addr addr1;	/* if addr2 non-zero then its a range */
     struct in_addr addr2;
     struct in_addr mask;
+#if USE_SPLAY_TREE
     struct _acl_ip_data *left, *right;
+#else
+    struct _acl_ip_data *next;
+#endif
 };
 
 struct _acl_time_data {
