@@ -482,17 +482,17 @@ request_size 100
 #	file descriptors by repeatedly aborting and re-requesting
 #	non-cachable objects.
 #	
-#	Usage: quick_abort    minlength percent maxlength
+#	Usage: quick_abort    min-kbytes percent max-kbytes
 #
 #       When the user aborts a request, Squid will check the
 #	quick_abort values to the amount of data transfered until
 #	then.
 #
-#	If the transfer has less than 'minlength' bytes remaining, it
+#	If the transfer has less than 'min-kbytes' remaining, it
 #	will finish the retrieval.  Setting minlength to -1 will
 #	disable the quick_abort feature.
 #
-#	If the transfer has more than 'maxlength' bytes remaining, it
+#	If the transfer has more than 'max-kbytes' remaining, it
 #	will abort the retrieval.
 #
 #	If more than 'percent' of the transfer has completed, it will
