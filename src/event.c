@@ -62,6 +62,23 @@ eventAdd(const char *name, EVH func, void *arg, time_t when)
 }
 
 void
+eventDelete(EVH func, void *arg)
+{
+    struct ev_entry **E;
+    struct ev_entry *event;
+    for (E = &tasks; (event = *E); E = &(*E)->next) {
+        if (event->func != func)
+            continue;
+        if (event->arg != arg)
+            continue;
+        *E = event->next;
+        xfree(event);
+        return;
+    }
+    debug_trap("eventDelete: event not found");
+}
+
+void
 eventRun(void)
 {
     struct ev_entry *event = NULL;
