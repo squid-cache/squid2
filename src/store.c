@@ -2166,6 +2166,7 @@ storeClientListAdd(StoreEntry * e, void *data)
     MemObject *mem = e->mem_obj;
     struct _store_client *oldlist = NULL;
     int oldsize;
+    assert(mem != NULL);
     /* look for empty slot */
     if (mem->clients == NULL) {
 	mem->nclients = MIN_CLIENT;
