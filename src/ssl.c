@@ -206,8 +206,8 @@ sslReadServer(int fd, void *data)
     }
     cbdataLock(sslState);
     if (len < 0) {
-	debug(50, 3) ("sslReadServer: FD %d: read failure: %s\n",
-	    fd, xstrerror());
+	debug(50, ignoreErrno(errno) ? 3 : 1)
+	    ("sslReadServer: FD %d: read failure: %s\n", fd, xstrerror());
 	if (!ignoreErrno(errno))
 	    comm_close(fd);
     } else if (len == 0) {
@@ -281,8 +281,8 @@ sslWriteServer(int fd, void *data)
     }
     cbdataLock(sslState);
     if (len < 0) {
-	debug(50, 1) ("sslWriteServer: FD %d: write failure: %s.\n",
-	    fd, xstrerror());
+	debug(50, ignoreErrno(errno) ? 3 : 1)
+	    ("sslWriteServer: FD %d: write failure: %s.\n", fd, xstrerror());
 	if (!ignoreErrno(errno))
 	    comm_close(fd);
     }
@@ -322,8 +322,8 @@ sslWriteClient(int fd, void *data)
     }
     cbdataLock(sslState);
     if (len < 0) {
-	debug(50, 1) ("sslWriteClient: FD %d: write failure: %s.\n",
-	    fd, xstrerror());
+	debug(50, ignoreErrno(errno) ? 3 : 1)
+	    ("sslWriteClient: FD %d: write failure: %s.\n", fd, xstrerror());
 	if (!ignoreErrno(errno))
 	    comm_close(fd);
     }
