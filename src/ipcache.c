@@ -262,8 +262,8 @@ ipcache_call_pending(ipcache_entry * i)
     ipcacheUnlockEntry(i);
 }
 
-#if USE_DNSSERVERS
 static ipcache_entry *
+#if USE_DNSSERVERS
 ipcacheParse(const char *inbuf)
 {
     LOCAL_ARRAY(char, buf, DNS_INBUF_SZ);
@@ -333,7 +333,6 @@ ipcacheParse(const char *inbuf)
     return &i;
 }
 #else
-static ipcache_entry *
 ipcacheParse(rfc1035_rr * answers, int nr)
 {
     static ipcache_entry i;

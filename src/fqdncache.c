@@ -225,8 +225,8 @@ fqdncache_call_pending(fqdncache_entry * f)
     fqdncacheUnlockEntry(f);
 }
 
-#if USE_DNSSERVERS
 static fqdncache_entry *
+#if USE_DNSSERVERS
 fqdncacheParse(const char *inbuf)
 {
     LOCAL_ARRAY(char, buf, DNS_INBUF_SZ);
@@ -277,7 +277,6 @@ fqdncacheParse(const char *inbuf)
     return &f;
 }
 #else
-static fqdncache_entry *
 fqdncacheParse(rfc1035_rr * answers, int nr)
 {
     static fqdncache_entry f;
@@ -288,14 +287,14 @@ fqdncacheParse(rfc1035_rr * answers, int nr)
     f.expires = squid_curtime;
     f.status = FQDN_NEGATIVE_CACHED;
     if (nr < 0) {
-	debug(35, 1) ("fqdncacheParse: Lookup failed (error %d)\n",
+	debug(35, 3) ("fqdncacheParse: Lookup failed (error %d)\n",
 	    rfc1035_errno);
 	assert(rfc1035_error_message);
 	f.error_message = xstrdup(rfc1035_error_message);
 	return &f;
     }
     if (nr == 0) {
-	debug(35, 1) ("fqdncacheParse: No DNS records\n");
+	debug(35, 3) ("fqdncacheParse: No DNS records\n");
 	f.error_message = xstrdup("No DNS records");
 	return &f;
     }
