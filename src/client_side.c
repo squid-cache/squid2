@@ -159,6 +159,8 @@ clientAccessCheck(icpStateData * icpState, void (*handler) (icpStateData *, int)
 	    icpState->ident.ident,
 	    ICP_IDENT_SZ);
     }
+    /* This so we can have SRC ACLs for cache_host_acl. */
+    icpState->request->client_addr = icpState->peer.sin_addr;
 #if USE_PROXY_AUTH
     if (clientProxyAuthCheck(icpState) == 0) {
 	char *wbuf = NULL;
