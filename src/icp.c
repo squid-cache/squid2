@@ -170,7 +170,7 @@ static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
 static void checkFailureRatio _PARAMS((log_type, hier_code));
 static void icpHandleStore _PARAMS((int, StoreEntry *, void *));
-static void icpHandleStoreComplete _PARAMS((int, char *, int, int, void *icpState));
+static void clientWriteComplete _PARAMS((int, char *, int, int, void *icpState));
 static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, void *));
 static void icpHandleIMSComplete _PARAMS((int, char *, int, int, void *icpState));
 extern void identStart _PARAMS((int, icpStateData *));
@@ -328,6 +328,10 @@ icpParseRequestHeaders(icpStateData * icpState)
 #endif
     if (strstr(request_hdr, ForwardedBy))
 	BIT_SET(request->flags, REQ_LOOPDETECT);
+#if USE_USERAGENT_LOG
+    if ((t = mime_get_header(request_hdr, "User-Agent"))) 
+	logUserAgent(fqdnFromAddr(icpState->peer.sin_addr), t);
+#endif
 }
 
 static int
@@ -506,7 +510,7 @@ icpSendMoreData(int fd, icpStateData * icpState)
 	buf,
 	len,
 	30,
-	icpHandleStoreComplete,
+	clientWriteComplete,
 	(void *) icpState,
 	put_free_4k_page);
     return COMM_OK;
@@ -539,20 +543,16 @@ icpHandleStore(int fd, StoreEntry * entry, void *data)
 }
 
 static void
-icpHandleStoreComplete(int fd, char *buf, int size, int errflag, void *data)
+clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 {
     icpStateData *icpState = data;
     StoreEntry *entry = NULL;
 
     entry = icpState->entry;
     icpState->size += size;
-    debug(12, 5, "icpHandleStoreComplete: FD %d: sz %d: err %d: off %d: len %d: tsmp %d: lref %d.\n",
-	fd, size, errflag,
-	icpState->offset, entry->object_len,
-	entry->timestamp, entry->lastref);
+    debug(12, 5, "clientWriteComplete: FD %d, sz %d, err %d, off %d, len %d\n",
+	fd, size, errflag, icpState->offset, entry->object_len);
     if (errflag) {
-	/* if runs in quick abort mode, set flag to tell 
-	 * fetching module to abort the fetching */
 	CheckQuickAbort(icpState);
 	/* Log the number of bytes that we managed to read */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
@@ -1660,19 +1660,25 @@ parseHttpRequest(icpStateData * icpState)
     }
     /* see if we running in httpd_accel_mode, if so got to convert it to URL */
     if (httpd_accel_mode && *url == '/') {
-	if (!vhost_mode) {
-	    /* prepend the accel prefix */
-	    icpState->url = xcalloc(strlen(Config.Accel.prefix) +
-		strlen(url) + 1, 1);
-	    sprintf(icpState->url, "%s%s", Config.Accel.prefix, url);
-	} else {
+	/* prepend the accel prefix */
+	if (vhost_mode) {
 	    /* Put the local socket IP address as the hostname */
 	    icpState->url = xcalloc(strlen(url) + 32, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		inet_ntoa(icpState->me.sin_addr),
-		Config.Accel.port,
+		(int) Config.Accel.port,
 		url);
 	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
+	} else if ((t = mime_get_header(req_hdr, "Host"))) {
+	    /* If a Host: header was specified, use it to build the URL 
+               instead of the one in the Config file. */
+	    icpState->url = xcalloc(strlen(url) + strlen(t) + 32, 1);
+	    sprintf(icpState->url, "http://%s:%d%s",
+		t, (int) Config.Accel.port, url);
+	} else {
+	    icpState->url = xcalloc(strlen(Config.Accel.prefix) +
+		strlen(url) + 1, 1);
+	    sprintf(icpState->url, "%s%s", Config.Accel.prefix, url);
 	}
 	icpState->accel = 1;
     } else {

@@ -261,6 +261,7 @@ typedef int (*QS) (const void *, const void *);
 #include "async_io.h"
 #include "redirect.h"
 #include "client_side.h"
+#include "useragent.h"
 #include "icmp.h"
 #include "net_db.h"
 #include "client_db.h"

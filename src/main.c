@@ -498,7 +498,7 @@ mainInitialize(void)
     fqdncache_init();
     dnsOpenServers();
     redirectOpenServers();
-    neighbors_init();
+    useragentOpenLog();
     (void) ftpInitialize();
 
 #if MALLOC_DBG
@@ -642,6 +642,7 @@ main(int argc, char **argv)
     /* preinit for debug module */
     debug_log = stderr;
     hash_init(0);
+    neighbors_init();
 
     mainInitialize();
 
@@ -654,6 +655,7 @@ main(int argc, char **argv)
 	    storeWriteCleanLog();
 	    storeRotateLog();	/* store.log */
 	    stat_rotate_log();	/* access.log */
+	    useragentRotateLog();	/* useragent.log */
 	    (void) ftpInitialize();
 	    icmpOpen();
 	    rotate_pending = 0;

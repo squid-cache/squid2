@@ -135,12 +135,17 @@ typedef enum {
 /* Mark a neighbor cache as dead if it doesn't answer this many pings */
 #define HIER_MAX_DEFICIT  20
 
-typedef struct _dom_list {
+struct _domain_ping {
     char *domain;
     int do_ping;		/* boolean */
-    struct _dom_list *next;
-    neighbor_t neighbor_type;
-} dom_list;
+    struct _domain_ping *next;
+};
+
+struct _domain_type {
+    char *domain;
+    neighbor_t type;
+    struct _domain_type *next;
+};
 
 /* bitfields for edge->options */
 #define NEIGHBOR_PROXY_ONLY 0x01
@@ -162,11 +167,11 @@ struct _edge {
 	int counts[ICP_OP_END];
 	int ignored_replies;
     } stats;
-
     u_short icp_port;
     u_short http_port;
     int icp_version;
-    dom_list *domains;
+    struct _domain_ping *pinglist;
+    struct _domain_type *typelist;
     struct _acl_list *acls;
     int options;
     int weight;
@@ -180,24 +185,11 @@ struct _edge {
 typedef struct {
     int n;
     int n_parent;
-    int n_neighbor;
+    int n_sibling;
     edge *edges_head;
     edge *edges_tail;
     edge *first_ping;
 } neighbors;
-
-struct neighbor_cf {
-    char *host;
-    char *type;
-    int http_port;
-    int icp_port;
-    int options;
-    int weight;
-    int mcast_ttl;
-    dom_list *domains;
-    struct _acl_list *acls;
-    struct neighbor_cf *next;
-};
 
 struct _hierarchyLogData {
     hier_code code;
@@ -210,12 +202,13 @@ extern edge *getFirstUpParent _PARAMS((request_t *));
 extern edge *getNextEdge _PARAMS((edge *));
 extern edge *getSingleParent _PARAMS((request_t *, int *n));
 extern int neighborsUdpPing _PARAMS((protodispatch_data *));
-extern void neighbors_cf_domain _PARAMS((const char *, const char *, neighbor_t));
-extern void neighbors_cf_acl _PARAMS((const char *, const char *));
+extern void neighborAddDomainPing _PARAMS((const char *, const char *));
+extern void neighborAddDomainType _PARAMS((const char *, const char *, const char *));
+extern void neighborAddAcl _PARAMS((const char *, const char *));
 extern neighbors *neighbors_create _PARAMS((void));
 extern void hierarchyNote _PARAMS((request_t *, hier_code, int, const char *));
 extern void neighborsUdpAck _PARAMS((int, const char *, icp_common_t *, const struct sockaddr_in *, StoreEntry *, char *, int));
-extern void neighbors_cf_add _PARAMS((const char *, const char *, int, int, int, int, int));
+extern void neighborAdd _PARAMS((const char *, const char *, int, int, int, int, int));
 extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));
 extern void neighborsDestroy _PARAMS((void));

@@ -2666,11 +2666,10 @@ storePendingNClients(const StoreEntry * e)
     int i;
     if (mem == NULL)
 	return 0;
-    for (i = 0; i < (int) mem->nclients; i++) {
+    for (i = 0; i < mem->nclients; i++) {
 	if (mem->clients[i].fd == -1)
 	    continue;
-	if (mem->clients[i].callback)
-	    npend++;
+	npend++;
     }
     return npend;
 }

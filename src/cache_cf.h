@@ -171,6 +171,9 @@ struct SquidConfig {
 	char *access;
 	char *store;
 	char *swap;
+#if USE_USERAGENT_LOG
+	char *useragent;
+#endif	/* USE_USERAGENT_LOG */
 	int rotateNumber;
 	int log_fqdn;
     } Log;

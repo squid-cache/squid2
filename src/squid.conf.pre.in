@@ -107,8 +107,8 @@
 #	Use to limit the domains for which a neighbor cache will be queried.
 #	Usage:
 #
-#	cache_host_domain cache-host [sibling|parent]	domain [domain ...]
-#	cache_host_domain cache-host [sibling|parent]	!domain
+#	cache_host_domain cache-host domain [domain ...]
+#	cache_host_domain cache-host !domain
 #
 #	For example, specifying
 #
@@ -129,14 +129,22 @@
 #		* There are no defaults.
 #		* There is also a 'cache_host_acl' tag in the ACL
 #		  section.
+
+#  TAG: neighbor_domain_type
+#
+#	usage: neighbor_domain_type parent|sibling domain domain ...
 #
 #	Modifying the neighbor type for specific domains is now
-#	possible.  You can treat a neighbor as a parent for some
-#	domains, and a sibling for others.  Simply add the keywords
-#	'sibling' or 'parent' before the domains.  For example:
+#	possible.  You can treat some domains differently than the the
+#	default neighbor type specified on the 'cache_host' line.
+#	Normally it should only be necessary to list domains which
+#	should be treated differently because the default neighbor type
+#	applies for hostnames which do not match domains listed here.
 #
-#		cache_host_domain cache.foo.org parent .foo.org
-#		cache_host_domain cache.foo.org sibling .com
+#EXAMPLE:
+#	cache_host  parent cache.foo.org 3128 3130
+#	neighbor_domain_type cache.foo.org sibling .com .net
+#	neighbor_domain_type cache.foo.org sibling .au .de
 
 #  TAG:	inside_firewall
 #	This tag specifies a list of domains inside your Internet
@@ -397,6 +405,12 @@ cache_stoplist cgi-bin ?
 #	LOG_FULL_HEADERS before compiling.
 #
 #log_mime_hdrs off
+
+#  TAG: useragent_log
+#	If compiled with "-DUSE_USERAGENT_LOG=1" Squid will write
+#	the User-Agent field from HTTP requests to the filename
+#	specified here.  By default useragent_log is disabled.
+#useragent_log none
 
 #  TAG: pid_filename
 #	A pathname to write the process-id to.  There is no default.
