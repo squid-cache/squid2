@@ -43,22 +43,22 @@
 #define RIDICULOUS_LENGTH	4096
 
 enum _aio_thread_status {
-	_THREAD_STARTING=0,
-	_THREAD_WAITING,
-	_THREAD_BUSY,
-	_THREAD_FAILED,
-	_THREAD_DONE,
+    _THREAD_STARTING = 0,
+    _THREAD_WAITING,
+    _THREAD_BUSY,
+    _THREAD_FAILED,
+    _THREAD_DONE,
 };
 
 enum _aio_request_type {
-	_AIO_OP_NONE=0,
-	_AIO_OP_OPEN,
-	_AIO_OP_READ,
-	_AIO_OP_WRITE,
-	_AIO_OP_CLOSE,
-	_AIO_OP_UNLINK,
-	_AIO_OP_OPENDIR,
-	_AIO_OP_STAT,
+    _AIO_OP_NONE = 0,
+    _AIO_OP_OPEN,
+    _AIO_OP_READ,
+    _AIO_OP_WRITE,
+    _AIO_OP_CLOSE,
+    _AIO_OP_UNLINK,
+    _AIO_OP_OPENDIR,
+    _AIO_OP_STAT,
 };
 
 typedef struct aio_request_t {
@@ -87,8 +87,8 @@ typedef struct aio_thread_t {
     enum _aio_thread_status status;
     pthread_mutex_t mutex;	/* Mutex for testing condition variable */
     pthread_cond_t cond;	/* Condition variable */
-    struct aio_request_t *volatile req; /* set by main, cleared by thread */
-    struct aio_request_t *processed_req; /* reminder to main */
+    struct aio_request_t *volatile req;		/* set by main, cleared by thread */
+    struct aio_request_t *processed_req;	/* reminder to main */
     struct aio_thread_t *next;
 } aio_thread_t;
 
@@ -222,13 +222,13 @@ aio_thread_loop(void *ptr)
 	 * spin situation if the main thread is suspended (paging), and
 	 * squid_curtime is not being updated timely.
 	 */
-	wait_time.tv_sec = squid_curtime + 1; /* little quicker first time */
+	wait_time.tv_sec = squid_curtime + 1;	/* little quicker first time */
 	wait_time.tv_nsec = 0;
 	while (threadp->req == NULL) {
 	    threadp->status = _THREAD_WAITING;
 	    pthread_cond_timedwait(&(threadp->cond), &(threadp->mutex),
 		&wait_time);
-	    wait_time.tv_sec += 3; /* then wait 3 seconds between each check */
+	    wait_time.tv_sec += 3;	/* then wait 3 seconds between each check */
 	}
 #endif
 	request = threadp->req;
@@ -250,7 +250,7 @@ aio_thread_loop(void *ptr)
 	    case _AIO_OP_UNLINK:
 		aio_do_unlink(request);
 		break;
-#if AIO_OPENDIR /* Opendir not implemented yet */
+#if AIO_OPENDIR			/* Opendir not implemented yet */
 	    case _AIO_OP_OPENDIR:
 		aio_do_opendir(request);
 		break;
@@ -263,7 +263,7 @@ aio_thread_loop(void *ptr)
 		request->err = EINVAL;
 		break;
 	    }
-	} else {  /* cancelled */
+	} else {		/* cancelled */
 	    request->ret = -1;
 	    request->err = EINTR;
 	}
@@ -300,7 +300,7 @@ aio_free_request(aio_request_t * req)
 	xfree(req);
 	return;
     }
-    memset(req,0,sizeof(*req));
+    memset(req, 0, sizeof(*req));
     req->next = free_requests;
     free_requests = req;
     num_free_requests++;
@@ -335,11 +335,12 @@ aio_queue_request(aio_request_t * requestp)
     }
     requestp->next = NULL;
     request_queue_len += 1;
-    if (wait_threads==NULL)
+    if (wait_threads == NULL)
 	aio_poll_threads();
-    if (wait_threads==NULL) {
+    if (request_queue_len > (NUMTHREADS << 1)) {
 	if (squid_curtime > (last_warn + 15)) {
-	    debug(43, 1) ("aio_queue_request: WARNING - Out of service threads. Queue Length = %d\n", request_queue_len);
+	    debug(43, 1) ("aio_queue_request: WARNING - Request queue growing\n."
+		"\tQueue Length = %d\n", request_queue_len);
 	    debug(43, 1) ("aio_queue_request: Perhaps you should increase NUMTHREADS in aiops.c\n");
 	    debug(43, 1) ("aio_queue_request: First %d items on request queue\n", NUMTHREADS);
 	    rp = request_queue_head;
@@ -412,7 +413,7 @@ aio_process_request_queue()
 	busy_threads_tail = threadp;
 
 	threadp->status = _THREAD_BUSY;
-	threadp->req = threadp->processed_req =  requestp;
+	threadp->req = threadp->processed_req = requestp;
 	pthread_cond_signal(&(threadp->cond));
 #if AIO_PROPER_MUTEX
 	pthread_mutex_unlock(&threadp->mutex);
@@ -515,7 +516,7 @@ aio_open(const char *path, int oflag, mode_t mode, aio_result_t * resultp)
 
 
 static void
-aio_do_open(aio_request_t *requestp)
+aio_do_open(aio_request_t * requestp)
 {
     requestp->ret = open(requestp->path, requestp->oflag, requestp->mode);
     requestp->err = errno;
@@ -592,7 +593,7 @@ aio_write(int fd, char *bufp, int bufs, off_t offset, int whence, aio_result_t *
 
 
 static void
-aio_do_write(aio_request_t *requestp)
+aio_do_write(aio_request_t * requestp)
 {
     requestp->ret = write(requestp->fd, requestp->tmpbufp, requestp->buflen);
     requestp->err = errno;
@@ -621,7 +622,7 @@ aio_close(int fd, aio_result_t * resultp)
 
 
 static void
-aio_do_close(aio_request_t *requestp)
+aio_do_close(aio_request_t * requestp)
 {
     requestp->ret = close(requestp->fd);
     requestp->err = errno;
@@ -664,7 +665,7 @@ aio_stat(const char *path, struct stat *sb, aio_result_t * resultp)
 
 
 static void
-aio_do_stat(aio_request_t *requestp)
+aio_do_stat(aio_request_t * requestp)
 {
     requestp->ret = stat(requestp->path, requestp->tmpstatp);
     requestp->err = errno;
@@ -700,7 +701,7 @@ aio_unlink(const char *path, aio_result_t * resultp)
 
 
 static void
-aio_do_unlink(aio_request_t *requestp)
+aio_do_unlink(aio_request_t * requestp)
 {
     requestp->ret = unlink(requestp->path);
     requestp->err = errno;
@@ -726,10 +727,11 @@ aio_opendir(const char *path, aio_result_t * resultp)
 }
 
 static void
-aio_do_opendir(aio_request_t *requestp)
+aio_do_opendir(aio_request_t * requestp)
 {
     /* NOT IMPLEMENTED */
 }
+
 #endif
 
 
@@ -740,7 +742,7 @@ aio_poll_threads(void)
     aio_thread_t *threadp;
     aio_request_t *requestp;
 
-    do { /* while found completed thread */
+    do {			/* while found completed thread */
 	prev = NULL;
 	threadp = busy_threads_head;
 	while (threadp) {
@@ -781,7 +783,7 @@ aio_poll_threads(void)
 	else
 	    request_done_head = requestp;
 	request_done_tail = requestp;
-    } while(threadp);
+    } while (threadp);
 
     aio_process_request_queue();
 }				/* aio_poll_threads */
