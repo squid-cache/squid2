@@ -439,13 +439,18 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	    }
 	    /* Barf on stray CR characters */
 	    if (memchr(this_line, '\r', field_end - this_line)) {
-		debug(55, 1) ("WARNING: suspicious CR characters in HTTP header near {%s}\n",
-		    getStringPrefix(field_start, header_end));
-		return httpHeaderReset(hdr);
+		debug(55, 1) ("WARNING: suspicious CR characters in HTTP header {%s}\n",
+		    getStringPrefix(field_start, field_end));
+		if (Config.onoff.relaxed_header_parser) {
+		    char *p = (char *) this_line;	/* XXX Warning! This destroys original header content and violates specifications somewhat */
+		    while ((p = memchr(p, '\r', field_end - p)) != NULL)
+			*p++ = ' ';
+		} else
+		    return httpHeaderReset(hdr);
 	    }
 	    if (this_line + 1 == field_end && this_line > field_start) {
-		debug(55, 1) ("WARNING: Blank continuation line in HTTP header near {%s}\n",
-		    getStringPrefix(field_start, header_end));
+		debug(55, 1) ("WARNING: Blank continuation line in HTTP header {%s}\n",
+		    getStringPrefix(header_start, header_end));
 		return httpHeaderReset(hdr);
 	    }
 	} while (field_ptr < header_end && (*field_ptr == ' ' || *field_ptr == '\t'));
@@ -459,13 +464,18 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	}
 	e = httpHeaderEntryParseCreate(field_start, field_end);
 	if (NULL == e) {
-	    debug(55, 1) ("WARNING: unparseable HTTP header field near {%s}\n",
-		getStringPrefix(field_start, header_end));
-	    return httpHeaderReset(hdr);
+	    debug(55, 1) ("WARNING: unparseable HTTP header field {%s}\n",
+		getStringPrefix(field_start, field_end));
+	    debug(55, Config.onoff.relaxed_header_parser <= 0 ? 1 : 2)
+		(" in {%s}\n", getStringPrefix(header_start, header_end));
+	    if (Config.onoff.relaxed_header_parser)
+		continue;
+	    else
+		return httpHeaderReset(hdr);
 	}
 	if (e->id == HDR_CONTENT_LENGTH && (e2 = httpHeaderFindEntry(hdr, e->id)) != NULL) {
 	    if (!Config.onoff.relaxed_header_parser || strCmp(e->value, strBuf(e2->value)) != 0) {
-		debug(55, 1) ("WARNING: found two conflicting content-length headers\n");
+		debug(55, 1) ("WARNING: found two conflicting content-length headers in {%s}\n", getStringPrefix(header_start, header_end));
 		httpHeaderEntryDestroy(e);
 		return httpHeaderReset(hdr);
 	    } else {
