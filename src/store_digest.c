@@ -406,8 +406,8 @@ storeDigestRewriteFinish(StoreEntry * e)
     e->mem_obj->request = NULL;
     storeUnlockObject(e);
     cbdataFree(sd_state.rewrite_lock);
-    sd_state.rewrite_lock = CBDATA_ALLOC(generic_cbdata, NULL);
-    sd_state.rewrite_lock->data = e;
+    e = NULL;
+    sd_state.rewrite_lock = NULL;
     sd_state.rewrite_count++;
     eventAdd("storeDigestRewriteStart", storeDigestRewriteStart, NULL, (double)
 	Config.digest.rewrite_period, 1);
