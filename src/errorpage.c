@@ -373,8 +373,6 @@ errorConvert(char token, ErrorState * err)
     request_t *r = err->request;
     static char buf[CVT_BUF_SZ];
     const char *p = buf;
-    wordlist *w;
-    int o;
     switch (token) {
     case 'B':
 	p = r ? ftpUrlWith2f(r) : "[no URL]";
@@ -404,13 +402,7 @@ errorConvert(char token, ErrorState * err)
 	break;
     case 'g':
 	/* FTP SERVER MESSAGE */
-	buf[0] = '\0';
-	o = 0;
-	for (w = err->ftp_server_msg; w; w = w->next) {
-	    o += snprintf(buf + o, CVT_BUF_SZ - o, "%s\n", w->key);
-	    if (o >= CVT_BUF_SZ)
-		break;
-	}
+	p = wordlistCat(err->ftp_server_msg);
 	break;
     case 'h':
 	snprintf(buf, CVT_BUF_SZ, "%s", getMyHostname());
