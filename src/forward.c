@@ -145,6 +145,7 @@ fwdConnectStart(FwdState * fwdState)
     ErrorState *err;
     FwdServer *srv = fwdState->servers;
     assert(srv);
+    assert(fwdState->server_fd == -1);
     debug(17, 3) ("fwdConnectStart: %s\n", url);
     cbdataLock(fwdState);
     if ((fd = pconnPop(srv->host, srv->port)) >= 0) {
