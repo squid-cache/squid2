@@ -57,7 +57,6 @@ typedef struct iwd {
     int inbufsize;
     int method;			/* GET, POST, ... */
     char *mime_hdr;		/* Mime header */
-    int html_request;
     StoreEntry *entry;
     long offset;
     int bytes_needed;		/*  Used for content_length */
@@ -131,7 +130,7 @@ static void icpCloseAndFree(fd, icpState, line)
 	fatal_dump("icpCloseAndFree: icpState->log_type out of range.");
     if (icpState->entry) {
 	size = icpState->entry->mem_obj->e_current_len;
-	http_code = icpState->entry->mem_obj->http_code;
+	http_code = icpState->entry->mem_obj->reply->code;
     } else {
 	http_code = icpState->http_code;
     }
@@ -470,9 +469,9 @@ int icpSendMoreData(fd, state)
 
     buf_len += len;
 
-    if (state->offset == 0 && entry->mem_obj->http_code == 0 && len > 0) {
+    if (state->offset == 0 && entry->mem_obj->reply->code == 0 && len > 0) {
 	sscanf(buf, "HTTP/%lf %d", &http_ver, &tcode);
-	entry->mem_obj->http_code = tcode;
+	entry->mem_obj->reply->code = tcode;
     }
     if ((state->offset == 0) && (header->opcode != ICP_OP_DATABEG)) {
 	header->opcode = ICP_OP_DATABEG;
@@ -1157,7 +1156,7 @@ int parseHttpRequest(icpState)
     }
     debug(12, 5, "parseHttpRequest: Method is '%s'\n", method);
 
-    icpState->html_request = 1;
+    BIT_SET(icpState->flags, REQ_HTML);
 
     if ((request = strtok(NULL, "\n\r\t ")) == NULL) {
 	debug(12, 1, "parseHttpRequest: Missing URL\n");
@@ -1757,6 +1756,6 @@ static void CheckQuickAbort(astm)
     if (astm->entry->status == STORE_OK)
 	return;
     BIT_SET(astm->entry->flag, CLIENT_ABORT_REQUEST);
-    BIT_SET(astm->entry->flag, RELEASE_REQUEST);
+    storeReleaseRequest(astm->entry, __FILE__,__LINE__);
     astm->log_type = ERR_CLIENT_ABORT;
 }

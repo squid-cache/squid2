@@ -135,8 +135,8 @@ void cached_error_entry(entry, type, msg)
 	getMyHostname());
     strcat(tmp_error_buf, tbuf);
     entry->mem_obj->abort_code = type;
-    if (entry->mem_obj->http_code == 0)
-	entry->mem_obj->http_code = 400;
+    if (entry->mem_obj->reply->code == 0)
+	entry->mem_obj->reply->code = 400;
     storeAbort(entry, tmp_error_buf);
 }
 

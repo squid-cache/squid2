@@ -72,7 +72,6 @@ void ttlAddToList(pattern, abs_ttl, pct_age, age_max)
 time_t ttlSet(entry)
      StoreEntry *entry;
 {
-    char buf[301];
     time_t last_modified = -1;
     time_t expire = -1;
     time_t their_date = -1;
@@ -80,39 +79,39 @@ time_t ttlSet(entry)
     time_t now = 0;
     time_t ttl = 0;
     time_t default_ttl = 0;
-    ttl_t *t;
-    ttl_t *match;
+    ttl_t *t = NULL;
+    ttl_t *match = NULL;
     double d;
     int flags = 0;
+    struct _http_reply *reply = NULL;
 
     debug(22, 5, "ttlSet: Choosing TTL for %s\n", entry->url);
 
+    reply = entry->mem_obj->reply;
+
     /* these are case-insensitive compares */
-    buf[0] = '\0';
-    if (storeMatchMime(entry, "last-modified: ", buf, 300)) {
-	if ((x = parse_rfc850(buf)) > 0) {
+    if (reply->last_modified[0]) {
+	if ((x = parse_rfc850(reply->last_modified)) > 0) {
 	    last_modified = x;
 	    flags |= TTL_LASTMOD;
 	}
     }
-    buf[0] = '\0';
-    if (storeMatchMime(entry, "date: ", buf, 300)) {
-	if ((x = parse_rfc850(buf)) > 0) {
+    if (reply->date[0]) {
+	if ((x = parse_rfc850(reply->date)) > 0) {
 	    their_date = x;
 	    flags |= TTL_SERVERDATE;
 	}
     }
     now = their_date > 0 ? their_date : cached_curtime;
 
-    buf[0] = '\0';
-    if (storeMatchMime(entry, "expires: ", buf, 300)) {
+    if (reply->expires[0]) {
 	/*
 	 * The HTTP/1.0 specs says that robust implementations should
 	 * consider bad or malformed Expires header as equivalent to
 	 * "expires immediately."
 	 */
 	flags |= TTL_EXPIRES;
-	expire = ((x = parse_rfc850(buf)) > 0) ? x : now;
+	expire = ((x = parse_rfc850(reply->expires)) > 0) ? x : now;
     }
     if (last_modified > 0)
 	debug(22, 5, "ttlSet: Last-Modified: %s\n", mkrfc850(&last_modified));
