@@ -153,6 +153,6 @@ struct radix_node
 	struct radix_node[2])), *rn_match __P((void *, struct radix_node_head *)),
           *rn_newpair __P((void *, int, struct radix_node[2])), *rn_search __P((void *, struct radix_node *)),
           *rn_search_m __P((void *, struct radix_node *, void *));
-
+extern struct radix_node *rn_lookup(void *, void *, struct radix_node_head *);
 #define min(x,y) ((x)<(y)? (x) : (y))
 #endif /* _RADIX_H_ */

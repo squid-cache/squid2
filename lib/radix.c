@@ -221,7 +221,7 @@ rn_refines(m_arg, n_arg)
     return (!masks_are_equal);
 }
 
-static struct radix_node *
+struct radix_node *
 rn_lookup(v_arg, m_arg, head)
      void *v_arg, *m_arg;
      struct radix_node_head *head;
