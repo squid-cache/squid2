@@ -39,6 +39,9 @@
 #include <ctype.h>
 #include <lber.h>
 #include <ldap.h>
+#if defined(LDAP_OPT_NETWORK_TIMEOUT)
+#include <sys/time.h>
+#endif
 
 #define PROGRAM_NAME "squid_ldap_group"
 
