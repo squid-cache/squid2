@@ -696,8 +696,8 @@ strwordtok(char *buf, char **t)
   done:
     *d++ = '\0';
   error:
-    *t = p;
-    return word;
+    *t = (char *)p;
+    return (char *)word;
 }
 
 /*
