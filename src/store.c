@@ -461,8 +461,7 @@ storeReleaseRequest(StoreEntry * e)
 {
     if (EBIT_TEST(e->flag, RELEASE_REQUEST))
 	return;
-    if (!storeEntryLocked(e))
-	fatal_dump("storeReleaseRequest: unlocked entry");
+    assert(storeEntryLocked(e));
     debug(20, 3) ("storeReleaseRequest: '%s'\n", storeKeyText(e->key));
     EBIT_SET(e->flag, RELEASE_REQUEST);
     storeSetPrivateKey(e);
@@ -1799,10 +1798,7 @@ storeEntryValidLength(const StoreEntry * e)
     int diff;
     int hdr_sz;
     int content_length;
-
-    if (e->mem_obj == NULL)
-	fatal_dump("storeEntryValidLength: NULL mem_obj");
-
+    assert(e->mem_obj != NULL);
     hdr_sz = e->mem_obj->reply->hdr_sz;
     content_length = e->mem_obj->reply->content_length;
 
@@ -1902,8 +1898,7 @@ storeConfigure(void)
 int
 urlcmp(const void *url1, const void *url2)
 {
-    if (!url1 || !url2)
-	fatal_dump("urlcmp: Got a NULL url pointer.");
+    assert(url1 && url2);
     return (strcmp(url1, url2));
 }
 
