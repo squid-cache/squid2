@@ -1,3 +1,13 @@
+Changes to squid-1.0.6 (August 11, 1996):
+
+	- Fixed coredump in icpStateFree() for bad requests.
+	- Fixed configure bug in determining FD_SETSIZE.
+	- Fixed garbage collection to stop if SIGTERM received.
+	- Fixed pid file to be written just before 'ready to serve requests'.
+	- Fixed CheckQuickAbort() lock_count bug.
+
+Changes to squid-1.0.5 (July 25, 1996):
+
 	- Added ICP_OP_RELOADING to be used instead of ICP_OP_DENIED
 	  for -Y option.
 	- Moved hierarchy_code for access.log from MemObject to
