@@ -55,6 +55,7 @@ extern int storeMaintainSwapSpace();
 extern void fatal_dump _PARAMS((char *));
 extern void fatal _PARAMS((char *));
 extern void kill_zombie();
+extern int ftpInitialize _PARAMS((void));
 
 static int asciiPortNumOverride = 0;
 static int binaryPortNumOverride = 0;
@@ -285,6 +286,8 @@ Usage: cached [-Rsehvz] [-f config-file] [-d debug-level] [-[apu] port]\n\
 
     /* init neighbors */
     neighbors_init();
+
+    ftpInitialize();
 
 
 #if defined(MALLOC_DBG)
