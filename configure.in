@@ -1377,4 +1377,6 @@ AC_OUTPUT(\
 	./errors/Makefile \
 	./auth_modules/dummy \
 	./auth_modules/NCSA/Makefile \
+	./auth_modules/PAM/Makefile \
+	./auth_modules/SMB/Makefile
 )
