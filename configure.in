@@ -348,7 +348,7 @@ dnl remove all but diskd - its the only module that needs to recurse
 dnl into the sub directory
 STORE_MODULE_SUBDIRS=
 for fs in $STORE_MODULES none; do
-    if test $fs == diskd; then
+    if test "$fs" = "diskd"; then
         STORE_MODULE_SUBDIRS="$STORE_MODULE_SUBDIRS $fs"
     fi
 done
