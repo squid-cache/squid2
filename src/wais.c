@@ -410,5 +410,5 @@ waisConnectDone(int fd, int status, void *data)
 	(PF) waisSendRequest,
 	(void *) waisState, 0);
     if (Config.vizHackAddr.sin_port)
-        vizHackSendPkt(&waisState->connectState.S, 2);
+	vizHackSendPkt(&waisState->connectState.S, 2);
 }

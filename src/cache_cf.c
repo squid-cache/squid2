@@ -239,7 +239,6 @@ static void parseLocalDomainLine _PARAMS((void));
 static void parseMcastGroupLine _PARAMS((void));
 static void parseMemLine _PARAMS((void));
 static void parseMgrLine _PARAMS((void));
-static void parsePidFilenameLine _PARAMS((void));
 static void parseKilobytes _PARAMS((int *));
 static void parseSwapLine _PARAMS((void));
 static void parseRefreshPattern _PARAMS((int icase));

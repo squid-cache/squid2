@@ -232,7 +232,7 @@ struct _cacheinfo {
     void (*NotImplement) (struct _cacheinfo * c, StoreEntry * sentry);
 
     /* stat table and data */
-    char logfilename[SQUID_MAXPATHLEN];	/* logfile name */
+    char logfilename[SQUID_MAXPATHLEN];		/* logfile name */
     int logfile_fd;		/* logfile fd */
     int logfile_access;		/* logfile access code */
     /* logfile status {enable, disable} */

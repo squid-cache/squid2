@@ -173,6 +173,10 @@
 #include "squid.h"
 #include "mime_table.h"
 
+#ifndef HAVE_GETOPT_H
+extern int optind;
+#endif
+
 /* Junk so we can link with debug.o */
 int opt_syslog_enable = 0;
 volatile int unbuffered_logs = 1;
@@ -2690,6 +2694,8 @@ main(int argc, char *argv[])
 	    exit(1);
 	}
     }
+    argc -= optind;
+    argv += optind;
 
     if (argc != 6) {
 	fprintf(stderr, "Wrong number of arguments left (%d)\n", argc);

@@ -1030,7 +1030,7 @@ gopherConnectDone(int fd, int status, void *data)
 	(PF) gopherSendRequest,
 	(void *) gopherState, 0);
     if (Config.vizHackAddr.sin_port)
-        vizHackSendPkt(&gopherState->connectState.S, 2);
+	vizHackSendPkt(&gopherState->connectState.S, 2);
 }
 
 
