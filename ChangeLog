@@ -1,7 +1,38 @@
 Changes to squid-2.5.STABLE4 (not yet released):
 	- Lithuanian error messages added to the distribution
+	- Bug #660: segfauld if more than one custom deny_info line
+	- cache_dir disd documentation cleanup
+	- check open of /dev/null to avoid 100% CPU loop in badly
+	  configured chroot environments
+	- documentation update on uri_whitespace to refer to the correct RFC
+	- Bug #655: icmpRecv: recv: (11) Resource temporarily unavailable
+	- Bug #683: external_acl does not wait for ident lookups to complete
+	- aufs: Fix a minor use-after-free problem which could cause the
+	  count of opening filedescriptors to grow larger than it should
+	- Syntax changes to make GCC-3.3 accept Squid without complaints
+	- Warning if CARP server defined in incorrect load factor order
+	- neighbor_type_domain documentation update
+	- http_header_access now works when using cache peers
+	- high_memory_warning now uses sbrk as fallback mechanism on
+	  platforms where neither mallinfo or mstats are available.
+	- hosts_file now handles comments at the end of lines correcly
+	- storeCheckCachable() Stats corrected for release_request and
+	  wrong_content_length.
+	- cachePeerPingsSent MIB type corrected
+	- unused minimum_retry_timeout directive removed
+	- Bug #702: ERR_TO_BIG spanish translation
+	- Bug #705: Memory leak on deny_info TCP_RESET
+	- Code cleanup to fix compile error in httpHeaderDelById
+	- Bug #699: Host header now forwarded exactly where it was in the
+	  original request to work around certain broken firewalls or
+	  load balancers which fail if this header is too far into the
+	  request headers.
+	- Bug #704: Memory leak on reply_body_max_size
 	- Bug #686: requests denied due to http_reply_access are now
 	  logged with TCP_DENIED (instead of TCP_MISS, etc).
+	- Bug #708: ie_refresh now sends no-cache to have the reload
+	  request propagate properly in cache meshes
+	- Bug #700: Crashes related to ftpTimeout: timeout in SENT_PASV state
 
 Changes to squid-2.5.STABLE3 (25 May 2003):
 
