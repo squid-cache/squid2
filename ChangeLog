@@ -1,3 +1,6 @@
+	- Fixed bug related to parsing Not Modified reply headers which
+	  caused valid objects to be RELEASED.
+
 Changes to squid-1.NOVM.19 (December 18, 1997):
 
 	- Fixed gopherReadReply() bug.  Don't call gopherEndHTML()
