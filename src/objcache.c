@@ -328,17 +328,17 @@ objcacheStart(int fd, char *url, StoreEntry * entry)
 	    storeComplete(data->entry);
 	}
     } else if (strcmp(data->request, "log/clear") == 0) {
-        if (objcache_CheckPassword(password, username) != 0) {
+	if (objcache_CheckPassword(password, username) != 0) {
 	    storeAppendPrintf(data->entry, "%s", BADPassword);
-            storeAbort(data->entry, "SQUID:OBJCACHE Incorrect Password\n");
-            /* override negative TTL */
-            data->entry->expires = squid_curtime + STAT_TTL;
-            debug(16, 1, "Attempt to log/clear with incorrect password\n");
+	    storeAbort(data->entry, "SQUID:OBJCACHE Incorrect Password\n");
+	    /* override negative TTL */
+	    data->entry->expires = squid_curtime + STAT_TTL;
+	    debug(16, 1, "Attempt to log/clear with incorrect password\n");
 	} else {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->log_clear(HTTPCacheInfo, data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
+	    BIT_SET(data->entry->flag, DELAY_SENDING);
+	    HTTPCacheInfo->log_clear(HTTPCacheInfo, data->entry);
+	    BIT_RESET(data->entry->flag, DELAY_SENDING);
+	    storeComplete(data->entry);
 	}
 #ifdef MENU_SHOW_LOG
     } else if (strcmp(data->request, "log") == 0) {

@@ -740,7 +740,7 @@ ipcache_init(void)
 	debug(14, 1, "Successful DNS name lookup tests...\n");
     }
 
-    ip_table = hash_create(urlcmp, 229, hash4);	/* small hash table */
+    ip_table = hash_create(urlcmp, 229, hash4);		/* small hash table */
     memset(&static_addrs, '\0', sizeof(ipcache_addrs));
     static_addrs.in_addrs = xcalloc(1, sizeof(struct in_addr));
 
