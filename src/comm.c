@@ -620,34 +620,6 @@ comm_close(int fd)
 #endif
 }
 
-
-/* Send a udp datagram to specified PORT at HOST. */
-int
-comm_udp_send(int fd, const char *host, u_short port, const char *buf, int len)
-{
-    const ipcache_addrs *ia = NULL;
-    static struct sockaddr_in to_addr;
-    int bytes_sent;
-
-    /* Set up the destination socket address for message to send to. */
-    to_addr.sin_family = AF_INET;
-
-    if ((ia = ipcache_gethostbyname(host, IP_BLOCKING_LOOKUP)) == 0) {
-	debug(50, 1) ("comm_udp_send: gethostbyname failure: %s: %s\n",
-	    host, xstrerror());
-	return (COMM_ERROR);
-    }
-    to_addr.sin_addr = ia->in_addrs[ia->cur];
-    to_addr.sin_port = htons(port);
-    if ((bytes_sent = sendto(fd, buf, len, 0, (struct sockaddr *) &to_addr,
-		sizeof(to_addr))) < 0) {
-	debug(50, 1) ("comm_udp_send: sendto failure: FD %d: %s\n",
-	    fd, xstrerror());
-	return COMM_ERROR;
-    }
-    return bytes_sent;
-}
-
 /* Send a udp datagram to specified TO_ADDR. */
 int
 comm_udp_sendto(int fd,
