@@ -1975,11 +1975,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		RequestMethodStr[http->request->method], http->uri,
 		rv ? "ALLOWED" : "DENIED",
 		AclMatchedName ? AclMatchedName : "NO ACL's");
-	    if (!rv && rep->sline.status != HTTP_FORBIDDEN
+	    if (!rv && http->log_type != LOG_TCP_DENIED
 		&& !clientAlwaysAllowResponse(rep->sline.status)) {
-		/* the if above is slightly broken, but there is no way
-		 * to tell if this is a squid generated error page, or one from
-		 * upstream at this point. */
 		ErrorState *err;
 		err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN);
 		err->request = requestLink(http->request);
