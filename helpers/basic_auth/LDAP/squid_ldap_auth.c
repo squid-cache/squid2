@@ -252,6 +252,7 @@ open_ldap_connection(const char *ldapServer, int port)
     squid_ldap_set_timelimit(ld, timelimit);
     squid_ldap_set_referrals(ld, !noreferrals);
     squid_ldap_set_aliasderef(ld, aliasderef);
+    return ld;
 }
 
 #ifdef LDAP_API_FEATURE_X_OPENLDAP
