@@ -893,6 +893,11 @@ static void
 ipcacheFreeEntry(void *data)
 {
     ipcache_entry *i = data;
+    ip_pending *p;
+    while ((p = i->pending_head)) {
+	i->pending_head = p->next;
+	memFree(MEM_IPCACHE_PENDING, p);
+    }
     safe_free(i->addrs.in_addrs);
     safe_free(i->addrs.bad_mask);
     safe_free(i->name);

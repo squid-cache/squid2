@@ -730,7 +730,12 @@ static void
 fqdncacheFreeEntry(void *data)
 {
     fqdncache_entry *f = data;
+    fqdn_pending *p = NULL;
     int k;
+    while ((p = f->pending_head)) {
+	f->pending_head = p->next;
+	memFree(MEM_FQDNCACHE_PENDING, p);
+    }
     for (k = 0; k < (int) f->name_count; k++)
 	safe_free(f->names[k]);
     safe_free(f->name);
