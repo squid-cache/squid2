@@ -77,8 +77,9 @@ static int bintreeDomainCompare _PARAMS((void *, void *));
 static int bintreeHostDomainCompare _PARAMS((void *, void *));
 static int bintreeNetworkCompare _PARAMS((void *, void *));
 static int bintreeIpNetworkCompare _PARAMS((void *, void *));
-static int aclDomainCompare _PARAMS((const char *d1, const char *d2));
+static BTREE_CMP aclDomainCompare;
 static void aclDestroyTree _PARAMS((tree **));
+static BTREE_UAR destroyTreeItem;
 
 #else /* LINKED LIST */
 static void aclDestroyIpList _PARAMS((struct _acl_ip_data * data));
@@ -913,11 +914,11 @@ aclMatchDomainList(void *dataptr, const char *host)
 static int
 aclMatchDomainList(void *dataptr, const char *host)
 {
-    tree **data = dataptr;
+    tree ***data = dataptr;
     if (host == NULL)
 	return 0;
     debug(28, 3, "aclMatchDomainList: checking '%s'\n", host);
-    if (tree_srch(data, bintreeHostDomainCompare, (void *) host)) {
+    if (tree_srch(*data, bintreeHostDomainCompare, (char *) host)) {
 	debug(28, 3, "aclMatchDomainList: '%s' found\n", host);
 	return 1;
     }
@@ -1174,10 +1175,11 @@ aclCheck(const struct _acl_access *A, aclCheck_t * checklist)
 /*********************/
 
 #if defined(USE_BIN_TREE)
-void
-destroyTreeItem(void **t)
+static int
+destroyTreeItem(void *t)
 {
     safe_free(t);
+    return 1;
 }
 
 static void
@@ -1352,9 +1354,11 @@ aclDomainCompare(const void *data, splayNode * n)
 
 #elif defined(USE_BIN_TREE)
 static int
-aclDomainCompare(const char *d1, const char *d2)
+aclDomainCompare(void *a, void *b)
 {
     int l1, l2;
+    const char *d1 = a;
+    const char *d2 = b;
     l1 = strlen(d1);
     l2 = strlen(d2);
     while (d1[l1] == d2[l2]) {

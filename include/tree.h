@@ -12,15 +12,18 @@
 
 typedef struct tree_s {
     void *data;
-    short bal;
     struct tree_s *left, *right;
+    int bal;
 } tree;
 
-void tree_init _PARAMS((tree **));
-void *tree_srch _PARAMS((tree **, int (*)(), void *));
-void *tree_add _PARAMS((tree **, int (*)(), void *, void (*)()));
-int tree_delete _PARAMS((tree **, int (*)(), void *, void (*)()));
-int tree_trav _PARAMS((tree **, int (*)()));
-void tree_mung _PARAMS((tree **, void (*)()));
+typedef int BTREE_CMP (void *, void *);
+typedef int BTREE_UAR (void *);
+
+void tree_init (tree **);
+void *tree_srch (tree **, BTREE_CMP *, void *);
+void *tree_add (tree **, int (*)(), void *, BTREE_UAR *);
+int tree_delete (tree **, BTREE_CMP *, void *, BTREE_UAR *);
+int tree_trav (tree **, BTREE_UAR *);
+void tree_mung (tree **, BTREE_UAR *);
 
 #endif /* _TREE_H_INCLUDED */
