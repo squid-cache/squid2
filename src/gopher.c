@@ -580,8 +580,6 @@ gopherTimeout(int fd, void *data)
 	err = errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT);
 	err->url = xstrdup(gopherState->request);
 	errorAppendEntry(entry, err);
-    } else {
-	storeAbort(entry, 0);
     }
     comm_close(fd);
 }
@@ -638,7 +636,6 @@ gopherReadReply(int fd, void *data)
 	    errorAppendEntry(entry, err);
 	    comm_close(fd);
 	} else {
-	    storeAbort(entry, 0);
 	    comm_close(fd);
 	}
     } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {

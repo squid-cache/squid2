@@ -323,8 +323,6 @@ ftpTimeout(int fd, void *data)
 	    err = errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT);
 	    err->request = requestLink(ftpState->request);
 	    errorAppendEntry(entry, err);
-	} else {
-	    storeAbort(entry, 0);
 	}
     }
     if (ftpState->data.fd > -1) {
@@ -841,7 +839,6 @@ ftpDataRead(int fd, void *data)
 		Config.Timeout.read);
 	} else {
 	    assert(mem->inmem_hi > 0);
-	    storeAbort(entry, 0);
 	    ftpDataTransferDone(ftpState);
 	}
     } else if (len == 0) {
@@ -1059,8 +1056,6 @@ ftpWriteCommandCallback(int fd, char *bufnotused, size_t size, int errflag, void
 	    err->request = requestLink(ftpState->request);
 	    errorAppendEntry(entry, err);
 	}
-	if (entry->store_status == STORE_PENDING)
-	    storeAbort(entry, 0);
 	comm_close(ftpState->ctrl.fd);
     }
 }
@@ -1176,8 +1171,6 @@ ftpReadControlReply(int fd, void *data)
 		err->request = requestLink(ftpState->request);
 		errorAppendEntry(entry, err);
 	    }
-	    if (entry->store_status == STORE_PENDING)
-		storeAbort(entry, 0);
 	    comm_close(ftpState->ctrl.fd);
 	}
 	return;

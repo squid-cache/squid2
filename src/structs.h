@@ -508,6 +508,7 @@ struct _fde {
 #ifdef OPTIMISTIC_IO
 	unsigned int calling_io_handler:1;
 #endif
+	unsigned int delayed_comm_close:1;
     } flags;
     int bytes_read;
     int bytes_written;

@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -106,7 +107,6 @@ whoisReadReply(int fd, void *data)
 	    fwdFail(p->fwd, ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR, errno);
 	    comm_close(fd);
 	} else {
-	    storeAbort(entry, 0);
 	    comm_close(fd);
 	}
     } else {
