@@ -848,7 +848,7 @@ debugObj(int section, int level, const char *label, void *obj, ObjPackMethod pm)
 int
 stringHasWhitespace(const char *s)
 {
-    return (strcspn(s, w_space) != strlen(s));
+    return strpbrk(s, w_space) != NULL;
 }
 
 void
