@@ -202,13 +202,22 @@ static int icpStateFree(fd, icpState)
 	http_code,
 	elapsed_msec,
 	icpState->ident,
+#ifndef LOG_FULL_HEADERS
 	hierData);
+#else
+	hierData,
+	icpState->request_hdr,
+	icpState->reply_hdr);
+#endif /* LOG_FULL_HEADERS */
     if (icpState->ident_fd)
 	comm_close(icpState->ident_fd);
     safe_free(icpState->inbuf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
     safe_free(icpState->request_hdr);
+#ifdef LOG_FULL_HEADERS
+    safe_free(icpState->reply_hdr);
+#endif /* LOG_FULL_HEADERS */
     if (icpState->entry) {
 	storeUnregister(icpState->entry, fd);
 	storeUnlockObject(icpState->entry);
@@ -356,6 +365,34 @@ int icpSendERROR(fd, errorCode, text, icpState, httpCode)
     return COMM_OK;
 }
 
+#ifdef LOG_FULL_HEADERS
+/*
+ * Scan beginning of swap object being returned and hope that it contains
+ * a complete MIME header for use in reply header logging (log_append).
+ */
+void icp_maybe_remember_reply_hdr(icpState)
+     icpStateData *icpState;
+{
+    char *mime;
+    char *end;
+
+    if (icpState && icpState->entry && icpState->entry->mem_obj
+      && icpState->entry->mem_obj->data && icpState->entry->mem_obj->data->head
+      && (mime = icpState->entry->mem_obj->data->head->data) != NULL
+      && (end = mime_headers_end(mime)) != NULL) {
+	int mime_len = end - mime;
+	char *buf = xcalloc(mime_len+1, 1);
+
+	strncpy(buf, mime, mime_len);
+	buf[mime_len] = 0;
+	icpState->reply_hdr = buf;
+	debug(12, 5, "icp_maybe_remember_reply_hdr: ->\n%s<-\n", buf);
+    } else {
+	icpState->reply_hdr = 0;
+    }
+}
+
+#endif /* LOG_FULL_HEADERS */
 /* Send available data from an object in the cache.  This is called either
  * on select for  write or directly by icpHandleStore. */
 
@@ -386,6 +423,9 @@ int icpSendMoreData(fd, icpState)
 	xmemcpy(scanbuf, buf, len > 19 ? 19 : len);
 	sscanf(scanbuf, "HTTP/%lf %d", &http_ver, &tcode);
 	entry->mem_obj->reply->code = tcode;
+#ifdef LOG_FULL_HEADERS
+	icp_maybe_remember_reply_hdr(icpState);
+#endif /* LOG_FULL_HEADERS */
     }
     icpState->offset += len;
     if (icpState->request->method == METHOD_HEAD && (p = mime_headers_end(buf))) {
@@ -751,7 +791,13 @@ static void icpLogIcp(queue)
 	0,
 	tvSubMsec(queue->start, current_time),
 	NULL,			/* ident */
+#ifndef LOG_FULL_HEADERS
 	NULL);			/* hierarchy data */
+#else
+	NULL,			/* hierarchy data */
+	NULL,			/* request header */
+	NULL);			/* reply header */
+#endif /* LOG_FULL_HEADERS */
 }
 
 int icpUdpReply(fd, queue)

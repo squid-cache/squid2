@@ -315,6 +315,19 @@
 #
 #emulate_httpd_log off
 
+#  TAG: log_mime_hdrs
+#	The Cache can record both the request and the response
+#	MIME headers for each HTTP transaction.  The headers are
+#	encoded safely and will appear as two bracketed fields
+#	at the end of the access log (for either the native
+#	or httpd-emulated log formats).  To enable this logging
+#	set log_mime_hdrs to 'on'.
+#
+#	NOTE: support for this may require you to define
+#	LOG_FULL_HEADERS before compiling.
+#
+#log_mime_hdrs off
+
 #  TAG: pid_filename
 #	A pathname to write the process-id to.  There is no default.
 #pid_filename

@@ -182,7 +182,13 @@ struct _cacheinfo {
 	    int http_code,
 	    int msec,
 	    char *ident,
+#ifndef LOG_FULL_HEADERS
 	    struct _hierarchyLogData * hierData));
+#else
+	    struct _hierarchyLogData *hierData,
+	    char *request_hdrs,
+	    char *reply_hdrs));
+#endif /* LOG_FULL_HEADERS */
 
     /* clear logfile */
     void (*log_clear) _PARAMS((struct _cacheinfo * obj, StoreEntry * sentry));
