@@ -73,13 +73,14 @@ peerDigestInit(peer * p)
     assert(!p->digest.flags);
     assert(!p->digest.cd);
     assert(SM_PAGE_SIZE == 4096);	/* we use MEM_4K_BUF */
+    /* set "init" flag here so we are not called after peerDigestValidate */
+    EBIT_SET(p->digest.flags, PD_INITED);
     if (EBIT_TEST(p->options, NEIGHBOR_NO_DIGEST)) {
 	peerDigestDisable(p);
     } else {
 	cbdataLock(p);
 	peerDigestValidate(p);
     }
-    EBIT_SET(p->digest.flags, PD_INITED);
 }
 
 /* no pending events or requests should exist when you call this */
