@@ -1029,6 +1029,8 @@ static int examine_select(readfds, writefds, exceptfds)
 	    if (num < 0) {
 		f = &fd_table[fd];
 		debug(5, 0, "WARNING: FD %d has handlers, but it's invalid.\n", fd);
+		debug(5, 0, "FD %d is a %s\n", fd, fdfiletype(fdstatGetType(fd)));
+		debug(5, 0, "--> %s\n", fd_note(fd, NULL));
 		debug(5, 0, "lifetm:%p tmout:%p read:%p write:%p expt:%p\n",
 		    f->lifetime_handler,
 		    f->timeout_handler,
