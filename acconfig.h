@@ -119,6 +119,12 @@
  * functions found in 4.4 BSD derviations (e.g. FreeBSD, ?).
  */
 #undef USE_ARP_ACL
+
+/*
+ * Define this to include code for the Hypertext Cache Protocol (HTCP)
+ */
+#undef USE_HTCP
+
 /********************************
  *  END OF CONFIGURABLE OPTIONS *
  ********************************/
