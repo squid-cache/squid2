@@ -206,6 +206,7 @@ fqdncacheParse(const char *inbuf)
     char *token;
     static fqdncache_entry f;
     int ttl;
+    memset(&f, '\0', sizeof(f));
     f.expires = squid_curtime;
     f.flags.negcached = 1;
     if (inbuf == NULL) {
