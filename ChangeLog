@@ -1,3 +1,13 @@
+Changes to squid-1.0.9 (August 19, 1996):
+
+	- Clean up ipcache_purgerlu().
+	- Release expired ipcache entries in ipcache_gethostbyname().
+	- Added check for numeric addresses to ipcache_nbgethostbyname().
+	- Added Date: field to ftpget's HTTP header output.
+	- Added temporary hack to httpProcessReplyHeaders() to allow
+	  caching of non-HTTP objects fetched from neighbors when
+	  the header does not have Date, Expires, or Last-Modified.
+
 Changes to squid-1.0.8 (August 19, 1996):
 
 	- Added ftpget fixes from carson@lehman.com and moy@parc.xerox.com.
