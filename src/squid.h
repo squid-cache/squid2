@@ -212,6 +212,7 @@
 #define BUFSIZ  4096		/* make reasonable guess */
 #endif
 
+
 #ifndef SA_RESTART
 #define SA_RESTART 0
 #endif

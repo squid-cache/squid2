@@ -160,9 +160,15 @@ static void
 protoDispatchFail(peer * p, void *data)
 {
     pctrl_t *pctrl = data;
+    ErrorState *err;
     if (!storeUnlockObject(pctrl->entry))
 	return;
-    assert(!ERR_CANNOT_FORWARD);
+	/* was assert */
+    err = xcalloc(1, sizeof(ErrorState));
+    err->type = ERR_CANNOT_FORWARD;
+    err->http_status = HTTP_SERVICE_UNAVAILABLE;
+    err->request = requestLink(pctrl->request);
+    errorAppendEntry(pctrl->entry, err);
     storeAbort(pctrl->entry, 0);
     requestUnlink(pctrl->request);
     xfree(pctrl);
@@ -175,6 +181,7 @@ protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr
 {
     char *url = entry ? entry->url : NULL;
     protocol_t proto = request ? request->protocol : PROTO_NONE;
+    ErrorState *err;
     debug(17, 5) ("protoUnregister '%s'\n", url ? url : "NULL");
     if (proto == PROTO_CACHEOBJ)
 	return 0;
@@ -186,7 +193,12 @@ protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr
 	return 0;
     if (entry->store_status != STORE_PENDING)
 	return 0;
-    assert(!ERR_CLIENT_ABORT);
+	/* was assert */
+    err=xcalloc(1,sizeof(ErrorState));
+    err->type = ERR_CLIENT_ABORT;
+    err->http_status = HTTP_INTERNAL_SERVER_ERROR;
+    err->request = request;
+    errorAppendEntry(entry, err);
     storeAbort(entry, 1);
     return 1;
 }
@@ -194,6 +206,7 @@ protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr
 void
 protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 {
+	ErrorState *err;
     debug(17, 5) ("protoStart: FD %d: Fetching '%s %s' from %s\n",
 	fd,
 	RequestMethodStr[request->method],
@@ -225,7 +238,12 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	objcacheStart(fd, entry);
     } else if (request->method == METHOD_CONNECT) {
 	debug(17, 1) ("protoStart: Cannot retrieve '%s'\n", entry->url);
-	assert(0);
+	/* was assert */
+        err = xcalloc(1, sizeof(ErrorState));
+        err->type = ERR_UNSUP_REQ;
+        err->http_status = HTTP_BAD_REQUEST;
+        err->request = requestLink(request);
+        errorAppendEntry(entry, err);
 	storeAbort(entry, 0);
     }
 }
