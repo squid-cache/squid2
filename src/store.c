@@ -2640,7 +2640,7 @@ int swapInError(fd_unused, entry)
 	102,
 	"Cache Disk I/O Failure",
 	"",
-	HARVEST_VERSION,
+	SQUID_VERSION,
 	comm_hostname());
     storeAbort(entry, tmp_error_buf);
     return 0;

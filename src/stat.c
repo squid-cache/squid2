@@ -520,7 +520,7 @@ void info_get(obj, sentry)
 
     storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
 
-    sprintf(line, "{Harvest Object Cache: Version %s}\n", HARVEST_VERSION);
+    sprintf(line, "{Harvest Object Cache: Version %s}\n", SQUID_VERSION);
     storeAppend(sentry, line, strlen(line));
 
     tod = mkrfc850(&cached_starttime);

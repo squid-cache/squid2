@@ -579,7 +579,7 @@ static int protoNotImplemented(fd, url, entry)
 	501,
 	"Unsupported protocol",
 	buf,
-	HARVEST_VERSION,
+	SQUID_VERSION,
 	comm_hostname());
     storeAbort(entry, tmp_error_buf);
 #ifdef LOG_ERRORS
@@ -613,7 +613,7 @@ static int protoCantFetchObject(fd, entry, reason)
 	502,
 	"Cache cannot fetch the requested object.",
 	buf,
-	HARVEST_VERSION,
+	SQUID_VERSION,
 	comm_hostname());
     storeAbort(entry, tmp_error_buf);
 #ifdef LOG_ERRORS
@@ -640,7 +640,7 @@ static int protoDNSError(fd, entry)
 	102,
 	"DNS name lookup failure",
 	dns_error_message,
-	HARVEST_VERSION,
+	SQUID_VERSION,
 	comm_hostname());
     storeAbort(entry, tmp_error_buf);
 #ifdef LOG_ERRORS

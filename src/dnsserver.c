@@ -166,7 +166,7 @@ int main(argc, argv)
 	switch (c) {
 	case 'v':
 	case 'h':
-	    printf("dnsserver version %s\n", HARVEST_VERSION);
+	    printf("dnsserver version %s\n", SQUID_VERSION);
 	    exit(0);
 	    break;
 	case 'd':

@@ -109,7 +109,7 @@ void print_trailer()
     printf("<HR>\n");
     printf("<ADDRESS>\n");
     printf("Generated %s, by %s/%s@%s\n",
-	tbuf, progname, HARVEST_VERSION, getfullhostname());
+	tbuf, progname, SQUID_VERSION, getfullhostname());
     printf("</ADDRESS>\n");
 }
 

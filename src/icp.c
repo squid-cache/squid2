@@ -1518,7 +1518,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		110,
 		"Invalid URL",
 		"Your request is not a valid URL string.  Please check it again.",
-		HARVEST_VERSION,
+		SQUID_VERSION,
 		comm_hostname());
 	    astm->buf = xstrdup(tmp_error_buf);
 	    astm->ptr_to_4k_page = NULL;
