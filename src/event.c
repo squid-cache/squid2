@@ -150,12 +150,12 @@ eventRun(void)
     }
 }
 
-time_t
+int
 eventNextTime(void)
 {
     if (!tasks)
-	return (time_t) 10;
-    return (time_t) ((tasks->when - current_dtime) * 1000);
+	return (int) 10;
+    return (int) ((tasks->when - current_dtime) * 1000);
 }
 
 void

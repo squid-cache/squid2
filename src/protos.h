@@ -256,7 +256,7 @@ extern void idnsPTRLookup(const struct in_addr, IDNSCB *, void *);
 extern void eventAdd(const char *name, EVH * func, void *arg, double when, int);
 extern void eventAddIsh(const char *name, EVH * func, void *arg, double delta_ish, int);
 extern void eventRun(void);
-extern time_t eventNextTime(void);
+extern int eventNextTime(void);
 extern void eventDelete(EVH * func, void *arg);
 extern void eventInit(void);
 extern void eventFreeMemory(void);
