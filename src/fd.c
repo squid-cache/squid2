@@ -79,6 +79,8 @@ fd_close(int fd)
     Number_FD--;
     if (F->type == FD_FILE)
 	open_disk_fd--;
+    commUpdateReadBits(fd, NULL);
+    commUpdateWriteBits(fd, NULL);
     memset(F, '\0', sizeof(fde));
     F->timeout = 0;
 }

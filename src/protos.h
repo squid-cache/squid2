@@ -153,6 +153,7 @@ extern void commSetDefer(int fd, DEFER * func, void *);
 extern int ignoreErrno(int);
 extern void commCloseAllSockets(void);
 
+
 /*
  * comm_select.c
  */
@@ -162,6 +163,8 @@ extern int comm_poll(int);
 #else
 extern int comm_select(int);
 #endif
+extern void commUpdateReadBits(int, PF *);
+extern void commUpdateWriteBits(int, PF *);
 
 extern void packerToStoreInit(Packer * p, StoreEntry * e);
 extern void packerToMemInit(Packer * p, MemBuf * mb);
