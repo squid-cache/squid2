@@ -40,7 +40,8 @@ typedef enum {
     ACL_URL_PORT,
     ACL_USER,
     ACL_PROTO,
-    ACL_METHOD
+    ACL_METHOD,
+    ACL_ENUM_MAX
 } squid_acl;
 
 #define ACL_SUNDAY	0x01
@@ -95,14 +96,20 @@ struct _acl_access {
     struct _acl_access *next;
 };
 
+typedef enum {
+	ACL_LOOKUP_NONE,
+	ACL_LOOKUP_NEED,
+	ACL_LOOKUP_PENDING,
+	ACL_LOOKUP_DONE
+} acl_lookup_state;
+
 struct _aclCheck_t {
     struct in_addr src_addr;
     struct in_addr dst_addr;
     char src_fqdn[SQUIDHOSTNAMELEN];
     request_t *request;
     char ident[ICP_IDENT_SZ];
-    int need;
-    int pend;
+    acl_lookup_state state[ACL_ENUM_MAX];
 };
 
 extern int aclCheck _PARAMS((struct _acl_access *, aclCheck_t *));
