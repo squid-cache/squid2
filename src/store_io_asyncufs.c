@@ -250,7 +250,7 @@ storeAufsWriteDone(int fd, void *my_data, int len, int errflag)
     assert(++loop_detect < 10);
     sio->type.aufs.flags.writing = 0;
     if (errflag) {
-	debug(78, 0) ("storeAufsWriteDone: got failure (%d)\n", errflag);
+	debug(78, 3) ("storeAufsWriteDone: got failure (%d)\n", errflag);
 	storeAufsIOCallback(sio, errflag);
 	loop_detect--;
 	return;

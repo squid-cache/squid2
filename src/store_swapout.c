@@ -233,7 +233,7 @@ storeSwapOutFileClosed(void *data, int errflag, storeIOState * sio)
     assert(e->swap_status == SWAPOUT_WRITING);
     cbdataFree(c);
     if (errflag) {
-	debug(20, 1) ("storeSwapOutFileClosed: swapfile %08X, errflag=%d\n\t%s\n",
+	debug(20, 3) ("storeSwapOutFileClosed: swapfile %08X, errflag=%d\n\t%s\n",
 	    e->swap_file_number, errflag, xstrerror());
 	/*
 	 * yuck.  don't clear the filemap bit for some errors so that

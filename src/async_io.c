@@ -175,7 +175,7 @@ aioCancel(int fd)
 	    their_data = curr->done_handler_data;
 	    curr->done_handler = NULL;
 	    curr->done_handler_data = NULL;
-	    debug(0, 0) ("this be aioCancel\n");
+	    debug(32, 2) ("this be aioCancel\n");
 	    if (cbdataValid(their_data))
 		done_handler(fd, their_data, -2, -2);
 	    cbdataUnlock(their_data);
@@ -203,7 +203,7 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
 	if (ctrlp->fd == fd)
 	    break;
     if (ctrlp != NULL) {
-	debug(0, 0) ("aioWrite: EWOULDBLOCK\n");
+	debug(32, 2) ("aioWrite: EWOULDBLOCK\n");
 	errno = EWOULDBLOCK;
 	if (callback)
 	    (callback) (fd, callback_data, -1, errno);
