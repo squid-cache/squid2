@@ -782,6 +782,7 @@ watch_child(char *argv[])
 	exit(0);
     if (setsid() < 0)
 	syslog(LOG_ALERT, "setsid failed: %s", xstrerror());
+    closelog();
 #ifdef TIOCNOTTY
     if ((i = open("/dev/tty", O_RDWR)) >= 0) {
 	ioctl(i, TIOCNOTTY, NULL);
@@ -793,12 +794,14 @@ watch_child(char *argv[])
     for (;;) {
 	if ((pid = fork()) == 0) {
 	    /* child */
+	    openlog(appname, LOG_PID | LOG_NDELAY | LOG_CONS, LOG_LOCAL4);
 	    prog = xstrdup(argv[0]);
 	    argv[0] = xstrdup("(squid)");
 	    execvp(prog, argv);
 	    syslog(LOG_ALERT, "execvp failed: %s", xstrerror());
 	}
 	/* parent */
+	openlog(appname, LOG_PID | LOG_NDELAY | LOG_CONS, LOG_LOCAL4);
 	syslog(LOG_NOTICE, "Squid Parent: child process %d started", pid);
 	time(&start);
 	squid_signal(SIGINT, SIG_IGN, SA_RESTART);
