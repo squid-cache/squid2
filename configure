@@ -620,7 +620,7 @@ fi
 
 
 
-# From configure.in Revision: 1.176.2.10 
+# From configure.in Revision: 1.176.2.11 
 ac_aux_dir=
 for ac_dir in cfgaux $srcdir/cfgaux; do
   if test -f $ac_dir/install-sh; then
@@ -1504,7 +1504,7 @@ fi
 if test "${enable_heap_replacement+set}" = set; then
   enableval="$enable_heap_replacement"
    if test "$enableval" = "yes" ; then
-    echo "Enabling the use of underscores in host names"
+    echo "Enabling HEAP_REPLACEMENT"
     cat >> confdefs.h <<\EOF
 #define HEAP_REPLACEMENT 1
 EOF

@@ -549,7 +549,7 @@ AC_ARG_ENABLE(heap-replacement,
                           LRU algorithm.
                           ],
 [ if test "$enableval" = "yes" ; then
-    echo "Enabling the use of underscores in host names"
+    echo "Enabling HEAP_REPLACEMENT"
     AC_DEFINE(HEAP_REPLACEMENT, 1)
   fi
 ])
