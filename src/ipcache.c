@@ -316,8 +316,6 @@ static ipcache_entry *
 ipcache_create(const char *name)
 {
     static ipcache_entry *i;
-    if (meta_data.ipcache_count > ipcache_high)
-	ipcache_purgelru(NULL);
     meta_data.ipcache_count++;
     i = xcalloc(1, sizeof(ipcache_entry));
     i->name = xstrdup(name);
