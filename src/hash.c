@@ -231,7 +231,7 @@ hash_create(HASHCMP * cmp_func, int hash_sz, HASHHASH * hash_func)
  *
  *  It does not copy any data into the hash table, only pointers.
  */
-int
+void
 hash_insert(hash_table * hid, const char *k, void *item)
 {
     int i;
@@ -245,7 +245,6 @@ hash_insert(hash_table * hid, const char *k, void *item)
     i = hid->hash(k, hid->size);
     new->next = hid->buckets[i];
     hid->buckets[i] = new;
-    return 0;
 }
 
 /*
@@ -254,14 +253,13 @@ hash_insert(hash_table * hid, const char *k, void *item)
  *
  *  It does not copy any data into the hash table, only links pointers.
  */
-int
+void
 hash_join(hash_table * hid, hash_link * lnk)
 {
     int i;
     i = hid->hash(lnk->key, hid->size);
     lnk->next = hid->buckets[i];
     hid->buckets[i] = lnk;
-    return 0;
 }
 
 /*
