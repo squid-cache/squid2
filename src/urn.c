@@ -284,7 +284,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
     } else if (min_u) {
 	httpHeaderPutStr(&rep->header, HDR_LOCATION, min_u->url);
     }
-    httpBodySet(&rep->body, mb.buf, mb.size + 1, memBufFreeFunc(&mb));
+    httpBodySet(&rep->body, &mb);
     httpReplySwapOut(rep, e);
     storeComplete(e);
     memFree(MEM_4K_BUF, buf);
@@ -293,7 +293,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
 	safe_free(urls[i].host);
     }
     safe_free(urls);
-    /* mb was frozen with memBufFreeFunc call, so we must not clean it */
+    /* mb was absorbed in httpBodySet call, so we must not clean it */
     storeUnregister(urlres_e, urnState);
     storeUnlockObject(urlres_e);
     storeUnlockObject(urnState->entry);
