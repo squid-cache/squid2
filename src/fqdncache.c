@@ -392,7 +392,7 @@ fqdncache_add(char *name, fqdncache_entry * f, struct hostent *hp, int cached)
     f->name = xstrdup(name);
     if (cached) {
 	f->name_count = 0;
-	f->names[f->name_count++] = xstrdup((char *)hp->h_name);
+	f->names[f->name_count++] = xstrdup((char *) hp->h_name);
 	for (k = 0; hp->h_aliases[k]; k++) {
 	    f->names[f->name_count++] = xstrdup(hp->h_aliases[k]);
 	    if (f->name_count == FQDN_MAX_NAMES)

@@ -569,7 +569,7 @@ mainMaintenance(void)
 	    next_cleaning = squid_curtime + Config.cleanRate;
 	} else if (squid_curtime >= next_announce) {
 	    if (Config.Announce.on)
-	    	send_announce();
+		send_announce();
 	    next_announce = squid_curtime + Config.Announce.rate;
 	}
     }
