@@ -269,3 +269,6 @@
 
 /* Define if you want to set the COSS membuf size */
 #undef COSS_MEMBUF_SZ
+
+/* Print stacktraces on fatal errors */
+#undef PRINT_STACK_TRACE

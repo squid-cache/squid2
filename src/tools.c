@@ -254,6 +254,14 @@ death(int sig)
 	fflush(stdout);
     }
 #endif /* _SQUID_SOLARIS_ */
+#if HAVE_BACKTRACE_SYMBOLS_FD
+    {
+	static void *(callarray[8192]);
+	int n;
+	n = backtrace(callarray, 8192);
+	backtrace_symbols_fd(callarray, n, fileno(debug_log));
+    }
+#endif
 #endif /* PRINT_STACK_TRACE */
 
 #if SA_RESETHAND == 0
