@@ -1163,5 +1163,6 @@ AC_OUTPUT(\
 	$SNMP_MAKEFILE \
 	./icons/Makefile \
 	./errors/Makefile \
+	./auth_modules/dummy \
 	./auth_modules/NCSA/Makefile \
 )
