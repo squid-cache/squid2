@@ -542,7 +542,8 @@ storeComplete(StoreEntry * e)
     if (!storeEntryValidLength(e))
 	EBIT_SET(e->flag, ENTRY_BAD_LENGTH);
 #if SQUID_PEER_DIGEST
-    e->mem_obj->request->hier.store_complete_stop = current_time;
+    if (e->mem_obj->request)
+	e->mem_obj->request->hier.store_complete_stop = current_time;
 #endif
     InvokeHandlers(e);
     storeCheckSwapOut(e);
