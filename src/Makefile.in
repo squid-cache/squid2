@@ -188,8 +188,11 @@ cachemgr.cgi:	cachemgr.o
 pinger: pinger.o
 	$(CC) -o $@ $(LDFLAGS) pinger.o debug.o globals.o $(PINGER_LIBS)
 
-unlinkd: unlinkd.c
-	$(CC) $(CFLAGS) -DUNLINK_DAEMON $(srcdir)/unlinkd.c -o $@ $(LDFLAGS)
+unlinkd: unlinkd-daemon.o
+	$(CC) $(LDFLAGS) unlinkd-daemon.o -o $@
+
+unlinkd-daemon.o: unlinkd.c
+	$(CC) -c $(CFLAGS) -DUNLINK_DAEMON $(srcdir)/unlinkd.c -o $@
 
 cache_cf.o: cf_parser.c
 
