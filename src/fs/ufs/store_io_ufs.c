@@ -108,7 +108,7 @@ storeUfsCreate(SwapDir * SD, StoreEntry * e, STFNCB * file_callback, STIOCB * ca
     debug(79, 3) ("storeUfsCreate: fileno %08X\n", filn);
     fd = file_open(path, mode);
     if (fd < 0) {
-	debug(79, 1) ("storeUfsCreate: Failed to create %s (%d)\n", path, xstrerror());
+	debug(79, 1) ("storeUfsCreate: Failed to create %s (%s)\n", path, xstrerror());
 	return NULL;
     }
     debug(79, 3) ("storeUfsCreate: opened FD %d\n", fd);
