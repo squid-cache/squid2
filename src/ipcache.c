@@ -1363,7 +1363,7 @@ void ipcacheShutdownServers()
     int i;
     static char *shutdown = "$shutdown\n";
 
-    debug(14, 1, "ipcacheShutdownServers:\n");
+    debug(14, 3, "ipcacheShutdownServers:\n");
 
     for (i = 0; i < getDnsChildren(); i++) {
 	dns = *(dns_child_table + i);
