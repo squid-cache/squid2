@@ -47,6 +47,7 @@ struct _file_state {
 static hash_table *hash = NULL;
 static pid_t mypid;
 static char *shmbuf;
+static const int msg_snd_rcv_sz = sizeof(diomsg) - sizeof(int);
 
 static int
 do_open(diomsg * r, int len, const char *buf)
@@ -287,7 +288,8 @@ main(int argc, char *argv[])
     sigaction(SIGALRM, &sa, NULL);
     for (;;) {
 	alarm(1);
-	rlen = msgrcv(rmsgid, &rmsg, sizeof(rmsg), 0, 0);
+	memset(&rmsg, '\0', sizeof(rmsg));
+	rlen = msgrcv(rmsgid, &rmsg, msg_snd_rcv_sz, 0, 0);
 	if (rlen < 0) {
 	    if (EINTR == errno) {
 		if (read(0, rbuf, 512) <= 0) {
@@ -539,10 +541,9 @@ storeDiskdInit(SwapDir * sd)
 	debug(50, 0) ("storeDiskdInit: shmat: %s\n", xstrerror());
 	fatal("shmat failed");
     }
-    for (i = 0; i < SHMBUFS; i++) {
+    shmbuf_count += SHMBUFS;
+    for (i = 0; i < SHMBUFS; i++)
 	storeDiskdShmPut(sd, i * SHMBUF_BLKSZ);
-	shmbuf_count++;
-    }
     snprintf(skey1, 32, "%d", ikey);
     snprintf(skey2, 32, "%d", ikey + 1);
     snprintf(skey3, 32, "%d", ikey + 2);
@@ -579,7 +580,7 @@ storeDiskdReadQueue(void)
     int i;
     static time_t last_report = 0;
     static int record_away = 0;
-    static int record_shmbuf = 0;
+    static int record_shmbuf = 0; 
     if (sent_count - recv_count > record_away) {
 	record_away = sent_count - recv_count;
 	record_shmbuf = shmbuf_count;
@@ -790,19 +791,25 @@ storeDiskdShmPut(SwapDir * sd, int offset)
     buf = sd->u.diskd.shm.buf + offset;
     linklistPush(&sd->u.diskd.shm.stack, buf);
     shmbuf_count--;
+    assert(shmbuf_count >= 0);
 }
 
 static void
 storeDiskdReadIndividualQueue(SwapDir * sd)
 {
-    static diomsg M;
+    diomsg M;
     int x;
     int flag;
     while (sd->u.diskd.away > 0) {
+	memset(&M, '\0', sizeof(M));
 	flag = (sd->u.diskd.away > MAGIC2) ? 0 : IPC_NOWAIT;
-	x = msgrcv(sd->u.diskd.rmsgid, &M, sizeof(M), 0, flag);
+	x = msgrcv(sd->u.diskd.rmsgid, &M, msg_snd_rcv_sz, 0, flag);
 	if (x < 0)
 	    break;
+	if (x != msg_snd_rcv_sz) {
+	    debug(79, 1) ("storeDiskdReadIndividualQueue: msgget returns %d\n", x);
+	    break;
+	}
 	recv_count++;
 	sd->u.diskd.away--;
 	storeDiskdHandle(&M);
