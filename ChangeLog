@@ -97,3 +97,12 @@ Changes to 1.0.beta3:
 	- Fixed ERR_INVALID_URL bug for URLs with a password field.
 	- Added to Release-Notes info about converting 'cache/log' and
 	  difference between stoplists and ttl_pattern.
+
+Changes to squid-1.0.beta4:
+
+	- Added a handler to restart the ftpget server.
+	- Fixed access checks for ICP by parsing the requested URL.
+	- Added "magic marker" to ftpget-generated errors so they can
+	  be negative-cached.
+	- Added a small run-time check to configure to see if signal
+	  handlers should be restarted after invocation (ala SYSV).
