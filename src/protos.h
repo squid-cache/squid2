@@ -677,6 +677,7 @@ extern double statHistDeltaMedian(const StatHist * A, const StatHist * B);
 extern void statHistDump(const StatHist * H, StoreEntry * sentry, StatHistBinDumper bd);
 extern void statHistLogInit(StatHist * H, int capacity, double min, double max);
 extern void statHistEnumInit(StatHist * H, int last_enum);
+extern void statHistIntInit(StatHist * H, int n);
 extern StatHistBinDumper statHistEnumDumper;
 extern StatHistBinDumper statHistIntDumper;
 

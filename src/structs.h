@@ -1392,6 +1392,7 @@ struct _StatCounters {
     struct timeval timestamp;
     StatHist comm_icp_incoming;
     StatHist comm_http_incoming;
+    StatHist select_fds_hist;
 };
 
 /* per header statistics */
