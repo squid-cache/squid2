@@ -90,14 +90,6 @@ waisReadReply(int fd, void *data)
 #if DELAY_POOLS
     delay_id delay_id = delayMostBytesAllowed(entry->mem_obj);
 #endif
-    if (fwdAbortFetch(entry)) {
-	ErrorState *err;
-	err = errorCon(ERR_CLIENT_ABORT, HTTP_INTERNAL_SERVER_ERROR);
-	err->request = urlParse(METHOD_CONNECT, waisState->request);
-	errorAppendEntry(entry, err);
-	comm_close(fd);
-	return;
-    }
     errno = 0;
     read_sz = 4096;
 #if DELAY_POOLS

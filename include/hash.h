@@ -30,6 +30,7 @@ extern int hashPrime(int n);
 extern void *hash_lookup(hash_table *, const void *);
 extern void hash_first(hash_table *);
 extern void *hash_next(hash_table *);
+extern void hash_last(hash_table *);
 extern hash_link *hash_get_bucket(hash_table *, unsigned int);
 extern void hashFreeMemory(hash_table *);
 extern void hashFreeItems(hash_table *, HASHFREE *);

@@ -623,7 +623,6 @@ extern EVH peerDigestInit;
 
 /* forward.c */
 extern void fwdStart(int, StoreEntry *, request_t *, struct in_addr);
-extern int fwdAbortFetch(StoreEntry * entry);
 extern DEFER fwdCheckDeferRead;
 extern void fwdFail(FwdState *, int, http_status, int);
 extern STABH fwdAbort;

@@ -209,6 +209,7 @@ meshCtblGetRowFn(oid * New, oid * Oid)
     if (!Oid[0] && !Oid[1] && !Oid[2] && !Oid[3]) {
 	hash_first(client_table);
 	c = (ClientInfo *) hash_next(client_table);
+	hash_last(client_table);
     } else {
 	char key[15];
 	snprintf(key, sizeof(key), "%d.%d.%d.%d", Oid[0], Oid[1], Oid[2], Oid[3]);

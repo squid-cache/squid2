@@ -752,8 +752,8 @@ statAvgDump(StoreEntry * sentry, int minutes, int hours)
 	: 0.0);
     x = statHistDeltaMedian(&l->select_fds_hist, &f->select_fds_hist);
     storeAppendPrintf(sentry, "median_select_fds = %f\n", x);
-    storeAppendPrintf(sentry, "store_files_cleaned = %f/sec\n",
-	XAVG(store_files_cleaned));
+    storeAppendPrintf(sentry, "swap_files_cleaned = %f/sec\n",
+	XAVG(swap_files_cleaned));
     storeAppendPrintf(sentry, "aborted_requests = %f/sec\n",
 	XAVG(aborted_requests));
 
@@ -1096,8 +1096,8 @@ statCountersDump(StoreEntry * sentry)
 	f->cputime);
     storeAppendPrintf(sentry, "wall_time = %f\n",
 	tvSubDsec(f->timestamp, current_time));
-    storeAppendPrintf(sentry, "store_files_cleaned = %d\n",
-	f->store_files_cleaned);
+    storeAppendPrintf(sentry, "swap_files_cleaned = %d\n",
+	f->swap_files_cleaned);
     storeAppendPrintf(sentry, "aborted_requests = %d\n",
 	f->aborted_requests);
 }

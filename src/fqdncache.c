@@ -826,6 +826,7 @@ snmp_fqdncacheFn(variable_list * Var, snint * ErrP)
 	if (NULL == fq)
 	    break;
     }
+    hash_last(fqdn_table);
     if (fq == NULL || cnt != 0) {
 	*ErrP = SNMP_ERR_NOSUCHNAME;
 	return NULL;

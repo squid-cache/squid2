@@ -1474,7 +1474,7 @@ struct _StatCounters {
 	int selects;
 #endif
     } syscalls;
-    int store_files_cleaned;
+    int swap_files_cleaned;
     int aborted_requests;
 };
 

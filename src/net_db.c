@@ -883,6 +883,7 @@ netdbGetRowFn(oid * New, oid * Oid)
     if (!Oid[0] && !Oid[1] && !Oid[2] && !Oid[3]) {
 	hash_first(addr_table);
 	c = (netdbEntry *) hash_next(addr_table);
+	hash_last(addr_table);
     } else {
 	static char key[15];
 	snprintf(key, sizeof(key), "%d.%d.%d.%d", Oid[0], Oid[1], Oid[2], Oid[3]);

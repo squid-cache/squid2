@@ -233,6 +233,18 @@ hash_next(hash_table * hid)
 }
 
 /*
+ *  hash_last - resets hash traversal state to NULL
+ *
+ */
+void
+hash_next(hash_table * hid)
+{
+    assert(hid);
+    hid->next = NULL;
+    hid->current_slot = 0;
+}
+
+/*
  *  hash_remove_link - deletes the given hash_link node from the 
  *  hash table 'hid'.  Does not free the item, only removes it
  *  from the list.
