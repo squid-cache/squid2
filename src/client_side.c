@@ -2216,6 +2216,8 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     else if (Config2.Accel.on && *url == '/') {
 	/* prepend the accel prefix */
 	if (opt_accel_uses_host && (t = mime_get_header(req_hdr, "Host"))) {
+	    int vport = (int) Config.Accel.port;
+	    char *q;
 	    /* If a Host: header was specified, use it to build the URL 
 	     * instead of the one in the Config file. */
 	    /*
@@ -2225,16 +2227,25 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	     * refer to www.playboy.com.  The 'dst' and/or 'dst_domain' ACL 
 	     * types should be used to prevent httpd-accelerators 
 	     * handling requests for non-local servers */
-	    strtok(t, " :/;@");
+	    strtok(t, " /;@");
+	    if ((q = strchr(t, ':'))) {
+		*q++ = '\0';
+		vport = atoi(q);
+	    }
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen +
 		strlen(t);
 	    http->uri = xcalloc(url_sz, 1);
 	    snprintf(http->uri, url_sz, "http://%s:%d%s",
-		t, (int) Config.Accel.port, url);
+		t, vport, url);
 	} else if (vhost_mode) {
+	    int vport;
 	    /* Put the local socket IP address as the hostname */
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
 	    http->uri = xcalloc(url_sz, 1);
+	    if (vport_mode)
+		vport = (int) ntohs(http->conn->me.sin_port);
+	    else
+		vport = (int) Config.Accel.port;
 #if IPF_TRANSPARENT
 	    natLookup.nl_inport = http->conn->me.sin_port;
 	    natLookup.nl_outport = http->conn->peer.sin_port;
@@ -2257,18 +2268,15 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		} else
 		    snprintf(http->uri, url_sz, "http://%s:%d%s",
 			inet_ntoa(http->conn->me.sin_addr),
-			(int) Config.Accel.port,
-			url);
+			vport, url);
 	    } else
 		snprintf(http->uri, url_sz, "http://%s:%d%s",
 		    inet_ntoa(natLookup.nl_realip),
-		    (int) Config.Accel.port,
-		    url);
+		    vport, url);
 #else
 	    snprintf(http->uri, url_sz, "http://%s:%d%s",
 		inet_ntoa(http->conn->me.sin_addr),
-		(int) Config.Accel.port,
-		url);
+		vport, url);
 #endif
 	    debug(33, 5) ("VHOST REWRITE: '%s'\n", http->uri);
 	} else {
