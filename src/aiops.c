@@ -160,7 +160,7 @@ aio_init(void)
 
     pthread_attr_init(&globattr);
 #if HAVE_PTHREAD_ATTR_SETSCOPE
-#if defined(_SQUID_IRIX_)
+#if defined(_SQUID_SGI_)
     /* 
      * Erik Hofman <erik.hofman@a1.nl> suggests PTHREAD_SCOPE_PROCESS
      * instead of PTHREAD_SCOPE_SYSTEM, esp for IRIX.
@@ -178,6 +178,9 @@ aio_init(void)
     globsched.sched_priority = 2;
 #if HAVE_PTHREAD_ATTR_SETSCHEDPARAM
     pthread_attr_setschedparam(&globattr, &globsched);
+#endif
+#if defined(_SQUID_SGI_)
+    pthread_setconcurrency(NUMTHREADS + 1);
 #endif
 
     /* Create threads and get them to sit in their wait loop */
