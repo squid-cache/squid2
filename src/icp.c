@@ -1327,6 +1327,24 @@ static void icpHandleIcpV3(fd, from, buf, len)
     }
 }
 
+#ifdef ICP_PKT_DUMP
+static void icpPktDump(pkt)
+	icp_common_t *pkt;
+{
+	struct in_addr a;
+	debug(12,9,"opcode:     %3d %s\n",
+		(int) pkt->opcode,
+		IcpOpcodeStr[pkt->opcode]);
+	debug(12,9,"version: %-8d\n", (int) pkt->version);
+	debug(12,9,"length:  %-8d\n", (int) ntohs (pkt->length));
+	debug(12,9,"reqnum:  %-8d\n", ntohl (pkt->reqnum));
+	debug(12,9,"flags:   %-8x\n", ntohl (pkt->flags));
+	a.s_addr = ntohl (pkt->shostid);
+	debug(12,9,"shostid: %s\n", inet_ntoa(a));
+	debug(12,9,"payload: %s\n", (char*) pkt+sizeof(icp_common_t));
+}
+#endif
+
 int icpHandleUdp(sock, not_used)
      int sock;
      void *not_used;
@@ -1352,14 +1370,16 @@ int icpHandleUdp(sock, not_used)
 	sock,
 	len,
 	inet_ntoa(from.sin_addr));
-
+#ifdef ICP_PACKET_DUMP
+    icpPktDump(buf);
+#endif
     if (len < sizeof(icp_common_t)) {
 	debug(12, 4, "icpHandleUdp: Bad sized UDP packet ignored. %d < %d\n",
 	    len, sizeof(icp_common_t));
 	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
 	return result;
     }
-    headerp = (icp_common_t *) (void *) &buf;
+    headerp = (icp_common_t *) (void *) buf;
     if ((icp_version = (int) headerp->version) == ICP_VERSION_2)
 	icpHandleIcpV2(sock, from, buf, len);
     else if (icp_version == ICP_VERSION_3)
