@@ -2101,16 +2101,16 @@ AC_OUTPUT([\
 	src/auth/ntlm/helpers/no_check/Makefile \
 	src/auth/ntlm/helpers/NTLMSSP/Makefile \
 	src/auth/ntlm/helpers/NTLMSSP/smbval/Makefile \
-	src/auth/ntlm/helpers/winbind/Makefile \
 	contrib/Makefile \
 	snmplib/Makefile \
 	icons/Makefile \
 	errors/Makefile \
-     src/fs/aufs/Makefile \
-     src/fs/coss/Makefile \
-     src/fs/diskd/Makefile \
-     src/fs/null/Makefile \
-     src/fs/ufs/Makefile \
-     src/repl/heap/Makefile \
-     src/repl/lru/Makefile \]
+	src/fs/aufs/Makefile \
+	src/fs/coss/Makefile \
+	src/fs/diskd/Makefile \
+	src/fs/null/Makefile \
+	src/fs/ufs/Makefile \
+	src/repl/heap/Makefile \
+	src/repl/lru/Makefile \
+	]
 )

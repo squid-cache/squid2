@@ -3,5 +3,5 @@
 #  $Id$
 #
 
-DIST_SUBDIRS	= fakeauth no_check NTLMSSP winbind
+DIST_SUBDIRS	= fakeauth no_check NTLMSSP
 SUBDIRS		= @NTLM_AUTH_HELPERS@
