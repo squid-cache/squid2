@@ -37,6 +37,8 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	  filedescriptor usage is high
 	- Bug #856: FTP/Gopher Icon URLs are unneededly complex and often
 	  does not work properly
+	- Bug #860: redirector_access does not handle "slow" acls such as
+	  "dst" or "external" requiring a external lookup.
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 
