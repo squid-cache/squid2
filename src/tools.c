@@ -344,7 +344,7 @@ fatal_dump(char *message)
 {
     if (message)
 	fatal_common(message);
-    if (opt_catch_signals)
+    if (!opt_catch_signals)
 	storeWriteCleanLog();
     abort();
 }
