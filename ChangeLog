@@ -1,3 +1,14 @@
+Changes to squid-1.0.12 (September 3, 1996):
+
+	- Fixed urlCheckRequest() to allow CONNECT/SSL requests.
+	- Change default socket send/receive buffers to 16k (in
+	  configure) instead of 8k, mainly for Solaris.
+	- Fixed urlParse() to remove trailing dots from hostnames.
+	- Added 'ttl_pattern/i' config tag for case-insensitive
+	  regular expressions.
+	- Fixed swapin_complete_handler FMW bug in storeSwapInHandle().
+	- Removed 'Invalid object detected' trap in storeValidToSend().
+
 Changes to squid-1.0.11 (August 30, 1996):
 
 	- Fixed ENTRY_DISPATCHED bug.  Now set ENTRY_DISPATCHED
