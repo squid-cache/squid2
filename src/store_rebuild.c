@@ -760,6 +760,8 @@ storeRebuildStart(void)
 	 */
 	fp = storeDirOpenTmpSwapLog(i, &clean, &zero);
 	if (fp == NULL || zero) {
+	    if (fp != NULL)
+		fclose(fp);
 	    d->rebuild_func = storeRebuildFromDirectory;
 	} else {
 	    d->rebuild_func = storeRebuildFromSwapLog;
