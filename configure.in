@@ -594,6 +594,9 @@ AC_CHECK_HEADERS( \
 	netdb.h \
 	netinet/in.h \
 	netinet/tcp.h \
+	netinet/ip_compat.h \
+	netinet/ip_fil.h \
+	netinet/ip_nat.h \
 	poll.h \
 	pwd.h \
 	regex.h \
@@ -987,14 +990,19 @@ dnl IP-Filter support requires ipf header files. These aren't
 dnl installed by default, so we need to check for them
 if test "$IPF_TRANSPARENT" ; then
     AC_MSG_CHECKING(if IP-Filter header files are installed)
-    if test "$ac_cv_header_ip_compat_h" = "no" ||
-       test "$ac_cv_header_ip_fil_h" = "no" ||
-       test "$ac_cv_header_ip_nat_h" = "no" ; then
+    if test "$ac_cv_header_ip_compat_h" = "yes" &&
+       test "$ac_cv_header_ip_fil_h" = "yes" &&
+       test "$ac_cv_header_ip_nat_h" = "yes" ; then
+        IPF_TRANSPARENT="yes"
+        AC_DEFINE(IPF_TRANSPARENT, 1)
+    elif test "$ac_cv_header_netinet_ip_compat_h" = "yes" &&
+         test "$ac_cv_header_netinet_ip_fil_h" = "yes" &&
+         test "$ac_cv_header_netinet_ip_nat_h" = "yes" ; then
+        IPF_TRANSPARENT="yes"
+        AC_DEFINE(IPF_TRANSPARENT, 1)
+    else
         IPF_TRANSPARENT="no"
         AC_DEFINE(IPF_TRANSPARENT, 0)
-    else
-        IPF_TRANSPARENT="yes"
-        AC_DEFINE(IPF_TRANSPARENT)
     fi
     AC_MSG_RESULT($IPF_TRANSPARENT)
 fi 

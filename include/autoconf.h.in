@@ -467,6 +467,15 @@
 /* Define if you have the <netinet/in.h> header file.  */
 #undef HAVE_NETINET_IN_H
 
+/* Define if you have the <netinet/ip_compat.h> header file.  */
+#undef HAVE_NETINET_IP_COMPAT_H
+
+/* Define if you have the <netinet/ip_fil.h> header file.  */
+#undef HAVE_NETINET_IP_FIL_H
+
+/* Define if you have the <netinet/ip_nat.h> header file.  */
+#undef HAVE_NETINET_IP_NAT_H
+
 /* Define if you have the <netinet/tcp.h> header file.  */
 #undef HAVE_NETINET_TCP_H
 

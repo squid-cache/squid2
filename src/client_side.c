@@ -41,9 +41,21 @@
 #endif
 #include <netinet/tcp.h>
 #include <net/if.h>
+#if HAVE_IP_COMPAT_H
 #include <ip_compat.h>
+#elif HAVE_NETINET_IP_COMPAT_H
+#include <netinet/ip_compat.h>
+#endif
+#if HAVE_IP_FIL_H
 #include <ip_fil.h>
+#elif HAVE_NETINET_IP_FIL_H
+#include <netinet/ip_fil.h>
+#endif
+#if HAVE_IP_NAT_H
 #include <ip_nat.h>
+#elif HAVE_NETINET_IP_NAT_H
+#include <netinet/ip_nat.h>
+#endif
 #endif
 
 
