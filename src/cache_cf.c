@@ -182,9 +182,9 @@ struct SquidConfig Config;
 #define DefaultAnnounceRate	0	/* Default off */
 #define DefaultTcpRcvBufsz	0	/* use system default */
 #define DefaultTcpIncomingAddr	INADDR_ANY
-#define DefaultTcpOutgoingAddr	INADDR_NONE
+#define DefaultTcpOutgoingAddr	inaddr_none
 #define DefaultUdpIncomingAddr	INADDR_ANY
-#define DefaultUdpOutgoingAddr	INADDR_NONE
+#define DefaultUdpOutgoingAddr	inaddr_none
 #define DefaultClientNetmask    0xFFFFFFFFul
 #define DefaultSslProxyPort	0
 #define DefaultSslProxyHost	(char *)NULL
@@ -787,7 +787,7 @@ parseAddressLine(struct in_addr *addr)
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    if (inet_addr(token) != INADDR_NONE)
+    if (inet_addr(token) != inaddr_none)
 	(*addr).s_addr = inet_addr(token);
     else if ((hp = gethostbyname(token)))	/* dont use ipcache */
 	*addr = inaddrFromHostent(hp);
@@ -942,7 +942,7 @@ parseVizHackLine(void)
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    if (inet_addr(token) != INADDR_NONE)
+    if (inet_addr(token) != inaddr_none)
 	Config.vizHack.addr.s_addr = inet_addr(token);
     else if ((hp = gethostbyname(token)))	/* dont use ipcache */
 	Config.vizHack.addr = inaddrFromHostent(hp);

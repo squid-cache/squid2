@@ -758,7 +758,7 @@ fqdncache_gethostbyaddr(struct in_addr addr, int flags)
     }
     FqdncacheStats.misses++;
     /* check if it's already a FQDN address in text form. */
-    if (inet_addr(name) == INADDR_NONE) {
+    if (inet_addr(name) == inaddr_none) {
 	return name;
     }
     if (flags & FQDN_BLOCKING_LOOKUP) {

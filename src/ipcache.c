@@ -970,7 +970,7 @@ ipcacheCheckNumeric(const char *name)
 {
     unsigned int ip;
     /* check if it's already a IP address in text form. */
-    if ((ip = inet_addr(name)) == INADDR_NONE)
+    if ((ip = inet_addr(name)) == inaddr_none)
 	return NULL;
     static_addrs.count = 1;
     static_addrs.cur = 0;

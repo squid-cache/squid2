@@ -493,7 +493,7 @@ ftpSendRequest(int fd, FtpStateData * data)
     if (data->authenticated) {
 	strcat(buf, "-a ");
     }
-    if (Config.Addrs.tcp_outgoing.s_addr != INADDR_NONE) {
+    if (Config.Addrs.tcp_outgoing.s_addr != inaddr_none) {
 	sprintf(tbuf, "-o %s ", inet_ntoa(Config.Addrs.tcp_outgoing));
 	strcat(buf, tbuf);
     }
