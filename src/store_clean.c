@@ -52,7 +52,7 @@ storeDirClean(void *datanotused)
     LOCAL_ARRAY(char, p2, MAXPATHLEN + 1);
     int files[20];
     int swapfileno;
-    int fn;	/* same as swapfileno, but with dirn bits set */
+    int fn;			/* same as swapfileno, but with dirn bits set */
     int n = 0;
     int k = 0;
     int N0, N1, N2;

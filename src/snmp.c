@@ -191,29 +191,29 @@ snmpHandleUdp(int sock, void *not_used)
 	len,
 	inet_ntoa(from.sin_addr));
 
-    snmp_rq = xcalloc(1,sizeof(snmp_request_t));
-    snmp_rq->buf=buf;
-    snmp_rq->len= len;
-    snmp_rq->sock=sock;
+    snmp_rq = xcalloc(1, sizeof(snmp_request_t));
+    snmp_rq->buf = buf;
+    snmp_rq->len = len;
+    snmp_rq->sock = sock;
     snmp_rq->outbuf = xmalloc(snmp_rq->outlen = SNMP_REQUEST_SIZE);
     memcpy(&snmp_rq->from, &from, sizeof(struct sockaddr_in));
     snmp_agent_parse(snmp_rq);
 }
 
 void
-snmp_agent_parse_done(int errstat, snmp_request_t *snmp_rq)
+snmp_agent_parse_done(int errstat, snmp_request_t * snmp_rq)
 {
     LOCAL_ARRAY(char, deb_line, 4096);
-    int sock=snmp_rq->sock;
-    long this_reqid=snmp_rq->reqid;
-    debug(49,2)("snmp_agent_parse_done: errstat=%d, reqid=%d _t=%x\n",
-		errstat, this_reqid, snmp_rq);
+    int sock = snmp_rq->sock;
+    long this_reqid = snmp_rq->reqid;
+    debug(49, 2) ("snmp_agent_parse_done: errstat=%d, reqid=%d _t=%x\n",
+	errstat, this_reqid, snmp_rq);
 
     if (memcmp(&snmp_rq->from, &local_snmpd, sizeof(struct sockaddr_in)) == 0) {
 	/* look it up */
-	if (snmpFwd_removePending(&snmp_rq->from, this_reqid)) {		/* failed */
+	if (snmpFwd_removePending(&snmp_rq->from, this_reqid)) {	/* failed */
 	    debug(49, 2) ("snmp: bogus response from %s.\n",
-			inet_ntoa(snmp_rq->from.sin_addr));
+		inet_ntoa(snmp_rq->from.sin_addr));
 	    xfree(snmp_rq->outbuf);
 	    xfree(snmp_rq);
 	    return;
@@ -235,8 +235,8 @@ snmp_agent_parse_done(int errstat, snmp_request_t *snmp_rq)
 	    debug(49, 5) ("snmp: sent %d bytes to %s\n", (int) snmp_rq->outlen,
 		inet_ntoa(snmp_rq->from.sin_addr));
 	    for (count = 0; count < snmp_rq->outlen; count++) {
-		snprintf(deb_line, 4096, "%s %02X ", deb_line, 
-			(u_char) snmp_rq->outbuf[count]);
+		snprintf(deb_line, 4096, "%s %02X ", deb_line,
+		    (u_char) snmp_rq->outbuf[count]);
 		if ((count % 16) == 15 || count == (snmp_rq->len - 1)) {
 		    debug(49, 7) ("snmp out: %s\n", deb_line);
 		    deb_line[0] = '\0';
@@ -248,9 +248,9 @@ snmp_agent_parse_done(int errstat, snmp_request_t *snmp_rq)
     case 0:
 	debug(49, 5) ("snmpagentparsedone failed\n");
 	if (snmp_rq->outbuf)
-		xfree(snmp_rq->outbuf);
+	    xfree(snmp_rq->outbuf);
 	break;
-    } 
+    }
     if (snmp_rq->community)
 	xfree(snmp_rq->community);
     cbdataFree(snmp_rq);

@@ -89,7 +89,7 @@ extern int netdb_getMax();
 /**********************************************************************
  * General OID Functions
  **********************************************************************/
-void 
+void
 print_oid(oid * Name, long Len)
 {
     static char mbuf[16], objid[1024];
@@ -102,7 +102,7 @@ print_oid(oid * Name, long Len)
     debug(49, 9) ("   oid = %s\n", objid);
 }
 
-int 
+int
 oidcmp(oid * A, long ALen, oid * B, long BLen)
 {
     oid *aptr = A;
@@ -131,7 +131,7 @@ oidcmp(oid * A, long ALen, oid * B, long BLen)
     return (0);
 }
 
-int 
+int
 oidncmp(oid * A, long ALen, oid * B, long BLen, long CompLen)
 {
     oid *aptr = A;
@@ -362,8 +362,8 @@ genericGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen,
 	    Ptr[MIB_ACTION_INDEX]++;
 	    Ptr[MIBTailLen - 1] = 1;
 	    if (Ptr[MIB_ACTION_INDEX] > MIBTail[MIB_ACTION_INDEX]) {
-		debug(49, 5) ("genericGetNextFn:Beyond last action! (%d)\n", 
-			Ptr[MIB_ACTION_INDEX]);
+		debug(49, 5) ("genericGetNextFn:Beyond last action! (%d)\n",
+		    Ptr[MIB_ACTION_INDEX]);
 		xfree(*Dest);
 		return (NULL);
 	    }
@@ -591,7 +591,7 @@ prfProtoGetFn(oid * Src, long SrcLen)
 {
     debug(49, 5) ("prfProtoGetFn: called with %d\n", SrcLen);
 
-    if (Src[LEN_SQ_PRF]== PERF_PROTOSTAT_MEDIAN && SrcLen==LEN_SQ_PRF+5)  
+    if (Src[LEN_SQ_PRF] == PERF_PROTOSTAT_MEDIAN && SrcLen == LEN_SQ_PRF + 5)
 	return snmp_prfProtoFn;
 
     if (SrcLen != LEN_SQ_PRF + 3 || Src[LEN_SQ_PRF] >= PERF_PROTOSTAT_END)
@@ -603,32 +603,31 @@ oid_ParseFn *
 prfProtoGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 {
     oid MIBRoot[] =
-    {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, 1, 0, 0 };
+    {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, 1, 0, 0};
     int MIBRootLen = LEN_SQ_PRF + 2;
     oid MIBTail[] =
-    {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, PERF_PROTOSTAT_AGGR_END - 1, 0, 0 ,0 };
+    {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, PERF_PROTOSTAT_AGGR_END - 1, 0, 0, 0};
     oid_ParseFn *ret;
 
-    if ( Src[LEN_SQ_PRF] <= PERF_PROTOSTAT_AGGR ) {
-    	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-		MIBRoot, MIBRootLen, LEN_SQ_PRF + 1, MIBTail, snmp_prfProtoFn,
-			LEN_SQ_PRF + 3, LEN_SQ_PRF + 2);
-    	if (ret) 
-	   return ret;
+    if (Src[LEN_SQ_PRF] <= PERF_PROTOSTAT_AGGR) {
+	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
+	    MIBRoot, MIBRootLen, LEN_SQ_PRF + 1, MIBTail, snmp_prfProtoFn,
+	    LEN_SQ_PRF + 3, LEN_SQ_PRF + 2);
+	if (ret)
+	    return ret;
     }
-
-    MIBRoot[LEN_SQ_PRF+1 ] = PERF_PROTOSTAT_MEDIAN;
-    MIBRoot[LEN_SQ_PRF+2 ] = 1;
-    MIBRoot[LEN_SQ_PRF+3 ] = 1;
-    MIBRootLen+=1;
-    MIBTail[LEN_SQ_PRF+1  ] = PERF_PROTOSTAT_MEDIAN;
-    MIBTail[LEN_SQ_PRF+2  ] = 1;
-    MIBTail[LEN_SQ_PRF+3  ] = PERF_MEDIAN_END-1;
-    MIBTail[LEN_SQ_PRF+4  ] = N_COUNT_HIST-1;
+    MIBRoot[LEN_SQ_PRF + 1] = PERF_PROTOSTAT_MEDIAN;
+    MIBRoot[LEN_SQ_PRF + 2] = 1;
+    MIBRoot[LEN_SQ_PRF + 3] = 1;
+    MIBRootLen += 1;
+    MIBTail[LEN_SQ_PRF + 1] = PERF_PROTOSTAT_MEDIAN;
+    MIBTail[LEN_SQ_PRF + 2] = 1;
+    MIBTail[LEN_SQ_PRF + 3] = PERF_MEDIAN_END - 1;
+    MIBTail[LEN_SQ_PRF + 4] = N_COUNT_HIST - 1;
 
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-                MIBRoot, MIBRootLen, LEN_SQ_PRF + 1, MIBTail, snmp_prfProtoFn,
-                        LEN_SQ_PRF + 5, LEN_SQ_PRF + 3);
+	MIBRoot, MIBRootLen, LEN_SQ_PRF + 1, MIBTail, snmp_prfProtoFn,
+	LEN_SQ_PRF + 5, LEN_SQ_PRF + 3);
 
     return ret;
 }

@@ -441,7 +441,7 @@ mainInitialize(void)
     dnsOpenServers();
     redirectOpenServers();
     useragentOpenLog();
-    httpHeaderInitModule();     /* must go before any header processing (e.g. the one in errorInitialize) */
+    httpHeaderInitModule();	/* must go before any header processing (e.g. the one in errorInitialize) */
     errorInitialize();
     accessLogInit();
 

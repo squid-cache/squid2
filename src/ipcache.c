@@ -1059,7 +1059,7 @@ ipcache_restart(void)
 
 #ifdef SQUID_SNMP
 
-int 
+int
 ipcache_getMax()
 {
     int i = 0;

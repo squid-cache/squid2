@@ -956,13 +956,13 @@ snmp_fqdncacheFn(variable_list * Var, long *ErrP)
 	Answer->type = SMI_TIMETICKS;
 	Answer->val_len = sizeof(long);
 	Answer->val.integer = xmalloc(Answer->val_len);
-	*(Answer->val.integer) = squid_curtime-fq->lastref;
+	*(Answer->val.integer) = squid_curtime - fq->lastref;
 	break;
     case NET_FQDN_EXPIRES:
 	Answer->type = SMI_TIMETICKS;
 	Answer->val_len = sizeof(long);
 	Answer->val.integer = xmalloc(Answer->val_len);
-	*(Answer->val.integer) = fq->expires-squid_curtime;
+	*(Answer->val.integer) = fq->expires - squid_curtime;
 	break;
     case NET_FQDN_STATE:
 	Answer->type = ASN_INTEGER;
