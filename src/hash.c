@@ -418,10 +418,9 @@ main(void)
 
     todelete[0] = '\0';
     printf("init\n");
-    hash_init(NULL);
 
     printf("creating hash table\n");
-    if ((hid = hash_create(strcmp)) < 0) {
+    if ((hid = hash_create(strcmp, 229, hash_string)) < 0) {
 	printf("hash_create error.\n");
 	exit(1);
     }
@@ -431,10 +430,7 @@ main(void)
 	buf[strlen(buf) - 1] = '\0';
 	printf("Inserting '%s' for item %p to hash table: %d\n",
 	    buf, buf, hid);
-	if (hash_insert(hid, xstrdup(buf), (void *) 0x12345678)) {
-	    printf("error inserting!\n");
-	    exit(1);
-	}
+	hash_insert(hid, xstrdup(buf), (void *) 0x12345678);
 	if (random() % 17 == 0)
 	    strcpy(todelete, buf);
     }
