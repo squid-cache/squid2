@@ -2512,7 +2512,7 @@ DOC_START
 		anonymize_headers allow Content-Encoding Content-Length
 		anonymize_headers allow Content-Type Date Expires Host
 		anonymize_headers allow If-Modified-Since Last-Modified
-		anonymize_headers allow Location Pragma Accept Charset
+		anonymize_headers allow Location Pragma Accept
 		anonymize_headers allow Accept-Encoding Accept-Language
 		anonymize_headers allow Content-Language Mime-Version
 		anonymize_headers allow Retry-After Title Connection
