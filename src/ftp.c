@@ -313,6 +313,7 @@ ftpReadReply(int fd, void *data)
     }
     errno = 0;
     len = read(fd, buf, SQUID_TCP_SO_RCVBUF);
+    fd_bytes(fd, len, FD_READ);
     debug(9, 5, "ftpReadReply: FD %d, Read %d bytes\n", fd, len);
     if (len > 0) {
 	commSetTimeout(fd, Config.Timeout.read, NULL, NULL);
@@ -504,7 +505,6 @@ ftpSendRequest(int fd, void *data)
     comm_write(fd,
 	buf,
 	strlen(buf),
-	30,
 	ftpSendComplete,
 	ftpState,
 	put_free_8k_page);
@@ -627,9 +627,9 @@ ftpStartComplete(void *data, int status)
 	ftpStateFree,
 	ftpState);
     commSetTimeout(ftpState->ftp_fd,
-        Config.Timeout.connect,
-        ftpTimeout,
-        ftpState);
+	Config.Timeout.connect,
+	ftpTimeout,
+	ftpState);
     commConnectStart(ftpState->ftp_fd,
 	localhost,
 	ftpget_port,
@@ -750,8 +750,8 @@ ftpInitialize(void)
 	comm_close(cfd);
 	close(squid_to_ftpget[0]);
 	close(ftpget_to_squid[1]);
-	fd_open(squid_to_ftpget[1], FD_PIPE, "squid->ftpget");
-	fd_open(ftpget_to_squid[0], FD_PIPE, "ftpget->squid");
+	fd_open(squid_to_ftpget[1], FD_PIPE, "squid -> ftpget");
+	fd_open(ftpget_to_squid[0], FD_PIPE, "squid <- ftpget");
 	commSetCloseOnExec(squid_to_ftpget[1]);
 	commSetCloseOnExec(ftpget_to_squid[0]);
 	/* if ftpget -S goes away, this handler should get called */

@@ -139,6 +139,7 @@ passReadServer(int fd, void *data)
     PassStateData *passState = data;
     int len;
     len = read(passState->server.fd, passState->server.buf, SQUID_TCP_SO_RCVBUF);
+    fd_bytes(passState->server.fd, len, FD_READ);
     debug(39, 5, "passReadServer FD %d, read %d bytes\n", fd, len);
     if (len < 0) {
 	debug(50, 2, "passReadServer: FD %d: read failure: %s\n",
@@ -159,7 +160,7 @@ passReadServer(int fd, void *data)
     } else {
 	passState->server.offset = 0;
 	passState->server.len = len;
-        commSetTimeout(passState->server.fd, Config.Timeout.read, NULL, NULL);
+	commSetTimeout(passState->server.fd, Config.Timeout.read, NULL, NULL);
 	commSetSelect(passState->client.fd,
 	    COMM_SELECT_WRITE,
 	    passWriteClient,
@@ -174,6 +175,7 @@ passReadClient(int fd, void *data)
     PassStateData *passState = data;
     int len;
     len = read(passState->client.fd, passState->client.buf, SQUID_TCP_SO_RCVBUF);
+    fd_bytes(passState->client.fd, len, FD_READ);
     debug(39, 5, "passReadClient FD %d, read %d bytes\n",
 	passState->client.fd, len);
     if (len < 0) {
@@ -352,7 +354,6 @@ passConnect(int fd, const ipcache_addrs * ia, void *data)
 	comm_write(passState->client.fd,
 	    xstrdup(buf),
 	    strlen(buf),
-	    30,
 	    passErrorComplete,
 	    passState,
 	    xfree);
@@ -363,9 +364,9 @@ passConnect(int fd, const ipcache_addrs * ia, void *data)
 	passState->server.fd);
     /* Install lifetime handler */
     commSetTimeout(passState->server.fd,
-        Config.Timeout.read,
-        passTimeout,
-        passState);
+	Config.Timeout.read,
+	passTimeout,
+	passState);
     commConnectStart(fd,
 	passState->host,
 	passState->port,
@@ -388,7 +389,6 @@ passConnectDone(int fd, int status, void *data)
 	comm_write(passState->client.fd,
 	    xstrdup(buf),
 	    strlen(buf),
-	    30,
 	    passErrorComplete,
 	    passState,
 	    xfree);
@@ -433,7 +433,6 @@ passStart(int fd,
 	comm_write(fd,
 	    xstrdup(msg),
 	    strlen(msg),
-	    30,
 	    NULL,
 	    NULL,
 	    xfree);

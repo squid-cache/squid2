@@ -116,6 +116,7 @@ unlinkdCreate(void)
 	close(wfd2);
 	memset(buf, '\0', HELLO_BUFSIZ);
 	n = read(rfd2, buf, HELLO_BUFSIZ - 1);
+	fd_bytes(rfd2, len, FD_READ);
 	close(rfd2);
 	if (n <= 0) {
 	    debug(50, 0, "unlinkdCreate: handshake failed\n");
@@ -131,7 +132,7 @@ unlinkdCreate(void)
 	slp.tv_sec = 0;
 	slp.tv_usec = 250000;
 	select(0, NULL, NULL, NULL, &slp);
-	file_open_fd(wfd1, "unlinkd socket", FD_PIPE);
+	fd_open(wfd1, FD_PIPE, "squid -> unlinkd");
 	commSetNonBlocking(wfd1);
 	return wfd1;
     }
@@ -192,7 +193,6 @@ unlinkdInit(void)
     unlinkd_fd = unlinkdCreate();
     if (unlinkd_fd < 0)
 	fatal("unlinkdInit: failed to start unlinkd\n");
-    fd_note(unlinkd_fd, Config.Program.unlinkd);
     debug(43, 0, "Unlinkd pipe opened on FD %d\n", unlinkd_fd);
 }
 

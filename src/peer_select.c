@@ -310,7 +310,7 @@ peerHandleIcpReply(peer * p, peer_t type, icp_opcode op, void *data)
 	    SOURCE_FASTEST,
 	    &psstate->icp,
 	    request->host);
-	peerSelectCallback(psstate, p);
+	peerSelectCallback(psstate, NULL);
 	return;
     }
     if (psstate->icp.n_recv < psstate->icp.n_replies_expected)

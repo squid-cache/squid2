@@ -150,10 +150,10 @@ struct SquidConfig {
     int negativeDnsTtl;
     int positiveDnsTtl;
     struct {
-        int read;
-        int defer;
-        int lifetime;
-        int connect;
+	int read;
+	int defer;
+	int lifetime;
+	int connect;
     } Timeout;
     int shutdownLifetime;
     int cleanRate;

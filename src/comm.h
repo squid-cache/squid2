@@ -121,11 +121,9 @@
 #define COMM_SELECT_READ   (0x1)
 #define COMM_SELECT_WRITE  (0x2)
 
-typedef void PF _PARAMS((int, void *));
-typedef void CCH _PARAMS((int fd, int status, void *data));
-
-typedef void rw_complete_handler(int fd, char *buf, int size, int errflag, void *data);
-typedef struct _RWStateData RWStateData;
+typedef void RWCB _PARAMS((int fd, char *, int size, int errflag, void *data));
+typedef void CNCB _PARAMS((int fd, int status, void *data));
+typedef void FREE _PARAMS((void *));
 
 struct close_handler {
     PF *handler;
@@ -137,7 +135,7 @@ typedef struct {
     char *host;
     u_short port;
     struct sockaddr_in S;
-    CCH *callback;
+    CNCB *callback;
     void *data;
 } ConnectStateData;
 
@@ -145,7 +143,7 @@ extern int commSetNonBlocking _PARAMS((int fd));
 extern void commSetCloseOnExec _PARAMS((int fd));
 extern int comm_accept _PARAMS((int fd, struct sockaddr_in *, struct sockaddr_in *));
 extern void comm_close _PARAMS((int fd));
-extern void commConnectStart _PARAMS((int fd, const char *, u_short, CCH *, void *));
+extern void commConnectStart _PARAMS((int fd, const char *, u_short, CNCB *, void *));
 extern int comm_connect_addr _PARAMS((int sock, const struct sockaddr_in *));
 extern int comm_init _PARAMS((void));
 extern int comm_listen _PARAMS((int sock));
@@ -164,10 +162,9 @@ extern void comm_set_stall _PARAMS((int, int));
 extern void comm_write _PARAMS((int fd,
 	char *buf,
 	int size,
-	int timeout,
-	rw_complete_handler * handler,
+	RWCB * handler,
 	void *handler_data,
-	void       (*)_PARAMS((void *))));
+	FREE *));
 extern void commFreeMemory _PARAMS((void));
 extern void commCallCloseHandlers _PARAMS((int fd));
 extern void commCancelRWHandler _PARAMS((int fd));

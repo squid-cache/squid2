@@ -269,9 +269,9 @@ typedef void SIH _PARAMS((void *, int));	/* swap in */
 typedef int QS _PARAMS((const void *, const void *));	/* qsort */
 
 #include "cache_cf.h"
+#include "fd.h"
 #include "comm.h"
 #include "disk.h"
-#include "fd.h"
 #include "debug.h"
 #include "fdstat.h"
 #include "hash.h"

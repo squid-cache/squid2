@@ -112,19 +112,6 @@
 #define DISK_FILE_NOT_FOUND      (-5)
 #define DISK_NO_SPACE_LEFT       (-6)
 
-typedef void FILE_READ_HD(int fd, const char *buf, int size, int errflag, void *data);
-typedef void FILE_WRITE_HD(int, int, void *);
-typedef void FILE_WALK_HD(int fd, int errflag, void *data);
-typedef void FILE_WALK_LHD(int fd, const char *buf, int size, void *line_data);
-
-typedef struct _dwrite_q {
-    char *buf;
-    int len;
-    int cur_offset;
-    struct _dwrite_q *next;
-    void (*free) (void *);
-} dwrite_q;
-
 typedef struct _dread_ctrl {
     int fd;
     off_t offset;
@@ -154,6 +141,5 @@ extern int file_read _PARAMS((int fd,
 extern int file_walk _PARAMS((int fd, FILE_WALK_HD *, void *, FILE_WALK_LHD *, void *));
 extern int disk_init _PARAMS((void));
 extern int diskWriteIsComplete _PARAMS((int));
-extern void file_open_fd _PARAMS((int fd, const char *name, unsigned int type));
 
 #endif /* DISK_H */

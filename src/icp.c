@@ -479,7 +479,6 @@ icpSendERROR(int fd,
     comm_write(fd,
 	buf,
 	buf_len,
-	30,
 	icpSendERRORComplete,
 	icpState,
 	put_free_4k_page);
@@ -558,7 +557,6 @@ icpSendMoreData(int fd, icpStateData * icpState)
     comm_write(fd,
 	buf,
 	len,
-	30,
 	clientWriteComplete,
 	icpState,
 	put_free_4k_page);
@@ -682,7 +680,6 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     comm_write(fd,
 	xstrdup(reply),
 	strlen(reply),
-	30,
 	icpHandleIMSComplete,
 	icpState,
 	xfree);
@@ -747,7 +744,6 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	    comm_write(fd,
 		xstrdup(reply),
 		strlen(reply),
-		30,
 		icpSendERRORComplete,
 		icpState,
 		xfree);
@@ -1728,6 +1724,7 @@ clientReadRequest(int fd, void *data)
     debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
     debug(12, 4, "clientReadRequest: len = %d\n", len);
     size = read(fd, icpState->inbuf + icpState->in_offset, len);
+    fd_bytes(fd, size, FD_READ);
 
     if (size == 0) {
 	comm_close(fd);
@@ -1751,7 +1748,7 @@ clientReadRequest(int fd, void *data)
 
     parser_return_code = parseHttpRequest(icpState);
     if (parser_return_code == 1) {
-        commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
+	commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
 	if ((request = urlParse(icpState->method, icpState->url)) == NULL) {
 	    debug(12, 5, "Invalid URL: %s\n", icpState->url);
 	    wbuf = squid_error_url(icpState->url,
@@ -1776,7 +1773,6 @@ clientReadRequest(int fd, void *data)
 	    comm_write(fd,
 		wbuf,
 		strlen(wbuf),
-		30,
 		icpSendERRORComplete,
 		icpState,
 		xfree);
@@ -1889,7 +1885,7 @@ asciiHandleConn(int sock, void *notused)
     icpState->entry = NULL;
     icpState->fd = fd;
     icpState->ident.fd = -1;
-    fd_note(fd, inet_ntoa(icpState->log_addr));
+    fd_note(fd, "Reading Request");
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
     commSetTimeout(fd, Config.Timeout.read, requestTimeout, icpState);
     comm_add_close_handler(fd,
@@ -2009,6 +2005,7 @@ icpDetectClientClose(int fd, void *data)
 	    icpState->size);
 	comm_close(fd);
     } else if ((n = read(fd, buf, 255)) > 0) {
+	fd_bytes(fd, n, FD_READ);
 	buf[n] = '\0';
 	debug(12, 0, "icpDetectClientClose: FD %d, %d unexpected bytes\n",
 	    fd, n);
@@ -2095,7 +2092,7 @@ icpDetectNewRequest(int fd)
     icpState->me = me;
     icpState->entry = NULL;
     icpState->fd = fd;
-    fd_note(fd, inet_ntoa(icpState->log_addr));
+    fd_note(fd, "Reading Request");
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
     commSetTimeout(fd, Config.Timeout.read, requestTimeout, icpState);
     comm_add_close_handler(fd,

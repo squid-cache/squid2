@@ -554,6 +554,7 @@ ipcache_dnsHandleRead(int fd, void *data)
     len = read(fd,
 	dnsData->ip_inbuf + dnsData->offset,
 	dnsData->size - dnsData->offset);
+    fd_bytes(fd, len, FD_READ);
     debug(14, 5, "ipcache_dnsHandleRead: Result from DNS ID %d (%d bytes)\n",
 	dnsData->id, len);
     if (len <= 0) {
@@ -724,7 +725,6 @@ ipcache_dnsDispatch(dnsserver_t * dns, ipcache_entry * i)
     comm_write(dns->outpipe,
 	buf,
 	strlen(buf),
-	0,			/* timeout */
 	NULL,			/* Handler */
 	NULL,			/* Handler-data */
 	xfree);

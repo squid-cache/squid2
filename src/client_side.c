@@ -571,7 +571,6 @@ clientPurgeRequest(icpStateData * icpState)
     comm_write(fd,
 	msg,
 	strlen(msg),
-	30,
 	icpSendERRORComplete,
 	icpState,
 	NULL);
