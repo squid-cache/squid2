@@ -1719,7 +1719,7 @@ int storeAbort(e, msg)
 	if ((int) (strlen(msg) + strlen(mime_hdr) + 50) < 2000) {
 	    sprintf(abort_msg, "HTTP/1.0 400 Cache Detected Error\r\n%s\r\n\r\n%s", mime_hdr, msg);
 	} else {
-	    debug(20, 0, "storeAbort: WARNING: Must increase msg length!");
+	    debug(20, 0, "storeAbort: WARNING: Must increase msg length!\n");
 	}
 	storeAppend(e, abort_msg, strlen(abort_msg));
 	e->mem_obj->e_abort_msg = xstrdup(abort_msg);
@@ -2781,7 +2781,7 @@ int storeWriteCleanLog()
     start = getCurrentTime();
     sprintf(tmp_filename, "%s/log_clean", swappath(0));
     if ((fp = fopen(tmp_filename, "a+")) == NULL) {
-	debug(20, 0, "storeWriteCleanLog: %s: %s", tmp_filename, xstrerror());
+	debug(20, 0, "storeWriteCleanLog: %s: %s\n", tmp_filename, xstrerror());
 	return 0;
     }
     for (e = storeGetFirst(); e; e = storeGetNext()) {
@@ -2797,7 +2797,7 @@ int storeWriteCleanLog()
 	    swapfilename, e->url, (int) e->expires, (int) e->timestamp,
 	    e->object_len);
 	if (x < 0) {
-	    debug(20, 0, "storeWriteCleanLog: %s: %s", tmp_filename, xstrerror());
+	    debug(20, 0, "storeWriteCleanLog: %s: %s\n", tmp_filename, xstrerror());
 	    debug(20, 0, "storeWriteCleanLog: Current swap logfile not replaced.\n");
 	    fclose(fp);
 	    safeunlink(tmp_filename, 0);
@@ -2809,7 +2809,7 @@ int storeWriteCleanLog()
 	}
     }
     if (fclose(fp) < 0) {
-	debug(20, 0, "storeWriteCleanLog: %s: %s", tmp_filename, xstrerror());
+	debug(20, 0, "storeWriteCleanLog: %s: %s\n", tmp_filename, xstrerror());
 	debug(20, 0, "storeWriteCleanLog: Current swap logfile not replaced.\n");
 	safeunlink(tmp_filename, 0);
 	return 0;

@@ -481,7 +481,7 @@ void setMaxFD()
     struct rlimit rl;
 #if defined(RLIMIT_NOFILE)
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
-	debug(21, 0, "setrlimit: RLIMIT_NOFILE: %s", xstrerror());
+	debug(21, 0, "setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
     } else {
 	rl.rlim_cur = FD_SETSIZE;
 	if (rl.rlim_cur > rl.rlim_max)
@@ -493,7 +493,7 @@ void setMaxFD()
     }
 #elif defined(RLIMIT_OFILE)
     if (getrlimit(RLIMIT_OFILE, &rl) < 0) {
-	debug(21, 0, "setrlimit: RLIMIT_NOFILE: %s", xstrerror());
+	debug(21, 0, "setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
     } else {
 	rl.rlim_cur = FD_SETSIZE;
 	if (rl.rlim_cur > rl.rlim_max)
@@ -505,12 +505,12 @@ void setMaxFD()
     }
 #endif
 #else /* HAVE_SETRLIMIT */
-    debug(21, 1, "setMaxFD: Cannot increase: setrlimit() not supported on this system");
+    debug(21, 1, "setMaxFD: Cannot increase: setrlimit() not supported on this system\n");
 #endif /* HAVE_SETRLIMIT */
 
 #if HAVE_SETRLIMIT && defined(RLIMIT_DATA)
     if (getrlimit(RLIMIT_DATA, &rl) < 0) {
-	debug(21, 0, "getrlimit: RLIMIT_DATA: %s", xstrerror());
+	debug(21, 0, "getrlimit: RLIMIT_DATA: %s\n", xstrerror());
     } else {
 	rl.rlim_cur = rl.rlim_max;	/* set it to the max */
 	if (setrlimit(RLIMIT_DATA, &rl) < 0) {

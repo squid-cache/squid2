@@ -1470,7 +1470,7 @@ static int parseHttpRequest(icpState)
 
     /* Make sure a complete line has been received */
     if (strchr(icpState->inbuf, '\n') == NULL) {
-	debug(12, 5, "Incomplete request line, waiting for more data");
+	debug(12, 5, "Incomplete request line, waiting for more data\n");
 	return 0;
     }
     /* Use xmalloc/xmemcpy instead of xstrdup because inbuf might
