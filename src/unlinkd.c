@@ -143,7 +143,7 @@ void
 unlinkdClose(void)
 {
     if (unlinkd_fd >= 0) {
-	comm_close(unlinkd_fd);
+	file_close(unlinkd_fd);
 	unlinkd_fd = -1;
     }
 }
