@@ -156,9 +156,9 @@ static struct {
 #define DefaultAnnounceFile	(char *)NULL	/* default NONE */
 #define DefaultAnnounceRate	0	/* Default off */
 #define DefaultTcpIncomingAddr	INADDR_ANY
-#define DefaultTcpOutgoingAddr	SQUID_INADDR_NONE
+#define DefaultTcpOutgoingAddr	INADDR_NONE
 #define DefaultUdpIncomingAddr	INADDR_ANY
-#define DefaultUdpOutgoingAddr	SQUID_INADDR_NONE
+#define DefaultUdpOutgoingAddr	INADDR_NONE
 
 ip_acl *local_ip_list = NULL;
 
@@ -917,7 +917,7 @@ static void parseAddressLine(addr)
     if (token == NULL)
 	self_destruct();
     debug(3, 1, "parseAddressLine: %s\n", token);
-    if (inet_addr(token) != SQUID_INADDR_NONE)
+    if (inet_addr(token) != INADDR_NONE)
 	(*addr).s_addr = inet_addr(token);
     else if ((hp = gethostbyname(token)))
 	memcpy(addr, hp->h_addr, hp->h_length);

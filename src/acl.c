@@ -123,7 +123,7 @@ static int decode_addr(asc, addr, mask)
 
     switch (sscanf(asc, "%d.%d.%d.%d", &a1, &a2, &a3, &a4)) {
     case 4:			/* a dotted quad */
-	if ((a = inet_addr(asc)) != SQUID_INADDR_NONE ||
+	if ((a = inet_addr(asc)) != INADDR_NONE ||
 	    !strcmp(asc, "255.255.255.255")) {
 	    addr->s_addr = a;
 	    /* inet_addr() outputs in network byte order */

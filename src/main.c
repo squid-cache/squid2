@@ -163,7 +163,7 @@ void serverConnectionsOpen()
 	    debug(1, 1, "Accepting ICP connections on FD %d.\n",
 		theInIcpConnection);
 
-	    if ((addr = getUdpOutgoingAddr()).s_addr != SQUID_INADDR_NONE) {
+	    if ((addr = getUdpOutgoingAddr()).s_addr != INADDR_NONE) {
 		theOutIcpConnection = comm_open(COMM_NONBLOCKING | COMM_DGRAM,
 		    addr,
 		    port,

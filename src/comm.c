@@ -185,7 +185,7 @@ int comm_open(io_type, addr, port, note)
 	if (do_reuse)
 	    commSetReuseAddr(new_socket);
     }
-    if (addr.s_addr != SQUID_INADDR_NONE)
+    if (addr.s_addr != INADDR_NONE)
 	if (commBind(new_socket, addr, port) != COMM_OK)
 	    return COMM_ERROR;
     conn->local_port = port;

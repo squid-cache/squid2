@@ -116,7 +116,9 @@
 #define SQUIDHOSTNAMELEN MAXHOSTNAMELEN
 #endif
 
-#define SQUID_INADDR_NONE -1
+#ifndef INADDR_NONE
+#define INADDR_NONE -1
+#endif
 
 #if !defined(HAVE_RUSAGE) && defined(_SQUID_HPUX_)
 #define HAVE_RUSAGE
