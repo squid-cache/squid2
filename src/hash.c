@@ -413,10 +413,10 @@ hash_get_bucket(HashID hid, unsigned int bucket)
 
 
 void
-hashFreeMemory (HashID hid)
+hashFreeMemory(HashID hid)
 {
-	safe_free(htbl[hid].buckets);
-        htbl[hid].valid = 0;
+    safe_free(htbl[hid].buckets);
+    htbl[hid].valid = 0;
 }
 
 

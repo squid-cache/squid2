@@ -261,5 +261,5 @@ fdstat_are_n_free_fd(int n)
 void
 fdstatFreeMemory(void)
 {
-	safe_free(fd_stat_tab);
+    safe_free(fd_stat_tab);
 }

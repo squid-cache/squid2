@@ -1360,5 +1360,5 @@ comm_write(int fd, char *buf, int size, int timeout, rw_complete_handler * handl
 void
 commFreeMemory(void)
 {
-	safe_free(fd_table);
+    safe_free(fd_table);
 }

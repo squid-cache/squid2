@@ -218,8 +218,8 @@ file_map_allocate(int suggestion)
 void
 filemapFreeMemory(void)
 {
-        safe_free(fm->file_map);
-	safe_free(fm);
+    safe_free(fm->file_map);
+    safe_free(fm);
 }
 
 #ifdef TEST

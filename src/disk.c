@@ -590,5 +590,5 @@ diskWriteIsComplete(int fd)
 void
 diskFreeMemory(void)
 {
-	safe_free(file_table);
+    safe_free(file_table);
 }

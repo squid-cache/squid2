@@ -414,7 +414,7 @@ proxy_denied_msg(int code, int method, char *url, char *client)
 void
 errorpageFreeMemory(void)
 {
-	safe_free(tmp_error_buf);
-	safe_free(tbuf);
-	safe_free(auth_msg);
+    safe_free(tmp_error_buf);
+    safe_free(tbuf);
+    safe_free(auth_msg);
 }

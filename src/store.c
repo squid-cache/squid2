@@ -2656,7 +2656,7 @@ storeWriteCleanLog(void)
 	    continue;
 	if (e->object_len <= 0)
 	    continue;
-        if (BIT_TEST(e->flag, RELEASE_REQUEST))
+	if (BIT_TEST(e->flag, RELEASE_REQUEST))
 	    continue;
 	if (BIT_TEST(e->flag, KEY_PRIVATE))
 	    continue;
