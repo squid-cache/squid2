@@ -252,6 +252,7 @@ httpRequestFree(void *data)
     const char *content_type = NULL;
     method_t method = METHOD_NONE;
     StoreEntry *entry = http->entry;
+    debug(12, 3, "httpRequestFree: %s\n", entry ? entry->url : "no store entry");
     icpProcessRequestControl(http, ICP_OP_DEL);
     if (!icpCheckTransferDone(http)) {
 	CheckQuickAbort(http);
@@ -615,7 +616,6 @@ icpSendMoreData(void *data, char *buf, size_t size)
     int fd = conn->fd;
     char *p = NULL;
     size_t hdrlen;
-    size_t newbuflen;
     size_t l = 0;
     size_t writelen;
     char *newbuf;
@@ -659,13 +659,14 @@ icpSendMoreData(void *data, char *buf, size_t size)
 	}
 #endif
 	/* make sure 'buf' is null terminated somewhere */
-	if (size == ICP_SENDMOREDATA_BUF)
+	if (size == ICP_SENDMOREDATA_BUF) {
 	    size--;
+	    writelen--;
+	}
 	*(buf + size) = '\0';
 	newbuf = get_free_8k_page();
-	newbuflen = 8192;
 	hdrlen = 0;
-	l = clientBuildReplyHeader(http, buf, &hdrlen, newbuf, newbuflen);
+	l = clientBuildReplyHeader(http, buf, &hdrlen, newbuf, 8192);
 	if (l != 0) {
 	    writelen = l + size - hdrlen;
 	    assert(writelen <= 8192);
@@ -2131,6 +2132,7 @@ CheckQuickAbort(clientHttpRequest * http)
 	return;
     if (CheckQuickAbort2(http) == 0)
 	return;
+    debug(12,3,"CheckQuickAbort: ABORTING %s\n", http->entry->url);
     BIT_SET(http->entry->flag, CLIENT_ABORT_REQUEST);
     storeReleaseRequest(http->entry);
     http->log_type = ERR_CLIENT_ABORT;
