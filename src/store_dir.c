@@ -248,6 +248,7 @@ void
 storeDirSwapLog(const StoreEntry * e, int op)
 {
     int dirn = e->swap_file_number >> SWAP_DIR_SHIFT;
+    SwapDir *sd;
     assert(dirn < Config.cacheSwap.n_configured);
     assert(!EBIT_TEST(e->flags, KEY_PRIVATE));
     assert(e->swap_file_number >= 0);
@@ -261,7 +262,8 @@ storeDirSwapLog(const StoreEntry * e, int op)
 	swap_log_op_str[op],
 	storeKeyText(e->key),
 	e->swap_file_number);
-    Config.cacheSwap.swapDirs[dirn].obj.log(e, op);
+    sd = &Config.cacheSwap.swapDirs[dirn];
+    sd->obj.log(sd, e, op);
 }
 
 void

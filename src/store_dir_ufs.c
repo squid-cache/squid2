@@ -67,6 +67,9 @@ struct _RebuildState {
     struct _store_rebuild_data counts;
 };
 
+static int n_ufs_dirs = 0;
+static int *ufs_dir_index = NULL;
+
 static char *storeUfsSwapSubDir(SwapDir *, int subdirn);
 static int storeUfsCreateDirectory(const char *path, int);
 static int storeUfsVerifyCacheDirs(SwapDir *);
@@ -97,6 +100,10 @@ static STLOGCLEANWRITE storeUfsDirWriteCleanEntry;
 static STLOGCLOSE storeUfsDirCloseSwapLog;
 static STOBJLOG storeUfsDirSwapLog;
 static STNEWFS storeUfsDirNewfs;
+static QS rev_int_sort;
+static int storeUfsDirClean(int swap_index);
+static EVH storeUfsDirCleanEvent;
+static int storeUfsDirIs(SwapDir * sd);
 
 static char *
 storeUfsSwapSubDir(SwapDir * sd, int subdirn)
@@ -216,11 +223,31 @@ storeUfsDirOpenSwapLog(SwapDir * sd)
     }
     debug(47, 3) ("Cache Dir #%d log opened on FD %d\n", sd->index, fd);
     sd->u.ufs.swaplog_fd = fd;
+    if (0 == n_ufs_dirs)
+	assert(NULL == ufs_dir_index);
+    n_ufs_dirs++;
+    assert(n_ufs_dirs <= Config.cacheSwap.n_configured);
+}
+
+static void
+storeUfsDirCloseSwapLog(SwapDir * sd)
+{
+    if (sd->u.ufs.swaplog_fd < 0)	/* not open */
+	return;
+    file_close(sd->u.ufs.swaplog_fd);
+    debug(47, 3) ("Cache Dir #%d log closed on FD %d\n",
+	sd->index, sd->u.ufs.swaplog_fd);
+    sd->u.ufs.swaplog_fd = -1;
+    n_ufs_dirs--;
+    assert(n_ufs_dirs >= 0);
+    if (0 == n_ufs_dirs)
+	safe_free(ufs_dir_index);
 }
 
 static void
 storeUfsDirInit(SwapDir * sd)
 {
+    static int started_clean_event = 0;
     static const char *errmsg =
     "\tFailed to verify one of the swap directories, Check cache.log\n"
     "\tfor details.  Run 'squid -z' to create swap directories\n"
@@ -229,6 +256,10 @@ storeUfsDirInit(SwapDir * sd)
 	fatal(errmsg);
     storeUfsDirOpenSwapLog(sd);
     storeUfsDirRebuild(sd);
+    if (!started_clean_event) {
+	eventAdd("storeDirClean", storeUfsDirCleanEvent, NULL, 15.0, 1);
+	started_clean_event = 1;
+    }
 }
 
 static void
@@ -762,17 +793,6 @@ storeUfsDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
     return fp;
 }
 
-static void
-storeUfsDirCloseSwapLog(SwapDir * sd)
-{
-    if (sd->u.ufs.swaplog_fd < 0)	/* not open */
-	return;
-    file_close(sd->u.ufs.swaplog_fd);
-    debug(47, 3) ("Cache Dir #%d log closed on FD %d\n",
-	sd->index, sd->u.ufs.swaplog_fd);
-    sd->u.ufs.swaplog_fd = -1;
-}
-
 struct _clean_state {
     char *cur;
     char *new;
@@ -917,10 +937,9 @@ storeUfsDirWriteCleanClose(SwapDir * sd)
 }
 
 static void
-storeUfsDirSwapLog(const StoreEntry * e, int op)
+storeUfsDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
 {
     storeSwapLogData *s = xcalloc(1, sizeof(storeSwapLogData));
-    int dirn = e->swap_file_number >> SWAP_DIR_SHIFT;
     s->op = (char) op;
     s->swap_file_number = e->swap_file_number;
     s->timestamp = e->timestamp;
@@ -931,7 +950,7 @@ storeUfsDirSwapLog(const StoreEntry * e, int op)
     s->refcount = e->refcount;
     s->flags = e->flags;
     xmemcpy(s->key, e->key, MD5_DIGEST_CHARS);
-    file_write(Config.cacheSwap.swapDirs[dirn].u.ufs.swaplog_fd,
+    file_write(sd->u.ufs.swaplog_fd,
 	-1,
 	s,
 	sizeof(storeSwapLogData),
@@ -946,6 +965,126 @@ storeUfsDirNewfs(SwapDir * sd)
     debug(47, 3) ("Creating swap space in %s\n", sd->path);
     storeUfsCreateDirectory(sd->path, 0);
     storeUfsCreateSwapSubDirs(sd);
+}
+
+static int
+rev_int_sort(const void *A, const void *B)
+{
+    const int *i1 = A;
+    const int *i2 = B;
+    return *i2 - *i1;
+}
+
+static int
+storeUfsDirClean(int swap_index)
+{
+    DIR *dp = NULL;
+    struct dirent *de = NULL;
+    LOCAL_ARRAY(char, p1, MAXPATHLEN + 1);
+    LOCAL_ARRAY(char, p2, MAXPATHLEN + 1);
+#if USE_TRUNCATE_NOT_UNLINK
+    struct stat sb;
+#endif
+    int files[20];
+    int swapfileno;
+    int fn;			/* same as swapfileno, but with dirn bits set */
+    int n = 0;
+    int k = 0;
+    int N0, N1, N2;
+    int D0, D1, D2;
+    N0 = n_ufs_dirs;
+    D0 = ufs_dir_index[swap_index % N0];
+    N1 = Config.cacheSwap.swapDirs[D0].u.ufs.l1;
+    D1 = (swap_index / N0) % N1;
+    N2 = Config.cacheSwap.swapDirs[D0].u.ufs.l2;
+    D2 = ((swap_index / N0) / N1) % N2;
+    snprintf(p1, SQUID_MAXPATHLEN, "%s/%02X/%02X",
+	Config.cacheSwap.swapDirs[D0].path, D1, D2);
+    debug(36, 3) ("storeDirClean: Cleaning directory %s\n", p1);
+    dp = opendir(p1);
+    if (dp == NULL) {
+	if (errno == ENOENT) {
+	    debug(36, 0) ("storeDirClean: WARNING: Creating %s\n", p1);
+	    if (mkdir(p1, 0777) == 0)
+		return 0;
+	}
+	debug(50, 0) ("storeDirClean: %s: %s\n", p1, xstrerror());
+	safeunlink(p1, 1);
+	return 0;
+    }
+    while ((de = readdir(dp)) != NULL && k < 20) {
+	if (sscanf(de->d_name, "%X", &swapfileno) != 1)
+	    continue;
+	fn = storeDirProperFileno(D0, swapfileno);
+	if (storeDirValidFileno(fn))
+	    if (storeDirMapBitTest(fn))
+		if (storeUfsFilenoBelongsHere(fn, D0, D1, D2))
+		    continue;
+#if USE_TRUNCATE_NOT_UNLINK
+	if (!stat(de->d_name, &sb))
+	    if (sb.st_size == 0)
+		continue;
+#endif
+	files[k++] = swapfileno;
+    }
+    closedir(dp);
+    if (k == 0)
+	return 0;
+    qsort(files, k, sizeof(int), rev_int_sort);
+    if (k > 10)
+	k = 10;
+    for (n = 0; n < k; n++) {
+	debug(36, 3) ("storeDirClean: Cleaning file %08X\n", files[n]);
+	snprintf(p2, MAXPATHLEN + 1, "%s/%08X", p1, files[n]);
+#if USE_TRUNCATE_NOT_UNLINK
+	truncate(p2, 0);
+#else
+	safeunlink(p2, 0);
+#endif
+	Counter.swap_files_cleaned++;
+    }
+    debug(36, 3) ("Cleaned %d unused files from %s\n", k, p1);
+    return k;
+}
+
+static void
+storeUfsDirCleanEvent(void *unused)
+{
+    static int swap_index = 0;
+    int i;
+    int n = 0;
+    /*
+     * Assert that there are UFS cache_dirs configured, otherwise
+     * we should never be called.
+     */
+    assert(n_ufs_dirs);
+    if (NULL == ufs_dir_index) {
+	/*
+	 * Initialize the little array that translates UFS cache_dir
+	 * number into the Config.cacheSwap.swapDirs array index.
+	 */
+	ufs_dir_index = xcalloc(n_ufs_dirs, sizeof(*ufs_dir_index));
+	for (i = 0, n = 0; i < Config.cacheSwap.n_configured; i++) {
+	    if (storeUfsDirIs(&Config.cacheSwap.swapDirs[i]))
+		ufs_dir_index[n++] = i;
+	}
+	assert(n == n_ufs_dirs);
+    }
+    if (0 == store_dirs_rebuilding) {
+	n = storeUfsDirClean(swap_index);
+	swap_index++;
+    }
+    eventAdd("storeDirClean", storeUfsDirCleanEvent, NULL, 15.0, 1);
+}
+
+static int
+storeUfsDirIs(SwapDir * sd)
+{
+    if (sd->type == SWAPDIR_UFS)
+	return 1;
+    if (sd->type == SWAPDIR_UFS_ASYNC)
+	return 1;
+    return 0;
 }
 
 /* ========== LOCAL FUNCTIONS ABOVE, GLOBAL FUNCTIONS BELOW ========== */

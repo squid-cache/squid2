@@ -154,7 +154,6 @@ OBJS	 	= \
 		store.o \
 		store_io.o \
 		store_io_ufs.o \
-		store_clean.o \
 		store_client.o \
 		store_digest.o \
 		store_dir.o \

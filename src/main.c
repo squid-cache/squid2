@@ -513,7 +513,6 @@ mainInitialize(void)
     debug(1, 1) ("Ready to serve requests.\n");
     if (!configured_once) {
 	eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 1.0, 1);
-	eventAdd("storeDirClean", storeDirClean, NULL, 15.0, 1);
 	if (Config.onoff.announce)
 	    eventAdd("start_announce", start_announce, NULL, 3600.0, 1);
 	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10.0, 1);

@@ -897,11 +897,8 @@ extern HASHHASH storeKeyHashHash;
 extern HASHCMP storeKeyHashCmp;
 
 /*
- * store_clean.c
+ * store_digest.c
  */
-extern EVH storeDirClean;
-
-/* store_digest.c */
 extern void storeDigestInit(void);
 extern void storeDigestNoteStoreReady(void);
 extern void storeDigestScheduleRebuild(void);
