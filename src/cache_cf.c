@@ -1232,10 +1232,12 @@ free_denyinfo(acl_deny_info_list ** list)
     for (a = *list; a; a = a_next) {
 	for (l = a->acl_list; l; l = l_next) {
 	    l_next = l->next;
-	    safe_free(l);
+	    memFree(l, MEM_ACL_NAME_LIST);
+            l = NULL;
 	}
 	a_next = a->next;
-	safe_free(a);
+        memFree(a, MEM_ACL_DENY_INFO_LIST);
+        a = NULL;
     }
     *list = NULL;
 }
