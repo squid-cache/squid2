@@ -251,3 +251,9 @@
  * Do we want to use truncate(2) or unlink(2)?
  */
 #undef USE_TRUNCATE
+
+/*
+ * Allow underscores in host names
+ */
+#undef ALLOW_HOSTNAME_UNDERSCORES
+

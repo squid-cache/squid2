@@ -270,6 +270,11 @@
  */
 #undef USE_TRUNCATE
 
+/*
+ * Allow underscores in host names
+ */
+#undef ALLOW_HOSTNAME_UNDERSCORES
+
 /* The number of bytes in a int.  */
 #undef SIZEOF_INT
 
