@@ -466,8 +466,8 @@ netdbReloadState(void)
 	memset(&N, '\0', sizeof(netdbEntry));
 	q = strtok(t, w_space);
 	t = s + 1;
-	if (NULL == q);
-	continue;
+	if (NULL == q)
+	    continue;
 	if (!safe_inet_addr(q, &addr))
 	    continue;
 	if (netdbLookupAddr(addr) != NULL)	/* no dups! */
