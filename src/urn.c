@@ -143,9 +143,6 @@ urnStart(request_t * r, StoreEntry * e)
 	storeLockObject(urlres_e);
 	storeClientListAdd(urlres_e, urnState);
     }
-#if DELAY_POOLS
-    delaySetStoreClient(urlres_e, urnState, 0);
-#endif
     urnState->urlres_e = urlres_e;
     urnState->urlres_r = requestLink(urlres_r);
     storeClientCopy(urlres_e,

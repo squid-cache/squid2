@@ -128,11 +128,11 @@ delayPoolsInit(void)
 void
 delayInitDelayData(unsigned short pools)
 {
-    if (pools) {
-	delay_data = xcalloc(pools, sizeof(delayPool));
-	eventAdd("delayPoolsUpdate", delayPoolsUpdate, NULL, 1.0, 1);
-	delay_id_ptr_hash = hash_create(delayIdPtrHashCmp, 256, delayIdPtrHash);
-    }
+    if (!pools)
+	return;
+    delay_data = xcalloc(pools, sizeof(delayPool));
+    eventAdd("delayPoolsUpdate", delayPoolsUpdate, NULL, 1.0, 1);
+    delay_id_ptr_hash = hash_create(delayIdPtrHashCmp, 256, delayIdPtrHash);
 }
 
 static void
@@ -157,17 +157,24 @@ delayFreeDelayData()
 void
 delayRegisterDelayIdPtr(delay_id * loc)
 {
-    hash_link *lnk = xmalloc(sizeof(hash_link));
-
+    hash_link *lnk;
+    if (!delay_id_ptr_hash)
+	return;
+    lnk = xmalloc(sizeof(hash_link));
     lnk->key = (char *) loc;
+    debug(0, 0) ("delayRegisterDelayIdPtr: calling hash_join(lnk=%p, key=%p)\n",
+	lnk, loc);
     hash_join(delay_id_ptr_hash, lnk);
 }
 
 void
 delayUnregisterDelayIdPtr(delay_id * loc)
 {
-    hash_link *lnk = hash_lookup(delay_id_ptr_hash, loc);
-
+    hash_link *lnk;
+    if (!delay_id_ptr_hash)
+	return;
+    debug(0, 0) ("delayUnregisterDelayIdPtr: looking for key=%p\n", loc);
+    lnk = hash_lookup(delay_id_ptr_hash, loc);
     assert(lnk);
     hash_remove_link(delay_id_ptr_hash, lnk);
     xxfree(lnk);
@@ -611,7 +618,6 @@ delaySetStoreClient(StoreEntry * e, void *data, delay_id delay_id)
     store_client *sc = storeClientListSearch(e->mem_obj, data);
     assert(sc != NULL);
     sc->delay_id = delay_id;
-    delayRegisterDelayIdPtr(&sc->delay_id);
 }
 
 static void

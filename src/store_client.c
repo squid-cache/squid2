@@ -132,6 +132,9 @@ storeClientListAdd(StoreEntry * e, void *data)
 	assert(e->swap_file_number > -1 || storeSwapOutAble(e));
     for (T = &mem->clients; *T; T = &(*T)->next);
     *T = sc;
+#if DELAY_POOLS
+    delayRegisterDelayIdPtr(&sc->delay_id);
+#endif
 }
 
 static void
