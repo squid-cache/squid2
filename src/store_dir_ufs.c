@@ -304,8 +304,8 @@ storeRebuildFromDirectory(void *data)
 	    fd = -1;
 	    continue;
 	}
-	if ((++rb->counts.scancount & 0xFFFF) == 0)
-	    debug(20, 3) ("  %s %7d files opened so far.\n",
+	if ((++rb->counts.scancount & 0xFFF) == 0)
+	    debug(20, 1) ("  %s %7d files opened so far.\n",
 		rb->sd->path, rb->counts.scancount);
 	debug(20, 9) ("file_in: fd=%d %08X\n", fd, sfileno);
 	Counter.syscalls.disk.reads++;
@@ -464,10 +464,10 @@ storeRebuildFromSwapLog(void *data)
 	    rb->counts.invalid++;
 	    continue;
 	}
-	if ((++rb->counts.scancount & 0xFFFF) == 0)
-	    debug(20, 3) ("  %7d %s Entries read so far.\n",
+	if ((++rb->counts.scancount & 0xFFF) == 0)
+	    debug(20, 1) ("  %7d %s Entries read so far.\n",
 		rb->counts.scancount, rb->sd->path);
-	if (!storeDirValidFileno(s.swap_file_number)) {
+	if (!storeDirValidFileno(s.swap_file_number, 0)) {
 	    rb->counts.invalid++;
 	    continue;
 	}
@@ -626,11 +626,11 @@ storeGetNextFile(RebuildState * rb, int *sfileno, int *size)
 		rb->fullpath, rb->entry->d_name);
 	    debug(20, 3) ("storeGetNextFile: Opening %s\n", rb->fullfilename);
 	    fd = file_open(rb->fullfilename, O_RDONLY);
-	    if (fd < 0) {
-		debug(50, 1) ("storeGetNextFile: %s: %s\n", rb->fullfilename, xstrerror());
-		continue;
-	    }
-	    store_open_disk_fd++;
+           if (fd < 0)
+                debug(50, 1) ("storeGetNextFile: %s: %s\n", rb->fullfilename, xstrerror());
+           else
+                store_open_disk_fd++;
+           continue;
 	}
 	rb->in_dir = 0;
 	if (++rb->curlvl2 < rb->sd->u.ufs.l2)
@@ -1017,7 +1017,7 @@ storeUfsDirClean(int swap_index)
 	if (sscanf(de->d_name, "%X", &swapfileno) != 1)
 	    continue;
 	fn = storeDirProperFileno(D0, swapfileno);
-	if (storeDirValidFileno(fn))
+	if (storeDirValidFileno(fn, 1))
 	    if (storeDirMapBitTest(fn))
 		if (storeUfsFilenoBelongsHere(fn, D0, D1, D2))
 		    continue;
