@@ -348,6 +348,13 @@ httpMakeVaryMark(request_t * request, HttpReply * reply)
 	char *name = xmalloc(ilen + 1);
 	xstrncpy(name, item, ilen + 1);
 	Tolower(name);
+	if (strcmp(name, "*") == 0) {
+	    /* Can not handle "Vary: *" withtout ETag support */
+	    safe_free(name);
+	    stringClean(&vary);
+	    stringClean(&vstr);
+	    break;
+	}
 	strListAdd(&vstr, name, ',');
 	hdr = httpHeaderGetByName(&request->header, name);
 	safe_free(name);
