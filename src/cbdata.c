@@ -127,9 +127,7 @@ cbdataInit(void)
     cachemgrRegister("cbdata",
 	"Callback Data Registry Contents",
 	cbdataDump, 0, 1);
-/* TEMPORARILY DEFINED IN squid.h
- * #define CREATE_CBDATA(type) cbdataInitType(CBDATA_##type, #type, sizeof(type))
- */
+#define CREATE_CBDATA(type) cbdataInitType(CBDATA_##type, #type, sizeof(type))
     CREATE_CBDATA(acl_access);
     CREATE_CBDATA(aclCheck_t);
     CREATE_CBDATA(clientHttpRequest);

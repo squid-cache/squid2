@@ -432,4 +432,3 @@ struct rusage {
 #define INDEXSD(i)   (&Config.cacheSwap.swapDirs[(i)])
 
 #endif /* SQUID_H */
-#define CREATE_CBDATA(type) cbdataInitType(CBDATA_##type, #type, sizeof(type))
