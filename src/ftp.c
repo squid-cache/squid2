@@ -565,6 +565,8 @@ void ftpConnInProgress(fd, data)
 	COMM_SELECT_WRITE,
 	(PF) ftpSendRequest,
 	(void *) data);
+    if (opt_no_ipcache)
+	ipcacheInvalidate(data->request->host);
 }
 
 
@@ -670,6 +672,8 @@ int ftpStart(unusedfd, url, request, entry)
 	COMM_SELECT_LIFETIME,
 	(PF) ftpLifetimeExpire,
 	(void *) data);
+    if (opt_no_ipcache)
+	ipcacheInvalidate(data->request->host);
     return COMM_OK;
 }
 

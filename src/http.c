@@ -656,6 +656,8 @@ static void httpConnInProgress(fd, httpState)
 	}
     }
     /* Call the real write handler, now that we're fully connected */
+    if (opt_no_ipcache)
+	ipcacheInvalidate(entry->mem_obj->request->host);
     comm_set_select_handler(fd, COMM_SELECT_WRITE,
 	(PF) httpSendRequest, (void *) httpState);
 }
@@ -746,6 +748,8 @@ static int httpConnect(fd, hp, data)
 	}
     }
     /* Install connection complete handler. */
+    if (opt_no_ipcache)
+	ipcacheInvalidate(request->host);
     fd_note(fd, entry->url);
     comm_set_select_handler(fd, COMM_SELECT_LIFETIME,
 	(PF) httpLifetimeExpire, (void *) httpState);

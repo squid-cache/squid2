@@ -1109,3 +1109,15 @@ void ipcacheReleaseInvalid(name)
 	return;
     ipcache_release(i);
 }
+
+void ipcacheInvalidate(name)
+     char *name;
+{
+    ipcache_entry *i;
+    if ((i = ipcache_get(name)) == NULL)
+	return;
+    if (i->status != IP_CACHED)
+	i->ttl = 0;
+    else
+        ipcache_release(i);
+}

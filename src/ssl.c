@@ -346,6 +346,8 @@ static void sslConnInProgress(fd, sslState)
 	    return;
 	}
     }
+    if (opt_no_ipcache)
+	ipcacheInvalidate(sslState->host);
     /* We are now fully connected */
     if (Config.sslProxy.host)
 	sslProxyConnected(fd, sslState);
@@ -421,6 +423,8 @@ static int sslConnect(fd, hp, sslState)
 		(void *) sslState);
 	    return COMM_OK;
 	}
+	if (opt_no_ipcache)
+	    ipcacheInvalidate(sslState->host);
     }
     if (Config.sslProxy.host)
 	sslProxyConnected(sslState->server.fd, sslState);

@@ -1000,6 +1000,8 @@ int gopherStart(unusedfd, url, entry)
 	}
     }
     /* Install connection complete handler. */
+    if (opt_no_ipcache)
+	ipcacheInvalidate(data->host);
     comm_set_select_handler(sock,
 	COMM_SELECT_LIFETIME,
 	(PF) gopherLifetimeExpire,

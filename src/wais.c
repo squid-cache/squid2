@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -360,6 +361,8 @@ static void waisConnInProgress(fd, waisState)
 	}
     }
     /* Call the real write handler, now that we're fully connected */
+    if (opt_no_ipcache)
+	ipcacheInvalidate(waisState->relayhost);
     comm_set_select_handler(fd, COMM_SELECT_WRITE,
 	(PF) waisSendRequest, (void *) waisState);
 }
@@ -440,6 +443,8 @@ static int waisConnect(fd, hp, waisState)
 	}
     }
     /* Install connection complete handler. */
+    if (opt_no_ipcache)
+	ipcacheInvalidate(host);
     comm_set_select_handler(fd,
 	COMM_SELECT_LIFETIME,
 	(PF) waisLifetimeExpire,
