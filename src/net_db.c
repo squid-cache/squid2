@@ -1027,6 +1027,7 @@ netdbClosestParent(request_t * request)
 	return NULL;
     if (0 == n->n_peers)
 	return NULL;
+    n->last_use_time = squid_curtime;
     /* 
      * Find the parent with the least RTT to the origin server.
      * Make sure we don't return a parent who is farther away than
