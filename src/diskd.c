@@ -309,7 +309,7 @@ main(int argc, char *argv[])
 	}
 	alarm(0);
 	msg_handle(&rmsg, rlen, &smsg);
-	if (msgsnd(smsgid, &smsg, sizeof(smsg), 0) < 0) {
+	if (msgsnd(smsgid, &smsg, msg_snd_rcv_sz, 0) < 0) {
 	    perror("msgsnd");
 	    break;
 	}
@@ -753,7 +753,7 @@ storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
     M.id = id;
     if (M.callback_data)
 	cbdataLock(M.callback_data);
-    x = msgsnd(sd->u.diskd.smsgid, &M, sizeof(M), IPC_NOWAIT);
+    x = msgsnd(sd->u.diskd.smsgid, &M, msg_snd_rcv_sz, IPC_NOWAIT);
     if (0 == x) {
 	sent_count++;
 	sd->u.diskd.away++;
