@@ -113,7 +113,6 @@
 #define COMM_SHUTDOWN	 (-5)
 
 #define COMM_NONBLOCKING  (0x1)
-#define COMM_DGRAM        (0x4)
 #define COMM_NOCLOEXEC	  (0x8)
 
 /* Select types. */
@@ -177,7 +176,7 @@ extern int comm_get_fd_lifetime __P((int fd));
 extern int comm_get_select_handler __P((int fd, unsigned int type, PF *, void **));
 extern int comm_init __P((void));
 extern int comm_listen __P((int sock));
-extern int comm_open __P((unsigned int io_type, struct in_addr, u_short port, char *note));
+extern int comm_open __P((int, int, struct in_addr, u_short port, int, char *note));
 extern u_short comm_local_port __P((int fd));
 extern int comm_select __P((time_t));
 extern int comm_set_fd_lifetime __P((int fd, int lifetime));

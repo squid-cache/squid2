@@ -84,7 +84,7 @@ send_announce()
     qdata->len = strlen(sndbuf) + 1;
     qdata->address.sin_family = AF_INET;
     qdata->address.sin_port = htons(port);
-    xmemcpy(&qdata->address.sin_addr, *(hp->h_addr_list + 0), hp->h_length);
+    qdata->address.sin_addr = inaddrFromHostent(hp);
     AppendUdp(qdata);
     comm_set_select_handler(theOutIcpConnection,
 	COMM_SELECT_WRITE,

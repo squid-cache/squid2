@@ -44,9 +44,7 @@ clientLookupDstIPDone(int fd, struct hostent *hp, void *data)
 	icpState->url);
     icpState->aclChecklist->state[ACL_DST_IP] = ACL_LOOKUP_DONE;
     if (hp) {
-	xmemcpy(&icpState->aclChecklist->dst_addr.s_addr,
-	    *(hp->h_addr_list),
-	    hp->h_length);
+	icpState->aclChecklist->dst_addr = inaddrFromHostent(hp);
 	debug(33, 5, "clientLookupDstIPDone: %s is %s\n",
 	    icpState->request->host,
 	    inet_ntoa(icpState->aclChecklist->dst_addr));

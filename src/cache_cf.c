@@ -878,7 +878,7 @@ parseAddressLine(struct in_addr *addr)
     if (inet_addr(token) != INADDR_NONE)
 	(*addr).s_addr = inet_addr(token);
     else if ((hp = gethostbyname(token)))
-	xmemcpy(addr, hp->h_addr, hp->h_length);
+	*addr = inaddrFromHostent(hp);
     else
 	self_destruct();
 }

@@ -621,3 +621,11 @@ accessLogTime(time_t t)
     }
     return buf;
 }
+
+struct in_addr
+inaddrFromHostent(struct hostent *hp)
+{
+	struct in_addr s;
+	memcpy(&s.s_addr, hp->h_addr, sizeof(s.s_addr));
+	return s;
+}

@@ -163,8 +163,7 @@ protoDataFree(int fdunused, protodispatch_data * protoData)
 
 /* called when DNS lookup is done by ipcache. */
 int
-protoDispatchDNSHandle(int unused1
-    ,struct hostent *hp, void *data)
+protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 {
     edge *e = NULL;
     struct in_addr srv_addr;
@@ -191,7 +190,7 @@ protoDispatchDNSHandle(int unused1
 	if (hp == NULL) {
 	    debug(17, 1, "Unknown host: %s\n", req->host);
 	} else if (Config.firewall_ip_list) {
-	    xmemcpy(&srv_addr, *(hp->h_addr_list + 0), hp->h_length);
+	    srv_addr = inaddrFromHostent(hp);
 	    if (ip_access_check(srv_addr, Config.firewall_ip_list) == IP_DENY) {
 		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
 		protoStart(protoData->fd, entry, NULL, req);
@@ -200,7 +199,7 @@ protoDispatchDNSHandle(int unused1
 		protoData->direct_fetch = DIRECT_NO;
 	    }
 	} else if (Config.local_ip_list) {
-	    xmemcpy(&srv_addr, *(hp->h_addr_list + 0), hp->h_length);
+	    srv_addr = inaddrFromHostent(hp);
 	    if (ip_access_check(srv_addr, Config.local_ip_list) == IP_DENY) {
 		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
 		protoStart(protoData->fd, entry, NULL, req);

@@ -249,6 +249,7 @@ typedef int (*QS) (const void *, const void *);
 #include "async_io.h"
 #include "redirect.h"
 #include "client_side.h"
+#include "icmp.h"
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"
