@@ -263,12 +263,21 @@ snmpInit(void)
 						LEN_SQ_NET + 2, snmp_netFqdnFn, static_Inst, 0)),
 					snmpAddNode(snmpCreateOid(LEN_SQ_NET + 1, SQ_NET, NET_DNS_CACHE),
 					    LEN_SQ_NET + 1, NULL, NULL, 3,
+#if USE_DNSSERVERS
 					    snmpAddNode(snmpCreateOid(LEN_SQ_NET + 2, SQ_NET, NET_DNS_CACHE, DNS_REQ),
 						LEN_SQ_NET + 2, snmp_netDnsFn, static_Inst, 0),
 					    snmpAddNode(snmpCreateOid(LEN_SQ_NET + 2, SQ_NET, NET_DNS_CACHE, DNS_REP),
 						LEN_SQ_NET + 2, snmp_netDnsFn, static_Inst, 0),
 					    snmpAddNode(snmpCreateOid(LEN_SQ_NET + 2, SQ_NET, NET_DNS_CACHE, DNS_SERVERS),
 						LEN_SQ_NET + 2, snmp_netDnsFn, static_Inst, 0))),
+#else
+					    snmpAddNode(snmpCreateOid(LEN_SQ_NET + 2, SQ_NET, NET_DNS_CACHE, DNS_REQ),
+						LEN_SQ_NET + 2, snmp_netIdnsFn, static_Inst, 0),
+					    snmpAddNode(snmpCreateOid(LEN_SQ_NET + 2, SQ_NET, NET_DNS_CACHE, DNS_REP),
+						LEN_SQ_NET + 2, snmp_netIdnsFn, static_Inst, 0),
+					    snmpAddNode(snmpCreateOid(LEN_SQ_NET + 2, SQ_NET, NET_DNS_CACHE, DNS_SERVERS),
+						LEN_SQ_NET + 2, snmp_netIdnsFn, static_Inst, 0))),
+#endif
 				    snmpAddNode(snmpCreateOid(LEN_SQ_MESH, SQ_MESH),
 					LEN_SQ_MESH, NULL, NULL, 2,
 					snmpAddNode(snmpCreateOid(LEN_SQ_MESH + 1, SQ_MESH, 1),
