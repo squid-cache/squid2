@@ -1463,8 +1463,8 @@ void storeStartRebuildFromDisk()
 	    store_rebuilding = (sb.st_mtime <= last_clean) ?
 		STORE_REBUILDING_FAST : STORE_REBUILDING_SLOW;
     }
-    /* Remove timestamp in case we crashe during rebuild */
-    safeunlink(tmp_filename, 0);
+    /* Remove timestamp in case we crash during rebuild */
+    safeunlink(tmp_filename, 1);
     /* close the existing write-only swaplog, and open a temporary
      * write-only swaplog  */
     if (file_write_unlock(swaplog_fd, swaplog_lock) != DISK_OK)
