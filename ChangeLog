@@ -1,4 +1,4 @@
-Changes to squid-1.0.21 (November 24, 1996):
+Changes to squid-1.0.21 (November 30, 1996):
 
 	- Relocated rfc1738_unescape() calls in ftpget so that
           ftp://foo.org/%2fbar/ works (Jonathan Larmour).
