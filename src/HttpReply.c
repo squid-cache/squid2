@@ -125,21 +125,31 @@ httpReplyAbsorb(HttpReply * rep, HttpReply * new_rep)
     httpReplyDoDestroy(new_rep);
 }
 
-/* parses a 4K buffer that may not be 0-terminated; returns true on success */
+/*
+ * httpReplyParse takes character buffer of HTTP headers (buf),
+ * which may not be NULL-terminated, and fills in an HttpReply
+ * structure (rep).  The parameter 'end' specifies the offset to
+ * the end of the reply headers.  The caller may know where the
+ * end is, but is unable to NULL-terminate the buffer.  This function
+ * returns true on success.
+ */
 int
-httpReplyParse(HttpReply * rep, const char *buf)
+httpReplyParse(HttpReply * rep, const char *buf, size_t end)
 {
     /*
-     * this extra buffer/copy will be eliminated when headers become meta-data
-     * in store. Currently we have to xstrncpy the buffer becuase store.c may
-     * feed a non 0-terminated buffer to us.
+     * this extra buffer/copy will be eliminated when headers become
+     * meta-data in store. Currently we have to xstrncpy the buffer
+     * becuase somebody may feed a non NULL-terminated buffer to
+     * us.
      */
     char *headers = memAllocate(MEM_4K_BUF);
     int success;
     /* reset current state, because we are not used in incremental fashion */
     httpReplyReset(rep);
-    /* put a 0-terminator */
+    /* put a string terminator */
     xstrncpy(headers, buf, 4096);
+    if (end >= 0 && end < 4096)
+	*(headers + end) = '\0';
     success = httpReplyParseStep(rep, headers, 0);
     memFree(headers, MEM_4K_BUF);
     return success == 1;

@@ -330,17 +330,18 @@ peerDigestFetchReply(void *data, char *buf, ssize_t size)
 {
     DigestFetchState *fetch = data;
     PeerDigest *pd = fetch->pd;
+    size_t hdr_size;
     assert(pd && buf);
     assert(!fetch->offset);
 
     if (peerDigestFetchedEnough(fetch, buf, size, "peerDigestFetchReply"))
 	return;
 
-    if (headersEnd(buf, size)) {
+    if ((hdr_size = headersEnd(buf, size))) {
 	http_status status;
 	HttpReply *reply = fetch->entry->mem_obj->reply;
 	assert(reply);
-	httpReplyParse(reply, buf);
+	httpReplyParse(reply, buf, hdr_size);
 	status = reply->sline.status;
 	debug(72, 3) ("peerDigestFetchReply: %s status: %d, expires: %d (%+d)\n",
 	    strBuf(pd->host), status,
@@ -410,7 +411,7 @@ peerDigestSwapInHeaders(void *data, char *buf, ssize_t size)
     if ((hdr_size = headersEnd(buf, size))) {
 	assert(fetch->entry->mem_obj->reply);
 	if (!fetch->entry->mem_obj->reply->sline.status)
-	    httpReplyParse(fetch->entry->mem_obj->reply, buf);
+	    httpReplyParse(fetch->entry->mem_obj->reply, buf, hdr_size);
 	if (fetch->entry->mem_obj->reply->sline.status != HTTP_OK) {
 	    debug(72, 1) ("peerDigestSwapInHeaders: %s status %d got cached!\n",
 		strBuf(fetch->pd->host), fetch->entry->mem_obj->reply->sline.status);

@@ -1225,21 +1225,25 @@ static HttpReply *
 clientBuildReply(clientHttpRequest * http, const char *buf, size_t size)
 {
     HttpReply *rep = httpReplyCreate();
-    if (httpReplyParse(rep, buf)) {
+    size_t k = headersEnd(buf, size);
+    if (k && httpReplyParse(rep, buf, k)) {
 	/* enforce 1.0 reply version */
 	rep->sline.version = 1.0;
 	/* do header conversions */
 	clientBuildReplyHeader(http, rep);
 	/* if we do ranges, change status to "Partial Content" */
 	if (http->request->range)
-	    httpStatusLineSet(&rep->sline, rep->sline.version, HTTP_PARTIAL_CONTENT, NULL);
+	    httpStatusLineSet(&rep->sline, rep->sline.version,
+		HTTP_PARTIAL_CONTENT, NULL);
     } else {
 	/* parsing failure, get rid of the invalid reply */
 	httpReplyDestroy(rep);
 	rep = NULL;
 	/* if we were going to do ranges, backoff */
-	if (http->request->range)
-	    clientBuildRangeHeader(http, rep);	/* will fail and destroy request->range */
+	if (http->request->range) {
+	    /* this will fail and destroy request->range */
+	    clientBuildRangeHeader(http, rep);
+	}
     }
     return rep;
 }
@@ -1382,7 +1386,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    storeUnlockObject(e);
 	    e = clientCreateStoreEntry(http, http->request->method, null_request_flags);
 	    http->entry = e;
-	    httpReplyParse(e->mem_obj->reply, mb.buf);
+	    httpReplyParse(e->mem_obj->reply, mb.buf, mb.size);
 	    storeAppend(e, mb.buf, mb.size);
 	    memBufClean(&mb);
 	    storeComplete(e);

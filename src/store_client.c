@@ -313,7 +313,7 @@ storeClientReadBody(void *data, const char *buf, ssize_t len)
     assert(sc->callback != NULL);
     debug(20, 3) ("storeClientReadBody: len %d\n", len);
     if (sc->copy_offset == 0 && len > 0 && mem->reply->sline.status == 0)
-	httpReplyParse(mem->reply, sc->copy_buf);
+	httpReplyParse(mem->reply, sc->copy_buf, headersEnd(sc->copy_buf, len));
     sc->callback = NULL;
     callback(sc->callback_data, sc->copy_buf, len);
 }
@@ -367,7 +367,8 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 	    copy_sz);
 	xmemmove(sc->copy_buf, sc->copy_buf + swap_hdr_sz, copy_sz);
 	if (sc->copy_offset == 0 && len > 0 && mem->reply->sline.status == 0)
-	    httpReplyParse(mem->reply, sc->copy_buf);
+	    httpReplyParse(mem->reply, sc->copy_buf,
+		headersEnd(sc->copy_buf, copy_sz));
 	sc->callback = NULL;
 	callback(sc->callback_data, sc->copy_buf, copy_sz);
 	return;

@@ -528,7 +528,7 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
 	    debug(38, 5) ("netdbExchangeHandleReply: hdr_sz = %d\n", hdr_sz);
 	    rep = ex->e->mem_obj->reply;
 	    if (0 == rep->sline.status)
-		httpReplyParse(rep, buf);
+		httpReplyParse(rep, buf, hdr_sz);
 	    debug(38, 3) ("netdbExchangeHandleReply: reply status %d\n",
 		rep->sline.status);
 	    if (HTTP_OK != rep->sline.status) {
