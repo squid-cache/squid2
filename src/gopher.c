@@ -682,7 +682,7 @@ gopherSendComplete(int fd, char *buf, size_t size, int errflag, void *data)
     GopherStateData *gopherState = (GopherStateData *) data;
     StoreEntry *entry = gopherState->entry;
     debug(10, 5) ("gopherSendComplete: FD %d size: %d errflag: %d\n",
-	fd, size, errflag);
+	fd, (int) size, errflag);
     if (size > 0) {
 	fd_bytes(fd, size, FD_WRITE);
 	kb_incr(&statCounter.server.all.kbytes_out, size);

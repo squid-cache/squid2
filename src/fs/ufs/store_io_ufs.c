@@ -228,7 +228,7 @@ storeUfsWriteDone(int fd, int errflag, size_t len, void *my_data)
     storeIOState *sio = my_data;
     ufsstate_t *ufsstate = (ufsstate_t *) sio->fsstate;
     debug(79, 3) ("storeUfsWriteDone: dirno %d, fileno %08X, FD %d, len %ld\n",
-	sio->swap_dirn, sio->swap_filen, fd, (long int)len);
+	sio->swap_dirn, sio->swap_filen, fd, (long int) len);
     ufsstate->flags.writing = 0;
     if (errflag) {
 	debug(79, 0) ("storeUfsWriteDone: got failure (%d)\n", errflag);

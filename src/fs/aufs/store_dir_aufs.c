@@ -471,8 +471,8 @@ storeAufsDirRebuildFromDirectory(void *data)
 	} else if (tmpe.swap_file_sz == sb.st_size - swap_hdr_len) {
 	    tmpe.swap_file_sz = sb.st_size;
 	} else if (tmpe.swap_file_sz != sb.st_size) {
-	    debug(20, 1) ("storeAufsDirRebuildFromDirectory: SIZE MISMATCH %d!=%d\n",
-		tmpe.swap_file_sz, (int) sb.st_size);
+	    debug(20, 1) ("storeAufsDirRebuildFromDirectory: SIZE MISMATCH %ld!=%ld\n",
+		(long int) tmpe.swap_file_sz, (long int) sb.st_size);
 	    storeAufsDirUnlinkFile(SD, filn);
 	    continue;
 	}
@@ -687,7 +687,7 @@ storeAufsDirRebuildFromSwapLog(void *data)
 }
 
 static int
-storeAufsDirGetNextFile(RebuildState * rb, sfileno *filn_p, int *size)
+storeAufsDirGetNextFile(RebuildState * rb, sfileno * filn_p, int *size)
 {
     SwapDir *SD = rb->sd;
     squidaioinfo_t *aioinfo = (squidaioinfo_t *) SD->fsdata;
@@ -1604,8 +1604,8 @@ storeAufsCleanupDoubleCheck(SwapDir * sd, StoreEntry * e)
 	debug(20, 0) ("storeAufsCleanupDoubleCheck: FILENO %08X\n", e->swap_filen);
 	debug(20, 0) ("storeAufsCleanupDoubleCheck: PATH %s\n",
 	    storeAufsDirFullPath(sd, e->swap_filen, NULL));
-	debug(20, 0) ("storeAufsCleanupDoubleCheck: ENTRY SIZE: %d, FILE SIZE: %d\n",
-	    e->swap_file_sz, (int) sb.st_size);
+	debug(20, 0) ("storeAufsCleanupDoubleCheck: ENTRY SIZE: %ld, FILE SIZE: %ld\n",
+	    (long int) e->swap_file_sz, (long int) sb.st_size);
 	storeEntryDump(e, 0);
 	return -1;
     }

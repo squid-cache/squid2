@@ -223,7 +223,7 @@ asHandleReply(void *data, char *buf, ssize_t size)
     StoreEntry *e = asState->entry;
     char *s;
     char *t;
-    debug(53, 3) ("asHandleReply: Called with size=%d\n", size);
+    debug(53, 3) ("asHandleReply: Called with size=%ld\n", (long int) size);
     if (EBIT_TEST(e->flags, ENTRY_ABORTED)) {
 	memFree(buf, MEM_4K_BUF);
 	asStateFree(asState);
@@ -234,7 +234,7 @@ asHandleReply(void *data, char *buf, ssize_t size)
 	asStateFree(asState);
 	return;
     } else if (size < 0) {
-	debug(53, 1) ("asHandleReply: Called with size=%d\n", size);
+	debug(53, 1) ("asHandleReply: Called with size=%ld\n", (long int) size);
 	memFree(buf, MEM_4K_BUF);
 	asStateFree(asState);
 	return;

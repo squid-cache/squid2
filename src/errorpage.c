@@ -345,7 +345,7 @@ static void
 errorSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 {
     ErrorState *err = data;
-    debug(4, 3) ("errorSendComplete: FD %d, size=%d\n", fd, size);
+    debug(4, 3) ("errorSendComplete: FD %d, size=%ld\n", fd, (long int) size);
     if (errflag != COMM_ERR_CLOSING) {
 	if (err->callback) {
 	    debug(4, 3) ("errorSendComplete: callback\n");

@@ -2081,7 +2081,7 @@ struct _helper_stateful_server {
 	int deferbyfunc;
 	int deferbycb;
     } stats;
-    size_t deferred_requests;	/* current number of deferred requests */
+    int deferred_requests;	/* current number of deferred requests */
     void *data;			/* State data used by the calling routines */
 };
 
