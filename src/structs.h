@@ -323,6 +323,7 @@ struct _SquidConfig {
 #if USE_UNLINKD
 	char *unlinkd;
 #endif
+	char *diskd;
     } Program;
 #if USE_DNSSERVERS
     int dnsChildren;

@@ -1042,6 +1042,15 @@ DOC_START
 	Example: dns_nameservers 10.0.0.1 192.172.0.4
 DOC_END
 
+NAME: diskd_program
+TYPE: string
+DEFAULT: @DEFAULT_DISKD@
+LOC: Config.Program.diskd
+DOC_START
+	Specify the location of the diskd executable.
+	Note that this is only useful if you have compiled in
+	diskd as one of the store io modules.
+DOC_END
 
 NAME: unlinkd_program
 IFDEF: USE_UNLINKD
