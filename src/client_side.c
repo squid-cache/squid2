@@ -2102,7 +2102,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 
     token = strtok(NULL, null_string);
     for (t = token; t && *t && *t != '\n' && *t != '\r'; t++);
-    if (t == NULL || *t == '\0' || t == token || strncmp(token, "HTTP/", 5)) {
+    if (t == NULL || *t == '\0' || t == token || strncasecmp(token, "HTTP/", 5)) {
 	debug(33, 3) ("parseHttpRequest: Missing HTTP identifier\n");
 #if RELAXED_HTTP_PARSER
 	http_ver = (float) 0.9;	/* wild guess */
