@@ -237,6 +237,7 @@ clientAccessCheckDone(icpStateData * icpState, int answer)
 	redirectStart(fd, icpState, clientRedirectDone, icpState);
     } else {
 	debug(33, 5, "Access Denied: %s\n", icpState->url);
+	debug(33, 5, "AclMatchedName = %s\n", AclMatchedName ? AclMatchedName : "NULL");
 	redirectUrl = aclGetDenyInfoUrl(&DenyInfoList, AclMatchedName);
 	if (redirectUrl) {
 	    icpState->http_code = 302,
@@ -274,18 +275,18 @@ clientRedirectDone(void *data, char *result)
 	if (code == 301 || code == 302) {
 	    char *t = result;
 	    if ((t = strchr(result, ':')) != NULL) {
-	        char *buf;
+		char *buf;
 		t++;
-	        buf = clientConstructRedirectReply(code, t);
-	        icpState->http_code = code;
-	        comm_write(fd,
+		buf = clientConstructRedirectReply(code, t);
+		icpState->http_code = code;
+		comm_write(fd,
 		    xstrdup(buf),
 		    strlen(buf),
 		    30,
 		    icpSendERRORComplete,
 		    icpState,
 		    xfree);
-	        return;
+		return;
 	    }
 	}
 	new_request = urlParse(old_request->method, result);
