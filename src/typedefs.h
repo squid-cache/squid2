@@ -67,6 +67,7 @@ typedef struct _aclCheck_t aclCheck_t;
 typedef struct _aio_result_t aio_result_t;
 typedef struct _wordlist wordlist;
 typedef struct _intlist intlist;
+typedef struct _intrange intrange;
 typedef struct _ushortlist ushortlist;
 typedef struct _relist relist;
 typedef struct _SquidConfig SquidConfig;

@@ -189,6 +189,12 @@ struct _intlist {
     intlist *next;
 };
 
+struct _intrange {
+    int i;
+    int j;
+    intrange *next;
+};
+
 struct _ushortlist {
     u_short i;
     ushortlist *next;
