@@ -723,14 +723,14 @@ AC_ARG_ENABLE(auth-modules,
   yes) 
     for helper in $srcdir/src/auth/basic/helpers/*; do
 	if test -f $helper/Makefile.in; then
-	    AUTH_BASIC_HELPERS="$AUTH_BASIC_HELPERS `basename $helper`"
+	    BASIC_AUTH_HELPERS="$BASIC_AUTH_HELPERS `basename $helper`"
 	fi
     done
     ;;
   no)
     ;;
   *)
-    AUTH_BASIC_HELPERS="`echo $enableval| sed -e 's/,/ /g;s/  */ /g'`"
+    BASIC_AUTH_HELPERS="`echo $enableval| sed -e 's/,/ /g;s/  */ /g'`"
   esac
 ])
 AC_ARG_ENABLE(basic-auth-helpers,
@@ -744,20 +744,20 @@ AC_ARG_ENABLE(basic-auth-helpers,
     BASIC_AUTH_HELPERS=""
     for helper in $srcdir/src/auth/basic/helpers/*; do
 	if test -f $helper/Makefile.in; then
-	    AUTH_BASIC_HELPERS="$AUTH_BASIC_HELPERS `basename $helper`"
+	    BASIC_AUTH_HELPERS="$BASIC_AUTH_HELPERS `basename $helper`"
 	fi
     done
     ;;
   no)
     ;;
   *)
-    AUTH_BASIC_HELPERS="`echo $enableval| sed -e 's/,/ /g;s/  */ /g'`"
+    BASIC_AUTH_HELPERS="`echo $enableval| sed -e 's/,/ /g;s/  */ /g'`"
   esac
 ])
-if test -n "$AUTH_BASIC_HELPERS"; then
-    echo "Basic auth helpers built: $AUTH_BASIC_HELPERS"
+if test -n "$BASIC_AUTH_HELPERS"; then
+    echo "Basic auth helpers built: $BASIC_AUTH_HELPERS"
 fi
-AC_SUBST(AUTH_BASIC_HELPERS)
+AC_SUBST(BASIC_AUTH_HELPERS)
 
 dnl Select ntlm auth helpers to build
 NTLM_AUTH_HELPERS=

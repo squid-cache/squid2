@@ -6,7 +6,7 @@
 # The 'nop' is in the SUBDIRS list because some Unixes that can't
 # handle empty for lists.
 
-SUBDIRS		= @AUTH_BASIC_HELPERS@ nop
+SUBDIRS		= @BASIC_AUTH_HELPERS@ nop
 
 all:
 	@for dir in $(SUBDIRS); do \
