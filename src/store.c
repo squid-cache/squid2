@@ -440,6 +440,9 @@ storeCheckCachable(StoreEntry * e)
 	debug(20, 2) ("storeCheckCachable: NO: too big\n");
     } else if (EBIT_TEST(e->flag, KEY_PRIVATE)) {
 	debug(20, 3) ("storeCheckCachable: NO: private key\n");
+    } else if (storeExpiredReferenceAge() < 300) {
+	debug(20,2)("storeCheckCachable: NO: LRU Age = %d\n",
+		storeExpiredReferenceAge());
     } else {
 	return 1;
     }
