@@ -212,6 +212,7 @@ static void httpSendRequest _PARAMS((int fd, void *));
 static void httpConnect _PARAMS((int fd, const ipcache_addrs *, void *));
 static void httpConnectDone _PARAMS((int fd, int status, void *data));
 static void httpAppendRequestHeader _PARAMS((char *, const char *, size_t *, size_t, int));
+static int httpCachableReply _PARAMS((HttpStateData *));
 
 
 static void
@@ -431,6 +432,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     int room;
     int hdr_len;
     struct _http_reply *reply = entry->mem_obj->reply;
+    int x;
 
     debug(11, 3, "httpProcessReplyHeader: key '%s'\n", entry->key);
 
@@ -464,77 +466,85 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	storeTimestampsSet(entry);
 	/* Check if object is cacheable or not based on reply code */
 	debug(11, 3, "httpProcessReplyHeader: HTTP CODE: %d\n", reply->code);
-	switch (reply->code) {
-	    /* Responses that are cacheable */
-	case 200:		/* OK */
-	case 203:		/* Non-Authoritative Information */
-	case 300:		/* Multiple Choices */
-	case 301:		/* Moved Permanently */
-	case 410:		/* Gone */
-	    /* don't cache objects from neighbors w/o LMT, Date, or Expires */
-	    if (EBIT_TEST(reply->cache_control, SCC_PRIVATE))
-		httpMakePrivate(entry);
-	    else if (EBIT_TEST(reply->cache_control, SCC_NOCACHE))
-		httpMakePrivate(entry);
-	    /*
-	     * Dealing with cookies is quite a bit more complicated
-	     * than this.  Ideally we should strip the cookie
-	     * header from the reply but still cache the reply body.
-	     * More confusion at draft-ietf-http-state-mgmt-05.txt.
-	     */
-	    else if (EBIT_TEST(reply->misc_headers, HDR_SET_COOKIE))
-		httpMakePrivate(entry);
-	    else if (reply->date > -1)
-		httpMakePublic(entry);
-	    else if (reply->last_modified > -1)
-		httpMakePublic(entry);
-	    else if (!httpState->neighbor)
-		httpMakePublic(entry);
-	    else if (reply->expires > -1)
-		httpMakePublic(entry);
-	    else if (entry->mem_obj->request->protocol != PROTO_HTTP)
-		/* XXX Remove this check after a while.  DW 8/21/96
-		 * We won't keep some FTP objects from neighbors running
-		 * 1.0.8 or earlier because their ftpget's don't 
-		 * add a Date: field */
-		httpMakePublic(entry);
-	    else
-		httpMakePrivate(entry);
-	    break;
-	    /* Responses that only are cacheable if the server says so */
-	case 302:		/* Moved temporarily */
-	    if (reply->expires > -1)
-		httpMakePublic(entry);
-	    else
-		httpMakePrivate(entry);
-	    break;
-	    /* Errors can be negatively cached */
-	case 204:		/* No Content */
-	case 305:		/* Use Proxy (proxy redirect) */
-	case 400:		/* Bad Request */
-	case 403:		/* Forbidden */
-	case 404:		/* Not Found */
-	case 405:		/* Method Now Allowed */
-	case 414:		/* Request-URI Too Long */
-	case 500:		/* Internal Server Error */
-	case 501:		/* Not Implemented */
-	case 502:		/* Bad Gateway */
-	case 503:		/* Service Unavailable */
-	case 504:		/* Gateway Timeout */
+	x = httpCachableReply(httpState);
+	if (x > 0)
+	    httpMakePublic(entry);
+	else if (x < 0)
 	    httpCacheNegatively(entry);
-	    break;
-	    /* Some responses can never be cached */
-	case 206:		/* Partial Content -- Not yet supported */
-	case 303:		/* See Other */
-	case 304:		/* Not Modified */
-	case 401:		/* Unauthorized */
-	case 407:		/* Proxy Authentication Required */
-	case 600:		/* Squid header parsing error */
-	default:		/* Unknown status code */
+	else
 	    httpMakePrivate(entry);
-	    break;
-	}
     }
+}
+
+static int
+httpCachableReply(HttpStateData * httpState)
+{
+    struct _http_reply *reply = httpState->entry->mem_obj->reply;
+    if (EBIT_TEST(reply->cache_control, SCC_PRIVATE))
+	return 0;
+    if (EBIT_TEST(reply->cache_control, SCC_NOCACHE))
+	return 0;
+    /*
+     * Dealing with cookies is quite a bit more complicated
+     * than this.  Ideally we should strip the cookie
+     * header from the reply but still cache the reply body.
+     * More confusion at draft-ietf-http-state-mgmt-05.txt.
+     */
+    if (EBIT_TEST(reply->misc_headers, HDR_SET_COOKIE))
+	return 0;
+    switch (reply->code) {
+	/* Responses that are cacheable */
+    case 200:			/* OK */
+    case 203:			/* Non-Authoritative Information */
+    case 300:			/* Multiple Choices */
+    case 301:			/* Moved Permanently */
+    case 410:			/* Gone */
+	/* don't cache objects from neighbors w/o LMT, Date, or Expires */
+	if (reply->date > -1)
+	    return 1;
+	else if (reply->last_modified > -1)
+	    return 1;
+	else if (!httpState->neighbor)
+	    return 1;
+	else if (reply->expires > -1)
+	    return 1;
+	else
+	    return 0;
+	break;
+	/* Responses that only are cacheable if the server says so */
+    case 302:			/* Moved temporarily */
+	if (reply->expires > -1)
+	    return 1;
+	else
+	    return 0;
+	break;
+	/* Errors can be negatively cached */
+    case 204:			/* No Content */
+    case 305:			/* Use Proxy (proxy redirect) */
+    case 400:			/* Bad Request */
+    case 403:			/* Forbidden */
+    case 404:			/* Not Found */
+    case 405:			/* Method Now Allowed */
+    case 414:			/* Request-URI Too Long */
+    case 500:			/* Internal Server Error */
+    case 501:			/* Not Implemented */
+    case 502:			/* Bad Gateway */
+    case 503:			/* Service Unavailable */
+    case 504:			/* Gateway Timeout */
+	return -1;
+	break;
+	/* Some responses can never be cached */
+    case 206:			/* Partial Content -- Not yet supported */
+    case 303:			/* See Other */
+    case 304:			/* Not Modified */
+    case 401:			/* Unauthorized */
+    case 407:			/* Proxy Authentication Required */
+    case 600:			/* Squid header parsing error */
+    default:			/* Unknown status code */
+	return 0;
+	break;
+    }
+    /* NOTREACHED */
 }
 
 
