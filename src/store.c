@@ -1664,17 +1664,9 @@ storeAbort(StoreEntry * e, const char *msg)
     LOCAL_ARRAY(char, mime_hdr, 300);
     char *abort_msg;
     MemObject *mem = e->mem_obj;
-
-    if (e->store_status != STORE_PENDING) {
-	debug_trap("storeAbort: bad store_status");
-	return;
-    } else if (mem == NULL) {
-	debug_trap("storeAbort: null mem_obj");
-	return;
-    } else if (e->ping_status == PING_WAITING) {
-	debug_trap("storeAbort: ping_status == PING_WAITING");
-	return;
-    }
+    assert(e->store_status == STORE_PENDING);
+    assert(mem != NULL);
+    /*assert(ping_status != PING_WAITING);*/
     debug(20, 6, "storeAbort: '%s'\n", e->key);
     storeNegativeCache(e);
     e->store_status = STORE_ABORTED;
@@ -1682,11 +1674,6 @@ storeAbort(StoreEntry * e, const char *msg)
     /* No DISK swap for negative cached object */
     e->swap_status = NO_SWAP;
     e->lastref = squid_curtime;
-    /* In case some parent responds late and 
-     * tries to restart the fetch, say that it's been
-     * dispatched already.
-     */
-    BIT_SET(e->flag, ENTRY_DISPATCHED);
     storeLockObject(e);
     /* Count bytes faulted through cache but not moved to disk */
     HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
