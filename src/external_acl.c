@@ -178,7 +178,7 @@ parse_externalAclHelper(external_acl ** list)
 	} else if (strncmp(token, "negative_ttl=", 13) == 0) {
 	    a->negative_ttl = atoi(token + 13);
 	} else if (strncmp(token, "children=", 9) == 0) {
-	    a->children = atoi(token + 12);
+	    a->children = atoi(token + 9);
 	} else if (strncmp(token, "concurrency=", 12) == 0) {
 	    a->children = atoi(token + 12);
 	} else if (strncmp(token, "cache=", 6) == 0) {
