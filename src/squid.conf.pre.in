@@ -269,12 +269,30 @@ cache_stoplist cgi-bin ?
 
 #
 #  TAG: cache_mem (in megabytes)       
-#	Maximum amout of virtual memory used to cache particularly hot
-#	objects.  Note the cache VM images will grow larger than this
-#	limit because other data are stored in VM besides just hot
-#	objects.  The default is 16 MB.
-#	
-#cache_mem  16
+#	Maximum amout of VM used to store objects in memory.
+#	This includes:
+#		in-transit objects,
+#		negative-cached objects,
+#		"hot" objects
+#	The value of cache_mem is an upper limit on the size of the
+#	"in-memory object data" pool.  This is a pool of 4k pages used
+#	to hold object data.
+#
+#	In-transit objects have priority over the others.  When
+#	additional space is needed for incoming data, negative-cached
+#	and hot objects will be released.  In other words, the
+#	negative-cached and hot objects will fill up any unused space
+#	not needed for in-transit objects.
+#
+#	The values of cache_mem_low and cache_mem_high (below) can be
+#	used to tune the use of the memory pool.  When the high mark is
+#	reached, in-transit and hot objects will be released to clear
+#	space.  When an object transfer is completed, it will remain in
+#	memory only if the current memory usage is below the low water
+#	mark.
+#
+#	The default is 8 Megabytes.
+#cache_mem  8
 
 #  TAG: cache_swap (in megabytes)
 #	Maximum about of disk space used by the cache.  The default is
@@ -826,14 +844,6 @@ miss_access allow  all
 #	If you want to use squid as both a local httpd accelerator
 #	and as a proxy, change this to 'on'.
 #httpd_accel_with_proxy off
-
-#  TAG: max_hotvm_obj_size
-#	This is the maximum object size to keep saved in memory for
-#	fast access.  Objects larger than this will not be kept in
-#	fully in memory.  To disable ``Hot VM'' objects, set this to
-#	zero.  The default is 256k.
-#
-#max_hotvm_obj_size 262144
 
 
 # MISCELLANEOUS

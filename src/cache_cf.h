@@ -249,7 +249,6 @@ struct SquidConfig {
 	int low;
 	int high;
     } ipcache;
-    int maxHotvmObjSize;
     int minDirectHops;
 };
 

@@ -331,5 +331,6 @@ extern int store_rebuilding;
 #define SWAP_DIRECTORIES_L1	16
 #define SWAP_DIRECTORIES_L2	256
 extern int ncache_dirs;
+extern unsigned long store_mem_size;
 
 #endif
