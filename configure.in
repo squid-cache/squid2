@@ -560,13 +560,15 @@ SSLINC=""
 AC_ARG_ENABLE(ssl,
 [  --enable-ssl            Enable ssl gatewaying support using OpenSSL],
 [ if test "$enableval" != "no"; then
-    echo "SSL gatewaying enabled"
+    echo "SSL gatewaying using OpenSSL enabled"
     AC_DEFINE(USE_SSL)
     AM_CONDITIONAL(ENABLE_SSL, true)
     SSLLIB='-lssl -lcrypto'
     USE_OPENSSL=1
   fi
 ])
+
+AM_CONDITIONAL(NEED_OWN_MD5, true)
 
 AC_ARG_WITH(openssl,
 [  --with-openssl[=prefix]
@@ -578,7 +580,6 @@ AC_ARG_WITH(openssl,
   case "$with_ssl" in
   yes)
     USE_OPENSSL=1
-    AM_CONDITIONAL(ENABLE_SSL, true)
     ;;
   no)
     USE_OPENSSL=
@@ -587,12 +588,13 @@ AC_ARG_WITH(openssl,
     SSLLIBDIR="$with_ssl/lib"
     SSLINC="-I$with_ssl/include"
     USE_OPENSSL=1
-    AM_CONDITIONAL(ENABLE_SSL, true)
   esac
 ])
 
 if test -n "$USE_OPENSSL"; then
+  echo "Using OpenSSL MD5 implementation"
   AC_DEFINE(USE_OPENSSL)
+  AM_CONDITIONAL(NEED_OWN_MD5, false)
   if test -z "$SSLLIB"; then
     SSLLIB="-lcrypto" # for MD5 routines
   fi
