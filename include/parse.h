@@ -84,7 +84,7 @@ extern "C" {
 /*void print_type(struct variable_list *); */
     void print_oid_nums(oid *, int);
 
-    struct snmp_mib_tree *read_mib();
+    struct snmp_mib_tree *read_mib(char *);
 
 #ifdef __cplusplus
 }
