@@ -2227,11 +2227,19 @@ int storeEntryLocked(e)
 	debug(20, 0, "%s", storeToString(e));
 	fatal_dump(NULL);
     }
-    return ((e->lock_count) ||
-	(e->store_status == STORE_PENDING) ||
-	(e->swap_status == SWAPPING_OUT) ||
-	(e->mem_status == SWAPPING_IN)
-	);
+    if (e->lock_count)
+	return 1;
+#ifdef DONT_DO_THIS_ANYMORE
+    /* dont check for STORE_PENDING anymore, now if the server-side 
+       is fetching the object, it will be locked */
+    if (e->store_status == STORE_PENDING)
+	return 1;
+#endif
+    if (e->swap_status == SWAPPING_OUT)
+	return 1;
+    if (e->mem_status == SWAPPING_IN)
+	return 1;
+    return 0;
 }
 
 /*  use this for internal call only */
