@@ -337,7 +337,7 @@ icpPktDump(icp_common_t * pkt)
 void
 icpHandleUdp(int sock, void *data)
 {
-    int *N = data;
+    int *N = &incoming_sockets_accepted;
     struct sockaddr_in from;
     socklen_t from_len;
     LOCAL_ARRAY(char, buf, SQUID_UDP_SO_RCVBUF);

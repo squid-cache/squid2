@@ -338,7 +338,7 @@ idnsGrokReply(const char *buf, size_t sz)
 static void
 idnsRead(int fd, void *data)
 {
-    int *N = data;
+    int *N = &incoming_sockets_accepted;
     ssize_t len;
     struct sockaddr_in from;
     socklen_t from_len;

@@ -153,3 +153,4 @@ extern int store_pages_max;	/* 0 */
 extern ssize_t store_maxobjsize;	/* -1 */
 extern RemovalPolicy *mem_policy;
 extern hash_table *proxy_auth_username_cache;	/* NULL */
+extern int incoming_sockets_accepted;

@@ -280,7 +280,7 @@ shut_down(int sig)
 static void
 serverConnectionsOpen(void)
 {
-    clientHttpConnectionsOpen();
+    clientOpenListenSockets();
     icpConnectionsOpen();
 #if USE_HTCP
     htcpInit();
@@ -518,10 +518,6 @@ mainInitialize(void)
     }
 #if USE_WCCP
     wccpInit();
-#endif
-#if USE_SSL
-    if (Config.Sockaddr.https)
-	sslInit(Config.SSL.certificate, Config.SSL.key);
 #endif
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0) {

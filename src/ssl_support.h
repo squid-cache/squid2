@@ -43,9 +43,7 @@
 #include <openssl/err.h>
 #endif
 
-extern SSL_CTX *sslContext;
-
-void sslInit(const char *certfile, const char *keyfile);
+SSL_CTX *sslLoadCert(const char *certfile, const char *keyfile);
 int ssl_read_method(int, char *, int);
 int ssl_write_method(int, const char *, int);
 

@@ -292,6 +292,15 @@ struct _sockaddr_in_list {
     sockaddr_in_list *next;
 };
 
+#if USE_SSL
+struct _https_port_list {
+    https_port_list *next;
+    struct sockaddr_in s;
+    char *cert;
+    char *key;
+};
+
+#endif
 
 #if DELAY_POOLS
 struct _delaySpec {
@@ -382,7 +391,7 @@ struct _SquidConfig {
     struct {
 	sockaddr_in_list *http;
 #if USE_SSL
-	sockaddr_in_list *https;
+	https_port_list *https;
 #endif
     } Sockaddr;
 #if SQUID_SNMP
