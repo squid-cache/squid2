@@ -294,7 +294,7 @@ icmpClose(void)
     icmpQueueData *queue;
     if (icmp_sock < 0)
 	return;
-    debug(29, 0) ("Closing ICMP socket on FD %d\n", icmp_sock);
+    debug(29, 0) ("Closing Pinger socket on FD %d\n", icmp_sock);
     comm_close(icmp_sock);
     icmp_sock = -1;
     while ((queue = IcmpQueueHead)) {
