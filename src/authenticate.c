@@ -108,7 +108,7 @@ authenticateInit(void)
     if (!Config.Program.authenticate)
 	return;
     if (authenticators == NULL)
-        authenticators = helperCreate("authenticator");
+	authenticators = helperCreate("authenticator");
     authenticators->cmdline = Config.Program.authenticate;
     authenticators->n_to_start = Config.authenticateChildren;
     authenticators->ipc_type = IPC_TCP_SOCKET;

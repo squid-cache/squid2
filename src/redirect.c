@@ -129,7 +129,7 @@ redirectInit(void)
     if (!Config.Program.redirect)
 	return;
     if (redirectors == NULL)
-        redirectors = helperCreate("redirector");
+	redirectors = helperCreate("redirector");
     wordlistAdd(&redirectors->cmdline, Config.Program.redirect);
     redirectors->n_to_start = Config.redirectChildren;
     redirectors->ipc_type = IPC_TCP_SOCKET;

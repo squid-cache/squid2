@@ -192,7 +192,7 @@ storeDigestAdd(const StoreEntry * entry)
 	/* if expires too soon, ignore */
 	/* Note: We should use the time of the next rebuild, not (cur_time+period) */
 	if (refreshCheckDigest(entry, StoreDigestRebuildPeriod)) {
-	    debug(71, 6) ("storeDigestAdd: entry expires within %d secs, ignoring\n", 
+	    debug(71, 6) ("storeDigestAdd: entry expires within %d secs, ignoring\n",
 		StoreDigestRebuildPeriod);
 	} else {
 	    good_entry = 1;

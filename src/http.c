@@ -336,7 +336,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    int skew = abs(reply->date - squid_curtime);
 	    if (skew > 86400)
 		debug(11, 3) ("%s's clock is skewed by %d seconds!\n",
-			httpState->request->host, skew);
+		    httpState->request->host, skew);
 	}
     }
 }

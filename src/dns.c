@@ -52,7 +52,7 @@ dnsInit(void)
     if (!Config.Program.dnsserver)
 	return;
     if (dnsservers == NULL)
-    	dnsservers = helperCreate("dnsserver");
+	dnsservers = helperCreate("dnsserver");
     dnsservers->n_to_start = Config.dnsChildren;
     dnsservers->ipc_type = IPC_TCP_SOCKET;
     assert(dnsservers->cmdline == NULL);
