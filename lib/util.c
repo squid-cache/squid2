@@ -473,11 +473,12 @@ tvSubMsec(struct timeval t1, struct timeval t2)
 char *
 xstrncpy(char *dst, const char *src, size_t n)
 {
-    if (n != 0) {
-	if (src != NULL)
-	    while (--n != 0 && *src != '\0')
-		*dst++ = *src++;
-	*dst = '\0';
-    }
+    if (n == 0)
+	return dst;
+    if (src == NULL)
+	return dst;
+    while (--n != 0 && *src != '\0')
+	*dst++ = *src++;
+    *dst = '\0';
     return dst;
 }

@@ -7,12 +7,14 @@
 #	The port number where squid will listen for HTTP client
 #	requests.  Default is 3128, for httpd-accel mode use port 80.
 #	May be overridden with -a on the command line.
+#
 #http_port @CACHE_HTTP_PORT@
 
 #  TAG: icp_port
 #	The port number where squid send and receive ICP requests to
 #	and from neighbor caches.  Default is 3130.  To disable use
 #	"0".  May be overridden with -u on the command line.
+#
 #icp_port @CACHE_ICP_PORT@
 
 #  TAG: mcast_groups
@@ -272,6 +274,7 @@ hierarchy_stoplist cgi-bin ?
 #
 cache_stoplist cgi-bin ?
 
+
 # OPTIONS WHICH AFFECT THE CACHE SIZE
 #-----------------------------------------------------------------------------
 
@@ -300,6 +303,7 @@ cache_stoplist cgi-bin ?
 #	mark.
 #
 #	The default is 8 Megabytes.
+#
 #cache_mem  8
 
 #  TAG: cache_swap (in megabytes)
@@ -323,14 +327,14 @@ cache_stoplist cgi-bin ?
 #cache_swap_low  75
 #cache_swap_high 90
 
-#  TAG: cache_mem_low (in percent)         
-#  TAG: cache_mem_high (in percent)
+#  TAG: cache_mem_low  (in percent, 0-100)         
+#  TAG: cache_mem_high (in percent, 0-100)
 #	The low- and high-water mark for cache memory storage.  When
 #	the amount of RAM used by the hot-object RAM cache reaches this
 #	point, the cache starts throwing objects out of the RAM cache
 #	(but they remain on disk).  Defaults are 75% and 90%.
 #
-#cache_mem_low 75
+#cache_mem_low  75
 #cache_mem_high 90
 
 #  TAG: maximum_object_size
@@ -359,21 +363,25 @@ cache_stoplist cgi-bin ?
 #
 #	You can specify multiple cache_dir lines to spread the
 #	cache among different disk partitions.
+#
 #cache_dir @DEFAULT_SWAP_DIR@
 
 #  TAG: cache_access_log 
 #	Logs the client request activity.  Contains an entry for 
 #	every HTTP and ICP request received.
+#
 #cache_access_log @DEFAULT_ACCESS_LOG@
 
 #  TAG: cache_log 
 #	Cache logging file.  Set logging levels with "debug_options" below.
+#
 #cache_log @DEFAULT_CACHE_LOG@
 
 #  TAG:	cache_store_log
 #	Logs the activities of the storage manager.  Shows which
 #	objects are ejected from the cache, and which objects are
 #	saved and for how long.  To disable, enter "none".
+#
 #cache_store_log @DEFAULT_STORE_LOG@
 
 #  TAG:	cache_swap_log
@@ -383,6 +391,7 @@ cache_stoplist cgi-bin ?
 #	'cache_dir' directory, but you may specify an alternate
 #	pathname here.  Note you must give a full filename, not just
 #	a directory.
+#
 #cache_swap_log
 
 #  TAG: emulate_httpd_log
@@ -410,10 +419,12 @@ cache_stoplist cgi-bin ?
 #	If compiled with "-DUSE_USERAGENT_LOG=1" Squid will write
 #	the User-Agent field from HTTP requests to the filename
 #	specified here.  By default useragent_log is disabled.
+#
 #useragent_log none
 
 #  TAG: pid_filename
 #       A pathname to write the process-id to.  To disable, enter "none".
+#
 #pid_filename @DEFAULT_PID_FILE@
 
 #  TAG: debug_options
@@ -423,6 +434,7 @@ cache_stoplist cgi-bin ?
 #	log file, so be careful.  The magic word "ALL" sets debugging
 #	levels for all sections.  We recommend normally running with
 #	"ALL,1".
+#
 debug_options ALL,1
 
 #  TAG: ident_lookup
@@ -434,6 +446,7 @@ debug_options ALL,1
 #  TAG: log_fqdn
 #	Turn this on if you wish to log fully qualified domain names
 #	in the access.log.
+#
 #log_fqdn off
 
 #  TAG: client_netmask
@@ -513,6 +526,7 @@ debug_options ALL,1
 
 #  TAG: wais_relay
 #	Relay WAIS request to host (1st arg) at port (2 arg).  
+#
 #wais_relay localhost 8000
 
 #  TAG: request_size
@@ -653,6 +667,7 @@ debug_options ALL,1
 #
 #clean_rate -1
 
+
 # ACCESS CONTROLS
 #-----------------------------------------------------------------------------
 
@@ -742,6 +757,7 @@ miss_access allow  all
 #		  queried for all requests.
 #		* There are no defaults.
 
+
 # ADMINISTRATIVE PARAMETERS
 #-----------------------------------------------------------------------------
 
@@ -762,13 +778,13 @@ miss_access allow  all
 #	If you want to present a special hostname in error messages, etc,
 #	then define this.  Otherwise, the return value of gethostname()
 #	will be used.
+#
 #visible_hostname www-cache.foo.org
-
 
 
 # OPTIONS FOR THE CACHE REGISTRATION SERVICE
 #-----------------------------------------------------------------------------
-#
+
 #	This section contains parameters for the (optional) cache
 #	announcement service.  This service is provided to help
 #	cache administrators locate one another in order to join or
@@ -808,9 +824,6 @@ miss_access allow  all
 #announce_to sd.cache.nlanr.net:3131
 
 
-
-
-
 # HTTPD-ACCELERATOR OPTIONS
 #-----------------------------------------------------------------------------
 
@@ -820,11 +833,13 @@ miss_access allow  all
 #
 #	If you want virtual host support then specify the hostname
 #	as "virtual".
+#
 #httpd_accel real_httpd_host real_httpd_port
 
 #  TAG: httpd_accel_with_proxy
 #	If you want to use squid as both a local httpd accelerator
 #	and as a proxy, change this to 'on'.
+#
 #httpd_accel_with_proxy off
 
 
@@ -888,6 +903,7 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	HTML text to include in error messages.  Make this a "mailto"
 #	URL to your admin address, or maybe just a link to your 
 #	organizations Web page.
+#
 #err_html_text
 
 #  TAG: deny_info
@@ -895,12 +911,14 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 
 #  TAG: udp_hit_obj on|off
 #	If set, Squid will request UDP_HIT_OBJ replies from its neighbors.
+#
 #udp_hit_obj on
 
 #  TAG: memory_pools on|off
 #	If set, Squid will keep pools of allocated (but unused) memory
 #	available for future use.  If memory is a premium on your
 #	system, disable this.
+#
 #memory_pools on
 
 #  TAG: forwarded_for on|off
@@ -910,12 +928,14 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #		Forwarded: by http://foo.org:3128/ for 192.1.2.3
 #	If you disable this, it will appear as
 #		Forwarded: by http://foo.org:3128/
+#
 #forwarded_for on
 
 
 #  TAG: minimum_direct_hops
 #	If using the ICMP pinging stuff, do direct fetches for sites
 #	which are no more than this many hops away.
+#
 minimum_direct_hops 4
 
 #  TAG: cachemgr_passwd
@@ -962,11 +982,13 @@ minimum_direct_hops 4
 #  TAG: swap_level1_dirs
 #	Number of first-level directories to create for storing cached
 #	objects.  Minimum 1, maximum 256, default 16.
+#
 #swap_level1_dirs 16
 
 #  TAG: swap_level2_dirs
 #       Number of sub-directories to create under each first-level
 #	directory.  Minimum 1, maximum 256, default 256.
+#
 #swap_level2_dirs 256
 
 store_objects_per_bucket 50
