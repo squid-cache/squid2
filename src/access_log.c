@@ -238,7 +238,7 @@ accessLogOpen(const char *fname)
 	    fatalf("%s cannot be created, since the\n"
 		"\tdirectory it is to reside in does not exist."
 		"\t(%s)\n", LogfileName, xstrerror());
-	} else if (EACCESS == errno) {
+	} else if (EACCES == errno) {
 	    fatalf("cannot create %s:\n"
 		"\t%s.\n"
 		"\tThe directory access.log is to reside in needs to be\n"
