@@ -9,6 +9,7 @@ TABLE OF CONTENTS:
 	Proper parsing of HTTP reply codes
 	Support for If-Modified-Since GET
 	Improvements to the access log
+	Metadata reloads in the background
 	Unlinking swap files on restart and the -U option
 	Changes to debugging
 	New Access Control scheme
@@ -215,11 +216,94 @@ line.  For example:
 
 New Access Control scheme
 ==============================================================================
-Using SIGHUP to reconfigure the cache
-==============================================================================
-ftpget server
-==============================================================================
+The old IP-based access controls have been replaced with a much more
+flexible scheme.  First you must define a set of access control lists. 
+There are N types of lists:
+
+	'src'		client IP address
+	'method'	method of the request (eg, GET, POST)
+	'proto'		protocol of the request (eg HTTP, WAIS)
+	'domain'	domain of the URL request (eg .foo.org)
+	'port'		port number of the URL request (eg 80, 21)
+	'time'		time-of-day and day-of-week
+	'pattern'	regular expression matching on the URL-path
+
+After the access lists have been defined, you can then combine them
+in way to allow or deny access.  
+
+For example, your cache might be configured to accept requests 
+from both inside and outside of your organization.  In that case you'd
+probably want to allow internal clients to access anything, but limit
+outside access to only sites within your organization.  It could be
+done like this:
+
+	acl ourclients src  128.138.0.0/255.255.0.0  198.117.213.0/24
+	acl ourservers domain .whatsamattu.edu
+
+	http_access deny !ourclients !ourservers
+	http_access allow ourclients
+
+If you wanted to limit FTP requests to off-peak hours, you could use:
+
+	acl daytime time  MTWHF 08:00-17:00
+	acl FTP proto FTP
+	http_access deny FTP daytime
+
+Any of the access list types can accept multiple values on the 
+same line, except for 'time'.  Multiple values of an 'acl'
+definition are treated with OR logic.  Multiple ACLs of
+an 'http_access' are treated with AND logic.  
+That is, all ACLs much match for the 'allow' or 'deny' take effect.
+The order of the 'http_access' lines are important.  When a line
+matches any following lines are not considered at all.
+
+'icp_access' is the same as 'http_access' but it applies to the ICP
+port.  However, it is not yet fully implemented.  It is only able to check
+'src' and 'method' ACLs.
+
+
 Changes to cache shutdown
 ==============================================================================
+Squid attempts to implement a "nice shutdown" upon receipt of a SIGTERM
+signal.  Rather than simply breaking all current connections, it waits
+a configurable number of seconds for active requests to complete.  The
+default 'shutdown_lifetime' value is 30 seconds.
+
+As soon as the SIGTERM is received, the incoming HTTP socket is closed
+so that no further requests will be accepted.  
+
+
+Using SIGHUP to reconfigure the cache
+==============================================================================
+Sending the squid process a HUP signal will prompt it to re-read its
+configuration file.  Before it can be reconfigured, it must make sure
+that all active connections are closed.  For this purpose squid
+pretends to do a shutdown as described above.  ie, it will wait up to
+30 seconds for active requests to complete before re-reading the
+configuration file.
+
+
+ftpget server
+==============================================================================
+The ftpget program has been modified to act as a server for FTP
+request.  You may now notice that an "ftpget -S" process is always
+present while the cache is running.  The benefit of using an ftpget
+server is that the cache process (which may be very large) no longer
+needs to fork itself for FTP requests.
+
+
 Assigning weights to cache neighbors
 ==============================================================================
+Squid allows you to assign weights to parent caches.  The weights are 
+used to calculate the ``first miss parent.''  The weight is specified in
+the 'options' field of the 'cache_host' line.  For example:
+
+     cache_host  big.foo.org parent 3128 3130 weight=5
+
+The weight must be a non-zero integer.  It is used as a divisor to
+calculate a weighted round-trip-time (RTT).  Higher weights will cause
+a parent to have a ``better'' RTT.
+
+Weights are only involved when all parent caches return MISS.  Squid still
+fetches an object from the first parent or neighbor to reply with a HIT,
+regardless of any weight values.
