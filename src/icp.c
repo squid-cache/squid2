@@ -438,7 +438,7 @@ static int icpSendERROR(fd, errorCode, msg, icpState)
 	fatal_dump(tmp_error_buf);
     }
     if (icpState->entry && icpState->entry->mem_obj) {
-	if (icpState->size) > 0) {
+	if (icpState->size > 0) {
 	    comm_close(fd);
 	    return COMM_OK;
 	}
