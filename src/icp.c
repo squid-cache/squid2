@@ -164,6 +164,10 @@ typedef struct iwd {
     int size;			/* hack for CONNECT which doesnt use sentry */
 } icpStateData;
 
+#if DELAY_HACK
+int _delay_fetch;
+#endif
+
 static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
@@ -816,7 +820,11 @@ static int icpProcessMISS(fd, icpState)
 
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, (PIF) icpHandleStore, (void *) icpState);
-
+#if DELAY_HACK
+	_delay_fetch = 0;
+        if (aclCheck(DelayAccessList, icpState->peer.sin_addr, icpState->request))
+	    _delay_fetch = 1;
+#endif
     return (protoDispatch(fd, url, icpState->entry, icpState->request));
 }
 

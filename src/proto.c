@@ -159,7 +159,10 @@ extern int httpd_accel_mode;
 extern ip_acl *local_ip_list;
 extern ip_acl *firewall_ip_list;
 extern time_t neighbor_timeout;
-extern single_parent_bypass;
+extern int single_parent_bypass;
+#if DELAY_HACK
+extern int _delay_fetch;
+#endif
 
 static void protoDataFree(fdunused, protoData)
      int fdunused;
@@ -256,7 +259,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	    (void *) entry,
 	    neighbor_timeout);
 #ifdef DELAY_HACK
-	if (aclCheck(&delay_list, XXX, req) && entry->mem_obj)
+	if (protoData->delay_fetch && entry->mem_obj)
 	    entry->mem_obj->e_pings_n_pings++;
 #endif
 	return 0;
@@ -312,6 +315,9 @@ int protoDispatch(fd, url, entry, request)
     protoData->query_neighbors = BIT_TEST(entry->flag, HIERARCHICAL);
     protoData->single_parent = getSingleParent(request, &n);
     protoData->n_edges = n;
+#ifdef DELAY_HACK
+    protoData->delay_fetch = _delay_fetch;
+#endif
 
     debug(17, 2, "protoDispatch: inside_firewall = %d (%s)\n",
 	protoData->inside_firewall,

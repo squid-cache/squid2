@@ -1214,6 +1214,9 @@ int parseConfigFile(file_name)
     aclDestroyAcls();
     aclDestroyAccessList(&HTTPAccessList);
     aclDestroyAccessList(&ICPAccessList);
+#if DELAY_HACK
+    aclDestroyAccessList(&DelayAccessList);
+#endif
 
     if ((fp = fopen(file_name, "r")) == NULL) {
 	sprintf(fatal_str, "Unable to open configuration file: %s: %s",
@@ -1331,6 +1334,11 @@ int parseConfigFile(file_name)
 
 	else if (!strcmp(token, "icp_access"))
 	    aclParseAccessLine(&ICPAccessList);
+
+#if DELAY_HACK
+	else if (!strcmp(token, "delay_access"))
+	    aclParseAccessLine(&DelayAccessList);
+#endif
 
 	/* Parse a http_stop line */
 	else if (!strcmp(token, "http_stop"))

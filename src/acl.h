@@ -105,3 +105,6 @@ extern struct _acl *aclFindByName _PARAMS((char *name));
 
 extern struct _acl_access *HTTPAccessList;
 extern struct _acl_access *ICPAccessList;
+#if DELAY_HACK
+extern struct _acl_access *DelayAccessList;
+#endif
