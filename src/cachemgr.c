@@ -57,39 +57,40 @@
 #define CR 13
 
 typedef enum {
-	INFO,
-	CACHED,
-	SERVER,
-	LOG,
-	PARAM,
-	STATS_G,
-	STATS_O,
-	STATS_VM,
-	STATS_U,
-	SHUTDOWN,
-	REFRESH,
+    INFO,
+    CACHED,
+    SERVER,
+    LOG,
+    PARAM,
+    STATS_G,
+    STATS_O,
+    STATS_VM,
+    STATS_U,
+    SHUTDOWN,
+    REFRESH,
 #ifdef REMOVE_OBJECT
-	REMOVE,
+    REMOVE,
 #endif
-	MAXOP
+    MAXOP
 } op_t;
 
-static char *op_cmds[] = {
-	"info",
-	"squid.conf",
-	"server_list",
-	"log",
-	"parameter",
-	"stats/general",
-	"stats/objects",
-	"stats/vm_objects",
-	"stats/utilization",
-	"shutdown",
-	"<refresh>",
+static char *op_cmds[] =
+{
+    "info",
+    "squid.conf",
+    "server_list",
+    "log",
+    "parameter",
+    "stats/general",
+    "stats/objects",
+    "stats/vm_objects",
+    "stats/utilization",
+    "shutdown",
+    "<refresh>",
 #ifdef REMOVE_OBJECT
-	"<remove>",
+    "<remove>",
 #endif
-	"<maxop>"
+    "<maxop>"
 };
 
 typedef struct {
@@ -469,11 +470,11 @@ int main(int argc, char *argv[])
     case STATS_VM:
     case STATS_U:
 	sprintf(msg, "GET cache_object://%s/%s HTTP/1.0\r\n\r\n",
-		hostname, op_cmds[op]);
+	    hostname, op_cmds[op]);
 	break;
     case SHUTDOWN:
 	sprintf(msg, "GET cache_object://%s/%s@%s HTTP/1.0\r\n\r\n",
-		hostname, op_cmds[op], password);
+	    hostname, op_cmds[op], password);
 	break;
     case REFRESH:
 	sprintf(msg, "GET %s HTTP/1.0\r\nPragma: no-cache\r\nAccept: */*\r\n\r\n", url);

@@ -152,7 +152,7 @@ int ipcache_create_dnsserver(command)
 	memset(&addr, '\0', sizeof(addr));
 	addr.sun_family = AF_UNIX;
 	strcpy(addr.sun_path, socketname);
-        xfree(socketname);
+	xfree(socketname);
 	if (connect(sfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 	    close(sfd);
 	    debug(14, 0, "ipcache_create_dnsserver: connect: %s\n", xstrerror());

@@ -209,7 +209,7 @@ static void connectConnected(fd, data)
      int fd;
      ConnectData *data;
 {
-    debug(26,3,"connectConnected: FD %d data=%p\n", fd, data);
+    debug(26, 3, "connectConnected: FD %d data=%p\n", fd, data);
     storeAppend(data->entry, conn_established, strlen(conn_established));
     comm_set_fd_lifetime(fd, -1);	/* disable lifetime DPW */
     comm_set_select_handler_plus_timeout(data->remote, COMM_SELECT_TIMEOUT,

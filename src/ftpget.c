@@ -366,7 +366,7 @@ void fail(r)
 	    exit(1);
 	}
 	if (r->errmsg == NULL)
-		r->errmsg = xstrdup(xstrerror());	/* safety net */
+	    r->errmsg = xstrdup(xstrerror());	/* safety net */
 	setbuf(fp, NULL);
 	htmlbuf[0] = '\0';
 	sprintf(htmlbuf, CACHED_RETRIEVE_ERROR_MSG,
