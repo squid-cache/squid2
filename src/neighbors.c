@@ -582,24 +582,24 @@ neighborsUdpAck(int fd, char *url, icp_common_t * header, struct sockaddr_in *fr
     if (opcode > ICP_OP_END)
 	return;
     opcode_d = IcpOpcodeStr[opcode];
+    /* check if someone is already fetching it */
+    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED)) {
+	debug(15, 3, "neighborsUdpAck: '%s' already being fetched.\n", url);
+	neighborCountIgnored(e, opcode);
+	return;
+    }
     if (mem == NULL) {
 	debug(15, 1, "Ignoring %s for missing mem_obj: %s\n", opcode_d, url);
 	neighborCountIgnored(e, opcode);
 	return;
     }
-    /* check if someone is already fetching it */
-    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED)) {
-	debug(15, 5, "neighborsUdpAck: '%s' already being fetched.\n", url);
-	neighborCountIgnored(e, opcode);
-	return;
-    }
     if (entry->ping_status != PING_WAITING) {
-	debug(15, 5, "neighborsUdpAck: Unexpected %s for %s\n", opcode_d, url);
+	debug(15, 1, "neighborsUdpAck: Unexpected %s for %s\n", opcode_d, url);
 	neighborCountIgnored(e, opcode);
 	return;
     }
     if (entry->lock_count == 0) {
-	debug(12, 3, "neighborsUdpAck: '%s' has no locks\n", url);
+	debug(12, 1, "neighborsUdpAck: '%s' has no locks\n", url);
 	neighborCountIgnored(e, opcode);
 	return;
     }
