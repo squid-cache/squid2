@@ -30,6 +30,7 @@
 #ifndef _HTTP_REPLY_H_
 #define _HTTP_REPLY_H_
 
+#include "Packer.h"
 #include "HttpStatusLine.h"
 #include "HttpBody.h"
 
