@@ -389,7 +389,9 @@ struct rusage {
 #define XMAX(a,b) ((a)>(b)? (a) : (b))
 
 /*
- * Squid source files should not call these functions directly
+ * Squid source files should not call these functions directly.
+ * Use xmalloc, xfree, xcalloc, snprintf, and xstrdup instead.
+ * Also use xmemcpy, xisspace, ...
  */
 #ifndef malloc
 #define malloc +
