@@ -1389,13 +1389,16 @@ storeDoRebuildFromDisk(void *data)
 	     * newer entry. */
 	    debug(20, 1) ("WARNING: newer swaplog entry for fileno %08X\n",
 		sfileno);
-	    assert(newer == 0);
 	    /* I'm tempted to remove the swapfile here just to be safe,
 	     * but there is a bad race condition in the NOVM version if
 	     * the swapfile has recently been opened for writing, but
 	     * not yet opened for reading.  Because we can't map
 	     * swapfiles back to StoreEntrys, we don't know the state
 	     * of the entry using that file.  */
+	    /* We'll assume the existing entry is valid, probably because
+	       were in a slow rebuild and the the swap file number got taken
+	       and the validation procedure hasn't run. */
+	    assert(RB->need_to_validate);
 	    RB->clashcount++;
 	    continue;
 	} else if (e) {
