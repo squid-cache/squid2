@@ -218,6 +218,7 @@ static void mainInitialize()
 
     if (first_time) {
 	disk_init();		/* disk_init must go before ipcache_init() */
+	writePidFile();		/* write PID file before setuid() */
     }
     ipcache_init();
     neighbors_init();
@@ -237,7 +238,6 @@ static void mainInitialize()
 	stat_init(&CacheInfo, getAccessLogFile());
 	storeInit();
 	stmemInit();
-	writePidFile();
 
 	if (getEffectiveUser()) {
 	    /* we were probably started as root, so cd to a swap

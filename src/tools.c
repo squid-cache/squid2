@@ -154,8 +154,11 @@ void rotate_logs(sig)
 void normal_shutdown()
 {
     debug(21, 1, "Shutting down...\n");
-    if (getPidFilename())
+    if (getPidFilename()) {
+	get_suid();
 	safeunlink(getPidFilename(), 0);
+	check_suid();
+    }
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
     debug(21, 0, "Squid Cache (Version %s): Exiting normally.\n",
@@ -251,9 +254,9 @@ int getMaxFD()
     static int i = -1;
 
     if (i == -1) {
-#if defined(HAVE_SYSCONF) && defined(_SC_OPEN_MAX)
+#if HAVE_SYSCONF && defined(_SC_OPEN_MAX)
 	i = sysconf(_SC_OPEN_MAX);	/* prefered method */
-#elif defined(HAVE_GETDTABLESIZE)
+#elif HAVE_GETDTABLESIZE
 	i = getdtablesize();	/* the BSD way */
 #elif defined(OPEN_MAX)
 	i = OPEN_MAX;
@@ -346,9 +349,9 @@ void check_suid()
     } else {
 	setgid(pwd->pw_gid);
     }
-#if defined(HAVE_SETRESUID)
+#if HAVE_SETRESUID
     setresuid(pwd->pw_uid, pwd->pw_uid, 0);
-#elif defined(HAVE_SETEUID)
+#elif HAVE_SETEUID
     seteuid(pwd->pw_uid);
 #else
     setuid(pwd->pw_uid);
@@ -357,7 +360,7 @@ void check_suid()
 
 void get_suid()
 {
-#if defined(HAVE_SETRESUID)
+#if HAVE_SETRESUID
     setresuid(-1, 0, -1);
 #else
     setuid(0);
@@ -369,7 +372,7 @@ void no_suid()
     uid_t uid;
     check_suid();
     uid = geteuid();
-#if defined(HAVE_SETRESUID)
+#if HAVE_SETRESUID
     setresuid(uid, uid, uid);
 #else
     setuid(0);
@@ -396,7 +399,7 @@ void writePidFile()
 
 void setMaxFD()
 {
-#if defined(HAVE_SETRLIMIT)
+#if HAVE_SETRLIMIT
     /* try to use as many file descriptors as possible */
     /* System V uses RLIMIT_NOFILE and BSD uses RLIMIT_OFILE */
     struct rlimit rl;
