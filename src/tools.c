@@ -219,20 +219,6 @@ void fatal_dump(message)
     abort();
 }
 
-
-int getHeapSize()
-{
-#if HAVE_MALLINFO
-    struct mallinfo mp;
-
-    mp = mallinfo();
-
-    return (mp.arena);
-#else
-    return (0);
-#endif
-}
-
 void sig_child(sig)
      int sig;
 {
@@ -318,27 +304,6 @@ int safeunlink(s, quiet)
 	if (!quiet)
 	    debug(21, 1, "safeunlink: Couldn't delete %s. %s\n", s, xstrerror());
     return (err);
-}
-
-/* 
- * Daemonize a process according to guidlines in "Advanced Programming
- * For The UNIX Environment", W.R. Stevens ( Addison Wesley, 1992) - Ch. 13
- */
-int daemonize()
-{
-    int n_openf, i;
-    pid_t pid;
-    if ((pid = fork()) < 0)
-	return -1;
-    else if (pid != 0)
-	exit(0);
-    /* Child continues */
-    setsid();			/* Become session leader */
-    n_openf = getMaxFD();	/* Close any inherited files */
-    for (i = 0; i < n_openf; i++)
-	close(i);
-    umask(0);			/* Clear file mode creation mask */
-    return 0;
 }
 
 void check_suid()

@@ -233,7 +233,7 @@ int storeHashDelete(hash_ptr)
 
 void storeSetMemStatus(e, status)
      StoreEntry *e;
-     int status;
+     mem_status_t status;
 {
     hash_link *ptr = NULL;
 
@@ -491,7 +491,7 @@ unsigned int getKeyCounter()
 
 char *storeGeneratePrivateKey(url, method, num)
      char *url;
-     int method;
+     method_t method;
      int num;
 {
     if (num == 0)
@@ -507,7 +507,7 @@ char *storeGeneratePrivateKey(url, method, num)
 
 char *storeGeneratePublicKey(url, method)
      char *url;
-     int method;
+     method_t method;
 {
     debug(20, 3, "storeGeneratePublicKey: type=%d %s\n", method, url);
     switch (method) {
@@ -608,7 +608,7 @@ StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
      char *url;
      char *req_hdr;
      int flags;
-     int method;
+     method_t method;
 {
     StoreEntry *e = NULL;
     MemObject *m = NULL;
@@ -2542,21 +2542,6 @@ int urlcmp(url1, url2)
     if (!url1 || !url2)
 	fatal_dump("urlcmp: Got a NULL url pointer.");
     return (strcmp(url1, url2));
-}
-
-int parse_file_number(s)
-     char *s;
-{
-    int len;
-
-
-    for (len = strlen(s); (len >= 0); --len) {
-	if (s[len] == '/') {
-	    return (atoi(&s[len + 1]));
-	}
-    }
-    debug(20, 1, "parse_file_number: Could not determine the swap file number from %s.\n", s);
-    return (0);
 }
 
 /* 

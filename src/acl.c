@@ -13,8 +13,26 @@ struct _acl_access *ICPAccessList = NULL;
 static struct _acl *AclList = NULL;
 static struct _acl **AclListTail = &AclList;
 
+static void aclDestroyAclList _PARAMS((struct _acl_list * list));
+static void aclDestroyIpList _PARAMS((struct _acl_ip_data * data));
+static void aclDestroyRegexList _PARAMS((struct _relist * data));
+static void aclDestroyTimeList _PARAMS((struct _acl_time_data * data));
+static struct _acl *aclFindByName _PARAMS((char *name));
 static int aclMatchAcl _PARAMS((struct _acl *, struct in_addr, method_t, protocol_t, char *host, int port, char *request));
 static int aclMatchAclList _PARAMS((struct _acl_list *, struct in_addr, method_t, protocol_t, char *host, int port, char *request));
+static int aclMatchInteger _PARAMS((intlist * data, int i));
+static int aclMatchIp _PARAMS((struct _acl_ip_data * data, struct in_addr c));
+static int aclMatchRegex _PARAMS((relist * data, char *word));
+static int aclMatchTime _PARAMS((struct _acl_time_data * data, time_t when));
+static int aclMatchWord _PARAMS((wordlist * data, char *word));
+static intlist *aclParseIntlist _PARAMS((void));
+static struct _acl_ip_data *aclParseIpList _PARAMS((void));
+static intlist *aclParseMethodList _PARAMS((void));
+static intlist *aclParseProtoList _PARAMS((void));
+static struct _relist *aclParseRegexList _PARAMS((void));
+static struct _acl_time_data *aclParseTimeSpec _PARAMS((void));
+static wordlist *aclParseWordList _PARAMS((void));
+static acl_t aclType _PARAMS((char *s));
 
 static acl_t aclType(s)
      char *s;
@@ -38,7 +56,7 @@ static acl_t aclType(s)
     return ACL_NONE;
 }
 
-struct _acl *aclFindByName(name)
+static struct _acl *aclFindByName(name)
      char *name;
 {
     struct _acl *a;
@@ -49,14 +67,14 @@ struct _acl *aclFindByName(name)
 }
 
 
-intlist *aclParseIntlist()
+static intlist *aclParseIntlist()
 {
     intlist *head = NULL;
     intlist **Tail = &head;
     intlist *q = NULL;
     char *t = NULL;
     while ((t = strtok(NULL, w_space))) {
-	q = (intlist *) xcalloc(1, sizeof(intlist));
+	q = xcalloc(1, sizeof(intlist));
 	q->i = atoi(t);
 	*(Tail) = q;
 	Tail = &q->next;
@@ -64,14 +82,14 @@ intlist *aclParseIntlist()
     return head;
 }
 
-intlist *aclParseProtoList()
+static intlist *aclParseProtoList()
 {
     intlist *head = NULL;
     intlist **Tail = &head;
     intlist *q = NULL;
     char *t = NULL;
     while ((t = strtok(NULL, w_space))) {
-	q = (intlist *) xcalloc(1, sizeof(intlist));
+	q = xcalloc(1, sizeof(intlist));
 	q->i = (int) urlParseProtocol(t);
 	*(Tail) = q;
 	Tail = &q->next;
@@ -79,14 +97,14 @@ intlist *aclParseProtoList()
     return head;
 }
 
-intlist *aclParseMethodList()
+static intlist *aclParseMethodList()
 {
     intlist *head = NULL;
     intlist **Tail = &head;
     intlist *q = NULL;
     char *t = NULL;
     while ((t = strtok(NULL, w_space))) {
-	q = (intlist *) xcalloc(1, sizeof(intlist));
+	q = xcalloc(1, sizeof(intlist));
 	q->i = (int) urlParseMethod(t);
 	*(Tail) = q;
 	Tail = &q->next;
@@ -94,7 +112,7 @@ intlist *aclParseMethodList()
     return head;
 }
 
-struct _acl_ip_data *aclParseIpList()
+static struct _acl_ip_data *aclParseIpList()
 {
     char *t = NULL;
     struct _acl_ip_data *head = NULL;
@@ -106,7 +124,7 @@ struct _acl_ip_data *aclParseIpList()
     int c;
 
     while ((t = strtok(NULL, w_space))) {
-	q = (struct _acl_ip_data *) xcalloc(1, sizeof(struct _acl_ip_data));
+	q = xcalloc(1, sizeof(struct _acl_ip_data));
 	a1 = a2 = a3 = a4 = 0;
 	if (!strcasecmp(t, "all")) {
 	    lmask.s_addr = 0;
@@ -156,13 +174,13 @@ struct _acl_ip_data *aclParseIpList()
     return head;
 }
 
-struct _acl_time_data *aclParseTimeSpec()
+static struct _acl_time_data *aclParseTimeSpec()
 {
     struct _acl_time_data *data = NULL;
     int h1, m1, h2, m2;
     char *t = NULL;
 
-    data = (struct _acl_time_data *) xcalloc(1, sizeof(struct _acl_time_data));
+    data = xcalloc(1, sizeof(struct _acl_time_data));
     while ((t = strtok(NULL, w_space))) {
 	if (*t < '0' || *t > '9') {
 	    /* assume its day-of-week spec */
@@ -226,7 +244,7 @@ struct _acl_time_data *aclParseTimeSpec()
     return data;
 }
 
-struct _relist *aclParseRegexList()
+static struct _relist *aclParseRegexList()
 {
     relist *head = NULL;
     relist **Tail = &head;
@@ -240,7 +258,7 @@ struct _relist *aclParseRegexList()
 	    debug(28, 0, "aclParseRegexList: Invalid regular expression: '%s'\n", t);
 	    continue;
 	}
-	q = (relist *) xcalloc(1, sizeof(relist));
+	q = xcalloc(1, sizeof(relist));
 	q->pattern = xstrdup(t);
 	q->regex = comp;
 	*(Tail) = q;
@@ -249,14 +267,14 @@ struct _relist *aclParseRegexList()
     return head;
 }
 
-wordlist *aclParseWordList()
+static wordlist *aclParseWordList()
 {
     wordlist *head = NULL;
     wordlist **Tail = &head;
     wordlist *q = NULL;
     char *t = NULL;
     while ((t = strtok(NULL, w_space))) {
-	q = (wordlist *) xcalloc(1, sizeof(wordlist));
+	q = xcalloc(1, sizeof(wordlist));
 	q->key = xstrdup(t);
 	*(Tail) = q;
 	Tail = &q->next;
@@ -272,7 +290,7 @@ void aclParseAclLine()
     char *t = NULL;
     struct _acl *A = NULL;
 
-    A = (struct _acl *) xcalloc(1, sizeof(struct _acl));
+    A = xcalloc(1, sizeof(struct _acl));
     /* snarf the ACL name */
     if ((t = strtok(NULL, w_space)) == NULL) {
 	debug(28, 0, "%s line %d: %s\n",
@@ -330,7 +348,6 @@ void aclParseAclLine()
 	xfree(A);
 	return;
 	/* NOTREACHED */
-	break;
     }
     A->cfgline = xstrdup(config_input_line);
     *AclListTail = A;
@@ -355,7 +372,7 @@ void aclParseAccessLine(head)
 	debug(28, 0, "aclParseAccessLine: missing 'allow' or 'deny'.\n");
 	return;
     }
-    A = (struct _acl_access *) xcalloc(1, sizeof(struct _acl_access));
+    A = xcalloc(1, sizeof(struct _acl_access));
     if (!strcmp(t, "allow"))
 	A->allow = 1;
     else if (!strcmp(t, "deny"))
@@ -372,7 +389,7 @@ void aclParseAccessLine(head)
      * by '!' for negation */
     Tail = &A->acl_list;
     while ((t = strtok(NULL, w_space))) {
-	L = (struct _acl_list *) xcalloc(1, sizeof(struct _acl_list));
+	L = xcalloc(1, sizeof(struct _acl_list));
 	L->op = 1;		/* defaults to non-negated */
 	if (*t == '!') {
 	    /* negated ACL */
@@ -404,7 +421,7 @@ void aclParseAccessLine(head)
     *T = A;
 }
 
-int aclMatchIp(data, c)
+static int aclMatchIp(data, c)
      struct _acl_ip_data *data;
      struct in_addr c;
 {
@@ -423,7 +440,7 @@ int aclMatchIp(data, c)
     return 0;
 }
 
-int aclMatchWord(data, word)
+static int aclMatchWord(data, word)
      wordlist *data;
      char *word;
 {
@@ -438,7 +455,8 @@ int aclMatchWord(data, word)
     }
     return 0;
 }
-int aclMatchRegex(data, word)
+
+static int aclMatchRegex(data, word)
      relist *data;
      char *word;
 {
@@ -453,7 +471,8 @@ int aclMatchRegex(data, word)
     }
     return 0;
 }
-int aclMatchInteger(data, i)
+
+static int aclMatchInteger(data, i)
      intlist *data;
      int i;
 {
@@ -465,7 +484,7 @@ int aclMatchInteger(data, i)
     return 0;
 }
 
-int aclMatchTime(data, when)
+static int aclMatchTime(data, when)
      struct _acl_time_data *data;
      time_t when;
 {
@@ -502,44 +521,35 @@ static int aclMatchAcl(acl, c, m, pr, h, po, r)
     case ACL_SRC_IP:
 	return aclMatchIp(acl->data, c);
 	/* NOTREACHED */
-	break;
     case ACL_DST_DOMAIN:
 	return aclMatchWord(acl->data, h);
 	/* NOTREACHED */
-	break;
     case ACL_TIME:
 	return aclMatchTime(acl->data, squid_curtime);
 	/* NOTREACHED */
-	break;
     case ACL_URL_REGEX:
 	return aclMatchRegex(acl->data, r);
 	/* NOTREACHED */
-	break;
     case ACL_URL_PORT:
 	return aclMatchInteger(acl->data, po);
 	/* NOTREACHED */
-	break;
     case ACL_USER:
 	debug(28, 0, "aclMatchAcl: ACL_USER unimplemented\n");
 	return 0;
 	/* NOTREACHED */
-	break;
     case ACL_PROTO:
 	return aclMatchInteger(acl->data, pr);
 	/* NOTREACHED */
-	break;
     case ACL_METHOD:
 	return aclMatchInteger(acl->data, m);
 	/* NOTREACHED */
-	break;
     case ACL_NONE:
     default:
 	debug(28, 0, "aclMatchAcl: '%s' has bad type %d\n",
 	    acl->name, acl->type);
 	return 0;
     }
-    fatal_dump("aclMatchAcl: This should never happen.");
-    return 0;
+    /* NOTREACHED */
 }
 
 static int aclMatchAclList(list, c, m, pr, h, po, r)

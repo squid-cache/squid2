@@ -182,7 +182,7 @@ void noargs_html()
 char *makeword(char *line, char stop)
 {
     int x = 0, y;
-    char *word = (char *) malloc(sizeof(char) * (strlen(line) + 1));
+    char *word = xmalloc(sizeof(char) * (strlen(line) + 1));
 
     for (x = 0; ((line[x]) && (line[x] != stop)); x++)
 	word[x] = line[x];
@@ -199,14 +199,11 @@ char *makeword(char *line, char stop)
 /* A utility function from the NCSA httpd cgi-src utils.c */
 char *fmakeword(FILE * f, char stop, int *cl)
 {
-    int wsize;
-    char *word;
-    int ll;
+    int wsize = 102400;
+    char *word = NULL;
+    int ll = 0;
 
-    wsize = 102400;
-    ll = 0;
-    word = (char *) malloc(sizeof(char) * (wsize + 1));
-
+    word = xmalloc(sizeof(char) * (wsize + 1));
     for (;;) {
 	word[ll] = (char) fgetc(f);
 	if (ll == wsize) {
@@ -229,7 +226,7 @@ char *fmakeword(FILE * f, char stop, int *cl)
 /* A utility function from the NCSA httpd cgi-src utils.c */
 char x2c(char *what)
 {
-    register char digit;
+    char digit;
 
     digit = (what[0] >= 'A' ? ((what[0] & 0xdf) - 'A') + 10 : (what[0] - '0'));
     digit *= 16;
@@ -240,7 +237,7 @@ char x2c(char *what)
 /* A utility function from the NCSA httpd cgi-src utils.c */
 void unescape_url(char *url)
 {
-    register int x, y;
+    int x, y;
 
     for (x = 0, y = 0; url[y]; ++x, ++y) {
 	if ((url[x] = url[y]) == '%') {
@@ -254,7 +251,7 @@ void unescape_url(char *url)
 /* A utility function from the NCSA httpd cgi-src utils.c */
 void plustospace(char *str)
 {
-    register int x;
+    int x;
 
     for (x = 0; str[x]; x++)
 	if (str[x] == '+')

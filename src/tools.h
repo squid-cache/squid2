@@ -13,7 +13,6 @@ extern void sig_child _PARAMS((int sig));
 extern void check_suid _PARAMS((void));
 extern void get_suid _PARAMS((void));
 extern void no_suid _PARAMS((void));
-extern int daemonize _PARAMS((void));
 extern void writePidFile _PARAMS((void));
 extern void setMaxFD _PARAMS((void));
 extern time_t getCurrentTime _PARAMS((void));

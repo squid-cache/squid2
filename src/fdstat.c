@@ -50,10 +50,10 @@ char *fdfiletype(type)
 int fdstat_init(preopen)
      int preopen;
 {
-    int i, max_fd = getMaxFD();
+    int i;
+    int max_fd = getMaxFD();
 
-    fd_stat_tab = (FDENTRY *) xmalloc(sizeof(FDENTRY) * max_fd);
-    memset(fd_stat_tab, '\0', sizeof(FDENTRY) * max_fd);
+    fd_stat_tab = xcalloc(1, sizeof(FDENTRY) * max_fd);
     for (i = 0; i < preopen; ++i) {
 	fd_stat_tab[i].status = OPEN;
 	fd_stat_tab[i].type = File;
@@ -150,6 +150,7 @@ int fdstat_biggest_fd()
 }
 
 
+#ifdef UNUSED_CODE
 char *fd_describe(fd)
      int fd;
 {
@@ -166,6 +167,7 @@ char *fd_describe(fd)
 	return ("File");
     }
 }
+#endif /* UNUSED_CODE */
 
 int fdstat_are_n_free_fd(n)
      int n;

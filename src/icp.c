@@ -46,7 +46,7 @@ typedef struct iwd {
     char *url;
     char *inbuf;
     int inbufsize;
-    int method;			/* GET, POST, ... */
+    method_t method;		/* GET, POST, ... */
     request_t *request;		/* Parsed URL ... */
     char *request_hdr;		/* Mime header */
     StoreEntry *entry;
@@ -161,7 +161,7 @@ int icpCachable(icpState)
 {
     char *request = icpState->url;
     request_t *req = icpState->request;
-    int method = req->method;
+    method_t method = req->method;
     if (BIT_TEST(icpState->flags, REQ_AUTH))
 	return 0;
     if (req->protocol == PROTO_HTTP)
@@ -185,7 +185,7 @@ int icpHierarchical(icpState)
 {
     char *request = icpState->url;
     request_t *req = icpState->request;
-    int method = req->method;
+    method_t method = req->method;
     if (BIT_TEST(icpState->flags, REQ_IMS))
 	return 0;
     if (BIT_TEST(icpState->flags, REQ_AUTH))
@@ -439,7 +439,7 @@ int icpSendERROR(fd, errorCode, msg, state)
 	 * It probably timed out. */
 	debug(12, 2, "icpSendERROR: COMM_ERROR msg: %80.80s\n", msg);
 	/* comm_close(fd); */
-	icpSendERRORComplete(fd, NULL, 0, 1, state);
+	icpSendERRORComplete(fd, (char *) NULL, 0, 1, state);
 	return COMM_ERROR;
     }
     if (port != getAsciiPortNum()) {
@@ -629,7 +629,6 @@ void icp_hit_or_miss(fd, usm)
     char *url = usm->url;
     char *pubkey = NULL;
     StoreEntry *entry = NULL;
-    int lock = 0;
 
     debug(12, 4, "icp_hit_or_miss: %s <URL:%s>\n",
 	RequestMethodStr[usm->method],
@@ -651,8 +650,6 @@ void icp_hit_or_miss(fd, usm)
 	BIT_TEST(usm->flags, REQ_CACHABLE) ? "SET" : "NOT SET");
     debug(12, 5, "icp_hit_or_miss: REQ_HIERARCHICAL = %s\n",
 	BIT_TEST(usm->flags, REQ_HIERARCHICAL) ? "SET" : "NOT SET");
-
-    /* XXX we should not even look here for CONNECT etc */
 
     /* XXX hmm, should we check for IFMODSINCE and USER_REFRESH before
      * TCP_MISS?  It is possible to get IMS header for objects
@@ -678,7 +675,7 @@ void icp_hit_or_miss(fd, usm)
     } else if (BIT_TEST(usm->flags, REQ_NOCACHE)) {
 	storeRelease(entry);
 	usm->log_type = LOG_TCP_USER_REFRESH;
-    } else if ((lock = storeLockObject(entry)) < 0) {
+    } else if (storeLockObject(entry) < 0) {
 	storeRelease(entry);
 	usm->log_type = LOG_TCP_SWAPIN_FAIL;
     } else {
@@ -822,7 +819,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
     char *buf = NULL;
     int buf_len = sizeof(icp_common_t) + strlen(url) + 1;
     icp_common_t *headerp = NULL;
-    icpUdpData *data = (icpUdpData *) xmalloc(sizeof(icpUdpData));
+    icpUdpData *data = xmalloc(sizeof(icpUdpData));
     struct sockaddr_in our_socket_name;
     int sock_name_length = sizeof(our_socket_name);
     char *urloffset = NULL;
@@ -1113,7 +1110,7 @@ int parseHttpRequest(icpState)
     }
     /* Use xmalloc/memcpy instead of xstrdup because inbuf might
      * contain NULL bytes; especially for POST data  */
-    inbuf = (char *) xmalloc(icpState->offset + 1);
+    inbuf = xmalloc(icpState->offset + 1);
     memcpy(inbuf, icpState->inbuf, icpState->offset);
     *(inbuf + icpState->offset) = '\0';
 
@@ -1160,7 +1157,7 @@ int parseHttpRequest(icpState)
 	return 0;		/* not a complete request */
     }
     /* Ok, all headers are received */
-    icpState->request_hdr = (char *) xmalloc(req_hdr_sz + 1);
+    icpState->request_hdr = xmalloc(req_hdr_sz + 1);
     memcpy(icpState->request_hdr, req_hdr, req_hdr_sz);
     *(icpState->request_hdr + req_hdr_sz) = '\0';
 

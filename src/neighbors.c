@@ -627,7 +627,7 @@ void neighbors_cf_add(host, type, ascii_port, udp_port, proxy_only, weight)
 {
     struct neighbor_cf *t, *u;
 
-    t = (struct neighbor_cf *) xcalloc(sizeof(struct neighbor_cf), 1);
+    t = xcalloc(sizeof(struct neighbor_cf), 1);
     t->host = xstrdup(host);
     t->type = xstrdup(type);
     t->ascii_port = ascii_port;
@@ -660,7 +660,7 @@ int neighbors_cf_domain(host, domain)
     if (t == NULL)
 	return 0;
 
-    l = (dom_list *) xmalloc(sizeof(dom_list));
+    l = xmalloc(sizeof(dom_list));
     l->do_ping = 1;
     if (*domain == '!') {	/* check for !.edu */
 	l->do_ping = 0;
@@ -685,7 +685,7 @@ void neighbors_init()
     debug(15, 1, "neighbors_init: Initializing Neighbors...\n");
 
     if (friends == NULL)
-	friends = (neighbors *) xcalloc(1, sizeof(neighbors));
+	friends = xcalloc(1, sizeof(neighbors));
 
     if ((fname = getHierarchyLogFile()))
 	neighborsOpenLog(fname);
@@ -699,7 +699,7 @@ void neighbors_init()
 	}
 	debug(15, 1, "Adding a %s: %s\n", t->type, t->host);
 
-	e = (edge *) xcalloc(1, sizeof(edge));
+	e = xcalloc(1, sizeof(edge));
 	e->ascii_port = t->ascii_port;
 	e->udp_port = t->udp_port;
 	e->proxy_only = t->proxy_only;

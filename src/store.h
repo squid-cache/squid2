@@ -154,7 +154,7 @@ typedef struct pentry {
 } PendingEntry;
 
 extern StoreEntry *storeGet _PARAMS((char *));
-extern StoreEntry *storeCreateEntry _PARAMS((char *, char *, int, int));
+extern StoreEntry *storeCreateEntry _PARAMS((char *, char *, int, method_t));
 extern void storeSetPublicKey _PARAMS((StoreEntry *));
 extern void storeSetPrivateKey _PARAMS((StoreEntry *));
 extern StoreEntry *storeGetFirst _PARAMS((void));
@@ -184,8 +184,8 @@ extern int storeUnregister _PARAMS((StoreEntry *, int));
 #ifdef NOT_USED_CODE
 extern int storeGrep _PARAMS((StoreEntry *, char *, int));
 #endif
-extern char *storeGeneratePublicKey _PARAMS((char *, int));
-extern char *storeGeneratePrivateKey _PARAMS((char *, int, int));
+extern char *storeGeneratePublicKey _PARAMS((char *, method_t));
+extern char *storeGeneratePrivateKey _PARAMS((char *, method_t, int));
 extern char *storeMatchMime _PARAMS((StoreEntry *, char *, char *, int));
 extern int storeAddSwapDisk _PARAMS((char *));
 extern char *swappath _PARAMS((int));

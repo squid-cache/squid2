@@ -1,113 +1,64 @@
-static char rcsid[] = "$Id$";
-/* 
- *  File:         mime.c
- *  Description:  Mime Module 
- *  Author:       Anawat Chankhunthod, USC
- *  Created:      Mon Dec 12 16:09:40 PST 1994
- *  Language:     C
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
- */
-#include "config.h"
-#include <string.h>
-#include <ctype.h>
-#include <sys/types.h>
 
-#include "ansihelp.h"		/* goes first */
-#include "debug.h"
-#include "mime.h"
+/* $Id$ */
+
+/*
+ * DEBUG: Section 25          mime
+ */
+
+#include "squid.h"
 #include "mime_table.h"
 
-extern time_t cached_curtime;
+#define GET_HDR_SZ 1024
 
-int mime_refresh_request(mime)
-     char *mime;
+char *mime_get_header(char *mime, char *name)
 {
-    if (strstr(mime, "no-cache"))
-	return 1;
+    static char header[GET_HDR_SZ];
+    char *p = NULL;
+    char *q = NULL;
+    char got = 0;
+    int namelen = strlen(name);
 
-    return 0;
+    if (!mime || !name)
+	return NULL;
+
+    debug(25, 5, "mime_get_header: looking for '%s'\n", name);
+
+    for (p = mime; *p; p += strcspn(p, "\n\r")) {
+	if (strcmp(p, "\r\n\r\n") == 0 || strcmp(p, "\n\n") == 0)
+	    return NULL;
+	while (isspace(*p))
+	    p++;
+	if (strncasecmp(p, name, namelen))
+	    continue;
+	if (!isspace(p[namelen]) && p[namelen] != ':')
+	    continue;
+	strncpy(header, p, GET_HDR_SZ);
+	debug(25, 5, "mime_get_header: checking '%s'\n", header);
+	header[GET_HDR_SZ - 1] = 0;
+	header[strcspn(header, "\n\r")] = 0;
+	q = header;
+	q += namelen;
+	if (*q == ':')
+	    q++, got = 1;
+	while (isspace(*q))
+	    q++, got = 1;
+	if (got) {
+	    debug(25, 5, "mime_get_header: returning '%s'\n", q);
+	    return q;
+	}
+    }
+    return NULL;
 }
 
-ext_table_entry *
-                mime_ext_to_type(extension)
+ext_table_entry *mime_ext_to_type(extension)
      char *extension;
 {
-    int i, low, high, comp;
-    char ext[16], *cp;
+    int i;
+    int low;
+    int high;
+    int comp;
+    static char ext[16];
+    char *cp = NULL;
 
     if (!extension || strlen(extension) >= (sizeof(ext) - 1))
 	return NULL;
@@ -144,17 +95,16 @@ int mk_mime_hdr(result, ttl, size, lmt, type)
      int size;
      time_t ttl, lmt;
 {
-    extern char *mkrfc850();
     time_t expiretime;
     time_t t;
-    char date[100];
-    char expire[100];
-    char last_modified_time[100];
+    static char date[100];
+    static char expire[100];
+    static char last_modified_time[100];
 
     if (result == NULL)
 	return 1;
 
-    t = cached_curtime;
+    t = squid_curtime;
     expiretime = t + ttl;
 
     date[0] = expire[0] = last_modified_time[0] = result[0] = '\0';

@@ -16,6 +16,10 @@
 #include <time.h>
 #include <sys/time.h>
 #include "config.h"
+#include "util.h"
+
+static int make_month _PARAMS((char *s));
+static int make_num _PARAMS((char *s));
 
 static char *month_names[12] =
 {

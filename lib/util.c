@@ -13,7 +13,9 @@
 #endif
 #include <errno.h>
 
-void (*failure_notify) () = NULL;
+#include "util.h"
+
+void (*failure_notify) _PARAMS((char *)) = NULL;
 static char msg[128];
 
 extern int sys_nerr;
@@ -36,10 +38,10 @@ static void *Q;
 static void check_init()
 {
     for (B = 0; B < DBG_ARRY_SZ; B++) {
-      for (I = 0; I < DBG_ARRY_SZ; I++) {
-	malloc_ptrs[B][I] = NULL;
-	malloc_size[B][I] = 0;
-      }
+	for (I = 0; I < DBG_ARRY_SZ; I++) {
+	    malloc_ptrs[B][I] = NULL;
+	    malloc_size[B][I] = 0;
+	}
     }
     dbg_initd = 1;
 }
@@ -206,7 +208,7 @@ char *xstrdup(s)
      char *s;
 {
     static char *p = NULL;
-    int sz;
+    size_t sz;
 
     if (s == NULL) {
 	if (failure_notify) {
@@ -217,7 +219,7 @@ char *xstrdup(s)
 	exit(1);
     }
     sz = strlen(s);
-    p = (char *) xmalloc((size_t) sz + 1);
+    p = xmalloc((size_t) sz + 1);
     memcpy(p, s, sz);		/* copy string */
     p[sz] = '\0';		/* terminate string */
     return (p);
@@ -248,7 +250,7 @@ char *strdup(s)
 
 #if !HAVE_STRERROR
 char *strerror(n)
-int n;
+     int n;
 {
     return (xstrerror(n));
 }

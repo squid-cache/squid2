@@ -862,7 +862,7 @@ int read_reply(fd)
 	else
 	    quit = (buf[2] >= '0' && buf[2] <= '9' && buf[3] == ' ');
 	if (!quit) {
-	    l = (list_t *) xmalloc(sizeof(list_t));
+	    l = xmalloc(sizeof(list_t));
 	    l->ptr = xstrdup(&buf[4]);
 	    l->next = NULL;
 	    *Tail = l;
@@ -895,7 +895,7 @@ int send_cmd(fd, buf)
     int x;
 
     len = strlen(buf) + 2;
-    xbuf = (char *) xmalloc(len + 1);
+    xbuf = xmalloc(len + 1);
     sprintf(xbuf, "%s\r\n", buf);
     Debug(26, 1, ("send_cmd: %s\n", buf));
     x = write_with_timeout(fd, xbuf, len);
@@ -939,7 +939,7 @@ time_t parse_iso3307_time(buf)
 
 #define SEND_CBUF \
         if (send_cmd(r->sfd, cbuf) < 0) { \
-                r->errmsg = (char *) xmalloc (SMALLBUFSIZ); \
+                r->errmsg = xmalloc (SMALLBUFSIZ); \
                 sprintf(r->errmsg, "Failed to send '%s'", cbuf); \
                 r->rc = 4; \
                 return FAIL_SOFT; \
@@ -999,7 +999,7 @@ state_t parse_request(r)
 {
     Debug(26, 1, ("parse_request: looking up '%s'\n", r->host));
     if (get_host(r->host) == (Host *) NULL) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "Unknown host: %s", r->host);
 	r->rc = 10;
 	return FAIL_HARD;
@@ -1028,7 +1028,7 @@ state_t do_connect(r)
     Debug(26, 1, ("do_connect: connect attempt #%d to '%s'\n",
 	    r->conn_att, r->host));
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
 	r->rc = 2;
 	return FAIL_CONNECT;
@@ -1044,7 +1044,7 @@ state_t do_connect(r)
 	return FAIL_CONNECT;
     }
     if (x < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s (port %d): %s",
 	    r->host, r->port, xstrerror());
 	r->rc = 3;
@@ -1217,7 +1217,7 @@ state_t do_port(r)
 	return PORT_OK;
 
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
@@ -1244,14 +1244,14 @@ state_t do_port(r)
 	    break;
 	if (++tries < 10)
 	    continue;
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "bind: %s", xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
     }
 
     if (listen(sock, 1) < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "listen: %s", xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
@@ -1302,7 +1302,7 @@ state_t do_pasv(r)
 	return PORT_OK;
 
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
@@ -1333,7 +1333,7 @@ state_t do_pasv(r)
     S.sin_port = htons(port = ((p1 << 8) + p2));
 
     if (connect_with_timeout(sock, &S, sizeof(S)) < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s, port %d: %s", junk, port, xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
@@ -1476,7 +1476,7 @@ state_t do_accept(r)
     if (sock == READ_TIMEOUT)
 	return request_timeout(r);
     if (sock < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "accept: %s", xstrerror());
 	r->rc = 3;
 	return FAIL_SOFT;
@@ -1499,7 +1499,7 @@ state_t read_data(r)
 	return request_timeout(r);
     } else if (n < 0) {
 	close_dfd(r);
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
@@ -1517,7 +1517,7 @@ state_t read_data(r)
     if (x == READ_TIMEOUT)
 	return request_timeout(r);
     if (x < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "write: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
@@ -1563,8 +1563,7 @@ parts_t *parse_entry(buf)
     if (*buf == '\0')
 	return NULL;
 
-    p = (parts_t *) xmalloc(sizeof(parts_t));
-    memset(p, '\0', sizeof(parts_t));
+    p = xcalloc(1, sizeof(parts_t));
 
     n_tokens = 0;
     for (i = 0; i < MAX_TOKENS; i++)
@@ -1660,9 +1659,9 @@ char *htmlize_list_entry(line, r)
     char *ename = NULL;
     parts_t *parts = NULL;
 
-    link = (char *) xmalloc(MIDBUFSIZ);
-    icon = (char *) xmalloc(MIDBUFSIZ);
-    html = (char *) xmalloc(BIGBUFSIZ);
+    link = xmalloc(MIDBUFSIZ);
+    icon = xmalloc(MIDBUFSIZ);
+    html = xmalloc(BIGBUFSIZ);
 
     /* check .. as special case */
     if (!strcmp(line, "..")) {
@@ -1764,9 +1763,7 @@ void try_readme(r)
 	xfree(tfname);
 	return;
     }
-    readme = (request_t *) xmalloc(sizeof(request_t));
-    memset(readme, '\0', sizeof(request_t));
-
+    readme = xcalloc(1, sizeof(request_t));
     readme->path = xstrdup("README");
     readme->cfd = fd;
     readme->sfd = r->sfd;
@@ -1877,7 +1874,7 @@ state_t htmlify_listing(r)
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
     } else if (n < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
@@ -2221,7 +2218,7 @@ int ftpget_srv_mode(port)
 	log_errno2(__FILE__, __LINE__, fullprogname);
 	_exit(1);
     }
-    return 1;
+    /* NOTREACHED */
 }
 
 void usage(argcount)
@@ -2389,7 +2386,7 @@ int main(argc, argv)
 	    continue;
 	} else if (!strcmp(*argv, "-C")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    j = k = 0;
 	    sscanf(*argv, "%d:%d", &j, &k);
@@ -2423,8 +2420,7 @@ int main(argc, argv)
 	fprintf(stderr, "Wrong number of arguments left (%d)\n", argc);
 	usage(argc);
     }
-    r = (request_t *) xmalloc(sizeof(request_t));
-    memset(r, '\0', sizeof(request_t));
+    r = xcalloc(1, sizeof(request_t));
 
     if (strcmp(argv[0], "-") == 0) {
 	r->cfd = 1;
@@ -2455,8 +2451,8 @@ int main(argc, argv)
 
     len = 15 + strlen(r->user) + strlen(r->pass) + strlen(r->host)
 	+ strlen(r->path);
-    r->url = (char *) xmalloc(len);
-    r->title_url = (char *) xmalloc(len);
+    r->url = xmalloc(len);
+    r->title_url = xmalloc(len);
 
     *r->url = '\0';
     strcat(r->url, "ftp://");
@@ -2484,7 +2480,7 @@ int main(argc, argv)
 
     /* Make a copy of the escaped URL with some room to grow at the end */
     t = rfc1738_escape(r->url);
-    r->url_escaped = (char *) xmalloc(strlen(t) + 10);
+    r->url_escaped = xmalloc(strlen(t) + 10);
     strcpy(r->url_escaped, t);
 
     rc = process_request(MainRequest = r);

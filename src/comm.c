@@ -65,7 +65,7 @@ static int do_bind(s, host, port)
     struct in_addr *addr = NULL;
 
     addr = getAddress(host);
-    if (addr == (struct in_addr *) NULL) {
+    if (addr == NULL) {
 	debug(5, 0, "do_bind: Unknown host: %s\n", host);
 	return COMM_ERROR;
     }
@@ -138,7 +138,7 @@ int comm_open(io_type, port, handler, note)
 	for (p = getBindAddrList(); p; p = p->next) {
 	    if (do_bind(new_socket, p->key, port) == COMM_OK)
 		break;
-	    if (p->next == (wordlist *) NULL)
+	    if (p->next == NULL)
 		return COMM_ERROR;
 	}
     }
@@ -586,6 +586,7 @@ int comm_select(sec, failtime)
 		xstrerror(), errno);
 	    examine_select(&readfds, &writefds, &exceptfds);
 	    return COMM_ERROR;
+	    /* NOTREACHED */
 	}
 	if (num < 0)
 	    continue;
@@ -664,6 +665,7 @@ int comm_select(sec, failtime)
 }
 
 
+#ifdef UNUSED_CODE
 /* Select on fd to see if any io pending. */
 int comm_pending(fd, sec, usec)
      int fd;
@@ -704,6 +706,7 @@ int comm_pending(fd, sec, usec)
     }
     return COMM_TIMEOUT;
 }
+#endif /* UNUSED_CODE */
 
 void comm_set_select_handler(fd, type, handler, client_data)
      int fd;
@@ -880,7 +883,7 @@ int comm_init()
      * Since getMaxFD can be as high as several thousand, don't waste them */
     RESERVED_FD = min(100, getMaxFD() / 4);
     /* hardwired lifetimes */
-    fd_lifetime = (int *) xmalloc(sizeof(int) * max_fd);
+    fd_lifetime = xmalloc(sizeof(int) * max_fd);
     for (i = 0; i < max_fd; i++)
 	comm_set_fd_lifetime(i, -1);	/* denotes invalid */
     zero_tv.tv_sec = 0;

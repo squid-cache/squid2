@@ -71,7 +71,9 @@ extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, voi
 extern int comm_init _PARAMS((void));
 extern int comm_listen _PARAMS((int sock));
 extern int comm_open _PARAMS((unsigned int io_type, int port, PF, char *note));
+#ifdef UNUSED_CODE
 extern int comm_pending _PARAMS((int fd, long sec, long usec));
+#endif
 extern int comm_port _PARAMS((int fd));
 extern int comm_read _PARAMS((int fd, char *buf, int size));
 extern int comm_select _PARAMS((time_t sec, time_t));

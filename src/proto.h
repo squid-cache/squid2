@@ -146,11 +146,9 @@ typedef struct icp_message_s icp_message_t;
 #define ICP_VERSION_CURRENT	ICP_VERSION_2	/* current version */
 
 extern int icp_proto_errno;	/* operation errors */
-extern int icp_query _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, struct in_addr rid, char *url, char *hostname, int port));
 extern int icp_hit _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, u_num32 size));
 extern int icp_miss _PARAMS((int sock, u_num32 reqnum, u_num32 * auth));
 extern int icp_error _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, unsigned short errcode, char *errstr));
-extern int icp_send _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, struct in_addr rid, char *url));
 extern int icp_databegin _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, u_num32 ttl, u_num32 timestamp, char *data));
 extern int icp_data _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, char *data));
 extern int icp_dataend _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, char *data));

@@ -74,11 +74,10 @@ extern void fatal_dump _PARAMS((char *));
 /* initialize table */
 int disk_init()
 {
-    int fd, max_fd = getMaxFD();
+    int fd;
+    int max_fd = getMaxFD();
 
-    file_table = (FileEntry *) xmalloc(sizeof(FileEntry) * max_fd);
-    memset(file_table, '\0', sizeof(FileEntry) * max_fd);
-
+    file_table = xcalloc(1, sizeof(FileEntry) * max_fd);
     for (fd = 0; fd < max_fd; fd++) {
 	file_table[fd].filename[0] = '\0';
 	file_table[fd].at_eof = NO;
@@ -221,6 +220,7 @@ int file_close(fd)
 }
 
 
+#ifdef NOTUSED_CODE
 /* return a opened fd associate with given path name. */
 /* return DISK_FILE_NOT_FOUND if not found. */
 int file_get_fd(filename)
@@ -236,6 +236,7 @@ int file_get_fd(filename)
     }
     return DISK_FILE_NOT_FOUND;
 }
+#endif /* NOTUSED_CODE */
 
 /* grab a writing lock for file */
 int file_write_lock(fd)
@@ -504,8 +505,7 @@ int file_read(fd, buf, req_len, offset, handler, client_data)
 {
     dread_ctrl *ctrl_dat;
 
-    ctrl_dat = (dread_ctrl *) xmalloc(sizeof(dread_ctrl));
-    memset(ctrl_dat, '\0', sizeof(dread_ctrl));
+    ctrl_dat = xcalloc(1, sizeof(dread_ctrl));
     ctrl_dat->fd = fd;
     ctrl_dat->offset = offset;
     ctrl_dat->req_len = req_len;
@@ -604,11 +604,10 @@ int file_walk(fd, handler, client_data, line_handler, line_data)
 {
     dwalk_ctrl *walk_dat;
 
-    walk_dat = (dwalk_ctrl *) xmalloc(sizeof(dwalk_ctrl));
-    memset(walk_dat, '\0', sizeof(dwalk_ctrl));
+    walk_dat = xcalloc(1, sizeof(dwalk_ctrl));
     walk_dat->fd = fd;
     walk_dat->offset = 0;
-    walk_dat->buf = (void *) xcalloc(1, DISK_LINE_LEN);
+    walk_dat->buf = xcalloc(1, DISK_LINE_LEN);
     walk_dat->cur_len = 0;
     walk_dat->handler = handler;
     walk_dat->client_data = client_data;

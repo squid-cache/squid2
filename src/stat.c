@@ -72,7 +72,7 @@ void stat_utilization_get(obj, sentry)
 
 
     /* find the total */
-    for (proto_id = 0; proto_id < PROTO_MAX; ++proto_id) {
+    for (proto_id = PROTO_NONE; proto_id < PROTO_MAX; ++proto_id) {
 	q = &obj->proto_stat_data[proto_id];
 
 	p->object_count += q->object_count;
@@ -87,7 +87,7 @@ void stat_utilization_get(obj, sentry)
     }
 
     /* dump it */
-    for (proto_id = 0; proto_id <= PROTO_MAX; ++proto_id) {
+    for (proto_id = PROTO_NONE; proto_id <= PROTO_MAX; ++proto_id) {
 	p = &obj->proto_stat_data[proto_id];
 	if (p->hit != 0) {
 	    p->hitratio =
@@ -167,7 +167,7 @@ int cache_size_get(obj)
     int size = 0;
     protocol_t proto_id;
     /* sum all size, exclude total */
-    for (proto_id = 0; proto_id < PROTO_MAX; proto_id++)
+    for (proto_id = PROTO_NONE; proto_id < PROTO_MAX; proto_id++)
 	size += obj->proto_stat_data[proto_id].kb.now;
     return size;
 }
@@ -315,7 +315,7 @@ void log_get_start(obj, sentry)
 	storeComplete(sentry);
 	return;
     }
-    data = (log_read_data_t *) xcalloc(1, sizeof(log_read_data_t));
+    data = xcalloc(1, sizeof(log_read_data_t));
     data->sentry = sentry;
     strcpy(tmp, open_bracket);
     storeAppend(sentry, tmp, 2);
@@ -363,7 +363,7 @@ void squid_get_start(obj, sentry)
 {
     squid_read_data_t *data;
 
-    data = (squid_read_data_t *) xcalloc(1, sizeof(squid_read_data_t));
+    data = xcalloc(1, sizeof(squid_read_data_t));
     data->sentry = sentry;
     data->fd = file_open((char *) ConfigFile, NULL, O_RDONLY);
     storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
@@ -397,7 +397,7 @@ void server_list(obj, sentry)
 
     storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
 
-    if (getFirstEdge() == (edge *) NULL) {
+    if (getFirstEdge() == NULL) {
 	sprintf(tempbuf, "{There are no neighbors installed.}\n");
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
     }
@@ -1029,12 +1029,10 @@ void stat_init(object, logfilename)
     cacheinfo *obj = NULL;
     int i;
 
-    obj = (cacheinfo *) xcalloc(1, sizeof(cacheinfo));
-
+    obj = xcalloc(1, sizeof(cacheinfo));
     obj->stat_get = stat_get;
     obj->info_get = info_get;
     obj->cache_size_get = cache_size_get;
-
     obj->log_get_start = log_get_start;
     obj->log_status_get = log_status_get;
     obj->log_append = log_append;
@@ -1042,9 +1040,7 @@ void stat_init(object, logfilename)
     obj->log_enable = log_enable;
     obj->log_disable = log_disable;
     obj->logfile_status = LOG_ENABLE;
-
     obj->squid_get_start = squid_get_start;
-
     obj->parameter_get = parameter_get;
     obj->server_list = server_list;
 
@@ -1064,7 +1060,7 @@ void stat_init(object, logfilename)
     obj->proto_miss = proto_miss;
     obj->NotImplement = dummyhandler;
 
-    for (i = 0; i <= PROTO_MAX; i++) {
+    for (i = PROTO_NONE; i <= PROTO_MAX; i++) {
 	switch (i) {
 	case PROTO_HTTP:
 	    strcpy(obj->proto_stat_data[i].protoname, "HTTP");

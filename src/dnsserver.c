@@ -109,7 +109,7 @@ int main(argc, argv)
 	memset(request, '\0', 256);
 
 	/* read from ipcache */
-	if (fgets(request, 255, stdin) == (char *) NULL)
+	if (fgets(request, 255, stdin) == NULL)
 	    exit(1);
 	if ((t = strrchr(request, '\n')) != NULL)
 	    *t = '\0';		/* strip NL */
