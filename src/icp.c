@@ -309,7 +309,10 @@ icpStateFree(int fd, void *data)
 	storeUnlockObject(icpState->entry);
 	icpState->entry = NULL;
     }
+    /* old_entry might still be set if we didn't yet get the reply
+     * code in icpHandleIMSReply() */
     if (icpState->old_entry) {
+	storeUnregister(icpState->old_entry, fd);
 	storeUnlockObject(icpState->old_entry);
 	icpState->old_entry = NULL;
     }
@@ -1916,14 +1919,14 @@ icpDetectClientClose(int fd, void *data)
 		fd_table[fd].ipaddr, xstrerror());
 	commCancelRWHandler(fd);
 	CheckQuickAbort(icpState);
-	    if (entry->ping_status == PING_WAITING)
-		storeReleaseRequest(entry);
+	if (entry->ping_status == PING_WAITING)
+	    storeReleaseRequest(entry);
 	storeUnregister(entry, fd);
 	comm_close(fd);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
 	comm_set_stall(fd, 10);	/* check again in 10 seconds */
-        commSetSelect(fd, COMM_SELECT_READ, icpDetectClientClose, icpState, 0);
+	commSetSelect(fd, COMM_SELECT_READ, icpDetectClientClose, icpState, 0);
     }
 }
 
