@@ -105,8 +105,6 @@
 
 #elif defined(__bsdi__)
 #define _SQUID_BSDI_                          /* BSD/OS */
-#undef  SQUID_FD_SETSIZE
-#define SQUID_FD_SETSIZE 4096
 
 #elif defined(__NetBSD__)
 #define _SQUID_NETBSD_

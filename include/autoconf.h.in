@@ -46,6 +46,9 @@
 /* Define if struct mallinfo has mxfast member */
 #undef HAVE_EXT_MALLINFO
 
+/* Default FD_SETSIZE value */
+#undef DEFAULT_FD_SETSIZE
+
 /* Maximum number of open filedescriptors */
 #undef SQUID_MAXFD
 
