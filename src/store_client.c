@@ -426,7 +426,7 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 		(void) 0;	/* a match! */
 	    else {
 		debug(20, 1) ("storeClientReadHeader: URL mismatch\n");
-		debug(20, 1) ("\t{%s} != {%s}\n", t->value, mem->url);
+		debug(20, 1) ("\t{%s} != {%s}\n", (char *)t->value, mem->url);
 		swap_object_ok = 0;
 		break;
 	    }

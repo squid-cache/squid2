@@ -1987,7 +1987,7 @@ ftpReadStor(FtpStateData * ftpState)
 	    ftpState,
 	    0);
     } else {
-	debug(9, 3) ("ftpReadStor: Unexpected reply code %s\n", code);
+	debug(9, 3) ("ftpReadStor: Unexpected reply code %03d\n", code);
 	ftpFail(ftpState);
     }
 }

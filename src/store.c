@@ -1142,8 +1142,6 @@ storeMemObjectDump(MemObject * mem)
 	(int) mem->inmem_hi);
     debug(20, 1) ("MemObject->inmem_lo: %d\n",
 	(int) mem->inmem_lo);
-    debug(20, 1) ("MemObject->clients: %p\n",
-	mem->clients);
     debug(20, 1) ("MemObject->nclients: %d\n",
 	mem->nclients);
     debug(20, 1) ("MemObject->reply: %p\n",

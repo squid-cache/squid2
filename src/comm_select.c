@@ -397,7 +397,7 @@ comm_poll(int msec)
 	    return COMM_ERROR;
 	    /* NOTREACHED */
 	}
-	debug(5, num ? 5 : 8) ("comm_poll: %d+%d FDs ready\n", num, npending);
+	debug(5, num ? 5 : 8) ("comm_poll: %d+%ld FDs ready\n", num, npending);
 	statHistCount(&statCounter.select_fds_hist, num);
 	/* Check timeout handlers ONCE each second. */
 	if (squid_curtime > last_timeout) {
@@ -521,7 +521,7 @@ comm_poll(int msec)
 	return COMM_OK;
     }
     while (timeout > current_dtime);
-    debug(5, 8) ("comm_poll: time out: %d.\n", squid_curtime);
+    debug(5, 8) ("comm_poll: time out: %ld.\n", (long int)squid_curtime);
     return COMM_TIMEOUT;
 }
 
