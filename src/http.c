@@ -317,8 +317,17 @@ void httpProcessReplyHeader(httpState, buf, size)
 	case 300:		/* Multiple Choices */
 	case 301:		/* Moved Permanently */
 	case 410:		/* Gone */
-	    /* These can be cached for a long time */
-	    httpMakePublic(entry);
+	    /* don't cache objects from neighbors w/o LMT, Date, or Expires */
+	    if (*reply->date)
+	        httpMakePublic(entry);
+	    else if (*reply->last_modified)
+	        httpMakePublic(entry);
+	    else if (!httpState->neighbor)
+	        httpMakePublic(entry);
+	    else if (*reply->expires)
+	        httpMakePublic(entry);
+	    else
+		httpMakePrivate(entry);
 	    break;
 	    /* Responses that only are cacheable if the server says so */
 	case 302:		/* Moved temporarily */
@@ -676,6 +685,7 @@ int proxyhttpStart(e, url, entry)
     httpState->req_hdr = entry->mem_obj->mime_hdr;
     request = get_free_request_t();
     httpState->request = requestLink(request);
+    httpState->neighbor = e;
     /* register the handler to free HTTP state data when the FD closes */
     comm_add_close_handler(sock,
 	(PF) httpStateFree,

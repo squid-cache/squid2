@@ -117,6 +117,7 @@ typedef struct {
 				 * icpReadWriteData */
     char *reply_hdr;
     int reply_hdr_state;
+    edge *neighbor;		/* neighbor request made to */
 } HttpStateData;
 
 extern int httpCachable _PARAMS((char *, int));
