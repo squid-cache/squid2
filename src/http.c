@@ -414,6 +414,7 @@ static void httpSendRequest(fd, data)
     static char *HARVEST_PROXY_TEXT = "via Harvest Cache version";
     int len = 0;
     int buflen;
+    int cfd = -1;
     char *Method = RequestMethodStr[data->method];
 
     debug(11, 5, "httpSendRequest: FD %d: data %p.\n", fd, data);
@@ -463,8 +464,13 @@ static void httpSendRequest(fd, data)
 
     /* Add Forwarded: header */
     ybuf = get_free_4k_page(__FILE__,__LINE__);
-    sprintf(ybuf, "Forwarded: by http://%s:%d/\r\n",
-	getMyHostname(), getAsciiPortNum());
+    if ((cfd = storePendingFirstFD(data->entry)) < 0) {
+        sprintf(ybuf, "Forwarded: by http://%s:%d/\r\n",
+	    getMyHostname(), getAsciiPortNum());
+    } else {
+        sprintf(ybuf, "Forwarded: by http://%s:%d/ for %s\r\n",
+	    getMyHostname(), getAsciiPortNum(), fd_table[cfd].ipaddr);
+    }
     strcat(buf, ybuf);
     len += strlen(ybuf);
     put_free_4k_page(ybuf, __FILE__, __LINE__);

@@ -2631,6 +2631,20 @@ int swapInError(fd_unused, entry)
     return 0;
 }
 
+int storePendingFirstFD(e)
+    StoreEntry *e;
+{
+        int s;
+        int i;
+	if (!e->mem_obj)
+		return -1;
+	s = (int) e->mem_obj->pending_list_size;
+	for (i=0; i<s; i++)
+		if (e->mem_obj->pending[i])
+			return e->mem_obj->pending[i]->fd;
+	return -1;
+}
+
 int storePendingNClients(e)
      StoreEntry *e;
 {
