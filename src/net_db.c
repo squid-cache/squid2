@@ -438,8 +438,10 @@ netdbReloadState(void)
     fd = file_open(path, O_RDONLY | O_TEXT);
     if (fd < 0)
 	return;
-    if (fstat(fd, &sb) < 0)
+    if (fstat(fd, &sb) < 0) {
+	file_close(fd);
 	return;
+    }
     t = buf = xcalloc(1, sb.st_size + 1);
     l = read(fd, buf, sb.st_size);
     file_close(fd);

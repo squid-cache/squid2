@@ -416,6 +416,7 @@ mimeLoadIconFile(const char *icon)
     }
     if (fstat(fd, &sb) < 0) {
 	debug(50, 0) ("mimeLoadIconFile: FD %d: fstat: %s\n", fd, xstrerror());
+	file_close(fd);
 	return;
     }
     flags = null_request_flags;
