@@ -329,6 +329,8 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
     size_t body_sz;
     size_t copy_sz;
     tlv *tlv_list;
+    tlv *t;
+    int swap_object_ok = 1;
     assert(sc->flags.disk_io_pending);
     sc->flags.disk_io_pending = 0;
     assert(sc->callback != NULL);
@@ -354,10 +356,38 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 	return;
     }
     /*
-     * XXX Here we should check the meta data and make sure we got
-     * the right object.
+     * Check the meta data and make sure we got the right object.
      */
+    for (t = tlv_list; t; t = t->next) {
+	switch (t->type) {
+	case STORE_META_KEY:
+	    assert(t->length == MD5_DIGEST_CHARS);
+	    if (!memcmp(t->value, e->key, MD5_DIGEST_CHARS))
+		debug(20, 1) ("WARNING: swapin MD5 mismatch\n");
+	    break;
+	case STORE_META_URL:
+	    if (NULL == mem->url)
+		(void) 0;	/* can't check */
+	    else if (0 == strcasecmp(mem->url, t->value))
+		(void) 0;	/* a match! */
+	    else {
+		debug(20, 1) ("storeClientReadHeader: URL mismatch\n");
+		debug(20, 1) ("\t{%s} != {%s}\n", t->value, mem->url);
+		swap_object_ok = 0;
+		break;
+	    }
+	    break;
+	default:
+	    debug(20, 1) ("WARNING: got unused STORE_META type %d\n", t->type);
+	    break;
+	}
+    }
     storeSwapTLVFree(tlv_list);
+    if (!swap_object_ok) {
+	sc->callback = NULL;
+	callback(sc->callback_data, sc->copy_buf, -1);
+	return;
+    }
     mem->swap_hdr_sz = swap_hdr_sz;
     mem->object_sz = e->swap_file_sz - swap_hdr_sz;
     /*
