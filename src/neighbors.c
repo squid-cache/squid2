@@ -203,15 +203,21 @@ peerAllowedToUse(const peer * p, request_t * request)
 	return do_ping;
     do_ping = 0;
     for (d = p->pinglist; d; d = d->next) {
-	if (matchDomainName(d->domain, request->host))
-	    return d->do_ping;
+	if (matchDomainName(d->domain, request->host)) {
+	    do_ping = d->do_ping;
+	    break;
+	}
 	do_ping = !d->do_ping;
     }
+    if (0 == do_ping)
+	return do_ping;
     checklist.src_addr = request->client_addr;
     checklist.request = request;
     for (a = p->acls; a; a = a->next) {
-	if (aclMatchAcl(a->acl, &checklist))
-	    return a->op;
+	if (aclMatchAcl(a->acl, &checklist)) {
+	    do_ping = a->op;
+	    break;
+	}
 	do_ping = !a->op;
     }
     return do_ping;
