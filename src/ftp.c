@@ -495,8 +495,8 @@ int ftpInitialize()
 	return 0;
     }
     /* child */
-    close(0);
-    dup(p[0]);
+    dup2(p[0], 0);
+    dup2(fileno(debug_log), 2);
     close(p[0]);
     close(p[1]);
     /* inherit stdin,stdout,stderr */

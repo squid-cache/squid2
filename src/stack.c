@@ -93,14 +93,11 @@ int full_stack(stack)
 --  Output:   None.
 --
 --------------------------------------------------------------------------*/
-char *
-     pop(stack)
+char *pop(stack)
      Stack *stack;
 {
-    if (empty_stack(stack) == 1) {
-	fprintf(stderr, "Stack empty, cannot pop()\n");
-	exit(-1);
-    }
+    if (empty_stack(stack) == 1)
+	fatal("Stack empty, cannot pop()");
     stack->top--;
     return (*stack->top);
 }

@@ -179,18 +179,17 @@ int fdstat_are_n_free_fd(n)
 	for (fd = 0; fd < getMaxFD(); ++fd) {
 	    if (fd_stat_tab[fd].status == CLOSE) {
 		if (ln_cnt == 0) {
-		    fprintf(stderr, "Fd-Free: %3d ", fd);
+		    debug(0,0, "fdstat_are_n_free_fd: Fd-Free: %3d\n", fd);
 		    ++ln_cnt;
 		} else if (ln_cnt == 20) {
-		    fprintf(stderr, "%3d\n", fd);
+		    debug(0,0, "fdstat_are_n_free_fd: %3d\n", fd);
 		    ln_cnt = 0;
 		} else {
-		    fprintf(stderr, "%3d ", fd);
+		    debug(0,0, "fdstat_are_n_free_fd: %3d\n", fd);
 		    ln_cnt++;
 		}
 	    }
 	}
-	fprintf(stderr, "\n");
     }
 #endif
 
