@@ -307,7 +307,7 @@ statObjects(void *data)
     StoreEntry *e;
     hash_link *link_ptr = NULL;
     hash_link *link_next = NULL;
-    if (++state->bucket >= store_hash_buckets) {
+    if (state->bucket >= store_hash_buckets) {
 	storeComplete(state->sentry);
 	storeUnlockObject(state->sentry);
 	cbdataFree(state);
@@ -330,6 +330,7 @@ statObjects(void *data)
 	    continue;
 	statStoreEntry(state->sentry, e);
     }
+    state->bucket++;
     eventAdd("statObjects", statObjects, state, 0.0, 1);
     storeBufferFlush(state->sentry);
 }
