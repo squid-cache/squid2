@@ -1099,7 +1099,7 @@ storeDiskdDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
     }
     diskdinfo->swaplog_fd = fd;
     /* open a read-only stream of the old log */
-    fp = fopen(swaplog_path, "r");
+    fp = fopen(swaplog_path, "rb");
     if (fp == NULL) {
 	debug(50, 0) ("%s: %s\n", swaplog_path, xstrerror());
 	fatal("Failed to open swap log for reading");
