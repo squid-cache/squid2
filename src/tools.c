@@ -323,7 +323,7 @@ void fatal_dump(message)
 {
     if (message)
 	fatal_common(message);
-    if (catch_signals)
+    if (opt_catch_signals)
 	storeWriteCleanLog();
     abort();
 }
