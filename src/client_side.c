@@ -1584,15 +1584,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
     if (checkNegativeHit(e)) {
 	http->log_type = LOG_TCP_NEGATIVE_HIT;
 	clientSendMoreData(data, buf, size);
-    } else if (r->method == METHOD_HEAD) {
-	/*
-	 * RFC 2068 seems to indicate there is no "conditional HEAD"
-	 * request.  We cannot validate a cached object for a HEAD
-	 * request, nor can we return 304.
-	 */
-	if (e->mem_status == IN_MEMORY)
-	    http->log_type = LOG_TCP_MEM_HIT;
-	clientSendMoreData(data, buf, size);
     } else if (!Config.onoff.offline && refreshCheckHTTP(e, r) && !http->flags.internal) {
 	debug(33, 5) ("clientCacheHit: in refreshCheck() block\n");
 	/*
