@@ -35,7 +35,6 @@
 #include "snmp_oidlist.h"
 #include "cache_snmp.h"
 
-
 #define SNMP_REQUEST_SIZE 4096
 #define MAX_PROTOSTAT 5
 int snmp_intoobigs, snmp_inbadcommunitynames;
@@ -46,6 +45,12 @@ int snmp_ingetrequests, snmp_ingetnexts, snmp_ingenerrs;
 void *users, *communities;
 
 static struct sockaddr_in local_snmpd;
+
+#ifdef __STDC__
+extern void (*snmplib_debug_hook) (int,char *,...);
+#else
+extern void (*snmplib_debug_hook) (va_alist);
+#endif
 
 void snmpFwd_insertPending(struct sockaddr_in *, long);
 int snmpFwd_removePending(struct sockaddr_in *, long);
@@ -267,7 +272,6 @@ snmpInit(void)
 
     if (Mib == NULL) {
 	debug(49, 5) ("init_mib: calling with %s\n", Config.Snmp.mibPath);
-	snmplib_debug_hook = snmpSnmplibDebug;
 	init_mib(Config.Snmp.mibPath);
     }
     if (!Config.Snmp.communities)

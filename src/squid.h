@@ -353,4 +353,8 @@ struct rusage {
 #define calloc +
 #define sprintf +
 #define strdup +
+
+#if SQUID_SNMP
+extern struct snmp_mib_tree *Mib;
+#endif
 #endif /* SQUID_H */
