@@ -168,6 +168,10 @@ Changes to Squid-2.2 (April 19, 1999):
 	  detection to only use getrlimit() for Linux.  On AIX,
 	  getrlimit returns RLIM_INFINITY.
 	- Fixed snmpInit() nesting bug.
+	- Fixed a bug with peerGetSomeParent().  It was adding
+	  a parent to the FwdServers list, regardless of the
+	  ps->direct value.  This could cause every request to
+	  go to a parent even when always_direct is used.
 
 Changes to Squid-2.1 (November 16, 1998):
 
