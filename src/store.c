@@ -561,7 +561,15 @@ void
 storeComplete(StoreEntry * e)
 {
     debug(20, 3) ("storeComplete: '%s'\n", storeKeyText(e->key));
-    assert(e->store_status == STORE_PENDING);
+    if (e->store_status != STORE_PENDING) {
+	/*
+	 * if we're not STORE_PENDING, then probably we got aborted
+	 * and there should be NO clients on this entry
+	 */
+	assert(EBIT_TEST(entry->flags, ENTRY_ABORTED));
+	assert(entry->mem_obj->nclients == 0);
+	return;
+    }
     e->mem_obj->object_sz = e->mem_obj->inmem_hi;
     e->store_status = STORE_OK;
     assert(e->mem_status == NOT_IN_MEMORY);
