@@ -163,6 +163,8 @@ static void icpParseRequestHeaders(icpState)
     }
     if (mime_get_header(request_hdr, "Authorization"))
 	BIT_SET(icpState->flags, REQ_AUTH);
+    if (strstr(request_hdr, ForwardedBy))
+	BIT_SET(icpState->flags, REQ_LOOPDETECT);
 }
 
 static int icpCachable(icpState)
@@ -216,6 +218,8 @@ static int icpHierarchical(icpState)
     for (p = getHierarchyStoplist(); p; p = p->next)
 	if (strstr(request, p->key))
 	    return 0;
+    if (BIT_TEST(icpState->flags, REQ_LOOPDETECT))
+	return 0;
     return 1;
 }
 
@@ -809,7 +813,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode, logcode)
 	return COMM_ERROR;
     }
     memset(data, '\0', sizeof(icpUdpData));
-    memcpy(&data->address, to, sizeof(struct sockaddr_in));
+    data->address = *to;
 
     if (opcode == ICP_OP_QUERY)
 	buf_len += sizeof(u_num32);
@@ -913,7 +917,7 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
 	return;
     }
     data = xcalloc(1, sizeof(icpUdpData));
-    memcpy(&data->address, to, sizeof(struct sockaddr_in));
+    data->address = *to;
     data->msg = buf;
     data->len = buf_len;
     data->start = start_time;
