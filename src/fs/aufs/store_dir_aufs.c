@@ -969,9 +969,6 @@ storeAufsDirWriteCleanStart(SwapDir * sd)
     state->outbuf = xcalloc(CLEAN_BUF_SZ, 1);
     state->outbuf_offset = 0;
     state->walker = sd->repl->WalkInit(sd->repl);
-#if !(defined(_SQUID_OS2_) || defined (_SQUID_CYGWIN_))
-    unlink(state->new);
-#endif
     unlink(state->cln);
     debug(20, 3) ("storeDirWriteCleanLogs: opened %s, FD %d\n",
 	state->new, state->fd);

@@ -494,7 +494,6 @@ storeCossDirWriteCleanStart(SwapDir * sd)
     state->cln = xstrdup(storeCossDirSwapLogFile(sd, ".last-clean"));
     state->outbuf = xcalloc(CLEAN_BUF_SZ, 1);
     state->outbuf_offset = 0;
-    unlink(state->new);
     unlink(state->cln);
     state->current = cs->index.tail;
     debug(20, 3) ("storeCOssDirWriteCleanLogs: opened %s, FD %d\n",

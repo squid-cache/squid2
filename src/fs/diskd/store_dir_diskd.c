@@ -1150,7 +1150,6 @@ storeDiskdDirWriteCleanStart(SwapDir * sd)
     state->outbuf = xcalloc(CLEAN_BUF_SZ, 1);
     state->outbuf_offset = 0;
     state->walker = sd->repl->WalkInit(sd->repl);
-    unlink(state->new);
     unlink(state->cln);
     state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC);
     if (state->fd < 0) {
