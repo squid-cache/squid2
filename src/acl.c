@@ -1970,18 +1970,16 @@ aclHostDomainCompare(const void *a, const void *b)
     l1 = strlen(h);
     l2 = strlen(d);
     /* h != d */
-    while (xtolower(h[l1]) == xtolower(d[l2])) {
+    while (xtolower(h[--l1]) == xtolower(d[--l2])) {
 	if (l1 == 0)
 	    break;
 	if (l2 == 0)
 	    break;
-	l1--;
-	l2--;
     }
     /* a '.' is a special case */
-    if ((h[l1] == '.') || (l1 == 0))
+    if ((h[l1] == '.') && (l1 == 0))
 	return -1;		/* domain(h) < d */
-    if ((d[l2] == '.') || (l2 == 0))
+    if ((d[l2] == '.') && (l2 == 0))
 	return 1;		/* domain(h) > d */
     return (xtolower(h[l1]) - xtolower(d[l2]));
 }
