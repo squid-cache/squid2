@@ -333,7 +333,7 @@ rfc1035RRUnpack(const char *buf, size_t sz, off_t off, rfc1035_rr * RR)
 	memcpy(RR->rdata, buf + off, RR->rdlength);
 	break;
     }
-    off += RR->rdlength;
+    off += ntohs(s);
     assert(off <= sz);
     return off;
 }
