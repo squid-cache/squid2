@@ -41,6 +41,7 @@ extern void (*failure_notify) (const char *);
 static int opt_send_signal = -1;
 static int opt_no_daemon = 0;
 static int opt_parse_cfg_only = 0;
+static char *opt_syslog_facility = NULL;
 static int httpPortNumOverride = 1;
 static int icpPortNumOverride = 1;	/* Want to detect "-u 0" */
 static int configured_once = 0;
@@ -83,7 +84,7 @@ static void
 usage(void)
 {
     fprintf(stderr,
-	"Usage: %s [-dhsvzCDFNRVYX] [-f config-file] [-[au] port] [-k signal]\n"
+	"Usage: %s [-dhvzCDFNRVYX] [-s | -l facility] [-f config-file] [-[au] port] [-k signal]\n"
 	"       -a port   Specify HTTP port number (default: %d).\n"
 	"       -d level  Write debugging to stderr also.\n"
 	"       -f file   Use given config-file instead of\n"
@@ -92,7 +93,8 @@ usage(void)
 	"       -k reconfigure|rotate|shutdown|interrupt|kill|debug|check|parse\n"
 	"                 Parse configuration file, then send signal to \n"
 	"                 running copy (except -k parse) and exit.\n"
-	"       -s        Enable logging to syslog.\n"
+	"       -s | -l facility\n"
+	"                 Enable logging to syslog.\n"
 	"       -u port   Specify ICP port number (default: %d), disable with 0.\n"
 	"       -v        Print version.\n"
 	"       -z        Create swap directories\n"
@@ -115,7 +117,7 @@ mainParseOptions(int argc, char *argv[])
     extern char *optarg;
     int c;
 
-    while ((c = getopt(argc, argv, "CDFNRSVYXa:d:f:hk:m::su:vz?")) != -1) {
+    while ((c = getopt(argc, argv, "CDFNRSVYXa:d:f:hk:m::sl:u:vz?")) != -1) {
 	switch (c) {
 	case 'C':
 	    opt_catch_signals = 0;
@@ -205,9 +207,11 @@ mainParseOptions(int argc, char *argv[])
 		fatal("Need to configure --enable-xmalloc-debug-trace to use -m option");
 #endif
 	    }
+	case 'l':
+	    opt_syslog_facility = xstrdup(optarg);
 	case 's':
 #if HAVE_SYSLOG
-	    opt_syslog_enable = 1;
+	    _db_set_syslog(opt_syslog_facility);
 	    break;
 #else
 	    fatal("Logging to syslog not available on this platform");
