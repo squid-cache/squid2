@@ -269,7 +269,6 @@ netdbSendPing(const ipcache_addrs * ia, void *data)
     debug(38, 3) ("netdbSendPing: pinging %s\n", hostname);
     icmpDomainPing(addr, hostname);
     n->pings_sent++;
-    n->next_ping_time = squid_curtime + Config.Netdb.period;
     n->last_use_time = squid_curtime;
     cbdataFree(hostname);
 }
@@ -650,6 +649,7 @@ netdbPingSite(const char *hostname)
     h = xstrdup(hostname);
     cbdataAdd(h, MEM_NONE);
     cbdataLock(h);
+    n->next_ping_time = squid_curtime + Config.Netdb.period;
     ipcache_nbgethostbyname(hostname, netdbSendPing, h);
 #endif
 }
