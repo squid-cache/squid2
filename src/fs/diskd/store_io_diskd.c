@@ -468,8 +468,20 @@ storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
      * then we can have a lot of messages in the queue (probably
      * up to 2*magic1) and we can run out of shared memory buffers.
      */
-    while (diskdinfo->away > diskdinfo->magic2)
-	storeDiskdDirCallback(sd);
+    /*
+     * Note that we call storeDirCallback (for all SDs), rather
+     * than storeDiskdDirCallback for just this SD, so that while
+     * we're "blocking" on this SD we can also handle callbacks
+     * from other SDs that might be ready.
+     */
+    while (diskdinfo->away > diskdinfo->magic2) {
+	struct timeval delay =
+	{0, 1};
+	select(0, NULL, NULL, NULL, &delay);
+	storeDirCallback();
+	if (delay.tv_usec < 1000000)
+	    delay.tv_usec <<= 1;
+    }
     return x;
 }
 
