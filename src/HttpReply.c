@@ -270,7 +270,9 @@ httpReplyHdrCacheInit(HttpReply * rep)
     rep->cache_control = httpHeaderGetCc(hdr);
     rep->content_range = httpHeaderGetContRange(hdr);
     str = httpHeaderGetStr(hdr, HDR_PROXY_CONNECTION);
-    rep->pconn_keep_alive = str && strcasecmp(str, "Keep-Alive");
+    if (NULL == str)
+        str = httpHeaderGetStr(hdr, HDR_CONNECTION); 	/* @?@ FIX ME */
+    rep->proxy_keep_alive = str && 0 == strcasecmp(str, "Keep-Alive");
     /* final adjustments */
     /* The max-age directive takes priority over Expires, check it first */
     if (rep->cache_control && rep->cache_control->max_age >= 0)

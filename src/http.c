@@ -366,7 +366,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	if (EBIT_TEST(httpState->flags, HTTP_KEEPALIVE))
 	    if (httpState->peer)
 		httpState->peer->stats.n_keepalives_sent++;
-	if (reply->pconn_keep_alive)
+	if (reply->proxy_keep_alive)
 	    if (httpState->peer)
 		httpState->peer->stats.n_keepalives_recv++;
 	ctx_exit(ctx);
