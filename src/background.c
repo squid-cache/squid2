@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: Section 0	Background Processing
+ * DEBUG: Section 0     Background Processing
  * AUTHOR: Henrik Nordstrom
  *
  * SQUID Internet Object Cache  http://www.nlanr.net/Squid/

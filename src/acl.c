@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 28	Access Control
+ * DEBUG: section 28    Access Control
  * AUTHOR: Duane Wessels
  *
  * SQUID Internet Object Cache  http://www.nlanr.net/Squid/
