@@ -855,7 +855,7 @@ ipcache_gethostbyname(const char *name, int flags)
 		/* only dnsHandleRead() can change from DISPATCHED to CACHED */
 		static_addrs.count = 1;
 		static_addrs.cur = 0;
-		memcpy(&static_addrs.in_addrs[0].s_addr,
+		xmemcpy(&static_addrs.in_addrs[0].s_addr,
 		    *(hp->h_addr_list),
 		    hp->h_length);
 		return &static_addrs;

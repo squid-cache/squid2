@@ -1449,7 +1449,7 @@ networkCompare(struct _acl_ip_data *net, struct _acl_ip_data *data)
     struct in_addr addr;
     struct _acl_ip_data acl_ip;
     int rc = 0;
-    memcpy(&acl_ip, net, sizeof(acl_ip));
+    xmemcpy(&acl_ip, net, sizeof(acl_ip));
     addr = acl_ip.addr1;
     addr.s_addr &= data->mask.s_addr;	/* apply netmask */
     if (data->addr2.s_addr == 0) {	/* single address check */
@@ -1556,7 +1556,7 @@ bintreeIpNetworkCompare(void *t1, void *t2)
 {
     struct in_addr addr;
     struct _acl_ip_data *data;
-    memcpy(&addr, t1, sizeof(addr));
+    xmemcpy(&addr, t1, sizeof(addr));
     data = (struct _acl_ip_data *) t2;
     return aclIpNetworkCompare(addr, data);
 }

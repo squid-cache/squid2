@@ -992,7 +992,7 @@ icpCreateMessage(
     urloffset = buf + sizeof(icp_common_t);
     if (opcode == ICP_OP_QUERY)
 	urloffset += sizeof(u_num32);
-    memcpy(urloffset, url, strlen(url));
+    xmemcpy(urloffset, url, strlen(url));
     return buf;
 }
 
@@ -1151,7 +1151,6 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
     header.flags = ntohl(headerp->flags);
-    /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
     header.shostid = ntohl(headerp->shostid);
 
     switch (header.opcode) {
@@ -1302,7 +1301,6 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
     header.flags = ntohl(headerp->flags);
-    /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
     header.shostid = ntohl(headerp->shostid);
 
     switch (header.opcode) {
@@ -1554,7 +1552,7 @@ parseHttpRequest(icpStateData * icpState)
     /* Use xmalloc/xmemcpy instead of xstrdup because inbuf might
      * contain NULL bytes; especially for POST data  */
     inbuf = xmalloc(icpState->in_offset + 1);
-    memcpy(inbuf, icpState->inbuf, icpState->in_offset);
+    xmemcpy(inbuf, icpState->inbuf, icpState->in_offset);
     *(inbuf + icpState->in_offset) = '\0';
 
     /* Look for request method */

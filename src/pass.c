@@ -310,7 +310,7 @@ passConnected(int fd, void *data)
 	opt_forwarded_for ? passState->client.fd : -1);
     debug(39, 3, "passConnected: Appending %d bytes of content\n",
 	passState->buflen - hdr_len);
-    memcpy(passState->client.buf + passState->client.len,
+    xmemcpy(passState->client.buf + passState->client.len,
 	passState->buf + hdr_len,
 	passState->buflen - hdr_len);
     passState->client.len += passState->buflen - hdr_len;
