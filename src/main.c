@@ -260,7 +260,7 @@ static void mainInitialize()
 	setIcpPortNum((u_short) icpPortNumOverride);
 
     _db_init(getCacheLogFile(), getDebugOptions());
-    fdstat_open(fileno(debug_log), LOG);
+    fdstat_open(fileno(debug_log), FD_LOG);
     fd_note(fileno(debug_log), getCacheLogFile());
 
     debug(1, 0, "Starting Squid Cache version %s for %s...\n",
@@ -360,9 +360,9 @@ int main(argc, argv)
 
     /* we have to init fdstat here. */
     fdstat_init(PREOPEN_FD);
-    fdstat_open(0, LOG);
-    fdstat_open(1, LOG);
-    fdstat_open(2, LOG);
+    fdstat_open(0, FD_LOG);
+    fdstat_open(1, FD_LOG);
+    fdstat_open(2, FD_LOG);
     fd_note(0, "STDIN");
     fd_note(1, "STDOUT");
     fd_note(2, "STDERR");

@@ -124,7 +124,7 @@ int ipcache_create_dnsserver(command)
 	debug(14, 0, "ipcache_create_dnsserver: socket: %s\n", xstrerror());
 	return -1;
     }
-    fdstat_open(cfd, Socket);
+    fdstat_open(cfd, FD_SOCKET);
     fd_note(cfd, "socket to dnsserver");
     memset(&addr, '\0', sizeof(addr));
     addr.sun_family = AF_UNIX;
@@ -276,7 +276,7 @@ int ipcache_create_dnsserver(command)
 	if (sfd == COMM_ERROR)
 	    return -1;
 	if (comm_connect(sfd, localhost, port) == COMM_ERROR) {
-	    close(sfd);
+	    comm_close(sfd);
 	    return -1;
 	}
 	debug(14, 4, "ipcache_create_dnsserver: FD %d connected to %s #%d.\n",
@@ -1019,14 +1019,13 @@ int ipcache_dnsHandleRead(fd, data)
     debug(14, 5, "ipcache_dnsHandleRead: Result from DNS ID %d.\n", data->id);
 
     if (len == 0) {
-	if (!data->expect_close)
-	    debug(14, 1, "FD %d: Connection from DNSSERVER #%d is closed, disabling\n",
-		fd, data->id + 1);
+	debug(14, data->expect_close ? 5 : 1,
+	    "FD %d: Connection from DNSSERVER #%d is closed, disabling\n",
+	    fd, data->id + 1);
 	data->alive = 0;
 	update_dns_child_alive();
 	ipcache_cleanup_pendinglist(data);
-	close(fd);
-	fdstat_close(fd);
+	comm_close(fd);
 	return 0;
     }
     n = ++IpcacheStats.dnsserver_replies;

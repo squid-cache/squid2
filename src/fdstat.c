@@ -30,19 +30,19 @@ char *fdfiletype(type)
      File_Desc_Type type;
 {
     switch (type) {
-    case LOG:
+    case FD_LOG:
 	return ("Log");
 	/* NOTREACHED */
-    case File:
+    case FD_FILE:
 	return ("File");
 	/* NOTREACHED */
-    case Socket:
+    case FD_SOCKET:
 	return ("Socket");
 	/* NOTREACHED */
-    case Pipe:
+    case FD_PIPE:
 	return ("Pipe");
 	/* NOTREACHED */
-    case Unknown:
+    case FD_UNKNOWN:
     default:
 	break;
     }
@@ -58,12 +58,12 @@ int fdstat_init(preopen)
     fd_stat_tab = xcalloc(1, sizeof(FDENTRY) * FD_SETSIZE);
     for (i = 0; i < preopen; ++i) {
 	fd_stat_tab[i].status = OPEN;
-	fd_stat_tab[i].type = File;
+	fd_stat_tab[i].type = FD_FILE;
     }
 
     for (i = preopen; i < FD_SETSIZE; ++i) {
 	fd_stat_tab[i].status = CLOSE;
-	fd_stat_tab[i].type = Unknown;
+	fd_stat_tab[i].type = FD_UNKNOWN;
     }
 
     Biggest_FD = preopen - 1;

@@ -179,7 +179,7 @@ void setSocketShutdownLifetimes()
 	f = &fd_table[i];
 	if (!f->read_handler && !f->write_handler && !f->except_handler)
 	    continue;
-	if (fdstatGetType(i) != Socket)
+	if (fdstatGetType(i) != FD_SOCKET)
 	    continue;
 	cur = comm_get_fd_lifetime(i);
 	if (cur > 0 && (cur - squid_curtime) <= lft)

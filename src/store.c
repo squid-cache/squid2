@@ -1497,7 +1497,8 @@ void storeStartRebuildFromDisk()
     if (swaplog_fd > -1)
 	file_close(swaplog_fd);
     sprintf(tmp_filename, "%s.new", swaplog_file);
-    swaplog_fd = file_open(tmp_filename, NULL, O_WRONLY | O_CREAT | O_APPEND);
+    swaplog_fd = file_open(tmp_filename, NULL,
+	O_WRONLY | O_CREAT | O_APPEND | O_TRUNC);
     debug(20, 3, "swaplog_fd %d is now '%s'\n", swaplog_fd, tmp_filename);
     if (swaplog_fd < 0) {
 	debug(20, 0, "storeStartRebuildFromDisk: %s: %s\n",
@@ -1577,8 +1578,10 @@ void storeComplete(e)
 	storeSwapOutStart(e);
     /* free up incoming MIME */
     safe_free(e->mem_obj->mime_hdr);
-    CacheInfo->proto_newobject(CacheInfo, CacheInfo->proto_id(e->url),
-	e->object_len, FALSE);
+    CacheInfo->proto_newobject(CacheInfo,
+	CacheInfo->proto_id(e->url),
+	e->object_len,
+	FALSE);
     if (e->flag & RELEASE_REQUEST)
 	storeRelease(e);
 }
@@ -2197,11 +2200,10 @@ int storeRelease(e)
 	file_map_bit_reset(e->swap_file_number);
 	e->swap_file_number = -1;
 	store_swap_size -= (e->object_len + 1023) >> 10;
+        CacheInfo->proto_purgeobject(CacheInfo,
+            CacheInfo->proto_id(e->url),
+            e->object_len);
     }
-    /* Discard byte count */
-    CacheInfo->proto_purgeobject(CacheInfo,
-	CacheInfo->proto_id(e->url),
-	e->object_len);
     if (hptr)
 	storeHashDelete(hptr);
     storeLog(STORE_LOG_RELEASE, e);

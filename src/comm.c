@@ -24,6 +24,7 @@ struct _RWStateData {
     rw_complete_handler *handler;
     void *handler_data;
     int handle_immed;
+    struct _RWStateData *next;
 };
 
 /* GLOBAL */
@@ -38,10 +39,20 @@ static int examine_select _PARAMS((fd_set *, fd_set *, fd_set *));
 static int commSetNoLinger _PARAMS((int));
 static void comm_select_incoming _PARAMS((void));
 static int commBind _PARAMS((int s, struct in_addr, u_short port));
+static void RWStateFree _PARAMS((RWStateData *));
 
 static int *fd_lifetime = NULL;
 static struct timeval zero_tv;
 static struct in_addr wildcard_addr;
+
+static void RWStateFree(RWState)
+	struct _RWStateData *RWState;
+{
+	if (!RWState)
+		return;
+	RWStateFree(RWState->next);
+	safe_free(RWState);
+}
 
 /* Return the local port associated with fd. */
 u_short comm_local_port(fd)
@@ -112,7 +123,7 @@ int comm_open_unix(note)
 	return (COMM_ERROR);
     }
     /* update fdstat */
-    fdstat_open(new_socket, Socket);
+    fdstat_open(new_socket, FD_SOCKET);
     conn = &fd_table[new_socket];
     memset(conn, '\0', sizeof(FD_ENTRY));
     fd_note(new_socket, note);
@@ -168,7 +179,7 @@ int comm_open(io_type, addr, port, note)
 	return (COMM_ERROR);
     }
     /* update fdstat */
-    fdstat_open(new_socket, Socket);
+    fdstat_open(new_socket, FD_SOCKET);
 
     conn = &fd_table[new_socket];
     memset(conn, '\0', sizeof(FD_ENTRY));
@@ -317,15 +328,13 @@ int comm_set_fd_lifetime(fd, lifetime)
     debug(5, 3, "comm_set_fd_lifetime: FD %d lft %d\n", fd, lifetime);
     if (fd < 0 || fd > FD_SETSIZE)
 	return 0;
+    if (lifetime < 0)
+	return fd_lifetime[fd] = -1;
     if (shutdown_pending || reread_pending) {
 	/* don't increase the lifetime if something pending */
-	if (lifetime < 0)
-	    return fd_lifetime[fd];
 	if (fd_lifetime[fd] - squid_curtime < lifetime)
 	    return fd_lifetime[fd];
     }
-    if (lifetime < 0)
-	return fd_lifetime[fd] = -1;
     return fd_lifetime[fd] = (int) squid_curtime + lifetime;
 }
 
@@ -447,7 +456,7 @@ int comm_accept(fd, peer, me)
 	*me = M;
     }
     /* fdstat update */
-    fdstat_open(sock, Socket);
+    fdstat_open(sock, FD_SOCKET);
     conn = &fd_table[sock];
     conn->openned = 1;
     conn->sender = 0;		/* This is an accept, therefore receiver. */
@@ -467,14 +476,14 @@ int comm_close(fd)
     if (fd < 0)
 	return -1;
 
-    if (fdstat_type(fd) == File) {
+    if (fdstat_type(fd) == FD_FILE) {
 	debug(5, 0, "FD %d: Someone called comm_close() on a File\n", fd);
 	fatal_dump(NULL);
     }
     conn = &fd_table[fd];
 
-    safe_free(conn->rstate);
-    safe_free(conn->wstate);
+    RWStateFree(conn->rstate);
+    RWStateFree(conn->wstate);
 
     comm_set_fd_lifetime(fd, -1);	/* invalidate the lifetime */
     debug(5, 5, "comm_close: FD %d\n", fd);
@@ -492,10 +501,8 @@ int comm_cleanup_fd_entry(fd)
      int fd;
 {
     FD_ENTRY *conn = &fd_table[fd];
-
-    safe_free(conn->rstate);
-    safe_free(conn->wstate);
-
+    RWStateFree(conn->rstate);
+    RWStateFree(conn->wstate);
     memset(conn, 0, sizeof(FD_ENTRY));
     return 0;
 }
@@ -692,7 +699,7 @@ int comm_select(sec, failtime)
 	if (nfds == 0)
 	    return COMM_SHUTDOWN;
 	while (1) {
-	    poll_time.tv_sec = 1;
+	    poll_time.tv_sec = sec > 1 ? 1 : 0;
 	    poll_time.tv_usec = 0;
 	    num = select(maxfd, &readfds, &writefds, &exceptfds, &poll_time);
 	    if (num >= 0)
@@ -1204,7 +1211,7 @@ static int commHandleRead(fd, state)
 		state->offset,
 		COMM_ERROR,
 		state->handler_data);
-	    safe_free(state);
+	    RWStateFree(state);
 	    return COMM_ERROR;
 	}
     }
@@ -1273,26 +1280,35 @@ static void commHandleWrite(fd, state)
     int len = 0;
     int nleft;
 
-    debug(5, 5, "commHandleWrite: FD %d: off %d: sz %d.\n",
-	fd, state->offset, state->size);
+    debug(5, 5, "commHandleWrite: FD %d: state=%p, off %d, sz %d.\n",
+	fd, state, state->offset, state->size);
 
     nleft = state->size - state->offset;
     len = write(fd, state->buf + state->offset, nleft);
 
     if (len == 0) {
-	/* XXX Is it ever possible that write() returns 0? */
+	/* Note we even call write if nleft == 0 */
 	/* We're done */
-	if (nleft != 0)
+	if (nleft != 0) {
 	    debug(5, 2, "commHandleWrite: FD %d: write failure: connection closed with %d bytes remaining.\n", fd, nleft);
-	fd_table[fd].wstate = NULL;	/* The handler may call comm_write again */
-	/* Notify caller */
-	if (state->handler)
-	    state->handler(fd,
-		state->buf,
-		state->offset,
-		nleft == 0 ? COMM_OK : COMM_ERROR,
-		state->handler_data);
-	safe_free(state);
+	    fd_table[fd].wstate = NULL;
+	    if (state->handler)
+	        state->handler(fd,
+		    state->buf,
+		    state->offset,
+		    COMM_ERROR,
+		    state->handler_data);
+	    RWStateFree(state);
+	} else {
+            fd_table[fd].wstate = state->next;
+	    if (state->handler)
+	        state->handler(fd,
+		    state->buf,
+		    state->offset,
+		    COMM_OK,
+		    state->handler_data);
+            safe_free(state);
+	}
 	return;
     }
     if (len < 0) {
@@ -1312,15 +1328,15 @@ static void commHandleWrite(fd, state)
 	}
 	debug(5, 2, "commHandleWrite: FD %d: write failure: %s.\n",
 	    fd, xstrerror());
-	fd_table[fd].wstate = NULL;	/* The handler may call comm_write again */
 	/* Notify caller that we failed */
+	fd_table[fd].wstate = NULL;
 	if (state->handler)
 	    state->handler(fd,
 		state->buf,
 		state->offset,
 		COMM_ERROR,
 		state->handler_data);
-	safe_free(state);
+	RWStateFree(state);
 	return;
     }
     /* A successful write, continue */
@@ -1333,7 +1349,7 @@ static void commHandleWrite(fd, state)
 	    state);
 	return;
     }
-    fd_table[fd].wstate = NULL;	/* The handler may call comm_write again */
+    fd_table[fd].wstate = state->next;
     /* Notify caller that the write is complete */
     if (state->handler)
 	state->handler(fd,
@@ -1342,6 +1358,11 @@ static void commHandleWrite(fd, state)
 	    COMM_OK,
 	    state->handler_data);
     safe_free(state);
+    if (fd_table[fd].wstate)
+	comm_set_select_handler(fd,
+	    COMM_SELECT_WRITE,
+	    (PF) commHandleWrite,
+	    fd_table[fd].wstate);
 }
 
 
@@ -1357,16 +1378,12 @@ void comm_write(fd, buf, size, timeout, handler, handler_data)
      void *handler_data;
 {
     RWStateData *state = NULL;
+    RWStateData **Tail = NULL;
 
     debug(5, 5, "comm_write: FD %d: sz %d: tout %d: hndl %p: data %p.\n",
 	fd, size, timeout, handler, handler_data);
 
-    if (fd_table[fd].wstate) {
-	debug(5, 1, "comm_write: WARNING! A comm_write is already active.\n");
-	safe_free(fd_table[fd].wstate);
-    }
     state = xcalloc(1, sizeof(RWStateData));
-    fd_table[fd].wstate = state;
     state->buf = buf;
     state->size = size;
     state->offset = 0;
@@ -1374,8 +1391,10 @@ void comm_write(fd, buf, size, timeout, handler, handler_data)
     state->timeout = timeout;
     state->time = squid_curtime;
     state->handler_data = handler_data;
+    for (Tail = &(fd_table[fd].wstate); *Tail; Tail = &((*Tail)->next));
+    *Tail = state;
     comm_set_select_handler(fd,
 	COMM_SELECT_WRITE,
 	(PF) commHandleWrite,
-	state);
+	fd_table[fd].wstate);
 }

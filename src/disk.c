@@ -106,7 +106,7 @@ int file_open(path, handler, mode)
 	return (DISK_ERROR);
     }
     /* update fdstat */
-    fdstat_open(fd, File);
+    fdstat_open(fd, FD_FILE);
 
     /* init table */
     strncpy(file_table[fd].filename, path, MAX_FILE_NAME_LEN);
@@ -148,7 +148,7 @@ int file_update_open(fd, path)
     FD_ENTRY *conn;
 
     /* update fdstat */
-    fdstat_open(fd, File);
+    fdstat_open(fd, FD_FILE);
 
     /* init table */
     strncpy(file_table[fd].filename, path, MAX_FILE_NAME_LEN);
@@ -190,7 +190,7 @@ int file_close(fd)
 	file_table[fd].write_daemon = NOT_PRESENT;
 	file_table[fd].filename[0] = '\0';
 
-	if (fdstat_type(fd) == Socket) {
+	if (fdstat_type(fd) == FD_SOCKET) {
 	    debug(6, 0, "FD %d: Someone called file_close() on a socket\n", fd);
 	    fatal_dump(NULL);
 	}

@@ -307,7 +307,7 @@ static void httpReadReply(fd, httpState)
     IOStats.Http.reads++;
     len = read(fd, buf, SQUID_TCP_SO_RCVBUF);
     debug(11, 5, "httpReadReply: FD %d: len %d.\n", fd, len);
-    comm_set_fd_lifetime(fd, -1);	/* disable after good read */
+    comm_set_fd_lifetime(fd, 86400);	/* extend after good read */
     if (len > 0) {
 	for (clen = len - 1, bin = 0; clen; bin++)
 	    clen >>= 1;
@@ -409,7 +409,7 @@ static void httpSendComplete(fd, buf, size, errflag, data)
 	    (PF) httpReadReplyTimeout,
 	    (void *) httpState,
 	    getReadTimeout());
-	comm_set_fd_lifetime(fd, -1);	/* disable lifetime DPW */
+	comm_set_fd_lifetime(fd, 86400);	/* extend disable lifetime */
     }
 }
 

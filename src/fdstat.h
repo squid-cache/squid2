@@ -6,11 +6,12 @@
 #define PREOPEN_FD 3		/* number of preopened fd when process start */
 
 typedef enum {
-    LOG,
-    File,
-    Socket,
-    Pipe,
-    Unknown
+    FD_NONE,
+    FD_LOG,
+    FD_FILE,
+    FD_SOCKET,
+    FD_PIPE,
+    FD_UNKNOWN
 } File_Desc_Type;
 
 extern File_Desc_Type fdstat_type _PARAMS((int fd));

@@ -256,7 +256,7 @@ static void sslConnected(fd, sslState)
 	COMM_SELECT_WRITE,
 	(PF) sslWriteClient,
 	(void *) sslState);
-    comm_set_fd_lifetime(fd, -1);	/* disable lifetime */
+    comm_set_fd_lifetime(fd, 86400);	/* extend lifetime */
     comm_set_select_handler_plus_timeout(sslState->server.fd,
 	COMM_SELECT_TIMEOUT,
 	(PF) sslReadTimeout,

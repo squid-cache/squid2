@@ -582,7 +582,7 @@ int ftpStart(unusedfd, url, request, entry)
 	    return COMM_OK;
 	}
     }
-    fdstat_open(data->ftp_fd, Socket);
+    fdstat_open(data->ftp_fd, FD_SOCKET);
     commSetNonBlocking(data->ftp_fd);
     (void) fd_note(data->ftp_fd, entry->url);
 
@@ -680,8 +680,8 @@ int ftpInitialize()
 	comm_close(cfd);
 	close(squid_to_ftpget[0]);
 	close(ftpget_to_squid[1]);
-	fdstat_open(squid_to_ftpget[1], Pipe);
-	fdstat_open(ftpget_to_squid[0], Pipe);
+	fdstat_open(squid_to_ftpget[1], FD_PIPE);
+	fdstat_open(ftpget_to_squid[0], FD_PIPE);
 	fd_note(squid_to_ftpget[1], "ftpget -S");
 	fd_note(ftpget_to_squid[0], "ftpget -S");
 	fcntl(squid_to_ftpget[1], F_SETFD, 1);	/* set close-on-exec */

@@ -298,7 +298,7 @@ static void protoCancelTimeout(fd, entry)
 	return;
     }
     debug(17, 2, "protoCancelTimeout: FD %d <URL:%s>\n", fd, entry->url);
-    if (fdstat_type(fd) != Socket) {
+    if (fdstat_type(fd) != FD_SOCKET) {
 	debug(17, 0, "FD %d: Someone called protoCancelTimeout() on a non-socket\n",
 	    fd);
 	fatal_dump(NULL);

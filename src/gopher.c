@@ -796,7 +796,7 @@ void gopherSendComplete(fd, buf, size, errflag, data)
 	(PF) gopherReadReplyTimeout,
 	(void *) gopherState,
 	getReadTimeout());
-    comm_set_fd_lifetime(fd, -1);	/* disable */
+    comm_set_fd_lifetime(fd, 86400);	/* extend lifetime */
 
     if (buf)
 	put_free_4k_page(buf);	/* Allocated by gopherSendRequest. */
