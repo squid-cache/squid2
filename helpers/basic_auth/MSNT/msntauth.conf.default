@@ -8,6 +8,6 @@ server my_PDC		my_BDC		my_NTdomain
 server other_PDC	other_BDC	otherdomain
 
 # Denied and allowed users. Comment these if not needed.
-denyusers	/usr/local/squid/etc/denyusers
-allowusers	/usr/local/squid/etc/allowusers
+#denyusers	/usr/local/squid/etc/msntauth.denyusers
+#allowusers	/usr/local/squid/etc/msntauth.allowusers
 

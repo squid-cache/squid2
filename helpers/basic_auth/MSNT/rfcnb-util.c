@@ -36,7 +36,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 
-char *RFCNB_Error_Strings[] =
+const char *RFCNB_Error_Strings[] =
 {
 
     "RFCNBE_OK: Routine completed successfully.",
@@ -59,7 +59,9 @@ char *RFCNB_Error_Strings[] =
 
 };
 
+#ifdef RFCNB_DEBUG
 extern void (*Prot_Print_Routine) ();	/* Pointer to protocol print routine */
+#endif
 
 /* Convert name and pad to 16 chars as needed */
 /* Name 1 is a C string with null termination, name 2 may not be */
@@ -149,6 +151,7 @@ RFCNB_NBName_To_AName(char *NBName, char *AName)
 
 }
 
+#ifdef RFCNB_DEBUG
 /* Print a string of bytes in HEX etc */
 
 void
@@ -201,6 +204,7 @@ RFCNB_Print_Hex(FILE * fd, struct RFCNB_Pkt *pkt, int Offset, int Len)
     fprintf(fd, "\n");
 
 }
+#endif
 
 /* Get a packet of size n */
 
@@ -209,12 +213,10 @@ RFCNB_Alloc_Pkt(int n)
 {
     RFCNB_Pkt *pkt;
 
-    if ((pkt = (struct RFCNB_Pkt *) malloc(sizeof(struct RFCNB_Pkt))) == NULL) {
-
+    if ((pkt = malloc(sizeof(struct RFCNB_Pkt))) == NULL) {
 	RFCNB_errno = RFCNBE_NoSpace;
 	RFCNB_saved_errno = errno;
 	return (NULL);
-
     }
     pkt->next = NULL;
     pkt->len = n;
@@ -222,13 +224,11 @@ RFCNB_Alloc_Pkt(int n)
     if (n == 0)
 	return (pkt);
 
-    if ((pkt->data = (char *) malloc(n)) == NULL) {
-
+    if ((pkt->data = malloc(n)) == NULL) {
 	RFCNB_errno = RFCNBE_NoSpace;
 	RFCNB_saved_errno = errno;
 	free(pkt);
 	return (NULL);
-
     }
     return (pkt);
 
@@ -240,16 +240,13 @@ void
 RFCNB_Free_Pkt(struct RFCNB_Pkt *pkt)
 {
     struct RFCNB_Pkt *pkt_next;
-    char *data_ptr;
 
     while (pkt != NULL) {
 
 	pkt_next = pkt->next;
 
-	data_ptr = pkt->data;
-
-	if (data_ptr != NULL)
-	    free(data_ptr);
+	if (pkt->data != NULL)
+	    free(pkt->data);
 
 	free(pkt);
 
@@ -259,6 +256,7 @@ RFCNB_Free_Pkt(struct RFCNB_Pkt *pkt)
 
 }
 
+#ifdef RFCNB_DEBUG
 /* Print an RFCNB packet */
 
 void
@@ -342,6 +340,7 @@ RFCNB_Print_Pkt(FILE * fd, char *dirn, struct RFCNB_Pkt *pkt, int len)
     }
 
 }
+#endif
 
 /* Resolve a name into an address */
 
