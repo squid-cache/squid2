@@ -87,4 +87,5 @@ typedef struct {
     int flags;
     char ident[ICP_IDENT_SZ + 1];
     int ident_fd;
+    int size;
 } icpStateData;
