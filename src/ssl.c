@@ -304,9 +304,9 @@ static void sslConnInProgress(fd, sslState)
 }
 
 static int sslConnect(fd, hp, sslState)
-	int fd;
-	struct hostent *hp;
-	SslStateData *sslState;
+     int fd;
+     struct hostent *hp;
+     SslStateData *sslState;
 {
     request_t *request = sslState->request;
     int status;
@@ -405,8 +405,8 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
 	(PF) sslStateFree,
 	(void *) sslState);
     ipcache_nbgethostbyname(request->host,
-            sslState->server.fd,
-            (IPH) sslConnect,
-            sslState);
+	sslState->server.fd,
+	(IPH) sslConnect,
+	sslState);
     return COMM_OK;
 }

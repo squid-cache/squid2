@@ -487,11 +487,11 @@ static int icpGetHeadersForIMS(fd, icpState)
 	/* The object is not modified */
 	debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
 	comm_write(fd,
-		NotModified,
-		strlen(NotModified),
-		30,
-		icpHandleIMSComplete,
-		icpState);
+	    NotModified,
+	    strlen(NotModified),
+	    30,
+	    icpHandleIMSComplete,
+	    icpState);
 	return COMM_OK;
     } else {
 	debug(12, 4, "icpGetHeadersForIMS: We have newer '%s'\n", entry->url);
