@@ -12,6 +12,8 @@ Changes to squid-1.1.15 ():
 	  redirector.
 	- Added first-cut RELOAD_INTO_IMS feature.  #ifdef'd to
 	  protect the innocent.
+	- Fixed comm_select() to only check stall_delay for read
+	  handlers (Peter Wemm).
 	- IMPORTANT change to the -z option: Numerous people have lost
 	  their cache contents because Squid would automatically wipe
 	  out the cache if one of the cache directories did not exist.
