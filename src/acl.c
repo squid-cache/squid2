@@ -1055,6 +1055,9 @@ aclDecodeProxyAuth(const char *proxy_auth, char **user, char **password, char *b
     debug(28, 6) ("aclDecodeProxyAuth: cleartext = '%s'\n", cleartext);
     xstrncpy(buf, cleartext, bufsize);
     xfree(cleartext);
+    /* Trim leading whitespace after decoding */
+    while (xisspace(*buf))
+	buf++;
     *user = buf;
     if ((*password = strchr(*user, ':')) != NULL)
 	*(*password)++ = '\0';
