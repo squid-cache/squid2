@@ -191,7 +191,7 @@ int comm_open(io_type, port, note)
 	}
     } else {
 	/* An outbound socket */
-	for (p = getHomeAddr(); p; p = p->next) {
+	for (p = getOutboundAddrList(); p; p = p->next) {
             if (do_bind(new_socket, p->key, 0) == COMM_OK)
                 break;
             if (p->next == NULL)

@@ -19,6 +19,7 @@ typedef struct _FDENTRY {
 static FDENTRY *fd_stat_tab = NULL;
 
 File_Desc_Type fdstatGetType(fd)
+	int fd;
 {
     return fd_stat_tab[fd].type;
 }
