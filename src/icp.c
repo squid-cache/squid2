@@ -1101,7 +1101,7 @@ icpCheckUdpHit(StoreEntry * e, request_t *request)
 	return 0;
     if (!storeEntryValidToSend(e))
 	return 0;
-    if (refreshCheck(entry, request, 30))
+    if (refreshCheck(e, request, 30))
 	return 0;
     return 1;
 }
@@ -1321,7 +1321,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
 	debug(12, 5, "icpHandleIcpV3: OPCODE %s\n",
 	    IcpOpcodeStr[header.opcode]);
-	if (icpCheckUdpHit(entry)) {
+	if (icpCheckUdpHit(entry, icp_request)) {
 	    reply = icpCreateMessage(ICP_OP_HIT, 0, url, header.reqnum, 0);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
 	    break;

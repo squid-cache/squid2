@@ -295,7 +295,7 @@ passConnected(int fd, void *data)
     char *t = NULL;
     char *s = NULL;
     int l;
-    int hdr_len;
+    int hdr_len = 0;
     int saw_host = 0;
     int content_length = 0;
     int buflen = SQUID_TCP_SO_RCVBUF >> 1;
