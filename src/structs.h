@@ -459,6 +459,7 @@ struct _SquidConfig {
 	int list_wrap;
 	char *anon_user;
 	int passive;
+	int sanitycheck;
     } Ftp;
     refresh_t *Refresh;
     struct _cacheSwap {

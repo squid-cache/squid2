@@ -969,6 +969,18 @@ DOC_START
 	connections, then turn off this option.
 DOC_END
 
+NAME: ftp_sanitycheck
+TYPE: onoff
+DEFAULT: on
+LOC: Config.Ftp.sanitycheck
+DOC_START
+	For security and data integrity reasons Squid by default performs
+	sanity checks of the addresses of FTP data connections ensure the
+	data connection is to the requested server. If you need to allow
+	FTP connections to servers using another IP address for the data
+	connection then turn this off.
+DOC_END
+
 NAME: cache_dns_program
 TYPE: string
 IFDEF: USE_DNSSERVERS
