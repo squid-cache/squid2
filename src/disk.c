@@ -122,10 +122,7 @@ int file_open(path, handler, mode)
     file_table[fd].write_q = NULL;
 
     conn = &fd_table[fd];
-    memset(conn, 0, sizeof(FD_ENTRY));
-
-    conn->port = 0;
-    conn->handler = NULL;
+    memset(conn, '\0', sizeof(FD_ENTRY));
 
     /* set non-blocking mode */
 #if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
@@ -167,13 +164,8 @@ int file_update_open(fd, path)
     file_table[fd].write_q = NULL;
 
     conn = &fd_table[fd];
-    memset(conn, 0, sizeof(FD_ENTRY));
-
-    conn->port = 0;
-    conn->handler = NULL;
-
+    memset(conn, '\0', sizeof(FD_ENTRY));
     conn->comm_type = COMM_NONBLOCKING;
-
     return fd;
 }
 
