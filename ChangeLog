@@ -1,3 +1,5 @@
+	- Fixed possible mem->log_url NPR coredump.
+
 Changes to squid-1.1.12 (July 5, 1997):
 
 	- Fixed dnsserver buffer overflow bug and other problems related
