@@ -688,7 +688,7 @@ httpBuildRequestHeader(request_t * request,
 	switch (e->id) {
 	case HDR_PROXY_AUTHORIZATION:
 	    /* If we're not doing proxy auth, then it must be passed on */
-	    if (!request->flags.used_proxy_auth)
+	    if (request->flags.proxying && !request->flags.used_proxy_auth)
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
 	    break;
 	case HDR_AUTHORIZATION:
