@@ -2764,7 +2764,7 @@ DOC_END
 NAME: memory_pools_limit
 COMMENT: (bytes)
 TYPE: b_size_t
-DEFAULT: none
+DEFAULT: 5 MB
 LOC: Config.MemPools.limit
 DOC_START
 	Used only with memory_pools on:
