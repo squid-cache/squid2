@@ -1270,16 +1270,11 @@ AC_CHECK_HEADERS( \
 	math.h \
 	memory.h \
 	mount.h \
-	net/if.h \
 	net/pfvar.h \
 	netdb.h \
-	netinet/if_ether.h \
 	netinet/in.h \
 	netinet/tcp.h \
-	netinet/ip_compat.h \
 	netinet/ip_fil_compat.h \
-	netinet/ip_fil.h \
-	netinet/ip_nat.h \
 	openssl/err.h \
 	openssl/md5.h \
 	openssl/ssl.h \
@@ -1327,12 +1322,18 @@ AC_CHECK_HEADERS( \
 	nss.h
 )
 
-AC_CHECK_HEADER(linux/netfilter_ipv4.h,,,
+AC_CHECK_HEADERS(linux/netfilter_ipv4.h,,,
 SQUID_DEFAULT_INCLUDES
 #if HAVE_LIMITS_H
 #include <limits.h>
 #endif
 )
+
+AC_CHECK_HEADERS(net/if.h \
+	netinet/if_ether.h\
+	netinet/ip_compat.h\
+	netinet/ip_fil.h\
+	netinet/ip_nat.h,,,SQUID_BSDNET_INCLUDES)
 
 AC_C_CONST
 AC_C_BIGENDIAN
