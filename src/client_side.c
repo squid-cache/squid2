@@ -753,9 +753,12 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	/* Request-Range: deleted, not in the specs. Does it exist? */
     }
 #else
-    request->range = httpHeaderGetRange(req_hdr);
-    if (request->range)
-	EBIT_SET(request->flags, REQ_RANGE);
+    /* ignore range header in non-GETs */
+    if (request->method == METHOD_GET) {
+	request->range = httpHeaderGetRange(req_hdr);
+	if (request->range)
+	    EBIT_SET(request->flags, REQ_RANGE);
+    }
 #endif
     if (httpHeaderHas(req_hdr, HDR_AUTHORIZATION))
 	EBIT_SET(request->flags, REQ_AUTH);
