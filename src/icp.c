@@ -124,6 +124,7 @@ static char *log_tags[] =
     "UDP_MISS",
     "UDP_DENIED",
     "UDP_INVALID",
+    "UDP_RELOADING",
     "ERR_READ_TIMEOUT",
     "ERR_LIFETIME_EXP",
     "ERR_NO_CLIENTS_BIG_OBJ",
@@ -1144,8 +1145,8 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		&header,
 		&from,
 		0,
-		ICP_OP_DENIED,
-		LOG_UDP_DENIED);
+		ICP_OP_RELOADING,
+		LOG_UDP_RELOADING);
 	    break;
 	}
 	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
@@ -1158,6 +1159,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
     case ICP_OP_DECHO:
     case ICP_OP_MISS:
     case ICP_OP_DENIED:
+    case ICP_OP_RELOADING:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
 	    debug(12, 0, "icpHandleIcpV2: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));

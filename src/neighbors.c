@@ -745,6 +745,9 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 		neighborRemove(e);
 	    }
 	}
+    } else if (header->opcode == ICP_OP_RELOADING) {
+	if (e)
+	    debug(15,3,"neighborsUdpAck: %s is RELOADING\n", e->host);
     } else {
 	debug(15, 0, "neighborsUdpAck: Unexpected ICP reply: %s\n",
 	    IcpOpcodeStr[header->opcode]);
