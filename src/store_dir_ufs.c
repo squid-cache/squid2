@@ -304,7 +304,7 @@ storeRebuildFromDirectory(void *data)
 	    fd = -1;
 	    continue;
 	}
-	if ((++rb->counts.scancount & 0xFFF) == 0)
+	if ((++rb->counts.scancount & 0x3FFF) == 0)
 	    debug(20, 1) ("  %s %7d files opened so far.\n",
 		rb->sd->path, rb->counts.scancount);
 	debug(20, 9) ("file_in: fd=%d %08X\n", fd, sfileno);
@@ -464,7 +464,7 @@ storeRebuildFromSwapLog(void *data)
 	    rb->counts.invalid++;
 	    continue;
 	}
-	if ((++rb->counts.scancount & 0xFFF) == 0)
+	if ((++rb->counts.scancount & 0x3FFF) == 0)
 	    debug(20, 1) ("  %7d %s Entries read so far.\n",
 		rb->counts.scancount, rb->sd->path);
 	if (!storeDirValidFileno(s.swap_file_number, 0)) {
