@@ -37,6 +37,7 @@ fileMap *file_map_create(n)
     debug(8, 5, "--> %d words of %d bytes each\n",
 	fm->nwords, sizeof(unsigned long));
     fm->file_map = xcalloc(fm->nwords, sizeof(unsigned long));
+    meta_data.misc += fm->nwords * sizeof(unsigned long);
     return (fm);
 }
 

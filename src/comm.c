@@ -988,6 +988,7 @@ int comm_init()
     int i;
 
     fd_table = xcalloc(FD_SETSIZE, sizeof(FD_ENTRY));
+    meta_data.misc += FD_SETSIZE * sizeof(FD_ENTRY);
     /* Keep a few file descriptors free so that we don't run out of FD's
      * after accepting a client but before it opens a socket or a file.
      * Since FD_SETSIZE can be as high as several thousand, don't waste them */
@@ -996,6 +997,7 @@ int comm_init()
     fd_lifetime = xmalloc(sizeof(int) * FD_SETSIZE);
     for (i = 0; i < FD_SETSIZE; i++)
 	comm_set_fd_lifetime(i, -1);	/* denotes invalid */
+    meta_data.misc += FD_SETSIZE * sizeof(int);
     zero_tv.tv_sec = 0;
     zero_tv.tv_usec = 0;
     return 0;

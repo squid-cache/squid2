@@ -655,7 +655,7 @@ static int ipcache_parsebuffer(buf, offset, dnsData)
 				break;
 			    }
 			    i->entry.h_addr_list[k] = xcalloc(1, i->entry.h_length);
-			    *((unsigned long *) (void *) i->entry.h_addr_list[k]) = inet_addr(line_cur->line);
+			    *((u_num32 *) (void *) i->entry.h_addr_list[k]) = inet_addr(line_cur->line);
 			    line_cur = line_cur->next;
 			    k++;
 			}
@@ -1070,7 +1070,7 @@ struct hostent *ipcache_gethostbyname(name, flags)
     IpcacheStats.misses++;
     /* check if it's already a IP address in text form. */
     if ((ip = inet_addr(name)) != INADDR_NONE) {
-	*((unsigned long *) (void *) static_result->h_addr_list[0]) = ip;
+	*((u_num32 *) (void *) static_result->h_addr_list[0]) = ip;
 	strncpy(static_result->h_name, name, MAX_HOST_NAME);
 	return static_result;
     }

@@ -137,6 +137,7 @@ static int icpStateFree(fd, icpState)
 	elapsed_msec,
 	hierarchy_code);
     safe_free(icpState->inbuf);
+    meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
     safe_free(icpState->request_hdr);
     if (icpState->entry) {
@@ -834,7 +835,6 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode, logcode)
 
     if (opcode == ICP_OP_QUERY)
 	urloffset += sizeof(u_num32);
-    /* it's already zero filled by xcalloc */
     xmemcpy(urloffset, url, strlen(url));
     data->msg = buf;
     data->len = buf_len;
@@ -1462,6 +1462,7 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 	    /* Grow the request memory area to accomodate for a large request */
 	    icpState->inbufsize += ASCII_INBUF_BLOCKSIZE;
 	    icpState->inbuf = xrealloc(icpState->inbuf, icpState->inbufsize);
+	    meta_data.misc += ASCII_INBUF_BLOCKSIZE;
 	    debug(12, 2, "Handling a large request, offset=%d inbufsize=%d\n",
 		icpState->offset, icpState->inbufsize);
 	    k = icpState->inbufsize - 1 - icpState->offset;
@@ -1540,6 +1541,7 @@ int asciiHandleConn(sock, notused)
     icpState->peer = peer;
     icpState->me = me;
     icpState->entry = NULL;
+    meta_data.misc += ASCII_INBUF_BLOCKSIZE;
     comm_set_select_handler(fd,
 	COMM_SELECT_LIFETIME,
 	(PF) asciiConnLifetimeHandle,

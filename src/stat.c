@@ -668,6 +668,10 @@ void info_get(obj, sentry)
 	(disk_stats.total_pages_allocated - disk_stats.n_pages_in_use) * disk_stats.page_size >> 10);
 
     storeAppendPrintf(sentry, "{\t%-25.25s                      = %6d KB}\n",
+	"Miscellaneous",
+	meta_data.misc >> 10);
+
+    storeAppendPrintf(sentry, "{\t%-25.25s                      = %6d KB}\n",
 	"Total Accounted",
 	(int) (meta_data.store_entries * sizeof(StoreEntry) +
 	    meta_data.ipcache_count * sizeof(ipcache_entry) +
@@ -676,7 +680,8 @@ void info_get(obj, sentry)
 	    disk_stats.total_pages_allocated * disk_stats.page_size +
 	    request_pool.total_pages_allocated * request_pool.page_size +
 	    mem_obj_pool.total_pages_allocated * mem_obj_pool.page_size +
-	    meta_data.url_strings) >> 10);
+	    meta_data.url_strings +
+	    meta_data.misc) >> 10);
 
 #if XMALLOC_STATISTICS
     storeAppendPrintf(sentry, "{Memory allocation statistics}\n");

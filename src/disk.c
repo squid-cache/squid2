@@ -64,18 +64,16 @@ typedef struct _FileEntry {
     dwrite_q *write_q_tail;
 } FileEntry;
 
-
 /* table for FILE variable, write lock and queue. Indexed by fd. */
 FileEntry *file_table;
-
-extern void fatal_dump _PARAMS((char *));
 
 /* initialize table */
 int disk_init()
 {
     int fd;
 
-    file_table = xcalloc(1, sizeof(FileEntry) * FD_SETSIZE);
+    file_table = xcalloc(FD_SETSIZE, sizeof(FileEntry));
+    meta_data.misc += FD_SETSIZE * sizeof(FileEntry);
     for (fd = 0; fd < FD_SETSIZE; fd++) {
 	file_table[fd].filename[0] = '\0';
 	file_table[fd].at_eof = NO;

@@ -126,6 +126,7 @@ static MemObject *new_MemObject()
     MemObject *mem = get_free_mem_obj();
     mem->reply = xcalloc(1, sizeof(struct _http_reply));
     meta_data.store_in_mem_objects++;
+    meta_data.misc += sizeof(struct _http_reply);
     debug(20, 3, "new_MemObject: returning %p\n", mem);
     return mem;
 }
@@ -164,6 +165,7 @@ static void destroy_MemObject(mem)
     mem->request = NULL;
     put_free_mem_obj(mem);
     meta_data.store_in_mem_objects--;
+    meta_data.misc -= sizeof(struct _http_reply);
 }
 
 static void destroy_StoreEntry(e)

@@ -55,7 +55,8 @@ int fdstat_init(preopen)
 {
     int i;
 
-    fd_stat_tab = xcalloc(1, sizeof(FDENTRY) * FD_SETSIZE);
+    fd_stat_tab = xcalloc(FD_SETSIZE, sizeof(FDENTRY));
+    meta_data.misc += FD_SETSIZE * sizeof(FDENTRY);
     for (i = 0; i < preopen; ++i) {
 	fd_stat_tab[i].status = OPEN;
 	fd_stat_tab[i].type = FD_FILE;

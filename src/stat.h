@@ -34,6 +34,7 @@ typedef struct _meta_data_stat {
     int ipcache_count;
     int hash_links;
     int url_strings;
+    int misc;
 } Meta_data;
 
 extern Meta_data meta_data;
