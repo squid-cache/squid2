@@ -249,6 +249,7 @@ httpTimeout(int fd, void *data)
     StoreEntry *entry = httpState->entry;
     ErrorState *err;
     debug(11, 4) ("httpTimeout: FD %d: '%s'\n", fd, entry->url);
+    assert(entry->store_status == STORE_PENDING);
     if (entry->mem_obj->inmem_hi == 0) {
 	err = xcalloc(1, sizeof(ErrorState));
 	err->type = ERR_READ_TIMEOUT;
@@ -672,9 +673,10 @@ httpReadReply(int fd, void *data)
 	    httpProcessReplyHeader(httpState, buf, len);
 	storeAppend(entry, buf, len);
 	if (httpPconnTransferDone(httpState)) {
-	    pconnPush(fd, request->host, request->port);
+	    commSetDefer(fd, NULL, NULL);
 	    comm_remove_close_handler(fd, httpStateFree, httpState);
 	    storeComplete(entry);	/* deallocates mem_obj->request */
+	    pconnPush(fd, request->host, request->port);
 	    httpState->fd = -1;
 	    httpStateFree(-1, httpState);
 	} else {
