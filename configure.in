@@ -635,6 +635,32 @@ if test -n "$AUTH_MODULES"; then
 fi
 AC_SUBST(AUTH_MODULES)
 
+dnl Disable "unlinkd" cde
+AC_ARG_ENABLE(unlinkd,
+[  --disable-unlinkd       Do not use unlinkd],
+[ if test "$enableval" = "no" ; then
+    USE_UNLINKD=0
+  else
+    USE_UNLINKD=1
+  fi
+],[
+    # Here we should probably use some magic depending on the selected
+    # storage models
+    USE_UNLINKD=1
+])
+if test $USE_UNLINKD; then
+    echo "unlinkd enabled"
+    AC_DEFINE(USE_UNLINKD)
+    OPT_UNLINKD_EXE='$(OPT_UNLINKD_EXE)'
+    UNLINKD_OBJS='unlinkd.o'
+else
+    echo "unlinkd disabled"
+    OPT_UNLINKD_EXE=''
+    UNLINKD_OBJS=''
+fi
+AC_SUBST(OPT_UNLINKD_EXE)
+AC_SUBST(UNLINKD_OBJS)
+
 dnl Enable backtraces on fatal errors
 AC_ARG_ENABLE(stacktraces,
 [  --enable-stacktraces    Enable automatic call backtrace on fatal errors],

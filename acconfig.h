@@ -272,3 +272,10 @@
 
 /* Print stacktraces on fatal errors */
 #undef PRINT_STACK_TRACE
+
+/*
+ * Define this if unlinkd is required
+ * (strongly recommended for ufs storage type)
+ */
+#undef USE_UNLINKD
+

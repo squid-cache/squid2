@@ -944,6 +944,7 @@ DOC_END
 
 
 NAME: unlinkd_program
+IFDEF: USE_UNLINKD
 TYPE: string
 DEFAULT: @DEFAULT_UNLINKD@
 LOC: Config.Program.unlinkd
