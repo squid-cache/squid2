@@ -133,12 +133,16 @@ AC_CHECK_HEADERS( \
 	fcntl.h \
 	grp.h \
 	libc.h \
+	malloc.h \
 	memory.h \
 	netdb.h \
 	netinet/in.h \
 	pwd.h \
 	regex.h \
 	signal.h \
+	stdarg.h \
+	stddef.h \
+	stdio.h \
 	stdlib.h \
 	string.h \
 	strings.h \
@@ -146,6 +150,7 @@ AC_CHECK_HEADERS( \
 	sys/param.h \
 	sys/resource.h \
 	sys/select.h\
+	sys/socket.h \
 	sys/stat.h \
 	sys/syscall.h \
 	sys/time.h \
