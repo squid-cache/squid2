@@ -496,15 +496,37 @@ parseCacheHostLine(void)
     neighbors_cf_add(hostname, type, http_port, icp_port, options, weight);
 }
 
+static neighbor_t
+parseNeighborType(char *token)
+{
+    if (!strcasecmp(token, "parent"))
+	return EDGE_PARENT;
+    if (!strcasecmp(token, "neighbor"))
+	return EDGE_SIBLING;
+    if (!strcasecmp(token, "neighbour"))
+	return EDGE_SIBLING;
+    if (!strcasecmp(token, "sibling"))
+	return EDGE_SIBLING;
+    return EDGE_NONE;
+}
+
+
 static void
 parseHostDomainLine(void)
 {
     char *host = NULL;
     char *domain = NULL;
+    neighbor_t type = EDGE_NONE;
+    neighbor_t t;
     if (!(host = strtok(NULL, w_space)))
 	self_destruct();
-    while ((domain = strtok(NULL, ", \t\n")))
-	neighbors_cf_domain(host, domain);
+    while ((domain = strtok(NULL, ", \t\n"))) {
+	if ((t = parseNeighborType(domain)) != EDGE_NONE) {
+	    type = t;
+	    continue;
+	}
+	neighbors_cf_domain(host, domain, type);
+    }
 }
 
 static void

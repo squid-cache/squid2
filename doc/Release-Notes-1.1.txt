@@ -1,4 +1,3 @@
-
 $Id$
 
 Release Notes for version 1.1 of the Squid cache.
@@ -11,6 +10,7 @@ TABLE OF CONTENTS:
 	Reverse IP Lookups, client hostname ACLs.
 	Cache directory structure changes
         Getting true DNS TTL info into Squid's IP cache
+	Using a neighbor as both a parent and a sibling
 
 Ident (RFC 931) lookups
 ==============================================================================
@@ -180,3 +180,39 @@ diff -ru bind-4.9.4-orig/res/gethnamaddr.c bind-4.9.4/res/gethnamaddr.c
  		n = _getshort(cp);
  		cp += INT16SZ;			/* len */
  		if (class != C_IN) {
+
+
+Using a neighbor as both a parent and a sibling
+==============================================================================
+Prior to version 1.1.beta5, a neighbor cache was always treated as
+either a sibling or a parent for all requests.  In some cases, it is
+desirable to use a neighbor as a parent for some domains and as a
+sibling for others.  This can now be accomplished by adding either the
+'parent' or 'sibling' keywords in the cache_host_domain config lines.
+For example, consider these configuration lines
+
+    cache_host cache.foo.org sibling 3128 3130
+    cache_host_domain cache.foo.org   parent   foo.org
+    cache_host_domain cache.foo.org   sibling  !foo.org
+
+These have the effect that cache.foo.org is queried for all requests.
+If the URL host domain is foo.org, then cache.foo.org is treated as a
+parent (and MISSES will be fetched through cache.foo.org).  Otherwise
+it will be treated as a sibling (and only HITS will be fetched from
+cache.foo.org).  Note that the third line is needed because when
+cache_host_domain rules are present, the neighbor is only used when one
+of the rules is matched.
+
+Note that the parent/sibling modifiers apply to all domains appearing
+after them on the same line.  In other words,
+
+    cache_host_domain cache.foo.org  parent foo.org bar.org
+
+Is equivalent to
+
+    cache_host_domain cache.foo.org  parent foo.org
+    cache_host_domain cache.foo.org  parent bar.org
+
+If a cache_host_domain line does not have a parent/sibling modifier,
+then it defaults to the neighbor type specified in the cache_host
+line.

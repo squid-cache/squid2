@@ -60,38 +60,37 @@
 #	#          hostname             type     port   port  options
 #	#          -------------------- -------- ----- -----  -----------
 #	cache_host bigserver.usc.edu    parent    3128  3130  [proxy-only]
-#	cache_host littleguy1.usc.edu   neighbor  3128  3130  [proxy-only]
-#	cache_host littleguy1.usc.edu   neighbor  3128  3130  [proxy-only]
+#	cache_host littleguy1.usc.edu   sibling   3128  3130  [proxy-only]
+#	cache_host littleguy1.usc.edu   sibling   3128  3130  [proxy-only]
 #
-#	      type:  either 'parent' or 'neighbor'.
+#	      type:  either 'parent' or 'sibling'.
 #
 #	proxy_port:  The port number where the cache listens for proxy
 #	             requests.
 #
-#	  icp_port:  Used for querying neighbor/parent caches about
-#	             objects.  To have a non-ICP neighbor/parent
+#	  icp_port:  Used for querying neighbor caches about
+#	             objects.  To have a non-ICP neighbor
 #	             specify '7' for the ICP port and make sure the
-#	             neighbor/parent machine has the UDP echo port
+#	             neighbor machine has the UDP echo port
 #	             enabled in its /etc/inetd.conf file.
 #
 #	    options: use 'proxy-only' to specify that objects fetched
 #		     from this cache should not be saved locally.
 #
-#		     use 'weight=n' to specify a weighted neighbor.
+#		     use 'weight=n' to specify a weighted parent.
 #		     The weight must be an integer.  The default weight
 #		     is 1, larger weights are favored more.
 #
-#	NOTE: when using a non-ICP neighbor/parent, there is no
-#	      difference between a neighbor and a parent.
+#	NOTE: non-ICP neighbors must be specified as 'parent'.
 #
 #cache_host hostname type 3128 3130
 
 #  TAG: cache_host_domain
-#	Use to limit the domains for which a neighbor/parent cache
-#	will be queried.  Usage:
+#	Use to limit the domains for which a neighbor cache will be queried.
+#	Usage:
 #
-#		cache_host_domain cache-host	domain [domain ...]
-#		cache_host_domain cache-host	!domain
+#	cache_host_domain cache-host [sibling|parent]	domain [domain ...]
+#	cache_host_domain cache-host [sibling|parent]	!domain
 #
 #	For example, specifying
 #
@@ -112,6 +111,14 @@
 #		* There are no defaults.
 #		* There is also a 'cache_host_acl' tag in the ACL
 #		  section.
+#
+#	Modifying the neighbor type for specific domains is now
+#	possible.  You can treat a neighbor as a parent for some
+#	domains, and a sibling for others.  Simply add the keywords
+#	'sibling' or 'parent' before the domains.  For example:
+#
+#		cache_host_domain cache.foo.org parent .foo.org
+#		cache_host_domain cache.foo.org sibling .com
 
 #  TAG:	inside_firewall
 #	This tag specifies a list of domains inside your Internet
