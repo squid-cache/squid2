@@ -310,7 +310,7 @@ static const char *socket_pathname = NULL;
 static int o_max_bps = 0;	/* max bytes/sec */
 static struct timeval starttime;
 static struct timeval currenttime;
-static unsigned int inaddr_none;
+unsigned int inaddr_none;
 
 char *rfc1738_escape _PARAMS((const char *));
 void rfc1738_unescape _PARAMS((char *));
