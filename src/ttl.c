@@ -133,16 +133,20 @@ static ttl_t *TTL_tail = NULL;
 #define TTL_ABSOLUTE	0x20
 #define TTL_DEFAULT	0x40
 
-void ttlAddToList(pattern, abs_ttl, pct_age, age_max)
+void ttlAddToList(pattern, icase, abs_ttl, pct_age, age_max)
      char *pattern;
+     int icase;
      time_t abs_ttl;
      int pct_age;
      time_t age_max;
 {
     ttl_t *t;
     regex_t comp;
+    int flags = REG_EXTENDED;
+    if (icase)
+	flags |= REG_ICASE;
 
-    if (regcomp(&comp, pattern, REG_EXTENDED) != REG_NOERROR) {
+    if (regcomp(&comp, pattern, flags) != REG_NOERROR) {
 	debug(22, 0, "ttlAddToList: Invalid regular expression: %s\n",
 	    pattern);
 	return;

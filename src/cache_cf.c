@@ -282,11 +282,74 @@ char w_space[] = " \t\n";
 char config_input_line[BUFSIZ];
 int config_lineno = 0;
 
-static void configSetFactoryDefaults _PARAMS((void));
-static void configFreeMemory _PARAMS((void));
-static void configDoConfigure _PARAMS((void));
 static char *safe_xstrdup _PARAMS((char *p));
 static char fatal_str[BUFSIZ];
+static void configDoConfigure _PARAMS((void));
+static void configFreeMemory _PARAMS((void));
+static void configSetFactoryDefaults _PARAMS((void));
+static void parseAccessLogLine _PARAMS((void));
+static void parseAddressLine _PARAMS((struct in_addr *));
+static void parseAnnounceToLine _PARAMS((void));
+static void parseAppendDomainLine _PARAMS((void));
+static void parseCacheAnnounceLine _PARAMS((void));
+static void parseCacheHostLine _PARAMS((void));
+static void parseCleanRateLine _PARAMS((void));
+static void parseConnectTimeout _PARAMS((void));
+static void parseDebugOptionsLine _PARAMS((void));
+static void parseDirLine _PARAMS((void));
+static void parseDnsChildrenLine _PARAMS((void));
+static void parseDnsProgramLine _PARAMS((void));
+static void parseDnsTestnameLine _PARAMS((void));
+static void parseEffectiveUserLine _PARAMS((void));
+static void parseEmulateLine _PARAMS((void));
+static void parseErrHtmlLine _PARAMS((void));
+static void parseFtpLine _PARAMS((void));
+static void parseFtpOptionsLine _PARAMS((void));
+static void parseFtpProgramLine _PARAMS((void));
+static void parseFtpStopLine _PARAMS((void));
+static void parseFtpUserLine _PARAMS((void));
+static void parseGopherLine _PARAMS((void));
+static void parseGopherStopLine _PARAMS((void));
+static void parseHierachyLogLine _PARAMS((void));
+static void parseHierarchyStoplistLine _PARAMS((void));
+static void parseHostAclLine _PARAMS((void));
+static void parseHostDomainLine _PARAMS((void));
+static void parseHotVmFactorLine _PARAMS((void));
+static void parseHttpLine _PARAMS((void));
+static void parseHttpPortLine _PARAMS((void));
+static void parseHttpStopLine _PARAMS((void));
+static void parseHttpdAccelLine _PARAMS((void));
+static void parseHttpdAccelWithProxyLine _PARAMS((void));
+static void parseIPLine _PARAMS((ip_acl ** list));
+static void parseIcpPortLine _PARAMS((void));
+static void parseInsideFirewallLine _PARAMS((void));
+static void parseLifetimeLine _PARAMS((void));
+static void parseLocalDomainFile _PARAMS((char *fname));
+static void parseLocalDomainLine _PARAMS((void));
+static void parseLogLine _PARAMS((void));
+static void parseLogfileRotateLine _PARAMS((void));
+static void parseMemHighLine _PARAMS((void));
+static void parseMemLine _PARAMS((void));
+static void parseMemLowLine _PARAMS((void));
+static void parseMgrLine _PARAMS((void));
+static void parseNegativeDnsLine _PARAMS((void));
+static void parseNegativeLine _PARAMS((void));
+static void parseNeighborTimeout _PARAMS((void));
+static void parsePidFilenameLine _PARAMS((void));
+static void parsePositiveDnsLine _PARAMS((void));
+static void parseQuickAbortLine _PARAMS((void));
+static void parseReadTimeoutLine _PARAMS((void));
+static void parseRequestSizeLine _PARAMS((void));
+static void parseShutdownLifetimeLine _PARAMS((void));
+static void parseSingleParentBypassLine _PARAMS((void));
+static void parseSourcePingLine _PARAMS((void));
+static void parseStoreLogLine _PARAMS((void));
+static void parseSwapHighLine _PARAMS((void));
+static void parseSwapLine _PARAMS((void));
+static void parseSwapLowLine _PARAMS((void));
+static void parseTTLPattern _PARAMS((int icase));
+static void parseVisibleHostnameLine _PARAMS((void));
+static void parseWAISRelayLine _PARAMS((void));
 
 void self_destruct()
 {
@@ -672,7 +735,8 @@ static void parseFtpLine()
     Config.Ftp.defaultTtl = i * 60;
 }
 
-static void parseTTLPattern()
+static void parseTTLPattern(icase)
+     int icase;
 {
     char *token;
     char *pattern;
@@ -700,7 +764,7 @@ static void parseTTLPattern()
 	    self_destruct();
 	age_max = (time_t) (i * 60);	/* convert minutes to seconds */
     }
-    ttlAddToList(pattern, abs_ttl, pct_age, age_max);
+    ttlAddToList(pattern, icase, abs_ttl, pct_age, age_max);
 
     safe_free(pattern);
 }
@@ -1364,7 +1428,9 @@ int parseConfigFile(file_name)
 	    parseFtpLine();
 
 	else if (!strcmp(token, "ttl_pattern"))
-	    parseTTLPattern();
+	    parseTTLPattern(0);
+	else if (!strcmp(token, "ttl_pattern/i"))
+	    parseTTLPattern(1);
 
 	/* Parse a negative_ttl line */
 	else if (!strcmp(token, "negative_ttl"))
