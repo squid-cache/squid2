@@ -1649,8 +1649,10 @@ aclReadProxyAuth(struct _acl_proxy_auth *p)
 		    }
 		} else {
 		    /* First time around, 7921 should be big enough */
-		    if ((p->hash = hash_create(urlcmp, 7921, hash_string)) < 0) {
-			debug(28, 0) ("aclReadProxyAuth: can't create hash table, turning auth off\n");
+		    p->hash = hash_create(urlcmp, 7921, hash_string);
+		    if (p->hash == NULL) {
+			debug(28, 0) ("aclReadProxyAuth: can't create "
+				"hash table, turning auth off.\n");
 			return 0;
 		    }
 		}

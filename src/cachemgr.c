@@ -248,7 +248,7 @@ static const char *const op_cmds[] =
     "server_list",
     "client_list",
     "log",
-    "parameter",
+    "config",
     "ipcache",
     "fqdncache",
     "dns",
