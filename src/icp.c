@@ -375,13 +375,6 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (!strcasecmp(t, "Keep-Alive"))
 	    BIT_SET(request->flags, REQ_PROXY_KEEPALIVE);
 #endif
-#if FORW_VIA_LOG
-    if (forw_via_log)
-	fprintf(forw_via_log, "%d.%06d|%s",
-		(int) current_time.tv_sec,
-		(int) current_time.tv_usec,
-		icpState->log_url);
-#endif
     if ((t = mime_get_header(request_hdr, "Via"))) {
 	if (strstr(t, ThisCache)) {
 	    if (!icpState->accel) {
@@ -394,7 +387,7 @@ icpParseRequestHeaders(icpStateData * icpState)
     }
 #if FORW_VIA_LOG
         if (forw_via_log)
-	    fprintf(forw_via_log, "|%s", t ? t : null_string);
+	    fprintf(forw_via_log, "%s", t ? t : null_string);
 #endif
 #if USE_USERAGENT_LOG
     if ((t = mime_get_header(request_hdr, "User-Agent")))
