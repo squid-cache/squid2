@@ -73,7 +73,7 @@ httpHdrRangeRespSpecParseInit(HttpHdrRangeSpec *spec, const char *field, int fle
     }
     /* parse offset */
     if (!httpHeaderParseSize(field+1, &spec->offset))
-	    return NULL;
+	    return 0;
     p++;
     /* do we have last-pos ? */
     if (p - field < flen) {
