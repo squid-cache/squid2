@@ -1,3 +1,4 @@
+
 #define ACL_NAME_SZ 32
 
 typedef enum {
@@ -65,7 +66,7 @@ struct _acl_access {
 };
 
 extern int aclCheck _PARAMS((struct _acl_access *, struct in_addr, method_t, protocol_t, char *, int, char *));
-extern void aclDestroyAccessList _PARAMS((struct _acl_access **list));
+extern void aclDestroyAccessList _PARAMS((struct _acl_access ** list));
 extern void aclDestroyAcls _PARAMS((void));
 extern void aclParseAccessLine _PARAMS((struct _acl_access **));
 extern void aclParseAclLine _PARAMS((void));

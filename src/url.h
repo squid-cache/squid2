@@ -30,7 +30,7 @@ extern char *ProtocolStr[];
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));
 extern char *url_escape _PARAMS((char *url));
 extern protocol_t urlParseProtocol _PARAMS((char *));
-extern method_t   urlParseMethod _PARAMS((char *));
+extern method_t urlParseMethod _PARAMS((char *));
 extern int urlDefaultPort _PARAMS((protocol_t));
 
 #endif /* _URL_HEADER_ */

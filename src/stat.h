@@ -94,7 +94,7 @@ struct _cacheinfo {
 
     /* protocol specific stat update method */
     /* return a proto_id for a given url */
-         protocol_t (*proto_id) _PARAMS((char *url));
+         protocol_t(*proto_id) _PARAMS((char *url));
 
     /* a new object cached. update obj count, size */
     void (*proto_newobject) _PARAMS((struct _cacheinfo * c, protocol_t proto_id, int len, int flag));
