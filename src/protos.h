@@ -77,6 +77,8 @@ extern int aio_unlink(const char *, aio_result_t *);
 extern int aio_opendir(const char *, aio_result_t *);
 extern aio_result_t *aio_poll_done(void);
 extern int aio_operations_pending(void);
+extern int aio_overloaded(void);
+extern int aio_sync(void);
 
 extern void aioCancel(int, void *);
 extern void aioOpen(const char *, int, mode_t, AIOCB *, void *, void *);

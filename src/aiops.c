@@ -110,6 +110,7 @@ int aio_close(int, aio_result_t *);
 int aio_unlink(const char *, aio_result_t *);
 int aio_opendir(const char *, aio_result_t *);
 aio_result_t *aio_poll_done();
+int aio_sync(void);
 
 static void aio_init(void);
 static void aio_queue_request(aio_request_t *);
@@ -386,8 +387,9 @@ aio_queue_request(aio_request_t * requestp)
     }
     if (request_queue_len > RIDICULOUS_LENGTH) {
 	debug(43, 0) ("aio_queue_request: Async request queue growing uncontrollably!\n");
-	debug(43, 0) ("aio_queue_request: Possible infinite loop somewhere in squid. Restarting...\n");
-	abort();
+	debug(43, 0) ("aio_queue_request: Syncing pending I/O operations.. (blocking)\n");
+	aio_sync();
+	debug(43, 0) ("aio_queue_request: Synced\n");
     }
 }				/* aio_queue_request */
 
@@ -838,11 +840,30 @@ aio_poll_done()
 int
 aio_operations_pending(void)
 {
-    if (request_done_head)
+    return request_queue_len + (request_done_head != NULL) + (busy_threads_head != NULL);
+}
+
+int
+aio_overloaded(void)
+{
+    static time_t last_warn = 0;
+    if (aio_operations_pending() > RIDICULOUS_LENGTH / 4) {
+	if (squid_curtime >= (last_warn + 15)) {
+	    debug(43, 0) ("Warning: Async-IO overloaded\n");
+	    last_warn = squid_curtime;
+	}
 	return 1;
-    if (busy_threads_head)
-	return 1;
+    }
     return 0;
+}
+
+int
+aio_sync(void)
+{
+    do {
+	aio_poll_threads();
+    } while (request_queue_len > 0);
+    return aio_operations_pending();
 }
 
 static void
