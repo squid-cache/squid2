@@ -206,9 +206,23 @@
 #define MAXPATHLEN SQUID_MAXPATHLEN
 #endif
 
-#if !defined(HAVE_GETRUSAGE) && defined(_SQUID_HPUX_)
+#if !HAVE_GETRUSAGE
+#if defined(_SQUID_HPUX_)
 #define HAVE_GETRUSAGE 1
 #define getrusage(a, b)  syscall(SYS_GETRUSAGE, a, b)
+#else
+/*
+ * If we don't have getrusage() then we create a fake structure
+ * with only the fields Squid cares about.  This just makes the
+ * source code cleaner, so we don't need lots of #ifdefs in other
+ * places
+ */
+typedef void struct {
+        struct timeval ru_stime;
+        int ru_maxrss;
+        int ru_majflt;
+} rusage;
+#endif
 #endif
 
 #if !defined(HAVE_GETPAGESIZE) && defined(_SQUID_HPUX_)
