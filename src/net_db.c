@@ -973,6 +973,8 @@ netdbExchangeStart(void *data)
     storeClientCopy(ex->e, ex->seen, ex->used, ex->buf_sz,
 	ex->buf, netdbExchangeHandleReply, ex);
     ex->r->flags.loopdetect = 1;	/* cheat! -- force direct */
+    if (p->login)
+	xstrncpy(ex->r->login, p->login, MAX_LOGIN_SZ);
     fwdStart(-1, ex->e, ex->r, no_addr, no_addr);
 #endif
 }
