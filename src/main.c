@@ -303,7 +303,7 @@ int main(argc, argv)
 #endif
 #ifdef M_MXFAST
     /* biggest size that is considered a small block */
-    mallopt(M_MXFAST, 1024);
+    mallopt(M_MXFAST, 512);
 #endif
 #ifdef M_NBLKS
     /* number of block in each chunk */
