@@ -235,7 +235,7 @@ static ipcache_entry *ipcache_get(name)
 
     if ((result->timestamp + result->ttl) > squid_curtime)
 	return result;
-    if (result->status != IP_PENDING)
+    if (result->status == IP_PENDING)
 	return result;
     if (result->lock)
 	return result;
