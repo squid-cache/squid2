@@ -150,7 +150,9 @@ clientAccessCheckDone(int answer, void *data)
 	    err->http_status = HTTP_MOVED_TEMPORARILY;
 	    err->redirect_url = xstrdup(redirectUrl);
 	} else {
-	    err->http_status = HTTP_UNAUTHORIZED;
+	    /* NOTE: don't use HTTP_UNAUTHORIZED because then the
+	       stupid browser wants us to authenticate */
+	    err->http_status = HTTP_FORBIDDEN;
 	}
 	errorSend(fd, err);
     }
@@ -548,7 +550,7 @@ clientPurgeRequest(clientHttpRequest * http)
 	err->type = ERR_ACCESS_DENIED;
 	err->request = requestLink(http->request);
 	err->src_addr = http->conn->peer.sin_addr;
-	err->http_status = HTTP_UNAUTHORIZED;
+	err->http_status = HTTP_FORBIDDEN;
 	errorSend(fd, err);
 	return;
     }
