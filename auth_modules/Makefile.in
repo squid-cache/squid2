@@ -26,6 +26,6 @@ distclean:
 	done
 
 .DEFAULT:
-	@test -z "$(SUBDIRS)" || for dir in $(SUBDIRS); do \
+	@test -z "$(SUBDIRS)" || for dir in "$(SUBDIRS)"; do \
 	   sh -c "cd $$dir && $(MAKE) $@" || exit 1; \
 	done
