@@ -335,11 +335,6 @@ connStateFree(int fd, void *data)
 {
     ConnStateData *connState = data;
     clientHttpRequest *http;
-    clientHttpRequest *n_http;
-    int http_code = 0;
-    int elapsed_msec;
-    struct _hierarchyLogData *hierData = NULL;
-    const char *content_type = NULL;
     debug(0, 0, "connStateFree: FD %d\n", fd);
     if (connState == NULL)
 	fatal_dump("connStateFree: connState == NULL");
@@ -353,6 +348,8 @@ connStateFree(int fd, void *data)
     }
     if (connState->ident.fd > -1)
 	comm_close(connState->ident.fd);
+    debug(0,0,"connStateFree: FD %d handled %d requests\n",
+	fd, connState->nrequests);
     safe_free(connState);
 }
 
@@ -1750,6 +1747,7 @@ debug(0,0,"clientReadRequest: read %d bytes\n", size);
     fd_bytes(fd, size, FD_READ);
 
     if (size == 0) {
+        http->conn->nrequests--;
 	comm_close(fd);
 	return;
     } else if (size < 0) {
@@ -1762,6 +1760,7 @@ debug(0,0,"clientReadRequest: read %d bytes\n", size);
 		0);
 	} else {
 	    debug(50, 2, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
+            http->conn->nrequests--;
 	    comm_close(fd);
 	}
 	return;
@@ -1885,7 +1884,6 @@ asciiHandleConn(int sock, void *notused)
 {
     int fd = -1;
     ConnStateData *connState = NULL;
-    clientHttpRequest *http;
     struct sockaddr_in peer;
     struct sockaddr_in me;
     memset(&peer, '\0', sizeof(struct sockaddr_in));
@@ -1906,11 +1904,7 @@ asciiHandleConn(int sock, void *notused)
     connState->me = me;
     connState->fd = fd;
     connState->ident.fd = -1;
-    commSetTimeout(fd, Config.Timeout.read, requestTimeout, http);
-    comm_add_close_handler(fd,
-	connStateFree,
-	connState);
-    /* start reverse lookup */
+    comm_add_close_handler(fd, connStateFree, connState);
     if (Config.Log.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
     icpDetectNewRequest(fd, connState);
@@ -2073,6 +2067,7 @@ icpDetectNewRequest(int fd, void *data)
     clientHttpRequest *http;
     clientHttpRequest **H;
     ntcpconn++;
+    connState->nrequests++;
     if (vizSock > -1)
 	vizHackSendPkt(&connState->peer, 1);
     if (fd != connState->fd)
