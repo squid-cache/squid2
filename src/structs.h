@@ -1413,6 +1413,7 @@ struct _request_t {
     HierarchyLogEntry hier;
     err_type err_type;
     char *peer_login;		/* Configured peer login:password */
+    time_t lastmod;		/* Used on refreshes */
 };
 
 struct _cachemgr_passwd {

@@ -329,7 +329,7 @@ clientProcessExpired(void *data)
     /* delay_id is already set on original store client */
     delaySetStoreClient(entry, http, delayClient(http->request));
 #endif
-    entry->lastmod = http->old_entry->lastmod;
+    http->request->lastmod = http->old_entry->lastmod;
     debug(33, 5) ("clientProcessExpired: lastmod %d\n", (int) entry->lastmod);
     entry->refcount++;		/* EXPIRED CASE */
 #if HEAP_REPLACEMENT

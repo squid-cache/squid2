@@ -611,8 +611,8 @@ httpBuildRequestHeader(request_t * request,
     HttpHeaderPos pos = HttpHeaderInitPos;
     httpHeaderInit(hdr_out, hoRequest);
     /* append our IMS header */
-    if (entry && entry->lastmod > -1 && request->method == METHOD_GET)
-	httpHeaderPutTime(hdr_out, HDR_IF_MODIFIED_SINCE, entry->lastmod);
+    if (request->lastmod > -1 && request->method == METHOD_GET)
+	httpHeaderPutTime(hdr_out, HDR_IF_MODIFIED_SINCE, request->lastmod);
 
     /* decide if we want to do Ranges ourselves 
      * (and fetch the whole object now)
@@ -858,6 +858,7 @@ httpStart(FwdState * fwd)
 	xstrncpy(proxy_req->host, httpState->peer->host, SQUIDHOSTNAMELEN);
 	proxy_req->port = httpState->peer->http_port;
 	proxy_req->flags = orig_req->flags;
+	proxy_req->lastmod = orig_req->lastmod;
 	httpState->request = requestLink(proxy_req);
 	httpState->orig_request = requestLink(orig_req);
 	proxy_req->flags.proxying = 1;

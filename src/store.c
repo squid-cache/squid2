@@ -1436,6 +1436,7 @@ storeEntryReset(StoreEntry * e)
     mem->inmem_hi = mem->inmem_lo = 0;
     httpReplyDestroy(mem->reply);
     mem->reply = httpReplyCreate();
+    e->expires = e->lastmod = e->timestamp = -1;
 }
 
 #if HEAP_REPLACEMENT
