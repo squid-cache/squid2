@@ -214,7 +214,9 @@ diskCombineWrites(struct _fde_disk *fdd)
 static void
 diskHandleWrite(int fd, void *notused)
 {
+#if !USE_ASYNC_IO
     int len = 0;
+#endif
     fde *F = &fd_table[fd];
     struct _fde_disk *fdd = &F->disk;
     if (!fdd->write_q)
@@ -238,7 +240,7 @@ diskHandleWrite(int fd, void *notused)
     len = write(fd,
 	fdd->write_q->buf + fdd->write_q->buf_offset,
 	fdd->write_q->len - fdd->write_q->buf_offset);
-    diskHandleWriteComplete(fd, NULL, len, errno);
+    diskHandleWriteComplete(fd, fdd->write_q, len, errno);
 #endif
 }
 
@@ -275,7 +277,6 @@ diskHandleWriteComplete(int fd, void *data, int len, int errcode)
 	errcode = EFAULT;
     }
 #endif
-    safe_free(data);
     if (q == NULL)		/* Someone aborted then write completed */
 	return;
 
