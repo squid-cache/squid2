@@ -48,6 +48,7 @@ send_announce(void *unused)
     if (!Config.Announce.on)
 	return;
     eventAdd("send_announce", send_announce, NULL, Config.Announce.rate);
+    debug(27, 0, "Sending Announcement to %s\n", host);
     if ((ia = ipcache_gethostbyname(host, IP_BLOCKING_LOOKUP)) == NULL) {
 	debug(27, 1, "send_announce: Unknown host '%s'\n", host);
 	return;
