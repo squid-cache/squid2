@@ -1756,6 +1756,7 @@ clientReadRequest(int fd, void *data)
     char *headers;
     size_t headers_sz;
     ErrorState *err = NULL;
+    fde *F = &fd_table[fd];
 
     len = conn->in.size - conn->in.offset - 1;
     debug(12, 4) ("clientReadRequest: FD %d: reading request...\n", fd);
@@ -1770,6 +1771,7 @@ clientReadRequest(int fd, void *data)
 	}
 	/* It might be half-closed, we can't tell */
 	debug(12, 5) ("clientReadRequest: FD %d closed?\n", fd);
+	BIT_SET(F->flags, FD_SOCKET_EOF);
 	comm_set_stall(fd, 1);	/* check again in 1 seconds */
 	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	return;
