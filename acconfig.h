@@ -261,3 +261,8 @@
  * Use DISKD
  */
 #undef USE_DISKD
+
+/*
+ * message type for message queues
+ */
+#undef mtyp_t

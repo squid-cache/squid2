@@ -20,7 +20,7 @@ enum {
 };
 
 typedef struct _diomsg {
-    int mtype;
+    mtyp_t mtype;
     int id;
     void *callback_data;
     int size;
