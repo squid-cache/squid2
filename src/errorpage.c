@@ -44,9 +44,6 @@ typedef struct {
 
 error_data ErrorData[] =
 {
-    {"ERR_NONE",
-	"Non Error",
-	"You should never see this."},
     {"ERR_READ_TIMEOUT",
 	"Read Timeout",
 	"The remote site or network may be down.  Please try again."},
