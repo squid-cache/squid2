@@ -530,6 +530,7 @@ storeGetNextFile(RebuildState * rb, int *sfileno, int *size)
 {
     int fd = -1;
     int used = 0;
+    int dirs_opened = 0;
     debug(20, 3) ("storeGetNextFile: flag=%d, %d: /%02X/%02X\n",
 	rb->flags.init,
 	rb->sd->index,
@@ -553,7 +554,10 @@ storeGetNextFile(RebuildState * rb, int *sfileno, int *size)
 		rb->curlvl1, rb->curlvl2);
 	    if (rb->flags.init && rb->td != NULL)
 		closedir(rb->td);
+	    if (dirs_opened)
+		return -1;
 	    rb->td = opendir(rb->fullpath);
+	    dirs_opened++;
 	    if (rb->td == NULL) {
 		debug(50, 1) ("storeGetNextFile: opendir: %s: %s\n",
 		    rb->fullpath, xstrerror());
