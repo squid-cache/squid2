@@ -469,8 +469,9 @@ storePurgeMem(StoreEntry * e)
     destroy_MemObject(e->mem_obj);
     e->mem_obj = NULL;
     if (e->swap_status != SWAPOUT_DONE) {
-	debug(0,0)("storePurgeMem: swap_status = %s, releasing\n",
-		swapStatusStr[e->swap_status]);
+	debug(0, 0) ("storePurgeMem: swap_status = %s, releasing\n",
+	    swapStatusStr[e->swap_status]);
+	debug(0,0)("--> %s\n", e->url);
 	storeRelease(e);
     }
 }
