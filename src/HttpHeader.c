@@ -980,10 +980,7 @@ httpHeaderEntryParseByTypeInit(HttpHeaderEntry * e, int id, const HttpHeaderExtF
     httpHeaderFieldInit(&field);
     switch (type) {
     case ftInt:
-	field.v_int = atoi(f->value);
-	if (!field.v_int && !isdigit(*f->value)) {
-	    debug(55, 2) ("cannot parse an int header field: id: %d, field: '%s: %s'\n",
-		id, f->name, f->value);
+	if (!httpHeaderParseInt(f->value, &field.v_int)) {
 	    Headers[id].stat.errCount++;
 	    return 0;
 	}

@@ -91,6 +91,7 @@ OBJS	 	= \
 		http-anon.o \
 		HttpStatusLine.o \
 		HttpHdrCc.o \
+		HttpHdrRange.o \
 		HttpHeader.o \
 		HttpHeaderTools.o \
 		HttpBody.o \
