@@ -31,8 +31,8 @@
 #ifndef CLIENT_SIDE_H
 #define CLIENT_SIDE_H
 
-extern void clientAccessCheck(icpStateData *, void (*)_PARAMS((icpStateData *, int)));
-extern void clientAccessCheckDone _PARAMS((icpStateData *, int answer));
+extern void clientAccessCheck _PARAMS((icpStateData *, PF));
+extern void clientAccessCheckDone _PARAMS((int, void *));
 extern void icpProcessExpired _PARAMS((int fd, void *));
 extern int modifiedSince _PARAMS((StoreEntry *, request_t *));
 extern char *clientConstructTraceEcho _PARAMS((icpStateData *));

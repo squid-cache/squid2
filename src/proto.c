@@ -107,7 +107,7 @@
 
 #include "squid.h"
 
-static int protoNotImplemented _PARAMS((int, const char *, StoreEntry *));
+static int protoNotImplemented _PARAMS((StoreEntry *));
 
 char *IcpOpcodeStr[] =
 {
@@ -209,7 +209,6 @@ protoCancelTimeout(int fd, StoreEntry * entry)
 int
 protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 {
-    char *url = entry->url;
     char *request_hdr = entry->mem_obj->mime_hdr;
     int request_hdr_sz = entry->mem_obj->mime_hdr_sz;
     debug(17, 5, "protoStart: FD %d: Fetching '%s %s' from %s\n",
@@ -224,40 +223,30 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     netdbPingSite(request->host);
     if (e) {
 	e->stats.fetches++;
-	return proxyhttpStart(url, request, entry, e);
+	return proxyhttpStart(request, entry, e);
     } else if (request->protocol == PROTO_HTTP) {
-	return httpStart(url, request, request_hdr, request_hdr_sz, entry);
+	return httpStart(request, request_hdr, request_hdr_sz, entry);
     } else if (request->protocol == PROTO_GOPHER) {
-	return gopherStart(fd, url, entry);
+	return gopherStart(entry);
     } else if (request->protocol == PROTO_FTP) {
-	return ftpStart(fd, url, request, entry);
+	return ftpStart(request, entry);
     } else if (request->protocol == PROTO_WAIS) {
-	return waisStart(fd, url, request->method, request_hdr, entry);
+	return waisStart(request->method, request_hdr, entry);
     } else if (request->protocol == PROTO_CACHEOBJ) {
-	return objcacheStart(fd, url, entry);
+	return objcacheStart(fd, entry);
     } else if (request->method == METHOD_CONNECT) {
 	fatal_dump("protoStart() should not be handling CONNECT");
-	return 0;
     } else {
-	return protoNotImplemented(fd, url, entry);
+	return protoNotImplemented(entry);
     }
-    /* NOTREACHED */
+    return 0;
 }
 
 
 static int
-protoNotImplemented(int fd, const char *url, StoreEntry * entry)
+protoNotImplemented(StoreEntry * entry)
 {
-    LOCAL_ARRAY(char, buf, 256);
-
-    debug(17, 1, "protoNotImplemented: Cannot retrieve '%s'\n", url);
-
-    buf[0] = '\0';
-    if (httpd_accel_mode)
-	strcpy(buf, "Squid is running in HTTPD accelerator mode, so it does not allow the normal URL syntax.");
-    else
-	sprintf(buf, "Your URL may be incorrect: '%s'\n", url);
-
+    debug(17, 1, "protoNotImplemented: Cannot retrieve '%s'\n", entry->url);
     squid_error_entry(entry, ERR_NOT_IMPLEMENTED, NULL);
     return 0;
 }

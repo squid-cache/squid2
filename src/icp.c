@@ -304,11 +304,6 @@ icpStateFree(int fd, void *data)
 	icpState->old_entry = NULL;
     }
     requestUnlink(icpState->request);
-    if (icpState->aclChecklist) {
-	debug(12, 0, "icpStateFree: still have aclChecklist!\n");
-	requestUnlink(icpState->aclChecklist->request);
-	safe_free(icpState->aclChecklist);
-    }
     safe_free(icpState);
     return;
 }
@@ -384,7 +379,7 @@ icpCachable(icpStateData * icpState)
 	if (aclMatchRegex(Config.cache_stop_relist, request))
 	    return 0;
     if (req->protocol == PROTO_HTTP)
-	return httpCachable(request, method);
+	return httpCachable(method);
     /* FTP is always cachable */
     if (req->protocol == PROTO_GOPHER)
 	return gopherCachable(request);
@@ -425,7 +420,7 @@ icpHierarchical(icpStateData * icpState)
     if (BIT_TEST(request->flags, REQ_LOOPDETECT))
 	return 0;
     if (request->protocol == PROTO_HTTP)
-	return httpCachable(url, method);
+	return httpCachable(method);
     if (request->protocol == PROTO_GOPHER)
 	return gopherCachable(url);
     if (request->protocol == PROTO_WAIS)
@@ -919,9 +914,8 @@ icpProcessMISS(int fd, icpStateData * icpState)
     /* Check if this host is allowed to fetch MISSES from us */
     memset((char *) &ch, '\0', sizeof(aclCheck_t));
     ch.src_addr = icpState->peer.sin_addr;
-    ch.request = requestLink(icpState->request);
-    answer = aclCheck(Config.accessList.MISS, &ch);
-    requestUnlink(ch.request);
+    ch.request = icpState->request;
+    answer = aclCheckFast(Config.accessList.MISS, &ch);
     if (answer == 0) {
 	icpState->http_code = 400;
 	buf = access_denied_msg(icpState->http_code,
@@ -1209,7 +1203,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	checklist.src_addr = from.sin_addr;
 	checklist.request = icp_request;
-	allow = aclCheck(Config.accessList.ICP, &checklist);
+	allow = aclCheckFast(Config.accessList.ICP, &checklist);
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
@@ -1357,7 +1351,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	checklist.src_addr = from.sin_addr;
 	checklist.request = icp_request;
-	allow = aclCheck(Config.accessList.ICP, &checklist);
+	allow = aclCheckFast(Config.accessList.ICP, &checklist);
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);

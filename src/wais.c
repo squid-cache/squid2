@@ -330,10 +330,11 @@ waisSendRequest(int fd, WaisStateData * waisState)
 }
 
 int
-waisStart(int unusedfd, const char *url, method_t method, char *mime_hdr, StoreEntry * entry)
+waisStart(method_t method, char *mime_hdr, StoreEntry * entry)
 {
     WaisStateData *waisState = NULL;
     int fd;
+    char *url = entry->url;
     debug(24, 3, "waisStart: \"%s %s\"\n", RequestMethodStr[method], url);
     debug(24, 4, "            header: %s\n", mime_hdr);
     if (!Config.Wais.relayHost) {

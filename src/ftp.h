@@ -105,7 +105,7 @@
 #ifndef FTP_H
 #define FTP_H
 
-extern int ftpStart _PARAMS((int unusedfd, const char *url, request_t * req, StoreEntry * entry));
+extern int ftpStart _PARAMS((request_t * req, StoreEntry * entry));
 extern int ftpInitialize _PARAMS((void));
 extern void ftpServerClose _PARAMS((void));
 

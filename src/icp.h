@@ -187,8 +187,7 @@ typedef struct iwd {
     struct timeval start;
     int accel;
     int size;			/* hack for CONNECT which doesnt use sentry */
-    aclCheck_t *aclChecklist;
-    void (*aclHandler) (struct iwd *, int answer);
+    PF aclHandler;
     float http_ver;
     struct {
 	int fd;
