@@ -111,7 +111,12 @@
 #include <ctype.h>
 #include <sys/time.h>
 #include <strings.h>
+#include <assert.h>
 #include "hash.h"
+#undef free
+extern void my_free(char *, int , void *);
+
+#define free(a) my_free(__FILE__, __LINE__, a)
 
 extern void print_stats();
 /*
@@ -367,8 +372,9 @@ hash_unlink(hash_table * hid, hash_link * hl, int FreeLink)
 	    if (walker == hid->current_ptr)
 		hid->current_ptr = walker->next;
 	    if (FreeLink) {
-		if (walker)
+		if (walker) {
 		free(walker);
+		}
 	    }
 	    return 0;
 	}
@@ -471,7 +477,4 @@ main(void)
     exit(0);
 }
 #endif
-void assert(int a) {
-
-}
 
