@@ -383,7 +383,6 @@ neighbors_open(int fd)
 	echo_hdr.reqnum = 0;
 	echo_hdr.flags = 0;
 	echo_hdr.pad = 0;
-	/* memset(echo_hdr.auth, '\0', sizeof(u_num32) * ICP_AUTH_SIZE); */
 	echo_hdr.shostid = name.sin_addr.s_addr;
 	sep = getservbyname("echo", "udp");
 	echo_port = sep ? ntohs((u_short) sep->s_port) : 7;
