@@ -207,6 +207,9 @@ void parse_object(char *string)
     /* Parse out the url */
     url = strtok(tmp_line, w_space);
 
+    if (!url)
+	return;
+
 #if !ALL_OBJECTS
     if (!strncmp(url, "cache_object", 12))
 	return;
