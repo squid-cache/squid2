@@ -352,6 +352,9 @@ serverConnectionsClose(void)
      */
     clientHttpConnectionsClose();
     icpConnectionShutdown();
+#if USE_HTCP
+    htcpSocketShutdown();
+#endif
     icmpClose();
 #ifdef SQUID_SNMP
     snmpConnectionShutdown();
@@ -366,6 +369,9 @@ mainReconfigure(void)
     /* Already called serverConnectionsClose and ipcacheShutdownServers() */
     serverConnectionsClose();
     icpConnectionClose();
+#if USE_HTCP
+    htcpSocketClose();
+#endif
 #ifdef SQUID_SNMP
     snmpConnectionClose();
 #endif
@@ -629,6 +635,9 @@ main(int argc, char **argv)
 	case COMM_SHUTDOWN:
 	    /* delayed close so we can transmit while shutdown pending */
 	    icpConnectionClose();
+#if USE_HTCP
+	    htcpSocketClose();
+#endif
 #ifdef SQUID_SNMP
 	    snmpConnectionClose();
 #endif
