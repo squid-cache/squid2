@@ -211,7 +211,7 @@ wccpHandleUdp(int sock, void *not_used)
 {
     struct sockaddr_in from;
     socklen_t from_len;
-    int len;
+    size_t len;
 
     debug(80, 6) ("wccpHandleUdp: Called.\n");
 
@@ -223,7 +223,7 @@ wccpHandleUdp(int sock, void *not_used)
     Counter.syscalls.sock.recvfroms++;
 
     len = recvfrom(sock,
-	&wccp_i_see_you,
+	(void *) &wccp_i_see_you,
 	WCCP_RESPONSE_SIZE,
 	0,
 	(struct sockaddr *) &from,
@@ -265,7 +265,7 @@ wccpHereIam(void *voidnotused)
 
     wccp_here_i_am.id = wccp_i_see_you.id;
     send(theOutWccpConnection,
-	&wccp_here_i_am,
+	(void *) &wccp_here_i_am,
 	sizeof(wccp_here_i_am),
 	0);
 
