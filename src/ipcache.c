@@ -1054,7 +1054,6 @@ ipcacheCycleAddr(const char *name)
 	return;
     if (i->status != IP_CACHED)
 	return;
-    i->addrs.cur++;
     ia = &i->addrs;
     fullcircle = ia->cur;
     while (ia->bad_mask[ia->cur]) {
