@@ -346,7 +346,6 @@ mainReconfigure(void)
     authenticateShutdown();
     storeDirCloseSwapLogs();
     errorClean();
-    mimeFreeMemory();
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
     ipcache_restart();		/* clear stuck entries */
