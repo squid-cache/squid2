@@ -110,7 +110,6 @@ int main(argc, argv)
 	dup2(fd, 0);
 	close(fd);
     }
-
     while (1) {
 	memset(request, '\0', 256);
 

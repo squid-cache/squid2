@@ -75,10 +75,10 @@ static struct {
 	int rate;
     } Announce;
     struct {
-        struct in_addr tcp_incoming;
-        struct in_addr tcp_outgoing;
-        struct in_addr udp_incoming;
-        struct in_addr udp_outgoing;
+	struct in_addr tcp_incoming;
+	struct in_addr tcp_outgoing;
+	struct in_addr udp_incoming;
+	struct in_addr udp_outgoing;
     } Addrs;
     wordlist *cache_dirs;
     wordlist *http_stoplist;
@@ -900,7 +900,7 @@ static void parseAppendDomainLine()
 }
 
 static void parseAddressLine(addr)
-    struct in_addr *addr;
+     struct in_addr *addr;
 {
     char *token;
     struct hostent *hp = NULL;
@@ -909,7 +909,7 @@ static void parseAddressLine(addr)
 	self_destruct();
     debug(3, 1, "parseAddressLine: %s\n", token);
     if (inet_addr(token) != SQUID_INADDR_NONE)
-        (*addr).s_addr = inet_addr(token);
+	(*addr).s_addr = inet_addr(token);
     else if ((hp = gethostbyname(token)))
 	memcpy(addr, hp->h_addr, hp->h_length);
     else
@@ -1674,10 +1674,22 @@ wordlist *getDnsTestnameList()
 {
     return Config.dns_testname_list;
 }
-struct in_addr getTcpIncomingAddr() { return Config.Addrs.tcp_incoming; }
-struct in_addr getTcpOutgoingAddr() { return Config.Addrs.tcp_outgoing; }
-struct in_addr getUdpIncomingAddr() { return Config.Addrs.udp_incoming; }
-struct in_addr getUdpOutgoingAddr() { return Config.Addrs.udp_outgoing; }
+struct in_addr getTcpIncomingAddr()
+{
+    return Config.Addrs.tcp_incoming;
+}
+struct in_addr getTcpOutgoingAddr()
+{
+    return Config.Addrs.tcp_outgoing;
+}
+struct in_addr getUdpIncomingAddr()
+{
+    return Config.Addrs.udp_incoming;
+}
+struct in_addr getUdpOutgoingAddr()
+{
+    return Config.Addrs.udp_outgoing;
+}
 
 u_short setHttpPortNum(port)
      u_short port;
