@@ -1106,7 +1106,7 @@ commSetSelect(int fd, unsigned int type, PF handler, void *client_data, time_t t
 	return;
     }
     if (!fd_table[fd].openned)
-	fatal_dump("commSetSelect on closed FD");
+	debug_trap("commSetSelect on closed FD");
     if (type & COMM_SELECT_TIMEOUT) {
 	fd_table[fd].timeout_time = (getCurrentTime() + timeout);
 	fd_table[fd].timeout_delta = timeout;
