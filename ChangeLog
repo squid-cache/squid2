@@ -1,4 +1,10 @@
-Changes to squid-1.1.7 (February @@@, 1997):
+Changes to squid-1.1.8 (February 25, 1997):
+
+	- Prevent ipcache_gethostbyname from changing an IP_DISPATCHED
+	  entry to IP_CACHED.
+	- Made send_announce non-blocking.
+
+Changes to squid-1.1.7 (February 25, 1997):
 
 	- Fixed urlParse to leave trailing slashes on FTP URLs.  Although
 	  stripping the slashes offers a slight hit rate increase, it
