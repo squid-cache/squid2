@@ -42,6 +42,9 @@
 #include	<errno.h>
 #include	<dirent.h>
 #include	<signal.h>
+#if HAVE_SCHED_H
+#include	<sched.h>
+#endif
 
 #ifndef NUMTHREADS
 #define	NUMTHREADS		16
