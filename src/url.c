@@ -443,3 +443,34 @@ urlCheckRequest(const request_t * r)
     }
     return rc;
 }
+
+/*
+ * Quick-n-dirty host extraction from a URL.  Steps:
+ *	Look for a colon
+ *	Skip any '/' after the colon
+ *	Copy the next SQUID_MAXHOSTNAMELEN bytes to host[]
+ *	Look for an ending '/' or ':' and terminate
+ *	Look for login info preceeded by '@'
+ */
+char *
+urlHostname(const char *url)
+{
+    LOCAL_ARRAY(char, host, SQUIDHOSTNAMELEN);
+    char *t;
+    host[0] = '\0';
+    if (NULL == (t = strchr(url, ':')))
+	return NULL;
+    t++;
+    while (*t != '\0' && *t == '/')
+	t++;
+    xstrncpy(host, t, SQUIDHOSTNAMELEN);
+    if ((t = strchr(host, '/')))
+	*t = '\0';
+    if ((t = strchr(host, ':')))
+	*t = '\0';
+    if ((t = strrchr(host, '@'))) {
+	t++;
+        xmemmove(host, t, strlen(t)+1);
+    }
+    return host;
+}
