@@ -13,7 +13,7 @@ int do_reuse = 1;
 int opt_unlink_on_reload = 0;
 int opt_reload_hit_only = 0;	/* only UDP_HIT during store relaod */
 int catch_signals = 1;
-int do_dns_test = 1;
+int opt_dns_tests = 1;
 int vhost_mode = 0;
 int unbuffered_logs = 1;	/* debug and hierarhcy unbuffered by default */
 int shutdown_pending = 0;	/* set by SIGTERM handler (shut_down()) */
@@ -67,7 +67,7 @@ static void mainParseOptions(argc, argv)
 	    catch_signals = 0;
 	    break;
 	case 'D':
-	    do_dns_test = 0;
+	    opt_dns_tests = 0;
 	    break;
 	case 'R':
 	    do_reuse = 0;
