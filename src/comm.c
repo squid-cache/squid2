@@ -839,7 +839,7 @@ comm_select(time_t sec)
 	if (num == 0)
 	    continue;
 	/* scan each socket but the accept socket. Poll this 
-	 * more frequently to minimiize losses due to the 5 connect 
+	 * more frequently to minimize losses due to the 5 connect 
 	 * limit in SunOS */
 	for (i = 0; i < nfds; i++) {
 	    fd = pfds[i].fd;
@@ -1003,7 +1003,7 @@ comm_select(time_t sec)
 	    continue;
 
 	/* scan each socket but the accept socket. Poll this 
-	 * more frequently to minimiize losses due to the 5 connect 
+	 * more frequently to minimize losses due to the 5 connect 
 	 * limit in SunOS */
 
 	for (fd = 0; fd < maxfd; fd++) {
