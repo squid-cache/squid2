@@ -190,7 +190,7 @@ void
 icmpOpen(void)
 {
 #if USE_ICMP
-    char *args[2];
+    const char *args[2];
     int x;
     int rfd;
     int wfd;
