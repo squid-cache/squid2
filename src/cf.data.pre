@@ -2403,6 +2403,10 @@ DOC_START
 	Appends local domain name to hostnames without any dots in
 	them.  append_domain must begin with a period.
 
+	Be warned that there today is Internet names with no dots in
+	them using only top-domain names, so setting this may
+	cause some Internet sites to become unavailable.
+
 Example:
  append_domain .yourdomain.com
 DOC_END
