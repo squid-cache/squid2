@@ -429,6 +429,7 @@ int getFromCache(fd, entry, e, request)
     if (entry->mem_obj->request) {
 	if (--entry->mem_obj->request->link_count == 0)
 	    safe_free(entry->mem_obj->request);
+        entry->mem_obj->request = NULL;
     }
     /*
      * If this is called from our neighbor detection, then we have to
