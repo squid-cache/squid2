@@ -491,7 +491,7 @@ ipcache_parsebuffer(const char *inbuf, dnsserver_t * dnsData)
 	} else if (!strcmp(token, "$alive")) {
 	    dnsData->answer = squid_curtime;
 	} else if (!strcmp(token, "$fail")) {
-	    if ((token = strtok(NULL, w_space)) == NULL)
+	    if ((token = strtok(NULL, "\n")) == NULL)
 		fatal_dump("Invalid $fail");
 	    i.expires = squid_curtime + Config.negativeDnsTtl;
 	    i.status = IP_NEGATIVE_CACHED;
