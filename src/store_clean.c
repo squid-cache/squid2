@@ -77,7 +77,7 @@ void storeDirClean()
     dp = opendir(p1);
     if (dp == NULL) {
 	debug(36, 0, "storeDirClean: %s: %s\n", p1, xstrerror());
-	fatal_dump(NULL);
+	return;
     }
     while ((de = readdir(dp)) && k < 20) {
 	if (sscanf(de->d_name, "%d", &fileno) != 1)
