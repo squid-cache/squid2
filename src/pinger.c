@@ -72,8 +72,13 @@
 #define ip_dst daddr
 #endif
 
+#if ALLOW_SOURCE_PING
 #define MAX_PKT_SZ 8192
 #define MAX_PAYLOAD (MAX_PKT_SZ - sizeof(struct icmphdr) - sizeof (char) - sizeof(struct timeval) - 1)
+#else
+#define MAX_PAYLOAD (sizeof(struct icmphdr) + sizeof (char) + sizeof(struct timeval) + 1)
+#define MAX_PKT_SZ MAX_PAYLOAD
+#endif
 
 typedef struct {
     struct timeval tv;
@@ -166,6 +171,7 @@ pingerSendEcho(struct in_addr to, int opcode, char *payload, int len)
     S.sin_family = AF_INET;
     S.sin_addr = to;
     S.sin_port = 0;
+    assert(icmp_pktsize <= MAX_PKT_SZ);
     sendto(icmp_sock,
 	pkt,
 	icmp_pktsize,
