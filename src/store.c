@@ -158,26 +158,30 @@ static char *storeLogTags[] =
     "RELEASE"
 };
 
-char *memStatusStr[] = {
+char *memStatusStr[] =
+{
     "NOT_IN_MEMORY",
     "SWAPPING_IN",
     "IN_MEMORY"
 };
 
-char *pingStatusStr[] = {
+char *pingStatusStr[] =
+{
     "PING_WAITING",
     "PING_TIMEOUT",
     "PING_DONE",
     "PING_NONE"
 };
 
-char *storeStatusStr[] = {
+char *storeStatusStr[] =
+{
     "STORE_OK",
     "STORE_PENDING",
     "STORE_ABORTED"
 };
 
-char *swapStatusStr[] = {
+char *swapStatusStr[] =
+{
     "NO_SWAP",
     "SWAPPING_OUT",
     "SWAP_OK"
@@ -883,8 +887,8 @@ int storeRegister(e, fd, handler, data)
 
 	/* allocate, and copy old pending list over to the new one */
 	tmp = xcalloc(mem->pending_list_size, sizeof(struct pentry *));
-        for (j = 0; j < old_size; j++)
-            tmp[j] = mem->pending[j];
+	for (j = 0; j < old_size; j++)
+	    tmp[j] = mem->pending[j];
 
 	/* free the old list and set the new one */
 	safe_free(mem->pending);

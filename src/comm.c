@@ -330,7 +330,7 @@ int comm_connect(sock, dest_host, dest_port)
     xmemcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
     to_addr.sin_port = htons(dest_port);
     if (Config.Log.log_fqdn)
-        fqdncache_gethostbyaddr(to_addr.sin_addr, FQDN_LOOKUP_IF_MISS);
+	fqdncache_gethostbyaddr(to_addr.sin_addr, FQDN_LOOKUP_IF_MISS);
     return comm_connect_addr(sock, &to_addr);
 }
 

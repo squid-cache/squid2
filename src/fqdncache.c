@@ -849,7 +849,6 @@ static void fqdncache_dnsDispatch(dns, f)
 /* initialize the fqdncache */
 void fqdncache_init()
 {
-
     debug(35, 3, "Initializing FQDN Cache...\n");
 
     memset(&FqdncacheStats, '\0', sizeof(FqdncacheStats));
@@ -904,6 +903,8 @@ char *fqdncache_gethostbyaddr(addr, flags)
     struct hostent *hp = NULL;
     unsigned int ip;
 
+    if (fqdn_table == 0)
+	return NULL;
     if (!name)
 	fatal_dump("fqdncache_gethostbyaddr: NULL name");
     FqdncacheStats.requests++;

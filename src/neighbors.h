@@ -196,9 +196,9 @@ struct neighbor_cf {
 };
 
 struct _hierarchyLogData {
-	hier_code code;
-	char *host;
-	int timeout;
+    hier_code code;
+    char *host;
+    int timeout;
 };
 
 extern edge *getFirstEdge _PARAMS((void));

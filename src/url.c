@@ -278,7 +278,7 @@ void requestUnlink(request)
     if (request == NULL)
 	return;
     request->link_count--;
-    if (request->link_count) 
+    if (request->link_count)
 	return;
     safe_free(request->hierarchy.host);
     put_free_request_t(request);
