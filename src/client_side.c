@@ -1165,7 +1165,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	getMyHostname(), Config.Port.http->i);
 #endif
     if (httpReplyBodySize(request->method, http->entry->mem_obj->reply) < 0) {
-	debug(0, 0) ("persistent connection lossage\n");
+	debug(33, 3) ("clientBuildReplyHeader: can't keep-alive, unknown body size\n");
 	request->flags.proxy_keepalive = 0;
     }
     /* Signal keep-alive if needed */
