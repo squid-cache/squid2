@@ -32,3 +32,7 @@ EXTRA_DIST = \
 	README \
 	SPONSORS \
 	bootstrap.sh
+
+install-pinger:
+	chown root $(libexecdir)/pinger$(EXEEXT)
+	chmod 4700 $(libexecdir)/pinger$(EXEEXT)
