@@ -260,7 +260,6 @@ void
 accessLogLog(AccessLogEntry * al)
 {
     MemBuf mb;
-    char *xbuf = NULL;
     LOCAL_ARRAY(char, ident_buf, USER_IDENT_SZ);
 
     if (LogfileStatus != LOG_ENABLE)
@@ -298,7 +297,6 @@ accessLogLog(AccessLogEntry * al)
 	memBufPrintf(&mb, "\n");
     }
     file_write_mbuf(LogfileFD, -1, mb, NULL, NULL);
-    safe_free(xbuf);
 #if MULTICAST_MISS_STREAM
     if (al->cache.code != LOG_TCP_MISS)
 	(void) 0;
