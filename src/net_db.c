@@ -55,6 +55,7 @@ static char *netdbPeerName _PARAMS((const char *name));
  * linked list */
 static wordlist *peer_names = NULL;
 static wordlist **peer_names_tail = &peer_names;
+static const char *const w_space = " \t\n\r";
 
 static void
 netdbHashInsert(netdbEntry * n, struct in_addr addr)
@@ -339,6 +340,55 @@ netdbSaveState(void *foo)
     eventAdd("netdbSaveState", netdbSaveState, NULL, 3617);
 }
 
+static void
+netdbReloadState(void)
+{
+    LOCAL_ARRAY(char, path, SQUID_MAXPATHLEN);
+    char *buf = get_free_4k_page();
+    char *t;
+    FILE *fp;
+    netdbEntry *n;
+    netdbEntry N;
+    struct in_addr addr;
+    int count = 0;
+    sprintf(path, "%s/netdb_state", swappath(0));
+    fp = fopen(path, "r");
+    if (fp == NULL)
+	return;
+    while (fgets(buf, 4095, fp)) {
+	if ((t = strtok(buf, w_space)) == NULL)
+	    continue;
+	if ((addr.s_addr = inet_addr(t)) == inaddr_none)
+	    continue;
+	if ((t = strtok(NULL, w_space)) == NULL)
+	    continue;
+	N.pings_sent = atoi(t);
+	if ((t = strtok(NULL, w_space)) == NULL)
+	    continue;
+	N.pings_recv = atoi(t);
+	if ((t = strtok(NULL, w_space)) == NULL)
+	    continue;
+	N.hops = atof(t);
+	if ((t = strtok(NULL, w_space)) == NULL)
+	    continue;
+	N.rtt = atof(t);
+	if ((t = strtok(NULL, w_space)) == NULL)
+	    continue;
+	N.next_ping_time = (time_t) atoi(t);
+	if ((t = strtok(NULL, w_space)) == NULL)
+	    continue;
+	N.last_use_time = (time_t) atoi(t);
+	n = xcalloc(1, sizeof(netdbEntry));
+	memcpy(n, &N, sizeof(netdbEntry));
+	netdbHashInsert(n, addr);
+	while ((t = strtok(NULL, w_space)) != NULL)
+	    netdbHashLink(n, t);
+	count++;
+    }
+    fclose(fp);
+    debug(37, 0, "%d NETDB entries reloaded\n", count);
+}
+
 static char *
 netdbPeerName(const char *name)
 {
@@ -369,6 +419,7 @@ netdbInit(void)
     addr_table = hash_create((int (*)_PARAMS((const char *, const char *))) strcmp, 229, hash_string);
     host_table = hash_create((int (*)_PARAMS((const char *, const char *))) strcmp, 467, hash_string);
     eventAdd("netdbSaveState", netdbSaveState, NULL, 3617);
+    netdbReloadState();
 #endif
 }
 
