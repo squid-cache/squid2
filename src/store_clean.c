@@ -94,7 +94,7 @@ void storeDirClean()
 	k = 10;
     for (n = 0; n < k; n++) {
 	debug(36, 3, "storeDirClean: Cleaning file %d\n", files[n]);
-	sprintf(p2, "%s/%d", p1, files[n]);
+	sprintf(p2, "%s/%08X", p1, files[n]);
 	safeunlink(p2, 0);
     }
     debug(36, 1, "Cleaned %d unused files from %s\n", k, p1);
