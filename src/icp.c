@@ -940,7 +940,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     answer = aclCheck(MISSAccessList, &ch);
     requestUnlink(ch.request);
     if (answer == 0) {
-	icpState->http_code = 400;
+	icpState->http_code = 403;
 	buf = access_denied_msg(icpState->http_code,
 	    icpState->method,
 	    icpState->url,
