@@ -803,6 +803,12 @@ DOC_START
 	starts blocking.  If this many messages are in the queues,
 	Squid blocks until it recevies some replies. Default is 72
 
+	When Q1 < Q2 (the default), the cache directory is optimized
+	for lower response time at the expense of a decrease in hit
+	ratio.  If Q1 > Q2, the cache directory is optimized for
+	higher hit ratio at the expense of an increase in response
+	time.
+
 	The coss store type:
 
 	block-size=n defines the "block size" for COSS cache_dir's.
