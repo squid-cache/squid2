@@ -1051,9 +1051,6 @@ AC_SUBST(DLLIB)
 dnl Check for pthreads
 dnl We use pthreads when doing ASYNC I/O
 AC_CHECK_LIB(pthread, main, [PTHREADLIB="-lpthread"])
-dnl Solaris needs -lrt since we added call to sched_yield()
-dnl Chris.Tilbury@warwick.ac.uk
-AC_CHECK_LIB(rt, main, [PTHREADLIB="$PTHREADLIB -lrt"])
 AC_SUBST(PTHREADLIB)
 
 dnl -lintl is needed on SCO version 3.2v4.2 for strftime()
