@@ -590,6 +590,7 @@ struct _SquidConfig {
 	int ie_refresh;
 	int vary_ignore_expire;
 	int pipeline_prefetch;
+	int request_entities;
     } onoff;
     acl *aclList;
     struct {
