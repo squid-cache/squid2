@@ -868,6 +868,12 @@ aio_sync(void)
     return aio_operations_pending();
 }
 
+int
+aio_get_queue_len(void)
+{
+    return request_queue_len;
+}
+
 static void
 aio_debug(aio_request_t * requestp)
 {

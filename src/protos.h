@@ -79,6 +79,7 @@ extern aio_result_t *aio_poll_done(void);
 extern int aio_operations_pending(void);
 extern int aio_overloaded(void);
 extern int aio_sync(void);
+extern int aio_get_queue_len(void);
 
 extern void aioInit(void);
 extern void aioCancel(int);
