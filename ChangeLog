@@ -1,4 +1,4 @@
-Changes to squid-2.5.STABLE2 ():
+Changes to squid-2.5.STABLE2 (Mars 17, 2003):
 
 	- Contrib files added back to the distribution
 	- Several compiler warnings fixed when using --disable-ident or
@@ -80,6 +80,7 @@ Changes to squid-2.5.STABLE2 ():
 	- Incorrect behaviour of Digest authentication partly corrected - it
 	  will not handle sessions, but will always enforce password
 	  correctness.. (patch submitted by Sean Burford).
+	- Issue with persistent connections and PUT/POST request corrected
 	  
 Changes to squid-2.5.STABLE1 (September 25, 2002):
 
