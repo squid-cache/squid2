@@ -602,7 +602,6 @@ gopherReadReply(int fd, void *data)
 	return;
     }
     /* check if we want to defer reading */
-    clen = entry->mem_obj->inmem_hi;
     buf = memAllocate(MEM_4K_BUF);
     errno = 0;
     /* leave one space for \0 in gopherToHTML */

@@ -512,8 +512,8 @@ snmp_prfSysFn(variable_list * Var, snint * ErrP)
     case PERF_SYS_NUMR:
 	*(Answer->val.integer) = IOStats.Http.reads;
 	break;
-    case PERF_SYS_DEFR:
-	*(Answer->val.integer) = IOStats.Http.reads_deferred;
+    case PERF_SYS_DEFR:		/* XXX unused, remove me */
+	*(Answer->val.integer) = 0;
 	break;
     case PERF_SYS_MEMUSAGE:
 	*(Answer->val.integer) = (snint) memTotalAllocated() >> 10;
