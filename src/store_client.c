@@ -299,7 +299,7 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
 	     * schedule a disk read in the next block.
 	     */
 	} else {
-	    debug(20, 0) ("WARNING: Averted multiple fd operation (1)\n");
+	    debug(20, 1) ("WARNING: Averted multiple fd operation (1)\n");
 	    return;
 	}
     }
@@ -313,7 +313,7 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
     }
     assert(STORE_DISK_CLIENT == sc->type);
     if (sc->flags.disk_io_pending) {
-	debug(20, 0) ("WARNING: Averted multiple fd operation (2)\n");
+	debug(20, 1) ("WARNING: Averted multiple fd operation (2)\n");
 	return;
     }
     debug(20, 3) ("storeClientCopy3: reading from STORE\n");
