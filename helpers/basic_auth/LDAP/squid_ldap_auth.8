@@ -1,4 +1,4 @@
-.TH squid_ldap_auth 8 "25 September 2001" "Squid LDAP Auth"
+.TH squid_ldap_auth 8 "1 Mars 2003" "Squid LDAP Auth"
 .
 .SH NAME
 squid_ldap_auth - Squid LDAP authentication helper
@@ -68,6 +68,16 @@ This to limit the damage in case someone could get hold of a copy of your
 Squid configuration file.
 .
 .TP
+.BI "-D " "binddn " "-W " "secretfile "
+The DN and the name of a file containing the password
+to bind as while performing searches. 
+.IP
+Less insecure version of the former parameter pair with two advantages:
+The password does not occur in the process listing, 
+and the password is not being compromised if someone gets the squid 
+configuration file without getting the secretfile.
+.
+.TP
 .BI -P
 Use a persistent LDAP connection. Normally the LDAP connection
 is only open while validating a username to preserve resources
@@ -93,12 +103,32 @@ or only to
 the base object
 .
 .TP
+.BI -H " ldapuri"
+Specity the LDAP server to connect to by LDAP URI (requires OpenLDAP libraries)
+.
+.TP
 .BI -h " ldapserver"
 Specify the LDAP server to connect to
 .TP
 .BI -p " ldapport"
 Specify an alternate TCP port where the ldap server is listening if
 other than the default LDAP port 389.
+.
+.TP
+.BI -Z
+Use TLS encryption
+.
+.TP
+.BI -S certpath
+Enable LDAP over SSL (requires Netscape LDAP API libraries)
+.
+.TP
+.BI -c connect_timeout
+Specify timeout used when connecting to LDAP servers (requires
+Netscape LDAP API libraries)
+.TP
+.BI -t search_timeout
+Specify time limit on LDAP search operations
 .
 .SH EXAMPLES
 For directories using the RFC2307 layout with a single domain, all
