@@ -31,11 +31,6 @@
 
 #include "squid.h"
 
-/* Junk so we can link with debug.o */
-struct timeval current_time;
-time_t squid_curtime;
-SquidConfig Config;
-
 #if USE_ICMP
 
 #include <netinet/in_systm.h>
@@ -77,7 +72,6 @@ typedef struct {
     char payload[MAX_PAYLOAD];
 } icmpEchoData;
 
-int icmp_sock = -1;
 int icmp_ident = -1;
 int icmp_pkts_sent = 0;
 
@@ -329,7 +323,6 @@ main(int argc, char *argv[])
     const char *debug_args = "ALL,1";
     char *t;
     time_t last_check_time = 0;
-    appname = xstrdup("pinger");
 
     if ((t = getenv("SQUID_DEBUG")))
 	debug_args = xstrdup(t);
