@@ -1645,6 +1645,8 @@ clientProcessMiss(clientHttpRequest * http)
     ch.request = r;
     answer = aclCheckFast(Config.accessList.miss, &ch);
     if (answer == 0 || http->flags.internal) {
+	debug(33,1)("clientProcessMiss: Can't forward internal request '%s'\n",
+		r->urlpath);
 	http->al.http.code = HTTP_FORBIDDEN;
 	err = errorCon(ERR_FORWARDING_DENIED, HTTP_FORBIDDEN);
 	err->request = requestLink(r);
