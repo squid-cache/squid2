@@ -115,6 +115,7 @@ OBJS	 	= \
 		icp_v2.o \
 		icp_v3.o \
 		ident.o \
+		internal.o \
 		ipc.o \
 		ipcache.o \
 		main.o \

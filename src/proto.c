@@ -185,6 +185,9 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	case PROTO_WHOIS:
 	    whoisStart(request, entry);
 	    break;
+	case PROTO_INTERNAL:
+	    internalStart(request, entry);
+	    break;
 	default:
 	    if (request->method == METHOD_CONNECT) {
 		ErrorState *err;
@@ -229,12 +232,14 @@ protoDispatch(int fd, StoreEntry * entry, request_t * request)
     pctrl_t *pctrl;
     debug(17, 3) ("protoDispatch: '%s'\n", storeUrl(entry));
     entry->mem_obj->request = requestLink(request);
-    if (request->protocol == PROTO_CACHEOBJ) {
+    switch (request->protocol) {
+    case PROTO_CACHEOBJ:
+    case PROTO_WAIS:
+    case PROTO_INTERNAL:
 	protoStart(fd, entry, NULL, request);
 	return;
-    } else if (request->protocol == PROTO_WAIS) {
-	protoStart(fd, entry, NULL, request);
-	return;
+    default:
+	break;
     }
     pctrl = xcalloc(1, sizeof(pctrl_t));
     cbdataAdd(pctrl, MEM_NONE);
