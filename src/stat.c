@@ -1210,16 +1210,17 @@ log_hier_expt(struct timeval s, struct _hierarchyLogData *h)
     if (h == NULL)
 	return;
     fprintf(hierexplog, "%d.%03d %d %10d %2d %2d %2d %10d %s\n",
-	    (int) current_time.tv_sec,
-	    (int) current_time.tv_usec / 1000,
-	    h->hier_method,
-	    usec,
-	    h->n_sent,
-	    h->n_expect,
-	    h->n_recv,
-	    h->delay,
-	    hier_strings[h->code]);
+	(int) current_time.tv_sec,
+	(int) current_time.tv_usec / 1000,
+	h->hier_method,
+	usec,
+	h->n_sent,
+	h->n_expect,
+	h->n_recv,
+	h->delay,
+	hier_strings[h->code]);
 }
+
 #endif
 
 static void

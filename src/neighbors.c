@@ -382,7 +382,7 @@ getRandomParent(request_t * request)
     static peer *f = NULL;
     peer *next = f;
     int n = squid_random() % Peers.n;
-    int x = n<<1;
+    int x = n << 1;
     while (n && x--) {
 	e = next ? next : Peers.peers_head;
 	next = e->next;
@@ -544,10 +544,10 @@ neighborsUdpPing(protodispatch_data * proto)
 			flags |= ICP_FLAG_HIT_OBJ;
 	    if (Config.Options.query_icmp)
 #ifdef HIER_EXPERIMENT
-	      if (request->hierarchy.hier_method == HIER_METH_ICP2)
+		if (request->hierarchy.hier_method == HIER_METH_ICP2)
 #endif
-		if (e->icp_version == ICP_VERSION_2)
-		    flags |= ICP_FLAG_SRC_RTT;
+		    if (e->icp_version == ICP_VERSION_2)
+			flags |= ICP_FLAG_SRC_RTT;
 	    query = icpCreateMessage(ICP_OP_QUERY, flags, url, reqnum, 0);
 	    icpUdpSend(theOutIcpConnection,
 		&e->in_addr,

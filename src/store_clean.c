@@ -104,7 +104,7 @@ storeDirClean(void *unused)
 	    continue;
 	if (file_map_bit_test(swapfileno))
 	    if (belongsHere(swapfileno, swap_index))
-	        continue;
+		continue;
 	files[k++] = swapfileno;
     }
     closedir(dp);
