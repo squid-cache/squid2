@@ -1,4 +1,4 @@
-Changes to squid-1.0.7 ():
+Changes to squid-1.0.7 (August 14, 1996):
 
 	- Added "store_clean" routines to periodically remove orphaned
 	  swap files.
