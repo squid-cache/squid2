@@ -548,7 +548,6 @@ static void statFiledescriptors(sentry)
 	"Remote Address",
 	"Description");
     storeAppendPrintf(sentry, "{---- ------ ---- ---- --------------------- ------------------------------}\n");
-    storeAppendPrintf(sentry, "{}\n");
     for (i = 0; i < FD_SETSIZE; i++) {
 	if (!fdstat_isopen(i))
 	    continue;
