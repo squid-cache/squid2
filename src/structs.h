@@ -378,6 +378,7 @@ struct _SquidConfig {
 	size_t avgObjectSize;
 	size_t maxObjectSize;
 	size_t minObjectSize;
+	size_t maxInMemObjSize;
     } Store;
     struct {
 	int high;
