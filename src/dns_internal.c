@@ -256,7 +256,7 @@ idnsGrokReply(const char *buf, size_t sz)
     }
     dlinkDelete(&q->lru, &lru_list);
     if (n < 0)
-	debug(78, 1) ("idnsGrokReply: error %d\n", rfc1035_errno);
+	debug(78, 3) ("idnsGrokReply: error %d\n", rfc1035_errno);
     valid = cbdataValid(q->callback_data);
     cbdataUnlock(q->callback_data);
     if (valid)
