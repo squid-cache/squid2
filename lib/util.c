@@ -453,7 +453,7 @@ xbstrerror(int err)
 {
     static char xbstrerror_buf[BUFSIZ];
     if (err < 0 || err >= sys_nerr)
-        return ("Unknown");
+	return ("Unknown");
     sprintf(xbstrerror_buf, "(%d) %s", err, strerror(err));
     return xbstrerror_buf;
 }

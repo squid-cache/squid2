@@ -226,7 +226,7 @@ httpRequestFree(void *data)
 	CheckQuickAbort(http);
 	entry = http->entry;	/* reset, IMS might have changed it */
 	if (entry && entry->ping_status == PING_WAITING)
-		storeReleaseRequest(entry);
+	    storeReleaseRequest(entry);
 	protoUnregister(entry, request, conn->peer.sin_addr);
     }
     assert(http->log_type < LOG_TYPE_MAX);
