@@ -601,9 +601,11 @@ neighborAlive(peer * p, const MemObject * mem, const icp_common_t * header)
     if ((icp_opcode) header->opcode <= ICP_END)
 	p->icp.counts[header->opcode]++;
     if (mem) {
-	rtt = tvSubMsec(mem->start_ping, current_time);
-	if (rtt)
-	    p->stats.rtt = intAverage(p->stats.rtt, rtt, n, RTT_AV_FACTOR);
+	if (mem->start_ping.tv_sec) {
+	    rtt = tvSubMsec(mem->start_ping, current_time);
+	    if (rtt)
+	        p->stats.rtt = intAverage(p->stats.rtt, rtt, n, RTT_AV_FACTOR);
+	}
 	p->icp.version = (int) header->version;
     }
 }
