@@ -1597,8 +1597,8 @@ static void
 configDoConfigure(void)
 {
     httpd_accel_mode = Config.Accel.prefix ? 1 : 0;
-    sprintf(ForwardedBy, "Forwarded: by http://%s:%d/",
-	getMyHostname(), Config.Port.http);
+    sprintf(ForwardedBy, "Forwarded: by http://%s:%d/ (Squid/%s)",
+	getMyHostname(), Config.Port.http, SQUID_VERSION);
     if (Config.errHtmlText == NULL)
 	Config.errHtmlText = xstrdup(null_string);
     storeConfigure();
