@@ -260,7 +260,6 @@ extern void shut_down _PARAMS((int));
 
 
 extern time_t squid_starttime;	/* main.c */
-extern time_t next_cleaning;	/* main.c */
 extern int do_reuse;		/* main.c */
 extern int theHttpConnection;	/* main.c */
 extern int theInIcpConnection;	/* main.c */
