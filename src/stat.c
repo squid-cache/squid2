@@ -389,7 +389,7 @@ statOpenfdObj(StoreEntry * sentry)
 static int
 statObjectsPendingFilter(const StoreEntry * e)
 {
-    if (e->store_status != STORE_OK)
+    if (e->store_status != STORE_PENDING)
 	return 0;
     return 1;
 }
