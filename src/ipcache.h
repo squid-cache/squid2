@@ -133,15 +133,8 @@ typedef struct _ipcache_entry {
     ipcache_addrs addrs;
     struct _ip_pending *pending_head;
     char *error_message;
-#ifdef _SQUID_LINUX_
-    /* empirical tweaking seems to indicate this fixes problems
-     * on some linuxes */
-    int locks;
-    ipcache_status_t status;
-#else
     unsigned char locks;
     ipcache_status_t status:3;
-#endif
 } ipcache_entry;
 
 typedef void (*IPH) (int, const ipcache_addrs *, void *);

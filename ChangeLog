@@ -1,3 +1,5 @@
+Changes to squid-1.1.10 (April 21, 1997):
+
 	- Require 0 <= multicast ttl <= 128.
 	- Changed 'unsigned int inaddr_none' to 'struct in_addr no_addr'.
 	- Added debug_trap() if unlocking a StoreEntry which still 
@@ -11,8 +13,6 @@
 	- Fixed multicast group member counting bug with fake
 	  StoreEntry's.
 	- Only enable ICP_FLAG_SRC_RTT if the peer is ICP_VERSION_2.
-	- Change some ipcache_entry fields to be 32-bits for Linux
-	  (Roberto A. Lumbreras Pastor).
 	- Fixed compiling unlinkd in a separate directory (Assar Westerlund).
 	- Fixed comm_select_incoming SEGV for poll() version when using
 	  udp_{incoming,outgoing}_address  (Mark Treacy).
