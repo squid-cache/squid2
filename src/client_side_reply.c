@@ -1416,12 +1416,18 @@ clientSendMoreData(void *data, StoreIOBuffer result)
      */
     assert(context->reqofs == 0 || context->flags.storelogiccomplete);
 
+#if THIS_DOES_NOT_WORK
+    /* XXX What is the purpose of this code? It overwrites the
+     * previous "packet" completely messing up header processing
+     * when headers are received in more than one chunk..
+     */
     if (buf != result.data) {
 	/* we've got to copy some data */
 	assert(result.length <= next->readBuffer.length);
 	xmemcpy(buf, result.data, result.length);
 	body_buf = buf;
     }
+#endif
     /* We've got the final data to start pushing... */
     context->flags.storelogiccomplete = 1;
 
