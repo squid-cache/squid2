@@ -2548,8 +2548,8 @@ DEFAULT: off
 DOC_START
 	If you are running Squid as an accelerator and have a single backend
 	server then set this to on. This causes Squid to forward the request
-	to this server irregardles of what any redirectors or Host headers
-	says.
+	to this server, regardles of what any redirectors or Host headers
+	say.
 
 	Leave this at off if you have multiple backend servers, and use a
 	redirector (or host table or private DNS) to map the requests to the
