@@ -1054,6 +1054,8 @@ AC_CHECK_HEADERS( \
 	varargs.h \
 	byteswap.h \
 	glib.h \
+	stdint.h \
+	inttypes.h \
 )
 
 AC_C_CONST

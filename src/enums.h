@@ -129,6 +129,7 @@ typedef enum {
     ACL_MAXCONN,
     ACL_REQ_MIME_TYPE,
     ACL_REP_MIME_TYPE,
+    ACL_MAX_USER_IP,
     ACL_ENUM_MAX
 } squid_acl;
 
@@ -504,6 +505,13 @@ typedef enum {
     ACCESS_ALLOWED,
     ACCESS_REQ_PROXY_AUTH
 } allow_t;
+
+typedef enum {
+    AUTH_ACL_CHALLENGE = -2,
+    AUTH_ACL_HELPER = -1,
+    AUTH_ACL_CANNOT_AUTHENTICATE = 0,
+    AUTH_AUTHENTICATED = 1,
+} auth_acl_t;
 
 typedef enum {
     AUTH_UNKNOWN,		/* default */
