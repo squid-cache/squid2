@@ -257,7 +257,7 @@ int ipcache_create_dnsserver(command)
     execlp(command, "(dnsserver)", "-p", socketname, NULL);
     perror(command);
     _exit(1);
-    return (0); /* NOTREACHED */
+    return (0);			/* NOTREACHED */
 }
 
 #endif /* else USE_DNS_PIPE */
