@@ -375,5 +375,5 @@ helperRequestFree(helper_request * r)
 {
     cbdataUnlock(r->data);
     xfree(r->buf);
-    memFree(r, MEM_HELPER_REQUEST);
+    memFree(MEM_HELPER_REQUEST, r);
 }
