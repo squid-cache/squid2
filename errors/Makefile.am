@@ -27,7 +27,6 @@ LANGUAGES	= \
 		Italian \
 		Japanese \
 		Korean \
-		list \
 		Makefile.am \
 		Makefile.in \
 		Polish \
