@@ -1,3 +1,12 @@
+Changes to squid-1.0.16 ():
+
+	- Fixed shadow passwd support (John Saunders).
+	- Added checkFailureRatio() to detect high fail:success ratios
+	  and go into ICP "hit only" mode for 5 minutes when the ratio
+	  exceeds 1.
+	- Added ip_acl_destroy() to reset 'local_ip' and 'firewall_ip'
+	  on HUP signal.
+
 Changes to squid-1.0.15 (September 13, 1996):
 
 	- Fixed stupid bugs from moving icpState->flags to
