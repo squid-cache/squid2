@@ -253,7 +253,7 @@ netdbSendPing(int fdunused, const ipcache_addrs * ia, void *data)
 	    hostname, n->network, na->network);
 	x = (net_db_name *) hash_lookup(host_table, hostname);
 	if (x == NULL) {
-	    debug(37,1)("netdbSendPing: net_db_name list bug: %s not found", hostname);
+	    debug(37, 1, "netdbSendPing: net_db_name list bug: %s not found", hostname);
 	    xfree(hostname);
 	    return;
 	}
@@ -429,7 +429,7 @@ netdbReloadState(void)
 	    continue;
 	if (!safe_inet_addr(t, &addr))
 	    continue;
-        if (netdbLookupAddr(addr) != NULL)	/* no dups! */
+	if (netdbLookupAddr(addr) != NULL)	/* no dups! */
 	    continue;
 	if ((t = strtok(NULL, w_space)) == NULL)
 	    continue;
