@@ -646,6 +646,7 @@ AC_CHECK_TYPE(size_t, unsigned int)
 AC_CHECK_TYPE(ssize_t, int)
 AC_CHECK_TYPE(off_t, int)
 AC_CHECK_TYPE(mode_t, u_short)
+AC_CHECK_TYPE(fd_mask, int)
 
 dnl Check for type in sys/socket.h
 AC_CACHE_CHECK(for socklen_t, ac_cv_type_socklen_t, [

@@ -198,3 +198,7 @@
  */
 #undef IPF_TRANSPARENT
 
+/*
+ * type of fd_set array
+ */
+#undef fd_mask
