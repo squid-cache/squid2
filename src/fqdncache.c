@@ -769,11 +769,11 @@ fqdncache_gethostbyaddr(struct in_addr addr, int flags)
 	ip = inet_addr(name);
 	hp = gethostbyaddr((char *) &ip, 4, AF_INET);
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && fqdn_table) {
-            if (f->status == FQDN_PENDING || f->status == FQDN_DISPATCHED) {
+	    if (f->status == FQDN_PENDING || f->status == FQDN_DISPATCHED) {
 		xfree(static_name);
 		static_name = xstrdup(hp->h_name);
-                return static_name;
-            }
+		return static_name;
+	    }
 	    /* good address, cached */
 	    fqdncache_add(name, fqdncache_create(), hp, 1);
 	    f = fqdncache_get(name);

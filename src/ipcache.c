@@ -852,7 +852,7 @@ ipcache_gethostbyname(const char *name, int flags)
 	    if (i == NULL) {
 		i = ipcacheAddNew(name, hp, IP_CACHED);
 	    } else if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
-	        /* only dnsHandleRead() can change from DISPATCHED to CACHED */
+		/* only dnsHandleRead() can change from DISPATCHED to CACHED */
 		static_addrs.count = 1;
 		static_addrs.cur = 0;
 		memcpy(&static_addrs.in_addrs[0].s_addr,
