@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 32	Asynchronous Disk I/O
+ * DEBUG: section 32    Asynchronous Disk I/O
  * AUTHOR: Pete Bentley <pete@demon.net>
  *
  * SQUID Internet Object Cache  http://www.nlanr.net/Squid/

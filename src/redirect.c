@@ -386,7 +386,7 @@ void redirectShutdownServers()
     if (Config.Program.redirect == NULL)
 	return;
     if (redirectQueueHead) {
-        while ((redirect = GetFirstAvailable()) && (r = Dequeue()))
+	while ((redirect = GetFirstAvailable()) && (r = Dequeue()))
 	    redirectDispatch(redirect, r);
 	return;
     }
