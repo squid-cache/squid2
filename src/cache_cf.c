@@ -908,7 +908,7 @@ parseCacheAnnounceLine(void)
     GetInteger(i);
     Config.Announce.rate = i * 3600;	/* hours to seconds */
     if (Config.Announce.rate > 0)
-       Config.Announce.on = 1;
+	Config.Announce.on = 1;
 }
 
 static void

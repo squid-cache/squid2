@@ -357,6 +357,10 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (!strncasecmp(t, "Max-age=", 8))
 	    request->max_age = atoi(t + 8);
     }
+    if (request->method == METHOD_TRACE) {
+	if ((t = mime_get_header(request_hdr, "Max-Forwards")))
+	    request->max_forwards = atoi(t);
+    }
 }
 
 static int
@@ -383,6 +387,8 @@ icpCachable(icpStateData * icpState)
     if (req->protocol == PROTO_WAIS)
 	return 0;
     if (method == METHOD_CONNECT)
+	return 0;
+    if (method == METHOD_TRACE)
 	return 0;
     if (req->protocol == PROTO_CACHEOBJ)
 	return 0;
@@ -693,6 +699,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
     const char *pubkey = NULL;
     StoreEntry *entry = NULL;
     request_t *request = icpState->request;
+    char *reply;
 
     debug(12, 4, "icpProcessRequest: %s '%s'\n",
 	RequestMethodStr[icpState->method],
@@ -705,6 +712,19 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	    icpState->request_hdr,
 	    &icpState->size);
 	return;
+    } else if (request->method == METHOD_TRACE) {
+	if (request->max_forwards == 0) {
+	    reply = clientConstructTraceEcho(icpState);
+	    comm_write(fd,
+		xstrdup(reply),
+		strlen(reply),
+		30,
+		icpHandleIMSComplete,
+		icpState,
+		xfree);
+	    return;
+	}
+	/* yes, continue */
     } else if (icpState->method != METHOD_GET) {
 	icpState->log_type = LOG_TCP_MISS;
 	passStart(fd,
@@ -1668,20 +1688,14 @@ asciiProcessInput(int fd, char *buf, int size, int flag, void *data)
     parser_return_code = parseHttpRequest(icpState);
     if (parser_return_code == 1) {
 	if ((request = urlParse(icpState->method, icpState->url)) == NULL) {
-	    if (strstr(icpState->url, "/echo")) {
-		debug(12, 0, "ECHO request from %s\n",
-		    inet_ntoa(icpState->peer.sin_addr));
-		icpSendERROR(fd, LOG_TCP_MISS, icpState->request_hdr, icpState, 200);
-	    } else {
-		debug(12, 5, "Invalid URL: %s\n", icpState->url);
-		wbuf = squid_error_url(icpState->url,
-		    icpState->method,
-		    ERR_INVALID_URL,
-		    fd_table[fd].ipaddr,
-		    icpState->http_code,
-		    NULL);
-		icpSendERROR(fd, ERR_INVALID_URL, wbuf, icpState, 400);
-	    }
+	    debug(12, 5, "Invalid URL: %s\n", icpState->url);
+	    wbuf = squid_error_url(icpState->url,
+		icpState->method,
+		ERR_INVALID_URL,
+		fd_table[fd].ipaddr,
+		icpState->http_code,
+		NULL);
+	    icpSendERROR(fd, ERR_INVALID_URL, wbuf, icpState, 400);
 	    return;
 	}
 	request->http_ver = icpState->http_ver;

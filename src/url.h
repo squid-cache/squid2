@@ -39,7 +39,8 @@ enum {
     METHOD_POST,		/* 010 */
     METHOD_PUT,			/* 011 */
     METHOD_HEAD,		/* 100 */
-    METHOD_CONNECT		/* 101 */
+    METHOD_CONNECT,		/* 101 */
+    METHOD_TRACE		/* 110 */
 };
 typedef unsigned int method_t;
 
@@ -69,6 +70,7 @@ struct _request {
     float http_ver;
     time_t ims;
     int imslen;
+    int max_forwards;
 };
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));

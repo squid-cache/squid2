@@ -669,6 +669,11 @@ storeGeneratePublicKey(const char *url, method_t method)
 	return key_temp_buffer;
 	/* NOTREACHED */
 	break;
+    case METHOD_TRACE:
+	sprintf(key_temp_buffer, "/trace/%s", url);
+	return key_temp_buffer;
+	/* NOTREACHED */
+	break;
     default:
 	debug_trap("storeGeneratePublicKey: Unsupported request method");
 	break;
