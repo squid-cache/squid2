@@ -478,9 +478,9 @@ info_get(StoreEntry * sentry)
     storeAppendPrintf(sentry, "\tRequest failure ratio:\t%5.2f%%\n",
 	request_failure_ratio);
 
-    storeAppendPrintf(sentry, "\tHTTP requests per minute:\t%.1f\n",
+    storeAppendPrintf(sentry, "\tAverage HTTP requests per minute since start:\t%.1f\n",
 	statCounter.client_http.requests / (runtime / 60.0));
-    storeAppendPrintf(sentry, "\tICP messages per minute:\t%.1f\n",
+    storeAppendPrintf(sentry, "\tAverage ICP messages per minute since start:\t%.1f\n",
 	(statCounter.icp.pkts_sent + statCounter.icp.pkts_recv) / (runtime / 60.0));
     storeAppendPrintf(sentry, "\tSelect loop called: %d times, %0.3f ms avg\n",
 	statCounter.select_loops, 1000.0 * runtime / statCounter.select_loops);
@@ -573,10 +573,13 @@ info_get(StoreEntry * sentry)
 	mp.fordblks >> 10);
     t = mp.uordblks + mp.usmblks + mp.hblkhd;
     storeAppendPrintf(sentry, "\tTotal in use:          %6d KB %d%%\n",
-	t >> 10, percent(t, mp.arena));
+	t >> 10, percent(t, mp.arena + mp.hblkhd));
     t = mp.fsmblks + mp.fordblks;
     storeAppendPrintf(sentry, "\tTotal free:            %6d KB %d%%\n",
-	t >> 10, percent(t, mp.arena));
+	t >> 10, percent(t, mp.arena + mp.hblkhd));
+    t = mp.arena + mp.hblkhd;
+    storeAppendPrintf(sentry, "\tTotal size:            %6d KB\n",
+	t >> 10);
 #if HAVE_EXT_MALLINFO
     storeAppendPrintf(sentry, "\tmax size of small blocks:\t%d\n", mp.mxfast);
     storeAppendPrintf(sentry, "\tnumber of small blocks in a holding block:\t%d\n",
@@ -801,10 +804,9 @@ statAvgDump(StoreEntry * sentry, int minutes, int hours)
     storeAppendPrintf(sentry, "aborted_requests = %f/sec\n",
 	XAVG(aborted_requests));
 
-#if USE_POLL
+#if HAVE_POLL
     storeAppendPrintf(sentry, "syscalls.polls = %f/sec\n", XAVG(syscalls.polls));
-#endif
-#if USE_SELECT
+#else
     storeAppendPrintf(sentry, "syscalls.selects = %f/sec\n", XAVG(syscalls.selects));
 #endif
     storeAppendPrintf(sentry, "syscalls.disk.opens = %f/sec\n", XAVG(syscalls.disk.opens));
