@@ -363,7 +363,7 @@ ipcacheParse(rfc1035_rr * answers, int na)
 		continue;
 	    assert(answers[k].rdlength == 4);
 	    xmemcpy(&i.addrs.in_addrs[j++], answers[k].rdata, 4);
-	    debug(14, 1) ("ipcacheParse: #%d %s\n",
+	    debug(14, 3) ("ipcacheParse: #%d %s\n",
 		j - 1,
 		inet_ntoa(i.addrs.in_addrs[j - 1]));
 	}
