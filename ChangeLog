@@ -218,3 +218,5 @@ beta10:
 	- Fixed setuid bugs when pid_filename was not defined
 	- Possible bug fix of zero-sized object getting stuck in VM.
 	- Configure checks for working UNIX domain stream sockets
+	- Rotate cache.log before the others
+	- SIGUSR2 now toggles between full and normal debugging
