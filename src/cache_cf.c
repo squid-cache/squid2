@@ -91,31 +91,20 @@ wordlistDestroy(wordlist ** list)
     while ((w = *list) != NULL) {
 	*list = w->next;
 	safe_free(w->key);
-	safe_free(w);
+	memFree(MEM_WORDLIST, w);
     }
     *list = NULL;
 }
 
-void
+wordlist *
 wordlistAdd(wordlist ** list, const char *key)
 {
-    wordlist *p = NULL;
-    wordlist *q = NULL;
-
-    if (!(*list)) {
-	/* empty list */
-	*list = xcalloc(1, sizeof(wordlist));
-	(*list)->key = xstrdup(key);
-	(*list)->next = NULL;
-    } else {
-	p = *list;
-	while (p->next)
-	    p = p->next;
-	q = xcalloc(1, sizeof(wordlist));
-	q->key = xstrdup(key);
-	q->next = NULL;
-	p->next = q;
-    }
+    while (*list)
+	list = &(*list)->next;
+    *list = memAllocate(MEM_WORDLIST);
+    (*list)->key = xstrdup(key);
+    (*list)->next = NULL;
+    return *list;
 }
 
 void
@@ -134,7 +123,7 @@ intlistDestroy(intlist ** list)
     intlist *n = NULL;
     for (w = *list; w; w = n) {
 	n = w->next;
-	safe_free(w);
+	memFree(MEM_INTLIST, w);
     }
     *list = NULL;
 }

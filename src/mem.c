@@ -202,6 +202,7 @@ memInit(void)
     memDataInit(MEM_ACL_LIST, "acl_list", sizeof(acl_list), 0);
     memDataInit(MEM_ACL_NAME_LIST, "acl_name_list", sizeof(acl_name_list), 0);
     memDataInit(MEM_ACL_TIME_DATA, "acl_time_data", sizeof(acl_time_data), 0);
+    memDataInit(MEM_ACL_PROXY_AUTH, "acl_proxy_auth", sizeof(acl_proxy_auth), 0);
     memDataInit(MEM_ACL_PROXY_AUTH_USER, "acl_proxy_auth_user",
 	sizeof(acl_proxy_auth_user), 0);
     memDataInit(MEM_AIO_RESULT_T, "aio_result_t", sizeof(aio_result_t), 0);
@@ -278,6 +279,11 @@ memInit(void)
     memDataInit(MEM_WORDLIST, "wordlist", sizeof(wordlist), 0);
     memDataInit(MEM_CLIENT_INFO, "ClientInfo", sizeof(ClientInfo), 0);
     memDataInit(MEM_MD5_DIGEST, "MD5 digest", MD5_DIGEST_CHARS, 0);
+    memDataInit(MEM_HELPER, "helper", sizeof(helper), 0);
+    memDataInit(MEM_HELPER_REQUEST, "helper_request",
+	sizeof(helper_request), 0);
+    memDataInit(MEM_HELPER_SERVER, "helper_server",
+	sizeof(helper_server), 0);
     /* test that all entries are initialized */
     for (t = MEM_NONE, t++; t < MEM_MAX; t++) {
 	if (MEM_DONTFREE == t)

@@ -89,7 +89,7 @@ extern void aioCheckCallbacks(void);
 extern int parseConfigFile(const char *file_name);
 extern void intlistDestroy(intlist **);
 extern int intlistFind(intlist * list, int i);
-extern void wordlistAdd(wordlist **, const char *);
+extern wordlist *wordlistAdd(wordlist **, const char *);
 extern void wordlistDestroy(wordlist **);
 extern void configFreeMemory(void);
 extern void wordlistCat(const wordlist *, MemBuf * mb);

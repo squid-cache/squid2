@@ -1097,7 +1097,7 @@ ftpParseControlReply(char *buf, size_t len, int *codep, int *used)
 	if (linelen > 3)
 	    if (*s >= '0' && *s <= '9' && (*(s + 3) == '-' || *(s + 3) == ' '))
 		offset = 4;
-	list = xcalloc(1, sizeof(wordlist));
+	list = memAllocate(MEM_WORDLIST);
 	list->key = xmalloc(linelen - offset);
 	xstrncpy(list->key, s + offset, linelen - offset);
 	debug(9, 7) ("%d %s\n", code, list->key);
@@ -1333,20 +1333,14 @@ static void
 ftpReadType(FtpStateData * ftpState)
 {
     int code = ftpState->ctrl.replycode;
-    wordlist *w;
-    wordlist **T;
     char *path;
     char *d;
     debug(9, 3) ("This is ftpReadType\n");
     if (code == 200) {
 	path = xstrdup(strBuf(ftpState->request->urlpath));
-	T = &ftpState->pathcomps;
 	for (d = strtok(path, "/"); d; d = strtok(NULL, "/")) {
 	    rfc1738_unescape(d);
-	    w = xcalloc(1, sizeof(wordlist));
-	    w->key = xstrdup(d);
-	    *T = w;
-	    T = &w->next;
+	    wordlistAdd(&ftpState->pathcomps, d);
 	}
 	xfree(path);
 	if (ftpState->pathcomps)

@@ -84,6 +84,7 @@ static SPLAYCMP aclHostDomainCompare;
 static SPLAYCMP aclDomainCompare;
 static SPLAYWALKEE aclDumpIpListWalkee;
 static SPLAYWALKEE aclDumpDomainListWalkee;
+static SPLAYFREE aclFreeIpData;
 
 #if USE_ARP_ACL
 static void aclParseArpList(void *curlist);
@@ -251,7 +252,7 @@ aclParseIntlist(void *curlist)
     char *t = NULL;
     for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
     while ((t = strtokFile())) {
-	q = xcalloc(1, sizeof(intlist));
+	q = memAllocate(MEM_INTLIST);
 	q->i = atoi(t);
 	*(Tail) = q;
 	Tail = &q->next;
@@ -286,7 +287,7 @@ aclParseProtoList(void *curlist)
     char *t = NULL;
     for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
     while ((t = strtokFile())) {
-	q = xcalloc(1, sizeof(intlist));
+	q = memAllocate(MEM_INTLIST);
 	q->i = (int) urlParseProtocol(t);
 	*(Tail) = q;
 	Tail = &q->next;
@@ -301,7 +302,7 @@ aclParseMethodList(void *curlist)
     char *t = NULL;
     for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
     while ((t = strtokFile())) {
-	q = xcalloc(1, sizeof(intlist));
+	q = memAllocate(MEM_INTLIST);
 	q->i = (int) urlParseMethod(t);
 	if (q->i == METHOD_PURGE)
 	    Config.onoff.enable_purge = 1;
@@ -368,7 +369,7 @@ aclParseIpData(const char *t)
     LOCAL_ARRAY(char, addr1, 256);
     LOCAL_ARRAY(char, addr2, 256);
     LOCAL_ARRAY(char, mask, 256);
-    acl_ip_data *q = xcalloc(1, sizeof(acl_ip_data));
+    acl_ip_data *q = memAllocate(MEM_ACL_IP_DATA);
     acl_ip_data *r;
     acl_ip_data **Q;
     struct hostent *hp;
@@ -404,7 +405,7 @@ aclParseIpData(const char *t)
 	Q = &q;
 	for (x = hp->h_addr_list; x != NULL && *x != NULL; x++) {
 	    if ((r = *Q) == NULL)
-		r = *Q = xcalloc(1, sizeof(struct _acl_ip_data));
+		r = *Q = memAllocate(MEM_ACL_IP_DATA);
 	    xmemcpy(&r->addr1.s_addr, *x, sizeof(r->addr1.s_addr));
 	    r->addr2.s_addr = 0;
 	    r->mask.s_addr = no_addr.s_addr;	/* 255.255.255.255 */
@@ -474,7 +475,7 @@ aclParseTimeSpec(void *curlist)
     int h1, m1, h2, m2;
     char *t = NULL;
     for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
-    q = xcalloc(1, sizeof(acl_time_data));
+    q = memAllocate(MEM_ACL_TIME_DATA);
     while ((t = strtokFile())) {
 	if (*t < '0' || *t > '9') {
 	    /* assume its day-of-week spec */
@@ -571,7 +572,7 @@ aclParseRegexList(void *curlist)
 		t, errbuf);
 	    continue;
 	}
-	q = xcalloc(1, sizeof(relist));
+	q = memAllocate(MEM_RELIST);
 	q->pattern = xstrdup(t);
 	q->regex = comp;
 	*(Tail) = q;
@@ -582,16 +583,9 @@ aclParseRegexList(void *curlist)
 static void
 aclParseWordList(void *curlist)
 {
-    wordlist **Tail;
-    wordlist *q = NULL;
     char *t = NULL;
-    for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
-    while ((t = strtokFile())) {
-	q = xcalloc(1, sizeof(wordlist));
-	q->key = xstrdup(t);
-	*(Tail) = q;
-	Tail = &q->next;
-    }
+    while ((t = strtokFile()))
+	wordlistAdd(curlist, t);
 }
 
 /**********************/
@@ -619,7 +613,7 @@ aclParseProxyAuth(void *data)
     acl_proxy_auth **q = data;
     char *t;
 
-    p = xcalloc(1, sizeof(acl_proxy_auth));
+    p = memAllocate(MEM_ACL_PROXY_AUTH);
 
     /* read timeout value (if any) */
     t = strtok(NULL, w_space);
@@ -689,7 +683,7 @@ aclParseAclLine(acl ** head)
     }
     if ((A = aclFindByName(aclname)) == NULL) {
 	debug(28, 3) ("aclParseAclLine: Creating ACL '%s'\n", aclname);
-	A = xcalloc(1, sizeof(acl));
+	A = memAllocate(MEM_ACL);
 	xstrncpy(A->name, aclname, ACL_NAME_SZ);
 	A->type = acltype;
 	A->cfgline = xstrdup(config_input_line);
@@ -862,7 +856,7 @@ aclParseAccessLine(acl_access ** head)
 	debug(28, 0) ("aclParseAccessLine: missing 'allow' or 'deny'.\n");
 	return;
     }
-    A = xcalloc(1, sizeof(acl_access));
+    A = memAllocate(MEM_ACL_ACCESS);
 
     if (!strcmp(t, "allow"))
 	A->allow = 1;
@@ -880,7 +874,7 @@ aclParseAccessLine(acl_access ** head)
      * by '!' for negation */
     Tail = &A->acl_list;
     while ((t = strtok(NULL, w_space))) {
-	L = xcalloc(1, sizeof(acl_list));
+	L = memAllocate(MEM_ACL_LIST);
 	L->op = 1;		/* defaults to non-negated */
 	if (*t == '!') {
 	    /* negated ACL */
@@ -912,7 +906,7 @@ aclParseAccessLine(acl_access ** head)
     for (B = *head, T = head; B; T = &B->next, B = B->next);
     *T = A;
     /* We lock _acl_access structures in aclCheck() */
-    cbdataAdd(A, MEM_NONE);
+    cbdataAdd(A, MEM_ACL_ACCESS);
 }
 
 /**************/
@@ -1515,8 +1509,8 @@ aclChecklistCreate(const acl_access * A,
     const char *ident)
 {
     int i;
-    aclCheck_t *checklist = xcalloc(1, sizeof(aclCheck_t));
-    cbdataAdd(checklist, MEM_NONE);
+    aclCheck_t *checklist = memAllocate(MEM_ACLCHECK_T);
+    cbdataAdd(checklist, MEM_ACLCHECK_T);
     checklist->access_list = A;
     /*
      * aclCheck() makes sure checklist->access_list is a valid
@@ -1561,7 +1555,7 @@ aclDestroyTimeList(acl_time_data * data)
     acl_time_data *next = NULL;
     for (; data; data = next) {
 	next = data->next;
-	safe_free(data);
+	memFree(MEM_ACL_TIME_DATA, data);
     }
 }
 
@@ -1573,7 +1567,7 @@ aclDestroyRegexList(relist * data)
 	next = data->next;
 	regfree(&data->regex);
 	safe_free(data->pattern);
-	safe_free(data);
+	memFree(MEM_RELIST, data);
     }
 }
 
@@ -1592,7 +1586,13 @@ aclDestroyProxyAuth(acl_proxy_auth * p)
     hashFreeItems(p->hash, aclFreeProxyAuthUser);
     hashFreeMemory(p->hash);
     p->hash = NULL;
-    safe_free(p);
+    memFree(MEM_ACL_PROXY_AUTH, p);
+}
+
+static void
+aclFreeIpData(void *p)
+{
+    memFree(MEM_ACL_IP_DATA, p);
 }
 
 void
@@ -1606,9 +1606,9 @@ aclDestroyAcls(acl ** head)
 	switch (a->type) {
 	case ACL_SRC_IP:
 	case ACL_DST_IP:
-	case ACL_SRC_ARP:
-	    splay_destroy(a->data, xfree);
+	    splay_destroy(a->data, aclFreeIpData);
 	    break;
+	case ACL_SRC_ARP:
 	case ACL_DST_DOMAIN:
 	case ACL_SRC_DOMAIN:
 	    splay_destroy(a->data, xfree);
@@ -1642,7 +1642,7 @@ aclDestroyAcls(acl ** head)
 	    break;
 	}
 	safe_free(a->cfgline);
-	safe_free(a);
+	memFree(MEM_ACL, a);
     }
     *head = NULL;
 }
@@ -1653,7 +1653,7 @@ aclDestroyAclList(acl_list * list)
     acl_list *next = NULL;
     for (; list; list = next) {
 	next = list->next;
-	safe_free(list);
+	memFree(MEM_ACL_LIST, list);
     }
 }
 
@@ -1806,16 +1806,13 @@ aclDumpIpListWalkee(void *node, void *state)
     acl_ip_data *ip = node;
     MemBuf mb;
     wordlist **W = state;
-    while (*W != NULL)
-	W = &(*W)->next;
     memBufDefInit(&mb);
     memBufPrintf(&mb, "%s", inet_ntoa(ip->addr1));
     if (ip->addr2.s_addr != any_addr.s_addr)
 	memBufPrintf(&mb, "-%s", inet_ntoa(ip->addr2));
     if (ip->mask.s_addr != no_addr.s_addr)
 	memBufPrintf(&mb, "/%s", inet_ntoa(ip->mask));
-    *W = xcalloc(1, sizeof(wordlist));
-    (*W)->key = xstrdup(mb.buf);
+    wordlistAdd(W, mb.buf);
     memBufClean(&mb);
 }
 
@@ -1831,11 +1828,7 @@ static void
 aclDumpDomainListWalkee(void *node, void *state)
 {
     char *domain = node;
-    wordlist **W = state;
-    while (*W != NULL)
-	W = &(*W)->next;
-    *W = xcalloc(1, sizeof(wordlist));
-    (*W)->key = xstrdup(domain);
+    wordlistAdd(state, domain);
 }
 
 static wordlist *
@@ -1850,10 +1843,8 @@ static wordlist *
 aclDumpTimeSpecList(acl_time_data * t)
 {
     wordlist *W = NULL;
-    wordlist **T = &W;
     char buf[128];
     while (t != NULL) {
-	wordlist *w = xcalloc(1, sizeof(wordlist));
 	snprintf(buf, sizeof(buf), "%c%c%c%c%c%c%c %02d:%02d-%02d:%02d",
 	    t->weekbits & ACL_SUNDAY ? 'S' : '-',
 	    t->weekbits & ACL_MONDAY ? 'M' : '-',
@@ -1866,10 +1857,7 @@ aclDumpTimeSpecList(acl_time_data * t)
 	    t->start % 60,
 	    t->stop / 60,
 	    t->stop % 60);
-	w->key = xstrdup(buf);
-	*T = w;
-	T = &w->next;
-	t = t->next;
+	wordlistAdd(&W, buf);
     }
     return W;
 }
@@ -1878,13 +1866,8 @@ static wordlist *
 aclDumpRegexList(relist * data)
 {
     wordlist *W = NULL;
-    wordlist **T = &W;
-    wordlist *w;
     while (data != NULL) {
-	w = xcalloc(1, sizeof(wordlist));
-	w->key = xstrdup(data->pattern);
-	*T = w;
-	T = &w->next;
+	wordlistAdd(&W, data->pattern);
 	data = data->next;
     }
     return W;
@@ -1894,14 +1877,10 @@ static wordlist *
 aclDumpIntlistList(intlist * data)
 {
     wordlist *W = NULL;
-    wordlist **T = &W;
     char buf[32];
     while (data != NULL) {
-	wordlist *w = xcalloc(1, sizeof(wordlist));
 	snprintf(buf, sizeof(buf), "%d", data->i);
-	w->key = xstrdup(buf);
-	*T = w;
-	T = &w->next;
+	wordlistAdd(&W, buf);
 	data = data->next;
     }
     return W;
@@ -1911,17 +1890,13 @@ static wordlist *
 aclDumpIntRangeList(intrange * data)
 {
     wordlist *W = NULL;
-    wordlist **T = &W;
     char buf[32];
     while (data != NULL) {
-	wordlist *w = xcalloc(1, sizeof(wordlist));
 	if (data->i == data->j)
 	    snprintf(buf, sizeof(buf), "%d", data->i);
 	else
 	    snprintf(buf, sizeof(buf), "%d-%d", data->i, data->j);
-	w->key = xstrdup(buf);
-	*T = w;
-	T = &w->next;
+	wordlistAdd(&W, buf);
 	data = data->next;
     }
     return W;
@@ -1931,13 +1906,8 @@ static wordlist *
 aclDumpProtoList(intlist * data)
 {
     wordlist *W = NULL;
-    wordlist **T = &W;
-    wordlist *w;
     while (data != NULL) {
-	w = xcalloc(1, sizeof(wordlist));
-	w->key = xstrdup(ProtocolStr[data->i]);
-	*T = w;
-	T = &w->next;
+	wordlistAdd(&W, ProtocolStr[data->i]);
 	data = data->next;
     }
     return W;
@@ -1947,13 +1917,8 @@ static wordlist *
 aclDumpMethodList(intlist * data)
 {
     wordlist *W = NULL;
-    wordlist **T = &W;
-    wordlist *w;
     while (data != NULL) {
-	w = xcalloc(1, sizeof(wordlist));
-	w->key = xstrdup(RequestMethodStr[data->i]);
-	*T = w;
-	T = &w->next;
+	wordlistAdd(&W, RequestMethodStr[data->i]);
 	data = data->next;
     }
     return W;
@@ -1963,14 +1928,10 @@ static wordlist *
 aclDumpProxyAuthList(acl_proxy_auth * data)
 {
     wordlist *W = NULL;
-    wordlist **T = &W;
     char buf[MAXPATHLEN];
-    wordlist *w = xcalloc(1, sizeof(wordlist));
     assert(data != NULL);
     snprintf(buf, sizeof(buf), "%d\n", data->timeout);
-    w->key = xstrdup(buf);
-    *T = w;
-    T = &w->next;
+    wordlistAdd(&W, buf);
     return W;
 }
 
@@ -2242,8 +2203,7 @@ aclDumpArpListWalkee(void *node, void *state)
     snprintf(buf, sizeof(buf), "%02x:%02x:02x:02x:02x:02x",
 	arp->eth[0], arp->eth[1], arp->eth[2], arp->eth[3],
 	arp->eth[4], arp->eth[5]);
-    *W = xcalloc(1, sizeof(wordlist));
-    (*W)->key = xstrdup(buf);
+    wordlistAdd(state, buf);
 }
 
 static wordlist *
