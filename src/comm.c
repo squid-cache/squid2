@@ -1317,6 +1317,7 @@ commHandleWrite(int fd, void *data)
 
     nleft = state->size - state->offset;
     len = write(fd, state->buf + state->offset, nleft);
+    debug(5,5)("commHandleWrite: write() returns %d\n", len);
     fd_bytes(fd, len, FD_WRITE);
 
     if (len == 0) {
