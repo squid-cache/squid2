@@ -248,6 +248,9 @@ httpHeaderInitModule()
 	httpHeaderStatInit(HttpHeaderStats + i, HttpHeaderStats[i].label);
     HttpHeaderStats[hoRequest].owner_mask = &RequestHeadersMask;
     HttpHeaderStats[hoReply].owner_mask = &ReplyHeadersMask;
+#if USE_HTCP
+    HttpHeaderStats[hoHtcpReply].owner_mask = &ReplyHeadersMask;
+#endif
     /* init dependent modules */
     httpHdrCcInitModule();
     /* register with cache manager */

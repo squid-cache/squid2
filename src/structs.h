@@ -1489,3 +1489,11 @@ struct _FwdServer {
     peer *peer;
     struct _FwdServer *next;
 };
+
+#if USE_HTCP
+struct _htcpReplyData {
+	int hit;
+	HttpHeader hdr;
+	u_num32 msg_id;
+};
+#endif

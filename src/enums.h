@@ -376,6 +376,9 @@ typedef enum {
     PROTO_WAIS,
     PROTO_CACHEOBJ,
     PROTO_ICP,
+#if USE_HTCP
+    PROTO_HTCP,
+#endif
     PROTO_URN,
     PROTO_WHOIS,
     PROTO_INTERNAL,
