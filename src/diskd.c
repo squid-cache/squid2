@@ -691,7 +691,8 @@ storeDiskdHandle(diomsg * M)
     if (M->callback_data)
 	cbdataUnlock(M->callback_data);
     if (!valid) {
-	debug(79, 1) ("storeDiskdHandle: Invalid callback_data %p\n", M->callback_data);
+	debug(79, 3) ("storeDiskdHandle: Invalid callback_data %p\n",
+	    M->callback_data);
 	/*
 	 * The read operation has its own callback.  If we don't
 	 * call storeDiskdReadDone(), then we must make sure the
