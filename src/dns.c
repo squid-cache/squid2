@@ -54,7 +54,7 @@ dnsInit(void)
     if (dnsservers == NULL)
 	dnsservers = helperCreate("dnsserver");
     dnsservers->n_to_start = Config.dnsChildren;
-    dnsservers->ipc_type = IPC_FIFO;
+    dnsservers->ipc_type = IPC_TCP_SOCKET;
     assert(dnsservers->cmdline == NULL);
     wordlistAdd(&dnsservers->cmdline, Config.Program.dnsserver);
     if (Config.onoff.res_defnames)
