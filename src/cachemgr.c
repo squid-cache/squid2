@@ -840,14 +840,19 @@ static int client_comm_connect(sock, dest_host, dest_port)
 {
     struct hostent *hp;
     static struct sockaddr_in to_addr;
+    unsigned long haddr;
 
     /* Set up the destination socket address for message to send to. */
+    memset(&to_addr, '\0', sizeof(struct sockaddr_in));
     to_addr.sin_family = AF_INET;
 
-    if ((hp = gethostbyname(dest_host)) == 0) {
+    if ((hp = gethostbyname(dest_host)) != NULL)
+	xmemcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
+    else if ((haddr = inet_addr(dest_host)) != INADDR_NONE)
+	xmemcpy(&to_addr.sin_addr, &haddr, sizeof(haddr));
+    else
 	return (-1);
-    }
-    xmemcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
+
     to_addr.sin_port = htons(dest_port);
     return connect(sock, (struct sockaddr *) &to_addr, sizeof(struct sockaddr_in));
 }
