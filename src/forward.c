@@ -108,7 +108,7 @@ fwdCheckRetry(FwdState * fwdState)
 	return 0;
     if (fwdState->n_tries > 10)
 	return 0;
-    if (squid_curtime - fwdState->start > 120)
+    if (squid_curtime - fwdState->start > Config.Timeout.connect)
 	return 0;
     if (fwdState->flags.dont_retry)
 	return 0;
