@@ -163,7 +163,7 @@ all:    squid.conf $(PROGS) $(UTILS) $(SUID_UTILS) $(CGIPROGS)
 $(OBJS): ../include/version.h
 
 squid:	$(OBJS)
-	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(SQUID_LIBS) $(SQUID_SNMP_LIBS)
+	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(SQUID_SNMP_LIBS) $(SQUID_LIBS)
 
 globals.o: globals.c Makefile
 	$(CC) -c $< $(CFLAGS) $(DEFAULTS)
