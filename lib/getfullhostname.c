@@ -101,10 +101,10 @@ static char rcsid[] = "$Id$";
 char *getfullhostname()
 {
     struct hostent *hp = NULL;
-    static char buf[HARVESTHOSTNAMELEN + 1];
+    static char buf[SQUIDHOSTNAMELEN + 1];
     extern int gethostname();	/* UNIX system call */
 
-    if (gethostname(buf, HARVESTHOSTNAMELEN) < 0)
+    if (gethostname(buf, SQUIDHOSTNAMELEN) < 0)
 	return (NULL);
     if ((hp = gethostbyname(buf)) == NULL)
 	return (buf);

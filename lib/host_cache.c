@@ -139,7 +139,7 @@ void host_cache_init()
 Host *get_host(hostname)
      char *hostname;
 {
-    static char hn[HARVESTHOSTNAMELEN];
+    static char hn[SQUIDHOSTNAMELEN];
     Host *h = 0;
     int idx;
     time_t now = time(0);
@@ -152,8 +152,8 @@ Host *get_host(hostname)
     if (!cache_inited)
 	host_cache_init();
 
-    strncpy(hn, hostname, HARVESTHOSTNAMELEN - 1);
-    hn[HARVESTHOSTNAMELEN - 1] = 0;
+    strncpy(hn, hostname, SQUIDHOSTNAMELEN - 1);
+    hn[SQUIDHOSTNAMELEN - 1] = 0;
     Tolower(hn);
 
     idx = hash_index(hn);
@@ -185,8 +185,8 @@ static Host *new_host(hostname)
 
     Debug(86, 1, ("new_host: Adding %s\n", hostname));
     hn = xstrdup(hostname);
-    if ((int) strlen(hn) > (HARVESTHOSTNAMELEN - 1))
-	*(hn + HARVESTHOSTNAMELEN - 1) = 0;
+    if ((int) strlen(hn) > (SQUIDHOSTNAMELEN - 1))
+	*(hn + SQUIDHOSTNAMELEN - 1) = 0;
     Tolower(hn);
 
     idx = hash_index(hn);
@@ -200,8 +200,8 @@ static Host *new_host(hostname)
 	    /* unknown if this works                   */
 	    Debug(86, 1, ("new_host: gethostbyaddr() failed.  Trying hack.\n"));
 	    memset(h, '\0', sizeof(Host));
-	    strncpy(h->key, hn, HARVESTHOSTNAMELEN - 1);
-	    strncpy(h->fqdn, hn, HARVESTHOSTNAMELEN - 1);
+	    strncpy(h->key, hn, SQUIDHOSTNAMELEN - 1);
+	    strncpy(h->fqdn, hn, SQUIDHOSTNAMELEN - 1);
 	    memcpy(h->ipaddr, &ip, h->addrlen = 4);
 	    strcpy(h->dotaddr, hn);
 	    xfree(hn);
@@ -219,8 +219,8 @@ static Host *new_host(hostname)
 	return 0;
     }
     memset(h, '\0', sizeof(Host));
-    strncpy(h->key, hn, HARVESTHOSTNAMELEN - 1);
-    strncpy(h->fqdn, H->h_name, HARVESTHOSTNAMELEN - 1);
+    strncpy(h->key, hn, SQUIDHOSTNAMELEN - 1);
+    strncpy(h->fqdn, H->h_name, SQUIDHOSTNAMELEN - 1);
     Tolower(h->fqdn);
     memcpy(h->ipaddr, *H->h_addr_list, h->addrlen = 4);
     memcpy(&ina.s_addr, *H->h_addr_list, 4);
