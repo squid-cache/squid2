@@ -507,6 +507,18 @@ AC_ARG_ENABLE(internal-dns,
   fi
 ])
 
+AC_ARG_ENABLE(truncate,
+[  --enable-truncate      This uses truncate() instead of unlink() when
+                          removing cache files.  Truncate gives a little
+                          performance improvement, but may cause problems
+                          when used with async I/O.  Truncate uses more
+                          filesystem inodes than unlink..],
+[ if test "$enableval" = "yes" ; then
+    echo "Enabling truncate instead of unlink"
+    AC_DEFINE(USE_TRUNCATE)
+  fi
+])
+
 # Force some compilers to use ANSI features
 #
 case "$host" in

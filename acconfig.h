@@ -243,3 +243,8 @@
  * we check for the existance of struct mallinfo
  */
 #undef HAVE_STRUCT_MALLINFO
+
+/*
+ * Do we want to use truncate(2) or unlink(2)?
+ */
+#undef USE_TRUNCATE
