@@ -74,9 +74,11 @@ useragentRotateLog(void)
 	return;
     if (strcmp(fname, "none") == 0)
 	return;
+#ifdef S_ISREG
     if (stat(fname, &sb) == 0)
 	if (S_ISREG(sb.st_mode) == 0)
 	    return;
+#endif
     debug(40, 1, "useragentRotateLog: Rotating.\n");
     /* Rotate numbers 0 through N up one */
     for (i = Config.Log.rotateNumber; i > 1;) {

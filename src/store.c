@@ -2735,9 +2735,11 @@ storeRotateLog(void)
 	return;
     if (strcmp(fname, "none") == 0)
 	return;
+#ifdef S_ISREG
     if (stat(fname, &sb) == 0)
 	if (S_ISREG(sb.st_mode) == 0)
 	    return;
+#endif
 
     debug(20, 1, "storeRotateLog: Rotating.\n");
 

@@ -251,9 +251,11 @@ _db_rotate_log(void)
 
     if (debug_log_file == NULL)
 	return;
+#ifdef S_ISREG
     if (stat(debug_log_file, &sb) == 0)
 	if (S_ISREG(sb.st_mode) == 0)
 	    return;
+#endif
 
     /* Rotate numbers 0 through N up one */
     for (i = Config.Log.rotateNumber; i > 1;) {
