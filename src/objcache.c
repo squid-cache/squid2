@@ -271,6 +271,7 @@ objcacheStart(int fd, StoreEntry * entry)
     debug(16, 3) ("objectcacheStart: '%s'\n", entry->url);
     if ((data = objcache_url_parser(entry->url)) == NULL) {
 	err = xcalloc(1, sizeof(ErrorState));
+	err->url = xstrdup(entry->url);
 	err->type = ERR_INVALID_REQ;
 	err->http_status = HTTP_NOT_FOUND;
 	errorAppendEntry(entry, err);
