@@ -61,8 +61,7 @@ extern void init_modules();
 #ifdef __STDC__
 void snmpSnmplibDebug(int lvl, char *fmt,...);
 #else
-void
-     snmpSnmplibDebug(va_alist);
+void snmpSnmplibDebug(va_alist);
 #endif
 
 
@@ -268,7 +267,7 @@ snmpInit(void)
     communities = NULL;
     init_agent_auth();
 
-    snmplib_debug = (void *) snmpSnmplibDebug;
+    snmplib_debug_hook = snmpSnmplibDebug;
 
     debug(49, 5) ("init_mib: calling with %s\n", Config.Snmp.mibPath);
 
