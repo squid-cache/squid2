@@ -122,7 +122,7 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 makesnmplib = @makesnmplib@
 
-errordir = $(datadir)/squid/errors
+errordir = $(datadir)/errors
 
 DEFAULT_ERROR_DIR = $(errordir)
 
