@@ -847,4 +847,3 @@ gen_getMax()
 #endif
     return &maddr;
 }
-

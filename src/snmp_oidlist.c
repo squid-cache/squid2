@@ -1,4 +1,5 @@
 
+
 /*
  * $Id$
  *
@@ -326,7 +327,7 @@ prfProtoGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     debug(49, 7) ("prfProtoGetNextFn: Called with %d %d %d %d: \n", Src[LEN_SQ_PRF + 1], PERF_PROTOSTAT_AGGR, SrcLen, LEN_SQ_PRF);
     snmpDebugOid(7, Src, SrcLen);
 
-    if ((Src[LEN_SQ_PRF + 1] <= PERF_PROTOSTAT_AGGR)||(Src[LEN_SQ_PRF] == 1)||((SrcLen == 9)&&(Src[LEN_SQ_PRF]==2))) {
+    if ((Src[LEN_SQ_PRF + 1] <= PERF_PROTOSTAT_AGGR) || (Src[LEN_SQ_PRF] == 1) || ((SrcLen == 9) && (Src[LEN_SQ_PRF] == 2))) {
 	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
 	    mibRoot, mibRootLen, NULL, 1, mibTail, snmp_prfProtoFn,
 	    LEN_SQ_PRF + 3, LEN_SQ_PRF + 2);
@@ -362,9 +363,9 @@ netIpGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("netIpGetFn: here! with Src[8]=%d\n", Src[8]);
     if (SrcLen != LEN_SQ_NET + 2)
-        return NULL;
+	return NULL;
     if (Src[LEN_SQ_NET] == 1)
-        return snmp_netIpFn;
+	return snmp_netIpFn;
 
     return NULL;
 }
@@ -374,29 +375,29 @@ netFqdnGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("netFqdnGetFn: here! with Src[8]=%d\n", Src[8]);
     if (SrcLen != LEN_SQ_NET + 2)
-        return NULL;
-    if (Src[LEN_SQ_NET] == 2)                      
-        return snmp_netFqdnFn;
-    
+	return NULL;
+    if (Src[LEN_SQ_NET] == 2)
+	return snmp_netFqdnFn;
+
     return NULL;
 }
 
 oid_ParseFn *
 netDnsGetFn(oid * Src, snint SrcLen)
-{  
+{
     debug(49, 5) ("netDnsGetFn: here! with Src[8]=%d\n", Src[8]);
     if (SrcLen != LEN_SQ_NET + 2)
-        return NULL;
-    if (Src[LEN_SQ_NET] == 3)                      
-        return snmp_netDnsFn;
-    
+	return NULL;
+    if (Src[LEN_SQ_NET] == 3)
+	return snmp_netDnsFn;
+
     return NULL;
 }
 
 oid_ParseFn *
 netIpGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
-    oid mibRoot[] = 
+    oid mibRoot[] =
     {SQ_NET, 1};
     int mibRootLen = LEN_SQ_NET + 1;
     oid mibTail[LEN_SQ_NET + 2] =
@@ -404,10 +405,10 @@ netIpGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     oid_ParseFn *ret;
 
     debug(49, 5) ("netIpGetNextFn: Called\n");
-         
+
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-        mibRoot, mibRootLen, NULL, 1, mibTail, snmp_netIpFn,
-        LEN_SQ_NET + 2, LEN_SQ_NET + 1);
+	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_netIpFn,
+	LEN_SQ_NET + 2, LEN_SQ_NET + 1);
     return ret;
 }
 
@@ -420,12 +421,12 @@ netFqdnGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     oid mibTail[LEN_SQ_NET + 2] =
     {SQ_NET, 2, 8};
     oid_ParseFn *ret;
-   
+
     debug(49, 5) ("netFqdnGetNextFn: Called\n");
-   
+
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-        mibRoot, mibRootLen, NULL, 1, mibTail, snmp_netFqdnFn,
-        LEN_SQ_NET + 2, LEN_SQ_NET + 1);  
+	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_netFqdnFn,
+	LEN_SQ_NET + 2, LEN_SQ_NET + 1);
     return ret;
 }
 
@@ -438,12 +439,12 @@ netDnsGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     oid mibTail[LEN_SQ_NET + 2] =
     {SQ_NET, 3, 3};
     oid_ParseFn *ret;
-   
+
     debug(49, 5) ("netDnsGetNextFn: Called\n");
-   
+
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-        mibRoot, mibRootLen, NULL, 1, mibTail, snmp_netDnsFn,
-        LEN_SQ_NET + 2, LEN_SQ_NET + 1);  
+	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_netDnsFn,
+	LEN_SQ_NET + 2, LEN_SQ_NET + 1);
     return ret;
 }
 
@@ -524,7 +525,7 @@ meshPtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 	    LEN_SQ_MESH + 7, LEN_SQ_MESH + 2);
     } else {
 	ret = NULL;
-    } 
+    }
 
     return ret;
 }

@@ -74,14 +74,14 @@ storeClientListSearch(const MemObject * mem, void *data)
 }
 
 static store_client_t
-storeClientType(StoreEntry *e)
+storeClientType(StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
     if (mem->inmem_lo)
 	return STORE_DISK_CLIENT;
     if (e->store_status == STORE_ABORTED) {
 	/* I don't think we should be adding clients to aborted entries */
-	debug(20,1)("storeClientType: adding to STORE_ABORTED entry\n");
+	debug(20, 1) ("storeClientType: adding to STORE_ABORTED entry\n");
 	return STORE_MEM_CLIENT;
     }
     if (e->store_status == STORE_OK) {

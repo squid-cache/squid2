@@ -246,7 +246,7 @@ snmp_meshCtblFn(variable_list * Var, snint * ErrP)
 	snmp_var_free(Answer);
 	return (NULL);
     }
-    switch (Var->name[LEN_SQ_NET+2]) {
+    switch (Var->name[LEN_SQ_NET + 2]) {
     case MESH_CTBL_ADDR:
 	Answer->type = SMI_IPADDRESS;
 	Answer->val_len = sizeof(snint);
@@ -316,4 +316,4 @@ snmp_meshCtblFn(variable_list * Var, snint * ErrP)
     return Answer;
 }
 
-#endif /*SQUID_SNMP*/
+#endif /*SQUID_SNMP */
