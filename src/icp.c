@@ -1683,7 +1683,7 @@ clientReadRequest(int fd, void *data)
     int size;
     int len;
 
-    len = icpState->inbufsize - icpState->in_offset;
+    len = icpState->inbufsize - icpState->in_offset - 1;
     debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
     debug(12, 4, "clientReadRequest: len = %d\n", len);
     size = read(fd, icpState->inbuf + icpState->in_offset, len);
