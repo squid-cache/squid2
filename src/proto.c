@@ -113,7 +113,6 @@ typedef struct {
     request_t *request;
 } pctrl_t;
 
-static int protoNotImplemented _PARAMS((StoreEntry *));
 static void protoDispatchComplete _PARAMS((peer * p, void *data));
 static void protoDispatchFail _PARAMS((peer * p, void *data));
 
@@ -168,14 +167,6 @@ protoDispatchFail(peer * p, void *data)
     xfree(pctrl);
 }
 
-static int
-protoNotImplemented(StoreEntry * entry)
-{
-    debug(17, 1, "protoNotImplemented: Cannot retrieve '%s'\n", entry->url);
-    squid_error_entry(entry, ERR_NOT_IMPLEMENTED, NULL);
-    return 0;
-}
-
 /* PUBLIC FUNCTIONS */
 
 int
@@ -198,7 +189,7 @@ protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr
     return 1;
 }
 
-int
+void
 protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 {
     char *request_hdr = entry->mem_obj->mime_hdr;
@@ -221,23 +212,23 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 #endif
     if (e) {
 	e->stats.fetches++;
-	return proxyhttpStart(request, entry, e);
+	proxyhttpStart(request, entry, e);
     } else if (request->protocol == PROTO_HTTP) {
-	return httpStart(request, request_hdr, request_hdr_sz, entry);
+	httpStart(request, request_hdr, request_hdr_sz, entry);
     } else if (request->protocol == PROTO_GOPHER) {
-	return gopherStart(entry);
+	gopherStart(entry);
     } else if (request->protocol == PROTO_FTP) {
-	return ftpStart(request, entry);
+	ftpStart(request, entry);
     } else if (request->protocol == PROTO_WAIS) {
-	return waisStart(request->method, request_hdr, entry);
+	waisStart(request->method, request_hdr, entry);
     } else if (request->protocol == PROTO_CACHEOBJ) {
-	return objcacheStart(fd, entry);
+	objcacheStart(fd, entry);
     } else if (request->method == METHOD_CONNECT) {
 	fatal_dump("protoStart() should not be handling CONNECT");
     } else {
-	return protoNotImplemented(entry);
+	debug(17, 1, "protoStart: Cannot retrieve '%s'\n", entry->url);
+	squid_error_entry(entry, ERR_NOT_IMPLEMENTED, NULL);
     }
-    return 0;
 }
 
 void
@@ -259,7 +250,7 @@ protoDispatch(int fd, StoreEntry * entry, request_t * request)
     pctrl->fd = fd;
     pctrl->request = requestLink(request);
     /* Keep the StoreEntry locked during peer selection phase */
-    storeLockObject(entry, NULL, NULL);
+    storeLockObject(entry);
     peerSelect(request,
 	entry,
 	protoDispatchComplete,
