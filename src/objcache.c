@@ -271,6 +271,7 @@ objcacheStart(int fd, StoreEntry * entry)
     int i;
     OBJH *handler = NULL;
     ErrorState *err = NULL;
+    char *hdr;
     debug(16, 3) ("objectcacheStart: '%s'\n", storeUrl(entry));
     if ((data = objcache_url_parser(storeUrl(entry))) == NULL) {
 	err = errorCon(ERR_INVALID_REQ, HTTP_NOT_FOUND);
@@ -306,6 +307,14 @@ objcacheStart(int fd, StoreEntry * entry)
     }
     assert(handler != NULL);
     storeBuffer(entry);
+    hdr = httpReplyHeader((double) 1.0,
+        HTTP_OK,
+        "text/plain",
+        -1,			/* Content-Length */
+        squid_curtime,		/* LMT */
+        squid_curtime);
+    storeAppend(entry, hdr, strlen(hdr));
+    storeAppend(entry, "\r\n", 2);
     handler(entry);
     storeBufferFlush(entry);
     storeComplete(entry);
