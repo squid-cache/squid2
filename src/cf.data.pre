@@ -1263,196 +1263,200 @@ TYPE: authparam
 LOC: Config.authConfig
 DEFAULT: none
 DOC_START
-	This is used to pass parameters to the various authentication
-	schemes.
+	This is used to define parameters for the various authentication
+	schemes supported by Squid.
+
 	format: auth_param scheme parameter [setting]
 	
-	auth_param basic program @DEFAULT_PREFIX@/bin/ncsa_auth @DEFAULT_PREFIX@/etc/passwd	
-	would tell the basic authentication scheme it's program parameter.
+	The order that authentication schemes are presented to the client is
+	dependant on the order the scheme first appears in config file. IE
+	has a bug (it's not rfc 2617 compliant) in that it will use the basic
+	scheme if basic is the first entry presented, even if more secure
+	schemes are presented. For now use the order in the recommended
+	settings section below. If other browsers have difficulties (don't
+	recognise the schemes offered even if you are using basic) then either
+	put basic first, or disable the other schemes (by commenting out their
+	program entry).
 
-	The order that authentication prompts are presented to the client_agent
-	is dependant on the order the scheme first appears in config file.
-	IE has a bug (it's not rfc 2617 compliant) in that it will use the basic
-	scheme if basic is the first entry presented, even if more secure schemes
-	are presented. For now use the order in the file below. If other browsers
-	have difficulties (don't recognise the schemes offered even if you are using
-	basic) then either put basic first, or disable the other schemes (by commenting
-	out their program entry).
+	Once an authentication scheme is fully configured, it can only be
+	shutdown by shutting squid down and restarting. Changes can be made on
+	the fly and activated with a reconfigure. I.E. You can change to a
+	different helper, but not unconfigure the helper completely.
 
-	Once an authentication scheme is fully configured, it can only be shutdown
-	by shutting squid down and restarting. Changes can be made on the fly and
-	activated with a reconfigure. I.E. You can change to a different helper,
-	but not unconfigure the helper completely.
+	Please note that while this directive defines how Squid processes
+	authentication it does not automatically activate authentication.
+	To use authenticaiton you must in addition make use of acls based
+	on login name in http_access (proxy_auth, proxy_auth_regex or
+	external with %LOGIN used in the format tag). The browser will be
+	challenged for authentication on the first such acl encountered
+	in http_access processing and will also be rechallenged for new
+	login credentials if the request is being denied by a proxy_auth
+	type acl.
 
 	=== Parameters for the basic scheme follow. ===
 	
 	"program" cmdline
-	Specify the command for the external authenticator.  Such a
-	program reads a line containing "username password" and replies
-	"OK" or "ERR" in an endless loop.  If you use an authenticator,
-	make sure you have 1 acl of type proxy_auth.  By default, the
-	basic authentication sheme is not used unless a program is specified.
+	Specify the command for the external authenticator.  Such a program
+	reads a line containing "username password" and replies "OK" or
+	"ERR" in an endless loop.
 
-	If you want to use the traditional proxy authentication,
-	jump over to the helpers/basic_auth/NCSA directory and
-	type:
+	By default, the basic authentication sheme is not used unless a
+	program is specified.
+
+	If you want to use the traditional proxy authentication, jump over to
+	the helpers/basic_auth/NCSA directory and type:
 		% make
 		% make install
 
 	Then, set this line to something like
 
-	auth_param basic program @DEFAULT_PREFIX@/bin/ncsa_auth @DEFAULT_PREFIX@/etc/passwd
+	auth_param basic program @DEFAULT_PREFIX@/libexec/ncsa_auth @DEFAULT_PREFIX@/etc/passwd
 	
 	"children" numberofchildren
 	The number of authenticator processes to spawn.
-	If you start too few Squid will have to wait for them to
-	process a backlog of usercode/password verifications, slowing
-	it down. When password verifications are done via a (slow)
-	network you are likely to need lots of authenticator
-	processes.
+	If you start too few Squid will have to wait for them to process a
+	backlog of usercode/password verifications, slowing it down. When
+	password verifications are done via a (slow) network you are likely to
+	need lots of authenticator processes.
 	auth_param basic children 5
 
 	"realm" realmstring
-	Specifies the realm name which is to be reported to the
-	client for the basic proxy authentication scheme (part of
-	the text the user will see when prompted their username and
-	password).
+	Specifies the realm name which is to be reported to the client for
+	the basic proxy authentication scheme (part of the text the user
+	will see when prompted their username and password).
 	auth_param basic realm Squid proxy-caching web server
 
 	"credentialsttl" timetolive
 	Specifies how long squid assumes an externally validated
-	username:password pair is valid for - in other words how
-	often the helper program is called for that user. Set this
-	low to force revalidation with short lived passwords.  Note
-	that setting this high does not impact your susceptability
-	to replay attacks unless you are using an one-time password
-	system (such as SecureID).  If you are using such a system,
-	you will be vulnerable to replay attacks unless you also
-	use the max_user_ip ACL in an http_access rule.
+	username:password pair is valid for - in other words how often the
+	helper program is called for that user. Set this low to force
+	revalidation with short lived passwords.  Note that setting this high
+	does not impact your susceptability to replay attacks unless you are
+	using an one-time password system (such as SecureID). If you are using
+	such a system, you will be vulnerable to replay attacks unless you
+	also use the max_user_ip ACL in an http_access rule.
 	auth_param basic credentialsttl 2 hours
 
 	=== Parameters for the digest scheme follow ===
 
 	"program" cmdline
-	Specify the command for the external authenticator.  Such
-	a program reads a line containing "username":"realm" and
-	replies with the appropriate H(A1) value base64 encoded.
-	See rfc 2616 for the definition of H(A1).  If you use an
-	authenticator, make sure you have 1 acl of type proxy_auth.
-	By default, the digest authentication scheme is not used
-	unless a program is specified.
+	Specify the command for the external authenticator.  Such a program
+	reads a line containing "username":"realm" and replies with the
+	appropriate H(A1) value base64 encoded.  See rfc 2616 for the
+	definition of H(A1).
 
-	If you want to use a digest authenticator, jump over to
-	the helpers/digest_auth/ directory and choose the
-	authenticator to use. It it's directory type
+	By default, the digest authentication scheme is not used unless a
+	program is specified.
+
+	If you want to use a digest authenticator, jump over to the
+	helpers/digest_auth/ directory and choose the authenticator to use.
+	It it's directory type
         	% make
 	        % make install
 
 	Then, set this line to something like
 
-	auth_param digest program @DEFAULT_PREFIX@/bin/digest_auth_pw @DEFAULT_PREFIX@/etc/digpass
+	auth_param digest program @DEFAULT_PREFIX@/libexec/digest_auth_pw @DEFAULT_PREFIX@/etc/digpass
 
 
 	"children" numberofchildren
-	The number of authenticator processes to spawn (no default).
-	If you start too few Squid will have to wait for them to
-	process a backlog of H(A1) calculations, slowing it down.
-	When the H(A1) calculations are done via a (slow) network
-	you are likely to need lots of authenticator processes.
+	The number of authenticator processes to spawn (no default). If you
+	start too few Squid will have to wait for them to process a backlog of
+	H(A1) calculations, slowing it down.  When the H(A1) calculations are
+	done via a (slow) network you are likely to need lots of authenticator
+	processes.
 	auth_param digest children 5
 
 	"realm" realmstring
-	Specifies the realm name which is to be reported to the
-	client for the digest proxy authentication scheme (part of
-	the text the user will see when prompted their username and
-	password).
+	Specifies the realm name which is to be reported to the client for the
+	digest proxy authentication scheme (part of the text the user will see
+	when prompted their username and password).
 	auth_param digest realm Squid proxy-caching web server
 
 	"nonce_garbage_interval" timeinterval
-	Specifies the interval that nonces that have been issued
-	to client_agent's are checked for validity.
+	Specifies the interval that nonces that have been issued to clients are
+	checked for validity.
 	auth_param digest nonce_garbage_interval 5 minutes
 
 	"nonce_max_duration" timeinterval
-	Specifies the maximum length of time a given nonce will be
-	valid for.
+	Specifies the maximum length of time a given nonce will be valid for.
 	auth_param digest nonce_max_duration 30 minutes
 
 	"nonce_max_count" number
-	Specifies the maximum number of times a given nonce can be
-	used.
+	Specifies the maximum number of times a given nonce can be used.
 	auth_param digest nonce_max_count 50
 
 	"nonce_strictness" on|off
-	Determines if squid requires strict increment-by-1 behaviour
-	for nonce counts, or just incrementing (off - for use when
-	useragents generate nonce counts that occasionally miss 1
-	(ie, 1,2,4,6)).
+	Determines if squid requires strict increment-by-1 behaviour for nonce
+	counts, or just incrementing (off - for use when useragents generate
+	nonce counts that occasionally miss 1 (ie, 1,2,4,6)).
 	auth_param digest nonce_strictness off
 
 	"check_nonce_count" on|off
 	This directive if set to off can disable the nonce count check
-	completely to work around buggy digest qop implementations in
-	certain mainstream browser versions. Default on to check the
-	nonce count to protect from authentication replay attacks.
+	completely to work around buggy digest qop implementations in certain
+	mainstream browser versions. Default on to check the nonce count to
+	protect from authentication replay attacks.
 	auth_param digest check_nonce_count on
 
 	"post_workaround" on|off
-	This is a workaround to certain buggy browsers who sends
-	an incorrect request digest in POST requests when reusing
-	the same nonce as aquired earlier on a GET request.
+	This is a workaround to certain buggy browsers who sends an incorrect
+	request digest in POST requests when reusing the same nonce as aquired
+       	earlier in response to a GET request.
 	auth_param digest post_workaround off
 
 	=== NTLM scheme options follow ===
 
 	"program" cmdline
-	Specify the command for the external ntlm authenticator.
-	Such a program reads a line containing the uuencoded NEGOTIATE
-	and replies with the ntlm CHALLENGE, then waits for the
-	response and answers with "OK" or "ERR" in an endless loop.
-	If you use an ntlm authenticator, make sure you have 1 acl
-	of type proxy_auth.  By default, the ntlm authentication scheme
-	is not used unless a program is specified.
+	Specify the command for the external ntlm authenticator. Such a
+	program participates in the NTLMSSP exchanges between Squid and the
+	client and reads commands according to the Squid ntlmssp helper
+	protocol. See helpers/ntlm_auth/ for details. Recommended ntlm
+	authenticator is ntlm_auth from Samba-3.X, but a number of other
+	ntlm authenticators is available.
 
-	auth_param ntlm program @DEFAULT_PREFIX@/bin/ntlm_auth
+	By default, the ntlm authentication scheme is not used unless a
+	program is specified.
+
+	auth_param ntlm program /path/to/samba/bin/ntlm_auth --helper-protocol=squid-2.5-ntlmssp
 
 	"children" numberofchildren
-	The number of authenticator processes to spawn (no default).
-	If you start too few Squid will have to wait for them to
-	process a backlog of credential verifications, slowing it
-	down. When crendential verifications are done via a (slow)
-	network you are likely to need lots of authenticator
-	processes.
+	The number of authenticator processes to spawn (no default). If you
+	start too few Squid will have to wait for them to process a backlog
+	of credential verifications, slowing it down. When crendential
+	verifications are done via a (slow) network you are likely to need
+	lots of authenticator processes.
 	auth_param ntlm children 5
 
 	"max_challenge_reuses" number
-	The maximum number of times a challenge given by a ntlm
-	authentication helper can be reused. Increasing this number
-	increases your exposure to replay attacks on your network.
-	0 means use the challenge only once.  (disable challenge
-	caching) See max_ntlm_challenge_lifetime for more information.
+	The maximum number of times a challenge given by a ntlm authentication
+	helper can be reused. Increasing this number increases your exposure
+	to replay attacks on your network. 0 (the default) means use the
+	challenge is used only once. See also the max_ntlm_challenge_lifetime
+	directive if enabling challenge reuses.
 	auth_param ntlm max_challenge_reuses 0
 
 	"max_challenge_lifetime" timespan
-	The maximum time period that a ntlm challenge is reused
-	over.  The actual period will be the minimum of this time
-	AND the number of reused challenges.
+	The maximum time period that a ntlm challenge is reused over. The
+	actual period will be the minimum of this time AND the number of
+	reused challenges.
 	auth_param ntlm max_challenge_lifetime 2 minutes
 
 	"use_ntlm_negotiate" on|off
-	Enables support for NTLM NEGOTIATE packet exchanges with the
-	helper. The configured ntlm authenticator must be able to handle
-	NTLM NEGOTIATE packet, see the authenticator's documentation for
-	more details.
-	This is required for support of NTLMv2 and a number of other
-	negotiable options, and also makes it more likely the negotiation
-	is successful.
-	Enabling this parameter will also solve problems encountered when
-	NT domain policies restrict users to access only certain
-	workstations. When this is off, all users must be allowed to log
-	on the proxy servers too, or they'll get "invalid workstation"
-	errors - and access denied - when trying to use Squid's services.
-	Use of ntlm NEGOTIATE is incompatible with challenge reuse, so 
+	Enables support for NTLM NEGOTIATE packet exchanges with the helper.
+	The configured ntlm authenticator must be able to handle NTLM
+	NEGOTIATE packet. See the authenticator programs documentation if
+	unsure. ntlm_auth from Samba-3.0.2 or later supports the use of this
+	option.
+	The NEGOTIATE packet is required to support NTLMv2 and a
+	number of other negotiable NTLMSSP options, and also makes it
+	more likely the negotiation is successful. Enabling this parameter
+	will also solve problems encountered when NT domain policies
+	restrict users to access only certain workstations. When this is off,
+	all users must be allowed to log on the proxy servers too, or they'll
+	get "invalid workstation" errors - and access denied - when trying to
+	use Squid's services.
+	Use of ntlm NEGOTIATE is incompatible with challenge reuse, so
 	enabling this parameter will OVERRIDE the max_challenge_reuses and
 	max_challenge_lifetime parameters and set them to 0.
 	auth_param ntlm use_ntlm_negotiate off
@@ -1482,10 +1486,10 @@ TYPE: time_t
 DEFAULT: 1 hour
 LOC: Config.authenticateGCInterval
 DOC_START
-	The time period between garbage collection across the
-	username cache.  This is a tradeoff between memory utilisation
-	(long intervals - say 2 days) and CPU (short intervals -
-	say 1 minute). Only change if you have good reason to.
+	The time period between garbage collection across the username cache.
+	This is a tradeoff between memory utilisation (long intervals - say
+	2 days) and CPU (short intervals - say 1 minute). Only change if you
+	have good reason to.
 DOC_END
 
 NAME: authenticate_ttl
@@ -1493,10 +1497,9 @@ TYPE: time_t
 DEFAULT: 1 hour
 LOC: Config.authenticateTTL
 DOC_START
-	The time a user & their credentials stay in the logged in
-	user cache since their last request. When the garbage
-	interval passes, all user credentials that have passed their
-	TTL are removed from memory.
+	The time a user & their credentials stay in the logged in user cache
+	since their last request. When the garbage interval passes, all user
+	credentials that have passed their TTL are removed from memory.
 DOC_END
 
 NAME: authenticate_ip_ttl
@@ -1504,13 +1507,12 @@ TYPE: time_t
 LOC: Config.authenticateIpTTL
 DEFAULT: 0 seconds
 DOC_START
-	If you use proxy authentication and the 'max_user_ip' ACL,
-	this directive controls how long Squid remembers the IP
-	addresses associated with each user.  Use a small value
-	(e.g., 60 seconds) if your users might change addresses
-	quickly, as is the case with dialups.   You might be safe
-	using a larger value (e.g., 2 hours) in a corporate LAN
-	environment with relatively static address assignments.
+	If you use proxy authentication and the 'max_user_ip' ACL, this
+	directive controls how long Squid remembers the IP addresses
+	associated with each user.  Use a small value (e.g., 60 seconds) if
+	your users might change addresses quickly, as is the case with
+	dialups. You might be safe using a larger value (e.g., 2 hours) in a
+	corporate LAN environment with relatively static address assignments.
 DOC_END
 
 NAME: external_acl_type
@@ -1518,8 +1520,8 @@ TYPE: externalAclHelper
 LOC: Config.externalAclHelperList
 DEFAULT: none
 DOC_START
-	This option defines external acl classes using a helper program
-	to look up the status
+	This option defines external acl classes using a helper program to
+	look up the status
 	
 	  external_acl_type name [options] FORMAT.. /path/to/helper [helper arguments..]
 	
