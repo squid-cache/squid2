@@ -269,6 +269,15 @@ void httpParseHeaders(buf, reply)
 		strncpy(reply->last_modified, t, HTTP_REPLY_FIELD_SZ - 1);
 		ReplyHeaderStats.lm++;
 	    }
+	} else if (!strncasecmp(t, "Cache-Control:", 14)) {
+	    if ((t = strtok(NULL, w_space))) {
+		if (!strncasecmp(t, "private", 7))
+		    reply->cache_control |= HTTP_CC_PRIVATE;
+		else if (!strncasecmp(t, "cachable", 8))
+		    reply->cache_control |= HTTP_CC_CACHABLE;
+		else if (!strncasecmp(t, "no-cache", 8))
+		    reply->cache_control |= HTTP_CC_NOCACHE;
+	    }
 	}
 	t = strtok(NULL, "\n");
     }
@@ -339,7 +348,11 @@ void httpProcessReplyHeader(httpState, buf, size)
 	case 301:		/* Moved Permanently */
 	case 410:		/* Gone */
 	    /* don't cache objects from neighbors w/o LMT, Date, or Expires */
-	    if (*reply->date)
+	    if (BIT_SET(reply->cache_control, HTTP_CC_PRIVATE))
+		httpMakePrivate(entry);
+	    else if (BIT_SET(reply->cache_control, HTTP_CC_NOCACHE))
+		httpMakePrivate(entry);
+	    else if (*reply->date)
 		httpMakePublic(entry);
 	    else if (*reply->last_modified)
 		httpMakePublic(entry);
@@ -626,10 +639,10 @@ static void httpSendRequest(fd, httpState)
     ybuf = get_free_4k_page();
     if (httpState->entry->mem_obj)
 	cfd = httpState->entry->mem_obj->fd_of_first_client;
-    if (cfd < 0) {
-	sprintf(ybuf, "%s\r\n", ForwardedBy);
-    } else {
+    if (cfd > -1 && opt_forwarded_for) {
 	sprintf(ybuf, "%s for %s\r\n", ForwardedBy, fd_table[cfd].ipaddr);
+    } else {
+	sprintf(ybuf, "%s\r\n", ForwardedBy);
     }
     strcat(buf, ybuf);
     len += strlen(ybuf);
