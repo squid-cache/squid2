@@ -340,6 +340,7 @@ serverConnectionsOpen(void)
     int len;
     int x;
     int fd;
+    wordlist *s;
     for (x = 0; x < Config.Port.n_http; x++) {
 	enter_suid();
 	fd = comm_open(SOCK_STREAM,
@@ -376,7 +377,11 @@ serverConnectionsOpen(void)
 		COMM_SELECT_READ,
 		icpHandleUdp,
 		NULL, 0);
-	    comm_join_mcast_groups(theInIcpConnection);
+	    for (s = Config.mcast_group_list; s; s = s->next)
+		ipcache_nbgethostbyname(s->key,
+		    theInIcpConnection,
+		    comm_join_mcast_groups,
+		    NULL);
 	    debug(1, 1, "Accepting ICP connections on port %d, FD %d.\n",
 		(int) port, theInIcpConnection);
 

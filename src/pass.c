@@ -48,7 +48,6 @@ typedef struct {
     time_t timeout;
     int *size_ptr;		/* pointer to size for logging */
     int proxying;
-    int ip_lookup_pending;
 } PassStateData;
 
 static PF passTimeout;
@@ -56,8 +55,6 @@ static void passReadServer _PARAMS((int fd, void *));
 static void passReadClient _PARAMS((int fd, void *));
 static void passWriteServer _PARAMS((int fd, void *));
 static void passWriteClient _PARAMS((int fd, void *));
-static void passConnected _PARAMS((int fd, void *));
-static IPH passConnect;
 static void passErrorComplete _PARAMS((int, char *, int, int, void *));
 static void passClose _PARAMS((PassStateData * passState));
 static void passClientClosed _PARAMS((int fd, void *));
@@ -104,8 +101,6 @@ passStateFree(int fd, void *data)
 	return;
     if (fd != passState->server.fd)
 	fatal_dump("passStateFree: FD mismatch!\n");
-    if (passState->ip_lookup_pending)
-	ipcacheUnregister(passState->host, passState);
     if (passState->client.fd > -1) {
 	commSetSelect(passState->client.fd,
 	    COMM_SELECT_READ,
@@ -286,45 +281,6 @@ passWriteClient(int fd, void *data)
 }
 
 static void
-passConnected(int fd, void *data)
-{
-    PassStateData *passState = data;
-    request_t *request = passState->request;
-    size_t hdr_len = 0;
-    debug(39, 3, "passConnected: FD %d passState=%p\n", fd, passState);
-    if (passState->proxying) {
-	request = get_free_request_t();
-	passState->proxy_request = requestLink(request);
-	request->method = passState->request->method;
-	xstrncpy(request->urlpath, passState->url, MAX_URL);
-    }
-    passState->client.len = httpBuildRequestHeader(request,
-	passState->request,	/* orig_request */
-	NULL,			/* entry */
-	passState->buf,
-	&hdr_len,
-	passState->client.buf,
-	SQUID_TCP_SO_RCVBUF >> 1,
-	opt_forwarded_for ? passState->client.fd : -1);
-    debug(39, 3, "passConnected: Appending %d bytes of content\n",
-	passState->buflen - hdr_len);
-    xmemcpy(passState->client.buf + passState->client.len,
-	passState->buf + hdr_len,
-	passState->buflen - hdr_len);
-    passState->client.len += passState->buflen - hdr_len;
-    passState->client.offset = 0;
-    commSetTimeout(passState->server.fd, Config.Timeout.read, NULL, NULL);
-    commSetSelect(passState->server.fd,
-	COMM_SELECT_WRITE,
-	passWriteServer,
-	passState, 0);
-    commSetSelect(passState->server.fd,
-	COMM_SELECT_READ,
-	passReadServer,
-	passState, 0);
-}
-
-static void
 passErrorComplete(int fd, char *buf, int size, int errflag, void *passState)
 {
     safe_free(buf);
@@ -336,14 +292,14 @@ passErrorComplete(int fd, char *buf, int size, int errflag, void *passState)
 }
 
 static void
-passConnect(int fd, const ipcache_addrs * ia, void *data)
+passConnectDone(int fd, int status, void *data)
 {
     PassStateData *passState = data;
     request_t *request = passState->request;
     char *buf = NULL;
-    passState->ip_lookup_pending = 0;
-    if (ia == NULL) {
-	debug(39, 4, "passConnect: Unknown host: %s\n", passState->host);
+    size_t hdr_len = 0;
+    if (status == COMM_ERR_DNS) {
+	debug(39, 4, "passConnectDone: Unknown host: %s\n", passState->host);
 	buf = squid_error_url(passState->url,
 	    request->method,
 	    ERR_DNS_FAIL,
@@ -357,28 +313,7 @@ passConnect(int fd, const ipcache_addrs * ia, void *data)
 	    passState,
 	    xfree);
 	return;
-    }
-    debug(39, 5, "passConnect: client=%d server=%d\n",
-	passState->client.fd,
-	passState->server.fd);
-    /* Install lifetime handler */
-    commSetTimeout(passState->server.fd,
-	Config.Timeout.read,
-	passTimeout,
-	passState);
-    commConnectStart(fd,
-	passState->host,
-	passState->port,
-	passConnectDone,
-	passState);
-}
-
-static void
-passConnectDone(int fd, int status, void *data)
-{
-    PassStateData *passState = data;
-    char *buf = NULL;
-    if (status == COMM_ERROR) {
+    } else if (status != COMM_OK) {
 	buf = squid_error_url(passState->url,
 	    passState->request->method,
 	    ERR_CONNECT_FAIL,
@@ -395,7 +330,36 @@ passConnectDone(int fd, int status, void *data)
     }
     if (opt_no_ipcache)
 	ipcacheInvalidate(passState->host);
-    passConnected(passState->server.fd, passState);
+    if (passState->proxying) {
+	request = get_free_request_t();
+	passState->proxy_request = requestLink(request);
+	request->method = passState->request->method;
+	xstrncpy(request->urlpath, passState->url, MAX_URL);
+    }
+    passState->client.len = httpBuildRequestHeader(request,
+	passState->request,	/* orig_request */
+	NULL,			/* entry */
+	passState->buf,
+	&hdr_len,
+	passState->client.buf,
+	SQUID_TCP_SO_RCVBUF >> 1,
+	opt_forwarded_for ? passState->client.fd : -1);
+    debug(39, 3, "passConnectDone: Appending %d bytes of content\n",
+	passState->buflen - hdr_len);
+    xmemcpy(passState->client.buf + passState->client.len,
+	passState->buf + hdr_len,
+	passState->buflen - hdr_len);
+    passState->client.len += passState->buflen - hdr_len;
+    passState->client.offset = 0;
+    commSetTimeout(passState->server.fd, Config.Timeout.read, NULL, NULL);
+    commSetSelect(passState->server.fd,
+	COMM_SELECT_WRITE,
+	passWriteServer,
+	passState, 0);
+    commSetSelect(passState->server.fd,
+	COMM_SELECT_READ,
+	passReadServer,
+	passState, 0);
 }
 
 void
@@ -456,6 +420,10 @@ passStart(int fd,
     comm_add_close_handler(passState->client.fd,
 	passClientClosed,
 	passState);
+    commSetTimeout(passState->server.fd,
+	Config.Timeout.read,
+	passTimeout,
+	passState);
     /* disable icpDetectClientClose */
     commSetSelect(passState->client.fd,
 	COMM_SELECT_READ,
@@ -485,10 +453,10 @@ passPeerSelectComplete(peer * p, void *data)
     } else {
 	passState->port = CACHE_HTTP_PORT;
     }
-    passState->ip_lookup_pending = 1;
-    ipcache_nbgethostbyname(passState->host,
-	passState->server.fd,
-	passConnect,
+    commConnectStart(passState->server.fd,
+	passState->host,
+	passState->port,
+	passConnectDone,
 	passState);
 }
 

@@ -113,6 +113,8 @@
 #define COMM_TIMEOUT	 (-4)
 #define COMM_SHUTDOWN	 (-5)
 #define COMM_INPROGRESS  (-6)
+#define COMM_ERR_CONNECT (-7)
+#define COMM_ERR_DNS     (-8)
 
 #define COMM_NONBLOCKING  (0x1)
 #define COMM_NOCLOEXEC	  (0x8)
@@ -137,6 +139,8 @@ typedef struct {
     struct sockaddr_in S;
     CNCB *callback;
     void *data;
+    int tries;
+    struct in_addr in_addr;
 } ConnectStateData;
 
 extern int commSetNonBlocking _PARAMS((int fd));
@@ -158,7 +162,7 @@ extern void commSetSelect _PARAMS((int, unsigned int, PF *, void *, time_t));
 extern void comm_add_close_handler _PARAMS((int fd, PF *, void *));
 extern void comm_remove_close_handler _PARAMS((int fd, PF *, void *));
 extern int comm_set_mcast_ttl _PARAMS((int, int));
-extern int comm_join_mcast_groups _PARAMS((int));
+extern void comm_join_mcast_groups _PARAMS((int, const ipcache_addrs *, void *));
 extern int comm_udp_send _PARAMS((int fd, const char *host, u_short port, const char *buf, int len));
 extern int comm_udp_sendto _PARAMS((int fd, const struct sockaddr_in *, int size, const char *buf, int len));
 extern int fd_of_first_client _PARAMS((StoreEntry *));

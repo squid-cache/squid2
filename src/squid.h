@@ -235,6 +235,7 @@ typedef struct _MemObject MemObject;
 typedef struct _cachemgr_passwd cachemgr_passwd;
 typedef struct _fileMap fileMap;
 typedef struct _cwstate CommWriteStateData;
+typedef struct _ipcache_addrs ipcache_addrs;
 
 /* 32 bit integer compatability hack */
 #if SIZEOF_INT == 4
@@ -326,7 +327,7 @@ extern int theInIcpConnection;	/* main.c */
 extern int theOutIcpConnection;	/* main.c */
 extern int vizSock;
 extern volatile int shutdown_pending;	/* main.c */
-extern volatile int reconfigure_pending;/* main.c */
+extern volatile int reconfigure_pending;	/* main.c */
 extern int opt_reload_hit_only;	/* main.c */
 extern int opt_dns_tests;	/* main.c */
 extern int opt_foreground_rebuild;	/* main.c */
