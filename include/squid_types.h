@@ -55,8 +55,19 @@
 
 #include "autoconf.h"
 
-#ifdef HAVE_SYS_TYPES_H
+/* This should be in synch with what we have in acinclude.m4 */
+#if STDC_HEADERS
+#include <stdlib.h>
+#include <stddef.h>
+#endif
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#if HAVE_SYS_BITYPES_H
+#include <sys/bitypes.h>
 #endif
 
 #endif /* SQUID_TYPES_H */

@@ -21,8 +21,7 @@
  *
  */
 
-#include "ntlmauth.h"
-#include "util.h"		/* for base64-related stuff */
+#include "config.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -30,6 +29,9 @@
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
+
+#include "ntlmauth.h"
+#include "util.h"		/* for base64-related stuff */
 
 #if UNUSED_CODE
 /* Dumps NTLM flags to standard error for debugging purposes */
