@@ -1326,3 +1326,14 @@ static int ipcacheHasPending(i)
 	    return 1;
     return 0;
 }
+
+void ipcacheReleaseInvalid(name)
+     char *name;
+{
+    ipcache_entry *i;
+    if ((i = ipcache_get(name)) == NULL)
+	return;
+    if (i->status != IP_NEGATIVE_CACHED)
+	return;
+    ipcache_release(i);
+}
