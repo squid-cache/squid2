@@ -69,7 +69,7 @@ Changes to squid-1.0.beta1 (Apr 19, 1996) from Harvest cached-1.4.pl3:
 	- Removed dual logging to stderr/cache.log.
 	- Removed old IP access controls ('proxy_allow', etc.)
 
-Changes to 1.0.beta2
+Changes to 1.0.beta2:
 
 	- Fixed /bin/csh "$#argv" leftover in RunCache.
 	- Fixed ACL day-of-week bitmask bug.
@@ -79,3 +79,12 @@ Changes to 1.0.beta2
 	  of the structure itself (for AIX).
 	- Changed ftpget to fork before reading the request and make
 	  sure the entire request is read.
+
+Changes to 1.0.beta3:
+
+	- Added ftpget '-C minport:maxport' option
+	- Fixed PROTO_MAX fencepost bug in stat_init().
+	- Fixed Fixed CheckQuickAbort() coredump.
+	- Fixed disabling store.log and hierarchy.log when set to "none"
+	- Fixed numerous problems related to setuid().
+	- Fixed 'check_cache.pl' to use new swaplog format (without "FILE").
