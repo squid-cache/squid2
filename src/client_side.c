@@ -603,20 +603,22 @@ httpRequestFree(void *data)
     clientHttpRequest *http = data;
     clientHttpRequest **H;
     ConnStateData *conn = http->conn;
-    StoreEntry *entry = http->entry;
+    StoreEntry *e;
     request_t *request = http->request;
     MemObject *mem = NULL;
-    debug(33, 3) ("httpRequestFree: %s\n", storeUrl(entry));
+    debug(33, 3) ("httpRequestFree: %s\n", storeUrl(http->entry));
     if (!clientCheckTransferDone(http)) {
-	if (entry)
-	    storeUnregister(entry, http);
-	entry = http->entry;	/* reset, IMS might have changed it */
-	if (entry && entry->ping_status == PING_WAITING)
-	    storeReleaseRequest(entry);
+	if ((e = http->entry)) {
+	    http->entry = NULL;
+	    storeUnregister(e, http);
+	    storeUnlockObject(e);
+	}
+	if (http->entry && http->entry->ping_status == PING_WAITING)
+	    storeReleaseRequest(http->entry);
     }
     assert(http->log_type < LOG_TYPE_MAX);
-    if (entry)
-	mem = entry->mem_obj;
+    if (http->entry)
+	mem = http->entry->mem_obj;
     if (http->out.size || http->log_type) {
 	http->al.icp.opcode = ICP_INVALID;
 	http->al.url = http->log_uri;
@@ -660,17 +662,17 @@ httpRequestFree(void *data)
     safe_free(http->al.headers.reply);
     safe_free(http->redirect.location);
     stringClean(&http->range_iter.boundary);
-    if (entry) {
+    if ((e = http->entry)) {
 	http->entry = NULL;
-	storeUnregister(entry, http);
-	storeUnlockObject(entry);
+	storeUnregister(e, http);
+	storeUnlockObject(e);
     }
     /* old_entry might still be set if we didn't yet get the reply
      * code in clientHandleIMSReply() */
-    if (http->old_entry) {
-	storeUnregister(http->old_entry, http);
-	storeUnlockObject(http->old_entry);
+    if ((e = http->old_entry)) {
 	http->old_entry = NULL;
+	storeUnregister(e, http);
+	storeUnlockObject(e);
     }
     requestUnlink(http->request);
     assert(http != http->next);
