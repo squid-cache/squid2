@@ -728,8 +728,12 @@ ipcacheAddEntryFromHosts(const char *name, const char *ipaddr)
     ipcache_entry *i;
     struct in_addr ip;
     if (!safe_inet_addr(ipaddr, &ip)) {
-	debug(14, 1) ("ipcacheAddEntryFromHosts: bad IP address '%s'\n",
-	    ipaddr);
+	if (strchr(ipaddr, ':') && strspn(ipaddr, "0123456789abcdefABCDEF:") == strlen(ipaddr)) {
+	    debug(14, 3) ("ipcacheAddEntryFromHosts: Skipping IPv6 address '%s'\n", ipaddr);
+	} else {
+	    debug(14, 1) ("ipcacheAddEntryFromHosts: Bad IP address '%s'\n",
+		ipaddr);
+	}
 	return 1;
     }
     if ((i = ipcache_get(name))) {
