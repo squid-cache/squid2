@@ -45,14 +45,6 @@ static int storeDiskdSend(int, SwapDir *, int, storeIOState *, int, int, int);
 static void storeDiskdIOCallback(storeIOState * sio, int errflag);
 static void storeDiskdIOFreeEntry(void *sio, int foo);
 
-/*
- * SHMBUFS is the number of shared memory buffers to allocate for
- * Each SwapDir.
- */
-#define SHMBUFS 96
-#define SHMBUF_BLKSZ SM_PAGE_SIZE
-
-
 /* === PUBLIC =========================================================== */
 
 storeIOState *
