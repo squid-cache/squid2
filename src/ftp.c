@@ -1395,8 +1395,11 @@ ftpReadType(FtpStateData * ftpState)
     char *d, *p;
     debug(9, 3) ("This is ftpReadType\n");
     if (code == 200) {
-	path = xstrdup(strBuf(ftpState->request->urlpath));
-	for (d = p = path; *p; d = p) {
+	p = path = xstrdup(strBuf(ftpState->request->urlpath));
+	if (*p == '/')
+	    p++;
+	while (*p) {
+	    d = p;
 	    p += strcspn(p, "/");
 	    if (*p)
 		*p++ = '\0';
