@@ -2796,6 +2796,8 @@ storeCheckExpired(StoreEntry * e)
 {
     if (storeEntryLocked(e))
 	return 0;
+    if (BIT_TEST(e->flag, ENTRY_NEGCACHED) && squid_curtime >= e->expires)
+	return 1;
     if (Config.referenceAge && squid_curtime - e->lastref > Config.referenceAge)
 	return 1;
     return 0;
