@@ -365,16 +365,22 @@ htcpBuildPacket(htcpStuff * stuff, ssize_t * len)
     htcpHeader hdr;
     char *buf = xcalloc(buflen, 1);
     /* skip the header -- we don't know the overall length */
-    if (buflen < hdr_sz)
+    if (buflen < hdr_sz) {
+	xfree(buf);
 	return NULL;
+    }
     off += hdr_sz;
     s = htcpBuildData(buf + off, buflen - off, stuff);
-    if (s < 0)
+    if (s < 0) {
+	xfree(buf);
 	return NULL;
+    }
     off += s;
     s = htcpBuildAuth(buf + off, buflen - off);
-    if (s < 0)
+    if (s < 0) {
+	xfree(buf);
 	return NULL;
+    }
     off += s;
     hdr.length = htons((u_short) off);
     hdr.major = 0;
@@ -412,7 +418,7 @@ htcpFreeSpecifier(htcpSpecifier * s)
     safe_free(s->uri);
     safe_free(s->version);
     safe_free(s->req_hdrs);
-    xfree(s);
+    memFree(s, MEM_HTCP_SPECIFIER);
 }
 
 static void
@@ -421,7 +427,7 @@ htcpFreeDetail(htcpDetail * d)
     safe_free(d->resp_hdrs);
     safe_free(d->entity_hdrs);
     safe_free(d->cache_hdrs);
-    xfree(d);
+    memFree(d, MEM_HTCP_DETAIL);
 }
 
 static int
@@ -454,7 +460,7 @@ htcpUnpackCountstr(char *buf, int sz, char **str)
 static htcpSpecifier *
 htcpUnpackSpecifier(char *buf, int sz)
 {
-    htcpSpecifier *s = xcalloc(1, sizeof(htcpSpecifier));
+    htcpSpecifier *s = memAllocate(MEM_HTCP_SPECIFIER);
     int o;
     debug(31, 3) ("htcpUnpackSpecifier: %d bytes\n", (int) sz);
     o = htcpUnpackCountstr(buf, sz, &s->method);
@@ -496,7 +502,7 @@ htcpUnpackSpecifier(char *buf, int sz)
 static htcpDetail *
 htcpUnpackDetail(char *buf, int sz)
 {
-    htcpDetail *d = xcalloc(1, sizeof(htcpDetail));
+    htcpDetail *d = memAllocate(MEM_HTCP_DETAIL);
     int o;
     debug(31, 3) ("htcpUnpackDetail: %d bytes\n", (int) sz);
     o = htcpUnpackCountstr(buf, sz, &d->resp_hdrs);
@@ -848,6 +854,8 @@ htcpInit(void)
     } else {
 	htcpOutSocket = htcpInSocket;
     }
+    memDataInit(MEM_HTCP_SPECIFIER, "htcpSpecifier", sizeof(htcpSpecifier), 0);
+    memDataInit(MEM_HTCP_DETAIL, "htcpDetail", sizeof(htcpDetail), 0);
 }
 
 void
