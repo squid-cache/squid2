@@ -179,14 +179,8 @@ waisReadReply(int fd, WaisStateData * waisState)
     int bin;
 
     entry = waisState->entry;
-    if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
-	/* we can terminate connection right now */
-	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
-	comm_close(fd);
-	return;
-    }
     /* check if we want to defer reading */
-    clen = entry->mem_obj->e_current_len;
+    clen = entry->object_len;
     off = storeGetLowestReaderOffset(entry);
     if ((clen - off) > WAIS_DELETE_GAP) {
 	if (entry->flag & CLIENT_ABORT_REQUEST) {
@@ -243,7 +237,7 @@ waisReadReply(int fd, WaisStateData * waisState)
 	    squid_error_entry(entry, ERR_READ_ERROR, xstrerror());
 	    comm_close(fd);
 	}
-    } else if (len == 0 && entry->mem_obj->e_current_len == 0) {
+    } else if (len == 0 && entry->mem_obj->swap_length == 0) {
 	squid_error_entry(entry,
 	    ERR_ZERO_SIZE_OBJECT,
 	    errno ? xstrerror() : NULL);
@@ -353,7 +347,7 @@ waisStart(int unusedfd, const char *url, method_t method, char *mime_hdr, StoreE
 	return COMM_ERROR;
     }
     waisState = xcalloc(1, sizeof(WaisStateData));
-    storeLockObject(waisState->entry = entry, NULL, NULL);
+    storeLockObject(waisState->entry = entry);
     waisState->method = method;
     waisState->relayhost = Config.Wais.relayHost;
     waisState->relayport = Config.Wais.relayPort;
