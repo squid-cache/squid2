@@ -107,7 +107,6 @@ static dlink_list inmem_list;
 static int store_pages_max = 0;
 static int store_swap_high = 0;
 static int store_swap_low = 0;
-static int store_swap_mid = 0;
 static Stack LateReleaseStack;
 
 static MemObject *
@@ -1137,7 +1136,6 @@ storeConfigure(void)
 	    (float) Config.Swap.highWaterMark) / (float) 100);
     store_swap_low = (long) (((float) Config.Swap.maxSize *
 	    (float) Config.Swap.lowWaterMark) / (float) 100);
-    store_swap_mid = (store_swap_high >> 1) + (store_swap_low >> 1);
     store_pages_max = Config.memMaxSize / SM_PAGE_SIZE;
 }
 
