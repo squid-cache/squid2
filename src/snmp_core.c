@@ -333,7 +333,6 @@ snmpInit(void)
 	);
 
     debug(49, 9) ("snmpInit: Completed SNMP mib tree structure\n");
-    memDataInit(MEM_SNMP_SNINT, "snmp_snint", sizeof(snint), 0);
 }
 
 void

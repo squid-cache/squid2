@@ -558,9 +558,6 @@ typedef enum {
     MEM_STORE_IO,
     MEM_IDNS_QUERY,
     MEM_EVENT,
-#if SQUID_SNMP
-    MEM_SNMP_SNINT,
-#endif
     MEM_MAX
 } mem_type;
 
