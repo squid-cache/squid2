@@ -799,7 +799,7 @@ parseLocalDomainFile(const char *fname)
     FILE *fp = NULL;
     char *t = NULL;
     if ((fp = fopen(fname, "r")) == NULL) {
-	debug(3, 1, "parseLocalDomainFile: %s: %s\n", fname, xstrerror());
+	debug(50, 1, "parseLocalDomainFile: %s: %s\n", fname, xstrerror());
 	return;
     }
     memset(tmp_line, '\0', BUFSIZ);

@@ -76,7 +76,7 @@ send_announce(void *unused)
 	    l += n;
 	    sndbuf[l] = '\0';
 	} else {
-	    debug(27, 1, "send_announce: %s: %s\n", file, xstrerror());
+	    debug(50, 1, "send_announce: %s: %s\n", file, xstrerror());
 	}
     }
     qdata = xcalloc(1, sizeof(icpUdpData));

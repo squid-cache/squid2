@@ -230,7 +230,7 @@ waisReadReply(int fd, WaisStateData * waisState)
 	IOStats.Wais.read_hist[bin]++;
     }
     if (len < 0) {
-	debug(24, 1, "waisReadReply: FD %d: read failure: %s.\n", xstrerror());
+	debug(50, 1, "waisReadReply: FD %d: read failure: %s.\n", xstrerror());
 	if (errno == EAGAIN || errno == EWOULDBLOCK) {
 	    /* reinstall handlers */
 	    /* XXX This may loop forever */

@@ -506,7 +506,7 @@ httpReadReply(int fd, void *data)
 	IOStats.Http.read_hist[bin]++;
     }
     if (len < 0) {
-	debug(11, 2, "httpReadReply: FD %d: read failure: %s.\n",
+	debug(50, 2, "httpReadReply: FD %d: read failure: %s.\n",
 	    fd, xstrerror());
 	if (errno == EAGAIN || errno == EWOULDBLOCK) {
 	    /* reinstall handlers */

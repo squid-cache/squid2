@@ -771,7 +771,7 @@ gopherReadReply(int fd, GopherStateData * data)
 	IOStats.Gopher.read_hist[bin]++;
     }
     if (len < 0) {
-	debug(10, 1, "gopherReadReply: error reading: %s\n", xstrerror());
+	debug(50, 1, "gopherReadReply: error reading: %s\n", xstrerror());
 	if (errno == EAGAIN || errno == EWOULDBLOCK) {
 	    /* reinstall handlers */
 	    /* XXX This may loop forever */

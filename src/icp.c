@@ -1052,7 +1052,7 @@ icpUdpSendEntry(int fd,
 
     if (getsockname(fd, (struct sockaddr *) &our_socket_name,
 	    &sock_name_length) == -1) {
-	debug(12, 1, "icpUdpSendEntry: FD %d: getsockname failure: %s\n",
+	debug(50, 1, "icpUdpSendEntry: FD %d: getsockname failure: %s\n",
 	    fd, xstrerror());
 	return;
     }
@@ -1453,7 +1453,7 @@ icpHandleUdp(int sock, void *not_used)
 	 * port unreachable message. */
 	if (errno != ECONNREFUSED)
 #endif
-	    debug(12, 1, "icpHandleUdp: FD %d recvfrom: %s\n",
+	    debug(50, 1, "icpHandleUdp: FD %d recvfrom: %s\n",
 		sock, xstrerror());
 	return;
     }
@@ -1848,7 +1848,7 @@ asciiHandleConn(int sock, void *notused)
     memset((char *) &me, '\0', sizeof(struct sockaddr_in));
     commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
     if ((fd = comm_accept(sock, &peer, &me)) < 0) {
-	debug(12, 1, "asciiHandleConn: FD %d: accept failure: %s\n",
+	debug(50, 1, "asciiHandleConn: FD %d: accept failure: %s\n",
 	    sock, xstrerror());
 	return;
     }
@@ -1980,9 +1980,9 @@ icpDetectClientClose(int fd, void *data)
 	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
 	debug(12, 5, "--> URL '%s'\n", icpState->url);
 	if (errno == ECONNRESET)
-	    debug(12, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
+	    debug(50, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	else if (errno)
-	    debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
+	    debug(50, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	commCancelRWHandler(fd);
 	CheckQuickAbort(icpState);
 	if (entry) {
@@ -2026,13 +2026,13 @@ icpDetectNewRequest(int fd)
     memset((char *) &me, '\0', len);
     memset((char *) &peer, '\0', len);
     if (getsockname(fd, (struct sockaddr *) &me, &len) < -1) {
-	debug(12, 1, "icpDetectNewRequest: FD %d: getsockname failure: %s\n",
+	debug(50, 1, "icpDetectNewRequest: FD %d: getsockname failure: %s\n",
 	    fd, xstrerror());
 	return;
     }
     len = sizeof(struct sockaddr_in);
     if (getpeername(fd, (struct sockaddr *) &peer, &len) < -1) {
-	debug(12, 1, "icpDetectNewRequest: FD %d: getpeername failure: %s\n",
+	debug(50, 1, "icpDetectNewRequest: FD %d: getpeername failure: %s\n",
 	    fd, xstrerror());
 	return;
     }

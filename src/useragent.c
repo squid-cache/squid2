@@ -50,10 +50,10 @@ useragentOpenLog(void)
     if (fname && strcmp(fname, "none") != 0) {
 	log_fd = file_open(fname, NULL, O_WRONLY | O_CREAT | O_APPEND);
 	if (log_fd < 0) {
-	    debug(40, 0, "useragentOpenLog: %s: %s\n", fname, xstrerror());
+	    debug(50, 0, "useragentOpenLog: %s: %s\n", fname, xstrerror());
 	} else if ((cache_useragent_log = fdopen(log_fd, "a")) == NULL) {
 	    file_close(log_fd);
-	    debug(40, 0, "useragentOpenLog: %s: %s\n", fname, xstrerror());
+	    debug(50, 0, "useragentOpenLog: %s: %s\n", fname, xstrerror());
 	}
     }
     if (log_fd < 0 || cache_useragent_log == NULL)
