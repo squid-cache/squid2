@@ -843,14 +843,17 @@ htcpRecv(int fd, void *data)
 void
 htcpInit(void)
 {
+    static int calls = 0;
     if (Config.Port.htcp <= 0) {
 	/*
 	 *      Need to allocate a bit of memory anyway, otherwise
 	 *      mem.c::memCheckInit() will bail out.
 	 */
-	memDataInit(MEM_HTCP_SPECIFIER, "htcpSpecifier",
+	if (0 == calls++) {
+	    memDataInit(MEM_HTCP_SPECIFIER, "htcpSpecifier",
 		sizeof(htcpSpecifier), 0);
-	memDataInit(MEM_HTCP_DETAIL, "htcpDetail", sizeof(htcpDetail), 0);
+	    memDataInit(MEM_HTCP_DETAIL, "htcpDetail", sizeof(htcpDetail), 0);
+	}
 	htcpInSocket = -1;
 	debug(31, 1) ("HTCP Disabled.\n");
 	return;
@@ -886,8 +889,10 @@ htcpInit(void)
     } else {
 	htcpOutSocket = htcpInSocket;
     }
-    memDataInit(MEM_HTCP_SPECIFIER, "htcpSpecifier", sizeof(htcpSpecifier), 0);
-    memDataInit(MEM_HTCP_DETAIL, "htcpDetail", sizeof(htcpDetail), 0);
+    if (0 == calls++) {
+	memDataInit(MEM_HTCP_SPECIFIER, "htcpSpecifier", sizeof(htcpSpecifier), 0);
+	memDataInit(MEM_HTCP_DETAIL, "htcpDetail", sizeof(htcpDetail), 0);
+    }
 }
 
 void
