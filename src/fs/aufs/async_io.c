@@ -155,14 +155,10 @@ aioCancel(int fd)
     assert(initialised);
     squidaio_counts.cancel++;
     for (m = used_list.head; m; m = next) {
-	while (m) {
-	    curr = m->data;
-	    if (curr->fd == fd)
-		break;
-	    m = m->next;
-	}
-	if (m == NULL)
-	    break;
+	next = m->next;
+	curr = m->data;
+	if (curr->fd != fd)
+	    continue;
 
 	squidaio_cancel(&curr->result);
 
@@ -175,7 +171,6 @@ aioCancel(int fd)
 		done_handler(fd, their_data, -2, -2);
 	    cbdataUnlock(their_data);
 	}
-	next = m->next;
 	dlinkDelete(m, &used_list);
 	memPoolFree(squidaio_ctrl_pool, curr);
     }
