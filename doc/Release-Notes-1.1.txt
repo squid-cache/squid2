@@ -785,21 +785,13 @@ know how many replies to expect.  Somehow Squid must know roughly how
 many ICP replies to expect, but at the same time it must be careful to
 not over-estimate and therefore incur many ICP query timeouts.
 
-The current approach is this: Squid counts the number of ICP replies
-which arrive *after* the object fetching has been started.  The number
-of late ICP replies is divided by the number of requests generating ICP
-queries.  The ratio of these two counters provides an average number of
-late replies, presumably due to the multicast group members.   This
-ratio is called the Multicast Fudge Factor.
-
-    MulticastFudgeFactor = int (#LateReplies / #RequestQueries)
-
-The RequestQueries value is kept small (rescaled) so that the ratio can
-adapt quickly.  The Fudge Factor value is added to the number of
-replies expected for each query.  In this manner, the number of replies
-expected is dynamically adjusted over time so that Squid optimizes the
-chance of receiving a HIT, but minimizes the chance of suffering the
-ICP timeout.
+The current approach is this: Squid periodically (every 15 minutes)
+sends fake ICP queries to only multicast peers.  The replies are
+counted, up until the 'neighbor_timeout' time.  The count is averaged
+over time with a fast decay so that it adjusts relatively quickly.
+The number of replies to expect is rounded down to the nearest whole
+integer to minimize the chance of suffering the neighbor timeout
+on real ICP queries.
 
 Store.log Fields
 ==============================================================================
