@@ -1688,6 +1688,10 @@ clientProcessOnlyIfCachedMiss(clientHttpRequest * http)
     err = errorCon(ERR_ONLY_IF_CACHED_MISS, HTTP_GATEWAY_TIMEOUT);
     err->request = requestLink(r);
     err->src_addr = http->conn->peer.sin_addr;
+    if (http->entry) {
+	storeUnregister(http->entry, http);
+	storeUnlockObject(http->entry);
+    }
     http->entry = clientCreateStoreEntry(http, r->method, null_request_flags);
     errorAppendEntry(http->entry, err);
 }
