@@ -292,9 +292,11 @@ ftpLoginParser(const char *login, FtpStateData * ftpState)
     if ((s = strchr(ftpState->user, ':'))) {
 	*s = 0;
 	xstrncpy(ftpState->password, s + 1, MAX_URL);
+        rfc1738_unescape(ftpState->password);
     } else {
 	xstrncpy(ftpState->password, null_string, MAX_URL);
     }
+    rfc1738_unescape(ftpState->user);
     if (ftpState->user[0] || ftpState->password[0])
 	return;
     xstrncpy(ftpState->user, "anonymous", MAX_URL);
