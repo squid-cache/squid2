@@ -127,8 +127,8 @@
 #include <errno.h>
 #endif
 
-#include "util.h"
 #include "ansiproto.h"
+#include "util.h"
 
 void (*failure_notify) __P((char *)) = NULL;
 static char msg[128];

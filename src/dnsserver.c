@@ -212,6 +212,7 @@
 #define INADDR_NONE -1
 #endif
 
+#include "ansiproto.h"
 #include "util.h"
 
 extern int h_errno;

@@ -138,8 +138,8 @@
 #include <varargs.h>
 #endif
 
-#include "util.h"
 #include "ansiproto.h"
+#include "util.h"
 
 #ifdef _SQUID_NEXT_
 typedef int pid_t;

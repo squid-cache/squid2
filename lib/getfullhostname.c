@@ -136,6 +136,7 @@
 #include <netdb.h>
 #endif
 
+#include "ansiproto.h"
 #include "util.h"
 
 /*

@@ -233,8 +233,8 @@
 #include <bstring.h>
 #endif
 
-#include "util.h"
 #include "ansiproto.h"
+#include "util.h"
 #if !HAVE_TEMPNAM
 #include "tempnam.h"
 #endif

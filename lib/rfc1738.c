@@ -112,6 +112,7 @@
 #include <string.h>
 #endif
 
+#include "ansiproto.h"
 #include "util.h"
 #define BIG_BUFSIZ (BUFSIZ * 4)
 

@@ -112,8 +112,8 @@
 #include <string.h>
 #endif
 #define MAIN
-#include "util.h"
 #include "ansiproto.h"
+#include "util.h"
 
 static void debug_enable __P((int, int));
 static void debug_disable __P((int));

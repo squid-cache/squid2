@@ -195,8 +195,8 @@
 #include <sys/select.h>
 #endif
 
-#include "util.h"
 #include "ansiproto.h"
+#include "util.h"
 
 #define MAX_ENTRIES 10000
 

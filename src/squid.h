@@ -213,8 +213,8 @@ typedef unsigned long u_num32;
 #define LOCAL_ARRAY(type,name,size) static type name[size]
 #endif
 
-#include "GNUregex.h"
 #include "ansiproto.h"
+#include "GNUregex.h"
 
 typedef void (*SIH) (int, void *);	/* swap in */
 typedef int (*QS) (const void *, const void *);
