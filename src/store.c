@@ -2219,7 +2219,7 @@ storeClientCopy(StoreEntry * e,
     MemObject *mem = e->mem_obj;
     struct _store_client *sc;
     assert(seen_offset <= mem->e_current_len);
-    assert(copy_offset < mem->e_lowest_offset);
+    assert(copy_offset >= mem->e_lowest_offset);
     if ((ci = storeClientListSearch(mem, data)) < 0)
 	fatal_dump("storeClientCopy: Unregistered client");
     sc = &mem->clients[ci];
