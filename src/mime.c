@@ -286,6 +286,7 @@ mimeInit(char *filename)
     regex_t re;
     mimeEntry *m;
     int re_flags = REG_EXTENDED | REG_NOSUB | REG_ICASE;
+return;
     if (filename == NULL)
 	return;
     if ((fp = fopen(filename, "r")) == NULL) {

@@ -1325,9 +1325,12 @@ struct _SwapDir {
 	    int smsgid;
 	    int rmsgid;
 	    int wfd;
-	    int send_no;
-	    int recv_no;
 	    int away;
+	    struct {
+		char *buf;
+		link_list *stack;
+		int id;
+	    } shm;
 	} diskd;
 #endif
     } u;

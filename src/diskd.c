@@ -7,6 +7,9 @@
 #include <sys/msg.h>
 #include <sys/shm.h>
 
+#undef assert
+#include <assert.h>
+
 enum {
     _MQD_NOP,
     _MQD_OPEN,
@@ -324,7 +327,6 @@ main(int argc, char *argv[])
 
 #else
 
-
 /*
  * DEBUG 79
  */
@@ -334,12 +336,12 @@ static int recv_count = 0;
 static int shmbuf_count = 0;
 static int sio_id = 0;
 
-static int storeMqufsSend(int, SwapDir *, int, storeIOState *, int, int, int);
-static void storeMqufsShmPut(SwapDir *, int);
-static void *storeMqufsShmGet(SwapDir *, int *);
-static void storeMqufsHandle(diomsg * M, SwapDir *);
-static void storeMqufsIOCallback(storeIOState * sio, int errflag);
-static void storeMqufsReadIndividualQueue(SwapDir * sd);
+static int storeDiskdSend(int, SwapDir *, int, storeIOState *, int, int, int);
+static void storeDiskdShmPut(SwapDir *, int);
+static void *storeDiskdShmGet(SwapDir *, int *);
+static void storeDiskdHandle(diomsg * M, SwapDir *);
+static void storeDiskdIOCallback(storeIOState * sio, int errflag);
+static void storeDiskdReadIndividualQueue(SwapDir * sd);
 static SwapDir *swapDirFromFileno(sfileno f);
 
 /*
@@ -357,15 +359,15 @@ static SwapDir *swapDirFromFileno(sfileno f);
 /* === PUBLIC =========================================================== */
 
 storeIOState *
-storeMqufsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
+storeDiskdOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
 {
     int x;
     storeIOState *sio;
     char *buf;
     int shm_offset;
     SwapDir *sd = swapDirFromFileno(f);
-    debug(78, 3) ("storeMqufsOpen: fileno %08X, mode %d\n", f, mode);
-    if (sd->u.mqufs.away > MAGIC1)
+    debug(78, 3) ("storeDiskdOpen: fileno %08X, mode %d\n", f, mode);
+    if (sd->u.diskd.away > MAGIC1)
 	return NULL;
     assert(mode == O_RDONLY || mode == O_WRONLY);
     sio = memAllocate(MEM_STORE_IO);
@@ -374,21 +376,21 @@ storeMqufsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     sio->mode = mode;
     sio->callback = callback;
     sio->callback_data = callback_data;
-    sio->type.mqufs.id = sio_id++;
+    sio->type.diskd.id = sio_id++;
     if (mode == O_WRONLY)
 	mode |= (O_CREAT | O_TRUNC);
-    buf = storeMqufsShmGet(sd, &shm_offset);
+    buf = storeDiskdShmGet(sd, &shm_offset);
     storeUfsFullPath(f, buf);
-    x = storeMqufsSend(_MQD_OPEN,
+    x = storeDiskdSend(_MQD_OPEN,
 	sd,
-	sio->type.mqufs.id,
+	sio->type.diskd.id,
 	sio,
 	strlen(buf) + 1,
 	mode,
 	shm_offset);
     if (x < 0) {
-	debug(50, 1) ("storeMqufsSend OPEN: %s\n", xstrerror());
-	storeMqufsShmPut(sd, shm_offset);
+	debug(50, 1) ("storeDiskdSend OPEN: %s\n", xstrerror());
+	storeDiskdShmPut(sd, shm_offset);
 	cbdataFree(sio);
 	return NULL;
     }
@@ -396,25 +398,25 @@ storeMqufsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
 }
 
 void
-storeMqufsClose(storeIOState * sio)
+storeDiskdClose(storeIOState * sio)
 {
     int x;
-    debug(78, 3) ("storeMqufsClose: fileno %08X\n", sio->swap_file_number);
-    x = storeMqufsSend(_MQD_CLOSE,
+    debug(78, 3) ("storeDiskdClose: fileno %08X\n", sio->swap_file_number);
+    x = storeDiskdSend(_MQD_CLOSE,
 	swapDirFromFileno(sio->swap_file_number),
-	sio->type.mqufs.id,
+	sio->type.diskd.id,
 	sio,
 	0,
 	0,
 	-1);
     if (x < 0) {
-	debug(50, 1) ("storeMqufsSend CLOSE: %s\n", xstrerror());
-	storeMqufsIOCallback(sio, errno);
+	debug(50, 1) ("storeDiskdSend CLOSE: %s\n", xstrerror());
+	storeDiskdIOCallback(sio, errno);
     }
 }
 
 void
-storeMqufsRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB * callback, void *callback_data)
+storeDiskdRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB * callback, void *callback_data)
 {
     int x;
     int shm_offset;
@@ -426,68 +428,68 @@ storeMqufsRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB *
     assert(sio->read.callback_data == NULL);
     sio->read.callback = callback;
     sio->read.callback_data = callback_data;
-    sio->type.mqufs.read_buf = buf;	/* the one passed from above */
+    sio->type.diskd.read_buf = buf;	/* the one passed from above */
     cbdataLock(callback_data);
-    debug(78, 3) ("storeMqufsRead: fileno %08X\n", sio->swap_file_number);
+    debug(78, 3) ("storeDiskdRead: fileno %08X\n", sio->swap_file_number);
     sio->offset = offset;
-    sio->type.mqufs.flags.reading = 1;
-    rbuf = storeMqufsShmGet(sd, &shm_offset);
+    sio->type.diskd.flags.reading = 1;
+    rbuf = storeDiskdShmGet(sd, &shm_offset);
     assert(rbuf);
-    x = storeMqufsSend(_MQD_READ,
+    x = storeDiskdSend(_MQD_READ,
 	sd,
-	sio->type.mqufs.id,
+	sio->type.diskd.id,
 	sio,
 	(int) size,
 	(int) offset,
 	shm_offset);
     if (x < 0) {
-	debug(50, 1) ("storeMqufsSend READ: %s\n", xstrerror());
-	storeMqufsShmPut(sd, shm_offset);
-	storeMqufsIOCallback(sio, errno);
+	debug(50, 1) ("storeDiskdSend READ: %s\n", xstrerror());
+	storeDiskdShmPut(sd, shm_offset);
+	storeDiskdIOCallback(sio, errno);
     }
 }
 
 void
-storeMqufsWrite(storeIOState * sio, char *buf, size_t size, off_t offset, FREE * free_func)
+storeDiskdWrite(storeIOState * sio, char *buf, size_t size, off_t offset, FREE * free_func)
 {
     int x;
     char *sbuf;
     int shm_offset;
     SwapDir *sd = swapDirFromFileno(sio->swap_file_number);
-    debug(78, 3) ("storeMqufsWrite: fileno %08X\n", sio->swap_file_number);
+    debug(78, 3) ("storeDiskdWrite: fileno %08X\n", sio->swap_file_number);
     if (!cbdataValid(sio)) {
 	free_func(buf);
 	return;
     }
-    sio->type.mqufs.flags.writing = 1;
-    sbuf = storeMqufsShmGet(sd, &shm_offset);
+    sio->type.diskd.flags.writing = 1;
+    sbuf = storeDiskdShmGet(sd, &shm_offset);
     xmemcpy(sbuf, buf, size);
     free_func(buf);
-    x = storeMqufsSend(_MQD_WRITE,
+    x = storeDiskdSend(_MQD_WRITE,
 	sd,
-	sio->type.mqufs.id,
+	sio->type.diskd.id,
 	sio,
 	(int) size,
 	(int) offset,
 	shm_offset);
     if (x < 0) {
-	debug(50, 1) ("storeMqufsSend WRITE: %s\n", xstrerror());
-	storeMqufsShmPut(sd, shm_offset);
-	storeMqufsIOCallback(sio, errno);
+	debug(50, 1) ("storeDiskdSend WRITE: %s\n", xstrerror());
+	storeDiskdShmPut(sd, shm_offset);
+	storeDiskdIOCallback(sio, errno);
     }
 }
 
 void
-storeMqufsUnlink(sfileno f)
+storeDiskdUnlink(sfileno f)
 {
     int x;
     int shm_offset;
     char *buf;
     SwapDir *sd = swapDirFromFileno(f);
-    debug(78, 3) ("storeMqufsUnlink: fileno %08X\n", f);
-    buf = storeMqufsShmGet(sd, &shm_offset);
+    debug(78, 3) ("storeDiskdUnlink: fileno %08X\n", f);
+    buf = storeDiskdShmGet(sd, &shm_offset);
     storeUfsFullPath(f, buf);
-    x = storeMqufsSend(_MQD_UNLINK,
+    x = storeDiskdSend(_MQD_UNLINK,
 	sd,
 	f,
 	NULL,
@@ -495,14 +497,14 @@ storeMqufsUnlink(sfileno f)
 	0,
 	shm_offset);
     if (x < 0) {
-	debug(50, 1) ("storeMqufsSend UNLINK: %s\n", xstrerror());
+	debug(50, 1) ("storeDiskdSend UNLINK: %s\n", xstrerror());
 	unlink(buf);
-	storeMqufsShmPut(sd, shm_offset);
+	storeDiskdShmPut(sd, shm_offset);
     }
 }
 
 void
-storeMqufsInit(SwapDir * sd)
+storeDiskdInit(SwapDir * sd)
 {
     int x;
     int i;
@@ -513,29 +515,29 @@ storeMqufsInit(SwapDir * sd)
     char skey2[32];
     char skey3[32];
     storeUfsDirInit(sd);
-    sd->u.mqufs.smsgid = msgget((key_t) ikey, 0700 | IPC_CREAT);
-    if (sd->u.mqufs.smsgid < 0) {
-	debug(50, 0) ("storeMqufsInit: msgget: %s\n", xstrerror());
+    sd->u.diskd.smsgid = msgget((key_t) ikey, 0700 | IPC_CREAT);
+    if (sd->u.diskd.smsgid < 0) {
+	debug(50, 0) ("storeDiskdInit: msgget: %s\n", xstrerror());
 	fatal("msgget failed");
     }
-    sd->u.mqufs.rmsgid = msgget((key_t) (ikey + 1), 0700 | IPC_CREAT);
-    if (sd->u.mqufs.rmsgid < 0) {
-	debug(50, 0) ("storeMqufsInit: msgget: %s\n", xstrerror());
+    sd->u.diskd.rmsgid = msgget((key_t) (ikey + 1), 0700 | IPC_CREAT);
+    if (sd->u.diskd.rmsgid < 0) {
+	debug(50, 0) ("storeDiskdInit: msgget: %s\n", xstrerror());
 	fatal("msgget failed");
     }
-    sd->u.mqufs.shm.id = shmget((key_t) (ikey + 2),
+    sd->u.diskd.shm.id = shmget((key_t) (ikey + 2),
 	SHMBUFS * SHMBUF_BLKSZ, 0600 | IPC_CREAT);
-    if (sd->u.mqufs.shm.id < 0) {
-	debug(50, 0) ("storeMqufsInit: shmget: %s\n", xstrerror());
+    if (sd->u.diskd.shm.id < 0) {
+	debug(50, 0) ("storeDiskdInit: shmget: %s\n", xstrerror());
 	fatal("shmget failed");
     }
-    sd->u.mqufs.shm.buf = shmat(sd->u.mqufs.shm.id, NULL, 0);
-    if (sd->u.mqufs.shm.buf == (void *) -1) {
-	debug(50, 0) ("storeMqufsInit: shmat: %s\n", xstrerror());
+    sd->u.diskd.shm.buf = shmat(sd->u.diskd.shm.id, NULL, 0);
+    if (sd->u.diskd.shm.buf == (void *) -1) {
+	debug(50, 0) ("storeDiskdInit: shmat: %s\n", xstrerror());
 	fatal("shmat failed");
     }
     for (i = 0; i < SHMBUFS; i++) {
-	storeMqufsShmPut(sd, i * SHMBUF_BLKSZ);
+	storeDiskdShmPut(sd, i * SHMBUF_BLKSZ);
 	shmbuf_count++;
     }
     snprintf(skey1, 32, "%d", ikey);
@@ -556,19 +558,19 @@ storeMqufsInit(SwapDir * sd)
 	args,
 	"diskd",
 	&rfd,
-	&sd->u.mqufs.wfd);
+	&sd->u.diskd.wfd);
     if (x < 0)
 	fatal("execl /usr/local/squid/bin/diskd failed");
-    if (rfd != sd->u.mqufs.wfd)
+    if (rfd != sd->u.diskd.wfd)
 	comm_close(rfd);
-    fd_note(sd->u.mqufs.wfd, "squid -> diskd");
-    commSetTimeout(sd->u.mqufs.wfd, -1, NULL, NULL);
-    commSetNonBlocking(sd->u.mqufs.wfd);
+    fd_note(sd->u.diskd.wfd, "squid -> diskd");
+    commSetTimeout(sd->u.diskd.wfd, -1, NULL, NULL);
+    commSetNonBlocking(sd->u.diskd.wfd);
     debug(79, 1) ("diskd started\n");
 }
 
 void
-storeMqufsReadQueue(void)
+storeDiskdReadQueue(void)
 {
     SwapDir *sd;
     int i;
@@ -580,66 +582,67 @@ storeMqufsReadQueue(void)
 	record_shmbuf = shmbuf_count;
     }
     if (squid_curtime - last_report > 10) {
-	debug(79, 1) ("MQUFS: %d msgs away, %d shmbufs in use\n",
-	    record_away, record_shmbuf);
+	if (record_away)
+	    debug(79, 1) ("DISKD: %d msgs away, %d shmbufs in use\n",
+		record_away, record_shmbuf);
 	last_report = squid_curtime;
 	record_away = record_shmbuf = 0;
     }
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
 	sd = &Config.cacheSwap.swapDirs[i];
-	if (sd->type != SWAPDIR_MQUFS)
+	if (sd->type != SWAPDIR_DISKD)
 	    continue;
-	storeMqufsReadIndividualQueue(sd);
+	storeDiskdReadIndividualQueue(sd);
     }
 }
 
 /*  === STATIC =========================================================== */
 
 static void
-storeMqufsOpenDone(diomsg * M)
+storeDiskdOpenDone(diomsg * M)
 {
     storeIOState *sio = M->callback_data;
     Counter.syscalls.disk.opens++;
-    debug(79, 3) ("storeMqufsOpenDone: fileno %08x status %d\n",
+    debug(79, 3) ("storeDiskdOpenDone: fileno %08x status %d\n",
 	sio->swap_file_number, M->status);
     if (M->status < 0) {
-	storeMqufsIOCallback(sio, DISK_ERROR);
+	storeDiskdIOCallback(sio, DISK_ERROR);
     }
 }
 
 static void
-storeMqufsCloseDone(diomsg * M)
+storeDiskdCloseDone(diomsg * M)
 {
     storeIOState *sio = M->callback_data;
     Counter.syscalls.disk.closes++;
-    debug(79, 3) ("storeMqufsCloseDone: fileno %08x status %d\n",
+    debug(79, 3) ("storeDiskdCloseDone: fileno %08x status %d\n",
 	sio->swap_file_number, M->status);
     if (M->status < 0) {
-	storeMqufsIOCallback(sio, DISK_ERROR);
+	storeDiskdIOCallback(sio, DISK_ERROR);
 	return;
     }
-    storeMqufsIOCallback(sio, DISK_OK);
+    storeDiskdIOCallback(sio, DISK_OK);
 }
 
 static void
-storeMqufsReadDone(diomsg * M)
+storeDiskdReadDone(diomsg * M)
 {
     storeIOState *sio = M->callback_data;
     STRCB *callback = sio->read.callback;
     void *their_data = sio->read.callback_data;
-    char *their_buf = sio->type.mqufs.read_buf;
+    char *their_buf = sio->type.diskd.read_buf;
     char *sbuf;
     size_t len;
     SwapDir *sd = swapDirFromFileno(sio->swap_file_number);
     Counter.syscalls.disk.reads++;
-    sio->type.mqufs.flags.reading = 0;
-    debug(79, 3) ("storeMqufsReadDone: fileno %08x status %d\n",
+    sio->type.diskd.flags.reading = 0;
+    debug(79, 3) ("storeDiskdReadDone: fileno %08x status %d\n",
 	sio->swap_file_number, M->status);
     if (M->status < 0) {
-	storeMqufsIOCallback(sio, DISK_ERROR);
+	storeDiskdIOCallback(sio, DISK_ERROR);
 	return;
     }
-    sbuf = sd->u.mqufs.shm.buf + M->shm_offset;
+    sbuf = sd->u.diskd.shm.buf + M->shm_offset;
     len = M->status;
     xmemcpy(their_buf, sbuf, len);	/* yucky copy */
     sio->offset += len;
@@ -653,63 +656,63 @@ storeMqufsReadDone(diomsg * M)
 }
 
 static void
-storeMqufsWriteDone(diomsg * M)
+storeDiskdWriteDone(diomsg * M)
 {
     storeIOState *sio = M->callback_data;
     Counter.syscalls.disk.writes++;
-    sio->type.mqufs.flags.writing = 0;
-    debug(79, 3) ("storeMqufsWriteDone: fileno %08x status %d\n",
+    sio->type.diskd.flags.writing = 0;
+    debug(79, 3) ("storeDiskdWriteDone: fileno %08x status %d\n",
 	sio->swap_file_number, M->status);
     if (M->status < 0) {
-	storeMqufsIOCallback(sio, DISK_ERROR);
+	storeDiskdIOCallback(sio, DISK_ERROR);
 	return;
     }
     sio->offset += M->status;
 }
 
 static void
-storeMqufsUnlinkDone(diomsg * M)
+storeDiskdUnlinkDone(diomsg * M)
 {
-    debug(79, 3) ("storeMqufsUnlinkDone: fileno %08x status %d\n",
+    debug(79, 3) ("storeDiskdUnlinkDone: fileno %08x status %d\n",
 	M->id, M->status);
     Counter.syscalls.disk.unlinks++;
 }
 
 static void
-storeMqufsHandle(diomsg * M, SwapDir * sd)
+storeDiskdHandle(diomsg * M, SwapDir * sd)
 {
     void *data = M->callback_data;
     if (NULL == data || cbdataValid(data)) {
 	switch (M->mtype) {
 	case _MQD_OPEN:
-	    storeMqufsOpenDone(M);
+	    storeDiskdOpenDone(M);
 	    break;
 	case _MQD_CLOSE:
-	    storeMqufsCloseDone(M);
+	    storeDiskdCloseDone(M);
 	    break;
 	case _MQD_READ:
-	    storeMqufsReadDone(M);
+	    storeDiskdReadDone(M);
 	    break;
 	case _MQD_WRITE:
-	    storeMqufsWriteDone(M);
+	    storeDiskdWriteDone(M);
 	    break;
 	case _MQD_UNLINK:
-	    storeMqufsUnlinkDone(M);
+	    storeDiskdUnlinkDone(M);
 	    break;
 	default:
 	    assert(0);
 	    break;
 	}
     } else {
-	debug(79, 1) ("storeMqufsHandle: Invalid callback_data %p\n", data);
+	debug(79, 1) ("storeDiskdHandle: Invalid callback_data %p\n", data);
     }
     if (M->shm_offset > -1)
-	storeMqufsShmPut(sd, M->shm_offset);
+	storeDiskdShmPut(sd, M->shm_offset);
     cbdataUnlock(data);
 }
 
 static void
-storeMqufsIOCallback(storeIOState * sio, int errflag)
+storeDiskdIOCallback(storeIOState * sio, int errflag)
 {
     debug(79, 3) ("storeUfsIOCallback: errflag=%d\n", errflag);
     sio->callback(sio->callback_data, errflag, sio);
@@ -717,7 +720,7 @@ storeMqufsIOCallback(storeIOState * sio, int errflag)
 }
 
 static int
-storeMqufsSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, int offset, int shm_offset)
+storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, int offset, int shm_offset)
 {
     int x;
     diomsg M;
@@ -731,58 +734,58 @@ storeMqufsSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
     M.id = id;
     if (sio)
 	cbdataLock(sio);
-    x = msgsnd(sd->u.mqufs.smsgid, &M, sizeof(M), IPC_NOWAIT);
+    x = msgsnd(sd->u.diskd.smsgid, &M, sizeof(M), IPC_NOWAIT);
     if (0 == x) {
 	sent_count++;
-	sd->u.mqufs.away++;
+	sd->u.diskd.away++;
     } else {
 	cbdataUnlock(sio);
 	assert(++send_errors < 100);
     }
-    if (sd->u.mqufs.away > MAGIC2) {
-	debug(79, 3) ("%d msgs away!  Trying to read queue...\n", sd->u.mqufs.away);
-	storeMqufsReadIndividualQueue(sd);
+    if (sd->u.diskd.away > MAGIC2) {
+	debug(79, 3) ("%d msgs away!  Trying to read queue...\n", sd->u.diskd.away);
+	storeDiskdReadIndividualQueue(sd);
     }
     return x;
 }
 
 static void *
-storeMqufsShmGet(SwapDir * sd, int *shm_offset)
+storeDiskdShmGet(SwapDir * sd, int *shm_offset)
 {
     char *buf;
-    buf = linklistShift(&sd->u.mqufs.shm.stack);
+    buf = linklistShift(&sd->u.diskd.shm.stack);
     assert(buf);
-    *shm_offset = buf - sd->u.mqufs.shm.buf;
+    *shm_offset = buf - sd->u.diskd.shm.buf;
     assert(0 <= *shm_offset && *shm_offset < SHMBUFS * SHMBUF_BLKSZ);
     shmbuf_count++;
     return buf;
 }
 
 static void
-storeMqufsShmPut(SwapDir * sd, int offset)
+storeDiskdShmPut(SwapDir * sd, int offset)
 {
     char *buf;
     assert(offset >= 0);
     assert(offset < SHMBUFS * SHMBUF_BLKSZ);
-    buf = sd->u.mqufs.shm.buf + offset;
-    linklistPush(&sd->u.mqufs.shm.stack, buf);
+    buf = sd->u.diskd.shm.buf + offset;
+    linklistPush(&sd->u.diskd.shm.stack, buf);
     shmbuf_count--;
 }
 
 static void
-storeMqufsReadIndividualQueue(SwapDir * sd)
+storeDiskdReadIndividualQueue(SwapDir * sd)
 {
     static diomsg M;
     int x;
     int flag;
-    while (sd->u.mqufs.away > 0) {
-	flag = (sd->u.mqufs.away > MAGIC2) ? 0 : IPC_NOWAIT;
-	x = msgrcv(sd->u.mqufs.rmsgid, &M, sizeof(M), 0, flag);
+    while (sd->u.diskd.away > 0) {
+	flag = (sd->u.diskd.away > MAGIC2) ? 0 : IPC_NOWAIT;
+	x = msgrcv(sd->u.diskd.rmsgid, &M, sizeof(M), 0, flag);
 	if (x < 0)
 	    break;
 	recv_count++;
-	sd->u.mqufs.away--;
-	storeMqufsHandle(&M, sd);
+	sd->u.diskd.away--;
+	storeDiskdHandle(&M, sd);
     }
 }
 

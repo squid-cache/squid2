@@ -225,7 +225,7 @@ $(DNSSERVER_EXE): dnsserver.o
 	$(CC) -o $@ $(LDFLAGS) dnsserver.o $(DNSSERVER_LIBS)
 
 $(DISKD_EXE): diskd-daemon.o
-	$(CC) -o $@ $(LDFLAGS) diskd.o $(DISKD_LIBS)
+	$(CC) -o $@ $(LDFLAGS) diskd-daemon.o $(DISKD_LIBS)
 
 diskd-daemon.o: diskd.c
 	$(CC) -c $(CFLAGS) -DDISKD_DAEMON=1 $(srcdir)/diskd.c -o $@
