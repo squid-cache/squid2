@@ -1166,7 +1166,9 @@ static int parseHttpRequest(icpState)
 	}
 	BIT_SET(icpState->flags, REQ_ACCEL);
     } else {
-	icpState->url = xstrdup(request);
+	/* URL may be rewritten later, so make extra room */
+	icpState->url = xcalloc(strlen(request)+5,1);
+	strcpy(icpState->url, request);
 	BIT_RESET(icpState->flags, REQ_ACCEL);
     }
 

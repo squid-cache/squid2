@@ -12,7 +12,7 @@
 #define IP_LOW_WATER       70
 #define IP_HIGH_WATER      90
 #define MAX_HOST_NAME	  256
-#define IP_INBUF	 4096
+#define IP_INBUF_SZ	 4096
 
 struct _ip_pending {
     int fd;
@@ -134,7 +134,7 @@ int ipcache_create_dnsserver(command)
     }
     len = sizeof(S);
     memset(&S, '\0', len);
-    if (getsockname(cfd, &S, &len) < 0) {
+    if (getsockname(cfd, (struct sockaddr *) &S, &len) < 0) {
 	debug(14, 0, "ipcache_create_dnsserver: getsockname: %s\n", xstrerror());
 	comm_close(cfd);
 	return -1;
@@ -157,6 +157,7 @@ int ipcache_create_dnsserver(command)
 	    comm_close(sfd);
 	    return -1;
 	}
+	comm_set_fd_lifetime(sfd, -1);
 	debug(14, 4, "ipcache_create_dnsserver: FD %d connected to %s #%d.\n",
 	    sfd, command, n_dnsserver);
 	return sfd;
@@ -735,7 +736,7 @@ int ipcache_dnsHandleRead(fd, dnsData)
 	dnsData->size - dnsData->offset);
     debug(14, 5, "ipcache_dnsHandleRead: Result from DNS ID %d.\n",
 	dnsData->id);
-    if (len == 0) {
+    if (len <= 0) {
 	debug(14, dnsData->flags & DNS_FLAG_CLOSING ? 5 : 1,
 	    "FD %d: Connection from DNSSERVER #%d is closed, disabling\n",
 	    fd, dnsData->id + 1);
@@ -955,9 +956,9 @@ void ipcacheOpenServers()
 	    dns_child_table[k]->inpipe = dnssocket;
 	    dns_child_table[k]->outpipe = dnssocket;
 	    dns_child_table[k]->lastcall = squid_curtime;
-	    dns_child_table[k]->size = IP_INBUF - 1;	/* spare one for \0 */
+	    dns_child_table[k]->size = IP_INBUF_SZ - 1;	/* spare one for \0 */
 	    dns_child_table[k]->offset = 0;
-	    dns_child_table[k]->ip_inbuf = xcalloc(1, IP_INBUF);
+	    dns_child_table[k]->ip_inbuf = xcalloc(IP_INBUF_SZ, 1);
 
 	    /* update fd_stat */
 

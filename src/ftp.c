@@ -664,7 +664,7 @@ int ftpInitialize()
     }
     len = sizeof(S);
     memset(&S, '\0', len);
-    if (getsockname(cfd, &S, &len) < 0) {
+    if (getsockname(cfd, (struct sockaddr *) &S, &len) < 0) {
 	debug(9, 0, "ftpInitialize: getsockname: %s\n", xstrerror());
 	comm_close(cfd);
 	return -1;
