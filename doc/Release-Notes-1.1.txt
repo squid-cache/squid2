@@ -26,6 +26,7 @@ TABLE OF CONTENTS:
 	Access Log Fields
 	Access Log Tags
 	Hierarchy Data Tags
+	Using Multicast ICP
 
 
 Ident (RFC 931) lookups
@@ -687,3 +688,54 @@ Almost any of these may be preceeded by 'TIMEOUT_' if the two-second
 (default) timeout occurs waiting for all ICP replies to arrive from
 neighbors.
 
+Using Multicast ICP
+==============================================================================
+As of Squid-1.1.6, ICP queries can be sent via multicast.  Use of multicast
+requires the following config file entries:
+
+    1) A cache which wants to *receive* multicast ICP queries must
+       be configured to join a multicast address.  This is done with
+       the 'mcast_groups' directive.    For example:
+
+	mcast_groups  224.9.9.9
+
+    2) A cache which wants to *send* multicast ICP queries must add
+       a "multicast group" neighbor.  For example:
+
+	cache_host 224.9.9.9 multicast 3128 3130 ttl=64
+
+       In this situation, the HTTP port (3128) is ignored, but the ICP
+       port (3130) must be correct.  All multicast group members must
+       use the same ICP port number.  The 'ttl=' option specifies the
+       IP Multicast TTL value to be used when sending a multicast
+       datagram.
+
+    3) Because Squid does not trust ICP replies received from unknown
+       peers, you must specify all acceptable neighbors which might
+       respond to your multicast query.  These appear as normal parents
+       or siblings, but with the special 'multicast-responder' option.
+       For example:
+
+	cache_host foo.sample.com sibling 3128 3130 multicast-responder
+
+Use of multicast creates an interesting delimma; normally Squid sends N
+queries and expects N replies.  But with multicast Squid doesn't really
+know how many replies to expect.  Somehow Squid must know roughly how
+many ICP replies to expect, but at the same time it must be careful to
+not over-esimate and therefore incur many ICP query timeouts.
+
+The current approach is this: Squid counts the number of ICP replies
+which arrive *after* the object fetching has been started.  The number
+of late ICP replies is divided by the number of requests generating ICP
+queries.  The ratio of these two counters provides an average number of
+late replies, presumably due to the multicast group members.   This
+ratio is called the Multicast Fudge Factor.
+
+    MulticastFudgeFactor = int (#LateReplies / #RequestQueries)
+
+The RequestQueries value is kept small (rescaled) so that the ratio can
+adapt quickly.  The Fudge Factor value is added to the number of
+replies expected for each query.  In this manner, the number of replies
+expected is dynamically adjusted over time so that Squid optimizes the
+chance of receiving a HIT, but minimizes the chance of suffering the
+ICP timeout.
