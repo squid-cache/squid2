@@ -598,9 +598,9 @@ sigchld_handler(int sig)
     pid_t pid;
 
 #if defined(_SQUID_NEXT_) && !defined(_POSIX_SOURCE)
-    if ((pid = wait4(0, &status, WNOHANG, NULL)) > 0)
+    while ((pid = wait4(0, &status, WNOHANG, NULL)) > 0)
 #else
-    if ((pid = waitpid(0, &status, WNOHANG)) > 0)
+    while ((pid = waitpid(0, &status, WNOHANG)) > 0)
 #endif
 	debug(38, 5, "sigchld_handler: Ate pid %d\n", pid);
     signal(sig, sigchld_handler);
