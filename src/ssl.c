@@ -46,6 +46,7 @@ typedef struct {
     int *size_ptr;		/* pointer to size in an icpStateData for logging */
     int proxying;
     int ip_lookup_pending;
+    int closing;
 } SslStateData;
 
 static const char *const conn_established = "HTTP/1.0 200 Connection established\r\n\r\n";
@@ -69,6 +70,9 @@ static void sslSelectNeighbor _PARAMS((int fd, const ipcache_addrs *, void *));
 static void
 sslClose(SslStateData * sslState)
 {
+    if (sslState->closing)
+	return;
+    sslState->closing = 1;
     if (sslState->client.fd > -1) {
 	/* remove the "unexpected" client close handler */
 	comm_remove_close_handler(sslState->client.fd,
