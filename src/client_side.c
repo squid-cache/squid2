@@ -1109,6 +1109,7 @@ clientBuildRangeHeader(clientHttpRequest * http, HttpReply * rep)
     else
     if (httpHeaderHas(&http->request->header, HDR_IF_RANGE) && !clientIfRangeMatch(http, rep))
 	range_err = "If-Range match failed";
+    else
     if (!httpHdrRangeCanonize(http->request->range, rep->content_length))
 	range_err = "canonization failed";
     else
