@@ -2318,11 +2318,9 @@ ftpAppendSuccessHeader(FtpStateData * ftpState)
     /* set standard stuff */
     if (ftpState->restarted_offset) {
 	/* Partial reply */
-	HttpHdrRangeSpec range_spec =
-	{
-	    ftpState->restarted_offset,
-	    ftpState->size - ftpState->restarted_offset
-	};
+	HttpHdrRangeSpec range_spec;
+ 	range_spec.offset = ftpState->restarted_offset;
+	range_spec.length = ftpState->size - ftpState->restarted_offset;
 	httpReplySetHeaders(reply, 1.0, HTTP_PARTIAL_CONTENT, "Gatewaying",
 	    mime_type, ftpState->size - ftpState->restarted_offset, ftpState->mdtm, -2);
 	httpHeaderAddContRange(&reply->header, range_spec, ftpState->size);
