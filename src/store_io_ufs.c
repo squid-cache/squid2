@@ -146,6 +146,7 @@ storeUfsWriteDone(int fd, int errflag, size_t len, void *my_data)
     if (errflag) {
 	debug(78, 0) ("storeUfsWriteDone: got failure (%d)\n", errflag);
 	storeUfsIOCallback(sio, errflag);
+	return;
     }
     sio->offset += len;
     if (sio->type.ufs.flags.close_request)
