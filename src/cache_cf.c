@@ -2155,7 +2155,8 @@ void
 parse_wordlist(wordlist ** list)
 {
     char *token;
-    while ((token = strtok(NULL, w_space)))
+    char *t = strtok(NULL, "");
+    while ((token = strwordtok(NULL, &t)))
 	wordlistAdd(list, token);
 }
 
