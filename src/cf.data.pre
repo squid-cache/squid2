@@ -2711,4 +2711,16 @@ DOC_START
 uri_whitespace deny
 DOC_END
 
+NAME: persistent_client_posts
+TYPE: onoff
+LOC: Config.onoff.persistent_client_posts
+DEFAULT: on
+DOC_START
+	Turn this 'off' to disable persistent connections for POST
+	requests.  When you disable this, Squid reads all bytes
+	from the client request and sends them to the server.  This
+	makes Squid work with broken HTTP servers which expect the
+	additional CRLF pair from broken web clients.
+persistent_client_posts on
+DOC_END
 EOF

@@ -142,8 +142,12 @@ pumpStart(int s_fd, StoreEntry * reply_entry, request_t * r, CWCB * callback, vo
     if (p->rcvd < p->cont_len && r->body_sz > 0) {
 	assert(p->request_entry->store_status == STORE_PENDING);
 	assert(r->body != NULL);
-	assert(r->body_sz <= p->cont_len);
-	copy_sz = XMIN(r->body_sz, p->cont_len);
+	if (r->flags.proxy_keepalive) {
+	    assert(r->body_sz <= p->cont_len);
+	    copy_sz = XMIN(r->body_sz, p->cont_len);
+	} else {
+	    copy_sz = r->body_sz;
+	}
 	debug(61, 3) ("pumpStart: Appending %d bytes from r->body\n", copy_sz);
 	storeAppend(p->request_entry, r->body, copy_sz);
 	p->rcvd = copy_sz;
@@ -158,7 +162,7 @@ pumpStart(int s_fd, StoreEntry * reply_entry, request_t * r, CWCB * callback, vo
 	commSetDefer(p->c_fd, pumpReadDefer, p);
     }
     p->sent = 0;
-    if (p->sent == p->cont_len) {
+    if (r->flags.proxy_keepalive && p->sent == p->cont_len) {
 	pumpServerCopyComplete(p->s_fd, NULL, 0, DISK_OK, p);
     } else {
 	storeClientCopy(p->request_entry, p->sent, p->sent, 4096,
@@ -207,8 +211,9 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
 	return;
     }
     p->sent += size;
-    assert(p->sent <= p->cont_len);
-    if (p->sent < p->cont_len) {
+    if (p->req->flags.proxy_keepalive)
+        assert(p->sent <= p->cont_len);
+    if (p->sent < p->cont_len || !p->req->flags.proxy_keepalive) {
 	storeClientCopy(p->request_entry, p->sent, p->sent, 4096,
 	    memAllocate(MEM_4K_BUF),
 	    pumpServerCopy, p);
@@ -412,7 +417,8 @@ pumpServerClosed(int fd, void *data)
     p->s_fd = -1;
     if (p->flags.closing)
 	return;
-    comm_close(p->c_fd);
+    if (p->c_fd > -1)
+        comm_close(p->c_fd);
 }
 
 /*

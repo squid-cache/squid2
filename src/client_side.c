@@ -80,6 +80,7 @@ static int checkAccelOnly(clientHttpRequest *);
 static int clientOnlyIfCached(clientHttpRequest * http);
 static STCB clientSendMoreData;
 static STCB clientCacheHit;
+static void clientSetKeepaliveFlag(clientHttpRequest *);
 static void clientInterpretRequestHeaders(clientHttpRequest *);
 static void clientProcessRequest(clientHttpRequest *);
 static void clientProcessExpired(void *data);
@@ -763,8 +764,6 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	request->flags.auth = 1;
     if (request->login[0] != '\0')
 	request->flags.auth = 1;
-    if (httpMsgIsPersistent(request->http_ver, req_hdr))
-	request->flags.proxy_keepalive = 1;
     if (httpHeaderHas(req_hdr, HDR_VIA)) {
 	String s = httpHeaderGetList(req_hdr, HDR_VIA);
 	/* ThisCache cannot be a member of Via header, "1.0 ThisCache" can */
@@ -811,6 +810,28 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	request->flags.cachable ? "SET" : "NOT SET");
     debug(33, 5) ("clientInterpretRequestHeaders: REQ_HIERARCHICAL = %s\n",
 	request->flags.hierarchical ? "SET" : "NOT SET");
+}
+
+/*
+ * clientSetKeepaliveFlag() sets request->flags.proxy_keepalive.
+ * This is the client-side persistent connection flag.  We need
+ * to set this relatively early in the request processing
+ * to handle hacks for broken servers and clients.
+ */
+static void
+clientSetKeepaliveFlag(clientHttpRequest * http)
+{
+    request_t *request = http->request;
+    const HttpHeader *req_hdr = &request->header;
+    debug(33, 3) ("clientSetKeepaliveFlag: http_ver = %3.1f\n",
+	request->http_ver);
+    debug(33, 3) ("clientSetKeepaliveFlag: method = %s\n",
+	RequestMethodStr[request->method]);
+    if (httpMsgIsPersistent(request->http_ver, req_hdr))
+	request->flags.proxy_keepalive = 1;
+    if (request->method == METHOD_POST || request->method == METHOD_PUT)
+	if (!Config.onoff.persistent_client_posts)
+	    request->flags.proxy_keepalive = 0;
 }
 
 static int
@@ -1088,10 +1109,12 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	http->lookup_type ? http->lookup_type : "NONE",
 	getMyHostname(), Config.Port.http->i);
 #endif
-    /* Only replies with valid Content-Length can be sent with keep-alive */
-    if (request->method != METHOD_HEAD &&
-	http->entry->mem_obj->reply->content_length < 0)
-	request->flags.proxy_keepalive = 0;
+    /*
+     * Clear keepalive for NON-HEAD requests with invalid content length
+     */
+    if (request->method != METHOD_HEAD)
+	if (http->entry->mem_obj->reply->content_length < 0)
+	    request->flags.proxy_keepalive = 0;
     /* Signal keep-alive if needed */
     httpHeaderPutStr(hdr,
 	http->flags.accel ? HDR_CONNECTION : HDR_PROXY_CONNECTION,
@@ -2270,13 +2293,21 @@ clientReadRequest(int fd, void *data)
 	    }
 	    http->request = requestLink(request);
 	    /*
+	     * We need to set the keepalive flag before doing some
+	     * hacks for POST/PUT requests below.  Maybe we could
+	     * set keepalive flag even earlier.
+	     */
+	    clientSetKeepaliveFlag(http);
+	    /*
 	     * break here for NON-GET because most likely there is a
 	     * reqeust body following and we don't want to parse it
 	     * as though it was new request
 	     */
 	    if (request->method != METHOD_GET) {
 		int cont_len = httpHeaderGetInt(&request->header, HDR_CONTENT_LENGTH);
-		int copy_len = XMIN(cont_len, conn->in.offset);
+		int copy_len = conn->in.offset;
+		if (cont_len < copy_len && request->flags.proxy_keepalive)
+			copy_len = cont_len;
 		if (copy_len > 0) {
 		    assert(conn->in.offset >= copy_len);
 		    request->body_sz = copy_len;
