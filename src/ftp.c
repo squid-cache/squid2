@@ -337,8 +337,7 @@ ftpTimeout(int fd, void *data)
     StoreEntry *entry = ftpState->entry;
     debug(9, 4) ("ftpTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
     ftpFailed(ftpState, ERR_READ_TIMEOUT);
-    comm_close(ftpState->ctrl.fd);
-    /* don't modify ftpState here, it has been freed */
+    /* ftpFailed closes ctrl.fd and frees ftpState */
 }
 
 static void
@@ -895,6 +894,7 @@ ftpDataRead(int fd, void *data)
 		Config.Timeout.read);
 	} else {
 	    ftpFailed(ftpState, ERR_READ_ERROR);
+	    /* ftpFailed closes ctrl.fd and frees ftpState */
 	    return;
 	}
     } else if (len == 0) {
@@ -1120,6 +1120,7 @@ ftpWriteCommandCallback(int fd, char *bufnotused, size_t size, int errflag, void
     if (errflag) {
 	debug(50, 1) ("ftpWriteCommandCallback: FD %d: %s\n", fd, xstrerror());
 	ftpFailed(ftpState, ERR_WRITE_ERROR);
+	/* ftpFailed closes ctrl.fd and frees ftpState */
 	return;
     }
 }
@@ -1229,6 +1230,7 @@ ftpReadControlReply(int fd, void *data)
 	    ftpScheduleReadControlReply(ftpState, 0);
 	} else {
 	    ftpFailed(ftpState, ERR_READ_ERROR);
+	    /* ftpFailed closes ctrl.fd and frees ftpState */
 	    return;
 	}
 	return;
@@ -1236,6 +1238,7 @@ ftpReadControlReply(int fd, void *data)
     if (len == 0) {
 	if (entry->store_status == STORE_PENDING) {
 	    ftpFailed(ftpState, ERR_FTP_FAILURE);
+	    /* ftpFailed closes ctrl.fd and frees ftpState */
 	    return;
 	}
 	comm_close(ftpState->ctrl.fd);
@@ -1732,6 +1735,7 @@ ftpPasvCallback(int fd, int status, void *data)
 	ftpState->fwd->flags.dont_retry = 0;	/* this is a retryable error */
 	ftpState->fwd->flags.ftp_pasv_failed = 1;
 	ftpFailed(ftpState, ERR_NONE);
+	/* ftpFailed closes ctrl.fd and frees ftpState */
 	return;
     }
     ftpRestOrList(ftpState);
@@ -2118,6 +2122,7 @@ ftpReadTransferDone(FtpStateData * ftpState)
 	debug(9, 1) ("ftpReadTransferDone: Got code %d after reading data\n",
 	    code);
 	ftpFailed(ftpState, ERR_FTP_FAILURE);
+	/* ftpFailed closes ctrl.fd and frees ftpState */
 	return;
     }
 }
@@ -2249,7 +2254,7 @@ ftpFail(FtpStateData * ftpState)
 	}
     }
     ftpFailed(ftpState, ERR_NONE);
-    return;
+    /* ftpFailed closes ctrl.fd and frees ftpState */
 }
 
 static void
