@@ -1,23 +1,41 @@
 Changes to squid-2.5.STABLE7 ()
 
-	- Bug #1011: No objects cached in ufs cache_dir type in some
+	- [Medium] No objects cached in ufs cache_dir type in some
 	  configurations. Issue introduced in 2.5.STABLE6 by the patch for
-	  Bug #676.
-	- LDAP helpers update to correct LDAP connection management and
-	  add support for literal password compare instead of binding.
-	- Bug #852: A large number of queued DNS lookups for the same domain
-	- Bug #899: request_header_max_size configuration partly ignored
-	- Bug #1001: Partial hit results in TCP_HIT, not TCP_MISS
-	- Bug #1012: HEAD requests may return stale information
-	- Bug #918: Warn if cache_dir ufs can not create files
-	- Bug #431: case insensitive authentication
-	- Bug #882: Add delay pools information to active_requests
-	- Bug #833: Apparent memory leak in client_db
-	- Bug #1016: NTLM authentication truncated causing failures
-	- Bug #1030: Unknown %X errorpage codes incorrectly quoted
-	- Bug #1009: Segfaults and other strange crashes when using heap
-          policies
-	- Bug #1021: Supplementary group memberships not set
+	  Bug #676. (Bug #1011)
+	- [Minor] LDAP helpers update to correct LDAP connection management
+	  and add support for literal password compare instead of binding
+	- [Minor] A large number of queued DNS lookups for the same domain
+	  (Bug #852)
+	- [Cosmetic] request_header_max_size configuration partly ignored
+	  (Bug #899)
+       	- [Minor] Partial hit results in TCP_HIT, not TCP_MISS. (Bug #1001)
+        - Bug #1012: [Cosmetic] HEAD requests may return stale information
+          (Bug #1012)
+       	- [Cosmetic] Warn if cache_dir ufs can not create files. (Bug #918)
+	- [Minor] case insensitive authentication (Bug #431)
+	- [Cosmetic] Add delay pools information to active_requests. (Bug
+          #882)
+	- [Minor] Apparent memory leak in client_db (Bug #833)
+	- [Minor] NTLM authentication truncated causing failures. (Bug
+	  #1016)
+	- [Cosmetic] Grammatical corrections in squid.conf.default
+	- [Cosmetic] Unknown %X errorpage codes incorrectly quoted. (Bug
+	  #1030)
+	- [Medium] Segfaults and other strange crashes when using heap
+	  policies. (Bug #1009)
+	- [Minor] Supplementary group memberships not set (Bug #1021)
+	- [Minor] external_acl does not handle newlines (Bug #1038)
+	- [Major] NTLM authentication denial of service (Bug #1045)
+	- [Medium] Memory leaks when using NTLM authentication without
+	  challenge reuse. (Bug #994)
+	- [Minor] Temporary NTLM memory leak with challenge reuse enabled
+	  (Bug #910)
+	- [Minor] assertion failed: "n_ufs_dirs <=
+	  Config.cacheSwap.n_configured". (Bug #1053)
+	- [Minor] Segfault in authenticateDigestHandleReply. (Bug #1031)
+	- [Minor] acl time fails to parse multiple time specifications
+	  (Bug #1060)
 
 Changes to squid-2.5.STABLE6 (9 Jul 2004)
 
