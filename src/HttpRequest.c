@@ -154,3 +154,13 @@ httpRequestHdrAllowed(const HttpHeaderEntry * e, String * strConn)
 	return 0;
     return 1;
 }
+
+/* returns true if header is allowed to be passed on */
+int
+httpRequestHdrAllowedByName(http_hdr_type id)
+{
+    /* check with anonymizer tables */
+    if (CBIT_TEST(Config.anonymize_headers, id))
+	return 0;
+    return 1;
+}

@@ -721,7 +721,7 @@ httpBuildRequestHeader(request_t * request,
 	httpHeaderPutStr(hdr_out, HDR_USER_AGENT, Config.fake_ua);
 
     /* append Via */
-    {
+    if (httpRequestHdrAllowedByName(HDR_VIA)) {
 	String strVia = httpHeaderGetList(hdr_in, HDR_VIA);
 	snprintf(bbuf, BBUF_SZ, "%3.1f %s", orig_request->http_ver, ThisCache);
 	strListAdd(&strVia, bbuf, ',');
@@ -729,7 +729,7 @@ httpBuildRequestHeader(request_t * request,
 	stringClean(&strVia);
     }
     /* append X-Forwarded-For */
-    {
+    if (httpRequestHdrAllowedByName(HDR_X_FORWARDED_FOR)) {
 	String strFwd = httpHeaderGetList(hdr_in, HDR_X_FORWARDED_FOR);
 	strListAdd(&strFwd, (cfd < 0 ? "unknown" : fd_table[cfd].ipaddr), ',');
 	httpHeaderPutStr(hdr_out, HDR_X_FORWARDED_FOR, strBuf(strFwd));
