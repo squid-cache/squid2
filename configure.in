@@ -970,6 +970,14 @@ AC_ARG_ENABLE(digest-auth-helpers,
   esac
 ])
 if test -n "$DIGEST_AUTH_HELPERS"; then
+    for helper in $DIGEST_AUTH_HELPERS; do
+	if test -f $srcdir/helpers/digest_auth/$helper/Makefile.in; then
+		:
+	else
+		echo "ERROR: digest auth helper $helper does not exists"
+		exit 1
+	fi
+    done
     echo "Digest auth helpers built: $DIGEST_AUTH_HELPERS"
 fi
 AC_SUBST(DIGEST_AUTH_HELPERS)
@@ -1011,7 +1019,7 @@ if test -n "$EXTERNAL_ACL_HELPERS"; then
 	if test -f $srcdir/helpers/external_acl/$helper/Makefile.in; then
 		:
 	else
-		echo "ERROR: NTLM external acl helper $helper does not exists"
+		echo "ERROR: external acl helper $helper does not exists"
 		exit 1
 	fi
     done
