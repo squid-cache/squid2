@@ -531,7 +531,6 @@ comm_select(int msec)
     fd_set writefds;
     PF *hdl = NULL;
     int fd;
-    int i;
     int maxfd;
     int num;
     int callicp = 0, callhttp = 0;
