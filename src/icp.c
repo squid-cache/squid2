@@ -112,16 +112,16 @@ static void icpCloseAndFree(fd, icpState, line)
 	sprintf(tmp_error_buf, "icpCloseAndFree: Called with NULL icpState from %s line %d", __FILE__, line);
 	fatal_dump(tmp_error_buf);
     }
-    debug(12, 0, "icpCloseAndFree: entry=%p\n", icpState->entry);
+    debug(12, 1, "icpCloseAndFree: entry=%p\n", icpState->entry);
     if (icpState->entry)
 	size = icpState->entry->mem_obj->e_current_len;
-    debug(12, 0, "icpCloseAndFree: size=%d\n", size);
+    debug(12, 1, "icpCloseAndFree: size=%d\n", size);
     CacheInfo->log_append(CacheInfo,
 	icpState->url,
 	inet_ntoa(icpState->peer.sin_addr),
 	size,
 	log_tags[icpState->log_type],
-	icpState->type);
+	icpState->type ? icpState->type : "UNKNOWN");
     safe_free(icpState->url);
     safe_free(icpState->type);
     safe_free(icpState->mime_hdr);
@@ -325,7 +325,7 @@ void icpSendERRORComplete(fd, buf, size, errflag, state)
 
     /* Clean up client side statemachine */
     entry = state->entry;
-    debug(12, 0, "icpSendERRORComplete: entry=%p\n", entry);
+    debug(12, 1, "icpSendERRORComplete: entry=%p\n", entry);
     icpFreeBufOrPage(state);
     icpCloseAndFree(fd, state, __LINE__);
 
@@ -353,7 +353,7 @@ int icpSendERROR(fd, errorCode, msg, state)
     debug(12, 4, "icpSendERROR: code %d: port %d: msg: '%s'\n",
 	errorCode, port, msg);
 
-    debug(12, 0, "icpSendERROR: state=%p  state->entry=%p\n", state, state->entry);
+    debug(12, 1, "icpSendERROR: state=%p  state->entry=%p\n", state, state->entry);
 
     if (port == COMM_ERROR) {
 	/* This file descriptor isn't bound to a socket anymore.
@@ -460,7 +460,7 @@ static void icpHandleStore(fd, entry, state)
 	state->entry = NULL;	/* Don't use a subsequently freed storeEntry */
 #endif
 	state->log_type = entry->mem_obj->abort_code;
-	debug(12, 0, "icpHandleStore: abort_code=%d\n", entry->mem_obj->abort_code);
+	debug(12, 1, "icpHandleStore: abort_code=%d\n", entry->mem_obj->abort_code);
 	state->ptr_to_4k_page = NULL;	/* Nothing to deallocate */
 	state->buf = NULL;	/* Nothing to deallocate */
 	icpSendERROR(fd,
@@ -573,14 +573,19 @@ void icp_hit_or_miss(fd, usm)
 
 	    /* Send object to requestor */
 	    entry->refcount++;	/* HIT CASE */
-	    icpSendMoreData(fd, usm);
+
+	    /* Handle IMS */
+/*          if(mime_get_header(mime_hdr,"if-modified-since"))
+ * icpSendIMS(fd, usm);
+ * else
+ */ icpSendMoreData(fd, usm);
 	    return;
 	}
 	/* We do NOT hold a lock on the existing "entry" because we're
 	 * about to eject it */
-	tmp_in_addr.s_addr = htonl(usm->header.shostid);
-	if (!lock)
+	if (lock < 0)
 	    debug(12, 0, "icp_hit_or_miss: swap file open failed\n");
+	tmp_in_addr.s_addr = htonl(usm->header.shostid);
 	usm->log_type = LOG_TCP_EXPIRED;
 	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
 	icpProcessMISS(fd, usm);
@@ -1194,8 +1199,6 @@ int parseAsciiUrl(input, astm)
 	*t = '\0';
     if ((t = strchr(url, '#')))	/* remove HTML anchors */
 	*t = '\0';
-
-    /* We now filter If-Modified-Since in httpSendRequest() */
 
     /* see if we running in httpd_accel_mode, if so got to convert it to URL */
     if (httpd_accel_mode && url[0] == '/') {
