@@ -1889,4 +1889,7 @@ struct _Logfile {
     char *buf;
     size_t bufsz;
     off_t offset;
+    struct {
+	unsigned int fatal:1;
+    } flags;
 };

@@ -329,7 +329,7 @@ void
 accessLogInit(void)
 {
     assert(sizeof(log_tags) == (LOG_TYPE_MAX + 1) * sizeof(char *));
-    logfile = logfileOpen(Config.Log.access, MAX_URL << 1);
+    logfile = logfileOpen(Config.Log.access, MAX_URL << 1, 1);
     LogfileStatus = LOG_ENABLE;
 #if HEADERS_LOG
     headerslog = logfileOpen("/usr/local/squid/logs/headers.log", 512);
