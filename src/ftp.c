@@ -1830,6 +1830,7 @@ ftpAcceptDataConnection(int fd, void *data)
     ftpState->data.fd = fd;
     ftpState->data.port = ntohs(peer.sin_port);
     ftpState->data.host = xstrdup(inet_ntoa(peer.sin_addr));
+    commSetTimeout(ftpState->ctrl.fd, -1, NULL, NULL);
     commSetTimeout(ftpState->data.fd, Config.Timeout.read, ftpTimeout,
 	ftpState);
     /* XXX We should have a flag to track connect state...
