@@ -166,7 +166,7 @@ destroy_MemObject(StoreEntry * e)
      * There is no way to abort FD-less clients, so they might
      * still have mem->clients set if mem->fd == -1
      */
-    assert(mem->fd == -1 || mem->clients == NULL);
+    assert(mem->fd == -1 || mem->clients.head == NULL);
     httpReplyDestroy(mem->reply);
     requestUnlink(mem->request);
     mem->request = NULL;
