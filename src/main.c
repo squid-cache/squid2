@@ -149,6 +149,7 @@ usage(void)
 	"       -v        Print version.\n"
 	"       -z        Create swap directories\n"
 	"       -C        Do not catch fatal signals.\n"
+	"       -c        Convert store from <1.2.\n"
 	"       -D        Disable initial DNS tests.\n"
 	"       -F        Foreground fast store rebuild.\n"
 	"       -N        No daemon mode.\n"
@@ -166,7 +167,7 @@ mainParseOptions(int argc, char *argv[])
     extern char *optarg;
     int c;
 
-    while ((c = getopt(argc, argv, "CDFNRVYXa:df:hk:m:su:vz?")) != -1) {
+    while ((c = getopt(argc, argv, "CDFNRVYXa:cdf:hk:m:su:vz?")) != -1) {
 	switch (c) {
 	case 'C':
 	    opt_catch_signals = 0;
@@ -195,6 +196,9 @@ mainParseOptions(int argc, char *argv[])
 	    break;
 	case 'a':
 	    httpPortNumOverride = atoi(optarg);
+	    break;
+	case 'c':
+	    opt_convert = 1;
 	    break;
 	case 'd':
 	    opt_debug_stderr = 1;
@@ -358,7 +362,9 @@ mainReconfigure(void)
     dnsShutdownServers();
     asnCleanup();
     redirectShutdownServers();
+#if 0
     storeDirCloseSwapLogs();
+#endif
     errorFree();
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
@@ -371,7 +377,9 @@ mainReconfigure(void)
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0 && (!Config2.Accel.on || Config.onoff.accel_with_proxy))
 	neighbors_open(theOutIcpConnection);
+#if 0
     storeDirOpenSwapLogs();
+#endif
     debug(1, 0) ("Ready to serve requests.\n");
 }
 

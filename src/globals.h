@@ -56,6 +56,7 @@ extern int icmp_sock;		/* -1 */
 extern int neighbors_do_private_keys;	/* 1 */
 extern int opt_accel_uses_host;	/* 0 */
 extern int opt_catch_signals;	/* 1 */
+extern int opt_convert;		/* 0 */
 extern int opt_debug_stderr;	/* 0 */
 extern int opt_dns_tests;	/* 1 */
 extern int opt_foreground_rebuild;	/* 0 */
