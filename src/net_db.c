@@ -412,7 +412,6 @@ netdbSaveState(void *foo)
 	    t = wbuf;
 	    wl <<= 1;
 	    wbuf = xmalloc(wl);
-	    debug(0, 0) ("netdbSaveState: wbuf now %d bytes\n", wl);
 	    xmemcpy(wbuf, t, wo);
 	    xfree(t);
 	}
