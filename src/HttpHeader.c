@@ -471,9 +471,10 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	}
 	if (e->id == HDR_OTHER && stringHasWhitespace(strBuf(e->name))) {
 	    debug(55, 1) ("WARNING: found whitespace in HTTP header name {%s}\n", getStringPrefix(field_start, field_end));
-	    httpHeaderEntryDestroy(e);
-	    if (!Config.onoff.relaxed_header_parser)
+	    if (!Config.onoff.relaxed_header_parser) {
+		httpHeaderEntryDestroy(e);
 		return httpHeaderReset(hdr);
+	    }
 	}
 	httpHeaderAddEntry(hdr, e);
     }
