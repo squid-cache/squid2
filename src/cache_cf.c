@@ -189,12 +189,16 @@ static void
 configDoConfigure(void)
 {
     LOCAL_ARRAY(char, buf, BUFSIZ);
+    int i;
     memset(&Config2, '\0', sizeof(SquidConfig2));
     /* init memory as early as possible */
     memConfigure();
     /* Sanity checks */
     if (Config.cacheSwap.swapDirs == NULL)
 	fatal("No cache_dir's specified in config file");
+    /* calculate Config.Swap.maxSize */
+    for (i = 0; i < Config.cacheSwap.n_configured; i++)
+	Config.Swap.maxSize += Config.cacheSwap.swapDirs[i].max_size;
     if (Config.Swap.maxSize < (Config.Mem.maxSize >> 10))
 	fatal("cache_swap is lower than cache_mem");
     if (Config.Announce.period < 1) {
@@ -592,7 +596,6 @@ parse_cachedir(cacheSwap * swap)
     tmp->map = file_map_create(MAX_FILES_PER_DIR);
     tmp->swaplog_fd = -1;
     swap->n_configured++;
-    Config.Swap.maxSize += size;
 }
 
 static void
