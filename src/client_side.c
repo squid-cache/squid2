@@ -1552,7 +1552,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	if (*(t++) == '\n')
 	    break;
     req_hdr = t;
-debug(0,0)("parseHttpRequest: req_hdr = {%s}\n", req_hdr);
+    debug(33, 3) ("parseHttpRequest: req_hdr = {%s}\n", req_hdr);
 
     /* Check if headers are received */
     header_sz = headersEnd(req_hdr, conn->in.offset - (req_hdr - inbuf));
@@ -1562,7 +1562,7 @@ debug(0,0)("parseHttpRequest: req_hdr = {%s}\n", req_hdr);
 	return NULL;
     }
     end = req_hdr + header_sz;
-debug(0,0)("parseHttpRequest: end = {%s}\n", end);
+    debug(33, 3) ("parseHttpRequest: end = {%s}\n", end);
 
     if (end <= req_hdr) {
 	/* Invalid request */
@@ -1580,8 +1580,8 @@ debug(0,0)("parseHttpRequest: end = {%s}\n", end);
 	return http;
     }
     req_sz = end - inbuf;
-debug(0,0)("parseHttpRequest: req_sz = %d\n", (int) req_sz);
-assert(req_sz <= conn->in.offset);
+    debug(33, 3) ("parseHttpRequest: req_sz = %d\n", (int) req_sz);
+    assert(req_sz <= conn->in.offset);
 
     /* Ok, all headers are received */
     http = xcalloc(1, sizeof(clientHttpRequest));
