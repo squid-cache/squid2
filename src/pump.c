@@ -212,7 +212,7 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
     }
     p->sent += size;
     if (p->req->flags.proxy_keepalive)
-        assert(p->sent <= p->cont_len);
+	assert(p->sent <= p->cont_len);
     if (p->sent < p->cont_len || !p->req->flags.proxy_keepalive) {
 	storeClientCopy(p->request_entry, p->sent, p->sent, 4096,
 	    memAllocate(MEM_4K_BUF),
@@ -418,7 +418,7 @@ pumpServerClosed(int fd, void *data)
     if (p->flags.closing)
 	return;
     if (p->c_fd > -1)
-        comm_close(p->c_fd);
+	comm_close(p->c_fd);
 }
 
 /*

@@ -965,7 +965,7 @@ aclMatchUser(wordlist * data, const char *user)
     return 0;
 }
 
-static int 
+static int
 aclDecodeProxyAuth(const char *proxy_auth, char **user, char **password, char *buf, size_t bufsize)
 {
     char *sent_auth;
