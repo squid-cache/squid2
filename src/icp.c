@@ -671,7 +671,7 @@ icpSendMoreData(void *data, char *buf, size_t size)
 	hdrlen = 0;
 	l = clientBuildReplyHeader(http, buf, &hdrlen, newbuf, 8192);
 	if (hack)
-		*(buf + size++) = C;
+	    *(buf + size++) = C;
 	if (l != 0) {
 	    writelen = l + size - hdrlen;
 	    assert(writelen <= 8192);
@@ -685,16 +685,21 @@ icpSendMoreData(void *data, char *buf, size_t size)
 	    freefunc(buf);
 	    buf = newbuf;
 	    freefunc = put_free_8k_page;
-	} else if (size < ICP_SENDMOREDATA_BUF && entry->store_status == STORE_PENDING) {
-	    /* wait for more to arrive */
-	    storeClientCopy(entry,
-		http->out.offset + size,
-		http->out.offset,
-		ICP_SENDMOREDATA_BUF,
-		buf,
-		icpSendMoreData,
-		http);
-	    return;
+	    newbuf = NULL;
+	} else {
+	    put_free_8k_page(newbuf);
+	    newbuf = NULL;
+	    if (size < ICP_SENDMOREDATA_BUF && entry->store_status == STORE_PENDING) {
+		/* wait for more to arrive */
+		storeClientCopy(entry,
+		    http->out.offset + size,
+		    http->out.offset,
+		    ICP_SENDMOREDATA_BUF,
+		    buf,
+		    icpSendMoreData,
+		    http);
+		return;
+	    }
 	}
     }
     http->out.offset += size;
@@ -2137,7 +2142,7 @@ CheckQuickAbort(clientHttpRequest * http)
 	return;
     if (CheckQuickAbort2(http) == 0)
 	return;
-    debug(12,3,"CheckQuickAbort: ABORTING %s\n", http->entry->url);
+    debug(12, 3, "CheckQuickAbort: ABORTING %s\n", http->entry->url);
     BIT_SET(http->entry->flag, CLIENT_ABORT_REQUEST);
     storeReleaseRequest(http->entry);
     http->log_type = ERR_CLIENT_ABORT;
