@@ -1424,7 +1424,7 @@ DOC_START
 	A value of -1 causes Squid to always fetch the object from the
 	beginning so that it may cache the result. (2.0 style)
 
-	A value of 0 causes Squid to never fetch more than the client
+	A value of 0 causes Squid to never fetch more than the
 	client requested. (default)
 DOC_END
 
