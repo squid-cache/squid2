@@ -189,9 +189,10 @@ aioCancel(int fd, void *tag)
 
 
 void
-aioWrite(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
+aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
+    int seekmode;
 
     if (!initialised)
 	aioInit();
@@ -216,7 +217,13 @@ aioWrite(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
     ctrlp->operation = _AIO_WRITE;
-    if (aio_write(fd, bufp, len, 0, SEEK_END, &(ctrlp->result)) < 0) {
+    if (offset >= 0)
+	seekmode = SEEK_SET;
+    else {
+	seekmode = SEEK_END;
+	offset = 0;
+    }
+    if (aio_write(fd, bufp, len, offset, seekmode, &(ctrlp->result)) < 0) {
 	if (errno == ENOMEM || errno == EAGAIN || errno == EINVAL)
 	    errno = EWOULDBLOCK;
 	if (callback)
@@ -231,9 +238,10 @@ aioWrite(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
 
 
 void
-aioRead(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
+aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
+    int seekmode;
 
     if (!initialised)
 	aioInit();
@@ -258,7 +266,13 @@ aioRead(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
     ctrlp->operation = _AIO_READ;
-    if (aio_read(fd, bufp, len, 0, SEEK_CUR, &(ctrlp->result)) < 0) {
+    if (offset >= 0)
+	seekmode = SEEK_SET;
+    else {
+	seekmode = SEEK_CUR;
+	offset = 0;
+    }
+    if (aio_read(fd, bufp, len, offset, seekmode, &(ctrlp->result)) < 0) {
 	if (errno == ENOMEM || errno == EAGAIN || errno == EINVAL)
 	    errno = EWOULDBLOCK;
 	if (callback)
