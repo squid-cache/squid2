@@ -525,7 +525,6 @@ icpHandleIMSReply(int fd, void *data)
 	    entry->object_len);
 	return;
     } else if (clientGetsOldEntry(entry, icpState->old.entry, icpState->request)) {
-	debug(0, 0, "Client GETS OLD entry\n");
 	/* We initiated the IMS request, the client is not expecting
 	 * 304, so put the good one back. */
 	icpState->log_type = LOG_TCP_REFRESH_HIT;
@@ -533,14 +532,11 @@ icpHandleIMSReply(int fd, void *data)
 	    icpState->old.entry->mem_obj->request = requestLink(mem->request);
 	    unlink_request = 1;
 	}
-	debug(0, 0, "copying new entry reply structure to old entry\n");
 	xmemcpy(icpState->old.entry->mem_obj->reply,
 	    entry->mem_obj->reply,
 	    sizeof(struct _http_reply));
-	debug(0, 0, "setting timestamps on old entry\n");
 	storeTimestampsSet(icpState->old.entry);
 	storeUnregister(entry, fd);
-	debug(0, 0, "unlocking new entry\n");
 	storeUnlockObject(entry);
 	entry = icpState->entry = icpState->old.entry;
 	icpState->old.entry = NULL;
