@@ -8,7 +8,6 @@
 
 # define all three for SNMP support
 #SQUID_SNMP		= -DSQUID_SNMP=1
-#SQUID_MIB		= mib.txt 
 #SQUID_SNMP_LIBS 	= -L../snmplib -lsnmp
 
 DEFINES         = $(SQUID_SNMP)
