@@ -149,8 +149,8 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
 	remove = 1;
 	break;
 #if WORK_IN_PROGRESS
-	case HTTP_UNAUTHORIZED
-	    remove = 1;
+    case HTTP_UNAUTHORIZED:
+	remove = 1;
 	break;
 #endif
     default:
