@@ -597,7 +597,7 @@ aclParseAclLine(void)
     switch (A->type) {
     case ACL_SRC_IP:
     case ACL_DST_IP:
-	aclParseIpList(&(A->data));
+	aclParseIpList(&A->data);
 	break;
     case ACL_SRC_DOMAIN:
     case ACL_DST_DOMAIN:
