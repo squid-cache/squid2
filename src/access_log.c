@@ -320,7 +320,7 @@ accessLogRotate(void)
     file_close(LogfileFD);	/* always close */
     if (Config.Log.rotateNumber > 0) {
 	snprintf(to, MAXPATHLEN, "%s.%d", fname, 0);
-	xrename(from, to);
+	xrename(fname, to);
     }
     /* Reopen the log.  It may have been renamed "manually" */
     LogfileFD = file_open(fname, O_WRONLY | O_CREAT);
