@@ -621,16 +621,16 @@ httpHeaderGetList(const HttpHeader * hdr, http_hdr_type id)
 String
 httpHeaderGetStrOrList(const HttpHeader * hdr, http_hdr_type id)
 {
-    const char *str;
-    String s;
+    HttpHeaderEntry *e;
 
     if (CBIT_TEST(ListHeadersMask, id))
-	s = httpHeaderGetList(hdr, id);
-    else {
-	str = httpHeaderGetStr(hdr, id);
-	stringInit(&s, str);
+	return httpHeaderGetList(hdr, id);
+    if ((e = httpHeaderFindEntry(hdr, id))) {
+	String s;
+	stringInit(&s, strBuf(e->value));
+	return s;
     }
-    return s;
+    return StringNull;
 }
 
 /*
