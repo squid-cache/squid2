@@ -1,3 +1,47 @@
+Changes to Squid-2.4.STABLE2 (Aug 24, 2001):
+
+	- Expanded configure's GCC opimization disabling check to
+	  include GCC 2.95.3
+	- avoid negative served_date in storeTimestampsSet().
+	- Made 'diskd' pathnames more configurable
+	- Make sure squid parent dies if child is killed with
+	  KILL signal
+	- Changed diskd offset args to off_t instead of int
+	- Fixed bugs #102, #101, #205: various problems with useragent
+	  log files
+	- Fixed bug #116: Large Age: values still cause problems
+	- Fixed bug #119: Floating point exception in
+	  storeDirUpdateSwapSize()
+	- Fixed bug #114: usernames not logged with
+	  authenticate_ip_ttl_is_strict
+	- Fixed bug #115: squid eating up ressources (eventAdd args)
+	- Fixed bug #125: garbage HTCP requests cause assertion
+	- Fixed bug #134: 'virtual port' support ignores
+	  httpd_accel_port, causes a loop in httpd_accel mode
+	- Fixed bug #135: assertion failed: logfile.c:135: "lf->offset
+	  <= lf->bufsz"
+	- Fixed bug #137: Ranges on misses are over-done
+	- Fixed bug #160: referer_log doesn't seem to work
+	- Fixed bug #162: some memory leaks (SNMP, delay_pools,
+	  comm_dns_incoming histogram)
+	- Fixed bug #165: "Store Mem Buffer" leaks badly
+	- Fixed bug #172: Ident Based ACLs fail when applied to
+	  cache_peer_access
+	- Fixed bug #177: LinuxPPC 2000 segfault bug due to varargs abuse
+	- Fixed bug #182: 'config' cachemgr option dumps core with
+	  null storage
+	- Fixed bug #185: storeDiskdDirParseQ[12]() use wrong number
+	  of args in debug/printf
+	- Fixed bug #187: bugs in lib/base64.c
+	- Fixed bug #184: storeDiskdShmGet() assertion; changed
+	  diskd to use bitmap instead of linked list
+	- Fixed bug #194: Compilation fails on index() on some
+	  non-BSD plaforms
+	- Fixed bug #197: refreshIsCachable() incorrectly checks
+	  entry->mem_obj->reply
+	- Fixed bug #215: NULL pointer access for proxy requests
+	  in accel-only mode
+
 Changes to Squid-2.4.STABLE1 (Mar 20, 2001):
 
 	- Fixed a bug in and cleaned up class 2/3 delay pools
