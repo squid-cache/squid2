@@ -144,7 +144,7 @@ basicGetFn(oid * Src, snint SrcLen)
     if (((SrcLen == (LEN_SYSMIB + 1)) ||
 	    ((SrcLen == (LEN_SYSMIB + 2)) && (Src[LEN_SYSMIB + 1] == 0))) &&
 	(Src[LEN_SYSMIB] > 0) &&
-	(Src[LEN_SYSMIB] < SYS_END))
+	(Src[LEN_SYSMIB] < SYSMIB_END))
 	return (snmp_basicFn);
 
     return NULL;
