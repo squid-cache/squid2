@@ -790,17 +790,18 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #
 #ssl_proxy none
 
-#  TAG: proxy_auth_file
-#	Apache-style file of passwords for authenticated proxy access
-#	Looks like user:password, with the password being standard
-#	crypt() format.  Proxy authentication is disabled by default.
+#  TAG: proxy_auth
+#	Usage: proxy_auth passwd_file [ ignore-domain ]
+#
+#	'passwd_file' is an apache-style file of passwords for
+#	authenticated proxy access Looks like user:password, with the
+#	password being standard crypt() format.  Proxy authentication
+#	is disabled by default.
+#
+#	'ignore-domain' is a domain name for which authorization will
+#	*not* be required.
 #
 #proxy_auth_file /dev/null
-
-#  TAG: proxy_auth_ignore_domain
-#       Don't ask for proxy authentication for URLs in this domain.
-#
-#proxy_auth_ignore_domain foo.org
 
 #  TAG: err_html_text
 #	HTML text to include in error messages.  Make this a "mailto"
