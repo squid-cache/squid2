@@ -1401,7 +1401,6 @@ clientPackMoreRanges(clientHttpRequest * http, const char *buf, ssize_t size, Me
     /* check: reply was parsed and range iterator was initialized */
     assert(i->prefix_size > 0);
     /* filter out data according to range specs */
-    /* note: order of loop conditions is significant! */
     while (clientCanPackMoreRanges(http, i, size)) {
 	off_t start;		/* offset of still missing data */
 	assert(i->spec);
@@ -1549,23 +1548,21 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	httpReplyDestroy(rep);
 	rep = NULL;
     } else {
-	/* leave space for growth incase we do ranges */
+	/* leave space for growth in case we do ranges */
 	memBufInit(&mb, CLIENT_SOCK_SZ, 2 * CLIENT_SOCK_SZ);
     }
     /* append body if any */
-    if (body_buf && body_size) {
-	if (http->request->range) {
-	    /* Only GET requests should have ranges */
-	    assert(http->request->method == METHOD_GET);
-	    /* clientPackMoreRanges() updates http->out.offset */
-	    /* force the end of the transfer if we are done */
-	    if (!clientPackMoreRanges(http, body_buf, body_size, &mb))
-		http->flags.done_copying = 1;
-	} else {
-	    http->out.offset += body_size;
-	    check_size += body_size;
-	    memBufAppend(&mb, body_buf, body_size);
-	}
+    if (http->request->range) {
+	/* Only GET requests should have ranges */
+	assert(http->request->method == METHOD_GET);
+	/* clientPackMoreRanges() updates http->out.offset */
+	/* force the end of the transfer if we are done */
+	if (!clientPackMoreRanges(http, body_buf, body_size, &mb))
+	    http->flags.done_copying = 1;
+    } else if (body_buf && body_size) {
+	http->out.offset += body_size;
+	check_size += body_size;
+	memBufAppend(&mb, body_buf, body_size);
     }
     if (!http->request->range && http->request->method == METHOD_GET)
 	assert(check_size == size);
