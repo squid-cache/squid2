@@ -23,23 +23,22 @@ storeUfsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     int fd;
     debug(78, 3) ("storeUfsOpen: fileno %08X, mode %d\n", f, mode);
     assert(mode == O_RDONLY || mode == O_WRONLY);
-    sio = memAllocate(MEM_STORE_IO);
-    cbdataAdd(sio, memFree, MEM_STORE_IO);
-    sio->type.ufs.fd = -1;
-    sio->swap_file_number = f;
-    sio->mode = mode;
-    sio->callback = callback;
-    sio->callback_data = callback_data;
     if (mode == O_WRONLY)
 	mode |= (O_CREAT | O_TRUNC);
     fd = file_open(path, mode);
-    debug(78, 3) ("storeUfsOpen: opened FD %d\n", fd);
-    sio->type.ufs.flags.writing = 0;
     if (fd < 0) {
 	debug(78, 3) ("storeUfsOpenDone: got failure (%d)\n", errno);
 	return NULL;
     }
+    debug(78, 3) ("storeUfsOpen: opened FD %d\n", fd);
+    sio = memAllocate(MEM_STORE_IO);
+    cbdataAdd(sio, memFree, MEM_STORE_IO);
+    sio->swap_file_number = f;
+    sio->mode = mode;
+    sio->callback = callback;
+    sio->callback_data = callback_data;
     sio->type.ufs.fd = fd;
+    sio->type.ufs.flags.writing = 0;
     if (sio->mode == O_RDONLY)
 	if (fstat(fd, &sb) == 0)
 	    sio->st_size = sb.st_size;
