@@ -1484,7 +1484,7 @@ DOC_START
 	'Max' is an upper limit on how long objects without an explicit
 	expiry time will be considered fresh.
 
-	options: overrsde-expire
+	options: override-expire
 		 override-lastmod
 		 reload-into-ims
 		 ignore-reload
