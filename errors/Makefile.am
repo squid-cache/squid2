@@ -27,8 +27,6 @@ LANGUAGES	= \
 		Italian \
 		Japanese \
 		Korean \
-		Makefile.am \
-		Makefile.in \
 		Polish \
 		Portuguese \
 		Romanian \
