@@ -1886,6 +1886,7 @@ static void icpDetectClientClose(fd, icpState)
     static char buf[256];
     int n;
     StoreEntry *entry = icpState->entry;
+    errno = 0;
     n = read(fd, buf, 256);
     if (n > 0) {
 	debug(12, 0, "icpDetectClientClose: FD %d, %d unexpected bytes\n",
@@ -1894,9 +1895,7 @@ static void icpDetectClientClose(fd, icpState)
 	    COMM_SELECT_READ,
 	    (PF) icpDetectClientClose,
 	    (void *) icpState);
-	return;
-    }
-    if (n == 0 && entry != NULL && icpState->offset == entry->object_len &&
+    } else if (n == 0 && entry != NULL && icpState->offset == entry->object_len &&
 	entry->store_status != STORE_PENDING) {
 	/* All data has been delivered */
 	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
@@ -1904,19 +1903,22 @@ static void icpDetectClientClose(fd, icpState)
 	    CacheInfo->proto_id(entry->url),
 	    icpState->offset);
 	comm_close(fd);
+    } else if (n == 0 && write(fd, "", 0) == 0) {
+	/* XXX Assume write(2) of zero bytes won't block! */
+	/* the other side called shutdown(2) on the socket? */
+	/* just disable read handler */
+	debug(12, 1, "icpDetectClientClose: FD %d Peer issued TCP half-close\n", fd);
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    NULL,
+	    NULL);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
 	debug(12, 5, "--> URL '%s'\n", icpState->url);
-	if (n < 0) {
-	    switch (errno) {
-	    case ECONNRESET:
-		debug(12, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
-		break;
-	    default:
-		debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
-		break;
-	    }
-	}
+	if (errno == ECONNRESET)
+	    debug(12, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
+	else if (errno)
+	    debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	CheckQuickAbort(icpState);
 	if (entry && icpState->url)
 	    protoUndispatch(fd, icpState->url, entry, icpState->request);
