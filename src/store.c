@@ -593,6 +593,7 @@ storeUnlockObject(StoreEntry * e)
 	return (int) e->lock_count;
     if (e->store_status == STORE_PENDING) {
 	debug_trap("storeUnlockObject: Someone unlocked STORE_PENDING object");
+	debug(20,1,"   --> Key '%s'\n", e->key);
 	e->store_status = STORE_ABORTED;
     }
     if (BIT_TEST(e->flag, RELEASE_REQUEST)) {
