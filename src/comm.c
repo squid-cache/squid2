@@ -160,11 +160,11 @@ comm_open(int sock_type,
 	case ENFILE:
 	case EMFILE:
 	    debug(50, 1) ("comm_open: socket failure: %s\n", xstrerror());
+	    fdAdjustReserved();
 	    break;
 	default:
 	    debug(50, 0) ("comm_open: socket failure: %s\n", xstrerror());
 	}
-	fdAdjustReserved();
 	return -1;
     }
     /* update fdstat */
@@ -302,12 +302,14 @@ commResetFD(ConnectStateData * cs)
     Counter.syscalls.sock.sockets++;
     if (fd2 < 0) {
 	debug(5, 0) ("commResetFD: socket: %s\n", xstrerror());
-	fdAdjustReserved();
+	if (ENFILE == errno || EMFILE == errno)
+	    fdAdjustReserved();
 	return 0;
     }
     if (dup2(fd2, cs->fd) < 0) {
 	debug(5, 0) ("commResetFD: dup2: %s\n", xstrerror());
-	fdAdjustReserved();
+	if (ENFILE == errno || EMFILE == errno)
+	    fdAdjustReserved();
 	return 0;
     }
     close(fd2);
