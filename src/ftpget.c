@@ -1765,7 +1765,8 @@ void try_readme(r)
     readme->path = xstrdup("README");
     readme->cfd = fd;
     readme->sfd = r->sfd;
-    readme->dfd = -1;
+    readme->dfd = r->dfd;
+    r->dfd = -1;
 #ifdef TRY_CWD_FIRST
     readme->state = CWD_FAIL;
 #else
