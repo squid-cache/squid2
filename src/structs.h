@@ -430,7 +430,7 @@ struct _SquidConfig {
 	char *encode_key;
     } mcast_miss;
 #endif
-    HttpHeaderMask http_header;
+    HttpHeaderMask anonymize_headers;
 };
 
 struct _SquidConfig2 {

@@ -147,7 +147,7 @@ httpRequestHdrAllowed(const HttpHeaderEntry * e, String * strConn)
 {
     assert(e);
     /* check with anonymizer tables */
-    if (CBIT_TEST(Config.http_header, e->id))
+    if (CBIT_TEST(Config.anonymize_headers, e->id))
 	return 0;
     /* check connection header */
     if (strConn && strListIsMember(strConn, strBuf(e->name), ','))
