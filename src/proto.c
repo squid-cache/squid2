@@ -297,9 +297,9 @@ getRandomHierMethod(void)
 {
     int i;
     int min_meth = 0;
-    for (i=0; i<HIER_METHODS; i++) {
+    for (i = 0; i < HIER_METHODS; i++) {
 	if (HierMethodHist[i] >= HierMethodHist[min_meth])
-		continue;
+	    continue;
 	min_meth = i;
     }
     return min_meth;
@@ -363,7 +363,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	    protoData->direct_fetch = DIRECT_NO;
 	    protoData->n_peers = 0;
 	    protoDispatchDNSHandle(fd, NULL, protoData);
-	    return;
+	    return 0;
 	} else {
 	    request->hierarchy.hier_method = HIER_METH_DIRECT;
 	}
@@ -374,7 +374,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host, fd,
 	    protoDispatchDNSHandle, protoData);
-	return;
+	return 0;
     } else
 #endif
     if (Config.firewall_ip_list) {
