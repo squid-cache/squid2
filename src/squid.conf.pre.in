@@ -75,7 +75,7 @@
 #	cache_host littleguy1.usc.edu   sibling   3128  3130  [proxy-only]
 #	cache_host littleguy1.usc.edu   sibling   3128  3130  [proxy-only]
 #
-#	      type:  either 'parent' or 'sibling'.
+#	      type:  either 'parent', 'sibling', or 'multicast'.
 #
 #	proxy_port:  The port number where the cache listens for proxy
 #	             requests.
@@ -92,6 +92,7 @@
 #		     no-query
 #		     default
 #		     round-robin
+#		     mulsticast-responder
 #
 #		     use 'proxy-only' to specify that objects fetched
 #		     from this cache should not be saved locally.
@@ -103,9 +104,9 @@
 #                    use 'ttl=n' to specify a IP multicast TTL to use
 #                    when sending an ICP request to this address.
 #                    Only useful when sending to a multicast group.
-#                    multicast groups are treated like regular parents and
-#                    neighbo[u]rs, except that we don't expect to see any
-#                    replies from them.
+#		     Because we don't accept ICP replies from random
+#		     hosts, you must configure other group members as
+#		     peers with the 'multicast-responder' option below.
 #
 #		     use 'no-query' to NOT send ICP queries to this
 #		     neighbor.
@@ -118,6 +119,11 @@
 #		     use 'round-robin' to define a set of parents which
 #		     should be used in a round-robin fashion in the
 #		     absence of any ICP queries.
+#
+#		     'multicast-responder' indicates that the named peer
+#		     is a member of a multicast group.  ICP queries will
+#		     not be sent directly to the peer, but ICP replies
+#		     will be accepted from it.
 #
 #	NOTE: non-ICP neighbors must be specified as 'parent'.
 #

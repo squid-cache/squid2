@@ -491,6 +491,8 @@ parseCacheHostLine(void)
 	    options |= NEIGHBOR_PROXY_ONLY;
 	} else if (!strcasecmp(token, "no-query")) {
 	    options |= NEIGHBOR_NO_QUERY;
+	} else if (!strcasecmp(token, "multicast-responder")) {
+	    options |= NEIGHBOR_MCAST_RESPONDER;
 	} else if (!strncasecmp(token, "weight=", 7)) {
 	    weight = atoi(token + 7);
 	} else if (!strncasecmp(token, "ttl=", 4)) {
