@@ -9,12 +9,9 @@ struct icp_common_s {
     unsigned char version;	/* version number */
     unsigned short length;	/* total length (bytes) */
     u_num32 reqnum;		/* req number (req'd for UDP) */
-#ifdef UDP_HIT_WITH_OBJ
     u_num32 flags;
     u_num32 pad;
-#else
-    u_num32 auth[ICP_AUTH_SIZE];	/* authenticator (future) */
-#endif
+    /* u_num32 auth[ICP_AUTH_SIZE];	authenticator (old) */
     u_num32 shostid;		/* sender host id */
 };
 

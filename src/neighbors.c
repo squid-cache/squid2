@@ -323,12 +323,9 @@ void neighbors_open(fd)
 	e->header.version = ICP_VERSION_CURRENT;
 	e->header.length = 0;
 	e->header.reqnum = 0;
-#ifdef UDP_HIT_WITH_OBJ
 	e->header.flags = 0;
 	e->header.pad = 0;
-#else
-	memset(e->header.auth, '\0', sizeof(u_num32) * ICP_AUTH_SIZE);
-#endif
+	/* memset(e->header.auth, '\0', sizeof(u_num32) * ICP_AUTH_SIZE); */
 	e->header.shostid = name.sin_addr.s_addr;
 
 	ap = &e->in_addr;
@@ -356,12 +353,9 @@ void neighbors_open(fd)
 	echo_hdr.version = ICP_VERSION_CURRENT;
 	echo_hdr.length = 0;
 	echo_hdr.reqnum = 0;
-#ifdef UDP_HIT_WITH_OBJ
 	echo_hdr.flags = 0;
 	echo_hdr.pad = 0;
-#else
-	memset(echo_hdr.auth, '\0', sizeof(u_num32) * ICP_AUTH_SIZE);
-#endif
+	/* memset(echo_hdr.auth, '\0', sizeof(u_num32) * ICP_AUTH_SIZE); */
 	echo_hdr.shostid = name.sin_addr.s_addr;
 	sep = getservbyname("echo", "udp");
 	echo_port = sep ? ntohs((u_short) sep->s_port) : 7;
@@ -500,9 +494,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
     int w_rtt;
     int rtt;
     int n;
-#ifdef UDP_HIT_WITH_OBJ
     HttpStateData *httpState = NULL;
-#endif
 
     debug(15, 6, "neighborsUdpAck: url=%s (%d chars), header=0x%x, from=0x%x, ent=0x%x\n",
 	url, strlen(url), header, from, entry);
@@ -582,7 +574,6 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    getFromCache(0, entry, NULL, entry->mem_obj->request);
 	}
 	return;
-#ifdef UDP_HIT_WITH_OBJ
     } else if (header->opcode == ICP_OP_HIT_OBJ) {
 	if (entry->object_len != 0) {
 	    debug(15, 0, "Too late UDP_HIT_OBJ '%s'?\n", entry->url);
@@ -604,7 +595,6 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    put_free_8k_page(httpState->reply_hdr);
 	safe_free(httpState);
 	return;
-#endif
     } else if (header->opcode == ICP_OP_HIT) {
 	/* If an edge is not found, count it as a MISS message. */
 	if (!e) {

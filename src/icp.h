@@ -14,27 +14,25 @@ typedef enum {
     LOG_TCP_SWAPIN_FAIL,	/* 6 */
     LOG_TCP_DENIED,		/* 7 */
     LOG_UDP_HIT,		/* 8 */
-#ifdef UDP_HIT_WITH_OBJ
-    LOG_UDP_HIT_OBJ,		/* 8 */
-#endif
-    LOG_UDP_MISS,		/* 9 */
-    LOG_UDP_DENIED,		/* 10 */
-    LOG_UDP_INVALID,		/* 11 */
-    ERR_READ_TIMEOUT,		/* 12 */
-    ERR_LIFETIME_EXP,		/* 13 */
-    ERR_NO_CLIENTS_BIG_OBJ,	/* 14 */
-    ERR_READ_ERROR,		/* 15 */
-    ERR_CLIENT_ABORT,		/* 16 */
-    ERR_CONNECT_FAIL,		/* 17 */
-    ERR_INVALID_REQ,		/* 18 */
-    ERR_INVALID_URL,		/* 19 */
-    ERR_NO_FDS,			/* 20 */
-    ERR_DNS_FAIL,		/* 21 */
-    ERR_NOT_IMPLEMENTED,	/* 22 */
-    ERR_CANNOT_FETCH,		/* 23 */
-    ERR_NO_RELAY,		/* 24 */
-    ERR_DISK_IO,		/* 25 */
-    ERR_ZERO_SIZE_OBJECT	/* 26 */
+    LOG_UDP_HIT_OBJ,		/* 9 */
+    LOG_UDP_MISS,		/* 10 */
+    LOG_UDP_DENIED,		/* 11 */
+    LOG_UDP_INVALID,		/* 12 */
+    ERR_READ_TIMEOUT,		/* 13 */
+    ERR_LIFETIME_EXP,		/* 14 */
+    ERR_NO_CLIENTS_BIG_OBJ,	/* 15 */
+    ERR_READ_ERROR,		/* 16 */
+    ERR_CLIENT_ABORT,		/* 17 */
+    ERR_CONNECT_FAIL,		/* 18 */
+    ERR_INVALID_REQ,		/* 19 */
+    ERR_INVALID_URL,		/* 20 */
+    ERR_NO_FDS,			/* 21 */
+    ERR_DNS_FAIL,		/* 22 */
+    ERR_NOT_IMPLEMENTED,	/* 23 */
+    ERR_CANNOT_FETCH,		/* 24 */
+    ERR_NO_RELAY,		/* 25 */
+    ERR_DISK_IO,		/* 26 */
+    ERR_ZERO_SIZE_OBJECT	/* 27 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT

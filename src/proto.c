@@ -102,7 +102,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     }
     if (protoData->direct_fetch == DIRECT_MAYBE && local_ip_list) {
 	if ((hp = ipcache_gethostbyname(req->host)) == NULL) {
-	    debug(17, 1, "protoDispatchDNSHandle: Failure to lookup host: %s.\n",
+	    debug(17, 1, "Unknown host: %s\n",
 		req->host);
 	} else {
 	    memcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);

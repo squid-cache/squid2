@@ -22,9 +22,7 @@ typedef enum {
     HIER_REVIVE_NEIGHBOR,
     HIER_NO_DIRECT_FAIL,
     HIER_SOURCE_FASTEST,
-#ifdef UDP_HIT_WITH_OBJ
     HIER_UDP_HIT_OBJ,
-#endif
     HIER_MAX
 } hier_code;
 

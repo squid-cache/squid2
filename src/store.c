@@ -2081,17 +2081,29 @@ int storeGetSwapSpace(size)
 	    break;
     }				/* for */
 
+#ifdef LOTSA_DEBUGGING
     /* end of candidate selection */
-    debug(20, 2, "storeGetSwapSpace: Current Size:   %7d kbytes\n", store_swap_size);
-    debug(20, 2, "storeGetSwapSpace: High W Mark:    %7d kbytes\n", store_swap_high);
-    debug(20, 2, "storeGetSwapSpace: Low W Mark:     %7d kbytes\n", store_swap_low);
-    debug(20, 2, "storeGetSwapSpace: Entry count:    %7d items\n", meta_data.store_entries);
-    debug(20, 2, "storeGetSwapSpace: Scanned:        %7d items\n", scanned);
-    debug(20, 2, "storeGetSwapSpace: Expired:        %7d items\n", expired);
-    debug(20, 2, "storeGetSwapSpace: Locked:         %7d items\n", locked);
-    debug(20, 2, "storeGetSwapSpace: Locked Space:   %7d bytes\n", locked_size);
-    debug(20, 2, "storeGetSwapSpace: Scan in array:  %7d bytes\n", scan_in_objs);
-    debug(20, 2, "storeGetSwapSpace: LRU candidate:  %7d items\n", LRU_list->index);
+    debug(20, 2, "storeGetSwapSpace: Current Size:   %7d kbytes\n",
+	store_swap_size);
+    debug(20, 2, "storeGetSwapSpace: High W Mark:    %7d kbytes\n",
+	store_swap_high);
+    debug(20, 2, "storeGetSwapSpace: Low W Mark:     %7d kbytes\n",
+	store_swap_low);
+    debug(20, 2, "storeGetSwapSpace: Entry count:    %7d items\n",
+	meta_data.store_entries);
+    debug(20, 2, "storeGetSwapSpace: Scanned:        %7d items\n",
+	scanned);
+    debug(20, 2, "storeGetSwapSpace: Expired:        %7d items\n",
+	expired);
+    debug(20, 2, "storeGetSwapSpace: Locked:         %7d items\n",
+	locked);
+    debug(20, 2, "storeGetSwapSpace: Locked Space:   %7d bytes\n",
+	locked_size);
+    debug(20, 2, "storeGetSwapSpace: Scan in array:  %7d bytes\n",
+	scan_in_objs);
+    debug(20, 2, "storeGetSwapSpace: LRU candidate:  %7d items\n",
+	LRU_list->index);
+#endif /* LOTSA_DEBUGGING *?
 
     /* Although all expired objects removed, still didn't recover enough */
     /* space.  Kick LRU out until we have enough swap space */
@@ -2131,7 +2143,7 @@ int storeGetSwapSpace(size)
 	swap_help = 0;
     }
 
-    debug(20, 1, "storeGetSwapSpace: %d objects removed.\n", removed);
+    debug(20, 1, "Removed %d objects\n", removed);
     return 0;
 }
 
@@ -2653,7 +2665,7 @@ int storeMaintainSwapSpace()
 	    link_ptr = next;
 	}
     }
-    debug(20, rm_obj ? 1 : 3, "storeMaintainSwapSpace: removed %d expired objects\n", rm_obj);
+    debug(20, rm_obj ? 1 : 3, "Removed %d expired objects\n", rm_obj);
     return rm_obj;
 }
 

@@ -801,7 +801,6 @@ void log_append(obj, url, id, size, action, method, http_code, msec, hier)
 	    sprintf(tmp, "%s - - [%s] \"%s %s\" %s %d\n",
 		id, mkhttpdlogtime(&squid_curtime), method, url, action, size);
 	else
-#ifdef LOG_HIERARCHY_CODES
 	    sprintf(tmp, "%9d.%03d %6d %s %s/%03d/%s %d %s %s\n",
 		(int) current_time.tv_sec,
 		(int) current_time.tv_usec / 1000,
@@ -813,20 +812,6 @@ void log_append(obj, url, id, size, action, method, http_code, msec, hier)
 		size,
 		method,
 		url);
-#else
-	    sprintf(tmp, "%9d.%03d %6d %s %s/%03d %d %s %s\n",
-		(int) current_time.tv_sec,
-		(int) current_time.tv_usec / 1000,
-		msec,
-		id,
-		action,
-		http_code,
-		size,
-		method,
-		url);
-#endif
-
-
 	if (file_write(obj->logfile_fd, buf = xstrdup(tmp), strlen(tmp),
 		obj->logfile_access, NULL, NULL) != DISK_OK) {
 	    debug(18, 1, "log_append: File write failed.\n");

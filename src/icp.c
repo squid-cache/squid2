@@ -19,9 +19,7 @@ static char *log_tags[] =
     "TCP_SWAPFAIL",
     "TCP_DENIED",
     "UDP_HIT",
-#ifdef UDP_HIT_WITH_OBJ
     "UDP_HIT_OBJ",
-#endif
     "UDP_MISS",
     "UDP_DENIED",
     "UDP_INVALID",
@@ -67,7 +65,6 @@ static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
-#ifdef UDP_HIT_WITH_OBJ
 typedef struct {
     int fd;
     struct sockaddr_in to;
@@ -76,16 +73,12 @@ typedef struct {
     struct timeval started;
 } icpHitObjStateData;
 
-#endif
-
 /* Local functions */
 static void icpHandleStore _PARAMS((int, StoreEntry *, icpStateData *));
 static void icpHandleStoreComplete _PARAMS((int, char *, int, int, void *icpState));
 static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
-#ifdef UDP_HIT_WITH_OBJ
 static void icpHitObjHandler _PARAMS((int, void *));
-#endif
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpDetectClientClose _PARAMS((int, icpStateData *));
 
@@ -649,13 +642,10 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode, logcode)
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
     headerp->reqnum = htonl(reqheaderp->reqnum);
-#ifdef UDP_HIT_WITH_OBJ
     if (opcode == ICP_OP_QUERY)
 	headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->pad = 0;
-#else
-/*  memcpy(headerp->auth, , ICP_AUTH_SIZE); */
-#endif
+    /* memcpy(headerp->auth, , ICP_AUTH_SIZE); */
     headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
     debug(12, 5, "icpUdpSend: headerp->reqnum = %d\n", headerp->reqnum);
 
@@ -682,7 +672,6 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode, logcode)
     return COMM_OK;
 }
 
-#ifdef UDP_HIT_WITH_OBJ
 static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
      int fd;
      char *url;
@@ -763,9 +752,6 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
 	(void *) UdpQueueHead);
 }
 
-#endif
-
-#ifdef UDP_HIT_WITH_OBJ
 static void icpHitObjHandler(errflag, data)
      int errflag;
      void *data;
@@ -791,7 +777,6 @@ static void icpHitObjHandler(errflag, data)
     storeUnlockObject(entry);
     safe_free(icpHitObjState);
 }
-#endif
 
 int icpHandleUdp(sock, not_used)
      int sock;
@@ -811,11 +796,9 @@ int icpHandleUdp(sock, not_used)
     int allow = 0;
     char *data = NULL;
     u_short data_sz = 0;
-#ifdef UDP_HIT_WITH_OBJ
     u_short u;
     icpHitObjStateData *icpHitObjState = NULL;
     int pkt_len;
-#endif
 
     from_len = sizeof(from);
     memset(&from, 0, from_len);
@@ -843,11 +826,8 @@ int icpHandleUdp(sock, not_used)
     header.version = headerp->version;
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
-#ifdef UDP_HIT_WITH_OBJ
     header.flags = ntohl(headerp->flags);
-#else
-    /*  memcpy(headerp->auth, , ICP_AUTH_SIZE); */
-#endif
+    /* memcpy(headerp->auth, , ICP_AUTH_SIZE); */
     header.shostid = ntohl(headerp->shostid);
 
     switch (header.opcode) {
@@ -879,7 +859,6 @@ int icpHandleUdp(sock, not_used)
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
-#ifdef UDP_HIT_WITH_OBJ
 	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
 	    if (header.flags & ICP_FLAG_HIT_OBJ && pkt_len < SQUID_UDP_SO_SNDBUF) {
 		icpHitObjState = xcalloc(1, sizeof(icpHitObjStateData));
@@ -893,7 +872,6 @@ int icpHandleUdp(sock, not_used)
 		/* else, problems */
 		safe_free(icpHitObjState);
 	    }
-#endif
 	    CacheInfo->proto_hit(CacheInfo,
 		CacheInfo->proto_id(entry->url));
 	    icpUdpSend(sock, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
@@ -915,9 +893,7 @@ int icpHandleUdp(sock, not_used)
 	break;
 
 
-#ifdef UDP_HIT_WITH_OBJ
     case ICP_OP_HIT_OBJ:
-#endif
     case ICP_OP_HIT:
     case ICP_OP_SECHO:
     case ICP_OP_DECHO:
@@ -931,7 +907,6 @@ int icpHandleUdp(sock, not_used)
 	    neighbors_do_private_keys = 0;
 	}
 	url = buf + sizeof(header);
-#ifdef UDP_HIT_WITH_OBJ
 	if (header.opcode == ICP_OP_HIT_OBJ) {
 	    data = url + strlen(url) + 1;
 	    memcpy((char *) &u, data, sizeof(u_short));
@@ -942,7 +917,6 @@ int icpHandleUdp(sock, not_used)
 		break;
 	    }
 	}
-#endif
 	debug(12, 3, "icpHandleUdp: %s from %s for '%s'\n",
 	    IcpOpcodeStr[header.opcode],
 	    inet_ntoa(from.sin_addr),
