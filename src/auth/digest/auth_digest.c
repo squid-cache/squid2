@@ -695,7 +695,13 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
     debug(29, 9) ("\nResponse = '%s'\n"
 	"squid is = '%s'\n", digest_request->response, Response);
 
-    if (strcasecmp(digest_request->response, Response)) {
+    if (strcasecmp(digest_request->response, Response) != 0) {
+	if (!digest_request->flags.helper_queried) {
+	    /* Query the helper in case the password has changed */
+	    digest_request->flags.helper_queried = 1;
+	    digest_request->flags.credentials_ok = 2;
+	    return;
+	}
 	if (digestConfig->PostWorkaround && request->method != METHOD_GET) {
 	    /* Ugly workaround for certain very broken browsers using the
 	     * wrong method to calculate the request-digest on POST request.
