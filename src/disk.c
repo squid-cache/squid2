@@ -401,6 +401,7 @@ diskHandleRead(int fd, dread_ctrl * ctrl_dat)
 	ctrl_dat->cur_len += len;
     ctrl_dat->offset = lseek(fd, 0L, SEEK_CUR);
 
+#if BAD_IDEA
     /* reschedule if need more data. */
     if (ctrl_dat->cur_len < ctrl_dat->req_len) {
 	commSetSelect(fd,
@@ -410,6 +411,7 @@ diskHandleRead(int fd, dread_ctrl * ctrl_dat)
 	    0);
 	return DISK_OK;
     } else {
+#endif
 	/* all data we need is here. */
 	/* call handler */
 	ctrl_dat->handler(fd,
@@ -419,7 +421,9 @@ diskHandleRead(int fd, dread_ctrl * ctrl_dat)
 	    ctrl_dat->client_data);
 	safe_free(ctrl_dat);
 	return DISK_OK;
+#if BAD_IDEA
     }
+#endif
 }
 
 
