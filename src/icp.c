@@ -2058,8 +2058,7 @@ icpConstruct304reply(struct _http_reply *source)
 	    mkrfc1123(source->last_modified));
 	strcat(reply, line);
     }
-    sprintf(line, "\r\n");
-    strcat(reply, line);
+    strcat(reply, "\r\n");
     return reply;
 }
 
