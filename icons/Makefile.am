@@ -43,7 +43,8 @@ $(ICON1):
 ##	@$(SHELL) -c "cd $(srcdir); $(SHELL) icons.shar"
 
 icons.shar:
-	shar --no-timestamp $(ICON1) $(ICON2) > $@
+	shar $(ICON1) $(ICON2) > $@
+##	shar --no-timestamp $(ICON1) $(ICON2) > $@
 
 ## DEFAULT_ICON_DIR        = $(sysconfdir)/icons
 
