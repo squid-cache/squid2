@@ -1,3 +1,4 @@
+
 section 0     Announement Server
 section 0     CGI Cache Manager
 section 0     Client Database
@@ -35,6 +36,7 @@ section 27    Cache Announcer
 section 28    Access Control
 section 29    Redirector
 section 30    Ident (RFC 931)
+section 32    Asynchronous Disk I/O
 section 33    Client-side Routines
 section 34    Dnsserver interface
 section 35    FQDN Cache
@@ -46,3 +48,4 @@ section 39    HTTP Passthrough
 section 40    User-Agent logging
 section 41    Event Processing
 section 42    ICMP Pinger program
+section 43    Unlink Daemon
