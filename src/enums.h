@@ -197,6 +197,7 @@ typedef enum {
     HDR_CONTENT_MD5,
     HDR_CONTENT_RANGE,
     HDR_CONTENT_TYPE,
+    HDR_COOKIE,
     HDR_DATE,
     HDR_ETAG,
     HDR_EXPIRES,

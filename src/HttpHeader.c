@@ -84,6 +84,7 @@ static const HttpHeaderFieldAttrs HeadersAttrs[] =
     {"Content-MD5", HDR_CONTENT_MD5, ftStr},	/* for now */
     {"Content-Range", HDR_CONTENT_RANGE, ftPContRange},
     {"Content-Type", HDR_CONTENT_TYPE, ftStr},
+    {"Cookie", HDR_COOKIE, ftStr},
     {"Date", HDR_DATE, ftDate_1123},
     {"ETag", HDR_ETAG, ftETag},
     {"Expires", HDR_EXPIRES, ftDate_1123},
