@@ -1699,9 +1699,13 @@ free_string(char **var)
 void
 parse_eol(char *volatile *var)
 {
-    char *token = strtok(NULL, null_string);
+    unsigned char *token = strtok(NULL, null_string);
     safe_free(*var);
     if (token == NULL)
+    	self_destruct();
+    while(*token && isspace(*token))
+    	token++;
+    if (!*token)
 	self_destruct();
     *var = xstrdup(token);
 }
