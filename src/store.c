@@ -100,6 +100,7 @@ static MemObject *new_MemObject()
 }
 
 static StoreEntry *new_StoreEntry(mem_obj_flag)
+    int mem_obj_flag;
 {
     StoreEntry *e = NULL;
 
