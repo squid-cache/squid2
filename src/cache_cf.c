@@ -1598,4 +1598,8 @@ configDoConfigure(void)
 	SQUID_VERSION);
     if (!Config.udpMaxHitObjsz || Config.udpMaxHitObjsz > SQUID_UDP_SO_SNDBUF)
 	Config.udpMaxHitObjsz = SQUID_UDP_SO_SNDBUF;
+    if (Config.appendDomain)
+	Config.appendDomainLen = strlen(Config.appendDomain);
+    else
+	Config.appendDomainLen = 0;
 }

@@ -1480,6 +1480,7 @@ icpHandleUdp(int sock, void *not_used)
 	    ntohs(from.sin_port));
 }
 
+#ifdef OLD_CODE
 static char *
 do_append_domain(const char *url, const char *ad)
 {
@@ -1512,7 +1513,7 @@ do_append_domain(const char *url, const char *ad)
     strncpy(p, e, lo - (e - url));	/* copy last part */
     return (u);
 }
-
+#endif
 
 /*
  *  parseHttpRequest()
@@ -1541,6 +1542,7 @@ parseHttpRequest(icpStateData * icpState)
     int free_request = 0;
     int req_hdr_sz;
     int len;
+    int url_sz;
 
     /* Make sure a complete line has been received */
     if (strchr(icpState->inbuf, '\n') == NULL) {
@@ -1615,6 +1617,7 @@ parseHttpRequest(icpStateData * icpState)
     if ((t = strchr(url, '#')))	/* remove HTML anchors */
 	*t = '\0';
 
+#ifdef OLD_CODE
     if ((ad = Config.appendDomain)) {
 	if ((t = do_append_domain(url, ad))) {
 	    if (free_request)
@@ -1627,12 +1630,14 @@ parseHttpRequest(icpStateData * icpState)
 	     * if the request should be freed later. */
 	}
     }
+#endif
     /* see if we running in httpd_accel_mode, if so got to convert it to URL */
     if (httpd_accel_mode && *url == '/') {
 	/* prepend the accel prefix */
 	if (vhost_mode) {
 	    /* Put the local socket IP address as the hostname */
-	    icpState->url = xcalloc(strlen(url) + 32, 1);
+	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
+	    icpState->url = xcalloc(url_sz, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		inet_ntoa(icpState->me.sin_addr),
 		(int) Config.Accel.port,
@@ -1650,18 +1655,21 @@ parseHttpRequest(icpStateData * icpState)
 	     * handling requests for non-local servers */
 	    if ((s = strchr(t, ':')))
 		*s = '\0';
-	    icpState->url = xcalloc(strlen(url) + strlen(t) + 32, 1);
+	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
+	    icpState->url = xcalloc(url_sz, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		t, (int) Config.Accel.port, url);
 	} else {
-	    icpState->url = xcalloc(strlen(Config.Accel.prefix) +
-		strlen(url) + 1, 1);
+	    url_sz = strlen(Config.Accel.prefix) + strlen(url) +
+		Config.appendDomainLen + 1;
+	    icpState->url = xcalloc(url_sz, 1);
 	    sprintf(icpState->url, "%s%s", Config.Accel.prefix, url);
 	}
 	icpState->accel = 1;
     } else {
 	/* URL may be rewritten later, so make extra room */
-	icpState->url = xcalloc(strlen(url) + 5, 1);
+	url_sz = strlen(url) + Config.appendDomainLen + 5;
+	icpState->url = xcalloc(url_sz, 1);
 	strcpy(icpState->url, url);
 	icpState->accel = 0;
     }

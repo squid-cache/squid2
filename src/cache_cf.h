@@ -209,6 +209,7 @@ struct SquidConfig {
 	int withProxy;
     } Accel;
     char *appendDomain;
+    size_t appendDomainLen;
     char *volatile debugOptions;
     char *pidFilename;
     char *visibleHostname;
