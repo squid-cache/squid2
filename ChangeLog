@@ -1,3 +1,7 @@
+	- Added missing newlines to a number of debug messages.
+	- NULL-terminate long URL's in urlParse().
+	- Change configure to remove libmalloc for FreeBSD
+
 Changes to squid-1.0.10 (August 26, 1996):
 
 	- Fixed INADDR_NONE not being set for ftpget.c.
