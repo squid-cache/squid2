@@ -231,7 +231,7 @@ storeDigestAddable(const StoreEntry * e)
      * update.
      */
 #if !HEAP_REPLACEMENT
-    if ((squid_curtime + StoreDigestRebuildPeriod) - e->lastref > storeExpiredReferenceAge())
+    if ((squid_curtime + Config.digest.rebuild_period) - e->lastref > storeExpiredReferenceAge())
 	return 0;
 #endif
     return 1;
