@@ -1868,10 +1868,9 @@ int storePurgeOld()
 {
     int n;
 
-    debug(20, 3, "storePurgeOld: Begin purging TTL-expired objects\n");
+    debug(20, 0, "Performing Garbage Collection...\n");
     n = storeWalkThrough(removeOldEntry, (void *) &squid_curtime);
-    debug(20, 3, "storePurgeOld: Done purging TTL-expired objects.\n");
-    debug(20, 3, "storePurgeOld: %d objects expired\n", n);
+    debug(20, 0, "Done.  %d objects removed\n", n);
     return n;
 }
 
