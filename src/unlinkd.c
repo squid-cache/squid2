@@ -157,6 +157,7 @@ unlinkdUnlink(const char *path)
     char *buf;
     int l;
     if (unlinkd_fd < 0) {
+	debug_trap("unlinkdUnlink: unlinkd_fd < 0");
 	safeunlink(path, 0);
 	return;
     }
@@ -176,10 +177,12 @@ unlinkdUnlink(const char *path)
 void
 unlinkdClose(void)
 {
-    if (unlinkd_fd >= 0) {
-	file_close(unlinkd_fd);
-	unlinkd_fd = -1;
+    if (unlinkd_fd < 0) {
+	debug_trap("unlinkdClose: unlinkd_fd < 0");
+	return;
     }
+    file_close(unlinkd_fd);
+    unlinkd_fd = -1;
 }
 
 void
@@ -187,10 +190,8 @@ unlinkdInit(void)
 {
     unlinkd_count = 0;
     unlinkd_fd = unlinkdCreate();
-    if (unlinkd_fd < 0) {
-	debug(43, 0, "unlinkdInit: failed to start unlinkd\n");
-	return;
-    }
+    if (unlinkd_fd < 0)
+	fatal("unlinkdInit: failed to start unlinkd\n");
     debug(43, 0, "Unlinkd pipe opened on FD %d\n", unlinkd_fd);
 }
 
