@@ -388,6 +388,26 @@ serverConnectionsOpen(void)
 		theOutICPAddr = xaddr.sin_addr;
 	}
     }
+#ifdef SQUID_SNMP
+   if (Config.Port.snmp) {
+        enter_suid();
+        fd = comm_open(SOCK_STREAM,
+            0,
+            Config.Addrs.snmp_incoming,
+            SQUID_SNMP_PORT,
+            COMM_NONBLOCKING,
+            "SNMP Socket");
+        leave_suid();
+        if (fd < 0)
+            continue;
+        comm_listen(fd);
+        commSetSelect(fd, COMM_SELECT_READ, snmpAccept, NULL, 0);
+        debug(1, 1) ("Accepting SNMP connections on port %d, FD %d.\n",
+            (int) SQUID_SNMP_PORT , fd);
+    }
+#endif /* SQUID_SNMP */
+
+
     clientdbInit();
     icmpOpen();
     netdbInit();
