@@ -136,29 +136,29 @@ typedef struct _ipcache_entry {
     ipcache_status_t status:3;
 } ipcache_entry;
 
-typedef void (*IPH) (int, ipcache_addrs *, void *);
+typedef void (*IPH) (int, const ipcache_addrs *, void *);
 
-extern void ipcache_nbgethostbyname _PARAMS((char *name,
+extern void ipcache_nbgethostbyname _PARAMS((const char *name,
 	int fd,
 	IPH handler,
 	void *handlerData));
 extern int ipcache_purgelru _PARAMS((void));
-extern int ipcache_unregister _PARAMS((char *, int));
-extern ipcache_addrs *ipcache_gethostbyname _PARAMS((char *, int flags));
-extern void ipcacheInvalidate _PARAMS((char *));
-extern void ipcacheReleaseInvalid _PARAMS((char *));
+extern int ipcache_unregister _PARAMS((const char *, int));
+extern const ipcache_addrs *ipcache_gethostbyname _PARAMS((const char *, int flags));
+extern void ipcacheInvalidate _PARAMS((const char *));
+extern void ipcacheReleaseInvalid _PARAMS((const char *));
 extern void ipcacheOpenServers _PARAMS((void));
 extern void ipcacheShutdownServers _PARAMS((void));
 extern void ipcache_init _PARAMS((void));
 extern void stat_ipcache_get _PARAMS((StoreEntry *));
 extern int ipcacheQueueDrain _PARAMS((void));
 extern void ipcacheOpenServers _PARAMS((void));
-extern void ipcacheCycleAddr _PARAMS((char *name));
-extern void ipcacheRemoveBadAddr _PARAMS((char *name, struct in_addr));
+extern void ipcacheCycleAddr _PARAMS((const char *name));
+extern void ipcacheRemoveBadAddr _PARAMS((const char *name, struct in_addr));
 extern void ipcacheFreeMemory _PARAMS((void));
 
 extern char *dns_error_message;
 
 #define IPCACHE_AV_FACTOR 1000
 
-#endif
+#endif /* _IPCACHE_H_ */

@@ -210,17 +210,17 @@ extern edge *getFirstUpParent _PARAMS((request_t *));
 extern edge *getNextEdge _PARAMS((edge *));
 extern edge *getSingleParent _PARAMS((request_t *, int *n));
 extern int neighborsUdpPing _PARAMS((protodispatch_data *));
-extern void neighbors_cf_domain _PARAMS((char *, char *, neighbor_t));
-extern void neighbors_cf_acl _PARAMS((char *, char *));
+extern void neighbors_cf_domain _PARAMS((const char *, const char *, neighbor_t));
+extern void neighbors_cf_acl _PARAMS((const char *, const char *));
 extern neighbors *neighbors_create _PARAMS((void));
-extern void hierarchyNote _PARAMS((request_t *, hier_code, int, char *));
-extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *, char *, int));
-extern void neighbors_cf_add _PARAMS((char *, char *, int, int, int, int, int));
+extern void hierarchyNote _PARAMS((request_t *, hier_code, int, const char *));
+extern void neighborsUdpAck _PARAMS((int, const char *, icp_common_t *, const struct sockaddr_in *, StoreEntry *, char *, int));
+extern void neighbors_cf_add _PARAMS((const char *, const char *, int, int, int, int, int));
 extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));
 extern void neighborsDestroy _PARAMS((void));
-extern edge *neighborFindByName _PARAMS((char *));
+extern edge *neighborFindByName _PARAMS((const char *));
 
-extern char *hier_strings[];
+extern const char *hier_strings[];
 
-#endif
+#endif /* NEIGHBORS_H */

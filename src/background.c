@@ -36,7 +36,7 @@ struct bg_entry {
     int (*func) (void *arg);
     void (*done) (void *arg);
     void *arg;
-    char *name;
+    const char *name;
     struct bg_entry *next;
 };
 
@@ -53,7 +53,7 @@ static struct bg_entry *last_called = NULL;
  * when func returns true, done is called.
  */
 void
-runInBackground(char *name,
+runInBackground(const char *name,
     int (*func) (void *arg),
     void *arg,
     void (*done) (void *arg))

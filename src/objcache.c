@@ -121,18 +121,18 @@ typedef struct objcache_ds {
 } ObjectCacheData;
 
 /* user name for shutdown password in /etc/passwd */
-static char *username = "cache";
+static const char *username = "cache";
 
-static int objcache_url_parser _PARAMS((char *url,
+static int objcache_url_parser _PARAMS((const char *url,
 	char *host,
 	char *request,
 	char *password));
 
-static int objcache_CheckPassword _PARAMS((char *, char *));
+static int objcache_CheckPassword _PARAMS((const char *, const char *));
 
 /* Parse a object_cache url into components.  By Anawat. */
 static int
-objcache_url_parser(char *url, char *host, char *request, char *password)
+objcache_url_parser(const char *url, char *host, char *request, char *password)
 {
     int t;
 
@@ -148,7 +148,7 @@ objcache_url_parser(char *url, char *host, char *request, char *password)
 }
 
 static int
-objcache_CheckPassword(char *password, char *user)
+objcache_CheckPassword(const char *password, const char *user)
 {
     char *s;
     struct passwd *pwd = NULL;
@@ -191,10 +191,10 @@ objcache_CheckPassword(char *password, char *user)
 }
 
 int
-objcacheStart(int fd, char *url, StoreEntry * entry)
+objcacheStart(int fd, const char *url, StoreEntry *entry)
 {
-    char *BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";
-    char *BADPassword = "Incorrect password, sorry.\n";
+    const char *const BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";
+    const char *const BADPassword = "Incorrect password, sorry.\n";
     LOCAL_ARRAY(char, password, 64);
     struct sockaddr_in peer_socket_name;
     int sock_name_length = sizeof(peer_socket_name);

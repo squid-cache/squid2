@@ -107,7 +107,7 @@
 #ifndef _FQDNCACHE_H_
 #define _FQDNCACHE_H_
 
-typedef void (*FQDNH) (int, char *, void *);
+typedef void (*FQDNH) (int, const char *, void *);
 
 enum {
     FQDN_CACHED,
@@ -137,13 +137,13 @@ typedef struct _fqdncache_entry {
 
 extern int fqdncache_nbgethostbyaddr _PARAMS((struct in_addr, int fd, FQDNH handler, void *handlerData));
 extern int fqdncacheUnregister _PARAMS((struct in_addr, int));
-extern char *fqdncache_gethostbyaddr _PARAMS((struct in_addr, int flags));
+extern const char *fqdncache_gethostbyaddr _PARAMS((struct in_addr, int flags));
 extern void fqdncache_init _PARAMS((void));
 extern void fqdnStats _PARAMS((StoreEntry *));
 extern void fqdncacheShutdownServers _PARAMS((void));
 extern void fqdncacheOpenServers _PARAMS((void));
-extern void fqdncacheReleaseInvalid _PARAMS((char *));
-extern char *fqdnFromAddr _PARAMS((struct in_addr));
+extern void fqdncacheReleaseInvalid _PARAMS((const char *));
+extern const char *fqdnFromAddr _PARAMS((struct in_addr));
 extern int fqdncacheQueueDrain _PARAMS((void));
 extern void fqdncacheFreeMemory _PARAMS((void));
 

@@ -124,7 +124,7 @@
 #endif
 
 extern int storeGetSwapSpace _PARAMS((int));
-extern void fatal_dump _PARAMS((char *));
+extern void fatal_dump _PARAMS((const char *));
 
 static fileMap *fm = NULL;
 

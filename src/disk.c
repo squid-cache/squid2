@@ -149,7 +149,7 @@ disk_init(void)
 
 /* Open a disk file. Return a file descriptor */
 int
-file_open(char *path, int (*handler) _PARAMS((void)), int mode)
+file_open(const char *path, int (*handler) _PARAMS((void)), int mode)
 {
     FD_ENTRY *conn;
     int fd;

@@ -258,19 +258,19 @@ extern struct SquidConfig Config;
 
 /* Global Variables */
 extern char *ConfigFile;	/* the whole thing */
-extern char *DefaultConfigFile;
-extern char *DefaultSwapDir;	/* argh */
-extern char *cfg_filename;	/* Only the tail component of the path */
+extern const char *DefaultConfigFile;
+extern const char *DefaultSwapDir;	/* argh */
+extern const char *cfg_filename;	/* Only the tail component of the path */
 extern char config_input_line[];
-extern char w_space[];
+extern const char *const w_space;
 extern int config_lineno;
 extern volatile int unbuffered_logs;
 extern char ForwardedBy[];
 extern int httpd_accel_mode;
 
-extern int parseConfigFile _PARAMS((char *file_name));
+extern int parseConfigFile _PARAMS((const char *file_name));
 extern int setCacheSwapMax _PARAMS((int size));
-extern ip_access_type ip_access_check _PARAMS((struct in_addr, ip_acl *));
+extern ip_access_type ip_access_check _PARAMS((struct in_addr, const ip_acl *));
 extern u_short setHttpPortNum _PARAMS((u_short));
 extern u_short setIcpPortNum _PARAMS((u_short));
 extern void intlistDestroy _PARAMS((intlist **));

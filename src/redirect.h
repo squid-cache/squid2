@@ -27,6 +27,9 @@
  *  
  */
 
+#ifndef REDIRECT_H
+#define REDIRECT_H
+
 #define REDIRECT_AV_FACTOR 1000
 
 typedef void (*RH) (void *data, char *result);
@@ -35,5 +38,7 @@ extern void redirectStart _PARAMS((int cfd, icpStateData *, RH, void *));
 extern void redirectOpenServers _PARAMS((void));
 extern void redirectShutdownServers _PARAMS((void));
 extern void redirectStats _PARAMS((StoreEntry *));
-extern int redirectUnregister _PARAMS((char *url, int fd));
+extern int redirectUnregister _PARAMS((const char *url, int fd));
 extern void redirectFreeMemory _PARAMS((void));
+
+#endif /* REDIRECT_H */

@@ -105,16 +105,16 @@
 #ifndef _DEBUG_H_
 #define _DEBUG_H_
 
-extern char *volatile _db_file;
+extern const char *volatile _db_file;
 extern volatile int _db_line;
 extern int syslog_enable;
 extern FILE *debug_log;
 
-extern void _db_init _PARAMS((char *logfile, char *options));
+extern void _db_init _PARAMS((const char *logfile, const char *options));
 extern void _db_rotate_log _PARAMS((void));
 
 #ifdef __STDC__
-extern void _db_print _PARAMS((int, int, char *,...));
+extern void _db_print _PARAMS((int, int, const char *, ...));
 #else
 extern void _db_print _PARAMS(());
 #endif

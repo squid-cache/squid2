@@ -165,7 +165,7 @@ typedef struct {
 
 /* Local functions */
 static char *icpConstruct304reply _PARAMS((struct _http_reply *));
-static int CheckQuickAbort2 _PARAMS((icpStateData *));
+static int CheckQuickAbort2 _PARAMS((const icpStateData *));
 static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
 static void checkFailureRatio _PARAMS((log_type, hier_code));
@@ -328,10 +328,10 @@ icpParseRequestHeaders(icpStateData * icpState)
 static int
 icpCachable(icpStateData * icpState)
 {
-    char *request = icpState->url;
+    const char *request = icpState->url;
     request_t *req = icpState->request;
     method_t method = req->method;
-    wordlist *p;
+    const wordlist *p;
     if (BIT_TEST(icpState->request->flags, REQ_AUTH))
 	return 0;
     for (p = Config.cache_stoplist; p; p = p->next) {
@@ -359,10 +359,10 @@ icpCachable(icpStateData * icpState)
 static int
 icpHierarchical(icpStateData * icpState)
 {
-    char *url = icpState->url;
+    const char *url = icpState->url;
     request_t *request = icpState->request;
     method_t method = request->method;
-    wordlist *p = NULL;
+    const wordlist *p = NULL;
     /* IMS needs a private key, so we can use the hierarchy for IMS only
      * if our neighbors support private keys */
     if (BIT_TEST(request->flags, REQ_IMS) && !neighbors_do_private_keys)
@@ -402,7 +402,7 @@ icpSendERRORComplete(int fd, char *buf, int size, int errflag, void *data)
 void
 icpSendERROR(int fd,
     log_type errorCode,
-    char *text,
+    const char *text,
     icpStateData * icpState,
     int httpCode)
 {
@@ -716,7 +716,7 @@ void
 icpProcessRequest(int fd, icpStateData * icpState)
 {
     char *url = icpState->url;
-    char *pubkey = NULL;
+    const char *pubkey = NULL;
     StoreEntry *entry = NULL;
     request_t *request = icpState->request;
 
@@ -1144,7 +1144,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     icp_common_t *headerp = (icp_common_t *) (void *) buf;
     StoreEntry *entry = NULL;
     char *url = NULL;
-    char *key = NULL;
+    const char *key = NULL;
     request_t *icp_request = NULL;
     int allow = 0;
     char *data = NULL;
@@ -1291,7 +1291,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     icp_common_t *headerp = (icp_common_t *) (void *) buf;
     StoreEntry *entry = NULL;
     char *url = NULL;
-    char *key = NULL;
+    const char *key = NULL;
     request_t *icp_request = NULL;
     int allow = 0;
     char *data = NULL;
@@ -1487,7 +1487,7 @@ icpHandleUdp(int sock, void *not_used)
 }
 
 static char *
-do_append_domain(char *url, char *ad)
+do_append_domain(const char *url, const char *ad)
 {
     char *b = NULL;		/* beginning of hostname */
     char *e = NULL;		/* end of hostname */
@@ -1526,7 +1526,6 @@ do_append_domain(char *url, char *ad)
  *  Called by
  *    asciiProcessInput() after the request has been read
  *  Calls
- *    mime_process()
  *    do_append_domain()
  *  Returns
  *   -1 on error
@@ -1903,7 +1902,7 @@ AppendUdp(icpUdpData * item)
 
 /* return 1 if the request should be aborted */
 static int
-CheckQuickAbort2(icpStateData * icpState)
+CheckQuickAbort2(const icpStateData *icpState)
 {
     long curlen;
     long minlen;
@@ -1937,7 +1936,7 @@ CheckQuickAbort2(icpStateData * icpState)
 
 
 static void
-CheckQuickAbort(icpStateData * icpState)
+CheckQuickAbort(icpStateData *icpState)
 {
     if (icpState->entry == NULL)
 	return;
@@ -2093,7 +2092,7 @@ struct viz_pkt {
 };
 
 void
-vizHackSendPkt(struct sockaddr_in *from, int type)
+vizHackSendPkt(const struct sockaddr_in *from, int type)
 {
     static struct viz_pkt v;
     v.from = from->sin_addr.s_addr;

@@ -115,8 +115,8 @@ typedef struct {
 } Stack;
 
 extern void *pop _PARAMS((Stack *));
-extern int empty_stack _PARAMS((Stack *));
-extern int full_stack _PARAMS((Stack *));
+extern int empty_stack _PARAMS((const Stack *));
+extern int full_stack _PARAMS((const Stack *));
 extern void push _PARAMS((Stack *, void *));
 extern void init_stack _PARAMS((Stack *, int));
 extern void stackFreeMemory _PARAMS((Stack *));

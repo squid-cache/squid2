@@ -112,7 +112,7 @@ int hash_links_allocated;
 struct master_table {
     int valid;
     hash_link **buckets;
-    int (*cmp) _PARAMS((char *, char *));
+    int (*cmp) _PARAMS((const char *, const char *));
     unsigned int (*hash) _PARAMS((const char *, HashID));
     int size;
     int current_slot;
@@ -131,7 +131,7 @@ static int hash_unlink _PARAMS((HashID, hash_link *, int));
  *  Generates a standard deviation = 15.73
  */
 unsigned int
-hash_url(char *s, HashID hid)
+hash_url(const char *s, HashID hid)
 {
     unsigned int i, j, n;
     j = strlen(s);
@@ -340,7 +340,7 @@ hash_init(int hash_sz)
  *  otherwise returns a negative number on error.
  */
 HashID
-hash_create(int (*cmp_func) (char *, char *),
+hash_create(int (*cmp_func) (const char *, const char *),
     int hash_sz,
     unsigned int (*hash_func) (const char *, HashID))
 {
@@ -376,7 +376,7 @@ hash_create(int (*cmp_func) (char *, char *),
  *  It does not copy any data into the hash table, only pointers.
  */
 int
-hash_insert(HashID hid, char *k, void *item)
+hash_insert(HashID hid, const char *k, void *item)
 {
     int i;
     hash_link *new;
@@ -387,7 +387,7 @@ hash_insert(HashID hid, char *k, void *item)
     /* Add to the given hash table 'hid' */
     new = xcalloc(1, sizeof(hash_link));
     new->item = item;
-    new->key = k;
+    new->key = (char *) k;
 
     ++hash_links_allocated;
 
@@ -435,7 +435,7 @@ hash_join(HashID hid, hash_link * lnk)
  *  returns NULL.
  */
 hash_link *
-hash_lookup(HashID hid, char *k)
+hash_lookup(HashID hid, const char *k)
 {
     static hash_link *walker;
     int b;
@@ -455,7 +455,7 @@ hash_lookup(HashID hid, char *k)
 }
 
 hash_link *
-hash_lookup_and_move(HashID hid, char *k)
+hash_lookup_and_move(HashID hid, const char *k)
 {
     hash_link **walker, *match;
     int b;
@@ -530,7 +530,7 @@ hash_next(HashID hid)
 }
 
 int
-hash_delete(HashID hid, char *key)
+hash_delete(HashID hid, const char *key)
 {
     return hash_delete_link(hid, hash_lookup(hid, key));
 }

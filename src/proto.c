@@ -107,13 +107,13 @@
 
 #include "squid.h"
 
-static int matchInsideFirewall _PARAMS((char *));
-static int matchLocalDomain _PARAMS((char *));
+static int matchInsideFirewall _PARAMS((const char *));
+static int matchLocalDomain _PARAMS((const char *));
 static int protoCantFetchObject _PARAMS((int, StoreEntry *, char *));
-static int protoNotImplemented _PARAMS((int, char *, StoreEntry *));
+static int protoNotImplemented _PARAMS((int, const char *, StoreEntry *));
 static int protoDNSError _PARAMS((int, StoreEntry *));
 static void protoDataFree _PARAMS((int, protodispatch_data *));
-static void protoDispatchDNSHandle _PARAMS((int, ipcache_addrs *, void *));
+static void protoDispatchDNSHandle _PARAMS((int, const ipcache_addrs *, void *));
 
 #define OUTSIDE_FIREWALL 0
 #define INSIDE_FIREWALL  1
@@ -169,7 +169,7 @@ protoDataFree(int fdunused, protodispatch_data * protoData)
 
 /* called when DNS lookup is done by ipcache. */
 static void
-protoDispatchDNSHandle(int unused1, ipcache_addrs * ia, void *data)
+protoDispatchDNSHandle(int unused1, const ipcache_addrs *ia, void *data)
 {
     edge *e = NULL;
     struct in_addr srv_addr;
@@ -275,7 +275,7 @@ int
 protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 {
     protodispatch_data *protoData = NULL;
-    char *method;
+    const char *method;
     char *request_hdr;
     int n;
 
@@ -520,7 +520,7 @@ protoStart(int fd, StoreEntry * entry, edge * e, request_t * request)
 
 
 static int
-protoNotImplemented(int fd, char *url, StoreEntry * entry)
+protoNotImplemented(int fd, const char *url, StoreEntry *entry)
 {
     LOCAL_ARRAY(char, buf, 256);
 
@@ -565,10 +565,10 @@ protoDNSError(int fd, StoreEntry * entry)
  * return 1 if the host is inside the firewall or no domains at all.
  */
 static int
-matchInsideFirewall(char *host)
+matchInsideFirewall(const char *host)
 {
-    wordlist *s = Config.inside_firewall_list;
-    char *key = NULL;
+    const wordlist *s = Config.inside_firewall_list;
+    const char *key = NULL;
     int result = NO_FIREWALL;
     if (!s)
 	/* no domains, all hosts are "inside" the firewall */
@@ -593,9 +593,9 @@ matchInsideFirewall(char *host)
 }
 
 static int
-matchLocalDomain(char *host)
+matchLocalDomain(const char *host)
 {
-    wordlist *s = NULL;
+    const wordlist *s = NULL;
     for (s = Config.local_domain_list; s; s = s->next) {
 	if (matchDomainName(s->key, host))
 	    return 1;

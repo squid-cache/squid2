@@ -214,7 +214,7 @@ extern void icpHandleUdp _PARAMS((int sock, void *data));
 extern void asciiHandleConn _PARAMS((int sock, void *data));
 extern void icpSendERROR _PARAMS((int fd,
 	log_type errorCode,
-	char *text,
+	const char *text,
 	icpStateData *,
 	int httpCode));
 extern void AppendUdp _PARAMS((icpUdpData *));
@@ -224,7 +224,7 @@ extern void icpDetectNewRequest _PARAMS((int fd));
 extern void icpProcessRequest _PARAMS((int fd, icpStateData *));
 extern int icpSendMoreData _PARAMS((int fd, icpStateData *));
 extern int icpUdpReply _PARAMS((int fd, icpUdpData * queue));
-extern void vizHackSendPkt _PARAMS((struct sockaddr_in * from, int type));
+extern void vizHackSendPkt _PARAMS((const struct sockaddr_in * from, int type));
 
 extern int neighbors_do_private_keys;
 extern char *IcpOpcodeStr[];

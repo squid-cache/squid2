@@ -150,56 +150,56 @@ struct _cacheinfo {
 
     /* information retrieval method */
     /* get a processed statistic object */
-    void (*stat_get) (struct _cacheinfo * c, char *req, StoreEntry * sentry);
+    void (*stat_get) (const struct _cacheinfo *c, const char *req, StoreEntry *sentry);
 
     /* get a processed info object */
-    void (*info_get) (struct _cacheinfo * c, StoreEntry * sentry);
+    void (*info_get) (const struct _cacheinfo *c, StoreEntry *sentry);
 
     /* get a processed logfile object */
-    void (*log_get_start) (struct _cacheinfo * c, StoreEntry * sentry);
+    void (*log_get_start) (const struct _cacheinfo *c, StoreEntry *sentry);
 
     /* get a processed logfile status */
-    void (*log_status_get) (struct _cacheinfo * c, StoreEntry * sentry);
+    void (*log_status_get) (const struct _cacheinfo *c, StoreEntry *sentry);
 
     /* get a processed squid.conf object */
-    void (*squid_get_start) (struct _cacheinfo * c, StoreEntry * sentry);
+    void (*squid_get_start) (const struct _cacheinfo *c, StoreEntry *sentry);
 
     /* get a parameter object */
-    void (*parameter_get) (struct _cacheinfo * c, StoreEntry * sentry);
-    void (*server_list) (struct _cacheinfo * c, StoreEntry * sentry);
+    void (*parameter_get) (const struct _cacheinfo * c, StoreEntry * sentry);
+    void (*server_list) (const struct _cacheinfo *c, StoreEntry *sentry);
 
 
     /* get a total bytes for object in cache */
-    int (*cache_size_get) (struct _cacheinfo * c);
+    int (*cache_size_get) (const struct _cacheinfo * c);
 
     /* statistic update method */
 
 #if LOG_FULL_HEADERS
     /* add a transaction to system log */
-    void (*log_append) (struct _cacheinfo * obj,
-	char *url,
+    void (*log_append) (const struct _cacheinfo *obj,
+	const char *url,
 	struct in_addr,
 	int size,
-	char *action,
-	char *method,
+	const char *action,
+	const char *method,
 	int http_code,
 	int msec,
-	char *ident,
-	struct _hierarchyLogData * hierData,
-	char *request_hdrs,
-	char *reply_hdrs);
+	const char *ident,
+	const struct _hierarchyLogData * hierData,
+	const char *request_hdrs,
+	const char *reply_hdrs);
 #else
     /* add a transaction to system log */
-    void (*log_append) (struct _cacheinfo * obj,
-	char *url,
+    void (*log_append) (const struct _cacheinfo * obj,
+	const char *url,
 	struct in_addr,
 	int size,
-	char *action,
-	char *method,
+	const char *action,
+	const char *method,
 	int http_code,
 	int msec,
-	char *ident,
-	struct _hierarchyLogData * hierData);
+	const char *ident,
+	const struct _hierarchyLogData * hierData);
 #endif				/* LOG_FULL_HEADERS */
 
     /* clear logfile */
@@ -213,7 +213,7 @@ struct _cacheinfo {
 
     /* protocol specific stat update method */
     /* return a proto_id for a given url */
-         protocol_t(*proto_id) (char *url);
+	 protocol_t(*proto_id) (const char *url);
 
     /* a new object cached. update obj count, size */
     void (*proto_newobject) (struct _cacheinfo * c, protocol_t proto_id, int len, int flag);
@@ -259,10 +259,10 @@ extern cacheinfo *HTTPCacheInfo;
 extern cacheinfo *ICPCacheInfo;
 extern volatile unsigned long ntcpconn;
 extern volatile unsigned long nudpconn;
-extern char *open_bracket;
-extern char *close_bracket;
+extern const char *const open_bracket;
+extern const char *const close_bracket;
 
-extern void stat_init _PARAMS((cacheinfo **, char *));
+extern void stat_init _PARAMS((cacheinfo **, const char *));
 extern void stat_rotate_log _PARAMS((void));
 extern void statCloseLog _PARAMS((void));
 

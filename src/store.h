@@ -223,10 +223,10 @@ typedef unsigned int mem_status_t;
 typedef unsigned int ping_status_t;
 typedef unsigned int swap_status_t;
 
-extern char *memStatusStr[];
-extern char *pingStatusStr[];
-extern char *storeStatusStr[];
-extern char *swapStatusStr[];
+extern const char *memStatusStr[];
+extern const char *pingStatusStr[];
+extern const char *storeStatusStr[];
+extern const char *swapStatusStr[];
 
 /* A cut down structure for store manager */
 struct sentry {
@@ -271,8 +271,8 @@ typedef struct pentry {
     void *data;
 } PendingEntry;
 
-extern StoreEntry *storeGet _PARAMS((char *));
-extern StoreEntry *storeCreateEntry _PARAMS((char *, char *, int, int, method_t));
+extern StoreEntry *storeGet _PARAMS((const char *));
+extern StoreEntry *storeCreateEntry _PARAMS((const char *, const char *, int, int, method_t));
 extern void storeSetPublicKey _PARAMS((StoreEntry *));
 extern void storeSetPrivateKey _PARAMS((StoreEntry *));
 extern StoreEntry *storeGetFirst _PARAMS((void));
@@ -283,33 +283,32 @@ extern int storePurgeOld _PARAMS((void));
 extern void storeComplete _PARAMS((StoreEntry *));
 extern void storeInit _PARAMS((void));
 extern int storeReleaseEntry _PARAMS((StoreEntry *));
-extern int storeClientWaiting _PARAMS((StoreEntry *));
-extern void storeAbort _PARAMS((StoreEntry *, char *));
-extern void storeAppend _PARAMS((StoreEntry *, char *, int));
+extern int storeClientWaiting _PARAMS((const StoreEntry *));
+extern void storeAbort _PARAMS((StoreEntry *, const char *));
+extern void storeAppend _PARAMS((StoreEntry *, const char *, int));
 extern int storeGetMemSize _PARAMS((void));
 extern int storeGetSwapSize _PARAMS((void));
 extern int storeGetSwapSpace _PARAMS((int));
 extern int storeLockObject _PARAMS((StoreEntry *, SIH, void *));
-extern int storeOriginalKey _PARAMS((StoreEntry *));
+extern int storeOriginalKey _PARAMS((const StoreEntry *));
 extern int storeRelease _PARAMS((StoreEntry *));
 extern int storeUnlockObject _PARAMS((StoreEntry *));
 extern int storeUnregister _PARAMS((StoreEntry *, int));
-extern char *storeGeneratePublicKey _PARAMS((char *, method_t));
-extern char *storeGeneratePrivateKey _PARAMS((char *, method_t, int));
-extern char *storeMatchMime _PARAMS((StoreEntry *, char *, char *, int));
-extern char *swappath _PARAMS((int));
+extern const char *storeGeneratePublicKey _PARAMS((const char *, method_t));
+extern const char *storeGeneratePrivateKey _PARAMS((const char *, method_t, int));
+extern const char *swappath _PARAMS((int));
 extern void storeStartDeleteBehind _PARAMS((StoreEntry *));
 extern int storeClientCopy _PARAMS((StoreEntry *, int, int, char *, int *, int));
-extern int storePendingNClients _PARAMS((StoreEntry * e));
+extern int storePendingNClients _PARAMS((const StoreEntry *));
 extern int storeWriteCleanLog _PARAMS((void));
 extern int storeRegister _PARAMS((StoreEntry *, int, PIF, void *));
-extern int urlcmp _PARAMS((char *, char *));
+extern int urlcmp _PARAMS((const char *, const char *));
 extern int storeMaintainSwapSpace _PARAMS((void));
 extern void storeExpireNow _PARAMS((StoreEntry *));
 extern void storeReleaseRequest _PARAMS((StoreEntry *));
 extern void storeRotateLog _PARAMS((void));
 extern unsigned int getKeyCounter _PARAMS((void));
-extern int storeGetLowestReaderOffset _PARAMS((StoreEntry *));
+extern int storeGetLowestReaderOffset _PARAMS((const StoreEntry *));
 extern void storeCloseLog _PARAMS((void));
 extern void storeConfigure _PARAMS((void));
 extern void storeNegativeCache _PARAMS((StoreEntry *));
@@ -318,7 +317,7 @@ extern int expiresMoreThan _PARAMS((time_t, time_t));
 extern void storeClientListAdd _PARAMS((StoreEntry *, int, int));
 
 #ifdef __STDC__
-extern void storeAppendPrintf _PARAMS((StoreEntry *, char *,...));
+extern void storeAppendPrintf _PARAMS((StoreEntry *, const char *, ...));
 #else
 extern void storeAppendPrintf _PARAMS(());
 #endif

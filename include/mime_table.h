@@ -1,6 +1,6 @@
 
 #define EXT_TABLE_LEN 91
-static ext_table_entry ext_mime_table[] =
+static const ext_table_entry ext_mime_table[] =
 {
     {"Z", "application/x-compressed", "x-compress", "binary"},
     {"ai", "application/postscript", "8bit", "text"},

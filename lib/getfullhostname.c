@@ -147,10 +147,10 @@
  *  host, or NULL on error.  Pointer is only valid until the next call
  *  to the gethost*() functions.
  */
-char *
+const char *
 getfullhostname(void)
 {
-    struct hostent *hp = NULL;
+    const struct hostent *hp = NULL;
     static char buf[SQUIDHOSTNAMELEN + 1];
 
     if (gethostname(buf, SQUIDHOSTNAMELEN) < 0)

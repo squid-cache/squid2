@@ -244,7 +244,7 @@ main(int argc, char *argv[])
 {
     char request[256];
     char msg[256];
-    struct hostent *result = NULL;
+    const struct hostent *result = NULL;
     FILE *logfile = NULL;
     long start;
     long stop;

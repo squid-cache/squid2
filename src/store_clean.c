@@ -48,10 +48,10 @@
 #endif /* HAVE_NDIR_H */
 #endif /* HAVE_DIRENT_H */
 
-static int rev_int_sort _PARAMS((int *, int *));
+static int rev_int_sort _PARAMS((const int *, const int *));
 
 static int
-rev_int_sort(int *i1, int *i2)
+rev_int_sort(const int *i1, const int *i2)
 {
     return *i2 - *i1;
 }

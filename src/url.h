@@ -43,7 +43,7 @@ enum {
 };
 typedef unsigned int method_t;
 
-extern char *RequestMethodStr[];
+extern const char *RequestMethodStr[];
 
 typedef enum {
     PROTO_NONE,
@@ -68,16 +68,16 @@ struct _request {
 };
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));
-extern char *url_escape _PARAMS((char *url));
-extern protocol_t urlParseProtocol _PARAMS((char *));
-extern method_t urlParseMethod _PARAMS((char *));
+extern char *url_escape _PARAMS((const char *url));
+extern protocol_t urlParseProtocol _PARAMS((const char *));
+extern method_t urlParseMethod _PARAMS((const char *));
 extern void urlInitialize _PARAMS((void));
 extern request_t *urlParse _PARAMS((method_t, char *));
-extern char *urlCanonical _PARAMS((request_t *, char *));
+extern char *urlCanonical _PARAMS((const request_t*, char *));
 extern request_t *requestLink _PARAMS((request_t *));
 extern void requestUnlink _PARAMS((request_t *));
-extern int matchDomainName _PARAMS((char *d, char *h));
-extern int urlCheckRequest _PARAMS((request_t *));
+extern int matchDomainName _PARAMS((const char *d, const char *h));
+extern int urlCheckRequest _PARAMS((const request_t *));
 
 /* bitfields for the flags member */
 #define		REQ_UNUSED1	0x01

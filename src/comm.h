@@ -138,7 +138,7 @@ struct close_handler {
 
 typedef struct {
     int fd;
-    char *host;
+    const char *host;
     u_short port;
     struct sockaddr_in S;
     void (*handler) _PARAMS((int fd, int status, void *data));
@@ -172,19 +172,18 @@ typedef struct fde {
 
 extern FD_ENTRY *fd_table;
 
-extern char **getAddressList _PARAMS((char *name));
-extern char *fd_note _PARAMS((int fd, char *));
+extern char *fd_note _PARAMS((int fd, const char *));
 extern int commSetNonBlocking _PARAMS((int fd));
 extern void commSetCloseOnExec _PARAMS((int fd));
 extern int comm_accept _PARAMS((int fd, struct sockaddr_in *, struct sockaddr_in *));
 extern void comm_close _PARAMS((int fd));
 extern void comm_nbconnect _PARAMS((int sock, void *));
-extern int comm_connect_addr _PARAMS((int sock, struct sockaddr_in *));
+extern int comm_connect_addr _PARAMS((int sock, const struct sockaddr_in *));
 extern int comm_get_fd_lifetime _PARAMS((int fd));
 extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void **));
 extern int comm_init _PARAMS((void));
 extern int comm_listen _PARAMS((int sock));
-extern int comm_open _PARAMS((int, int, struct in_addr, u_short port, int, char *note));
+extern int comm_open _PARAMS((int, int, struct in_addr, u_short port, int, const char *note));
 extern u_short comm_local_port _PARAMS((int fd));
 extern int comm_select _PARAMS((time_t));
 extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
@@ -193,10 +192,9 @@ extern void comm_add_close_handler _PARAMS((int fd, PF, void *));
 extern void comm_remove_close_handler _PARAMS((int fd, PF, void *));
 extern int comm_set_mcast_ttl _PARAMS((int, int));
 extern int comm_join_mcast_groups _PARAMS((int));
-extern int comm_udp_send _PARAMS((int fd, char *host, u_short port, char *buf, int len));
-extern int comm_udp_sendto _PARAMS((int fd, struct sockaddr_in *, int size, char *buf, int len));
+extern int comm_udp_send _PARAMS((int fd, const char *host, u_short port, const char *buf, int len));
+extern int comm_udp_sendto _PARAMS((int fd, const struct sockaddr_in *, int size, const char *buf, int len));
 extern int fd_of_first_client _PARAMS((StoreEntry *));
-extern struct in_addr *getAddress _PARAMS((char *name));
 extern void comm_set_stall _PARAMS((int, int));
 extern int comm_get_fd_timeout _PARAMS((int fd));
 extern void comm_read _PARAMS((int fd,

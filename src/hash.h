@@ -141,27 +141,27 @@ typedef int HashID;
 
 /* init */
 extern void hash_init _PARAMS((int));
-extern HashID hash_create _PARAMS((int (*)_PARAMS((char *, char *)),
+extern HashID hash_create _PARAMS((int (*)_PARAMS((const char *, const char *)),
 	int,
 	unsigned int (*)_PARAMS((const char *, HashID))));
 
 /* insert/delete */
-extern int hash_insert _PARAMS((HashID, char *, void *));
-extern int hash_delete _PARAMS((HashID, char *));
+extern int hash_insert _PARAMS((HashID, const char *, void *));
+extern int hash_delete _PARAMS((HashID, const char *));
 extern int hash_delete_link _PARAMS((HashID, hash_link *));
 extern int hash_join _PARAMS((HashID, hash_link *));
 extern int hash_remove_link _PARAMS((HashID, hash_link *));
 
 /* searching, accessing */
-extern hash_link *hash_lookup _PARAMS((HashID, char *));
+extern hash_link *hash_lookup _PARAMS((HashID, const char *));
 extern hash_link *hash_first _PARAMS((HashID));
 extern hash_link *hash_next _PARAMS((HashID));
 extern hash_link *hash_get_bucket _PARAMS((HashID, unsigned int));
 extern void hashFreeMemory _PARAMS((HashID));
 extern unsigned int hash_string _PARAMS((const char *, HashID));
-extern unsigned int hash_url _PARAMS((char *, HashID));
+extern unsigned int hash_url _PARAMS((const char *, HashID));
 extern unsigned int hash4 _PARAMS((const char *, HashID));
 
 extern int hash_links_allocated;
 
-#endif
+#endif /* _HASH_H_ */

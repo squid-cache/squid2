@@ -37,7 +37,7 @@ send_announce(void)
     LOCAL_ARRAY(char, tbuf, 256);
     LOCAL_ARRAY(char, sndbuf, BUFSIZ);
     icpUdpData *qdata = NULL;
-    ipcache_addrs *ia = NULL;
+    const ipcache_addrs *ia = NULL;
     char *host = NULL;
     char *file = NULL;
     u_short port;

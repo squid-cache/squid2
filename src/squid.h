@@ -28,6 +28,9 @@
  *  
  */
 
+#ifndef SQUID_H
+#define SQUID_H
+
 #include "config.h"
 
 #if SQUID_FD_SETSIZE > 256
@@ -286,10 +289,10 @@ extern int opt_syslog_enable;	/* main.c */
 extern int opt_catch_signals;	/* main.c */
 extern int opt_no_ipcache;	/* main.c */
 extern int vhost_mode;		/* main.c */
-extern char version_string[];	/* main.c */
-extern char appname[];		/* main.c */
+extern const char *const version_string;	/* main.c */
+extern const char *const appname;		/* main.c */
 extern struct in_addr local_addr;	/* main.c */
-extern char localhost[];
+extern const char *const localhost;
 extern struct in_addr any_addr;	/* comm.c */
 extern struct in_addr no_addr;	/* comm.c */
 extern int opt_udp_hit_obj;	/* main.c */
@@ -301,12 +304,14 @@ extern int opt_forwarded_for;	/* main.c */
 
 #define  CONNECT_PORT        443
 
-extern int objcacheStart _PARAMS((int, char *, StoreEntry *));
+extern int objcacheStart _PARAMS((int, const char *, StoreEntry *));
 extern void send_announce _PARAMS((void));
-extern int sslStart _PARAMS((int fd, char *, request_t *, char *, int *sz));
-extern char *storeToString _PARAMS((StoreEntry *));
+extern int sslStart _PARAMS((int fd, const char *, request_t *, char *, int *sz));
+extern const char *storeToString _PARAMS((const StoreEntry *));
 extern void timestampsSet _PARAMS((StoreEntry *));
-extern int waisStart _PARAMS((int, char *, method_t, char *, StoreEntry *));
+extern int waisStart _PARAMS((int, const char *, method_t, char *, StoreEntry *));
 extern void storeDirClean _PARAMS((void));
-extern char dash_str[];
-extern char null_string[];
+extern const char *const dash_str;
+extern const char *const null_string;
+
+#endif /* SQUID_H */

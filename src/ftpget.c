@@ -180,8 +180,8 @@ extern int optind;
 /* Junk so we can link with debug.o */
 int opt_syslog_enable = 0;
 volatile int unbuffered_logs = 1;
-char w_space[] = " \t\n\r";
-char appname[] = "pinger";
+const char *const w_space = " \t\n\r";
+const char *const appname = "ftpget";
 struct timeval current_time;
 time_t squid_curtime;
 struct SquidConfig Config;
@@ -298,36 +298,36 @@ static int o_neg_ttl = 300;	/* negative TTL, default 5 min */
 static int o_httpify = 0;	/* convert to HTTP */
 static int o_showpass = 1;	/* Show password in generated URLs */
 static int o_showlogin = 1;	/* Show login info in generated URLs */
-static char *o_iconprefix = "internal-";	/* URL prefix for icons */
-static char *o_iconsuffix = "";	/* URL suffix for icons */
+static const char *o_iconprefix = "internal-";	/* URL prefix for icons */
+static const char *o_iconsuffix = "";	/* URL suffix for icons */
 static int o_list_width = 32;	/* size of filenames in directory list */
 static int o_list_wrap = 0;	/* wrap long directory names ? */
 static u_short o_conn_min = 0x4000;	/* min. port number to use */
 static u_short o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
-static char *socket_pathname = NULL;
+static const char *socket_pathname = NULL;
 static int o_max_bps = 0;	/* max bytes/sec */
 static struct timeval starttime;
 static struct timeval currenttime;
 
-char *rfc1738_escape _PARAMS((char *));
+char *rfc1738_escape _PARAMS((const char *));
 void rfc1738_unescape _PARAMS((char *));
-static char *dots_fill _PARAMS((size_t));
-static char *http_time _PARAMS((time_t));
-static char *html_trailer _PARAMS((void));
-static char *htmlize_list_entry _PARAMS((char *, ftp_request_t *));
-static char *mime_get_icon _PARAMS((char *));
+static const char *dots_fill _PARAMS((size_t));
+static const char *http_time _PARAMS((time_t));
+static const char *html_trailer _PARAMS((void));
+static char *htmlize_list_entry _PARAMS((const char *, ftp_request_t *));
+static char *mime_get_icon _PARAMS((const char *));
 static int accept_with_timeout _PARAMS((int, struct sockaddr *, int *));
 static int check_data_rate _PARAMS((int));
 static int connect_with_timeout _PARAMS((int, struct sockaddr_in *, int));
 static int connect_with_timeout2 _PARAMS((int, struct sockaddr_in *, int));
 static int ftpget_srv_mode _PARAMS((char *));
 static int is_dfd_open _PARAMS((ftp_request_t *));
-static int is_month _PARAMS((char *));
+static int is_month _PARAMS((const char *));
 static int read_with_timeout _PARAMS((int, char *, int));
 static int read_reply _PARAMS((int));
 static int readline_with_timeout _PARAMS((int, char *, int));
-static int send_cmd _PARAMS((int, char *));
-static parts_t *parse_entry _PARAMS((char *));
+static int send_cmd _PARAMS((int, const char *));
+static parts_t *parse_entry _PARAMS((const char *));
 static state_t do_accept _PARAMS((ftp_request_t *));
 static state_t do_connect _PARAMS((ftp_request_t *));
 static state_t do_cwd _PARAMS((ftp_request_t *));
@@ -346,7 +346,7 @@ static state_t parse_request _PARAMS((ftp_request_t *));
 static state_t read_data _PARAMS((ftp_request_t *));
 static state_t read_welcome _PARAMS((ftp_request_t *));
 static state_t ftp_request_timeout _PARAMS((ftp_request_t *));
-static time_t parse_iso3307_time _PARAMS((char *));
+static time_t parse_iso3307_time _PARAMS((const char *));
 static void cleanup_path _PARAMS((ftp_request_t *));
 static void close_dfd _PARAMS((ftp_request_t *));
 static void fail _PARAMS((ftp_request_t *));
@@ -365,8 +365,8 @@ static void usage _PARAMS((int));
 /*
  *  GLOBALS
  */
-char *progname = NULL;
-static char *fullprogname = NULL;
+const char *progname = NULL;
+static const char *fullprogname = NULL;
 static char cbuf[SMALLBUFSIZ];	/* send command buffer */
 static char htmlbuf[BIGBUFSIZ];
 static char *server_reply_msg = NULL;
@@ -383,7 +383,7 @@ static list_t *cmd_msg = NULL;
 static int process_request _PARAMS((ftp_request_t *));
 static int write_with_timeout _PARAMS((int fd, char *buf, int len));
 
-static char *state_str[] =
+static const char *state_str[] =
 {
     "BEGIN",
     "PARSE_OK",
@@ -449,7 +449,7 @@ The following FTP error was encountered:\n\
 <P>\n\
 \n"
 
-static char *
+static const char *
 html_trailer(void)
 {
     static char buf[SMALLBUFSIZ];
@@ -854,8 +854,8 @@ mime_get_type(ftp_request_t * r)
     char *filename = NULL;
     char *ext = NULL;
     char *t = NULL;
-    char *type = NULL;
-    char *enc = NULL;
+    const char *type = NULL;
+    const char *enc = NULL;
     int i;
 
     if (r->flags & F_ISDIR) {
@@ -918,10 +918,10 @@ mime_get_type(ftp_request_t * r)
 }
 
 static char *
-mime_get_icon(char *name)
+mime_get_icon(const char *name)
 {
     char *ext = NULL;
-    char *t = NULL;
+    const char *t = NULL;
     int i = 0;
 
     if (name == NULL)
@@ -955,7 +955,7 @@ mime_get_icon(char *name)
     return xstrdup("unknown");
 }
 
-static char *
+static const char *
 http_time(time_t t)
 {
     struct tm *gmt;
@@ -1065,7 +1065,7 @@ read_reply(int fd)
  *  Returns # bytes written
  */
 static int
-send_cmd(int fd, char *buf)
+send_cmd(int fd, const char *buf)
 {
     char *xbuf = NULL;
     size_t len;
@@ -1083,7 +1083,7 @@ send_cmd(int fd, char *buf)
 
 #define ASCII_DIGIT(c) ((c)-48)
 static time_t
-parse_iso3307_time(char *buf)
+parse_iso3307_time(const char *buf)
 {
 /* buf is an ISO 3307 style time: YYYYMMDDHHMMSS or YYYYMMDDHHMMSS.xxx */
     struct tm tms;
@@ -1174,7 +1174,7 @@ is_dfd_open(ftp_request_t * r)
 static state_t
 parse_request(ftp_request_t * r)
 {
-    struct hostent *hp;
+    const struct hostent *hp;
     debug(38, 3, "parse_request: looking up '%s'\n", r->host);
 
     r->host_addr.s_addr = inet_addr(r->host);	/* try numeric */
@@ -1739,14 +1739,14 @@ read_data(ftp_request_t * r)
     return r->state;
 }
 
-static char *Month[] =
+static const char *Month[] =
 {
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
 static int
-is_month(char *buf)
+is_month(const char *buf)
 {
     int i;
 
@@ -1759,14 +1759,15 @@ is_month(char *buf)
 #define MAX_TOKENS 64
 
 static parts_t *
-parse_entry(char *buf)
+parse_entry(const char *buf)
 {
     parts_t *p = NULL;
     char *t = NULL;
+    const char *ct = NULL;
     char *tokens[MAX_TOKENS];
     int i;
     int n_tokens;
-    static char *WS = " \t\n";
+    const char *const WS = " \t\n";
     static char sbuf[128];
     char *xbuf = NULL;
 
@@ -1843,19 +1844,19 @@ parse_entry(char *buf)
     }
     /* Try EPLF format; carson@lehman.com */
     if (p->name == NULL && buf[0] == '+') {
-	t = buf + 1;
+	ct = buf + 1;
 	p->type = 0;
-	while (t && *t) {
-	    switch (*t) {
+	while (ct && *ct) {
+	    switch (*ct) {
 	    case '\t':
-		sscanf(t + 1, "%[^,]", sbuf);
+		sscanf(ct + 1, "%[^,]", sbuf);
 		p->name = xstrdup(sbuf);
 		break;
 	    case 's':
-		sscanf(t + 1, "%d", &(p->size));
+		sscanf(ct + 1, "%d", &(p->size));
 		break;
 	    case 'm':
-		sscanf(t + 1, "%d", &i);
+		sscanf(ct + 1, "%d", &i);
 		p->date = xstrdup(ctime((time_t *) & i));
 		*(strstr(p->date, "\n")) = '\0';
 		break;
@@ -1870,9 +1871,9 @@ parse_entry(char *buf)
 	    default:
 		break;
 	    }
-	    t = strstr(t, ",");
-	    if (t) {
-		t++;
+	    ct = strstr(ct, ",");
+	    if (ct) {
+		ct++;
 	    }
 	}
 	if (p->type == 0) {
@@ -1889,7 +1890,7 @@ parse_entry(char *buf)
     return p;
 }
 
-static char *
+static const char *
 dots_fill(size_t len)
 {
     static char buf[256];
@@ -1908,7 +1909,7 @@ dots_fill(size_t len)
 }
 
 static char *
-htmlize_list_entry(char *line, ftp_request_t * r)
+htmlize_list_entry(const char *line, ftp_request_t *r)
 {
     char *link = NULL;
     char *icon = NULL;
@@ -2389,7 +2390,7 @@ ftpget_srv_mode(char *arg)
     char *t = NULL;
     int i;
     int n;
-    static char *w_space = " \t\n\r";
+    const char *const w_space = " \t\n\r";
     static char buf[BUFSIZ];
     int buflen;
     int flags;
@@ -2552,10 +2553,10 @@ main(int argc, char *argv[])
     int len;
     int j, k;
     u_short port = FTP_PORT;
-    char *debug_args = "ALL,1";
+    const char *debug_args = "ALL,1";
     extern char *optarg;
     unsigned long ip;
-    struct hostent *hp = NULL;
+    const struct hostent *hp = NULL;
     int c;
 
     fullprogname = xstrdup(argv[0]);

@@ -103,6 +103,9 @@
  *   re-implementations of code complying to this set of standards.  
  */
 
+#ifndef HTTP_H
+#define HTTP_H
+
 #define HTTP_REPLY_FIELD_SZ 128
 
 #define HTTP_CC_PRIVATE		0x01
@@ -140,9 +143,11 @@ typedef struct {
     int eof;			/* reached end-of-object? */
 } HttpStateData;
 
-extern int httpCachable _PARAMS((char *, int));
-extern int proxyhttpStart _PARAMS((edge *, char *, StoreEntry *));
+extern int httpCachable _PARAMS((const char *, int));
+extern int proxyhttpStart _PARAMS((edge *, const char *, StoreEntry *));
 extern int httpStart _PARAMS((int, char *, request_t *, char *, int, StoreEntry *));
-extern void httpParseHeaders _PARAMS((char *, struct _http_reply *));
-extern void httpProcessReplyHeader _PARAMS((HttpStateData *, char *, int));
+extern void httpParseHeaders _PARAMS((const char *, struct _http_reply *));
+extern void httpProcessReplyHeader _PARAMS((HttpStateData *, const char *, int));
 extern void httpReplyHeaderStats _PARAMS((StoreEntry *));
+
+#endif /* HTTP_H */

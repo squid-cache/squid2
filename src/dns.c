@@ -110,7 +110,7 @@ struct dnsQueueData {
     void *data;
 };
 
-static int dnsOpenServer _PARAMS((char *command));
+static int dnsOpenServer _PARAMS((const char *command));
 
 static dnsserver_t **dns_child_table = NULL;
 
@@ -119,7 +119,7 @@ char *dns_error_message = NULL;	/* possible error message */
 struct _dnsStats DnsStats;
 
 static int
-dnsOpenServer(char *command)
+dnsOpenServer(const char *command)
 {
     pid_t pid;
     struct sockaddr_in S;

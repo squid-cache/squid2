@@ -127,7 +127,7 @@ fdstatGetType(int fd)
     return fd_stat_tab[fd].type;
 }
 
-char *fdstatTypeStr[] =
+const char *fdstatTypeStr[] =
 {
     "None",
     "Log",

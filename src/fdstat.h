@@ -126,6 +126,6 @@ extern int fdstat_are_n_free_fd _PARAMS((int));
 extern File_Desc_Type fdstatGetType _PARAMS((int));
 extern void fdstatFreeMemory _PARAMS((void));
 
-extern char *fdstatTypeStr[];
+extern const char *fdstatTypeStr[];
 
 #endif

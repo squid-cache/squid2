@@ -103,11 +103,14 @@
  *   re-implementations of code complying to this set of standards.  
  */
 
-extern char *getMyHostname _PARAMS((void));
-extern int safeunlink _PARAMS((char *path, int quiet));
+#ifndef TOOLS_H
+#define TOOLS_H
+
+extern const char *getMyHostname _PARAMS((void));
+extern int safeunlink _PARAMS((const char *path, int quiet));
 extern void death _PARAMS((int sig));
-extern void fatal _PARAMS((char *message));
-extern void fatal_dump _PARAMS((char *message));
+extern void fatal _PARAMS((const char *message));
+extern void fatal_dump _PARAMS((const char *message));
 extern void sigusr2_handle _PARAMS((int sig));
 extern void sig_child _PARAMS((int sig));
 extern void leave_suid _PARAMS((void));
@@ -121,10 +124,11 @@ extern void normal_shutdown _PARAMS((void));
 extern int percent _PARAMS((int, int));
 extern void squid_signal _PARAMS((int sig, void (*func) _PARAMS((int)), int flags));
 extern pid_t readPidFile _PARAMS((void));
-extern void _debug_trap _PARAMS((char *message));
-extern struct in_addr inaddrFromHostent _PARAMS((struct hostent * hp));
-
+extern void _debug_trap _PARAMS((const char *message));
+extern struct in_addr inaddrFromHostent _PARAMS((const struct hostent *hp));
 
 extern int do_mallinfo;
 extern time_t squid_curtime;
 extern struct timeval current_time;
+
+#endif /* TOOLS_H */

@@ -120,8 +120,8 @@ typedef struct mem_hdr {
     void (*mem_free) (mem_ptr mem);
     void (*mem_free_data) (mem_ptr mem);
     int (*mem_free_data_upto) (mem_ptr mem, int target_offset);
-    int (*mem_append) (mem_ptr mem, char *data, int len);
-    int (*mem_copy) (mem_ptr mem, int offset, char *buf, int size);
+    int (*mem_append) (mem_ptr mem, const char *data, int len);
+    int (*mem_copy) (const mem_ptr mem, int offset, char *buf, int size);
 } Mem_Hdr;
 
 /* To reduce memory fragmentation, we now store the memory version of an
@@ -158,4 +158,4 @@ extern void put_free_mem_obj _PARAMS((void *));
 extern void stmemInit _PARAMS((void));
 extern void stmemFreeMemory _PARAMS((void));
 
-#endif
+#endif /* STMEM_H */

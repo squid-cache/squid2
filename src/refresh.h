@@ -28,8 +28,13 @@
  *  
  */
 
+#ifndef REFRESH_H
+#define REFRESH_H
+
 #define REFRESH_ICASE 0x01
 
 extern void refreshFreeMemory _PARAMS((void));
-extern void refreshAddToList _PARAMS((char *, int, time_t, int, time_t));
-extern int refreshCheck _PARAMS((StoreEntry *, request_t *));
+extern void refreshAddToList _PARAMS((const char *, int, time_t, int, time_t));
+extern int refreshCheck _PARAMS((const StoreEntry *, const request_t *));
+
+#endif /* REFRESH_H */

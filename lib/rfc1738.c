@@ -145,10 +145,11 @@ static char rfc1738_unsafe_chars[] =
  *  compliant, escaped version of the given url.
  */
 char *
-rfc1738_escape(char *url)
+rfc1738_escape(const char *url)
 {
     static char buf[BIG_BUFSIZ];
-    char *p, *q;
+    const char *p;
+    char *q;
     int i, do_escape;
 
     for (p = url, q = &buf[0]; *p != '\0'; p++, q++) {
