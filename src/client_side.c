@@ -284,7 +284,6 @@ clientRedirectDone(void *data, char *result)
 	urlCanonical(icpState->request, icpState->url);
     }
     icpParseRequestHeaders(icpState);
-    fd_note(fd, urlCanonicalClean(icpState->request, NULL));
     if (!BIT_TEST(icpState->request->flags, REQ_PROXY_KEEPALIVE)) {
 	commSetSelect(fd,
 	    COMM_SELECT_READ,
@@ -443,11 +442,11 @@ icpProcessExpired(int fd, void *data)
     BIT_SET(icpState->request->flags, REQ_REFRESH);
     icpState->old_entry = icpState->entry;
     entry = storeCreateEntry(url,
+	icpState->log_url,
 	request_hdr,
 	icpState->req_hdr_sz,
 	icpState->request->flags,
 	icpState->method);
-    storeSetLogUrl(entry, icpState->request);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     storeClientListAdd(entry, fd, 0);
     storeClientListAdd(icpState->old_entry, fd, 0);

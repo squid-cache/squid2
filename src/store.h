@@ -1,6 +1,7 @@
 
 
 
+
 /*
  * $Id$
  *
@@ -270,7 +271,7 @@ struct sentry {
 /* ----------------------------------------------------------------- */
 
 extern StoreEntry *storeGet _PARAMS((const char *));
-extern StoreEntry *storeCreateEntry _PARAMS((const char *, const char *, int, int, method_t));
+extern StoreEntry *storeCreateEntry _PARAMS((const char *, const char *, const char *, int, int, method_t));
 extern void storeSetPublicKey _PARAMS((StoreEntry *));
 extern StoreEntry *storeGetFirst _PARAMS((void));
 extern StoreEntry *storeGetNext _PARAMS((void));

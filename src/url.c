@@ -300,13 +300,11 @@ urlCanonical(const request_t * request, char *buf)
 }
 
 char *
-urlCanonicalClean(const request_t * request, char *buf)
+urlCanonicalClean(const request_t * request)
 {
-    LOCAL_ARRAY(char, urlbuf, MAX_URL);
+    LOCAL_ARRAY(char, buf, MAX_URL);
     LOCAL_ARRAY(char, portbuf, 32);
     char *t;
-    if (buf == NULL)
-	buf = urlbuf;
     switch (request->method) {
     case METHOD_CONNECT:
 	sprintf(buf, "%s:%d", request->host, request->port);
@@ -320,12 +318,23 @@ urlCanonicalClean(const request_t * request, char *buf)
 	    request->host,
 	    portbuf,
 	    request->urlpath);
-        if ((t = strchr(buf, '?')))
-		*t = '\0';
+	if ((t = strchr(buf, '?')))
+	    *t = '\0';
 	break;
     }
+    debug(0, 0, "CLEAN: %s\n", buf);
     return buf;
 }
+
+char *
+urlClean(char *dirty)
+{
+    request_t *r = urlParse(METHOD_GET, dirty);
+    if (r == NULL)
+	return dirty;
+    return urlCanonicalClean(r);
+}
+
 
 request_t *
 requestLink(request_t * request)

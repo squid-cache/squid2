@@ -225,8 +225,8 @@ static int storeSwapInHandle _PARAMS((int, const char *, int, int, StoreEntry *)
 static int storeSwapInStart _PARAMS((StoreEntry *, SIH, void *));
 static int swapInError _PARAMS((int, StoreEntry *));
 static mem_ptr new_MemObjectData _PARAMS((void));
-static MemObject *new_MemObject _PARAMS((void));
-static StoreEntry *new_StoreEntry _PARAMS((int));
+static MemObject *new_MemObject _PARAMS((const char *));
+static StoreEntry *new_StoreEntry _PARAMS((int, const char *));
 static StoreEntry *storeAddDiskRestore _PARAMS((const char *, int, int, time_t, time_t, time_t));
 static StoreEntry *storeGetInMemFirst _PARAMS((void));
 static StoreEntry *storeGetInMemNext _PARAMS((void));
@@ -289,28 +289,30 @@ static int scan_revolutions;
 static struct _bucketOrder *MaintBucketsOrder = NULL;
 
 static MemObject *
-new_MemObject(void)
+new_MemObject(const char *log_url)
 {
     MemObject *mem = get_free_mem_obj();
     mem->reply = xcalloc(1, sizeof(struct _http_reply));
     mem->reply->date = -2;
     mem->reply->expires = -2;
     mem->reply->last_modified = -2;
+    mem->log_url = xstrdup(log_url);
     meta_data.mem_obj_count++;
     meta_data.misc += sizeof(struct _http_reply);
+    meta_data.url_strings += strlen(log_url);
     debug(20, 3, "new_MemObject: returning %p\n", mem);
     return mem;
 }
 
 static StoreEntry *
-new_StoreEntry(int mem_obj_flag)
+new_StoreEntry(int mem_obj_flag, const char *log_url)
 {
     StoreEntry *e = NULL;
 
     e = xcalloc(1, sizeof(StoreEntry));
     meta_data.store_entries++;
     if (mem_obj_flag)
-	e->mem_obj = new_MemObject();
+	e->mem_obj = new_MemObject(log_url);
     debug(20, 3, "new_StoreEntry: returning %p\n", e);
     return e;
 }
@@ -320,6 +322,7 @@ destroy_MemObject(MemObject * mem)
 {
     debug(20, 3, "destroy_MemObject: destroying %p\n", mem);
     destroy_MemObjectData(mem);
+    meta_data.url_strings -= strlen(mem->log_url);
     safe_free(mem->clients);
     safe_free(mem->mime_hdr);
     safe_free(mem->reply);
@@ -460,7 +463,7 @@ storeLog(int tag, const StoreEntry * e)
     if (mem == NULL)
 	return;
     if (mem->log_url == NULL) {
-	debug(20,1,"storeLog: NULL log_url for %s\n", e->url);
+	debug(20, 1, "storeLog: NULL log_url for %s\n", e->url);
 	storeMemObjectDump(mem);
 	mem->log_url = xstrdup(e->url);
     }
@@ -745,6 +748,7 @@ storeSetPublicKey(StoreEntry * e)
 
 StoreEntry *
 storeCreateEntry(const char *url,
+    const char *log_url,
     const char *req_hdr,
     int req_hdr_sz,
     int flags,
@@ -755,7 +759,7 @@ storeCreateEntry(const char *url,
     int i;
     debug(20, 3, "storeCreateEntry: '%s' icp flags=%x\n", url, flags);
 
-    e = new_StoreEntry(WITH_MEMOBJ);
+    e = new_StoreEntry(WITH_MEMOBJ, log_url);
     e->lock_count = 1;		/* Note lock here w/o calling storeLock() */
     mem = e->mem_obj;
     e->url = xstrdup(url);
@@ -818,7 +822,7 @@ storeAddDiskRestore(const char *url, int file_number, int size, time_t expires, 
 
     meta_data.url_strings += strlen(url);
 
-    e = new_StoreEntry(WITHOUT_MEMOBJ);
+    e = new_StoreEntry(WITHOUT_MEMOBJ, NULL);
     e->url = xstrdup(url);
     e->method = METHOD_GET;
     storeSetPublicKey(e);
@@ -1162,7 +1166,7 @@ storeSwapInStart(StoreEntry * e, SIH swapin_complete_handler, void *swapin_compl
 	debug_trap("storeSwapInStart: mem_obj already present");
 	return -1;
     }
-    e->mem_obj = mem = new_MemObject();
+    e->mem_obj = mem = new_MemObject(urlClean(e->url));
 
     path = storeSwapFullPath(e->swap_file_number, NULL);
     if ((fd = file_open(path, NULL, O_RDONLY)) < 0) {
@@ -2920,20 +2924,6 @@ storePutUnusedFileno(int fileno)
 }
 
 void
-storeSetLogUrl(StoreEntry * entry, request_t * request)
-{
-    MemObject *mem = entry->mem_obj;
-    if (mem == NULL)
-	fatal_dump("NULL entry->mem_obj");
-    if (request == NULL)
-	mem->log_url = xstrdup(entry->url);
-    else if (request->login[0] == '\0')
-	mem->log_url = xstrdup(entry->url);
-    else
-	mem->log_url = xstrdup(urlCanonicalClean(request, NULL));
-}
-
-void
 storeMemObjectDump(MemObject * mem)
 {
     debug(20, 1, "MemObject->mime_hdr: %p %s\n",
@@ -2994,4 +2984,3 @@ storeMemObjectDump(MemObject * mem)
 	mem->log_url,
 	checkNullString(mem->log_url));
 }
-
