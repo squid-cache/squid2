@@ -643,7 +643,7 @@ aclParseHeader(void *data)
     q = xcalloc(1, sizeof(acl_hdr_data));
     q->hdr_name = xstrdup(t);
     q->hdr_id = httpHeaderIdByNameDef(t, strlen(t));
-    aclParseRegexList(q->reglist);
+    aclParseRegexList(&q->reglist);
     if (!q->reglist) {
 	debug(28, 0) ("%s line %d: %s\n", cfg_filename, config_lineno, config_input_line);
 	debug(28, 0) ("aclParseHeader: No pattern defined '%s'\n", t);
@@ -693,13 +693,19 @@ static wordlist *
 aclDumpHeader(acl_hdr_data * hd)
 {
     wordlist *W = NULL;
-    relist *data = hd->reglist;
-    wordlistAdd(&W, httpHeaderNameById(hd->hdr_id));
-    while (data != NULL) {
-	wordlistAdd(&W, data->pattern);
-	data = data->next;
+    while (hd) {
+	MemBuf mb;
+	relist *data;
+	memBufDefInit(&mb);
+	memBufPrintf(&mb, "%s", hd->hdr_name);
+	for (data = hd->reglist; data; data = data->next) {
+	    memBufPrintf(&mb, " %s", data->pattern);
+	}
+	wordlistAdd(&W, mb.buf);
+	memBufClean(&mb);
+	hd = hd->next;
     }
-    return aclDumpRegexList(hd->reglist);
+    return W;
 }
 
 #if SQUID_SNMP
