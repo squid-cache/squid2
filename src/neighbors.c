@@ -393,7 +393,7 @@ getRandomParent(request_t * request)
 	f = e;
 	n--;
     }
-    if (!peerHTTPOkay(f, request))
+    if (f && !peerHTTPOkay(f, request))
 	return NULL;
     return f;
 }

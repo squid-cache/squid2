@@ -363,6 +363,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	    protoData->direct_fetch = DIRECT_NO;
 	    protoData->n_peers = 0;
 	    protoDispatchDNSHandle(fd, NULL, protoData);
+	    return;
 	} else {
 	    request->hierarchy.hier_method = HIER_METH_DIRECT;
 	}
@@ -373,6 +374,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host, fd,
 	    protoDispatchDNSHandle, protoData);
+	return;
     } else
 #endif
     if (Config.firewall_ip_list) {
