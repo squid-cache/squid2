@@ -1955,6 +1955,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    null_request_flags);
 		errorAppendEntry(http->entry, err);
 		httpReplyDestroy(rep);
+		memFree(buf, MEM_CLIENT_SOCK_BUF);
 		return;
 	    }
 	    body_size = size - rep->hdr_sz;
@@ -1987,6 +1988,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    null_request_flags);
 		errorAppendEntry(http->entry, err);
 		httpReplyDestroy(rep);
+		memFree(buf, MEM_CLIENT_SOCK_BUF);
 		return;
 	    }
 	} else if (size < CLIENT_SOCK_SZ && entry->store_status == STORE_PENDING) {
