@@ -1948,7 +1948,7 @@ icpDetectClientClose(int fd, void *data)
 	comm_close(fd);
     } else if ((n = read(fd, buf, 255)) > 0) {
 	buf[n] = '\0';
-	debug(12, 0, "icpDetectClientClose: FD %d, %d unexpected bytes\n",
+	debug(12, 1, "icpDetectClientClose: FD %d, %d unexpected bytes\n",
 	    fd, n);
 	debug(12, 1, "--> from: %s\n", fd_table[fd].ipaddr);
 	debug(12, 1, "--> data: %s\n", rfc1738_escape(buf));

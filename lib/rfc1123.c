@@ -237,6 +237,12 @@ parse_rfc1123(const char *str)
 	time_t cur_t = time(NULL);
 	struct tm *local = localtime(&cur_t);
 	t += local->tm_gmtoff;
+	/*
+	 * The following assumes a fixed DST offset of 1 hour,
+	 * which is probably wrong.
+	 */
+	if (tm.tm_isdst > 0)
+	    t += 3600;
     }
 #else
     /* some systems do not have tm_gmtoff so we fake it */

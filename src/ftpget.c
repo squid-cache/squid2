@@ -777,7 +777,13 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
 		errno = cerrno = x;
 	    debug(38, 7, "connect: %s\n", xstrerror());
 	}
-	if (cerrno != EINPROGRESS && cerrno != EAGAIN)
+	if (cerrno == EINPROGRESS)
+	    (void) 0;
+	else if (cerrno == EAGAIN)
+	    (void) 0;
+	else if (cerrno == EALREADY)
+	    (void) 0;
+	else
 	    return y;
 
 	/* if we get here, y<0 and cerrno==EINPROGRESS|EAGAIN */
@@ -924,6 +930,8 @@ mime_get_type(ftp_request_t * r)
     *t = '\0';
     if (enc == NULL)
 	goto mime_get_type_done;
+    else if ((t = strrchr(filename, '.')) == NULL)
+    	goto mime_get_type_done;
     else if (!strcmp(enc, "x-gzip"))
 	(void) 0;
     else if (!strcmp(enc, "x-compress"))
