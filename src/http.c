@@ -293,7 +293,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     int room;
     size_t hdr_len;
     HttpReply *reply = entry->mem_obj->reply;
-    const Ctx ctx = ctx_enter(entry->mem_obj->url);
+    const Ctx ctx;
     debug(11, 3) ("httpProcessReplyHeader: key '%s'\n",
 	storeKeyText(entry->key));
     if (httpState->reply_hdr == NULL)
@@ -320,6 +320,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     *t = '\0';
     httpState->reply_hdr_state++;
     assert(httpState->reply_hdr_state == 1);
+    ctx = ctx_enter(entry->mem_obj->url);
     httpState->reply_hdr_state++;
     debug(11, 9) ("GOT HTTP REPLY HDR:\n---------\n%s\n----------\n",
 	httpState->reply_hdr);
@@ -357,13 +358,13 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     if (reply->keep_alive)
 	if (httpState->peer)
 	    httpState->peer->stats.n_keepalives_recv++;
-    ctx_exit(ctx);
     if (reply->date > -1 && !httpState->peer) {
 	int skew = abs(reply->date - squid_curtime);
 	if (skew > 86400)
 	    debug(11, 3) ("%s's clock is skewed by %d seconds!\n",
 		httpState->request->host, skew);
     }
+    ctx_exit(ctx);
 }
 
 static int
