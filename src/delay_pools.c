@@ -320,14 +320,10 @@ delayClient(request_t * r)
     ch.my_port = r->my_port;
     ch.request = r;
     if (r->client_addr.s_addr == INADDR_BROADCAST) {
-	
-	    debug(77, 2) ("delayClient: WARNING: Called with 'allones' address, ignoring\n");
-	
-	    return delayId(0, 0);
-	
+	debug(77, 2) ("delayClient: WARNING: Called with 'allones' address, ignoring\n");
+	return delayId(0, 0);
     }
-    
-	for (pool = 0; pool < Config.Delay.pools; pool++) {
+    for (pool = 0; pool < Config.Delay.pools; pool++) {
 	if (aclCheckFast(Config.Delay.access[pool], &ch))
 	    break;
     }
@@ -475,11 +471,10 @@ delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
     int mpos;
     unsigned int i, j;
     char individual_255_used;
-    
     /* delaySetSpec may be pointer to partial structure so MUST pass by
      * reference.
      */
-	if (rates->aggregate.restore_bps != -1 &&
+    if (rates->aggregate.restore_bps != -1 &&
 	(class3->aggregate += rates->aggregate.restore_bps * incr) >
 	rates->aggregate.max_bytes)
 	class3->aggregate = rates->aggregate.max_bytes;
@@ -492,17 +487,14 @@ delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
     individual_restore_bytes *= incr;
     network_restore_bytes *= incr;
     for (i = 0; i < ((class3->network_255_used) ? NET_MAP_SZ : NET_MAP_SZ - 1); ++i) {
-	
-	    assert(i < NET_MAP_SZ);
+	assert(i < NET_MAP_SZ);
 	if (i != 255 && class3->network_map[i] == 255)
 	    return;
 	if (individual_restore_bytes != -incr) {
 	    mpos = i << 8;
 	    individual_255_used = class3->individual_255_used[i / 8] & (1 << (i % 8));
-	    
-		for (j = 0; j < ((individual_255_used) ? IND_MAP_SZ : IND_MAP_SZ - 1); ++j, ++mpos) {
-		
-		    assert(i < NET_MAP_SZ);
+	    for (j = 0; j < ((individual_255_used) ? IND_MAP_SZ : IND_MAP_SZ - 1); ++j, ++mpos) {
+		assert(i < NET_MAP_SZ);
 		assert(j < IND_MAP_SZ);
 		if (j != 255 && class3->individual_map[i][j] == 255)
 		    break;
