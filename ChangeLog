@@ -172,6 +172,10 @@ Changes to Squid-2.2 (April 19, 1999):
 	  a parent to the FwdServers list, regardless of the
 	  ps->direct value.  This could cause every request to
 	  go to a parent even when always_direct is used.
+	- Changed fwdServerClosed() to rotate the "forward servers"
+	  list when a connection establishment fails.  Otherwise
+	  it always kept trying to connect to the first server
+	  int the list.
 
 Changes to Squid-2.1 (November 16, 1998):
 
