@@ -847,7 +847,11 @@ clientCachable(clientHttpRequest * http)
      */
     ch.src_addr = http->conn->peer.sin_addr;
     ch.request = http->request;
-    /* aclCheckFast returns 0 if there is a match with "no_cache deny" acl */
+    /*
+     * aclCheckFast returns 1 for ALLOW and 0 for DENY.  The default
+     * is ALLOW, so we require 'no_cache DENY foo' in squid.conf
+     * to indicate uncachable objects.
+     */
     if (!aclCheckFast(Config.accessList.noCache, &ch))
 	    return 0;
     if (Config.cache_stop_relist)
