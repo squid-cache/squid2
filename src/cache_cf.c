@@ -190,6 +190,9 @@ static struct {
     wordlist *local_domain_list;
     wordlist *inside_firewall_list;
     wordlist *dns_testname_list;
+#ifdef USE_MULTICAST
+    wordlist *mcast_group_list;
+#endif /* USE_MULTICAST */
 } Config;
 
 #define DefaultMemMaxSize 	(16 << 20)	/* 16 MB */
@@ -324,6 +327,9 @@ static void parseInsideFirewallLine _PARAMS((void));
 static void parseLifetimeLine _PARAMS((void));
 static void parseLocalDomainFile _PARAMS((char *fname));
 static void parseLocalDomainLine _PARAMS((void));
+#ifdef USE_MULTICAST
+static void parseMcastGroupLine _PARAMS((void));
+#endif /* USE_MULTICAST */
 static void parseLogLine _PARAMS((void));
 static void parseLogfileRotateLine _PARAMS((void));
 static void parseMemHighLine _PARAMS((void));
@@ -569,6 +575,9 @@ static void parseCacheHostLine()
     u_short icp_port = CACHE_ICP_PORT;
     int options = 0;
     int weight = 1;
+#ifdef USE_MULTICAST
+    int mcast_ttl = 0;
+#endif /* USE_MULTICAST */
     int i;
 
     /* Parse a cache_host line */
@@ -588,6 +597,10 @@ static void parseCacheHostLine()
 	    options |= NEIGHBOR_NO_QUERY;
 	} else if (!strncasecmp(token, "weight=", 7)) {
 	    weight = atoi(token + 7);
+#ifdef USE_MULTICAST
+	} else if (!strncasecmp(token, "ttl=", 4)) {
+	    mcast_ttl = atoi(token + 4);
+#endif /* USE_MULTICAST */
 	} else {
 	    debug(3, 0, "parseCacheHostLine: token='%s'\n", token);
 	    self_destruct();
@@ -595,7 +608,12 @@ static void parseCacheHostLine()
     }
     if (weight < 1)
 	weight = 1;
+#ifndef USE_MULTICAST
     neighbors_cf_add(hostname, type, http_port, icp_port, options, weight);
+#else
+    neighbors_cf_add(hostname, type, http_port, icp_port, options,
+        weight, mcast_ttl);
+#endif /* USE_MULTICAST */
 }
 
 static void parseHostDomainLine()
@@ -1099,6 +1117,15 @@ static void parseDnsTestnameLine()
     }
 }
 
+#ifdef USE_MULTICAST
+static void parseMcastGroupLine()
+{
+    char *token = NULL;
+    while ((token = strtok(NULL, w_space)))
+	wordlistAdd(&Config.mcast_group_list, token);
+}
+
+#endif /* USE_MULTICAST */
 static void parseHttpPortLine()
 {
     char *token;
@@ -1469,6 +1496,11 @@ int parseConfigFile(file_name)
 	else if (!strcmp(token, "local_domain"))
 	    parseLocalDomainLine();
 
+#ifdef USE_MULTICAST
+	else if (!strcmp(token, "mcast_groups"))
+	    parseMcastGroupLine();
+
+#endif /* USE_MULTICAST */
 	else if (!strcmp(token, "tcp_incoming_address"))
 	    parseAddressLine(&Config.Addrs.tcp_incoming);
 
@@ -1833,6 +1865,12 @@ wordlist *getDnsTestnameList()
 {
     return Config.dns_testname_list;
 }
+#ifdef USE_MULTICAST
+wordlist *getMcastGroupList()
+{
+    return Config.mcast_group_list;
+}
+#endif /* USE_MULTICAST */
 struct in_addr getTcpIncomingAddr()
 {
     return Config.Addrs.tcp_incoming;
@@ -1900,6 +1938,9 @@ static void configFreeMemory()
     wordlistDestroy(&Config.ftp_stoplist);
     wordlistDestroy(&Config.hierarchy_stoplist);
     wordlistDestroy(&Config.local_domain_list);
+#ifdef USE_MULTICAST
+    wordlistDestroy(&Config.mcast_group_list);
+#endif /* USE_MULTICAST */
     wordlistDestroy(&Config.inside_firewall_list);
     wordlistDestroy(&Config.dns_testname_list);
     ip_acl_destroy(&local_ip_list);

@@ -311,6 +311,9 @@ void serverConnectionsOpen()
 		COMM_SELECT_READ,
 		icpHandleUdp,
 		0);
+#ifdef USE_MULTICAST
+            comm_join_mcast_groups(theInIcpConnection);
+#endif /* USE_MULTICAST */
 	    debug(1, 1, "Accepting ICP connections on FD %d.\n",
 		theInIcpConnection);
 

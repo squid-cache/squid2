@@ -170,6 +170,9 @@ struct _edge {
     struct _acl_list *acls;
     int options;
     int weight;
+#ifdef USE_MULTICAST
+    int mcast_ttl;
+#endif /* USE_MULTICAST */
     time_t last_fail_time;	/* detect down dumb caches */
     struct in_addr addresses[10];
     int n_addresses;
@@ -192,6 +195,9 @@ struct neighbor_cf {
     int icp_port;
     int options;
     int weight;
+#ifdef USE_MULTICAST
+    int mcast_ttl;
+#endif /* USE_MULTICAST */
     dom_list *domains;
     struct _acl_list *acls;
     struct neighbor_cf *next;
@@ -207,7 +213,11 @@ extern void neighbors_cf_acl _PARAMS((char *, char *));
 extern neighbors *neighbors_create _PARAMS(());
 extern void hierarchy_log_append _PARAMS((StoreEntry *, hier_code, int, char *));
 extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *, char *, int));
+#ifndef USE_MULTICAST
 extern void neighbors_cf_add _PARAMS((char *, char *, int, int, int, int));
+#else
+extern void neighbors_cf_add _PARAMS((char *, char *, int, int, int, int, int));
+#endif /* USE_MULTICAST */
 extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));
 extern void neighbors_rotate_log _PARAMS((void));

@@ -154,6 +154,9 @@ extern wordlist *bind_addr_list;
 extern wordlist *ftp_stoplist;
 extern wordlist *gopher_stoplist;
 extern wordlist *http_stoplist;
+#ifdef USE_MULTICAST
+extern wordlist *mcast_group_list;
+#endif /* USE_MULTICAST */
 extern char ForwardedBy[];
 
 /* Global Functions */
@@ -233,6 +236,9 @@ extern wordlist *getHttpStoplist _PARAMS((void));
 extern wordlist *getHierarchyStoplist _PARAMS((void));
 extern wordlist *getInsideFirewallList _PARAMS((void));
 extern wordlist *getLocalDomainList _PARAMS((void));
+#ifdef USE_MULTICAST
+extern wordlist *getMcastGroupList _PARAMS((void));
+#endif /* USE_MULTICAST */
 #if REDIRECT_IN_PROGRESS
 extern int getRedirectChildren _PARAMS((void));
 extern char *getRedirectProgram _PARAMS((void));

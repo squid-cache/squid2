@@ -544,7 +544,16 @@ int neighborsUdpPing(proto)
 		LOG_TAG_NONE);
 	}
 
+#ifndef USE_MULTICAST
 	e->stats.ack_deficit++;
+#else
+        if (e->mcast_ttl > 0) {
+            /* XXX kill us off, so Squid won't expect a reply */
+            e->stats.ack_deficit = HIER_MAX_DEFICIT;
+        } else {
+            e->stats.ack_deficit++;
+        }
+#endif /* USE_MULTICAST */
 	e->stats.pings_sent++;
 
 	if (e->stats.ack_deficit < HIER_MAX_DEFICIT) {
@@ -756,13 +765,21 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
     }
 }
 
+#ifndef USE_MULTICAST
 void neighbors_cf_add(host, type, http_port, icp_port, options, weight)
+#else
+void neighbors_cf_add(host, type, http_port, icp_port, options, weight,
+                        mcast_ttl)
+#endif /* USE_MULTICAST */
      char *host;
      char *type;
      int http_port;
      int icp_port;
      int options;
      int weight;
+#ifdef USE_MULTICAST
+     int mcast_ttl;
+#endif /* USE_MULTICAST */
 {
     struct neighbor_cf *t, *u;
 
@@ -773,6 +790,9 @@ void neighbors_cf_add(host, type, http_port, icp_port, options, weight)
     t->icp_port = icp_port;
     t->options = options;
     t->weight = weight;
+#ifdef USE_MULTICAST
+    t->mcast_ttl = mcast_ttl;
+#endif /* USE_MULTICAST */
     t->next = (struct neighbor_cf *) NULL;
 
     if (Neighbor_cf == (struct neighbor_cf *) NULL) {
@@ -886,6 +906,9 @@ void neighbors_init()
 	e = xcalloc(1, sizeof(edge));
 	e->http_port = t->http_port;
 	e->icp_port = t->icp_port;
+#ifdef USE_MULTICAST
+        e->mcast_ttl = t->mcast_ttl;
+#endif /* USE_MULTICAST */
 	e->options = t->options;
 	e->weight = t->weight;
 	e->host = t->host;

@@ -6,6 +6,7 @@
 	- Added '!' condition feature for the 'firewall_ip' list
 	  (Hiroyuki Inoue).
 	- Fixed BASE tag in ftpget output (broken since v1.0.10).
+	- Added Martin's multicast code inside '#ifdef USE_MULTICAST'.
 
 Changes to squid-1.0.18 (October 7, 1996):
 

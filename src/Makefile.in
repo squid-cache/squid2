@@ -7,7 +7,8 @@
 #
 HOST_OPT	= # -DCACHEMGR_HOSTNAME="getfullhostname()"
 DELAY_HACK      = # -DDELAY_HACK=1
-DEFINES         = $(HOST_OPT) $(DELAY_HACK)
+USE_MULTICAST	= # -DUSE_MULTICAST=1
+DEFINES         = $(HOST_OPT) $(DELAY_HACK) $(USE_MULTICAST)
 
 prefix		= @prefix@
 exec_prefix	= @exec_prefix@
