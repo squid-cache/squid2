@@ -488,19 +488,19 @@ fqdncache_dnsHandleRead(int fd, void *data)
 	}
 	fqdncacheUnlockEntry(f);	/* unlock from FQDN_DISPATCHED */
     } else {
-        debug(14, 5) ("fqdncache_dnsHandleRead: Incomplete reply\n");
-        commSetSelect(fd,
-            COMM_SELECT_READ,
-            fqdncache_dnsHandleRead,
-            dnsData,
-            0);
+	debug(14, 5) ("fqdncache_dnsHandleRead: Incomplete reply\n");
+	commSetSelect(fd,
+	    COMM_SELECT_READ,
+	    fqdncache_dnsHandleRead,
+	    dnsData,
+	    0);
     }
     if (dnsData->offset == 0) {
 	dnsData->data = NULL;
 	EBIT_CLR(dnsData->flags, HELPER_BUSY);
-        if (EBIT_TEST(dnsData->flags, HELPER_SHUTDOWN))
-            dnsShutdownServer(dnsData);
-        cbdataUnlock(dnsData);
+	if (EBIT_TEST(dnsData->flags, HELPER_SHUTDOWN))
+	    dnsShutdownServer(dnsData);
+	cbdataUnlock(dnsData);
     }
     fqdncacheNudgeQueue();
 }

@@ -564,7 +564,6 @@ ftpHtmlifyListEntry(char *line, int flags)
 	    *(parts->showname + width - 0) = '\0';
 	}
     }
-    
     switch (parts->type) {
     case 'd':
 	snprintf(icon, 2048, "<IMG SRC=\"%s%s\" ALT=\"%-6s\">",

@@ -164,7 +164,7 @@ _db_print(va_alist)
 	fflush(debug_log);
     if (opt_debug_stderr && debug_log != stderr) {
 #if defined(__QNX__)
-      vfprintf(stderr, f, eargs);
+	vfprintf(stderr, f, eargs);
 #else
 	vfprintf(stderr, f, args);
 #endif

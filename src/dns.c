@@ -202,7 +202,7 @@ dnsOpenServer(const char *command)
      * -- Michael O'Reilly <michael@metal.iinet.net.au>
      */
     if (fd > 2)
-        close(fd);
+	close(fd);
     close(cfd);
     if (Config.onoff.res_defnames)
 	execlp(command, "(dnsserver)", "-D", NULL);
