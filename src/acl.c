@@ -1376,11 +1376,13 @@ aclCheck(aclCheck_t * checklist)
 		checklist);
 	    return;
 	}
+	if (checklist->state[ACL_PROXY_AUTH] == ACL_LOOKUP_NEEDED) {
+	    allow = ACCESS_REQ_PROXY_AUTH;
+	    debug(28, 3) ("aclCheck: match pending, returning %d\n", allow);
+	    aclCheckCallback(checklist, allow);
+	    return;
+	}
 	if (match) {
-	    /* hack! */
-	    if (allow == ACCESS_DENIED)
-		if (checklist->state[ACL_PROXY_AUTH] == ACL_LOOKUP_NEEDED)
-		    allow = ACCESS_REQ_PROXY_AUTH;
 	    debug(28, 3) ("aclCheck: match found, returning %d\n", allow);
 	    aclCheckCallback(checklist, allow);
 	    return;
