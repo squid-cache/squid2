@@ -183,7 +183,7 @@ pconnPush(int fd, const char *host, u_short port)
 	return;
     } else if (shutting_down) {
 	comm_close(fd);
-	return
+	return;
     }
     assert(table != NULL);
     strcpy(key, pconnKey(host, port));
