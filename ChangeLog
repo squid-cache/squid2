@@ -145,6 +145,10 @@ Changes to Squid-2.2 ():
 	- Fixed a "F->flags.open" assertion for aborted FTP PUT's.
 	- Fixed a (double) cast problem that caused statAvgTick()
 	  events to be added as fast as possible.
+	- Changed httpPacked304Reply() to not include the Content-Length
+	  header for 304 replies that Squid generates.  We used to
+	  include the length of the cached object, and this broke
+	  persistent connections.
 
 Changes to Squid-2.1 (November 16, 1998):
 
