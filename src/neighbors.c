@@ -993,7 +993,7 @@ peerDestroy(peer * e)
     struct _domain_ping *nl = NULL;
     if (e == NULL)
 	return;
-    if (!e->tcp_up)
+    if (e->tcp_up == 0 && e->ip_lookup_pending == 0)
 	eventDelete(peerCheckConnect, e);
     if (e->type == PEER_MULTICAST) {
 	if (e->mcast.flags & PEER_COUNT_EVENT_PENDING)
