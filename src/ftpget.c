@@ -189,7 +189,8 @@ time_t squid_curtime;
 struct SquidConfig Config;
 
 #define FTP_PORT 21
-#define DEFAULT_MIME_TYPE "text/plain"
+/* #define DEFAULT_MIME_TYPE "text/plain" */
+#define DEFAULT_MIME_TYPE "application/octet-stream"
 #define READ_TIMEOUT -2
 
 #define MAGIC_MARKER	"\004\004\004"
