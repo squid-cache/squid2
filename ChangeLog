@@ -1,4 +1,4 @@
-Changes to squid-2.5.STABLE3 ():
+Changes to squid-2.5.STABLE3 (25 May 2003):
 
 	- Bug #573: Occational false negatives in external acl lookups
 	- Bug #577: assertion failed: cbdata.c:224: "c->y == c" when
