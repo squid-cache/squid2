@@ -2272,7 +2272,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	strcpy(http->uri, url);
 	http->flags.accel = 0;
     }
-    if (!stringHasCntl(http->uri))
+    if (!stringHasCntl((unsigned char *) http->uri))
 	http->log_uri = xstrndup(http->uri, MAX_URL);
     else
 	http->log_uri = xstrndup(rfc1738_escape_unescaped(http->uri), MAX_URL);

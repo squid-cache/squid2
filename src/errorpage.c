@@ -67,7 +67,7 @@ static const struct {
 	ERR_SQUID_SIGNATURE,
 	    "\n<br clear=\"all\">\n"
 	    "<hr noshade size=1>\n"
-	    "Generated %T by %h (<a href=\"http://squid.nlanr.net/Squid/\">%s</a>)\n"
+	    "Generated %T by %h (%s)\n"
 	    "</BODY></HTML>\n"
     }
 };

@@ -273,6 +273,25 @@ Changes to Squid-2.2 (April 19, 1999):
 	  if a cache_dir subdirectory didn't exist.
 	- Fixed a buffer overrun bug in gb_to_str().
 
+	2.2.STABLE4:
+
+	- Fixed a dread_ctrl leak caused in store_client.c
+	- Fixed a memory leak in eventRun().
+	- Fixed a memory leak of ErrorState structures due to
+	  a bug in forward.c.
+	- Fixed detection of subdomain collisions for SPLAY trees.
+	- Fixed logging of hierarchy codes for SSL requests (Henrik
+	  Nordstrom).
+	- Added some descriptions to mib.txt.
+	- Fixed a bug with non-hierarchical requests (e.g. POST) 
+	  and cache digests.  We used to look up non-hierarchical
+	  requests in peer digests.  A false hit may cause Squid
+	  to forward a request to a sibling.  In combination with
+	  'Cache-control: only-if-cached, this generates 504 Gateway
+	  Timeout responses and the request may not be re-forwardable.
+	- Fixed a filedescriptor leak for some aborted requests.  
+
+
 Changes to Squid-2.1 (November 16, 1998):
 
 	- Changed delayPoolsUpdate() to be called as an event.
