@@ -878,6 +878,7 @@ storeInitHashValues(void)
 void
 storeInit(void)
 {
+    assert(sizeof(store_flags) == sizeof(unsigned short));
     storeKeyInit();
     storeInitHashValues();
     store_table = hash_create(storeKeyHashCmp,
