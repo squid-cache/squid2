@@ -123,6 +123,7 @@ errorInitialize(void)
 void
 errorFreeMemory(void)
 {
+    err_type i;
     for (i = ERR_NONE, i++; i < error_page_count; i++)
         safe_free(error_text[i]);
 }
