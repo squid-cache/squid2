@@ -45,11 +45,17 @@
  * we get in trouble if we try to increase it.  barf.
  */
 
-#ifndef _SQUID_LINUX_
+#ifdef _SQUID_LINUX_
+	/* Cannot increase FD_SETSIZE on Linux */
+#elif _SQUID_FREEBSD_
+	/* Cannot increase FD_SETSIZE on FreeBSD */
+	/* Marian Durkovic <marian@svf.stuba.sk> */
+#else
+	/* Increase FD_SETSIZE if SQUID_MAXFD is bigger */
 #if SQUID_MAXFD > FD_SETSIZE
 #define FD_SETSIZE SQUID_MAXFD
 #endif
-#endif /* _SQUID_LINUX_ */
+#endif /* */
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
