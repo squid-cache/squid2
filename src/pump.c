@@ -227,6 +227,12 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
     cbdataUnlock(p->cbdata);
     storeUnlockObject(p->reply_entry);
     p->reply_entry = NULL;
+    /*
+     * and now we don't care about the client side either
+     * tear down the pump state.
+     */
+    comm_remove_close_handler(p->c_fd, pumpFree, p);
+    pumpFree(p->c_fd, p);
 }
 
 
