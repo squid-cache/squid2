@@ -185,7 +185,7 @@ ASYNC_OBJS	= \
 		async_io.o
 
 LEAKFINDER_OBJS	= \
-		leakfinder.o \
+		leakfinder.o
 
 DEFAULTS        = \
 	-DDEFAULT_CONFIG_FILE=\"$(DEFAULT_CONFIG_FILE)\"
