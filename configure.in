@@ -488,4 +488,5 @@ AC_OUTPUT(\
 	./scripts/RunAccel \
 	./src/Makefile \
 	./src/squid.conf.pre \
+	./contrib/Makefile \
 )
