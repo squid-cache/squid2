@@ -986,11 +986,11 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
     }
 #if USE_USERAGENT_LOG
     if ((str = httpHeaderGetStr(req_hdr, HDR_USER_AGENT)))
-	logUserAgent(fqdnFromAddr(http->conn->peer.sin_addr), str);
+	logUserAgent(fqdnFromAddr(http->conn->log_addr.sin_addr), str);
 #endif
 #if USE_REFERER_LOG
     if ((str = httpHeaderGetStr(req_hdr, HDR_REFERER)))
-	logReferer(fqdnFromAddr(http->conn->peer.sin_addr), str,
+	logReferer(fqdnFromAddr(http->conn->log_addr.sin_addr), str,
 	    http->log_uri);
 #endif
 #if FORW_VIA_DB
