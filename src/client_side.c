@@ -813,8 +813,10 @@ httpRequestFree(void *data)
     MemObject *mem = NULL;
     debug(33, 3) ("httpRequestFree: %s\n", storeUrl(http->entry));
     if (!clientCheckTransferDone(http)) {
-	if (request && request->body_connection)
+	if (request && request->body_connection) {
 	    clientAbortBody(request);	/* abort request body transter */
+	    request->body_connection = NULL;
+	}
 	/* HN: This looks a bit odd.. why should client_side care about
 	 * the ICP selection status?
 	 */
@@ -1967,18 +1969,18 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	return;
     }
     if (http->out.offset == 0) {
-	if (Config.onoff.log_mime_hdrs) {
-	    size_t k;
-	    if ((k = headersEnd(buf, size))) {
-		safe_free(http->al.headers.reply);
-		http->al.headers.reply = xcalloc(k + 1, 1);
-		xstrncpy(http->al.headers.reply, buf, k);
-	    }
-	}
 	rep = clientBuildReply(http, buf, size);
 	if (rep) {
 	    aclCheck_t *ch;
 	    int rv;
+	    if (Config.onoff.log_mime_hdrs) {
+		size_t k;
+		if ((k = headersEnd(buf, size))) {
+		    safe_free(http->al.headers.reply);
+		    http->al.headers.reply = xcalloc(k + 1, 1);
+		    xstrncpy(http->al.headers.reply, buf, k);
+		}
+	    }
 	    clientMaxBodySize(http->request, http, rep);
 	    if (http->log_type != LOG_TCP_DENIED && clientReplyBodyTooLarge(http, rep->content_length)) {
 		ErrorState *err = errorCon(ERR_TOO_BIG, HTTP_FORBIDDEN);
@@ -2026,16 +2028,6 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    return;
 		}
 	    }
-	} else if (size < CLIENT_SOCK_SZ && entry->store_status == STORE_PENDING) {
-	    /* wait for more to arrive */
-	    storeClientCopy(http->sc, entry,
-		http->out.offset + size,
-		http->out.offset,
-		CLIENT_SOCK_SZ,
-		buf,
-		clientSendMoreData,
-		http);
-	    return;
 	}
 	/* reset range iterator */
 	http->range_iter.pos = HttpHdrRangeInitPos;
@@ -3284,8 +3276,7 @@ clientAbortBody(request_t * request)
     CBCB *callback;
     void *cbdata;
     int valid;
-    request->body_connection = NULL;
-    if (!conn->body.callback || !conn->body.request)
+    if (!conn->body.callback || conn->body.request != request)
 	return;
     buf = conn->body.buf;
     callback = conn->body.callback;

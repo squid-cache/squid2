@@ -64,6 +64,13 @@ httpStateFree(int fd, void *data)
 #endif
     if (httpState == NULL)
 	return;
+    if (httpState->body_buf) {
+	clientAbortBody(httpState->orig_request);
+	if (httpState->body_buf) {
+	    memFree(httpState->body_buf, MEM_8K_BUF);
+	    httpState->body_buf = NULL;
+	}
+    }
     storeUnlockObject(httpState->entry);
     if (httpState->reply_hdr) {
 	memFree(httpState->reply_hdr, MEM_8K_BUF);
@@ -466,9 +473,14 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     if (httpState->flags.keepalive)
 	if (httpState->peer)
 	    httpState->peer->stats.n_keepalives_sent++;
-    if (reply->keep_alive)
+    if (reply->keep_alive) {
 	if (httpState->peer)
 	    httpState->peer->stats.n_keepalives_recv++;
+	if (reply->content_length == -1) {
+	    debug(11, 1) ("httpProcessReplyHeader: Impossible keep-alive header from '%s'\n", storeUrl(entry));
+	    httpState->flags.keepalive_broken = 1;
+	}
+    }
     if (reply->date > -1 && !httpState->peer) {
 	int skew = abs(reply->date - squid_curtime);
 	if (skew > 86400)
@@ -571,18 +583,18 @@ httpReadReply(int fd, void *data)
 #endif
 	kb_incr(&statCounter.server.all.kbytes_in, len);
 	kb_incr(&statCounter.server.http.kbytes_in, len);
-	commSetTimeout(fd, Config.Timeout.read, NULL, NULL);
 	IOStats.Http.reads++;
 	for (clen = len - 1, bin = 0; clen; bin++)
 	    clen >>= 1;
 	IOStats.Http.read_hist[bin]++;
     }
-    if (!httpState->reply_hdr && len > 0) {
+    if (!httpState->reply_hdr && len > 0 && fd_table[fd].uses > 1) {
 	/* Skip whitespace */
 	while (len > 0 && xisspace(*buf))
 	    xmemmove(buf, buf + 1, len--);
 	if (len == 0) {
 	    /* Continue to read... */
+	    /* Timeout NOT increased. This whitespace was from previous reply */
 	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 	    return;
 	}
@@ -662,7 +674,12 @@ httpReadReply(int fd, void *data)
 	    httpState->fd = -1;
 	    httpStateFree(fd, httpState);
 	} else {
-	    /* Wait for EOF condition */
+	    /* Wait for more data or EOF condition */
+	    if (httpState->flags.keepalive_broken) {
+		commSetTimeout(fd, 10, NULL, NULL);
+	    } else {
+		commSetTimeout(fd, Config.Timeout.read, NULL, NULL);
+	    }
 	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 	}
     }
@@ -696,8 +713,6 @@ httpSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 	comm_close(fd);
 	return;
     } else {
-	/* Schedule read reply. */
-	commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 	/*
 	 * Set the read timeout here because it hasn't been set yet.
 	 * We only set the read timeout after the request has been
@@ -965,8 +980,13 @@ httpSendRequest(HttpStateData * httpState)
     StoreEntry *entry = httpState->entry;
     peer *p = httpState->peer;
     CWCB *sendHeaderDone;
+    int fd = httpState->fd;
 
-    debug(11, 5) ("httpSendRequest: FD %d: httpState %p.\n", httpState->fd, httpState);
+    debug(11, 5) ("httpSendRequest: FD %d: httpState %p.\n", fd, httpState);
+
+    /* Schedule read reply. (but no timeout set until request fully sent) */
+    commSetTimeout(fd, Config.Timeout.lifetime, httpTimeout, httpState);
+    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 
     if (httpState->orig_request->body_connection)
 	sendHeaderDone = httpSendRequestEntry;
@@ -998,8 +1018,8 @@ httpSendRequest(HttpStateData * httpState)
 	entry,
 	&mb,
 	httpState->flags);
-    debug(11, 6) ("httpSendRequest: FD %d:\n%s\n", httpState->fd, mb.buf);
-    comm_write_mbuf(httpState->fd, mb, sendHeaderDone, httpState);
+    debug(11, 6) ("httpSendRequest: FD %d:\n%s\n", fd, mb.buf);
+    comm_write_mbuf(fd, mb, sendHeaderDone, httpState);
 }
 
 void
@@ -1084,7 +1104,19 @@ static void
 httpRequestBodyHandler(char *buf, ssize_t size, void *data)
 {
     HttpStateData *httpState = (HttpStateData *) data;
+    httpState->body_buf = NULL;
     if (size > 0) {
+	if (httpState->reply_hdr_state >= 2 && !httpState->flags.abuse_detected) {
+	    httpState->flags.abuse_detected = 1;
+	    debug(11, 1) ("httpSendRequestEntryDone: Likely proxy abuse detected '%s' -> '%s'\n",
+		inet_ntoa(httpState->orig_request->client_addr),
+		storeUrl(httpState->entry));
+	    if (httpState->entry->mem_obj->reply->sline.status == HTTP_INVALID_HEADER) {
+		memFree8K(buf);
+		comm_close(httpState->fd);
+		return;
+	    }
+	}
 	comm_write(httpState->fd, buf, size, httpSendRequestEntry, data, memFree8K);
     } else if (size == 0) {
 	/* End of body */
@@ -1124,7 +1156,8 @@ httpSendRequestEntry(int fd, char *bufnotused, size_t size, int errflag, void *d
 	comm_close(fd);
 	return;
     }
-    clientReadBody(httpState->orig_request, memAllocate(MEM_8K_BUF), 8192, httpRequestBodyHandler, httpState);
+    httpState->body_buf = memAllocate(MEM_8K_BUF);
+    clientReadBody(httpState->orig_request, httpState->body_buf, 8192, httpRequestBodyHandler, httpState);
 }
 
 void

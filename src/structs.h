@@ -964,6 +964,8 @@ struct _HttpReply {
 };
 
 struct _http_state_flags {
+    unsigned int keepalive_broken:1;
+    unsigned int abuse_detected:1;
     unsigned int proxying:1;
     unsigned int keepalive:1;
     unsigned int only_if_cached:1;
@@ -981,6 +983,7 @@ struct _HttpStateData {
     int fd;
     http_state_flags flags;
     FwdState *fwd;
+    char *body_buf;
 };
 
 struct _icpUdpData {
