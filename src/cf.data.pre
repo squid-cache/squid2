@@ -837,13 +837,10 @@ NAME: referer_log
 TYPE: string
 LOC: Config.Log.referer
 DEFAULT: none
+IFDEF: USE_REFERER_LOG
 DOC_START
-	If configured with the "--enable-referer_log" configure
-	option, Squid will write the Referer field from HTTP
-	requests to the filename specified here.  By default
-	referer_log is disabled.
-
-referer_log none
+	Squid will write the Referer field from HTTP requests to the
+	filename specified here.  By default referer_log is disabled.
 DOC_END
 
 
