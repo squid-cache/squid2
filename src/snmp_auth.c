@@ -103,6 +103,9 @@ snmpAclCheckDone(int answer, void *data)
 
 	/* access check for each variable */
 
+	debug(49, 3) ("snmpAclCheckDone: Length=%d \n",VarPtr->name_length);
+	snmpDebugOid(3, VarPtr->name, VarPtr->name_length);
+
 	if (!snmpCommunityCheck((char *) Community, VarPtr->name, VarPtr->name_length)) {
 	    debug(49, 3) ("snmpAclCheckDone: ACCESS DENIED (requested oid).\n");
 	    snmpAgentParseDone(0, rq);
