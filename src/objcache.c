@@ -138,7 +138,8 @@ static long PASSWD_REQUIRED =
 (1 << MGR_LOG_ENABLE) |
 (1 << MGR_LOG_STATUS) |
 (1 << MGR_LOG_VIEW) |
-(1 << MGR_SHUTDOWN);
+(1 << MGR_SHUTDOWN) |
+(1 << MGR_CONFIG_FILE);
 
 static objcache_op
 objcacheParseRequest(char *buf)
@@ -361,6 +362,7 @@ objcacheStart(int fd, const char *url, StoreEntry * entry)
 	break;
     case MGR_CONFIG:
 	HTTPCacheInfo->parameter_get(HTTPCacheInfo, entry);
+	complete_flag = 0;
 	break;
     case MGR_SERVER_LIST:
 	HTTPCacheInfo->server_list(HTTPCacheInfo, entry);
