@@ -274,7 +274,8 @@ static int
 pumpReadDefer(int fd, void *data)
 {
     PumpStateData *p = data;
-    debug(61, 9) ("pumpReadDefer: %d %d\n", p->rcvd, p->sent);
+    debug(61, 9) ("pumpReadDefer: FD %d, Rcvd %d bytes, Sent %d bytes\n",
+	fd, p->rcvd, p->sent);
     assert(p->rcvd >= p->sent);
     if ((p->rcvd - p->sent) < PUMP_MAXBUFFER)
 	return 0;
