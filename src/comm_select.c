@@ -652,7 +652,6 @@ comm_select(int msec)
     struct timeval poll_time;
     double timeout = current_dtime + (msec / 1000.0);
     fde *F;
-    int i;
     do {
 #if !ALARM_UPDATES_TIME
 	getCurrentTime();
