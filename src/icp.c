@@ -1302,7 +1302,7 @@ static int check_valid_url(fd, astm)
 	port = atoi(t + 1);
     }
     portbuf[0] = '\0';
-    if (port != urlDefaultPort(protocol))
+    if (port > 0 && port != urlDefaultPort(protocol))
 	sprintf(portbuf, ":%d", port);
 
     if (!aclCheck(HTTPAccessList,
