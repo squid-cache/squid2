@@ -49,7 +49,6 @@
 #define icmp_cksum checksum
 #define icmp_id un.echo.id
 #define icmp_seq un.echo.sequence
-#define icmp_gwaddr un.gateway
 #define ip_hl ihl
 #define ip_v version
 #define ip_tos tos
