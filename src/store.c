@@ -200,6 +200,7 @@ static void storeDoRebuildFromDisk _PARAMS((void *data));
 static void storeRebuiltFromDisk _PARAMS((struct storeRebuild_data * data));
 static unsigned int getKeyCounter _PARAMS((void));
 static int storeOpenSwapFileWrite _PARAMS((StoreEntry *));
+static void storeCheckDoneWriting _PARAMS((StoreEntry * e));
 
 /* Now, this table is inaccessible to outsider. They have to use a method
  * to access a value in internal storage data structure. */
@@ -414,14 +415,11 @@ storeUnlockObject(StoreEntry * e)
 	debug(20, 1, "   --> Key '%s'\n", e->key);
 	e->store_status = STORE_ABORTED;
     }
-    e->swap_status = SWAP_OK;
-    if (e->mem_obj->swapout_fd > -1) {
-	file_close(e->mem_obj->swapout_fd);
-	e->mem_obj->swapout_fd = -1;
-    }
-    if (!storeEntryValidLength(e))
+    if (e->swap_status != SWAP_OK)
+	fatal_dump("storeUnlockObject: bad swap_status");
+    if (BIT_TEST(e->flag, RELEASE_REQUEST))
 	storeRelease(e);
-    else if (BIT_TEST(e->flag, RELEASE_REQUEST))
+    else if (!storeEntryValidLength(e))
 	storeRelease(e);
     else {
 	storeSwapLog(e);
@@ -759,18 +757,19 @@ storeExpireNow(StoreEntry * e)
     e->expires = squid_curtime;
 }
 
-static int
-storeDoneWriting(StoreEntry * e)
+static void
+storeCheckDoneWriting(StoreEntry * e)
 {
     if (e->store_status == STORE_PENDING)
-	return 0;
-/*
- * if (e->store_status == STORE_ABORTED)
- * return 1;
- */
+	return;
     if (e->object_len < e->mem_obj->swap_length)
-	return 0;
-    return 1;
+	return;
+    e->swap_status = SWAP_OK;
+    if (e->mem_obj->swapout_fd > -1) {
+	file_close(e->mem_obj->swapout_fd);
+	e->mem_obj->swapout_fd = -1;
+    }
+    storeUnlockObject(e);
 }
 
 static void
@@ -785,8 +784,7 @@ storeAppendDone(int fd, int err, int len, StoreEntry * e)
     e->object_len += len;
     if (e->store_status != STORE_ABORTED && !BIT_TEST(e->flag, DELAY_SENDING))
 	InvokeHandlers(e);
-    if (storeDoneWriting(e))
-	storeUnlockObject(e);
+    storeCheckDoneWriting(e);
 }
 
 /* Append incoming data from a primary server to an entry. */
@@ -1227,8 +1225,7 @@ storeAbort(StoreEntry * e, const char *msg)
     store_swap_size += (int) ((e->object_len + 1023) >> 10);
     storeReleaseRequest(e);
     InvokeHandlers(e);
-    if (storeDoneWriting(e))
-	storeUnlockObject(e);
+    storeCheckDoneWriting(e);
 }
 
 /* Complete transfer into the local cache.  */
@@ -1241,8 +1238,7 @@ storeComplete(StoreEntry * e)
     e->lastref = squid_curtime;
     e->store_status = STORE_OK;
     safe_free(e->mem_obj->mime_hdr);
-    if (storeDoneWriting(e))
-	storeUnlockObject(e);
+    storeCheckDoneWriting(e);
 }
 
 /* get the first entry in the storage */
@@ -1499,6 +1495,7 @@ storeRelease(StoreEntry * e)
 	if ((hentry = (StoreEntry *) hash_lookup(store_table, hkey)))
 	    storeExpireNow(hentry);
     }
+#ifdef DONT_DO_FOR_NOVM
     if (store_rebuilding == STORE_REBUILDING_FAST) {
 	debug(20, 2, "storeRelease: Delaying release until store is rebuilt: '%s'\n",
 	    e->key ? e->key : e->url ? e->url : "NO URL");
@@ -1506,6 +1503,7 @@ storeRelease(StoreEntry * e)
 	storeSetPrivateKey(e);
 	return 0;
     }
+#endif
     if (e->key)
 	debug(20, 5, "storeRelease: Release object key: %s\n", e->key);
     else
