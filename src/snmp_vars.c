@@ -215,7 +215,7 @@ in_view(oid * name, int namelen, int viewIndex)
 	if (vwp->viewIndex != viewIndex)
 	    continue;
 	if (vwp->viewSubtreeLen > namelen
-	    || bcmp(vwp->viewSubtree, name, vwp->viewSubtreeLen * sizeof(oid)))
+	    || memcmp(vwp->viewSubtree, name, vwp->viewSubtreeLen * sizeof(oid)))
 	    continue;
 	/* no wildcards here yet */
 	if (!savedvwp) {
