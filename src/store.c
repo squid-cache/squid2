@@ -424,7 +424,7 @@ storeCreateEntry(const char *url, const char *log_url, request_flags flags, meth
     e->swap_file_number = -1;
     e->refcount = 0;
     e->lastref = squid_curtime;
-    e->timestamp = 0;		/* set in storeTimestampsSet() */
+    e->timestamp = -1;		/* set in storeTimestampsSet() */
     e->ping_status = PING_NONE;
     EBIT_SET(e->flags, ENTRY_VALIDATED);
     return e;
