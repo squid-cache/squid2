@@ -826,7 +826,7 @@ SQUID_MAXFD=256,
 SQUID_MAXFD=256)
 AC_MSG_RESULT($SQUID_MAXFD)
 AC_DEFINE_UNQUOTED(SQUID_MAXFD, $SQUID_MAXFD)
-if [ "$SQUID_MAXFD" -lt 512 ]; then
+if test "$SQUID_MAXFD" -lt 512 ; then
     echo "WARNING: $SQUID_MAXFD may not be enough filedescriptors if your"
     echo "         cache will be very busy.  Please see the FAQ page"
     echo "         http://squid.nlanr.net/Squid/FAQ/FAQ-10.html#filedescriptors"
