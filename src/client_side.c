@@ -563,9 +563,7 @@ icpHandleIMSReply(int fd, void *data)
 	    icpState->old.entry->mem_obj->request = requestLink(mem->request);
 	    unlink_request = 1;
 	}
-	xmemcpy(icpState->old.entry->mem_obj->reply,
-	    entry->mem_obj->reply,
-	    sizeof(struct _http_reply));
+        storeCopyNotModifiedReplyHeaders(entry->mem_obj, icpState->old.entry->mem_obj);
 	storeTimestampsSet(icpState->old.entry);
 	storeUnregister(entry, fd);
 	storeUnlockObject(entry);

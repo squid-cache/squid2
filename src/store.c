@@ -2300,3 +2300,18 @@ storeMemObjectDump(MemObject * mem)
 	mem->log_url,
 	checkNullString(mem->log_url));
 }
+
+void
+storeCopyNotModifiedReplyHeaders(MemObject * oldmem, MemObject * newmem)
+{
+    struct _http_reply *oldreply = oldmem->reply;
+    struct _http_reply *newreply = newmem->reply;
+    oldreply->cache_control = newreply->cache_control;
+    oldreply->misc_headers = newreply->misc_headers;
+    if (newreply->date > -1)
+	oldreply->date = newreply->date;
+    if (newreply->last_modified > -1)
+	oldreply->last_modified = newreply->last_modified;
+    if (newreply->expires > -1)
+	oldreply->expires = newreply->expires;
+}

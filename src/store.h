@@ -286,6 +286,7 @@ extern time_t storeExpiredReferenceAge _PARAMS((void));
 extern void storeCheckDoneWriting _PARAMS((StoreEntry * e));
 extern void storeMemObjectDump _PARAMS((MemObject *));
 extern void storeCreateSwapDirectories _PARAMS((void));
+extern void storeCopyNotModifiedReplyHeaders _PARAMS((MemObject *, MemObject *));
 
 #ifdef __STDC__
 extern void storeAppendPrintf _PARAMS((StoreEntry *, const char *,...));
