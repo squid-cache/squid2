@@ -903,8 +903,6 @@ char *fqdncache_gethostbyaddr(addr, flags)
     struct hostent *hp = NULL;
     unsigned int ip;
 
-    if (fqdn_table == 0)
-	return NULL;
     if (!name)
 	fatal_dump("fqdncache_gethostbyaddr: NULL name");
     FqdncacheStats.requests++;
