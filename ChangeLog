@@ -1,4 +1,4 @@
-Changes to Squid-2.0 (September 25, 1998):
+Changes to Squid-2.0 (October 2, 1998):
 
 	- Added NAT/Transparent hijacking code from Quinton Dolan.
 	- Added actual filesystem usage to cachemgr 'storedir' page.
