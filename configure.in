@@ -18,9 +18,20 @@ AC_PREFIX_DEFAULT(/usr/local/squid)
 AM_MAINTAINER_MODE
 
 echo
-echo WARNING: This version of Squid is no longer developed.
-echo Current developments can be found in the squid3 tree.
 echo
+echo "!!!!! WARNING !!!!!"
+echo
+echo "This development version of Squid is no longer maintained
+echo "as the development have moved on to the squid3 tree"
+echo
+echo "These sources are known to contain many bugs and is"
+echo "quite unstable, generally not suitable for any use other than as a"
+echo "temporary while porting developments from Squid-2 to Squid-3"
+echo
+echo "Proceed at your own risk."
+echo
+echo
+
 sleep 10
 
 dnl Set default LDFLAGS
