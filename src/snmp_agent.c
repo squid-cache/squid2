@@ -117,7 +117,7 @@ snmp_confFn(variable_list * Var, snint * ErrP)
 	    Answer->val_len = sizeof(snint);
 	    Answer->val.integer = xmalloc(Answer->val_len);
 	    Answer->type = ASN_INTEGER;
-	    *(Answer->val.integer) = (snint) Config.MemMaxSize;
+	    *(Answer->val.integer) = (snint) Config.memMaxSize;
 	    break;
 	case CONF_ST_MHIWM:	/* DELETE ME */
 	    Answer->val_len = sizeof(snint);
