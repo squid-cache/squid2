@@ -194,7 +194,6 @@ ip_access_type ip_access_check(address, list)
 	localhost.s_addr = inet_addr("127.0.0.1");
 	init = 1;
     }
-
     naddr.s_addr = address.s_addr;
     if (naddr.s_addr == localhost.s_addr)
 	return IP_ALLOW;

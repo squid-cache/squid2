@@ -120,3 +120,6 @@ typedef unsigned long u_num32;
 extern time_t cached_starttime;	/* main.c */
 extern time_t next_cleaning;	/* main.c */
 extern int catch_signals;	/* main.c */
+extern int do_reuse;
+extern int theAsciiConnection;
+extern int theUdpConnection;

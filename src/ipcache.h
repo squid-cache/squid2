@@ -29,5 +29,6 @@ extern struct hostent *ipcache_gethostbyname _PARAMS((char *));
 extern void ipcache_flush _PARAMS((void));
 extern void ipcache_init _PARAMS((void));
 extern void stat_ipcache_get _PARAMS((StoreEntry *, cacheinfo *));
+extern void ipcacheShutdownServers _PARAMS((void));
 
 #endif
