@@ -268,6 +268,8 @@ peerSelectFoo(ps_state * psstate)
 	return;
     } else if (psstate->always_direct > 0) {
 	direct = DIRECT_YES;
+    } else if (EBIT_TEST(request->flags, REQ_LOOPDETECT)) {
+	direct = DIRECT_YES;
     } else {
 	direct = DIRECT_MAYBE;
     }
