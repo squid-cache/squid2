@@ -316,7 +316,7 @@ pumpClose(void *data)
 	p, p->s_fd, p->c_fd);
     /* double-call detection */
     assert(!p->flags.closing);
-    P->flags.closing = 1;
+    p->flags.closing = 1;
     if (req != NULL && req->store_status == STORE_PENDING) {
 	storeUnregister(req, p);
 	storeAbort(req, 0);
