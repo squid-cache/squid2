@@ -84,6 +84,7 @@ OBJS	 	= \
 		@ASYNC_OBJS@ \
 		cache_cf.o \
 		CacheDigest.o \
+		carp.o \
 		cbdata.o \
 		client_db.o \
 		client_side.o \
