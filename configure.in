@@ -920,7 +920,6 @@ AC_OUTPUT(\
 	./scripts/RunCache \
 	./scripts/RunAccel \
 	./src/Makefile \
-	./src/options.h \
 	./contrib/Makefile \
 	./snmplib/Makefile \
 	./icons/Makefile \
