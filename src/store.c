@@ -237,7 +237,7 @@ storeReleaseRequest(StoreEntry * e)
      * anyone else even looks at the cachability flag.  Also, this
      * prevents httpMakePublic from really setting a public key.
      */
-    EBIT_CLR(entry->flag, ENTRY_CACHABLE);
+    EBIT_CLR(e->flag, ENTRY_CACHABLE);
     storeSetPrivateKey(e);
 }
 
