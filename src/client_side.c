@@ -1078,9 +1078,17 @@ clientGetHeadersForIMS(void *data, char *buf, ssize_t size)
     memFree(MEM_4K_BUF, buf);
     buf = NULL;
     if (size < 0 || entry->store_status == STORE_ABORTED) {
-	debug(33, 1) ("clientGetHeadersForIMS: storeClientCopy failed for '%s'\n",
-	    storeKeyText(entry->key));
-	clientProcessMiss(http);
+	/*
+	 * There are different reasons why we might have size < 0.  One
+	 * being that we failed to open a swapfile.  Another being that
+	 * the request was cancelled from the client-side.  If the client
+	 * cancelled the request, then http->entry will be NULL.
+	 */
+	if (entry != NULL) {
+	    debug(33, 1) ("clientGetHeadersForIMS: storeClientCopy failed for '%s'\n",
+		storeKeyText(entry->key));
+	    clientProcessMiss(http);
+	}
 	return;
     }
     if (mem->reply->code == 0) {
