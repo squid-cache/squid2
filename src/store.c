@@ -398,7 +398,7 @@ int
 storeUnlockObject(StoreEntry * e)
 {
     e->lock_count--;
-    debug(20, 0, "storeUnlockObject: key '%s' count=%d\n",
+    debug(20, 3, "storeUnlockObject: key '%s' count=%d\n",
 	e->key, e->lock_count);
     if (e->lock_count)
 	return (int) e->lock_count;
@@ -888,8 +888,8 @@ storeSwapFullPath(int fn, char *fullpath)
     fullpath[0] = '\0';
     sprintf(fullpath, "%s/%02X/%02X/%08X",
 	swappath(fn),
-	(fn / ncache_dirs) % SWAP_DIRECTORIES_L1,
-	(fn / ncache_dirs) / SWAP_DIRECTORIES_L1 % SWAP_DIRECTORIES_L2,
+	(fn / ncache_dirs) % Config.levelOneDirs,
+	(fn / ncache_dirs) / Config.levelOneDirs % Config.levelTwoDirs,
 	fn);
     return fullpath;
 }
@@ -1186,7 +1186,7 @@ storeStartRebuildFromDisk(void)
 
     /* Start reading the log file */
     if (opt_foreground_rebuild) {
-	data->speed = 1 << 31;
+	data->speed = 1 << 30;
 	storeDoRebuildFromDisk(data);
     } else {
 	eventAdd("storeRebuild", storeDoRebuildFromDisk, data, 0);
@@ -1680,7 +1680,7 @@ storeCreateSwapSubDirs(void)
     int i, j, k;
     LOCAL_ARRAY(char, name, MAXPATHLEN);
     for (j = 0; j < ncache_dirs; j++) {
-	for (i = 0; i < SWAP_DIRECTORIES_L1; i++) {
+	for (i = 0; i < Config.levelOneDirs; i++) {
 	    sprintf(name, "%s/%02X", swappath(j), i);
 	    debug(20, 1, "Making directories in %s\n", name);
 	    if (mkdir(name, 0755) < 0) {
@@ -1691,7 +1691,7 @@ storeCreateSwapSubDirs(void)
 		    fatal(tmp_error_buf);
 		}
 	    }
-	    for (k = 0; k < SWAP_DIRECTORIES_L2; k++) {
+	    for (k = 0; k < Config.levelTwoDirs; k++) {
 		sprintf(name, "%s/%02X/%02X", swappath(j), i, k);
 		if (mkdir(name, 0755) < 0) {
 		    if (errno != EEXIST) {
@@ -1807,7 +1807,7 @@ storeSanityCheck(void)
     if (ncache_dirs < 1)
 	storeAddSwapDisk(DefaultSwapDir);
 
-    for (i = 0; i < SWAP_DIRECTORIES_L1; i++) {
+    for (i = 0; i < Config.levelOneDirs; i++) {
 	sprintf(name, "%s/%02X", swappath(i), i);
 	errno = 0;
 	if (access(name, W_OK)) {

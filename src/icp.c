@@ -462,6 +462,10 @@ icpSendERROR(int fd,
 	    return;
 	}
     }
+    if (text == NULL) {
+	comm_close(fd);
+	return;
+    }
     buf_len = strlen(text);
     buf_len = buf_len > 4095 ? 4095 : buf_len;
     buf = get_free_4k_page();
@@ -986,7 +990,6 @@ icpCreateHitObjMessage(
     int pad,
     StoreEntry * entry)
 {
-
     debug(12, 1, "icpCreateHitObjMessage: NOT WORKING in this version\n");
     return NULL;
 #ifdef NOT_WORKING
@@ -1903,11 +1906,6 @@ icpCheckTransferDone(icpStateData * icpState)
     MemObject *mem = NULL;
     if (entry == NULL)
 	return 0;
-    debug(0, 0, "icpCheckTransferDone: %s\n", entry->url);
-    debug(0, 0, "  store_status %s\n", storeStatusStr[entry->store_status]);
-    debug(0, 0, "   swap_status %s\n", swapStatusStr[entry->swap_status]);
-    debug(0, 0, "    object_len %d\n", entry->object_len);
-    debug(0, 0, "      out.size %d\n", icpState->out.size);
     if (entry->store_status != STORE_PENDING)
 	if (icpState->out.size >= entry->object_len)
 	    return 1;

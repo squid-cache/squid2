@@ -115,6 +115,7 @@
 #define DISK_NO_SPACE_LEFT       (-6)
 
 typedef int (*FILE_READ_HD) (int fd, char *buf, int size, int errflag, void *data);
+typedef void (*FILE_WRITE_HD) (int, int, StoreEntry *);
 
 typedef int (*FILE_WALK_HD) (int fd, int errflag, void *data);
 
@@ -174,7 +175,7 @@ extern int file_close _PARAMS((int fd));
 extern int file_write _PARAMS((int fd,
 	char *buf,
 	int len,
-	void       (*handle) _PARAMS((int, int, int, StoreEntry *)),
+	FILE_WRITE_HD handle,
 	void *handle_data,
 	void       (*free) _PARAMS((void *))));
 extern int file_read _PARAMS((int fd,

@@ -105,6 +105,9 @@
 
 #include "squid.h"
 
+const char *volatile _db_file = __FILE__;
+volatile int _db_line = 0;
+
 FILE *debug_log = NULL;
 static char *debug_log_file = NULL;
 static const char *const w_space = " \t\n\r";
@@ -134,26 +137,34 @@ _db_print(va_alist)
     LOCAL_ARRAY(char, tmpbuf, BUFSIZ);
 #endif
 
-#ifdef __STDC__
-    if (level > debugLevels[section])
+    if (debug_log == NULL)
 	return;
+
+#ifdef __STDC__
     va_start(args, format);
 #else
     va_start(args);
     section = va_arg(args, int);
     level = va_arg(args, int);
+    format = va_arg(args, const char *);
+#endif
+
     if (level > debugLevels[section]) {
 	va_end(args);
 	return;
     }
-    format = va_arg(args, const char *);
-#endif
-
-    if (debug_log == NULL)
-	return;
+#ifdef LOG_FILE_AND_LINE
+    sprintf(f, "%s %-10.10s %4d| %s",
+	accessLogTime(squid_curtime),
+	_db_file,
+	_db_line,
+	format);
+#else
     sprintf(f, "%s| %s",
 	accessLogTime(squid_curtime),
 	format);
+#endif
+
 #if HAVE_SYSLOG
     /* level 0 go to syslog */
     if (level == 0 && opt_syslog_enable) {
@@ -163,6 +174,7 @@ _db_print(va_alist)
 	syslog(LOG_ERR, "%s", tmpbuf);
     }
 #endif /* HAVE_SYSLOG */
+
     /* write to log file */
     vfprintf(debug_log, f, args);
     if (unbuffered_logs)

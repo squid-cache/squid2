@@ -245,7 +245,7 @@ typedef unsigned long u_num32;
 
 #include "ansiproto.h"
 
-#if HAVE_REGEX_H
+#if HAVE_REGEX_H && !defined(_SQUID_NEXT_)
 #include <regex.h>
 #else /* HAVE_REGEX_H */
 #include "GNUregex.h"
@@ -257,9 +257,11 @@ typedef unsigned long u_num32;
  * we might really be able to open more than FD_SETSIZE descriptors.
  * happy happy happy joy joy joy.
  */
+#if defined(FD_SETSIZE) && defined(SQUID_MAXFD)
 #if FD_SETSIZE < SQUID_MAXFD
 #undef SQUID_MAXFD
 #define SQUID_MAXFD FD_SETSIZE
+#endif
 #endif
 
 typedef void (*SIH) (int, void *);	/* swap in */
