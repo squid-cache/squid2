@@ -240,7 +240,7 @@ diskHandleWrite(int fd, void *notused)
 	return;
     debug(6, 3) ("diskHandleWrite: FD %d\n", fd);
     /* We need to combine subsequent write requests after the first */
-    /* But only if we don't need to seek() in betwen them, ugh! */
+    /* But only if we don't need to seek() in between them, ugh! */
     /* XXX This currently ignores any seeks (file_offset) */
     if (fdd->write_q->next != NULL && fdd->write_q->next->next != NULL) {
 	len = 0;

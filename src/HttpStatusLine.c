@@ -63,7 +63,7 @@ httpStatusLineSet(HttpStatusLine * sline, double version, http_status status, co
     sline->reason = reason;
 }
 
-/* parse a 0-terminating buffer and fill internal structires; returns true on success */
+/* parse a 0-terminating buffer and fill internal structures; returns true on success */
 void
 httpStatusLinePackInto(const HttpStatusLine * sline, Packer * p)
 {

@@ -57,7 +57,7 @@
  * comm_write or "append" things to store, depending on actual packer
  * supplied.
  * 
- * It is amasing how much work a tiny object can save. :)
+ * It is amazing how much work a tiny object can save. :)
  * 
  */
 

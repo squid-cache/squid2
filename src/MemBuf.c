@@ -53,9 +53,10 @@
  * 
  * The whole "packing" idea is quite messy: We are given a buffer of fixed
  * size and we have to check all the time that we still fit. Sounds logical.
- * However, what happens if we have more data? If we are lucky to be careful
- * to stop before we overrun any buffers, we still may have garbage (e.g.
- * half of ETag) in the buffer.
+ *
+ * However, what happens if we have more data? If we are lucky to stop before
+ * we overrun any buffers, we still may have garbage (e.g. half of ETag) in
+ * the buffer.
  * 
  * MemBuffer:
  * ----------
