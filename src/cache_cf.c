@@ -698,8 +698,10 @@ parse_peer(peer ** head)
 	    EBIT_SET(p->options, NEIGHBOR_DEFAULT_PARENT);
 	} else if (!strncasecmp(token, "round-robin", 11)) {
 	    EBIT_SET(p->options, NEIGHBOR_ROUNDROBIN);
+#if USE_HTCP
 	} else if (!strncasecmp(token, "htcp", 4)) {
 	    EBIT_SET(p->options, NEIGHBOR_HTCP);
+#endif
 	} else {
 	    debug(3, 0) ("parse_peer: token='%s'\n", token);
 	    self_destruct();
