@@ -1,3 +1,17 @@
+	- Fixed ftpget parsing PASV reply bug (Carson Gaspar).
+	- Forced include of <netinet/in_systm.h> for NeXT (Holger Hoffstaette).
+	- Promulgate tcp_outgoing_addr to ftpget with -o option (Edward Moy).
+	- add Date: header to Squid-generated Gopher objects (Geoffrey Keating).
+	- cachemgr.cgi HTML fixes (Cord Beermann).
+	- Collapsed some config parsing functions to parseOnOff().
+	- Added config option: memory_pools on|off
+	- Added config option: udp_hit_obj on|off
+	- Added config option: forwarded_for on|off
+	- Copied better stmem.c and stack.c routines from v1.1 code.
+	- Added support for HTTP/1.1 Cache-Controls 'private' and 
+	  'no-cache'.
+	- Copied dnsserver "hello/alive" test from v1.1 code.
+
 Changes to squid-1.0.12 (September 3, 1996):
 
 	- Fixed urlCheckRequest() to allow CONNECT/SSL requests.
