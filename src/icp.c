@@ -1649,9 +1649,8 @@ parseHttpRequest(icpStateData * icpState)
 	     * refer to www.playboy.com.  The 'dst' and/or 'dst_domain' ACL 
 	     * types should be used to prevent httpd-accelerators 
 	     * handling requests for non-local servers */
-	    if ((s = strchr(t, ':')))
-		*s = '\0';
-	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
+	    strtok(t, " :/;@");
+	    url_sz = strlen(url) + strlen(t) + 32 + Config.appendDomainLen;
 	    icpState->url = xcalloc(url_sz, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		t, (int) Config.Accel.port, url);
