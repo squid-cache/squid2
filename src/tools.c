@@ -119,15 +119,8 @@ Thanks!\n"
 static void fatal_common(const char *);
 static void mail_warranty(void);
 static void shutdownTimeoutHandler(int fd, void *data);
-
 #if USE_ASYNC_IO
 static void safeunlinkComplete(void *data, int retcode, int errcode);
-#endif
-
-#ifdef _SQUID_SOLARIS_
-int getrusage(int, struct rusage *);
-int getpagesize(void);
-int gethostname(char *, int);
 #endif
 
 static void
