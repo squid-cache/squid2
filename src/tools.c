@@ -157,11 +157,15 @@ void rotate_logs(sig)
 {
     debug(21, 1, "rotate_logs: SIGUSR1 received.\n");
 
+    /* close and reopen ftpget server so it's stderr goes to the right
+     * place */
+    ftpServerClose();
     _db_rotate_log();		/* cache.log */
     storeWriteCleanLog();
     storeRotateLog();		/* store.log */
     neighbors_rotate_log();	/* hierarchy.log */
     stat_rotate_log();		/* access.log */
+    (void) ftpInitialize();
     signal(sig, rotate_logs);
 }
 
