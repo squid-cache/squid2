@@ -230,9 +230,10 @@ int logReadHandler(fd_unused, buf, size_unused, data)
     static char tempbuf[MAX_LINELEN];
 
     sprintf(tempbuf, "{%s}\n", buf);
-    return storeAppend(data->sentry,
+    storeAppend(data->sentry,
 	tempbuf,
 	(int) strlen(tempbuf) % MAX_LINELEN);
+    return 0;
 }
 
 /* log convert end handler */
@@ -285,9 +286,10 @@ int cachedReadHandler(fd_unused, buf, size_unused, data)
     static char tempbuf[MAX_LINELEN];
     tempbuf[0] = '\0';
     sprintf(tempbuf, "{\"%s\"}\n", buf);
-    return storeAppend(data->sentry,
+    storeAppend(data->sentry,
 	tempbuf,
 	(int) strlen(tempbuf) % MAX_LINELEN);
+    return 0;
 }
 
 /* cached convert end handler */
