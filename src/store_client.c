@@ -354,13 +354,13 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
     tlv_list = storeSwapMetaUnpack(buf, &swap_hdr_sz);
     if (swap_hdr_sz > len) {
 	/* oops, bad disk file? */
-	debug(20, 1) ("storeClientReadHeader: header too small\n");
+	debug(20, 1) ("WARNING: swapfile header too small\n");
 	sc->callback = NULL;
 	callback(sc->callback_data, sc->copy_buf, -1);
 	return;
     }
     if (tlv_list == NULL) {
-	debug(20, 1) ("storeClientReadHeader: failed to unpack meta data\n");
+	debug(20, 1) ("WARNING: failed to unpack swapfile meta data\n");
 	sc->callback = NULL;
 	callback(sc->callback_data, sc->copy_buf, -1);
 	return;
