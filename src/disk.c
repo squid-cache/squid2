@@ -1,109 +1,8 @@
-static char rcsid[] = "$Id$";
-/* 
- *  File:         disk.c
- *  Description:  non blocking disk i/o
- *  Author:       Anawat Chankhunthod, USC
- *  Created:      Wed May 25 23:01:01 PDT 1994
- *  Language:     C
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
- */
-#include "config.h"
+/* $Id$ */
 
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#if !defined(_HARVEST_LINUX_)
-#include <sys/uio.h>
-#endif
-#include <unistd.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+/* DEBUG: Section 6             disk: disk I/O routines */
 
-#include "ansihelp.h"
-#include "comm.h"
-#include "disk.h"
-#include "fdstat.h"
-#include "cache_cf.h"
-#include "util.h"
-#include "debug.h"
+#include "squid.h"
 
 #define DISK_LINE_LEN  1024
 #define MAX_FILE_NAME_LEN 256
@@ -115,9 +14,9 @@ typedef struct _dread_ctrl {
     char *buf;
     int cur_len;
     int end_of_file;
-    int (*handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data,
+    int (*handler) _PARAMS((int fd, char *buf, int size, int errflag, void *data,
 	    int offset));
-    caddr_t client_data;
+    void *client_data;
 } dread_ctrl;
 
 typedef struct _dwalk_ctrl {
@@ -125,14 +24,14 @@ typedef struct _dwalk_ctrl {
     off_t offset;
     char *buf;			/* line buffer */
     int cur_len;		/* line len */
-    int (*handler) _PARAMS((int fd, int errflag, caddr_t data));
-    caddr_t client_data;
-    int (*line_handler) _PARAMS((int fd, char *buf, int size, caddr_t line_data));
-    caddr_t line_data;
+    int (*handler) _PARAMS((int fd, int errflag, void *data));
+    void *client_data;
+    int (*line_handler) _PARAMS((int fd, char *buf, int size, void *line_data));
+    void *line_data;
 } dwalk_ctrl;
 
 typedef struct _dwrite_q {
-    caddr_t buf;
+    char *buf;
     int len;
     int cur_offset;
     struct _dwrite_q *next;
@@ -168,7 +67,6 @@ typedef struct _FileEntry {
 
 /* table for FILE variable, write lock and queue. Indexed by fd. */
 FileEntry *file_table;
-static int disk_initialized = 0;
 
 extern int getMaxFD();
 extern void fatal_dump _PARAMS((char *));
@@ -177,9 +75,6 @@ extern void fatal_dump _PARAMS((char *));
 int disk_init()
 {
     int fd, max_fd = getMaxFD();
-
-    if (disk_initialized)
-	return 0;
 
     file_table = (FileEntry *) xmalloc(sizeof(FileEntry) * max_fd);
     memset(file_table, '\0', sizeof(FileEntry) * max_fd);
@@ -195,7 +90,6 @@ int disk_init()
 	file_table[fd].write_pending = NO_WRT_PENDING;
 	file_table[fd].write_q = file_table[fd].write_q_tail = NULL;
     }
-    disk_initialized = 1;
     return 0;
 }
 
@@ -208,13 +102,9 @@ int file_open(path, handler, mode)
     FD_ENTRY *conn;
     int fd;
 
-    /* lazy initialization */
-    if (!disk_initialized)
-	disk_init();
-
     /* Open file */
     if ((fd = open(path, mode | O_NDELAY, 0644)) < 0) {
-	debug(0, "file_open: error opening file %s: %s\n",
+	debug(6, 0, "file_open: error opening file %s: %s\n",
 	    path, xstrerror());
 	return (DISK_ERROR);
     }
@@ -239,15 +129,15 @@ int file_open(path, handler, mode)
     conn->handler = NULL;
 
     /* set non-blocking mode */
-#if defined(O_NONBLOCK) && !defined(_HARVEST_SUNOS_) && !defined(_HARVEST_SOLARIS_)
+#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
     if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0) {
-	debug(0, "file_open: FD %d: Failure to set O_NONBLOCK: %s\n",
+	debug(6, 0, "file_open: FD %d: Failure to set O_NONBLOCK: %s\n",
 	    fd, xstrerror());
 	return DISK_ERROR;
     }
 #else
-    if (fcntl(fd, F_SETFL, FNDELAY) < 0) {
-	debug(0, "file_open: FD %d: Failure to set FNDELAY: %s\n",
+    if (fcntl(fd, F_SETFL, O_NDELAY) < 0) {
+	debug(6, 0, "file_open: FD %d: Failure to set O_NDELAY: %s\n",
 	    fd, xstrerror());
 	return DISK_ERROR;
     }
@@ -262,10 +152,6 @@ int file_update_open(fd, path)
      char *path;		/* path to file */
 {
     FD_ENTRY *conn;
-
-    /* lazy initialization */
-    if (!disk_initialized)
-	disk_init();
 
     /* update fdstat */
     fdstat_open(fd, File);
@@ -303,16 +189,20 @@ int file_close(fd)
      * close it */
     /* save it for later */
 
-    if ((file_table[fd].open_stat == OPEN) &&
-	(file_table[fd].write_daemon == NOT_PRESENT) &&
-	(file_table[fd].write_pending == NO_WRT_PENDING)) {
+    if (file_table[fd].open_stat == NOT_OPEN) {
+	debug(6, 3, "file_close: FD %d is not OPEN\n", fd);
+    } else if (file_table[fd].write_daemon == PRESENT) {
+	debug(6, 3, "file_close: FD %d has a write daemon PRESENT\n", fd);
+    } else if (file_table[fd].write_pending == WRT_PENDING) {
+	debug(6, 3, "file_close: FD %d has a write PENDING\n", fd);
+    } else {
 	file_table[fd].open_stat = NOT_OPEN;
 	file_table[fd].write_lock = UNLOCK;
 	file_table[fd].write_daemon = NOT_PRESENT;
 	file_table[fd].filename[0] = '\0';
 
 	if (fdstat_type(fd) == Socket) {
-	    debug(0, "FD %d: Someone called file_close() on a socket\n", fd);
+	    debug(6, 0, "FD %d: Someone called file_close() on a socket\n", fd);
 	    fatal_dump(NULL);
 	}
 	/* update fdstat */
@@ -322,12 +212,12 @@ int file_close(fd)
 	comm_set_fd_lifetime(fd, -1);	/* invalidate the lifetime */
 	close(fd);
 	return DISK_OK;
-    } else {
-	/* refused to close file if there is a daemon running */
-	/* have pending flag set */
-	file_table[fd].close_request = REQUEST;
-	return DISK_ERROR;
     }
+
+    /* refused to close file if there is a daemon running */
+    /* have pending flag set */
+    file_table[fd].close_request = REQUEST;
+    return DISK_ERROR;
 }
 
 
@@ -352,7 +242,7 @@ int file_write_lock(fd)
      int fd;
 {
     if (file_table[fd].write_lock == LOCK) {
-	debug(0, "trying to lock a locked file\n");
+	debug(6, 0, "trying to lock a locked file\n");
 	return DISK_WRT_LOCK_FAIL;
     } else {
 	file_table[fd].write_lock = LOCK;
@@ -372,7 +262,7 @@ int file_write_unlock(fd, access_code)
 	file_table[fd].write_lock = UNLOCK;
 	return DISK_OK;
     } else {
-	debug(0, "trying to unlock the file with the wrong access code\n");
+	debug(6, 0, "trying to unlock the file with the wrong access code\n");
 	return DISK_WRT_WRONG_CODE;
     }
 }
@@ -391,7 +281,7 @@ int diskHandleWrite(fd, entry)
 	lseek(fd, 0, SEEK_END);
 
     for (;;) {
-	len = write(fd, entry->write_q->buf + entry->write_q->cur_offset,
+	len = write(fd, (entry->write_q->buf) + entry->write_q->cur_offset,
 	    entry->write_q->len - entry->write_q->cur_offset);
 
 	file_table[fd].at_eof = YES;
@@ -406,12 +296,12 @@ int diskHandleWrite(fd, entry)
 		comm_set_select_handler(fd,
 		    COMM_SELECT_WRITE,
 		    (PF) diskHandleWrite,
-		    (caddr_t) entry);
+		    (void *) entry);
 		entry->write_daemon = PRESENT;
 		return DISK_OK;
 	    default:
 		/* disk i/o failure--flushing all outstanding writes  */
-		debug(1, "diskHandleWrite: disk write error %s\n",
+		debug(6, 1, "diskHandleWrite: disk write error %s\n",
 		    xstrerror());
 		entry->write_daemon = NOT_PRESENT;
 		entry->write_pending = NO_WRT_PENDING;
@@ -473,14 +363,14 @@ int diskHandleWrite(fd, entry)
 	    safe_free(q);
 	    /* Schedule next write 
 	     *  comm_set_select_handler(fd, COMM_SELECT_WRITE, (PF) diskHandleWrite,
-	     *      (caddr_t) entry);
+	     *      (void *) entry);
 	     */
 	    entry->write_daemon = PRESENT;
 	    /* Repeat loop */
 	} else {		/* !Block_completed; block incomplete */
 	    /* reschedule */
 	    comm_set_select_handler(fd, COMM_SELECT_WRITE, (PF) diskHandleWrite,
-		(caddr_t) entry);
+		(void *) entry);
 	    entry->write_daemon = PRESENT;
 	    return DISK_OK;
 	}
@@ -494,7 +384,7 @@ int diskHandleWrite(fd, entry)
 /* call a handle when writing is complete. */
 int file_write(fd, ptr_to_buf, len, access_code, handle, handle_data)
      int fd;
-     caddr_t ptr_to_buf;
+     char *ptr_to_buf;
      int len;
      int access_code;
      void (*handle) ();
@@ -507,7 +397,7 @@ int file_write(fd, ptr_to_buf, len, access_code, handle, handle_data)
     }
     if ((file_table[fd].write_lock == LOCK) &&
 	(file_table[fd].access_code != access_code)) {
-	debug(0, "file write: access code checked failed. Sync problem.\n");
+	debug(6, 0, "file write: FD %d access code checked failed.\n", fd);
 	return DISK_WRT_WRONG_CODE;
     }
     /* if we got here. Caller is eligible to write. */
@@ -535,7 +425,7 @@ int file_write(fd, ptr_to_buf, len, access_code, handle, handle_data)
     if (file_table[fd].write_daemon == NOT_PRESENT) {
 	/* got to start write routine for this fd */
 	comm_set_select_handler(fd, COMM_SELECT_WRITE, (PF) diskHandleWrite,
-	    (caddr_t) & file_table[fd]);
+	    (void *) &file_table[fd]);
     }
     return DISK_OK;
 }
@@ -563,7 +453,7 @@ int diskHandleRead(fd, ctrl_dat)
 	case EWOULDBLOCK:
 	    break;
 	default:
-	    debug(1, "diskHandleRead: FD %d: error reading: %s\n",
+	    debug(6, 1, "diskHandleRead: FD %d: error reading: %s\n",
 		fd, xstrerror());
 	    ctrl_dat->handler(fd, ctrl_dat->buf,
 		ctrl_dat->cur_len, DISK_ERROR,
@@ -584,8 +474,10 @@ int diskHandleRead(fd, ctrl_dat)
 
     /* reschedule if need more data. */
     if (ctrl_dat->cur_len < ctrl_dat->req_len) {
-	comm_set_select_handler(fd, COMM_SELECT_READ, (PF) diskHandleRead,
-	    (caddr_t) ctrl_dat);
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) diskHandleRead,
+	    (void *) ctrl_dat);
 	return DISK_OK;
     } else {
 	/* all data we need is here. */
@@ -604,11 +496,11 @@ int diskHandleRead(fd, ctrl_dat)
  * call handler when a reading is complete. */
 int file_read(fd, buf, req_len, offset, handler, client_data)
      int fd;
-     caddr_t buf;
+     char *buf;
      int req_len;
      int offset;
      FILE_READ_HD handler;
-     caddr_t client_data;
+     void *client_data;
 {
     dread_ctrl *ctrl_dat;
 
@@ -623,8 +515,10 @@ int file_read(fd, buf, req_len, offset, handler, client_data)
     ctrl_dat->handler = handler;
     ctrl_dat->client_data = client_data;
 
-    comm_set_select_handler(fd, COMM_SELECT_READ, (PF) diskHandleRead,
-	(caddr_t) ctrl_dat);
+    comm_set_select_handler(fd,
+	COMM_SELECT_READ,
+	(PF) diskHandleRead,
+	(void *) ctrl_dat);
 
     return DISK_OK;
 }
@@ -653,7 +547,7 @@ int diskHandleWalk(fd, walk_dat)
 	case EWOULDBLOCK:
 	    break;
 	default:
-	    debug(1, "diskHandleWalk: FD %d: error readingd: %s\n",
+	    debug(6, 1, "diskHandleWalk: FD %d: error readingd: %s\n",
 		fd, xstrerror());
 	    walk_dat->handler(fd, DISK_ERROR, walk_dat->client_data);
 	    safe_free(walk_dat->buf);
@@ -691,7 +585,7 @@ int diskHandleWalk(fd, walk_dat)
 
     /* reschedule it for next line. */
     comm_set_select_handler(fd, COMM_SELECT_READ, (PF) diskHandleWalk,
-	(caddr_t) walk_dat);
+	(void *) walk_dat);
     return DISK_OK;
 }
 
@@ -703,9 +597,9 @@ int diskHandleWalk(fd, walk_dat)
 int file_walk(fd, handler, client_data, line_handler, line_data)
      int fd;
      FILE_WALK_HD handler;
-     caddr_t client_data;
+     void *client_data;
      FILE_WALK_LHD line_handler;
-     caddr_t line_data;
+     void *line_data;
 
 {
     dwalk_ctrl *walk_dat;
@@ -714,7 +608,7 @@ int file_walk(fd, handler, client_data, line_handler, line_data)
     memset(walk_dat, '\0', sizeof(dwalk_ctrl));
     walk_dat->fd = fd;
     walk_dat->offset = 0;
-    walk_dat->buf = (caddr_t) xcalloc(1, DISK_LINE_LEN);
+    walk_dat->buf = (void *) xcalloc(1, DISK_LINE_LEN);
     walk_dat->cur_len = 0;
     walk_dat->handler = handler;
     walk_dat->client_data = client_data;
@@ -722,7 +616,7 @@ int file_walk(fd, handler, client_data, line_handler, line_data)
     walk_dat->line_data = line_data;
 
     comm_set_select_handler(fd, COMM_SELECT_READ, (PF) diskHandleWalk,
-	(caddr_t) walk_dat);
+	(void *) walk_dat);
     return DISK_OK;
 }
 
