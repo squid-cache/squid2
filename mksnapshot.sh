@@ -26,11 +26,11 @@ cd $tmpdir
 eval `grep "^ *VERSION=" configure | sed -e 's/-CVS//'`
 eval `grep "^ *PACKAGE=" configure`
 ed -s configure.in <<EOS
-g/VERSION=${VERSION}-CVS/ s//VERSION=${VERSION}-${date}/
+g/${VERSION}-CVS/ s//${VERSION}-${date}/
 w
 EOS
 ed -s configure <<EOS
-g/VERSION=${VERSION}-CVS/ s//VERSION=${VERSION}-${date}/
+g/${VERSION}-CVS/ s//${VERSION}-${date}/
 w
 EOS
 
