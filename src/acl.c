@@ -1421,12 +1421,16 @@ aclAuthenticated(aclCheck_t * checklist)
 #endif
     }
     /* get authed here */
-    /* Note: this fills in checklist->auth_user_request when applicable */
+    /* Note: this fills in checklist->auth_user_request when applicable (auth incomplete) */
     switch (authenticateTryToAuthenticateAndSetAuthUser(&checklist->auth_user_request, headertype, checklist->request, checklist->conn, checklist->src_addr)) {
     case AUTH_ACL_CANNOT_AUTHENTICATE:
 	debug(28, 4) ("aclMatchAcl: returning  0 user authenticated but not authorised.\n");
 	return 0;
     case AUTH_AUTHENTICATED:
+	if (checklist->auth_user_request) {
+	    authenticateAuthUserRequestUnlock(checklist->auth_user_request);
+	    checklist->auth_user_request = NULL;
+	}
 	return 1;
 	break;
     case AUTH_ACL_HELPER:

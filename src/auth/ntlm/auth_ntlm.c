@@ -46,6 +46,8 @@ extern AUTHSSETUP authSchemeSetup_ntlm;
 static void
 authenticateStateFree(authenticateStateData * r)
 {
+    authenticateAuthUserRequestUnlock(r->auth_user_request);
+    r->auth_user_request = NULL;
     cbdataFree(r);
 }
 
@@ -718,6 +720,7 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
 	    cbdataLock(data);
 	    r->data = data;
 	    r->auth_user_request = auth_user_request;
+	    authenticateAuthUserRequestLock(r->auth_user_request);
 	    if (server == NULL && ntlmConfig->challengeuses) {
 		helperStatefulSubmit(ntlmauthenticators, NULL, authenticateNTLMHandleplaceholder, r, NULL);
 	    } else {
@@ -748,6 +751,7 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
 	cbdataLock(data);
 	r->data = data;
 	r->auth_user_request = auth_user_request;
+	authenticateAuthUserRequestLock(r->auth_user_request);
 	snprintf(buf, 8192, "KK %s\n", sent_string);
 	helperStatefulSubmit(ntlmauthenticators, buf, authenticateNTLMHandleReply, r, ntlm_request->authserver);
 	debug(29, 9) ("authenticateNTLMstart: finished\n");
