@@ -713,6 +713,8 @@ static void
 ipcache_dnsDispatch(dnsserver_t * dns, ipcache_entry * i)
 {
     char *buf = NULL;
+    if (!BIT_TEST(dns->flags, DNS_FLAG_ALIVE))
+	debug_trap("Dispatching a dead DNS server");
     if (!ipcacheHasPending(i)) {
 	debug(14, 0, "ipcache_dnsDispatch: skipping '%s' because no handler.\n",
 	    i->name);
