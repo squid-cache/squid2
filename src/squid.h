@@ -158,8 +158,8 @@
 #define INADDR_NONE ((unsigned long) -1)
 #endif
 
-#if !defined(HAVE_RUSAGE) && defined(_SQUID_HPUX_)
-#define HAVE_RUSAGE
+#if !defined(HAVE_GETRUSAGE) && defined(_SQUID_HPUX_)
+#define HAVE_GETRUSAGE
 #define getrusage(a, b)  syscall(SYS_GETRUSAGE, a, b)
 #endif
 

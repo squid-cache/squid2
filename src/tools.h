@@ -120,7 +120,7 @@ extern time_t getCurrentTime _PARAMS((void));
 extern void normal_shutdown _PARAMS((void));
 extern int percent _PARAMS((int, int));
 extern void squid_signal _PARAMS((int sig, void (*func) _PARAMS((int)), int flags));
-extern int readPidFile _PARAMS((void));
+extern pid_t readPidFile _PARAMS((void));
 extern void _debug_trap _PARAMS((char *message));
 extern struct in_addr inaddrFromHostent _PARAMS((struct hostent * hp));
 

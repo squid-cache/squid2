@@ -704,7 +704,7 @@ main(int argc, char **argv)
 static void
 sendSignal(void)
 {
-    int pid;
+    pid_t pid;
     debug_log = stderr;
     if (ConfigFile == NULL)
 	ConfigFile = xstrdup(DefaultConfigFile);

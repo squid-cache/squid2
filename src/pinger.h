@@ -1,3 +1,6 @@
+#ifndef _PINGER_H_
+#define _PINGER_H_
+
 typedef struct {
     struct in_addr to;
     unsigned char opcode;
@@ -8,8 +11,10 @@ typedef struct {
 typedef struct {
     struct in_addr from;
     unsigned char opcode;
-    double rtt;
-    double hops;
+    int rtt;
+    int hops;
     int psize;
     char payload[8192];
 } pingerReplyData;
+
+#endif /* _PINGER_H_ */

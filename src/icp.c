@@ -571,10 +571,9 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 {
     StoreEntry *entry = icpState->entry;
     MemObject *mem = entry->mem_obj;
-    int buf_len = icpState->offset;
-    int len;
-    int max_len = 8191 - buf_len;
-    char *p = icpState->buf + buf_len;
+    int len = 0;
+    int max_len = 8191 - icpState->offset;
+    char *p = icpState->buf + icpState->offset;
     char *IMS_hdr = NULL;
     time_t IMS;
     int IMS_length;
@@ -591,7 +590,6 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	return icpProcessMISS(fd, icpState);
     }
     storeClientCopy(entry, icpState->offset, max_len, p, &len, fd);
-    buf_len = icpState->offset = +len;
 
     if (!mime_headers_end(icpState->buf)) {
 	/* All headers are not yet available, wait for more data */
@@ -672,8 +670,7 @@ icpHandleStoreIMS(int fd, StoreEntry * entry, icpStateData * icpState)
 }
 
 static void
-icpHandleIMSComplete(int fd, char *buf_unused
-    ,int size, int errflag, void *data)
+icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data)
 {
     icpStateData *icpState = data;
     StoreEntry *entry = icpState->entry;

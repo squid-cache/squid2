@@ -86,7 +86,7 @@ static struct redirectQueueData **redirectQueueTailP = &redirectQueueHead;
 static int
 redirectCreateRedirector(char *command)
 {
-    int pid;
+    pid_t pid;
     struct sockaddr_in S;
     static int n_redirector = 0;
     int cfd;

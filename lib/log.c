@@ -153,7 +153,7 @@ static char *standard_msg _PARAMS((void));
 /* Local variables */
 static FILE *fp_log = NULL;
 static FILE *fp_errs = NULL;
-static int pid;
+static pid_t pid;
 static char *pname = NULL;
 static char lbuf[2048];
 
@@ -308,6 +308,6 @@ standard_msg(void)
     if (pname != NULL)
 	sprintf(buf, "[%s] %8.8s", mkhttpdlogtime(&t), pname);
     else
-	sprintf(buf, "[%s] %8d", mkhttpdlogtime(&t), pid);
+	sprintf(buf, "[%s] %8d", mkhttpdlogtime(&t), (int) pid);
     return buf;
 }

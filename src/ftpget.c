@@ -1136,7 +1136,7 @@ static int
 send_cmd(int fd, char *buf)
 {
     char *xbuf = NULL;
-    int len;
+    size_t len;
     int x;
 
     len = strlen(buf) + 2;

@@ -121,7 +121,7 @@ struct _dnsStats DnsStats;
 static int
 dnsOpenServer(char *command)
 {
-    int pid;
+    pid_t pid;
     struct sockaddr_in S;
     int cfd;
     int sfd;
