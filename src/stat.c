@@ -600,9 +600,9 @@ info_get(StoreEntry * sentry)
     storeAppendPrintf(sentry, "Memory accounted for:\n");
     storeAppendPrintf(sentry, "\tTotal accounted:       %6d KB\n",
 	statMemoryAccounted() >> 10);
-    storeAppendPrintf(sentry, "\tmemPoolAlloc calls: %d\n",
+    storeAppendPrintf(sentry, "\tmemPoolAlloc calls: %u\n",
 	mem_pool_alloc_calls);
-    storeAppendPrintf(sentry, "\tmemPoolFree calls: %d\n",
+    storeAppendPrintf(sentry, "\tmemPoolFree calls: %u\n",
 	mem_pool_free_calls);
 
     storeAppendPrintf(sentry, "File descriptor usage for %s:\n", appname);
