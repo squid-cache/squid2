@@ -217,7 +217,8 @@ clientCreateStoreEntry(clientHttpRequest * h, method_t m, request_flags flags)
     e = storeCreateEntry(h->uri, h->log_uri, flags, m);
     h->sc = storeClientListAdd(e, h);
 #if DELAY_POOLS
-    delaySetStoreClient(h->sc, delayClient(h));
+    if (h->log_type != LOG_TCP_DENIED)
+	delaySetStoreClient(h->sc, delayClient(h));
 #endif
     storeClientCopy(h->sc, e, 0, 0, CLIENT_SOCK_SZ,
 	memAllocate(MEM_CLIENT_SOCK_BUF), clientSendMoreData, h);
@@ -1947,12 +1948,13 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	    aclCheck_t *ch;
 	    int rv;
 	    clientMaxBodySize(http->request, http, rep);
-	    if (clientReplyBodyTooLarge(http, rep->content_length)) {
+	    if (http->log_type != LOG_TCP_DENIED && clientReplyBodyTooLarge(http, rep->content_length)) {
 		ErrorState *err = errorCon(ERR_TOO_BIG, HTTP_FORBIDDEN);
 		err->request = requestLink(http->request);
 		storeUnregister(http->sc, http->entry, http);
 		http->sc = NULL;
 		storeUnlockObject(http->entry);
+		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http, http->request->method,
 		    null_request_flags);
 		errorAppendEntry(http->entry, err);
@@ -1983,14 +1985,11 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    storeUnregister(http->sc, http->entry, http);
 		    http->sc = NULL;
 		    storeUnlockObject(http->entry);
+		    http->log_type = LOG_TCP_DENIED;
 		    http->entry = clientCreateStoreEntry(http, http->request->method,
 			null_request_flags);
 		    errorAppendEntry(http->entry, err);
 		    httpReplyDestroy(rep);
-		    /*
-		     * log with TCP_DENIED, the same as for http_access checks
-		     */
-		    http->log_type = LOG_TCP_DENIED;
 		    memFree(buf, MEM_CLIENT_SOCK_BUF);
 		    return;
 		}
@@ -2395,6 +2394,7 @@ clientProcessRequest(clientHttpRequest * http)
 	return;
     } else if (r->method == METHOD_TRACE) {
 	if (r->max_forwards == 0) {
+	    http->log_type = LOG_TCP_HIT;
 	    http->entry = clientCreateStoreEntry(http, r->method, null_request_flags);
 	    storeReleaseRequest(http->entry);
 	    storeBuffer(http->entry);
@@ -2480,6 +2480,7 @@ clientProcessMiss(clientHttpRequest * http)
 	err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN);
 	err->request = requestLink(r);
 	err->src_addr = http->conn->peer.sin_addr;
+	http->log_type = LOG_TCP_DENIED;
 	http->entry = clientCreateStoreEntry(http, r->method, null_request_flags);
 	errorAppendEntry(http->entry, err);
 	return;
@@ -3002,6 +3003,7 @@ clientReadRequest(int fd, void *data)
 		debug(33, 1) ("clientReadRequest: FD %d Invalid Request\n", fd);
 		err = errorCon(ERR_INVALID_REQ, HTTP_BAD_REQUEST);
 		err->request_hdrs = xstrdup(conn->in.buf);
+		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http, method, null_request_flags);
 		errorAppendEntry(http->entry, err);
 		safe_free(prefix);
@@ -3013,6 +3015,7 @@ clientReadRequest(int fd, void *data)
 		err->src_addr = conn->peer.sin_addr;
 		err->url = xstrdup(http->uri);
 		http->al.http.code = err->http_status;
+		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http, method, null_request_flags);
 		errorAppendEntry(http->entry, err);
 		safe_free(prefix);
@@ -3058,6 +3061,7 @@ clientReadRequest(int fd, void *data)
 		err->request = requestLink(request);
 		request->flags.proxy_keepalive = 0;
 		http->al.http.code = err->http_status;
+		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http, request->method, null_request_flags);
 		errorAppendEntry(http->entry, err);
 		break;
@@ -3067,6 +3071,7 @@ clientReadRequest(int fd, void *data)
 		err->src_addr = conn->peer.sin_addr;
 		err->request = requestLink(request);
 		http->al.http.code = err->http_status;
+		http->log_type = LOG_TCP_DENIED;
 		http->entry = clientCreateStoreEntry(http, request->method, null_request_flags);
 		errorAppendEntry(http->entry, err);
 		break;
@@ -3081,6 +3086,7 @@ clientReadRequest(int fd, void *data)
 		if (clientRequestBodyTooLarge(request->content_length)) {
 		    err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE);
 		    err->request = requestLink(request);
+		    http->log_type = LOG_TCP_DENIED;
 		    http->entry = clientCreateStoreEntry(http,
 			METHOD_NONE, null_request_flags);
 		    errorAppendEntry(http->entry, err);
