@@ -677,7 +677,7 @@ storeValidate(StoreEntry * e, STVLDCB * callback, void *callback_data, void *tag
     return;
 }
 
-void
+static void
 storeValidateComplete(int fd, void *data, int retcode, int errcode)
 {
     valid_ctrl_t *ctrlp = data;
