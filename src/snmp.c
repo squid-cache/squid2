@@ -91,7 +91,7 @@ void snmpUdpSend(int, const struct sockaddr_in *, void *, int);
 #include "cache_snmp.h"
 
 
-void
+static void
 snmpSnmplibDebug(int lvl, char *buf)
 {
     debug(49, lvl) ("%s", buf);
