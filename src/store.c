@@ -2439,8 +2439,14 @@ int storeInit()
 {
     int dir_created;
     wordlist *w = NULL;
+    char *fname = NULL;
 
-    storelog_fd = file_open(getStoreLogFile(), NULL, O_WRONLY | O_APPEND | O_CREAT);
+    if (strcmp((fname = getStoreLogFile()), "none") == 0)
+	storelog_fd = -1;
+    else
+	storelog_fd = file_open(fname, NULL, O_WRONLY | O_APPEND | O_CREAT);
+    if (storelog_fd < 0)
+	debug(20, 1, "Store logging disabled\n");
 
     for (w = getCacheDirs(); w; w = w->next)
 	storeAddSwapDisk(w->key);
@@ -2695,7 +2701,15 @@ void storeRotateLog()
     static char from[MAXPATHLEN];
     static char to[MAXPATHLEN];
 
+    if (storelog_fd > -1) {
+	file_close(storelog_fd);
+	storelog_fd = -1;
+    }
+
     if ((fname = getStoreLogFile()) == NULL)
+	return;
+
+    if (strcmp(fname, "none") == 0)
 	return;
 
     debug(20, 1, "storeRotateLog: Rotating.\n");
@@ -2712,7 +2726,9 @@ void storeRotateLog()
 	sprintf(to, "%s.%d", fname, 0);
 	rename(fname, to);
     }
-    if (storelog_fd > -1)
-	file_close(storelog_fd);
-    storelog_fd = file_open(getStoreLogFile(), NULL, O_WRONLY | O_APPEND | O_CREAT);
+    storelog_fd = file_open(fname, NULL, O_WRONLY | O_APPEND | O_CREAT);
+    if (storelog_fd < 0) {
+	debug(20, 0, "storeRotateLog: %s: %s\n", fname, xstrerror());
+	debug(20, 1, "Store logging disabled\n");
+    }
 }
