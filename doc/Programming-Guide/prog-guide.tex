@@ -1,0 +1,114 @@
+% $Id$
+\documentstyle[11pt,path,psfig]{report}
+%\parskip		1ex
+%\topmargin		0pt
+%\headheight		0pt
+%\headsep		0pt
+%\marginparwidth	0pt
+%\marginparsep		0pt
+%\oddsidemargin		0pt
+%\evensidemargin	0pt
+%\textheight		9in
+%\textwidth		6.5in
+%\parindent		0em
+
+\newenvironment{SS}{\singlespace}{}
+
+\hyphenation{time-stamps time-stamp net-work ac-ces-ses ac-ces-sed}
+
+\begin{document}
+\bibliographystyle{ieeetr}
+
+\author{Duane Wessels\\
+Squid Developers}
+\title{Squid Programmers Guide}
+
+\maketitle
+
+\begin{abstract}
+Squid is a WWW Cache application developed by the National Laboratory
+for Applied Network Research and members of the Web Caching community.
+Squid is implemented as a single, non-blocking process based around
+a BSD select() loop.  This document describes the operation of the Squid
+source code and is intended to be used by others who wish to customize
+or improve it.
+\end{abstract}
+
+%%
+%% Chapter : INTRODUCTION
+%%
+\chapter{Introduction}
+
+The Squid source code has evolved more from empirical observation and
+tinkering, rather than a solid design process.  It carries a legacy of
+being ``touched'' by numerous individuals, each with somewhat different
+techniques and terminology.  
+
+Squid is a single-process proxy server.  Every request is handled by
+the main process, with the exception of FTP.  However, Squid does not
+use a ``threads package'' such has Pthreads.  While this might be 
+easier to code, it suffers from portability and performance problems.
+Instead Squid maintains data structures and state information for
+each active request.
+
+%%
+%% Chapter : MAIN LOOP
+%%
+\chapter{The Main Loop}
+
+At the core of Squid is the {\tt select(2)} system call.  Squid uses
+{\tt select()} (or alternatively {\tt poll(2)} in recent versions) to 
+process I/O on all open file descriptors.
+
+%%
+%% Chapter : DATA STRUCTURES
+%%
+\chapter{Data Structures}
+
+%%
+%% Chapter : STORAGE MANAGER
+%%
+\chapter{Storage Manager}
+
+%%
+%% Chapter : IP CACHE
+%%
+\chapter{IP Cache}
+
+%%
+%% Chapter : SERVER PROTOCOLS
+%%
+\chapter{Server Protocols}
+\section{HTTP}
+\section{FTP}
+\section{Gopher}
+\section{Wais}
+\section{SSL}
+\section{Passthrough}
+
+%%
+%% Chapter : ACCESS CONTROLS
+%%
+\chapter{Access Controls}
+
+%%
+%% Chapter : ICP
+%%
+\chapter{ICP}
+
+%%
+%% Chapter : CACHE MANAGER
+%%
+\chapter{Cache Manager}
+
+%%%%%%
+%%%%%% BIBLIOGRAPHY
+%%%%%%
+\newpage \bibliography{references}
+
+% perl -ne 'printf ("\\nocite{\%s}\n", $1) if (/^@\w+{(\w+),/);' references.bib
+
+\nocite{rfc850}
+\nocite{rfc1123}
+
+\end{document}
