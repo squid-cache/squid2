@@ -277,7 +277,7 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
     MemObject *mem = e->mem_obj;
     size_t sz;
 
-    debug(33, 5) ("co: %d, hi: %d\n", sc->copy_offset, mem->inmem_hi);
+    debug(33, 5) ("co: %ld, hi: %ld\n", (long int)sc->copy_offset, (long int)mem->inmem_hi);
 
     if (storeClientNoMoreToSend(e, sc)) {
 	/* There is no more to send! */
