@@ -17,7 +17,7 @@ INSTALL         	= @INSTALL@
 INSTALL_FILE    	= @INSTALL_DATA@
 DEFAULT_ERROR_DIR	= $(sysconfdir)/errors
 
-LANGUAGE		= English
+LANGUAGE		= @ERR_LANGUAGE@
 
 all:
 
