@@ -338,6 +338,7 @@ destroy_StoreEntry(StoreEntry * e)
     assert(e != NULL);
     if (e->mem_obj)
 	destroy_MemObject(e->mem_obj);
+    storeHashDelete(e);
     assert(e->key == NULL);
     xfree(e);
     meta_data.store_entries--;
@@ -1615,7 +1616,6 @@ storeRelease(StoreEntry * e)
 	e->swap_file_number = -1;
     }
     storeSetMemStatus(e, NOT_IN_MEMORY);
-    storeHashDelete(e);
     storeLog(STORE_LOG_RELEASE, e);
     destroy_StoreEntry(e);
     return 1;
