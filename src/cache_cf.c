@@ -267,6 +267,8 @@ static void parseCachemgrPasswd _PARAMS((void));
 static void parsePathname _PARAMS((char **));
 static void parseProxyLine _PARAMS((peer **));
 static void parseHttpAnonymizer _PARAMS((int *));
+static int parseTimeUnits _PARAMS((const char *unit));
+static void parseTimeLine _PARAMS((int *iptr, const char *units));
 
 static void
 self_destruct(void)
@@ -1214,7 +1216,7 @@ parseConfigFile(const char *file_name)
 	else if (!strcmp(token, "client_lifetime"))
 	    parseMinutesLine(&Config.lifetimeDefault);
 	else if (!strcmp(token, "reference_age"))
-	    parseMinutesLine(&Config.referenceAge);
+	    parseTimeLine(&Config.referenceAge, "minutes");
 
 	else if (!strcmp(token, "shutdown_lifetime"))
 	    parseIntegerValue(&Config.lifetimeShutdown);
@@ -1646,4 +1648,51 @@ configDoConfigure(void)
 	Config.appendDomainLen = strlen(Config.appendDomain);
     else
 	Config.appendDomainLen = 0;
+}
+
+/* Parse a time specification from the config file.  Store the
+   result in 'iptr', after converting it to 'units' */
+static void
+parseTimeLine(int *iptr, const char *units)
+{
+    char *token;
+    double d;
+    int m;
+    int u;
+    if ((u = parseTimeUnits(units)) == 0)
+	self_destruct();
+    if ((token = strtok(NULL, w_space)) == NULL)
+	self_destruct();
+    d = atof(token);
+    m = u;	/* default to 'units' if none specified */
+    if ((token = strtok(NULL, w_space)) == NULL) {
+        if ((m = parseTimeUnits(token)) == 0)
+	    self_destruct();
+    }
+    *iptr = m * d / u;
+}
+
+static int
+parseTimeUnits(const char *unit)
+{
+    if (!strncasecmp(unit, "second", 6))
+	return 1;
+    if (!strncasecmp(unit, "minute", 6))
+	return 60;
+    if (!strncasecmp(unit, "hour", 4))
+	return 3600;
+    if (!strncasecmp(unit, "day", 3))
+	return 86400;
+    if (!strncasecmp(unit, "week", 4))
+	return 86400 * 7;
+    if (!strncasecmp(unit, "fortnight", 9))
+	return 86400 * 14;
+    if (!strncasecmp(unit, "month", 5))
+	return 86400 * 30;
+    if (!strncasecmp(unit, "year", 4))
+	return 86400 * 365.2522;
+    if (!strncasecmp(unit, "decade", 6))
+	return 86400 * 365.2522 * 10;
+    debug(3, 1, "parseTimeUnits: unknown time unit '%s'\n", unit);
+    return 0;
 }
