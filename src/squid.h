@@ -66,6 +66,9 @@
 #endif
 #if HAVE_NETDB_H && !defined(_SQUID_NETDB_H_)	/* protect NEXTSTEP */
 #define _SQUID_NETDB_H_
+#ifdef _SQUID_NEXT_
+#include <netinet/in_systm.h>
+#endif
 #include <netdb.h>
 #endif
 #if HAVE_PWD_H
