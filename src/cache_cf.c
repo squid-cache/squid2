@@ -127,7 +127,6 @@ struct SquidConfig Config;
 #define DefaultLifetimeDefault	(200 * 60)	/* 3+ hours */
 #define DefaultLifetimeShutdown	30	/* 30 seconds */
 #define DefaultConnectTimeout	(2 * 60)	/* 2 min */
-#define DefaultDefaultAgeMax	(3600 * 24 * 30)	/* 30 days */
 #define DefaultCleanRate	-1	/* disabled */
 #define DefaultDnsChildren	5	/* 5 processes */
 #define DefaultRedirectChildren	5	/* 5 processes */
@@ -1502,7 +1501,6 @@ configSetFactoryDefaults(void)
     Config.lifetimeShutdown = DefaultLifetimeShutdown;
     Config.maxRequestSize = DefaultMaxRequestSize;
     Config.connectTimeout = DefaultConnectTimeout;
-    Config.ageMaxDefault = DefaultDefaultAgeMax;
     Config.cleanRate = DefaultCleanRate;
     Config.dnsChildren = DefaultDnsChildren;
     Config.redirectChildren = DefaultRedirectChildren;

@@ -160,7 +160,6 @@ struct SquidConfig {
     int lifetimeDefault;
     int lifetimeShutdown;
     int connectTimeout;
-    int ageMaxDefault;
     int cleanRate;
     int maxRequestSize;
     struct {
