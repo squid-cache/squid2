@@ -151,9 +151,14 @@ peerAllowedToUse(const peer * p, request_t * request)
     checklist.my_addr = request->my_addr;
     checklist.my_port = request->my_port;
     checklist.request = request;
-#if USE_IDENT
+#if 0 && USE_IDENT
+    /*
+     * this is currently broken because 'request->user_ident' has been
+     * moved to conn->rfc931 and we don't have access to the parent
+     * ConnStateData here.
+     */
     if (request->user_ident[0])
-	xstrncpy(checklist.ident, request->user_ident, USER_IDENT_SZ);
+	xstrncpy(checklist.rfc931, request->user_ident, USER_IDENT_SZ);
 #endif
     return aclCheckFast(p->access, &checklist);
 }
