@@ -138,7 +138,11 @@ exacly where you want to have them in your system.</LI>
 <P>There is a few known issues and limitations in this version of Squid which we hope to correct in a later release</P>
 <P>
 <DL>
-<DT><B>Bug #761</B><DD><P>assertion failed: cbdata.c:249: "c->locks > 0" when using diskd</P>
+<DT><B>Bug #761</B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
+<DT><B>Bug #835</B><DD><P>assertion failed: pinger.c:187: "icmp_pktsize &lt;= MAX_PKT_SZ"</P>
+<DT><B>Bug #853</B><DD><P>SIGSEGV on FTP PUT</P>
+<DT><B>Bug #571</B><DD><P>need to close persistent connections when under high load</P>
+<DT><B>Bug #856</B><DD><P>icon URLs are unneededly complex and often gets wrong</P>
 <DT><B>Bug #592</B><DD><P>always/never_direct and NTLM authentication</P>
 <DT><B>Bug #585</B><DD><P>cache_peer_access fails with NTLM authentication</P>
 <DT><B>Bug #779</B><DD><P>users going above their allowed IP count no longer logged in cache.log</P>
