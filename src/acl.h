@@ -132,6 +132,9 @@ extern void aclParseAccessLine _PARAMS((struct _acl_access **));
 extern void aclParseAclLine _PARAMS((void));
 extern struct _acl *aclFindByName _PARAMS((char *name));
 extern char *aclGetDenyInfoUrl _PARAMS((struct _acl_deny_info_list **, char *name));
+extern void aclParseDenyInfoLine _PARAMS((struct _acl_deny_info_list **));
+extern void aclDestroyDenyInfoList _PARAMS((struct _acl_deny_info_list **));
+
 
 extern struct _acl_access *HTTPAccessList;
 extern struct _acl_access *ICPAccessList;
