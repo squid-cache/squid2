@@ -1678,7 +1678,8 @@ struct _idns_query {
     size_t sz;
     unsigned short id;
     int nsends;
-    struct timeval start;
+    struct timeval start_t;
+    struct timeval sent_t;
     dlink_node lru;
     IDNSCB *callback;
     void *callback_data;
