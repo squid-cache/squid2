@@ -1019,6 +1019,11 @@ aclDecodeProxyAuth(const char *proxy_auth, char **user, char **password, char *b
     strtok(sent_auth, "\n");
     cleartext = uudecode(sent_auth);
     xfree(sent_auth);
+    /*
+     * Don't allow NL or CR in the credentials.
+     * Oezguer Kesim <oec@codeblau.de>
+     */
+    strtok(cleartext, "\r\n");
     debug(28, 6) ("aclDecodeProxyAuth: cleartext = '%s'\n", cleartext);
     xstrncpy(buf, cleartext, bufsize);
     xfree(cleartext);
