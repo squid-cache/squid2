@@ -295,7 +295,7 @@ file_write(int fd,
     off_t file_offset,
     void *ptr_to_buf,
     int len,
-    DWCB handle,
+    DWCB *handle,
     void *handle_data,
     FREE * free_func)
 {
