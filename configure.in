@@ -574,13 +574,6 @@ case "$host" in
 			ac_cv_func_mallinfo=no
 		fi
 		;;
-	*-linux-*)
-		case `uname -r` in
-			2.0.*)
-				ac_cv_func_setresuid=no
-			;;
-		esac
-		;;
 esac
 
 
