@@ -72,7 +72,7 @@ pumpInit(int fd, request_t * r, char *uri)
     int x;
     char *hdrStart, *hdrEnd;
     PumpStateData *p = xcalloc(1, sizeof(PumpStateData));
-    debug(61, 3) ("pumpInit: FD=%d, uri=%s\n", fd, uri);
+    debug(61, 3) ("pumpInit: FD %d, uri=%s\n", fd, uri);
     /* create a StoreEntry which will buffer the data 
      * to be pumped */
 
