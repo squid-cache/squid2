@@ -155,6 +155,8 @@ storeCossDirInit(SwapDir * sd)
     n_coss_dirs++;
     if (0 == storeDirGetBlkSize(sd->path, &sd->fs.blksize))
 	sd->fs.kperblk = sd->fs.blksize >> 10;
+    if (sd->fs.kperblk < 1)
+	sd->fs.kperblk = 1;
 }
 
 void
