@@ -606,7 +606,7 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	debug(14, 5, "ipcache_dnsHandleRead: Incomplete reply\n");
 	commSetSelect(fd,
 	    COMM_SELECT_READ,
-	    ipcache_dnsHandleRead,
+	    (PF) ipcache_dnsHandleRead,
 	    dnsData,
 	    0);
     }
