@@ -184,6 +184,7 @@ void shut_down(sig)
     ipcacheShutdownServers();
     shutdown_pending = 1;
 }
+
 #endif
 
 void fatal_common(message)

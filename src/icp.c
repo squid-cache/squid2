@@ -1756,6 +1756,6 @@ static void CheckQuickAbort(astm)
     if (astm->entry->status == STORE_OK)
 	return;
     BIT_SET(astm->entry->flag, CLIENT_ABORT_REQUEST);
-    storeReleaseRequest(astm->entry, __FILE__,__LINE__);
+    storeReleaseRequest(astm->entry, __FILE__, __LINE__);
     astm->log_type = ERR_CLIENT_ABORT;
 }

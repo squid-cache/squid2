@@ -13,15 +13,15 @@ typedef enum {
 
 #define HTTP_REPLY_FIELD_SZ 128
 struct _http_reply {
-	double version;
-	int code;
-	int content_length;
-	int hdr_sz;
-	char content_type[HTTP_REPLY_FIELD_SZ];
-	char date[HTTP_REPLY_FIELD_SZ];
-	char expires[HTTP_REPLY_FIELD_SZ];
-	char last_modified[HTTP_REPLY_FIELD_SZ];
-	char user_agent[HTTP_REPLY_FIELD_SZ<<2];
+    double version;
+    int code;
+    int content_length;
+    int hdr_sz;
+    char content_type[HTTP_REPLY_FIELD_SZ];
+    char date[HTTP_REPLY_FIELD_SZ];
+    char expires[HTTP_REPLY_FIELD_SZ];
+    char last_modified[HTTP_REPLY_FIELD_SZ];
+    char user_agent[HTTP_REPLY_FIELD_SZ << 2];
 };
 
 extern char *RequestMethodStr[];

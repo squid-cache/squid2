@@ -133,7 +133,7 @@ static void connectReadRemote(fd, data)
 		getReadTimeout());
 	} else {
 	    BIT_RESET(entry->flag, CACHABLE);
-	    storeReleaseRequest(entry, __FILE__,__LINE__);
+	    storeReleaseRequest(entry, __FILE__, __LINE__);
 	    cached_error_entry(entry, ERR_READ_ERROR, xstrerror());
 	    connectCloseAndFree(fd, data);
 	}
