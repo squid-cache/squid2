@@ -126,5 +126,4 @@ extern File_Desc_Type fdstatGetType _PARAMS((int));
 
 extern char *fdstatTypeStr[];
 
-
 #endif

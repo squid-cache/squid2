@@ -1822,34 +1822,28 @@ void icpDetectClientClose(fd, icpState)
 	    COMM_SELECT_READ,
 	    (PF) icpDetectClientClose,
 	    (void *) icpState);
-    } else if (n == 0 && entry != NULL && icpState->offset == entry->object_len &&
-	entry->store_status != STORE_PENDING) {
-	/* All data has been delivered */
-	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
-	CacheInfo->proto_touchobject(CacheInfo,
-	    icpState->request->protocol,
-	    icpState->offset);
-	comm_close(fd);
-    } else if (n == 0 && write(fd, "", 0) == 0) {
-	/* XXX Assume write(2) of zero bytes won't block! */
-	/* the other side called shutdown(2) on the socket? */
-	/* just disable read handler */
-	debug(12, 1, "icpDetectClientClose: FD %d Peer issued TCP half-close\n", fd);
-	comm_set_select_handler(fd,
-	    COMM_SELECT_READ,
-	    NULL,
-	    NULL);
-    } else {
+    } else if (n < 0) {
 	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
 	debug(12, 5, "--> URL '%s'\n", icpState->url);
 	if (errno == ECONNRESET)
 	    debug(12, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
-	else if (errno)
+	else
 	    debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	CheckQuickAbort(icpState);
 	protoUnregister(fd, entry, icpState->request, icpState->peer.sin_addr);
 	if (entry && entry->ping_status == PING_WAITING)
 	    storeReleaseRequest(entry);
 	comm_close(fd);
+    } else if (entry != NULL && icpState->offset == entry->object_len &&
+	entry->store_status != STORE_PENDING) {
+	/* All data has been delivered */
+	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
+	CacheInfo->proto_touchobject(CacheInfo,
+	    CacheInfo->proto_id(entry->url),
+	    icpState->offset);
+	comm_close(fd);
+    } else {
+	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
+	comm_set_stall(fd, 60);	/* check again in a minute */
     }
 }

@@ -104,10 +104,6 @@
 #define CACHE_ICP_PORT @CACHE_ICP_PORT@
 #endif
 
-#if !defined(CACHE_FTP_PORT)
-#define CACHE_FTP_PORT @CACHE_FTP_PORT@
-#endif
-
 #if !defined(CACHEMGR_HOSTNAME)
 #define CACHEMGR_HOSTNAME ""
 #endif

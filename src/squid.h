@@ -289,3 +289,4 @@ extern char *storeToString _PARAMS((StoreEntry *));
 extern void ttlSet _PARAMS((StoreEntry *));
 extern void ttlAddToList _PARAMS((char *, time_t, int, time_t));
 extern int waisStart _PARAMS((int, char *, method_t, char *, StoreEntry *));
+extern void storeDirClean _PARAMS((void));
