@@ -203,7 +203,7 @@
 #define FALSE 0
 #endif
 #ifndef TRUE
-#define TRUE !FALSE
+#define TRUE 1
 #endif
 
 #define LF 10
@@ -353,7 +353,7 @@ makeword(char *line, char stop)
 	++x;
     y = 0;
 
-    while ((line[y++] = line[x++]));
+    while ((line[y++] = line[x++]) != '\0');
     return word;
 }
 
