@@ -1103,8 +1103,8 @@ struct _peer {
     int test_fd;
 #if USE_CARP
     struct {
-	unsigned long hash;
-	unsigned long load_multiplier;
+	unsigned int hash;
+	double load_multiplier;
 	float load_factor;
     } carp;
 #endif
