@@ -535,6 +535,7 @@ int comm_udp_sendto(fd, to_addr, addr_len, buf, len)
 	debug(5, 1, "comm_udp_sendto: --> sin_family = %d\n", to_addr->sin_family);
 	debug(5, 1, "comm_udp_sendto: --> sin_port   = %d\n", htons(to_addr->sin_port));
 	debug(5, 1, "comm_udp_sendto: --> sin_addr   = %s\n", inet_ntoa(to_addr->sin_addr));
+	debug(5, 1, "comm_udp_sendto: --> length     = %d\n", len);
 	return COMM_ERROR;
     }
     return bytes_sent;
