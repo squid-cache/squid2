@@ -377,7 +377,7 @@ httpReplyIsolateStart(const char **parse_start, const char **blk_start, const ch
 
     *blk_start = *parse_start;
     *blk_end = *blk_start + slen;
-    if (**blk_end == '\r')	/* CR */
+    while (**blk_end == '\r')	/* CR */
 	(*blk_end)++;
     if (**blk_end == '\n')	/* LF */
 	(*blk_end)++;
