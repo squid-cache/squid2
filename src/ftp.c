@@ -345,7 +345,7 @@ ftpReadReply(int fd, FtpStateData * data)
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
 	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 	comm_close(fd);
-    } else if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+    } else if (!storeClientWaiting(entry)) {
 	/* we can terminate connection right now */
 	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	comm_close(fd);

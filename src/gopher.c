@@ -800,7 +800,7 @@ gopherReadReply(int fd, GopherStateData * data)
 	    gopherEndHTML(data);
 	BIT_RESET(entry->flag, DELAY_SENDING);
 	comm_close(fd);
-    } else if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+    } else if (!storeClientWaiting(entry)) {
 	/* we can terminate connection right now */
 	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	comm_close(fd);

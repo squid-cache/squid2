@@ -248,7 +248,7 @@ waisReadReply(int fd, WaisStateData * waisState)
 	entry->expires = squid_curtime;
 	storeComplete(entry);
 	comm_close(fd);
-    } else if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+    } else if (!storeClientWaiting(entry)) {
 	/* we can terminate connection right now */
 	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	comm_close(fd);
