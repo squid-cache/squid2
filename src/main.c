@@ -434,7 +434,9 @@ mainInitialize(void)
 	pconnInit();
 	eventInit();
 	refreshInit();
+#if DELAY_POOLS
 	delayPoolsInit();
+#endif
     }
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0 && (!Config2.Accel.on || Config.onoff.accel_with_proxy))
