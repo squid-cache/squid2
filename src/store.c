@@ -2606,6 +2606,7 @@ storeWriteCleanLogs(void)
 	    debug(50, 0, "storeWriteCleanLogs: %s: %s\n", new[dirn], xstrerror());
 	    continue;
 	}
+	fd_open(fd[dirn], FD_FILE, new[dirn]);
 #if HAVE_FCHMOD
 	if (stat(cur[dirn], &sb) == 0)
 	    fchmod(fd[dirn], sb.st_mode);
