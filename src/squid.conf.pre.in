@@ -318,9 +318,8 @@ gopher_stop   ?
 
 #
 #  TAG: cache_log 
-#	Cache logging file and log level -- 0=gross errors only,
-#	1=useful feedback, ..., 10=maximal output. The default is to
-#	write to "cache.log" in the current directory at level 0.
+#	Cache logging file.
+#	Set logging levels with "debug_options" below.
 #
 #cache_log @prefix@/logs/cache.log
 
