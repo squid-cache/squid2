@@ -111,7 +111,24 @@ Changes to Squid-2.2 ():
 	- Added more specific FTP error messages for "permission
 	  denied, "file not found," and "service unavailable."
 	  (Tony Finch)
-
+	- Added xisspace(), xisdigit(), etc, macros to cast function
+	  args and eliminate compiler warnings.
+	- Fixed case-sensitive comparisons of domain names (Henrik
+	  Nordstrom).
+	- Added proxy-authentication to cachemgr.cgi's requests
+	  (Henrik Nordstrom).
+	- Changed Squid to *truncate* rather than *unlink* purged
+	  swap files.  Can be reversed by undefining 
+	  USE_TRUNCATE_NOT_UNLINK in src/defines.h.
+	- Changed internal icon headers to use Cache-control
+	  Max-age instead of Expires.
+	- Changed storeMaintainSwapSpace behavior to be adjusted
+	  smoothly, instead of discretely, between store_swap_low
+	  and store_swap_high.  This includes the number of
+	  objects to scan, number to remove, and time until the
+	  next storeMaintainSwapSpace event.
+	- Fixed a quick_abort bug that incorrectly calculated
+	  content lengths.
 Changes to Squid-2.1 (November 16, 1998):
 
 	- Changed delayPoolsUpdate() to be called as an event.
