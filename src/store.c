@@ -592,8 +592,10 @@ storeUnlockObject(StoreEntry * e)
     if (e->lock_count)
 	return (int) e->lock_count;
     if (e->store_status == STORE_PENDING) {
+#ifdef COMPLAIN
 	debug_trap("storeUnlockObject: Someone unlocked STORE_PENDING object");
 	debug(20, 1, "   --> Key '%s'\n", e->key);
+#endif
 	e->store_status = STORE_ABORTED;
     }
     if (BIT_TEST(e->flag, RELEASE_REQUEST)) {
@@ -2799,7 +2801,7 @@ storeExpiredReferenceAge(void)
     time_t age;
     if (Config.referenceAge == 0)
 	return 0;
-    x = (store_swap_high - store_swap_size) / (store_swap_high - store_swap_low);
+    x = (double) (store_swap_high - store_swap_size) / (store_swap_high - store_swap_low);
     x = x < 0.0 ? 0.0 : x > 1.0 ? 1.0 : x;
     z = pow(Config.referenceAge, x);
     age = (time_t) (z * 60.0);
