@@ -87,9 +87,11 @@ static int getKeyCounter(void);
 static int storeKeepInMemory(const StoreEntry *);
 static OBJH storeCheckCachableStats;
 static EVH storeLateRelease;
+#if HEAP_REPLACEMENT
 static heap_key_func HeapKeyGen_StoreEntry_LFUDA;
 static heap_key_func HeapKeyGen_StoreEntry_GDSF;
 static heap_key_func HeapKeyGen_StoreEntry_LRU;
+#endif
 
 /*
  * local variables
@@ -1490,6 +1492,7 @@ storeEntryReset(StoreEntry * e)
     mem->reply = httpReplyCreate();
 }
 
+#if HEAP_REPLACEMENT
 void
 storeHeapPositionUpdate(StoreEntry * e)
 {
@@ -1499,3 +1502,4 @@ storeHeapPositionUpdate(StoreEntry * e)
     if (e->mem_obj->node)
 	heap_update(inmem_heap, e->mem_obj->node, e);
 }
+#endif
