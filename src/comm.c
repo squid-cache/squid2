@@ -86,58 +86,6 @@ static int commBind(s, in_addr, port)
     return COMM_ERROR;
 }
 
-#ifdef OLD_CODE
-/* Create a socket. Default is blocking, stream (TCP) socket.  IO_TYPE
- * is OR of flags specified in comm.h. */
-int comm_open_unix(note)
-     char *note;
-{
-    int new_socket;
-    FD_ENTRY *conn = NULL;
-
-    if ((new_socket = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-	/* Increase the number of reserved fd's if calls to socket()
-	 * are failing because the open file table is full.  This
-	 * limits the number of simultaneous clients */
-	switch (errno) {
-	case ENFILE:
-	case EMFILE:
-	    debug(5, 1, "comm_open: socket failure: %s\n", xstrerror());
-	    Reserve_More_FDs();
-	    break;
-	default:
-	    debug(5, 0, "comm_open: socket failure: %s\n", xstrerror());
-	}
-	return (COMM_ERROR);
-    }
-    /* update fdstat */
-    fdstat_open(new_socket, FD_SOCKET);
-    conn = &fd_table[new_socket];
-    memset(conn, '\0', sizeof(FD_ENTRY));
-    fd_note(new_socket, note);
-    conn->openned = 1;
-
-    if (fcntl(new_socket, F_SETFD, 1) < 0) {
-	debug(5, 0, "comm_open: FD %d: failed to set close-on-exec flag: %s\n",
-	    new_socket, xstrerror());
-    }
-#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
-    if (fcntl(new_socket, F_SETFL, O_NONBLOCK)) {
-	debug(5, 0, "comm_open: FD %d: Failure to set O_NONBLOCK: %s\n",
-	    new_socket, xstrerror());
-	return (COMM_ERROR);
-    }
-#else
-    if (fcntl(new_socket, F_SETFL, O_NDELAY)) {
-	debug(5, 0, "comm_open: FD %d: Failure to set O_NDELAY: %s\n",
-	    new_socket, xstrerror());
-	return (COMM_ERROR);
-    }
-#endif /* O_NONBLOCK */
-    return new_socket;
-}
-#endif
-
 /* Create a socket. Default is blocking, stream (TCP) socket.  IO_TYPE
  * is OR of flags specified in comm.h. */
 int comm_open(io_type, addr, port, note)

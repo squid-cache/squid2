@@ -153,25 +153,6 @@ int fdstat_biggest_fd()
 }
 
 
-#ifdef UNUSED_CODE
-char *fd_describe(fd)
-     int fd;
-{
-    switch (fd_stat_tab[fd].type) {
-    case File:
-	return ("Disk");
-    case Socket:
-	return ("Net ");
-    case LOG:
-	return ("Log ");
-    case Pipe:
-	return ("Pipe");
-    default:
-	return ("File");
-    }
-}
-#endif /* UNUSED_CODE */
-
 int fdstat_are_n_free_fd(n)
      int n;
 {

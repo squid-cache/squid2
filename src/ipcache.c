@@ -87,9 +87,6 @@ static ipcache_entry *ipcache_get _PARAMS((char *));
 static int dummy_handler _PARAMS((int, struct hostent * hp, void *));
 static int ipcacheExpiredEntry _PARAMS((ipcache_entry *));
 static void ipcacheAddPending _PARAMS((ipcache_entry *, int fd, IPH, void *));
-#ifdef UNUSED_CODE
-static int ipcache_hash_entry_count _PARAMS((void));
-#endif
 
 static dnsserver_t **dns_child_table = NULL;
 static struct hostent *static_result = NULL;
