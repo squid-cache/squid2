@@ -1282,7 +1282,7 @@ AC_MSG_RESULT($SQUID_TCP_SO_RCVBUF)
 AC_DEFINE_UNQUOTED(SQUID_TCP_SO_RCVBUF, $SQUID_TCP_SO_RCVBUF)
 
 AC_CACHE_CHECK(if sys_errlist is already defined, ac_cv_needs_sys_errlist,
-  AC_TRY_COMPILE([#include <stdio.h>],[char *s = sys_errlist[0];],
+  AC_TRY_COMPILE([#include <stdio.h>],[char *s = sys_errlist;],
     ac_cv_needs_sys_errlist="no",
     ac_cv_needs_sys_errlist="yes")
 )
