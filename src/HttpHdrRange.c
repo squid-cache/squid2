@@ -249,17 +249,6 @@ httpHdrRangePackInto(const HttpHdrRange * range, Packer * p)
     }
 }
 
-void
-httpHdrRangeJoinWith(HttpHdrRange * range, const HttpHdrRange * new_range)
-{
-    HttpHdrRangePos pos = HttpHdrRangeInitPos;
-    HttpHdrRangeSpec spec;
-    assert(range && new_range);
-    stackPrePush(&range->specs, new_range->specs.count);
-    while (httpHdrRangeGetSpec(new_range, &spec, &pos))
-	stackPush(&range->specs, httpHdrRangeSpecDup(&spec));
-}
-
 /*
  * canonizes all range specs within a set preserving the order
  * returns true if the set is valid after canonization; 
