@@ -1876,6 +1876,11 @@ ftpAcceptDataConnection(int fd, void *data)
     struct sockaddr_in my_peer, me;
     debug(9, 3) ("ftpAcceptDataConnection\n");
 
+    if (EBIT_TEST(ftpState->entry->flags, ENTRY_ABORTED)) {
+	comm_close(ftpState->ctrl.fd);
+	return;
+    }
+
     fd = comm_accept(fd, &my_peer, &me);
     if (fd < 0) {
 	debug(9, 1) ("ftpHandleDataAccept: comm_accept(%d): %s", fd, xstrerror());
