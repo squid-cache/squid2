@@ -1,9 +1,10 @@
-Changes to squid-2.5.STABLE6 ()
+Changes to squid-2.5.STABLE6 (9 Jul 2004)
 
 	- Bug #937: NTLM assertion error "srv->flags.reserved"
 	- Bug #935: squid_ldap_auth can be confused by the use of reserved
 	  characters
 	- Helper queue warnings inprecice on the number of helpers required
+	- squid_ldap_auth TLS mode works correctly again
 	- Bug #940, #305: pkg-config support for finding correct OpenSSL
 	  compile flags
 	- Bug #426: "Vary: *" is ignored
