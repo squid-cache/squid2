@@ -1746,8 +1746,9 @@ ftpReadStor(FtpStateData * ftpState)
       debug(9, 3) ("ftpReadStor: writing data channel\n");
       ftpState->state = WRITING_DATA;
     }
-    else if (code==553) { /* directory does not exist, have to create, sigh */
-#if 0
+    else if (code==553) {
+	/* directory does not exist, have to create, sigh */
+#if WORK_IN_PROGRESS
 	ftpTraverseDirectory(ftpState);
 #endif
 	ftpSendReply(ftpState);

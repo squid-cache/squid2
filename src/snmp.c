@@ -50,9 +50,6 @@ static struct sockaddr_in local_snmpd;
 void snmpFwd_insertPending(struct sockaddr_in *, long);
 int snmpFwd_removePending(struct sockaddr_in *, long);
 extern int init_agent_auth();
-#if 0
-extern int snmp_agent_parse(char *, int, char *, int *, u_long, long *);
-#endif
 extern void snmp_agent_parse(snmp_request_t *);
 
 extern int default_auth();
@@ -147,9 +144,6 @@ snmpHandleUdp(int sock, void *not_used)
     LOCAL_ARRAY(char, deb_line, 4096);
     int len;
     snmp_request_t *snmp_rq;
-#if 0
-    snmp_dump_packet = 1;
-#endif
 
     debug(49, 5) ("snmpHandleUdp: Called.\n");
     commSetSelect(sock, COMM_SELECT_READ, snmpHandleUdp, NULL, 0);
@@ -266,10 +260,6 @@ snmpInit(void)
     snmp_inbadcommunitynames = 0;
     snmp_inasnparseerrors = 0;
     snmp_inbadvalues = 0;
-#if 0
-    users = NULL;
-    communities = NULL;
-#endif
 
     init_agent_auth();
     assert(Config.Snmp.mibPath);

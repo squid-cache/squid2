@@ -231,7 +231,6 @@ asHandleReply(void *data, char *buf, ssize_t size)
 	    asState);
 	return;
     }
-/* XXX do the processing here */
     s = buf;
     while (*s) {
 	for (t = s; *t; t++) {

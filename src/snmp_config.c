@@ -23,9 +23,6 @@ static int linenumber = 0;
 
 /* fwd: */
 /* from usec.c: */
-#if 0
-extern void v2md5auth_password_to_key();
-#endif
 
 char *
 gettoken(tokenptr)
@@ -198,9 +195,6 @@ create_user(tokens)
 	}
 	new->qoS |= USEC_QOS_AUTH;
     } else if (cp - start > 0) {
-#if 0
-	v2md5auth_password_to_key(start, cp - start, new->authKey);
-#endif
 	new->qoS |= USEC_QOS_AUTH;
     }
     /* look for privKey */
@@ -227,9 +221,6 @@ create_user(tokens)
 	}
 	new->qoS |= USEC_QOS_PRIV;
     } else if (cp - start > 0) {
-#if 0
-	v2md5auth_password_to_key(start, cp - start, new->privKey);
-#endif
 	new->qoS |= USEC_QOS_PRIV;
     }
     return 0;

@@ -249,10 +249,6 @@ oidlist_Next(oid * Src, long SrcLen, oid ** DestP, long *DestLenP)
 		    Ptr++;
 		    continue;
 		}
-#if 0
-		debug(49, 4) ("oidlist_Next: Next OID is:\n ");
-		print_oid(*DestP, *DestLenP);
-#endif
 		return Fn;
 	    }
 	    /* Return what we found.  NULL if it wasn't in the MIB, and there
