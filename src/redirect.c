@@ -108,6 +108,7 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
 	memset(&ch, '\0', sizeof(ch));
 	ch.src_addr = http->conn->peer.sin_addr;
 	ch.my_addr = http->conn->me.sin_addr;
+	ch.my_port = ntohs(http->conn->me.sin_port);
 	ch.request = http->request;
 	if (!aclCheckFast(Config.accessList.redirector, &ch)) {
 	    /* denied -- bypass redirector */
