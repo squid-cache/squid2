@@ -674,7 +674,7 @@ storeRebuildComplete(void)
 }
 
 void
-storeRebuildStart(void)
+storeUfsRebuildStart(void)
 {
     rebuild_dir *d;
     int clean = 0;
