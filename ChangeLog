@@ -1,4 +1,4 @@
-Changes to squid-2.5.STABLE5 (not yet released):
+Changes to squid-2.5.STABLE5 (1 Mar 2004):
 
 	- cache.log message on "squid -k reconfigure" was slightly confusing,
 	  claiming Squid restarted when it just reread the configuration.
@@ -63,6 +63,8 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	- Bug #825: random segmentation faults when using digest auth
 	- Bug #910: Partial fix for temporary memory leaks when using NTLM
 	  auth. There is still problems if challenge reuse is enabled.
+	- ftp://anonymous@host/ now accepted without requiring a password
+	- Bug #594: several mime type updates (ftp:// related)
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 

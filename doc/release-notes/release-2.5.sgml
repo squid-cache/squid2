@@ -240,6 +240,10 @@ name="ChangeLog"> file for details.
 	<item>Several authentication related bugfixes to allow authentication
 	to work in additional acl driven directives, correct an number
 	of assertion or segmentation and some memory leaks.
+	<item>The default mime.conf has been updated with many new mime types
+	and a few minor corrections. In addition the download and view links
+	is used more frequently to allow view/download of different ftp://
+	contents regardless of their mime type assignment.
 	<item>a large number of minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4"
 	name="squid-2.5.STABLE4 patches"> and the <url url="ChangeLog"
