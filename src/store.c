@@ -2375,3 +2375,18 @@ storeCopyNotModifiedReplyHeaders(MemObject * oldmem, MemObject * newmem)
     if (newreply->expires > -1)
 	oldreply->expires = newreply->expires;
 }
+
+/* this just sets DELAY_SENDING */
+void
+storeBuffer(StoreEntry *e)
+{
+	EBIT_SET(e->flag, DELAY_SENDING);
+}
+
+/* this just clears DELAY_SENDING and Invokes the handlers */
+void
+storeBufferFlush(StoreEntry *e)
+{
+	EBIT_CLR(e->flag, DELAY_SENDING);
+	InvokeHandlers(e);
+}
