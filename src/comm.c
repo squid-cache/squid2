@@ -869,3 +869,28 @@ ignoreErrno(int ierrno)
     }
     /* NOTREACHED */
 }
+
+void
+commCloseAllSockets(void)
+{
+    int fd;
+    fde *F = NULL;
+    PF *callback;
+    for (fd = 0; fd <= Biggest_FD; fd++) {
+	F = &fd_table[fd];
+	if (F->open != FD_OPEN)
+	    continue;
+	if (F->type != FD_SOCKET)
+	    continue;
+	if (F->timeout_handler) {
+	    debug(5, 5) ("commCloseAllSockets: FD %d: Calling timeout handler\n",
+		fd);
+	    callback = F->timeout_handler;
+	    F->timeout_handler = NULL;
+	    callback(fd, F->timeout_data);
+	} else {
+	    debug(5, 5) ("commCloseAllSockets: FD %d: calling comm_close()\n", fd);
+	    comm_close(fd);
+	}
+    }
+}
