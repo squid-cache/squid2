@@ -204,7 +204,7 @@ clientAccessCheckDone(int answer, void *data)
     ErrorState *err = NULL;
     debug(33, 2) ("The request %s %s is %s, because it matched '%s'\n",
 	RequestMethodStr[http->request->method], http->uri,
-	answer ? "ALLOWED" : "DENIED",
+	answer == ACCESS_ALLOWED ? "ALLOWED" : "DENIED",
 	AclMatchedName ? AclMatchedName : "NO ACL's");
     http->acl_checklist = NULL;
     if (answer == ACCESS_ALLOWED) {
@@ -1202,7 +1202,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	http->lookup_type ? http->lookup_type : "NONE",
 	getMyHostname(), Config.Port.http->i);
 #endif
-    if (httpReplyBodySize(request->method, http->entry->mem_obj->reply) < 0) {
+    if (httpReplyBodySize(request->method, rep) < 0) {
 	debug(33, 3) ("clientBuildReplyHeader: can't keep-alive, unknown body size\n");
 	request->flags.proxy_keepalive = 0;
     }
