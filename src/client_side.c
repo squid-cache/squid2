@@ -502,9 +502,6 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	    icpHandleIMSReply,
 	    (void *) icpState);
 	return;
-#if OLD
-    } else if (mem->reply->code == 304 && !BIT_TEST(icpState->request->flags, REQ_IMS)) {
-#endif
     } else if (clientGetsOldEntry(entry, icpState->old_entry, icpState->request)) {
 	/* We initiated the IMS request, the client is not expecting
 	 * 304, so put the good one back.  First, make sure the old entry
