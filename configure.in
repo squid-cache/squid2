@@ -201,6 +201,10 @@ AC_CHECK_SIZEOF(long)
 dnl Check for special functions
 AC_FUNC_ALLOCA
 
+AC_CHECK_TYPE(pid_t, int)
+AC_CHECK_TYPE(size_t, int)
+AC_CHECK_TYPE(off_t, int)
+
 dnl Check for needed libraries
 AC_CHECK_LIB(nsl, main)
 AC_CHECK_LIB(socket, main)
@@ -299,12 +303,14 @@ AC_CHECK_FUNCS(\
 	setsid \
 	sigaction \
 	srand48 \
-	strdup \
 	strerror \
 	sysconf \
 	syslog \
-	tempnam \
 	timegm \
+)
+
+AC_REPLACE_FUNCS(\
+	tempnam \
 )
 
 AC_MSG_CHECKING(Maximum number of filedescriptors we can open)
@@ -339,7 +345,7 @@ main() {
 #endif /* HAVE_SETRLIMIT */
 #if HAVE_SYSCONF && defined(_SC_OPEN_MAX)
         i = sysconf(_SC_OPEN_MAX);
-#elif HAVE_GETDTABLESIZE
+#elif HAVE_GETDTABLESIZE && !defined(__linux__)
         i = getdtablesize();
 #elif defined(OPEN_MAX)
         i = OPEN_MAX;
