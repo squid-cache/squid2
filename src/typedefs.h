@@ -168,6 +168,7 @@ typedef struct _helper_request helper_request;
 typedef struct _generic_cbdata generic_cbdata;
 typedef struct _storeIOState storeIOState;
 typedef struct _link_list link_list;
+typedef struct _Logfile Logfile;
 
 #if SQUID_SNMP
 typedef variable_list *(oid_ParseFn) (variable_list *, snint *);

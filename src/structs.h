@@ -1870,3 +1870,11 @@ struct _store_rebuild_data {
     int bad_log_op;
     int zero_object_sz;
 };
+
+struct _Logfile {
+    int fd;
+    char path[MAXPATHLEN];
+    char *buf;
+    size_t bufsz;
+    off_t offset;
+};
