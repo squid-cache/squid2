@@ -1109,6 +1109,13 @@ extern void helperShutdown(helper * hlp);
 extern helper *helperCreate(const char *);
 extern void helperFree(helper *);
 
+#if USE_LEAKFINDER
+extern void leakInit(void);
+extern void *leakAddFL(void *, const char *, int);
+extern void *leakTouchFL(void *, const char *, int);
+extern void *leakFree(void *);
+#endif
+
 /*
  * prototypes for system functions missing from system includes
  */

@@ -528,6 +528,9 @@ main(int argc, char **argv)
 	    ConfigFile = xstrdup(DefaultConfigFile);
 	assert(!configured_once);
 	cbdataInit();
+#if USE_LEAKFINDER
+	leakInit();
+#endif
 	memInit();		/* memInit is required for config parsing */
 	parse_err = parseConfigFile(ConfigFile);
 

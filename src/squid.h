@@ -301,6 +301,15 @@ struct rusage {
 #define cbdataAdd(a,b)	cbdataAddDbg(a,b,__FILE__,__LINE__)
 #endif
 
+#if USE_LEAKFINDER
+#define leakAdd(p) leakAddFL(p,__FILE__,__LINE__)
+#define leakTouch(p) leakTouchFL(p,__FILE__,__LINE__)
+#else
+#define leakAdd(p) p
+#define leakTouch(p) p
+#define leakFree(p) p
+#endif
+
 #if defined(_SQUID_NEXT_) && !defined(S_ISDIR)
 #define S_ISDIR(mode) (((mode) & (_S_IFMT)) == (_S_IFDIR))
 #endif

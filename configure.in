@@ -478,6 +478,22 @@ AC_ARG_ENABLE(ipf-transparent,
   fi
 ])
 
+dnl Enable Leak Finding Functions
+AC_ARG_ENABLE(leakfinder,
+[  --enable-leakfinder
+                          Enable Leak Finding code.  Enabling this alone
+                          does nothing; you also have to modify the source
+			  code to use the leak finding functions.  Probably
+			  Useful for hackers only.],
+[ if test "$enableval" = "yes" ; then
+	echo "Leak-Finding enabled"
+	AC_DEFINE(USE_LEAKFINDER)
+        LEAKFINDER_OBJS='$(LEAKFINDER_OBJS)'
+	USE_LEAKFINDER="yes"
+  fi
+])
+AC_SUBST(LEAKFINDER_OBJS)
+
 # Force some compilers to use ANSI features
 #
 case "$host" in
