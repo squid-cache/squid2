@@ -421,7 +421,7 @@ icpSendERROR(int fd,
     icpState->log_type = errorCode;
     icpState->http_code = httpCode;
     if (icpState->entry && icpState->entry->mem_obj) {
-	if (icpState->entry->mem_obj->e_current_len > 0) {
+	if (icpState->size > 0) {
 	    comm_close(fd);
 	    return;
 	}
