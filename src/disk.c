@@ -185,10 +185,6 @@ file_open(const char *path, int (*handler) _PARAMS((void)), int mode)
 
     conn = &fd_table[fd];
     memset(conn, '\0', sizeof(FD_ENTRY));
-#ifdef DONT_DO_THIS
-    if (commSetNonBlocking(fd) != COMM_ERROR)
-	conn->comm_type = COMM_NONBLOCKING;
-#endif
     return fd;
 }
 

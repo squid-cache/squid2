@@ -1542,11 +1542,6 @@ parseHttpRequest(icpStateData * icpState)
     int free_request = 0;
     int req_hdr_sz;
     int len;
-#ifdef DONT
-    char *post_data = NULL;
-    int content_length;
-    int post_sz;
-#endif
 
     /* Make sure a complete line has been received */
     if (strchr(icpState->inbuf, '\n') == NULL) {
