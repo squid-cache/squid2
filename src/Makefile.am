@@ -215,8 +215,6 @@ squid_LDADD = \
 	@AUTH_OBJS@ \
 	@CRYPTLIB@ \
 	@REGEXLIB@ \
-	@SQUID_AIO_LIB@ \
-	@SQUID_PTHREAD_LIB@ \
 	@SNMPLIB@ \
 	@LIB_MALLOC@ \
 	@SSLLIB@ \
