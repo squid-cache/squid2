@@ -1967,6 +1967,7 @@ int storeGetMemSpace(size, check_vm_number)
 	}
     }
     debug(20, 2, "storeGetMemSpace: Done.\n");
+    xfree(list);
     return 0;
 }
 
