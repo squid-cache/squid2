@@ -262,6 +262,7 @@ getStatPtr(oid * name,
     int view)
 {
     struct subtree *tp;
+	static char snbuf[256];
     struct variable *vp = 0;
     struct variable compat_var, *cvp = &compat_var;
     int x;
@@ -362,8 +363,10 @@ getStatPtr(oid * name,
 	    *noSuchObject = FALSE;
 	else
 	    *noSuchObject = TRUE;
-	debug(13, 5) ("snmp: 541 return 0, nosuch=%d\n",
-	    *noSuchObject);
+    	sprint_objid(snbuf, name, *namelen);
+
+	debug(13, 5) ("snmp: 541 return 0, nosuch=%d, obj=%s\n",
+	    *noSuchObject,snbuf);
 
 	return NULL;
     }
