@@ -124,16 +124,12 @@ for Applied Network Research and members of the Web Caching community.
 <P>There is a few known issues and limitations in this version of Squid which we hope to correct in a later release
 
 <descrip>
-<tag>Bug #267</tag>Form POSTing troubles with NTLM authentication
-<tag>Bug #354</tag>100% CPU usage on half-closed client connections
-<tag>Bug #692</tag>tcp_outgoing_address using an ident ACL does not work
 <tag>Bug #592</tag>always/never_direct and NTLM authentication
 <tag>Bug #585</tag>cache_peer_access fails with NTLM authentication
 <tag>Bug #638</tag>assertion failure if proxy_auth used wrongly in delay_access
 <tag>deny_info</tag>deny_info only works for http_access, not for the acls listen in http_reply_access 
 
-<tag>Bug #687</tag>Redirector hook for https requires "$url\n" not just "\n"
-<tag>Bug #663</tag>Username not logged into ACCESS.LOG in case of /407
+<tag>Bug #692</tag>tcp_outgoing_address using an ident ACL does not work
 <tag>Bug #616</tag>Negative cached 404 replies with VARY header never matches
 <tag>Bug #581</tag>acl max_user_ip and multiple authentication schemes
 <tag>Bug #513</tag>squid -F is starting server sockets to early
@@ -185,6 +181,8 @@ name="ChangeLog"> file for details.
 <p>
 <itemize>
 	<item>several memory leaks corrected
+	<item>segmentation fault if more than one deny_info defined
+	<item>Lithuanian error messages added
 	<item>a crash related to ftpTimeout: timeout in SENT_PASV state corrected
 	<item>http_reply_access deny now logs the request with
 	TCP_DENIED to allow them to be accounted for properly in statistics
@@ -192,6 +190,8 @@ name="ChangeLog"> file for details.
 	you have this directive in your existing squid.conf you will
 	need to remove the line. 
 	<item>Improvements to the (experimental) COSS storage scheme.
+	<item>Updates to allow Squid to be compiled with GCC-3.3
+	<item>http_header_access now works in combination with cache_peer
 	<item>a large number of minor bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE3"
 	name="squid-2.5.STABLE1 patches"> and the <url url="ChangeLog"

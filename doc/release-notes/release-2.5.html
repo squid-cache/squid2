@@ -138,16 +138,12 @@ exacly where you want to have them in your system.</LI>
 <P>There is a few known issues and limitations in this version of Squid which we hope to correct in a later release</P>
 <P>
 <DL>
-<DT><B>Bug #267</B><DD><P>Form POSTing troubles with NTLM authentication</P>
-<DT><B>Bug #354</B><DD><P>100% CPU usage on half-closed client connections</P>
-<DT><B>Bug #692</B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
 <DT><B>Bug #592</B><DD><P>always/never_direct and NTLM authentication</P>
 <DT><B>Bug #585</B><DD><P>cache_peer_access fails with NTLM authentication</P>
 <DT><B>Bug #638</B><DD><P>assertion failure if proxy_auth used wrongly in delay_access</P>
 <DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access </P>
 
-<DT><B>Bug #687</B><DD><P>Redirector hook for https requires "$url\n" not just "\n"</P>
-<DT><B>Bug #663</B><DD><P>Username not logged into ACCESS.LOG in case of /407</P>
+<DT><B>Bug #692</B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
 <DT><B>Bug #616</B><DD><P>Negative cached 404 replies with VARY header never matches</P>
 <DT><B>Bug #581</B><DD><P>acl max_user_ip and multiple authentication schemes</P>
 <DT><B>Bug #513</B><DD><P>squid -F is starting server sockets to early</P>
@@ -200,12 +196,17 @@ helpers should be built for if different than the above versions.</LI>
 <P>
 <UL>
 <LI>several memory leaks corrected</LI>
+<LI>segmentation fault if more than one deny_info defined</LI>
+<LI>Lithuanian error messages added</LI>
 <LI>a crash related to ftpTimeout: timeout in SENT_PASV state corrected</LI>
 <LI>http_reply_access deny now logs the request with
 TCP_DENIED to allow them to be accounted for properly in statistics</LI>
 <LI>minimum_retry_timeout configuration directive removed. If
 you have this directive in your existing squid.conf you will
 need to remove the line. </LI>
+<LI>Improvements to the (experimental) COSS storage scheme.</LI>
+<LI>Updates to allow Squid to be compiled with GCC-3.3</LI>
+<LI>http_header_access now works in combination with cache_peer</LI>
 <LI>a large number of minor bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE3">squid-2.5.STABLE1 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>

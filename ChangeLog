@@ -37,11 +37,23 @@ Changes to squid-2.5.STABLE4 (not yet released):
 	  digest not found
 	- Bug #710: round-robin cache_dir selection incorrectly
 	  compares max-size.
+	- Statistics corrections in HTTP header statitics
+	- QUICKSTART cleanups
 	- Bug #715: statCounter.syscalls.disk counters treated
 	  inconsistently.  Now increment the counters in AUFS
 	  functions and for unlinkd.
 	- Improvements to the (experimental) COSS storage scheme.
+	- Bug #721: User name field in access.log sometimes blank
+	- Bug #94: assertion failed: http.c: "-1 == cfd ||
+	  FD_SOCKET == fd_table[cfd].type"
+	- Bug #716: Bug #716: assertion failed: client_side.c:1478: "size > 0"
+	- Bug #732: aufs calculates number of threads and limits wrongly
+	- Bug #663: Username not logged into access.log in case of /407
+	- Bug #267: Form POSTing troubles with NTLM authentication
+	  and occationally in differen other error conditions.
 	- Bug #736: ICP dynamic timeout algorithm ignores multicast.
+	- Bug #733: No explicit error message when ncsa_auth can't access
+	  passwd file
 
 Changes to squid-2.5.STABLE3 (25 May 2003):
 
