@@ -378,10 +378,13 @@ struct rusage {
 
 /*
  * Mac OS X Server already has radix.h as a standard header, so
- * this causes conflicts.
+ * this causes conflicts.  However, rn_walktree is our own thing,
+ * and we must make sure to provide a prototype.
  */
 #ifndef _SQUID_APPLE_
 #include "radix.h"
+#else
+extern int rn_walktree __P((struct radix_node_head *, int (*)(), void *));
 #endif
 
 #if !HAVE_TEMPNAM

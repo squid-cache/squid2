@@ -93,7 +93,9 @@ static void asStateFree(void *data);
 static void destroyRadixNodeInfo(as_info *);
 static OBJH asnStats;
 
+#ifndef _SQUID_APPLE_
 extern struct radix_node *rn_lookup(void *, void *, void *);
+#endif
 
 
 /* PUBLIC */
