@@ -174,7 +174,7 @@ struct SquidConfig Config;
 #define DefaultNeighborTimeout  2	/* 2 seconds */
 #define DefaultStallDelay	1	/* 1 seconds */
 #define DefaultSingleParentBypass 0	/* default off */
-#define DefaultPidFilename      (char *)NULL	/* default NONE */
+#define DefaultPidFilename      DEFAULT_PID_FILE
 #define DefaultVisibleHostname  (char *)NULL	/* default NONE */
 #define DefaultFtpUser		"squid@"	/* Default without domain */
 #define DefaultAnnounceHost	"sd.cache.nlanr.net"

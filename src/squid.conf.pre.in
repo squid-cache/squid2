@@ -413,8 +413,8 @@ cache_stoplist cgi-bin ?
 #useragent_log none
 
 #  TAG: pid_filename
-#	A pathname to write the process-id to.  There is no default.
-#pid_filename
+#       A pathname to write the process-id to.  To disable, enter "none".
+#pid_filename @DEFAULT_PID_FILE@
 
 #  TAG: debug_options
 #	Logging options are set as section,level where each source file
@@ -738,7 +738,7 @@ miss_access allow  all
 #		  either on the same or separate lines.
 #		* When multiple ACL's are given for a particular
 #		  cache-host, the first matched ACL is applied.
-#		* Cache hosts with no domain or ACL restrictions arequeried
+#               * Cache hosts with no domain or ACL restrictions are
 #		  queried for all requests.
 #		* There are no defaults.
 
@@ -790,7 +790,7 @@ miss_access allow  all
 
 
 # This is how frequently to send cache announcements.  The default
-# is `0' which disabled sending the announcement messages.  
+# is `0' which disables sending the announcement messages.
 #
 # To enable announcing your cache, just uncomment the line below.
 #
