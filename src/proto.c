@@ -369,7 +369,7 @@ void protoUnregister(fd, entry, request, src_addr)
     char *url = entry ? entry->url : NULL;
     char *host = request ? request->host : NULL;
     protocol_t proto = request ? request->protocol : PROTO_NONE;
-    debug(17, 5, "protoUndispatch FD %d '%s'\n", fd, url ? url : "NULL");
+    debug(17, 5, "protoUnregister FD %d '%s'\n", fd, url ? url : "NULL");
     if (proto == PROTO_CACHEOBJ)
 	return;
     if (url)
