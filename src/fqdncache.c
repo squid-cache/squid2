@@ -690,7 +690,7 @@ fqdncache_init(void)
     debug(35, 3, "Initializing FQDN Cache...\n");
     memset(&FqdncacheStats, '\0', sizeof(FqdncacheStats));
     /* small hash table */
-    fqdn_table = hash_create(urlcmp, 229, hash_string);
+    fqdn_table = hash_create(urlcmp, 229, hash4);
     fqdncache_high = (long) (((float) MAX_FQDN *
 	    (float) FQDN_HIGH_WATER) / (float) 100);
     fqdncache_low = (long) (((float) MAX_FQDN *
