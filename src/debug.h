@@ -6,10 +6,9 @@
 extern char *_db_file;
 extern int _db_line;
 extern int syslog_enable;
-extern int stderr_enable;
 extern FILE *debug_log;
 
-void _db_init _PARAMS((char *, char *));
+void _db_init _PARAMS((char *logfile)); 
 #if defined(__STRICT_ANSI__)
 void _db_print _PARAMS((int,...));
 #else

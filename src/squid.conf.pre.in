@@ -702,3 +702,9 @@ announce_organization	Your Organization
 # line.
 #
 #announce_comment
+
+
+# NEW THINGS
+
+#debug_options
+#pid_filename

@@ -86,17 +86,18 @@ struct neighbor_cf {
     struct neighbor_cf *next;
 };
 
-extern edge *getSingleParent _PARAMS((char *host, int *n));
-extern edge *getFirstParent _PARAMS((char *host));
-extern void hierarchy_log_append _PARAMS((char *, hier_code, int, char *));
 extern edge *getFirstEdge _PARAMS((void));
+extern edge *getFirstParent _PARAMS((char *host));
 extern edge *getNextEdge _PARAMS((edge *));
+extern edge *getSingleParent _PARAMS((char *host, int *n));
 extern int neighborsUdpPing _PARAMS((protodispatch_data *));
+extern int neighbors_cf_domain _PARAMS((char *, char *));
 extern neighbors *neighbors_create _PARAMS(());
+extern void hierarchy_log_append _PARAMS((char *, hier_code, int, char *));
+extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *));
+extern void neighbors_cf_add _PARAMS((char *, char *, int, int, int));
 extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));
-extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *));
 extern void neighbors_rotate_log _PARAMS((void));
-
 
 #endif

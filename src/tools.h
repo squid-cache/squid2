@@ -11,5 +11,6 @@ extern void shut_down _PARAMS((int sig));
 extern void sig_child _PARAMS((int sig));
 extern void check_suid _PARAMS((void));
 extern int daemonize _PARAMS((void));
+extern void writePidFile _PARAMS((void));
 
 extern int do_mallinfo;
