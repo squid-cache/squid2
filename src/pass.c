@@ -315,7 +315,7 @@ passConnectDone(int fdnotused, int status, void *data)
 {
     PassStateData *passState = data;
     request_t *request = passState->request;
-    size_t hdr_len = 0;
+    MemBuf mb;
     ErrorState *err = NULL;
     if (status == COMM_ERR_DNS) {
 	debug(39, 4) ("passConnectDone: Unknown host: %s\n", passState->host);
@@ -338,11 +338,11 @@ passConnectDone(int fdnotused, int status, void *data)
 	return;
     }
     if (passState->proxying) {
-	request = memAllocate(MEM_REQUEST_T);
+	request = requestCreate(
+	    passState->request->method, PROTO_NONE, passState->url);
 	passState->proxy_request = requestLink(request);
-	request->method = passState->request->method;
-	stringReset(&request->urlpath, passState->url);
     }
+#if OLD_CODE
     passState->client.len = httpBuildRequestHeader(request,
 	passState->request,	/* orig_request */
 	NULL,			/* entry */
@@ -351,6 +351,19 @@ passConnectDone(int fdnotused, int status, void *data)
 	SQUID_TCP_SO_RCVBUF >> 1,
 	opt_forwarded_for ? passState->client.fd : -1,
 	0);			/* flags */
+#else
+    memBufDefInit(&mb);
+    passState->client.len = httpBuildRequestPrefix(request,
+	passState->request,	/* orig_request */
+	NULL,			/* entry */
+	&mb,
+	opt_forwarded_for ? passState->client.fd : -1,
+	0);			/* flags */
+    /* paranoid assertion: check that terminating "/r/n" is included into mb */
+    assert(strstr(mb.buf, "/r/n/r/n"));
+    snprintf(passState->client.buf, SQUID_TCP_SO_RCVBUF >> 1, "%s", mb.buf);
+    memBufClean(&mb);
+#endif
     debug(39, 3) ("passConnectDone: Appending %d bytes of content\n",
 	passState->request->body_sz);
     xmemcpy(passState->client.buf + passState->client.len,

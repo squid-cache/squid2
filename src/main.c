@@ -465,6 +465,7 @@ mainInitialize(void)
     redirectOpenServers();
     useragentOpenLog();
     httpHeaderInitModule();	/* must go before any header processing (e.g. the one in errorInitialize) */
+    httpAnonInitModule();       /* must go before accepting requests */
     errorInitialize();
     accessLogInit();
 #ifdef SQUID_SNMP

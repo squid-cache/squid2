@@ -185,8 +185,12 @@ asnCacheStart(int as)
     req = urlParse(METHOD_GET, asres);
     assert(NULL != req);
     asState->request = requestLink(req);
+#if OLD_CODE
     asState->request->headers = xstrdup("\r\n");
     asState->request->headers_sz = strlen(asState->request->headers);
+#else
+    httpRequestSetHeaders(asState->request, METHOD_GET, asres, "");
+#endif
     if ((e = storeGet(k)) == NULL) {
 	e = storeCreateEntry(asres, asres, 0, METHOD_GET);
 	storeClientListAdd(e, asState);

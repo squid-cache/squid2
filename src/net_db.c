@@ -1050,8 +1050,12 @@ netdbExchangeStart(void *data)
     }
     requestLink(ex->r);
     assert(NULL != ex->r);
+#if OLD_CODE
     ex->r->headers = xstrdup("\r\n");
     ex->r->headers_sz = strlen(ex->r->headers);
+#else
+    httpRequestSetHeaders(ex->r, METHOD_GET, uri, "");
+#endif
     ex->e = storeCreateEntry(uri, uri, 0, METHOD_GET);
     ex->buf_sz = 4096;;
     ex->buf = memAllocate(MEM_4K_BUF);

@@ -322,7 +322,7 @@ waisStart(request_t * request, StoreEntry * entry)
     waisState->method = method;
     waisState->relayhost = Config.Wais.relayHost;
     waisState->relayport = Config.Wais.relayPort;
-    waisState->request_hdr = request->headers;
+    waisState->request_hdr = request->prefix;
     waisState->fd = fd;
     waisState->entry = entry;
     xstrncpy(waisState->request, url, MAX_URL);

@@ -111,6 +111,7 @@ OBJS	 	= \
 		HttpHeaderTools.o \
 		HttpBody.o \
 		HttpReply.o \
+		HttpRequest.o \
 		icmp.o \
 		icp_v2.o \
 		icp_v3.o \

@@ -62,65 +62,55 @@
 
 #include "squid.h"
 
+#if OLD_CODE
 struct http_anon_struct_header {
     const char *name;
     size_t len;
 };
+#endif
 
 /* Allowed Headers
  *
- * If 'http_anonymizer' is set to 'paranoid' then only the request
- * lines in this file will be passed, all others will be removed
+ * If 'http_anonymizer' is set to 'paranoid' then only these headers
+ * will be passed, all others (including HDR_OTHER) will be removed
  */
-static struct http_anon_struct_header http_anon_allowed_header[] =
+static HttpHeaderMask HttpAllowedHeadersMask;
+static http_hdr_type HttpAllowedHeadersArr[] =
 {
-    {"GET ", 4},
-    {"POST ", 5},
-    {"HEAD ", 5},
-    {"TRACE ", 6},
-    {"Allow:", 6},
-    {"Authorization:", 14},
-    {"Cache-control:", 14},
-    {"Content-Encoding:", 17},
-    {"Content-Length:", 15},
-    {"Content-Type:", 13},
-    {"Date:", 5},
-    {"Expires:", 8},
-    {"Host:", 5},
-    {"If-Modified-Since:", 18},
-    {"Last-Modified:", 14},
-    {"Location:", 9},
-    {"Pragma:", 7},		/* examining content */
-    {"Accept:", 7},
-    {"Accept-Charset:", 15},
-    {"Accept-Encoding:", 16},
-    {"Accept-Language:", 16},
-    {"Content-Language:", 17},
-    {"MIME-Version:", 13},
-    {"Retry-After:", 12},
-    {"Title:", 6},
-    {"URI:", 4},
-    {"Connection:", 11},
-    {"Proxy-Connection:", 17},
-    {NULL, 0}
+    HDR_ALLOW, HDR_AUTHORIZATION, HDR_CACHE_CONTROL, HDR_CONTENT_ENCODING,
+    HDR_CONTENT_LENGTH, HDR_CONTENT_TYPE, HDR_DATE, HDR_EXPIRES, HDR_HOST,
+    HDR_IF_MODIFIED_SINCE, HDR_LAST_MODIFIED, HDR_LOCATION, 
+    HDR_PRAGMA,
+    HDR_ACCEPT, HDR_ACCEPT_CHARSET, HDR_ACCEPT_ENCODING, HDR_ACCEPT_LANGUAGE,
+    HDR_CONTENT_LANGUAGE, HDR_MIME_VERSION, HDR_RETRY_AFTER, HDR_TITLE,
+    HDR_CONNECTION, HDR_PROXY_CONNECTION
 };
-
+/* Note: HDR_URI is deprecated in RFC 2068 */
+    
 /* Denied Headers
  *
  * If 'http_anonymizer' is set to 'standard' then these headers
  * will be removed, all others will be passed.
  */
-static struct http_anon_struct_header http_anon_denied_header[] =
+static HttpHeaderMask HttpDeniedHeadersMask;
+static http_hdr_type HttpDeniedHeadersArr[] =
 {
-    {"From:", 5},
-    {"Referer:", 8},
-    {"Server:", 7},
-    {"User-Agent:", 11},	/* filtering violates HTTP */
-    {"WWW-Authenticate:", 17},	/* filtering violates HTTP */
-    {"Link:", 5},
-    {NULL, 0}
+    HDR_FROM, HDR_REFERER, HDR_SERVER,
+    HDR_USER_AGENT,       /* filtering violates HTTP */
+    HDR_WWW_AUTHENTICATE, /* filtering violates HTTP */
+    HDR_LINK
 };
 
+void
+httpAnonInitModule()
+{
+    httpHeaderMaskInit(&HttpAllowedHeadersMask);
+    httpHeaderCalcMask(&HttpAllowedHeadersMask, (const int *) HttpAllowedHeadersArr, countof(HttpAllowedHeadersArr));
+    httpHeaderMaskInit(&HttpDeniedHeadersMask);
+    httpHeaderCalcMask(&HttpDeniedHeadersMask, (const int *) HttpDeniedHeadersArr, countof(HttpDeniedHeadersArr));
+}
+
+#if OLD_CODE
 /* Return 1 if 'line' is found in the 'header_field' list */
 static int
 httpAnonSearchHeaderField(const struct http_anon_struct_header *header_field,
@@ -146,4 +136,17 @@ httpAnonDenied(const char *line)
     if (*line == '\0')		/* the terminating empty line */
 	return 0;
     return httpAnonSearchHeaderField(http_anon_denied_header, line);
+}
+#endif
+
+int
+httpAnonHdrAllowed(http_hdr_type hdr_id)
+{
+    return hdr_id != HDR_OTHER && CBIT_TEST(HttpAllowedHeadersMask, hdr_id);
+}
+
+int
+httpAnonHdrDenied(http_hdr_type hdr_id)
+{
+    return hdr_id != HDR_OTHER && CBIT_TEST(HttpDeniedHeadersMask, hdr_id);
 }

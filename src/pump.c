@@ -67,11 +67,15 @@ pumpInit(int fd, request_t * r, char *uri)
 {
     int flags = 0;
     LOCAL_ARRAY(char, new_key, MAX_URL + 8);
+#if OLD_CODE
     HttpHeader hdr;
     int clen = 0;
     int x;
     char *hdrStart;
     char *hdrEnd;
+#else
+    int clen = 0;
+#endif
     PumpStateData *p = xcalloc(1, sizeof(PumpStateData));
     debug(61, 3) ("pumpInit: FD %d, uri=%s\n", fd, uri);
     /*
@@ -81,13 +85,19 @@ pumpInit(int fd, request_t * r, char *uri)
     assert(fd > -1);
     assert(uri != NULL);
     assert(r != NULL);
+#if OLD_CODE
+    httpHeaderInit(&hdr);
+#if DONT_DO_THAT
     memset(&hdr, '\0', sizeof(HttpHeader));
+#endif
     hdrStart = r->headers;
     hdrEnd = &r->headers[r->headers_sz];
     x = httpHeaderParse(&hdr, hdrStart, hdrEnd);
     /* we shouldn't have gotten this far if we can't parse req hdrs */
     assert(x != 0);
-    clen = httpHeaderGetInt(&hdr, HDR_CONTENT_LENGTH);
+    httpHeaderClean(&hdr);
+#endif
+    clen = httpHeaderGetInt(&r->header, HDR_CONTENT_LENGTH);
     /* we shouldn't have gotten this far if content-length is invalid */
     assert(clen >= 0);
     debug(61, 4) ("pumpInit: Content-Length=%d.\n", clen);
