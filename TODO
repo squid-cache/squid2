@@ -4,6 +4,7 @@ Squid-2.5:
   - Run a polygraph test of aufs
   - Write release notes (done)
   - HTML tidyups from "PsychoTekk / C.L." (done)
+  - Charset encoding meta header in error pages
 
 Squid-2.6:
 
