@@ -16,7 +16,7 @@ exec_prefix	= @exec_prefix@
 
 SUBDIRS		= lib @makesnmplib@ scripts src icons errors 
 AUTHDIRS	= auth_modules/NCSA \
-		= auth_modules/getpwnam \
+		  auth_modules/getpwnam \
 		  auth_modules/PAM \
 		  auth_modules/SMB \
 		  auth_modules/LDAP
