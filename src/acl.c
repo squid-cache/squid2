@@ -1848,6 +1848,7 @@ aclChecklistFree(aclCheck_t * checklist)
 	requestUnlink(checklist->request);
     checklist->request = NULL;
     cbdataReferenceDone(checklist->conn);
+    cbdataReferenceDone(checklist->accessList);
     aclCheckCleanup(checklist);
     cbdataFree(checklist);
 }
