@@ -577,6 +577,8 @@ CheckQuickAbort(StoreEntry * entry)
 	return;
     if (entry->store_status != STORE_PENDING)
 	return;
+    if (EBIT_TEST(entry->flags, ENTRY_SPECIAL))
+	return;
     if (CheckQuickAbort2(entry) == 0)
 	return;
     Counter.aborted_requests++;
