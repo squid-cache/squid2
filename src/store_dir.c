@@ -625,7 +625,7 @@ storeDirWriteCleanLogs(int reopen)
 	    }
 	    outbufoffset[dirn] = 0;
 	}
-	if ((++n & 0x3FFF) == 0) {
+	if ((++n & 0xFFFF) == 0) {
 	    getCurrentTime();
 	    debug(20, 1) ("  %7d entries written so far.\n", n);
 	}
