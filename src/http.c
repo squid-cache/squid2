@@ -384,6 +384,15 @@ httpPconnTransferDone(HttpStateData * httpState)
     /*
      * What does the reply have to say about keep-alive?
      */
+    /*
+     * XXX BUG?
+     * If the origin server (HTTP/1.0) does not send a keep-alive
+     * header, but keeps the connection open anyway, what happens?
+     * We'll return here and http.c waits for an EOF before changing
+     * store_status to STORE_OK.   Combine this with ENTRY_FWD_HDR_WAIT
+     * and an error status code, and we might have to wait until
+     * the server times out the socket.
+     */
     if (!reply->keep_alive)
 	return 0;
     debug(11, 5) ("httpPconnTransferDone: content_length=%d\n",
@@ -522,10 +531,11 @@ httpReadReply(int fd, void *data)
 	    httpProcessReplyHeader(httpState, buf, len);
 	    if (httpState->reply_hdr_state == 2) {
 		http_status s = entry->mem_obj->reply->sline.status;
-		/* If its "successful" reply, allow the client
-		 * to get it
+		/*
+		 * If its not a reply that we will re-forward, then
+		 * allow the client to get it.
 		 */
-		if (s >= 200 && s < 300)
+		if (!fwdReforwardableStatus(s))
 		    EBIT_CLR(entry->flags, ENTRY_FWD_HDR_WAIT);
 	    }
 	}
