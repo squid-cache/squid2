@@ -1504,9 +1504,9 @@ storeRelease(StoreEntry * e)
 	store_swappingout_size -= e->object_len;
     if (e->swap_file_number > -1) {
 	if (store_swap_size > store_swap_high)
-		safeunlink(storeSwapFullPath(e->swap_file_number, NULL), 1);
+	    safeunlink(storeSwapFullPath(e->swap_file_number, NULL), 1);
 	else
-		storePutUnusedFileno(e->swap_file_number);
+	    storePutUnusedFileno(e->swap_file_number);
 	file_map_bit_reset(e->swap_file_number);
 	e->swap_file_number = -1;
 	e->swap_status = NO_SWAP;
@@ -1897,7 +1897,6 @@ storeMaintainSwapSpace(void *unused)
 	storeGetSwapSpace();
 	return;
     }
-
     eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 1);
     /* We can't delete objects while rebuilding swap */
     if (store_rebuilding == STORE_REBUILDING_FAST)

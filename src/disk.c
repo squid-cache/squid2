@@ -263,15 +263,15 @@ diskHandleWrite(int fd, FileEntry * entry)
 		break;
 	    status = errno == ENOSPC ? DISK_NO_SPACE_LEFT : DISK_ERROR;
 	    if (entry->wrt_handle == NULL) {
-	    /* FLUSH PENDING BUFFERS */
-	        entry->write_daemon = NOT_PRESENT;
-	        entry->write_pending = NO_WRT_PENDING;
-	       do {
-		   entry->write_q = r->next;
-		   if (r->free)
-		       (r->free) (r->buf);
-		   safe_free(r);
-	       } while ((r = entry->write_q));
+		/* FLUSH PENDING BUFFERS */
+		entry->write_daemon = NOT_PRESENT;
+		entry->write_pending = NO_WRT_PENDING;
+		do {
+		    entry->write_q = r->next;
+		    if (r->free)
+			(r->free) (r->buf);
+		    safe_free(r);
+		} while ((r = entry->write_q));
 	    }
 	    break;
 	}
