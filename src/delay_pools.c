@@ -162,8 +162,6 @@ delayRegisterDelayIdPtr(delay_id * loc)
 	return;
     lnk = xmalloc(sizeof(hash_link));
     lnk->key = (char *) loc;
-    debug(0, 0) ("delayRegisterDelayIdPtr: calling hash_join(lnk=%p, key=%p)\n",
-	lnk, loc);
     hash_join(delay_id_ptr_hash, lnk);
 }
 
@@ -173,7 +171,7 @@ delayUnregisterDelayIdPtr(delay_id * loc)
     hash_link *lnk;
     if (!delay_id_ptr_hash)
 	return;
-    debug(0, 0) ("delayUnregisterDelayIdPtr: looking for key=%p\n", loc);
+    debug(77, 3) ("delayUnregisterDelayIdPtr: looking for key=%p\n", loc);
     lnk = hash_lookup(delay_id_ptr_hash, loc);
     assert(lnk);
     hash_remove_link(delay_id_ptr_hash, lnk);
