@@ -254,15 +254,11 @@ storeHashInsert(StoreEntry * e, const cache_key * key)
     e->key = storeKeyDup(key);
     hash_join(store_table, (hash_link *) e);
     dlinkAdd(e, &e->lru, &store_list);
-    if (store_digest && !EBIT_TEST(e->flag, KEY_PRIVATE))
-	cacheDigestAdd(store_digest, e->key);
 }
 
 static void
 storeHashDelete(StoreEntry * e)
 {
-    if (store_digest && !EBIT_TEST(e->flag, KEY_PRIVATE))
-	cacheDigestDel(store_digest, e->key);
     hash_remove_link(store_table, (hash_link *) e);
     dlinkDelete(&e->lru, &store_list);
     storeKeyFree(e->key);
