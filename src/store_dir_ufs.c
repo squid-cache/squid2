@@ -1222,6 +1222,7 @@ storeUfsDirParse(cacheSwap * swap)
     }
     allocate_new_swapdir(swap);
     sd = swap->swapDirs + swap->n_configured;
+    sd->type = SWAPDIR_UFS;
     sd->index = swap->n_configured;
     sd->path = xstrdup(path);
     sd->max_size = size;
@@ -1292,6 +1293,7 @@ storeAufsDirParse(cacheSwap * swap)
     }
     allocate_new_swapdir(swap);
     sd = swap->swapDirs + swap->n_configured;
+    sd->type = SWAPDIR_ASYNCUFS;
     sd->index = swap->n_configured;
     sd->path = xstrdup(path);
     sd->max_size = size;
