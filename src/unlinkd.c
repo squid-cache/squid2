@@ -163,7 +163,7 @@ unlinkdInit(void)
     struct timeval slp;
     args[0] = "(unlinkd)";
     args[1] = NULL;
-#if HAVE_POLL && defined(_SQUID_OSF_)
+#if USE_POLL && defined(_SQUID_OSF_)
     /* pipes and poll() don't get along on DUNIX -DW */
     x = ipcCreate(IPC_TCP_SOCKET,
 #else
