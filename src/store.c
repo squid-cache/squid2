@@ -709,7 +709,7 @@ InvokeHandlers(StoreEntry * e)
     /* walk the entire list looking for valid callbacks */
     for (sc = mem->clients; sc; sc = nx) {
 	nx = sc->next;
-	debug(20, 0) ("InvokeHandlers: checking client #%d\n", i++);
+	debug(20, 3) ("InvokeHandlers: checking client #%d\n", i++);
 	if (sc->callback_data == NULL)
 	    continue;
 	if (sc->callback == NULL)
