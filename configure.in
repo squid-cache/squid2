@@ -69,8 +69,9 @@ dnl Set Default CFLAGS
 if test -z "$PRESET_CFLAGS"; then
     if test "$GCC" = "yes"; then
         case "$host" in
-        *-sun-sunos*)
+        *-sun-sunos*|*m88k*)
     	    # sunos has too many warnings for this to be useful
+	    # motorola too
     	    ;;
         *)
     	    CFLAGS="$CFLAGS -Wall"
@@ -225,6 +226,10 @@ case "$host" in
         	echo "Removing -lnsl for IRIX..."
         	LIBS=`echo $LIBS | sed -e s/-lnsl//`
 		;;
+	*m88k*)
+		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"
+		;;
+
 esac
 
 dnl Check for library functions

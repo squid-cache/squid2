@@ -40,9 +40,9 @@ static intlist *aclParseProtoList _PARAMS((void));
 static struct _relist *aclParseRegexList _PARAMS((void));
 static struct _acl_time_data *aclParseTimeSpec _PARAMS((void));
 static wordlist *aclParseWordList _PARAMS((void));
-static acl_t aclType _PARAMS((char *s));
+static squid_acl aclType _PARAMS((char *s));
 
-static acl_t aclType(s)
+static squid_acl aclType(s)
      char *s;
 {
     if (!strcmp(s, "src"))

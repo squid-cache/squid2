@@ -513,7 +513,11 @@ void setMaxFD()
 
 time_t getCurrentTime()
 {
+#if defined(_SQUID_MOTOROLA_)
+    gettimeofday(&current_time);
+#else
     gettimeofday(&current_time, NULL);
+#endif
     return squid_curtime = current_time.tv_sec;
 }
 

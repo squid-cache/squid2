@@ -26,7 +26,7 @@ typedef enum {
     ACL_USER,
     ACL_PROTO,
     ACL_METHOD
-} acl_t;
+} squid_acl;
 
 #define ACL_SUNDAY	0x01
 #define ACL_MONDAY	0x02
@@ -61,7 +61,7 @@ struct _acl_time_data {
 
 struct _acl {
     char name[ACL_NAME_SZ + 1];
-    acl_t type;
+    squid_acl type;
     void *data;
     char *cfgline;
     struct _acl *next;
