@@ -30,6 +30,8 @@ Changes to squid-1.1.10 (April 22, 1997):
 	  instead expire them immediately.
 	- Fixed up rebuild code to handle swapfile/URL clash
 	  cases better.
+	- Added safe_inet_addr() to protect from bogus IP addresses
+	  (Arjan de Vet).
 
 
 Changes to squid-1.1.9 (March 30, 1997):
