@@ -488,7 +488,7 @@ serverConnectionsClose(void)
 	if (theInIcpConnection != theOutIcpConnection)
 	    comm_close(theInIcpConnection);
 	if (theInIcpConnection != theOutIcpConnection)
-	theInIcpConnection = -1;
+	    theInIcpConnection = -1;
     }
     if (icmp_sock > -1)
 	icmpClose();
