@@ -232,13 +232,11 @@ protoDispatchDNSHandle(int unused1, ipcache_addrs * ia, void *data)
 	hierarchyNote(req, HIER_FIRSTUP_PARENT, 0, e->host);
 	protoStart(protoData->fd, entry, e, req);
 	return;
-#if USE_ICMP
     } else if (protoData->direct_fetch == DIRECT_MAYBE && ia
 	&& netdbHops(ia->in_addrs[ia->cur]) <= Config.minDirectHops) {
 	hierarchyNote(req, HIER_DIRECT, 0, req->host);
 	protoStart(protoData->fd, entry, NULL, req);
 	return;
-#endif
     } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */
 	if (entry->ping_status != PING_NONE)
@@ -497,9 +495,7 @@ protoStart(int fd, StoreEntry * entry, edge * e, request_t * request)
 	fatal_dump("protoStart: object already being fetched");
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
     protoCancelTimeout(fd, entry);
-#if USE_ICMP
     netdbPingSite(request->host);
-#endif
     if (e) {
 	e->stats.fetches++;
 	return proxyhttpStart(e, url, entry);

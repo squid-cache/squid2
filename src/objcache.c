@@ -293,13 +293,11 @@ objcacheStart(int fd, char *url, StoreEntry * entry)
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
-#if USE_ICMP
     } else if (strcmp(data->request, "stats/netdb") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
 	HTTPCacheInfo->stat_get(HTTPCacheInfo, "netdb", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
-#endif
 
     } else if (strcmp(data->request, "log/status") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);

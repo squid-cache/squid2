@@ -392,10 +392,8 @@ serverConnectionsOpen(void)
 	}
     }
     clientdbInit();
-#if USE_ICMP
     icmpOpen();
     netdbInit();
-#endif
 }
 
 void
@@ -431,10 +429,8 @@ serverConnectionsClose(void)
 		NULL, 0);
 	theInIcpConnection = -1;
     }
-#if USE_ICMP
     if (icmp_sock > -1)
 	icmpClose();
-#endif
 }
 
 static void
@@ -652,11 +648,13 @@ main(int argc, char **argv)
     for (;;) {
 	if (rotate_pending) {
 	    ftpServerClose();
+	    icmpClose();
 	    _db_rotate_log();	/* cache.log */
 	    storeWriteCleanLog();
 	    storeRotateLog();	/* store.log */
 	    stat_rotate_log();	/* access.log */
 	    (void) ftpInitialize();
+	    icmpOpen();
 	    rotate_pending = 0;
 	}
 	if ((loop_delay = mainMaintenance()) < 0)
