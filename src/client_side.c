@@ -2795,7 +2795,7 @@ clientHttpConnectionsOpen(void)
 	comm_listen(fd);
 	commSetSelect(fd, COMM_SELECT_READ, httpAccept, NULL, 0);
 	/*commSetDefer(fd, httpAcceptDefer, NULL); */
-	debug(1, 1) ("Accepting HTTP connections on port %s:%d, FD %d.\n",
+	debug(1, 1) ("Accepting HTTP connections at %s, port %d, FD %d.\n",
 	    inet_ntoa(s->s.sin_addr),
 	    (int) ntohs(s->s.sin_port),
 	    fd);
