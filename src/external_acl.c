@@ -737,15 +737,27 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
     MemBuf buf;
     external_acl_data *acl = acl_data;
     external_acl *def = acl->def;
-    const char *key = makeExternalAclKey(ch, acl);
-    external_acl_entry *entry = hash_lookup(def->cache, key);
+    const char *key;
+    external_acl_entry *entry;
     externalAclState *state;
+    if (acl->def->require_auth) {
+	int ti;
+	/* Make sure the user is authenticated */
+	if ((ti = aclAuthenticated(ch)) != 1) {
+	    debug(82, 1) ("externalAclLookup: %s user authentication failure (%d)\n", acl->def->name, ti);
+	    callback(callback_data, NULL);
+	    return;
+	}
+    }
+    key = makeExternalAclKey(ch, acl);
+    ch->auth_user_request = NULL;
     debug(82, 2) ("externalAclLookup: lookup in '%s' for '%s'\n", def->name, key);
     if (!key) {
 	debug(82, 1) ("externalAclLookup: lookup in '%s', prerequisit failure\n", def->name);
 	callback(callback_data, NULL);
 	return;
     }
+    entry = hash_lookup(def->cache, key);
     state = cbdataAlloc(externalAclState);
     state->def = def;
     cbdataLock(state->def);
