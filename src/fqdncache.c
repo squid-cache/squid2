@@ -698,6 +698,7 @@ static int fqdncache_dnsHandleRead(fd, dnsData)
 	return 0;
     }
     n = ++FqdncacheStats.replies;
+    DnsStats.replies++;
     dnsData->offset += len;
     dnsData->ip_inbuf[dnsData->offset] = '\0';
 
@@ -1030,7 +1031,7 @@ char *fqdnFromAddr(addr)
 {
     char *n;
     static char buf[32];
-    if ((n = fqdncache_gethostbyaddr(addr, 0)))
+    if (Config.Log.log_fqdn && (n = fqdncache_gethostbyaddr(addr, 0)))
 	return n;
     strncpy(buf, inet_ntoa(addr), 31);
     return buf;
