@@ -308,7 +308,7 @@ void
 hashFreeMemory(hash_table * hid)
 {
     assert(hid);
-    if (hid->buckets);
+    if (hid->buckets)
         xfree(hid->buckets);
     xfree(hid);
 }
