@@ -135,7 +135,6 @@ static time_t storeDiskdDirExpiredReferenceAge(SwapDir *);
 #endif
 static void storeDiskdStats(StoreEntry * sentry);
 static void storeDiskdDirSync(SwapDir *);
-static void storeDiskdDirCallback(SwapDir *);
 
 
 /*
@@ -473,7 +472,7 @@ storeDiskdDirSync(SwapDir * SD)
  * until the queue is below magic2. Otherwise, we simply return when we
  * don't get a message.
  */
-static void
+void
 storeDiskdDirCallback(SwapDir * SD)
 {
     diomsg M;
