@@ -199,7 +199,7 @@ Value    Name
    18    ICP_OP_MISS_POINTER
    19    ICP_OP_ADVERTISE
    20    ICP_OP_UNADVERTISE
-   21    ICP_OP_RELOADING
+   21    ICP_OP_MISS_NOFETCH
    22    ICP_OP_DENIED
    23    ICP_OP_HIT_OBJ
 .fi
@@ -236,7 +236,7 @@ Payload Format:
 .fi
 
 In response to an ICP_OP_QUERY, the receipient must return one of:
-ICP_OP_HIT, ICP_OP_MISS, ICP_OP_ERR, ICP_OP_RELOADING, ICP_OP_DENIED,
+ICP_OP_HIT, ICP_OP_MISS, ICP_OP_ERR, ICP_OP_MISS_NOFETCH, ICP_OP_DENIED,
 ICP_OP_HIT_OBJ, or ICP_OP_MISS_POINTER.
 
 .in 3
@@ -294,17 +294,20 @@ Sending an ICP_OP_ERR indicates some kind of
 error in parsing or handling the query message.
 
 .in 3
-ICP_OP_RELOADING
+ICP_OP_MISS_NOFETCH
 .in 6
-Sending an ICP_OP_RELOADING
-response indicates that this cache is up, but is in a ``startup'' mode.
-A cache in startup mode may wish to return ICP_OP_HIT for cache hits,
-but not ICP_OP_MISS for misses.  ICP_OP_RELOADING essentially means
+Sending an ICP_OP_MISS_NOFETCH
+response indicates that this cache is up, but is in a state where it
+does not want to handle cache misses.  An example of such a state
+is during a startup phase where a cache might be rebuilding its
+object store.
+A cache in such a mode may wish to return ICP_OP_HIT for cache hits,
+but not ICP_OP_MISS for misses.  ICP_OP_MISS_NOFETCH essentially means
 ``I am up and running, but please don't fetch this URL from me now.''
 
-Note, ICP_OP_RELOADING has a different meaning than ICP_OP_MISS.  The
+Note, ICP_OP_MISS_NOFETCH has a different meaning than ICP_OP_MISS.  The
 ICP_OP_MISS is an invitation to fetch the URL from the replying cache
-(in a parent-child relationship), but ICP_OP_RELOADING is a request to
+(in a parent-child relationship), but ICP_OP_MISS_NOFETCH is a request to
 NOT fetch the URL from the replying cache.
 
 .in 3
