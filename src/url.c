@@ -201,7 +201,7 @@ urlParse(method_t method, char *url)
     int l;
     proto[0] = host[0] = urlpath[0] = login[0] = '\0';
 
-    if ((l = strlen(url)) > (MAX_URL-1)) {
+    if ((l = strlen(url)) > (MAX_URL - 1)) {
 	/* terminate so it doesn't overflow other buffers */
 	*(url + (MAX_URL >> 1)) = '\0';
 	debug(23, 0, "urlParse: URL too large (%d bytes)\n", l);

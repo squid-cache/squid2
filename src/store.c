@@ -2833,7 +2833,7 @@ storeEntryValidToSend(StoreEntry * e)
 }
 
 int
-storeFirstClientFD(MemObject *mem)
+storeFirstClientFD(MemObject * mem)
 {
     int i;
     if (mem == NULL)

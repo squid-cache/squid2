@@ -157,14 +157,10 @@ squid_error_entry(StoreEntry * entry, log_type type, const char *msg)
 {
     int error_index;
 
-    if (!entry) {
-	debug_trap("squid_error_entry: NULL entry");
+    if (entry == NULL)
 	return;
-    }
-    if (entry->store_status != STORE_PENDING) {
-	debug_trap("squid_error_entry: store_status != STORE_PENDING");
+    if (entry->store_status != STORE_PENDING)
 	return;
-    }
     if (type < ERR_MIN || type > ERR_MAX)
 	fatal_dump("squid_error_entry: type out of range.");
     error_index = (int) (type - ERR_MIN);

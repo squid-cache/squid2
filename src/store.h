@@ -313,7 +313,7 @@ extern int expiresMoreThan _PARAMS((time_t, time_t));
 extern int storeClientListAdd _PARAMS((StoreEntry *, int, int));
 extern void InvokeHandlers _PARAMS((StoreEntry *));
 extern int storeEntryValidToSend _PARAMS((StoreEntry *));
-extern int storeFirstClientFD _PARAMS((MemObject *mem));
+extern int storeFirstClientFD _PARAMS((MemObject * mem));
 
 
 #ifdef __STDC__
