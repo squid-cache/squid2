@@ -199,15 +199,11 @@ ipcacheCreateEntry(const char *name)
 static void
 ipcacheAddEntry(ipcache_entry * i)
 {
-    ipcache_entry *e = (ipcache_entry *) hash_lookup(ip_table, i->hash.key);
+    hash_link *e = hash_lookup(ip_table, i->hash.key);
     if (NULL != e) {
-	/* avoid collision */
-	if (i->flags.negcached && !e->flags.negcached && e->expires > squid_curtime) {
-	    /* Don't waste good information */
-	    ipcacheFreeEntry(i);
-	    return;
-	}
-	ipcacheRelease(e);
+	/* avoid colission */
+	ipcache_entry *q = (ipcache_entry *) e;
+	ipcacheRelease(q);
     }
     hash_join(ip_table, &i->hash);
     dlinkAdd(i, &i->lru, &lru_list);
