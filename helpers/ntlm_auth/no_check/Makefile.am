@@ -7,3 +7,5 @@
 #
 
 libexec_SCRIPTS	= no_check.pl
+
+EXTRA_DIST = no_check.pl

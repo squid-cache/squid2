@@ -96,6 +96,7 @@ EXTRA_squid_SOURCES = \
 	snmp_agent.c \
 	unlinkd.c \
 	ssl_support.c \
+	ssl_support.h \
 	win32.c
 
 squid_SOURCES = \

@@ -6,4 +6,8 @@
 #  Uncomment and customize the following to suit your needs:
 #
 
-libexec_SCRIPTS		= smb_auth.pl
+libexec_SCRIPTS	= \
+	smb_auth.pl
+
+EXTRA_DIST = \
+	smb_auth.pl
