@@ -132,6 +132,8 @@ static void icpCloseAndFree(fd, icpState, line)
     if (icpState->entry) {
 	size = icpState->entry->mem_obj->e_current_len;
 	http_code = icpState->entry->mem_obj->http_code;
+    } else {
+	http_code = icpState->http_code;
     }
     elapsed_msec = (current_time.tv_sec - icpState->start.tv_sec) * 1000 +
 	(current_time.tv_usec - icpState->start.tv_usec) / 1000;

@@ -634,20 +634,12 @@ int gopherReadReply(fd, data)
 		    COMM_SELECT_READ,
 		    (PF) gopherReadReply,
 		    (caddr_t) data);
-/* don't install read timeout until we are below the GAP */
-#ifdef INSTALL_READ_TIMEOUT_ABOVE_GAP
-		comm_set_select_handler_plus_timeout(fd,
-		    COMM_SELECT_TIMEOUT,
-		    (PF) gopherReadReplyTimeout,
-		    (caddr_t) data,
-		    getReadTimeout());
-#else
+		/* don't install read timeout until we are below the GAP */
 		comm_set_select_handler_plus_timeout(fd,
 		    COMM_SELECT_TIMEOUT,
 		    (PF) NULL,
 		    (caddr_t) NULL,
 		    (time_t) 0);
-#endif
 		comm_set_stall(fd, getStallDelay());	/* dont try reading again for a while */
 		return 0;
 	    }

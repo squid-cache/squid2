@@ -32,12 +32,6 @@ char *storeToString(e)
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "Flags: %#x ==> ", e->flag);
-#ifdef CACHED1_5
-    if (BIT_TEST(e->flag, SAVED))
-	strncat(tmpbuf, " SAVED", sizeof(tmpbuf) - 1);
-    if (BIT_TEST(e->flag, VERIFYING_OBJ))
-	strncat(tmpbuf, " VERIFYING", sizeof(tmpbuf) - 1);
-#endif
     if (BIT_TEST(e->flag, KEY_CHANGE))
 	strncat(tmpbuf, " KEYCHANGE", sizeof(tmpbuf) - 1);
     if (BIT_TEST(e->flag, CACHABLE))
@@ -73,18 +67,6 @@ char *storeToString(e)
     sprintf(tmpbuf, "Expires  : %9d [%s]\n", (int) e->expires,
 	mkhttpdlogtime(&t));
     strcat(stsbuf, tmpbuf);
-
-#ifdef CACHED1_5
-    t = (time_t) e->lastverify;
-    sprintf(tmpbuf, "Lastverify: %9d [%s]\n", (int) e->lastverify,
-	mkhttpdlogtime(&t));
-    strcat(stsbuf, tmpbuf);
-
-    t = (time_t) e->lastmodified;
-    sprintf(tmpbuf, "Lastmodified: %9d [%s]\n", (int) e->lastmodified,
-	mkhttpdlogtime(&t));
-    strcat(stsbuf, tmpbuf);
-#endif
 
     sprintf(tmpbuf, "ObjectLen: %d\n", e->object_len);
     strcat(stsbuf, tmpbuf);
@@ -263,17 +245,6 @@ char *storeToString(e)
 
     sprintf(tmpbuf, "LowestOffset: %d\n", e->mem_obj->e_lowest_offset);
     strcat(stsbuf, tmpbuf);
-
-#ifdef CACHED1_5
-    sprintf(tmpbuf, "FetchStall: %d\n", e->mem_obj->fetch_stall);
-    strcat(stsbuf, tmpbuf);
-
-    sprintf(tmpbuf, "FetchFd: %d\n", e->mem_obj->fetch_fd);
-    strcat(stsbuf, tmpbuf);
-
-    sprintf(tmpbuf, "FetchResumeOffset: %d\n", e->mem_obj->fetch_resume_offset);
-    strcat(stsbuf, tmpbuf);
-#endif
 
     sprintf(tmpbuf, "ClientListSize: %d\n", e->mem_obj->client_list_size);
     strcat(stsbuf, tmpbuf);
