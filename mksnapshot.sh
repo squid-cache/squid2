@@ -49,6 +49,8 @@ if [ -f $relnotes ]; then
 	cp -p $relnotes ${PACKAGE}-${VERSION}-${date}-RELEASENOTES.html
 	echo ${PACKAGE}-${VERSION}-${date}-RELEASENOTES.html >>${tag}.out
 fi
+cp -p ChangeLog
+echo ChangeLog >>${tag}.out
 
 if (echo $VERSION | grep PRE) || (echo $VERSION | grep STABLE); then
   echo "Differences from ${PACKAGE}-${VERSION} to ${PACKAGE}-${VERSION}-${date}" >${PACKAGE}-${VERSION}-${date}.diff
