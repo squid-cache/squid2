@@ -12,6 +12,7 @@ Changes to squid-1.0.9 (August 22, 1996):
 	- Fixed SSL code to unregister DNS lookups if client aborts.
 	- Removed lib/host_cache.c from distribution.
 	- Made IP cache stats output sorted by last reference.
+	- Added ICP internet-draft to docs directory.
 
 Changes to squid-1.0.8 (August 19, 1996):
 
