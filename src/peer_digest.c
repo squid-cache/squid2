@@ -334,6 +334,12 @@ peerDigestFetchReply(void *data, char *buf, ssize_t size)
 	    /* requestUnlink(r); */
 	    /* fetch->entry->mem_obj->request = NULL; */
 	    assert(fetch->entry->mem_obj);
+	    /* kludge to make peerDigestFetchFinish think that we
+	     * fetched the whole thing while we are reusing old digest */
+	     if (fetch->peer->digest.cd) {
+		assert(!fetch->mask_offset);
+		fetch->mask_offset = peer->digest.cd->mask_size;
+	     }
 	} else if (status == HTTP_OK) {
 	    /* get rid of old entry if any */
 	    if (fetch->old_entry) {
