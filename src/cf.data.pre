@@ -2199,7 +2199,7 @@ DOC_START
 	See http_access for details
 
 NOCOMMENT_START
-#Allow ICP queries from eveyone
+#Allow ICP queries from everyone
 icp_access allow all
 NOCOMMENT_END
 DOC_END
