@@ -985,6 +985,8 @@ parseEtcHosts(void)
     while (fgets(buf, 1024, fp)) {	/* for each line */
 	wordlist *hosts = NULL;
 	char *addr;
+	if (buf[0] == '#')	/* MS-windows likes to add comments */
+	    continue;
 	strtok(buf, "#");	/* chop everything following a comment marker */
 	lt = buf;
 	addr = buf;
