@@ -701,8 +701,6 @@ comm_select(time_t sec)
 	    debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
 	if (nfds == 0)
 	    return COMM_SHUTDOWN;
-	if (shutdown_pending || reread_pending)
-	    debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
 	for (;;) {
 #if USE_ASYNC_IO
 	    /* Another CPU vs latency tradeoff for async IO */
