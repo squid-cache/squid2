@@ -301,5 +301,6 @@ int waisStart(unusedfd, url, type, mime_hdr, entry)
 	(PF) waisLifetimeExpire, (caddr_t) data);
     comm_set_select_handler(sock, COMM_SELECT_WRITE,
 	(PF) waisSendRequest, (caddr_t) data);
+    storeAddEntry(entry);	/* XXX Make it public */
     return COMM_OK;
 }

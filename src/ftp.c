@@ -467,6 +467,7 @@ int ftpStart(unusedfd, url, entry)
 	COMM_SELECT_LIFETIME,
 	(PF) ftpLifetimeExpire,
 	(caddr_t) data);
+    storeAddEntry(entry);	/* Make it public */
 
     return COMM_OK;
 }

@@ -931,6 +931,7 @@ int gopherStart(unusedfd, url, entry)
 	COMM_SELECT_WRITE,
 	(PF) gopherSendRequest,
 	(caddr_t) data);
+    storeAddEntry(entry);	/* Make it public */
 
     return COMM_OK;
 }

@@ -143,7 +143,8 @@ typedef struct pentry {
 
 extern int has_mem_obj _PARAMS((StoreEntry *));
 extern StoreEntry *storeGet _PARAMS((char *));
-extern StoreEntry *storeAdd _PARAMS((char *, char *, char *, int, int, int));
+extern StoreEntry *storeCreateEntry _PARAMS((char *, char *, int, int, int));
+extern void storeAddEntry _PARAMS((StoreEntry *));
 extern StoreEntry *storeGetFirst _PARAMS((void));
 extern StoreEntry *storeGetNext _PARAMS((void));
 extern StoreEntry *storeLRU _PARAMS((void));

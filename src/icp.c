@@ -1,3 +1,5 @@
+
+
 /* $Id$ */
 
 /*
@@ -97,6 +99,7 @@ static void icpFreeBufOrPage(icpState)
 	put_free_4k_page(icpState->ptr_to_4k_page);
     else
 	safe_free(icpState->buf);
+    icpState->ptr_to_4k_page = icpState->buf = NULL;
 }
 
 
@@ -628,8 +631,7 @@ static int icpProcessMISS(fd, usm)	/* Formally icpProcessSENDA */
 	    storeRelease(entry);
 	}
     }
-    entry = storeAdd(url,
-	type,
+    entry = storeCreateEntry(url,
 	mime_hdr,
 	proto_cachable(url, type, mime_hdr),
 	usm->html_request,

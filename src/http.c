@@ -210,7 +210,7 @@ static void httpProcessReplyHeader(data, buf)
 	case 410:		/* Gone */
 	    /* These can be cached for a long time, make the key public */
 	    entry->expires = cached_curtime + ttlSet(entry);
-	    storeUnChangeKey(entry);
+	    storeAddEntry(entry);
 	    break;
 	case 401:		/* Unauthorized */
 	case 407:		/* Proxy Authentication Required */
@@ -222,7 +222,7 @@ static void httpProcessReplyHeader(data, buf)
 	default:
 	    /* These can be negative cached, make key public */
 	    entry->expires = cached_curtime + getNegativeTTL();
-	    storeUnChangeKey(entry);
+	    storeAddEntry(entry);
 	    break;
 	}
     }
