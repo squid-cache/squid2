@@ -1496,7 +1496,7 @@ storeCheckCachable(StoreEntry * e)
 	debug(20, 2) ("storeCheckCachable: NO: not cachable\n");
     } else if (BIT_TEST(e->flag, RELEASE_REQUEST)) {
 	debug(20, 2) ("storeCheckCachable: NO: release requested\n");
-    } else if (!storeEntryValidLength(e)) {
+    } else if (e->store_status == STORE_OK && !storeEntryValidLength(e)) {
 	debug(20, 2) ("storeCheckCachable: NO: wrong content-length\n");
     } else if (BIT_TEST(e->flag, ENTRY_NEGCACHED)) {
 	debug(20, 2) ("storeCheckCachable: NO: negative cached\n");
