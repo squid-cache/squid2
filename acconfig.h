@@ -82,8 +82,10 @@
 /* Define to enable SNMP monitoring of Squid */
 #undef SQUID_SNMP
 
-/* Define to enable WCCP */
-#undef WCCP
+/*
+ * Define to enable WCCP
+ */
+#define USE_WCCP 1
 
 /*
  * Squid frequently calls gettimeofday() for accurate timestamping.

@@ -523,7 +523,7 @@ extern variable_list *snmp_meshPtblFn(variable_list *, snint *);
 extern variable_list *snmp_meshCtblFn(variable_list *, snint *);
 #endif /* SQUID_SNMP */
 
-#ifdef WCCP
+#if USE_WCCP
 extern PF wccpHandleUdp;
 extern PF wccpHandleGre;
 extern EVH wccpHereIam;
@@ -531,7 +531,7 @@ extern void wccpInit(void);
 extern void wccpConnectionOpen(void);
 extern void wccpConnectionShutdown(void);
 extern void wccpConnectionClose(void);
-#endif /* WCCP */
+#endif /* USE_WCCP */
 
 extern void icpHandleIcpV3(int, struct sockaddr_in, char *, int);
 extern int icpCheckUdpHit(StoreEntry *, request_t * request);
@@ -885,19 +885,6 @@ extern void storeAufsWrite(storeIOState *, char *, size_t, off_t, FREE *);
 extern void storeAufsUnlink(int fileno);
 #endif
 
-#if USE_DISKD
-/*
- * diskd.c
- */
-extern storeIOState *storeDiskdOpen(sfileno, mode_t, STIOCB *, void *);
-extern void storeDiskdClose(storeIOState * sio);
-extern void storeDiskdRead(storeIOState *, char *, size_t, off_t, STRCB *, void *);
-extern void storeDiskdWrite(storeIOState *, char *, size_t, off_t, FREE *);
-extern void storeDiskdUnlink(int fileno);
-extern STINIT storeDiskdInit;
-extern void storeDiskdReadQueue(void);
-#endif
-
 /*
  * store_log.c
  */
@@ -969,12 +956,8 @@ extern void storeUfsDirParse(cacheSwap * swap);
 extern void storeUfsDirDump(StoreEntry * entry, const char *name, SwapDir * s);
 extern void storeUfsDirFree(SwapDir *);
 extern char *storeUfsFullPath(sfileno fn, char *fullpath);
-extern STINIT storeUfsDirInit;
 #if USE_ASYNC_IO
 extern void storeAufsDirParse(cacheSwap * swap);
-#endif
-#if USE_DISKD
-extern void storeDiskdDirParse(cacheSwap *);
 #endif
 
 

@@ -280,9 +280,11 @@ struct _SquidConfig {
 	u_short localPort;
     } Snmp;
 #endif
-#if WCCP
+#if USE_WCCP
     struct {
 	struct in_addr router;
+	struct in_addr incoming;
+	struct in_addr outgoing;
     } Wccp;
 #endif
     char *as_whois_server;
@@ -334,10 +336,6 @@ struct _SquidConfig {
 #if SQUID_SNMP
 	struct in_addr snmp_incoming;
 	struct in_addr snmp_outgoing;
-#endif
-#if WCCP
-	struct in_addr wccp_incoming;
-	struct in_addr wccp_outgoing;
 #endif
 	struct in_addr client_netmask;
     } Addrs;
@@ -1317,22 +1315,6 @@ struct _SwapDir {
 	    int l2;
 	    int swaplog_fd;
 	} ufs;
-#if USE_DISKD
-	struct {
-	    int l1;
-	    int l2;
-	    int swaplog_fd;
-	    int smsgid;
-	    int rmsgid;
-	    int wfd;
-	    int away;
-	    struct {
-		char *buf;
-		link_list *stack;
-		int id;
-	    } shm;
-	} diskd;
-#endif
     } u;
 };
 
@@ -1396,16 +1378,6 @@ struct _storeIOState {
 	    const char *read_buf;
 	    link_list *pending_writes;
 	} aufs;
-#if USE_DISKD
-	struct {
-	    int id;
-	    struct {
-		unsigned int reading:1;
-		unsigned int writing:1;
-	    } flags;
-	    char *read_buf;
-	} diskd;
-#endif
     } type;
 };
 

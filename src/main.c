@@ -280,7 +280,7 @@ serverConnectionsOpen(void)
 #ifdef SQUID_SNMP
     snmpConnectionOpen();
 #endif
-#ifdef WCCP
+#if USE_WCCP
     wccpConnectionOpen();
 #endif
     clientdbInit();
@@ -306,7 +306,7 @@ serverConnectionsClose(void)
 #ifdef SQUID_SNMP
     snmpConnectionShutdown();
 #endif
-#ifdef WCCP
+#if USE_WCCP
     wccpConnectionShutdown();
 #endif
     asnFreeMemory();
@@ -326,7 +326,7 @@ mainReconfigure(void)
 #ifdef SQUID_SNMP
     snmpConnectionClose();
 #endif
-#ifdef WCCP
+#if USE_WCCP
     wccpConnectionClose();
 #endif
     dnsShutdown();
@@ -468,7 +468,7 @@ mainInitialize(void)
 #ifdef SQUID_SNMP
     snmpInit();
 #endif
-#ifdef WCCP
+#if USE_WCCP
     wccpInit();
 #endif
 #if MALLOC_DBG
@@ -525,7 +525,7 @@ mainInitialize(void)
 	    eventAdd("start_announce", start_announce, NULL, 3600.0, 1);
 	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10.0, 1);
 	eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 15.0, 1);
-#ifdef WCCP
+#if USE_WCCP
 	if (Config.Wccp.router.s_addr != inet_addr("0.0.0.0"))
 	    eventAdd("wccpHereIam", wccpHereIam, NULL, 10.0, 1);
 #endif
@@ -798,7 +798,7 @@ SquidShutdown(void *unused)
 #ifdef SQUID_SNMP
     snmpConnectionClose();
 #endif
-#ifdef WCCP
+#if USE_WCCP
     wccpConnectionClose();
 #endif
     releaseServerSockets();

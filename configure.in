@@ -304,14 +304,14 @@ AC_ARG_ENABLE(useragent_log,
 ])
 
 AC_ARG_ENABLE(wccp,  
-[  --enable-wccp       Enable Web Cache Coordination Protocol],
-[ if test "$enableval" = "yes" ; then
-    echo "Web Cache Coordination Protocol enabled"
-    WCCP_OBJS='$(WCCP_OBJS)'
-    AC_DEFINE(WCCP)
+[  --disable-wccp      Disable Web Cache Coordination Protocol],
+[ if test "$enableval" = "no" ; then
+    echo "Web Cache Coordination Protocol disabled"
+    AC_DEFINE(USE_WCCP, 0)
+  else
+    AC_DEFINE(USE_WCCP, 1)
   fi
 ])      
-AC_SUBST(WCCP_OBJS)
 
 AC_ARG_ENABLE(kill_parent_hack,
 [  --enable-kill-parent-hack
