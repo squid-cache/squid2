@@ -43,7 +43,7 @@ void _db_print(va_alist)
     level = va_arg(args, int);
     format = va_arg(args, char *);
 
-    if (debugLevels[section] > level) {
+    if (level > debugLevels[section]) {
 	va_end(args);
 	return;
     }
