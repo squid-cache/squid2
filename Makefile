@@ -3,14 +3,12 @@
 # $Id$
 #
 
-prefix=/usr/local/squid
-exec_prefix=${prefix}
+prefix		= /usr/local/squid
+exec_prefix	= ${prefix}
 
 SHELL		= /bin/sh
 
-all: makefile doall
-
-doall:
+all: makefile
 	@${MAKE} -f makefile all
 
 squid: makefile dosquid
@@ -25,3 +23,4 @@ dosquid:
 makefile: makefile.in Makefile
 	@echo Running configure script to generate makefile
 	./configure --prefix=${prefix} --exec_prefix=${exec_prefix}
+# DO NOT DELETE

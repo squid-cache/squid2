@@ -21,7 +21,7 @@
 #	src/include/config.h).  For httpd-accel mode, use 80.  The value
 #	given here may be overridden by using the -a command line
 #	option.
-#ascii_port 3128
+#ascii_port @CACHE_HTTP_PORT@
 
 #  TAG: udp_port
 #	The port number where cached will listen for ICP requests from
@@ -29,7 +29,7 @@
 #	src/include/config.h).  For httpd-accel mode, it can be disabled
 #	with -1.  The value given here may be overridden by using the -u
 #	command line option.
-#udp_port 3130
+#udp_port @CACHE_ICP_PORT@
 
 #
 #  TAG: httpd_accel 
@@ -272,12 +272,12 @@
 #
 #  TAG: cache_dir 
 #	Directory for on-disk cache storage.  The cache will change into
-#	this directory when running.  The default is /tmp/cache.  
+#	this directory when running.  The default is @prefix@/cache.
 #
 #	You can specify multiple cache_dir lines to spread the
 #	cache among different disk partitions.
 #
-#cache_dir /tmp/cache
+#cache_dir @prefix@/cache
 
 ###################################################################
 #  Parameters for defining cache server behaviour
@@ -388,7 +388,7 @@ manager_allow    all
 #	Cache access logfile, which logs the hits/misses.  
 #	The default is "cache.access.log" in the current directory.
 #
-#cache_access_log cache.access.log 
+#cache_access_log @prefix@/logs/access.log
 
 #
 #  TAG: cache_log 
@@ -396,7 +396,7 @@ manager_allow    all
 #	1=useful feedback, ..., 10=maximal output. The default is to
 #	write to "cache.log" in the current directory at level 0.
 #
-#cache_log cache.log 0
+#cache_log @prefix@/logs/cache.log
 
 #
 #  TAG: cache_hierarchy_log 
@@ -404,7 +404,7 @@ manager_allow    all
 #	neighbor, or source host a request is satisfied from.
 #	The default filename is cache.hierarchy.log.
 #
-#cache_hierarchy_log cache.hierarchy.log 
+#cache_hierarchy_log @prefix@/logs/hierarchy.log 
 
 #
 #  TAG: emulate_httpd_log
@@ -425,7 +425,7 @@ manager_allow    all
 #	and Gopher protocol support are built into the cache).  The
 #	default is ftpget, so the program must be in your PATH.
 #
-#cache_ftp_program ftpget
+cache_ftp_program @prefix@/bin/ftpget
 
 #
 #  TAG: cache_ftp_options
@@ -442,7 +442,7 @@ manager_allow    all
 #	Specify the location of the executable for dnslookup process.
 #	The default is dnsserver, so the program must be in your PATH.
 #
-#cache_dns_program dnsserver
+cache_dns_program @prefix@/bin/dnsserver
 
 ###################################################################
 #  Parameters for tuning the cache
@@ -752,9 +752,6 @@ ftp_user Harvest@
 #
 request_size 100
 
-
-
-#### NEW
 
 
 #  TAG: connect_port

@@ -207,8 +207,8 @@ static void mainInitialize()
     if (theUdpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
 	neighbors_open(theUdpConnection);
 
-    if (!first_time) {
-
+    if (first_time) {
+	first_time = 0;
 	/* module initialization */
 	disk_init();
 	stat_init(&CacheInfo, getAccessLogFile());
@@ -228,7 +228,6 @@ int main(argc, argv)
      char **argv;
 {
     int errcount = 0;
-    char *s = NULL;
     int n;			/* # of GC'd objects */
     time_t last_maintain = 0;
 
@@ -267,14 +266,9 @@ int main(argc, argv)
     fd_note(1, "STDOUT");
     fd_note(2, "STDERR");
 
-    if (config_file == NULL) {
-	if ((s = getenv("HARVEST_HOME")) != NULL) {
-	    config_file = (char *) xcalloc(1, strlen(s) + 64);
-	    sprintf(config_file, "%s/lib/cached.conf", s);
-	} else {
-	    config_file = xstrdup("/usr/local/harvest/lib/cached.conf");
-	}
-    }
+    if (config_file == NULL)
+	config_file = xstrdup(DEFAULT_CONFIG_FILE);
+
     /* enable syslog by default */
     syslog_enable = 0;
 
