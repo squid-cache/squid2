@@ -280,7 +280,7 @@ struct SquidConfig {
 	int icp_hit_stale;
 #ifdef RELOAD_INTO_IMS
 	int reload_into_ims;
-#endif /* RELOAD_INTO_IMS */
+#endif				/* RELOAD_INTO_IMS */
     } Options;
     char *fake_ua;
 };
