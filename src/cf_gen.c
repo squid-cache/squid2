@@ -440,7 +440,7 @@ gen_dump(Entry * head, FILE * fp)
 {
     Entry *entry;
     fprintf(fp,
-	"void\n"
+	"static void\n"
 	"dump_config(StoreEntry *entry)\n"
 	"{\n"
 	);

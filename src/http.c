@@ -125,7 +125,7 @@ enum {
 
 static CNCB httpConnectDone;
 static CWCB httpSendComplete;
-static void *sendHeaderDone;
+static CWCB *sendHeaderDone;
 static CWCB httpSendRequestEntry;
 
 static PF httpReadReply;
