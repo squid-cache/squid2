@@ -13,6 +13,8 @@ typedef struct _ext_table_entry {
 } ext_table_entry;
 
 extern char *mime_get_header _PARAMS((char *mime, char *header));
+extern char *mime_headers_end _PARAMS((char *mime));
+extern int mime_headers_size _PARAMS((char *mime));
 extern void mime_process _PARAMS((char *mime));
 extern ext_table_entry *mime_ext_to_type _PARAMS((char *extension));
 extern int mk_mime_hdr _PARAMS((char *, time_t, int, time_t, char *));

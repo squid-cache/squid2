@@ -76,6 +76,10 @@ typedef struct {
 /* Local functions */
 static void icpHandleStore _PARAMS((int, StoreEntry *, icpStateData *));
 static void icpHandleStoreComplete _PARAMS((int, char *, int, int, void *icpState));
+static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, icpStateData *));
+static void icpHandleIMSComplete _PARAMS((int, char *, int, int, void *icpState));
+static int icpProcessHIT _PARAMS((int, icpStateData *));
+static int icpProcessIMS _PARAMS((int, icpStateData *));
 static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
 static void icpHitObjHandler _PARAMS((int, void *));
@@ -407,6 +411,139 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, data)
     }
 }
 
+static int icpGetHeadersForIMS(fd, icpState)
+     int fd;
+     icpStateData *icpState;
+{
+    StoreEntry *entry = icpState->entry;
+    char *buf = icpState->buf;
+    int buf_len = icpState->offset;
+    int len;
+    int max_len = 8191 - buf_len;
+    char *p = buf + buf_len;
+    char *IMS_hdr;
+    time_t IMS;
+    int IMS_length;
+    time_t date;
+    int length;
+
+    if (max_len <= 0) {
+	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n", entry->key ? entry->key : entry->url);
+	icpFreeBufOrPage(icpState);
+	icpState->offset = 0;
+	return icpProcessMISS(fd, icpState);
+    }
+    storeClientCopy(entry, icpState->offset, max_len, p, &len, fd);
+    buf_len = icpState->offset = +len;
+
+    if (!mime_headers_end(buf)) {
+	/* All headers are not yet available, wait for more data */
+	storeRegister(entry, fd, (PIF) icpHandleStoreIMS, (void *) icpState);
+	return COMM_OK;
+    }
+    /* All headers are available, check if object is modified or not */
+    IMS_hdr = mime_get_header(icpState->request_hdr, "If-Modified-Since");
+    httpParseHeaders(buf, entry->mem_obj->reply);
+
+    /* Headers is no longer needed (they are parsed) */
+    icpFreeBufOrPage(icpState);
+
+    if (!IMS_hdr) {
+	fatal_dump("icpGetHeadersForIMS: Cant find IMS header in request\n");
+    }
+    /* Restart the object from the beginning */
+    icpState->offset = 0;
+
+    /* Only objects with statuscode==200 can be "Not modified" */
+    /* XXX: Should we ignore this? */
+    if (entry->mem_obj->reply->code != 200) {
+	return icpProcessMISS(fd, icpState);
+    }
+    p = strtok(IMS_hdr, ";");
+    IMS = parse_rfc850(p);
+    IMS_length = -1;
+    while ((p = strtok(NULL, ";"))) {
+	while (isspace(*p))
+	    p++;
+	if (strncasecmp(p, "length=", 7) == 0)
+	    IMS_length = atoi(strchr(p, '=') + 1);
+    }
+
+    /* Find date when the object last was modified */
+    if (*entry->mem_obj->reply->last_modified)
+	date = parse_rfc850(entry->mem_obj->reply->last_modified);
+    else if (*entry->mem_obj->reply->date)
+	date = parse_rfc850(entry->mem_obj->reply->date);
+    else
+	date = entry->timestamp;
+
+    /* Find size of the object */
+    if (entry->mem_obj->reply->content_length)
+	length = entry->mem_obj->reply->content_length;
+    else
+	length = entry->object_len - mime_headers_size(buf);
+
+    /* Compare with If-Modified-Since header */
+    if (IMS > date || (IMS == date && (IMS_length < 0 || IMS_length == length))) {
+	/* The object is not modified */
+	debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
+	strcpy(buf, "HTTP/1.0 304 Not modified\n\r\n\r");
+	comm_write(fd, "HTTP/1.0 304 Not modified\r\n\r\n", strlen("HTTP/1.0 304 Not modified\r\n\r\n"), 30, icpHandleIMSComplete, (void *) icpState);
+	return COMM_OK;
+    } else {
+	debug(12, 4, "icpGetHeadersForIMS: We have newer '%s'\n", entry->url);
+	/* We have a newer object */
+	return icpProcessHIT(fd, icpState);
+    }
+}
+
+static void icpHandleStoreIMS(fd, entry, icpState)
+     int fd;
+     StoreEntry *entry;
+     icpStateData *icpState;
+{
+    icpGetHeadersForIMS(fd, icpState);
+}
+
+static void icpHandleIMSComplete(fd, buf, size, errflag, data)
+     int fd;
+     char *buf;
+     int size;
+     int errflag;
+     void *data;
+{
+    icpStateData *icpState = (icpStateData *) data;
+    StoreEntry *entry = icpState->entry;
+    debug(12, 5, "icpHandleIMSComplete: Not Modified sent '%s'\n", entry->url);
+
+    /* XXX: Is this correct? */
+    CacheInfo->proto_touchobject(CacheInfo,
+	CacheInfo->proto_id(entry->url),
+	strlen(buf));
+
+    /* Set up everything for the logging */
+    storeUnlockObject(icpState->entry);
+    icpState->entry = NULL;
+    icpState->size = strlen(buf);
+
+    comm_close(fd);
+}
+
+#ifdef OLD_CODE
+int icpDoQuery(fd, icpState)
+     int fd;
+     icpStateData *icpState;
+{
+    icpState->buf = icpState->ptr_to_4k_page = NULL;	/* Nothing to free */
+    /* XXX not implemented over tcp. */
+    icpSendERROR(fd,
+	ICP_ERROR_INTERNAL,
+	"not implemented over tcp",
+	icpState);
+    return COMM_OK;
+}
+#endif
+
 /*
  * Below, we check whether the object is a hit or a miss.  If it's a hit,
  * we check whether the object is still valid or whether it is a MISS_TTL.
@@ -448,61 +585,96 @@ static void icp_hit_or_miss(fd, icpState)
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* This object isn't in the cache.  We do not hold a lock yet */
 	icpState->log_type = LOG_TCP_MISS;
-	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
-	icpProcessMISS(fd, icpState);
-	return;
-    }
-    /* The object is in the cache, but is it valid? */
-    if (!storeEntryValidToSend(entry)) {
+    } else if (!storeEntryValidToSend(entry)) {
+	/* The object is in the cache, but is not valid */
+	/* Eject old cached object */
 	storeRelease(entry);
+	entry = NULL;
 	icpState->log_type = LOG_TCP_EXPIRED;
-    } else if (BIT_TEST(icpState->flags, REQ_IMS)) {
-	/* no storeRelease() here because this request will always
-	 * start private (IMS clears HIERARCHICAL) */
-	/* check IMS before nocache so IMS+NOCACHE won't eject valid object */
-	icpState->log_type = LOG_TCP_IFMODSINCE;
     } else if (BIT_TEST(icpState->flags, REQ_NOCACHE)) {
-	storeRelease(entry);
+	/* IMS+NOCACHE should not eject valid object */
+	if (!BIT_TEST(icpState->flags, REQ_IMS)) {
+	    storeRelease(entry);
+	}
+	entry = NULL;
 	icpState->log_type = LOG_TCP_USER_REFRESH;
-    } else if (storeLockObject(entry, NULL, NULL) < 0) {
-	storeRelease(entry);
-	icpState->log_type = LOG_TCP_SWAPIN_FAIL;
+    } else if (BIT_TEST(icpState->flags, REQ_IMS)) {
+	/* A cached IMS request */
+	icpState->log_type = LOG_TCP_IFMODSINCE;
     } else {
 	icpState->log_type = LOG_TCP_HIT;
     }
 
+    /* Lock the object */
+    if (entry != NULL && storeLockObject(entry, NULL, NULL) < 0) {
+	storeRelease(entry);
+	entry = NULL;
+	icpState->log_type = LOG_TCP_SWAPIN_FAIL;
+    }
+    /* Reset header fields for  reply. */
+    memset(&icpState->header, 0, sizeof(icp_common_t));
+    icpState->header.version = ICP_VERSION_CURRENT;
+    /* icpState->header.reqnum = 0; */
+    icpState->header.shostid = 0;
+    icpState->entry = entry;	/* Save a reference to the object */
+    icpState->offset = 0;
+
     debug(12, 4, "icp_hit_or_miss: %s for '%s'\n",
 	log_tags[icpState->log_type],
 	icpState->url);
+
+    if (entry != NULL) {
+	CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
+	entry->refcount++;
+    } else {
+	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
+    }
+
     switch (icpState->log_type) {
     case LOG_TCP_HIT:
-	/* We HOLD a lock on object "entry" */
-	CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
-
-	/* Reset header for reply. */
-	memset(&icpState->header, 0, sizeof(icp_common_t));
-	icpState->header.version = ICP_VERSION_CURRENT;
-	/* icpState->header.reqnum = 0; */
-	icpState->header.shostid = 0;
-	icpState->entry = entry;
-	icpState->offset = 0;
-
-	/* Send object to requestor */
-	entry->refcount++;	/* HIT CASE */
-
-	icpSendMoreData(fd, icpState);
+	icpProcessHIT(fd, icpState);
+	break;
+    case LOG_TCP_IFMODSINCE:
+	icpProcessIMS(fd, icpState);
 	break;
     default:
-	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
 	icpProcessMISS(fd, icpState);
 	break;
     }
 }
 
 /*
+ * Send object as a cache hit
+ */
+static int icpProcessHIT(fd, icpState)
+     int fd;
+     icpStateData *icpState;
+{
+    /* Send object to requestor */
+    return icpSendMoreData(fd, icpState);
+}
+
+
+/*
+ * Prepare to respond to a IMS request
+ * This requires fetching the Last-Modified (or Date) header
+ * and compare this with the request.
+ * If the object is unmodified (older, or same date(+size))
+ * respond with 304, else process as a HIT
+ */
+static int icpProcessIMS(fd, icpState)
+     int fd;
+     icpStateData *icpState;
+{
+    /* Use buf as a temporary storage for mime headers */
+    icpState->buf = xcalloc(8192, 1);
+    /* And fetch headers */
+    return icpGetHeadersForIMS(fd, icpState);
+}
+
+
+/*
  * Prepare to fetch the object as it's a cache miss of some kind.
- * The calling client should NOT hold a lock on object at this
- * time, as we're about to release any TCP_MISS version of the object.
  */
 static int icpProcessMISS(fd, icpState)
      int fd;
@@ -516,6 +688,12 @@ static int icpProcessMISS(fd, icpState)
 	RequestMethodStr[icpState->method], url);
     debug(12, 10, "icpProcessMISS: request_hdr:\n%s\n", request_hdr);
 
+    /* Get rid of any references to a StoreEntry (if any) */
+    if (icpState->entry) {
+	storeUnregister(icpState->entry, fd);
+	storeUnlockObject(icpState->entry);
+	icpState->entry = NULL;
+    }
     entry = storeCreateEntry(url,
 	request_hdr,
 	icpState->flags,
@@ -1065,8 +1243,8 @@ static int parseHttpRequest(icpState)
     req_hdr = t;
     req_hdr_sz = icpState->offset - (req_hdr - inbuf);
 
-    /* The request is received when a empty header line is receied */
-    if (!strstr(req_hdr, "\r\n\r\n") && !strstr(req_hdr, "\n\n")) {
+    /* Check if headers are received */
+    if (!mime_headers_end(req_hdr)) {
 	xfree(inbuf);
 	return 0;		/* not a complete request */
     }
@@ -1088,11 +1266,7 @@ static int parseHttpRequest(icpState)
 	content_length = atoi(t);
 	debug(12, 3, "parseHttpRequest: Expecting POST Content-Length of %d\n",
 	    content_length);
-	if ((t = strstr(req_hdr, "\r\n\r\n"))) {
-	    post_data = t + 4;
-	} else if ((t = strstr(req_hdr, "\n\n"))) {
-	    post_data = t + 2;
-	} else {
+	if (!(post_data = mime_headers_end(req_hdr))) {
 	    debug(12, 1, "parseHttpRequest: Can't find end of headers in POST request?\n");
 	    xfree(inbuf);
 	    return 0;		/* not a complete request */
@@ -1361,6 +1535,7 @@ int asciiHandleConn(sock, notused)
     icpState->header.shostid = htonl(peer.sin_addr.s_addr);
     icpState->peer = peer;
     icpState->me = me;
+    icpState->entry = NULL;
     comm_set_select_handler(fd,
 	COMM_SELECT_LIFETIME,
 	(PF) asciiConnLifetimeHandle,

@@ -124,12 +124,8 @@ static void ftpProcessReplyHeader(data, buf, size)
      char *buf;			/* chunk just read by ftpReadReply() */
      int size;
 {
-    char *s = NULL;
     char *t = NULL;
-    char *t1 = NULL;
-    char *t2 = NULL;
     StoreEntry *entry = data->entry;
-    char *headers = NULL;
     int room;
     int hdr_len;
     struct _http_reply *reply = NULL;
@@ -150,18 +146,11 @@ static void ftpProcessReplyHeader(data, buf, size)
 	    data->reply_hdr_state += 2;
 	    return;
 	}
-	/* need to take the lowest, non-zero pointer to the end of the headers.
-	 * some objects have \n\n separating header and body, but \r\n\r\n in
-	 * body text. */
-	t1 = strstr(data->reply_hdr, "\r\n\r\n");
-	t2 = strstr(data->reply_hdr, "\n\n");
-	if (t1 && t2)
-	    t = t2 < t1 ? t2 : t1;
-	else
-	    t = t2 ? t2 : t1;
+	/* Find the end of the headers */
+	t = mime_headers_end(data->reply_hdr);
 	if (!t)
 	    return;		/* headers not complete */
-	t += (t == t1 ? 4 : 2);
+	/* Cut after end of headers */
 	*t = '\0';
 	reply = entry->mem_obj->reply;
 	reply->hdr_sz = t - data->reply_hdr;
@@ -169,50 +158,12 @@ static void ftpProcessReplyHeader(data, buf, size)
 	data->reply_hdr_state++;
     }
     if (data->reply_hdr_state == 1) {
-	headers = xstrdup(data->reply_hdr);
 	data->reply_hdr_state++;
 	debug(11, 9, "GOT HTTP REPLY HDR:\n---------\n%s\n----------\n",
 	    data->reply_hdr);
-	t = strtok(headers, "\n");
-	while (t) {
-	    s = t + strlen(t);
-	    while (*s == '\r')
-		*s-- = '\0';
-	    if (!strncasecmp(t, "HTTP", 4)) {
-		sscanf(t + 1, "%lf", &reply->version);
-		if ((t = strchr(t, ' '))) {
-		    t++;
-		    reply->code = atoi(t);
-		}
-	    } else if (!strncasecmp(t, "Content-type:", 13)) {
-		if ((t = strchr(t, ' '))) {
-		    t++;
-		    strncpy(reply->content_type, t, HTTP_REPLY_FIELD_SZ - 1);
-		}
-	    } else if (!strncasecmp(t, "Content-length:", 15)) {
-		if ((t = strchr(t, ' '))) {
-		    t++;
-		    reply->content_length = atoi(t);
-		}
-	    } else if (!strncasecmp(t, "Date:", 5)) {
-		if ((t = strchr(t, ' '))) {
-		    t++;
-		    strncpy(reply->date, t, HTTP_REPLY_FIELD_SZ - 1);
-		}
-	    } else if (!strncasecmp(t, "Expires:", 8)) {
-		if ((t = strchr(t, ' '))) {
-		    t++;
-		    strncpy(reply->expires, t, HTTP_REPLY_FIELD_SZ - 1);
-		}
-	    } else if (!strncasecmp(t, "Last-Modified:", 14)) {
-		if ((t = strchr(t, ' '))) {
-		    t++;
-		    strncpy(reply->last_modified, t, HTTP_REPLY_FIELD_SZ - 1);
-		}
-	    }
-	    t = strtok(NULL, "\n");
-	}
-	safe_free(headers);
+	/* Parse headers into reply structure */
+	httpParseHeaders(data->reply_hdr, reply);
+	/* Check if object is cacheable or not based on reply code */
 	if (reply->code)
 	    debug(11, 3, "ftpProcessReplyHeader: HTTP CODE: %d\n", reply->code);
 	switch (reply->code) {
