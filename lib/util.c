@@ -27,7 +27,7 @@ void (*failure_notify) _PARAMS((char *)) = NULL;
 static char msg[128];
 
 extern int sys_nerr;
-#if !defined(__FreeBSD__) && !defined(__NetBSD__)
+#if !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__bsdi__)
 extern char *sys_errlist[];
 #endif
 
