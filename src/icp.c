@@ -1587,7 +1587,7 @@ static int parseHttpRequest(icpState)
 		inet_ntoa(icpState->me.sin_addr),
 		getAccelPort(),
 		request);
-	    debug(12, 0, "VHOST REWRITE: '%s'\n", icpState->url);
+	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
 	}
 	BIT_SET(icpState->flags, REQ_ACCEL);
     } else {
