@@ -1232,6 +1232,7 @@ parse_peer(peer ** head)
 #endif
 	} else if (!strncasecmp(token, "login=", 6)) {
 	    p->login = xstrdup(token + 6);
+	    rfc1738_unescape(p->login);
 	} else if (!strncasecmp(token, "connect-timeout=", 16)) {
 	    p->connect_timeout = atoi(token + 16);
 #if USE_CACHE_DIGESTS
