@@ -403,7 +403,7 @@ xmalloc_find_leaks(void)
 void *
 xmalloc(size_t sz)
 {
-    static void *p;
+    void *p;
 
     if (sz < 1)
 	sz = 1;
@@ -479,7 +479,7 @@ xxfree(void *s)
 void *
 xrealloc(void *s, size_t sz)
 {
-    static void *p;
+    void *p;
 
 #if XMALLOC_TRACE
     xmalloc_show_trace(s, -1);
@@ -524,7 +524,7 @@ xrealloc(void *s, size_t sz)
 void *
 xcalloc(int n, size_t sz)
 {
-    static void *p;
+    void *p;
 
     if (n < 1)
 	n = 1;
@@ -563,7 +563,7 @@ xcalloc(int n, size_t sz)
 char *
 xstrdup(const char *s)
 {
-    static char *p = NULL;
+    char *p = NULL;
     size_t sz;
 
     if (s == NULL) {
