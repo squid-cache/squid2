@@ -266,7 +266,7 @@ static int ipcacheExpiredEntry(i)
 	return 0;
     if (i->status == IP_PENDING && ipcacheHasPending(i))
 	return 0;
-    if (i->ttl + i->lastref < squid_curtime)
+    if (i->ttl + i->lastref > squid_curtime)
 	return 0;
     return 1;
 }
