@@ -1824,7 +1824,7 @@ asciiHandleConn(int sock, void *notused)
 	    sock, xstrerror());
 	return;
     }
-    if (Config.vizHackAddr.sin_port)
+    if (vizSock > -1)
 	vizHackSendPkt(&peer, 1);
     /* set the hardwired lifetime */
     lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
@@ -2030,7 +2030,7 @@ icpDetectNewRequest(int fd)
 	return;
     }
     ntcpconn++;
-    if (Config.vizHackAddr.sin_port)
+    if (vizSock > -1)
 	vizHackSendPkt(&peer, 1);
     debug(12, 4, "icpDetectRequest: FD %d: accepted, lifetime %d\n", fd, lft);
     icpState = xcalloc(1, sizeof(icpStateData));
@@ -2105,11 +2105,12 @@ vizHackSendPkt(const struct sockaddr_in *from, int type)
     static struct viz_pkt v;
     v.from = from->sin_addr.s_addr;
     v.type = (char) type;
-    comm_udp_sendto(theOutIcpConnection,
-	&Config.vizHackAddr,
-	sizeof(struct sockaddr_in),
-	            (char *) &v,
-	sizeof      (v));
+    sendto(vizSock,
+	(char *) &v,
+	sizeof(v),
+	0,
+	(struct sockaddr *) &Config.vizHack.S,
+	sizeof(struct sockaddr_in));
 }
 
 /* 

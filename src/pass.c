@@ -498,7 +498,7 @@ passConnectDone(int fd, int status, void *data)
     if (opt_no_ipcache)
 	ipcacheInvalidate(passState->host);
     passConnected(passState->server.fd, passState);
-    if (Config.vizHackAddr.sin_port)
+    if (vizSock > -1)
 	vizHackSendPkt(&passState->connectState.S, 2);
 }
 

@@ -385,7 +385,7 @@ sslConnectDone(int fd, int status, void *data)
 	sslProxyConnected(sslState->server.fd, sslState);
     else
 	sslConnected(sslState->server.fd, sslState);
-    if (Config.vizHackAddr.sin_port)
+    if (vizSock > -1)
 	vizHackSendPkt(&sslState->connectState.S, 2);
 }
 

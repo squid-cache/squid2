@@ -252,7 +252,12 @@ struct SquidConfig {
 	int avgObjectSize;
 	int maxObjectSize;
     } Store;
-    struct sockaddr_in vizHackAddr;
+    struct {
+	struct in_addr addr;
+	u_short port;
+	int mcast_ttl;
+	struct sockaddr_in S;
+    } vizHack;
     int levelOneDirs;
     int levelTwoDirs;
     struct {
