@@ -3,7 +3,7 @@
 INSTALLBIN = /usr/local/squid/bin
 
 OBJECTS = md4.o rfcnb-io.o rfcnb-util.o session.o smbauth.o smbdes.o \
-smbencrypt.o smblib-util.o smblib.o valid.o
+smbencrypt.o smblib-util.o smblib.o valid.o denyusers.o
 
 CC      = gcc
 CFLAGS  = -s -O2

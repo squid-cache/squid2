@@ -1,8 +1,8 @@
 
-MSNT Auth v1.0
+MSNT Auth v1.1
 Squid web proxy Authentication module
 Antonino Iannella, Stellar-X Pty Ltd
-Sun Mar 12 15:36:58 CST 2000
+Mon Apr 10 22:47:33 CST 2000
 _____________________________________
 
 This is a simple authentication module for the Squid proxy server
@@ -12,30 +12,41 @@ It originates from the Samba and SMB packages by Andrew Tridgell
 and Richard Sharpe. This version is sourced from the Pike
 authentication module by William Welliver (hwellive@intersil.com).
 
-Its use is simple. It accepts a username and password on standard input
+Usage is simple. It accepts a username and password on standard input
 and will return OK if the username/password is valid for the domain,
 or ERR if there was some problem.
 
 You will need to modify the NT server definitions for your site;
-this is the NT server and domain to authenticate to.
-This is done in smbauth.c.
+this is the NT server and NT domain to authenticate to.
+This is done in sitedef.h.
 
-This release serves as a documentation update.
-There have been no source code changes since the October 1999 release.
-Note the change in contact details.
+Usernames can now be explicitly denied. See below for details.
 
 This is released under the GNU General Public License and
 is available from http://stellarx.tripod.com.
 
 Site customisation -
 
-Change the following lines in smbauth.c.
+Change the following lines in sitedef.h.
 Set the Primary Domain Controller, the backup (if different from the PDC),
 and the NT domain.
 
   #define PRIMARY_DC "my_pdc"
   #define BACKUP_DC  "my_bdc"
   #define NTDOMAIN   "my_domain"
+
+Denying Users -
+
+Users who are not allowed to access the web proxy can be added to
+the denied user list. This list is read every minute, or when
+msntauth receives a SIGHUP signal.
+
+The denied user file is /usr/local/squid/etc/denyusers. This may be
+changed in the DENYUSERS line in denyusers.c. The denied user file
+contains a list of usernames in no particular structure or form.
+If the file does not exist, no users are denied.
+The file must be readable by the web proxy user.
+Msntauth will send syslog messages at LOG_USER priority.
 
 Installation -
 
