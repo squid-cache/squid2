@@ -751,7 +751,6 @@ extern void storeClientCopy(StoreEntry * e,
     STCB * callback,
     void *data);
 extern int storePendingNClients(const StoreEntry *);
-extern HASHCMP urlcmp;
 extern EVH storeMaintainSwapSpace;
 extern void storeExpireNow(StoreEntry *);
 extern void storeReleaseRequest(StoreEntry *);

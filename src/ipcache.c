@@ -604,7 +604,7 @@ ipcache_init(void)
     ipcache_low = (long) (((float) Config.ipcache.size *
 	    (float) Config.ipcache.low) / (float) 100);
     n = hashPrime(ipcache_high / 4);
-    ip_table = hash_create(urlcmp, n, hash4);
+    ip_table = hash_create((HASHCMP*) strcmp, n, hash4);
     cachemgrRegister("ipcache",
 	"IP Cache Stats and Contents",
 	stat_ipcache_get, 0, 1);

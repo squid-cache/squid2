@@ -806,13 +806,6 @@ storeConfigure(void)
     store_pages_low = store_mem_low / SM_PAGE_SIZE;
 }
 
-int
-urlcmp(const void *url1, const void *url2)
-{
-    assert(url1 && url2);
-    return (strcmp(url1, url2));
-}
-
 static int
 storeKeepInMemory(const StoreEntry * e)
 {
