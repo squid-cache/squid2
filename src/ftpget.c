@@ -233,7 +233,6 @@ char *server_reply_msg = NULL;
 struct sockaddr_in ifc_addr;
 static time_t last_alarm_set = 0;
 request_t *MainRequest = NULL;
-request_t *CurrentRequest = NULL;
 
 /* This linked list holds the "continuation" lines before the final
  * reply code line is sent for a FTP command */
@@ -428,26 +427,6 @@ state_t request_timeout(r)
     r->errmsg = xstrdup(buf);
     r->rc = 7;
     return FAIL_TIMEOUT;
-}
-
-void timeout_handler(sig)
-     int sig;
-{
-    time_t now;
-    static char buf[SMALLBUFSIZ];
-
-    now = time(NULL);
-    sprintf(buf, "Timeout after %d seconds.\n",
-	(int) (now - last_alarm_set));
-    errorlog(buf);
-    if (MainRequest == NULL)
-	exit(1);
-    if (MainRequest != CurrentRequest) {
-	CurrentRequest->state = DONE;
-	return;
-    }
-    MainRequest->errmsg = xstrdup(buf);
-    MainRequest->state = FAIL_TIMEOUT;
 }
 
 void sigchld_handler(sig)
@@ -841,15 +820,14 @@ int read_reply(fd)
     cmd_msg = NULL;
     Tail = &cmd_msg;
 
-    if (server_reply_msg) {
-	xfree(server_reply_msg);
-	server_reply_msg = NULL;
-    }
     while (!quit) {
 	n = readline_with_timeout(fd, buf, SMALLBUFSIZ);
 	Debug(26, 1, ("read_reply: readline returned %d\n", n));
-	if (n < 0)
+	if (n < 0) {
+	    xfree(server_reply_msg);
+	    server_reply_msg = xstrdup(xstrerror());
 	    return n;
+	}
 	if (n == 0)
 	    quit = 1;
 	else
@@ -868,6 +846,7 @@ int read_reply(fd)
 	Debug(26, 1, ("read_reply: %s\n", buf));
     }
     code = atoi(buf);
+    xfree(server_reply_msg);
     server_reply_msg = xstrdup(&buf[4]);
     return code;
 }
@@ -2176,8 +2155,6 @@ int main(argc, argv)
 #endif
 	switch (i) {
 	case SIGALRM:
-	    signal(SIGALRM, timeout_handler);
-	    break;
 	case SIGINT:
 	case SIGHUP:
 	case SIGTERM:
