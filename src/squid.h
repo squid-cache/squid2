@@ -264,6 +264,10 @@
 #define storeKeyHashCmp urlcmp
 #define storeKeyHashHash hash4
 #endif
+#ifdef SQUID_SNMP
+#include "snmp.h"
+#include "snmp_config.h"
+#endif
 
 /* Needed for poll() on Linux at least */
 #if HAVE_POLL

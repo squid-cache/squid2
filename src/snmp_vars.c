@@ -1,20 +1,9 @@
-#if SQUID_SNMP
+#ifdef SQUID_SNMP
 
 #include "squid.h"
 
 #include "mib_module.h"
 #include "snmp_config.h"
-
-#define PROCESSSLOTINDEX  0
-#define PROCESSID         4
-#define PROCESSCOMMAND    8
- 
-#ifdef vax11c
-#define ioctl socket_ioctl
-#define perror socket_perror
-#endif vax11c
-
-extern  int swap, mem;
 
 /* fwd: */
 static int compare_tree ();
@@ -72,61 +61,10 @@ int snmp_enableauthentraps;
  * oid      *name           IN - pointer to name requested
  * int      name_len        IN - number of sub-ids in the name
  */
-#ifndef CLSIZE
-#define CLSIZE 256
-#endif
-#ifndef NBPG
-#define NBPG 1
-#endif
 
 long		long_return;
-#if !defined(ibm032) && !defined(linux)
-u_char		return_buf[CLSIZE*NBPG];  
-#else
-u_char		return_buf[256]; /* nee 64 */
-#define CLSIZE	256	/* XXX: ??? */
-#endif
-
-#define CMUMIB 		1, 3, 6, 1, 4, 1, 3
-#define CMUUNIXMIB  	CMUMIB, 2, 2
-
-#define SNMPMODULES 		1, 3, 6, 1, 6, 3
-
-#define SNMPSTATS		SNMPMODULES, 1, 1, 1
-#define SNMPV1STATS		SNMPMODULES, 1, 1, 2
-#define SNMPTRAP		SNMPMODULES, 1, 1, 4
-#define SNMPSET			SNMPMODULES, 1, 1, 6
-#define USECMIBOBJ		SNMPMODULES, 6, 1
-#define USECAGENT		USECMIBOBJ, 1
-#define USECSTATS		USECMIBOBJ, 2
-
-
-#ifndef linux
-
-#define HOST                    RMONMIB, 4
-#define HOSTCONTROL             HOST, 1, 1                      /* hostControlEntry */
-#define HOSTTAB                 HOST, 2, 1                      /* hostEntry */
-#define HOSTTIMETAB             HOST, 3, 1                      /* hostTimeEntry */
-#define HOSTTOPN                RMONMIB, 5
-#define HOSTTOPNCONTROL HOSTTOPN, 1, 1          /* hostTopNControlEntry */
-#define HOSTTOPNTAB             HOSTTOPN, 2, 1          /* hostTopNEntry */
-#define HOSTTIMETABADDRESS                                      1
-#define HOSTTIMETABCREATIONORDER                        2
-#define HOSTTIMETABINDEX                                        3
-#define HOSTTIMETABINPKTS                                       4
-#define HOSTTIMETABOUTPKTS                                      5
-#define HOSTTIMETABINOCTETS                                     6
-#define HOSTTIMETABOUTOCTETS                            7
-#define HOSTTIMETABOUTERRORS                            8
-#define HOSTTIMETABOUTBCASTPKTS                         9
-#define HOSTTIMETABOUTMCASTPKTS                         10
 
 /* various OIDs that are needed throughout the agent */
-
-oid sysUpTimeOid[] = {1,3,6,1,2,1,1,3,0};
-int sysUpTimeOidLen = sizeof(sysUpTimeOid)/sizeof(oid);
-
-#endif /* ! linux */
 
 /*
  * The subtree structure contains a subtree prefix which applies to
@@ -229,98 +167,7 @@ struct variable13 {
 /* No access for community SNMP, RO possible for Secure SNMP */
 #define PRIVRO   0x0002
 
-#ifndef linux
-u_char *var_hosttimetab();
-#endif
-
 static struct subtree *subtrees = 0;
-#ifdef HM_HA
-void
-snmp_vars_init ()
-{
-/*
-    { static oid base[] = {MIB, 1};
-      mib_register (base, 7, system_variables,
-	 sizeof(system_variables)/sizeof(*system_variables),
-	 sizeof(*system_variables));
-    }
-    { static oid base[] = {MIB, 1, 9, 1};
-      mib_register (base, 9, (struct variable *)or_variables,
-	 sizeof(or_variables)/sizeof(*or_variables),
-	 sizeof(*or_variables));
-    }
-    { static oid base[] = {MIB, 2};
-      mib_register (base, 7, (struct variable *)interface_variables,
-	 sizeof(interface_variables)/sizeof(*interface_variables),
-	 sizeof(*interface_variables));
-    }
-    { static oid base[] = {MIB, 3, 1, 1};
-      mib_register (base, 9, (struct variable *)at_variables,
-	 sizeof(at_variables)/sizeof(*at_variables),
-	 sizeof(*at_variables));
-    }
-    { static oid base[] = {MIB, 4};
-      mib_register (base, 7, (struct variable *)ip_variables,
-	 sizeof(ip_variables)/sizeof(*ip_variables),
-	 sizeof(*ip_variables));
-    }
-    { static oid base[] = {MIB, 5};
-      mib_register (base, 7, (struct variable *)icmp_variables,
-	 sizeof(icmp_variables)/sizeof(*icmp_variables),
-	 sizeof(*icmp_variables));
-    }
-    { static oid base[] = {MIB, 6};
-      mib_register (base, 7, (struct variable *)tcp_variables,
-	 sizeof(tcp_variables)/sizeof(*tcp_variables),
-	 sizeof(*tcp_variables));
-    }
-    { static oid base[] = {MIB, 7};
-      mib_register (base, 7, (struct variable *)udp_variables,
-	 sizeof(udp_variables)/sizeof(*udp_variables),
-	 sizeof(*udp_variables));
-    }
-
-#ifdef linux
-    { static oid base[] = {MIB, 11};
-      mib_register (base, 7, (struct variable *)snmp_variables,
-	 sizeof(snmp_variables)/sizeof(*snmp_variables),
-	 sizeof(*snmp_variables));
-    }
-#endif
-
-    { static oid base[] = {SNMPSTATS};
-      mib_register (base, 9, (struct variable *)snmpstats_variables,
-	 sizeof(snmpstats_variables)/sizeof(*snmpstats_variables),
-	 sizeof(*snmpstats_variables));
-    }
-    { static oid base[] = {SNMPV1STATS};
-      mib_register (base, 9, (struct variable *)snmpv1stats_variables,
-	 sizeof(snmpv1stats_variables)/sizeof(*snmpv1stats_variables),
-	 sizeof(*snmpv1stats_variables));
-    }
-    { static oid base[] = {SNMPTRAP};
-      mib_register (base, 9, (struct variable *)v2authtraps_variables,
-	 sizeof(v2authtraps_variables)/sizeof(*v2authtraps_variables),
-	 sizeof(*v2authtraps_variables));
-    }
-    { static oid base[] = {SNMPSET};
-      mib_register (base, 9, (struct variable *)setserno_variables,
-	 sizeof(setserno_variables)/sizeof(*setserno_variables),
-	 sizeof(*setserno_variables));
-    }
-    { static oid base[] = {USECAGENT};
-      mib_register (base, 9, (struct variable *)usecagent_variables,
-	 sizeof(usecagent_variables)/sizeof(*usecagent_variables),
-	 sizeof(*usecagent_variables));
-    }
-    { static oid base[] = {USECSTATS};
-      mib_register (base, 9, (struct variable *)usecstats_variables,
-	 sizeof(usecstats_variables)/sizeof(*usecstats_variables),
-	 sizeof(*usecstats_variables));
-    }*/
-
-}
-#endif
 
 /*
  * add an mib-entry to the subtrees list.
@@ -328,25 +175,19 @@ snmp_vars_init ()
  */
 
 void
-mib_register (oid_base, oid_base_len, mib_variables, 
-	      mib_variables_len, mib_variables_width)
-	oid *oid_base;
-	int oid_base_len;
-	struct variable *mib_variables;
-	int mib_variables_len, mib_variables_width;
+mib_register (oid *oid_base, int oid_base_len, struct variable *mib_variables, 
+	      int mib_variables_len, int mib_variables_width)
 {
   struct subtree **sptr;
   struct subtree *new_subtree = TALLOC(struct subtree);
-	debug(13,5)("snmp: registering new mib\n");
-  if (! new_subtree) {
-    fprintf (stderr, "error: registering mib: out of memory...aborting.\n");
-    exit (1);
-  }
+	debug(49,5)("snmp: registering new subtree\n");
+  if (! new_subtree) 
+    fatal("error: registering mib: out of memory...aborting.\n");
 
   /*
    * fill in new subtree element:
    */
-  memcpy (new_subtree->name, oid_base, oid_base_len * sizeof(oid));
+  xmemcpy (new_subtree->name, oid_base, oid_base_len * sizeof(oid));
   new_subtree->namelen = oid_base_len;
   new_subtree->variables = mib_variables;
   new_subtree->variables_len = mib_variables_len;
@@ -366,14 +207,11 @@ mib_register (oid_base, oid_base_len, mib_variables,
 }
 
 int
-in_view(name, namelen, viewIndex)
-    oid *name;
-    int namelen, viewIndex;
+in_view(oid *name, int namelen, int viewIndex)
 {
     viewEntry *vwp, *savedvwp = NULL;
-    extern viewEntry *views;
 
-    for( vwp = views; vwp; vwp = vwp->next ) {
+    for( vwp = Config.Snmp.views; vwp; vwp = vwp->next ) {
 	if (vwp->viewIndex != viewIndex )
 	    continue;
 	if (vwp->viewSubtreeLen > namelen
@@ -403,7 +241,15 @@ in_view(name, namelen, viewIndex)
  * requested one is returned.
  *
  * If no appropriate variable can be found, NULL is returned.
- */
+
+   IN - name of var, OUT - name matched 
+   IN -number of sub-ids in name, OUT - subid-is in matched name 
+   OUT - type of matched variable 
+   OUT - length of matched variable 
+   OUT - access control list 
+   TRUE if exact match wanted 
+   OUT - pointer to function called to set variable, otherwise 0 */
+
 u_char	*
 getStatPtr(oid 	  *name, 
 	   int 	  *namelen, 
@@ -414,18 +260,6 @@ getStatPtr(oid 	  *name,
 		int snmpversion,
 		int *noSuchObject,
 		int view)
-#ifdef HM_S
-    oid		*name;	    /* IN - name of var, OUT - name matched */
-    int		*namelen;   /* IN -number of sub-ids in name, OUT - subid-is in matched name */
-    u_char	*type;	    /* OUT - type of matched variable */
-    int		*len;	    /* OUT - length of matched variable */
-    u_short	*acl;	    /* OUT - access control list */
-    int		exact;	    /* IN - TRUE if exact match wanted */
-    SNMPWM	**write_method; /* OUT - pointer to function called to set variable, otherwise 0 */
-    int		 snmpversion;
-    int		*noSuchObject;
-    int		 view;*/
-#endif
 {
     struct subtree	*tp;
     struct variable *vp = 0;
@@ -445,7 +279,7 @@ getStatPtr(oid 	  *name,
 	return NULL;
 	}
     if (!exact){
-	bcopy(name, save, *namelen * sizeof(oid));
+	memcpy(save, name, *namelen * sizeof(oid));
 	savelen = *namelen;
     }
     *write_method = NULL;
@@ -460,7 +294,7 @@ getStatPtr(oid 	  *name,
 	    /* the following is part of the setup for the compatability
 	       structure below that has been moved out of the main loop.
 	     */
-	    bcopy((char *)tp->name, (char *)cvp->name,
+	    memcpy((char *)cvp->name, (char *)tp->name,
 		  tp->namelen * sizeof(oid));
 
 	    for(x = 0, vp = tp->variables; x < tp->variables_len;
@@ -477,7 +311,8 @@ getStatPtr(oid 	  *name,
 		    /* builds an old (long) style variable structure to retain
 		       compatability with var_* functions written previously.
 		     */
-		    bcopy((char *)vp->name, (char *)(cvp->name + tp->namelen),
+		    memcpy( (char *)(cvp->name + tp->namelen),
+			(char *)vp->name,
 			  vp->namelen * sizeof(oid));
 		    cvp->namelen = tp->namelen + vp->namelen;
 		    cvp->type = vp->type;
@@ -521,7 +356,7 @@ getStatPtr(oid 	  *name,
     }
     if (! tp /* y == sizeof(subtrees)/sizeof(struct subtree) */ ){
 	if (!access && !exact){
-	    bcopy(save, name, savelen * sizeof(oid));
+	    memcpy( name,save,  savelen * sizeof(oid));
 	    *namelen = savelen;
 	}
 	if (found)
@@ -540,31 +375,9 @@ getStatPtr(oid 	  *name,
     return access;
 }
 
-/*
-{
-  *write_method = NULL;
-  for(tp = first; tp < end; tp = next){
-      if ((in matches tp) or (in < tp)){
-	  inlen -= tp->length;
-	  for(vp = tp->vp; vp < end; vp = next){
-	      if ((in < vp) || (exact && (in == vp))){
-		  cobble up compatable vp;
-		  call findvar;
-		  if (it returns nonzero)
-		      break both loops;
-	      }
-	      if (exact && (in < vp)) ???
-		  return NULL;
-	  }
-      }      
-  }
-}
-*/
 
 int
-compare(name1, len1, name2, len2)
-    oid	    *name1, *name2;
-    int	    len1, len2;
+compare(oid *name1, int len1, oid *name2, int len2)
 {
     int    len;
 
@@ -610,9 +423,7 @@ compare(name1, len1, name2, len2)
 }
 
 static int
-compare_tree(name1, len1, name2, len2)
-    oid	    *name1, *name2;
-    int	    len1, len2;
+compare_tree(oid *name1, int len1, oid *name2, int len2)
 {
     int    len;
 
@@ -636,13 +447,5 @@ compare_tree(name1, len1, name2, len2)
 }
 
 
-
-/* ../snmplib/snmp.c defines this without being if'defed */
-char sysContact[256] = "Unknown";
-char sysLocation[256] = "Unknown";
-char sysName[256] = "Unknown";
-
-
-oid version_id[] = {1, 3, 6, 1, 4, 1, 3, 1, 1};
 
 #endif

@@ -19,9 +19,6 @@
 #include "snmp_client.h"
 #include "snmp_config.h"
 
-viewEntry	*views = NULL;
-usecEntry	*users = NULL;
-communityEntry  *communities = NULL;
 int		 maintenanceView = 0;
 
 static int linenumber = 0;
@@ -50,11 +47,8 @@ char **tokenptr;
 }
 
 
-static void
-tokenize( line, tokens, max_tokens )
-char *line;
-char *tokens[];
-int   max_tokens;
+void
+tokenize( char *line, char **tokens, int max_tokens )
 {
 	int   i;
 	char *tokenptr;
@@ -83,8 +77,7 @@ char *tokens[];
 		debug(49,0)( "create_view:view name too long, line %d\n", linenumber );
 		return -1;
 	}
-
-	for( vp = views; vp; prev = vp, vp = vp->next ) {
+	for( vp = Config.Snmp.views; vp; prev = vp, vp = vp->next ) {
 		if( strcmp( tokens[1], vp->viewName ) == 0 ) break;
 	}
 
@@ -99,11 +92,11 @@ char *tokens[];
 	if (!read_objid(tokens[2], new->viewSubtree, &new->viewSubtreeLen)) {
 	}
 
-	if( views ) {
+	if( Config.Snmp.views ) {
 		for( ; vp; prev = vp, vp = vp->next ) ;
 		prev->next = new;
 	} else {
-		views = new;
+		Config.Snmp.views = new;
 	}
 
 	return new->viewIndex;
@@ -114,6 +107,7 @@ find_view( name )
 char *name;
 {
 	viewEntry *vp;
+	viewEntry *views=Config.Snmp.views;
 
 	if( strcmp( name, "-" ) == 0 ) return 0;
 
@@ -142,7 +136,7 @@ char *tokens[];
 		return -1;
 	}
 
-	for( up = users; up; prev = up, up = up->next ) {
+	for( up = Config.Snmp.users; up; prev = up, up = up->next ) {
 		if( strcmp( tokens[1], up->userName ) == 0 ) break;
 	}
 
@@ -152,10 +146,10 @@ char *tokens[];
 	}
 
 	new = (usecEntry *)calloc(1,  sizeof(usecEntry) );
-	if( users ) {
+	if( Config.Snmp.users ) {
 		prev->next = new;
 	} else {
-		users = new;
+		Config.Snmp.users = new;
 	}
 
 	memset( new, 0, sizeof(usecEntry) );
@@ -236,25 +230,24 @@ char *tokens[];
 	return 0;
 }
 
-static int
-create_community( tokens )
-char *tokens[];
+int
+create_community( char **tokens )
 {
 	communityEntry	*cp;
 	communityEntry	*new, *prev = 0;
-
+	debug(49,3)("Called create_community (HEY code)\n");
 	if( tokens[3][0] == 0 || tokens[4][0] != 0 ) {
-		debug(49,0)("create_community: bad community line, line %d\n", linenumber );
+		debug(49,5)("create_community: bad community line, line %d\n", linenumber );
 		return -1;
 	}
 
 	if( strlen(tokens[1]) > (sizeof(cp->name) - 1) ) {
-		debug(49,0)( "create_community: community name too long, line %d\n", 
+		debug(49,5)( "create_community: community name too long, line %d\n", 
 			 linenumber );
 		return -1;
 	}
 
-	for( cp = communities; cp; prev = cp, cp = cp->next ) {
+	for( cp = Config.Snmp.communities; cp; prev = cp, cp = cp->next ) {
 		if( strcmp( tokens[1], cp->name ) == 0 ) break;
 	}
 
@@ -264,6 +257,7 @@ char *tokens[];
 		return -1;
 	}
 
+	debug(49,5)("Adding %s\n", tokens[1]);
 	new = (communityEntry *)calloc(1,  sizeof(communityEntry) );
 	memset( new, 0, sizeof(communityEntry) );
 	strcpy( new->name, tokens[1] );
@@ -275,25 +269,26 @@ char *tokens[];
 		return -1;
 	}
 
-	if( communities ) {
+	if( Config.Snmp.communities ) {
 		prev->next = new;
 	} else {
-		communities = new;
+		Config.Snmp.communities = new;
 	}
-
+	debug(49,5)("create_community: Everything ok!\n");
 	return 0;
 }
 
 int 
 read_config()
 {
+#ifdef READ_OLD_STYLE_CONFIG
 	FILE    *f;
 	char	 buff[200];
+#endif
 	char	*tokens[10];
 	/* comes from snmpd.c: */
+#ifdef READ_OLD_STYLE_CONFIG
 	extern char *snmp_configfile;
-
-	init_mib(Config.Snmp.mibPath);
 
 	if (snmp_configfile==NULL)
 		fatal("snmp.c : read_config() with a NULL snmp_configfile!\n");
@@ -318,16 +313,16 @@ read_config()
 			if( create_community( tokens ) < 0 ) return -1;
 		}
 	}
-
+#endif
 	tokenize( xstrdup ("view $$INTERNAL$$ .1.3.6.1.6.3.6.1 included"), 
 		  tokens, 10 );
 	maintenanceView = create_view( tokens );
 	tokenize( xstrdup ("view $$INTERNAL$$ .1.3.6.1.6.3.1.1.1 included")
 		  , tokens, 10 );
 	create_view( tokens );
-
+#ifdef READ_OLD_STYLE_CONFIG
 	fclose( f );
-
+#endif
 	return 0;
 }
 
