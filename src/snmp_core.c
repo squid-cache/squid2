@@ -729,7 +729,10 @@ snmpTreeNext(oid * Current, snint CurrentLen, oid ** Next, snint * NextLen)
 	*NextLen = mibTreeEntry->len;
 	*Next = (*mibTreeEntry->instancefunction) (mibTreeEntry->name, NextLen, mibTreeEntry, &Fn);
     }
-    return (Fn);
+    if (*Next)
+	return (Fn);
+    else
+	return NULL;
 }
 
 static oid *
