@@ -402,7 +402,7 @@ commConnectHandle(int fd, void *data)
 	break;
     default:
 	if (commRetryConnect(fd, cs)) {
-	    debug(5, 1) ("Retrying connection to %s: %s\n",
+	    debug(5, 2) ("Retrying connection to %s: %s\n",
 		cs->host, xstrerror());
 	    cs->S.sin_addr.s_addr = 0;
 	    ipcacheCycleAddr(cs->host);
