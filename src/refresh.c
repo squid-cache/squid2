@@ -164,7 +164,7 @@ refreshCheck(const StoreEntry * entry, const request_t * request)
     factor = 100 * age / (entry->timestamp - entry->lastmod);
     debug(22, 3, "refreshCheck: factor = %d\n", factor);
     if (factor > pct) {
-	debug(22, 3, "refreshCheck: YES: factor > pc\n");
+	debug(22, 3, "refreshCheck: YES: factor > pct\n");
 	return 1;
     }
     return 0;
