@@ -1357,7 +1357,7 @@ void ipcacheShutdownServers()
 	debug(14, 1, "ipcacheShutdownServers: sending '$shutdown' to dnsserver #%d\n", i);
 	debug(14, 1, "ipcacheShutdownServers: --> FD %d\n", dns->outpipe);
 	file_write(dns->outpipe,
-	    shutdown,
+	    xstrdup(shutdown),
 	    strlen(shutdown),
 	    0,			/* Lock */
 	    0,			/* Handler */
