@@ -333,6 +333,13 @@ void dummyhandler(obj, sentry)
     storeAppend(sentry, msg, strlen(msg));
 }
 
+static int percent(a, b)
+     int a;
+     int b;
+{
+    return b ? ((int) (100.0 * a / b + 0.5)) : 0;
+}
+
 void server_list(obj, sentry)
      cacheinfo *obj;
      StoreEntry *sentry;
@@ -350,24 +357,39 @@ void server_list(obj, sentry)
     for (e = getFirstEdge(); e; e = getNextEdge(e)) {
 	if (e->host == NULL)
 	    fatal_dump("Found an edge without a hostname!");
-	sprintf(tempbuf, "\n{Hostname:    %s}\n", e->host);
+	sprintf(tempbuf, "\n{%-11.11s: %s/%d/%d}\n",
+	    e->type == EDGE_PARENT ? "Parent" : "Sibling",
+	    e->host,
+	    e->ascii_port,
+	    e->udp_port);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
-	sprintf(tempbuf, "{Edge type:   %s}\n",
-	    e->type == EDGE_PARENT ? "parent" : "neighbor");
-	storeAppend(sentry, tempbuf, strlen(tempbuf));
-	sprintf(tempbuf, "{Status:      %s}\n",
+	sprintf(tempbuf, "{Status     : %s}\n",
 	    e->neighbor_up ? "Up" : "Down");
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
-	sprintf(tempbuf, "{UDP PORT:    %d}\n", e->udp_port);
+	sprintf(tempbuf, "{AVG RTT    : %d msec}\n", e->stats.rtt);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
-	sprintf(tempbuf, "{ASCII PORT:  %d}\n", e->ascii_port);
+
+	sprintf(tempbuf, "{ACK DEFICIT: %8d}\n", e->stats.ack_deficit);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
-	sprintf(tempbuf, "{ACK DEFICIT: %d}\n", e->ack_deficit);
+	sprintf(tempbuf, "{PINGS SENT : %8d}\n", e->stats.num_pings);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
-	sprintf(tempbuf, "{PINGS SENT:  %d}\n", e->num_pings);
+	sprintf(tempbuf, "{PINGS ACKED: %8d %3d%%}\n",
+	    e->stats.pings_acked,
+	    percent(e->stats.pings_acked, e->stats.num_pings));
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
-	sprintf(tempbuf, "{PINGS ACKED: %d}\n", e->pings_acked);
+	sprintf(tempbuf, "{MISSES     : %8d %3d%%}\n",
+	    e->stats.misses,
+	    percent(e->stats.misses, e->stats.pings_acked));
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
+	sprintf(tempbuf, "{HITS       : %8d %3d%%}\n",
+	    e->stats.hits,
+	    percent(e->stats.hits, e->stats.pings_acked));
+	storeAppend(sentry, tempbuf, strlen(tempbuf));
+	sprintf(tempbuf, "{FETCHES    : %8d %3d%%}\n",
+	    e->stats.fetches,
+	    percent(e->stats.fetches, e->stats.pings_acked));
+	storeAppend(sentry, tempbuf, strlen(tempbuf));
+
 	if (e->last_fail_time) {
 	    sprintf(tempbuf, "{Last failed connect() at: %s}\n",
 		mkhttpdlogtime(&(e->last_fail_time)));

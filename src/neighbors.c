@@ -296,7 +296,7 @@ void neighbors_open(fd)
 	for (j = 0; j < e->n_addresses; j++) {
 	    debug(15, 2, "--> IP address #%d: %s\n", j, inet_ntoa(e->addresses[j]));
 	}
-	e->rtt = 1000;
+	e->stats.rtt = 0;
 
 	/* Prepare query packet for future use */
 	e->header.opcode = ICP_OP_QUERY;
@@ -400,25 +400,25 @@ int neighborsUdpPing(proto)
 	    icpUdpSend(friends->fd, url, &e->header, &e->in_addr, ICP_OP_QUERY);
 	}
 
-	e->ack_deficit++;
-	e->num_pings++;
-	e->pings_sent++;
+	e->stats.ack_deficit++;
+	e->stats.num_pings++;
+	e->stats.pings_sent++;
 
-	if (e->ack_deficit < HIER_MAX_DEFICIT) {
+	if (e->stats.ack_deficit < HIER_MAX_DEFICIT) {
 	    /* consider it's alive. count it */
 	    e->neighbor_up = 1;
 	    m->e_pings_n_pings++;
 	} else {
 	    /* consider it's dead. send a ping but don't count it. */
 	    e->neighbor_up = 0;
-	    if (e->ack_deficit > (HIER_MAX_DEFICIT << 1))
+	    if (e->stats.ack_deficit > (HIER_MAX_DEFICIT << 1))
 		/* do this to prevent wrap around but we still want it
 		 * to move a bit so we can debug it easier. */
-		e->ack_deficit = HIER_MAX_DEFICIT + 1;
+		e->stats.ack_deficit = HIER_MAX_DEFICIT + 1;
 	    debug(15, 6, "cache %s is considered dead but send PING anyway, hope it comes up soon.\n",
 		inet_ntoa(e->in_addr.sin_addr));
 	    /* log it once at the threshold */
-	    if ((e->ack_deficit == HIER_MAX_DEFICIT)) {
+	    if ((e->stats.ack_deficit == HIER_MAX_DEFICIT)) {
 		if (e->type == EDGE_SIBLING) {
 		    hierarchy_log_append("Detect: ",
 			HIER_DEAD_NEIGHBOR, 0,
@@ -471,6 +471,7 @@ void neighborsUdpAck(fd, url, header, from, entry)
     edge *e = NULL;
     MemObject *m = entry->mem_obj;
     int w_rtt;
+    int rtt;
 
     debug(15, 6, "neighborsUdpAck: url=%s (%d chars), header=0x%x, from=0x%x, ent=0x%x\n",
 	url, strlen(url), header, from, entry);
@@ -488,7 +489,7 @@ void neighborsUdpAck(fd, url, header, from, entry)
     if (e) {
 	/* reset the deficit. It's alive now. */
 	/* Don't care about exact count. */
-	if ((e->ack_deficit >= HIER_MAX_DEFICIT)) {
+	if ((e->stats.ack_deficit >= HIER_MAX_DEFICIT)) {
 	    if (e->type == EDGE_SIBLING) {
 		hierarchy_log_append("Detect: ",
 		    HIER_REVIVE_NEIGHBOR, 0, e->host);
@@ -497,9 +498,15 @@ void neighborsUdpAck(fd, url, header, from, entry)
 		    HIER_REVIVE_PARENT, 0, e->host);
 	    }
 	}
-	e->ack_deficit = 0;
 	e->neighbor_up = 1;
-	e->pings_acked++;
+	e->stats.ack_deficit = 0;
+	e->stats.pings_acked++;
+	header->opcode == ICP_OP_HIT ? e->stats.hits++ : e->stats.misses++;
+
+	if (m) {
+	    rtt = tvSubMsec(m->start_ping, current_time);
+	    e->stats.rtt = (e->stats.rtt * (RTT_AV_FACTOR - 1) + rtt) / RTT_AV_FACTOR;
+	}
     }
     /* check if someone is already fetching it */
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED) || (entry->ping_status != WAITING)) {
@@ -558,13 +565,10 @@ void neighborsUdpAck(fd, url, header, from, entry)
 	BIT_SET(entry->flag, ENTRY_DISPATCHED);
 	entry->ping_status = DONE;
 	getFromCache(0, entry, e, entry->mem_obj->request);
-	e->hits++;
 	return;
     } else if ((header->opcode == ICP_OP_MISS) || (header->opcode == ICP_OP_DECHO)) {
 	/* everytime we get here, count it as a miss */
 	m->e_pings_n_acks++;
-	if (e)
-	    e->misses++;
 
 	if (header->opcode == ICP_OP_DECHO) {
 	    /* receive ping back from non-ICP cache */

@@ -406,6 +406,7 @@ int getFromCache(fd, entry, e, request)
     protoCancelTimeout(fd, entry);
 
     if (e) {
+	e->stats.fetches++;
 	return proxyhttpStart(e, url, entry);
     } else if (request->protocol == PROTO_HTTP) {
 	return httpStart(fd, url, request, request_hdr, entry);
