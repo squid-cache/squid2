@@ -15,14 +15,17 @@
 #include "snmp_api.h"
 #include "snmp_client.h"
 
+#define USEC_QOS_AUTH 4
+#define USEC_QOS_PRIV 5
 int maintenanceView = 0;
 
 static int linenumber = 0;
 
 /* fwd: */
 /* from usec.c: */
+#if 0
 extern void v2md5auth_password_to_key();
-
+#endif
 
 char *
 gettoken(tokenptr)
@@ -195,7 +198,9 @@ create_user(tokens)
 	}
 	new->qoS |= USEC_QOS_AUTH;
     } else if (cp - start > 0) {
+#if 0
 	v2md5auth_password_to_key(start, cp - start, new->authKey);
+#endif
 	new->qoS |= USEC_QOS_AUTH;
     }
     /* look for privKey */
@@ -222,7 +227,9 @@ create_user(tokens)
 	}
 	new->qoS |= USEC_QOS_PRIV;
     } else if (cp - start > 0) {
+#if 0
 	v2md5auth_password_to_key(start, cp - start, new->privKey);
+#endif
 	new->qoS |= USEC_QOS_PRIV;
     }
     return 0;
@@ -274,47 +281,10 @@ create_community(char **tokens)
 }
 
 int
-read_config()
+default_auth()
 {
-#ifdef READ_OLD_STYLE_CONFIG
-    FILE *f;
-    char buff[200];
-#endif
     char *tokens[10];
     char *t;
-    /* comes from snmpd.c: */
-#ifdef READ_OLD_STYLE_CONFIG
-    extern char *snmp_configfile;
-
-    if (snmp_configfile == NULL)
-	fatal("snmp.c : read_config() with a NULL snmp_configfile!\n");
-
-    debug(49, 1) ("snmp read_config() , opening %s\n", snmp_configfile);
-
-    if ((f = fopen(snmp_configfile, "r")) == NULL)
-	fatal("Cannot open configuration file, exiting.\n");
-
-    while (fgets(buff, sizeof(buff), f)) {
-	linenumber++;
-	if (buff[0] == '#')
-	    continue;
-
-	tokenize(buff, tokens, 10);
-	if (tokens[0][0] == 0)
-	    continue;
-
-	if (strcmp("view", tokens[0]) == 0) {
-	    if (create_view(tokens) < 0)
-		return -1;
-	} else if (strcmp("user", tokens[0]) == 0) {
-	    if (create_user(tokens) < 0)
-		return -1;
-	} else if (strcmp("community", tokens[0]) == 0) {
-	    if (create_community(tokens) < 0)
-		return -1;
-	}
-    }
-#endif
     t = xstrdup("view $$INTERNAL$$ .1.3.6.1.6.3.6.1 included");
     tokenize(t, tokens, 10);
     maintenanceView = create_view(tokens);
@@ -323,8 +293,5 @@ read_config()
     tokenize(t, tokens, 10);
     create_view(tokens);
     xfree(t);
-#ifdef READ_OLD_STYLE_CONFIG
-    fclose(f);
-#endif
     return 0;
 }
