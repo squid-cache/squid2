@@ -193,7 +193,6 @@ static void
 storeCossRebuildFromSwapLog(void *data)
 {
     RebuildState *rb = data;
-    SwapDir *sd = rb->sd;
     StoreEntry *e = NULL;
     storeSwapLogData s;
     size_t ss = sizeof(storeSwapLogData);
@@ -237,7 +236,7 @@ storeCossRebuildFromSwapLog(void *data)
 		}
 		storeRelease(e);
 		/* Fake an unlink here, this is a bad hack :( */
-		storeCossRemove(sd, e);
+		storeCossRemove(rb->sd, e);
 		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
@@ -253,7 +252,7 @@ storeCossRebuildFromSwapLog(void *data)
 	if ((++rb->counts.scancount & 0xFFF) == 0) {
 	    struct stat sb;
 	    if (0 == fstat(fileno(rb->log), &sb))
-		storeRebuildProgress(SD->index,
+		storeRebuildProgress(rb->sd->index,
 		    (int) sb.st_size / ss, rb->n_read);
 	}
 	if (EBIT_TEST(s.flags, KEY_PRIVATE)) {
