@@ -1,4 +1,4 @@
-/* $Id */
+/* $Id$ */
 
 #include "config.h"
 #include <sys/errno.h>

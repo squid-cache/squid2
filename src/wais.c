@@ -1,4 +1,4 @@
-/* $Id */
+/* $Id$ */
 
 #include "config.h"
 #if USE_WAIS_RELAY
