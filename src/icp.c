@@ -175,7 +175,6 @@ static int icpStateFree(fd, icpState)
      int fd;
      icpStateData *icpState;
 {
-    int size = 0;
     int http_code = 0;
     int elapsed_msec;
     struct _hierarchyLogData *hierData = NULL;
@@ -184,12 +183,6 @@ static int icpStateFree(fd, icpState)
 	return 1;
     if (icpState->log_type < LOG_TAG_NONE || icpState->log_type > ERR_ZERO_SIZE_OBJECT)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
-    if (icpState->entry) {
-	if (icpState->entry->mem_obj)
-	    size = icpState->entry->mem_obj->e_current_len;
-    } else {
-	size = icpState->size;	/* hack added for CONNECT objects */
-    }
     if (icpState->entry) {
 	if (icpState->entry->mem_obj)
 	    http_code = icpState->entry->mem_obj->reply->code;
@@ -202,7 +195,7 @@ static int icpStateFree(fd, icpState)
     CacheInfo->log_append(CacheInfo,
 	icpState->url,
 	icpState->log_addr,
-	size,
+	icpState->size,
 	log_tags[icpState->log_type],
 	RequestMethodStr[icpState->method],
 	http_code,
@@ -309,8 +302,10 @@ void icpSendERRORComplete(fd, buf, size, errflag, data)
      int errflag;
      void *data;
 {
+    icpStateData *icpState = data;
     debug(12, 4, "icpSendERRORComplete: FD %d: sz %d: err %d.\n",
 	fd, size, errflag);
+    icpState->size += size;
     comm_close(fd);
 }
 
@@ -373,6 +368,7 @@ static int icpSendMoreData(fd, icpState)
     double http_ver;
     LOCAL_ARRAY(char, scanbuf, 20);
     char *buf = NULL;
+    char *p = NULL;
 
     debug(12, 5, "icpSendMoreData: <URL:%s> sz %d: len %d: off %d.\n",
 	entry->url,
@@ -391,6 +387,11 @@ static int icpSendMoreData(fd, icpState)
 	entry->mem_obj->reply->code = tcode;
     }
     icpState->offset += len;
+    if (icpState->request->method == METHOD_HEAD && (p = mime_headers_end(buf))) {
+	*p = '\0';
+	len = p - buf;
+	icpState->offset = entry->mem_obj->e_current_len; /* force end */
+    }
     comm_write(fd,
 	buf,
 	len,
@@ -438,6 +439,7 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, data)
     StoreEntry *entry = NULL;
 
     entry = icpState->entry;
+    icpState->size += size;
     debug(12, 5, "icpHandleStoreComplete: FD %d: sz %d: err %d: off %d: len %d: tsmp %d: lref %d.\n",
 	fd, size, errflag,
 	icpState->offset, entry->object_len,
@@ -588,7 +590,7 @@ static void icpHandleIMSComplete(fd, buf, size, errflag, data)
     /* Set up everything for the logging */
     storeUnlockObject(entry);
     icpState->entry = NULL;
-    icpState->size = strlen(buf);
+    icpState->size += size;
     icpState->http_code = 304;
     comm_close(fd);
 }
@@ -629,11 +631,16 @@ void icp_hit_or_miss(fd, icpState)
     debug(12, 5, "icp_hit_or_miss: REQ_HIERARCHICAL = %s\n",
 	BIT_TEST(icpState->flags, REQ_HIERARCHICAL) ? "SET" : "NOT SET");
 
-    /* XXX hmm, should we check for IFMODSINCE and USER_REFRESH before
-     * TCP_MISS?  It is possible to get IMS header for objects
-     * not in the cache */
+    /* NOTE on HEAD requests: We currently don't cache HEAD reqeusts
+     * at all, so look for the corresponding GET object, or just go
+     * directly. The only way to get a TCP_HIT on a HEAD reqeust is
+     * if someone already did a GET.  Maybe we should turn HEAD
+     * misses into full GET's?  */
+    if (icpState->method == METHOD_HEAD) {
+	pubkey = storeGeneratePublicKey(icpState->url, METHOD_GET);
+    } else
+        pubkey = storeGeneratePublicKey(icpState->url, icpState->method);
 
-    pubkey = storeGeneratePublicKey(icpState->url, icpState->method);
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* This object isn't in the cache.  We do not hold a lock yet */
 	icpState->log_type = LOG_TCP_MISS;
