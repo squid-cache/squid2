@@ -49,7 +49,6 @@ static struct sockaddr_in local_snmpd;
 void snmpFwd_insertPending(struct sockaddr_in *, long);
 int snmpFwd_removePending(struct sockaddr_in *, long);
 extern int init_agent_auth();
-extern int memoryAccounted();
 extern int snmp_agent_parse(char *, int, char *, int *, u_long, long *);
 extern int read_config();
 extern void read_main_config_file();
@@ -1145,7 +1144,8 @@ var_perfsys_entry(struct variable * vp, oid * name, int *length, int exact, int 
 	return (u_char *) & long_return;
 
     case PERF_SYS_CURMEMSZ:
-	long_return = (long) memoryAccounted() >> 10;	/* needs to be fixed */
+	/* XXX needs to be fixed */
+	long_return = (long) statMemoryAccounted() >> 10;
 	return (u_char *) & long_return;
 
     case PERF_SYS_CURLRUEXP:
