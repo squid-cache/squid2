@@ -676,10 +676,13 @@ comm_select(int msec)
 	    if ((tmask = fdsp[j]) == 0)
 		continue;	/* no bits here */
 	    for (k = 0; k < FD_MASK_BITS; k++) {
+		if (tmask == 0)
+		    break;	/* no more bits left */
 		if (!EBIT_TEST(tmask, k))
 		    continue;
 		/* Found a set bit */
 		fd = (j * FD_MASK_BITS) + k;
+		EBIT_CLR(tmask, k);	/* this will be done */
 #if DEBUG_FDBITS
 		debug(5, 9) ("FD %d bit set for reading\n", fd);
 		assert(FD_ISSET(fd, &readfds));
@@ -711,9 +714,6 @@ comm_select(int msec)
 		    comm_select_dns_incoming();
 		if (commCheckHTTPIncoming)
 		    comm_select_http_incoming();
-		EBIT_CLR(tmask, k);	/* this bit is done */
-		if (tmask == 0)
-		    break;	/* and no more bits left */
 	    }
 	}
 	fdsp = (fd_mask *) & writefds;
@@ -721,10 +721,13 @@ comm_select(int msec)
 	    if ((tmask = fdsp[j]) == 0)
 		continue;	/* no bits here */
 	    for (k = 0; k < FD_MASK_BITS; k++) {
+		if (tmask == 0)
+		    break;	/* no more bits left */
 		if (!EBIT_TEST(tmask, k))
 		    continue;
 		/* Found a set bit */
 		fd = (j * FD_MASK_BITS) + k;
+		EBIT_CLR(tmask, k);	/* this will be done */
 #if DEBUG_FDBITS
 		debug(5, 9) ("FD %d bit set for writing\n", fd);
 		assert(FD_ISSET(fd, &writefds));
@@ -756,9 +759,6 @@ comm_select(int msec)
 		    comm_select_dns_incoming();
 		if (commCheckHTTPIncoming)
 		    comm_select_http_incoming();
-		EBIT_CLR(tmask, k);	/* this bit is done */
-		if (tmask == 0)
-		    break;	/* and no more bits left */
 	    }
 	}
 	if (callicp)
