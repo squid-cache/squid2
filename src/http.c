@@ -476,7 +476,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     if (reply->keep_alive) {
 	if (httpState->peer)
 	    httpState->peer->stats.n_keepalives_recv++;
-	if (reply->content_length == -1) {
+	if (httpReplyBodySize(httpState->request->method, reply) == -1) {
 	    debug(11, 1) ("httpProcessReplyHeader: Impossible keep-alive header from '%s'\n", storeUrl(entry));
 	    httpState->flags.keepalive_broken = 1;
 	}
