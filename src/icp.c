@@ -494,7 +494,7 @@ int icpSendMoreData(fd, state)
 
     debug(5, "icpSendMoreData: <URL:%s> sz %d: len %d: off %d.\n",
 	entry->url, entry->object_len,
-	has_mem_obj(entry) ? store_mem_obj(entry, e_current_len) : 0, state->offset);
+	has_mem_obj(entry) ? entry->mem_obj->e_current_len : 0, state->offset);
 
     p = state->ptr_to_4k_page = buf = get_free_4k_page();
     state->buf = NULL;
@@ -520,7 +520,7 @@ int icpSendMoreData(fd, state)
 
     if ((state->offset == 0) && (header->opcode != ICP_OP_DATABEG)) {
 	header->opcode = ICP_OP_DATABEG;
-    } else if ((store_mem_obj(entry, e_current_len) == entry->object_len) &&
+    } else if ((entry->mem_obj->e_current_len == entry->object_len) &&
 	    ((entry->object_len - state->offset) == len) &&
 	(entry->status != STORE_PENDING)) {
 	/* No more data; this is the last message. */
@@ -584,7 +584,7 @@ void icpHandleStore(fd, entry, state)
 	state->entry = NULL;	/* Don't use a subsequently freed storeEntry */
 	state->ptr_to_4k_page = state->buf = NULL;	/* Nothing to deallocate */
 	icpSendERROR(fd, ICP_ERROR_TIMEDOUT,
-	    store_mem_obj(entry, e_abort_msg), state);
+	    entry->mem_obj->e_abort_msg, state);
     } else {
 	state->entry = entry;
 	icpSendMoreData(fd, state);
@@ -633,7 +633,7 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
 	safe_free(state->type);
 	safe_free(state->mime_hdr);
 	safe_free(state);
-    } else if (state->offset < store_mem_obj(state->entry, e_current_len)) {
+    } else if (state->offset < state->entry->mem_obj->e_current_len) {
 	/* More data available locally; write it now */
 	icpSendMoreData(fd, state);
     } else
@@ -646,7 +646,7 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
 	    CacheInfo->log_append(CacheInfo,	/* TCP_DONE */
 		state->url,
 		inet_ntoa(state->peer.sin_addr),
-		store_mem_obj(state->entry, e_current_len),
+		state->entry->mem_obj->e_current_len,
 		"TCP_DONE",
 		state->type);
 	}
@@ -1776,7 +1776,7 @@ void CheckQuickAbort(astm)
 	CacheInfo->log_append(CacheInfo,	/* CLIENT_ABORT */
 	    astm->url,
 	    inet_ntoa(astm->peer.sin_addr),
-	    store_mem_obj(astm->entry, e_current_len),
+	    astm->entry->mem_obj->e_current_len,
 	    "CLIENT_ABORT",
 	    astm->type);
     }

@@ -162,6 +162,7 @@ int getAsciiPortNum();
 int getBinaryPortNum();
 int getUdpPortNum();
 char *getFtpProgram();
+char *getFtpOptions();
 char *getDnsProgram();
 char *getAdminEmail();
 int getDebugLevel();

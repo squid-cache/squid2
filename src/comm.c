@@ -1246,7 +1246,7 @@ int fd_of_first_client(e)
 {
     int fd;
 
-    fd = store_mem_obj(e, fd_of_first_client);
+    fd = e->mem_obj->fd_of_first_client;
 
     if (fd > 0) {
 	if (e == fd_table[fd].store_entry) {

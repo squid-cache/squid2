@@ -278,7 +278,7 @@ int protoDispatch(fd, url, entry)
     int n;
 
     method = HTTP_OPS[entry->type_id];
-    mime_hdr = store_mem_obj(entry, mime_hdr);
+    mime_hdr = entry->mem_obj->mime_hdr;
 
     debug(5, "protoDispatch: %s URL: %s\n", method, url);
     debug(10, "    mime_hdr: %s\n", mime_hdr);
@@ -466,7 +466,7 @@ int getFromDefaultSource(fd, entry)
     }
     BIT_SET(entry->flag, REQ_DISPATCHED);
 
-    if ((e = store_mem_obj(entry, e_pings_first_miss))) {
+    if ((e = entry->mem_obj->e_pings_first_miss)) {
 	hierarchy_log_append(url, HIER_FIRST_PARENT_MISS, fd, e->host);
 	return getFromCache(fd, entry, e);
     }
@@ -515,7 +515,7 @@ int getFromCache(fd, entry, e)
 {
     char *url = entry->url;
     char *type = HTTP_OPS[entry->type_id];
-    char *mime_hdr = store_mem_obj(entry, mime_hdr);
+    char *mime_hdr = entry->mem_obj->mime_hdr;
 
     debug(5, "getFromCache: FD %d <URL:%s>\n", fd, entry->url);
     debug(5, "getFromCache: --> type = %s\n", type);
@@ -586,7 +586,7 @@ static int protoNotImplemented(fd, url, entry)
     CacheInfo->log_append(CacheInfo,
 	entry->url,
 	"0.0.0.0",
-	store_mem_obj(entry, e_current_len),
+	entry->mem_obj->e_current_len,
 	"ERR_501",		/* PROTO NOT IMPLEMENTED */
 	"NULL");
 #endif
@@ -620,7 +620,7 @@ static int protoCantFetchObject(fd, entry, reason)
     CacheInfo->log_append(CacheInfo,
 	entry->url,
 	"0.0.0.0",
-	store_mem_obj(entry, e_current_len),
+	entry->mem_obj->e_current_len,
 	"ERR_502",		/* PROTO CANNOT FETCH */
 	"NULL");
 #endif
@@ -647,7 +647,7 @@ static int protoDNSError(fd, entry)
     CacheInfo->log_append(CacheInfo,
 	entry->url,
 	"0.0.0.0",
-	store_mem_obj(entry, e_current_len),
+	entry->mem_obj->e_current_len,
 	"ERR_102",		/* PROTO DNS FAIL */
 	"NULL");
 #endif

@@ -214,8 +214,6 @@ typedef struct sentry {
 
 } StoreEntry;
 
-#define store_mem_obj(a,b)     ((a)->mem_obj->b)
-
 /* ----------------------------------------------------------------- */
 
 typedef int (*PIF) _PARAMS((int, StoreEntry *, caddr_t));
