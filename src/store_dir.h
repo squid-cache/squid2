@@ -126,6 +126,11 @@ extern int storeAddSwapDisk _PARAMS((const char *,
 	int l1,
 	int l2,
 	int read_only));
+extern void storeReconfigureSwapDisk _PARAMS((const char *,
+	int size,
+	int l1,
+	int l2,
+	int read_only));
 extern int storeVerifySwapDirs _PARAMS((void));
 extern void storeCreateSwapSubDirs _PARAMS((int));
 extern const char *storeSwapPath _PARAMS((int));

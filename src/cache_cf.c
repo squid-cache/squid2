@@ -877,7 +877,10 @@ parseCacheDir(void)
     if ((token = strtok(NULL, w_space)))
 	if (!strcasecmp(token, "read-only"))
 	    readonly = 1;
-    storeAddSwapDisk(dir, size, l1, l2, readonly);
+    if (configured_once)
+        storeReconfigureSwapDisk(dir, size, l1, l2, readonly);
+    else
+        storeAddSwapDisk(dir, size, l1, l2, readonly);
 }
 
 int
