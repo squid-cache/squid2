@@ -707,7 +707,7 @@ ftpHtmlifyListEntry(const char *line, FtpStateData * ftpState)
 		"Back");
 	} else {		/* NO_DOTDOT && ROOT_DIR */
 	    /* "UNIX Root" directory */
-	    strcpy(href, "../");
+	    strcpy(href, "/");
 	    strcpy(text, "Home Directory");
 	}
 	snprintf(html, 8192, "<A HREF=\"%s\">%s</A> <A HREF=\"%s\">%s</A> %s\n",
