@@ -206,6 +206,7 @@ struct _delay_spec {
     int restore_bps;
     int max_bytes;
 };
+
 #endif
 
 struct _SquidConfig {
@@ -1230,7 +1231,9 @@ struct _refresh_t {
     time_t max;
     refresh_t *next;
     struct {
-	int icase:1;
+	unsigned int icase:1;
+	unsigned int override_expire:1;
+	unsigned int override_lastmod:1;
     } flags;
 };
 
