@@ -409,7 +409,7 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
     /* unregister this handler */
     storeUnregister(entry, fd);
     if (entry->store_status == STORE_ABORTED) {
-	debug(33, 0, "icpHandleIMSReply: abort_code=%d\n",
+	debug(33, 3, "icpHandleIMSReply: abort_code=%d\n",
 	    entry->mem_obj->abort_code);
 	icpSendERROR(fd,
 	    entry->mem_obj->abort_code,
@@ -419,7 +419,7 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	return 0;
     }
     if (mem->reply->code == 0) {
-	debug(33, 0, "icpHandleIMSReply: Incomplete headers for '%s'\n",
+	debug(33, 3, "icpHandleIMSReply: Incomplete headers for '%s'\n",
 	    entry->url);
 	storeRegister(entry,
 	    fd,
