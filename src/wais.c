@@ -2,8 +2,6 @@
 
 #include "squid.h"
 
-#if USE_WAIS_RELAY
-
 #define  WAIS_DELETE_GAP  (64*1024)
 
 typedef struct _waisdata {
@@ -275,14 +273,3 @@ int waisStart(unusedfd, url, type, mime_hdr, entry)
 	(PF) waisSendRequest, (caddr_t) data);
     return COMM_OK;
 }
-#else
-int waisStart(unusedfd, url, type, mime_hdr, entry)
-     int unusedfd;
-     char *url;
-     char *type;
-     char *mime_hdr;
-     StoreEntry *entry;
-{
-    return 1;
-}
-#endif

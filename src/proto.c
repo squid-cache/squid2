@@ -37,9 +37,7 @@ extern int proxyhttpStart _PARAMS((edge * e, char *url, StoreEntry * entry));
 extern int httpStart _PARAMS((int unusedfd, char *url, char *type, char *mime_hdr, StoreEntry * entry));
 extern int gopherStart _PARAMS((int unusedfd, char *url, StoreEntry * entry));
 extern int ftpStart _PARAMS((int unusedfd, char *url, StoreEntry * entry));
-#if USE_WAIS_RELAY
 extern int waisStart _PARAMS((int unusedfd, char *url, char *type, char *mime_hdr, StoreEntry * entry));
-#endif
 extern char *storeToString _PARAMS((StoreEntry * e));
 extern void fatal_dump _PARAMS((char *));
 
@@ -59,10 +57,8 @@ int proto_cachable(url, type, mime_hdr)
 	return ftpCachable(url, type, mime_hdr);
     if (!strncasecmp(url, "gopher://", 9))
 	return gopherCachable(url, type, mime_hdr);
-#if USE_WAIS_RELAY
     if (!strncasecmp(url, "wais://", 7))
 	return 0;
-#endif
     if (!strncasecmp(url, "cache_object://", 15))
 	return 0;
     return 1;
@@ -449,10 +445,8 @@ int getFromCache(fd, entry, e)
 #endif
     } else if (strncasecmp(url, "ftp://", 6) == 0) {
 	return ftpStart(fd, url, entry);
-#if USE_WAIS_RELAY
     } else if (strncasecmp(url, "wais://", 7) == 0) {
 	return waisStart(fd, url, type, mime_hdr, entry);
-#endif
     } else if (strncasecmp(url, "dht://", 6) == 0) {
 	return protoNotImplemented(fd, url, entry);
     } else {
