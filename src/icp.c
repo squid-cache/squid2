@@ -648,6 +648,7 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     icpState->buf = NULL;
     icpState->log_type = LOG_TCP_IMS_HIT;
 
+    entry->refcount++;
     /* Compare with If-Modified-Since header */
     if (IMS > date || (IMS == date && (IMS_length < 0 || IMS_length == length))) {
 	/* The object is not modified */
@@ -774,6 +775,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
 
     switch (icpState->log_type) {
     case LOG_TCP_HIT:
+	entry->refcount++;	/* HIT CASE */
 	icpSendMoreData(fd, icpState);
 	break;
     case LOG_TCP_IMS_MISS:
@@ -1829,8 +1831,8 @@ asciiHandleConn(int sock, void *notused)
     comm_read(fd,
 	icpState->inbuf,
 	icpState->inbufsize - 1,	/* size */
-	30,				/* timeout */
-	1,				/* handle immed */
+	30,			/* timeout */
+	1,			/* handle immed */
 	asciiProcessInput,
 	(void *) icpState);
     if (Config.identLookup)

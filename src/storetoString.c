@@ -112,7 +112,6 @@ storeToString(StoreEntry * e)
 {
     LOCAL_ARRAY(char, stsbuf, 16 << 10);	/* have to make this really big */
     LOCAL_ARRAY(char, tmpbuf, 8 << 10);
-    time_t t;
 
     if (!e) {
 	sprintf(stsbuf, "\nStoreEntry pointer is NULL.\n");
@@ -156,17 +155,17 @@ storeToString(StoreEntry * e)
     strcat(tmpbuf, "\n");
     strcat(stsbuf, tmpbuf);
 
-    t = (time_t) e->timestamp;
-    sprintf(tmpbuf, "Timestamp: %9d [%s]\n", (int) e->timestamp,
-	mkhttpdlogtime(&t));
+    sprintf(tmpbuf, "Timestamp: %9d [%s]\n",
+	(int) e->timestamp,
+	mkhttpdlogtime(&e->timestamp));
     strcat(stsbuf, tmpbuf);
-
-    t = (time_t) e->lastref;
-    sprintf(tmpbuf, "Lastref  : %9d [%s]\n", (int) t, mkhttpdlogtime(&t));
+    sprintf(tmpbuf, "Lastref  : %9d [%s]\n",
+	(int) e->lastref,
+	mkhttpdlogtime(&e->lastref));
     strcat(stsbuf, tmpbuf);
-
-    t = (time_t) e->expires;
-    sprintf(tmpbuf, "Expires  : %9d [%s]\n", (int) t, mkhttpdlogtime(&t));
+    sprintf(tmpbuf, "Expires  : %9d [%s]\n",
+	(int) e->expires,
+	mkhttpdlogtime(&e->expires));
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "ObjectLen: %d\n", (int) e->object_len);

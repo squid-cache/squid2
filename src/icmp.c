@@ -74,6 +74,7 @@ static void
 icmpRecv(int unused1, void *unused2)
 {
     int n;
+    int fail_count = 0;
     pingerReplyData preply;
     static struct sockaddr_in F;
     commSetSelect(icmp_sock,
@@ -87,8 +88,13 @@ icmpRecv(int unused1, void *unused2)
 	0);
     if (n < 0) {
 	debug(37, 0, "icmpRecv: recv: %s\n", xstrerror());
+	if (++fail_count == 10) {
+	    comm_close(icmp_sock);
+	    icmp_sock = -1;
+	}
 	return;
     }
+    fail_count = 0;
     if (n == 0)			/* test probe from pinger */
 	return;
     F.sin_family = AF_INET;

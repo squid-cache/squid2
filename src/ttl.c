@@ -329,4 +329,5 @@ ttlSet(StoreEntry * entry)
 
     entry->expires = squid_curtime + ttl;
     entry->lastmod = last_modified > -1 ? last_modified : served_date;
+    entry->timestamp = served_date;
 }
