@@ -50,38 +50,6 @@ char *mime_get_header(char *mime, char *name)
     return NULL;
 }
 
-/* need to take the lowest, non-zero pointer to the end of the headers.
- * The headers end at the first empty line */
-char *mime_headers_end(char *mime)
-{
-    char *p1, *p2;
-    char *end = NULL;
-
-    p1 = strstr(mime, "\r\n\r\n");
-    p2 = strstr(mime, "\n\n");
-
-    if (p1 && p2)
-	end = p1 < p2 ? p1 : p2;
-    else
-	end = p1 ? p1 : p2;
-    if (end)
-	end += (end == p1 ? 4 : 2);
-
-    return end;
-}
-
-int mime_headers_size(char *mime)
-{
-    char *end;
-
-    end = mime_headers_end(mime);
-
-    if (end)
-	return end - mime;
-    else
-	return 0;
-}
-
 ext_table_entry *mime_ext_to_type(extension)
      char *extension;
 {

@@ -620,7 +620,8 @@ int aclMatchAcl(acl, c, m, pr, h, po, r)
 	/* NOTREACHED */
     case ACL_DST_IP:
 	if ((hp = ipcache_getcached(h, 1)) == NULL) {
-	    debug(28, 0, "aclMatchAcl: Can't compare 'dst' ACL\n");
+	    debug(28, 1, "aclMatchAcl: Can't yet compare '%s' ACL for '%s'\n",
+		acl->name, h);
 	    return 0;		/* cant check, return no match */
 	}
 	for (k = 0; hp->h_addr_list[k]; k++) {
