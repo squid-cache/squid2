@@ -95,6 +95,10 @@ if test -z "$PRESET_CFLAGS"; then
 		-Wl,-woff,85,-woff,84,-woff,134 \
 		-nostdinc -I/usr/include -D_BSD_SIGNALS"
 	    ;;
+	alpha-dec-osf*)
+	    # Mogul says DEC compilers take both -g and -O2
+	    CFLAGS="$CFLAGS -O2"
+	    ;;
 	*)
 	    ;;
 	esac
