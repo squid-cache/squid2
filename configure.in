@@ -320,6 +320,7 @@ AC_CHECK_FUNCS(\
 	strerror \
 	sysconf \
 	syslog \
+	tempnam \
 	timegm \
 )
 
