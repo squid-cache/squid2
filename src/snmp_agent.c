@@ -227,7 +227,7 @@ snmp_sysFn(variable_list * Var, snint * ErrP)
 	    Answer->type = ASN_INTEGER;
 	    *(Answer->val.integer) = Var->name[11];
 	    break;
-#if 0
+#if UNIMPLEMENTED
 	case SYS_FD_TYPE:
 	    Answer->val_len = sizeof(snint);
 	    Answer->val.integer = xmalloc(Answer->val_len);

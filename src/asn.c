@@ -34,7 +34,8 @@
 
 /* BEGIN of definitions for radix tree entries */
 
-typedef u_char m_int[1 + sizeof(unsigned int)];		/* int in memory with length */
+/* int in memory with length */
+typedef u_char m_int[1 + sizeof(unsigned int)];	
 #define store_m_int(i, m) \
     (i = htonl(i), m[0] = sizeof(m_int), xmemcpy(m+1, &i, sizeof(unsigned int)))
 #define get_m_int(i, m) \

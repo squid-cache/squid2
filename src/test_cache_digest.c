@@ -91,13 +91,6 @@ struct _FileIterator {
 /* globals */
 static time_t cur_time = -1;	/* timestamp of the current log entry */
 
-#if 0
-
-static int cacheIndexScanCleanPrefix(CacheIndex * idx, const char *fname, FILE * file);
-static int cacheIndexScanAccessLog(CacheIndex * idx, const char *fname, FILE * file);
-
-#endif
-
 /* copied from url.c */
 const char *RequestMethodStr[] =
 {
