@@ -546,7 +546,7 @@ errorConvert(char token, ErrorState * err)
 	p = "%";
 	break;
     default:
-	p = "%UNKNOWN%";
+	memBufPrintf(&mb, "%%%c", token);
 	break;
     }
     if (!p)
