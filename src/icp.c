@@ -399,8 +399,12 @@ icpCachable(clientHttpRequest * http)
     request_t *req = http->request;
     method_t method = req->method;
     const wordlist *p;
+#ifdef OLD_CODE
+    /* Now we look for Cache-Control: proxy-revalidate before
+    deciding if it will be cachable or not */
     if (BIT_TEST(http->request->flags, REQ_AUTH))
 	return 0;
+#endif
     for (p = Config.cache_stoplist; p; p = p->next) {
 	if (strstr(url, p->key))
 	    return 0;
