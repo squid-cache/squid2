@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.14 
+# From configure.in Revision: 1.18.2.15 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2007,6 +2007,7 @@ esac
 for ac_func in \
 	getdtablesize \
 	getrusage \
+	lrand48 \
 	mallinfo \
 	mallopt \
 	regcomp \
@@ -2017,6 +2018,7 @@ for ac_func in \
 	setresuid \
 	setrlimit \
 	setsid \
+	srand48 \
 	strdup \
 	sysconf \
 	syslog \
@@ -2029,7 +2031,7 @@ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2033 "configure"
+#line 2035 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -2079,7 +2081,7 @@ if test "$cross_compiling" = yes; then
   SQUID_FD_SETSIZE=256
 else
 cat > conftest.$ac_ext <<EOF
-#line 2083 "configure"
+#line 2085 "configure"
 #include "confdefs.h"
 
 #include <unistd.h>
@@ -2146,7 +2148,7 @@ if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_SNDBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2150 "configure"
+#line 2152 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2182,7 +2184,7 @@ if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_RCVBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2186 "configure"
+#line 2188 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2218,7 +2220,7 @@ if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_SNDBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2222 "configure"
+#line 2224 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2254,7 +2256,7 @@ if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_RCVBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2258 "configure"
+#line 2260 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>

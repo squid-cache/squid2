@@ -238,6 +238,7 @@ dnl Check for library functions
 AC_CHECK_FUNCS(\
 	getdtablesize \
 	getrusage \
+	lrand48 \
 	mallinfo \
 	mallopt \
 	regcomp \
@@ -248,6 +249,7 @@ AC_CHECK_FUNCS(\
 	setresuid \
 	setrlimit \
 	setsid \
+	srand48 \
 	strdup \
 	sysconf \
 	syslog \
