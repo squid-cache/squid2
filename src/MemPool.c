@@ -118,12 +118,13 @@ memCleanModule(void)
     int dirty_count = 0;
     for (i = 0; i < Pools.count; i++) {
 	MemPool *pool = Pools.items[i];
+	if (!pool)
+	    continue;
 	if (memPoolInUseCount(pool)) {
 	    memPoolDescribe(pool);
 	    dirty_count++;
 	} else {
 	    memPoolDestroy(pool);
-	    Pools.items[i] = NULL;
 	}
     }
     if (dirty_count)
@@ -214,14 +215,17 @@ memPoolCreate(const char *label, size_t obj_size)
     return pool;
 }
 
-/*
- * warning: we do not clean this entry from Pools stack assuming memPoolDestroy
- * is used at the end of the program only
- */
 void
 memPoolDestroy(MemPool * pool)
 {
+    int i;
     assert(pool);
+    for (i = 0; i < Pools.count; i++) {
+	if (Pools.items[i] == pool) {
+	    Pools.items[i] = NULL;
+	    break;
+	}
+    }
     stackClean(&pool->pstack);
     xfree(pool);
 }
