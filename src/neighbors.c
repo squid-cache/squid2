@@ -122,12 +122,14 @@ peerAllowedToUse(const peer * p, request_t * request)
     int do_ping = 1;
     aclCheck_t checklist;
     assert(request != NULL);
-    if (request->flags.nocache)
-	if (neighborType(p, request) == PEER_SIBLING)
+    if (neighborType(p, request) == PEER_SIBLING) {
+	if (request->flags.nocache)
 	    return 0;
-    if (request->flags.refresh)
-	if (neighborType(p, request) == PEER_SIBLING)
+	if (request->flags.refresh)
 	    return 0;
+	if (request->flags.loopdetect)
+	    return 0;
+    }
     if (p->pinglist == NULL && p->access == NULL)
 	return do_ping;
     do_ping = 0;
