@@ -619,7 +619,7 @@ void info_get(obj, sentry)
     }
     storeAppendPrintf(sentry, "{Internal Data Structures:}\n");
 
-    storeAppendPrintf(sentry, "{\t\tHot Object Cache Items %d}\n",
+    storeAppendPrintf(sentry, "{\tHot Object Cache Items %d}\n",
 	meta_data.hot_vm);
 
     storeAppendPrintf(sentry, "{Meta Data:}\n");
