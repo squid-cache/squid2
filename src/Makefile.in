@@ -187,6 +187,7 @@ OBJS	 	= \
 		wais.o \
 		wccp.o \
 		whois.o \
+		@WIN32_OBJS@ \
 		$(XTRA_OBJS)
 
 SNMP_OBJS	= \

@@ -27,18 +27,23 @@ if test "$libexecdir" = '${exec_prefix}/libexec' &&
 fi
 
 dnl use .exe suffix for executables on cygwin32 platform
+dnl this should be expanded to a list of platform sensible support requirements.
+dnl (adding an option like --enable-cygwin-support doesn't make sense :]) - R Collins 2001
 case "$host_os" in
 cygwin|cygwin32|os2)
 	exec_suffix=".exe"
 	cgi_suffix=".exe"
+	WIN32_OBJS="win32.o"
 	;;
 *)
 	exec_suffix=""
 	cgi_suffix=".cgi"
+	WIN32_OBJS=""
 	;;
 esac
 AC_SUBST(exec_suffix)
 AC_SUBST(cgi_suffix)
+AC_SUBST(WIN32_OBJS)
 
 if test -z "$CACHE_HTTP_PORT"; then
 	CACHE_HTTP_PORT="3128"
