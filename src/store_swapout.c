@@ -69,6 +69,7 @@ storeSwapOutStart(StoreEntry * e)
 	e->swap_status = SWAPOUT_NONE;
 	cbdataFree(c);
 	xfree(buf);
+	storeLog(STORE_LOG_SWAPOUTFAIL, e);
 	return;
     }
     storeLockObject(e);		/* Don't lock until after create, or the replacement

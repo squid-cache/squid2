@@ -40,7 +40,8 @@ static char *storeLogTags[] =
     "CREATE",
     "SWAPIN",
     "SWAPOUT",
-    "RELEASE"
+    "RELEASE",
+    "SO_FAIL",
 };
 
 static Logfile *storelog = NULL;
