@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -122,8 +123,8 @@ void init_stack(stack, size)
      int size;
 {
     stack->stack_size = size;
-    stack->base = xcalloc(size, sizeof(generic_ptr *));
-    stack->top = &stack->base[0];
+    stack->base = xcalloc(size, sizeof(void **));
+    stack->top = stack->base;
 }
 
 /*-------------------------------------------------------------------------
@@ -140,7 +141,7 @@ void init_stack(stack, size)
 --------------------------------------------------------------------------*/
 void push(stack, data)
      Stack *stack;
-     generic_ptr data;
+     void *data;
 {
     if (current_stacksize(stack) == stack->stack_size) {
 	safe_free(data);
@@ -164,8 +165,7 @@ void push(stack, data)
 int empty_stack(stack)
      Stack *stack;
 {
-    int empty = ((stack->top == &stack->base[0]) ? 1 : 0);
-    return (empty);
+    return stack->top == stack->base;
 }
 /*-------------------------------------------------------------------------
 --
@@ -196,11 +196,14 @@ int full_stack(stack)
 --  Output:   None.
 --
 --------------------------------------------------------------------------*/
-char *pop(stack)
+void *pop(stack)
      Stack *stack;
 {
-    if (empty_stack(stack) == 1)
+    void *p;
+    if (stack->top == stack->base)
 	fatal("Stack empty, cannot pop()");
     stack->top--;
-    return (*stack->top);
+    p = *stack->top;
+    *stack->top = NULL;
+    return p;
 }

@@ -134,9 +134,9 @@ typedef struct mem_hdr {
 
 /* Memory allocator routines for fixed size blocks */
 typedef struct _stmem_stats {
+    int max_pages;
     int total_pages_allocated;
     int page_size;
-    int n_pages_free;
     int n_pages_in_use;
     Stack free_page_stack;
 } stmem_stats;
@@ -151,8 +151,8 @@ extern char *get_free_8k_page _PARAMS(());
 extern void *get_free_request_t _PARAMS(());
 extern void *get_free_mem_obj _PARAMS(());
 extern mem_ptr memInit _PARAMS((void));
-extern void put_free_4k_page _PARAMS((char *));
-extern void put_free_8k_page _PARAMS((char *));
+extern void put_free_4k_page _PARAMS((void *));
+extern void put_free_8k_page _PARAMS((void *));
 extern void put_free_request_t _PARAMS((void *));
 extern void put_free_mem_obj _PARAMS((void *));
 extern void stmemInit _PARAMS((void));
