@@ -2383,8 +2383,9 @@ int ftpget_srv_mode(arg)
 	if (fcntl(c, F_SETFL, flags) < 0)
 	    log_errno2(__FILE__, __LINE__, "fcntl F_SETFL");
 	do {
-	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) < 0) {
-		log_errno2(__FILE__, __LINE__, "read");
+	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) <= 0) {
+		if (n < 0)
+		    log_errno2(__FILE__, __LINE__, "read");
 		close(c);
 		_exit(1);
 	    }
