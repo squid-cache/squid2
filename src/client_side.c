@@ -1016,6 +1016,9 @@ clientBuildRangeHeader(clientHttpRequest * http, HttpReply * rep)
 		"multipart/byteranges; boundary=\"%s\"",
 		strBuf(http->range_iter.boundary));
 	    /* no need for Content-Length in multipart responses */
+	    /* but we must delete the original one if we cannot (yet)
+	     * calculate the actual length */
+	    httpHeaderDelById(hdr, HDR_CONTENT_LENGTH);
 	}
     }
 }
