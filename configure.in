@@ -312,9 +312,11 @@ AC_ARG_ENABLE(arp_acl,
      case "$host" in
 	i386-*-freebsd*)
 	    ;;
+	*-pc-linux-*)
+	    ;;
 	*)
-	    echo "WARNING: ARP ACL support is designed for FreeBSD and"
-	    echo "         probably wont work on your $host system"
+	    echo "WARNING: ARP ACL support is designed for FreeBSD and Linux;"
+	    echo "         it probably wont work on your $host system"
 	    sleep 10
 	    ;;
      esac
