@@ -140,9 +140,9 @@ OBJS	 	= \
 
 SNMP_OBJS	= \
 		snmp.o \
-                snmp_vars.o \
-                snmp_agent.o \
-                snmp_config.o 
+                snmp_oidlist.o \
+                snmp_agent.o  \
+		snmp_config.o
 
 ASYNC_OBJS	= \
 		aiops.o \
