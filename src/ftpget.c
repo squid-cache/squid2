@@ -246,10 +246,10 @@
 #define INADDR_NONE -1
 #endif
 
-char *rfc1738_escape _PARAMS((char *));
-void rfc1738_unescape _PARAMS((char *));
+char *rfc1738_escape(char *);
+void rfc1738_unescape(char *);
 char *http_time();
-static int check_data_rate _PARAMS((int size));
+static int check_data_rate(int size);
 
 typedef struct _ext_table_entry {
     char *name;
@@ -405,8 +405,8 @@ char visible_hostname[SMALLBUFSIZ];
  * reply code line is sent for a FTP command */
 list_t *cmd_msg = NULL;
 
-static int process_request _PARAMS((request_t *));
-static int write_with_timeout _PARAMS((int fd, char *buf, int len));
+static int process_request(request_t *);
+static int write_with_timeout(int fd, char *buf, int len);
 
 static char *state_str[] =
 {
@@ -474,7 +474,8 @@ The following FTP error was encountered:\n\
 <P>\n\
 \n"
 
-char *html_trailer()
+char *
+html_trailer()
 {
     static char buf[SMALLBUFSIZ];
 
@@ -482,8 +483,8 @@ char *html_trailer()
     return buf;
 }
 
-void fail(r)
-     request_t *r;
+void
+fail(request_t * r)
 {
     FILE *fp = NULL;
     char *longmsg = NULL;
@@ -574,8 +575,8 @@ void fail(r)
     xfree(r->errmsg);
 }
 
-void generic_sig_handler(sig)
-     int sig;
+void
+generic_sig_handler(int sig)
 {
     static char buf[SMALLBUFSIZ];
 
@@ -591,8 +592,8 @@ void generic_sig_handler(sig)
     exit(MainRequest->rc);
 }
 
-state_t request_timeout(r)
-     request_t *r;
+state_t
+request_timeout(request_t * r)
 {
     time_t now;
     static char buf[SMALLBUFSIZ];
@@ -605,8 +606,8 @@ state_t request_timeout(r)
     return FAIL_TIMEOUT;
 }
 
-void sigchld_handler(sig)
-     int sig;
+void
+sigchld_handler(int sig)
 {
 #if defined(_SQUID_NEXT_) && !defined(_POSIX_SOURCE)
     union wait status;
@@ -624,10 +625,8 @@ void sigchld_handler(sig)
     signal(sig, sigchld_handler);
 }
 
-static int write_with_timeout(fd, buf, sz)
-     int fd;
-     char *buf;
-     int sz;
+static int
+write_with_timeout(int fd, char *buf, int sz)
 {
     int x;
     fd_set R;
@@ -673,10 +672,8 @@ static int write_with_timeout(fd, buf, sz)
     return nwritten;
 }
 
-int read_with_timeout(fd, buf, sz)
-     int fd;
-     char *buf;
-     int sz;
+int
+read_with_timeout(int fd, char *buf, int sz)
 {
     int x;
     fd_set R;
@@ -707,10 +704,8 @@ int read_with_timeout(fd, buf, sz)
 }
 
 /* read until newline, sz, or timeout */
-int readline_with_timeout(fd, buf, sz)
-     int fd;
-     char *buf;
-     int sz;
+int
+readline_with_timeout(int fd, char *buf, int sz)
 {
     int x;
     fd_set R;
@@ -752,10 +747,8 @@ int readline_with_timeout(fd, buf, sz)
     return nread;
 }
 
-int connect_with_timeout2(fd, S, len)
-     int fd;
-     struct sockaddr_in *S;
-     int len;
+int
+connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
 {
     int x;
     int y;
@@ -813,10 +806,8 @@ int connect_with_timeout2(fd, S, len)
 }
 
 /* stupid wrapper for so we can set and clear O_NDELAY */
-int connect_with_timeout(fd, S, len)
-     int fd;
-     struct sockaddr_in *S;
-     int len;
+int
+connect_with_timeout(int fd, struct sockaddr_in *S, int len)
 {
     int orig_flags;
     int rc;
@@ -831,10 +822,8 @@ int connect_with_timeout(fd, S, len)
     return rc;
 }
 
-int accept_with_timeout(fd, S, len)
-     int fd;
-     struct sockaddr *S;
-     int *len;
+int
+accept_with_timeout(int fd, struct sockaddr *S, int *len)
 {
     int x;
     fd_set R;
@@ -872,8 +861,8 @@ int accept_with_timeout(fd, S, len)
  *  then return the leftmost extention type.  The rightmost extention
  *  type becomes the content encoding (eg .gz)
  */
-void mime_get_type(r)
-     request_t *r;
+void
+mime_get_type(request_t * r)
 {
     char *filename = NULL;
     char *ext = NULL;
@@ -941,8 +930,8 @@ void mime_get_type(r)
 	r->mime_enc = xstrdup(enc);
 }
 
-char *mime_get_icon(name)
-     char *name;
+char *
+mime_get_icon(char *name)
 {
     char *ext = NULL;
     char *t = NULL;
@@ -979,8 +968,8 @@ char *mime_get_icon(name)
     return xstrdup("unknown");
 }
 
-char *http_time(t)
-     time_t t;
+char *
+http_time(time_t t)
 {
     struct tm *gmt;
     time_t when;
@@ -992,8 +981,8 @@ char *http_time(t)
     return tbuf;
 }
 
-void send_success_hdr(r)
-     request_t *r;
+void
+send_success_hdr(request_t * r)
 {
     FILE *fp = NULL;
 
@@ -1031,8 +1020,8 @@ void send_success_hdr(r)
  * 
  *  Returns the reply code.
  */
-int read_reply(fd)
-     int fd;
+int
+read_reply(int fd)
 {
     static char buf[SMALLBUFSIZ];
     int quit = 0;
@@ -1088,9 +1077,8 @@ int read_reply(fd)
  * 
  *  Returns # bytes written
  */
-int send_cmd(fd, buf)
-     int fd;
-     char *buf;
+int
+send_cmd(int fd, char *buf)
 {
     char *xbuf = NULL;
     int len;
@@ -1107,8 +1095,8 @@ int send_cmd(fd, buf)
 
 
 #define ASCII_DIGIT(c) ((c)-48)
-time_t parse_iso3307_time(buf)
-     char *buf;
+time_t
+parse_iso3307_time(char *buf)
 {
 /* buf is an ISO 3307 style time: YYYYMMDDHHMMSS or YYYYMMDDHHMMSS.xxx */
     struct tm tms;
@@ -1151,8 +1139,8 @@ time_t parse_iso3307_time(buf)
  *  close_dfd()
  *  Close any open data channel
  */
-void close_dfd(r)
-     request_t *r;
+void
+close_dfd(request_t * r)
 {
     if (r->dfd >= 0)
 	close(r->dfd);
@@ -1164,8 +1152,8 @@ void close_dfd(r)
  *  is_dfd_open()
  *  Check if a data channel is already open
  */
-int is_dfd_open(r)
-     request_t *r;
+int
+is_dfd_open(request_t * r)
 {
     if (r->dfd >= 0 && !(r->flags & F_NEEDACCEPT)) {
 	fd_set R;
@@ -1196,8 +1184,8 @@ int is_dfd_open(r)
  *    FAIL_HARD
  *    PARSE_OK
  */
-state_t parse_request(r)
-     request_t *r;
+state_t
+parse_request(request_t * r)
 {
     struct hostent *hp;
     Debug(26, 1, ("parse_request: looking up '%s'\n", r->host));
@@ -1224,8 +1212,8 @@ state_t parse_request(r)
  *    CONNECTED
  *    FAIL_CONNECT
  */
-state_t do_connect(r)
-     request_t *r;
+state_t
+do_connect(request_t * r)
 {
     int sock;
     struct sockaddr_in S;
@@ -1277,8 +1265,8 @@ state_t do_connect(r)
  *    SERVICE_READY
  *    FAIL_CONNECT
  */
-state_t read_welcome(r)
-     request_t *r;
+state_t
+read_welcome(request_t * r)
 {
     int code;
 
@@ -1306,8 +1294,8 @@ state_t read_welcome(r)
  *    NEED_PASSWD
  *    FAIL_LOGIN
  */
-state_t do_user(r)
-     request_t *r;
+state_t
+do_user(request_t * r)
 {
     int code;
 
@@ -1339,8 +1327,8 @@ state_t do_user(r)
  *    LOGGED_IN
  *    FAIL_LOGIN
  */
-state_t do_passwd(r)
-     request_t *r;
+state_t
+do_passwd(request_t * r)
 {
     int code;
 
@@ -1358,8 +1346,8 @@ state_t do_passwd(r)
     return FAIL_LOGIN;
 }
 
-state_t do_type(r)
-     request_t *r;
+state_t
+do_type(request_t * r)
 {
     int code;
 
@@ -1375,8 +1363,8 @@ state_t do_type(r)
     return FAIL_SOFT;
 }
 
-state_t do_mdtm(r)
-     request_t *r;
+state_t
+do_mdtm(request_t * r)
 {
     int code;
 
@@ -1395,8 +1383,8 @@ state_t do_mdtm(r)
     return MDTM_OK;
 }
 
-state_t do_size(r)
-     request_t *r;
+state_t
+do_size(request_t * r)
 {
     int code;
 
@@ -1415,8 +1403,8 @@ state_t do_size(r)
     return SIZE_OK;
 }
 
-state_t do_port(r)
-     request_t *r;
+state_t
+do_port(request_t * r)
 {
     int code;
     int sock;
@@ -1508,8 +1496,8 @@ state_t do_port(r)
     return FAIL_SOFT;
 }
 
-state_t do_pasv(r)
-     request_t *r;
+state_t
+do_pasv(request_t * r)
 {
     int code;
     int sock;
@@ -1572,8 +1560,8 @@ state_t do_pasv(r)
     return PORT_OK;
 }
 
-state_t do_cwd(r)
-     request_t *r;
+state_t
+do_cwd(request_t * r)
 {
     int code;
 
@@ -1601,8 +1589,8 @@ state_t do_cwd(r)
     return FAIL_SOFT;
 }
 
-state_t do_rest(r)
-     request_t *r;
+state_t
+do_rest(request_t * r)
 {
     int code;
 
@@ -1625,8 +1613,8 @@ state_t do_rest(r)
 }
 
 
-state_t do_retr(r)
-     request_t *r;
+state_t
+do_retr(request_t * r)
 {
     int code;
 
@@ -1655,8 +1643,8 @@ state_t do_retr(r)
     return FAIL_SOFT;
 }
 
-state_t do_list(r)
-     request_t *r;
+state_t
+do_list(request_t * r)
 {
     int code;
 
@@ -1693,8 +1681,8 @@ state_t do_list(r)
     return FAIL_SOFT;
 }
 
-state_t do_accept(r)
-     request_t *r;
+state_t
+do_accept(request_t * r)
 {
     int sock;
     struct sockaddr S;
@@ -1716,8 +1704,8 @@ state_t do_accept(r)
     return DATA_TRANSFER;
 }
 
-state_t read_data(r)
-     request_t *r;
+state_t
+read_data(request_t * r)
 {
     int code;
     int n;
@@ -1768,8 +1756,8 @@ static char *Month[] =
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
-int is_month(buf)
-     char *buf;
+int
+is_month(char *buf)
 {
     int i;
 
@@ -1781,8 +1769,8 @@ int is_month(buf)
 
 #define MAX_TOKENS 64
 
-parts_t *parse_entry(buf)
-     char *buf;
+parts_t *
+parse_entry(char *buf)
 {
     parts_t *p = NULL;
     char *t = NULL;
@@ -1912,8 +1900,8 @@ parts_t *parse_entry(buf)
     return p;
 }
 
-char *dots_fill(len)
-     size_t len;
+char *
+dots_fill(size_t len)
 {
     static char buf[256];
     int i = 0;
@@ -1930,9 +1918,8 @@ char *dots_fill(len)
     return buf;
 }
 
-char *htmlize_list_entry(line, r)
-     char *line;
-     request_t *r;
+char *
+htmlize_list_entry(char *line, request_t * r)
 {
     char *link = NULL;
     char *icon = NULL;
@@ -2025,8 +2012,8 @@ char *htmlize_list_entry(line, r)
     return html;		/* html should be freed by caller */
 }
 
-void try_readme(r)
-     request_t *r;
+void
+try_readme(request_t * r)
 {
     char *t = NULL;
     char *tfname = NULL;
@@ -2088,8 +2075,8 @@ void try_readme(r)
 
 
 
-state_t htmlify_listing(r)
-     request_t *r;
+state_t
+htmlify_listing(request_t * r)
 {
     int code;
     static char buf[BIGBUFSIZ];
@@ -2187,8 +2174,8 @@ state_t htmlify_listing(r)
     return FAIL_SOFT;
 }
 
-static int process_request(r)
-     request_t *r;
+static int
+process_request(request_t * r)
 {
     if (r == NULL)
 	return 1;
@@ -2341,8 +2328,8 @@ static int process_request(r)
     }
 }
 
-void cleanup_path(r)
-     request_t *r;
+void
+cleanup_path(request_t * r)
 {
     int again;
     int l;
@@ -2400,8 +2387,8 @@ void cleanup_path(r)
 }
 
 #define MAX_ARGS 64
-int ftpget_srv_mode(arg)
-     char *arg;
+int
+ftpget_srv_mode(char *arg)
 {
     /* Accept connections on localhost:port.  For each request,
      * parse into args and exec ftpget. */
@@ -2501,8 +2488,8 @@ int ftpget_srv_mode(arg)
     /* NOTREACHED */
 }
 
-void usage(argcount)
-     int argcount;
+void
+usage(int argcount)
 {
     fprintf(stderr, "usage: %s options filename host path A,I user pass\n",
 	progname);
@@ -2535,8 +2522,8 @@ void usage(argcount)
 
 /* return 1 if exceeding our max data rate */
 
-static int check_data_rate(size)
-     int size;
+static int
+check_data_rate(int size)
 {
     double dt;
     int rate;
@@ -2555,9 +2542,8 @@ static int check_data_rate(size)
 
 
 
-int main(argc, argv)
-     int argc;
-     char *argv[];
+int
+main(int argc, char *argv[])
 {
     request_t *r = NULL;
     char *t = NULL;

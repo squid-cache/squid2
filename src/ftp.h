@@ -102,6 +102,6 @@
  *   re-implementations of code complying to this set of standards.  
  */
 
-extern int ftpStart _PARAMS((int unusedfd, char *url, request_t * req, StoreEntry * entry));
-extern int ftpInitialize _PARAMS((void));
-extern void ftpServerClose _PARAMS((void));
+extern int ftpStart(int unusedfd, char *url, request_t * req, StoreEntry * entry);
+extern int ftpInitialize(void);
+extern void ftpServerClose(void);

@@ -27,7 +27,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *  
  */
- 
+
 /*
  * Copyright (c) 1994, 1995.  All rights reserved.
  *  
@@ -142,12 +142,12 @@
 
 #ifdef _SQUID_NEXT_
 typedef int pid_t;
-extern pid_t getpid _PARAMS((void));
+extern pid_t getpid(void);
 #endif
 
 
 /* Local functions */
-static char *standard_msg _PARAMS((void));
+static char *standard_msg(void);
 
 /* Local variables */
 static FILE *fp_log = NULL;
@@ -156,28 +156,8 @@ static int pid;
 static char *pname = NULL;
 static char lbuf[2048];
 
-#ifdef UNUSED_CODE
-/*
- *  init_log() - Initializes the logging routines.  Log() prints to 
- *  FILE *a, and errorlog() prints to FILE *b;
- */
-void init_log(a, b)
-     FILE *a, *b;
-{
-    fp_log = a;
-    fp_errs = b;
-    pid = getpid();
-    pname = NULL;
-    if (fp_log)
-	setbuf(fp_log, NULL);
-    if (fp_errs)
-	setbuf(fp_errs, NULL);
-}
-#endif
-
-void init_log3(pn, a, b)
-     char *pn;
-     FILE *a, *b;
+void
+init_log3(char *pn, FILE * a, FILE * b)
 {
     fp_log = a;
     fp_errs = b;
@@ -195,7 +175,8 @@ void init_log3(pn, a, b)
  *  Log() - used like printf(3).  Prints message to stdout.
  */
 #if defined(__STRICT_ANSI__)
-void Log(char *fmt,...)
+void
+Log(char *fmt,...)
 {
     va_list ap;
 
@@ -204,7 +185,8 @@ void Log(char *fmt,...)
 
     va_start(ap, fmt);
 #else
-void Log(va_alist)
+void
+Log(va_alist)
      va_dcl
 {
     va_list ap;
@@ -229,7 +211,8 @@ void Log(va_alist)
  *  errorlog() - used like printf(3).  Prints error message to stderr.
  */
 #if defined(__STRICT_ANSI__)
-void errorlog(char *fmt,...)
+void
+errorlog(char *fmt,...)
 {
     va_list ap;
 
@@ -238,7 +221,8 @@ void errorlog(char *fmt,...)
 
     va_start(ap, fmt);
 #else
-void errorlog(va_alist)
+void
+errorlog(va_alist)
      va_dcl
 {
     va_list ap;
@@ -264,7 +248,8 @@ void errorlog(va_alist)
  *  fatal() - used like printf(3).  Prints error message to stderr and exits
  */
 #if defined(__STRICT_ANSI__)
-void fatal(char *fmt,...)
+void
+fatal(char *fmt,...)
 {
     va_list ap;
 
@@ -273,7 +258,8 @@ void fatal(char *fmt,...)
 
     va_start(ap, fmt);
 #else
-void fatal(va_alist)
+void
+fatal(va_alist)
      va_dcl
 {
     va_list ap;
@@ -299,10 +285,8 @@ void fatal(va_alist)
 /*
  *  log_errno2() - Same as perror(); doesn't print when errno == 0
  */
-void log_errno2(file, line, s)
-     char *file;
-     int line;
-     char *s;
+void
+log_errno2(char *file, int line, char *s)
 {
     if (errno != 0)
 	errorlog("%s [%d]: %s: %s\n", file, line, s, xstrerror());
@@ -312,7 +296,8 @@ void log_errno2(file, line, s)
 /*
  *  standard_msg() - Prints the standard pid and timestamp
  */
-static char *standard_msg()
+static char *
+standard_msg()
 {
     time_t t;
     static char buf[BUFSIZ];

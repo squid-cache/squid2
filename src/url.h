@@ -67,17 +67,17 @@ struct _request {
     struct _hierarchyLogData hierarchy;
 };
 
-extern char *url_convert_hex _PARAMS((char *org_url, int allocate));
-extern char *url_escape _PARAMS((char *url));
-extern protocol_t urlParseProtocol _PARAMS((char *));
-extern method_t urlParseMethod _PARAMS((char *));
-extern int urlDefaultPort _PARAMS((protocol_t));
-extern void urlInitialize _PARAMS((void));
-extern request_t *urlParse _PARAMS((method_t, char *));
-extern char *urlCanonical _PARAMS((request_t *, char *));
-extern request_t *requestLink _PARAMS((request_t *));
-extern void requestUnlink _PARAMS((request_t *));
-extern int matchDomainName _PARAMS((char *d, char *h));
-extern int urlCheckRequest _PARAMS((request_t *));
+extern char *url_convert_hex(char *org_url, int allocate);
+extern char *url_escape(char *url);
+extern protocol_t urlParseProtocol(char *);
+extern method_t urlParseMethod(char *);
+extern int urlDefaultPort(protocol_t);
+extern void urlInitialize(void);
+extern request_t *urlParse(method_t, char *);
+extern char *urlCanonical(request_t *, char *);
+extern request_t *requestLink(request_t *);
+extern void requestUnlink(request_t *);
+extern int matchDomainName(char *d, char *h);
+extern int urlCheckRequest(request_t *);
 
 #endif /* _URL_HEADER_ */

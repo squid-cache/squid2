@@ -1,7 +1,7 @@
 extern void clientAccessCheck _PARAMS((icpStateData *,
-	void              (*)_PARAMS((icpStateData *, int))));
-extern void clientAccessCheckDone _PARAMS((icpStateData *, int answer));
-extern int icpProcessExpired _PARAMS((int fd, icpStateData *));
+	void              (*)(icpStateData *, int)));
+extern void clientAccessCheckDone(icpStateData *, int answer);
+extern int icpProcessExpired(int fd, icpStateData *);
 
 #if USE_PROXY_AUTH
 char *proxyAuthenticate(char *headers);

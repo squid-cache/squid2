@@ -136,8 +136,8 @@ static ttl_t *TTL_tail_force = NULL;
 #define TTL_DEFAULT	0x40
 #define TTL_FORCE	0x80
 
-static void ttlFreeListgeneric(t)
-     ttl_t *t;
+static void
+ttlFreeListgeneric(ttl_t * t)
 {
     ttl_t *tnext;
 
@@ -149,20 +149,16 @@ static void ttlFreeListgeneric(t)
     }
 }
 
-void ttlFreeList()
+void
+ttlFreeList()
 {
     ttlFreeListgeneric(TTL_tbl);
     ttlFreeListgeneric(TTL_tbl_force);
     TTL_tail = TTL_tbl = TTL_tail_force = TTL_tbl_force = 0;
 }
 
-void ttlAddToList(pattern, icase, force, abs_ttl, pct_age, age_max)
-     char *pattern;
-     int icase;
-     int force;
-     time_t abs_ttl;
-     int pct_age;
-     time_t age_max;
+void
+ttlAddToList(char *pattern, int icase, int force, time_t abs_ttl, int pct_age, time_t age_max)
 {
     ttl_t *t;
     regex_t comp;
@@ -198,8 +194,8 @@ void ttlAddToList(pattern, icase, force, abs_ttl, pct_age, age_max)
     }
 }
 
-void ttlSet(entry)
-     StoreEntry *entry;
+void
+ttlSet(StoreEntry * entry)
 {
     time_t last_modified = -1;
     time_t expire = -1;

@@ -106,7 +106,7 @@
 #ifndef _FQDNCACHE_H_
 #define _FQDNCACHE_H_
 
-typedef void (*FQDNH) _PARAMS((int, char *, void *));
+typedef void (*FQDNH) (int, char *, void *);
 
 typedef enum {
     FQDN_CACHED,
@@ -133,16 +133,16 @@ typedef struct _fqdncache_entry {
     fqdncache_status_t status:3;
 } fqdncache_entry;
 
-extern int fqdncache_nbgethostbyaddr _PARAMS((struct in_addr, int fd, FQDNH handler, void *handlerData));
-extern int fqdncacheUnregister _PARAMS((struct in_addr, int));
-extern char *fqdncache_gethostbyaddr _PARAMS((struct in_addr, int flags));
-extern void fqdncache_init _PARAMS((void));
-extern void fqdnStats _PARAMS((StoreEntry *));
-extern void fqdncacheShutdownServers _PARAMS((void));
-extern void fqdncacheOpenServers _PARAMS((void));
-extern void fqdncacheReleaseInvalid _PARAMS((char *));
-extern char *fqdnFromAddr _PARAMS((struct in_addr));
-extern int fqdncacheQueueDrain _PARAMS((void));
+extern int fqdncache_nbgethostbyaddr(struct in_addr, int fd, FQDNH handler, void *handlerData);
+extern int fqdncacheUnregister(struct in_addr, int);
+extern char *fqdncache_gethostbyaddr(struct in_addr, int flags);
+extern void fqdncache_init(void);
+extern void fqdnStats(StoreEntry *);
+extern void fqdncacheShutdownServers(void);
+extern void fqdncacheOpenServers(void);
+extern void fqdncacheReleaseInvalid(char *);
+extern char *fqdnFromAddr(struct in_addr);
+extern int fqdncacheQueueDrain(void);
 
 extern char *dns_error_message;
 

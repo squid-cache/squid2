@@ -27,7 +27,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *  
  */
- 
+
 /*
  * Copyright (c) 1994, 1995.  All rights reserved.
  *  
@@ -131,8 +131,8 @@
 
 #include "util.h"
 
-static int make_month _PARAMS((char *s));
-static int make_num _PARAMS((char *s));
+static int make_month(char *s);
+static int make_num(char *s);
 
 static char *month_names[12] =
 {
@@ -141,8 +141,8 @@ static char *month_names[12] =
 };
 
 
-static int make_num(s)
-     char *s;
+static int
+make_num(char *s)
 {
     if (*s >= '0' && *s <= '9')
 	return 10 * (*s - '0') + *(s + 1) - '0';
@@ -150,8 +150,8 @@ static int make_num(s)
 	return *(s + 1) - '0';
 }
 
-static int make_month(s)
-     char *s;
+static int
+make_month(char *s)
 {
     int i;
 
@@ -166,8 +166,8 @@ static int make_month(s)
 }
 
 
-time_t parse_rfc850(str)
-     char *str;
+time_t
+parse_rfc850(char *str)
 {
     char *s;
     struct tm tm;
@@ -249,8 +249,8 @@ time_t parse_rfc850(str)
     return t;
 }
 
-char *mkrfc850(t)
-     time_t t;
+char *
+mkrfc850(time_t t)
 {
     static char buf[128];
 
@@ -261,8 +261,8 @@ char *mkrfc850(t)
     return buf;
 }
 
-char *mkhttpdlogtime(t)
-     time_t *t;
+char *
+mkhttpdlogtime(time_t * t)
 {
     static char buf[128];
 
@@ -303,7 +303,8 @@ char *mkhttpdlogtime(t)
 }
 
 #if 0
-int main()
+int
+main()
 {
     char *x;
     time_t t, pt;

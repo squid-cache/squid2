@@ -112,8 +112,8 @@ int hash_links_allocated;
 struct master_table {
     int valid;
     hash_link **buckets;
-    int (*cmp) _PARAMS((char *, char *));
-    int (*hash) _PARAMS((char *, HashID));
+    int (*cmp) (char *, char *);
+    int (*hash) (char *, HashID);
     int size;
     int current_slot;
     hash_link *current_ptr;
@@ -122,7 +122,7 @@ struct master_table {
 static int default_hash_size = -1;
 struct master_table htbl[MAX_HTABLE];
 
-extern void *xcalloc _PARAMS((int, size_t));
+extern void *xcalloc(int, size_t);
 
 /*
  *  hash_url() - Returns a well-distributed hash function for URLs.
@@ -130,9 +130,8 @@ extern void *xcalloc _PARAMS((int, size_t));
  *  Adapted from code written by Mic Bowman.  -Darren
  *  Generates a standard deviation = 15.73
  */
-int hash_url(s, hid)
-     char *s;
-     HashID hid;
+int
+hash_url(char *s, HashID hid)
 {
     unsigned int i, j, n;
     j = strlen(s);
@@ -142,9 +141,8 @@ int hash_url(s, hid)
     return (uhash(i, hid));
 }
 
-int hash_string(s, hid)
-     char *s;
-     HashID hid;
+int
+hash_string(char *s, HashID hid)
 {
     unsigned int n = 0;
     unsigned int j = 0;
@@ -163,8 +161,8 @@ int hash_string(s, hid)
  *  If hash_sz == 0, then it uses the default hash sizes, otherwise
  *  uses the given hash_sz.  Best performance if hash_sz is a prime number.
  */
-void hash_init(hash_sz)
-     int hash_sz;
+void
+hash_init(int hash_sz)
 {
     memset(htbl, '\0', sizeof(struct master_table) * MAX_HTABLE);
     default_hash_size = hash_sz > 0 ? hash_sz : HASH_SIZE;
@@ -175,10 +173,8 @@ void hash_init(hash_sz)
  *  to compare keys.  Returns the identification for the hash table;
  *  otherwise returns a negative number on error.
  */
-HashID hash_create(cmp_func, hash_sz, hash_func)
-     int (*cmp_func) _PARAMS((char *, char *));
-     int hash_sz;
-     int (*hash_func) _PARAMS((char *, HashID));
+HashID
+hash_create(int (*cmp_func) _PARAMS((char *, char *)), int hash_sz, int (*hash_func) _PARAMS((char *, HashID)))
 {
     int hid;
 
@@ -211,10 +207,8 @@ HashID hash_create(cmp_func, hash_sz, hash_func)
  *
  *  It does not copy any data into the hash table, only pointers.
  */
-int hash_insert(hid, k, item)
-     HashID hid;
-     char *k;
-     void *item;
+int
+hash_insert(HashID hid, char *k, void *item)
 {
     int i;
     hash_link *new;
@@ -247,9 +241,8 @@ int hash_insert(hid, k, item)
  *
  *  It does not copy any data into the hash table, only links pointers.
  */
-int hash_join(hid, lnk)
-     HashID hid;
-     hash_link *lnk;
+int
+hash_join(HashID hid, hash_link * lnk)
 {
     int i;
 
@@ -273,9 +266,8 @@ int hash_join(hid, lnk)
  *  'hid'.  Returns a pointer to the hash bucket on success; otherwise
  *  returns NULL.
  */
-hash_link *hash_lookup(hid, k)
-     HashID hid;
-     char *k;
+hash_link *
+hash_lookup(HashID hid, char *k)
 {
     static hash_link *walker;
     int b;
@@ -298,8 +290,8 @@ hash_link *hash_lookup(hid, k)
  *  hash_first - returns the first item in the hash table 'hid'.
  *  Otherwise, returns NULL on error.
  */
-hash_link *hash_first(hid)
-     HashID hid;
+hash_link *
+hash_first(HashID hid)
 {
     int i;
     if (!htbl[hid].valid)
@@ -321,8 +313,8 @@ hash_link *hash_first(hid)
  *
  *  MUST call hash_first() before hash_next().
  */
-hash_link *hash_next(hid)
-     HashID hid;
+hash_link *
+hash_next(HashID hid)
 {
     int i;
 
@@ -345,9 +337,8 @@ hash_link *hash_next(hid)
     return NULL;		/* end of list */
 }
 
-int hash_delete(hid, key)
-     HashID hid;
-     char *key;
+int
+hash_delete(HashID hid, char *key)
 {
     return hash_delete_link(hid, hash_lookup(hid, key));
 }
@@ -359,10 +350,8 @@ int hash_delete(hid, key)
  *  On success, it returns 0 and deletes the link; otherwise, 
  *  returns non-zero on error.
  */
-int hash_unlink(hid, hl, FreeLink)
-     HashID hid;
-     hash_link *hl;
-     int FreeLink;
+int
+hash_unlink(HashID hid, hash_link * hl, int FreeLink)
 {
     hash_link *walker, *prev;
     int i;
@@ -395,17 +384,15 @@ int hash_unlink(hid, hl, FreeLink)
 }
 
 /* take link off and free link node */
-int hash_delete_link(hid, hl)
-     HashID hid;
-     hash_link *hl;
+int
+hash_delete_link(HashID hid, hash_link * hl)
 {
     return (hash_unlink(hid, hl, 1));
 }
 
 /* take link off only */
-int hash_remove_link(hid, hl)
-     HashID hid;
-     hash_link *hl;
+int
+hash_remove_link(HashID hid, hash_link * hl)
 {
     return (hash_unlink(hid, hl, 0));
 }
@@ -414,9 +401,8 @@ int hash_remove_link(hid, hl)
  *  hash_get_bucket - returns the head item of the bucket 
  *  in the hash table 'hid'. Otherwise, returns NULL on error.
  */
-hash_link *hash_get_bucket(hid, bucket)
-     HashID hid;
-     unsigned int bucket;
+hash_link *
+hash_get_bucket(HashID hid, unsigned int bucket)
 {
     if (!htbl[hid].valid)
 	return NULL;
@@ -432,7 +418,8 @@ hash_link *hash_get_bucket(hid, bucket)
  *  hash table, then prints the whole hash table, then deletes a random item,
  *  and prints the table again...
  */
-int main()
+int
+main()
 {
     int hid;
     int i;

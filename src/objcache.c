@@ -107,7 +107,7 @@
 
 #define STAT_TTL 2
 
-extern void shut_down _PARAMS((int));
+extern void shut_down(int);
 
 cacheinfo *HTTPCacheInfo = NULL;
 cacheinfo *ICPCacheInfo = NULL;
@@ -124,11 +124,8 @@ char *username = "cache";
 
 
 /* Parse a object_cache url into components.  By Anawat. */
-int objcache_url_parser(url, host, request, password)
-     char *host;
-     char *url;
-     char *request;
-     char *password;
+int
+objcache_url_parser(char *host, char *url, char *request, char *password)
 {
     int t;
 
@@ -142,9 +139,8 @@ int objcache_url_parser(url, host, request, password)
     return 0;
 }
 
-int objcache_CheckPassword(password, user)
-     char *password;
-     char *user;
+int
+objcache_CheckPassword(char *password, char *user)
 {
     struct passwd *pwd = NULL;
 #if HAVE_LIB_SHADOW && defined(SHADOW)
@@ -173,10 +169,8 @@ int objcache_CheckPassword(password, user)
     return -1;
 }
 
-int objcacheStart(fd, url, entry)
-     int fd;
-     char *url;
-     StoreEntry *entry;
+int
+objcacheStart(int fd, char *url, StoreEntry * entry)
 {
     char *buf = NULL;
     char *BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";

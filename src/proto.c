@@ -106,12 +106,12 @@
 
 #include "squid.h"
 
-static int matchInsideFirewall _PARAMS((char *host));
-static int matchLocalDomain _PARAMS((char *host));
-static int protoCantFetchObject _PARAMS((int, StoreEntry *, char *));
-static int protoNotImplemented _PARAMS((int fd_unused, char *url, StoreEntry * entry));
-static int protoDNSError _PARAMS((int fd_unused, StoreEntry * entry));
-static void protoDataFree _PARAMS((int fdunused, protodispatch_data *));
+static int matchInsideFirewall(char *host);
+static int matchLocalDomain(char *host);
+static int protoCantFetchObject(int, StoreEntry *, char *);
+static int protoNotImplemented(int fd_unused, char *url, StoreEntry * entry);
+static int protoDNSError(int fd_unused, StoreEntry * entry);
+static void protoDataFree(int fdunused, protodispatch_data *);
 
 #define OUTSIDE_FIREWALL 0
 #define INSIDE_FIREWALL  1
@@ -154,19 +154,17 @@ char *IcpOpcodeStr[] =
     "ICP_END"
 };
 
-static void protoDataFree(fdunused, protoData)
-     int fdunused;
-     protodispatch_data *protoData;
+static void
+protoDataFree(int fdunused, protodispatch_data * protoData)
 {
     requestUnlink(protoData->request);
     safe_free(protoData);
 }
 
 /* called when DNS lookup is done by ipcache. */
-int protoDispatchDNSHandle(unused1, hp, data)
-     int unused1;		/* filedescriptor */
-     struct hostent *hp;
-     void *data;
+int 
+protoDispatchDNSHandle(int unused1
+    ,struct hostent *hp, void *data)
 {
     edge *e = NULL;
     struct in_addr srv_addr;
@@ -260,11 +258,8 @@ int protoDispatchDNSHandle(unused1, hp, data)
     return 0;
 }
 
-int protoDispatch(fd, url, entry, request)
-     int fd;
-     char *url;
-     StoreEntry *entry;
-     request_t *request;
+int
+protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 {
     protodispatch_data *protoData = NULL;
     char *method;
@@ -367,11 +362,8 @@ int protoDispatch(fd, url, entry, request)
     return 0;
 }
 
-void protoUnregister(fd, entry, request, src_addr)
-     int fd;
-     StoreEntry *entry;
-     request_t *request;
-     struct in_addr src_addr;
+void
+protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr src_addr)
 {
     char *url = entry ? entry->url : NULL;
     char *host = request ? request->host : NULL;
@@ -396,9 +388,8 @@ void protoUnregister(fd, entry, request, src_addr)
     squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 }
 
-void protoCancelTimeout(fd, entry)
-     int fd;
-     StoreEntry *entry;
+void
+protoCancelTimeout(int fd, StoreEntry * entry)
 {
     /* If fd = 0 then this thread was called from neighborsUdpAck and
      * we must look up the FD in the pending list. */
@@ -426,9 +417,8 @@ void protoCancelTimeout(fd, entry)
  *  Called from comm_select() if neighbor pings timeout
  *  or from neighborsUdpAck() if all neighbors miss.
  */
-int getFromDefaultSource(fd, entry)
-     int fd;
-     StoreEntry *entry;
+int
+getFromDefaultSource(int fd, StoreEntry * entry)
 {
     edge *e = NULL;
     char *url = NULL;
@@ -474,11 +464,8 @@ int getFromDefaultSource(fd, entry)
     return 0;
 }
 
-int protoStart(fd, entry, e, request)
-     int fd;
-     StoreEntry *entry;
-     edge *e;
-     request_t *request;
+int
+protoStart(int fd, StoreEntry * entry, edge * e, request_t * request)
 {
     char *url = entry->url;
     char *request_hdr = entry->mem_obj->mime_hdr;
@@ -514,10 +501,8 @@ int protoStart(fd, entry, e, request)
 }
 
 
-static int protoNotImplemented(fd, url, entry)
-     int fd;
-     char *url;
-     StoreEntry *entry;
+static int
+protoNotImplemented(int fd, char *url, StoreEntry * entry)
 {
     LOCAL_ARRAY(char, buf, 256);
 
@@ -533,10 +518,8 @@ static int protoNotImplemented(fd, url, entry)
     return 0;
 }
 
-static int protoCantFetchObject(fd, entry, reason)
-     int fd;
-     StoreEntry *entry;
-     char *reason;
+static int
+protoCantFetchObject(int fd, StoreEntry * entry, char *reason)
 {
     LOCAL_ARRAY(char, buf, 2048);
 
@@ -550,9 +533,8 @@ static int protoCantFetchObject(fd, entry, reason)
     return 0;
 }
 
-static int protoDNSError(fd, entry)
-     int fd;
-     StoreEntry *entry;
+static int
+protoDNSError(int fd, StoreEntry * entry)
 {
     debug(17, 2, "protoDNSError: FD %d <URL:%s>\n", fd, entry->url);
     protoCancelTimeout(fd, entry);
@@ -564,8 +546,8 @@ static int protoDNSError(fd, entry)
  * return 0 if the host is outside the firewall (no domains matched), and
  * return 1 if the host is inside the firewall or no domains at all.
  */
-static int matchInsideFirewall(host)
-     char *host;
+static int
+matchInsideFirewall(char *host)
 {
     wordlist *s = Config.inside_firewall_list;
     char *key = NULL;
@@ -592,8 +574,8 @@ static int matchInsideFirewall(host)
     return OUTSIDE_FIREWALL;
 }
 
-static int matchLocalDomain(host)
-     char *host;
+static int
+matchLocalDomain(char *host)
 {
     wordlist *s = NULL;
     for (s = Config.local_domain_list; s; s = s->next) {

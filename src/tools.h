@@ -103,27 +103,27 @@
  *   re-implementations of code complying to this set of standards.  
  */
 
-extern char *getMyHostname _PARAMS((void));
-extern int safeunlink _PARAMS((char *path, int quiet));
-extern void death _PARAMS((int sig));
-extern void fatal _PARAMS((char *message));
-extern void fatal_dump _PARAMS((char *message));
-extern void sigusr2_handle _PARAMS((int sig));
-extern void sig_child _PARAMS((int sig));
-extern void leave_suid _PARAMS((void));
-extern void enter_suid _PARAMS((void));
-extern void no_suid _PARAMS((void));
-extern void writePidFile _PARAMS((void));
-extern void setSocketShutdownLifetimes _PARAMS((void));
-extern void setMaxFD _PARAMS((void));
-extern time_t getCurrentTime _PARAMS((void));
-extern void normal_shutdown _PARAMS((void));
-extern int tvSubMsec _PARAMS((struct timeval, struct timeval));
-extern int percent _PARAMS((int, int));
-extern void squid_signal _PARAMS((int sig, void (*func) (), int flags));
-extern char *accessLogTime _PARAMS((time_t));
-extern int readPidFile _PARAMS((void));
-extern void _debug_trap _PARAMS((char *message));
+extern char *getMyHostname(void);
+extern int safeunlink(char *path, int quiet);
+extern void death(int sig);
+extern void fatal(char *message);
+extern void fatal_dump(char *message);
+extern void sigusr2_handle(int sig);
+extern void sig_child(int sig);
+extern void leave_suid(void);
+extern void enter_suid(void);
+extern void no_suid(void);
+extern void writePidFile(void);
+extern void setSocketShutdownLifetimes(void);
+extern void setMaxFD(void);
+extern time_t getCurrentTime(void);
+extern void normal_shutdown(void);
+extern int tvSubMsec(struct timeval, struct timeval);
+extern int percent(int, int);
+extern void squid_signal(int sig, void (*func) (), int flags);
+extern char *accessLogTime(time_t);
+extern int readPidFile(void);
+extern void _debug_trap(char *message);
 
 extern int do_mallinfo;
 extern time_t squid_curtime;

@@ -192,7 +192,7 @@ typedef struct iwd {
     char ident[ICP_IDENT_SZ + 1];
     int ident_fd;
     aclCheck_t *aclChecklist;
-    void (*aclHandler) _PARAMS((struct iwd *, int answer));
+    void (*aclHandler) (struct iwd *, int answer);
     float http_ver;
 } icpStateData;
 
@@ -204,22 +204,22 @@ extern int icpUdpSend _PARAMS((int,
 	icp_opcode,
 	log_type,
 	protocol_t));
-extern int icpHandleUdp _PARAMS((int sock, void *data));
-extern int asciiHandleConn _PARAMS((int sock, void *data));
+extern int icpHandleUdp(int sock, void *data);
+extern int asciiHandleConn(int sock, void *data);
 extern int icpSendERROR _PARAMS((int fd,
 	log_type errorCode,
 	char *text,
 	icpStateData *,
 	int httpCode));
-extern void AppendUdp _PARAMS((icpUdpData *));
-extern void icpParseRequestHeaders _PARAMS((icpStateData *));
-extern void icpDetectClientClose _PARAMS((int fd, icpStateData *));
-extern void icpProcessRequest _PARAMS((int fd, icpStateData *));
-extern void icpHandleStore _PARAMS((int, StoreEntry *, icpStateData *));
-extern int icpSendMoreData _PARAMS((int fd, icpStateData *));
+extern void AppendUdp(icpUdpData *);
+extern void icpParseRequestHeaders(icpStateData *);
+extern void icpDetectClientClose(int fd, icpStateData *);
+extern void icpProcessRequest(int fd, icpStateData *);
+extern void icpHandleStore(int, StoreEntry *, icpStateData *);
+extern int icpSendMoreData(int fd, icpStateData *);
 
 extern int neighbors_do_private_keys;
 extern char *IcpOpcodeStr[];
-extern int icpUdpReply _PARAMS((int fd, icpUdpData * queue));
+extern int icpUdpReply(int fd, icpUdpData * queue);
 
 #endif /* ICP_H */

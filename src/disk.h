@@ -118,9 +118,9 @@
 typedef int (*FILE_READ_HD) _PARAMS((int fd, char *buf, int size, int errflag,
 	void *data, int offset));
 
-typedef int (*FILE_WALK_HD) _PARAMS((int fd, int errflag, void *data));
+typedef int (*FILE_WALK_HD) (int fd, int errflag, void *data);
 
-typedef int (*FILE_WALK_LHD) _PARAMS((int fd, char *buf, int size, void *line_data));
+typedef int (*FILE_WALK_LHD) (int fd, char *buf, int size, void *line_data);
 
 
 
@@ -129,7 +129,7 @@ typedef struct _dwrite_q {
     int len;
     int cur_offset;
     struct _dwrite_q *next;
-    void (*free) _PARAMS((void *));
+    void (*free) (void *);
 } dwrite_q;
 
 typedef struct _dread_ctrl {
@@ -171,23 +171,23 @@ typedef struct _FileEntry {
     dwrite_q *write_q_tail;
 #if USE_ASYNC_IO		/* Data for asynchronous reads */
     struct aiocb aio_cb;	/* Control block */
-    int (*aio_handler) _PARAMS((int fd, void *data));
+    int (*aio_handler) (int fd, void *data);
     void *aio_data;		/* state, either FileEntry or ctrl_dat */
 #endif
 } FileEntry;
 
 extern FileEntry *file_table;
 
-extern int file_open _PARAMS((char *path, int (*handler) (), int mode));
-extern int file_close _PARAMS((int fd));
+extern int file_open(char *path, int (*handler) (), int mode);
+extern int file_close(int fd);
 extern int file_write _PARAMS((int fd,
 	char *buf,
 	int len,
 	int access_code,
 	void       (*handle) (),
 	void *handle_data,
-	void       (*free) _PARAMS((void *))));
-extern int file_write_unlock _PARAMS((int fd, int access_code));
+	void       (*free) (void *)));
+extern int file_write_unlock(int fd, int access_code);
 extern int file_read _PARAMS((int fd, char *buf, int req_len, int offset,
 	int       (*handler) (int fd, char *buf, int size,
 	    int errflag, void *data, int offset),
@@ -199,10 +199,10 @@ extern int file_walk _PARAMS((int fd,
 	          (int fd, char *buf, int size, void *line_data),
 	void *line_data));
 #ifdef UNUSED_CODE
-extern int file_update_open _PARAMS((int fd, char *path));
+extern int file_update_open(int fd, char *path);
 #endif
-extern int file_write_lock _PARAMS((int fd));
-extern int disk_init _PARAMS((void));
-extern int diskWriteIsComplete _PARAMS((int));
+extern int file_write_lock(int fd);
+extern int disk_init(void);
+extern int diskWriteIsComplete(int);
 
 #endif /* DISK_H */

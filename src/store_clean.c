@@ -48,16 +48,16 @@
 #endif /* HAVE_NDIR_H */
 #endif /* HAVE_DIRENT_H */
 
-static int rev_int_sort _PARAMS((int *, int *));
+static int rev_int_sort(int *, int *);
 
-static int rev_int_sort(i1, i2)
-     int *i1;
-     int *i2;
+static int
+rev_int_sort(int *i1, int *i2)
 {
     return *i2 - *i1;
 }
 
-void storeDirClean()
+void
+storeDirClean()
 {
     static int index = 0;
     DIR *dp = NULL;

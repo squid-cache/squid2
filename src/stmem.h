@@ -116,12 +116,12 @@ typedef struct mem_hdr {
     mem_node head;
     mem_node tail;
     int origin_offset;
-    void (*mem_free) _PARAMS((mem_ptr mem));
-    void (*mem_free_data) _PARAMS((mem_ptr mem));
-    int (*mem_free_data_upto) _PARAMS((mem_ptr mem, int target_offset));
-    int (*mem_append) _PARAMS((mem_ptr mem, char *data, int len));
-    int (*mem_copy) _PARAMS((mem_ptr mem, int offset, char *buf, int size));
-    int (*mem_grep) _PARAMS((mem_ptr mem, char *string, int nbytes));
+    void (*mem_free) (mem_ptr mem);
+    void (*mem_free_data) (mem_ptr mem);
+    int (*mem_free_data_upto) (mem_ptr mem, int target_offset);
+    int (*mem_append) (mem_ptr mem, char *data, int len);
+    int (*mem_copy) (mem_ptr mem, int offset, char *buf, int size);
+    int (*mem_grep) (mem_ptr mem, char *string, int nbytes);
 } Mem_Hdr;
 
 /* To reduce memory fragmentation, we now store the memory version of an
@@ -146,15 +146,15 @@ extern stmem_stats disk_stats;
 extern stmem_stats request_pool;
 extern stmem_stats mem_obj_pool;
 
-extern char *get_free_4k_page _PARAMS(());
-extern char *get_free_8k_page _PARAMS(());
-extern void *get_free_request_t _PARAMS(());
-extern void *get_free_mem_obj _PARAMS(());
-extern mem_ptr memInit _PARAMS((void));
-extern void put_free_4k_page _PARAMS((void *));
-extern void put_free_8k_page _PARAMS((void *));
-extern void put_free_request_t _PARAMS((void *));
-extern void put_free_mem_obj _PARAMS((void *));
-extern void stmemInit _PARAMS((void));
+extern char *get_free_4k_page();
+extern char *get_free_8k_page();
+extern void *get_free_request_t();
+extern void *get_free_mem_obj();
+extern mem_ptr memInit(void);
+extern void put_free_4k_page(void *);
+extern void put_free_8k_page(void *);
+extern void put_free_request_t(void *);
+extern void put_free_mem_obj(void *);
+extern void stmemInit(void);
 
 #endif

@@ -28,15 +28,15 @@
  *  
  */
 
-extern void squid_error_entry _PARAMS((StoreEntry *, log_type, char *));
-extern char *squid_error_url _PARAMS((char *, int, int, char *, int, char *));
-extern char *squid_error_request _PARAMS((char *, int, char *, int));
-extern void errorInitialize _PARAMS((void));
-extern char *access_denied_msg _PARAMS((int, int, char *, char *));
-extern char *access_denied_redirect _PARAMS((int, int, char *, char *, char *));
+extern void squid_error_entry(StoreEntry *, log_type, char *);
+extern char *squid_error_url(char *, int, int, char *, int, char *);
+extern char *squid_error_request(char *, int, char *, int);
+extern void errorInitialize(void);
+extern char *access_denied_msg(int, int, char *, char *);
+extern char *access_denied_redirect(int, int, char *, char *, char *);
 #if USE_PROXY_AUTH
-extern char *proxy_denied_msg _PARAMS((int, int, char *, char *));
+extern char *proxy_denied_msg(int, int, char *, char *);
 #endif /* USE_PROXY_AUTH */
-extern char *authorization_needed_msg _PARAMS((request_t *, char *));
+extern char *authorization_needed_msg(request_t *, char *);
 
 extern char *tmp_error_buf;

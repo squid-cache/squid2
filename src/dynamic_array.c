@@ -106,9 +106,8 @@
 #include "squid.h"
 
 /* return 0 for error */
-dynamic_array *create_dynamic_array(size, delta)
-     int size;
-     int delta;
+dynamic_array *
+create_dynamic_array(int size, int delta)
 {
     dynamic_array *ary = NULL;
 
@@ -120,9 +119,8 @@ dynamic_array *create_dynamic_array(size, delta)
     return (ary);
 }
 
-int insert_dynamic_array(ary, entry)
-     dynamic_array *ary;
-     void *entry;
+int
+insert_dynamic_array(dynamic_array * ary, void *entry)
 {
     /* if run out of space,then increae array's size
      * by the amount of ary->delta
@@ -136,17 +134,16 @@ int insert_dynamic_array(ary, entry)
 }
 
 /* keep the first new_size items of array */
-int cut_dynamic_array(ary, new_size)
-     dynamic_array *ary;
-     unsigned int new_size;
+int
+cut_dynamic_array(dynamic_array * ary, unsigned int new_size)
 {
     if (ary->index > new_size)
 	ary->index = new_size;
     return (ary->index);
 }
 
-void destroy_dynamic_array(ary)
-     dynamic_array *ary;
+void
+destroy_dynamic_array(dynamic_array * ary)
 {
     safe_free(ary->collection);
     safe_free(ary);

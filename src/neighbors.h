@@ -200,21 +200,21 @@ struct _hierarchyLogData {
     int timeout;
 };
 
-extern edge *getFirstEdge _PARAMS((void));
-extern edge *getFirstUpParent _PARAMS((request_t *));
-extern edge *getNextEdge _PARAMS((edge *));
-extern edge *getSingleParent _PARAMS((request_t *, int *n));
-extern int neighborsUdpPing _PARAMS((protodispatch_data *));
-extern void neighbors_cf_domain _PARAMS((char *, char *));
-extern void neighbors_cf_acl _PARAMS((char *, char *));
-extern neighbors *neighbors_create _PARAMS(());
-extern void hierarchyNote _PARAMS((request_t *, hier_code, int, char *));
-extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *, char *, int));
-extern void neighbors_cf_add _PARAMS((char *, char *, int, int, int, int));
-extern void neighbors_init _PARAMS((void));
-extern void neighbors_open _PARAMS((int));
-extern void neighborsDestroy _PARAMS((void));
-extern edge *neighborFindByName _PARAMS((char *));
+extern edge *getFirstEdge(void);
+extern edge *getFirstUpParent(request_t *);
+extern edge *getNextEdge(edge *);
+extern edge *getSingleParent(request_t *, int *n);
+extern int neighborsUdpPing(protodispatch_data *);
+extern void neighbors_cf_domain(char *, char *);
+extern void neighbors_cf_acl(char *, char *);
+extern neighbors *neighbors_create();
+extern void hierarchyNote(request_t *, hier_code, int, char *);
+extern void neighborsUdpAck(int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *, char *, int);
+extern void neighbors_cf_add(char *, char *, int, int, int, int);
+extern void neighbors_init(void);
+extern void neighbors_open(int);
+extern void neighborsDestroy(void);
+extern edge *neighborFindByName(char *);
 
 extern char *hier_strings[];
 

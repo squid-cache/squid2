@@ -113,10 +113,10 @@ typedef struct {
     int stack_size;
 } Stack;
 
-extern void *pop _PARAMS((Stack *));
-extern int empty_stack _PARAMS((Stack *));
-extern int full_stack _PARAMS((Stack *));
-extern void push _PARAMS((Stack *, void *));
-extern void init_stack _PARAMS((Stack *, int));
+extern void *pop(Stack *);
+extern int empty_stack(Stack *);
+extern int full_stack(Stack *);
+extern void push(Stack *, void *);
+extern void init_stack(Stack *, int);
 
 #endif /* _STACK_H_ */

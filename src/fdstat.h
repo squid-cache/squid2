@@ -116,13 +116,13 @@ typedef enum {
     FD_UNKNOWN
 } File_Desc_Type;
 
-extern int fdstat_biggest_fd _PARAMS((void));
-extern int fdstat_init _PARAMS((int preopen));
-extern int fdstat_isopen _PARAMS((int fd));
-extern void fdstat_close _PARAMS((int fd));
-extern void fdstat_open _PARAMS((int fd, File_Desc_Type type));
-extern int fdstat_are_n_free_fd _PARAMS((int));
-extern File_Desc_Type fdstatGetType _PARAMS((int));
+extern int fdstat_biggest_fd(void);
+extern int fdstat_init(int preopen);
+extern int fdstat_isopen(int fd);
+extern void fdstat_close(int fd);
+extern void fdstat_open(int fd, File_Desc_Type type);
+extern int fdstat_are_n_free_fd(int);
+extern File_Desc_Type fdstatGetType(int);
 
 extern char *fdstatTypeStr[];
 

@@ -110,11 +110,11 @@ extern int _db_line;
 extern int syslog_enable;
 extern FILE *debug_log;
 
-extern void _db_init _PARAMS((char *logfile, char *options));
-extern void _db_rotate_log _PARAMS((void));
+extern void _db_init(char *logfile, char *options);
+extern void _db_rotate_log(void);
 
 #if defined(__STRICT_ANSI__)
-extern void _db_print _PARAMS((int, int, char *,...));
+extern void _db_print(int, int, char *,...);
 #else
 extern void _db_print();
 #endif

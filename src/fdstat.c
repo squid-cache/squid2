@@ -119,10 +119,10 @@ typedef struct _FDENTRY {
 
 static FDENTRY *fd_stat_tab = NULL;
 
-static void fdstat_update _PARAMS((int fd, File_Desc_Status status));
+static void fdstat_update(int fd, File_Desc_Status status);
 
-File_Desc_Type fdstatGetType(fd)
-     int fd;
+File_Desc_Type
+fdstatGetType(int fd)
 {
     return fd_stat_tab[fd].type;
 }
@@ -138,8 +138,8 @@ char *fdstatTypeStr[] =
 };
 
 /* init fd stat module */
-int fdstat_init(preopen)
-     int preopen;
+int
+fdstat_init(int preopen)
 {
     int i;
 
@@ -160,9 +160,8 @@ int fdstat_init(preopen)
 }
 
 /* call for updating the current biggest fd */
-static void fdstat_update(fd, status)
-     int fd;
-     File_Desc_Status status;
+static void
+fdstat_update(int fd, File_Desc_Status status)
 {
     unsigned int i;
 
@@ -205,38 +204,38 @@ static void fdstat_update(fd, status)
 
 
 /* call when open fd */
-void fdstat_open(fd, type)
-     int fd;
-     File_Desc_Type type;
+void
+fdstat_open(int fd, File_Desc_Type type)
 {
     fd_stat_tab[fd].status = FDSTAT_OPEN;
     fd_stat_tab[fd].type = type;
     fdstat_update(fd, FDSTAT_OPEN);
 }
 
-int fdstat_isopen(fd)
-     int fd;
+int
+fdstat_isopen(int fd)
 {
     return (fd_stat_tab[fd].status == FDSTAT_OPEN);
 }
 
 /* call when close fd */
-void fdstat_close(fd)
-     int fd;
+void
+fdstat_close(int fd)
 {
     fd_stat_tab[fd].status = FDSTAT_CLOSE;
     fdstat_update(fd, FDSTAT_CLOSE);
 }
 
 /* return the biggest fd */
-int fdstat_biggest_fd()
+int
+fdstat_biggest_fd()
 {
     return Biggest_FD;
 }
 
 
-int fdstat_are_n_free_fd(n)
-     int n;
+int
+fdstat_are_n_free_fd(int n)
 {
     int fd;
     int n_free_fd = 0;

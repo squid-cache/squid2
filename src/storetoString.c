@@ -107,8 +107,8 @@
 
 /* convert store entry content to string. Use for debugging */
 /* return pointer to static buffer containing string */
-char *storeToString(e)
-     StoreEntry *e;
+char *
+storeToString(StoreEntry * e)
 {
     LOCAL_ARRAY(char, stsbuf, 16 << 10);	/* have to make this really big */
     LOCAL_ARRAY(char, tmpbuf, 8 << 10);

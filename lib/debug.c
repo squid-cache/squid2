@@ -27,7 +27,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *  
  */
- 
+
 /*
  * Copyright (c) 1994, 1995.  All rights reserved.
  *  
@@ -114,8 +114,8 @@
 #define MAIN
 #include "util.h"
 
-static void debug_enable _PARAMS((int, int));
-static void debug_disable _PARAMS((int));
+static void debug_enable(int, int);
+static void debug_disable(int);
 
 int Harvest_debug_levels[MAX_DEBUG_LEVELS];
 int Harvest_do_debug = 0;
@@ -124,7 +124,8 @@ int Harvest_do_debug = 0;
 /*
  *  debug_reset() - Reset debugging routines.
  */
-void debug_reset()
+void
+debug_reset()
 {
     int i;
 
@@ -137,8 +138,8 @@ void debug_reset()
 /*
  *  debug_enable() - Enables debugging output for section s, level l.
  */
-static void debug_enable(s, l)
-     int s, l;
+static void
+debug_enable(int s, int l)
 {
 #ifdef USE_NO_DEBUGGING
     return;
@@ -153,46 +154,14 @@ static void debug_enable(s, l)
 /*
  *  debug_disable() - Disables debugging output for section s, level l.
  */
-static void debug_disable(s)
-     int s;
+static void
+debug_disable(int s)
 {
     if (s > MAX_DEBUG_LEVELS || s < 0)
 	return;
     Log("Disabling debugging for Section %d.\n", s);
     Harvest_debug_levels[s] = -1;
 }
-
-#ifdef UNUSED_CODE
-/*
- *  debug_ok() - Returns non-zero if the caller is debugging the
- *  given section and level.  If level is -2, then all debugging is used.
- *  In general, level 1 should be minimal and level 9 the max.
- */
-int debug_ok(s, lev)
-     int s, lev;
-{
-#ifdef USE_NO_DEBUGGING
-    return 0;
-#else
-    /* totally disabled */
-    if (Harvest_do_debug == 0)
-	return 0;
-    /* section out of range */
-    if (s < 0 || s > MAX_DEBUG_LEVELS)
-	return 0;
-    /* -1 means disabled for that section */
-    if (Harvest_debug_levels[s] == -1)
-	return 0;
-    /* -2 means fully enabled for that section */
-    if (Harvest_debug_levels[s] == -2)
-	return 1;
-    /* enabled if lev is less than or equal to section level */
-    if (lev <= Harvest_debug_levels[s])
-	return 1;
-    return 0;
-#endif
-}
-#endif /* UNUSED_CODE */
 
 /*
  *  debug_flag() - Processes a -D flag and runs debug_enable()
@@ -202,8 +171,8 @@ int debug_ok(s, lev)
  *      -Ds,l   Enable debugging for section s, level l
  *      -DALL   Everything enabled
  */
-void debug_flag(flag)
-     char *flag;
+void
+debug_flag(char *flag)
 {
     int s = -1, l = -2, i;
     char *p;
@@ -235,7 +204,8 @@ void debug_flag(flag)
  *  debug_init() - Initializes debugging from $SQUID_DEBUG variable
  *
  */
-void debug_init()
+void
+debug_init()
 {
     char *s, *t, *u;
 
