@@ -135,6 +135,7 @@ main(int argc, char *argv[])
 {
     int conn, c, len, bytesWritten;
     int port, to_stdout, reload;
+    int opt_noaccept = 0;
     char url[BUFSIZ], msg[BUFSIZ], buf[BUFSIZ], hostname[BUFSIZ];
     const char *method = "GET";
     extern char *optarg;
@@ -153,8 +154,11 @@ main(int argc, char *argv[])
 	strcpy(url, argv[argc - 1]);
 	if (url[0] == '-')
 	    usage(argv[0]);
-	while ((c = getopt(argc, argv, "fsrnp:c:h:i:m:t:?")) != -1)
+	while ((c = getopt(argc, argv, "afsrnp:c:h:i:m:t:?")) != -1)
 	    switch (c) {
+	    case 'a':
+		opt_noaccept = 1;
+		break;
 	    case 'h':		/* host:arg */
 	    case 'c':		/* backward compat */
 		if (optarg != NULL)
@@ -210,8 +214,10 @@ main(int argc, char *argv[])
 	sprintf(buf, "Pragma: no-cache\r\n");
 	strcat(msg, buf);
     }
-    sprintf(buf, "Accept: */*\r\n");
-    strcat(msg, buf);
+    if (opt_noaccept == 0) {
+	sprintf(buf, "Accept: */*\r\n");
+	strcat(msg, buf);
+    }
     if (ims) {
 	sprintf(buf, "If-Modified-Since: %s\r\n", mkrfc1123(ims));
 	strcat(msg, buf);
