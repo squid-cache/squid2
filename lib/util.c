@@ -574,7 +574,7 @@ xcalloc(int n, size_t sz)
     check_malloc(p, sz * n);
 #endif
 #if XMALLOC_STATISTICS
-    malloc_stat(sz);
+    malloc_stat(sz * n);
 #endif
 #if XMALLOC_TRACE
     xmalloc_show_trace(p, 1);
