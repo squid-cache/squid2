@@ -235,6 +235,7 @@ static void ftpProcessReplyHeader(data, buf, size)
 	    if (BIT_TEST(entry->flag, CACHABLE))
 		storeSetPublicKey(entry);
 	    break;
+	case 302:		/* Moved Temporarily */
 	case 304:		/* Not Modified */
 	case 401:		/* Unauthorized */
 	case 407:		/* Proxy Authentication Required */
@@ -279,6 +280,10 @@ int ftpReadReply(fd, data)
     clen = entry->mem_obj->e_current_len;
     off = storeGetLowestReaderOffset(entry);
     if ((clen - off) > FTP_DELETE_GAP) {
+        if (entry->flag & CLIENT_ABORT_REQUEST) {
+	    squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
+	    comm_close(fd);
+	}
 	IOStats.Ftp.reads_deferred++;
 	debug(11, 3, "ftpReadReply: Read deferred for Object: %s\n",
 	    entry->url);

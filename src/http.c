@@ -201,6 +201,26 @@ static void httpProcessReplyHeader(data, buf, size)
 	    if (BIT_TEST(entry->flag, CACHABLE))
 		storeSetPublicKey(entry);
 	    break;
+	case 302:		/* Moved Temporarily */
+/* 
+ * From:    carson@lehman.com
+ * To:      squid@nlanr.net
+ * Subject: Incorrect caching behavior (again!)
+ * Date:    Sat, 18 May 1996 16:21:16 EDT
+ * ==============================================================================
+ * 
+ * 
+ * Squid is caching 302 temporary redirects (albeit for a short time). This is
+ * FORBIDDEN. It breaks cookie authentication and is in violation of the HTTP
+ * 1.1 draft.
+ * 
+ * <sigh> Duane - how many times do I have to explain this to you?
+ * 
+ * --
+ * Carson Gaspar -- carson@cs.columbia.edu carson@lehman.com
+ * http://www.cs.columbia.edu/~carson/home.html
+ * <This is the boring business .sig - no outre sayings here>
+ */
 	case 304:		/* Not Modified */
 	case 401:		/* Unauthorized */
 	case 407:		/* Proxy Authentication Required */
@@ -246,6 +266,11 @@ static void httpReadReply(fd, data)
     clen = entry->mem_obj->e_current_len;
     off = storeGetLowestReaderOffset(entry);
     if ((clen - off) > HTTP_DELETE_GAP) {
+	if (entry->flag & CLIENT_ABORT_REQUEST) {
+	    squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
+	    comm_close(fd);
+	    return;
+	}
 	IOStats.Http.reads_deferred++;
 	debug(11, 3, "httpReadReply: Read deferred for Object: %s\n",
 	    entry->url);
