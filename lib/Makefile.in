@@ -56,7 +56,7 @@ libregex.a: $(REGEXOBJS)
 clean:
 	-rm -f *.o $(LIBS) core
 
-realclean: clean
+distclean: clean
 	-rm -f libregex.a
 	-rm -f Makefile
 
