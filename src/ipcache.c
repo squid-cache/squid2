@@ -738,7 +738,7 @@ ipcacheAddEntryFromHosts(const char *name, const char *ipaddr)
 	if (1 == i->flags.fromhosts) {
 	    ipcacheUnlockEntry(i);
 	} else if (i->locks > 0) {
-	    debug(35, 1) ("ipcacheAddEntryFromHosts: can't add static entry"
+	    debug(14, 1) ("ipcacheAddEntryFromHosts: can't add static entry"
 		" for locked name '%s'\n", name);
 	    return 1;
 	} else {
