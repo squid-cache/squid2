@@ -92,7 +92,7 @@
 #		     no-query
 #		     default
 #		     round-robin
-#		     mulsticast-responder
+#		     multicast-responder
 #
 #		     use 'proxy-only' to specify that objects fetched
 #		     from this cache should not be saved locally.
