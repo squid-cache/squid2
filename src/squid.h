@@ -298,7 +298,7 @@ struct rusage {
 #endif
 
 #if CBDATA_DEBUG
-#define cbdataAdd(a,b)	cbdataAddDbg(a,b,__FILE__,__LINE__)
+#define cbdataAdd(a,b,c)	cbdataAddDbg(a,b,c,__FILE__,__LINE__)
 #endif
 
 #if USE_LEAKFINDER
