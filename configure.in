@@ -993,6 +993,7 @@ AC_CHECK_FUNCS(\
 	mktime \
 	mstats \
 	poll \
+	pthread_sigmask \
 	putenv \
 	random \
 	regcomp \

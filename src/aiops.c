@@ -248,7 +248,16 @@ aio_thread_loop(void *ptr)
     sigaddset(&new, SIGTERM);
     sigaddset(&new, SIGINT);
     sigaddset(&new, SIGALRM);
+#if HAVE_PTHREAD_SIGMASK
     pthread_sigmask(SIG_BLOCK, &new, NULL);
+#else
+    /*
+     * Some versions of AIX, 4.2 at least, do not have pthread_sigmask
+     * in the pthreads library.  They still use the older sigthreadmask
+     * routine. Daniel Ehrlich <ehrlich@TeleBeam.net>.
+     */
+    sigthreadmask(SIG_BLOCK, &new, NULL);
+#endif
 
     pthread_mutex_lock(&threadp->mutex);
     while (1) {
