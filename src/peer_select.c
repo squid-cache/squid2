@@ -52,6 +52,9 @@ const char *hier_strings[] =
     "CACHE_DIGEST_HIT",
     "NO_CACHE_DIGEST_DIRECT",
 #endif
+#if USE_CARP
+    "CARP",
+#endif
     "INVALID CODE"
 };
 
@@ -299,6 +302,12 @@ peerSelectFoo(ps_state * psstate)
 	hierarchyNote(&request->hier, code, &psstate->icp, p->host);
 	peerSelectCallback(psstate, p);
 	return;
+#endif
+#if USE_CARP
+    } else if ((p = carpSelectParent(request))) {
+        hierarchyNote(&request->hier, CARP, &psstate->icp, p->host);
+        peerSelectCallback(psstate, p);
+        return;
 #endif
     } else if ((p = netdbClosestParent(request))) {
 	request->hier.alg = PEER_SA_NETDB;

@@ -342,6 +342,9 @@ serverConnectionsOpen(void)
     netdbInit();
     asnInit();
     peerSelectInit();
+#if USE_CARP
+    carpInit();
+#endif
 }
 
 void
