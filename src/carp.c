@@ -143,7 +143,7 @@ carpSelectParent(request_t * request)
     if (n_carp_peers == 0)
 	return NULL;
 
-    key = urlCanonical(url);
+    key = urlCanonical(request);
 
     /* calculate hash key */
     debug(39, 2) ("carpSelectParent: Calculating hash for %s\n", key);
