@@ -621,7 +621,7 @@ parse_cachedir(cacheSwap * swap)
 	    tmp->max_size = size;
 	    if (tmp->read_only != read_only)
 		debug(3, 1) ("Cache dir '%s' now %s\n",
-		    read_only ? "Read-Only" : "Read-Write");
+		    path, read_only ? "Read-Only" : "Read-Write");
 	    tmp->read_only = read_only;
 	    return;
 	}
