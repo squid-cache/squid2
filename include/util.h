@@ -37,6 +37,7 @@ void *xmalloc _PARAMS((size_t));		/* Wrapper for malloc(3) */
 void *xrealloc _PARAMS((void *, size_t));	/* Wrapper for realloc(3) */
 void *xcalloc _PARAMS((int, size_t));		/* Wrapper for calloc(3) */
 void xfree _PARAMS((void *));			/* Wrapper for free(3) */
+void xxfree _PARAMS((void *));			/* Wrapper for free(3) */
 char *xstrdup _PARAMS ((char *));
 char *xstrerror _PARAMS(());
 
