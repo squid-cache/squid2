@@ -127,7 +127,7 @@ char *
 internalLocalUri(const char *dir, const char *name)
 {
     return internalRemoteUri(getMyHostname(),
-	0, dir, name);
+	getMyPort(), dir, name);
 }
 
 const char *
