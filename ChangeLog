@@ -1,6 +1,9 @@
 Changes to squid-1.1.13 (July 10, 1997):
 
-	- Fixed mem->log_url coredump in icpHandleIcpV2()
+	- Another try at log_url crap.  Added icpState->log_url
+	  member.  Set mem_obj->log_url in new_MemObject() which
+	  means passing more args to storeCreateEntry().  Also added
+	  urlClean() which calls urlParse(); needed for ICP logging.
 	- Clean URLs will be truncated at '?' if present.
 	- Give fd_note() the clean URL.
 
