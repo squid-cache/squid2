@@ -1,5 +1,7 @@
 #include "config.h"
 
+/* $Id$ */
+
 /*
  * On some systems, FD_SETSIZE is set to something lower than the
  * actual number of files which can be opened.  IRIX is one case,
@@ -530,8 +532,8 @@ main(argc, argv)
     FD_ZERO(&R2);
     while (nfds || FD[0].cb) {
 	FD_ZERO(&R);
-	to.tv_sec = 1;		/* was 0 */
-	to.tv_usec = 0;		/* was 100000 */
+	to.tv_sec = 0;
+	to.tv_usec = 100000;
 	if (nfds < max_connections && FD[0].cb)
 	    FD_SET(0, &R);
 	for (i = 1; i <= maxfd; i++) {
@@ -564,7 +566,7 @@ main(argc, argv)
 		    FD[0].cb(0, FD[0].data);
 	    }
 	}
-	if (now.tv_sec > last.tv_sec + 60) {
+	if (now.tv_sec > last.tv_sec) {
 	    last = now;
 	    dt = (int) (now.tv_sec - start.tv_sec);
 	    printf("T+ %6d: %9d req (%+4d), %4d conn, %3d/sec avg, %dmb, %dkb/sec avg\n",
