@@ -23,3 +23,4 @@ extern void netdbPingSite _PARAMS((char *hostname));
 extern void netdbInit _PARAMS((void));
 extern void netdbDump _PARAMS((StoreEntry *));
 extern int netdbHops _PARAMS((struct in_addr));
+extern void netdbFreeMemory _PARAMS((void));

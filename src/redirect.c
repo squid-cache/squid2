@@ -88,7 +88,6 @@ static int
 redirectCreateRedirector(char *command)
 {
     int pid;
-    u_short port;
     struct sockaddr_in S;
     static int n_redirector = 0;
     int cfd;
@@ -113,7 +112,6 @@ redirectCreateRedirector(char *command)
 	comm_close(cfd);
 	return -1;
     }
-    port = ntohs(S.sin_port);
     listen(cfd, 1);
     if ((pid = fork()) < 0) {
 	debug(29, 0, "redirect_create_redirector: fork: %s\n", xstrerror());
@@ -131,7 +129,7 @@ redirectCreateRedirector(char *command)
 	    NULL);		/* blocking! */
 	if (sfd == COMM_ERROR)
 	    return -1;
-	if (comm_connect(sfd, localhost, port) == COMM_ERROR) {
+	if (comm_connect_addr(sfd, &S) == COMM_ERROR) {
 	    comm_close(sfd);
 	    return -1;
 	}

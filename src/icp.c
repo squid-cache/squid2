@@ -1398,10 +1398,9 @@ icpPktDump(icp_common_t * pkt)
 }
 #endif
 
-int
+void
 icpHandleUdp(int sock, void *not_used)
 {
-    int result = 0;
     struct sockaddr_in from;
     int from_len;
     LOCAL_ARRAY(char, buf, SQUID_UDP_SO_RCVBUF);
@@ -1415,7 +1414,7 @@ icpHandleUdp(int sock, void *not_used)
     if (len < 0) {
 	debug(12, 1, "icpHandleUdp: FD %d: error receiving.\n", sock);
 	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
-	return result;
+	return;
     }
     buf[len] = '\0';
     debug(12, 4, "icpHandleUdp: FD %d: received %d bytes from %s.\n",
@@ -1429,7 +1428,7 @@ icpHandleUdp(int sock, void *not_used)
 	debug(12, 4, "icpHandleUdp: Bad sized UDP packet ignored. %d < %d\n",
 	    len, sizeof(icp_common_t));
 	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
-	return result;
+	return;
     }
     headerp = (icp_common_t *) (void *) buf;
     if ((icp_version = (int) headerp->version) == ICP_VERSION_2)
@@ -1441,12 +1440,10 @@ icpHandleUdp(int sock, void *not_used)
 	    icp_version,
 	    inet_ntoa(from.sin_addr),
 	    ntohs(from.sin_port));
-
     comm_set_select_handler(sock,
 	COMM_SELECT_READ,
 	icpHandleUdp,
 	0);
-    return result;
 }
 
 static char *
@@ -1787,7 +1784,7 @@ asciiConnLifetimeHandle(int fd, icpStateData * icpState)
 }
 
 /* Handle a new connection on ascii input socket. */
-int
+void
 asciiHandleConn(int sock, void *notused)
 {
     int fd = -1;
@@ -1800,7 +1797,7 @@ asciiHandleConn(int sock, void *notused)
 	debug(12, 1, "asciiHandleConn: FD %d: accept failure: %s\n",
 	    sock, xstrerror());
 	comm_set_select_handler(sock, COMM_SELECT_READ, asciiHandleConn, 0);
-	return -1;
+	return;
     }
     /* set the hardwired lifetime */
     lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
@@ -1839,12 +1836,12 @@ asciiHandleConn(int sock, void *notused)
 	COMM_SELECT_READ,
 	asciiHandleConn,
 	0);
-    if (Config.identLookup)
+    if (Config.identLookup) {
 	identStart(-1, icpState);
+    }
     /* start reverse lookup */
     if (Config.Log.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
-    return 0;
 }
 
 void

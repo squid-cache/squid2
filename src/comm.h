@@ -112,6 +112,7 @@
 #define COMM_NOMESSAGE	 (-3)
 #define COMM_TIMEOUT	 (-4)
 #define COMM_SHUTDOWN	 (-5)
+#define COMM_INPROGRESS  (-6)
 
 #define COMM_NONBLOCKING  (0x1)
 #define COMM_NOCLOEXEC	  (0x8)
@@ -123,7 +124,7 @@
 #define COMM_SELECT_TIMEOUT (0x8)
 #define COMM_SELECT_LIFETIME (0x10)
 
-typedef int (*PF) (int, void *);
+typedef void (*PF) (int, void *);
 
 typedef void rw_complete_handler(int fd, char *buf, int size, int errflag, void *data);
 typedef struct _RWStateData RWStateData;
@@ -135,6 +136,15 @@ struct close_handler {
     void *data;
     struct close_handler *next;
 };
+
+typedef struct {
+    int fd;
+    char *host;
+    u_short port;
+    struct sockaddr_in S;
+    void (*handler) _PARAMS((int fd, int status, void *data));
+    void *data;
+} ConnectStateData;
 
 typedef struct fde {
     int openned;		/* Set if we did a comm_connect.  Ignored for ftp_pipes. */
@@ -171,7 +181,7 @@ extern int commSetNonBlocking _PARAMS((int fd));
 extern void commSetCloseOnExec _PARAMS((int fd));
 extern int comm_accept _PARAMS((int fd, struct sockaddr_in *, struct sockaddr_in *));
 extern void comm_close _PARAMS((int fd));
-extern int comm_connect _PARAMS((int sock, char *hst, u_short prt));
+extern void comm_nbconnect _PARAMS((int sock, void *));
 extern int comm_connect_addr _PARAMS((int sock, struct sockaddr_in *));
 extern int comm_get_fd_lifetime _PARAMS((int fd));
 extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void **));

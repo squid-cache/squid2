@@ -165,6 +165,7 @@ typedef struct wwd {
 } icpUdpData;
 
 #define ICP_IDENT_SZ 63
+
 typedef struct iwd {
     icp_common_t header;	/* for UDP_HIT_OBJ's */
     int fd;
@@ -190,11 +191,12 @@ typedef struct iwd {
     struct timeval start;
     int accel;
     int size;			/* hack for CONNECT which doesnt use sentry */
-    char ident[ICP_IDENT_SZ + 1];
-    int ident_fd;
     aclCheck_t *aclChecklist;
     void (*aclHandler) (struct iwd *, int answer);
     float http_ver;
+    int ident_fd;
+    char ident[ICP_IDENT_SZ];
+    ConnectStateData identConnectState;
 } icpStateData;
 
 extern int icpUdpSend _PARAMS((int,
@@ -205,8 +207,8 @@ extern int icpUdpSend _PARAMS((int,
 	icp_opcode,
 	log_type,
 	protocol_t));
-extern int icpHandleUdp _PARAMS((int sock, void *data));
-extern int asciiHandleConn _PARAMS((int sock, void *data));
+extern void icpHandleUdp _PARAMS((int sock, void *data));
+extern void asciiHandleConn _PARAMS((int sock, void *data));
 extern int icpSendERROR _PARAMS((int fd,
 	log_type errorCode,
 	char *text,

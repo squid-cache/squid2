@@ -122,7 +122,6 @@ static int
 dnsOpenServer(char *command)
 {
     int pid;
-    u_short port;
     struct sockaddr_in S;
     int cfd;
     int sfd;
@@ -147,8 +146,6 @@ dnsOpenServer(char *command)
 	comm_close(cfd);
 	return -1;
     }
-    port = ntohs(S.sin_port);
-    debug(34, 4, "dnsOpenServer: bind to local host.\n");
     listen(cfd, 1);
     if ((pid = fork()) < 0) {
 	debug(34, 0, "dnsOpenServer: fork: %s\n", xstrerror());
@@ -166,7 +163,7 @@ dnsOpenServer(char *command)
 	    NULL);		/* blocking! */
 	if (sfd == COMM_ERROR)
 	    return -1;
-	if (comm_connect(sfd, localhost, port) == COMM_ERROR) {
+	if (comm_connect_addr(sfd, &S) == COMM_ERROR) {
 	    comm_close(sfd);
 	    return -1;
 	}

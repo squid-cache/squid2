@@ -121,7 +121,14 @@ icmpOpen(void)
 void
 icmpClose(void)
 {
+    icmpQueueData *queue;
     comm_close(icmp_sock);
+    while ((queue = IcmpQueueHead)) {
+	IcmpQueueHead = queue->next;
+	if (queue->free)
+	    queue->free(queue->msg);
+	safe_free(queue);
+    }
 }
 
 static void

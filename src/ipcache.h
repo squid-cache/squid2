@@ -105,8 +105,6 @@
 #ifndef _IPCACHE_H_
 #define _IPCACHE_H_
 
-typedef void (*IPH) (int, struct hostent *, void *);
-
 enum {
     IP_CACHED,
     IP_NEGATIVE_CACHED,
@@ -119,20 +117,26 @@ typedef unsigned int ipcache_status_t;
 #define IP_LOOKUP_IF_MISS	0x02
 #define IP_LOCK_ENTRY		0x04
 
+typedef struct {
+    unsigned char count;
+    unsigned char cur;
+    struct in_addr *in_addrs;
+} ipcache_addrs;
+
 typedef struct _ipcache_entry {
     /* first two items must be equivalent to hash_link in hash.h */
     char *name;
     struct _ipcache_entry *next;
     time_t lastref;
     time_t expires;
-    unsigned char addr_count;
-    unsigned char alias_count;
-    struct hostent entry;
+    ipcache_addrs addrs;
     struct _ip_pending *pending_head;
     char *error_message;
     unsigned char locks;
     ipcache_status_t status:3;
 } ipcache_entry;
+
+typedef void (*IPH) (int, ipcache_addrs *, void *);
 
 extern void ipcache_nbgethostbyname _PARAMS((char *name,
 	int fd,
@@ -140,7 +144,7 @@ extern void ipcache_nbgethostbyname _PARAMS((char *name,
 	void *handlerData));
 extern int ipcache_purgelru _PARAMS((void));
 extern int ipcache_unregister _PARAMS((char *, int));
-extern struct hostent *ipcache_gethostbyname _PARAMS((char *, int flags));
+extern ipcache_addrs *ipcache_gethostbyname _PARAMS((char *, int flags));
 extern void ipcacheInvalidate _PARAMS((char *));
 extern void ipcacheReleaseInvalid _PARAMS((char *));
 extern void ipcacheOpenServers _PARAMS((void));
@@ -149,6 +153,9 @@ extern void ipcache_init _PARAMS((void));
 extern void stat_ipcache_get _PARAMS((StoreEntry *));
 extern int ipcacheQueueDrain _PARAMS((void));
 extern void ipcacheOpenServers _PARAMS((void));
+extern void ipcacheCycleAddr _PARAMS((char *name));
+extern void ipcacheRemoveBadAddr _PARAMS((char *name, struct in_addr));
+
 
 extern char *dns_error_message;
 

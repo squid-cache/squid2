@@ -113,7 +113,7 @@ static int protoCantFetchObject _PARAMS((int, StoreEntry *, char *));
 static int protoNotImplemented _PARAMS((int, char *, StoreEntry *));
 static int protoDNSError _PARAMS((int, StoreEntry *));
 static void protoDataFree _PARAMS((int, protodispatch_data *));
-static void protoDispatchDNSHandle _PARAMS((int, struct hostent *, void *));
+static void protoDispatchDNSHandle _PARAMS((int, ipcache_addrs *, void *));
 
 #define OUTSIDE_FIREWALL 0
 #define INSIDE_FIREWALL  1
@@ -169,7 +169,7 @@ protoDataFree(int fdunused, protodispatch_data * protoData)
 
 /* called when DNS lookup is done by ipcache. */
 static void
-protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
+protoDispatchDNSHandle(int unused1, ipcache_addrs * ia, void *data)
 {
     edge *e = NULL;
     struct in_addr srv_addr;
@@ -184,7 +184,7 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
     BIT_RESET(entry->flag, IP_LOOKUP_PENDING);
 
     if (protoData->direct_fetch == DIRECT_YES) {
-	if (hp == NULL) {
+	if (ia == NULL) {
 	    protoDNSError(protoData->fd, entry);
 	    return;
 	}
@@ -193,10 +193,10 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 	return;
     }
     if (protoData->direct_fetch == DIRECT_MAYBE && (Config.local_ip_list || Config.firewall_ip_list)) {
-	if (hp == NULL) {
+	if (ia == NULL) {
 	    debug(17, 1, "Unknown host: %s\n", req->host);
 	} else if (Config.firewall_ip_list) {
-	    srv_addr = inaddrFromHostent(hp);
+	    srv_addr = ia->in_addrs[ia->cur];
 	    if (ip_access_check(srv_addr, Config.firewall_ip_list) == IP_DENY) {
 		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
 		protoStart(protoData->fd, entry, NULL, req);
@@ -205,7 +205,7 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 		protoData->direct_fetch = DIRECT_NO;
 	    }
 	} else if (Config.local_ip_list) {
-	    srv_addr = inaddrFromHostent(hp);
+	    srv_addr = ia->in_addrs[ia->cur];
 	    if (ip_access_check(srv_addr, Config.local_ip_list) == IP_DENY) {
 		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
 		protoStart(protoData->fd, entry, NULL, req);
@@ -233,8 +233,8 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 	protoStart(protoData->fd, entry, e, req);
 	return;
 #if USE_ICMP
-    } else if (protoData->direct_fetch == DIRECT_MAYBE && hp
-	&& netdbHops(inaddrFromHostent(hp)) <= Config.minDirectHops) {
+    } else if (protoData->direct_fetch == DIRECT_MAYBE && ia
+	&& netdbHops(ia->in_addrs[ia->cur]) <= Config.minDirectHops) {
 	hierarchyNote(req, HIER_DIRECT, 0, req->host);
 	protoStart(protoData->fd, entry, NULL, req);
 	return;
@@ -264,7 +264,7 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents were queried and the host is beyond your firewall.");
     } else {
-	if (hp == NULL) {
+	if (ia == NULL) {
 	    protoDNSError(protoData->fd, entry);
 	    return;
 	}
@@ -324,7 +324,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	protoData->source_ping = 0;
 	protoData->direct_fetch = DIRECT_NO;
 	protoDispatchDNSHandle(fd,
-	    (struct hostent *) NULL,
+	    NULL,
 	    (void *) protoData);
     } else if (Config.firewall_ip_list) {
 	/* Have to look up the url address so we can compare it */
@@ -365,7 +365,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	/* will fetch from single parent */
 	protoData->direct_fetch = DIRECT_MAYBE;
 	protoDispatchDNSHandle(fd,
-	    (struct hostent *) NULL,
+	    NULL,
 	    (void *) protoData);
     } else {
 	/* will use ping resolution */

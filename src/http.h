@@ -136,6 +136,7 @@ typedef struct {
     int req_hdr_sz;
     int reply_hdr_state;
     edge *neighbor;		/* neighbor request made to */
+    ConnectStateData connectState;
 } HttpStateData;
 
 extern int httpCachable _PARAMS((char *, int));
