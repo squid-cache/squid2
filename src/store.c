@@ -227,7 +227,6 @@ storeReleaseRequest(StoreEntry * e)
 {
     if (EBIT_TEST(e->flags, RELEASE_REQUEST))
 	return;
-    assert(storeEntryLocked(e));
     debug(20, 3) ("storeReleaseRequest: '%s'\n", storeKeyText(e->key));
     EBIT_SET(e->flags, RELEASE_REQUEST);
     /*
@@ -787,8 +786,7 @@ storeRelease(StoreEntry * e)
 	debug(20, 2) ("storeRelease: Delaying release until store is rebuilt: '%s'\n",
 	    storeUrl(e));
 	storeExpireNow(e);
-	storeSetPrivateKey(e);
-	EBIT_SET(e->flags, RELEASE_REQUEST);
+	storeReleaseRequest(e);
 	return;
     }
 #if USE_ASYNC_IO
