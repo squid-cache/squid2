@@ -561,7 +561,7 @@ ftpParseListing(FtpStateData * ftpState, int len)
 	end--;
     usable = end - buf;
     if (usable == 0) {
-	debug(9, 1, "ftpParseListing: didn't find end for %s\n", e->url);
+	debug(9, 3, "ftpParseListing: didn't find end for %s\n", e->url);
 	return;
     }
     line = get_free_4k_page();
