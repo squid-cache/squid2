@@ -210,6 +210,10 @@ need to remove the line. </LI>
 <LI>Most Squid generated errors are now logged as TCP_DENIED/XXX
 rather than TCP_MISS/XXX or NONE/XXX. This to work around issues
 relating to access controls.</LI>
+<LI>external_acl_type concurrency= option renamed to children=
+to prepare for Squid-3 upgrade. The old syntax is still accepted
+but you may want to upgrade your configuration now to save you
+from the trouble when upgrading to Squid-3 later.</LI>
 <LI>a large number of minor bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE3">squid-2.5.STABLE1 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>

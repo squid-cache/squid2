@@ -59,6 +59,8 @@ Changes to squid-2.5.STABLE4 (not yet released):
 	- Bug #763: segfault if using ntlm in http_reply_access
 	- Bug #638: assertion error if using proxy_auth in delay_access
 	- Bug #756: segmentation fault if using ntlm proxy_auth in delay_access
+	- external_acl_type concurrency= option replaced by children= to
+	  prepare for Squid-3 upgrades. Old syntax still accepted.
 
 Changes to squid-2.5.STABLE3 (25 May 2003):
 
