@@ -662,7 +662,7 @@ info_get(cacheinfo * obj, StoreEntry * sentry)
 {
     char *tod = NULL;
     float f;
-#ifdef HAVE_MALLINFO
+#if HAVE_MALLINFO
     int t;
 #endif
 
