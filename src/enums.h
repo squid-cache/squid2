@@ -565,7 +565,9 @@ typedef enum {
     MEM_USHORTLIST,
     MEM_WORDLIST,
     MEM_STORE_IO,
+#if !USE_DNSSERVERS
     MEM_IDNS_QUERY,
+#endif
     MEM_EVENT,
     MEM_MAX
 } mem_type;
@@ -638,8 +640,5 @@ enum {
 typedef enum {
     SWAPDIR_UFS,
     SWAPDIR_ASYNCUFS,
-#if USE_DISKD
-    SWAPDIR_DISKD,
-#endif
     SWAPDIR_MAX
 } swapdir_t;
