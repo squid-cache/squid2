@@ -387,9 +387,9 @@ void gopherToHTML(data, inbuf, len)
     char gtype;
     StoreEntry *entry = NULL;
 
-    memset(outbuf, '\0', sizeof(outbuf));
-    memset(tmpbuf, '\0', sizeof(outbuf));
-    memset(line, '\0', sizeof(outbuf));
+    memset(outbuf, '\0', TEMP_BUF_SIZE << 4)
+    memset(tmpbuf, '\0', TEMP_BUF_SIZE);
+    memset(line, '\0', TEMP_BUF_SIZE);
 
     entry = data->entry;
 
