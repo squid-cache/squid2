@@ -2262,7 +2262,7 @@ LOC: Config.Store.objectsPerBucket
 DOC_START
 	Target number of objects per bucket in the store hash table.
 	Lowering this value increases the total number of buckets and
-	also the storage maintenance rate.  The default is 20.
+	also the storage maintenance rate.  The default is 50.
 
 store_objects_per_bucket 50
 DOC_END
