@@ -531,10 +531,6 @@ struct _fde {
     DEFER *defer_check;		/* check if we should defer read */
     void *defer_data;
     CommWriteStateData *rwstate;	/* State data for comm_write */
-    struct {
-	const char *file;
-	int line;
-    } last;
 };
 
 struct _fileMap {

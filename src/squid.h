@@ -310,8 +310,6 @@ struct rusage {
 #define leakFree(p) p
 #endif
 
-#define fdTouch(f) fdTouchFL(f,__FILE__,__LINE__)
-
 #if defined(_SQUID_NEXT_) && !defined(S_ISDIR)
 #define S_ISDIR(mode) (((mode) & (_S_IFMT)) == (_S_IFDIR))
 #endif

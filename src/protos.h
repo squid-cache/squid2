@@ -225,7 +225,6 @@ extern void fdFreeMemory(void);
 extern void fdDumpOpen(void);
 extern int fdNFree(void);
 extern void fdAdjustReserved(void);
-extern void fdTouchFL(int, const char *, int);
 
 extern fileMap *file_map_create(int);
 extern int file_map_allocate(fileMap *, int);

@@ -108,7 +108,6 @@ storeSwapInFileOpened(void *data, int fd, int errcode)
 	xfree(ctrlp);
 	return;
     }
-    fdTouch(fd);
     assert(mem != NULL);
     assert(e->mem_status == NOT_IN_MEMORY);
     assert(e->swap_status == SWAPOUT_WRITING || e->swap_status == SWAPOUT_DONE);
