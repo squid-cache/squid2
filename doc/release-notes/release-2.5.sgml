@@ -73,6 +73,7 @@ for Applied Network Research and members of the Web Caching community.
 	  cache_peer option.
         <item>Responses with Vary: in the header are now cached by squid.
           (Henrik Nordstrom).
+	<item>Support for openBSD pf interface in interception mode.
 </itemize>
 
 <sect>Changes to squid.conf
