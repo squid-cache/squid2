@@ -531,7 +531,6 @@ peerDigestFetchFinish(DigestFetchState *fetch, char *buf, const char *err_msg)
 	   debug(72, 2) ("re-used old digest from %s\n", peer->host);
 	} else {
 	   debug(72, 2) ("received valid digest from %s\n", peer->host);
-           storeComplete(fetch->entry);
 	}
 	EBIT_SET(peer->digest.flags, PD_USABLE);
 	EBIT_CLR(peer->digest.flags, PD_DISABLED);
