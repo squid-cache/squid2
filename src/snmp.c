@@ -775,7 +775,7 @@ snmpConnectionOpen(void)
 	if (theInSnmpConnection < 0)
 	    fatal("Cannot open snmp Port");
 	commSetSelect(theInSnmpConnection, COMM_SELECT_READ, snmpHandleUdp, NULL, 0);
-	debug(1, 1) ("Accepting SNMP connections on port %d, FD %d.\n",
+	debug(1, 1) ("Accepting SNMP messages on port %d, FD %d.\n",
 	    (int) port, theInSnmpConnection);
 	if ((addr = Config.Addrs.udp_outgoing).s_addr != no_addr.s_addr) {
 	    enter_suid();
@@ -792,7 +792,7 @@ snmpConnectionOpen(void)
 		COMM_SELECT_READ,
 		snmpHandleUdp,
 		NULL, 0);
-	    debug(1, 1) ("Accepting SNMP connections on port %d, FD %d.\n",
+	    debug(1, 1) ("Outgoing SNMP messages on port %d, FD %d.\n",
 		(int) port, theOutSnmpConnection);
 	    fd_note(theOutSnmpConnection, "Outgoing SNMP socket");
 	    fd_note(theInSnmpConnection, "Incoming SNMP socket");
@@ -1425,6 +1425,14 @@ snmpConnectionClose(void)
 	return;
     comm_close(theInSnmpConnection);
     theInSnmpConnection = -1;
+    /* 
+     * Normally we only write to the outgoing SNMP socket, but we
+     * also have a read handler there to catch messages sent to that
+     * specific interface.  During shutdown, we must disable reading
+     * on the outgoing socket.
+     */
+    if (theOutSnmpConnection > -1)
+        commSetSelect(theOutSnmpConnection, COMM_SELECT_READ, NULL, NULL, 0);
 }
 
 #endif
