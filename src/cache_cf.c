@@ -798,6 +798,8 @@ parse_peer(peer ** head)
 	} else if (!strcasecmp(token, "no-delay")) {
 	    p->options.no_delay = 1;
 #endif
+	} else if (!strncasecmp(token, "login=", 6)) {
+	    p->login = xstrdup(token + 6);
 	} else {
 	    debug(3, 0) ("parse_peer: token='%s'\n", token);
 	    self_destruct();

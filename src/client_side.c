@@ -147,13 +147,29 @@ clientOnlyIfCached(clientHttpRequest * http)
 static HttpReply *
 clientConstructProxyAuthReply(clientHttpRequest * http)
 {
-    ErrorState *err = errorCon(ERR_CACHE_ACCESS_DENIED, HTTP_PROXY_AUTHENTICATION_REQUIRED);
+    ErrorState *err;
     HttpReply *rep;
+    if (!http->flags.accel) {
+	/* Proxy authorisation needed */
+	err = errorCon(ERR_CACHE_ACCESS_DENIED,
+	    HTTP_PROXY_AUTHENTICATION_REQUIRED);
+    } else {
+	/* WWW authorisation needed */
+	err = errorCon(ERR_CACHE_ACCESS_DENIED, HTTP_UNAUTHORIZED);
+    }
     err->request = requestLink(http->request);
     rep = errorBuildReply(err);
     errorStateFree(err);
     /* add Authenticate header */
-    httpHeaderPutStrf(&rep->header, HDR_PROXY_AUTHENTICATE, proxy_auth_challenge_fmt, Config.proxyAuthRealm);
+    if (!http->flags.accel) {
+	/* Proxy authorisation needed */
+	httpHeaderPutStrf(&rep->header, HDR_PROXY_AUTHENTICATE,
+	    proxy_auth_challenge_fmt, Config.proxyAuthRealm);
+    } else {
+	/* WWW Authorisation needed */
+	httpHeaderPutStrf(&rep->header, HDR_WWW_AUTHENTICATE,
+	    proxy_auth_challenge_fmt, Config.proxyAuthRealm);
+    }
     return rep;
 }
 
@@ -172,7 +188,8 @@ clientCreateStoreEntry(clientHttpRequest * h, method_t m, request_flags flags)
 #if DELAY_POOLS
     delaySetStoreClient(e, h, h->request->delay_id);
 #endif
-    storeClientCopy(e, 0, 0, CLIENT_SOCK_SZ, memAllocate(MEM_CLIENT_SOCK_BUF), clientSendMoreData, h);
+    storeClientCopy(e, 0, 0, CLIENT_SOCK_SZ,
+	memAllocate(MEM_CLIENT_SOCK_BUF), clientSendMoreData, h);
     return e;
 }
 
@@ -193,7 +210,8 @@ clientAccessCheckDone(int answer, void *data)
 	redirectStart(http, clientRedirectDone, http);
     } else if (answer == ACCESS_REQ_PROXY_AUTH) {
 	http->log_type = LOG_TCP_DENIED;
-	http->entry = clientCreateStoreEntry(http, http->request->method, null_request_flags);
+	http->entry = clientCreateStoreEntry(http, http->request->method,
+	    null_request_flags);
 	/* create appropriate response */
 	http->entry->mem_obj->reply = clientConstructProxyAuthReply(http);
 	httpReplySwapOut(http->entry->mem_obj->reply, http->entry);
@@ -203,7 +221,8 @@ clientAccessCheckDone(int answer, void *data)
 	debug(33, 5) ("AclMatchedName = %s\n",
 	    AclMatchedName ? AclMatchedName : "<null>");
 	http->log_type = LOG_TCP_DENIED;
-	http->entry = clientCreateStoreEntry(http, http->request->method, null_request_flags);
+	http->entry = clientCreateStoreEntry(http, http->request->method,
+	    null_request_flags);
 	page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName);
 	/* NOTE: don't use HTTP_UNAUTHORIZED because then the
 	 * stupid browser wants us to authenticate */
@@ -2024,6 +2043,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	/* prepend our name & port */
 	http->uri = xstrdup(internalLocalUri(NULL, url));
 	http->flags.internal = 1;
+	http->flags.accel = 1;
     }
     /* see if we running in Config2.Accel.on, if so got to convert it to URL */
     else if (Config2.Accel.on && *url == '/') {
@@ -2247,6 +2267,7 @@ clientReadRequest(int fd, void *data)
 			http->uri, prefix);
 		/* continue anyway? */
 	    }
+	    request->flags.accelerated = http->flags.accel;
 	    if (!http->flags.internal) {
 		if (internalCheck(strBuf(request->urlpath))) {
 		    if (0 == strcasecmp(request->host, internalHostname())) {
@@ -2259,6 +2280,7 @@ clientReadRequest(int fd, void *data)
 		    }
 		}
 	    }
+	    request->flags.internal = http->flags.internal;
 	    safe_free(prefix);
 	    safe_free(http->log_uri);
 	    http->log_uri = xstrdup(urlCanonicalClean(request));

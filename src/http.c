@@ -622,9 +622,16 @@ httpBuildRequestHeader(request_t * request,
 	    continue;
 	switch (e->id) {
 	case HDR_PROXY_AUTHORIZATION:
-	    /* If we're not going to do proxy auth, then it must be passed on */
+	    /* If we're not doing proxy auth, then it must be passed on */
 	    if (!request->flags.used_proxy_auth)
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+	    break;
+	case HDR_AUTHORIZATION:
+	    /* If we're not doing www auth, then it must be passed on */
+	    if (!request->flags.accelerated || !request->flags.used_proxy_auth)
+		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+	    else
+		request->flags.auth = 0;	/* We have used the authentication */
 	    break;
 	case HDR_HOST:
 	    /* Don't use client's Host: header for redirected requests */
@@ -692,6 +699,20 @@ httpBuildRequestHeader(request_t * request,
 	} else {
 	    httpHeaderPutStrf(hdr_out, HDR_HOST, "%s:%d",
 		orig_request->host, (int) orig_request->port);
+	}
+    }
+    /* append Authorization if known in URL, not in header and going direct */
+    if (!httpHeaderHas(hdr_out, HDR_AUTHORIZATION)) {
+	if (!request->flags.proxying && *request->login) {
+	    httpHeaderPutStrf(hdr_out, HDR_AUTHORIZATION, "Basic %s",
+		base64_encode(request->login));
+	}
+    }
+    /* append Proxy-Authorization if configured for peer, and proxying */
+    if (!httpHeaderHas(hdr_out, HDR_PROXY_AUTHORIZATION)) {
+	if (request->flags.proxying && request->peer_login) {
+	    httpHeaderPutStrf(hdr_out, HDR_PROXY_AUTHORIZATION, "Basic %s",
+		base64_encode(request->peer_login));
 	}
     }
     /* append Cache-Control, add max-age if not there already */
@@ -818,6 +839,7 @@ httpStart(FwdState * fwdState, int fd)
 	xstrncpy(proxy_req->host, httpState->peer->host, SQUIDHOSTNAMELEN);
 	proxy_req->port = httpState->peer->http_port;
 	proxy_req->flags = orig_req->flags;
+	proxy_req->peer_login = httpState->peer->login;
 	httpState->request = requestLink(proxy_req);
 	httpState->orig_request = requestLink(orig_req);
 	proxy_req->flags.proxying = 1;

@@ -1078,8 +1078,17 @@ aclLookupProxyAuthStart(aclCheck_t * checklist)
 
     assert(!checklist->auth_user);
 
-    proxy_auth = httpHeaderGetStr(&checklist->request->header, HDR_PROXY_AUTHORIZATION);
-    ok = aclDecodeProxyAuth(proxy_auth, &user, &password, login_buf, sizeof(login_buf));
+    if (!checklist->request->flags.accelerated) {
+	/* Proxy auth on proxy requests */
+	proxy_auth = httpHeaderGetStr(&checklist->request->header,
+	    HDR_PROXY_AUTHORIZATION);
+    } else {
+	/* WWW auth on accelerated requests */
+	proxy_auth = httpHeaderGetStr(&checklist->request->header,
+	    HDR_AUTHORIZATION);
+    }
+    ok = aclDecodeProxyAuth(proxy_auth, &user, &password, login_buf,
+		sizeof(login_buf));
     assert(ok);			/* We should never get here unless the above succeeds in aclMatchProxyAuth */
 
     debug(28, 4) ("aclLookupProxyAuthStart: going to ask authenticator on %s\n", user);
@@ -1283,8 +1292,30 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	return aclMatchRegex(ae->data, checklist->browser);
 	/* NOTREACHED */
     case ACL_PROXY_AUTH:
-	k = aclMatchProxyAuth(httpHeaderGetStr(&checklist->request->header,
-		HDR_PROXY_AUTHORIZATION), checklist->auth_user, checklist);
+	if (!r->flags.accelerated) {
+	    /* Proxy authorization on proxy requests */
+	    k = aclMatchProxyAuth(httpHeaderGetStr(&checklist->request->header,
+		    HDR_PROXY_AUTHORIZATION),
+		checklist->auth_user,
+		checklist);
+	} else if (r->flags.internal) {
+	    /* WWW authorization on accelerated internal requests */
+	    k = aclMatchProxyAuth(httpHeaderGetStr(&checklist->request->header,
+		    HDR_AUTHORIZATION),
+		checklist->auth_user,
+		checklist);
+	} else {
+#if AUTH_ON_ACCELERATION
+	    /* WWW authorization on accelerated requests */
+	    k = aclMatchProxyAuth(httpHeaderGetStr(&checklist->request->header,
+		    HDR_AUTHORIZATION),
+		checklist->auth_user,
+		checklist);
+#else
+	    debug(28, 1) ("aclMatchAcl: proxy_auth %s not applicable on accelerated requests.\n", ae->name);
+	    return -1;
+#endif
+	}
 	if (k == 0) {
 	    /* no such user OR we need a proxy authentication header */
 	    checklist->state[ACL_PROXY_AUTH] = ACL_PROXY_AUTH_NEEDED;

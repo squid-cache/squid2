@@ -1061,6 +1061,7 @@ struct _peer {
 	float load_factor;
     } carp;
 #endif
+    char *login;		/* Proxy authorization */
 };
 
 struct _net_db_name {
@@ -1272,6 +1273,8 @@ struct _request_flags {
 #if HTTP_VIOLATIONS
     unsigned int nocache_hack:1;	/* for changing/ignoring no-cache requests */
 #endif
+    unsigned int accelerated:1;
+    unsigned int internal:1;
 };
 
 struct _request_t {
@@ -1301,6 +1304,7 @@ struct _request_t {
 #if DELAY_POOLS
     delay_id delay_id;
 #endif
+    char *peer_login;		/* Configured peer login:password */
 };
 
 struct _cachemgr_passwd {

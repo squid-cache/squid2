@@ -213,6 +213,7 @@ DOC_START
 		     no-digest
 		     no-netdb-exchange
 		     no-delay
+		     login=user:password
 
 		     use 'proxy-only' to specify that objects fetched
 		     from this cache should not be saved locally.
@@ -257,6 +258,9 @@ DOC_START
 
 		     use 'no-delay' to prevent access to this neighbor
 		     from influencing the delay pools.
+
+		     use 'login=user:password' if this is a personal/workgroup
+		     proxy and your parent requires proxy authentication.
 
 	NOTE: non-ICP neighbors must be specified as 'parent'.
 
@@ -1438,6 +1442,10 @@ DOC_START
 	  # to check username/password combinations (see
 	  # authenticate_program).
 	  #
+	  # WARNING: proxy_auth can't be used in a transparent proxy. It
+	  # collides with any authentication done by origin servers. It may
+	  # seem like it works at first, but it doesn't.
+
 
 Examples:
 acl myexample dst_as 1241
