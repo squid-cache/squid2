@@ -662,6 +662,9 @@ request_size 100
 # Defining an Access List
 #
 # acl aclname acltype string1 ...
+# acl aclname acltype "file" ...
+#
+# when using "file", the file should contain one item per line
 #
 # acltype is one of src dst srcdomain dstdomain url_pattern urlpath_pattern
 #	            time port proto method browser
