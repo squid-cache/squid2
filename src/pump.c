@@ -38,7 +38,7 @@ struct _PumpStateData {
     int s_fd;			/* server end */
     int rcvd;			/* bytes received from client */
     int sent;			/* bytes sent to server */
-    int cont_len;		/* Content-length, if present */
+    int body_sz;		/* should equal content-length + 2 */
     StoreEntry *request_entry;	/* the request entry */
     StoreEntry *reply_entry;	/* the reply entry */
     CWCB *callback;		/* what to do when we finish sending */
@@ -97,7 +97,7 @@ pumpInit(int fd, request_t * r, char *uri)
 
     pumpState->c_fd = fd;
     pumpState->s_fd = -1;
-    pumpState->cont_len = clen;
+    pumpState->body_sz = clen + 2;
     pumpState->request_entry = e;
     pumpState->req = requestLink(r);
     pumpState->callback = NULL;
@@ -184,7 +184,7 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
     PumpStateData *p = data;
     StoreEntry *e = p->request_entry;
     debug(61, 5) ("pumpServerCopyComplete: called with size=%d (%d,%d)\n",
-	size, p->sent + size, p->cont_len);
+	size, p->sent + size, p->body_sz);
 
     if (size <= 0 || e->store_status == STORE_ABORTED) {
 	debug(61, 5) ("pumpServerCopyComplete: aborted!\n", size);
@@ -194,8 +194,8 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
 	return;
     }
     p->sent += size;
-    assert(p->sent <= p->cont_len);
-    if (p->sent == p->cont_len) {
+    assert(p->sent <= p->body_sz);
+    if (p->sent == p->body_sz) {
 	debug(61, 5) ("pumpServerCopyComplete: Done!\n", size);
 	storeComplete(p->request_entry);
 	if (cbdataValid(p->cbdata))
@@ -248,9 +248,9 @@ pumpReadFromClient(int fd, void *data)
 	storeAbort(p->request_entry, 0);
     } else if (len == 0) {
 	/* connection closed, call close handler */
-	if (p->rcvd >= p->cont_len) {
-	    if (p->rcvd > p->cont_len)
-		debug(61, 1) ("pumpReadFromClient: Warning: rcvd=%d, cont_len=%d\n", p->rcvd, p->cont_len);
+	if (p->rcvd >= p->body_sz) {
+	    if (p->rcvd > p->body_sz)
+		debug(61, 1) ("pumpReadFromClient: Warning: rcvd=%d, body_sz=%d\n", p->rcvd, p->body_sz);
 	    debug(61, 2) ("pumpReadFromClient: finished!\n");
 	    commSetSelect(p->c_fd, COMM_SELECT_READ, NULL, NULL, 0);
 	    storeComplete(p->request_entry);
