@@ -1210,8 +1210,8 @@ extern void delayBytesIn(delay_id, int qty);
 extern int delayMostBytesWanted(const MemObject * mem, int max);
 extern delay_id delayMostBytesAllowed(const MemObject * mem);
 extern void delaySetStoreClient(StoreEntry * e, void *data, delay_id delay_id);
-void delayRegisterDelayIdPtr(delay_id * loc);
-void delayUnregisterDelayIdPtr(delay_id * loc);
+extern void delayRegisterDelayIdPtr(delay_id * loc);
+extern void delayUnregisterDelayIdPtr(delay_id * loc);
 #endif
 
 /* helper.c */
