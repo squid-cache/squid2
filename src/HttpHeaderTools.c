@@ -189,9 +189,12 @@ strListIsMember(const String * list, const char *m, char del)
 {
     const char *pos = NULL;
     const char *item;
+    int ilen = 0;
+    int mlen;
     assert(list && m);
-    while (strListGetItem(list, del, &item, NULL, &pos)) {
-	if (!strcasecmp(item, m))
+    mlen = strlen(m);
+    while (strListGetItem(list, del, &item, &ilen, &pos)) {
+	if (mlen == ilen && !strncasecmp(item, m, ilen))
 	    return 1;
     }
     return 0;
@@ -201,6 +204,18 @@ strListIsMember(const String * list, const char *m, char del)
 int
 strListIsSubstr(const String * list, const char *s, char del)
 {
+    assert(list && del);
+    return strStr(*list, s) != 0;
+
+    /*
+     * Note: the original code with a loop is broken because it uses strstr()
+     * instead of strnstr(). If 's' contains a 'del', strListIsSubstr() may
+     * return true when it should not. If 's' does not contain a 'del', the
+     * implementaion is equavalent to strstr()! Thus, we replace the loop with
+     * strstr() above until strnstr() is available.
+     */
+
+#ifdef BROKEN_CODE
     const char *pos = NULL;
     const char *item;
     assert(list && s);
@@ -209,6 +224,7 @@ strListIsSubstr(const String * list, const char *s, char del)
 	    return 1;
     }
     return 0;
+#endif
 }
 
 /* appends an item to the list */
