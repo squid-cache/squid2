@@ -35,6 +35,12 @@
 
 #include "squid.h"
 
+#if HAVE_STATVFS
+#if HAVE_SYS_STATVFS_H
+#include <sys/statvfs.h>
+#endif
+#endif
+
 static int storeDirValidSwapDirSize(int, ssize_t);
 static STDIRSELECT storeDirSelectSwapDirRoundRobin;
 static STDIRSELECT storeDirSelectSwapDirLeastLoad;
