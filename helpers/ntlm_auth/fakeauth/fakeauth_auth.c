@@ -279,11 +279,11 @@ main()
 		    printf("AF %s\n", user);
 		} else {
 		    lc(user);
-		    printf("NA invalid credentials%s\n", user);
+		    printf("NA invalid credentials, user=%s\n", user);
 		}
 	    } else {
 		lc(user);
-		printf("BH wrong packet type!%s\n", user);
+		printf("BH wrong packet type! user=%s\n", user);
 	    }
 	}
 #endif
