@@ -558,7 +558,7 @@ httpRequestFree(void *data)
 	}
 	accessLogLog(&http->al);
 	clientUpdateCounters(http);
-	clientdbUpdate(conn->peer.sin_addr, http->log_type, PROTO_HTTP);
+	clientdbUpdate(conn->peer.sin_addr, http->log_type, PROTO_HTTP,http->out.size);
     }
     if (http->redirect_state == REDIRECT_PENDING)
 	redirectUnregister(http->uri, http);

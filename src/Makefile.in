@@ -163,6 +163,8 @@ all:    squid.conf $(PROGS) $(UTILS) $(SUID_UTILS) $(CGIPROGS)
 
 $(OBJS): $(top_srcdir)/include/version.h
 
+$(SNMP_OBJS): $(top_srcdir)/snmplib/libsnmp.a $(top_srcdir)/include/cache_snmp.h
+
 squid:	$(OBJS)
 	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(SQUID_LIBS)
 
