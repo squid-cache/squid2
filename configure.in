@@ -214,7 +214,6 @@ AC_CHECK_FUNCS(\
 	setresuid \
 	setrlimit \
 	strdup \
-	strerror \
 	sysconf \
 	syslog \
 	timegm \

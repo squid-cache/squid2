@@ -247,11 +247,3 @@ char *strdup(s)
     return (xstrdup(s));
 }
 #endif
-
-#if !HAVE_STRERROR
-char *strerror(n)
-     int n;
-{
-    return (xstrerror(n));
-}
-#endif

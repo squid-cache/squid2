@@ -170,18 +170,6 @@ void fatal(va_alist)
     exit(1);
 }
 
-#ifdef UNUSED_CODE
-/*
- *  log_errno() - Same as perror(); doesn't print when errno == 0
- */
-void log_errno(s)
-     char *s;
-{
-    if (errno != 0)
-	errorlog("%s: %s\n", s, strerror(errno));
-}
-#endif
-
 /*
  *  log_errno2() - Same as perror(); doesn't print when errno == 0
  */
@@ -191,21 +179,9 @@ void log_errno2(file, line, s)
      char *s;
 {
     if (errno != 0)
-	errorlog("%s [%d]: %s: %s\n", file, line, s, strerror(errno));
+	errorlog("%s [%d]: %s: %s\n", file, line, s, xstrerror());
 }
 
-
-#ifdef UNUSED_CODE
-/*
- *  fatal_errno() - Same as perror()
- */
-void fatal_errno(s)
-     char *s;
-{
-    fatal("%s: %s\n", s, strerror(errno));
-}
-
-#endif
 
 /*
  *  standard_msg() - Prints the standard pid and timestamp

@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.5 
+# From configure.in Revision: 1.18.2.6 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2012,7 +2012,6 @@ for ac_func in \
 	setresuid \
 	setrlimit \
 	strdup \
-	strerror \
 	sysconf \
 	syslog \
 	timegm \
@@ -2023,7 +2022,7 @@ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2027 "configure"
+#line 2026 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -2073,7 +2072,7 @@ if test "$cross_compiling" = yes; then
   SQUID_FD_SETSIZE=256
 else
 cat > conftest.$ac_ext <<EOF
-#line 2077 "configure"
+#line 2076 "configure"
 #include "confdefs.h"
 
 #include <unistd.h>
