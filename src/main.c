@@ -507,6 +507,8 @@ mainReinitialize(void)
     neighborsDestroy();
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
+    ipcache_restart();		/* clear stuck entries */
+    fqdncache_restart();	/* sigh, fqdncache too */
     dnsOpenServers();
     redirectOpenServers();
     serverConnectionsOpen();

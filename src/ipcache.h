@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -157,6 +158,7 @@ extern void ipcacheCycleAddr _PARAMS((const char *name));
 extern void ipcacheRemoveBadAddr _PARAMS((const char *name, struct in_addr));
 extern void ipcacheFreeMemory _PARAMS((void));
 extern ipcache_addrs *ipcacheCheckNumeric _PARAMS((const char *name));
+extern void ipcache_restart _PARAMS((void));
 
 extern char *dns_error_message;
 

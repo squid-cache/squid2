@@ -1,5 +1,6 @@
 
 
+
 /*
  * $Id$
  *
@@ -146,6 +147,7 @@ extern void fqdncacheReleaseInvalid _PARAMS((const char *));
 extern const char *fqdnFromAddr _PARAMS((struct in_addr));
 extern int fqdncacheQueueDrain _PARAMS((void));
 extern void fqdncacheFreeMemory _PARAMS((void));
+extern void fqdncache_restart _PARAMS((void));
 
 extern char *dns_error_message;
 
