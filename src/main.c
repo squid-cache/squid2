@@ -124,6 +124,7 @@ char version_string[] = SQUID_VERSION;
 char appname[] = "squid";
 char localhost[] = "127.0.0.1";
 struct in_addr local_addr;
+int opt_log_fqdn = 1;
 
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) _PARAMS((char *));
