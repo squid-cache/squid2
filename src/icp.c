@@ -100,23 +100,19 @@ static void icpFreeBufOrPage(icpState)
 }
 
 
-static void icpCloseAndFree(fd, icpState, line)
-     int fd;
+/* This is a handler normally called by comm_close() */
+int icpStateFree(fdunused, icpState)
+     int fdunused;
      icpStateData *icpState;
-     int line;			/* __LINE__ number of caller */
 {
     int size = 0;
     int http_code = 0;
     int elapsed_msec;
 
-    if (fd > 0)
-	comm_close(fd);
-    if (!icpState) {
-	sprintf(tmp_error_buf, "icpCloseAndFree: Called with NULL icpState from %s line %d", __FILE__, line);
-	fatal_dump(tmp_error_buf);
-    }
+    if (!icpState)
+	return 1;
     if (icpState->log_type < LOG_TAG_MIN || icpState->log_type > ERR_ZERO_SIZE_OBJECT)
-	fatal_dump("icpCloseAndFree: icpState->log_type out of range.");
+	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
 	size = icpState->entry->mem_obj->e_current_len;
 	http_code = icpState->entry->mem_obj->reply->code;
@@ -137,6 +133,7 @@ static void icpCloseAndFree(fd, icpState, line)
     safe_free(icpState->request_hdr);
     safe_free(icpState->request);
     safe_free(icpState);
+    return 0;  /* XXX gack, all comm handlers return ints */
 }
 
 int icpCachable(icpState)
@@ -384,7 +381,7 @@ void icpSendERRORComplete(fd, buf, size, errflag, state)
     /* Clean up client side statemachine */
     entry = state->entry;
     icpFreeBufOrPage(state);
-    icpCloseAndFree(fd, state, __LINE__);
+    comm_close(fd);
 
     /* If storeAbort() has been called, then we don't execute this.
      * If we timed out on the client side, then we need to
@@ -414,7 +411,7 @@ int icpSendERROR(fd, errorCode, msg, state)
 	/* This file descriptor isn't bound to a socket anymore.
 	 * It probably timed out. */
 	debug(12, 2, "icpSendERROR: COMM_ERROR msg: %80.80s\n", msg);
-	icpCloseAndFree(fd, state, __LINE__);
+	comm_close(fd);
 	return COMM_ERROR;
     }
     if (port != getAsciiPortNum()) {
@@ -556,7 +553,7 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
 	    urlParseProtocol(entry->url),
 	    state->offset);
 	/* Now we release the entry and DON'T touch it from here on out */
-	icpCloseAndFree(fd, state, __LINE__);
+	comm_close(fd);
 	storeUnregister(entry, fd);
 	storeUnlockObject(entry);
     } else if (state->offset < entry->mem_obj->e_current_len) {
@@ -569,9 +566,9 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
 	CacheInfo->proto_touchobject(CacheInfo,
 	    CacheInfo->proto_id(entry->url),
 	    state->offset);
-	icpCloseAndFree(fd, state, __LINE__);
+	comm_close(fd);
 	storeUnregister(entry, fd);
-	storeUnlockObject(entry);	/* unlock after icpClose.. */
+	storeUnlockObject(entry);	/* unlock after comm_close().. */
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
@@ -1247,7 +1244,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 
     if (flag != COMM_OK) {
 	/* connection closed by foreign host */
-	icpCloseAndFree(fd, astm, __LINE__);
+	comm_close(fd);
 	return;
     }
     if (astm->offset + size >= astm->inbufsize) {
@@ -1403,7 +1400,7 @@ void asciiConnLifetimeHandle(fd, data)
 	 */
 	safe_free(rw_state);
     }
-    icpCloseAndFree(fd, astm, __LINE__);
+    comm_close(fd);
     if (entry) {
 	/* NOTE, this section used to be between free write & read */
 	CheckQuickAbort(astm);
@@ -1455,6 +1452,10 @@ int asciiHandleConn(sock, notused)
     comm_set_select_handler(fd,
 	COMM_SELECT_LIFETIME,
 	(PF) asciiConnLifetimeHandle,
+	(void *) astm);
+    comm_set_select_handler(fd,
+	COMM_SELECT_CLOSE,
+	icpStateFree,
 	(void *) astm);
     icpRead(fd,
 	FALSE,
