@@ -63,8 +63,8 @@ static const struct {
 
     {
 	ERR_SQUID_SIGNATURE,
-	    "\n<br clear=\"all\">\n"
-	    "<hr noshade size=1>\n"
+	    "\n<BR clear=\"all\">\n"
+	    "<HR noshade size=\"1px\">\n"
 	    "Generated %T by %h (%s)\n"
 	    "</BODY></HTML>\n"
     },
