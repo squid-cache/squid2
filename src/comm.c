@@ -1045,8 +1045,8 @@ comm_select(time_t sec)
 	for (fd = 0; fd < maxfd; fd++) {
 	    if (!FD_ISSET(fd, &readfds) && !FD_ISSET(fd, &writefds))
 		continue;
-	    if ((incoming_counter++ & (lastinc > 0 ? 1 : 7) == 0)
-		comm_poll_incoming();
+	    if ((incoming_counter++ & (lastinc > 0 ? 1 : 7)) == 0)
+		comm_select_incoming();
 	    if (fdIsHttpOrIcp(fd))
 		continue;
 	    if (FD_ISSET(fd, &readfds)) {
