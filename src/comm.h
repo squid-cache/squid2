@@ -89,16 +89,18 @@
 #endif
 #include <sys/file.h>
 #include <sys/types.h>
-#if !defined(_HARVEST_LINUX_)
+#ifdef OLD_CODE
+#if !defined(_SQUID_LINUX_)
 #include <sys/uio.h>
 #endif
+#endif /* OLD_CODE */
 
 #include <sys/param.h>		/* For MAXHOSTNAMELEN */
 #include <netdb.h>		/* For MAXHOSTNAMELEN on Solaris */
 #if !defined(MAXHOSTNAMELEN) || (MAXHOSTNAMELEN < 128)
-#define HARVESTHOSTNAMELEN 128
+#define SQUIDHOSTNAMELEN 128
 #else
-#define HARVESTHOSTNAMELEN MAXHOSTNAMELEN
+#define SQUIDHOSTNAMELEN MAXHOSTNAMELEN
 #endif
 
 #include <netinet/in.h>
