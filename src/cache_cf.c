@@ -346,7 +346,7 @@ static void parseTTLPattern _PARAMS((int icase));
 static void parseVisibleHostnameLine _PARAMS((void));
 static void parseWAISRelayLine _PARAMS((void));
 static void parseOnOff _PARAMS((int *));
-static void ip_acl_destroy(ip_acl **);
+static void ip_acl_destroy _PARAMS((ip_acl **));
 
 void self_destruct()
 {
@@ -1443,7 +1443,7 @@ int parseConfigFile(file_name)
 
 	/* Parse quick_abort line */
 	else if (!strcmp(token, "quick_abort"))
-	    parseOnOff(&Config.sourcePing);
+	    parseOnOff(&Config.quickAbort);
 
 	/* Parse emulate_httpd_log line */
 	else if (!strcmp(token, "emulate_httpd_log"))
