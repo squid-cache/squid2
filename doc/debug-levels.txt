@@ -1,0 +1,48 @@
+section 0     Announement Server
+section 0     CGI Cache Manager
+section 0     Client Database
+section 0     DNS Resolver
+section 0     Debug Routines
+section 0     Hash Tables
+section 0     Stack Primitives
+section 0     Store Entry Debugging
+section 0     WWW Client
+section 1     Startup and Main Loop
+section 3     Configuration File Parsing
+section 4     Error Generation
+section 5     Socket Functions
+section 6     Disk I/O Routines
+section 7     File Descriptor Status
+section 8     Swap File Bitmap
+section 9     File Transfer Protocol (FTP)
+section 10    Gopher
+section 11    Hypertext Transfer Protocol (HTTP)
+section 12    Client Handling
+section 14    IP Cache
+section 15    Neighbor Routines
+section 16    Cache Manager Objects
+section 17    Neighbor Selection
+section 18    Cache Manager Statistics
+section 19    Memory Primitives
+section 20    Storeage Manager
+section 21    Misc Functions
+section 22    Refresh Calculation
+section 23    URL Parsing
+section 24    WAIS Relay
+section 25    MIME Parsing
+section 26    Secure Sockets Layer Proxy
+section 27    Cache Announcer
+section 28    Access Control
+section 29    Redirector
+section 30    Ident (RFC 931)
+section 33    Client-side Routines
+section 34    Dnsserver interface
+section 35    FQDN Cache
+section 36    Cache Directory Cleanup
+section 37    ICMP Routines
+section 37    Network Measurement Database
+section 38    FTP Retrieval
+section 39    HTTP Passthrough
+section 40    User-Agent logging
+section 41    Event Processing
+section 42    ICMP Pinger program
