@@ -659,13 +659,14 @@ void icp_hit_or_miss(fd, usm)
     if (!storeEntryValidToSend(entry)) {
 	storeRelease(entry);
 	usm->log_type = LOG_TCP_EXPIRED;
-    } else if (BIT_TEST(usm->flags, REQ_NOCACHE)) {
-	storeRelease(entry);
-	usm->log_type = LOG_TCP_USER_REFRESH;
     } else if (BIT_TEST(usm->flags, REQ_IMS)) {
 	/* no storeRelease() here because this request will always
 	 * start private (IMS clears HIERARCHICAL) */
+	/* check IMS before nocache so IMS+NOCACHE won't eject valid object */
 	usm->log_type = LOG_TCP_IFMODSINCE;
+    } else if (BIT_TEST(usm->flags, REQ_NOCACHE)) {
+	storeRelease(entry);
+	usm->log_type = LOG_TCP_USER_REFRESH;
     } else if ((lock = storeLockObject(entry)) < 0) {
 	storeRelease(entry);
 	usm->log_type = LOG_TCP_SWAPIN_FAIL;
