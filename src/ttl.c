@@ -87,17 +87,6 @@ time_t ttlSet(entry)
 
     debug(22, 5, "ttlSet: Choosing TTL for %s\n", entry->url);
 
-    /*
-     * Check for Unauthorized HTTP requests.
-     * This needs to be improved.  I don't think we can/should rely on
-     * a server sending the string 'Unauthorized'.  Would be nice if
-     * we could write 'if (http_code == 401)' in http.c.       -DW
-     */
-    if (storeGrep(entry, "401", 15))	/* Unauthorized */
-	return 0;
-    if (storeGrep(entry, "407", 15))	/* NS: Proxy Authentication Required */
-	return 0;
-
     /* these are case-insensitive compares */
     buf[0] = '\0';
     if (storeMatchMime(entry, "last-modified: ", buf, 300)) {
@@ -159,7 +148,8 @@ time_t ttlSet(entry)
 	if (regexec(&(t->compiled_pattern), entry->url, 0, 0, 0) == 0) {
 	    match = t;
 	    debug(22, 5, "ttlSet: Matched '%s %d %d%%'\n",
-		match->pattern, match->abs_ttl, match->pct_age);
+		match->pattern, match->abs_ttl > 0 ? match->abs_ttl : default_ttl,
+		match->pct_age);
 	    flags |= TTL_MATCHED;
 	}
     }
