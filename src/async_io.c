@@ -367,7 +367,6 @@ aioStats(StoreEntry * sentry)
     storeAppendPrintf(sentry, "stat\t%d\n", aio_counts.stat);
     storeAppendPrintf(sentry, "unlink\t%d\n", aio_counts.unlink);
     storeAppendPrintf(sentry, "check_callback\t%d\n", aio_counts.check_callback);
-    storeAppendPrintf(sentry, "\noutunlink\t%d\n", outunlink);
 }
 
 /* Flush all pending I/O */
