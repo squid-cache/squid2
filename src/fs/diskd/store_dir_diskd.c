@@ -165,7 +165,7 @@ storeDiskdDirMapBitReset(SwapDir * SD, int fn)
      * file_map_bit_reset doesn't do bounds checking.  It assumes
      * filn is a valid file number, but it might not be because
      * the map is dynamic in size.  Also clearing an already clear
-     * bit puts the map counter of-of-whack.
+     * bit puts the map counter out-of-whack.
      */
     if (file_map_bit_test(diskdinfo->map, filn))
 	file_map_bit_reset(diskdinfo->map, filn);
