@@ -865,8 +865,11 @@ if test -z "$ac_cv_func_poll"; then
 			# Henrik Nordstrom (hno@hem.passagen.se) 19980817
 			# poll is problematic on Linux.  We disable it
 			# by default until Linux gets it right.
-			echo "disabling poll for $host..."
-			ac_cv_func_poll='no'
+			rev=`uname -r | awk -F. '{printf "%03d%03d",$1,$2}'`
+			if test $rev -lt 002002; then
+			    echo "disabling poll for $host < 2.2..."
+			    ac_cv_func_poll='no'
+			fi
 			;;
 		[powerpc-ibm-aix4.1.*])
 			# Mike Laster (mlaster@metavillage.com) 19981021
