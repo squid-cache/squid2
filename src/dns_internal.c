@@ -304,7 +304,7 @@ idnsCheckQueue(void *unused)
 	} else {
 	    int v = cbdataValid(q->callback_data);
 	    debug(78, 1) ("idnsCheckQueue: ID %x: giving up after %d tries\n",
-		q->nsends);
+		(int) q->id, q->nsends);
 	    cbdataUnlock(q->callback_data);
 	    if (v)
 		q->callback(q->callback_data, NULL, 0);
