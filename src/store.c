@@ -1122,3 +1122,13 @@ contentLen(const StoreEntry * e)
     assert(e->mem_obj->reply != NULL);
     return e->mem_obj->object_sz - e->mem_obj->reply->hdr_sz;
 }
+
+HttpReply *
+storeEntryReply(StoreEntry * e)
+{
+    if (NULL == e)
+       return NULL;
+    if (NULL == e->mem_obj)
+       return NULL;
+    return e->mem_obj->reply;
+}
