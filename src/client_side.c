@@ -1903,7 +1903,7 @@ clientReadRequest(int fd, void *data)
 	}
 	/* It might be half-closed, we can't tell */
 	debug(33, 5) ("clientReadRequest: FD %d closed?\n", fd);
-	EBIT_SET(F->flags, FD_SOCKET_EOF);
+	F->flags.socket_eof = 1;
 	conn->defer.until = squid_curtime + 1;
 	conn->defer.n++;
 	fd_note(fd, "half-closed");
