@@ -604,7 +604,7 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	    i->expires = x->expires;
 	    ipcache_call_pending(i);
 	}
-	ipcacheUnlockEntry(i, "ipcache_dnsHandleRead");	/* unlock from IP_DISPATCHED */
+	ipcacheUnlockEntry(i, "ipcache_dnsHandleRead");		/* unlock from IP_DISPATCHED */
     }
     if (dnsData->offset == 0) {
 	dnsData->data = NULL;
@@ -748,7 +748,7 @@ ipcache_dnsDispatch(dnsserver_t * dns, ipcache_entry * i)
     dns->dispatch_time = current_time;
     DnsStats.requests++;
     DnsStats.hist[dns->id - 1]++;
-    ipcacheLockEntry(i, "ipcache_dnsDispatch");	/* lock while IP_DISPATCHED */
+    ipcacheLockEntry(i, "ipcache_dnsDispatch");		/* lock while IP_DISPATCHED */
 }
 
 
@@ -1014,7 +1014,7 @@ static void
 ipcacheLockEntry(ipcache_entry * i, char *func)
 {
     i->locks++;
-    debug(14,1,"  LOCK: Now %d locks, by %s\n", func);
+    debug(14, 1, "  LOCK: Now %d locks, by %s\n", func);
 }
 
 static void
@@ -1025,7 +1025,7 @@ ipcacheUnlockEntry(ipcache_entry * i, char *func)
 	return;
     }
     i->locks--;
-    debug(14,1,"UNLOCK: Now %d locks, by %s\n", func);
+    debug(14, 1, "UNLOCK: Now %d locks, by %s\n", func);
     if (ipcacheExpiredEntry(i))
 	ipcache_release(i);
 }
