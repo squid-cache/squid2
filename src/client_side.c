@@ -391,9 +391,8 @@ proxyAuthenticate(const char *headers)
 	    Config.proxyAuth.File = NULL;
 	    return (dash_str);
 	}
-        last_time = squid_curtime;
+	last_time = squid_curtime;
     }
-
     hashr = hash_lookup(validated, sent_user);
     if (hashr == NULL) {
 	/* User doesn't exist; deny them */

@@ -904,7 +904,7 @@ mime_get_type(ftp_request_t * r)
     *t = '\0';
     /* may not fix all problems, but should fix most common --EK */
     if ((!(t = strrchr(filename, '.'))) || (!strcasecmp(ext, "txt")))
-        goto mime_get_type_done;
+	goto mime_get_type_done;
     xfree(ext);
     ext = xstrdup(t + 1);
     for (i = 0; i < EXT_TABLE_LEN; i++) {
