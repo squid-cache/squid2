@@ -954,7 +954,12 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #err_html_text
 
 #  TAG: deny_info
-#	deny_info URL acl1 acl2 ...
+#	Usage: deny_info URL acl
+#
+#	This can be used to return a HTTP redirect for requests which
+#	do not pass the 'http_access' rules.  A single ACL will cause
+#	the http_access check to fail.  If a 'deny_info' line exists
+#	for that ACL then Squid returns a redirect to the given URL.
 
 #  TAG: udp_hit_obj on|off
 #	If set, Squid will request UDP_HIT_OBJ replies from its
