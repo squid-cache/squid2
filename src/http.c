@@ -724,6 +724,22 @@ httpReadReply(int fd, void *data)
 		 */
 		if (!entry->mem_obj->reply->keep_alive)
 		    keep_alive = 0;
+		/*
+		 * Verify that the connection is clean
+		 */
+		if (len == read_sz) {
+		    statCounter.syscalls.sock.reads++;
+		    len = FD_READ_METHOD(fd, buf, SQUID_TCP_SO_RCVBUF);
+		    if ((len < 0 && !ignoreErrno(errno)) || len == 0) {
+			keep_alive = 0;
+		    } else if (len > 0) {
+			debug(11, 1) ("httpReadReply: Excess data from \"%s %s\"\n",
+			    RequestMethodStr[httpState->orig_request->method],
+			    storeUrl(entry));
+			storeAppend(entry, buf, len);
+			keep_alive = 0;
+		    }
+		}
 		if (keep_alive) {
 		    /* yes we have to clear all these! */
 		    commSetDefer(fd, NULL, NULL);
