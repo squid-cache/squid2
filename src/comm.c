@@ -364,8 +364,7 @@ int comm_close(fd)
     /* update fdstat */
     fdstat_close(fd);
     /* Call close handlers */
-    for (ch = conn->close_handler; ch; ch = conn->close_handler) {
-	debug(5, 7, "comm_close: calling handler %p\n", ch->handler);
+    while ((ch = conn->close_handler)) {
 	conn->close_handler = ch->next;
 	ch->handler(fd, ch->data);
 	safe_free(ch);
@@ -903,7 +902,8 @@ static int examine_select(readfds, writefds, exceptfds)
     fd_set except_x;
     int num;
     struct timeval tv;
-    struct close_handler *close_handler, *next;
+    struct close_handler *ch = NULL;
+    struct close_handler *next = NULL;
     FD_ENTRY *f = NULL;
 
     debug(5, 0, "examine_select: Examining open file descriptors...\n");
@@ -926,14 +926,13 @@ static int examine_select(readfds, writefds, exceptfds)
 		    f->read_handler,
 		    f->write_handler,
 		    f->except_handler);
-		for (close_handler = f->close_handler; close_handler; close_handler = close_handler->next)
-		    debug(5, 0, " close handler: %p\n", close_handler->handler);
+		for (ch = f->close_handler; ch; ch = ch->next)
+		    debug(5, 0, " close handler: %p\n", ch->handler);
 		if (f->close_handler) {
-		    for (close_handler = f->close_handler; close_handler; close_handler = close_handler->next) {
-			next = close_handler->next;
-			debug(5, 0, "examine_select: Calling Close Handler %p\n", close_handler->handler);
-			close_handler->handler(fd, close_handler->data);
-			safe_free(close_handler);
+		    for (ch = f->close_handler; ch; ch = next) {
+			next = ch->next;
+			ch->handler(fd, ch->data);
+			safe_free(ch);
 		    }
 		} else if (f->lifetime_handler) {
 		    debug(5, 0, "examine_select: Calling Lifetime Handler\n");
