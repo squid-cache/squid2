@@ -322,18 +322,6 @@ struct rusage {
 #include "cache_snmp.h"
 #endif
 
-/*
- * maintain a digest of cache contents and send the digest to neighbors upon
- * request; if disabled we still can request digests from other caches
- */
-#define SQUID_MAINTAIN_CACHE_DIGEST 1
-
-/*
- * ask peers about their digests and use them
- * must be set before including structs.h
- */
-#define SQUID_PEER_DIGEST 1
-
 #include "defines.h"
 #include "enums.h"
 #include "typedefs.h"
