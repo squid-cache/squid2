@@ -312,7 +312,7 @@ rfc1035NameUnpack(const char *buf, size_t sz, off_t * off, char *name, size_t ns
 	    /* blasted compression */
 	    unsigned short s;
 	    off_t ptr;
-	    if (rdepth > 64)		/* infinite pointer loop */
+	    if (rdepth > 64)	/* infinite pointer loop */
 		return 1;
 	    memcpy(&s, buf + (*off), sizeof(s));
 	    s = ntohs(s);

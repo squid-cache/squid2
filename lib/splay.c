@@ -107,9 +107,9 @@ splay_delete(const void *data, splayNode * top, SPLAYCMP * compare)
 {
     splayNode *x;
     if (top == NULL)
-        return NULL;
+	return NULL;
     top = splay_splay(data, top, compare);
-    if (splayLastResult == 0) {		/* found it */
+    if (splayLastResult == 0) {	/* found it */
 	if (top->left == NULL) {
 	    x = top->right;
 	} else {
@@ -119,7 +119,7 @@ splay_delete(const void *data, splayNode * top, SPLAYCMP * compare)
 	xfree(top);
 	return x;
     }
-    return top;				/* It wasn't there */
+    return top;			/* It wasn't there */
 }
 
 void

@@ -200,7 +200,7 @@ memCompObjChunks(void *obj, MemChunk * chunk)
 {
     if (obj < chunk->objCache)
 	return -1;
-    if (obj < (void *)((char *)chunk->objCache + lastPool->chunk_size))
+    if (obj < (void *) ((char *) chunk->objCache + lastPool->chunk_size))
 	return 0;
     return 1;
 }
@@ -217,7 +217,7 @@ memPoolChunkNew(MemPool * pool)
     Free = chunk->freeList = chunk->objCache;
 
     for (i = 1; i < pool->chunk_capacity; i++) {
-	*Free = (void *) ((char *)Free + pool->obj_size);
+	*Free = (void *) ((char *) Free + pool->obj_size);
 	Free = *Free;
     }
     chunk->nextFreeChunk = pool->nextFreeChunk;
@@ -255,7 +255,7 @@ memPoolPush(MemPool * pool, void *obj)
      * not really need to be cleared.. There was a condition based on
      * the object size here, but such condition is not safe.
      */
-	memset(obj, 0, pool->obj_size);
+    memset(obj, 0, pool->obj_size);
     Free = obj;
     *Free = pool->freeCache;
     pool->freeCache = obj;
