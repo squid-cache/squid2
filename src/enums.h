@@ -116,6 +116,7 @@ typedef enum {
     ACL_PROTO,
     ACL_METHOD,
     ACL_BROWSER,
+    ACL_REFERER_REGEX,
     ACL_PROXY_AUTH,
     ACL_PROXY_AUTH_REGEX,
     ACL_SRC_ASN,
