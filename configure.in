@@ -759,7 +759,7 @@ AC_ARG_WITH(large-files,
 ])
 
 AC_ARG_ENABLE(large-cache-files,
-[  --enable-cache-large-files
+[  --enable-large-cache-files
                           Enable support for large cache files (>2GB).
                           WARNING: on-disk cache format is changed by this option],
 [ if test "$enableval" = "yes" ; then
