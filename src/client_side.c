@@ -593,10 +593,7 @@ clientUpdateCounters(clientHttpRequest * http)
     } else {
 	assert(H->alg == PEER_SA_NONE);
     }
-    /*
-     * account for outgoing digest traffic (this has nothing to do with
-     * USE_CACHE_DIGESTS, but counters are all in USE_CACHE_DIGESTS ifdefs)
-     */
+    /* account for outgoing digest traffic */
     if (http->flags.internal && strStr(http->request->urlpath, StoreDigestUrlPath)) {
 	kb_incr(&Counter.cd.kbytes_sent, http->out.size);
 	Counter.cd.msgs_sent++;
