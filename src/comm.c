@@ -865,7 +865,7 @@ comm_add_close_handler(int fd, PF handler, void *data)
 {
     struct close_handler *new = xmalloc(sizeof(*new));
 
-    debug(5, 5, "comm_add_close_handler: fd=%d handler=0x%p data=0x%p\n", fd, handler, data);
+    debug(5, 5, "comm_add_close_handler: fd=%d handler=%p data=%p\n", fd, handler, data);
 
     new->handler = handler;
     new->data = data;
