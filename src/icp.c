@@ -567,10 +567,10 @@ static void icp_hit_or_miss(fd, icpState)
     if (icpState->method == METHOD_CONNECT) {
 	icpState->log_type = LOG_TCP_MISS;
 	sslStart(fd,
-		url,
-		icpState->request,
-		icpState->request_hdr,
-		&icpState->size);
+	    url,
+	    icpState->request,
+	    icpState->request_hdr,
+	    &icpState->size);
 	return;
     }
     if (icpCachable(icpState))

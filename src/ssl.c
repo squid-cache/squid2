@@ -370,7 +370,7 @@ static int sslConnect(fd, hp, sslState)
 	    strlen(buf),
 	    30,
 	    sslErrorComplete,
-	(void *)     sslState);
+	    (void *) sslState);
 	return 0;
     }
     debug(26, 5, "sslConnect: client=%d server=%d\n",
@@ -403,7 +403,7 @@ static int sslConnect(fd, hp, sslState)
 		strlen(buf),
 		30,
 		sslErrorComplete,
-	(void *) 	sslState);
+		(void *) sslState);
 	    return COMM_ERROR;
 	} else {
 	    debug(26, 5, "sslConnect: conn %d EINPROGRESS\n", fd);

@@ -496,26 +496,26 @@ void info_get(obj, sentry)
     mp = mallinfo();
     storeAppendPrintf(sentry, "{Memory usage for %s via mallinfo():}\n", appname);
     storeAppendPrintf(sentry, "{\ttotal space in arena:  %6d KB}\n",
-		mp.arena >> 10);
+	mp.arena >> 10);
     storeAppendPrintf(sentry, "{\tOrdinary blocks:       %6d KB %6d blks}\n",
-		mp.uordblks >> 10, mp.ordblks);
+	mp.uordblks >> 10, mp.ordblks);
     storeAppendPrintf(sentry, "{\tSmall blocks:          %6d KB %6d blks}\n",
-		mp.usmblks >> 10, mp.smblks);
+	mp.usmblks >> 10, mp.smblks);
     storeAppendPrintf(sentry, "{\tHolding blocks:        %6d KB %6d blks}\n",
-		mp.hblkhd >> 10, mp.hblks);
+	mp.hblkhd >> 10, mp.hblks);
     storeAppendPrintf(sentry, "{\tFree Small blocks:     %6d KB}\n",
-		mp.fsmblks >> 10);
+	mp.fsmblks >> 10);
     storeAppendPrintf(sentry, "{\tFree Ordinary blocks:  %6d KB}\n",
-		mp.fordblks >> 10);
+	mp.fordblks >> 10);
     t = mp.uordblks + mp.usmblks + mp.hblkhd;
     storeAppendPrintf(sentry, "{\tTotal in use:          %6d KB %d%%}\n",
-	t >> 10, percent(t,mp.arena));
+	t >> 10, percent(t, mp.arena));
     t = mp.fsmblks + mp.fordblks;
     storeAppendPrintf(sentry, "{\tTotal free:            %6d KB %d%%}\n",
-	t >> 10, percent(t,mp.arena));
+	t >> 10, percent(t, mp.arena));
 #ifdef WE_DONT_USE_KEEP
     storeAppendPrintf(sentry, "{\tKeep option:           %6d KB}\n",
-		mp.keepcost >> 10);
+	mp.keepcost >> 10);
 #endif
 #if HAVE_EXT_MALLINFO
     storeAppendPrintf(sentry, "{\tmax size of small blocks:\t%d}\n", mp.mxfast);

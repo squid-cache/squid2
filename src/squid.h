@@ -142,10 +142,10 @@
 
 #ifdef _SQUID_SOLARIS_
 /* BSD -> POSIX signal macros. Version 1.0
-   Written by Carson Gaspar (carson@lehman.com, carson@cs.columbia.edu)
-   Permission is hereby granted to use them in any way as long as credit
-   is given to the author. */
- 
+ * Written by Carson Gaspar (carson@lehman.com, carson@cs.columbia.edu)
+ * Permission is hereby granted to use them in any way as long as credit
+ * is given to the author. */
+
 /* assume signal.h is protected against multiple inclusion */
 #include <signal.h>
 static struct sigaction _fixsig_sa_act, _fixsig_sa_oact;
@@ -157,10 +157,10 @@ static sigset_t _fixsig_sigset;
    sigaction((s), &_fixsig_sa_act, &_fixsig_sa_oact), \
    _fixsig_sa_oact.sa_handler)
 #define sigmask(x) (1<<(x))
- 
+
 /* WARNING! This grovels about in the sigset structure. It works under
-   Solaris 2.[345], but Your Mileage May Vary */
- 
+ * Solaris 2.[345], but Your Mileage May Vary */
+
 #define _mask_to_sigset(x) (sigemptyset(&_fixsig_sigset),_fixsig_sigset.__sigbits[0] |= x)
 #define sigsetmask(x) (_mask_to_sigset(x),sigprocmask(SIG_SETMASK,&_fixsig_sigset,NULL))
 #define sigblock(x) (_mask_to_sigset(x),sigprocmask(SIG_BLOCK,&_fixsig_sigset,0))

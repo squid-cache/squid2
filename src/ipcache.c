@@ -562,14 +562,14 @@ static int ipcache_parsebuffer(buf, offset, dnsData)
 	    if ((token = strtok(NULL, w_space)) == NULL) {
 		debug(14, 1, "ipcache_parsebuffer: Invalid $fail?\n");
 	    } else {
-	        line_cur = line_head->next;
+		line_cur = line_head->next;
 		i = dnsData->ip_entry;
 		i->lastref = i->timestamp = squid_curtime;
 		i->ttl = getNegativeDNSTTL();
 		i->status = IP_NEGATIVE_CACHED;
-	        if (line_cur && !strncmp(line_cur->line, "$message", 8))
+		if (line_cur && !strncmp(line_cur->line, "$message", 8))
 		    i->error_message = xstrdup(line_cur->line + 8);
-                dns_error_message = i->error_message;
+		dns_error_message = i->error_message;
 		ipcache_call_pending(i);
 	    }
 	    free_lines(line_head);

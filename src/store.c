@@ -401,8 +401,8 @@ int storeLockObject(e, handler, data)
 	(*handler) (0, data);
     } else if (handler) {
 	/* The object is probably in state SWAPPING_IN, not much we can do.
-	   Instead of returning failure here, we should have a list of complete
-	   handlers which we could append to... */
+	 * Instead of returning failure here, we should have a list of complete
+	 * handlers which we could append to... */
 	(*handler) (1, data);
     }
     return status;
@@ -2729,7 +2729,6 @@ int storeWriteCleanLog()
 	safeunlink(tmp_filename, 0);
 	return 0;
     }
-
     if (file_write_unlock(swaplog_fd, swaplog_lock) != DISK_OK) {
 	debug(20, 0, "storeWriteCleanLog: Failed to unlock swaplog!\n");
 	debug(20, 0, "storeWriteCleanLog: Current swap logfile not replaced.\n");
