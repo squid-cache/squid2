@@ -32,3 +32,6 @@
 
 /* If libresolv.a has been hacked to export _dns_ttl_ */
 #undef LIBRESOLV_DNS_TTL_HACK
+
+/* Define if struct ip has ip_hl member */
+#undef HAVE_IP_HL

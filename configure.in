@@ -183,6 +183,17 @@ foo.mxfast = 0;],
 AC_MSG_RESULT(yes)],
 AC_MSG_RESULT(no))
 
+AC_MSG_CHECKING(for ip->ip_hl)
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <netinet/in.h>
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>],
+[struct ip ip;
+ip.ip_hl= 0;],
+[AC_DEFINE(HAVE_IP_HL)
+AC_MSG_RESULT(yes)],
+AC_MSG_RESULT(no))
+
 dnl Check for typedefs
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
