@@ -564,8 +564,6 @@ netdbExchangeHandleReply(void *data, char *notused, ssize_t retsize)
     rec_sz += 1 + sizeof(addr.s_addr);
     rec_sz += 1 + sizeof(int);
     rec_sz += 1 + sizeof(int);
-    ex->seen = ex->used + size;
-    debug(38, 3) ("netdbExchangeHandleReply: %d bytes\n", (int) size);
     debug(38, 3) ("netdbExchangeHandleReply: %d read bytes\n", (int) retsize);
     if (!cbdataReferenceValid(ex->p)) {
 	debug(38, 3) ("netdbExchangeHandleReply: Peer became invalid\n");
