@@ -97,6 +97,10 @@ carpSelectParent(request_t * request)
 	url_hash += (url_hash << 19) + *c;
     /* select peer */
     for (tp = Config.peers; tp; tp = tp->next) {
+	if (0.0 == tp->carp.load_factor)
+	    continue;
+	if (tp->tcp_up != PEER_TCP_MAGIC_COUNT)
+	    continue;
 	assert(tp->type == PEER_PARENT);
 	combined_hash = (url_hash ^ tp->carp.hash);
 	combined_hash += combined_hash * 0x62531965;

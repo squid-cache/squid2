@@ -203,6 +203,12 @@ fwdConnectTimeout(int fd, void *data)
 	err->request = requestLink(fwdState->request);
 	err->xerrno = ETIMEDOUT;
 	fwdFail(fwdState, err);
+	/*
+	 * This marks the peer DOWN ... 
+	 */
+	if (fwdState->servers)
+	    if (fwdState->servers->peer)
+		peerCheckConnectStart(fwdState->servers->peer);
     }
     comm_close(fd);
 }
