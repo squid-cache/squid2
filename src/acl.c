@@ -292,6 +292,7 @@ aclParseIpData(const char *t)
     LOCAL_ARRAY(char, addr2, 256);
     LOCAL_ARRAY(char, mask, 256);
     struct _acl_ip_data *q = xcalloc(1, sizeof(struct _acl_ip_data));
+    debug(28,5,"aclParseIpData: %s\n", t);
     if (!strcasecmp(t, "all")) {
 	q->addr1.s_addr = 0;
 	q->addr2.s_addr = 0;
@@ -655,7 +656,9 @@ aclParseAclLine(void)
 	debug_trap("Bad ACL type");
 	break;
     }
-    if (new_acl && A->data == NULL) {
+    if (!new_acl)
+	return;
+    if (A->data == NULL) {
 	debug(28, 0, "aclParseAclLine: IGNORING invalid ACL: %s\n",
 	    A->cfgline);
 	xfree(A);
