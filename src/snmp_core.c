@@ -542,6 +542,7 @@ snmpHandleUdp(int sock, void *not_used)
 	snmp_rq->outbuf = xmalloc(snmp_rq->outlen = SNMP_REQUEST_SIZE);
 	memcpy(&snmp_rq->from, &from, sizeof(struct sockaddr_in));
 	snmpDecodePacket(snmp_rq);
+	xfree(snmp_rq);
     } else {
 	debug(49, 1) ("snmpHandleUdp: FD %d recvfrom: %s\n", sock, xstrerror());
     }
@@ -568,7 +569,6 @@ snmpDecodePacket(snmp_request_t * rq)
     Session->authenticator = NULL;
     Session->community = (u_char *) xstrdup("public");
     Session->community_len = 6;
-    cbdataAdd(rq, MEM_NONE);
     PDU = snmp_pdu_create(0);
     Community = snmp_parse(Session, PDU, buf, len);
 
