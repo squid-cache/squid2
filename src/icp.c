@@ -998,12 +998,12 @@ icpUdpSend(int fd,
 
 static void
 icpUdpSendEntry(int fd,
-	char *url,
-	int reqnum,
-	struct sockaddr_in *to,
-	icp_opcode opcode,
-	StoreEntry * entry,
-	struct timeval start_time)
+    char *url,
+    int reqnum,
+    struct sockaddr_in *to,
+    icp_opcode opcode,
+    StoreEntry * entry,
+    struct timeval start_time)
 {
     char *buf = NULL;
     int buf_len;
