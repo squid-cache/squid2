@@ -997,7 +997,7 @@ void stat_init(object, logfilename)
     obj->proto_miss = proto_miss;
     obj->NotImplement = dummyhandler;
 
-    for (i = 0; i < PROTO_MAX; i++) {
+    for (i = 0; i <= PROTO_MAX; i++) {
 	switch (i) {
 	case PROTO_HTTP:
 	    strcpy(obj->proto_stat_data[i].protoname, "HTTP");
