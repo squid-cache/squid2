@@ -1185,7 +1185,7 @@ extern void htcpSocketClose(void);
 #define strSet(s,ptr,ch) (s).buf[ptr-(s).buf] = (ch)
 #define strCut(s,pos) (((s).len = pos) , ((s).buf[pos] = '\0'))
 #define strCutPtr(s,ptr) (((s).len = (ptr)-(s).buf) , ((s).buf[(s).len] = '\0'))
-/* #define strCat(s,str)  stringAppend(&(s), (str), strlen(str)+1) */
+#define strCat(s,str)  stringAppend(&(s), (str), strlen(str)+1)
 extern void stringInit(String * s, const char *str);
 extern void stringLimitInit(String * s, const char *str, int len);
 extern String stringDup(const String * s);
