@@ -8,16 +8,14 @@
 <P>
 <A HREF="%U">%U</A>
 <P>
-adresine ulaþýrken aþaðýdaki hata oluþtu
+adresine ulaþýrken aþaðýdaki hata oluþtu:
 <P>
 <UL>
 <LI>
-<LI>
 <STRONG>
-Client Abort
+Ýstek kesildi.
 </STRONG>
 </UL>
-
 <P>
-The request was aborted by the client.
+Ýstek kullanýcý tarafýndan kesildi.
 </P>
