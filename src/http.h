@@ -124,6 +124,12 @@ struct _http_reply {
 #define BUF_TYPE_8K 	1
 #define BUF_TYPE_MALLOC 2
 
+typedef enum {
+	HDR_IMS,
+	HDR_HOST,
+	HDR_MAXAGE
+} http_hdr_flag_t;
+
 typedef struct {
     StoreEntry *entry;
     request_t *request;
