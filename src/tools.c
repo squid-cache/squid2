@@ -174,9 +174,9 @@ dumpMallocStats(FILE * f)
 #if HAVE_MSTATS && HAVE_GNUMALLOC_H
     struct mstats ms = mstats();
     fprintf(f, "\ttotal space in arena:  %6d KB\n",
-	ms.bytes_total >> 10);
+	(int) ms.bytes_total >> 10);
     fprintf(f, "\tTotal free:            %6d KB %d%%\n",
-	ms.bytes_free >> 10,
+	(int) ms.bytes_free >> 10,
 	percent(ms.bytes_free, ms.bytes_total));
 #elif HAVE_MALLINFO
     struct mallinfo mp;
