@@ -221,7 +221,7 @@ errorPageId(const char *page_name)
 	    return i;
     }
     for (i = 0; i < ErrorDynamicPages.count; i++) {
-	if (strcmp(((ErrorDynamicPageInfo *) ErrorDynamicPages.items[i - ERR_MAX])->page_name, page_name) == 0)
+	if (strcmp(((ErrorDynamicPageInfo *) ErrorDynamicPages.items[i])->page_name, page_name) == 0)
 	    return i + ERR_MAX;
     }
     return ERR_NONE;
