@@ -1058,6 +1058,7 @@ netdbExchangeStart(void *data)
 #else
     httpRequestSetHeaders(ex->r, METHOD_GET, uri, "");
 #endif
+    ex->r->http_ver = 1.0;
     ex->e = storeCreateEntry(uri, uri, 0, METHOD_GET);
     ex->buf_sz = 4096;;
     ex->buf = memAllocate(MEM_4K_BUF);
