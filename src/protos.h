@@ -661,6 +661,7 @@ extern void fwdUnregister(int fd, FwdState *);
 extern void fwdComplete(FwdState * fwdState);
 extern void fwdInit(void);
 extern int fwdReforwardableStatus(http_status s);
+extern void fwdServersFree(FwdServer ** FS);
 
 extern void urnStart(request_t *, StoreEntry *);
 
