@@ -3649,17 +3649,21 @@ varyEvaluateMatch(StoreEntry * entry, request_t * request)
 	/* virtual "vary" object found. Calculate the vary key and
 	 * continue the search
 	 */
-	vary = request->vary_headers = xstrdup(httpMakeVaryMark(request, entry->mem_obj->reply));
-	if (vary)
+	vary = httpMakeVaryMark(request, entry->mem_obj->reply);
+	if (vary) {
+	    request->vary_headers = xstrdup(vary);
 	    return VARY_OTHER;
-	else {
+	} else {
 	    /* Ouch.. we cannot handle this kind of variance */
 	    /* XXX This cannot really happen, but just to be complete */
 	    return VARY_CANCEL;
 	}
     } else {
-	if (!vary)
-	    vary = request->vary_headers = xstrdup(httpMakeVaryMark(request, entry->mem_obj->reply));
+	if (!vary) {
+	    vary = httpMakeVaryMark(request, entry->mem_obj->reply);
+	    if (vary)
+		request->vary_headers = xstrdup(vary);
+	}
 	if (!vary) {
 	    /* Ouch.. we cannot handle this kind of variance */
 	    /* XXX This cannot really happen, but just to be complete */
