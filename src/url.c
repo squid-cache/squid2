@@ -56,6 +56,9 @@ const char *ProtocolStr[] =
     "wais",
     "cache_object",
     "icp",
+#if USE_HTCP
+    "htcp",
+#endif
     "urn",
     "whois",
     "internal",
