@@ -58,7 +58,7 @@ Changes to squid-2.5.STABLE7 (11 Oct 2004)
 	- [Cosmetic] request_header_max_size configuration partly ignored
 	  (Bug #899)
 	- [Minor] Partial hit results in TCP_HIT, not TCP_MISS. (Bug #1001)
-	- Bug #1012: [Cosmetic] HEAD requests may return stale information
+	- [Cosmetic] HEAD requests may return stale information
 	  (Bug #1012)
 	- [Cosmetic] Warn if cache_dir ufs can not create files. (Bug #918)
 	- [Minor] case insensitive authentication (Bug #431)
