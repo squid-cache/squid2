@@ -481,10 +481,10 @@ getFromDefaultSource(int fd, StoreEntry * entry)
 	myrtt = netdbHostRtt(request->host);
 	if (myrtt && myrtt < entry->mem_obj->p_rtt) {
 	    hierarchyNote(request, HIER_CLOSEST_DIRECT, fd, request->host);
-	    protoStart(fd, entry, NULL, request);
+	    return protoStart(fd, entry, NULL, request);
 	} else {
 	    hierarchyNote(request, HIER_CLOSEST_PARENT_MISS, fd, e->host);
-	    protoStart(fd, entry, e, request);
+	    return protoStart(fd, entry, e, request);
 	}
     }
     if ((e = entry->mem_obj->e_pings_first_miss)) {
@@ -533,11 +533,11 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	e ? e->host : "source");
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
 	fatal_dump("protoStart: object already being fetched");
+    if (entry->ping_status == PING_WAITING)
+	debug_trap("protoStart: ping_status is PING_WAITING");
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
     protoCancelTimeout(fd, entry);
     netdbPingSite(request->host);
-    if (entry->ping_status == PING_WAITING)
-	debug_trap("protoStart: ping_status is PING_WAITING");
 #ifdef LOG_ICP_NUMBERS
     request->hierarchy.n_recv = entry->mem_obj->e_pings_n_acks;
     if (entry->mem_obj->start_ping.tv_sec)
