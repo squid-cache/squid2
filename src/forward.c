@@ -460,8 +460,10 @@ fwdCheckDeferRead(int fd, void *data)
     if (mem == NULL)
 	return 0;
 #if DELAY_POOLS
-    if (!delayIsNoDelay(fd) && delayMostBytesWanted(mem, 1) == 0)
-	return 1;
+    if (fd > -1)
+	if (!delayIsNoDelay(fd))
+	    if (delayMostBytesWanted(mem, 1) == 0)
+		return 1;
 #endif
     if (mem->inmem_hi - storeLowestMemReaderOffset(e) < READ_AHEAD_GAP)
 	return 0;
