@@ -1624,12 +1624,15 @@ fi
 
 dnl Check for library functions
 AC_CHECK_FUNCS(\
-	bcopy \
 	backtrace_symbols_fd \
+	bcopy \
+	bswap_16 \
+	bswap_32 \
 	crypt \
 	fchmod \
 	getdtablesize \
 	getpagesize \
+	getrlimit \
 	getrusage \
 	getspnam \
 	lrand48 \
@@ -1643,9 +1646,9 @@ AC_CHECK_FUNCS(\
 	mktime \
 	mstats \
 	poll \
+	pthread_attr_setschedparam \
 	pthread_attr_setscope \
 	pthread_setschedparam \
-	pthread_attr_setschedparam \
 	pthread_sigmask \
 	putenv \
 	random \
@@ -1654,11 +1657,11 @@ AC_CHECK_FUNCS(\
 	regfree \
 	res_init \
 	rint \
+	select \
 	seteuid \
 	setgroups \
 	setpgrp \
 	setrlimit \
-	getrlimit \
 	setsid \
 	sigaction \
 	snprintf \
@@ -1670,8 +1673,6 @@ AC_CHECK_FUNCS(\
 	syslog \
 	timegm \
 	vsnprintf \
-	bswap_16 \
-	bswap_32 \
 )
 
 dnl Magic which checks whether we are forcing a type of comm loop we
