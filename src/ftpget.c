@@ -1,86 +1,4 @@
-static char rcsid[] = "$Id$";
-/* 
- *  ftpget.c - An FTP client used by liburl and cached.
- *
- *  Duane Wessels, University of Colorado, September 1995
- *
- *  DEBUG: section  26, level 1           ftpget - standalone liburl program.
- *
- *  ----------------------------------------------------------------------
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- */
+/* $Id$ */
 
 /*
  *    NOTES
@@ -150,22 +68,37 @@ static char rcsid[] = "$Id$";
  */
 
 
+#include "config.h"
+
+#include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
+#include <time.h>
+#include <sys/time.h>		/* for select(2) */
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
-#include <time.h>
-
+#include <sys/wait.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "config.h"
+#if HAVE_BSTRING_H
+#include <bstring.h>
+#endif
+
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+
 #include "util.h"
+
 
 char *rfc1738_escape();
 char *http_time();
@@ -181,6 +114,10 @@ typedef struct _ext_table_entry {
 
 #define FTP_PORT 21
 #define DEFAULT_MIME_TYPE "text/plain"
+#define READ_TIMEOUT -2
+
+#define MAGIC_MARKER	"\004\004\004"
+#define MAGIC_MARKER_SZ	3
 
 #define F_HTTPIFY	0x01
 #define F_HDRSENT	0x02
@@ -223,6 +160,7 @@ typedef enum {
 
 typedef struct _request {
     char *host;
+    int port;
     char *path;
     char *type;
     char *user;
@@ -291,13 +229,13 @@ int o_list_wrap = 0;		/* wrap long directory names ? */
  *  GLOBALS
  */
 char *progname = NULL;
+char *fullprogname = NULL;
 static char cbuf[SMALLBUFSIZ];	/* send command buffer */
 static char htmlbuf[BIGBUFSIZ];
 char *server_reply_msg = NULL;
 struct sockaddr_in ifc_addr;
 static time_t last_alarm_set = 0;
 request_t *MainRequest = NULL;
-request_t *CurrentRequest = NULL;
 
 /* This linked list holds the "continuation" lines before the final
  * reply code line is sent for a FTP command */
@@ -362,7 +300,7 @@ While trying to retrieve the URL:\n\
 <P>\n\
 The following %s error was encountered:\n\
 <UL>\n\
-<LI><STRONG>ERROR %d -- %s</STRONG>\n\
+<LI><STRONG>%s</STRONG>\n\
 </UL>\n\
 <P>This means that:\n\
 <PRE>\n\
@@ -375,7 +313,7 @@ char *html_trailer()
 {
     static char buf[SMALLBUFSIZ];
 
-    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by ftpget/%s@%s\n</ADDRESS>\n </BODY></HTML>\n", http_time((time_t) NULL), HARVEST_VERSION, getfullhostname());
+    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n </BODY></HTML>\n", http_time((time_t) NULL), SQUID_VERSION, getfullhostname());
     return buf;
 }
 
@@ -430,7 +368,6 @@ void fail(r)
 	    r->title_url,
 	    r->title_url,
 	    "FTP",
-	    304,
 	    r->errmsg,
 	    longmsg);
 	if (!(r->flags & F_HDRSENT)) {
@@ -439,7 +376,7 @@ void fail(r)
 	    fprintf(fp, "HTTP/1.0 500 Proxy Error\r\n");
 	    fprintf(fp, "Expires: %s\r\n", mkrfc850(&expire_time));
 	    fprintf(fp, "MIME-Version: 1.0\r\n");
-	    fprintf(fp, "Server: Harvest %s\r\n", HARVEST_VERSION);
+	    fprintf(fp, "Server: Squid %s\r\n", SQUID_VERSION);
 	    fprintf(fp, "Content-Type: text/html\r\n");
 	    fprintf(fp, "Content-Length: %d\r\n", (int) strlen(htmlbuf));
 	    fprintf(fp, "\r\n");
@@ -481,32 +418,228 @@ void generic_sig_handler(sig)
     exit(MainRequest->rc);
 }
 
-void timeout_handler()
+state_t request_timeout(r)
+     request_t *r;
 {
     time_t now;
     static char buf[SMALLBUFSIZ];
-
     now = time(NULL);
-    sprintf(buf, "Timeout after %d seconds.\n", now - last_alarm_set);
+    sprintf(buf, "Timeout after %d seconds.\n",
+	(int) (now - last_alarm_set));
     errorlog(buf);
-    if (MainRequest == NULL)
-	exit(1);
-    if (MainRequest != CurrentRequest) {
-	CurrentRequest->state = DONE;
-	return;
-    }
-    MainRequest->errmsg = xstrdup(buf);
-    MainRequest->state = FAIL_TIMEOUT;
+    r->errmsg = xstrdup(buf);
+    r->rc = 7;
+    return FAIL_TIMEOUT;
 }
 
-void reset_timeout(r)
-     request_t *r;
+void sigchld_handler(sig)
+     int sig;
 {
-    if (r)
-	CurrentRequest = r;
-    last_alarm_set = time(NULL);
-    alarm(o_timeout);
+    int status;
+    int pid;
+
+    if ((pid = waitpid(0, &status, WNOHANG)) > 0)
+	Debug(26, 5, ("sigchld_handler: Ate pid %d\n", pid));
+#if defined(_SQUID_SYSV_SIGNALS_)
+    signal(sig, sigchld_handler);
+#endif
 }
+
+int write_with_timeout(fd, buf, sz)
+     int fd;
+     char *buf;
+     int sz;
+{
+    int x;
+    fd_set R;
+    fd_set W;
+    struct timeval tv;
+    int nwritten = 0;
+
+    while (sz > 0) {
+	tv.tv_sec = o_timeout;
+	tv.tv_usec = 0;
+	FD_ZERO(&R);
+	FD_SET(fd, &W);
+	FD_SET(0, &R);
+	last_alarm_set = time(NULL);
+	x = select(fd + 1, &R, &W, NULL, &tv);
+	Debug(26, 9, ("write_with_timeout: select returned %d\n", x));
+	if (x < 0)
+	    return x;
+	if (x == 0)		/* timeout */
+	    return READ_TIMEOUT;
+	if (FD_ISSET(0, &R))
+	    exit(1);		/* XXX very ungraceful! */
+	x = write(fd, buf, sz);
+	Debug(26, 9, ("write_with_timeout: write returned %d\n", x));
+	if (x < 0) {
+	    log_errno2(__FILE__, __LINE__, "write");
+	    return x;
+	}
+	if (x == 0)
+	    continue;
+	nwritten += x;
+	sz -= x;
+	buf += x;
+    }
+    return nwritten;
+}
+
+int read_with_timeout(fd, buf, sz)
+     int fd;
+     char *buf;
+     int sz;
+{
+    int x;
+    fd_set R;
+    struct timeval tv;
+    tv.tv_sec = o_timeout;
+    tv.tv_usec = 0;
+    FD_ZERO(&R);
+    FD_SET(fd, &R);
+    FD_SET(0, &R);
+    last_alarm_set = time(NULL);
+    x = select(fd + 1, &R, NULL, NULL, &tv);
+    if (x < 0)
+	return x;
+    if (x == 0)			/* timeout */
+	return READ_TIMEOUT;
+    if (FD_ISSET(0, &R))
+	exit(1);		/* XXX very ungraceful! */
+    return read(fd, buf, sz);
+}
+
+/* read until newline, sz, or timeout */
+int readline_with_timeout(fd, buf, sz)
+     int fd;
+     char *buf;
+     int sz;
+{
+    int x;
+    fd_set R;
+    struct timeval tv;
+    int nread = 0;
+    char c = '@';
+
+    while (nread < sz - 1) {
+	tv.tv_sec = o_timeout;
+	tv.tv_usec = 0;
+	FD_ZERO(&R);
+	FD_SET(fd, &R);
+	FD_SET(0, &R);
+	last_alarm_set = time(NULL);
+	x = select(fd + 1, &R, NULL, NULL, &tv);
+	if (x < 0)
+	    return x;
+	if (x == 0)		/* timeout */
+	    return READ_TIMEOUT;
+	if (FD_ISSET(0, &R))
+	    exit(1);		/* XXX very ungraceful! */
+	x = read(fd, &c, 1);
+	Debug(26, 9, ("readline: x=%d  c='%c'\n", x, c));
+	if (x < 0)
+	    return x;
+	if (x == 0)
+	    break;
+	buf[nread++] = c;
+	if (c == '\n')
+	    break;
+    }
+    buf[nread] = '\0';
+    return nread;
+}
+
+int connect_with_timeout2(fd, S, len)
+     int fd;
+     struct sockaddr *S;
+     int len;
+{
+    int x;
+    int y;
+    fd_set W;
+    fd_set R;
+    struct timeval tv;
+    Debug(26, 9, ("connect_with_timeout2: starting...\n"));
+    while (1) {
+
+	y = connect(fd, S, len);
+	Debug(26, 9, ("connect returned %d\n", y));
+	if (y < 0)
+	    Debug(26, 9, ("connect: %s\n", xstrerror()));
+	if (y >= 0)
+	    return y;
+	if (errno == EISCONN)
+	    return 0;
+	if (errno != EINPROGRESS && errno != EAGAIN)
+	    return y;
+
+	/* if we get here, y<0 and errno==EINPROGRESS|EAGAIN */
+
+	tv.tv_sec = o_timeout;
+	tv.tv_usec = 0;
+	FD_ZERO(&W);
+	FD_ZERO(&R);
+	FD_SET(fd, &W);
+	FD_SET(0, &R);
+	last_alarm_set = time(NULL);
+	Debug(26, 9, ("selecting on FD %d\n", fd));
+	x = select(fd + 1, &R, &W, NULL, &tv);
+	Debug(26, 9, ("select returned: %d\n", x));
+	if (x == 0)
+	    return READ_TIMEOUT;
+	if (x < 0)
+	    return x;
+	if (FD_ISSET(0, &R))
+	    exit(1);
+    }
+}
+
+/* stupid wrapper for so we can set and clear O_NDELAY */
+int connect_with_timeout(fd, S, len)
+     int fd;
+     struct sockaddr *S;
+     int len;
+{
+    int orig_flags;
+    int rc;
+
+    orig_flags = fcntl(fd, F_GETFL, 0);
+    Debug(26, 9, ("orig_flags = %x\n", orig_flags));
+    if (fcntl(fd, F_SETFL, O_NDELAY) < 0)
+	log_errno2(__FILE__, __LINE__, "fcntl O_NDELAY");
+    rc = connect_with_timeout2(fd, S, len);
+    if (fcntl(fd, F_SETFL, orig_flags) < 0)
+	log_errno2(__FILE__, __LINE__, "fcntl orig");
+    return rc;
+}
+
+int accept_with_timeout(fd, S, len)
+     int fd;
+     struct sockaddr *S;
+     int *len;
+{
+    int x;
+    fd_set R;
+    struct timeval tv;
+    tv.tv_sec = o_timeout;
+    tv.tv_usec = 0;
+    FD_ZERO(&R);
+    FD_SET(fd, &R);
+    FD_SET(0, &R);
+    last_alarm_set = time(NULL);
+    Debug(26, 9, ("selecting on FD %d\n", fd));
+    x = select(fd + 1, &R, NULL, NULL, &tv);
+    Debug(26, 9, ("select returned: %d\n", x));
+    if (x == 0)
+	return READ_TIMEOUT;
+    if (x < 0)
+	return x;
+    if (FD_ISSET(0, &R))
+	exit(1);
+    return accept(fd, S, len);
+}
+
 
 
 /*
@@ -651,7 +784,7 @@ void send_success_hdr(r)
     setbuf(fp, NULL);
     fprintf(fp, "HTTP/1.0 200 Gatewaying\r\n");
     fprintf(fp, "MIME-Version: 1.0\r\n");
-    fprintf(fp, "Server: Harvest %s\r\n", HARVEST_VERSION);
+    fprintf(fp, "Server: Squid %s\r\n", SQUID_VERSION);
     if (r->mime_type)
 	fprintf(fp, "Content-Type: %s\r\n", r->mime_type);
     if (r->size > 0)
@@ -673,15 +806,14 @@ void send_success_hdr(r)
 int read_reply(fd)
      int fd;
 {
-    FILE *fp = NULL;
     static char buf[SMALLBUFSIZ];
-    static char xbuf[SMALLBUFSIZ];
     int quit = 0;
     char *t = NULL;
     int code;
     list_t **Tail = NULL;
     list_t *l = NULL;
     list_t *next = NULL;
+    int n;
 
     for (l = cmd_msg; l; l = next) {
 	next = l->next;
@@ -691,25 +823,18 @@ int read_reply(fd)
     cmd_msg = NULL;
     Tail = &cmd_msg;
 
-    if (server_reply_msg) {
-	xfree(server_reply_msg);
-	server_reply_msg = NULL;
-    }
-    if ((fp = fdopen(dup(fd), "r")) == (FILE *) NULL) {
-	log_errno2(__FILE__, __LINE__, "fdopen");
-	exit(1);
-    }
-    setbuf(fp, NULL);
-
     while (!quit) {
-	if (fgets(buf, SMALLBUFSIZ, fp) == (char *) NULL) {
-	    reset_timeout(NULL);
-	    sprintf(xbuf, "read failed: %s", xstrerror());
-	    server_reply_msg = xstrdup(xbuf);
-	    fclose(fp);
-	    return -1;
+	n = readline_with_timeout(fd, buf, SMALLBUFSIZ);
+	Debug(26, 1, ("read_reply: readline returned %d\n", n));
+	if (n < 0) {
+	    xfree(server_reply_msg);
+	    server_reply_msg = xstrdup(xstrerror());
+	    return n;
 	}
-	quit = (buf[2] >= '0' && buf[2] <= '9' && buf[3] == ' ');
+	if (n == 0)
+	    quit = 1;
+	else
+	    quit = (buf[2] >= '0' && buf[2] <= '9' && buf[3] == ' ');
 	if (!quit) {
 	    l = (list_t *) xmalloc(sizeof(list_t));
 	    l->ptr = xstrdup(&buf[4]);
@@ -723,8 +848,8 @@ int read_reply(fd)
 	    *t = 0;
 	Debug(26, 1, ("read_reply: %s\n", buf));
     }
-    fclose(fp);
     code = atoi(buf);
+    xfree(server_reply_msg);
     server_reply_msg = xstrdup(&buf[4]);
     return code;
 }
@@ -747,10 +872,7 @@ int send_cmd(fd, buf)
     xbuf = (char *) xmalloc(len + 1);
     sprintf(xbuf, "%s\r\n", buf);
     Debug(26, 1, ("send_cmd: %s\n", buf));
-    x = write(fd, xbuf, len);
-    if (x < 0)
-	log_errno2(__FILE__, __LINE__, "write");
-    reset_timeout(NULL);
+    x = write_with_timeout(fd, xbuf, len);
     xfree(xbuf);
     return x;
 }
@@ -778,7 +900,7 @@ time_t parse_iso3307_time(buf)
 
 #ifdef HAVE_TIMEGM
     t = timegm(&tms);
-#elif defined(_HARVEST_SYSV_) || defined(_HARVEST_LINUX_) || defined(_HARVEST_HPUX_) || defined(_HARVEST_AIX_)
+#elif defined(_SQUID_SYSV_) || defined(_SQUID_LINUX_) || defined(_SQUID_HPUX_) || defined(_SQUID_AIX_)
     t = mktime(&tms);
 #else
     t = (time_t) 0;
@@ -821,7 +943,7 @@ state_t parse_request(r)
 
 /*
  *  do_connect()
- *  Connect to the FTP server r->host on port 21.
+ *  Connect to the FTP server r->host on r->port.
  * 
  *  Returns states:
  *    CONNECTED
@@ -834,6 +956,7 @@ state_t do_connect(r)
     int sock;
     struct sockaddr_in S;
     int len;
+    int x;
 
     r->conn_att++;
     Debug(26, 1, ("do_connect: connect attempt #%d to '%s'\n",
@@ -847,17 +970,21 @@ state_t do_connect(r)
     h = get_host(r->host);
     memcpy(&(S.sin_addr.s_addr), h->ipaddr, h->addrlen);
     S.sin_family = AF_INET;
-    S.sin_port = htons(FTP_PORT);
+    S.sin_port = htons(r->port);
 
-    if (connect(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+    x = connect_with_timeout(sock, (struct sockaddr *) &S, sizeof(S));
+    if (x == READ_TIMEOUT) {
+	(void) request_timeout(r);
+	return FAIL_CONNECT;
+    }
+    if (x < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s (port %d): %s",
-	    r->host, FTP_PORT, xstrerror());
+	    r->host, r->port, xstrerror());
 	r->rc = 3;
 	return FAIL_CONNECT;
     }
     r->sfd = sock;
-    reset_timeout(r);
 
     /* get the address of whatever interface we're using so we know */
     /* what to use in the PORT command.                             */
@@ -875,7 +1002,7 @@ state_t do_connect(r)
  * 
  *  Returns states:
  *    SERVICE_READY
- *    FAIL_LOGIN
+ *    FAIL_CONNECT
  */
 state_t read_welcome(r)
      request_t *r;
@@ -890,7 +1017,7 @@ state_t read_welcome(r)
     r->sfd = -1;
     r->errmsg = xstrdup(server_reply_msg);
     r->rc = code < 0 ? 4 : 5;
-    return FAIL_LOGIN;
+    return FAIL_CONNECT;
 }
 
 /*
@@ -1131,7 +1258,7 @@ state_t do_pasv(r)
     S.sin_addr.s_addr = inet_addr(junk);
     S.sin_port = htons((p1 << 8) + p2);
 
-    if (connect(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+    if (connect_with_timeout(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s, port %d: %s", junk, port, xstrerror());
 	r->rc = 2;
@@ -1271,13 +1398,15 @@ state_t do_accept(r)
 
     len = sizeof(S);
     memset(&S, '\0', len);
-    if ((sock = accept(r->dfd, &S, &len)) < 0) {
+    sock = accept_with_timeout(r->dfd, &S, &len);
+    if (sock == READ_TIMEOUT)
+	return request_timeout(r);
+    if (sock < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "accept: %s", xstrerror());
 	r->rc = 3;
 	return FAIL_SOFT;
     }
-    reset_timeout(r);
     close(r->dfd);
     r->dfd = sock;
     return DATA_TRANSFER;
@@ -1289,16 +1418,17 @@ state_t read_data(r)
     int code;
     int n;
     static char buf[READBUFSIZ];
+    int x;
 
-    n = read(r->dfd, buf, READBUFSIZ);
-    reset_timeout(r);
-    if (n < 0) {
+    n = read_with_timeout(r->dfd, buf, READBUFSIZ);
+    if (n == READ_TIMEOUT) {
+	return request_timeout(r);
+    } else if (n < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
-    }
-    if (n == 0) {
+    } else if (n == 0) {
 	if ((code = read_reply(r->sfd)) > 0) {
 	    if (code == 226)
 		return TRANSFER_DONE;
@@ -1307,7 +1437,13 @@ state_t read_data(r)
 	r->rc = code < 0 ? 4 : 5;
 	return FAIL_SOFT;
     }
-    write(r->cfd, buf, n);	/* XXX should check return code */
+    x = write_with_timeout(r->cfd, buf, n);
+    if (x == READ_TIMEOUT)
+	return request_timeout(r);
+    if (x < 0) {
+	r->rc = 4;
+	return FAIL_SOFT;
+    }
     r->rest_offset += n;
     return r->state;
 }
@@ -1593,18 +1729,16 @@ state_t htmlify_listing(r)
     int code;
     static char buf[BIGBUFSIZ];
     char *t = NULL;
-    FILE *rfp = NULL;
     FILE *wfp = NULL;
     time_t stamp;
+    int n;
 
-    rfp = fdopen(dup(r->dfd), "r");
     wfp = fdopen(dup(r->cfd), "w");
-    setbuf(rfp, NULL);
     setbuf(wfp, NULL);
 
     stamp = time(NULL);
-    fprintf(wfp, "<!-- HTML listing generated by Harvest %s -->\n",
-	HARVEST_VERSION);
+    fprintf(wfp, "<!-- HTML listing generated by Squid %s -->\n",
+	SQUID_VERSION);
     fprintf(wfp, "<!-- %s -->\n", http_time(stamp));
     fprintf(wfp, "<TITLE>\n");
     fprintf(wfp, "FTP Directory: %s\n", r->title_url);
@@ -1616,7 +1750,7 @@ state_t htmlify_listing(r)
 	list_t *l;
 	fprintf(wfp, "<PRE>\n");
 	for (l = r->cmd_msg; l; l = l->next)
-	    write(r->cfd, l->ptr, strlen(l->ptr));
+	    write_with_timeout(r->cfd, l->ptr, strlen(l->ptr));
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
     } else if (r->readme_fp) {
@@ -1638,8 +1772,7 @@ state_t htmlify_listing(r)
 	    xfree(t);
 	}
     }
-    while (fgets(buf, BIGBUFSIZ, rfp)) {
-	reset_timeout(r);
+    while ((n = readline_with_timeout(r->dfd, buf, BIGBUFSIZ)) > 0) {
 	Debug(26, 1, ("Input: %s", buf));
 	if ((t = strchr(buf, '\r')))
 	    *t = '\0';
@@ -1652,14 +1785,21 @@ state_t htmlify_listing(r)
 	    xfree(t);
 	}
     }
+    if (n == READ_TIMEOUT) {
+	return request_timeout(r);
+    } else if (n < 0) {
+	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	sprintf(r->errmsg, "read: %s", xstrerror());
+	r->rc = 4;
+	return FAIL_SOFT;
+    }
     fprintf(wfp, "</PRE>\n");
     fprintf(wfp, "<HR>\n");
     fprintf(wfp, "<ADDRESS>\n");
     fprintf(wfp, "Generated %s, by %s/%s@%s\n",
-	http_time(stamp), progname, HARVEST_VERSION, getfullhostname());
+	http_time(stamp), progname, SQUID_VERSION, getfullhostname());
     fprintf(wfp, "</ADDRESS>\n");
     fclose(wfp);
-    fclose(rfp);
 
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code == 226)
@@ -1675,8 +1815,6 @@ static int process_request(r)
 {
     if (r == (request_t *) NULL)
 	return 1;
-
-    reset_timeout(r);		/* to set CurrentRequest */
 
     while (1) {
 	Debug(26, 1, ("process_request: in state %s\n",
@@ -1791,6 +1929,10 @@ static int process_request(r)
 	    r->state = DONE;
 	    break;
 	case DONE:
+	    if (r->flags & F_HTTPIFY) {
+		Debug(26, 9, ("Writing Marker to FD %d\n", r->cfd));
+		write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
+	    }
 	    return 0;
 	    /* NOTREACHED */
 	case FAIL_TIMEOUT:
@@ -1867,6 +2009,103 @@ void cleanup_path(r)
     } while (again);
 }
 
+#define MAX_ARGS 64
+int ftpget_srv_mode(port)
+     int port;
+{
+    /* Accept connections on localhost:port.  For each request,
+     * parse into args and exec ftpget. */
+    int sock;
+    int c;
+    struct sockaddr_in S;
+    fd_set R;
+    char *args[MAX_ARGS];
+    char *t = NULL;
+    int i;
+    int n;
+    static char *w_space = " \t\n\r";
+    static char buf[BUFSIZ];
+
+    setsid();			/* become session leader */
+
+    if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+	log_errno2(__FILE__, __LINE__, "socket");
+	exit(1);
+    }
+    if (fcntl(sock, F_SETFD, 1) < 0) {
+	Debug(26, 0, ("ftpget_srv_mode: FD %d: failed to set close-on-exec flag: %s\n",
+		sock, xstrerror()));
+    }
+    i = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &i, sizeof(int));
+    memset((char *) &S, '\0', sizeof(S));
+    S.sin_addr.s_addr = inet_addr("127.0.0.1");
+    S.sin_port = htons(port);
+    S.sin_family = AF_INET;
+    Debug(26, 1, ("Binding to %s, port %d\n",
+	    inet_ntoa(S.sin_addr),
+	    ntohs(S.sin_port)));
+    if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+	log_errno2(__FILE__, __LINE__, "bind");
+	exit(1);
+    }
+    if (listen(sock, 50) < 0) {
+	log_errno2(__FILE__, __LINE__, "listen");
+	exit(1);
+    }
+    while (1) {
+	FD_ZERO(&R);
+	FD_SET(0, &R);
+	FD_SET(sock, &R);
+	if (select(sock + 1, &R, NULL, NULL, NULL) < 0) {
+	    if (errno == EINTR)
+		continue;
+	    log_errno2(__FILE__, __LINE__, "select");
+	    continue;
+	}
+	if (FD_ISSET(0, &R)) {
+	    /* exit server mode if any activity on stdin */
+	    close(sock);
+	    return 0;
+	}
+	if (!FD_ISSET(sock, &R))
+	    continue;
+	if ((c = accept(sock, NULL, 0)) < 0) {
+	    log_errno2(__FILE__, __LINE__, "accept");
+	    exit(1);
+	}
+	buf[0] = '\0';
+	/* XXX Assume we get the whole request in one read! */
+	/* Probably okay since it should be coming on the loopback */
+	if ((n = read(c, buf, BUFSIZ)) <= 0) {
+	    log_errno2(__FILE__, __LINE__, "read");
+	    close(c);
+	    continue;
+	}
+	buf[n] = '\0';		/* Must terminate it */
+	i = 0;
+	t = strtok(buf, w_space);
+	while (t && i < MAX_ARGS - 1) {
+	    args[i] = xstrdup(t);
+	    Debug(26, 5, ("args[%d] = %s\n", i, args[i]));
+	    t = strtok(NULL, w_space);
+	    i++;
+	}
+	args[i] = NULL;
+	if (fork()) {
+	    /* parent */
+	    close(c);
+	    continue;
+	}
+	dup2(c, 1);
+	close(c);
+	execvp(fullprogname, args);
+	log_errno2(__FILE__, __LINE__, fullprogname);
+	_exit(1);
+    }
+    return 1;
+}
+
 void usage()
 {
     fprintf(stderr, "usage: %s options filename host path A,I user pass\n",
@@ -1884,7 +2123,10 @@ void usage()
     fprintf(stderr, "\t-w chars        Filename width in directory listing\n");
     fprintf(stderr, "\t-W              Wrap long filenames\n");
     fprintf(stderr, "\t-Ddbg           Debug options\n");
+    fprintf(stderr, "\t-P port         FTP Port number\n");
     fprintf(stderr, "\t-v              Version\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "usage: %s -S port\n", progname);
     exit(1);
 }
 
@@ -1894,24 +2136,48 @@ int main(argc, argv)
      char *argv[];
 {
     request_t *r = NULL;
-    FILE *logfp = NULL;
     char *t = NULL;
     int rc;
     int i;
     int len;
     int j, k;
+    int port = FTP_PORT;
 
+    fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
 	progname = xstrdup(t + 1);
     } else
 	progname = xstrdup(argv[0]);
-    if (getenv("HARVEST_GATHERER_LOGFILE") != (char *) NULL)
-	logfp = fopen(getenv("HARVEST_GATHERER_LOGFILE"), "a+");
-    if (logfp == (FILE *) NULL)
-	logfp = stderr;
-    init_log3(progname, logfp, stderr);
+    init_log3(progname, stderr, stderr);
     debug_init();
+
+#ifdef NSIG
+    for (i = 0; i < NSIG; i++) {
+#else
+    for (i = 0; i < _sys_nsig; i++) {
+#endif
+	switch (i) {
+	case SIGALRM:
+	case SIGINT:
+	case SIGHUP:
+	case SIGTERM:
+	case SIGQUIT:
+	    signal(i, generic_sig_handler);
+	    break;
+	case SIGSEGV:
+	case SIGBUS:
+	    break;
+	case SIGCHLD:
+	    signal(i, sigchld_handler);
+	    break;
+	default:
+	    signal(i, SIG_IGN);
+	    break;
+	}
+    }
+
     for (argc--, argv++; argc > 0 && **argv == '-'; argc--, argv++) {
+	Debug(26, 9, ("processing arg '%s'\n", *argv));
 	if (!strcmp(*argv, "-"))
 	    break;
 	if (!strncmp(*argv, "-D", 2)) {
@@ -1921,6 +2187,15 @@ int main(argc, argv)
 	    !strcmp(*argv, "-h")) {
 	    o_httpify = 1;
 	    continue;
+	} else if (!strcmp(*argv, "-S")) {
+	    if (--argc < 1)
+		usage();
+	    argv++;
+	    j = atoi(*argv);
+	    Debug(26, 1, ("argv=%s j=%d\n", *argv, j));
+	    if (j > 0)
+		return (ftpget_srv_mode(j));
+	    usage();
 	} else if (!strcmp(*argv, "-t")) {
 	    if (--argc < 1)
 		usage();
@@ -1994,8 +2269,16 @@ int main(argc, argv)
 	    o_readme = 0;
 	} else if (!strcmp(*argv, "-W")) {
 	    o_list_wrap = 1;
+	} else if (!strcmp(*argv, "-P")) {
+	    if (--argc < 1)
+		usage();
+	    argv++;
+	    j = atoi(*argv);
+	    if (j > 0)
+		port = j;
+	    continue;
 	} else if (!strcmp(*argv, "-v")) {
-	    printf("%s version %s\n", progname, HARVEST_VERSION);
+	    printf("%s version %s\n", progname, SQUID_VERSION);
 	    exit(0);
 	} else {
 	    usage();
@@ -2003,9 +2286,10 @@ int main(argc, argv)
 	}
     }
 
-    if (argc != 6)
+    if (argc != 6) {
+	fprintf(stderr, "Too many arguments left (%d)\n", argc);
 	usage();
-
+    }
     r = (request_t *) xmalloc(sizeof(request_t));
     memset(r, '\0', sizeof(request_t));
 
@@ -2020,6 +2304,7 @@ int main(argc, argv)
     r->type = xstrdup(argv[3]);
     r->user = xstrdup(argv[4]);
     r->pass = xstrdup(argv[5]);
+    r->port = port;
     r->sfd = -1;
     r->dfd = -1;
     r->size = -1;
@@ -2068,31 +2353,6 @@ int main(argc, argv)
     r->url_escaped = (char *) xmalloc(strlen(t) + 10);
     strcpy(r->url_escaped, t);
 
-#ifdef NSIG
-    for (i = 0; i < NSIG; i++) {
-#else
-    for (i = 0; i < _sys_nsig; i++) {
-#endif
-	switch (i) {
-	case SIGALRM:
-	    signal(SIGALRM, timeout_handler);
-	    break;
-	case SIGINT:
-	case SIGHUP:
-	case SIGTERM:
-	case SIGQUIT:
-	    signal(i, generic_sig_handler);
-	    break;
-	case SIGSEGV:
-	case SIGBUS:
-	    break;
-	default:
-	    signal(i, SIG_IGN);
-	    break;
-	}
-    }
-
-    reset_timeout(r);
     rc = process_request(MainRequest = r);
     if (r->sfd > 0)
 	send_cmd(r->sfd, "QUIT");
