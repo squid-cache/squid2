@@ -267,6 +267,7 @@ dnsOpenServers(void)
 	    dns_child_table[k]->inpipe = dnssocket;
 	    dns_child_table[k]->outpipe = dnssocket;
 	    dns_child_table[k]->answer = squid_curtime;
+	    dns_child_table[k]->dispatch_time = current_time;
 	    dns_child_table[k]->size = DNS_INBUF_SZ - 1;
 	    dns_child_table[k]->offset = 0;
 	    dns_child_table[k]->ip_inbuf = xcalloc(DNS_INBUF_SZ, 1);

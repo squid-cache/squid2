@@ -307,4 +307,8 @@ extern int matchInsideFirewall _PARAMS((const char *));
 #define DIRECT_MAYBE 1
 #define DIRECT_YES   2
 
+#define OUTSIDE_FIREWALL 0
+#define INSIDE_FIREWALL  1
+#define NO_FIREWALL      2
+
 #endif /* PROTO_H */

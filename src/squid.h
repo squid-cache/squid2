@@ -333,12 +333,12 @@ extern int opt_no_ipcache;	/* main.c */
 extern int vhost_mode;		/* main.c */
 extern int Squid_MaxFD;		/* main.c */
 extern int Biggest_FD;		/* main.c */
+extern int select_loops;	/* main.c */
 extern const char *const version_string;	/* main.c */
 extern const char *const appname;	/* main.c */
 extern struct in_addr local_addr;	/* main.c */
 extern struct in_addr theOutICPAddr;	/* main.c */
 extern const char *const localhost;
-extern unsigned int inaddr_none;
 extern struct in_addr no_addr;	/* comm.c */
 extern int opt_udp_hit_obj;	/* main.c */
 extern int opt_mem_pools;	/* main.c */

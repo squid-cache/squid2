@@ -1,3 +1,54 @@
+Changes to squid-1.NOVM.10 (April 25, 1997):
+
+	- Fixed bug where TCP_REFRESH_MISS + PARENT_UDP_HIT_OBJ
+	  resulted in "document contains no data."
+	- Added trap for FD < 0 in file_write().
+	- Removed storeAbort() call in asciiLifetimeHandle().
+	  It does not properly notify the server side about
+	  the aborted entry and causes a bad file_write() when
+	  more server data arrives.
+	- Added check for running out of disk space in
+	  storeAppendDone().
+	- Merged squid-1.1.10 changes.
+
+
+Changes to squid-1.1.10 (April 24, 1997):
+
+	- Require 0 <= multicast ttl <= 128.
+	- Changed 'unsigned int inaddr_none' to 'struct in_addr no_addr'.
+	- Added debug_trap() if unlocking a StoreEntry which still 
+	  has registered clients.
+	- Added missing storeUnregister() calls.
+	- Fixed storeClientListAdd() bug of adding same FD twice.
+	- Fixed reconfigure/SIGHUP to wait 'shutdown_lifetime' seconds
+	  after receiving signal (Ron Gomes).
+	- Added missing commSetSelect() in icpDetectClientClose()
+	  (Mark Treacy).
+	- Fixed multicast group member counting bug with fake
+	  StoreEntry's.
+	- Only enable ICP_FLAG_SRC_RTT if the peer is ICP_VERSION_2.
+	- Fixed compiling unlinkd in a separate directory (Assar Westerlund).
+	- Fixed comm_select_incoming SEGV for poll() version when using
+	  udp_{incoming,outgoing}_address  (Mark Treacy).
+	- Fixed some SIGHUP related memory problems with redirectors,
+	  ipcache, and fqdncache, and peerCountMcastPeers*().
+	- Make the unlinkd and pinger programs configurable (Ron Gomes,
+	  Neil Murray).
+	- Add handshake to unlinkd program (Ron Gomes).
+	- Exit if a configured program doesn't exist (Neil Murray).
+	- Abort if unlinkd fails to start (Ron Gomes).
+	- Added -m option to ftpget for defining default MIME type.
+	  (Neil Murray).
+	- Optimized comm_select() functions (Mark Treacy).
+	- Fixed ipcache_release() to not release locked entries;
+	  instead expire them immediately.
+	- Fixed up rebuild code to handle swapfile/URL clash
+	  cases better.
+	- Added safe_inet_addr() to protect from bogus IP addresses
+	  (Arjan de Vet).
+	- Fixed handling of ssl_proxy and passthrough_proxy when not
+	  behind a firewall.
+
 Changes to squid-1.NOVM.9 (April 16, 1997):
 
 	- Fixed handling len=0 in storeAppend().
@@ -13,7 +64,7 @@ Changes to squid-1.NOVM.9 (April 16, 1997):
 	  cases better.
 	- Fixed handling of freeing data structures which are
 	  IP cache lookup callback data pointers.
-	- Fixed icpState->swapin_fd leak in icpProxessMISS().
+	- Fixed icpState->swapin_fd leak in icpProcessMISS().
 	- Disabled memory pools by default for NOVM version.
 
 Changes to squid-1.1.9 (March 30, 1997):

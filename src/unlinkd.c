@@ -28,6 +28,8 @@
  *  
  */
 
+static char hello_string[] = "hi there\n";
+
 #ifdef UNLINK_DAEMON
 
 /* This is the external unlinkd process */
@@ -56,6 +58,7 @@ main(int argc, char *argv[])
     char buf[UNLINK_BUF_LEN];
     char *t;
     setbuf(stdin, NULL);
+    write(1, hello_string, sizeof(hello_string));
     while (fgets(buf, UNLINK_BUF_LEN, stdin)) {
 	if ((t = strchr(buf, '\n')))
 	    *t = '\0';
@@ -75,43 +78,72 @@ int unlinkd_count;
 
 static int unlinkdCreate _PARAMS((void));
 
+#define HELLO_BUFSIZ 128
 static int
 unlinkdCreate(void)
 {
     pid_t pid;
-    int cfd;
-    int pfd;
+    int rfd1, rfd2, wfd1, wfd2;
     int squid_to_unlinkd[2] =
     {-1, -1};
+    int unlinkd_to_squid[2] =
+    {-1, -1};
+    int n;
+    char buf[HELLO_BUFSIZ];
     struct timeval slp;
     if (pipe(squid_to_unlinkd) < 0) {
 	debug(50, 0, "unlinkdCreate: pipe: %s\n", xstrerror());
 	return -1;
     }
-    cfd = squid_to_unlinkd[0];
-    pfd = squid_to_unlinkd[1];
+    if (pipe(unlinkd_to_squid) < 0) {
+	debug(50, 0, "unlinkdCreate: pipe: %s\n", xstrerror());
+	return -1;
+    }
+    rfd1 = squid_to_unlinkd[0];
+    wfd1 = squid_to_unlinkd[1];
+    rfd2 = unlinkd_to_squid[0];
+    wfd2 = unlinkd_to_squid[1];
     if ((pid = fork()) < 0) {
 	debug(50, 0, "unlinkdCreate: fork: %s\n", xstrerror());
-	close(cfd);
-	close(pfd);
+	close(rfd1);
+	close(wfd1);
+	close(rfd2);
+	close(wfd2);
 	return -1;
     }
     if (pid > 0) {		/* parent process */
-	close(cfd);		/* close child's FD */
-	comm_set_fd_lifetime(pfd, -1);
+	close(rfd1);
+	close(wfd2);
+	memset(buf, '\0', HELLO_BUFSIZ);
+	n = read(rfd2, buf, HELLO_BUFSIZ - 1);
+	close(rfd2);
+	if (n <= 0) {
+	    debug(50, 0, "unlinkdCreate: handshake failed\n");
+	    close(wfd1);
+	    return -1;
+	} else if (strcmp(buf, hello_string)) {
+	    debug(50, 0, "unlinkdCreate: handshake failed\n");
+	    debug(50, 0, "--> got '%s'\n", rfc1738_escape(buf));
+	    close(wfd1);
+	    return -1;
+	}
+	comm_set_fd_lifetime(wfd1, -1);
 	slp.tv_sec = 0;
 	slp.tv_usec = 250000;
 	select(0, NULL, NULL, NULL, &slp);
-	file_open_fd(pfd, "unlinkd socket", FD_PIPE);
-	commSetNonBlocking(pfd);
-	return pfd;
+	file_open_fd(wfd1, "unlinkd socket", FD_PIPE);
+	commSetNonBlocking(wfd1);
+	return wfd1;
     }
     /* child */
     no_suid();			/* give up extra priviliges */
-    dup2(cfd, 0);
-    close(cfd);			/* close FD since we dup'd it */
-    close(pfd);			/* close parent's FD */
-    fclose(debug_log);
+    close(wfd1);
+    close(rfd2);
+    dup2(rfd1, 0);
+    dup2(wfd2, 1);
+    close(rfd1);		/* close FD since we dup'd it */
+    close(wfd2);		/* close parent's FD */
+    commSetCloseOnExec(fileno(debug_log));
     execlp(Config.Program.unlinkd, "(unlinkd)", NULL);
     debug(50, 0, "unlinkdCreate: %s: %s\n",
 	Config.Program.unlinkd, xstrerror());
@@ -124,8 +156,11 @@ unlinkdUnlink(const char *path)
 {
     char *buf;
     int l;
-    if (unlinkd_fd < 0)
+    if (unlinkd_fd < 0) {
+	debug_trap("unlinkdUnlink: unlinkd_fd < 0");
+	safeunlink(path, 0);
 	return;
+    }
     l = strlen(path) + 1;
     buf = xcalloc(1, l + 1);
     strcpy(buf, path);
@@ -142,10 +177,12 @@ unlinkdUnlink(const char *path)
 void
 unlinkdClose(void)
 {
-    if (unlinkd_fd >= 0) {
-	file_close(unlinkd_fd);
-	unlinkd_fd = -1;
+    if (unlinkd_fd < 0) {
+	debug_trap("unlinkdClose: unlinkd_fd < 0");
+	return;
     }
+    file_close(unlinkd_fd);
+    unlinkd_fd = -1;
 }
 
 void
@@ -153,10 +190,9 @@ unlinkdInit(void)
 {
     unlinkd_count = 0;
     unlinkd_fd = unlinkdCreate();
-    if (unlinkd_fd < 0) {
-	debug(43, 0, "unlinkdInit: failed to start unlinkd\n");
-	return;
-    }
+    if (unlinkd_fd < 0)
+	fatal("unlinkdInit: failed to start unlinkd\n");
+    fd_note(unlinkd_fd, Config.Program.unlinkd);
     debug(43, 0, "Unlinkd pipe opened on FD %d\n", unlinkd_fd);
 }
 

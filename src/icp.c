@@ -289,6 +289,8 @@ icpStateFree(int fd, void *data)
 	    icpState->log_type,
 	    ntohs(icpState->me.sin_port));
     }
+    if (icpState->redirect_state == REDIRECT_PENDING)
+	redirectUnregister(icpState->url, fd);
     if (icpState->ident.fd > -1)
 	comm_close(icpState->ident.fd);
     checkFailureRatio(icpState->log_type,
@@ -931,7 +933,11 @@ icpLogIcp(icpUdpData * queue)
 	log_tags[queue->logcode],
 	IcpOpcodeStr[ICP_OP_QUERY],
 	0,
+#ifndef LESS_TIMING
 	tvSubMsec(queue->start, current_time),
+#else
+	0,
+#endif
 	NULL,			/* ident */
 	NULL,			/* hierarchy data */
 #if LOG_FULL_HEADERS
@@ -1033,7 +1039,9 @@ icpUdpSend(int fd,
     data->address = *to;
     data->msg = msg;
     data->len = (int) ntohs(msg->length);
+#ifndef LESS_TIMING
     data->start = current_time;	/* wrong for HIT_OBJ */
+#endif
     data->logcode = logcode;
     data->proto = proto;
     AppendUdp(data);
@@ -1183,6 +1191,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	break;
 
     case ICP_OP_INVALID:
+    case ICP_OP_ERR:
 	break;
 
     default:
@@ -1268,6 +1277,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     case ICP_OP_DECHO:
     case ICP_OP_MISS:
     case ICP_OP_DENIED:
+    case ICP_OP_MISS_NOFETCH:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
 	    debug(12, 0, "icpHandleIcpV3: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
@@ -1366,7 +1376,8 @@ icpHandleUdp(int sock, void *not_used)
 	/* Some Linux systems seem to set the FD for reading and then
 	 * return ECONNREFUSED when sendto() fails and generates an ICMP
 	 * port unreachable message. */
-	if (errno != ECONNREFUSED)
+	/* or maybe an EHOSTUNREACH "No route to host" message */
+	if (errno != ECONNREFUSED && errno != EHOSTUNREACH)
 #endif
 	    debug(50, 1, "icpHandleUdp: FD %d recvfrom: %s\n",
 		sock, xstrerror());
@@ -1390,7 +1401,7 @@ icpHandleUdp(int sock, void *not_used)
     else if (icp_version == ICP_VERSION_3)
 	icpHandleIcpV3(sock, from, buf, len);
     else
-	debug(12, 0, "Unused ICP version %d received from %s:%d\n",
+	debug(12, 0, "WARNING: Unused ICP version %d received from %s:%d\n",
 	    icp_version,
 	    inet_ntoa(from.sin_addr),
 	    ntohs(from.sin_port));

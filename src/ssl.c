@@ -496,15 +496,18 @@ sslSelectNeighbor(int fd, const ipcache_addrs * ia, void *data)
     peer *e = NULL;
     peer *g = NULL;
     int fw_ip_match = IP_ALLOW;
+    int inside_fw = matchInsideFirewall(request->host);
     sslState->ip_lookup_pending = 0;
     if (ia && Config.firewall_ip_list)
 	fw_ip_match = ip_access_check(ia->in_addrs[ia->cur], Config.firewall_ip_list);
-    if (matchInsideFirewall(request->host)) {
+    if (inside_fw == INSIDE_FIREWALL) {
 	hierarchyNote(request, HIER_DIRECT, 0, request->host);
     } else if (fw_ip_match == IP_DENY) {
 	hierarchyNote(request, HIER_FIREWALL_IP_DIRECT, 0, request->host);
     } else if ((e = Config.sslProxy)) {
 	hierarchyNote(request, HIER_SSL_PARENT, 0, e->host);
+    } else if (inside_fw == NO_FIREWALL) {
+	hierarchyNote(request, HIER_DIRECT, 0, request->host);
     } else if ((e = getDefaultParent(request))) {
 	hierarchyNote(request, HIER_DEFAULT_PARENT, 0, e->host);
     } else if ((e = getSingleParent(request))) {

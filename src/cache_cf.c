@@ -187,9 +187,9 @@ struct SquidConfig Config;
 #define DefaultTcpRcvBufsz	0	/* use system default */
 #define DefaultUdpMaxHitObjsz	SQUID_UDP_SO_SNDBUF	/* from configure */
 #define DefaultTcpIncomingAddr	INADDR_ANY
-#define DefaultTcpOutgoingAddr	inaddr_none
+#define DefaultTcpOutgoingAddr	no_addr.s_addr
 #define DefaultUdpIncomingAddr	INADDR_ANY
-#define DefaultUdpOutgoingAddr	inaddr_none
+#define DefaultUdpOutgoingAddr	no_addr.s_addr
 #define DefaultClientNetmask    0xFFFFFFFFul
 #define DefaultPassProxy	NULL
 #define DefaultSslProxy		NULL
@@ -241,7 +241,6 @@ static void parseDebugOptionsLine _PARAMS((void));
 static void parseEffectiveUserLine _PARAMS((void));
 static void parseErrHtmlLine _PARAMS((void));
 static void parseFtpOptionsLine _PARAMS((void));
-static void parseFtpProgramLine _PARAMS((void));
 static void parseFtpUserLine _PARAMS((void));
 static void parseWordlist _PARAMS((wordlist **));
 static void parseHostAclLine _PARAMS((void));
@@ -264,7 +263,7 @@ static void parseWAISRelayLine _PARAMS((void));
 static void parseMinutesLine _PARAMS((int *));
 static void ip_acl_destroy _PARAMS((ip_acl **));
 static void parseCachemgrPasswd _PARAMS((void));
-static void parsePathname _PARAMS((char **));
+static void parsePathname _PARAMS((char **, int fatal));
 static void parseProxyLine _PARAMS((peer **));
 static void parseHttpAnonymizer _PARAMS((int *));
 static int parseTimeUnits _PARAMS((const char *unit));
@@ -305,21 +304,14 @@ ip_acl_destroy(ip_acl ** a)
 ip_access_type
 ip_access_check(struct in_addr address, const ip_acl * list)
 {
-    static int init = 0;
-    static struct in_addr localhost;
     const ip_acl *p = NULL;
     struct in_addr naddr;	/* network byte-order IP addr */
 
     if (!list)
 	return IP_ALLOW;
 
-    if (!init) {
-	memset(&localhost, '\0', sizeof(struct in_addr));
-	localhost.s_addr = inet_addr("127.0.0.1");
-	init = 1;
-    }
     naddr.s_addr = address.s_addr;
-    if (naddr.s_addr == localhost.s_addr)
+    if (naddr.s_addr == local_addr.s_addr)
 	return IP_ALLOW;
 
     debug(3, 5, "ip_access_check: using %s\n", inet_ntoa(naddr));
@@ -508,6 +500,10 @@ parseCacheHostLine(void)
 	    weight = atoi(token + 7);
 	} else if (!strncasecmp(token, "ttl=", 4)) {
 	    mcast_ttl = atoi(token + 4);
+	    if (mcast_ttl < 0)
+		mcast_ttl = 0;
+	    if (mcast_ttl > 128)
+		mcast_ttl = 128;
 	} else if (!strncasecmp(token, "default", 7)) {
 	    options |= NEIGHBOR_DEFAULT_PARENT;
 	} else if (!strncasecmp(token, "round-robin", 11)) {
@@ -707,25 +703,19 @@ parseEffectiveUserLine(void)
 }
 
 static void
-parsePathname(char **path)
+parsePathname(char **path, int fatal)
 {
     char *token;
+    struct stat sb;
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
     safe_free(*path);
     *path = xstrdup(token);
-}
-
-static void
-parseFtpProgramLine(void)
-{
-    char *token;
-    token = strtok(NULL, w_space);
-    if (token == NULL)
+    if (fatal && stat(token, &sb) < 0) {
+	debug(50, 1, "parsePathname: %s: %s\n", token, xstrerror());
 	self_destruct();
-    safe_free(Config.Program.ftpget);
-    Config.Program.ftpget = xstrdup(token);
+    }
 }
 
 static void
@@ -804,8 +794,8 @@ parseAddressLine(struct in_addr *addr)
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    if (inet_addr(token) != inaddr_none)
-	(*addr).s_addr = inet_addr(token);
+    if (safe_inet_addr(token, addr) == 1)
+	(void) 0;
     else if ((hp = gethostbyname(token)))	/* dont use ipcache */
 	*addr = inaddrFromHostent(hp);
     else
@@ -959,8 +949,8 @@ parseVizHackLine(void)
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    if (inet_addr(token) != inaddr_none)
-	Config.vizHack.addr.s_addr = inet_addr(token);
+    if (safe_inet_addr(token, &Config.vizHack.addr) == 1)
+	(void) 0;
     else if ((hp = gethostbyname(token)))	/* dont use ipcache */
 	Config.vizHack.addr = inaddrFromHostent(hp);
     else
@@ -1113,20 +1103,20 @@ parseConfigFile(const char *file_name)
 	    parseWordlist(&Config.cache_dirs);
 
 	else if (!strcmp(token, "cache_log"))
-	    parsePathname(&Config.Log.log);
+	    parsePathname(&Config.Log.log, 0);
 
 	else if (!strcmp(token, "cache_access_log"))
-	    parsePathname(&Config.Log.access);
+	    parsePathname(&Config.Log.access, 0);
 
 	else if (!strcmp(token, "cache_store_log"))
-	    parsePathname(&Config.Log.store);
+	    parsePathname(&Config.Log.store, 0);
 
 	else if (!strcmp(token, "cache_swap_log"))
-	    parsePathname(&Config.Log.swap);
+	    parsePathname(&Config.Log.swap, 0);
 
 #if USE_USERAGENT_LOG
 	else if (!strcmp(token, "useragent_log"))
-	    parsePathname(&Config.Log.useragent);
+	    parsePathname(&Config.Log.useragent, 0);
 #endif
 
 	else if (!strcmp(token, "logfile_rotate"))
@@ -1228,9 +1218,9 @@ parseConfigFile(const char *file_name)
 	    parseIntegerValue(&Config.connectTimeout);
 
 	else if (!strcmp(token, "cache_ftp_program"))
-	    parseFtpProgramLine();
+	    parsePathname(&Config.Program.ftpget, 1);
 	else if (!strcmp(token, "ftpget_program"))
-	    parseFtpProgramLine();
+	    parsePathname(&Config.Program.ftpget, 1);
 
 	else if (!strcmp(token, "cache_ftp_options"))
 	    parseFtpOptionsLine();
@@ -1238,7 +1228,7 @@ parseConfigFile(const char *file_name)
 	    parseFtpOptionsLine();
 
 	else if (!strcmp(token, "cache_dns_program"))
-	    parsePathname(&Config.Program.dnsserver);
+	    parsePathname(&Config.Program.dnsserver, 1);
 
 	else if (!strcmp(token, "dns_children"))
 	    parseIntegerValue(&Config.dnsChildren);
@@ -1246,10 +1236,16 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&Config.Options.res_defnames);
 
 	else if (!strcmp(token, "redirect_program"))
-	    parsePathname(&Config.Program.redirect);
+	    parsePathname(&Config.Program.redirect, 1);
 
 	else if (!strcmp(token, "redirect_children"))
 	    parseIntegerValue(&Config.redirectChildren);
+
+	else if (!strcmp(token, "pinger_program"))
+	    parsePathname(&Config.Program.pinger, 1);
+
+	else if (!strcmp(token, "unlinkd_program"))
+	    parsePathname(&Config.Program.unlinkd, 1);
 
 #if USE_PROXY_AUTH
 	else if (!strcmp(token, "proxy_auth"))
@@ -1336,7 +1332,7 @@ parseConfigFile(const char *file_name)
 	    parseDebugOptionsLine();
 
 	else if (!strcmp(token, "pid_filename"))
-	    parsePathname(&Config.pidFilename);
+	    parsePathname(&Config.pidFilename, 0);
 
 	else if (!strcmp(token, "visible_hostname"))
 	    parseVisibleHostnameLine();

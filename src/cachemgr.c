@@ -298,7 +298,7 @@ static const char *script_name = "/cgi-bin/cachemgr.cgi";
 static const char *const w_space = " \t\n\r";
 static const char *progname = NULL;
 static time_t now;
-static unsigned int inaddr_none;
+static struct in_addr no_addr;
 
 static char x2c _PARAMS((char *));
 static int client_comm_connect _PARAMS((int sock, char *dest_host, u_short dest_port));
@@ -624,7 +624,7 @@ main(int argc, char *argv[])
     int single = TRUE;
     float f1;
 
-    inaddr_none = inet_addr("255.255.255.255");
+    safe_inet_addr("255.255.255.255", &no_addr);
     now = time(NULL);
     if ((s = strrchr(argv[0], '/')))
 	progname = xstrdup(s + 1);
@@ -990,16 +990,15 @@ client_comm_connect(int sock, char *dest_host, u_short dest_port)
 {
     const struct hostent *hp;
     static struct sockaddr_in to_addr;
-    unsigned long haddr;
 
     /* Set up the destination socket address for message to send to. */
     memset(&to_addr, '\0', sizeof(struct sockaddr_in));
     to_addr.sin_family = AF_INET;
 
     if ((hp = gethostbyname(dest_host)) != NULL)
-	xmemcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
-    else if ((haddr = inet_addr(dest_host)) != inaddr_none)
-	xmemcpy(&to_addr.sin_addr, &haddr, sizeof(haddr));
+	xmemcpy(&to_addr.sin_addr.s_addr, hp->h_addr, hp->h_length);
+    else if (safe_inet_addr(dest_host, &to_addr.sin_addr))
+	(void) 0;
     else
 	return (-1);
 

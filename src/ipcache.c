@@ -106,9 +106,6 @@
 
 #include "squid.h"
 
-#define IP_LOW_WATER       90
-#define IP_HIGH_WATER      95
-
 struct _ip_pending {
     int fd;
     IPH handler;
@@ -131,12 +128,13 @@ static struct {
     int errors;
     int avg_svc_time;
     int ghbn_calls;		/* # calls to blocking gethostbyname() */
+    int release_locked;
 } IpcacheStats;
 
 static int ipcache_testname _PARAMS((void));
 static int ipcache_compareLastRef _PARAMS((ipcache_entry **, ipcache_entry **));
 static int ipcache_reverseLastRef _PARAMS((ipcache_entry **, ipcache_entry **));
-static int ipcache_dnsHandleRead _PARAMS((int, dnsserver_t *));
+static void ipcache_dnsHandleRead _PARAMS((int, dnsserver_t *));
 static ipcache_entry *ipcache_parsebuffer _PARAMS((const char *buf, dnsserver_t *));
 static void ipcache_release _PARAMS((ipcache_entry *));
 static ipcache_entry *ipcache_GetFirst _PARAMS((void));
@@ -203,6 +201,8 @@ ipcacheDequeue(void)
 	    ipcacheQueueTailP = &ipcacheQueueHead;
 	safe_free(old);
     }
+    if (i && i->status != IP_PENDING)
+	debug_trap("ipcacheDequeue: status != IP_PENDING");
     return i;
 }
 
@@ -233,12 +233,9 @@ ipcache_release(ipcache_entry * i)
     }
     if (i != (ipcache_entry *) table_entry)
 	fatal_dump("ipcache_release: i != table_entry!");
-    if (i->status == IP_PENDING) {
-	debug(14, 1, "ipcache_release: Someone called on a PENDING entry\n");
-	return;
-    }
-    if (i->status == IP_DISPATCHED) {
-	debug(14, 1, "ipcache_release: Someone called on a DISPATCHED entry\n");
+    if (i->locks) {
+	i->expires = squid_curtime;
+	IpcacheStats.release_locked++;
 	return;
     }
     if (hash_remove_link(ip_table, table_entry)) {
@@ -422,7 +419,6 @@ ipcacheAddHostent(ipcache_entry * i, const struct hostent *hp)
 	xmemcpy(&i->addrs.in_addrs[k].s_addr,
 	    *(hp->h_addr_list + k),
 	    hp->h_length);
-    i->status = IP_CACHED;
 }
 
 static ipcache_entry *
@@ -520,7 +516,8 @@ ipcache_parsebuffer(const char *inbuf, dnsserver_t * dnsData)
 	    for (k = 0; k < ipcount; k++) {
 		if ((token = strtok(NULL, w_space)) == NULL)
 		    fatal_dump("Invalid IP address");
-		i.addrs.in_addrs[k].s_addr = inet_addr(token);
+		if (!safe_inet_addr(token, &i.addrs.in_addrs[k]))
+		    fatal_dump("Invalid IP address");
 	    }
 	} else if (!strcmp(token, "$aliascount")) {
 	    if ((token = strtok(NULL, w_space)) == NULL)
@@ -552,7 +549,7 @@ ipcacheNudgeQueue(void)
 	ipcache_dnsDispatch(dnsData, i);
 }
 
-static int
+static void
 ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 {
     int len;
@@ -576,7 +573,7 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	    NULL,
 	    NULL, 0);
 	comm_close(fd);
-	return 0;
+	return;
     }
     n = ++IpcacheStats.replies;
     DnsStats.replies++;
@@ -597,7 +594,6 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	} else {
 	    dnsData->offset = 0;
 	    dnsData->ip_inbuf[0] = '\0';
-	    i = dnsData->data;
 	    i->addrs = x->addrs;
 	    i->error_message = x->error_message;
 	    i->status = x->status;
@@ -616,7 +612,6 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	(PF) ipcache_dnsHandleRead,
 	dnsData, 0);
     ipcacheNudgeQueue();
-    return 0;
 }
 
 static void
@@ -698,16 +693,10 @@ ipcache_nbgethostbyname(const char *name, int fd, IPH handler, void *handlerData
 	ipcache_dnsDispatch(dnsData, i);
 	return;
     }
-    if (addrs != NULL)		/* TEMPORARY */
-	debug_trap("ipcache_nbgethostbyname: Stack Trashed");
     if (NDnsServersAlloc > 0) {
 	ipcacheEnqueue(i);
 	return;
     }
-    if (addrs != NULL)		/* TEMPORARY */
-	debug_trap("ipcache_nbgethostbyname: Stack Trashed");
-    if (NDnsServersAlloc)
-	debug(14, 0, "WARNING: blocking on gethostbyname() for '%s'\n", name);
     ipcache_gethostbyname(name, IP_BLOCKING_LOOKUP);
     ipcache_call_pending(i);
 }
@@ -843,6 +832,8 @@ ipcache_gethostbyname(const char *name, int flags)
 	return addrs;
     IpcacheStats.misses++;
     if (BIT_TEST(flags, IP_BLOCKING_LOOKUP)) {
+	if (NDnsServersAlloc)
+	    debug(14, 0, "WARNING: blocking on gethostbyname() for '%s'\n", name);
 	IpcacheStats.ghbn_calls++;
 	hp = gethostbyname(name);
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && ip_table) {
@@ -859,6 +850,7 @@ ipcache_gethostbyname(const char *name, int flags)
 		return &static_addrs;
 	    } else {
 		ipcacheAddHostent(i, hp);
+		i->status = IP_CACHED;
 	    }
 	    i->expires = squid_curtime + Config.positiveDnsTtl;
 #if LIBRESOLV_DNS_TTL_HACK
@@ -920,6 +912,8 @@ stat_ipcache_get(StoreEntry * sentry)
 	IpcacheStats.misses);
     storeAppendPrintf(sentry, "{Blocking calls to gethostbyname(): %d}\n",
 	IpcacheStats.ghbn_calls);
+    storeAppendPrintf(sentry, "{Attempts to release locked entries: %d}\n",
+	IpcacheStats.release_locked);
     storeAppendPrintf(sentry, "{dnsserver avg service time: %d msec}\n",
 	IpcacheStats.avg_svc_time);
     storeAppendPrintf(sentry, "}\n\n");
@@ -993,13 +987,13 @@ ipcacheInvalidate(const char *name)
 ipcache_addrs *
 ipcacheCheckNumeric(const char *name)
 {
-    unsigned int ip;
+    struct in_addr ip;
     /* check if it's already a IP address in text form. */
-    if ((ip = inet_addr(name)) == inaddr_none)
+    if (!safe_inet_addr(name, &ip))
 	return NULL;
     static_addrs.count = 1;
     static_addrs.cur = 0;
-    static_addrs.in_addrs[0].s_addr = ip;
+    static_addrs.in_addrs[0].s_addr = ip.s_addr;
     return &static_addrs;
 }
 
@@ -1124,6 +1118,7 @@ ipcache_restart(void)
     ipcache_entry *next;
     if (ip_table == 0)
 	fatal_dump("ipcache_restart: ip_table == 0\n");
+    while (ipcacheDequeue());
     next = (ipcache_entry *) hash_first(ip_table);
     while ((this = next)) {
 	next = (ipcache_entry *) hash_next(ip_table);

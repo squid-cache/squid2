@@ -133,10 +133,11 @@ typedef struct _fqdncache_entry {
     char *names[FQDN_MAX_NAMES + 1];
     struct _fqdn_pending *pending_head;
     char *error_message;
+    unsigned char locks;
     fqdncache_status_t status:3;
 } fqdncache_entry;
 
-extern int fqdncache_nbgethostbyaddr _PARAMS((struct in_addr, int fd, FQDNH handler, void *handlerData));
+extern void fqdncache_nbgethostbyaddr _PARAMS((struct in_addr, int fd, FQDNH handler, void *handlerData));
 extern int fqdncacheUnregister _PARAMS((struct in_addr, int));
 extern const char *fqdncache_gethostbyaddr _PARAMS((struct in_addr, int flags));
 extern void fqdncache_init _PARAMS((void));

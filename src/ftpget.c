@@ -301,6 +301,7 @@ static int o_neg_ttl = 300;	/* negative TTL, default 5 min */
 static int o_httpify = 0;	/* convert to HTTP */
 static int o_showpass = 1;	/* Show password in generated URLs */
 static int o_showlogin = 1;	/* Show login info in generated URLs */
+static const char *o_mime_type = DEFAULT_MIME_TYPE;	/* for unknown files */
 static const char *o_iconprefix = "internal-";	/* URL prefix for icons */
 static const char *o_iconsuffix = "";	/* URL suffix for icons */
 static int o_list_width = 32;	/* size of filenames in directory list */
@@ -312,7 +313,7 @@ static int o_max_bps = 0;	/* max bytes/sec */
 static int o_skip_whitespace = 0;	/* skip whitespace in listings */
 static struct timeval starttime;
 static struct timeval currenttime;
-unsigned int inaddr_none;
+static struct in_addr no_addr;
 
 char *rfc1738_escape _PARAMS((const char *));
 void rfc1738_unescape _PARAMS((char *));
@@ -873,7 +874,7 @@ mime_get_type(ftp_request_t * r)
 	r->mime_type = xstrdup("text/html");
 	return;
     }
-    type = DEFAULT_MIME_TYPE;
+    type = o_mime_type;
 
     if ((t = strrchr(r->path, '/')))
 	filename = xstrdup(t + 1);
@@ -1191,8 +1192,7 @@ parse_request(ftp_request_t * r)
     const struct hostent *hp;
     char *host = proxy_host ? proxy_host : r->host;
     debug(38, 3, "parse_request: looking up '%s'\n", host);
-    r->host_addr.s_addr = inet_addr(host);	/* try numeric */
-    if (r->host_addr.s_addr != inaddr_none)
+    if (safe_inet_addr(host, &r->host_addr))	/* try numeric */
 	return PARSE_OK;
     hp = gethostbyname(host);
     if (hp == NULL) {
@@ -1560,7 +1560,10 @@ do_pasv(ftp_request_t * r)
 	return PASV_FAIL;
     }
     sprintf(junk, "%d.%d.%d.%d", h1, h2, h3, h4);
-    S.sin_addr.s_addr = inet_addr(junk);
+    if (!safe_inet_addr(junk, &S.sin_addr)) {
+	pasv_supported = 0;
+	return PASV_FAIL;
+    }
     S.sin_port = htons(port = ((p1 << 8) + p2));
 
     if (connect_with_timeout(sock, &S, sizeof(S)) < 0) {
@@ -2515,6 +2518,7 @@ usage(int argcount)
     fprintf(stderr, "\t-r num[:delay]  Max restart attempts and retry delay\n");
     fprintf(stderr, "\t-t seconds      Idle timeout\n");
     fprintf(stderr, "\t-n seconds      Negative TTL\n");
+    fprintf(stderr, "\t-m type/subtype default for unknown objects\n");
     fprintf(stderr, "\t-p path         Icon URL prefix\n");
     fprintf(stderr, "\t-s .ext         Icon URL suffix\n");
     fprintf(stderr, "\t-h              Convert to HTTP\n");
@@ -2578,11 +2582,11 @@ main(int argc, char *argv[])
     u_short port = FTP_PORT;
     const char *debug_args = "ALL,1";
     extern char *optarg;
-    unsigned long ip;
+    struct in_addr ip;
     const struct hostent *hp = NULL;
     int c;
 
-    inaddr_none = inet_addr("255.255.255.255");
+    safe_inet_addr("255.255.255.255", &no_addr);
     fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
 	progname = xstrdup(t + 1);
@@ -2620,9 +2624,9 @@ main(int argc, char *argv[])
 	}
     }
 
-    strcpy(visible_hostname, getfullhostname());
+    xstrncpy(visible_hostname, getfullhostname(), SMALLBUFSIZ);
 
-    while ((c = getopt(argc, argv, "AC:D:G:H:P:RS:Wab:c:hl:n:o:p:r:s:t:vw:")) != -1) {
+    while ((c = getopt(argc, argv, "AC:D:G:H:P:RS:Wab:c:hl:m:n:o:p:r:s:t:vw:")) != -1) {
 	switch (c) {
 	case 'A':
 	    o_showlogin = 0;
@@ -2642,8 +2646,7 @@ main(int argc, char *argv[])
 	    proxy_host = xstrdup(optarg);
 	    break;
 	case 'H':
-	    strncpy(visible_hostname, optarg, BUFSIZ);
-	    visible_hostname[BUFSIZ] = '\0';
+	    xstrncpy(visible_hostname, optarg, SMALLBUFSIZ);
 	    break;
 	case 'P':
 	    port = atoi(optarg);
@@ -2682,12 +2685,15 @@ main(int argc, char *argv[])
 	    if (k)
 		o_login_del = k;
 	    break;
+	case 'm':
+	    o_mime_type = xstrdup(optarg);
+	    break;
 	case 'n':
 	    o_neg_ttl = atoi(optarg);
 	    break;
 	case 'o':
-	    if ((ip = inet_addr(optarg)) != inaddr_none)
-		outgoingTcpAddr.s_addr = ip;
+	    if (safe_inet_addr(optarg, &ip))
+		outgoingTcpAddr.s_addr = ip.s_addr;
 	    else if ((hp = gethostbyname(optarg)) != NULL)
 		outgoingTcpAddr = *(struct in_addr *) (void *) (hp->h_addr_list[0]);
 	    else {

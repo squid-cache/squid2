@@ -160,13 +160,15 @@ pinger: pinger.o
 	$(CC) -o $@ $(LDFLAGS) pinger.o debug.o $(PINGER_LIBS)
 
 unlinkd: unlinkd.c
-	$(CC) $(CFLAGS) -DUNLINK_DAEMON unlinkd.c -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) -DUNLINK_DAEMON $(srcdir)/unlinkd.c -o $@ $(LDFLAGS)
 
 squid.conf: squid.conf.pre Makefile
 	sed "\
 	s%@DEFAULT_CONFIG_FILE@%$(DEFAULT_CONFIG_FILE)%g;\
 	s%@DEFAULT_FTPGET@%$(DEFAULT_FTPGET)%g;\
 	s%@DEFAULT_DNSSERVER@%$(DEFAULT_DNSSERVER)%g;\
+	s%@DEFAULT_UNLINKD@%$(DEFAULT_UNLINKD)%g;\
+	s%@DEFAULT_PINGER@%$(DEFAULT_PINGER)%g;\
 	s%@DEFAULT_CACHE_LOG@%$(DEFAULT_CACHE_LOG)%g;\
 	s%@DEFAULT_ACCESS_LOG@%$(DEFAULT_ACCESS_LOG)%g;\
 	s%@DEFAULT_STORE_LOG@%$(DEFAULT_STORE_LOG)%g;\
@@ -264,7 +266,7 @@ install-pinger:
 	fi
 
 clean: 
-	-rm -rf *.o *pure_* core $(PROGS) $(UTILS) $(CGIPROGS)
+	-rm -rf *.o *pure_* core $(PROGS) $(UTILS) $(CGIPROGS) $(SUID_UTILS)
 
 realclean:	clean
 	-rm -f Makefile squid.conf squid.conf.pre

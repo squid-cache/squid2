@@ -561,6 +561,16 @@ debug_options ALL,1
 #
 #dns_defnames off
 
+#  TAG: unlinkd_program 
+#	Specify the location of the executable for file deletion process.
+#
+#unlinkd_program @DEFAULT_UNLINKD@
+
+#  TAG: pinger_program 
+#	Specify the location of the executable for the pinger process.
+#
+#pinger_program @DEFAULT_PINGER@
+
 #  TAG: redirect_program 
 #	Specify the location of the executable for the URL redirector.
 #	Currently, you must provide your own redirector program.

@@ -899,8 +899,8 @@ proxyhttpStart(const char *url,
     httpState->request = requestLink(request);
     httpState->neighbor = e;
     httpState->orig_request = requestLink(orig_request);
-    /* register the handler to free HTTP state data when the FD closes */
     httpState->fd = sock;
+    /* register the handler to free HTTP state data when the FD closes */
     comm_add_close_handler(httpState->fd,
 	httpStateFree,
 	(void *) httpState);

@@ -41,4 +41,8 @@ extern void redirectStats _PARAMS((StoreEntry *));
 extern int redirectUnregister _PARAMS((const char *url, int fd));
 extern void redirectFreeMemory _PARAMS((void));
 
+#define REDIRECT_NONE 0
+#define REDIRECT_PENDING 1
+#define REDIRECT_DONE 2
+
 #endif /* REDIRECT_H */

@@ -127,6 +127,7 @@ int opt_accel_uses_host = 0;
 int vhost_mode = 0;
 int Squid_MaxFD = SQUID_MAXFD;
 int Biggest_FD = -1;
+int select_loops = 0;		/* how many times thru select loop */
 volatile int unbuffered_logs = 1;	/* debug and hierarchy unbuffered by default */
 volatile int shutdown_pending = 0;	/* set by SIGTERM handler (shut_down()) */
 volatile int reread_pending = 0;	/* set by SIGHUP handler */
@@ -139,7 +140,6 @@ struct in_addr theOutICPAddr;
 const char *const dash_str = "-";
 const char *const null_string = "";
 char ThisCache[SQUIDHOSTNAMELEN << 1];
-unsigned int inaddr_none;
 
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) _PARAMS((const char *));
@@ -167,6 +167,7 @@ usage(void)
     fprintf(stderr,
 	"Usage: %s [-hsvzCDFRUVY] [-f config-file] [-[au] port] [-k signal]\n"
 	"       -a port   Specify ASCII port number (default: %d).\n"
+	"       -b        Buffer log output (default is unbuffered).\n"
 	"       -f file   Use given config-file instead of\n"
 	"                 %s\n"
 	"       -h        Print help message.\n"
@@ -378,7 +379,7 @@ serverConnectionsOpen(void)
 	    debug(1, 1, "Accepting ICP connections on FD %d.\n",
 		theInIcpConnection);
 
-	    if ((addr = Config.Addrs.udp_outgoing).s_addr != inaddr_none) {
+	    if ((addr = Config.Addrs.udp_outgoing).s_addr != no_addr.s_addr) {
 		enter_suid();
 		theOutIcpConnection = comm_open(SOCK_DGRAM,
 		    0,
@@ -641,12 +642,11 @@ main(int argc, char **argv)
 #endif /* HAVE_MALLOPT */
 
     memset(&local_addr, '\0', sizeof(struct in_addr));
-    local_addr.s_addr = inet_addr(localhost);
+    safe_inet_addr(localhost, &local_addr);
     memset(&any_addr, '\0', sizeof(struct in_addr));
-    any_addr.s_addr = inet_addr("0.0.0.0");
+    safe_inet_addr("0.0.0.0", &any_addr);
     memset(&no_addr, '\0', sizeof(struct in_addr));
-    no_addr.s_addr = inet_addr("255.255.255.255");
-    inaddr_none = inet_addr("255.255.255.255");
+    safe_inet_addr("255.255.255.255", &no_addr);
 
 #if HAVE_SRANDOM
     srandom(time(NULL));

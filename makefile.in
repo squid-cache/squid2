@@ -21,7 +21,7 @@ noargs: all
 all install clean:
 	@for dir in $(SUBDIRS); do \
 		echo "Making $@ in $$dir..."; \
-		(cd $$dir ; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@); \
+		(cd $$dir ; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@) || exit 1; \
 	done
 
 install-pinger:

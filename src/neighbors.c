@@ -522,7 +522,8 @@ neighborsUdpPing(protodispatch_data * proto)
 		    if (e->icp_version == ICP_VERSION_2)
 			flags |= ICP_FLAG_HIT_OBJ;
 	    if (Config.Options.query_icmp)
-		flags |= ICP_FLAG_SRC_RTT;
+		if (e->icp_version == ICP_VERSION_2)
+		    flags |= ICP_FLAG_SRC_RTT;
 	    query = icpCreateMessage(ICP_OP_QUERY, flags, url, reqnum, 0);
 	    icpUdpSend(theOutIcpConnection,
 		&e->in_addr,
@@ -996,9 +997,12 @@ peerDestroy(peer * e)
 	return;
     if (!e->tcp_up)
 	eventDelete(peerCheckConnect, e);
-    if (e->type == PEER_MULTICAST)
-	if (e->mcast.count_event_pending)
+    if (e->type == PEER_MULTICAST) {
+	if (e->mcast.flags & PEER_COUNT_EVENT_PENDING)
 	    eventDelete(peerCountMcastPeersStart, e);
+	if (e->mcast.flags & PEER_COUNTING)
+	    eventDelete(peerCountMcastPeersDone, e);
+    }
     for (l = e->pinglist; l; l = nl) {
 	nl = l->next;
 	safe_free(l->domain);
@@ -1117,13 +1121,13 @@ peerCheckConnectStart(peer * p)
 static void
 peerCountMcastPeersSchedule(peer * p, time_t when)
 {
-    if (p->mcast.count_event_pending)
+    if (p->mcast.flags & PEER_COUNT_EVENT_PENDING)
 	return;
     eventAdd("peerCountMcastPeersStart",
 	peerCountMcastPeersStart,
 	p,
 	when);
-    p->mcast.count_event_pending = 1;
+    p->mcast.flags |= PEER_COUNT_EVENT_PENDING;
 }
 
 static void
@@ -1136,7 +1140,7 @@ peerCountMcastPeersStart(void *data)
     LOCAL_ARRAY(char, url, MAX_URL);
     if (p->type != PEER_MULTICAST)
 	fatal_dump("peerCountMcastPeersStart: non-multicast peer");
-    p->mcast.count_event_pending = 0;
+    p->mcast.flags &= ~PEER_COUNT_EVENT_PENDING;
     sprintf(url, "http://%s/", inet_ntoa(p->in_addr.sin_addr));
     fake = storeCreateEntry(url, NULL, 0, 0, METHOD_GET);
     mem = fake->mem_obj;
@@ -1158,6 +1162,7 @@ peerCountMcastPeersStart(void *data)
 	peerCountMcastPeersDone,
 	p,
 	Config.neighborTimeout);
+    p->mcast.flags |= PEER_COUNTING;
     peerCountMcastPeersSchedule(p, MCAST_COUNT_RATE);
 }
 
@@ -1171,6 +1176,7 @@ peerCountMcastPeersDone(void *data)
     double old;
     double new;
     double D;
+    p->mcast.flags &= ~PEER_COUNTING;
     sprintf(url, "http://%s/", inet_ntoa(p->in_addr.sin_addr));
     key = storeGeneratePrivateKey(url, METHOD_GET, p->mcast.reqnum);
     if ((fake = storeGet(key)) == NULL)

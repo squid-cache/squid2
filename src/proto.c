@@ -114,10 +114,6 @@ static int protoDNSError _PARAMS((int, StoreEntry *));
 static void protoDataFree _PARAMS((int, protodispatch_data *));
 static void protoDispatchDNSHandle _PARAMS((int, const ipcache_addrs *, void *));
 
-#define OUTSIDE_FIREWALL 0
-#define INSIDE_FIREWALL  1
-#define NO_FIREWALL      2
-
 /* for debugging */
 static char *firewall_desc_str[] =
 {
@@ -183,6 +179,10 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
      * we might still ping the hierarchy */
 
     protoData->ip_lookup_pending = 0;
+    if (entry->store_status == STORE_ABORTED)
+	return;
+    if (entry->store_status != STORE_PENDING)
+	fatal_dump("protoDispatchDNSHandle: bad store_status");
     if (protoData->direct_fetch == DIRECT_YES) {
 	if (ia == NULL) {
 	    protoDNSError(protoData->fd, entry);
@@ -259,8 +259,6 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	/* call neighborUdpPing and start timeout routine */
 	if (entry->ping_status != PING_NONE)
 	    fatal_dump("protoDispatchDNSHandle: bad ping_status");
-	if (entry->store_status != STORE_PENDING)
-	    fatal_dump("protoDispatchDNSHandle: bad store_status");
 	entry->ping_status = PING_WAITING;
 	commSetSelect(protoData->fd,
 	    COMM_SELECT_TIMEOUT,
@@ -408,9 +406,7 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
     debug(17, 5, "protoUnregister FD %d '%s'\n", fd, url ? url : "NULL");
     if (proto == PROTO_CACHEOBJ)
 	return 0;
-    if (url)
-	redirectUnregister(url, fd);
-    if (src_addr.s_addr != inaddr_none)
+    if (src_addr.s_addr != no_addr.s_addr)
 	fqdncacheUnregister(src_addr, fd);
     if (entry == NULL)
 	return 0;
@@ -630,7 +626,7 @@ matchInsideFirewall(const char *host)
     }
     /* Check for dotted-quads */
     if (Config.firewall_ip_list) {
-	if ((addr.s_addr = inet_addr(host)) != inaddr_none) {
+	if (safe_inet_addr(host, &addr)) {
 	    if (ip_access_check(addr, Config.firewall_ip_list) == IP_DENY)
 		return INSIDE_FIREWALL;
 	}

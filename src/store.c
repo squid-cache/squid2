@@ -1365,7 +1365,6 @@ storeGetSwapSpace(int size)
     StoreEntry *e = NULL;
     int scanned = 0;
     int removed = 0;
-    int expired = 0;
     int locked = 0;
     int locked_size = 0;
     int list_count = 0;
@@ -1392,12 +1391,10 @@ storeGetSwapSpace(int size)
     LRU_list = xcalloc(max_list_count, sizeof(StoreEntry *));
     /* remove expired objects until recover enough or no expired objects */
     for (i = 0; i < store_buckets; i++) {
-	int expired_in_one_bucket;
 	link_ptr = hash_get_bucket(store_table, storeGetBucketNum());
 	if (link_ptr == NULL)
 	    continue;
 	/* this for loop handles one bucket of hash table */
-	expired_in_one_bucket = 0;
 	for (; link_ptr; link_ptr = next) {
 	    if (list_count == max_list_count)
 		break;
@@ -1413,17 +1410,6 @@ storeGetSwapSpace(int size)
 		locked_size += e->object_len;
 	    }
 	}			/* for, end of one bucket of hash table */
-	expired += expired_in_one_bucket;
-	if (expired_in_one_bucket &&
-	    ((!fReduceSwap && (store_swap_size + kb_size <= store_swap_high)) ||
-		(fReduceSwap && (store_swap_size + kb_size <= store_swap_low)))
-	    ) {
-	    fReduceSwap = 0;
-	    safe_free(LRU_list);
-	    debug(20, 2, "storeGetSwapSpace: Finished, %d objects expired.\n",
-		expired);
-	    return 0;
-	}
 	qsort((char *) LRU_list,
 	    list_count,
 	    sizeof(StoreEntry *),

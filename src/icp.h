@@ -152,7 +152,9 @@ typedef struct wwd {
     void *msg;
     size_t len;
     struct wwd *next;
+#ifndef LESS_TIMING
     struct timeval start;
+#endif
     log_type logcode;
     protocol_t proto;
 } icpUdpData;
@@ -198,6 +200,7 @@ typedef struct iwd {
     } ident;
     short swapin_fd;
     int ip_lookup_pending;
+    int redirect_state;
 } icpStateData;
 
 extern void *icpCreateMessage _PARAMS((icp_opcode opcode,
