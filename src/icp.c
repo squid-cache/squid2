@@ -615,7 +615,7 @@ icpReadDataDone(int fd, char *buf, int len, int err, void *data)
 	    len = p - buf;
 	    /* force end */
 	    if (entry->store_status == STORE_PENDING)
-		icpState->out.size = entry->mem_obj->e_current_len;
+		icpState->out.size = entry->mem_obj->swap_length;
 	    else
 		icpState->out.size = entry->object_len;
 	}
