@@ -198,11 +198,14 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	} else if (Config.firewall_ip_list) {
 	    srv_addr = ia->in_addrs[ia->cur];
 	    if (ip_access_check(srv_addr, Config.firewall_ip_list) == IP_DENY) {
-		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
+		hierarchyNote(req, HIER_FIREWALL_IP_DIRECT, 0, req->host);
 		protoStart(protoData->fd, entry, NULL, req);
 		return;
 	    } else {
-		protoData->direct_fetch = DIRECT_NO;
+		/* Even though the address is NOT in firewall_ip_list,
+		   we might still be able to go direct, depending on
+		   if there are any peers to query, etc. */
+		protoData->direct_fetch = DIRECT_MAYBE;
 	    }
 	} else if (Config.local_ip_list) {
 	    srv_addr = ia->in_addrs[ia->cur];
@@ -337,7 +340,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	    protoDispatchDNSHandle,
 	    (void *) protoData);
     } else if (!protoData->inside_firewall) {
-	/* There are firewall restrictsions, and this host is outside. */
+	/* There are firewall restrictions, and this host is outside. */
 	/* No DNS lookups, call protoDispatchDNSHandle() directly */
 	protoData->source_ping = 0;
 	protoData->direct_fetch = DIRECT_NO;
