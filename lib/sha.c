@@ -5,6 +5,13 @@
 /* This code is hereby placed in the public domain */
 
 #include "config.h"
+
+/*
+ * Only compile sha.c if we need it.  Its needed for SHA store keys.
+ */
+
+#if STORE_KEY_SHA
+
 #if HAVE_STRING_H
 #include <string.h>
 #endif
@@ -277,3 +284,5 @@ sha_final(SHA_INFO * sha_info)
     sha_info->data[15] = lo_bit_count;
     sha_transform(sha_info);
 }
+
+#endif /* STORE_KEY_SHA */
