@@ -249,6 +249,7 @@
 char *rfc1738_escape _PARAMS((char *));
 void rfc1738_unescape _PARAMS((char *));
 char *http_time();
+static int check_data_rate _PARAMS((int size));
 
 typedef struct _ext_table_entry {
     char *name;
@@ -341,6 +342,7 @@ typedef struct _request {
     int rest_att;
     int rest_implemented;
     struct in_addr host_addr;
+    int bytes_written;
 } request_t;
 
 typedef struct _parts {
@@ -377,6 +379,9 @@ int o_list_wrap = 0;		/* wrap long directory names ? */
 u_short o_conn_min = 0x4000;	/* min. port number to use */
 u_short o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
 char *socket_pathname = NULL;
+int o_max_bps = 0;		/* max bytes/sec */
+struct timeval starttime;
+struct timeval currenttime;
 
 #define SMALLBUFSIZ 1024
 #define MIDBUFSIZ 2048
@@ -1717,8 +1722,13 @@ state_t read_data(r)
     int n;
     static char buf[SQUID_TCP_SO_RCVBUF];
     int x;
+    int read_sz = SQUID_TCP_SO_RCVBUF;
 
-    n = read_with_timeout(r->dfd, buf, SQUID_TCP_SO_RCVBUF);
+    while (check_data_rate(r->bytes_written))
+	sleep(1);
+    if (0 < o_max_bps && o_max_bps < read_sz)
+	read_sz = o_max_bps;
+    n = read_with_timeout(r->dfd, buf, read_sz);
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
     } else if (n < 0) {
@@ -1746,6 +1756,7 @@ state_t read_data(r)
 	r->rc = 4;
 	return FAIL_SOFT;
     }
+    r->bytes_written += x;
     r->rest_offset += n;
     return r->state;
 }
@@ -2078,6 +2089,7 @@ state_t htmlify_listing(r)
     FILE *wfp = NULL;
     time_t stamp;
     int n;
+    int x;
 
     wfp = fdopen(dup(r->cfd), "w");
     setbuf(wfp, NULL);
@@ -2095,8 +2107,10 @@ state_t htmlify_listing(r)
     if (r->cmd_msg) {		/* There was a message sent with the CWD cmd */
 	list_t *l;
 	fprintf(wfp, "<PRE>\n");
-	for (l = r->cmd_msg; l; l = l->next)
-	    write_with_timeout(r->cfd, l->ptr, strlen(l->ptr));
+	for (l = r->cmd_msg; l; l = l->next) {
+	    x = write_with_timeout(r->cfd, l->ptr, strlen(l->ptr));
+	    r->bytes_written += x;
+	}
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
     } else if (r->readme_fp && r->flags & F_BASEDIR) {
@@ -2504,11 +2518,33 @@ void usage(argcount)
     fprintf(stderr, "\t-C min:max      Min and max port numbers to used for data\n");
     fprintf(stderr, "\t-Ddbg           Debug options\n");
     fprintf(stderr, "\t-P port         FTP Port number\n");
+    fprintf(stderr, "\t-b              Maximum bytes/sec rate\n");
     fprintf(stderr, "\t-v              Version\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "usage: %s -S\n", progname);
     exit(1);
 }
+
+/* return 1 if exceeding our max data rate */
+
+static int check_data_rate(size)
+     int size;
+{
+    double dt;
+    int rate;
+    if (o_max_bps == 0)
+	return 0;
+#if GETTIMEOFDAY_NO_TZP
+    gettimeofday(&currenttime);
+#else
+    gettimeofday(&currenttime, NULL);
+#endif
+    dt = (double) (currenttime.tv_sec - starttime.tv_sec)
+	+ (double) (currenttime.tv_usec - starttime.tv_usec) / 1000000;
+    rate = (int) ((double) size / dt);
+    return rate > o_max_bps ? 1 : 0;
+}
+
 
 
 int main(argc, argv)
@@ -2530,6 +2566,12 @@ int main(argc, argv)
 	progname = xstrdup(argv[0]);
     init_log3(progname, stderr, stderr);
     debug_init();
+#if GETTIMEOFDAY_NO_TZP
+    gettimeofday(&starttime);
+#else
+    gettimeofday(&starttime, NULL);
+#endif
+
 
 #ifdef NSIG
     for (i = 0; i < NSIG; i++) {
@@ -2571,6 +2613,14 @@ int main(argc, argv)
 	    continue;
 	} else if (!strcmp(*argv, "-a")) {
 	    o_showpass = 0;
+	} else if (!strcmp(*argv, "-b")) {
+	    if (--argc < 1)
+		usage(argc);
+	    argv++;
+	    j = atoi(*argv);
+	    if (j > 0)
+		o_max_bps = j;
+	    continue;
 	} else if (!strcmp(*argv, "-A")) {
 	    o_showlogin = 0;
 	} else if (!strcmp(*argv, "-S")) {

@@ -145,6 +145,7 @@ extern void ipcacheOpenServers _PARAMS((void));
 extern void ipcacheShutdownServers _PARAMS((void));
 extern void ipcache_init _PARAMS((void));
 extern void stat_ipcache_get _PARAMS((StoreEntry *));
+extern int ipcacheQueueDrain _PARAMS((void));
 
 extern char *dns_error_message;
 
