@@ -670,6 +670,7 @@ sendSignal(void)
     if (ConfigFile == NULL)
 	ConfigFile = xstrdup(DefaultConfigFile);
     cbdataInit();
+    memInit();
     parseConfigFile(ConfigFile);
     pid = readPidFile();
     if (pid > 1) {
