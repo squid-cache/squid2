@@ -391,5 +391,14 @@ struct rusage {
 extern struct snmp_mib_tree *Mib;
 #endif
 
+/*
+ * Hey dummy, don't be tempted to move this to lib/config.h.in again.  O_NONBLOCK
+ * will not be defined there because you didn't #include <fcntl.h> yet.
+ */
+#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
+#define SQUID_NONBLOCK O_NONBLOCK
+#else
+#define SQUID_NONBLOCK O_NDELAY
+#endif
 
 #endif /* SQUID_H */

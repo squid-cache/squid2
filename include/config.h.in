@@ -162,12 +162,6 @@
 #define xislower(x) islower((unsigned char)x)
 #define xisalpha(x) isalpha((unsigned char)x)
 
-#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
-#define SQUID_NONBLOCK O_NONBLOCK
-#else
-#define SQUID_NONBLOCK O_NDELAY
-#endif
-
 #if HAVE_RANDOM
 #define squid_random random
 #define squid_srandom srandom
