@@ -75,7 +75,7 @@ clean:
 
 distclean: clean
 	-rm -f libregex.a
-	-rm -f Makefile
+	-rm -f Makefile Makefile.bak
 
 install: all
 
