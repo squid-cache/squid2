@@ -118,7 +118,7 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 makesnmplib = @makesnmplib@
 
-DIST_SUBDIRS = getpwnam LDAP MSNT multi-domain-NTLM NCSA PAM SMB YP SASL
+DIST_SUBDIRS = getpwnam LDAP MSNT multi-domain-NTLM NCSA PAM SMB YP SASL winbind
 SUBDIRS = @BASIC_AUTH_HELPERS@
 subdir = src/auth/basic/helpers
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
