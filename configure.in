@@ -341,7 +341,8 @@ AC_ARG_ENABLE(forw-via-db,
 ])
 
 AC_ARG_ENABLE(cache-digests,
-[  --enable-cache-digests  Use Cache Digests],
+[  --enable-cache-digests  Use Cache Digests
+                          see http://squid.nlanr.net/Squid/FAQ/FAQ-15.html],
 [ if test "$enableval" = "yes" ; then
     echo "USE_CACHE_DIGESTS enabled"
     AC_DEFINE(USE_CACHE_DIGESTS)
