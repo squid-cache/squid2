@@ -18,7 +18,7 @@ char *url_convert_hex(org_url, allocate)
      char *org_url;
      int allocate;
 {
-    static char *code = "00";
+    static char code[] = "00";
     char *url = NULL;
     char *s = NULL;
     char *t = NULL;
@@ -30,8 +30,8 @@ char *url_convert_hex(org_url, allocate)
 
     for (s = t = url; *(s + 2); s++) {
 	if (*s == '%') {
-	    *code = *++s;
-	    *(code + 1) = *++s;
+	    code[0] = *(++s);
+	    code[1] = *(++s);
 	    *t++ = (char) strtol(code, NULL, 16);
 	} else {
 	    *t++ = *s;
