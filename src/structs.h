@@ -1320,8 +1320,8 @@ struct _StoreEntry {
     time_t expires;
     time_t lastmod;
     size_t swap_file_sz;
-    sfileno swap_filen:24;
-    sdirno swap_dirn:8;
+    sfileno swap_filen:25;
+    sdirno swap_dirn:7;
     u_short refcount;
     u_short flags;
     u_short lock_count;		/* Assume < 65536! */

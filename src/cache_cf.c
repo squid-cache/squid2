@@ -939,6 +939,8 @@ parse_cachedir(cacheSwap * swap)
 	}
     }
 
+    assert(swap->n_configured < 63); /* 7 bits, signed */
+
     fs = find_fstype(type_str);
     if (fs < 0) {
 	/* If we get here, we didn't find a matching cache_dir type */
