@@ -387,6 +387,7 @@ netdbReloadState(void)
 	count++;
     }
     fclose(fp);
+    getCurrentTime();
     debug(37, 0, "%d NETDB entries reloaded\n", count);
 }
 
