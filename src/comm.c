@@ -441,7 +441,7 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 	lft = comm_set_fd_lifetime(sock, Config.lifetimeDefault);
 	debug(5, 10, "comm_connect_addr: FD %d connected to %s:%d, lifetime %d.\n",
 	    sock, conn->ipaddr, conn->remote_port, lft);
-    } else if (status == EINPROGRESS) {
+    } else if (status == COMM_INPROGRESS) {
 	lft = comm_set_fd_lifetime(sock, Config.connectTimeout);
 	debug(5, 10, "comm_connect_addr: FD %d connection pending, lifetime %d\n",
 	    sock, lft);
