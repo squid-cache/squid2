@@ -157,6 +157,7 @@ struct SquidConfig {
 	int pct;
 	int max;
     } quickAbort;
+    int expireAge;
     int negativeTtl;
     int negativeDnsTtl;
     int positiveDnsTtl;

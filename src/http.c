@@ -207,10 +207,9 @@ static void httpMakePrivate(entry)
 static void httpCacheNegatively(entry)
      StoreEntry *entry;
 {
-    entry->expires = squid_curtime + Config.negativeTtl;
+    storeNegativeCache(entry);
     if (BIT_TEST(entry->flag, ENTRY_CACHABLE))
 	storeSetPublicKey(entry);
-    /* XXX: mark object "not to store on disk"? */
 }
 
 

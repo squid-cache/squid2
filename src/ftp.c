@@ -268,7 +268,7 @@ static void ftpProcessReplyHeader(data, buf, size)
 	    break;
 	default:
 	    /* These can be negative cached, make key public */
-	    entry->expires = squid_curtime + Config.negativeTtl;
+	    storeNegativeCache(entry);
 	    if (BIT_TEST(entry->flag, ENTRY_CACHABLE))
 		storeSetPublicKey(entry);
 	    break;
@@ -356,7 +356,7 @@ int ftpReadReply(fd, data)
 	     * failed and arrange so the object gets ejected and
 	     * never gets to disk. */
 	    debug(9, 1, "ftpReadReply: Purging '%s'\n", entry->url);
-	    entry->expires = squid_curtime + Config.negativeTtl;
+	    storeNegativeCache(entry);
 	    BIT_RESET(entry->flag, ENTRY_CACHABLE);
 	    storeReleaseRequest(entry);
 	} else if (!(entry->flag & DELETE_BEHIND)) {

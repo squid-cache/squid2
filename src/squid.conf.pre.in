@@ -437,6 +437,15 @@ debug_options ALL,1
 #
 request_size 100
 
+#  TAG: expire_age (minutes)
+#	An object must have expired this long ago before it will
+#	be forcibly removed from the cache.  Otherwise, the object
+#	will remain in the cache and we will issue an If-Modified-Since
+#	request for it when it is next requested.  The default is
+#	one week.
+#
+#expire_age 10080
+
 #  TAG: ttl_pattern		# case sensitive
 #  TAG: ttl_pattern/i		# case insensitive
 #	Selection of TTL's based on URL regular expressions (syntax
