@@ -500,7 +500,7 @@ icpHandleIMSReply(int fd, void *data)
 	    fd,
 	    icpHandleIMSReply,
 	    (void *) icpState,
-	    icpState->out.offset);
+	    entry->object_len);
 	return;
     } else if (clientGetsOldEntry(entry, icpState->old_entry, icpState->request)) {
 	/* We initiated the IMS request, the client is not expecting
