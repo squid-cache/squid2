@@ -1,3 +1,4 @@
+
 #include "squid.h"
 
 #if STORE_KEY_URL
@@ -33,26 +34,10 @@ storeKeyPrivate(const char *url, method_t method, int num)
 const cache_key *
 storeKeyPublic(const char *url, method_t method)
 {
-    debug(20, 3) ("storeKeyPublic: type=%d %s\n", method, url);
-    switch (method) {
-    case METHOD_GET:
-	return url;
-	/* NOTREACHED */
-	break;
-    case METHOD_POST:
-    case METHOD_PUT:
-    case METHOD_HEAD:
-    case METHOD_CONNECT:
-    case METHOD_TRACE:
-	snprintf(key_temp_buffer, MAX_URL + 100, "/%s/%s", RequestMethodStr[method], url);
-	return key_temp_buffer;
-	/* NOTREACHED */
-	break;
-    default:
-	fatal_dump("storeKeyPublic: Unsupported request method");
-	break;
-    }
-    return NULL;
+    const char *m = RequestMethodStr[method];
+    debug(20, 3) ("storeKeyPublic: %s %s\n", m, url);
+    snprintf(key_temp_buffer, MAX_URL + 100, "%s/%s", m, url);
+    return key_temp_buffer;
 }
 
 const cache_key *
