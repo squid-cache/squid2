@@ -66,6 +66,8 @@ Changes to squid-2.5.STABLE2 ():
 	- winbind helpers updated to work with Samba-2.2.6 and later, and a
 	  new configure option --with-samba-sources=... added to manually
 	  specify which Samba version the helpers should be built for
+	- Squid MIB definition syntax correction to work better with newer
+	  (and older) SNMP tools
 	  
 Changes to squid-2.5.STABLE1 (September 25, 2002):
 
