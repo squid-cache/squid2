@@ -574,7 +574,11 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
 	ex->used += rec_sz;
 	size -= rec_sz;
 	p += rec_sz;
-	if (++nused == 10)
+	/*
+	 * This is a fairly cpu-intensive loop, break after adding
+	 * just a few
+	 */
+	if (++nused == 20)
 	    break;
     }
     debug(37, 3) ("netdbExchangeHandleReply: used %d entries, (x %d bytes) == %d bytes total\n",
