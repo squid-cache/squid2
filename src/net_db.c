@@ -997,6 +997,8 @@ netdbBinaryExchange(StoreEntry * s)
 	next = (netdbEntry *) hash_next(addr_table);
 	if (0.0 == n->rtt)
 	    continue;
+	if (n->rtt > 60000)	/* RTT > 1 MIN probably bogus */
+	    continue;
 	if (!safe_inet_addr(n->network, &addr))
 	    continue;
 	buf[i++] = (char) NETDB_EX_NETWORK;
