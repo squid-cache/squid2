@@ -317,7 +317,6 @@ AC_CHECK_FUNCS(\
 	sigaction \
 	srand48 \
 	srandom \
-	strerror \
 	sysconf \
 	syslog \
 	tempnam \
