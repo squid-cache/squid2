@@ -620,6 +620,8 @@ icpSendMoreData(void *data, char *buf, size_t size)
     size_t writelen;
     char *newbuf;
     FREE *freefunc = put_free_4k_page;
+    int hack = 0;
+    char C = '\0';
     assert(size >= 0);
     assert(size <= ICP_SENDMOREDATA_BUF);
     if (size < 0) {
@@ -660,13 +662,16 @@ icpSendMoreData(void *data, char *buf, size_t size)
 #endif
 	/* make sure 'buf' is null terminated somewhere */
 	if (size == ICP_SENDMOREDATA_BUF) {
+	    hack = 1;
 	    size--;
-	    writelen--;
+	    C = *(buf + size);
 	}
 	*(buf + size) = '\0';
 	newbuf = get_free_8k_page();
 	hdrlen = 0;
 	l = clientBuildReplyHeader(http, buf, &hdrlen, newbuf, 8192);
+	if (hack)
+		*(buf + size++) = C;
 	if (l != 0) {
 	    writelen = l + size - hdrlen;
 	    assert(writelen <= 8192);
@@ -1036,9 +1041,12 @@ icpProcessRequestComplete(void *data, int status)
      * lock count when it shouldn't have.  It will have already been
      * done by httpRequestFree. */
     if (entry && status < 0) {
-	storeRelease(entry);
 	http->log_type = LOG_TCP_SWAPFAIL_MISS;
-	debug(12, 1, "Swapin Failure: '%s', %s\n", entry->url, storeSwapFullPath(entry->swap_file_number, NULL));
+	if (!store_rebuilding)
+	    debug(12, 1, "Swapin Failure: '%s', %s\n",
+		entry->url,
+		storeSwapFullPath(entry->swap_file_number, NULL));
+	storeRelease(entry);
 	entry = NULL;
     }
     if (entry)
