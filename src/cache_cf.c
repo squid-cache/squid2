@@ -141,7 +141,7 @@ static struct {
 #define DefaultCommonLogFormat	1	/* default on */
 #define DefaultQuickAbort	0	/* default off */
 #define DefaultNeighborTimeout  2	/* 2 seconds */
-#define DefaultStallDelay	3	/* 3 seconds */
+#define DefaultStallDelay	1	/* 1 seconds */
 #define DefaultSingleParentBypass 0	/* default off */
 #define DefaultPidFilename      (char *)NULL	/* default NONE */
 #define DefaultVisibleHostname  (char *)NULL	/* default NONE */
