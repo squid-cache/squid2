@@ -1346,7 +1346,7 @@ struct _SwapDir {
     char *path;
     int index;			/* This entry's index into the swapDirs array */
     int suggest;
-    size_t max_objsize;
+    ssize_t max_objsize;
     union {
 #ifdef HEAP_REPLACEMENT
 	struct {
