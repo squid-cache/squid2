@@ -225,7 +225,9 @@
 #	to not query neighbor caches for certain objects.  You may
 #	list this option multiple times.
 #
-#hierarchy_stoplist
+#	The default is to directly fetch URLs containing 'cgi-bin' or '?'.
+#
+hierarchy_stoplist cgi-bin ?
 
 #  TAG: cache_stoplist
 #	A list of words which, if found in a URL, cause the object to
