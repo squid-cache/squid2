@@ -141,26 +141,16 @@ httpRequestPrefixLen(const request_t * req)
 	req->header.len + 2;
 }
 
-/* returns true if header is allowed to be passed on */
+/*
+ * Returns true if HTTP allows us to pass this header on.  Does not
+ * check anonymizer (aka header_access) configuration.
+ */
 int
 httpRequestHdrAllowed(const HttpHeaderEntry * e, String * strConn)
 {
     assert(e);
-    /* check with anonymizer tables */
-    if (CBIT_TEST(Config.anonymize_headers, e->id))
-	return 0;
     /* check connection header */
     if (strConn && strListIsMember(strConn, strBuf(e->name), ','))
-	return 0;
-    return 1;
-}
-
-/* returns true if header is allowed to be passed on */
-int
-httpRequestHdrAllowedByName(http_hdr_type id)
-{
-    /* check with anonymizer tables */
-    if (CBIT_TEST(Config.anonymize_headers, id))
 	return 0;
     return 1;
 }

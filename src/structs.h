@@ -94,6 +94,11 @@ struct _String {
     char *buf;
 };
 
+struct _header_mangler {
+    acl_access *access_list;
+    char *replacement;
+};
+
 struct _http_version_t {
     unsigned int major;
     unsigned int minor;
@@ -466,7 +471,6 @@ struct _SquidConfig {
 	int n_allocated;
 	int n_configured;
     } cacheSwap;
-    char *fake_ua;
     struct {
 	char *directory;
     } icons;
@@ -500,7 +504,7 @@ struct _SquidConfig {
 	char *encode_key;
     } mcast_miss;
 #endif
-    HttpHeaderMask anonymize_headers;
+    header_mangler header_access[HDR_ENUM_END];
     char *coredump_dir;
     char *chroot_dir;
 #if USE_CACHE_DIGESTS

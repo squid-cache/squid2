@@ -1299,6 +1299,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     httpHeaderPutStr(hdr, HDR_X_REQUEST_URI,
 	http->entry->mem_obj->url ? http->entry->mem_obj->url : http->uri);
 #endif
+    httpHdrMangleList(hdr, request);
 }
 
 static HttpReply *

@@ -135,6 +135,7 @@ typedef struct _SwapDir SwapDir;
 typedef struct _request_flags request_flags;
 typedef struct _helper_flags helper_flags;
 typedef struct _http_state_flags http_state_flags;
+typedef struct _header_mangler header_mangler;
 typedef struct _request_t request_t;
 typedef struct _AccessLogEntry AccessLogEntry;
 typedef struct _cachemgr_passwd cachemgr_passwd;
