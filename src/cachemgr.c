@@ -613,8 +613,8 @@ int main(int argc, char *argv[])
 	!strcmp(operation, "DNS Server Stats")) {
 	op = STATS_D;
     } else if (!strcmp(operation, "stats/redirector") ||
-      !strcmp(operation, "Redirection Server Stats")) {
-      op = STATS_R;
+	!strcmp(operation, "Redirection Server Stats")) {
+	op = STATS_R;
     } else if (!strcmp(operation, "stats/vm_objects") ||
 	!strcmp(operation, "VM_Objects")) {
 	op = STATS_VM;

@@ -479,7 +479,7 @@ void stmemInit()
     mem_obj_pool.max_pages = FD_SETSIZE >> 3;
 
 #if PURIFY
-    debug(19,0,"Disabling stacks under purify\n");
+    debug(19, 0, "Disabling stacks under purify\n");
     sm_stats.max_pages = 0;
     disk_stats.max_pages = 0;
     request_pool.max_pages = 0;
