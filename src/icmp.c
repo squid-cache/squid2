@@ -84,10 +84,6 @@ icmpRecv(int unused1, void *unused2)
 	    icmpClose();
 	return;
     }
-    if (n == 0) {
-	debug(37, 1) ("icmpRecv: pinger process disappeared?\n");
-	icmpClose();
-    }
     fail_count = 0;
     if (n == 0)			/* test probe from pinger */
 	return;
