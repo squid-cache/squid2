@@ -905,7 +905,7 @@ ftpCheckUrlpath(FtpStateData * ftpState)
     if ((t = strRChr(request->urlpath, ';')) != NULL) {
 	if (strncasecmp(t + 1, "type=", 5) == 0) {
 	    ftpState->typecode = (char) toupper((int) *(t + 6));
-	    strSet(request->urlpath, t, '\0');
+	    strCutPtr(request->urlpath, t);
 	}
     }
     l = strLen(request->urlpath);
