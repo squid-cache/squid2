@@ -1440,6 +1440,8 @@ static void configDoConfigure()
     httpd_accel_mode = Config.Accel.prefix ? 1 : 0;
     sprintf(ForwardedBy, "Forwarded: by http://%s:%d/",
 	getMyHostname(), Config.Port.http);
+    if (Config.errHtmlText == NULL)
+	Config.errHtmlText = xstrdup("");
 
 #if !ALLOW_HOT_CACHE
     if (!httpd_accel_mode || Config.Accel.withProxy) {
