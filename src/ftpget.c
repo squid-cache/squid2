@@ -2278,7 +2278,7 @@ int ftpget_srv_mode(arg)
 	S2.sun_family = AF_UNIX;
 	strcpy(S2.sun_path, arg);
 	Debug(26, 1, ("Binding to UNIX socket '%s'\n", S2.sun_path));
-	i = strlen(S2.sun_path) + sizeof(S2.sun_family);
+	i = strlen(S2.sun_path) + 1 + sizeof(S2.sun_family);
 	if (bind(sock, (struct sockaddr *) &S2, i) < 0) {
 	    log_errno2(__FILE__, __LINE__, "bind");
 	    sleep(5);		/* sleep here so that the cache will restart us */
