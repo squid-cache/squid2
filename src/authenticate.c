@@ -934,7 +934,7 @@ void
 authSchemeAdd(char *type, AUTHSSETUP * setup)
 {
     int i;
-    debug(29, 4) ("authSchemeAdd: adding %s", type);
+    debug(29, 4) ("authSchemeAdd: adding %s\n", type);
     /* find the number of currently known authscheme types */
     for (i = 0; authscheme_list && authscheme_list[i].typestr; i++) {
 	assert(strcmp(authscheme_list[i].typestr, type) != 0);
