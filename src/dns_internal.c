@@ -470,14 +470,14 @@ snmp_netIdnsFn(variable_list * Var, snint * ErrP)
     *ErrP = SNMP_ERR_NOERROR;
     switch (Var->name[LEN_SQ_NET + 1]) {
     case DNS_REQ:
-	for (i = 0; i < nss; i++)
+	for (i = 0; i < nns; i++)
 	    n += nameservers[i].nqueries;
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
 	    n,
 	    SMI_COUNTER32);
 	break;
     case DNS_REP:
-	for (i = 0; i < nss; i++)
+	for (i = 0; i < nns; i++)
 	    n += nameservers[i].nreplies;
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
 	    n,
