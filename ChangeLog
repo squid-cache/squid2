@@ -3,6 +3,7 @@ Changes to squid-1.0.18 (October 7, 1996):
 	- Added INADDR_NONE to cachemgr.c for Solaris.
 	- Added checks to deal with Harvest Cached neighbors which don't
 	  handle Squid's ICP version 2.
+	- Added file upload patch (Jan Niehusmann).
 
 Changes to squid-1.0.17 (September 24, 1996):
 
