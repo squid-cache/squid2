@@ -80,6 +80,7 @@ static void redirectDispatch _PARAMS((redirector_t *, redirectStateData *));
 
 static redirector_t **redirect_child_table = NULL;
 static int NRedirectors = 0;
+static int NRedirectorsOpen = 0;
 static struct redirectQueueData *redirectQueueHead = NULL;
 static struct redirectQueueData **redirectQueueTailP = &redirectQueueHead;
 
@@ -171,6 +172,8 @@ static int redirectHandleRead(fd, redirector)
 	    fd, redirector->index + 1);
 	redirector->flags = 0;
 	comm_close(fd);
+	if (--NRedirectorsOpen == 0)
+	    fatal_dump("All redirectors have exited!");
 	return 0;
     }
     redirector->offset += len;
@@ -318,7 +321,7 @@ void redirectOpenServers()
 	    safe_free(redirect_child_table[k]);
 	safe_free(redirect_child_table);
     }
-    NRedirectors = getRedirectChildren();
+    NRedirectors = NRedirectorsOpen = getRedirectChildren();
     redirect_child_table = xcalloc(NRedirectors, sizeof(redirector_t *));
     debug(29, 1, "redirectOpenServers: Starting %d '%s' processes\n",
 	NRedirectors, prg);
