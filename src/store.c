@@ -41,7 +41,7 @@
 #define WITHOUT_MEMOBJ	0
 
 /* rate of checking expired objects in main loop */
-#define STORE_MAINTAIN_RATE	(20)
+#define STORE_MAINTAIN_RATE	(10)
 
 #define STORE_BUCKETS		(7921)
 #define STORE_IN_MEM_BUCKETS		(143)
@@ -1495,10 +1495,15 @@ void storeStartRebuildFromDisk()
     data->speed = store_rebuilding == STORE_REBUILDING_FAST ? 50 : 5;
 
     /* Start reading the log file */
-    runInBackground("storeRebuild",
-	(int (*)(void *)) storeDoRebuildFromDisk,
-	data,
-	(void (*)(void *)) storeRebuiltFromDisk);
+    if (opt_foreground_rebuild) {
+	while (storeDoRebuildFromDisk(data));
+	storeRebuiltFromDisk(data);
+    } else {
+	runInBackground("storeRebuild",
+	    (int (*)(void *)) storeDoRebuildFromDisk,
+	    data,
+	    (void (*)(void *)) storeRebuiltFromDisk);
+    }
 }
 
 /* return current swap size in kilo-bytes */
@@ -2066,6 +2071,8 @@ int storeGetSwapSpace(size)
 	store_swap_low);
     debug(20, 2, "storeGetSwapSpace: Entry count:    %7d items\n",
 	meta_data.store_entries);
+    debug(20, 2, "storeGetSwapSpace: Visited:        %7d buckets\n",
+	i + 1);
     debug(20, 2, "storeGetSwapSpace: Scanned:        %7d items\n",
 	scanned);
     debug(20, 2, "storeGetSwapSpace: Expired:        %7d items\n",
@@ -2118,6 +2125,7 @@ int storeGetSwapSpace(size)
 	swap_help = 0;
     }
 
+    getCurrentTime();		/* we may have taken more than one second */
     debug(20, 2, "Removed %d objects\n", removed);
     return 0;
 }
@@ -2615,7 +2623,7 @@ int urlcmp(url1, url2)
  */
 int storeMaintainSwapSpace()
 {
-    static int loop_count = 0;
+    static time_t last_time = 0;
     static unsigned int bucket = 0;
     hash_link *link_ptr = NULL, *next = NULL;
     StoreEntry *e = NULL;
@@ -2630,8 +2638,8 @@ int storeMaintainSwapSpace()
     storeGetSwapSpace(0);
 
     /* Purges expired objects, check one bucket on each calling */
-    if (loop_count++ >= STORE_MAINTAIN_RATE) {
-	loop_count = 0;
+    if (squid_curtime - last_time >= STORE_MAINTAIN_RATE) {
+	last_time = squid_curtime;
 	if (bucket >= STORE_BUCKETS)
 	    bucket = 0;
 	link_ptr = hash_get_bucket(table, bucket++);
