@@ -52,6 +52,7 @@ storeDirClean(void *datanotused)
     LOCAL_ARRAY(char, p2, MAXPATHLEN + 1);
     int files[20];
     int swapfileno;
+    int fn;	/* same as swapfileno, but with dirn bits set */
     int n = 0;
     int k = 0;
     int N0, N1, N2;
@@ -83,10 +84,10 @@ storeDirClean(void *datanotused)
     while ((de = readdir(dp)) != NULL && k < 20) {
 	if (sscanf(de->d_name, "%X", &swapfileno) != 1)
 	    continue;
-	swapfileno = storeDirProperFileno(D0, swapfileno);
-	if (storeDirValidFileno(swapfileno))
-	    if (storeDirMapBitTest(swapfileno))
-		if (storeFilenoBelongsHere(swapfileno, D0, D1, D2))
+	fn = storeDirProperFileno(D0, swapfileno);
+	if (storeDirValidFileno(fn))
+	    if (storeDirMapBitTest(fn))
+		if (storeFilenoBelongsHere(fn, D0, D1, D2))
 		    continue;
 	files[k++] = swapfileno;
     }
