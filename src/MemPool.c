@@ -94,7 +94,7 @@ memConfigure()
     /* currently, we cannot decrease current memory pool */
     if (new_pool_limit < TheMeter.idle.level) {
 	debug(63, 0) ("Warning: configured mem pool limit is below current consumpion.\n");
-	debug(63, 0) ("         seting limit[MB] to %.2 instead of %.2, was %.2.\n",
+	debug(63, 0) ("         seting limit[MB] to %.2f instead of %.2f, was %.2f.\n",
 	    toMB(TheMeter.idle.level), toMB(new_pool_limit), toMB(mem_idle_limit));
 	new_pool_limit = TheMeter.idle.level;
     }
