@@ -1220,7 +1220,7 @@ storeAbort(StoreEntry * e, const char *msg)
 	return;
     }
     e->store_status = STORE_ABORTED;
-    mem->e_abort_msg = xstrdup(msg);
+    mem->e_abort_msg = msg ? xstrdup(msg) : NULL;
     /* add to store_swap_size because storeRelease() subtracts */
     store_swap_size += (int) ((e->object_len + 1023) >> 10);
     storeReleaseRequest(e);
