@@ -216,7 +216,7 @@ httpStatusString(http_status status)
 	break;
     default:
 	p = "Unknown";
-	debug(11, 0) ("Unknown HTTP status code: %d\n", status);
+	debug(57, 0) ("Unknown HTTP status code: %d\n", status);
 	break;
     }
     return p;
