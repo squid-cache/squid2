@@ -1,9 +1,14 @@
+Changes to squid-1.0.22 (December 2, 1996):
+
+	- Fixed wrong number of args to whichEdge().
+
 Changes to squid-1.0.21 (November 30, 1996):
 
 	- Relocated rfc1738_unescape() calls in ftpget so that
           ftp://foo.org/%2fbar/ works (Jonathan Larmour).
 	- Applied neighborAlive() fix from v1.1.
 	- Removed some fatal_dump() calls.
+	- Upgraded to autoconf 2.10.
 
 Changes to squid-1.0.20 (November 2, 1996):
 
