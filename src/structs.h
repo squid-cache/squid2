@@ -1251,6 +1251,9 @@ struct _MemObject {
     int id;
     ssize_t object_sz;
     size_t swap_hdr_sz;
+#if URL_CHECKSUM_DEBUG
+    unsigned int chksum;
+#endif
 };
 
 struct _StoreEntry {

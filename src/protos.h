@@ -1229,3 +1229,7 @@ extern int getrusage(int, struct rusage *);
 extern int getpagesize(void);
 extern int gethostname(char *, int);
 #endif
+
+#if URL_CHECKSUM_DEBUG
+extern unsigned int url_checksum(const char *url);
+#endif

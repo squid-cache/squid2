@@ -560,6 +560,9 @@ httpSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
     ErrorState *err;
     debug(11, 5) ("httpSendComplete: FD %d: size %d: errflag %d.\n",
 	fd, size, errflag);
+#if URL_CHECKSUM_DEBUG
+    assert(entry->mem_obj->chksum == url_checksum(entry->mem_obj->url));
+#endif
     if (size > 0) {
 	fd_bytes(fd, size, FD_WRITE);
 	kb_incr(&Counter.server.all.kbytes_out, size);
