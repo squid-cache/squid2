@@ -135,7 +135,7 @@ storeSwapMetaUnpack(const char *buf, int *hdr_len)
 	    break;
 	}
 	xmemcpy(&length, &buf[j], sizeof(int));
-	if (length < 0 || length > (1 << 10)) {
+	if (length < 0 || length > (1 << 16)) {
 	    debug(20, 0) ("storeSwapMetaUnpack: insane length (%d)!\n", length);
 	    break;
 	}
