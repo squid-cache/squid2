@@ -450,14 +450,14 @@ idnsCallback(idns_query * q, rfc1035_rr * answers, int n, const char *error)
     valid = cbdataValid(q->callback_data);
     cbdataUnlock(q->callback_data);
     if (valid)
-	q->callback(q->callback_data, answers, n, q->error);
+	q->callback(q->callback_data, answers, n, error);
     while (q->queue) {
 	idns_query *q2 = q->queue;
 	q->queue = q2->queue;
 	valid = cbdataValid(q2->callback_data);
 	cbdataUnlock(q2->callback_data);
 	if (valid)
-	    q2->callback(q2->callback_data, answers, n, q->error);
+	    q2->callback(q2->callback_data, answers, n, error);
 	memFree(q2, MEM_IDNS_QUERY);
     }
     if (q->hash.key) {
