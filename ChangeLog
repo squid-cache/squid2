@@ -30,6 +30,11 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	  forward_timeout option added to address this.
 	- Bug #849: DNS log error messages should report the failed query
 	- Bug #851: DNS retransmits too often
+	- Bug #862: Very frequently repeated POST requests may cause a
+	  filedescriptor shortage due to persitent connections building up
+	- Bug #853: Sporatic segmentation faults on aborted FTP PUT requests
+	- Bug #571: Need to limit use of persistent connections when
+	  filedescriptor usage is high
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 
