@@ -1729,7 +1729,7 @@ clientKeepaliveNextRequest(clientHttpRequest * http)
 	/*
 	 * Set the timeout BEFORE calling clientReadRequest().
 	 */
-	commSetTimeout(conn->fd, 15, requestTimeout, conn);
+	commSetTimeout(conn->fd, Config.Timeout.pconn, requestTimeout, conn);
 	clientReadRequest(conn->fd, conn);	/* Read next request */
 	/*
 	 * Note, the FD may be closed at this point.
