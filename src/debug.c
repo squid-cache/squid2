@@ -243,8 +243,6 @@ _db_init(char *logfile, char *options)
 	    debugArg(s);
 	xfree(p);
     }
-    if (opt_read_only)
-	return;
     debugOpenLog(logfile);
 
 #if HAVE_SYSLOG && defined(LOG_LOCAL4)
