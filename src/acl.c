@@ -603,7 +603,6 @@ static int aclMatchDomainList(data, host)
      wordlist *data;
      char *host;
 {
-    int offset;
     if (host == NULL)
 	return 0;
     debug(28, 3, "aclMatchDomainList: checking '%s'\n", host);
@@ -816,6 +815,7 @@ void aclDestroyAcls()
 	    aclDestroyIpList(a->data);
 	    break;
 	case ACL_DST_DOMAIN:
+	case ACL_SRC_DOMAIN:
 	case ACL_USER:
 	    wordlistDestroy((wordlist **) & a->data);
 	    break;
