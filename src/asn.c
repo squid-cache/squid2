@@ -235,6 +235,12 @@ asHandleReply(void *data, char *buf, ssize_t size)
 	memFree(buf, MEM_4K_BUF);
 	asStateFree(asState);
 	return;
+    } else if (HTTP_OK != e->mem_obj->reply->sline.status) {
+	debug(53, 1) ("WARNING: AS %d whois request failed\n",
+	    asState->as_number);
+	memFree(buf, MEM_4K_BUF);
+	asStateFree(asState);
+	return;
     }
     s = buf;
     while (s - buf < size && *s != '\0') {
