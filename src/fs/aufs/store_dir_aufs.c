@@ -295,8 +295,9 @@ storeAufsDirSwapLogFile(SwapDir * sd, const char *ext)
     char *pathtmp2;
     if (Config.Log.swap) {
 	xstrncpy(pathtmp, sd->path, SQUID_MAXPATHLEN - 64);
-	while (index(pathtmp, '/'))
-	    *index(pathtmp, '/') = '.';
+	pathtmp2 = pathtmp;
+	while ((pathtmp2 = strchr(pathtmp2, '/')) != NULL)
+	    *pathtmp2 = '.';
 	while (strlen(pathtmp) && pathtmp[strlen(pathtmp) - 1] == '.')
 	    pathtmp[strlen(pathtmp) - 1] = '\0';
 	for (pathtmp2 = pathtmp; *pathtmp2 == '.'; pathtmp2++);
