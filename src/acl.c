@@ -901,8 +901,10 @@ aclGetDenyInfoPage(acl_deny_info_list ** head, const char *name)
 int
 aclIsProxyAuth(const char *name)
 {
-    acl *a = aclFindByName(name);
-    if (a)
+    acl *a;
+    if (NULL == name)
+	return 0;
+    if ((a = aclFindByName(name)))
 	return a->type == ACL_PROXY_AUTH;
     return 0;
 }
