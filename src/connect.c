@@ -89,7 +89,7 @@ static void connectReadRemote(fd, data)
 		COMM_SELECT_TIMEOUT,
 		(PF) connectReadTimeout,
 		(void *) data,
-		getReadTimeout());
+		data->timeout);
 	} else {
 	    BIT_RESET(entry->flag, CACHABLE);
 	    storeReleaseRequest(entry);
