@@ -177,19 +177,19 @@ char *storeToString(e)
     sprintf(tmpbuf, "SwapFileNumber: %d\n", e->swap_file_number);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "StoreStatus: %s", storeStatusStr[e->store_status]);
+    sprintf(tmpbuf, "StoreStatus: %s\n", storeStatusStr[e->store_status]);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "MemStatus: %s", memStatusStr[e->mem_status]);
+    sprintf(tmpbuf, "MemStatus: %s\n", memStatusStr[e->mem_status]);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "PingStatus: %s", pingStatusStr[e->ping_status]);
+    sprintf(tmpbuf, "PingStatus: %s\n", pingStatusStr[e->ping_status]);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "SwapStatus: %s", swapStatusStr[e->swap_status]);
+    sprintf(tmpbuf, "SwapStatus: %s\n", swapStatusStr[e->swap_status]);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "Method: %s", RequestMethodStr[e->method]);
+    sprintf(tmpbuf, "Method: %s\n", RequestMethodStr[e->method]);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "RefCount: %u\n", e->refcount);
