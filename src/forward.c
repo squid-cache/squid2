@@ -189,8 +189,9 @@ fwdConnectTimeout(int fd, void *data)
     debug(17, 3) ("fwdConnectTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
     assert(fd == fwdState->server_fd);
     if (entry->mem_obj->inmem_hi == 0) {
-	err = errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT);
+	err = errorCon(ERR_CONNECT_FAIL, HTTP_GATEWAY_TIMEOUT);
 	err->request = requestLink(fwdState->request);
+	err->xerrno = ETIMEDOUT;	/* cheat */
 	errorAppendEntry(entry, err);
     }
     comm_close(fd);
