@@ -34,15 +34,15 @@ install: install-mkdirs
 install-mkdirs:
 	-@if test ! -d $(prefix); then \
 		echo "mkdir $(prefix)"; \
-		mkdir $(prefix); \
+		mkdir -p $(prefix); \
 	fi
 	-@if test ! -d $(sysconfdir); then \
 		echo "mkdir $(sysconfdir)"; \
-		mkdir $(sysconfdir); \
+		mkdir -p $(sysconfdir); \
 	fi
 	-@if test ! -d $(DEFAULT_ERROR_DIR); then \
 		echo "mkdir $(DEFAULT_ERROR_DIR)"; \
-		mkdir $(DEFAULT_ERROR_DIR); \
+		mkdir -p $(DEFAULT_ERROR_DIR); \
 	fi
 
 # undocumented hack.  You can use this target to create multi-lingual

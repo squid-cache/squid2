@@ -64,11 +64,11 @@ $(YP_AUTH_EXE): $(OBJS)
 install-mkdirs:
 	-@if test ! -d $(prefix); then \
 		echo "mkdir $(prefix)"; \
-		mkdir $(prefix); \
+		mkdir -p $(prefix); \
 	fi
 	-@if test ! -d $(bindir); then \
 		echo "mkdir $(bindir)"; \
-		mkdir $(bindir); \
+		mkdir -p $(bindir); \
 	fi
 
 # Michael Lupp <mike@nemesis.saar.de> wants to know about additions

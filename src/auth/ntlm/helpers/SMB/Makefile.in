@@ -54,11 +54,11 @@ smbval smbval/stamp:
 install-mkdirs:
 	-@if test ! -d $(prefix); then \
 		echo "mkdir $(prefix)"; \
-		mkdir $(prefix); \
+		mkdir -p $(prefix); \
 	fi
 	-@if test ! -d $(bindir); then \
 		echo "mkdir $(bindir)"; \
-		mkdir $(bindir); \
+		mkdir -p $(bindir); \
 	fi
 
 install: all install-mkdirs

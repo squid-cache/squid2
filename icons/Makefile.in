@@ -70,15 +70,15 @@ install: install-mkdirs anthony-xpm.gif
 install-mkdirs:
 	-@if test ! -d $(prefix); then \
 		echo "mkdir $(prefix)"; \
-		mkdir $(prefix); \
+		mkdir -p $(prefix); \
 	fi
 	-@if test ! -d $(sysconfdir); then \
 		echo "mkdir $(sysconfdir)"; \
-		mkdir $(sysconfdir); \
+		mkdir -p $(sysconfdir); \
 	fi
 	-@if test ! -d $(DEFAULT_ICON_DIR); then \
 		echo "mkdir $(DEFAULT_ICON_DIR)"; \
-		mkdir $(DEFAULT_ICON_DIR); \
+		mkdir -p $(DEFAULT_ICON_DIR); \
 	fi
 
 clean:
