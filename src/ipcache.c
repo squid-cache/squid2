@@ -819,9 +819,9 @@ ipcache_gethostbyname(char *name, int flags)
 	    return &i->addrs;
 	}
     }
-    IpcacheStats.misses++;
     if ((addrs = ipcacheCheckNumeric(name)))
 	return addrs;
+    IpcacheStats.misses++;
     if (BIT_TEST(flags, IP_BLOCKING_LOOKUP)) {
 	IpcacheStats.ghbn_calls++;
 	debug(14, 3, "ipcache_gethostbyname: blocking on gethostbyname() for '%s'\n", name);
