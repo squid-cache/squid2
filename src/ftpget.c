@@ -111,6 +111,7 @@ typedef struct _ext_table_entry {
 
 #define FTP_PORT 21
 #define DEFAULT_MIME_TYPE "text/plain"
+#define READ_TIMEOUT -2
 
 #define MAGIC_MARKER	"\004\004\004"
 #define MAGIC_MARKER_SZ	3
@@ -297,7 +298,7 @@ While trying to retrieve the URL:\n\
 <P>\n\
 The following %s error was encountered:\n\
 <UL>\n\
-<LI><STRONG>ERROR %d -- %s</STRONG>\n\
+<LI><STRONG>%s</STRONG>\n\
 </UL>\n\
 <P>This means that:\n\
 <PRE>\n\
@@ -310,7 +311,7 @@ char *html_trailer()
 {
     static char buf[SMALLBUFSIZ];
 
-    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by ftpget/%s@%s\n</ADDRESS>\n </BODY></HTML>\n", http_time((time_t) NULL), SQUID_VERSION, getfullhostname());
+    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n </BODY></HTML>\n", http_time((time_t) NULL), SQUID_VERSION, getfullhostname());
     return buf;
 }
 
@@ -365,7 +366,6 @@ void fail(r)
 	    r->title_url,
 	    r->title_url,
 	    "FTP",
-	    304,
 	    r->errmsg,
 	    longmsg);
 	if (!(r->flags & F_HDRSENT)) {
@@ -416,6 +416,20 @@ void generic_sig_handler(sig)
     exit(MainRequest->rc);
 }
 
+state_t request_timeout(r)
+     request_t *r;
+{
+    time_t now;
+    static char buf[SMALLBUFSIZ];
+    now = time(NULL);
+    sprintf(buf, "Timeout after %d seconds.\n",
+	(int) (now - last_alarm_set));
+    errorlog(buf);
+    r->errmsg = xstrdup(buf);
+    r->rc = 7;
+    return FAIL_TIMEOUT;
+}
+
 void timeout_handler(sig)
      int sig;
 {
@@ -449,31 +463,201 @@ void sigchld_handler(sig)
 #endif
 }
 
-int check_other_side()
+int write_with_timeout(fd, buf, sz)
+     int fd;
+     char *buf;
+     int sz;
 {
+    int x;
+    fd_set R;
+    fd_set W;
+    struct timeval tv;
+    int nwritten = 0;
+
+    while (sz > 0) {
+	tv.tv_sec = o_timeout;
+	tv.tv_usec = 0;
+	FD_ZERO(&R);
+	FD_SET(fd, &W);
+	FD_SET(0, &R);
+	last_alarm_set = time(NULL);
+	x = select(fd + 1, &R, &W, NULL, &tv);
+	Debug(26, 9, ("write_with_timeout: select returned %d\n", x));
+	if (x < 0)
+	    return x;
+	if (x == 0)		/* timeout */
+	    return READ_TIMEOUT;
+	if (FD_ISSET(0, &R))
+	    exit(1);		/* XXX very ungraceful! */
+	x = write(fd, buf, sz);
+	Debug(26, 9, ("write_with_timeout: write returned %d\n", x));
+	if (x < 0) {
+	    log_errno2(__FILE__, __LINE__, "write");
+	    return x;
+	}
+	if (x == 0)
+	    continue;
+	nwritten += x;
+	sz -= x;
+	buf += x;
+    }
+    return nwritten;
+}
+
+int read_with_timeout(fd, buf, sz)
+     int fd;
+     char *buf;
+     int sz;
+{
+    int x;
     fd_set R;
     struct timeval tv;
-    tv.tv_sec = 0;
+    tv.tv_sec = o_timeout;
     tv.tv_usec = 0;
     FD_ZERO(&R);
+    FD_SET(fd, &R);
     FD_SET(0, &R);
-    if (select(1, &R, NULL, NULL, &tv) < 0)
-	return 0;
-    if (FD_ISSET(0, &R))
-	return 0;
-    return 1;
-}
-
-
-
-void reset_timeout(r)
-     request_t *r;
-{
-    if (r)
-	CurrentRequest = r;
     last_alarm_set = time(NULL);
-    alarm(o_timeout);
+    x = select(fd + 1, &R, NULL, NULL, &tv);
+    if (x < 0)
+	return x;
+    if (x == 0)			/* timeout */
+	return READ_TIMEOUT;
+    if (FD_ISSET(0, &R))
+	exit(1);		/* XXX very ungraceful! */
+    return read(fd, buf, sz);
 }
+
+/* read until newline, sz, or timeout */
+int readline_with_timeout(fd, buf, sz)
+     int fd;
+     char *buf;
+     int sz;
+{
+    int x;
+    fd_set R;
+    struct timeval tv;
+    int nread = 0;
+    char c = '@';
+
+    while (nread < sz - 1) {
+	tv.tv_sec = o_timeout;
+	tv.tv_usec = 0;
+	FD_ZERO(&R);
+	FD_SET(fd, &R);
+	FD_SET(0, &R);
+	last_alarm_set = time(NULL);
+	x = select(fd + 1, &R, NULL, NULL, &tv);
+	if (x < 0)
+	    return x;
+	if (x == 0)		/* timeout */
+	    return READ_TIMEOUT;
+	if (FD_ISSET(0, &R))
+	    exit(1);		/* XXX very ungraceful! */
+	x = read(fd, &c, 1);
+	Debug(26, 9, ("readline: x=%d  c='%c'\n", x, c));
+	if (x < 0)
+	    return x;
+	if (x == 0)
+	    break;
+	buf[nread++] = c;
+	if (c == '\n')
+	    break;
+    }
+    buf[nread] = '\0';
+    return nread;
+}
+
+int connect_with_timeout2(fd, S, len)
+     int fd;
+     struct sockaddr *S;
+     int len;
+{
+    int x;
+    int y;
+    fd_set W;
+    fd_set R;
+    struct timeval tv;
+    Debug(26, 9, ("connect_with_timeout2: starting...\n"));
+    while (1) {
+
+	y = connect(fd, S, len);
+	Debug(26, 9, ("connect returned %d\n", y));
+	if (y < 0)
+	    Debug(26, 9, ("connect: %s\n", xstrerror()));
+	if (y >= 0)
+	    return y;
+	if (errno == EISCONN)
+	    return 0;
+	if (errno != EINPROGRESS && errno != EAGAIN)
+	    return y;
+
+	/* if we get here, y<0 and errno==EINPROGRESS|EAGAIN */
+
+	tv.tv_sec = o_timeout;
+	tv.tv_usec = 0;
+	FD_ZERO(&W);
+	FD_ZERO(&R);
+	FD_SET(fd, &W);
+	FD_SET(0, &R);
+	last_alarm_set = time(NULL);
+	Debug(26, 9, ("selecting on FD %d\n", fd));
+	x = select(fd + 1, &R, &W, NULL, &tv);
+	Debug(26, 9, ("select returned: %d\n", x));
+	if (x == 0)
+	    return READ_TIMEOUT;
+	if (x < 0)
+	    return x;
+	if (FD_ISSET(0, &R))
+	    exit(1);
+    }
+}
+
+/* stupid wrapper for so we can set and clear O_NDELAY */
+int connect_with_timeout(fd, S, len)
+     int fd;
+     struct sockaddr *S;
+     int len;
+{
+    int orig_flags;
+    int rc;
+
+    orig_flags = fcntl(fd, F_GETFL, 0);
+    Debug(26, 9, ("orig_flags = %x\n", orig_flags));
+    if (fcntl(fd, F_SETFL, O_NDELAY) < 0)
+	log_errno2(__FILE__, __LINE__, "fcntl O_NDELAY");
+    rc = connect_with_timeout2(fd, S, len);
+    if (fcntl(fd, F_SETFL, orig_flags) < 0)
+	log_errno2(__FILE__, __LINE__, "fcntl orig");
+    return rc;
+}
+
+int accept_with_timeout(fd, S, len)
+     int fd;
+     struct sockaddr *S;
+     int *len;
+{
+    int x;
+    fd_set R;
+    struct timeval tv;
+    tv.tv_sec = o_timeout;
+    tv.tv_usec = 0;
+    FD_ZERO(&R);
+    FD_SET(fd, &R);
+    FD_SET(0, &R);
+    last_alarm_set = time(NULL);
+    Debug(26, 9, ("selecting on FD %d\n", fd));
+    x = select(fd + 1, &R, NULL, NULL, &tv);
+    Debug(26, 9, ("select returned: %d\n", x));
+    if (x == 0)
+	return READ_TIMEOUT;
+    if (x < 0)
+	return x;
+    if (FD_ISSET(0, &R))
+	exit(1);
+    return accept(fd, S, len);
+}
+
 
 
 /*
@@ -640,15 +824,14 @@ void send_success_hdr(r)
 int read_reply(fd)
      int fd;
 {
-    FILE *fp = NULL;
     static char buf[SMALLBUFSIZ];
-    static char xbuf[SMALLBUFSIZ];
     int quit = 0;
     char *t = NULL;
     int code;
     list_t **Tail = NULL;
     list_t *l = NULL;
     list_t *next = NULL;
+    int n;
 
     for (l = cmd_msg; l; l = next) {
 	next = l->next;
@@ -662,21 +845,15 @@ int read_reply(fd)
 	xfree(server_reply_msg);
 	server_reply_msg = NULL;
     }
-    if ((fp = fdopen(dup(fd), "r")) == (FILE *) NULL) {
-	log_errno2(__FILE__, __LINE__, "fdopen");
-	exit(1);
-    }
-    setbuf(fp, NULL);
-
     while (!quit) {
-	if (fgets(buf, SMALLBUFSIZ, fp) == (char *) NULL) {
-	    reset_timeout(NULL);
-	    sprintf(xbuf, "read failed: %s", xstrerror());
-	    server_reply_msg = xstrdup(xbuf);
-	    fclose(fp);
-	    return -1;
-	}
-	quit = (buf[2] >= '0' && buf[2] <= '9' && buf[3] == ' ');
+	n = readline_with_timeout(fd, buf, SMALLBUFSIZ);
+	Debug(26, 1, ("read_reply: readline returned %d\n", n));
+	if (n < 0)
+	    return n;
+	if (n == 0)
+	    quit = 1;
+	else
+	    quit = (buf[2] >= '0' && buf[2] <= '9' && buf[3] == ' ');
 	if (!quit) {
 	    l = (list_t *) xmalloc(sizeof(list_t));
 	    l->ptr = xstrdup(&buf[4]);
@@ -690,7 +867,6 @@ int read_reply(fd)
 	    *t = 0;
 	Debug(26, 1, ("read_reply: %s\n", buf));
     }
-    fclose(fp);
     code = atoi(buf);
     server_reply_msg = xstrdup(&buf[4]);
     return code;
@@ -714,10 +890,7 @@ int send_cmd(fd, buf)
     xbuf = (char *) xmalloc(len + 1);
     sprintf(xbuf, "%s\r\n", buf);
     Debug(26, 1, ("send_cmd: %s\n", buf));
-    x = write(fd, xbuf, len);
-    if (x < 0)
-	log_errno2(__FILE__, __LINE__, "write");
-    reset_timeout(NULL);
+    x = write_with_timeout(fd, xbuf, len);
     xfree(xbuf);
     return x;
 }
@@ -801,6 +974,7 @@ state_t do_connect(r)
     int sock;
     struct sockaddr_in S;
     int len;
+    int x;
 
     r->conn_att++;
     Debug(26, 1, ("do_connect: connect attempt #%d to '%s'\n",
@@ -816,7 +990,12 @@ state_t do_connect(r)
     S.sin_family = AF_INET;
     S.sin_port = htons(r->port);
 
-    if (connect(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+    x = connect_with_timeout(sock, (struct sockaddr *) &S, sizeof(S));
+    if (x == READ_TIMEOUT) {
+	(void) request_timeout(r);
+	return FAIL_CONNECT;
+    }
+    if (x < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s (port %d): %s",
 	    r->host, r->port, xstrerror());
@@ -824,7 +1003,6 @@ state_t do_connect(r)
 	return FAIL_CONNECT;
     }
     r->sfd = sock;
-    reset_timeout(r);
 
     /* get the address of whatever interface we're using so we know */
     /* what to use in the PORT command.                             */
@@ -1098,7 +1276,7 @@ state_t do_pasv(r)
     S.sin_addr.s_addr = inet_addr(junk);
     S.sin_port = htons((p1 << 8) + p2);
 
-    if (connect(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+    if (connect_with_timeout(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s, port %d: %s", junk, port, xstrerror());
 	r->rc = 2;
@@ -1238,13 +1416,15 @@ state_t do_accept(r)
 
     len = sizeof(S);
     memset(&S, '\0', len);
-    if ((sock = accept(r->dfd, &S, &len)) < 0) {
+    sock = accept_with_timeout(r->dfd, &S, &len);
+    if (sock == READ_TIMEOUT)
+	return request_timeout(r);
+    if (sock < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "accept: %s", xstrerror());
 	r->rc = 3;
 	return FAIL_SOFT;
     }
-    reset_timeout(r);
     close(r->dfd);
     r->dfd = sock;
     return DATA_TRANSFER;
@@ -1256,16 +1436,17 @@ state_t read_data(r)
     int code;
     int n;
     static char buf[READBUFSIZ];
+    int x;
 
-    n = read(r->dfd, buf, READBUFSIZ);
-    reset_timeout(r);
-    if (n < 0) {
+    n = read_with_timeout(r->dfd, buf, READBUFSIZ);
+    if (n == READ_TIMEOUT) {
+	return request_timeout(r);
+    } else if (n < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
-    }
-    if (n == 0) {
+    } else if (n == 0) {
 	if ((code = read_reply(r->sfd)) > 0) {
 	    if (code == 226)
 		return TRANSFER_DONE;
@@ -1274,7 +1455,13 @@ state_t read_data(r)
 	r->rc = code < 0 ? 4 : 5;
 	return FAIL_SOFT;
     }
-    write(r->cfd, buf, n);	/* XXX should check return code */
+    x = write_with_timeout(r->cfd, buf, n);
+    if (x == READ_TIMEOUT)
+	return request_timeout(r);
+    if (x < 0) {
+	r->rc = 4;
+	return FAIL_SOFT;
+    }
     r->rest_offset += n;
     return r->state;
 }
@@ -1560,13 +1747,11 @@ state_t htmlify_listing(r)
     int code;
     static char buf[BIGBUFSIZ];
     char *t = NULL;
-    FILE *rfp = NULL;
     FILE *wfp = NULL;
     time_t stamp;
+    int n;
 
-    rfp = fdopen(dup(r->dfd), "r");
     wfp = fdopen(dup(r->cfd), "w");
-    setbuf(rfp, NULL);
     setbuf(wfp, NULL);
 
     stamp = time(NULL);
@@ -1583,7 +1768,7 @@ state_t htmlify_listing(r)
 	list_t *l;
 	fprintf(wfp, "<PRE>\n");
 	for (l = r->cmd_msg; l; l = l->next)
-	    write(r->cfd, l->ptr, strlen(l->ptr));
+	    write_with_timeout(r->cfd, l->ptr, strlen(l->ptr));
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
     } else if (r->readme_fp) {
@@ -1605,8 +1790,7 @@ state_t htmlify_listing(r)
 	    xfree(t);
 	}
     }
-    while (fgets(buf, BIGBUFSIZ, rfp)) {
-	reset_timeout(r);
+    while ((n = readline_with_timeout(r->dfd, buf, BIGBUFSIZ)) > 0) {
 	Debug(26, 1, ("Input: %s", buf));
 	if ((t = strchr(buf, '\r')))
 	    *t = '\0';
@@ -1619,6 +1803,14 @@ state_t htmlify_listing(r)
 	    xfree(t);
 	}
     }
+    if (n == READ_TIMEOUT) {
+	return request_timeout(r);
+    } else if (n < 0) {
+	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	sprintf(r->errmsg, "read: %s", xstrerror());
+	r->rc = 4;
+	return FAIL_SOFT;
+    }
     fprintf(wfp, "</PRE>\n");
     fprintf(wfp, "<HR>\n");
     fprintf(wfp, "<ADDRESS>\n");
@@ -1626,7 +1818,6 @@ state_t htmlify_listing(r)
 	http_time(stamp), progname, SQUID_VERSION, getfullhostname());
     fprintf(wfp, "</ADDRESS>\n");
     fclose(wfp);
-    fclose(rfp);
 
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code == 226)
@@ -1643,11 +1834,7 @@ static int process_request(r)
     if (r == (request_t *) NULL)
 	return 1;
 
-    reset_timeout(r);		/* to set CurrentRequest */
-
     while (1) {
-	if (!check_other_side())
-	    exit(1);
 	Debug(26, 1, ("process_request: in state %s\n",
 		state_str[r->state]));
 	switch (r->state) {
@@ -1762,7 +1949,7 @@ static int process_request(r)
 	case DONE:
 	    if (r->flags & F_HTTPIFY) {
 		Debug(26, 9, ("Writing Marker to FD %d\n", r->cfd));
-		write(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
+		write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
 	    }
 	    return 0;
 	    /* NOTREACHED */
@@ -2186,7 +2373,6 @@ int main(argc, argv)
     r->url_escaped = (char *) xmalloc(strlen(t) + 10);
     strcpy(r->url_escaped, t);
 
-    reset_timeout(r);
     rc = process_request(MainRequest = r);
     if (r->sfd > 0)
 	send_cmd(r->sfd, "QUIT");
