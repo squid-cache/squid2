@@ -668,8 +668,6 @@ neighborsUdpAck(const char *url, icp_common_t * header, const struct sockaddr_in
     } else if (opcode == ICP_MISS) {
 	if (p == NULL) {
 	    neighborIgnoreNonPeer(from, opcode);
-	} else if (ntype != PEER_PARENT) {
-	    (void) 0;		/* ignore MISS from non-parent */
 	} else {
 	    mem->icp_reply_callback(p, ntype, header, mem->ircb_data);
 	}
