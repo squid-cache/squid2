@@ -18,7 +18,7 @@
 #if HAVE_TIME_H
 #include <time.h>
 #endif
-#if HAVE_SYS/TYPES_H
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
 #if HAVE_SYS_STAT_H
@@ -29,7 +29,7 @@
 #endif
 #if defined(__STRICT_ANSI__) && HAVE_STDARG_H
 #include <stdarg.h>
-#elsif HAVE_VARARGS_H
+#elif HAVE_VARARGS_H
 #include <varargs.h>
 #endif
 
