@@ -88,7 +88,7 @@
  * comm_write(buf.buf, memBufFreeFunc(&buf), ...);
  * 
  * -- *iff* you did not give the buffer away, free it yourself
- * -- memBufFree(&buf);
+ * -- memBufClean(&buf);
  * }
  */
 
