@@ -35,6 +35,8 @@ Changes to squid-2.5.STABLE4 (not yet released):
 	- Bug #700: Crashes related to ftpTimeout: timeout in SENT_PASV state
 	- Bug #709: cbdata.c:186: "c->valid" assertion due to peer
 	  digest not found
+	- Bug #710: round-robin cache_dir selection incorrectly
+	  compares max-size.
 
 Changes to squid-2.5.STABLE3 (25 May 2003):
 
