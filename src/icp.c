@@ -1845,6 +1845,7 @@ clientReadRequest(int fd, void *data)
 	/* parser returned -1 */
 	debug(12, 1, "clientReadRequest: FD %d Invalid Request\n", fd);
 	wbuf = squid_error_request(icpState->inbuf,
+	    icpState->in_offset,
 	    ERR_INVALID_REQ,
 	    fd_table[fd].ipaddr,
 	    400);
