@@ -210,7 +210,7 @@ static int swaplog_lock = 0;
 static int storelog_fd = -1;
 
 /* key temp buffer */
-static char key_temp_buffer[MAX_URL+100];
+static char key_temp_buffer[MAX_URL + 100];
 static char swaplog_file[MAX_FILE_NAME_LEN];
 static char tmp_filename[MAX_FILE_NAME_LEN];
 static char logmsg[MAX_URL << 1];
@@ -1370,7 +1370,7 @@ static int storeDoRebuildFromDisk(data)
 {
     static char log_swapfile[MAXPATHLEN];
     static char swapfile[MAXPATHLEN];
-    static char url[MAX_URL+1];
+    static char url[MAX_URL + 1];
     char *t = NULL;
     StoreEntry *e = NULL;
     time_t expires;
