@@ -248,6 +248,7 @@ objcacheStart(int fd, StoreEntry * entry)
 	debug(16, 1) ("WARNING: Incorrect Cachemgr Password!\n");
 	storeAbort(entry, ERR_INVALID_REQ, BADPassword, 0);
 	entry->expires = squid_curtime + STAT_TTL;
+	storeComplete(entry);
 	InvokeHandlers(entry);
 	return;
     }

@@ -1108,7 +1108,6 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     entry->refcount++;		/* MISS CASE */
     http->entry = entry;
     http->out.offset = 0;
-    protoDispatch(fd, http->entry, http->request);
     /* Register with storage manager to receive updates when data comes in. */
     storeClientCopy(entry,
 	http->out.offset,
@@ -1117,6 +1116,9 @@ icpProcessMISS(int fd, clientHttpRequest * http)
 	get_free_4k_page(),
 	icpSendMoreData,
 	http);
+    /* protoDispatch() needs to go after storeClientCopy() at least
+	for OBJCACHE requests */
+    protoDispatch(fd, http->entry, http->request);
     return;
 }
 

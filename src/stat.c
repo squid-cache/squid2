@@ -305,8 +305,6 @@ describeFlags(const StoreEntry * entry)
 	strcat(buf, "KC,");
     if (BIT_TEST(flags, KEY_URL))
 	strcat(buf, "KU,");
-    if (BIT_TEST(flags, ENTRY_HTML))
-	strcat(buf, "HT,");
     if (BIT_TEST(flags, ENTRY_DISPATCHED))
 	strcat(buf, "ED,");
     if (BIT_TEST(flags, KEY_PRIVATE))
