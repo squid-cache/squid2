@@ -164,7 +164,7 @@ errorBuildBuf(ErrorState * err, int *len)
 	err->http_status,
 	"text/html",
 	clen,
-	squid_curtime,
+	0,		/* no LMT for error pages */
 	squid_curtime);
     tlen = snprintf(buf, ERROR_BUF_SZ, "%s\r\n%s", hdr, content);
     if (len)
