@@ -544,6 +544,9 @@ storeCheckCachable(StoreEntry * e)
     } else if (e->mem_obj->inmem_hi > Config.Store.maxObjectSize) {
 	debug(20, 2) ("storeCheckCachable: NO: too big\n");
 	store_check_cachable_hist.no.too_big++;
+    } else if (e->mem_obj->reply->content_length > Config.Store.maxObjectSize) {
+	debug(20, 2) ("storeCheckCachable: NO: too big\n");
+	store_check_cachable_hist.no.too_big++;
     } else if (EBIT_TEST(e->flags, KEY_PRIVATE)) {
 	debug(20, 3) ("storeCheckCachable: NO: private key\n");
 	store_check_cachable_hist.no.private_key++;
