@@ -455,7 +455,7 @@ NAME: minimum_icp_query_timeout
 COMMENT: (msec)
 DEFAULT: 5
 TYPE: int
-LOC: Config.Timeout.icp_query_max
+LOC: Config.Timeout.icp_query_min
 DOC_START
 	Normally the ICP query timeout is determined dynamically.  But
 	sometimes it can lead to very small timeouts, even lower than
