@@ -142,7 +142,7 @@ clientAclChecklistCreate(const acl_access *acl, const clientHttpRequest *http)
 {
     aclCheck_t *ch;
     ConnStateData *conn = http->conn;
-    ch = aclChecklistCreate(Config.accessList.http,
+    ch = aclChecklistCreate(acl,
 	http->request,
 	conn->ident);
 #if USE_IDENT
@@ -161,7 +161,7 @@ clientAccessCheck(void *data)
 {
     clientHttpRequest *http = data;
     if (checkAccelOnly(http)) {
-	clientAccessCheckDone(0, http);
+	clientAccessCheckDone(ACCESS_ALLOWED, http);
 	return;
     }
     http->acl_checklist = clientAclChecklistCreate(Config.accessList.http, http);
