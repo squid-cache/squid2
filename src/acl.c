@@ -1898,11 +1898,9 @@ aclDomainCompare(const void *data, splayNode * n)
 	d2++;
     l1 = strlen(d1);
     l2 = strlen(d2);
-    while (d1[l1] == d2[l2]) {
+    while (d1[--l1] == d2[--l2]) {
 	if ((l1 == 0) && (l2 == 0))
 	    return 0;		/* d1 == d2 */
-	l1--;
-	l2--;
 	if (0 == l1) {
 	    if ('.' == d2[l2 - 1]) {
 		debug(28, 0) ("WARNING: %s is a subdomain of %s\n", d2, d1);
