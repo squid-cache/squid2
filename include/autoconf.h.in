@@ -302,6 +302,15 @@
 /* Define if you have the poll function.  */
 #undef HAVE_POLL
 
+/* Define if you have the pthread_attr_setschedparam function.  */
+#undef HAVE_PTHREAD_ATTR_SETSCHEDPARAM
+
+/* Define if you have the pthread_attr_setscope function.  */
+#undef HAVE_PTHREAD_ATTR_SETSCOPE
+
+/* Define if you have the pthread_setschedparam function.  */
+#undef HAVE_PTHREAD_SETSCHEDPARAM
+
 /* Define if you have the putenv function.  */
 #undef HAVE_PUTENV
 
