@@ -76,6 +76,7 @@ main(int argc, char *argv[])
 #include "squid.h"
 
 static int unlinkd_fd = -1;
+int unlinkd_count;
 
 static int unlinkdCreate _PARAMS((void));
 
@@ -139,6 +140,7 @@ unlinkdUnlink(const char *path)
 	NULL,			/* Handler */
 	NULL,			/* Handler-data */
 	xfree);
+    unlinkd_count++;
 }
 
 void
@@ -153,6 +155,7 @@ unlinkdClose(void)
 void
 unlinkdInit(void)
 {
+    unlinkd_count = 0;
     unlinkd_fd = unlinkdCreate();
     if (unlinkd_fd < 0) {
 	debug(43, 0, "unlinkdInit: failed to start unlinkd\n");

@@ -127,7 +127,8 @@ struct _iostats IOStats;
 const char *const open_bracket = "{\n";
 const char *const close_bracket = "}\n";
 
-extern char *diskFileName _PARAMS((int));
+extern int unlinkd_count;
+extern int fileno_stack_count;
 
 /* LOCALS */
 static const char *describeStatuses _PARAMS((const StoreEntry *));
@@ -765,6 +766,10 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	store_mem_size >> 10);
     storeAppendPrintf(sentry, "{\tStorage LRU Expiration Age:\t%6.2f days}\n",
 	(double) storeExpiredReferenceAge() / 86400.0);
+    storeAppendPrintf(sentry, "{\tRequests given to unlinkd:\t%d}\n",
+	unlinkd_count);
+    storeAppendPrintf(sentry, "{\tUnused fileno stack count:\t%d}\n",
+	fileno_stack_count);
 
 #if HAVE_GETRUSAGE && defined(RUSAGE_SELF)
     storeAppendPrintf(sentry, "{Resource usage for %s:}\n", appname);

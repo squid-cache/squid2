@@ -2913,7 +2913,7 @@ storeTimestampsSet(StoreEntry * entry)
 
 #define FILENO_STACK_SIZE 128
 static int fileno_stack[FILENO_STACK_SIZE];
-static int fileno_stack_count = 0;
+int fileno_stack_count = 0;
 
 static int
 storeGetUnusedFileno(void)
