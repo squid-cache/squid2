@@ -2722,7 +2722,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     /* see if we running in Config2.Accel.on, if so got to convert it to URL */
     else if (Config2.Accel.on && *url == '/') {
 	/* prepend the accel prefix */
-	if (opt_accel_uses_host && (t = mime_get_header(req_hdr, "Host"))) {
+	if (Config.onoff.accel_uses_host_header && (t = mime_get_header(req_hdr, "Host"))) {
 	    int vport;
 	    char *q;
 	    const char *protocol_name = "http";
@@ -2882,6 +2882,18 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    snprintf(http->uri, url_sz, "%s%s", Config2.Accel.prefix, url);
 	}
 	http->flags.accel = 1;
+	if (Config.onoff.accel_no_pmtu_disc) {
+#if defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_DONT)
+	    int i = IP_PMTUDISC_DONT;
+	    setsockopt(conn->fd, SOL_IP, IP_MTU_DISCOVER, &i, sizeof i);
+#else
+	    static int reported = 0;
+	    if (!reported) {
+		debug(33, 1) ("Notice: httpd_accel_no_pmtu_disc not supported on your platform\n");
+		reported = 1;
+	    }
+#endif
+	}
     } else {
 	/* URL may be rewritten later, so make extra room */
 	url_sz = strlen(url) + Config.appendDomainLen + 5;

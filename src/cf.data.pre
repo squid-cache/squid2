@@ -2623,7 +2623,7 @@ NAME: httpd_accel_uses_host_header
 COMMENT: on|off
 TYPE: onoff
 DEFAULT: off
-LOC: opt_accel_uses_host
+LOC: Config.onoff.accel_uses_host_header
 DOC_START
 	HTTP/1.1 requests include a Host: header which is basically the
 	hostname from the URL.  The Host: header is used for domain based
@@ -2640,6 +2640,22 @@ DOC_START
 	However, you will need to enable this option if you run Squid
 	as a transparent proxy.  Otherwise, virtual servers which
 	require the Host: header will not be properly cached.
+DOC_END
+
+NAME: httpd_accel_no_pmtu_disc
+COMMENT: on|off
+TYPE: onoff
+DEFAULT: off
+LOC: Config.onoff.accel_no_pmtu_disc
+DOC_START
+	In many setups of transparently intercepting proxies Path-MTU
+	discovery can not work on traffic towards the clients. This is
+	the case when the intercepting device does not fully track
+	connections and fails to forward ICMP must fragment messages
+	to the cache server. 
+	
+	If you have such setup and experience that certain clients
+	sporadically hang or never complete requests set this to on.
 DOC_END
 
 COMMENT_START
