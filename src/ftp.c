@@ -1699,8 +1699,6 @@ ftpReadPasv(FtpStateData * ftpState)
     debug(9, 3) ("This is ftpReadPasv\n");
     if (code != 227) {
 	debug(9, 3) ("PASV not supported by remote end\n");
-	comm_close(ftpState->data.fd);
-	ftpState->data.fd = -1;
 	ftpSendPort(ftpState);
 	return;
     }
@@ -1765,6 +1763,14 @@ ftpOpenListenSocket(FtpStateData * ftpState, int fallback)
     socklen_t addr_len;
     int on = 1;
     u_short port = 0;
+    /*
+     * * Tear down any old data connection if any. We are about to
+     * * establish a new one.
+     */
+    if (ftpState->data.fd > 0) {
+	comm_close(ftpState->data.fd);
+	ftpState->data.fd = -1;
+    }
     /*
      * Set up a listen socket on the same local address as the
      * control connection.
@@ -1839,8 +1845,6 @@ ftpReadPort(FtpStateData * ftpState)
     if (code != 200) {
 	/* Fall back on using the same port as the control connection */
 	debug(9, 3) ("PORT not supported by remote end\n");
-	comm_close(ftpState->data.fd);
-	ftpState->data.fd = -1;
 	ftpOpenListenSocket(ftpState, 1);
     }
     ftpRestOrList(ftpState);
