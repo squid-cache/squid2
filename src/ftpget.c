@@ -69,37 +69,64 @@
 
 
 #include "config.h"
+#include "autoconf.h"
+#include "version.h"
 
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
 #include <stdio.h>
+#if HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#if HAVE_ERRNO_H
 #include <errno.h>
+#endif
+#if HAVE_STRING_H
 #include <string.h>
+#endif
+#if HAVE_STRINGS_H
+#include <strings.h>
+#endif
+#if HAVE_SIGNAL_H
 #include <signal.h>
+#endif
+#if HAVE_TIME_H
 #include <time.h>
+#endif
+#if HAVE_SYS_TIME_H
 #include <sys/time.h>		/* for select(2) */
-#ifdef HAVE_SYS_SELECT_H
+#endif
+#if HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#if HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+#if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
+#endif
 #include <sys/socket.h>
+#if HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#if HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
+#if HAVE_SYS_UN_H
 #include <sys/un.h>
-
+#endif
 #if HAVE_LIBC_H
 #include <libc.h>
 #endif
-
 #if HAVE_BSTRING_H
 #include <bstring.h>
-#endif
-
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
 #endif
 
 #include "util.h"

@@ -4,53 +4,87 @@
 #include "autoconf.h"
 #include "version.h"
 
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
 #include <stdio.h>
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#if HAVE_CTYPE_H
 #include <ctype.h>
+#endif
+#if HAVE_ERRNO_H
 #include <errno.h>
+#endif
+#if HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#if HAVE_GRP_H
 #include <grp.h>
-#if !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
+#endif
+#if HAVE_MALLOC_H && !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
 /* "Obsolete" Markus Stumpf <maex@Space.NET> */
 #include <malloc.h>
 #endif
+#if HAVE_MEMORY_H
 #include <memory.h>
+#endif
+#if HAVE_NETDB_H
 #include <netdb.h>
+#endif
+#if HAVE_PWD_H
 #include <pwd.h>
+#endif
+#if HAVE_SIGNAL_H
 #include <signal.h>
+#endif
+#if HAVE_TIME_H
 #include <time.h>
+#endif
+#if HAVE_SYS_PARAM_H
 #include <sys/param.h>
+#endif
+#if HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
+#if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>	/* needs sys/time.h above it */
+#endif
 #include <sys/socket.h>
+#if HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#if HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
+#if HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+#if HAVE_SYS_UN_H
 #include <sys/un.h>
+#endif
+#if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
-
+#endif
 #if HAVE_LIBC_H
 #include <libc.h>
 #endif
-
 #if HAVE_STRING_H
 #include <string.h>
 #endif
-
 #if HAVE_STRINGS_H
 #include <strings.h>
 #endif
-
 #if HAVE_BSTRING_H
 #include <bstring.h>
 #endif
-
 #if HAVE_CRYPT_H
 #include <crypt.h>
 #endif
-
 #if HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
