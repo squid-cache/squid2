@@ -67,7 +67,6 @@ static void clientProcessOnlyIfCachedMiss(clientHttpRequest * http);
 static HttpReply *clientConstructProxyAuthReply(clientHttpRequest * http);
 static int clientCachable(clientHttpRequest * http);
 static int clientHierarchical(clientHttpRequest * http);
-static int isTcpHit(log_type code);
 static int clientCheckContentLength(request_t * r);
 
 static int
@@ -772,7 +771,7 @@ clientHierarchical(clientHttpRequest * http)
     return 1;
 }
 
-static int
+int
 isTcpHit(log_type code)
 {
     /* this should be a bitmap for better optimization */
