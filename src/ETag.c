@@ -2,7 +2,6 @@
 /*
  * $Id$
  *
- * DEBUG: section 7?    HTTP ETag
  * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
