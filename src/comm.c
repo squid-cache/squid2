@@ -770,6 +770,9 @@ comm_incoming(void)
     int j;
     incame = 0;
     io_events = 0;
+#if !ALARM_UPDATES_TIME
+    getCurrentTime();
+#endif
     if (theInIcpConnection > 0) {
 	icpHandleUdp(theInIcpConnection, &incame);
 	if (theInIcpConnection != theOutIcpConnection)
