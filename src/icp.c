@@ -317,8 +317,17 @@ icpParseRequestHeaders(icpStateData * icpState)
     char *request_hdr = icpState->request_hdr;
     char *t = NULL;
     request_t *request = icpState->request;
-    if (mime_get_header(request_hdr, "If-Modified-Since"))
+    request->ims = -2;
+    request->imslen = -1;
+    if ((t = mime_get_header(request_hdr, "If-Modified-Since"))) {
 	BIT_SET(request->flags, REQ_IMS);
+	request->ims = parse_rfc1123(t);
+	while ((t = strchr(t, ';'))) {
+	    for (t++; isspace(*t); t++);
+	    if (strncasecmp(t, "length=", 7) == 0)
+		request->imslen = atoi(t+7);
+	}
+    }
     if ((t = mime_get_header(request_hdr, "Pragma"))) {
 	if (!strcasecmp(t, "no-cache"))
 	    BIT_SET(request->flags, REQ_NOCACHE);
@@ -604,12 +613,7 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     int len = 0;
     int max_len = 8191 - icpState->offset;
     char *p = icpState->buf + icpState->offset;
-    char *IMS_hdr = NULL;
-    time_t client_IMS;
-    int client_length = -1;
-    int object_length;
     char *reply = NULL;
-    int modified = 0;
     if (max_len <= 0) {
 	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n",
 	    entry->key ? entry->key : entry->url);
@@ -626,9 +630,6 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	return COMM_OK;
     }
     /* All headers are available, check if object is modified or not */
-    IMS_hdr = mime_get_header(icpState->request_hdr, "If-Modified-Since");
-    if (!IMS_hdr)
-	fatal_dump("icpGetHeadersForIMS: Cant find IMS header in request\n");
     /* Restart the object from the beginning */
     icpState->offset = 0;
     /* Only objects with statuscode==200 can be "Not modified" */
@@ -640,43 +641,11 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	icpState->buf = NULL;
 	return icpProcessMISS(fd, icpState);
     }
-    p = strtok(IMS_hdr, ";");
-    client_IMS = parse_rfc1123(p);
-    while ((p = strtok(NULL, ";"))) {
-	while (isspace(*p))
-	    p++;
-	if (strncasecmp(p, "length=", 7) == 0)
-	    client_length = atoi(strchr(p, '=') + 1);
-    }
-    if (entry->lastmod < 0)
-	debug(12, 0, "WARNING: '%s' has LMTIME=%s\n", entry->url, mkrfc1123(entry->lastmod));
-    /* Find size of the object */
-    if (mem->reply->content_length)
-	object_length = mem->reply->content_length;
-    else
-	object_length = entry->object_len - mem->reply->hdr_sz;
     put_free_8k_page(icpState->buf);
     icpState->buf = NULL;
     icpState->log_type = LOG_TCP_IMS_HIT;
     entry->refcount++;
-    debug(12, 3, "icpGetHeadersForIMS: '%s'\n", entry->url);
-    if (entry->lastmod > client_IMS) {
-	debug(12, 3, "--> YES: entry newer than client\n");
-	modified = 1;
-    } else if (entry->lastmod < client_IMS) {
-	debug(12, 3, "-->  NO: entry older than client\n");
-	modified = 0;
-    } else if (client_length < 0) {
-	debug(12, 3, "-->  NO: same LMT, no client length\n");
-	modified = 0;
-    } else if (client_length == object_length) {
-	debug(12, 3, "-->  NO: same LMT, same length\n");
-	modified = 0;
-    } else {
-	debug(12, 3, "--> YES: same LMT, different length\n");
-	modified = 1;
-    }
-    if (modified)
+    if (modifiedSince(entry, icpState->request))
 	return icpSendMoreData(fd, icpState);
     debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
     reply = icpConstruct304reply(mem->reply);

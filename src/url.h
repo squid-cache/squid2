@@ -67,6 +67,8 @@ struct _request {
     int flags;
     time_t max_age;
     float http_ver;
+    time_t ims;
+    int imslen;
 };
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));
