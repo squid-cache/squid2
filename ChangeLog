@@ -4,6 +4,9 @@ Changes to squid-1.novm.9 ():
 	- call InvokeHandlers() after setting store_status in
 	  storeComplete().
 	- Rearranged storeCheckDoneWriting().
+	- Fix storeClientListAdd() to not add the same FD twice.
+	- Removed offset arg from storeClientListAdd.
+	- Removed hunks of UNUSED and OLD code.
 	- merged squid-1.1.9 changes.
 
 Changes to squid-1.1.9 (March 30, 1997):
