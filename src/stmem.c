@@ -384,8 +384,8 @@ void stmemInit()
     init_stack(&sm_stats.free_page_stack, (getCacheMemMax() / SM_PAGE_SIZE) >> 2);
     init_stack(&disk_stats.free_page_stack, 1000);
 #else /* LITTLESTACK */
-    /* 4096 * 10000 pages = 40MB + CacheMemMax in pages */
-    init_stack(&sm_stats.free_page_stack, 10000 + (getCacheMemMax() / SM_PAGE_SIZE));
+    /* CacheMemMax in pages */
+    init_stack(&sm_stats.free_page_stack, getCacheMemMax() / SM_PAGE_SIZE);
     /* 8096 * 1000 pages = 8MB */
     init_stack(&disk_stats.free_page_stack, 1000);
 #endif /* LITTLESTACK */
