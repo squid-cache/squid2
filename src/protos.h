@@ -833,7 +833,7 @@ extern time_t storeExpiredReferenceAge(void);
 extern void storeRegisterAbort(StoreEntry * e, STABH * cb, void *);
 extern void storeUnregisterAbort(StoreEntry * e);
 extern void storeMemObjectDump(MemObject * mem);
-extern void storeEntryDump(StoreEntry * e, int debug_lvl);
+extern void storeEntryDump(const StoreEntry * e, int debug_lvl);
 extern const char *storeUrl(const StoreEntry *);
 extern void storeCreateMemObject(StoreEntry *, const char *, const char *);
 extern void storeCopyNotModifiedReplyHeaders(MemObject * O, MemObject * N);
