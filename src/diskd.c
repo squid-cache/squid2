@@ -22,6 +22,7 @@ enum {
 typedef struct _diomsg {
     mtyp_t mtype;
     int id;
+    int seq_no;
     void *callback_data;
     int size;
     int offset;
@@ -175,9 +176,9 @@ do_write(diomsg * r, int len, const char *buf)
 static int
 do_unlink(diomsg * r, int len, const char *buf)
 {
-    if (unlink(buf) < 0) {
+    if (truncate(buf, 0) < 0) {
 	fprintf(stderr, "%d UNLNK id %d %s: ", (int) mypid, r->id, buf);
-	perror("unlink");
+	perror("truncate");
 	return -errno;
     }
 #if STDERR_DEBUG
@@ -350,13 +351,13 @@ static SwapDir *swapDirFromFileno(sfileno f);
 /*
  * MAGIC1 = (256/2)/(ndisks=6) ~= 22
  */
-#define MAGIC1 40
+#define MAGIC1 60
 /*
  * MAGIC2 = (256 * 3 / 4) / 6 = 32
  */
-#define MAGIC2 48
+#define MAGIC2 72
 
-#define SHMBUFS 64
+#define SHMBUFS 96
 #define SHMBUF_BLKSZ DISK_PAGE_SIZE
 
 /* === PUBLIC =========================================================== */
@@ -429,6 +430,10 @@ storeDiskdRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB *
     SwapDir *sd = swapDirFromFileno(sio->swap_file_number);
     if (!cbdataValid(sio))
 	return;
+    if (sio->type.diskd.flags.reading) {
+	debug(81, 1) ("storeDiskdRead: already reading!\n");
+	return;
+    }
     assert(sio->read.callback == NULL);
     assert(sio->read.callback_data == NULL);
     sio->read.callback = callback;
@@ -578,6 +583,7 @@ storeDiskdReadQueue(void)
 {
     SwapDir *sd;
     int i;
+    static int ndir = 0;
     static time_t last_report = 0;
     static int record_away = 0;
     static int record_shmbuf = 0;
@@ -585,7 +591,7 @@ storeDiskdReadQueue(void)
 	record_away = sent_count - recv_count;
 	record_shmbuf = shmbuf_count;
     }
-    if (squid_curtime - last_report > 60) {
+    if (squid_curtime - last_report > 15) {
 	if (record_away)
 	    debug(81, 1) ("DISKD: %d msgs away, %d shmbufs in use\n",
 		record_away, record_shmbuf);
@@ -593,11 +599,14 @@ storeDiskdReadQueue(void)
 	record_away = record_shmbuf = 0;
     }
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
-	sd = &Config.cacheSwap.swapDirs[i];
+	if (ndir >= Config.cacheSwap.n_configured)
+	    ndir = ndir % Config.cacheSwap.n_configured;
+	sd = &Config.cacheSwap.swapDirs[ndir++];
 	if (sd->type != SWAPDIR_DISKD)
 	    continue;
 	storeDiskdReadIndividualQueue(sd);
     }
+    ndir++;
 }
 
 
@@ -742,9 +751,10 @@ static int
 storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, int offset, int shm_offset)
 {
     int x;
-    int i;
     diomsg M;
     static int send_errors = 0;
+    static int last_seq_no = 0;
+    static int seq_no = 0;
     M.mtype = mtype;
     M.callback_data = sio;
     M.size = size;
@@ -752,26 +762,26 @@ storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
     M.status = -1;
     M.shm_offset = shm_offset;
     M.id = id;
+    M.seq_no = ++seq_no;
     if (M.callback_data)
 	cbdataLock(M.callback_data);
-    for (i = 0; i < 2; i++) {
-	x = msgsnd(sd->u.diskd.smsgid, &M, msg_snd_rcv_sz, i ? 0 : IPC_NOWAIT);
-	if (0 == x) {
-	    sent_count++;
-	    sd->u.diskd.away++;
-	    break;
-	} else if (EWOULDBLOCK == errno && 0 == i) {
-	    debug(50, 3) ("storeDiskdSend: retrying.\n");
-	} else {
-	    debug(50, 1) ("storeDiskdSend: msgsnd: %s\n", xstrerror());
-	    if (M.callback_data)
-		cbdataUnlock(M.callback_data);
-	    assert(++send_errors < 100);
-	}
-    }
     if (sd->u.diskd.away > MAGIC2) {
-	debug(81, 3) ("%d msgs away!  Trying to read queue...\n", sd->u.diskd.away);
+	debug(81, 3) ("%d msgs away!  Trying to read queue...\n",
+	    sd->u.diskd.away);
 	storeDiskdReadIndividualQueue(sd);
+    }
+    if (M.seq_no < last_seq_no)
+	debug(81, 1) ("WARNING: sequencing out of order\n");
+    x = msgsnd(sd->u.diskd.smsgid, &M, msg_snd_rcv_sz, IPC_NOWAIT);
+    last_seq_no = M.seq_no;
+    if (0 == x) {
+	sent_count++;
+	sd->u.diskd.away++;
+    } else {
+	debug(50, 1) ("storeDiskdSend: msgsnd: %s\n", xstrerror());
+	if (M.callback_data)
+	    cbdataUnlock(M.callback_data);
+	assert(++send_errors < 100);
     }
     return x;
 }
