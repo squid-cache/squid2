@@ -373,7 +373,6 @@ AC_CHECK_FUNCS(\
 	memmove \
 	mktime \
 	mstats \
-	poll \
 	random \
 	regcomp \
 	regexec \
@@ -397,8 +396,16 @@ AC_CHECK_FUNCS(\
 case "$host" in
 	[alpha-dec-osf3.*])
 		# John Kay (jkay@nlanr.net) 19970818
-		echo "Disabling poll() for $host..."
-		ac_cv_func_poll="no"
+		echo "skipping poll() check for $host..."
+		ac_cv_func_poll='no'
+		;;
+	[*-hp-hpux*.*])
+		# Duane Wessels
+		echo "skipping poll() check for $host..."
+		ac_cv_func_poll='no'
+		;;
+	*)
+		AC_CHECK_FUNC(poll)
 		;;
 esac
 
