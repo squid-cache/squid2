@@ -187,9 +187,9 @@ fqdncacheCallback(fqdncache_entry * f)
     FQDNH *handler = f->handler;
     void *handlerData = f->handlerData;
     f->lastref = squid_curtime;
-    fqdncacheLockEntry(f);
     if (NULL == handler)
 	return;
+    fqdncacheLockEntry(f);
     f->handler = NULL;
     f->handlerData = NULL;
     if (cbdataValid(handlerData)) {
