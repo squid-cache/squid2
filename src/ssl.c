@@ -381,7 +381,7 @@ sslConnectDone(int fd, int status, void *data)
     }
     if (opt_no_ipcache)
 	ipcacheInvalidate(sslState->host);
-    if (Config.sslProxy.host == sslState->host)
+    if (Config.sslProxy && Config.sslProxy->host == sslState->host)
 	sslProxyConnected(sslState->server.fd, sslState);
     else
 	sslConnected(sslState->server.fd, sslState);
@@ -441,7 +441,7 @@ sslStart(int fd, const char *url, request_t * request, char *mime_hdr, int *size
 	sslClientClosed,
 	(void *) sslState);
 
-    if (Config.sslProxy.host) {
+    if (Config.sslProxy) {
 	ipcache_nbgethostbyname(request->host,
 	    sslState->server.fd,
 	    sslSelectForwarding,
@@ -508,9 +508,9 @@ sslSelectForwarding(int fd, const ipcache_addrs * ia, void *data)
 	sslState->host = request->host;
 	sslState->port = request->port;
     } else {
-	sslState->host = Config.sslProxy.host;
-	if ((sslState->port = Config.sslProxy.port) == 0) {
-	    if ((e = neighborFindByName(Config.sslProxy.host)))
+	sslState->host = Config.sslProxy->host;
+	if ((sslState->port = Config.sslProxy->http_port) == 0) {
+	    if ((e = neighborFindByName(Config.sslProxy->host)))
 		sslState->port = e->http_port;
 	    else
 		sslState->port = CACHE_HTTP_PORT;

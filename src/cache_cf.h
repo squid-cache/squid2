@@ -239,10 +239,7 @@ struct SquidConfig {
     relist *cache_stop_relist;
     ip_acl *local_ip_list;
     ip_acl *firewall_ip_list;
-    struct {
-	char *host;
-	u_short port;
-    } sslProxy;
+    edge *sslProxy, *passProxy;
     struct {
 	int size;
 	int low;

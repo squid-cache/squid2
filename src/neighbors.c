@@ -143,6 +143,7 @@ const char *hier_strings[] =
     "SOURCE_FASTEST",
     "SIBLING_UDP_HIT_OBJ",
     "PARENT_UDP_HIT_OBJ",
+    "PASSTHROUGH_PARENT",
     "INVALID CODE"
 };
 
@@ -314,8 +315,7 @@ neighborsDestroy(void)
 
     for (e = friends.edges_head; e; e = next) {
 	next = e->next;
-	safe_free(e->host);
-	safe_free(e);
+	edgeDestroy(e);
 	friends.n--;
     }
     memset(&friends, '\0', sizeof(friends));
@@ -877,4 +877,13 @@ parseNeighborType(const char *s)
 	return EDGE_SIBLING;
     debug(15, 0, "WARNING: Unknown neighbor type: %s\n", s);
     return EDGE_SIBLING;
+}
+
+void
+edgeDestroy(edge *e)
+{
+	if (e == NULL)
+	    return;
+	safe_free(e->host);
+	safe_free(e);
 }

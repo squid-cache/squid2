@@ -123,6 +123,7 @@ typedef enum {
     HIER_SOURCE_FASTEST,
     HIER_SIBLING_UDP_HIT_OBJ,
     HIER_PARENT_UDP_HIT_OBJ,
+    HIER_PASS_PARENT,
     HIER_MAX
 } hier_code;
 
@@ -203,6 +204,7 @@ extern void neighbors_open _PARAMS((int));
 extern void neighborsDestroy _PARAMS((void));
 extern edge *neighborFindByName _PARAMS((const char *));
 extern void neighbors_init _PARAMS((void));
+extern void edgeDestroy _PARAMS((edge *e));
 
 extern const char *hier_strings[];
 

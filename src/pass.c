@@ -487,7 +487,9 @@ passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
     int fw_ip_match = IP_ALLOW;
     if (ia && Config.firewall_ip_list)
 	fw_ip_match = ip_access_check(ia->in_addrs[ia->cur], Config.firewall_ip_list);
-    if (matchInsideFirewall(request->host)) {
+    if ((e = Config.passProxy)) {
+	hierarchyNote(request, HIER_PASS_PARENT, 0, e->host);
+    } else if (matchInsideFirewall(request->host)) {
 	hierarchyNote(request, HIER_DIRECT, 0, request->host);
     } else if (fw_ip_match == IP_DENY) {
 	hierarchyNote(request, HIER_DIRECT, 0, request->host);
@@ -496,6 +498,7 @@ passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
     } else if ((e = getFirstUpParent(request))) {
 	hierarchyNote(request, HIER_FIRSTUP_PARENT, 0, e->host);
     }
+
     passState->proxying = e ? 1 : 0;
     passState->host = e ? e->host : request->host;
     passState->port = e ? e->http_port : request->port;
