@@ -110,9 +110,7 @@ strtokFile(void)
   strtok_again:
     if (!aclFromFile) {
 	t = (strtok(NULL, w_space));
-	if (!t || *t == '#') {
-	    return NULL;
-	} else if (*t == '\"' || *t == '\'') {
+	if (t && (*t == '\"' || *t == '\'')) {
 	    /* quote found, start reading from file */
 	    fn = ++t;
 	    while (*t && *t != '\"' && *t != '\'')
