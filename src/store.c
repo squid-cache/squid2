@@ -1406,6 +1406,8 @@ storeDoRebuildFromDisk(void *data)
 		safeunlink(swapfile, 0);
 	    continue;
 	}
+	if (fileno < 0 || fileno >= MAX_SWAP_FILE)
+	    continue;
 	timestamp = (time_t) scan1;
 	expires = (time_t) scan2;
 	lastmod = (time_t) scan3;
