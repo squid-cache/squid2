@@ -35,6 +35,9 @@
 
 #include "squid.h"
 
+#if defined(_SQUID_CYGWIN_)
+#include <sys/ioctl.h>
+#endif
 #ifdef HAVE_NETINET_TCP_H
 #include <netinet/tcp.h>
 #endif

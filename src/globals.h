@@ -156,5 +156,5 @@ extern hash_table *proxy_auth_username_cache;	/* NULL */
 extern int incoming_sockets_accepted;
 #if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
 extern unsigned int WIN32_OS_version;	/* 0 */
-extern char WIN32_OS_string[_WIN_OS_STRING_SZ];
+extern char *WIN32_OS_string;
 #endif

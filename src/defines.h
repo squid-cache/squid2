@@ -301,5 +301,5 @@
 #define _WIN_OS_WIN98	3
 #define _WIN_OS_WINNT	4
 #define _WIN_OS_WIN2K	5
-#define _WIN_OS_STRING_SZ 80
+#define _WIN_OS_WINXP	6
 #endif

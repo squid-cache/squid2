@@ -469,7 +469,7 @@ httpReplyBodySize(method_t method, HttpReply * reply)
  * Calculates the maximum size allowed for an HTTP response
  */
 void
-httpReplyBodyBuildSize(request_t *request, HttpReply * reply, dlink_list *bodylist)
+httpReplyBodyBuildSize(request_t * request, HttpReply * reply, dlink_list * bodylist)
 {
     body_size *bs;
     aclCheck_t *checklist;
@@ -484,8 +484,8 @@ httpReplyBodyBuildSize(request_t *request, HttpReply * reply, dlink_list *bodyli
 	    /* Allow - use this entry */
 	    reply->maxBodySize = bs->maxsize;
 	    bs = NULL;
-	    debug (58, 3) ("httpReplyBodyBuildSize: Setting maxBodySize to %d\n", reply->maxBodySize);
+	    debug(58, 3) ("httpReplyBodyBuildSize: Setting maxBodySize to %d\n", reply->maxBodySize);
 	}
-	aclChecklistFree(checklist); 
+	aclChecklistFree(checklist);
     }
 }

@@ -118,8 +118,8 @@ storeDirValidSwapDirSize(int swapdir, ssize_t objsize)
      * can't store it
      */
     if ((objsize == -1) &&
-        (Config.cacheSwap.swapDirs[swapdir].max_objsize != -1))
-        return 0;
+	(Config.cacheSwap.swapDirs[swapdir].max_objsize != -1))
+	return 0;
 
     /*
      * Else, make sure that the max object size is larger than objsize
@@ -225,7 +225,7 @@ storeDirSelectSwapDirLeastLoad(const StoreEntry * e)
 	dirn = i;
     }
     if (dirn >= 0)
-        Config.cacheSwap.swapDirs[dirn].flags.selected = 1;
+	Config.cacheSwap.swapDirs[dirn].flags.selected = 1;
     return dirn;
 }
 

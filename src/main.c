@@ -998,9 +998,5 @@ SquidShutdown(void *unused)
 	version_string);
     if (debug_log)
 	fclose(debug_log);
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
-    WIN32_Exit(0);
-#else
     exit(0);
-#endif
 }
