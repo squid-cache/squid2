@@ -178,9 +178,9 @@ void hierarchy_log_append(entry, code, timeout, cache_host)
     if (code > HIER_MAX)
 	code = HIER_MAX;
     if (mem)
-	mem->hierarchy_code = code;
+	mem->request->hierarchy_code = code;
     if (mem && cache_host)
-	mem->hierarchy_host = xstrdup(cache_host);
+	mem->request->hierarchy_host = xstrdup(cache_host);
 
     if (Config.commonLogFormat) {
 	if (squid_curtime != last_time) {
