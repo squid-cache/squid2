@@ -16,7 +16,7 @@ TABLE OF CONTENTS:
 	Object Purge Policy
 	X-Forwarded-For request header
 	Network Probe Database
-	Better Memory Management
+	Planning for Squid's Memory Usage
 	Default Parent
 	Cachemgr Passwords
 	Round-Robin IP
@@ -423,13 +423,28 @@ There is a configuration option called 'minimum_direct_hops.'  If a
 server is less than minimum_direct_hops away, Squid will fetch it
 directly instead of querying any neighbors.
 
-Better Memory Management
+Planning for Squid's Memory Usage
 ==============================================================================
-Squid-1.1 has better memory management, although still not ideal.  The
-'cache_mem' parameter places a soft upper limit on the amount of memory
-Squid allocates for holding whole objects in VM.  The 'cache_mem'
-memory is allocated as a pool of 4k blocks.  Objects held in memory are
-stored in blocks from this pool.  The 'cache_mem_low' and
+Squid-1.1 has better memory management, although still not ideal.  
+Squid uses memory in a variety of ways, but the bulk of memory
+usage falls into two categories: per-object metadata and in-transit
+objects.
+
+The per-object metadata consists of a StoreEntry data structure, plus
+the URL for every object your cache knows about.  This usually averages
+out to about 100 bytes per object.  If you assume that the objects
+themselves average 20 KB each, then given your disk size ('cache_swap')
+you need 1/200th as much for in-memory object metadata.
+
+The other big memory use is due to in-transit objects.  The amount
+of memory required for this will depend on your cache's usage patterns.
+Obviously a more busy cache will require more memory for in-transit
+objects.
+
+The 'cache_mem' parameter places a soft upper limit on the amount of
+memory Squid allocates for holding whole objects in VM.  The
+'cache_mem' memory is allocated as a pool of 4k blocks.  Objects held
+in memory are stored in blocks from this pool.  The 'cache_mem_low' and
 'cache_mem_high' values affect the memory reclamation algorithm.
 
 There are two types of in-memory objects: in-transit objects and
@@ -456,6 +471,14 @@ water mark, then Squid will check for objects larger than
 'maximum_object_size.'  Any such objects are put into "delete behind"
 mode which means Squid releases the section of the object which has
 been delivered to all clients reading from it.
+
+As a rule-of-thumb, you should probably set 'cache_mem' to 1/3 of your
+machine's physical memory amount.  You can plan on another 1/3 being
+used by the per-object metadata.  And the final 1/3 will be used by
+other data structures, unaccounted memory, and malloc() overhead.
+Note, this assumes that the machine will be dedicated to running
+Squid.  If there are other services on the machine, the memory
+estimates should be lowered.
 
 Default Parent
 ==============================================================================

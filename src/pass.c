@@ -424,6 +424,10 @@ static void
 passErrorComplete(int fd, char *buf, int size, int errflag, void *passState)
 {
     safe_free(buf);
+    if (passState == NULL) {
+	debug_trap("passErrorComplete: NULL passState\n");
+	return;
+    }
     passClose(passState);
 }
 
@@ -508,7 +512,7 @@ passStart(int fd,
     request_t * request,
     char *buf,
     int buflen,
-    size_t *size_ptr)
+    size_t * size_ptr)
 {
     /* Create state structure. */
     PassStateData *passState = NULL;
@@ -533,12 +537,12 @@ passStart(int fd,
 	    fd_table[fd].ipaddr,
 	    500,
 	    xstrerror());
-	comm_write(passState->client.fd,
+	comm_write(fd,
 	    xstrdup(msg),
 	    strlen(msg),
 	    30,
-	    passErrorComplete,
-	    (void *) passState,
+	    NULL,
+	    NULL,
 	    xfree);
 	return COMM_ERROR;
     }

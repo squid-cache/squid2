@@ -167,7 +167,7 @@ typedef struct fde {
     char ascii_note[FD_ASCII_NOTE_SZ];
     unsigned int comm_type;
     time_t stall_until;		/* don't select for read until this time reached */
-    RWStateData *rwstate;	/* State data for comm_read/comm_write */
+    RWStateData *rwstate;	/* State data for comm_write */
 } FD_ENTRY;
 
 extern FD_ENTRY *fd_table;
@@ -197,13 +197,6 @@ extern int comm_udp_sendto _PARAMS((int fd, const struct sockaddr_in *, int size
 extern int fd_of_first_client _PARAMS((StoreEntry *));
 extern void comm_set_stall _PARAMS((int, int));
 extern int comm_get_fd_timeout _PARAMS((int fd));
-extern void comm_read _PARAMS((int fd,
-	char *buf,
-	int size,
-	int timeout,
-	int immed,
-	rw_complete_handler * handler,
-	void *handler_data));
 extern void comm_write _PARAMS((int fd,
 	char *buf,
 	int size,

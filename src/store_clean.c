@@ -78,8 +78,14 @@ storeDirClean(void *unused)
     debug(36, 3, "storeDirClean: Cleaning directory %s\n", p1);
     dp = opendir(p1);
     if (dp == NULL) {
+	swap_index++;
+	if (errno == ENOENT) {
+	    debug(36, 0, "storeDirClean: WARNING: Creating %s\n", p1);
+	    if (mkdir(p1, 0777) == 0)
+		return;
+	}
 	debug(50, 0, "storeDirClean: %s: %s\n", p1, xstrerror());
-	safeunlink(p1, 0);
+	safeunlink(p1, 1);
 	return;
     }
     while ((de = readdir(dp)) && k < 20) {

@@ -309,6 +309,10 @@ static void
 sslErrorComplete(int fd, char *buf, int size, int errflag, void *sslState)
 {
     safe_free(buf);
+    if (sslState == NULL) {
+	debug_trap("sslErrorComplete: NULL sslState\n");
+	return;
+    }
     sslClose(sslState);
 }
 
@@ -392,7 +396,7 @@ sslConnectDone(int fd, int status, void *data)
 }
 
 int
-sslStart(int fd, const char *url, request_t * request, char *mime_hdr, size_t *size_ptr)
+sslStart(int fd, const char *url, request_t * request, char *mime_hdr, size_t * size_ptr)
 {
     /* Create state structure. */
     SslStateData *sslState = NULL;
@@ -417,12 +421,12 @@ sslStart(int fd, const char *url, request_t * request, char *mime_hdr, size_t *s
 	    fd_table[fd].ipaddr,
 	    500,
 	    xstrerror());
-	comm_write(sslState->client.fd,
+	comm_write(fd,
 	    xstrdup(buf),
 	    strlen(buf),
 	    30,
-	    sslErrorComplete,
-	    (void *) sslState,
+	    NULL,
+	    NULL,
 	    xfree);
 	return COMM_ERROR;
     }

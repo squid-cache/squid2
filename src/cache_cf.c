@@ -314,10 +314,6 @@ ip_access_check(struct in_addr address, const ip_acl * list)
     debug(3, 5, "ip_access_check: using %s\n", inet_ntoa(naddr));
 
     for (p = list; p; p = p->next) {
-	debug(3, 5, "ip_access_check: %s vs %s/%s\n",
-	    inet_ntoa(naddr),
-	    inet_ntoa(p->addr),
-	    inet_ntoa(p->mask));
 	if (ip_acl_match(naddr, p))
 	    return p->access;
     }
@@ -400,8 +396,7 @@ addToIPACL(ip_acl ** list, const char *ip_str, ip_access_type access)
 	}
     }
 
-    if (inv)
-	q->access = (access == IP_ALLOW) ? IP_DENY : IP_ALLOW;
+    q->access = inv ? (access == IP_ALLOW ? IP_DENY : IP_ALLOW) : access;
     q->addr.s_addr = htonl(a1 * 0x1000000 + a2 * 0x10000 + a3 * 0x100 + a4);
     q->mask.s_addr = lmask.s_addr;
 }
@@ -1026,15 +1021,6 @@ parseCachemgrPasswd(void)
     wordlistDestroy(&actions);
 }
 
-static void
-parseStoplistPattern(int icase)
-{
-    relist *r, **T;
-    r = aclParseRegexList(icase);
-    for (T = &Config.cache_stop_relist; *T; T = &(*T)->next);
-    *T = r;
-}
-
 int
 parseConfigFile(const char *file_name)
 {
@@ -1170,9 +1156,9 @@ parseConfigFile(const char *file_name)
 	else if (!strcmp(token, "cache_stoplist"))
 	    parseWordlist(&Config.cache_stoplist);
 	else if (!strcmp(token, "cache_stoplist_pattern"))
-	    parseStoplistPattern(0);
+	    aclParseRegexList(&Config.cache_stop_relist, 0);
 	else if (!strcmp(token, "cache_stoplist_pattern/i"))
-	    parseStoplistPattern(1);
+	    aclParseRegexList(&Config.cache_stop_relist, 1);
 
 #if DELAY_HACK
 	else if (!strcmp(token, "delay_access"))

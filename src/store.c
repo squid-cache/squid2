@@ -169,6 +169,7 @@ int store_rebuilding = STORE_REBUILDING_SLOW;
 static char *storeSwapFullPath _PARAMS((int, char *));
 static HashID storeCreateHashTable _PARAMS((int (*)_PARAMS((const char *, const char *))));
 static int compareLastRef _PARAMS((StoreEntry **, StoreEntry **));
+static int compareRandom _PARAMS((int *a, int *b));
 static int storeAddSwapDisk _PARAMS((const char *));
 static int storeCheckExpired _PARAMS((const StoreEntry *));
 static int storeCheckPurgeMem _PARAMS((const StoreEntry *));
@@ -204,8 +205,8 @@ static int store_pages_low = 0;
 /* current file name, swap file, use number as a filename */
 static int swapfileno = 0;
 static int store_swap_size = 0;	/* kilobytes !! */
-static unsigned long store_swap_high = 0;
-static unsigned long store_swap_low = 0;
+static int store_swap_high = 0;
+static int store_swap_low = 0;
 static int swaplog_fd = -1;
 static int storelog_fd = -1;
 
@@ -224,6 +225,7 @@ static int store_buckets;
 int store_maintain_rate;
 static int store_maintain_buckets;
 int scan_revolutions;
+static unsigned int *MaintBucketsOrder;
 
 static MemObject *
 new_MemObject(void)
@@ -757,9 +759,9 @@ storeDoneWriting(StoreEntry * e)
     if (e->store_status == STORE_PENDING)
 	return 0;
 /*
-    if (e->store_status == STORE_ABORTED)
-	return 1;
-*/
+ * if (e->store_status == STORE_ABORTED)
+ * return 1;
+ */
     if (e->object_len < e->mem_obj->swap_length)
 	return 0;
     return 1;
@@ -1218,7 +1220,7 @@ storeAbort(StoreEntry * e)
     storeReleaseRequest(e);
     InvokeHandlers(e);
     if (storeDoneWriting(e))
-        storeUnlockObject(e);
+	storeUnlockObject(e);
 }
 
 /* Complete transfer into the local cache.  */
@@ -1284,6 +1286,18 @@ compareLastRef(StoreEntry ** e1, StoreEntry ** e2)
     if ((*e1)->lastref < (*e2)->lastref)
 	return (-1);
     return (0);
+}
+
+static int
+compareRandom(int *a, int *b)
+{
+#if HAVE_RANDOM
+    return random() - random();
+#elif HAVE_LRAND48
+    return lrand48() - lrand48();
+#else
+    return rand() - rand();
+#endif
 }
 
 /* returns the bucket number to work on,
@@ -1732,6 +1746,13 @@ storeInitHashValues(void)
     else
 	store_buckets = 65357, store_maintain_rate = 1;
     store_maintain_buckets = 1;
+    MaintBucketsOrder = xcalloc(store_buckets, sizeof(unsigned int));
+    for (i = 0; i < store_buckets; i++)
+	*(MaintBucketsOrder + i) = (unsigned int) i;
+    qsort((char *) MaintBucketsOrder,
+	store_buckets,
+	sizeof(unsigned int),
+	    (QS) compareRandom);
     debug(20, 1, "Using %d Store buckets, maintain %d bucket%s every %d second%s\n",
 	store_buckets,
 	store_maintain_buckets,
@@ -1849,11 +1870,12 @@ void
 storeMaintainSwapSpace(void *unused)
 {
     static time_t last_time = 0;
-    static unsigned int bucket = 0;
+    static int bucket_index = 0;
+    static unsigned int bucket;
     hash_link *link_ptr = NULL, *next = NULL;
     StoreEntry *e = NULL;
     int rm_obj = 0;
-    int scan_buckets;
+    int scan_buckets = 0;
     int scan_obj = 0;
 
     eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 1);
@@ -1863,16 +1885,21 @@ storeMaintainSwapSpace(void *unused)
 
     /* Purges expired objects, check one bucket on each calling */
     if (squid_curtime - last_time >= store_maintain_rate) {
-	for (scan_buckets = store_maintain_buckets; scan_buckets > 0;
-	    scan_buckets--) {
+	for (;;) {
+	    if (scan_obj && scan_buckets >= store_maintain_buckets)
+		break;
+	    if (++scan_buckets > 100)
+		break;
 	    last_time = squid_curtime;
-	    if (bucket >= store_buckets) {
-		bucket = 0;
+	    if (bucket_index >= store_buckets) {
+		bucket_index = 0;
 		scan_revolutions++;
 		debug(20, 1, "Completed %d full expiration scans of store table\n",
 		    scan_revolutions);
 	    }
-	    next = hash_get_bucket(store_table, bucket++);
+	    bucket = *(MaintBucketsOrder + bucket_index);
+	    bucket_index++;
+	    next = hash_get_bucket(store_table, bucket);
 	    while ((link_ptr = next)) {
 		scan_obj++;
 		next = link_ptr->next;
@@ -1883,7 +1910,8 @@ storeMaintainSwapSpace(void *unused)
 	    }
 	}
     }
-    debug(20, rm_obj ? 1 : 2, "Scanned %d objects, Removed %d expired objects\n", scan_obj, rm_obj);
+    debug(20, rm_obj ? 1 : 2, "Removed %d of %d objects from bucket %d\n",
+	rm_obj, scan_obj, (int) bucket);
     /* Scan row of hash table each second and free storage if we're
      * over the high-water mark */
     storeGetSwapSpace(0);
@@ -2003,6 +2031,7 @@ storeRotateLog(void)
     int i;
     LOCAL_ARRAY(char, from, MAXPATHLEN);
     LOCAL_ARRAY(char, to, MAXPATHLEN);
+    struct stat sb;
 
     if (storelog_fd > -1) {
 	file_close(storelog_fd);
@@ -2010,9 +2039,11 @@ storeRotateLog(void)
     }
     if ((fname = Config.Log.store) == NULL)
 	return;
-
     if (strcmp(fname, "none") == 0)
 	return;
+    if (stat(fname, &sb) == 0)
+	if (S_ISREG(sb.st_mode) == 0)
+	    return;
 
     debug(20, 1, "storeRotateLog: Rotating.\n");
 
@@ -2064,13 +2095,45 @@ storeCheckPurgeMem(const StoreEntry * e)
 static int
 storeCheckExpired(const StoreEntry * e)
 {
+    time_t max_age = storeExpiredReferenceAge();
     if (storeEntryLocked(e))
 	return 0;
     if (BIT_TEST(e->flag, ENTRY_NEGCACHED) && squid_curtime >= e->expires)
 	return 1;
-    if (Config.referenceAge && squid_curtime - e->lastref > Config.referenceAge)
+    if (max_age <= 0)
+	return 0;
+    if (squid_curtime - e->lastref > max_age)
 	return 1;
     return 0;
+}
+
+/* 
+ * storeExpiredReferenceAge
+ *
+ * The LRU age is scaled exponentially between 1 minute and 1 year, when
+ * store_swap_low < store_swap_size < store_swap_high.  This keeps
+ * store_swap_size within the low and high water marks.  If the cache is
+ * very busy then store_swap_size stays closer to the low water mark, if
+ * it is not busy, then it will stay near the high water mark.  The LRU
+ * age value can be examined on the cachemgr 'info' page.
+ */
+time_t
+storeExpiredReferenceAge(void)
+{
+    double x;
+    double z;
+    time_t age;
+    if (Config.referenceAge != 0)
+	return Config.referenceAge;
+    x = 2.0 * (store_swap_high - store_swap_size) / (store_swap_high - store_swap_low);
+    x = x < 0.0 ? 0.0 : x > 2.0 ? 2.0 : x;
+    z = pow(724.0, x);		/* minutes [1:525600] */
+    age = (time_t) (z * 60.0);
+    if (age < 60)
+	age = 60;
+    else if (age > 31536000)
+	age = 31536000;
+    return age;
 }
 
 void
@@ -2107,6 +2170,7 @@ storeFreeMemory(void)
 	destroy_StoreEntry(*(list + j));
     xfree(list);
     hashFreeMemory(store_table);
+    safe_free(MaintBucketsOrder);
 }
 
 int

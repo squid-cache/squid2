@@ -281,7 +281,7 @@ getDefaultParent(request_t * request)
 	    continue;
 	if (neighborType(e, request) != EDGE_PARENT)
 	    continue;
-	if (!BIT_SET(e->options, NEIGHBOR_DEFAULT_PARENT))
+	if (!BIT_TEST(e->options, NEIGHBOR_DEFAULT_PARENT))
 	    continue;
 	if (!edgeWouldBePinged(e, request))
 	    continue;

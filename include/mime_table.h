@@ -1,6 +1,5 @@
-
-#define EXT_TABLE_LEN 91
-static const ext_table_entry ext_mime_table[] =
+#define EXT_TABLE_LEN 92
+static ext_table_entry ext_mime_table[] =
 {
     {"Z", "application/x-compressed", "x-compress", "binary"},
     {"ai", "application/postscript", "8bit", "text"},
@@ -66,6 +65,7 @@ static const ext_table_entry ext_mime_table[] =
     {"ras", "image/cmu-raster", "binary", "image"},
     {"rgb", "image/x-rgb", "binary", "image"},
     {"roff", "application/x-troff", "7bit", "text"},
+    {"rpm", "application/x-rpm", "binary", "binary"},
     {"rtf", "application/x-rtf", "7bit", "binary"},
     {"rtx", "text/richtext", "7bit", "text"},
     {"sh", "application/x-sh", "7bit", "text"},
