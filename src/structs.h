@@ -1373,7 +1373,7 @@ struct _iostats {
 };
 
 struct _mem_node {
-    char *data;
+    char data[SM_PAGE_SIZE];
     int len;
     mem_node *next;
 };
