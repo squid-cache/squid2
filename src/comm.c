@@ -1438,10 +1438,15 @@ comm_write_mbuf(int fd, MemBuf mb, CWCB * handler, void *handler_data)
     comm_write(fd, mb.buf, mb.size, handler, handler_data, memBufFreeFunc(&mb));
 }
 
+/*
+ * hm, this might be too general-purpose for all the places we'd
+ * like to use it.
+ */
 int
 ignoreErrno(int ierrno)
 {
     switch (ierrno) {
+    case EINPROGRESS:
     case EWOULDBLOCK:
 #if EAGAIN != EWOULDBLOCK
     case EAGAIN:
