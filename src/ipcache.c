@@ -686,8 +686,7 @@ ipcache_nbgethostbyname(const char *name, int fd, IPH handler, void *handlerData
 	ipcacheAddPending(i, fd, handler, handlerData);
         if (squid_curtime - i->expires > 60) {
 	    i->status = IP_NEGATIVE_CACHED;
-	    ipcache_call_pending(i);
-	    ipcache_release(i);
+	    ipcache_call_pending(i);	/* will also release it */
 	}
 	return;
     } else {
