@@ -1351,10 +1351,21 @@ DOC_START
 	used.
 
 	"nonce_strictness" on|off
-	Determines if squid requires increment-by-1 behaviour for
-	nonce counts (on - the default), or strictly incrementing
-	(off - for use when useragents generate nonce counts that
-	occasionally miss 1 (ie, 1,2,4,6)).
+	Determines if squid requires strict increment-by-1 behaviour
+	for nonce counts, or just incrementing (off - for use when
+	useragents generate nonce counts that occasionally miss 1
+	(ie, 1,2,4,6)). Default off.
+
+	"check_nonce_count" on|off
+	This directive if set to off can disable the nonce count check
+	completely to work around buggy digest qop implementations in
+	certain mainstream browser versions. Default on to check the
+	nonce count to protect from authentication replay attacks.
+
+	"post_workaround" on|off
+	This is a workaround to certain buggy browsers who sends
+	an incorrect request digest in POST requests when reusing
+	the same nonce as aquired earlier on a GET request.
 
 	=== NTLM scheme options follow ===
 

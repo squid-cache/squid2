@@ -538,6 +538,12 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
 	    conn, headertype);
 	switch (authenticateDirection(*auth_user_request)) {
 	case 1:
+	    if (!request->auth_user_request) {
+		/* lock the user for the request structure link */
+		authenticateAuthUserRequestLock(*auth_user_request);
+		request->auth_user_request = *auth_user_request;
+	    }
+	    /* fallthrough to -2 */
 	case -2:
 	    /* this ACL check is finished. Unlock. */
 	    authenticateAuthUserRequestUnlock(*auth_user_request);
