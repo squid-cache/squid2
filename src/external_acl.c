@@ -501,7 +501,7 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	    str = ch->rfc931;
 	    if (!str) {
 		ch->state[ACL_IDENT] = ACL_LOOKUP_NEEDED;
-		goto error;
+		return NULL;
 	    }
 	    break;
 #endif
@@ -559,8 +559,6 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	first = 0;
     }
     return mb.buf;
-  error:
-    return NULL;
 }
 
 static int
