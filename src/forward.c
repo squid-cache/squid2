@@ -83,6 +83,7 @@ fwdStateFree(FwdState * fwdState)
 	    assert(fwdState->err);
 	    errorAppendEntry(e, fwdState->err);
 	} else {
+	    EBIT_CLR(e->flags, ENTRY_FWD_HDR_WAIT);
 	    storeComplete(e);
     	    storeReleaseRequest(e);
 	}
