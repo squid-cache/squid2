@@ -208,7 +208,7 @@ wccpHandleUdp(int sock, void *not_used)
 {
     struct sockaddr_in from;
     socklen_t from_len;
-    size_t len;
+    int len;
 
     debug(80, 6) ("wccpHandleUdp: Called.\n");
 
