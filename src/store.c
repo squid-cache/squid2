@@ -399,6 +399,7 @@ storeAppend(StoreEntry * e, const char *buf, int len)
     MemObject *mem = e->mem_obj;
     assert(mem != NULL);
     assert(len >= 0);
+    assert(e->store_status == STORE_PENDING);
     if (len) {
 	debug(20, 5) ("storeAppend: appending %d bytes for '%s'\n",
 	    len,
@@ -597,6 +598,7 @@ storeAbort(StoreEntry * e, int cbflag)
     storeSetMemStatus(e, NOT_IN_MEMORY);
     /* No DISK swap for negative cached object */
     e->swap_status = SWAPOUT_NONE;
+    e->store_status = STORE_OK;
     /*
      * We assign an object length here.  The only other place we assign
      * the object length is in storeComplete()
