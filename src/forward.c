@@ -372,3 +372,15 @@ fwdAbort(void *data)
 	debug(17,1)("fwdAbort: %s\n", storeUrl(fwdState->entry));
         fwdStateFree(fwdState);
 }
+
+/*
+ * Frees fwdState without closing FD or generating an abort
+ */
+void
+fwdUnregister(int fd, FwdState *fwdState)
+{
+	assert(fd = fwdState->server_fd);
+	comm_remove_close_handler(fd, fwdServerClosed, fwdState);
+	fwdState->server_fd = -1;
+	fwdStateFree(fwdState);
+}

@@ -504,6 +504,7 @@ httpReadReply(int fd, void *data)
 	    commSetTimeout(fd, -1, NULL, NULL);
 	    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 	    comm_remove_close_handler(fd, httpStateFree, httpState);
+	    fwdUnregister(fd, httpState->fwdState);
 	    storeComplete(entry);	/* deallocates mem_obj->request */
 	    pconnPush(fd, request->host, request->port);
 	    httpState->fd = -1;
