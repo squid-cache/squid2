@@ -682,10 +682,12 @@ parse_delay_pool_count(delayConfig * cfg)
 	free_delay_pool_count(cfg);
     }
     parse_ushort(&cfg->pools);
-    delayInitDelayData(cfg->pools);
-    cfg->class = xcalloc(cfg->pools, sizeof(u_char));
-    cfg->rates = xcalloc(cfg->pools, sizeof(delaySpecSet *));
-    cfg->access = xcalloc(cfg->pools, sizeof(acl_access *));
+    if (cfg->pools) {
+	delayInitDelayData(cfg->pools);
+	cfg->class = xcalloc(cfg->pools, sizeof(u_char));
+	cfg->rates = xcalloc(cfg->pools, sizeof(delaySpecSet *));
+	cfg->access = xcalloc(cfg->pools, sizeof(acl_access *));
+    }
 }
 
 static void
