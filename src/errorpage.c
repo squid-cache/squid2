@@ -393,14 +393,14 @@ errorConvert(char token, ErrorState * err)
 	if (err->ftp.request)
 	    p = err->ftp.request;
 	else
-	    p = "<none>";
+	    p = "nothing";
 	break;
     case 'F':
 	/* FTP REPLY LINE */
 	if (err->ftp.request)
 	    p = err->ftp.reply;
 	else
-	    p = "<none>";
+	    p = "nothing";
 	break;
     case 'g':
 	/* FTP SERVER MESSAGE */
