@@ -31,7 +31,7 @@
 
 #include "squid.h"
 #include "mib_module.h"		/*
-				 * * * * * #include "snmp_config.h"
+				 * * * * * * * * * * #include "snmp_config.h"
 				 */
 #ifdef SQUID_SNMP
 extern void sprint_objid();
@@ -470,16 +470,13 @@ snmpHandleUdp(int sock, void *not_used)
     LOCAL_ARRAY(char, buf, SNMP_REQUEST_SIZE);
     LOCAL_ARRAY(char, outbuf, SNMP_REQUEST_SIZE);
     LOCAL_ARRAY(char, deb_line, 4096);
-
-    int len, outlen;
+    int len
+    int outlen;
+    int x;
     snmp_dump_packet = 1;
-
     debug(49, 5) ("snmpHandleUdp: Initialized.\n");
-
     commSetSelect(sock, COMM_SELECT_READ, (PF *) snmpHandleUdp, NULL, 0);
-
     debug(49, 5) ("snmpHandleUdp: got past select\n");
-
     from_len = sizeof(from);
     memset(&from, '\0', from_len);
     len = recvfrom(sock,
@@ -502,7 +499,6 @@ snmpHandleUdp(int sock, void *not_used)
     }
     if (snmp_dump_packet) {
 	int count;
-
 	debug(49, 5) ("received %d bytes from %s:\n", (int) len,
 	    inet_ntoa(from.sin_addr));
 	for (count = 0; count < len; count++) {
@@ -518,10 +514,8 @@ snmpHandleUdp(int sock, void *not_used)
 	sock,
 	len,
 	inet_ntoa(from.sin_addr));
-
     errstat = snmp_agent_parse(buf, len, outbuf, &outlen,
 	(u_long) (from.sin_addr.s_addr), (long *) (&this_reqid));
-
     if (memcmp(&from, &local_snmpd, sizeof(from)) == 0) {
 	/* look it up */
 	if (snmpFwd_removePending(&from, this_reqid)) {		/* failed */
@@ -531,14 +525,17 @@ snmpHandleUdp(int sock, void *not_used)
     }
     switch (errstat) {
     case 2:			/* we might have to forward */
-
 	if (Config.Snmp.localPort > 0) {
 	    snmpFwd_insertPending(&from, this_reqid);
 #ifdef SNMP_DIRECT
-	    if (comm_udp_sendto(sock, &local_snmpd,
-		    sizeof(struct sockaddr_in), outbuf, outlen) < 0)
-		            debug(49, 4) ("snmp could not deliver packet to %s",
-		    inet_ntoa   (local_snmpd.sin_addr));
+	    x = comm_udp_sendto(sock,
+		&local_snmpd,
+		sizeof(struct sockaddr_in),
+		outbuf,
+		outlen);
+	    if (x < 0)
+		debug(49, 4) ("snmp could not deliver packet to %s\n",
+		    inet_ntoa(local_snmpd.sin_addr));
 #else
 	    snmpUdpSend(sock, &local_snmpd, outbuf, outlen);
 #endif
@@ -546,14 +543,10 @@ snmpHandleUdp(int sock, void *not_used)
 	}
 	debug(49, 4) ("snmp: can't forward.\n");
 	break;
-
     case 1:			/* everything is ok */
-
 	debug(49, 5) ("snmp: parsed.\n");
-
 	if (snmp_dump_packet) {
 	    int count;
-
 	    debug(49, 5) ("snmp: sent %d bytes to %s\n", (int) outlen,
 		inet_ntoa(from.sin_addr));
 	    for (count = 0; count < outlen; count++) {
@@ -562,23 +555,25 @@ snmpHandleUdp(int sock, void *not_used)
 		    debug(49, 7) ("\n");
 	    }
 	    debug(49, 5) ("\n\n");
-	}			/* do queueing stuff */
-#pifdef SNMP_DIRECT
-	if (comm_udp_sendto(sock, &from,
-		sizeof(struct sockaddr_in),
-		outbuf, outlen) < 0)
-	                debug(49, 4) ("snmp could not deliver");
+	}
+#ifdef SNMP_DIRECT
+	x = comm_udp_sendto(sock,
+	    &from,
+	    sizeof(struct sockaddr_in),
+	    outbuf,
+	    outlen);
+	if (x < 0)
+	    debug(49, 4) ("snmp could not deliver\n");
 #else
-snmpUdpSend(sock, &from, outbuf, outlen);
+	snmpUdpSend(sock, &from, outbuf, outlen);
 #endif
-break;
+	break;
     case 0:
-debug(49, 5) ("snmpagentparse failed\n");
-break;
+	debug(49, 5) ("snmpagentparse failed\n");
+	break;
+    }
+    return;
 }
-return;
-}
-
 
 void
 init_snmp()
