@@ -426,6 +426,8 @@ netdbReloadState(void)
 	    continue;
 	if (!safe_inet_addr(t, &addr))
 	    continue;
+        if (netdbLookupAddr(addr) != NULL)	/* no dups! */
+	    continue;
 	if ((t = strtok(NULL, w_space)) == NULL)
 	    continue;
 	N.pings_sent = atoi(t);
@@ -452,8 +454,11 @@ netdbReloadState(void)
 	n = xcalloc(1, sizeof(netdbEntry));
 	memcpy(n, &N, sizeof(netdbEntry));
 	netdbHashInsert(n, addr);
-	while ((t = strtok(NULL, w_space)) != NULL)
+	while ((t = strtok(NULL, w_space)) != NULL) {
+	    if (netdbLookupHost(t) != NULL)	/* no dups! */
+		continue;
 	    netdbHostInsert(n, t);
+	}
 	count++;
     }
     put_free_4k_page(buf);
