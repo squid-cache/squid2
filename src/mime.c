@@ -427,6 +427,7 @@ mimeLoadIconFile(const char *icon)
     httpHdrCcSetMaxAge(reply->cache_control, 86400);
     httpHeaderPutCc(&reply->header, reply->cache_control);
     httpReplySwapOut(reply, e);
+    reply->hdr_sz = e->mem_obj->inmem_hi;	/* yuk */
     /* read the file into the buffer and append it to store */
     buf = memAllocate(MEM_4K_BUF);
     while ((n = read(fd, buf, 4096)) > 0)
