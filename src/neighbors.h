@@ -28,6 +28,10 @@ typedef enum {
     HIER_MAX
 } hier_code;
 
+typedef enum {
+	EDGE_SIBLING,
+	EDGE_PARENT
+} neighbor_t;
 
 /* Mark a neighbor cache as dead if it doesn't answer this many pings */
 #define HIER_MAX_DEFICIT  20
@@ -42,11 +46,8 @@ typedef struct _dom_list {
 #define RTT_AV_FACTOR      1000
 struct _edge {
     char *host;
+    neighbor_t type;
     struct sockaddr_in in_addr;
-    enum {
-	EDGE_SIBLING,
-	EDGE_PARENT
-    } type;			/* 0 if neighbor, 1 if parent */
     int neighbor_up;		/* 0 if no, 1 if yes */
     struct {
 	int pings_sent;
