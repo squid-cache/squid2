@@ -97,10 +97,10 @@ struct _acl_access {
 };
 
 typedef enum {
-	ACL_LOOKUP_NONE,
-	ACL_LOOKUP_NEED,
-	ACL_LOOKUP_PENDING,
-	ACL_LOOKUP_DONE
+    ACL_LOOKUP_NONE,
+    ACL_LOOKUP_NEED,
+    ACL_LOOKUP_PENDING,
+    ACL_LOOKUP_DONE
 } acl_lookup_state;
 
 struct _aclCheck_t {
