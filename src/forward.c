@@ -318,19 +318,26 @@ fwdStart(int fd, StoreEntry * e, request_t * r, struct in_addr peer_addr)
     aclCheck_t ch;
     int answer;
     ErrorState *err;
-    /*      
-     * Check if this host is allowed to fetch MISSES from us (miss_access)
+    /*
+     * peer_addr == no_addr indicates this is an "internal" request
+     * from peer_digest.c, asn.c, netdb.c, etc and should always
+     * be allowed.  yuck, I know.
      */
-    memset(&ch, '\0', sizeof(aclCheck_t));
-    ch.src_addr = peer_addr;
-    ch.request = r;
-    answer = aclCheckFast(Config.accessList.miss, &ch);
-    if (answer == 0) {
-	err = errorCon(ERR_FORWARDING_DENIED, HTTP_FORBIDDEN);
-	err->request = requestLink(r);
-	err->src_addr = peer_addr;
-	errorAppendEntry(e, err);
-	return;
+    if (peer_addr.s_addr != no_addr.s_addr) {
+	/*      
+	 * Check if this host is allowed to fetch MISSES from us (miss_access)
+	 */
+	memset(&ch, '\0', sizeof(aclCheck_t));
+	ch.src_addr = peer_addr;
+	ch.request = r;
+	answer = aclCheckFast(Config.accessList.miss, &ch);
+	if (answer == 0) {
+	    err = errorCon(ERR_FORWARDING_DENIED, HTTP_FORBIDDEN);
+	    err->request = requestLink(r);
+	    err->src_addr = peer_addr;
+	    errorAppendEntry(e, err);
+	    return;
+	}
     }
     debug(17, 3) ("fwdStart: '%s'\n", storeUrl(e));
     e->mem_obj->request = requestLink(r);
