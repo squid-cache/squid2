@@ -796,8 +796,10 @@ gopherReadReply(int fd, GopherStateData * data)
 	comm_close(fd);
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
 	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
+#if DONT_DO_THIS_FOR_NOVM
 	if (data->conversion != NORMAL)
 	    gopherEndHTML(data);
+#endif
 	BIT_RESET(entry->flag, DELAY_SENDING);
 	comm_close(fd);
     } else if (!storeClientWaiting(entry)) {
