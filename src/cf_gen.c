@@ -77,6 +77,7 @@ enum State {
     sSTART,
     s1,
     sDOC,
+    sNOCOMMENT,
     sEXIT
 };
 
@@ -94,6 +95,7 @@ typedef struct Entry {
     char *comment;
     char *ifdef;
     Line *doc;
+    Line *nocomment;
     struct Entry *next;
 } Entry;
 
@@ -233,11 +235,35 @@ main(int argc, char *argv[])
 		curr->next = entries;
 		entries = curr;
 		state = sSTART;
+	    } else if (!strcmp(buff, "NOCOMMENT_START")) {
+		state = sNOCOMMENT;
 	    } else {
 		Line *line = calloc(1, sizeof(Line));
 		line->data = strdup(buff);
 		line->next = curr->doc;
 		curr->doc = line;
+	    }
+	    break;
+
+	case sNOCOMMENT:
+	    if (!strcmp(buff, "NOCOMMENT_END")) {
+		Line *head = NULL;
+		Line *line = curr->nocomment;
+		/* reverse order of lines */
+		while (line != NULL) {
+		    Line *tmp;
+		    tmp = line->next;
+		    line->next = head;
+		    head = line;
+		    line = tmp;
+		}
+		curr->nocomment = head;
+		state = sDOC;
+	    } else {
+		Line *line = calloc(1, sizeof(Line));
+		line->data = strdup(buff);
+		line->next = curr->nocomment;
+		curr->nocomment = line;
 	    }
 	    break;
 
@@ -331,6 +357,7 @@ gen_default(Entry * head, FILE * fp)
 	);
     for (entry = head; entry != NULL; entry = entry->next) {
 	assert(entry->name);
+	assert(entry != entry->next);
 
 	if (!strcmp(entry->name, "comment"))
 	    continue;
@@ -501,13 +528,18 @@ gen_conf(Entry * head, FILE * fp)
     for (entry = head; entry != NULL; entry = entry->next) {
 	Line *line;
 
-	if (strcmp(entry->name, "comment"))
+	if (!strcmp(entry->name, "comment"))
+	    (void) 0;
+	else
 	    fprintf(fp, "#  TAG: %s", entry->name);
 	if (entry->comment)
 	    fprintf(fp, "\t%s", entry->comment);
 	fprintf(fp, "\n");
 	for (line = entry->doc; line != NULL; line = line->next) {
 	    fprintf(fp, "#%s\n", line->data);
+	}
+	for (line = entry->nocomment; line != NULL; line = line->next) {
+	    fprintf(fp, "%s\n", line->data);
 	}
 	if (entry->doc != NULL) {
 	    fprintf(fp, "\n");

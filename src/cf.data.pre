@@ -1393,14 +1393,19 @@ DOC_START
 	  # needed during ACL checking the username is NOT logged
 	  # in access.log.
 
+Examples:
+acl myexample dst_as 1241
+acl password proxy_auth 300
+
+Defaults:
+NOCOMMENT_START
+acl all src 0.0.0.0/0.0.0.0
 acl manager proto cache_object
 acl localhost src 127.0.0.1/255.255.255.255
-acl all src 0.0.0.0/0.0.0.0
-acl myexample dst_as 1241
 acl SSL_ports port 443 563
 acl Safe_ports port 80 21 70 1025-65535
 acl CONNECT method CONNECT
-acl password proxy_auth 300
+NOCOMMENT_END
 DOC_END
 
 NAME: http_access
@@ -1428,14 +1433,17 @@ DOC_START
 	good idea to have an "deny all" or "allow all" entry at the end
 	of your access lists to avoid potential confusion.
 
-
-	Only allow access to the cache manager functions from the local host.
-http_access deny manager !localhost
-http_access deny CONNECT !SSL_ports
+Default configuration:
+NOCOMMENT_START
+http_access allow manager localhost
+http_access deny manager
 http_access deny !Safe_ports
-
-	Allow everything else
-http_access allow  all
+http_access deny CONNECT !SSL_ports
+#
+# INSERT YOUR OWN RULE(S) HERE TO ALLOW ACCESS FROM YOUR CLIENTS
+#
+http_access deny all
+NOCOMMENT_END
 DOC_END
 
 
@@ -1446,7 +1454,9 @@ DEFAULT: none
 DOC_START
 	Reply to all ICP queries we receive
 
-icp_access  allow  all
+NOCOMMENT_START
+icp_access allow all
+NOCOMMENT_END
 DOC_END
 
 
@@ -1467,8 +1477,9 @@ DOC_START
 
 	By default, allow all clients who passed the http_access rules
 	to fetch MISSES from us.
-
-miss_access allow  all
+NOCOMMENT_START
+miss_access allow all
+NOCOMMENT_END
 DOC_END
 
 
