@@ -236,7 +236,7 @@ peerDigestRequest(peer * p)
     assert(p);
     EBIT_SET(p->digest.flags, PD_REQUESTED);
     /* compute future request components */
-    url = internalRemoteUri(p->host, p->http_port, "", StoreDigestUrlPath);
+    url = internalRemoteUri(p->host, p->http_port, "/squid-internal-periodic/", StoreDigestUrlPath);
     key = storeKeyPublic(url, METHOD_GET);
     debug(72, 2) ("peerDigestRequest: %s key: %s\n", url, storeKeyText(key));
     req = requestLink(urlParse(METHOD_GET, url));
