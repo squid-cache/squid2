@@ -92,7 +92,7 @@ whoisReadReply(int fd, void *data)
     MemObject *mem = entry->mem_obj;
     int len;
     statCounter.syscalls.sock.reads++;
-    len = read(fd, buf, 4095);
+    len = FD_READ_METHOD(fd, buf, 4095);
     buf[len] = '\0';
     debug(75, 3) ("whoisReadReply: FD %d read %d bytes\n", fd, len);
     debug(75, 5) ("{%s}\n", buf);

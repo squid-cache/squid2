@@ -280,6 +280,18 @@
  */
 #undef mtyp_t
 
+/*
+ * Define this to include code for SSL encryption.
+ */
+#undef USE_SSL
+
+/*
+ * Define this to make use of the OpenSSL libraries for
+ * MD5 calculation rather than Squid's own MD5 implementation
+ * or if building with SSL encryption (USE_SSL)
+ */
+#undef USE_OPENSSL
+
 /* Define if you want to set the COSS membuf size */
 #undef COSS_MEMBUF_SZ
 

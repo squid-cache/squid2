@@ -589,7 +589,7 @@ writePidFile(void)
 	return;
     }
     snprintf(buf, 32, "%d\n", (int) getpid());
-    write(fd, buf, strlen(buf));
+    FD_WRITE_METHOD(fd, buf, strlen(buf));
     file_close(fd);
 }
 

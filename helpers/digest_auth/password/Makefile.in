@@ -45,11 +45,11 @@ XTRA_OBJS 	= @XTRA_OBJS@
 MV		= @MV@
 RM		= @RM@
 SHELL		= /bin/sh
-
+SSLLIB		= @SSLLIB@
 
 INCLUDE		= -I. -I../../../../../include -I$(top_srcdir)/include
 CFLAGS 		= $(AC_CFLAGS) $(INCLUDE) $(DEFINES)
-AUTH_LIBS	= -L../../../../../lib -lmiscutil $(CRYPTLIB) $(XTRA_LIBS)
+AUTH_LIBS	= -L../../../../../lib -lmiscutil $(CRYPTLIB) $(XTRA_LIBS) $(SSLLIB)
 
 PROGS           = $(DIGEST_PW_AUTH_EXE)
 OBJS	 	= digest_pw_auth.o

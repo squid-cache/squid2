@@ -32,6 +32,7 @@
 
 #include "config.h"
 
+#if !USE_OPENSSL
 /*
  * Only compile md5.c if we need it.  Its needed for MD5 store keys
  * and by the SNMP routines.
@@ -360,3 +361,5 @@ MD5_memset(char *output, int value, unsigned int len)
 }
 
 #endif
+
+#endif /* USE_OPENSSL */

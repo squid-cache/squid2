@@ -612,7 +612,7 @@ gopherReadReply(int fd, void *data)
 #endif
     /* leave one space for \0 in gopherToHTML */
     statCounter.syscalls.sock.reads++;
-    len = read(fd, buf, read_sz);
+    len = FD_READ_METHOD(fd, buf, read_sz);
     if (len > 0) {
 	fd_bytes(fd, len, FD_READ);
 #if DELAY_POOLS

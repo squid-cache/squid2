@@ -177,7 +177,7 @@ errorTryLoadText(const char *page_name, const char *dir)
 	return NULL;
     }
     text = xcalloc(sb.st_size + 2 + 1, 1);	/* 2 == space for %S */
-    if (read(fd, text, sb.st_size) != sb.st_size) {
+    if (FD_READ_METHOD(fd, text, sb.st_size) != sb.st_size) {
 	debug(4, 0) ("errorTryLoadText: failed to fully read: '%s': %s\n",
 	    path, xstrerror());
 	xfree(text);

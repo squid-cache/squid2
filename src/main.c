@@ -519,6 +519,10 @@ mainInitialize(void)
 #if USE_WCCP
     wccpInit();
 #endif
+#if USE_SSL
+    if (Config.Sockaddr.https)
+	sslInit(Config.SSL.certificate, Config.SSL.key);
+#endif
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0) {
 	if (!Config2.Accel.on || Config.onoff.accel_with_proxy)

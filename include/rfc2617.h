@@ -49,7 +49,6 @@
 
 #ifndef RFC2617_H
 #define RFC2617_H
-#include "md5.h"
 
 #define HASHLEN 16
 typedef char HASH[HASHLEN];
