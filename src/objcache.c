@@ -362,7 +362,6 @@ objcacheStart(int fd, const char *url, StoreEntry * entry)
 	break;
     case MGR_CONFIG:
 	HTTPCacheInfo->parameter_get(HTTPCacheInfo, entry);
-	complete_flag = 0;
 	break;
     case MGR_SERVER_LIST:
 	HTTPCacheInfo->server_list(HTTPCacheInfo, entry);
@@ -372,6 +371,7 @@ objcacheStart(int fd, const char *url, StoreEntry * entry)
 	break;
     case MGR_CONFIG_FILE:
 	HTTPCacheInfo->squid_get_start(HTTPCacheInfo, entry);
+	complete_flag = 0;
 	break;
     default:
 	debug(16, 5, "Bad Object Cache URL %s ... negative cached.\n", url);
@@ -435,7 +435,7 @@ objcachePasswdGet(cachemgr_passwd ** a, objcache_op op)
 {
     cachemgr_passwd *b;
     for (b = *a; b; b = b->next) {
-	if (b->actions & op)
+	if (b->actions & (1 << op))
 	    return b->passwd;
     }
     return NULL;
