@@ -2794,6 +2794,11 @@ clientHttpConnectionsOpen(void)
     sockaddr_in_list *s;
     int fd;
     for (s = Config.Sockaddr.http; s; s = s->next) {
+	if (MAXHTTPPORTS == NHttpSockets) {
+	    debug(1, 1) ("WARNING: You have too many 'http_port' lines.\n");
+	    debug(1, 1) ("         The limit is %d\n", MAXHTTPPORTS);
+	    continue;
+	}
 	enter_suid();
 	fd = comm_open(SOCK_STREAM,
 	    0,
