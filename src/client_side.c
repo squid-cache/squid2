@@ -545,7 +545,12 @@ icpHandleIMSReply(int fd, void *data)
 	    fatal_dump("icpHandleIMSReply: storeOpenSwapFileRead() failed\n");
     }
     icpState->old_entry = NULL;	/* done with old_entry */
-    icpSendMoreData(fd, icpState);	/* give data to the client */
+    storeRegister(icpState->entry,
+	fd,
+	icpSendMoreData,
+	icpState,
+	icpState->out.offset);
+
 }
 
 int
