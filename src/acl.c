@@ -173,8 +173,7 @@ wordlist *aclParseWordList()
 
 
 
-void aclParseAclLine(line_in)
-     char *line_in;
+void aclParseAclLine()
 {
     /* we're already using strtok() to grok the line */
     char *t = NULL;
@@ -223,13 +222,12 @@ void aclParseAclLine(line_in)
 	return;
 	break;
     }
-    A->cfgline = xstrdup(line_in);
+    A->cfgline = xstrdup(config_input_line);
     *AclListTail = A;
     AclListTail = &A->next;
 }
 
-void aclParseAccessLine(line_in)
-     char *line_in;
+void aclParseAccessLine()
 {
     char *t = NULL;
     struct _acl_access *A = NULL;
@@ -278,11 +276,11 @@ void aclParseAccessLine(line_in)
     }
     if (A->acl_list == NULL) {
 	debug(28, 0, "aclParseAccessLine: Access line contains no ACL's, skipping\n");
-	debug(28, 0, "aclParseAccessLine: '%s'\n", line_in);
+	debug(28, 0, "aclParseAccessLine: '%s'\n", config_input_line);
 	xfree(A);
 	return;
     }
-    A->cfgline = xstrdup(line_in);
+    A->cfgline = xstrdup(config_input_line);
     *AccessListTail = A;
     AccessListTail = &A->next;
 }

@@ -43,6 +43,8 @@ extern wordlist *bind_addr_list;
 extern ip_acl *proxy_ip_acl;
 extern ip_acl *accel_ip_acl;
 extern ip_acl *manager_ip_acl;
+extern char config_input_line[];
+extern int conifg_lineno;
 
 
 /* cache_cf.c */
@@ -53,6 +55,7 @@ extern char *getAppendDomain _PARAMS((void));
 extern char *getCacheLogFile _PARAMS((void));
 extern char *getDebugOptions _PARAMS((void));
 extern char *getDnsProgram _PARAMS((void));
+extern int getDnsChildren _PARAMS((void));
 extern char *getEffectiveGroup _PARAMS((void));
 extern char *getEffectiveUser _PARAMS((void));
 extern char *getFtpOptions _PARAMS((void));

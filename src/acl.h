@@ -62,6 +62,6 @@ struct _acl_access {
     struct _acl_access *next;
 };
 
-extern void aclParseAclLine _PARAMS((char *));
-extern void aclParseAccessLine _PARAMS((char *));
+extern void aclParseAclLine _PARAMS(());
+extern void aclParseAccessLine _PARAMS(());
 extern int aclCheck _PARAMS((struct in_addr, protocol_t, char *, int, char *));
