@@ -52,7 +52,8 @@ AC_PROG_CC
 case "$host" in
     alpha-dec-osf*)
 	if test "$ac_cv_prog_CC" = "cc" ; then
-		ac_cv_prog_CC="cc -std1";
+		CC="cc -std1";
+		ac_cv_prog_CC="$CC"
 	fi
 	;;
 esac
