@@ -258,6 +258,7 @@ httpRequestFree(void *data)
     icpProcessRequestControl(http, ICP_OP_DEL);
     if (!icpCheckTransferDone(http)) {
 	CheckQuickAbort(http);
+	entry = http->entry;	/* reset, IMS might have changed it */
 	if (entry) {
 	    if (entry->ping_status == PING_WAITING)
 		storeReleaseRequest(entry);
