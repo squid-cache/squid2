@@ -75,7 +75,7 @@ httpMsgIsolateHeaders(const char **parse_start, const char **blk_start, const ch
      */
     *blk_start = *parse_start;
     *blk_end = *blk_start;
-    for (nnl = 0; nnl == 0; *parse_start++) {
+    for (nnl = 0; nnl == 0; (*parse_start)++) {
 	if (**parse_start == '\r')
 	    (void) 0;
 	else if (**parse_start == '\n')
