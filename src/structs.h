@@ -378,7 +378,6 @@ struct _SquidConfig {
     } Netdb;
     struct {
 	int log_udp;
-	int enable_purge;
 	int res_defnames;
 	int anonymizer;
 	int client_db;
@@ -492,6 +491,9 @@ struct _SquidConfig2 {
 	char *prefix;
 	int on;
     } Accel;
+    struct {
+	int enable_purge;
+    } onoff;
 };
 
 struct _close_handler {

@@ -62,6 +62,7 @@ extern int aclMatchRegex(relist * data, const char *word);
 extern void aclParseRegexList(void *curlist);
 extern const char *aclTypeToStr(squid_acl);
 extern wordlist *aclDumpGeneric(const acl *);
+extern int aclPurgeMethodInUse(acl_access *);
 
 #if USE_ASYNC_IO
 extern int aio_cancel(aio_result_t *);
@@ -861,7 +862,7 @@ extern HttpReply *storeEntryReply(StoreEntry *);
 extern int storeTooManyDiskFilesOpen(void);
 extern void storeEntryReset(StoreEntry *);
 extern void storeHeapPositionUpdate(StoreEntry *);
-extern void storeSwapFileNumberSet(StoreEntry *e, sfileno filn);
+extern void storeSwapFileNumberSet(StoreEntry * e, sfileno filn);
 
 /* store_io.c */
 extern STOBJOPEN storeOpen;
