@@ -82,7 +82,8 @@ static int theInWccpConnection = -1;
 static int theOutWccpConnection = -1;
 static struct wccp_here_i_am_t wccp_here_i_am;
 static struct wccp_i_see_you_t wccp_i_see_you;
-static int change;
+static int last_change;
+static int last_id;
 static int last_assign_buckets_change;
 static int number_caches;
 static struct in_addr local_ip;
@@ -108,8 +109,10 @@ wccpInit(void)
     wccp_here_i_am.type = htonl(WCCP_HERE_I_AM);
     wccp_here_i_am.version = htonl(Config.Wccp.version);
     wccp_here_i_am.revision = htonl(WCCP_REVISION);
-    change = 0;
+    last_change = 0;
+    last_id = 0;
     last_assign_buckets_change = 0;
+    number_caches = 0;
     if (Config.Wccp.router.s_addr != any_addr.s_addr)
 	if (!eventFind(wccpHereIam, NULL))
 	    eventAdd("wccpHereIam", wccpHereIam, NULL, 5.0, 1);
@@ -244,17 +247,13 @@ wccpHandleUdp(int sock, void *not_used)
 	return;
     if (ntohl(wccp_i_see_you.type) != WCCP_I_SEE_YOU)
 	return;
-    if (ntohl(wccp_i_see_you.number) > WCCP_ACTIVE_CACHES) {
+    if (ntohl(wccp_i_see_you.number) > WCCP_ACTIVE_CACHES || ntohl(wccp_i_see_you.number) < 0) {
 	debug(80, 1) ("Ignoring WCCP_I_SEE_YOU from %s with number of caches set to %d\n",
 	    inet_ntoa(from.sin_addr), (int) ntohl(wccp_i_see_you.number));
 	return;
     }
-    if (ntohl(wccp_i_see_you.number) <= 0) {
-	debug(80, 1) ("Ignoring WCCP_I_SEE_YOU from %s with non-positive number of caches\n",
-	    inet_ntoa(from.sin_addr));
-	return;
-    }
-    if ((0 == change) && (number_caches == ntohl(wccp_i_see_you.number))) {
+    last_id = wccp_i_see_you.id;
+    if ((0 == last_change) && (number_caches == ntohl(wccp_i_see_you.number))) {
 	if (last_assign_buckets_change == wccp_i_see_you.change) {
 	    /*
 	     * After a WCCP_ASSIGN_BUCKET message, the router should
@@ -266,14 +265,14 @@ wccpHandleUdp(int sock, void *not_used)
 	     */
 	    (void) 0;
 	} else {
-	    change = wccp_i_see_you.change;
+	    last_change = wccp_i_see_you.change;
 	    return;
 	}
     }
-    if (change != wccp_i_see_you.change) {
-	change = wccp_i_see_you.change;
+    if (last_change != wccp_i_see_you.change) {
+	last_change = wccp_i_see_you.change;
 	if (wccpLowestIP() && wccp_i_see_you.number) {
-	    last_assign_buckets_change = change;
+	    last_assign_buckets_change = last_change;
 	    wccpAssignBuckets();
 	}
     }
@@ -283,6 +282,7 @@ static int
 wccpLowestIP(void)
 {
     int loop;
+    int found = 0;
     /*
      * We sanity checked wccp_i_see_you.number back in wccpHandleUdp()
      */
@@ -290,8 +290,10 @@ wccpLowestIP(void)
 	assert(loop < WCCP_ACTIVE_CACHES);
 	if (wccp_i_see_you.wccp_cache_entry[loop].ip_addr.s_addr < local_ip.s_addr)
 	    return 0;
+	if (wccp_i_see_you.wccp_cache_entry[loop].ip_addr.s_addr == local_ip.s_addr)
+	    found = 1;
     }
-    return 1;
+    return found;
 }
 
 static void
@@ -299,7 +301,7 @@ wccpHereIam(void *voidnotused)
 {
     debug(80, 6) ("wccpHereIam: Called\n");
 
-    wccp_here_i_am.id = wccp_i_see_you.id;
+    wccp_here_i_am.id = last_id;
     send(theOutWccpConnection,
 	&wccp_here_i_am,
 	sizeof(wccp_here_i_am),
@@ -361,7 +363,7 @@ wccpAssignBuckets(void)
 	buf,
 	wab_len + WCCP_BUCKETS + cache_len,
 	0);
-    change = 0;
+    last_change = 0;
     xfree(buf);
 }
 
