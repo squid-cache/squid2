@@ -289,6 +289,7 @@ idnsParseWIN32Registry(void)
 	break;
     case _WIN_OS_WIN95:
     case _WIN_OS_WIN98:
+    case _WIN_OS_WINME:
 	/* get nameservers from the Windows 9X registry */
 	if (RegOpenKey(HKEY_LOCAL_MACHINE,
 		"SYSTEM\\CurrentControlSet\\Services\\VxD\\MSTCP",

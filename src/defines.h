@@ -296,15 +296,4 @@
 #define O_BINARY 0
 #endif
 
-/* CygWin & Windows NT Port */
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
-#define _WIN_OS_UNKNOWN	0
-#define _WIN_OS_WIN32S	1
-#define _WIN_OS_WIN95	2
-#define _WIN_OS_WIN98	3
-#define _WIN_OS_WINNT	4
-#define _WIN_OS_WIN2K	5
-#define _WIN_OS_WINXP	6
-#endif
-
 #endif /* SQUID_DEFINES_H */
