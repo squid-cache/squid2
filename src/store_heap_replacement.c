@@ -79,8 +79,8 @@ static heap_key
 HeapKeyGen_StoreEntry_GDSF(void *entry, double age)
 {
     StoreEntry *e = entry;
-    double size = e->swap_file_sz ? e->swap_file_sz : 1.0;
-    double tie = (e->lastref > 1) ? (1.0 / e->lastref) : 1;
+    double size = e->swap_file_sz ? (double) e->swap_file_sz : 1.0;
+    double tie = (e->lastref > 1) ? (1.0 / e->lastref) : 1.0;
     return age + ((double) e->refcount / size) - tie;
 }
 
