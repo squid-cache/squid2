@@ -140,7 +140,7 @@ static int malloc_debug_level = 0;
 static void rotate_logs _PARAMS((int));
 static void reconfigure _PARAMS((int));
 static void mainInitialize _PARAMS((void));
-static void mainRenitialize _PARAMS((void));
+static void mainReinitialize _PARAMS((void));
 static void mainMaintenance _PARAMS((void));
 static void usage _PARAMS((void));
 static void mainParseOptions _PARAMS((int, char **));
