@@ -1216,7 +1216,7 @@ var_system(struct variable * vp, oid * name, int *length, int exact,
 	return (u_char *) Config.adminEmail;
     case SYSYSNAME:
 	if (( pp= Config.visibleHostname) == NULL) 
-		pp=getMyHostname();
+		pp=(char *)getMyHostname();
 	*var_len = strlen(pp);
 	return (u_char *) pp;
     case SYSLOCATION:
