@@ -1011,3 +1011,14 @@ static struct hostent *ipcacheCheckNumeric(name)
     strncpy(static_result->h_name, name, MAX_HOST_NAME);
     return static_result;
 }
+
+int ipcacheQueueDrain()
+{
+    ipcache_entry *i;
+    dnsserver_t *dnsData;
+    if (!ipcacheQueueHead)
+	return 0;
+    while ((dnsData = dnsGetFirstAvailable()) && (i = ipcacheDequeue()))
+	ipcache_dnsDispatch(dnsData, i);
+    return 1;
+}
