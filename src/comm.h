@@ -88,7 +88,6 @@ extern struct in_addr *getAddress _PARAMS((char *name));
 extern void comm_set_stall _PARAMS((int, int));
 extern int comm_get_fd_timeout _PARAMS((int fd));
 
-extern time_t cached_curtime;
 extern int RESERVED_FD;
 
 #endif /* COMM_H */
