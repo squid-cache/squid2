@@ -1699,6 +1699,9 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	http->out.offset += rep->hdr_sz;
 	check_size += rep->hdr_sz;
 	httpReplyDestroy(rep);
+#if HEADERS_LOG
+	headersLog(0, 0, http->request->method, rep);
+#endif
 	rep = NULL;
     } else {
 	memBufDefInit(&mb);
@@ -2511,6 +2514,9 @@ clientReadRequest(int fd, void *data)
 		    break;
 		}
 	    }
+#if HEADERS_LOG
+	    headersLog(0, 1, request->method, request);
+#endif
 	    clientAccessCheck(http);
 	    continue;		/* while offset > 0 */
 	} else if (parser_return_code == 0) {

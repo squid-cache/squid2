@@ -393,6 +393,9 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 		httpState->request->host, skew);
     }
     ctx_exit(ctx);
+#if HEADERS_LOG
+    headersLog(1, 0, httpState->request->method, reply);
+#endif
 }
 
 static int

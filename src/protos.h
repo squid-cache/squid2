@@ -41,6 +41,9 @@ extern void hierarchyNote(HierarchyLogEntry *, hier_code, const char *);
 extern void fvdbCountVia(const char *key);
 extern void fvdbCountForw(const char *key);
 #endif
+#if HEADERS_LOG
+extern void headersLog(int cs, int pq, method_t m, void *data);
+#endif
 
 extern aclCheck_t *aclChecklistCreate(const struct _acl_access *,
     request_t *,
