@@ -147,6 +147,7 @@ extern void xxfree(void *);
 
 /* rfc1738.c */
 extern char *rfc1738_escape(const char *);
+void rfc1738_unescape(char *);
 
 #if XMALLOC_STATISTICS
 void malloc_statistics(void (*)(int, int, void *), void *);
