@@ -361,7 +361,6 @@ passStart(int fd, const char *url, request_t * request, size_t * size_ptr)
     ErrorState *err = NULL;
     debug(39, 3) ("passStart: '%s %s'\n",
 	RequestMethodStr[request->method], url);
-
     /* Create socket. */
     sock = comm_open(SOCK_STREAM,
 	0,
@@ -439,7 +438,6 @@ passPeerSelectFail(peer * p, void *data)
 {
     PassStateData *passState = data;
     ErrorState *err;
-
     err = errorCon(ERR_CANNOT_FORWARD, HTTP_SERVICE_UNAVAILABLE);
     err->request = requestLink(passState->request);
     err->callback = passErrorComplete;

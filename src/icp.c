@@ -985,7 +985,6 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     answer = aclCheckFast(Config.accessList.miss, &ch);
     if (answer == 0) {
 	http->al.http.code = HTTP_FORBIDDEN;
-
 	err = errorCon(ERR_CANNOT_FORWARD, HTTP_FORBIDDEN);
 	err->request = requestLink(http->request);
 	err->src_addr = http->conn->peer.sin_addr;
@@ -1007,7 +1006,6 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     storeClientListAdd(entry, http);
     entry->mem_obj->fd = fd;
-
     entry->refcount++;		/* MISS CASE */
     http->entry = entry;
     http->out.offset = 0;
@@ -1055,7 +1053,6 @@ icpUdpReply(int fd, void *data)
 {
     icpUdpData *queue = data;
     int x;
-
     /* Disable handler, in case of errors. */
     commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
     while ((queue = UdpQueueHead)) {
@@ -1069,7 +1066,6 @@ icpUdpReply(int fd, void *data)
 	    sizeof(struct sockaddr_in),
 	    queue->msg,
 	    queue->len);
-
 	if (x < 0) {
 	    if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)
 		break;		/* don't de-queue */
@@ -1098,7 +1094,6 @@ icpCreateMessage(
     icp_common_t *headerp = NULL;
     char *urloffset = NULL;
     int buf_len;
-
     buf_len = sizeof(icp_common_t) + strlen(url) + 1;
     if (opcode == ICP_OP_QUERY)
 	buf_len += sizeof(u_num32);
@@ -1175,7 +1170,6 @@ icpUdpSend(int fd,
     protocol_t proto)
 {
     icpUdpData *data = xcalloc(1, sizeof(icpUdpData));
-
     debug(12, 4) ("icpUdpSend: Queueing %s for %s\n",
 	IcpOpcodeStr[msg->opcode],
 	inet_ntoa(to->sin_addr));
@@ -1247,7 +1241,6 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     icp_common_t *reply;
     int src_rtt = 0;
     u_num32 flags = 0;
-
     header.opcode = headerp->opcode;
     header.version = headerp->version;
     header.length = ntohs(headerp->length);
@@ -1828,13 +1821,11 @@ clientReadRequest(int fd, void *data)
 	    commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
 	    if ((request = urlParse(method, http->url)) == NULL) {
 		debug(12, 5) ("Invalid URL: %s\n", http->url);
-
 		err = errorCon(ERR_INVALID_URL, HTTP_BAD_REQUEST);
 		err->src_addr = conn->peer.sin_addr;
 		err->callback = icpErrorComplete;
 		err->callback_data = http;
 		err->url = xstrdup(http->url);
-
 		http->al.http.code = err->http_status;
 		errorSend(fd, err);
 		safe_free(headers);
@@ -1850,7 +1841,6 @@ clientReadRequest(int fd, void *data)
 		err->callback = icpErrorComplete;
 		err->callback_data = http;
 		err->request = requestLink(request);
-
 		http->al.http.code = err->http_status;
 		errorSend(fd, err);
 		return;
@@ -1904,7 +1894,6 @@ clientReadRequest(int fd, void *data)
 	} else {
 	    /* parser returned -1 */
 	    debug(12, 1) ("clientReadRequest: FD %d Invalid Request\n", fd);
-
 	    err = errorCon(ERR_INVALID_REQ, HTTP_BAD_REQUEST);
 	    err->callback = icpErrorComplete;
 	    err->callback_data = NULL;
@@ -1913,7 +1902,6 @@ clientReadRequest(int fd, void *data)
 	}
     }
 }
-
 
 /* general lifetime handler for HTTP requests */
 static void
