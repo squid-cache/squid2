@@ -735,7 +735,6 @@ typedef enum {
     CBDATA_aclCheck_t,
     CBDATA_clientHttpRequest,
     CBDATA_ConnStateData,
-    CBDATA_DigestFetchState,
     CBDATA_ErrorState,
     CBDATA_FwdState,
     CBDATA_generic_cbdata,
