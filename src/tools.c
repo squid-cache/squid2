@@ -354,7 +354,10 @@ fatal(const char *message)
     if (0 == store_dirs_rebuilding)
 	storeDirWriteCleanLogs(0);
     fatal_common(message);
-    exit(shutting_down ? 0 : 1);
+    if (shutting_down)
+	exit(0);
+    else
+	abort();
 }
 
 /* printf-style interface for fatal */
