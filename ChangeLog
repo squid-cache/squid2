@@ -33,6 +33,8 @@ Changes to squid-1.1.9 (March 25, 1997):
 	- Removed storeCheckExpired() from storeGetSwapSpace() as
 	  likely cause of slowing down cache when exceeding the high
 	  water mark.
+	- Fixed storeCheckExpired() to not always check the
+	  LRU expiration age (Mark Treacy).
 	- Lowered 'store_objects_per_bucket' to 20 so that
 	  storeMaintainSwapSpace() runs frequently enough to 
 	  keep up with incoming objects.
