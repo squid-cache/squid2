@@ -1218,9 +1218,8 @@ aclCacheMatchFlush(dlink_list * cache)
  * 1 : Authorisation OK. (Matched)
  */
 static int
-aclMatchProxyAuth(void *data, http_hdr_type headertype,
-    auth_user_request_t * auth_user_request, aclCheck_t * checklist,
-    squid_acl acltype)
+aclMatchProxyAuth(void *data, auth_user_request_t * auth_user_request,
+    aclCheck_t * checklist, squid_acl acltype)
 {
     /* checklist is used to register user name when identified, nothing else */
     /* General program flow in proxy_auth acls
