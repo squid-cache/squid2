@@ -38,6 +38,13 @@ Changes to squid-2.5.STABLE8 ()
 	- [Medium security] Buffer overflow in WCCP recvfrom() call
 	  (Bug #1217)
 	- [Security] Properly handle oversized reply headers (Bug #1216)
+	- [Minor] LDAP helpers search fixed to properly ask for no attributes
+	- [Minor] A sporadic segmentation fault when using ntlm authentication
+	  fixed (Bug #1127)
+	- [Major] Segmentation fault on failed PUT/POST requests (Bug #1224)
+	- [Medium] Persistent connection mismatch on failed PUT/POST request
+	  (Bug #1122)
+	- [Minor] WCCP easily disturbed by forged packets
 
 Changes to squid-2.5.STABLE7 (11 Oct 2004)
 

@@ -330,6 +330,9 @@ name="ChangeLog"> file for details.
 	<item>Buffer overflow fix in gopherToHTML.
 	<item>Corrected a Segmentation fault on malformed WCCP packets.
 	<item>squid_ldap_auth now sanity checks usernames
+	<item>Corrected a Segmentation fault and other malfunctions on failed PUT/POST
+	requests.
+	<item>Properly handle oversized reply headers
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE7"
 	name="squid-2.5.STABLE7 patches"> and the <url url="ChangeLog"
