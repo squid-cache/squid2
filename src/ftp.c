@@ -31,9 +31,6 @@ typedef struct _Ftpdata {
     char *icp_page_ptr;		/* Used to send proxy-http request: 
 				 * put_free_8k_page(me) if the lifetime
 				 * expires */
-    char *icp_rwd_ptr;		/* When a lifetime expires during the
-				 * middle of an icpwrite, don't lose the
-				 * icpReadWriteData */
     int got_marker;		/* denotes end of successful request */
     int reply_hdr_state;
 } FtpData;
@@ -48,7 +45,7 @@ static void ftp_login_parser _PARAMS((char *login, FtpData * data));
 /* Global functions not declared in ftp.h */
 void ftpLifetimeExpire _PARAMS((int fd, FtpData * data));
 int ftpReadReply _PARAMS((int fd, FtpData * data));
-void ftpSendComplete _PARAMS((int fd, char *buf, int size, int errflag, FtpData * data));
+void ftpSendComplete _PARAMS((int fd, char *buf, int size, int errflag, void *ftpData));
 void ftpSendRequest _PARAMS((int fd, FtpData * data));
 void ftpConnInProgress _PARAMS((int fd, FtpData * data));
 void ftpServerClose _PARAMS((void));
@@ -68,8 +65,6 @@ static int ftpStateFree(fd, ftpState)
 	put_free_8k_page(ftpState->icp_page_ptr);
 	ftpState->icp_page_ptr = NULL;
     }
-    if (ftpState->icp_rwd_ptr)
-	safe_free(ftpState->icp_rwd_ptr);
     if (--ftpState->request->link_count == 0)
 	safe_free(ftpState->request);
     xfree(ftpState);
@@ -389,11 +384,12 @@ void ftpSendComplete(fd, buf, size, errflag, data)
      char *buf;
      int size;
      int errflag;
-     FtpData *data;
+     void *data;
 {
+    FtpData *ftpState = (FtpData *) data;
     StoreEntry *entry = NULL;
 
-    entry = data->entry;
+    entry = ftpState->entry;
     debug(9, 5, "ftpSendComplete: FD %d: size %d: errflag %d.\n",
 	fd, size, errflag);
 
@@ -401,22 +397,21 @@ void ftpSendComplete(fd, buf, size, errflag, data)
 	put_free_8k_page(buf);	/* Allocated by ftpSendRequest. */
 	buf = NULL;
     }
-    data->icp_page_ptr = NULL;	/* So lifetime expire doesn't re-free */
-    data->icp_rwd_ptr = NULL;	/* Don't double free in lifetimeexpire */
+    ftpState->icp_page_ptr = NULL;	/* So lifetime expire doesn't re-free */
 
     if (errflag) {
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	comm_close(fd);
 	return;
     } else {
-	comm_set_select_handler(data->ftp_fd,
+	comm_set_select_handler(ftpState->ftp_fd,
 	    COMM_SELECT_READ,
 	    (PF) ftpReadReply,
-	    (void *) data);
-	comm_set_select_handler_plus_timeout(data->ftp_fd,
+	    (void *) ftpState);
+	comm_set_select_handler_plus_timeout(ftpState->ftp_fd,
 	    COMM_SELECT_TIMEOUT,
 	    (PF) ftpLifetimeExpire,
-	    (void *) data, getReadTimeout());
+	    (void *) ftpState, getReadTimeout());
     }
 }
 
@@ -497,7 +492,7 @@ void ftpSendRequest(fd, data)
     strcat(buf, *data->password ? data->password : "\"\"");
     strcat(buf, "\n");
     debug(9, 5, "ftpSendRequest: FD %d: buf '%s'\n", fd, buf);
-    data->icp_rwd_ptr = icpWrite(fd,
+    comm_write(fd,
 	buf,
 	strlen(buf),
 	30,
@@ -564,7 +559,11 @@ int ftpStart(unusedfd, url, request, entry)
 	unusedfd, data->request->host, data->request->urlpath,
 	data->user, data->password);
 
+#ifdef USE_FTPGET_INET_SOCK
+    data->ftp_fd = comm_open(COMM_NONBLOCKING, 0, url);
+#else
     data->ftp_fd = comm_open_unix(url);
+#endif
     if (data->ftp_fd == COMM_ERROR) {
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	safe_free(data);

@@ -58,7 +58,6 @@ typedef struct gopher_ds {
     int len;
     char *buf;			/* pts to a 4k page */
     char *icp_page_ptr;		/* Pts to gopherStart buffer that needs to be freed */
-    char *icp_rwd_ptr;		/* Pts to icp rw structure that needs to be freed */
 } GopherData;
 
 GopherData *CreateGopherData();
@@ -573,8 +572,6 @@ int gopherReadReplyTimeout(fd, data)
     squid_error_entry(entry, ERR_READ_TIMEOUT, NULL);
     if (data->icp_page_ptr)
 	put_free_4k_page(data->icp_page_ptr);
-    if (data->icp_rwd_ptr)
-	safe_free(data->icp_rwd_ptr);
     comm_close(fd);
     return 0;
 }
@@ -590,8 +587,6 @@ void gopherLifetimeExpire(fd, data)
     squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
     if (data->icp_page_ptr)
 	put_free_4k_page(data->icp_page_ptr);
-    if (data->icp_rwd_ptr)
-	safe_free(data->icp_rwd_ptr);
     comm_set_select_handler(fd,
 	COMM_SELECT_READ | COMM_SELECT_WRITE,
 	0,
@@ -740,10 +735,11 @@ void gopherSendComplete(fd, buf, size, errflag, data)
      char *buf;
      int size;
      int errflag;
-     GopherData *data;
+     void *data;
 {
+    GopherData *gopherState = (GopherData *) data;
     StoreEntry *entry = NULL;
-    entry = data->entry;
+    entry = gopherState->entry;
     debug(10, 5, "gopherSendComplete: FD %d size: %d errflag: %d\n",
 	fd, size, errflag);
     if (errflag) {
@@ -757,55 +753,54 @@ void gopherSendComplete(fd, buf, size, errflag, data)
      * OK. We successfully reach remote site.  Start MIME typing
      * stuff.  Do it anyway even though request is not HTML type.
      */
-    gopherMimeCreate(data);
+    gopherMimeCreate(gopherState);
 
     if (!BIT_TEST(entry->flag, ENTRY_HTML))
-	data->conversion = NORMAL;
+	gopherState->conversion = NORMAL;
     else
-	switch (data->type_id) {
+	switch (gopherState->type_id) {
 
 	case GOPHER_DIRECTORY:
 	    /* we got to convert it first */
 	    BIT_SET(entry->flag, DELAY_SENDING);
-	    data->conversion = HTML_DIR;
-	    data->HTML_header_added = 0;
+	    gopherState->conversion = HTML_DIR;
+	    gopherState->HTML_header_added = 0;
 	    break;
 
 	case GOPHER_INDEX:
 	    /* we got to convert it first */
 	    BIT_SET(entry->flag, DELAY_SENDING);
-	    data->conversion = HTML_INDEX_RESULT;
-	    data->HTML_header_added = 0;
+	    gopherState->conversion = HTML_INDEX_RESULT;
+	    gopherState->HTML_header_added = 0;
 	    break;
 
 	case GOPHER_CSO:
 	    /* we got to convert it first */
 	    BIT_SET(entry->flag, DELAY_SENDING);
-	    data->conversion = HTML_CSO_RESULT;
-	    data->cso_recno = 0;
-	    data->HTML_header_added = 0;
+	    gopherState->conversion = HTML_CSO_RESULT;
+	    gopherState->cso_recno = 0;
+	    gopherState->HTML_header_added = 0;
 	    break;
 
 	default:
-	    data->conversion = NORMAL;
+	    gopherState->conversion = NORMAL;
 
 	}
     /* Schedule read reply. */
     comm_set_select_handler(fd,
 	COMM_SELECT_READ,
 	(PF) gopherReadReply,
-	(void *) data);
+	(void *) gopherState);
     comm_set_select_handler_plus_timeout(fd,
 	COMM_SELECT_TIMEOUT,
 	(PF) gopherReadReplyTimeout,
-	(void *) data,
+	(void *) gopherState,
 	getReadTimeout());
     comm_set_fd_lifetime(fd, -1);	/* disable */
 
     if (buf)
 	put_free_4k_page(buf);	/* Allocated by gopherSendRequest. */
-    data->icp_page_ptr = NULL;
-    data->icp_rwd_ptr = NULL;
+    gopherState->icp_page_ptr = NULL;
 }
 
 /* This will be called when connect completes. Write request. */
@@ -836,7 +831,7 @@ void gopherSendRequest(fd, data)
     }
 
     debug(10, 5, "gopherSendRequest: FD %d\n", fd);
-    data->icp_rwd_ptr = icpWrite(fd,
+    comm_write(fd,
 	buf,
 	len,
 	30,

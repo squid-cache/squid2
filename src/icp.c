@@ -67,19 +67,6 @@ static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
-typedef void (*complete_handler) _PARAMS((int fd, char *buf, int size, int errflag, void *data));
-typedef struct ireadd {
-    int fd;
-    char *buf;
-    long size;
-    long offset;
-    int timeout;		/* XXX Not used at present. */
-    time_t time;
-    complete_handler handler;
-    void *client_data;
-    int handle_immed;
-} icpRWStateData;
-
 #ifdef UDP_HIT_WITH_OBJ
 typedef struct {
     int fd;
@@ -93,10 +80,9 @@ typedef struct {
 
 /* Local functions */
 static void icpHandleStore _PARAMS((int, StoreEntry *, icpStateData *));
-static void icpHandleStoreComplete _PARAMS((int, char *, int, int, icpStateData *));
+static void icpHandleStoreComplete _PARAMS((int, char *, int, int, void *icpState));
 static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
-static void icpRead _PARAMS((int, int, char *, int, int, int, complete_handler, void *));
 #ifdef UDP_HIT_WITH_OBJ
 static void icpHitObjHandler _PARAMS((int, void *));
 #endif
@@ -233,200 +219,12 @@ static int icpHierarchical(icpState)
     return 1;
 }
 
-/* Read from FD. */
-static int icpHandleRead(fd, icpRWState)
-     int fd;
-     icpRWStateData *icpRWState;
-{
-    int len;
-
-    len = read(fd, icpRWState->buf + icpRWState->offset, icpRWState->size - icpRWState->offset);
-    debug(12, 5, "icpHandleRead: FD %d: read %d bytes\n", fd, len);
-
-    if (len <= 0) {
-	switch (errno) {
-#if EAGAIN != EWOULDBLOCK
-	case EAGAIN:
-#endif
-	case EWOULDBLOCK:
-	    /* reschedule self */
-	    comm_set_select_handler(fd,
-		COMM_SELECT_READ,
-		(PF) icpHandleRead,
-		(void *) icpRWState);
-	    return COMM_OK;
-	default:
-	    /* Len == 0 means connection closed; otherwise would not have been
-	     * called by comm_select(). */
-	    debug(12, 1, "icpHandleRead: FD %d: read failure: %s\n",
-		fd, len == 0 ? "connection closed" : xstrerror());
-	    icpRWState->handler(fd,
-		icpRWState->buf,
-		icpRWState->offset,
-		COMM_ERROR,
-		icpRWState->client_data);
-	    safe_free(icpRWState);
-	    return COMM_ERROR;
-	}
-    }
-    icpRWState->offset += len;
-
-    /* Check for \r\n delimiting end of ascii transmission, or */
-    /* if we've read content-length bytes already */
-    if (icpRWState->offset >= icpRWState->size || icpRWState->handle_immed) {
-	icpRWState->handler(fd,
-	    icpRWState->buf,
-	    icpRWState->offset,
-	    COMM_OK,
-	    icpRWState->client_data);
-	safe_free(icpRWState);
-    } else {
-	comm_set_select_handler(fd,
-	    COMM_SELECT_READ,
-	    (PF) icpHandleRead,
-	    (void *) icpRWState);
-    }
-
-    return COMM_OK;
-}
-
-/* Select for reading on FD, until SIZE bytes are received.  Call
- * HANDLER when complete. */
-static void icpRead(fd, bin_mode, buf, size, timeout, immed, handler, client_data)
-     int fd;
-     int bin_mode;
-     char *buf;
-     int size;
-     int timeout;
-     int immed;
-     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, void *data));
-     void *client_data;
-{
-    icpRWStateData *data = NULL;
-    data = xcalloc(1, sizeof(icpRWStateData));
-    data->fd = fd;
-    data->buf = buf;
-    data->size = size;
-    data->offset = 0;
-    data->handler = handler;
-    data->timeout = timeout;
-    data->handle_immed = immed;
-    data->time = squid_curtime;
-    data->client_data = client_data;
-    comm_set_select_handler(fd,
-	COMM_SELECT_READ,
-	(PF) icpHandleRead,
-	(void *) data);
-}
-
-/* Write to FD. */
-static void icpHandleWrite(fd, icpRWState)
-     int fd;
-     icpRWStateData *icpRWState;
-{
-    int len = 0;
-    int nleft;
-
-    debug(12, 5, "icpHandleWrite: FD %d: off %d: sz %d.\n",
-	fd, icpRWState->offset, icpRWState->size);
-
-    nleft = icpRWState->size - icpRWState->offset;
-    len = write(fd, icpRWState->buf + icpRWState->offset, nleft);
-
-    if (len == 0) {
-	/* We're done */
-	if (nleft != 0)
-	    debug(12, 2, "icpHandleWrite: FD %d: write failure: connection closed with %d bytes remaining.\n", fd, nleft);
-	icpRWState->handler(fd,
-	    icpRWState->buf,
-	    icpRWState->offset,
-	    nleft == 0 ? COMM_OK : COMM_ERROR,
-	    icpRWState->client_data);
-	safe_free(icpRWState);
-	return;
-    }
-    if (len < 0) {
-	/* An error */
-	if (errno == EWOULDBLOCK || errno == EAGAIN) {
-	    /* XXX: Re-install the handler rather than giving up. I hope
-	     * this doesn't freeze this socket due to some random OS bug
-	     * returning EWOULDBLOCK indefinitely.  Ought to maintain a
-	     * retry count in icpRWState? */
-	    debug(12, 10, "icpHandleWrite: FD %d: write failure: %s.\n",
-		fd, xstrerror());
-	    comm_set_select_handler(fd,
-		COMM_SELECT_WRITE,
-		(PF) icpHandleWrite,
-		(void *) icpRWState);
-	    return;
-	}
-	debug(12, 2, "icpHandleWrite: FD %d: write failure: %s.\n",
-	    fd, xstrerror());
-	icpRWState->handler(fd,
-	    icpRWState->buf,
-	    icpRWState->offset,
-	    COMM_ERROR,
-	    icpRWState->client_data);
-	safe_free(icpRWState);
-	return;
-    }
-    /* A successful write, continue */
-    icpRWState->offset += len;
-    if (icpRWState->offset < icpRWState->size) {
-	/* Reinstall the read handler and write some more */
-	comm_set_select_handler(fd,
-	    COMM_SELECT_WRITE,
-	    (PF) icpHandleWrite,
-	    (void *) icpRWState);
-	return;
-    }
-    icpRWState->handler(fd,
-	icpRWState->buf,
-	icpRWState->offset,
-	COMM_OK,
-	icpRWState->client_data);
-    safe_free(icpRWState);
-}
-
-
-
-/* Select for Writing on FD, until SIZE bytes are sent.  Call
- * HANDLER when complete. */
-char *icpWrite(fd, buf, size, timeout, handler, client_data)
-     int fd;
-     char *buf;
-     int size;
-     int timeout;
-     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, void *data));
-     void *client_data;
-{
-    icpRWStateData *data = NULL;
-
-    debug(12, 5, "icpWrite: FD %d: sz %d: tout %d: hndl %p: data %p.\n",
-	fd, size, timeout, handler, client_data);
-
-    data = xcalloc(1, sizeof(icpRWStateData));
-    data->fd = fd;
-    data->buf = buf;
-    data->size = size;
-    data->offset = 0;
-    data->handler = handler;
-    data->timeout = timeout;
-    data->time = squid_curtime;
-    data->client_data = client_data;
-    comm_set_select_handler(fd,
-	COMM_SELECT_WRITE,
-	(PF) icpHandleWrite,
-	(void *) data);
-    return ((char *) data);
-}
-
-static void icpSendERRORComplete(fd, buf, size, errflag, icpState)
+static void icpSendERRORComplete(fd, buf, size, errflag, data)
      int fd;
      char *buf;
      int size;
      int errflag;
-     icpStateData *icpState;
+     void *data;
 {
     debug(12, 4, "icpSendERRORComplete: FD %d: sz %d: err %d.\n",
 	fd, size, errflag);
@@ -467,7 +265,7 @@ static int icpSendERROR(fd, errorCode, msg, icpState)
     icpState->buf = NULL;
     strcpy(buf, msg);
     *(buf + buf_len) = '\0';
-    icpWrite(fd, buf, buf_len, 30, icpSendERRORComplete, (void *) icpState);
+    comm_write(fd, buf, buf_len, 30, icpSendERRORComplete, (void *) icpState);
     return COMM_OK;
 }
 
@@ -536,7 +334,7 @@ static int icpSendMoreData(fd, icpState)
 
     /* Do this here, so HandleStoreComplete can tell whether more data 
      * needs to be sent. */
-    icpWrite(fd, buf, buf_len, 30, icpHandleStoreComplete, (void *) icpState);
+    comm_write(fd, buf, buf_len, 30, icpHandleStoreComplete, (void *) icpState);
     result = COMM_OK;
     return result;
 }
@@ -569,13 +367,14 @@ static void icpHandleStore(fd, entry, icpState)
     icpSendMoreData(fd, icpState);
 }
 
-static void icpHandleStoreComplete(fd, buf, size, errflag, icpState)
+static void icpHandleStoreComplete(fd, buf, size, errflag, data)
      int fd;
      char *buf;
      int size;
      int errflag;
-     icpStateData *icpState;
+     void *data;
 {
+    icpStateData *icpState = (icpStateData *) data;
     StoreEntry *entry = NULL;
 
     entry = icpState->entry;
@@ -1408,13 +1207,14 @@ static int icpAccessCheck(icpState)
  *   icp_hit_or_miss()
  *   icpSendERROR()
  */
-static void asciiProcessInput(fd, buf, size, flag, icpState)
+static void asciiProcessInput(fd, buf, size, flag, data)
      int fd;
      char *buf;
      int size;
      int flag;
-     icpStateData *icpState;
+     void *data;
 {
+    icpStateData *icpState = (icpStateData *) data;
     static char client_msg[64];
     int parser_return_code = 0;
     int k;
@@ -1443,7 +1243,7 @@ static void asciiProcessInput(fd, buf, size, flag, icpState)
 		    icpState->http_code,
 		    NULL));
 	    icpState->ptr_to_4k_page = NULL;
-	    icpWrite(fd,
+	    comm_write(fd,
 		icpState->buf,
 		strlen(icpState->buf),
 		30,
@@ -1461,7 +1261,7 @@ static void asciiProcessInput(fd, buf, size, flag, icpState)
 		    icpState->url,
 		    fd_table[fd].ipaddr));
 	    icpState->ptr_to_4k_page = NULL;
-	    icpWrite(fd,
+	    comm_write(fd,
 		icpState->buf,
 		strlen(tmp_error_buf),
 		30,
@@ -1507,13 +1307,12 @@ static void asciiProcessInput(fd, buf, size, flag, icpState)
 		icpState->offset, icpState->inbufsize);
 	    k = icpState->inbufsize - 1 - icpState->offset;
 	}
-	icpRead(fd,
-	    FALSE,
+	comm_read(fd,
 	    icpState->inbuf + icpState->offset,
 	    k,			/* size */
 	    30,			/* timeout */
 	    TRUE,		/* handle immed */
-	    (complete_handler) asciiProcessInput,
+	    asciiProcessInput,
 	    (void *) icpState);
     } else {
 	/* parser returned -1 */
@@ -1524,7 +1323,7 @@ static void asciiProcessInput(fd, buf, size, flag, icpState)
 		ERR_INVALID_REQ,
 		fd_table[fd].ipaddr,
 		icpState->http_code));
-	icpWrite(fd,
+	comm_write(fd,
 	    icpState->buf,
 	    strlen(icpState->buf),
 	    30,
@@ -1534,45 +1333,19 @@ static void asciiProcessInput(fd, buf, size, flag, icpState)
 }
 
 
-
 /* general lifetime handler for ascii connection */
-static void asciiConnLifetimeHandle(fd, data)
+static void asciiConnLifetimeHandle(fd, icpState)
      int fd;
-     void *data;
+     icpStateData *icpState;
 {
-    icpStateData *icpState = (icpStateData *) data;
-    PF handler;
-    void *client_data;
-    StoreEntry *entry = icpState->entry;
-
-    debug(12, 2, "asciiConnLifetimeHandle: Socket: %d lifetime is expired. Free up data structure.\n", fd);
-    /* If we were in the middle of an icpWrite we're going to need
-     * to deallocate the icpReadWrite state data. */
-    handler = NULL;
-    client_data = NULL;
-    comm_get_select_handler(fd,
-	COMM_SELECT_WRITE,
-	&handler,
-	(void **) &client_data);
-    if (handler == (PF) icpHandleWrite && client_data != NULL)
-	safe_free((icpRWStateData *) client_data);
-    /* If we were in the middle of an icpRead we're going to need
-     * to deallocate the icpReadWrite state data. */
-    handler = NULL;
-    client_data = NULL;
-    comm_get_select_handler(fd,
-	COMM_SELECT_READ,
-	&handler,
-	(void **) &client_data);
-    if (handler == icpHandleRead && client_data != NULL)
-	safe_free((icpRWStateData *) client_data);
+    debug(12, 2, "asciiConnLifetimeHandle: FD %d: lifetime is expired.\n", fd);
     CheckQuickAbort(icpState);
-    if (entry && icpState->url)
-	/* Unregister us from the dnsserver pending list and cause a DNS
-	 * related storeAbort() for other attached clients.  If this
-	 * doesn't succeed, then the fetch has already started for this
-	 * URL. */
-	protoUndispatch(fd, icpState->url, entry, icpState->request);
+    /* Unregister us from the dnsserver pending list and cause a DNS
+     * related storeAbort() for other attached clients.  If this
+     * doesn't succeed, then the fetch has already started for this
+     * URL. */
+    if (icpState->entry && icpState->url)
+	protoUndispatch(fd, icpState->url, icpState->entry, icpState->request);
     comm_close(fd);
 }
 
@@ -1615,13 +1388,12 @@ int asciiHandleConn(sock, notused)
 	COMM_SELECT_CLOSE,
 	(PF) icpStateFree,
 	(void *) icpState);
-    icpRead(fd,
-	FALSE,
+    comm_read(fd,
 	icpState->inbuf,
 	icpState->inbufsize - 1,	/* size */
 	30,			/* timeout */
 	1,			/* handle immed */
-	(complete_handler) asciiProcessInput,
+	asciiProcessInput,
 	(void *) icpState);
     comm_set_select_handler(sock,
 	COMM_SELECT_READ,

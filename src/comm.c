@@ -15,6 +15,16 @@ int RESERVED_FD = 64;
 #define min(x,y) ((x)<(y)? (x) : (y))
 #define max(a,b) ((a)>(b)? (a) : (b))
 
+struct _RWStateData {
+    char *buf;
+    long size;
+    long offset;
+    int timeout;		/* XXX Not used at present. */
+    time_t time;		/* XXX Not used at present. */
+    rw_complete_handler *handler;
+    void *handler_data;
+    int handle_immed;
+};
 
 /* GLOBAL */
 FD_ENTRY *fd_table = NULL;	/* also used in disk.c */
@@ -467,6 +477,9 @@ int comm_close(fd)
     }
     conn = &fd_table[fd];
 
+    safe_free(conn->rstate);
+    safe_free(conn->wstate);
+
     comm_set_fd_lifetime(fd, -1);	/* invalidate the lifetime */
     debug(5, 5, "comm_close: FD %d\n", fd);
     /* update fdstat */
@@ -483,6 +496,9 @@ int comm_cleanup_fd_entry(fd)
      int fd;
 {
     FD_ENTRY *conn = &fd_table[fd];
+
+    safe_free(conn->rstate);
+    safe_free(conn->wstate);
 
     memset(conn, 0, sizeof(FD_ENTRY));
     return 0;
@@ -1154,4 +1170,211 @@ int fd_of_first_client(e)
 	}
     }
     return (-1);
+}
+
+/* Read from FD. */
+static int commHandleRead(fd, state)
+     int fd;
+     RWStateData *state;
+{
+    int len;
+
+    len = read(fd, state->buf + state->offset, state->size - state->offset);
+    debug(5, 5, "commHandleRead: FD %d: read %d bytes\n", fd, len);
+
+    if (len <= 0) {
+	switch (errno) {
+#if EAGAIN != EWOULDBLOCK
+	case EAGAIN:
+#endif
+	case EWOULDBLOCK:
+	    /* reschedule self */
+	    comm_set_select_handler(fd,
+		COMM_SELECT_READ,
+		(PF) commHandleRead,
+		state);
+	    return COMM_OK;
+	default:
+	    /* Len == 0 means connection closed; otherwise would not have been
+	     * called by comm_select(). */
+	    debug(5, len == 0 ? 2 : 1, "commHandleRead: FD %d: read failure: %s\n",
+		fd, len == 0 ? "connection closed" : xstrerror());
+	    fd_table[fd].rstate = NULL;		/* The handler may issue a new read */
+	    /* Notify caller that we failed */
+	    state->handler(fd,
+		state->buf,
+		state->offset,
+		COMM_ERROR,
+		state->handler_data);
+	    safe_free(state);
+	    return COMM_ERROR;
+	}
+    }
+    state->offset += len;
+
+    /* Call handler if we have read enough */
+    if (state->offset >= state->size || state->handle_immed) {
+	fd_table[fd].rstate = NULL;	/* The handler may issue a new read */
+	state->handler(fd,
+	    state->buf,
+	    state->offset,
+	    COMM_OK,
+	    state->handler_data);
+	safe_free(state);
+    } else {
+	/* Reschedule until we are done */
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) commHandleRead,
+	    state);
+    }
+    return COMM_OK;
+}
+
+/* Select for reading on FD, until SIZE bytes are received.  Call
+ * HANDLER when complete. */
+void comm_read(fd, buf, size, timeout, immed, handler, handler_data)
+     int fd;
+     char *buf;
+     int size;
+     int timeout;
+     int immed;			/* Call handler immediately when data available */
+     rw_complete_handler *handler;
+     void *handler_data;
+{
+    RWStateData *state = NULL;
+
+    debug(5, 5, "comm_read: FD %d: sz %d: tout %d: hndl %p: data %p.\n",
+	fd, size, timeout, handler, handler_data);
+
+    if (fd_table[fd].rstate) {
+	debug(5, 1, "comm_read: WARNING! A comm_read is already active.\n");
+	safe_free(fd_table[fd].rstate);
+    }
+    state = xcalloc(1, sizeof(RWStateData));
+    fd_table[fd].rstate = state;
+    state->buf = buf;
+    state->size = size;
+    state->offset = 0;
+    state->handler = handler;
+    state->timeout = timeout;
+    state->handle_immed = immed;
+    state->time = squid_curtime;
+    state->handler_data = handler_data;
+    comm_set_select_handler(fd,
+	COMM_SELECT_READ,
+	(PF) commHandleRead,
+	state);
+}
+
+/* Write to FD. */
+static void commHandleWrite(fd, state)
+     int fd;
+     RWStateData *state;
+{
+    int len = 0;
+    int nleft;
+
+    debug(5, 5, "commHandleWrite: FD %d: off %d: sz %d.\n",
+	fd, state->offset, state->size);
+
+    nleft = state->size - state->offset;
+    len = write(fd, state->buf + state->offset, nleft);
+
+    if (len == 0) {
+	/* XXX Is it ever possible that write() returns 0? */
+	/* We're done */
+	if (nleft != 0)
+	    debug(5, 2, "commHandleWrite: FD %d: write failure: connection closed with %d bytes remaining.\n", fd, nleft);
+	fd_table[fd].wstate = NULL;	/* The handler may call comm_write again */
+	/* Notify caller */
+	state->handler(fd,
+	    state->buf,
+	    state->offset,
+	    nleft == 0 ? COMM_OK : COMM_ERROR,
+	    state->handler_data);
+	safe_free(state);
+	return;
+    }
+    if (len < 0) {
+	/* An error */
+	if (errno == EWOULDBLOCK || errno == EAGAIN) {
+	    /* XXX: Re-install the handler rather than giving up. I hope
+	     * this doesn't freeze this socket due to some random OS bug
+	     * returning EWOULDBLOCK indefinitely.  Ought to maintain a
+	     * retry count in state? */
+	    debug(5, 10, "commHandleWrite: FD %d: write failure: %s.\n",
+		fd, xstrerror());
+	    comm_set_select_handler(fd,
+		COMM_SELECT_WRITE,
+		(PF) commHandleWrite,
+		state);
+	    return;
+	}
+	debug(5, 2, "commHandleWrite: FD %d: write failure: %s.\n",
+	    fd, xstrerror());
+	fd_table[fd].wstate = NULL;	/* The handler may call comm_write again */
+	/* Notify caller that we failed */
+	state->handler(fd,
+	    state->buf,
+	    state->offset,
+	    COMM_ERROR,
+	    state->handler_data);
+	safe_free(state);
+	return;
+    }
+    /* A successful write, continue */
+    state->offset += len;
+    if (state->offset < state->size) {
+	/* Reinstall the write handler and write some more */
+	comm_set_select_handler(fd,
+	    COMM_SELECT_WRITE,
+	    (PF) commHandleWrite,
+	    state);
+	return;
+    }
+    fd_table[fd].wstate = NULL;	/* The handler may call comm_write again */
+    /* Notify caller that the write is complete */
+    state->handler(fd,
+	state->buf,
+	state->offset,
+	COMM_OK,
+	state->handler_data);
+    safe_free(state);
+}
+
+
+
+/* Select for Writing on FD, until SIZE bytes are sent.  Call
+ * HANDLER when complete. */
+void comm_write(fd, buf, size, timeout, handler, handler_data)
+     int fd;
+     char *buf;
+     int size;
+     int timeout;
+     rw_complete_handler *handler;
+     void *handler_data;
+{
+    RWStateData *state = NULL;
+
+    debug(5, 5, "comm_write: FD %d: sz %d: tout %d: hndl %p: data %p.\n",
+	fd, size, timeout, handler, handler_data);
+
+    if (fd_table[fd].wstate) {
+	debug(5, 1, "comm_write: WARNING! A comm_write is already active.\n");
+	safe_free(fd_table[fd].wstate);
+    }
+    state = xcalloc(1, sizeof(RWStateData));
+    fd_table[fd].wstate = state;
+    state->buf = buf;
+    state->size = size;
+    state->offset = 0;
+    state->handler = handler;
+    state->timeout = timeout;
+    state->time = squid_curtime;
+    state->handler_data = handler_data;
+    comm_set_select_handler(fd,
+	COMM_SELECT_WRITE,
+	(PF) commHandleWrite,
+	state);
 }

@@ -23,8 +23,6 @@ static int httpStateFree(fd, httpState)
 	put_free_8k_page(httpState->icp_page_ptr);
 	httpState->icp_page_ptr = NULL;
     }
-    if (httpState->icp_rwd_ptr)
-	safe_free(httpState->icp_rwd_ptr);
     if (--httpState->request->link_count == 0)
 	safe_free(httpState->request);
     xfree(httpState);
@@ -376,13 +374,14 @@ static void httpReadReply(fd, httpState)
 
 /* This will be called when request write is complete. Schedule read of
  * reply. */
-static void httpSendComplete(fd, buf, size, errflag, httpState)
+static void httpSendComplete(fd, buf, size, errflag, data)
      int fd;
      char *buf;
      int size;
      int errflag;
-     HttpStateData *httpState;
+     void *data;
 {
+    HttpStateData *httpState = (HttpStateData *) data;
     StoreEntry *entry = NULL;
 
     entry = httpState->entry;
@@ -394,7 +393,6 @@ static void httpSendComplete(fd, buf, size, errflag, httpState)
 	buf = NULL;
     }
     httpState->icp_page_ptr = NULL;	/* So lifetime expire doesn't re-free */
-    httpState->icp_rwd_ptr = NULL;	/* Don't double free in lifetimeexpire */
 
     if (errflag) {
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
@@ -501,7 +499,7 @@ static void httpSendRequest(fd, httpState)
 	xfree(post_buf);
     }
     debug(11, 6, "httpSendRequest: FD %d: buf '%s'\n", fd, buf);
-    httpState->icp_rwd_ptr = icpWrite(fd,
+    comm_write(fd,
 	buf,
 	len,
 	30,

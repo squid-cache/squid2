@@ -214,7 +214,7 @@ void waisSendRequest(fd, data)
     else
 	sprintf(buf, "%s %s\r\n", Method, data->request);
     debug(24, 6, "waisSendRequest - buf:%s\n", buf);
-    icpWrite(fd,
+    comm_write(fd,
 	buf,
 	len,
 	30,

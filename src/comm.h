@@ -26,6 +26,9 @@
 
 typedef int (*PF) _PARAMS((int, void *));
 
+typedef void rw_complete_handler _PARAMS((int fd, char *buf, int size, int errflag, void *data));
+typedef struct _RWStateData RWStateData;
+
 #define FD_ASCII_NOTE_SZ 64
 
 typedef struct fde {
@@ -55,6 +58,8 @@ typedef struct fde {
     char ascii_note[FD_ASCII_NOTE_SZ];
     unsigned int comm_type;
     time_t stall_until;		/* don't select for read until this time reached */
+    RWStateData *rstate;	/* State data for comm_read */
+    RWStateData *wstate;	/* State data for comm_write */
 } FD_ENTRY;
 
 extern FD_ENTRY *fd_table;
@@ -74,7 +79,6 @@ extern int comm_listen _PARAMS((int sock));
 extern int comm_open _PARAMS((unsigned int io_type, u_short port, char *note));
 extern int comm_open_unix _PARAMS((char *note));
 extern u_short comm_local_port _PARAMS((int fd));
-extern int comm_read _PARAMS((int fd, char *buf, int size));
 extern int comm_select _PARAMS((time_t sec, time_t));
 extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
 extern void comm_set_select_handler _PARAMS((int fd, unsigned int type, PF, void *));
@@ -82,11 +86,12 @@ extern void comm_set_select_handler_plus_timeout _PARAMS((int, unsigned int, PF,
 extern int comm_udp_recv _PARAMS((int, char *, int, struct sockaddr_in *, int *));
 extern int comm_udp_send _PARAMS((int fd, char *host, u_short port, char *buf, int len));
 extern int comm_udp_sendto _PARAMS((int fd, struct sockaddr_in *, int size, char *buf, int len));
-extern int comm_write _PARAMS((int fd, char *buf, int size));
 extern int fd_of_first_client _PARAMS((StoreEntry *));
 extern struct in_addr *getAddress _PARAMS((char *name));
 extern void comm_set_stall _PARAMS((int, int));
 extern int comm_get_fd_timeout _PARAMS((int fd));
+extern void comm_read _PARAMS((int fd, char *buf, int size, int timeout, int immed, rw_complete_handler * handler, void *handler_data));
+extern void comm_write _PARAMS((int fd, char *buf, int size, int timeout, rw_complete_handler * handler, void *handler_data));
 
 extern int RESERVED_FD;
 
