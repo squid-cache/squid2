@@ -310,7 +310,7 @@ static int icpSendMoreData(fd, icpState)
 
     if (icpState->offset == 0 && entry->mem_obj->reply->code == 0 && len > 0) {
 	memset(scanbuf, '\0', 20);
-	memcpy(scanbuf, buf, 19);
+	memcpy(scanbuf, buf, len > 19 ? 19 : len);
 	sscanf(scanbuf, "HTTP/%lf %d", &http_ver, &tcode);
 	entry->mem_obj->reply->code = tcode;
     }
@@ -1076,6 +1076,7 @@ static int parseHttpRequest(icpState)
     for (t = token; t && *t && *t != '\n' && *t != '\r'; t++);
     if (t == NULL || *t == '\0' || t == token) {
 	debug(12, 3, "parseHttpRequest: Missing HTTP identifier\n");
+	xfree(inbuf);
 	return -1;
     }
     len = (int) (t - token);
@@ -1102,8 +1103,8 @@ static int parseHttpRequest(icpState)
     if (icpState->method == METHOD_POST) {
 	/* Expect Content-Length: and POST data after the headers */
 	if ((t = mime_get_header(req_hdr, "Content-Length")) == NULL) {
-	    xfree(inbuf);
 	    debug(12, 2, "POST without Content-Length\n");
+	    xfree(inbuf);
 	    return -1;
 	}
 	content_length = atoi(t);
@@ -1477,6 +1478,8 @@ static void icpDetectClientClose(fd, icpState)
 	CheckQuickAbort(icpState);
 	if (entry && icpState->url)
 	    protoUndispatch(fd, icpState->url, entry, icpState->request);
+	if (entry && entry->ping_status == WAITING)
+	    storeReleaseRequest(entry);
 	comm_close(fd);
     }
 }
