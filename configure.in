@@ -214,7 +214,14 @@ if test -z "$STD_CFLAGS"; then
     STD_CFLAGS="-g"
     XXXCC=`echo $CC | awk '{print $1}'`
     if test "`basename $XXXCC`" = "gcc"; then
-	STD_CFLAGS="$STD_CFLAGS -Wall"
+	case "$host" in
+	*-sun-sunos*)
+		# sunos has too many warnings for this to be useful
+		;;
+	*)
+		STD_CFLAGS="$STD_CFLAGS -Wall"
+		;;
+	esac
     fi
 fi
 AC_SUBST(STD_CFLAGS)
