@@ -160,7 +160,10 @@ diskCombineWrites(struct _fde_disk *fdd)
 	    fdd->write_q = q->next;
 	    if (q->free_func)
 		(q->free_func) (q->buf);
-	    if (q) { memFree(q, MEM_DWRITE_Q); q = NULL; }
+	    if (q) {
+		memFree(q, MEM_DWRITE_Q);
+		q = NULL;
+	    }
 	} while (fdd->write_q != NULL);
 	fdd->write_q_tail = wq;
 	fdd->write_q = wq;
@@ -224,7 +227,10 @@ diskHandleWrite(int fd, void *notused)
 		fdd->write_q = q->next;
 		if (q->free_func)
 		    (q->free_func) (q->buf);
-		if (q) { memFree(q, MEM_DWRITE_Q); q = NULL; }
+		if (q) {
+		    memFree(q, MEM_DWRITE_Q);
+		    q = NULL;
+		}
 	    } while ((q = fdd->write_q));
 	}
 	len = 0;
@@ -241,7 +247,10 @@ diskHandleWrite(int fd, void *notused)
 	    fdd->write_q = q->next;
 	    if (q->free_func)
 		(q->free_func) (q->buf);
-	    if (q) { memFree(q, MEM_DWRITE_Q); q = NULL; }
+	    if (q) {
+		memFree(q, MEM_DWRITE_Q);
+		q = NULL;
+	    }
 	}
     }
     if (fdd->write_q == NULL) {

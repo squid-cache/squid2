@@ -184,7 +184,7 @@ memPoolMeterReport(const MemPoolMeter * pm, size_t obj_size,
 	xpercent(pm->saved.count, mem_traffic_volume.count),
 	xpercent(obj_size * gb_to_double(&pm->saved), gb_to_double(&mem_traffic_volume)),
 	xpercent(pm->saved.count, pm->total.count),
-        pm->total.count);
+	pm->total.count);
 }
 
 /* MemMeter */
@@ -353,7 +353,7 @@ memReport(StoreEntry * e)
 	"(#)\t (KB)\t high (KB)\t"
 	"(number)\t (%%num)\t (%%vol)\t"
 	"(%%num)\t"
-        "(number)"
+	"(number)"
 	"\n");
     /* main table */
     for (i = 0; i < Pools.count; i++) {
