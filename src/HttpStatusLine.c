@@ -161,6 +161,9 @@ httpStatusString(http_status status)
     case HTTP_USE_PROXY:
 	p = "Use Proxy";
 	break;
+    case HTTP_TEMPORARY_REDIRECT:
+	p = "Temporary Redirect";
+	break;
     case HTTP_BAD_REQUEST:
 	p = "Bad Request";
 	break;
