@@ -36,6 +36,7 @@ typedef enum {
     ACL_SRC_DOMAIN,
     ACL_DST_DOMAIN,
     ACL_TIME,
+    ACL_URLPATH_REGEX,
     ACL_URL_REGEX,
     ACL_URL_PORT,
     ACL_USER,

@@ -1820,19 +1820,57 @@ parts_t *parse_entry(buf)
 
     /* try it as a DOS listing */
     if (n_tokens > 3 && p->name == NULL &&
-	!sscanf(tokens[0], "%[-0-9]", sbuf) &&	/* 04-05-70 */
-	!sscanf(tokens[1], "%[0-9:apm]", sbuf)) {	/* 09:33pm */
+	sscanf(tokens[0], "%[0-9]-%[0-9]-%[0-9]", sbuf, sbuf, sbuf) == 3 &&
+    /* 04-05-70 */
+	sscanf(tokens[1], "%[0-9]:%[0-9]%[AaPp]%[Mm]", sbuf, sbuf, sbuf, sbuf) == 4) {
+	/* 09:33PM */
 	if (!strcasecmp(tokens[2], "<dir>")) {
 	    p->type = 'd';
-	    sprintf(sbuf, "%s %s", tokens[0], tokens[1]);
-	    p->date = xstrdup(sbuf);
-	    p->name = xstrdup(tokens[3]);
+	} else {
+	    p->type = '-';
+	    p->size = atoi(tokens[2]);
 	}
-	p->type = '-';
 	sprintf(sbuf, "%s %s", tokens[0], tokens[1]);
 	p->date = xstrdup(sbuf);
-	p->size = atoi(tokens[2]);
 	p->name = xstrdup(tokens[3]);
+    }
+    /* Try EPLF format; carson@lehman.com */
+    if (p->name == NULL && buf[0] == '+') {
+	t = buf + 1;
+	p->type = 0;
+	while (t && *t) {
+	    switch (*t) {
+	    case '\t':
+		sscanf(t + 1, "%[^,]", sbuf);
+		p->name = xstrdup(sbuf);
+		break;
+	    case 's':
+		sscanf(t + 1, "%d", &(p->size));
+		break;
+	    case 'm':
+		sscanf(t + 1, "%d", &i);
+		p->date = xstrdup(ctime((time_t *) & i));
+		*(strstr(p->date, "\n")) = '\0';
+		break;
+	    case '/':
+		p->type = 'd';
+		break;
+	    case 'r':
+		p->type = '-';
+		break;
+	    case 'i':
+		break;
+	    default:
+		break;
+	    }
+	    t = strstr(t, ",");
+	    if (t) {
+		t++;
+	    }
+	}
+	if (p->type == 0) {
+	    p->type = '-';
+	}
     }
     for (i = 0; i < n_tokens; i++)
 	xfree(tokens[i]);

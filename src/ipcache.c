@@ -362,8 +362,8 @@ static int ipcache_purgelru()
     /* sort LRU candidate list */
     qsort((char *) LRU_list,
 	LRU_list_count,
-	sizeof(i),
-	(int (*)(const void *, const void *)) ipcache_compareLastRef);
+	sizeof(ipcache_entry *),
+	(QS) ipcache_compareLastRef);
     for (k = 0; LRU_list[k] && (meta_data.ipcache_count > ipcache_low)
 	&& k < LRU_list_count;
 	++k) {

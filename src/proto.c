@@ -198,6 +198,8 @@ int protoDispatchDNSHandle(unused1, hp, data)
 		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
 		getFromCache(protoData->fd, entry, NULL, req);
 		return 0;
+	    } else {
+		protoData->direct_fetch = DIRECT_NO;
 	    }
 	} else if (Config.local_ip_list) {
 	    xmemcpy(&srv_addr, *(hp->h_addr_list + 0), hp->h_length);

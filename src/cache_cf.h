@@ -204,6 +204,7 @@ struct SquidConfig {
     char *pidFilename;
     char *visibleHostname;
     char *ftpUser;
+    char *errHtmlText;
     struct {
 	char *host;
 	u_short port;
@@ -248,7 +249,6 @@ extern int unbuffered_logs;
 extern char ForwardedBy[];
 extern int httpd_accel_mode;
 
-/* Global Functions */
 extern int ip_acl_match _PARAMS((struct in_addr, ip_acl *));
 extern int parseConfigFile _PARAMS((char *file_name));
 extern int setCacheSwapMax _PARAMS((int size));

@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -47,44 +48,53 @@
 #endif /* HAVE_NDIR_H */
 #endif /* HAVE_DIRENT_H */
 
+static int rev_int_sort _PARAMS((int *, int *));
+
+static int rev_int_sort(i1, i2)
+     int *i1;
+     int *i2;
+{
+    return *i2 - *i1;
+}
+
 void storeDirClean()
 {
     static int index = 0;
-    static DIR *dp = NULL;
+    DIR *dp = NULL;
     struct dirent *de = NULL;
-    LOCAL_ARRAY(char,p1, MAXPATHLEN + 1);
-    LOCAL_ARRAY(char,p2, MAXPATHLEN + 1);
+    LOCAL_ARRAY(char, p1, MAXPATHLEN + 1);
+    LOCAL_ARRAY(char, p2, MAXPATHLEN + 1);
+    int files[20];
     int fileno;
-    static int count;
     int n = 0;
-    sprintf(p1, "%s/%02X/%02X",
+    int k = 0;
+    sprintf(p1, "%s/%02d",
 	swappath(index),
-        (index / ncache_dirs) % SWAP_DIRECTORIES_L1,
-        (index / ncache_dirs) / SWAP_DIRECTORIES_L1 % SWAP_DIRECTORIES_L2);
+	(index / ncache_dirs) % SWAP_DIRECTORIES);
     debug(36, 3, "storeDirClean: Cleaning directory %s\n", p1);
+    dp = opendir(p1);
     if (dp == NULL) {
-	count = 0;
-	dp = opendir(p1);
-	if (dp == NULL) {
-	    debug(36, 0, "storeDirClean: %s: %s\n", p1, xstrerror());
-	    fatal_dump(NULL);
-	}
+	debug(36, 0, "storeDirClean: %s: %s\n", p1, xstrerror());
+	fatal_dump(NULL);
     }
-    while ((de = readdir(dp)) && n < 10) {
-	if (sscanf(de->d_name, "%X", &fileno) != 1)
+    while ((de = readdir(dp)) && k < 20) {
+	if (sscanf(de->d_name, "%d", &fileno) != 1)
 	    continue;
 	if (file_map_bit_test(fileno))
 	    continue;
-	sprintf(p2, "%s/%s", p1, de->d_name);
-	debug(36, 3, "storeDirClean: Cleaning file %d\n", fileno);
-	if (safeunlink(p2, 0) == 0)
-	    count++, n++;
+	files[k++] = fileno;
     }
-    if (de == NULL) {
-    	debug(36, count ? 1 : 3, "Cleaned %d unused files from %s\n",
-		count, p1);
-	closedir(dp);
-	dp = NULL;
-	index++;
+    closedir(dp);
+    index++;
+    if (k == 0)
+	return;
+    qsort(files, k, sizeof(int), (QS) rev_int_sort);
+    if (k > 10)
+	k = 10;
+    for (n = 0; n < k; n++) {
+	debug(36, 3, "storeDirClean: Cleaning file %d\n", files[n]);
+	sprintf(p2, "%s/%d", p1, files[n]);
+	safeunlink(p2, 0);
     }
+    debug(36, 1, "Cleaned %d unused files from %s\n", k, p1);
 }
