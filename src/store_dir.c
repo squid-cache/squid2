@@ -75,6 +75,32 @@ storeCreateSwapDirectories(void)
     } while (pid > 0 || (pid < 0 && errno == EINTR));
 }
 
+static int
+storeDirSelectSwapDir(void)
+{
+    SwapDir *SD;
+    int min_away = 10000;
+    int min_size = 1<<30;
+    int dirn = 0;
+    int i;
+    for (i = 0; i < Config.cacheSwap.n_configured; i++) {
+	SD = &Config.cacheSwap.swapDirs[i];
+	if (SD->cur_size > SD->max_size)
+	    continue;
+	if (SD->u.diskd.away > min_away)
+	    continue;
+	if (SD->cur_size > min_size)
+	    continue;
+	if (SD->flags.read_only)
+	    continue;
+	min_away = SD->u.diskd.away;
+	min_size = SD->cur_size;
+	dirn = i;
+    }
+    return dirn;
+}
+
+#if OLD
 /*
  *Spread load across least 3/4 of the store directories
  */
@@ -165,6 +191,7 @@ storeDirSelectSwapDir(void)
     dirq[0] = -1;
     return dirn;
 }
+#endif
 
 int
 storeDirValidFileno(int fn, int flag)
