@@ -218,6 +218,9 @@ file_close(int fd)
 #if USE_ASYNC_IO
     aioClose(fd);
 #else
+#if CALL_FSYNC_BEFORE_CLOSE
+    fsync(fd);
+#endif
     close(fd);
 #endif
     debug(6, F->flags.close_request ? 2 : 5)
