@@ -65,10 +65,6 @@
 #include <assert.h>
 #endif
 
-#if SQUID_SNMP
-#include "snmp.h"
-#endif
-
 #include "util.h"
 
 #define MAX_LINE	1024	/* longest configuration line */
