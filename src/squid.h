@@ -116,6 +116,7 @@ typedef unsigned long u_num32;
 #include "wais.h"
 #include "connect.h"
 #include "objcache.h"
+#include "send-announce.h"
 #include "util.h"
 
 extern time_t cached_starttime;	/* main.c */

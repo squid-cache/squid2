@@ -56,8 +56,10 @@ extern int icpUdpSend _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *
 
 extern int icpHandleUdp _PARAMS((int sock, void *data));
 extern int asciiHandleConn _PARAMS((int sock, void *data));
+extern void AppendUdp _PARAMS((icpUdpData *));
 
 extern int neighbors_do_private_keys;
 extern char *IcpOpcodeStr[];
+extern int icpUdpReply _PARAMS((int fd, icpUdpData *queue));
 
 #endif

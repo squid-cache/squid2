@@ -75,7 +75,7 @@ extern int comm_peerport _PARAMS((int fd));
 extern int comm_pending _PARAMS((int fd, long sec, long usec));
 extern int comm_port _PARAMS((int fd));
 extern int comm_read _PARAMS((int fd, char *buf, int size));
-extern int comm_select _PARAMS((long sec, long usec, time_t));
+extern int comm_select _PARAMS((time_t sec, time_t));
 extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
 extern int comm_set_select_handler _PARAMS((int fd, unsigned int type, PF, void *));
 extern int comm_set_select_handler_plus_timeout _PARAMS((int, unsigned int, PF, void *, time_t));

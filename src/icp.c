@@ -72,8 +72,8 @@ typedef struct iwd {
     int flags;
 } icpStateData;
 
-static icpUdpData *UdpQueue = NULL;
-static icpUdpData *tail = NULL;
+static icpUdpData *UdpQueueHead = NULL;
+static icpUdpData *UdpQueueTail = NULL;
 #define ICP_MAX_UDP_SIZE 4096
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
@@ -98,7 +98,6 @@ static void icpHandleStore _PARAMS((int, StoreEntry *, icpStateData *));
 static void icpHandleStoreComplete _PARAMS((int, char *, int, int, icpStateData *));
 static int icpProcessMISS _PARAMS((int, icpStateData *, char *key));
 static void CheckQuickAbort _PARAMS((icpStateData *));
-static icpUdpData *AppendUdp _PARAMS((icpUdpData *, icpUdpData *));
 
 static void icpFreeBufOrPage(icpState)
      icpStateData *icpState;
@@ -812,33 +811,26 @@ int icpUdpReply(fd, queue)
      icpUdpData *queue;
 {
     int result = COMM_OK;
-    icpUdpData *dp = NULL;
-
-    dp = UdpQueue;
+    queue = UdpQueueHead;
     /* Disable handler, in case of errors. */
-    comm_set_select_handler(fd, COMM_SELECT_WRITE, 0, 0);
-
+    comm_set_select_handler(fd,
+	COMM_SELECT_WRITE,
+	0,
+	0);
     if (comm_udp_sendto(fd, &queue->address, sizeof(struct sockaddr_in),
 	    queue->msg, queue->len) < 0) {
 	debug(12, 1, "icpUdpReply: error sending\n");
 	result = COMM_ERROR;
     }
-    /* Don't close socket, as we need it for new incoming requests.  Just remove
-     * handler for writes. */
-    UdpQueue = UdpQueue->next;
-    if (!UdpQueue)
-	comm_set_select_handler(fd,
-	    COMM_SELECT_WRITE,
-	    0,
-	    0);
-    else
-	comm_set_select_handler(fd,
+    /* Reinstate handler if needed */
+    if ((UdpQueueHead = UdpQueueHead->next)) {
+        comm_set_select_handler(fd,
 	    COMM_SELECT_WRITE,
 	    (PF) icpUdpReply,
-	    (void *) UdpQueue);
-    safe_free(dp->msg);
-    safe_free(dp);
-
+	    (void *) UdpQueueHead);
+    }
+    safe_free(queue->msg);
+    safe_free(queue);
     return result;
 }
 
@@ -878,11 +870,11 @@ int icpUdpMiss(fd, url, reqheaderp, from)
     memcpy(buf + sizeof(icp_common_t), url, strlen(url) + 1);
     data->msg = buf;
     data->len = buf_len;
-    UdpQueue = AppendUdp(data, UdpQueue);
-
-    comm_set_select_handler(fd, COMM_SELECT_WRITE, (PF) icpUdpReply,
-	(void *) UdpQueue);
-
+    AppendUdp(data);
+    comm_set_select_handler(fd,
+	COMM_SELECT_WRITE,
+	(PF) icpUdpReply,
+	(void *) data);
     return COMM_OK;
 }
 
@@ -930,16 +922,13 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
     data->msg = buf;
     data->len = buf_len;
 
-    UdpQueue = AppendUdp(data, UdpQueue);
-
+    AppendUdp(data);
     debug(12, 4, "icpUdpSend: op %d: to %s: sz %d: <URL:%s>\n", opcode,
 	inet_ntoa(to->sin_addr), buf_len, url);
-
     comm_set_select_handler(fd,
 	COMM_SELECT_WRITE,
 	(PF) icpUdpReply,
-	(void *) UdpQueue);
-
+	(void *) data);
     return COMM_OK;
 }
 
@@ -1740,22 +1729,20 @@ int asciiHandleConn(sock, notused)
     return 0;
 }
 
-icpUdpData *AppendUdp(item, head)
+void AppendUdp(item)
      icpUdpData *item;
-     icpUdpData *head;
 {
     item->next = NULL;
-    if (head == NULL) {
-	head = item;
-	tail = head;
-    } else if (tail == head) {
-	tail = item;
-	head->next = tail;
+    if (UdpQueueHead == NULL) {
+	UdpQueueHead = item;
+	UdpQueueTail = item;
+    } else if (UdpQueueTail == UdpQueueHead) {
+	UdpQueueTail = item;
+	UdpQueueHead->next = item;
     } else {
-	tail->next = item;
-	tail = item;
+	UdpQueueTail->next = item;
+	UdpQueueTail = item;
     }
-    return (head);
 }
 
 static void CheckQuickAbort(astm)

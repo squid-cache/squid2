@@ -674,47 +674,23 @@ cache_dns_program @prefix@/bin/dnsserver
 #	available on the Web at http://www.nlanr.net/Cache/Tracker/.
 
 
-# If this is 'on' then an announcment will be sent every time you
-# start up your cache.  The default is 'off'
+# This is how frequently to send cache announcements.  The default
+# is `0' which disabled sending the announcement messages.  
 #
-cache_announce off
+# To enable announcing your cache, just uncomment the line below.
+#
+#cache_announce 24
 
 # This is the hostname and portnumber where the registration message
-# will be sent.  The default is 'sd.cache.nlanr.net:3131'
+# will be sent.  
 #
-announce_to sd.cache.nlanr.net:3131
-
-# Please enter a description for your organization here
+# Format:	announce_to   host[:port] [filename]
 #
-announce_organization	Your Organization
-
-# Please fill in your latitude and longitude coordinates.  This will
-# allow maps to be produced for a graphical interface to browsing
-# other caches.
+# Hostname will default to 'sd.cache.nlanr.net' and port will default
+# to 3131.  If the 'filename' argument is given, the contents of that
+# file will be included in the announce message.
 #
-# Enter latitude coordinates in this form:
-#
-#	 dd mm ss N|S
-#
-# Enter longitude coordinates in this form:
-#
-#	ddd mm ss E|W
-#
-# If you are in the US, you might be able to figure out your coordinates
-# from one of the following services:
-#
-#	http://wings.buffalo.edu/geogw
-#	http://tiger.census.gov/cgi-bin/gazetteer
-#
-#
-#announce_latitude      dd mm ss N
-#announce_longitude     ddd mm ss E
-
-# Please include here any appropriate comments about your cache, network,
-# configuration, or organization.  You may include more than one comment
-# line.
-#
-#announce_comment
+#announce_to sd.cache.nlanr.net:3131
 
 
 # NEW THINGS
