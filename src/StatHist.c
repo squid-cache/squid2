@@ -161,7 +161,7 @@ statHistBin(const StatHist * H, double v)
 static double
 statHistVal(const StatHist * H, int bin)
 {
-    return H->val_out(bin / H->scale) + H->min;
+    return H->val_out((double) bin / H->scale) + H->min;
 }
 
 double

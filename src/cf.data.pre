@@ -1462,7 +1462,7 @@ acl all src 0.0.0.0/0.0.0.0
 acl manager proto cache_object
 acl localhost src 127.0.0.1/255.255.255.255
 acl SSL_ports port 443 563
-acl Safe_ports port 80 21 70 1025-65535
+acl Safe_ports port 80 21 443 563 70 210 1025-65535
 acl CONNECT method CONNECT
 NOCOMMENT_END
 DOC_END
@@ -2708,4 +2708,5 @@ DOC_START
 	cache, instead of going direct, then turn this option off.
 prefer_direct on
 DOC_END
+
 EOF

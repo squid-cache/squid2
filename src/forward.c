@@ -230,6 +230,14 @@ fwdStartComplete(peer * p, void *data)
 	s->host = xstrdup(p->host);
 	s->port = p->http_port;
 	s->peer = p;
+    } else if (fwdState->request->protocol == PROTO_WAIS) {
+	if (!Config.Wais.relayHost) {
+	    fwdStartFail(NULL, fwdState);
+	    return;
+	} else {
+	    s->host = xstrdup(Config.Wais.relayHost);
+	    s->port = Config.Wais.relayPort;
+	}
     } else {
 	s->host = xstrdup(fwdState->request->host);
 	s->port = fwdState->request->port;
