@@ -760,7 +760,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* this object isn't in the cache */
 	icpState->log_type = LOG_TCP_MISS;
-    } else if (!storeValidToSend(entry)) {
+    } else if (!storeEntryValidToSend(entry)) {
 	icpState->log_type = LOG_TCP_MISS;
 	storeRelease(entry);
 	entry = NULL;
