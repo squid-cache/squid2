@@ -1053,7 +1053,6 @@ int icpHandleUdp(sock, not_used)
     from_len = sizeof(from);
     memset(&from, 0, from_len);
     len = comm_udp_recv(sock, buf, SQUID_UDP_SO_RCVBUF - 1, &from, &from_len);
-    nudpconn++;
     if (len < 0) {
 	debug(12, 1, "icpHandleUdp: FD %d: error receiving.\n", sock);
 	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
@@ -1086,6 +1085,7 @@ int icpHandleUdp(sock, not_used)
 
     switch (header.opcode) {
     case ICP_OP_QUERY:
+	nudpconn++;
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
