@@ -625,7 +625,8 @@ httpBuildRequestHeader(request_t * request,
 	l = strcspn(t, crlf) + 1;
 	if (l > 4096)
 	    l = 4096;
-	if (0 == l)
+	/* We might find a NULL before 'end' */
+	if (1 == l)
 	    break;
 	xstrncpy(xbuf, t, l);
 	debug(11, 5) ("httpBuildRequestHeader: %s\n", xbuf);
