@@ -38,8 +38,8 @@ static hash_table * host_table = NULL;
 
 static struct in_addr networkFromInaddr _PARAMS((struct in_addr a));
 static void netdbRelease _PARAMS((netdbEntry * n));
-static netdbEntry *netdbGetFirst _PARAMS((HashID table));
-static netdbEntry *netdbGetNext _PARAMS((HashID table));
+static netdbEntry *netdbGetFirst _PARAMS((hash_table * table));
+static netdbEntry *netdbGetNext _PARAMS((hash_table * table));
 static void netdbHashInsert _PARAMS((netdbEntry * n, struct in_addr addr));
 static void netdbHashDelete _PARAMS((const char *key));
 static void netdbHashLink _PARAMS((netdbEntry * n, const char *hostname));
@@ -113,13 +113,13 @@ netdbLookupHost(const char *key)
 }
 
 static netdbEntry *
-netdbGetFirst(HashID table)
+netdbGetFirst(hash_table * table)
 {
     return (netdbEntry *) hash_first(table);
 }
 
 static netdbEntry *
-netdbGetNext(HashID table)
+netdbGetNext(hash_table * table)
 {
     return (netdbEntry *) hash_next(table);
 }
