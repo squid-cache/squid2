@@ -1573,13 +1573,17 @@ dnl Please change your configure script.  AIX doesn't need -lbsd.
 	*-ibm-aix*)
 		echo "Removing -lbsd for AIX..."
 		LIBS=`echo $LIBS | sed -e s/-lbsd//`
+		case "$host" in
 dnl From: mlaster@metavillage.com (Mike Laster)
 dnl AIX 4.1.4.x does not have header files for snprintf/vsnprintf
 dnl So using the internal versions generates a load of warnings
 dnl during compile.
-		echo "disabling snprintf/vsnprintf for $host"
-		ac_cv_func_snprintf=no
-		ac_cv_func_vsnprintf=no
+			*-ibm-aix4*)
+				echo "disabling snprintf/vsnprintf for $host"
+				ac_cv_func_snprintf=no
+				ac_cv_func_vsnprintf=no
+			;;
+		esac
 		;;
 	*m88k*)
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"

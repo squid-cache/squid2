@@ -206,6 +206,8 @@ rusage_maxrss(struct rusage *r)
     return r->ru_maxrss;
 #elif defined(_SQUID_OSF_)
     return r->ru_maxrss;
+#elif defined(_SQUID_AIX_)
+    return r->ru_maxrss;
 #elif defined(BSD4_4)
     return r->ru_maxrss;
 #elif defined(HAVE_GETPAGESIZE) && HAVE_GETPAGESIZE != 0
