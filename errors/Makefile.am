@@ -11,11 +11,37 @@ errordir = $(datadir)/errors
 DEFAULT_ERROR_DIR	= $(errordir)
 
 INSTALL_LANGUAGES	= @ERR_LANGUAGES@
-LANGUAGES	= Bulgarian Czech Danish Dutch English Estonian Finnish French \
-		  German Hungarian Italian Japanese Korean Polish Portuguese \
-		  Romanian Russian-1251 Russian-koi8-r Serbian Simplify_Chinese \
-		  Slovak Spanish Swedish Traditional_Chinese Turkish
-
+LANGUAGES	= \
+		Bulgarian \
+		Catalan \
+		Czech \
+		Danish \
+		Dutch \
+		English \
+		Estonian \
+		Finnish \
+		French \
+		German \
+		Hebrew \
+		Hungarian \
+		Italian \
+		Japanese \
+		Korean \
+		list \
+		Makefile.am \
+		Makefile.in \
+		Polish \
+		Portuguese \
+		Romanian \
+		Russian-1251 \
+		Russian-koi8-r \
+		Serbian \
+		Simplify_Chinese \
+		Slovak \
+		Spanish \
+		Swedish \
+		Traditional_Chinese \
+		Turkish 
 
 install-data-local: 
 	@for l in $(INSTALL_LANGUAGES); do \
