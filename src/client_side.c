@@ -1109,7 +1109,6 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	if ((e = http->entry)) {
 	    http->entry = NULL;
 	    storeUnregister(e, http);
-	    storeRelease(e);
 	    storeUnlockObject(e);
 	}
 	clientProcessMiss(http);
