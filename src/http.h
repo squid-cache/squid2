@@ -114,6 +114,7 @@ struct _http_reply {
     int content_length;
     int hdr_sz;
     int cache_control;
+    int misc_headers;
     time_t date;
     time_t expires;
     time_t last_modified;
