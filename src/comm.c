@@ -803,7 +803,7 @@ comm_select(time_t sec)
     timeout = squid_curtime + sec;
     do {
 	if (sec > 60)
-	    fatal_dump(NULL);
+	    sec = 60;
 	if (shutdown_pending || reread_pending) {
 	    serverConnectionsClose();
 	    ftpServerClose();
@@ -985,7 +985,7 @@ comm_select(time_t sec)
 
     do {
 	if (sec > 60)
-	    fatal_dump(NULL);
+	    sec = 60;
 	FD_ZERO(&readfds);
 	FD_ZERO(&writefds);
 
@@ -1177,8 +1177,8 @@ comm_remove_close_handler(int fd, PF handler, void *data)
     for (p = fd_table[fd].close_handler; p != NULL; last = p, p = p->next)
 	if (p->handler == handler && p->data == data)
 	    break;		/* This is our handler */
-    if (!p)
-	fatal_dump("comm_remove_close_handler: Handler not found!\n");
+    if (p == NULL)
+	return;
 
     /* Remove list entry */
     if (last)
