@@ -580,7 +580,6 @@ comm_close(int fd)
 	return;
     }
     assert(F->type != FD_FILE);
-    memset(F, '\0', sizeof(fde));
     CommWriteStateCallbackAndFree(fd, COMM_ERROR);
     commCallCloseHandlers(fd);
     fd_close(fd);		/* update fdstat */
@@ -589,6 +588,7 @@ comm_close(int fd)
 #else
     close(fd);
 #endif
+    memset(F, '\0', sizeof(fde));
 }
 
 
