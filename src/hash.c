@@ -112,8 +112,8 @@ int hash_links_allocated;
 struct master_table {
     int valid;
     hash_link **buckets;
-    int (*cmp) (char *, char *);
-    int (*hash) (char *, HashID);
+    int (*cmp) _PARAMS((char *, char *));
+    unsigned int (*hash) _PARAMS((char *, HashID));
     int size;
     int current_slot;
     hash_link *current_ptr;
@@ -130,7 +130,7 @@ static int hash_unlink _PARAMS((HashID, hash_link *, int));
  *  Adapted from code written by Mic Bowman.  -Darren
  *  Generates a standard deviation = 15.73
  */
-int
+unsigned int
 hash_url(char *s, HashID hid)
 {
     unsigned int i, j, n;
@@ -141,7 +141,7 @@ hash_url(char *s, HashID hid)
     return (uhash(i, hid));
 }
 
-int
+unsigned int
 hash_string(char *s, HashID hid)
 {
     unsigned int n = 0;
@@ -342,7 +342,7 @@ hash_init(int hash_sz)
 HashID
 hash_create(int (*cmp_func) (char *, char *),
     int hash_sz,
-    int (*hash_func) (char *, HashID))
+    unsigned int (*hash_func) (char *, HashID))
 {
     int hid;
 
