@@ -749,9 +749,7 @@ normal_shutdown(void)
     {
 	extern int xmalloc_total;
 	extern void xmalloc_find_leaks(void);
-	extern void xmalloc_dump_map(void);
 	xmalloc_find_leaks();
-	xmalloc_dump_map();
 	debug(1, 0) ("Memory used after shutdown: %d\n", xmalloc_total);
     }
 #endif
