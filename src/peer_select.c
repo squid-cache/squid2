@@ -318,7 +318,7 @@ peerSelectFoo(ps_state * psstate)
 	    eventAdd("peerPingTimeout",
 		peerPingTimeout,
 		psstate,
-		expected_rtt,
+		expected_rtt / 1000.0,
 		0);
 	    return;
 	}
