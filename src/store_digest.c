@@ -303,7 +303,7 @@ storeDigestCalcCap()
     if (cap > hi_cap)
 	cap = hi_cap;
     cap = 1 + (int) (StoreDigestFudgeFactor * cap);
-    return cap;
+    return hi_cap;
 }
 
 /* returns true if we actually resized the digest */
