@@ -142,7 +142,7 @@ Changes to squid-1.0.beta6:
 	  not end with '/'.
 
 
-changes to beta7
+changes to squid-1.0.beta7:
 
 	- Fixed comm_udp_sendto continuous loop bug
 	- Fixed URLs-with-colon-but-no-port-number bug
@@ -152,4 +152,5 @@ changes to beta7
 	- Fixed setuid bug causing some logs to be owned by root.
 	- Fixed virtual host mode (-V option)
 	- Added read(2) instrumentation for HTTP and FTP.
+	- Changed neighbor initialization to continue if DNS lookup fails.
 	- Lint cleanup
