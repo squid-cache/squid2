@@ -384,7 +384,7 @@ peerSelectFoo(ps_state * psstate)
 	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], p->host);
 	hierarchyNote(&request->hier, code, &psstate->ping, p->host);
 	peerSelectCallback(psstate, p);
-    } else if (direct != DIRECT_NO) {
+    } else if (Config.onoff.prefer_direct && direct != DIRECT_NO) {
 	code = DIRECT;
 	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], request->host);
 	hierarchyNote(&request->hier, code, &psstate->ping, request->host);
@@ -393,6 +393,11 @@ peerSelectFoo(ps_state * psstate)
 	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], p->host);
 	hierarchyNote(&request->hier, code, &psstate->ping, p->host);
 	peerSelectCallback(psstate, p);
+    } else if (direct != DIRECT_NO) {
+	code = DIRECT;
+	debug(44, 3) ("peerSelect: %s/%s\n", hier_strings[code], request->host);
+	hierarchyNote(&request->hier, code, &psstate->ping, request->host);
+	peerSelectCallback(psstate, NULL);
     } else {
 	code = NO_DIRECT_FAIL;
 	hierarchyNote(&request->hier, code, &psstate->ping, NULL);

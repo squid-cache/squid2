@@ -338,6 +338,7 @@ struct _SquidConfig {
 	int offline;
 	int redir_rewrites_host;
 	int persistent_client_posts;
+	int prefer_direct;
     } onoff;
     acl *aclList;
     struct {
