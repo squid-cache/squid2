@@ -340,6 +340,9 @@ storeSetPublicKey(StoreEntry * e)
      * the object.  If we're not swapping out, then subsequent
      * store clients won't be able to access object data which has
      * been freed from memory.
+     *
+     * If RELEASE_REQUEST is set, then ENTRY_CACHABLE should not
+     * be set, and storeSetPublicKey() should not be called.
      */
     assert(!EBIT_TEST(e->flags, RELEASE_REQUEST));
     newkey = storeKeyPublic(mem->url, mem->method);
