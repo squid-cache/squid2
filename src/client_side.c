@@ -348,11 +348,10 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	    /* use old entry, this repeats the code above */
 	    http->log_type = LOG_TCP_REFRESH_FAIL_HIT;
 	    storeUnregister(entry, http);
+	    storeUnlockObject(entry);
 	    entry = http->entry = http->old_entry;
 	    entry->refcount++;
 	} else {
-	    if (entry->store_status == STORE_ABORTED)
-		debug(33, 0) ("clientHandleIMSReply: entry->swap_status == STORE_ABORTED\n");
 	    storeClientCopy(entry,
 		http->out.offset + size,
 		http->out.offset,
