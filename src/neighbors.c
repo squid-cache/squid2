@@ -562,15 +562,15 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 #ifdef UDP_HIT_WITH_OBJ
     } else if (header->opcode == ICP_OP_HIT_OBJ) {
 	if (entry->object_len != 0) {
-		debug(15,0,"NON ZERO OBJECT LEN FOR ICP_OP_HIT_OBJ?\n");
-		return;
+	    debug(15, 0, "NON ZERO OBJECT LEN FOR ICP_OP_HIT_OBJ?\n");
+	    return;
 	}
 	storeAppend(entry, data, data_sz);
 	storeComplete(entry);
-	    hierarchy_log_append(entry->url,
-		HIER_UDP_HIT_OBJ,
-		0,
-		e->host);
+	hierarchy_log_append(entry->url,
+	    HIER_UDP_HIT_OBJ,
+	    0,
+	    e->host);
 	return;
 #endif
     } else if (header->opcode == ICP_OP_HIT) {

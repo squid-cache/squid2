@@ -103,7 +103,7 @@ typedef unsigned long u_num32;
 #include "GNUregex.h"
 #include "ansihelp.h"
 
-typedef void (*SIH) _PARAMS((int, void *)); /* swap in */
+typedef void (*SIH) _PARAMS((int, void *));	/* swap in */
 
 #include "cache_cf.h"
 #include "comm.h"

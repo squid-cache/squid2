@@ -85,12 +85,13 @@ typedef struct ireadd {
 
 #ifdef UDP_HIT_WITH_OBJ
 typedef struct {
-	int fd;
-	struct sockaddr_in to;
-	StoreEntry *entry;
-	icp_common_t header;
-	struct timeval started;
+    int fd;
+    struct sockaddr_in to;
+    StoreEntry *entry;
+    icp_common_t header;
+    struct timeval started;
 } icpHitObjStateData;
+
 #endif
 
 /* Local functions */
@@ -828,7 +829,7 @@ int icpUdpReply(fd, queue)
 	}
 	UdpQueueHead = queue->next;
 	if (queue->icp_pkt)
-		icpLogIcp(queue);
+	    icpLogIcp(queue);
 	safe_free(queue->msg);
 	safe_free(queue);
     }
@@ -932,11 +933,11 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
     int size;
     u_num32 flags = 0;
 
-    debug(12,3,"icpUdpSendEntry: fd = %d\n", fd);
-    debug(12,3,"icpUdpSendEntry: url = '%s'\n", url);
-    debug(12,3,"icpUdpSendEntry: to = %s:%d\n", inet_ntoa(to->sin_addr),ntohs(to->sin_port));
-    debug(12,3,"icpUdpSendEntry: opcode = %d %s\n", opcode, IcpOpcodeStr[opcode]);
-    debug(12,3,"icpUdpSendEntry: entry = %p\n", entry);
+    debug(12, 3, "icpUdpSendEntry: fd = %d\n", fd);
+    debug(12, 3, "icpUdpSendEntry: url = '%s'\n", url);
+    debug(12, 3, "icpUdpSendEntry: to = %s:%d\n", inet_ntoa(to->sin_addr), ntohs(to->sin_port));
+    debug(12, 3, "icpUdpSendEntry: opcode = %d %s\n", opcode, IcpOpcodeStr[opcode]);
+    debug(12, 3, "icpUdpSendEntry: entry = %p\n", entry);
 
     buf_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
 
@@ -953,7 +954,6 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
 	    fd, xstrerror());
 	return;
     }
-
     buf = xcalloc(buf_len, 1);
     headerp = (icp_common_t *) (void *) buf;
     headerp->opcode = opcode;
@@ -966,17 +966,16 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
     urloffset = buf + sizeof(icp_common_t);
     memcpy(urloffset, url, strlen(url));
     data_sz = htons((u_short) entry->object_len);
-    entryoffset = urloffset + strlen(url)+1;
+    entryoffset = urloffset + strlen(url) + 1;
     memcpy(entryoffset, &data_sz, sizeof(u_short));
     entryoffset += sizeof(u_short);
     size = m->data->mem_copy(m->data, 0, entryoffset, entry->object_len);
     if (size != entry->object_len) {
-	debug(12,1,"icpUdpSendEntry: copy failed, wanted %d got %d bytes\n",
-		entry->object_len, size);
+	debug(12, 1, "icpUdpSendEntry: copy failed, wanted %d got %d bytes\n",
+	    entry->object_len, size);
 	safe_free(buf);
 	return;
     }
-
     data = xcalloc(1, sizeof(icpUdpData));
     memcpy(&data->address, to, sizeof(struct sockaddr_in));
     data->msg = buf;
@@ -993,6 +992,7 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
 	(PF) icpUdpReply,
 	(void *) UdpQueueHead);
 }
+
 #endif
 
 #ifdef UDP_HIT_WITH_OBJ
@@ -1122,19 +1122,19 @@ int icpHandleUdp(sock, not_used)
 	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
 #ifdef UDP_HIT_WITH_OBJ
-	        pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
-	        if (header.flags & ICP_FLAG_HIT_OBJ && pkt_len < ICP_MAX_UDP_SIZE) {
-	            icpHitObjState = xcalloc(1, sizeof(icpHitObjStateData));
-	            icpHitObjState->entry = entry;
-	            icpHitObjState->fd = sock;
-	            icpHitObjState->to = from;
-	            icpHitObjState->header = header;
-		    icpHitObjState->started = current_time;
-		    if (storeLockObject(entry, icpHitObjHandler, icpHitObjState) == 0)
-			    break;
-		    /* else, problems */
-		    safe_free(icpHitObjState);
-	        }
+	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
+	    if (header.flags & ICP_FLAG_HIT_OBJ && pkt_len < ICP_MAX_UDP_SIZE) {
+		icpHitObjState = xcalloc(1, sizeof(icpHitObjStateData));
+		icpHitObjState->entry = entry;
+		icpHitObjState->fd = sock;
+		icpHitObjState->to = from;
+		icpHitObjState->header = header;
+		icpHitObjState->started = current_time;
+		if (storeLockObject(entry, icpHitObjHandler, icpHitObjState) == 0)
+		    break;
+		/* else, problems */
+		safe_free(icpHitObjState);
+	    }
 #endif
 
 #ifdef OLD_CODE
@@ -1186,14 +1186,14 @@ int icpHandleUdp(sock, not_used)
 	url = buf + sizeof(header);
 #ifdef UDP_HIT_WITH_OBJ
 	if (header.opcode == ICP_OP_HIT_OBJ) {
-		data = url + strlen(url) + 1;
-		memcpy((char *) &u, data, sizeof(u_short));
-		data += sizeof(u_short);
-		data_sz = ntohs(u);
-		if (data_sz >  (len - (data - buf))) {
-			debug(12,0,"icpHandleUdp: ICP_OP_HIT_OBJ object too small\n");
-			break;
-		}
+	    data = url + strlen(url) + 1;
+	    memcpy((char *) &u, data, sizeof(u_short));
+	    data += sizeof(u_short);
+	    data_sz = ntohs(u);
+	    if (data_sz > (len - (data - buf))) {
+		debug(12, 0, "icpHandleUdp: ICP_OP_HIT_OBJ object too small\n");
+		break;
+	    }
 	}
 #endif
 	debug(12, 3, "icpHandleUdp: %s from %s for '%s'\n",

@@ -421,8 +421,8 @@ int storeLockObject(e, handler, data)
 	status = swap_in_stat;
     } else {
 	/* its already in memory, so call the handler */
-	if (handler )
-		(*handler)(0, data);
+	if (handler)
+	    (*handler) (0, data);
     }
     return status;
 }
@@ -1000,7 +1000,7 @@ int storeSwapInHandle(fd_notused, buf, len, flag, e, offset_notused)
 	file_close(m->swap_fd);
 	swapInError(-1, e);	/* Invokes storeAbort() and completes the I/O */
 	if (m->swapin_complete_handler)
-		(*m->swapin_complete_handler)(-1, m->swapin_complete_data);
+	    (*m->swapin_complete_handler) (-1, m->swapin_complete_data);
 	return -1;
     }
     debug(20, 5, "storeSwapInHandle: e->swap_offset   = %d\n", m->swap_offset);
@@ -1039,7 +1039,7 @@ int storeSwapInHandle(fd_notused, buf, len, flag, e, offset_notused)
 	if (e->flag & RELEASE_REQUEST)
 	    storeRelease(e);
 	if (m->swapin_complete_handler)
-		(*m->swapin_complete_handler)(0, m->swapin_complete_data);
+	    (*m->swapin_complete_handler) (0, m->swapin_complete_data);
     }
     return 0;
 }
