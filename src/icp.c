@@ -190,6 +190,8 @@ int icpHierarchical(icpState)
 	return 0;
     if (BIT_TEST(icpState->flags, REQ_AUTH))
 	return 0;
+    if (method != METHOD_GET)
+	return 0;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(request, method);
     if (req->protocol == PROTO_FTP)
@@ -197,8 +199,6 @@ int icpHierarchical(icpState)
     if (req->protocol == PROTO_GOPHER)
 	return gopherCachable(request);
     if (req->protocol == PROTO_WAIS)
-	return 0;
-    if (method == METHOD_CONNECT)
 	return 0;
     if (req->protocol == PROTO_CACHEOBJ)
 	return 0;
@@ -793,9 +793,10 @@ int icpUdpReply(fd, queue)
 	    queue->msg,
 	    queue->len);
 	if (x < 0) {
-	    if (errno != EWOULDBLOCK && errno != EAGAIN)
+	    if (errno == EWOULDBLOCK || errno == EAGAIN)
+		break;		/* don't de-queue */
+	    else
 		result = COMM_ERROR;
-	    break;
 	}
 	UdpQueueHead = queue->next;
 	safe_free(queue->msg);
@@ -825,6 +826,13 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
     struct sockaddr_in our_socket_name;
     int sock_name_length = sizeof(our_socket_name);
     char *urloffset = NULL;
+
+#ifdef CHECK_BAD_ADDRS
+    if (to->sin_addr.s_addr == 0xFFFFFFFF) {
+	debug(12,0,"icpUdpSend: URL '%s'\n", url);
+	fatal_dump("icpUdpSend: BAD ADDRESS: 255.255.255.255");
+    }
+#endif
 
     if (getsockname(fd, (struct sockaddr *) &our_socket_name,
 	    &sock_name_length) == -1) {
