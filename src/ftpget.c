@@ -674,27 +674,27 @@ int accept_with_timeout(fd, S, len)
     fd_set R;
     struct timeval tv;
     for (;;) {
-    tv.tv_sec = o_timeout;
-    tv.tv_usec = 0;
-    FD_ZERO(&R);
-    FD_SET(fd, &R);
-    FD_SET(0, &R);
-    last_alarm_set = time(NULL);
-    Debug(26, 7, ("accept_with_timeout: selecting on FD %d\n", fd));
-    x = select(fd + 1, &R, NULL, NULL, &tv);
-    Debug(26, 7, ("select returned: %d\n", x));
-    if (x == 0)
-	return READ_TIMEOUT;
-    if (x < 0) {
-	if (errno == EWOULDBLOCK)
-	    continue;
-	if (errno == EAGAIN)
-	    continue;
-	return x;
-    }
-    if (FD_ISSET(0, &R))
-	exit(1);
-    return accept(fd, (struct sockaddr *) S, len);
+	tv.tv_sec = o_timeout;
+	tv.tv_usec = 0;
+	FD_ZERO(&R);
+	FD_SET(fd, &R);
+	FD_SET(0, &R);
+	last_alarm_set = time(NULL);
+	Debug(26, 7, ("accept_with_timeout: selecting on FD %d\n", fd));
+	x = select(fd + 1, &R, NULL, NULL, &tv);
+	Debug(26, 7, ("select returned: %d\n", x));
+	if (x == 0)
+	    return READ_TIMEOUT;
+	if (x < 0) {
+	    if (errno == EWOULDBLOCK)
+		continue;
+	    if (errno == EAGAIN)
+		continue;
+	    return x;
+	}
+	if (FD_ISSET(0, &R))
+	    exit(1);
+	return accept(fd, (struct sockaddr *) S, len);
     }
     /* NOTREACHED */
 }
@@ -2152,7 +2152,7 @@ void cleanup_path(r)
 
 #define MAX_ARGS 64
 int ftpget_srv_mode(arg)
-    char *arg;
+     char *arg;
 {
     /* Accept connections on localhost:port.  For each request,
      * parse into args and exec ftpget. */
@@ -2173,15 +2173,15 @@ int ftpget_srv_mode(arg)
     setsid();			/* become session leader */
     port = (u_short) atoi(arg);
     if (port > 0) {
-        if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	    log_errno2(__FILE__, __LINE__, "socket");
 	    exit(1);
-        }
+	}
     } else {
-        if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
 	    log_errno2(__FILE__, __LINE__, "socket");
 	    exit(1);
-        }
+	}
     }
     if (fcntl(sock, F_SETFD, 1) < 0) {
 	Debug(26, 0, ("ftpget_srv_mode: FD %d: failed to set close-on-exec flag: %s\n",
@@ -2190,28 +2190,28 @@ int ftpget_srv_mode(arg)
     i = 1;
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &i, sizeof(int));
     if (port > 0) {
-    	memset((char *) &S, '\0', sizeof(S));
-    	S.sin_addr.s_addr = inet_addr("127.0.0.1");
-    	S.sin_port = htons(port);
-    	S.sin_family = AF_INET;
-    	Debug(26, 1, ("Binding to %s, port %d\n",
-	    	inet_ntoa(S.sin_addr),
-	    	ntohs(S.sin_port)));
-    	if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
-		log_errno2(__FILE__, __LINE__, "bind");
-		sleep(5);		/* sleep here so that the cache will restart us */
-		exit(1);
+	memset((char *) &S, '\0', sizeof(S));
+	S.sin_addr.s_addr = inet_addr("127.0.0.1");
+	S.sin_port = htons(port);
+	S.sin_family = AF_INET;
+	Debug(26, 1, ("Binding to %s, port %d\n",
+		inet_ntoa(S.sin_addr),
+		ntohs(S.sin_port)));
+	if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+	    log_errno2(__FILE__, __LINE__, "bind");
+	    sleep(5);		/* sleep here so that the cache will restart us */
+	    exit(1);
 	}
     } else {
 	memset(&S2, '\0', sizeof(S2));
 	S2.sun_family = AF_UNIX;
 	strcpy(S2.sun_path, arg);
-    	Debug(26, 1, ("Binding to UNIX socket '%s'\n", S2.sun_path));
+	Debug(26, 1, ("Binding to UNIX socket '%s'\n", S2.sun_path));
 	i = strlen(S2.sun_path) + sizeof(S2.sun_family);
-    	if (bind(sock, (struct sockaddr *) &S2, i) < 0) {
-		log_errno2(__FILE__, __LINE__, "bind");
-		sleep(5);		/* sleep here so that the cache will restart us */
-		exit(1);
+	if (bind(sock, (struct sockaddr *) &S2, i) < 0) {
+	    log_errno2(__FILE__, __LINE__, "bind");
+	    sleep(5);		/* sleep here so that the cache will restart us */
+	    exit(1);
 	}
     }
     if (listen(sock, 50) < 0) {

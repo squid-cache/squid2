@@ -116,19 +116,18 @@ int comm_open_unix(note)
 	debug(5, 0, "comm_open: FD %d: failed to set close-on-exec flag: %s\n",
 	    new_socket, xstrerror());
     }
-
 #if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
-	if (fcntl(new_socket, F_SETFL, O_NONBLOCK)) {
-	    debug(5, 0, "comm_open: FD %d: Failure to set O_NONBLOCK: %s\n",
-		new_socket, xstrerror());
-	    return (COMM_ERROR);
-	}
+    if (fcntl(new_socket, F_SETFL, O_NONBLOCK)) {
+	debug(5, 0, "comm_open: FD %d: Failure to set O_NONBLOCK: %s\n",
+	    new_socket, xstrerror());
+	return (COMM_ERROR);
+    }
 #else
-	if (fcntl(new_socket, F_SETFL, O_NDELAY)) {
-	    debug(5, 0, "comm_open: FD %d: Failure to set O_NDELAY: %s\n",
-		new_socket, xstrerror());
-	    return (COMM_ERROR);
-	}
+    if (fcntl(new_socket, F_SETFL, O_NDELAY)) {
+	debug(5, 0, "comm_open: FD %d: Failure to set O_NDELAY: %s\n",
+	    new_socket, xstrerror());
+	return (COMM_ERROR);
+    }
 #endif /* O_NONBLOCK */
     return new_socket;
 }

@@ -214,7 +214,7 @@ static void mainInitialize()
 	ConfigFile = xstrdup(DefaultConfigFile);
     parseConfigFile(ConfigFile);
 
-    leave_suid(); /* Run as non privilegied user */
+    leave_suid();		/* Run as non privilegied user */
 
     if (asciiPortNumOverride != 1)
 	setAsciiPortNum((u_short) asciiPortNumOverride);

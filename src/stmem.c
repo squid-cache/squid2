@@ -378,7 +378,7 @@ void stmemInit()
 
 #if !PURIFY
 #ifdef LITTLESTACK
-    init_stack(&sm_stats.free_page_stack, (getCacheMemMax() / SM_PAGE_SIZE)>>2);
+    init_stack(&sm_stats.free_page_stack, (getCacheMemMax() / SM_PAGE_SIZE) >> 2);
     init_stack(&disk_stats.free_page_stack, 1000);
 #else /* LITTLESTACK */
     /* 4096 * 10000 pages = 40MB + CacheMemMax in pages */

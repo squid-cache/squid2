@@ -512,7 +512,7 @@ void neighborsUdpAck(fd, url, header, from, entry)
 
 	if (m) {
 	    if (n > RTT_AV_FACTOR)
-			n = RTT_AV_FACTOR;
+		n = RTT_AV_FACTOR;
 	    rtt = tvSubMsec(m->start_ping, current_time);
 	    e->stats.rtt = (e->stats.rtt * (n - 1) + rtt) / n;
 	}

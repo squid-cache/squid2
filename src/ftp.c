@@ -667,7 +667,7 @@ int ftpInitialize()
     char *ftpget = getFtpProgram();
 
 #ifdef USE_FTPGET_INET_SOCK
-    ftpget_port=CACHE_FTP_PORT+getAsciiPortNum();
+    ftpget_port = CACHE_FTP_PORT + getAsciiPortNum();
 #else
     memset(ftpget_socket_path, '\0', 128);
     strncpy(ftpget_socket_path, tempnam(NULL, "ftpget"), 127);
