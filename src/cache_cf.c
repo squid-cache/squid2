@@ -197,6 +197,7 @@ configDoConfigure(void)
     if (Config.cacheSwap.swapDirs == NULL)
 	fatal("No cache_dir's specified in config file");
     /* calculate Config.Swap.maxSize */
+    Config.Swap.maxSize = 0;
     for (i = 0; i < Config.cacheSwap.n_configured; i++)
 	Config.Swap.maxSize += Config.cacheSwap.swapDirs[i].max_size;
     if (Config.Swap.maxSize < (Config.Mem.maxSize >> 10))
