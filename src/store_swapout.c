@@ -115,6 +115,10 @@ storeSwapOut(StoreEntry * e)
 	storeSwapOutFileClose(e);
 	return;
     }
+    if (EBIT_TEST(e->flags, ENTRY_SPECIAL)) {
+	debug(20, 3) ("storeSwapOut: %s SPECIAL\n", storeUrl(e));
+	return;
+    }
     debug(20, 7) ("storeSwapOut: mem->inmem_lo = %d\n",
 	(int) mem->inmem_lo);
     debug(20, 7) ("storeSwapOut: mem->inmem_hi = %d\n",
