@@ -155,6 +155,7 @@ int _delay_fetch;
 static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
 #if FORW_VIA_LOG
+#define FV_PATH "/usr/local/squid/logs/forw_via.log"
 static FILE *forw_via_log = NULL;
 #endif
 
@@ -2229,7 +2230,6 @@ icpHandleAbort(int fd, StoreEntry * entry, void *data)
 }
 
 #if FORW_VIA_LOG
-#define FV_PATH "/usr/local/squid/logs/forw_via.log"
 void
 icpInit(int op)
 {
