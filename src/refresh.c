@@ -265,6 +265,10 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
 #endif
 	if (NULL != cc) {
 	    if (cc->max_age > -1) {
+#if HTTP_VIOLATIONS
+		if (R->flags.ignore_reload && cc->max_age == 0) {
+		} else
+#endif
 		if (age > cc->max_age) {
 		    debug(22, 3) ("refreshCheck: YES: age > client-max-age\n");
 		    return STALE_EXCEEDS_REQUEST_MAX_AGE_VALUE;
