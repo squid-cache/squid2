@@ -850,9 +850,11 @@ clientSetKeepaliveFlag(clientHttpRequest * http)
 	request->http_ver);
     debug(33, 3) ("clientSetKeepaliveFlag: method = %s\n",
 	RequestMethodStr[request->method]);
-    if (memInUse(MEM_CONNSTATEDATA) > 300)
-	(void) 0;
-    else if (httpMsgIsPersistent(request->http_ver, req_hdr))
+    /*
+     * If we wanted to limit the number of client-side idle persistent
+     * connections, this is a good place to do it.
+     */
+    if (httpMsgIsPersistent(request->http_ver, req_hdr))
 	request->flags.proxy_keepalive = 1;
 }
 
