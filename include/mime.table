@@ -8,8 +8,8 @@
 .ps        application/postscript           8bit         0.8    text
 .rtf       application/x-rtf                7bit         1.0    binary
 .Z         application/x-compressed         x-compress   1.0    binary
-.gz        application/x-gzip               x-gzip       1.0    binary
-.tgz       application/x-gzip               x-gzip       1.0    binary
+.gz        text/plain			    x-gzip       1.0    binary
+.tgz       application/x-tar                x-gzip       1.0    binary
 .csh       application/x-csh                7bit         0.5    text
 .dvi       application/x-dvi                binary       1.0    binary
 .hdf       application/x-hdf                binary       1.0    binary
