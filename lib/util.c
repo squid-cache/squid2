@@ -725,14 +725,12 @@ xpercent(double part, double whole)
 int
 xpercentInt(double part, double whole)
 {
-    double result;
 #if HAVE_RINT
-    result = rint(xpercent(part, whole));
+    return (int) rint(xpercent(part, whole));
 #else
     /* SCO 3.2v4.2 doesn't have rint() -- mauri@mbp.ee */
-    result = floor(xpercent(part, whole) + 0.5);
+    return (int) floor(xpercent(part, whole) + 0.5);
 #endif
-    return (int) result;
 }
 
 /* somewhat safer division */
