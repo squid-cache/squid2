@@ -3,7 +3,7 @@
 # $Id$
 #
 
-errordir = $(sharedstatedir)/squid/errors
+errordir = $(datadir)/squid/errors
 
 
 ##dist-hook eveything

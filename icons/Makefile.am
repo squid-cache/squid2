@@ -29,7 +29,7 @@ ICON2 	=	anthony-bomb.gif \
 		anthony-xbm.gif \
 		anthony-xpm.gif
 
-icondir = $(sharedstatedir)/squid/icons
+icondir = $(datadir)/squid/icons
 icon_DATA = $(ICON1) $(ICON2)
 EXTRA_DIST = $(ICON1) $(ICON2) icons.shar
 DISTCLEANFILES = $(ICON1) $(ICON2)
