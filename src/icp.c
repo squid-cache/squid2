@@ -221,13 +221,12 @@ httpRequestFree(void *data)
     MemObject *mem = NULL;
     debug(12, 3) ("httpRequestFree: %s\n", entry ? entry->url : "no store entry");
     if (!icpCheckTransferDone(http)) {
+	if (entry)
+	    storeUnregister(entry, http);	/* unregister BEFORE abort */
 	CheckQuickAbort(http);
 	entry = http->entry;	/* reset, IMS might have changed it */
-	if (entry) {
-	    if (entry->ping_status == PING_WAITING)
+	if (entry && entry->ping_status == PING_WAITING)
 		storeReleaseRequest(entry);
-	    storeUnregister(entry, http);
-	}
 	protoUnregister(entry, request, conn->peer.sin_addr);
     }
     assert(http->log_type < LOG_TYPE_MAX);
@@ -1903,7 +1902,6 @@ requestTimeout(int fd, void *data)
     ConnStateData *conn = data;
     ErrorState *err;
     debug(12, 2) ("requestTimeout: FD %d: lifetime is expired.\n", fd);
-    /* There might be a comm_write() thread; cancel callback */
     if (fd_table[fd].rwstate) {
 	/* Some data has been sent to the client, just close the FD */
 	comm_close(fd);
