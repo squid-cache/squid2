@@ -145,10 +145,14 @@ errorConvert(char token, ErrorState * err)
 	snprintf(buf, CVT_BUF_SZ, "%s", getMyHostname());
 	p = buf;
 	break;
+    case 't':
+	xstrncpy(buf, 128 , mkhttpdlogtime(squid_curtime));
+	p=buf;
+	break;
 /*
- * e - errno                                  x
+ * e - errno                                    x
  * E - strerror()                               x
- * t - local time
+ * t - local time				x
  * T - UTC
  * c - Squid error code
  * I - server IP address
