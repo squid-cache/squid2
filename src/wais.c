@@ -226,10 +226,10 @@ static void waisReadReply(fd, waisState)
     len = read(fd, buf, 4096);
     debug(24, 5, "waisReadReply: FD %d read len:%d\n", fd, len);
     if (len > 0) {
-        IOStats.Wais.reads++;
-        for (clen = len - 1, bin = 0; clen; bin++)
-            clen >>= 1;
-        IOStats.Wais.read_hist[bin]++;
+	IOStats.Wais.reads++;
+	for (clen = len - 1, bin = 0; clen; bin++)
+	    clen >>= 1;
+	IOStats.Wais.read_hist[bin]++;
     }
     if (len < 0) {
 	debug(24, 1, "waisReadReply: FD %d: read failure: %s.\n", xstrerror());
