@@ -245,7 +245,7 @@ typedef unsigned long u_num32;
 
 #include "ansiproto.h"
 
-#if HAVE_REGEX_H
+#if HAVE_REGEX_H && !defined(_SQUID_NEXT_)
 #include <regex.h>
 #else /* HAVE_REGEX_H */
 #include "GNUregex.h"

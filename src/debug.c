@@ -289,7 +289,7 @@ accessLogTime(time_t t)
     static time_t last_t = 0;
     if (t != last_t) {
 	tm = localtime(&t);
-	strftime(buf, 127, "%y/%m/%d %T", tm);
+	strftime(buf, 127, "%y/%m/%d %H:%M:%S", tm);
 	last_t = t;
     }
     return buf;

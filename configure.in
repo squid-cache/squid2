@@ -210,6 +210,7 @@ AC_FUNC_ALLOCA
 AC_CHECK_TYPE(pid_t, int)
 AC_CHECK_TYPE(size_t, int)
 AC_CHECK_TYPE(off_t, int)
+AC_CHECK_TYPE(mode_t, u_short)
 
 dnl Check for needed libraries
 AC_CHECK_LIB(nsl, main)
