@@ -2235,7 +2235,6 @@ clientProcessRequest2(clientHttpRequest * http)
     if (r->flags.nocache) {
 	debug(33, 3) ("clientProcessRequest2: no-cache REFRESH MISS\n");
 	http->entry = NULL;
-	ipcacheInvalidate(r->host);
 	return LOG_TCP_CLIENT_REFRESH_MISS;
     }
     if (NULL == r->range) {
