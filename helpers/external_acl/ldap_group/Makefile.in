@@ -88,6 +88,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LIBDLMALLOC = @LIBDLMALLOC@
 LIBREGEX = @LIBREGEX@
 LIBSASL = @LIBSASL@
+LIB_LBER = @LIB_LBER@
 LIB_MALLOC = @LIB_MALLOC@
 LN = @LN@
 LN_S = @LN_S@
@@ -127,7 +128,7 @@ man_MANS = squid_ldap_group.8
 EXTRA_DIST = squid_ldap_group.8
 squid_ldap_group_SOURCES = squid_ldap_group.c
 
-LDADD = -lldap -llber $(XTRA_LIBS)
+LDADD = -lldap $(LIB_LBER) $(XTRA_LIBS)
 subdir = helpers/external_acl/ldap_group
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/autoconf.h
