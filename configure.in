@@ -22,9 +22,8 @@ LIBREGEX=''	# libregex.a
 dnl use directory structure of cached as default (hack)
 if test "$libexecdir" = '${exec_prefix}/libexec' &&
    test "$localstatedir" = '${prefix}/var'; then
-	libexecdir='${bindir}'
+	libexecdir='${prefix}/libexec/squid'
 	localstatedir='${prefix}'
-
 fi
 
 dnl use .exe suffix for executables on cygwin32 platform
