@@ -82,8 +82,8 @@ pumpInit(int fd, request_t * r, char *uri)
     memset(&hdr, '\0', sizeof(HttpHeader));
     hdrStart = r->headers;
     hdrEnd = &r->headers[r->headers_sz];
-    if (NULL == httpHeaderParse(&hdr, hdrStart, hdrEnd)) {
-	debug(61, 1) ("pumpInit: Cannot find Content-Length\n");
+    if (0 == httpHeaderParse(&hdr, hdrStart, hdrEnd)) {
+	debug(61, 1) ("pumpInit: Cannot parse request headers\n");
 	xfree(p);
 	return;
     }
@@ -269,6 +269,10 @@ pumpReadFromClient(int fd, void *data)
 	return;
     }
     if (len > 0) {
+	if (p->rcvd + len > p->cont_len) {
+	    debug(61, 1) ("pumpReadFromClient: Warning: read %d bytes past content-length, truncating\n", p->rcvd + len - p->cont_len);
+	    len = p->cont_len - p->rcvd;
+	}
 	storeAppend(p->request_entry, buf, len);
 	p->rcvd += len;
     }
@@ -279,9 +283,7 @@ pumpReadFromClient(int fd, void *data)
 	return;
     }
     /* all done! */
-    if (p->rcvd > p->cont_len)
-	debug(61, 1) ("pumpReadFromClient: Warning: rcvd=%d, cont_len=%d\n",
-	    p->rcvd, p->cont_len);
+    assert(p->rcvd == p->cont_len);
     debug(61, 2) ("pumpReadFromClient: finished!\n");
 }
 
