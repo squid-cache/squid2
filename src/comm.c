@@ -173,7 +173,7 @@ comm_openex(int sock_type,
     const char *note)
 {
     int new_socket;
-    int tos;
+    int tos = 0;
     fde *F = NULL;
 
     /* Create socket for accepting new connections. */
