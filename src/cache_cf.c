@@ -805,8 +805,10 @@ parse_cachedir(cacheSwap * swap)
 	self_destruct();
     if (0 == strcasecmp(type_str, "ufs")) {
 	storeUfsDirParse(swap);
+#if USE_ASYNC_IO
     } else if (0 == strcasecmp(type_str, "asyncufs")) {
 	storeAufsDirParse(swap);
+#endif
     } else {
 	fatalf("Unknown cache_dir type '%s'\n", type_str);
     }
