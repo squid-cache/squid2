@@ -1039,10 +1039,10 @@ int storeSwapInHandle(fd_notused, buf, len, flag, e, offset_notused)
 	    debug(20, 0, "  --> Only read %d bytes\n",
 		mem->e_current_len);
 	}
-	if (e->flag & RELEASE_REQUEST)
-	    storeRelease(e);
 	if (mem->swapin_complete_handler)
 	    (*mem->swapin_complete_handler) (0, mem->swapin_complete_data);
+	if (e->flag & RELEASE_REQUEST)
+	    storeRelease(e);
     }
     return 0;
 }
