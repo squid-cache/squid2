@@ -585,7 +585,7 @@ snmpAgentResponse(struct snmp_pdu *PDU)
 
 		if (ParseFn == NULL) {
 		    Answer->errstat = SNMP_ERR_NOSUCHNAME;
-		    debug(49, 5) ("snmpAgentResponse: No such oid. ");
+		    debug(49, 5) ("snmpAgentResponse: No such oid.\n");
 		} else
 		    VarNew = (*ParseFn) (VarPtr, (snint *) & (Answer->errstat));
 
@@ -614,7 +614,7 @@ snmpAgentResponse(struct snmp_pdu *PDU)
 
 	    if (ParseFn == NULL) {
 		Answer->errstat = SNMP_ERR_NOSUCHNAME;
-		debug(49, 5) ("snmpAgentResponse: No such oid: ");
+		debug(49, 5) ("snmpAgentResponse: No such oid:\n");
 		snmpDebugOid(5, PDU->variables->name, PDU->variables->name_length);
 	    } else {
 		xfree(PDU->variables->name);
@@ -1043,7 +1043,7 @@ snmpDebugOid(int lvl, oid * Name, snint Len)
 static void
 snmpSnmplibDebug(int lvl, char *buf)
 {
-    debug(49, lvl) ("%s", buf);
+    debug(49, lvl) ("%s\n", buf);
 }
 
 void

@@ -280,8 +280,7 @@ idnsParseWIN32Registry(void)
 				t, &Size);
 			    token = strtok((char *) t, ", ");
 			    while (token) {
-				debug(78,
-				    1) ("Adding nameserver %s from Registry\n",
+				debug(78, 1) ("Adding nameserver %s from Registry\n",
 				    token);
 				idnsAddNameserver(token);
 				token = strtok(NULL, ", ");
@@ -682,7 +681,7 @@ idnsInit(void)
 #else
 	debug(78, 1) ("Please check your /etc/resolv.conf file\n");
 #endif
-	debug(78, 1) ("or use the 'dns_nameservers' option in squid.conf.");
+	debug(78, 1) ("or use the 'dns_nameservers' option in squid.conf.\n");
 	idnsAddNameserver("127.0.0.1");
     }
     if (!init) {

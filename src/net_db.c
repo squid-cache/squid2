@@ -247,7 +247,7 @@ netdbSendPing(const ipcache_addrs * ia, void *data)
 	    hostname, n->network, na->network);
 	x = (net_db_name *) hash_lookup(host_table, hostname);
 	if (x == NULL) {
-	    debug(38, 1) ("netdbSendPing: net_db_name list bug: %s not found", hostname);
+	    debug(38, 1) ("netdbSendPing: net_db_name list bug: %s not found\n", hostname);
 	    xfree(hostname);
 	    return;
 	}

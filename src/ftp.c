@@ -1977,7 +1977,7 @@ ftpAcceptDataConnection(int fd, void *data)
 	}
     }
     if (fd < 0) {
-	debug(9, 1) ("ftpHandleDataAccept: comm_accept(%d): %s", fd, xstrerror());
+	debug(9, 1) ("ftpHandleDataAccept: comm_accept(%d): %s\n", fd, xstrerror());
 	/* XXX Need to set error message */
 	ftpFail(ftpState);
 	return;

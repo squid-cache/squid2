@@ -2860,7 +2860,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 #if LINUX_NETFILTER
 	    /* If the call fails the address structure will be unchanged */
 	    getsockopt(conn->fd, SOL_IP, SO_ORIGINAL_DST, &conn->me, &sock_sz);
-	    debug(33, 5) ("parseHttpRequest: addr = %s", inet_ntoa(conn->me.sin_addr));
+	    debug(33, 5) ("parseHttpRequest: addr = %s\n", inet_ntoa(conn->me.sin_addr));
 	    if (vport_mode)
 		vport = (int) ntohs(http->conn->me.sin_port);
 #endif
