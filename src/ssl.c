@@ -348,8 +348,6 @@ sslConnectDone(int fd, int status, void *data)
 	    xfree);
 	return;
     }
-    if (opt_no_ipcache)
-	ipcacheInvalidate(sslState->host);
     if (sslState->proxying)
 	sslProxyConnected(sslState->server.fd, sslState);
     else

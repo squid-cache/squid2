@@ -328,8 +328,6 @@ passConnectDone(int fd, int status, void *data)
 	    xfree);
 	return;
     }
-    if (opt_no_ipcache)
-	ipcacheInvalidate(passState->host);
     if (passState->proxying) {
 	request = get_free_request_t();
 	passState->proxy_request = requestLink(request);

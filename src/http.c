@@ -924,8 +924,6 @@ httpConnectDone(int fd, int status, void *data)
 	    peerCheckConnectStart(httpState->neighbor);
 	comm_close(fd);
     } else {
-	if (opt_no_ipcache)
-	    ipcacheInvalidate(request->host);
 	fd_note(fd, entry->url);
 	commSetSelect(fd, COMM_SELECT_WRITE, httpSendRequest, httpState, 0);
     }

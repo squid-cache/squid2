@@ -151,7 +151,7 @@ _db_print(va_alist)
     vfprintf(debug_log, f, args);
     if (unbuffered_logs)
 	fflush(debug_log);
-    if (opt_debug_stderr)
+    if (opt_debug_stderr && debug_log != stderr)
 	vfprintf(stderr, f, args);
     va_end(args);
 }

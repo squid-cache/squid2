@@ -79,7 +79,7 @@ identConnectDone(int fd, int status, void *data)
 {
     ConnStateData *connState = data;
     LOCAL_ARRAY(char, reqbuf, BUFSIZ);
-    if (status == COMM_ERROR) {
+    if (status != COMM_OK) {
 	comm_close(fd);
 	identCallback(connState);
 	return;
