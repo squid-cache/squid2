@@ -1,6 +1,11 @@
 	- Added missing newlines to a number of debug messages.
 	- NULL-terminate long URL's in urlParse().
 	- Change configure to remove libmalloc for FreeBSD
+	- Changed ftpget to assume a single space between date and 
+	  filename in Unix sytle listings.
+	- Added urlCheck() to check for supported method/protocol
+	  combinations and return "501 Not Implemented" when
+	  appropriate.
 
 Changes to squid-1.0.10 (August 26, 1996):
 
