@@ -1266,7 +1266,6 @@ AC_CHECK_HEADERS( \
 	ip_nat.h \
 	libc.h \
 	limits.h \
-	linux/netfilter_ipv4.h \
 	malloc.h \
 	math.h \
 	memory.h \
@@ -1326,6 +1325,13 @@ AC_CHECK_HEADERS( \
 	grp.h \
 	nss_common.h \
 	nss.h
+)
+
+AC_CHECK_HEADER(linux/netfilter_ipv4.h,,,
+SQUID_DEFAULT_INCLUDES
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif
 )
 
 AC_C_CONST
