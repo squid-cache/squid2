@@ -453,7 +453,6 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	storeUnregister(entry, fd);
 	storeUnlockObject(entry);
 	entry = icpState->entry = oldentry;
-	entry->timestamp = squid_curtime;
 	if (mime_headers_end(hbuf)) {
 	    httpParseReplyHeaders(hbuf, entry->mem_obj->reply);
 	    timestampsSet(entry);
@@ -461,6 +460,7 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	    debug(33, 1, "icpHandleIMSReply: No end-of-headers, len=%d\n", len);
 	    debug(33, 1, "  --> '%s'\n", entry->url);
 	}
+	entry->timestamp = squid_curtime;
 	put_free_8k_page(hbuf);
 	if (unlink_request) {
 	    requestUnlink(entry->mem_obj->request);
