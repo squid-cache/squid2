@@ -1120,6 +1120,7 @@ extern void useragentLogClose(void);
 extern void refererOpenLog(void);
 extern void refererRotateLog(void);
 extern void logReferer(const char *, const char *, const char *);
+extern void refererCloseLog(void);
 extern peer_t parseNeighborType(const char *s);
 
 extern void errorInitialize(void);

@@ -951,6 +951,7 @@ SquidShutdown(void *unused)
     storeLogClose();
     accessLogClose();
     useragentLogClose();
+    refererCloseLog();
 #if WIP_FWD_LOG
     fwdUninit();
 #endif
