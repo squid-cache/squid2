@@ -123,5 +123,8 @@ wordlist *getGopherStoplist _PARAMS((void));
 wordlist *getHttpStoplist _PARAMS((void));
 wordlist *getInsideFirewallList _PARAMS((void));
 wordlist *getLocalDomainList _PARAMS((void));
+wordlist *getDnsTestnameList _PARAMS((void));
+extern int getShutdownLifetime _PARAMS((void));
+
 
 #endif /* ndef  _CACHE_CONFIG_H_ */
