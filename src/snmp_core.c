@@ -67,7 +67,7 @@ int snmp_dump_packet;
 void *users, *communities;
 
 static struct sockaddr_in local_snmpd;
-static snmp_init_config = 0;
+static int snmp_init_config = 0;
 struct snmp_session *Session;
 struct snmp_pdu *snmpAgentResponse(struct snmp_pdu *PDU);
 

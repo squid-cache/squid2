@@ -384,11 +384,11 @@ debugLogTime(time_t t)
  */
 static int Ctx_Warn_Level = 32;
 /* all descriptions has been printed up to this level */
-static Ctx_Reported_Level = -1;
+static int Ctx_Reported_Level = -1;
 /* descriptions are still valid or active up to this level */
-static Ctx_Valid_Level = -1;
+static int Ctx_Valid_Level = -1;
 /* current level, the number of nested ctx_enter() calls */
-static Ctx_Current_Level = -1;
+static int Ctx_Current_Level = -1;
 /* saved descriptions (stack) */
 static const char *Ctx_Descrs[CTX_MAX_LEVEL + 1];
 /* "safe" get secription */

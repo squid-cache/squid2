@@ -208,7 +208,7 @@ peerDigestValidate(peer * p)
     }
     /* start request if needed */
     if (do_request) {
-	static nest_level = 0;
+	static int nest_level = 0;
 	nest_level++;
 	assert(nest_level == 1);
 	debug(72, 2) ("peerDigestValidate: %s requesting; old entry expires: %s\n",

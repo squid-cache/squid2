@@ -119,13 +119,14 @@ strListGetItem(const char *str, char del, const char **item, int *ilen, const ch
 {
     size_t len;
     assert(str && item && pos);
-    if (*pos)
+    if (*pos) {
 	if (!**pos)		/* end of string */
 	    return 0;
 	else
 	    (*pos)++;
-    else
+    } else {
 	*pos = str;
+    }
 
     /* skip leading ws (ltrim) */
     *pos += xcountws(*pos);

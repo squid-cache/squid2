@@ -327,11 +327,12 @@ httpReplyParseStep(HttpReply * rep, const char *buf, int atEnd)
 	rep->pstate++;
     }
     if (rep->pstate == psReadyToParseHeaders) {
-	if (!httpReplyIsolateHeaders(&parse_start, &blk_start, &blk_end))
+	if (!httpReplyIsolateHeaders(&parse_start, &blk_start, &blk_end)) {
 	    if (atEnd)
 		blk_start = parse_start, blk_end = blk_start + strlen(blk_start);
 	    else
 		return 0;
+	}
 	if (!httpHeaderParse(&rep->header, blk_start, blk_end))
 	    return httpReplyParseError(rep);
 

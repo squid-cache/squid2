@@ -34,7 +34,7 @@
 
 
 typedef struct _rebuild_dir rebuild_dir;
-typedef RBHD(rebuild_dir * d);
+typedef int RBHD(rebuild_dir * d);
 
 struct _rebuild_dir {
     int dirn;
