@@ -279,10 +279,7 @@ storeGet(const cache_key * key)
 StoreEntry *
 storeGetPublic(const char *uri, const method_t method)
 {
-    StoreEntry *e = storeGet(storeKeyPublic(uri, method));
-    if (e == NULL && squid_curtime < 922500000)
-	e = storeGet(storeKeyPublicOld(uri, method));
-    return e;
+    return storeGet(storeKeyPublic(uri, method));
 }
 
 static int
