@@ -181,6 +181,7 @@ static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
 static void icpUdpSendEntry _PARAMS((int, char *, int,
 	struct sockaddr_in *, icp_opcode, StoreEntry *, struct timeval));
+static void icpFinishAbort _PARAMS((int fd, icpStateData *icpState));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -291,6 +292,10 @@ icpStateFree(int fd, icpStateData * icpState)
 	storeUnregister(icpState->entry, fd);
 	storeUnlockObject(icpState->entry);
 	icpState->entry = NULL;
+    }
+    if (icpState->old_entry) {
+	storeUnlockObject(icpState->old_entry);
+	icpState->old_entry = NULL;
     }
     requestUnlink(icpState->request);
     if (icpState->aclChecklist) {
@@ -407,19 +412,7 @@ icpSendERROR(int fd,
     int httpCode)
 {
     int buf_len = 0;
-    u_short port = 0;
     char *buf = NULL;
-
-    port = comm_local_port(fd);
-    debug(12, 4, "icpSendERROR: code %d: port %hd: text: '%s'\n",
-	errorCode, port, text);
-
-    if (port == 0) {
-	comm_close(fd);
-	return;
-    }
-    if (port != Config.Port.http)
-	fatal_dump("icpSendERROR: Bad port");
     icpState->log_type = errorCode;
     icpState->http_code = httpCode;
     if (icpState->entry && icpState->entry->mem_obj) {
@@ -484,7 +477,7 @@ icpSendMoreData(int fd, icpStateData * icpState)
     char *buf = NULL;
     char *p = NULL;
 
-    debug(12, 5, "icpSendMoreData: <URL:%s> sz %d: len %d: off %d.\n",
+    debug(12, 5, "icpSendMoreData: '%s' sz %d: len %d: off %d.\n",
 	entry->url,
 	entry->object_len,
 	entry->mem_obj ? entry->mem_obj->e_current_len : 0,
@@ -527,7 +520,7 @@ icpSendMoreData(int fd, icpStateData * icpState)
 static void
 icpHandleStore(int fd, StoreEntry * entry, icpStateData * icpState)
 {
-    debug(12, 5, "icpHandleStore: FD %d: off %d: <URL:%s>\n",
+    debug(12, 5, "icpHandleStore: FD %d: off %d: '%s'\n",
 	fd, icpState->offset, entry->url);
     if (entry->store_status == STORE_ABORTED) {
 	debug(12, 3, "icpHandleStore: abort_code=%d\n",
@@ -720,7 +713,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
     StoreEntry *entry = NULL;
     request_t *request = icpState->request;
 
-    debug(12, 4, "icpProcessRequest: %s <URL:%s>\n",
+    debug(12, 4, "icpProcessRequest: %s '%s'\n",
 	RequestMethodStr[icpState->method],
 	url);
     if (icpState->method == METHOD_CONNECT) {
@@ -1809,19 +1802,15 @@ asciiProcessInput(int fd, char *buf, int size, int flag, void *data)
 static void
 asciiConnLifetimeHandle(int fd, icpStateData * icpState)
 {
+    StoreEntry *entry = icpState->entry;
     debug(12, 2, "asciiConnLifetimeHandle: FD %d: lifetime is expired.\n", fd);
     CheckQuickAbort(icpState);
-    /* Unregister us from the dnsserver pending list and cause a DNS
-     * related storeAbort() for other attached clients.  If this
-     * doesn't succeed, then the fetch has already started for this
-     * URL. */
     protoUnregister(fd,
-	icpState->entry,
+	entry,
 	icpState->request,
 	icpState->peer.sin_addr);
-    if (icpState->entry->store_status == STORE_PENDING)
-	squid_error_entry(icpState->entry, ERR_LIFETIME_EXP, NULL);
-    comm_close(fd);
+    squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
+    icpFinishAbort(fd, icpState);
 }
 
 /* Handle a new connection on ascii input socket. */
@@ -1967,19 +1956,22 @@ icpDetectClientClose(int fd, void *data)
 	    COMM_SELECT_READ,
 	    (PF) icpDetectClientClose,
 	    (void *) icpState, 0);
+#if PURIFY
+    } else if (n <= 0) {
+#else
     } else if (n < 0) {
+#endif
 	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
 	debug(12, 5, "--> URL '%s'\n", icpState->url);
 	if (errno == ECONNRESET)
 	    debug(12, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
-	else
+	else if (errno)
 	    debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	CheckQuickAbort(icpState);
-	protoUnregister(fd, entry, icpState->request, icpState->peer.sin_addr);
-	entry = icpState->entry;	/* HandleIMS() might change it */
 	if (entry && entry->ping_status == PING_WAITING)
 	    storeReleaseRequest(entry);
-	comm_close(fd);
+	protoUnregister(fd, entry, icpState->request, icpState->peer.sin_addr);
+	icpFinishAbort(fd, icpState);
     } else if (entry != NULL && icpState->offset == entry->object_len &&
 	entry->store_status != STORE_PENDING) {
 	/* All data has been delivered */
@@ -1990,7 +1982,7 @@ icpDetectClientClose(int fd, void *data)
 	comm_close(fd);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
-	comm_set_stall(fd, 60);	/* check again in a minute */
+	comm_set_stall(fd, 10);	/* check again in 10 seconds */
     }
 }
 
@@ -2102,4 +2094,30 @@ vizHackSendPkt(const struct sockaddr_in *from, int type)
 	sizeof(struct sockaddr_in),
 	            (char *) &v,
 	sizeof      (v));
+}
+
+/* 
+ * icpFinishAbort()
+ * Call for objects which might have been aborted.  If the entry
+ * was aborted, AND the client has not seen any data yet, then
+ * Queue the error page via icpSendERROR().  Otherwise just
+ * close the socket.
+ */
+static void
+icpFinishAbort(int fd, icpStateData * icpState)
+{
+    StoreEntry *entry = icpState->entry;
+    if (entry->store_status != STORE_ABORTED) {
+	comm_close(fd);
+	return;
+    }
+    if (icpState->size > 0) {
+	comm_close(fd);
+	return;
+    }
+    icpSendERROR(fd,
+	entry->mem_obj->abort_code,
+	entry->mem_obj->e_abort_msg,
+	icpState,
+	400);
 }
