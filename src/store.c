@@ -321,7 +321,7 @@ destroy_MemObject(MemObject * mem)
     assert(mem->swapout.fd == -1);
     destroy_MemObjectData(mem);
     meta_data.misc -= strlen(mem->log_url);
-    safe_free(mem->clients);
+    assert(mem->clients == NULL);
     safe_free(mem->reply);
     safe_free(mem->url);
     safe_free(mem->log_url);
