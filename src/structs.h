@@ -590,6 +590,7 @@ struct _SquidConfig {
 	int pipeline_prefetch;
 	int check_hostnames;
 	int via;
+	int emailErrData;
     } onoff;
     acl *aclList;
     struct {
