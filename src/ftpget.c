@@ -76,7 +76,9 @@
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#if HAVE_STDIO_H
 #include <stdio.h>
+#endif
 #if HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -110,7 +112,9 @@
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
+#if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -165,6 +169,11 @@ typedef struct _ext_table_entry {
 #define F_NEEDACCEPT	0x20
 #define F_USEBASE	0x40
 #define F_BASEDIR	0x80
+
+#if !defined(SUN_LEN)
+#define SUN_LEN(su) \
+        (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
+#endif
 
 typedef enum {
     BEGIN,
@@ -2269,7 +2278,7 @@ int ftpget_srv_mode(arg)
 		ntohs(S.sin_port)));
 	if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
 	    log_errno2(__FILE__, __LINE__, "bind");
-	    sleep(5);		/* sleep here so that the cache will restart us */
+	    sleep(5);		/* sleep here so the cache will restart us */
 	    exit(1);
 	}
 	socket_pathname = xstrdup(arg);
@@ -2278,10 +2287,9 @@ int ftpget_srv_mode(arg)
 	S2.sun_family = AF_UNIX;
 	strcpy(S2.sun_path, arg);
 	Debug(26, 1, ("Binding to UNIX socket '%s'\n", S2.sun_path));
-	i = strlen(S2.sun_path) + 1 + sizeof(S2.sun_family);
-	if (bind(sock, (struct sockaddr *) &S2, i) < 0) {
+	if (bind(sock, (struct sockaddr *) &S2, SUN_LEN(&S2)) < 0) {
 	    log_errno2(__FILE__, __LINE__, "bind");
-	    sleep(5);		/* sleep here so that the cache will restart us */
+	    sleep(5);		/* sleep here so the cache will restart us */
 	    exit(1);
 	}
     }
