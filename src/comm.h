@@ -205,7 +205,7 @@ extern void comm_write _PARAMS((int fd,
 	int timeout,
 	rw_complete_handler * handler,
 	void *handler_data,
-	void (*)(void *)));
+	void       (*)(void *)));
 
 extern int RESERVED_FD;
 

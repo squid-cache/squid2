@@ -443,7 +443,7 @@ static void httpReadReply(fd, httpState)
     debug(11, 5, "httpReadReply: FD %d: len %d.\n", fd, len);
     comm_set_fd_lifetime(fd, 86400);	/* extend after good read */
     if (len > 0) {
-        IOStats.Http.reads++;
+	IOStats.Http.reads++;
 	for (clen = len - 1, bin = 0; clen; bin++)
 	    clen >>= 1;
 	IOStats.Http.read_hist[bin]++;

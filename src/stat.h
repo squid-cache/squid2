@@ -171,16 +171,16 @@ struct _cacheinfo {
 
     /* add a transaction to system log */
     void (*log_append) _PARAMS((struct _cacheinfo * obj,
-	char *url,
-	char *id,
-	int size,
-	char *action,
-	char *method,
-	int http_code,
-	int msec,
-	char *ident,
-	hier_code,
-	char *hierarchy_host));
+	    char *url,
+	    char *id,
+	    int size,
+	    char *action,
+	    char *method,
+	    int http_code,
+	    int msec,
+	    char *ident,
+	    hier_code,
+	    char *hierarchy_host));
 
     /* clear logfile */
     void (*log_clear) _PARAMS((struct _cacheinfo * obj, StoreEntry * sentry));

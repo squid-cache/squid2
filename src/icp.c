@@ -1597,10 +1597,10 @@ static void icpAccessCheckDone(icpState, answer)
 	redirectStart(icpState->url, fd, icpRedirectDone, icpState);
     } else {
 	debug(12, 5, "Access Denied: %s\n", icpState->url);
-	buf =	access_denied_msg(icpState->http_code,
-                	icpState->method,
-                	icpState->url,
-                	fd_table[fd].ipaddr);
+	buf = access_denied_msg(icpState->http_code,
+	    icpState->method,
+	    icpState->url,
+	    fd_table[fd].ipaddr);
 	icpSendERROR(fd, LOG_TCP_DENIED, buf, icpState, 403);
     }
 }
@@ -1670,16 +1670,16 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 	    if (strstr(icpState->url, "/echo")) {
 		debug(12, 0, "ECHO request from %s\n",
 		    inet_ntoa(icpState->peer.sin_addr));
-	        icpSendERROR(fd, LOG_TCP_MISS, icpState->request_hdr, icpState, 200);
+		icpSendERROR(fd, LOG_TCP_MISS, icpState->request_hdr, icpState, 200);
 	    } else {
 		debug(12, 5, "Invalid URL: %s\n", icpState->url);
 		wbuf = squid_error_url(icpState->url,
-			icpState->method,
-			ERR_INVALID_URL,
-			fd_table[fd].ipaddr,
-			icpState->http_code,
-			NULL);
-	        icpSendERROR(fd, ERR_INVALID_URL, wbuf, icpState, 400);
+		    icpState->method,
+		    ERR_INVALID_URL,
+		    fd_table[fd].ipaddr,
+		    icpState->http_code,
+		    NULL);
+		icpSendERROR(fd, ERR_INVALID_URL, wbuf, icpState, 400);
 	    }
 	    return;
 	}

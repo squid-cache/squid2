@@ -371,7 +371,7 @@ static int sslConnect(fd, hp, sslState)
 	    30,
 	    sslErrorComplete,
 	    (void *) sslState,
-		xfree);
+	    xfree);
 	return COMM_ERROR;
     }
     debug(26, 5, "sslConnect: client=%d server=%d\n",
@@ -452,7 +452,7 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
 	    30,
 	    sslErrorComplete,
 	    (void *) sslState,
-		xfree);
+	    xfree);
 	return COMM_ERROR;
     }
     sslState = xcalloc(1, sizeof(SslStateData));

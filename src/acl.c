@@ -627,7 +627,7 @@ static int aclMatchTime(data, when)
 
 int aclMatchAcl(acl, checklist)
      struct _acl *acl;
-      aclCheck_t *checklist;
+     aclCheck_t *checklist;
 {
     request_t *r = checklist->request;
     struct hostent *hp = NULL;
@@ -648,7 +648,7 @@ int aclMatchAcl(acl, checklist)
 	for (k = 0; *(hp->h_addr_list + k); k++) {
 	    xmemcpy(&checklist->dst_addr.s_addr,
 		*(hp->h_addr_list + k),
-	  	hp->h_length);
+		hp->h_length);
 	    if (aclMatchIp(acl->data, checklist->dst_addr))
 		return 1;
 	}
