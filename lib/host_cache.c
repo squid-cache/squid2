@@ -153,9 +153,11 @@ static Host *new_host(hostname)
 }
 
 void dump_host_cache(d_sec, d_lvl)
+	int d_sec;
+	int d_lvl;
 {
     int i;
-    Host *h;
+    Host *h = NULL;
 
     Debug(d_sec, d_lvl, ("HostTable:\n"));
     for (i = 0; i < HASHTABLE_N; i++) {
