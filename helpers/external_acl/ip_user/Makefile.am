@@ -22,7 +22,7 @@ EXTRA_DIST = \
 	license \
 	README
 
-# sysconf_DATA = \
+# sysconf_DATA = 
 
 LDADD	= @XTRA_LIBS@
 
