@@ -130,7 +130,8 @@ passReadServer(int fd, void *data)
     len = read(passState->server.fd, passState->server.buf, SQUID_TCP_SO_RCVBUF);
     if (len > 0) {
 	fd_bytes(passState->server.fd, len, FD_READ);
-	kb_incr(&Counter.server.kbytes_in, len);
+	kb_incr(&Counter.server.all.kbytes_in, len);
+	kb_incr(&Counter.server.other.kbytes_in, len);
     }
     debug(39, 5) ("passReadServer FD %d, read %d bytes\n", fd, len);
     if (len < 0) {
@@ -214,7 +215,8 @@ passWriteServer(int fd, void *data)
 	passState->client.len - passState->client.offset);
     if (len > 0) {
 	fd_bytes(passState->server.fd, len, FD_WRITE);
-	kb_incr(&Counter.server.kbytes_out, len);
+	kb_incr(&Counter.server.all.kbytes_out, len);
+	kb_incr(&Counter.server.other.kbytes_out, len);
     }
     debug(39, 5) ("passWriteServer FD %d, wrote %d bytes\n", fd, len);
     if (len < 0) {
@@ -375,6 +377,8 @@ passStart(int fd, const char *url, request_t * request, size_t * size_ptr)
     ErrorState *err = NULL;
     debug(39, 3) ("passStart: '%s %s'\n",
 	RequestMethodStr[request->method], url);
+    Counter.server.all.requests++;
+    Counter.server.other.requests++;
     /* Create socket. */
     sock = comm_open(SOCK_STREAM,
 	0,
