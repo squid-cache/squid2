@@ -795,7 +795,7 @@ intAverage(int cur, int new, int n, int max)
 {
     if (n > max)
 	n = max;
-    return (cur * (n - 1)) + new / n;
+    return (cur * (n - 1) + new) / n;
 }
 
 void
