@@ -689,7 +689,7 @@ snmp_netFqdnFn(variable_list * Var, snint * ErrP)
     Answer = snmp_var_new(Var->name, Var->name_length);
     *ErrP = SNMP_ERR_NOERROR;
     Answer->val_len = sizeof(snint);
-    Answer->val.integer = xmalloc(Answer->val_len);
+    Answer->val.integer = memAllocate(MEM_SNMP_SNINT);
     Answer->type = SMI_COUNTER32;
 
     switch (Var->name[LEN_SQ_NET + 1]) {
