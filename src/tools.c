@@ -992,7 +992,7 @@ parseEtcHosts(void)
 	debug(1, 5) ("etc_hosts: address is '%s'\n", addr);
 	lt = nt + 1;
 	while ((nt = strpbrk(lt, w_space))) {
-	    if (nt - lt == 1) {	/* multiple spaces */
+	    if (nt == lt) {	/* multiple spaces */
 		debug(1, 5) ("etc_hosts: multiple spaces, skipping\n");
 		lt = nt + 1;
 		continue;
