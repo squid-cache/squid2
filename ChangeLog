@@ -25,8 +25,10 @@ Changes to squid-2.5.STABLE7 ()
 	- [Medium] Segfaults and other strange crashes when using heap
 	  policies. (Bug #1009)
 	- [Minor] Supplementary group memberships not set (Bug #1021)
+	- [Cosmetic] ERR_TOO_BIG Portugese translation
 	- [Minor] external_acl does not handle newlines (Bug #1038)
-	- [Major] NTLM authentication denial of service (Bug #1045)
+	- [Major] NTLM authentication denial of service when using msnt_auth
+	  or fake_auth (Bug #1045)
 	- [Medium] Memory leaks when using NTLM authentication without
 	  challenge reuse. (Bug #994)
 	- [Minor] Temporary NTLM memory leak with challenge reuse enabled
@@ -39,9 +41,22 @@ Changes to squid-2.5.STABLE7 ()
 	- [Minor] cachemgr config dumps mixed up Range and Request-Range 
 	  headers in http_header_access & replace directives. (Bug #1056)
 	- [Minor] Content-Disposition added as a well known header (Bug #961)
+	- [Cosmetic] Don't warn about arp acls not being supported on FreeBSD
+	  (Bug #1074)
+	- [Cosmetic] Limit internal send/receive buffer sizes (Bug #1075)
 	- [Medium] New acl types to match arbitrary HTTP headers. In addition
 	  the http_header_access & replace directivess now support arbitrary
 	  headers and not only the well known ones. (Bug #961)
+	[2.5.STABLE7-RC1]
+	- [Cosmetic] ncsa_auth now accepts Window formatted password files
+	  (Bug #1078)
+	- [Cosmetic] Support the --program-prefix/suffix options or other
+	  configure program name transforms (Bug #1019)
+	- [Minor] Fix race condition in CONNECT and also handle aborts of
+	  CONNECT requests in a more graceful manner. (Bug #859)
+	- [Minor] New balance_on_multiple_ip directive to work around certain
+	  broken load balancers and optimized ipcache on reload requests
+
 
 Changes to squid-2.5.STABLE6 (9 Jul 2004)
 

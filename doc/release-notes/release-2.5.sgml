@@ -119,6 +119,7 @@ for Applied Network Research and members of the Web Caching community.
 <tag>minimum_retry_timeout</tag>This has been removed - it is not referenced anywhere in the source code.
 <tag>short_icon_urls</tag>New directive to enable an alternative way of referring to icons in FTP directory listings etc.
 <tag>acl urllogin</tag>New acl type to match the login component of Internet style URLs (protocol://user:password@host/path/to/file)
+<tag>balance_on_multiple_ip</tag>New directive to make it possible to disable the automatic round-robin load balancing on multiple IP addresses normally done by Squid.
 </descrip>
 
 <sect>Known issues and limitations
@@ -284,6 +285,7 @@ name="ChangeLog"> file for details.
 	not only the well known headers known by Squid
 	<item>new acl types req_hdr and resp_hdr to match arbitrary HTTP headers,
 	useful to block certain malware/spyware etc.
+	<item>new balance_on_multiple_ip squid.conf directive
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE6"
 	name="squid-2.5.STABLE6 patches"> and the <url url="ChangeLog"
