@@ -792,7 +792,7 @@ extern void shut_down(int);
 
 
 extern void start_announce(void *unused);
-extern void sslStart(int fd, const char *, request_t *, size_t *, int *);
+extern void sslStart(clientHttpRequest *, size_t *, int *);
 extern void waisStart(FwdState *);
 
 /* ident.c */
@@ -1237,7 +1237,7 @@ extern void delayPoolsReconfigure(void);
 extern void delaySetNoDelay(int fd);
 extern void delayClearNoDelay(int fd);
 extern int delayIsNoDelay(int fd);
-extern delay_id delayClient(request_t *);
+extern delay_id delayClient(clientHttpRequest *);
 extern EVH delayPoolsUpdate;
 extern int delayBytesWanted(delay_id d, int min, int max);
 extern void delayBytesIn(delay_id, int qty);
