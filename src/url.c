@@ -254,6 +254,17 @@ urlParse(method_t method, char *url)
     }
     for (t = host; *t; t++)
 	*t = xtolower(*t);
+    if (stringHasWhitespace(host)) {
+	if (URI_WHITESPACE_STRIP == Config.uri_whitespace) {
+	    t = q = host;
+	    while (*t) {
+		if (!xisspace(*t))
+		    *q++ = *t;
+		t++;
+	    }
+	    *q = '\0';
+	}
+    }
     if (strspn(host, valid_hostname_chars) != strlen(host)) {
 	debug(23, 1) ("urlParse: Illegal character in hostname '%s'\n", host);
 	return NULL;
