@@ -71,8 +71,14 @@ static void
 storeSwapInFileClosed(void *data, int errflag, storeIOState * sio)
 {
     store_client *sc = data;
+    STCB *callback;
     debug(20, 3) ("storeSwapInFileClosed: sio=%p, errflag=%d\n",
 	sio, errflag);
     cbdataUnlock(sio);
     sc->swapin_sio = NULL;
+    if ((callback = sc->callback)) {
+	assert(errflag < 0);
+	sc->callback = NULL;
+	callback(sc->callback_data, sc->copy_buf, errflag);
+    }
 }
