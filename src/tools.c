@@ -230,6 +230,7 @@ squid_getrusage(struct rusage *r)
 #ifdef _SQUID_SOLARIS_
     leave_suid();
 #endif
+#endif
 }
 
 double
