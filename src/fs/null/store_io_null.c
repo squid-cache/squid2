@@ -2,8 +2,8 @@
 /*
  * $Id$
  *
- * DEBUG: section 7     Multicast
- * AUTHOR: Martin Hamilton
+ * DEBUG: section 79    Storage Manager UFS Interface
+ * AUTHOR: Duane Wessels
  *
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
  * ----------------------------------------------------------
@@ -34,45 +34,46 @@
  */
 
 #include "squid.h"
+#include "store_null.h"
 
-int
-mcastSetTtl(int fd, int mcast_ttl)
+
+/* === PUBLIC =========================================================== */
+
+storeIOState *
+storeNullOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
+    STIOCB * callback, void *callback_data)
 {
-#ifdef IP_MULTICAST_TTL
-    char ttl = (char) mcast_ttl;
-    if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, 1) < 0)
-	debug(50, 1) ("comm_set_mcast_ttl: FD %d, TTL: %d: %s\n",
-	    fd, mcast_ttl, xstrerror());
-#endif
-    return 0;
+    return NULL;
+}
+
+storeIOState *
+storeNullCreate(SwapDir * SD, StoreEntry * e, STFNCB * file_callback, STIOCB * callback, void *callback_data)
+{
+    return NULL;
 }
 
 void
-mcastJoinGroups(const ipcache_addrs * ia, void *datanotused)
+storeNullClose(SwapDir * SD, storeIOState * sio)
 {
-#ifdef IP_MULTICAST_TTL
-    int fd = theInIcpConnection;
-    struct ip_mreq mr;
-    int i;
-    int x;
-    char c = 0;
-    if (ia == NULL) {
-	debug(7, 0) ("comm_join_mcast_groups: Unknown host\n");
-	return;
-    }
-    for (i = 0; i < (int) ia->count; i++) {
-	debug(7, 10) ("Listening for ICP requests on %s\n",
-	    inet_ntoa(*(ia->in_addrs + i)));
-	mr.imr_multiaddr.s_addr = (ia->in_addrs + i)->s_addr;
-	mr.imr_interface.s_addr = INADDR_ANY;
-	x = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-	    (char *) &mr, sizeof(struct ip_mreq));
-	if (x < 0)
-	    debug(7, 1) ("comm_join_mcast_groups: FD %d, [%s]\n",
-		fd, inet_ntoa(*(ia->in_addrs + i)));
-	x = setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &c, 1);
-	if (x < 0)
-	    debug(7, 1) ("Can't disable multicast loopback: %s\n", xstrerror());
-    }
-#endif
+    (void) 0;
 }
+
+void
+storeNullRead(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t offset, STRCB * callback, void *callback_data)
+{
+    callback(callback_data, NULL, 0);
+}
+
+void
+storeNullWrite(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t offset, FREE * free_func)
+{
+    free_func(buf);
+}
+
+void
+storeNullUnlink(SwapDir * SD, StoreEntry * e)
+{
+    (void) 0;
+}
+
+/*  === STATIC =========================================================== */

@@ -1,3 +1,4 @@
+	- Added 'max-conn' option to 'cache_peer'
 Changes to Squid-2.4.STABLE1 (Jan 12, 2001):
 
 	- Various fixes for CYGWIN
