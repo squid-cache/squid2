@@ -258,6 +258,7 @@ char *mkhttpdlogtime(t)
     int gmt_min, gmt_hour, gmt_yday, day_offset;
     size_t len;
     struct tm *lt;
+    int min_offset;
 
     /* localtime & gmtime may use the same static data */
     gmt_min = gmt->tm_min;
@@ -266,6 +267,8 @@ char *mkhttpdlogtime(t)
 
     lt = localtime(t);
     day_offset = lt->tm_yday - gmt_yday;
+    min_offset = day_offset * 1440 + (lt->tm_hour - gmt_hour) * 60
+	+ (lt->tm_min - gmt_min);
 
     /* wrap round on end of year */
     if (day_offset > 1)
@@ -275,8 +278,8 @@ char *mkhttpdlogtime(t)
 
     len = strftime(buf, 127 - 5, "%d/%b/%Y:%H:%M:%S ", lt);
     (void) sprintf(buf + len, "%+03d%02d",
-	lt->tm_hour - gmt_hour + 24 * day_offset,
-	lt->tm_min - gmt_min);
+	(min_offset / 60) % 24,
+	min_offset % 60);
 #else /* USE_GMT */
     buf[0] = '\0';
     (void) strftime(buf, 127, "%d/%b/%Y:%H:%M:%S -000", gmt);
