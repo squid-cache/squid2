@@ -463,6 +463,8 @@ fwdCheckDeferRead(int fd, void *data)
     if (!delayIsNoDelay(fd) && delayMostBytesWanted(mem, 1) == 0)
 	return 1;
 #endif
+    if (EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT))
+	return 0;
     if (mem->inmem_hi - storeLowestMemReaderOffset(e) < READ_AHEAD_GAP)
 	return 0;
     return 1;
