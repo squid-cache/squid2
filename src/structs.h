@@ -231,6 +231,14 @@ struct _SquidConfig {
 	int pct;
 	size_t max;
     } quickAbort;
+#if HEAP_REPLACEMENT
+    char *replPolicy;
+#else
+    /* 
+     * Note: the non-LRU policies do not use referenceAge, but we cannot
+     * remove it until we find out how to implement #else for cf_parser.c
+     */
+#endif
     time_t referenceAge;
     time_t negativeTtl;
     time_t negativeDnsTtl;
@@ -1233,7 +1241,14 @@ struct _MemObject {
 	void *data;
     } abort;
     char *log_url;
+#if HEAP_REPLACEMENT
+    /* 
+     * A MemObject knows where it is in the in-memory heap.
+     */
+    heap_node *node;
+#else
     dlink_node lru;
+#endif
     int id;
     ssize_t object_sz;
     size_t swap_hdr_sz;
@@ -1252,7 +1267,12 @@ struct _StoreEntry {
     u_short refcount;
     u_short flags;
     sfileno swap_file_number;
+#if HEAP_REPLACEMENT
+    heap_node *node;
+    dlink_node lock_list;
+#else
     dlink_node lru;
+#endif
     u_short lock_count;		/* Assume < 65536! */
     mem_status_t mem_status:3;
     ping_status_t ping_status:3;

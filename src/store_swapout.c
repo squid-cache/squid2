@@ -237,6 +237,9 @@ storeSwapOutFileClosed(void *data, int errflag, storeIOState * sio)
 	debug(20, 3) ("storeSwapOutFileClosed: SwapOut complete: '%s' to %08X\n",
 	    storeUrl(e), e->swap_file_number);
 	e->swap_file_sz = objectLen(e) + mem->swap_hdr_sz;
+#if HEAP_REPLACEMENT
+	storeHeapPositionUpdate(e);
+#endif
 	e->swap_status = SWAPOUT_DONE;
 	storeDirUpdateSwapSize(e->swap_file_number, e->swap_file_sz, 1);
 	if (storeCheckCachable(e)) {

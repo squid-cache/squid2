@@ -855,6 +855,7 @@ extern int contentLen(const StoreEntry * e);
 extern HttpReply *storeEntryReply(StoreEntry *);
 extern int storeTooManyDiskFilesOpen(void);
 extern void storeEntryReset(StoreEntry *);
+extern void storeHeapPositionUpdate(StoreEntry *);
 
 /* store_io.c */
 extern STOBJOPEN storeOpen;

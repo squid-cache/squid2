@@ -129,7 +129,12 @@ extern double request_failure_ratio;	/* 0.0 */
 extern double current_dtime;
 extern int store_hash_buckets;	/* 0 */
 extern hash_table *store_table;	/* NULL */
+#if HEAP_REPLACEMENT
+extern heap *store_heap;
+extern heap *inmem_heap;
+#else
 extern dlink_list store_list;
+#endif
 extern dlink_list ClientActiveRequests;
 extern const String StringNull;	/* { 0, 0, NULL } */
 extern const MemBuf MemBufNull;	/* MemBufNULL */

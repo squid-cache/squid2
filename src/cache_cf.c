@@ -306,10 +306,14 @@ configDoConfigure(void)
 	debug(3, 0) ("WARNING: resetting 'maximum_single_addr_tries to 1\n");
 	Config.retry.maxtries = 1;
     }
+#if HEAP_REPLACEMENT
+    /* The non-LRU policies do not use referenceAge */
+#else
     if (Config.referenceAge < 300) {
 	debug(3, 0) ("WARNING: resetting 'reference_age' to 1 week\n");
 	Config.referenceAge = 86400 * 7;
     }
+#endif
     requirePathnameExists("MIME Config Table", Config.mimeTablePathname);
     requirePathnameExists("cache_dns_program", Config.Program.dnsserver);
     requirePathnameExists("unlinkd_program", Config.Program.unlinkd);

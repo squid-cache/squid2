@@ -345,6 +345,9 @@ struct rusage {
 
 #include "hash.h"
 #include "rfc1035.h"
+#if HEAP_REPLACEMENT
+#include "heap.h"
+#endif
 
 #include "defines.h"
 #include "enums.h"

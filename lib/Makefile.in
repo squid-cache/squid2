@@ -38,6 +38,7 @@ UTILOBJS	= rfc1123.o \
 		  Array.o \
 		  Stack.o \
 		  hash.o \
+		  heap.o \
 		  $(LIBOBJS)
 REGEXOBJS	= GNUregex.o
 DLMALLOCOBJS	= dlmalloc.o
