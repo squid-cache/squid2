@@ -502,13 +502,13 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 	helperstate = helperStatefulServerGetData(srv);
 	if (helperstate == NULL)
 	    fatal("lost NTLM helper state! quitting\n");
-	helperstate->challenge = xstrndup(reply, NTLM_CHALLENGE_SZ + 5);
+	helperstate->challenge = xstrdup(reply);
 	helperstate->renewed = squid_curtime;
 	/* and we satisfy the request that happended on the refresh boundary */
 	/* note this code is now in two places FIXME */
 	assert(ntlm_request->auth_state == AUTHENTICATE_STATE_NEGOTIATE);
 	ntlm_request->authserver = srv;
-	ntlm_request->authchallenge = xstrndup(reply, NTLM_CHALLENGE_SZ + 5);
+	ntlm_request->authchallenge = xstrdup(reply);
 	helperstate->challengeuses = 1;
     } else if (strncasecmp(reply, "AF ", 3) == 0) {
 	/* we're finished, release the helper */
@@ -518,7 +518,7 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 	assert(ntlm_user != NULL);
 	/* we only expect OK when finishing the handshake */
 	assert(ntlm_request->auth_state == AUTHENTICATE_STATE_RESPONSE);
-	ntlm_user->username = xstrndup(reply, MAX_LOGIN_SZ);
+	ntlm_user->username = xstrdup(reply);
 	ntlm_request->authserver = NULL;
 	helperStatefulReleaseServer(srv);
 #ifdef NTLM_FAIL_OPEN
@@ -538,7 +538,7 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 	assert(ntlm_user != NULL);
 	/* we only expect LD when finishing the handshake */
 	assert(ntlm_request->auth_state == AUTHENTICATE_STATE_RESPONSE);
-	ntlm_user->username = xstrndup(reply, MAX_LOGIN_SZ);
+	ntlm_user->username = xstrdup(reply);
 	helperstate = helperStatefulServerGetData(ntlm_request->authserver);
 	/* BH code: mark helper as broken */
 	authenticateNTLMResetServer(ntlm_request);
@@ -738,7 +738,7 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
 	    /* increment the challenge uses */
 	    helperstate->challengeuses++;
 	    /* assign the challenge */
-	    ntlm_request->authchallenge = xstrndup(helperstate->challenge, NTLM_CHALLENGE_SZ + 5);
+	    ntlm_request->authchallenge = xstrdup(helperstate->challenge);
 	    handler(data, NULL);
 	}
 
@@ -955,7 +955,7 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	/* we've recieved a negotiate request. pass to a helper */
 	debug(29, 9) ("authenticateNTLMAuthenticateUser: auth state ntlm none. %s\n", proxy_auth);
 	ntlm_request->auth_state = AUTHENTICATE_STATE_NEGOTIATE;
-	ntlm_request->ntlmnegotiate = xstrndup(proxy_auth, NTLM_CHALLENGE_SZ + 5);
+	ntlm_request->ntlmnegotiate = xstrdup(proxy_auth);
 	conn->auth_type = AUTH_NTLM;
 	conn->auth_user_request = auth_user_request;
 	ntlm_request->conn = conn;
