@@ -35,7 +35,7 @@ safe_inet_addr(const char *buf, struct in_addr *addr)
     int a1 = 0, a2 = 0, a3 = 0, a4 = 0;
     struct in_addr A;
     char x;
-#if _SQUID_HPUX_
+#if defined(_SQUID_HPUX_)
     /*
      * MIYOSHI Tsutomu <mijosxi@ike.tottori-u.ac.jp> says scanning 'buf'
      * causes a bus error on hppa1.1-hp-hpux9.07, so we
