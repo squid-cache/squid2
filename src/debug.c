@@ -112,6 +112,7 @@ static char *debug_log_file = NULL;
 static int debugLevels[MAX_DEBUG_SECTIONS];
 
 static char *accessLogTime _PARAMS((time_t));
+extern int opt_debug_stderr;
 
 #ifdef __STDC__
 void
@@ -166,6 +167,8 @@ _db_print(va_alist)
     vfprintf(debug_log, f, args);
     if (unbuffered_logs)
 	fflush(debug_log);
+    if (opt_debug_stderr)
+	vfprintf(stderr, f, args);
     va_end(args);
 }
 
