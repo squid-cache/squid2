@@ -332,6 +332,7 @@ extern String httpHdrRangeBoundaryStr(clientHttpRequest * http);
 extern int httpHdrRangeIsComplex(const HttpHdrRange * range);
 extern int httpHdrRangeWillBeComplex(const HttpHdrRange * range);
 extern size_t httpHdrRangeFirstOffset(const HttpHdrRange * range);
+extern size_t httpHdrRangeLowestOffset(const HttpHdrRange * range, size_t size);
 
 
 /* Http Content Range Header Field */
