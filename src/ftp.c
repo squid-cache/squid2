@@ -2234,7 +2234,7 @@ ftpAppendSuccessHeader(FtpStateData * ftpState)
     reply->hdr_sz = e->mem_obj->inmem_hi;
     storeTimestampsSet(e);
     if (EBIT_TEST(entry->flag, ENTRY_CACHABLE))
-        storeSetPublicKey(e);
+	storeSetPublicKey(e);
 }
 
 static void
