@@ -138,7 +138,6 @@ for Applied Network Research and members of the Web Caching community.
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=518" name="#518"></tag>wb_auth fails on TRU64 and probably other 64 bit platforms
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=500" name="#500"></tag>delay_pools stops working on -k reconfigure
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=457" name="#457"></tag>does not handle swap.state corruption properly
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=426" name="#426"></tag>Vary: * does not work
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=410" name="#410"></tag>unstable if runs out of disk space
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=355" name="#355"></tag>diskd may appear slow on low loads
 </descrip>
