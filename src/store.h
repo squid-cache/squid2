@@ -173,8 +173,6 @@ struct _MemObject {
     short swapout_fd;
     struct _http_reply *reply;
     request_t *request;
-    SIH swapin_complete_handler;
-    void *swapin_complete_data;
     size_t mime_hdr_sz;
 };
 
