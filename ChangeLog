@@ -45,6 +45,8 @@ Changes to squid-2.5.STABLE8 ()
 	- [Medium] Persistent connection mismatch on failed PUT/POST request
 	  (Bug #1122)
 	- [Minor] WCCP easily disturbed by forged packets
+	- [Major] HTTP reply data corruption in certain situations involving
+	  reply headers split over multiple packets (Bug #1233)
 
 Changes to squid-2.5.STABLE7 (11 Oct 2004)
 
