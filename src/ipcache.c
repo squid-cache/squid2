@@ -332,7 +332,7 @@ int ipcache_purgelru()
     debug(14, 3, "                  high W mark  : %5d\n", ipcache_high);
     debug(14, 3, "                  low  W mark  : %5d\n", ipcache_low);
     debug(14, 3, "                  not pending  : %5d\n", local_ip_notpending_count);
-    debug(14, 3, "              LRU candidated   : %5d\n", LRU_list_count);
+    debug(14, 3, "              LRU candidates   : %5d\n", LRU_list_count);
 
     /* sort LRU candidate list */
     qsort((char *) LRU_list, LRU_list_count, sizeof(e), (int (*)(const void *, const void *)) ipcache_compareLastRef);
