@@ -177,7 +177,6 @@ struct _MemObject {
     /* move here for alignment of memory */
     unsigned char pending_list_size;
 
-    int e_swap_access;
     char *e_abort_msg;
     log_type abort_code;
 

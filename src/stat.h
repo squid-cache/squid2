@@ -223,7 +223,6 @@ struct _cacheinfo {
     /* stat table and data */
     char logfilename[SQUID_MAXPATHLEN];		/* logfile name */
     int logfile_fd;		/* logfile fd */
-    int logfile_access;		/* logfile access code */
     /* logfile status {enable, disable} */
     int logfile_status;
 
