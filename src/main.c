@@ -161,6 +161,7 @@ static void usage _PARAMS((void));
 static void mainParseOptions _PARAMS((int, char **));
 static void sendSignal _PARAMS((void));
 static void serverConnectionsOpen _PARAMS((void));
+static void setEffectiveUser _PARAMS((void));
 
 static void
 usage(void)
@@ -519,6 +520,19 @@ mainReinitialize(void)
 }
 
 static void
+setEffectiveUser(void)
+{
+    leave_suid();		/* Run as non privilegied user */
+    if (geteuid() == 0) {
+	debug(0, 0, "Squid is not safe to run as root!  If you must\n");
+	debug(0, 0, "start Squid as root, then you must configure\n");
+	debug(0, 0, "it to run as a non-priveledged user with the\n");
+	debug(0, 0, "'cache_effective_user' option in the config file.\n");
+	fatal("Don't run Squid as root, set 'cache_effective_user'!");
+    }
+}
+
+static void
 mainInitialize(void)
 {
     static int first_time = 1;
@@ -532,15 +546,7 @@ mainInitialize(void)
     if (ConfigFile == NULL)
 	ConfigFile = xstrdup(DefaultConfigFile);
     parseConfigFile(ConfigFile);
-
-    leave_suid();		/* Run as non privilegied user */
-    if (geteuid() == 0) {
-	debug(0, 0, "Squid is not safe to run as root!  If you must\n");
-	debug(0, 0, "start Squid as root, then you must configure\n");
-	debug(0, 0, "it to run as a non-priveledged user with the\n");
-	debug(0, 0, "'cache_effective_user' option in the config file.\n");
-	fatal("Don't run Squid as root, set 'cache_effective_user'!");
-    }
+    setEffectiveUser();
     if (httpPortNumOverride != 1)
 	Config.Port.http = (u_short) httpPortNumOverride;
     if (icpPortNumOverride != 1)
@@ -664,6 +670,7 @@ main(int argc, char **argv)
 	if (ConfigFile == NULL)
 	    ConfigFile = xstrdup(DefaultConfigFile);
 	parseConfigFile(ConfigFile);
+	setEffectiveUser();
 	debug(0, 0, "Creating Swap Directories\n");
 	storeCreateSwapDirectories();
 	return 0;
