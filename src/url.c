@@ -351,8 +351,11 @@ urlCanonicalClean(const request_t * request)
 		request->host,
 		portbuf,
 		strBuf(request->urlpath));
+	    /*
+	     * strip arguments AFTER a question-mark
+	     */
 	    if ((t = strchr(buf, '?')))
-		*t = '\0';
+		*(++t) = '\0';
 	    break;
 	}
     return buf;
