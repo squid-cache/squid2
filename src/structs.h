@@ -388,7 +388,6 @@ struct _SquidConfig {
     size_t readAheadGap;
     RemovalPolicySettings *replPolicy;
     RemovalPolicySettings *memPolicy;
-    time_t referenceAge;
     time_t negativeTtl;
     time_t negativeDnsTtl;
     time_t positiveDnsTtl;
