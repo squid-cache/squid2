@@ -1833,15 +1833,6 @@ DOC_START
 	with the 'connect-timeout' option on a 'cache_peer' line.
 DOC_END
 
-NAME: siteselect_timeout
-COMMENT: time-units
-TYPE: time_t
-LOC: Config.Timeout.siteSelect
-DEFAULT: 4 seconds
-DOC_START
-	For URN to multiple URL's URL selection
-DOC_END
-
 NAME: read_timeout
 COMMENT: time-units
 TYPE: time_t
