@@ -390,6 +390,9 @@ idnsCheckQueue(void *unused)
     idns_query *q;
     event_queued = 0;
     for (n = lru_list.tail; n; n = p) {
+	if (0 == nns)
+	    /* name servers went away; reconfiguring or shutting down */
+	    break;
 	q = n->data;
 	if (tvSubDsec(q->sent_t, current_time) < Config.Timeout.idns_retransmit * (1 << q->nsends % nns))
 	    break;
