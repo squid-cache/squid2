@@ -413,6 +413,16 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 	if (x < 0)
 	    debug(5, 9) ("connect FD %d: %s\n", sock, xstrerror());
     } else {
+#if defined(sony)
+	/* Makoto MATSUSHITA <matusita@ics.es.osaka-u.ac.jp> */
+	connect(sock, (struct sockaddr *) address, sizeof(*address));
+	if (errno == EINVAL) {
+	    errlen = sizeof(err);
+	    x = getsockopt(sock, SOL_SOCKET, SO_ERROR, &err, &errlen);
+	    if (x >= 0)
+		errno = x;
+	}
+#else
 	errlen = sizeof(err);
 	x = getsockopt(sock, SOL_SOCKET, SO_ERROR, &err, &errlen);
 	if (x == 0)
@@ -426,6 +436,7 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 	 */
 	if (x < 0 && errno == EPIPE)
 	    errno = ENOTCONN;
+#endif
 #endif
     }
     if (errno == 0 || errno == EISCONN)
