@@ -346,6 +346,7 @@ static void parseTTLPattern _PARAMS((int icase));
 static void parseVisibleHostnameLine _PARAMS((void));
 static void parseWAISRelayLine _PARAMS((void));
 static void parseOnOff _PARAMS((int *));
+static void ip_acl_destroy(ip_acl **);
 
 void self_destruct()
 {
@@ -367,6 +368,17 @@ int ip_acl_match(c, a)
 	return 0;
 }
 
+static void ip_acl_destroy(a)
+     ip_acl **a;
+{
+    ip_acl *b;
+    ip_acl *n;
+    for (b = *a; b; b = n) {
+	n = b->next;
+	safe_free(b);
+    }
+    a = NULL;
+}
 
 ip_access_type ip_access_check(address, list)
      struct in_addr address;
@@ -1886,6 +1898,8 @@ static void configFreeMemory()
     wordlistDestroy(&Config.local_domain_list);
     wordlistDestroy(&Config.inside_firewall_list);
     wordlistDestroy(&Config.dns_testname_list);
+    ip_acl_destroy(&local_ip_list);
+    ip_acl_destroy(&firewall_ip_list);
 }
 
 
