@@ -89,6 +89,7 @@ typedef struct _Ftpdata {
     char *reply_hdr;
     int reply_hdr_state;
     char *title_url;
+    char *base_href;
     int conn_att;
     int login_att;
     ftp_state_t state;
@@ -297,6 +298,7 @@ ftpStateFree(int fdnotused, void *data)
     safe_free(ftpState->old_reply);
     safe_free(ftpState->old_filepath);
     safe_free(ftpState->title_url);
+    safe_free(ftpState->base_href);
     safe_free(ftpState->filepath);
     safe_free(ftpState->data.host);
     if (ftpState->data.fd > -1) {
@@ -356,7 +358,7 @@ ftpListingStart(FtpStateData * ftpState)
     storeAppendPrintf(e, "</TITLE>\n");
     if (ftpState->flags.use_base)
 	storeAppendPrintf(e, "<BASE HREF=\"%s\">\n",
-	    ftpState->title_url);
+	    ftpState->base_href);
     storeAppendPrintf(e, "</HEAD><BODY>\n");
     if (ftpState->cwd_message) {
 	storeAppendPrintf(e, "<PRE>\n");
@@ -692,7 +694,7 @@ ftpHtmlifyListEntry(char *line, FtpStateData * ftpState)
 	}
     }
     /* {icon} {text} . . . {date}{size}{chdir}{view}{download}{link}\n  */
-    xstrncpy(href, rfc1738_escape(parts->name), 2048);
+    xstrncpy(href, rfc1738_escape_part(parts->name), 2048);
     xstrncpy(text, parts->showname, 2048);
     switch (parts->type) {
     case 'd':
@@ -999,6 +1001,21 @@ ftpBuildTitleUrl(FtpStateData * ftpState)
     if (request->port != urlDefaultPort(PROTO_FTP))
 	snprintf(&t[strlen(t)], len - strlen(t), ":%d", request->port);
     strcat(t, strBuf(request->urlpath));
+    t = ftpState->base_href = xcalloc(len, 1);
+    strcat(t, "ftp://");
+    if (strcmp(ftpState->user, "anonymous")) {
+	strcat(t, rfc1738_escape_part(ftpState->user));
+	if (ftpState->password_url) {
+	    strcat(t, ":");
+	    strcat(t, rfc1738_escape_part(ftpState->password));
+	}
+	strcat(t, "@");
+    }
+    strcat(t, request->host);
+    if (request->port != urlDefaultPort(PROTO_FTP))
+	snprintf(&t[strlen(t)], len - strlen(t), ":%d", request->port);
+    strcat(t, strBuf(request->urlpath));
+    strcat(t, "/");
 }
 
 void

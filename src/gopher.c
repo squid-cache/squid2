@@ -430,7 +430,7 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
 				port[0] = 0;	/* 0 means none */
 			}
 			/* escape a selector here */
-			escaped_selector = xstrdup(rfc1738_escape(selector));
+			escaped_selector = xstrdup(rfc1738_escape_part(selector));
 
 			switch (gtype) {
 			case GOPHER_DIRECTORY:
