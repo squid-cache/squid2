@@ -1928,6 +1928,8 @@ CheckQuickAbort2(const icpStateData * icpState)
     if ((expectlen - curlen) > Config.quickAbort.max)
 	/* too much left to go */
 	return 1;
+    if (expectlen <= 0)
+	return 1;
     if ((curlen / (expectlen / 128U)) > Config.quickAbort.pct)
 	/* past point of no return */
 	return 0;
