@@ -226,6 +226,7 @@ There are N types of lists:
 	'domain'	domain of the URL request (eg .foo.org)
 	'port'		port number of the URL request (eg 80, 21)
 	'time'		time-of-day and day-of-week
+			format: [SMTWHFA] [hh:mm-hh:mm]
 	'pattern'	regular expression matching on the URL-path
 
 After the access lists have been defined, you can then combine them
