@@ -19,9 +19,11 @@ static int httpStateFree(fd, httpState)
 	put_free_8k_page(httpState->reply_hdr);
 	httpState->reply_hdr = NULL;
     }
-    if (httpState->icp_page_ptr) {
-	put_free_8k_page(httpState->icp_page_ptr);
-	httpState->icp_page_ptr = NULL;
+    if (httpState->reqbuf && httpState->buf_type == BUF_TYPE_8K) {
+	put_free_8k_page(httpState->reqbuf);
+	httpState->reqbuf = NULL;
+    } else {
+	safe_free(httpState->reqbuf)
     }
     if (--httpState->request->link_count == 0)
 	put_free_request_t(httpState->request);
@@ -381,18 +383,19 @@ static void httpSendComplete(fd, buf, size, errflag, data)
      int errflag;
      void *data;
 {
-    HttpStateData *httpState = (HttpStateData *) data;
+    HttpStateData *httpState = data;
     StoreEntry *entry = NULL;
 
     entry = httpState->entry;
     debug(11, 5, "httpSendComplete: FD %d: size %d: errflag %d.\n",
 	fd, size, errflag);
 
-    if (buf) {
-	put_free_8k_page(buf);	/* Allocated by httpSendRequest. */
-	buf = NULL;
+    if (httpState->reqbuf && httpState->buf_type == BUF_TYPE_8K) {
+	put_free_8k_page(httpState->reqbuf);
+	httpState->reqbuf = NULL;
+    } else {
+	safe_free(httpState->reqbuf);
     }
-    httpState->icp_page_ptr = NULL;	/* So lifetime expire doesn't re-free */
 
     if (errflag) {
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
@@ -443,14 +446,15 @@ static void httpSendRequest(fd, httpState)
 	    *(t + 4) = '\0';
 	}
     }
-    /* Since we limit the URL read to a 4K page, I doubt that the
-     * mime header could be longer than an 8K page */
-    buf = (char *) get_free_8k_page();
-    httpState->icp_page_ptr = buf;
-    if (buflen > DISK_PAGE_SIZE) {
-	debug(11, 0, "Mime header length %d is breaking ICP code\n", buflen);
+    if (buflen < DISK_PAGE_SIZE) {
+	httpState->reqbuf = get_free_8k_page();
+	memset(httpState->reqbuf, '\0', buflen);
+	httpState->buf_type = BUF_TYPE_8K;
+    } else {
+	httpState->reqbuf = xcalloc(buflen, 1);
+	httpState->buf_type = BUF_TYPE_MALLOC;
     }
-    memset(buf, '\0', buflen);
+    buf = httpState->reqbuf;
 
     sprintf(buf, "%s %s HTTP/1.0\r\n", Method, req->urlpath);
     len = strlen(buf);
@@ -504,7 +508,7 @@ static void httpSendRequest(fd, httpState)
 	len,
 	30,
 	httpSendComplete,
-	(void *) httpState);
+	httpState);
 }
 
 static void httpConnInProgress(fd, httpState)

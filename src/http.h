@@ -14,13 +14,16 @@ struct _http_reply {
     char user_agent[HTTP_REPLY_FIELD_SZ << 2];
 };
 
+#define BUF_TYPE_8K 	1
+#define BUF_TYPE_MALLOC 2
+
 typedef struct {
     StoreEntry *entry;
     request_t *request;
     char *req_hdr;
-    char *icp_page_ptr;		/* Used to send proxy-http request: 
-				 * put_free_8k_page(me) if the lifetime
-				 * expires */
+    int buf_type;		/* BUF_TYPE_8K or BUF_TYPE_MALLOC */
+    char *reqbuf;		/* Holds the HTTP request being sent to
+				 * the neighbor/origin server. */
     char *icp_rwd_ptr;		/* When a lifetime expires during the
 				 * middle of an icpwrite, don't lose the
 				 * icpReadWriteData */
