@@ -1963,8 +1963,7 @@ clientProcessRequest(clientHttpRequest * http)
 	    clientCacheHit,
 	    http);
     } else {
-	/* MISS CASE */
-	http->log_type = LOG_TCP_MISS;
+	/* MISS CASE, http->log_type is already set! */
 	clientProcessMiss(http);
     }
 }
