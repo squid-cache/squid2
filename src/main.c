@@ -346,7 +346,9 @@ mainReconfigure(void)
     authenticateShutdown();
     storeDirCloseSwapLogs();
     errorClean();
+    enter_suid();		/* root to read config file */
     parseConfigFile(ConfigFile);
+    setEffectiveUser();
     _db_init(Config.Log.log, Config.debugOptions);
     ipcache_restart();		/* clear stuck entries */
     authenticateUserCacheRestart();	/* clear stuck ACL entries */
