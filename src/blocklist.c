@@ -24,6 +24,7 @@
 #include "autoconf.h"
 #include "GNUregex.h"
 #include "debug.h"
+#include "comm.h"
 #include "store.h"
 #include "cache_cf.h"
 #include "util.h"
@@ -68,15 +69,12 @@ void blockAddToList(pattern)
 int blockCheck(url)
      char *url;
 {
-    char buf[301];
-    blocklist *t;
-    blocklist *match;
-    double d;
+    blocklist *t = NULL;
+    blocklist *match = NULL;
     int flags = 0;
 
     debug(5, "blockCheck: Checking blocklist for %s\n", url);
 
-    match = (blocklist *) NULL;
     for (t = BLOCK_tbl; t; t = t->next) {
 	if (regexec(&(t->compiled_pattern), url, 0, 0, 0) == 0) {
 	    match = t;
