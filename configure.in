@@ -321,12 +321,14 @@ AC_ARG_ENABLE(arp_acl,
 ])
 
 AC_ARG_ENABLE(htcp,
-[  --enable-htpc        Enable HTCP protocol],
-[  if test "$enableval" = "yes" ; then
-     echo "HTCP enabled"
-     AC_DEFINE(USE_HTCP)
-   fi
+[ --enable-htpc        Enable HTCP protocol],
+[ if test "$enableval" = "yes" ; then
+    echo "HTCP enabled"
+    HTCP_OBJS='$(HTCP_OBJS)'
+    AC_DEFINE(USE_HTCP)
+  fi
 ])
+AC_SUBST(HTCP_OBJS)
 
 # Force some compilers to use ANSI features
 #

@@ -87,6 +87,7 @@ OBJS	 	= \
 		globals.o \
 		gopher.o \
 		hash.o \
+		@HTCP_OBJS@ \
 		http.o \
 		http-anon.o \
 		HttpStatusLine.o \
@@ -151,6 +152,8 @@ SNMP_OBJS	= \
                 snmp_oidlist.o \
                 snmp_agent.o  \
 		snmp_config.o
+
+HTCP_OBJS	= htcp.o
 
 ASYNC_OBJS	= \
 		aiops.o \
