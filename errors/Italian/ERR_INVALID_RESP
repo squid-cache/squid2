@@ -1,29 +1,29 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-<TITLE>ERROR: The requested URL could not be retrieved</TITLE>
+<TITLE>ERRORE: La URL richiesta non pu&ograve; essere recuperata</TITLE>
 <STYLE type="text/css"><!--BODY{background-color:#ffffff;font-family:verdana,sans-serif}PRE{font-family:sans-serif}--></STYLE>
 </HEAD><BODY>
-<H1>ERROR</H1>
-<H2>The requested URL could not be retrieved</H2>
+<H1>ERRORE</H1>
+<H2>La URL richiesta non pu&ograve; essere recuperata</H2>
 <HR noshade size="1px">
 <P>
-While trying to process the request:
+Mentre si elaborava la richiesta:
 <PRE>
 %R
 </PRE>
 <P>
-The following error was encountered:
+&Egrave; avvenuto il seguente errore:
 <UL>
 <LI>
 <STRONG>
-Invalid Response
+Risposta non valida
 </STRONG>
 </UL>
 
 <P>
-The HTTP Response message received from the contacted server
-could not be understood or was otherwise malformed. Please contact
-the site operator. Your cache administrator may be able to provide
-you with more details about the exact nature of the problem if needed.
+Il messaggio contenente la risposta HTTP ricevuto dal server che si sta
+contattando non pu&ograve; essere interpretato od &egrave; stato in qualche modo alterato.
+Si prega di contattare un operatore del sito. Se necessario, l'amministratore della vostra
+cache potr&agrave; fornirvi maggiori dettagli sull'esatta natura del problema.
 
-<P>Your cache administrator is <A HREF="mailto:%w">%w</A>. 
+<P>L'amministratore della vostra cache &egrave; <A HREF="mailto:%w">%w</A>. 
