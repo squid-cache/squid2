@@ -272,21 +272,17 @@ storeAufsIOCallback(storeIOState * sio, int errflag)
     debug(78, 3) ("storeAufsIOCallback: errflag=%d\n", errflag);
     sio->callback = NULL;
     sio->callback_data = NULL;
-    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
     if (callback)
 	if (NULL == their_data || cbdataValid(their_data))
 	    callback(their_data, errflag, sio);
-    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
     cbdataUnlock(their_data);
     sio->type.aufs.fd = -1;
     cbdataFree(sio);
     if (fd < 0)
 	return;
-    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
     aioClose(fd);
     fd_close(fd);
     store_open_disk_fd--;
-    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
 }
 
 
