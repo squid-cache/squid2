@@ -1175,8 +1175,20 @@ state_t do_port(r)
     static int init = 0;
 
     if (r->dfd >= 0) {
-	Debug(26, 3, ("Already connected, fd=%d\n", r->dfd));
-	return PORT_OK;
+	fd_set R;
+	struct timeval tv;
+	FD_ZERO(&R);
+	FD_SET(r->dfd, &R);
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
+	    Debug(26, 3, ("Already connected, fd=%d\n", r->dfd));
+	    return PORT_OK;
+	} else {
+	    Debug(26, 2, ("Data connection closed by server (%s)\n", xstrerror()));
+	    close(r->dfd);
+	    r->dfd = -1;
+	}
     }
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
@@ -1254,8 +1266,20 @@ state_t do_pasv(r)
     static int pasv_supported = 1;
 
     if (r->dfd >= 0) {
-	Debug(26, 3, ("Already connected, fd=%d\n", r->dfd));
-	return PORT_OK;
+	fd_set R;
+	struct timeval tv;
+	FD_ZERO(&R);
+	FD_SET(r->dfd, &R);
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
+	    Debug(26, 3, ("Already connected, fd=%d\n", r->dfd));
+	    return PORT_OK;
+	} else {
+	    Debug(26, 2, ("Data connection closed by server (%s)\n", xstrerror()));
+	    close(r->dfd);
+	    r->dfd = -1;
+	}
     }
     /* if PASV previously failed, don't even try it again.  Just return
      * PASV_FAIL and let the state machine fall back to using PORT */
