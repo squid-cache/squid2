@@ -553,7 +553,7 @@ xrealloc(void *s, size_t sz)
  *  Never returns NULL; fatal on error.
  */
 void *
-xcalloc(int n, size_t sz)
+xcalloc(size_t n, size_t sz)
 {
     void *p;
 
@@ -563,8 +563,8 @@ xcalloc(int n, size_t sz)
 	sz = 1;
     if ((p = calloc(n, sz)) == NULL) {
 	if (failure_notify) {
-	    snprintf(msg, 128, "xcalloc: Unable to allocate %d blocks of %d bytes!\n",
-		(int) n, (int) sz);
+	    snprintf(msg, 128, "xcalloc: Unable to allocate %u blocks of %u bytes!\n",
+		(unsigned int) n, (unsigned int) sz);
 	    (*failure_notify) (msg);
 	} else {
 	    perror("xcalloc");
@@ -582,7 +582,7 @@ xcalloc(int n, size_t sz)
 #endif
 #if MEM_GEN_TRACE
     if (tracefp)
-	fprintf(tracefp, "c:%d:%d:%p\n", n, sz, p);
+	fprintf(tracefp, "c:%u:%u:%p\n", (unsigned int)n, (unsigned int)sz, p);
 #endif
     return (p);
 }
