@@ -5,6 +5,12 @@ Changes to squid-1.0.1 (July x, 1996):
 	- Added check for <netinet/tcp.h> for HP-UX.
 	- Fixed SA_RESETHAND undefined bug.
 	- Fixed half-hour timezone offset bug.
+	- Added patch for Motorola systems from Tony Lorimer.
+	- Changed ttlSet() to use Date field if Last-Modified is absent.
+	- Changed http.c to not save objects from neighbors which do
+	  not have Date, Last-Modified, or Expires values.
+	- Fixed parse_rfc850() to return -1 instead of 0 upon error.
+	- Changed some large local character arrays to static.
 
 Changes to squid-1.0.0 (July 1, 1996):
 
