@@ -179,7 +179,7 @@ extern int comm_init _PARAMS((void));
 extern int comm_listen _PARAMS((int sock));
 extern int comm_open _PARAMS((unsigned int io_type, struct in_addr, u_short port, char *note));
 extern u_short comm_local_port _PARAMS((int fd));
-extern int comm_select _PARAMS((time_t sec, time_t));
+extern int comm_select _PARAMS((time_t));
 extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
 extern void comm_set_select_handler _PARAMS((int fd, unsigned int type, PF, void *));
 extern void comm_set_select_handler_plus_timeout _PARAMS((int, unsigned int, PF, void *, time_t));
