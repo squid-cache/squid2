@@ -422,7 +422,7 @@ storeDiskdClose(storeIOState * sio)
 	-1);
     if (x < 0) {
 	debug(50, 1) ("storeDiskdSend CLOSE: %s\n", xstrerror());
-	storeDiskdIOCallback(sio, errno);
+	storeDiskdIOCallback(sio, DISK_ERROR);
     }
 }
 
@@ -460,7 +460,7 @@ storeDiskdRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB *
     if (x < 0) {
 	debug(50, 1) ("storeDiskdSend READ: %s\n", xstrerror());
 	storeDiskdShmPut(sd, shm_offset);
-	storeDiskdIOCallback(sio, errno);
+	storeDiskdIOCallback(sio, DISK_ERROR);
     }
 }
 
@@ -490,7 +490,7 @@ storeDiskdWrite(storeIOState * sio, char *buf, size_t size, off_t offset, FREE *
     if (x < 0) {
 	debug(50, 1) ("storeDiskdSend WRITE: %s\n", xstrerror());
 	storeDiskdShmPut(sd, shm_offset);
-	storeDiskdIOCallback(sio, errno);
+	storeDiskdIOCallback(sio, DISK_ERROR);
     }
 }
 
