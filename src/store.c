@@ -534,6 +534,7 @@ void
 storeComplete(StoreEntry * e)
 {
     debug(20, 3) ("storeComplete: '%s'\n", storeKeyText(e->key));
+    assert(e->store_status == STORE_PENDING);
     e->mem_obj->object_sz = e->mem_obj->inmem_hi;
     e->store_status = STORE_OK;
     assert(e->mem_status == NOT_IN_MEMORY);
