@@ -203,11 +203,14 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	} else if (firewall_ip_list) {
 	    xmemcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);
 	    if (ip_access_check(srv_addr, firewall_ip_list) == IP_DENY) {
+		/* this IP is within the firewall, get it directly */
 		hierarchy_log_append(entry,
-		    HIER_LOCAL_IP_DIRECT, 0,
+		    HIER_FIREWALL_IP_DIRECT, 0,
 		    req->host);
 		getFromCache(protoData->fd, entry, NULL, req);
 		return 0;
+	    } else {
+		protoData->direct_fetch = DIRECT_NO;
 	    }
 	} else if (local_ip_list) {
 	    xmemcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);
