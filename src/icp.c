@@ -24,6 +24,7 @@
 #include "util.h"
 #include "url.h"
 #include "stmem.h"
+#include "cached_error.h"
 
 extern int errno;
 extern unsigned long nconn;
@@ -1423,38 +1424,15 @@ void asciiProcessInput(fd, buf, size, flag, astm)
     if (parser_return_code == 1) {
 	if (check_valid_url(fd, astm) == 0) {
 	    debug(5, "Invalid URL: %s\n", astm->url);
-	    CacheInfo->log_append(CacheInfo,	/* INVALID_URL */
-		astm->url,
-		inet_ntoa(astm->peer.sin_addr),
-		0,
-		"INVALID_URL",
-		astm->type);
-	    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-		astm->url,
-		astm->url,
-		"parsing",
-		110,
-		"Invalid URL",
-		"Your request is not a valid URL string.  Please check it again.",
-		SQUID_VERSION,
-		comm_hostname());
-	    astm->buf = xstrdup(tmp_error_buf);
+	    astm->buf = xstrdup(cached_error_url(astm->url, ERR_INVALID_URL));
 	    astm->ptr_to_4k_page = NULL;
 	    icpWrite(fd,
 		astm->buf,
-		strlen(tmp_error_buf),
+		strlen(astm->buf),
 		30,
 		icpSendERRORComplete,
 		astm);
 	    /* icpSendERRORComplete() will close the FD and deallocate astm */
-#ifdef LOG_ERRORS
-	    CacheInfo->log_append(CacheInfo,
-		astm->url,
-		inet_ntoa(astm->peer.sin_addr),
-		0,
-		"ERR_110",	/* ICP INVALID URL */
-		astm->type ? astm->type : "NULL");
-#endif
 	    safe_free(orig_url_ptr);
 	} else if (second_ip_acl_check(fd, astm) == IP_DENY) {
 	    sprintf(tmp_error_buf,

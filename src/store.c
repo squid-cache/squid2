@@ -54,6 +54,7 @@
 #include "filemap.h"
 #include "stmem.h"
 #include "mime.h"
+#include "cached_error.h"
 
 extern time_t cached_curtime;
 extern char *storeToString _PARAMS((StoreEntry * e));
@@ -2552,16 +2553,7 @@ int swapInError(fd_unused, entry)
      int fd_unused;
      StoreEntry *entry;
 {
-    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	entry->url,
-	entry->url,
-	"DISK I/O",
-	102,
-	"Cache Disk I/O Failure",
-	"",
-	SQUID_VERSION,
-	comm_hostname());
-    storeAbort(entry, tmp_error_buf);
+    cached_error(entry, ERR_DISK_IO, xstrerror());
     return 0;
 }
 

@@ -15,6 +15,7 @@
 #include "fdstat.h"
 #include "stat.h"
 #include "util.h"
+#include "cached_error.h"
 
 int getFromCache _PARAMS((int fd, StoreEntry * entry, edge * e));
 int getFromDefaultSource _PARAMS((int fd, StoreEntry * entry));
@@ -496,24 +497,7 @@ static int protoNotImplemented(fd, url, entry)
     else
 	sprintf(buf, "Your URL may be incorrect: '%s'\n", url);
 
-    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	entry->url,
-	entry->url,
-	"CACHE-PROTO",
-	501,
-	"Unsupported protocol",
-	buf,
-	SQUID_VERSION,
-	comm_hostname());
-    storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-    CacheInfo->log_append(CacheInfo,
-	entry->url,
-	"0.0.0.0",
-	entry->mem_obj->e_current_len,
-	"ERR_501",		/* PROTO NOT IMPLEMENTED */
-	"NULL");
-#endif
+    cached_error(entry, ERR_NOT_IMPLEMENTED);
     return 0;
 }
 
@@ -528,26 +512,9 @@ static int protoCantFetchObject(fd, entry, reason)
     debug(1, "--> <URL:%s>\n", entry->url);
 
     buf[0] = '\0';
-    sprintf(buf, "%s\n\nThe cache administrator may need to double-check the cache configuration.", reason);
-
-    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	entry->url,
-	entry->url,
-	"CACHE-PROTO",
-	502,
-	"Cache cannot fetch the requested object.",
-	buf,
-	SQUID_VERSION,
-	comm_hostname());
-    storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-    CacheInfo->log_append(CacheInfo,
-	entry->url,
-	"0.0.0.0",
-	entry->mem_obj->e_current_len,
-	"ERR_502",		/* PROTO CANNOT FETCH */
-	"NULL");
-#endif
+    sprintf(buf, "%s\n\nThe cache administrator may need to double-check the cache configuration.",
+	reason);
+    cached_error(entry, ERR_CANNOT_FETCH, buf);
     return 0;
 }
 
@@ -557,24 +524,7 @@ static int protoDNSError(fd, entry)
 {
     debug(2, "protoDNSError: FD %d <URL:%s>\n", fd, entry->url);
     protoCancelTimeout(fd, entry);
-    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	entry->url,
-	entry->url,
-	"DNS",
-	102,
-	"DNS name lookup failure",
-	dns_error_message,
-	SQUID_VERSION,
-	comm_hostname());
-    storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-    CacheInfo->log_append(CacheInfo,
-	entry->url,
-	"0.0.0.0",
-	entry->mem_obj->e_current_len,
-	"ERR_102",		/* PROTO DNS FAIL */
-	"NULL");
-#endif
+    cached_error(entry, ERR_DNS_FAIL, dns_error_message);
     return 0;
 }
 
