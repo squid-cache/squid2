@@ -1004,6 +1004,7 @@ statCountersClean(StatCounters * C)
     statHistClean(&C->dns.svc_time);
     statHistClean(&C->cd.on_xition_count);
     statHistClean(&C->comm_icp_incoming);
+    statHistClean(&C->comm_dns_incoming);
     statHistClean(&C->comm_http_incoming);
     statHistClean(&C->select_fds_hist);
 }
