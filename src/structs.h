@@ -509,7 +509,6 @@ struct _fde {
 #ifdef OPTIMISTIC_IO
 	unsigned int calling_io_handler:1;
 #endif
-	unsigned int delayed_comm_close:1;
     } flags;
     int bytes_read;
     int bytes_written;
@@ -533,6 +532,10 @@ struct _fde {
     DEFER *defer_check;		/* check if we should defer read */
     void *defer_data;
     CommWriteStateData *rwstate;	/* State data for comm_write */
+    struct {
+	const char *file;
+	int line;
+    } last;
 };
 
 struct _fileMap {

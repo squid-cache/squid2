@@ -91,6 +91,10 @@ waisReadReply(int fd, void *data)
 #if DELAY_POOLS
     delay_id delay_id = delayMostBytesAllowed(entry->mem_obj);
 #endif
+    if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+        comm_close(fd);
+        return;
+    }
     errno = 0;
     read_sz = 4096;
 #if DELAY_POOLS

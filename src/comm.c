@@ -573,7 +573,6 @@ comm_close(int fd)
 #if USE_ASYNC_IO
     int doaioclose = 1;
 #endif
-    extern int current_hdl_fd;
     debug(5, 5) ("comm_close: FD %d\n", fd);
     assert(fd >= 0);
     assert(fd < Squid_MaxFD);
@@ -582,10 +581,6 @@ comm_close(int fd)
 	return;
     if (shutting_down && (!F->flags.open || F->type == FD_FILE))
 	return;
-    if (fd == current_hdl_fd) {
-	F->flags.delayed_comm_close = 1;
-	return;
-    }
     assert(F->flags.open);
     assert(F->type != FD_FILE);
 #ifdef USE_ASYNC_IO
