@@ -421,6 +421,10 @@ icpCachable(icpStateData * icpState)
     request_t *req = icpState->request;
     method_t method = req->method;
     const wordlist *p;
+#ifdef NO_CACHE_ACL
+    const ipcache_addrs *ia;
+    aclCheck_t checklist;
+#endif /* NO_CACHE_ACL */
 
     if (BIT_TEST(icpState->request->flags, REQ_AUTH))
 	return 0;
@@ -431,6 +435,15 @@ icpCachable(icpStateData * icpState)
     if (Config.cache_stop_relist)
 	if (aclMatchRegex(Config.cache_stop_relist, request))
 	    return 0;
+#ifdef NO_CACHE_ACL
+    ia = ipcache_gethostbyname(req->host, 0);
+    if (ia != NULL) {
+	checklist.dst_addr = ia->in_addrs[ia->cur];
+	checklist.request = req;
+	if (!aclCheck(UncacheableList, &checklist))
+	    return 0;
+    }
+#endif /* NO_CACHE_ACL */
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(request, method);
     /* FTP is always cachable */
@@ -589,23 +602,23 @@ icpSendMoreData(int fd, icpStateData * icpState)
 	int hack = 0;
 	char C = '\0';
 	int size = len;
-        if (size == ICP_SENDMOREDATA_BUF) {
-            hack = 1;
-            size--;
-            C = *(buf + size);
-        }
-        *(buf + size) = '\0';
+	if (size == ICP_SENDMOREDATA_BUF) {
+	    hack = 1;
+	    size--;
+	    C = *(buf + size);
+	}
+	*(buf + size) = '\0';
 	if ((p = mime_headers_end(buf))) {
 	    *p = '\0';
 	    len = p - buf;
 	    /* force end */
 	    if (entry->store_status == STORE_PENDING)
-	        icpState->out_offset = entry->mem_obj->e_current_len;
+		icpState->out_offset = entry->mem_obj->e_current_len;
 	    else
 		icpState->out_offset = entry->object_len;
 	}
 	if (hack)
-            *(buf + size++) = C;
+	    *(buf + size++) = C;
     }
     comm_write(fd,
 	buf,
@@ -1772,7 +1785,7 @@ clientReadRequest(int fd, void *data)
 #ifdef RETRY_PATCH
     int lft = -1;
 
-    lft = comm_set_fd_lifetime(fd, Config.readTimeout); /* die when the read timeout expires */
+    lft = comm_set_fd_lifetime(fd, Config.readTimeout);		/* die when the read timeout expires */
 #endif /* RETRY_PATCH */
 
     len = icpState->inbufsize - icpState->in_offset - 1;

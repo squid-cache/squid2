@@ -145,6 +145,9 @@ extern void aclParseRegexList _PARAMS((void *curlist, int icase));
 extern struct _acl_access *HTTPAccessList;
 extern struct _acl_access *MISSAccessList;
 extern struct _acl_access *ICPAccessList;
+#ifdef NO_CACHE_ACL
+extern struct _acl_access *UncacheableList;
+#endif /* NO_CACHE_ACL */
 extern struct _acl_deny_info_list *DenyInfoList;
 extern const char *AclMatchedName;
 

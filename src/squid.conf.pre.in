@@ -323,6 +323,21 @@ cache_stoplist cgi-bin ?
 #
 #cache_stoplist_pattern
 
+#  TAG: no_cache
+#
+#	Use ACL elements to specify uncachable objects.  For example,
+#	this prevents caching of objects downloaded from servers whose
+#	IP addresses are in the 192.172.226.0 network:
+#
+#	acl FOO dst 192.172.226.0/24
+#	no_cache deny FOO
+#
+#	You MUST use the 'deny' keyword before the list of ACL names.
+#	For more details on how to specify ACLs and access lists,
+#	See the comments for 'http_access' below, and please read the
+#	Squid FAQ (http://squid.nlanr.net/Squid/FAQ/FAQ.html).
+#
+
 # OPTIONS WHICH AFFECT THE CACHE SIZE
 #-----------------------------------------------------------------------------
 

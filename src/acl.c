@@ -45,6 +45,9 @@ const char *AclMatchedName = NULL;
 struct _acl_deny_info_list *DenyInfoList = NULL;
 struct _acl_access *HTTPAccessList = NULL;
 struct _acl_access *ICPAccessList = NULL;
+#ifdef NO_CACHE_ACL
+struct _acl_access *UncacheableList = NULL;
+#endif /* NO_CACHE_ACL */
 struct _acl_access *MISSAccessList = NULL;
 #if DELAY_HACK
 struct _acl_access *DelayAccessList = NULL;

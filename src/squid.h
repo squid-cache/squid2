@@ -378,4 +378,9 @@ extern const char *const null_string;
 
 #define OR(A,B) (A ? A : B)
 
+/*
+ * Include support for 'no_cache' access lists?
+ */
+#define NO_CACHE_ACL 1
+
 #endif /* SQUID_H */

@@ -1045,6 +1045,9 @@ parseConfigFile(const char *file_name)
     aclDestroyAccessList(&HTTPAccessList);
     aclDestroyAccessList(&MISSAccessList);
     aclDestroyAccessList(&ICPAccessList);
+#ifdef NO_CACHE_ACL
+    aclDestroyAccessList(&UncacheableList);
+#endif /* NO_CACHE_ACL */
 #if DELAY_HACK
     aclDestroyAccessList(&DelayAccessList);
 #endif
@@ -1160,6 +1163,11 @@ parseConfigFile(const char *file_name)
 	else if (!strcmp(token, "icp_access"))
 	    aclParseAccessLine(&ICPAccessList);
 
+#ifdef NO_CACHE_ACL
+	else if (!strcmp(token, "no_cache"))
+	    aclParseAccessLine(&UncacheableList);
+
+#endif /* NO_CACHE_ACL */
 	else if (!strcmp(token, "hierarchy_stoplist"))
 	    parseWordlist(&Config.hierarchy_stoplist);
 
@@ -1425,8 +1433,8 @@ parseConfigFile(const char *file_name)
 /* If connect_timeout is shorter than the default, don't bug the admin
  * with this message unless retry timeout is greater than connect timeout.  */
     if (Config.Retry.min_timeout > Config.connectTimeout / 2
-		&& (Config.Retry.min_timeout > 60
-	 	    || Config.Retry.min_timeout >= Config.connectTimeout)) {
+	&& (Config.Retry.min_timeout > 60
+	    || Config.Retry.min_timeout >= Config.connectTimeout)) {
 	printf("WARNING: minimum_retry_timeout is more than half of connect_timeout\n");
 	printf("         This can cause very long waits for multi-address host retries.\n");
 	printf("         Resetting half of connect_timeout (%d seconds).\n",
@@ -1442,7 +1450,7 @@ parseConfigFile(const char *file_name)
 	Config.Retry.min_timeout = 5;
 	fflush(stdout);
     }
-    if (Config.Retry.max_single_addr > 255) { /* value is used in uchar vars */
+    if (Config.Retry.max_single_addr > 255) {	/* value is used in uchar vars */
 	printf("WARNING: maximum_single_addr_tries set to a bad value: %d\n",
 	    Config.Retry.max_single_addr);
 	printf("         Setting it to the maximum (255).\n");
