@@ -177,7 +177,7 @@ httpHeaderHasConnDir(const HttpHeader * hdr, const char *directive)
      * there are no commas in str 
      */
     /* we may have a list, do expensive search */
-    list = httpHeaderGetList(hdr, HDR_CONNECTION);
+    list = httpHeaderGetList(hdr, ht);
     res = strListIsMember(&list, directive, ',');
     stringClean(&list);
     return res;
