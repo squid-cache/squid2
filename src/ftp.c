@@ -165,10 +165,11 @@ static void ftpUnhack(FtpStateData * ftpState);
 static void ftpScheduleReadControlReply(FtpStateData *, int);
 static void ftpHandleControlReply(FtpStateData *);
 static char *ftpHtmlifyListEntry(char *line, FtpStateData * ftpState);
-static void ftpFailed(FtpStateData *, err_type /* ERR_NONE if unknown */ );
-static void ftpFailedErrorMessage(FtpStateData *, err_type /* ERR_NONE if unknown */ );
+static void ftpFailed(FtpStateData *, err_type);
+static void ftpFailedErrorMessage(FtpStateData *, err_type);
 
-/* State machine functions
+/*
+ * State machine functions
  * send == state transition
  * read == wait for response, and select next state transition
  * other == Transition logic
