@@ -61,7 +61,6 @@ static struct {
     int misses;
     int negative_hits;
     int errors;
-    int release_locked;
 } IpcacheStats;
 
 static dlink_list lru_list;
@@ -534,8 +533,6 @@ stat_ipcache_get(StoreEntry * sentry)
 	IpcacheStats.negative_hits);
     storeAppendPrintf(sentry, "IPcache Misses: %d\n",
 	IpcacheStats.misses);
-    storeAppendPrintf(sentry, "Attempts to release locked entries: %d\n",
-	IpcacheStats.release_locked);
     storeAppendPrintf(sentry, "\n\n");
     storeAppendPrintf(sentry, "IP Cache Contents:\n\n");
     storeAppendPrintf(sentry, " %-29.29s %3s %6s %6s %1s\n",
@@ -804,7 +801,7 @@ snmp_netIpFn(variable_list * Var, snint * ErrP)
 	break;
     case IP_LOC:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
-	    IpcacheStats.release_locked,
+	    0,			/* deprecated */
 	    SMI_COUNTER32);
 	break;
     default:
