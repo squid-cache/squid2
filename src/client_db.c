@@ -41,8 +41,6 @@ typedef struct _client_info {
     } Http, Icp;
 } ClientInfo;
 
-int client_info_sz;
-
 static hash_table *client_table = NULL;
 static ClientInfo *clientdbAdd _PARAMS((struct in_addr addr));
 
