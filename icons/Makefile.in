@@ -45,7 +45,10 @@ ICONS		= anthony-binhex.gif \
 		  anthony-xbm.gif \
 		  anthony-xpm.gif
 
-all:
+all: $(ICONS)
+
+$(ICONS):
+	@$(SHELL) -c "$(SHELL) $(srcdir)/icons.shar"
 
 icons.shar:
 	shar --no-timestamp $(ICONS) > $@
