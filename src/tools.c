@@ -1026,7 +1026,7 @@ parseEtcHosts(void)
  * Similar to strtok, but has some rudimentary knowledge
  * of quoting
  */
-static char *
+char *
 strwordtok(char *buf, char **t)
 {
     unsigned char *word = NULL;
@@ -1073,7 +1073,7 @@ strwordtok(char *buf, char **t)
 /*
  * Inverse of strwordtok. Quotes a word if needed
  */
-static void
+void
 strwordquote(MemBuf * mb, const char *str)
 {
     int quoted = 0;
