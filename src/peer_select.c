@@ -536,7 +536,7 @@ peerIcpParentMiss(peer * p, icp_common_t * header, ps_state * ps)
 	return;
     rtt = tvSubMsec(ps->ping.start, current_time) / p->weight;
     if (ps->first_parent_miss.sin_addr.s_addr == any_addr.s_addr ||
-	    rtt < ps->ping.w_rtt) {
+	rtt < ps->ping.w_rtt) {
 	ps->first_parent_miss = p->in_addr;
 	ps->ping.w_rtt = rtt;
     }
@@ -624,7 +624,7 @@ peerHtcpParentMiss(peer * p, htcpReplyData * htcp, ps_state * ps)
 	return;
     rtt = tvSubMsec(ps->ping.start, current_time) / p->weight;
     if (ps->first_parent_miss.sin_addr.s_addr == any_addr.s_addr ||
-	    rtt < ps->ping.w_rtt) {
+	rtt < ps->ping.w_rtt) {
 	ps->first_parent_miss = p->in_addr;
 	ps->ping.w_rtt = rtt;
     }
