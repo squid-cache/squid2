@@ -114,6 +114,7 @@ char *log_tags[] =
     "TCP_HIT",
     "TCP_MISS",
     "TCP_EXPIRED_HIT",
+    "TCP_EXP_FAIL_HIT",
     "TCP_EXPIRED_MISS",
     "TCP_REFRESH",
     "TCP_IMS_HIT",

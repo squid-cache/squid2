@@ -110,35 +110,36 @@ typedef enum {
     LOG_TCP_HIT,		/* 1 */
     LOG_TCP_MISS,		/* 2 */
     LOG_TCP_EXPIRED_HIT,	/* 3 */
+    LOG_TCP_EXPIRED_FAIL_HIT,	/* 4 */
     LOG_TCP_EXPIRED_MISS,	/* 5 */
     LOG_TCP_USER_REFRESH,	/* 6 */
-    LOG_TCP_IMS_HIT,		/* 6 */
-    LOG_TCP_IMS_MISS,		/* 7 */
-    LOG_TCP_SWAPIN_FAIL,	/* 8 */
-    LOG_TCP_DENIED,		/* 9 */
-    LOG_UDP_HIT,		/* 10 */
-    LOG_UDP_HIT_OBJ,		/* 11 */
-    LOG_UDP_MISS,		/* 12 */
-    LOG_UDP_DENIED,		/* 13 */
-    LOG_UDP_INVALID,		/* 14 */
-    LOG_UDP_RELOADING,		/* 15 */
-    ERR_READ_TIMEOUT,		/* 16 */
-    ERR_LIFETIME_EXP,		/* 17 */
-    ERR_NO_CLIENTS_BIG_OBJ,	/* 18 */
-    ERR_READ_ERROR,		/* 19 */
-    ERR_CLIENT_ABORT,		/* 20 */
-    ERR_CONNECT_FAIL,		/* 21 */
-    ERR_INVALID_REQ,		/* 22 */
-    ERR_UNSUP_REQ,		/* 23 */
-    ERR_INVALID_URL,		/* 24 */
-    ERR_NO_FDS,			/* 25 */
-    ERR_DNS_FAIL,		/* 26 */
-    ERR_NOT_IMPLEMENTED,	/* 27 */
-    ERR_CANNOT_FETCH,		/* 28 */
-    ERR_NO_RELAY,		/* 29 */
-    ERR_DISK_IO,		/* 30 */
-    ERR_ZERO_SIZE_OBJECT,	/* 31 */
-    ERR_PROXY_DENIED		/* 32 */
+    LOG_TCP_IMS_HIT,		/* 7 */
+    LOG_TCP_IMS_MISS,		/* 8 */
+    LOG_TCP_SWAPIN_FAIL,	/* 9 */
+    LOG_TCP_DENIED,		/* 10 */
+    LOG_UDP_HIT,		/* 11 */
+    LOG_UDP_HIT_OBJ,		/* 12 */
+    LOG_UDP_MISS,		/* 13 */
+    LOG_UDP_DENIED,		/* 14 */
+    LOG_UDP_INVALID,		/* 15 */
+    LOG_UDP_RELOADING,		/* 16 */
+    ERR_READ_TIMEOUT,		/* 17 */
+    ERR_LIFETIME_EXP,		/* 18 */
+    ERR_NO_CLIENTS_BIG_OBJ,	/* 19 */
+    ERR_READ_ERROR,		/* 20 */
+    ERR_CLIENT_ABORT,		/* 21 */
+    ERR_CONNECT_FAIL,		/* 22 */
+    ERR_INVALID_REQ,		/* 23 */
+    ERR_UNSUP_REQ,		/* 24 */
+    ERR_INVALID_URL,		/* 25 */
+    ERR_NO_FDS,			/* 26 */
+    ERR_DNS_FAIL,		/* 27 */
+    ERR_NOT_IMPLEMENTED,	/* 28 */
+    ERR_CANNOT_FETCH,		/* 29 */
+    ERR_NO_RELAY,		/* 30 */
+    ERR_DISK_IO,		/* 31 */
+    ERR_ZERO_SIZE_OBJECT,	/* 32 */
+    ERR_PROXY_DENIED		/* 33 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT
