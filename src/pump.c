@@ -367,8 +367,13 @@ pumpFree(int fd, void *data)
 	p->request_entry = NULL;
     }
     if (rep != NULL) {
+	/*
+	 * Set the storeAbort() 'cbflag' so that the server-side
+	 * abort handler (httpAbort) gets called and the server-side
+	 * FD gets closed.
+	 */
 	if (rep->store_status == STORE_PENDING)
-	    storeAbort(rep, 0);
+	    storeAbort(rep, 1);
 	storeUnlockObject(rep);
 	p->reply_entry = NULL;
     }
