@@ -128,6 +128,8 @@ extern struct _iostats IOStats;
 extern cacheinfo *CacheInfo;
 extern unsigned long ntcpconn;
 extern unsigned long nudpconn;
+extern char *open_bracket;
+extern char *close_bracket;
 
 extern void stat_init _PARAMS((cacheinfo **, char *));
 extern void stat_rotate_log _PARAMS((void));
