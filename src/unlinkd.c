@@ -154,7 +154,7 @@ unlinkdInit(void)
     commSetTimeout(unlinkd_wfd, -1, NULL, NULL);
     commSetNonBlocking(unlinkd_wfd);
     commSetNonBlocking(unlinkd_rfd);
-    debug(12, 0) ("Unlinkd pipe opened on FD %d\n", unlinkd_wfd);
+    debug(12, 1) ("Unlinkd pipe opened on FD %d\n", unlinkd_wfd);
 #endif
 }
 

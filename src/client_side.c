@@ -1321,7 +1321,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	fd, storeUrl(entry), (int) http->out.offset);
     if (conn->chr != http) {
 	/* there is another object in progress, defer this one */
-	debug(0, 0) ("clientSendMoreData: Deferring %s\n", storeUrl(entry));
+	debug(33, 1) ("clientSendMoreData: Deferring %s\n", storeUrl(entry));
 	memFree4K(buf);
 	return;
     } else if (entry && entry->store_status == STORE_ABORTED) {

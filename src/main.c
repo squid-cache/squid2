@@ -329,7 +329,7 @@ mainReconfigure(void)
     if (theOutIcpConnection >= 0 && (!Config2.Accel.on || Config.onoff.accel_with_proxy))
 	neighbors_open(theOutIcpConnection);
     storeDirOpenSwapLogs();
-    debug(1, 0) ("Ready to serve requests.\n");
+    debug(1, 1) ("Ready to serve requests.\n");
     reconfiguring = 0;
 }
 
@@ -391,7 +391,7 @@ mainInitialize(void)
     debug(1, 0) ("Starting Squid Cache version %s for %s...\n",
 	version_string,
 	CONFIG_HOST_TYPE);
-    debug(1, 0) ("Process ID %d\n", (int) getpid());
+    debug(1, 1) ("Process ID %d\n", (int) getpid());
     debug(1, 1) ("With %d file descriptors available\n", Squid_MaxFD);
 
     if (!configured_once)
@@ -459,7 +459,7 @@ mainInitialize(void)
     squid_signal(SIGALRM, time_tick, SA_RESTART);
     alarm(1);
 #endif
-    debug(1, 0) ("Ready to serve requests.\n");
+    debug(1, 1) ("Ready to serve requests.\n");
 
     if (!configured_once) {
 	eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 1.0, 1);

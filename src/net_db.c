@@ -396,7 +396,7 @@ netdbSaveState(void *foo)
     }
     fclose(fp);
     getCurrentTime();
-    debug(37, 0) ("NETDB state saved; %d entries, %d msec\n",
+    debug(37, 1) ("NETDB state saved; %d entries, %d msec\n",
 	count, tvSubMsec(start, current_time));
     eventAddIsh("netdbSaveState", netdbSaveState, NULL, 3600.0, 1);
 }
@@ -462,7 +462,7 @@ netdbReloadState(void)
     memFree(MEM_4K_BUF, buf);
     fclose(fp);
     getCurrentTime();
-    debug(37, 0) ("NETDB state reloaded; %d entries, %d msec\n",
+    debug(37, 1) ("NETDB state reloaded; %d entries, %d msec\n",
 	count, tvSubMsec(start, current_time));
 }
 
