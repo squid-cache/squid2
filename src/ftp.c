@@ -654,7 +654,7 @@ void ftpServerClose()
 	return;
 
     comm_set_select_handler(ftpget_server_read,
-	COMM_SELECT_EXCEPT,
+	COMM_SELECT_READ,
 	(PF) NULL,
 	(void *) NULL);
     fdstat_close(ftpget_server_read);
