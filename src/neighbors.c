@@ -1106,8 +1106,10 @@ peerCountMcastPeersDone(void *data)
 	p->mcast.avg_n_members);
     p->mcast.n_replies_expected = (int) p->mcast.avg_n_members;
     fake->store_status = STORE_ABORTED;
+    requestUnlink(fake->mem_obj->request);
     storeReleaseRequest(fake);
     storeUnlockObject(fake);
+    requestUnlink(psstate->request);
     xfree(psstate);
 }
 

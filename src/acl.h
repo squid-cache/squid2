@@ -114,7 +114,7 @@ struct _acl_access {
 
 typedef enum {
     ACL_LOOKUP_NONE,
-    ACL_LOOKUP_NEED,
+    ACL_LOOKUP_NEEDED,
     ACL_LOOKUP_PENDING,
     ACL_LOOKUP_DONE
 } acl_lookup_state;
@@ -128,9 +128,6 @@ struct _aclCheck_t {
     acl_lookup_state state[ACL_ENUM_MAX];
     PF *callback;
     void *callback_data;
-    int src_fqdn_lookup_pending;
-    int dst_fqdn_lookup_pending;
-    int dst_ip_lookup_pending;
     ipcache_addrs *dst_ia;
 };
 
