@@ -592,7 +592,7 @@ info_get(StoreEntry * sentry)
 #endif /* HAVE_MALLINFO */
     storeAppendPrintf(sentry, "Memory accounted for:\n");
     storeAppendPrintf(sentry, "\tTotal accounted:       %6d KB\n",
-	memTotalAllocated() >> 10);
+	statMemoryAccounted() >> 10);
     storeAppendPrintf(sentry, "\tmemPoolAlloc calls: %d\n",
 	mem_pool_alloc_calls);
     storeAppendPrintf(sentry, "\tmemPoolFree calls: %d\n",
@@ -1299,11 +1299,14 @@ statMedianSvc(int interval, int which)
 /*
  * SNMP wants ints, ick
  */
+#if UNUSED_CODE
 int
 get_median_svc(int interval, int which)
 {
     return (int) statMedianSvc(interval, which);
 }
+
+#endif
 
 StatCounters *
 snmpStatGet(int minutes)
@@ -1514,6 +1517,12 @@ statGraphDump(StoreEntry * e)
     GENGRAPH(page_faults, "page_faults", "System Page Faults/sec");
     GENGRAPH(select_loops, "select_loops", "System Select Loop calls/sec");
     GENGRAPH(cputime, "cputime", "CPU utilisation");
+}
+
+int
+statMemoryAccounted(void)
+{
+    memTotalAllocated();
 }
 
 #endif /* STAT_GRAPHS */

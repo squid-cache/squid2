@@ -41,6 +41,8 @@
 
 
 #include "config.h"
+#include "Array.h"
+
 #if HAVE_ASSERT_H
 #include <assert.h>
 #endif
@@ -53,7 +55,7 @@
 static void arrayGrow(Array * a, int min_capacity);
 
 Array *
-arrayCreate()
+arrayCreate(void)
 {
     Array *a = xmalloc(sizeof(Array));
     arrayInit(a);

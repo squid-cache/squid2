@@ -410,7 +410,7 @@ destroyRadixNodeInfo(as_info * e_info)
     xfree(data);
 }
 
-int
+static int
 mask_len(int mask)
 {
     int len = 32;

@@ -248,7 +248,7 @@ msg_handle(diomsg * r, int rl, diomsg * s)
     }
 }
 
-int
+static int
 fsCmp(const void *a, const void *b)
 {
     const int *A = a;
@@ -256,7 +256,7 @@ fsCmp(const void *a, const void *b)
     return *A != *B;
 }
 
-unsigned int
+static unsigned int
 fsHash(const void *key, unsigned int n)
 {
     /* note, n must be a power of 2! */

@@ -132,7 +132,7 @@ struct _LruWalkData {
     LruNode *current;
 };
 
-const StoreEntry *
+static const StoreEntry *
 lru_walkNext(RemovalPolicyWalker * walker)
 {
     LruWalkData *lru_walk = walker->_data;

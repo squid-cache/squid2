@@ -3,7 +3,8 @@
  */
 
 /* Stub function for programs not implementing statMemoryAccounted */
-#include <config.h>
+#include "config.h"
+#include "util.h"
 int
 statMemoryAccounted(void)
 {

@@ -43,7 +43,7 @@ typedef struct {
 } Array;
 
 
-extern Array *arrayCreate();
+extern Array *arrayCreate(void);
 extern void arrayInit(Array * s);
 extern void arrayClean(Array * s);
 extern void arrayDestroy(Array * s);

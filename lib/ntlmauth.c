@@ -24,6 +24,7 @@
 #include "ntlmauth.h"
 #include "util.h"		/* for base64-related stuff */
 
+#if UNUSED_CODE
 /* Dumps NTLM flags to standard error for debugging purposes */
 void
 ntlm_dump_ntlmssp_flags(u_int32_t flags)
@@ -50,6 +51,7 @@ ntlm_dump_ntlmssp_flags(u_int32_t flags)
 	(flags & REQUEST_NON_NT_SESSION_KEY ? "Req_nonnt_sesskey " : "")
 	);
 }
+#endif
 
 #define lstring_zero(s) s.str=NULL; s.l=-1;
 

@@ -3,6 +3,7 @@
  */
 
 #include "config.h"
+#include "util.h"
 
 #if HAVE_STDIO_H
 #include <stdio.h>
@@ -10,6 +11,7 @@
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+
 
 static void base64_init(void);
 

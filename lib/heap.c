@@ -38,6 +38,7 @@
  ****************************************************************************/
 
 #include "config.h"
+#include "heap.h"
 
 #if HAVE_STDLIB_H
 #include <stdlib.h>
@@ -482,7 +483,7 @@ _heap_node_exist(heap * hp, int id)
 /* 
  * Print the heap in element order, id..last. 
  */
-void
+static void
 heap_print_inorder(heap * hp, int id)
 {
     while (id < hp->last) {

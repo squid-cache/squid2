@@ -633,7 +633,7 @@ checkNegativeHit(StoreEntry * e)
     return 1;
 }
 
-void
+static void
 clientUpdateCounters(clientHttpRequest * http)
 {
     int svc_time = tvSubMsec(http->start, current_time);
@@ -2863,7 +2863,7 @@ clientProcessBody(ConnStateData * conn)
 
 /* A dummy handler that throws away a request-body */
 static char bodyAbortBuf[SQUID_TCP_SO_RCVBUF];
-void
+static void
 clientReadBodyAbortHandler(char *buf, size_t size, void *data)
 {
     ConnStateData *conn = (ConnStateData *) data;

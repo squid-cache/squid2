@@ -115,7 +115,7 @@ peerDigestCreate(peer * p)
 }
 
 /* call Clean and free/unlock everything */
-void
+static void
 peerDigestDestroy(PeerDigest * pd)
 {
     peer *p;

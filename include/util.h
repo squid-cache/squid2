@@ -127,4 +127,9 @@ extern const char *xitoa(int num);
 double drand48(void);
 #endif
 
+/*
+ * Returns the amount of known allocated memory
+ */
+int statMemoryAccounted(void);
+
 #endif /* ndef _UTIL_H_ */

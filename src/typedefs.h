@@ -290,10 +290,10 @@ typedef double hbase_f(double);
 typedef void StatHistBinDumper(StoreEntry *, int idx, double val, double size, int count);
 
 /* authenticate.c authenticate scheme routines typedefs */
-typedef int AUTHSACTIVE();
+typedef int AUTHSACTIVE(void);
 typedef int AUTHSAUTHED(auth_user_request_t *);
 typedef void AUTHSAUTHUSER(auth_user_request_t *, request_t *, ConnStateData *, http_hdr_type);
-typedef int AUTHSCONFIGURED();
+typedef int AUTHSCONFIGURED(void);
 typedef void AUTHSDECODE(auth_user_request_t *, const char *);
 typedef int AUTHSDIRECTION(auth_user_request_t *);
 typedef void AUTHSDUMP(StoreEntry *, const char *, authScheme *);

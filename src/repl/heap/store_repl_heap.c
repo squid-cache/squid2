@@ -119,7 +119,7 @@ struct _HeapWalkData {
     int current;
 };
 
-const StoreEntry *
+static const StoreEntry *
 heap_walkNext(RemovalPolicyWalker * walker)
 {
     HeapWalkData *heap_walk = walker->_data;

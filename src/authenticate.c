@@ -54,7 +54,7 @@ MemPool *auth_user_request_pool = NULL;
 /* Generic Functions */
 
 
-int
+static int
 authenticateAuthSchemeConfigured(const char *proxy_auth)
 {
     authScheme *scheme;
@@ -177,8 +177,8 @@ authenticateAuthUserNew(const char *scheme)
     return temp_auth;
 }
 
-auth_user_request_t *
-authenticateAuthUserRequestNew()
+static auth_user_request_t *
+authenticateAuthUserRequestNew(void)
 {
     auth_user_request_t *temp_request;
     if (!auth_user_request_pool)
@@ -192,7 +192,7 @@ authenticateAuthUserRequestNew()
     return temp_request;
 }
 
-void
+static void
 authenticateAuthUserRequestFree(auth_user_request_t * auth_user_request)
 {
     dlink_node *link;
@@ -322,7 +322,7 @@ authenticateDirection(auth_user_request_t * auth_user_request)
 }
 
 int
-authenticateActiveSchemeCount()
+authenticateActiveSchemeCount(void)
 {
     int i = 0, rv = 0;
     for (i = 0; authscheme_list && authscheme_list[i].typestr; i++)
@@ -333,7 +333,7 @@ authenticateActiveSchemeCount()
 }
 
 int
-authenticateSchemeCount()
+authenticateSchemeCount(void)
 {
     int i = 0, rv = 0;
     for (i = 0; authscheme_list && authscheme_list[i].typestr; i++)
@@ -562,7 +562,7 @@ authenticateFreeProxyAuthUser(void *data)
 }
 
 void
-authenticateInitUserCache()
+authenticateInitUserCache(void)
 {
     if (!proxy_auth_username_cache) {
 	/* First time around, 7921 should be big enough */
@@ -613,7 +613,7 @@ authenticateProxyUserCacheCleanup(void *datanotused)
  */
 
 void
-authenticateUserCacheRestart()
+authenticateUserCacheRestart(void)
 {
     auth_user_hash_pointer *usernamehash;
     auth_user_t *auth_user;

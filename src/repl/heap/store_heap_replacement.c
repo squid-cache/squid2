@@ -43,6 +43,7 @@
 
 #include "squid.h"
 #include "heap.h"
+#include "store_heap_replacement.h"
 
 /*
  * Key generation function to implement the LFU-DA policy (Least

@@ -109,7 +109,7 @@ peerSelectStateFree(ps_state * psstate)
     cbdataFree(psstate);
 }
 
-int
+static int
 peerSelectIcpPing(request_t * request, int direct, StoreEntry * entry)
 {
     int n;

@@ -128,6 +128,8 @@ static int storeDiskdDirValidFileno(SwapDir *, sfileno, int);
 static void storeDiskdStats(StoreEntry * sentry);
 static void storeDiskdDirSync(SwapDir *);
 
+/* The only externally visible interface */
+STSETUP storeFsSetup_diskd;
 
 /*
  * These functions were ripped straight out of the heart of store_dir.c.
@@ -136,7 +138,7 @@ static void storeDiskdDirSync(SwapDir *);
  * XXX this evilness should be tidied up at a later date!
  */
 
-int
+static int
 storeDiskdDirMapBitTest(SwapDir * SD, int fn)
 {
     sfileno filn = fn;
@@ -145,7 +147,7 @@ storeDiskdDirMapBitTest(SwapDir * SD, int fn)
     return file_map_bit_test(diskdinfo->map, filn);
 }
 
-void
+static void
 storeDiskdDirMapBitSet(SwapDir * SD, int fn)
 {
     sfileno filn = fn;
@@ -1710,7 +1712,7 @@ storeDiskdDirStats(SwapDir * SD, StoreEntry * sentry)
  *
  * This routine is called when the given swapdir needs reconfiguring 
  */
-void
+static void
 storeDiskdDirReconfigure(SwapDir * sd, int index, char *path)
 {
     char *token;
@@ -1847,7 +1849,7 @@ storeDiskdCleanupDoubleCheck(SwapDir * sd, StoreEntry * e)
  *
  * Called when a *new* fs is being setup.
  */
-void
+static void
 storeDiskdDirParse(SwapDir * sd, int index, char *path)
 {
     char *token;
@@ -1929,7 +1931,7 @@ storeDiskdDirParse(SwapDir * sd, int index, char *path)
 /*
  * Initial setup / end destruction
  */
-void
+static void
 storeDiskdDirDone(void)
 {
     memPoolDestroy(diskd_state_pool);
