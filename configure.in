@@ -558,6 +558,9 @@ AC_ARG_ENABLE(htcp,
 
 AM_CONDITIONAL(ENABLE_SSL, false)
 
+SSLLIB=''
+SSLFLAGS=''
+
 AC_ARG_ENABLE(ssl,
 [  --enable-ssl            Enable ssl gatewaying support using OpenSSL],
 [ if test "$enableval" != "no"; then
@@ -586,8 +589,10 @@ AC_ARG_WITH(openssl,
     USE_OPENSSL=
     ;;
   *)
-    SSLLIBDIR="$with_openssl/lib"
-    CPPFLAGS="-I$with_openssl/include $CPPFLAGS"
+    PKG_CONFIG_PATH="$with_openssl/lib/pkgconfig${PKG_CONFIG_PATH:+:}${PKG_CONFIG_PATH}"
+    export PKG_CONFIG_PATH
+    SSLLIB="-L$with_openssl/lib -lssl -lcrypto"
+    SSLFLAGS="-I$with_openssl/include"
     USE_OPENSSL=1
   esac
 ])
@@ -601,11 +606,9 @@ if test -n "$USE_OPENSSL"; then
   fi
   if $PKGCONFIG --exists openssl; then
     SSLLIB="`$PKGCONFIG --libs openssl`"
-    CPPFLAGS="`$PKGCONFIG --cflags openssl` $CPPFLAGS"
+    SSLFLAGS="`$PKGCONFIG --cflags openssl`"
   fi
-fi
-if test -n "$SSLLIBDIR"; then
-  SSLLIB="-L$SSLLIBDIR $SSLLIB"
+  CPPFLAGS="${SSLFLAGS} $CPPFLAGS"
 fi
 AC_SUBST(SSLLIB)
 
