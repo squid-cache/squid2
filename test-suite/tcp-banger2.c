@@ -82,6 +82,9 @@
 #if HAVE_ASSERT_H
 #include <assert.h>
 #endif
+#if HAVE_CTYPE_H
+#include <ctype.h>
+#endif
 
 #define PROXY_PORT 3128
 #define PROXY_ADDR "127.0.0.1"
@@ -102,7 +105,6 @@ static struct timeval now;
 static long total_bytes_written = 0;
 static long total_bytes_read = 0;
 static int opt_checksum = 0;
-static int accepted_status = 200;
 FILE *trace_file = NULL;
 
 typedef void (CB) (int, void *);
@@ -124,7 +126,6 @@ struct _request {
     int bodysize;
     int content_length;
     int status;
-    int validstatus;
     long validsum;
     long sum;
 };
@@ -220,11 +221,11 @@ read_reply(int fd, void *data)
 		if (!header)
 		    break;
 		/* Decode header */
-		if (strncasecmp(header, "HTTP/1", 6) == 0)
-		    r->status = atoi(header + 9);
-		if (strncasecmp(header, "Content-Length:", 15) == 0)
+		if (strncmp(header, "HTTP", 4) == 0)
+		    r->status = atoi(header + 8);
+		else if (strncasecmp(header, "Content-Length:", 15) == 0)
 		    r->content_length = atoi(header + 15);
-		if (strncasecmp(header, "X-Request-URI:", 14) == 0) {
+		else if (strncasecmp(header, "X-Request-URI:", 14) == 0) {
 		    /* Check URI */
 		    if (strncmp(r->url, header + 15, strcspn(header + 15, "\r\n"))) {
 			char url[8192];
@@ -275,11 +276,13 @@ reply_done(int fd, void *data)
 	    fprintf(stderr, "WARNING: %s invalid checksum wanted 0x%lx got 0x%lx\n",
 		r->url, r->validsum, r->sum);
     }
-    if (r->status != r->validstatus && r->validstatus)
-	fprintf(stderr, "WARNING: %s status %d\n", r->url, r->status);
     if (trace_file) {
-	fprintf(trace_file, "%s %s %s %d 0x%lx %d\n",
-	    r->method, r->url, r->requestbodyfile, r->bodysize, r->sum, r->status);
+	if (opt_checksum)
+	    fprintf(trace_file, "%s %s %d %s %d 0x%lx\n",
+		r->method, r->url, r->status, r->requestbodyfile, r->bodysize, r->sum);
+	else
+	    fprintf(trace_file, "%s %s %d %s %d\n",
+		r->method, r->url, r->status, r->requestbodyfile, r->bodysize);
     }
     free_request(r);
 }
@@ -290,7 +293,7 @@ request(char *urlin)
     int s = -1, f = -1;
     char buf[4096];
     char msg[8192];
-    char *method, *url, *file, *size, *checksum, *status;
+    char *method, *url, *file, *size, *checksum;
     char *host;
     char urlbuf[8192];
     int len, len2;
@@ -319,7 +322,6 @@ request(char *urlin)
     file = strtok(NULL, " ");
     size = strtok(NULL, " ");
     checksum = strtok(NULL, " ");
-    status = strtok(NULL, " ");
     if (!url) {
 	url = method;
 	method = "GET";
@@ -344,10 +346,6 @@ request(char *urlin)
     if (checksum && strcmp(checksum, "-") != 0)
 	r->validsum = strtoul(checksum, NULL, 0);
     r->content_length = -1;	/* Unknown */
-    if (status && strcmp(status, "-") != 0)
-	r->validstatus = strtoul(status, NULL, 0);
-    else
-	r->validstatus = accepted_status;
     if (opt_accel) {
 	host = strchr(url, '/') + 2;
 	url = strchr(host, '/');
@@ -465,7 +463,6 @@ usage(void)
     fprintf(stderr, " -c              Check checksum agains trace\n");
     fprintf(stderr, " -i              Send random If-Modified-Since times\n");
     fprintf(stderr, " -l <seconds>    Connection lifetime timeout (default 60)\n");
-    fprintf(stderr, " -s <status>     HTTP status expected (default 200, 0 == ignore)\n");
     fprintf(stderr, " -a              Accelerator mode\n");
 }
 
@@ -514,9 +511,9 @@ main(argc, argv)
 	    opt_checksum = 1;
 	    break;
 	case 't':
-	    opt_checksum = 1;	/* Tracing requires checksums */
-	    trace_file = fopen(optarg, "w");
+	    trace_file = fopen(optarg, "a");
 	    assert(trace_file);
+	    setbuf(trace_file, NULL);
 	    break;
 	case 'r':
 	    opt_range = 1;
@@ -533,8 +530,8 @@ main(argc, argv)
     FD_ZERO(&R2);
     while (nfds || FD[0].cb) {
 	FD_ZERO(&R);
-	to.tv_sec = 0;
-	to.tv_usec = 100000;
+	to.tv_sec = 1;		/* was 0 */
+	to.tv_usec = 0;		/* was 100000 */
 	if (nfds < max_connections && FD[0].cb)
 	    FD_SET(0, &R);
 	for (i = 1; i <= maxfd; i++) {
@@ -567,7 +564,7 @@ main(argc, argv)
 		    FD[0].cb(0, FD[0].data);
 	    }
 	}
-	if (now.tv_sec > last.tv_sec) {
+	if (now.tv_sec > last.tv_sec + 60) {
 	    last = now;
 	    dt = (int) (now.tv_sec - start.tv_sec);
 	    printf("T+ %6d: %9d req (%+4d), %4d conn, %3d/sec avg, %dmb, %dkb/sec avg\n",
@@ -579,9 +576,12 @@ main(argc, argv)
 		(int) total_bytes_read / 1024 / 1024,
 		(int) total_bytes_read / 1024 / dt);
 	    reqpersec = 0;
-	    if (dt > process_lifetime)
-		exit(0);
+	    /*
+	     * if (dt > process_lifetime)
+	     *     exit(0);
+	     */
 	}
     }
+    printf("Exiting normally\n");
     return 0;
 }
