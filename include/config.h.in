@@ -163,16 +163,6 @@
 #define squid_srandom srand
 #endif
 
-/* if getrusage() doesn't exist, we fake it, but these fields won't
-   be filled in */
-#if !HAVE_GETRUSAGE
-typedef void struct {
-        struct timeval ru_stime;
-        int ru_maxrss;
-        int ru_majflt;
-} rusage;
-#endif
-
 /* 32 bit integer compatability hack */
 #if SIZEOF_INT == 4
 typedef int num32;
