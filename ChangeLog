@@ -11,7 +11,6 @@ Changes to squid-1.NOVM.10 (April 25, 1997):
 	  storeAppendDone().
 	- Merged squid-1.1.10 changes.
 
-
 Changes to squid-1.1.10 (April 24, 1997):
 
 	- Require 0 <= multicast ttl <= 128.
