@@ -42,26 +42,30 @@ struct _class1DelayPool {
     int aggregate;
 };
 
+#define IND_MAP_SZ 256
+
 struct _class2DelayPool {
     int aggregate;
     /* OK: -1 is terminator.  individual[255] is always host 255. */
     /* 255 entries + 1 terminator byte */
-    unsigned char individual_map[256];
+    unsigned char individual_map[IND_MAP_SZ];
     unsigned char individual_255_used;
     /* 256 entries */
     int individual[256];
 };
 
+#define NET_MAP_SZ 256
+
 struct _class3DelayPool {
     int aggregate;
     /* OK: -1 is terminator.  network[255] is always host 255. */
     /* 255 entries + 1 terminator byte */
-    unsigned char network_map[256];
+    unsigned char network_map[NET_MAP_SZ];
     unsigned char network_255_used;
     /* 256 entries */
     int network[256];
     /* 256 sets of (255 entries + 1 terminator byte) */
-    unsigned char individual_map[256][256];
+    unsigned char individual_map[NET_MAP_SZ][IND_MAP_SZ];
     /* Pack this into one bit per net */
     unsigned char individual_255_used[32];
     /* largest entry = (255<<8)+255 = 65535 */
@@ -307,11 +311,12 @@ delayClient(request_t * r)
 	    }
 	    return delayId(pool + 1, 255);
 	}
-	for (i = 0;; i++) {
+	for (i = 0; i < IND_MAP_SZ; i++) {
 	    if (delay_data[pool].class2->individual_map[i] == host)
 		break;
 	    if (delay_data[pool].class2->individual_map[i] == 255) {
 		delay_data[pool].class2->individual_map[i] = host;
+		assert(i < (IND_MAP_SZ - 1));
 		delay_data[pool].class2->individual_map[i + 1] = 255;
 		delay_data[pool].class2->individual[i] =
 		    (Config.Delay.rates[pool]->individual.max_bytes *
@@ -334,12 +339,13 @@ delayClient(request_t * r)
 		Config.Delay.initial) / 100;
 	}
     } else {
-	for (i = 0;; i++) {
+	for (i = 0; i < NET_MAP_SZ; i++) {
 	    if (delay_data[pool].class3->network_map[i] == net)
 		break;
 	    if (delay_data[pool].class3->network_map[i] == 255) {
 		delay_data[pool].class3->network_map[i] = net;
 		delay_data[pool].class3->individual_map[i][0] = 255;
+		assert(i < (NET_MAP_SZ - 1));
 		delay_data[pool].class3->network_map[i + 1] = 255;
 		delay_data[pool].class3->network[i] =
 		    (Config.Delay.rates[pool]->network.max_bytes *
@@ -359,15 +365,19 @@ delayClient(request_t * r)
 	}
 	return delayId(pool + 1, position);
     }
-    for (j = 0;; j++) {
+    assert(i < NET_MAP_SZ);
+    for (j = 0; j < IND_MAP_SZ; j++) {
 	if (delay_data[pool].class3->individual_map[i][j] == host) {
 	    position |= j;
 	    break;
 	}
 	if (delay_data[pool].class3->individual_map[i][j] == 255) {
 	    delay_data[pool].class3->individual_map[i][j] = host;
+	    assert(j < (IND_MAP_SZ - 1));
 	    delay_data[pool].class3->individual_map[i][j + 1] = 255;
-	    delay_data[pool].class3->individual[position |= j] =
+	    position |= j;
+	    assert(position < NET_MAP_SZ);
+	    delay_data[pool].class3->individual[position] =
 		(Config.Delay.rates[pool]->individual.max_bytes *
 		Config.Delay.initial) / 100;
 	    break;
@@ -408,12 +418,13 @@ delayUpdateClass2(class2DelayPool * class2, delaySpecSet * rates, int incr)
     else
 	i = 0;
     for (;;) {
+	assert(i < IND_MAP_SZ);
 	if (i != 255 && class2->individual_map[i] == 255)
 	    return;
 	if (class2->individual[i] != rates->individual.max_bytes &&
 	    (class2->individual[i] += restore_bytes) > rates->individual.max_bytes)
 	    class2->individual[i] = rates->individual.max_bytes;
-	if (++i == 255)
+	if (++i == (IND_MAP_SZ - 1))
 	    return;
     }
 }
@@ -444,6 +455,7 @@ delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
     else
 	i = 0;
     for (;;) {
+	assert(i < NET_MAP_SZ);
 	if (i != 255 && class3->network_map[i] == 255)
 	    return;
 	if (individual_restore_bytes != -incr) {
@@ -453,6 +465,8 @@ delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
 	    else
 		j = 0;
 	    for (;;) {
+		assert(i < NET_MAP_SZ);
+		assert(j < IND_MAP_SZ);
 		if (j != 255 && class3->individual_map[i][j] == 255)
 		    break;
 		if (class3->individual[mpos] != rates->individual.max_bytes &&
@@ -460,9 +474,9 @@ delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
 		    rates->individual.max_bytes)
 		    class3->individual[mpos] = rates->individual.max_bytes;
 		mpos++;
-		if (j == 255)
+		if (j == (IND_MAP_SZ - 1))
 		    mpos -= 256;
-		if (++j == 255)
+		if (++j == (IND_MAP_SZ - 1))
 		    break;
 	    }
 	}
@@ -471,7 +485,7 @@ delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
 	    (class3->network[i] += network_restore_bytes) >
 	    rates->network.max_bytes)
 	    class3->network[i] = rates->network.max_bytes;
-	if (++i == 255)
+	if (++i == (NET_MAP_SZ - 1))
 	    return;
     }
 }
@@ -675,7 +689,7 @@ delayPoolStats2(StoreEntry * sentry, unsigned short pool)
     storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->individual.max_bytes);
     storeAppendPrintf(sentry, "\t\tRate: %d\n", rate->individual.restore_bps);
     storeAppendPrintf(sentry, "\t\tCurrent: ");
-    for (i = 0;; i++) {
+    for (i = 0; i < IND_MAP_SZ; i++) {
 	if (class2->individual_map[i] == 255)
 	    break;
 	storeAppendPrintf(sentry, "%d:%d ", class2->individual_map[i],
@@ -708,7 +722,7 @@ delayPoolStats3(StoreEntry * sentry, unsigned short pool)
 	storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->network.max_bytes);
 	storeAppendPrintf(sentry, "\t\tRate: %d\n", rate->network.restore_bps);
 	storeAppendPrintf(sentry, "\t\tCurrent: ");
-	for (i = 0;; i++) {
+	for (i = 0; i < NET_MAP_SZ; i++) {
 	    if (class3->network_map[i] == 255)
 		break;
 	    storeAppendPrintf(sentry, "%d:%d ", class3->network_map[i],
@@ -731,12 +745,12 @@ delayPoolStats3(StoreEntry * sentry, unsigned short pool)
     storeAppendPrintf(sentry, "\tIndividual:\n");
     storeAppendPrintf(sentry, "\t\tMax: %d\n", rate->individual.max_bytes);
     storeAppendPrintf(sentry, "\t\tRate: %d\n", rate->individual.restore_bps);
-    for (i = 0;; i++) {
+    for (i = 0; i < NET_MAP_SZ; i++) {
 	if (class3->network_map[i] == 255)
 	    break;
 	storeAppendPrintf(sentry, "\t\tCurrent [Network %d]: ", class3->network_map[i]);
 	shown = 1;
-	for (j = 0;; j++) {
+	for (j = 0; j < IND_MAP_SZ; j++) {
 	    if (class3->individual_map[i][j] == 255)
 		break;
 	    storeAppendPrintf(sentry, "%d:%d ", class3->individual_map[i][j],
@@ -750,7 +764,7 @@ delayPoolStats3(StoreEntry * sentry, unsigned short pool)
     if (class3->network_255_used) {
 	storeAppendPrintf(sentry, "\t\tCurrent [Network 255]: ");
 	shown = 1;
-	for (j = 0;; j++) {
+	for (j = 0; j < IND_MAP_SZ; j++) {
 	    if (class3->individual_map[255][j] == 255)
 		break;
 	    storeAppendPrintf(sentry, "%d:%d ", class3->individual_map[255][j],
