@@ -6,13 +6,6 @@
 #  Uncomment and customize the following to suit your needs:
 #
 
-# SAMBAPREFIX must point to the directory where Samba has been installed.
-# By default, Samba is installed in /usr/local/samba. If you changed this
-# by using the --prefix option when configuring Samba, you need to change
-# SAMBAPREFIX accordingly.
-
-SAMBAPREFIX=/usr/local/samba
-
 prefix		= @prefix@
 exec_prefix	= @exec_prefix@
 exec_suffix	= @exec_suffix@
@@ -27,9 +20,7 @@ VPATH		= @srcdir@
 
 # Gotta love the DOS legacy
 #
-SMB_AUTH_EXE	= smb_auth$(exec_suffix)
-SMB_AUTH_HELPER	= smb_auth.sh
-SMB_AUTH_HELPER_PATH = $(libexecdir)/$(SMB_AUTH_HELPER)
+AUTH_EXE	= msnt_auth$(exec_suffix)
 
 CC		= @CC@
 MAKEDEPEND	= @MAKEDEPEND@
@@ -52,20 +43,20 @@ XTRA_OBJS 	= @XTRA_OBJS@
 MV		= @MV@
 RM		= @RM@
 SHELL		= /bin/sh
-DEFINES		= -DSAMBAPREFIX=\"$(SAMBAPREFIX)\" -DHELPERSCRIPT=\"$(SMB_AUTH_HELPER_PATH)\"
+DEFINES		= 
 
 INCLUDE		= -I. -I../../include -I$(top_srcdir)/include
 CFLAGS 		= $(AC_CFLAGS) $(INCLUDE) $(DEFINES)
 AUTH_LIBS	= 
 
-LIBPROGS        = $(SMB_AUTH_EXE)
-LIBSCRIPTS	= $(SMB_AUTH_HELPER)
-OBJS	 	= smb_auth.o
+LIBPROGS        = $(AUTH_EXE)
+OBJS	 	= md4.o rfcnb-io.o rfcnb-util.o session.o smbauth.o smbdes.o \
+		  smbencrypt.o smblib-util.o smblib.o valid.o
 
-all:    $(LIBPROGS)
+all:    $(AUTH_EXE)
 
-$(SMB_AUTH_EXE): smb_auth.o
-	$(CC) $(LDFLAGS) smb_auth.o -o $@ $(AUTH_LIBS)
+$(AUTH_EXE): $(OBJS)
+	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(AUTH_LIBS)
 
 install-mkdirs:
 	-@if test ! -d $(prefix); then \
@@ -92,21 +83,9 @@ install: all install-mkdirs
 			$(RM) -f $(libexecdir)/-$$f; \
 		fi; \
 	done
-	@for f in $(LIBSCRIPTS); do \
-		if test -f $(libexecdir)/$$f; then \
-			echo $(MV) $(libexecdir)/$$f $(libexecdir)/-$$f; \
-			$(MV) $(libexecdir)/$$f $(libexecdir)/-$$f; \
-		fi; \
-		echo $(INSTALL_BIN) $$f $(libexecdir); \
-		$(INSTALL_BIN) $(srcdir)/$$f $(libexecdir); \
-		if test -f $(libexecdir)/-$$f; then \
-			echo $(RM) -f $(libexecdir)/-$$f; \
-			$(RM) -f $(libexecdir)/-$$f; \
-		fi; \
-	done
 
 clean: 
-	-rm -rf *.o *pure_* core $(LIBPROGS)
+	-rm -rf *.o *.a *pure_* core $(LIBPROGS)
 
 distclean:	clean
 	-rm -f Makefile

@@ -14,12 +14,7 @@ SHELL		= /bin/sh
 prefix		= @prefix@
 exec_prefix	= @exec_prefix@
 
-SUBDIRS		= lib @makesnmplib@ scripts src icons errors 
-AUTHDIRS	= auth_modules/NCSA \
-		  auth_modules/getpwnam \
-		  auth_modules/PAM \
-		  auth_modules/SMB \
-		  auth_modules/LDAP
+SUBDIRS		= lib @makesnmplib@ scripts src icons errors auth_modules
 
 noargs: all
 
@@ -43,7 +38,7 @@ almostclean: clean
 	rm -f config.log makefile
 	rm -f include/paths.h include/autoconf.h include/config.h
 	rm -f auth_modules/dummy
-	@for dir in $(SUBDIRS) $(AUTHDIRS) contrib; do \
+	@for dir in $(SUBDIRS) contrib; do \
 		echo Making distclean in $$dir; \
 		(cd $$dir; $(MAKE) $(MFLAGS) prefix="$(prefix)" distclean); \
 	done
