@@ -347,7 +347,10 @@ char *storeToString(e)
     sprintf(tmpbuf, "SwapOffset: %u\n", e->mem_obj->swap_offset);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "SwapFd: %d\n", e->mem_obj->swap_fd);
+    sprintf(tmpbuf, "SwapOutFd: %d\n", e->mem_obj->swapout_fd);
+    strcat(stsbuf, tmpbuf);
+
+    sprintf(tmpbuf, "SwapInFd: %d\n", e->mem_obj->swapin_fd);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "PendingListSize: %d\n", e->mem_obj->pending_list_size);

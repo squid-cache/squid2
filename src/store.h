@@ -181,7 +181,8 @@ typedef struct _MemObject {
     /* use another field to avoid changing the existing code */
     struct pentry **pending;
 
-    short swap_fd;
+    short swapin_fd;
+    short swapout_fd;
     int fd_of_first_client;
     struct _http_reply *reply;
     request_t *request;
