@@ -365,7 +365,7 @@ main(int argc, char *argv[])
 	msg[0] = '\0';
 	if (!result) {
 	    if (h_errno == TRY_AGAIN) {
-		snprintf(msg, 1024,  "Name Server for domain '%s' is unavailable.\n",
+		snprintf(msg, 1024, "Name Server for domain '%s' is unavailable.\n",
 		    request);
 	    } else {
 		snprintf(msg, 1024, "DNS Domain '%s' is invalid: %s.\n",

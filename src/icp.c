@@ -524,7 +524,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
     }
     hdr_len = end - hdr_in;
     /* Append X-Cache: */
-    snprintf(ybuf, 4096,  "X-Cache: %s", isTcpHit(http->log_type) ? "HIT" : "MISS");
+    snprintf(ybuf, 4096, "X-Cache: %s", isTcpHit(http->log_type) ? "HIT" : "MISS");
     clientAppendReplyHeader(hdr_out, ybuf, &len, out_sz);
     /* Append Proxy-Connection: */
     if (BIT_TEST(http->request->flags, REQ_PROXY_KEEPALIVE)) {
@@ -2047,15 +2047,15 @@ icpConstruct304reply(struct _http_reply *source)
     memset(reply, '\0', 8192);
     strcpy(reply, "HTTP/1.0 304 Not Modified\r\n");
     if (source->date > -1) {
-	snprintf(line, 256,  "Date: %s\r\n", mkrfc1123(source->date));
+	snprintf(line, 256, "Date: %s\r\n", mkrfc1123(source->date));
 	strcat(reply, line);
     }
     if ((int) strlen(source->content_type) > 0) {
-	snprintf(line,256, "Content-type: %s\r\n", source->content_type);
+	snprintf(line, 256, "Content-type: %s\r\n", source->content_type);
 	strcat(reply, line);
     }
     if (source->content_length) {
-	snprintf(line,256, "Content-length: %d\r\n", source->content_length);
+	snprintf(line, 256, "Content-length: %d\r\n", source->content_length);
 	strcat(reply, line);
     }
     if (source->expires > -1) {
@@ -2063,7 +2063,7 @@ icpConstruct304reply(struct _http_reply *source)
 	strcat(reply, line);
     }
     if (source->last_modified > -1) {
-	snprintf(line,256, "Last-modified: %s\r\n",
+	snprintf(line, 256, "Last-modified: %s\r\n",
 	    mkrfc1123(source->last_modified));
 	strcat(reply, line);
     }

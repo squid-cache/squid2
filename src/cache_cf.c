@@ -70,7 +70,7 @@ static void free_all _PARAMS((void));
 static void
 self_destruct(void)
 {
-    snprintf(fatal_str,BUFSIZ, "Bungled %s line %d: %s",
+    snprintf(fatal_str, BUFSIZ, "Bungled %s line %d: %s",
 	cfg_filename, config_lineno, config_input_line);
     fatal(fatal_str);
 }

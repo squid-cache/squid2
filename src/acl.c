@@ -1652,7 +1652,7 @@ aclReadProxyAuth(struct _acl_proxy_auth *p)
 		    p->hash = hash_create(urlcmp, 7921, hash_string);
 		    if (p->hash == NULL) {
 			debug(28, 0) ("aclReadProxyAuth: can't create "
-				"hash table, turning auth off.\n");
+			    "hash table, turning auth off.\n");
 			return 0;
 		    }
 		}

@@ -60,16 +60,16 @@ send_announce(const ipcache_addrs * ia, void *data)
     }
     debug(27, 0) ("Sending Announcement to %s\n", host);
     sndbuf[0] = '\0';
-    snprintf(tbuf,256, "cache_version SQUID/%s\n", version_string);
+    snprintf(tbuf, 256, "cache_version SQUID/%s\n", version_string);
     strcat(sndbuf, tbuf);
     assert(Config.Port.http);
-    snprintf(tbuf,256, "Running on %s %d %d\n",
+    snprintf(tbuf, 256, "Running on %s %d %d\n",
 	getMyHostname(),
 	(int) Config.Port.http->i,
 	(int) Config.Port.icp);
     strcat(sndbuf, tbuf);
     if (Config.adminEmail) {
-	snprintf(tbuf,256, "cache_admin: %s\n", Config.adminEmail);
+	snprintf(tbuf, 256, "cache_admin: %s\n", Config.adminEmail);
 	strcat(sndbuf, tbuf);
     }
     snprintf(tbuf, 256, "generated %d [%s]\n",

@@ -129,30 +129,30 @@ errorConvert(char token, ErrorState * err)
 	break;
     case 'e':
 	snprintf(buf, CVT_BUF_SZ, "%d", err->errno);
-	p=buf;
+	p = buf;
 	break;
     case 'E':
 	snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->errno, strerror(err->errno));
 	break;
     case 'w':
-	snprintf(buf, CVT_BUF_SZ, "%s",Config.adminEmail);
+	snprintf(buf, CVT_BUF_SZ, "%s", Config.adminEmail);
 	break;
     case 'h':
 	snprintf(buf, CVT_BUF_SZ, "%s", getMyHostname());
 	break;
 /*
- * e - errno            			x
- * E - strerror()				x
+ * e - errno                                  x
+ * E - strerror()                               x
  * t - local time
  * T - UTC
  * c - Squid error code
  * I - server IP address
  * i - client IP address
  * L - HREF link for more info/contact
- * w - cachemgr email address			x
- * h - cache hostname				x
+ * w - cachemgr email address                   x
+ * h - cache hostname                           x
  * d - seconds elapsed since request received
- * p - URL port #				x
+ * p - URL port #                               x
  */
     default:
 	p = "%UNKNOWN%";

@@ -2697,7 +2697,7 @@ static void
 storeInMemAdd(StoreEntry * e)
 {
     struct _mem_entry *m = xmalloc(sizeof(struct _mem_entry));
-    debug(0,0)("storeInMemAdd: %s\n", e->url);
+    debug(0, 0) ("storeInMemAdd: %s\n", e->url);
     m->e = e;
     m->prev = NULL;
     m->next = inmem_head;
@@ -2718,7 +2718,7 @@ storeInMemDelete(StoreEntry * e)
 	    break;
     }
     assert(m != NULL);
-    debug(0,0)("storeInMemDelete: %s\n", e->url);
+    debug(0, 0) ("storeInMemDelete: %s\n", e->url);
     if (m->next)
 	m->next->prev = m->prev;
     if (m->prev)

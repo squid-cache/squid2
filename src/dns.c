@@ -276,7 +276,7 @@ dnsOpenServers(void)
 		s++;
 	    else
 		s = prg;
-	    snprintf(fd_note_buf,FD_DESC_SZ, "%s #%d", s, dns_child_table[k]->id);
+	    snprintf(fd_note_buf, FD_DESC_SZ, "%s #%d", s, dns_child_table[k]->id);
 	    fd_note(dns_child_table[k]->inpipe, fd_note_buf);
 	    commSetNonBlocking(dns_child_table[k]->inpipe);
 	    debug(34, 3) ("dnsOpenServers: 'dns_server' %d started\n", k);

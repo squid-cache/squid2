@@ -316,15 +316,15 @@ diskHandleWriteComplete(void *data, int len, int errcode)
     }
     if (q != NULL) {
 	/* q might become NULL from write failure above */
-    	q->cur_offset += len;
-    	assert(q->cur_offset <= q->len);
-    	if (q->cur_offset == q->len) {
-		/* complete write */
-		fdd->write_q = q->next;
-		if (q->free)
-	    	(q->free) (q->buf);
-		safe_free(q);
-    	}
+	q->cur_offset += len;
+	assert(q->cur_offset <= q->len);
+	if (q->cur_offset == q->len) {
+	    /* complete write */
+	    fdd->write_q = q->next;
+	    if (q->free)
+		(q->free) (q->buf);
+	    safe_free(q);
+	}
     }
     if (fdd->write_q == NULL) {
 	/* no more data */

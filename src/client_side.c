@@ -333,7 +333,7 @@ clientConstructTraceEcho(clientHttpRequest * http)
     size_t len;
     memset(buf, '\0', 8192);
     snprintf(buf, 8192, "HTTP/1.0 200 OK\r\n");
-    snprintf(line, 256,  "Date: %s\r\n", mkrfc1123(squid_curtime));
+    snprintf(line, 256, "Date: %s\r\n", mkrfc1123(squid_curtime));
     strcat(buf, line);
     snprintf(line, 256, "Server: Squid/%s\r\n", SQUID_VERSION);
     strcat(buf, line);

@@ -520,7 +520,7 @@ describeTimeSince(time_t then)
 	snprintf(buf, 128, "%dM", (int) (delta / ONE_MONTH));
     else
 	snprintf(buf, 128, "%dY", (int) (delta / ONE_YEAR));
-    snprintf(buf2,128, fmt, buf);
+    snprintf(buf2, 128, fmt, buf);
     return buf2;
 }
 
@@ -657,12 +657,12 @@ main(int argc, char *argv[])
 	/* convert hostname:portnum to host=hostname&port=portnum */
 	if (*s && !strchr(s, '=') && !strchr(s, '&')) {
 	    char *p;
-            int len_buff=strlen(s) + sizeof "host=&port=";
+	    int len_buff = strlen(s) + sizeof "host=&port=";
 	    buffer = xmalloc(len_buff);
 	    if ((p = strchr(s, ':')))
 		if (p != s) {
 		    *p = '\0';
-		    snprintf(buffer, len_buff,"host=%s&port=%s", s, p + 1);
+		    snprintf(buffer, len_buff, "host=%s&port=%s", s, p + 1);
 		} else {
 		    snprintf(buffer, len_buff, "port=%s", p + 1);
 	    } else
