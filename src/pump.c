@@ -213,14 +213,14 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
     if (cbdataValid(p->cbdata))
 	p->callback(p->s_fd, NULL, p->sent, 0, p->cbdata);
     cbdataUnlock(p->cbdata);
+    storeUnregister(p->request_entry, p);
     /*
-     * Dissaociate ourselves from the server FD and reply_entry
+     * we don't care what happens on the server side now
      */
     comm_remove_close_handler(p->s_fd, pumpServerClosed, p);
     p->s_fd = -1;
     storeUnlockObject(p->reply_entry);
     p->reply_entry = NULL;
-    pumpFree(p->c_fd, p);
 }
 
 
@@ -280,7 +280,6 @@ pumpReadFromClient(int fd, void *data)
     assert(p->rcvd == p->cont_len);
     debug(61, 2) ("pumpReadFromClient: finished!\n");
     storeComplete(req);
-    storeUnregister(req, p);
     commSetDefer(p->c_fd, NULL, NULL);
 }
 
