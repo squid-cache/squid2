@@ -20,7 +20,7 @@ SMB_AUTH_HELPER_PATH = $(libexecdir)/$(SMB_AUTH_HELPER)
 libexec_SCRIPTS	= $(SMB_AUTH_HELPER)
 libexec_PROGRAMS = smb_auth
 smb_auth_CFLAGS = -DSAMBAPREFIX=\"$(SAMBAPREFIX)\" -DHELPERSCRIPT=\"$(SMB_AUTH_HELPER_PATH)\"
-EXTRA_DIST = smb_auth.sh
+EXTRA_DIST = smb_auth.sh COPYING-2.0
 
 LDADD	= $(XTRA_LIBS)
 

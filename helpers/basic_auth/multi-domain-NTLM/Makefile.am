@@ -10,4 +10,5 @@ libexec_SCRIPTS	= \
 	smb_auth.pl
 
 EXTRA_DIST = \
-	smb_auth.pl
+	smb_auth.pl \
+	README.txt

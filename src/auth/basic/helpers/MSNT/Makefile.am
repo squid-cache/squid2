@@ -16,6 +16,12 @@ msnt_auth_SOURCES = md4.c rfcnb-io.c rfcnb-util.c session.c msntauth.c \
 		rfcnb-io.h rfcnb-priv.h rfcnb-util.h smblib-common.h \
 		smblib.h smblib-priv.h std-defines.h std-includes.h valid.h
 
+EXTRA_DIST = \
+	COPYING-2.0 \
+	msntauth.conf \
+	msntauth-v2.0.lsm \
+	README.html
+
 LDADD	= @XTRA_LIBS@
 
 INCLUDES      = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
