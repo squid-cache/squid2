@@ -1092,7 +1092,7 @@ ipcacheChangeKey(ipcache_entry * i)
 	debug(14, 0) ("ipcacheChangeKey: Could not find key '%s'\n", i->name);
 	return;
     }
-    assert(i == table_entry);
+    assert(i == (ipcache_entry *) table_entry);
     if (hash_remove_link(ip_table, table_entry)) {
 	debug_trap("ipcacheChangeKey: hash_remove_link() failed\n");
 	return;
