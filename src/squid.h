@@ -139,6 +139,38 @@
         (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif
 
+
+#ifdef _SQUID_SOLARIS_
+/* BSD -> POSIX signal macros. Version 1.0
+   Written by Carson Gaspar (carson@lehman.com, carson@cs.columbia.edu)
+   Permission is hereby granted to use them in any way as long as credit
+   is given to the author. */
+ 
+/* assume signal.h is protected against multiple inclusion */
+#include <signal.h>
+static struct sigaction _fixsig_sa_act, _fixsig_sa_oact;
+static sigset_t _fixsig_sigset;
+#define signal(s,f) \
+  (_fixsig_sa_act.sa_handler = (f), \
+   sigemptyset(&_fixsig_sa_act.sa_mask), \
+   _fixsig_sa_act.sa_flags |= (s == SIGALRM ? 0 : SA_RESTART), \
+   sigaction((s), &_fixsig_sa_act, &_fixsig_sa_oact), \
+   _fixsig_sa_oact.sa_handler)
+#define sigmask(x) (1<<(x))
+ 
+/* WARNING! This grovels about in the sigset structure. It works under
+   Solaris 2.[345], but Your Mileage May Vary */
+ 
+#define _mask_to_sigset(x) (sigemptyset(&_fixsig_sigset),_fixsig_sigset.__sigbits[0] |= x)
+#define sigsetmask(x) (_mask_to_sigset(x),sigprocmask(SIG_SETMASK,&_fixsig_sigset,NULL))
+#define sigblock(x) (_mask_to_sigset(x),sigprocmask(SIG_BLOCK,&_fixsig_sigset,0))
+#define sighold(x) (_mask_to_sigset(sigmask(x)),sigprocmask(SIG_BLOCK,&_fixsig_sigset,0))
+#define sigrelse(x) (_mask_to_sigset(sigmask(x)),sigprocmask(SIG_UNBLOCK,&_fixsig_sigset,0))
+#define sigignore(x) signal(x,SIG_IGN)
+#define sigpause(x) (sigprocmask(0,0,&_fixsig_sigset),sigdelset(&_fixsig_sigset,x),sigsuspend(&_fixsig_sigset))
+#endif /* _SQUID_SOLARIS_ */
+
+
 typedef struct sentry StoreEntry;
 typedef struct mem_hdr *mem_ptr;
 typedef struct _edge edge;
