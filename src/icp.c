@@ -339,12 +339,14 @@ httpRequestFree(void *data)
 static void
 connStateFree(int fd, void *data)
 {
+    int loopdetect = 0;
     ConnStateData *connState = data;
     clientHttpRequest *http;
     debug(12, 3, "connStateFree: FD %d\n", fd);
     if (connState == NULL)
 	fatal_dump("connStateFree: connState == NULL");
     while ((http = connState->chr)) {
+	assert(loopdetect++ < 50);
 	connState->chr = http->next;
 	httpRequestFree(http);
     }
