@@ -168,6 +168,10 @@ aclType(const char *s)
 	return ACL_SRC_ASN;
     if (!strcmp(s, "dst_as"))
 	return ACL_DST_ASN;
+#if USE_ARP_ACL
+    if (!strcmp(s, "arp"))
+	return ACL_SRC_ARP;
+#endif
     return ACL_NONE;
 }
 
@@ -696,6 +700,11 @@ aclParseAclLine(acl ** head)
     case ACL_DST_ASN:
 	aclParseIntlist(&A->data);
 	break;
+#if USE_ARP_ACL
+    case ACL_SRC_ARP:
+	aclParseArpList(&A->data);
+	break;
+#endif
     case ACL_NONE:
     default:
 	fatal("Bad ACL type");
@@ -1249,6 +1258,10 @@ aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
     case ACL_DST_ASN:
 	assert(0);
 	return 0;
+#if USE_ARP_ACL
+    case ACL_SRC_ARP:
+	return aclMatchArp(&acl->data, checklist->src_addr);
+#endif
     case ACL_NONE:
     default:
 	debug(28, 0) ("aclMatchAcl: '%s' has bad type %d\n",
