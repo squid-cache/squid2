@@ -355,7 +355,7 @@ main(int argc, char *argv[])
 		return 1;
 	if (FD_ISSET(icmp_sock, &R))
 	    pingerRecv();
-	if (10 + last_check_time > squid_curtime) {
+	if (10 + last_check_time < squid_curtime) {
 	    if (send(1, &tv, 0, 0) < 0)
 		return 1;
 	    last_check_time = squid_curtime;
