@@ -433,7 +433,10 @@ aclMatchExternal(void *data, aclCheck_t * ch)
     }
     if (!entry || entry->result == -1) {
 	debug(82, 2) ("aclMatchExternal: %s(\"%s\") = lookup needed\n", acl->def->name, key);
-	ch->state[ACL_EXTERNAL] = ACL_LOOKUP_NEEDED;
+	if (acl->def->helper->stats.queue_size >= acl->def->helper->n_running)
+	    debug(82, 1) ("aclMatchExternal: '%s' queue overload. Request rejected.\n", acl->def->name);
+	else
+	    ch->state[ACL_EXTERNAL] = ACL_LOOKUP_NEEDED;
 	return 0;
     }
     external_acl_cache_touch(acl->def, entry);
