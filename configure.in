@@ -578,7 +578,7 @@ AC_ARG_WITH(openssl,
     ;;
   *)
     SSLLIBDIR="$with_openssl/lib"
-    CFLAGS="-I$with_openssl/include $CFLAGS"
+    CPPFLAGS="-I$with_openssl/include $CPPFLAGS"
     USE_OPENSSL=1
   esac
 ])
