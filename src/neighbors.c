@@ -487,11 +487,9 @@ neighborsUdpPing(protodispatch_data * proto)
 	if (e == NULL)
 	    e = Peers.peers_head;
 	debug(15, 5, "neighborsUdpPing: Peer %s\n", e->host);
-
 	/* skip any cache where we failed to connect() w/in the last 60s */
 	if (squid_curtime - e->last_fail_time < 60)
 	    continue;
-
 	if (!peerWouldBePinged(e, request))
 	    continue;		/* next peer */
 	if (e->options & NEIGHBOR_NO_QUERY)
@@ -503,7 +501,6 @@ neighborsUdpPing(protodispatch_data * proto)
 	if (e->type == PEER_SIBLING)
 	    if (!BIT_TEST(request->flags, REQ_HIERARCHICAL))
 		continue;
-
 	debug(15, 4, "neighborsUdpPing: pinging peer %s for '%s'\n",
 	    e->host, url);
 	if (e->type == PEER_MULTICAST)
