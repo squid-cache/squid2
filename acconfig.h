@@ -348,7 +348,7 @@
 #undef HAVE_UNIXSOCKET
 
 /*
- * Known-size intgers
+ * Known-size integers
  */
 
 #undef int16_t
