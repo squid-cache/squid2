@@ -478,6 +478,7 @@ dist-hook:
 	    rm -f $(distdir)/$$subdir/autoconf.h; \
 	  fi; \
 	done
+	cp $(top_srcdir)/doc/release-notes/release-2.5.html $(distdir)/RELEASENOTES.html
 
 install-pinger:
 	chown root $(libexecdir)/pinger$(EXEEXT)
