@@ -995,17 +995,6 @@ if test -n "$EXTERNAL_ACL_HELPERS"; then
 fi
 AC_SUBST(EXTERNAL_ACL_HELPERS)
 
-dnl Disable "memPools" code
-AC_ARG_ENABLE(mempools,
-[  --disable-mempools      Disable memPools],
-[ if test "$enableval" = "no" ; then
-    echo "memPools disabled"
-    AC_DEFINE(DISABLE_POOLS, 1)
-  else
-    AC_DEFINE(DISABLE_POOLS, 0)
-  fi
-])
-
 dnl Disable "unlinkd" code
 AC_ARG_ENABLE(unlinkd,
 [  --disable-unlinkd       Do not use unlinkd],
