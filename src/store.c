@@ -1397,6 +1397,8 @@ storeDoRebuildFromDisk(void *data)
 	    &scan3,		/* last modified */
 	    &scan4,		/* size */
 	    url);		/* url */
+	if (sfileno < 0 || sfileno >= MAX_SWAP_FILE)
+	    continue;
 	if (x > 0)
 	    storeSwapFullPath(sfileno, swapfile);
 	if (x != 6) {
@@ -1404,8 +1406,6 @@ storeDoRebuildFromDisk(void *data)
 		storePutUnusedFileno(sfileno);
 	    continue;
 	}
-	if (sfileno < 0 || sfileno >= MAX_SWAP_FILE)
-	    continue;
 	timestamp = (time_t) scan1;
 	expires = (time_t) scan2;
 	lastmod = (time_t) scan3;
