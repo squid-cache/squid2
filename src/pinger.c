@@ -175,11 +175,13 @@ pingerRecv(void)
     int iphdrlen = 20;
     struct iphdr *ip = NULL;
     struct icmphdr *icmp = NULL;
-    LOCAL_ARRAY(char, pkt, MAX_PKT_SZ);
+    static char *pkt = NULL;
     struct timeval now;
     icmpEchoData *echo;
     static pingerReplyData preply;
 
+    if (pkt == NULL)
+	pkt = xmalloc(MAX_PKT_SZ);
     fromlen = sizeof(from);
     n = recvfrom(icmp_sock,
 	pkt,
