@@ -6,6 +6,8 @@
 
 #include "squid.h"
 
+stmem_stats sm_stats;
+stmem_stats disk_stats;
 
 #define min(x,y) ((x)<(y)? (x) : (y))
 

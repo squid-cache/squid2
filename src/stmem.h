@@ -40,8 +40,8 @@ typedef struct _stmem_stats {
     Stack free_page_stack;
 } stmem_stats;
 
-stmem_stats sm_stats;
-stmem_stats disk_stats;
+extern stmem_stats sm_stats;
+extern stmem_stats disk_stats;
 
 extern char *get_free_4k_page _PARAMS((char *, int));
 extern char *get_free_8k_page _PARAMS((char *, int));
