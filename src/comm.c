@@ -692,6 +692,7 @@ int comm_select(sec, failtime)
 	}
 	if (shutdown_pending || reread_pending) {
 	    debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
+	    ipcacheShutdownServers();
 	    setSocketShutdownLifetimes();
 	}
 	if (nfds == 0)
