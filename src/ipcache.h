@@ -142,6 +142,7 @@ extern void stat_ipcache_get _PARAMS((StoreEntry *));
 extern void ipcacheShutdownServers _PARAMS((void));
 extern void ipcacheOpenServers _PARAMS((void));
 extern void ipcacheLockEntry _PARAMS((char *));
+extern void ipcacheReleaseInvalid _PARAMS((char *));
 
 extern char *dns_error_message;
 
