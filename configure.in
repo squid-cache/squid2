@@ -149,6 +149,8 @@ if test "${use_dlmalloc-unset}" = unset; then
 	i386-*-solaris2.*)
 		echo "Enabling dlmalloc for $host"
 		use_dlmalloc="yes"
+		LIBDLMALLOC="libdlmalloc.a"
+		LIB_MALLOC="-L../lib -ldlmalloc"
 		;;
     esac
 fi
@@ -991,6 +993,18 @@ dnl during compile.
 		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
 		;;
 esac
+
+# Remove optimization for GCC 2.95.[12]
+# gcc -O[2] on *BSD and Linux (x86) causes pointers to magically become NULL
+if test "$GCC" = "yes"; then
+	GCCVER=`$CC -v 2>&1 | awk '$2 ==  "version" {print $3}'`
+	case "$GCCVER" in
+	[2.95.[12]])
+		echo "Removing -O for gcc on $host with GCC $GCCVER"
+		CFLAGS="`echo $CFLAGS | sed -e 's/-O[[0-9]]*//'`"
+		;;
+	esac
+fi
 
 # Recommended by Balint Nagy Endre <bne@CareNet.hu>
 case "$host" in

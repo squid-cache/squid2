@@ -297,8 +297,8 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
 	    /* yuck -- this causes a TCP_SWAPFAIL_MISS on the client side */
 	    storeClientCallback(sc, -1);
 	    return;
-	}
-	if (!sc->flags.disk_io_pending) {
+	} else if (!sc->flags.disk_io_pending) {
+	    sc->flags.disk_io_pending = 1;
 	    storeSwapInStart(sc);
 	    if (NULL == sc->swapin_sio) {
 		storeClientCallback(sc, -1);

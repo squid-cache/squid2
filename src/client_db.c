@@ -232,7 +232,6 @@ client_entry(struct in_addr *current)
 {
     ClientInfo *c = NULL;
     char *key;
-
     if (current) {
 	key = inet_ntoa(*current);
 	hash_first(client_table);
@@ -271,8 +270,7 @@ snmp_meshCtblFn(variable_list * Var, snint * ErrP)
     if (c == NULL) {
 	debug(49, 5) ("snmp_meshCtblFn: not found.\n");
 	*ErrP = SNMP_ERR_NOSUCHNAME;
-	snmp_var_free(Answer);
-	return (NULL);
+	return NULL;
     }
     switch (Var->name[LEN_SQ_NET + 2]) {
     case MESH_CTBL_ADDR:

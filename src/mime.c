@@ -216,12 +216,12 @@ mimeGetIcon(const char *fn)
     return m->icon;
 }
 
-char *
+const char *
 mimeGetIconURL(const char *fn)
 {
     char *icon = mimeGetIcon(fn);
     if (icon == NULL)
-	return NULL;
+	return null_string;
     return internalLocalUri("/squid-internal-static/icons/", icon);
 }
 

@@ -2,12 +2,12 @@
 /*
   msntauth
 
-  Modified to act as a Squid authenticator
+  Modified to act as a Squid authenticator module.
   Removed all Pike stuff.
   Returns OK for a successful authentication, or ERR upon error.
 
   Antonino Iannella, Camtech SA Pty Ltd
-  Thu Sep 16 15:25:28 CST 1999
+  Mon Apr 10 22:24:26 CST 2000
 
   Uses code from -
     Andrew Tridgell 1997
@@ -32,47 +32,78 @@
 */
 
 #include <stdio.h>
+#include <signal.h>
+#include <sys/time.h>
+#include "sitedef.h"
 
-/* You must specifiy these for your site! */
-
-#define PRIMARY_DC "my_pdc"
-#define BACKUP_DC  "my_bdc"
-#define NTDOMAIN   "my_domain"
+extern void Checkforchange();       /* For signal() to find the function */
 
 /* Main program for simple authentication.
-   This code could probably be better, might be
-   susceptible to buffer overflows. */
+   Reads the denied user file. Sets alarm timer.
+   Scans and checks for Squid input, and attempts to validate the user.
+*/
 
 int main()
 {
   char username[256];
   char password[256];
   char wstr[256];
+  struct itimerval TimeOut;
+
+  /* Read denied user file. If it fails there is a serious problem.
+     Check syslog messages. Deny all users while in this state.
+     The process should then be killed. */
+
+  if (Read_denyusers() == 1)
+  {
+     while (1)
+     {
+       fgets(wstr, 255, stdin);
+       puts("ERR");
+       fflush(stdout);
+     }
+  }
+
+  /* An alarm timer is used to check the denied user file for changes
+     every minute. Reload the file if it has changed. */ 
+
+  TimeOut.it_interval.tv_sec = 60;
+  TimeOut.it_interval.tv_usec = 0;
+  TimeOut.it_value.tv_sec = 60;
+  TimeOut.it_value.tv_usec = 0;
+  setitimer(ITIMER_REAL, &TimeOut, 0);
+  signal(SIGALRM, Checkforchange);
+  signal(SIGHUP, Checkforchange);
 
   while (1)
   {
-    // Read whole line from standard input. Terminate on break.
+    /* Read whole line from standard input. Terminate on break. */
     if (fgets(wstr, 255, stdin) == NULL)    
        break;
 
-    // Clear any current settings
+    /* Clear any current settings */
     username[0] = '\0';
     password[0] = '\0';
-    sscanf(wstr, "%s %s", username, password);          // Extract parameters
+    sscanf(wstr, "%s %s", username, password);     /* Extract parameters */
 
-    // Check for invalid or blank entries
+    /* Check for invalid or blank entries */
     if ((username[0] == '\0') || (password[0] == '\0'))
-    {
+  {
        puts("ERR");
        fflush(stdout);
        continue;
     }
 
+    if (Check_user(username) == 1)            /* Check if user is denied */
+        puts("ERR");
+    else
+    {
     if (Valid_User(username, password, PRIMARY_DC, BACKUP_DC, NTDOMAIN) == 0)
        puts("OK");
     else
        puts("ERR");
-       
+  }
+
     fflush(stdout);
   }
   
