@@ -45,8 +45,6 @@ char *IcpOpcodeStr[] =
 extern int httpd_accel_mode;
 extern ip_acl *local_ip_list;
 extern time_t neighbor_timeout;
-extern stoplist *local_domain_list;
-extern stoplist *inside_firewall_list;
 extern single_parent_bypass;
 extern char *dns_error_message;
 
@@ -536,11 +534,11 @@ static int matchInsideFirewall(host)
      char *host;
 {
     int offset;
-    stoplist *s = NULL;
-    if (!inside_firewall_list)
+    wordlist *s = getInsideFirewallList();;
+    if (!s)
 	/* no domains, all hosts are "inside" the firewall */
 	return NO_FIREWALL;
-    for (s = inside_firewall_list; s; s = s->next) {
+    for ( ; s; s = s->next) {
 	if (!strcasecmp(s->key, "none"))
 	    /* no domains are inside the firewall, all domains are outside */
 	    return OUTSIDE_FIREWALL;
@@ -559,8 +557,8 @@ static int matchLocalDomain(host)
      char *host;
 {
     int offset;
-    stoplist *s = NULL;
-    for (s = local_domain_list; s; s = s->next) {
+    wordlist *s = NULL;
+    for (s = getLocalDomainList(); s; s = s->next) {
 	if ((offset = strlen(host) - strlen(s->key)) < 0)
 	    continue;
 	if (strcasecmp(s->key, host + offset) == 0)

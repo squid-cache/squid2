@@ -122,14 +122,12 @@ int ftp_url_parser(url, data)
 int ftpCachable(url)
      char *url;
 {
-    stoplist *p = NULL;
+    wordlist *p = NULL;
 
     /* scan stop list */
-    p = ftp_stoplist;
-    while (p) {
+    for (p = getFtpStoplist(); p; p=p->next) {
 	if (strstr(url, p->key))
 	    return 0;
-	p = p->next;
     }
 
     /* else cachable */

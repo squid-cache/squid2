@@ -1048,9 +1048,9 @@ int icpHandleUdp(sock, not_used)
 	    key = storeGeneratePrivateKey(url, METHOD_GET, header.reqnum);
 	else
 	    key = storeGeneratePublicKey(url, METHOD_GET);
-	debug(12, 1, "icpHandleUdp: Looking for key '%s'\n", key);
+	debug(12, 3, "icpHandleUdp: Looking for key '%s'\n", key);
 	if ((entry = storeGet(key)) == NULL) {
-	    debug(12, 1, "icpHandleUdp: Ignoring %s for NULL Entry.\n",
+	    debug(12, 3, "icpHandleUdp: Ignoring %s for NULL Entry.\n",
 		IcpOpcodeStr[header.opcode]);
 	    break;
 	}

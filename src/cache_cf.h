@@ -4,10 +4,10 @@
 #ifndef _CACHE_CONFIG_H_
 #define _CACHE_CONFIG_H_
 
-typedef struct _stoplist {
+typedef struct _wordlist {
     char *key;
-    struct _stoplist *next;
-} stoplist;
+    struct _wordlist *next;
+} wordlist;
 
 typedef struct _intlist {
     int i;
@@ -34,10 +34,10 @@ extern int httpd_accel_mode;
 extern int emulate_httpd_log;
 extern int zap_disk_store;
 extern int unbuffered_logs;
-extern stoplist *http_stoplist;
-extern stoplist *gopher_stoplist;
-extern stoplist *ftp_stoplist;
-extern stoplist *bind_addr_list;
+extern wordlist *http_stoplist;
+extern wordlist *gopher_stoplist;
+extern wordlist *ftp_stoplist;
+extern wordlist *bind_addr_list;
 extern ip_acl *proxy_ip_acl;
 extern ip_acl *accel_ip_acl;
 extern ip_acl *manager_ip_acl;
@@ -107,6 +107,14 @@ extern char *getAnnounceHost _PARAMS((void));
 extern int getAnnouncePort _PARAMS((void));
 extern char *getAnnounceFile _PARAMS((void));
 extern int getAnnounceRate _PARAMS((void));
+wordlist *getHttpStoplist _PARAMS((void));
+wordlist *getFtpStoplist _PARAMS((void));
+wordlist *getGopherStoplist _PARAMS((void));
+wordlist *getLocalDomainList _PARAMS((void));
+wordlist *getCacheDirs _PARAMS((void));
+wordlist *getInsideFirewallList _PARAMS((void));
+wordlist *getBindAddrList _PARAMS((void));
+
 
 extern char w_space[];
 

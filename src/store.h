@@ -77,7 +77,7 @@ typedef struct _MemObject {
     /* use another field to avoid changing the existing code */
     struct pentry **pending;
 
-    unsigned short swap_fd;
+    short swap_fd;
     int fd_of_first_client;
     struct _http_reply *reply;
 
