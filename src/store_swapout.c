@@ -392,6 +392,9 @@ storeSwapOutAble(const StoreEntry * e)
 	return 0;
     if (e->mem_obj->swapout.sio != NULL)
 	return 1;
+    if (e->mem_obj->swapout.queue_offset)
+	if (e->mem_obj->swapout.queue_offset == e->mem_obj->inmem_hi)
+	    return 1;
     if (e->mem_obj->inmem_lo > 0)
 	return 0;
     /* Don't pollute the disk with icons and other special entries */
