@@ -245,11 +245,11 @@ void ttlSet(entry)
 	expire = ((x = parse_rfc850(reply->expires)) > -1) ? x : served_date;
     }
     if (last_modified > -1)
-	debug(22, 5, "ttlSet: Last-Modified: %s\n", mkrfc850(&last_modified));
+	debug(22, 5, "ttlSet: Last-Modified: %s\n", mkrfc850(last_modified));
     if (expire > -1)
-	debug(22, 5, "ttlSet:       Expires: %s\n", mkrfc850(&expire));
+	debug(22, 5, "ttlSet:       Expires: %s\n", mkrfc850(expire));
     if (their_date > -1)
-	debug(22, 5, "ttlSet:   Server-Date: %s\n", mkrfc850(&their_date));
+	debug(22, 5, "ttlSet:   Server-Date: %s\n", mkrfc850(their_date));
 
     if (expire > -1) {
 	ttl = (expire - squid_curtime);

@@ -150,7 +150,7 @@ void errorInitialize()
 
 void squid_error_entry(entry, type, msg)
      StoreEntry *entry;
-     int type;
+     log_type type;
      char *msg;
 {
     int index;

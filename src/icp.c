@@ -113,7 +113,8 @@ static char *log_tags[] =
     "LOG_NONE",
     "TCP_HIT",
     "TCP_MISS",
-    "TCP_EXPIRED",
+    "TCP_EXPIRED_HIT",
+    "TCP_EXPIRED_MISS",
     "TCP_REFRESH",
     "TCP_IFMODSINCE",
     "TCP_SWAPFAIL",
@@ -156,12 +157,9 @@ typedef struct {
 } icpHitObjStateData;
 
 /* Local functions */
-static void icpHandleStore _PARAMS((int, StoreEntry *, icpStateData *));
 static void icpHandleStoreComplete _PARAMS((int, char *, int, int, void *icpState));
 static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, icpStateData *));
 static void icpHandleIMSComplete _PARAMS((int, char *, int, int, void *icpState));
-static int icpProcessHIT _PARAMS((int, icpStateData *));
-static int icpProcessIMS _PARAMS((int, icpStateData *));
 static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
 static int CheckQuickAbort2 _PARAMS((icpStateData *));
@@ -361,7 +359,7 @@ int icpSendERROR(fd, errorCode, text, icpState, httpCode)
 /* Send available data from an object in the cache.  This is called either
  * on select for  write or directly by icpHandleStore. */
 
-static int icpSendMoreData(fd, icpState)
+int icpSendMoreData(fd, icpState)
      int fd;
      icpStateData *icpState;
 {
@@ -410,7 +408,7 @@ static int icpSendMoreData(fd, icpState)
  * error messages.  We get here by invoking the handlers in the
  * pending list.
  */
-static void icpHandleStore(fd, entry, icpState)
+void icpHandleStore(fd, entry, icpState)
      int fd;
      StoreEntry *entry;
      icpStateData *icpState;
@@ -427,7 +425,8 @@ static void icpHandleStore(fd, entry, icpState)
 	    400);
 	return;
     }
-    icpState->entry = entry;
+    if (icpState->entry != entry)
+	fatal_dump("icpHandleStore: entry mismatch!");
     icpSendMoreData(fd, icpState);
 }
 
@@ -569,7 +568,7 @@ static int icpGetHeadersForIMS(fd, icpState)
     } else {
 	debug(12, 4, "icpGetHeadersForIMS: We have newer '%s'\n", entry->url);
 	/* We have a newer object */
-	return icpProcessHIT(fd, icpState);
+	return icpSendMoreData(fd, icpState);
     }
 }
 
@@ -606,7 +605,7 @@ static void icpHandleIMSComplete(fd, buf_unused, size, errflag, data)
  * Below, we check whether the object is a hit or a miss.  If it's a hit,
  * we check whether the object is still valid or whether it is a MISS_TTL.
  */
-void icp_hit_or_miss(fd, icpState)
+void icpProcessRequest(fd, icpState)
      int fd;
      icpStateData *icpState;
 {
@@ -614,7 +613,7 @@ void icp_hit_or_miss(fd, icpState)
     char *pubkey = NULL;
     StoreEntry *entry = NULL;
 
-    debug(12, 4, "icp_hit_or_miss: %s <URL:%s>\n",
+    debug(12, 4, "icpProcessRequest: %s <URL:%s>\n",
 	RequestMethodStr[icpState->method],
 	url);
     if (icpState->method == METHOD_CONNECT) {
@@ -631,11 +630,11 @@ void icp_hit_or_miss(fd, icpState)
     if (icpHierarchical(icpState))
 	BIT_SET(icpState->flags, REQ_HIERARCHICAL);
 
-    debug(12, 5, "icp_hit_or_miss: REQ_NOCACHE = %s\n",
+    debug(12, 5, "icpProcessRequest: REQ_NOCACHE = %s\n",
 	BIT_TEST(icpState->flags, REQ_NOCACHE) ? "SET" : "NOT SET");
-    debug(12, 5, "icp_hit_or_miss: REQ_CACHABLE = %s\n",
+    debug(12, 5, "icpProcessRequest: REQ_CACHABLE = %s\n",
 	BIT_TEST(icpState->flags, REQ_CACHABLE) ? "SET" : "NOT SET");
-    debug(12, 5, "icp_hit_or_miss: REQ_HIERARCHICAL = %s\n",
+    debug(12, 5, "icpProcessRequest: REQ_HIERARCHICAL = %s\n",
 	BIT_TEST(icpState->flags, REQ_HIERARCHICAL) ? "SET" : "NOT SET");
 
     /* NOTE on HEAD requests: We currently don't cache HEAD reqeusts
@@ -651,12 +650,6 @@ void icp_hit_or_miss(fd, icpState)
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* This object isn't in the cache.  We do not hold a lock yet */
 	icpState->log_type = LOG_TCP_MISS;
-    } else if (!storeEntryValidToSend(entry)) {
-	/* The object is in the cache, but is not valid */
-	/* Eject old cached object */
-	storeRelease(entry);
-	entry = NULL;
-	icpState->log_type = LOG_TCP_EXPIRED;
     } else if (BIT_TEST(icpState->flags, REQ_NOCACHE)) {
 	/* IMS+NOCACHE should not eject valid object */
 	if (!BIT_TEST(icpState->flags, REQ_IMS))
@@ -667,75 +660,44 @@ void icp_hit_or_miss(fd, icpState)
     } else if (BIT_TEST(icpState->flags, REQ_IMS)) {
 	/* A cached IMS request */
 	icpState->log_type = LOG_TCP_IFMODSINCE;
+    } else if (!storeEntryValidToSend(entry)) {
+	/* The object is in the cache, but is not valid */
+	/* use LOG_TCP_EXPIRED_MISS for the time being, maybe change
+	 * * it to _HIT later in icpHandleIMSReply() */
+	icpState->log_type = LOG_TCP_EXPIRED_MISS;
     } else {
 	icpState->log_type = LOG_TCP_HIT;
     }
 
     /* Lock the object */
-    if (entry != NULL && storeLockObject(entry, NULL, NULL) < 0) {
+    if (entry && storeLockObject(entry, NULL, NULL) < 0) {
 	storeRelease(entry);
 	entry = NULL;
 	icpState->log_type = LOG_TCP_SWAPIN_FAIL;
     }
-    /* Reset header fields for  reply. */
-    memset(&icpState->header, 0, sizeof(icp_common_t));
-    icpState->header.version = ICP_VERSION_CURRENT;
-    /* icpState->header.reqnum = 0; */
-    icpState->header.shostid = 0;
     icpState->entry = entry;	/* Save a reference to the object */
     icpState->offset = 0;
 
-    debug(12, 4, "icp_hit_or_miss: %s for '%s'\n",
+    debug(12, 4, "icpProcessRequest: %s for '%s'\n",
 	log_tags[icpState->log_type],
 	icpState->url);
 
-    if (entry != NULL) {
-	CacheInfo->proto_hit(CacheInfo, icpState->request->protocol);
-	entry->refcount++;
-    } else {
-	CacheInfo->proto_miss(CacheInfo, icpState->request->protocol);
-    }
-
     switch (icpState->log_type) {
     case LOG_TCP_HIT:
-	icpProcessHIT(fd, icpState);
+	icpSendMoreData(fd, icpState);
 	break;
     case LOG_TCP_IFMODSINCE:
-	icpProcessIMS(fd, icpState);
+	icpState->buf = get_free_8k_page();
+	memset(icpState->buf, '\0', 8192);
+	icpGetHeadersForIMS(fd, icpState);
+	break;
+    case LOG_TCP_EXPIRED_MISS:
+	icpProcessExpired(fd, icpState);
 	break;
     default:
 	icpProcessMISS(fd, icpState);
 	break;
     }
-}
-
-/*
- * Send object as a cache hit
- */
-static int icpProcessHIT(fd, icpState)
-     int fd;
-     icpStateData *icpState;
-{
-    /* Send object to requestor */
-    return icpSendMoreData(fd, icpState);
-}
-
-
-/*
- * Prepare to respond to a IMS request
- * This requires fetching the Last-Modified (or Date) header
- * and compare this with the request.
- * If the object is unmodified (older, or same date(+size))
- * respond with 304, else process as a HIT
- */
-static int icpProcessIMS(fd, icpState)
-     int fd;
-     icpStateData *icpState;
-{
-    icpState->buf = get_free_8k_page();
-    memset(icpState->buf, '\0', 8192);
-    /* And fetch headers */
-    return icpGetHeadersForIMS(fd, icpState);
 }
 
 
@@ -768,20 +730,10 @@ static int icpProcessMISS(fd, icpState)
 
     entry->refcount++;		/* MISS CASE */
     entry->mem_obj->fd_of_first_client = fd;
-    fd_table[fd].store_entry = entry;
-    BIT_SET(entry->flag, IP_LOOKUP_PENDING);
-
-    /* Reset header fields for  reply. */
-    memset(&icpState->header, 0, sizeof(icp_common_t));
-    icpState->header.version = ICP_VERSION_CURRENT;
-    /* icpState->header.reqnum = 0; */
-    icpState->header.shostid = 0;
     icpState->entry = entry;
     icpState->offset = 0;
-
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, (PIF) icpHandleStore, (void *) icpState);
-
     return (protoDispatch(fd, url, icpState->entry, icpState->request));
 }
 
@@ -1621,7 +1573,7 @@ static int parseHttpRequest(icpState)
  *   comm_select() when data has been read
  * Calls
  *   parseAsciiUrl()
- *   icp_hit_or_miss()
+ *   icpProcessRequest()
  *   icpSendERROR()
  */
 static void asciiProcessInput(fd, buf, size, flag, data)

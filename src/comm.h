@@ -142,7 +142,6 @@ typedef struct fde {
     u_short local_port;		/* Our TCP port # */
     u_short remote_port;	/* Remote TCP port # */
     char ipaddr[16];		/* dotted decimal address of peer */
-    StoreEntry *store_entry;
 
     /* Select handlers. */
     PF read_handler;		/* Read  select handler. */

@@ -308,7 +308,6 @@ int protoDispatch(fd, url, entry, request)
     if (!protoData->inside_firewall) {
 	/* There are firewall restrictsions, and this host is outside. */
 	/* No DNS lookups, call protoDispatchDNSHandle() directly */
-	BIT_RESET(protoData->entry->flag, IP_LOOKUP_PENDING);
 	protoData->source_ping = 0;
 	protoData->direct_fetch = DIRECT_NO;
 	protoDispatchDNSHandle(fd,
@@ -318,6 +317,7 @@ int protoDispatch(fd, url, entry, request)
 	/* Have to look up the url address so we can compare it */
 	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
+	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -325,6 +325,7 @@ int protoDispatch(fd, url, entry, request)
     } else if (matchLocalDomain(request->host) || !protoData->query_neighbors) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
+	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -332,6 +333,7 @@ int protoDispatch(fd, url, entry, request)
     } else if (protoData->n_edges == 0) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
+	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -340,6 +342,7 @@ int protoDispatch(fd, url, entry, request)
 	/* Have to look up the url address so we can compare it */
 	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
+	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -348,7 +351,6 @@ int protoDispatch(fd, url, entry, request)
 	!(protoData->source_ping = Config.sourcePing)) {
 	/* will fetch from single parent */
 	protoData->direct_fetch = DIRECT_MAYBE;
-	BIT_RESET(protoData->entry->flag, IP_LOOKUP_PENDING);
 	protoDispatchDNSHandle(fd,
 	    (struct hostent *) NULL,
 	    (void *) protoData);
@@ -356,6 +358,7 @@ int protoDispatch(fd, url, entry, request)
 	/* will use ping resolution */
 	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
+	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -447,9 +450,8 @@ int getFromDefaultSource(fd, entry)
 	return protoStart(fd, entry, e, request);
     }
     if (matchInsideFirewall(request->host)) {
-	if (ipcache_gethostbyname(request->host, 0) == NULL) {
+	if (ipcache_gethostbyname(request->host, 0) == NULL)
 	    return protoDNSError(fd, entry);
-	}
 	hierarchyNote(request, HIER_DIRECT, fd, request->host);
 	return protoStart(fd, entry, NULL, request);
     }

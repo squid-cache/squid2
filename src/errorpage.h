@@ -28,7 +28,7 @@
  *  
  */
 
-extern void squid_error_entry _PARAMS((StoreEntry *, int, char *));
+extern void squid_error_entry _PARAMS((StoreEntry *, log_type, char *));
 extern char *squid_error_url _PARAMS((char *, int, int, char *, int, char *));
 extern char *squid_error_request _PARAMS((char *, int, char *, int));
 extern void errorInitialize _PARAMS((void));
