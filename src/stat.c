@@ -1048,6 +1048,16 @@ statCountersDump(StoreEntry * sentry)
 	tvSubDsec(f->timestamp, current_time));
 }
 
+void
+statFreeMemory(void)
+{
+    int i;
+    for (i = 0; i < N_COUNT_HIST; i++)
+	statCountersClean(&CountHist[i]);
+    for (i = 0; i < N_COUNT_HOUR_HIST; i++)
+	statCountersClean(&CountHourHist[i]);
+}
+
 static void
 statPeerSelect(StoreEntry * sentry)
 {

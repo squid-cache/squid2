@@ -712,6 +712,7 @@ SquidShutdown(void *unused)
     asnFreeMemory();
     clientdbFreeMemory();
     httpHeaderCleanModule();
+    statFreeMemory();
 #endif
     memClean();
 #if !XMALLOC_TRACE
