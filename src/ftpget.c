@@ -825,7 +825,7 @@ state_t do_connect(r)
  * 
  *  Returns states:
  *    SERVICE_READY
- *    FAIL_LOGIN
+ *    FAIL_CONNECT
  */
 state_t read_welcome(r)
      request_t *r;
@@ -840,7 +840,7 @@ state_t read_welcome(r)
     r->sfd = -1;
     r->errmsg = xstrdup(server_reply_msg);
     r->rc = code < 0 ? 4 : 5;
-    return FAIL_LOGIN;
+    return FAIL_CONNECT;
 }
 
 /*
