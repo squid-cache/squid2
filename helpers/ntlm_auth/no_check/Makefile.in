@@ -123,7 +123,10 @@ makesnmplib = @makesnmplib@
 
 libexec_SCRIPTS = no_check.pl
 
-EXTRA_DIST = no_check.pl
+EXTRA_DIST = \
+	no_check.pl \
+	README.no_check_ntlm_auth
+
 subdir = src/auth/ntlm/helpers/no_check
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/autoconf.h
