@@ -1149,12 +1149,16 @@ void stat_ipcache_get(sentry)
 	    ttl = 0;
 	else
 	    ttl = (i->ttl - squid_curtime + i->lastref);
-	storeAppendPrintf(sentry, " {%s %c %d %d",
-	    i->name, ipcache_status_char[i->status], ttl, i->addr_count);
+	storeAppendPrintf(sentry, " {%-32.32s %c%c %6d %d",
+	    i->name,
+	    ipcache_status_char[i->status],
+	    i->lock ? 'L' : ' ',
+	    ttl,
+	    i->addr_count);
 	for (k = 0; k < (int) i->addr_count; k++) {
 	    struct in_addr addr;
 	    xmemcpy(&addr, i->entry.h_addr_list[k], i->entry.h_length);
-	    storeAppendPrintf(sentry, " %s", inet_ntoa(addr));
+	    storeAppendPrintf(sentry, " %15s", inet_ntoa(addr));
 	}
 	for (k = 0; k < (int) i->alias_count; k++) {
 	    storeAppendPrintf(sentry, " %s", i->entry.h_aliases[k]);
