@@ -1703,8 +1703,8 @@ clientReadRequest(int fd, void *data)
 	 *    Partial request received; reschedule until parseAsciiUrl()
 	 *    is happy with the input
 	 */
-	if (icpState->in_offset == icpState->inbufsize - 1) {
-	    if (icpState->in_offset >= Config.maxRequestSize) {
+	if (icpState->in.offset == icpState->in.size - 1) {
+	    if (icpState->in.offset >= Config.maxRequestSize) {
 		/* The request is too large to handle */
 		debug(12, 0, "clientReadRequest: Request won't fit in buffer.\n");
 		debug(12, 0, "-->     max size = %d\n", Config.maxRequestSize);
