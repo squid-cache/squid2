@@ -689,6 +689,7 @@ icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data
 	icpState->request->protocol,
 	size);
     /* Set up everything for the logging */
+    storeUnregister(entry, fd);
     storeUnlockObject(entry);
     icpState->entry = NULL;
     icpState->out.offset += size;
@@ -1038,39 +1039,6 @@ icpUdpSend(int fd,
 	(void *) UdpQueueHead, 0);
 }
 
-#ifdef NO_HIT_OBJ_SUPPORT
-static void
-icpHitObjHandler(int errflag, void *data)
-{
-    icpHitObjStateData *icpHitObjState = data;
-    StoreEntry *entry = NULL;
-    icp_common_t *reply;
-
-    if (data == NULL)
-	return;
-    entry = icpHitObjState->entry;
-    debug(12, 3, "icpHitObjHandler: '%s'\n", entry->url);
-    if (errflag) {
-	debug(12, 3, "icpHitObjHandler: errflag=%d, aborted!\n", errflag);
-    } else {
-	reply = icpCreateHitObjMessage(ICP_OP_HIT_OBJ,
-	    ICP_FLAG_HIT_OBJ,
-	    entry->url,
-	    icpHitObjState->header.reqnum,
-	    icpHitObjState->pad,
-	    entry);
-	if (reply)
-	    icpUdpSend(icpHitObjState->fd,
-		&icpHitObjState->to,
-		reply,
-		LOG_UDP_HIT_OBJ,
-		urlParseProtocol(entry->url));
-    }
-    storeUnlockObject(entry);
-    safe_free(icpHitObjState);
-}
-#endif
-
 static int
 icpCheckUdpHit(StoreEntry * e, request_t * request)
 {
@@ -1082,24 +1050,6 @@ icpCheckUdpHit(StoreEntry * e, request_t * request)
 	return 0;
     return 1;
 }
-
-#ifdef NO_HIT_OBJ_SUPPORT
-static int
-icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
-{
-    if (!BIT_TEST(h->flags, ICP_FLAG_HIT_OBJ))	/* not requested */
-	return 0;
-    if (len > Config.udpMaxHitObjsz)	/* too big */
-	return 0;
-    if (refreshCheck(e, r, 0))	/* stale */
-	return 0;
-#ifdef MEM_UDP_HIT_OBJ
-    if (e->mem_status != IN_MEMORY)
-	return 0;
-#endif
-    return 1;
-}
-#endif
 
 static void
 icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
