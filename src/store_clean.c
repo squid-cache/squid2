@@ -99,7 +99,7 @@ storeDirClean(void *datanotused)
 #if USE_TRUNCATE_NOT_UNLINK
 	if (!stat(de->d_name, &sb))
 	    if (sb.st_size == 0)
-	        continue;
+		continue;
 #endif
 	files[k++] = swapfileno;
     }

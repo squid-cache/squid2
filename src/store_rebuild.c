@@ -157,7 +157,7 @@ storeRebuildFromDirectory(rebuild_dir * d)
 	swap_hdr_len = 0;
 #if USE_TRUNCATE_NOT_UNLINK
 	if (sb.st_size == 0)
-		continue;
+	    continue;
 #endif
 	tlv_list = storeSwapMetaUnpack(hdr_buf, &swap_hdr_len);
 	if (tlv_list == NULL) {

@@ -552,7 +552,7 @@ snmpDecodePacket(snmp_request_t * rq)
     debug(49, 5) ("snmpDecodePacket: Called.\n");
     /* Now that we have the data, turn it into a PDU */
     PDU = snmp_pdu_create(0);
-    Session.Version = SNMP_VERSION_1; 
+    Session.Version = SNMP_VERSION_1;
     Community = snmp_parse(&Session, PDU, buf, len);
 
     checklist.src_addr = rq->from.sin_addr;

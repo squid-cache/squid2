@@ -352,7 +352,7 @@ urlCanonicalClean(const request_t * request)
 	     * strip arguments AFTER a question-mark
 	     */
 	    if (Config.onoff.strip_query_terms)
-	        if ((t = strchr(buf, '?')))
+		if ((t = strchr(buf, '?')))
 		    *(++t) = '\0';
 	    break;
 	}
