@@ -685,7 +685,7 @@ searchLDAP(LDAP *ld, char *group, char *login, char *extension_dn)
 	LDAPMessage *entry;
 	int rc;
 	char *userdn;
-	char *searchattr[] = {LDAP_NO_ATTR, NULL};
+	char *searchattr[] = {LDAP_NO_ATTRS, NULL};
 	if (extension_dn && *extension_dn)
 	    snprintf(searchbase, sizeof(searchbase), "%s,%s", extension_dn, userbasedn ? userbasedn : basedn);
 	else
