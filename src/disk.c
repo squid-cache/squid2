@@ -360,14 +360,9 @@ file_write(int fd,
     FREE * free_func)
 {
     dwrite_q *wq = NULL;
-    fde *F;
-    if (fd < 0)
-	fatal_dump("file_write: bad FD");
-    F = &fd_table[fd];
-    if (!F->open) {
-	debug_trap("file_write: FILE_NOT_OPEN");
-	return DISK_ERROR;
-    }
+    fde *F = &fd_table[fd];
+    assert(fd >= 0);
+    assert(F->open);
     /* if we got here. Caller is eligible to write. */
     wq = xcalloc(1, sizeof(dwrite_q));
     wq->buf = ptr_to_buf;
@@ -377,17 +372,15 @@ file_write(int fd,
     wq->free = free_func;
     F->disk.wrt_handle = handle;
     F->disk.wrt_handle_data = handle_data;
-
     /* add to queue */
     BIT_SET(F->flags, FD_WRITE_PENDING);
-    if (!(F->disk.write_q)) {
+    if (F->disk.write_q == NULL) {
 	/* empty queue */
 	F->disk.write_q = F->disk.write_q_tail = wq;
     } else {
 	F->disk.write_q_tail->next = wq;
 	F->disk.write_q_tail = wq;
     }
-
     if (!BIT_TEST(F->flags, FD_WRITE_DAEMON)) {
 #if USE_ASYNC_IO
 	diskHandleWrite(fd, NULL);
