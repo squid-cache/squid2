@@ -1058,9 +1058,7 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	/* set these to now because this is either a new login from an 
 	 * existing user or a new user */
 	auth_user->expiretime = current_time.tv_sec;
-	srv = ntlm_request->authserver;
-	ntlm_request->authserver = NULL;
-	helperStatefulReleaseServer(srv);
+	authenticateNTLMReleaseServer(ntlm_request);
 	return;
     case AUTHENTICATE_STATE_DONE:
 	fatal("authenticateNTLMAuthenticateUser: unexpect auth state DONE! Report a bug to the squid developers.\n");
