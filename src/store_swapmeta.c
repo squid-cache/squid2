@@ -134,7 +134,8 @@ storeSwapMetaUnpack(const char *buf, int *hdr_len)
 	    return NULL;
     while (buflen - j > (sizeof(char) + sizeof(int))) {
 	type = buf[j++];
-	if (type < STORE_META_VOID || type > STORE_META_END) {
+	/* VOID is reserved, but allow some slack for new types.. */
+	if (type <= STORE_META_VOID || type > STORE_META_END + 10) {
 	    debug(20, 0) ("storeSwapMetaUnpack: bad type (%d)!\n", type);
 	    break;
 	}
