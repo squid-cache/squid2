@@ -635,7 +635,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
     debug(15, 6, "neighborsUdpAck: opcode %d '%s'\n",
 	(int) header->opcode, url);
     if ((e = whichEdge(from)))
-        neighborAlive(e, mem, header);
+	neighborAlive(e, mem, header);
     if (header->opcode > ICP_OP_END)
 	return;
     /* check if someone is already fetching it */
@@ -652,8 +652,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	return;
     }
     if (entry->lock_count == 0) {
-        debug(12, 1, "neighborsUdpAck: '%s' has no locks\n", url);
-        return;
+	debug(12, 1, "neighborsUdpAck: '%s' has no locks\n", url);
+	return;
     }
     debug(15, 3, "neighborsUdpAck: %s for '%s' from %s %s \n",
 	IcpOpcodeStr[header->opcode], url,
