@@ -49,12 +49,13 @@ dnsInit(void)
 {
     static int init = 0;
     wordlist *w;
-    assert(dnsservers == NULL);
     if (!Config.Program.dnsserver)
 	return;
-    dnsservers = helperCreate("dnsserver");
+    if (dnsservers == NULL)
+    	dnsservers = helperCreate("dnsserver");
     dnsservers->n_to_start = Config.dnsChildren;
     dnsservers->ipc_type = IPC_TCP_SOCKET;
+    assert(dnsservers->cmdline == NULL);
     wordlistAdd(&dnsservers->cmdline, Config.Program.dnsserver);
     if (Config.onoff.res_defnames)
 	wordlistAdd(&dnsservers->cmdline, "-D");
@@ -79,6 +80,8 @@ dnsShutdown(void)
 	return;
     helperShutdown(dnsservers);
     wordlistDestroy(&dnsservers->cmdline);
+    if (!shutting_down)
+	return;
     helperFree(dnsservers);
     dnsservers = NULL;
 }

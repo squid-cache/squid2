@@ -126,10 +126,10 @@ void
 redirectInit(void)
 {
     static int init = 0;
-    assert(redirectors == NULL);
     if (!Config.Program.redirect)
 	return;
-    redirectors = helperCreate("redirector");
+    if (redirectors == NULL)
+        redirectors = helperCreate("redirector");
     wordlistAdd(&redirectors->cmdline, Config.Program.redirect);
     redirectors->n_to_start = Config.redirectChildren;
     redirectors->ipc_type = IPC_TCP_SOCKET;
@@ -149,6 +149,8 @@ redirectShutdown(void)
 	return;
     helperShutdown(redirectors);
     wordlistDestroy(&redirectors->cmdline);
+    if (!shutting_down)
+	return;
     helperFree(redirectors);
     redirectors = NULL;
 }
