@@ -661,7 +661,7 @@ void icp_hit_or_miss(fd, usm)
 	usm->log_type = LOG_TCP_USER_REFRESH;
     } else if (BIT_TEST(usm->flags, REQ_IMS)) {
 	/* no storeRelease() here because this request will always
-	start private (IMS clears HIERARCHICAL) */
+	 * start private (IMS clears HIERARCHICAL) */
 	usm->log_type = LOG_TCP_IFMODSINCE;
     } else if ((lock = storeLockObject(entry)) < 0) {
 	storeRelease(entry);
