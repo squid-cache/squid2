@@ -1,17 +1,24 @@
+	- Fixed HTTP code in access.log for TCP_IFMODSINCE requests.
+	- Fixed SSL to not read again until previous write is complete.
+	- Added CPU usage percentage in cachemgr 'info' output.
+	- Fixed bug when removing a neighbor.  Forgetting to decrement
+	  friends->n causes a duplicate ICP query to be sent in
+	  neighborsUdpPing().
+
 Changes to squid-1.0.1 (July 8, 1996):
 
 	- Fixed ftpget server looping on socket EOF condition.
-	- Added support for HTTP PUT method.
-	- Added check for <netinet/tcp.h> for HP-UX.
 	- Fixed SA_RESETHAND undefined bug.
 	- Fixed half-hour timezone offset bug.
+	- Fixed parse_rfc850() to return -1 instead of 0 upon error.
 	- Added patch for Motorola systems from Tony Lorimer.
+	- Added support for HTTP PUT method.
+	- Added check for <netinet/tcp.h> for HP-UX.
+	- Added GNU General Public License.
 	- Changed ttlSet() to use Date field if Last-Modified is absent.
 	- Changed http.c to not save objects from neighbors which do
 	  not have Date, Last-Modified, or Expires values.
-	- Fixed parse_rfc850() to return -1 instead of 0 upon error.
 	- Changed some large local character arrays to static.
-	- Added GNU General Public License.
 
 Changes to squid-1.0.0 (July 1, 1996):
 
