@@ -520,24 +520,25 @@ icpSendMoreData(int fd, icpStateData * icpState)
 	entry->url,
 	entry->object_len,
 	entry->mem_obj ? entry->mem_obj->e_current_len : 0,
-	icpState->offset);
+	icpState->out_offset);
     buf = get_free_4k_page();
     storeClientCopy(icpState->entry,
-	icpState->offset,
+	icpState->out_offset,
 	ICP_SENDMOREDATA_BUF,
 	buf,
 	&len,
 	fd);
 #if LOG_FULL_HEADERS
-    if (icpState->offset == 0 && len > 0)
+    if (icpState->out_offset == 0 && len > 0)
 	icp_maybe_remember_reply_hdr(icpState);
 #endif /* LOG_FULL_HEADERS */
-    icpState->offset += len;
+    icpState->out_offset += len;
     if (icpState->request->method == METHOD_HEAD) {
 	if ((p = mime_headers_end(buf))) {
 	    *p = '\0';
 	    len = p - buf;
-	    icpState->offset = entry->mem_obj->e_current_len;	/* force end */
+	    /* force end */
+	    icpState->out_offset = entry->mem_obj->e_current_len;
 	}
     }
     comm_write(fd,
@@ -559,8 +560,7 @@ static void
 icpHandleStore(int fd, StoreEntry * entry, void *data)
 {
     icpStateData *icpState = data;
-    debug(12, 5, "icpHandleStore: FD %d: off %d: '%s'\n",
-	fd, icpState->offset, entry->url);
+    debug(12, 5, "icpHandleStore: FD %d '%s'\n", fd, entry->url);
     if (entry->store_status == STORE_ABORTED) {
 	debug(12, 3, "icpHandleStore: abort_code=%d url='%s'\n",
 	    entry->mem_obj->abort_code, entry->url);
@@ -585,23 +585,23 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
     entry = icpState->entry;
     icpState->size += size;
     debug(12, 5, "clientWriteComplete: FD %d, sz %d, err %d, off %d, len %d\n",
-	fd, size, errflag, icpState->offset, entry->object_len);
+	fd, size, errflag, icpState->out_offset, entry->object_len);
     if (errflag) {
 	CheckQuickAbort(icpState);
 	/* Log the number of bytes that we managed to read */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    urlParseProtocol(entry->url),
-	    icpState->offset);
+	    icpState->out_offset);
 	comm_close(fd);
-    } else if (icpState->offset < entry->mem_obj->e_current_len) {
+    } else if (icpState->out_offset < entry->mem_obj->e_current_len) {
 	/* More data available locally; write it now */
 	icpSendMoreData(fd, icpState);
-    } else if (icpState->offset == entry->object_len &&
+    } else if (icpState->out_offset == entry->object_len &&
 	entry->store_status != STORE_PENDING) {
 	/* We're finished case */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    icpState->request->protocol,
-	    icpState->offset);
+	    icpState->out_offset);
 	if (BIT_TEST(icpState->request->flags, REQ_PROXY_KEEPALIVE)) {
 	    commCallCloseHandlers(fd);
 	    commSetSelect(fd,
@@ -626,18 +626,18 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     StoreEntry *entry = icpState->entry;
     MemObject *mem = entry->mem_obj;
     int len = 0;
-    int max_len = 8191 - icpState->offset;
-    char *p = icpState->buf + icpState->offset;
+    int max_len = 8191 - icpState->in_offset;
+    char *p = icpState->buf + icpState->in_offset;
     char *reply = NULL;
     if (max_len <= 0) {
 	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n",
 	    entry->key ? entry->key : entry->url);
-	icpState->offset = 0;
+	icpState->in_offset = 0;
 	put_free_8k_page(icpState->buf);
 	icpState->buf = NULL;
 	return icpProcessMISS(fd, icpState);
     }
-    storeClientCopy(entry, icpState->offset, max_len, p, &len, fd);
+    storeClientCopy(entry, icpState->in_offset, max_len, p, &len, fd);
     /* XXX replace this with: if (mem->reply->code == 0) */
     if (!mime_headers_end(icpState->buf)) {
 	/* All headers are not yet available, wait for more data */
@@ -646,7 +646,7 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     }
     /* All headers are available, check if object is modified or not */
     /* Restart the object from the beginning */
-    icpState->offset = 0;
+    icpState->in_offset = 0;
     /* Only objects with statuscode==200 can be "Not modified" */
     /* XXX: Should we ignore this? */
     if (mem->reply->code != 200) {
@@ -804,7 +804,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
     if (entry)
 	storeClientListAdd(entry, fd, 0);
     icpState->entry = entry;	/* Save a reference to the object */
-    icpState->offset = 0;
+    icpState->out_offset = 0;
 
     debug(12, 4, "icpProcessRequest: %s for '%s'\n",
 	log_tags[icpState->log_type],
@@ -878,7 +878,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
 
     entry->refcount++;		/* MISS CASE */
     icpState->entry = entry;
-    icpState->offset = 0;
+    icpState->out_offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, icpHandleStore, (void *) icpState);
 #if DELAY_HACK
@@ -1550,9 +1550,8 @@ parseHttpRequest(icpStateData * icpState)
     }
     /* Use xmalloc/xmemcpy instead of xstrdup because inbuf might
      * contain NULL bytes; especially for POST data  */
-    inbuf = xmalloc(icpState->offset + 1);
-    xmemcpy(inbuf, icpState->inbuf, icpState->offset);
-    *(inbuf + icpState->offset) = '\0';
+    inbuf = xmalloc(icpState->in_offset + 1);
+    xstrncpy(inbuf, icpState->inbuf, icpState->in_offset + 1);
 
     /* Look for request method */
     if ((method = strtok(inbuf, "\t ")) == NULL) {
@@ -1597,7 +1596,7 @@ parseHttpRequest(icpStateData * icpState)
     while (isspace(*t))
 	t++;
     req_hdr = t;
-    req_hdr_sz = icpState->offset - (req_hdr - inbuf);
+    req_hdr_sz = icpState->in_offset - (req_hdr - inbuf);
 
     /* Ok, all headers are received */
     icpState->req_hdr_sz = req_hdr_sz;
@@ -1687,18 +1686,18 @@ clientReadRequest(int fd, void *data)
     int size;
     int len;
 
-    len = icpState->inbufsize - icpState->offset;
+    len = icpState->inbufsize - icpState->in_offset;
     debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
     debug(12, 4, "clientReadRequest: len = %d\n", len);
-    size = read(fd, icpState->inbuf + icpState->offset, len);
+    size = read(fd, icpState->inbuf + icpState->in_offset, len);
 
     if (len < 0) {
 	debug(50, 2, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
 	comm_close(fd);
 	return;
     }
-    icpState->offset += size;
-    icpState->inbuf[icpState->offset] = '\0';	/* Terminate the string */
+    icpState->in_offset += size;
+    icpState->inbuf[icpState->in_offset] = '\0';	/* Terminate the string */
 
     parser_return_code = parseHttpRequest(icpState);
     if (parser_return_code == 1) {
@@ -1739,13 +1738,13 @@ clientReadRequest(int fd, void *data)
 	 *    Partial request received; reschedule until parseAsciiUrl()
 	 *    is happy with the input
 	 */
-	k = icpState->inbufsize - 1 - icpState->offset;
+	k = icpState->inbufsize - 1 - icpState->in_offset;
 	if (k == 0) {
-	    if (icpState->offset >= Config.maxRequestSize) {
+	    if (icpState->in_offset >= Config.maxRequestSize) {
 		/* The request is too large to handle */
 		debug(12, 0, "clientReadRequest: Request won't fit in buffer.\n");
 		debug(12, 0, "-->     max size = %d\n", Config.maxRequestSize);
-		debug(12, 0, "--> icpState->offset = %d\n", icpState->offset);
+		debug(12, 0, "--> icpState->in_offset = %d\n", icpState->in_offset);
 		icpSendERROR(fd,
 		    ERR_INVALID_REQ,
 		    "error reading request",
@@ -1758,8 +1757,8 @@ clientReadRequest(int fd, void *data)
 	    icpState->inbuf = xrealloc(icpState->inbuf, icpState->inbufsize);
 	    meta_data.misc += ASCII_INBUF_BLOCKSIZE;
 	    debug(12, 2, "Handling a large request, offset=%d inbufsize=%d\n",
-		icpState->offset, icpState->inbufsize);
-	    k = icpState->inbufsize - 1 - icpState->offset;
+		icpState->in_offset, icpState->inbufsize);
+	    k = icpState->inbufsize - 1 - icpState->in_offset;
 	}
 	commSetSelect(fd,
 	    COMM_SELECT_READ,
@@ -1934,13 +1933,13 @@ icpCheckTransferDone(icpStateData * icpState)
     if (entry == NULL)
 	return 0;
     if (entry->store_status != STORE_PENDING)
-	if (icpState->offset == entry->object_len)
+	if (icpState->out_offset == entry->object_len)
 	    return 1;
     if ((mem = entry->mem_obj) == NULL)
 	return 0;
     if (mem->reply->content_length == 0)
 	return 0;
-    if (icpState->offset >= mem->reply->content_length + mem->reply->hdr_sz)
+    if (icpState->out_offset >= mem->reply->content_length + mem->reply->hdr_sz)
 	return 1;
     return 0;
 }
@@ -1960,7 +1959,7 @@ icpDetectClientClose(int fd, void *data)
 	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    HTTPCacheInfo->proto_id(entry->url),
-	    icpState->offset);
+	    icpState->out_offset);
 	comm_close(fd);
     } else if ((n = read(fd, buf, 255)) > 0) {
 	buf[n] = '\0';

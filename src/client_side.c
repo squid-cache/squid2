@@ -440,7 +440,7 @@ icpProcessExpired(int fd, void *data)
 
     entry->refcount++;		/* EXPIRED CASE */
     icpState->entry = entry;
-    icpState->offset = 0;
+    icpState->out_offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, icpHandleIMSReply, (void *) icpState);
     protoDispatch(fd, url, icpState->entry, icpState->request);

@@ -177,7 +177,8 @@ typedef struct iwd {
 #endif				/* LOG_FULL_HEADERS */
     StoreEntry *entry;
     StoreEntry *old_entry;
-    long offset;
+    int in_offset;
+    int out_offset;
     log_type log_type;
     int http_code;
     struct sockaddr_in peer;
