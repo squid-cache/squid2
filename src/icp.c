@@ -2254,7 +2254,8 @@ debug(0,0,"icpInit: op=%d\n", op);
 	    sprintf(to, "%s.%d", FV_PATH, 0);
 	    rename(FV_PATH, to);
 	}
-	return icpInit(0);
+	icpInit(0);
+	return;
     }
 debug(0,0,"icpInit: %s is FD %d\n", FV_PATH, fileno(forw_via_log));
 }
