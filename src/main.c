@@ -116,6 +116,7 @@ int opt_reload_hit_only = 0;	/* only UDP_HIT during store relaod */
 int catch_signals = 1;
 int opt_dns_tests = 1;
 int opt_foreground_rebuild = 0;
+int opt_syslog_enable = 0;	/* disabled by default */
 int vhost_mode = 0;
 int unbuffered_logs = 1;	/* debug and hierarhcy unbuffered by default */
 int shutdown_pending = 0;	/* set by SIGTERM handler (shut_down()) */
@@ -211,7 +212,7 @@ static void mainParseOptions(argc, argv)
 	    fatal("Need to add -DMALLOC_DBG when compiling to use -m option");
 #endif
 	case 's':
-	    syslog_enable = 0;
+	    opt_syslog_enable = 1;
 	    break;
 	case 'u':
 	    icpPortNumOverride = atoi(optarg);
@@ -508,9 +509,6 @@ int main(argc, argv)
     fd_note(1, "STDOUT");
     fd_note(2, "STDERR");
 
-    /* enable syslog by default */
-    syslog_enable = 0;
-
     /* preinit for debug module */
     debug_log = stderr;
     hash_init(0);
@@ -527,9 +525,9 @@ int main(argc, argv)
 	    storeMaintainSwapSpace();
 	    last_maintain = squid_curtime;
 	}
-	if (squid_curtime - last_dirclean > 600
+	if (squid_curtime - last_dirclean > 60
 	    && store_rebuilding == STORE_NOT_REBUILDING) {
-	    /* clean a cache directory every 10 minutes */
+	    /* clean 10 files from a cache directory every minute */
 	    storeDirClean();
 	    last_dirclean = squid_curtime;
 	}
