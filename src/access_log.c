@@ -357,6 +357,8 @@ accessLogRotate(void)
 void
 accessLogClose(void)
 {
+    if (NULL == logfile)
+	return;
     logfileClose(logfile);
     logfile = NULL;
 #if HEADERS_LOG
