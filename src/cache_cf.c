@@ -2075,7 +2075,7 @@ dump_removalpolicy(StoreEntry * entry, const char *name, RemovalPolicySettings *
 }
 
 
-#include "cf_parser.c"
+#include "cf_parser.h"
 
 peer_t
 parseNeighborType(const char *s)
