@@ -644,10 +644,6 @@ main(int argc, char **argv)
     hash_init(0);
 
     mainInitialize();
-    if (get_url) {
-	sigusr2_handle(0);
-	icpFakeRequest(get_url);
-    }
 
     /* main loop */
     for (;;) {
