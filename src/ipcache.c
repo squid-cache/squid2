@@ -64,9 +64,7 @@ struct dnsQueueData {
 };
 
 static int ipcache_testname _PARAMS((void));
-static char ipcache_status_char _PARAMS((ipcache_entry *));
 static dnsserver_t *dnsGetFirstAvailable _PARAMS((void));
-static int ipcacheHasPending _PARAMS((ipcache_entry *));
 static int ipcache_compareLastRef _PARAMS((ipcache_entry **, ipcache_entry **));
 static int ipcache_create_dnsserver _PARAMS((char *command));
 static int ipcache_dnsHandleRead _PARAMS((int, dnsserver_t *));
@@ -102,6 +100,14 @@ static HashID ip_table = 0;
 char *dns_error_message = NULL;	/* possible error message */
 long ipcache_low = 180;
 long ipcache_high = 200;
+
+static char ipcache_status_char[] =
+{
+    'C',
+    'N',
+    'P',
+    'D'
+};
 
 static int ipcache_testname()
 {
@@ -192,8 +198,12 @@ static void ipcache_release(i)
     result = (ipcache_entry *) table_entry;
     if (i != result)
 	fatal_dump("ipcache_release: expected i == result!");
-    if (result->status == IP_PENDING) {
+    if (i->status == IP_PENDING) {
 	debug(14, 1, "ipcache_release: Someone called on a PENDING entry\n");
+	return;
+    }
+    if (i->status == IP_DISPATCHED) {
+	debug(14, 1, "ipcache_release: Someone called on a DISPATCHED entry\n");
 	return;
     }
     if (hash_remove_link(ip_table, table_entry)) {
@@ -264,7 +274,9 @@ static int ipcacheExpiredEntry(i)
 {
     if (i->lock)
 	return 0;
-    if (i->status == IP_PENDING && ipcacheHasPending(i))
+    if (i->status == IP_PENDING)
+	return 0;
+    if (i->status == IP_DISPATCHED)
 	return 0;
     if (i->ttl + i->lastref > squid_curtime)
 	return 0;
@@ -301,7 +313,9 @@ static int ipcache_purgelru()
 	    LRU_list = xrealloc((char *) LRU_list,
 		LRU_cur_size * sizeof(ipcache_entry *));
 	}
-	if (i->status == IP_PENDING && ipcacheHasPending(i))
+	if (i->status == IP_PENDING)
+	    continue;
+	if (i->status == IP_DISPATCHED)
 	    continue;
 	if (i->lock)
 	    continue;
@@ -570,7 +584,7 @@ static int ipcache_parsebuffer(buf, offset, dnsData)
 		debug(14, 0, "ipcache_parsebuffer: Invalid OPCODE?\n");
 	    } else {
 		i = dnsData->ip_entry;
-		if (i->status != IP_PENDING) {
+		if (i->status != IP_DISPATCHED) {
 		    debug(14, 0, "ipcache_parsebuffer: DNS record already resolved.\n");
 		} else {
 		    i->lastref = i->timestamp = squid_curtime;
@@ -818,7 +832,7 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 	ipcacheAddPending(i, fd, handler, handlerData);
 	ipcache_call_pending(i);
 	return 0;
-    } else if (i->status == IP_PENDING) {
+    } else if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
 	debug(14, 4, "ipcache_nbgethostbyname: PENDING for '%s'\n", name);
 	IpcacheStats.pending_hits++;
 	ipcacheAddPending(i, fd, handler, handlerData);
@@ -827,7 +841,7 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 	fatal_dump("ipcache_nbgethostbyname: BAD ipcache_entry status");
     }
 
-    /* for HIT or PENDING, we've returned.  For MISS we continue ... */
+    /* for HIT, PENDING, DISPATCHED we've returned.  For MISS we continue */
 
     if ((dnsData = dnsGetFirstAvailable()))
 	dnsDispatch(dnsData, i);
@@ -872,17 +886,6 @@ static dnsserver_t *dnsGetFirstAvailable()
     return NULL;
 }
 
-static int ipcacheHasPending(i)
-     ipcache_entry *i;
-{
-    struct _ip_pending *p = NULL;
-    for (p = i->pending_head; p; p = p->next)
-	if (p->handler)
-	    return 1;
-    return 0;
-}
-
-
 static void dnsDispatch(dns, i)
      dnsserver_t *dns;
      ipcache_entry *i;
@@ -891,11 +894,11 @@ static void dnsDispatch(dns, i)
     if (!ipcacheHasPending(i)) {
 	debug(14, 0, "dnsDispatch: skipping '%s' because no handler.\n",
 	    i->name);
-	/* dont really expect to find status != IP_PENDING here... */
-        if (i->status == IP_PENDING)
-		ipcache_release(i);
+	i->status = IP_NEGATIVE_CACHED;
+	ipcache_release(i);
 	return;
     }
+    i->status = IP_DISPATCHED;
     buf = xcalloc(1, 256);
     sprintf(buf, "%1.254s\n", i->name);
     dns->flags |= DNS_FLAG_BUSY;
@@ -1027,14 +1030,13 @@ int ipcache_unregister(name, fd)
     debug(14, 3, "ipcache_unregister: FD %d, name '%s'\n", fd, name);
     if ((i = ipcache_get(name)) == NULL)
 	return 0;
-    if (i->status != IP_PENDING)
-	return 0;
-    /* look for matched fd */
-    for (p = i->pending_head; p; p = p->next) {
-	if (p->fd == fd && p->handler != NULL) {
-	    p->handler = NULL;
-	    p->fd = -1;
-	    n++;
+    if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
+	for (p = i->pending_head; p; p = p->next) {
+	    if (p->fd == fd && p->handler != NULL) {
+		p->handler = NULL;
+		p->fd = -1;
+		n++;
+	    }
 	}
     }
     debug(14, 3, "ipcache_unregister: unregistered %d handlers\n", n);
@@ -1045,24 +1047,24 @@ struct hostent *ipcache_gethostbyname(name, flags)
      char *name;
      int flags;
 {
-    ipcache_entry *result = NULL;
+    ipcache_entry *i = NULL;
     struct hostent *hp = NULL;
     unsigned int ip;
 
     if (!name)
 	fatal_dump("ipcache_gethostbyname: NULL name");
     IpcacheStats.requests++;
-    if ((result = ipcache_get(name))) {
-	if (result->status == IP_PENDING) {
+    if ((i = ipcache_get(name))) {
+	if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
 	    IpcacheStats.pending_hits++;
 	    return NULL;
-	} else if (result->status == IP_NEGATIVE_CACHED) {
+	} else if (i->status == IP_NEGATIVE_CACHED) {
 	    IpcacheStats.negative_hits++;
 	    return NULL;
 	} else {
 	    IpcacheStats.hits++;
-	    result->lastref = squid_curtime;
-	    return &result->entry;
+	    i->lastref = squid_curtime;
+	    return &i->entry;
 	}
     }
     IpcacheStats.misses++;
@@ -1078,8 +1080,8 @@ struct hostent *ipcache_gethostbyname(name, flags)
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && ip_table) {
 	    /* good address, cached */
 	    ipcache_add(name, ipcache_create(), hp, 1);
-	    result = ipcache_get(name);
-	    return &result->entry;
+	    i = ipcache_get(name);
+	    return &i->entry;
 	}
 	/* bad address, negative cached */
 	if (ip_table)
@@ -1093,9 +1095,8 @@ struct hostent *ipcache_gethostbyname(name, flags)
 
 
 /* process objects list */
-void stat_ipcache_get(sentry, obj)
+void stat_ipcache_get(sentry)
      StoreEntry *sentry;
-     cacheinfo *obj;
 {
     ipcache_entry *i = NULL;
     int k;
@@ -1139,7 +1140,7 @@ void stat_ipcache_get(sentry, obj)
 
     for (i = ipcache_GetFirst(); i; i = ipcache_GetNext()) {
 	ttl = (i->ttl - squid_curtime + i->lastref);
-	status = ipcache_status_char(i);
+	status = ipcache_status_char[i->status];
 	if (status == 'P')
 	    ttl = 0;
 	storeAppendPrintf(sentry, " {%s %c %d %d",
@@ -1158,22 +1159,6 @@ void stat_ipcache_get(sentry, obj)
 	storeAppendPrintf(sentry, "}\n");
     }
     storeAppendPrintf(sentry, "}\n");
-}
-
-static char ipcache_status_char(i)
-     ipcache_entry *i;
-{
-    switch (i->status) {
-    case IP_CACHED:
-	return ('C');
-    case IP_PENDING:
-	return ('P');
-    case IP_NEGATIVE_CACHED:
-	return ('N');
-    default:
-	debug(14, 1, "ipcache_status_char: unexpected IP cache status.\n");
-    }
-    return ('X');
 }
 
 void ipcacheShutdownServers()
@@ -1212,5 +1197,17 @@ void ipcacheLockEntry(name)
     ipcache_entry *i;
     if ((i = ipcache_get(name)) == NULL)
 	return;
-    i->lock = (u_char) 1;
+    i->lock++;
+}
+
+static int ipcacheHasPending(i)
+     ipcache_entry *i;
+{
+    struct _ip_pending *p = NULL;
+    if (i->status != IP_PENDING)
+	return 0;
+    for (p = i->pending_head; p; p = p->next)
+	if (p->handler)
+	    return 1;
+    return 0;
 }

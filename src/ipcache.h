@@ -1,3 +1,4 @@
+
 /*  $Id$ */
 
 #ifndef _IPCACHE_H_
@@ -7,8 +8,9 @@ typedef int (*IPH) _PARAMS((int, struct hostent *, void *));
 
 typedef enum {
     IP_CACHED,
-    IP_PENDING,
-    IP_NEGATIVE_CACHED
+    IP_NEGATIVE_CACHED,
+    IP_PENDING,			/* waiting to be dispatched */
+    IP_DISPATCHED		/* waiting for reply from dnsserver */
 } ipcache_status_t;
 
 #define IP_BLOCKING_LOOKUP	0x01
@@ -34,7 +36,7 @@ extern int ipcache_nbgethostbyname _PARAMS((char *name, int fd, IPH handler, voi
 extern int ipcache_unregister _PARAMS((char *, int));
 extern struct hostent *ipcache_gethostbyname _PARAMS((char *, int flags));
 extern void ipcache_init _PARAMS((void));
-extern void stat_ipcache_get _PARAMS((StoreEntry *, cacheinfo *));
+extern void stat_ipcache_get _PARAMS((StoreEntry *));
 extern void ipcacheShutdownServers _PARAMS((void));
 extern void ipcacheOpenServers _PARAMS((void));
 extern void ipcacheLockEntry _PARAMS((char *));
