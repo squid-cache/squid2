@@ -724,31 +724,39 @@ int icpUdpReply(fd, queue)
      icpUdpData *queue;
 {
     int result = COMM_OK;
-    queue = UdpQueueHead;
+    int x;
     /* Disable handler, in case of errors. */
     comm_set_select_handler(fd,
 	COMM_SELECT_WRITE,
 	0,
 	0);
-    debug(12, 1, "icpUdpReply: FD %d sending %d bytes to %s port %d\n",
-	fd,
-	queue->len,
-	inet_ntoa(queue->address.sin_addr),
-	ntohs(queue->address.sin_port));
-    if (comm_udp_sendto(fd, &queue->address, sizeof(struct sockaddr_in),
-	    queue->msg, queue->len) < 0) {
-	debug(12, 1, "icpUdpReply: error sending\n");
-	result = COMM_ERROR;
+    while ((queue = UdpQueueHead)) {
+        debug(12, 5, "icpUdpReply: FD %d sending %d bytes to %s port %d\n",
+	    fd,
+	    queue->len,
+	    inet_ntoa(queue->address.sin_addr),
+	    ntohs(queue->address.sin_port));
+        x = comm_udp_sendto(fd,
+		&queue->address,
+		sizeof(struct sockaddr_in),
+	        queue->msg,
+		queue->len);
+	if (x < 0) {
+	    if (errno != EWOULDBLOCK && errno != EAGAIN)
+	        result = COMM_ERROR;
+	    break;
+	}
+	UdpQueueHead = queue->next;
+        safe_free(queue->msg);
+        safe_free(queue);
     }
     /* Reinstate handler if needed */
-    if ((UdpQueueHead = queue->next)) {
+    if (UdpQueueHead) {
 	comm_set_select_handler(fd,
 	    COMM_SELECT_WRITE,
 	    (PF) icpUdpReply,
 	    (void *) UdpQueueHead);
     }
-    safe_free(queue->msg);
-    safe_free(queue);
     return result;
 }
 
@@ -815,6 +823,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
 	    &sock_name_length) == -1) {
 	debug(12, 1, "icpUdpSend: FD %d: getsockname failure: %s\n",
 	    fd, xstrerror());
+	return COMM_ERROR;
     }
     memset(data, '\0', sizeof(icpUdpData));
     memcpy(&data->address, to, sizeof(struct sockaddr_in));
