@@ -612,6 +612,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	} else if (entry->object_len != 0) {
 	    debug(15, 1, "Too late UDP_HIT_OBJ '%s'?\n", entry->url);
 	} else {
+            if (e->options & NEIGHBOR_PROXY_ONLY)
+                storeReleaseRequest(entry);
 	    protoCancelTimeout(0, entry);
 	    entry->ping_status = PING_DONE;
 	    httpState = xcalloc(1, sizeof(HttpStateData));
