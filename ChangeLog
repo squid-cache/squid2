@@ -193,3 +193,12 @@ Changes to squid-1.0.beta8 (May 22, 1996):
 	  is returned in the UDP packet if it will fit; saves a TCP
 	  connection.  Not compiled in by default, add -DUDP_HIT_WITH_OBJ
 	  to src/Makefile DEFINES.
+
+
+Changes to squid-1.0.beta9 (May 23, 1996):
+
+	- Fixed storeToString() coredump bug on 'swap_buf'
+	- Added back the CIDR notation functionality to decoding IP
+	  address ACLs.
+	- Fixed ftpget listing parsing coredump bug.
+	- Fixed neighborsUdpAck() coredump for late-arriving ICP replies.
