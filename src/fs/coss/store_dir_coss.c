@@ -548,7 +548,7 @@ storeCossDirWriteCleanEntry(SwapDir * sd, const StoreEntry * e)
     state->outbuf_offset += ss;
     /* buffered write */
     if (state->outbuf_offset + ss > CLEAN_BUF_SZ) {
-	if (write(state->fd, state->outbuf, state->outbuf_offset) < 0) {
+	if (FD_WRITE_METHOD(state->fd, state->outbuf, state->outbuf_offset) < 0) {
 	    debug(50, 0) ("storeCossDirWriteCleanLogs: %s: write: %s\n",
 		state->new, xstrerror());
 	    debug(20, 0) ("storeCossDirWriteCleanLogs: Current swap logfile not replaced.\n");
@@ -573,7 +573,7 @@ storeCossDirWriteCleanDone(SwapDir * sd)
 	return;
     if (state->fd < 0)
 	return;
-    if (write(state->fd, state->outbuf, state->outbuf_offset) < 0) {
+    if (FD_WRITE_METHOD(state->fd, state->outbuf, state->outbuf_offset) < 0) {
 	debug(50, 0) ("storeCossDirWriteCleanLogs: %s: write: %s\n",
 	    state->new, xstrerror());
 	debug(20, 0) ("storeCossDirWriteCleanLogs: Current swap logfile "

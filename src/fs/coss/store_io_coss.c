@@ -465,7 +465,7 @@ storeCossSync(SwapDir * SD)
 	    sleep(5);		/* XXX EEEWWW! */
 	lseek(cs->fd, t->diskstart, SEEK_SET);
 	end = (t == cs->current_membuf) ? cs->current_offset : t->diskend;
-	write(cs->fd, t->buffer, end - t->diskstart);
+	FD_WRITE_METHOD(cs->fd, t->buffer, end - t->diskstart);
     }
 }
 
