@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * AUTHOR: Harvest Derived
+ * AUTHOR: Duane Wessels
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
  * --------------------------------------------------------
