@@ -136,6 +136,7 @@ AC_CHECK_HEADERS( \
 	netdb.h \
 	netinet/in.h \
 	netinet/tcp.h \
+	poll.h \
 	pwd.h \
 	regex.h \
 	resolv.h \
@@ -308,6 +309,7 @@ AC_CHECK_FUNCS(\
 	memcpy \
 	memmove \
 	mktime \
+	poll \
 	pw_encrypt \
 	regcomp \
 	regexec \

@@ -163,6 +163,14 @@
 #include <getopt.h>
 #endif
 
+#if defined(USE_POLL) && HAVE_POLL
+#if HAVE_POLL_H
+#include <poll.h>
+#endif /* HAVE_POLL_H */
+#else
+#undef USE_POLL
+#endif
+
 #ifdef __STDC__
 #include <stdarg.h>
 #else
