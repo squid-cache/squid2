@@ -171,19 +171,18 @@
 #endif
 
 /*
- * With linux and other systems, poll.h might not be available,
- * even though poll(2) is.
+ * We require poll.h before using poll().  If the symbols used
+ * by poll() are defined elsewhere, we will need to make this
+ * a more sophisticated test.
  *  -- Oskar Pearson <oskar@is.co.za>
  *  -- Stewart Forster <slf@connect.com.au>
  */
 #if HAVE_POLL
-#if defined(_SQUID_LINUX_)
 #if HAVE_POLL_H
 #include <poll.h>
 #else /* HAVE_POLL_H */
 #undef HAVE_POLL
 #endif /* HAVE_POLL_H */
-#endif /* end of Linux workaround */
 #endif /* HAVE_POLL */
 
 #ifdef __STDC__
