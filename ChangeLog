@@ -1,3 +1,9 @@
+	- Applied David Luyer's TCP retry algorithm: Give a parent (or
+	  peer) cache 10 chances before marking it truly dead, as soon
+	  as it fails the first time fire off a connection attempt and
+	  if that succeeds mark it back with 10 fresh chances.
+	- Re-fixed handling long lines in Gopher replies (John Line).
+
 Changes to squid-1.1.18 (October 31, 1997):
 
 	- Added fix for missing S_ISDIR macro on NEXTSTEP (Gerben Wierda).
@@ -8,6 +14,7 @@ Changes to squid-1.1.18 (October 31, 1997):
 	- Fixed DST offset bug in parse_rfc1123().
 	- Fixed NEIGHBOR_CLOSEST_ONLY define which had the same value as 
 	  NEIGHBOR_MCAST_RESPONDER.
+	- Fixed handling long lines in Gopher replies (John Line).
 
 Changes to squid-1.1.17 (October 19, 1997):
 
