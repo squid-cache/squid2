@@ -191,6 +191,7 @@ name="ChangeLog"> file for details.
 	<item>minimum_retry_timeout configuration directive removed. If
 	you have this directive in your existing squid.conf you will
 	need to remove the line. 
+	<item>Improvements to the (experimental) COSS storage scheme.
 	<item>a large number of minor bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE3"
 	name="squid-2.5.STABLE1 patches"> and the <url url="ChangeLog"
