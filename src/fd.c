@@ -90,16 +90,6 @@ fd_close(int fd)
     F->timeout = 0;
 }
 
-#if USE_ASYNC_IO
-void
-fd_was_closed(int fd)
-{
-    fde *F = &fd_table[fd];
-    if (F->flags.closing)
-	fd_close(fd);
-}
-#endif
-
 void
 fd_open(int fd, unsigned int type, const char *desc)
 {

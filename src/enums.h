@@ -345,7 +345,6 @@ enum {
 
 enum {
     SWAPOUT_NONE,
-    SWAPOUT_OPENING,
     SWAPOUT_WRITING,
     SWAPOUT_DONE
 };
@@ -556,6 +555,7 @@ typedef enum {
     MEM_SWAPDIR,
     MEM_USHORTLIST,
     MEM_WORDLIST,
+    MEM_STORE_IO,
     MEM_IDNS_QUERY,
     MEM_EVENT,
     MEM_MAX

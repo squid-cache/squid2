@@ -35,6 +35,7 @@ typedef unsigned int store_status_t;
 typedef unsigned int mem_status_t;
 typedef unsigned int ping_status_t;
 typedef unsigned int swap_status_t;
+typedef int sfileno;
 
 typedef struct {
     size_t bytes;
@@ -161,6 +162,7 @@ typedef struct _helper helper;
 typedef struct _helper_server helper_server;
 typedef struct _helper_request helper_request;
 typedef struct _generic_cbdata generic_cbdata;
+typedef struct _storeIOState storeIOState;
 
 #if SQUID_SNMP
 typedef variable_list *(oid_ParseFn) (variable_list *, snint *);
@@ -194,7 +196,10 @@ typedef void RH(void *data, char *);
 typedef void UH(void *data, wordlist *);
 typedef int DEFER(int fd, void *data);
 
-typedef void SIH(int fd, void *);	/* swap in */
+typedef void STIOCB(void *their_data, int errflag, storeIOState *);
+typedef void STRCB(void *their_data, const char *buf, size_t len, int errflag);
+
+typedef void SIH(storeIOState *, void *);	/* swap in */
 typedef int QS(const void *, const void *);	/* qsort */
 typedef void STCB(void *, char *, ssize_t);	/* store callback */
 typedef void STABH(void *);

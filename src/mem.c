@@ -290,6 +290,7 @@ memInit(void)
 	sizeof(helper_request), 0);
     memDataInit(MEM_HELPER_SERVER, "helper_server",
 	sizeof(helper_server), 0);
+    memDataInit(MEM_STORE_IO, "storeIOState", sizeof(storeIOState), 0);
     /* init string pools */
     for (i = 0; i < mem_str_pool_count; i++) {
 	StrPools[i].pool = memPoolCreate(StrPoolsAttrs[i].name, StrPoolsAttrs[i].obj_size);

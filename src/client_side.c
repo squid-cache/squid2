@@ -1882,6 +1882,7 @@ clientProcessRequest(clientHttpRequest * http)
     if (NULL != http->entry) {
 	storeLockObject(http->entry);
 	storeCreateMemObject(http->entry, http->uri, http->log_uri);
+	http->entry->mem_obj->method = r->method;
 	storeClientListAdd(http->entry, http);
 #if DELAY_POOLS
 	delaySetStoreClient(http->entry, http, delayClient(r));

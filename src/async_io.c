@@ -76,6 +76,7 @@ static aio_ctrl_t *used_list = NULL;
 static int initialised = 0;
 static OBJH aioStats;
 static MemPool *aio_ctrl_pool;
+static void aioFDWasClosed(int fd);
 
 static void
 aioInit()
@@ -88,6 +89,12 @@ aioInit()
     initialised = 1;
 }
 
+static void
+aioFDWasClosed(int fd)
+{
+    if (fd_table[fd].flags.closing)
+	fd_close(fd);
+}
 
 void
 aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callback_data, void *tag)
@@ -134,7 +141,7 @@ aioClose(int fd)
     if (aio_close(fd, &(ctrlp->result)) < 0) {
 	close(fd);		/* Can't create thread - do a normal close */
 	memPoolFree(aio_ctrl_pool, ctrlp);
-	fd_was_closed(fd);
+	aioFDWasClosed(fd);
 	return;
     }
     ctrlp->next = used_list;
@@ -350,7 +357,7 @@ aioCheckCallbacks()
 	    (ctrlp->done_handler) (ctrlp->fd, ctrlp->done_handler_data,
 		ctrlp->result.aio_return, ctrlp->result.aio_errno);
 	if (ctrlp->operation == _AIO_CLOSE)
-	    fd_was_closed(ctrlp->fd);
+	    aioFDWasClosed(ctrlp->fd);
 	memPoolFree(aio_ctrl_pool, ctrlp);
     }
 }
