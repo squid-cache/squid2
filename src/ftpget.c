@@ -860,6 +860,7 @@ connect_with_timeout(int fd, struct sockaddr_in *S, int len)
     if (outgoingTcpAddr.s_addr) {
 	struct sockaddr_in sock;
 
+        memset(&sock, '\0', sizeof(struct sockaddr_in));
 	sock.sin_family = AF_INET;
 	sock.sin_addr = outgoingTcpAddr;
 	sock.sin_port = 0;
