@@ -1051,7 +1051,7 @@ INSTALL_STRIP_PROGRAM="\${SHELL} \$(install_sh) -c -s"
 
   
 
-# From configure.in Revision: 1.251.2.83 
+# From configure.in Revision: 1.251.2.84 
 echo $ac_n "checking whether to enable maintainer-specific portions of Makefiles""... $ac_c" 1>&6
 echo "configure:1057: checking whether to enable maintainer-specific portions of Makefiles" >&5
     # Check whether --enable-maintainer-mode or --disable-maintainer-mode was given.
@@ -2687,22 +2687,22 @@ EOF
 fi
 
 
-enable_hostname_checks=1
-# Check whether --enable-hostname_checks or --disable-hostname_checks was given.
+# Check whether --enable-hostname-checks or --disable-hostname-checks was given.
 if test "${enable_hostname_checks+set}" = set; then
   enableval="$enable_hostname_checks"
-   if test "$enableval" = "no"; then
-    echo "Disabling hostname sanity checks"
-    enable_hostname_checks=0
-  fi
-
+  :
+else
+  enable_hostname_checks=yes
 fi
 
-if test "$enable_hostname_checks" = 1; then
+if test "$enable_hostname_checks" = "yes"; then
+  echo "Hostname sanity checks enabled"
   cat >> confdefs.h <<\EOF
 #define CHECK_HOSTNAMES 1
 EOF
 
+else
+  echo "Disabling hostname sanity checks"
 fi
 
 # Check whether --enable-underscores or --disable-underscores was given.
