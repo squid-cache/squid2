@@ -130,8 +130,7 @@ static OBJH cachemgrShutdown;
 static struct op_table OpTable[] =
 {
     {MGR_CLIENT_LIST, clientdbDump},
-    {MGR_CONFIG, parameter_get},
-    {MGR_CONFIG_FILE, objcacheUnimplemented},
+    {MGR_CONFIGURATION, dump_config},
     {MGR_DNSSERVERS, dnsStats},
     {MGR_FILEDESCRIPTORS, statFiledescriptors},
     {MGR_FQDNCACHE, fqdnStats},
@@ -166,8 +165,7 @@ static long PASSWD_REQUIRED =
 (1 << MGR_LOG_ENABLE) |
 (1 << MGR_LOG_STATUS) |
 (1 << MGR_LOG_VIEW) |
-(1 << MGR_SHUTDOWN) |
-(1 << MGR_CONFIG_FILE);
+(1 << MGR_SHUTDOWN);
 
 static objcache_op
 objcacheParseRequest(const char *buf)
@@ -213,14 +211,12 @@ objcacheParseRequest(const char *buf)
 	op = MGR_LOG_CLEAR;
     else if (!strcmp(buf, "log"))
 	op = MGR_LOG_VIEW;
-    else if (!strcmp(buf, "parameter"))
-	op = MGR_CONFIG;
     else if (!strcmp(buf, "server_list"))
 	op = MGR_SERVER_LIST;
     else if (!strcmp(buf, "client_list"))
 	op = MGR_CLIENT_LIST;
-    else if (!strcmp(buf, "squid.conf"))
-	op = MGR_CONFIG_FILE;
+    else if (!strcmp(buf, "config"))
+	op = MGR_CONFIGURATION;
     else if (!strcmp(buf, "pconn"))
 	op = MGR_PCONN;
     return op;

@@ -33,7 +33,6 @@ static char *objcacheOpcodeStr[] =
     "NONE",
     "client_list",
     "config",
-    "config_file",
     "dnsservers",
     "filedescriptors",
     "fqdncache",

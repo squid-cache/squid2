@@ -379,6 +379,7 @@ mimeInit(char *filename)
     mimeLoadIconFile(ICON_MENU);
     mimeLoadIconFile(ICON_DIRUP);
     mimeLoadIconFile(ICON_LINK);
+    debug(25, 1) ("Loaded Icons.\n");
 }
 
 static void
@@ -430,7 +431,7 @@ mimeLoadIconFile(const char *icon)
     storeComplete(e);
     storeTimestampsSet(e);
     BIT_SET(e->flag, ENTRY_SPECIAL);
-    debug(25, 1) ("Loaded icon %s\n", url);
+    debug(25, 3) ("Loaded icon %s\n", url);
     storeUnlockObject(e);
     put_free_4k_page(buf);
 }
