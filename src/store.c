@@ -324,6 +324,7 @@ destroy_MemObject(MemObject * mem)
     safe_free(mem->mime_hdr);
     safe_free(mem->reply);
     safe_free(mem->e_abort_msg);
+    safe_free(mem->log_url);
     requestUnlink(mem->request);
     mem->request = NULL;
     put_free_mem_obj(mem);
@@ -495,7 +496,7 @@ storeLog(int tag, const StoreEntry * e)
 	reply->content_length,
 	mem->e_current_len - mem->reply->hdr_sz,
 	RequestMethodStr[e->method],
-	e->key);
+	mem->log_url);
     file_write(storelog_fd,
 	xstrdup(logmsg),
 	strlen(logmsg),
@@ -2935,4 +2936,16 @@ storePutUnusedFileno(int fileno)
 	fileno_stack[fileno_stack_count++] = fileno;
     else
 	unlinkdUnlink(storeSwapFullPath(fileno, NULL));
+}
+
+void
+storeSetLogUrl(StoreEntry * entry, request_t * request)
+{
+    MemObject *mem = entry->mem_obj;
+    if (mem == NULL)
+	fatal_dump("NULL entry->mem_obj");
+    if (request->login[0] == '\0')
+	mem->log_url = xstrdup(entry->url);
+    else
+	mem->log_url = xstrdup(urlNoLogin(request, NULL));
 }

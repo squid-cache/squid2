@@ -246,15 +246,17 @@ icpStateFree(int fd, void *data)
     int elapsed_msec;
     struct _hierarchyLogData *hierData = NULL;
     const char *content_type = NULL;
+    StoreEntry *entry = NULL;
+    MemObject *mem = NULL;
 
     if (!icpState)
 	return;
     if (icpState->log_type > ERR_MAX)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
-    if (icpState->entry) {
-	if (icpState->entry->mem_obj) {
-	    http_code = icpState->entry->mem_obj->reply->code;
-	    content_type = icpState->entry->mem_obj->reply->content_type;
+    if ((entry = icpState->entry)) {
+	if ((mem = entry->mem_obj)) {
+	    http_code = mem->reply->code;
+	    content_type = mem->reply->content_type;
 	}
     } else {
 	http_code = icpState->http_code;
@@ -264,7 +266,7 @@ icpStateFree(int fd, void *data)
 	hierData = &icpState->request->hierarchy;
     if (icpState->size || icpState->log_type) {
 	HTTPCacheInfo->log_append(HTTPCacheInfo,
-	    icpState->url,
+	    mem ? mem->log_url : icpState->url,
 	    icpState->log_addr,
 	    icpState->size,
 	    log_tags[icpState->log_type],
@@ -302,9 +304,9 @@ icpStateFree(int fd, void *data)
 #if LOG_FULL_HEADERS
     safe_free(icpState->reply_hdr);
 #endif /* LOG_FULL_HEADERS */
-    if (icpState->entry) {
-	storeUnregister(icpState->entry, fd);
-	storeUnlockObject(icpState->entry);
+    if ((entry = icpState->entry)) {
+	storeUnregister(entry, fd);
+	storeUnlockObject(entry);
 	icpState->entry = NULL;
     }
     /* old_entry might still be set if we didn't yet get the reply
@@ -352,6 +354,8 @@ icpParseRequestHeaders(icpStateData * icpState)
     else if (mime_get_header(request_hdr, "Request-Range"))
 	BIT_SET(request->flags, REQ_NOCACHE);
     if (mime_get_header(request_hdr, "Authorization"))
+	BIT_SET(request->flags, REQ_AUTH);
+    if (request->login[0] != '\0')
 	BIT_SET(request->flags, REQ_AUTH);
 #if TRY_KEEPALIVE_SUPPORT
     if ((t = mime_get_header(request_hdr, "Proxy-Connection")))
@@ -897,6 +901,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
 	icpState->req_hdr_sz,
 	icpState->request->flags,
 	icpState->method);
+    storeSetLogUrl(entry, icpState->request);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     storeClientListAdd(entry, fd, 0);
 

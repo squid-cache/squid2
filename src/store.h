@@ -200,6 +200,7 @@ struct _MemObject {
     SIH swapin_complete_handler;
     void *swapin_complete_data;
     int mime_hdr_sz;
+    char *log_url;
 };
 
 enum {
@@ -319,6 +320,7 @@ extern int storeFirstClientFD _PARAMS((MemObject * mem));
 extern void storeTimestampsSet _PARAMS((StoreEntry *));
 extern unsigned int storeReqnum _PARAMS((StoreEntry * entry, method_t));
 extern time_t storeExpiredReferenceAge _PARAMS((void));
+extern void storeSetLogUrl _PARAMS((StoreEntry *, request_t *));
 
 #ifdef __STDC__
 extern void storeAppendPrintf _PARAMS((StoreEntry *, const char *,...));

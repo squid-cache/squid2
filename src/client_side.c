@@ -441,6 +441,7 @@ icpProcessExpired(int fd, void *data)
 	icpState->req_hdr_sz,
 	icpState->request->flags,
 	icpState->method);
+    storeSetLogUrl(entry, icpState->request);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     storeClientListAdd(entry, fd, 0);
     storeClientListAdd(icpState->old_entry, fd, 0);
