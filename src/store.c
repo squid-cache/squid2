@@ -772,17 +772,22 @@ storeExpireNow(StoreEntry * e)
 void
 storeCheckDoneWriting(StoreEntry * e)
 {
+    MemObject *mem = e->mem;
     if (e->store_status == STORE_PENDING)
 	return;
-    if (e->object_len < e->mem_obj->swap_length)
+    if (e->object_len < mem->swap_length)
 	return;
     e->swap_status = SWAP_OK;
     store_swappingout_size -= (int) e->object_len;
     store_swapok_size += (int) ((e->object_len + 1023) >> 10);
-    if (e->mem_obj->swapout_fd > -1) {
-	file_close(e->mem_obj->swapout_fd);
-	e->mem_obj->swapout_fd = -1;
+    if (mem->swapout_fd > -1) {
+	file_close(mem->swapout_fd);
+	mem->swapout_fd = -1;
     }
+    HTTPCacheInfo->proto_newobject(HTTPCacheInfo,
+            mem->request->protocol,
+            e->object_len,
+            FALSE);
     storeUnlockObject(e);
 }
 
