@@ -178,7 +178,7 @@ file_open_complete(void *data, int fd, int errcode)
     }
     if (fd < 0) {
 	errno = errcode;
-	debug(50, 0) ("file_open: error opening file %s: %s\n", ctrlp->path,
+	debug(50, 3) ("file_open: error opening file %s: %s\n", ctrlp->path,
 	    xstrerror());
 	if (ctrlp->callback)
 	    (ctrlp->callback) (ctrlp->callback_data, DISK_ERROR, errcode);
