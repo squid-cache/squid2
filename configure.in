@@ -49,6 +49,14 @@ PRESET_CFLAGS="$CFLAGS"
 dnl Check for GNU cc
 AC_PROG_CC
 
+case "$host" in
+    alpha-dec-osf*)
+	if test "$ac_cv_prog_CC" = "cc" ; then
+		ac_cv_prog_CC="cc -std1";
+	fi
+	;;
+esac
+
 dnl Warn if not using GNU cc
 dnl if test $ac_cv_prog_gcc = no; then
 dnl     echo '**************************************************************';
