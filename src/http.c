@@ -712,7 +712,6 @@ httpStart(FwdState * fwdState, int fd)
 	proxy_req->port = httpState->peer->http_port;
 	proxy_req->flags = orig_req->flags;
 	httpState->request = requestLink(proxy_req);
-	httpState->peer = httpState->peer;
 	httpState->orig_request = requestLink(orig_req);
 	EBIT_SET(proxy_req->flags, REQ_PROXYING);
 	/*
