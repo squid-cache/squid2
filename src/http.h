@@ -108,10 +108,6 @@
 
 #define HTTP_REPLY_FIELD_SZ 128
 
-#define HTTP_CC_PRIVATE		0x01
-#define HTTP_CC_NOCACHE		0x02
-#define HTTP_CC_CACHABLE	0x04
-
 struct _http_reply {
     double version;
     int code;

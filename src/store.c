@@ -793,7 +793,7 @@ storeCreateEntry(const char *url,
     /* allocate client list */
     mem->nclients = MIN_CLIENT;
     mem->clients = xcalloc(mem->nclients, sizeof(struct _store_client));
-    for (i=0; i<mem->nclients; i++)
+    for (i = 0; i < mem->nclients; i++)
 	mem->clients[i].fd = -1;
     /* storeLog(STORE_LOG_CREATE, e); */
     return e;
@@ -2193,8 +2193,8 @@ storeClientListAdd(StoreEntry * e, int fd, int last_offset)
     if (mem->clients == NULL) {
 	mem->nclients = MIN_CLIENT;
 	mem->clients = xcalloc(mem->nclients, sizeof(struct _store_client));
-        for (i=0; i<mem->nclients; i++)
-    	    mem->clients[i].fd = -1;
+	for (i = 0; i < mem->nclients; i++)
+	    mem->clients[i].fd = -1;
     }
     for (i = 0; i < mem->nclients; i++) {
 	if (mem->clients[i].fd == -1)

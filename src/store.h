@@ -113,6 +113,10 @@
 #define BIT_RESET(flag, bit) 	((flag) &= ~(bit))
 #define BIT_TEST(flag, bit) 	((flag) & (bit))
 
+#define EBIT_SET(flag, bit) 	((flag) |= ((1<<bit)))
+#define EBIT_RESET(flag, bit) 	((flag) &= ~((1<<bit)))
+#define EBIT_TEST(flag, bit) 	((flag) & ((1<<bit)))
+
 /* 
  * KEY_URL              If e->key and e->url point to the same location
  * KEY_CHANGE           If the key for this URL has been changed

@@ -445,6 +445,8 @@ passStart(int fd,
     passState->buf = buf;
     passState->buflen = buflen;
     passState->timeout = Config.readTimeout;
+    passState->host = request->host;
+    passState->port = request->port;
     passState->size_ptr = size_ptr;
     passState->client.fd = fd;
     passState->server.fd = sock;

@@ -145,7 +145,7 @@ extern struct _acl_access *HTTPAccessList;
 extern struct _acl_access *MISSAccessList;
 extern struct _acl_access *ICPAccessList;
 extern struct _acl_deny_info_list *DenyInfoList;
-const extern char *AclMatchedName;
+extern const char *AclMatchedName;
 
 #if DELAY_HACK
 extern struct _acl_access *DelayAccessList;
