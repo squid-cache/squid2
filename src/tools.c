@@ -1020,6 +1020,7 @@ parseEtcHosts(void)
       skip:
 	wordlistDestroy(&hosts);
     }
+    fclose(fp);
 }
 
 /*
