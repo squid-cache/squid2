@@ -61,15 +61,15 @@ static void CheckQuickAbort _PARAMS((icpStateData *));
 static icpUdpData *AppendUdp _PARAMS((icpUdpData *, icpUdpData *));
 
 static void icpFreeBufOrPage(icpState)
-	icpStateData *icpState;
+     icpStateData *icpState;
 {
-	if (icpState->ptr_to_4k_page && icpState->buf)
-	    /* XXX should this be fatal? -DW */
-	    debug(12, 0, "Shouldn't have both a 4k ptr and a string\n");
-	if (icpState->ptr_to_4k_page)
-	    put_free_4k_page(icpState->ptr_to_4k_page);
-	else
-	    safe_free(icpState->buf);
+    if (icpState->ptr_to_4k_page && icpState->buf)
+	/* XXX should this be fatal? -DW */
+	debug(12, 0, "Shouldn't have both a 4k ptr and a string\n");
+    if (icpState->ptr_to_4k_page)
+	put_free_4k_page(icpState->ptr_to_4k_page);
+    else
+	safe_free(icpState->buf);
 }
 
 

@@ -1147,9 +1147,8 @@ void storeRebuildFromDisk()
 	    new_log_name, xstrerror());
 	fatal(tmp_error_buf);
     }
-
     if (fast_mode)
-   debug(20, 1, "Rebuilding in FAST MODE.\n");
+	debug(20, 1, "Rebuilding in FAST MODE.\n");
 
     memset(line_in, '\0', 4096);
     while (fgets(line_in, 4096, old_log)) {
