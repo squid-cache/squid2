@@ -398,9 +398,10 @@ int storeLockObject(e, handler, data)
 	/* its already in memory, so call the handler */
 	(*handler) (0, data);
     } else if (handler) {
-	debug(20, 0, "storeLockObject: handler loses for '%s'\n", e->url);
-	debug(20, 0, "storeLockObject: --> mem_status = %d\n",
-	    (int) e->mem_status);
+	/* The object is probably in state SWAPPING_IN, not much we can do.
+	   Instead of returning failure here, we should have a list of complete
+	   handlers which we could append to... */
+	(*handler) (1, data);
     }
     return status;
 }
@@ -1002,8 +1003,11 @@ int storeSwapInHandle(fd_notused, buf, len, flag, e, offset_notused)
 	storeSetMemStatus(e, NOT_IN_MEMORY);
 	file_close(mem->swap_fd);
 	swapInError(-1, e);	/* Invokes storeAbort() and completes the I/O */
-	if (mem->swapin_complete_handler)
-	    (*mem->swapin_complete_handler) (-1, mem->swapin_complete_data);
+	if (mem->swapin_complete_handler) {
+	    (*mem->swapin_complete_handler) (2, mem->swapin_complete_data);
+	    mem->swapin_complete_handler = NULL;
+	    mem->swapin_complete_data = NULL;
+	}
 	return -1;
     }
     debug(20, 5, "storeSwapInHandle: e->swap_offset   = %d\n", mem->swap_offset);
@@ -1039,8 +1043,11 @@ int storeSwapInHandle(fd_notused, buf, len, flag, e, offset_notused)
 	    debug(20, 0, "  --> Only read %d bytes\n",
 		mem->e_current_len);
 	}
-	if (mem->swapin_complete_handler)
+	if (mem->swapin_complete_handler) {
 	    (*mem->swapin_complete_handler) (0, mem->swapin_complete_data);
+	    mem->swapin_complete_handler = NULL;
+	    mem->swapin_complete_data = NULL;
+	}
 	if (e->flag & RELEASE_REQUEST)
 	    storeRelease(e);
     }
@@ -2675,6 +2682,7 @@ int storeWriteCleanLog()
     static char swapfilename[MAX_FILE_NAME_LEN];
     FILE *fp = NULL;
     int n = 0;
+    int x = 0;
     time_t start, stop, r;
 
     if (store_rebuilding) {
@@ -2698,9 +2706,14 @@ int storeWriteCleanLog()
 	if (e->object_len <= 0)
 	    continue;
 	storeSwapFullPath(e->swap_file_number, swapfilename);
-	fprintf(fp, "%s %s %d %d %d\n",
+	x = fprintf(fp, "%s %s %d %d %d\n",
 	    swapfilename, e->url, (int) e->expires, (int) e->timestamp,
 	    e->object_len);
+	if (x < 0) {
+	    debug(20, 0, "storeWriteCleanLog: %s: %s", tmp_filename, xstrerror());
+	    safeunlink(tmp_filename, 0);
+	    return 0;
+	}
 	if ((++n & 0xFFF) == 0) {
 	    getCurrentTime();
 	    debug(20, 1, "  %7d lines written so far.\n", n);
