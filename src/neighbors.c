@@ -589,6 +589,9 @@ peerDigestLookup(peer * p, request_t * request)
     if (!p->digest) {
 	debug(15, 5) ("peerDigestLookup: gone!\n");
 	return LOOKUP_NONE;
+    } else if (!peerHTTPOkay(p, request)) {
+	debug(15, 5) ("peerDigestLookup: !peerHTTPOkay\n");
+	return LOOKUP_NONE;
     } else if (!p->digest->flags.needed) {
 	debug(15, 5) ("peerDigestLookup: note need\n");
 	peerDigestNeeded(p->digest);
@@ -596,9 +599,6 @@ peerDigestLookup(peer * p, request_t * request)
     } else if (!p->digest->flags.usable) {
 	debug(15, 5) ("peerDigestLookup: !ready && %srequested\n",
 	    p->digest->flags.requested ? "" : "!");
-	return LOOKUP_NONE;
-    } else if (!peerHTTPOkay(p, request)) {
-	debug(15, 5) ("peerDigestLookup: !peerHTTPOkay\n");
 	return LOOKUP_NONE;
     }
     debug(15, 5) ("peerDigestLookup: OK to lookup peer %s\n", p->host);
