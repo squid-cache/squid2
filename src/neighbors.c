@@ -591,7 +591,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	hierarchy_log_append(entry->url,
 	    HIER_UDP_HIT_OBJ,
 	    0,
-	    e->host);
+	    e ? e->host : inet_ntoa(from->sin_addr));
 	if (mem)
 	    mem->hierarchy_code = HIER_UDP_HIT_OBJ;
 	if (httpState->reply_hdr)
