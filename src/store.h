@@ -11,6 +11,11 @@
 #define BIT_RESET(flag, bit) 	((flag) &= ~(bit))
 #define BIT_TEST(flag, bit) 	((flag) & (bit))
 
+/* 
+ * KEY_URL              If e->key and e->url point to the same location
+ * KEY_CHANGE   If the key for this URL has been changed
+ */
+
 #define REQ_DISPATCHED 		(1<<11)
 #define REQ_HTML 		(1<<10)
 #define KEY_CHANGE 		(1<<9)
@@ -144,6 +149,7 @@ extern StoreEntry *storeLRU _PARAMS((void));
 extern int storeWalkThrough _PARAMS((int (*proc) (), caddr_t data));
 extern int storePurgeOld _PARAMS((void));
 extern void storeChangeKey _PARAMS((StoreEntry *));
+extern void storeUnChangeKey _PARAMS((StoreEntry *));
 extern void storeSanityCheck _PARAMS(());
 extern void storeComplete _PARAMS((StoreEntry *));
 extern int storeInit _PARAMS(());

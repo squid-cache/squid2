@@ -112,7 +112,6 @@ void cached_error_entry(entry, type, msg)
 	entry->url,
 	entry->url,
 	ErrorData[type].shrt);
-
     if (msg) {
 	sprintf(tbuf, CACHED_ERROR_MSG_P2, msg);
 	strcat(tmp_error_buf, tbuf);

@@ -10,6 +10,9 @@ int mime_refresh_request(mime)
     if (strstr(mime, "no-cache"))
 	return 1;
 
+    if (strstr(mime, "If-Modified-Since"))
+	return 1;
+
     return 0;
 }
 
