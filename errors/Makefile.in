@@ -22,7 +22,7 @@ LANGUAGE		= English
 all:
 
 install: install-mkdirs
-	@for f in $(LANGUAGE)/ERR_*; do \
+	@for f in $(srcdir)/$(LANGUAGE)/ERR_*; do \
 		if test -f $(DEFAULT_ERROR_DIR)/$$f ; then \
 			:; \
 		else \
