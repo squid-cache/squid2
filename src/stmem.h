@@ -134,6 +134,7 @@ typedef struct mem_hdr {
 
 /* Memory allocator routines for fixed size blocks */
 typedef struct _stmem_stats {
+    int max_pages;
     int total_pages_allocated;
     int page_size;
     int n_pages_free;
