@@ -465,12 +465,26 @@ html_trailer(void)
 }
 
 static void
+html_output(int c, FILE * fp)
+{
+    if (c == '>')
+	fputs("&gt;", fp);
+    else if (c == '<')
+	fputs("&lt;", fp);
+    else if (c == '&')
+	fputs("&amp;", fp);
+    else
+	putc(c, fp);
+}
+
+static void
 fail(ftp_request_t * r)
 {
     FILE *fp = NULL;
     char *longmsg = NULL;
     time_t expire_time;
     list_t *l = NULL;
+    char *t;
 
     if (r->flags & F_NOERRS)
 	return;
@@ -540,8 +554,12 @@ fail(ftp_request_t * r)
 	if (cmd_msg) {
 	    fprintf(fp, "<HR><H4>Remote server replied with:</H4>\n");
 	    fprintf(fp, "<PRE>\n");
-	    for (l = cmd_msg; l; l = l->next)
-		fputs(l->ptr, fp);
+	    for (l = cmd_msg; l; l = l->next) {
+		for (t = l->ptr; *t; t++) {
+		    html_output((int) *t, fp);
+		    r->bytes_written++;
+		}
+	    }
 	    fprintf(fp, "</PRE>\n");
 	}
 	fputs(html_trailer(), fp);
@@ -2101,8 +2119,6 @@ try_readme(ftp_request_t * r)
     xfree(readme);
 }
 
-
-
 static state_t
 htmlify_listing(ftp_request_t * r)
 {
@@ -2112,7 +2128,7 @@ htmlify_listing(ftp_request_t * r)
     FILE *wfp = NULL;
     time_t stamp;
     int n;
-    int x;
+    int c;
 
     wfp = fdopen(dup(r->cfd), "w");
     setbuf(wfp, NULL);
@@ -2132,19 +2148,23 @@ htmlify_listing(ftp_request_t * r)
 	list_t *l;
 	fprintf(wfp, "<PRE>\n");
 	for (l = r->cmd_msg; l; l = l->next) {
-	    x = write_with_timeout(r->cfd, l->ptr, strlen(l->ptr));
-	    r->bytes_written += x;
+	    for (t = l->ptr; *t; t++) {
+		html_output((int) *t, wfp);
+		r->bytes_written++;
+	    }
 	}
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
     } else if (r->readme_fp && r->flags & F_BASEDIR) {
 	fprintf(wfp, "<H4>README file from %s</H4>\n", r->title_url);
-	fprintf(wfp, "<XMP>\n");
-	while (fgets(buf, SMALLBUFSIZ, r->readme_fp))
-	    fputs(buf, wfp);
+	fprintf(wfp, "<PRE>\n");
+	while ((c = getc(r->readme_fp)) != EOF) {
+	    html_output(c, wfp);
+	    r->bytes_written++;
+	}
 	fclose(r->readme_fp);
 	r->readme_fp = NULL;
-	fprintf(wfp, "</XMP>\n");
+	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
     }
     fprintf(wfp, "<H2>\n");
@@ -2182,8 +2202,10 @@ htmlify_listing(ftp_request_t * r)
     if (r->readme_fp) {
 	fprintf(wfp, "<H4>README file from %s</H4>\n", r->title_url);
 	fprintf(wfp, "<PRE>\n");
-	while (fgets(buf, SMALLBUFSIZ, r->readme_fp))
-	    fputs(buf, wfp);
+	while ((c = getc(r->readme_fp)) != EOF) {
+	    html_output(c, wfp);
+	    r->bytes_written++;
+	}
 	fclose(r->readme_fp);
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
