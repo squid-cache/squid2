@@ -349,12 +349,19 @@ static int storeDiskdReadIndividualQueue(SwapDir * sd);
 static SwapDir *swapDirFromFileno(sfileno f);
 
 /*
- * MAGIC2 = (256 * 3 / 4) / 6 = 32
+ * SHMBUFS is the number of shared memory buffers to allocate for
+ * Each SwapDir.
+ */
+#define SHMBUFS 96
+#define SHMBUF_BLKSZ DISK_PAGE_SIZE
+/*
+ * MAGIC2 is the point at which we start blocking on msgsnd/msgrcv.
+ * If a queue has MAGIC2 (or more) messages away, then we read the
+ * queue until the level falls below MAGIC2.  Recommended value
+ * is 75% of SHMBUFS.
  */
 #define MAGIC2 72
 
-#define SHMBUFS 96
-#define SHMBUF_BLKSZ DISK_PAGE_SIZE
 
 /* === PUBLIC =========================================================== */
 
@@ -811,7 +818,6 @@ storeDiskdShmPut(SwapDir * sd, int offset)
     buf = sd->u.diskd.shm.buf + offset;
     linklistPush(&sd->u.diskd.shm.stack, buf);
     shmbuf_count--;
-    assert(shmbuf_count >= 0);
 }
 
 static int
