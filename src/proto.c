@@ -230,9 +230,11 @@ protoDispatch(int fd, StoreEntry * entry, request_t * request)
     debug(17, 3) ("protoDispatch: '%s'\n", storeUrl(entry));
     entry->mem_obj->request = requestLink(request);
     if (request->protocol == PROTO_CACHEOBJ)
-	return protoStart(fd, entry, NULL, request);
+	protoStart(fd, entry, NULL, request);
+	return;
     else if (request->protocol == PROTO_WAIS)
-	return protoStart(fd, entry, NULL, request);
+	protoStart(fd, entry, NULL, request);
+	return;
     pctrl = xcalloc(1, sizeof(pctrl_t));
     cbdataAdd(pctrl);
     pctrl->entry = entry;
