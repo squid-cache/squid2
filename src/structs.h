@@ -340,7 +340,6 @@ struct _SquidConfig {
 #endif
 	int common_log;
 	int log_mime_hdrs;
-	int ident_lookup;
 	int log_fqdn;
 	int announce;
 	int accel_with_proxy;
@@ -369,6 +368,7 @@ struct _SquidConfig {
 	acl_access *snmp;
 #endif
 	acl_access *brokenPosts;
+	acl_access *identLookup;
     } accessList;
     acl_deny_info_list *denyInfoList;
     char *proxyAuthRealm;
