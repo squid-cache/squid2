@@ -251,7 +251,9 @@ struct _SquidConfig {
 	time_t ident;
 #endif
     } Timeout;
-    size_t maxRequestSize;
+    size_t maxRequestHeaderSize;
+    size_t maxRequestBodySize;
+    size_t maxReplyBodySize;
     struct {
 	ushortlist *http;
 	u_short icp;

@@ -85,6 +85,7 @@ typedef enum {
     ERR_FTP_FORBIDDEN,
     ERR_FTP_UNAVAILABLE,
     ERR_ONLY_IF_CACHED_MISS,	/* failure to satisfy only-if-cached request */
+    ERR_TOO_BIG,
     ERR_MAX
 } err_type;
 
