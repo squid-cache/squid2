@@ -148,7 +148,7 @@ static int squidaio_initialised = 0;
 #define AIO_MICRO_BUFS	128
 
 static MemPool *squidaio_large_bufs = NULL;	/* 16K */
-static MemPool *squidaio_medium_bufs = NULL;		/* 8K */
+static MemPool *squidaio_medium_bufs = NULL;	/* 8K */
 static MemPool *squidaio_small_bufs = NULL;	/* 4K */
 static MemPool *squidaio_tiny_bufs = NULL;	/* 2K */
 static MemPool *squidaio_micro_bufs = NULL;	/* 128K */

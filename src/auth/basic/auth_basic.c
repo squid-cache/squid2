@@ -176,7 +176,7 @@ authenticateBasicAuthenticateUser(auth_user_request_t * auth_user_request, reque
 
     assert(auth_user->scheme_data != NULL);
     basic_auth = auth_user->scheme_data;
-    
+
     /* if the password is not ok, do an identity */
     if (basic_auth->flags.credentials_ok != 1)
 	return;

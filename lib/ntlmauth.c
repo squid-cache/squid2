@@ -58,6 +58,7 @@ ntlm_dump_ntlmssp_flags(u_int32_t flags)
 	(flags & REQUEST_NON_NT_SESSION_KEY ? "Req_nonnt_sesskey " : "")
 	);
 }
+
 #endif
 
 #define lstring_zero(s) s.str=NULL; s.l=-1;

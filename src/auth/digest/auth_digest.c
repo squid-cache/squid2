@@ -649,11 +649,10 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
     assert(auth_user->scheme_data != NULL);
     digest_user = auth_user->scheme_data;
 
-     /* if the check has corrupted the user, just return */
+    /* if the check has corrupted the user, just return */
     if (digest_user->flags.credentials_ok == 3) {
 	return;
     }
-
     assert(auth_user_request->scheme_data != NULL);
     digest_request = auth_user_request->scheme_data;
 
@@ -1202,7 +1201,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 	return;
     }
     /* we can't check the URI just yet. We'll check it in the
-    authenticate phase */
+     * authenticate phase */
 
     /* is the response the correct length? */
 
@@ -1279,7 +1278,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
 	/* set the user type */
 	auth_user->auth_type = AUTH_DIGEST;
 	/* this auth_user struct is the one to get added to the
-	username cache */
+	 * username cache */
 	/* store user in hash's */
 	authenticateUserNameCacheAdd(auth_user);
 	/* 
