@@ -93,3 +93,7 @@ Changes to 1.0.beta3:
 	- Added "-i seconds" option to 'client' for testing IMS GET.
 	- Fixed a bug where an IMS request caused the valid object to
 	  get ejected from the cache.
+	- Fixed continual DEAD_PARENT/REVIVE bug
+	- Fixed ERR_INVALID_URL bug for URLs with a password field.
+	- Added to Release-Notes info about converting 'cache/log' and
+	  difference between stoplists and ttl_pattern.

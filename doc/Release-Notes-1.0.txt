@@ -17,7 +17,8 @@ TABLE OF CONTENTS:
 	ftpget server
 	Changes to cache shutdown
 	Assigning weights to cache neighbors
-
+	Converting 'cache/log' from cached-1.4.pl3
+	Notes on stoplists vs. ttl_pattern
 
 
 Private Objects
@@ -308,3 +309,27 @@ a parent to have a ``better'' RTT.
 Weights are only involved when all parent caches return MISS.  Squid still
 fetches an object from the first parent or neighbor to reply with a HIT,
 regardless of any weight values.
+
+Converting 'cache/log' from cached-1.4.pl3
+==============================================================================
+Squid uses a slightly different format for the 'cache/log' file.  In 
+particular, the words 'FILE:' and 'URL:' have been removed from each
+line.  To save your on-disk cache, you will need to convert this log
+file before starting Squid.  To do that use a simple awk command:
+
+     mv log log.old
+     awk '{print $2,$4,$5,$6,$7}' < log.old > log
+
+
+Notes on stoplists vs. ttl_pattern
+==============================================================================
+You can use the stoplists ('http_stop', etc) in the configuration file
+to prevent objects from being cached.  Using a 'ttl_pattern' with the
+TTL to zero will also prevent objects from being saved.
+
+There is one important difference between these two methods however.
+Squid nevery makes ICP queries for objects which match the stoplists.
+Instead, the object will be fetched directly (unless on the other side
+of a firewall).  We recommend that you use the stoplist for cgi-bin
+scripts and use the ttl_pattern rules to prevent caching of normal
+objects.
