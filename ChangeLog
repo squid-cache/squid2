@@ -80,6 +80,7 @@ Changes to squid-1.1.8 (March 3, 1997):
 
 Changes to squid-1.1.7 (February 25, 1997):
 
+	- Fixed non-default port numbers for FTP URLs (John Saunders).
 	- Fixed urlParse to leave trailing slashes on FTP URLs.  Although
 	  stripping the slashes offers a slight hit rate increase, it
 	  breaks some proxies which return HTTP redirects.
