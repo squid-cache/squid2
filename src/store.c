@@ -670,7 +670,7 @@ StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
     e->refcount = 0;
     e->lastref = squid_curtime;
     e->timestamp = 0;		/* set in storeSwapOutHandle() */
-    e->ping_status = NOPING;
+    e->ping_status = PING_NONE;
 
     /* allocate pending list */
     m->pending_list_size = MIN_PENDING;
@@ -724,7 +724,7 @@ StoreEntry *storeAddDiskRestore(url, file_number, size, expires, timestamp)
     e->lastref = squid_curtime;
     e->timestamp = (u_num32) timestamp;
     e->expires = (u_num32) expires;
-    e->ping_status = NOPING;
+    e->ping_status = PING_NONE;
     return e;
 }
 

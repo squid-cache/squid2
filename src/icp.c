@@ -1484,7 +1484,7 @@ static void icpDetectClientClose(fd, icpState)
 	CheckQuickAbort(icpState);
 	if (entry && icpState->url)
 	    protoUndispatch(fd, icpState->url, entry, icpState->request);
-	if (entry && entry->ping_status == WAITING)
+	if (entry && entry->ping_status == PING_WAITING)
 	    storeReleaseRequest(entry);
 	comm_close(fd);
     }

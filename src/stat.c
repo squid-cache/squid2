@@ -1056,20 +1056,20 @@ char *stat_describe(entry)
     strncat(state, "/", sizeof(state));
 
     switch (entry->ping_status) {
-    case WAITING:
+    case PING_WAITING:
 	strncat(state, "PING-WAIT", sizeof(state));
 	break;
-    case TIMEOUT:
+    case PING_TIMEOUT:
 	strncat(state, "PING-TIMEOUT", sizeof(state));
 	break;
-    case DONE:
+    case PING_DONE:
 	strncat(state, "PING-DONE", sizeof(state));
 	break;
-    case NOPING:
+    case PING_NONE:
 	strncat(state, "NO-PING", sizeof(state));
 	break;
     default:
-	strncat(state, "YEEHAH", sizeof(state));
+	strncat(state, "HELP!!", sizeof(state));
 	break;
     }
     return (state);

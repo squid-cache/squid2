@@ -142,12 +142,12 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	return 0;
     } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */
-	if ((entry->ping_status == DONE) || entry->store_status == STORE_OK) {
+	if ((entry->ping_status == PING_DONE) || entry->store_status == STORE_OK) {
 	    debug(17, 0, "Starting a source ping for a valid object %s!\n",
 		storeToString(entry));
 	    fatal_dump(NULL);
 	}
-	entry->ping_status = WAITING;
+	entry->ping_status = PING_WAITING;
 	comm_set_select_handler_plus_timeout(protoData->fd,
 	    COMM_SELECT_TIMEOUT,
 	    (PF) getFromDefaultSource,
@@ -337,13 +337,13 @@ int getFromDefaultSource(fd, entry)
      * timeout occured.  Otherwise we were called from neighborsUdpAck(). */
 
     if (fd) {
-	entry->ping_status = TIMEOUT;
+	entry->ping_status = PING_TIMEOUT;
 	debug(17, 5, "getFromDefaultSource: Timeout occured pinging for <URL:%s>\n",
 	    url);
     }
     /* Check if someone forgot to disable the read timer */
     if (fd && BIT_TEST(entry->flag, ENTRY_DISPATCHED)) {
-	if (entry->ping_status == TIMEOUT) {
+	if (entry->ping_status == PING_TIMEOUT) {
 	    debug(17, 0, "FD %d Someone forgot to disable the read timer.\n", fd);
 	    debug(17, 0, "--> <URL:%s>\n", entry->url);
 	} else {

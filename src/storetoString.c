@@ -119,16 +119,16 @@ char *storeToString(e)
 
     sprintf(tmpbuf, "PingStatus: ");
     switch (e->ping_status) {
-    case WAITING:
+    case PING_WAITING:
 	strcat(tmpbuf, "WAITING\n");
 	break;
-    case TIMEOUT:
+    case PING_TIMEOUT:
 	strcat(tmpbuf, "TIMEOUT\n");
 	break;
-    case DONE:
+    case PING_DONE:
 	strcat(tmpbuf, "DONE\n");
 	break;
-    case NOPING:
+    case PING_NONE:
 	strcat(tmpbuf, "NOPING\n");
 	break;
     default:

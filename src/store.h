@@ -96,10 +96,10 @@ typedef enum {
 } mem_status_t;
 
 typedef enum {
-    WAITING,
-    TIMEOUT,
-    DONE,
-    NOPING
+    PING_WAITING,
+    PING_TIMEOUT,
+    PING_DONE,
+    PING_NONE
 } ping_status_t;
 
 typedef enum {

@@ -542,8 +542,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	}
     }
     /* check if someone is already fetching it */
-    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED) || (entry->ping_status != WAITING)) {
-	if (entry->ping_status == DONE) {
+    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED) || (entry->ping_status != PING_WAITING)) {
+	if (entry->ping_status == PING_DONE) {
 	    debug(15, 5, "There is already a cache/source dispatched for this object\n");
 	    debug(15, 5, "--> <URL:%s>\n", entry->url);
 	    debug(15, 5, "--> entry->flag & ENTRY_DISPATCHED = %d\n",
@@ -578,7 +578,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    if (mem)
 		mem->hierarchy_code = HIER_SOURCE_FASTEST;
 	    BIT_SET(entry->flag, ENTRY_DISPATCHED);
-	    entry->ping_status = DONE;
+	    entry->ping_status = PING_DONE;
 	    getFromCache(0, entry, NULL, entry->mem_obj->request);
 	}
 	return;
@@ -624,7 +624,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 		mem->hierarchy_code = HIER_PARENT_HIT;
 	}
 	BIT_SET(entry->flag, ENTRY_DISPATCHED);
-	entry->ping_status = DONE;
+	entry->ping_status = PING_DONE;
 	getFromCache(0, entry, e, entry->mem_obj->request);
 	return;
     } else if ((header->opcode == ICP_OP_MISS) || (header->opcode == ICP_OP_DECHO)) {
@@ -665,7 +665,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	}
 	if (mem->e_pings_n_acks == mem->e_pings_n_pings) {
 	    BIT_SET(entry->flag, ENTRY_DISPATCHED);
-	    entry->ping_status = DONE;
+	    entry->ping_status = PING_DONE;
 	    debug(15, 6, "Receive MISSes from all neighbors and parents\n");
 	    /* pass in fd=0 here so getFromCache() looks up the real FD
 	     * and resets the timeout handler */
