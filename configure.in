@@ -1300,9 +1300,9 @@ statvfs("/tmp", &sfs);
   ac_cv_func_statvfs=yes,
   ac_cv_func_statvfs=no)
 AC_MSG_RESULT($ac_cv_func_statvfs)
-fi
-if test $ac_cv_func_statvfs = "yes" ; then
+if test "$ac_cv_func_statvfs" = "yes" ; then
   AC_DEFINE(HAVE_STATVFS)
+fi
 fi
 
 AC_CACHE_CHECK(for _res.nsaddr_list, ac_cv_have_res_nsaddr_list,
