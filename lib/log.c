@@ -3,19 +3,36 @@
 
 #include "config.h"
 
+#if HAVE_STDIO_H
 #include <stdio.h>
+#endif
+#if HAVE_STRING_H
 #include <string.h>
+#endif
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#if HAVE_ERRNO_H
 #include <errno.h>
+#endif
+#if HAVE_TIME_H
 #include <time.h>
+#endif
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#if HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+#if HAVE_SYS_FILE_H
 #include <sys/file.h>
-#if defined(__STRICT_ANSI__)
+#endif
+#if defined(__STRICT_ANSI__) && HAVE_STDARG_H
 #include <stdarg.h>
-#else
+#elsif HAVE_VARARGS_H
 #include <varargs.h>
 #endif
+
 #include "util.h"
 
 #ifdef _SQUID_NEXT_

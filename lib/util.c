@@ -2,15 +2,24 @@
 
 #include "config.h"
 
+#if HAVE_STDIO_H
 #include <stdio.h>
+#endif
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#if HAVE_STRING_H
 #include <string.h>
+#endif
+#if HAVE_UNISTD_H
 #include <unistd.h>
-#if !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
-/* "Obsolete" Markus Stumpf <maex@Space.NET> */
+#endif
+#if HAVE_MALLOC_H && !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
 #include <malloc.h>
 #endif
+#if HAVE_ERRNO_H
 #include <errno.h>
+#endif
 
 #include "util.h"
 

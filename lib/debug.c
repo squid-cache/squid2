@@ -2,8 +2,12 @@
 
 #include "config.h"
 
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#if HAVE_STRING_H
 #include <string.h>
+#endif
 #define MAIN
 #include "util.h"
 

@@ -2,8 +2,13 @@
 
 #include "config.h"
 
+#if HAVE_STDIO_H
 #include <stdio.h>
+#endif
+#if HAVE_STRING_H
 #include <string.h>
+#endif
+
 #include "util.h"
 #define BIG_BUFSIZ (BUFSIZ * 4)
 

@@ -3,18 +3,34 @@
 
 #include "config.h"
 
+#if HAVE_STRING_H
 #include <string.h>
+#endif
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#if HAVE_MEMORY_H
 #include <memory.h>
+#endif
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#if HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#if HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
 #if HAVE_NETDB_H && !defined(_SQUID_NETDB_H_)	/* protect NEXTSTEP */
 #define _SQUID_NETDB_H_
 #include <netdb.h>
 #endif
+#if HAVE_CTYPE_H
 #include <ctype.h>
+#endif
 
 #include "util.h"
 
