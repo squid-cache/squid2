@@ -629,19 +629,19 @@ int ftpStart(unusedfd, url, entry)
 }
 
 static void ftpServerClosed(fd, nodata)
-	int fd;
- 	void *nodata;
+     int fd;
+     void *nodata;
 {
-	static time_t last_restart = 0;
-	comm_close(fd);
-	if (cached_curtime - last_restart < 2) {
-		debug(9,0,"ftpget server failing too rapidly\n");
-		debug(9,0,"WARNING: FTP access is disabled!\n");
-		return;
-	}
-	last_restart = cached_curtime;
-	debug(9,1,"Restarting ftpget server...\n");
-	(void) ftpInitialize();
+    static time_t last_restart = 0;
+    comm_close(fd);
+    if (squid_curtime - last_restart < 2) {
+	debug(9, 0, "ftpget server failing too rapidly\n");
+	debug(9, 0, "WARNING: FTP access is disabled!\n");
+	return;
+    }
+    last_restart = squid_curtime;
+    debug(9, 1, "Restarting ftpget server...\n");
+    (void) ftpInitialize();
 }
 
 int ftpInitialize()
@@ -667,9 +667,9 @@ int ftpInitialize()
 	fcntl(p[1], F_SETFD, 1);	/* set close-on-exec */
 	/* if ftpget -S goes away, this handler should get called */
 	comm_set_select_handler(p[1],
-		    COMM_SELECT_EXCEPT,
-		    (PF) ftpServerClosed,
-		    (void *) NULL);
+	    COMM_SELECT_EXCEPT,
+	    (PF) ftpServerClosed,
+	    (void *) NULL);
 	return 0;
     }
     /* child */

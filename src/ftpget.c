@@ -2055,6 +2055,7 @@ int ftpget_srv_mode(port)
 	    ntohs(S.sin_port)));
     if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
 	log_errno2(__FILE__, __LINE__, "bind");
+	sleep(5);	/* sleep here so that the cache will restart us */
 	exit(1);
     }
     if (listen(sock, 50) < 0) {
