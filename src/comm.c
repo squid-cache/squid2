@@ -365,7 +365,7 @@ int comm_close(fd)
     conn = &fd_table[fd];
 
     comm_set_fd_lifetime(fd, -1);	/* invalidate the lifetime */
-    debug(5, 10, "comm_close: FD %d\n", fd);
+    debug(5, 5, "comm_close: FD %d\n", fd);
     /* update fdstat */
     fdstat_close(fd);
     if (conn->close_handler)
