@@ -123,6 +123,25 @@ urlInitialize(void)
     debug(23, 5) ("urlInitialize: Initializing...\n");
     assert(sizeof(ProtocolStr) == (PROTO_MAX + 1) * sizeof(char *));
     memset(&null_request_flags, '\0', sizeof(null_request_flags));
+    /*
+     * These test that our matchDomainName() function works the
+     * way we expect it to.
+     */
+    assert(0 == matchDomainName("foo.com", "foo.com"));
+    assert(0 == matchDomainName(".foo.com", "foo.com"));
+    assert(0 == matchDomainName("foo.com", ".foo.com"));
+    assert(0 == matchDomainName(".foo.com", ".foo.com"));
+    assert(0 == matchDomainName("x.foo.com", ".foo.com"));
+    assert(0 != matchDomainName("x.foo.com", "foo.com"));
+    assert(0 != matchDomainName("foo.com", "x.foo.com"));
+    assert(0 != matchDomainName("bar.com", "foo.com"));
+    assert(0 != matchDomainName(".bar.com", "foo.com"));
+    assert(0 != matchDomainName(".bar.com", ".foo.com"));
+    assert(0 != matchDomainName("bar.com", ".foo.com"));
+    assert(0 < matchDomainName("zzz.com", "foo.com"));
+    assert(0 > matchDomainName("aaa.com", "foo.com"));
+    assert(0 == matchDomainName("FOO.com", "foo.COM"));
+    /* more cases? */
 }
 
 method_t
@@ -390,21 +409,78 @@ urlCanonicalClean(const request_t * request)
     return buf;
 }
 
+/*
+ * matchDomainName() compares a hostname with a domainname according
+ * to the following rules:
+ * 
+ *    HOST          DOMAIN        MATCH?
+ * ------------- -------------    ------
+ *    foo.com       foo.com         YES
+ *   .foo.com       foo.com         YES
+ *  x.foo.com       foo.com          NO
+ *    foo.com      .foo.com         YES
+ *   .foo.com      .foo.com         YES
+ *  x.foo.com      .foo.com         YES
+ *
+ *  We strip leading dots on hosts (but not domains!) so that
+ *  ".foo.com" is is always the same as "foo.com".
+ *
+ *  Return values:
+ *     0 means the host matches the domain
+ *     1 means the host is greater than the domain
+ *    -1 means the host is less than the domain
+ */
+
 int
-matchDomainName(const char *domain, const char *host)
+matchDomainName(const char *h, const char *d)
 {
-    int offset;
-    if ((offset = strlen(host) - strlen(domain)) < 0)
-	return 0;		/* host too short */
-    if (strcasecmp(domain, host + offset) != 0)
-	return 0;		/* no match at all */
-    if (*domain == '.')
-	return 1;
-    if (offset == 0)
-	return 1;
-    if (*(host + offset - 1) == '.')
-	return 1;
-    return 0;
+    int dl;
+    int hl;
+    while ('.' == *h)
+	h++;
+    hl = strlen(h);
+    dl = strlen(d);
+    /*
+     * Start at the ends of the two strings and work towards the
+     * beginning.
+     */
+    while (xtolower(h[--hl]) == xtolower(d[--dl])) {
+	if (hl == 0 && dl == 0) {
+	    /*
+	     * We made it all the way to the beginning of both
+	     * strings without finding any difference.
+	     */
+	    return 0;
+	}
+	if (0 == hl) {
+	    /* 
+	     * The host string is shorter than the domain string.
+	     * There is only one case when this can be a match.
+	     * If the domain is just one character longer, and if
+	     * that character is a leading '.' then we call it a
+	     * match.
+	     */
+	    if (1 == dl && '.' == d[0])
+		return 0;
+	    else
+		return -1;
+	}
+	if (0 == dl) {
+	    /*
+	     * The domain string is shorter than the host string.
+	     * This is a match only if the first domain character
+	     * is a leading '.'.
+	     */
+	    if ('.' == d[0])
+		return 0;
+	    else
+		return 1;
+	}
+    }
+    /*
+     * We found different characters in the same position (from the end).
+     */
+    return (xtolower(h[hl]) - xtolower(d[dl]));
 }
 
 int

@@ -1963,25 +1963,7 @@ aclHostDomainCompare(const void *a, const void *b)
 {
     const char *h = a;
     const char *d = b;
-    int l1;
-    int l2;
-    if (matchDomainName(d, h))
-	return 0;
-    l1 = strlen(h);
-    l2 = strlen(d);
-    /* h != d */
-    while (xtolower(h[--l1]) == xtolower(d[--l2])) {
-	if (l1 == 0)
-	    break;
-	if (l2 == 0)
-	    break;
-    }
-    /* a '.' is a special case */
-    if ((h[l1] == '.') && (l1 == 0))
-	return -1;		/* domain(h) < d */
-    if ((d[l2] == '.') && (l2 == 0))
-	return 1;		/* domain(h) > d */
-    return (xtolower(h[l1]) - xtolower(d[l2]));
+    return matchDomainName(d, h);
 }
 
 /* compare two network specs
