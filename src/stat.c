@@ -1076,4 +1076,5 @@ statGraphDump(StoreEntry * e)
     GENGRAPH(select_loops, "select_loops", "System Select Loop calls/sec");
     GENGRAPH(cputime, "cputime", "CPU utilisation");
 }
+
 #endif /* STAT_GRAPHS */

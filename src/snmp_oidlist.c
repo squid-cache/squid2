@@ -891,7 +891,7 @@ gen_getMax()
     return &maddr;
 }
 
-int 
+int
 fd_getMax()
 {
     fde *f;

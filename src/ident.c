@@ -50,7 +50,7 @@ static void
 identTimeout(int fd, void *data)
 {
     ConnStateData *connState = data;
-    debug(30,3)("identTimeout: FD %d, %s\n", fd,
+    debug(30, 3) ("identTimeout: FD %d, %s\n", fd,
 	inet_ntoa(connState->peer.sin_addr));
     comm_close(fd);
 }

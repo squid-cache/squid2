@@ -442,16 +442,15 @@ dump_acl_access(StoreEntry * entry, const char *name, acl_access * head)
 static void
 parse_snmp_access(communityEntry ** head)
 {
-    char *t=NULL;
+    char *t = NULL;
     communityEntry *cp;
 /* This is tricky: we need to define the communities here, assuming that 
-   communities and the MIB have already been defined */
-    
+ * communities and the MIB have already been defined */
+
     if (!snmpInitConfig()) {
-	debug(15,0)("parse_snmp_access: Access lists NOT defined.\n");
+	debug(15, 0) ("parse_snmp_access: Access lists NOT defined.\n");
 	return;
     }
-
     t = strtok(NULL, w_space);
     for (cp = *head; cp; cp = cp->next)
 	if (!strcmp(t, cp->name)) {

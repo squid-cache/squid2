@@ -470,7 +470,7 @@ httpReadReply(int fd, void *data)
 	    err->xerrno = errno;
 	    err->request = requestLink(httpState->orig_request);
 	    errorAppendEntry(entry, err);
-	   comm_close(fd);
+	    comm_close(fd);
 	} else {
 	    storeAbort(entry, 0);
 	    comm_close(fd);
@@ -626,7 +626,7 @@ httpBuildRequestHeader(request_t * request,
 	if (l > 4096)
 	    l = 4096;
 	if (0 == l)
-	   break;
+	    break;
 	xstrncpy(xbuf, t, l);
 	debug(11, 5) ("httpBuildRequestHeader: %s\n", xbuf);
 	if (strncasecmp(xbuf, "Proxy-Connection:", 17) == 0)

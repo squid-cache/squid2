@@ -444,11 +444,11 @@ neighborsUdpPing(request_t * request,
 
 #if USE_HTCP
 	if (EBIT_TEST(p->options, NEIGHBOR_HTCP)) {
-	    debug(15, 0)("neighborsUdpPing: sending HTCP query\n");
+	    debug(15, 0) ("neighborsUdpPing: sending HTCP query\n");
 	    htcpQuery(entry, request, p);
 	} else
 #endif
- if (p->icp_port == echo_port) {
+	if (p->icp_port == echo_port) {
 	    debug(15, 4) ("neighborsUdpPing: Looks like a dumb cache, send DECHO ping\n");
 	    echo_hdr.reqnum = reqnum;
 	    query = icpCreateMessage(ICP_DECHO, 0, url, reqnum, 0);

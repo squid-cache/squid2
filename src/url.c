@@ -294,7 +294,7 @@ urnParse(method_t method, char *urn)
 #if OLD_CODE
     xstrncpy(request->urlpath, &urn[4], MAX_URL);
 #else
-    stringReset(&request->urlpath, urn+4);
+    stringReset(&request->urlpath, urn + 4);
 #endif
     request->max_age = -1;
     request->max_forwards = -1;

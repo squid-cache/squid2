@@ -344,10 +344,10 @@ sslConnectDone(int fdnotused, int status, void *data)
 	    sslProxyConnected(sslState->server.fd, sslState);
 	else
 	    sslConnected(sslState->server.fd, sslState);
-    commSetTimeout(sslState->server.fd,
-	Config.Timeout.read,
-	sslTimeout,
-	sslState);
+	commSetTimeout(sslState->server.fd,
+	    Config.Timeout.read,
+	    sslTimeout,
+	    sslState);
     }
 }
 

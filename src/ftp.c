@@ -1574,7 +1574,7 @@ ftpReadPasv(FtpStateData * ftpState)
     }
     port = ((p1 << 8) + p2);
     if (0 == port) {
-	debug(9,1)("ftpReadPasv: Invalid PASV reply: %s\n", buf);
+	debug(9, 1) ("ftpReadPasv: Invalid PASV reply: %s\n", buf);
 	ftpSendPort(ftpState);
 	return;
     }
