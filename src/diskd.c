@@ -345,13 +345,9 @@ static void storeDiskdShmPut(SwapDir *, int);
 static void *storeDiskdShmGet(SwapDir *, int *);
 static void storeDiskdHandle(diomsg * M);
 static void storeDiskdIOCallback(storeIOState * sio, int errflag);
-static void storeDiskdReadIndividualQueue(SwapDir * sd);
+static int storeDiskdReadIndividualQueue(SwapDir * sd);
 static SwapDir *swapDirFromFileno(sfileno f);
 
-/*
- * MAGIC1 = (256/2)/(ndisks=6) ~= 22
- */
-#define MAGIC1 60
 /*
  * MAGIC2 = (256 * 3 / 4) / 6 = 32
  */
@@ -371,8 +367,10 @@ storeDiskdOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     int shm_offset;
     SwapDir *sd = swapDirFromFileno(f);
     debug(81, 3) ("storeDiskdOpen: fileno %08X, mode %d\n", f, mode);
-    if (sd->u.diskd.away > MAGIC1)
-	return NULL;
+    /*
+     * XXX Eventually there should be an option here to fail on open()
+     * If there are too many requests queued.
+     */
     assert(mode == O_RDONLY || mode == O_WRONLY);
     sio = memAllocate(MEM_STORE_IO);
     cbdataAdd(sio, memFree, MEM_STORE_IO);
@@ -583,6 +581,7 @@ storeDiskdReadQueue(void)
 {
     SwapDir *sd;
     int i;
+    int j;
     static int ndir = 0;
     static time_t last_report = 0;
     static int record_away = 0;
@@ -598,14 +597,22 @@ storeDiskdReadQueue(void)
 	last_report = squid_curtime;
 	record_away = record_shmbuf = 0;
     }
-    for (i = 0; i < Config.cacheSwap.n_configured; i++) {
-	if (ndir >= Config.cacheSwap.n_configured)
-	    ndir = ndir % Config.cacheSwap.n_configured;
-	sd = &Config.cacheSwap.swapDirs[ndir++];
-	if (sd->type != SWAPDIR_DISKD)
-	    continue;
-	storeDiskdReadIndividualQueue(sd);
-    }
+    do {
+	j = 0;
+	for (i = 0; i < Config.cacheSwap.n_configured; i++) {
+	    if (ndir >= Config.cacheSwap.n_configured)
+		ndir = ndir % Config.cacheSwap.n_configured;
+	    sd = &Config.cacheSwap.swapDirs[ndir++];
+	    if (sd->type != SWAPDIR_DISKD)
+		continue;
+	    if (0 == sd->u.diskd.away)
+		continue;
+	    /* stay in this loop if one queue is over the limit */
+	    if (MAGIC2 <= sd->u.diskd.away)
+		j++;
+	    j += storeDiskdReadIndividualQueue(sd);
+	}
+    } while (j > 0);
     ndir++;
 }
 
@@ -765,11 +772,6 @@ storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
     M.seq_no = ++seq_no;
     if (M.callback_data)
 	cbdataLock(M.callback_data);
-    if (sd->u.diskd.away > MAGIC2) {
-	debug(81, 3) ("%d msgs away!  Trying to read queue...\n",
-	    sd->u.diskd.away);
-	storeDiskdReadIndividualQueue(sd);
-    }
     if (M.seq_no < last_seq_no)
 	debug(81, 1) ("WARNING: sequencing out of order\n");
     x = msgsnd(sd->u.diskd.smsgid, &M, msg_snd_rcv_sz, IPC_NOWAIT);
@@ -783,6 +785,8 @@ storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
 	    cbdataUnlock(M.callback_data);
 	assert(++send_errors < 100);
     }
+    if (sd->u.diskd.away > MAGIC2)
+	storeDiskdReadQueue();
     return x;
 }
 
@@ -810,28 +814,25 @@ storeDiskdShmPut(SwapDir * sd, int offset)
     assert(shmbuf_count >= 0);
 }
 
-static void
+static int
 storeDiskdReadIndividualQueue(SwapDir * sd)
 {
     diomsg M;
     int x;
-    int flag;
-    while (sd->u.diskd.away > 0) {
-	memset(&M, '\0', sizeof(M));
-	flag = (sd->u.diskd.away > MAGIC2) ? 0 : IPC_NOWAIT;
-	x = msgrcv(sd->u.diskd.rmsgid, &M, msg_snd_rcv_sz, 0, flag);
-	if (x < 0)
-	    break;
-	if (x != msg_snd_rcv_sz) {
-	    debug(81, 1) ("storeDiskdReadIndividualQueue: msgget returns %d\n", x);
-	    break;
-	}
-	recv_count++;
-	sd->u.diskd.away--;
-	storeDiskdHandle(&M);
-	if (M.shm_offset > -1)
-	    storeDiskdShmPut(sd, M.shm_offset);
+    memset(&M, '\0', sizeof(M));
+    x = msgrcv(sd->u.diskd.rmsgid, &M, msg_snd_rcv_sz, 0, IPC_NOWAIT);
+    if (x < 0)
+	return 0;
+    if (x != msg_snd_rcv_sz) {
+	debug(81, 1) ("storeDiskdReadIndividualQueue: msgget returns %d\n", x);
+	return 0;
     }
+    recv_count++;
+    sd->u.diskd.away--;
+    storeDiskdHandle(&M);
+    if (M.shm_offset > -1)
+	storeDiskdShmPut(sd, M.shm_offset);
+    return 1;
 }
 
 static SwapDir *
