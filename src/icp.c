@@ -975,7 +975,7 @@ int icpHandleUdp(sock, not_used)
 	    IcpOpcodeStr[header.opcode],
 	    inet_ntoa(from.sin_addr),
 	    url);
-	if (header.reqnum)
+	if (neighbors_do_private_keys && header.reqnum)
 	    key = storeGeneratePrivateKey(url, METHOD_GET, header.reqnum);
 	else
 	    key = storeGeneratePublicKey(url, METHOD_GET);
