@@ -314,7 +314,7 @@ peerSelectFoo(ps_state * psstate)
 	    &psstate->icp.timeout);
 	if (psstate->icp.n_sent == 0)
 	    debug(44, 0) ("WARNING: neighborsUdpPing returned 0\n");
-	debug(44, 3) ("peerSelectFoo: %d ICP replies expected, RTT %f msec\n",
+	debug(44, 3) ("peerSelectFoo: %d ICP replies expected, RTT %d msec\n",
 	    psstate->icp.n_replies_expected, psstate->icp.timeout);
 	if (psstate->icp.n_replies_expected > 0) {
 	    entry->ping_status = PING_WAITING;
