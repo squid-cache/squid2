@@ -1645,6 +1645,14 @@ ftpSendPasv(FtpStateData * ftpState)
     int fd;
     struct sockaddr_in addr;
     socklen_t addr_len;
+    if (ftpState->request->method == METHOD_HEAD) {
+	/* Terminate here for HEAD requests */
+	ftpAppendSuccessHeader(ftpState);
+	storeTimestampsSet(ftpState->entry);
+	fwdComplete(ftpState->fwd);
+	ftpSendQuit(ftpState);
+	return;
+    }
     if (ftpState->data.fd >= 0) {
 	if (!ftpState->flags.datachannel_hack) {
 	    /* We are already connected, reuse this connection. */
