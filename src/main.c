@@ -232,7 +232,9 @@ static void mainInitialize()
     fdstat_open(fileno(debug_log), LOG);
     fd_note(fileno(debug_log), getCacheLogFile());
 
-    debug(1, 0, "Starting Squid Cache (version %s)...\n", version_string);
+    debug(1, 0, "Starting Squid Cache version %s for %s...\n",
+	version_string,
+	CONFIG_HOST_TYPE);
     debug(1, 1, "With %d file descriptors available\n", FD_SETSIZE);
 
     if (first_time) {
