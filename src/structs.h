@@ -1301,6 +1301,7 @@ struct _request_t {
     int imslen;
     int max_forwards;
     struct in_addr client_addr;
+    struct in_addr my_addr;
     HttpHeader header;
     char *body;
     size_t body_sz;

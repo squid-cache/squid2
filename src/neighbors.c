@@ -147,7 +147,7 @@ peerAllowedToUse(const peer * p, request_t * request)
     if (p->access == NULL)
 	return do_ping;
     checklist.src_addr = request->client_addr;
-    checklist.my_addr = no_addr;	/* XXX wrong */
+    checklist.my_addr = request->my_addr;
     checklist.request = request;
     return aclCheckFast(p->access, &checklist);
 }
