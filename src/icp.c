@@ -2006,6 +2006,8 @@ requestTimeout(int fd, void *data)
 	    "Request Timeout.\n",
 	    NULL,
 	    504);
+	/* if we don't close() here, we still need a timeout handler! */
+        commSetTimeout(fd, 30, requestTimeout, conn);
     }
 }
 
