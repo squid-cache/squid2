@@ -1596,8 +1596,8 @@ DOC_START
 	acl aclname dst      ip-address/netmask ... (URL host's IP address)
 	acl aclname myip     ip-address/netmask ... (local socket IP address)
 
-	acl aclname srcdomain   foo.com ...     # reverse lookup, client IP
-	acl aclname dstdomain   foo.com ...     # Destination server from URL
+	acl aclname srcdomain   .foo.com ...    # reverse lookup, client IP
+	acl aclname dstdomain   .foo.com ...    # Destination server from URL
 	acl aclname srcdom_regex [-i] xxx ...   # regex matching client name
 	acl aclname dstdom_regex [-i] xxx ...   # regex matching server
 	  # For dstdomain and dstdom_regex  a reverse lookup is tried if a IP
