@@ -1,3 +1,36 @@
+Changes to squid-2.5.STABLE10 (not yet released)
+
+	- [Minor Security] Fix race condition in relation to old Netscape
+	  Set-Cookie specifications
+	- [Minor] Fails to parse D.J.  Bernstein's FTP EPLF ftp listing
+          format and PASV resposes (Bug #1252)
+	- [Minor] BASE HREF missing on ftp directory URLs without /
+	  (Bug #1253)
+	- [Minor security] confusing http_access results on configuration
+	  error (Bug #1255)
+	- [Cosmetic] More robust Date parser (Bug #321)
+	- [Minor] reload_with_ims fails to refresh negatively cached objects
+	  (Bug #1159)
+	- [Cosmetic] delay_access description clarification (Bug #1245)
+	- [Cosmetic] Check for integer overflow in size specifications in
+	  squid.conf (Bug #1247)
+	- [Cosmetic] bzero is a non-standard function not available on all
+	  platforms (Bug #1256)
+	- [Cosmetic] Compiler warnings if pid_t is not an int (Bug #1257)
+	- [Cosmetic] Incorrect use of ctype functions (Bug #1259)
+	- [Cosmetic] Peer digest fetch initiated even if peer not allowed
+	  to be used for the request (Bug #1261)
+	- [Minor] Duplicate content-length headers logged incorrectly or
+	  not cleaned up properly (Bug #1262)
+	- [Cosmetic] Extend relaxed_header_parser to work around "excess
+	  data from" errors from many major web servers. (Bug #1265)
+	- [Minor] Add HTTP headers to a netdb error messages
+	- [Minor] Multiple minor aufs issues (Bug #671)
+	- [Minor] Basic authentication fails with very long logins or
+	  password (Bug #1171)
+	- [Minor] CONNECT requests truncated if client side disconnects first
+	  (Bug #1269)
+	
 Changes to squid-2.5.STABLE9 (24 Feb 2005)
 
 	- [Medium] Don't retry requests on 403 errors (Bug #1210)
