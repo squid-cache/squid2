@@ -314,7 +314,7 @@ AC_ARG_ENABLE(arp_acl,
 	    ;;
 	*)
 	    echo "WARNING: ARP ACL support is designed for FreeBSD and"
-	    echo "WARNING: probably wont work on your $host system"
+	    echo "         probably wont work on your $host system"
 	    sleep 10
 	    ;;
      esac
@@ -840,7 +840,7 @@ if test "$SQUID_MAXFD" -lt 512 ; then
     echo "WARNING: $SQUID_MAXFD may not be enough filedescriptors if your"
     echo "         cache will be very busy.  Please see the FAQ page"
     echo "         http://squid.nlanr.net/Squid/FAQ/FAQ-10.html#filedescriptors"
-    echo "	   on how to increase your filedescriptor limit"
+    echo "         on how to increase your filedescriptor limit"
     sleep 10
 fi
 
