@@ -346,7 +346,7 @@ httpMakeVaryMark(request_t * request, HttpReply * reply)
 	safe_free(name);
 	value = strBuf(hdr);
 	if (value) {
-	    value = rfc1738_escape(value);
+	    value = rfc1738_escape_part(value);
 	    stringAppend(&vstr, "=\"", 2);
 	    stringAppend(&vstr, value, strlen(value));
 	    stringAppend(&vstr, "\"", 1);
@@ -365,7 +365,7 @@ httpMakeVaryMark(request_t * request, HttpReply * reply)
 	safe_free(name);
 	value = strBuf(hdr);
 	if (value) {
-	    value = rfc1738_escape(value);
+	    value = rfc1738_escape_part(value);
 	    stringAppend(&vstr, "=\"", 2);
 	    stringAppend(&vstr, value, strlen(value));
 	    stringAppend(&vstr, "\"", 1);
