@@ -261,6 +261,12 @@ memPoolDescribe(const MemPool * pool)
 	toKB(memPoolInUseSize(pool)));
 }
 
+size_t
+memTotalAllocated()
+{
+    return TheMeter.alloc.level;
+}
+
 void
 memPoolReport(const MemPool * pool, StoreEntry * e)
 {
