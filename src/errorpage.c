@@ -143,7 +143,6 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
     if (mem)
 	mem->reply->code = err->http_status;
     errorStateFree(err);
-    xfree(err);
 }
 
 /*
@@ -192,7 +191,6 @@ errorSendComplete(int fd, char *buf, int size, int errflag, void *data)
 	    comm_close(fd);
     }
     errorStateFree(err);
-    cbdataFree(err);
 }
 
 static void
