@@ -377,6 +377,31 @@ storeLog(int tag, const StoreEntry * e)
 	xfree);
 }
 
+#if DEBUG_FD_LEAK
+static void
+storeLogFD(int fd, const StoreEntry * e, int f_open, int f_write)
+{
+    LOCAL_ARRAY(char, logmsg, MAX_URL << 1);
+    if (storelog_fd < 0)
+	return;
+    sprintf(logmsg, "%9d.%03d      FD %4d %9s %9s  %08X %s\n",
+	(int) current_time.tv_sec,
+	(int) current_time.tv_usec / 1000,
+	fd,
+	f_open ? "OPEN" : "CLOSE",
+	f_write ? "WRITE" : "READ",
+	e->swap_file_number,
+	e->key);
+    file_write(storelog_fd,
+	xstrdup(logmsg),
+	strlen(logmsg),
+	NULL,
+	NULL,
+	xfree);
+}
+
+#endif
+
 
 /* get rid of memory copy of the object */
 /* Only call this if storeCheckPurgeMem(e) returns 1 */
@@ -442,8 +467,6 @@ storeUnlockObject(StoreEntry * e)
     else if (e->object_len > Config.Store.maxObjectSize)
 	storeRelease(e);
     else {
-	storeSwapLog(e);
-	storeLog(STORE_LOG_SWAPOUT, e);
 	storePurgeMem(e);
     }
     return 0;
@@ -793,12 +816,17 @@ storeCheckDoneWriting(StoreEntry * e)
     store_swapok_size += (int) ((e->object_len + 1023) >> 10);
     if (mem->swapout_fd > -1) {
 	file_close(mem->swapout_fd);
+#if DEBUG_FD_LEAK
+	storeLogFD(mem->swapout_fd, e, 0, 1);
+#endif
 	mem->swapout_fd = -1;
     }
     HTTPCacheInfo->proto_newobject(HTTPCacheInfo,
 	proto,
 	e->object_len,
 	FALSE);
+    storeSwapLog(e);
+    storeLog(STORE_LOG_SWAPOUT, e);
     storeUnlockObject(e);
 }
 
@@ -999,6 +1027,9 @@ storeOpenSwapFileWrite(StoreEntry * e)
     debug(20, 3, "storeOpenSwapFileWrite: FD %d, saving '%s' to %s.\n",
 	fd, e->url, swapfilename);
     e->swap_file_number = swapfileno;
+#if DEBUG_FD_LEAK
+    storeLogFD(fd, e, 1, 1);
+#endif
     mem->swap_length = 0;
     storeLockObject(e);
     return fd;
@@ -1011,12 +1042,12 @@ storeOpenSwapFileRead(StoreEntry * e)
     char *path = NULL;
     /* sanity check! */
     if (e->swap_file_number < 0) {
-	debug_trap("storeSwapInStart: bad swap_file_number");
+	debug_trap("storeOpenSwapFileRead: bad swap_file_number");
 	return -1;
     }
     path = storeSwapFullPath(e->swap_file_number, NULL);
     if ((fd = file_open(path, NULL, O_RDONLY)) < 0) {
-	debug(20, 0, "storeSwapInStart: Failed for '%s'\n", e->url);
+	debug(20, 0, "storeOpenSwapFileRead: Failed for '%s'\n", e->url);
 	return -1;
     }
     debug(20, 3, "storeOpenSwapFileRead: opened on FD %d\n", fd);
