@@ -579,6 +579,10 @@ storeDirUpdateSwapSize(int fn, size_t size, int sign)
     int k = ((size + 1023) >> 10) * sign;
     Config.cacheSwap.swapDirs[dirn].cur_size += k;
     store_swap_size += k;
+    if (sign > 0)
+	n_disk_objects++;
+    else if (sign < 0)
+	n_disk_objects--;
 }
 
 void
