@@ -28,6 +28,8 @@ Changes to squid-1.0 (June 20, 1996):
 	  PENDING state if all dnsservers are busy.
 	- Fixed domain name matching bug when using '.com' instead of
 	  'com'.
+	- Fixed close_handler coredump bug in comm.c.
+	- Removed unnecessary DNS lookup of hostnames in WAIS URLs.
 
 Changes to squid-1.0.beta17 (June 12, 1996):
 
