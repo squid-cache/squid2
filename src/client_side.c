@@ -388,12 +388,14 @@ clientProcessExpired(void *data)
     http->old_reqsize = http->reqsize;
     http->old_reqofs = http->reqofs;
     http->reqbuf = http->ims_reqbuf;
+#if STORE_CLIENT_LIST_DEBUG
     /*
      * Assert that 'http' is already a client of old_entry.  If 
      * it is not, then the beginning of the object data might get
      * freed from memory before we need to access it.
      */
-    assert(http->sc->callback_data == http);
+    assert(http->sc->owner == http);
+#endif
     entry = storeCreateEntry(url,
 	http->log_uri,
 	http->request->flags,
