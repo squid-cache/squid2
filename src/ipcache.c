@@ -1119,5 +1119,5 @@ void ipcacheInvalidate(name)
     if (i->status != IP_CACHED)
 	i->ttl = 0;
     else
-        ipcache_release(i);
+	ipcache_release(i);
 }
