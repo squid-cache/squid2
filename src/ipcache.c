@@ -232,33 +232,19 @@ static ipcache_entry *ipcache_get(name)
 	if ((e = hash_lookup(ip_table, name)) != NULL)
 	    i = (ipcache_entry *) e;
     }
-    if (i == NULL)
-	return NULL;
-    if (i->status == IP_NEGATIVE_CACHED && ipcacheExpiredEntry(i)) {
-	ipcache_release(i);
-	i = NULL;
-    }
     return i;
 }
 
 /* get the first ip entry in the storage */
 static ipcache_entry *ipcache_GetFirst()
 {
-    static hash_link *entryPtr;
-
-    if ((!ip_table) || ((entryPtr = hash_first(ip_table)) == NULL))
-	return NULL;
-    return ((ipcache_entry *) entryPtr);
+    return (ipcache_entry *) hash_first(ip_table);
 }
 
 /* get the next ip entry in the storage for a given search pointer */
 static ipcache_entry *ipcache_GetNext()
 {
-    static hash_link *entryPtr;
-
-    if ((!ip_table) || ((entryPtr = hash_next(ip_table)) == NULL))
-	return NULL;
-    return ((ipcache_entry *) entryPtr);
+    return (ipcache_entry *) hash_next(ip_table);
 }
 
 static int ipcache_compareLastRef(e1, e2)
@@ -905,6 +891,9 @@ static void dnsDispatch(dns, i)
     if (!ipcacheHasPending(i)) {
 	debug(14, 0, "dnsDispatch: skipping '%s' because no handler.\n",
 	    i->name);
+	/* dont really expect to find status != IP_PENDING here... */
+        if (i->status == IP_PENDING)
+		ipcache_release(i);
 	return;
     }
     buf = xcalloc(1, 256);
@@ -1113,6 +1102,9 @@ void stat_ipcache_get(sentry, obj)
     int ttl;
     char status;
 
+    if (!ip_table)
+	return;
+
     storeAppendPrintf(sentry, "{IP Cache Statistics:\n");
     storeAppendPrintf(sentry, "{IPcache Entries: %d}\n",
 	meta_data.ipcache_count);
@@ -1183,17 +1175,6 @@ static char ipcache_status_char(i)
     }
     return ('X');
 }
-
-#ifdef UNUSED_CODE
-static int ipcache_hash_entry_count()
-{
-    ipcache_entry *i = NULL;
-    int n = 0;
-    for (i = ipcache_GetFirst(); i; i = ipcache_GetNext())
-	n++;
-    return n;
-}
-#endif
 
 void ipcacheShutdownServers()
 {
