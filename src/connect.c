@@ -178,6 +178,8 @@ static void connectReadClient(fd, data)
 	comm_close(fd);
 	return;
     }
+    if (!fdstat_isopen(data->remote))
+	fatal_dump("connectReadClient called after remote side closed\n");
     data->offset = 0;
     comm_set_select_handler_plus_timeout(data->client,
 	COMM_SELECT_TIMEOUT,
@@ -207,6 +209,7 @@ static void connectConnected(fd, data)
      int fd;
      ConnectData *data;
 {
+    debug(26,3,"connectConnected: FD %d data=%p\n", fd, data);
     storeAppend(data->entry, conn_established, strlen(conn_established));
     comm_set_fd_lifetime(fd, -1);	/* disable lifetime DPW */
     comm_set_select_handler_plus_timeout(data->remote, COMM_SELECT_TIMEOUT,
@@ -226,6 +229,11 @@ static int connectStateFree(fd, connectState)
 {
     if (connectState == NULL)
 	return 1;
+    comm_set_select_handler(connectState->client,
+	COMM_SELECT_READ,
+	NULL,
+	NULL);
+    memset(connectState, '\0', sizeof(ConnectData));
     safe_free(connectState);
     return 0;
 }
@@ -333,6 +341,7 @@ int connectStart(fd, url, request, mime_hdr, entry)
 		COMM_SELECT_WRITE,
 		(PF) connectConnInProgress,
 		(void *) data);
+	    return COMM_OK;
 	}
     }
     /* We got immediately connected. (can this happen?) */
