@@ -36,6 +36,7 @@ typedef struct {
     char *host;			/* either request->host or proxy host */
     u_short port;
     request_t *request;
+    request_t *proxy_request;
     char *buf;			/* stuff already read from client */
     int buflen;
     struct {
@@ -64,10 +65,6 @@ static void passClientClosed _PARAMS((int fd, void *));
 static void passConnectDone _PARAMS((int fd, int status, void *data));
 static void passStateFree _PARAMS((int fd, void *data));
 static void passSelectNeighbor _PARAMS((int, const ipcache_addrs *, void *));
-static int passParseHeaders _PARAMS((PassStateData * passState));
-static void passAppendHeader _PARAMS((const char *buf, PassStateData * passState));
-
-static char crlf[] = "\r\n";
 
 static void
 passClose(PassStateData * passState)
@@ -118,6 +115,7 @@ passStateFree(int fd, void *data)
     safe_free(passState->client.buf);
     xfree(passState->url);
     requestUnlink(passState->request);
+    requestUnlink(passState->proxy_request);
     memset(passState, '\0', sizeof(PassStateData));
     safe_free(passState);
 }
@@ -287,15 +285,7 @@ passReadTimeout(int fd, void *data)
     passClose(passState);
 }
 
-static void
-passAppendHeader(const char *buf, PassStateData * passState)
-{
-    debug(39, 3, "passAppendHeader: '%s'\n", buf);
-    strcat(passState->client.buf + passState->client.len, buf);
-    strcat(passState->client.buf + passState->client.len, crlf);
-    passState->client.len += strlen(buf) + 2;
-}
-
+#ifdef OLD_CODE
 static int
 passParseHeaders(PassStateData * passState)
 {
@@ -389,25 +379,31 @@ passParseHeaders(PassStateData * passState)
     passAppendHeader(null_string, passState);
     return hdr_len;
 }
+#endif
 
 static void
 passConnected(int fd, void *data)
 {
     PassStateData *passState = data;
-    int hdr_len = 0;
+    request_t *request = passState->request;
+    size_t hdr_len = 0;
     debug(39, 3, "passConnected: FD %d passState=%p\n", fd, passState);
     if (passState->proxying) {
-	sprintf(passState->client.buf, "%s %s HTTP/1.0\r\n",
-	    RequestMethodStr[passState->request->method],
-	    passState->url);
-    } else {
-	sprintf(passState->client.buf, "%s %s HTTP/1.0\r\n",
-	    RequestMethodStr[passState->request->method],
-	    passState->request->urlpath);
+	request = get_free_request_t();
+	passState->proxy_request = requestLink(request);
+	request->method = passState->request->method;
+	xstrncpy(request->urlpath, passState->url, MAX_URL);
     }
-    passState->client.len = strlen(passState->client.buf);
-    hdr_len = passParseHeaders(passState);
-    debug(39, 3, "Appending %d bytes of content\n", passState->buflen - hdr_len);
+    passState->client.len = httpBuildRequestHeader(request,
+	passState->request,	/* orig_request */
+	NULL,			/* entry */
+	passState->buf,
+	&hdr_len,
+	passState->client.buf,
+	SQUID_TCP_SO_RCVBUF >> 1,
+	opt_forwarded_for ? passState->client.fd : -1);
+    debug(39, 3, "passConnected: Appending %d bytes of content\n",
+	passState->buflen - hdr_len);
     memcpy(passState->client.buf + passState->client.len,
 	passState->buf + hdr_len,
 	passState->buflen - hdr_len);

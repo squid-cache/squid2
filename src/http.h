@@ -124,12 +124,6 @@ struct _http_reply {
 #define BUF_TYPE_8K 	1
 #define BUF_TYPE_MALLOC 2
 
-typedef enum {
-    HDR_IMS,
-    HDR_HOST,
-    HDR_MAXAGE
-} http_hdr_flag_t;
-
 typedef struct {
     StoreEntry *entry;
     request_t *request;
@@ -152,5 +146,13 @@ extern int httpStart _PARAMS((char *, request_t *, char *, int, StoreEntry *));
 extern void httpParseReplyHeaders _PARAMS((const char *, struct _http_reply *));
 extern void httpProcessReplyHeader _PARAMS((HttpStateData *, const char *, int));
 extern void httpReplyHeaderStats _PARAMS((StoreEntry *));
+extern size_t httpBuildRequestHeader _PARAMS((request_t * request,
+	request_t * orig_request,
+	StoreEntry * entry,
+	char *hdr_in,
+	size_t * in_len,
+	char *hdr_out,
+	size_t out_sz,
+	int cfd));
 
 #endif /* HTTP_H */
