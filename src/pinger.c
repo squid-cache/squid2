@@ -352,9 +352,9 @@ main(int argc, char *argv[])
 	    return 1;
 	if (FD_ISSET(0, &R))
 	    if (pingerReadRequest() < 0) {
-	        debug(42, 0, "Pinger exiting.\n");
+		debug(42, 0, "Pinger exiting.\n");
 		return 1;
-	}
+	    }
 	if (FD_ISSET(icmp_sock, &R))
 	    pingerRecv();
 	if (10 + last_check_time < squid_curtime) {

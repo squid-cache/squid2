@@ -302,7 +302,7 @@ netdbPeerAdd(netdbEntry * n, peer * e)
 }
 
 static int
-sortPeerByRtt(net_db_peer *p1, net_db_peer *p2)
+sortPeerByRtt(net_db_peer * p1, net_db_peer * p2)
 {
     if (p1->rtt > p2->rtt)
 	return 1;
@@ -346,7 +346,7 @@ netdbSaveState(void *foo)
     fclose(fp);
     getCurrentTime();
     debug(37, 0, "NETDB state saved; %d entries, %d msec\n",
-	count, tvSubMsec(start,current_time));
+	count, tvSubMsec(start, current_time));
     eventAdd("netdbSaveState", netdbSaveState, NULL, 3617);
 }
 

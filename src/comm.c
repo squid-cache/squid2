@@ -980,7 +980,7 @@ comm_select(time_t sec)
 	    }
 	}
 	if (!fdstat_are_n_free_fd(RESERVED_FD) && theHttpConnection >= 0) {
-	        FD_CLR(theHttpConnection, &readfds);
+	    FD_CLR(theHttpConnection, &readfds);
 	}
 	if (shutdown_pending || reread_pending)
 	    debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
