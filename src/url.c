@@ -197,10 +197,13 @@ request_t *urlParse(method, url)
     char *t = NULL;
     int port;
     protocol_t protocol = PROTO_NONE;
+    int l;
     proto[0] = host[0] = urlpath[0] = login[0] = '\0';
 
-    if (strlen(url) > MAX_URL) {
-	debug(23, 0, "urlParse: URL too large (%d bytes)\n", strlen(url));
+    if ((l = strlen(url)) > MAX_URL) {
+	/* terminate so it doesn't overflow other buffers */
+	*(url + (MAX_URL >> 1)) = '\0';
+	debug(23, 0, "urlParse: URL too large (%d bytes)\n", l);
 	return NULL;
     }
     if (method == METHOD_CONNECT) {
