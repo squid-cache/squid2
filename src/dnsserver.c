@@ -314,7 +314,7 @@ main(int argc, char *argv[])
 	t = strrchr(request, '\n');
 	if (t == NULL)		/* Ignore if no newline */
 	    continue;
-	    *t = '\0';		/* strip NL */
+	*t = '\0';		/* strip NL */
 	if ((t = strrchr(request, '\r')) != NULL)
 	    *t = '\0';		/* strip CR */
 	if (strcmp(request, "$shutdown") == 0) {

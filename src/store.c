@@ -1889,7 +1889,6 @@ storeMaintainSwapSpace(void *unused)
     int scan_buckets = 0;
     int scan_obj = 0;
     static struct _bucketOrder *b;
-
     if (store_swap_size > store_swap_high) {
 	eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 0);
 	storeGetSwapSpace();
