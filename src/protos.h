@@ -148,6 +148,7 @@ extern int commUnsetNonBlocking(int fd);
 extern void commSetCloseOnExec(int fd);
 extern int comm_accept(int fd, struct sockaddr_in *, struct sockaddr_in *);
 extern void comm_close(int fd);
+extern void comm_reset_close(int fd);
 #if LINGERING_CLOSE
 extern void comm_lingering_close(int fd);
 #endif
