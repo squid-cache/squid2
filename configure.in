@@ -269,13 +269,15 @@ AC_ARG_ENABLE(icmp,
   fi
 ])
 
-AC_ARG_ENABLE(delay_hack,
-[  --enable-delay-hack     Enable delay hack to limit bandwith usage],
+AC_ARG_ENABLE(delay_pools,
+[  --enable-delay-pools    Enable delay pools to limit bandwith usage],
 [ if test "$enableval" = "yes" ; then
-    echo "Delay hack enabled"
-    AC_DEFINE(DELAY_HACK)
+    echo "Delay pools enabled"
+    DELAY_OBJS='$(DELAY_OBJS)'
+    AC_DEFINE(DELAY_POOLS)
   fi
 ])
+AC_SUBST(DELAY_OBJS)
 
 AC_ARG_ENABLE(mem-gen-trace,
 [  --enable-mem-gen-trace  Do trace of memory stuff],

@@ -1824,7 +1824,7 @@ aclReadProxyAuth(acl_proxy_auth * p)
 	hashFreeItems(p->hash, aclFreeProxyAuthUser);
 	hashFreeMemory(p->hash);
     }
-    p->hash = hash_create((HASHCMP*) strcmp, 7921, hash_string);
+    p->hash = hash_create((HASHCMP *) strcmp, 7921, hash_string);
     assert(NULL != p->hash);
     passwords = xmalloc((size_t) buf.st_size + 2);
     f = fopen(p->filename, "r");

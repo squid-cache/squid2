@@ -135,3 +135,6 @@ extern const char *StoreDigestMimeStr;	/* "application/cache-digest" */
 extern const Version CacheDigestVer;	/* { 3, 3 } */
 extern const char *MultipartMsgBoundaryStr;	/* "Unique-Squid-Separator" */
 extern icpUdpData *IcpQueueHead;	/* NULL */
+#if DELAY_POOLS
+extern time_t delay_pools_last_update;	/* 0 */
+#endif

@@ -138,6 +138,10 @@ urnStart(request_t * r, StoreEntry * e)
 	errorAppendEntry(e, err);
 	return;
     }
+#if DELAY_POOLS
+    urlres_r->delay.class = r->delay.class;
+    urlres_r->delay.position = r->delay.position;
+#endif
     httpHeaderPutStr(&urlres_r->header, HDR_ACCEPT, "text/plain");
     if ((urlres_e = storeGet(k)) == NULL) {
 	urlres_e = storeCreateEntry(urlres, urlres, 0, METHOD_GET);

@@ -58,7 +58,8 @@ snmp_basicFn(variable_list * Var, snint * ErrP)
 {
     variable_list *Answer;
     char *pp;
-    oid object_id[LEN_SQUID_OBJ_ID] = {SQUID_OBJ_ID};
+    oid object_id[LEN_SQUID_OBJ_ID] =
+    {SQUID_OBJ_ID};
 
     debug(49, 5) ("snmp_basicFn: Processing request with magic %d!\n", Var->name[7]);
 
@@ -74,8 +75,8 @@ snmp_basicFn(variable_list * Var, snint * ErrP)
 	break;
     case SYS_OBJECT_ID:
 	Answer->type = ASN_OBJECT_ID;
-        Answer->val_len = sizeof(object_id);
-        Answer->val.objid = oiddup(object_id, LEN_SQUID_OBJ_ID);
+	Answer->val_len = sizeof(object_id);
+	Answer->val.objid = oiddup(object_id, LEN_SQUID_OBJ_ID);
 	break;
     case SYS_UPTIME:
 	Answer->val_len = sizeof(snint);
@@ -512,7 +513,7 @@ snmp_prfSysFn(variable_list * Var, snint * ErrP)
     case PERF_SYS_NUMR:
 	*(Answer->val.integer) = IOStats.Http.reads;
 	break;
-    case PERF_SYS_DEFR:		/* XXX unused, remove me */
+    case PERF_SYS_DEFR:	/* XXX unused, remove me */
 	*(Answer->val.integer) = 0;
 	break;
     case PERF_SYS_MEMUSAGE:

@@ -794,6 +794,10 @@ parse_peer(peer ** head)
 	    else
 		p->carp.load_factor = atof(token + 17);
 #endif
+#if DELAY_POOLS
+	} else if (!strcasecmp(token, "no-delay")) {
+	    EBIT_SET(p->options, NEIGHBOR_NO_DELAY);
+#endif
 	} else {
 	    debug(3, 0) ("parse_peer: token='%s'\n", token);
 	    self_destruct();

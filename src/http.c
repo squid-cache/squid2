@@ -722,6 +722,14 @@ httpStart(FwdState * fwdState, int fd)
 	 */
 	if (EBIT_TEST(httpState->peer->options, NEIGHBOR_PROXY_ONLY))
 	    storeReleaseRequest(httpState->entry);
+#if DELAY_POOLS
+	if (EBIT_TEST(httpState->peer->options, NEIGHBOR_NO_DELAY)) {
+	    proxy_req->delay.class = 0;
+	} else {
+	    proxy_req->delay.class = orig_req->delay.class;
+	    proxy_req->delay.position = orig_req->delay.position;
+	}
+#endif
     } else {
 	httpState->request = requestLink(orig_req);
 	httpState->orig_request = requestLink(orig_req);

@@ -495,6 +495,9 @@ enum {
     NEIGHBOR_HTCP,
 #endif
     NEIGHBOR_NO_NETDB_EXCHANGE,
+#if DELAY_POOLS
+    NEIGHBOR_NO_DELAY,
+#endif
     NEIGHBOR_END
 };
 
