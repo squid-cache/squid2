@@ -25,6 +25,11 @@
 @TOP@
 /* $Id$ */
 
+/*
+ * configure command line used to configure Squid
+ */
+#undef SQUID_CONFIGURE_OPTIONS
+
 /*********************************
  * START OF CONFIGURABLE OPTIONS *
  *********************************/

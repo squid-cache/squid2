@@ -73,6 +73,7 @@ AC_DEFINE_UNQUOTED(CACHE_ICP_PORT, $CACHE_ICP_PORT)
 
 AC_DEFINE_UNQUOTED(CONFIG_HOST_TYPE, "$host")
 
+AC_DEFINE_UNQUOTED(SQUID_CONFIGURE_OPTIONS, "$ac_configure_args")
 
 dnl Gerben Wierda <Gerben_Wierda@RnA.nl>
 case "$host" in

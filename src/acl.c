@@ -1264,7 +1264,7 @@ aclDumpUserMaxIP(void *data)
     char buf[128];
     if (acldata->flags.strict)
 	wordlistAdd(&W, "-s");
-    snprintf(buf, sizeof(buf), "%d", acldata->max);
+    snprintf(buf, sizeof(buf), "%ld", acldata->max);
     wordlistAdd(&W, buf);
     return W;
 }
