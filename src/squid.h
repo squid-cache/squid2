@@ -1,4 +1,6 @@
 
+
+
 /*
  * $Id$
  *
@@ -222,6 +224,9 @@
 
 /* Make sure syslog goes after stdarg/varargs */
 #ifdef HAVE_SYSLOG_H
+#ifdef _SQUID_AIX_
+#define _XOPEN_EXTENDED_SOURCE
+#endif
 #include <syslog.h>
 #endif
 
@@ -298,6 +303,10 @@ struct rusage {
 
 #if CBDATA_DEBUG
 #define cbdataAdd(a,b)	cbdataAddDbg(a,b,__FILE__,__LINE__)
+#endif
+
+#if defined(_SQUID_NEXT_) && !defined(S_ISDIR)
+#define S_ISDIR(mode) (((mode) & (_S_IFMT)) == (_S_IFDIR))
 #endif
 
 #ifdef USE_GNUREGEX

@@ -118,7 +118,7 @@ struct radix_mask *rn_mkfreelist;
 struct radix_node_head *mask_rnhead;
 static char *addmask_key;
 static unsigned char normal_chars[] =
-{0, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, -1};
+{0, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xFF};
 static char *rn_zeros, *rn_ones;
 
 #define rn_masktop (mask_rnhead->rnh_treetop)

@@ -68,7 +68,9 @@ ipcCreate(int type, const char *prog, char *const args[], const char *name, int 
     int fd;
     socklen_t len;
     int tmp_s;
+#if HAVE_PUTENV
     char *env_str;
+#endif
     int x;
 
 #if HAVE_POLL && defined(_SQUID_OSF_)
@@ -237,9 +239,11 @@ ipcCreate(int type, const char *prog, char *const args[], const char *name, int 
 	    _exit(1);
 	}
     }
+#if HAVE_PUTENV
     env_str = xcalloc((tmp_s = strlen(Config.debugOptions) + 32), 1);
     snprintf(env_str, tmp_s, "SQUID_DEBUG=%s", Config.debugOptions);
     putenv(env_str);
+#endif
     dup2(crfd, 0);
     dup2(cwfd, 1);
     dup2(fileno(debug_log), 2);

@@ -266,7 +266,8 @@ httpReplyUpdateOnNotModified(HttpReply * rep, HttpReply * freshRep)
     /* clean cache */
     httpReplyHdrCacheClean(rep);
     /* update raw headers */
-    httpHeaderUpdate(&rep->header, &freshRep->header, &Denied304HeadersMask);
+    httpHeaderUpdate(&rep->header, &freshRep->header,
+	(const HttpHeaderMask *) &Denied304HeadersMask);
     /* init cache */
     httpReplyHdrCacheInit(rep);
 }

@@ -409,6 +409,21 @@ httpHdrRangeWillBeComplex(const HttpHdrRange * range)
     return 0;
 }
 
+/* hack: returns offset of first range spec */
+size_t
+httpHdrRangeFirstOffset(const HttpHdrRange * range)
+{
+    HttpHdrRangePos pos = HttpHdrRangeInitPos;
+    const HttpHdrRangeSpec *spec;
+    assert(range);
+    while ((spec = httpHdrRangeGetSpec(range, &pos))) {
+	if (!known_spec(spec->offset))	/* ignore unknowns */
+	    continue;
+	return spec->offset;
+    }
+    return 0;
+}
+
 /* generates a "unique" boundary string for multipart responses
  * the caller is responsible for cleaning the string */
 String

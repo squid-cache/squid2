@@ -55,12 +55,13 @@ redirectHandleReply(void *data, char *reply)
     redirectStateData *r = data;
     int valid;
     char *t;
-    assert(cbdataValid(data));
-    debug(29, 5) ("redirectHandleRead: {%s}\n", reply);
-    if ((t = strchr(reply, ' ')))
-	*t = '\0';
-    if (*reply == '\0')
-	reply = NULL;
+    debug(29, 5) ("redirectHandleRead: {%s}\n", reply ? reply : "<NULL>");
+    if (reply) {
+	if ((t = strchr(reply, ' ')))
+	    *t = '\0';
+	if (*reply == '\0')
+	    reply = NULL;
+    }
     valid = cbdataValid(r->data);
     cbdataUnlock(r->data);
     if (valid)

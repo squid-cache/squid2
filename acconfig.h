@@ -202,3 +202,13 @@
  * type of fd_set array
  */
 #undef fd_mask
+
+/*
+ * If _res structure has nsaddr_list member
+ */
+#undef HAVE_RES_NSADDR_LIST
+
+/*
+ * If _res structure has ns_list member
+ */
+#undef HAVE_RES_NS_LIST

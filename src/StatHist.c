@@ -273,7 +273,7 @@ statHistEnumDumper(StoreEntry * sentry, int idx, double val, double size, int co
 void
 statHistIntInit(StatHist * H, int n)
 {
-    statHistInit(H, n, Null, Null, 0, n - 1);
+    statHistInit(H, n, Null, Null, (double) 0, (double) n - 1);
 }
 
 void

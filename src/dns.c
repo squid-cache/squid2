@@ -59,10 +59,9 @@ dnsInit(void)
     wordlistAdd(&dnsservers->cmdline, Config.Program.dnsserver);
     if (Config.onoff.res_defnames)
 	wordlistAdd(&dnsservers->cmdline, "-D");
-    if (Config.dns_nameservers) {
+    for (w = Config.dns_nameservers; w != NULL; w = w->next) {
 	wordlistAdd(&dnsservers->cmdline, "-s");
-	for (w = Config.dns_nameservers; w != NULL; w = w->next)
-	    wordlistAdd(&dnsservers->cmdline, w->key);
+	wordlistAdd(&dnsservers->cmdline, w->key);
     }
     helperOpenServers(dnsservers);
     if (!init) {

@@ -101,3 +101,12 @@ internalLocalUri(const char *dir, const char *name)
 {
     return internalRemoteUri(getMyHostname(), Config.Port.http->i, dir, name);
 }
+
+const char *
+internalHostname(void)
+{
+    LOCAL_ARRAY(char, host, SQUIDHOSTNAMELEN + 1);
+    xstrncpy(host, getMyHostname(), SQUIDHOSTNAMELEN);
+    Tolower(host);
+    return host;
+}

@@ -405,7 +405,7 @@ delayBytesIn(delay_id d, int qty)
     }
     if (class == 2) {
 	delay_data.class2_aggregate -= qty;
-	delay_data.class3_individual[position] -= qty;
+	delay_data.class2_individual[position] -= qty;
 	return;
     }
     if (class == 3) {
