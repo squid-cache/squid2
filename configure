@@ -591,7 +591,7 @@ fi
 
 
 
-# From configure.in Revision: 1.167.2.7 
+# From configure.in Revision: 1.167.2.8 
 ac_aux_dir=
 for ac_dir in cfgaux $srcdir/cfgaux; do
   if test -f $ac_dir/install-sh; then
@@ -3967,6 +3967,7 @@ for ac_func in \
 	seteuid \
 	setpgrp \
 	setrlimit \
+	getrlimit \
 	setsid \
 	sigaction \
 	snprintf \
@@ -3981,12 +3982,12 @@ for ac_func in \
 
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
-echo "configure:3985: checking for $ac_func" >&5
+echo "configure:3986: checking for $ac_func" >&5
 if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3990 "configure"
+#line 3991 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -4009,7 +4010,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:4013: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:4014: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else
@@ -4042,12 +4043,12 @@ if test "$async_io" = "yes" ; then
 	
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
-echo "configure:4046: checking for $ac_func" >&5
+echo "configure:4047: checking for $ac_func" >&5
 if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4051 "configure"
+#line 4052 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -4070,7 +4071,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:4074: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:4075: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else
@@ -4097,7 +4098,7 @@ done
 fi
 
 echo $ac_n "checking if setresuid is implemented""... $ac_c" 1>&6
-echo "configure:4101: checking if setresuid is implemented" >&5
+echo "configure:4102: checking if setresuid is implemented" >&5
 if eval "test \"`echo '$''{'ac_cv_func_setresuid'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -4105,7 +4106,7 @@ else
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 4109 "configure"
+#line 4110 "configure"
 #include "confdefs.h"
 
 #include <stdlib.h>
@@ -4118,7 +4119,7 @@ else
   }
   
 EOF
-if { (eval echo configure:4122: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4123: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
   ac_cv_func_setresuid="yes"
 else
@@ -4143,7 +4144,7 @@ fi
 
 if test "$IPF_TRANSPARENT" ; then
     echo $ac_n "checking if IP-Filter header files are installed""... $ac_c" 1>&6
-echo "configure:4147: checking if IP-Filter header files are installed" >&5
+echo "configure:4148: checking if IP-Filter header files are installed" >&5
     if test "$ac_cv_header_ip_compat_h" = "no" ||
        test "$ac_cv_header_ip_fil_h" = "no" ||
        test "$ac_cv_header_ip_nat_h" = "no" ; then
@@ -4178,13 +4179,13 @@ if test -z "$USE_GNUREGEX" ; then
     esac
 fi
 echo $ac_n "checking if GNUregex needs to be compiled""... $ac_c" 1>&6
-echo "configure:4182: checking if GNUregex needs to be compiled" >&5
+echo "configure:4183: checking if GNUregex needs to be compiled" >&5
 if test -z "$USE_GNUREGEX"; then
 if test "$ac_cv_func_regcomp" = "no" || test "$USE_GNUREGEX" = "yes" ; then
 	USE_GNUREGEX="yes"
 else
 	cat > conftest.$ac_ext <<EOF
-#line 4188 "configure"
+#line 4189 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <regex.h>
@@ -4192,7 +4193,7 @@ int main() {
 regex_t t; regcomp(&t,"",0);
 ; return 0; }
 EOF
-if { (eval echo configure:4196: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4197: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   USE_GNUREGEX="no"
 else
@@ -4223,12 +4224,12 @@ for ac_func in \
 
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
-echo "configure:4227: checking for $ac_func" >&5
+echo "configure:4228: checking for $ac_func" >&5
 if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4232 "configure"
+#line 4233 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -4251,7 +4252,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:4255: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:4256: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else
@@ -4279,12 +4280,12 @@ done
 
 
 echo $ac_n "checking Default FD_SETSIZE value""... $ac_c" 1>&6
-echo "configure:4283: checking Default FD_SETSIZE value" >&5
+echo "configure:4284: checking Default FD_SETSIZE value" >&5
 if test "$cross_compiling" = yes; then
   DEFAULT_FD_SETSIZE=256
 else
   cat > conftest.$ac_ext <<EOF
-#line 4288 "configure"
+#line 4289 "configure"
 #include "confdefs.h"
 
 #if HAVE_STDIO_H
@@ -4309,7 +4310,7 @@ main() {
 }
 
 EOF
-if { (eval echo configure:4313: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4314: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
   DEFAULT_FD_SETSIZE=`cat conftestval`
 else
@@ -4328,12 +4329,12 @@ EOF
 
 
 echo $ac_n "checking Maximum number of filedescriptors we can open""... $ac_c" 1>&6
-echo "configure:4332: checking Maximum number of filedescriptors we can open" >&5
+echo "configure:4333: checking Maximum number of filedescriptors we can open" >&5
 if test "$cross_compiling" = yes; then
   SQUID_MAXFD=256
 else
   cat > conftest.$ac_ext <<EOF
-#line 4337 "configure"
+#line 4338 "configure"
 #include "confdefs.h"
 
 #include <stdio.h>
@@ -4399,7 +4400,7 @@ main() {
 }
 
 EOF
-if { (eval echo configure:4403: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4404: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
   SQUID_MAXFD=`cat conftestval`
 else
@@ -4425,12 +4426,12 @@ if test "$SQUID_MAXFD" -lt 512 ; then
 fi
 
 echo $ac_n "checking Default UDP send buffer size""... $ac_c" 1>&6
-echo "configure:4429: checking Default UDP send buffer size" >&5
+echo "configure:4430: checking Default UDP send buffer size" >&5
 if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_SNDBUF=16384
 else
   cat > conftest.$ac_ext <<EOF
-#line 4434 "configure"
+#line 4435 "configure"
 #include "confdefs.h"
 
 #include <stdlib.h>
@@ -4451,7 +4452,7 @@ main ()
 }
 
 EOF
-if { (eval echo configure:4455: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4456: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
   SQUID_UDP_SO_SNDBUF=`cat conftestval`
 else
@@ -4470,12 +4471,12 @@ EOF
 
 
 echo $ac_n "checking Default UDP receive buffer size""... $ac_c" 1>&6
-echo "configure:4474: checking Default UDP receive buffer size" >&5
+echo "configure:4475: checking Default UDP receive buffer size" >&5
 if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_RCVBUF=16384
 else
   cat > conftest.$ac_ext <<EOF
-#line 4479 "configure"
+#line 4480 "configure"
 #include "confdefs.h"
 
 #include <stdlib.h>
@@ -4496,7 +4497,7 @@ main ()
 }
 
 EOF
-if { (eval echo configure:4500: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4501: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
   SQUID_UDP_SO_RCVBUF=`cat conftestval`
 else
@@ -4515,12 +4516,12 @@ EOF
 
 
 echo $ac_n "checking Default TCP send buffer size""... $ac_c" 1>&6
-echo "configure:4519: checking Default TCP send buffer size" >&5
+echo "configure:4520: checking Default TCP send buffer size" >&5
 if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_SNDBUF=16384
 else
   cat > conftest.$ac_ext <<EOF
-#line 4524 "configure"
+#line 4525 "configure"
 #include "confdefs.h"
 
 #include <stdlib.h>
@@ -4541,7 +4542,7 @@ main ()
 }
 
 EOF
-if { (eval echo configure:4545: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4546: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
   SQUID_TCP_SO_SNDBUF=`cat conftestval`
 else
@@ -4560,12 +4561,12 @@ EOF
 
 
 echo $ac_n "checking Default TCP receive buffer size""... $ac_c" 1>&6
-echo "configure:4564: checking Default TCP receive buffer size" >&5
+echo "configure:4565: checking Default TCP receive buffer size" >&5
 if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_RCVBUF=16384
 else
   cat > conftest.$ac_ext <<EOF
-#line 4569 "configure"
+#line 4570 "configure"
 #include "confdefs.h"
 
 #include <stdlib.h>
@@ -4586,7 +4587,7 @@ main ()
 }
 
 EOF
-if { (eval echo configure:4590: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4591: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
   SQUID_TCP_SO_RCVBUF=`cat conftestval`
 else
@@ -4605,19 +4606,19 @@ EOF
 
 
 echo $ac_n "checking if sys_errlist is already defined""... $ac_c" 1>&6
-echo "configure:4609: checking if sys_errlist is already defined" >&5
+echo "configure:4610: checking if sys_errlist is already defined" >&5
 if eval "test \"`echo '$''{'ac_cv_needs_sys_errlist'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4614 "configure"
+#line 4615 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() {
 char *s = sys_errlist0;
 ; return 0; }
 EOF
-if { (eval echo configure:4621: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4622: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_needs_sys_errlist="no"
 else
@@ -4639,16 +4640,16 @@ EOF
 fi
 
 echo $ac_n "checking for libresolv _dns_ttl_ hack""... $ac_c" 1>&6
-echo "configure:4643: checking for libresolv _dns_ttl_ hack" >&5
+echo "configure:4644: checking for libresolv _dns_ttl_ hack" >&5
 cat > conftest.$ac_ext <<EOF
-#line 4645 "configure"
+#line 4646 "configure"
 #include "confdefs.h"
 extern int _dns_ttl_;
 int main() {
 return _dns_ttl_;
 ; return 0; }
 EOF
-if { (eval echo configure:4652: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:4653: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
 cat >> confdefs.h <<\EOF
@@ -4664,12 +4665,12 @@ fi
 rm -f conftest*
 
 echo $ac_n "checking if inet_ntoa() actually works""... $ac_c" 1>&6
-echo "configure:4668: checking if inet_ntoa() actually works" >&5
+echo "configure:4669: checking if inet_ntoa() actually works" >&5
 if test "$cross_compiling" = yes; then
   INET_NTOA_RESULT="broken"
 else
   cat > conftest.$ac_ext <<EOF
-#line 4673 "configure"
+#line 4674 "configure"
 #include "confdefs.h"
 
 #include <stdlib.h>
@@ -4688,7 +4689,7 @@ main ()
 }
 
 EOF
-if { (eval echo configure:4692: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4693: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
   INET_NTOA_RESULT=`cat conftestval`
 else
@@ -4714,9 +4715,9 @@ fi
 
 if test "$ac_cv_func_statvfs" = "yes" ; then
 echo $ac_n "checking for working statvfs() interface""... $ac_c" 1>&6
-echo "configure:4718: checking for working statvfs() interface" >&5
+echo "configure:4719: checking for working statvfs() interface" >&5
 cat > conftest.$ac_ext <<EOF
-#line 4720 "configure"
+#line 4721 "configure"
 #include "confdefs.h"
 
 #include <stdlib.h>
@@ -4733,7 +4734,7 @@ statvfs("/tmp", &sfs);
 
 ; return 0; }
 EOF
-if { (eval echo configure:4737: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4738: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_func_statvfs=yes
 else
@@ -4747,12 +4748,12 @@ echo "$ac_t""$ac_cv_func_statvfs" 1>&6
 fi
 
 echo $ac_n "checking for _res.nsaddr_list""... $ac_c" 1>&6
-echo "configure:4751: checking for _res.nsaddr_list" >&5
+echo "configure:4752: checking for _res.nsaddr_list" >&5
 if eval "test \"`echo '$''{'ac_cv_have_res_nsaddr_list'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4756 "configure"
+#line 4757 "configure"
 #include "confdefs.h"
 
 #if HAVE_SYS_TYPES_H
@@ -4775,7 +4776,7 @@ int main() {
 _res.nsaddr_list[0];
 ; return 0; }
 EOF
-if { (eval echo configure:4779: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4780: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_have_res_nsaddr_list="yes"
 else
@@ -4797,12 +4798,12 @@ fi
 
 if test $ac_cv_have_res_nsaddr_list = "no" ; then
 echo $ac_n "checking for _res.ns_list""... $ac_c" 1>&6
-echo "configure:4801: checking for _res.ns_list" >&5
+echo "configure:4802: checking for _res.ns_list" >&5
 if eval "test \"`echo '$''{'ac_cv_have_res_ns_list'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4806 "configure"
+#line 4807 "configure"
 #include "confdefs.h"
 
 #if HAVE_SYS_TYPES_H
@@ -4825,7 +4826,7 @@ int main() {
 _res.ns_list[0].addr;
 ; return 0; }
 EOF
-if { (eval echo configure:4829: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4830: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_have_res_ns_list="yes"
 else

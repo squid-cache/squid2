@@ -924,6 +924,7 @@ AC_CHECK_FUNCS(\
 	seteuid \
 	setpgrp \
 	setrlimit \
+	getrlimit \
 	setsid \
 	sigaction \
 	snprintf \
