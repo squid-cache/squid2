@@ -276,15 +276,12 @@ void storeFreeEntry(e)
     if (has_mem_obj(e)) {
 	safe_free(e->mem_obj->mime_hdr);
 	/* Leave an unzeroed pointer to the abort msg for posterity */
-	if (e->mem_obj->e_abort_msg)
-	    free(e->mem_obj->e_abort_msg);
+	safe_free(e->mem_obj->e_abort_msg);
 	safe_free(e->mem_obj->pending);
 	/* look up to free client_list */
 	if (e->mem_obj->client_list) {
-	    for (i = 0; i < e->mem_obj->client_list_size; ++i) {
-		if (e->mem_obj->client_list[i])
+	    for (i = 0; i < e->mem_obj->client_list_size; ++i)
 		    safe_free(e->mem_obj->client_list[i]);
-	    }
 	    safe_free(e->mem_obj->client_list);
 	}
     }
@@ -686,7 +683,6 @@ StoreEntry *storeAddDiskRestore(url, file_number, size, expires, timestamp)
     BIT_RESET(e->flag, ENTRY_PRIVATE);
     e->method = METHOD_GET;
     storeSetPublicKey(e);
-    e->flag = 0;
     BIT_SET(e->flag, CACHABLE);
     BIT_RESET(e->flag, RELEASE_REQUEST);
     BIT_SET(e->flag, ENTRY_HTML);
