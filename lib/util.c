@@ -630,10 +630,14 @@ const char *
 xstrerror(void)
 {
     static char xstrerror_buf[BUFSIZ];
-    if (errno < 0 || errno >= sys_nerr)
-	snprintf(xstrerror_buf, BUFSIZ, "(%d) Unknown", errno);
+    static char strerror_buf[BUFSIZ];
+
+    snprintf(strerror_buf, BUFSIZ, "%s", strerror(errno));
+   
+    if (strerror_buf) 
+	snprintf(xstrerror_buf, BUFSIZ, "(%d) %s", errno, strerror_buf);
     else
-	snprintf(xstrerror_buf, BUFSIZ, "(%d) %s", errno, strerror(errno));
+        snprintf(xstrerror_buf, BUFSIZ, "(%d) Unknown", errno); 
     return xstrerror_buf;
 }
 
