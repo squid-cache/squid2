@@ -1570,6 +1570,8 @@ clientReadRequest(int fd, void *data)
 	    request->http_ver = http->http_ver;
 	    request->headers = headers;
 	    request->headers_sz = headers_sz;
+if (request->http_ver < 1.0 || request->http_ver > 1.1)
+debug(0,0)("Got HTTP version %f\n", http->http_ver);
 	    if (!urlCheckRequest(request)) {
 		err = errorCon(ERR_UNSUP_REQ, HTTP_NOT_IMPLEMENTED);
 		err->src_addr = conn->peer.sin_addr;

@@ -235,6 +235,8 @@
 #endif
 
 #if PURIFY
+/* disable assert() under purify */
+#define NODEBUG
 #define LOCAL_ARRAY(type,name,size) \
         static type *local_##name=NULL; \
         type *name = local_##name ? local_##name : \

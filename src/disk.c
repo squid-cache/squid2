@@ -378,8 +378,8 @@ static void
 diskHandleRead(int fd, void *data)
 {
     dread_ctrl *ctrl_dat = data;
-    fde *F = &fd_table[fd];
 #if !USE_ASYNC_IO
+    fde *F = &fd_table[fd];
     int len;
 #endif
     disk_ctrl_t *ctrlp = xcalloc(1, sizeof(disk_ctrl_t));

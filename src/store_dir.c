@@ -281,6 +281,8 @@ storeDirCloseSwapLogs(void)
     SwapDir *SD;
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
 	SD = &Config.cacheSwap.swapDirs[i];
+	if (SD->swaplog_fd < 0)	/* not open */
+	    continue;
 	file_close(SD->swaplog_fd);
 	debug(47, 3) ("Cache Dir #%d log closed on FD %d\n", i, SD->swaplog_fd);
 	SD->swaplog_fd = -1;
