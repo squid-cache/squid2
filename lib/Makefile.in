@@ -31,7 +31,7 @@ UTILOBJS	= rfc850.o \
 REGEXOBJS	= GNUregex.o
 LIBS		= libutil.a libregex.a
 
-CFLAGS		= $(STD_CFLAGS) $(INCLUDE)
+CFLAGS		= $(STD_CFLAGS) $(XTRA_CFLAGS) $(INCLUDE)
 LDFLAGS		= $(STD_LDFLAGS)
 
 all: $(LIBS)
