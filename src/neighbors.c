@@ -573,7 +573,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 #ifdef UDP_HIT_WITH_OBJ
     } else if (header->opcode == ICP_OP_HIT_OBJ) {
 	if (entry->object_len != 0) {
-	    debug(15, 0, "NON ZERO OBJECT LEN FOR ICP_OP_HIT_OBJ?\n");
+	    debug(15, 0, "Too late UDP_HIT_OBJ '%s'?\n", entry->url);
 	    return;
 	}
 	storeAppend(entry, data, data_sz);
