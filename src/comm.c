@@ -1122,10 +1122,6 @@ static void checkLifetimes()
 	    debug(5, 5, "checkLifetimes: FD %d: Calling read handler\n", fd);
 	    func(fd, fd_table[fd].read_data);
 	    fd_table[fd].read_handler = NULL;
-	} else if ((func = fd_table[fd].read_handler)) {
-	    debug(5, 5, "checkLifetimes: FD %d: Calling read handler\n", fd);
-	    func(fd, fd_table[fd].read_data);
-	    fd_table[fd].read_handler = NULL;
 	} else if ((func = fd_table[fd].write_handler)) {
 	    debug(5, 5, "checkLifetimes: FD %d: Calling write handler\n", fd);
 	    func(fd, fd_table[fd].write_data);
