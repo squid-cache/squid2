@@ -439,7 +439,6 @@ int getFromCache(fd, entry, e)
      edge *e;
 {
     char *url = entry->url;
-    char *type = RequestMethodStr[entry->type_id];
     char *request_hdr = entry->mem_obj->mime_hdr;
 
     debug(17, 5, "getFromCache: FD %d <URL:%s>\n", fd, entry->url);
