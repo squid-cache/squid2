@@ -1,0 +1,104 @@
+
+$Id$
+
+Release Notes for version 1.0 of the Squid cache.
+
+TABLE OF CONTENTS:
+
+	Private Objects
+	Proper parsing of HTTP reply codes
+	Support for If-Modified-Since GET
+	Improvements to the access log
+	New -U command line option
+	Changes to debugging
+	New Access Control scheme
+	Using SIGHUP to reconfigure the cache
+	ftpget server
+	Changes to cache shutdown
+	Assigning weights to cache neighbors
+
+
+
+Private Objects
+==============================================================================
+
+The Squid cache uses the notions of ``private'' and ``public''
+objects.  An object can start out as being private, but may later be
+given public status.  Private objects are associated with only a single
+client whereas a public object may be sent to multiple clients at the
+same time.  When the cache finishes retrieving an object, if the object
+is private it will be ejected from the cache.  Only public objects
+are saved on disk.
+
+There are a few ways to determine whether an object should be private
+or public.  One is the request method.  Only URLs requested with
+the ``GET'' method can be public.  Another way is by examining the 
+URL string.  URLs which match one of the stoplist entries will 
+always be private objects.  Usually this includes ``cgi-bin'' scripts.
+A third way is by checking the HTTP request and reply headers.  For 
+example, if the request includes user authentication information, then
+the object should never be made public.  Additionally, some HTTP
+replies such as ``401 Unauthorized'' should also never be made public.
+
+For these reasons, Squid starts all objects out as private and changes
+them to public only after the HTTP reply headers have been read.
+
+Unfortunately, this causes some problems with the UDP-based Internet
+Cache Protocol (ICP) used to query neighboring caches.  Specifically, when
+an ICP reply packet is received, it only contains the object URL which
+is not sufficient enough to locate private objects in the cache metadata.
+To get the additional information needed to locate private objects, we
+decided to use the ``reqnum'' field of the ICP packet.  This is an
+acceptable solution, except that as implemented in cached-1.4.pl3 and
+earlier, all ICP replies have the reqnum field reset to zero!
+
+Squid will make use of private objects until it notices that one of
+its neighbors is sending ICP replies with the reqnum field set to zero.
+It will then only use private keys for objects which are not going to
+be queried for via ICP.  These include objects in the stoplist and
+If-Modified-Since requests.  
+
+Proper parsing of HTTP reply codes
+==============================================================================
+
+Squid parses HTTP replies to extract the reply code.  The codes are used
+to determine which objects should be cached, which should be ejected,
+and which should be negative-cached.  Currently, the following are
+hard-coded:
+
+    These could be cached for a long time:
+	200 OK
+	203 Non-Authoritative Information
+	300 Multiple Choices
+	301 Moved Permanently
+	410 Gone
+
+    These are ejected immediately:
+	304 Not Modified
+	401 Unauthorized
+	407 Proxy Authentication Required
+
+    All others are negative-cached (for whatever is configured, default
+    five minutes).  They include:
+	302 Moved Temporarily
+	400 Bad Request
+	403 Forbidden
+	404 Not Found
+	500 Internal Server Error
+
+The HTTP codes are now logged to "access.log" in the native format 
+(ie with 'emulate_httpd_log off').
+
+==============================================================================
+==============================================================================
+==============================================================================
+==============================================================================
+==============================================================================
+==============================================================================
+==============================================================================
+==============================================================================
+==============================================================================
+==============================================================================
+==============================================================================
+==============================================================================
+==============================================================================
