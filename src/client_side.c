@@ -1041,9 +1041,6 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     httpHeaderPutStr(hdr,
 	http->flags.accel ? HDR_CONNECTION : HDR_PROXY_CONNECTION,
 	request->flags.proxy_keepalive ? "keep-alive" : "close");
-    /* Accept-Range header for cached objects if not there already */
-    if (is_hit && !httpHeaderHas(hdr, HDR_ACCEPT_RANGES))
-	httpHeaderPutStr(hdr, HDR_ACCEPT_RANGES, "bytes");
 #if ADD_X_REQUEST_URI
     /*
      * Knowing the URI of the request is useful when debugging persistent
@@ -1624,6 +1621,11 @@ clientProcessRequest2(clientHttpRequest * http)
 	http->entry = NULL;
 	ipcacheReleaseInvalid(r->host);
 	return LOG_TCP_CLIENT_REFRESH_MISS;
+    } else if (r->range && httpHdrRangeWillBeComplex(r->range)) {
+	/* some clients break if we return "200 OK" for a Range request
+	 * and we _will_ return 200 if ranges happen to bee too complex */
+	http->entry = NULL;
+	return LOG_TCP_MISS;
     } else {
 	http->entry = e;
 	return LOG_TCP_HIT;
