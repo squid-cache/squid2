@@ -7,7 +7,8 @@ typedef enum {
     METHOD_NONE,
     METHOD_GET,
     METHOD_POST,
-    METHOD_HEAD
+    METHOD_HEAD,
+    METHOD_CONNECT
 } method_t;
 
 extern char *RequestMethodStr[];
@@ -19,6 +20,7 @@ typedef enum {
     PROTO_GOPHER,
     PROTO_WAIS,
     PROTO_CACHEOBJ,
+    PROTO_CONNECT,
     PROTO_MAX
 } protocol_t;
 

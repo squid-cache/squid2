@@ -32,8 +32,8 @@ static void connectReadRemote _PARAMS((int fd, ConnectData * data));
 static void connectReadTimeout _PARAMS((int fd, ConnectData * data));
 static void connectSendRemote _PARAMS((int fd, ConnectData * data));
 static void connectReadClient _PARAMS((int fd, ConnectData * data));
-static void connectConnectTimeout _PARAMS((int fd, ConnectData * data));
-static void connectConnectRemote _PARAMS((int fd, ConnectData * data));
+static void connectConnected _PARAMS((int fd, ConnectData * data));
+static void connectConnInProgress _PARAMS((int fd, ConnectData * data));
 static void connectCloseAndFree _PARAMS((int fd, ConnectData * data));
 
 extern intlist *connect_port_list;
@@ -54,7 +54,7 @@ static int connect_url_parser(url, host, port, request)
     atypebuf[0] = hostbuf[0] = request[0] = host[0] = '\0';
 
     t = sscanf(url, "%[a-zA-Z]://%[^/]%s", atypebuf, hostbuf, request);
-    if ((t < 2) || (strcasecmp(atypebuf, "conne") != 0)) {
+    if ((t < 2) || (strcasecmp(atypebuf, "connect") != 0)) {
 	return -1;
     } else if (t == 2) {
 	strcpy(request, "/");
@@ -243,15 +243,7 @@ static void connectReadTimeout(fd, data)
     connectCloseAndFree(fd, data);
 }
 
-static void connectConnectTimeout(fd, data)
-     int fd;
-     ConnectData *data;
-{
-    cached_error_entry(data->entry, ERR_CONNECT_FAIL, xstrerror());
-    connectCloseAndFree(fd, data);
-}
-
-static void connectConnectRemote(fd, data)
+static void connectConnected(fd, data)
      int fd;
      ConnectData *data;
 {
@@ -267,6 +259,7 @@ static void connectConnectRemote(fd, data)
 	(PF) connectReadClient, (void *) data);
 }
 
+
 static void connectCloseAndFree(fd, data)
      int fd;
      ConnectData *data;
@@ -281,6 +274,41 @@ static void connectCloseAndFree(fd, data)
     }
     safe_free(data);
 }
+
+void connectConnInProgress(fd, data)
+     int fd;
+     ConnectData *data;
+{
+    debug(26, 5, "connectConnInProgress: FD %d data=%p\n", fd, data);
+
+    if (comm_connect(fd, data->host, data->port) != COMM_OK) {
+	debug(26, 5, "connectConnInProgress: FD %d errno=%d", fd, errno);
+	switch (errno) {
+#if EINPROGRESS != EALREADY
+	case EINPROGRESS:
+#endif
+	case EALREADY:
+	    /* We are not connectedd yet. schedule this handler again */
+	    comm_set_select_handler(fd, COMM_SELECT_WRITE,
+		(PF) connectConnInProgress,
+		(void *) data);
+	    return;
+	case EISCONN:
+	    /* We are connected (doesn't comm_connect return
+	     * COMM_OK on EISCONN?)
+	     */
+	    break;
+	default:
+	    cached_error_entry(data->entry, ERR_CONNECT_FAIL, xstrerror());
+	    connectCloseAndFree(fd, data);
+	    return;
+	}
+    }
+    /* We are now fully connected */
+    connectConnected(fd, data);
+    return;
+}
+
 
 int connectStart(fd, url, method, mime_hdr, entry)
      int fd;
@@ -317,6 +345,7 @@ int connectStart(fd, url, method, mime_hdr, entry)
 	safe_free(data);
 	return COMM_ERROR;
     }
+    data->remote = sock;
 #ifdef STAT_FD_ASSOC
     stat_fd_assoc(fd, sock);
 #endif
@@ -330,6 +359,12 @@ int connectStart(fd, url, method, mime_hdr, entry)
 	connectCloseAndFree(sock, data);
 	return COMM_ERROR;
     }
+    debug(26, 5, "connectStart: client=%d remote=%d\n", fd, sock);
+    /* Install lifetime handler */
+    comm_set_select_handler(sock,
+	COMM_SELECT_LIFETIME,
+	(PF) connectLifetimeExpire,
+	(void *) data);
     /* Open connection. */
     if ((status = comm_connect(sock, data->host, data->port))) {
 	if (status != EINPROGRESS) {
@@ -338,24 +373,14 @@ int connectStart(fd, url, method, mime_hdr, entry)
 	    return COMM_ERROR;
 	} else {
 	    debug(26, 5, "connectStart: conn %d EINPROGRESS\n", sock);
-	    return COMM_OK;
+	    /* The connection is in progress, install connect handler */
+	    comm_set_select_handler(sock,
+		COMM_SELECT_WRITE,
+		(PF) connectConnInProgress,
+		(void *) data);
 	}
     }
-    data->remote = sock;
-    /* Install connection complete handler. */
-    debug(26, 5, "connectStart: client=%d remote=%d\n", fd, sock);
-    comm_set_select_handler(sock,
-	COMM_SELECT_LIFETIME,
-	(PF) connectLifetimeExpire,
-	(void *) data);
-    comm_set_select_handler_plus_timeout(sock,
-	COMM_SELECT_TIMEOUT,
-	(PF) connectConnectTimeout,
-	(void *) data,
-	data->timeout);
-    comm_set_select_handler(sock,
-	COMM_SELECT_WRITE,
-	(PF) connectConnectRemote,
-	(void *) data);
+    /* We got immediately connected. (can this happen?) */
+    connectConnected(sock, data);
     return COMM_OK;
 }
