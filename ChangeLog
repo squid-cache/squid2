@@ -10,6 +10,7 @@ Changes to squid-1.0.9 (August 19, 1996):
 	- Added a check for a valid ICP socket before sending ICP
 	  queries.
 	- Fixed SSL code to unregister DNS lookups if client aborts.
+	- Removed lib/host_cache.c from distribution.
 
 Changes to squid-1.0.8 (August 19, 1996):
 
