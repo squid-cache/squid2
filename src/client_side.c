@@ -234,7 +234,7 @@ clientProcessExpired(void *data)
     char *url = http->uri;
     StoreEntry *entry = NULL;
     debug(33, 3) ("clientProcessExpired: '%s'\n", http->uri);
-    assert(entry->lastmod >= 0);
+    assert(http->entry->lastmod >= 0);
     /*
      * check if we are allowed to contact other servers
      * @?@: Instead of a 504 (Gateway Timeout) reply, we may want to return 
