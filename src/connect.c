@@ -268,6 +268,7 @@ static void connectConnectRemote(fd, data)
 }
 
 static void connectCloseAndFree(fd, data)
+     int fd;
      ConnectData *data;
 {
     if (fd >= 0) {
