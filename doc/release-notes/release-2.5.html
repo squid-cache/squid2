@@ -133,6 +133,7 @@ exacly where you want to have them in your system.</LI>
 <DT><B>short_icon_urls</B><DD><P>New directive to enable an alternative way of referring to icons in FTP directory listings etc.</P>
 <DT><B>acl urllogin</B><DD><P>New acl type to match the login component of Internet style URLs (protocol://user:password@host/path/to/file)</P>
 <DT><B>balance_on_multiple_ip</B><DD><P>New directive to make it possible to disable the automatic round-robin load balancing on multiple IP addresses normally done by Squid.</P>
+<DT><B>reply_header_max_size</B><DD><P>New directive limiting the size of HTTP reply headers, similar to request_header_max_size but in the reply direction (from servers to clients). Default is 20KB.</P>
 </DL>
 </P>
 
@@ -309,6 +310,7 @@ directive from your squid.conf if not set correctly.</LI>
 <LI>request_header_max_size directive corrected. You may need to increase
 this value after upgrading if set very low. The default have been increased
 from 10 KB to 20 KB which should be sufficient for most uses.</LI>
+<LI>reply_header_max_size directive added</LI>
 <LI>http_header_access &amp; replace now support arbitrary headers,
 not only the well known headers known by Squid</LI>
 <LI>new acl types req_hdr and resp_hdr to match arbitrary HTTP headers,

@@ -56,8 +56,10 @@ Changes to squid-2.5.STABLE7 ()
 	- [Minor] New balance_on_multiple_ip directive to work around certain
 	  broken load balancers and optimized ipcache on reload requests
 	  (Bug #1058)
-	[2.5.STABLE7-RC2]
-
+	- [Medium] Odd things happens on large http reply headers
+	  (Bug #874)
+	- [Minor] Suspected instability on aborted PUT/POST requests
+	  (Bug #1089)
 
 Changes to squid-2.5.STABLE6 (9 Jul 2004)
 

@@ -120,6 +120,7 @@ for Applied Network Research and members of the Web Caching community.
 <tag>short_icon_urls</tag>New directive to enable an alternative way of referring to icons in FTP directory listings etc.
 <tag>acl urllogin</tag>New acl type to match the login component of Internet style URLs (protocol://user:password@host/path/to/file)
 <tag>balance_on_multiple_ip</tag>New directive to make it possible to disable the automatic round-robin load balancing on multiple IP addresses normally done by Squid.
+<tag>reply_header_max_size</tag>New directive limiting the size of HTTP reply headers, similar to request_header_max_size but in the reply direction (from servers to clients). Default is 20KB.
 </descrip>
 
 <sect>Known issues and limitations
@@ -281,6 +282,7 @@ name="ChangeLog"> file for details.
 	<item>request_header_max_size directive corrected. You may need to increase
 	this value after upgrading if set very low. The default have been increased
 	from 10 KB to 20 KB which should be sufficient for most uses.
+	<item>reply_header_max_size directive added
 	<item>http_header_access &amp; replace now support arbitrary headers,
 	not only the well known headers known by Squid
 	<item>new acl types req_hdr and resp_hdr to match arbitrary HTTP headers,
