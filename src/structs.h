@@ -522,6 +522,7 @@ struct _fde {
 	unsigned int nolinger:1;
 	unsigned int nonblocking:1;
 	unsigned int ipc:1;
+	unsigned int called_connect:1;
 #ifdef OPTIMISTIC_IO
 	unsigned int calling_io_handler:1;
 #endif
