@@ -495,6 +495,9 @@ struct _fde {
 	int nolinger:1;
 	int nonblocking:1;
 	int ipc:1;
+#ifdef OPTIMISTIC_IO
+	int calling_io_handler:1;
+#endif
     } flags;
     int bytes_read;
     int bytes_written;

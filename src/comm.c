@@ -834,7 +834,11 @@ comm_write(int fd, char *buf, int size, CWCB * handler, void *handler_data, FREE
     state->handler_data = handler_data;
     state->free_func = free_func;
     cbdataLock(handler_data);
+#ifdef OPTIMISTIC_IO
+    commHandleWrite(fd, state);
+#else
     commSetSelect(fd, COMM_SELECT_WRITE, commHandleWrite, state, 0);
+#endif
 }
 
 /* a wrapper around comm_write to allow for MemBuf to be comm_written in a snap */
