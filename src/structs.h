@@ -1175,7 +1175,7 @@ struct _DigestFetchState {
 	int bytes;
     } sent, recv;
     char buf[SM_PAGE_SIZE];
-    int bufofs;
+    ssize_t bufofs;
     digest_read_state_t state;
 };
 
