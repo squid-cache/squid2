@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -527,7 +528,7 @@ void setMaxFD()
 
 time_t getCurrentTime()
 {
-#if defined(_SQUID_MOTOROLA_)
+#if GETTIMEOFDAY_NO_TZP
     gettimeofday(&current_time);
 #else
     gettimeofday(&current_time, NULL);

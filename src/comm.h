@@ -145,7 +145,6 @@ typedef struct fde {
     StoreEntry *store_entry;
 
     /* Select handlers. */
-    void *client_data;		/* App. data to associate w/ handled conn. */
     PF read_handler;		/* Read  select handler. */
     void *read_data;		/* App. data to associate w/ handled conn. */
     PF write_handler;		/* Write select handler. */

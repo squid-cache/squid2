@@ -230,6 +230,7 @@ typedef void (*SIH) _PARAMS((int, void *));	/* swap in */
 #include "acl.h"
 #include "util.h"
 #include "background.h"
+#include "async_io.h"
 #include "redirect.h"
 
 #if !HAVE_TEMPNAM
