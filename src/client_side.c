@@ -1051,9 +1051,6 @@ static HttpReply *
 clientBuildReply(clientHttpRequest * http, const char *buf, size_t size)
 {
     HttpReply *rep = httpReplyCreate();
-#if DOUBTFUL
-    assert(size <= 4096);	/* httpReplyParse depends on this */
-#endif
     if (httpReplyParse(rep, buf)) {
 	/* enforce 1.0 reply version */
 	rep->sline.version = 1.0;
