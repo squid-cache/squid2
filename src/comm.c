@@ -320,7 +320,7 @@ int comm_set_fd_lifetime(fd, lifetime)
 	return fd_lifetime[fd] = -1;
     if (shutdown_pending || reread_pending) {
 	/* don't increase the lifetime if something pending */
-	if (fd_lifetime[fd] - squid_curtime < lifetime)
+	if (fd_lifetime > -1 && fd_lifetime[fd] - squid_curtime < lifetime)
 	    return fd_lifetime[fd];
     }
     return fd_lifetime[fd] = (int) squid_curtime + lifetime;
