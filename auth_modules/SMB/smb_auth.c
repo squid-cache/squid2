@@ -97,7 +97,7 @@ void print_esc(FILE *p, char *s)
 	}
 }
 
-void main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	int					i;
 	char				buf[BUFSIZE];
@@ -112,7 +112,7 @@ void main(int argc, char *argv[])
 
 	/* make standard output line buffered */
 	if (setvbuf(stdout, NULL, _IOLBF, 0) != 0)
-		return;
+		return 1;
 
 	/* parse command line arguments */
 	for (i = 1; i < argc; i++)
@@ -130,7 +130,7 @@ void main(int argc, char *argv[])
 		if (strcmp(argv[i], "-W") == 0)
 		{
 			if ((dom = (struct SMBDOMAIN *) malloc(sizeof(struct SMBDOMAIN))) == NULL)
-				return;
+				return 1;
 
 			dom->name = dom->sname = argv[++i];
 			dom->passthrough = "";
@@ -189,7 +189,7 @@ void main(int argc, char *argv[])
 			if (lastdom != NULL)
 			{
 				if ((lastdom->authshare = strdup(argv[++i])) == NULL)
-					return;
+					return 1;
 
 				/* convert backslashes to forward slashes */
 				for (s = lastdom->authshare; *s != '\0'; s++)
@@ -214,7 +214,7 @@ void main(int argc, char *argv[])
 
 	/* pass to helper script */
     if (putenv("SAMBAPREFIX=" SAMBAPREFIX) != 0)
-    	return;
+    	return 1;
 
 	while (1)
 	{
@@ -282,4 +282,5 @@ void main(int argc, char *argv[])
 			(void) printf("ERR\n");
 
 	} /* while (1) */
+    return 0;
 }
