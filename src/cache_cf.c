@@ -175,7 +175,7 @@ time_t neighbor_timeout = DefaultNeighborTimeout;	/* for fast access */
 int single_parent_bypass = 0;
 int DnsPositiveTtl = DefaultPositiveDnsTtl;
 char *DefaultSwapDir = DEFAULT_SWAP_DIR;
-char *config_file = DEFAULT_CONFIG_FILE;
+char *config_file = xstrdup(DEFAULT_CONFIG_FILE);
 char *cfg_filename = NULL;	/* just the last part */
 
 char w_space[] = " \t\n";
