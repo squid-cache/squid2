@@ -254,5 +254,6 @@ extern const char *const close_bracket;
 extern void stat_init _PARAMS((cacheinfo **, const char *));
 extern void stat_rotate_log _PARAMS((void));
 extern void statCloseLog _PARAMS((void));
+extern void log_hier_expt _PARAMS((struct timeval, struct _hierarchyLogData *));
 
 #endif /*STAT_H */

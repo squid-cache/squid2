@@ -213,11 +213,19 @@ struct _hierarchyLogData {
     hier_code code;
     char *host;
     int timeout;
-#ifdef LOG_ICP_NUMBERS
+#if defined(LOG_ICP_NUMBERS) || defined(HIER_EXPERIMENT)
     int n_sent;
     int n_expect;
     int n_recv;
     int delay;
+#endif
+#ifdef HIER_EXPERIMENT
+#define HIER_METH_DIRECT 1
+#define HIER_METH_RAND   2
+#define HIER_METH_ICP1   3
+#define HIER_METH_ICP2   4
+#define HIER_METHODS     4
+    int hier_method;
 #endif
 };
 
@@ -225,6 +233,9 @@ extern peer *getFirstPeer _PARAMS((void));
 extern peer *getFirstUpParent _PARAMS((request_t *));
 extern peer *getNextPeer _PARAMS((peer *));
 extern peer *getSingleParent _PARAMS((request_t *));
+#ifdef HIER_EXPERIMENT
+extern peer *getRandomParent _PARAMS((request_t *));
+#endif
 extern int neighborsCount _PARAMS((request_t *));
 extern int neighborsUdpPing _PARAMS((protodispatch_data *));
 extern void neighborAddDomainPing _PARAMS((const char *, const char *));

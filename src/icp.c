@@ -285,6 +285,9 @@ icpStateFree(int fd, void *data)
 	    icpState->log_type,
 	    ntohs(icpState->me.sin_port));
     }
+#ifdef HIER_EXPERIMENT
+	log_hier_expt(icpState->start, hierData);
+#endif
     if (icpState->redirect_state == REDIRECT_PENDING)
 	redirectUnregister(icpState->url, fd);
     if (icpState->ident.fd > -1)

@@ -648,15 +648,7 @@ main(int argc, char **argv)
     safe_inet_addr("0.0.0.0", &any_addr);
     memset(&no_addr, '\0', sizeof(struct in_addr));
     safe_inet_addr("255.255.255.255", &no_addr);
-
-#if HAVE_SRANDOM
-    srandom(time(NULL));
-#elif HAVE_SRAND48
-    srand48(time(NULL));
-#else
-    srand(time(NULL));
-#endif
-
+    squid_srandom(time(NULL));
     errorInitialize();
 
     squid_starttime = getCurrentTime();

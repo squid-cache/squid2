@@ -2382,14 +2382,6 @@ storeCreateSwapSubDirs(void)
     }
 }
 
-#if HAVE_RANDOM
-#define squid_random random
-#elif HAVE_LRAND48
-#define squid_random lrand48
-#else
-#define squid_random rand
-#endif
-
 static void
 storeRandomizeBuckets(void)
 {

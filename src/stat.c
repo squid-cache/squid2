@@ -110,6 +110,8 @@
 #define MAX_LINELEN (4096)
 #define max(a,b)  ((a)>(b)? (a): (b))
 
+static FILE *hierexplog = NULL;
+
 typedef struct _log_read_data_t {
     StoreEntry *sentry;
 } log_read_data_t;
@@ -1200,6 +1202,25 @@ log_append(const cacheinfo * obj,
 	debug(18, 1, "log_append: File write failed.\n");
 }
 
+#ifdef HIER_EXPERIMENT
+void
+log_hier_expt(struct timeval s, struct _hierarchyLogData *h)
+{
+    int usec = tvSubUsec(s, current_time);
+    if (h == NULL)
+	return;
+    fprintf(hierexplog, "%d.%03d %9d %d %2d %2d %2d %9d\n",
+	    (int) current_time.tv_sec,
+	    (int) current_time.tv_usec / 1000,
+	    usec,
+	    h->hier_method,
+	    h->n_sent,
+	    h->n_expect,
+	    h->n_recv,
+	    h->delay);
+}
+#endif
+
 static void
 log_enable(cacheinfo * obj, StoreEntry * sentry)
 {
@@ -1383,6 +1404,9 @@ stat_init(cacheinfo ** object, const char *logfilename)
 	obj->proto_stat_data[i].kb.now = 0;
     }
     *object = obj;
+#ifdef HIER_EXPERIMENT
+    hierexplog = fopen("/usr/local/squid/logs/hierexp.log", "a");
+#endif
 }
 
 void

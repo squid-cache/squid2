@@ -374,6 +374,27 @@ getDefaultParent(request_t * request)
     return NULL;
 }
 
+#ifdef HIER_EXPERIMENT
+peer *
+getRandomParent(request_t * request)
+{
+    peer *e;
+    peer *f = NULL;
+    peer *next = Peers.peers_head;
+    int n = squid_random() % Peers.n;
+    while (n--) {
+	e = next;
+	next = e->next ? e->next : Peers.peers_head;
+	if (neighborType(e, request) != PEER_PARENT)
+	    continue;
+	if (!peerHTTPOkay(e, request))
+	    continue;
+	f = e;
+    }
+    return f;
+}
+#endif
+
 peer *
 getNextPeer(peer * e)
 {
@@ -520,6 +541,9 @@ neighborsUdpPing(protodispatch_data * proto)
 		    if (e->icp_version == ICP_VERSION_2)
 			flags |= ICP_FLAG_HIT_OBJ;
 	    if (Config.Options.query_icmp)
+#ifdef HIER_EXPERIMENT
+	      if (request->hierarchy.hier_method == HIER_METH_ICP2)
+#endif
 		if (e->icp_version == ICP_VERSION_2)
 		    flags |= ICP_FLAG_SRC_RTT;
 	    query = icpCreateMessage(ICP_OP_QUERY, flags, url, reqnum, 0);
