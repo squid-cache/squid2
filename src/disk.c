@@ -398,6 +398,7 @@ diskHandleRead(int fd, void *data)
 	debug(6, 1) ("diskHandleRead: FD %d seeking to offset %d\n",
 	    fd, (int) ctrl_dat->offset);
 	lseek(fd, ctrl_dat->offset, SEEK_SET);	/* XXX ignore return? */
+	F->disk.offset = ctrl_dat->offset;
     }
     len = read(fd, ctrl_dat->buf, ctrl_dat->req_len);
     F->disk.offset += len;
