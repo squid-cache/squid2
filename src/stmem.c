@@ -376,7 +376,7 @@ put_free_thing(stmem_stats * thing, void *p)
     }
 }
 
-void 
+void
 put_free_request_t(req)
      void *req;
 {

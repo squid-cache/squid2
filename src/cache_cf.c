@@ -275,7 +275,7 @@ ip_acl_match(struct in_addr c, ip_acl * a)
 	return 0;
 }
 
-static void 
+static void
 ip_acl_destroy(a)
      ip_acl **a;
 {
