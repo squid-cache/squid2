@@ -127,7 +127,7 @@ storeClientListAdd(StoreEntry * e, void *data)
     if (sc->type == STORE_DISK_CLIENT)
 	/* assert we'll be able to get the data we want */
 	/* maybe we should open swapin_fd here */
-	assert(e->swap_file_number > -1);
+	assert(e->swap_file_number > -1 || storeSwapOutAble(e));
     for (T = &mem->clients; *T; T = &(*T)->next);
     *T = sc;
 }
