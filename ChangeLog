@@ -6,6 +6,8 @@ Changes to squid-1.0.4 (July 24, 1996):
 	- Fixed configure bug with setting GETTIMEOFDAY_NO_TZP.
 	- Removed unnecessary call to ipcache_gethostbyname() in
 	  sslConnect().
+	- Fixed stupid memset() bug in gopher.c causing
+	  a huge block of stack memory to be zeroed.
 
 Changes to squid-1.0.3 (July 18, 1996):
 
