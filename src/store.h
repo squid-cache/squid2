@@ -171,7 +171,6 @@ extern char *swappath _PARAMS((int));
 extern void storeStartDeleteBehind _PARAMS((StoreEntry *));
 extern int storeClientCopy _PARAMS((StoreEntry *, int, int, char *, int *, int));
 extern int storePendingNClients _PARAMS((StoreEntry * e));
-extern int storePendingFirstFD _PARAMS((StoreEntry * e));
 extern char *storeSwapFullPath _PARAMS((int, char *));
 extern int storeWriteCleanLog _PARAMS((void));
 extern int storeRegister(StoreEntry *, int, PIF, void *);
@@ -183,5 +182,6 @@ extern int storeMaintainSwapSpace _PARAMS((void));
 extern void storeExpireNow _PARAMS((StoreEntry *));
 extern void storeReleaseRequest _PARAMS((StoreEntry *, char *file, int line));
 extern void storeRotateLog _PARAMS((void));
+extern unsigned int getKeyCounter _PARAMS((void));
 
 #endif
