@@ -637,7 +637,6 @@ main(int argc, char **argv)
 	eventRun();
 	if ((loop_delay = eventNextTime()) < 0)
 	    loop_delay = 0;
-debug(0,0)("loop_delay=%d\n", loop_delay);
 #if HAVE_POLL
 	switch (comm_poll(loop_delay)) {
 #else
