@@ -185,6 +185,7 @@ fdstat_open(int fd, File_Desc_Type type)
     fdstat_update(fd, FDSTAT_OPEN);
     if (++Number_FD > Squid_MaxFD)
 	fatal_dump("Number_FD > Squid_MaxFD");
+    fd_table[fd].openned = 1;
 }
 
 int
@@ -201,6 +202,7 @@ fdstat_close(int fd)
     fdstat_update(fd, FDSTAT_CLOSE);
     if (--Number_FD < 0)
 	fatal_dump("Number_FD < 0");
+    fd_table[fd].openned = 0;
 }
 
 void

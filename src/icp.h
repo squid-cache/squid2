@@ -181,7 +181,11 @@ typedef struct iwd {
     char *reply_hdr;		/* HTTP reply header */
 #endif				/* LOG_FULL_HEADERS */
     StoreEntry *entry;
-    StoreEntry *old_entry;
+    int swapin_fd;
+    struct {
+	StoreEntry *entry;
+	int swapin_fd;
+    } old;
     log_type log_type;
     int http_code;
     struct sockaddr_in peer;
@@ -198,7 +202,6 @@ typedef struct iwd {
 	void (*callback) _PARAMS((void *));
 	int state;
     } ident;
-    short swapin_fd;
     int ip_lookup_pending;
     int redirect_state;
 } icpStateData;

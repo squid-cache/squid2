@@ -178,6 +178,8 @@ file_open(const char *path, int (*handler) _PARAMS((void)), int mode)
     file_table[fd].file_mode = mode & O_WRONLY ? FILE_WRITE : FILE_READ;
     conn = &fd_table[fd];
     memset(conn, '\0', sizeof(FD_ENTRY));
+    conn->openned = 1;
+    comm_set_fd_lifetime(fd, -1);
     return fd;
 }
 

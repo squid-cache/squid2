@@ -435,7 +435,8 @@ icpProcessExpired(int fd, void *data)
     debug(33, 3, "icpProcessExpired: FD %d '%s'\n", fd, icpState->url);
 
     BIT_SET(icpState->request->flags, REQ_REFRESH);
-    icpState->old_entry = icpState->entry;
+    icpState->old.entry = icpState->entry;
+    icpState->old.swapin_fd = icpState->swapin_fd;
     /* Create an entry for the IMS request; hopefully it comes back 304 */
     entry = storeCreateEntry(url,
 	request_hdr,
@@ -447,14 +448,17 @@ icpProcessExpired(int fd, void *data)
     /* Tell store we're interested in both objects.  Otherwise they might
      * go into delete-behind mode */
     storeClientListAdd(entry, fd);
-    storeClientListAdd(icpState->old_entry, fd);
+    storeClientListAdd(icpState->old.entry, fd);
 
-    entry->lastmod = icpState->old_entry->lastmod;
+    entry->lastmod = icpState->old.entry->lastmod;
     debug(33, 5, "icpProcessExpired: setting lmt = %d\n",
 	entry->lastmod);
 
     entry->refcount++;		/* EXPIRED CASE */
     icpState->entry = entry;
+    icpState->swapin_fd = storeOpenSwapFileRead(entry);
+    if (icpState->swapin_fd < 0)
+	fatal_dump("icpProcessExpired: Swapfile open failed");
     icpState->out.offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, icpHandleIMSReply, (void *) icpState, icpState->out.offset);
@@ -495,7 +499,6 @@ icpHandleIMSReply(int fd, void *data)
     StoreEntry *entry = icpState->entry;
     MemObject *mem = entry->mem_obj;
     int unlink_request = 0;
-    StoreEntry *oldentry;
     debug(33, 3, "icpHandleIMSReply: FD %d '%s'\n", fd, entry->key);
     if (entry->store_status == STORE_ABORTED) {
 	debug(33, 3, "icpHandleIMSReply: ABORTED/%s '%s'\n",
@@ -505,7 +508,12 @@ icpHandleIMSReply(int fd, void *data)
 	icpState->log_type = LOG_TCP_REFRESH_FAIL_HIT;
 	storeUnregister(entry, fd);
 	storeUnlockObject(entry);
-	icpState->entry = icpState->old_entry;
+	icpState->entry = icpState->old.entry;
+	icpState->old.entry = NULL;
+	if (icpState->swapin_fd > -1)
+	    file_close(icpState->swapin_fd);
+	icpState->swapin_fd = icpState->old.swapin_fd;
+	icpState->old.swapin_fd = -1;
 	icpState->entry->refcount++;
     } else if (mem->reply->code == 0) {
 	debug(33, 3, "icpHandleIMSReply: Incomplete headers for '%s'\n",
@@ -516,20 +524,30 @@ icpHandleIMSReply(int fd, void *data)
 	    (void *) icpState,
 	    entry->object_len);
 	return;
-    } else if (clientGetsOldEntry(entry, icpState->old_entry, icpState->request)) {
+    } else if (clientGetsOldEntry(entry, icpState->old.entry, icpState->request)) {
+	debug(0, 0, "Client GETS OLD entry\n");
 	/* We initiated the IMS request, the client is not expecting
 	 * 304, so put the good one back. */
-	oldentry = icpState->old_entry;
 	icpState->log_type = LOG_TCP_REFRESH_HIT;
-	if (oldentry->mem_obj->request == NULL) {
-	    oldentry->mem_obj->request = requestLink(mem->request);
+	if (icpState->old.entry->mem_obj->request == NULL) {
+	    icpState->old.entry->mem_obj->request = requestLink(mem->request);
 	    unlink_request = 1;
 	}
-	memcpy(oldentry->mem_obj->reply, entry->mem_obj->reply, sizeof(struct _http_reply));
-	storeTimestampsSet(oldentry);
+	debug(0, 0, "copying new entry reply structure to old entry\n");
+	xmemcpy(icpState->old.entry->mem_obj->reply,
+	    entry->mem_obj->reply,
+	    sizeof(struct _http_reply));
+	debug(0, 0, "setting timestamps on old entry\n");
+	storeTimestampsSet(icpState->old.entry);
 	storeUnregister(entry, fd);
+	debug(0, 0, "unlocking new entry\n");
 	storeUnlockObject(entry);
-	entry = icpState->entry = oldentry;
+	entry = icpState->entry = icpState->old.entry;
+	icpState->old.entry = NULL;
+	if (icpState->swapin_fd > -1)
+	    file_close(icpState->swapin_fd);
+	icpState->swapin_fd = icpState->old.swapin_fd;
+	icpState->old.swapin_fd = -1;
 	entry->timestamp = squid_curtime;
 	if (unlink_request) {
 	    requestUnlink(entry->mem_obj->request);
@@ -539,24 +557,28 @@ icpHandleIMSReply(int fd, void *data)
 	/* the client can handle this reply, whatever it is */
 	icpState->log_type = LOG_TCP_REFRESH_MISS;
 	if (mem->reply->code == 304) {
-	    icpState->old_entry->timestamp = squid_curtime;
-	    icpState->old_entry->refcount++;
+	    icpState->old.entry->timestamp = squid_curtime;
+	    icpState->old.entry->refcount++;
 	    icpState->log_type = LOG_TCP_REFRESH_HIT;
 	}
-	storeUnregister(icpState->old_entry, fd);
-	storeUnlockObject(icpState->old_entry);
-	file_close(icpState->swapin_fd);
-	icpState->swapin_fd = storeOpenSwapFileRead(entry);
+	storeUnregister(icpState->old.entry, fd);
+	storeUnlockObject(icpState->old.entry);
+	icpState->old.entry = NULL;
+	if (icpState->old.swapin_fd > -1)
+	    file_close(icpState->old.swapin_fd);
+	icpState->old.swapin_fd = -1;
 	if (icpState->swapin_fd < 0)
-	    fatal_dump("icpHandleIMSReply: storeOpenSwapFileRead() failed\n");
+	    fatal_dump("icpHandleIMSReply: bad swapin_fd");
     }
-    icpState->old_entry = NULL;	/* done with old_entry */
+    if (icpState->old.entry != NULL)
+	debug_trap("old.entry still set");
+    if (icpState->old.swapin_fd > -1)
+	debug_trap("old.swapin_fd still set");
     storeRegister(icpState->entry,
 	fd,
 	icpSendMoreData,
 	icpState,
 	icpState->out.offset);
-
 }
 
 int

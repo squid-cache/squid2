@@ -314,13 +314,15 @@ icpStateFree(int fd, void *data)
 	storeUnlockObject(entry);
 	icpState->entry = NULL;
     }
-    /* old_entry might still be set if we didn't yet get the reply
+    /* old.entry might still be set if we didn't yet get the reply
      * code in icpHandleIMSReply() */
-    if (icpState->old_entry) {
-	storeUnregister(icpState->old_entry, fd);
-	storeUnlockObject(icpState->old_entry);
-	icpState->old_entry = NULL;
+    if (icpState->old.entry) {
+	storeUnregister(icpState->old.entry, fd);
+	storeUnlockObject(icpState->old.entry);
+	icpState->old.entry = NULL;
     }
+    if (icpState->old.swapin_fd > -1)
+	file_close(icpState->old.swapin_fd);
     if (icpState->ip_lookup_pending)
 	ipcache_unregister(icpState->request->host, icpState->fd);
     requestUnlink(icpState->request);
@@ -822,8 +824,11 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	icpState->log_type = LOG_TCP_HIT;
     }
 
-    if (entry)
+    if (entry) {
 	icpState->swapin_fd = storeOpenSwapFileRead(entry);
+	if (entry->mem_obj->log_url == NULL)
+	    storeSetLogUrl(entry, request);
+    }
     if (entry && icpState->swapin_fd < 0) {
 	storeRelease(entry);
 	entry = NULL;
@@ -1760,6 +1765,7 @@ asciiHandleConn(int sock, void *notused)
     icpState->entry = NULL;
     icpState->fd = fd;
     icpState->swapin_fd = -1;
+    icpState->old.swapin_fd = -1;
     icpState->ident.fd = -1;
     fd_note(fd, inet_ntoa(icpState->log_addr));
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
