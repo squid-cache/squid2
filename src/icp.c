@@ -18,7 +18,7 @@ static char *log_tags[] =
     "LOG_TAG_MIN",
     "TCP_HIT",
     "TCP_MISS",
-    "TCP_EXP",
+    "TCP_EXPIRED",
     "TCP_BLOCK",
     "TCP_DENIED",
     "UDP_HIT",
@@ -581,7 +581,7 @@ void icp_hit_or_miss(fd, usm)
 	tmp_in_addr.s_addr = htonl(usm->header.shostid);
 	if (!lock)
 	    debug(12, 0, "icp_hit_or_miss: swap file open failed\n");
-	usm->log_type = LOG_TCP_EXP;
+	usm->log_type = LOG_TCP_EXPIRED;
 	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
 	icpProcessMISS(fd, usm);
 	return;

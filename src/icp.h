@@ -7,7 +7,7 @@ typedef enum {
     LOG_TAG_MIN,		/* 0 */
     LOG_TCP_HIT,		/* 1 */
     LOG_TCP_MISS,		/* 2 */
-    LOG_TCP_EXP,		/* 3 */
+    LOG_TCP_EXPIRED,		/* 3 */
     LOG_TCP_BLOCK,		/* 4 */
     LOG_TCP_DENIED,		/* 5 */
     LOG_UDP_HIT,		/* 6 */
