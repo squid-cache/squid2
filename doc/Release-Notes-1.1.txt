@@ -5,36 +5,33 @@ Release Notes for version 1.1 of the Squid cache.
 TABLE OF CONTENTS:
 
 	Ident (RFC 931) lookups
-	Asynchronous Disk I/O
 	URL Redirector
 	Reverse IP Lookups, client hostname ACLs.
 	Cache directory structure changes
         Getting true DNS TTL info into Squid's IP cache
 	Using a neighbor as both a parent and a sibling
 	Forcing your neighbors to use you as a sibling
-	Refresh Rules
+	Refresh Rules and If-Modified-Since
+	Overriding neighbor refresh rules
+	Object Purge Policy
+	X-Forwarded-For request header
+	Network Probe Database
+	Better Memory Management
+	Default Parent
+	Cachemgr Passwords
+	Round-Robin IP
+	Store Hash Configuration Options
+	GNU malloc
+	GNU regex
+
 
 Ident (RFC 931) lookups
 ==============================================================================
 Squid will make an RFC931/ident request for client connections if
 'ident_lookup' is enabled in the config file.  Currently, the ident
 value is only logged with the request in the access.log.  It is not
-currently (1.1.alpha6) possible to use the ident return value for
-access control purposes.
-
-Asynchronous Disk I/O
-==============================================================================
-Pete Bentley <pete@demon.net> has contributed a module for asynchronous
-disk I/O.  To enable, you must define USE_ASYNC_IO (e.g. in the
-Makefile, or include/config.h).  It should compile for both IRIX 5.3
-and Solaris 2.x.
-
-However, due to some of the underlying routines and structures in
-disk.[ch], asynchronous I/O is not be efficiently implemented yet.
-There can only be one outstanding aio_write() call per return from 
-the select loop.  The standard disk I/O routines write all pending
-blocks per return from select().  I do NOT recommend using these aio
-with Squid just yet.
+currently possible to use the ident return value for access control
+purposes.
 
 URL Redirector
 ==============================================================================
@@ -43,9 +40,11 @@ as an external process, much like the dnsservers.  Every incoming URL
 is written to a 'redirector' process which then returns a new URL, or
 a blank line to inidicate no change.
 
-The redirector program is NOT provided in the Squid package.  Currently,
-it is up to the individual users to write their own implementation.  For
-testing, this very simple Perl script can be used:
+The redirector program is NOT provided in the Squid package (although
+there are a couple of user-contributed redirectors in the "contrib/"
+directory).  Currently, it is up to the individual users to write their
+own implementation.  For testing, this very simple Perl script can be
+used:
 
     #!/usr/local/bin/perl
     $|=1;
@@ -82,7 +81,6 @@ The redirector program might be this Perl script:
         print;
     }
 
-
 You may receive statistics on the redirector usage by requesting the
 following 'cache_object' URL:
 
@@ -103,7 +101,7 @@ started just after the client connection has been accepted.  If the
 reverse lookup has completed by the time the entry gets logged, the
 fully qualified domain name will be used, otherwise the IP address
 is still logged.  Squid does not wait for the reverse lookup before
-logging the access (but this may be changed in the future).
+logging the access.
 
 A new ACL type has been added for matching client hostnames:
 
@@ -151,9 +149,10 @@ accommodate 1M+ objects.  Assuming approximately 256 objects per
 directory, we settled on 16 first-level (L1) and 256 second-level (L2)
 directories for a total of 16x256x256 = 1,048,576 objects.
 
-With recent squid-1.1 versions, the number of L1 and L2 directories
-is configurable in the squid.conf file.  To estimate the optimal numbers
-for your installation, we recommend the following forumla:
+The number of L1 and L2 directories to use is configurable in the
+squid.conf file (swap_level1_dirs, swap_level2_dirs).  To estimate the
+optimal numbers for your installation, we recommend the following
+forumla:
 
 given:
 	DS = amount of 'cache_swap' / number of 'cache_dir's
@@ -215,45 +214,32 @@ diff -ru bind-4.9.4-orig/res/gethnamaddr.c bind-4.9.4/res/gethnamaddr.c
 
 Using a neighbor as both a parent and a sibling
 ==============================================================================
-Prior to version 1.1.beta5, a neighbor cache was always treated as
-either a sibling or a parent for all requests.  In some cases, it is
+The only difference between a sibling and a parent is that
+cache misses are NOT fetched from siblings.  In some cases it may be
 desirable to use a neighbor as a parent for some domains and as a
-sibling for others.  This can now be accomplished by adding either the
-'parent' or 'sibling' keywords in the cache_host_domain config lines.
-For example, consider these configuration lines
+sibling for others.  This can now be accomplished with the
+'neighbor_type_domain' configuration tag.  For example:
 
-    cache_host cache.foo.org sibling 3128 3130
-    cache_host_domain cache.foo.org   parent   foo.org
-    cache_host_domain cache.foo.org   sibling  !foo.org
+	cache_host  parent cache.foo.org 3128 3130
+	neighbor_type_domain cache.foo.org sibling .com .net
+	neighbor_type_domain cache.foo.org sibling .au .de
 
-These have the effect that cache.foo.org is queried for all requests.
-If the URL host domain is foo.org, then cache.foo.org is treated as a
-parent (and MISSES will be fetched through cache.foo.org).  Otherwise
-it will be treated as a sibling (and only HITS will be fetched from
-cache.foo.org).  Note that the third line is needed because when
-cache_host_domain rules are present, the neighbor is only used when one
-of the rules is matched.
+Note that neighbor_type_domain is totally separate from the
+cache_host_domain option (which controls whether or not the neighbor
+should be queried).  In the absence of cache_host_domain restrictions,
+the neighbor cache.foo.org will be queried for all requests.
 
-Note that the parent/sibling modifiers apply to all domains appearing
-after them on the same line.  In other words,
-
-    cache_host_domain cache.foo.org  parent foo.org bar.org
-
-Is equivalent to
-
-    cache_host_domain cache.foo.org  parent foo.org
-    cache_host_domain cache.foo.org  parent bar.org
-
-If a cache_host_domain line does not have a parent/sibling modifier,
-then it defaults to the neighbor type specified in the cache_host
-line.
+If the URL host domain is .com, .net, .au, or .de then cache.foo.org is
+treated as a sibling (and MISSES will NOT be fetched through
+cache.foo.org).  Otherwise it will be treated as a parent (which is the
+default from the cache_host line.
 
 Forcing your neighbors to use you as a sibling
 ==============================================================================
-In a distributed cache hierarchy, you may need to force your peer caches
-to use you as a sibling and not a parent.  I.e., its okay for them to 
-fetch HITs from you, but not okay to resolve MISSes through your
-cache (using your resources).
+In a distributed cache hierarchy, you may need to force your peer
+caches to use you as a sibling and not a parent.  I.e., its okay for
+them to fetch HITs from you, but not okay to resolve MISSes through
+your cache (using your resources).
 
 This can be accomplished by using the 'miss_access' config line.  The
 miss_access ACL list is very similar to the 'http_access' list.  This
@@ -276,14 +262,15 @@ you can use any of the access control types.
 If you are restricting your neighbors, be sure to allow miss_access
 to your local clients (e.g. users at browsers)!
 
-Refresh Rules
+
+Refresh Rules and If-Modified-Since
 ==============================================================================
-As of version 1.1.beta10, Squid switched from a Time-To-Live based
-expiration model to a Refresh-Rate model.  Instead of assinging TTL's
-when the object enters the cache, we now check freshness requirements
-when objects are requested.  If an object is "fresh" it is given
-directly to the client.  If it is "stale" then we make an
-If-Modified-Since request for it.
+Squid 1.1 switched from a Time-To-Live based expiration model to a
+Refresh-Rate model.  Objects are no longer purged from the cache when
+they expire.  Instead of assinging TTL's when the object enters the
+cache, we now check freshness requirements when objects are requested.
+If an object is "fresh" it is given directly to the client.  If it is
+"stale" then we make an If-Modified-Since request for it.
 
 When checking the object freshness, we calculate these values:
 
@@ -299,6 +286,11 @@ When checking the object freshness, we calculate these values:
 
 	LM_FACTOR = AGE / LM_AGE
 
+    CLIENT_MAX_AGE is the (optional) maximum object age the client will
+    accept as taken from the HTTP/1.1 Cache-Control request header.
+
+    EXPIRES is the (optional) expiry time from the server reply headers.
+
 These values are compared with the parameters of the 'refresh_pattern'
 rules.  The refresh parameters are:
 
@@ -307,9 +299,243 @@ rules.  The refresh parameters are:
 	PERCENT
 	MAX_AGE
 
-An object is considered "fresh" if it meets these requirements:
+The URL regular expressions are checked in the order listed until a
+match is found.  Then this algorithm is applied for determining if an
+object is fresh or stale:
 
-    1) AGE <= MIN_AGE, or
-    2) NOW < EXPIRES, and
-       AGE <= AGE_MAX, and
-       LM_FACTOR <= PERCENT
+    if (CLIENT_MAX_AGE)
+        if (AGE > CLIENT_MAX_AGE)
+            return STALE
+    if (AGE <= MIN_AGE)
+        return FRESH
+    if (EXPIRES) {
+        if (EXPIRES <= NOW)
+            return STALE
+        else
+            return FRESH
+    }
+    if (AGE > MAX_AGE)
+        return STALE
+    if (LM_FACTOR > PERCENT)
+        return STALE
+    return FRESH
+
+Note that the Max-Age in a client request takes the highest precedence.
+The 'MIN' value should normally be set to zero since it has higher
+precedence than the server's Expires: value.  But if you wish to
+override the Expires: headers, you may use the MIN value.
+
+Overriding neighbor refresh rules
+==============================================================================
+The refresh rules also have an effect on the requests your cache makes
+to its neighbors.  Squid uses the MAX_AGE value in the HTTP/1.1
+"Cache-Control: Max-age=nnn" request header for outgoing requests.
+This solves the problem where neighbors with more relaxed refresh
+policies would send you stale objects (by your configuration).
+
+
+Object Purge Policy
+==============================================================================
+With Squid-1.1 there are two ways that an object gets removed from the
+cache.  First, old objects get "bumped" to make room for new objects.
+This happens as a regular part of the cache maintenance.  When the
+cache disk space reaches the high water mark, the maintenance routes
+enter a "purge mode" and they look for objects to delete.
+
+In this mode we scan 256 objects every second, sort them by their time
+of last reference, and then remove the eight (8) least-recently-used
+objects.  This continues until the disk space is below the low water
+mark.
+
+The second way that objects can get removed is from the 'reference_age'
+configuration parameter.  If an object has not been accessed for longer
+than the reference_age value, it will be purged.  By default
+reference_age is disabled (set to zero) so that objects are only
+removed by the first method.
+
+
+X-Forwarded-For request header
+==============================================================================
+Squid used to add a request header called "Forwarded" which appeared
+in some early HTTP/1.1 draft documents.  This header had the format
+
+    Forwarded: by cache-host for client-address
+
+Current HTTP/1.1 draft documents instead use the "Via" header, but it
+does not provide any standward way of indicating the client address
+in the request.  Since a number of people missed having the originating
+client address in the request, Squid now adds its own request header
+called "X-Forwarded-For" which looks like this:
+
+    X-Forwarded-For: 128.138.243.150, unknown, 192.52.106.30
+
+Entries are always IP addresses, or the word "unknown" if the address
+could not be determined or if it has been disabled with the
+'forwarded_for' configuration option.
+
+We must note that access controls based on this header are extremely
+weak and simple to fake.  Anyone may hand-enter a request with any IP
+address whatsoever.  This is perhaps the reason why client IP addresses
+have been omitted from the HTTP/1.1 specification.
+
+
+Network Probe Database
+==============================================================================
+As of its initial release, Squid 1.1 includes an experimental
+work-in-progress called the "Network Probe Database."  This database
+is designed for an improved neighbor selection algorithm.
+
+Squid has the ability to route requests based on the domain name of the
+URL (i.e. the cache_host_domain rules).  However, the domain name
+approach is problematic because the domains are basically unrelated to
+network topology.  In general, you cannot predict from the domain name
+alone if a server is close or far away.  In our cache hierarchy we
+always want to forward the request closer to the source.  To do
+that we must know something about the network topology.
+
+The new approach is to build a database of network measurements (e.g.
+round trip time, hop count, bandwidth) and use these measurements for
+selecting neighbor caches.  The database is keyed two ways: by hostname
+and by network address.  The measurements are aggregated by networks.
+Measurements are made by sending ICMP "pings" to the hosts.  The values
+are averaged over time.  A typical database entry might be:
+
+    Network          recv/sent     RTT  Hops Hostnames
+    198.53.148.0        8/   8    98.6   9.0 www.vaxxine.com www.lexinc.com
+
+The cache has seen two hosts which are in the 198.53.148.0 network.
+Eight pings have been sent, and eight have been received.  The averaged
+RTT is 98.6 milliseconds, and this network is roughly 9 hops away.
+
+These measurements can be returned in the ICP query replies to neighbor
+caches.  For example if my cache knows nothing about the host
+www.vaxxine.com, it can send an ICP query to all of its neighbors.  The
+ICP replies will include the RTT and hop count.  After my cache has
+collected all the replies it can choose the neighbor which is "closest"
+to the source.  "Closest" might mean least hops, best RTT, or some
+combination depending on local configuration.
+
+There is a configuration option called 'minimum_direct_hops.'  If a
+server is less than minimum_direct_hops away, Squid will fetch it
+directly instead of querying any neighbors.
+
+Better Memory Management
+==============================================================================
+Squid-1.1 has better memory management, although still not ideal.  The
+'cache_mem' parameter places a soft upper limit on the amount of memory
+Squid allocates for holding whole objects in VM.  The 'cache_mem'
+memory is allocated as a pool of 4k blocks.  Objects held in memory are
+stored in blocks from this pool.  The 'cache_mem_low' and
+'cache_mem_high' values affect the memory reclaimation algorithm.
+
+There are two types of in-memory objects: in-transit objects and
+completed objects.  The in-transit objects are "locked" in memory until
+they are completed.  The completed objects may be either normal or
+"negative-cached" objects.
+
+Whenever new memory is needed for in-transit objects and current usage
+is above the high water mark, Squid purges some completed objects from
+memory.   The in-memory objects are sorted by time of last use and then
+removed in order until memory usage is below the low water mark.
+
+Occasionally Squid may need to exceed the maximum number of blocks.
+This will happen if all of the in-transit objects will not fit within
+the 'cache_mem' pool size.  You will see this warning in your cache.log
+file:
+
+    WARNING: Exceeded 'cache_mem' size (4122K > 4096K)
+
+If this warning occurs frequently then you need to consider either
+increasing the 'cache_mem' value or decreasing the
+'maximum_object_size' value.  If the cache_mem usage is above the low
+water mark, then Squid will check for objects larger than
+'maximum_object_size.'  Any such objects are put into "delete behind"
+mode which means Squid releases the section of the object which have
+been delivered to all clients reading from it.
+
+Default Parent
+==============================================================================
+Squid has the ability to mark parent caches as 'default' way to 
+fetch objects.  This is probably only useful if the 'no-query' option
+is also used.  For example, consider this configuration
+
+     cache_host N1 sibling 3128 3130
+     cache_host N2 sibling 3128 3130
+     cache_host N3 sibling 3128 3130
+     cache_host P1 parent 3128 3130 no-query default
+
+This has the effect that the sibling caches N1, N2, and N3 are queried
+for objects with ICP.  If none of the siblings has the requested object
+then it will be retrieved through parent P1 due to the 'default'
+designation.  Note that 'default' does not conflict with any
+'cache_host_domain' restrictions which might be placed on a neighbor.
+
+We do not normally recommend use of the default option.  If your
+parent cache(s) use ICP then you should also send them ICP queries.
+If your default parent is unreachable then Squid will return error
+messages, it will not attempt direct connections to the source.
+
+Cachemgr Passwords
+==============================================================================
+Squid-1.1 allows cachemgr passwords to be specified in the squid.conf
+file (instead of an /etc/passwd entry).  There may be a different
+password fore each cachemgr operation, but only one password per
+operation.  Some sensitive operations require a password, others may be
+executed if no passwords are given in the squid.conf file.  Operations
+may be disabled by setting the password to "none." See squid.conf for a
+full list of cachemgr operations.
+
+Round-Robin IP
+==============================================================================
+When a hostname resolves to multiple IP addresses, Squid now cycles to
+the next address after each connection.  If a connection to an address
+fails, it is removed from the list.  If a hostname runs out of
+addresses, it is removed from the IP cache.
+
+Store Hash Configuration Options
+==============================================================================
+Squid's internal hash table for holding objects has a couple of
+configuration options (thanks to Mark Treacy).  Given the following
+configuration parameters:
+
+	cache_swap
+	store_avg_object_size		# default 20K
+	store_objects_per_bucket	# default 50
+
+We first estimate the number of objects your cache can hold:
+
+	NUM_OBJ = cache_swap / store_avg_object_size
+
+Then we estimate the number of hash buckets needed:
+
+	NUM_BUCKETS = NUM_OBJ / store_objects_per_bucket
+
+We want Squid to scan the entire hash table, one bucket at a time, over
+the course of about a day.  We also need NUM_BUCKETS to be a prime
+number for optimal distribution of the hash table.  NUM_BUCKETS is
+rounded off so that the number of buckets and maintenance rate are
+taken from this table:
+
+	store_buckets	store_maintain_rate
+	     7951		10 sec
+	    12149		 7 sec
+	    16231		 5 sec
+	    33493		 2 sec
+	    65357		 1 sec
+
+If you want to increase the maintenance rate then decrease the
+store_objects_per_bucket parameter.
+
+GNU malloc
+==============================================================================
+Many users have reported significant performance improvements when Squid
+is linked with the GNU malloc library.  A check for 'libgnumalloc.a'
+has therefore been added to the configure script.  If libgnumalloc.a
+is found, it is automatically linked in.
+
+GNU regex
+==============================================================================
+Squid's configure script attemtps to determine whether or not it should
+compile the GNU regex functions supplied in the source distribution.
+If your system appears to have its own POSIX compliant regex functions
+then configure may decide to use those instead of GNU regex.
