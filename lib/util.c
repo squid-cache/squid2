@@ -1,5 +1,9 @@
 /* $Id$ */
 
+#include "config.h"
+#include "autoconf.h"
+#include "version.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,8 +20,6 @@ extern int sys_nerr;
 #if !defined(__FreeBSD__) && !defined(__NetBSD__)
 extern char *sys_errlist[];
 #endif
-
-#include "autoconf.h"
 
 
 #if XMALLOC_DEBUG
