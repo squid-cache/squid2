@@ -2104,8 +2104,8 @@ int storeGetSwapSpace(size)
     debug(20, 2, "storeGetSwapSpace: LRU candidate:  %7d items\n",
 	LRU_list->index);
 #endif /* LOTSA_DEBUGGING *?
-
-    /* Although all expired objects removed, still didn't recover enough */
+        * 
+        * /* Although all expired objects removed, still didn't recover enough */
     /* space.  Kick LRU out until we have enough swap space */
     for (i = 0; i < LRU_list->index; ++i) {
 	if (store_swap_size + kb_size <= store_swap_low) {

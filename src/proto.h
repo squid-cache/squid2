@@ -11,7 +11,7 @@ struct icp_common_s {
     u_num32 reqnum;		/* req number (req'd for UDP) */
     u_num32 flags;
     u_num32 pad;
-    /* u_num32 auth[ICP_AUTH_SIZE];	authenticator (old) */
+    /* u_num32 auth[ICP_AUTH_SIZE];     authenticator (old) */
     u_num32 shostid;		/* sender host id */
 };
 

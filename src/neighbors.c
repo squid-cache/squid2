@@ -589,8 +589,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    HIER_UDP_HIT_OBJ,
 	    0,
 	    e->host);
-	    if (mem)
-		mem->hierarchy_code = HIER_UDP_HIT_OBJ;
+	if (mem)
+	    mem->hierarchy_code = HIER_UDP_HIT_OBJ;
 	if (httpState->reply_hdr)
 	    put_free_8k_page(httpState->reply_hdr);
 	safe_free(httpState);

@@ -955,7 +955,7 @@ void ipcacheOpenServers()
 	    dns_child_table[k]->inpipe = dnssocket;
 	    dns_child_table[k]->outpipe = dnssocket;
 	    dns_child_table[k]->lastcall = squid_curtime;
-	    dns_child_table[k]->size = IP_INBUF_SZ - 1;	/* spare one for \0 */
+	    dns_child_table[k]->size = IP_INBUF_SZ - 1;		/* spare one for \0 */
 	    dns_child_table[k]->offset = 0;
 	    dns_child_table[k]->ip_inbuf = xcalloc(IP_INBUF_SZ, 1);
 
