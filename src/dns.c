@@ -216,6 +216,8 @@ dnsGetFirstAvailable(void)
 	dns = *(dns_child_table + k);
 	if (BIT_TEST(dns->flags, DNS_FLAG_BUSY))
 	    continue;
+	if (BIT_TEST(dns->flags, DNS_FLAG_CLOSING))
+	    continue;
 	if (!BIT_TEST(dns->flags, DNS_FLAG_ALIVE))
 	    continue;
 	return dns;
