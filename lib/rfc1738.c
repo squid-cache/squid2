@@ -155,9 +155,8 @@ rfc1738_escape(const char *url)
     if (buf == NULL || strlen(url) * 3 > bufsize) {
 	xfree(buf);
 	bufsize = strlen(url) * 3 + 1;
-	buf = xcalloc (bufsize, 1);
+	buf = xcalloc(bufsize, 1);
     }
-
     for (p = url, q = buf; *p != '\0'; p++, q++) {
 	do_escape = 0;
 
