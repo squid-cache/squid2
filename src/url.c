@@ -25,6 +25,9 @@ char *url_convert_hex(org_url, allocate)
 
     url = allocate ? (char *) xstrdup(org_url) : org_url;
 
+    if (strlen(url) < 3 || !strchr(url, '%'))
+	return url;
+
     for (s = t = url; *(s + 2); s++) {
 	if (*s == '%') {
 	    *code = *++s;
