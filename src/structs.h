@@ -1452,6 +1452,7 @@ struct _StatCounters {
 	    int reads;
 	    int writes;
 	    int seeks;
+	    int unlinks;
 	} disk;
 	struct {
 	    int accepts;
@@ -1470,6 +1471,7 @@ struct _StatCounters {
 	int selects;
 #endif
     } syscalls;
+    int store_files_cleaned;
 };
 
 /* per header statistics */

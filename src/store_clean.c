@@ -106,6 +106,7 @@ storeDirClean(void *datanotused)
 	debug(36, 3) ("storeDirClean: Cleaning file %08X\n", files[n]);
 	snprintf(p2, MAXPATHLEN + 1, "%s/%08X", p1, files[n]);
 	safeunlink(p2, 0);
+        Counter.store_files_cleaned++;
     }
     debug(36, 3) ("Cleaned %d unused files from %s\n", k, p1);
 }
