@@ -39,7 +39,7 @@ typedef enum {
     METHOD_POST,		/* 010 */
     METHOD_PUT,			/* 011 */
     METHOD_HEAD,		/* 100 */
-    METHOD_CONNECT,		/* 101 */
+    METHOD_CONNECT		/* 101 */
 } method_t;
 
 extern char *RequestMethodStr[];

@@ -171,11 +171,9 @@ typedef struct iwd {
     int inbufsize;
     method_t method;		/* GET, POST, ... */
     request_t *request;		/* Parsed URL ... */
-#ifndef LOG_FULL_HEADERS
-    char *request_hdr;		/* Mime header */
-#else
-    char *request_hdr;		/* Mime request header */
-    char *reply_hdr;		/* Mime reply header */
+    char *request_hdr;		/* HTTP request header */
+#if LOG_FULL_HEADERS
+    char *reply_hdr;		/* HTTP reply header */
 #endif				/* LOG_FULL_HEADERS */
     StoreEntry *entry;
     StoreEntry *old_entry;

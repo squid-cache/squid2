@@ -198,7 +198,7 @@ struct SquidConfig {
     int redirectChildren;
     int sourcePing;
     int commonLogFormat;
-#ifdef LOG_FULL_HEADERS
+#if LOG_FULL_HEADERS
     int logMimeHdrs;
 #endif				/* LOG_FULL_HEADERS */
     int identLookup;

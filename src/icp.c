@@ -202,7 +202,7 @@ static int icpStateFree(fd, icpState)
 	http_code,
 	elapsed_msec,
 	icpState->ident,
-#ifndef LOG_FULL_HEADERS
+#if !LOG_FULL_HEADERS
 	hierData);
 #else
 	hierData,
@@ -215,7 +215,7 @@ static int icpStateFree(fd, icpState)
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
     safe_free(icpState->request_hdr);
-#ifdef LOG_FULL_HEADERS
+#if LOG_FULL_HEADERS
     safe_free(icpState->reply_hdr);
 #endif /* LOG_FULL_HEADERS */
     if (icpState->entry) {
@@ -365,7 +365,7 @@ int icpSendERROR(fd, errorCode, text, icpState, httpCode)
     return COMM_OK;
 }
 
-#ifdef LOG_FULL_HEADERS
+#if LOG_FULL_HEADERS
 /*
  * Scan beginning of swap object being returned and hope that it contains
  * a complete MIME header for use in reply header logging (log_append).
@@ -423,7 +423,7 @@ int icpSendMoreData(fd, icpState)
 	xmemcpy(scanbuf, buf, len > 19 ? 19 : len);
 	sscanf(scanbuf, "HTTP/%lf %d", &http_ver, &tcode);
 	entry->mem_obj->reply->code = tcode;
-#ifdef LOG_FULL_HEADERS
+#if LOG_FULL_HEADERS
 	icp_maybe_remember_reply_hdr(icpState);
 #endif /* LOG_FULL_HEADERS */
     }
@@ -791,7 +791,7 @@ static void icpLogIcp(queue)
 	0,
 	tvSubMsec(queue->start, current_time),
 	NULL,			/* ident */
-#ifndef LOG_FULL_HEADERS
+#if !LOG_FULL_HEADERS
 	NULL);			/* hierarchy data */
 #else
 	NULL,			/* hierarchy data */
