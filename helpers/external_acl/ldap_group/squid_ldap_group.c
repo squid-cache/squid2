@@ -210,7 +210,7 @@ strwordtok(char *buf, char **t)
 int
 main(int argc, char **argv)
 {
-    char buf[256];
+    char buf[8192];
     char *user, *group, *extension_dn = NULL;
     char *ldapServer = NULL;
     LDAP *ld = NULL;
