@@ -213,6 +213,7 @@ static void
 configDoConfigure(void)
 {
     LOCAL_ARRAY(char, buf, BUFSIZ);
+    cache_peer *p;
     memset(&Config2, '\0', sizeof(SquidConfig2));
     if (Config.Accel.host) {
         snprintf(buf, BUFSIZ, "http://%s:%d", Config.Accel.host, Config.Accel.port);
@@ -241,6 +242,16 @@ configDoConfigure(void)
 	Config.appendDomainLen = 0;
     safe_free(debug_options)
 	debug_options = xstrdup(Config.debugOptions);
+    /* ICK */
+    for (p = Config.peers; p; p=p->next) {
+	neighborAdd(p->host,
+		p->type,	
+		p->http,
+		p->icp,
+		p->options,
+		p->weight,
+		p->mcast_ttl);
+    }
 }
 
 /* Parse a time specification from the config file.  Store the

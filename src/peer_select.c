@@ -102,16 +102,6 @@ peer *
 peerGetSomeParent(request_t * request, hier_code * code)
 {
     peer *p;
-    if (request->method == METHOD_CONNECT)
-	if ((p = getSslParent())) {
-	    *code = SSL_PARENT;
-	    return p;
-	}
-    if (request->method != METHOD_GET)
-	if ((p = getPassParent())) {
-	    *code = PASS_PARENT;
-	    return p;
-	}
     if ((p = getDefaultParent(request))) {
 	*code = DEFAULT_PARENT;
 	return p;
