@@ -138,3 +138,4 @@ extern icpUdpData *IcpQueueHead;	/* NULL */
 #if DELAY_POOLS
 extern time_t delay_pools_last_update;	/* 0 */
 #endif
+extern int refresh_nocache_hack;	/* 0 */
