@@ -438,7 +438,8 @@ int icpSendERROR(fd, errorCode, msg, state)
 	/* This file descriptor isn't bound to a socket anymore.
 	 * It probably timed out. */
 	debug(12, 2, "icpSendERROR: COMM_ERROR msg: %80.80s\n", msg);
-	comm_close(fd);
+	/* comm_close(fd); */
+	icpSendERRORComplete(fd, NULL, 0, 1, state);
 	return COMM_ERROR;
     }
     if (port != getAsciiPortNum()) {
