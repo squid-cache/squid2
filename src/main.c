@@ -623,6 +623,7 @@ main(int argc, char **argv)
     int n;			/* # of GC'd objects */
     time_t loop_delay;
 
+    debug_log = stderr;
     if (FD_SETSIZE < Squid_MaxFD)
 	Squid_MaxFD = FD_SETSIZE;
 
@@ -679,8 +680,6 @@ main(int argc, char **argv)
     fd_note(1, "STDOUT");
     fd_note(2, "STDERR");
 
-    /* preinit for debug module */
-    debug_log = stderr;
     hash_init(0);
 
     mainInitialize();
