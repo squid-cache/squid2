@@ -818,7 +818,6 @@ void comm_set_select_handler(fd, type, handler, client_data)
      int (*handler) ();
      void *client_data;
 {
-
     comm_set_select_handler_plus_timeout(fd, type, handler, client_data, 0);
 }
 
