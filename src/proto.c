@@ -404,6 +404,7 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
 {
     char *url = entry ? entry->url : NULL;
     char *host = request ? request->host : NULL;
+    int n = 0;
     protocol_t proto = request ? request->protocol : PROTO_NONE;
     debug(17, 5, "protoUnregister FD %d '%s'\n", fd, url ? url : "NULL");
     if (proto == PROTO_CACHEOBJ)
@@ -413,7 +414,9 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
     if (src_addr.s_addr != inaddr_none)
 	fqdncacheUnregister(src_addr, fd);
     if (host)
-	ipcache_unregister(host, fd);
+	n = ipcache_unregister(host, fd);
+    if (entry && n)
+	BIT_RESET(entry->flag, IP_LOOKUP_PENDING);
     if (entry == NULL)
 	return 0;
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
@@ -531,6 +534,8 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	fatal_dump("protoStart: object already being fetched");
     if (entry->ping_status == PING_WAITING)
 	debug_trap("protoStart: ping_status is PING_WAITING");
+    if (BIT_TEST(entry->flag, IP_LOOKUP_PENDING))
+	debug_trap("protoStart: IP_LOOKUP_PENDING set");
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
     protoCancelTimeout(fd, entry);
     netdbPingSite(request->host);
