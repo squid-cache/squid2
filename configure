@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.31 
+# From configure.in Revision: 1.18.2.32 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2016,6 +2016,9 @@ case "$host" in
         	echo "Removing -lnsl for IRIX..."
         	LIBS=`echo $LIBS | sed -e s/-lnsl//`
 		;;
+esac
+
+case "$host" in
 	*m88k*)
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"
 		cat >> confdefs.h <<\EOF
@@ -2063,7 +2066,7 @@ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2067 "configure"
+#line 2070 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -2113,7 +2116,7 @@ if test "$cross_compiling" = yes; then
   SQUID_FD_SETSIZE=256
 else
 cat > conftest.$ac_ext <<EOF
-#line 2117 "configure"
+#line 2120 "configure"
 #include "confdefs.h"
 
 #include <unistd.h>
@@ -2181,7 +2184,7 @@ if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_SNDBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2185 "configure"
+#line 2188 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2217,7 +2220,7 @@ if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_RCVBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2221 "configure"
+#line 2224 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2253,7 +2256,7 @@ if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_SNDBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2257 "configure"
+#line 2260 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2289,7 +2292,7 @@ if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_RCVBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2293 "configure"
+#line 2296 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2322,7 +2325,7 @@ EOF
 
 echo $ac_n "checking if sys_errlist is already defined""... $ac_c" 1>&6
 cat > conftest.$ac_ext <<EOF
-#line 2326 "configure"
+#line 2329 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() { return 0; }

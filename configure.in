@@ -232,6 +232,11 @@ case "$host" in
         	echo "Removing -lnsl for IRIX..."
         	LIBS=`echo $LIBS | sed -e s/-lnsl//`
 		;;
+esac
+
+dnl Some O/S's don't have tzp arg to gettimeofday()
+dnl
+case "$host" in
 	*m88k*)
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"
 		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
