@@ -684,7 +684,7 @@ externalAclHandleReply(void *data, char *reply)
     char *t;
     char *user = NULL;
     char *error = NULL;
-    external_acl_entry *entry;
+    external_acl_entry *entry = NULL;
 
     debug(82, 2) ("externalAclHandleReply: reply=\"%s\"\n", reply);
 
@@ -709,13 +709,11 @@ externalAclHandleReply(void *data, char *reply)
 	if (reply)
 	    entry = external_acl_cache_add(state->def, state->key, result, user, error);
 	else {
-	    entry = hash_lookup(state->def->cache, state->key);
-	    if (entry)
-		external_acl_cache_delete(state->def, entry);
+	    external_acl_entry *oldentry = hash_lookup(state->def->cache, state->key);
+	    if (oldentry)
+		external_acl_cache_delete(state->def, oldentry);
 	}
-    } else
-	entry = NULL;
-
+    }
     do {
 	cbdataUnlock(state->def);
 	state->def = NULL;
