@@ -683,7 +683,7 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	    if (!Config.onoff.reload_into_ims)
 		EBIT_SET(request->flags, REQ_NOCACHE);
 	    else
-		EBIT_SET(request->flags, REQ_NOCACHE_HACK);
+		EBIT_SET(request->flags, REQ_NOCACHE_IMS);
 	}
 	stringClean(&s);
     }

@@ -115,6 +115,11 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
 	refreshCounts.revalidate_stale++;
 	return 1;
     }
+    if (EBIT_TEST(request->flags, REQ_NOCACHE_IMS)) {
+	debug(22, 3) ("refreshCheck: YES: Reload into IMS\n");
+	refreshCounts.revalidate_stale++;
+	return 1;
+    }
     if ((R = refreshLimits(uri))) {
 	min = R->min;
 	pct = R->pct;
