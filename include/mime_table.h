@@ -1,4 +1,4 @@
-#define EXT_TABLE_LEN 88
+#define EXT_TABLE_LEN 89
 static ext_table_entry ext_mime_table[] =
 {
     {"Z", "application/x-compressed", "x-compress", "binary"},
@@ -35,6 +35,7 @@ static ext_table_entry ext_mime_table[] =
     {"jpeg", "image/jpeg", "binary", "image"},
     {"jpg", "image/jpeg", "binary", "image"},
     {"latex", "application/x-latex", "8bit", "text"},
+    {"lzh", "application/octet-stream", "binary", "binary"},
     {"m", "text/plain", "7bit", "text"},
     {"man", "application/x-troff-man", "7bit", "text"},
     {"me", "application/x-troff-me", "7bit", "text"},
