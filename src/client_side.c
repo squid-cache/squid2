@@ -746,7 +746,6 @@ clientUpdateCounters(clientHttpRequest * http)
     switch (H->code) {
 #if USE_CACHE_DIGESTS
     case CD_PARENT_HIT:
-    case CD_PARENT_MISS:
 	statCounter.cd.times_used++;
 	break;
 #endif
