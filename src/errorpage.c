@@ -581,6 +581,7 @@ errorConvert(char token, ErrorState * err)
 	break;
     case '%':
 	p = "%";
+	do_quote = 0;
 	break;
     default:
 	memBufPrintf(&mb, "%%%c", token);
