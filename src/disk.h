@@ -117,7 +117,6 @@ typedef struct _dread_ctrl {
     off_t offset;
     int req_len;
     char *buf;
-    int cur_len;
     int end_of_file;
     FILE_READ_HD *handler;
     void *client_data;
