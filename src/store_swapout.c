@@ -193,14 +193,6 @@ storeSwapOut(StoreEntry * e)
 	if (storeTooManyDiskFilesOpen() && !fwdCheckDeferRead(-1, e))
 	    return;
     }
-    /*
-     * Don't start swapping out until its either all in memory, or bigger
-     * than the maximum object size (so we pick a -1 maxobjsize fs)
-     */
-    if ((e->store_status != STORE_OK) && (swapout_size < store_maxobjsize)) {
-	debug(20, 5) ("storeSwapOut: Deferring starting swapping out\n");
-	return;
-    }
     /* Ok, we have stuff to swap out.  Is there a swapout.sio open? */
     if (e->swap_status == SWAPOUT_NONE) {
 	assert(mem->swapout.sio == NULL);
