@@ -106,6 +106,6 @@ mcastJoinVizSock(void)
 	debug(1, 0) ("vizSock on FD %d, ttl=%d\n", vizSock, (int) ttl);
     }
 #else
-        debug(1, 0) ("vizSock: Could not join multicast group\n");
+    debug(1, 0) ("vizSock: Could not join multicast group\n");
 #endif
 }

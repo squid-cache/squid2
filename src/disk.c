@@ -192,7 +192,7 @@ file_open_complete(void *data, int fd, int errcode)
 	xfree(ctrlp);
 	return;
     }
-    debug(6,5)("file_open: FD %d\n", fd);
+    debug(6, 5) ("file_open: FD %d\n", fd);
     commSetCloseOnExec(fd);
     fd_open(fd, FD_FILE, ctrlp->path);
     fde = &fd_table[fd];
@@ -218,7 +218,7 @@ file_close(int fd)
 	return;
     }
     fd_close(fd);
-    debug(6,5)("file_close: FD %d\n", fd);
+    debug(6, 5) ("file_close: FD %d\n", fd);
 #if USE_ASYNC_IO
     aioClose(fd);
 #else

@@ -181,7 +181,7 @@ peerSelectCallback(ps_state * psstate, peer * p)
 	entry->ping_status = PING_DONE;
     }
     if (cbdataValid(data))
-        psstate->callback(p, data);
+	psstate->callback(p, data);
     cbdataUnlock(data);
     peerSelectStateFree(psstate);
 }
@@ -197,7 +197,7 @@ peerSelectCallbackFail(ps_state * psstate)
     debug(44, 1) ("   never_direct = %d\n", psstate->never_direct);
     debug(44, 1) ("        timeout = %d\n", psstate->icp.timeout);
     if (cbdataValid(data))
-        psstate->fail_callback(NULL, data);
+	psstate->fail_callback(NULL, data);
     cbdataUnlock(data);
     peerSelectStateFree(psstate);
 }

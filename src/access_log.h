@@ -10,7 +10,7 @@ struct _AccessLogEntry {
     struct {
 	method_t method;
 	int code;
-        const char *content_type;
+	const char *content_type;
     } http;
     struct {
 	icp_opcode opcode;

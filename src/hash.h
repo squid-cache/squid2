@@ -147,7 +147,7 @@ typedef struct _hash_table {
 
 /* init */
 extern void hash_init _PARAMS((int));
-extern hash_table * hash_create _PARAMS((HASHCMP *, int, HASHHASH *));
+extern hash_table *hash_create _PARAMS((HASHCMP *, int, HASHHASH *));
 extern int hash_insert _PARAMS((hash_table *, const char *, void *));
 extern int hash_delete _PARAMS((hash_table *, const char *));
 extern int hash_delete_link _PARAMS((hash_table *, hash_link *));

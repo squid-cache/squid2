@@ -750,9 +750,9 @@ httpBuildRequestHeader(request_t * request,
 	url = entry ? entry->url : urlCanonical(orig_request, NULL);
 	sprintf(ybuf, "Cache-control: Max-age=%d", (int) getMaxAge(url));
 	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz);
-if (request->urlpath) {
-	assert(strstr(url, request->urlpath));
-}
+	if (request->urlpath) {
+	    assert(strstr(url, request->urlpath));
+	}
     }
     httpAppendRequestHeader(hdr_out, null_string, &len, out_sz);
     put_free_4k_page(xbuf);

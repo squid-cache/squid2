@@ -321,9 +321,9 @@ hash_init(int hash_sz)
  *  otherwise returns a negative number on error.
  */
 hash_table *
-hash_create(HASHCMP *cmp_func, int hash_sz, HASHHASH *hash_func)
+hash_create(HASHCMP * cmp_func, int hash_sz, HASHHASH * hash_func)
 {
-    hash_table * hid = xcalloc(1, sizeof(hash_table));
+    hash_table *hid = xcalloc(1, sizeof(hash_table));
     if (!hash_sz)
 	hid->size = (unsigned int) default_hash_size;
     else

@@ -6,4 +6,3 @@ extern void cbdataLock _PARAMS((void *p));
 extern void cbdataUnlock _PARAMS((void *p));
 extern int cbdataValid _PARAMS((void *p));
 extern void cbdataDump _PARAMS((StoreEntry *));
-

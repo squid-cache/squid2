@@ -269,8 +269,8 @@ httpRequestFree(void *data)
 	http->al.icp.opcode = 0;
 	http->al.url = http->url;
 	if (mem) {
-	http->al.http.code = mem->reply->code;
-	http->al.http.content_type = mem->reply->content_type;
+	    http->al.http.code = mem->reply->code;
+	    http->al.http.content_type = mem->reply->content_type;
 	}
 	http->al.cache.caddr = conn->log_addr;
 	http->al.cache.size = http->out.size;
@@ -278,9 +278,9 @@ httpRequestFree(void *data)
 	http->al.cache.msec = tvSubMsec(http->start, current_time);
 	http->al.cache.ident = conn->ident.ident;
 	if (request) {
-	http->al.http.method = request->method;
-	http->al.headers.request = request->headers;
-	http->al.hier = request->hier;
+	    http->al.http.method = request->method;
+	    http->al.headers.request = request->headers;
+	    http->al.hier = request->hier;
 	}
 	accessLogLog(&http->al);
 	HTTPCacheInfo->proto_count(HTTPCacheInfo,
@@ -631,11 +631,11 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
     assert(size >= 0);
     writelen = size;
     if (http->out.offset == 0) {
-        if (Config.logMimeHdrs) {
+	if (Config.logMimeHdrs) {
 	    if ((p = mime_headers_end(buf))) {
-	        safe_free(http->al.headers.reply);
-	        http->al.headers.reply = xcalloc(1 + p - buf, 1);
-	        xstrncpy(http->al.headers.reply, buf, p - buf);
+		safe_free(http->al.headers.reply);
+		http->al.headers.reply = xcalloc(1 + p - buf, 1);
+		xstrncpy(http->al.headers.reply, buf, p - buf);
 	    }
 	}
 	/* make sure 'buf' is null terminated somewhere */
@@ -2007,7 +2007,7 @@ requestTimeout(int fd, void *data)
 	    NULL,
 	    504);
 	/* if we don't close() here, we still need a timeout handler! */
-        commSetTimeout(fd, 30, requestTimeout, conn);
+	commSetTimeout(fd, 30, requestTimeout, conn);
     }
 }
 
@@ -2108,7 +2108,7 @@ CheckQuickAbort(clientHttpRequest * http)
 {
     StoreEntry *entry = http->entry;
     /* Note, set entry here because http->entry might get changed (for IMS
-       requests) during the storeAbort() call */
+     * requests) during the storeAbort() call */
     if (entry == NULL)
 	return;
     if (storePendingNClients(entry) > 1)

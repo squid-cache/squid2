@@ -33,8 +33,8 @@
 
 #if USE_ICMP
 
-static hash_table * addr_table = NULL;
-static hash_table * host_table = NULL;
+static hash_table *addr_table = NULL;
+static hash_table *host_table = NULL;
 
 static struct in_addr networkFromInaddr _PARAMS((struct in_addr a));
 static void netdbRelease _PARAMS((netdbEntry * n));

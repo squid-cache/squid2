@@ -148,7 +148,7 @@ typedef struct _meta_data_stat {
 extern Meta_data meta_data;
 
 struct _cacheinfo {
-    protocol_t (*proto_id) (const char *url);
+    protocol_t(*proto_id) (const char *url);
     void (*proto_newobject) (struct _cacheinfo * c, protocol_t proto_id, int len, int flag);
     void (*proto_purgeobject) (struct _cacheinfo * c, protocol_t proto_id, int len);
     void (*proto_touchobject) (struct _cacheinfo * c, protocol_t proto_id, int len);
