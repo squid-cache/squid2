@@ -709,20 +709,26 @@ if test "$ac_cv_func_setresuid" = "yes" ; then
   AC_DEFINE(HAVE_SETRESUID)
 fi
 
+if test -z "$USE_GNUREGEX" ; then
+    case "$host" in
+    *-sun-solaris2.[[0-4]])
+	  USE_GNUREGEX="yes"
+	  ;;
+    *-next-nextstep*)
+	  USE_GNUREGEX="yes"
+	  ;;
+    esac
+fi
 AC_MSG_CHECKING(if GNUregex needs to be compiled)
+if test -z "$USE_GNUREGEX"; then
 if test "$ac_cv_func_regcomp" = "no" || test "$USE_GNUREGEX" = "yes" ; then
 	USE_GNUREGEX="yes"
 else
-	USE_GNUREGEX="no"
+	AC_TRY_COMPILE([#include <regex.h>],[regex_t t; regcomp(&t,"",0);],
+		USE_GNUREGEX="no",
+		USE_GNUREGEX="yes")
 fi
-case "$host" in
-	[*-sun-solaris2.[0-4]])
-		USE_GNUREGEX="yes"
-		;;
-	[*-next-nextstep*])
-		USE_GNUREGEX="yes"
-		;;
-esac
+fi
 AC_MSG_RESULT($USE_GNUREGEX)
 if test "$USE_GNUREGEX" = "yes"; then
 	REGEXLIB="-lregex"
