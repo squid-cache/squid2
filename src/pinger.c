@@ -308,7 +308,7 @@ pingerReadRequest(void)
     if (guess_size != pecho.psize) {
 	fprintf(stderr, "size mismatch, guess=%d psize=%d\n",
 	    guess_size, pecho.psize);
-	/* silently ignore these */
+	/* don't process this message, but keep running */
 	return 0;
     }
     pingerSendEcho(pecho.to,
