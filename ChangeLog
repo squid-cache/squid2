@@ -185,3 +185,4 @@ beta8:
 	- Better compliance with HTTP/1.1 *DRAFT* regarding which reply
 	  codes can be cached.
 	- Added 'hierarchy_stoplist' configuration option.
+	- Changed mallopt option M_MXFAST top 1024 bytes.
