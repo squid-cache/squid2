@@ -571,7 +571,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
 	hdr_len = t - hdr_in;
 	l = strcspn(t, crlf) + 1;
 	xstrncpy(xbuf, t, l > 4096 ? 4096 : l);
-	debug(11, 5) ("clientBuildReplyHeader: %s\n", xbuf);
+	debug(12, 5) ("clientBuildReplyHeader: %s\n", xbuf);
 	if (strncasecmp(xbuf, "Proxy-Connection:", 17) == 0)
 	    continue;
 	if (strncasecmp(xbuf, "Connection:", 11) == 0)
@@ -597,7 +597,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
 	debug_trap("clientBuildReplyHeader: size mismatch");
 	len = l;
     }
-    debug(11, 3) ("clientBuildReplyHeader: OUTPUT:\n%s\n", hdr_out);
+    debug(12, 3) ("clientBuildReplyHeader: OUTPUT:\n%s\n", hdr_out);
     put_free_4k_page(xbuf);
     put_free_4k_page(ybuf);
     return len;
@@ -921,6 +921,8 @@ icpProcessRequest(int fd, clientHttpRequest * http)
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* this object isn't in the cache */
 	http->log_type = LOG_TCP_MISS;
+    } else if (BIT_TEST(entry->flag, ENTRY_SPECIAL)) {
+	http->log_type = LOG_TCP_HIT;
     } else if (!storeEntryValidToSend(entry)) {
 	http->log_type = LOG_TCP_MISS;
 	storeRelease(entry);

@@ -2065,6 +2065,8 @@ storeEntryLocked(const StoreEntry * e)
 	return 1;
     if (e->store_status == STORE_PENDING)
 	return 1;
+    if (BIT_TEST(e->flag, ENTRY_SPECIAL))
+	return 1;
     return 0;
 }
 
