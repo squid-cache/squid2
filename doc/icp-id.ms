@@ -8,7 +8,7 @@
 .ds RF FORMFEED[Page %]
 .ds CF
 .ds LH Internet-Draft
-.ds RH August 1996
+.ds RH November 1996
 .ds CH
 .hy 0
 .ad l
@@ -379,14 +379,23 @@ will fit.
 Missing Features
 .sp
 .in 3
-Note lack of HTTP method.  ICP can only be used for GET requests.
+Note the lack of an HTTP method in the ICP query.  The current version
+can only be used for GET requests.
 
 .sp
 .in 0
 Security Considerations
 .sp
 .in 3
-Security considerations will be discussed in this memo.
+Security is an issue with ICP over UDP because of its connectionless
+nature.  A proxy/cache must only process ICP packets received
+from its known neighbors.  Packets from unknown addresses must be
+discarded. 
+
+The ICP_OP_HIT_OBJ packet is especially senstive to security issues since
+it contains actual object data in the response.  In combination with 
+IP spoofing it is most likely possible to pollute the cache with
+invalid objects.
 
 .in 0
 .ne 5
@@ -397,6 +406,11 @@ Author's  Address:
 Duane Wessels
 National Laboratory for Applied Network Research
 wessels@nlanr.net
+
+K Claffy
+National Laboratory for Applied Network Research
+kc@nlanr.net
+
 .fi
 .sp
 .in 0

@@ -1,3 +1,9 @@
+
+
+
+
+
+
 Network Working Group                                         D. Wessels
 Internet-Draft                                   National Laboratory for
                                                 Applied Network Research
@@ -46,6 +52,14 @@ Introduction
    objects in neighbor caches.  One cache will send an ICP query to its
    neighbors.  The neighbors will send back ICP replies indicating a
    ``HIT'' or a ``MISS.''  ICP can also be used to multiplex
+
+
+
+Wessels                                                         [Page 1]
+
+Internet-Draft                                             November 1996
+
+
    transmission of multiple object streams over a single TCP connection.
 
    In current practice, ICP is implemented on top of UDP, but there is
@@ -94,6 +108,14 @@ ICP Packet Format
    Packet Length
       The total length of the ICP packet.
 
+
+
+
+Wessels                                                         [Page 2]
+
+Internet-Draft                                             November 1996
+
+
    Request Number
       An opaque identifier.  When set in a query packet, the reply
       packets must contain the same value.
@@ -112,9 +134,6 @@ ICP Packet Format
    Payload
       The contents of the Payload field vary depending on the Opcode,
       but most often it contains a null-terminated URL string.
-
-
-
 
 
 
@@ -145,6 +164,14 @@ ICP Opcodes
 
    ICP_OP_QUERY
       A query packet.  NOTE this opcode has a different payload format
+
+
+
+Wessels                                                         [Page 3]
+
+Internet-Draft                                             November 1996
+
+
       than most of the others.  First is the requestor's IPv4 address,
       followed by a URL.  The requestor address is often left null.
 
@@ -192,6 +219,14 @@ ICP Opcodes
    ICP_OP_HIT
       Sending an ICP_OP_HIT response indicates that the requested URL
       exists in this cache.
+
+
+
+
+Wessels                                                         [Page 4]
+
+Internet-Draft                                             November 1996
+
 
    ICP_OP_MISS
       Sending an ICP_OP_MISS response indicates that the requested URL
@@ -241,6 +276,14 @@ ICP Opcodes
       /                          Object Data                        /
       /                                                             /
       |                                                             |
+
+
+
+Wessels                                                         [Page 5]
+
+Internet-Draft                                             November 1996
+
+
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
       The protocol does not impose any limits on the maximum size of the
@@ -290,14 +333,30 @@ ICP Options
 
 
 
+
+
+Wessels                                                         [Page 6]
+
+Internet-Draft                                             November 1996
+
+
 Missing Features
 
-   Note lack of HTTP method.  ICP can only be used for GET requests.
+   Note the lack of an HTTP method in the ICP query.  The current
+   version can only be used for GET requests.
 
 
 Security Considerations
 
-   Security considerations will be discussed in this memo.
+   Security is an issue with ICP over UDP because of its connectionless
+   nature.  A proxy/cache must only process ICP packets received from
+   its known neighbors.  Packets from unknown addresses must be
+   discarded.
+
+   The ICP_OP_HIT_OBJ packet is especially senstive to security issues
+   since it contains actual object data in the response.  In combination
+   with IP spoofing it is most likely possible to pollute the cache with
+   invalid objects.
 
 Author's  Address:
 
@@ -305,6 +364,9 @@ Author's  Address:
    National Laboratory for Applied Network Research
    wessels@nlanr.net
 
+   K Claffy
+   National Laboratory for Applied Network Research
+   kc@nlanr.net
 
 
 
@@ -329,32 +391,5 @@ Author's  Address:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Wessels                                                         [Page 7]
+
