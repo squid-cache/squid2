@@ -3,8 +3,7 @@
 #ifndef _IPCACHE_H_
 #define _IPCACHE_H_
 
-/*  typedef  int(*IPH) _PARAMS((int, ipcache_entry *, caddr_t)); */
-typedef int (*IPH) _PARAMS((int, struct hostent *, caddr_t));
+typedef int (*IPH) _PARAMS((int, struct hostent *, void *));
 
 
 typedef struct _ipcache_entry {
@@ -24,7 +23,7 @@ typedef struct _ipcache_entry {
     struct _ip_pending *pending_tail;
 } ipcache_entry;
 
-extern int ipcache_nbgethostbyname _PARAMS((char *, int, IPH, caddr_t));
+extern int ipcache_nbgethostbyname _PARAMS((char *, int, IPH, void *));
 extern int ipcache_unregister _PARAMS((char *, int));
 extern struct hostent *ipcache_gethostbyname _PARAMS((char *));
 extern void ipcache_flush _PARAMS((void));

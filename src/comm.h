@@ -22,7 +22,7 @@
 #define COMM_SELECT_TIMEOUT (0x8)
 #define COMM_SELECT_LIFETIME (0x10)
 
-typedef int (*PF) _PARAMS((int, caddr_t));
+typedef int (*PF) _PARAMS((int, void *));
 
 #define FD_ASCII_NOTE_SZ 64
 
@@ -35,19 +35,19 @@ typedef struct fde {
     StoreEntry *store_entry;
 
     /* Select handlers. */
-    caddr_t client_data;	/* App. data to associate w/ handled conn. */
+    void * client_data;	/* App. data to associate w/ handled conn. */
     int (*read_handler) ();	/* Read  select handler. */
-    caddr_t read_data;		/* App. data to associate w/ handled conn. */
+    void * read_data;		/* App. data to associate w/ handled conn. */
     int (*write_handler) ();	/* Write select handler. */
-    caddr_t write_data;		/* App. data to associate w/ handled conn. */
+    void * write_data;		/* App. data to associate w/ handled conn. */
     int (*except_handler) ();	/* Except select handler. */
-    caddr_t except_data;	/* App. data to associate w/ handled conn. */
+    void * except_data;	/* App. data to associate w/ handled conn. */
     int (*timeout_handler) ();	/* Timeout handler. */
     time_t timeout_time;	/* Allow 1-second granularity timeouts */
     time_t timeout_delta;	/* The delta requested */
-    caddr_t timeout_data;	/* App. data to associate w/ handled conn. */
+    void * timeout_data;	/* App. data to associate w/ handled conn. */
     int (*lifetime_handler) ();	/* Lifetime expire handler. */
-    caddr_t lifetime_data;	/* App. data to associate w/ handled conn. */
+    void * lifetime_data;	/* App. data to associate w/ handled conn. */
     char ascii_note[FD_ASCII_NOTE_SZ];
     unsigned int comm_type;
     time_t stall_until;		/* don't select for read until this time reached */
@@ -65,7 +65,7 @@ extern int comm_close _PARAMS((int fd));
 extern int comm_connect _PARAMS((int sock, char *hst, int prt));
 extern int comm_connect_addr _PARAMS((int sock, struct sockaddr_in *));
 extern int comm_get_fd_lifetime _PARAMS((int fd));
-extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, caddr_t *));
+extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void * *));
 extern int comm_init _PARAMS((void));
 extern int comm_init _PARAMS((void));
 extern int comm_listen _PARAMS((int sock));
@@ -76,9 +76,9 @@ extern int comm_port _PARAMS((int fd));
 extern int comm_read _PARAMS((int fd, char *buf, int size));
 extern int comm_select _PARAMS((long sec, long usec, time_t));
 extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
-extern int comm_set_select_handler _PARAMS((int fd, unsigned int type, PF, caddr_t));
-extern int comm_set_select_handler_plus_timeout _PARAMS((int, unsigned int, PF, caddr_t, time_t));
-extern int comm_sethandler _PARAMS((int fd, PF, caddr_t));
+extern int comm_set_select_handler _PARAMS((int fd, unsigned int type, PF, void *));
+extern int comm_set_select_handler_plus_timeout _PARAMS((int, unsigned int, PF, void *, time_t));
+extern int comm_sethandler _PARAMS((int fd, PF, void *));
 extern int comm_udp_recv _PARAMS((int, char *, int, struct sockaddr_in *, int *));
 extern int comm_udp_send _PARAMS((int fd, char *host, int port, char *buf, int len));
 extern int comm_udp_sendto _PARAMS((int fd, struct sockaddr_in *, int size, char *buf, int len));

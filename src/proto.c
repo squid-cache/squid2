@@ -74,73 +74,74 @@ int proto_cachable(url, method, request_hdr)
 }
 
 /* called when DNS lookup is done by ipcache. */
-int protoDispatchDNSHandle(fdunused, unused_hp, data)
-     int fdunused;
-     struct hostent *unused_hp;
-     protodispatch_data *data;
+int protoDispatchDNSHandle(unused1, unused2, data)
+     int unused1;	/* filedescriptor */
+     struct hostent *unused2;
+     void *data;
 {
     edge *e = NULL;
     struct in_addr srv_addr;
     struct hostent *hp = NULL;
     StoreEntry *entry = NULL;
+    protodispatch_data *protoData = (protodispatch_data *) data;
 
     /* NOTE: We get here after a DNS lookup, whether or not the
      * lookup was successful.  Even if the URL hostname is bad,
      * we might still ping the hierarchy */
 
-    entry = data->entry;
+    entry = protoData->entry;
 
     BIT_RESET(entry->flag, IP_LOOKUP_PENDING);
 
-    if (data->direct_fetch == DIRECT_YES) {
-	if (ipcache_gethostbyname(data->host) == NULL) {
-	    protoDNSError(data->fd, entry);
-	    safe_free(data);
+    if (protoData->direct_fetch == DIRECT_YES) {
+	if (ipcache_gethostbyname(protoData->host) == NULL) {
+	    protoDNSError(protoData->fd, entry);
+	    safe_free(protoData);
 	    return 0;
 	}
-	hierarchy_log_append(data->url, HIER_DIRECT, 0, data->host);
-	getFromOrgSource(data->fd, entry);
-	safe_free(data);
+	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, protoData->host);
+	getFromOrgSource(protoData->fd, entry);
+	safe_free(protoData);
 	return 0;
     }
-    if (data->direct_fetch == DIRECT_MAYBE && local_ip_list) {
-	if ((hp = ipcache_gethostbyname(data->host)) == NULL) {
+    if (protoData->direct_fetch == DIRECT_MAYBE && local_ip_list) {
+	if ((hp = ipcache_gethostbyname(protoData->host)) == NULL) {
 	    debug(17, 1, "protoDispatchDNSHandle: Failure to lookup host: %s.\n",
-		data->host);
+		protoData->host);
 	} else {
 	    memcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);
 	    if (ip_access_check(srv_addr, local_ip_list) == IP_DENY) {
-		hierarchy_log_append(data->url,
+		hierarchy_log_append(protoData->url,
 		    HIER_LOCAL_IP_DIRECT, 0,
-		    data->host);
-		getFromOrgSource(data->fd, entry);
-		safe_free(data);
+		    protoData->host);
+		getFromOrgSource(protoData->fd, entry);
+		safe_free(protoData);
 		return 0;
 	    }
 	}
     }
-    if ((e = data->single_parent) &&
-	(single_parent_bypass || data->direct_fetch == DIRECT_NO)) {
+    if ((e = protoData->single_parent) &&
+	(single_parent_bypass || protoData->direct_fetch == DIRECT_NO)) {
 	/* Only one parent for this host, and okay to skip pinging stuff */
-	hierarchy_log_append(data->url, HIER_SINGLE_PARENT, 0, e->host);
-	getFromCache(data->fd, entry, e);
-	safe_free(data);
+	hierarchy_log_append(protoData->url, HIER_SINGLE_PARENT, 0, e->host);
+	getFromCache(protoData->fd, entry, e);
+	safe_free(protoData);
 	return 0;
     }
-    if (data->n_edges == 0 && data->direct_fetch == DIRECT_NO) {
-	hierarchy_log_append(data->url, HIER_NO_DIRECT_FAIL, 0, data->host);
-	protoCantFetchObject(data->fd, entry,
+    if (protoData->n_edges == 0 && protoData->direct_fetch == DIRECT_NO) {
+	hierarchy_log_append(protoData->url, HIER_NO_DIRECT_FAIL, 0, protoData->host);
+	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents to query and the host is beyond your firewall.");
-	safe_free(data);
+	safe_free(protoData);
 	return 0;
     }
-    if (!data->cachable && (e = getFirstParent(data->host))) {
+    if (!protoData->cachable && (e = getFirstParent(protoData->host))) {
 	/* for uncachable objects we should not ping the hierarchy (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
-	getFromCache(data->fd, entry, e);
-	safe_free(data);
+	getFromCache(protoData->fd, entry, e);
+	safe_free(protoData);
 	return 0;
-    } else if (neighborsUdpPing(data)) {
+    } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */
 	if ((entry->ping_status == DONE) || entry->status == STORE_OK) {
 	    debug(17, 0, "Starting a source ping for a valid object %s!\n",
@@ -148,28 +149,28 @@ int protoDispatchDNSHandle(fdunused, unused_hp, data)
 	    fatal_dump(NULL);
 	}
 	entry->ping_status = WAITING;
-	comm_set_select_handler_plus_timeout(data->fd,
+	comm_set_select_handler_plus_timeout(protoData->fd,
 	    COMM_SELECT_TIMEOUT,
 	    (PF) getFromDefaultSource,
-	    (caddr_t) entry,
+	    (void *) entry,
 	    neighbor_timeout);
-	safe_free(data);
+	safe_free(protoData);
 	return 0;
     }
-    if (data->direct_fetch == DIRECT_NO) {
-	hierarchy_log_append(data->url, HIER_NO_DIRECT_FAIL, 0, data->host);
-	protoCantFetchObject(data->fd, entry,
+    if (protoData->direct_fetch == DIRECT_NO) {
+	hierarchy_log_append(protoData->url, HIER_NO_DIRECT_FAIL, 0, protoData->host);
+	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents were queried and the host is beyond your firewall.");
     } else {
-	if (ipcache_gethostbyname(data->host) == NULL) {
-	    protoDNSError(data->fd, entry);
-	    safe_free(data);
+	if (ipcache_gethostbyname(protoData->host) == NULL) {
+	    protoDNSError(protoData->fd, entry);
+	    safe_free(protoData);
 	    return 0;
 	}
-	hierarchy_log_append(data->url, HIER_DIRECT, 0, data->host);
-	getFromOrgSource(data->fd, entry);
+	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, protoData->host);
+	getFromOrgSource(protoData->fd, entry);
     }
-    safe_free(data);
+    safe_free(protoData);
     return 0;
 }
 
@@ -245,14 +246,14 @@ int protoDispatch(fd, url, entry)
 	ipcache_nbgethostbyname(data->host,
 	    fd,
 	    protoDispatchDNSHandle,
-	    (caddr_t) data);
+	    (void *) data);
     } else if (data->n_edges == 0) {
 	/* will fetch from source */
 	data->direct_fetch = DIRECT_YES;
 	ipcache_nbgethostbyname(data->host,
 	    fd,
 	    protoDispatchDNSHandle,
-	    (caddr_t) data);
+	    (void *) data);
     } else if (local_ip_list) {
 	/* Have to look up the url address so we can compare it */
 	data->source_ping = getSourcePing();
@@ -260,7 +261,7 @@ int protoDispatch(fd, url, entry)
 	ipcache_nbgethostbyname(data->host,
 	    fd,
 	    protoDispatchDNSHandle,
-	    (caddr_t) data);
+	    (void *) data);
     } else if (data->single_parent && single_parent_bypass &&
 	!(data->source_ping = getSourcePing())) {
 	/* will fetch from single parent */
@@ -274,7 +275,7 @@ int protoDispatch(fd, url, entry)
 	ipcache_nbgethostbyname(data->host,
 	    fd,
 	    protoDispatchDNSHandle,
-	    (caddr_t) data);
+	    (void *) data);
     }
     return 0;
 }
@@ -347,7 +348,7 @@ static void protoCancelTimeout(fd, entry)
     /* cancel the timeout handler */
     comm_set_select_handler_plus_timeout(fd,
 	COMM_SELECT_TIMEOUT | COMM_SELECT_READ,
-	(PF) 0, (caddr_t) 0, (time_t) 0);
+	(PF) 0, (void *) 0, (time_t) 0);
 }
 
 /*

@@ -127,12 +127,12 @@ struct sentry {
 
 /* ----------------------------------------------------------------- */
 
-typedef int (*PIF) _PARAMS((int, StoreEntry *, caddr_t));
+typedef int (*PIF) _PARAMS((int, StoreEntry *, void *));
 
 typedef struct pentry {
     short fd;
     PIF handler;
-    caddr_t data;
+    void * data;
 } PendingEntry;
 
 extern int has_mem_obj _PARAMS((StoreEntry *));
@@ -143,7 +143,7 @@ extern void storeSetPrivateKey _PARAMS((StoreEntry *));
 extern StoreEntry *storeGetFirst _PARAMS((void));
 extern StoreEntry *storeGetNext _PARAMS((void));
 extern StoreEntry *storeLRU _PARAMS((void));
-extern int storeWalkThrough _PARAMS((int (*proc) (), caddr_t data));
+extern int storeWalkThrough _PARAMS((int (*proc) (), void * data));
 extern int storePurgeOld _PARAMS((void));
 extern void storeSanityCheck _PARAMS(());
 extern void storeComplete _PARAMS((StoreEntry *));
@@ -176,7 +176,7 @@ extern int storePendingNClients _PARAMS((StoreEntry * e));
 extern int storePendingFirstFD _PARAMS((StoreEntry * e));
 extern char *storeSwapFullPath _PARAMS((int, char *));
 extern int storeWriteCleanLog _PARAMS((void));
-extern int storeRegister(StoreEntry *, int, PIF, caddr_t);
+extern int storeRegister(StoreEntry *, int, PIF, void *);
 extern int urlcmp _PARAMS((char *, char *));
 extern int storeSwapInStart _PARAMS((StoreEntry *));
 extern int swapInError _PARAMS((int fd, StoreEntry *));

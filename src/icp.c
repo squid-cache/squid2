@@ -80,7 +80,7 @@ static icpUdpData *tail = NULL;
 #define UDP_HIT_THRESH 300
 #endif
 
-typedef void (*complete_handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data));
+typedef void (*complete_handler) _PARAMS((int fd, char *buf, int size, int errflag, void * data));
 typedef struct ireadd {
     int fd;
     char *buf;
@@ -89,7 +89,7 @@ typedef struct ireadd {
     int timeout;		/* XXX Not used at present. */
     time_t time;
     complete_handler handler;
-    caddr_t client_data;
+    void * client_data;
 } icpReadWriteData;
 
 /* Local functions */
@@ -202,7 +202,7 @@ int icpHandleRead(fd, rw_state_machine)
 	    /* reschedule self */
 	    comm_set_select_handler(fd, COMM_SELECT_READ,
 		(PF) icpHandleRead,
-		(caddr_t) rw_state_machine);
+		(void *) rw_state_machine);
 	    return COMM_OK;
 	default:
 	    /* Len == 0 means connection closed; otherwise,  would not have been
@@ -234,7 +234,7 @@ int icpHandleRead(fd, rw_state_machine)
 	comm_set_select_handler(fd,
 	    COMM_SELECT_READ,
 	    (PF) icpHandleRead,
-	    (caddr_t) rw_state_machine);
+	    (void *) rw_state_machine);
     }
 
     return COMM_OK;
@@ -248,8 +248,8 @@ void icpRead(fd, bin_mode, buf, size, timeout, handler, client_data)
      char *buf;
      int size;
      int timeout;
-     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data));
-     caddr_t client_data;
+     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, void * data));
+     void * client_data;
 {
     icpReadWriteData *data = NULL;
     data = (icpReadWriteData *) xcalloc(1, sizeof(icpReadWriteData));
@@ -264,7 +264,7 @@ void icpRead(fd, bin_mode, buf, size, timeout, handler, client_data)
     comm_set_select_handler(fd,
 	COMM_SELECT_READ,
 	(PF) icpHandleRead,
-	(caddr_t) data);
+	(void *) data);
 }
 
 /* Write to FD. */
@@ -305,7 +305,7 @@ void icpHandleWrite(fd, rwsm)
 	    comm_set_select_handler(fd,
 		COMM_SELECT_WRITE,
 		(PF) icpHandleWrite,
-		(caddr_t) rwsm);
+		(void *) rwsm);
 	    return;
 	}
 	debug(12, 2, "icpHandleWrite: FD %d: write failure: %s.\n",
@@ -325,7 +325,7 @@ void icpHandleWrite(fd, rwsm)
 	comm_set_select_handler(fd,
 	    COMM_SELECT_WRITE,
 	    (PF) icpHandleWrite,
-	    (caddr_t) rwsm);
+	    (void *) rwsm);
 	return;
     }
     rwsm->handler(fd,
@@ -345,8 +345,8 @@ char *icpWrite(fd, buf, size, timeout, handler, client_data)
      char *buf;
      int size;
      int timeout;
-     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data));
-     caddr_t client_data;
+     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, void * data));
+     void * client_data;
 {
     icpReadWriteData *data = NULL;
 
@@ -365,7 +365,7 @@ char *icpWrite(fd, buf, size, timeout, handler, client_data)
     comm_set_select_handler(fd,
 	COMM_SELECT_WRITE,
 	(PF) icpHandleWrite,
-	(caddr_t) data);
+	(void *) data);
     return ((char *) data);
 }
 
@@ -419,7 +419,7 @@ int icpSendERROR(fd, errorCode, msg, state)
 	    (char *) NULL,
 	    NULL,
 	    COMM_ERROR,
-	    (caddr_t) state);
+	    (void *) state);
 	return COMM_ERROR;
     } else if (port == getAsciiPortNum()) {
 	/* Error message for the ascii port */
@@ -431,7 +431,7 @@ int icpSendERROR(fd, errorCode, msg, state)
     } else {
 	fatal_dump("This should not happen!");
     }
-    icpWrite(fd, buf, buf_len, 30, icpSendERRORComplete, (caddr_t) state);
+    icpWrite(fd, buf, buf_len, 30, icpSendERRORComplete, (void *) state);
     return COMM_OK;
 }
 
@@ -497,7 +497,7 @@ int icpSendMoreData(fd, state)
 
     /* Do this here, so HandleStoreComplete can tell whether more data 
      * needs to be sent. */
-    icpWrite(fd, buf, buf_len, 30, icpHandleStoreComplete, (caddr_t) state);
+    icpWrite(fd, buf, buf_len, 30, icpHandleStoreComplete, (void *) state);
     result = COMM_OK;
     return result;
 }
@@ -578,7 +578,7 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
-	storeRegister(state->entry, fd, (PIF) icpHandleStore, (caddr_t) state);
+	storeRegister(state->entry, fd, (PIF) icpHandleStore, (void *) state);
     }
 }
 
@@ -708,7 +708,7 @@ static int icpProcessMISS(fd, usm, key)
     usm->offset = 0;
 
     /* Register with storage manager to receive updates when data comes in. */
-    storeRegister(entry, fd, (PIF) icpHandleStore, (caddr_t) usm);
+    storeRegister(entry, fd, (PIF) icpHandleStore, (void *) usm);
 
     return (protoDispatch(fd, url, usm->entry));
 }
@@ -793,7 +793,7 @@ int icpProcessHeader(fd, buf_notused, size, flag, state)
 		buf_size,
 		30,
 		icpProcessUrl,
-		(caddr_t) state);
+		(void *) state);
 	} else {
 	    debug(12, 1, "icpProcessHeader: FD %d: invalid OPCODE: %d\n", fd, op);
 	    state->buf = state->ptr_to_4k_page = NULL;	/* Nothing to free */
@@ -834,7 +834,7 @@ int icpUdpReply(fd, queue)
 	comm_set_select_handler(fd,
 	    COMM_SELECT_WRITE,
 	    (PF) icpUdpReply,
-	    (caddr_t) UdpQueue);
+	    (void *) UdpQueue);
     safe_free(dp->msg);
     safe_free(dp);
 
@@ -880,7 +880,7 @@ int icpUdpMiss(fd, url, reqheaderp, from)
     UdpQueue = AppendUdp(data, UdpQueue);
 
     comm_set_select_handler(fd, COMM_SELECT_WRITE, (PF) icpUdpReply,
-	(caddr_t) UdpQueue);
+	(void *) UdpQueue);
 
     return COMM_OK;
 }
@@ -937,14 +937,14 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
     comm_set_select_handler(fd,
 	COMM_SELECT_WRITE,
 	(PF) icpUdpReply,
-	(caddr_t) UdpQueue);
+	(void *) UdpQueue);
 
     return COMM_OK;
 }
 
 int icpHandleUdp(sock, not_used)
      int sock;
-     caddr_t not_used;
+     void * not_used;
 {
 
     int result = 0;
@@ -1521,7 +1521,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		strlen(astm->buf),
 		30,
 		icpSendERRORComplete,
-		(caddr_t) astm);
+		(void *) astm);
 	} else if (blockCheck(astm->url)) {
 	    astm->log_type = LOG_TCP_BLOCK;
 	    astm->http_code = 403;
@@ -1536,7 +1536,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		strlen(astm->buf),
 		30,
 		icpSendERRORComplete,
-		(caddr_t) astm);
+		(void *) astm);
 	} else if (second_ip_acl_check(fd, astm) == IP_DENY) {
 	    sprintf(tmp_error_buf,
 		"ACCESS DENIED\n\nYour IP address (%s) is not authorized to access cached at %s.\n\n",
@@ -1549,7 +1549,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		strlen(tmp_error_buf),
 		30,
 		icpSendERRORComplete,
-		(caddr_t) astm);
+		(void *) astm);
 	    astm->log_type = LOG_TCP_DENIED;
 	} else {
 	    /* The request is good, let's go... */
@@ -1574,7 +1574,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	    k,
 	    30,
 	    asciiProcessInput,
-	    (caddr_t) astm);
+	    (void *) astm);
     } else {
 	/* parser returned -1 */
 	debug(12, 1, "asciiProcessInput: FD %d Invalid Request\n", fd);
@@ -1589,7 +1589,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	    strlen(astm->buf),
 	    30,
 	    icpSendERRORComplete,
-	    (caddr_t) astm);
+	    (void *) astm);
     }
 }
 
@@ -1598,11 +1598,11 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 /* general lifetime handler for ascii connection */
 void asciiConnLifetimeHandle(fd, data)
      int fd;
-     caddr_t data;
+     void * data;
 {
     icpStateData *astm = (icpStateData *) data;
     PF handler;
-    caddr_t client_data;
+    void * client_data;
     icpReadWriteData *rw_state = NULL;
     StoreEntry *entry = NULL;
 
@@ -1619,8 +1619,8 @@ void asciiConnLifetimeHandle(fd, data)
     client_data = NULL;
     comm_get_select_handler(fd,
 	COMM_SELECT_WRITE,
-	(PF *) & handler,
-	(caddr_t *) & client_data);
+	(PF *) &handler,
+	(void **) &client_data);
     if ((handler != NULL) && (client_data != NULL)) {
 	rw_state = (icpReadWriteData *) client_data;
 	if (rw_state->buf)
@@ -1633,8 +1633,8 @@ void asciiConnLifetimeHandle(fd, data)
     client_data = NULL;
     comm_get_select_handler(fd,
 	COMM_SELECT_READ,
-	(PF *) & handler,
-	(caddr_t *) & client_data);
+	(PF *) &handler,
+	(void **) &client_data);
     if ((handler != NULL) && (client_data != NULL)) {
 	rw_state = (icpReadWriteData *) client_data;
 	/*
@@ -1663,7 +1663,7 @@ void asciiConnLifetimeHandle(fd, data)
 /* Handle a new connection on ascii input socket. */
 int asciiHandleConn(sock, notused)
      int sock;
-     caddr_t notused;
+     void * notused;
 {
     int fd = -1;
     int lft = -1;
@@ -1703,7 +1703,7 @@ int asciiHandleConn(sock, notused)
 	    strlen(tmp_error_buf),
 	    30,
 	    icpSendERRORComplete,
-	    (caddr_t) astm);
+	    (void *) astm);
     } else {
 	astm->inbuf = (char *) xcalloc(ASCII_INBUF_SIZE, 1);
 	astm->header.shostid = htonl(peer.sin_addr.s_addr);
@@ -1712,14 +1712,14 @@ int asciiHandleConn(sock, notused)
 	comm_set_select_handler(fd,
 	    COMM_SELECT_LIFETIME,
 	    (PF) asciiConnLifetimeHandle,
-	    (caddr_t) astm);
+	    (void *) astm);
 	icpRead(fd,
 	    FALSE,
 	    astm->inbuf,
 	    ASCII_INBUF_SIZE - 1,
 	    30,
 	    asciiProcessInput,
-	    (caddr_t) astm);
+	    (void *) astm);
     }
     comm_set_select_handler(sock,
 	COMM_SELECT_READ,
