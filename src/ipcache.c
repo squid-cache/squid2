@@ -45,7 +45,18 @@ typedef struct _dnsserver_entry {
     /* global ipcache_entry list for pending entry */
     ipcache_list *global_pending;
     ipcache_list *global_pending_tail;
+    struct timeval dispatch_time;
 } dnsserver_entry;
+
+static struct {
+    int requests;
+    int hits;
+    int misses;
+    int dnsserver_requests;
+    int dnsserver_replies;
+    int errors;
+    int avg_svc_time;
+} IpcacheStats;
 
 typedef struct _line_entry {
     char *line;
@@ -891,8 +902,11 @@ int ipcache_dnsHandleRead(fd, data)
      dnsserver_entry *data;
 {
     int char_scanned;
-    int len = read(fd, data->ip_inbuf + data->offset, data->size - data->offset);
+    int len;
+    int svc_time;
+    int n;
 
+    len = read(fd, data->ip_inbuf + data->offset, data->size - data->offset);
     debug(14, 5, "ipcache_dnsHandleRead: Result from DNS ID %d.\n", data->id);
 
     if (len == 0) {
@@ -905,11 +919,17 @@ int ipcache_dnsHandleRead(fd, data)
 	fdstat_close(fd);
 	return 0;
     }
+    n = ++IpcacheStats.dnsserver_replies;
     data->offset += len;
     data->ip_inbuf[data->offset] = '\0';
 
     if (strstr(data->ip_inbuf, "$end\n")) {
 	/* end of record found */
+	svc_time = tvSubMsec(data->dispatch_time, current_time);
+	if (n > IPCACHE_AV_FACTOR)
+	    n = IPCACHE_AV_FACTOR;
+	IpcacheStats.avg_svc_time
+	    = (IpcacheStats.avg_svc_time * (n - 1) + svc_time) / n;
 	char_scanned = ipcache_parsebuffer(data->ip_inbuf, data->offset, data);
 	if (char_scanned > 0) {
 	    /* update buffer */
@@ -935,6 +955,7 @@ int ipcache_nbgethostbyname(name, fd, handler, data)
     dnsserver_entry *dns;
 
     debug(14, 4, "ipcache_nbgethostbyname: FD %d: Name '%s'.\n", fd, name);
+    IpcacheStats.requests++;
 
     if (name == NULL || name[0] == '\0') {
 	debug(14, 4, "ipcache_nbgethostbyname: Invalid name!\n");
@@ -944,6 +965,7 @@ int ipcache_nbgethostbyname(name, fd, handler, data)
     if ((e = ipcache_get(name)) != NULL && (e->status != PENDING)) {
 	/* hit here */
 	debug(14, 4, "ipcache_nbgethostbyname: Hit for name '%s'.\n", name);
+	IpcacheStats.hits++;
 	pending = xcalloc(1, sizeof(IpPending));
 	pending->fd = fd;
 	pending->handler = handler;
@@ -959,6 +981,7 @@ int ipcache_nbgethostbyname(name, fd, handler, data)
 	return 0;
     }
     debug(14, 4, "ipcache_nbgethostbyname: Name '%s': MISS or PENDING.\n", name);
+    IpcacheStats.misses++;
 
     pending = xcalloc(1, sizeof(IpPending));
     pending->fd = fd;
@@ -1043,6 +1066,8 @@ int ipcache_nbgethostbyname(name, fd, handler, data)
 	    0);			/* Handler-data */
 
 	debug(14, 5, "ipcache_nbgethostbyname: Request sent DNS server ID %d.\n", last_dns_dispatched);
+	dns->dispatch_time = current_time;
+	IpcacheStats.dnsserver_requests++;
     } else {
 	/* do a blocking mode */
 	debug(14, 4, "ipcache_nbgethostbyname: Fall back to blocking mode.  Server's dead...\n");
@@ -1227,11 +1252,12 @@ struct hostent *ipcache_gethostbyname(name)
 	debug(14, 5, "ipcache_gethostbyname: Invalid argument?\n");
 	return (NULL);
     }
+    IpcacheStats.requests++;
     if (!(result = ipcache_get(name))) {
 	/* cache miss */
-	if (name) {
+	if (name)
 	    debug(14, 5, "ipcache_gethostbyname: IPcache miss for '%s'.\n", name);
-	}
+	IpcacheStats.misses++;
 	/* check if it's already a IP address in text form. */
 	if (sscanf(name, "%u.%u.%u.%u", &a1, &a2, &a3, &a4) == 4) {
 	    *((unsigned long *) (void *) static_result->h_addr_list[0]) = inet_addr(name);
@@ -1257,6 +1283,7 @@ struct hostent *ipcache_gethostbyname(name)
     }
     /* cache hit */
     debug(14, 5, "ipcache_gethostbyname: Hit for '%s'.\n", name ? name : "NULL");
+    IpcacheStats.hits++;
     result->lastref = squid_curtime;
     return (result->status == CACHED) ? &(result->entry) : NULL;
 }
@@ -1273,6 +1300,32 @@ void stat_ipcache_get(sentry, obj)
     int i;
     int ttl;
     char status;
+
+    sprintf(buffer, "{IP Cache Statistics:\n");
+    storeAppend(sentry, buffer, strlen(buffer));
+    sprintf(buffer, "{IPcache Requests: %d}\n",
+	IpcacheStats.requests);
+    storeAppend(sentry, buffer, strlen(buffer));
+    sprintf(buffer, "{IPcache Hits: %d}\n",
+	IpcacheStats.hits);
+    storeAppend(sentry, buffer, strlen(buffer));
+    sprintf(buffer, "{IPcache Misses: %d}\n",
+	IpcacheStats.misses);
+    storeAppend(sentry, buffer, strlen(buffer));
+    sprintf(buffer, "{dnsserver requests: %d}\n",
+	IpcacheStats.dnsserver_requests);
+    storeAppend(sentry, buffer, strlen(buffer));
+    sprintf(buffer, "{dnsserver replies: %d}\n",
+	IpcacheStats.dnsserver_replies);
+    storeAppend(sentry, buffer, strlen(buffer));
+    sprintf(buffer, "{dnsserver avg service time: %d msec}\n",
+	IpcacheStats.avg_svc_time);
+    storeAppend(sentry, buffer, strlen(buffer));
+    sprintf(buffer, "{number of dnsservers: %d}\n",
+	getDnsChildren());
+    storeAppend(sentry, buffer, strlen(buffer));
+    sprintf(buffer, "}\n\n");
+    storeAppend(sentry, buffer, strlen(buffer));
 
     sprintf(buffer, "{IP Cache Contents:\n\n");
     storeAppend(sentry, buffer, strlen(buffer));
