@@ -140,4 +140,10 @@
 #define xmemcpy(d,s,n) memmove((d),(s),(n))
 #endif
 
+#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
+#define SQUID_NONBLOCK O_NONBLOCK
+#else
+#define SQUID_NONBLOCK O_NDELAY
+#endif
+
 #endif /* _CONFIG_H_ */
