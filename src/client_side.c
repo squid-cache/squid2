@@ -282,6 +282,8 @@ clientRedirectDone(void *data, char *result)
 	requestUnlink(old_request);
 	icpState->request = requestLink(new_request);
 	urlCanonical(icpState->request, icpState->url);
+	safe_free(icpState->log_url);
+	icpState->log_url = xstrdup(urlCanonicalClean(new_request));
     }
     icpParseRequestHeaders(icpState);
     fd_note(fd, icpState->log_url);
