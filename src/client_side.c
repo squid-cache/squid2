@@ -861,8 +861,6 @@ clientHierarchical(clientHttpRequest * http)
 	return 1;
     if (method != METHOD_GET)
 	return 0;
-    if (method != METHOD_CONNECT)
-	return 0;
     /* scan hierarchy_stoplist */
     for (p = Config.hierarchy_stoplist; p; p = p->next)
 	if (strstr(url, p->key))
