@@ -57,6 +57,10 @@ progresses as a sequence of ``handler functions'' which get called
 when I/O is ready to occur.  As a handler completes, it will register
 another handler for the next time I/O occurs.
 
+Note there is only a pseudo-consistent naming scheme.  In most 
+cases functions are named like {\tt moduleFooBar()}.  However, there
+are also some functions named like {\tt module\_foo\_bar()}.
+
 Note that the Squid source changes rapidly, and some parts of this
 document may become out-of-date.  If you find any inconsistencies, please
 feel free to notify us at {\tt squid-dev@nlanr.net}.
@@ -64,11 +68,13 @@ feel free to notify us at {\tt squid-dev@nlanr.net}.
 %%
 %% Chapter : MAIN LOOP
 %%
-\chapter{The Main Loop}
+\chapter{The Main Loop: {\tt comm\_select()}}
 
 At the core of Squid is the {\tt select(2)} system call.  Squid uses
 {\tt select()} (or alternatively {\tt poll(2)} in recent versions) to 
 process I/O on all open file descriptors.
+
+\section{Comm Handlers}
 
 For every open file descriptor, there are N types of handler functions.
 \begin{itemize}
@@ -102,10 +108,34 @@ the handler is cleared from the {\tt FD\_ENTRY} before it is called.
 After each handler is called, {\tt comm\_select\_incoming()} is
 called to process new HTTP and ICP requests.
 
+Typical read handlers are
+{\tt httpReadReply()},
+{\tt diskHandleRead()},
+{\tt icpHandleUdp()},
+and {\tt ipcache\_dnsHandleRead()}.
+Typical write handlers are
+{\tt commHandleWrite()},
+{\tt diskHandleWrite()},
+and {\tt icpUdpReply()}.
+The handler function is set with {\tt commSetSelect()}, with the
+exception of the close handlers, which are set with {\tt
+comm\_add\_close\_handler()}.
+
+The close handlers are normally called from {\tt comm\_close()}.  
+The job of the close handlers is to deallocate data structures 
+associated with the file descriptor.  For this reason {\tt comm\_close()}
+must normally be the last function in a sequence to prevent accessing
+just-freed memory.
+
+The timeout and lifetime handlers are called for file descriptors which
+have been idle for too long.  They are futher discussed in a following 
+chapter.
+
 %%
 %% Chapter : DATA STRUCTURES
 %%
 \chapter{Data Structures}
+\section{Main Config}
 
 %%
 %% Chapter : STORAGE MANAGER
