@@ -1001,8 +1001,10 @@ client_comm_connect(int sock, char *dest_host, u_short dest_port)
 	xmemcpy(&to_addr.sin_addr.s_addr, hp->h_addr, hp->h_length);
     else if (safe_inet_addr(dest_host, &to_addr.sin_addr))
 	(void) 0;
-    else
-	return (-1);
+    else {
+	fprintf(stderr, "Unknown host: %s\n", dest_host);
+	exit(2);
+    }
 
     to_addr.sin_port = htons(dest_port);
     return connect(sock, (struct sockaddr *) &to_addr, sizeof(struct sockaddr_in));
