@@ -14,10 +14,7 @@ typedef struct _FDENTRY {
     File_Desc_Type type;
 } FDENTRY;
 
-static FDENTRY *fd_stat_tab;
-
-extern int getMaxFD();
-
+static FDENTRY *fd_stat_tab = NULL;
 
 char *fdfiletype(type)
      File_Desc_Type type;

@@ -30,6 +30,7 @@ typedef struct fde {
     int openned;		/* Set if we did a comm_connect.  Ignored for ftp_pipes. */
     int sender;			/* Set if this fd is connected to a client */
     int port;			/* Our tcp port # */
+    char ipaddr[16];		/* dotted decimal address of peer */
     int (*handler) ();		/* Interrupt handler */
     StoreEntry *store_entry;
 
