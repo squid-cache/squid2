@@ -1588,7 +1588,7 @@ DOC_START
 
 Examples:
 acl myexample dst_as 1241
-acl password proxy_auth 300
+acl password proxy_auth REQUIRED
 
 Defaults:
 NOCOMMENT_START
