@@ -1215,8 +1215,11 @@ var_system(struct variable * vp, oid * name, int *length, int exact,
 	*var_len = strlen(Config.adminEmail);
 	return (u_char *) Config.adminEmail;
     case SYSYSNAME:
-	*var_len = strlen(Config.visibleHostname);
-	return (u_char *) Config.visibleHostname;
+	char *pp;
+	if (( pp= Config.visibleHostname) == NULL) 
+		pp=getMyHostname();
+	*var_len = strlen(pp);
+	return (u_char *) pp;
     case SYSLOCATION:
 	pp = "Cyberspace";
 	*var_len = strlen(pp);
