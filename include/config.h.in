@@ -163,16 +163,6 @@
 #define squid_srandom srand
 #endif
 
-/* Needed for poll() Linux at least */
-#ifdef HAVE_POLL
-#ifndef POLLRDNORM
-#define POLLRDNORM POLLIN
-#endif
-#ifndef POLLWRNORM
-#define POLLWRNORM POLLOUT
-#endif
-#endif
-
 /* if getrusage() doesn't exist, we fake it, but these fields won't
    be filled in */
 #if !HAVE_GETRUSAGE

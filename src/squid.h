@@ -265,6 +265,16 @@
 #define storeKeyHashHash hash4
 #endif
 
+/* Needed for poll() on Linux at least */
+#if HAVE_POLL
+#ifndef POLLRDNORM
+#define POLLRDNORM POLLIN
+#endif
+#ifndef POLLWRNORM
+#define POLLWRNORM POLLOUT
+#endif
+#endif
+
 #include "defines.h"
 #include "enums.h"
 #include "typedefs.h"
