@@ -1693,6 +1693,7 @@ aclMatchAclList(const acl_list * list, aclCheck_t * checklist)
 {
     while (list) {
 	int answer;
+	checklist->current_acl = list->acl;
 	AclMatchedName = list->acl->name;
 	debug(28, 3) ("aclMatchAclList: checking %s%s\n",
 	    list->op ? null_string : "!", list->acl->name);
@@ -1719,6 +1720,7 @@ aclCheckCleanup(aclCheck_t * checklist)
 	cbdataUnlock(checklist->extacl_entry);
 	checklist->extacl_entry = NULL;
     }
+    checklist->current_acl = NULL;
 }
 
 int
@@ -1825,7 +1827,8 @@ aclCheck(aclCheck_t * checklist)
 	}
 #endif
 	else if (checklist->state[ACL_EXTERNAL] == ACL_LOOKUP_NEEDED) {
-	    acl *acl = aclFindByName(AclMatchedName);
+	    acl *acl = checklist->current_acl;
+	    assert(acl->type == ACL_EXTERNAL);
 	    externalAclLookup(checklist, acl->data, aclLookupExternalDone, checklist);
 	    return;
 	}

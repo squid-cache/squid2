@@ -296,6 +296,7 @@ struct _aclCheck_t {
     PF *callback;
     void *callback_data;
     external_acl_entry *extacl_entry;
+    acl *current_acl;		/* private, used by aclCheck */
 };
 
 struct _wordlist {
