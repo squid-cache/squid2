@@ -589,15 +589,18 @@ COMMENT_END
 NAME: cache_dir
 TYPE: cachedir
 DEFAULT: none
-DEFAULT_IF_NONE: @DEFAULT_SWAP_DIR@ 100 16 256
+DEFAULT_IF_NONE: ufs @DEFAULT_SWAP_DIR@ 100 16 256
 LOC: Config.cacheSwap
 DOC_START
 	Usage:
 	
-	cache_dir Directory-Name Mbytes Level-1 Level2
+	cache_dir Type Directory-Name Mbytes Level-1 Level2
 
 	You can specify multiple cache_dir lines to spread the
 	cache among different disk partitions.
+
+	Type specifies the kind of storage system to use.  If you
+	don't know what to put here, then use "ufs".
 
 	'Directory' is a top-level directory where cache swap
 	files will be stored.  If you want to use an entire disk
@@ -619,7 +622,7 @@ DOC_START
 	will be created under each first-level directory.  The default
 	is 256.
 
-cache_dir @DEFAULT_SWAP_DIR@ 100 16 256
+cache_dir ufs @DEFAULT_SWAP_DIR@ 100 16 256
 DOC_END
 
 
