@@ -124,15 +124,18 @@ void stat_io_get(obj, sentry)
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     sprintf(tempbuf, "{number of reads: %d}\n", IOStats.Http.reads);
     storeAppend(sentry, tempbuf, strlen(tempbuf));
-    sprintf(tempbuf, "{deferred reads: %d}\n", IOStats.Http.reads_deferred);
+    sprintf(tempbuf, "{deferred reads: %d (%d%%)}\n",
+	IOStats.Http.reads_deferred,
+	percent(IOStats.Http.reads_deferred, IOStats.Http.reads));
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     sprintf(tempbuf, "{Read Histogram:}\n");
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     for (i = 0; i < 16; i++) {
-	sprintf(tempbuf, "{%5d-%5d: %9d}\n",
+	sprintf(tempbuf, "{%5d-%5d: %9d %2d%%}\n",
 	    i ? (1 << (i - 1)) + 1 : 1,
 	    1 << i,
-	    IOStats.Http.read_hist[i]);
+	    IOStats.Http.read_hist[i],
+	    percent(IOStats.Http.read_hist[i], IOStats.Http.reads));
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
     }
 
@@ -142,15 +145,18 @@ void stat_io_get(obj, sentry)
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     sprintf(tempbuf, "{number of reads: %d}\n", IOStats.Ftp.reads);
     storeAppend(sentry, tempbuf, strlen(tempbuf));
-    sprintf(tempbuf, "{deferred reads: %d}\n", IOStats.Ftp.reads_deferred);
+    sprintf(tempbuf, "{deferred reads: %d (%d%%)}\n",
+	IOStats.Ftp.reads_deferred,
+	percent(IOStats.Ftp.reads_deferred, IOStats.Ftp.reads));
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     sprintf(tempbuf, "{Read Histogram:}\n");
     storeAppend(sentry, tempbuf, strlen(tempbuf));
     for (i = 0; i < 16; i++) {
-	sprintf(tempbuf, "{%5d-%5d: %9d}\n",
+	sprintf(tempbuf, "{%5d-%5d: %9d %2d%%}\n",
 	    i ? (1 << (i - 1)) + 1 : 1,
 	    1 << i,
-	    IOStats.Ftp.read_hist[i]);
+	    IOStats.Ftp.read_hist[i],
+	    percent(IOStats.Ftp.read_hist[i], IOStats.Ftp.reads));
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
     }
 
