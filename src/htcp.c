@@ -785,6 +785,10 @@ htcpHandleData(char *buf, int sz, struct sockaddr_in *from)
     case HTCP_SET:
 	htcpHandleSet(&hdr, buf, sz, from);
 	break;
+    case HTCP_CLR:
+	debug(31, 1) ("htcpHandleData: client %s, CLR not supported\n",
+	    inet_ntoa(from->sin_addr));
+	break;
     default:
 	assert(0);
 	break;
