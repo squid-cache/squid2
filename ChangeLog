@@ -1,3 +1,9 @@
+	- Added ICP_OP_RELOADING to be used instead of ICP_OP_DENIED
+	  for -Y option.
+	- Moved hierarchy_code for access.log from MemObject to
+	  request_t so simultaneous client readers don't get the same
+	  hierachy code.
+
 Changes to squid-1.0.4 (July 24, 1996):
 
 	- Fixed ftpget logic/precedence bug

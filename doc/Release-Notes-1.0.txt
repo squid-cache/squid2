@@ -136,6 +136,9 @@ Access Log Types:
 	UDP_MISS	The requested object was not in the cache
 	UDP_DENIED	Access was denied for this request
 	UDP_INVALID	An invalid request was received.
+	UDP_RELOADING	The neighbor cache is reloading its disk store and
+			does not want any TCP requests for MISSES until 
+			it is finished.
 ..............................................................................
 Hierarchy Log Types:
 
