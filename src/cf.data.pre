@@ -801,7 +801,7 @@ DOC_START
 
 	Q2 specifies the number of unacknowledged messages when Squid
 	starts blocking.  If this many messages are in the queues,
-	Squid blocks until it recevies some replies. Default is 72
+	Squid blocks until it receives some replies. Default is 72
 
 	When Q1 < Q2 (the default), the cache directory is optimized
 	for lower response time at the expense of a decrease in hit
