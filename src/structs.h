@@ -1593,11 +1593,7 @@ struct _FwdState {
     request_t *request;
     FwdServer *servers;
     int server_fd;
-    struct {
-	int err_code;
-	http_status http_code;
-	int xerrno;
-    } fail;
+    ErrorState *err;
     time_t start;
     int n_tries;
 };

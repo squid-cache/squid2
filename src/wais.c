@@ -207,6 +207,7 @@ waisSendRequest(int fd, void *data)
     comm_write_mbuf(fd, mb, waisSendComplete, waisState);
     if (EBIT_TEST(waisState->entry->flags, ENTRY_CACHABLE))
 	storeSetPublicKey(waisState->entry);	/* Make it public */
+    EBIT_CLR(waisState->entry->flags, ENTRY_FWD_HDR_WAIT);
 }
 
 void

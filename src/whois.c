@@ -104,7 +104,10 @@ whoisReadReply(int fd, void *data)
 	if (ignoreErrno(errno)) {
 	    commSetSelect(fd, COMM_SELECT_READ, whoisReadReply, p, Config.Timeout.read);
 	} else if (entry->mem_obj->inmem_hi == 0) {
-	    fwdFail(p->fwd, ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR, errno);
+	    ErrorState *err;
+	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
+	    err->xerrno = errno;
+	    fwdFail(p->fwd, err);
 	    comm_close(fd);
 	} else {
 	    comm_close(fd);
