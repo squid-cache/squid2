@@ -257,7 +257,7 @@ extern char localhost[];
 
 
 /* Prototypes and definitions which don't really deserve a seaprate
-   include file */
+ * include file */
 
 #define  CONNECT_PORT        443
 
