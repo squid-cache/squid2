@@ -3346,7 +3346,7 @@ delay_parameters 1 -1/-1 8000/8000
 	(if the network is not being limited due to overuse) but slow down
 	large downloads more significantly:
 
-delay_parameters 2 32000/32000 8000/8000 600/64000
+delay_parameters 2 32000/32000 8000/8000 600/8000
 
 	There must be one delay_parameters line for each delay pool.
 DOC_END
