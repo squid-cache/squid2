@@ -1084,7 +1084,7 @@ parse_refreshpattern(refresh_t ** head)
     t->pattern = (char *) xstrdup(pattern);
     t->compiled_pattern = comp;
     t->min = min;
-    t->pct = pct;
+    t->pct = pct * QUICK_ABORT_100PCT / 100;
     t->max = max;
     t->next = NULL;
     while (*head)
