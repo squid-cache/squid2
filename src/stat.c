@@ -274,22 +274,22 @@ statStoreEntry(MemBuf * mb, StoreEntry * e)
     memBufPrintf(mb, "\tSwap Dir %d, File %#08X\n",
 	e->swap_dirn, e->swap_filen);
     if (mem != NULL) {
-	memBufPrintf(mb, "\tinmem_lo: %d\n", (int) mem->inmem_lo);
-	memBufPrintf(mb, "\tinmem_hi: %d\n", (int) mem->inmem_hi);
-	memBufPrintf(mb, "\tswapout: %d bytes queued\n",
-	    (int) mem->swapout.queue_offset);
+	memBufPrintf(mb, "\tinmem_lo: %" PRINTF_OFF_T "\n", mem->inmem_lo);
+	memBufPrintf(mb, "\tinmem_hi: %" PRINTF_OFF_T "\n", mem->inmem_hi);
+	memBufPrintf(mb, "\tswapout: %" PRINTF_OFF_T " bytes queued\n",
+	    mem->swapout.queue_offset);
 	if (mem->swapout.sio)
-	    memBufPrintf(mb, "\tswapout: %d bytes written\n",
-		(int) storeOffset(mem->swapout.sio));
+	    memBufPrintf(mb, "\tswapout: %" PRINTF_OFF_T " bytes written\n",
+		storeOffset(mem->swapout.sio));
 	for (i = 0, node = mem->clients.head; node; node = node->next, i++) {
 	    sc = (store_client *) node->data;
 	    if (sc->callback_data == NULL)
 		continue;
 	    memBufPrintf(mb, "\tClient #%d, %p\n", i, sc->callback_data);
-	    memBufPrintf(mb, "\t\tcopy_offset: %d\n",
-		(int) sc->copy_offset);
-	    memBufPrintf(mb, "\t\tseen_offset: %d\n",
-		(int) sc->seen_offset);
+	    memBufPrintf(mb, "\t\tcopy_offset: %" PRINTF_OFF_T "\n",
+		sc->copy_offset);
+	    memBufPrintf(mb, "\t\tseen_offset: %" PRINTF_OFF_T "\n",
+		sc->seen_offset);
 	    memBufPrintf(mb, "\t\tcopy_size: %d\n",
 		(int) sc->copy_size);
 	    memBufPrintf(mb, "\t\tflags:");
