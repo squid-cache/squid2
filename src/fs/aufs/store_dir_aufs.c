@@ -971,13 +971,14 @@ storeAufsDirWriteCleanStart(SwapDir * sd)
     struct stat sb;
     sd->log.clean.write = NULL;
     sd->log.clean.state = NULL;
+    state->new = xstrdup(storeAufsDirSwapLogFile(sd, ".clean"));
     state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC);
     if (state->fd < 0) {
+	xfree(state->new);
 	xfree(state);
 	return -1;
     }
     state->cur = xstrdup(storeAufsDirSwapLogFile(sd, NULL));
-    state->new = xstrdup(storeAufsDirSwapLogFile(sd, ".clean"));
     state->cln = xstrdup(storeAufsDirSwapLogFile(sd, ".last-clean"));
     state->outbuf = xcalloc(CLEAN_BUF_SZ, 1);
     state->outbuf_offset = 0;
