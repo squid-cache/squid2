@@ -756,17 +756,6 @@ neighborsUdpAck(const cache_key * key, icp_common_t * header, const struct socka
     }
     if (ignoreMulticastReply(p, mem)) {
 	neighborCountIgnored(p);
-    } else if (opcode == ICP_SECHO) {
-	/* Received source-ping reply */
-	if (p) {
-	    debug(15, 1) ("Ignoring SECHO from neighbor %s\n", p->host);
-	    neighborCountIgnored(p);
-	} else {
-	    /* if we reach here, source-ping reply is the first 'parent',
-	     * so fetch directly from the source */
-	    debug(15, 6) ("Source is the first to respond.\n");
-	    mem->ping_reply_callback(NULL, ntype, PROTO_ICP, header, mem->ircb_data);
-	}
     } else if (opcode == ICP_MISS) {
 	if (p == NULL) {
 	    neighborIgnoreNonPeer(from, opcode);
