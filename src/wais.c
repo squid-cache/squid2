@@ -372,7 +372,7 @@ waisStart(int unusedfd, const char *url, method_t method, char *mime_hdr, StoreE
 
 
 static void
-waisConnect(int fd, const ipcache_addrs *ia, void *data)
+waisConnect(int fd, const ipcache_addrs * ia, void *data)
 {
     WaisStateData *waisState = data;
     if (!ipcache_gethostbyname(waisState->relayhost, 0)) {

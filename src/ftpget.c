@@ -1909,7 +1909,7 @@ dots_fill(size_t len)
 }
 
 static char *
-htmlize_list_entry(const char *line, ftp_request_t *r)
+htmlize_list_entry(const char *line, ftp_request_t * r)
 {
     char *link = NULL;
     char *icon = NULL;

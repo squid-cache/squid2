@@ -118,7 +118,7 @@ static char *accessLogTime _PARAMS((time_t));
 
 #ifdef __STDC__
 void
-_db_print(int section, int level, const char *format, ...)
+_db_print(int section, int level, const char *format,...)
 {
     va_list args;
 #else

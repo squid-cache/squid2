@@ -311,7 +311,7 @@ sslErrorComplete(int fd, char *buf, int size, int errflag, void *sslState)
 
 
 static void
-sslConnect(int fd, const ipcache_addrs *ia, void *data)
+sslConnect(int fd, const ipcache_addrs * ia, void *data)
 {
     SslStateData *sslState = data;
     request_t *request = sslState->request;
@@ -389,7 +389,7 @@ sslConnectDone(int fd, int status, void *data)
 }
 
 int
-sslStart(int fd, const char *url, request_t *request, char *mime_hdr, int *size_ptr)
+sslStart(int fd, const char *url, request_t * request, char *mime_hdr, int *size_ptr)
 {
     /* Create state structure. */
     SslStateData *sslState = NULL;

@@ -545,7 +545,7 @@ ftpGetBasicAuth(const char *req_hdr)
 
 
 int
-ftpStart(int unusedfd, const char *url, request_t *request, StoreEntry *entry)
+ftpStart(int unusedfd, const char *url, request_t * request, StoreEntry * entry)
 {
     LOCAL_ARRAY(char, realm, 8192);
     FtpStateData *ftpData = NULL;

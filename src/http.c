@@ -653,7 +653,7 @@ httpSendRequest(int fd, void *data)
 }
 
 int
-proxyhttpStart(edge *e, const char *url, StoreEntry *entry)
+proxyhttpStart(edge * e, const char *url, StoreEntry * entry)
 {
     int sock;
     HttpStateData *httpState = NULL;
@@ -702,7 +702,7 @@ proxyhttpStart(edge *e, const char *url, StoreEntry *entry)
 }
 
 static void
-httpConnect(int fd, const ipcache_addrs *ia, void *data)
+httpConnect(int fd, const ipcache_addrs * ia, void *data)
 {
     HttpStateData *httpState = data;
     request_t *request = httpState->request;

@@ -979,7 +979,7 @@ main(int argc, char *argv[])
     return 0;
 }
 
-static int 
+static int
 client_comm_connect(int sock, char *dest_host, u_short dest_port)
 {
     const struct hostent *hp;

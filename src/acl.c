@@ -721,7 +721,7 @@ aclMatchIp(struct _acl_ip_data *data, struct in_addr c)
 }
 
 static int
-aclMatchDomainList(wordlist *data, const char *host)
+aclMatchDomainList(wordlist * data, const char *host)
 {
     wordlist *first, *prev;
 
@@ -900,7 +900,7 @@ aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
 }
 
 static int
-aclMatchAclList(const struct _acl_list *list, aclCheck_t *checklist)
+aclMatchAclList(const struct _acl_list *list, aclCheck_t * checklist)
 {
     while (list) {
 	AclMatchedName = list->acl->name;
@@ -917,7 +917,7 @@ aclMatchAclList(const struct _acl_list *list, aclCheck_t *checklist)
 }
 
 int
-aclCheck(const struct _acl_access *A, aclCheck_t *checklist)
+aclCheck(const struct _acl_access *A, aclCheck_t * checklist)
 {
     int allow = 0;
 

@@ -923,7 +923,7 @@ stat_ipcache_get(StoreEntry * sentry)
 }
 
 static void
-dummy_handler(int u1, const ipcache_addrs *addrs, void *u3)
+dummy_handler(int u1, const ipcache_addrs * addrs, void *u3)
 {
     return;
 }

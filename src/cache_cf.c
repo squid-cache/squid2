@@ -259,7 +259,7 @@ self_destruct(void)
 }
 
 static int
-ip_acl_match(struct in_addr c, const ip_acl *a)
+ip_acl_match(struct in_addr c, const ip_acl * a)
 {
     static struct in_addr h;
 
@@ -283,7 +283,7 @@ ip_acl_destroy(ip_acl ** a)
 }
 
 ip_access_type
-ip_access_check(struct in_addr address, const ip_acl *list)
+ip_access_check(struct in_addr address, const ip_acl * list)
 {
     static int init = 0;
     static struct in_addr localhost;
@@ -317,7 +317,7 @@ ip_access_check(struct in_addr address, const ip_acl *list)
 
 
 static void
-addToIPACL(ip_acl **list, const char *ip_str, ip_access_type access)
+addToIPACL(ip_acl ** list, const char *ip_str, ip_access_type access)
 {
     ip_acl *p, *q;
     int a1, a2, a3, a4;
@@ -407,7 +407,7 @@ wordlistDestroy(wordlist ** list)
 }
 
 static void
-wordlistAdd(wordlist **list, const char *key)
+wordlistAdd(wordlist ** list, const char *key)
 {
     wordlist *p = NULL;
     wordlist *q = NULL;

@@ -169,7 +169,7 @@ protoDataFree(int fdunused, protodispatch_data * protoData)
 
 /* called when DNS lookup is done by ipcache. */
 static void
-protoDispatchDNSHandle(int unused1, const ipcache_addrs *ia, void *data)
+protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 {
     edge *e = NULL;
     struct in_addr srv_addr;
@@ -520,7 +520,7 @@ protoStart(int fd, StoreEntry * entry, edge * e, request_t * request)
 
 
 static int
-protoNotImplemented(int fd, const char *url, StoreEntry *entry)
+protoNotImplemented(int fd, const char *url, StoreEntry * entry)
 {
     LOCAL_ARRAY(char, buf, 256);
 

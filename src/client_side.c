@@ -38,7 +38,7 @@ static void clientLookupSrcFQDNDone _PARAMS((int fd, const char *fqdn, void *dat
 
 
 static void
-clientLookupDstIPDone(int fd, const ipcache_addrs *ia, void *data)
+clientLookupDstIPDone(int fd, const ipcache_addrs * ia, void *data)
 {
     icpStateData *icpState = data;
     debug(33, 5, "clientLookupDstIPDone: FD %d, '%s'\n",

@@ -30,7 +30,8 @@ typedef enum {
     MGR_MAX
 } objcache_op;
 
-static char *objcacheOpcodeStr[] = {
+static char *objcacheOpcodeStr[] =
+{
     "NONE",
     "client_list",
     "config",
@@ -58,4 +59,3 @@ static char *objcacheOpcodeStr[] = {
     "vm_objects",
     "MAX"
 };
-

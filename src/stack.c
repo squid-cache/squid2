@@ -161,7 +161,7 @@ push(Stack * stack, void *data)
 --
 --------------------------------------------------------------------------*/
 int
-empty_stack(const Stack *stack)
+empty_stack(const Stack * stack)
 {
     return stack->top == stack->base;
 }
@@ -177,7 +177,7 @@ empty_stack(const Stack *stack)
 --
 --------------------------------------------------------------------------*/
 int
-full_stack(const Stack *stack)
+full_stack(const Stack * stack)
 {
     int full = (current_stacksize(stack) == stack->stack_size);
     return (full);

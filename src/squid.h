@@ -292,7 +292,7 @@ extern int opt_catch_signals;	/* main.c */
 extern int opt_no_ipcache;	/* main.c */
 extern int vhost_mode;		/* main.c */
 extern const char *const version_string;	/* main.c */
-extern const char *const appname;		/* main.c */
+extern const char *const appname;	/* main.c */
 extern struct in_addr local_addr;	/* main.c */
 extern const char *const localhost;
 extern struct in_addr any_addr;	/* comm.c */

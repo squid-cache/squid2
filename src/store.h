@@ -318,7 +318,7 @@ extern void storeClientListAdd _PARAMS((StoreEntry *, int, int));
 extern void InvokeHandlers _PARAMS((StoreEntry *));
 
 #ifdef __STDC__
-extern void storeAppendPrintf _PARAMS((StoreEntry *, const char *, ...));
+extern void storeAppendPrintf _PARAMS((StoreEntry *, const char *,...));
 #else
 extern void storeAppendPrintf _PARAMS(());
 #endif

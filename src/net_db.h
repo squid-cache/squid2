@@ -20,7 +20,7 @@ typedef struct _net_db {
     }           *hosts;
 } netdbEntry;
 
-extern void netdbHandlePingReply _PARAMS((const struct sockaddr_in *from, int hops, int rtt));
+extern void netdbHandlePingReply _PARAMS((const struct sockaddr_in * from, int hops, int rtt));
 extern void netdbPingSite _PARAMS((const char *hostname));
 extern void netdbInit _PARAMS((void));
 extern void netdbDump _PARAMS((StoreEntry *));

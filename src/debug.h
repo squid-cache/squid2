@@ -114,7 +114,7 @@ extern void _db_init _PARAMS((const char *logfile, const char *options));
 extern void _db_rotate_log _PARAMS((void));
 
 #ifdef __STDC__
-extern void _db_print _PARAMS((int, int, const char *, ...));
+extern void _db_print _PARAMS((int, int, const char *,...));
 #else
 extern void _db_print _PARAMS(());
 #endif

@@ -222,7 +222,7 @@ icmpPing(struct in_addr to)
 }
 
 void
-icmpSourcePing(struct in_addr to, const icp_common_t *header, const char *url)
+icmpSourcePing(struct in_addr to, const icp_common_t * header, const char *url)
 {
 #if USE_ICMP
     char *payload;

@@ -111,7 +111,7 @@ refreshAddToList(const char *pattern, int opts, time_t min, int pct, time_t max)
  *     return 1 if its time to revalidate this entry, 0 otherwise
  */
 int
-refreshCheck(const StoreEntry *entry, const request_t *request_unused)
+refreshCheck(const StoreEntry * entry, const request_t * request_unused)
 {
     refresh_t *R;
     time_t min = REFRESH_DEFAULT_MIN;
