@@ -325,7 +325,6 @@ commResetFD(ConnectStateData * cs)
     commSetCloseOnExec(cs->fd);
     if (Config.Addrs.tcp_outgoing.s_addr != no_addr.s_addr) {
 	if (commBind(cs->fd, Config.Addrs.tcp_outgoing, 0) != COMM_OK) {
-	    comm_close(cs->fd);
 	    return 0;
 	}
     }
