@@ -81,7 +81,7 @@ static const HttpHeaderFieldAttrs HeadersAttrs[] =
     {"Accept-Language", HDR_ACCEPT_LANGUAGE, ftStr},
     {"Accept-Ranges", HDR_ACCEPT_RANGES, ftStr},
     {"Age", HDR_AGE, ftInt},
-    {"Age", HDR_ALLOW, ftStr},
+    {"Allow", HDR_ALLOW, ftStr},
     {"Authorization", HDR_AUTHORIZATION, ftStr},	/* for now */
     {"Cache-Control", HDR_CACHE_CONTROL, ftPCc},
     {"Connection", HDR_CONNECTION, ftStr},
