@@ -133,7 +133,7 @@ file_map_allocate(fileMap * fm, int suggestion)
     for (bit = 0; bit < BITS_IN_A_LONG; bit++) {
 	suggestion = ((unsigned long) word << LONG_BIT_SHIFT) | bit;
 	if (!file_map_bit_test(fm, suggestion)) {
-	    return file_map_bit_set(fm, suggestion);
+	    return suggestion;
 	}
     }
     debug(8, 3) ("growing from file_map_allocate\n");
