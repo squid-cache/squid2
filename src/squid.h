@@ -264,6 +264,7 @@
 #define storeKeyHashCmp urlcmp
 #define storeKeyHashHash hash4
 #endif
+
 #ifdef SQUID_SNMP
 #include "snmp.h"
 #include "snmp_config.h"
