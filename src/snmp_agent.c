@@ -302,10 +302,10 @@ snmp_prfSysFn(variable_list * Var, snint * ErrP)
 	*(Answer->val.integer) = (snint) rusage_cputime(&rusage);
 	break;
     case PERF_SYS_CPUUSAGE:
-        squid_getrusage(&rusage);
-        *(Answer->val.integer) = (snint) 
-		dpercent(rusage_cputime(&rusage), tvSubDsec(squid_start, current_time));
-        break;
+	squid_getrusage(&rusage);
+	*(Answer->val.integer) = (snint)
+	    dpercent(rusage_cputime(&rusage), tvSubDsec(squid_start, current_time));
+	break;
     case PERF_SYS_MAXRESSZ:
 	squid_getrusage(&rusage);
 	*(Answer->val.integer) = (snint) rusage_maxrss(&rusage);
