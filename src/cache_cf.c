@@ -435,7 +435,7 @@ static void
 parse_cachedir(struct _cacheSwap *swap)
 {
     char *token;
-    ehar *path;
+    char *path;
     int i;
     int size;
     int l1;
