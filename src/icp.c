@@ -1820,8 +1820,10 @@ asciiConnLifetimeHandle(int fd, icpStateData * icpState)
     StoreEntry *entry = icpState->entry;
     debug(12, 2, "asciiConnLifetimeHandle: FD %d: lifetime is expired.\n", fd);
     CheckQuickAbort(icpState);
-    storeUnregister(icpState->entry, fd);
-    storeRegister(icpState->entry, fd, icpHandleAbort, (void *) icpState);
+    if (entry) {
+        storeUnregister(entry, fd);
+        storeRegister(entry, fd, icpHandleAbort, (void *) icpState);
+    }
     x = protoUnregister(fd,
 	entry,
 	icpState->request,
@@ -1987,10 +1989,12 @@ icpDetectClientClose(int fd, void *data)
 	    debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	commCancelRWHandler(fd);
 	CheckQuickAbort(icpState);
-	if (entry && entry->ping_status == PING_WAITING)
-	    storeReleaseRequest(entry);
-	storeUnregister(icpState->entry, fd);
-	storeRegister(icpState->entry, fd, icpHandleAbort, (void *) icpState);
+	if (entry) {
+	    if (entry->ping_status == PING_WAITING)
+	        storeReleaseRequest(entry);
+	    storeUnregister(entry, fd);
+	    storeRegister(entry, fd, icpHandleAbort, (void *) icpState);
+	}
 	x = protoUnregister(fd,
 	    entry,
 	    icpState->request,
