@@ -46,7 +46,7 @@ static void usage(const char *progname);
 static int Now(struct timeval *);
 static SIGHDLR catch;
 static SIGHDLR pipe_handler;
-static void set_our_signal();
+static void set_our_signal(void);
 static ssize_t myread(int fd, void *buf, size_t len);
 static ssize_t mywrite(int fd, void *buf, size_t len);
 static int put_fd;
