@@ -427,9 +427,10 @@ static void parseCacheHostLine()
     while ((token = strtok(NULL, w_space))) {
 	if (!strcasecmp(token, "proxy-only")) {
 	    proxy_only = 1;
-	} else if (!strcasecmp(token, "weight=")) {
+	} else if (!strncasecmp(token, "weight=", 7)) {
 	    weight = atoi(token + 7);
 	} else {
+	    debug(3,0,"parseCacheHostLine: token='%s'\n", token);
 	    self_destruct();
 	}
     }
