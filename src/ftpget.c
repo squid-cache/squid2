@@ -99,6 +99,10 @@
 
 #include "util.h"
 
+#ifndef BUFSIZ
+#define BUFSIZ 4096
+#endif
+
 
 char *rfc1738_escape _PARAMS((char *));
 void rfc1738_unescape _PARAMS((char *));

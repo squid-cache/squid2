@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "autoconf.h"
+#include "version.h"
 
 #if SQUID_FD_SETSIZE > 256
 #define FD_SETSIZE SQUID_FD_SETSIZE
@@ -73,6 +74,10 @@
 #define SQUIDHOSTNAMELEN 128
 #else
 #define SQUIDHOSTNAMELEN MAXHOSTNAMELEN
+#endif
+
+#ifndef BUFSIZ
+#define BUFSIZ  4096            /* make reasonable guess */
 #endif
 
 typedef struct sentry StoreEntry;
