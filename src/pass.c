@@ -37,8 +37,6 @@ typedef struct {
     u_short port;
     request_t *request;
     request_t *proxy_request;
-    char *buf;			/* stuff already read from client */
-    int buflen;
     struct {
 	int fd;
 	int len;
@@ -339,17 +337,16 @@ passConnectDone(int fd, int status, void *data)
     passState->client.len = httpBuildRequestHeader(request,
 	passState->request,	/* orig_request */
 	NULL,			/* entry */
-	passState->buf,
+	request->headers,
 	&hdr_len,
 	passState->client.buf,
 	SQUID_TCP_SO_RCVBUF >> 1,
 	opt_forwarded_for ? passState->client.fd : -1);
     debug(39, 3, "passConnectDone: Appending %d bytes of content\n",
-	passState->buflen - hdr_len);
+	request->body_sz);
     xmemcpy(passState->client.buf + passState->client.len,
-	passState->buf + hdr_len,
-	passState->buflen - hdr_len);
-    passState->client.len += passState->buflen - hdr_len;
+	request->body, request->body_sz);
+    passState->client.len += request->body_sz;
     passState->client.offset = 0;
     commSetTimeout(passState->server.fd, Config.Timeout.read, NULL, NULL);
     commSetSelect(passState->server.fd,
@@ -369,8 +366,6 @@ passStart(int fd,
     int *size_ptr)
 {
     /* Create state structure. */
-    char *buf = request->headers;
-    size_t buflen = request->headers_sz;
     PassStateData *passState = NULL;
     int sock;
     char *msg = NULL;
@@ -404,8 +399,6 @@ passStart(int fd,
     passState = xcalloc(1, sizeof(PassStateData));
     passState->url = xstrdup(url);
     passState->request = requestLink(request);
-    passState->buf = buf;
-    passState->buflen = buflen;
     passState->timeout = Config.Timeout.read;
     passState->host = request->host;
     passState->port = request->port;
