@@ -964,15 +964,18 @@ storeRelease(StoreEntry * e)
 	    storeSetMemStatus(e, NOT_IN_MEMORY);
 	    destroy_MemObject(e);
 	}
-	/*
-	 * Fake a call to storeLockObject().  When rebuilding is done,
-	 * we'll just call storeUnlockObject() on these.
-	 */
-	e->lock_count++;
-	EBIT_SET(e->flags, RELEASE_REQUEST);
-	stackPush(&LateReleaseStack, e);
-	return;
-    }
+	if (e->swap_file_number > -1) {
+	    /*
+	     * Fake a call to storeLockObject().  When rebuilding is done,
+	     * we'll just call storeUnlockObject() on these.
+	     */
+	    e->lock_count++;
+	    EBIT_SET(e->flags, RELEASE_REQUEST);
+	    stackPush(&LateReleaseStack, e);
+	    return;
+	} else {
+	    destroy_StoreEntry(e);
+	}
     storeLog(STORE_LOG_RELEASE, e);
     if (e->swap_file_number > -1) {
 	storeUnlink(e->swap_file_number);

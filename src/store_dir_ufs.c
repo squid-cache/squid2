@@ -468,6 +468,7 @@ storeRebuildFromSwapLog(void *data)
 		storeExpireNow(e);
 		storeReleaseRequest(e);
 		storeSwapFileNumberSet(e, -1);
+		storeRelease(e);
 		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
