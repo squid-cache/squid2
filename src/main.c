@@ -494,7 +494,7 @@ mainInitialize(void)
     debug(1, 0, "Starting Squid Cache version %s for %s...\n",
 	version_string,
 	CONFIG_HOST_TYPE);
-    debug(1, 1, "With %d file descriptors available\n", SQUID_MAXFD);
+    debug(1, 1, "With %d file descriptors available\n", FD_SETSIZE);
 
     if (first_time) {
 	stmemInit();		/* stmem must go before at least redirect */
@@ -599,7 +599,7 @@ main(int argc, char **argv)
     setMaxFD();
 
     if (opt_catch_signals)
-	for (n = SQUID_MAXFD; n > 2; n--)
+	for (n = FD_SETSIZE; n > 2; n--)
 	    close(n);
 
     /*init comm module */

@@ -643,7 +643,7 @@ statFiledescriptors(StoreEntry * sentry)
 	"Remote Address",
 	"Description");
     storeAppendPrintf(sentry, "{---- ------ ---- ---- --------------------- ------------------------------}\n");
-    for (i = 0; i < SQUID_MAXFD; i++) {
+    for (i = 0; i < FD_SETSIZE; i++) {
 	if (!fdstat_isopen(i))
 	    continue;
 	j = fdstatGetType(i);
@@ -825,7 +825,7 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 
     storeAppendPrintf(sentry, "{File descriptor usage for %s:}\n", appname);
     storeAppendPrintf(sentry, "{\tMax number of file desc available:    %4d}\n",
-	SQUID_MAXFD);
+	FD_SETSIZE);
     storeAppendPrintf(sentry, "{\tLargest file desc currently in use:   %4d}\n",
 	fdstat_biggest_fd());
     storeAppendPrintf(sentry, "{\tAvailable number of file descriptors: %4d}\n",
