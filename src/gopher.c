@@ -358,7 +358,8 @@ void gopherEndHTML(data)
     static char tmpbuf[TEMP_BUF_SIZE];
 
     if (!data->data_in) {
-	sprintf(tmpbuf, "<HR><H2><i>Server Return Nothing.</i></H2>\n");
+	sprintf(tmpbuf, "<HTML><HEAD><TITLE>Server Return Nothing.</TITLE>\n\
+	</HEAD><BODY><HR><H1>Server Return Nothing.</H1></BODY></HTML>\n");
 	storeAppend(data->entry, tmpbuf, strlen(tmpbuf));
 	return;
     }
@@ -394,8 +395,11 @@ void gopherToHTML(data, inbuf, len)
     entry = data->entry;
 
     if (data->conversion == HTML_INDEX_PAGE) {
-	sprintf(outbuf, "<TITLE>Gopher Index %s</TITLE><H1>%s<BR>Gopher Search</H1> This is a searchable Gopher index.Use the search function of your browser to enter search terms. <ISINDEX>\n", entry->url, entry->url);
-
+	sprintf(outbuf, "<HTML><HEAD><TITLE>Gopher Index %s</TITLE></HEAD>\n\
+		<BODY><H1>%s<BR>Gopher Search</H1>\n\
+		<p>This is a searchable Gopher index. Use the search\n\
+		function of your browser to enter search terms.\n\
+		<ISINDEX></BODY></HTML>\n", entry->url, entry->url);
 	storeAppend(entry, outbuf, strlen(outbuf));
 	/* now let start sending stuff to client */
 	BIT_RESET(entry->flag, DELAY_SENDING);
@@ -404,7 +408,11 @@ void gopherToHTML(data, inbuf, len)
 	return;
     }
     if (data->conversion == HTML_CSO_PAGE) {
-	sprintf(outbuf, "<TITLE>CSO Search of %s</TITLE><H1>%s<BR>CSO Search</H1>A CSO database usually contains a phonebook or directory. Use the search function of your browser to enter search terms.<ISINDEX>\n",
+	sprintf(outbuf, "<HTML><HEAD><TITLE>CSO Search of %s</TITLE></HEAD>\n\
+		<BODY><H1>%s<BR>CSO Search</H1>\n\
+		<P>A CSO database usually contains a phonebook or\n\
+		directory.  Use the search function of your browser to enter\n\
+		search terms.</P><ISINDEX></BODY></HTML>\n",
 	    entry->url, entry->url);
 
 	storeAppend(entry, outbuf, strlen(outbuf));
@@ -418,9 +426,11 @@ void gopherToHTML(data, inbuf, len)
 
     if (!data->HTML_header_added) {
 	if (data->conversion == HTML_CSO_RESULT)
-	    strcat(outbuf, "<H1>CSO Searchs Result</H1>\n<PRE>\n");
+	    strcat(outbuf, "<HTML><HEAD><TITLE>CSO Searchs Result</TITLE></HEAD>\n\
+		<BODY><H1>CSO Searchs Result</H1>\n<PRE>\n");
 	else
-	    strcat(outbuf, "<H1>Gopher Menu</H1>\n<PRE>\n");
+	    strcat(outbuf, "<HTML><HEAD><TITLE>Gopher Menu</TITLE></HEAD>\n\
+		<BODY><H1>Gopher Menu</H1>\n<PRE>\n");
 	data->HTML_header_added = 1;
     }
     while ((pos != NULL) && (pos < inbuf + len)) {
@@ -634,7 +644,7 @@ void gopherToHTML(data, inbuf, len)
 		    case 502:	/* Too Many Matches */
 			{
 			    /* Print the message the server returns */
-			    sprintf(tmpbuf, "</PRE><HR><H2><i>%s</i></H2>\n<PRE>", result);
+			    sprintf(tmpbuf, "</PRE><HR><H2>%s</H2>\n<PRE>", result);
 			    strcat(outbuf, tmpbuf);
 			    data->data_in = 1;
 			    break;
