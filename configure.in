@@ -2176,7 +2176,7 @@ if test "$INET_NTOA_RESULT" = "1.2.3.4" ; then
 else
 	AC_MSG_RESULT("no")
 	echo "Will use our own inet_ntoa()."
-	AC_LIBOBJ([inet_ntoa])
+	AC_LIBOBJ(inet_ntoa)
 #	echo "WARNING: This looks bad, and probably prevents Squid from working."
 #	echo "         If you're on IRIX and using GCC 2.8, you probably need"
 #	echo "         to use the IRIX C compiler instead."

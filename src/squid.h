@@ -90,6 +90,9 @@
 
 /* Increase FD_SETSIZE if SQUID_MAXFD is bigger */
 #if CHANGE_FD_SETSIZE && SQUID_MAXFD > DEFAULT_FD_SETSIZE
+#ifdef FD_SETSIZE
+#undef FD_SETSIZE
+#endif
 #define FD_SETSIZE SQUID_MAXFD
 #endif
 
