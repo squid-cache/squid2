@@ -1498,7 +1498,7 @@ static int parseHttpRequest(icpState)
     debug(12, 5, "parseHttpRequest: Request Header is\n---\n%s\n---\n",
 	icpState->request_hdr);
 
-    if (icpState->method == METHOD_POST) {
+    if (icpState->method == METHOD_POST || icpState->method == METHOD_PUT) {
 	/* Expect Content-Length: and POST data after the headers */
 	if ((t = mime_get_header(req_hdr, "Content-Length")) == NULL) {
 	    debug(12, 2, "POST without Content-Length\n");
@@ -1506,15 +1506,15 @@ static int parseHttpRequest(icpState)
 	    return -1;
 	}
 	content_length = atoi(t);
-	debug(12, 3, "parseHttpRequest: Expecting POST Content-Length of %d\n",
+	debug(12, 3, "parseHttpRequest: Expecting POST/PUT Content-Length of %d\n",
 	    content_length);
 	if (!(post_data = mime_headers_end(req_hdr))) {
-	    debug(12, 1, "parseHttpRequest: Can't find end of headers in POST request?\n");
+	    debug(12, 1, "parseHttpRequest: Can't find end of headers in POST/PUT request?\n");
 	    xfree(inbuf);
 	    return 0;		/* not a complete request */
 	}
 	post_sz = icpState->offset - (post_data - inbuf);
-	debug(12, 3, "parseHttpRequest: Found POST Content-Length of %d\n",
+	debug(12, 3, "parseHttpRequest: Found POST/PUT Content-Length of %d\n",
 	    post_sz);
 	if (post_sz < content_length) {
 	    xfree(inbuf);

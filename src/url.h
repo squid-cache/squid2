@@ -23,6 +23,7 @@ typedef enum {
     METHOD_NONE,
     METHOD_GET,
     METHOD_POST,
+    METHOD_PUT,
     METHOD_HEAD,
     METHOD_CONNECT
 } method_t;

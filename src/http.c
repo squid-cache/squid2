@@ -517,7 +517,7 @@ static void httpSendComplete(fd, buf, size, errflag, data)
 	    (PF) httpReadReplyTimeout,
 	    (void *) httpState,
 	    getReadTimeout());
-	comm_set_fd_lifetime(fd, 86400);	/* extend disable lifetime */
+	comm_set_fd_lifetime(fd, 86400);	/* extend lifetime */
     }
 }
 
@@ -545,7 +545,7 @@ static void httpSendRequest(fd, httpState)
 	buflen += strlen(httpState->req_hdr);
     buflen += 512;		/* lots of extra */
 
-    if (req->method == METHOD_POST && httpState->req_hdr) {
+    if ((req->method == METHOD_POST || req->method == METHOD_PUT) && httpState->req_hdr) {
 	if ((t = mime_headers_end(httpState->req_hdr))) {
 	    post_buf = xstrdup(t);
 	    *t = '\0';

@@ -22,6 +22,7 @@ char *RequestMethodStr[] =
     "NONE",
     "GET",
     "POST",
+    "PUT",
     "HEAD",
     "CONNECT"
 };
@@ -116,6 +117,8 @@ method_t urlParseMethod(s)
 	return METHOD_GET;
     } else if (strcasecmp(s, "POST") == 0) {
 	return METHOD_POST;
+    } else if (strcasecmp(s, "PUT") == 0) {
+	return METHOD_PUT;
     } else if (strcasecmp(s, "HEAD") == 0) {
 	return METHOD_HEAD;
     } else if (strcasecmp(s, "CONNECT") == 0) {

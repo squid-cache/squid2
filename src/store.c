@@ -601,6 +601,11 @@ char *storeGeneratePublicKey(url, method)
 	return key_temp_buffer;
 	/* NOTREACHED */
 	break;
+    case METHOD_PUT:
+	sprintf(key_temp_buffer, "/put/%s", url);
+	return key_temp_buffer;
+	/* NOTREACHED */
+	break;
     case METHOD_HEAD:
 	sprintf(key_temp_buffer, "/head/%s", url);
 	return key_temp_buffer;
