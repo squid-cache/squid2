@@ -21,7 +21,7 @@ echo
 echo
 echo "!!!!! WARNING !!!!!"
 echo
-echo "This development version of Squid is no longer maintained
+echo "This development version of Squid is no longer maintained"
 echo "as the development have moved on to the squid3 tree"
 echo
 echo "These sources are known to contain many bugs and is"
