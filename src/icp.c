@@ -1494,13 +1494,15 @@ void AppendUdp(item)
 static void CheckQuickAbort(astm)
      icpStateData *astm;
 {
-    if (!getQuickAbort())
-	return;
     if (astm->entry == NULL)
 	return;
     if (astm->entry->lock_count != 1)
 	return;
     if (astm->entry->store_status == STORE_OK)
+	return;
+    if (!getQuickAbort() &&
+	BIT_TEST(astm->flags, REQ_CACHABLE) &&
+	!BIT_TEST(astm->entry->flag, KEY_PRIVATE))
 	return;
     BIT_SET(astm->entry->flag, CLIENT_ABORT_REQUEST);
     storeReleaseRequest(astm->entry);
