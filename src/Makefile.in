@@ -129,6 +129,7 @@ OBJS	 	= \
 		Packer.o \
 		pass.o \
 		pconn.o \
+		peer_digest.o \
 		peer_select.o \
 		proto.o \
 		pump.o \
