@@ -304,6 +304,7 @@ AC_CHECK_FUNCS(\
 	mktime \
 	poll \
 	pw_encrypt \
+	random \
 	regcomp \
 	regexec \
 	regfree \
@@ -315,6 +316,7 @@ AC_CHECK_FUNCS(\
 	setsid \
 	sigaction \
 	srand48 \
+	srandom \
 	strerror \
 	sysconf \
 	syslog \
