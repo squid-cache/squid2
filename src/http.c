@@ -69,9 +69,9 @@ static int http_url_parser(url, host, port, request)
 	return -1;
     } else if (t == 2)
 	strcpy(request, "/");
-    if ((s = strchr(hostbuf, ':')) && *(s+1)) {
-        *s = '\0';
-        *port = atoi(s + 1);
+    if ((s = strchr(hostbuf, ':')) && *(s + 1)) {
+	*s = '\0';
+	*port = atoi(s + 1);
     }
     strncpy(host, hostbuf, SQUIDHOSTNAMELEN);
     return 0;

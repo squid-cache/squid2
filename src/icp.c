@@ -44,9 +44,6 @@ static char *log_tags[] =
 
 typedef struct iwd {
     icp_common_t header;	/* Allows access to previous header */
-#ifdef NOTUSED_CODE
-    u_num32 query_host;
-#endif
     char *url;
     char *inbuf;
     int inbufsize;
@@ -54,9 +51,6 @@ typedef struct iwd {
     char *request_hdr;		/* Mime header */
     StoreEntry *entry;
     long offset;
-#ifdef NOT_NEEDED_CODE
-    int bytes_needed;		/*  Used for content_length */
-#endif
     int log_type;
     int http_code;
     struct sockaddr_in peer;
@@ -716,98 +710,6 @@ static int icpProcessMISS(fd, usm, key)
     return (protoDispatch(fd, url, usm->entry));
 }
 
-#ifdef NOTUSED_CODE
-void icpProcessUrl(fd, buf, size, flag, usm)
-     int fd;
-     char *buf;
-     int size;
-     int flag;
-     icpStateData *usm;
-{
-    if (flag || size < usm->header.length - sizeof(icp_common_t)) {
-	debug(12, 1, "icpProcessUrl: failure trying to read host id.\n");
-	safe_free(buf);
-	usm->buf = usm->ptr_to_4k_page = NULL;	/* Nothing to free */
-	icpSendERROR(fd, ICP_ERROR_INTERNAL, "error reading host id", usm);
-    } else {
-	/* Extract hostid. */
-	memcpy(&usm->query_host, buf, sizeof(u_num32));
-	usm->url = (char *) xstrdup(buf + sizeof(u_num32));
-	usm->method = METHOD_GET;
-	usm->request_hdr = NULL;
-
-	safe_free(buf);
-
-	/* Process request. */
-	debug(12, 5, "icpProcessUrl: processing %s\n",
-	    IcpOpcodeStr[header.opcode]);
-	if (usm->header.opcode == ICP_OP_SEND) {
-	    icp_hit_or_miss(fd, usm);
-	} else if (usm->header.opcode == ICP_OP_SENDA) {
-	    icpProcessMISS(fd, usm);
-	} else if (usm->header.opcode == ICP_OP_QUERY) {
-	    icpDoQuery(fd, usm);
-	} else {
-	    debug(12, 1, "icpProcessUrl: Invalid OPCODE: %d.\n",
-		usm->header.opcode);
-	}
-    }
-}
-
-int icpProcessHeader(fd, buf_notused, size, flag, state)
-     int fd;
-     char *buf_notused;
-     int size;
-     int flag;
-     icpStateData *state;
-{
-    int result = COMM_ERROR;
-    icp_common_t *hp = NULL;
-    int buf_size;
-    char *buf = NULL;
-
-    debug(12, 4, "icpProcessHeader: FD %d.\n", fd);
-
-    if (flag || size < sizeof(icp_common_t)) {
-	debug(12, 1, "icpProcessHeader: FD %d: header read failure.\n", fd);
-	state->buf = state->ptr_to_4k_page = NULL;	/* Nothing to free */
-	icpSendERROR(fd, ICP_ERROR_INTERNAL, "error reading header", state);
-	result = COMM_ERROR;
-    } else {
-	short op = state->header.opcode;
-	if (op == ICP_OP_SEND || op == ICP_OP_SENDA || op == ICP_OP_QUERY) {
-	    /* Read query host id & url. */
-	    hp = &state->header;
-	    hp->opcode = op;
-	    /* XXX Do these macros work ok in this fashion? */
-	    hp->version = hp->version;
-	    hp->length = ntohs(hp->length);
-	    hp->reqnum = ntohl(hp->reqnum);
-	    hp->shostid = ntohl(hp->shostid);
-
-	    /* Allocate buffer for  hostid and url. */
-	    buf_size = hp->length - sizeof(icp_common_t);
-	    buf = xcalloc(buf_size, sizeof(char));
-
-	    /* Schedule read of host id and url. */
-	    (void) icpRead(fd,
-		TRUE,
-		buf,
-		buf_size,
-		30,
-		icpProcessUrl,
-		(void *) state);
-	} else {
-	    debug(12, 1, "icpProcessHeader: FD %d: invalid OPCODE: %d\n", fd, op);
-	    state->buf = state->ptr_to_4k_page = NULL;	/* Nothing to free */
-	    icpSendERROR(fd, ICP_ERROR_INTERNAL, "invalid opcode", state);
-	    result = COMM_ERROR;
-	}
-    }
-    return result;
-}
-#endif /* NOTUSED CODE */
-
 
 int icpUdpReply(fd, queue)
      int fd;
@@ -988,9 +890,6 @@ int icpHandleUdp(sock, not_used)
     case ICP_OP_QUERY:
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
-#ifdef OLD_CODE
-	if (ip_access_check(from.sin_addr, proxy_ip_acl) == IP_DENY) {
-#else
 	if (!aclCheck(ICPAccessList,
 		from.sin_addr,
 		METHOD_GET,
@@ -998,7 +897,6 @@ int icpHandleUdp(sock, not_used)
 		NULL,		/* host */
 		0,		/* port */
 		NULL)) {	/* request */
-#endif
 	    debug(12, 2, "icpHandleUdp: Access Denied for %s.\n",
 		inet_ntoa(from.sin_addr));
 	    CacheInfo->log_append(CacheInfo,	/* UDP_DENIED */
@@ -1288,17 +1186,6 @@ int parseHttpRequest(icpState)
     return 1;
 }
 
-#ifdef OLD_CODE
-ip_access_type second_ip_acl_check(fd_unused, astm)
-     int fd_unused;
-     icpStateData *astm;
-{
-    if (BIT_TEST(icpState->flags, REQ_ACCEL))
-	return ip_access_check(astm->peer.sin_addr, accel_ip_acl);
-    return ip_access_check(astm->peer.sin_addr, proxy_ip_acl);
-}
-#endif
-
 
 /* Also rewrites URLs... */
 static int check_valid_url(fd, astm)
@@ -1451,10 +1338,6 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	 *    is happy with the input
 	 */
 	k = astm->inbufsize - 1 - astm->offset;
-#ifdef NOT_NEEDED_CODE
-	if (0 < astm->bytes_needed && astm->bytes_needed < k)
-	    k = astm->bytes_needed;
-#endif
 	icpRead(fd,
 	    FALSE,
 	    astm->inbuf + astm->offset,
@@ -1574,47 +1457,23 @@ int asciiHandleConn(sock, notused)
 
     astm = (icpStateData *) xcalloc(1, sizeof(icpStateData));
     astm->start = current_time;
-
-#ifdef OLD_CODE
-    if (ip_access_check(peer.sin_addr, proxy_ip_acl) == IP_DENY
-	&& ip_access_check(peer.sin_addr, accel_ip_acl) == IP_DENY) {
-	debug(12, 2, "asciiHandleConn: %s: Access denied.\n",
-	    inet_ntoa(peer.sin_addr));
-	astm->log_type = LOG_TCP_DENIED;
-	sprintf(tmp_error_buf,
-	    "ACCESS DENIED\n\nYour IP address (%s) is not authorized to access cached at %s.\n\n",
-	    inet_ntoa(peer.sin_addr),
-	    getMyHostname());
-	astm->buf = xstrdup(tmp_error_buf);
-	astm->ptr_to_4k_page = NULL;
-	icpWrite(fd,
-	    astm->buf,
-	    strlen(tmp_error_buf),
-	    30,
-	    icpSendERRORComplete,
-	    (void *) astm);
-    } else {
-#endif
-	astm->inbufsize = ASCII_INBUF_BLOCKSIZE;
-	astm->inbuf = (char *) xcalloc(astm->inbufsize, 1);
-	astm->header.shostid = htonl(peer.sin_addr.s_addr);
-	astm->peer = peer;
-	astm->me = me;
-	comm_set_select_handler(fd,
-	    COMM_SELECT_LIFETIME,
-	    (PF) asciiConnLifetimeHandle,
-	    (void *) astm);
-	icpRead(fd,
-	    FALSE,
-	    astm->inbuf,
-	    astm->inbufsize - 1,	/* size */
-	    30,			/* timeout */
-	    1,			/* handle immed */
-	    asciiProcessInput,
-	    (void *) astm);
-#ifdef OLD_CODE
-    }
-#endif
+    astm->inbufsize = ASCII_INBUF_BLOCKSIZE;
+    astm->inbuf = (char *) xcalloc(astm->inbufsize, 1);
+    astm->header.shostid = htonl(peer.sin_addr.s_addr);
+    astm->peer = peer;
+    astm->me = me;
+    comm_set_select_handler(fd,
+	COMM_SELECT_LIFETIME,
+	(PF) asciiConnLifetimeHandle,
+	(void *) astm);
+    icpRead(fd,
+	FALSE,
+	astm->inbuf,
+	astm->inbufsize - 1,	/* size */
+	30,			/* timeout */
+	1,			/* handle immed */
+	asciiProcessInput,
+	(void *) astm);
     comm_set_select_handler(sock,
 	COMM_SELECT_READ,
 	asciiHandleConn,
