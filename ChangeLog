@@ -1,4 +1,12 @@
-Changes to squid-1.0 (July 1, 1996):
+Changes to squid-1.0.1 (July x, 1996):
+
+	- Fixed ftpget server looping on socket EOF condition.
+	- Added support for HTTP PUT method.
+	- Added check for <netinet/tcp.h> for HP-UX.
+	- Fixed SA_RESETHAND undefined bug.
+	- Fixed half-hour timezone offset bug.
+
+Changes to squid-1.0.0 (July 1, 1996):
 
 	- Fixed beta17 "fd_lifetime" typo bug
 	- Added 'firewall_ip_list' to configuration options
