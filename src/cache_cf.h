@@ -131,6 +131,17 @@ typedef struct _relist {
     struct _relist *next;
 } relist;
 
+struct cache_peer {
+	char *host;
+	char *type;
+	u_short http;
+	u_short icp;
+	int options;
+	int weight;
+	int mcast_ttl;
+	struct cache_peer *next;
+};
+
 struct SquidConfig {
     struct {
 	int maxSize;
@@ -229,7 +240,9 @@ struct SquidConfig {
     wordlist *mcast_group_list;
     wordlist *dns_testname_list;
     relist *cache_stop_relist;
-    peer *sslProxy, *passProxy;
+    struct cache_peer *peers;
+    struct cache_peer *sslProxy;
+    struct cache_peer *passProxy;
     struct {
 	int size;
 	int low;
@@ -296,6 +309,5 @@ extern void intlistDestroy _PARAMS((intlist **));
 extern void wordlistDestroy _PARAMS((wordlist **));
 extern void configFreeMemory _PARAMS((void));
 extern char *cachemgr_getpassword _PARAMS((cachemgr_passwd **, char *));
-
 
 #endif /* ndef  _CACHE_CONFIG_H_ */
