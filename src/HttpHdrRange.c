@@ -442,7 +442,7 @@ httpHdrRangeLowestOffset(const HttpHdrRange * range, size_t size)
 	current = spec->offset;
 	if (!known_spec(current)) {
 	    if (spec->length > size || !known_spec(spec->length))
-		return 0; /* Unknown. Assume start of file */
+		return 0;	/* Unknown. Assume start of file */
 	    current = size - spec->length;
 	}
 	if (current < offset || !known_spec(offset))
