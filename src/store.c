@@ -1581,7 +1581,7 @@ storeStartRebuildFromDisk(void)
 
     /* Start reading the log file */
     if (opt_foreground_rebuild) {
-	data->speed = 1 << 31;
+	data->speed = 1 << 30;
 	storeDoRebuildFromDisk(data);
     } else {
 	eventAdd("storeRebuild", storeDoRebuildFromDisk, data, 0);
