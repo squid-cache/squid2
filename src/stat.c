@@ -1,114 +1,17 @@
-static char rcsid[] = "$Id$";
-/* 
- *  File:         stat.c
- *  Description:  stat module for object cache
- *  Author:       Anawat Chankhunthod, USC
- *  Created:      May 12 1994
- *  Language:     C
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
- */
-#include "config.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>		/* for lseek. should be removed later. */
-#include <fcntl.h>
-#include <time.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <sys/types.h>
-#include <malloc.h>
+/* $Id$ */
 
-#ifdef _HARVEST_HPUX_
+/*
+ * DEBUG: Section 18          stat
+ */
+
+
+#include "squid.h"
+
+#ifdef _SQUID_HPUX_
 #include <sys/syscall.h>
 #define getrusage(a, b)  syscall(SYS_GETRUSAGE, a, b)
 #define getpagesize( )   sysconf(_SC_PAGE_SIZE)
-#endif /* _HARVEST_HPUX_ */
-
-#include "comm.h"
-#include "store.h"
-#include "stat.h"
-#include "disk.h"
-#include "ipcache.h"
-#include "cache_cf.h"
-#include "hash.h"
-#include "util.h"
-#include "neighbors.h"
-#include "fdstat.h"
+#endif /* _SQUID_HPUX_ */
 
 extern int emulate_httpd_log;
 
@@ -120,29 +23,16 @@ typedef struct _log_read_data_t {
     StoreEntry *sentry;
 } log_read_data_t;
 
-typedef struct _cached_read_data_t {
+typedef struct _squid_read_data_t {
     StoreEntry *sentry;
     int fd;
-} cached_read_data_t;
+} squid_read_data_t;
 
 /* GLOBALS */
 Meta_data meta_data;
-unsigned long nconn = 0;
+unsigned long ntcpconn = 0;
+unsigned long nudpconn = 0;
 
-extern int getMaxFD(), fdstat_biggest_fd();
-extern int RESERVED_FD;
-extern char *mkrfc850();
-extern time_t cached_curtime;
-extern time_t cached_starttime;
-extern time_t next_cleaning;
-extern int httpd_accel_mode;
-extern int debug_level;
-extern int hash_links_allocated;
-extern void stat_ipcache_get _PARAMS((StoreEntry * e, cacheinfo * obj));
-extern int fdstat_are_n_free_fd _PARAMS((int));
-extern int comm_get_fd_timeout _PARAMS((int));
-extern int file_write_lock _PARAMS((int));
-extern void fatal _PARAMS((char *));
 char *stat_describe();
 char *mem_describe();
 char *ttl_describe();
@@ -160,12 +50,12 @@ void stat_utilization_get(obj, sentry)
      StoreEntry *sentry;
 {
     static char tempbuf[MAX_LINELEN];
-    int proto_id;
-    proto_stat *p = &obj->proto_stat_data[0];
+    protocol_t proto_id;
+    proto_stat *p = &obj->proto_stat_data[PROTO_MAX];
     proto_stat *q = NULL;
     int secs = 0;
 
-    secs = (int) (cached_curtime - cached_starttime);
+    secs = (int) (squid_curtime - squid_starttime);
 
     storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
 
@@ -181,7 +71,7 @@ void stat_utilization_get(obj, sentry)
 
 
     /* find the total */
-    for (proto_id = 1; proto_id <= PROTOCOL_SUPPORTED; ++proto_id) {
+    for (proto_id = 0; proto_id < PROTO_MAX; ++proto_id) {
 	q = &obj->proto_stat_data[proto_id];
 
 	p->object_count += q->object_count;
@@ -196,7 +86,7 @@ void stat_utilization_get(obj, sentry)
     }
 
     /* dump it */
-    for (proto_id = 0; proto_id < PROTOCOL_SUPPORTED + PROTOCOL_EXTRA; ++proto_id) {
+    for (proto_id = 0; proto_id <= PROTO_MAX; ++proto_id) {
 	p = &obj->proto_stat_data[proto_id];
 	if (p->hit != 0) {
 	    p->hitratio =
@@ -228,13 +118,11 @@ int cache_size_get(obj)
      cacheinfo *obj;
 {
     int size = 0;
-    int proto_id;
+    protocol_t proto_id;
     /* sum all size, exclude total */
-    for (proto_id = 1; proto_id <= PROTOCOL_SUPPORTED + PROTOCOL_EXTRA - 1;
-	++proto_id) {
+    for (proto_id = 0; proto_id < PROTO_MAX; proto_id++)
 	size += obj->proto_stat_data[proto_id].kb.now;
-    }
-    return (size);
+    return size;
 }
 
 /* process general IP cache information */
@@ -242,7 +130,6 @@ void stat_general_get(obj, sentry)
      cacheinfo *obj;
      StoreEntry *sentry;
 {
-
     /* have to use old method for this guy, 
      * otherwise we have to make ipcache know about StoreEntry */
     stat_ipcache_get(sentry, obj);
@@ -256,9 +143,10 @@ void stat_objects_get(obj, sentry, vm_or_not)
      int vm_or_not;
 {
     static char tempbuf[MAX_LINELEN];
-    static char space[40], space2[40];
+    static char space[40];
+    static char space2[40];
     int npend = 0;
-    StoreEntry *entry;
+    StoreEntry *entry = NULL;
     int N = 0;
     int obj_size;
 
@@ -271,23 +159,23 @@ void stat_objects_get(obj, sentry, vm_or_not)
 	    (entry->swap_status == SWAP_OK))
 	    continue;
 	if ((++N & 0xFF) == 0) {
-	    cached_curtime = time(NULL);
-	    debug(3, "stat_objects_get:  Processed %d objects...\n", N);
+	    getCurrentTime();
+	    debug(18, 3, "stat_objects_get:  Processed %d objects...\n", N);
 	}
 	obj_size = entry->object_len;
 	npend = storePendingNClients(entry);
 	if (entry->mem_obj)
-	    obj_size = store_mem_obj(entry, e_current_len);
+	    obj_size = entry->mem_obj->e_current_len;
 	tempbuf[0] = '\0';
-	sprintf(tempbuf, "{ %s %d %s %s %s %s %d %ld %s %s }\n",
+	sprintf(tempbuf, "{ %s %d %s %s %s %s %d %d %s %s }\n",
 	    entry->url,
 	    obj_size,
 	    elapsed_time(entry, (int) entry->timestamp, space),
 	    flags_describe(entry),
 	    elapsed_time(entry, (int) entry->lastref, space2),
-	    ttl_describe(entry, (int) entry->expires),
+	    ttl_describe(entry),
 	    npend,
-	    entry->refcount,
+	    (int) entry->refcount,
 	    mem_describe(entry),
 	    stat_describe(entry));
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
@@ -344,9 +232,10 @@ int logReadHandler(fd_unused, buf, size_unused, data)
     static char tempbuf[MAX_LINELEN];
 
     sprintf(tempbuf, "{%s}\n", buf);
-    return storeAppend(data->sentry,
+    storeAppend(data->sentry,
 	tempbuf,
 	(int) strlen(tempbuf) % MAX_LINELEN);
+    return 0;
 }
 
 /* log convert end handler */
@@ -383,33 +272,34 @@ void log_get_start(obj, sentry)
     strcpy(tmp, open_bracket);
     storeAppend(sentry, tmp, 2);
     file_walk(obj->logfile_fd, (FILE_WALK_HD) logReadEndHandler,
-	(caddr_t) data, (FILE_WALK_LHD) logReadHandler, (caddr_t) data);
+	(void *) data, (FILE_WALK_LHD) logReadHandler, (void *) data);
     return;
 }
 
 
-/* cached convert handler */
+/* squid convert handler */
 /* call for each line in file, use fileWalk routine */
-int cachedReadHandler(fd_unused, buf, size_unused, data)
+int squidReadHandler(fd_unused, buf, size_unused, data)
      int fd_unused;
      char *buf;
      int size_unused;
-     cached_read_data_t *data;
+     squid_read_data_t *data;
 {
     static char tempbuf[MAX_LINELEN];
     tempbuf[0] = '\0';
     sprintf(tempbuf, "{\"%s\"}\n", buf);
-    return storeAppend(data->sentry,
+    storeAppend(data->sentry,
 	tempbuf,
 	(int) strlen(tempbuf) % MAX_LINELEN);
+    return 0;
 }
 
-/* cached convert end handler */
+/* squid convert end handler */
 /* call when a walk is completed or error. */
-void cachedReadEndHandler(fd_unused, errflag_unused, data)
+void squidReadEndHandler(fd_unused, errflag_unused, data)
      int fd_unused;
      int errflag_unused;
-     cached_read_data_t *data;
+     squid_read_data_t *data;
 {
     storeAppend(data->sentry, close_bracket, strlen(close_bracket));
     storeComplete(data->sentry);
@@ -418,21 +308,20 @@ void cachedReadEndHandler(fd_unused, errflag_unused, data)
 }
 
 
-/* start convert cached.conf file to processed format */
-void cached_get_start(obj, sentry)
+/* start convert squid.conf file to processed format */
+void squid_get_start(obj, sentry)
      cacheinfo *obj;
      StoreEntry *sentry;
 {
-    cached_read_data_t *data;
-    extern char *config_file;
+    squid_read_data_t *data;
 
-    data = (cached_read_data_t *) xmalloc(sizeof(cached_read_data_t));
-    memset(data, '\0', sizeof(cached_read_data_t));
+    data = (squid_read_data_t *) xmalloc(sizeof(squid_read_data_t));
+    memset(data, '\0', sizeof(squid_read_data_t));
     data->sentry = sentry;
-    data->fd = file_open((char *) config_file, NULL, O_RDONLY);
+    data->fd = file_open((char *) ConfigFile, NULL, O_RDONLY);
     storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
-    file_walk(data->fd, (FILE_WALK_HD) cachedReadEndHandler, (caddr_t) data,
-	(FILE_WALK_LHD) cachedReadHandler, (caddr_t) data);
+    file_walk(data->fd, (FILE_WALK_HD) squidReadEndHandler, (void *) data,
+	(FILE_WALK_LHD) squidReadHandler, (void *) data);
 }
 
 
@@ -460,11 +349,11 @@ void server_list(obj, sentry)
     }
     for (e = getFirstEdge(); e; e = getNextEdge(e)) {
 	if (e->host == NULL)
-	    fatal_dump("Found an edge without a hostname!\n");
+	    fatal_dump("Found an edge without a hostname!");
 	sprintf(tempbuf, "\n{Hostname:    %s}\n", e->host);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
 	sprintf(tempbuf, "{Edge type:   %s}\n",
-	    e->type == is_a_parent ? "parent" : "neighbor");
+	    e->type == EDGE_PARENT ? "parent" : "neighbor");
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
 	sprintf(tempbuf, "{Status:      %s}\n",
 	    e->neighbor_up ? "Up" : "Down");
@@ -505,14 +394,14 @@ void info_get(obj, sentry)
      StoreEntry *sentry;
 {
     char *tod = NULL;
-    static char tempbuf[MAX_LINELEN];
     static char line[MAX_LINELEN];
+    wordlist *p = NULL;
 
 #if defined(HAVE_GETRUSAGE) && defined(RUSAGE_SELF)
     struct rusage rusage;
 #endif
 
-#if USE_MALLINFO
+#if HAVE_MALLINFO
     struct mallinfo mp;
 #endif
 
@@ -520,31 +409,34 @@ void info_get(obj, sentry)
 
     storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
 
-    sprintf(line, "{Harvest Object Cache: Version %s}\n", HARVEST_VERSION);
+    sprintf(line, "{Squid Object Cache: Version %s}\n", version_string);
     storeAppend(sentry, line, strlen(line));
 
-    tod = mkrfc850(&cached_starttime);
+    tod = mkrfc850(&squid_starttime);
 
     sprintf(line, "{Start Time:\t%s}\n", tod);
     storeAppend(sentry, line, strlen(line));
 
-    tod = mkrfc850(&cached_curtime);
+    tod = mkrfc850(&squid_curtime);
     sprintf(line, "{Current Time:\t%s}\n", tod);
     storeAppend(sentry, line, strlen(line));
 
     /* -------------------------------------------------- */
 
-    sprintf(line, "{Connection information for cached:}\n");
+    sprintf(line, "{Connection information for %s:}\n", appname);
     storeAppend(sentry, line, strlen(line));
 
-    sprintf(line, "{\tNumber of connections:\t%lu}\n", nconn);
+    sprintf(line, "{\tNumber of TCP connections:\t%lu}\n", ntcpconn);
+    storeAppend(sentry, line, strlen(line));
+
+    sprintf(line, "{\tNumber of UDP connections:\t%lu}\n", nudpconn);
     storeAppend(sentry, line, strlen(line));
 
     {
 	float f;
-	f = cached_curtime - cached_starttime;
+	f = squid_curtime - squid_starttime;
 	sprintf(line, "{\tConnections per hour:\t%.1f}\n", f == 0.0 ? 0.0 :
-	    (nconn / (f / 3600)));
+	    ((ntcpconn+nudpconn) / (f / 3600)));
 	storeAppend(sentry, line, strlen(line));
     }
 
@@ -552,7 +444,7 @@ void info_get(obj, sentry)
 
 
 
-    sprintf(line, "{Cache information for cached:}\n");
+    sprintf(line, "{Cache information for %s:}\n", appname);
     storeAppend(sentry, line, strlen(line));
 
     sprintf(line, "{\tStorage Swap size:\t%d MB}\n", storeGetSwapSize() >> 10);
@@ -566,7 +458,7 @@ void info_get(obj, sentry)
     storeAppend(sentry, line, strlen(line));
 
 #if defined(HAVE_GETRUSAGE) && defined(RUSAGE_SELF)
-    sprintf(line, "{Resource usage for cached:}\n");
+    sprintf(line, "{Resource usage for %s:}\n", appname);
     storeAppend(sentry, line, strlen(line));
 
     getrusage(RUSAGE_SELF, &rusage);
@@ -581,10 +473,10 @@ void info_get(obj, sentry)
 
 #endif
 
-#if USE_MALLINFO
+#if HAVE_MALLINFO
     mp = mallinfo();
 
-    sprintf(line, "{Memory usage for cached via mallinfo():}\n");
+    sprintf(line, "{Memory usage for %s via mallinfo():}\n", appname);
     storeAppend(sentry, line, strlen(line));
 
     sprintf(line, "{\ttotal space in arena:\t%d KB}\n", mp.arena >> 10);
@@ -618,7 +510,7 @@ void info_get(obj, sentry)
 	sprintf(line, "{\tcost of enabling keep option:\t%d}\n", mp.keepcost);
 	storeAppend(sentry, line, strlen(line));
     }
-#if LNG_MALLINFO
+#if HAVE_EXT_MALLINFO
     sprintf(line, "{\tmax size of small blocks:\t%d}\n", mp.mxfast);
     storeAppend(sentry, line, strlen(line));
     sprintf(line, "{\tnumber of small blocks in a holding block:\t%d}\n",
@@ -635,11 +527,11 @@ void info_get(obj, sentry)
 	mp.treeoverhead);
     storeAppend(sentry, line, strlen(line));
 
-#endif /* LNG_MALLINFO */
+#endif /* HAVE_EXT_MALLINFO */
 
-#endif /* USE_MALLINFO */
+#endif /* HAVE_MALLINFO */
 
-    sprintf(line, "{File descriptor usage for cached:}\n");
+    sprintf(line, "{File descriptor usage for %s:}\n", appname);
     storeAppend(sentry, line, strlen(line));
 
     sprintf(line, "{\tMax number of file desc available:\t%d}\n", getMaxFD());
@@ -674,10 +566,10 @@ void info_get(obj, sentry)
 		/* the lifetime should be greater than curtime */
 		lft = comm_get_fd_lifetime(i);
 		to = comm_get_fd_timeout(i);
-		sprintf(line, "{\t\t(%3d = %3ld, %3ld) NET %s}\n",
+		sprintf(line, "{\t\t(%3d = %3d, %3d) NET %s}\n",
 		    i,
-		    lft > 0 ? lft - cached_curtime : -1,
-		    max((to - cached_curtime), 0),
+		    (int) (lft > 0 ? lft - squid_curtime : -1),
+		    (int) max((to - squid_curtime), 0),
 		    fd_note(i, NULL));
 		break;
 	    case File:
@@ -702,9 +594,7 @@ void info_get(obj, sentry)
 
     sprintf(line, "{Stop List:}\n");
     storeAppend(sentry, line, strlen(line));
-    if (http_stoplist) {
-	stoplist *p;
-	p = http_stoplist;
+    if ((p = getHttpStoplist())) {
 	sprintf(line, "{\tHTTP:}\n");
 	storeAppend(sentry, line, strlen(line));
 	while (p) {
@@ -713,9 +603,7 @@ void info_get(obj, sentry)
 	    p = p->next;
 	}
     }
-    if (gopher_stoplist) {
-	stoplist *p;
-	p = gopher_stoplist;
+    if ((p = getGopherStoplist())) {
 	sprintf(line, "{\tGOPHER:}\n");
 	storeAppend(sentry, line, strlen(line));
 	while (p) {
@@ -724,9 +612,7 @@ void info_get(obj, sentry)
 	    p = p->next;
 	}
     }
-    if (ftp_stoplist) {
-	stoplist *p;
-	p = ftp_stoplist;
+    if ((p = getFtpStoplist())) {
 	sprintf(line, "{\tFTP:}\n");
 	storeAppend(sentry, line, strlen(line));
 	while (p) {
@@ -739,34 +625,50 @@ void info_get(obj, sentry)
     storeAppend(sentry, line, strlen(line));
     sprintf(line, "{Meta Data:}\n");
     storeAppend(sentry, line, strlen(line));
-    sprintf(line, "{\t\tStoreEntry %ld x %d}\n", sizeof(StoreEntry),
-	meta_data.store_entries);
+
+    sprintf(line, "{\t\tStoreEntry %d x %d bytes = %d KB}\n",
+	meta_data.store_entries,
+	(int) sizeof(StoreEntry),
+	(int) (meta_data.store_entries * sizeof(StoreEntry) >> 10));
     storeAppend(sentry, line, strlen(line));
-    sprintf(line, "{\t\tStoreMemObject %ld x %d}\n", sizeof(MemObject),
-	meta_data.store_in_mem_objects);
+
+    sprintf(line, "{\t\tStoreMemObject %d x %d bytes = %d KB}\n",
+	meta_data.store_in_mem_objects,
+	(int) sizeof(MemObject),
+	(int) (meta_data.store_in_mem_objects * sizeof(MemObject) >> 10));
     storeAppend(sentry, line, strlen(line));
-    sprintf(line, "{\t\tIPCacheEntry %ld x %d}\n", sizeof(ipcache_entry),
-	meta_data.ipcache_count);
+
+    sprintf(line, "{\t\tIPCacheEntry %d x %d bytes = %d KB}\n",
+	meta_data.ipcache_count,
+	(int) sizeof(ipcache_entry),
+	(int) (meta_data.ipcache_count * sizeof(ipcache_entry) >> 10));
     storeAppend(sentry, line, strlen(line));
-    sprintf(line, "{\t\tHash link  %ld x %d}\n", sizeof(hash_link),
-	meta_data.hash_links = hash_links_allocated);
+
+    sprintf(line, "{\t\tHash link  %d x %d bytes = %d KB}\n",
+	meta_data.hash_links = hash_links_allocated,
+	(int) sizeof(hash_link),
+	(int) (meta_data.hash_links * sizeof(hash_link) >> 10));
     storeAppend(sentry, line, strlen(line));
-    sprintf(line, "{\t\tURL strings %d}\n", meta_data.url_strings);
+
+    sprintf(line, "{\t\tURL strings %d KB}\n",
+	meta_data.url_strings >> 10);
     storeAppend(sentry, line, strlen(line));
+
     sprintf(line, "{\t\tHot Object Cache Items %d}\n", meta_data.hot_vm);
     storeAppend(sentry, line, strlen(line));
+
     sprintf(line, "{\t\tPool for disk I/O %d KB (Free %d KB)}\n",
-	(disk_stats.total_pages_allocated * disk_stats.page_size) / (1 << 10),
-	((disk_stats.total_pages_allocated - disk_stats.n_pages_in_use) * disk_stats.page_size) /
-	(1 << 10)
-	);
+	disk_stats.total_pages_allocated * disk_stats.page_size >> 10,
+	(disk_stats.total_pages_allocated - disk_stats.n_pages_in_use) * disk_stats.page_size >> 10);
     storeAppend(sentry, line, strlen(line));
+
     sprintf(line, "{\t\tPool for in-memory objects %d KB (Free %d KB)}\n",
-	(sm_stats.total_pages_allocated * sm_stats.page_size) / (1 << 10),
-	((sm_stats.total_pages_allocated - sm_stats.n_pages_in_use) * sm_stats.page_size) / (1 << 10));
+	sm_stats.total_pages_allocated * sm_stats.page_size >> 10,
+	(sm_stats.total_pages_allocated - sm_stats.n_pages_in_use) * sm_stats.page_size >> 10);
     storeAppend(sentry, line, strlen(line));
-    sprintf(line, "{\tTotal Accounted %ld KB}\n",
-	(meta_data.store_entries * sizeof(StoreEntry) +
+
+    sprintf(line, "{\tTotal Accounted %d KB}\n",
+	(int) (meta_data.store_entries * sizeof(StoreEntry) +
 	    meta_data.store_in_mem_objects * sizeof(MemObject) +
 	    meta_data.ipcache_count * sizeof(ipcache_entry) +
 	    meta_data.hash_links * sizeof(hash_link) +
@@ -856,28 +758,25 @@ void parameter_get(obj, sentry)
 	httpd_accel_mode);
     storeAppend(sentry, line, strlen(line));
 
-    sprintf(line, "{DebugLevel %d \"# Cache debug level\"}\n",
-	debug_level);
-    storeAppend(sentry, line, strlen(line));
-
     /* end of stats */
     storeAppend(sentry, close_bracket, strlen(close_bracket));
 }
 
 
-void log_append(obj, url, id, size, action, method)
+void log_append(obj, url, id, size, action, method, http_code, msec)
      cacheinfo *obj;
      char *url;
      char *id;
      int size;
      char *action;
      char *method;
+     int http_code;
+     int msec;
 {
     static char tmp[6000];	/* MAX_URL is 4096 */
-    time_t t;
-    char *buf;
+    char *buf = NULL;
 
-    t = cached_curtime = time(NULL);
+    getCurrentTime();
 
 #ifdef LOG_FQDN
     /* ENABLE THIS IF YOU WANT A *SLOW* CACHE, OR
@@ -895,17 +794,31 @@ void log_append(obj, url, id, size, action, method)
     }
 #endif
 
+    if (!method)
+	method = "-";
+    if (!url)
+	url = "-";
+
     if (obj->logfile_status == LOG_ENABLE) {
 	if (emulate_httpd_log)
 	    sprintf(tmp, "%s - - [%s] \"%s %s\" %s %d\n",
-		id, mkhttpdlogtime(&t), method, url, action, size);
+		id, mkhttpdlogtime(&squid_curtime), method, url, action, size);
 	else
-	    sprintf(tmp, "%d %s %s %d %s\n", (int) t, url, id, size, action);
+	    sprintf(tmp, "%9d.%03d %6d %s %s/%03d %d %s %s\n",
+		(int) current_time.tv_sec,
+		(int) current_time.tv_usec / 1000,
+		msec,
+		id,
+		action,
+		http_code,
+		size,
+		method,
+		url);
 
 
 	if (file_write(obj->logfile_fd, buf = xstrdup(tmp), strlen(tmp),
 		obj->logfile_access, NULL, NULL) != DISK_OK) {
-	    debug(1, "log_append: File write failed.\n");
+	    debug(18, 1, "log_append: File write failed.\n");
 	    safe_free(buf);
 	}
     }
@@ -923,7 +836,7 @@ void log_enable(obj, sentry)
 	/* open the logfile */
 	obj->logfile_fd = file_open(obj->logfilename, NULL, O_RDWR | O_CREAT);
 	if (obj->logfile_fd == DISK_ERROR) {
-	    debug(0, "Cannot open logfile: %s\n", obj->logfilename);
+	    debug(18, 0, "Cannot open logfile: %s\n", obj->logfilename);
 	    obj->logfile_status = LOG_DISABLE;
 	}
 	obj->logfile_access = file_write_lock(obj->logfile_fd);
@@ -969,7 +882,7 @@ void log_clear(obj, sentry)
     /* reopen it anyway */
     obj->logfile_fd = file_open(obj->logfilename, NULL, O_RDWR | O_CREAT);
     if (obj->logfile_fd == DISK_ERROR) {
-	debug(0, "Cannot open logfile: %s\n", obj->logfilename);
+	debug(18, 0, "Cannot open logfile: %s\n", obj->logfilename);
 	obj->logfile_status = LOG_DISABLE;
     }
     /* at the moment, store one char to make a storage manager happy */
@@ -981,7 +894,7 @@ void log_clear(obj, sentry)
 
 void proto_newobject(obj, proto_id, size, restart)
      cacheinfo *obj;
-     int proto_id;
+     protocol_t proto_id;
      int size;
      int restart;
 {
@@ -1001,7 +914,7 @@ void proto_newobject(obj, proto_id, size, restart)
 
 void proto_purgeobject(obj, proto_id, size)
      cacheinfo *obj;
-     int proto_id;
+     protocol_t proto_id;
      int size;
 {
     proto_stat *p = &obj->proto_stat_data[proto_id];
@@ -1018,7 +931,7 @@ void proto_purgeobject(obj, proto_id, size)
 /* update stat for each particular protocol when an object is fetched */
 void proto_touchobject(obj, proto_id, size)
      cacheinfo *obj;
-     int proto_id;
+     protocol_t proto_id;
      int size;
 {
     obj->proto_stat_data[proto_id].refcount++;
@@ -1027,38 +940,17 @@ void proto_touchobject(obj, proto_id, size)
 
 void proto_hit(obj, proto_id)
      cacheinfo *obj;
-     int proto_id;
+     protocol_t proto_id;
 {
     obj->proto_stat_data[proto_id].hit++;
 }
 
 void proto_miss(obj, proto_id)
      cacheinfo *obj;
-     int proto_id;
+     protocol_t proto_id;
 {
     obj->proto_stat_data[proto_id].miss++;
 }
-
-int proto_url_to_id(url)
-     char *url;
-{
-    if (strncmp(url, "http:", 5) == 0)
-	return HTTP_ID;
-    if (strncmp(url, "ftp:", 4) == 0)
-	return FTP_ID;
-    if (strncmp(url, "gopher:", 7) == 0)
-	return GOPHER_ID;
-    if (strncmp(url, "cache_object:", 13) == 0)
-	return CACHEOBJ_ID;
-    if (strncmp(url, "abort:", 6) == 0)
-	return ABORT_ID;
-    if (strncmp(url, "news:", 5) == 0)
-	return NOTIMPLE_ID;
-    if (strncmp(url, "file:", 5) == 0)
-	return NOTIMPLE_ID;
-    return NOTIMPLE_ID;
-}
-
 
 
 void stat_init(object, logfilename)
@@ -1083,7 +975,7 @@ void stat_init(object, logfilename)
     obj->log_disable = log_disable;
     obj->logfile_status = LOG_ENABLE;
 
-    obj->cached_get_start = cached_get_start;
+    obj->squid_get_start = squid_get_start;
 
     obj->parameter_get = parameter_get;
     obj->server_list = server_list;
@@ -1091,13 +983,13 @@ void stat_init(object, logfilename)
     memcpy(obj->logfilename, logfilename, (int) (strlen(logfilename) + 1) % 256);
     obj->logfile_fd = file_open(obj->logfilename, NULL, O_RDWR | O_CREAT);
     if (obj->logfile_fd == DISK_ERROR) {
-	debug(0, "Cannot open logfile: %s\n", obj->logfilename);
+	debug(18, 0, "Cannot open logfile: %s\n", obj->logfilename);
 	obj->logfile_status = LOG_DISABLE;
-	fatal("Cannot open logfile.\n");
+	fatal("Cannot open logfile.");
     }
     obj->logfile_access = file_write_lock(obj->logfile_fd);
 
-    obj->proto_id = proto_url_to_id;
+    obj->proto_id = urlParseProtocol;
     obj->proto_newobject = proto_newobject;
     obj->proto_purgeobject = proto_purgeobject;
     obj->proto_touchobject = proto_touchobject;
@@ -1105,40 +997,28 @@ void stat_init(object, logfilename)
     obj->proto_miss = proto_miss;
     obj->NotImplement = dummyhandler;
 
-    for (i = 0; i < PROTOCOL_SUPPORTED + PROTOCOL_EXTRA; ++i) {
-
+    for (i = 0; i < PROTO_MAX; i++) {
 	switch (i) {
-
-	case TOTAL_ID:
-	    strcpy(obj->proto_stat_data[i].protoname, "TOTAL");
-	    break;
-
-	case HTTP_ID:
+	case PROTO_HTTP:
 	    strcpy(obj->proto_stat_data[i].protoname, "HTTP");
 	    break;
-
-	case GOPHER_ID:
+	case PROTO_GOPHER:
 	    strcpy(obj->proto_stat_data[i].protoname, "GOPHER");
 	    break;
-
-	case FTP_ID:
+	case PROTO_FTP:
 	    strcpy(obj->proto_stat_data[i].protoname, "FTP");
 	    break;
-
-	case CACHEOBJ_ID:
-	    strcpy(obj->proto_stat_data[i].protoname, "CACHEMGR");
+	case PROTO_CACHEOBJ:
+	    strcpy(obj->proto_stat_data[i].protoname, "CACHE_OBJ");
 	    break;
-
-	case ABORT_ID:
-	    strcpy(obj->proto_stat_data[i].protoname, "ABORTED");
+	case PROTO_MAX:
+	    strcpy(obj->proto_stat_data[i].protoname, "TOTAL");
 	    break;
-
-	case NOTIMPLE_ID:
+	case PROTO_NONE:
 	default:
-	    strcpy(obj->proto_stat_data[i].protoname, "UNKNOWN");
+	    strcpy(obj->proto_stat_data[i].protoname, "OTHER");
 	    break;
 	}
-
 	obj->proto_stat_data[i].object_count = 0;
 	obj->proto_stat_data[i].hit = 0;
 	obj->proto_stat_data[i].miss = 0;
@@ -1224,9 +1104,8 @@ char *mem_describe(entry)
 }
 
 
-char *ttl_describe(entry, expires)
+char *ttl_describe(entry)
      StoreEntry *entry;
-     int expires;
 {
     int hh, mm, ss;
     static char TTL[60];
@@ -1234,7 +1113,7 @@ char *ttl_describe(entry, expires)
 
     TTL[0] = '\0';
     strcpy(TTL, "UNKNOWN");	/* sometimes the TTL isn't set below */
-    ttl = expires - cached_curtime;
+    ttl = entry->expires - squid_curtime;
     if (ttl < 0)
 	strcpy(TTL, "EXPIRED");
     else {
@@ -1259,7 +1138,7 @@ char *elapsed_time(entry, since, TTL)
 
     TTL[0] = '\0';
     strcpy(TTL, "UNKNOWN");	/* sometimes TTL doesn't get set */
-    ttl = cached_curtime - since;
+    ttl = squid_curtime - since;
     if (since == 0) {
 	strcpy(TTL, "NEVER");
     } else if (ttl < 0) {
@@ -1316,7 +1195,7 @@ void stat_rotate_log()
     if ((fname = CacheInfo->logfilename) == NULL)
 	return;
 
-    debug(1, "stat_rotate_log: Rotating\n");
+    debug(18, 1, "stat_rotate_log: Rotating\n");
 
     /* Rotate numbers 0 through N up one */
     for (i = getLogfileRotateNumber(); i > 1;) {
@@ -1335,9 +1214,9 @@ void stat_rotate_log()
     file_close(CacheInfo->logfile_fd);
     CacheInfo->logfile_fd = file_open(fname, NULL, O_RDWR | O_CREAT | O_APPEND);
     if (CacheInfo->logfile_fd == DISK_ERROR) {
-	debug(0, "rotate_logs: Cannot open logfile: %s\n", fname);
+	debug(18, 0, "rotate_logs: Cannot open logfile: %s\n", fname);
 	CacheInfo->logfile_status = LOG_DISABLE;
-	fatal("Cannot open logfile.\n");
+	fatal("Cannot open logfile.");
     }
     CacheInfo->logfile_access = file_write_lock(CacheInfo->logfile_fd);
 }
