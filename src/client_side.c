@@ -1186,9 +1186,10 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	 * the objects age, so a Age: 0 header does not add any useful
 	 * information to the reply in any case.
 	 */
-	if (http->entry->timestamp < squid_curtime)
-	    httpHeaderPutInt(hdr, HDR_AGE,
-		squid_curtime - http->entry->timestamp);
+	if (http->entry->timestamp > -1)
+	    if (http->entry->timestamp < squid_curtime)
+		httpHeaderPutInt(hdr, HDR_AGE,
+		    squid_curtime - http->entry->timestamp);
     }
     /* Append X-Cache */
     httpHeaderPutStrf(hdr, HDR_X_CACHE, "%s from %s",
@@ -1377,12 +1378,18 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    http->log_type = LOG_TCP_IMS_HIT;
 	    clientSendMoreData(data, buf, size);
 	} else {
+	    time_t timestamp = e->timestamp;
 	    MemBuf mb = httpPacked304Reply(e->mem_obj->reply);
 	    http->log_type = LOG_TCP_IMS_HIT;
 	    memFree(buf, MEM_CLIENT_SOCK_BUF);
 	    storeUnregister(e, http);
 	    storeUnlockObject(e);
 	    e = clientCreateStoreEntry(http, http->request->method, null_request_flags);
+	    /*
+	     * Copy timestamp from the original entry so the 304
+	     * reply has a meaningful Age: header.
+	     */
+	    e->timestamp = timestamp;
 	    http->entry = e;
 	    httpReplyParse(e->mem_obj->reply, mb.buf, mb.size);
 	    storeAppend(e, mb.buf, mb.size);
