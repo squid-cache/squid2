@@ -217,9 +217,6 @@ static void ipcache_release(i)
 	safe_free(result->entry.h_name);
 	debug(14, 5, "ipcache_release: Released IP cached record for '%s'.\n",
 	    result->name);
-    } else {
-	debug(14, 0, "ipcache_release: HELP, '%s' status = %d\n",
-	    result->name, result->status);
     }
     safe_free(result->name);
     memset(result, '\0', sizeof(ipcache_entry));
@@ -280,13 +277,10 @@ static int ipcache_compareLastRef(e1, e2)
 {
     if (!e1 || !e2)
 	fatal_dump(NULL);
-
     if ((*e1)->lastref > (*e2)->lastref)
 	return (1);
-
     if ((*e1)->lastref < (*e2)->lastref)
 	return (-1);
-
     return (0);
 }
 
@@ -402,13 +396,10 @@ void ipcache_add(name, i, hp, cached)
     int alias_count;
     int k;
 
+    if (ipcache_get(name))
+	fatal_dump("ipcache_add: somebody adding a duplicate!");
     debug(14, 10, "ipcache_add: Adding name '%s' (%s).\n", name,
 	cached ? "cached" : "not cached");
-
-    if (ipcache_get(name)) {
-	debug(14, 0, "WHOA: '%s' is already in the IP cache!\n", name);
-	fatal_dump("ipcache_add: somebody adding a duplicate!");
-    }
     i->name = xstrdup(name);
     if (cached) {
 	/* count for IPs */
@@ -930,7 +921,7 @@ static void dnsDispatch(dns, i)
 	dns->id);
     dns->dispatch_time = current_time;
     IpcacheStats.dnsserver_requests++;
-    IpcacheStats.dnsserver_hist[dns->id]++;
+    IpcacheStats.dnsserver_hist[dns->id-1]++;
 }
 
 
