@@ -7,5 +7,5 @@
 #endif
 
 #ifndef SQUID_RELEASE_TIME
-#define SQUID_RELEASE_TIME @SQUID_RELEASE_TIME@
+#define SQUID_RELEASE_TIME squid_curtime
 #endif
