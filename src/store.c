@@ -618,15 +618,15 @@ storeCheckCachable(StoreEntry * e)
 	store_check_cachable_hist.no.non_get++;
     } else
 #endif
-    if (!EBIT_TEST(e->flags, ENTRY_CACHABLE)) {
-	debug(20, 2) ("storeCheckCachable: NO: not cachable\n");
-	store_check_cachable_hist.no.not_entry_cachable++;
+    if (e->store_status == STORE_OK && EBIT_TEST(e->flags, ENTRY_BAD_LENGTH)) {
+	debug(20, 2) ("storeCheckCachable: NO: wrong content-length\n");
+	store_check_cachable_hist.no.wrong_content_length++;
     } else if (EBIT_TEST(e->flags, RELEASE_REQUEST)) {
 	debug(20, 2) ("storeCheckCachable: NO: release requested\n");
 	store_check_cachable_hist.no.release_request++;
-    } else if (e->store_status == STORE_OK && EBIT_TEST(e->flags, ENTRY_BAD_LENGTH)) {
-	debug(20, 2) ("storeCheckCachable: NO: wrong content-length\n");
-	store_check_cachable_hist.no.wrong_content_length++;
+    } else if (!EBIT_TEST(e->flags, ENTRY_CACHABLE)) {
+	debug(20, 2) ("storeCheckCachable: NO: not cachable\n");
+	store_check_cachable_hist.no.not_entry_cachable++;
     } else if (EBIT_TEST(e->flags, ENTRY_NEGCACHED)) {
 	debug(20, 3) ("storeCheckCachable: NO: negative cached\n");
 	store_check_cachable_hist.no.negative_cached++;
