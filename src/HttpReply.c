@@ -450,7 +450,7 @@ httpReplyIsolateStart(const char **parse_start, const char **blk_start, const ch
  * Returns the body size of a HTTP response
  */
 int
-httpReplyBodySize(method_t method, HttpReply * reply)
+httpReplyBodySize(method_t method, const HttpReply * reply)
 {
     if (reply->sline.version.major < 1)
 	return -1;
