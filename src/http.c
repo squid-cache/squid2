@@ -385,7 +385,7 @@ static void httpSendRequest(fd, data)
     char *t = NULL;
     char *post_buf = NULL;
     static char *crlf = "\r\n";
-    static char *VIA_PROXY_TEXT = "via Sqiud Cache version";
+    static char *VIA_PROXY_TEXT = "via Squid Cache version";
     int len = 0;
     int buflen;
     int cfd = -1;
