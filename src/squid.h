@@ -163,14 +163,21 @@
 #if HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-#if HAVE_POLL_H
-#include <poll.h>
-#endif
 #if HAVE_ASSERT_H
 #include <assert.h>
 #else
 #define assert(X) ((void)0)
 #endif
+
+/* With linux, poll.h might not be available, even though poll(2) is */
+/* Oskar Pearson <oskar@is.co.za> */
+#if HAVE_POLL
+#if HAVE_POLL_H && defined(_SQUID_LINUX_)
+#include <poll.h>
+#else
+#undef HAVE_POLL
+#endif /* end of Linux workaround */
+#endif /* HAVE_POLL */
 
 #ifdef __STDC__
 #include <stdarg.h>
