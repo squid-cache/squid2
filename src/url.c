@@ -369,6 +369,29 @@ urlCanonicalClean(const request_t * request)
     return buf;
 }
 
+/* makes internal url with a given host and port (remote internal url) */
+char *
+urlRInternal(const char *host, int port, const char *dir, const char *name)
+{
+    LOCAL_ARRAY(char, buf, MAX_URL);
+    assert(host && port && name);
+    if (!dir || !*dir)
+	snprintf(buf, MAX_URL, "http://%s:%d/%s", host, port, name);
+    else
+	snprintf(buf, MAX_URL, "http://%s:%d/%s/%s", host, port, dir, name);
+    return buf;
+}
+
+/* makes internal url with local host and port */
+char *
+urlInternal(const char *dir, const char *name)
+{
+    static char host[SQUIDHOSTNAMELEN];
+    xstrncpy(host, getMyHostname(), SQUIDHOSTNAMELEN);
+    Tolower(host);
+    return urlRInternal(host, Config.Port.http->i, dir, name);
+}
+
 request_t *
 requestLink(request_t * request)
 {

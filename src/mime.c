@@ -331,17 +331,9 @@ char *
 mimeGetIconURL(const char *fn)
 {
     char *icon = mimeGetIcon(fn);
-    static char iconurl[256];
-    static char host[SQUIDHOSTNAMELEN];
     if (icon == NULL)
 	return NULL;
-    xstrncpy(host, getMyHostname(), SQUIDHOSTNAMELEN);
-    Tolower(host);
-    snprintf(iconurl, 256, "http://%s:%d/squid-internal/icons/%s",
-	host,
-	Config.Port.http->i,
-	icon);
-    return iconurl;
+    return urlInternal("icons", icon);
 }
 
 char *
