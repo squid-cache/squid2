@@ -38,7 +38,7 @@
 static STIOCB storeSwapInFileClosed;
 
 void
-storeSwapInStart(store_client *sc)
+storeSwapInStart(store_client * sc)
 {
     StoreEntry *e = sc->entry;
     assert(e->mem_status == NOT_IN_MEMORY);

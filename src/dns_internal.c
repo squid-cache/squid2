@@ -368,11 +368,11 @@ idnsInit(void)
     if (nns == 0)
 	idnsParseResolvConf();
     if (!init) {
-        memDataInit(MEM_IDNS_QUERY, "idns_query", sizeof(idns_query), 0);
+	memDataInit(MEM_IDNS_QUERY, "idns_query", sizeof(idns_query), 0);
 	cachemgrRegister("idns",
 	    "Internal DNS Statistics",
 	    idnsStats, 0, 1);
-        init++;
+	init++;
     }
 }
 
