@@ -1321,7 +1321,7 @@ struct _SwapDir {
     swapdir_t type;
     fileMap *map;
     int cur_size;
-    int high_size;
+    int low_size;
     int max_size;
     char *path;
     int index;			/* This entry's index into the swapDirs array */

@@ -1142,7 +1142,7 @@ storeUfsDirStats(StoreEntry * sentry)
 	storeAppendPrintf(sentry, "First level subdirectories: %d\n", SD->u.ufs.l1);
 	storeAppendPrintf(sentry, "Second level subdirectories: %d\n", SD->u.ufs.l2);
 	storeAppendPrintf(sentry, "Maximum Size: %d KB\n", SD->max_size);
-	storeAppendPrintf(sentry, "HiWater Size: %d KB\n", SD->high_size);
+	storeAppendPrintf(sentry, "LoWater Size: %d KB\n", SD->low_size);
 	storeAppendPrintf(sentry, "Current Size: %d KB\n", SD->cur_size);
 	storeAppendPrintf(sentry, "Percent Used: %0.2f%%\n",
 	    100.0 * SD->cur_size / SD->max_size);

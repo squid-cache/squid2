@@ -890,7 +890,7 @@ storeMaintainSwapSpace(void *datanotused)
 	    if (ndir >= Config.cacheSwap.n_configured)
 		ndir = ndir % Config.cacheSwap.n_configured;
 	    sd = &Config.cacheSwap.swapDirs[ndir++];
-	    if (sd->cur_size < sd->high_size)
+	    if (sd->cur_size < sd->low_size)
 		continue;
 	    if (NULL == sd->lru_walker)
 		continue;
