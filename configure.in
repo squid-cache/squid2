@@ -401,15 +401,18 @@ AC_SUBST(REPL_OBJS)
 REPL_LIBS="`echo $REPL_OBJS|sed -e 's%repl/%%g'`"
 AC_SUBST(REPL_LIBS)
 
+OPT_PINGER=''
 OPT_PINGER_EXE=''
 AC_ARG_ENABLE(icmp,
 [  --enable-icmp           Enable ICMP pinging],
 [ if test "$enableval" = "yes" ; then
     echo "ICMP enabled"
     AC_DEFINE(USE_ICMP)
-    OPT_PINGER_EXE='pinger'
+    OPT_PINGER='pinger'
+    OPT_PINGER_EXE='pinger$(EXEEXT)'
   fi
 ])
+AC_SUBST(OPT_PINGER)
 AC_SUBST(OPT_PINGER_EXE)
 
 AM_CONDITIONAL(USE_DELAY_POOLS, false)

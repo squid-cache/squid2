@@ -64,7 +64,7 @@ INCLUDES        = -I. -I$(srcdir) -I$(top_builddir)/include -I$(top_srcdir)/incl
 EXTRA_PROGRAMS = unlinkd pinger dnsserver
 noinst_PROGRAMS = cf_gen
 bin_PROGRAMS = squid client
-libexec_PROGRAMS = @OPT_PINGER_EXE@ $(DNSSERVER) $(UNLINKD) cachemgr
+libexec_PROGRAMS = @OPT_PINGER@ $(DNSSERVER) $(UNLINKD) cachemgr
 
 cf_gen_SOURCES = cf_gen.c defines.h
 nodist_cf_gen_HEADER = cf_gen_defines.h
@@ -121,7 +121,7 @@ DEFAULT_ACCESS_LOG      = $(localstatedir)/logs/access.log
 DEFAULT_STORE_LOG       = $(localstatedir)/logs/store.log
 DEFAULT_PID_FILE        = $(localstatedir)/logs/squid.pid
 DEFAULT_SWAP_DIR        = $(localstatedir)/cache
-DEFAULT_PINGER		= $(libexecdir)/$(PINGER_EXE)
+DEFAULT_PINGER		= $(libexecdir)/@OPT_PINGER_EXE@
 DEFAULT_UNLINKD		= $(libexecdir)/$(UNLINKD_EXE)
 DEFAULT_DISKD		= $(libexecdir)/$(DISKD_EXE)
 DEFAULT_ICON_DIR	= $(sysconfdir)/icons
