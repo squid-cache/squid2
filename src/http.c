@@ -602,7 +602,7 @@ httpAppendRequestHeader(char *hdr, const char *line, size_t * sz, size_t max, in
  * used by httpBuildRequestPrefix()
  * note: calls httpHeaderInit(), the caller is responsible for Clean()-ing
  */
-static void
+void
 httpBuildRequestHeader(request_t * request,
     request_t * orig_request,
     StoreEntry * entry,
