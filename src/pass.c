@@ -51,8 +51,7 @@ typedef struct {
     int ip_lookup_pending;
 } PassStateData;
 
-static void passLifetimeExpire _PARAMS((int fd, void *));
-static void passReadTimeout _PARAMS((int fd, void *));
+static PF passTimeout;
 static void passReadServer _PARAMS((int fd, void *));
 static void passReadClient _PARAMS((int fd, void *));
 static void passWriteServer _PARAMS((int fd, void *));
@@ -126,11 +125,10 @@ passStateFree(int fd, void *data)
 
 /* This will be called when the server lifetime is expired. */
 static void
-passLifetimeExpire(int fd, void *data)
+passTimeout(int fd, void *data)
 {
     PassStateData *passState = data;
-    debug(39, 4, "passLifeTimeExpire: FD %d: URL '%s'>\n",
-	fd, passState->url);
+    debug(39, 3, "passTimeout: FD %d\n", fd);
     passClose(passState);
 }
 
@@ -152,11 +150,6 @@ passReadServer(int fd, void *data)
 		COMM_SELECT_READ,
 		passReadServer,
 		passState, 0);
-	    commSetSelect(passState->server.fd,
-		COMM_SELECT_TIMEOUT,
-		passReadTimeout,
-		passState,
-		passState->timeout);
 	} else {
 	    passClose(passState);
 	}
@@ -166,6 +159,7 @@ passReadServer(int fd, void *data)
     } else {
 	passState->server.offset = 0;
 	passState->server.len = len;
+        commSetTimeout(passState->server.fd, Config.Timeout.read, NULL, NULL);
 	commSetSelect(passState->client.fd,
 	    COMM_SELECT_WRITE,
 	    passWriteClient,
@@ -237,11 +231,6 @@ passWriteServer(int fd, void *data)
 	    COMM_SELECT_READ,
 	    passReadClient,
 	    passState, 0);
-	commSetSelect(passState->server.fd,
-	    COMM_SELECT_TIMEOUT,
-	    passReadTimeout,
-	    passState,
-	    passState->timeout);
     } else {
 	/* still have more to write */
 	commSetSelect(passState->server.fd,
@@ -296,14 +285,6 @@ passWriteClient(int fd, void *data)
 }
 
 static void
-passReadTimeout(int fd, void *data)
-{
-    PassStateData *passState = data;
-    debug(39, 3, "passReadTimeout: FD %d\n", fd);
-    passClose(passState);
-}
-
-static void
 passConnected(int fd, void *data)
 {
     PassStateData *passState = data;
@@ -331,11 +312,11 @@ passConnected(int fd, void *data)
 	passState->buflen - hdr_len);
     passState->client.len += passState->buflen - hdr_len;
     passState->client.offset = 0;
+    commSetTimeout(passState->server.fd, Config.Timeout.read, NULL, NULL);
     commSetSelect(passState->server.fd,
 	COMM_SELECT_WRITE,
 	passWriteServer,
 	passState, 0);
-    comm_set_fd_lifetime(fd, 86400);	/* extend lifetime */
     commSetSelect(passState->server.fd,
 	COMM_SELECT_READ,
 	passReadServer,
@@ -381,18 +362,10 @@ passConnect(int fd, const ipcache_addrs * ia, void *data)
 	passState->client.fd,
 	passState->server.fd);
     /* Install lifetime handler */
-    commSetSelect(passState->server.fd,
-	COMM_SELECT_LIFETIME,
-	passLifetimeExpire,
-	passState, 0);
-    /* NOTE this changes the lifetime handler for the client side.
-     * It used to be asciiConnLifetimeHandle, but it does funny things
-     * like looking for read handlers and assuming it was still reading
-     * the HTTP request.  sigh... */
-    commSetSelect(passState->client.fd,
-	COMM_SELECT_LIFETIME,
-	passLifetimeExpire,
-	passState, 0);
+    commSetTimeout(passState->server.fd,
+        Config.Timeout.read,
+        passTimeout,
+        passState);
     commConnectStart(fd,
 	passState->host,
 	passState->port,
@@ -471,7 +444,7 @@ passStart(int fd,
     passState->request = requestLink(request);
     passState->buf = buf;
     passState->buflen = buflen;
-    passState->timeout = Config.readTimeout;
+    passState->timeout = Config.Timeout.read;
     passState->host = request->host;
     passState->port = request->port;
     passState->size_ptr = size_ptr;

@@ -1751,6 +1751,7 @@ clientReadRequest(int fd, void *data)
 
     parser_return_code = parseHttpRequest(icpState);
     if (parser_return_code == 1) {
+        commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
 	if ((request = urlParse(icpState->method, icpState->url)) == NULL) {
 	    debug(12, 5, "Invalid URL: %s\n", icpState->url);
 	    wbuf = squid_error_url(icpState->url,
@@ -1826,15 +1827,14 @@ clientReadRequest(int fd, void *data)
 }
 
 
-/* general lifetime handler for ascii connection */
+/* general lifetime handler for HTTP requests */
 static void
-asciiConnLifetimeHandle(int fd, void *data)
+requestTimeout(int fd, void *data)
 {
     icpStateData *icpState = data;
     int x;
     StoreEntry *entry = icpState->entry;
-
-    debug(12, 2, "asciiConnLifetimeHandle: FD %d: lifetime is expired.\n", fd);
+    debug(12, 2, "requestTimeout: FD %d: lifetime is expired.\n", fd);
     CheckQuickAbort(icpState);
     if (entry) {
 	storeUnregister(entry, fd);
@@ -1857,7 +1857,6 @@ void
 asciiHandleConn(int sock, void *notused)
 {
     int fd = -1;
-    int lft = -1;
     icpStateData *icpState = NULL;
     struct sockaddr_in peer;
     struct sockaddr_in me;
@@ -1874,10 +1873,9 @@ asciiHandleConn(int sock, void *notused)
     if (vizSock > -1)
 	vizHackSendPkt(&peer, 1);
     /* set the hardwired lifetime */
-    lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
     ntcpconn++;
 
-    debug(12, 4, "asciiHandleConn: FD %d: accepted, lifetime %d\n", fd, lft);
+    debug(12, 4, "asciiHandleConn: FD %d: accepted\n", fd);
 
     icpState = xcalloc(1, sizeof(icpStateData));
     icpState->start = current_time;
@@ -1893,10 +1891,7 @@ asciiHandleConn(int sock, void *notused)
     icpState->ident.fd = -1;
     fd_note(fd, inet_ntoa(icpState->log_addr));
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
-    commSetSelect(fd,
-	COMM_SELECT_LIFETIME,
-	asciiConnLifetimeHandle,
-	icpState, 0);
+    commSetTimeout(fd, Config.Timeout.read, requestTimeout, icpState);
     comm_add_close_handler(fd,
 	icpStateFree,
 	icpState);
@@ -2063,14 +2058,12 @@ static void
 icpDetectNewRequest(int fd)
 {
 #if TRY_KEEPALIVE_SUPPORT
-    int lft = -1;
     icpStateData *icpState = NULL;
     struct sockaddr_in me;
     struct sockaddr_in peer;
     int len;
 
     /* set the hardwired lifetime */
-    lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
     len = sizeof(struct sockaddr_in);
 
     memset(&me, '\0', len);
@@ -2090,7 +2083,7 @@ icpDetectNewRequest(int fd)
     ntcpconn++;
     if (vizSock > -1)
 	vizHackSendPkt(&peer, 1);
-    debug(12, 4, "icpDetectRequest: FD %d: accepted, lifetime %d\n", fd, lft);
+    debug(12, 4, "icpDetectRequest: FD %d: accepted\n", fd);
     icpState = xcalloc(1, sizeof(icpStateData));
     icpState->start = current_time;
     icpState->inbufsize = ASCII_INBUF_BLOCKSIZE;
@@ -2104,6 +2097,7 @@ icpDetectNewRequest(int fd)
     icpState->fd = fd;
     fd_note(fd, inet_ntoa(icpState->log_addr));
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
+    commSetTimeout(fd, Config.Timeout.read, requestTimeout, icpState);
     comm_add_close_handler(fd,
 	icpStateFree,
 	icpState);

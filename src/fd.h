@@ -19,13 +19,15 @@ enum {
 #define FD_WRITE_DAEMON		0x04
 #define FD_WRITE_PENDING	0x08
 
+#define FD_DESC_SZ		64
+
 typedef struct fde {
     unsigned int type;
     unsigned int open;
     u_short local_port;
     u_short remote_port;
     char ipaddr[16];            /* dotted decimal address of peer */
-    char ascii_note[FD_ASCII_NOTE_SZ];
+    char desc[FD_DESC_SZ];
     int flags;
 
     struct {
@@ -41,19 +43,18 @@ typedef struct fde {
     PF *write_handler;
     void *write_data;
     PF *timeout_handler;
-    time_t timeout_time;
-    time_t timeout_delta;
+    time_t timeout;
     void *timeout_data;
-    int lifetime;
-    PF *lifetime_handler;
     void *lifetime_data;
     struct close_handler *close_handler;        /* linked list */
     time_t stall_until;         /* don't select for read until this time */
     RWStateData *rwstate;       /* State data for comm_write */
 } FD_ENTRY;
 
+extern void fd_close _PARAMS((int fd));
+extern void fd_open _PARAMS((int fd, unsigned int type, const char *));
+extern void fd_note _PARAMS((int fd, const char *));
 
 extern FD_ENTRY *fd_table;
-
 extern const char *fdstatTypeStr[];
 

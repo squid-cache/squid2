@@ -86,6 +86,7 @@ OBJS	 	= \
 		dns.o \
 		errorpage.o \
 		event.o \
+		fd.o \
 		fdstat.o \
 		filemap.o \
 		fqdncache.o \

@@ -127,7 +127,7 @@ unlinkdCreate(void)
 	    close(wfd1);
 	    return -1;
 	}
-	comm_set_fd_lifetime(wfd1, -1);
+	commSetTimeout(wfd1, -1, NULL, NULL);
 	slp.tv_sec = 0;
 	slp.tv_usec = 250000;
 	select(0, NULL, NULL, NULL, &slp);

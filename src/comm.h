@@ -120,16 +120,12 @@
 /* Select types. */
 #define COMM_SELECT_READ   (0x1)
 #define COMM_SELECT_WRITE  (0x2)
-#define COMM_SELECT_TIMEOUT (0x8)
-#define COMM_SELECT_LIFETIME (0x10)
 
 typedef void PF _PARAMS((int, void *));
 typedef void CCH _PARAMS((int fd, int status, void *data));
 
 typedef void rw_complete_handler(int fd, char *buf, int size, int errflag, void *data);
 typedef struct _RWStateData RWStateData;
-
-#define FD_ASCII_NOTE_SZ 64
 
 struct close_handler {
     PF *handler;
@@ -145,7 +141,6 @@ typedef struct {
     void *data;
 } ConnectStateData;
 
-extern char *fd_note _PARAMS((int fd, const char *));
 extern int commSetNonBlocking _PARAMS((int fd));
 extern void commSetCloseOnExec _PARAMS((int fd));
 extern int comm_accept _PARAMS((int fd, struct sockaddr_in *, struct sockaddr_in *));
@@ -157,7 +152,6 @@ extern int comm_listen _PARAMS((int sock));
 extern int comm_open _PARAMS((int, int, struct in_addr, u_short port, int, const char *note));
 extern u_short comm_local_port _PARAMS((int fd));
 extern int comm_select _PARAMS((time_t));
-extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
 extern void commSetSelect _PARAMS((int, unsigned int, PF *, void *, time_t));
 extern void comm_add_close_handler _PARAMS((int fd, PF *, void *));
 extern void comm_remove_close_handler _PARAMS((int fd, PF *, void *));
@@ -177,8 +171,7 @@ extern void comm_write _PARAMS((int fd,
 extern void commFreeMemory _PARAMS((void));
 extern void commCallCloseHandlers _PARAMS((int fd));
 extern void commCancelRWHandler _PARAMS((int fd));
-
-
+extern int commSetTimeout _PARAMS((int fd, int, PF *, void *));
 
 extern int RESERVED_FD;
 

@@ -105,8 +105,6 @@
 
 #include "squid.h"
 
-static void fdstat_update _PARAMS((int fd, unsigned int));
-
 const char *fdstatTypeStr[] =
 {
     "None",
@@ -122,53 +120,6 @@ void
 fdstat_init(void)
 {
     Biggest_FD = -1;
-}
-
-/* call for updating the current biggest fd */
-static void
-fdstat_update(int fd, unsigned int status)
-{
-    if (fd < Biggest_FD)
-	return;
-    if (fd >= Squid_MaxFD) {
-	debug_trap("Running out of file descriptors.\n");
-	return;
-    }
-    if (fd > Biggest_FD) {
-	if (status == FD_OPEN)
-	    Biggest_FD = fd;
-	else
-	    debug_trap("fdstat_update: Biggest_FD inconsistency");
-	return;
-    }
-    /* if we are here, then fd == Biggest_FD */
-    if (status == FD_CLOSE) {
-	while (fd_table[Biggest_FD].open != FD_OPEN)
-	    Biggest_FD--;
-    } else {
-	debug_trap("fdstat_update: re-opening Biggest_FD?");
-    }
-}
-
-/* call when open fd */
-void
-fdstat_open(int fd, unsigned int type)
-{
-    fd_table[fd].type = type;
-    fdstat_update(fd, fd_table[fd].open = FD_OPEN);
-}
-
-int
-fdstat_isopen(int fd)
-{
-    return (fd_table[fd].open == FD_OPEN);
-}
-
-/* call when close fd */
-void
-fdstat_close(int fd)
-{
-    fdstat_update(fd, fd_table[fd].open = FD_CLOSE);
 }
 
 int

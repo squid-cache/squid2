@@ -213,12 +213,6 @@ protoCancelTimeout(int fd, StoreEntry * entry)
 	debug_trap("protoCancelTimeout: called on non-socket");
 	return;
     }
-    /* cancel the timeout handler */
-    commSetSelect(fd,
-	COMM_SELECT_TIMEOUT,
-	NULL,
-	NULL,
-	0);
 }
 
 int

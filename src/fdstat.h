@@ -107,8 +107,6 @@
 #define FDSTAT_H
 
 extern void fdstat_init _PARAMS((void));
-extern int fdstat_isopen _PARAMS((int fd));
-extern void fdstat_close _PARAMS((int fd));
 extern void fdstat_open _PARAMS((int fd, unsigned int type));
 extern int fdstat_are_n_free_fd _PARAMS((int));
 
