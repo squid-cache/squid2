@@ -334,31 +334,6 @@ getDefaultParent(request_t * request)
     return NULL;
 }
 
-#ifdef HIER_EXPERIMENT
-peer *
-getRandomParent(request_t * request)
-{
-    peer *e;
-    static peer *f = NULL;
-    peer *next = f;
-    int n = squid_random() % Peers.n;
-    int x = n << 1;
-    while (n && x--) {
-	e = next ? next : Peers.peers_head;
-	next = e->next;
-	if (neighborType(e, request) != PEER_PARENT)
-	    continue;
-	if (!peerHTTPOkay(e, request))
-	    continue;
-	f = e;
-	n--;
-    }
-    if (f && !peerHTTPOkay(f, request))
-	return NULL;
-    return f;
-}
-#endif
-
 peer *
 getNextPeer(peer * p)
 {
