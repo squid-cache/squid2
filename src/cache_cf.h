@@ -268,7 +268,7 @@ struct SquidConfig {
     struct {
 	int high;
 	int low;
-	int ttl;
+	int period;
     } Netdb;
     struct {
 	int log_udp;

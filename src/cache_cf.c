@@ -115,7 +115,7 @@ struct SquidConfig Config;
 #define DefaultSwapLowWaterMark  90	/* 90% */
 #define DefaultNetdbHigh	1000	/* counts, not percents */
 #define DefaultNetdbLow		 900
-#define DefaultNetdbTtl          300	/* 5 minutes */
+#define DefaultNetdbPeriod       300	/* 5 minutes */
 
 #define DefaultWaisRelayHost	(char *)NULL
 #define DefaultWaisRelayPort	0
@@ -1407,8 +1407,8 @@ parseConfigFile(const char *file_name)
 	    parseIntegerValue(&Config.Netdb.high);
 	else if (!strcmp(token, "netdb_low"))
 	    parseIntegerValue(&Config.Netdb.low);
-	else if (!strcmp(token, "netdb_ttl"))
-	    parseIntegerValue(&Config.Netdb.ttl);
+	else if (!strcmp(token, "netdb_ping_period"))
+	    parseTimeLine(&Config.Netdb.period, "seconds");
 
 	/* If unknown, treat as a comment line */
 	else {
@@ -1531,7 +1531,7 @@ configSetFactoryDefaults(void)
     Config.Swap.lowWaterMark = DefaultSwapLowWaterMark;
     Config.Netdb.high = DefaultNetdbHigh;
     Config.Netdb.low = DefaultNetdbLow;
-    Config.Netdb.ttl = DefaultNetdbTtl;
+    Config.Netdb.period = DefaultNetdbPeriod;
 
     Config.Wais.relayHost = safe_xstrdup(DefaultWaisRelayHost);
     Config.Wais.relayPort = DefaultWaisRelayPort;

@@ -222,7 +222,7 @@ netdbSendPing(int fdunused, const ipcache_addrs * ia, void *data)
     debug(37, 3, "netdbSendPing: pinging %s\n", hostname);
     icmpDomainPing(addr, hostname);
     n->pings_sent++;
-    n->next_ping_time = squid_curtime + Config.Netdb.ttl;
+    n->next_ping_time = squid_curtime + Config.Netdb.period;
     n->last_use_time = squid_curtime;
     xfree(hostname);
 }
@@ -329,6 +329,8 @@ netdbSaveState(void *foo)
     }
     n = (netdbEntry *) hash_first(addr_table);
     while (n) {
+	if (n->rtt == 0.0)
+		continue;
 	fprintf(fp, "%s %d %d %10.5f %10.5f %d %d",
 	    n->network,
 	    n->pings_sent,
@@ -593,8 +595,10 @@ netdbHostHops(const char *host)
 {
 #if USE_ICMP
     netdbEntry *n = netdbLookupHost(host);
-    if (n)
+    if (n) {
+	n->last_use_time = squid_curtime;
 	return (int) (n->hops + 0.5);
+    }
 #endif
     return 0;
 }
@@ -604,8 +608,10 @@ netdbHostRtt(const char *host)
 {
 #if USE_ICMP
     netdbEntry *n = netdbLookupHost(host);
-    if (n)
+    if (n) {
+	n->last_use_time = squid_curtime;
 	return (int) (n->rtt + 0.5);
+    }
 #endif
     return 0;
 }
