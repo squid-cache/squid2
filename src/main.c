@@ -853,7 +853,9 @@ watch_child(char *argv[])
     int status;
 #endif
     pid_t pid;
+#ifdef TIOCNOTTY
     int i;
+#endif
     int nullfd;
     if (*(argv[0]) == '(')
 	return;
