@@ -209,10 +209,6 @@ struct _ConnStateData {
     CommWriteStateData *commWriteState;
     int nrequests;
     int persistent;
-#ifdef UNUSED
-    icp_common_t header;	/* for UDP_HIT_OBJ's */
-    method_t method;		/* GET, POST, ... */
-#endif
 };
 
 extern void *icpCreateMessage _PARAMS((icp_opcode opcode,
