@@ -406,6 +406,9 @@ struct _SquidConfig {
 	int strip_query_terms;
 	int redirector_bypass;
 	int ignore_unknown_nameservers;
+#if USE_CACHE_DIGESTS
+	int digest_generation;
+#endif
     } onoff;
     acl *aclList;
     struct {
@@ -473,6 +476,15 @@ struct _SquidConfig {
 #endif
     HttpHeaderMask anonymize_headers;
     char *coredump_dir;
+#if USE_CACHE_DIGESTS
+    struct {
+	int bits_per_entry;
+	int rebuild_period;
+	int rewrite_period;
+	int swapout_chunk_size;
+	int rebuild_chunk_percentage;
+    } digest;
+#endif
 };
 
 struct _SquidConfig2 {

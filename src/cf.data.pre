@@ -3044,4 +3044,83 @@ DOC_START
 ignore_unknown_nameservers on
 DOC_END
 
+NAME: digest_generation
+IFDEF: USE_CACHE_DIGESTS
+TYPE: onoff
+LOC: Config.onoff.digest_generation
+DEFAULT: on
+DOC_START
+	This controls whether the server will generate a Cache Digest
+	of its contents.  By default, Cache Digest generation is
+	enabled if Squid is compiled with USE_CACHE_DIGESTS defined.
+
+digest_generation on
+DOC_END
+
+NAME: digest_bits_per_entry
+IFDEF: USE_CACHE_DIGESTS
+TYPE: int
+LOC: Config.digest.bits_per_entry
+DEFAULT: 5
+DOC_START
+	This is the number of bits of the server's Cache Digest which
+	will be associated with the Digest entry for a given HTTP
+	Method and URL (public key) combination.  The default is 5.
+
+digest_bits_per_entry 5
+DOC_END
+
+NAME: digest_rebuild_period
+IFDEF: USE_CACHE_DIGESTS
+TYPE: int
+LOC: Config.digest.rebuild_period
+DEFAULT: 3600
+DOC_START
+	This is the number of seconds between Cache Digest rebuilds.
+	By default the server's Digest is rebuilt every hour - 60
+	minutes * 60 seconds per minute, 3600 seconds.
+
+digest_rebuild_period 3600
+DOC_END
+
+NAME: digest_rewrite_period
+IFDEF: USE_CACHE_DIGESTS
+TYPE: int
+LOC: Config.digest.rewrite_period
+DEFAULT: 3600
+DOC_START
+	This is the number of seconds between Cache Digest writes to
+	disk.  By default the server's Digest is written to disk every
+	hour - 60 minutes * 60 seconds per minute, 3600 seconds.
+
+digest_rewrite_period 3600
+DOC_END
+
+NAME: digest_swapout_chunk_size
+IFDEF: USE_CACHE_DIGESTS
+TYPE: int
+LOC: Config.digest.swapout_chunk_size
+DEFAULT: SM_PAGE_SIZE
+DOC_START
+	This is the number of bytes of the Cache Digest to write to
+	disk at a time.  It defaults to 4096 (4KB), the Squid default
+	swap page.
+
+digest_swapout_chunk_size 4096
+DOC_END
+
+NAME: digest_rebuild_chunk_percentage
+IFDEF: USE_CACHE_DIGESTS
+TYPE: int
+LOC: Config.digest.rebuild_chunk_percentage
+DEFAULT: 
+DOC_START
+	This is the portion (where 0 < portion <= 100) of the Cache Digest
+	to be scanned at a time.  By default it is set to 10 (10%) of
+	the Cache Digest.
+
+digest_rebuild_chunk_percentage 10
+DOC_END
+
 EOF
+
