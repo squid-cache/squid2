@@ -36,7 +36,7 @@
  * History:
  *
  * Version 2.9
- * 2003-01-04 Henrik Nordstrom <hno@marasystems.com>
+ * 2003-01-03 Henrik Nordstrom <hno@marasystems.com>
  *		Fixed missing string termination on ldap_escape_vale,
  *		and corrected build problem with LDAPv2 libraries
  * Version 2.8
