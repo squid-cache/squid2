@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -311,7 +312,7 @@ serverConnectionsOpen(void)
     int x;
     int fd;
     wordlist *s;
-    for (u = Config.Port.http; u; u=u->next) {
+    for (u = Config.Port.http; u; u = u->next) {
 	enter_suid();
 	fd = comm_open(SOCK_STREAM,
 	    0,

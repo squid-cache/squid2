@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -770,28 +771,28 @@ gopherSendComplete(int fd, char *buf, int size, int errflag, void *data)
      * stuff.  Do it anyway even though request is not HTML type.
      */
     gopherMimeCreate(gopherState);
-	switch (gopherState->type_id) {
-	case GOPHER_DIRECTORY:
-	    /* we got to convert it first */
-	    BIT_SET(entry->flag, DELAY_SENDING);
-	    gopherState->conversion = HTML_DIR;
-	    gopherState->HTML_header_added = 0;
-	    break;
-	case GOPHER_INDEX:
-	    /* we got to convert it first */
-	    BIT_SET(entry->flag, DELAY_SENDING);
-	    gopherState->conversion = HTML_INDEX_RESULT;
-	    gopherState->HTML_header_added = 0;
-	    break;
-	case GOPHER_CSO:
-	    /* we got to convert it first */
-	    BIT_SET(entry->flag, DELAY_SENDING);
-	    gopherState->conversion = HTML_CSO_RESULT;
-	    gopherState->cso_recno = 0;
-	    gopherState->HTML_header_added = 0;
-	    break;
-	default:
-	    gopherState->conversion = NORMAL;
+    switch (gopherState->type_id) {
+    case GOPHER_DIRECTORY:
+	/* we got to convert it first */
+	BIT_SET(entry->flag, DELAY_SENDING);
+	gopherState->conversion = HTML_DIR;
+	gopherState->HTML_header_added = 0;
+	break;
+    case GOPHER_INDEX:
+	/* we got to convert it first */
+	BIT_SET(entry->flag, DELAY_SENDING);
+	gopherState->conversion = HTML_INDEX_RESULT;
+	gopherState->HTML_header_added = 0;
+	break;
+    case GOPHER_CSO:
+	/* we got to convert it first */
+	BIT_SET(entry->flag, DELAY_SENDING);
+	gopherState->conversion = HTML_CSO_RESULT;
+	gopherState->cso_recno = 0;
+	gopherState->HTML_header_added = 0;
+	break;
+    default:
+	gopherState->conversion = NORMAL;
     }
     /* Schedule read reply. */
     commSetSelect(fd, COMM_SELECT_READ, gopherReadReply, gopherState, 0);

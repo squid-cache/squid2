@@ -576,7 +576,7 @@ comm_close(int fd)
     assert(fd < Squid_MaxFD);
     F = &fd_table[fd];
     if (!F->open) {
-	debug(5,1)("comm_close: FD %d is not open!\n", fd);
+	debug(5, 1) ("comm_close: FD %d is not open!\n", fd);
 	return;
     }
     assert(F->type != FD_FILE);

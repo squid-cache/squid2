@@ -405,9 +405,9 @@ icpHandleIMSReply(void *data, char *buf, ssize_t size)
 	/* We have an existing entry, but failed to validate it */
 	if (BIT_SET(entry->flag, ENTRY_REVALIDATE)) {
 	    /* We can't send the old one, so send the abort message */
-            http->log_type = LOG_TCP_REFRESH_MISS;
-            storeUnregister(http->old_entry, http);
-            storeUnlockObject(http->old_entry);
+	    http->log_type = LOG_TCP_REFRESH_MISS;
+	    storeUnregister(http->old_entry, http);
+	    storeUnlockObject(http->old_entry);
 	} else {
 	    /* Its okay to send the old one anyway */
 	    http->log_type = entry->mem_obj->abort_code;

@@ -399,7 +399,7 @@ icpCachable(clientHttpRequest * http)
     const wordlist *p;
 #ifdef OLD_CODE
     /* Now we look for Cache-Control: proxy-revalidate before
-    deciding if it will be cachable or not */
+     * deciding if it will be cachable or not */
     if (BIT_TEST(http->request->flags, REQ_AUTH))
 	return 0;
 #endif
@@ -1117,7 +1117,7 @@ icpProcessMISS(int fd, clientHttpRequest * http)
 	icpSendMoreData,
 	http);
     /* protoDispatch() needs to go after storeClientCopy() at least
-	for OBJCACHE requests */
+     * for OBJCACHE requests */
     protoDispatch(fd, http->entry, http->request);
     return;
 }
