@@ -138,13 +138,16 @@ exacly where you want to have them in your system.</LI>
 <P>There is a few known issues and limitations in this version of Squid which we hope to correct in a later release</P>
 <P>
 <DL>
+<DT><B>Bug #761</B><DD><P>assertion failed: cbdata.c:249: "c->locks > 0" when using diskd</P>
 <DT><B>Bug #592</B><DD><P>always/never_direct and NTLM authentication</P>
 <DT><B>Bug #585</B><DD><P>cache_peer_access fails with NTLM authentication</P>
-<DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access </P>
+<DT><B>Bug #779</B><DD><P>users going above their allowed IP count no longer logged in cache.log</P>
 
+<DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access </P>
 <DT><B>Bug #692</B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
 <DT><B>Bug #616</B><DD><P>Negative cached 404 replies with VARY header never matches</P>
 <DT><B>Bug #581</B><DD><P>acl max_user_ip and multiple authentication schemes</P>
+<DT><B>Bug #528</B><DD><P>miss_access fails on "slow" acl types such as dst.</P>
 <DT><B>Bug #513</B><DD><P>squid -F is starting server sockets to early</P>
 <DT><B>Bug #518</B><DD><P>wb_auth fails on TRU64 and probably other 64 bit platforms</P>
 <DT><B>Bug #500</B><DD><P>delay_pools stops working on -k reconfigure</P>
