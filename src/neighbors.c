@@ -7,6 +7,7 @@
 #include "squid.h"
 
 static int edgeWouldBePinged _PARAMS((edge *, request_t *));
+static void neighborRemove _PARAMS((edge *));
 
 static neighbors *friends = NULL;
 static struct neighbor_cf *Neighbor_cf = NULL;
@@ -227,6 +228,25 @@ edge *getNextEdge(edge * e)
 edge *getFirstEdge()
 {
     return friends->edges_head;
+}
+
+void neighborRemove(target)
+     edge *target;
+{
+    edge *e = NULL;
+    edge **E = NULL;
+    e = friends->edges_head;
+    E = &friends->edges_head;
+    while (e) {
+	if (target == e)
+	    break;
+	E = &e->next;
+	e = e->next;
+    }
+    if (e) {
+	*E = e->next;
+	safe_free(e);
+    }
 }
 
 void neighborsDestroy()
@@ -669,6 +689,13 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	}
     } else if (header->opcode == ICP_OP_DENIED) {
 	debug(15, 5, "neighborsUdpAck: Access denied for '%s'\n", entry->url);
+	if (e && e->stats.pings_acked > 100) {
+	    if (100 * e->stats.counts[ICP_OP_DENIED] / e->stats.pings_acked > 95) {
+		debug(15, 0, "95%% of replies from '%s' are UDP_DENIED\n", e->host);
+		debug(15, 0, "Disabling '%s', please check your configuration.\n", e->host);
+		neighborRemove(e);
+	    }
+	}
     } else {
 	debug(15, 0, "neighborsUdpAck: WHY ARE WE HERE?  header->opcode = %d\n",
 	    header->opcode);
