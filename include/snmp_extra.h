@@ -1,10 +1,7 @@
-#ifndef _SNMP_H_
-#define _SNMP_H_
+/* -*- c++ -*- */
+#ifndef _SNMP_EXTRA_H_
+#define _SNMP_EXTRA_H_
 
-/*
- * Definitions for the Simple Network Management Protocol (RFC 1067).
- *
- */
 /**********************************************************************
  *
  *           Copyright 1997 by Carnegie Mellon University
@@ -27,53 +24,24 @@
  * ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  * 
+ * Author: Ryan Troll <ryan+@andrew.cmu.edu>
+ * 
  * $Id$
  * 
  **********************************************************************/
 
-#if HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#if HAVE_NETINET_IN_H
-#include <netinet/in.h>
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-/* These come first */
-#include "asn1.h"
-#include "snmp_error.h"
-#include "mibii.h"
-#include "snmp_extra.h"
-#include "snmp_dump.h"
+char   *uptime_string(u_int, char *);
+u_int   myaddress(void);
 
-/* I didn't touch this */
-#include "snmp_session.h"
+int  mib_TxtToOid(char *, oid **, int *);      /* .1.3.6   to OID */ 
+int  mib_OidToTxt(oid *, int, char *, int);    /* OID to .1.3.6   */
 
-/* The various modules */
-#include <snmp_vars.h>
-#include <snmp_pdu.h>
-#include <snmp_msg.h>
-
-/* Other functions */
-#include <snmp_coexist.h>
-#include <version.h>
-#include <snmp_error.h>
-#include <snmp_api_error.h>
-#include <mini-client.h>
-
-/* Other stuff I didn't touch */
-#include <snmp_impl.h>
-#include <snmp_api.h>
-#include <snmp_client.h>
-#include <snmp-internal.h>
-#include <mib.h>
-#include <parse.h>
-#include <snmp_compat.h>
-
-#ifndef SQUID_H
-#ifdef __STDC__
-void (*snmplib_debug) (int,char *, ...); 
-#else
-void (*snmplib_debug) (va_alist));
+#ifdef __cplusplus
+}
 #endif
-#endif
-#endif /* _SNMP_H_ */
+
+#endif /* _SNMP_EXTRA_H_ */
