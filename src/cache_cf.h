@@ -258,6 +258,11 @@ struct SquidConfig {
     struct sockaddr_in vizHackAddr;
     int levelOneDirs;
     int levelTwoDirs;
+    struct {
+	int high;
+	int low;
+	int ttl;
+    } Netdb;
 };
 
 extern struct SquidConfig Config;
