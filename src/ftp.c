@@ -549,7 +549,7 @@ ftpStart(request_t * request, StoreEntry * entry)
     }
     storeLockObject(entry);
     ftpState->entry = entry;
-    req_hdr = entry->mem_obj->mime_hdr;
+    req_hdr = entry->mem_obj->request_hdr;
     ftpState->request = requestLink(request);
     if (!ftpCheckAuth(ftpState, req_hdr)) {
 	/* This request is not fully authenticated */
