@@ -689,7 +689,7 @@ void storeSetPrivateKey(e)
 	fatal_dump("Private key already exists.");
     }
     if (e->key)
-	storeHashDelete((hash_link *) e);
+	storeHashDelete(e);
     if (e->key && !BIT_TEST(e->flag, KEY_URL))
 	safe_free(e->key);
     e->key = xstrdup(newkey);
@@ -721,7 +721,7 @@ void storeSetPublicKey(e)
 	newkey = storeGeneratePublicKey(e->url, e->method);
     }
     if (e->key)
-	storeHashDelete((hash_link *) e);
+	storeHashDelete(e);
     if (e->key && !BIT_TEST(e->flag, KEY_URL))
 	safe_free(e->key);
     if (e->method == METHOD_GET) {

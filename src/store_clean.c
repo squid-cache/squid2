@@ -68,9 +68,10 @@ void storeDirClean()
     int fileno;
     int n = 0;
     int k = 0;
-    sprintf(p1, "%s/%02d",
+    sprintf(p1, "%s/%02X/%02X",
 	swappath(index),
-	(index / ncache_dirs) % SWAP_DIRECTORIES);
+        (index / ncache_dirs) % SWAP_DIRECTORIES_L1,
+        (index / ncache_dirs) / SWAP_DIRECTORIES_L1 % SWAP_DIRECTORIES_L2);
     debug(36, 3, "storeDirClean: Cleaning directory %s\n", p1);
     dp = opendir(p1);
     if (dp == NULL) {
