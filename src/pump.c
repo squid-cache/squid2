@@ -405,6 +405,8 @@ pumpServerClosed(int fd, void *data)
      * we have been called from comm_close for the server side, so
      * just need to clean up the client side
      */
+    assert(p->s_fd == fd):
+    p->s_fd = -1;
     comm_close(p->c_fd);
 }
 
