@@ -105,6 +105,7 @@ static int clientCheckContentLength(request_t * r);
 static int httpAcceptDefer(void);
 static log_type clientProcessRequest2(clientHttpRequest * http);
 static int clientReplyBodyTooLarge(int clen);
+static int clientRequestBodyTooLarge(int clen);
 
 static int
 checkAccelOnly(clientHttpRequest * http)
@@ -1570,6 +1571,18 @@ clientReplyBodyTooLarge(int clen)
     return 0;
 }
 
+static int
+clientRequestBodyTooLarge(int clen)
+{
+    if (0 == Config.maxRequestBodySize)
+	return 0;		/* disabled */
+    if (clen < 0)
+	return 0;		/* unknown, bug? */
+    if (clen > Config.maxRequestBodySize)
+	return 1;		/* too large */
+    return 0;
+}
+
 /*
  * accepts chunk of a http message in buf, parses prefix, filters headers and
  * such, writes processed message to the client's socket
@@ -2480,7 +2493,7 @@ clientReadRequest(int fd, void *data)
 		    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 		if (request->content_length < 0)
 		    (void) 0;
-		else if (request->content_length > Config.maxRequestBodySize) {
+		else if (clientRequestBodyTooLarge(request->content_length)) {
 		    err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE);
 		    err->request = requestLink(request);
 		    http->entry = clientCreateStoreEntry(http,
