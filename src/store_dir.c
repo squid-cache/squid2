@@ -410,7 +410,7 @@ storeDirWriteCleanLogs(int reopen)
 	sd = &Config.cacheSwap.swapDirs[dirn];
 	if (NULL == sd->log.clean.write)
 	    continue;
-	sd->log.clean.write(e, sd->log.clean.state);
+	sd->log.clean.write(e, sd);
 	if ((++n & 0xFFFF) == 0) {
 	    getCurrentTime();
 	    debug(20, 1) ("  %7d entries written so far.\n", n);
