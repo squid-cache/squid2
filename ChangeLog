@@ -1,3 +1,51 @@
+Changes to Squid-2.3.STABLE3 (May 15, 2000):
+
+	- Fixed malloc linking problems on Solaris.  The configure
+	  script incorrectly set options for dlmalloc.
+	- Added a configure check to remove compiler optimization
+	  for GCC 2.95.x.
+	- Updated MSNT authenticator module.
+	- Updated Estonian error pages.
+	- Updated Japanese error pages.
+	- Fixed expires bug in httpReplyHdrCacheInit.  It was
+	  incorrectly setting expires based on max-age.  It was using
+	  the current time as a basis, instead of the response date.
+	- Fixed "USE_DNSSERVER" typos.
+	- Added a workaround for getpwnam() problems on Solaris.
+	  getpwnam() could fail if there are fewer than 256 FDs
+	  available.  This causes root to own some disk files.
+	- Added an 'offline_toggle' option via the cache manager.
+	- Added a 'minimum_object_size' option.  Files smaller than
+	  this size are not stored.
+	- Added 'passive_ftp' option to disable passive FTP transfers.
+	- Added 'wccp_version' option because some Cisco IOS versions
+	  require WCCP version 3.
+	- The 'client' program in ping mode (-g) now prints transfer
+	  throughput.
+	- Fixed logging of proxy auth username for redirected
+	  requests.
+	- Fixed bogus Age values for IMS requests.
+	- Fixed persistent connection timeout for client-side
+	  connections.  It was hard-coded to 15 seconds, now uses
+	  the 'pconn_timeout' value.
+	- Fixed up httpAcceptDefer.  It wasn't being used properly
+	  and caused high CPU usage when Squid gets close to the FD
+	  limit.
+	- Numerous delay_pools fixes and checks.
+	- Fixed SNMP coredumps from running snmpwalk.
+	- Added a check for errno == EPIPE in icmp.c when pinger uses
+	  a Unix socket instead of a UDP socket.
+	- Fixed ACL checklist memory initialization bugs.
+	- Cleaned up the MIB file.  Replaced contact information and
+	  checked description fields.
+	- Removed LRU reference_age hard-coded upper limit.
+	- Fixed async I/O FD leak.
+	- Made getMyHostname() more robust.
+	- Fixed domain list matching bug.  "x-foo.com" wasn't properly
+	  compared to ".foo.com" and confused splay tree ordering.
+	- Added a check for whitespace in hostnames and optionally
+	  strip whitespace if 'uri_whitespace' setting allows.
+
 Changes to Squid-2.3.STABLE2 (Mar 2, 2000):
 
 	- Changed Copyright text.
