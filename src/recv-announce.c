@@ -115,6 +115,8 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "ansiproto.h"
+
 #define RECV_BUF_SIZE 8192
 
 extern void xmemcpy _PARAMS((void *from, void *to, int len));
@@ -140,7 +142,7 @@ extern void xmemcpy _PARAMS((void *from, void *to, int len));
  * usage: recv-announce logfile
  */
 
-void
+static void
 sig_handle(void)
 {
     fflush(stdout);

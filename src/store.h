@@ -240,8 +240,8 @@ struct sentry {
     MemObject *mem_obj;
 
     u_num32 flag;
-    u_num32 timestamp;
     u_num32 refcount;
+    time_t timestamp;
     time_t lastref;
     time_t expires;
     time_t lastmod;
@@ -281,7 +281,6 @@ extern StoreEntry *storeGetNext _PARAMS((void));
 extern StoreEntry *storeLRU _PARAMS((void));
 extern int storeWalkThrough _PARAMS((int (*proc) _PARAMS((void)), void *data));
 extern int storePurgeOld _PARAMS((void));
-extern void storeSanityCheck _PARAMS((void));
 extern void storeComplete _PARAMS((StoreEntry *));
 extern void storeInit _PARAMS((void));
 extern int storeReleaseEntry _PARAMS((StoreEntry *));
@@ -292,8 +291,6 @@ extern int storeGetMemSize _PARAMS((void));
 extern int storeGetSwapSize _PARAMS((void));
 extern int storeGetSwapSpace _PARAMS((int));
 extern int storeEntryValidToSend _PARAMS((StoreEntry *));
-extern int storeEntryValidLength _PARAMS((StoreEntry *));
-extern int storeEntryLocked _PARAMS((StoreEntry *));
 extern int storeLockObject _PARAMS((StoreEntry *, SIH, void *));
 extern int storeOriginalKey _PARAMS((StoreEntry *));
 extern int storeRelease _PARAMS((StoreEntry *));
@@ -302,16 +299,13 @@ extern int storeUnregister _PARAMS((StoreEntry *, int));
 extern char *storeGeneratePublicKey _PARAMS((char *, method_t));
 extern char *storeGeneratePrivateKey _PARAMS((char *, method_t, int));
 extern char *storeMatchMime _PARAMS((StoreEntry *, char *, char *, int));
-extern int storeAddSwapDisk _PARAMS((char *));
 extern char *swappath _PARAMS((int));
 extern void storeStartDeleteBehind _PARAMS((StoreEntry *));
 extern int storeClientCopy _PARAMS((StoreEntry *, int, int, char *, int *, int));
 extern int storePendingNClients _PARAMS((StoreEntry * e));
-extern char *storeSwapFullPath _PARAMS((int, char *));
 extern int storeWriteCleanLog _PARAMS((void));
 extern int storeRegister _PARAMS((StoreEntry *, int, PIF, void *));
 extern int urlcmp _PARAMS((char *, char *));
-extern int swapInError _PARAMS((int fd, StoreEntry *));
 extern int storeMaintainSwapSpace _PARAMS((void));
 extern void storeExpireNow _PARAMS((StoreEntry *));
 extern void storeReleaseRequest _PARAMS((StoreEntry *));
@@ -323,7 +317,7 @@ extern void storeConfigure _PARAMS((void));
 extern void storeNegativeCache _PARAMS((StoreEntry *));
 extern void storeFreeMemory _PARAMS((void));
 
-#if __STDC__
+#ifdef __STDC__
 extern void storeAppendPrintf _PARAMS((StoreEntry *, char *,...));
 #else
 extern void storeAppendPrintf _PARAMS(());

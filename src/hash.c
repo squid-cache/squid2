@@ -120,7 +120,9 @@ struct master_table {
 };
 
 static int default_hash_size = -1;
-struct master_table htbl[MAX_HTABLE];
+static struct master_table htbl[MAX_HTABLE];
+
+static int hash_unlink _PARAMS((HashID, hash_link *, int));
 
 /*
  *  hash_url() - Returns a well-distributed hash function for URLs.
@@ -350,7 +352,7 @@ hash_delete(HashID hid, char *key)
  *  On success, it returns 0 and deletes the link; otherwise, 
  *  returns non-zero on error.
  */
-int
+static int
 hash_unlink(HashID hid, hash_link * hl, int FreeLink)
 {
     hash_link *walker, *prev;

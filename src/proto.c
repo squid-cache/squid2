@@ -107,12 +107,13 @@
 
 #include "squid.h"
 
-static int matchInsideFirewall _PARAMS((char *host));
-static int matchLocalDomain _PARAMS((char *host));
+static int matchInsideFirewall _PARAMS((char *));
+static int matchLocalDomain _PARAMS((char *));
 static int protoCantFetchObject _PARAMS((int, StoreEntry *, char *));
-static int protoNotImplemented _PARAMS((int fd_unused, char *url, StoreEntry * entry));
-static int protoDNSError _PARAMS((int fd_unused, StoreEntry * entry));
-static void protoDataFree _PARAMS((int fdunused, protodispatch_data *));
+static int protoNotImplemented _PARAMS((int, char *, StoreEntry *));
+static int protoDNSError _PARAMS((int, StoreEntry *));
+static void protoDataFree _PARAMS((int, protodispatch_data *));
+static void protoDispatchDNSHandle _PARAMS((int, struct hostent *, void *));
 
 #define OUTSIDE_FIREWALL 0
 #define INSIDE_FIREWALL  1
@@ -167,7 +168,7 @@ protoDataFree(int fdunused, protodispatch_data * protoData)
 }
 
 /* called when DNS lookup is done by ipcache. */
-void
+static void
 protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
 {
     edge *e = NULL;
@@ -235,8 +236,8 @@ protoDispatchDNSHandle(int unused1, struct hostent *hp, void *data)
     } else if (protoData->direct_fetch == DIRECT_MAYBE && hp
 	&& netdbHops(inaddrFromHostent(hp)) <= Config.minDirectHops) {
 	hierarchyNote(req, HIER_DIRECT, 0, req->host);
-        protoStart(protoData->fd, entry, NULL, req);
-        return;
+	protoStart(protoData->fd, entry, NULL, req);
+	return;
 #endif
     } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */

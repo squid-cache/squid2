@@ -72,7 +72,7 @@ typedef struct {
     char *lng;
 } error_data;
 
-error_data ErrorData[] =
+static error_data ErrorData[] =
 {
     {"ERR_READ_TIMEOUT",
 	"Read Timeout",

@@ -169,8 +169,8 @@ static char fqdncache_status_char[] =
     'D'
 };
 
-long fqdncache_low = 180;
-long fqdncache_high = 200;
+static long fqdncache_low = 180;
+static long fqdncache_high = 200;
 
 static void
 fqdncacheEnqueue(fqdncache_entry * f)

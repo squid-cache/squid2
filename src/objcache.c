@@ -121,13 +121,14 @@ typedef struct objcache_ds {
 } ObjectCacheData;
 
 /* user name for shutdown password in /etc/passwd */
-char *username = "cache";
+static char *username = "cache";
 
 static int objcache_url_parser _PARAMS((char *url,
 	char *host,
 	char *request,
 	char *password));
 
+static int objcache_CheckPassword _PARAMS((char *, char *));
 
 /* Parse a object_cache url into components.  By Anawat. */
 static int
@@ -146,7 +147,7 @@ objcache_url_parser(char *url, char *host, char *request, char *password)
     return 0;
 }
 
-int
+static int
 objcache_CheckPassword(char *password, char *user)
 {
     struct passwd *pwd = NULL;

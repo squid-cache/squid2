@@ -132,7 +132,7 @@
 #include <aio.h>
 #endif
 
-#if __STDC__
+#ifdef __STDC__
 #include <stdarg.h>
 #else
 #include <varargs.h>

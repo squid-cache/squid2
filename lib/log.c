@@ -132,7 +132,7 @@
 #if HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif
-#if __STDC__ && HAVE_STDARG_H
+#if defined(__STDC__) && HAVE_STDARG_H
 #include <stdarg.h>
 #elif HAVE_VARARGS_H
 #include <varargs.h>
@@ -175,7 +175,7 @@ init_log3(char *pn, FILE * a, FILE * b)
 /*
  *  Log() - used like printf(3).  Prints message to stdout.
  */
-#if __STDC__
+#ifdef __STDC__
 void
 Log(char *fmt,...)
 {
@@ -211,7 +211,7 @@ Log(va_alist)
 /*
  *  errorlog() - used like printf(3).  Prints error message to stderr.
  */
-#if __STDC__
+#ifdef __STDC__
 void
 errorlog(char *fmt,...)
 {
@@ -248,7 +248,7 @@ errorlog(va_alist)
 /*
  *  fatal() - used like printf(3).  Prints error message to stderr and exits
  */
-#if __STDC__
+#ifdef __STDC__
 void
 fatal(char *fmt,...)
 {

@@ -41,7 +41,7 @@ char *RequestMethodStr[] =
     "CONNECT"
 };
 
-char *ProtocolStr[] =
+static char *ProtocolStr[] =
 {
     "NONE",
     "http",
@@ -54,6 +54,7 @@ char *ProtocolStr[] =
 
 static int url_acceptable[256];
 static char hex[17] = "0123456789abcdef";
+static int urlDefaultPort _PARAMS((protocol_t p));
 
 /* convert %xx in url string to a character 
  * Allocate a new string and return a pointer to converted string */
@@ -166,7 +167,7 @@ urlParseProtocol(char *s)
 }
 
 
-int
+static int
 urlDefaultPort(protocol_t p)
 {
     switch (p) {

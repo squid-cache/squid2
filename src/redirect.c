@@ -345,7 +345,7 @@ redirectFreeMemory(void)
     if (redirect_child_table) {
 	for (k = 0; k < NRedirectors; k++) {
 	    if (redirect_child_table[k]->inbuf)
-	        put_free_4k_page(redirect_child_table[k]->inbuf);
+		put_free_4k_page(redirect_child_table[k]->inbuf);
 	    safe_free(redirect_child_table[k]);
 	}
 	safe_free(redirect_child_table);

@@ -107,7 +107,7 @@
 
 #define HTTP_DELETE_GAP   (1<<18)
 
-struct {
+static struct {
     int parsed;
     int date;
     int lm;

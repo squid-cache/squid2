@@ -120,6 +120,9 @@ and report the trace back to squid-bugs@nlanr.net.\n\
 \n\
 Thanks!\n"
 
+static void fatal_common _PARAMS((char *));
+static void mail_warranty _PARAMS((void));
+
 static char *
 dead_msg(void)
 {
@@ -128,7 +131,7 @@ dead_msg(void)
     return msg;
 }
 
-void
+static void
 mail_warranty(void)
 {
     FILE *fp = NULL;
@@ -310,7 +313,7 @@ normal_shutdown(void)
     exit(0);
 }
 
-void
+static void
 fatal_common(char *message)
 {
 #if HAVE_SYSLOG

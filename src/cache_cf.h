@@ -266,7 +266,6 @@ extern volatile int unbuffered_logs;
 extern char ForwardedBy[];
 extern int httpd_accel_mode;
 
-extern int ip_acl_match _PARAMS((struct in_addr, ip_acl *));
 extern int parseConfigFile _PARAMS((char *file_name));
 extern int setCacheSwapMax _PARAMS((int size));
 extern ip_access_type ip_access_check _PARAMS((struct in_addr, ip_acl *));

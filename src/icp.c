@@ -162,26 +162,23 @@ typedef struct {
 } icpHitObjStateData;
 
 /* Local functions */
+static char *icpConstruct304reply _PARAMS((struct _http_reply *));
+static int CheckQuickAbort2 _PARAMS((icpStateData *));
+static int icpProcessMISS _PARAMS((int, icpStateData *));
+static void CheckQuickAbort _PARAMS((icpStateData *));
+static void checkFailureRatio _PARAMS((log_type, hier_code));
+static void icpHandleStore _PARAMS((int, StoreEntry *, icpStateData *));
 static void icpHandleStoreComplete _PARAMS((int, char *, int, int, void *icpState));
 static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, icpStateData *));
 static void icpHandleIMSComplete _PARAMS((int, char *, int, int, void *icpState));
-static int icpProcessMISS _PARAMS((int, icpStateData *));
-static void CheckQuickAbort _PARAMS((icpStateData *));
-static int CheckQuickAbort2 _PARAMS((icpStateData *));
 extern void identStart _PARAMS((int, icpStateData *));
 static void icpHitObjHandler _PARAMS((int, void *));
 static void icpLogIcp _PARAMS((icpUdpData *));
-static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
-static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
-static char *icpConstruct304reply _PARAMS((struct _http_reply *));
-static void checkFailureRatio _PARAMS((log_type, hier_code));
-static void icpUdpSendEntry _PARAMS((int fd,
-	char *url,
-	int reqnum,
-	struct sockaddr_in * to,
-	icp_opcode opcode,
-	StoreEntry * entry,
-	struct timeval start_time));
+static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
+static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
+static void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
+static void icpUdpSendEntry _PARAMS((int, char *, int,
+	struct sockaddr_in *, icp_opcode, StoreEntry *, struct timeval));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -376,7 +373,7 @@ icpHierarchical(icpStateData * icpState)
     return 1;
 }
 
-void
+static void
 icpSendERRORComplete(int fd, char *buf, int size, int errflag, void *data)
 {
     icpStateData *icpState = data;
@@ -510,7 +507,7 @@ icpSendMoreData(int fd, icpStateData * icpState)
  * error messages.  We get here by invoking the handlers in the
  * pending list.
  */
-void
+static void
 icpHandleStore(int fd, StoreEntry * entry, icpStateData * icpState)
 {
     debug(12, 5, "icpHandleStore: FD %d: off %d: <URL:%s>\n",
@@ -1965,11 +1962,11 @@ icpConstruct304reply(struct _http_reply *source)
     LOCAL_ARRAY(char, reply, 8192);
     memset(reply, '\0', 8192);
     strcpy(reply, "HTTP/1.0 304 Not Modified\r\n");
-    if (strlen(source->date) > 0) {
+    if ((int) strlen(source->date) > 0) {
 	sprintf(line, "Date: %s\n", source->date);
 	strcat(reply, line);
     }
-    if (strlen(source->content_type) > 0) {
+    if ((int) strlen(source->content_type) > 0) {
 	sprintf(line, "Content-type: %s\n", source->content_type);
 	strcat(reply, line);
     }
@@ -1977,11 +1974,11 @@ icpConstruct304reply(struct _http_reply *source)
 	sprintf(line, "Content-length: %d\n", source->content_length);
 	strcat(reply, line);
     }
-    if (strlen(source->expires) > 0) {
+    if ((int) strlen(source->expires) > 0) {
 	sprintf(line, "Expires: %s\n", source->expires);
 	strcat(reply, line);
     }
-    if (strlen(source->last_modified) > 0) {
+    if ((int) strlen(source->last_modified) > 0) {
 	sprintf(line, "Last-modified: %s\n", source->last_modified);
 	strcat(reply, line);
     }

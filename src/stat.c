@@ -667,7 +667,7 @@ static void
 info_get(cacheinfo * obj, StoreEntry * sentry)
 {
     char *tod = NULL;
-    float f;
+    time_t f;
 #if HAVE_MALLINFO
     int t;
 #endif
