@@ -38,8 +38,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "winbind_nss_config.h"
-#include "winbindd_nss.h"
+#include "nsswitch/winbind_nss_config.h"
+#include "nsswitch/winbindd_nss.h"
 
 #define BUFSIZE 8192		/* the stdin buffer size */
 char debug_enabled=0;

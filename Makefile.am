@@ -11,7 +11,7 @@ DISTCLEANFILES = include/stamp-h include/stamp-h[0-9]*
 DEFAULT_PINGER		= $(libexecdir)/pinger$(EXEEXT)
 
 dist-hook:
-	@ for subdir in "include"; do \
+	@ for subdir in "include include/samba/nsswitch"; do \
 	  if test "$$subdir" = .; then :; else \
 	    test -d $(distdir)/$$subdir \
 	    || mkdir $(distdir)/$$subdir \
