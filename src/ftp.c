@@ -835,7 +835,7 @@ ftpDataRead(int fd, void *data)
 #endif
     assert(fd == ftpState->data.fd);
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
-	comm_close(fd);
+	comm_close(ftpState->ctrl.fd);
 	return;
     }
     errno = 0;
