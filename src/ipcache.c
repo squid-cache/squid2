@@ -318,6 +318,9 @@ ipcacheExpiredEntry(ipcache_entry * i)
 	return 0;
     if (i->expires > squid_curtime)
 	return 0;
+    if (i->status == IP_CACHED)
+	if (squid_curtime - i->lastref < 60)
+	    return 0;
     return 1;
 }
 
