@@ -87,6 +87,9 @@ int main(argc, argv)
     cached_starttime = cached_curtime = time((time_t *) NULL);
     failure_notify = fatal_dump;
 
+    for (n = getMaxFD(); n > 2; n--)
+	close(n);
+
     /* try to use as many file descriptors as possible */
     /* System V uses RLIMIT_NOFILE and BSD uses RLIMIT_OFILE */
 #if defined(HAVE_SETRLIMIT)
