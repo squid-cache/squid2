@@ -3,32 +3,38 @@ Changes to squid-2.5.STABLE8 ()
 	- [Minor] 100% CPU usage on half-closed PUT/POST requests (Bug #354,
 	  #1096)
 	- [Cosmetic] Document -v (protocol version) option to LDAP helpers
-	- [Minor] The new req_header and resp_header acls segfaults immediately
-	  on parse of squid.conf
+	- [Minor] The new req_header and resp_header acls segfaults
+	  immediately on parse of squid.conf
 	- [Minor] Failure to shut down busy helpers on -k rotate/reconfigure
 	  (Bug #1118)
 	- [Minor] Don't use O_NONBLOCK on disk files. (Bug #1102)
-	- [Minor] Squid fails to close TCP connection after blank HTTP response
-	  (Bug #1116)
-	- [Minor security] Random error messages in response to malformed host
-	  name (Bug #1143)
+	- [Minor] Squid fails to close TCP connection after blank HTTP
+	  response (Bug #1116)
+	- [Minor security] Random error messages in response to malformed
+	  host name (Bug #1143)
 	- [Minor] PURGE should not be able to delete internal objects
-	- [Minor] httpd_accel_port 0 (virtual) not working correctly (Bug #1121)
+	- [Minor] httpd_accel_port 0 (virtual) not working correctly (Bug
+	  #1121)
 	- [Minor] cachemgr vm_objects segfault (Bug #1149)
-	- [Minor security] Confusing results on empty acl declarations (Bug #1166)
-	- [Minor] Don't close all "other" filedescriptors on startup (Bug #1177)
-	- [Minor] fakeauth_auth memory leak and NULL pointer access (Bug #1183)
+	- [Minor security] Confusing results on empty acl declarations (Bug
+	  #1166)
+	- [Minor] Don't close all "other" filedescriptors on startup (Bug
+	  #1177)
+	- [Minor] fakeauth_auth memory leak and NULL pointer access (Bug
+	  #1183)
 	- [Security] buffer overflow bug in gopherToHTML() (Bug #1189)
-	- [Medium security] Denial of service with forged WCCP messages (Bug #1190)
+	- [Medium security] Denial of service with forged WCCP messages
+	  (Bug #1190)
 	- [Minor] DNS related memory leak on certain malformed DNS responses
 	  (Bug #1197)
-	- [Minor] Internal DNS sometimes truncates host names in reverse (PTR) lookups
-	  (Bug #1136)
+	- [Minor] Internal DNS sometimes truncates host names in reverse
+	  (PTR) lookups (Bug #1136)
 	- [Minor Security] Add sanity checks on LDAP user names (Bug #1187)
 	- [Security] Harden Squid agains HTTP request smuggling attacks
 	- [Minor] Icon URLs fails in non-anonymous FTP directory listings is
 	  short_icon_urls is on (Bug #1203)
-	- [Security] Harden Squid agains HTTP response splitting attacks (Bug #
+	- [Security] Harden Squid agains HTTP response splitting attacks
+	  (Bug #1200)
 
 Changes to squid-2.5.STABLE7 (11 Oct 2004)
 
@@ -41,13 +47,13 @@ Changes to squid-2.5.STABLE7 (11 Oct 2004)
 	  (Bug #852)
 	- [Cosmetic] request_header_max_size configuration partly ignored
 	  (Bug #899)
-       	- [Minor] Partial hit results in TCP_HIT, not TCP_MISS. (Bug #1001)
-        - Bug #1012: [Cosmetic] HEAD requests may return stale information
-          (Bug #1012)
-       	- [Cosmetic] Warn if cache_dir ufs can not create files. (Bug #918)
+	- [Minor] Partial hit results in TCP_HIT, not TCP_MISS. (Bug #1001)
+	- Bug #1012: [Cosmetic] HEAD requests may return stale information
+	  (Bug #1012)
+	- [Cosmetic] Warn if cache_dir ufs can not create files. (Bug #918)
 	- [Minor] case insensitive authentication (Bug #431)
 	- [Cosmetic] Add delay pools information to active_requests. (Bug
-          #882)
+	  #882)
 	- [Minor] Apparent memory leak in client_db (Bug #833)
 	- [Minor] NTLM authentication truncated causing failures. (Bug
 	  #1016)
