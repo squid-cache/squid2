@@ -2128,7 +2128,7 @@ ftpPutStart(FtpStateData * ftpState)
 static void
 ftpPutTransferDone(int fd, char *bufnotused, size_t size, int errflag, void *data)
 {
-    FtpStateData *ftpState = (FtpStateData *) data;
+    FtpStateData *ftpState = data;
     if (ftpState->data.fd >= 0) {
 	comm_close(ftpState->data.fd);
 	ftpState->data.fd = -1;
