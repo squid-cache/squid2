@@ -880,6 +880,7 @@ statCountersInitSpecial(StatCounters * C)
     statHistLogInit(&C->icp.server_svc_time, 300, 0.0, 3600000.0 * 30.0);
     statHistEnumInit(&C->cd.peer_choice_count, Config.npeers);
     statHistEnumInit(&C->cd.peer_ichoice_count, Config.npeers);
+    statHistEnumInit(&C->cd.on_xition_count, CacheDigestHashCount);
 #endif
 }
 
@@ -902,6 +903,7 @@ statCountersClean(StatCounters * C)
     statHistClean(&C->icp.server_svc_time);
     statHistClean(&C->cd.peer_choice_count);
     statHistClean(&C->cd.peer_ichoice_count);
+    statHistClean(&C->cd.on_xition_count);
 #endif
 }
 
@@ -930,6 +932,7 @@ statCountersCopy(StatCounters * dest, const StatCounters * orig)
     statHistCopy(&dest->icp.server_svc_time, &orig->icp.server_svc_time);
     statHistCopy(&dest->cd.peer_choice_count, &orig->cd.peer_choice_count);
     statHistCopy(&dest->cd.peer_ichoice_count, &orig->cd.peer_ichoice_count);
+    statHistCopy(&dest->cd.on_xition_count, &orig->cd.on_xition_count);
 #endif
 }
 
@@ -960,6 +963,8 @@ statCountersHistograms(StoreEntry *sentry)
     statHistDump(&f->cd.peer_choice_count, sentry, &statHistIntDumper);
     storeAppendPrintf(sentry, "\ncd.peer_ichoice_count histogram:\n");
     statHistDump(&f->cd.peer_ichoice_count, sentry, &statHistIntDumper);
+    storeAppendPrintf(sentry, "\ncd.on_xition_count histogram:\n");
+    statHistDump(&f->cd.on_xition_count, sentry, &statHistIntDumper);
 #endif
 #if TOO_MUCH_OUTPUT
     storeAppendPrintf(sentry, "icp.query_svc_time histogram:\n");

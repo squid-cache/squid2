@@ -98,6 +98,7 @@ extern dlink_list store_list;
 extern const String StringNull;	/* { 0, 0, NULL } */
 extern int hot_obj_count;	/* 0 */
 extern int _db_level;
+extern const int CacheDigestHashCount; /* 4 */
 extern CacheDigest *store_digest; /* NULL */
 extern const char *StoreDigestUrlPath; /* "store_digest" */
 extern const char *StoreDigestMimeStr; /* "application/cache-digest" */
