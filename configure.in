@@ -1584,7 +1584,7 @@ case "$host" in
 esac
 
 dnl LDAP helpers need to know if -llber is needed or not
-AC_CHECK_LIB(lber, main, [LIB_LBER="-llber"]);
+AC_CHECK_LIB(lber, main, [LIB_LBER="-llber"])
 AC_SUBST(LIB_LBER)
 
 dnl System-specific library modifications
