@@ -502,7 +502,7 @@ struct _SquidConfig {
     struct {
 	int high_rptm;
 	int high_pf;
-	int high_memory;
+	size_t high_memory;
     } warnings;
     char *store_dir_select_algorithm;
 };
