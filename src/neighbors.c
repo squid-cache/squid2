@@ -176,13 +176,13 @@ void hierarchy_log_append(entry, code, timeout, cache_host)
     static char time_str[128];
     char *s = NULL;
 
-    if (!cache_hierarchy_log)
-	return;
-
     if (code > HIER_MAX)
 	code = HIER_MAX;
     if (mem)
 	mem->request->hierarchy_code = code;
+
+    if (!cache_hierarchy_log)
+	return;
 
     if (emulate_httpd_log) {
 	if (squid_curtime != last_time) {
