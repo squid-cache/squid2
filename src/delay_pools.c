@@ -404,7 +404,7 @@ static void
 delayUpdateClass2(class2DelayPool * class2, delaySpecSet * rates, int incr)
 {
     int restore_bytes;
-    unsigned char i;
+    unsigned int i;
     /* delaySetSpec may be pointer to partial structure so MUST pass by
      * reference.
      */
@@ -436,7 +436,7 @@ delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
 {
     int individual_restore_bytes, network_restore_bytes;
     int mpos;
-    unsigned char i, j;
+    unsigned int i, j;
     /* delaySetSpec may be pointer to partial structure so MUST pass by
      * reference.
      */
@@ -680,7 +680,8 @@ delayPoolStats2(StoreEntry * sentry, unsigned short pool)
     /* must be a reference only - partially malloc()d struct */
     delaySpecSet *rate = Config.Delay.rates[pool];
     class2DelayPool *class2 = delay_data[pool].class2;
-    unsigned char shown = 0, i;
+    unsigned char shown = 0;
+    unsigned int i;
 
     storeAppendPrintf(sentry, "Pool: %d\n\tClass: 2\n\n", pool + 1);
     delayPoolStatsAg(sentry, rate, class2->aggregate);
@@ -714,7 +715,9 @@ delayPoolStats3(StoreEntry * sentry, unsigned short pool)
     /* fully malloc()d struct in this case only */
     delaySpecSet *rate = Config.Delay.rates[pool];
     class3DelayPool *class3 = delay_data[pool].class3;
-    unsigned char shown = 0, i, j;
+    unsigned char shown = 0;
+    unsigned int i;
+    unsigned int j;
 
     storeAppendPrintf(sentry, "Pool: %d\n\tClass: 3\n\n", pool + 1);
     delayPoolStatsAg(sentry, rate, class3->aggregate);
