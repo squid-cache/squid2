@@ -146,7 +146,7 @@ int objcache_CheckPassword(password, user)
      char *user;
 {
     struct passwd *pwd = NULL;
-#ifdef HAVE_LIB_SHADOW && defined(SHADOW)
+#if HAVE_LIB_SHADOW && defined(SHADOW)
 	struct spwd *spwd = NULL;
 #endif
     if (!password || !user)
@@ -154,20 +154,18 @@ int objcache_CheckPassword(password, user)
     /* get password record from /etc/passwd */
     if ((pwd = getpwnam(user)) == NULL)
 	return -1;
-#ifdef HAVE_LIB_SHADOW && defined(SHADOW)
+#if HAVE_LIB_SHADOW && defined(SHADOW)
     /* get shadow password record if /etc/shadow exists */
-    enter_suid();
     if (access(SHADOW, F_OK) == 0) {
-	struct spwd *spwd = NULL;
+        enter_suid();
 	spwd = getspnam(pwd->pw_name);
 	leave_suid();
 	if (spwd == NULL)
-	    return -1;
-	if (strcmp(spwd->sp_pwdp, (char *) pw_encrypt(password, spwd->sp_pwdp)) == 0)
+	    goto try_nonshadow;
+	if (strcmp(spwd->sp_pwdp, pw_encrypt(password, spwd->sp_pwdp)) == 0)
 	    return 0;
-	return -1;
     }
-    leave_suid();
+try_nonshadow:
 #endif
     if (strcmp(pwd->pw_passwd, (char *) crypt(password, pwd->pw_passwd)) == 0)
 	return 0;
