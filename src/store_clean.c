@@ -98,5 +98,5 @@ storeDirClean(void)
 	sprintf(p2, "%s/%08X", p1, files[n]);
 	safeunlink(p2, 0);
     }
-    debug(36, 1, "Cleaned %d unused files from %s\n", k, p1);
+    debug(36, 3, "Cleaned %d unused files from %s\n", k, p1);
 }
