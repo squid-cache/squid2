@@ -451,7 +451,9 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	/* the client can handle this reply, whatever it is */
 	http->log_type = LOG_TCP_REFRESH_MISS;
 	if (HTTP_NOT_MODIFIED == mem->reply->sline.status) {
-	    http->old_entry->timestamp = squid_curtime;
+	    httpReplyUpdateOnNotModified(http->old_entry->mem_obj->reply,
+		mem->reply);
+	    storeTimestampsSet(http->old_entry);
 	    http->old_entry->refcount++;
 	    http->log_type = LOG_TCP_REFRESH_HIT;
 	}
