@@ -96,15 +96,6 @@ dnl Check for headers
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 
-AC_MSG_CHECKING(for tm->tm_gmtoff)
-AC_TRY_COMPILE([#include <time.h>
-#include <sys/time.h>],
-[struct tm foo;
-foo.tm_gmtoff = 0;],
-[AC_DEFINE(HAVE_TM_GMTOFF)
-AC_MSG_RESULT(yes)],
-AC_MSG_RESULT(no))
-
 
 AC_CHECK_HEADERS( \
 	alloca.h \
@@ -127,7 +118,23 @@ AC_CHECK_HEADERS( \
 	syslog.h \
 )
 
-AC_EGREP_HEADER(mxfast, malloc.h, [XTRA_CFLAGS="$XTRA_CFLAGS -DLNG_MALLINFO"])
+AC_MSG_CHECKING(for tm->tm_gmtoff)
+AC_TRY_COMPILE([#include <time.h>
+#include <sys/time.h>],
+[struct tm foo;
+foo.tm_gmtoff = 0;],
+[AC_DEFINE(HAVE_TM_GMTOFF)
+AC_MSG_RESULT(yes)],
+AC_MSG_RESULT(no))
+
+AC_MSG_CHECKING(for extended mallinfo)
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <malloc.h>],
+[struct mallinfo foo;
+foo.mxfast = 0;],
+[AC_DEFINE(HAVE_EXT_MALLINFO)
+AC_MSG_RESULT(yes)],
+AC_MSG_RESULT(no))
 
 dnl Check for typedefs
 AC_CHECK_SIZEOF(int)
