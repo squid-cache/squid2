@@ -106,6 +106,9 @@ typedef struct _ext_table_entry {
 #define FTP_PORT 21
 #define DEFAULT_MIME_TYPE "text/plain"
 
+#define MAGIC_MARKER	"\004\004\004"
+#define MAGIC_MARKER_SZ	3
+
 #define F_HTTPIFY	0x01
 #define F_HDRSENT	0x02
 #define F_ISDIR		0x04
@@ -1732,6 +1735,10 @@ static int process_request(r)
 	    r->state = DONE;
 	    break;
 	case DONE:
+	    if (r->flags & F_HTTPIFY) {
+    		Debug(26,9,("Writing Marker to FD %d\n", r->cfd));
+    		write(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
+	    }
 	    return 0;
 	    /* NOTREACHED */
 	case FAIL_TIMEOUT:
@@ -1866,7 +1873,7 @@ int ftpget_srv_mode(port)
 	if (!FD_ISSET(sock, &R))
 	    continue;
 	if ((c = accept(sock, NULL, 0)) < 0) {
-	    log_errno2(__FILE__, __LINE__, "listen");
+	    log_errno2(__FILE__, __LINE__, "accept");
 	    exit(1);
 	}
 	buf[0] = '\0';
