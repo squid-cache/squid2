@@ -319,6 +319,9 @@ main(int argc, char *argv[])
     char *t;
     time_t last_check_time = 0;
 
+#if HAVE_SETSID
+    setsid();
+#endif
     if ((t = getenv("SQUID_DEBUG")))
 	debug_args = xstrdup(t);
     getCurrentTime();
