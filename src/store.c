@@ -2793,7 +2793,7 @@ storeExpiredReferenceAge(void)
 	x = -1.0;
     else if (x > 1.0)
 	x = 1.0;
-    z = pow(724.0,(x + 1.0));	/* minutes [1:525600] */
+    z = pow(724.0, (x + 1.0));	/* minutes [1:525600] */
     age = (time_t) (z * 60.0);
     if (age < 60)
 	age = 60;

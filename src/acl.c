@@ -501,16 +501,15 @@ aclParseAclLine(void)
 	debug(28, 0, "aclParseAclLine: Invalid ACL type '%s'\n", t);
 	return;
     }
-
     if ((A = aclFindByName(t)) == NULL) {
-        A = xcalloc(1, sizeof(struct _acl));
+	A = xcalloc(1, sizeof(struct _acl));
 	xstrncpy(A->name, aclname, ACL_NAME_SZ);
 	A->type = acltype;
-        A->cfgline = xstrdup(config_input_line);
-        *AclListTail = A;
-        AclListTail = &A->next;
+	A->cfgline = xstrdup(config_input_line);
+	*AclListTail = A;
+	AclListTail = &A->next;
     } else {
-        if (acltype != A->type) {
+	if (acltype != A->type) {
 	    debug(28, 0, "aclParseAclLine: ACL '%s' already exists with different type, skipping.\n", A->name);
 	    return;
 	}
