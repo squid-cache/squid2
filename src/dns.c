@@ -53,7 +53,7 @@ dnsInit(void)
     if (!Config.Program.dnsserver)
 	return;
     dnsservers = xcalloc(1, sizeof(*dnsservers));
-    dnsservers->id_name = "dnsor";
+    dnsservers->id_name = "dnsserver";
     dnsservers->n_to_start = Config.dnsChildren;
     dnsservers->ipc_type = IPC_TCP_SOCKET;
     wordlistAdd(&dnsservers->cmdline, Config.Program.dnsserver);
