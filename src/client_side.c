@@ -2014,7 +2014,11 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    AclMatchedName ? AclMatchedName : "NO ACL's");
 		if (!rv) {
 		    ErrorState *err;
-		    err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN);
+		    err_type page_id;
+		    page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName);
+		    if (page_id == ERR_NONE)
+			page_id = ERR_ACCESS_DENIED;
+		    err = errorCon(page_id, HTTP_FORBIDDEN);
 		    err->request = requestLink(http->request);
 		    storeUnregister(http->sc, http->entry, http);
 		    http->sc = NULL;

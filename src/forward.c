@@ -613,7 +613,11 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
 	ch.request = r;
 	answer = aclCheckFast(Config.accessList.miss, &ch);
 	if (answer == 0) {
-	    err = errorCon(ERR_FORWARDING_DENIED, HTTP_FORBIDDEN);
+	    err_type page_id;
+	    page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName);
+	    if (page_id == ERR_NONE)
+		page_id = ERR_FORWARDING_DENIED;
+	    err = errorCon(page_id, HTTP_FORBIDDEN);
 	    err->request = requestLink(r);
 	    err->src_addr = r->client_addr;
 	    errorAppendEntry(e, err);
