@@ -1960,7 +1960,7 @@ aclChecklistCreate(const acl_access * A, request_t * request, const char *ident)
 }
 
 void
-aclNBCheck(aclCheck_t * checklist, PF callback, void *callback_data)
+aclNBCheck(aclCheck_t * checklist, PF * callback, void *callback_data)
 {
     checklist->callback = callback;
     checklist->callback_data = callback_data;
