@@ -1,3 +1,12 @@
+Changes to squid-1.0.3 (July 18, 1996):
+
+	- Fixed FTP to send 'Ascii' or 'Binary' based on MIME encoding,
+	  not content-type.
+	- Changed icpHierarchical() to allow IMS requests to neighbors
+	  if they all support Squid's private keys.
+	- Fixed icpUdpSend() to not ask for a HIT_OBJ reply if the
+	  HTTP request included 'Pragma: no-cache'.
+
 Changes to squid-1.0.2 (July 16, 1996):
 
 	- Fixed HTTP code in access.log for TCP_IFMODSINCE requests.
