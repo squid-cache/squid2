@@ -285,8 +285,8 @@ storeRebuildFromDirectory(void *data)
 	assert(fd == -1);
 	fd = storeGetNextFile(rb, &sfileno, &size);
 	if (fd == -2) {
-	    debug(20, 1) ("Done scanning Cache Dir #%d swaplog (%d entries)\n",
-		rb->sd->index, rb->n_read);
+	    debug(20, 1) ("Done scanning %s swaplog (%d entries)\n",
+		rb->sd->path, rb->n_read);
 	    store_dirs_rebuilding--;
 	    storeUfsDirCloseTmpSwapLog(rb->sd);
 	    storeRebuildComplete(&rb->counts);
@@ -416,8 +416,8 @@ storeRebuildFromSwapLog(void *data)
     /* load a number of objects per invocation */
     for (count = 0; count < rb->speed; count++) {
 	if (fread(&s, ss, 1, rb->log) != 1) {
-	    debug(20, 1) ("Done reading Cache Dir #%d swaplog (%d entries)\n",
-		rb->sd->index, rb->n_read);
+	    debug(20, 1) ("Done reading %s swaplog (%d entries)\n",
+		rb->sd->path, rb->n_read);
 	    fclose(rb->log);
 	    rb->log = NULL;
 	    store_dirs_rebuilding--;
@@ -466,8 +466,8 @@ storeRebuildFromSwapLog(void *data)
 	    continue;
 	}
 	if ((++rb->counts.scancount & 0xFFFF) == 0)
-	    debug(20, 1) ("  %7d Entries read so far.\n",
-		rb->counts.scancount);
+	    debug(20, 3) ("  %7d %s Entries read so far.\n",
+		rb->counts.scancount, rb->sd->path);
 	if (!storeDirValidFileno(s.swap_file_number)) {
 	    rb->counts.invalid++;
 	    continue;
@@ -711,8 +711,8 @@ storeUfsDirRebuild(SwapDir * sd)
     }
     if (!clean)
 	rb->flags.need_to_validate = 1;
-    debug(20, 1) ("Rebuilding storage in Cache Dir #%d (%s)\n",
-	sd->index, clean ? "CLEAN" : "DIRTY");
+    debug(20, 1) ("Rebuilding storage in %s (%s)\n",
+	sd->path, clean ? "CLEAN" : "DIRTY");
     store_dirs_rebuilding++;
     cbdataAdd(rb, cbdataXfree, 0);
     eventAdd("storeRebuild", func, rb, 0.0, 1);
