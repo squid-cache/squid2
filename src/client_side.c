@@ -1449,7 +1449,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	    memBufAppend(&mb, body_buf, body_size);
 	}
     }
-    if (!http->request->range)
+    if (!http->request->range && http->request->method == METHOD_GET)
 	assert(check_size == size);
     /* write */
     comm_write_mbuf(fd, mb, clientWriteComplete, http);
