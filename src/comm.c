@@ -775,7 +775,11 @@ comm_select(time_t sec)
 	    ftpServerClose();
 	    dnsShutdownServers();
 	    redirectShutdownServers();
-	    if (shutdown_pending > 0)
+	    /* shutdown_pending will be set to
+	     * +1 for SIGTERM
+	     * -1 for SIGINT */
+	    /* reread_pending always == 1 when SIGHUP received */
+	    if (shutdown_pending > 0 || reread_pending > 0)
 		setSocketShutdownLifetimes(Config.lifetimeShutdown);
 	    else
 		setSocketShutdownLifetimes(0);
@@ -959,7 +963,11 @@ comm_select(time_t sec)
 	    ftpServerClose();
 	    dnsShutdownServers();
 	    redirectShutdownServers();
-	    if (shutdown_pending > 0)
+	    /* shutdown_pending will be set to
+	     * +1 for SIGTERM
+	     * -1 for SIGINT */
+	    /* reread_pending always == 1 when SIGHUP received */
+	    if (shutdown_pending > 0 || reread_pending > 0)
 		setSocketShutdownLifetimes(Config.lifetimeShutdown);
 	    else
 		setSocketShutdownLifetimes(0);
