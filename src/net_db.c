@@ -364,7 +364,7 @@ netdbReloadState(void)
     netdbEntry N;
     struct in_addr addr;
     int count = 0;
-    struct timeval start = squid_curtime;
+    struct timeval start = current_time;
     sprintf(path, "%s/netdb_state", swappath(0));
     fp = fopen(path, "r");
     if (fp == NULL)
