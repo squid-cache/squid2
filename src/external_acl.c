@@ -239,7 +239,7 @@ parse_externalAclHelper(external_acl ** list)
 	    a->require_auth = 1;
 	}
 #if USE_IDENT
-       	else if (strcmp(token, "%IDENT") == 0)
+	else if (strcmp(token, "%IDENT") == 0)
 	    format->type = EXT_ACL_IDENT;
 #endif
 	else if (strcmp(token, "%SRC") == 0)
@@ -307,7 +307,9 @@ dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl
 		storeAppendPrintf(sentry, " %%%s", #a); \
 		break
 		DUMP_EXT_ACL_TYPE(LOGIN);
+#if USE_IDENT
 		DUMP_EXT_ACL_TYPE(IDENT);
+#endif
 		DUMP_EXT_ACL_TYPE(SRC);
 		DUMP_EXT_ACL_TYPE(DST);
 		DUMP_EXT_ACL_TYPE(PROTO);
@@ -699,8 +701,8 @@ strwordtok(char *buf, char **t)
   done:
     *d++ = '\0';
   error:
-    *t = (char *)p;
-    return (char *)word;
+    *t = (char *) p;
+    return (char *) word;
 }
 
 /*
