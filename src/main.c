@@ -352,6 +352,10 @@ mainReconfigure(void)
     authenticateShutdown();
     externalAclShutdown();
     storeDirCloseSwapLogs();
+    storeLogClose();
+    accessLogClose();
+    useragentLogClose();
+    refererCloseLog();
     errorClean();
     enter_suid();		/* root to read config file */
     parseConfigFile(ConfigFile);
@@ -362,6 +366,10 @@ mainReconfigure(void)
     fqdncache_restart();	/* sigh, fqdncache too */
     parseEtcHosts();
     errorInitialize();		/* reload error pages */
+    accessLogInit();
+    storeLogOpen();
+    useragentOpenLog();
+    refererOpenLog();
 #if USE_DNSSERVERS
     dnsInit();
 #else
