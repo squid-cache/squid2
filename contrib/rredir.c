@@ -1,3 +1,5 @@
+/* $Id$ */
+
 #ifdef MAIL_HEADERS
 From:    richard@hekkihek.hacom.nl (Richard Huveneers)
 To:      squid-users@nlanr.net
