@@ -372,8 +372,8 @@ commConnectHandle(int fd, void *data)
     case COMM_OK:
 	if (vizSock > -1)
 	    vizHackSendPkt(&connectState->S, 2);
-	connectState->callback(fd, COMM_OK, connectState->data);
 	ipcacheCycleAddr(connectState->host);
+	connectState->callback(fd, COMM_OK, connectState->data);
 	break;
     default:
 	ipcacheRemoveBadAddr(connectState->host, connectState->S.sin_addr);
