@@ -1107,10 +1107,8 @@ log_append(const cacheinfo * obj,
 
     if (!method)
 	method = dash_str;
-    if (!url) {
-	debug_trap("log_append: NULL URL");
+    if (!url)
 	url = dash_str;
-    }
     if (!content_type || *content_type == '\0')
 	content_type = dash_str;
     if (!ident || *ident == '\0')
