@@ -635,7 +635,6 @@ comm_select(int msec)
     fd_set slowfds;
 #endif
     PF *hdl = NULL;
-    SwapDir *SD;
     int fd;
     int maxfd;
     int num;
