@@ -133,7 +133,7 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
 	new_mem_lo = mem->inmem_lo;
     if (new_mem_lo < mem->inmem_lo)
 	new_mem_lo = mem->inmem_lo;
-    if (swapout_able) {
+    if (swapout_able && e->swap_status != SWAPOUT_DONE) {
 	/*
 	 * We should only free up to what we know has been written
 	 * to disk, not what has been queued for writing.  Otherwise
