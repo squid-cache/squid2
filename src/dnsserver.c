@@ -227,7 +227,8 @@ int main(argc, argv)
 	/* point stdout to fd */
 	dup2(fd, 1);
 	dup2(fd, 0);
-	close(fd);
+	if (fd > 1)
+	    close(fd);
     }
     while (1) {
 	memset(request, '\0', 256);
