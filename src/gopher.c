@@ -148,7 +148,6 @@ gopherMimeCreate(GopherStateData * gopherState)
 	"HTTP/1.0 200 OK Gatewaying\r\n"
 	"Server: Squid/%s\r\n"
 	"Date: %s\r\n"
-	"MIME-version: 1.0\r\n",
 	version_string, mkrfc1123(squid_curtime));
 
     switch (gopherState->type_id) {
