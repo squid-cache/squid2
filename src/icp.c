@@ -86,6 +86,8 @@ static void CheckQuickAbort _PARAMS((icpStateData *));
 static void icpHitObjHandler _PARAMS((int, void *));
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpDetectClientClose _PARAMS((int, icpStateData *));
+static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
+static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 
 static void icpFreeBufOrPage(icpState)
      icpStateData *icpState;
@@ -947,17 +949,14 @@ static void icpHitObjHandler(errflag, data)
     safe_free(icpHitObjState);
 }
 
-int icpHandleUdp(sock, not_used)
-     int sock;
-     void *not_used;
+static void icpHandleIcpV2(fd, from, buf, len)
+     int fd;
+     struct sockaddr_in from;
+     char *buf;
+     int len;
 {
-    int result = 0;
-    struct sockaddr_in from;
-    int from_len;
-    static char buf[SQUID_UDP_SO_RCVBUF];
-    int len;
     icp_common_t header;
-    icp_common_t *headerp = NULL;
+    icp_common_t *headerp = (icp_common_t *) buf;
     StoreEntry *entry = NULL;
     char *url = NULL;
     char *key = NULL;
@@ -969,28 +968,6 @@ int icpHandleUdp(sock, not_used)
     icpHitObjStateData *icpHitObjState = NULL;
     int pkt_len;
 
-    from_len = sizeof(from);
-    memset(&from, 0, from_len);
-    len = comm_udp_recv(sock, buf, SQUID_UDP_SO_RCVBUF - 1, &from, &from_len);
-    if (len < 0) {
-	debug(12, 1, "icpHandleUdp: FD %d: error receiving.\n", sock);
-	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
-	return result;
-    }
-    buf[len] = '\0';
-    debug(12, 4, "icpHandleUdp: FD %d: received %d bytes from %s.\n",
-	sock,
-	len,
-	inet_ntoa(from.sin_addr));
-
-    if (len < sizeof(icp_common_t)) {
-	debug(12, 4, "icpHandleUdp: Bad sized UDP packet ignored. %d < %d\n",
-	    len, sizeof(icp_common_t));
-	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
-	return result;
-    }
-    /* Get fields from incoming message. */
-    headerp = (icp_common_t *) (void *) buf;
     header.opcode = headerp->opcode;
     header.version = headerp->version;
     header.length = ntohs(headerp->length);
@@ -1005,7 +982,7 @@ int icpHandleUdp(sock, not_used)
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
-	    icpUdpSend(sock, url, &header, &from, ICP_OP_INVALID, LOG_UDP_INVALID);
+	    icpUdpSend(fd, url, &header, &from, ICP_OP_INVALID, LOG_UDP_INVALID);
 	    break;
 	}
 	allow = aclCheck(ICPAccessList,
@@ -1019,7 +996,7 @@ int icpHandleUdp(sock, not_used)
 	if (!allow) {
 	    debug(12, 2, "icpHandleUdp: Access Denied for %s.\n",
 		inet_ntoa(from.sin_addr));
-	    icpUdpSend(sock, url, &header, &from, ICP_OP_DENIED, LOG_UDP_DENIED);
+	    icpUdpSend(fd, url, &header, &from, ICP_OP_DENIED, LOG_UDP_DENIED);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
@@ -1032,7 +1009,7 @@ int icpHandleUdp(sock, not_used)
 	    if (header.flags & ICP_FLAG_HIT_OBJ && pkt_len < SQUID_UDP_SO_SNDBUF) {
 		icpHitObjState = xcalloc(1, sizeof(icpHitObjStateData));
 		icpHitObjState->entry = entry;
-		icpHitObjState->fd = sock;
+		icpHitObjState->fd = fd;
 		icpHitObjState->to = from;
 		icpHitObjState->header = header;
 		icpHitObjState->started = current_time;
@@ -1041,14 +1018,13 @@ int icpHandleUdp(sock, not_used)
 		/* else, problems */
 		safe_free(icpHitObjState);
 	    }
-	    CacheInfo->proto_hit(CacheInfo,
-		CacheInfo->proto_id(entry->url));
-	    icpUdpSend(sock, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
+	    CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
+	    icpUdpSend(fd, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
-	    icpUdpSend(sock,
+	    icpUdpSend(fd,
 		url,
 		&header,
 		&from,
@@ -1056,11 +1032,9 @@ int icpHandleUdp(sock, not_used)
 		LOG_UDP_DENIED);
 	    break;
 	}
-	CacheInfo->proto_miss(CacheInfo,
-	    CacheInfo->proto_id(url));
-	icpUdpSend(sock, url, &header, &from, ICP_OP_MISS, LOG_UDP_MISS);
+	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
+	icpUdpSend(fd, url, &header, &from, ICP_OP_MISS, LOG_UDP_MISS);
 	break;
-
 
     case ICP_OP_HIT_OBJ:
     case ICP_OP_HIT:
@@ -1068,7 +1042,6 @@ int icpHandleUdp(sock, not_used)
     case ICP_OP_DECHO:
     case ICP_OP_MISS:
     case ICP_OP_DENIED:
-
 	if (neighbors_do_private_keys && header.reqnum == 0) {
 	    debug(12, 0, "icpHandleUdp: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
@@ -1103,7 +1076,13 @@ int icpHandleUdp(sock, not_used)
 	    debug(12, 3, "icpHandleUdp: Ignoring %s for Entry without locks.\n",
 		IcpOpcodeStr[header.opcode]);
 	} else {
-	    neighborsUdpAck(sock, url, &header, &from, entry, data, (int) data_sz);
+	    neighborsUdpAck(fd,
+		url,
+		&header,
+		&from,
+		entry,
+		data,
+		(int) data_sz);
 	}
 	break;
 
@@ -1111,6 +1090,184 @@ int icpHandleUdp(sock, not_used)
 	debug(12, 0, "icpHandleUdp: UNKNOWN OPCODE: %d\n", header.opcode);
 	break;
     }
+}
+
+/* Currently Harvest cached-2.x uses ICP_VERSION_3 */
+static void icpHandleIcpV3(fd, from, buf, len)
+     int fd;
+     struct sockaddr_in from;
+     char *buf;
+     int len;
+{
+    icp_common_t header;
+    icp_common_t *headerp = (icp_common_t *) buf;
+    StoreEntry *entry = NULL;
+    char *url = NULL;
+    char *key = NULL;
+    request_t *icp_request = NULL;
+    int allow = 0;
+    char *data = NULL;
+    u_short data_sz = 0;
+    u_short u;
+
+    header.opcode = headerp->opcode;
+    header.version = headerp->version;
+    header.length = ntohs(headerp->length);
+    header.reqnum = ntohl(headerp->reqnum);
+    header.flags = ntohl(headerp->flags);
+    /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
+    header.shostid = ntohl(headerp->shostid);
+
+    switch (header.opcode) {
+    case ICP_OP_QUERY:
+	nudpconn++;
+	/* We have a valid packet */
+	url = buf + sizeof(header) + sizeof(u_num32);
+	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
+	    icpUdpSend(fd,
+		url,
+		&header,
+		&from,
+		ICP_OP_INVALID,
+		LOG_UDP_INVALID);
+	    break;
+	}
+	allow = aclCheck(ICPAccessList,
+	    from.sin_addr,
+	    icp_request->method,
+	    icp_request->protocol,
+	    icp_request->host,
+	    icp_request->port,
+	    icp_request->urlpath);
+	put_free_request_t(icp_request);
+	if (!allow) {
+	    debug(12, 2, "icpHandleUdp: Access Denied for %s.\n",
+		inet_ntoa(from.sin_addr));
+	    icpUdpSend(fd, url, &header, &from, ICP_OP_DENIED, LOG_UDP_DENIED);
+	    break;
+	}
+	/* The peer is allowed to use this cache */
+	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
+	debug(12, 5, "icpHandleUdp: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
+	if (entry &&
+	    (entry->store_status == STORE_OK) &&
+	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
+	    CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
+	    icpUdpSend(fd, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
+	    break;
+	}
+	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
+	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
+	    icpUdpSend(fd,
+		url,
+		&header,
+		&from,
+		ICP_OP_DENIED,
+		LOG_UDP_DENIED);
+	    break;
+	}
+	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
+	icpUdpSend(fd, url, &header, &from, ICP_OP_MISS, LOG_UDP_MISS);
+	break;
+
+    case ICP_OP_HIT_OBJ:
+    case ICP_OP_HIT:
+    case ICP_OP_SECHO:
+    case ICP_OP_DECHO:
+    case ICP_OP_MISS:
+    case ICP_OP_DENIED:
+	if (neighbors_do_private_keys && header.reqnum == 0) {
+	    debug(12, 0, "icpHandleUdp: Neighbor %s returned reqnum = 0\n",
+		inet_ntoa(from.sin_addr));
+	    debug(12, 0, "icpHandleUdp: Disabling use of private keys\n");
+	    neighbors_do_private_keys = 0;
+	}
+	url = buf + sizeof(header);
+	if (header.opcode == ICP_OP_HIT_OBJ) {
+	    data = url + strlen(url) + 1;
+	    xmemcpy((char *) &u, data, sizeof(u_short));
+	    data += sizeof(u_short);
+	    data_sz = ntohs(u);
+	    if (data_sz > (len - (data - buf))) {
+		debug(12, 0, "icpHandleUdp: ICP_OP_HIT_OBJ object too small\n");
+		break;
+	    }
+	}
+	debug(12, 3, "icpHandleUdp: %s from %s for '%s'\n",
+	    IcpOpcodeStr[header.opcode],
+	    inet_ntoa(from.sin_addr),
+	    url);
+	if (neighbors_do_private_keys && header.reqnum) {
+	    key = storeGeneratePrivateKey(url, METHOD_GET, header.reqnum);
+	} else {
+	    key = storeGeneratePublicKey(url, METHOD_GET);
+	}
+	debug(12, 3, "icpHandleUdp: Looking for key '%s'\n", key);
+	if ((entry = storeGet(key)) == NULL) {
+	    debug(12, 3, "icpHandleUdp: Ignoring %s for NULL Entry.\n",
+		IcpOpcodeStr[header.opcode]);
+	} else if (entry->lock_count == 0) {
+	    debug(12, 3, "icpHandleUdp: Ignoring %s for Entry without locks.\n",
+		IcpOpcodeStr[header.opcode]);
+	} else {
+	    neighborsUdpAck(fd,
+		url,
+		&header,
+		&from,
+		entry,
+		data,
+		(int) data_sz);
+	}
+	break;
+
+    default:
+	debug(12, 0, "icpHandleUdp: UNKNOWN OPCODE: %d\n", header.opcode);
+	break;
+    }
+}
+
+int icpHandleUdp(sock, not_used)
+     int sock;
+     void *not_used;
+{
+    int result = 0;
+    struct sockaddr_in from;
+    int from_len;
+    static char buf[SQUID_UDP_SO_RCVBUF];
+    int len;
+    icp_common_t *headerp = NULL;
+    int icp_version;
+
+    from_len = sizeof(from);
+    memset(&from, 0, from_len);
+    len = comm_udp_recv(sock, buf, SQUID_UDP_SO_RCVBUF - 1, &from, &from_len);
+    if (len < 0) {
+	debug(12, 1, "icpHandleUdp: FD %d: error receiving.\n", sock);
+	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
+	return result;
+    }
+    buf[len] = '\0';
+    debug(12, 4, "icpHandleUdp: FD %d: received %d bytes from %s.\n",
+	sock,
+	len,
+	inet_ntoa(from.sin_addr));
+
+    if (len < sizeof(icp_common_t)) {
+	debug(12, 4, "icpHandleUdp: Bad sized UDP packet ignored. %d < %d\n",
+	    len, sizeof(icp_common_t));
+	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
+	return result;
+    }
+    headerp = (icp_common_t *) (void *) &buf;
+    if ((icp_version = (int) headerp->version) == ICP_VERSION_2)
+	icpHandleIcpV2(sock, from, buf, len);
+    else if (icp_version == ICP_VERSION_3)
+	icpHandleIcpV3(sock, from, buf, len);
+    else
+	debug(12, 0, "Unused ICP version %d received from %s:%d\n",
+	    icp_version,
+	    inet_ntoa(from.sin_addr),
+	    ntohs(from.sin_port));
 
     comm_set_select_handler(sock,
 	COMM_SELECT_READ,
