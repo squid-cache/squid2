@@ -133,7 +133,7 @@ int ipcache_create_dnsserver(command)
     if (bind(cfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 	close(cfd);
 	debug(14, 0, "ipcache_create_dnsserver: bind: %s\n", xstrerror());
-	xfree(socketname);
+	free(socketname);	/* not xfree() 'cause it came from tempnam() */
 	return -1;
     }
     debug(14, 4, "ipcache_create_dnsserver: bind to local host.\n");
@@ -142,7 +142,7 @@ int ipcache_create_dnsserver(command)
     if ((pid = fork()) < 0) {
 	debug(14, 0, "ipcache_create_dnsserver: fork: %s\n", xstrerror());
 	close(cfd);
-	xfree(socketname);
+	free(socketname);
 	return -1;
     }
     if (pid > 0) {		/* parent */
@@ -151,14 +151,14 @@ int ipcache_create_dnsserver(command)
 	/* open new socket for parent process */
 	if ((sfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
 	    debug(14, 0, "ipcache_create_dnsserver: socket: %s\n", xstrerror());
-	    xfree(socketname);
+	    free(socketname);
 	    return -1;
 	}
 	fcntl(sfd, F_SETFD, 1);	/* set close-on-exec */
 	memset(&addr, '\0', sizeof(addr));
 	addr.sun_family = AF_UNIX;
 	strcpy(addr.sun_path, socketname);
-	xfree(socketname);
+	free(socketname);
 	if (connect(sfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 	    close(sfd);
 	    debug(14, 0, "ipcache_create_dnsserver: connect: %s\n", xstrerror());

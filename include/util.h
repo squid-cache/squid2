@@ -27,10 +27,10 @@
 #endif /* __STDC__ */
 #endif /* _PARAMS */
 
-#ifdef NO_STRDUP
-char *strdup _PARAMS((char *));	/* Duplicate a string */
+#if !HAVE_STRDUP
+extern char *strdup PARAMS((char *));
 #endif
-char *xstrdup _PARAMS((char *));	/* Duplicate a string */
+extern char *xstrdup _PARAMS((char *));		/* Duplicate a string */
 
 /* from xmalloc.c */
 void *xmalloc _PARAMS((size_t));	/* Wrapper for malloc(3) */
@@ -41,6 +41,10 @@ void xxfree _PARAMS((void *));	/* Wrapper for free(3) */
 char *xstrdup _PARAMS((char *));
 char *xstrerror _PARAMS((void));
 char *getfullhostname _PARAMS((void));
+
+#if XMALLOC_STATISTICS
+void malloc_statistics _PARAMS((void (*)(int, int, void *), void *));
+#endif
 
 /* from debug.c */
 #ifndef MAX_DEBUG_LEVELS

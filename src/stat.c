@@ -468,6 +468,18 @@ void server_list(obj, sentry)
     storeAppend(sentry, close_bracket, strlen(close_bracket));
 }
 
+#if XMALLOC_STATISTICS
+void info_get_mallstat(size, number, sentry)
+     int size, number;
+     StoreEntry *sentry;
+{
+    static char line[MAX_LINELEN];
+    if (number > 0) {
+	sprintf(line, "{\t%d = %d}\n", size, number);
+	storeAppend(sentry, line, strlen(line));
+    }
+}
+#endif
 
 
 void info_get(obj, sentry)
@@ -758,6 +770,12 @@ void info_get(obj, sentry)
 	    disk_stats.total_pages_allocated * disk_stats.page_size +
 	    meta_data.url_strings) >> 10);
     storeAppend(sentry, line, strlen(line));
+
+#if XMALLOC_STATISTICS
+    sprintf(line, "{Memory allocation statistics}\n");
+    storeAppend(sentry, line, strlen(line));
+    malloc_statistics(info_get_mallstat, sentry);
+#endif
 
     storeAppend(sentry, close_bracket, strlen(close_bracket));
 }

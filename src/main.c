@@ -303,10 +303,10 @@ int main(argc, argv)
 #endif
 #ifdef M_MXFAST
     /* biggest size that is considered a small block */
-    mallopt(M_MXFAST, 4096);
+    mallopt(M_MXFAST, 1024);
 #endif
 #ifdef M_NBLKS
-    /* number of holding small block */
+    /* number of block in each chunk */
     mallopt(M_NLBLKS, 100);
 #endif
 #endif /* HAVE_MALLOPT */

@@ -21,6 +21,41 @@ extern int sys_nerr;
 extern char *sys_errlist[];
 #endif
 
+#if XMALLOC_STATISTICS
+#define DBG_MAXSIZE   (1024*1024)
+#define DBG_GRAIN     (16)
+#define DBG_MAXINDEX  (DBG_MAXSIZE/DBG_GRAIN)
+#define DBG_INDEX(sz) (sz<DBG_MAXSIZE?(sz+DBG_GRAIN-1)/DBG_GRAIN:DBG_MAXINDEX)
+static int malloc_sizes[DBG_MAXINDEX + 1];
+static int dbg_stat_init = 0;
+
+static void stat_init()
+{
+    int i;
+    for (i = 0; i <= DBG_MAXINDEX; i++)
+	malloc_sizes[i] = 0;
+    dbg_stat_init = 1;
+}
+
+static int malloc_stat(sz)
+     int sz;
+{
+    if (!dbg_stat_init)
+	stat_init();
+    return malloc_sizes[DBG_INDEX(sz)] += 1;
+}
+
+void malloc_statistics(func, data)
+     void (*func) _PARAMS((int, int, void *));
+     void *data;
+{
+    int i;
+    for (i = 0; i <= DBG_MAXSIZE; i += DBG_GRAIN)
+	func(i, malloc_sizes[DBG_INDEX(i)], data);
+}
+#endif /* XMALLOC_STATISTICS */
+
+
 
 #if XMALLOC_DEBUG
 #define DBG_ARRY_SZ (2<<8)
@@ -114,6 +149,9 @@ void *xmalloc(sz)
 #if XMALLOC_DEBUG
     check_malloc(p, sz);
 #endif
+#if XMALLOC_STATISTICS
+    malloc_stat(sz);
+#endif
     return (p);
 }
 
@@ -165,6 +203,9 @@ void *xrealloc(s, sz)
 #if XMALLOC_DEBUG
     check_malloc(p, sz);
 #endif
+#if XMALLOC_STATISTICS
+    malloc_stat(sz);
+#endif
     return (p);
 }
 
@@ -194,6 +235,9 @@ void *xcalloc(n, sz)
     }
 #if XMALLOC_DEBUG
     check_malloc(p, sz * n);
+#endif
+#if XMALLOC_STATISTICS
+    malloc_stat(sz);
 #endif
     return (p);
 }
