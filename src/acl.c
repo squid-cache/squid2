@@ -1831,12 +1831,10 @@ aclChecklistFree(aclCheck_t * checklist)
     if (checklist->request)
 	requestUnlink(checklist->request);
     checklist->request = NULL;
-#if USE_IDENT
     if (checklist->conn) {
 	cbdataUnlock(checklist->conn);
 	checklist->conn = NULL;
     }
-#endif
     cbdataFree(checklist);
 }
 
