@@ -121,7 +121,7 @@ for Applied Network Research and members of the Web Caching community.
 
 <sect>Known issues and limitations
 
-<P>There is a few limitations and issues in this version of Squid which we hope to correct in a later release
+<P>There is a few known issues and limitations in this version of Squid which we hope to correct in a later release
 
 <descrip>
 <tag>Bug #267</tag>Form POSTing troubles with NTLM authentication
@@ -172,10 +172,13 @@ for Applied Network Research and members of the Web Caching community.
 
 <sect>Key changes squid-2.5.STABLE2 to 2.5.STABLE3:
 
-<P>Squid-2.5.STABLE3 is a bugfix release. See the list of <url
+<p>
+<itemize>
+	<item>a large number of minor bug fixes. See the list of <url
 url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE2"
 name="squid-2.5.STABLE2 patches"> and the <url url="ChangeLog"
-name="ChangeLog"> file for details on corrected issues.
+name="ChangeLog"> file for details.
+</itemize>
 
 <sect>Key changes squid-2.5.STABLE3 to 2.5.STABLE4:
 
