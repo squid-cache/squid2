@@ -526,10 +526,9 @@ main(int argc, char **argv)
 	int parse_err;
 	if (!ConfigFile)
 	    ConfigFile = xstrdup(DefaultConfigFile);
-	if (!configured_once) {	/* is it ever false? */
-	    cbdataInit();
-	    memInit();		/* memInit is required for config parsing */
-	}
+	assert(!configured_once);
+	cbdataInit();
+	memInit();		/* memInit is required for config parsing */
 	parse_err = parseConfigFile(ConfigFile);
 
 	if (opt_parse_cfg_only)
