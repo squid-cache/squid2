@@ -243,7 +243,7 @@ httpHeaderInitModule()
     httpHeaderCalcMask(&RequestHeadersMask, (const int *) GeneralHeadersArr, countof(GeneralHeadersArr));
     httpHeaderCalcMask(&RequestHeadersMask, (const int *) EntityHeadersArr, countof(EntityHeadersArr));
     /* init header stats */
-    assert(HttpHeaderStatCount == hoReply+1);
+    assert(HttpHeaderStatCount == hoReply + 1);
     for (i = 0; i < HttpHeaderStatCount; i++)
 	httpHeaderStatInit(HttpHeaderStats + i, HttpHeaderStats[i].label);
     HttpHeaderStats[hoRequest].owner_mask = &RequestHeadersMask;

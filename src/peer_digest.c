@@ -528,7 +528,7 @@ peerDigestFetchFinish(DigestFetchState * fetch, char *buf, const char *err_msg)
     if (err_msg) {
 	if (cbdataValid(peer))
 	    debug(72, 1) ("disabling corrupted (%s) digest from %s\n",
-	        err_msg, peer->host);
+		err_msg, peer->host);
 	if (peer->digest.cd) {
 	    cacheDigestDestroy(peer->digest.cd);
 	    peer->digest.cd = NULL;

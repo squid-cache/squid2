@@ -142,4 +142,4 @@ extern time_t delay_pools_last_update;	/* 0 */
 extern int refresh_nocache_hack;	/* 0 */
 #endif
 extern request_flags null_request_flags;
-extern int open_disk_fd;		/* 0 */
+extern int open_disk_fd;	/* 0 */

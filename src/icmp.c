@@ -132,6 +132,7 @@ icmpHandleSourcePing(const struct sockaddr_in *from, const char *buf)
     /* call neighborsUdpAck even if ping_status != PING_WAITING */
     neighborsUdpAck(key, &header, from);
 }
+
 #endif /* USE_ICMP */
 
 void

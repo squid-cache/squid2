@@ -537,7 +537,7 @@ icpCount(void *buf, int which, size_t len, int delay)
 static cache_key queried_keys[N_QUERIED_KEYS][MD5_DIGEST_CHARS];
 
 int
-icpSetCacheKey(const cache_key *key)
+icpSetCacheKey(const cache_key * key)
 {
     static int reqnum = 0;
     if (++reqnum < 0)

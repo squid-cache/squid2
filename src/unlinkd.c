@@ -117,7 +117,7 @@ unlinkdClose(void)
     debug(12, 1) ("Closing unlinkd pipe on FD %d\n", unlinkd_wfd);
     file_close(unlinkd_wfd);
     if (unlinkd_wfd != unlinkd_rfd)
-        file_close(unlinkd_rfd);
+	file_close(unlinkd_rfd);
     unlinkd_wfd = -1;
     unlinkd_rfd = -1;
 #endif

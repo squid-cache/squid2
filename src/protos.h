@@ -491,8 +491,8 @@ extern int icpCheckUdpHit(StoreEntry *, request_t * request);
 extern void icpConnectionsOpen(void);
 extern void icpConnectionShutdown(void);
 extern void icpConnectionClose(void);
-extern int icpSetCacheKey(const cache_key *key);
-extern const cache_key * icpGetCacheKey(const char *url, int reqnum);
+extern int icpSetCacheKey(const cache_key * key);
+extern const cache_key *icpGetCacheKey(const char *url, int reqnum);
 
 extern void ipcache_nbgethostbyname(const char *name,
     IPH * handler,

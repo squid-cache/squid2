@@ -569,6 +569,7 @@ storePPNR(StoreEntry * e)
     assert(e->flags.entry_fwd_hdr_wait);
     e->flags.entry_fwd_hdr_wait = 0;
 }
+
 #endif /* PPNR_WIP */
 
 /*

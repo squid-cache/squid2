@@ -329,7 +329,7 @@ mainReconfigure(void)
     authenticateOpenServers();
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0) {
-        if (!Config2.Accel.on || Config.onoff.accel_with_proxy)
+	if (!Config2.Accel.on || Config.onoff.accel_with_proxy)
 	    neighbors_open(theOutIcpConnection);
 	else
 	    debug(1, 1) ("ICP port disabled in httpd_accelerator mode\n");
@@ -447,7 +447,7 @@ mainInitialize(void)
     }
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0) {
-        if (!Config2.Accel.on || Config.onoff.accel_with_proxy)
+	if (!Config2.Accel.on || Config.onoff.accel_with_proxy)
 	    neighbors_open(theOutIcpConnection);
 	else
 	    debug(1, 1) ("ICP port disabled in httpd_accelerator mode\n");
