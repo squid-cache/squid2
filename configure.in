@@ -473,6 +473,13 @@ case "$host" in
 		ac_cv_prog_CC="$CC"
 	fi
 	;;
+    *-hp-hpux*)
+	if test "$ac_cv_prog_CC" = "cc" ; then
+		echo "adding '-Ae' to cc args for $host"
+		CC="cc -Ae";
+		ac_cv_prog_CC="$CC"
+	fi
+	;;
 esac
 
 dnl Check for programs
