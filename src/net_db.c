@@ -792,6 +792,12 @@ netdbDump(StoreEntry * sentry)
     }
     xfree(list);
 #else
+    http_reply *reply = sentry->mem_obj->reply;
+    http_version_t version;
+    httpReplyReset(reply);
+    httpBuildVersion(&version, 1, 0);
+    httpReplySetHeaders(reply, version, HTTP_BAD_REQUEST, "Bad Request",
+	NULL, -1, squid_curtime, -2);
     storeAppendPrintf(sentry,
 	"NETDB support not compiled into this Squid cache.\n");
 #endif
