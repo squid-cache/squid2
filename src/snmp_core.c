@@ -671,6 +671,8 @@ snmpDecodePacket(snmp_request_t * rq)
 	debug(49, 5) ("snmpAgentParse: reqid=[%d]\n", PDU->reqid);
 	snmpConstructReponse(rq);
     } else {
+	debug (49,0) ("Failed SNMP agent query from : %s.\n",
+		inet_ntoa(rq->from.sin_addr));
 	snmp_free_pdu(PDU);
     }
 }
