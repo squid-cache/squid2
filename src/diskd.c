@@ -657,11 +657,8 @@ storeDiskdReadDone(diomsg * M)
     assert(their_data);
     sio->read.callback = NULL;
     sio->read.callback_data = NULL;
-    if (valid) {
+    if (valid)
 	callback(their_data, their_buf, len);
-    } else {
-	debug(50, 1) ("their_data = %p is invalid\n", their_data);
-    }
 }
 
 static void
