@@ -730,16 +730,14 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 {
     const char *tod = NULL;
     float f;
-#if HAVE_MALLINFO
-    int t;
-#endif
-
 #if defined(HAVE_GETRUSAGE) && defined(RUSAGE_SELF)
     struct rusage rusage;
 #endif
-
-#if HAVE_MALLINFO
+#if HAVE_MSTATS
+    struct mstats ms;
+#elif HAVE_MALLINFO
     struct mallinfo mp;
+    int t;
 #endif
 
     storeAppendPrintf(sentry, open_bracket);
@@ -804,7 +802,15 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	rusage.ru_majflt);
 #endif
 
-#if HAVE_MALLINFO
+#if HAVE_MSTATS
+    ms = mstats();
+    storeAppendPrintf(sentry, "{Memory usage for %s via mstats():}\n",
+	appname);
+    storeAppendPrintf(sentry, "{\tTotal space in arena:  %6d KB}\n",
+	ms.bytes_total >> 10);
+    storeAppendPrintf(sentry, "{\tTotal free:            %6d KB %d%%}\n",
+	ms.bytes_free >> 10, percent(ms.bytes_free, ms.bytes_total));
+#elif HAVE_MALLINFO
     mp = mallinfo();
     storeAppendPrintf(sentry, "{Memory usage for %s via mallinfo():}\n",
 	appname);

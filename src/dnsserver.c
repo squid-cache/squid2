@@ -133,7 +133,9 @@
 #if HAVE_GRP_H
 #include <grp.h>
 #endif
-#if HAVE_MALLOC_H && !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
+#if HAVE_GNUMALLOC_H
+#include <gnumalloc.h>
+#elif HAVE_MALLOC_H && !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
 #include <malloc.h>
 #endif
 #if HAVE_MEMORY_H

@@ -171,7 +171,14 @@ mail_warranty(void)
 static void
 dumpMallocStats(FILE * f)
 {
-#if HAVE_MALLINFO
+#if HAVE_MSTATS
+    struct mstats ms = mstats();
+    fprintf(f, "\ttotal space in arena:  %6d KB\n",
+	ms.bytes_total >> 10);
+    fprintf(f, "\tTotal free:            %6d KB %d%%\n",
+	ms.bytes_free >> 10,
+	percent(ms.bytes_free, ms.bytes_total));
+#elif HAVE_MALLINFO
     struct mallinfo mp;
     int t;
     if (!do_mallinfo)
@@ -213,7 +220,7 @@ dumpMallocStats(FILE * f)
 #if PRINT_MMAP
     mallocmap();
 #endif /* PRINT_MMAP */
-#endif /* HAVE_MALLINFO */
+#endif
 }
 
 static int
