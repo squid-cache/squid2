@@ -2127,7 +2127,7 @@ DOC_START
 	the correct result.
 DOC_END
 
-NAME: tcp_outgoing_tos tcp_outgoing_ds tcp_outgoin_dscp
+NAME: tcp_outgoing_tos tcp_outgoing_ds tcp_outgoing_dscp
 TYPE: acl_tos
 DEFAULT: none
 LOC: Config.accessList.outgoing_tos
