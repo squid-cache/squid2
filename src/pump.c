@@ -69,6 +69,7 @@ pumpInit(int fd, request_t * r, char *uri)
     LOCAL_ARRAY(char, new_key, MAX_URL + 8);
     HttpHeader hdr;
     int clen = 0;
+    int x;
     char *hdrStart, *hdrEnd;
     PumpStateData *p = xcalloc(1, sizeof(PumpStateData));
     debug(61, 3) ("pumpInit: FD=%d , uri=%s\n", fd, uri);
@@ -82,18 +83,11 @@ pumpInit(int fd, request_t * r, char *uri)
     memset(&hdr, '\0', sizeof(HttpHeader));
     hdrStart = r->headers;
     hdrEnd = &r->headers[r->headers_sz];
-    if (0 == httpHeaderParse(&hdr, hdrStart, hdrEnd)) {
-	debug(61, 1) ("pumpInit: Cannot parse request headers\n");
-	xfree(p);
-	return;
-    }
+    x = httpHeaderParse(&hdr, hdrStart, hdrEnd);
+    assert (x != 0);	/* we shouldn't be here if we can't parse req hdrs */
     clen = httpHeaderGetInt(&hdr, HDR_CONTENT_LENGTH);
+    assert(clen >= 0);	/* we shouldn't be here if clen is invalid */
     debug(61, 4) ("pumpInit: Content-Length=%d.\n", clen);
-    if (clen < 0) {
-	debug(61, 1) ("pumpInit: Cannot find Content-Length\n");
-	xfree(p);
-	return;
-    }
     EBIT_SET(flags, REQ_NOCACHE);	/* for now, don't cache */
     snprintf(new_key, MAX_URL + 5, "%s|Pump", uri);
     p->request_entry = storeCreateEntry(new_key, new_key, flags, r->method);
