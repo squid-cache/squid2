@@ -1698,10 +1698,10 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	mb = httpReplyPack(rep);
 	http->out.offset += rep->hdr_sz;
 	check_size += rep->hdr_sz;
-	httpReplyDestroy(rep);
 #if HEADERS_LOG
 	headersLog(0, 0, http->request->method, rep);
 #endif
+	httpReplyDestroy(rep);
 	rep = NULL;
     } else {
 	memBufDefInit(&mb);
