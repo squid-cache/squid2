@@ -4,6 +4,13 @@
 	- Fixed icpSendMoreData() buffer overrun bug
 	  for HEAD requests.
 	- Added Mike Pelletier's connect retry code.
+	- Fixed daylight savings time bugs (again).
+	- Added .readme to include/mime.table
+	- Fixed likely year-2000 bug in ftpget's timestamp
+	  parsing (Henrik Nordstrom).
+	- Fixed HTTP reply code for access denied messages (was 400,
+	  now 403).
+	- Added 'no_cache' ACL support (Stephen Griffin).
 
 Changes to squid-1.1.21 (March 17, 1998):
 
