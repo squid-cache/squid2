@@ -119,7 +119,7 @@ char *log_tags[] =
     "TCP_CLIENT_REFRESH",
     "TCP_IMS_HIT",
     "TCP_IMS_MISS",
-    "TCP_SWAPFAIL",
+    "TCP_SWAPFAIL_MISS",
     "TCP_DENIED",
     "UDP_HIT",
     "UDP_HIT_OBJ",
@@ -186,7 +186,7 @@ static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpProcessMISS _PARAMS((int, clientHttpRequest *));
-static void icpProcessRequestComplete _PARAMS((void *, int));
+static SIH icpProcessRequestComplete;
 static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, size_t));
 size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
 static int icpSendMoreData _PARAMS((int fd, clientHttpRequest *));
@@ -256,11 +256,11 @@ httpRequestFree(void *data)
     if (!icpCheckTransferDone(http)) {
 	CheckQuickAbort(http);
 	if (entry) {
-            if (entry->ping_status == PING_WAITING)
-                storeReleaseRequest(entry);
-            storeUnregister(entry, http);
-        }
-        protoUnregister(entry, http->request, conn->peer.sin_addr);
+	    if (entry->ping_status == PING_WAITING)
+		storeReleaseRequest(entry);
+	    storeUnregister(entry, http);
+	}
+	protoUnregister(entry, http->request, conn->peer.sin_addr);
     }
     assert(http->log_type < ERR_MAX);
     if (entry) {
@@ -323,15 +323,16 @@ httpRequestFree(void *data)
 	http->old_entry = NULL;
     }
     requestUnlink(http->request);
+    assert(http != http->next);
     H = &http->conn->chr;
     while (*H) {
-	if (*H == NULL)
-	    fatal_dump("httpRequestFree: link list error");
 	if (*H == http)
 	    break;
 	H = &(*H)->next;
     }
+    assert(*H != NULL);
     *H = http->next;
+    http->next = NULL;
     safe_free(http);
 }
 
@@ -339,23 +340,19 @@ httpRequestFree(void *data)
 static void
 connStateFree(int fd, void *data)
 {
-    int loopdetect = 0;
     ConnStateData *connState = data;
     clientHttpRequest *http;
     debug(12, 3, "connStateFree: FD %d\n", fd);
     if (connState == NULL)
 	fatal_dump("connStateFree: connState == NULL");
     while ((http = connState->chr)) {
-	assert(loopdetect++ < 50);
-	connState->chr = http->next;
+	assert(connState->chr != connState->chr->next);
 	httpRequestFree(http);
     }
     if (fd_table[fd].rwstate)
 	commCancelWriteHandler(fd);
     if (connState->ident.fd > -1)
 	comm_close(connState->ident.fd);
-    debug(12, 1, "connStateFree: FD %d handled %d requests\n",
-	fd, connState->nrequests);
     safe_free(connState);
 }
 
@@ -564,6 +561,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
     end = mime_headers_end(hdr_in);
     if (end == NULL) {
 	debug(12, 1, "clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
+	debug(12, 1, "\n%s", hdr_in);
 	return 0;
     }
     for (t = hdr_in; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
@@ -629,6 +627,7 @@ icpSendMoreData(int fd, clientHttpRequest * http)
 	buf,
 	&len,
 	http);
+    assert(len <= ICP_SENDMOREDATA_BUF);
     if (x < 0) {
 	debug(12, 1, "storeClientCopy returned %d for '%s'\n", x, entry->key);
 	put_free_4k_page(buf);
@@ -638,20 +637,23 @@ icpSendMoreData(int fd, clientHttpRequest * http)
     writelen = len;
 
     if (http->out.offset == 0 && len > 0) {
+	/* make sure 'buf' is null terminated somewhere */
+	if (len == ICP_SENDMOREDATA_BUF)
+	    len--;
+	*(buf + len) = '\0';
 	newbuf = get_free_8k_page();
 	newbuflen = 8192;
 	hdrlen = 0;
 	l = clientBuildReplyHeader(http, buf, &hdrlen, newbuf, newbuflen);
 	if (l != 0) {
 	    writelen = l + len - hdrlen;
-	    if (writelen > 8192)
-		fatal_dump("icpSendMoreData: newbuf overflow");
+	    assert(writelen <= 8192);
 	    /*
 	     * l is the length of the new headers in newbuf
 	     * hdrlen is the length of the old headers in buf
 	     * len - hdrlen is the amount of body in buf
 	     */
-	    memcpy(newbuf + l, buf + hdrlen, len - hdrlen);
+	    xmemcpy(newbuf + l, buf + hdrlen, len - hdrlen);
 	    /* replace buf with newbuf */
 	    freefunc(buf);
 	    buf = newbuf;
@@ -705,9 +707,9 @@ icpHandleStore(void *data)
     debug(12, 5, "icpHandleStore: FD %d '%s'\n", fd, entry->url);
     if (conn->chr != http) {
 	/* there is another object in progress, defer this one */
-	debug(0,0,"icpHandleStore: Deferring delivery of\n");
-	debug(0,0,"--> %s\n", entry->url);
-	debug(0,0,"--> because other requests are in front\n");
+	debug(0, 0, "icpHandleStore: Deferring delivery of\n");
+	debug(0, 0, "--> %s\n", entry->url);
+	debug(0, 0, "--> because other requests are in front\n");
 	return;
     }
     if (entry->store_status == STORE_ABORTED) {
@@ -951,9 +953,10 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	log_tags[http->log_type],
 	http->url);
 
-    if (entry)
-	storeLockObject(entry, icpProcessRequestComplete, ctrlp);
-    else
+    if (entry) {
+	storeLockObject(entry);
+	storeSwapInStart(entry, icpProcessRequestComplete, ctrlp);
+    } else
 	icpProcessRequestComplete(ctrlp, 0);
 }
 
@@ -1020,8 +1023,10 @@ icpProcessRequestComplete(void *data, int status)
      * done by httpRequestFree. */
     if (entry && status < 0) {
 	storeRelease(entry);
+	http->log_type = LOG_TCP_SWAPFAIL_MISS;
+	debug(0, 0, "icpProcessRequestComplete: status=%d\n", status);
+	debug(0, 0, "icpProcessRequestComplete: --> %s\n", entry->url);
 	entry = NULL;
-	http->log_type = LOG_TCP_SWAPIN_FAIL;
     }
     if (entry)
 	storeClientListAdd(entry, http, 0);
@@ -1838,8 +1843,8 @@ clientReadRequest(int fd, void *data)
 
     if (size == 0) {
 	/* It might be half-closed, we can't tell */
-        debug(12, 5, "clientReadRequest: FD %d closed?\n", fd);
-        comm_set_stall(fd, 10); /* check again in 10 seconds */
+	debug(12, 5, "clientReadRequest: FD %d closed?\n", fd);
+	comm_set_stall(fd, 10);	/* check again in 10 seconds */
 	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, http, 0);
 	return;
     } else if (size < 0) {
@@ -1856,7 +1861,7 @@ clientReadRequest(int fd, void *data)
 
     parser_return_code = parseHttpRequest(http, &method);
     if (parser_return_code == 1) {
-        http->conn->nrequests++;
+	http->conn->nrequests++;
 	commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
 	if ((request = urlParse(method, http->url)) == NULL) {
 	    debug(12, 5, "Invalid URL: %s\n", http->url);
@@ -1965,7 +1970,7 @@ httpAccept(int sock, void *notused)
     struct sockaddr_in peer;
     struct sockaddr_in me;
     if (!fdstat_are_n_free_fd(RESERVED_FD)) {
-	debug(12,0,"WARNING: Near FD limit, delaying new connections\n");
+	debug(12, 0, "WARNING: Near FD limit, delaying new connections\n");
 	comm_set_stall(sock, 1);
     }
     memset(&peer, '\0', sizeof(struct sockaddr_in));
@@ -2104,6 +2109,7 @@ icpDetectNewRequest(int fd, void *data)
     commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, http, 0);
     for (H = &connState->chr; *H; H = &(*H)->next);
     *H = http;
+    assert(http != http->next);
 }
 
 static char *
