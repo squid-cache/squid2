@@ -107,7 +107,7 @@ extern int cbdataValid(const void *p);
 extern void cbdataDump(StoreEntry *);
 
 extern void clientdbInit(void);
-extern void clientdbUpdate(struct in_addr, log_type, protocol_t, size_t, request_flags);
+extern void clientdbUpdate(struct in_addr, log_type, protocol_t, size_t);
 extern int clientdbCutoffDenied(struct in_addr);
 extern void clientdbDump(StoreEntry *);
 extern void clientdbFreeMemory(void);
