@@ -1149,10 +1149,20 @@ DOC_START
 	By default, regular expressions are CASE-SENSITIVE.  To make
 	them case-insensitive, use the -i option.
 
-	min and max are specified in MINUTES.
-	percent is an integer number.
+	'Min' is the time (in minutes) an object without an explicit
+	expiry time should be considered fresh. The recommended
+	value is 0, any higher values may cause dynamic applications
+	to be erronously cached unless the application designer
+	has taken the appropriate actions.
 
-	options: override-expire
+	'Percent' is a percentage of the objects age (time since last
+	modification age) an object without explicit exipry time
+	will be considered fresh.
+
+	'Max' is an upper limit on how long objects without an explicit
+	expiry time will be considered fresh.
+
+	options: overrsde-expire
 		 override-lastmod
 		 reload-into-ims
 		 ignore-reload
