@@ -257,7 +257,8 @@ pumpReadFromClient(int fd, void *data)
     int len = 0;
     errno = 0;
     if (p->cont_len - p->rcvd < bytes_to_read)
-	bytes_to_read = p->cont_len - p->rcvd;
+	if (p->req->flags.proxy_keepalive)
+	    bytes_to_read = p->cont_len - p->rcvd;
     Counter.syscalls.sock.reads++;
     len = read(fd, buf, bytes_to_read);
     fd_bytes(fd, len, FD_READ);
@@ -291,7 +292,7 @@ pumpReadFromClient(int fd, void *data)
     }
     if (len > 0) {
 	int delta = p->rcvd + len - p->cont_len;
-	if (delta > 0) {
+	if (delta > 0 && p->req->flags.proxy_keepalive) {
 	    debug(61, delta == 2 ? 3 : 1) ("pumpReadFromClient: Warning: read %d bytes past content-length, truncating\n", delta);
 	    len = p->cont_len - p->rcvd;
 	}
@@ -305,7 +306,8 @@ pumpReadFromClient(int fd, void *data)
 	return;
     }
     /* all done! */
-    assert(p->rcvd == p->cont_len);
+    if (p->req->flags.proxy_keepalive)
+	assert(p->rcvd == p->cont_len);
     debug(61, 2) ("pumpReadFromClient: finished!\n");
     storeComplete(req);
     commSetDefer(p->c_fd, NULL, NULL);
