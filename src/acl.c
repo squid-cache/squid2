@@ -557,11 +557,9 @@ aclParseTimeSpec(void *curlist)
 	} else {
 	    /* assume its time-of-day spec */
 	    if (sscanf(t, "%d:%d-%d:%d", &h1, &m1, &h2, &m2) < 4) {
-		debug(28, 0) ("%s line %d: %s\n",
+		fatalf("aclParseTimeSpec: ERROR: Bad time range in"
+		    "%s line %d: %s\n",
 		    cfg_filename, config_lineno, config_input_line);
-		debug(28, 0) ("aclParseTimeSpec: IGNORING Bad time range\n");
-		memFree(q, MEM_ACL_TIME_DATA);
-		return;
 	    }
 	    q = memAllocate(MEM_ACL_TIME_DATA);
 	    q->start = h1 * 60 + m1;
@@ -569,11 +567,9 @@ aclParseTimeSpec(void *curlist)
 	    q->weekbits = weekbits;
 	    weekbits = 0;
 	    if (q->start > q->stop) {
-		debug(28, 0) ("%s line %d: %s\n",
+		fatalf("aclParseTimeSpec: ERROR: Reversed time range in"
+		    "%s line %d: %s\n",
 		    cfg_filename, config_lineno, config_input_line);
-		debug(28, 0) ("aclParseTimeSpec: IGNORING Reversed time range\n");
-		memFree(q, MEM_ACL_TIME_DATA);
-		return;
 	    }
 	    if (q->weekbits == 0)
 		q->weekbits = ACL_ALLWEEK;
@@ -891,22 +887,22 @@ aclParseAclLine(acl ** head)
 	break;
     case ACL_PROXY_AUTH:
 	if (authenticateSchemeCount() == 0) {
-	    debug(28, 0) ("aclParseAclLine: IGNORING: Proxy Auth ACL '%s' \
-because no authentication schemes were compiled.\n", A->cfgline);
+	    fatalf("Invalid Proxy Auth ACL '%s' "
+		"because no authentication schemes were compiled.\n", A->cfgline);
 	} else if (authenticateActiveSchemeCount() == 0) {
-	    debug(28, 0) ("aclParseAclLine: IGNORING: Proxy Auth ACL '%s' \
-because no authentication schemes are fully configured.\n", A->cfgline);
+	    fatalf("Invalid Proxy Auth ACL '%s' "
+		"because no authentication schemes are fully configured.\n", A->cfgline);
 	} else {
 	    aclParseUserList(&A->data);
 	}
 	break;
     case ACL_PROXY_AUTH_REGEX:
 	if (authenticateSchemeCount() == 0) {
-	    debug(28, 0) ("aclParseAclLine: IGNORING: Proxy Auth ACL '%s' \
-because no authentication schemes were compiled.\n", A->cfgline);
+	    fatalf("Invalid Proxy Auth ACL '%s' "
+		"because no authentication schemes were compiled.\n", A->cfgline);
 	} else if (authenticateActiveSchemeCount() == 0) {
-	    debug(28, 0) ("aclParseAclLine: IGNORING: Proxy Auth ACL '%s' \
-because no authentication schemes are fully configured.\n", A->cfgline);
+	    fatalf("Invalid Proxy Auth ACL '%s' "
+		"because no authentication schemes are fully configured.\n", A->cfgline);
 	} else {
 	    aclParseRegexList(&A->data);
 	}
@@ -936,10 +932,8 @@ because no authentication schemes are fully configured.\n", A->cfgline);
     if (!new_acl)
 	return;
     if (A->data == NULL) {
-	debug(28, 0) ("aclParseAclLine: IGNORING invalid ACL: %s\n",
+	debug(28, 0) ("aclParseAclLine: WARNING: empty ACL: %s\n",
 	    A->cfgline);
-	memFree(A, MEM_ACL);
-	return;
     }
     /* append */
     while (*head)
