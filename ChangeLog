@@ -40,6 +40,7 @@ Changes to squid-2.5.STABLE4 (not yet released):
 	- Bug #715: statCounter.syscalls.disk counters treated
 	  inconsistently.  Now increment the counters in AUFS
 	  functions and for unlinkd.
+	- Improvements to the (experimental) COSS storage scheme.
 
 Changes to squid-2.5.STABLE3 (25 May 2003):
 

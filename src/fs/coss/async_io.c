@@ -94,7 +94,7 @@ a_file_read(async_queue_t * q, int fd, void *buf, int req_len, off_t offset,
 
     /* Initiate aio */
     if (aio_read(&qe->aq_e_aiocb) < 0) {
-	fatalf("Aiee! aio_read() returned error (%d)!\n", errno);
+	fatalf("Aiee! aio_read() returned error: %s\n", xstrerror());
     }
 }
 
@@ -140,7 +140,7 @@ a_file_write(async_queue_t * q, int fd, off_t offset, void *buf, int len,
 
     /* Initiate aio */
     if (aio_write(&qe->aq_e_aiocb) < 0) {
-	fatalf("Aiee! aio_read() returned error (%d)!\n", errno);
+	fatalf("Aiee! aio_read() returned error: %s\n", xstrerror());
     }
 }
 
