@@ -964,6 +964,7 @@ static void InvokeHandlers(e)
      StoreEntry *e;
 {
     int i;
+    int fd;
     MemObject *mem = e->mem_obj;
     struct pentry *p = NULL;
     PIF handler = NULL;
@@ -976,10 +977,11 @@ static void InvokeHandlers(e)
 	if ((handler = p->handler) == NULL)
 	    continue;
 	data = p->data;
+	fd = p->fd;
 	memset(p, '\0', sizeof(struct pentry));
 	safe_free(p);
 	mem->pending[i] = NULL;
-	handler(mem->pending[i]->fd, e, data);
+	handler(fd, e, data);
     }
 }
 
