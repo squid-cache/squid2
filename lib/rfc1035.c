@@ -464,7 +464,10 @@ rfc1035AnswersUnpack(const char *buf,
 	    break;
 	nr++;
     }
-    *records = recs;
+    if (nr > 0)
+	*records = recs;
+    else
+	free(recs);
     return nr;
 }
 
