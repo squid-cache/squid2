@@ -1,6 +1,5 @@
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 61    PUMP handler
  * AUTHOR: Kostas Anagnostakis

@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 49     SNMP Interface
  * AUTHOR: Kostas Anagnostakis
@@ -413,7 +412,12 @@ snmp_prfProtoFn(variable_list * Var, snint * ErrP)
 	return Answer;
     case PERF_PROTOSTAT_MEDIAN:
 
-	minutes = Var->name[LEN_SQ_PRF + 4];
+	if (Var->name_length == LEN_SQ_PRF + 5)
+	    minutes = Var->name[LEN_SQ_PRF + 4];
+	else
+	    break;
+	if ((minutes < 1) || (minutes > 60))
+	    break;
 
 	f = snmpStatGet(0);
 	l = snmpStatGet(minutes);

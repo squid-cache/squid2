@@ -797,7 +797,6 @@ comm_select_dns_incoming(void)
     if (nevents < 0)
 	return;
     incoming_dns_interval += Config.comm_incoming.dns_average - nevents;
-    incoming_dns_interval += Config.comm_incoming.dns_average - nevents;
     if (incoming_dns_interval < Config.comm_incoming.dns_min_poll)
 	incoming_dns_interval = Config.comm_incoming.dns_min_poll;
     if (incoming_dns_interval > MAX_INCOMING_INTERVAL)

@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 1     Startup and Main Loop
  * AUTHOR: Harvest Derived

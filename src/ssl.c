@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 26    Secure Sockets Layer Proxy
  * AUTHOR: Duane Wessels

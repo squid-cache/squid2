@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 21    Misc Functions
  * AUTHOR: Harvest Derived
@@ -172,6 +171,11 @@ rusage_cputime(struct rusage *r)
 	(double) r->ru_stime.tv_usec / 1000000.0 +
 	(double) r->ru_utime.tv_usec / 1000000.0;
 }
+
+/* Hack for some HP-UX preprocessors */
+#ifndef HAVE_GETPAGESIZE
+#define HAVE_GETPAGESIZE 0
+#endif
 
 int
 rusage_maxrss(struct rusage *r)

@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 15    Neighbor Routines
  * AUTHOR: Harvest Derived

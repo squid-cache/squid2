@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 18    Cache Manager Statistics
  * AUTHOR: Harvest Derived

@@ -491,13 +491,13 @@ storeGetNextFile(rebuild_dir * d, int *sfileno, int *size)
 	    if (d->td == NULL) {
 		debug(50, 1) ("storeGetNextFile: opendir: %s: %s\n",
 		    d->fullpath, xstrerror());
-		break;
+	    } else {
+		d->entry = readdir(d->td);	/* skip . and .. */
+		d->entry = readdir(d->td);
+		if (d->entry == NULL && errno == ENOENT)
+		    debug(20, 1) ("storeGetNextFile: directory does not exist!.\n");
+		debug(20, 3) ("storeGetNextFile: Directory %s\n", d->fullpath);
 	    }
-	    d->entry = readdir(d->td);	/* skip . and .. */
-	    d->entry = readdir(d->td);
-	    if (d->entry == NULL && errno == ENOENT)
-		debug(20, 1) ("storeGetNextFile: directory does not exist!.\n");
-	    debug(20, 3) ("storeGetNextFile: Directory %s\n", d->fullpath);
 	}
 	if (d->td != NULL && (d->entry = readdir(d->td)) != NULL) {
 	    d->in_dir++;

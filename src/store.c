@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 20    Storage Manager
  * AUTHOR: Harvest Derived

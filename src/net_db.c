@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 38    Network Measurement Database
  * AUTHOR: Duane Wessels

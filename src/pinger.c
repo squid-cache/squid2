@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 42    ICMP Pinger program
  * AUTHOR: Duane Wessels

@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  * DEBUG: section 25    MIME Parsing
  * AUTHOR: Harvest Derived
