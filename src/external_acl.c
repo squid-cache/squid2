@@ -397,32 +397,35 @@ int
 aclMatchExternal(void *data, aclCheck_t * ch)
 {
     int result;
-    external_acl_entry *entry;
+    external_acl_entry *entry = NULL;
     external_acl_data *acl = data;
     const char *key = "";
     debug(82, 9) ("aclMatchExternal: acl=\"%s\"\n", acl->def->name);
-    entry = ch->extacl_entry;
+    if (ch->extacl_entry) {
+	entry = ch->extacl_entry;
+	if (!cbdataValid(entry))
+	    entry = NULL;
+	cbdataUnlock(ch->extacl_entry);
+	ch->extacl_entry = NULL;
+    }
+    if (acl->def->require_auth) {
+	int ti;
+	/* Make sure the user is authenticated */
+	if ((ti = aclAuthenticated(ch)) != 1) {
+	    debug(82, 2) ("aclMatchExternal: %s user not authenticated (%d)\n", acl->def->name, ti);
+	    return ti;
+	}
+    }
+    key = makeExternalAclKey(ch, acl);
     if (entry) {
-	if (cbdataValid(entry) && entry->def == acl->def &&
-	    strcmp(entry->hash.key, key) == 0) {
-	    /* Ours, use it.. */
-	} else {
-	    /* Not valid, or not ours.. get rid of it */
+	if (entry->def != acl->def || strcmp(entry->hash.key, key) != 0) {
+	    /* Not ours.. get rid of it */
 	    cbdataUnlock(ch->extacl_entry);
 	    ch->extacl_entry = NULL;
 	    entry = NULL;
 	}
     }
     if (!entry) {
-	if (acl->def->require_auth) {
-	    int ti;
-	    /* Make sure the user is authenticated */
-	    if ((ti = aclAuthenticated(ch)) != 1) {
-		debug(82, 2) ("aclMatchExternal: %s user not authenticated (%d)\n", acl->def->name, ti);
-		return ti;
-	    }
-	}
-	key = makeExternalAclKey(ch, acl);
 	entry = hash_lookup(acl->def->cache, key);
 	if (entry && external_acl_entry_expired(acl->def, entry)) {
 	    /* Expired entry, ignore */
