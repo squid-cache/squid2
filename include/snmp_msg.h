@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
-#ifndef _SNMP_MSG_H_
-#define _SNMP_MSG_H_
+#ifndef SQUID_SNMP_MSG_H
+#define SQUID_SNMP_MSG_H
 
 /**********************************************************************
  *
@@ -46,4 +46,5 @@ extern "C" {
 }
 
 #endif
-#endif				/* _SNMP_MSG_H_ */
+
+#endif	/* SQUID_SNMP_MSG_H */

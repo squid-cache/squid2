@@ -2,8 +2,8 @@
  * $Id$
  */
 
-#ifndef MD5_H
-#define MD5_H
+#ifndef SQUID_MD5_H
+#define SQUID_MD5_H
 
 #if USE_OPENSSL
 
@@ -63,4 +63,5 @@ void MD5Final(unsigned char[16], MD5_CTX *);
 #define MD5_DIGEST_CHARS         16
 
 #endif /* USE_OPENSSL */
-#endif /* MD5_H */
+
+#endif /* SQUID_MD5_H */

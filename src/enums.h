@@ -31,6 +31,9 @@
  *
  */
 
+#ifndef SQUID_ENUMS_H
+#define SQUID_ENUMS_H
+
 typedef enum {
     LOG_TAG_NONE,
     LOG_TCP_HIT,
@@ -723,3 +726,5 @@ enum {
     VARY_OTHER,
     VARY_CANCEL
 };
+
+#endif /* SQUID_ENUMS_H */

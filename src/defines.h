@@ -31,6 +31,9 @@
  *
  */
 
+#ifndef SQUID_STRUCTS_H
+#define SQUID_STRUCTS_H
+
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -303,3 +306,5 @@
 #define _WIN_OS_WIN2K	5
 #define _WIN_OS_WINXP	6
 #endif
+
+#endif /* SQUID_STRUCTS_H */

@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
-#ifndef _SNMP_COMPAT_H_
-#define _SNMP_COMPAT_H_
+#ifndef SQUID_SNMP_COMPAT_H
+#define SQUID_SNMP_COMPAT_H
 
 /***************************************************************************
  *
@@ -47,4 +47,4 @@
 
 #define INFORM_REQ_MSG      (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x6)
 
-#endif /* _SNMP_COMPAT_H_ */
+#endif /* SQUID_SNMP_COMPAT_H */

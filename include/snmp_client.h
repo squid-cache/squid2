@@ -2,8 +2,8 @@
  * $Id$
  */
 
-#ifndef _SNMP_CLIENT_H_
-#define _SNMP_CLIENT_H_
+#ifndef SQUID_SNMP_CLIENT_H
+#define SQUID_SNMP_CLIENT_H
 
 /*
  * snmp_client.h
@@ -59,6 +59,6 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-
 #endif
-#endif				/* _SNMP_CLIENT_H_ */
+
+#endif				/* SQUID_SNMP_CLIENT_H */

@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
-#ifndef _SNMP_SESSION_H_
-#define _SNMP_SESSION_H_
+#ifndef SQUID_SNMP_SESSION_H
+#define SQUID_SNMP_SESSION_H
 
 /**********************************************************************
  *
@@ -51,4 +51,4 @@ struct snmp_session {
 #define RECEIVED_MESSAGE   1
 #define TIMED_OUT	   2
 
-#endif /* _SNMP_SESSION_H_ */
+#endif /* SQUID_SNMP_SESSION_H */

@@ -50,8 +50,8 @@
  * It's put here as it is a common utility to all HTLM-enabled modules.
  */
 
-#ifndef _NTLMAUTH_H_
-#define _NTLMAUTH_H_
+#ifndef SQUID_NTLMAUTH_H
+#define SQUID_NTLMAUTH_H
 
 /* int*_t */
 #include "squid_types.h"
@@ -180,4 +180,4 @@ void ntlm_add_to_payload(char *payload, int *payload_length,
     strhdr * hdr, char *toadd,
     int toadd_length, int base_offset);
 
-#endif /* _NTLMAUTH_H_ */
+#endif /* SQUID_NTLMAUTH_H */

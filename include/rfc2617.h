@@ -47,8 +47,8 @@
  *
  */
 
-#ifndef RFC2617_H
-#define RFC2617_H
+#ifndef SQUID_RFC2617_H
+#define SQUID_RFC2617_H
 
 #define HASHLEN 16
 typedef char HASH[HASHLEN];
@@ -84,4 +84,4 @@ void CvtHex(const HASH Bin, HASHHEX Hex);
 
 void CvtBin(const HASHHEX Hex, HASH Bin);
 
-#endif /* RFC 2617 */
+#endif /* SQUID_RFC2617_H */

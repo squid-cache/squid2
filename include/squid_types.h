@@ -50,8 +50,8 @@
  * header to include which takes care of proper preprocessor stuff
  */
 
-#ifndef _SQUID_TYPES_H_
-#define _SQUID_TYPES_H_
+#ifndef SQUID_TYPES_H
+#define SQUID_TYPES_H
 
 #include "autoconf.h"
 
@@ -72,4 +72,4 @@
 #endif
 #endif /* HAVE_GLIB_H */
 
-#endif /* _SQUID_TYPES_H_ */
+#endif /* SQUID_TYPES_H */

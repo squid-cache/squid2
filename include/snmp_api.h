@@ -2,8 +2,8 @@
  * $Id$
  */
 
-#ifndef _SNMP_API_H_
-#define _SNMP_API_H_
+#ifndef SQUID_SNMP_API_H
+#define SQUID_SNMP_API_H
 
 #include "config.h"
 #ifdef HAVE_SYS_TIME_H
@@ -187,4 +187,5 @@ extern "C" {
 }
 
 #endif
-#endif				/* _SNMP_API_H_ */
+
+#endif				/* SQUID_SNMP_API_H */

@@ -31,8 +31,8 @@
  *  
  */
 
-#ifndef _ARRAY_H_
-#define _ARRAY_H_
+#ifndef SQUID_ARRAY_H
+#define SQUID_ARRAY_H
 
 /* see Array.c for more documentation */
 
@@ -51,4 +51,4 @@ extern void arrayAppend(Array * s, void *obj);
 extern void arrayPreAppend(Array * s, int app_count);
 
 
-#endif /* ndef _ARRAY_H_ */
+#endif /* SQUID_ARRAY_H */

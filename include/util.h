@@ -31,8 +31,8 @@
  *  
  */
 
-#ifndef _UTIL_H_
-#define _UTIL_H_
+#ifndef SQUID_UTIL_H
+#define SQUID_UTIL_H
 
 #include "config.h"
 #include <stdio.h>
@@ -132,4 +132,4 @@ double drand48(void);
  */
 int statMemoryAccounted(void);
 
-#endif /* ndef _UTIL_H_ */
+#endif /* SQUID_UTIL_H */

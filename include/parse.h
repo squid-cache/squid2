@@ -2,8 +2,8 @@
  * $Id$
  */
 
-#ifndef _HAVE_PARSE_H_
-#define _HAVE_PARSE_H_
+#ifndef SQUID_PARSE_H
+#define SQUID_PARSE_H
 
 /***********************************************************
 	Copyright 1989 by Carnegie Mellon University
@@ -90,4 +90,5 @@ extern "C" {
 }
 
 #endif
-#endif				/* _HAVE_PARSE_H_ */
+
+#endif				/* SQUID_PARSE_H */

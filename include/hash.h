@@ -2,6 +2,9 @@
  * $Id$
  */
 
+#ifndef SQUID_HASH_H
+#define SQUID_HASH_H
+
 typedef void HASHFREE(void *);
 typedef int HASHCMP(const void *, const void *);
 typedef unsigned int HASHHASH(const void *, unsigned int);
@@ -56,3 +59,5 @@ extern const char *hashKeyStr(hash_link *);
  *  HASH_SIZE 65357             // prime number < 65536
  */
 #define  DEFAULT_HASH_SIZE 7951	/* prime number < 8192 */
+
+#endif /* SQUID_HASH_H */

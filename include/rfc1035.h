@@ -31,8 +31,8 @@
  *  
  */
 
-#ifndef _RFC1035_H_
-#define _RFC1035_H_
+#ifndef SQUID_RFC1035_H
+#define SQUID_RFC1035_H
 
 #include "config.h"
 #if HAVE_SYS_TYPES_H
@@ -75,4 +75,4 @@ extern const char *rfc1035_error_message;
 #define RFC1035_TYPE_PTR 12
 #define RFC1035_CLASS_IN 1
 
-#endif /* ndef _RFC1035_H_ */
+#endif /* SQUID_RFC1035_H */

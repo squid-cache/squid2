@@ -31,6 +31,9 @@
  *
  */
 
+#ifndef SQUID_GLOBALS_H
+#define SQUID_GLOBALS_H
+
 extern FILE *debug_log;		/* NULL */
 extern SquidConfig Config;
 extern SquidConfig2 Config2;
@@ -158,3 +161,5 @@ extern int incoming_sockets_accepted;
 extern unsigned int WIN32_OS_version;	/* 0 */
 extern char *WIN32_OS_string;
 #endif
+
+#endif /* SQUID_GLOBALS_H */

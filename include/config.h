@@ -31,8 +31,8 @@
  *  
  */
 
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
+#ifndef SQUID_CONFIG_H
+#define SQUID_CONFIG_H
 
 #include "autoconf.h"	/* For GNU autoconf variables */
 #include "version.h"
@@ -175,4 +175,4 @@
 #define squid_srandom srand
 #endif
 
-#endif /* _CONFIG_H_ */
+#endif /* SQUID_CONFIG_H */

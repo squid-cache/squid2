@@ -31,6 +31,9 @@
  *
  */
 
+#ifndef SQUID_STRUCTS_H
+#define SQUID_STRUCTS_H
+
 #include "config.h"
 #include "splay.h"
 
@@ -2137,3 +2140,5 @@ struct cache_dir_option {
     void (*parse) (SwapDir * sd, const char *option, const char *value, int reconfiguring);
     void (*dump) (StoreEntry * e, const char *option, SwapDir * sd);
 };
+
+#endif /* SQUID_STRUCTS_H */

@@ -31,6 +31,9 @@
  *
  */
 
+#ifndef SQUID_PROTOS_H
+#define SQUID_PROTOS_H
+
 extern void accessLogLog(AccessLogEntry *);
 extern void accessLogRotate(void);
 extern void accessLogClose(void);
@@ -1315,3 +1318,5 @@ int varyEvaluateMatch(StoreEntry * entry, request_t * req);
 extern int WIN32_Subsystem_Init(void);
 extern void WIN32_Exit(void);
 #endif
+
+#endif /* SQUID_PROTOS_H */

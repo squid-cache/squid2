@@ -31,8 +31,8 @@
  *
  */
 
-#ifndef _TYPEDEFS_H_
-#define _TYPEDEFS_H_
+#ifndef SQUID_TYPEDEFS_H
+#define SQUID_TYPEDEFS_H
 
 typedef unsigned int store_status_t;
 typedef unsigned int mem_status_t;
@@ -358,4 +358,4 @@ typedef RemovalPolicy *REMOVALPOLICYCREATE(wordlist * args);
 
 typedef int STDIRSELECT(const StoreEntry *);
 
-#endif /* _TYPEDEFS_H_ */
+#endif /* SQUID_TYPEDEFS_H */

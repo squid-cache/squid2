@@ -2,8 +2,8 @@
  * $Id$
  */
 
-#ifndef _SPLAY_H
-#define _SPLAY_H
+#ifndef SQUID_SPLAY_H
+#define SQUID_SPLAY_H
 
 typedef struct _splay_node {
     void *data;
@@ -22,4 +22,4 @@ extern splayNode *splay_splay(const void *, splayNode *, SPLAYCMP *);
 extern void splay_destroy(splayNode *, SPLAYFREE *);
 extern void splay_walk(splayNode *, SPLAYWALKEE *, void *);
 
-#endif /* _SPLAY_H */
+#endif /* SQUID_SPLAY_H */

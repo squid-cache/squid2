@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
-#ifndef _SNMP_INTERNAL_H_
-#define _SNMP_INTERNAL_H_
+#ifndef SQUID_SNMP_INTERNAL_H
+#define SQUID_SNMP_INTERNAL_H
 
 /**********************************************************************
  *
@@ -32,4 +32,4 @@
 #define SNMP_TRAP_PORT	    162
 #define SNMP_MAX_LEN	    484
 
-#endif /* _SNMP_INTERNAL_H_ */
+#endif /* SQUID_SNMP_INTERNAL_H */

@@ -2,6 +2,9 @@
  * $Id$
  */
 
+#ifndef SQUID_SNPRINTF_H
+#define SQUID_SNPRINTF_H
+
 /* if you have configure you can use this */
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
@@ -47,3 +50,5 @@ int vsnprintf(char *str, size_t count, const char *fmt, va_list arg);
 int vsnprintf();
 #endif
 #endif
+
+#endif /* SQUID_SNPRINTF_H */

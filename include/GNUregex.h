@@ -2,6 +2,9 @@
  * $Id$
  */
 
+#ifndef SQUID_REGEXP_LIBRARY_H
+#define SQUID_REGEXP_LIBRARY_H
+
 /* Definitions for data structures and routines for the regular
  * expression library, version 0.12.
  * 
@@ -20,9 +23,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.  */
-
-#ifndef __REGEXP_LIBRARY_H__
-#define __REGEXP_LIBRARY_H__
 
 /* POSIX says that <sys/types.h> must be included (by the caller) before
  * <regex.h>.  */
@@ -479,7 +479,7 @@ extern size_t regerror
 	size_t errbuf_size));
 extern void regfree _RE_ARGS((regex_t * preg));
 
-#endif /* not __REGEXP_LIBRARY_H__ */
+#endif /* SQUID_REGEXP_LIBRARY_H */
 
 /*
  * Local variables:

@@ -2,8 +2,8 @@
  * $Id$
  */
 
-#ifndef SNMP_UTIL_H
-#define SNMP_UTIL_H
+#ifndef SQUID_SNMP_UTIL_H
+#define SQUID_SNMP_UTIL_H
 
 /* call a function at regular intervals (in seconds): */
 extern void snmp_alarm(int ival, void (*handler) (void));
@@ -46,4 +46,4 @@ int Util_file_read(char *file, int offset, char *data, int dataSz);
 int Util_file_write(char *file, int offset, char *data, int dataSz);
 
 /* ---------------------------------------------------------------------- */
-#endif
+#endif /* SQUID_SNMP_UTIL_H */

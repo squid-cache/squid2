@@ -1,5 +1,5 @@
-#ifndef _SNMP_VARS_H_
-#define _SNMP_VARS_H_
+#ifndef SQUID_SNMP_VARS_H
+#define SQUID_SNMP_VARS_H
 
 /**********************************************************************
  *
@@ -73,4 +73,4 @@ u_char *snmp_var_DecodeVarBind(u_char *, int *, struct variable_list **, int);
 typedef struct variable variable;
 typedef struct variable_list variable_list;
 
-#endif /* _SNMP_VARS_H_ */
+#endif /* SQUID_SNMP_VARS_H */

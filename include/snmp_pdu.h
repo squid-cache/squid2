@@ -1,5 +1,5 @@
-#ifndef _SNMP_PDU_H_
-#define _SNMP_PDU_H_
+#ifndef SQUID_SNMP_PDU_H
+#define SQUID_SNMP_PDU_H
 
 /**********************************************************************
  *
@@ -103,4 +103,5 @@ void snmp_add_null_var(struct snmp_pdu *, oid *, int);
 #define SNMP_TRAP_AUTHENTICATIONFAILURE (0x4)
 #define SNMP_TRAP_EGPNEIGHBORLOSS       (0x5)
 #define SNMP_TRAP_ENTERPRISESPECIFIC    (0x6)
-#endif /* _SNMP_PDU_H_ */
+
+#endif /* SQUID_SNMP_PDU_H */
