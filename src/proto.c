@@ -210,8 +210,9 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 		 * DIRECT_NO then requests will fail if the host matches
 		 * inside_firewall but not firewall_ip_list. */
 		protoData->direct_fetch = DIRECT_MAYBE;
-#endif
+#else
 		protoData->direct_fetch = DIRECT_NO;
+#endif
 	    }
 	} else if (Config.local_ip_list) {
 	    srv_addr = ia->in_addrs[ia->cur];
