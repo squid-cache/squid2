@@ -873,17 +873,6 @@ ipcacheCheckNumeric(const char *name)
     return &static_addrs;
 }
 
-#if OLD_CODE
-int
-ipcacheQueueDrain(void)
-{
-    if (!ipcacheQueueHead)
-	return 0;
-    ipcacheNudgeQueue();
-    return 1;
-}
-#endif
-
 static void
 ipcacheLockEntry(ipcache_entry * i)
 {

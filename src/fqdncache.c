@@ -793,20 +793,6 @@ fqdnFromAddr(struct in_addr addr)
     return buf;
 }
 
-#if OLD_CODE
-int
-fqdncacheQueueDrain(void)
-{
-    fqdncache_entry *i;
-    dnsserver_t *dnsData;
-    if (!fqdncacheQueueHead)
-	return 0;
-    while ((dnsData = dnsGetFirstAvailable()) && (i = fqdncacheDequeue()))
-	fqdncache_dnsDispatch(dnsData, i);
-    return 1;
-}
-#endif
-
 static void
 fqdncacheLockEntry(fqdncache_entry * f)
 {
