@@ -121,6 +121,7 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
     storeAppend(entry, buf, len);
     if (mem)
 	mem->reply->code = err->http_status;
+    storeComplete(entry);
     errorStateFree(err);
 }
 
