@@ -335,7 +335,6 @@ AC_CHECK_FUNCS(\
 	res_init \
 	seteuid \
 	setpgrp \
-	setresuid \
 	setrlimit \
 	setsid \
 	sigaction \
@@ -356,6 +355,25 @@ case "$host" in
 		ac_cv_func_poll="no"
 		;;
 esac
+
+dnl Yay!  Another Linux brokenness.  Its not good enough
+dnl to know that setresuid() exists, because RedHat 5.0 declares
+dnl setresuid() but doesn't implement it.
+dnl
+AC_CACHE_CHECK(if setresuid is implemented, ac_cv_func_setresuid,
+AC_TRY_RUN([
+#include <stdlib.h>
+int 
+main()
+{
+    if (setresuid(-1, -1, -1)) {
+	perror("setresuid:");
+	exit(1);
+    }
+    exit(0);
+}
+],ac_cv_func_setresuid="yes",ac_cv_func_setresuid="no")
+)
 
 AC_MSG_CHECKING(if GNUregex needs to be compiled)
 if test "$ac_cv_func_regcomp" = "no" ; then
