@@ -524,10 +524,9 @@ request_size 100
 
 #  TAG: ttl_pattern		# case sensitive
 #  TAG: ttl_pattern/i		# case insensitive
-#	Selection of TTL's based on URL regular expressions (syntax
-#	is the POSIX standard).  There are no defaults.  Regular
-#	expressions are case-sensitive with 'ttl_pattern' and 
-#	case-insensitive with 'ttl_pattern/i'.
+#	Selection of TTL's based on URL regular expressions (syntax is
+#	the POSIX standard).  Regular expressions are case-sensitive
+#	with 'ttl_pattern' and case-insensitive with 'ttl_pattern/i'.
 #
 #	The list of URL patterns are searched in the order listed here.
 #	All patterns in the list are checked and the last match is used.
@@ -561,10 +560,8 @@ request_size 100
 #	days.  Otherwise, an object will be cached for three days
 #	by default.
 #
-#	ttl_pattern    .                   4320        20%       4320
 #
-#	Examples:
-#
+# EXAMPLES:
 #	                                              Calculate TTL as
 #	                                Absolute      this percentage of
 #	        Regular Expression      TTL in        the object's age
@@ -574,6 +571,10 @@ request_size 100
 #ttl_pattern        ^ftp://                10080        20%      43200
 #ttl_pattern/i      \.gif$                  2880        50%      43200
 #ttl_pattern        /cgi-bin/                  0         0%      43200
+#
+# DEFAULTS:
+#
+#ttl_pattern        .                       4320        20%       4320
 
 
 #  TAG: quick_abort
