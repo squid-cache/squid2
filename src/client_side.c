@@ -31,6 +31,10 @@
 
 #include "squid.h"
 
+#if LINGERING_CLOSE
+#define comm_close comm_lingering_close
+#endif
+
 static const char *const crlf = "\r\n";
 static const char *const proxy_auth_challenge =
 "Basic realm=\"Squid proxy-caching web server\"";
