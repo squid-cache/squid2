@@ -212,7 +212,7 @@ static int compareLastRef _PARAMS((StoreEntry **, StoreEntry **));
 static int compareSize _PARAMS((StoreEntry **, StoreEntry **));
 static int compareBucketOrder _PARAMS((struct _bucketOrder *, struct _bucketOrder *));
 static int storeAddSwapDisk _PARAMS((const char *));
-static int storeCheckExpired _PARAMS((const StoreEntry *));
+static int storeCheckExpired _PARAMS((const StoreEntry *, int flag));
 static int storeCheckPurgeMem _PARAMS((const StoreEntry *));
 static int storeClientListSearch _PARAMS((const MemObject *, int));
 static int storeCopy _PARAMS((const StoreEntry *, int, int, char *, int *));
@@ -1754,7 +1754,7 @@ storePurgeOld(void *unused)
 	}
 	if ((n & 0xFFF) == 0)
 	    debug(20, 2, "storeWalkThrough: %7d objects so far.\n", n);
-	if (storeCheckExpired(e))
+	if (storeCheckExpired(e, 1))
 	    count += storeRelease(e);
     }
     debug(20, 0, "storePurgeOld: Removed %d objects\n", count);
@@ -1791,7 +1791,7 @@ storeGetMemSpace(int size)
     for (e = storeGetInMemFirst(); e; e = storeGetInMemNext()) {
 	if (list_count == meta_data.mem_obj_count)
 	    break;
-	if (storeCheckExpired(e)) {
+	if (storeCheckExpired(e, 0)) {
 	    debug(20, 2, "storeGetMemSpace: Expired: %s\n", e->url);
 	    n_expired++;
 	    storeRelease(e);
@@ -1931,11 +1931,11 @@ storeGetSwapSpace(int size)
     LRU_list = xcalloc(max_list_count, sizeof(StoreEntry *));
     /* remove expired objects until recover enough or no expired objects */
     for (i = 0; i < store_buckets; i++) {
-	int expired_in_one_bucket = 0;
+	int expired_in_one_bucket;
 	link_ptr = hash_get_bucket(store_table, storeGetBucketNum());
 	if (link_ptr == NULL)
 	    continue;
-	/* this while loop handles one bucket of hash table */
+	/* this for loop handles one bucket of hash table */
 	expired_in_one_bucket = 0;
 	for (; link_ptr; link_ptr = next) {
 	    if (list_count == max_list_count)
@@ -1951,7 +1951,7 @@ storeGetSwapSpace(int size)
 		locked++;
 		locked_size += e->mem_obj->e_current_len;
 	    }
-	}			/* while, end of one bucket of hash table */
+	}			/* for, end of one bucket of hash table */
 	expired += expired_in_one_bucket;
 	if (expired_in_one_bucket &&
 	    ((!fReduceSwap && (store_swap_size + kb_size <= store_swap_high)) ||
@@ -2570,7 +2570,7 @@ storeMaintainSwapSpace(void *unused)
 		scan_obj++;
 		next = link_ptr->next;
 		e = (StoreEntry *) link_ptr;
-		if (!storeCheckExpired(e))
+		if (!storeCheckExpired(e, 1))
 		    continue;
 		rm_obj += storeRelease(e);
 	    }
@@ -2770,13 +2770,15 @@ storeCheckPurgeMem(const StoreEntry * e)
 }
 
 static int
-storeCheckExpired(const StoreEntry * e)
+storeCheckExpired(const StoreEntry * e, int check_lru_age)
 {
     time_t max_age;
     if (storeEntryLocked(e))
 	return 0;
     if (BIT_TEST(e->flag, ENTRY_NEGCACHED) && squid_curtime >= e->expires)
 	return 1;
+    if (!check_lru_age)
+	return 0;
     if ((max_age = storeExpiredReferenceAge()) <= 0)
 	return 0;
     if (squid_curtime - e->lastref > max_age)
