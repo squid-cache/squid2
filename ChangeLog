@@ -1,3 +1,13 @@
+
+	- Fixed ftpget null pointer coredump for mime encodings.
+	- Fixed setuid() bug when creating swap directories.  Now
+	  change to 'effective_user' before making dirs.
+	- Fixed cachemgr.cgi to give 'unknown host' message if
+	  gethostbyname() fails.
+	- Fixed extra disk read() bug for swapins.  Now a disk
+	  read calls back immediately if any data was read instead
+	  of trying to fill the 8k buffer.
+
 Changes to squid-1.1.16 (August 25, 1997):
 
 	- Added while loop around accept() (Michael O'Reilly).
