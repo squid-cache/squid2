@@ -668,11 +668,11 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 
 #  TAG: logfile_rotate #
 #	Specifies the number of logfile rotations to make upon receiving
-#	a HUP signal.  The default is 10, which will rotate with
+#	a USR1 signal.  The default is 10, which will rotate with
 #	extensions 0 through 9.  Setting logfile_rotate to 0 will
 #	disable the rotation, but the logfiles are still closed and
 #	re-opened.  This will enable you to rename the logfiles yourself
-#	just before sending a HUP signal to the cached process.
+#	just before sending a USR1 signal to the cached process.
 #
 #logfile_rotate 10
 
@@ -681,8 +681,3 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	append_domain must begin with a period.
 #
 #append_domain .yourdomain.com
-
-#  TAG: connect_port
-#       The port number(s) where cached will listen allow outbound CONNECT
-#       (SSL).  The defaults are 443 (https) and 563 (snews).
-#connect_ports 443 563
