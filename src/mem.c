@@ -263,6 +263,7 @@ memInit(void)
     memDataInit(MEM_PEER, "peer", sizeof(peer), 0);
 #if USE_CACHE_DIGESTS
     memDataInit(MEM_PEER_DIGEST, "PeerDigest", sizeof(PeerDigest), 0);
+    memDataInit(MEM_DIGEST_FETCH_STATE, "DigestFetchState", sizeof(DigestFetchState), 0);
 #endif
     memDataInit(MEM_PINGERECHODATA, "pingerEchoData",
 	sizeof(pingerEchoData), 0);
