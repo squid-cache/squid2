@@ -40,12 +40,6 @@
 #endif
 #endif
 
-#include "store_null.h"
-
-#define DefaultLevelOneDirs     16
-#define DefaultLevelTwoDirs     256
-#define STORE_META_BUFSZ 4096
-
 static int null_initialised = 0;
 static void storeNullDirInit(SwapDir * sd);
 static void storeNullDirStats(SwapDir * SD, StoreEntry * sentry);
@@ -55,125 +49,20 @@ static STLOGCLEANSTART storeNullDirWriteCleanStart;
 static STLOGCLEANDONE storeNullDirWriteCleanDone;
 static EVH storeNullDirRebuildComplete;
 
-int
-storeNullDirMapBitTest(SwapDir * SD, int fn)
-{
-    return 1;
-}
+/* The only externally visible interface */
+STSETUP storeFsSetup_null;
 
-void
-storeNullDirMapBitSet(SwapDir * SD, int fn)
-{
-    (void) 0;
-}
-
-void
-storeNullDirMapBitReset(SwapDir * SD, int fn)
-{
-    (void) 0;
-}
-
-int
-storeNullDirMapBitAllocate(SwapDir * SD)
-{
-    static int fn = 0;
-    if (fn < 0)
-	fn = 0;
-    return fn++;
-}
-
-const StoreEntry *
-storeNullDirCleanLogNextEntry(SwapDir * sd)
-{
-    return NULL;
-}
-
-#if UNUSED
-int
-storeNullDirValidFileno(SwapDir * SD, sfileno filn, int flag)
-{
-    return 1;
-}
-
-void
-storeNullDirMaintain(SwapDir * SD)
-{
-    (void) 0;
-}
-
-void
-storeNullDirRefObj(SwapDir * SD, StoreEntry * e)
-{
-    (void) 0;
-}
-
-void
-storeNullDirUnrefObj(SwapDir * SD, StoreEntry * e)
-{
-    (void) 0;
-}
-
-void
-storeNullDirUnlinkFile(SwapDir * SD, sfileno f)
-{
-    (void) 0;
-}
-
-void
-storeNullDirReplAdd(SwapDir * SD, StoreEntry * e)
-{
-    (void) 0;
-}
-
-void
-storeNullDirReplRemove(StoreEntry * e)
-{
-    (void) 0;
-}
-
-#endif
-
-void
+static void
 storeNullDirReconfigure(SwapDir * sd, int index, char *path)
 {
     (void) 0;
 }
 
-void
-storeNullDirDump(StoreEntry * entry, const char *name, SwapDir * s)
-{
-    storeAppendPrintf(entry, "%s null\n", name);
-}
-
-void
-storeNullDirParse(SwapDir * sd, int index, char *path)
-{
-    sd->index = index;
-    sd->path = xstrdup(path);
-    sd->statfs = storeNullDirStats;
-    sd->init = storeNullDirInit;
-    sd->checkobj = storeNullDirCheckObj;
-    sd->log.clean.start = storeNullDirWriteCleanStart;
-    sd->log.clean.done = storeNullDirWriteCleanDone;
-}
-
-void
+static void
 storeNullDirDone(void)
 {
     null_initialised = 0;
 }
-
-void
-storeFsSetup_null(storefs_entry_t * storefs)
-{
-    assert(!null_initialised);
-    storefs->parsefunc = storeNullDirParse;
-    storefs->reconfigurefunc = storeNullDirReconfigure;
-    storefs->donefunc = storeNullDirDone;
-    null_initialised = 1;
-}
-
-/* ==== STATIC FUNCTIONS ==== */
 
 static void
 storeNullDirStats(SwapDir * SD, StoreEntry * sentry)
@@ -213,3 +102,28 @@ storeNullDirWriteCleanDone(SwapDir * unused)
 {
     (void) 0;
 }
+
+static void
+storeNullDirParse(SwapDir * sd, int index, char *path)
+{
+    sd->index = index;
+    sd->path = xstrdup(path);
+    sd->statfs = storeNullDirStats;
+    sd->init = storeNullDirInit;
+    sd->checkobj = storeNullDirCheckObj;
+    sd->log.clean.start = storeNullDirWriteCleanStart;
+    sd->log.clean.done = storeNullDirWriteCleanDone;
+}
+
+/* Setup and register the store module */
+
+void
+storeFsSetup_null(storefs_entry_t * storefs)
+{
+    assert(!null_initialised);
+    storefs->parsefunc = storeNullDirParse;
+    storefs->reconfigurefunc = storeNullDirReconfigure;
+    storefs->donefunc = storeNullDirDone;
+    null_initialised = 1;
+}
+
