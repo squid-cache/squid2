@@ -377,7 +377,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     return 0;
 }
 
-void
+int
 protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr src_addr)
 {
     char *url = entry ? entry->url : NULL;
@@ -385,7 +385,7 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
     protocol_t proto = request ? request->protocol : PROTO_NONE;
     debug(17, 5, "protoUnregister FD %d '%s'\n", fd, url ? url : "NULL");
     if (proto == PROTO_CACHEOBJ)
-	return;
+	return 0;
     if (url)
 	redirectUnregister(url, fd);
     if (src_addr.s_addr != INADDR_NONE)
@@ -393,15 +393,16 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
     if (host)
 	ipcache_unregister(host, fd);
     if (entry == NULL)
-	return;
+	return 0;
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
-	return;
+	return 0;
     if (entry->mem_status != NOT_IN_MEMORY)
-	return;
+	return 0;
     if (entry->store_status != STORE_PENDING)
-	return;
+	return 0;
     protoCancelTimeout(fd, entry);
     squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
+    return 1;
 }
 
 void
