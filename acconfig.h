@@ -34,6 +34,20 @@
  */
 #undef CACHEMGR_HOSTNAME
 
+/*
+ * What default TCP port to use for HTTP listening?
+ */
+#ifndef CACHE_HTTP_PORT
+#undef CACHE_HTTP_PORT
+#endif
+
+/*
+ * What default UDP port to use for ICP listening?
+ */
+#ifndef CACHE_ICP_PORT
+#undef CACHE_ICP_PORT
+#endif
+
 /* Define to do simple malloc debugging */
 #undef XMALLOC_DEBUG
 

@@ -67,8 +67,8 @@ if test -z "$CACHE_ICP_PORT"; then
 fi
 
 dnl Subsitutions
-AC_SUBST(CACHE_HTTP_PORT)
-AC_SUBST(CACHE_ICP_PORT)
+AC_DEFINE_UNQUOTED(CACHE_HTTP_PORT, $CACHE_HTTP_PORT)
+AC_DEFINE_UNQUOTED(CACHE_ICP_PORT, $CACHE_ICP_PORT)
 
 AC_DEFINE_UNQUOTED(CONFIG_HOST_TYPE, "$host")
 
@@ -1016,7 +1016,6 @@ AC_CHECK_HEADERS( \
 	arpa/nameser.h \
 	assert.h \
 	bstring.h \
-	config.h \
 	crypt.h \
 	ctype.h \
 	errno.h \
@@ -2017,7 +2016,6 @@ dnl     src/repl/lru/Makefile \
 AC_OUTPUT([\
 	Makefile \
 	lib/Makefile \
-	include/config.h \
 	scripts/Makefile \
 	scripts/RunCache \
 	scripts/RunAccel \

@@ -128,14 +128,6 @@
 #endif
 #endif
 
-#if !defined(CACHE_HTTP_PORT)
-#define CACHE_HTTP_PORT @CACHE_HTTP_PORT@
-#endif
-
-#if !defined(CACHE_ICP_PORT)
-#define CACHE_ICP_PORT @CACHE_ICP_PORT@
-#endif
-
 #if !defined(CACHEMGR_HOSTNAME)
 #define CACHEMGR_HOSTNAME ""
 #endif

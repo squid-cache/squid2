@@ -7,7 +7,6 @@ AUTOMAKE_OPTIONS = dist-bzip2 subdir-objects VERSION=1.5
 DIST_SUBDIRS	= lib snmplib scripts src icons errors contrib
 SUBDIRS		= lib @makesnmplib@ scripts src icons errors
 
-EXTRA_DIST = include/config.h.in
 DISTCLEANFILES = include/stamp-h include/stamp-h[0-9]*
 
 dist-hook:
