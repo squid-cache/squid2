@@ -631,7 +631,7 @@ ftpReadData(int fd, void *data)
 	    BIT_SET(entry->flag, READ_DEFERRED);
 	}
 	/* dont try reading again for a while */
-	comm_set_stall(fd, Config.stallDelay);
+	comm_set_stall(fd, 1);
 	return;
     } else {
 	BIT_RESET(entry->flag, READ_DEFERRED);
