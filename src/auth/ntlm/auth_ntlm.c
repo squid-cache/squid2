@@ -481,7 +481,6 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 	debug(29, 2) ("AuthenticateNTLMHandleReply: invalid callback data. Releasing helper '%p'.\n", srv);
 	cbdataUnlock(r->data);
 	authenticateStateFree(r);
-	helperStatefulReleaseServer(srv);
 	return;
     }
     if (!reply) {
