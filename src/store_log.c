@@ -73,7 +73,7 @@ storeLog(int tag, const StoreEntry * e)
 	(int) reply->date,
 	(int) reply->last_modified,
 	(int) reply->expires,
-	strBuf(reply->content_type) ? strBuf(reply->content_type) : "unknown",
+	strLen(reply->content_type) ? strBuf(reply->content_type) : "unknown",
 	reply->content_length,
 	(int) (mem->inmem_hi - mem->reply->hdr_sz),
 	RequestMethodStr[mem->method],
