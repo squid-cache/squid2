@@ -242,6 +242,12 @@
 #undef IPF_TRANSPARENT
 
 /*
+ * Enable support for Transparent Proxy on systems using PF address
+ * redirection. This provides "masquerading" support for OpenBSD.
+ */
+#undef PF_TRANSPARENT
+
+/*
  * Enable code for assiting in finding memory leaks.  Hacker stuff only.
  */
 #undef USE_LEAKFINDER
