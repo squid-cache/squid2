@@ -198,6 +198,8 @@ request_t *urlParse(method, url)
     proto[0] = host[0] = urlpath[0] = login[0] = '\0';
 
     if (strlen(url) > MAX_URL) {
+	/* terminate so it doesn't overflow other buffers */
+	*(url+(MAX_URL>>1)) = '\0';
 	debug(23, 0, "urlParse: URL too large (%d bytes)\n", strlen(url));
 	return NULL;
     }
