@@ -3057,13 +3057,21 @@ clientReadRequest(int fd, void *data)
 		errorAppendEntry(http->entry, err);
 		safe_free(prefix);
 		break;
-	    } else {
-		/* compile headers */
-		/* we should skip request line! */
-		if (!httpRequestParseHeader(request, prefix + req_line_sz))
-		    debug(33, 1) ("Failed to parse request headers: %s\n%s\n",
-			http->uri, prefix);
-		/* continue anyway? */
+	    }
+	    /* compile headers */
+	    /* we should skip request line! */
+	    if (!httpRequestParseHeader(request, prefix + req_line_sz)) {
+		debug(33, 1) ("Failed to parse request headers: %s\n%s\n",
+		    http->uri, prefix);
+		err = errorCon(ERR_INVALID_URL, HTTP_BAD_REQUEST);
+		err->src_addr = conn->peer.sin_addr;
+		err->url = xstrdup(http->uri);
+		http->al.http.code = err->http_status;
+		http->log_type = LOG_TCP_DENIED;
+		http->entry = clientCreateStoreEntry(http, method, null_request_flags);
+		errorAppendEntry(http->entry, err);
+		safe_free(prefix);
+		break;
 	    }
 	    request->flags.accelerated = http->flags.accel;
 	    if (!http->flags.internal) {

@@ -416,6 +416,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr.buf);
 	httpState->reply_hdr_state += 2;
 	memBufClean(&httpState->reply_hdr);
+	httpBuildVersion(&reply->sline.version, 0, 9);
 	reply->sline.status = HTTP_INVALID_HEADER;
 	return;
     }
@@ -449,6 +450,11 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     /* Parse headers into reply structure */
     /* what happens if we fail to parse here? */
     httpReplyParse(reply, httpState->reply_hdr.buf, hdr_size);
+    if (reply->sline.status >= HTTP_INVALID_HEADER) {
+	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr.buf);
+	memBufClean(&httpState->reply_hdr);
+	return;
+    }
     storeTimestampsSet(entry);
     /* Check if object is cacheable or not based on reply code */
     debug(11, 3) ("httpProcessReplyHeader: HTTP CODE: %d\n", reply->sline.status);
@@ -662,6 +668,13 @@ httpReadReply(int fd, void *data)
 	    err->request = requestLink((request_t *) request);
 	    fwdFail(httpState->fwd, err);
 	    httpState->fwd->flags.dont_retry = 1;
+	} else if (entry->mem_obj->reply->sline.status == HTTP_INVALID_HEADER && !(entry->mem_obj->reply->sline.version.major == 0 && entry->mem_obj->reply->sline.version.minor == 9)) {
+	    ErrorState *err;
+	    storeEntryReset(entry);
+	    err = errorCon(ERR_INVALID_REQ, HTTP_BAD_GATEWAY);
+	    err->request = requestLink((request_t *) request);
+	    fwdFail(httpState->fwd, err);
+	    httpState->fwd->flags.dont_retry = 1;
 	} else {
 	    fwdComplete(httpState->fwd);
 	}
@@ -670,18 +683,29 @@ httpReadReply(int fd, void *data)
     } else {
 	if (httpState->reply_hdr_state < 2) {
 	    httpProcessReplyHeader(httpState, buf, len);
-	    if (entry->mem_obj->reply->sline.status == HTTP_HEADER_TOO_LARGE) {
-		ErrorState *err;
-		storeEntryReset(entry);
-		err = errorCon(ERR_TOO_BIG, HTTP_BAD_GATEWAY);
-		err->request = requestLink((request_t *) request);
-		fwdFail(httpState->fwd, err);
-		httpState->fwd->flags.dont_retry = 1;
-		comm_close(fd);
-		return;
-	    }
 	    if (httpState->reply_hdr_state == 2) {
 		http_status s = entry->mem_obj->reply->sline.status;
+		if (s == HTTP_HEADER_TOO_LARGE) {
+		    ErrorState *err;
+		    debug(11, 1) ("WARNING: %d:%s: HTTP header too large\n", __FILE__, __LINE__);
+		    storeEntryReset(entry);
+		    err = errorCon(ERR_TOO_BIG, HTTP_BAD_GATEWAY);
+		    err->request = requestLink((request_t *) request);
+		    fwdFail(httpState->fwd, err);
+		    httpState->fwd->flags.dont_retry = 1;
+		    comm_close(fd);
+		    return;
+		}
+		if (s == HTTP_INVALID_HEADER && !(entry->mem_obj->reply->sline.version.major == 0 && entry->mem_obj->reply->sline.version.minor == 9)) {
+		    ErrorState *err;
+		    storeEntryReset(entry);
+		    err = errorCon(ERR_INVALID_REQ, HTTP_BAD_GATEWAY);
+		    err->request = requestLink((request_t *) request);
+		    fwdFail(httpState->fwd, err);
+		    httpState->fwd->flags.dont_retry = 1;
+		    comm_close(fd);
+		    return;
+		}
 #if WIP_FWD_LOG
 		fwdStatus(httpState->fwd, s);
 #endif
