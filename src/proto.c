@@ -157,7 +157,7 @@ protoDispatchComplete(peer * p, void *data)
 }
 
 static void
-protoDispatchFail(peer * p, void *data)
+protoDispatchFail(peer * peernotused, void *data)
 {
     pctrl_t *pctrl = data;
     ErrorState *err;
@@ -174,7 +174,7 @@ protoDispatchFail(peer * p, void *data)
 /* PUBLIC FUNCTIONS */
 
 int
-protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr)
+protoUnregister(StoreEntry * entry, request_t * request)
 {
     const char *url = entry ? storeUrl(entry) : NULL;
     protocol_t proto = request ? request->protocol : PROTO_NONE;
@@ -291,7 +291,7 @@ protoAbortFetch(StoreEntry * entry)
 }
 
 int
-protoCheckDeferRead(int fd, void *data)
+protoCheckDeferRead(int fdnotused, void *data)
 {
     StoreEntry *e = data;
     MemObject *mem = e->mem_obj;

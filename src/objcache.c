@@ -310,7 +310,7 @@ objcacheStart(int fd, StoreEntry * entry)
 }
 
 static void
-cachemgrShutdown(StoreEntry * unused)
+cachemgrShutdown(StoreEntry * entryunused)
 {
     debug(16, 0) ("Shutdown by command.\n");
     shut_down(0);
@@ -356,7 +356,7 @@ void
 objcachePasswdDestroy(cachemgr_passwd ** a)
 {
     cachemgr_passwd *b;
-    cachemgr_passwd *n;
+    cachemgr_passwd *n = NULL;
     for (b = *a; b; b = n) {
 	n = b->next;
 	safe_free(b->passwd);

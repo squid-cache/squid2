@@ -66,7 +66,7 @@ eventDelete(EVH * func, void *arg)
 {
     struct ev_entry **E;
     struct ev_entry *event;
-    for (E = &tasks; (event = *E); E = &(*E)->next) {
+    for (E = &tasks; (event = *E) != NULL; E = &(*E)->next) {
 	if (event->func != func)
 	    continue;
 	if (event->arg != arg)

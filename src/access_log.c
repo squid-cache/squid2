@@ -102,7 +102,7 @@ log_quote(const char *header)
      * modulo the inclusion of space (x40) to make the raw logs a bit
      * more readable.
      */
-    while ((c = *(const unsigned char *) header++)) {
+    while ((c = *(const unsigned char *) header++) != '\0') {
 	if (c <= 0x1F
 	    || c >= 0x7F
 	    || c == '"'
@@ -126,7 +126,7 @@ log_quote(const char *header)
 	    *buf_cursor++ = c2x[i];
 	    *buf_cursor++ = c2x[i + 1];
 	} else {
-	    *buf_cursor++ = c;
+	    *buf_cursor++ = (char) c;
 	}
     }
     *buf_cursor = '\0';
@@ -297,5 +297,5 @@ hierarchyNote(HierarchyLogEntry * hl,
 void
 accessLogInit(void)
 {
-	assert(sizeof(log_tags) == (LOG_TYPE_MAX + 1) * sizeof(char *));
+    assert(sizeof(log_tags) == (LOG_TYPE_MAX + 1) * sizeof(char *));
 }

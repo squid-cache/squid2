@@ -125,7 +125,7 @@ static CNCB waisConnectDone;
 static STABH waisAbort;
 
 static void
-waisStateFree(int fd, void *data)
+waisStateFree(int fdnotused, void *data)
 {
     WaisStateData *waisState = data;
     if (waisState == NULL)
@@ -227,7 +227,7 @@ waisReadReply(int fd, void *data)
 /* This will be called when request write is complete. Schedule read of
  * reply. */
 static void
-waisSendComplete(int fd, char *buf, int size, int errflag, void *data)
+waisSendComplete(int fd, char *bufnotused, int size, int errflag, void *data)
 {
     WaisStateData *waisState = data;
     StoreEntry *entry = waisState->entry;

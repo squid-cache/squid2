@@ -235,7 +235,7 @@ urlParse(method_t method, char *url)
     for (t = host; *t; t++)
 	*t = tolower(*t);
     /* remove trailing dots from hostnames */
-    while ((l = strlen(host)) && host[--l] == '.')
+    while ((l = strlen(host)) > 0 && host[--l] == '.')
 	host[l] = '\0';
     if (Config.appendDomain && !strchr(host, '.'))
 	strncat(host, Config.appendDomain, SQUIDHOSTNAMELEN);

@@ -44,7 +44,7 @@ mcastSetTtl(int fd, int mcast_ttl)
 }
 
 void
-mcastJoinGroups(const ipcache_addrs * ia, void *data)
+mcastJoinGroups(const ipcache_addrs * ia, void *datanotused)
 {
 #ifdef IP_MULTICAST_TTL
     int fd = theInIcpConnection;

@@ -48,16 +48,18 @@
 #endif /* HAVE_NDIR_H */
 #endif /* HAVE_DIRENT_H */
 
-static int rev_int_sort(const int *, const int *);
+static QS rev_int_sort;
 
 static int
-rev_int_sort(const int *i1, const int *i2)
+rev_int_sort(const void *A, const void *B)
 {
+    const int *i1 = A;
+    const int *i2 = B;
     return *i2 - *i1;
 }
 
 void
-storeDirClean(void *unused)
+storeDirClean(void *datanotused)
 {
     static int swap_index = 0;
     DIR *dp = NULL;
@@ -85,7 +87,7 @@ storeDirClean(void *unused)
 	safeunlink(p1, 1);
 	return;
     }
-    while ((de = readdir(dp)) && k < 20) {
+    while ((de = readdir(dp)) != NULL && k < 20) {
 	if (sscanf(de->d_name, "%X", &swapfileno) != 1)
 	    continue;
 	if (storeDirMapBitTest(swapfileno))
@@ -96,7 +98,7 @@ storeDirClean(void *unused)
     swap_index++;
     if (k == 0)
 	return;
-    qsort(files, k, sizeof(int), (QS *) rev_int_sort);
+    qsort(files, k, sizeof(int), rev_int_sort);
     if (k > 10)
 	k = 10;
     for (n = 0; n < k; n++) {

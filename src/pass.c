@@ -85,7 +85,7 @@ passClientClosed(int fd, void *data)
     debug(39, 3) ("passClientClosed: FD %d\n", fd);
     /* we have been called from comm_close for the client side, so
      * just need to clean up the server side */
-    protoUnregister(NULL, passState->request, no_addr);
+    protoUnregister(NULL, passState->request);
     comm_close(passState->server.fd);
 }
 
@@ -288,14 +288,14 @@ passWriteClient(int fd, void *data)
 }
 
 static void
-passErrorComplete(int fd, void *passState, int size)
+passErrorComplete(int fdnotused, void *passState, int sizenotused)
 {
     assert(passState != NULL);
     passClose(passState);
 }
 
 static void
-passConnectDone(int fd, int status, void *data)
+passConnectDone(int fdnotused, int status, void *data)
 {
     PassStateData *passState = data;
     request_t *request = passState->request;
@@ -434,7 +434,7 @@ passPeerSelectComplete(peer * p, void *data)
 }
 
 static void
-passPeerSelectFail(peer * p, void *data)
+passPeerSelectFail(peer * pnotused, void *data)
 {
     PassStateData *passState = data;
     ErrorState *err;

@@ -167,7 +167,6 @@ static void
 file_open_complete(void *data, int fd, int errcode)
 {
     open_ctrl_t *ctrlp = (open_ctrl_t *) data;
-    fde *F;
     if (fd < 0) {
 	errno = errcode;
 	debug(50, 0) ("file_open: error opening file %s: %s\n", ctrlp->path,
@@ -181,7 +180,6 @@ file_open_complete(void *data, int fd, int errcode)
     debug(6, 5) ("file_open: FD %d\n", fd);
     commSetCloseOnExec(fd);
     fd_open(fd, FD_FILE, ctrlp->path);
-    F = &fd_table[fd];
     if (ctrlp->callback)
 	(ctrlp->callback) (ctrlp->callback_data, fd);
     xfree(ctrlp->path);
@@ -215,7 +213,7 @@ file_close(int fd)
 
 /* write handler */
 static void
-diskHandleWrite(int fd, void *unused)
+diskHandleWrite(int fd, void *notused)
 {
     int len = 0;
     disk_ctrl_t *ctrlp;

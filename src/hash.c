@@ -171,36 +171,33 @@ hash4(const void *data, unsigned int size)
 
     h = 0;
     len = strlen(key);
-    if (len > 0) {
-	loop = (len + 8 - 1) >> 3;
-
-	switch (len & (8 - 1)) {
-	case 0:
-	    do {
-		HASH4;
-		/* FALLTHROUGH */
-	case 7:
-		HASH4;
-		/* FALLTHROUGH */
-	case 6:
-		HASH4;
-		/* FALLTHROUGH */
-	case 5:
-		HASH4;
-		/* FALLTHROUGH */
-	case 4:
-		HASH4;
-		/* FALLTHROUGH */
-	case 3:
-		HASH4;
-		/* FALLTHROUGH */
-	case 2:
-		HASH4;
-		/* FALLTHROUGH */
-	case 1:
-		HASH4;
-	    } while (--loop);
-	}
+    loop = (len + 8 - 1) >> 3;
+    switch (len & (8 - 1)) {
+    case 0:
+	do {
+	    HASH4;
+	    /* FALLTHROUGH */
+    case 7:
+	    HASH4;
+	    /* FALLTHROUGH */
+    case 6:
+	    HASH4;
+	    /* FALLTHROUGH */
+    case 5:
+	    HASH4;
+	    /* FALLTHROUGH */
+    case 4:
+	    HASH4;
+	    /* FALLTHROUGH */
+    case 3:
+	    HASH4;
+	    /* FALLTHROUGH */
+    case 2:
+	    HASH4;
+	    /* FALLTHROUGH */
+    case 1:
+	    HASH4;
+	} while (--loop);
     }
     return h % size;
 }
