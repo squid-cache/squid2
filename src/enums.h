@@ -513,6 +513,23 @@ enum {
 #endif
 };
 
+/*
+ * These are for client Streams. Each node in the stream can be queried for
+ * its status
+ */
+typedef enum {
+    STREAM_NONE,		/* No particular status */
+    STREAM_COMPLETE,		/* All data has been flushed, no more reads allowed */
+    STREAM_UNPLANNED_COMPLETE,	/* an unpredicted end has occured, no more
+				 * reads occured, but no need to tell 
+				 * downstream that an error occured
+				 */
+    STREAM_FAILED		/* An error has occured in this node or an above one,
+				 * and the node is not generating an error body / it's 
+				 * midstream
+				 */
+} clientStream_status_t;
+
 typedef enum {
     ACCESS_DENIED,
     ACCESS_ALLOWED,

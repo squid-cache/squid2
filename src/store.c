@@ -1039,6 +1039,18 @@ storeKeepInMemory(const StoreEntry * e)
     return mem->inmem_lo == 0;
 }
 
+int
+storeCheckNegativeHit(StoreEntry * e)
+{
+    if (!EBIT_TEST(e->flags, ENTRY_NEGCACHED))
+	return 0;
+    if (e->expires <= squid_curtime)
+	return 0;
+    if (e->store_status != STORE_OK)
+	return 0;
+    return 1;
+}
+
 void
 storeNegativeCache(StoreEntry * e)
 {

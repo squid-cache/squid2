@@ -263,6 +263,7 @@ void *
 memReallocBuf(void *oldbuf, size_t net_size, size_t * gross_size)
 {
     /* XXX This can be optimized on very large buffers to use realloc() */
+    /* TODO: if the existing gross size is >= new gross size, do nothing */
     int new_gross_size;
     void *newbuf = memAllocBuf(net_size, &new_gross_size);
     if (oldbuf) {
