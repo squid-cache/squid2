@@ -106,8 +106,6 @@
 
 #include "squid.h"
 
-static int hash_unlink(hash_table *, hash_link *, int);
-
 #if UNUSED_CODE
 /*
  *  hash_url() - Returns a well-distributed hash function for URLs.
@@ -222,29 +220,6 @@ hash_create(HASHCMP * cmp_func, int hash_sz, HASHHASH * hash_func)
 }
 
 /*
- *  hash_insert - inserts the given item 'item' under the given key 'k'
- *  into the hash table 'hid'.  Returns non-zero on error; otherwise,
- *  returns 0 and inserts the item.
- *
- *  It does not copy any data into the hash table, only pointers.
- */
-void
-hash_insert(hash_table * hid, const char *k, void *item)
-{
-    int i;
-    hash_link *new;
-    assert(k != NULL);
-    /* Add to the given hash table 'hid' */
-    new = xcalloc(1, sizeof(hash_link));
-    new->item = item;
-    new->key = (char *) k;
-    ++hash_links_allocated;
-    i = hid->hash(k, hid->size);
-    new->next = hid->buckets[i];
-    hid->buckets[i] = new;
-}
-
-/*
  *  hash_join - joins a hash_link under its key lnk->key
  *  into the hash table 'hid'.  
  *
@@ -257,6 +232,7 @@ hash_join(hash_table * hid, hash_link * lnk)
     i = hid->hash(lnk->key, hid->size);
     lnk->next = hid->buckets[i];
     hid->buckets[i] = lnk;
+    hid->count++;
 }
 
 /*
@@ -264,7 +240,7 @@ hash_join(hash_table * hid, hash_link * lnk)
  *  'hid'.  Returns a pointer to the hash bucket on success; otherwise
  *  returns NULL.
  */
-hash_link *
+void *
 hash_lookup(hash_table * hid, const void *k)
 {
     hash_link *walker;
@@ -283,7 +259,7 @@ hash_lookup(hash_table * hid, const void *k)
  *  hash_first - returns the first item in the hash table 'hid'.
  *  Otherwise, returns NULL on error.
  */
-hash_link *
+void *
 hash_first(hash_table * hid)
 {
     int i;
@@ -302,7 +278,7 @@ hash_first(hash_table * hid)
  *
  *  MUST call hash_first() before hash_next().
  */
-hash_link *
+void *
 hash_next(hash_table * hid)
 {
     int i;
@@ -321,26 +297,20 @@ hash_next(hash_table * hid)
     return NULL;		/* end of list */
 }
 
-int
-hash_delete(hash_table * hid, const char *key)
-{
-    return hash_delete_link(hid, hash_lookup(hid, key));
-}
-
 /*
- *  hash_delete_link - deletes the given hash_link node from the 
- *  hash table 'hid'. If FreeLink then free the given hash_link.
+ *  hash_remove_link - deletes the given hash_link node from the 
+ *  hash table 'hid'.  Does not free the item, only removes it
+ *  from the list.
  *
  *  On success, it returns 0 and deletes the link; otherwise, 
  *  returns non-zero on error.
  */
-static int
-hash_unlink(hash_table * hid, hash_link * hl, int FreeLink)
+int
+hash_remove_link(hash_table * hid, hash_link * hl)
 {
     hash_link *walker, *prev;
     int i;
-    if (hl == NULL)
-	return -1;
+    assert(hl != NULL);
     i = hid->hash(hl->key, hid->size);
     for (prev = NULL, walker = hid->buckets[i];
 	walker != NULL; prev = walker, walker = walker->next) {
@@ -353,28 +323,11 @@ hash_unlink(hash_table * hid, hash_link * hl, int FreeLink)
 	    /* fix walker state if needed */
 	    if (walker == hid->current_ptr)
 		hid->current_ptr = walker->next;
-	    if (FreeLink) {
-		safe_free(walker);
-		--hash_links_allocated;
-	    }
+	    hid->count--;
 	    return 0;
 	}
     }
     return 1;
-}
-
-/* take link off and free link node */
-int
-hash_delete_link(hash_table * hid, hash_link * hl)
-{
-    return (hash_unlink(hid, hl, 1));
-}
-
-/* take link off only */
-int
-hash_remove_link(hash_table * hid, hash_link * hl)
-{
-    return (hash_unlink(hid, hl, 0));
 }
 
 /*
@@ -389,6 +342,24 @@ hash_get_bucket(hash_table * hid, unsigned int bucket)
     return (hid->buckets[bucket]);
 }
 
+void
+hashFreeItems(hash_table * hid, FREE * free_func)
+{
+    hash_link *l;
+    hash_link **list;
+    int i = 0;
+    int j;
+    list = xcalloc(hid->count, sizeof(hash_link *));
+    l = hash_first(hid);
+    while (l && i < hid->count) {
+	*(list + i) = l;
+	i++;
+	l = hash_next(hid);
+    }
+    for (j = 0; j < i; j++)
+	free_func(*(list + j));
+    xfree(list);
+}
 
 void
 hashFreeMemory(hash_table * hid)
