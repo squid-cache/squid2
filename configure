@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.27 
+# From configure.in Revision: 1.18.2.28 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2306,19 +2306,19 @@ cat > conftest.$ac_ext <<EOF
 #include <stdio.h>
 int main() { return 0; }
 int t() {
-extern char *sys_errlist[];
+char *s = sys_errlist[0];
 ; return 0; }
 EOF
 if eval $ac_compile; then
   rm -rf conftest*
-  cat >> confdefs.h <<\EOF
+  echo "$ac_t""yes" 1>&6
+else
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+cat >> confdefs.h <<\EOF
 #define NEED_SYS_ERRLIST 1
 EOF
 
-echo "$ac_t""no" 1>&6
-else
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
 fi
 rm -f conftest*
 

@@ -393,10 +393,10 @@ AC_DEFINE_UNQUOTED(SQUID_TCP_SO_RCVBUF, $SQUID_TCP_SO_RCVBUF)
 
 AC_MSG_CHECKING(if sys_errlist[] is already defined)
 AC_TRY_COMPILE([#include <stdio.h>],
-[extern char *sys_errlist[];],
-[AC_DEFINE(NEED_SYS_ERRLIST)
-AC_MSG_RESULT(no)],
-AC_MSG_RESULT(yes))
+[char *s = sys_errlist[0];],
+AC_MSG_RESULT(yes),
+[AC_MSG_RESULT(no)
+AC_DEFINE(NEED_SYS_ERRLIST)])
 
 dnl Need the debugging version of malloc if available
 XTRA_OBJS=''
