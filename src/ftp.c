@@ -481,7 +481,7 @@ ftpListParseParts(const char *buf, struct _ftp_flags flags)
 	tokens[n_tokens++] = xstrdup(t);
     xfree(xbuf);
     /* locate the Month field */
-    for (i = 3; i < n_tokens - 3; i++) {
+    for (i = 3; i < n_tokens - 2; i++) {
 	if (!is_month(tokens[i]))	/* Month */
 	    continue;
 	if (!sscanf(tokens[i - 1], SCAN_FTP1, sbuf))	/* Size */
