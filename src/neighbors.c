@@ -107,7 +107,7 @@
 
 static int edgeWouldBePinged _PARAMS((edge *, request_t *));
 static void neighborRemove _PARAMS((edge *));
-static edge *whichEdge _PARAMS((struct sockaddr_in *from));
+static edge *whichEdge _PARAMS((struct sockaddr_in * from));
 static void neighborAlive _PARAMS((edge *, MemObject *, icp_common_t *));
 
 static neighbors *friends = NULL;

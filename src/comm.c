@@ -580,19 +580,6 @@ comm_udp_sendto(int fd, struct sockaddr_in *to_addr, int addr_len, char *buf, in
     return bytes_sent;
 }
 
-int
-comm_udp_recv(int fd, char *buf, int size, struct sockaddr_in *from_addr, int *from_size)
-{
-    int len = recvfrom(fd, buf, size, 0, (struct sockaddr *) from_addr,
-	from_size);
-    if (len < 0) {
-	debug(5, 1, "comm_udp_recv: recvfrom failure: FD %d: %s\n", fd,
-	    xstrerror());
-	return COMM_ERROR;
-    }
-    return len;
-}
-
 void
 comm_set_stall(int fd, int delta)
 {

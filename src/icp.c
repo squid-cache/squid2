@@ -1414,9 +1414,16 @@ icpHandleUdp(int sock, void *not_used)
     commSetSelect(sock, COMM_SELECT_READ, icpHandleUdp, NULL, 0);
     from_len = sizeof(from);
     memset(&from, 0, from_len);
-    len = comm_udp_recv(sock, buf, SQUID_UDP_SO_RCVBUF - 1, &from, &from_len);
+    len = recvfrom(sock, buf, SQUID_UDP_SO_RCVBUF - 1, 0, &from, &from_len);
     if (len < 0) {
-	debug(12, 1, "icpHandleUdp: FD %d: error receiving.\n", sock);
+#ifdef _SQUID_LINUX_
+	/* Some Linux systems seem to set the FD for reading and then
+	 * return ECONNREFUSED when sendto() fails and generates an ICMP
+	 * port unreachable message. */
+	if (errno != ECONNREFUSED)
+#endif
+	    debug(12, 1, "icpHandleUdp: FD %d recvfrom: %s\n",
+		sock, xstrerror());
 	return;
     }
     buf[len] = '\0';

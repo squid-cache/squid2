@@ -196,7 +196,6 @@ extern void comm_add_close_handler _PARAMS((int fd, PF, void *));
 extern void comm_remove_close_handler _PARAMS((int fd, PF, void *));
 extern int comm_set_mcast_ttl _PARAMS((int, int));
 extern int comm_join_mcast_groups _PARAMS((int));
-extern int comm_udp_recv _PARAMS((int, char *, int, struct sockaddr_in *, int *));
 extern int comm_udp_send _PARAMS((int fd, char *host, u_short port, char *buf, int len));
 extern int comm_udp_sendto _PARAMS((int fd, struct sockaddr_in *, int size, char *buf, int len));
 extern int fd_of_first_client _PARAMS((StoreEntry *));
