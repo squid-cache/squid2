@@ -764,12 +764,6 @@ storeRelease(StoreEntry * e)
 	storeReleaseRequest(e);
 	return;
     }
-#if USE_ASYNC_IO
-    /*
-     * Make sure all forgotten async ops are cancelled
-     */
-    aioCancel(-1, e);
-#else
     if (store_rebuilding) {
 	debug(20, 2) ("storeRelease: Delaying release until store is rebuilt: '%s'\n",
 	    storeUrl(e));
@@ -778,6 +772,11 @@ storeRelease(StoreEntry * e)
 	e->flags.release_request = 1;
 	return;
     }
+#if USE_ASYNC_IO
+    /*
+     * Make sure all forgotten async ops are cancelled
+     */
+    aioCancel(-1, e);
 #endif
     storeLog(STORE_LOG_RELEASE, e);
     if (e->swap_file_number > -1) {
