@@ -175,6 +175,11 @@ rusage_cputime(struct rusage *r)
 	(double) r->ru_utime.tv_usec / 1000000.0;
 }
 
+/* Hack for some HP-UX preprocessors */
+#ifndef HAVE_GETPAGESIZE
+#define HAVE_GETPAGESIZE 0
+#endif
+
 int
 rusage_maxrss(struct rusage *r)
 {
@@ -186,7 +191,7 @@ rusage_maxrss(struct rusage *r)
     return r->ru_maxrss;
 #elif defined(BSD4_4)
     return r->ru_maxrss;
-#elif defined(HAVE_GETPAGESIZE) && HAVE_GETPAGESIZE != 0
+#elif HAVE_GETPAGESIZE
     return (r->ru_maxrss * getpagesize()) >> 10;
 #elif defined(PAGESIZE)
     return (r->ru_maxrss * PAGESIZE) >> 10;
