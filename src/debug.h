@@ -8,11 +8,13 @@ extern int _db_line;
 extern int syslog_enable;
 extern FILE *debug_log;
 
-void _db_init _PARAMS((char *logfile));
+extern void _db_init _PARAMS((char *logfile));
+extern void _db_rotate_log _PARAMS((void));
+
 #if defined(__STRICT_ANSI__)
-void _db_print _PARAMS((int, int, char *,...));
+extern void _db_print _PARAMS((int, int, char *,...));
 #else
-void _db_print();
+extern void _db_print();
 #endif
 
 
@@ -24,7 +26,5 @@ void _db_print();
         _db_print
 
 #define safe_free(x)	if (x) { xxfree(x); x = NULL; }
-
-extern void _db_rotate_log _PARAMS((void));
 
 #endif /* _DEBUG_H_ */
