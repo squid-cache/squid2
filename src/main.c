@@ -829,6 +829,7 @@ watch_child(char *argv[])
 #endif
     pid_t pid;
     int i;
+    int nullfd;
     if (*(argv[0]) == '(')
 	return;
     openlog(appname, LOG_PID | LOG_NDELAY | LOG_CONS, LOG_LOCAL4);
@@ -845,7 +846,15 @@ watch_child(char *argv[])
 	close(i);
     }
 #endif
-    for (i = 0; i < Squid_MaxFD; i++)
+    /* Connect stdio to /dev/null in daemon mode */
+    nullfd = open("/dev/null", O_RDWR);
+    dup2(nullfd, 0);
+    if (opt_debug_stderr < 0) {
+	dup2(nullfd, 1);
+	dup2(nullfd, 2);
+    }
+    /* Close all else */
+    for (i = 3; i < Squid_MaxFD; i++)
 	close(i);
     for (;;) {
 	mainStartScript(argv[0]);
