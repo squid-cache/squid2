@@ -128,6 +128,9 @@
 #if HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
+#if HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 
 #if HAVE_ARPA_NAMESER_H
 #include <arpa/nameser.h>
