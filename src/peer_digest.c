@@ -327,7 +327,7 @@ peerDigestRequest(PeerDigest * pd)
     debug(72, 3) ("peerDigestRequest: forwarding to fwdStart...\n");
     fwdStart(-1, e, req);
     tempBuffer.offset = 0;
-    tempBuffer.length =  SM_PAGE_SIZE;
+    tempBuffer.length = SM_PAGE_SIZE;
     tempBuffer.data = fetch->buf;
     storeClientCopy(fetch->sc, e, tempBuffer,
 	peerDigestHandleReply, fetch);
