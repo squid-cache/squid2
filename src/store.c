@@ -97,9 +97,6 @@ static EVH storeLateRelease;
 #else
 static dlink_list inmem_list;
 #endif
-static int store_pages_max = 0;
-static int store_swap_high = 0;
-static int store_swap_low = 0;
 static Stack LateReleaseStack;
 
 #if URL_CHECKSUM_DEBUG
