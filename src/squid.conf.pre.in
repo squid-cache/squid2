@@ -708,3 +708,4 @@ announce_organization	Your Organization
 
 #debug_options
 #pid_filename
+#visible_hostname

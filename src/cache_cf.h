@@ -49,6 +49,7 @@ extern char *getFtpProgram _PARAMS((void));
 extern char *getHierarchyLogFile _PARAMS((void));
 extern char *getWaisRelayHost _PARAMS((void));
 extern char *getPidFilename _PARAMS((void));
+extern char *getVisibleHostname _PARAMS((void));
 extern double getCacheHotVmFactor _PARAMS((void));
 extern int getAccelWithProxy _PARAMS((void));
 extern int getAsciiPortNum _PARAMS((void));
