@@ -23,9 +23,6 @@ int maintenanceView = 0;
 
 static int linenumber = 0;
 
-/* XXX: create function: */
-#define xstrdup		strdup
-
 /* fwd: */
 /* from usec.c: */
 extern void v2md5auth_password_to_key();
@@ -292,6 +289,7 @@ read_config()
     /* comes from snmpd.c: */
 #ifdef READ_OLD_STYLE_CONFIG
     extern char *snmp_configfile;
+    char *t;
 
     if (snmp_configfile == NULL)
 	fatal("snmp.c : read_config() with a NULL snmp_configfile!\n");
@@ -322,12 +320,14 @@ read_config()
 	}
     }
 #endif
-    tokenize(xstrdup("view $$INTERNAL$$ .1.3.6.1.6.3.6.1 included"),
-	tokens, 10);
+    t = xstrdup("view $$INTERNAL$$ .1.3.6.1.6.3.6.1 included");
+    tokenize(t, tokens, 10);
     maintenanceView = create_view(tokens);
-    tokenize(xstrdup("view $$INTERNAL$$ .1.3.6.1.6.3.1.1.1 included")
-	,tokens, 10);
+    xfree(t);
+    t = xstrdup("view $$INTERNAL$$ .1.3.6.1.6.3.1.1.1 included");
+    tokenize(t ,tokens, 10);
     create_view(tokens);
+    xfree(t);
 #ifdef READ_OLD_STYLE_CONFIG
     fclose(f);
 #endif

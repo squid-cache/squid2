@@ -395,6 +395,7 @@ requestUnlink(request_t * request)
     if (request->link_count)
 	return;
     safe_free(request->headers);
+    safe_free(request->body);
     put_free_request_t(request);
 }
 
