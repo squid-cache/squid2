@@ -187,7 +187,11 @@ do_write(diomsg * r, int len, const char *buf)
 static int
 do_unlink(diomsg * r, int len, const char *buf)
 {
+#if USE_TRUNCATE
     if (truncate(buf, 0) < 0) {
+#else
+    if (unlink(buf) < 0) {
+#endif
 	fprintf(stderr, "%d UNLNK id %d %s: ", (int) mypid, r->id, buf);
 	perror("truncate");
 	return -errno;
