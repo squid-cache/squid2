@@ -2882,10 +2882,11 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 }
 
 static int
-clientReadDefer(int fdnotused, void *data)
+clientReadDefer(int fd, void *data)
 {
+    fde *F = &fd_table[fd];
     ConnStateData *conn = data;
-    if (conn->body.size_left)
+    if (conn->body.size_left && !F->flags.socket_eof)
 	return conn->in.offset >= conn->in.size - 1;
     else
 	return conn->defer.until > squid_curtime;
