@@ -211,8 +211,7 @@ int ipcache_release(i)
 	    if (result->addr_count)
 		for (k = 0; k < (int) result->addr_count; k++)
 		    safe_free(result->entry.h_addr_list[k]);
-	    if (result->entry.h_addr_list)
-		safe_free(result->entry.h_addr_list);
+	    safe_free(result->entry.h_addr_list);
 	    if (result->alias_count)
 		for (k = 0; k < (int) result->alias_count; k++)
 		    safe_free(result->entry.h_aliases[k]);
@@ -658,7 +657,7 @@ int ipcache_parsebuffer(buf, offset, dnsData)
 		    if (ipcount == 0) {
 			i->entry.h_addr_list = NULL;
 		    } else {
-			i->entry.h_addr_list = xcalloc(ipcount, sizeof(char *));
+			i->entry.h_addr_list = xcalloc(ipcount+1, sizeof(char *));
 		    }
 
 		    /* get ip addresses */
@@ -1060,49 +1059,25 @@ struct hostent *ipcache_gethostbyname(name)
      char *name;
 {
     ipcache_entry *result = NULL;
-    unsigned int ip;
-    struct hostent *s_result = NULL;
+    struct hostent *hp = NULL;
 
     if (!name)
 	fatal_dump("ipcache_gethostbyname: NULL name");
-    IpcacheStats.requests++;
-    if (!(result = ipcache_get(name))) {
-	/* cache miss */
-	debug(14, 5, "ipcache_gethostbyname: IPcache miss for '%s'.\n", name);
-	IpcacheStats.misses++;
-	/* check if it's already a IP address in text form. */
-	if ((ip = inet_addr(name)) != INADDR_NONE) {
-	    *((unsigned long *) (void *) static_result->h_addr_list[0]) = ip;
-	    strncpy(static_result->h_name, name, MAX_HOST_NAME);
-	    return static_result;
-	} else {
-	    IpcacheStats.ghbn_calls++;
-	    s_result = gethostbyname(name);
-	}
-
-	if (s_result && s_result->h_name && (s_result->h_name[0] != '\0')) {
-	    /* good address, cached */
-	    debug(14, 10, "ipcache_gethostbyname: DNS success: cache for '%s'.\n", name);
-	    ipcache_add(name, ipcache_create(), s_result, 1);
-	    result = ipcache_get(name);
-	    return &(result->entry);
-	} else {
-	    /* bad address, negative cached */
-	    debug(14, 3, "ipcache_gethostbyname: DNS failure: negative cache for '%s'.\n", name);
-	    ipcache_add(name, ipcache_create(), s_result, 0);
-	    return NULL;
-	}
-
+    if ((hp = ipcache_getcached(name, 0)))
+	return hp;
+    IpcacheStats.ghbn_calls++;
+    hp = gethostbyname(name);
+    if (hp && hp->h_name && (hp->h_name[0] != '\0')) {
+	/* good address, cached */
+	debug(14, 10, "ipcache_gethostbyname: DNS success: cache for '%s'.\n", name);
+	ipcache_add(name, ipcache_create(), hp, 1);
+	result = ipcache_get(name);
+	return &result->entry;
     }
-    if (result->status != CACHED) {
-	IpcacheStats.pendings++;
-	debug(14, 5, "ipcache_gethostbyname: PENDING for '%s'\n", name);
-	return NULL;
-    }
-    debug(14, 5, "ipcache_gethostbyname: HIT for '%s'\n", name);
-    IpcacheStats.hits++;
-    result->lastref = squid_curtime;
-    return &result->entry;
+    /* bad address, negative cached */
+    debug(14, 3, "ipcache_gethostbyname: DNS failure: negative cache for '%s'.\n", name);
+    ipcache_add(name, ipcache_create(), hp, 0);
+    return NULL;
 }
 
 struct hostent *ipcache_getcached(name, lookup_if_miss)
