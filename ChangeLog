@@ -9,6 +9,10 @@ Changes to squid-1.1.9 (March 25, 1997):
 	- Fixed situation where all requests would be handled by
 	  "single parent" and other peers would never be queried
 	  again.
+	- Fixed ftpget bug causing program to continue after printing
+	  usage.
+	- Changed 'reference_age' to be the maximum for the dynamcially
+	  computed value (Mark Treacy).
  	- Added external 'unlinkd' process to unlink swap files.
 	- Added more dnsserver status information to cachemgr output.
 	- In httpReadReply: extend FD lifetime only after successful
