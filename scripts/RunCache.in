@@ -16,9 +16,9 @@ fi
 
 failcount=0
 while : ; do
-	echo "Running: squid -s $conf >> $logdir/squid.out 2>&1"
+	echo "Running: squid -sY $conf >> $logdir/squid.out 2>&1"
 	start=`date '+%d%H%M%S'`
-	squid -s $conf >> $logdir/squid.out 2>&1
+	squid -sY $conf >> $logdir/squid.out 2>&1
 	stop=`date '+%d%H%M%S'`
 	t=`expr $stop - $start`
 	if test 0 -le $t -a $t -lt 5 ; then
