@@ -427,11 +427,23 @@ httpReadReply(int fd, void *data)
 	     * we want to process the reply headers.
 	     */
 	    httpProcessReplyHeader(httpState, buf, len);
+#ifdef PPNR_WIP
+	storePPNR(entry);
+#endif /* PPNR_WIP */
 	storeComplete(entry);	/* deallocates mem_obj->request */
 	comm_close(fd);
     } else {
+#ifndef PPNR_WIP
 	if (httpState->reply_hdr_state < 2)
+#else
+	if (httpState->reply_hdr_state < 2) {
+#endif /* PPNR_WIP */
 	    httpProcessReplyHeader(httpState, buf, len);
+#ifdef PPNR_WIP
+	    if (httpState->reply_hdr_state == 2)
+	        storePPNR(entry);
+	}
+#endif /* PPNR_WIP */
 	storeAppend(entry, buf, len);
 #ifdef OPTIMISTIC_IO
 	if (entry->store_status == STORE_ABORTED) {

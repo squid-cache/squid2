@@ -172,6 +172,10 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
     size_t sz;
     if (sc->flags.copy_event_pending)
 	return;
+#ifdef PPNR_WIP
+    if (EBIT_TEST(e->flag, ENTRY_FWD_HDR_WAIT))
+	return;
+#endif /* PPNR_WIP */
     if (sc->flags.store_copying) {
 	sc->flags.copy_event_pending = 1;
 	debug(20, 3) ("storeClientCopy2: Queueing storeClientCopyEvent()\n");

@@ -404,6 +404,9 @@ fwdCheckDeferRead(int fdnotused, void *data)
 void
 fwdFail(FwdState * fwdState, int err_code, http_status http_code, int xerrno)
 {
+#ifdef PPNR_WIP
+    assert(EBIT_TEST(fwdState->entry->flag, ENTRY_FWD_HDR_WAIT));
+#endif /* PPNR_WIP */
     debug(17, 3) ("fwdFail: %s \"%s\"\n\t%s\n",
 	err_type_str[err_code],
 	httpStatusString(http_code),

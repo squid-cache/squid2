@@ -731,6 +731,9 @@ extern StoreEntry *storeGet(const cache_key *);
 extern StoreEntry *storeCreateEntry(const char *, const char *, int, method_t);
 extern void storeSetPublicKey(StoreEntry *);
 extern void storeComplete(StoreEntry *);
+#ifdef PPNR_WIP
+extern void storePPNR(StoreEntry *);
+#endif /* PPNR_WIP */
 extern void storeInit(void);
 extern int storeClientWaiting(const StoreEntry *);
 extern void storeAbort(StoreEntry *, int);
