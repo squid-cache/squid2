@@ -553,13 +553,13 @@ peerHtcpParentMiss(peer * p, htcpReplyData * htcp, ps_state * ps)
 #endif
 
 static void
-peerHandlePingReply(peer * p, peer_t type, protocol_t proto, void *ping_data, void *data)
+peerHandlePingReply(peer * p, peer_t type, protocol_t proto, void *pingdata, void *data)
 {
     if (proto == PROTO_ICP)
-	peerHandleIcpReply(p, type, ping_data, data);
+	peerHandleIcpReply(p, type, pingdata, data);
 #if USE_HTCP
     else if (proto == PROTO_HTCP)
-	peerHandleHtcpReply(p, type, ping_data, data);
+	peerHandleHtcpReply(p, type, pingdata, data);
 #endif
     else
 	debug(44, 1) ("peerHandlePingReply: unknown protocol_t %d\n", (int) proto);

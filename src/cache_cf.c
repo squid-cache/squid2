@@ -416,35 +416,35 @@ parseBytesUnits(const char *unit)
  *****************************************************************************/
 
 static void
-dump_acl(StoreEntry * entry, const char *name, acl * acl)
+dump_acl(StoreEntry * entry, const char *name, acl * ae)
 {
     wordlist *w;
     wordlist *v;
-    while (acl != NULL) {
-	v = w = aclDumpGeneric(acl);
+    while (ae != NULL) {
+	v = w = aclDumpGeneric(ae);
 	while (v != NULL) {
 	    storeAppendPrintf(entry, "%s %s %s %s\n",
 		name,
-		acl->name,
-		aclTypeToStr(acl->type),
+		ae->name,
+		aclTypeToStr(ae->type),
 		v->key);
 	    v = v->next;
 	}
 	wordlistDestroy(&w);
-	acl = acl->next;
+	ae = ae->next;
     }
 }
 
 static void
-parse_acl(acl ** acl)
+parse_acl(acl ** ae)
 {
-    aclParseAclLine(acl);
+    aclParseAclLine(ae);
 }
 
 static void
-free_acl(acl ** acl)
+free_acl(acl ** ae)
 {
-    aclDestroyAcls(acl);
+    aclDestroyAcls(ae);
 }
 
 #if SQUID_SNMP
