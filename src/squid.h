@@ -373,7 +373,7 @@ struct rusage {
 /*
  * Mac OS X Server already has radix.h as a standard header, so
  * this causes conflicts.
-*/
+ */
 #ifndef _SQUID_APPLE_
 #include "radix.h"
 #endif
