@@ -429,7 +429,7 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
 	    }
 
 	    /* skip one line */
-	    pos = (char *) memchr(pos, '\n', 256);
+	    pos = (char *) memchr(pos, '\n', len);
 	    if (pos)
 		pos++;
 
@@ -457,7 +457,7 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
 	    }
 
 	    /* skip one line */
-	    pos = (char *) memchr(pos, '\n', 256);
+	    pos = (char *) memchr(pos, '\n', len);
 	    if (pos)
 		pos++;
 
