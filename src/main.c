@@ -600,7 +600,7 @@ mainInitialize(void)
 	eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 1);
 	eventAdd("storeDirClean", storeDirClean, NULL, 15);
 	if (Config.Announce.on)
-	    eventAdd("send_announce", send_announce, NULL, 3600);
+	    eventAdd("start_announce", start_announce, NULL, 3600);
 	eventAdd("ipcache_purgelru", (EVH) ipcache_purgelru, NULL, 10);
 	eventAdd("peerUpdateFudge", peerUpdateFudge, NULL, 10);
     }

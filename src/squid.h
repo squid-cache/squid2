@@ -347,7 +347,7 @@ extern char ThisCache[];	/* main.c */
 #define  CONNECT_PORT        443
 
 extern int objcacheStart _PARAMS((int, const char *, StoreEntry *));
-extern void send_announce _PARAMS((void *unused));
+extern void start_announce _PARAMS((void *unused));
 extern int sslStart _PARAMS((int fd, const char *, request_t *, char *, int *sz));
 extern const char *storeToString _PARAMS((const StoreEntry *));
 extern int waisStart _PARAMS((int, const char *, method_t, char *, StoreEntry *));
