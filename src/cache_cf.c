@@ -74,8 +74,12 @@ static struct {
 	char *file;
 	int rate;
     } Announce;
-    struct in_addr bind_addr;
-    struct in_addr outbound_addr;
+    struct {
+        struct in_addr tcp_incoming;
+        struct in_addr tcp_outgoing;
+        struct in_addr udp_incoming;
+        struct in_addr udp_outgoing;
+    } Addrs;
     wordlist *cache_dirs;
     wordlist *http_stoplist;
     wordlist *gopher_stoplist;
@@ -151,8 +155,10 @@ static struct {
 #define DefaultAnnouncePort	3131
 #define DefaultAnnounceFile	(char *)NULL	/* default NONE */
 #define DefaultAnnounceRate	0	/* Default off */
-#define DefaultBindAddr		SQUID_INADDR_NONE
-#define DefaultOutboundAddr	SQUID_INADDR_NONE
+#define DefaultTcpIncomingAddr	INADDR_ANY
+#define DefaultTcpOutgoingAddr	SQUID_INADDR_NONE
+#define DefaultUdpIncomingAddr	INADDR_ANY
+#define DefaultUdpOutgoingAddr	SQUID_INADDR_NONE
 
 ip_acl *local_ip_list = NULL;
 
@@ -893,27 +899,20 @@ static void parseAppendDomainLine()
     Config.appendDomain = xstrdup(token);
 }
 
-static void parseBindAddressLine()
+static void parseAddressLine(addr)
+    struct in_addr *addr;
 {
     char *token;
+    struct hostent *hp = NULL;
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    debug(3, 1, "parseBindAddressLine: %s\n", token);
-    Config.bind_addr.s_addr = inet_addr(token);
-    if (Config.bind_addr.s_addr == SQUID_INADDR_NONE)
-	self_destruct();
-}
-
-static void parseOutboundAddressLine()
-{
-    char *token;
-    token = strtok(NULL, w_space);
-    if (token == NULL)
-	self_destruct();
-    debug(3, 1, "parseOutboundAddressLine: %s\n", token);
-    Config.outbound_addr.s_addr = inet_addr(token);
-    if (Config.outbound_addr.s_addr == SQUID_INADDR_NONE)
+    debug(3, 1, "parseAddressLine: %s\n", token);
+    if (inet_addr(token) != SQUID_INADDR_NONE)
+        (*addr).s_addr = inet_addr(token);
+    else if ((hp = gethostbyname(token)))
+	memcpy(addr, hp->h_addr, hp->h_length);
+    else
 	self_destruct();
 }
 
@@ -1321,13 +1320,23 @@ int parseConfigFile(file_name)
 	else if (!strcmp(token, "local_domain"))
 	    parseLocalDomainLine();
 
-	/* Parse a bind_address line */
-	else if (!strcmp(token, "bind_address"))
-	    parseBindAddressLine();
+	else if (!strcmp(token, "tcp_incoming_address"))
+	    parseAddressLine(&Config.Addrs.tcp_incoming);
 
-	/* Parse a bind_address line */
+	else if (!strcmp(token, "tcp_outgoing_address"))
+	    parseAddressLine(&Config.Addrs.tcp_outgoing);
+
+	else if (!strcmp(token, "udp_incoming_address"))
+	    parseAddressLine(&Config.Addrs.udp_incoming);
+
+	else if (!strcmp(token, "udp_outgoing_address"))
+	    parseAddressLine(&Config.Addrs.udp_outgoing);
+
+	else if (!strcmp(token, "bind_address"))
+	    parseAddressLine(&Config.Addrs.tcp_incoming);
+
 	else if (!strcmp(token, "outbound_address"))
-	    parseOutboundAddressLine();
+	    parseAddressLine(&Config.Addrs.tcp_outgoing);
 
 	/* Parse a http_port line */
 	else if (!strcmp(token, "http_port") || !strcmp(token, "ascii_port"))
@@ -1665,14 +1674,10 @@ wordlist *getDnsTestnameList()
 {
     return Config.dns_testname_list;
 }
-struct in_addr getBindAddr()
-{
-    return Config.bind_addr;
-}
-struct in_addr getOutboundAddr()
-{
-    return Config.outbound_addr;
-}
+struct in_addr getTcpIncomingAddr() { return Config.Addrs.tcp_incoming; }
+struct in_addr getTcpOutgoingAddr() { return Config.Addrs.tcp_outgoing; }
+struct in_addr getUdpIncomingAddr() { return Config.Addrs.udp_incoming; }
+struct in_addr getUdpOutgoingAddr() { return Config.Addrs.udp_outgoing; }
 
 u_short setHttpPortNum(port)
      u_short port;
@@ -1790,8 +1795,10 @@ static void configSetFactoryDefaults()
     Config.Announce.port = DefaultAnnouncePort;
     Config.Announce.file = safe_xstrdup(DefaultAnnounceFile);
     Config.Announce.rate = DefaultAnnounceRate;
-    Config.bind_addr.s_addr = DefaultBindAddr;
-    Config.outbound_addr.s_addr = DefaultOutboundAddr;
+    Config.Addrs.tcp_outgoing.s_addr = DefaultTcpOutgoingAddr;
+    Config.Addrs.tcp_incoming.s_addr = DefaultTcpIncomingAddr;
+    Config.Addrs.udp_outgoing.s_addr = DefaultUdpOutgoingAddr;
+    Config.Addrs.udp_incoming.s_addr = DefaultUdpIncomingAddr;
 }
 
 static void configDoConfigure()

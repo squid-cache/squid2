@@ -61,7 +61,7 @@ void send_announce()
     qdata->address.sin_port = htons(port);
     memcpy(&qdata->address.sin_addr, hp->h_addr_list[0], hp->h_length);
     AppendUdp(qdata);
-    comm_set_select_handler(theIcpConnection,
+    comm_set_select_handler(theOutIcpConnection,
 	COMM_SELECT_WRITE,
 	(PF) icpUdpReply,
 	(void *) qdata);

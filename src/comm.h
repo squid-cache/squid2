@@ -92,6 +92,7 @@ extern void comm_set_stall _PARAMS((int, int));
 extern int comm_get_fd_timeout _PARAMS((int fd));
 extern void comm_read _PARAMS((int fd, char *buf, int size, int timeout, int immed, rw_complete_handler * handler, void *handler_data));
 extern void comm_write _PARAMS((int fd, char *buf, int size, int timeout, rw_complete_handler * handler, void *handler_data));
+extern int commBind _PARAMS((int fd, struct in_addr addr, u_short port));
 
 extern int RESERVED_FD;
 

@@ -15,23 +15,32 @@
 #	May be overridden with -u on the command line.
 #icp_port @CACHE_ICP_PORT@
 
-#  TAG: bind_address
-#	Use this to force the cache to listen on a specific IP address
-#	(interface) instead of listening on all addresses.  Either
-#	an IP address or hostname can be given.  For example:
+#  TAG: tcp_incoming_address
+#  TAG: tcp_outgoing_address
+#  TAG: udp_incoming_address
+#  TAG: udp_outgoing_address
 #
-#	    bind_address 172.16.1.1
-#	    bind_address localhost
-#	    bind_address www-slip.my.domain
-tcp_incoming_address 0.0.0.0
-tcp_outgoing_address 0.0.0.0
-udp_incoming_address 0.0.0.0
-udp_outgoing_address 0.0.0.0
-
-#  TAG: outbound_address
-#	Use this to force outgoing/client sockets to bind to a specific
-#	IP address (interface) instead of the default.
-#outbound_address 10.0.0.1
+#	Usage: tcp_incoming_address 10.20.30.40
+#	       udp_outgoing_address fully.qualified.domain.name
+#
+#	These tags have replaced 'bind_address' and 'outbound_address'
+#	to provide more control for multihomed hosts.
+#
+#	tcp_incoming_address	is used for the HTTP socket which accepts
+#				connections from clients and other caches.
+#	tcp_outgoing_address	is used for connections made to remote
+#				servers and other caches.
+#	udp_incoming_address	is used for the ICP socket receiving packets
+#				from other caches.
+#	udp_outgoing_address	is used for ICP packets sent out to other
+#				caches.
+#
+#	The defaults behaviour is to not bind to any specific address.
+#
+#tcp_incoming_address 0.0.0.0
+#tcp_outgoing_address 0.0.0.0
+#udp_incoming_address 0.0.0.0
+#udp_outgoing_address 0.0.0.0
 
 
 # OPTIONS WHICH AFFECT THE NEIGHBOR SELECTION ALGORITHM

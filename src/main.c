@@ -7,7 +7,8 @@
 time_t squid_starttime = 0;
 time_t next_cleaning = 0;
 int theHttpConnection = -1;
-int theIcpConnection = -1;
+int theInIcpConnection = -1;
+int theOutIcpConnection = -1;
 int do_reuse = 1;
 int opt_unlink_on_reload = 0;
 int opt_reload_hit_only = 0;	/* only UDP_HIT during store relaod */
@@ -123,15 +124,18 @@ static void mainParseOptions(argc, argv)
 
 void serverConnectionsOpen()
 {
+    struct in_addr addr;
+    u_short port;
     /* Get our real priviliges */
-    enter_suid();
 
     /* Open server ports */
+    enter_suid();
     theHttpConnection = comm_open(COMM_NONBLOCKING,
 	getHttpPortNum(),
 	"HTTP Port");
+    leave_suid();
     if (theHttpConnection < 0) {
-	fatal("Cannot open http Port");
+	fatal("Cannot open HTTP Port");
     }
     fd_note(theHttpConnection, "HTTP socket");
     comm_listen(theHttpConnection);
@@ -139,27 +143,39 @@ void serverConnectionsOpen()
 	COMM_SELECT_READ,
 	asciiHandleConn,
 	0);
-    debug(1, 1, "Accepting HTTP (ASCII) connections on FD %d.\n",
+    debug(1, 1, "Accepting HTTP connections on FD %d.\n",
 	theHttpConnection);
 
     if (!httpd_accel_mode || getAccelWithProxy()) {
-	if (getIcpPortNum() > 0) {
-	    theIcpConnection = comm_open(COMM_NONBLOCKING | COMM_DGRAM,
-		getIcpPortNum(),
-		"Ping Port");
-	    if (theIcpConnection < 0)
-		fatal("Cannot open UDP Port");
-	    fd_note(theIcpConnection, "ICP (UDP) socket");
-	    comm_set_select_handler(theIcpConnection,
+	if ((port = getIcpPortNum()) > 0) {
+	    theInIcpConnection = comm_open(COMM_NONBLOCKING | COMM_DGRAM,
+		port,
+		"ICP Port");
+	    if (theInIcpConnection < 0)
+		fatal("Cannot open ICP Port");
+	    fd_note(theInIcpConnection, "Incoming ICP socket");
+	    comm_set_select_handler(theInIcpConnection,
 		COMM_SELECT_READ,
 		icpHandleUdp,
 		0);
-	    debug(1, 1, "Accepting ICP (UDP) connections on FD %d.\n",
-		theIcpConnection);
+	    debug(1, 1, "Accepting ICP connections on FD %d.\n",
+		theInIcpConnection);
+	    if ((addr = getUdpIncomingAddr()).s_addr != SQUID_INADDR_NONE)
+		commBind(theInIcpConnection, addr, port);
+	    if ((addr = getUdpOutgoingAddr()).s_addr != SQUID_INADDR_NONE) {
+		theOutIcpConnection = comm_open(COMM_NONBLOCKING | COMM_DGRAM,
+		    port,
+		    "ICP Port");
+		if (theOutIcpConnection < 0)
+		    fatal("Cannot open Outgoing ICP Port");
+		commBind(theOutIcpConnection, addr, port);
+	    } else {
+		theOutIcpConnection = dup(theInIcpConnection);
+		fdstat_open(theOutIcpConnection, Socket);
+	    }
+	    fd_note(theOutIcpConnection, "Outgoing ICP socket");
 	}
     }
-    /* And restore our priviliges to normal */
-    leave_suid();
 }
 
 void serverConnectionsClose()
@@ -174,17 +190,15 @@ void serverConnectionsClose()
 	    0);
 	theHttpConnection = -1;
     }
-    if (theIcpConnection >= 0) {
+    if (theInIcpConnection >= 0) {
 	debug(21, 1, "FD %d Closing ICP connection\n",
-	    theIcpConnection);
-	/* Dont actually close it, just disable the read handler */
-	/* so we can still transmit while shutdown pending */
-	/* comm_close(theIcpConnection); */
-	comm_set_select_handler(theIcpConnection,
+	    theInIcpConnection);
+	comm_close(theInIcpConnection);
+	comm_set_select_handler(theInIcpConnection,
 	    COMM_SELECT_READ,
 	    NULL,
 	    0);
-	/* theIcpConnection = -1; */
+	theInIcpConnection = -1;
     }
 }
 
@@ -200,8 +214,8 @@ static void mainReinitialize()
     ipcacheOpenServers();
     serverConnectionsOpen();
     (void) ftpInitialize();
-    if (theIcpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
-	neighbors_open(theIcpConnection);
+    if (theOutIcpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
+	neighbors_open(theOutIcpConnection);
     debug(1, 0, "Ready to serve requests.\n");
 }
 
@@ -269,8 +283,8 @@ static void mainInitialize()
 	do_mallinfo = 1;
     }
     serverConnectionsOpen();
-    if (theIcpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
-	neighbors_open(theIcpConnection);
+    if (theOutIcpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
+	neighbors_open(theOutIcpConnection);
 
     signal(SIGUSR1, rotate_logs);
     signal(SIGUSR2, sigusr2_handle);
@@ -384,9 +398,9 @@ int main(argc, argv)
 	    break;
 	case COMM_SHUTDOWN:
 	    /* delayed close so we can transmit while shutdown pending */
-	    if (theIcpConnection > 0) {
-		comm_close(theIcpConnection);
-		theIcpConnection = -1;
+	    if (theOutIcpConnection > 0) {
+		comm_close(theOutIcpConnection);
+		theOutIcpConnection = -1;
 	    }
 	    if (shutdown_pending) {
 		normal_shutdown();

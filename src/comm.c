@@ -37,7 +37,6 @@ static int commSetReuseAddr _PARAMS((int));
 static int examine_select _PARAMS((fd_set *, fd_set *, fd_set *));
 static int commSetNoLinger _PARAMS((int));
 static void comm_select_incoming _PARAMS((void));
-static int commTryBind _PARAMS((int fd, u_short port));
 
 static int *fd_lifetime = NULL;
 static struct timeval zero_tv;
@@ -67,7 +66,7 @@ u_short comm_local_port(fd)
     return fd_table[fd].local_port;
 }
 
-static int commBind(s, in_addr, port)
+int commBind(s, in_addr, port)
      int s;
      struct in_addr in_addr;
      u_short port;
@@ -137,24 +136,6 @@ int comm_open_unix(note)
     return new_socket;
 }
 
-static int commTryBind(fd, port)
-     int fd;
-     u_short port;
-{
-    struct in_addr in_addr;
-    if (port == 0) {
-	in_addr = getOutboundAddr();
-	if (in_addr.s_addr != SQUID_INADDR_NONE)
-	    return commBind(fd, in_addr, port);
-    }
-    in_addr = getBindAddr();
-    if (in_addr.s_addr != SQUID_INADDR_NONE)
-	return commBind(fd, in_addr, port);
-    if (port == 0)
-	return COMM_OK;
-    return commBind(fd, wildcard_addr, port);
-}
-
 /* Create a socket. Default is blocking, stream (TCP) socket.  IO_TYPE
  * is OR of flags specified in comm.h. */
 int comm_open(io_type, port, note)
@@ -164,6 +145,7 @@ int comm_open(io_type, port, note)
 {
     int new_socket;
     FD_ENTRY *conn = NULL;
+    struct in_addr addr;
     int sock_type = io_type & COMM_DGRAM ? SOCK_DGRAM : SOCK_STREAM;
 
     /* Create socket for accepting new connections. */
@@ -199,12 +181,15 @@ int comm_open(io_type, port, note)
 	    debug(5, 0, "comm_open: failed to turn off SO_LINGER: %s\n",
 		xstrerror());
 	}
-	if (do_reuse) {
+	if (do_reuse)
 	    commSetReuseAddr(new_socket);
-	}
     }
-    if (commTryBind(new_socket, port) != COMM_OK)
-	return COMM_ERROR;
+    addr.s_addr = SQUID_INADDR_NONE;
+    if (sock_type == SOCK_STREAM)
+	addr = port ? getTcpIncomingAddr() : getTcpOutgoingAddr();
+    if (addr.s_addr != SQUID_INADDR_NONE)
+	if (commBind(new_socket, addr, port) != COMM_OK)
+	    return COMM_ERROR;
     conn->local_port = port;
 
     if (io_type & COMM_NONBLOCKING) {
@@ -606,8 +591,8 @@ static void comm_select_incoming()
 
     if (theHttpConnection >= 0 && fdstat_are_n_free_fd(RESERVED_FD))
 	fds[N++] = theHttpConnection;
-    if (theIcpConnection >= 0)
-	fds[N++] = theIcpConnection;
+    if (theInIcpConnection >= 0)
+	fds[N++] = theInIcpConnection;
     fds[N++] = 0;
 
     for (i = 0; i < N; i++) {
@@ -752,7 +737,7 @@ int comm_select(sec, failtime)
 	     */
 	    comm_select_incoming();
 
-	    if ((fd == theIcpConnection) || (fd == theHttpConnection))
+	    if ((fd == theInIcpConnection) || (fd == theHttpConnection))
 		continue;
 
 	    if (FD_ISSET(fd, &readfds)) {

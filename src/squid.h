@@ -203,7 +203,8 @@ extern time_t next_cleaning;	/* main.c */
 extern int catch_signals;	/* main.c */
 extern int do_reuse;		/* main.c */
 extern int theHttpConnection;	/* main.c */
-extern int theIcpConnection;	/* main.c */
+extern int theInIcpConnection;	/* main.c */
+extern int theOutIcpConnection;	/* main.c */
 extern int shutdown_pending;	/* main.c */
 extern int reread_pending;	/* main.c */
 extern int opt_unlink_on_reload;	/* main.c */
