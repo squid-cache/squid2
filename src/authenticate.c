@@ -51,11 +51,13 @@ authenticateHandleReply(void *data, char *reply)
     authenticateStateData *r = data;
     int valid;
     char *t = NULL;
-    debug(29, 5) ("authenticateHandleReply: {%s}\n", reply);
-    if ((t = strchr(reply, ' ')))
-	*t = '\0';
-    if (*reply == '\0')
-	reply = NULL;
+    debug(29, 5) ("authenticateHandleReply: {%s}\n", reply ? reply : "<NULL>");
+    if (reply) {
+	if ((t = strchr(reply, ' ')))
+	    *t = '\0';
+	if (*reply == '\0')
+	    reply = NULL;
+    }
     valid = cbdataValid(r->data);
     cbdataUnlock(r->data);
     if (valid)
