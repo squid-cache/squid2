@@ -4,6 +4,8 @@ typedef struct _net_db {
     struct _net_db *next;
     char network[16];
     int n;
+    int pings_sent;
+    int pings_recv;
     double hops;
     double rtt;
     time_t next_ping_time;
@@ -20,3 +22,4 @@ extern void netdbHandlePingReply _PARAMS((struct sockaddr_in * from, int hops, i
 extern void netdbPingSite _PARAMS((char *hostname));
 extern void netdbInit _PARAMS((void));
 extern void netdbDump _PARAMS((StoreEntry *));
+extern int netdbHops _PARAMS((struct in_addr));

@@ -249,6 +249,7 @@ struct SquidConfig {
 	int high;
     } ipcache;
     int maxHotvmObjSize;
+    int minDirectHops;
 };
 
 extern struct SquidConfig Config;

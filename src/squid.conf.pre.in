@@ -898,3 +898,9 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	If you disable this, it will appear as
 #		Forwarded: by http://foo.org:3128/
 #forwarded_for on
+
+
+#  TAG: minimum_direct_hops
+#	If using the ICMP pinging stuff, do direct fetches for sites
+#	which are no more than this many hops away.
+minimum_direct_hops 4
