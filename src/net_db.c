@@ -48,6 +48,7 @@ static void netdbPurgeLRU _PARAMS((void));
 static net_db_peer *netdbPeerByName _PARAMS((const netdbEntry * n, const char *));
 static net_db_peer *netdbPeerAdd _PARAMS((netdbEntry * n, peer * e));
 static char *netdbPeerName _PARAMS((const char *name));
+static netdbEntry *netdbAdd _PARAMS((struct in_addr addr));
 
 /* We have to keep a local list of peer names.  The Peers structure
  * gets freed during a reconfigure.  We want this database to
@@ -96,7 +97,7 @@ netdbHostInsert(netdbEntry * n, const char *hostname)
 }
 
 static void
-netdbHostDelete(const net_db_name *x)
+netdbHostDelete(const net_db_name * x)
 {
     net_db_name **X;
     netdbEntry *n;
@@ -117,7 +118,7 @@ netdbHostDelete(const net_db_name *x)
     hash_remove_link(host_table, (hash_link *) x);
     meta_data.netdb_hosts--;
     xfree(x->name);
-    xfree((void *)x);
+    xfree((void *) x);
 }
 
 static netdbEntry *
@@ -213,7 +214,7 @@ netdbLookupAddr(struct in_addr addr)
 }
 
 static netdbEntry *
-netdbAdd(struct in_addr addr, const char *hostname)
+netdbAdd(struct in_addr addr)
 {
     netdbEntry *n;
     if (meta_data.netdb_addrs > Config.Netdb.high)
@@ -234,38 +235,34 @@ netdbSendPing(int fdunused, const ipcache_addrs * ia, void *data)
     netdbEntry *na;
     net_db_name *x;
     net_db_name **X;
-    int i;
     if (ia == NULL) {
 	xfree(hostname);
 	return;
     }
     addr = ia->in_addrs[ia->cur];
     if ((n = netdbLookupHost(hostname)) == NULL) {
-	n = netdbAdd(addr, hostname);
-        netdbHostInsert(n, hostname);
+	n = netdbAdd(addr);
+	netdbHostInsert(n, hostname);
     } else if ((na = netdbLookupAddr(addr)) != n) {
 	/*
 	 * hostname moved from 'network n' to 'network na'!
 	 */
 	if (na == NULL)
-	    na = netdbAdd(addr, hostname);
+	    na = netdbAdd(addr);
 	debug(37, 3, "netdbSendPing: NOTE: %s moved from %s to %s\n",
 	    hostname, n->network, na->network);
 	x = (net_db_name *) hash_lookup(host_table, hostname);
 	if (x == NULL)
 	    fatal_dump("netdbSendPing: net_db_name list bug");
 	/* remove net_db_name from 'network n' linked list */
-i = 0;
-        for (X = &n->hosts; *X; X = &(*X)->next) {
-    	    if (*X == x) {
-    	        *X = x->next;
+	for (X = &n->hosts; *X; X = &(*X)->next) {
+	    if (*X == x) {
+		*X = x->next;
 		break;
 	    }
-	    i++;
-if (i > n->link_count) fatal_dump("i > n->link_count");
-        }
+	}
 	n->link_count--;
-	/* assign 'network na' */
+	/* point to 'network na' from host entry */
 	x->net_db_entry = na;
 	/* link net_db_name to 'network na' */
 	x->next = na->hosts;
