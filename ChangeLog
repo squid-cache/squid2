@@ -48,6 +48,8 @@ Changes to Squid-2.1 ():
 	  users. REQUIRED == any (same as ident ACL). ACL type user
 	  changed to ident since this is what it really is.
 	  (Henrik Nordstrom).
+	- Fixed long URL bugs; make sure 'log_uri' never exceeds
+	  MAX_URL bytes.
 
 Changes to Squid-2.0 (October 2, 1998):
 
