@@ -94,7 +94,7 @@ pumpInit(int fd, request_t * r, char *uri)
     p->request_entry = storeCreateEntry(new_key, new_key, flags, r->method);
     storeClientListAdd(p->request_entry, p);
 #if DELAY_POOLS
-    delaySetStoreClient(p->request_entry, p, r->delay_id);
+    delaySetStoreClient(p->request_entry, p, delayClient(r));
 #endif
     /*
      * initialize data structure

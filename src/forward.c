@@ -453,14 +453,14 @@ fwdStart(int fd, StoreEntry * e, request_t * r, struct in_addr client_addr,
 }
 
 int
-fwdCheckDeferRead(int fdnotused, void *data)
+fwdCheckDeferRead(int fd, void *data)
 {
     StoreEntry *e = data;
     MemObject *mem = e->mem_obj;
     if (mem == NULL)
 	return 0;
 #if DELAY_POOLS
-    if (delayMostBytesWanted(mem, 1) == 0)
+    if (!delayIsNoDelay(fd) && delayMostBytesWanted(mem, 1) == 0)
 	return 1;
 #endif
     if (mem->inmem_hi - storeLowestMemReaderOffset(e) < READ_AHEAD_GAP)

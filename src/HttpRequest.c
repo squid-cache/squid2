@@ -44,9 +44,6 @@ requestCreate(method_t method, protocol_t protocol, const char *urlpath)
     if (urlpath)
 	stringReset(&req->urlpath, urlpath);
     req->max_forwards = -1;
-#if DELAY_POOLS
-    req->delay_id = 0;
-#endif
     httpHeaderInit(&req->header, hoRequest);
     return req;
 }
