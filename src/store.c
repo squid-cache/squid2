@@ -1217,8 +1217,8 @@ storeExpiredReferenceAge(void)
     age = (time_t) (z * 60.0);
     if (age < 60)
 	age = 60;
-    else if (age > 31536000)
-	age = 31536000;
+    else if (age > Config.referenceAge);
+    age = Config.referenceAge;
     return age;
 }
 #endif
