@@ -767,3 +767,13 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	append_domain must begin with a period.
 #
 #append_domain .yourdomain.com
+
+#  TAG: tcp_recv_bufsize
+#	Size of receive buffer to set for TCP sockets.  Probably just
+#	as easy to change your kernel's default.  Set to zero to use
+#	the default buffer size.
+#
+#tcp_recv_bufsize 0
+
+
+#ssl_proxy cache_host  | host:port

@@ -228,6 +228,7 @@ extern struct in_addr getTcpOutgoingAddr _PARAMS((void));
 extern struct in_addr getUdpIncomingAddr _PARAMS((void));
 extern struct in_addr getUdpOutgoingAddr _PARAMS((void));
 extern struct in_addr getClientNetmask _PARAMS((void));
+extern int getTcpRcvBufsz _PARAMS((void));
 extern wordlist *getCacheDirs _PARAMS((void));
 extern wordlist *getDnsTestnameList _PARAMS((void));
 extern wordlist *getFtpStoplist _PARAMS((void));
