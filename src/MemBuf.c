@@ -260,7 +260,7 @@ memBufGrow(MemBuf * mb, mb_size_t min_cap)
 	mb->freefunc = &xfree;
     } else {
 	assert(mb->freefunc);
-	mb->buf = realloc(mb->buf, new_cap);
+	mb->buf = xrealloc(mb->buf, new_cap);
     }
     memset(mb->buf + mb->size, 0, new_cap - mb->size);	/* just in case */
     mb->capacity = new_cap;
