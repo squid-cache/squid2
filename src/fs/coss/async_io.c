@@ -240,7 +240,13 @@ a_file_syncqueue(async_queue_t *q)
 {
 	assert(q->aq_state == AQ_STATE_SETUP);
 
-	/* Good point? :-) */
+	/*
+	 * Keep calling callback to complete ops until the queue is empty
+	 * We can't quit when callback returns 0 - some calls may not
+	 * return any completed pending events, but they're still pending!
+	 */
+	while (q->aq_numpending)
+		a_file_callback(q);
 }
 
 
