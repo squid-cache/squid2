@@ -373,7 +373,7 @@ storeCossReadDone(int fd, const char *buf, int len, int errflag, void *my_data)
     void *their_data = sio->read.callback_data;
     SwapDir *SD = INDEXSD(sio->swap_dirn);
     CossState *cstate = (CossState *) sio->fsstate;
-    size_t rlen;
+    ssize_t rlen;
 
     debug(79, 3) ("storeCossReadDone: fileno %d, FD %d, len %d\n",
 	sio->swap_filen, fd, len);
