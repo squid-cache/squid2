@@ -582,10 +582,16 @@ httpSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 	return;
     } else {
 	/* Schedule read reply. */
-	commSetSelect(fd,
-	    COMM_SELECT_READ,
-	    httpReadReply,
-	    httpState, 0);
+	commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
+	/*
+	 * Set the read timeout here because it hasn't been set yet.
+	 * We only set the read timeout after the request has been
+	 * fully written to the server-side.  If we start the timeout
+	 * after connection establishment, then we are likely to hit
+	 * the timeout for POST/PUT requests that have very large
+	 * request bodies.
+	 */
+	commSetTimeout(fd, Config.Timeout.read, httpTimeout, httpState);
 	commSetDefer(fd, fwdCheckDeferRead, entry);
     }
 }
@@ -915,7 +921,11 @@ httpConnectDone(int fd, int status, void *data)
 	comm_close(fd);
     } else {
 	commSetSelect(fd, COMM_SELECT_WRITE, httpSendRequest, httpState, 0);
-	commSetTimeout(fd, Config.Timeout.read, httpTimeout, httpState);
+	/*
+	 * We used to set the read timeout here, but not any more.
+	 * Now its set in httpSendComplete() after the full request,
+	 * including request body, has been written to the server.
+	 */
     }
 }
 
