@@ -233,11 +233,14 @@ AC_CHECK_FUNCS(\
 	regexec \
 	regfree \
 	seteuid \
+	setpgrp \
 	setresuid \
 	setrlimit \
+	setsid \
 	strdup \
 	sysconf \
 	syslog \
+	tempnam \
 	timegm \
 )
 

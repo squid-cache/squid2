@@ -64,11 +64,17 @@
 /* Define if you have the seteuid function.  */
 #undef HAVE_SETEUID
 
+/* Define if you have the setpgrp function.  */
+#undef HAVE_SETPGRP
+
 /* Define if you have the setresuid function.  */
 #undef HAVE_SETRESUID
 
 /* Define if you have the setrlimit function.  */
 #undef HAVE_SETRLIMIT
+
+/* Define if you have the setsid function.  */
+#undef HAVE_SETSID
 
 /* Define if you have the strdup function.  */
 #undef HAVE_STRDUP
@@ -78,6 +84,9 @@
 
 /* Define if you have the syslog function.  */
 #undef HAVE_SYSLOG
+
+/* Define if you have the tempnam function.  */
+#undef HAVE_TEMPNAM
 
 /* Define if you have the timegm function.  */
 #undef HAVE_TIMEGM
