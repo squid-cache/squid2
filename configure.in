@@ -211,6 +211,14 @@ AC_ARG_ENABLE(xmalloc_statistics,
   fi
 ])
 
+AC_ARG_ENABLE(carp,
+[  --enable-carp           Enable CARP support],
+[ if test "$enableval" = "yes" ; then
+    echo "CARP support enabled"
+    AC_DEFINE(USE_CARP)
+  fi
+])
+
 AC_ARG_ENABLE(async_io,
 [  --enable-async-io       Do ASYNC disk I/O using threads],
 [ if test "$enableval" = "yes" ; then

@@ -117,6 +117,11 @@
  */
 #undef USE_CACHE_DIGESTS
 
+/*
+ * Cache Array Routing Protocol
+ */
+#undef USE_CARP
+
 /********************************
  *  END OF CONFIGURABLE OPTIONS *
  ********************************/
