@@ -1128,21 +1128,21 @@ DOC_END
 NAME: quick_abort_min
 COMMENT: (KB)
 TYPE: kb_size_t
-DEFAULT: -1 kb
+DEFAULT: 16 KB
 LOC: Config.quickAbort.min
 DOC_NONE
 
 NAME: quick_abort_max
 COMMENT: (KB)
 TYPE: kb_size_t
-DEFAULT: 0 kb
+DEFAULT: 16 kb
 LOC: Config.quickAbort.max
 DOC_NONE
 
 NAME: quick_abort_pct
 COMMENT: (percent)
 TYPE: int
-DEFAULT: 0
+DEFAULT: 95
 LOC: Config.quickAbort.pct
 DOC_START
 	The cache can be configured to continue downloading aborted
@@ -1165,9 +1165,9 @@ DOC_START
 	If more than 'quick_abort_pct' of the transfer has completed,
 	it will finish the retrieval.
 
-quick_abort_min -1 KB
-quick_abort_max 0 KB
-quick_abort_pct 0
+quick_abort_min 16 KB
+quick_abort_max 16 KB
+quick_abort_pct 95
 DOC_END
 
 
