@@ -1,3 +1,17 @@
+	- Not obeying 'maximum_object_size'.  All objects were cached.
+	- Fixed poor handling of "disk full" write errors:
+	- We were only calling storeMaintainSwapSpace() once per
+	  second.  We now call it every time through the select loop if
+	  over the high-water mark.
+	- Changed storeRelease() to unlink files if over the high-water
+	  mark (instead of putting them on the unused fileno stack).
+	- Changed diskHandleWrite() NOT flush the pending write data on
+	  ENOSPC.
+	- We weren't accounting for data written to disk, but still in
+	  the STORE_PENDING state.
+	- Upon "disk full" error, now lower the 'cache_swap' value to
+	  90% of the current cache size.
+
 Changes to squid-1.NOVM.10 (April 25, 1997):
 
 	- Fixed bug where TCP_REFRESH_MISS + PARENT_UDP_HIT_OBJ
