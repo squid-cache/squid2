@@ -137,7 +137,8 @@ typedef struct _meta_data_stat {
     int mem_data_count;
     int ipcache_count;
     int fqdncache_count;
-    int netdb;
+    int netdb_addrs;
+    int netdb_hosts;
     int url_strings;
     int misc;
 } Meta_data;
