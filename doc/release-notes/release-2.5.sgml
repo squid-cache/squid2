@@ -117,6 +117,8 @@ for Applied Network Research and members of the Web Caching community.
 <tag>reference_age</tag>This has been removed - starting with Squid-2.4 this directive have had no effect and has now been fully removed to avoid confusion.
 <tag>siteselect_timeout</tag>This has been removed - it is not referenced anywhere in the source code.
 <tag>minimum_retry_timeout</tag>This has been removed - it is not referenced anywhere in the source code.
+<tag>short_icon_urls</tag>New directive to enable an alternative way of referring to icons in FTP directory listings etc.
+<tag>acl urllogin</tag>New acl type to match the login component of Internet style URLs (protocol://user:password@host/path/to/file)
 </descrip>
 
 <sect>Known issues and limitations
@@ -231,6 +233,9 @@ name="ChangeLog"> file for details.
 	<item>"short_icon_urls on" can be used to simplify the URLs used for
 	icons etc to avoid issues with proxy host naming and authentication
 	when requesting icons.
+	<item>A new "urllogin" ACL type has been introducing allowing regex
+	matches to the "login" component of Internet style URLs
+	(protocol://user:password@host/path/to/file).
 	<item>a large number of minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4"
 	name="squid-2.5.STABLE4 patches"> and the <url url="ChangeLog"

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.16">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Squid 2.5 release notes</TITLE>
 </HEAD>
 <BODY>
@@ -130,6 +130,8 @@ exacly where you want to have them in your system.</LI>
 <DT><B>reference_age</B><DD><P>This has been removed - starting with Squid-2.4 this directive have had no effect and has now been fully removed to avoid confusion.</P>
 <DT><B>siteselect_timeout</B><DD><P>This has been removed - it is not referenced anywhere in the source code.</P>
 <DT><B>minimum_retry_timeout</B><DD><P>This has been removed - it is not referenced anywhere in the source code.</P>
+<DT><B>short_icon_urls</B><DD><P>New directive to enable an alternative way of referring to icons in FTP directory listings etc.</P>
+<DT><B>acl urllogin</B><DD><P>New acl type to match the login component of Internet style URLs (protocol://user:password@host/path/to/file)</P>
 </DL>
 </P>
 
@@ -246,6 +248,9 @@ and is now also used as minimum positive dns ttl, dns_timeout 2 minutes
 <LI>"short_icon_urls on" can be used to simplify the URLs used for
 icons etc to avoid issues with proxy host naming and authentication
 when requesting icons.</LI>
+<LI>A new "urllogin" ACL type has been introducing allowing regex
+matches to the "login" component of Internet style URLs
+(protocol://user:password@host/path/to/file).</LI>
 <LI>a large number of minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4">squid-2.5.STABLE4 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
