@@ -475,7 +475,7 @@ xstrncpy(char *dst, const char *src, size_t n)
 {
     if (n != 0) {
 	if (src != NULL)
-	    while (n-- != 0 && *src != '\0')
+	    while (--n != 0 && *src != '\0')
 		*dst++ = *src++;
 	*dst = '\0';
     }
