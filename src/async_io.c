@@ -53,7 +53,6 @@ typedef struct aio_ctrl_t {
     AIOCB *done_handler;
     void *done_handler_data;
     aio_result_t result;
-    void *tag;
 } aio_ctrl_t;
 
 struct {
@@ -97,7 +96,7 @@ aioFDWasClosed(int fd)
 }
 
 void
-aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callback_data, void *tag)
+aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
     int ret;
@@ -107,7 +106,6 @@ aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callba
     aio_counts.open++;
     ctrlp = memPoolAlloc(aio_ctrl_pool);
     ctrlp->fd = -2;
-    ctrlp->tag = tag;
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
     ctrlp->operation = _AIO_OPEN;
@@ -131,10 +129,9 @@ aioClose(int fd)
     if (!initialised)
 	aioInit();
     aio_counts.close++;
-    aioCancel(fd, NULL);
+    aioCancel(fd);
     ctrlp = memPoolAlloc(aio_ctrl_pool);
     ctrlp->fd = fd;
-    ctrlp->tag = NULL;
     ctrlp->done_handler = NULL;
     ctrlp->done_handler_data = NULL;
     ctrlp->operation = _AIO_CLOSE;
@@ -150,7 +147,7 @@ aioClose(int fd)
 }
 
 void
-aioCancel(int fd, void *tag)
+aioCancel(int fd)
 {
     aio_ctrl_t *curr;
     aio_ctrl_t *prev;
@@ -164,8 +161,6 @@ aioCancel(int fd, void *tag)
     for (curr = used_list;; curr = next) {
 	while (curr != NULL) {
 	    if (curr->fd == fd)
-		break;
-	    if (tag != NULL && curr->tag == tag)
 		break;
 	    prev = curr;
 	    curr = curr->next;
@@ -190,7 +185,7 @@ aioCancel(int fd, void *tag)
 
 
 void
-aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callback_data)
+aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callback_data, FREE *free_func)
 {
     aio_ctrl_t *ctrlp;
     int seekmode;
@@ -209,7 +204,6 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
     }
     ctrlp = memPoolAlloc(aio_ctrl_pool);
     ctrlp->fd = fd;
-    ctrlp->tag = NULL;
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
     ctrlp->operation = _AIO_WRITE;
@@ -253,7 +247,6 @@ aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callbac
     }
     ctrlp = memPoolAlloc(aio_ctrl_pool);
     ctrlp->fd = fd;
-    ctrlp->tag = NULL;
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
     ctrlp->operation = _AIO_READ;
@@ -277,7 +270,7 @@ aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callbac
 }				/* aioRead */
 
 void
-aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data, void *tag)
+aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
 
@@ -286,7 +279,6 @@ aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data, void
     aio_counts.stat++;
     ctrlp = memPoolAlloc(aio_ctrl_pool);
     ctrlp->fd = -2;
-    ctrlp->tag = tag;
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
     ctrlp->operation = _AIO_STAT;

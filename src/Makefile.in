@@ -185,7 +185,8 @@ DELAY_OBJS	= delay_pools.o
 
 ASYNC_OBJS	= \
 		aiops.o \
-		async_io.o
+		async_io.o \
+		store_io_asyncufs.o
 
 LEAKFINDER_OBJS	= \
 		leakfinder.o

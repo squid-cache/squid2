@@ -628,6 +628,6 @@ enum {
 
 typedef enum {
     SWAPDIR_UFS,
-    SWAPDIR_UFS_ASYNC,
+    SWAPDIR_ASYNCUFS,
     SWAPDIR_MAX
 } swapdir_t;

@@ -116,7 +116,7 @@ static void aio_init(void);
 static void aio_queue_request(aio_request_t *);
 static void aio_process_request_queue(void);
 static void aio_cleanup_request(aio_request_t *);
-static void *aio_thread_loop(void *);
+static void* aio_thread_loop(void *);
 static void aio_do_open(aio_request_t *);
 static void aio_do_read(aio_request_t *);
 static void aio_do_write(aio_request_t *);
@@ -184,7 +184,7 @@ aio_init(void)
 	}
 	threadp->req = NULL;
 	threadp->processed_req = NULL;
-	if (pthread_create(&(threadp->thread), &globattr, aio_thread_loop, threadp)) {
+	if (pthread_create(&threadp->thread, &globattr, aio_thread_loop, threadp)) {
 	    fprintf(stderr, "Thread creation failed\n");
 	    threadp->status = _THREAD_FAILED;
 	    continue;
@@ -203,7 +203,7 @@ aio_init(void)
 }
 
 
-static void
+static void*
 aio_thread_loop(void *ptr)
 {
     aio_thread_t *threadp = (aio_thread_t *) ptr;
@@ -293,6 +293,7 @@ aio_thread_loop(void *ptr)
 	}
 	threadp->req = NULL;	/* tells main thread that we are done */
     }				/* while */
+    return NULL;
 }				/* aio_thread_loop */
 
 static void

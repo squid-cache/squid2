@@ -1081,7 +1081,7 @@ storeUfsDirIs(SwapDir * sd)
 {
     if (sd->type == SWAPDIR_UFS)
 	return 1;
-    if (sd->type == SWAPDIR_UFS_ASYNC)
+    if (sd->type == SWAPDIR_ASYNCUFS)
 	return 1;
     return 0;
 }
@@ -1226,6 +1226,77 @@ storeUfsDirParse(cacheSwap * swap)
     swap->n_configured++;
 }
 
+#if USE_ASYNC_IO
+void
+storeAufsDirParse(cacheSwap * swap)
+{
+    char *token;
+    char *path;
+    int i;
+    int size;
+    int l1;
+    int l2;
+    unsigned int read_only = 0;
+    SwapDir *sd = NULL;
+    if ((path = strtok(NULL, w_space)) == NULL)
+	self_destruct();
+    i = GetInteger();
+    size = i << 10;		/* Mbytes to kbytes */
+    if (size <= 0)
+	fatal("storeUfsDirParse: invalid size value");
+    i = GetInteger();
+    l1 = i;
+    if (l1 <= 0)
+	fatal("storeUfsDirParse: invalid level 1 directories value");
+    i = GetInteger();
+    l2 = i;
+    if (l2 <= 0)
+	fatal("storeUfsDirParse: invalid level 2 directories value");
+    if ((token = strtok(NULL, w_space)))
+	if (!strcasecmp(token, "read-only"))
+	    read_only = 1;
+    for (i = 0; i < swap->n_configured; i++) {
+	sd = swap->swapDirs + i;
+	if (!strcmp(path, sd->path)) {
+	    /* just reconfigure it */
+	    if (size == sd->max_size)
+		debug(3, 1) ("Cache dir '%s' size remains unchanged at %d KB\n",
+		    path, size);
+	    else
+		debug(3, 1) ("Cache dir '%s' size changed to %d KB\n",
+		    path, size);
+	    sd->max_size = size;
+	    if (sd->flags.read_only != read_only)
+		debug(3, 1) ("Cache dir '%s' now %s\n",
+		    path, read_only ? "Read-Only" : "Read-Write");
+	    sd->flags.read_only = read_only;
+	    return;
+	}
+    }
+    allocate_new_swapdir(swap);
+    sd = swap->swapDirs + swap->n_configured;
+    sd->index = swap->n_configured;
+    sd->path = xstrdup(path);
+    sd->max_size = size;
+    sd->u.ufs.l1 = l1;
+    sd->u.ufs.l2 = l2;
+    sd->u.ufs.swaplog_fd = -1;
+    sd->flags.read_only = read_only;
+    sd->init = storeUfsDirInit;
+    sd->newfs = storeUfsDirNewfs;
+    sd->obj.open = storeAufsOpen;
+    sd->obj.close = storeAufsClose;
+    sd->obj.read = storeAufsRead;
+    sd->obj.write = storeAufsWrite;
+    sd->obj.unlink = storeAufsUnlink;
+    sd->log.open = storeUfsDirOpenSwapLog;
+    sd->log.close = storeUfsDirCloseSwapLog;
+    sd->log.write = storeUfsDirSwapLog;
+    sd->log.clean.open = storeUfsDirWriteCleanOpen;
+    swap->n_configured++;
+}
+#endif
+
 void
 storeUfsDirDump(StoreEntry * entry, const char *name, SwapDir * s)
 {
@@ -1248,4 +1319,24 @@ storeUfsDirFree(SwapDir * s)
 	file_close(s->u.ufs.swaplog_fd);
 	s->u.ufs.swaplog_fd = -1;
     }
+}
+
+char *
+storeUfsFullPath(int fn, char *fullpath)
+{
+    LOCAL_ARRAY(char, fullfilename, SQUID_MAXPATHLEN);
+    int dirn = (fn >> SWAP_DIR_SHIFT) % Config.cacheSwap.n_configured;
+    int filn = fn & SWAP_FILE_MASK;
+    SwapDir *SD = &Config.cacheSwap.swapDirs[dirn];
+    int L1 = SD->u.ufs.l1;
+    int L2 = SD->u.ufs.l2;
+    if (!fullpath)
+	fullpath = fullfilename;
+    fullpath[0] = '\0';
+    snprintf(fullpath, SQUID_MAXPATHLEN, "%s/%02X/%02X/%08X",
+	Config.cacheSwap.swapDirs[dirn].path,
+	((filn / L2) / L2) % L1,
+	(filn / L2) % L2,
+	filn);
+    return fullpath;
 }

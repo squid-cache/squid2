@@ -1343,6 +1343,15 @@ struct _storeIOState {
 		unsigned int writing:1;
 	    } flags;
 	} ufs;
+	struct {
+	    int fd;
+	    const char *read_buf;
+	    struct {
+		unsigned int close_request:1;
+		unsigned int reading:1;
+		unsigned int writing:1;
+	    } flags;
+	} aufs;
     } type;
 };
 

@@ -143,26 +143,6 @@ storeUfsWriteDone(int fd, int errflag, size_t len, void *my_data)
 	storeUfsIOCallback(sio, errflag);
 }
 
-char *
-storeUfsFullPath(int fn, char *fullpath)
-{
-    LOCAL_ARRAY(char, fullfilename, SQUID_MAXPATHLEN);
-    int dirn = (fn >> SWAP_DIR_SHIFT) % Config.cacheSwap.n_configured;
-    int filn = fn & SWAP_FILE_MASK;
-    SwapDir *SD = &Config.cacheSwap.swapDirs[dirn];
-    int L1 = SD->u.ufs.l1;
-    int L2 = SD->u.ufs.l2;
-    if (!fullpath)
-	fullpath = fullfilename;
-    fullpath[0] = '\0';
-    snprintf(fullpath, SQUID_MAXPATHLEN, "%s/%02X/%02X/%08X",
-	Config.cacheSwap.swapDirs[dirn].path,
-	((filn / L2) / L2) % L1,
-	(filn / L2) % L2,
-	filn);
-    return fullpath;
-}
-
 static void
 storeUfsIOCallback(storeIOState * sio, int errflag)
 {
