@@ -482,6 +482,7 @@ snmpHandleUdp(int sock, void *not_used)
 	snmp_rq->outbuf = xmalloc(snmp_rq->outlen = SNMP_REQUEST_SIZE);
 	xmemcpy(&snmp_rq->from, &from, sizeof(struct sockaddr_in));
 	snmpDecodePacket(snmp_rq);
+	xfree(snmp_rq->outbuf);
 	xfree(snmp_rq);
     } else {
 	debug(49, 1) ("snmpHandleUdp: FD %d recvfrom: %s\n", sock, xstrerror());
@@ -523,6 +524,8 @@ snmpDecodePacket(snmp_request_t * rq)
 	    inet_ntoa(rq->from.sin_addr));
 	snmp_free_pdu(PDU);
     }
+    if (Community)
+	free(Community);
 }
 
 /*
@@ -545,7 +548,6 @@ snmpConstructReponse(snmp_request_t * rq)
 	ret = snmp_build(&Session, RespPDU, rq->outbuf, &rq->outlen);
 	sendto(rq->sock, rq->outbuf, rq->outlen, 0, (struct sockaddr *) &rq->from, sizeof(rq->from));
 	snmp_free_pdu(RespPDU);
-	xfree(rq->outbuf);
     }
 }
 
