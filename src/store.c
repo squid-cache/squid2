@@ -2862,7 +2862,6 @@ storeCheckPurgeMem(StoreEntry * e)
 static int
 storeCheckExpired(StoreEntry * e)
 {
-    int expired = 0;
     if (storeEntryLocked(e))
 	return 0;
     if (Config.referenceAge && squid_curtime - e->lastref > Config.referenceAge)
