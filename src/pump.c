@@ -119,6 +119,7 @@ pumpStart(int s_fd, FwdState * fwd, CWCB * callback, void *cbdata)
     PumpStateData *p = NULL;
     request_t *r = fwd->request;
     size_t copy_sz;
+    int complete = 0;
     debug(61, 3) ("pumpStart: FD %d, key %s\n",
 	s_fd, storeKeyText(fwd->entry->key));
     /*
@@ -166,7 +167,15 @@ pumpStart(int s_fd, FwdState * fwd, CWCB * callback, void *cbdata)
 	commSetDefer(p->c_fd, pumpReadDefer, p);
     }
     p->sent = 0;
-    if (r->flags.proxy_keepalive && p->sent == p->cont_len) {
+    if (p->sent != p->cont_len)
+	complete = 0;
+    else if (r->flags.proxy_keepalive)
+	complete = 1;
+    else if (p->rcvd == 0)
+	complete = 1;
+    else
+	complete = 0;
+    if (complete) {
 	pumpServerCopyComplete(p->s_fd, NULL, 0, DISK_OK, p);
     } else {
 	storeClientCopy(p->request_entry, p->sent, p->sent, 4096,
