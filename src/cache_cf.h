@@ -158,6 +158,7 @@ struct SquidConfig {
 	int max;
     } quickAbort;
     int expireAge;
+    int referenceAge;
     int negativeTtl;
     int negativeDnsTtl;
     int positiveDnsTtl;

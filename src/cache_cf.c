@@ -126,6 +126,7 @@ struct SquidConfig Config;
 #define DefaultWaisRelayPort	0
 
 #define DefaultExpireAge	(86400 * 7)	/* 1 week */
+#define DefaultReferenceAge	0	/* disabled */
 #define DefaultNegativeTtl	(5 * 60)	/* 5 min */
 #define DefaultNegativeDnsTtl	(2 * 60)	/* 2 min */
 #define DefaultPositiveDnsTtl	(360 * 60)	/* 6 hours */
@@ -1238,6 +1239,8 @@ parseConfigFile(char *file_name)
 	    parseMinutesLine(&Config.lifetimeDefault);
 	else if (!strcmp(token, "expire_age"))
 	    parseMinutesLine(&Config.expireAge);
+	else if (!strcmp(token, "reference_age"))
+	    parseMinutesLine(&Config.referenceAge);
 
 	else if (!strcmp(token, "shutdown_lifetime"))
 	    parseIntegerValue(&Config.lifetimeShutdown);
@@ -1524,6 +1527,7 @@ configSetFactoryDefaults(void)
     Config.Wais.relayPort = DefaultWaisRelayPort;
 
     Config.expireAge = DefaultExpireAge;
+    Config.referenceAge = DefaultReferenceAge;
     Config.negativeTtl = DefaultNegativeTtl;
     Config.negativeDnsTtl = DefaultNegativeDnsTtl;
     Config.positiveDnsTtl = DefaultPositiveDnsTtl;

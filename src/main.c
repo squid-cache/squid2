@@ -158,6 +158,8 @@ static void mainParseOptions _PARAMS((int, char **));
 static void sendSignal _PARAMS((void));
 static void serverConnectionsOpen _PARAMS((void));
 
+extern int store_maintain_rate;
+
 static void
 usage(void)
 {
@@ -659,8 +661,8 @@ main(int argc, char **argv)
 	}
 	if ((loop_delay = mainMaintenance()) < 0)
 	    loop_delay = 0;
-	else if (loop_delay > 10)
-	    loop_delay = 10;
+	else if (loop_delay > store_maintain_rate)
+	    loop_delay = store_maintain_rate;
 	if (doBackgroundProcessing())
 	    loop_delay = 0;
 	switch (comm_select(loop_delay)) {
