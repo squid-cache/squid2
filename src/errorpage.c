@@ -192,7 +192,7 @@ errorTryLoadText(const char *page_name, const char *dir)
 	text = NULL;
     }
     file_close(fd);
-    if (strstr(text, "%s") == NULL)
+    if (text && strstr(text, "%s") == NULL)
 	strcat(text, "%S");	/* add signature */
     return text;
 }
