@@ -298,6 +298,10 @@ main(int argc, char *argv[])
 		_res.options |= RES_INIT;
 #endif
 		opt_s = 1;
+	    } else if (_res.nscount == MAXNS) {
+	        fprintf(stderr, "Too many -s options, only %d are allowed\n",	
+			MAXNS);
+		break;
 	    }
 #if HAVE_RES_NSADDR_LIST
 	    _res.nsaddr_list[_res.nscount]=_res.nsaddr_list[0];
