@@ -106,7 +106,8 @@ OBJS	 	= \
 		http.o \
 		http-anon.o \
 		icmp.o \
-		icp.o \
+		icp_v2.o \
+		icp_v3.o \
 		ident.o \
 		ipcache.o \
 		main.o \
