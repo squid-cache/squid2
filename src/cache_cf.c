@@ -1155,8 +1155,8 @@ parseConfigFile(const char *file_name)
 
 	else if (!strcmp(token, "pid_filename"))
 	    parsePathname(&Config.pidFilename, 0);
-        else if (!strcmp(token, "mime_table"))
-           parsePathname(&Config.mimeTablePathname, 1);
+	else if (!strcmp(token, "mime_table"))
+	    parsePathname(&Config.mimeTablePathname, 1);
 	else if (!strcmp(token, "visible_hostname"))
 	    parseVisibleHostnameLine();
 
@@ -1453,7 +1453,7 @@ configDoConfigure(void)
     else
 	Config.appendDomainLen = 0;
     if (Config.Port.n_http == 0)
-	Config.Port.http[Config.Port.n_http++] = DefaultHttpPort;
+	Config.Port.http[Config.Port.n_http++] = DefaultHttpPortNum;
 }
 
 /* Parse a time specification from the config file.  Store the
