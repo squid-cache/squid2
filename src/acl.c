@@ -43,7 +43,6 @@ const char *AclMatchedName = NULL;
 
 static struct _acl *AclList = NULL;
 static struct _acl **AclListTail = &AclList;
-static const char *const w_space = " \t\n\r";	/* Jasper sez so */
 static int aclFromFile = 0;
 static FILE *aclFile;
 

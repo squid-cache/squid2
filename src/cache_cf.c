@@ -225,7 +225,6 @@ const char *DefaultConfigFile = DEFAULT_CONFIG_FILE;
 char *ConfigFile = NULL;	/* the whole thing */
 const char *cfg_filename = NULL;	/* just the last part */
 
-static const char *const w_space = " \t\n\r";
 static const char *const list_sep = ", \t\n\r";
 char config_input_line[BUFSIZ];
 int config_lineno = 0;

@@ -367,6 +367,7 @@ extern int httpAnonDenied _PARAMS((const char *line));
 
 extern const char *const dash_str;
 extern const char *const null_string;
+extern const char *const w_space;
 
 #define OR(A,B) (A ? A : B)
 

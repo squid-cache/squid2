@@ -174,7 +174,6 @@ static char ipcache_status_char[] =
 
 static long ipcache_low = 180;
 static long ipcache_high = 200;
-static const char *const w_space = " \t\n\r";
 
 #if LIBRESOLV_DNS_TTL_HACK
 extern int _dns_ttl_;

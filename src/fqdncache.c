@@ -172,7 +172,6 @@ static char fqdncache_status_char[] =
 
 static long fqdncache_low = 180;
 static long fqdncache_high = 200;
-static const char *const w_space = " \t\n\r";
 
 static void
 fqdncacheEnqueue(fqdncache_entry * f)

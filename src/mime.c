@@ -120,10 +120,6 @@ typedef struct _mime_entry {
 static mimeEntry *MimeTable = NULL;
 static mimeEntry **MimeTableTail = NULL;
 
-static const char *const w_space = " \t\n\r";
-static const char *const dash_str = "-";
-
-
 char *
 mime_get_header(const char *mime, const char *name)
 {

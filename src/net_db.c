@@ -56,7 +56,6 @@ static IPH netdbSendPing;
  * linked list */
 static wordlist *peer_names = NULL;
 static wordlist **peer_names_tail = &peer_names;
-static const char *const w_space = " \t\n\r";
 
 static void
 netdbHashInsert(netdbEntry * n, struct in_addr addr)
