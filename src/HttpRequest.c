@@ -80,14 +80,10 @@ requestUnlink(request_t * request)
 {
     if (!request)
 	return;
-    request->link_count--;
-    if (request->link_count > 0)
+    assert(link_count > 0);
+    if (--request->link_count > 0)
 	return;
-    if (request->link_count == 0)
-	requestDestroy(request);
-    else
-	debug(73, 1) ("requestUnlink: BUG: negative link_count: %d. Ignored.\n",
-	    request->link_count);
+    requestDestroy(request);
 }
 
 int
