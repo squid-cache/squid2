@@ -409,13 +409,15 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
     /* unregister this handler */
     storeUnregister(entry, fd);
     if (entry->store_status == STORE_ABORTED) {
-	debug(33, 3, "icpHandleIMSReply: abort_code=%d\n",
-	    entry->mem_obj->abort_code);
+	debug(33, 3, "icpHandleIMSReply: ABORTED/%s '%s'\n",
+	    log_tags[entry->mem_obj->abort_code], entry->url);
 	icpSendERROR(fd,
 	    entry->mem_obj->abort_code,
 	    entry->mem_obj->e_abort_msg,
 	    icpState,
 	    400);
+	if (icpState->old_entry)
+	    storeUnlockObject(icpState->old_entry);
 	return 0;
     }
     if (mem->reply->code == 0) {
