@@ -569,6 +569,10 @@ storeUnlockObject(StoreEntry * e)
 	e->key, e->lock_count);
     if (e->lock_count)
 	return (int) e->lock_count;
+    if (e->store_status == STORE_PENDING) {
+	debug_trap("storeUnlockObject: Someone unlocked STORE_PENDING object");
+        e->store_status = STORE_ABORTED;
+    }
     if (e->flag & RELEASE_REQUEST) {
 	storeRelease(e);
     } else if (e->flag & ABORT_MSG_PENDING) {
