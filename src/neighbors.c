@@ -192,13 +192,15 @@ edge *getSingleParent(host, n)
     return NULL;
 }
 
-edge *getFirstParent(host)
+edge *getFirstUpParent(host)
      char *host;
 {
     edge *e = NULL;
     if (friends->n_parent < 1)
 	return NULL;
     for (e = friends->edges_head; e; e = e->next) {
+	if (!e->neighbor_up)
+	    continue;
 	if (e->type != EDGE_PARENT)
 	    continue;
 	if (edgeWouldBePinged(e, host))
@@ -314,7 +316,12 @@ void neighbors_open(fd)
 	e->header.version = ICP_VERSION_CURRENT;
 	e->header.length = 0;
 	e->header.reqnum = 0;
+#ifdef UDP_HIT_WITH_OBJ
+	e->header.flags = 0;
+	e->header.pad = 0;
+#else
 	memset(e->header.auth, '\0', sizeof(u_num32) * ICP_AUTH_SIZE);
+#endif
 	e->header.shostid = name.sin_addr.s_addr;
 
 	ap = &e->in_addr;
@@ -342,7 +349,12 @@ void neighbors_open(fd)
 	echo_hdr.version = ICP_VERSION_CURRENT;
 	echo_hdr.length = 0;
 	echo_hdr.reqnum = 0;
+#ifdef UDP_HIT_WITH_OBJ
+	echo_hdr.flags = 0;
+	echo_hdr.pad = 0;
+#else
 	memset(echo_hdr.auth, '\0', sizeof(u_num32) * ICP_AUTH_SIZE);
+#endif
 	echo_hdr.shostid = name.sin_addr.s_addr;
 	sep = getservbyname("echo", "udp");
 	echo_port = sep ? ntohs((u_short) sep->s_port) : 7;
@@ -379,12 +391,11 @@ int neighborsUdpPing(proto)
 
 	/* Don't resolve refreshes through neighbors because we don't resolve
 	 * misses through neighbors */
-	if ((e->type == EDGE_SIBLING) && (entry->flag & REFRESH_REQUEST))
+	if (e->type == EDGE_SIBLING && entry->flag & REFRESH_REQUEST)
 	    continue;
 
-	/* skip dumb caches where we failed to connect() w/in the last 60s */
-	if (e->udp_port == echo_port &&
-	    (squid_curtime - e->last_fail_time < 60))
+	/* skip any cache where we failed to connect() w/in the last 60s */
+	if (squid_curtime - e->last_fail_time < 60)
 	    continue;
 
 	if (!edgeWouldBePinged(e, host))
@@ -403,9 +414,9 @@ int neighborsUdpPing(proto)
 
 	if (e->udp_port == echo_port) {
 	    debug(15, 4, "neighborsUdpPing: Looks like a dumb cache, send DECHO ping\n");
-	    icpUdpSend(friends->fd, url, &echo_hdr, &e->in_addr, ICP_OP_DECHO);
+	    icpUdpSend(friends->fd, url, &echo_hdr, &e->in_addr, ICP_OP_DECHO, LOG_TAG_NONE);
 	} else {
-	    icpUdpSend(friends->fd, url, &e->header, &e->in_addr, ICP_OP_QUERY);
+	    icpUdpSend(friends->fd, url, &e->header, &e->in_addr, ICP_OP_QUERY, LOG_TAG_NONE);
 	}
 
 	e->stats.ack_deficit++;
@@ -453,7 +464,7 @@ int neighborsUdpPing(proto)
 	    debug(15, 6, "neighborsUdpPing - url: %s to url-host %s \n",
 		url, inet_ntoa(to_addr.sin_addr));
 	    /* send to original site */
-	    icpUdpSend(friends->fd, url, &echo_hdr, &to_addr, ICP_OP_SECHO);
+	    icpUdpSend(friends->fd, url, &echo_hdr, &to_addr, ICP_OP_SECHO, LOG_TAG_NONE);
 	} else {
 	    debug(15, 6, "neighborsUdpPing: Source Ping is disabled.\n");
 	}
@@ -511,8 +522,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	e->neighbor_up = 1;
 	e->stats.ack_deficit = 0;
 	n = ++e->stats.pings_acked;
-	header->opcode == ICP_OP_HIT ? e->stats.hits++ : e->stats.misses++;
-
+	if (header->opcode < ICP_OP_END)
+	    e->stats.counts[header->opcode]++;
 	if (m) {
 	    if (n > RTT_AV_FACTOR)
 		n = RTT_AV_FACTOR;
@@ -636,6 +647,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    getFromDefaultSource(0, entry);
 	    return;
 	}
+    } else if (header->opcode == ICP_OP_DENIED) {
+	debug(15, 5, "neighborsUdpAck: Access denied for '%s'\n", entry->url);
     } else {
 	debug(15, 0, "neighborsUdpAck: WHY ARE WE HERE?  header->opcode = %d\n",
 	    header->opcode);

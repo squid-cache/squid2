@@ -55,10 +55,9 @@ struct _edge {
 	int pings_sent;
 	int pings_acked;
 	int ack_deficit;
-	int hits;
-	int misses;
 	int fetches;
 	int rtt;
+	int counts[ICP_OP_END];
     } stats;
 
     u_short udp_port;
@@ -95,7 +94,7 @@ struct neighbor_cf {
 };
 
 extern edge *getFirstEdge _PARAMS((void));
-extern edge *getFirstParent _PARAMS((char *host));
+extern edge *getFirstUpParent _PARAMS((char *host));
 extern edge *getNextEdge _PARAMS((edge *));
 extern edge *getSingleParent _PARAMS((char *host, int *n));
 extern int neighborsUdpPing _PARAMS((protodispatch_data *));
