@@ -274,6 +274,17 @@ dnl Please change your configure script.  AIX doesn't need -lbsd.
 		;;
 esac
 
+# Recommended by Balint Nagy Endre <bne@CareNet.hu>
+case "$host" in
+	*-univel-sysv4.2MP)
+		if test `uname -v` = "2.03"; then
+			echo "disabling mallinfo for $host"
+			ac_cv_func_mallinfo=no
+		fi
+		;;
+esac
+
+
 dnl Check for library functions
 AC_CHECK_FUNCS(\
 	bcopy \
