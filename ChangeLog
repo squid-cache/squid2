@@ -1,3 +1,6 @@
+	- Fixed cur_len decrement bug in diskHandleRead()
+	  (Michael O'Reilly).
+
 Changes to squid-1.1.10 (April 24, 1997):
 
 	- Require 0 <= multicast ttl <= 128.
