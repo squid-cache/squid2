@@ -42,7 +42,7 @@
 #if HAVE_PWD_H
 #include <pwd.h>
 #endif
-#if HAVE_SIGNAL_H_
+#if HAVE_SIGNAL_H
 #include <signal.h>
 #endif
 #if HAVE_TIME_H
