@@ -17,6 +17,7 @@ Changes to squid-1.1.8 (February @@@, 1997):
 	- Okay to increase FD_SETSIZE on FreeBSD 2.2.x (Peter Wemm).
 	- Fixed HTTP anonymizer bug in 'standard' mode.
 	- Fixed aclMatchDomainList() coredump for unresolvable addresses.
+	- Changed default disk low/high water marks to 90/95%.
 
 Changes to squid-1.1.7 (February 25, 1997):
 
