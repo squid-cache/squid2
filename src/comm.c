@@ -430,7 +430,7 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 	if (x < 0)
 	    debug(5, 9) ("connect FD %d: %s\n", sock, xstrerror());
     } else {
-#if defined(sony)
+#if defined(_SQUID_NEWSOS6_)
 	/* Makoto MATSUSHITA <matusita@ics.es.osaka-u.ac.jp> */
 	connect(sock, (struct sockaddr *) address, sizeof(*address));
 	if (errno == EINVAL) {
