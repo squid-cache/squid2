@@ -306,7 +306,7 @@ mkhttpdlogtime(const time_t * t)
 	day_offset = 1;
 
     len = strftime(buf, 127 - 5, "%d/%b/%Y:%H:%M:%S ", lt);
-    sprintf(buf + len, "%+03d%02d",
+    snprintf(buf + len, 128-len, "%+03d%02d",
 	(min_offset / 60) % 24,
 	min_offset % 60);
 #else /* USE_GMT */
