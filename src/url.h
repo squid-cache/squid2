@@ -34,12 +34,12 @@
 #define MAX_LOGIN_SZ  128
 
 typedef enum {
-    METHOD_NONE,
-    METHOD_GET,
-    METHOD_POST,
-    METHOD_PUT,
-    METHOD_HEAD,
-    METHOD_CONNECT
+    METHOD_NONE,		/* 000 */
+    METHOD_GET,			/* 001 */
+    METHOD_POST,		/* 010 */
+    METHOD_PUT,			/* 011 */
+    METHOD_HEAD,		/* 100 */
+    METHOD_CONNECT,		/* 101 */
 } method_t;
 
 extern char *RequestMethodStr[];
