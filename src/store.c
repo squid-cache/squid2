@@ -201,6 +201,7 @@ static void
 destroy_MemObject(StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
+    const Ctx ctx = ctx_enter(mem->url);
     debug(20, 3) ("destroy_MemObject: destroying %p\n", mem);
     assert(mem->swapout.fd == -1);
     destroy_MemObjectData(mem);
@@ -216,6 +217,7 @@ destroy_MemObject(StoreEntry * e)
     requestUnlink(mem->request);
     mem->request = NULL;
     memFree(MEM_MEMOBJECT, mem);
+    ctx_exit(ctx);
 }
 
 static void

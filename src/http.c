@@ -545,6 +545,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	httpState->reply_hdr_state++;
     }
     if (httpState->reply_hdr_state == 1) {
+	const Ctx ctx = ctx_enter(entry->mem_obj->url);
 	httpState->reply_hdr_state++;
 	debug(11, 9) ("GOT HTTP REPLY HDR:\n---------\n%s\n----------\n",
 	    httpState->reply_hdr);
@@ -577,6 +578,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	if (httpHeaderHas(&reply->hdr, HDR_PROXY_KEEPALIVE))
 	    if (httpState->peer)
 		httpState->peer->stats.n_keepalives_recv++;
+	ctx_exit(ctx);
     }
 }
 

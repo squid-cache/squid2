@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section ??                Packer: Uniform interface to "Storing" modules
+ * DEBUG: section 60    Packer: A uniform interface to store-like modules
  * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section ??    HTTP Reply
+ * DEBUG: section 58    HTTP Reply (Response)
  * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/

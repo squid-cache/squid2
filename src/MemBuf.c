@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section ??                Memory Buffer with printf
+ * DEBUG: section 59    auto-growing Memory Buffer with printf
  * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/

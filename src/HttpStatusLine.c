@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section ??    HTTP Status-line
+ * DEBUG: section 57    HTTP Status-line
  * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/

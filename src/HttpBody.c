@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section ??    HTTP Body
+ * DEBUG: section 56    HTTP Message Body
  * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
