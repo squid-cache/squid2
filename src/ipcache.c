@@ -235,7 +235,7 @@ ipcache_release(ipcache_entry * i)
 	fatal_dump("ipcache_release: i != table_entry!");
     if (i->locks) {
 	i->expires = squid_curtime;
-        ipcacheChangeKey(i);
+	ipcacheChangeKey(i);
 	IpcacheStats.release_locked++;
 	return;
     }

@@ -212,5 +212,5 @@ fdstatFreeMemory(void)
 int
 fdstat_are_n_free_fd(int n)
 {
-	return ((Squid_MaxFD - Number_FD) > n);
+    return ((Squid_MaxFD - Number_FD) > n);
 }

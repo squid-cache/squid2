@@ -786,9 +786,9 @@ storeCheckDoneWriting(StoreEntry * e)
 	mem->swapout_fd = -1;
     }
     HTTPCacheInfo->proto_newobject(HTTPCacheInfo,
-            proto,
-            e->object_len,
-            FALSE);
+	proto,
+	e->object_len,
+	FALSE);
     storeUnlockObject(e);
 }
 
