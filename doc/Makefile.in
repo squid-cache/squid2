@@ -128,7 +128,8 @@ man_MANS = \
 
 
 EXTRA_DIST = \
-	squid.8
+	squid.8 \
+	debug-sections.txt
 
 subdir = doc
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
