@@ -357,29 +357,6 @@ void intlistDestroy(list)
     *list = NULL;
 }
 
-static void intlistAdd(list, str)
-     intlist **list;
-     char *str;
-{
-    intlist *p = NULL;
-    intlist *q = NULL;
-
-    if (!(*list)) {
-	/* empty list */
-	*list = (intlist *) xcalloc(1, sizeof(intlist));
-	(*list)->i = atoi(str);
-	(*list)->next = NULL;
-    } else {
-	p = *list;
-	while (p->next)
-	    p = p->next;
-	q = (intlist *) xcalloc(1, sizeof(intlist));
-	q->i = atoi(str);
-	q->next = NULL;
-	p->next = q;
-    }
-}
-
 
 /* Use this #define in all the parse*() functions.  Assumes 
  * ** char *token is defined
