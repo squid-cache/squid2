@@ -426,23 +426,23 @@ comm_poll(int msec)
 	    F = &fd_table[fd];
 	    if (revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR)) {
 		debug(5, 6) ("comm_poll: FD %d ready for reading\n", fd);
-		if ((hdl = F->read_handler)) {
+		if (NULL == (hdl = F->read_handler))
+		    (void) 0;
 #if DELAY_POOLS
-		    if (FD_ISSET(fd, &slowfds)) {
-			commAddSlowFd(fd);
-			continue;
-		    }
+		else if (FD_ISSET(fd, &slowfds))
+		    commAddSlowFd(fd);
 #endif
+		else {
 		    F->read_handler = NULL;
 		    hdl(fd, F->read_data);
 		    Counter.select_fds++;
+		    if (commCheckICPIncoming)
+			comm_poll_icp_incoming();
+		    if (commCheckDNSIncoming)
+			comm_poll_dns_incoming();
+		    if (commCheckHTTPIncoming)
+			comm_poll_http_incoming();
 		}
-		if (commCheckICPIncoming)
-		    comm_poll_icp_incoming();
-		if (commCheckDNSIncoming)
-		    comm_poll_dns_incoming();
-		if (commCheckHTTPIncoming)
-		    comm_poll_http_incoming();
 	    }
 	    if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR)) {
 		debug(5, 5) ("comm_poll: FD %d ready for writing\n", fd);
@@ -450,13 +450,13 @@ comm_poll(int msec)
 		    F->write_handler = NULL;
 		    hdl(fd, F->write_data);
 		    Counter.select_fds++;
+		    if (commCheckICPIncoming)
+			comm_poll_icp_incoming();
+		    if (commCheckDNSIncoming)
+			comm_poll_dns_incoming();
+		    if (commCheckHTTPIncoming)
+			comm_poll_http_incoming();
 		}
-		if (commCheckICPIncoming)
-		    comm_poll_icp_incoming();
-		if (commCheckDNSIncoming)
-		    comm_poll_dns_incoming();
-		if (commCheckHTTPIncoming)
-		    comm_poll_http_incoming();
 	    }
 	    if (revents & POLLNVAL) {
 		close_handler *ch;
@@ -493,16 +493,17 @@ comm_poll(int msec)
 	while ((fd = commGetSlowFd()) != -1) {
 	    fde *F = &fd_table[fd];
 	    debug(5, 6) ("comm_select: slow FD %d selected for reading\n", fd);
-	    hdl = F->read_handler;
-	    /* hope hdl != NULL */
-	    F->read_handler = NULL;
-	    hdl(fd, F->read_data);
-	    if (commCheckICPIncoming)
-		comm_poll_icp_incoming();
-	    if (commCheckDNSIncoming)
-		comm_poll_dns_incoming();
-	    if (commCheckHTTPIncoming)
-		comm_poll_http_incoming();
+	    if ((hdl = F->read_handler)) {
+		F->read_handler = NULL;
+		hdl(fd, F->read_data);
+		Counter.select_fds++;
+		if (commCheckICPIncoming)
+		    comm_poll_icp_incoming();
+		if (commCheckDNSIncoming)
+		    comm_poll_dns_incoming();
+		if (commCheckHTTPIncoming)
+		    comm_poll_http_incoming();
+	    }
 	}
 #endif
 #if !ALARM_UPDATES_TIME
@@ -789,27 +790,26 @@ comm_select(int msec)
 		    callhttp = 1;
 		    continue;
 		}
-#if DELAY_POOLS
-		if (FD_ISSET(fd, &slowfds)) {
-		    commAddSlowFd(fd);
-		    continue;
-		}
-#endif
 		F = &fd_table[fd];
 		debug(5, 6) ("comm_select: FD %d ready for reading\n", fd);
-		if (F->read_handler) {
-		    hdl = F->read_handler;
+		if (NULL == (hdl = F->read_handler))
+		    (void) 0;
+#if DELAY_POOLS
+		else if (FD_ISSET(fd, &slowfds))
+		    commAddSlowFd(fd);
+#endif
+		else {
 		    F->read_handler = NULL;
 		    commUpdateReadBits(fd, NULL);
 		    hdl(fd, F->read_data);
 		    Counter.select_fds++;
+		    if (commCheckICPIncoming)
+			comm_select_icp_incoming();
+		    if (commCheckDNSIncoming)
+			comm_select_dns_incoming();
+		    if (commCheckHTTPIncoming)
+			comm_select_http_incoming();
 		}
-		if (commCheckICPIncoming)
-		    comm_select_icp_incoming();
-		if (commCheckDNSIncoming)
-		    comm_select_dns_incoming();
-		if (commCheckHTTPIncoming)
-		    comm_select_http_incoming();
 	    }
 	}
 	fdsp = (fd_mask *) & writefds;
@@ -842,19 +842,18 @@ comm_select(int msec)
 		}
 		F = &fd_table[fd];
 		debug(5, 5) ("comm_select: FD %d ready for writing\n", fd);
-		if (F->write_handler) {
-		    hdl = F->write_handler;
+		if ((hdl = F->write_handler)) {
 		    F->write_handler = NULL;
 		    commUpdateWriteBits(fd, NULL);
 		    hdl(fd, F->write_data);
 		    Counter.select_fds++;
+		    if (commCheckICPIncoming)
+			comm_select_icp_incoming();
+		    if (commCheckDNSIncoming)
+			comm_select_dns_incoming();
+		    if (commCheckHTTPIncoming)
+			comm_select_http_incoming();
 		}
-		if (commCheckICPIncoming)
-		    comm_select_icp_incoming();
-		if (commCheckDNSIncoming)
-		    comm_select_dns_incoming();
-		if (commCheckHTTPIncoming)
-		    comm_select_http_incoming();
 	    }
 	}
 	if (callicp)
@@ -867,18 +866,18 @@ comm_select(int msec)
 	while ((fd = commGetSlowFd()) != -1) {
 	    F = &fd_table[fd];
 	    debug(5, 6) ("comm_select: slow FD %d selected for reading\n", fd);
-	    if (F->read_handler) {
-		hdl = F->read_handler;
+	    if ((hdl = F->read_handler)) {
 		F->read_handler = NULL;
 		commUpdateReadBits(fd, NULL);
 		hdl(fd, F->read_data);
+		Counter.select_fds++;
+		if (commCheckICPIncoming)
+		    comm_select_icp_incoming();
+		if (commCheckDNSIncoming)
+		    comm_select_dns_incoming();
+		if (commCheckHTTPIncoming)
+		    comm_select_http_incoming();
 	    }
-	    if (commCheckICPIncoming)
-		comm_select_icp_incoming();
-	    if (commCheckDNSIncoming)
-		comm_select_dns_incoming();
-	    if (commCheckHTTPIncoming)
-		comm_select_http_incoming();
 	}
 #endif
 	return COMM_OK;
