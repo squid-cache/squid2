@@ -37,7 +37,7 @@ static void ftpCloseAndFree(fd, data)
      int fd;
      FtpData *data;
 {
-    if (fd > -1)
+    if (fd >= 0)
 	comm_close(fd);
     xfree(data);
 }

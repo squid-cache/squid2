@@ -752,3 +752,13 @@ ftp_user Harvest@
 #
 request_size 100
 
+
+
+#### NEW
+
+
+#  TAG: connect_port
+#       The port number(s) where cached will listen allow outbound CONNECT
+#       (SSL).  The defaults are 443 (https) and 563 (snews).
+#connect_ports 443 563
+

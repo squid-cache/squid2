@@ -114,6 +114,7 @@ typedef unsigned long u_num32;
 #include "ftp.h"
 #include "gopher.h"
 #include "wais.h"
+#include "connect.h"
 #include "objcache.h"
 #include "util.h"
 

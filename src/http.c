@@ -10,9 +10,6 @@
 #define HTTP_DELETE_GAP   (64*1024)
 #define READBUFSIZ	4096
 
-extern int errno;
-extern char *dns_error_message;
-
 typedef struct _httpdata {
     StoreEntry *entry;
     char host[SQUIDHOSTNAMELEN + 1];
@@ -46,7 +43,7 @@ static void httpCloseAndFree(fd, data)
      int fd;
      HttpData *data;
 {
-    if (fd > 0)
+    if (fd >= 0)
 	comm_close(fd);
     if (data) {
 	if (data->reply_hdr) {

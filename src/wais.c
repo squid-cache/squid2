@@ -18,13 +18,11 @@ typedef struct _waisdata {
     char request[MAX_URL];
 } WAISData;
 
-extern char *dns_error_message;
-
 static void waisCloseAndFree(fd, data)
      int fd;
      WAISData *data;
 {
-    if (fd > 0)
+    if (fd >= 0)
 	comm_close(fd);
     xfree(data);
 }

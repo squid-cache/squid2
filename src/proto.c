@@ -68,6 +68,8 @@ int proto_cachable(url, method, request_hdr)
 	return gopherCachable(url);
     if (!strncasecmp(url, "wais://", 7))
 	return 0;
+    if (!strncasecmp(url, "conne://", 8))
+	return 0;
     if (!strncasecmp(url, "cache_object://", 15))
 	return 0;
     return 1;
@@ -469,6 +471,8 @@ int getFromCache(fd, entry, e)
 	return ftpStart(fd, url, entry);
     } else if (strncasecmp(url, "wais://", 7) == 0) {
 	return waisStart(fd, url, type, request_hdr, entry);
+    } else if (strncasecmp(url, "conne://", 8) == 0) {
+      return connectStart(fd, url, type, request_hdr, entry);
     } else if (strncasecmp(url, "dht://", 6) == 0) {
 	return protoNotImplemented(fd, url, entry);
     } else {

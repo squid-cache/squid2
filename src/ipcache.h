@@ -31,4 +31,6 @@ extern void ipcache_init _PARAMS((void));
 extern void stat_ipcache_get _PARAMS((StoreEntry *, cacheinfo *));
 extern void ipcacheShutdownServers _PARAMS((void));
 
+extern char *dns_error_message;
+
 #endif

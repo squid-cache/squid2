@@ -9,6 +9,11 @@ typedef struct _stoplist {
     struct _stoplist *next;
 } stoplist;
 
+ typedef struct _intlist {
+     int i;
+     struct _intlist *next;
+ } intlist;
+
 typedef enum {
     IP_ALLOW,
     IP_DENY
