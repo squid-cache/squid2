@@ -169,7 +169,8 @@ peerDigestValidate(peer * p)
 	p->host, p->digest.last_dis_delay ? "" : "not");
     if (1 /* p->digest.cd */ ) {
 	const cache_key *key;
-	key = storeKeyPublic(urlRInternal(p->host, p->http_port, NULL, StoreDigestUrlPath), METHOD_GET);
+	const char *u = internalRemoteUri(p->host, p->http_port, NULL, StoreDigestUrlPath);
+	key = storeKeyPublic(u, METHOD_GET);
 	e = storeGet(key);
 	debug(72, 3) ("peerDigestValidate: %s store entry, key: %s, exp: %s\n",
 	    e ? "has" : "no", storeKeyText(key), mkrfc1123(e ? e->expires : 0));
@@ -235,7 +236,7 @@ peerDigestRequest(peer * p)
     assert(p);
     EBIT_SET(p->digest.flags, PD_REQUESTED);
     /* compute future request components */
-    url = urlRInternal(p->host, p->http_port, "", StoreDigestUrlPath);
+    url = internalRemoteUri(p->host, p->http_port, "", StoreDigestUrlPath);
     key = storeKeyPublic(url, METHOD_GET);
     debug(72, 2) ("peerDigestRequest: %s key: %s\n", url, storeKeyText(key));
     req = requestLink(urlParse(METHOD_GET, url));
