@@ -101,7 +101,7 @@ clientdbDeniedPercent(struct in_addr addr)
 	return 0;
     if (c->Icp.n_requests > 100)
 	n = c->Icp.n_requests;
-    return 100 * c->Icp.result_hist[ICP_OP_DENIED] / n;
+    return 100 * c->Icp.result_hist[LOG_UDP_DENIED] / n;
 }
 
 void
