@@ -198,6 +198,7 @@ static unsigned int getKeyCounter _PARAMS((void));
 static int storeOpenSwapFileWrite _PARAMS((StoreEntry *));
 static void storePutUnusedFileno _PARAMS((int fileno));
 static int storeGetUnusedFileno _PARAMS((void));
+static void storeGetSwapSpace _PARAMS((void));
 
 /* Now, this table is inaccessible to outsider. They have to use a method
  * to access a value in internal storage data structure. */
@@ -209,7 +210,9 @@ static int store_pages_low = 0;
 
 /* current file name, swap file, use number as a filename */
 static int swapfileno = 0;
-static int store_swap_size = 0;	/* kilobytes !! */
+static int store_swapok_size = 0;	/* kilobytes !! */
+static int store_swappingout_size = 0;	/* bytes */
+#define store_swap_size (store_swapok_size + (store_swappingout_size>>10))
 static int store_swap_high = 0;
 static int store_swap_low = 0;
 static int swaplog_fd = -1;
@@ -231,6 +234,11 @@ static int store_maintain_rate;
 static int store_maintain_buckets;
 static int scan_revolutions;
 static struct _bucketOrder *MaintBucketsOrder = NULL;
+
+/* unused fileno stack */
+#define FILENO_STACK_SIZE 128
+static int fileno_stack[FILENO_STACK_SIZE];
+int fileno_stack_count = 0;
 
 static MemObject *
 new_MemObject(void)
@@ -421,6 +429,8 @@ storeUnlockObject(StoreEntry * e)
     if (BIT_TEST(e->flag, RELEASE_REQUEST))
 	storeRelease(e);
     else if (!storeEntryValidLength(e))
+	storeRelease(e);
+    else if (e->object_len > Config.Store.maxObjectSize)
 	storeRelease(e);
     else {
 	storeSwapLog(e);
@@ -666,6 +676,7 @@ storeAddDiskRestore(const char *url, int file_number, int size, time_t expires, 
     e->expires = expires;
     e->lastmod = lastmod;
     e->ping_status = PING_NONE;
+    store_swapok_size += (size + 1023) >> 10;
     return e;
 }
 
@@ -766,11 +777,28 @@ storeCheckDoneWriting(StoreEntry * e)
     if (e->object_len < e->mem_obj->swap_length)
 	return;
     e->swap_status = SWAP_OK;
+    store_swappingout_size -= (int) e->object_len;
+    store_swapok_size += (int) ((e->object_len + 1023) >> 10);
     if (e->mem_obj->swapout_fd > -1) {
 	file_close(e->mem_obj->swapout_fd);
 	e->mem_obj->swapout_fd = -1;
     }
     storeUnlockObject(e);
+}
+
+void
+storeLowerSwapSize(void)
+{
+    int newsize;
+    newsize = store_swap_size * 90 / 100;
+    if (newsize < Config.Swap.maxSize) {
+	/* reduce the swap_size limit to 90% of current size. */
+	Config.Swap.maxSize = store_swap_size * 90 / 100;
+	debug(20, 0, "WARNING: Setting Maximum Swap Size to %d KB\n",
+	    Config.Swap.maxSize);
+	storeConfigure();
+    }
+    storeGetSwapSpace();
 }
 
 static void
@@ -780,14 +808,11 @@ storeAppendDone(int fd, int err, int len, StoreEntry * e)
 	fd, err, len, e->key);
     if (err) {
 	debug(20, 0, "storeAppendDone: ERROR %d for '%s'\n", err, e->key);
-	if (err == DISK_NO_SPACE_LEFT) {
-	    /* reduce the swap_size limit to the current size. */
-	    Config.Swap.maxSize = store_swap_size;
-	    storeConfigure();
-	}
-	return;
+	if (err == DISK_NO_SPACE_LEFT)
+	    storeLowerSwapSize();
     }
     e->object_len += len;
+    store_swappingout_size += len;
     if (e->store_status != STORE_ABORTED && !BIT_TEST(e->flag, DELAY_SENDING))
 	InvokeHandlers(e);
     storeCheckDoneWriting(e);
@@ -1124,8 +1149,6 @@ storeDoRebuildFromDisk(void *data)
 	    /* load new */
 	    (void) 0;
 	}
-	/* update store_swap_size */
-	store_swap_size += (int) ((size + 1023) >> 10);
 	rebuildData->objcount++;
 	e = storeAddDiskRestore(url,
 	    sfileno,
@@ -1250,17 +1273,15 @@ void
 storeAbort(StoreEntry * e, const char *msg)
 {
     MemObject *mem = e->mem_obj;
-    if (e->store_status != STORE_PENDING) {	/* XXX remove later */
+    if (e->store_status != STORE_PENDING) {
 	debug_trap("storeAbort: bad store_status");
 	return;
-    } else if (mem == NULL) {	/* XXX remove later */
+    } else if (mem == NULL) {
 	debug_trap("storeAbort: null mem");
 	return;
     }
     e->store_status = STORE_ABORTED;
     mem->e_abort_msg = msg ? xstrdup(msg) : NULL;
-    /* add to store_swap_size because storeRelease() subtracts */
-    store_swap_size += (int) ((e->object_len + 1023) >> 10);
     storeReleaseRequest(e);
     InvokeHandlers(e);
     storeCheckDoneWriting(e);
@@ -1271,7 +1292,6 @@ void
 storeComplete(StoreEntry * e)
 {
     debug(20, 3, "storeComplete: '%s'\n", e->key);
-    store_swap_size += (int) ((e->object_len + 1023) >> 10);
     e->lastref = squid_curtime;
     e->store_status = STORE_OK;
     safe_free(e->mem_obj->mime_hdr);
@@ -1355,10 +1375,9 @@ storeGetBucketNum(void)
 #define SWAP_LRU_REMOVE_COUNT	8
 
 /* Clear Swap storage to accommodate the given object len */
-int
-storeGetSwapSpace(int size)
+static void
+storeGetSwapSpace()
 {
-    static int fReduceSwap = 0;
     static int swap_help = 0;
     StoreEntry *e = NULL;
     int scanned = 0;
@@ -1371,21 +1390,13 @@ storeGetSwapSpace(int size)
     int i;
     StoreEntry **LRU_list;
     hash_link *link_ptr = NULL, *next = NULL;
-    int kb_size = ((size + 1023) >> 10);
-
-    if (store_swap_size + kb_size <= store_swap_low)
-	fReduceSwap = 0;
-    if (!fReduceSwap && (store_swap_size + kb_size <= store_swap_high)) {
-	return 0;
+    static time_t last_warning = 0;
+    debug(20, 2, "storeGetSwapSpace: Starting\n");
+    if ((i = storeGetUnusedFileno()) >= 0) {
+	safeunlink(storeSwapFullPath(i, NULL), 0);
+	if (++removed == SWAP_LRU_REMOVE_COUNT)
+	    return;
     }
-    debug(20, 2, "storeGetSwapSpace: Starting...\n");
-
-    /* Set flag if swap size over high-water-mark */
-    if (store_swap_size + kb_size > store_swap_high)
-	fReduceSwap = 1;
-
-    debug(20, 2, "storeGetSwapSpace: Need %d bytes...\n", size);
-
     LRU_list = xcalloc(max_list_count, sizeof(StoreEntry *));
     /* remove expired objects until recover enough or no expired objects */
     for (i = 0; i < store_buckets; i++) {
@@ -1412,64 +1423,30 @@ storeGetSwapSpace(int size)
 	    list_count,
 	    sizeof(StoreEntry *),
 	    (QS) compareLastRef);
-	if (list_count > SWAP_LRU_REMOVE_COUNT)
-	    list_count = SWAP_LRU_REMOVE_COUNT;		/* chop list */
+	if (list_count > (SWAP_LRU_REMOVE_COUNT - removed))
+	    list_count = (SWAP_LRU_REMOVE_COUNT - removed);	/* chop list */
 	if (scan_count > SWAP_LRUSCAN_COUNT)
 	    break;
-    }				/* for */
-
-#ifdef LOTSA_DEBUGGING
-    /* end of candidate selection */
-    debug(20, 2, "storeGetSwapSpace: Current Size:   %7d kbytes\n",
-	store_swap_size);
-    debug(20, 2, "storeGetSwapSpace: High W Mark:    %7d kbytes\n",
-	store_swap_high);
-    debug(20, 2, "storeGetSwapSpace: Low W Mark:     %7d kbytes\n",
-	store_swap_low);
-    debug(20, 2, "storeGetSwapSpace: Entry count:    %7d items\n",
-	meta_data.store_entries);
-    debug(20, 2, "storeGetSwapSpace: Visited:        %7d buckets\n",
-	i + 1);
-    debug(20, 2, "storeGetSwapSpace: Scanned:        %7d items\n",
-	scanned);
-    debug(20, 2, "storeGetSwapSpace: Expired:        %7d items\n",
-	expired);
-    debug(20, 2, "storeGetSwapSpace: Locked:         %7d items\n",
-	locked);
-    debug(20, 2, "storeGetSwapSpace: Locked Space:   %7d bytes\n",
-	locked_size);
-    debug(20, 2, "storeGetSwapSpace: Scan in array:  %7d bytes\n",
-	scan_in_objs);
-    debug(20, 2, "storeGetSwapSpace: LRU candidate:  %7d items\n",
-	LRU_list->index);
-#endif /* LOTSA_DEBUGGING */
-
+    }
     for (i = 0; i < list_count; i++)
 	removed += storeRelease(*(LRU_list + i));
-    if (store_swap_size + kb_size <= store_swap_low)
-	fReduceSwap = 0;
     debug(20, 2, "storeGetSwapSpace: After Freeing Size:   %7d kbytes\n",
 	store_swap_size);
     /* free the list */
     safe_free(LRU_list);
-
-    if ((store_swap_size + kb_size > store_swap_high)) {
-	i = 2;
-	if (++swap_help > SWAP_MAX_HELP) {
-	    debug(20, 0, "WARNING: Repeated failures to free up disk space!\n");
-	    i = 0;
+    if (store_swap_size > store_swap_high) {
+	if (++swap_help > SWAP_MAX_HELP)
+	    fatal_dump("Repeated failures to free up disk space");
+	if (squid_curtime - last_warning > 600) {
+	    debug(20, 0, "WARNING: Exceeded 'cache_swap' high water mark (%dK > %dK)\n",
+		store_swap_size, store_swap_high);
+	    last_warning = squid_curtime;
 	}
-	debug(20, i, "storeGetSwapSpace: Disk usage is over high water mark\n");
-	debug(20, i, "--> store_swap_high = %d KB\n", store_swap_high);
-	debug(20, i, "--> store_swap_size = %d KB\n", store_swap_size);
-	debug(20, i, "--> asking for        %d KB\n", kb_size);
     } else {
 	swap_help = 0;
     }
-
     getCurrentTime();		/* we may have taken more than one second */
     debug(20, 2, "Removed %d objects\n", removed);
-    return 0;
 }
 
 
@@ -1516,26 +1493,23 @@ storeRelease(StoreEntry * e)
 	if ((hentry = (StoreEntry *) hash_lookup(store_table, hkey)))
 	    storeExpireNow(hentry);
     }
-#ifdef DONT_DO_FOR_NOVM
-    if (store_rebuilding == STORE_REBUILDING_FAST) {
-	debug(20, 2, "storeRelease: Delaying release until store is rebuilt: '%s'\n",
-	    e->key ? e->key : e->url ? e->url : "NO URL");
-	storeExpireNow(e);
-	storeSetPrivateKey(e);
-	return 0;
-    }
-#endif
     if (e->key)
 	debug(20, 5, "storeRelease: Release object key: %s\n", e->key);
     else
 	debug(20, 5, "storeRelease: Release anonymous object\n");
 
+    if (e->swap_status == SWAP_OK)
+	store_swapok_size -= (e->object_len + 1023) >> 10;
+    else if (e->swap_status == SWAPPING_OUT)
+	store_swappingout_size -= e->object_len;
     if (e->swap_file_number > -1) {
-	storePutUnusedFileno(e->swap_file_number);
+	if (store_swap_size > store_swap_high)
+		safeunlink(storeSwapFullPath(e->swap_file_number, NULL), 1);
+	else
+		storePutUnusedFileno(e->swap_file_number);
 	file_map_bit_reset(e->swap_file_number);
 	e->swap_file_number = -1;
 	e->swap_status = NO_SWAP;
-	store_swap_size -= (e->object_len + 1023) >> 10;
 	HTTPCacheInfo->proto_purgeobject(HTTPCacheInfo,
 	    urlParseProtocol(e->url),
 	    e->object_len);
@@ -1918,6 +1892,12 @@ storeMaintainSwapSpace(void *unused)
     int scan_obj = 0;
     static struct _bucketOrder *b;
 
+    if (store_swap_size > store_swap_high) {
+	eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 0);
+	storeGetSwapSpace();
+	return;
+    }
+
     eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 1);
     /* We can't delete objects while rebuilding swap */
     if (store_rebuilding == STORE_REBUILDING_FAST)
@@ -1952,9 +1932,6 @@ storeMaintainSwapSpace(void *unused)
     }
     debug(51, rm_obj ? 2 : 9, "Removed %d of %d objects from bucket %d\n",
 	rm_obj, scan_obj, (int) b->bucket);
-    /* Scan row of hash table each second and free storage if we're
-     * over the high-water mark */
-    storeGetSwapSpace(0);
 }
 
 
@@ -2241,10 +2218,6 @@ storeTimestampsSet(StoreEntry * e)
 	e->lastmod = served_date;
     e->timestamp = served_date;
 }
-
-#define FILENO_STACK_SIZE 128
-static int fileno_stack[FILENO_STACK_SIZE];
-int fileno_stack_count = 0;
 
 static int
 storeGetUnusedFileno(void)

@@ -245,6 +245,7 @@ diskHandleWrite(int fd, FileEntry * entry)
 {
     int rlen = 0;
     int len = 0;
+    int status = DISK_OK;
     dwrite_q *r = NULL;
     if (file_table[fd].at_eof == NO)
 	lseek(fd, 0, SEEK_END);
@@ -255,25 +256,24 @@ diskHandleWrite(int fd, FileEntry * entry)
 	if (len < 0) {
 	    if (errno == EAGAIN || errno == EWOULDBLOCK)
 		break;
-	    /* disk i/o failure--flushing all outstanding writes  */
 	    debug(50, 1, "diskHandleWrite: FD %d: disk write error: %s\n",
 		fd, xstrerror());
-	    entry->write_daemon = NOT_PRESENT;
-	    entry->write_pending = NO_WRT_PENDING;
-	    /* call finish handler */
-	    do {
-		entry->write_q = r->next;
-		if (r->free)
-		    (r->free) (r->buf);
-		safe_free(r);
-	    } while ((r = entry->write_q));
-	    if (entry->wrt_handle) {
-		entry->wrt_handle(fd,
-		    errno == ENOSPC ? DISK_NO_SPACE_LEFT : DISK_ERROR,
-		    0,		/* length */
-		    entry->wrt_handle_data);
+	    /* callback successfully if we wrote something previously */
+	    if (rlen > 0)
+		break;
+	    status = errno == ENOSPC ? DISK_NO_SPACE_LEFT : DISK_ERROR;
+	    if (entry->wrt_handle == NULL) {
+	    /* FLUSH PENDING BUFFERS */
+	        entry->write_daemon = NOT_PRESENT;
+	        entry->write_pending = NO_WRT_PENDING;
+	       do {
+		   entry->write_q = r->next;
+		   if (r->free)
+		       (r->free) (r->buf);
+		   safe_free(r);
+	       } while ((r = entry->write_q));
 	    }
-	    return DISK_ERROR;
+	    break;
 	}
 	rlen += len;
 	r->cur_offset += len;
@@ -299,10 +299,10 @@ diskHandleWrite(int fd, FileEntry * entry)
 	entry->write_daemon = PRESENT;
     }
     if (entry->wrt_handle)
-	entry->wrt_handle(fd, DISK_OK, rlen, entry->wrt_handle_data);
+	entry->wrt_handle(fd, status, rlen, entry->wrt_handle_data);
     if (file_table[fd].close_request == REQUEST)
 	file_close(fd);
-    return DISK_OK;
+    return status;
 }
 
 

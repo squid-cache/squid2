@@ -384,7 +384,10 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
     size_t l = 0;
     int j;
 
-    fp = fdopen(sentry->mem_obj->swapout_fd, "w");
+    if (sentry->mem_obj->swapout_fd < 0)
+	return;
+    if ((fp = fdopen(sentry->mem_obj->swapout_fd, "w")) == NULL)
+	return;
     l += fprintf(fp, open_bracket);
 
     for (entry = storeGetFirst(); entry != NULL; entry = storeGetNext()) {
@@ -766,6 +769,8 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	appname);
     storeAppendPrintf(sentry, "{\tStorage Swap size:\t%d MB}\n",
 	storeGetSwapSize() >> 10);
+    storeAppendPrintf(sentry, "{\tMaximum Swap size:\t%d MB}\n",
+	Config.Swap.maxSize >> 10);
     storeAppendPrintf(sentry, "{\tStorage LRU Expiration Age:\t%6.2f days}\n",
 	(double) storeExpiredReferenceAge() / 86400.0);
     storeAppendPrintf(sentry, "{\tRequests given to unlinkd:\t%d}\n",

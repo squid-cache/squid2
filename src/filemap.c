@@ -123,7 +123,6 @@
 #define ALL_ONES (unsigned long) 0xFFFFFFFF
 #endif
 
-extern int storeGetSwapSpace _PARAMS((int));
 extern void fatal_dump _PARAMS((const char *));
 
 static fileMap *fm = NULL;
@@ -160,8 +159,8 @@ file_map_bit_set(int file_number)
 	fm->toggle++;
 	debug(8, 0, "You should increment MAX_SWAP_FILE\n");
     } else if (fm->n_files_in_map > (fm->max_n_files - 100)) {
-	debug(8, 0, "You've run out of swap file numbers. Freeing 1MB\n");
-	storeGetSwapSpace(1000000);
+	debug_trap("You've run out of swap file numbers!");
+	storeLowerSwapSize();
     }
     return (file_number);
 }
