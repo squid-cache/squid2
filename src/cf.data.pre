@@ -971,6 +971,16 @@ DOC_START
 redirect_rewrites_host_header on
 DOC_END
 
+NAME: redirector_access
+TYPE: acl_access
+DEFAULT: none
+LOC: Config.accessList.redirector
+DOC_START
+	If defined, this access list specifies which requests are
+	sent to the redirector processes.  By default all requests
+	are sent.
+DOC_END
+
 
 NAME: authenticate_program
 TYPE: wordlist

@@ -103,6 +103,18 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
 	handler(data, NULL);
 	return;
     }
+    if (Config.accessList.redirector) {
+	aclCheck_t ch;
+	memset(&ch, '\0', sizeof(ch));
+	ch.src_addr = http->conn->peer.sin_addr;
+	ch.my_addr = http->conn->me.sin_addr;
+	ch.request = http->request;
+	if (!aclCheckFast(Config.accessList.redirector, &ch)) {
+	    /* denied -- bypass redirector */
+	    handler(data, NULL);
+	    return;
+	}
+    }
     if (Config.onoff.redirector_bypass && redirectors->stats.queue_size) {
 	/* Skip redirector if there is one request queued */
 	n_bypassed++;

@@ -413,6 +413,7 @@ struct _SquidConfig {
 #if USE_IDENT
 	acl_access *identLookup;
 #endif
+	acl_access *redirector;
     } accessList;
     acl_deny_info_list *denyInfoList;
     char *proxyAuthRealm;
