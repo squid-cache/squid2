@@ -267,10 +267,7 @@ typedef struct icp_message_s icp_message_t;
 
 extern void protoDispatch _PARAMS((int, StoreEntry *, request_t *));
 
-extern int protoUnregister _PARAMS((int fd,
-	StoreEntry *,
-	request_t *,
-	struct in_addr));
+extern int protoUnregister _PARAMS((StoreEntry *, request_t *, struct in_addr));
 extern int protoStart _PARAMS((int, StoreEntry *, peer *, request_t *));
 extern void protoCancelTimeout _PARAMS((int fd, StoreEntry *));
 

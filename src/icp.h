@@ -230,12 +230,11 @@ extern void icpSendERROR _PARAMS((int fd,
 	int httpCode));
 extern void AppendUdp _PARAMS((icpUdpData *));
 extern void icpParseRequestHeaders _PARAMS((clientHttpRequest *));
-extern PF icpDetectClientClose;
 extern void icpProcessRequest _PARAMS((int, clientHttpRequest *));
-extern int icpSendMoreData _PARAMS((int fd, clientHttpRequest *));
 extern PF icpUdpReply;
 extern void vizHackSendPkt _PARAMS((const struct sockaddr_in * from, int type));
 extern CWCB icpSendERRORComplete;
+extern STCB icpHandleStore;
 
 extern int neighbors_do_private_keys;
 extern char *IcpOpcodeStr[];

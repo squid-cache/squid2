@@ -374,8 +374,8 @@ serverConnectionsOpen(void)
 		icpHandleUdp,
 		NULL, 0);
 	    comm_join_mcast_groups(theInIcpConnection);
-	    debug(1, 1, "Accepting ICP connections on FD %d.\n",
-		theInIcpConnection);
+	    debug(1, 1, "Accepting ICP connections on port %d, FD %d.\n",
+		(int) port, theInIcpConnection);
 
 	    if ((addr = Config.Addrs.udp_outgoing).s_addr != no_addr.s_addr) {
 		enter_suid();
@@ -392,8 +392,8 @@ serverConnectionsOpen(void)
 		    COMM_SELECT_READ,
 		    icpHandleUdp,
 		    NULL, 0);
-		debug(1, 1, "Accepting ICP connections on FD %d.\n",
-		    theOutIcpConnection);
+	        debug(1, 1, "Accepting ICP connections on port %d, FD %d.\n",
+	    		(int) port, theInIcpConnection);
 		fd_note(theOutIcpConnection, "Outgoing ICP socket");
 		fd_note(theInIcpConnection, "Incoming ICP socket");
 	    } else {

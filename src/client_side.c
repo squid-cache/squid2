@@ -351,9 +351,9 @@ icpProcessExpired(int fd, void *data)
     entry->refcount++;		/* EXPIRED CASE */
     http->entry = entry;
     http->out.offset = 0;
-    /* Register with storage manager to receive updates when data comes in. */
-    storeRegister(entry, fd, icpHandleIMSReply, http);
     protoDispatch(fd, http->entry, http->request);
+    /* Register with storage manager to receive updates when data comes in. */
+    storeRegister(entry, icpHandleIMSReply, http, http->out.offset);
 }
 
 static int
@@ -409,10 +409,7 @@ icpHandleIMSReply(void *data)
     } else if (mem->reply->code == 0) {
 	debug(33, 3, "icpHandleIMSReply: Incomplete headers for '%s'\n",
 	    entry->url);
-	storeRegister(entry,
-	    fd,
-	    icpHandleIMSReply,
-	    http);
+	storeRegister(entry, icpHandleIMSReply, http, http->out.offset);
 	return;
     } else if (clientGetsOldEntry(entry, http->old_entry, http->request)) {
 	/* We initiated the IMS request, the client is not expecting
@@ -420,10 +417,7 @@ icpHandleIMSReply(void *data)
 	 * headers have been loaded from disk. */
 	oldentry = http->old_entry;
 	if (oldentry->mem_obj->e_current_len == 0) {
-	    storeRegister(entry,
-		fd,
-		icpHandleIMSReply,
-		http);
+	    storeRegister(entry, icpHandleIMSReply, http, http->out.offset);
 	    return;
 	}
 	http->log_type = LOG_TCP_REFRESH_HIT;
@@ -464,7 +458,7 @@ icpHandleIMSReply(void *data)
 	storeUnlockObject(http->old_entry);
     }
     http->old_entry = NULL;	/* done with old_entry */
-    icpSendMoreData(fd, http);	/* give data to the client */
+    storeRegister(http->entry, icpHandleStore, http, http->out.offset);
 }
 
 int

@@ -156,6 +156,8 @@ static const char *const crlf = "\r\n";
 #define ICP_OP_ADD    0
 #define ICP_OP_DEL    1
 
+#define REQUEST_BUF_SIZE 4096
+
 typedef struct icp_ctrl_t {
     clientHttpRequest *http;
     StoreEntry *entry;
@@ -169,8 +171,6 @@ static CWCB clientWriteComplete;
 static CWCB icpHandleIMSComplete;
 static PF clientReadRequest;
 static PF connStateFree;
-static STCB icpHandleAbort;
-static STCB icpHandleStore;
 static STCB icpGetHeadersForIMS;
 static char *icpConstruct304reply _PARAMS((struct _http_reply *));
 static int CheckQuickAbort2 _PARAMS((const clientHttpRequest *));
@@ -189,6 +189,7 @@ static void icpProcessMISS _PARAMS((int, clientHttpRequest *));
 static void icpProcessRequestComplete _PARAMS((void *, int));
 static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, size_t));
 size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
+static int icpSendMoreData _PARAMS((int fd, clientHttpRequest *));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -250,15 +251,22 @@ httpRequestFree(void *data)
     struct _hierarchyLogData *hierData = NULL;
     const char *content_type = NULL;
     method_t method = METHOD_NONE;
-    if (http == NULL)
-	fatal_dump("httpRequestFree: http == NULL");
+    StoreEntry *entry = http->entry;
     icpProcessRequestControl(http, ICP_OP_DEL);
-    if (http->log_type > ERR_MAX)
-	fatal_dump("httpRequestFree: http->log_type out of range.");
-    if (http->entry) {
-	if (http->entry->mem_obj) {
-	    http_code = http->entry->mem_obj->reply->code;
-	    content_type = http->entry->mem_obj->reply->content_type;
+    if (!icpCheckTransferDone(http)) {
+	CheckQuickAbort(http);
+	if (entry) {
+            if (entry->ping_status == PING_WAITING)
+                storeReleaseRequest(entry);
+            storeUnregister(entry, http);
+        }
+        protoUnregister(entry, http->request, conn->peer.sin_addr);
+    }
+    assert(http->log_type < ERR_MAX);
+    if (entry) {
+	if (entry->mem_obj) {
+	    http_code = entry->mem_obj->reply->code;
+	    content_type = entry->mem_obj->reply->content_type;
 	}
     } else {
 	http_code = http->http_code;
@@ -302,9 +310,9 @@ httpRequestFree(void *data)
 #if LOG_FULL_HEADERS
     safe_free(http->reply_hdr);
 #endif /* LOG_FULL_HEADERS */
-    if (http->entry) {
-	storeUnregister(http->entry, http);
-	storeUnlockObject(http->entry);
+    if (entry) {
+	storeUnregister(entry, http);
+	storeUnlockObject(entry);
 	http->entry = NULL;
     }
     /* old_entry might still be set if we didn't yet get the reply
@@ -591,8 +599,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
     return len;
 }
 
-
-int
+static int
 icpSendMoreData(int fd, clientHttpRequest * http)
 {
     StoreEntry *entry = http->entry;
@@ -686,13 +693,21 @@ icpSendMoreData(int fd, clientHttpRequest * http)
  * error messages.  We get here by invoking the handlers in the
  * pending list.
  */
-static void
+void
 icpHandleStore(void *data)
 {
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
+    ConnStateData *conn = http->conn;
     int fd = http->conn->fd;
     debug(12, 5, "icpHandleStore: FD %d '%s'\n", fd, entry->url);
+    if (conn->chr != http) {
+	/* there is another object in progress, defer this one */
+	debug(0,0,"icpHandleStore: Deferring delivery of\n");
+	debug(0,0,"--> %s\n", entry->url);
+	debug(0,0,"--> because other requests are in front\n");
+	return;
+    }
     if (entry->store_status == STORE_ABORTED) {
 	debug(12, 3, "icpHandleStore: abort_code=%d url='%s'\n",
 	    entry->mem_obj->abort_code, entry->url);
@@ -703,8 +718,6 @@ icpHandleStore(void *data)
 	    400);
 	return;
     }
-    if (http->entry != entry)
-	fatal_dump("icpHandleStore: entry mismatch!");
     icpSendMoreData(fd, http);
 }
 
@@ -745,7 +758,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
-	storeRegister(http->entry, fd, icpHandleStore, http);
+	storeRegister(http->entry, icpHandleStore, http, http->out.offset);
     }
 }
 
@@ -764,7 +777,7 @@ icpGetHeadersForIMS(void *data)
 	    return;
 	}
 	/* All headers are not yet available, wait for more data */
-	storeRegister(entry, fd, icpGetHeadersForIMS, http);
+	storeRegister(entry, icpGetHeadersForIMS, http, http->out.offset);
 	return;
     }
     /* All headers are available, check if object is modified or not */
@@ -1078,9 +1091,9 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     entry->refcount++;		/* MISS CASE */
     http->entry = entry;
     http->out.offset = 0;
-    /* Register with storage manager to receive updates when data comes in. */
-    storeRegister(entry, fd, icpHandleStore, http);
     protoDispatch(fd, http->entry, http->request);
+    /* Register with storage manager to receive updates when data comes in. */
+    storeRegister(entry, icpHandleStore, http, http->out.offset);
     return;
 }
 
@@ -1659,10 +1672,6 @@ icpHandleUdp(int sock, void *not_used)
 /*
  *  parseHttpRequest()
  * 
- *  Called by
- *    clientReadRequest() after the request has been read
- *  Calls
- *    do_append_domain()
  *  Returns
  *   -1 on error
  *    0 on incomplete request
@@ -1807,8 +1816,6 @@ parseHttpRequest(clientHttpRequest * http, method_t * method_p)
     return 1;
 }
 
-#define ASCII_INBUF_BLOCKSIZE 4096
-
 static void
 clientReadRequest(int fd, void *data)
 {
@@ -1828,16 +1835,14 @@ clientReadRequest(int fd, void *data)
     fd_bytes(fd, size, FD_READ);
 
     if (size == 0) {
-	comm_close(fd);
+	/* It might be half-closed, we can't tell */
+        debug(12, 5, "clientReadRequest: FD %d closed?\n", fd);
+        comm_set_stall(fd, 10); /* check again in 10 seconds */
+	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, http, 0);
 	return;
     } else if (size < 0) {
-	if (errno == EWOULDBLOCK || errno == EAGAIN) {
-	    debug(50, 0, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
-	    commSetSelect(fd,
-		COMM_SELECT_READ,
-		clientReadRequest,
-		http,
-		0);
+	if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR) {
+	    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, http, 0);
 	} else {
 	    debug(50, 2, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
 	    comm_close(fd);
@@ -1882,16 +1887,10 @@ clientReadRequest(int fd, void *data)
 	}
 	http->request = requestLink(request);
 	clientAccessCheck(http);
-	if (!BIT_TEST(request->flags, REQ_PROXY_KEEPALIVE)) {
-	    commSetSelect(fd,
-		COMM_SELECT_READ,
-		icpDetectClientClose,
-		http->conn,
-		0);
-	}
+	commSetSelect(fd, COMM_SELECT_READ, icpDetectNewRequest, http->conn, 0);
     } else if (parser_return_code == 0) {
 	/*
-	 *    Partial request received; reschedule until parseAsciiUrl()
+	 *    Partial request received; reschedule until parseHttpRequest()
 	 *    is happy with the input
 	 */
 	k = http->in.size - 1 - http->in.offset;
@@ -1909,24 +1908,18 @@ clientReadRequest(int fd, void *data)
 		return;
 	    }
 	    /* Grow the request memory area to accomodate for a large request */
-	    http->in.size += ASCII_INBUF_BLOCKSIZE;
+	    http->in.size += REQUEST_BUF_SIZE;
 	    http->in.buf = xrealloc(http->in.buf, http->in.size);
-	    meta_data.misc += ASCII_INBUF_BLOCKSIZE;
+	    meta_data.misc += REQUEST_BUF_SIZE;
 	    debug(12, 2, "Handling a large request, offset=%d inbufsize=%d\n",
 		http->in.offset, http->in.size);
 	    k = http->in.size - 1 - http->in.offset;
 	}
-	commSetSelect(fd,
-	    COMM_SELECT_READ,
-	    clientReadRequest,
-	    http,
-	    0);
+	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, http, 0);
     } else {
 	/* parser returned -1 */
 	debug(12, 1, "clientReadRequest: FD %d Invalid Request\n", fd);
-	wbuf = squid_error_request(http->in.buf,
-	    ERR_INVALID_REQ,
-	    400);
+	wbuf = squid_error_request(http->in.buf, ERR_INVALID_REQ, 400);
 	icpSendERROR(fd, ERR_INVALID_REQ, wbuf, http, 400);
     }
 }
@@ -2085,68 +2078,6 @@ icpCheckTransferDone(clientHttpRequest * http)
     return 0;
 }
 
-void
-icpDetectClientClose(int fd, void *data)
-{
-    ConnStateData *connState = data;
-    clientHttpRequest *http = connState->chr;
-    LOCAL_ARRAY(char, buf, 256);
-    int n;
-    StoreEntry *entry = http->entry;
-    errno = 0;
-    if (icpCheckTransferDone(http)) {
-	/* All data has been delivered */
-	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
-	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
-	    HTTPCacheInfo->proto_id(entry->url),
-	    http->out.size);
-	comm_close(fd);
-    } else if ((n = read(fd, buf, 255)) > 0) {
-	fd_bytes(fd, n, FD_READ);
-	buf[n] = '\0';
-	debug(12, 0, "icpDetectClientClose: FD %d, %d unexpected bytes\n",
-	    fd, n);
-	debug(12, 1, "--> from: %s\n", fd_table[fd].ipaddr);
-	debug(12, 1, "--> data: %s\n", rfc1738_escape(buf));
-	commSetSelect(fd,
-	    COMM_SELECT_READ,
-	    icpDetectClientClose,
-	    connState,
-	    0);
-    } else if (n < 0 && (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)) {
-	commSetSelect(fd,
-	    COMM_SELECT_READ,
-	    icpDetectClientClose,
-	    connState,
-	    0);
-    } else if (n < 0) {
-	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
-	debug(12, 5, "--> URL '%s'\n", http->url);
-	if (errno == ECONNRESET)
-	    debug(50, 2, "icpDetectClientClose: ERROR %s: %s\n",
-		fd_table[fd].ipaddr, xstrerror());
-	else if (errno)
-	    debug(50, 1, "icpDetectClientClose: ERROR %s: %s\n",
-		fd_table[fd].ipaddr, xstrerror());
-	CheckQuickAbort(http);
-	if (entry) {
-	    if (entry->ping_status == PING_WAITING)
-		storeReleaseRequest(entry);
-	    storeUnregister(entry, http);
-	    storeRegister(entry, fd, icpHandleAbort, connState);
-	}
-	protoUnregister(fd,
-	    entry,
-	    http->request,
-	    http->conn->peer.sin_addr);
-	comm_close(fd);
-    } else {
-	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
-	comm_set_stall(fd, 10);	/* check again in 10 seconds */
-	commSetSelect(fd, COMM_SELECT_READ, icpDetectClientClose, connState, 0);
-    }
-}
-
 static void
 icpDetectNewRequest(int fd, void *data)
 {
@@ -2161,23 +2092,14 @@ icpDetectNewRequest(int fd, void *data)
     debug(0, 3, "icpDetectNewRequest: FD %d: accepted\n", fd);
     http = xcalloc(1, sizeof(clientHttpRequest));
     http->start = current_time;
-    http->in.size = ASCII_INBUF_BLOCKSIZE;
+    http->in.size = REQUEST_BUF_SIZE;
     http->in.buf = xcalloc(http->in.size, 1);
     http->entry = NULL;
     http->conn = connState;
-    meta_data.misc += ASCII_INBUF_BLOCKSIZE;
+    meta_data.misc += REQUEST_BUF_SIZE;
     fd_note(fd, "Reading Request");
     commSetTimeout(fd, Config.Timeout.request, requestTimeout, http);
-    commSetSelect(fd,
-	COMM_SELECT_READ,
-	clientReadRequest,
-	http,
-	0);
-    commSetSelect(fd,
-	COMM_SELECT_READ,
-	clientReadRequest,
-	http,
-	0);
+    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, http, 0);
     for (H = &connState->chr; *H; H = &(*H)->next);
     *H = http;
 }
@@ -2233,40 +2155,4 @@ vizHackSendPkt(const struct sockaddr_in *from, int type)
 	0,
 	(struct sockaddr *) &Config.vizHack.S,
 	sizeof(struct sockaddr_in));
-}
-
-/* 
- * icpHandleAbort()
- * Call for objects which might have been aborted.  If the entry
- * was aborted, AND the client has not seen any data yet, then
- * Queue the error page via icpSendERROR().  Otherwise just
- * close the socket.
- */
-static void
-icpHandleAbort(void *data)
-{
-    clientHttpRequest *http = data;
-    StoreEntry *entry = http->entry;
-    int fd = http->conn->fd;
-    if (entry == NULL) {
-	comm_close(fd);
-	return;
-    }
-    if (entry->store_status != STORE_ABORTED) {
-	comm_close(fd);
-	return;
-    }
-    if (http->out.size > 0) {
-	comm_close(fd);
-	return;
-    }
-    if (entry->mem_obj->e_abort_msg == NULL) {
-	comm_close(fd);
-	return;
-    }
-    icpSendERROR(fd,
-	entry->mem_obj->abort_code,
-	entry->mem_obj->e_abort_msg,
-	http,
-	400);
 }

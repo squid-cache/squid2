@@ -179,11 +179,11 @@ protoNotImplemented(StoreEntry * entry)
 /* PUBLIC FUNCTIONS */
 
 int
-protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr src_addr)
+protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr)
 {
     char *url = entry ? entry->url : NULL;
     protocol_t proto = request ? request->protocol : PROTO_NONE;
-    debug(17, 5, "protoUnregister FD %d '%s'\n", fd, url ? url : "NULL");
+    debug(17, 5, "protoUnregister '%s'\n", url ? url : "NULL");
     if (proto == PROTO_CACHEOBJ)
 	return 0;
     if (entry == NULL)

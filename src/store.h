@@ -142,11 +142,9 @@
 #endif
 
 
-typedef void STCB _PARAMS((void *));
-
 /* keep track each client receiving data from that particular StoreEntry */
 struct _store_client {
-    int last_offset;
+    off_t offset;
     STCB *callback;
     void *callback_data;
 };
@@ -267,7 +265,7 @@ extern void storeStartDeleteBehind _PARAMS((StoreEntry *));
 extern int storeClientCopy _PARAMS((StoreEntry *, int, int, char *, int *, void *));
 extern int storePendingNClients _PARAMS((const StoreEntry *));
 extern int storeWriteCleanLogs _PARAMS((void));
-extern int storeRegister _PARAMS((StoreEntry *, int, STCB *, void *));
+extern void storeRegister _PARAMS((StoreEntry *, STCB *, void *, off_t));
 extern int urlcmp _PARAMS((const char *, const char *));
 extern void storeMaintainSwapSpace _PARAMS((void *unused));
 extern void storeExpireNow _PARAMS((StoreEntry *));
