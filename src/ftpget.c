@@ -2025,6 +2025,7 @@ int ftpget_srv_mode(port)
     int n;
     static char *w_space = " \t\n\r";
     static char buf[BUFSIZ];
+    int buflen;
 
     setsid();			/* become session leader */
 
@@ -2074,15 +2075,21 @@ int ftpget_srv_mode(port)
 	    log_errno2(__FILE__, __LINE__, "accept");
 	    exit(1);
 	}
-	buf[0] = '\0';
-	/* XXX Assume we get the whole request in one read! */
-	/* Probably okay since it should be coming on the loopback */
-	if ((n = read(c, buf, BUFSIZ)) <= 0) {
-	    log_errno2(__FILE__, __LINE__, "read");
+	if (fork()) {
+	    /* parent */
 	    close(c);
 	    continue;
 	}
-	buf[n] = '\0';		/* Must terminate it */
+	buflen = 0;
+	memset(buf, '\0', BUFSIZ);
+	do {
+	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) <= 0) {
+		log_errno2(__FILE__, __LINE__, "read");
+		close(c);
+		_exit(1);
+	    }
+	    buflen += n;
+	} while (!strchr(buf, '\n'));
 	i = 0;
 	t = strtok(buf, w_space);
 	while (t && i < MAX_ARGS - 1) {
@@ -2092,11 +2099,7 @@ int ftpget_srv_mode(port)
 	    i++;
 	}
 	args[i] = NULL;
-	if (fork()) {
-	    /* parent */
-	    close(c);
-	    continue;
-	}
+
 	dup2(c, 1);
 	close(c);
 	execvp(fullprogname, args);
