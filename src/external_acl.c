@@ -751,12 +751,12 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
     }
     key = makeExternalAclKey(ch, acl);
     ch->auth_user_request = NULL;
-    debug(82, 2) ("externalAclLookup: lookup in '%s' for '%s'\n", def->name, key);
     if (!key) {
 	debug(82, 1) ("externalAclLookup: lookup in '%s', prerequisit failure\n", def->name);
 	callback(callback_data, NULL);
 	return;
     }
+    debug(82, 2) ("externalAclLookup: lookup in '%s' for '%s'\n", def->name, key);
     entry = hash_lookup(def->cache, key);
     state = cbdataAlloc(externalAclState);
     state->def = def;
