@@ -11,8 +11,9 @@
 #define MAGIC_MARKER    "\004\004\004"	/* No doubt this should be more configurable */
 #define MAGIC_MARKER_SZ 3
 
-static char *ftpASCII = "A";
-static char *ftpBinary = "I";
+static char ftpASCII[] = "A";
+static char ftpBinary[] = "I";
+static char localhost[] = "localhost";
 
 typedef struct _Ftpdata {
     StoreEntry *entry;
@@ -533,7 +534,7 @@ void ftpConnInProgress(fd, data)
 
     debug(9, 5, "ftpConnInProgress: FD %d\n", fd);
 
-    if (comm_connect(fd, "localhost", CACHE_FTP_PORT) != COMM_OK)
+    if (comm_connect(fd, localhost, CACHE_FTP_PORT) != COMM_OK)
 	switch (errno) {
 	case EINPROGRESS:
 	case EALREADY:
@@ -596,7 +597,7 @@ int ftpStart(unusedfd, url, entry)
 	(void *) data);
 
     /* Now connect ... */
-    if ((status = comm_connect(data->ftp_fd, "localhost", CACHE_FTP_PORT))) {
+    if ((status = comm_connect(data->ftp_fd, localhost, CACHE_FTP_PORT))) {
 	if (status != EINPROGRESS) {
 	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	    comm_close(data->ftp_fd);
