@@ -39,10 +39,6 @@
 #include <pwd.h>
 #endif
 
-
-#define ERR    "ERR\n"
-#define OK     "OK\n"
-
 #if 0
 #define NTLM_STATIC_CHALLENGE "deadbeef"
 #endif
@@ -55,7 +51,8 @@ static char *authenticate_ntlm_domain = "LIFELESSWKS";
 static void
 lc(char *string)
 {
-    char *p = string, c;
+    char *p = string;
+    char c;
     while ((c = *p)) {
 	*p = tolower(c);
 	p++;
@@ -65,7 +62,7 @@ lc(char *string)
 
 /*
  * Generates a challenge request. The randomness of the 8 byte 
- * challenge strings can be guarenteed to be poor at best.
+ * challenge strings can be guaranteed to be poor at best.
  */
 void
 ntlmMakeChallenge(struct ntlm_challenge *chal)
@@ -89,7 +86,6 @@ ntlmMakeChallenge(struct ntlm_challenge *chal)
     if (authenticate_ntlm_domain != NULL)
 	while (authenticate_ntlm_domain[i++]);
 
-
     chal->target.offset = WSWAP(48);
     chal->target.maxlen = SSWAP(i);
     chal->target.len = chal->target.maxlen;
@@ -110,7 +106,7 @@ ntlmMakeChallenge(struct ntlm_challenge *chal)
 }
 
 /*
- * Check the vailidity of a request header. Return -1 on error.
+ * Check the validity of a request header. Return -1 on error.
  */
 int
 ntlmCheckHeader(ntlmhdr * hdr, int type)
@@ -127,9 +123,8 @@ ntlmCheckHeader(ntlmhdr * hdr, int type)
 	return 0;
 
     if (WSWAP(hdr->type) != type) {
-/* don't report this error - it's ok as we do a if() around this function */
-//      fprintf(stderr, "ntlmCheckHeader: type is %d, wanted %d\n",
-	//          WSWAP(hdr->type), type);
+	/* don't report this error - it's ok as we do a if() around this function */
+	/* fprintf(stderr, "ntlmCheckHeader: type is %d, wanted %d\n", WSWAP(hdr->type), type); */
 	return (-1);
     }
     return (0);
@@ -142,9 +137,12 @@ char *
 ntlmGetString(ntlmhdr * hdr, strhdr * str, int flags)
 {
     static char buf[512];
-    u_short *s, c;
-    char *d, *sc;
-    int l, o;
+    u_short *s;
+    u_short c;
+    char *d;
+    char *sc;
+    int l;
+    int o;
 
     l = SSWAP(str->len);
     o = WSWAP(str->offset);
@@ -195,12 +193,12 @@ ntlmGetString(ntlmhdr * hdr, strhdr * str, int flags)
 int
 ntlmDecodeAuth(struct ntlm_authenticate *auth, char *buf, size_t size)
 {
-    char *p, *origbuf;
+    char *p;
+    char *origbuf;
     int s;
 
-    if (!buf) {
+    if (!buf)
 	return 1;
-    }
     origbuf = buf;
     if (ntlmCheckHeader(&auth->hdr, NTLM_AUTHENTICATE)) {
 
@@ -214,11 +212,11 @@ ntlmDecodeAuth(struct ntlm_authenticate *auth, char *buf, size_t size)
  */
     if ((p = ntlmGetString(&auth->hdr, &auth->domain, 2)) == NULL)
 	p = authenticate_ntlm_domain;
-//      fprintf(stderr,"ntlmDecodeAuth: Domain '%s'.\n",p);
+    /* fprintf(stderr,"ntlmDecodeAuth: Domain '%s'.\n",p); */
     if ((s = strlen(p) + 1) >= size)
 	return 1;
     strcpy(buf, p);
-//      fprintf(stdout,"ntlmDecodeAuth: Domain '%s'.\n",buf);
+    /* fprintf(stdout,"ntlmDecodeAuth: Domain '%s'.\n",buf); */
 
     size -= s;
     buf += (s - 1);
@@ -228,12 +226,11 @@ ntlmDecodeAuth(struct ntlm_authenticate *auth, char *buf, size_t size)
     if ((s = strlen(p) + 1) >= size)
 	return 1;
     while (*p)
-	*buf++ = (*p++);	//tolower
+	*buf++ = (*p++);	/* tolower */
 
     *buf++ = '\0';
     size -= s;
-//      fprintf(stderr, "ntlmDecodeAuth: user: %s%s\n",origbuf, p);
-
+    /* fprintf(stderr, "ntlmDecodeAuth: user: %s%s\n",origbuf, p); */
 
     return 0;
 }
@@ -291,10 +288,8 @@ main()
 		    SSWAP(chal.target.maxlen);
 		data = (char *) base64_encode_bin((char *) &chal, len);
 		printf("CH %s\n", data);
-	    } else if (!ntlmCheckHeader
-		((struct ntlmhdr *) cleartext, NTLM_AUTHENTICATE)) {
-		if (!ntlmDecodeAuth
-		    ((struct ntlm_authenticate *) cleartext, user, 256)) {
+	    } else if (!ntlmCheckHeader ((struct ntlmhdr *) cleartext, NTLM_AUTHENTICATE)) {
+		if (!ntlmDecodeAuth ((struct ntlm_authenticate *) cleartext, user, 256)) {
 		    lc(user);
 		    printf("OK %s\n", user);
 		} else {
