@@ -384,6 +384,7 @@ struct _SquidConfig {
 	int pct;
 	size_t max;
     } quickAbort;
+    size_t readAheadGap;
     RemovalPolicySettings *replPolicy;
     RemovalPolicySettings *memPolicy;
     time_t referenceAge;

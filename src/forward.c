@@ -644,7 +644,7 @@ fwdCheckDeferRead(int fd, void *data)
 #endif
     if (EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT))
 	return rc;
-    if (mem->inmem_hi - storeLowestMemReaderOffset(e) < READ_AHEAD_GAP)
+    if (mem->inmem_hi - storeLowestMemReaderOffset(e) < Config.readAheadGap)
 	return rc;
     return 1;
 }

@@ -178,8 +178,6 @@
 #define ERROR_BUF_SZ (MAX_URL << 2)
 #endif
 
-#define READ_AHEAD_GAP		(1<<14)
-
 #if SQUID_SNMP
 #define VIEWINCLUDED    1
 #define VIEWEXCLUDED    2
