@@ -531,7 +531,7 @@ int proxyhttpStart(e, url, entry)
     /* register the handler to free HTTP state data when the FD closes */
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
-	httpStateFree,
+	(PF) httpStateFree,
 	(void *) data);
 
     request->method = entry->method;
@@ -602,7 +602,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
     data->request = request;
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
-	httpStateFree,
+	(PF) httpStateFree,
 	(void *) data);
 
     /* check if IP is already in cache. It must be. 

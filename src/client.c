@@ -128,6 +128,7 @@ int main(argc, argv)
     (void) close(conn);		/* done with socket */
     exit(0);
     /*NOTREACHED */
+    return 0;
 }
 
 static int client_comm_connect(sock, dest_host, dest_port)

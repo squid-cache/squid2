@@ -295,6 +295,7 @@ int protoUndispatch(fd, url, entry, request)
 	    protoDNSError(fd, entry);
 	return 1;
     }
+    /* NOTREACHED */
     return 0;
 }
 

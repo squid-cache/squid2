@@ -198,7 +198,7 @@ char *fmakeword(FILE * f, char stop, int *cl)
     ll = 0;
     word = (char *) malloc(sizeof(char) * (wsize + 1));
 
-    while (1) {
+    for (;;) {
 	word[ll] = (char) fgetc(f);
 	if (ll == wsize) {
 	    word[ll + 1] = '\0';
@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
     int len;
     int bytesWritten;
     int portnum = CACHE_HTTP_PORT;
-    int op;
+    int op = 0;
     int p_state;
     int n_loops;
     int cpy_ind;
@@ -672,6 +672,7 @@ int main(int argc, char *argv[])
     (void) close(conn);
     exit(0);
     /* NOTREACHED */
+    return 0;
 }
 
 static int client_comm_connect(sock, dest_host, dest_port)

@@ -238,7 +238,7 @@ static int connectStateFree(fd, connectState)
     return 0;
 }
 
-void connectConnInProgress(fd, data)
+static void connectConnInProgress(fd, data)
      int fd;
      ConnectData *data;
 {
@@ -306,7 +306,7 @@ int connectStart(fd, url, request, mime_hdr, entry)
     data->remote = sock;
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
-	connectStateFree,
+	(PF) connectStateFree,
 	(void *) data);
 
 #ifdef STAT_FD_ASSOC

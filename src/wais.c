@@ -258,7 +258,7 @@ int waisStart(unusedfd, url, method, mime_hdr, entry)
     data->mime_hdr = mime_hdr;
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
-	waisStateFree,
+	(PF) waisStateFree,
 	(void *) data);
 
     /* check if IP is already in cache. It must be. 

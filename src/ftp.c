@@ -592,7 +592,7 @@ int ftpStart(unusedfd, url, entry)
     /* register close handler */
     comm_set_select_handler(data->ftp_fd,
 	COMM_SELECT_CLOSE,
-	ftpStateFree,
+	(PF) ftpStateFree,
 	(void *) data);
 
     /* Now connect ... */

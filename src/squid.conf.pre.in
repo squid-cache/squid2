@@ -237,32 +237,32 @@
 #  TAG: cache_dir 
 #	Directory for on-disk cache storage.  The cache will change into
 #	this directory when running.  The default is
-#	@prefix@/cache.
+#       @DEFAULT_SWAP_DIR@.
 #
 #	You can specify multiple cache_dir lines to spread the
 #	cache among different disk partitions.
-#cache_dir @prefix@/cache
+#cache_dir @DEFAULT_SWAP_DIR@
 
 #  TAG: cache_access_log 
 #	Logs the client request activity.  Contains an entry for 
 #	every HTTP and ICP request received.
-#cache_access_log @prefix@/logs/access.log
+#cache_access_log @DEFAULT_ACCESS_LOG@
 
 #  TAG: cache_log 
 #	Cache logging file.  Set logging levels with "debug_options" below.
-#cache_log @prefix@/logs/cache.log
+#cache_log @DEFAULT_CACHE_LOG@
 
 #  TAG: cache_hierarchy_log 
 #	Hierachical caching access logfile.  It shows which parent,
 #	neighbor, or source host a request is satisfied from.
 #	To disable, enter "none".
-#cache_hierarchy_log @prefix@/logs/hierarchy.log 
+#cache_hierarchy_log @DEFAULT_HIERARCHY_LOG@
 
 #  TAG:	cache_store_log
 #	Logs the activities of the storage manager.  Shows which
 #	objects are ejected from the cache, and which objects are
 #	saved and for how long.  To disable, enter "none".
-#cache_store_log @prefix@/logs/store.log 
+#cache_store_log @DEFAULT_STORE_LOG@
 
 #  TAG: emulate_httpd_log
 #	The Cache can emulate the log file format which many 'httpd'
@@ -293,7 +293,7 @@ debug_options ALL,1
 #	Where to find the 'ftpget' program that retrieves FTP data (HTTP
 #	and Gopher protocol support are built into the cache).  
 #
-cache_ftp_program @prefix@/bin/ftpget
+cache_ftp_program @DEFAULT_FTPGET@
 
 #  TAG: cache_ftp_options
 #	Options for the 'ftpget' program.  Please run 'ftpget' without
@@ -318,9 +318,8 @@ cache_ftp_program @prefix@/bin/ftpget
 
 #  TAG: cache_dns_program 
 #	Specify the location of the executable for dnslookup process.
-#	The default is dnsserver, so the program must be in your PATH.
 #
-cache_dns_program @prefix@/bin/dnsserver
+#cache_dns_program @DEFAULT_DNSSERVER@
 
 #  TAG: dns_children
 #	The number of processes spawn to service DNS name lookups.

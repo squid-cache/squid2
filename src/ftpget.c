@@ -455,7 +455,7 @@ void sigchld_handler(sig)
 #endif
 }
 
-int write_with_timeout(fd, buf, sz)
+static int write_with_timeout(fd, buf, sz)
      int fd;
      char *buf;
      int sz;
@@ -571,7 +571,7 @@ int connect_with_timeout2(fd, S, len)
     fd_set R;
     struct timeval tv;
     Debug(26, 9, ("connect_with_timeout2: starting...\n"));
-    while (1) {
+    for (;;) {
 
 	y = connect(fd, S, len);
 	Debug(26, 9, ("connect returned %d\n", y));
@@ -1174,7 +1174,7 @@ state_t do_port(r)
 	srand(time(NULL));
 #endif
     }
-    while (1) {
+    for (;;) {
 #if defined(HAVE_LRAND48)
 	port = (lrand48() % (o_conn_max - o_conn_min)) + o_conn_min;
 #else
@@ -1828,7 +1828,7 @@ static int process_request(r)
     if (r == (request_t *) NULL)
 	return 1;
 
-    while (1) {
+    for (;;) {
 	Debug(26, 1, ("process_request: in state %s\n",
 		state_str[r->state]));
 	switch (r->state) {
@@ -2067,7 +2067,7 @@ int ftpget_srv_mode(port)
 	log_errno2(__FILE__, __LINE__, "listen");
 	exit(1);
     }
-    while (1) {
+    for (;;) {
 	FD_ZERO(&R);
 	FD_SET(0, &R);
 	FD_SET(sock, &R);

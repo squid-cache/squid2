@@ -550,7 +550,7 @@ static void icpHandleStore(fd, entry, state)
     icpSendMoreData(fd, state);
 }
 
-void icpHandleStoreComplete(fd, buf, size, errflag, state)
+static void icpHandleStoreComplete(fd, buf, size, errflag, state)
      int fd;
      char *buf;
      int size;
@@ -828,7 +828,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
 	buf_len += sizeof(u_num32);
     buf = xcalloc(buf_len, 1);
 
-    headerp = (icp_common_t *) buf;
+    headerp = (icp_common_t *) (void *) buf;
     headerp->opcode = opcode;
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
@@ -899,7 +899,7 @@ int icpHandleUdp(sock, not_used)
 	return result;
     }
     /* Get fields from incoming message. */
-    headerp = (icp_common_t *) buf;
+    headerp = (icp_common_t *) (void *) buf;
     header.opcode = headerp->opcode;
     header.version = headerp->version;
     header.length = ntohs(headerp->length);
@@ -1342,7 +1342,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	    k,			/* size */
 	    30,			/* timeout */
 	    TRUE,		/* handle immed */
-	    asciiProcessInput,
+	    (complete_handler) asciiProcessInput,
 	    (void *) astm);
     } else {
 	/* parser returned -1 */
@@ -1458,7 +1458,7 @@ int asciiHandleConn(sock, notused)
 	(void *) astm);
     comm_set_select_handler(fd,
 	COMM_SELECT_CLOSE,
-	icpStateFree,
+	(PF) icpStateFree,
 	(void *) astm);
     icpRead(fd,
 	FALSE,
@@ -1466,7 +1466,7 @@ int asciiHandleConn(sock, notused)
 	astm->inbufsize - 1,	/* size */
 	30,			/* timeout */
 	1,			/* handle immed */
-	asciiProcessInput,
+	(complete_handler) asciiProcessInput,
 	(void *) astm);
     comm_set_select_handler(sock,
 	COMM_SELECT_READ,

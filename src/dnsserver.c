@@ -1,103 +1,6 @@
-static char rcsid[] = "$Id$";
-/*
- *  File:         dnsserver.c
- *  Description:  dnsserver process for non-blocking DNS lookup.
- *  Author:       Anawat Chankhunthod
- *  Created:
- *  Language:     C
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *
- */
-#include "config.h"
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <errno.h>
-#include <signal.h>
+/* $Id$ */
 
-#include "util.h"
+#include "squid.h"
 
 extern int h_errno;
 
@@ -118,24 +21,24 @@ int do_debug = 0;
 		"Unknown DNS problem")
 
 /* 
- * Modified to use UNIX domain sockets between cached and the dnsservers to
+ * Modified to use UNIX domain sockets between squid and the dnsservers to
  * save an FD per DNS server, Hong Mei, USC.
  * 
- * Before forking a dnsserver, cached creates listens on a UNIX domain
- * socket.  After the fork(), cached closes its end of the rendevouz socket
+ * Before forking a dnsserver, squid creates listens on a UNIX domain
+ * socket.  After the fork(), squid closes its end of the rendevouz socket
  * but then immediately connects to it to establish the connection to the
  * dnsserver process.  We use AF_UNIX to prevent other folks from
  * connecting to our little dnsservers after we fork but before we connect
  * to them.
  * 
- * Cached creates UNIX domain sockets named dns.PID.NN, e.g. dns.19215.11
+ * Squid creates UNIX domain sockets named dns.PID.NN, e.g. dns.19215.11
  * 
  * In ipcache_init():
  *       . dnssocket = ipcache_opensocket(getDnsProgram())
  *       . dns_child_table[i]->inpipe = dnssocket
  *       . dns_child_table[i]->outpipe = dnssocket
  * 
- * The dnsserver inherits socket(socket_from_ipcache) from cached which it
+ * The dnsserver inherits socket(socket_from_ipcache) from squid which it
  * uses to rendevouz with.  The child takes responsibility for cleaning up
  * the UNIX domain pathnames by setting a few signal handlers.
  * 
@@ -166,7 +69,7 @@ int main(argc, argv)
 	switch (c) {
 	case 'v':
 	case 'h':
-	    printf("dnsserver version %s\n", HARVEST_VERSION);
+	    printf("dnsserver version %s\n", SQUID_VERSION);
 	    exit(0);
 	    break;
 	case 'd':
@@ -296,4 +199,5 @@ int main(argc, argv)
 
     exit(0);
     /*NOTREACHED */
+    return 0;
 }
