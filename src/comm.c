@@ -357,6 +357,7 @@ commConnectCallback(ConnectStateData * cs, int status)
     comm_remove_close_handler(fd, commConnectFree, cs);
     cs->callback = NULL;
     cs->data = NULL;
+    commSetTimeout(fd, -1, NULL, NULL);
     commConnectFree(fd, cs);
     if (cbdataValid(data))
 	callback(fd, status, data);
