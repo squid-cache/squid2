@@ -169,9 +169,9 @@ static int CheckQuickAbort2 _PARAMS((const icpStateData *));
 static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
 static void checkFailureRatio _PARAMS((log_type, hier_code));
-static void icpHandleStore _PARAMS((int, StoreEntry *, icpStateData *));
+static void icpHandleStore _PARAMS((int, StoreEntry *, void *));
 static void icpHandleStoreComplete _PARAMS((int, char *, int, int, void *icpState));
-static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, icpStateData *));
+static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, void *));
 static void icpHandleIMSComplete _PARAMS((int, char *, int, int, void *icpState));
 extern void identStart _PARAMS((int, icpStateData *));
 static void icpHitObjHandler _PARAMS((int, void *));
@@ -181,7 +181,7 @@ static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
 static void icpUdpSendEntry _PARAMS((int, char *, int,
 	struct sockaddr_in *, icp_opcode, StoreEntry *, struct timeval));
-static void icpFinishAbort _PARAMS((int fd, icpStateData * icpState));
+static void icpHandleAbort _PARAMS((int fd, StoreEntry *, void *));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -518,8 +518,9 @@ icpSendMoreData(int fd, icpStateData * icpState)
  * pending list.
  */
 static void
-icpHandleStore(int fd, StoreEntry * entry, icpStateData * icpState)
+icpHandleStore(int fd, StoreEntry * entry, void *data)
 {
+    icpStateData *icpState = data;
     debug(12, 5, "icpHandleStore: FD %d: off %d: '%s'\n",
 	fd, icpState->offset, entry->url);
     if (entry->store_status == STORE_ABORTED) {
@@ -576,7 +577,7 @@ icpHandleStoreComplete(int fd, char *buf, int size, int errflag, void *data)
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
-	storeRegister(icpState->entry, fd, (PIF) icpHandleStore, (void *) icpState);
+	storeRegister(icpState->entry, fd, icpHandleStore, (void *) icpState);
     }
 }
 
@@ -607,7 +608,7 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 
     if (!mime_headers_end(icpState->buf)) {
 	/* All headers are not yet available, wait for more data */
-	storeRegister(entry, fd, (PIF) icpHandleStoreIMS, (void *) icpState);
+	storeRegister(entry, fd, icpHandleStoreIMS, (void *) icpState);
 	return COMM_OK;
     }
     /* All headers are available, check if object is modified or not */
@@ -679,9 +680,9 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 }
 
 static void
-icpHandleStoreIMS(int fd, StoreEntry * entry, icpStateData * icpState)
+icpHandleStoreIMS(int fd, StoreEntry * entry, void *data)
 {
-    icpGetHeadersForIMS(fd, icpState);
+    icpGetHeadersForIMS(fd, data);
 }
 
 static void
@@ -876,7 +877,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     icpState->entry = entry;
     icpState->offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
-    storeRegister(entry, fd, (PIF) icpHandleStore, (void *) icpState);
+    storeRegister(entry, fd, icpHandleStore, (void *) icpState);
 #if DELAY_HACK
     _delay_fetch = 0;
     if (aclCheck(DelayAccessList, icpState->peer.sin_addr, icpState->request))
@@ -1815,15 +1816,18 @@ asciiProcessInput(int fd, char *buf, int size, int flag, void *data)
 static void
 asciiConnLifetimeHandle(int fd, icpStateData * icpState)
 {
+    int x;
     StoreEntry *entry = icpState->entry;
     debug(12, 2, "asciiConnLifetimeHandle: FD %d: lifetime is expired.\n", fd);
     CheckQuickAbort(icpState);
-    protoUnregister(fd,
+    storeUnregister(icpState->entry, fd);
+    storeRegister(icpState->entry, fd, icpHandleAbort, (void *) icpState);
+    x = protoUnregister(fd,
 	entry,
 	icpState->request,
 	icpState->peer.sin_addr);
-    squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
-    icpFinishAbort(fd, icpState);
+    if (x == 0)
+	comm_close(fd);
 }
 
 /* Handle a new connection on ascii input socket. */
@@ -1959,6 +1963,7 @@ icpDetectClientClose(int fd, void *data)
     icpStateData *icpState = data;
     LOCAL_ARRAY(char, buf, 256);
     int n;
+    int x;
     StoreEntry *entry = icpState->entry;
     errno = 0;
     n = read(fd, buf, 256);
@@ -1980,11 +1985,18 @@ icpDetectClientClose(int fd, void *data)
 	    debug(12, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	else if (errno)
 	    debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
+	commCancelRWHandler(fd);
 	CheckQuickAbort(icpState);
 	if (entry && entry->ping_status == PING_WAITING)
 	    storeReleaseRequest(entry);
-	protoUnregister(fd, entry, icpState->request, icpState->peer.sin_addr);
-	icpFinishAbort(fd, icpState);
+	storeUnregister(icpState->entry, fd);
+	storeRegister(icpState->entry, fd, icpHandleAbort, (void *) icpState);
+	x = protoUnregister(fd,
+	    entry,
+	    icpState->request,
+	    icpState->peer.sin_addr);
+	if (x == 0)
+	    comm_close(fd);
     } else if (entry != NULL && icpState->offset == entry->object_len &&
 	entry->store_status != STORE_PENDING) {
 	/* All data has been delivered */
@@ -2110,16 +2122,20 @@ vizHackSendPkt(const struct sockaddr_in *from, int type)
 }
 
 /* 
- * icpFinishAbort()
+ * icpHandleAbort()
  * Call for objects which might have been aborted.  If the entry
  * was aborted, AND the client has not seen any data yet, then
  * Queue the error page via icpSendERROR().  Otherwise just
  * close the socket.
  */
 static void
-icpFinishAbort(int fd, icpStateData * icpState)
+icpHandleAbort(int fd, StoreEntry * entry, void *data)
 {
-    StoreEntry *entry = icpState->entry;
+    icpStateData *icpState = data;
+    if (entry == NULL) {
+	comm_close(fd);
+	return;
+    }
     if (entry->store_status != STORE_ABORTED) {
 	comm_close(fd);
 	return;
