@@ -180,8 +180,7 @@ struct _cacheinfo {
 	    int http_code,
 	    int msec,
 	    char *ident,
-	    hier_code,
-	    char *hierarchy_host));
+	    struct _hierarchyLogData *hierData));
 
     /* clear logfile */
     void (*log_clear) _PARAMS((struct _cacheinfo * obj, StoreEntry * sentry));

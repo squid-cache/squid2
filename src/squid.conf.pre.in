@@ -280,12 +280,6 @@
 #	Cache logging file.  Set logging levels with "debug_options" below.
 #cache_log @DEFAULT_CACHE_LOG@
 
-#  TAG: cache_hierarchy_log 
-#	Hierachical caching access logfile.  It shows which parent,
-#	neighbor, or source host a request is satisfied from.
-#	To disable, enter "none".
-#cache_hierarchy_log @DEFAULT_HIERARCHY_LOG@
-
 #  TAG:	cache_store_log
 #	Logs the activities of the storage manager.  Shows which
 #	objects are ejected from the cache, and which objects are

@@ -178,8 +178,7 @@ static int icpStateFree(fd, icpState)
     int size = 0;
     int http_code = 0;
     int elapsed_msec;
-    hier_code hier_code = HIER_NONE;
-    char *hier_host = NULL;
+    struct _hierarchyLogData *hierData = NULL;
 
     if (!icpState)
 	return 1;
@@ -196,10 +195,8 @@ static int icpStateFree(fd, icpState)
 	http_code = icpState->http_code;
     }
     elapsed_msec = tvSubMsec(icpState->start, current_time);
-    if (icpState->request) {
-	hier_code = icpState->request->hierarchy_code;
-	hier_host = icpState->request->hierarchy_host;
-    }
+    if (icpState->request)
+	hierData = &icpState->request->hierarchy;
     CacheInfo->log_append(CacheInfo,
 	icpState->url,
 	icpState->log_addr,
@@ -209,8 +206,7 @@ static int icpStateFree(fd, icpState)
 	http_code,
 	elapsed_msec,
 	icpState->ident,
-	hier_code,
-	hier_host);
+	hierData);
     if (icpState->ident_fd)
 	comm_close(icpState->ident_fd);
     safe_free(icpState->inbuf);
@@ -787,8 +783,7 @@ static void icpLogIcp(queue)
 	0,
 	tvSubMsec(queue->start, current_time),
 	NULL,			/* ident */
-	HIER_NONE,		/* hierarchy code */
-	NULL);			/* hierarchy host */
+	NULL);			/* hierarchy data */
 }
 
 int icpUdpReply(fd, queue)

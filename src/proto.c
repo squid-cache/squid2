@@ -186,7 +186,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	    protoDNSError(protoData->fd, entry);
 	    return 0;
 	}
-	hierarchy_log_append(entry, HIER_DIRECT, 0, req->host);
+	hierarchyNote(req, HIER_DIRECT, 0, req->host);
 	getFromCache(protoData->fd, entry, NULL, req);
 	return 0;
     }
@@ -196,18 +196,14 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	} else if (Config.firewall_ip_list) {
 	    xmemcpy(&srv_addr, *(hp->h_addr_list + 0), hp->h_length);
 	    if (ip_access_check(srv_addr, Config.firewall_ip_list) == IP_DENY) {
-		hierarchy_log_append(entry,
-		    HIER_LOCAL_IP_DIRECT, 0,
-		    req->host);
+		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
 		getFromCache(protoData->fd, entry, NULL, req);
 		return 0;
 	    }
 	} else if (Config.local_ip_list) {
 	    xmemcpy(&srv_addr, *(hp->h_addr_list + 0), hp->h_length);
 	    if (ip_access_check(srv_addr, Config.local_ip_list) == IP_DENY) {
-		hierarchy_log_append(entry,
-		    HIER_LOCAL_IP_DIRECT, 0,
-		    req->host);
+		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
 		getFromCache(protoData->fd, entry, NULL, req);
 		return 0;
 	    }
@@ -216,12 +212,12 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     if ((e = protoData->single_parent) &&
 	(Config.singleParentBypass || protoData->direct_fetch == DIRECT_NO)) {
 	/* Only one parent for this host, and okay to skip pinging stuff */
-	hierarchy_log_append(entry, HIER_SINGLE_PARENT, 0, e->host);
+	hierarchyNote(req, HIER_SINGLE_PARENT, 0, e->host);
 	getFromCache(protoData->fd, entry, e, req);
 	return 0;
     }
     if (protoData->n_edges == 0 && protoData->direct_fetch == DIRECT_NO) {
-	hierarchy_log_append(entry, HIER_NO_DIRECT_FAIL, 0, req->host);
+	hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents to query and the host is beyond your firewall.");
 	return 0;
@@ -229,7 +225,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     if (!neighbors_do_private_keys && !protoData->query_neighbors && (e = getFirstUpParent(req))) {
 	/* for private objects we should just fetch directly (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
-	hierarchy_log_append(entry, HIER_FIRSTUP_PARENT, 0, e->host);
+	hierarchyNote(req, HIER_FIRSTUP_PARENT, 0, e->host);
 	getFromCache(protoData->fd, entry, e, req);
 	return 0;
     } else if (neighborsUdpPing(protoData)) {
@@ -248,7 +244,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_NO) {
-	hierarchy_log_append(entry, HIER_NO_DIRECT_FAIL, 0, req->host);
+	hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents were queried and the host is beyond your firewall.");
     } else {
@@ -256,7 +252,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	    protoDNSError(protoData->fd, entry);
 	    return 0;
 	}
-	hierarchy_log_append(entry, HIER_DIRECT, 0, req->host);
+	hierarchyNote(req, HIER_DIRECT, 0, req->host);
 	getFromCache(protoData->fd, entry, NULL, req);
     }
     return 0;
@@ -453,27 +449,27 @@ int getFromDefaultSource(fd, entry)
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
 
     if ((e = entry->mem_obj->e_pings_first_miss)) {
-	hierarchy_log_append(entry, HIER_FIRST_PARENT_MISS, fd, e->host);
+	hierarchyNote(request, HIER_FIRST_PARENT_MISS, fd, e->host);
 	return getFromCache(fd, entry, e, request);
     }
     if (matchInsideFirewall(request->host)) {
 	if (ipcache_gethostbyname(request->host, 0) == NULL) {
 	    return protoDNSError(fd, entry);
 	}
-	hierarchy_log_append(entry, HIER_DIRECT, fd, request->host);
+	hierarchyNote(request, HIER_DIRECT, fd, request->host);
 	return getFromCache(fd, entry, NULL, request);
     }
     if ((e = getSingleParent(request, NULL))) {
 	/* last chance effort; maybe there was a single_parent and a ICP
 	 * packet got lost */
-	hierarchy_log_append(entry, HIER_SINGLE_PARENT, fd, e->host);
+	hierarchyNote(request, HIER_SINGLE_PARENT, fd, e->host);
 	return getFromCache(fd, entry, e, request);
     }
     if ((e = getFirstUpParent(request))) {
-	hierarchy_log_append(entry, HIER_FIRSTUP_PARENT, fd, e->host);
+	hierarchyNote(request, HIER_FIRSTUP_PARENT, fd, e->host);
 	return getFromCache(fd, entry, e, request);
     }
-    hierarchy_log_append(entry, HIER_NO_DIRECT_FAIL, fd, request->host);
+    hierarchyNote(request, HIER_NO_DIRECT_FAIL, fd, request->host);
     protoCancelTimeout(fd, entry);
     protoCantFetchObject(fd, entry,
 	"No ICP replies received and the host is beyond the firewall.");

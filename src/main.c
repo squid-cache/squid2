@@ -545,7 +545,6 @@ int main(argc, argv)
 	    _db_rotate_log();	/* cache.log */
 	    storeWriteCleanLog();
 	    storeRotateLog();	/* store.log */
-	    neighbors_rotate_log();	/* hierarchy.log */
 	    stat_rotate_log();	/* access.log */
 	    (void) ftpInitialize();
 	    rotate_pending = 0;
