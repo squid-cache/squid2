@@ -301,7 +301,6 @@ static void parseDnsChildrenLine _PARAMS((void));
 static void parseDnsProgramLine _PARAMS((void));
 static void parseDnsTestnameLine _PARAMS((void));
 static void parseEffectiveUserLine _PARAMS((void));
-static void parseEmulateLine _PARAMS((void));
 static void parseErrHtmlLine _PARAMS((void));
 static void parseFtpLine _PARAMS((void));
 static void parseFtpOptionsLine _PARAMS((void));
@@ -319,7 +318,6 @@ static void parseHttpLine _PARAMS((void));
 static void parseHttpPortLine _PARAMS((void));
 static void parseHttpStopLine _PARAMS((void));
 static void parseHttpdAccelLine _PARAMS((void));
-static void parseHttpdAccelWithProxyLine _PARAMS((void));
 static void parseIPLine _PARAMS((ip_acl ** list));
 static void parseIcpPortLine _PARAMS((void));
 static void parseInsideFirewallLine _PARAMS((void));
@@ -337,12 +335,9 @@ static void parseNegativeLine _PARAMS((void));
 static void parseNeighborTimeout _PARAMS((void));
 static void parsePidFilenameLine _PARAMS((void));
 static void parsePositiveDnsLine _PARAMS((void));
-static void parseQuickAbortLine _PARAMS((void));
 static void parseReadTimeoutLine _PARAMS((void));
 static void parseRequestSizeLine _PARAMS((void));
 static void parseShutdownLifetimeLine _PARAMS((void));
-static void parseSingleParentBypassLine _PARAMS((void));
-static void parseSourcePingLine _PARAMS((void));
 static void parseStoreLogLine _PARAMS((void));
 static void parseSwapHighLine _PARAMS((void));
 static void parseSwapLine _PARAMS((void));
@@ -350,6 +345,7 @@ static void parseSwapLowLine _PARAMS((void));
 static void parseTTLPattern _PARAMS((int icase));
 static void parseVisibleHostnameLine _PARAMS((void));
 static void parseWAISRelayLine _PARAMS((void));
+static void parseOnOff _PARAMS((int *));
 
 void self_destruct()
 {
@@ -606,42 +602,6 @@ static void parseHostAclLine()
 	neighbors_cf_acl(host, aclname);
 }
 
-
-static void parseSourcePingLine()
-{
-    char *srcping;
-
-    srcping = strtok(NULL, w_space);
-    if (srcping == NULL)
-	self_destruct();
-
-    /* set source_ping, default is off. */
-    if (!strcasecmp(srcping, "on"))
-	Config.sourcePing = 1;
-    else if (!strcasecmp(srcping, "off"))
-	Config.sourcePing = 0;
-    else
-	Config.sourcePing = 0;
-}
-
-
-static void parseQuickAbortLine()
-{
-    char *abort;
-
-    abort = strtok(NULL, w_space);
-    if (abort == NULL)
-	self_destruct();
-
-    if (!strcasecmp(abort, "on") || !strcasecmp(abort, "quick"))
-	Config.quickAbort = 1;
-    else if (!strcmp(abort, "off") || !strcasecmp(abort, "normal"))
-	Config.quickAbort = 0;
-    else
-	Config.quickAbort = 0;
-
-}
-
 static void parseMemLine()
 {
     char *token;
@@ -888,23 +848,6 @@ static void parseHttpdAccelLine()
     httpd_accel_mode = 1;
 }
 
-static void parseHttpdAccelWithProxyLine()
-{
-    char *proxy;
-
-    proxy = strtok(NULL, w_space);
-    if (proxy == NULL)
-	self_destruct();
-
-    /* set httpd_accel_with_proxy, default is off. */
-    if (!strcasecmp(proxy, "on"))
-	Config.Accel.withProxy = 1;
-    else if (!strcasecmp(proxy, "off"))
-	Config.Accel.withProxy = 0;
-    else
-	Config.Accel.withProxy = 0;
-}
-
 static void parseEffectiveUserLine()
 {
     char *token;
@@ -998,18 +941,6 @@ static void parseDnsProgramLine()
 	self_destruct();
     safe_free(Config.Program.dnsserver);
     Config.Program.dnsserver = xstrdup(token);
-}
-
-static void parseEmulateLine()
-{
-    char *token;
-    token = strtok(NULL, w_space);
-    if (token == NULL)
-	self_destruct();
-    if (!strcasecmp(token, "on") || !strcasecmp(token, "enable"))
-	Config.commonLogFormat = 1;
-    else
-	Config.commonLogFormat = 0;
 }
 
 static void parseWAISRelayLine()
@@ -1180,16 +1111,6 @@ static void parseNeighborTimeout()
     Config.neighborTimeout = i;
 }
 
-static void parseSingleParentBypassLine()
-{
-    char *token;
-    token = strtok(NULL, w_space);
-    if (token == NULL)
-	self_destruct();
-    if (!strcasecmp(token, "on"))
-	Config.singleParentBypass = 1;
-}
-
 static void parseDebugOptionsLine()
 {
     char *token;
@@ -1268,6 +1189,18 @@ static void parseErrHtmlLine()
 	Config.errHtmlText = xstrdup(token);
 }
 
+static void parseOnOff(var)
+     int *var;
+{
+    char *token;
+    token = strtok(NULL, w_space);
+    if (token == NULL)
+        self_destruct();
+    if (!strcasecmp(token, "on") || !strcasecmp(token, "enable"))
+        *var = 1;
+    else
+        *var = 0;
+}
 
 int parseConfigFile(file_name)
      char *file_name;
@@ -1347,7 +1280,7 @@ int parseConfigFile(file_name)
 
 	/* Parse a httpd_accel_with_proxy line */
 	else if (!strcmp(token, "httpd_accel_with_proxy"))
-	    parseHttpdAccelWithProxyLine();
+	    parseOnOff(&Config.Accel.withProxy);
 
 	/* Parse a httpd_accel line */
 	else if (!strcmp(token, "httpd_accel"))
@@ -1486,15 +1419,15 @@ int parseConfigFile(file_name)
 
 	/* Parse source_ping line */
 	else if (!strcmp(token, "source_ping"))
-	    parseSourcePingLine();
+	    parseOnOff(&Config.sourcePing);
 
 	/* Parse quick_abort line */
 	else if (!strcmp(token, "quick_abort"))
-	    parseQuickAbortLine();
+	    parseOnOff(&Config.sourcePing);
 
 	/* Parse emulate_httpd_log line */
 	else if (!strcmp(token, "emulate_httpd_log"))
-	    parseEmulateLine();
+	    parseOnOff(&Config.commonLogFormat);
 
 	else if (!strcmp(token, "append_domain"))
 	    parseAppendDomainLine();
@@ -1545,7 +1478,7 @@ int parseConfigFile(file_name)
 	    parseDnsTestnameLine();
 
 	else if (!strcmp(token, "single_parent_bypass"))
-	    parseSingleParentBypassLine();
+	    parseOnOff(&Config.singleParentBypass);
 
 	else if (!strcmp(token, "debug_options"))
 	    parseDebugOptionsLine();
@@ -1567,6 +1500,13 @@ int parseConfigFile(file_name)
 
 	else if (!strcmp(token, "err_html_text"))
 	    parseErrHtmlLine();
+
+	else if (!strcmp(token, "memory_pools"))
+		parseOnOff(&opt_mem_pools);
+	else if (!strcmp(token, "udp_hit_obj"))
+		parseOnOff(&opt_udp_hit_obj);
+	else if (!strcmp(token, "forwarded_for"))
+		parseOnOff(&opt_forwarded_for);
 
 	/* If unknown, treat as a comment line */
 	else {
@@ -2035,3 +1975,4 @@ static void configDoConfigure()
     }
 #endif /* !ALLOW_HOT_CACHE */
 }
+

@@ -922,7 +922,8 @@ int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode)
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
     headerp->reqnum = htonl(reqheaderp->reqnum);
-    if (opcode == ICP_OP_QUERY && !BIT_TEST(flags, REFRESH_REQUEST))
+    if (opcode == ICP_OP_QUERY && !BIT_TEST(flags, REFRESH_REQUEST)
+	&& opt_udp_hit_obj)
 	headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->pad = 0;
     /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */

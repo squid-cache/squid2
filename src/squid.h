@@ -263,6 +263,9 @@ extern char version_string[];	/* main.c */
 extern char appname[];		/* main.c */
 extern struct in_addr local_addr;	/* main.c */
 extern char localhost[];
+extern int opt_udp_hit_obj;	/* main.c */
+extern int opt_mem_pools;	/* main.c */
+extern int opt_forwarded_for;	/* main.c */
 
 
 /* Prototypes and definitions which don't really deserve a seaprate
