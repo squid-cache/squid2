@@ -432,9 +432,9 @@ oid_ParseFn *sysFdGetNextFn(oid *Src, long SrcLen, oid **Dest, long *DestLen)
         oid MIBRoot[]= { SQ_SYS, 3 };
         int MIBRootLen=LEN_SQ_SYS+1;
         oid MIBTail[LEN_SQ_SYS+4] = { SQ_SYS, SYSFDTBL, 1, SYS_FD_END-1 , 0 };
+        oid_ParseFn *ret;        
 
 	MIBTail[LEN_SQ_SYS+3]=Number_FD;
-        oid_ParseFn *ret;        
 
         ret=genericGetNextFn(Src,SrcLen,Dest,DestLen,
                         MIBRoot, MIBRootLen, LEN_SQ_SYS+1, MIBTail,snmp_sysFn,
