@@ -745,6 +745,8 @@ aio_do_unlink(aio_request_t * requestp)
 {
     requestp->ret = unlink(requestp->path);
     requestp->err = errno;
+    /* assume that postincrement is an atomic operation. */
+    Counter.unlink.requests++;
 }
 
 
