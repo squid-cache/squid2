@@ -493,6 +493,12 @@ struct _SquidConfig {
 	int rebuild_chunk_percentage;
     } digest;
 #endif
+#if USE_DISKD
+    struct {
+	int magic1;
+	int magic2;
+    } diskd;
+#endif
 };
 
 struct _SquidConfig2 {

@@ -347,6 +347,7 @@ static void storeDiskdHandle(diomsg * M);
 static void storeDiskdIOCallback(storeIOState * sio, int errflag);
 static int storeDiskdReadIndividualQueue(SwapDir * sd);
 static SwapDir *swapDirFromFileno(sfileno f);
+static OBJH storeDiskdStats;
 
 /*
  * SHMBUFS is the number of shared memory buffers to allocate for
@@ -360,7 +361,15 @@ static SwapDir *swapDirFromFileno(sfileno f);
  * queue until the level falls below MAGIC2.  Recommended value
  * is 75% of SHMBUFS.
  */
-#define MAGIC2 72
+#define MAGIC1 Config.diskd.magic1
+#define MAGIC2 Config.diskd.magic2
+
+struct {
+    int open_fail_queue_len;
+    int block_queue_len;
+    int max_away;
+    int max_shmuse;
+} diskd_stats;
 
 
 /* === PUBLIC =========================================================== */
@@ -378,6 +387,10 @@ storeDiskdOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
      * XXX Eventually there should be an option here to fail on open()
      * If there are too many requests queued.
      */
+    if (sd->u.diskd.away > MAGIC1) {
+	diskd_stats.open_fail_queue_len++;
+	return NULL;
+    }
     assert(mode == O_RDONLY || mode == O_WRONLY);
     sio = memAllocate(MEM_STORE_IO);
     cbdataAdd(sio, memFree, MEM_STORE_IO);
@@ -521,6 +534,7 @@ storeDiskdUnlink(sfileno f)
 void
 storeDiskdInit(SwapDir * sd)
 {
+    static int first = 0;
     int x;
     int i;
     int rfd;
@@ -581,6 +595,11 @@ storeDiskdInit(SwapDir * sd)
     commSetTimeout(sd->u.diskd.wfd, -1, NULL, NULL);
     commSetNonBlocking(sd->u.diskd.wfd);
     debug(81, 1) ("diskd started\n");
+    if (0 == first) {
+	first++;
+	memset(&diskd_stats, '\0', sizeof(diskd_stats));
+	cachemgrRegister("diskd", "DISKD Stats", storeDiskdStats, 0, 1);
+    }
 }
 
 void
@@ -590,19 +609,9 @@ storeDiskdReadQueue(void)
     int i;
     int j;
     static int ndir = 0;
-    static time_t last_report = 0;
-    static int record_away = 0;
-    static int record_shmbuf = 0;
-    if (sent_count - recv_count > record_away) {
-	record_away = sent_count - recv_count;
-	record_shmbuf = shmbuf_count;
-    }
-    if (squid_curtime - last_report > 15) {
-	if (record_away)
-	    debug(81, 1) ("DISKD: %d msgs away, %d shmbufs in use\n",
-		record_away, record_shmbuf);
-	last_report = squid_curtime;
-	record_away = record_shmbuf = 0;
+    if (sent_count - recv_count > diskd_stats.max_away) {
+	diskd_stats.max_away = sent_count - recv_count;
+	diskd_stats.max_shmuse = shmbuf_count;
     }
     do {
 	j = 0;
@@ -792,8 +801,10 @@ storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
 	    cbdataUnlock(M.callback_data);
 	assert(++send_errors < 100);
     }
-    if (sd->u.diskd.away > MAGIC2)
+    if (sd->u.diskd.away > MAGIC2) {
+	diskd_stats.block_queue_len++;
 	storeDiskdReadQueue();
+    }
     return x;
 }
 
@@ -845,6 +856,16 @@ static SwapDir *
 swapDirFromFileno(sfileno f)
 {
     return &Config.cacheSwap.swapDirs[f >> SWAP_DIR_SHIFT];
+}
+
+static void
+storeDiskdStats(StoreEntry * sentry)
+{
+    storeAppendPrintf(sentry, "max_away: %d\n", diskd_stats.max_away);
+    storeAppendPrintf(sentry, "max_shmuse: %d\n", diskd_stats.max_shmuse);
+    storeAppendPrintf(sentry, "open_fail_queue_len: %d\n", diskd_stats.open_fail_queue_len);
+    storeAppendPrintf(sentry, "block_queue_len: %d\n", diskd_stats.block_queue_len);
+    diskd_stats.max_away = diskd_stats.max_shmuse = 0;
 }
 
 #endif
