@@ -2592,27 +2592,6 @@ DOC_START
 snmp_port 3401
 DOC_END
 
-NAME: forward_snmpd_port
-TYPE: ushort
-LOC: Config.Snmp.localPort
-DEFAULT: 0
-IFDEF: SQUID_SNMP
-DOC_START
-	This configures whether we should be forwarding SNMP requests
-	to another snmpd. The reason for putting this piece of
-	functionality into Squid was to enable access to the system's
-	installed snmpd with minimal changes.  This option is turned
-	off by default, check with your /etc/services for your system's
-	snmp port (usually 161).  We do not use getservbyname() to
-	allow you to set Squid into port 161 and your system's snmpd to
-	another port by changing /etc/services.
-
-	WARNING: Because of Squid acting as a proxy snmpd for system
-	you have to do security checks on THIS snmpd for all objects.
-	Check your snmp_config_file.
-forward_snmpd_port 0
-DOC_END
-
 NAME: snmp_access
 TYPE: acl_access
 LOC: Config.accessList.snmp

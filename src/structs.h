@@ -279,7 +279,6 @@ struct _SquidConfig {
     struct {
 	char *configFile;
 	char *agentInfo;
-	u_short localPort;
     } Snmp;
 #endif
 #if USE_WCCP
