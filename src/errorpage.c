@@ -297,6 +297,7 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
     httpReplyDestroy(rep);
     mem->reply->sline.status = err->http_status;
     mem->reply->content_length = -1;
+    EBIT_CLR(entry->flags, ENTRY_FWD_HDR_WAIT);
     storeBufferFlush(entry);
     storeComplete(entry);
     storeNegativeCache(entry);

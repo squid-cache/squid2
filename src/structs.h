@@ -1596,6 +1596,9 @@ struct _FwdState {
     ErrorState *err;
     time_t start;
     int n_tries;
+    struct {
+	unsigned int dont_retry:1;
+    } flags;
 };
 
 #if USE_HTCP
