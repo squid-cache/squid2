@@ -165,16 +165,8 @@ static void CheckQuickAbort _PARAMS((icpStateData *));
 extern void identStart _PARAMS((int, icpStateData *));
 static void icpHitObjHandler _PARAMS((int, void *));
 static void icpLogIcp _PARAMS((icpUdpData *));
-static void icpDetectClientClose _PARAMS((int, icpStateData *));
 static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
-static void icpAccessCheck _PARAMS((icpStateData *, void (*)_PARAMS((icpStateData *, int))));
-static void icpRedirectDone _PARAMS((void *, char *result));
-static int icpSendERROR _PARAMS((int fd,
-	log_type errorCode,
-	char *text,
-	icpStateData *,
-	int httpCode));
 
 
 /* This is a handler normally called by comm_close() */
@@ -228,11 +220,16 @@ static int icpStateFree(fd, icpState)
 	icpState->entry = NULL;
     }
     requestUnlink(icpState->request);
+    if (icpState->aclChecklist) {
+	debug(12, 0, "icpStateFree: still have aclChecklist!\n");
+	requestUnlink(icpState->aclChecklist->request);
+	safe_free(icpState->aclChecklist);
+    }
     safe_free(icpState);
     return 0;			/* XXX gack, all comm handlers return ints */
 }
 
-static void icpParseRequestHeaders(icpState)
+void icpParseRequestHeaders(icpState)
      icpStateData *icpState;
 {
     char *request_hdr = icpState->request_hdr;
@@ -305,7 +302,7 @@ static int icpHierarchical(icpState)
     return 1;
 }
 
-static void icpSendERRORComplete(fd, buf, size, errflag, data)
+void icpSendERRORComplete(fd, buf, size, errflag, data)
      int fd;
      char *buf;
      int size;
@@ -318,7 +315,7 @@ static void icpSendERRORComplete(fd, buf, size, errflag, data)
 }
 
 /* Send ERROR message. */
-static int icpSendERROR(fd, errorCode, text, icpState, httpCode)
+int icpSendERROR(fd, errorCode, text, icpState, httpCode)
      int fd;
      log_type errorCode;
      char *text;
@@ -591,7 +588,7 @@ static void icpHandleIMSComplete(fd, buf, size, errflag, data)
  * Below, we check whether the object is a hit or a miss.  If it's a hit,
  * we check whether the object is still valid or whether it is a MISS_TTL.
  */
-static void icp_hit_or_miss(fd, icpState)
+void icp_hit_or_miss(fd, icpState)
      int fd;
      icpStateData *icpState;
 {
@@ -1563,69 +1560,6 @@ static int parseHttpRequest(icpState)
     return 1;
 }
 
-static void icpAccessCheck(icpState, handler)
-     icpStateData *icpState;
-     void (*handler) _PARAMS((icpStateData *, int));
-{
-    int answer = 1;
-    request_t *r = icpState->request;
-    aclCheck_t *checklist = NULL;
-    if (httpd_accel_mode && !getAccelWithProxy() && r->protocol != PROTO_CACHEOBJ) {
-	/* this cache is an httpd accelerator ONLY */
-	if (!BIT_TEST(icpState->flags, REQ_ACCEL))
-	    answer = 0;
-    } else {
-	checklist = xcalloc(1, sizeof(aclCheck_t));
-	checklist->src_addr = icpState->peer.sin_addr;
-	checklist->request = requestLink(icpState->request);
-	answer = aclCheck(HTTPAccessList, checklist);
-	requestUnlink(checklist->request);
-	safe_free(checklist);
-    }
-    (*handler) (icpState, answer);
-}
-
-static void icpAccessCheckDone(icpState, answer)
-     icpStateData *icpState;
-     int answer;
-{
-    int fd = icpState->fd;
-    char *buf = NULL;
-    debug(12, 5, "icpAccessCheckDone: '%s' answer=%d\n", icpState->url, answer);
-    if (answer) {
-	urlCanonical(icpState->request, icpState->url);
-	redirectStart(icpState->url, fd, icpRedirectDone, icpState);
-    } else {
-	debug(12, 5, "Access Denied: %s\n", icpState->url);
-	buf = access_denied_msg(icpState->http_code,
-	    icpState->method,
-	    icpState->url,
-	    fd_table[fd].ipaddr);
-	icpSendERROR(fd, LOG_TCP_DENIED, buf, icpState, 403);
-    }
-}
-
-static void icpRedirectDone(data, result)
-     void *data;
-     char *result;
-{
-    icpStateData *icpState = data;
-    int fd = icpState->fd;
-    debug(12, 5, "icpRedirectDone: '%s' result=%s\n", icpState->url, result);
-    if (result) {
-	safe_free(icpState->url);
-	icpState->url = xstrdup(result);
-	urlCanonical(icpState->request, icpState->url);
-    }
-    icpParseRequestHeaders(icpState);
-    fd_note(fd, icpState->url);
-    comm_set_select_handler(fd,
-	COMM_SELECT_READ,
-	(PF) icpDetectClientClose,
-	(void *) icpState);
-    icp_hit_or_miss(fd, icpState);
-}
-
 
 #define ASCII_INBUF_BLOCKSIZE 4096
 /*
@@ -1684,7 +1618,7 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 	    return;
 	}
 	icpState->request = requestLink(request);
-	icpAccessCheck(icpState, icpAccessCheckDone);
+	clientAccessCheck(icpState, clientAccessCheckDone);
     } else if (parser_return_code == 0) {
 	/*
 	 *    Partial request received; reschedule until parseAsciiUrl()
@@ -1803,6 +1737,8 @@ int asciiHandleConn(sock, notused)
 	0);
     if (identLookup)
 	identStart(-1, icpState);
+    /* start reverse lookup */
+    fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
     return 0;
 }
 
@@ -1840,7 +1776,7 @@ static void CheckQuickAbort(icpState)
     icpState->log_type = ERR_CLIENT_ABORT;
 }
 
-static void icpDetectClientClose(fd, icpState)
+void icpDetectClientClose(fd, icpState)
      int fd;
      icpStateData *icpState;
 {

@@ -372,7 +372,7 @@ static void mainReinitialize()
     parseConfigFile(ConfigFile);
     _db_init(getCacheLogFile(), getDebugOptions());
     neighbors_init();
-    ipcacheOpenServers();
+    dnsOpenServers();
     redirectOpenServers();
     serverConnectionsOpen();
     (void) ftpInitialize();
@@ -425,6 +425,8 @@ static void mainInitialize()
 	writePidFile();		/* write PID file */
     }
     ipcache_init();
+    fqdncache_init();
+    dnsOpenServers();
     redirectOpenServers();
     neighbors_init();
     (void) ftpInitialize();

@@ -238,9 +238,15 @@ int objcacheStart(fd, url, entry)
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
-    } else if (strcmp(data->request, "stats/general") == 0) {
+    } else if (strcmp(data->request, "stats/ipcache") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "general", data->entry);
+	CacheInfo->stat_get(CacheInfo, "ipcache", data->entry);
+	BIT_RESET(data->entry->flag, DELAY_SENDING);
+	storeComplete(data->entry);
+
+    } else if (strcmp(data->request, "stats/fqdncache") == 0) {
+	BIT_SET(data->entry->flag, DELAY_SENDING);
+	CacheInfo->stat_get(CacheInfo, "fqdncache", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 

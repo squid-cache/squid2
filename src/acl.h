@@ -33,6 +33,7 @@ typedef enum {
     ACL_NONE,
     ACL_SRC_IP,
     ACL_DST_IP,
+    ACL_SRC_DOMAIN,
     ACL_DST_DOMAIN,
     ACL_TIME,
     ACL_URL_REGEX,
@@ -94,14 +95,16 @@ struct _acl_access {
     struct _acl_access *next;
 };
 
-typedef struct {
+struct _aclCheck_t {
     struct in_addr src_addr;
     struct in_addr dst_addr;
     char src_fqdn[SQUIDHOSTNAMELEN];
     char dst_fqdn[SQUIDHOSTNAMELEN];
     request_t *request;
     char ident[ICP_IDENT_SZ];
-} aclCheck_t;
+    int need;
+    int pend;
+};
 
 extern int aclCheck _PARAMS((struct _acl_access *, aclCheck_t *));
 extern int aclMatchAcl _PARAMS((struct _acl *, aclCheck_t *));

@@ -134,6 +134,7 @@ typedef struct _meta_data_stat {
     int store_entries;
     int store_in_mem_objects;
     int ipcache_count;
+    int fqdncache_count;
     int hash_links;
     int url_strings;
     int misc;

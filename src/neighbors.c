@@ -234,6 +234,7 @@ static int edgeWouldBePinged(e, request)
     dom_list *d = NULL;
     int do_ping = 1;
     struct _acl_list *a = NULL;
+    aclCheck_t checklist;
 
     if (e->domains == NULL && e->acls == NULL)
 	return do_ping;
@@ -243,14 +244,10 @@ static int edgeWouldBePinged(e, request)
 	    return d->do_ping;
 	do_ping = !d->do_ping;
     }
+    checklist.src_addr = any_addr;	/* XXX bogus! */
+    checklist.request = request;
     for (a = e->acls; a; a = a->next) {
-	if (aclMatchAcl(a->acl,
-		any_addr,	/* bogus */
-		request->method,
-		request->protocol,
-		request->host,
-		request->port,
-		request->urlpath))
+	if (aclMatchAcl(a->acl, &checklist))
 	    return a->op;
 	do_ping = !a->op;
     }

@@ -102,110 +102,45 @@
  *   re-implementations of code complying to this set of standards.  
  */
 
-#ifndef ICP_H
-#define ICP_H
+#ifndef _DNS_H_
+#define _DNS_H_
 
-typedef enum {
-    LOG_TAG_NONE,		/* 0 */
-    LOG_TCP_HIT,		/* 1 */
-    LOG_TCP_MISS,		/* 2 */
-    LOG_TCP_EXPIRED,		/* 3 */
-    LOG_TCP_USER_REFRESH,	/* 4 */
-    LOG_TCP_IFMODSINCE,		/* 5 */
-    LOG_TCP_SWAPIN_FAIL,	/* 6 */
-    LOG_TCP_DENIED,		/* 7 */
-    LOG_UDP_HIT,		/* 8 */
-    LOG_UDP_HIT_OBJ,		/* 9 */
-    LOG_UDP_MISS,		/* 10 */
-    LOG_UDP_DENIED,		/* 11 */
-    LOG_UDP_INVALID,		/* 12 */
-    ERR_READ_TIMEOUT,		/* 13 */
-    ERR_LIFETIME_EXP,		/* 14 */
-    ERR_NO_CLIENTS_BIG_OBJ,	/* 15 */
-    ERR_READ_ERROR,		/* 16 */
-    ERR_CLIENT_ABORT,		/* 17 */
-    ERR_CONNECT_FAIL,		/* 18 */
-    ERR_INVALID_REQ,		/* 19 */
-    ERR_INVALID_URL,		/* 20 */
-    ERR_NO_FDS,			/* 21 */
-    ERR_DNS_FAIL,		/* 22 */
-    ERR_NOT_IMPLEMENTED,	/* 23 */
-    ERR_CANNOT_FETCH,		/* 24 */
-    ERR_NO_RELAY,		/* 25 */
-    ERR_DISK_IO,		/* 26 */
-    ERR_ZERO_SIZE_OBJECT	/* 27 */
-} log_type;
+#define DNS_FLAG_ALIVE          0x01
+#define DNS_FLAG_BUSY           0x02
+#define DNS_FLAG_CLOSING        0x04
 
-#define ERR_MIN ERR_READ_TIMEOUT
-#define ERR_MAX ERR_ZERO_SIZE_OBJECT
+#define DNS_INBUF_SZ 4096
 
-/* bitfields for the icpStateData 'flags' element */
-#define		REQ_HTML	0x01
-#define		REQ_NOCACHE	0x02
-#define		REQ_IMS		0x04
-#define		REQ_AUTH	0x08
-#define		REQ_CACHABLE	0x10
-#define 	REQ_ACCEL	0x20
-#define 	REQ_HIERARCHICAL 0x40
-#define 	REQ_LOOPDETECT  0x80
-
-typedef struct wwd {
-    struct sockaddr_in address;
-    char *msg;
-    long len;
-    struct wwd *next;
-    struct timeval start;
-    log_type logcode;
-} icpUdpData;
-
-
-#define ICP_IDENT_SZ 63
-typedef struct iwd {
-    icp_common_t header;	/* Allows access to previous header */
-    int fd;
-    char *url;
-    char *inbuf;
-    int inbufsize;
-    method_t method;		/* GET, POST, ... */
-    request_t *request;		/* Parsed URL ... */
-    char *request_hdr;		/* Mime header */
-    StoreEntry *entry;
-    long offset;
-    int log_type;
-    int http_code;
-    struct sockaddr_in peer;
-    struct sockaddr_in me;
-    struct in_addr log_addr;
-    char *buf;
-    struct timeval start;
+typedef struct _dnsserver {
+    int id;
     int flags;
-    int size;			/* hack for CONNECT which doesnt use sentry */
-    char ident[ICP_IDENT_SZ + 1];
-    int ident_fd;
-    aclCheck_t *aclChecklist;
-    void (*aclHandler) _PARAMS((struct iwd *, int answer));
-} icpStateData;
+    int inpipe;
+    int outpipe;
+    time_t lastcall;
+    time_t answer;
+    unsigned int offset;
+    unsigned int size;
+    char *ip_inbuf;
+    struct timeval dispatch_time;
+    void *data;
+} dnsserver_t;
 
-extern int icpUdpSend _PARAMS((int,
-	char *,
-	icp_common_t *,
-	struct sockaddr_in *,
-	icp_opcode,
-	log_type));
-extern int icpHandleUdp _PARAMS((int sock, void *data));
-extern int asciiHandleConn _PARAMS((int sock, void *data));
-extern int icpSendERROR _PARAMS((int fd,
-	log_type errorCode,
-	char *text,
-	icpStateData *,
-	int httpCode));
-extern void AppendUdp _PARAMS((icpUdpData *));
-extern void icpParseRequestHeaders _PARAMS((icpStateData *));
-extern void icpDetectClientClose _PARAMS((int fd, icpStateData *));
-extern void icp_hit_or_miss _PARAMS((int fd, icpStateData *));
+struct _dnsStats {
+    int requests;
+    int replies;
+    int hist[DefaultDnsChildrenMax];
+};
 
-extern int neighbors_do_private_keys;
-extern char *IcpOpcodeStr[];
-extern int icpUdpReply _PARAMS((int fd, icpUdpData * queue));
+extern void statDns _PARAMS((StoreEntry *));
+extern void dnsShutdownServers _PARAMS((void));
+extern void dnsOpenServers _PARAMS((void));
+extern void dnsEnqueue _PARAMS((void *));
+extern void *dnsDequeue _PARAMS((void));
+extern dnsserver_t *dnsGetFirstAvailable _PARAMS((void));
 
-#endif /* ICP_H */
+extern char *dns_error_message;
+extern struct _dnsStats DnsStats;
+
+#define IPCACHE_AV_FACTOR 1000
+
+#endif /* _DNS_H_ */

@@ -1,4 +1,5 @@
 
+
 /*
  * $Id$
  *
@@ -684,7 +685,7 @@ int comm_select(sec, failtime)
 	if (shutdown_pending || reread_pending) {
 	    serverConnectionsClose();
 	    ftpServerClose();
-	    ipcacheShutdownServers();
+	    dnsShutdownServers();
 	    redirectShutdownServers();
 	    setSocketShutdownLifetimes();
 	}
