@@ -40,14 +40,15 @@ extern char *getAccessLogFile _PARAMS((void));
 extern char *getAdminEmail _PARAMS((void));
 extern char *getAppendDomain _PARAMS((void));
 extern char *getCacheLogFile _PARAMS((void));
+extern char *getDebugOptions _PARAMS((void));
 extern char *getDnsProgram _PARAMS((void));
+extern char *getEffectiveGroup _PARAMS((void));
+extern char *getEffectiveUser _PARAMS((void));
 extern char *getFtpOptions _PARAMS((void));
 extern char *getFtpProgram _PARAMS((void));
 extern char *getHierarchyLogFile _PARAMS((void));
 extern char *getWaisRelayHost _PARAMS((void));
 extern double getCacheHotVmFactor _PARAMS((void));
-extern int check_suid _PARAMS((void));
-extern int daemonize _PARAMS((void));
 extern int getAccelWithProxy _PARAMS((void));
 extern int getAsciiPortNum _PARAMS((void));
 extern int getBehindFirewall _PARAMS((void));
@@ -61,7 +62,6 @@ extern int getCacheSwapLowWaterMark _PARAMS((void));
 extern int getCacheSwapMax _PARAMS((void));
 extern int getCleanRate _PARAMS((void));
 extern int getClientLifetime _PARAMS((void));
-extern int getDebugLevel _PARAMS((void));
 extern int getDnSChildren _PARAMS((void));
 extern int getFtpMax _PARAMS((void));
 extern int getFtpTTL _PARAMS((void));
@@ -84,5 +84,7 @@ extern int setBinaryPortNum _PARAMS((int));
 extern int setCacheSwapMax _PARAMS((int size));
 extern int setUdpPortNum _PARAMS((int));
 extern ip_access_type ip_access_check _PARAMS((struct in_addr, ip_acl *));
+
+extern char w_space[];
 
 #endif /* ndef  _CACHE_CONFIG_H_ */

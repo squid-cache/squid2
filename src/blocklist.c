@@ -32,7 +32,7 @@ void blockAddToList(pattern)
     regex_t comp;
 
     if (regcomp(&comp, pattern, REG_EXTENDED) != REG_NOERROR) {
-	debug(0, "blockAddToList: Invalid regular expression: %s\n",
+	debug(0, 0, "blockAddToList: Invalid regular expression: %s\n",
 	    pattern);
 	return;
     }
@@ -58,12 +58,12 @@ int blockCheck(url)
     blocklist *match = NULL;
     int flags = 0;
 
-    debug(5, "blockCheck: Checking blocklist for %s\n", url);
+    debug(0, 5, "blockCheck: Checking blocklist for %s\n", url);
 
     for (t = BLOCK_tbl; t; t = t->next) {
 	if (regexec(&(t->compiled_pattern), url, 0, 0, 0) == 0) {
 	    match = t;
-	    debug(5, "blockCheck: Matched '%s'\n",
+	    debug(0, 5, "blockCheck: Matched '%s'\n",
 		match->pattern);
 	    flags |= BLOCK_MATCHED;
 	}

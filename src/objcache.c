@@ -79,7 +79,7 @@ int objcacheStart(fd, url, entry)
     /* before we generate new object */
     data->entry->expires = cached_curtime + STAT_TTL;
 
-    debug(3, "objectcacheStart - url: %s\n", url);
+    debug(0, 3, "objectcacheStart - url: %s\n", url);
 
     /* Parse url. */
     password[0] = '\0';
@@ -93,7 +93,7 @@ int objcacheStart(fd, url, entry)
     }
     if (getpeername(fd, (struct sockaddr *) &peer_socket_name,
 	    &sock_name_length) == -1) {
-	debug(1, "getpeername failed??\n");
+	debug(0, 1, "getpeername failed??\n");
     }
     if (ip_access_check(peer_socket_name.sin_addr, manager_ip_acl)
 	== IP_DENY) {		/* Access Deny */
@@ -112,9 +112,9 @@ int objcacheStart(fd, url, entry)
 	    storeAbort(data->entry, "CACHED:OBJCACHE Incorrect Password\n");
 	    /* override negative TTL */
 	    data->entry->expires = cached_curtime + STAT_TTL;
-	    debug(1, "Objcache: Attempt to shutdown cached with incorrect password\n");
+	    debug(0, 1, "Objcache: Attempt to shutdown cached with incorrect password\n");
 	} else {
-	    debug(0, "Shutdown by command.\n");
+	    debug(0, 0, "Shutdown by command.\n");
 	    /* free up state datastructure */
 	    safe_free(data);
 	    safe_free(buf);
@@ -198,7 +198,7 @@ int objcacheStart(fd, url, entry)
 	CacheInfo->cached_get_start(CacheInfo, data->entry);
 
     } else {
-	debug(5, "Bad Object Cache URL %s ... negative cached.\n", url);
+	debug(0, 5, "Bad Object Cache URL %s ... negative cached.\n", url);
 	badentry = (char *) xcalloc(1, strlen(BADCacheURL) + strlen(url));
 	sprintf(badentry, BADCacheURL, url);
 	storeAppend(entry, badentry, strlen(badentry));

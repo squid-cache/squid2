@@ -125,7 +125,7 @@ char *the_url(e)
 	/* discard "/head/" or "head/" from the key and get url */
 	return URL;
     } else {
-	debug(0, "Should not be here. Unknown format of the key: %s\n",
+	debug(0, 0, "Should not be here. Unknown format of the key: %s\n",
 	    e->key);
 	return (NULL);
     }
