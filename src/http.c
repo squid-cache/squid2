@@ -486,11 +486,9 @@ static void httpSendRequest(fd, httpState)
     if (httpState->entry->mem_obj)
 	cfd = httpState->entry->mem_obj->fd_of_first_client;
     if (cfd < 0) {
-	sprintf(ybuf, "Forwarded: by http://%s:%d/\r\n",
-	    getMyHostname(), getHttpPortNum());
+	sprintf(ybuf, "%s\r\n", ForwardedBy);
     } else {
-	sprintf(ybuf, "Forwarded: by http://%s:%d/ for %s\r\n",
-	    getMyHostname(), getHttpPortNum(), fd_table[cfd].ipaddr);
+	sprintf(ybuf, "%s for %s\r\n", ForwardedBy, fd_table[cfd].ipaddr);
     }
     strcat(buf, ybuf);
     len += strlen(ybuf);
@@ -588,7 +586,7 @@ int proxyhttpStart(e, url, entry)
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
      * Otherwise, we cannot check return code for connect. */
-    if (!ipcache_gethostbyname(request->host, 0)) {
+    if (!ipcache_gethostbyname(request->host, IP_BLOCKING_LOOKUP)) {
 	debug(11, 4, "proxyhttpstart: Called without IP entry in ipcache. OR lookup failed.\n");
 	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
 	comm_close(sock);
