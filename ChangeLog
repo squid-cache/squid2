@@ -39,6 +39,7 @@ Changes to Squid-2.0 (September 25, 1998):
 	- Fixed a bug with secondary clients on entries with
 	  ENTRY_BAD_LENGTH set.  We should release the
 	  bad entry to prevent secondary clients jumping on.
+	- Changed MIB to prevent parse warnings at startup.
 
 Changes to squid-1.2.beta25 (September 21, 1998):
 
