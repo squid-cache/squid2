@@ -131,7 +131,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-large-files      Enable support for large files (logs etc)."
 ac_help="$ac_help
-  --enable-cache-large-files
+  --enable-large-cache-files
                           Enable support for large cache files (>2GB).
                           WARNING: on-disk cache format is changed by this option"
 ac_help="$ac_help
@@ -1069,7 +1069,7 @@ INSTALL_STRIP_PROGRAM="\${SHELL} \$(install_sh) -c -s"
 
   
 
-# From configure.in Revision: 1.251.2.85 
+# From configure.in Revision: 1.251.2.86 
 echo $ac_n "checking whether to enable maintainer-specific portions of Makefiles""... $ac_c" 1>&6
 echo "configure:1075: checking whether to enable maintainer-specific portions of Makefiles" >&5
     # Check whether --enable-maintainer-mode or --disable-maintainer-mode was given.
