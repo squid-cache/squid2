@@ -1167,7 +1167,7 @@ void storeSwapOutHandle(fd, flag, e)
 	/* check if it's request to be released. */
 	if (e->flag & RELEASE_REQUEST)
 	    storeRelease(e);
-	if (!storeEntryLocked(e) && store_hotobj_high == 0)
+	else if (!storeEntryLocked(e) && store_hotobj_high == 0)
 	    storePurgeMem(e);
 	return;
     }
@@ -1463,6 +1463,8 @@ void storeStartRebuildFromDisk()
 	    store_rebuilding = (sb.st_mtime <= last_clean) ?
 		STORE_REBUILDING_FAST : STORE_REBUILDING_SLOW;
     }
+    /* Remove timestamp in case we crashe during rebuild */
+    safeunlink(tmp_filename, 0);
     /* close the existing write-only swaplog, and open a temporary
      * write-only swaplog  */
     if (file_write_unlock(swaplog_fd, swaplog_lock) != DISK_OK)
