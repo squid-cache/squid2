@@ -167,15 +167,12 @@
 #ifndef SA_NODEFER
 #define SA_NODEFER 0
 #endif
-
 #ifndef SA_RESETHAND
-#ifdef SA_ONESHOT
-#define SA_RESETHAND SA_ONESHOT
-#else
 #define SA_RESETHAND 0
-#define HAVE_SIGACTION 0
-#endif /* SA_ONESHOT */
-#endif /* SA_RESETHAND */
+#endif
+#if SA_RESETHAND == 0 && defined(SA_ONESHOT)
+#define SA_RESETHAND SA_ONESHOT
+#endif
 
 typedef struct sentry StoreEntry;
 typedef struct mem_hdr *mem_ptr;
@@ -201,6 +198,7 @@ typedef unsigned long u_num32;
 #include "ansihelp.h"
 
 typedef void (*SIH) _PARAMS((int, void *));	/* swap in */
+typedef int (*QS) _PARAMS((const void *, const void *));
 
 #include "cache_cf.h"
 #include "comm.h"
