@@ -126,6 +126,8 @@
 #include <sys/select.h>
 #endif
 
+#include <assert.h>
+
 #include "util.h"
 #include "snprintf.h"
 
