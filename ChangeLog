@@ -68,3 +68,12 @@ Changes to squid-1.0.beta1 (Apr 19, 1996) from Harvest cached-1.4.pl3:
 	- Removed all code and references to binary port.
 	- Removed dual logging to stderr/cache.log.
 	- Removed old IP access controls ('proxy_allow', etc.)
+
+Changes to 1.0.beta2
+
+	- Fixed /bin/csh "$#argv" leftover in RunCache.
+	- Fixed ACL day-of-week bitmask bug.
+	- Fixed missing checks for WAIS in some places.
+	- Fixed chdir(swappath(0)) bug; do chdir() after storeInit().
+	- Changed enumerated structure members to be defined outside
+	  of the structure itself (for AIX).
