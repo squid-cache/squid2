@@ -306,7 +306,7 @@ static void
 pingerSendtoSquid(pingerReplyData * preply)
 {
     int len = sizeof(pingerReplyData) - 8192 + preply->psize;
-    if (send(1, preply, len, 0) < 0) {
+    if (send(1, (char *) preply, len, 0) < 0) {
 	debug(37, 0, "pinger: send: %s\n", xstrerror());
 	exit(1);
     }
@@ -356,7 +356,7 @@ main(int argc, char *argv[])
 	if (FD_ISSET(icmp_sock, &R))
 	    pingerRecv();
 	if (10 + last_check_time < squid_curtime) {
-	    if (send(1, &tv, 0, 0) < 0)
+	    if (send(1, (char *) &tv, 0, 0) < 0)
 		return 1;
 	    last_check_time = squid_curtime;
 	}
