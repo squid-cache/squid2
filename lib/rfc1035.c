@@ -63,6 +63,7 @@
 #endif
 
 #include "rfc1035.h"
+#include "snprintf.h"
 
 #define RFC1035_MAXLABELSZ 63
 
