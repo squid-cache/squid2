@@ -106,7 +106,7 @@ icmpSend(pingerEchoData * pkt, int len)
     int x;
     if (icmp_sock < 0)
 	return;
-    x = send(icmp_sock, pkt, len, 0);
+    x = send(icmp_sock, (char *) pkt, len, 0);
     if (x < 0) {
 	debug(50, 1) ("icmpSend: send: %s\n", xstrerror());
 	if (errno == ECONNREFUSED) {
