@@ -127,28 +127,17 @@ static int edgeWouldBePinged(e, request)
      edge *e;
      request_t *request;
 {
-    int offset;
     dom_list *d = NULL;
     int do_ping = 1;
-    char *host = request->host;
     struct _acl_list *a = NULL;
 
     if (e->domains == NULL && e->acls == NULL)
 	return do_ping;
-
     do_ping = 0;
     for (d = e->domains; d; d = d->next) {
-	if ((offset = strlen(host) - strlen(d->domain)) < 0) {
-	    do_ping = !d->do_ping;
-	    continue;
-	}
-	if (strcasecmp(d->domain, host + offset) == 0
-	    && (offset == 0 || host[offset - 1] == '.')) {
-	    /* found a match, no need to check any more domains */
+	if (matchDomainName(d->domain, request->host))
 	    return d->do_ping;
-	} else {
-	    do_ping = !d->do_ping;
-	}
+	do_ping = !d->do_ping;
     }
     for (a = e->acls; a; a = a->next) {
 	if (aclMatchAcl(a->acl,

@@ -1,3 +1,4 @@
+
 /*  $Id$ */
 
 #ifndef _URL_HEADER_
@@ -48,5 +49,6 @@ extern request_t *urlParse _PARAMS((method_t, char *));
 extern char *urlCanonical _PARAMS((request_t *, char *));
 extern request_t *requestLink _PARAMS((request_t *));
 extern void requestUnlink _PARAMS((request_t *));
+extern int matchDomainName _PARAMS((char *d, char *h));
 
 #endif /* _URL_HEADER_ */

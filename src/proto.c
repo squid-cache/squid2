@@ -499,7 +499,6 @@ static int protoDNSError(fd, entry)
 static int matchInsideFirewall(host)
      char *host;
 {
-    int offset;
     wordlist *s = getInsideFirewallList();
     char *key = NULL;
     int result;
@@ -517,12 +516,7 @@ static int matchInsideFirewall(host)
 	} else {
 	    result = INSIDE_FIREWALL;
 	}
-	if ((offset = strlen(host) - strlen(key)) < 0)
-	    continue;
-	if (strcasecmp(key, host + offset))
-	    continue;
-	if (offset == 0 || host[offset - 1] == '.')
-	    /* a match, this host is inside/outside the firewall */
+	if (matchDomainName(key, host))
 	    return result;
     }
     /* all through the list and no domains matched, this host must
@@ -533,15 +527,9 @@ static int matchInsideFirewall(host)
 static int matchLocalDomain(host)
      char *host;
 {
-    int offset;
     wordlist *s = NULL;
     for (s = getLocalDomainList(); s; s = s->next) {
-	if ((offset = strlen(host) - strlen(s->key)) < 0)
-	    continue;
-	if (strcasecmp(s->key, host + offset))
-	    continue;
-	if (offset == 0 || host[offset - 1] == '.')
-	    /* a match */
+	if (matchDomainName(s->key, host))
 	    return 1;
     }
     return 0;

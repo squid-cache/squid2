@@ -252,3 +252,21 @@ void requestUnlink(request)
     if (request->link_count == 0)
 	put_free_request_t(request);
 }
+
+int matchDomainName(domain, host)
+     char *domain;
+     char *host;
+{
+    int offset;
+    if ((offset = strlen(host) - strlen(domain)) < 0)
+	return 0;		/* host too short */
+    if (strcasecmp(domain, host + offset) != 0)
+	return 0;		/* no match at all */
+    if (*domain == '.')
+	return 1;
+    if (*(host + offset - 1) == '.')
+	return 1;
+    if (offset == 0)
+	return 1;
+    return 0;
+}
