@@ -377,8 +377,8 @@ DEFAULT_SWAP_DIR = $(localstatedir)/cache
 DEFAULT_PINGER = $(libexecdir)/@OPT_PINGER_EXE@
 DEFAULT_UNLINKD = $(libexecdir)/$(UNLINKD_EXE)
 DEFAULT_DISKD = $(libexecdir)/@OPT_DISKD_EXE@
-DEFAULT_ICON_DIR = $(sharedstatedir)/squid/icons
-DEFAULT_ERROR_DIR = $(sharedstatedir)/squid/errors/@ERR_DEFAULT_LANGUAGE@
+DEFAULT_ICON_DIR = $(datadir)/squid/icons
+DEFAULT_ERROR_DIR = $(datadir)/squid/errors/@ERR_DEFAULT_LANGUAGE@
 DEFAULT_MIB_PATH = $(sysconfdir)/mib.txt
 
 DEFS = @DEFS@ -DDEFAULT_CONFIG_FILE=\"$(DEFAULT_CONFIG_FILE)\"
