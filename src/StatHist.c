@@ -58,8 +58,8 @@ statHistInit(StatHist * H, int capacity, hbase_f val_in, hbase_f val_out, double
     assert(H);
     assert(capacity > 0);
     assert(val_in && val_out);
-    /* check that functions are valid */
-    assert(val_in(0.0) == 0.0 && val_out(val_in(0.0)) == 0.0);
+    /* check before we divide to get scale */
+    assert(val_in(max - min) > 0);
     H->bins = xcalloc(capacity, sizeof(int));
     H->min = min;
     H->max = max;
@@ -67,6 +67,13 @@ statHistInit(StatHist * H, int capacity, hbase_f val_in, hbase_f val_out, double
     H->scale = capacity / val_in(max - min);
     H->val_in = val_in;
     H->val_out = val_out;
+    /* check that functions are valid */
+    /* a min value should go into bin[0] */
+    assert(statHistBin(H, min) == 0);
+    /* a max value should go into the last bin */
+    assert(statHistBin(H, max) == H->capacity - 1);
+    /* it is hard to test val_out, here is a crude test */
+    assert(((int)(0.99+statHistVal(H, 0)-min)) == 0);
 }
 
 void
