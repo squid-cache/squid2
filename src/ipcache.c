@@ -204,7 +204,7 @@ ipcacheCallback(ipcache_entry * i)
     i->handlerData = NULL;
     if (cbdataValid(handlerData)) {
 	dns_error_message = i->error_message;
-	handler(i->flags.negcached ? &i->addrs : NULL, handlerData);
+	handler(i->flags.negcached ? NULL : &i->addrs, handlerData);
     }
     cbdataUnlock(i->handlerData);
     ipcacheUnlockEntry(i);

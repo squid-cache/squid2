@@ -194,7 +194,7 @@ fqdncacheCallback(fqdncache_entry * f)
     f->handlerData = NULL;
     if (cbdataValid(handlerData)) {
 	dns_error_message = f->error_message;
-	handler(f->flags.negcached ? f->names[0] : NULL, handlerData);
+	handler(f->flags.negcached ? NULL : f->names[0], handlerData);
     }
     cbdataUnlock(handlerData);
     fqdncacheUnlockEntry(f);
