@@ -622,8 +622,11 @@ icpSendMoreData(void *data, char *buf, size_t size)
     FREE *freefunc = put_free_4k_page;
     assert(size >= 0);
     assert(size <= ICP_SENDMOREDATA_BUF);
-    if (size == 0)
-	debug(12, 1, "icpSendMoreData: size=0, %s\n", entry->url);
+    if (size == 0) {
+	clientWriteComplete(fd, NULL, 0, DISK_OK, http);
+	freefunc(buf);
+	return;
+    }
     if (size < 0) {
 	debug(12, 1, "storeClientCopy returned %d for '%s'\n", size, entry->key);
 	freefunc(buf);
