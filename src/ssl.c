@@ -400,8 +400,7 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
     sslState->server.fd = sock;
     sslState->server.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
     sslState->client.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
-    comm_set_select_handler(sslState->server.fd,
-	COMM_SELECT_CLOSE,
+    comm_add_close_handler(sslState->server.fd,
 	(PF) sslStateFree,
 	(void *) sslState);
     ipcache_nbgethostbyname(request->host,

@@ -1544,8 +1544,7 @@ int asciiHandleConn(sock, notused)
 	COMM_SELECT_LIFETIME,
 	(PF) asciiConnLifetimeHandle,
 	(void *) icpState);
-    comm_set_select_handler(fd,
-	COMM_SELECT_CLOSE,
+    comm_add_close_handler(fd,
 	(PF) icpStateFree,
 	(void *) icpState);
     comm_read(fd,

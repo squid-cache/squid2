@@ -511,8 +511,7 @@ int ftpStart(unusedfd, url, request, entry)
     /* Pipe/socket created ok */
 
     /* register close handler */
-    comm_set_select_handler(data->ftp_fd,
-	COMM_SELECT_CLOSE,
+    comm_add_close_handler(data->ftp_fd,
 	(PF) ftpStateFree,
 	(void *) data);
 

@@ -258,8 +258,7 @@ int waisStart(unusedfd, url, method, mime_hdr, entry)
     data->relayport = getWaisRelayPort();
     data->mime_hdr = mime_hdr;
     strncpy(data->request, url, MAX_URL);
-    comm_set_select_handler(sock,
-	COMM_SELECT_CLOSE,
+    comm_add_close_handler(sock,
 	(PF) waisStateFree,
 	(void *) data);
 

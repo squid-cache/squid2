@@ -11,6 +11,7 @@ static int matchLocalDomain _PARAMS((char *host));
 static int protoCantFetchObject _PARAMS((int, StoreEntry *, char *));
 static int protoNotImplemented _PARAMS((int fd_unused, char *url, StoreEntry * entry));
 static int protoDNSError _PARAMS((int fd_unused, StoreEntry * entry));
+static void protoDataFree _PARAMS((int fdunused, protodispatch_data *));
 
 #define OUTSIDE_FIREWALL 0
 #define INSIDE_FIREWALL  1
@@ -60,7 +61,8 @@ extern time_t neighbor_timeout;
 extern single_parent_bypass;
 extern char *dns_error_message;
 
-static void protoDataFree(protoData)
+static void protoDataFree(fdunused, protoData)
+     int fdunused;
      protodispatch_data *protoData;
 {
     requestUnlink(protoData->request);
@@ -90,13 +92,13 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     if (protoData->direct_fetch == DIRECT_YES) {
 	if (ipcache_gethostbyname(req->host, 0) == NULL) {
 	    protoDNSError(protoData->fd, entry);
-	    protoDataFree(protoData);
+	    /* protoDataFree(protoData); */
 	    return 0;
 	}
 	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, req->host);
 	mem->hierarchy_code = HIER_DIRECT;
 	getFromCache(protoData->fd, entry, NULL, req);
-	protoDataFree(protoData);
+	/* protoDataFree(protoData); */
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_MAYBE && local_ip_list) {
@@ -110,7 +112,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 		    req->host);
 		mem->hierarchy_code = HIER_LOCAL_IP_DIRECT;
 		getFromCache(protoData->fd, entry, NULL, req);
-		protoDataFree(protoData);
+		/* protoDataFree(protoData); */
 		return 0;
 	    }
 	}
@@ -121,7 +123,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	hierarchy_log_append(protoData->url, HIER_SINGLE_PARENT, 0, e->host);
 	mem->hierarchy_code = HIER_SINGLE_PARENT;
 	getFromCache(protoData->fd, entry, e, req);
-	protoDataFree(protoData);
+	/* protoDataFree(protoData); */
 	return 0;
     }
     if (protoData->n_edges == 0 && protoData->direct_fetch == DIRECT_NO) {
@@ -129,7 +131,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	mem->hierarchy_code = HIER_NO_DIRECT_FAIL;
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents to query and the host is beyond your firewall.");
-	protoDataFree(protoData);
+	/* protoDataFree(protoData); */
 	return 0;
     }
     if (!neighbors_do_private_keys && !protoData->query_neighbors && (e = getFirstUpParent(req))) {
@@ -138,7 +140,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	hierarchy_log_append(protoData->url, HIER_FIRSTUP_PARENT, 0, e->host);
 	mem->hierarchy_code = HIER_FIRSTUP_PARENT;
 	getFromCache(protoData->fd, entry, e, req);
-	protoDataFree(protoData);
+	/* protoDataFree(protoData); */
 	return 0;
     } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */
@@ -153,7 +155,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	    (PF) getFromDefaultSource,
 	    (void *) entry,
 	    neighbor_timeout);
-	protoDataFree(protoData);
+	/* protoDataFree(protoData); */
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_NO) {
@@ -164,14 +166,14 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     } else {
 	if (ipcache_gethostbyname(req->host, 0) == NULL) {
 	    protoDNSError(protoData->fd, entry);
-	    protoDataFree(protoData);
+	    /* protoDataFree(protoData); */
 	    return 0;
 	}
 	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, req->host);
 	mem->hierarchy_code = HIER_DIRECT;
 	getFromCache(protoData->fd, entry, NULL, req);
     }
-    protoDataFree(protoData);
+    /* protoDataFree(protoData); */
     return 0;
 }
 
@@ -203,6 +205,9 @@ int protoDispatch(fd, url, entry, request)
     protoData->entry = entry;
     protoData->request = requestLink(request);
     entry->mem_obj->request = requestLink(request);
+    comm_add_close_handler(fd,
+	(PF) protoDataFree,
+	(void *) protoData);
 
     protoData->inside_firewall = matchInsideFirewall(request->host);
     protoData->query_neighbors = BIT_TEST(entry->flag, HIERARCHICAL);
@@ -288,7 +293,7 @@ int protoUndispatch(fd, url, entry, request)
     /* The pending DNS lookup was cleared, now have to junk the entry */
     debug(17, 5, "protoUndispatch: the entry is stranded with a pending DNS event\n");
     if (entry)
-	protoDNSError(fd, entry);
+	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
     return 1;
 }
 

@@ -869,8 +869,7 @@ int gopherStart(unusedfd, url, entry)
 	gopherStateFree(-1, data);
 	return COMM_ERROR;
     }
-    comm_set_select_handler(sock,
-	COMM_SELECT_CLOSE,
+    comm_add_close_handler(sock,
 	(PF) gopherStateFree,
 	(void *) data);
 
