@@ -554,7 +554,8 @@ main(int argc, char **argv)
 		wait);
 	    do_shutdown = 0;
 	    shutting_down = 1;
-	    eventAdd("force_shutdown", force_shutdown, (double) (wait+1), 1);
+	    eventAdd("force_shutdown", force_shutdown,
+		NULL, (double) (wait+1), 1);
 	}
 	eventRun();
 	if ((loop_delay = eventNextTime()) < 0)
