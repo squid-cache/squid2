@@ -78,6 +78,10 @@ static int readSecret(char *filename);
 
 /* Yuck.. we need to glue to different versions of the API */
 
+#ifndef LDAP_NO_ATTRS
+#define LDAP_NO_ATTRS "1.1"
+#endif
+
 #if defined(LDAP_API_VERSION) && LDAP_API_VERSION > 1823
 static int 
 squid_ldap_errno(LDAP * ld)

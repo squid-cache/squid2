@@ -88,7 +88,6 @@
 #include <lber.h>
 #include <ldap.h>
 #include <ctype.h>
-
 #include "util.h"
 
 #define PROGRAM_NAME "squid_ldap_auth"
@@ -121,6 +120,10 @@ static int checkLDAP(LDAP * ld, const char *userid, const char *password, const 
 static int readSecret(const char *filename);
 
 /* Yuck.. we need to glue to different versions of the API */
+
+#ifndef LDAP_NO_ATTRS
+#define LDAP_NO_ATTRS "1.1"
+#endif
 
 #if defined(LDAP_API_VERSION) && LDAP_API_VERSION > 1823
 static int
