@@ -75,13 +75,6 @@ static void default_failure_notify(const char *);
 void (*failure_notify) (const char *) = default_failure_notify;
 static char msg[128];
 
-#if !defined(__CYGWIN__)
-extern int sys_nerr;
-#else
-#define sys_nerr _sys_nerr
-#endif
-
-
 #if MEM_GEN_TRACE
 
 static FILE *tracefp = NULL;
@@ -640,21 +633,6 @@ xstrerror(void)
         snprintf(xstrerror_buf, BUFSIZ, "(%d) Unknown", errno); 
     return xstrerror_buf;
 }
-
-#if NOT_NEEDED
-/*
- * xbstrerror with argument for late notification */
-
-const char *
-xbstrerror(int err)
-{
-    static char xbstrerror_buf[BUFSIZ];
-    if (err < 0 || err >= sys_nerr)
-	return ("Unknown");
-    snprintf(xbstrerror_buf, BUFSIZ, "(%d) %s", err, strerror(err));
-    return xbstrerror_buf;
-}
-#endif
 
 void
 Tolower(char *q)
