@@ -895,3 +895,17 @@ gb_to_str(const gb_t * g)
 	snprintf(buf, sizeof(GbBuf), "%.2f TB", value / 1e12);
     return buf;
 }
+
+void
+debugObj(int section, int level, void *obj, void (*packMeth)(void *obj, Packer *p))
+{
+    MemBuf mb;
+    Packer p;
+    assert(obj);
+    memBufDefInit(&mb);
+    packerToMemInit(&p, &mb);
+    (*packMeth)(obj, &p);
+    debug(section, level) ("%s", mb.buf);
+    packerClean(&p);
+    memBufClean(&mb);
+}
