@@ -333,6 +333,15 @@ AC_CHECK_FUNCS(\
 	timegm \
 )
 
+AC_MSG_CHECKING(if GNUregex needs to be compiled)
+if test "$ac_cv_func_regcomp" = no; then
+	AC_MSG_RESULT(yes)
+	LIBREGEX="libregex.a"
+	AC_SUBST(LIBREGEX)
+else
+	AC_MSG_RESULT(no)
+fi
+
 AC_REPLACE_FUNCS(\
 	tempnam \
 )

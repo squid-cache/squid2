@@ -31,7 +31,7 @@ UTILOBJS	= rfc1123.o \
 		  uudecode.o \
 		  $(LIBOBJS)
 REGEXOBJS	= GNUregex.o
-LIBS		= libmiscutil.a libregex.a
+LIBS		= libmiscutil.a @LIBREGEX@
 
 CFLAGS		= $(AC_CFLAGS) $(INCLUDE)
 
