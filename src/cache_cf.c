@@ -238,10 +238,8 @@ static void parseAnnounceToLine _PARAMS((void));
 static void parseAppendDomainLine _PARAMS((void));
 static void parseCacheAnnounceLine _PARAMS((void));
 static void parseCacheHostLine _PARAMS((void));
-static void parseDebugOptionsLine _PARAMS((void));
 static void parseEffectiveUserLine _PARAMS((void));
-static void parseErrHtmlLine _PARAMS((void));
-static void parseFtpOptionsLine _PARAMS((void));
+static void parseToEndOfLine _PARAMS((char *volatile *));
 static void parseFtpUserLine _PARAMS((void));
 static void parseWordlist _PARAMS((wordlist **));
 static void parseHostAclLine _PARAMS((void));
@@ -721,15 +719,16 @@ parsePathname(char **path, int fatal)
     }
 }
 
+/* need volatile here for debug_options */
 static void
-parseFtpOptionsLine(void)
+parseToEndOfLine(char *volatile *sptr)
 {
     char *token;
     token = strtok(NULL, null_string);
     if (token == NULL)
 	self_destruct();
-    safe_free(Config.Program.ftpget_opts);
-    Config.Program.ftpget_opts = xstrdup(token);
+    safe_free(*sptr);
+    *sptr = xstrdup(token);
 }
 
 static void
@@ -876,19 +875,6 @@ parseIcpPortLine(void)
 }
 
 static void
-parseDebugOptionsLine(void)
-{
-    char *token;
-    token = strtok(NULL, null_string);
-    safe_free(Config.debugOptions);
-    if (token == NULL) {
-	Config.debugOptions = NULL;
-	return;
-    }
-    Config.debugOptions = xstrdup(token);
-}
-
-static void
 parseVisibleHostnameLine(void)
 {
     char *token;
@@ -1008,14 +994,6 @@ parseString(char **sptr)
     if (token == NULL)
 	self_destruct();
     *sptr = xstrdup(token);
-}
-
-static void
-parseErrHtmlLine(void)
-{
-    char *token;
-    if ((token = strtok(NULL, null_string)))
-	Config.errHtmlText = xstrdup(token);
 }
 
 static void
@@ -1226,9 +1204,9 @@ parseConfigFile(const char *file_name)
 	    parsePathname(&Config.Program.ftpget, 1);
 
 	else if (!strcmp(token, "cache_ftp_options"))
-	    parseFtpOptionsLine();
+	    parseToEndOfLine(&Config.Program.ftpget_opts);
 	else if (!strcmp(token, "ftpget_options"))
-	    parseFtpOptionsLine();
+	    parseToEndOfLine(&Config.Program.ftpget_opts);
 
 	else if (!strcmp(token, "cache_dns_program"))
 	    parsePathname(&Config.Program.dnsserver, 1);
@@ -1332,7 +1310,7 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&Config.singleParentBypass);
 
 	else if (!strcmp(token, "debug_options"))
-	    parseDebugOptionsLine();
+	    parseToEndOfLine(&Config.debugOptions);
 
 	else if (!strcmp(token, "pid_filename"))
 	    parsePathname(&Config.pidFilename, 0);
@@ -1355,7 +1333,7 @@ parseConfigFile(const char *file_name)
 	    parseProxyLine(&Config.passProxy);
 
 	else if (!strcmp(token, "err_html_text"))
-	    parseErrHtmlLine();
+	    parseToEndOfLine(&Config.errHtmlText);
 
 	else if (!strcmp(token, "ipcache_size"))
 	    parseIntegerValue(&Config.ipcache.size);
@@ -1376,6 +1354,8 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&Config.Options.log_udp);
 	else if (!strcmp(token, "http_anonymizer"))
 	    parseHttpAnonymizer(&Config.Options.anonymizer);
+	else if (!strcmp(token, "fake_user_agent"))
+	    parseToEndOfLine(&Config.fake_ua);
 	else if (!strcmp(token, "icp_hit_stale"))
 	    parseHttpAnonymizer(&Config.Options.icp_hit_stale);
 	else if (!strcmp(token, "client_db"))

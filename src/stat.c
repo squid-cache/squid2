@@ -739,7 +739,7 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 #if defined(HAVE_GETRUSAGE) && defined(RUSAGE_SELF)
     struct rusage rusage;
 #endif
-#if HAVE_MSTATS
+#if HAVE_MSTATS && HAVE_GNUMALLOC_H
     struct mstats ms;
 #elif HAVE_MALLINFO
     struct mallinfo mp;
@@ -808,7 +808,7 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	rusage.ru_majflt);
 #endif
 
-#if HAVE_MSTATS
+#if HAVE_MSTATS && HAVE_GNUMALLOC_H
     ms = mstats();
     storeAppendPrintf(sentry, "{Memory usage for %s via mstats():}\n",
 	appname);

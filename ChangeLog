@@ -1,3 +1,16 @@
+Changes to squid-1.NOVM.13 (July 9, 1997):
+
+	- Merged squid-1.1.13 changes.
+
+Changes to squid-1.1.13 (July 9, 1997):
+
+	- Fixed storeLog() coredump on mem->log_url.
+	- Fixed string bounds bug if a redirector returns a short
+	  hostname which require appending 'append_domain' (David
+	  Lamkin).
+	- Added 'fake_user_agent' to configuration because HTTP
+	  anonymizing strips the User-Agent which some servers require.
+
 Changes to squid-1.NOVM.12 (July 5, 1997):
 
 	- Merged squid-1.1.12 changes.

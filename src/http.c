@@ -209,7 +209,7 @@ static void httpSendComplete _PARAMS((int fd, char *, int, int, void *));
 static void httpSendRequest _PARAMS((int fd, void *));
 static void httpConnect _PARAMS((int fd, const ipcache_addrs *, void *));
 static void httpConnectDone _PARAMS((int fd, int status, void *data));
-static void httpAppendRequestHeader _PARAMS((char *hdr, const char *line, size_t * sz, size_t max));
+static void httpAppendRequestHeader _PARAMS((char *, const char *, size_t *, size_t, int));
 
 
 static void
@@ -677,17 +677,19 @@ httpSendComplete(int fd, char *buf, int size, int errflag, void *data)
 }
 
 static void
-httpAppendRequestHeader(char *hdr, const char *line, size_t * sz, size_t max)
+httpAppendRequestHeader(char *hdr, const char *line, size_t * sz, size_t max, int check)
 {
     size_t n = *sz + strlen(line) + 2;
     if (n >= max)
 	return;
-    if (Config.Options.anonymizer == ANONYMIZER_PARANOID) {
-	if (!httpAnonAllowed(line))
-	    return;
-    } else if (Config.Options.anonymizer == ANONYMIZER_STANDARD) {
-	if (httpAnonDenied(line))
-	    return;
+    if (check) {
+	if (Config.Options.anonymizer == ANONYMIZER_PARANOID) {
+	    if (!httpAnonAllowed(line))
+		return;
+	} else if (Config.Options.anonymizer == ANONYMIZER_STANDARD) {
+	    if (httpAnonDenied(line))
+		return;
+	}
     }
     /* allowed header, explicitly known to be not dangerous */
     debug(11, 5, "httpAppendRequestHeader: %s\n", line);
@@ -727,11 +729,11 @@ httpBuildRequestHeader(request_t * request,
     sprintf(ybuf, "%s %s HTTP/1.0",
 	RequestMethodStr[request->method],
 	*request->urlpath ? request->urlpath : "/");
-    httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz);
+    httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz, 1);
     /* Add IMS header */
     if (entry && entry->lastmod && request->method == METHOD_GET) {
 	sprintf(ybuf, "If-Modified-Since: %s", mkrfc1123(entry->lastmod));
-	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz);
+	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz, 1);
 	EBIT_SET(hdr_flags, HDR_IMS);
     }
     end = mime_headers_end(hdr_in);
@@ -779,26 +781,30 @@ httpBuildRequestHeader(request_t * request,
 		sprintf(xbuf, "Max-Forwards: %d", n - 1);
 	    }
 	}
-	httpAppendRequestHeader(hdr_out, xbuf, &len, out_sz - 512);
+	httpAppendRequestHeader(hdr_out, xbuf, &len, out_sz - 512, 1);
     }
     hdr_len = t - hdr_in;
+    if (Config.fake_ua && strstr(hdr_out, "User-Agent") == NULL) {
+	sprintf(ybuf, "User-Agent: %s", Config.fake_ua);
+	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz, 0);
+    }
     /* Append Via: */
     sprintf(ybuf, "%3.1f %s", orig_request->http_ver, ThisCache);
     strcat(viabuf, ybuf);
-    httpAppendRequestHeader(hdr_out, viabuf, &len, out_sz);
+    httpAppendRequestHeader(hdr_out, viabuf, &len, out_sz, 1);
     /* Append to X-Forwarded-For: */
     strcat(fwdbuf, cfd < 0 ? "unknown" : fd_table[cfd].ipaddr);
-    httpAppendRequestHeader(hdr_out, fwdbuf, &len, out_sz);
+    httpAppendRequestHeader(hdr_out, fwdbuf, &len, out_sz, 1);
     if (!EBIT_TEST(hdr_flags, HDR_HOST)) {
 	sprintf(ybuf, "Host: %s", orig_request->host);
-	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz);
+	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz, 1);
     }
     if (!EBIT_TEST(cc_flags, CCC_MAXAGE)) {
 	url = entry ? entry->url : urlCanonical(orig_request, NULL);
 	sprintf(ybuf, "Cache-control: Max-age=%d", (int) getMaxAge(url));
-	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz);
+	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz, 1);
     }
-    httpAppendRequestHeader(hdr_out, null_string, &len, out_sz);
+    httpAppendRequestHeader(hdr_out, null_string, &len, out_sz, 1);
     put_free_4k_page(xbuf);
     put_free_4k_page(viabuf);
     put_free_4k_page(fwdbuf);
