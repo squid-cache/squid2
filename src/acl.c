@@ -1845,6 +1845,10 @@ aclChecklistFree(aclCheck_t * checklist)
 	cbdataUnlock(checklist->conn);
 	checklist->conn = NULL;
     }
+    if (checklist->access_list) {
+	cbdataUnlock(checklist->access_list);
+	checklist->access_list = NULL;
+    }
     aclCheckCleanup(checklist);
     cbdataFree(checklist);
 }
