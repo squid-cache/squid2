@@ -9,6 +9,13 @@ Changes to squid-1.0 (June 14, 1996):
 	- Fixed ICP_HIT_OBJ bug causing objects to get stuck in VM.
 	- Fixed matching the ends of domain names (e.g. bar.com no 
 	  longer matches foobar.com).
+	- Fixed checking return code from fprintf() while writing the
+	  clean swap log.
+	- Fixed fatal_dump from storeSwapoutHandle running out of disk
+	  space.
+	- Added disabling of a neighbor cache if 95% of replies are
+	  UDP_DENIED.
+	- Added BSD->POSIX signal() macros for Solaris
 
 Changes to squid-1.0.beta17 (June 12, 1996):
 
@@ -306,4 +313,3 @@ Changes to squid-1.0.beta1 (Apr 19, 1996) from Harvest cached-1.4.pl3:
 	- Removed all code and references to binary port.
 	- Removed dual logging to stderr/cache.log.
 	- Removed old IP access controls ('proxy_allow', etc.)
-
