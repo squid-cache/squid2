@@ -393,13 +393,8 @@ hash_insert(HashID hid, const char *k, void *item)
 
     i = (htbl[hid].hash) (k, hid);
 
-    if (htbl[hid].buckets[i] == NULL) {		/* first item */
-	htbl[hid].buckets[i] = new;
-	htbl[hid].buckets[i]->next = NULL;
-    } else {			/* prepend to list */
-	new->next = htbl[hid].buckets[i];
-	htbl[hid].buckets[i] = new;
-    }
+    new->next = htbl[hid].buckets[i];
+    htbl[hid].buckets[i] = new;
     return 0;
 }
 
@@ -419,13 +414,8 @@ hash_join(HashID hid, hash_link * lnk)
 
     i = (htbl[hid].hash) (lnk->key, hid);
 
-    if (htbl[hid].buckets[i] == NULL) {		/* first item */
-	htbl[hid].buckets[i] = lnk;
-	htbl[hid].buckets[i]->next = NULL;
-    } else {			/* prepend to list */
-	lnk->next = htbl[hid].buckets[i];
-	htbl[hid].buckets[i] = lnk;
-    }
+    lnk->next = htbl[hid].buckets[i];
+    htbl[hid].buckets[i] = lnk;
     return 0;
 }
 
@@ -437,7 +427,7 @@ hash_join(HashID hid, hash_link * lnk)
 hash_link *
 hash_lookup(HashID hid, const char *k)
 {
-    static hash_link *walker;
+    hash_link *walker;
     int b;
 
     if (!htbl[hid].valid)
@@ -448,6 +438,7 @@ hash_lookup(HashID hid, const char *k)
     for (walker = htbl[hid].buckets[b]; walker != NULL; walker = walker->next) {
 	if ((htbl[hid].cmp) (k, walker->key) == 0)
 	    return (walker);
+	/* XXX this should never happen */
 	if (walker == walker->next)
 	    break;
     }
