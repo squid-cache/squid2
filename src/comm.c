@@ -569,7 +569,7 @@ comm_close(int fd)
     assert(F->open);
     assert(F->type != FD_FILE);
     BIT_SET(F->flags, FD_CLOSING);
-    CommWriteStateCallbackAndFree(fd, COMM_ERROR);
+    CommWriteStateCallbackAndFree(fd, COMM_ERR_CLOSING);
     commCallCloseHandlers(fd);
     if (F->uses)		/* assume persistent connect count */
 	pconnHistCount(1, F->uses);

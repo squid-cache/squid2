@@ -957,6 +957,8 @@ ftpWriteCommandCallback(int fd, char *buf, int size, int errflag, void *data)
     StoreEntry *entry = ftpState->entry;
     ErrorState *err;
     debug(9, 7) ("ftpWriteCommandCallback: wrote %d bytes\n", size);
+    if (errflag == COMM_ERR_CLOSING)
+	return;
     if (errflag) {
 	debug(50, 1) ("ftpWriteCommandCallback: FD %d: %s\n", fd, xstrerror());
 	if (entry->mem_obj->inmem_hi == 0) {
