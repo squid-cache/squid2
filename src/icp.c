@@ -622,18 +622,14 @@ icpSendMoreData(void *data, char *buf, size_t size)
     FREE *freefunc = put_free_4k_page;
     assert(size >= 0);
     assert(size <= ICP_SENDMOREDATA_BUF);
-    if (size == 0) {
-	clientWriteComplete(fd, NULL, 0, DISK_OK, http);
-	freefunc(buf);
-	return;
-    }
     if (size < 0) {
 	debug(12, 1, "storeClientCopy returned %d for '%s'\n", size, entry->key);
 	freefunc(buf);
 	comm_close(fd);
 	return;
     }
-    debug(12, 5, "icpSendMoreData: FD %d '%s'\n", fd, entry->url);
+    debug(12, 5, "icpSendMoreData: FD %d '%s', out.offset=%d\n",
+	fd, entry->url, http->out.offset);
     if (conn->chr != http) {
 	/* there is another object in progress, defer this one */
 	debug(0, 0, "icpSendMoreData: Deferring delivery of\n");
@@ -703,6 +699,11 @@ icpSendMoreData(void *data, char *buf, size_t size)
 	    /* force end */
 	    http->out.offset = entry->mem_obj->e_current_len;
 	}
+    }
+    if (writelen == 0) {
+	clientWriteComplete(fd, NULL, 0, DISK_OK, http);
+	freefunc(buf);
+	return;
     }
     comm_write(fd, buf, writelen, clientWriteComplete, http, freefunc);
 }
