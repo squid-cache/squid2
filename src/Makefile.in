@@ -369,7 +369,6 @@ clean:
 
 distclean:	clean
 	-rm -f Makefile squid.conf squid.conf.pre
-	-rm -f Makefile.in
 
 tags:
 	ctags *.[ch] ../include/*.h ../lib/*.[ch]
