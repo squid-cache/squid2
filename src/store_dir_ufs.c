@@ -881,8 +881,9 @@ storeUfsDirWriteCleanEntry(const StoreEntry * e, SwapDir * sd)
 	    safe_free(state);
 	    sd->log.clean.state = NULL;
 	    sd->log.clean.write = NULL;
+	} else {
+	    state->outbuf_offset = 0;
 	}
-	state->outbuf_offset = 0;
     }
 }
 
