@@ -98,11 +98,11 @@ new_heap(int initSize, heap_key_func gen_key)
     heap *hp = malloc(sizeof(*hp));
     assert(hp != NULL);
 
+    if (initSize <= 0)
+	initSize = MinSize;
     hp->nodes = calloc(initSize, sizeof(heap_node *));
     assert(hp->nodes != NULL);
 
-    if (initSize <= 0)
-	initSize = MinSize;
     hp->size = initSize;
     hp->last = 0;
     hp->gen_key = gen_key;
