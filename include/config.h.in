@@ -58,6 +58,7 @@
 #define _SQUID_FREEBSD_
 #elif defined(__sgi__)				/* SGI */
 #define _SQUID_SGI_
+#define _SGI_SOURCE
 #elif defined(__NeXT__)
 #define _SQUID_NEXT_
 #elif defined(__bsdi__)
