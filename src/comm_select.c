@@ -744,7 +744,6 @@ examine_select(fd_set * readfds, fd_set * writefds)
     int fd = 0;
     fd_set read_x;
     fd_set write_x;
-    int num;
     struct timeval tv;
     close_handler *ch = NULL;
     fde *F = NULL;
