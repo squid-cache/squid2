@@ -38,9 +38,6 @@ char *diskFileName();
 char *open_bracket = "{\n";
 char *close_bracket = "}\n";
 
-static int percent _PARAMS((int, int));
-
-
 /* process utilization information */
 void stat_utilization_get(obj, sentry)
      cacheinfo *obj;
@@ -347,13 +344,6 @@ void dummyhandler(obj, sentry)
     storeAppendPrintf(sentry, "{ \"Not_Implemented_yet.\"}\n");
 }
 
-static int percent(a, b)
-     int a;
-     int b;
-{
-    return b ? ((int) (100.0 * a / b + 0.5)) : 0;
-}
-
 void server_list(obj, sentry)
      cacheinfo *obj;
      StoreEntry *sentry;
@@ -431,7 +421,9 @@ void info_get(obj, sentry)
     char *tod = NULL;
     static char line[MAX_LINELEN];
     wordlist *p = NULL;
+#ifdef HAVE_MALLINFO
     int t;
+#endif
 
 #if defined(HAVE_GETRUSAGE) && defined(RUSAGE_SELF)
     struct rusage rusage;

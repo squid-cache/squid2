@@ -586,13 +586,16 @@ int comm_select(sec, failtime)
 	    num = select(maxfd, &readfds, &writefds, &exceptfds, &poll_time);
 	    if (num >= 0)
 		break;
-	    /* break on interrupt so outer loop will reset FD_SET's */
+	    if (errno == EINTR)
+		break;
 	    debug(5, 0, "comm_select: select failure: %s\n",
 		xstrerror());
 	    examine_select(&readfds, &writefds, &exceptfds);
 	    return COMM_ERROR;
 	    /* NOTREACHED */
 	}
+	if (num < 0)
+	    continue;
 	debug(5, num ? 5 : 8, "comm_select: %d sockets ready at %d\n",
 	    num, (int) squid_curtime);
 
@@ -951,7 +954,6 @@ static int examine_select(readfds, writefds, exceptfds)
 	    }
 	}
     }
-    debug(5, 0, "examine_select: Finished examining open file descriptors.\n");
     return 0;
 }
 

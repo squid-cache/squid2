@@ -61,41 +61,53 @@ static void dumpMallocStats(f)
 {
 #if HAVE_MALLINFO
     struct mallinfo mp;
-
+    int t;
     if (!do_mallinfo)
 	return;
-
     mp = mallinfo();
-
-    fprintf(f, "Malloc Instrumentation via mallinfo(): \n");
-    fprintf(f, "   total space in arena  %d\n", mp.arena);
-    fprintf(f, "   number of ordinary blocks  %d\n", mp.ordblks);
-    fprintf(f, "   number of small blocks  %d\n", mp.smblks);
-    fprintf(f, "   number of holding blocks  %d\n", mp.hblks);
-    fprintf(f, "   space in holding block headers  %d\n", mp.hblkhd);
-    fprintf(f, "   space in small blocks in use  %d\n", mp.usmblks);
-    fprintf(f, "   space in free blocks  %d\n", mp.fsmblks);
-    fprintf(f, "   space in ordinary blocks in use  %d\n", mp.uordblks);
-    fprintf(f, "   space in free ordinary blocks  %d\n", mp.fordblks);
-    fprintf(f, "   cost of enabling keep option  %d\n", mp.keepcost);
+    fprintf(f, "Memory usage for %s via mallinfo():\n", appname);
+    fprintf(f, "\ttotal space in arena:  %6d KB\n",
+        mp.arena >> 10);
+    fprintf(f, "\tOrdinary blocks:       %6d KB %6d blks\n",
+        mp.uordblks >> 10, mp.ordblks);
+    fprintf(f, "\tSmall blocks:          %6d KB %6d blks\n",
+        mp.usmblks >> 10, mp.smblks);
+    fprintf(f, "\tHolding blocks:        %6d KB %6d blks\n",
+        mp.hblkhd >> 10, mp.hblks);
+    fprintf(f, "\tFree Small blocks:     %6d KB\n",
+        mp.fsmblks >> 10);
+    fprintf(f, "\tFree Ordinary blocks:  %6d KB\n",
+        mp.fordblks >> 10);
+    t = mp.uordblks + mp.usmblks + mp.hblkhd;
+    fprintf(f, "\tTotal in use:          %6d KB %d%%\n",
+        t >> 10, percent(t, mp.arena));
+    t = mp.fsmblks + mp.fordblks;
+    fprintf(f, "\tTotal free:            %6d KB %d%%\n",
+        t >> 10, percent(t, mp.arena));
+#ifdef WE_DONT_USE_KEEP
+    fprintf(f, "\tKeep option:           %6d KB\n",
+        mp.keepcost >> 10);
+#endif
 #if HAVE_EXT_MALLINFO
-    fprintf(f, "   max size of small blocks  %d\n", mp.mxfast);
-    fprintf(f, "   number of small blocks in a holding block  %d\n",
-	mp.nlblks);
-    fprintf(f, "   small block rounding factor  %d\n", mp.grain);
-    fprintf(f, "   space (including overhead) allocated in ord. blks  %d\n",
+    fprintf(f, "\tmax size of small blocks:\t%d\n",
+	mp.mxfast);
+    fprintf(f, "\tnumber of small blocks in a holding block:\t%d\n",
+        mp.nlblks);
+    fprintf(f, "\tsmall block rounding factor:\t%d\n",
+	mp.grain);
+    fprintf(f, "\tspace (including overhead) allocated in ord. blks:\t%d\n",
 	mp.uordbytes);
-    fprintf(f, "   number of ordinary blocks allocated  %d\n",
+    fprintf(f, "\tnumber of ordinary blocks allocated:\t%d\n",
 	mp.allocated);
-    fprintf(f, "   bytes used in maintaining the free tree  %d\n",
-	mp.treeoverhead);
+    fprintf(f, "\tbytes used in maintaining the free tree:\t%d\n",
+        mp.treeoverhead);
 #endif /* HAVE_EXT_MALLINFO */
-
 #if PRINT_MMAP
     mallocmap();
 #endif /* PRINT_MMAP */
 #endif /* HAVE_MALLINFO */
 }
+
 static int PrintRusage(f, lf)
      void (*f) ();
      FILE *lf;
@@ -427,4 +439,28 @@ int tvSubMsec(t1, t2)
 {
     return (t2.tv_sec - t1.tv_sec) * 1000 +
 	(t2.tv_usec - t1.tv_usec) / 1000;
+}
+
+int percent(a, b)
+     int a;
+     int b;
+{
+    return b ? ((int) (100.0 * a / b + 0.5)) : 0;
+}
+
+void squid_signal(sig, func, flags)
+     int sig;
+     void (*func) ();
+     int flags;
+{
+#if HAVE_SIGACTION
+    struct sigaction sa;
+    sa.sa_handler = func;
+    sa.sa_flags = flags;
+    sigemptyset(&sa.sa_mask);
+    if (sigaction(sig, &sa, NULL) < 0)
+	debug(1, 0, "sigaction: sig=%d func=%p: %s\n", sig, func, xstrerror());
+#else
+    (void) signal(sig, func);
+#endif
 }
