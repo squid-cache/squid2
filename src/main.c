@@ -345,6 +345,7 @@ mainReconfigure(void)
 #endif
     redirectShutdown();
     authenticateShutdown();
+    externalAclShutdown();
     storeDirCloseSwapLogs();
     errorClean();
     enter_suid();		/* root to read config file */
@@ -363,6 +364,7 @@ mainReconfigure(void)
 #endif
     redirectInit();
     authenticateInit(&Config.authConfig);
+    externalAclInit();
 #if USE_WCCP
     wccpInit();
 #endif
@@ -389,6 +391,7 @@ mainRotate(void)
 #endif
     redirectShutdown();
     authenticateShutdown();
+    externalAclShutdown();
     _db_rotate_log();		/* cache.log */
     storeDirWriteCleanLogs(1);
     storeLogRotate();		/* store.log */
@@ -404,6 +407,7 @@ mainRotate(void)
 #endif
     redirectInit();
     authenticateInit(&Config.authConfig);
+    externalAclInit();
 }
 
 static void
@@ -488,6 +492,7 @@ mainInitialize(void)
 #endif
     redirectInit();
     authenticateInit(&Config.authConfig);
+    externalAclInit();
     useragentOpenLog();
     refererOpenLog();
     httpHeaderInitModule();	/* must go before any header processing (e.g. the one in errorInitialize) */
@@ -718,6 +723,7 @@ main(int argc, char **argv)
 	    idnsShutdown();
 #endif
 	    redirectShutdown();
+	    externalAclShutdown();
 	    eventAdd("SquidShutdown", SquidShutdown, NULL, (double) (wait + 1), 1);
 	}
 	eventRun();

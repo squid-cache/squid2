@@ -360,4 +360,7 @@ typedef RemovalPolicy *REMOVALPOLICYCREATE(wordlist * args);
 
 typedef int STDIRSELECT(const StoreEntry *);
 
+typedef struct _external_acl external_acl;
+typedef struct _external_acl_entry external_acl_entry;
+
 #endif /* SQUID_TYPEDEFS_H */

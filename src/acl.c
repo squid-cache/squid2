@@ -80,6 +80,7 @@ static IPH aclLookupDstIPDone;
 static IPH aclLookupDstIPforASNDone;
 static FQDNH aclLookupSrcFQDNDone;
 static FQDNH aclLookupDstFQDNDone;
+static EAH aclLookupExternalDone;
 static wordlist *aclDumpIpList(void *);
 static wordlist *aclDumpDomainList(void *data);
 static wordlist *aclDumpTimeSpecList(acl_time_data *);
@@ -229,6 +230,8 @@ aclStrToType(const char *s)
 	return ACL_REP_MIME_TYPE;
     if (!strcmp(s, "max_user_ip"))
 	return ACL_MAX_USER_IP;
+    if (!strcmp(s, "external"))
+	return ACL_EXTERNAL;
     return ACL_NONE;
 }
 
@@ -301,6 +304,8 @@ aclTypeToStr(squid_acl type)
 	return "rep_mime_type";
     if (type == ACL_MAX_USER_IP)
 	return "max_user_ip";
+    if (type == ACL_EXTERNAL)
+	return "external";
     return "ERROR";
 }
 
@@ -858,6 +863,9 @@ because no authentication schemes are fully configured.\n", A->cfgline);
 	aclParseArpList(&A->data);
 	break;
 #endif
+    case ACL_EXTERNAL:
+	aclParseExternal(&A->data);
+	break;
     case ACL_NONE:
     case ACL_ENUM_MAX:
 	fatal("Bad ACL type");
@@ -1218,9 +1226,8 @@ aclCacheMatchFlush(dlink_list * cache)
  * 1 : Authorisation OK. (Matched)
  */
 static int
-aclMatchProxyAuth(void *data, http_hdr_type headertype,
-    auth_user_request_t * auth_user_request, aclCheck_t * checklist,
-    squid_acl acltype)
+aclMatchProxyAuth(void *data, auth_user_request_t * auth_user_request,
+    aclCheck_t * checklist, squid_acl acltype)
 {
     /* checklist is used to register user name when identified, nothing else */
     /* General program flow in proxy_auth acls
@@ -1270,7 +1277,7 @@ aclParseUserMaxIP(void *data)
     (*acldata)->max = atoi(t);
     debug(28, 5) ("aclParseUserMaxIP: Max IP address's %d\n", (int) (*acldata)->max);
     return;
-error:
+  error:
     fatal("aclParseUserMaxIP: Malformed ACL %d\n");
 }
 
@@ -1428,6 +1435,51 @@ aclMatchWordList(wordlist * w, const char *word)
 }
 #endif
 
+int
+aclAuthenticated(aclCheck_t * checklist)
+{
+    request_t *r = checklist->request;
+    http_hdr_type headertype;
+    if (NULL == r) {
+	return -1;
+    } else if (!r->flags.accelerated) {
+	/* Proxy authorization on proxy requests */
+	headertype = HDR_PROXY_AUTHORIZATION;
+    } else if (r->flags.internal) {
+	/* WWW authorization on accelerated internal requests */
+	headertype = HDR_AUTHORIZATION;
+    } else {
+#if AUTH_ON_ACCELERATION
+	/* WWW authorization on accelerated requests */
+	headertype = HDR_AUTHORIZATION;
+#else
+	debug(28, 1) ("aclAuthenticated: authentication not applicable on accelerated requests.\n");
+	return -1;
+#endif
+    }
+    /* get authed here */
+    /* Note: this fills in checklist->auth_user_request when applicable */
+    switch (authenticateAuthenticate(&checklist->auth_user_request, headertype, checklist->request, checklist->conn, checklist->src_addr)) {
+    case AUTH_ACL_CANNOT_AUTHENTICATE:
+	debug(28, 4) ("aclMatchAcl: returning  0 user authenticated but not authorised.\n");
+	return 0;
+    case AUTH_AUTHENTICATED:
+	return 1;
+	break;
+    case AUTH_ACL_HELPER:
+	debug(28, 4) ("aclMatchAcl: returning 0 sending credentials to helper.\n");
+	checklist->state[ACL_PROXY_AUTH] = ACL_LOOKUP_NEEDED;
+	return 0;
+    case AUTH_ACL_CHALLENGE:
+	debug(28, 4) ("aclMatchAcl: returning 0 sending authentication challenge.\n");
+	checklist->state[ACL_PROXY_AUTH] = ACL_PROXY_AUTH_NEEDED;
+	return 0;
+    default:
+	fatal("unexpected authenticateAuthenticate reply\n");
+	return -1;
+    }
+}
+
 static int
 aclMatchAcl(acl * ae, aclCheck_t * checklist)
 {
@@ -1438,7 +1490,6 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     const char *header;
     const char *browser;
     int k, ti;
-    http_hdr_type headertype;
     if (!ae)
 	return 0;
     switch (ae->type) {
@@ -1610,85 +1661,29 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	/* NOTREACHED */
     case ACL_PROXY_AUTH:
     case ACL_PROXY_AUTH_REGEX:
-    case ACL_MAX_USER_IP:
-	/* ALL authentication predicated ACL's live here */
-	if (NULL == r) {
-	    return -1;
-	} else if (!r->flags.accelerated) {
-	    /* Proxy authorization on proxy requests */
-	    headertype = HDR_PROXY_AUTHORIZATION;
-	} else if (r->flags.internal) {
-	    /* WWW authorization on accelerated internal requests */
-	    headertype = HDR_AUTHORIZATION;
-	} else {
-#if AUTH_ON_ACCELERATION
-	    /* WWW authorization on accelerated requests */
-	    headertype = HDR_AUTHORIZATION;
-#else
-	    debug(28, 1) ("aclMatchAcl: proxy_auth %s not applicable on accelerated requests.\n", ae->name);
-	    return -1;
-#endif
-	}
-	/* get authed here */
-	if ((ti = authenticateAuthenticate(&checklist->auth_user_request, headertype, checklist->request, checklist->conn, checklist->src_addr)) != AUTH_AUTHENTICATED) {
-	    switch (ti) {
-	    case 0:
-		/* Authenticated but not Authorised for this ACL */
-		debug(28, 4) ("aclMatchAcl: returning  0 user authenticated but not authorised.\n");
-		return 0;
-	    case 1:
-		fatal("AUTH_AUTHENTICATED == 1\n");
-		break;
-	    case -1:
-		/* Send data to the helper */
-		debug(28, 4) ("aclMatchAcl: returning 0 sending authentication challenge.\n");
-		checklist->state[ACL_PROXY_AUTH] = ACL_LOOKUP_NEEDED;
-		return 0;
-	    case -2:
-		/* Send a challenge to the client */
-		debug(28, 4) ("aclMatchAcl: returning 0 sending credentials to helper.\n");
-		checklist->state[ACL_PROXY_AUTH] = ACL_PROXY_AUTH_NEEDED;
-		return 0;
-	    }
-	}
-	/* then, switch on type again to do the correct match routine :> */
-	switch (ae->type) {
-	case ACL_PROXY_AUTH:
-	case ACL_PROXY_AUTH_REGEX:
-	    ti = aclMatchProxyAuth(ae->data, headertype,
-		checklist->auth_user_request, checklist, ae->type);
-	    break;
-	case ACL_MAX_USER_IP:
-	    ti = aclMatchUserMaxIP(ae->data, checklist->auth_user_request,
-		checklist->src_addr);
-	    break;
-	default:
-	    /* Keep GCC happy */
-	    break;
-	}
+	if ((ti = aclAuthenticated(checklist)) != 1)
+	    return ti;
+	ti = aclMatchProxyAuth(ae->data, checklist->auth_user_request,
+	    checklist, ae->type);
 	checklist->auth_user_request = NULL;
-	/* Check the credentials */
-	switch (ti) {
-	case 0:
-	    debug(28, 4) ("aclMatchAcl: returning  0 user authenticated but not authorised.\n");
-	    /* Authenticated but not Authorised for this ACL */
-	    return 0;
-	case 1:
-	    debug(28, 4) ("aclMatchAcl: returning  1 user authenticated and authorised.\n");
-	    /* Authenticated and Authorised for this ACL */
-	    return 1;
-	case -2:
-	case -1:
-	    fatal("Invalid response from match routine\n");
-	    break;
-	}
+	return ti;
+	/* NOTREACHED */
+    case ACL_MAX_USER_IP:
+	if ((ti = aclAuthenticated(checklist)) != 1)
+	    return ti;
+	ti = aclMatchUserMaxIP(ae->data, checklist->auth_user_request,
+	    checklist->src_addr);
+	checklist->auth_user_request = NULL;
+	return ti;
 	/* NOTREACHED */
 #if SQUID_SNMP
     case ACL_SNMP_COMMUNITY:
 	return aclMatchWordList(ae->data, checklist->snmp_community);
+	/* NOTREACHED */
 #endif
     case ACL_SRC_ASN:
 	return asnMatchIp(ae->data, checklist->src_addr);
+	/* NOTREACHED */
     case ACL_DST_ASN:
 	ia = ipcache_gethostbyname(r->host, IP_LOOKUP_IF_MISS);
 	if (ia) {
@@ -1705,9 +1700,11 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	    return asnMatchIp(ae->data, no_addr);
 	}
 	return 0;
+	/* NOTREACHED */
 #if USE_ARP_ACL
     case ACL_SRC_ARP:
 	return aclMatchArp(&ae->data, checklist->src_addr);
+	/* NOTREACHED */
 #endif
     case ACL_REQ_MIME_TYPE:
 	header = httpHeaderGetStr(&checklist->request->header,
@@ -1723,6 +1720,9 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	if (NULL == header)
 	    header = "";
 	return aclMatchRegex(ae->data, header);
+	/* NOTREACHED */
+    case ACL_EXTERNAL:
+	return aclMatchExternal(ae->data, checklist);
 	/* NOTREACHED */
     case ACL_NONE:
     case ACL_ENUM_MAX:
@@ -1750,6 +1750,16 @@ aclMatchAclList(const acl_list * list, aclCheck_t * checklist)
     return 1;
 }
 
+static void
+aclCheckCleanup(aclCheck_t * checklist)
+{
+    /* Cleanup temporary stuff used by the ACL checking */
+    if (checklist->extacl_entry) {
+	cbdataUnlock(checklist->extacl_entry);
+	checklist->extacl_entry = NULL;
+    }
+}
+
 int
 aclCheckFast(const acl_access * A, aclCheck_t * checklist)
 {
@@ -1757,11 +1767,14 @@ aclCheckFast(const acl_access * A, aclCheck_t * checklist)
     debug(28, 5) ("aclCheckFast: list: %p\n", A);
     while (A) {
 	allow = A->allow;
-	if (aclMatchAclList(A->acl_list, checklist))
+	if (aclMatchAclList(A->acl_list, checklist)) {
+	    aclCheckCleanup(checklist);
 	    return allow == ACCESS_ALLOWED;
+	}
 	A = A->next;
     }
     debug(28, 5) ("aclCheckFast: no matches, returning: %d\n", allow == ACCESS_DENIED);
+    aclCheckCleanup(checklist);
     return allow == ACCESS_DENIED;
 }
 
@@ -1843,6 +1856,11 @@ aclCheck(aclCheck_t * checklist)
 	    }
 	}
 #endif
+	else if (checklist->state[ACL_EXTERNAL] == ACL_LOOKUP_NEEDED) {
+	    acl *acl = aclFindByName(AclMatchedName);
+	    externalAclLookup(checklist, acl->data, aclLookupExternalDone, checklist);
+	    return;
+	}
 	/*
 	 * We are done with this _acl_access entry.  Either the request
 	 * is allowed, denied, requires authentication, or we move on to
@@ -1875,6 +1893,7 @@ aclChecklistFree(aclCheck_t * checklist)
 	cbdataUnlock(checklist->conn);
 	checklist->conn = NULL;
     }
+    aclCheckCleanup(checklist);
     cbdataFree(checklist);
 }
 
@@ -1973,6 +1992,16 @@ aclLookupProxyAuthDone(void *data, char *result)
 	}
 	checklist->auth_user_request = NULL;
     }
+    aclCheck(checklist);
+}
+
+static void
+aclLookupExternalDone(void *data, void *result)
+{
+    aclCheck_t *checklist = data;
+    checklist->state[ACL_EXTERNAL] = ACL_LOOKUP_DONE;
+    checklist->extacl_entry = result;
+    cbdataLock(checklist->extacl_entry);
     aclCheck(checklist);
 }
 
@@ -2128,6 +2157,9 @@ aclDestroyAcls(acl ** head)
 	case ACL_URL_PORT:
 	case ACL_MY_PORT:
 	    aclDestroyIntRange(a->data);
+	    break;
+	case ACL_EXTERNAL:
+	    aclDestroyExternal(&a->data);
 	    break;
 	case ACL_NONE:
 	case ACL_ENUM_MAX:
@@ -2540,6 +2572,8 @@ aclDumpGeneric(const acl * a)
     case ACL_SRC_ARP:
 	return aclDumpArpList(a->data);
 #endif
+    case ACL_EXTERNAL:
+	return aclDumpExternal(a->data);
     case ACL_NONE:
     case ACL_ENUM_MAX:
 	break;

@@ -122,6 +122,7 @@ squid_SOURCES = \
 	errorpage.c \
 	ETag.c \
 	event.c \
+	external_acl.c \
 	fd.c \
 	filemap.c \
 	forward.c \

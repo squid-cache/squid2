@@ -74,6 +74,7 @@ extern const char *aclTypeToStr(squid_acl);
 extern wordlist *aclDumpGeneric(const acl *);
 extern int aclPurgeMethodInUse(acl_access *);
 extern void aclCacheMatchFlush(dlink_list * cache);
+extern int aclAuthenticated(aclCheck_t * checklist);
 
 /*
  * cache_cf.c
@@ -455,6 +456,8 @@ extern const char *httpHeaderGetAuth(const HttpHeader * hdr, http_hdr_type id, c
 extern String httpHeaderGetList(const HttpHeader * hdr, http_hdr_type id);
 extern String httpHeaderGetStrOrList(const HttpHeader * hdr, http_hdr_type id);
 extern String httpHeaderGetByName(const HttpHeader * hdr, const char *name);
+extern String httpHeaderGetListMember(const HttpHeader * hdr, http_hdr_type id, const char *member, const char separator);
+extern String httpHeaderGetByNameListMember(const HttpHeader * hdr, const char *name, const char *member, const char separator);
 extern int httpHeaderDelByName(HttpHeader * hdr, const char *name);
 extern int httpHeaderDelById(HttpHeader * hdr, http_hdr_type id);
 extern void httpHeaderDelAt(HttpHeader * hdr, HttpHeaderPos pos);
@@ -1328,5 +1331,18 @@ int varyEvaluateMatch(StoreEntry * entry, request_t * req);
 extern int WIN32_Subsystem_Init(void);
 extern void WIN32_Exit(void);
 #endif
+
+/* external_acl.c */
+extern void parse_externalAclHelper(external_acl **);
+extern void dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl *);
+extern void free_externalAclHelper(external_acl **);
+extern void aclParseExternal(void *curlist);
+extern void aclDestroyExternal(void **curlust);
+extern int aclMatchExternal(void *dataptr, aclCheck_t * ch);
+extern wordlist *aclDumpExternal(void *dataptr);
+typedef void EAH(void *data, void *result);
+extern void externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * handler, void *data);
+extern void externalAclInit(void);
+extern void externalAclShutdown(void);
 
 #endif /* SQUID_PROTOS_H */
