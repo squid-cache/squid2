@@ -276,6 +276,7 @@ AC_CHECK_FUNCS(\
 	mallinfo \
 	mallopt \
 	memmove \
+	mktime \
 	regcomp \
 	regexec \
 	regfree \

@@ -71,34 +71,46 @@
 #else						/* SUNOS */
 #define _SQUID_SUNOS_
 #endif
+
 #elif defined(__hpux)                           /* HP-UX - SysV-like? */
 #define _SQUID_HPUX_
 #define _SQUID_SYSV_
 #ifdef __STDC__
 #define __STRICT_ANSI__
 #endif
+
 #elif defined(__osf__)                          /* OSF/1 */
 #define _SQUID_OSF_
+
 #elif defined(__ultrix)				/* Ultrix */
 #define _SQUID_ULTRIX_
+
 #elif defined(_AIX)                          	/* AIX */
 #define _SQUID_AIX_
+
 #elif defined(__linux__)                        /* Linux */
 #define _SQUID_LINUX_
+
 #elif defined(__FreeBSD__)			/* FreeBSD */
 #define _SQUID_FREEBSD_
+
 #elif defined(__sgi__)	|| defined(sgi)		/* SGI */
 #define _SQUID_SGI_
 #define __STRICT_ANSI__
 #if USE_ASYNC_IO
 #define _ABI_SOURCE
 #endif /* USE_ASYNC_IO */
+
 #elif defined(__NeXT__)
 #define _SQUID_NEXT_
+
 #elif defined(__bsdi__)
 #define _SQUID_BSDI_                          /* BSD/OS */
 #undef  SQUID_FD_SETSIZE
 #define SQUID_FD_SETSIZE 4096
+
+#elif defined(__NetBSD__)
+#define _SQUID_NETBSD_
 #endif
 
 #if !defined(CACHE_HTTP_PORT)
