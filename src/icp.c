@@ -428,13 +428,13 @@ int icpSendERROR(fd, errorCode, msg, state)
 {
     char *buf = NULL;
     int buf_len = 0;
-    int port = 0;
+    u_short port = 0;
 
-    port = comm_port(fd);
-    debug(12, 4, "icpSendERROR: code %d: port %d: msg: '%s'\n",
+    port = comm_local_port(fd);
+    debug(12, 4, "icpSendERROR: code %d: port %hd: msg: '%s'\n",
 	errorCode, port, msg);
 
-    if (port == COMM_ERROR) {
+    if (port == 0) {
 	/* This file descriptor isn't bound to a socket anymore.
 	 * It probably timed out. */
 	debug(12, 2, "icpSendERROR: COMM_ERROR msg: %80.80s\n", msg);
@@ -443,7 +443,7 @@ int icpSendERROR(fd, errorCode, msg, state)
 	return COMM_ERROR;
     }
     if (port != getAsciiPortNum()) {
-	sprintf(tmp_error_buf, "icpSendERROR: FD %d unexpected port %d.",
+	sprintf(tmp_error_buf, "icpSendERROR: FD %d unexpected port %hd.",
 	    fd, port);
 	fatal_dump(tmp_error_buf);
     }
