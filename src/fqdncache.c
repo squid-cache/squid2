@@ -1029,7 +1029,9 @@ char *fqdnFromAddr(addr)
      struct in_addr addr;
 {
     char *n;
+    static char buf[32];
     if ((n = fqdncache_gethostbyaddr(addr, 0)))
 	return n;
-    return inet_ntoa(addr);
+    strcpy(buf, inet_ntoa(addr));
+    return buf;
 }
