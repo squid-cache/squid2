@@ -84,7 +84,6 @@ extern struct timeval squid_start;
 extern time_t squid_curtime;	/* 0 */
 extern volatile int reconfigure_pending;	/* 0 */
 extern volatile int shutdown_pending;	/* 0 */
-extern int fileno_stack_count;	/* 0 */
 extern int store_rebuilding;	/* 1 */
 extern int store_swap_size;	/* 0 */
 extern int client_info_sz;	/* 0 */
