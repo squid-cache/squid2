@@ -24,9 +24,6 @@ struct _digest_user_h {
     char *username;
     HASH HA1;
     int HA1created;
-    struct {
-	unsigned int credentials_ok:2;	/*0=unchecked,1=ok,2=failed */
-    } flags;
     /* what nonces have been allocated to this user */
     dlink_list nonces;
 };
@@ -45,6 +42,7 @@ struct _digest_request_h {
     char *response;
     struct {
 	unsigned int authinfo_sent:1;
+	unsigned int credentials_ok:2;	/*0=unchecked,1=ok,2=failed */
     } flags;
     digest_nonce_h *nonce;
 };

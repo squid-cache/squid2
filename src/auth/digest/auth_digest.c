@@ -636,8 +636,9 @@ authDigestConfigured(void)
 static int
 authDigestAuthenticated(auth_user_request_t * auth_user_request)
 {
-    digest_user_h *digest_user = auth_user_request->auth_user->scheme_data;
-    if (digest_user->flags.credentials_ok == 1)
+    digest_request_h *request = auth_user_request->scheme_data;
+    assert(request);
+    if (request->flags.credentials_ok == 1)
 	return 1;
     else
 	return 0;
@@ -662,25 +663,20 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
     assert(auth_user->scheme_data != NULL);
     digest_user = auth_user->scheme_data;
 
-    assert(auth_user_request->scheme_data != NULL);
     digest_request = auth_user_request->scheme_data;
-
+    assert(auth_user_request->scheme_data != NULL);
+    /* if the check has corrupted the user, just return */
+    if (digest_request->flags.credentials_ok == 3) {
+	return;
+    }
     /* do we have the HA1 */
     if (!digest_user->HA1created) {
-	digest_user->flags.credentials_ok = 2;
+	digest_request->flags.credentials_ok = 2;
 	return;
     }
     if (digest_request->nonce == NULL) {
 	/* this isn't a nonce we issued */
-	/* TODO: record breaks in authentication at the request level 
-	 * This is probably best done with support changes at the
-	 * auth_rewrite level -RBC
-	 * and can wait for auth_rewrite V2.
-	 * RBC 20010902 further note: flags.credentials ok is now
-	 * a local scheme flag, so we can move this to the request
-	 * level at any time.
-	 */
-	digest_user->flags.credentials_ok = 3;
+	digest_request->flags.credentials_ok = 3;
 	return;
     }
     DigestCalcHA1(digest_request->algorithm, NULL, NULL, NULL,
@@ -695,10 +691,10 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
 	"squid is = '%s'\n", digest_request->response, Response);
 
     if (strcasecmp(digest_request->response, Response)) {
-	digest_user->flags.credentials_ok = 3;
+	digest_request->flags.credentials_ok = 3;
 	return;
     }
-    digest_user->flags.credentials_ok = 1;
+    digest_request->flags.credentials_ok = 1;
     /* password was checked and did match */
     debug(29, 4) ("authenticateDigestAuthenticateuser: user '%s' validated OK\n",
 	digest_user->username);
@@ -712,14 +708,12 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
 static int
 authenticateDigestDirection(auth_user_request_t * auth_user_request)
 {
-    digest_request_h *digest_request;
-    digest_user_h *digest_user = auth_user_request->auth_user->scheme_data;
+    digest_request_h *digest_request = auth_user_request->scheme_data;
     /* null auth_user is checked for by authenticateDirection */
-    switch (digest_user->flags.credentials_ok) {
+    switch (digest_request->flags.credentials_ok) {
     case 0:			/* not checked */
 	return -1;
     case 1:			/* checked & ok */
-	digest_request = auth_user_request->scheme_data;
 	if (authDigestNonceIsStale(digest_request->nonce))
 	    /* send stale response to the client agent */
 	    return -2;
@@ -793,7 +787,7 @@ authenticateDigestFixHeader(auth_user_request_t * auth_user_request, HttpReply *
     digest_request_h *digest_request;
     int stale = 0;
     digest_nonce_h *nonce = authenticateDigestNonceNew();
-    if (auth_user_request && authDigestAuthenticated(auth_user_request) && auth_user_request->scheme_data) {
+    if (auth_user_request && auth_user_request->scheme_data && authDigestAuthenticated(auth_user_request)) {
 	digest_request = auth_user_request->scheme_data;
 	stale = authDigestNonceIsStale(digest_request->nonce);
     }
@@ -850,7 +844,7 @@ authenticateDigestHandleReply(void *data, char *reply)
     digest_request = auth_user_request->scheme_data;
     digest_user = auth_user_request->auth_user->scheme_data;
     if (reply && (strncasecmp(reply, "ERR", 3) == 0))
-	digest_user->flags.credentials_ok = 3;
+	digest_request->flags.credentials_ok = 3;
     else {
 	CvtBin(reply, digest_user->HA1);
 	digest_user->HA1created = 1;
@@ -1034,7 +1028,7 @@ authDigestLogUsername(auth_user_request_t * auth_user_request, char *username)
     dlink_node *node;
 
     /* log the username */
-    debug(29, 9) ("authBasicDecodeAuth: Creating new user for logging '%s'\n", username);
+    debug(29, 9) ("authDigestLogUsername: Creating new user for logging '%s'\n", username);
     /* new auth_user */
     auth_user = authenticateAuthUserNew("digest");
     /* new scheme data */
@@ -1306,7 +1300,6 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
     } else {
 	debug(29, 9) ("authDigestDecodeAuth: Found user '%s' in the user cache as '%p'\n", username, auth_user);
 	digest_user = auth_user->scheme_data;
-	digest_user->flags.credentials_ok = 3;
 	xfree(username);
     }
     /*link the request and the user */
