@@ -224,10 +224,8 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     } else if (request->protocol == PROTO_CACHEOBJ) {
 	objcacheStart(fd, entry);
     } else if (request->method == METHOD_CONNECT) {
-	fatal_dump("protoStart() should not be handling CONNECT");
-    } else {
 	debug(17, 1) ("protoStart: Cannot retrieve '%s'\n", entry->url);
-	assert(!ERR_NOT_IMPLEMENTED);
+	assert(0);
 	storeAbort(entry, 0);
     }
 }

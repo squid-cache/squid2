@@ -157,7 +157,7 @@ static char *icpConstruct304reply _PARAMS((struct _http_reply *));
 static int CheckQuickAbort2 _PARAMS((const clientHttpRequest *));
 static int icpCheckTransferDone _PARAMS((clientHttpRequest *));
 static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
-#if !DONT_USE_VM
+#if USE_ICP_HIT_OBJ
 static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
 static void *icpCreateHitObjMessage _PARAMS((icp_opcode, int, const char *, int, int, StoreEntry *));
 #endif
@@ -1058,7 +1058,7 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     if (answer == 0) {
 	http->al.http.code = HTTP_FORBIDDEN;
 	err = xcalloc(1, sizeof(ErrorState));
-	err->type = ERR_CACHE_MISS_DENIED;
+	err->type = ERR_CANNOT_FORWARD;
 	err->http_status = HTTP_FORBIDDEN;
 	err->request = requestLink(http->request);
 	err->src_addr = http->conn->peer.sin_addr;
@@ -1191,7 +1191,7 @@ icpCreateMessage(
     return buf;
 }
 
-#if !DONT_USE_VM
+#if USE_ICP_HIT_OBJ
 static void *
 icpCreateHitObjMessage(
     icp_opcode opcode,
@@ -1284,7 +1284,7 @@ icpCheckUdpHit(StoreEntry * e, request_t * request)
     return 1;
 }
 
-#if !DONT_USE_VM
+#if USE_ICP_HIT_OBJ
 static int
 icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
 {
@@ -1363,6 +1363,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	debug(12, 5) ("icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (icpCheckUdpHit(entry, icp_request)) {
 	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
+#if USE_ICP_HIT_OBJ
 	    if (icpCheckUdpHitObj(entry, icp_request, &header, pkt_len)) {
 		reply = icpCreateHitObjMessage(ICP_OP_HIT_OBJ,
 		    flags,
@@ -1373,10 +1374,13 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 		icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
 		break;
 	    } else {
+#endif
 		reply = icpCreateMessage(ICP_OP_HIT, flags, url, header.reqnum, src_rtt);
 		icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
 		break;
+#if USE_ICP_HIT_OBJ
 	    }
+#endif
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (store_rebuilding && opt_reload_hit_only) {

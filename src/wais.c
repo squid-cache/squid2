@@ -171,7 +171,6 @@ waisReadReply(int fd, void *data)
     }
     if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
 	/* we can terminate connection right now */
-	assert(!ERR_NO_CLIENTS);
 	storeAbort(entry, 0);
 	comm_close(fd);
 	return;

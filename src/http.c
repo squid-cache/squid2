@@ -1015,11 +1015,7 @@ httpStart(request_t * request, StoreEntry * entry, peer * e)
 	RequestMethodStr[request->method], entry->url);
     if (e) {
 	if (e->options & NEIGHBOR_PROXY_ONLY)
-#if DONT_USE_VM
 	    storeReleaseRequest(entry);
-#else
-	    storeStartDeleteBehind(entry);
-#endif
 	if ((fd = pconnPop(e->host, e->http_port)) >= 0) {
 	    debug(11, 3) ("httpStart: reusing pconn FD %d\n", fd);
 	    httpState = httpBuildState(fd, entry, request, e);
