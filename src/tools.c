@@ -1,181 +1,50 @@
-static char rcsid[] = "$Id$";
+
+/* $Id$ */
+
 /*
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
+ * DEBUG: Section 21          tools
  */
-#include "config.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include <unistd.h>		/* for sysconf() stuff */
-#include <malloc.h>
-#include <syslog.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <sys/wait.h>
-#include <sys/param.h>		/* has NOFILE */
-#include <sys/types.h>
 
-#include "debug.h"
-#include "cache_cf.h"
-#include "autoconf.h"
-#include "ftp.h"		/* sig_child() needs to know FTP threads */
+#include "squid.h"
 
-
-void death(), deathb(), neighbors_rotate_log(), stat_rotate_log();
-void mail_warranty(), print_warranty(), _db_rotate_log();
 int do_mallinfo = 0;		/* don't do mallinfo() unless this gets set */
-int PrintRusage _PARAMS((void (*)(), FILE *));
+time_t squid_curtime;
+struct timeval current_time;
 
-extern ftpget_thread *FtpgetThread;
-extern int catch_signals;	/* main.c */
-extern int storeWriteCleanLog _PARAMS((void));
-
-/*-------------------------------------------------------------------------
---
---  death, deathb
---
---  Function: These functions catch and report fatal system violations.
---
---  Inputs:   None.
---
---  Output:   None.
---
---  Comments: None.
---
---------------------------------------------------------------------------*/
-void death()
-{
-    fprintf(stderr, "FATAL: Received Segment Violation...dying.\n");
-    signal(SIGSEGV, SIG_DFL);
-    signal(SIGBUS, SIG_DFL);
-    storeWriteCleanLog();
-    PrintRusage(NULL, stderr);
-    print_warranty();
-    abort();
-}
-
-
-void deathb()
-{
-    fprintf(stderr, "FATAL: Received bus error...dying.\n");
-    signal(SIGSEGV, SIG_DFL);
-    signal(SIGBUS, SIG_DFL);
-    signal(SIGBUS, SIG_DFL);
-    storeWriteCleanLog();
-    PrintRusage(NULL, stderr);
-    print_warranty();
-    abort();
-}
+extern void serverConnectionsClose _PARAMS((void));
 
 #define DEAD_MSG "\
-The Harvest Cache (version %s) died.\n\
+The Squid Cache (version %s) died.\n\
 \n\
-You've encountered a fatal error in the Harvest Cache version %s.\n\
+You've encountered a fatal error in the Squid Cache version %s.\n\
 If a core file was created (possibly in the swap directory),\n\
-please execute 'gdb cached core' or 'dbx cached core', then type 'where',\n\
-and report the trace back to harvest-dvl@cs.colorado.edu.\n\
+please execute 'gdb squid core' or 'dbx squid core', then type 'where',\n\
+and report the trace back to squid@nlanr.net.\n\
 \n\
 Thanks!\n"
 
 static char *dead_msg()
 {
     static char msg[1024];
-    sprintf(msg, DEAD_MSG, HARVEST_VERSION, HARVEST_VERSION);
+    sprintf(msg, DEAD_MSG, version_string, version_string);
     return msg;
 }
 
 void mail_warranty()
 {
-    FILE *fp;
+    FILE *fp = NULL;
     static char filename[256];
     static char command[256];
 
     sprintf(filename, "/tmp/mailin%d", (int) getpid());
     fp = fopen(filename, "w");
     if (fp != NULL) {
-	fprintf(fp, "From: cached\n");
+	fprintf(fp, "From: %s\n", appname);
 	fprintf(fp, "To: %s\n", getAdminEmail());
 	fprintf(fp, "Subject: %s\n", dead_msg());
 	fclose(fp);
-
 	sprintf(command, "mail %s < %s", getAdminEmail(), filename);
-
-	system(command);
+	system(command);	/* XXX should avoid system(3) */
 	unlink(filename);
     }
 }
@@ -188,46 +57,143 @@ void print_warranty()
 	puts(dead_msg());
 }
 
+
+static void dumpMallocStats(f)
+     FILE *f;
+{
+#if HAVE_MALLINFO
+    struct mallinfo mp;
+
+    if (!do_mallinfo)
+	return;
+
+    mp = mallinfo();
+
+    fprintf(f, "Malloc Instrumentation via mallinfo(): \n");
+    fprintf(f, "   total space in arena  %d\n", mp.arena);
+    fprintf(f, "   number of ordinary blocks  %d\n", mp.ordblks);
+    fprintf(f, "   number of small blocks  %d\n", mp.smblks);
+    fprintf(f, "   number of holding blocks  %d\n", mp.hblks);
+    fprintf(f, "   space in holding block headers  %d\n", mp.hblkhd);
+    fprintf(f, "   space in small blocks in use  %d\n", mp.usmblks);
+    fprintf(f, "   space in free blocks  %d\n", mp.fsmblks);
+    fprintf(f, "   space in ordinary blocks in use  %d\n", mp.uordblks);
+    fprintf(f, "   space in free ordinary blocks  %d\n", mp.fordblks);
+    fprintf(f, "   cost of enabling keep option  %d\n", mp.keepcost);
+#if HAVE_EXT_MALLINFO
+    fprintf(f, "   max size of small blocks  %d\n", mp.mxfast);
+    fprintf(f, "   number of small blocks in a holding block  %d\n",
+	mp.nlblks);
+    fprintf(f, "   small block rounding factor  %d\n", mp.grain);
+    fprintf(f, "   space (including overhead) allocated in ord. blks  %d\n",
+	mp.uordbytes);
+    fprintf(f, "   number of ordinary blocks allocated  %d\n",
+	mp.allocated);
+    fprintf(f, "   bytes used in maintaining the free tree  %d\n",
+	mp.treeoverhead);
+#endif /* HAVE_EXT_MALLINFO */
+
+#if PRINT_MMAP
+    mallocmap();
+#endif /* PRINT_MMAP */
+#endif /* HAVE_MALLINFO */
+}
+static int PrintRusage(f, lf)
+     void (*f) ();
+     FILE *lf;
+{
+#if HAVE_RUSAGE && defined(RUSAGE_SELF)
+    struct rusage rusage;
+    getrusage(RUSAGE_SELF, &rusage);
+    fprintf(lf, "CPU Usage: user %d sys %d\nMemory Usage: rss %d KB\n",
+	rusage.ru_utime.tv_sec, rusage.ru_stime.tv_sec,
+	rusage.ru_maxrss * getpagesize() / 1000);
+    fprintf(lf, "Page faults with physical i/o: %d\n",
+	rusage.ru_majflt);
+#endif
+    dumpMallocStats(lf);
+    if (f)
+	f(0);
+    return 0;
+}
+
+void death(sig)
+     int sig;
+{
+    if (sig == SIGSEGV)
+	fprintf(debug_log, "FATAL: Received Segment Violation...dying.\n");
+    else if (sig == SIGBUS)
+	fprintf(debug_log, "FATAL: Received bus error...dying.\n");
+    else
+	fprintf(debug_log, "FATAL: Received signal %d...dying.\n", sig);
+    signal(SIGSEGV, SIG_DFL);
+    signal(SIGBUS, SIG_DFL);
+    signal(sig, SIG_DFL);
+    storeWriteCleanLog();
+    PrintRusage(NULL, debug_log);
+    print_warranty();
+    abort();
+}
+
+
 void rotate_logs(sig)
      int sig;
 {
-    debug(1, "rotate_logs: SIGHUP received.\n");
+    debug(21, 1, "rotate_logs: SIGUSR1 received.\n");
 
     storeWriteCleanLog();
+    storeRotateLog();
     neighbors_rotate_log();
     stat_rotate_log();
     _db_rotate_log();
-#if defined(_HARVEST_SYSV_SIGNALS_)
+#if defined(_SQUID_SYSV_SIGNALS_)
     signal(sig, rotate_logs);
 #endif
 }
 
+void normal_shutdown()
+{
+    debug(21, 1, "Shutting down...\n");
+    if (getPidFilename())
+	safeunlink(getPidFilename(), 0);
+    storeWriteCleanLog();
+    PrintRusage(NULL, debug_log);
+    debug(21, 0, "Squid Cache (Version %s): Exiting normally.\n",
+	version_string);
+    exit(0);
+}
 void shut_down(sig)
      int sig;
 {
-    debug(1, "Shutting down...\n");
-    storeWriteCleanLog();
-    PrintRusage(NULL, stderr);
-    debug(0, "Harvest Cache (Version %s): Exiting due to signal %d.\n",
-	HARVEST_VERSION, sig);
-    exit(1);
+    int i;
+    int lft = getShutdownLifetime();
+    FD_ENTRY *f;
+    debug(21, 1, "Preparing for shutdown after %d connections\n",
+	ntcpconn+nudpconn);
+    serverConnectionsClose();
+    ipcacheShutdownServers();
+    for (i = fdstat_biggest_fd(); i >= 0; i--) {
+	f = &fd_table[i];
+	if (f->read_handler || f->write_handler || f->except_handler)
+	    if (fdstatGetType(i) == Socket)
+		comm_set_fd_lifetime(i, lft);
+    }
+    shutdown_pending = 1;
+    /* reinstall signal handler? */
 }
 
 void fatal_common(message)
      char *message;
 {
+#if HAVE_SYSLOG
     if (syslog_enable)
 	syslog(LOG_ALERT, message);
-    fprintf(stderr, "FATAL: %s\n", message);
-    fprintf(stderr, "Harvest Cache (Version %s): Terminated abnormally.\n",
-	HARVEST_VERSION);
-    fflush(stderr);
-    PrintRusage(NULL, stderr);
-    if (debug_log != stderr) {
-	debug(0, "FATAL: %s\n", message);
-	debug(0, "Harvest Cache (Version %s): Terminated abnormally.\n",
-	    HARVEST_VERSION);
-    }
+#endif
+    fprintf(debug_log, "FATAL: %s\n", message);
+    fprintf(debug_log, "Squid Cache (Version %s): Terminated abnormally.\n",
+	version_string);
+    fflush(debug_log);
+    PrintRusage(NULL, debug_log);
 }
 
 /* fatal */
@@ -250,71 +216,9 @@ void fatal_dump(message)
 }
 
 
-void dumpMallocStats(f)
-     FILE *f;
-{
-#if USE_MALLINFO
-    struct mallinfo mp;
-
-    if (!do_mallinfo)
-	return;
-
-    mp = mallinfo();
-
-    fprintf(f, "Malloc Instrumentation via mallinfo(): \n");
-    fprintf(f, "   total space in arena  %d\n", mp.arena);
-    fprintf(f, "   number of ordinary blocks  %d\n", mp.ordblks);
-    fprintf(f, "   number of small blocks  %d\n", mp.smblks);
-    fprintf(f, "   number of holding blocks  %d\n", mp.hblks);
-    fprintf(f, "   space in holding block headers  %d\n", mp.hblkhd);
-    fprintf(f, "   space in small blocks in use  %d\n", mp.usmblks);
-    fprintf(f, "   space in free blocks  %d\n", mp.fsmblks);
-    fprintf(f, "   space in ordinary blocks in use  %d\n", mp.uordblks);
-    fprintf(f, "   space in free ordinary blocks  %d\n", mp.fordblks);
-    fprintf(f, "   cost of enabling keep option  %d\n", mp.keepcost);
-#if LNG_MALLINFO
-    fprintf(f, "   max size of small blocks  %d\n", mp.mxfast);
-    fprintf(f, "   number of small blocks in a holding block  %d\n",
-	mp.nlblks);
-    fprintf(f, "   small block rounding factor  %d\n", mp.grain);
-    fprintf(f, "   space (including overhead) allocated in ord. blks  %d\n",
-	mp.uordbytes);
-    fprintf(f, "   number of ordinary blocks allocated  %d\n",
-	mp.allocated);
-    fprintf(f, "   bytes used in maintaining the free tree  %d\n",
-	mp.treeoverhead);
-#endif /* LNG_MALLINFO */
-
-#if PRINT_MMAP
-    mallocmap();
-#endif /* PRINT_MMAP */
-#endif /* USE_MALLINFO */
-}
-
-int PrintRusage(f, lf)
-     void (*f) ();
-     FILE *lf;
-{
-#if defined(HAVE_RUSAGE) && defined(RUSAGE_SELF)
-    struct rusage rusage;
-
-    getrusage(RUSAGE_SELF, &rusage);
-    fprintf(lf, "CPU Usage: user %d sys %d\nMemory Usage: rss %d KB\n",
-	rusage.ru_utime.tv_sec, rusage.ru_stime.tv_sec,
-	rusage.ru_maxrss * getpagesize() / 1000);
-    fprintf(lf, "Page faults with physical i/o: %d\n",
-	rusage.ru_majflt);
-
-#endif
-    dumpMallocStats(lf);
-    if (f)
-	f(0);
-    return 0;
-}
-
 int getHeapSize()
 {
-#if USE_MALLINFO
+#if HAVE_MALLINFO
     struct mallinfo mp;
 
     mp = mallinfo();
@@ -330,39 +234,13 @@ void sig_child(sig)
 {
     int status;
     int pid;
-    ftpget_thread *t = NULL;
 
-    if ((pid = waitpid(0, &status, WNOHANG)) > 0) {
-	debug(3, "sig_child: Ate pid %d\n", pid);
-	for (t = FtpgetThread; t; t = t->next) {
-	    debug(5, "sig_child: checking pid=%d  state=%d\n",
-		t->pid, t->state);
-	    if (t->pid == pid && t->state == FTPGET_THREAD_RUNNING) {
-		debug(5, "sig_child: GOT IT!\n");
-		t->state = FTPGET_THREAD_WAITED;
-		t->status = status;
-		t->wait_retval = pid;
-		break;
-	    }
-	}
-    }
-#if defined(_HARVEST_SYSV_SIGNALS_)
+    if ((pid = waitpid(-1, &status, WNOHANG)) > 0)
+	debug(21, 3, "sig_child: Ate pid %d\n", pid);
+
+#if defined(_SQUID_SYSV_SIGNALS_)
     signal(sig, sig_child);
 #endif
-}
-
-#define MAX_ZOMBIES_TO_KILL 20
-void kill_zombie()
-{
-    int status;
-    int i = 0;
-    int pid;
-
-    while ((pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
-	debug(3, "kill_zombie: Ate pid %d\n", pid);
-	if (++i > MAX_ZOMBIES_TO_KILL)
-	    break;
-    }
 }
 
 /*
@@ -386,7 +264,176 @@ int getMaxFD()
 #else
 	i = 64;			/* 64 is a safe default */
 #endif
-	debug(10, "getMaxFD set MaxFD at %d\n", i);
+	debug(21, 10, "getMaxFD set MaxFD at %d\n", i);
     }
     return (i);
+}
+
+char *getMyHostname()
+{
+    static char host[SQUIDHOSTNAMELEN + 1];
+    static int present = 0;
+    struct hostent *h = NULL;
+    char *t = NULL;
+
+    if ((t = getVisibleHostname()))
+	return t;
+
+    /* Get the host name and store it in host to return */
+    if (!present) {
+	host[0] = '\0';
+	if (gethostname(host, SQUIDHOSTNAMELEN) == -1) {
+	    debug(21, 1, "getMyHostname: gethostname failed: %s\n",
+		xstrerror());
+	    return NULL;
+	} else {
+	    if ((h = ipcache_gethostbyname(host)) != NULL) {
+		/* DNS lookup successful */
+		/* use the official name from DNS lookup */
+		strcpy(host, h->h_name);
+	    }
+	    present = 1;
+	}
+    }
+    return host;
+}
+
+int safeunlink(s, quiet)
+     char *s;
+     int quiet;
+{
+    int err;
+    if ((err = unlink(s)) < 0)
+	if (!quiet)
+	    debug(21, 1, "safeunlink: Couldn't delete %s. %s\n", s, xstrerror());
+    return (err);
+}
+
+/* 
+ * Daemonize a process according to guidlines in "Advanced Programming
+ * For The UNIX Environment", W.R. Stevens ( Addison Wesley, 1992) - Ch. 13
+ */
+int daemonize()
+{
+    int n_openf, i;
+    pid_t pid;
+    if ((pid = fork()) < 0)
+	return -1;
+    else if (pid != 0)
+	exit(0);
+    /* Child continues */
+    setsid();			/* Become session leader */
+    n_openf = getMaxFD();	/* Close any inherited files */
+    for (i = 0; i < n_openf; i++)
+	close(i);
+    umask(0);			/* Clear file mode creation mask */
+    return 0;
+}
+
+void check_suid()
+{
+    struct passwd *pwd = NULL;
+    struct group *grp = NULL;
+    if (geteuid() != 0)
+	return;
+    /* Started as a root, check suid option */
+    if (getEffectiveUser() == NULL)
+	return;
+    if ((pwd = getpwnam(getEffectiveUser())) == NULL)
+	return;
+    /* change current directory to swap space so we can get core */
+    if (chdir(swappath(0)) < 0) {
+	debug(21, 0, "%s: %s\n", swappath(0), xstrerror());
+	fatal_dump("Cannot cd to swap directory?");
+    }
+    if (getEffectiveGroup() && (grp = getgrnam(getEffectiveGroup()))) {
+	setgid(grp->gr_gid);
+    } else {
+	setgid(pwd->pw_gid);
+    }
+    setuid(pwd->pw_uid);
+}
+
+void writePidFile()
+{
+    FILE *pid_fp = NULL;
+    char *f = NULL;
+
+    if ((f = getPidFilename()) == NULL)
+	return;
+    if ((pid_fp = fopen(f, "w")) == NULL) {
+	debug(21, 0, "WARNING: Could not write pid file\n");
+	debug(21, 0, "         %s: %s\n", f, xstrerror());
+	return;
+    }
+    fprintf(pid_fp, "%d\n", (int) getpid());
+    fclose(pid_fp);
+}
+
+
+void setMaxFD()
+{
+#if defined(HAVE_SETRLIMIT)
+    /* try to use as many file descriptors as possible */
+    /* System V uses RLIMIT_NOFILE and BSD uses RLIMIT_OFILE */
+    struct rlimit rl;
+#if defined(RLIMIT_NOFILE)
+    if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
+	perror("getrlimit: RLIMIT_NOFILE");
+    } else {
+	rl.rlim_cur = rl.rlim_max;	/* set it to the max */
+	if (setrlimit(RLIMIT_NOFILE, &rl) < 0) {
+	    perror("setrlimit: RLIMIT_NOFILE");
+	}
+    }
+#elif defined(RLIMIT_OFILE)
+    if (getrlimit(RLIMIT_OFILE, &rl) < 0) {
+	perror("getrlimit: RLIMIT_OFILE");
+    } else {
+	rl.rlim_cur = rl.rlim_max;	/* set it to the max */
+	if (setrlimit(RLIMIT_OFILE, &rl) < 0) {
+	    perror("setrlimit: RLIMIT_OFILE");
+	}
+    }
+#endif
+    debug(21, 1, "setMaxFD: Using %d file descriptors\n", rl.rlim_max);
+#else /* HAVE_SETRLIMIT */
+    debug(21, 1, "setMaxFD: Cannot increase: setrlimit() not supported on this system");
+#endif
+}
+
+time_t getCurrentTime()
+{
+    gettimeofday(&current_time, NULL);
+    return squid_curtime = current_time.tv_sec;
+}
+
+
+void reconfigure(sig)
+     int sig;
+{
+    int i;
+    int lft = getShutdownLifetime();
+    FD_ENTRY *f;
+    debug(21, 1, "reconfigure: SIGHUP received.\n");
+    serverConnectionsClose();
+    ipcacheShutdownServers();
+    reread_pending = 1;
+    for (i = fdstat_biggest_fd(); i >= 0; i--) {
+	f = &fd_table[i];
+	if (f->read_handler || f->write_handler || f->except_handler)
+	    if (fdstatGetType(i) == Socket)
+		comm_set_fd_lifetime(i, lft);
+    }
+#if defined(_SQUID_SYSV_SIGNALS_)
+    signal(sig, reconfigure);
+#endif
+}
+
+int tvSubMsec(t1, t2)
+     struct timeval t1;
+     struct timeval t2;
+{
+    return (t2.tv_sec - t1.tv_sec) * 1000 +
+	(t2.tv_usec - t1.tv_usec) / 1000;
 }
