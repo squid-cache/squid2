@@ -1122,7 +1122,7 @@ void storeSwapOutHandle(fd, flag, e)
 	e->swap_status = NO_SWAP;
 	put_free_8k_page(page_ptr);
 	file_close(fd);
-	storeReleaseRequest(e);
+	storeRelease(e);
 	if (e->swap_file_number != -1) {
 	    file_map_bit_reset(e->swap_file_number);
 	    safeunlink(filename, 0);	/* remove it */
@@ -2711,6 +2711,8 @@ int storeWriteCleanLog()
 	    e->object_len);
 	if (x < 0) {
 	    debug(20, 0, "storeWriteCleanLog: %s: %s", tmp_filename, xstrerror());
+	    debug(20, 0, "storeWriteCleanLog: Current swap logfile not replaced.\n");
+	    fclose(fp);
 	    safeunlink(tmp_filename, 0);
 	    return 0;
 	}
@@ -2719,7 +2721,12 @@ int storeWriteCleanLog()
 	    debug(20, 1, "  %7d lines written so far.\n", n);
 	}
     }
-    fclose(fp);
+    if (fclose(fp) < 0) {
+	debug(20, 0, "storeWriteCleanLog: %s: %s", tmp_filename, xstrerror());
+	debug(20, 0, "storeWriteCleanLog: Current swap logfile not replaced.\n");
+	safeunlink(tmp_filename, 0);
+	return 0;
+    }
 
     if (file_write_unlock(swaplog_fd, swaplog_lock) != DISK_OK) {
 	debug(20, 0, "storeWriteCleanLog: Failed to unlock swaplog!\n");
