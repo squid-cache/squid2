@@ -55,8 +55,14 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	- Bug #924: miss_access restricts internal and cachemgr requests
 	  even if these are local
 	- Bug #925: auth headers send by squidclient are mildly malformed
-	- Bug #924: miss_access and delay_access and several other
+	- Bug #922: miss_access and delay_access and several other
 	  authentication related bug fixes.
+	- Bug #909: Added ARP acl support for FreeBSD
+	- Bug #926: deny_info with http_reply_access or miss_access
+	- Bug #872: reply_body_max_size problems when using NTLM auth
+	- Bug #825: random segmentation faults when using digest auth
+	- Bug #910: Partial fix for temporary memory leaks when using NTLM
+	  auth. There is still problems if challenge reuse is enabled.
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.16">
  <TITLE>Squid 2.5 release notes</TITLE>
 </HEAD>
 <BODY>
@@ -142,6 +142,8 @@ exacly where you want to have them in your system.</LI>
 <DL>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=910">#910</A></B><DD><P>ntlm auth_user_hash_pointer memory leak if challenge reuses are enabled</P>
 
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=779">#779</A></B><DD><P>users going above their allowed IP count no longer logged in cache.log</P>
@@ -264,6 +266,9 @@ to the old incorrect implementation.</LI>
 of random auth popups and account lockouts. Support for the NEGOTIATE
 NTLM packet is also added to allow Samba-3.0.2 or later to negotiate the
 use of NTLMv2.</LI>
+<LI>Several authentication related bugfixes to allow authentication
+to work in additional acl driven directives, correct an number
+of assertion or segmentation and some memory leaks.</LI>
 <LI>a large number of minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4">squid-2.5.STABLE4 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
