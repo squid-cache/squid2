@@ -133,11 +133,11 @@ unlinkdCreate(void)
 	    close(wfd1);
 	    return -1;
 	}
-	commSetTimeout(wfd1, -1, NULL, NULL);
 	slp.tv_sec = 0;
 	slp.tv_usec = 250000;
 	select(0, NULL, NULL, NULL, &slp);
 	fd_open(wfd1, FD_PIPE, "squid -> unlinkd");
+	commSetTimeout(wfd1, -1, NULL, NULL);
 	commSetNonBlocking(wfd1);
 	return wfd1;
     }
