@@ -1912,6 +1912,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
 	return;
     } else if (http->request->flags.reset_tcp) {
+	memFree(buf, MEM_CLIENT_SOCK_BUF);
 	comm_reset_close(fd);
 	return;
     } else if (entry && EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
