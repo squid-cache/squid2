@@ -1810,7 +1810,7 @@ aclDestroyAcls(acl ** head)
 	    break;
 	case ACL_NONE:
 	default:
-	    debug(28,1)("aclDestroyAcls: no case for ACL type %d\n", a->type);
+	    debug(28, 1) ("aclDestroyAcls: no case for ACL type %d\n", a->type);
 	    break;
 	}
 	safe_free(a->cfgline);

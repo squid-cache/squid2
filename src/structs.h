@@ -1,7 +1,6 @@
 
 /*
  * $Id$
- * $Id$
  *
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
@@ -325,8 +324,8 @@ struct _SquidConfig {
 	struct in_addr snmp_outgoing;
 #endif
 #if WCCP
-        struct in_addr wccp_incoming;
-        struct in_addr wccp_outgoing;
+	struct in_addr wccp_incoming;
+	struct in_addr wccp_outgoing;
 #endif
 	struct in_addr client_netmask;
     } Addrs;

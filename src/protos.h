@@ -521,7 +521,7 @@ extern variable_list *snmp_meshCtblFn(variable_list *, snint *);
 #endif /* SQUID_SNMP */
 
 #ifdef WCCP
-extern PF wccpHandleUdp; 
+extern PF wccpHandleUdp;
 extern PF wccpHandleGre;
 extern EVH wccpHereIam;
 extern void wccpInit(void);
