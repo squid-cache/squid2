@@ -303,7 +303,9 @@ redirectorStateFree(int fd, void *data)
     dlinkDelete(&r->link, &redirectors);
     cbdataFree(r);
     NRedirectorsOpen--;
-    if (NRedirectorsOpen == 0 && !shutting_down)
+    if (shutting_down || reconfiguring)
+	return;
+    if (NRedirectorsOpen == 0)
 	fatal_dump("All redirectors have exited!");
 }
 
@@ -388,10 +390,15 @@ redirectShutdown(redirector_t * r)
 	return;
     if (r->flags.closing)
 	return;
+    if (r->flags.busy) {
+	r->flags.shutdown = 1;
+	return;
+    }
     debug(29, 3) ("redirectShutdown: closing redirector #%d, FD %d\n",
 	r->index + 1, r->fd);
     r->flags.shutdown = 1;
     r->flags.busy = 1;
+    comm_close(r->fd);
     /*
      * orphan the redirector, it will have to be freed when its done with
      * the current request
