@@ -345,7 +345,7 @@ httpHeaderClean(HttpHeader * hdr)
 	statHistCount(&HttpHeaderStats[0].fieldTypeDistr, e->id);
 	if (e->id == HDR_CACHE_CONTROL)
 	    httpHdrCcUpdateStats(e->cache.v_pcc, &HttpHeaderStats[0].ccTypeDistr);
-	httpHeaderEntryClean(e); /* yes, this leaves us in incosistent state */
+	httpHeaderEntryClean(e); /* yes, this leaves us in inconsistent state */
     }
     xfree(hdr->entries);
     hdr->emask = 0;
@@ -857,6 +857,9 @@ httpHeaderEntryParseInit(HttpHeaderEntry * e, const char *field_start, const cha
     Headers[e->id].stat.parsCount++;
     Headers[e->id].stat.aliveCount++;
     if (e->id != HDR_OTHER) {
+	/* get rid of name copy */
+	stringClean(&e->name);
+	e->name = Headers[e->id].name;
 	/* we got something interesting, parse and cache the value */
 	httpHeaderEntrySyncCache(e);
     }
