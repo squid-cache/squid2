@@ -192,7 +192,8 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	protoStart(protoData->fd, entry, NULL, req);
 	return;
     }
-    if (protoData->direct_fetch == DIRECT_MAYBE && (Config.local_ip_list || Config.firewall_ip_list)) {
+    if (protoData->direct_fetch == DIRECT_MAYBE
+	&& (Config.local_ip_list || Config.firewall_ip_list)) {
 	if (ia == NULL) {
 	    debug(17, 3, "Unknown host: %s\n", req->host);
 	    protoData->direct_fetch = DIRECT_NO;
@@ -240,7 +241,10 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	    protoStart(protoData->fd, entry, e, req);
 	} else {
 	    hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
-	    protoCantFetchObject(protoData->fd, entry, "No peers to query and the host is beyond your firewall.");
+	    protoCantFetchObject(protoData->fd,
+		entry,
+		"No peers to query "
+		"and the host is beyond your firewall.");
 	}
 	return;
     }
@@ -281,7 +285,8 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
     } else if (protoData->direct_fetch == DIRECT_NO) {
 	hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
 	protoCantFetchObject(protoData->fd, entry,
-	    "No neighbors or parents were queried and the host is beyond your firewall.");
+	    "No neighbors or parents were queried "
+	    "and the host is beyond your firewall.");
     } else if (ia == NULL) {
 	protoDNSError(protoData->fd, entry);
     } else {

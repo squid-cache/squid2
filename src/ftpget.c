@@ -465,12 +465,26 @@ html_trailer(void)
 }
 
 static void
+html_output(int c, FILE * fp)
+{
+    if (c == '>')
+	fputs("&gt;", fp);
+    else if (c == '<')
+	fputs("&lt;", fp);
+    else if (c == '&')
+	fputs("&amp;", fp);
+    else
+	putc(c, fp);
+}
+
+static void
 fail(ftp_request_t * r)
 {
     FILE *fp = NULL;
     char *longmsg = NULL;
     time_t expire_time;
     list_t *l = NULL;
+    char *t;
 
     if (r->flags & F_NOERRS)
 	return;
@@ -540,8 +554,12 @@ fail(ftp_request_t * r)
 	if (cmd_msg) {
 	    fprintf(fp, "<HR><H4>Remote server replied with:</H4>\n");
 	    fprintf(fp, "<PRE>\n");
-	    for (l = cmd_msg; l; l = l->next)
-		fputs(l->ptr, fp);
+	    for (l = cmd_msg; l; l = l->next) {
+		for (t = l->ptr; *t; t++) {
+		    html_output((int) *t, fp);
+		    r->bytes_written++;
+		}
+	    }
 	    fprintf(fp, "</PRE>\n");
 	}
 	fputs(html_trailer(), fp);
@@ -884,6 +902,7 @@ mime_get_type(ftp_request_t * r)
     if (!(t = strrchr(filename, '.')))
 	goto mime_get_type_done;
     ext = xstrdup(t + 1);
+    /* CASE SENSITIVE FIRST */
     for (i = 0; i < EXT_TABLE_LEN; i++) {
 	if (!strcmp(ext, ext_mime_table[i].name)) {
 	    type = ext_mime_table[i].mime_type;
@@ -891,6 +910,7 @@ mime_get_type(ftp_request_t * r)
 	    break;
 	}
     }
+    /* CASE INSENSITIVE NEXT */
     if (i == EXT_TABLE_LEN) {
 	for (i = 0; i < EXT_TABLE_LEN; i++) {
 	    if (!strcasecmp(ext, ext_mime_table[i].name)) {
@@ -902,8 +922,11 @@ mime_get_type(ftp_request_t * r)
     }
     /* now check for another extension */
     *t = '\0';
-    /* may not fix all problems, but should fix most common --EK */
-    if ((!(t = strrchr(filename, '.'))) || (!strcasecmp(ext, "txt")))
+    if (!strcmp(enc, "x-gzip"))
+	(void) 0;
+    else if (!strcmp(enc, "x-compress"))
+	(void) 0;
+    else
 	goto mime_get_type_done;
     xfree(ext);
     ext = xstrdup(t + 1);
@@ -1854,7 +1877,7 @@ parse_entry(const char *buf)
 	break;
     }
 
-    /* try it as a DOS listing */
+    /* try it as a DOS/Windows listing */
     if (n_tokens > 3 && p->name == NULL &&
 	sscanf(tokens[0], "%[0-9]-%[0-9]-%[0-9]", sbuf, sbuf, sbuf) == 3 &&
     /* 04-05-70 */
@@ -1868,7 +1891,17 @@ parse_entry(const char *buf)
 	}
 	sprintf(sbuf, "%s %s", tokens[0], tokens[1]);
 	p->date = xstrdup(sbuf);
-	p->name = xstrdup(tokens[3]);
+	/*
+	 * If ftpget sees a DOS-format file listing and an entry contains
+	 * more than 4 tokens, it assumes the filename must contain
+	 * whitespace and uses the exact (unparsed) string as the name.
+	 * --R. Scott Bailey" <sbailey@dsddi.eds.com>
+	 */
+	if (n_tokens == 4) {	/* Name in a single token */
+	    p->name = xstrdup(tokens[3]);
+	} else {		/* Name apparently contains whitespace */
+	    p->name = xstrdup(buf + 39);	/* Evil assumption */
+	}
     }
     /* Try EPLF format; carson@lehman.com */
     if (p->name == NULL && buf[0] == '+') {
@@ -2091,8 +2124,6 @@ try_readme(ftp_request_t * r)
     xfree(readme);
 }
 
-
-
 static state_t
 htmlify_listing(ftp_request_t * r)
 {
@@ -2102,7 +2133,7 @@ htmlify_listing(ftp_request_t * r)
     FILE *wfp = NULL;
     time_t stamp;
     int n;
-    int x;
+    int c;
 
     wfp = fdopen(dup(r->cfd), "w");
     setbuf(wfp, NULL);
@@ -2122,16 +2153,20 @@ htmlify_listing(ftp_request_t * r)
 	list_t *l;
 	fprintf(wfp, "<PRE>\n");
 	for (l = r->cmd_msg; l; l = l->next) {
-	    x = write_with_timeout(r->cfd, l->ptr, strlen(l->ptr));
-	    r->bytes_written += x;
+	    for (t = l->ptr; *t; t++) {
+		html_output((int) *t, wfp);
+		r->bytes_written++;
+	    }
 	}
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
     } else if (r->readme_fp && r->flags & F_BASEDIR) {
 	fprintf(wfp, "<H4>README file from %s</H4>\n", r->title_url);
 	fprintf(wfp, "<PRE>\n");
-	while (fgets(buf, SMALLBUFSIZ, r->readme_fp))
-	    fputs(buf, wfp);
+	while ((c = getc(r->readme_fp)) != EOF) {
+	    html_output(c, wfp);
+	    r->bytes_written++;
+	}
 	fclose(r->readme_fp);
 	r->readme_fp = NULL;
 	fprintf(wfp, "</PRE>\n");
@@ -2172,8 +2207,10 @@ htmlify_listing(ftp_request_t * r)
     if (r->readme_fp) {
 	fprintf(wfp, "<H4>README file from %s</H4>\n", r->title_url);
 	fprintf(wfp, "<PRE>\n");
-	while (fgets(buf, SMALLBUFSIZ, r->readme_fp))
-	    fputs(buf, wfp);
+	while ((c = getc(r->readme_fp)) != EOF) {
+	    html_output(c, wfp);
+	    r->bytes_written++;
+	}
 	fclose(r->readme_fp);
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");

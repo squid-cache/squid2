@@ -1,5 +1,4 @@
 
-
 /*
  * $Id$
  *
@@ -162,6 +161,7 @@ struct _domain_type {
 #define NEIGHBOR_DEFAULT_PARENT   0x04
 #define NEIGHBOR_ROUNDROBIN   0x08
 #define NEIGHBOR_MCAST_RESPONDER 0x10
+#define NEIGHBOR_CLOSEST_ONLY 0x10
 
 #define PEER_MAX_ADDRESSES 10
 #define RTT_AV_FACTOR      1000

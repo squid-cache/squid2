@@ -324,8 +324,7 @@ main(int argc, char *argv[])
 	    exit(0);
 	}
 	if (strcmp(request, "$hello") == 0) {
-	    printf("$alive\n");
-	    printf("$end\n");
+	    printf("$alive\n$end\n");
 	    fflush(stdout);
 	    continue;
 	}

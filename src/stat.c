@@ -1111,6 +1111,10 @@ log_append(const cacheinfo * obj,
     int tt = 0;
 #endif
 
+#if DOUBLECHECK
+    if (strlen(url) > MAX_URL)
+	debug_trap("log_append: URL too long");
+#endif
     if (obj->logfile_status != LOG_ENABLE)
 	return;
 

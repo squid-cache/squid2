@@ -1,3 +1,16 @@
+Changes to squid-1.1.16 (August 25, 1997):
+
+	- Added while loop around accept() (Michael O'Reilly).
+	- Exit if parseKilobytes() overflows (e.g. maximum_object_size).
+	- Added 'closest-only' cache_host option to accept only
+	  CLOSEST_PARENT_MISS but not FIRST_PARENT_MISS.
+	- Fixed ftpget to escape special characters in HTML output.
+	- Fixed ftpget to take the second-level filename extension
+	  content-type for 'x-gzip' and 'x-compress' encodings.
+	- Changed ftpget to check for whitespace in Windows listings
+	  (R. Scott Bailey).
+	- Fixed long URL coredump problem from the new 'log_url' scheme.
+
 Changes to squid-1.NOVM.15 (August 11, 1997)
 
 	- Fixed unlinkd socket being incorrectly closed by

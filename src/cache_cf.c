@@ -495,6 +495,8 @@ parseCacheHostLine(void)
 	    options |= NEIGHBOR_NO_QUERY;
 	} else if (!strcasecmp(token, "multicast-responder")) {
 	    options |= NEIGHBOR_MCAST_RESPONDER;
+	} else if (!strcasecmp(token, "closest-only")) {
+	    options |= NEIGHBOR_CLOSEST_ONLY;
 	} else if (!strncasecmp(token, "weight=", 7)) {
 	    weight = atoi(token + 7);
 	} else if (!strncasecmp(token, "ttl=", 4)) {
@@ -637,6 +639,8 @@ parseKilobytes(int *val)
     int i;
     GetInteger(i);
     *val = i * 1024;
+    if (*val < 0)
+	self_destruct();
 }
 
 static void
