@@ -150,6 +150,7 @@ OBJS	 	= \
 		peer_select.o \
 		pump.o \
 		redirect.o \
+		referer.o \
 		refresh.o \
 		repl_modules.o \
 		send-announce.o \

@@ -297,6 +297,9 @@ struct _SquidConfig {
 #if USE_USERAGENT_LOG
 	char *useragent;
 #endif
+#if USE_REFERER_LOG
+	char *referer;
+#endif
 	int rotateNumber;
     } Log;
     char *adminEmail;

@@ -390,6 +390,7 @@ mainRotate(void)
     storeLogRotate();		/* store.log */
     accessLogRotate();		/* access.log */
     useragentRotateLog();	/* useragent.log */
+    refererRotateLog();		/* referer.log */
     icmpOpen();
 #if USE_DNSSERVERS
     dnsInit();
@@ -486,6 +487,7 @@ mainInitialize(void)
     redirectInit();
     authenticateInit();
     useragentOpenLog();
+    refererOpenLog();
     httpHeaderInitModule();	/* must go before any header processing (e.g. the one in errorInitialize) */
     httpReplyInitModule();	/* must go before accepting replies */
     errorInitialize();
