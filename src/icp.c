@@ -1269,48 +1269,48 @@ void asciiProcessInput(fd, buf, size, flag, astm)
     parser_return_code = parseHttpRequest(astm);
     if (parser_return_code == 1) {
 	if ((astm->request = urlParse(astm->method, astm->url)) == NULL) {
-            debug(12, 5, "Invalid URL: %s\n", astm->url);
-            astm->log_type = ERR_INVALID_URL;
-            astm->http_code = 400;
-            astm->buf = xstrdup(squid_error_url(astm->url,
-                    astm->method,
-                    ERR_INVALID_URL,
-                    fd_table[fd].ipaddr,
-                    astm->http_code,
-                    NULL));
-            astm->ptr_to_4k_page = NULL;
-            icpWrite(fd,
-                astm->buf,
-                strlen(astm->buf),
-                30,
-                icpSendERRORComplete,
-                (void *) astm);
+	    debug(12, 5, "Invalid URL: %s\n", astm->url);
+	    astm->log_type = ERR_INVALID_URL;
+	    astm->http_code = 400;
+	    astm->buf = xstrdup(squid_error_url(astm->url,
+		    astm->method,
+		    ERR_INVALID_URL,
+		    fd_table[fd].ipaddr,
+		    astm->http_code,
+		    NULL));
+	    astm->ptr_to_4k_page = NULL;
+	    icpWrite(fd,
+		astm->buf,
+		strlen(astm->buf),
+		30,
+		icpSendERRORComplete,
+		(void *) astm);
 	} else if (!icpAccessCheck(astm)) {
-            debug(12, 5, "Access Denied: %s\n", astm->url);
-            astm->log_type = LOG_TCP_DENIED;
-            astm->http_code = 403;
-            astm->buf = xstrdup(access_denied_msg(astm->http_code,
-                    astm->method,
-                    astm->url,
-                    fd_table[fd].ipaddr));
-            astm->ptr_to_4k_page = NULL;
-            icpWrite(fd,
-                astm->buf,
-                strlen(tmp_error_buf),
-                30,
-                icpSendERRORComplete,
-                (void *) astm);
-            astm->log_type = LOG_TCP_DENIED;
+	    debug(12, 5, "Access Denied: %s\n", astm->url);
+	    astm->log_type = LOG_TCP_DENIED;
+	    astm->http_code = 403;
+	    astm->buf = xstrdup(access_denied_msg(astm->http_code,
+		    astm->method,
+		    astm->url,
+		    fd_table[fd].ipaddr));
+	    astm->ptr_to_4k_page = NULL;
+	    icpWrite(fd,
+		astm->buf,
+		strlen(tmp_error_buf),
+		30,
+		icpSendERRORComplete,
+		(void *) astm);
+	    astm->log_type = LOG_TCP_DENIED;
 	} else {
-            /* The request is good, let's go... */
+	    /* The request is good, let's go... */
 	    urlCanonical(astm->request, astm->url);
-            sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
-                fd_note(fd, 0),
-                RequestMethodStr[astm->method],
-                astm->url);
-            fd_note(fd, client_msg);
-            icp_hit_or_miss(fd, astm);
-        }
+	    sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
+		fd_note(fd, 0),
+		RequestMethodStr[astm->method],
+		astm->url);
+	    fd_note(fd, client_msg);
+	    icp_hit_or_miss(fd, astm);
+	}
     } else if (parser_return_code == 0) {
 	/*
 	 *    Partial request received; reschedule until parseAsciiUrl()

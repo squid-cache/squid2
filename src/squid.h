@@ -98,7 +98,7 @@ typedef unsigned long u_num32;
 #include "url.h"
 #include "proto.h"
 #include "icp.h"
-#include "errorpage.h"	/* must go after icp.h */
+#include "errorpage.h"		/* must go after icp.h */
 #include "ipcache.h"
 #include "mime.h"
 #include "neighbors.h"

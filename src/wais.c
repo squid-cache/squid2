@@ -250,7 +250,6 @@ int waisStart(unusedfd, url, method, mime_hdr, entry)
 	safe_free(data);
 	return COMM_ERROR;
     }
-
     /* Create socket. */
     sock = comm_open(COMM_NONBLOCKING, 0, 0, url);
     if (sock == COMM_ERROR) {

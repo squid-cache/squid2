@@ -33,9 +33,9 @@ extern char *ProtocolStr[];
 typedef struct _request {
     method_t method;
     protocol_t protocol;
-    char host[SQUIDHOSTNAMELEN+1];
+    char host[SQUIDHOSTNAMELEN + 1];
     int port;
-    char urlpath[MAX_URL+1];
+    char urlpath[MAX_URL + 1];
 } request_t;
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));

@@ -1070,7 +1070,7 @@ int parseConfigFile(file_name)
     }
     cfg_filename = file_name;
     if ((token = strrchr(cfg_filename, '/')))
-	cfg_filename = token+1;
+	cfg_filename = token + 1;
     memset(config_input_line, '\0', BUFSIZ);
     config_lineno = 0;
     while (fgets(config_input_line, BUFSIZ, fp)) {

@@ -520,7 +520,7 @@ int proxyhttpStart(e, url, entry)
     data = (HttpData *) xcalloc(1, sizeof(HttpData));
     data->entry = entry;
     data->req_hdr = entry->mem_obj->mime_hdr;
-    request = (request_t *) xcalloc (1, sizeof(request_t));
+    request = (request_t *) xcalloc(1, sizeof(request_t));
     data->free_request = 1;
     data->REQ = request;
 

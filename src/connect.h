@@ -1,5 +1,5 @@
 
-/* $Id $*/
+/* $Id $ */
 
 #define  CONNECT_PORT        443
 

@@ -181,7 +181,7 @@ int protoDispatch(fd, url, entry, request)
      int fd;
      char *url;
      StoreEntry *entry;
-    request_t *request;
+     request_t *request;
 {
     protodispatch_data *data = NULL;
     char *method;
@@ -278,7 +278,7 @@ int protoUndispatch(fd, url, entry, request)
      int fd;
      char *url;
      StoreEntry *entry;
-    request_t *request;
+     request_t *request;
 {
     debug(17, 5, "protoUndispatch FD %d <URL:%s>\n", fd, url);
 
@@ -287,17 +287,17 @@ int protoUndispatch(fd, url, entry, request)
 	return 0;
 
     /* clean up DNS pending list for this name/fd look up here */
-	if (!ipcache_unregister(request->host, fd)) {
-	    debug(17, 5, "protoUndispatch: ipcache failed to unregister '%s'\n",
-		request->host);
-	    return 0;
-	} else {
-	    debug(17, 5, "protoUndispatch: the entry is stranded with a pending DNS event\n");
-	    /* Have to force a storeabort() on this entry */
-	    if (entry)
-		protoDNSError(fd, entry);
-	    return 1;
-	}
+    if (!ipcache_unregister(request->host, fd)) {
+	debug(17, 5, "protoUndispatch: ipcache failed to unregister '%s'\n",
+	    request->host);
+	return 0;
+    } else {
+	debug(17, 5, "protoUndispatch: the entry is stranded with a pending DNS event\n");
+	/* Have to force a storeabort() on this entry */
+	if (entry)
+	    protoDNSError(fd, entry);
+	return 1;
+    }
     return 0;
 }
 
@@ -334,7 +334,7 @@ static void protoCancelTimeout(fd, entry)
 int getFromDefaultSource(fd, entry, request)
      int fd;
      StoreEntry *entry;
-    request_t *request;
+     request_t *request;
 {
     edge *e = NULL;
     char *url = NULL;
