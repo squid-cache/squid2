@@ -1374,6 +1374,12 @@ check_null_wordlist(wordlist * w)
     return w == NULL;
 }
 
+static int
+check_null_acl_access(acl_access *a)
+{
+    return a == NULL;
+}
+
 #define free_wordlist wordlistDestroy
 
 #define free_uri_whitespace free_int
