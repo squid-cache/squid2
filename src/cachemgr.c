@@ -74,6 +74,7 @@ typedef enum {
     STATS_O,
     STATS_VM,
     STATS_U,
+    STATS_IO,
     SHUTDOWN,
     REFRESH,
 #ifdef REMOVE_OBJECT
@@ -93,6 +94,7 @@ static char *op_cmds[] =
     "stats/objects",
     "stats/vm_objects",
     "stats/utilization",
+    "stats/io",
     "shutdown",
     "<refresh>",
 #ifdef REMOVE_OBJECT
@@ -158,6 +160,7 @@ void noargs_html()
     printf("<OPTION VALUE=\"log\">Cache Log\n");
 #endif
     printf("<OPTION VALUE=\"stats/utilization\">Utilization\n");
+    printf("<OPTION VALUE=\"stats/io\">I/O\n");
     printf("<OPTION VALUE=\"stats/objects\">Objects\n");
     printf("<OPTION VALUE=\"stats/vm_objects\">VM_Objects\n");
     printf("<OPTION VALUE=\"server_list\">Cache Server List\n");
@@ -454,6 +457,9 @@ int main(int argc, char *argv[])
     } else if (!strcmp(operation, "stats/utilization") ||
 	!strcmp(operation, "Utilization")) {
 	op = STATS_U;
+    } else if (!strcmp(operation, "stats/io") ||
+	!strcmp(operation, "I/O")) {
+	op = STATS_IO;
     } else if (!strcmp(operation, "shutdown")) {
 	op = SHUTDOWN;
     } else if (!strcmp(operation, "refresh")) {
@@ -477,6 +483,7 @@ int main(int argc, char *argv[])
     case STATS_O:
     case STATS_VM:
     case STATS_U:
+    case STATS_IO:
 	sprintf(msg, "GET cache_object://%s/%s HTTP/1.0\r\n\r\n",
 	    hostname, op_cmds[op]);
 	break;
@@ -515,6 +522,7 @@ int main(int argc, char *argv[])
     printf("<OPTION VALUE=\"log\">Cache Log\n");
 #endif
     printf("<OPTION VALUE=\"stats/utilization\">Utilization\n");
+    printf("<OPTION VALUE=\"stats/io\">I/O\n");
     printf("<OPTION VALUE=\"stats/objects\">Objects\n");
     printf("<OPTION VALUE=\"stats/vm_objects\">VM_Objects\n");
     printf("<OPTION VALUE=\"server_list\">Cache Server List\n");
@@ -559,6 +567,7 @@ int main(int argc, char *argv[])
     case STATS_G:
     case STATS_O:
     case STATS_VM:
+    case STATS_IO:
     case SHUTDOWN:
     case REFRESH:
 	break;
@@ -621,6 +630,7 @@ int main(int argc, char *argv[])
 		case SERVER:
 		case LOG:
 		case STATS_G:
+		case STATS_IO:
 		case SHUTDOWN:
 		    p_state = 1;
 		    printf("%s", reserve);
