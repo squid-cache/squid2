@@ -914,7 +914,6 @@ comm_poll(time_t sec)
 		    F->timeout_handler,
 		    F->read_handler,
 		    F->write_handler);
-		assert(0);
 		for (ch = F->close_handler; ch; ch = ch->next)
 		    debug(5, 0) (" close handler: %p\n", ch->handler);
 		if (F->close_handler) {
