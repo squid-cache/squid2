@@ -419,9 +419,9 @@ AC_ARG_ENABLE(http-violations,
 ],
 [ if test "$enableval" = "no" ; then
     echo "Disabling HTTP Violations"
-    AC_DEFINE(HTTP_VIOLATIONS, 0);
+    AC_DEFINE(HTTP_VIOLATIONS, 0)
   else
-    AC_DEFINE(HTTP_VIOLATIONS, 1);
+    AC_DEFINE(HTTP_VIOLATIONS, 1)
   fi
 ])
 
