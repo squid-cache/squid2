@@ -145,18 +145,17 @@ memFree(mem_ptr mem)
     safe_free(mem);
 }
 
+#ifdef UNUSED_CODE
 void
 memFreeData(mem_ptr mem)
 {
     mem_node lastp, p = mem->head;
-
     while (p != mem->tail) {
 	lastp = p;
 	p = p->next;
 	put_free_4k_page(lastp->data);
 	safe_free(lastp);
     }
-
     if (p != NULL) {
 	put_free_4k_page(p->data);
 	safe_free(p);
@@ -165,6 +164,7 @@ memFreeData(mem_ptr mem)
     mem->head = mem->tail = NULL;	/* detach in case ref'd */
     mem->origin_offset = 0;
 }
+#endif
 
 int
 memFreeDataUpto(mem_ptr mem, int target_offset)
