@@ -58,6 +58,8 @@ else
 WIN32SOURCE = 
 endif
 
+AM_CFLAGS = -Werror -Wall
+
 SUBDIRS		= fs repl auth
 
 INCLUDES        = -I. -I$(srcdir) -I$(top_builddir)/include -I$(top_srcdir)/include
@@ -158,6 +160,8 @@ squid_SOURCES = \
 	internal.c \
 	ipc.c \
 	ipcache.c \
+	IPInterception.c \
+	IPInterception.h \
 	$(LEAKFINDERSOURCE) \
 	logfile.c \
 	main.c \

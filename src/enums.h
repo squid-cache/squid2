@@ -726,7 +726,6 @@ typedef enum {
     CBDATA_RemovalPolicy,
     CBDATA_RemovalPolicyWalker,
     CBDATA_RemovalPurgeWalker,
-    CBDATA_store_client,
     CBDATA_FIRST_CUSTOM_TYPE = 1000
 } cbdata_type;
 

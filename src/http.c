@@ -210,6 +210,10 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
 	    storeRelease(pe);
 	}
 	break;
+    default:
+	/* Keep GCC happy. The methods above are all mutating HTTP methods 
+	 */
+	break;
     }
 }
 

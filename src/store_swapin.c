@@ -34,6 +34,7 @@
  */
 
 #include "squid.h"
+#include "StoreClient.h"
 
 static STIOCB storeSwapInFileClosed;
 static STFNCB storeSwapInFileNotify;
@@ -70,14 +71,19 @@ static void
 storeSwapInFileClosed(void *data, int errflag, storeIOState * sio)
 {
     store_client *sc = data;
+    StoreIOBuffer result =
+    {
+	{0}, 0, 0, sc->copyInto.data};
     STCB *callback;
     debug(20, 3) ("storeSwapInFileClosed: sio=%p, errflag=%d\n",
 	sio, errflag);
+    if (errflag)
+	result.flags.error = 1;
     cbdataReferenceDone(sc->swapin_sio);
     if ((callback = sc->callback)) {
 	assert(errflag <= 0);
 	sc->callback = NULL;
-	callback(sc->callback_data, sc->copy_buf, errflag);
+	callback(sc->callback_data, result);
     }
     statCounter.swap.ins++;
 }

@@ -138,7 +138,6 @@ cbdataInit(void)
     CREATE_CBDATA(RemovalPolicy);
     CREATE_CBDATA(RemovalPolicyWalker);
     CREATE_CBDATA(RemovalPurgeWalker);
-    CREATE_CBDATA(store_client);
 }
 
 void *

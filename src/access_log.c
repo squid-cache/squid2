@@ -605,3 +605,32 @@ headersLog(int cs, int pq, method_t m, void *data)
 }
 
 #endif
+
+void
+accessLogFreeMemory(AccessLogEntry * aLogEntry)
+{
+    safe_free(aLogEntry->headers.request);
+    safe_free(aLogEntry->headers.reply);
+    safe_free(aLogEntry->cache.authuser);
+}
+
+int
+logTypeIsATcpHit(log_type code)
+{
+    /* this should be a bitmap for better optimization */
+    if (code == LOG_TCP_HIT)
+	return 1;
+    if (code == LOG_TCP_IMS_HIT)
+	return 1;
+    if (code == LOG_TCP_REFRESH_FAIL_HIT)
+	return 1;
+    if (code == LOG_TCP_REFRESH_HIT)
+	return 1;
+    if (code == LOG_TCP_NEGATIVE_HIT)
+	return 1;
+    if (code == LOG_TCP_MEM_HIT)
+	return 1;
+    if (code == LOG_TCP_OFFLINE_HIT)
+	return 1;
+    return 0;
+}

@@ -703,7 +703,7 @@ gopherReadReply(int fd, void *data)
 /* This will be called when request write is complete. Schedule read of
  * reply. */
 static void
-gopherSendComplete(int fd, char *buf, size_t size, int errflag, void *data)
+gopherSendComplete(int fd, char *buf, size_t size, comm_err_t errflag, void *data)
 {
     GopherStateData *gopherState = (GopherStateData *) data;
     StoreEntry *entry = gopherState->entry;

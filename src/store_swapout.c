@@ -34,6 +34,7 @@
  */
 
 #include "squid.h"
+#include "StoreClient.h"
 
 static off_t storeSwapOutObjectBytesOnDisk(const MemObject *);
 static void storeSwapOutStart(StoreEntry * e);
