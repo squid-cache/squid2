@@ -182,3 +182,11 @@
  * should be defined to int.
  */
 #undef socklen_t
+
+/*
+ * By default (for now anyway) Squid includes options which allows
+ * the cache administrator to violate the HTTP protocol specification
+ * in terms of cache behaviour.  Setting this to '0' will disable
+ * such code.
+ */
+#define HTTP_VIOLATIONS 1
