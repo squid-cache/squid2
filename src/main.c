@@ -468,9 +468,6 @@ mainInitialize(void)
 #ifdef SQUID_SNMP
     snmpInit();
 #endif
-#if USE_WCCP
-    wccpInit();
-#endif
 #if MALLOC_DBG
     malloc_debug(0, malloc_debug_level);
 #endif
@@ -493,6 +490,9 @@ mainInitialize(void)
 #endif
 	fwdInit();
     }
+#if USE_WCCP
+    wccpInit();
+#endif
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0) {
 	if (!Config2.Accel.on || Config.onoff.accel_with_proxy)
