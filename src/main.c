@@ -586,7 +586,6 @@ int
 main(int argc, char **argv)
 {
     int errcount = 0;
-    int n;			/* # of GC'd objects */
     int loop_delay;
     mode_t oldmask;
 #if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
