@@ -480,7 +480,7 @@ dist-hook:
 
 install-pinger:
 	chown root $(libexecdir)/pinger$(EXEEXT)
-	chmod 4700 $(libexecdir)/pinger$(EXEEXT)
+	chmod 4711 $(libexecdir)/pinger$(EXEEXT)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
