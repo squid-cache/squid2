@@ -117,14 +117,16 @@ peerDigestCreate(peer * p)
 void
 peerDigestDestroy(PeerDigest * pd)
 {
+    peer *p;
     assert(pd);
     assert(cbdataValid(pd));
 
-    /* inform peer (if any) that we are gone */
-    if (cbdataValid(pd->peer))
-	peerNoteDigestGone(pd->peer);
-    cbdataUnlock(pd->peer);	/* must unlock, valid or not */
+    p = pd->peer;
     pd->peer = NULL;
+    /* inform peer (if any) that we are gone */
+    if (cbdataValid(p))
+	peerNoteDigestGone(p);
+    cbdataUnlock(p);   /* must unlock, valid or not */
 
     peerDigestClean(pd);
     cbdataFree(pd);
