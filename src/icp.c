@@ -584,6 +584,11 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
 	return;
     }
     writelen = size;
+    if (writelen == 0) {
+	clientWriteComplete(fd, NULL, 0, DISK_OK, http);
+	freefunc(buf);
+	return;
+    }
     if (http->out.offset == 0 && http->request->protocol != PROTO_CACHEOBJ) {
 	if (Config.onoff.log_mime_hdrs) {
 	    if ((p = mime_headers_end(buf))) {
@@ -645,11 +650,6 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
 	    http->out.offset = entry->mem_obj->inmem_hi;
 	}
     }
-    if (writelen == 0) {
-	clientWriteComplete(fd, NULL, 0, DISK_OK, http);
-	freefunc(buf);
-	return;
-    }
     comm_write(fd, buf, writelen, clientWriteComplete, http, freefunc);
 }
 
@@ -674,7 +674,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    urlParseProtocol(entry->url),
 	    http->out.size);
 	comm_close(fd);
-    } else if (icpCheckTransferDone(http)) {
+    } else if (icpCheckTransferDone(http) || size == 0) {
 	debug(12, 5) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
