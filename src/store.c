@@ -68,6 +68,7 @@ struct storeRebuild_data {
     int dupcount;		/* # duplicates purged */
     time_t start, stop;
     int fast_mode;
+    int speed;			/* # Objects per run */
     char line_in[4096];
 };
 
@@ -1266,8 +1267,8 @@ static int storeDoRebuildFromDisk(data)
     int sfileno = 0;
     int count;
 
-    /* load 5 object per invocation */
-    for (count = 0; count < 5; count++) {
+    /* load a number of objects per invocation */
+    for (count = 0; count < data->speed; count++) {
 	if (!fgets(data->line_in, 4095, data->log))
 	    return 0;
 
@@ -1492,6 +1493,7 @@ void storeStartRebuildFromDisk()
 	debug(20, 1, "Rebuilding in FAST MODE.\n");
 
     memset(data->line_in, '\0', 4096);
+    data->speed = data->fast_mode ? 50 : 5;
 
     /* Start reading the log file */
     runInBackground("storeRebuild",
