@@ -1183,7 +1183,7 @@ parse_refreshpattern(refresh_t ** head)
 #if HTTP_VIOLATIONS
 	if (!strcmp(token, "override-expire"))
 	    override_expire = 1;
-	else if (!strcmp(token, "override-expire"))
+	else if (!strcmp(token, "override-lastmod"))
 	    override_lastmod = 1;
 	else if (!strcmp(token, "reload-into-ims")) {
 	    reload_into_ims = 1;
