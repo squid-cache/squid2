@@ -529,6 +529,7 @@ AC_CHECK_HEADERS( \
 	sys/select.h\
 	sys/socket.h \
 	sys/stat.h \
+	sys/statfs.h \
 	sys/syscall.h \
 	sys/time.h \
 	sys/types.h \
