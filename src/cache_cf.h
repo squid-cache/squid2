@@ -279,6 +279,7 @@ struct SquidConfig {
 	int query_icmp;
 	int icp_hit_stale;
     } Options;
+    char *fake_ua;
 };
 
 extern struct SquidConfig Config;

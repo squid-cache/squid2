@@ -1166,6 +1166,17 @@ minimum_direct_hops 4
 #
 #http_anonymizer off
 
+#  TAG: fake_user_agent
+#	If you use the paranoid http_anonymizer setting, Squid will strip
+#	your User-agent string from the request.  Some Web servers will
+#	refuse your request without a User-agent string.  Use this to
+#	fake one up.  For example:
+#
+#	fake_user_agent Nutscrape/1.0 (CP/M; 8-bit)
+#	(credit to Paul Southworth pauls@etext.org for this one!)
+#
+#fake_user_agent none
+
 #  TAG: client_db
 #	If you want to disable collecting per-client statistics, then
 #	turn off client_db here.
