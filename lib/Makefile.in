@@ -37,6 +37,8 @@ UTILOBJS	= rfc1123.o \
 		  radix.o \
 		  String.o \
 		  stub_memaccount.o \
+		  MemPool.o \
+		  Stack.o \
 		  $(LIBOBJS)
 REGEXOBJS	= GNUregex.o
 DLMALLOCOBJS	= malloc-2.6.4.o

@@ -187,7 +187,8 @@ memInit(void)
     memDataInit(MEM_HIERARCHYLOGENTRY, "HierarchyLogEntry",
 	sizeof(HierarchyLogEntry), 0);
     memDataInit(MEM_HTTPSTATEDATA, "HttpStateData", sizeof(HttpStateData), 0);
-    memDataInit(MEM_HTTP_REPLY, "http_reply", sizeof(http_reply), 0);
+    memDataInit(MEM_HTTPREPLY, "http_reply", sizeof(http_reply), 0);
+    memDataInit(MEM_HTTP_SCC, "HttpScc", sizeof(HttpScc), 0);
     memDataInit(MEM_ICPUDPDATA, "icpUdpData", sizeof(icpUdpData), 0);
     memDataInit(MEM_ICP_COMMON_T, "icp_common_t", sizeof(icp_common_t), 0);
     memDataInit(MEM_ICP_PING_DATA, "icp_ping_data", sizeof(icp_ping_data), 0);

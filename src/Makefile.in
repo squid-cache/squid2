@@ -89,6 +89,10 @@ OBJS	 	= \
 		hash.o \
 		http.o \
 		http-anon.o \
+		HttpStatusLine.o \
+		HttpHeader.o \
+		HttpBody.o \
+		HttpReply.o \
 		icmp.o \
 		icp_v2.o \
 		icp_v3.o \
@@ -97,11 +101,13 @@ OBJS	 	= \
 		ipcache.o \
 		main.o \
 		mem.o \
+		MemBuf.o \
 		mime.o \
 		multicast.o \
 		neighbors.o \
 		net_db.o \
 		cache_manager.o \
+		Packer.o \
 		pass.o \
 		pconn.o \
 		peer_select.o \

@@ -1,8 +1,8 @@
-
 /*
  * $Id$
  *
- * AUTHOR: Duane Wessels
+ * DEBUG: section ??    HTTP Body
+ * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
  * --------------------------------------------------------
@@ -28,41 +28,62 @@
  *  
  */
 
-static char *objcacheOpcodeStr[] =
+#include "squid.h"
+
+
+/* local constants */
+
+/* local routines */
+
+
+void
+httpBodyInit(HttpBody *body)
 {
-    "NONE",
-    "client_list",
-    "config",
-    "dnsservers",
-    "filedescriptors",
-    "fqdncache",
-    "info",
-    "io",
-    "ipcache",
-    "log_clear",
-    "log_disable",
-    "log_enable",
-    "log_status",
-    "log_view",
-    "netdb",
-    "objects",
-    "redirectors",
-    "refresh",
-    "remove",
-    "reply_headers",
-    "request_headers",
-    "msg_headers",
-    "server_list",
-    "non_peers",
-    "shutdown",
-    "utilization",
-    "vm_objects",
-    "storedir",
-    "cbdata",
-    "pconn",
-    "counters",
-    "5min",
-    "60min",
-    "mem",
-    "MAX"
-};
+    body->buf = NULL;
+    body->size = 0;
+    body->freefunc = NULL;
+}
+
+void
+httpBodyClean(HttpBody *body)
+{
+    assert(body);
+    if (body->buf) {
+	assert(body->freefunc);
+	(*body->freefunc)(body->buf);
+    }
+    body->buf = NULL;
+    body->size = 0;
+}
+
+void
+httpBodySet(HttpBody *body, const char *buf, int size, FREE *freefunc)
+{
+    assert(body);
+    assert(!body->buf);
+    assert(buf);
+    assert(size);
+    assert(buf[size-1] == '\0'); /* paranoid */
+    if (!freefunc) { /* they want us to make our own copy */
+	body->buf = xmalloc(size);
+	xmemcpy(body->buf, buf, size);
+	freefunc = &xfree;
+    }
+    body->freefunc = freefunc;
+    body->size = size;
+}
+
+void
+httpBodyPackInto(const HttpBody *body, Packer *p)
+{
+    assert(body && p);
+    /* assume it was a 0-terminating buffer */
+    if (body->size)
+	packerAppend(p, body->buf, body->size-1);
+}
+
+const char *
+httpBodyPtr(const HttpBody *body)
+{
+    return body->buf ? body->buf : "";
+}

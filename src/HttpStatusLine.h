@@ -1,8 +1,7 @@
-
 /*
  * $Id$
  *
- * AUTHOR: Duane Wessels
+ * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
  * --------------------------------------------------------
@@ -28,41 +27,30 @@
  *  
  */
 
-static char *objcacheOpcodeStr[] =
-{
-    "NONE",
-    "client_list",
-    "config",
-    "dnsservers",
-    "filedescriptors",
-    "fqdncache",
-    "info",
-    "io",
-    "ipcache",
-    "log_clear",
-    "log_disable",
-    "log_enable",
-    "log_status",
-    "log_view",
-    "netdb",
-    "objects",
-    "redirectors",
-    "refresh",
-    "remove",
-    "reply_headers",
-    "request_headers",
-    "msg_headers",
-    "server_list",
-    "non_peers",
-    "shutdown",
-    "utilization",
-    "vm_objects",
-    "storedir",
-    "cbdata",
-    "pconn",
-    "counters",
-    "5min",
-    "60min",
-    "mem",
-    "MAX"
+#ifndef _HTTP_STATUS_LINE_H_
+#define _HTTP_STATUS_LINE_H_
+
+/* status line */
+struct _HttpStatusLine {
+    /* public, read only */
+    double version;
+    const char *reason; /* points to a _constant_ string (default or supplied), never free()d */
+    http_status status;
 };
+
+typedef struct _HttpStatusLine HttpStatusLine;
+
+/* init/clean */
+extern void httpStatusLineInit(HttpStatusLine *sline);
+extern void httpStatusLineClean(HttpStatusLine *sline);
+
+/* set values */
+extern void httpStatusLineSet(HttpStatusLine *sline, double version, http_status status, const char *reason);
+
+/* parse/pack */
+/* parse a 0-terminating buffer and fill internal structires; returns true if successful */
+extern int httpStatusLineParse(HttpStatusLine *sline, const char *start, const char *end);
+/* pack fields using Packer */
+extern void httpStatusLinePackInto(const HttpStatusLine *sline, Packer *p);
+
+#endif /* ifndef _HTTP_STATUS_LINE_H_ */

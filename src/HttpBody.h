@@ -1,8 +1,7 @@
-
 /*
  * $Id$
  *
- * AUTHOR: Duane Wessels
+ * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
  * --------------------------------------------------------
@@ -28,41 +27,35 @@
  *  
  */
 
-static char *objcacheOpcodeStr[] =
-{
-    "NONE",
-    "client_list",
-    "config",
-    "dnsservers",
-    "filedescriptors",
-    "fqdncache",
-    "info",
-    "io",
-    "ipcache",
-    "log_clear",
-    "log_disable",
-    "log_enable",
-    "log_status",
-    "log_view",
-    "netdb",
-    "objects",
-    "redirectors",
-    "refresh",
-    "remove",
-    "reply_headers",
-    "request_headers",
-    "msg_headers",
-    "server_list",
-    "non_peers",
-    "shutdown",
-    "utilization",
-    "vm_objects",
-    "storedir",
-    "cbdata",
-    "pconn",
-    "counters",
-    "5min",
-    "60min",
-    "mem",
-    "MAX"
+#ifndef _HTTP_BODY_H_
+#define _HTTP_BODY_H_
+
+/*
+ * Note: Body is used only for messages with a small text content that is known a
+ * priory (e.g., error messages).
+ */
+
+struct _HttpBody {
+    /* private, never dereference these */
+    char *buf;      /* null terminating _text_ buffer, not for binary stuff */
+    FREE *freefunc; /* used to free() .buf */
+    int size;
 };
+
+typedef struct _HttpBody HttpBody;
+
+/* init/clean */
+extern void httpBodyInit(HttpBody *body);
+extern void httpBodyClean(HttpBody *body);
+
+/* get body ptr (always use this) */
+extern const char *httpBodyPtr(const HttpBody *body);
+
+/* set body, if freefunc is NULL the content will be copied, otherwise not */
+extern void httpBodySet(HttpBody *body, const char *content, int size, FREE *freefunc);
+
+/* pack */
+extern void httpBodyPackInto(const HttpBody *body, Packer *p);
+
+
+#endif /* ifndef _HTTP_REPLY_H_ */

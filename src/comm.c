@@ -1446,6 +1446,13 @@ comm_write(int fd, char *buf, int size, CWCB * handler, void *handler_data, FREE
 	0);
 }
 
+/* a wrapper around comm_write to allow for MemBuf to comm_written in a snap */
+void
+comm_write_mbuf(int fd, MemBuf mb, CWCB * handler, void *handler_data)
+{
+    comm_write(fd, mb.buf, mb.size, handler, handler_data, memBufFreeFunc(&mb));
+}
+
 int
 ignoreErrno(int ierrno)
 {

@@ -138,6 +138,7 @@ extern int tvSubMsec(struct timeval, struct timeval);
 extern int tvSubUsec(struct timeval, struct timeval);
 extern double tvSubDsec(struct timeval, struct timeval);
 extern char *xstrncpy(char *, const char *, size_t);
+extern size_t xcountws(const char *str);
 extern time_t parse_rfc1123(const char *str);
 extern void *xcalloc(int, size_t);
 extern void *xmalloc(size_t);

@@ -1,8 +1,7 @@
-
 /*
  * $Id$
  *
- * AUTHOR: Duane Wessels
+ * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
  * --------------------------------------------------------
@@ -28,41 +27,38 @@
  *  
  */
 
-static char *objcacheOpcodeStr[] =
-{
-    "NONE",
-    "client_list",
-    "config",
-    "dnsservers",
-    "filedescriptors",
-    "fqdncache",
-    "info",
-    "io",
-    "ipcache",
-    "log_clear",
-    "log_disable",
-    "log_enable",
-    "log_status",
-    "log_view",
-    "netdb",
-    "objects",
-    "redirectors",
-    "refresh",
-    "remove",
-    "reply_headers",
-    "request_headers",
-    "msg_headers",
-    "server_list",
-    "non_peers",
-    "shutdown",
-    "utilization",
-    "vm_objects",
-    "storedir",
-    "cbdata",
-    "pconn",
-    "counters",
-    "5min",
-    "60min",
-    "mem",
-    "MAX"
+#ifndef _MEM_POOL_H_
+#define _MEM_POOL_H_
+
+#include "Stack.h"
+
+/* see MemPool.c for documentation */
+
+struct _MemPool {
+	/* public, read only */
+	char *name;      /* an optional label or name for this pool */
+	size_t obj_size;
+
+	/* protected, do not use these, use interface functions instead */
+	char *buf;
+	Stack *static_stack;
+	Stack *dynamic_stack;
+
+	size_t alloc_count;
+    size_t free_count;
+    size_t alloc_high_water;
+
+	/* private, never touch this */
+	char *_buf_end;
 };
+
+typedef struct _MemPool MemPool;
+
+extern MemPool *memPoolCreate(size_t preallocCnt, size_t dynStackCnt, size_t objSz, const char *poolName);
+extern void memPoolDestroy(MemPool *mp);
+extern void *memPoolGetObj(MemPool *mp);
+extern void memPoolPutObj(MemPool *mp, void *obj);
+extern const char *memPoolReport(MemPool *mp);
+
+
+#endif /* ndef _MEM_POOL_H_ */

@@ -307,6 +307,16 @@ AC_ARG_ENABLE(arp_acl,
    fi
 ])
 
+AC_ARG_ENABLE(alex_code,
+[  --enable-alex_code       Enable Alex's code],
+[ if test "$enableval" = "yes" ; then
+    echo "Alex's code enabled"
+    AC_DEFINE(USE_ALEX_CODE)
+  else
+    echo "Alex's code DISABLED"
+  fi
+])
+
 dnl Check for programs
 AC_PROG_CPP
 AC_PROG_INSTALL

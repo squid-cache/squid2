@@ -1,8 +1,7 @@
-
 /*
  * $Id$
  *
- * AUTHOR: Duane Wessels
+ * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
  * --------------------------------------------------------
@@ -28,41 +27,30 @@
  *  
  */
 
-static char *objcacheOpcodeStr[] =
-{
-    "NONE",
-    "client_list",
-    "config",
-    "dnsservers",
-    "filedescriptors",
-    "fqdncache",
-    "info",
-    "io",
-    "ipcache",
-    "log_clear",
-    "log_disable",
-    "log_enable",
-    "log_status",
-    "log_view",
-    "netdb",
-    "objects",
-    "redirectors",
-    "refresh",
-    "remove",
-    "reply_headers",
-    "request_headers",
-    "msg_headers",
-    "server_list",
-    "non_peers",
-    "shutdown",
-    "utilization",
-    "vm_objects",
-    "storedir",
-    "cbdata",
-    "pconn",
-    "counters",
-    "5min",
-    "60min",
-    "mem",
-    "MAX"
+#ifndef _STACK_H_
+#define _STACK_H_
+
+/* see Stack.c for more documentation */
+
+struct _Stack {
+	/* public, read only */
+	size_t capacity;
+	int is_full;         /* true if the stack is full */
+
+	u_num32 push_count;  /* always grows, might overflow, use for stats only */
+	u_num32 pop_count;   /* always grows, might overflow, use for stats only */
+
+	/* protected, do not use these, use interface functions instead */
+	size_t count;
+	void **buf;
 };
+
+typedef struct _Stack Stack;
+
+extern Stack *stackCreate(size_t capacity);
+extern void stackDestroy(Stack *s);
+extern void *stackPop(Stack *s);
+extern void stackPush(Stack *s, void *obj);
+
+
+#endif /* ndef _STACK_H_ */
