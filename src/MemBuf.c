@@ -254,6 +254,7 @@ memBufVPrintf(MemBuf * mb, const char *fmt, va_list vargs)
 				 * * incase we loop around and call vsnprintf() again.
 				 */
 	sz = vsnprintf(mb->buf + mb->size, free_space, fmt, ap);
+	va_end(ap);
 #else
 	sz = vsnprintf(mb->buf + mb->size, free_space, fmt, vargs);
 #endif
@@ -265,9 +266,6 @@ memBufVPrintf(MemBuf * mb, const char *fmt, va_list vargs)
 	else
 	    break;
     }
-#if defined VA_COPY
-    va_end(ap);
-#endif
     mb->size += sz;
     /* on Linux and FreeBSD, '\0' is not counted in return value */
     /* on XXX it might be counted */
