@@ -9,7 +9,7 @@ OUTLIBS		= @STORE_LIBS@
 all:
 	@test -z "$(SUBDIRS)" || for dir in $(SUBDIRS); do \
 	   sh -c "cd $$dir && $(MAKE) $(MFLAGS) all" || exit 1; \
-	done; \
+	done
 
 $(OUTLIBS):
 	@sh -c "cd `basename $@ .a` && $(MAKE) $(MFLAGS) ../$@"
