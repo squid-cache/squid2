@@ -315,7 +315,6 @@ pumpClose(void *data)
     PumpStateData *p = data;
     StoreEntry *req = p->request_entry;
     StoreEntry *rep = p->reply_entry;
-    sigusr2_handle(0);
     cbdataLock(p);
     debug(61, 3) ("pumpClose: %p Server FD %d, Client FD %d\n",
 	p, p->s_fd, p->c_fd);
@@ -344,7 +343,6 @@ pumpClose(void *data)
     /* This tests that pumpFree() got called somewhere */
     assert(0 == cbdataValid(p));
     cbdataUnlock(p);
-    sigusr2_handle(0);
 }
 
 static void
