@@ -897,6 +897,7 @@ aclParseAccessLine(acl_access ** head)
 	return;
     }
     A = xcalloc(1, sizeof(acl_access));
+
     if (!strcmp(t, "allow"))
 	A->allow = 1;
     else if (!strcmp(t, "deny"))

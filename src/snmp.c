@@ -50,7 +50,11 @@ static struct sockaddr_in local_snmpd;
 void snmpFwd_insertPending(struct sockaddr_in *, long);
 int snmpFwd_removePending(struct sockaddr_in *, long);
 extern int init_agent_auth();
+#if 0
 extern int snmp_agent_parse(char *, int, char *, int *, u_long, long *);
+#endif
+extern void snmp_agent_parse(snmp_request_t *);
+
 extern int default_auth();
 extern void init_modules();
 
@@ -140,20 +144,16 @@ snmpHandleUdp(int sock, void *not_used)
 {
     struct sockaddr_in from;
     int from_len;
-    long this_reqid;
-    int errstat;
     LOCAL_ARRAY(char, buf, SNMP_REQUEST_SIZE);
-    char *outbuf;
     LOCAL_ARRAY(char, deb_line, 4096);
     int len;
-    int outlen;
+    snmp_request_t *snmp_rq;
 #if 0
     snmp_dump_packet = 1;
 #endif
 
-    debug(49, 5) ("snmpHandleUdp: Initialized.\n");
+    debug(49, 5) ("snmpHandleUdp: Called.\n");
     commSetSelect(sock, COMM_SELECT_READ, snmpHandleUdp, NULL, 0);
-    debug(49, 5) ("snmpHandleUdp: got past select\n");
     from_len = sizeof(struct sockaddr_in);
     memset(&from, '\0', from_len);
     len = recvfrom(sock,
@@ -191,32 +191,41 @@ snmpHandleUdp(int sock, void *not_used)
 	sock,
 	len,
 	inet_ntoa(from.sin_addr));
-    outbuf = xmalloc(outlen = SNMP_REQUEST_SIZE);
-    errstat = snmp_agent_parse(buf, len, outbuf, &outlen,
-	(u_long) from.sin_addr.s_addr, (long *) (&this_reqid));
-    if (memcmp(&from, &local_snmpd, sizeof(struct sockaddr_in)) == 0) {
+
+    snmp_rq = xcalloc(1,sizeof(snmp_request_t));
+    snmp_rq->buf=buf;
+    snmp_rq->len= len;
+    snmp_rq->sock=sock;
+    snmp_rq->outbuf = xmalloc(snmp_rq->outlen = SNMP_REQUEST_SIZE);
+    memcpy(&snmp_rq->from, &from, sizeof(struct sockaddr_in));
+    snmp_agent_parse(snmp_rq);
+}
+
+void
+snmp_agent_parse_done(int errstat, snmp_request_t *snmp_rq)
+{
+    LOCAL_ARRAY(char, deb_line, 4096);
+    int sock=snmp_rq->sock;
+    long this_reqid=snmp_rq->reqid;
+
+    debug(49,2)("snmp_agent_parse_done: errstat=%d, reqid=%d _t=%x\n",
+		errstat, this_reqid, snmp_rq);
+
+    if (memcmp(&snmp_rq->from, &local_snmpd, sizeof(struct sockaddr_in)) == 0) {
 	/* look it up */
-	if (snmpFwd_removePending(&from, this_reqid)) {		/* failed */
+	if (snmpFwd_removePending(&snmp_rq->from, this_reqid)) {		/* failed */
 	    debug(49, 5) ("snmp: bogus response\n");
+	    xfree(snmp_rq->outbuf);
+	    xfree(snmp_rq);
 	    return;
 	}
     }
     switch (errstat) {
     case 2:			/* we might have to forward */
 	if (Config.Snmp.localPort != 0) {
-	    snmpFwd_insertPending(&from, this_reqid);
-#ifdef SNMP_DIRECT
-	    x = comm_udp_sendto(sock,
-		&local_snmpd,
-		sizeof(struct sockaddr_in),
-		outbuf,
-		outlen);
-	    if (x < 0)
-		debug(49, 4) ("snmp could not deliver packet to %s\n",
-		    inet_ntoa(local_snmpd.sin_addr));
-#else
-	    snmpUdpSend(sock, &local_snmpd, outbuf, outlen);
-#endif
+	    snmpFwd_insertPending(&snmp_rq->from, this_reqid);
+	    snmpUdpSend(sock, &local_snmpd, snmp_rq->outbuf, snmp_rq->outlen);
+	    xfree(snmp_rq);
 	    return;
 	}
 	debug(49, 4) ("snmp: can't forward.\n");
@@ -225,30 +234,24 @@ snmpHandleUdp(int sock, void *not_used)
 	debug(49, 5) ("snmp: parsed.\n");
 	if (snmp_dump_packet) {
 	    int count = 0;
-	    debug(49, 5) ("snmp: sent %d bytes to %s\n", (int) outlen,
-		inet_ntoa(from.sin_addr));
-	    for (count = 0; count < outlen; count++) {
-		snprintf(deb_line, 4096, "%s %02X ", deb_line, (u_char) outbuf[count]);
-		if ((count % 16) == 15 || count == (len - 1)) {
+	    debug(49, 5) ("snmp: sent %d bytes to %s\n", (int) snmp_rq->outlen,
+		inet_ntoa(snmp_rq->from.sin_addr));
+	    for (count = 0; count < snmp_rq->outlen; count++) {
+		snprintf(deb_line, 4096, "%s %02X ", deb_line, 
+			(u_char) snmp_rq->outbuf[count]);
+		if ((count % 16) == 15 || count == (snmp_rq->len - 1)) {
 		    debug(49, 7) ("snmp out: %s\n", deb_line);
 		    deb_line[0] = '\0';
 		}
 	    }
 	}
-#ifdef SNMP_DIRECT
-	x = comm_udp_sendto(sock,
-	    &from,
-	    sizeof(struct sockaddr_in),
-	    outbuf,
-	    outlen);
-	if (x < 0)
-	    debug(49, 4) ("snmp could not deliver\n");
-#else
-	snmpUdpSend(sock, &from, outbuf, outlen);
-#endif
+	snmpUdpSend(snmp_rq->sock, &snmp_rq->from, snmp_rq->outbuf, snmp_rq->outlen);
+	xfree(snmp_rq);
 	break;
     case 0:
-	debug(49, 5) ("snmpagentparse failed\n");
+	debug(49, 5) ("snmpagentparsedone failed\n");
+	xfree(snmp_rq->outbuf);
+	xfree(snmp_rq);
 	break;
     }
     return;
@@ -270,6 +273,7 @@ snmpInit(void)
     debug(49, 5) ("init_mib: calling with %s\n", Config.Snmp.mibPath);
 
     init_mib(Config.Snmp.mibPath);
+
     if (!Config.Snmp.communities)
 	debug(49, 5) ("snmpInit: communities not defined yet !\n");
     else
