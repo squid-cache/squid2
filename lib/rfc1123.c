@@ -152,7 +152,8 @@ parse_rfc1123(const char *str)
 	    return -1;
 	tm.tm_mday = make_num(s + 8);
 	tm.tm_mon = make_month(s + 4);
-	tm.tm_year = make_num(s + 22);
+	/* Y2K fix, richard.kettlewell@kewill.com */
+	tm.tm_year = atoi(s + 20) - 1900;
 	tm.tm_hour = make_num(s + 11);
 	tm.tm_min = make_num(s + 14);
 	tm.tm_sec = make_num(s + 17);
