@@ -1062,7 +1062,7 @@ peerCheckConnectDone(int fd, int status, void *data)
     if (p->tcp_up) {
 	debug(15, 0, "TCP connection to %s/%d succeeded\n",
 	    p->host, p->http_port);
-    } else {
+    } else if (!eventExists(peerCheckConnect, p)) {
 	eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
     }
     comm_close(fd);
