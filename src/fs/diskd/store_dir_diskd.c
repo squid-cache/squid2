@@ -434,6 +434,7 @@ storeDiskdDirInit(SwapDir * sd)
 	started_clean_event = 1;
     }
     (void) storeDirGetBlkSize(sd->path, &sd->fs.blksize);
+    comm_quick_poll_required();
 }
 
 
