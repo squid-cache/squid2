@@ -299,6 +299,13 @@ if test "$with_pthreads"; then
             fi
         fi
     ;;
+    *-solaris2.*)
+        if test "$GCC" = "yes" ; then
+	    CFLAGS="$CFLAGS -pthreads"
+	else
+	    CFLAGS="$CFLAGS -mt"
+        fi
+    ;;
     esac
 fi
 AC_SUBST(SQUID_PTHREAD_LIB)
