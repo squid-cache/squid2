@@ -29,6 +29,7 @@ typedef struct _diomsg {
     int shm_offset;
 } diomsg;
 
+static const int msg_snd_rcv_sz = sizeof(diomsg) - sizeof(int);
 
 #if DISKD_DAEMON
 
@@ -47,7 +48,6 @@ struct _file_state {
 static hash_table *hash = NULL;
 static pid_t mypid;
 static char *shmbuf;
-static const int msg_snd_rcv_sz = sizeof(diomsg) - sizeof(int);
 
 static int
 do_open(diomsg * r, int len, const char *buf)
