@@ -6,11 +6,12 @@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
-CCx		= @CC@
+CC		= @CC@
 
 INSTALL		= @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA	= @INSTALL_DATA@
+SHELL		= /bin/sh
 
 CFLAGS		= -g
 LDFLAGS		= -g
@@ -19,3 +20,11 @@ LDFLAGS		= -g
 prefix		= /usr/local/squid
 exec_prefix	= ${prefix}
 bindir		= $(exec_prefix)/bin
+
+SUBDIRS		= lib scripts src
+
+all: 
+	@for dir in $(SUBDIRS); do \
+		echo "Making $@ in $$dir..."; \
+		(cd $$dir ; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@); \
+	done
