@@ -11,6 +11,7 @@ TABLE OF CONTENTS:
 	Cache directory structure changes
         Getting true DNS TTL info into Squid's IP cache
 	Using a neighbor as both a parent and a sibling
+	Forcing your neighbors to use you as a sibling
 
 Ident (RFC 931) lookups
 ==============================================================================
@@ -216,3 +217,31 @@ Is equivalent to
 If a cache_host_domain line does not have a parent/sibling modifier,
 then it defaults to the neighbor type specified in the cache_host
 line.
+
+Forcing your neighbors to use you as a sibling
+==============================================================================
+In a distributed cache hierarchy, you may need to force your peer caches
+to use you as a sibling and not a parent.  I.e., its okay for them to 
+fetch HITs from you, but not okay to resolve MISSes through your
+cache (using your resources).
+
+This can be accomplished by using the 'miss_access' config line.  The
+miss_access ACL list is very similar to the 'http_access' list.  This
+functionality is implemented as a separate access list because when we
+check the http_access list, we don't yet know if the request will be a
+hit or miss.  The sequence of events goes something like this:
+
+	1. accept new connection
+	2. read request
+	3. check http_access
+	4. process request, check for hit or miss (IMS, etc)
+	5. check miss_access
+
+Note that in order to get to the point where miss_access is checked, the
+request must have also passed the http_access check.
+
+You probably only want to use 'src' type ACL's with miss_access, although
+you can use any of the access control types.
+
+If you are restricting your neighbors, be sure to allow miss_access
+to your local clients (e.g. users at browsers)!

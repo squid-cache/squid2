@@ -694,7 +694,19 @@ http_access allow  all
 # Reply to all ICP queries we receive
 icp_access  allow  all
 
-# Allow anyone who passed the http_access rules to fetch MISSES from us
+#  TAG: miss_access
+#       Use to force your neighbors to use you as a sibling instead of
+#	a parent.  For example:
+#
+#		acl localclients src 172.16.0.0/16
+#		miss_access allow localclients
+#		miss_access deny  !localclients
+#
+#	This means that only your local clients are allowed to fetch
+#	MISSES and all other clients can only fetch HITS.
+#
+#	By default, allow all clients who passed the http_access rules
+#	to fetch MISSES from us.
 miss_access allow  all
 
 #  TAG: cache_host_acl
