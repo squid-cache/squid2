@@ -1091,7 +1091,7 @@ parseConfigFile(const char *file_name)
 
 #if USE_USERAGENT_LOG
 	else if (!strcmp(token, "useragent_log"))
-	    parsePathname(&Config.Log.swap);
+	    parsePathname(&Config.Log.useragent);
 #endif
 
 	else if (!strcmp(token, "logfile_rotate"))
