@@ -1548,8 +1548,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	httpReplyDestroy(rep);
 	rep = NULL;
     } else {
-	/* leave space for growth in case we do ranges */
-	memBufInit(&mb, CLIENT_SOCK_SZ, 2 * CLIENT_SOCK_SZ);
+	memBufDefInit(&mb);
     }
     /* append body if any */
     if (http->request->range) {
