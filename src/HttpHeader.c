@@ -1037,7 +1037,7 @@ httpHeaderEntryPackByType(const HttpHeaderEntry * e, Packer * p)
 	httpHdrContRangePackInto(e->field.v_pcont_range, p);
 	break;
     case ftPExtField:
-	packerPrintf(p, "%s", e->field.v_pefield->value);
+	packerPrintf(p, "%s", strBuf(e->field.v_pefield->value));
 	break;
     default:
 	assert(0 && type);	/* pack for invalid/unknown type */
