@@ -137,7 +137,7 @@ file_close(int fd)
 #else
     assert(fd >= 0);
 #endif
-    assert(F->open);
+    assert(F->flags.open);
     if ((callback = F->read_handler)) {
 	F->read_handler = NULL;
 	callback(-1, F->read_data);
@@ -399,7 +399,7 @@ file_write(int fd,
     dwrite_q *wq = NULL;
     fde *F = &fd_table[fd];
     assert(fd >= 0);
-    assert(F->open);
+    assert(F->flags.open);
     /* if we got here. Caller is eligible to write. */
     wq = xcalloc(1, sizeof(dwrite_q));
     wq->file_offset = file_offset;

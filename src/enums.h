@@ -133,11 +133,6 @@ enum {
 };
 
 enum {
-    FD_CLOSE,
-    FD_OPEN
-};
-
-enum {
     FQDN_CACHED,
     FQDN_NEGATIVE_CACHED,
     FQDN_PENDING,		/* waiting to be dispatched */

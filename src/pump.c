@@ -113,7 +113,7 @@ pumpInit(int fd, request_t * r, char *uri)
 }
 
 void
-pumpStart(int s_fd, FwdState *fwd, CWCB * callback, void *cbdata)
+pumpStart(int s_fd, FwdState * fwd, CWCB * callback, void *cbdata)
 {
     PumpStateData *p = NULL;
     request_t *r = fwd->request;
@@ -375,7 +375,7 @@ pumpFree(int fd, void *data)
     }
     requestUnlink(p->req);
     if (p->s_fd > -1) {
-	assert(0 == fd_table[p->s_fd].open);
+	assert(!fd_table[p->s_fd].flags.open);
 	p->s_fd = -1;
     }
     cbdataFree(p);

@@ -491,12 +491,13 @@ struct _ETag {
 
 struct _fde {
     unsigned int type;
-    unsigned int open;
+    unsigned int mode;		/* FD_READ|FD_WRITE */
     u_short local_port;
     u_short remote_port;
     char ipaddr[16];		/* dotted decimal address of peer */
     char desc[FD_DESC_SZ];
     struct {
+	unsigned int open:1;
 	unsigned int close_request:1;
 	unsigned int write_daemon:1;
 	unsigned int closing:1;

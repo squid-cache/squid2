@@ -410,7 +410,7 @@ statFiledescriptors(StoreEntry * sentry)
     storeAppendPrintf(sentry, "---- ------ ---- ------- ------- --------------------- ------------------------------\n");
     for (i = 0; i < Squid_MaxFD; i++) {
 	f = &fd_table[i];
-	if (!f->open)
+	if (!f->flags.open)
 	    continue;
 	storeAppendPrintf(sentry, "%4d %-6.6s %4d %7d %7d %-21s %s\n",
 	    i,

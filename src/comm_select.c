@@ -825,7 +825,7 @@ checkTimeouts(void)
     PF *callback;
     for (fd = 0; fd <= Biggest_FD; fd++) {
 	F = &fd_table[fd];
-	if (F->open != FD_OPEN)
+	if (!F->flags.open)
 	    continue;
 	if (F->timeout == 0)
 	    continue;
