@@ -145,8 +145,9 @@ mime_get_header_field(const char *mime, const char *name, const char *prefix)
     const int preflen = prefix ? strlen(prefix) : 0;
     int l;
 
-    if (!mime || !name)
+    if (NULL == mime)
 	return NULL;
+    assert(NULL != name);
 
     debug(25, 5) ("mime_get_header: looking for '%s'\n", name);
 
