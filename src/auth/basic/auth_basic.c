@@ -43,6 +43,10 @@
 static void
 authenticateStateFree(authenticateStateData * r)
 {
+    if (r->auth_user_request) {
+	authenticateAuthUserRequestUnlock(r->auth_user_request);
+	r->auth_user_request = NULL;
+    }
     cbdataFree(r);
 }
 
@@ -584,7 +588,6 @@ authenticateBasicStart(auth_user_request_t * auth_user_request, RH * handler, vo
 	/* save the details */
 	node->next = basic_auth->auth_queue;
 	basic_auth->auth_queue = node;
-	node->auth_user_request = auth_user_request;
 	node->handler = handler;
 	node->data = data;
 	cbdataLock(data);
@@ -595,6 +598,7 @@ authenticateBasicStart(auth_user_request_t * auth_user_request, RH * handler, vo
 	cbdataLock(data);
 	r->data = data;
 	r->auth_user_request = auth_user_request;
+	authenticateAuthUserRequestLock(r->auth_user_request);
 	/* mark the user as haveing verification in progress */
 	basic_auth->flags.credentials_ok = 2;
 	xstrncpy(user, rfc1738_escape(basic_auth->username), sizeof(user));

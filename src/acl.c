@@ -1892,6 +1892,10 @@ aclChecklistFree(aclCheck_t * checklist)
 	cbdataUnlock(checklist->access_list);
 	checklist->access_list = NULL;
     }
+    if (checklist->callback_data) {
+	cbdataUnlock(checklist->callback_data);
+	checklist->callback_data = NULL;
+    }
     aclCheckCleanup(checklist);
     cbdataFree(checklist);
 }

@@ -21,7 +21,6 @@ typedef struct _auth_basic_queue_node auth_basic_queue_node;
 /* queue of auth requests waiting for verification to occur */
 struct _auth_basic_queue_node {
     auth_basic_queue_node *next;
-    auth_user_request_t *auth_user_request;
     RH *handler;
     void *data;
 };
