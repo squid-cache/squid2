@@ -100,6 +100,7 @@ static void clientProcessMiss(clientHttpRequest *);
 static void clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep);
 static clientHttpRequest *parseHttpRequestAbort(ConnStateData * conn, const char *uri);
 static clientHttpRequest *parseHttpRequest(ConnStateData *, method_t *, int *, char **, size_t *);
+static void clientRedirectStart(clientHttpRequest * http);
 static RH clientRedirectDone;
 static void clientCheckNoCache(clientHttpRequest *);
 static void clientCheckNoCacheDone(int answer, void *data);
@@ -244,7 +245,7 @@ clientAccessCheckDone(int answer, void *data)
 	http->uri = xstrdup(urlCanonical(http->request));
 	assert(http->redirect_state == REDIRECT_NONE);
 	http->redirect_state = REDIRECT_PENDING;
-	redirectStart(http, clientRedirectDone, http);
+	clientRedirectStart(http);
     } else {
 	int require_auth = (answer == ACCESS_REQ_PROXY_AUTH || aclIsProxyAuth(AclMatchedName));
 	debug(33, 5) ("Access Denied: %s\n", http->uri);
@@ -289,6 +290,33 @@ clientAccessCheckDone(int answer, void *data)
 	    authenticateAuthUserRequestLock(err->auth_user_request);
 	err->callback_data = NULL;
 	errorAppendEntry(http->entry, err);
+    }
+}
+
+static void
+clientRedirectAccessCheckDone(int answer, void *data)
+{
+    clientHttpRequest *http = data;
+    http->acl_checklist = NULL;
+    if (answer == ACCESS_ALLOWED)
+	redirectStart(http, clientRedirectDone, http);
+    else
+	clientRedirectDone(http, NULL);
+}
+
+static void
+clientRedirectStart(clientHttpRequest * http)
+{
+    debug(33, 5) ("clientRedirectStart: '%s'\n", http->uri);
+    if (Config.Program.redirect == NULL) {
+	clientRedirectDone(http, NULL);
+	return;
+    }
+    if (Config.accessList.redirector) {
+	http->acl_checklist = clientAclChecklistCreate(Config.accessList.redirector, http);
+	aclNBCheck(http->acl_checklist, clientRedirectAccessCheckDone, http);
+    } else {
+	redirectStart(http, clientRedirectDone, http);
     }
 }
 
