@@ -424,6 +424,12 @@ struct _SquidConfig {
 	} class3;
     } Delay;
 #endif
+    struct {
+	int icp_average;
+	int http_average;
+	int icp_min_poll;
+	int http_min_poll;
+    } comm_incoming;
 };
 
 struct _SquidConfig2 {
