@@ -790,6 +790,7 @@ dlinkDelete(dlink_node * m, dlink_list * list)
 	list->head = m->next;
     if (m == list->tail)
 	list->tail = m->prev;
+    m->next = m->prev = NULL;
 }
 
 void
