@@ -94,6 +94,8 @@ Changes to Squid-2.1 (November 16, 1998):
 	  store rebuild completes.
 	- Fixed NULL pointer bugs with too-large requests (found by
 	  Martin Lathoud).
+	- Fixed reading replies from buggy ident servers.  Replies
+	  might not have terminating CR or LF (Henrik Nordstrom).
 
 Changes to Squid-2.0 (October 2, 1998):
 
