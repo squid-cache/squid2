@@ -423,7 +423,8 @@ aclMatchExternal(void *data, aclCheck_t * ch)
 	/* Not sufficient data to process */
 	return -1;
     }
-    ch->auth_user_request = NULL;
+    if (acl->def->require_auth)
+	ch->auth_user_request = NULL;
     if (entry) {
 	if (entry->def != acl->def || strcmp(entry->hash.key, key) != 0) {
 	    /* Not ours.. get rid of it */
