@@ -1502,6 +1502,10 @@ char *getAccelPrefix()
 {
     return Config.Accel.prefix;
 }
+int getAccelPort()
+{
+    return Config.Accel.port;
+}
 int getAccelWithProxy()
 {
     return Config.Accel.withProxy;

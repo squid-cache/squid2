@@ -1182,7 +1182,7 @@ int parseHttpRequest(icpState)
 	} else if ((t = strstr(req_hdr, "\n\n"))) {
 	    post_data = t + 2;
 	} else {
-	    debug(12, 1, "parseHttpRequest: Can't find end of headers in POST request?\m";
+	    debug(12, 1, "parseHttpRequest: Can't find end of headers in POST request?\n");
 	    xfree(inbuf);
 	    return 0;		/* not a complete request */
 	}
@@ -1225,8 +1225,10 @@ int parseHttpRequest(icpState)
 	} else {
 	    /* Put the local socket IP address as the hostname */
 	    icpState->url = xcalloc(strlen(request) + 24, 1);
-	    sprintf(icpState->url, "http://%s%s",
-		inet_ntoa(icpState->me.sin_addr), request);
+	    sprintf(icpState->url, "http://%s:%d%s",
+		inet_ntoa(icpState->me.sin_addr),
+		getAccelPort(),
+		request);
 	}
 	BIT_SET(icpState->flags, REQ_ACCEL);
     } else {
@@ -1245,6 +1247,11 @@ static int icpAccessCheck(icpState)
      icpStateData *icpState;
 {
     request_t *r = icpState->request;
+    if (httpd_accel_mode && !getAccelWithProxy()) {
+	/* this cache is an httpd accelerator ONLY */
+	if (!BIT_TEST(icpState->flags, REQ_ACCEL))
+	    return 0;
+    }
     return aclCheck(HTTPAccessList,
 	icpState->peer.sin_addr,
 	r->method,
