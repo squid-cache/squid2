@@ -120,11 +120,10 @@ file_map_allocate(fileMap * fm, int suggestion)
     int word;
     int bit;
     int count;
-    if (suggestion > fm->max_n_files)
+    if (suggestion >= fm->max_n_files)
 	suggestion = 0;
-    if (!file_map_bit_test(fm, suggestion)) {
-	return file_map_bit_set(fm, suggestion);
-    }
+    if (!file_map_bit_test(fm, suggestion))
+	return suggestion;
     word = suggestion >> LONG_BIT_SHIFT;
     for (count = 0; count < fm->nwords; count++) {
 	if (fm->file_map[word] != ALL_ONES)
