@@ -184,7 +184,8 @@ extern void (*failure_notify) _PARAMS((const char *));
 /* Junk so we can link with debug.o */
 int opt_syslog_enable = 0;
 volatile int unbuffered_logs = 1;
-static const char *const w_space = " \t\n\r";
+const char *const w_space = " \t\n\r";
+const char *const dash_str = "-";
 const char *const appname = "ftpget";
 struct timeval current_time;
 time_t squid_curtime;
@@ -2626,18 +2627,6 @@ main(int argc, char *argv[])
     }
     r = xcalloc(1, sizeof(ftp_request_t));
 
-    /* Its a little dangerous to open(argv[0]) especially when
-     * the command line is parsed from the server socket.  This
-     * functionality is not really needed; a holdover from the
-     * Harvest days */
-#ifdef OLD_STUFF
-    if (strcmp(argv[0], "-") == 0) {
-	r->cfd = 1;
-    } else if ((r->cfd = open(argv[0], O_WRONLY | O_CREAT | O_TRUNC, 0666)) < 0) {
-	perror(argv[0]);
-	exit(1);
-    }
-#endif
     /* Force ftpget to write to stdout */
     r->cfd = 1;
     r->host = xstrdup(argv[1]);

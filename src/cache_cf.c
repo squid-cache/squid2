@@ -1372,7 +1372,6 @@ configSetFactoryDefaults(void)
     Config.appendDomain = safe_xstrdup(DefaultAppendDomain);
     Config.errHtmlText = safe_xstrdup(DefaultErrHtmlText);
     Config.Port.n_http = 0;
-    Config.Port.http[0] = DefaultHttpPortNum;
     Config.Port.icp = DefaultIcpPortNum;
     Config.Log.log_fqdn = DefaultLogLogFqdn;
     Config.Log.log = safe_xstrdup(DefaultCacheLogFile);
@@ -1453,6 +1452,8 @@ configDoConfigure(void)
 	Config.appendDomainLen = strlen(Config.appendDomain);
     else
 	Config.appendDomainLen = 0;
+    if (Config.Port.n_http == 0)
+	Config.Port.http[Config.Port.n_http++] = DefaultHttpPortNum;
 }
 
 /* Parse a time specification from the config file.  Store the
