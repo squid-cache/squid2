@@ -1852,8 +1852,9 @@ asciiHandleConn(int sock, void *notused)
     icpStateData *icpState;
     struct sockaddr_in peer;
     struct sockaddr_in me;
+    int N = 10;
 
-    while (1) {
+    while (N-- && fdstat_are_n_free_fd(RESERVED_FD)) {
 	icpState = NULL;
 	memset(&peer, '\0', sizeof(struct sockaddr_in));
 	memset(&me, '\0', sizeof(struct sockaddr_in));
