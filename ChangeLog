@@ -18,6 +18,8 @@ Changes to squid-1.1.11 (June XX, 1997):
 	  fatal_dump().
 	- Fixed noticing that dnsservers have shut down during restart.
 	- Added contrib/nextstep installer package from Gerben Wierda.
+	- Modified storeDirClean() to remove swap files where the
+	  number is being used, but the file is in the wrong directory.
 
 Changes to squid-1.1.10 (April 24, 1997):
 
