@@ -162,6 +162,8 @@ char *cached_error_url(url, type, msg)
 	"0.0.0.0",
 	0,
 	ErrorData[index].tag,
-	"GET");
+	"GET",
+	0,
+	0);
     return tmp_error_buf;
 }

@@ -69,6 +69,7 @@ typedef struct _MemObject {
     int e_swap_access;
     char *e_abort_msg;
     int abort_code;
+    int http_code;
 
     int e_current_len;
     /* The lowest offset that store keep VM copy around

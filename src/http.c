@@ -225,6 +225,7 @@ static void httpProcessReplyHeader(data, buf)
 	    storeAddEntry(entry);
 	    break;
 	}
+	entry->mem_obj->http_code = data->http_code;
     }
 }
 
