@@ -129,7 +129,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	protoDataFree(protoData);
 	return 0;
     }
-    if (!neighbors_do_private_keys && !protoData->query_neighbors && (e = getFirstUpParent(req->host))) {
+    if (!neighbors_do_private_keys && !protoData->query_neighbors && (e = getFirstUpParent(req))) {
 	/* for private objects we should just fetch directly (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
 	getFromCache(protoData->fd, entry, e, req);
@@ -199,7 +199,7 @@ int protoDispatch(fd, url, entry, request)
 
     protoData->inside_firewall = matchInsideFirewall(request->host);
     protoData->query_neighbors = BIT_TEST(entry->flag, HIERARCHICAL);
-    protoData->single_parent = getSingleParent(request->host, &n);
+    protoData->single_parent = getSingleParent(request, &n);
     protoData->n_edges = n;
 
     debug(17, 2, "protoDispatch: inside_firewall = %d (%s)\n",
@@ -357,7 +357,7 @@ int getFromDefaultSource(fd, entry)
 	hierarchy_log_append(url, HIER_DIRECT, fd, request->host);
 	return getFromCache(fd, entry, NULL, request);
     }
-    if ((e = getSingleParent(request->host, NULL))) {
+    if ((e = getSingleParent(request, NULL))) {
 	/* last chance effort; maybe there was a single_parent and a ICP
 	 * packet got lost */
 	hierarchy_log_append(url, HIER_SINGLE_PARENT, fd, e->host);

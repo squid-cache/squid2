@@ -420,11 +420,20 @@ static void parseHostDomainLine()
 {
     char *host = NULL;
     char *domain = NULL;
-
     if (!(host = strtok(NULL, w_space)))
 	self_destruct();
     while ((domain = strtok(NULL, ", \t\n")))
 	neighbors_cf_domain(host, domain);
+}
+
+static void parseHostAclLine()
+{
+    char *host = NULL;
+    char *aclname = NULL;
+    if (!(host = strtok(NULL, w_space)))
+	self_destruct();
+    while ((aclname = strtok(NULL, ", \t\n")))
+	neighbors_cf_acl(host, aclname);
 }
 
 
@@ -1126,6 +1135,8 @@ int parseConfigFile(file_name)
 	/* Parse a cache_host_domain line */
 	else if (!strcmp(token, "cache_host_domain"))
 	    parseHostDomainLine();
+	else if (!strcmp(token, "cache_host_acl"))
+	    parseHostAclLine();
 
 	/* Parse a neighbor_timeout line */
 	else if (!strcmp(token, "neighbor_timeout"))

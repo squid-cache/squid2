@@ -62,6 +62,7 @@ struct _edge {
     u_short http_port;
     icp_common_t header;
     dom_list *domains;
+    struct _acl_list *acls;
     int proxy_only;
     int weight;
     time_t last_fail_time;	/* detect down dumb caches */
@@ -88,15 +89,17 @@ struct neighbor_cf {
     int proxy_only;
     int weight;
     dom_list *domains;
+    struct _acl_list *acls;
     struct neighbor_cf *next;
 };
 
 extern edge *getFirstEdge _PARAMS((void));
-extern edge *getFirstUpParent _PARAMS((char *host));
+extern edge *getFirstUpParent _PARAMS((request_t *));
 extern edge *getNextEdge _PARAMS((edge *));
-extern edge *getSingleParent _PARAMS((char *host, int *n));
+extern edge *getSingleParent _PARAMS((request_t *, int *n));
 extern int neighborsUdpPing _PARAMS((protodispatch_data *));
 extern void neighbors_cf_domain _PARAMS((char *, char *));
+extern void neighbors_cf_acl _PARAMS((char *, char *));
 extern neighbors *neighbors_create _PARAMS(());
 extern void hierarchy_log_append _PARAMS((char *, hier_code, int, char *));
 extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *, char *, int));

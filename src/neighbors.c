@@ -1,24 +1,19 @@
 /* $Id$ */
 
-/* TODO:
- * - change 'neighbor' to 'sibling'
- * - change 'edge' to neighbor?
- * - make ->flags structure
- * - fix "can't continue" if DNS lookup for neighbor fails.
- */
-
 /*
  * DEBUG: Section 15          neighbors:
  */
 
 #include "squid.h"
 
+static int edgeWouldBePinged _PARAMS((edge *, request_t *));
+
 static neighbors *friends = NULL;
-
 static struct neighbor_cf *Neighbor_cf = NULL;
-
 static icp_common_t echo_hdr;
 static u_short echo_port;
+static struct in_addr any_addr;
+
 FILE *cache_hierarchy_log = NULL;
 
 static char *hier_strings[] =
@@ -125,15 +120,17 @@ void hierarchy_log_append(url, code, timeout, cache_host)
 	fflush(cache_hierarchy_log);
 }
 
-static int edgeWouldBePinged(e, host)
+static int edgeWouldBePinged(e, request)
      edge *e;
-     char *host;
+     request_t *request;
 {
     int offset;
     dom_list *d = NULL;
     int do_ping = 1;
+    char *host = request->host;
+    struct _acl_list *a = NULL;
 
-    if (e->domains == NULL)
+    if (e->domains == NULL && e->acls == NULL)
 	return do_ping;
 
     do_ping = 0;
@@ -144,17 +141,27 @@ static int edgeWouldBePinged(e, host)
 	}
 	if (strcasecmp(d->domain, host + offset) == 0) {
 	    /* found a match, no need to check any more domains */
-	    do_ping = d->do_ping;
-	    break;
+	    return d->do_ping;
 	} else {
 	    do_ping = !d->do_ping;
 	}
     }
+    for (a = e->acls; a; a = a->next) {
+	if (aclMatchAcl(a->acl,
+		any_addr,	/* bogus */
+		request->method,
+		request->protocol,
+		request->host,
+		request->port,
+		request->urlpath))
+	    return a->op;
+	do_ping = !a->op;
+    }
     return do_ping;
 }
 
-edge *getSingleParent(host, n)
-     char *host;
+edge *getSingleParent(request, n)
+     request_t *request;
      int *n;
 {
     edge *p = NULL;
@@ -164,7 +171,7 @@ edge *getSingleParent(host, n)
     if (n == NULL && friends->n_parent < 1)
 	return NULL;
     for (e = friends->edges_head; e; e = e->next) {
-	if (edgeWouldBePinged(e, host)) {
+	if (edgeWouldBePinged(e, request)) {
 	    count++;
 	    if (e->type != EDGE_PARENT) {
 		/* we matched a neighbor, not a parent.  There
@@ -192,8 +199,8 @@ edge *getSingleParent(host, n)
     return NULL;
 }
 
-edge *getFirstUpParent(host)
-     char *host;
+edge *getFirstUpParent(request)
+     request_t *request;
 {
     edge *e = NULL;
     if (friends->n_parent < 1)
@@ -203,7 +210,7 @@ edge *getFirstUpParent(host)
 	    continue;
 	if (e->type != EDGE_PARENT)
 	    continue;
-	if (edgeWouldBePinged(e, host))
+	if (edgeWouldBePinged(e, request))
 	    return e;
     }
     return NULL;
@@ -398,7 +405,7 @@ int neighborsUdpPing(proto)
 	if (squid_curtime - e->last_fail_time < 60)
 	    continue;
 
-	if (!edgeWouldBePinged(e, host))
+	if (!edgeWouldBePinged(e, proto->request))
 	    continue;		/* next edge */
 
 	debug(15, 4, "neighborsUdpPing: pinging cache %s for <URL:%s>\n",
@@ -696,9 +703,9 @@ void neighbors_cf_domain(host, domain)
      char *host;
      char *domain;
 {
-    struct neighbor_cf *t;
-    dom_list *l;
-    dom_list **L;
+    struct neighbor_cf *t = NULL;
+    dom_list *l = NULL;
+    dom_list **L = NULL;
 
     for (t = Neighbor_cf; t; t = t->next) {
 	if (strcmp(t->host, host) == 0)
@@ -719,6 +726,51 @@ void neighbors_cf_domain(host, domain)
     l->next = NULL;
     for (L = &(t->domains); *L; L = &((*L)->next));
     *L = l;
+}
+
+void neighbors_cf_acl(host, aclname)
+     char *host;
+     char *aclname;
+{
+    struct neighbor_cf *t = NULL;
+    struct _acl_list *L = NULL;
+    struct _acl_list **Tail = NULL;
+    struct _acl *a = NULL;
+
+    for (t = Neighbor_cf; t; t = t->next) {
+	if (strcmp(t->host, host) == 0)
+	    break;
+    }
+    if (t == NULL) {
+	debug(15, 0, "%s, line %d: No cache_host '%s'\n",
+	    cfg_filename, config_lineno, host);
+	return;
+    }
+    L = xcalloc(1, sizeof(struct _acl_list));
+    L->op = 1;
+    if (*aclname == '!') {
+	L->op = 0;
+	aclname++;
+    }
+    debug(15, 3, "neighbors_cf_acl: looking for ACL name '%s'\n", aclname);
+    a = aclFindByName(aclname);
+    if (a == NULL) {
+	debug(15, 0, "%s line %d: %s\n",
+	    cfg_filename, config_lineno, config_input_line);
+	debug(15, 0, "neighbors_cf_acl: ACL name '%s' not found.\n", aclname);
+	xfree(L);
+	return;
+    }
+    if (a->type == ACL_SRC_IP) {
+	debug(15, 0, "%s line %d: %s\n",
+	    cfg_filename, config_lineno, config_input_line);
+	debug(15,0, "neighbors_cf_acl: 'src' ALC's not supported for 'cache_host_acl'\n");
+	xfree(L);
+        return;
+    }
+    L->acl = a;
+    for (Tail = &(t->acls); *Tail; Tail = &((*Tail)->next));
+    *Tail = L;
 }
 
 void neighbors_init()
@@ -754,6 +806,7 @@ void neighbors_init()
 	e->weight = t->weight;
 	e->host = t->host;
 	e->domains = t->domains;
+	e->acls = t->acls;
 	e->neighbor_up = 1;
 	if (!strcmp(t->type, "parent")) {
 	    friends->n_parent++;
@@ -774,6 +827,7 @@ void neighbors_init()
 	safe_free(t);
     }
     Neighbor_cf = NULL;
+    any_addr.s_addr = inet_addr("0.0.0.0");
 }
 
 void neighbors_rotate_log()

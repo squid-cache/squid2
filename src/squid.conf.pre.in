@@ -107,6 +107,8 @@
 #		* Cache hosts with no domain restrictions are queried
 #		  for all requests.
 #		* There are no defaults.
+#		* There is also a 'cache_host_acl' tag in the ACL
+#		  section.
 
 #  TAG:	inside_firewall
 #	This tag specifies a list of domains inside your Internet
@@ -583,6 +585,20 @@ http_access allow  all
 
 # Reply to all ICP queries we receive
 icp_access  allow  all
+
+#  TAG: cache_host_acl
+#	Just like 'cache_host_domain' but provides more flexibility by
+#	using ACL's.
+#
+#		cache_host_domain cache-host	[!]aclname ...
+#
+#	NOTE:	* Any number of ACL's may be given for a cache-host,
+#		  either on the same or separate lines.
+#		* When multiple ACL's are given for a particular
+#		  cache-host, the first matched ACL is applied.
+#		* Cache hosts with no domain or ACL restrictions arequeried
+#		  queried for all requests.
+#		* There are no defaults.
 
 # ADMINISTRATIVE PARAMETERS
 #-----------------------------------------------------------------------------

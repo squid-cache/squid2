@@ -17,8 +17,6 @@ static void aclDestroyAclList _PARAMS((struct _acl_list * list));
 static void aclDestroyIpList _PARAMS((struct _acl_ip_data * data));
 static void aclDestroyRegexList _PARAMS((struct _relist * data));
 static void aclDestroyTimeList _PARAMS((struct _acl_time_data * data));
-static struct _acl *aclFindByName _PARAMS((char *name));
-static int aclMatchAcl _PARAMS((struct _acl *, struct in_addr, method_t, protocol_t, char *host, int port, char *request));
 static int aclMatchAclList _PARAMS((struct _acl_list *, struct in_addr, method_t, protocol_t, char *host, int port, char *request));
 static int aclMatchInteger _PARAMS((intlist * data, int i));
 static int aclMatchIp _PARAMS((struct _acl_ip_data * data, struct in_addr c));
@@ -56,7 +54,7 @@ static acl_t aclType(s)
     return ACL_NONE;
 }
 
-static struct _acl *aclFindByName(name)
+struct _acl *aclFindByName(name)
      char *name;
 {
     struct _acl *a;
@@ -598,7 +596,7 @@ static int aclMatchTime(data, when)
     return data->weekbits & (1 << tm.tm_wday) ? 1 : 0;
 }
 
-static int aclMatchAcl(acl, c, m, pr, h, po, r)
+int aclMatchAcl(acl, c, m, pr, h, po, r)
      struct _acl *acl;
      struct in_addr c;
      method_t m;
