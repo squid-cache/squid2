@@ -614,6 +614,21 @@ comm_lingering_close(int fd)
 }
 #endif
 
+/*
+ * enable linger with time of 0 so that when the socket is
+ * closed, TCP generates a RESET
+ */
+void
+comm_reset_close(int fd)
+{
+    struct linger L;
+    L.l_onoff = 1;
+    L.l_linger = 0;
+    if (setsockopt(fd, SOL_SOCKET, SO_LINGER, (char *) &L, sizeof(L)) < 0)
+	debug(50, 0) ("commResetTCPClose: FD %d: %s\n", fd, xstrerror());
+    comm_close(fd);
+}
+
 void
 comm_close(int fd)
 {

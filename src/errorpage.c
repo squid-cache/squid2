@@ -274,6 +274,12 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
 	errorStateFree(err);
 	return;
     }
+    if (0 == strncmp(error_text[err->page_id], "reset", 5)) {
+	if (err->request) {
+	    debug(0, 0) ("RSTing this reply\n");
+	    err->request->flags.reset_tcp = 1;
+	}
+    }
     storeLockObject(entry);
     storeBuffer(entry);
     rep = errorBuildReply(err);

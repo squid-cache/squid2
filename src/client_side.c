@@ -1845,6 +1845,9 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	debug(33, 2) ("clientSendMoreData: Deferring %s\n", storeUrl(entry));
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
 	return;
+    } else if (http->request->flags.reset_tcp) {
+	comm_reset_close(fd);
+	return;
     } else if (entry && EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	/* call clientWriteComplete so the client socket gets closed */
 	clientWriteComplete(fd, NULL, 0, COMM_OK, http);
