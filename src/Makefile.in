@@ -237,7 +237,7 @@ squid.conf cf_parser.c: cf.data cf_gen
 	./cf_gen cf.data
 
 cf_gen: cf_gen.o
-	$(CC) -o $@ cf_gen.o
+	$(CC) -o $@ cf_gen.o $(STD_APP_LIBS)
 
 cf.data: cf.data.pre Makefile
 	sed "\
