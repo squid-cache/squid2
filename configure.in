@@ -1151,6 +1151,10 @@ AC_ARG_ENABLE(x_accelerator_vary,
   fi
 ])
 
+AC_ARG_WITH(filedescriptors,
+[  --with-filedescriptors=NUMBER Force squid to support NUMBER filedescriptors],
+[ squid_filedescriptors_num=$withval ])
+
 # Force some compilers to use ANSI features
 #
 case "$host" in
@@ -1935,17 +1939,22 @@ DEFAULT_FD_SETSIZE=256)
 AC_MSG_RESULT($DEFAULT_FD_SETSIZE)
 AC_DEFINE_UNQUOTED(DEFAULT_FD_SETSIZE, $DEFAULT_FD_SETSIZE)
 
+
 dnl Not cached since people are likely to tune this
 AC_MSG_CHECKING(Maximum number of filedescriptors we can open)
 dnl damn! FreeBSD's pthreads breaks dup2().
-TLDFLAGS="$LDFLAGS"
-case $host in
-i386-unknown-freebsd*)
-    if echo "$LDFLAGS" | grep -q pthread; then
-	LDFLAGS=`echo $LDFLAGS | sed -e "s/-pthread//"`
-    fi
-esac
-AC_TRY_RUN([
+if test -n "$squid_filedescriptors_num" ; then
+  SQUID_MAXFD=$squid_filedescriptors_num
+  AC_MSG_RESULT($SQUID_MAXFD (user-forced))
+else
+  TLDFLAGS="$LDFLAGS"
+  case $host in
+  i386-unknown-freebsd*)
+      if echo "$LDFLAGS" | grep -q pthread; then
+  	LDFLAGS=`echo $LDFLAGS | sed -e "s/-pthread//"`
+      fi
+  esac
+  AC_TRY_RUN([
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>	/* needed on FreeBSD */
@@ -2001,11 +2010,12 @@ main() {
 	fprintf (fp, "%d\n", i);
 	exit(0);
 }
-],
-SQUID_MAXFD=`cat conftestval`,
-SQUID_MAXFD=256,
-SQUID_MAXFD=256)
-AC_MSG_RESULT($SQUID_MAXFD)
+  ],
+  SQUID_MAXFD=`cat conftestval`,
+  SQUID_MAXFD=256,
+  SQUID_MAXFD=256)
+  AC_MSG_RESULT($SQUID_MAXFD)
+fi
 AC_DEFINE_UNQUOTED(SQUID_MAXFD, $SQUID_MAXFD)
 if test "$SQUID_MAXFD" -lt 512 ; then
     echo "WARNING: $SQUID_MAXFD may not be enough filedescriptors if your"
