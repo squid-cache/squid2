@@ -681,12 +681,6 @@ struct _dnsserver_t {
     void *data;
 };
 
-struct _dnsStatData {
-    int requests;
-    int replies;
-    int hist[DefaultDnsChildrenMax];
-};
-
 struct _dwrite_q {
     off_t file_offset;
     char *buf;

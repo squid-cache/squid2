@@ -51,8 +51,6 @@
 #define ACL_ALLWEEK	0x7F
 #define ACL_WEEKDAYS	0x3E
 
-#define DefaultDnsChildrenMax		32	/* 32 processes */
-#define DefaultRedirectChildrenMax	32	/* 32 processes */
 #define MAXHTTPPORTS			12
 
 #define COMM_OK		  (0)

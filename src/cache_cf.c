@@ -284,23 +284,11 @@ configDoConfigure(void)
 #if USE_DNSSERVERS
     if (Config.dnsChildren < 1)
 	fatal("No dnsservers allocated");
-    if (Config.dnsChildren > DefaultDnsChildrenMax) {
-	debug(3, 0) ("WARNING: dns_children was set to a bad value: %d\n",
-	    Config.dnsChildren);
-	debug(3, 0) ("Setting it to the maximum (%d).\n",
-	    DefaultDnsChildrenMax);
-	Config.dnsChildren = DefaultDnsChildrenMax;
-    }
 #endif
     if (Config.Program.redirect) {
 	if (Config.redirectChildren < 1) {
 	    Config.redirectChildren = 0;
 	    wordlistDestroy(&Config.Program.redirect);
-	} else if (Config.redirectChildren > DefaultRedirectChildrenMax) {
-	    debug(3, 0) ("WARNING: redirect_children was set to a bad value: %d\n",
-		Config.redirectChildren);
-	    debug(3, 0) ("Setting it to the maximum (%d).\n", DefaultRedirectChildrenMax);
-	    Config.redirectChildren = DefaultRedirectChildrenMax;
 	}
     }
     if (Config.Accel.host) {
