@@ -465,7 +465,7 @@ mainInitialize(void)
     redirectOpenServers();
     useragentOpenLog();
     httpHeaderInitModule();	/* must go before any header processing (e.g. the one in errorInitialize) */
-    httpAnonInitModule();       /* must go before accepting requests */
+    httpAnonInitModule();	/* must go before accepting requests */
     errorInitialize();
     accessLogInit();
 #ifdef SQUID_SNMP
@@ -517,12 +517,12 @@ mainInitialize(void)
     debug(1, 0) ("Ready to serve requests.\n");
 
     if (!configured_once) {
-	eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 1, 1);
-	eventAdd("storeDirClean", storeDirClean, NULL, 15, 1);
+	eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 1.0, 1);
+	eventAdd("storeDirClean", storeDirClean, NULL, 15.0, 1);
 	if (Config.onoff.announce)
-	    eventAdd("start_announce", start_announce, NULL, 3600, 1);
-	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10, 1);
-	eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 15, 1);
+	    eventAdd("start_announce", start_announce, NULL, 3600.0, 1);
+	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10.0, 1);
+	eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 15.0, 1);
     }
     configured_once = 1;
 }

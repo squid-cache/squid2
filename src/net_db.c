@@ -397,7 +397,7 @@ netdbSaveState(void *foo)
     getCurrentTime();
     debug(37, 0) ("NETDB state saved; %d entries, %d msec\n",
 	count, tvSubMsec(start, current_time));
-    eventAddIsh("netdbSaveState", netdbSaveState, NULL, 3600, 1);
+    eventAddIsh("netdbSaveState", netdbSaveState, NULL, 3600.0, 1);
 }
 
 static void
@@ -627,7 +627,7 @@ netdbInit(void)
     addr_table = hash_create((HASHCMP *) strcmp, n, hash_string);
     n = hashPrime(3 * Config.Netdb.high / 4);
     host_table = hash_create((HASHCMP *) strcmp, n, hash_string);
-    eventAddIsh("netdbSaveState", netdbSaveState, NULL, 3600, 1);
+    eventAddIsh("netdbSaveState", netdbSaveState, NULL, 3600.0, 1);
     netdbReloadState();
     cachemgrRegister("netdb",
 	"Network Measurement Database",

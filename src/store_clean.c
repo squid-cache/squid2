@@ -57,7 +57,7 @@ storeDirClean(void *datanotused)
     int k = 0;
     int N0, N1, N2;
     int D0, D1, D2;
-    eventAdd("storeDirClean", storeDirClean, NULL, 15, 1);
+    eventAdd("storeDirClean", storeDirClean, NULL, 15.0, 1);
     if (store_rebuilding)
 	return;
     N0 = Config.cacheSwap.n_configured;

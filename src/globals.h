@@ -92,6 +92,7 @@ extern char *icp_opcode_str[];
 extern char *swap_log_op_str[];
 extern char *lookup_t_str[];
 extern double request_failure_ratio;	/* 0.0 */
+extern double current_dtime;
 extern int store_hash_buckets;	/* 0 */
 extern hash_table *store_table;	/* NULL */
 extern dlink_list store_list;

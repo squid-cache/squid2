@@ -43,7 +43,7 @@ start_announce(void *datanotused)
 	return;
     cbdataAdd(junk = xmalloc(1), MEM_NONE);
     ipcache_nbgethostbyname(Config.Announce.host, send_announce, junk);
-    eventAdd("send_announce", start_announce, NULL, Config.Announce.period, 1);
+    eventAdd("send_announce", start_announce, NULL, (double) Config.Announce.period, 1);
 }
 
 static void
