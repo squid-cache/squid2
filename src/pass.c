@@ -108,12 +108,6 @@ passStateFree(int fd, void *data)
 	fatal_dump("passStateFree: FD mismatch!\n");
     if (passState->ip_lookup_pending)
 	ipcache_unregister(passState->host, passState->server.fd);
-    if (passState->client.fd > -1) {
-	commSetSelect(passState->client.fd,
-	    COMM_SELECT_READ,
-	    NULL,
-	    NULL, 0);
-    }
     safe_free(passState->server.buf);
     safe_free(passState->client.buf);
     xfree(passState->url);
