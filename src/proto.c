@@ -1,25 +1,6 @@
 /* $Id$ */
 
-#include "config.h"		/* goes first */
-#include <string.h>
-#include <stdlib.h>
-
-#include "ansihelp.h"		/* goes second */
-#include "debug.h"
-#include "comm.h"
-#include "proto.h"		/* for  caddr_t */
-#include "neighbors.h"
-#include "store.h"
-#include "cache_cf.h"
-#include "ipcache.h"
-#include "fdstat.h"
-#include "stat.h"
-#include "util.h"
-#include "cached_error.h"
-
-int getFromCache _PARAMS((int fd, StoreEntry * entry, edge * e));
-int getFromDefaultSource _PARAMS((int fd, StoreEntry * entry));
-int getFromOrgSource _PARAMS((int fd, StoreEntry * entry));
+#include "squid.h"		/* goes first */
 
 static int matchInsideFirewall _PARAMS((char *host));
 static int matchLocalDomain _PARAMS((char *host));
@@ -41,7 +22,6 @@ static char *firewall_desc_str[] =
 
 extern int httpd_accel_mode;
 extern ip_acl *local_ip_list;
-extern char *tmp_error_buf;	/* main.c */
 extern time_t neighbor_timeout;
 extern stoplist *local_domain_list;
 extern stoplist *inside_firewall_list;
@@ -257,16 +237,16 @@ int protoDispatch(fd, url, entry)
     } else if (matchLocalDomain(host) || !data->cachable) {
 	/* will fetch from source */
 	data->direct_fetch = DIRECT_YES;
-	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, data);
+	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, (caddr_t) data);
     } else if (data->n_edges == 0) {
 	/* will fetch from source */
 	data->direct_fetch = DIRECT_YES;
-	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, data);
+	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, (caddr_t) data);
     } else if (local_ip_list) {
 	/* Have to look up the url address so we can compare it */
 	data->source_ping = getSourcePing();
 	data->direct_fetch = DIRECT_MAYBE;
-	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, data);
+	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, (caddr_t) data);
     } else if (data->single_parent && single_parent_bypass &&
 	!(data->source_ping = getSourcePing())) {
 	/* will fetch from single parent */
@@ -277,7 +257,7 @@ int protoDispatch(fd, url, entry)
 	/* will use ping resolution */
 	data->source_ping = getSourcePing();
 	data->direct_fetch = DIRECT_MAYBE;
-	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, data);
+	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, (caddr_t) data);
     }
     return 0;
 }

@@ -1,16 +1,7 @@
 /* $Id$ */
 
-#include "config.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include "squid.h"
 
-#include "debug.h"
-#include "icp_lib.h"
-#include "comm.h"
-#include "proto.h"
-#include "util.h"
 
 /* Send a QUERY request to server  */
 int icp_query(sock, reqnum, auth, rid, url, hostname, port)

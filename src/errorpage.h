@@ -1,3 +1,6 @@
+
+/* $Id$ */
+
 typedef enum {
     ERR_NONE,
     ERR_READ_TIMEOUT,
@@ -19,3 +22,5 @@ typedef enum {
 
 void cached_error_entry _PARAMS((StoreEntry *, error_t, char *));
 char *cached_error_url _PARAMS((char *, error_t, char *));
+
+extern char tmp_error_buf[];

@@ -1,25 +1,7 @@
 /* $Id$ */
 
-#include "config.h"
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <stdlib.h>
-#include <sys/param.h>
-#include <malloc.h>
-#include <pwd.h>
-#include <grp.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include "squid.h"
 
-#include "debug.h"
-#include "comm.h"
-#include "cache_cf.h"
-#include "proto.h"
-#include "store.h"
-#include "ttl.h"
-#include "util.h"
 
 static struct {
     struct {

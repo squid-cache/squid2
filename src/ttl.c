@@ -4,22 +4,8 @@
 #define USE_POSIX_REGEX		/* put before includes; always use POSIX */
 #endif
 
-#include "config.h"
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <netdb.h>
-#include <memory.h>
+#include "squid.h"
 
-#include "autoconf.h"
-#include "GNUregex.h"
-#include "debug.h"
-#include "cache_cf.h"
-#include "comm.h"
-#include "store.h"
-#include "util.h"
 
 typedef struct _ttl_t {
     char *pattern;
@@ -30,10 +16,6 @@ typedef struct _ttl_t {
     time_t pct_max;
     struct _ttl_t *next;
 } ttl_t;
-
-extern time_t cached_curtime;
-extern time_t parse_rfc850 _PARAMS((char *str));
-extern char *mkrfc850 _PARAMS((time_t * t));
 
 static ttl_t *TTL_tbl = NULL;
 static ttl_t *TTL_tail = NULL;

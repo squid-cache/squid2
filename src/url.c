@@ -1,16 +1,6 @@
 /* $Id$ */
 
-#include "config.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "debug.h"
-#include "comm.h"
-#include "proto.h"
-#include "store.h"		/* for the_url() */
-#include "url.h"
-#include "util.h"
+#include "squid.h"
 
 
 int url_acceptable[256];

@@ -1,12 +1,6 @@
 /* $Id$ */
 
-#include "config.h"		/* goes first */
-#include <stdlib.h>
-
-#include "ansihelp.h"		/* goes second */
-#include "util.h"
-#include "debug.h"
-#include "dynamic_array.h"
+#include "squid.h"
 
 /* return 0 for error */
 dynamic_array *create_dynamic_array(size, delta)

@@ -1,14 +1,7 @@
 
 /* $Id$ */
 
-#include "config.h"
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include "debug.h"
-#include "fdstat.h"
-#include "util.h"
+#include "squid.h"
 
 static int Biggest_FD = 0;
 

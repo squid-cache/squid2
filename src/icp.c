@@ -1,36 +1,10 @@
 /* $Id$ */
 
-#include "config.h"
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <sys/time.h>		/* for time(); */
-#include <sys/errno.h>		/* for EWOULDBLOCK */
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-
-#include "ansihelp.h"		/* goes first */
-#include "debug.h"
-#include "comm.h"
-#include "proto.h"		/* for  caddr_t */
-#include "store.h"
-#include "stat.h"
-#include "icp.h"
-#include "stack.h"
-#include "mime.h"
-#include "cache_cf.h"
-#include "util.h"
-#include "url.h"
-#include "stmem.h"
-#include "cached_error.h"
+#include "squid.h"
 
 extern int errno;
 extern unsigned long nconn;
-extern time_t cached_curtime;
 extern int vhost_mode;
-extern char *tmp_error_buf;
 
 static struct in_addr tmp_in_addr;
 static char *crlf = "\r\n";
@@ -64,7 +38,7 @@ icpUdpData *AppendUdp();
 #define UDP_HIT_THRESH 300
 #endif
 
-typedef int (*complete_handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data));
+typedef void (*complete_handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data));
 typedef struct ireadd {
     int fd;
     int binary_mode;
@@ -80,15 +54,6 @@ typedef struct ireadd {
 /* A couple useful macros */
 #define asciiMode(X)  (!(X->binary_mode))
 #define binaryMode(X) ((X->binary_mode))
-
-extern int errno;
-extern unsigned long nconn;
-extern time_t cached_curtime;
-extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *));
-extern int protoDispatch _PARAMS((int, char *, StoreEntry *));
-extern int protoUndispatch _PARAMS((int, char *, StoreEntry *));
-extern int storeRegister _PARAMS((StoreEntry *, int, PIF, caddr_t));
-extern int proto_url_to_id _PARAMS((char *url));
 
 
 /* Local functions */
@@ -174,7 +139,7 @@ void icpRead(fd, bin_mode, buf, size, timeout, handler, client_data)
      char *buf;
      int size;
      int timeout;
-     int (*handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data));
+     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data));
      caddr_t client_data;
 {
     icpReadWriteData *data = NULL;
@@ -272,7 +237,7 @@ char *icpWrite(fd, buf, size, timeout, handler, client_data)
      char *buf;
      int size;
      int timeout;
-     int (*handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data));
+     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data));
      caddr_t client_data;
 {
     icpReadWriteData *data = NULL;
@@ -393,7 +358,7 @@ int icpSendERROR(fd, errorCode, msg, state)
 
 	memcpy(p, msg, strlen(msg) + 1);	/* include \0 */
     }
-    icpWrite(fd, buf, buf_len, 30, icpSendERRORComplete, state);
+    icpWrite(fd, buf, buf_len, 30, icpSendERRORComplete, (caddr_t) state);
     return COMM_OK;
 }
 
@@ -480,7 +445,7 @@ int icpSendMoreData(fd, state)
 
     /* Do this here, so HandleStoreComplete can tell whether more data 
      * needs to be sent. */
-    icpWrite(fd, buf, buf_len, 30, icpHandleStoreComplete, state);
+    icpWrite(fd, buf, buf_len, 30, icpHandleStoreComplete, (caddr_t) state);
     result = COMM_OK;
     return result;
 }
@@ -1431,7 +1396,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		strlen(astm->buf),
 		30,
 		icpSendERRORComplete,
-		astm);
+		(caddr_t) astm);
 	    /* icpSendERRORComplete() will close the FD and deallocate astm */
 	    safe_free(orig_url_ptr);
 	} else if (blockCheck(astm->url)) {
@@ -1447,14 +1412,14 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		strlen(astm->buf),
 		30,
 		icpSendERRORComplete,
-		astm);
+		(caddr_t) astm);
 	    /* icpSendERRORComplete() will close the FD and deallocate astm */
 	    safe_free(orig_url_ptr);
 	} else if (second_ip_acl_check(fd, astm) == IP_DENY) {
 	    sprintf(tmp_error_buf,
 		"ACCESS DENIED\n\nYour IP address (%s) is not authorized to access cached at %s.\n\n",
 		inet_ntoa(astm->peer.sin_addr),
-		comm_hostname());
+		getMyHostname());
 	    astm->buf = xstrdup(tmp_error_buf);
 	    astm->ptr_to_4k_page = NULL;
 	    icpWrite(fd,
@@ -1462,7 +1427,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		strlen(tmp_error_buf),
 		30,
 		icpSendERRORComplete,
-		astm);
+		(caddr_t) astm);
 	    /* icpSendERRORComplete() will close the FD and deallocate astm */
 #ifdef LOG_ERRORS
 	    CacheInfo->log_append(CacheInfo,	/* TCP_DENIED */
@@ -1616,7 +1581,7 @@ int asciiHandleConn(sock, notused)
 	sprintf(tmp_error_buf,
 	    "ACCESS DENIED\n\nYour IP address (%s) is not authorized to access cached at %s.\n\n",
 	    inet_ntoa(peer.sin_addr),
-	    comm_hostname());
+	    getMyHostname());
 	astm->buf = xstrdup(tmp_error_buf);
 	astm->ptr_to_4k_page = NULL;
 	icpWrite(fd,
@@ -1624,7 +1589,7 @@ int asciiHandleConn(sock, notused)
 	    strlen(tmp_error_buf),
 	    30,
 	    icpSendERRORComplete,
-	    astm);
+	    (caddr_t) astm);
 	/* icpSendERRORComplete() will close the FD and deallocate astm */
     } else {
 	astm = (icpStateData *) xcalloc(1, sizeof(icpStateData));

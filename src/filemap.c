@@ -1,12 +1,6 @@
 /* $Id$ */
 
-#include "config.h"
-#include <stdlib.h>
-
-#include "ansihelp.h"
-#include "filemap.h"
-#include "util.h"
-#include "debug.h"
+#include "squid.h"
 
 /* Number of bits in a long */
 #if SIZEOF_LONG == 8

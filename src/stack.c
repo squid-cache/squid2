@@ -1,12 +1,6 @@
 /* $Id$ */
 
-#include "config.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include "stack.h"
-#include "ansihelp.h"
-
-void *xcalloc _PARAMS((int, size_t));	/* Wrapper for calloc(3) */
+#include "squid.h"
 
 
 /*-------------------------------------------------------------------------

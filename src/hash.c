@@ -1,16 +1,7 @@
 
 /* $Id$ */
 
-#include "config.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#undef USE_HASH_DRIVER
-#include "ansihelp.h"
-#include "hash.h"
-#define safe_free(x)	{if ((x) != NULL) { free(x); (x) = NULL; }}
+#include "squid.h"
 
 #define MAX_HTABLE 4
 

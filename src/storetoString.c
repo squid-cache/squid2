@@ -1,12 +1,6 @@
 /* $Id$ */
 
-#include "config.h"
-#include <string.h>
-#include "comm.h"
-#include "store.h"
-#include "util.h"
-
-extern time_t cached_curtime;
+#include "squid.h"
 
 /* convert store entry content to string. Use for debugging */
 /* return pointer to static buffer containing string */

@@ -1,32 +1,9 @@
 /* $Id$ */
 
-#include "config.h"
-#include <sys/errno.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <pwd.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#ifdef HAVE_CRYPT_H
-#include <crypt.h>
-#endif
-
-#include "ansihelp.h"
-#include "comm.h"
-#include "store.h"
-#include "stat.h"
-#include "debug.h"
-#include "cache_cf.h"
-#include "util.h"
+#include "squid.h"
 
 #define STAT_TTL 2
 
-extern time_t cached_curtime;
 extern void shut_down _PARAMS((int));
 
 cacheinfo *CacheInfo = NULL;

@@ -1,22 +1,6 @@
 /* $Id$ */
 
-#include "config.h"
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <errno.h>
-#include <signal.h>
-
-#include "util.h"
+#include "squid.h"
 
 extern int h_errno;
 

@@ -1,17 +1,8 @@
 
 /* $Id$ */
 
-#include "config.h"
-#include <string.h>
-#include <ctype.h>
-#include <sys/types.h>
-
-#include "ansihelp.h"		/* goes first */
-#include "debug.h"
-#include "mime.h"
+#include "squid.h"
 #include "mime_table.h"
-
-extern time_t cached_curtime;
 
 int mime_refresh_request(mime)
      char *mime;
