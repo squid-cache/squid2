@@ -1217,6 +1217,7 @@ storeDiskdDirWriteCleanEntry(SwapDir * sd, const StoreEntry * e)
 	    safe_free(state);
 	    sd->log.clean.state = NULL;
 	    sd->log.clean.write = NULL;
+	    return;
 	}
 	state->outbuf_offset = 0;
     }
