@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.22 
+# From configure.in Revision: 1.18.2.23 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2293,76 +2293,9 @@ cat >> confdefs.h <<EOF
 EOF
 
 
-echo $ac_n "checking if UNIX domain stream sockets work""... $ac_c" 1>&6
-if test "$cross_compiling" = yes; then
-  echo "$ac_t""no" 1>&6
-else
-cat > conftest.$ac_ext <<EOF
-#line 2302 "configure"
-#include "confdefs.h"
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-main()
-{
-    int s1, s2, n, code=1;
-    struct sockaddr_un S;
-    char buf[20];
-    unlink("conftestsock");
-    if (fork()) {		/* child */
-	S.sun_family = AF_UNIX;
-	strcpy(S.sun_path, "conftestsock");
-	if ((s1 = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
-	    perror("child socket");
-	else if (bind(s1, &S, sizeof(S)) < 0)
-	    perror("child bind");
-	else if (listen(s1, 1) < 0)
-	    perror("child listen");
-	else if ((s1 = accept(s1, 0, 0)) < 0)
-	    perror("child accept");
-	else if (read(s1, buf, 20) != 11)
-	    perror("child read");
-	else if (write(s1, buf, 11) != 11)
-	    perror("child write");
-	else
-	    code = 0;
-    } else {			/* parent */
-	sleep(1);
-	S.sun_family = AF_UNIX;
-	strcpy(S.sun_path, "conftestsock");
-	if ((s2 = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
-	    perror("parent socket");
-	else if (connect(s2, &S, sizeof(S)) < 0)
-	    perror("parent connect");
-	else if (write(s2, "hello world", 11) != 11)
-	    perror("parent write");
-	else if (read(s2, buf, 20) != 11)
-	    perror("parent read");
-	else
-	    code = 0;
-    }
-    unlink("conftestsock");
-    exit(code);
-}
-
-EOF
-eval $ac_link
-if test -s conftest && (./conftest; exit) 2>/dev/null; then
-  cat >> confdefs.h <<\EOF
-#define HAVE_WORKING_UNIX_SOCKETS 1
-EOF
-
-echo "$ac_t""yes" 1>&6
-else
-  echo "$ac_t""no" 1>&6
-fi
-fi
-rm -fr conftest*
-
 echo $ac_n "checking if sys_errlist is already defined""... $ac_c" 1>&6
 cat > conftest.$ac_ext <<EOF
-#line 2366 "configure"
+#line 2299 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() { return 0; }

@@ -24,8 +24,5 @@
 /* Host type from configure */
 #undef CONFIG_HOST_TYPE
 
-/* If UNIX domain stream sockets work */
-#undef HAVE_WORKING_UNIX_SOCKETS
-
 /* If we need to declare sys_errlist[] as external */
 #undef NEED_SYS_ERRLIST
