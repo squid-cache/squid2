@@ -1040,7 +1040,7 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	available for future use.  If memory is a premium on your
 #	system, disable this.
 #
-#memory_pools on
+#memory_pools off
 
 #  TAG: forwarded_for on|off
 #	If set, Squid will include your system's IP address or name
