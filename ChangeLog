@@ -178,3 +178,8 @@ beta8:
 	- Added ICP_OP_DENIED message type
 	- Added patches for Nextstep port from Luke Howard <lukeh@vurt.schnet.edu.au>
 	- Added a lifetime to HTTP server connections being deferred.
+	- Added IP address ranges in 'src' ACLs
+	- Added FQDN's in 'src' ACLs
+	- Fixed request structure free-memory-read/coredump bug.
+	- Changed icp.c to select on client socket to detect aborts.
+	- Changed "302 Moved Temporarily" to never be cached.
