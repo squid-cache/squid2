@@ -1072,6 +1072,7 @@ extern int stringHasCntl(const char *);
 extern void linklistPush(link_list **, void *);
 extern void *linklistShift(link_list **);
 extern int xrename(const char *from, const char *to);
+extern int isPowTen(int);
 
 #if USE_HTCP
 extern void htcpInit(void);

@@ -908,3 +908,17 @@ stringHasCntl(const char *s)
     }
     return 0;
 }
+
+/*
+ * isPowTen returns true if its argument is an integer power of
+ * 10.  Its used for logging of certain error messages that can
+ * occur often, but that we don't want to fill cache.log with.
+ */
+int
+isPowTen(int count)
+{
+    double x = log(count) / log(10.0);
+    if (0.0 != x - (double) (int) x)
+	return 0;
+    return 1;
+}

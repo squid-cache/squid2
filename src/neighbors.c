@@ -701,7 +701,6 @@ static void
 neighborIgnoreNonPeer(const struct sockaddr_in *from, icp_opcode opcode)
 {
     peer *np;
-    double x;
     for (np = non_peers; np; np = np->next) {
 	if (np->in_addr.sin_addr.s_addr != from->sin_addr.s_addr)
 	    continue;
@@ -719,13 +718,10 @@ neighborIgnoreNonPeer(const struct sockaddr_in *from, icp_opcode opcode)
 	np->next = non_peers;
 	non_peers = np;
     }
-    np->stats.ignored_replies++;
     np->icp.counts[opcode]++;
-    x = log(np->stats.ignored_replies) / log(10.0);
-    if (0.0 != x - (double) (int) x)
-	return;
-    debug(15, 1) ("WARNING: Ignored %d replies from non-peer %s\n",
-	np->stats.ignored_replies, np->host);
+    if (isPowTen(++np->stats.ignored_replies))
+	debug(15, 1) ("WARNING: Ignored %d replies from non-peer %s\n",
+	    np->stats.ignored_replies, np->host);
 }
 
 /* ignoreMulticastReply
