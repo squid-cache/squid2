@@ -173,7 +173,6 @@ static void icpHandleStore _PARAMS((int, StoreEntry *, void *));
 static void clientWriteComplete _PARAMS((int, char *, int, int, void *icpState));
 static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, void *));
 static void icpHandleIMSComplete _PARAMS((int, char *, int, int, void *icpState));
-extern void identStart _PARAMS((int, icpStateData *));
 static void icpHitObjHandler _PARAMS((int, void *));
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
@@ -262,7 +261,7 @@ icpStateFree(int fd, icpStateData * icpState)
 	    RequestMethodStr[icpState->method],
 	    http_code,
 	    elapsed_msec,
-	    icpState->ident,
+	    icpState->ident.ident,
 #if !LOG_FULL_HEADERS
 	    hierData);
 #else
@@ -277,8 +276,8 @@ icpStateFree(int fd, icpStateData * icpState)
 	    icpState->log_type,
 	    ntohs(icpState->me.sin_port));
     }
-    if (icpState->ident_fd)
-	comm_close(icpState->ident_fd);
+    if (icpState->ident.fd)
+	comm_close(icpState->ident.fd);
     checkFailureRatio(icpState->log_type,
 	hierData ? hierData->code : HIER_NONE);
     safe_free(icpState->inbuf);
@@ -1886,8 +1885,6 @@ asciiHandleConn(int sock, void *notused)
 	1,			/* handle immed */
 	asciiProcessInput,
 	(void *) icpState);
-    if (Config.identLookup)
-	identStart(-1, icpState);
     /* start reverse lookup */
     if (Config.Log.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
@@ -2068,8 +2065,6 @@ icpDetectNewRequest(int fd)
 	1,			/* handle immed */
 	asciiProcessInput,
 	(void *) icpState);
-    if (Config.identLookup)
-	identStart(-1, icpState);
     /* start reverse lookup */
     if (Config.Log.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);

@@ -168,6 +168,9 @@ typedef struct wwd {
 } icpUdpData;
 
 #define ICP_IDENT_SZ 63
+#define IDENT_NONE 0
+#define IDENT_PENDING 1
+#define IDENT_DONE 2
 
 typedef struct iwd {
     icp_common_t header;	/* for UDP_HIT_OBJ's */
@@ -197,8 +200,12 @@ typedef struct iwd {
     aclCheck_t *aclChecklist;
     void (*aclHandler) (struct iwd *, int answer);
     float http_ver;
-    int ident_fd;
-    char ident[ICP_IDENT_SZ];
+    struct {
+        int fd;
+        char ident[ICP_IDENT_SZ];
+	void (*callback) _PARAMS((void *));
+	int state;
+    } ident;
     ConnectStateData identConnectState;
 } icpStateData;
 

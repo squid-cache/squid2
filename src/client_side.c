@@ -66,13 +66,12 @@ clientLookupSrcFQDNDone(int fd, const char *fqdn, void *data)
     clientAccessCheck(icpState, icpState->aclHandler);
 }
 
-#ifdef UNUSED_CODE
 static void
 clientLookupIdentDone(void *data)
 {
+    icpStateData *icpState = data;
+    clientAccessCheck(icpState, icpState->aclHandler);
 }
-
-#endif
 
 #if USE_PROXY_AUTH
 /* return 1 if allowed, 0 if denied */
@@ -109,6 +108,10 @@ clientAccessCheck(icpStateData * icpState, void (*handler) (icpStateData *, int)
     aclCheck_t *ch = NULL;
     char *browser = NULL;
 
+    if (Config.identLookup && icpState->ident.state == IDENT_NONE) {
+        identStart(-1, icpState, clientLookupIdentDone);
+	return;
+    }
     if (icpState->aclChecklist == NULL) {
 	icpState->aclChecklist = xcalloc(1, sizeof(aclCheck_t));
 	icpState->aclChecklist->src_addr = icpState->peer.sin_addr;

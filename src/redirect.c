@@ -320,10 +320,10 @@ redirectStart(int cfd, icpStateData * icpState, RH handler, void *data)
     r->fd = cfd;
     r->orig_url = icpState->url;
     r->client_addr = icpState->log_addr;
-    if (icpState->ident == NULL || *icpState->ident == '\0') {
+    if (icpState->ident.ident == NULL || *icpState->ident.ident == '\0') {
 	r->client_ident = dash_str;
     } else {
-	r->client_ident = icpState->ident;
+	r->client_ident = icpState->ident.ident;
     }
     r->method_s = RequestMethodStr[icpState->request->method];
     r->handler = handler;
