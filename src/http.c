@@ -687,7 +687,7 @@ httpReadReply(int fd, void *data)
 		http_status s = entry->mem_obj->reply->sline.status;
 		if (s == HTTP_HEADER_TOO_LARGE) {
 		    ErrorState *err;
-		    debug(11, 1) ("WARNING: %d:%s: HTTP header too large\n", __FILE__, __LINE__);
+		    debug(11, 1) ("WARNING: %s:%d: HTTP header too large\n", __FILE__, __LINE__);
 		    storeEntryReset(entry);
 		    err = errorCon(ERR_TOO_BIG, HTTP_BAD_GATEWAY);
 		    err->request = requestLink((request_t *) request);
