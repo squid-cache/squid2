@@ -224,7 +224,7 @@ int do_debug = 0;
 
 /* error messages from gethostbyname() */
 static char *my_h_msgs(x)
-	int x;
+     int x;
 {
     if (x == HOST_NOT_FOUND)
 	return "Host not found (authoritative)";

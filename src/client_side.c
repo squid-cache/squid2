@@ -76,6 +76,7 @@ static void clientLookupIdentDone(data)
      void *data;
 {
 }
+
 #endif
 
 #if USE_PROXY_AUTH
@@ -181,7 +182,7 @@ void clientAccessCheckDone(icpState, answer)
 	redirectUrl = aclGetDenyInfoUrl(&DenyInfoList, AclMatchedName);
 	if (redirectUrl) {
 	    icpState->http_code = 302,
-	    buf = access_denied_redirect(icpState->http_code,
+		buf = access_denied_redirect(icpState->http_code,
 		icpState->method,
 		icpState->url,
 		fd_table[fd].ipaddr,
@@ -189,9 +190,9 @@ void clientAccessCheckDone(icpState, answer)
 	} else {
 	    icpState->http_code = 400;
 	    buf = access_denied_msg(icpState->http_code,
-	        icpState->method,
-	        icpState->url,
-	        fd_table[fd].ipaddr);
+		icpState->method,
+		icpState->url,
+		fd_table[fd].ipaddr);
 	}
 	icpSendERROR(fd, LOG_TCP_DENIED, buf, icpState, icpState->http_code);
     }

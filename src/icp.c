@@ -1671,9 +1671,9 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 	/* parser returned -1 */
 	debug(12, 1, "asciiProcessInput: FD %d Invalid Request\n", fd);
 	wbuf = squid_error_request(icpState->inbuf,
-		ERR_INVALID_REQ,
-		fd_table[fd].ipaddr,
-		icpState->http_code);
+	    ERR_INVALID_REQ,
+	    fd_table[fd].ipaddr,
+	    icpState->http_code);
 	icpSendERROR(fd, ERR_INVALID_REQ, wbuf, icpState, 400);
     }
 }
