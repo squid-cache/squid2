@@ -1154,7 +1154,7 @@ state_t read_welcome(r)
 
 #ifdef PASVONLY
     r->login_att++;
-#endif PASVONLY
+#endif	/* PASVONLY */
 
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code == 220)
@@ -1183,7 +1183,7 @@ state_t do_user(r)
 
 #ifndef PASVONLY
     r->login_att++;
-#endif PASVONLY
+#endif	/* PASVONLY */
 
     sprintf(cbuf, "USER %s", r->user);
     SEND_CBUF;
@@ -1336,17 +1336,17 @@ state_t do_port(r)
     }
 #else
     {
-        port = 0;
-        S.sin_port = htons(port);
-        if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
-              r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
-              sprintf(r->errmsg, "bind: %s", xstrerror());
-              r->rc = 2;
-              return FAIL_SOFT;
-        }
-        port = ntohs(S.sin_port);
+	port = 0;
+	S.sin_port = htons(port);
+	if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+	    r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	    sprintf(r->errmsg, "bind: %s", xstrerror());
+	    r->rc = 2;
+	    return FAIL_SOFT;
+	}
+	port = ntohs(S.sin_port);
     }
-#endif PASVONLY
+#endif	/* PASVONLY */
 
 
     if (listen(sock, 1) < 0) {

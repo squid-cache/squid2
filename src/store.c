@@ -1268,7 +1268,7 @@ static int storeDoRebuildFromDisk(data)
     /* load a number of objects per invocation */
     for (count = 0; count < data->speed; count++) {
 	if (!fgets(data->line_in, 4095, data->log))
-	    return 0;	/* We are done */
+	    return 0;		/* We are done */
 
 	if ((++data->linecount & 0xFFF) == 0)
 	    debug(20, 1, "  %7d Lines read so far.\n", data->linecount);

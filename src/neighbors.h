@@ -29,8 +29,8 @@ typedef enum {
 } hier_code;
 
 typedef enum {
-	EDGE_SIBLING,
-	EDGE_PARENT
+    EDGE_SIBLING,
+    EDGE_PARENT
 } neighbor_t;
 
 /* Mark a neighbor cache as dead if it doesn't answer this many pings */

@@ -31,7 +31,7 @@
 #if HAVE_MEMORY_H
 #include <memory.h>
 #endif
-#if HAVE_NETDB_H && !defined(_SQUID_NETDB_H_) /* protect NEXTSTEP */
+#if HAVE_NETDB_H && !defined(_SQUID_NETDB_H_)	/* protect NEXTSTEP */
 #define _SQUID_NETDB_H_
 #include <netdb.h>
 #endif
