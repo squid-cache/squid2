@@ -262,20 +262,7 @@ peerSelectFoo(ps_state * psstate)
     debug(44, 3) ("peerSelectFoo: '%s %s'\n",
 	RequestMethodStr[request->method],
 	request->host);
-    if (psstate->never_direct == 0 && Config.accessList.NeverDirect) {
-	psstate->acl_checklist = aclChecklistCreate(
-	    Config.accessList.NeverDirect,
-	    request,
-	    request->client_addr,
-	    NULL,		/* user agent */
-	    NULL);		/* ident */
-	aclNBCheck(psstate->acl_checklist,
-	    peerCheckNeverDirectDone,
-	    psstate);
-	return;
-    } else if (psstate->never_direct > 0) {
-	direct = DIRECT_NO;
-    } else if (psstate->always_direct == 0 && Config.accessList.AlwaysDirect) {
+    if (psstate->always_direct == 0 && Config.accessList.AlwaysDirect) {
 	psstate->acl_checklist = aclChecklistCreate(
 	    Config.accessList.AlwaysDirect,
 	    request,
@@ -288,6 +275,19 @@ peerSelectFoo(ps_state * psstate)
 	return;
     } else if (psstate->always_direct > 0) {
 	direct = DIRECT_YES;
+    } else if (psstate->never_direct == 0 && Config.accessList.NeverDirect) {
+	psstate->acl_checklist = aclChecklistCreate(
+	    Config.accessList.NeverDirect,
+	    request,
+	    request->client_addr,
+	    NULL,		/* user agent */
+	    NULL);		/* ident */
+	aclNBCheck(psstate->acl_checklist,
+	    peerCheckNeverDirectDone,
+	    psstate);
+	return;
+    } else if (psstate->never_direct > 0) {
+	direct = DIRECT_NO;
     } else if (request->flags.loopdetect) {
 	direct = DIRECT_YES;
     } else {
