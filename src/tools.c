@@ -339,6 +339,7 @@ normal_shutdown(void)
 	leave_suid();
     }
     releaseServerSockets();
+    unlinkdClose();
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
     storeCloseLog();

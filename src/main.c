@@ -569,6 +569,7 @@ mainInitialize(void)
 #endif
 
     if (first_time) {
+	unlinkdInit();
 	/* module initialization */
 	urlInitialize();
 	stat_init(&HTTPCacheInfo, Config.Log.access);

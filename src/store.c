@@ -247,6 +247,8 @@ static void storeSetPrivateKey _PARAMS((StoreEntry *));
 static void storeDoRebuildFromDisk _PARAMS((void *data));
 static void storeRebuiltFromDisk _PARAMS((struct storeRebuild_data * data));
 static unsigned int getKeyCounter _PARAMS((void));
+static void storePutUnusedFileno _PARAMS((int fileno));
+static int storeGetUnusedFileno _PARAMS((void));
 
 /* Now, this table is inaccessible to outsider. They have to use a method
  * to access a value in internal storage data structure. */
@@ -1242,7 +1244,7 @@ storeSwapOutHandle(int fd, int flag, StoreEntry * e)
 	file_close(fd);
 	if (e->swap_file_number != -1) {
 	    file_map_bit_reset(e->swap_file_number);
-	    safeunlink(storeSwapFullPath(e->swap_file_number, NULL), 0);
+	    storePutUnusedFileno(e->swap_file_number);
 	    e->swap_file_number = -1;
 	}
 	storeRelease(e);
@@ -1310,7 +1312,8 @@ storeSwapOutStart(StoreEntry * e)
     LOCAL_ARRAY(char, swapfilename, SQUID_MAXPATHLEN);
     MemObject *mem = e->mem_obj;
     /* Suggest a new swap file number */
-    swapfileno = (swapfileno + 1) % (MAX_SWAP_FILE);
+    if ((swapfileno = storeGetUnusedFileno()) < 0)
+        swapfileno = (swapfileno + 1) % (MAX_SWAP_FILE);
     /* Record the number returned */
     swapfileno = file_map_allocate(swapfileno);
     storeSwapFullPath(swapfileno, swapfilename);
@@ -1404,7 +1407,7 @@ storeDoRebuildFromDisk(void *data)
 	    storeSwapFullPath(sfileno, swapfile);
 	if (x != 6) {
 	    if (opt_unlink_on_reload && swapfile[0])
-		safeunlink(swapfile, 0);
+	        storePutUnusedFileno(sfileno);
 	    continue;
 	}
 	if (sfileno < 0 || sfileno >= MAX_SWAP_FILE)
@@ -2077,7 +2080,7 @@ storeRelease(StoreEntry * e)
 	debug(20, 5, "storeRelease: Release anonymous object\n");
 
     if (e->swap_status == SWAP_OK && (e->swap_file_number > -1)) {
-	(void) safeunlink(storeSwapFullPath(e->swap_file_number, NULL), 1);
+	storePutUnusedFileno(e->swap_file_number);
 	file_map_bit_reset(e->swap_file_number);
 	e->swap_file_number = -1;
 	store_swap_size -= (e->object_len + 1023) >> 10;
@@ -2905,4 +2908,25 @@ storeTimestampsSet(StoreEntry * entry)
     else
 	entry->lastmod = served_date;
     entry->timestamp = served_date;
+}
+
+#define FILENO_STACK_SIZE 128
+static int fileno_stack[FILENO_STACK_SIZE];
+static int fileno_stack_idx = -1;
+
+static int
+storeGetUnusedFileno(void)
+{
+    if (fileno_stack_idx < 0)
+	return -1;
+    return fileno_stack[fileno_stack_idx--];
+}
+
+static void
+storePutUnusedFileno(int fileno)
+{
+    if (fileno_stack_idx < FILENO_STACK_SIZE-1)
+        fileno_stack[fileno_stack_idx++] = fileno;
+    else
+	unlinkdUnlink(storeSwapFullPath(fileno, NULL));
 }

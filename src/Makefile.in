@@ -115,6 +115,7 @@ OBJS	 	= \
 		store_clean.o \
 		storetoString.o \
 		tools.o \
+		unlinkd.o \
 		url.o \
 		useragent.o \
 		wais.o \
