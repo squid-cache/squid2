@@ -182,7 +182,7 @@ asnCacheStart(int as)
     if ((e = storeGet(k)) == NULL) {
 	e = storeCreateEntry(asres, asres, 0, METHOD_GET);
 	storeClientListAdd(e, asState);
-	fwdStart(-1, e, asState->request);
+	fwdStart(-1, e, asState->request, any_addr);
     } else {
 	storeLockObject(e);
 	storeClientListAdd(e, asState);

@@ -291,7 +291,7 @@ peerDigestRequest(peer * p)
     fetch->offset = 0;
     debug(72, 3) ("peerDigestRequest: forwarding to fwdStart...\n");
     /* push towards peer cache */
-    fwdStart(-1, e, req);
+    fwdStart(-1, e, req, any_addr);
     storeClientCopy(e, 0, 0, SM_PAGE_SIZE, memAllocate(MEM_4K_BUF),
 	peerDigestFetchReply, fetch);
 }
