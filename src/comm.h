@@ -76,7 +76,7 @@ extern int comm_get_fd_lifetime _PARAMS((int fd));
 extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void **));
 extern int comm_init _PARAMS((void));
 extern int comm_listen _PARAMS((int sock));
-extern int comm_open _PARAMS((unsigned int io_type, u_short port, char *note));
+extern int comm_open _PARAMS((unsigned int io_type, struct in_addr, u_short port, char *note));
 extern int comm_open_unix _PARAMS((char *note));
 extern u_short comm_local_port _PARAMS((int fd));
 extern int comm_select _PARAMS((time_t sec, time_t));
@@ -92,7 +92,6 @@ extern void comm_set_stall _PARAMS((int, int));
 extern int comm_get_fd_timeout _PARAMS((int fd));
 extern void comm_read _PARAMS((int fd, char *buf, int size, int timeout, int immed, rw_complete_handler * handler, void *handler_data));
 extern void comm_write _PARAMS((int fd, char *buf, int size, int timeout, rw_complete_handler * handler, void *handler_data));
-extern int commBind _PARAMS((int fd, struct in_addr addr, u_short port));
 
 extern int RESERVED_FD;
 

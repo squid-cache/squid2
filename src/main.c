@@ -131,6 +131,7 @@ void serverConnectionsOpen()
     /* Open server ports */
     enter_suid();
     theHttpConnection = comm_open(COMM_NONBLOCKING,
+	getTcpIncomingAddr(),
 	getHttpPortNum(),
 	"HTTP Port");
     leave_suid();
@@ -149,6 +150,7 @@ void serverConnectionsOpen()
     if (!httpd_accel_mode || getAccelWithProxy()) {
 	if ((port = getIcpPortNum()) > 0) {
 	    theInIcpConnection = comm_open(COMM_NONBLOCKING | COMM_DGRAM,
+		getUdpIncomingAddr(),
 		port,
 		"ICP Port");
 	    if (theInIcpConnection < 0)
@@ -160,16 +162,14 @@ void serverConnectionsOpen()
 		0);
 	    debug(1, 1, "Accepting ICP connections on FD %d.\n",
 		theInIcpConnection);
-	    if ((addr = getUdpIncomingAddr()).s_addr != SQUID_INADDR_NONE)
-		commBind(theInIcpConnection, addr, port);
 
 	    if ((addr = getUdpOutgoingAddr()).s_addr != SQUID_INADDR_NONE) {
 		theOutIcpConnection = comm_open(COMM_NONBLOCKING | COMM_DGRAM,
+		    addr,
 		    port,
 		    "ICP Port");
 		if (theOutIcpConnection < 0)
 		    fatal("Cannot open Outgoing ICP Port");
-		commBind(theOutIcpConnection, addr, port);
 		comm_set_select_handler(theOutIcpConnection,
 		    COMM_SELECT_READ,
 		    icpHandleUdp,

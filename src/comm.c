@@ -37,6 +37,7 @@ static int commSetReuseAddr _PARAMS((int));
 static int examine_select _PARAMS((fd_set *, fd_set *, fd_set *));
 static int commSetNoLinger _PARAMS((int));
 static void comm_select_incoming _PARAMS((void));
+static int commBind _PARAMS((int s, struct in_addr, u_short port));
 
 static int *fd_lifetime = NULL;
 static struct timeval zero_tv;
@@ -66,7 +67,7 @@ u_short comm_local_port(fd)
     return fd_table[fd].local_port;
 }
 
-int commBind(s, in_addr, port)
+static int commBind(s, in_addr, port)
      int s;
      struct in_addr in_addr;
      u_short port;
@@ -138,14 +139,14 @@ int comm_open_unix(note)
 
 /* Create a socket. Default is blocking, stream (TCP) socket.  IO_TYPE
  * is OR of flags specified in comm.h. */
-int comm_open(io_type, port, note)
+int comm_open(io_type, addr, port, note)
      unsigned int io_type;
+     struct in_addr addr;
      u_short port;
      char *note;
 {
     int new_socket;
     FD_ENTRY *conn = NULL;
-    struct in_addr addr;
     int sock_type = io_type & COMM_DGRAM ? SOCK_DGRAM : SOCK_STREAM;
 
     /* Create socket for accepting new connections. */
@@ -184,9 +185,6 @@ int comm_open(io_type, port, note)
 	if (do_reuse)
 	    commSetReuseAddr(new_socket);
     }
-    addr.s_addr = SQUID_INADDR_NONE;
-    if (sock_type == SOCK_STREAM)
-	addr = port ? getTcpIncomingAddr() : getTcpOutgoingAddr();
     if (addr.s_addr != SQUID_INADDR_NONE)
 	if (commBind(new_socket, addr, port) != COMM_OK)
 	    return COMM_ERROR;

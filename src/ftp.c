@@ -19,6 +19,7 @@ static char ftpget_socket_path[128];
 #else
 static char localhost[] = "127.0.0.1";
 static u_short ftpget_port = 0;
+static struct in_addr local_addr;
 #endif
 
 typedef struct _Ftpdata {
@@ -562,7 +563,7 @@ int ftpStart(unusedfd, url, request, entry)
 #if HAVE_WORKING_UNIX_SOCKETS
     data->ftp_fd = comm_open_unix(url);
 #else
-    data->ftp_fd = comm_open(COMM_NONBLOCKING, 0, url);
+    data->ftp_fd = comm_open(COMM_NONBLOCKING, local_addr, 0, url);
 #endif
     if (data->ftp_fd == COMM_ERROR) {
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
@@ -672,6 +673,8 @@ int ftpInitialize()
     strncpy(ftpget_socket_path, tempnam(NULL, "ftpget"), 127);
 #else
     ftpget_port = CACHE_FTP_PORT + getHttpPortNum();
+    memset(&local_addr, '\0', sizeof(struct in_addr));
+    local_addr.s_addr = inet_addr(localhost);
 #endif
 
     if (pipe(squid_to_ftpget) < 0) {

@@ -321,7 +321,7 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
 	RequestMethodStr[request->method], url);
 
     /* Create socket. */
-    sock = comm_open(COMM_NONBLOCKING, 0, url);
+    sock = comm_open(COMM_NONBLOCKING, getTcpOutgoingAddr(), 0, url);
     if (sock == COMM_ERROR) {
 	debug(26, 4, "sslStart: Failed because we're out of sockets.\n");
 	squid_error_url(url,
