@@ -53,6 +53,7 @@ typedef struct squidaio_ctrl_t {
     AIOCB *done_handler;
     void *done_handler_data;
     squidaio_result_t result;
+    int len;
     char *bufp;
     FREE *free_func;
     dlink_node node;
@@ -147,7 +148,7 @@ aioClose(int fd)
 void
 aioCancel(int fd)
 {
-    squidaio_ctrl_t *curr;
+    squidaio_ctrl_t *ctrlp;
     AIOCB *done_handler;
     void *their_data;
     dlink_node *m, *next;
@@ -156,23 +157,29 @@ aioCancel(int fd)
     squidaio_counts.cancel++;
     for (m = used_list.head; m; m = next) {
 	next = m->next;
-	curr = m->data;
-	if (curr->fd != fd)
+	ctrlp = m->data;
+	if (ctrlp->fd != fd)
 	    continue;
 
-	squidaio_cancel(&curr->result);
+	squidaio_cancel(&ctrlp->result);
 
-	if ((done_handler = curr->done_handler)) {
-	    their_data = curr->done_handler_data;
-	    curr->done_handler = NULL;
-	    curr->done_handler_data = NULL;
+	if ((done_handler = ctrlp->done_handler)) {
+	    their_data = ctrlp->done_handler_data;
+	    ctrlp->done_handler = NULL;
+	    ctrlp->done_handler_data = NULL;
 	    debug(32, 2) ("this be aioCancel\n");
 	    if (cbdataValid(their_data))
-		done_handler(fd, their_data, -2, -2);
+		done_handler(fd, their_data, NULL, -2, -2);
 	    cbdataUnlock(their_data);
+	    /* free data if requested to aioWrite() */
+	    if (ctrlp->free_func)
+		ctrlp->free_func(ctrlp->bufp);
+	    /* free temporary read buffer */
+	    if (ctrlp->operation == _AIO_READ)
+		squidaio_xfree(ctrlp->bufp, ctrlp->len);
 	}
 	dlinkDelete(m, &used_list);
-	memPoolFree(squidaio_ctrl_pool, curr);
+	memPoolFree(squidaio_ctrl_pool, ctrlp);
     }
 }
 
@@ -206,7 +213,7 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
 
 
 void
-aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callback_data)
+aioRead(int fd, int offset, int len, AIOCB * callback, void *callback_data)
 {
     squidaio_ctrl_t *ctrlp;
     int seekmode;
@@ -218,6 +225,8 @@ aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callbac
     ctrlp->done_handler = callback;
     ctrlp->done_handler_data = callback_data;
     ctrlp->operation = _AIO_READ;
+    ctrlp->len = len;
+    ctrlp->bufp = squidaio_xmalloc(len);
     if (offset >= 0)
 	seekmode = SEEK_SET;
     else {
@@ -226,7 +235,7 @@ aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callbac
     }
     cbdataLock(callback_data);
     ctrlp->result.data = ctrlp;
-    squidaio_read(fd, bufp, len, offset, seekmode, &ctrlp->result);
+    squidaio_read(fd, ctrlp->bufp, len, offset, seekmode, &ctrlp->result);
     dlinkAdd(ctrlp, &ctrlp->node, &used_list);
     return;
 }				/* aioRead */
@@ -309,14 +318,24 @@ aioCheckCallbacks(SwapDir * SD)
 	    ctrlp->done_handler_data = NULL;
 	    if (cbdataValid(their_data)) {
 		retval = 1;	/* Return that we've actually done some work */
-		done_handler(ctrlp->fd, their_data,
+		done_handler(ctrlp->fd, their_data, ctrlp->bufp,
 		    ctrlp->result.aio_return, ctrlp->result.aio_errno);
+	    } else {
+		if (ctrlp->operation == _AIO_OPEN) {
+		    /* The open operation was aborted.. */
+		    int fd = ctrlp->result.aio_return;
+		    if (fd >= 0)
+			aioClose(fd);
+		}
 	    }
 	    cbdataUnlock(their_data);
 	}
 	/* free data if requested to aioWrite() */
 	if (ctrlp->free_func)
 	    ctrlp->free_func(ctrlp->bufp);
+	/* free temporary read buffer */
+	if (ctrlp->operation == _AIO_READ)
+	    squidaio_xfree(ctrlp->bufp, ctrlp->len);
 	if (ctrlp->operation == _AIO_CLOSE)
 	    aioFDWasClosed(ctrlp->fd);
 	memPoolFree(squidaio_ctrl_pool, ctrlp);

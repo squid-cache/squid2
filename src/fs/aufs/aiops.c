@@ -185,7 +185,7 @@ squidaio_get_pool(int size)
     return p;
 }
 
-static void *
+void *
 squidaio_xmalloc(int size)
 {
     void *p;
@@ -211,7 +211,7 @@ squidaio_xstrdup(const char *str)
     return p;
 }
 
-static void
+void
 squidaio_xfree(void *p, int size)
 {
     MemPool *pool;
@@ -523,9 +523,6 @@ squidaio_cleanup_request(squidaio_request_t * requestp)
 	squidaio_xstrfree(requestp->path);
 	break;
     case _AIO_OP_READ:
-	if (!cancelled && requestp->ret > 0)
-	    xmemcpy(requestp->bufferp, requestp->tmpbufp, requestp->ret);
-	squidaio_xfree(requestp->tmpbufp, requestp->buflen);
 	break;
     case _AIO_OP_WRITE:
 	squidaio_xfree(requestp->tmpbufp, requestp->buflen);
@@ -596,7 +593,6 @@ squidaio_read(int fd, char *bufp, int bufs, off_t offset, int whence, squidaio_r
     requestp = memPoolAlloc(squidaio_request_pool);
     requestp->fd = fd;
     requestp->bufferp = bufp;
-    requestp->tmpbufp = (char *) squidaio_xmalloc(bufs);
     requestp->buflen = bufs;
     requestp->offset = offset;
     requestp->whence = whence;
@@ -613,7 +609,7 @@ static void
 squidaio_do_read(squidaio_request_t * requestp)
 {
     lseek(requestp->fd, requestp->offset, requestp->whence);
-    requestp->ret = read(requestp->fd, requestp->tmpbufp, requestp->buflen);
+    requestp->ret = read(requestp->fd, requestp->bufferp, requestp->buflen);
     requestp->err = errno;
 }
 
