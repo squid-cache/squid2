@@ -70,6 +70,7 @@ fd_close(int fd)
 	assert(F->read_handler == NULL);
 	assert(F->write_handler == NULL);
     }
+    debug(51, 3) ("fd_close FD %d %s\n", fd, F->desc);
     fdUpdateBiggest(fd, F->open = FD_CLOSE);
     Number_FD--;
     memset(F, '\0', sizeof(fde));
