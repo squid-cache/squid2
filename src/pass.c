@@ -611,6 +611,8 @@ passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
 	hierarchyNote(request, HIER_ROUNDROBIN_PARENT, 0, e->host);
     } else if ((e = getFirstUpParent(request))) {
 	hierarchyNote(request, HIER_FIRSTUP_PARENT, 0, e->host);
+    } else {
+	hierarchyNote(request, HIER_DIRECT, 0, request->host);
     }
     passState->proxying = e ? 1 : 0;
     passState->host = e ? e->host : request->host;
