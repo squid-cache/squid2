@@ -9,12 +9,12 @@
 #define HTTP_DELETE_GAP   (1<<18)
 
 struct {
-	int parsed;
-	int date;
-	int lm;
-	int exp;
-	int clen;
-	int ctype;
+    int parsed;
+    int date;
+    int lm;
+    int exp;
+    int clen;
+    int ctype;
 } ReplyHeaderStats;
 
 static int httpStateFree(fd, httpState)
@@ -700,7 +700,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
 }
 
 void httpReplyHeaderStats(entry)
-	StoreEntry *entry;
+     StoreEntry *entry;
 {
     storeAppendPrintf(entry, open_bracket);
     storeAppendPrintf(entry, "{HTTP Reply Headers}\n");

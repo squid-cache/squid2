@@ -82,7 +82,7 @@ static void destroy_StoreEntry _PARAMS((StoreEntry *));
 static MemObject *new_MemObject _PARAMS((void));
 static mem_ptr new_MemObjectData _PARAMS((void));
 static StoreEntry *new_StoreEntry _PARAMS((int mem_obj_flag));
-static int storeCheckPurgeMem _PARAMS((StoreEntry *e));
+static int storeCheckPurgeMem _PARAMS((StoreEntry * e));
 
 
 /* Now, this table is inaccessible to outsider. They have to use a method
@@ -2393,7 +2393,7 @@ int storeEntryValidToSend(e)
 	) {
 	debug(20, 0, "storeEntryValidToSend: Invalid object detected!\n");
 	debug(20, 0, "storeEntryValidToSend: Entry Dump:\n%s\n", storeToString(e));
-	    return 0;
+	return 0;
     }
     if (squid_curtime < e->expires)
 	return 1;
@@ -2807,4 +2807,3 @@ static int storeCheckPurgeMem(e)
 	return 0;
     return 1;
 }
-
