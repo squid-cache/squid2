@@ -199,9 +199,6 @@
 #if HAVE_BSTRING_H
 #include <bstring.h>
 #endif
-#ifdef HAVE_CRYPT_H
-#include <crypt.h>
-#endif
 #if HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
