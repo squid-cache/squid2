@@ -343,7 +343,7 @@ snmpHandleUdp(int sock, void *not_used)
     debug(49, 5) ("snmpHandleUdp: Initialized.\n");
     commSetSelect(sock, COMM_SELECT_READ, snmpHandleUdp, NULL, 0);
     debug(49, 5) ("snmpHandleUdp: got past select\n");
-    from_len = sizeof(from);
+    from_len = sizeof(struct sockaddr_in);
     memset(&from, '\0', from_len);
     len = recvfrom(sock,
 	buf,
@@ -382,8 +382,8 @@ snmpHandleUdp(int sock, void *not_used)
 	inet_ntoa(from.sin_addr));
     outbuf = xmalloc(outlen = SNMP_REQUEST_SIZE);
     errstat = snmp_agent_parse(buf, len, outbuf, &outlen,
-	(u_long) (from.sin_addr.s_addr), (long *) (&this_reqid));
-    if (memcmp(&from, &local_snmpd, sizeof(from)) == 0) {
+	(u_long) from.sin_addr.s_addr, (long *) (&this_reqid));
+    if (memcmp(&from, &local_snmpd, sizeof(struct sockaddr_in)) == 0) {
 	/* look it up */
 	if (snmpFwd_removePending(&from, this_reqid)) {		/* failed */
 	    debug(49, 5) ("snmp: bogus response\n");
