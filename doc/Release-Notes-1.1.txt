@@ -8,21 +8,28 @@ TABLE OF CONTENTS:
 	Ident (RFC 931) lookups
 	Asynchronous Disk I/O
 	URL Redirector
+	Reverse IP Lookups, client hostname ACLs.
+	Cache directory structure changes
 
 Ident (RFC 931) lookups
 ==============================================================================
 Squid will make an RFC931/ident request for client connections if
 'ident_lookup' is enabled in the config file.  Currently, the ident
 value is only logged with the request in the access.log.  It is not
-currently (1.1.alpha4) possible to use the ident return value for
+currently (1.1.alpha6) possible to use the ident return value for
 access control purposes.
 
 Asynchronous Disk I/O
 ==============================================================================
 Pete Bentley <pete@demon.net> has contributed a module for asynchronous
 disk I/O.  To enable, you must define USE_ASYNC_IO (e.g. in the Makefile,
-or include/config.h).  It does not yet compile for IRIX 5.3, so there
-are a few bugs to work out.
+or include/config.h).  It should compile for both IRIX 5.3 and Solaris 2.x.
+
+However, due to some of the underlying routines and structures in
+disk.[ch], asynchronous I/O is not be efficiently implemented yet.
+There can only be one outstanding aio_write() call per return from 
+the select loop.  The standard disk I/O routines write all pending
+blocks per return from select().
 
 URL Redirector
 ==============================================================================
@@ -68,3 +75,51 @@ following 'cache_object' URL:
     % client cache_object://localhost/stats/redirector
 
 
+
+Reverse IP Lookups, client hostname ACLs.
+==============================================================================
+Squid now has a address-to-hostname cache ("fqdncache") much like the
+name-to-address cache ("ipcache").  This means Squid can now write 
+client hostnames in the access log, and that client domain names can
+be used in ACL expressions.
+
+If you would like to log hostnames instead of addresses, enable
+'log_fqdn' in your config file.  This causes a reverse-lookup to be
+started just after the client connection has been accepted.  If the
+reverse lookup has completed by the time the entry gets logged, the
+fully qualified domain name will be used, otherwise the IP address
+is still logged.  Squid does not wait for the reverse lookup before
+logging the access (but this may be changed in the future).
+
+A new ACL type has been added for matching client hostnames:
+
+    acl Myusers srcdomain foo.org
+
+The use of this ACL type may cause noticable delay in serving objects
+through the cache.  However, so long as allowed clients are local, the
+reverse lookup should not take very long and the delay may not be
+noticed.
+
+Only the FQDN (i.e. the h_name field) is used for the comparison, 
+host aliases are *not* checked.
+
+If a reverse lookup fails, the word "none" will be used for the
+comparison.  If you wanted to deny access to clients which did not
+map back to valid names, you could use
+
+    acl BadClients srcdomain none
+    http_access deny BadClients
+
+NOTE: DNS has a number of known security problems.  Squid does not make
+any effort to guarantee the validity of data returned from gethostbyname()
+or gethostbyaddr() calls.
+
+
+Cache directory structure changes
+==============================================================================
+Squid-1.1 uses a different directory structure for cache files.
+Squid-1.0 used 100 directories for each 'cache_dir'.  Squid-1.1 uses a
+two level structure with 16 first-level directories, and 256 second
+level directories.  In addition, directory and file names are in
+hexadecimal, and fixed length.  These changes mean that Squid-1.1 will
+fail to reload metadata from a Squid-1.0 swap log.
