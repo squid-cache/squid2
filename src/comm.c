@@ -1053,6 +1053,10 @@ comm_select(time_t sec)
 void
 commSetSelect(int fd, unsigned int type, PF handler, void *client_data, time_t timeout)
 {
+    if (fd < 0) {
+	debug_trap("commSetSelect: FD < 0");
+	return;
+    }
     if (type & COMM_SELECT_TIMEOUT) {
 	fd_table[fd].timeout_time = (getCurrentTime() + timeout);
 	fd_table[fd].timeout_delta = timeout;
