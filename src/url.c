@@ -94,6 +94,7 @@ void urlInitialize()
     unsigned int i;
     char *good =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./-_$";
+    debug(23, 5, "urlInitialize: Initializing...\n");
     for (i = 0; i < 256; i++)
 	url_acceptable[i] = 0;
     for (; *good; good++)
