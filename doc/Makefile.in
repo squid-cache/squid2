@@ -129,8 +129,7 @@ man_MANS = \
 
 EXTRA_DIST = \
 	squid.8 \
-	debug-sections.txt \
-	release-notes/release-2.5.html
+	debug-sections.txt
 
 subdir = doc
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
@@ -201,7 +200,6 @@ top_distdir = ..
 distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
 
 distdir: $(DISTFILES)
-	$(mkinstalldirs) $(distdir)/release-notes
 	@for file in $(DISTFILES); do \
 	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
 	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
