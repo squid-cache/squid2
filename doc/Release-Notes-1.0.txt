@@ -19,6 +19,7 @@ TABLE OF CONTENTS:
 	Assigning weights to cache neighbors
 	Converting 'cache/log' from cached-1.4.pl3
 	Notes on stoplists vs. ttl_pattern
+        SIGUSR1 now rotates log files
 
 
 Private Objects
@@ -333,3 +334,10 @@ Instead, the object will be fetched directly (unless on the other side
 of a firewall).  We recommend that you use the stoplist for cgi-bin
 scripts and use the ttl_pattern rules to prevent caching of normal
 objects.
+
+SIGUSR1 now rotates log files
+==============================================================================
+In order to be more consistent with other daemon programs, SIGHUP is used
+to reconfigure the running process.  This means that we needed to change
+the signal used to rotate the log files.  We now use SIGUSR1 to rotate the logs.
+
