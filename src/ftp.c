@@ -1422,9 +1422,11 @@ static void
 ftpDataTransferDone(FtpStateData * ftpState)
 {
     debug(9, 3, "This is ftpDataTransferDone\n");
-    assert(ftpState->data.fd >= 0);
-    comm_close(ftpState->data.fd);
-    ftpState->data.fd = -1;
+    if (ftpState->data.fd > -1) {
+        comm_close(ftpState->data.fd);
+        ftpState->data.fd = -1;
+    }
+    assert(ftpState->ctrl.fd > -1);
     sprintf(cbuf, "QUIT\r\n");
     ftpWriteCommand(cbuf, ftpState);
     ftpState->state = SENT_QUIT;
