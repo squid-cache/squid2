@@ -416,6 +416,7 @@ struct _SquidConfig {
 #if USE_CACHE_DIGESTS
 	int digest_generation;
 #endif
+	int log_ip_on_direct;
     } onoff;
     acl *aclList;
     struct {
