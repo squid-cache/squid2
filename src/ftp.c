@@ -336,10 +336,10 @@ ftpLoginParser(const char *login, FtpStateData * ftpState, int escaped)
     }
     if (escaped)
 	rfc1738_unescape(ftpState->user);
-    if (ftpState->user[0] || ftpState->password[0])
-	return;
-    xstrncpy(ftpState->user, "anonymous", MAX_URL);
-    xstrncpy(ftpState->password, Config.Ftp.anon_user, MAX_URL);
+    if (!ftpState->user[0])
+	xstrncpy(ftpState->user, "anonymous", MAX_URL);
+    if (strcmp(ftpState->user, "anonymous") == 0 && !ftpState->password[0])
+	xstrncpy(ftpState->password, Config.Ftp.anon_user, MAX_URL);
 }
 
 static void
