@@ -1825,7 +1825,7 @@ clientProcessRequest2(clientHttpRequest * http)
 {
     request_t *r = http->request;
     StoreEntry *e;
-    if (r->flags.cachable)
+    if (r->flags.cachable || r->flags.internal)
 	e = http->entry = storeGetPublicByRequest(r);
     else
 	e = http->entry = NULL;
