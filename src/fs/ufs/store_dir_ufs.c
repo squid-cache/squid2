@@ -566,8 +566,8 @@ storeUfsDirRebuildFromSwapLog(void *data)
 		 */
 		storeExpireNow(e);
 		storeReleaseRequest(e);
-		storeUfsDirReplRemove(e);
 		if (e->swap_filen > -1) {
+		    storeUfsDirReplRemove(e);
 		    storeUfsDirMapBitReset(SD, e->swap_filen);
 		    e->swap_filen = -1;
 		    e->swap_dirn = -1;
@@ -654,8 +654,8 @@ storeUfsDirRebuildFromSwapLog(void *data)
 	    /* junk old, load new */
 	    storeExpireNow(e);
 	    storeReleaseRequest(e);
-	    storeUfsDirReplRemove(e);
 	    if (e->swap_filen > -1) {
+		storeUfsDirReplRemove(e);
 		/* Make sure we don't actually unlink the file */
 		storeUfsDirMapBitReset(SD, e->swap_filen);
 		e->swap_filen = -1;
