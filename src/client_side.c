@@ -1264,7 +1264,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	    (void) 0;
 	else if (http->entry->timestamp < 0)
 	    (void) 0;
-	else if (http->entry->timestamp > squid_curtime)
+	else if (http->entry->timestamp < squid_curtime)
 	    httpHeaderPutInt(hdr, HDR_AGE,
 		squid_curtime - http->entry->timestamp);
     }
