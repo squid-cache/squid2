@@ -151,7 +151,7 @@ typedef struct gopher_ds {
     int HTML_header_added;
     int port;
     char type_id;
-    char request[MAX_URL];
+    char request[MAX_URL + 1];
     int data_in;
     int cso_recno;
     int len;
@@ -184,7 +184,7 @@ static void gopher_mime_content(buf, name, def)
      char *name;
      char *def;
 {
-    static char temp[MAX_URL];
+    static char temp[MAX_URL + 1];
     char *ext1 = NULL;
     char *ext2 = NULL;
     char *str = NULL;
