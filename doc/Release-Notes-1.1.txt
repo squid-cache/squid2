@@ -147,30 +147,36 @@ dnsserver will return the TTL value for every lookup.
 
 This hack was contributed by Endre Balint Nagy <bne@CareNet.hu>
 
---- /usr/src/bind-4.9.4-p1/res/gethnamaddr.c    Mon Aug  5 10:31:35 1996
-+++ gethnamaddr.c       Sun Aug 25 07:48:39 1996
-@@ -133,7 +133,7 @@
+diff -ru bind-4.9.4-orig/res/gethnamaddr.c bind-4.9.4/res/gethnamaddr.c
+--- bind-4.9.4-orig/res/gethnamaddr.c	Mon Aug  5 02:31:35 1996
++++ bind-4.9.4/res/gethnamaddr.c	Tue Aug 27 15:33:11 1996
+@@ -133,6 +133,7 @@
  } align;
  
  extern int h_errno;
--
 +int _dns_ttl_;
+ 
  #ifdef DEBUG
  static void
- dprintf(msg, num)
-@@ -232,8 +232,12 @@
-                cp += n;                        /* name */
-                type = _getshort(cp);
-                cp += INT16SZ;                  /* type */
--               class = _getshort(cp);
--               cp += INT16SZ + INT32SZ;        /* class, TTL */
-+               class = _getshort(cp);  
-+               cp += INT16SZ;                  /* class */
-+               if (qtype == T_A  && type == T_A) {
-+                       _dns_ttl_ = _getlong(cp);
-+               }
-+               cp += INT32SZ;                  /* TTL */
-                n = _getshort(cp);
-                cp += INT16SZ;                  /* len */
-                if (class != C_IN) {
-
+@@ -223,6 +224,7 @@
+ 	host.h_addr_list = h_addr_ptrs;
+ 	haveanswer = 0;
+ 	had_error = 0;
++	_dns_ttl_ = -1;
+ 	while (ancount-- > 0 && cp < eom && !had_error) {
+ 		n = dn_expand(answer->buf, eom, cp, bp, buflen);
+ 		if ((n < 0) || !(*name_ok)(bp)) {
+@@ -232,8 +234,11 @@
+ 		cp += n;			/* name */
+ 		type = _getshort(cp);
+  		cp += INT16SZ;			/* type */
+-		class = _getshort(cp);
+- 		cp += INT16SZ + INT32SZ;	/* class, TTL */
++		class = _getshort(cp);  
++		cp += INT16SZ;                  /* class */
++		if (qtype == T_A  && type == T_A)
++			_dns_ttl_ = _getlong(cp);
++		cp += INT32SZ;                  /* TTL */
+ 		n = _getshort(cp);
+ 		cp += INT16SZ;			/* len */
+ 		if (class != C_IN) {
