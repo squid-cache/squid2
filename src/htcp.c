@@ -816,7 +816,9 @@ htcpHandle(char *buf, int sz, struct sockaddr_in *from)
     debug(31, 3) ("htcpHandle: htcpHdr.major = %d\n", (int) htcpHdr.major);
     debug(31, 3) ("htcpHandle: htcpHdr.minor = %d\n", (int) htcpHdr.minor);
     if (sz != htcpHdr.length) {
-	debug(31, 1) ("htcpHandle: sz != htcpHdr.length\n");
+	debug(31, 1) ("htcpHandle: sz/%d != htcpHdr.length/%d from %s:%d\n",
+	    sz, htcpHdr.length,
+	    inet_ntoa(from->sin_addr), (int) ntohs(from->sin_port));
 	return;
     }
     buf += sizeof(htcpHeader);
