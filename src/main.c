@@ -436,9 +436,6 @@ mainInitialize(void)
 	memInit();		/* memInit must go before at least redirect */
 	disk_init();		/* disk_init must go before ipcache_init() */
     }
-#if USE_ASYNC_IO
-    aioClose(dup(0));		/* cough */
-#endif
     ipcache_init();
     fqdncache_init();
     dnsOpenServers();
