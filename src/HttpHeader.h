@@ -146,12 +146,12 @@ extern void httpHeaderDel(HttpHeader *hdr, http_hdr_type id);
  * If field is not present, it is added; otherwise, old content is destroyed.
  * The function will duplicate the value submitted so it is safe to pass tmp values.
  * Note: in most cases it is much better to use higher level
- * routines provided by HttpReply and HttpRequest
+ *       routines provided by HttpReply and HttpRequest
  */
 extern void httpHeaderSetInt(HttpHeader *hdr, http_hdr_type type, int number);
 extern void httpHeaderSetTime(HttpHeader *hdr, http_hdr_type type, time_t time);
 extern void httpHeaderSetStr(HttpHeader *hdr, http_hdr_type type, const char *str);
-
+extern void httpHeaderSetAuth(HttpHeader *hdr, const char *authScheme, const char *realm);
 /* add extension header (these fields are not parsed/analyzed/joined, etc.) */
 extern void httpHeaderAddExt(HttpHeader *hdr, const char *name, const char* value);
 

@@ -177,7 +177,7 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	    waisStart(request, entry);
 	    break;
 	case PROTO_CACHEOBJ:
-	    cachemgrStart(fd, entry);
+	    cachemgrStart(fd, request, entry);
 	    break;
 	case PROTO_URN:
 	    urnStart(request, entry);

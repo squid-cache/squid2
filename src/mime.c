@@ -236,6 +236,26 @@ mk_mime_hdr(char *result, const char *type, int size, time_t ttl, time_t lmt)
 }
 
 
+const char *
+mime_get_auth(const char *hdr, const char *auth_scheme, const char **auth_field)
+{
+    char *auth_hdr;
+    char *t;
+    if (auth_field) *auth_field = NULL;
+    if (hdr == NULL)
+	return NULL;
+    if ((auth_hdr = mime_get_header(hdr, "Authorization")) == NULL)
+	return NULL;
+    if (auth_field) *auth_field = auth_hdr;
+    if ((t = strtok(auth_hdr, " \t")) == NULL)
+	return NULL;
+    if (strcasecmp(t, auth_scheme) != 0)
+	return NULL;
+    if ((t = strtok(NULL, " \t")) == NULL)
+	return NULL;
+    return base64_decode(t);
+}
+
 char *
 mimeGetIcon(const char *fn)
 {

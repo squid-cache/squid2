@@ -67,6 +67,9 @@ extern void httpReplyDestroy(HttpReply *rep);
 /* reset: clean, then init */
 void httpReplyReset(HttpReply *rep);
 
+/* absorb: copy the contents of a new reply to the old one, destroy new one */
+void httpReplyAbsorb(HttpReply *rep, HttpReply *new_rep);
+
 /* parse/pack */
 /* parse returns -1,0,+1 on error,need-more-data,success */
 extern int httpReplyParse(HttpReply *rep, const char *buf); /*, int atEnd); */
