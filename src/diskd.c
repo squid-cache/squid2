@@ -20,7 +20,7 @@ enum {
 };
 
 typedef struct _diomsg {
-    long mtype;
+    int mtype;
     int id;
     void *callback_data;
     int size;
@@ -192,6 +192,7 @@ msg_handle(diomsg * r, int rl, diomsg * s)
     s->mtype = r->mtype;
     s->callback_data = r->callback_data;
     s->shm_offset = r->shm_offset;
+    s->id = r->id;
     if (s->shm_offset > -1)
 	buf = shmbuf + s->shm_offset;
     switch (r->mtype) {
@@ -339,7 +340,7 @@ static int sio_id = 0;
 static int storeDiskdSend(int, SwapDir *, int, storeIOState *, int, int, int);
 static void storeDiskdShmPut(SwapDir *, int);
 static void *storeDiskdShmGet(SwapDir *, int *);
-static void storeDiskdHandle(diomsg * M, SwapDir *);
+static void storeDiskdHandle(diomsg * M);
 static void storeDiskdIOCallback(storeIOState * sio, int errflag);
 static void storeDiskdReadIndividualQueue(SwapDir * sd);
 static SwapDir *swapDirFromFileno(sfileno f);
@@ -376,6 +377,7 @@ storeDiskdOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     sio->mode = mode;
     sio->callback = callback;
     sio->callback_data = callback_data;
+    cbdataLock(sio->callback_data);
     sio->type.diskd.id = sio_id++;
     if (mode == O_WRONLY)
 	mode |= (O_CREAT | O_TRUNC);
@@ -391,6 +393,7 @@ storeDiskdOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     if (x < 0) {
 	debug(50, 1) ("storeDiskdSend OPEN: %s\n", xstrerror());
 	storeDiskdShmPut(sd, shm_offset);
+	cbdataUnlock(sio->callback_data);
 	cbdataFree(sio);
 	return NULL;
     }
@@ -416,7 +419,7 @@ storeDiskdClose(storeIOState * sio)
 }
 
 void
-storeDiskdRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB * callback, void *callback_data)
+storeDiskdRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB * callback, void *their_data)
 {
     int x;
     int shm_offset;
@@ -427,9 +430,9 @@ storeDiskdRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB *
     assert(sio->read.callback == NULL);
     assert(sio->read.callback_data == NULL);
     sio->read.callback = callback;
-    sio->read.callback_data = callback_data;
+    sio->read.callback_data = their_data;
     sio->type.diskd.read_buf = buf;	/* the one passed from above */
-    cbdataLock(callback_data);
+    cbdataLock(sio->read.callback_data);
     debug(78, 3) ("storeDiskdRead: fileno %08X\n", sio->swap_file_number);
     sio->offset = offset;
     sio->type.diskd.flags.reading = 1;
@@ -635,8 +638,11 @@ storeDiskdReadDone(diomsg * M)
     char *sbuf;
     size_t len;
     SwapDir *sd = swapDirFromFileno(sio->swap_file_number);
+    int valid;
     Counter.syscalls.disk.reads++;
     sio->type.diskd.flags.reading = 0;
+    valid = cbdataValid(sio->read.callback_data);
+    cbdataUnlock(sio->read.callback_data);
     debug(79, 3) ("storeDiskdReadDone: fileno %08x status %d\n",
 	sio->swap_file_number, M->status);
     if (M->status < 0) {
@@ -651,9 +657,11 @@ storeDiskdReadDone(diomsg * M)
     assert(their_data);
     sio->read.callback = NULL;
     sio->read.callback_data = NULL;
-    if (cbdataValid(their_data))
+    if (valid) {
 	callback(their_data, their_buf, len);
-    cbdataUnlock(their_data);
+    } else {
+	debug(50, 1) ("their_data = %p is invalid\n", their_data);
+    }
 }
 
 static void
@@ -680,43 +688,54 @@ storeDiskdUnlinkDone(diomsg * M)
 }
 
 static void
-storeDiskdHandle(diomsg * M, SwapDir * sd)
+storeDiskdHandle(diomsg * M)
 {
-    void *data = M->callback_data;
-    if (NULL == data || cbdataValid(data)) {
-	switch (M->mtype) {
-	case _MQD_OPEN:
-	    storeDiskdOpenDone(M);
-	    break;
-	case _MQD_CLOSE:
-	    storeDiskdCloseDone(M);
-	    break;
-	case _MQD_READ:
-	    storeDiskdReadDone(M);
-	    break;
-	case _MQD_WRITE:
-	    storeDiskdWriteDone(M);
-	    break;
-	case _MQD_UNLINK:
-	    storeDiskdUnlinkDone(M);
-	    break;
-	default:
-	    assert(0);
-	    break;
+    int valid = M->callback_data ? cbdataValid(M->callback_data) : 1;
+    if (M->callback_data)
+	cbdataUnlock(M->callback_data);
+    if (!valid) {
+	debug(79, 1) ("storeDiskdHandle: Invalid callback_data %p\n", M->callback_data);
+	/*
+	 * The read operation has its own callback.  If we don't
+	 * call storeDiskdReadDone(), then we must make sure the
+	 * callback_data gets unlocked!
+	 */
+	if (_MQD_READ == M->mtype) {
+	    storeIOState *sio = M->callback_data;
+	    cbdataUnlock(sio->read.callback_data);
 	}
-    } else {
-	debug(79, 1) ("storeDiskdHandle: Invalid callback_data %p\n", data);
+	return;
     }
-    if (M->shm_offset > -1)
-	storeDiskdShmPut(sd, M->shm_offset);
-    cbdataUnlock(data);
+    switch (M->mtype) {
+    case _MQD_OPEN:
+	storeDiskdOpenDone(M);
+	break;
+    case _MQD_CLOSE:
+	storeDiskdCloseDone(M);
+	break;
+    case _MQD_READ:
+	storeDiskdReadDone(M);
+	break;
+    case _MQD_WRITE:
+	storeDiskdWriteDone(M);
+	break;
+    case _MQD_UNLINK:
+	storeDiskdUnlinkDone(M);
+	break;
+    default:
+	assert(0);
+	break;
+    }
 }
 
 static void
 storeDiskdIOCallback(storeIOState * sio, int errflag)
 {
+    int valid = cbdataValid(sio->callback_data);
     debug(79, 3) ("storeUfsIOCallback: errflag=%d\n", errflag);
-    sio->callback(sio->callback_data, errflag, sio);
+    cbdataUnlock(sio->callback_data);
+    if (valid)
+	sio->callback(sio->callback_data, errflag, sio);
     cbdataFree(sio);
 }
 
@@ -733,14 +752,16 @@ storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
     M.status = -1;
     M.shm_offset = shm_offset;
     M.id = id;
-    if (sio)
-	cbdataLock(sio);
+    if (M.callback_data)
+	cbdataLock(M.callback_data);
     x = msgsnd(sd->u.diskd.smsgid, &M, sizeof(M), IPC_NOWAIT);
     if (0 == x) {
 	sent_count++;
 	sd->u.diskd.away++;
     } else {
-	cbdataUnlock(sio);
+	debug(50, 1) ("storeDiskdSend: msgsnd: %s\n", xstrerror());
+	if (M.callback_data)
+	    cbdataUnlock(M.callback_data);
 	assert(++send_errors < 100);
     }
     if (sd->u.diskd.away > MAGIC2) {
@@ -786,7 +807,9 @@ storeDiskdReadIndividualQueue(SwapDir * sd)
 	    break;
 	recv_count++;
 	sd->u.diskd.away--;
-	storeDiskdHandle(&M, sd);
+	storeDiskdHandle(&M);
+	if (M.shm_offset > -1)
+	    storeDiskdShmPut(sd, M.shm_offset);
     }
 }
 
