@@ -886,7 +886,7 @@ dump_peer(StoreEntry * entry, const char *name, peer * p)
 	    p->http_port,
 	    p->icp.port);
 	dump_peer_options(entry, p);
-	for (d = p->pinglist; d; d = d->next) {
+	for (d = p->peer_domain; d; d = d->next) {
 	    storeAppendPrintf(entry, "cache_peer_domain %s %s%s\n",
 		p->host,
 		d->do_ping ? null_string : "!",
@@ -1146,7 +1146,7 @@ parse_hostdomain(void)
 	    domain++;
 	}
 	l->domain = xstrdup(domain);
-	for (L = &(p->pinglist); *L; L = &((*L)->next));
+	for (L = &(p->peer_domain); *L; L = &((*L)->next));
 	*L = l;
     }
 }
@@ -1547,7 +1547,7 @@ check_null_wordlist(wordlist * w)
 }
 
 static int
-check_null_acl_access(acl_access *a)
+check_null_acl_access(acl_access * a)
 {
     return a == NULL;
 }

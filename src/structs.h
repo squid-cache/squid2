@@ -1010,7 +1010,7 @@ struct _peer {
     } htcp;
 #endif
     u_short http_port;
-    domain_ping *pinglist;
+    domain_ping *peer_domain;
     domain_type *typelist;
     acl_access *access;
     struct {
