@@ -169,7 +169,7 @@ int ipcache_create_dnsserver(command)
     }
 
     execlp(command, "(dnsserver)", "-p", socketname, NULL);
-    perror(command);
+    debug(14, 0, "ipcache_create_dnsserver: %s: %s\n", command, xstrerror());
     _exit(1);
     return (0);			/* NOTREACHED */
 }
