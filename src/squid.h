@@ -299,6 +299,12 @@ struct rusage {
 #include <regex.h>
 #endif
 
+#if USE_ASYNC_IO
+#undef USE_UNLINKD
+#else
+#define USE_UNLINKD 1
+#endif
+
 #include "md5.h"
 
 #ifdef SQUID_SNMP
