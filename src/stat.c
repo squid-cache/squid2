@@ -303,6 +303,10 @@ statObjects(void *data)
 	storeUnlockObject(state->sentry);
 	cbdataFree(state);
 	return;
+    } else if (state->sentry->store_status == STORE_ABORTED) {
+	storeUnlockObject(state->sentry);
+	cbdataFree(state);
+	return;
     }
     storeBuffer(state->sentry);
     debug(49, 3) ("statObjects: Bucket #%d\n", state->bucket);
