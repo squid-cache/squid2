@@ -1519,6 +1519,7 @@ DOC_START
 	  %DST		Requested host
 	  %PROTO	Requested protocol
 	  %PORT		Requested port
+	  %PATH		Requested URL path
 	  %METHOD	Request method
 	  %{Header}	HTTP request header
 	  %{Hdr:member}	HTTP request header list member
