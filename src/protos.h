@@ -977,7 +977,7 @@ extern void errorStateFree(ErrorState * err);
 extern void errorInitialize(void);
 extern int errorReservePageId(const char *page_name);
 extern void errorFree(void);
-extern ErrorState *errorCon(int type, http_status);
+extern ErrorState *errorCon(err_type type, http_status);
 
 extern void pconnPush(int, const char *host, u_short port);
 extern int pconnPop(const char *host, u_short port);
