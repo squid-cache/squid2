@@ -464,6 +464,10 @@ free_cachedir(struct _cacheSwap *swap)
     int i;
     for (i = 0; i < swap->n_configured; i++) {
 	s = swap->swapDirs + i;
+	if (s->swaplog_fd > -1) {
+	    file_close(s->swaplog_fd);
+	    s->swaplog_fd = -1;
+	}
 	xfree(s->path);
 	filemapFreeMemory(s->map);
     }
@@ -1076,4 +1080,10 @@ parseNeighborType(const char *s)
 	return PEER_MULTICAST;
     debug(15, 0) ("WARNING: Unknown neighbor type: %s\n", s);
     return PEER_SIBLING;
+}
+
+void
+configFreeMemory(void)
+{
+	free_all();
 }
