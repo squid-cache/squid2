@@ -288,7 +288,7 @@ dnl Please change your configure script.  AIX doesn't need -lbsd.
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"
 		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
 		;;
-	*-*-solaris2.[0-4])
+	[*-*-solaris2.[0-4]])
 		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
 		;;
 esac
@@ -334,7 +334,7 @@ else
 	COMPILE_GNUREGEX="no"
 fi
 case "$host" in
-	*-sun-solaris2.[0-4])
+	[*-sun-solaris2.[0-4]])
 	COMPILE_GNUREGEX="yes"
 	;;
 esac
