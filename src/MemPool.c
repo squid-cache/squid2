@@ -139,19 +139,19 @@ memShrink(ssize_t new_limit)
     ssize_t start_limit = TheMeter.idle.level;
     int i;
     assert(start_limit >= 0 && new_limit >= 0);
-    debug(63, 1) ("memShrink: started with %d KB goal: %d KB\n",
-	toKB(TheMeter.idle.level), toKB(new_limit));
+    debug(63, 1) ("memShrink: started with %ld KB goal: %ld KB\n",
+	(long int) toKB(TheMeter.idle.level), (long int) toKB(new_limit));
     /* first phase: cut proportionally to the pool idle size */
     for (i = 0; i < Pools.count && TheMeter.idle.level > new_limit; ++i) {
 	MemPool *pool = Pools.items[i];
 	const ssize_t target_pool_size = (size_t) ((double) pool->meter.idle.level * new_limit) / start_limit;
 	memPoolShrink(pool, target_pool_size);
     }
-    debug(63, 1) ("memShrink: 1st phase done with %d KB left\n", toKB(TheMeter.idle.level));
+    debug(63, 1) ("memShrink: 1st phase done with %ld KB left\n", (long int) toKB(TheMeter.idle.level));
     /* second phase: cut to 0 */
     for (i = 0; i < Pools.count && TheMeter.idle.level > new_limit; ++i)
 	memPoolShrink(Pools.items[i], 0);
-    debug(63, 1) ("memShrink: 2nd phase done with %d KB left\n", toKB(TheMeter.idle.level));
+    debug(63, 1) ("memShrink: 2nd phase done with %ld KB left\n", (long int) toKB(TheMeter.idle.level));
     assert(TheMeter.idle.level <= new_limit);	/* paranoid */
 }
 
@@ -162,29 +162,29 @@ memPoolMeterReport(const MemPoolMeter * pm, size_t obj_size,
     int alloc_count, int inuse_count, int idle_count, StoreEntry * e)
 {
     assert(pm);
-    storeAppendPrintf(e, "%d\t %d\t %d\t %.2f\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %.2f\t %.2f\t %.2f\t %d\n",
+    storeAppendPrintf(e, "%d\t %ld\t %ld\t %.2f\t %d\t %d\t %ld\t %ld\t %d\t %d\t %ld\t %ld\t %ld\t %.2f\t %.2f\t %.2f\t %ld\n",
     /* alloc */
 	alloc_count,
-	toKB(obj_size * pm->alloc.level),
-	toKB(obj_size * pm->alloc.hwater_level),
+	(long int) toKB(obj_size * pm->alloc.level),
+	(long int) toKB(obj_size * pm->alloc.hwater_level),
 	(double) ((squid_curtime - pm->alloc.hwater_stamp) / 3600.),
 	xpercentInt(obj_size * pm->alloc.level, TheMeter.alloc.level),
     /* in use */
 	inuse_count,
-	toKB(obj_size * pm->inuse.level),
-	toKB(obj_size * pm->inuse.hwater_level),
+	(long int) toKB(obj_size * pm->inuse.level),
+	(long int) toKB(obj_size * pm->inuse.hwater_level),
 	xpercentInt(pm->inuse.level, pm->alloc.level),
     /* idle */
 	idle_count,
-	toKB(obj_size * pm->idle.level),
-	toKB(obj_size * pm->idle.hwater_level),
+	(long int) toKB(obj_size * pm->idle.level),
+	(long int) toKB(obj_size * pm->idle.hwater_level),
     /* (int)rint(xpercent(pm->idle.level, pm->alloc.level)), */
     /* saved */
-	pm->saved.count,
+	(long int) pm->saved.count,
 	xpercent(pm->saved.count, mem_traffic_volume.count),
 	xpercent(obj_size * gb_to_double(&pm->saved), gb_to_double(&mem_traffic_volume)),
 	xpercent(pm->saved.count, pm->total.count),
-	pm->total.count);
+	(long int) pm->total.count);
 }
 
 /* MemMeter */
@@ -312,9 +312,9 @@ static void
 memPoolDescribe(const MemPool * pool)
 {
     assert(pool);
-    debug(63, 2) ("%-20s: %6d x %4d bytes = %5d KB\n",
-	pool->label, memPoolInUseCount(pool), pool->obj_size,
-	toKB(memPoolInUseSize(pool)));
+    debug(63, 2) ("%-20s: %6d x %4d bytes = %5ld KB\n",
+	pool->label, memPoolInUseCount(pool), (int) pool->obj_size,
+	(long int) toKB(memPoolInUseSize(pool)));
 }
 
 size_t
@@ -328,7 +328,7 @@ memPoolReport(const MemPool * pool, StoreEntry * e)
 {
     assert(pool);
     storeAppendPrintf(e, "%-20s\t %4d\t ",
-	pool->label, pool->obj_size);
+	pool->label, (int) pool->obj_size);
     memPoolMeterReport(&pool->meter, pool->obj_size,
 	pool->meter.alloc.level, pool->meter.inuse.level, pool->meter.idle.level,
 	e);
@@ -374,8 +374,8 @@ memReport(StoreEntry * e)
     memPoolMeterReport(&TheMeter, 1, alloc_count, inuse_count, idle_count, e);
     storeAppendPrintf(e, "Cumulative allocated volume: %s\n", gb_to_str(&mem_traffic_volume));
     /* overhead */
-    storeAppendPrintf(e, "Current overhead: %d bytes (%.3f%%)\n",
-	overhd_size, xpercent(overhd_size, TheMeter.inuse.level));
+    storeAppendPrintf(e, "Current overhead: %ld bytes (%.3f%%)\n",
+	(long int) overhd_size, xpercent(overhd_size, TheMeter.inuse.level));
     /* limits */
     storeAppendPrintf(e, "Idle pool limit: %.2f MB\n", toMB(mem_idle_limit));
     storeAppendPrintf(e, "memPoolAlloc calls: %d\n", mem_pool_alloc_calls);

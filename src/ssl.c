@@ -194,7 +194,7 @@ sslReadServer(int fd, void *data)
     size_t read_sz = SQUID_TCP_SO_RCVBUF - sslState->server.len;
     assert(fd == sslState->server.fd);
     debug(26, 3) ("sslReadServer: FD %d, reading %d bytes at offset %d\n",
-	fd, read_sz, sslState->server.len);
+	fd, (int) read_sz, sslState->server.len);
     errno = 0;
 #if DELAY_POOLS
     read_sz = delayBytesWanted(sslState->delay_id, 1, read_sz);

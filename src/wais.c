@@ -167,7 +167,7 @@ waisSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
     WaisStateData *waisState = data;
     StoreEntry *entry = waisState->entry;
     debug(24, 5) ("waisSendComplete: FD %d size: %d errflag: %d\n",
-	fd, size, errflag);
+	fd, (int) size, errflag);
     if (size > 0) {
 	fd_bytes(fd, size, FD_WRITE);
 	kb_incr(&statCounter.server.all.kbytes_out, size);

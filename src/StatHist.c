@@ -121,8 +121,8 @@ statHistCopy(StatHist * Dest, const StatHist * Orig)
     assert(Dest->val_in == Orig->val_in);
     assert(Dest->val_out == Orig->val_out);
     /* actual copy */
-    debug(62, 3) ("statHistCopy: copying %d bytes to %p from %p\n",
-	Dest->capacity * sizeof(*Dest->bins),
+    debug(62, 3) ("statHistCopy: copying %ld bytes to %p from %p\n",
+	(long int) Dest->capacity * sizeof(*Dest->bins),
 	Dest->bins,
 	Orig->bins);
     xmemcpy(Dest->bins, Orig->bins, Dest->capacity * sizeof(*Dest->bins));

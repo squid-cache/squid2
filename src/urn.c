@@ -188,7 +188,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
     int urlcnt = 0;
     http_version_t version;
 
-    debug(52, 3) ("urnHandleReply: Called with size=%d.\n", size);
+    debug(52, 3) ("urnHandleReply: Called with size=%d.\n", (int) size);
     if (EBIT_TEST(urlres_e->flags, ENTRY_ABORTED)) {
 	memFree(buf, MEM_4K_BUF);
 	return;

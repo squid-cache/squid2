@@ -484,7 +484,7 @@ httpReplyBodyBuildSize(request_t * request, HttpReply * reply, dlink_list * body
 	    /* Allow - use this entry */
 	    reply->maxBodySize = bs->maxsize;
 	    bs = NULL;
-	    debug(58, 3) ("httpReplyBodyBuildSize: Setting maxBodySize to %d\n", reply->maxBodySize);
+	    debug(58, 3) ("httpReplyBodyBuildSize: Setting maxBodySize to %ld\n", (long int) reply->maxBodySize);
 	}
 	aclChecklistFree(checklist);
     }
