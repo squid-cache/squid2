@@ -632,6 +632,7 @@ int aclMatchAcl(acl, c, m, pr, h, po, r)
 	return 0;
 	/* NOTREACHED */
     case ACL_DST_DOMAIN:
+	/* XXX This probably needs to use matchDomainName() */
 	return aclMatchEndOfWord(acl->data, h);
 	/* NOTREACHED */
     case ACL_TIME:
