@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.21 
+# From configure.in Revision: 1.18.2.22 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2359,6 +2359,30 @@ else
 fi
 fi
 rm -fr conftest*
+
+echo $ac_n "checking if sys_errlist is already defined""... $ac_c" 1>&6
+cat > conftest.$ac_ext <<EOF
+#line 2366 "configure"
+#include "confdefs.h"
+#include <stdio.h>
+int main() { return 0; }
+int t() {
+extern char *sys_errlist[];
+; return 0; }
+EOF
+if eval $ac_compile; then
+  rm -rf conftest*
+  cat >> confdefs.h <<\EOF
+#define NEED_SYS_ERRLIST 1
+EOF
+
+echo "$ac_t""no" 1>&6
+else
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+fi
+rm -f conftest*
+
 
 XTRA_OBJS=''
 if test "$HAVE_LIBMALLOC" = "yes" ; then

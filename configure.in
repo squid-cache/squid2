@@ -448,6 +448,13 @@ AC_MSG_RESULT(yes)],
 AC_MSG_RESULT(no),
 AC_MSG_RESULT(no))
 
+AC_MSG_CHECKING(if sys_errlist[] is already defined)
+AC_TRY_COMPILE([#include <stdio.h>],
+[extern char *sys_errlist[];],
+[AC_DEFINE(NEED_SYS_ERRLIST)
+AC_MSG_RESULT(no)],
+AC_MSG_RESULT(yes))
+
 dnl Need the debugging version of malloc if available
 XTRA_OBJS=''
 if test "$HAVE_LIBMALLOC" = "yes" ; then
