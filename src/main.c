@@ -482,7 +482,6 @@ mainInitialize(void)
 	unlinkdInit();
 	urlInitialize();
 	cachemgrInit();
-	eventInit();		/* eventInit() before statInit() */
 	statInit();
 	storeInit();
 	mainSetCwd();
@@ -588,6 +587,7 @@ main(int argc, char **argv)
 	leakInit();
 #endif
 	memInit();		/* memInit is required for config parsing */
+	eventInit();		/* eventInit() is required for config parsing */
 	parse_err = parseConfigFile(ConfigFile);
 
 	if (opt_parse_cfg_only)
