@@ -551,16 +551,16 @@ storeComplete(StoreEntry * e)
 #endif
     InvokeHandlers(e);
     storeCheckSwapOut(e);
-#ifdef PPNR_WIP
 }
 
+#ifdef PPNR_WIP
 void
 storePPNR(StoreEntry * e)
 {
     assert(EBIT_TEST(e->flag, ENTRY_FWD_HDR_WAIT));
     EBIT_CLR(e->flag, ENTRY_FWD_HDR_WAIT);
-#endif /* PPNR_WIP */
 }
+#endif /* PPNR_WIP */
 
 /*
  * Someone wants to abort this transfer.  Set the reason in the
