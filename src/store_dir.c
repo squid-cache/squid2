@@ -554,7 +554,7 @@ storeDirWriteCleanLogs(int reopen)
 	assert(dirn < Config.cacheSwap.n_configured);
 	if (fd[dirn] < 0)
 	    continue;
-	s = (void *) outbuf[dirn] + outbufoffset[dirn];
+	s = (storeSwapData *) (outbuf[dirn] + outbufoffset[dirn]);
 	outbufoffset[dirn] += sizeof(storeSwapData);
 	memset(s, '\0', sizeof(storeSwapData));
 	s->op = (char) SWAP_LOG_ADD;
