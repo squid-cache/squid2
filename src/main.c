@@ -185,6 +185,7 @@ static void mainReinitialize()
     neighbors_init();
     ipcacheOpenServers();
     serverConnectionsOpen();
+    (void) ftpInitialize();
     if (theUdpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
 	neighbors_open(theUdpConnection);
     debug(1, 0, "Ready to serve requests.\n");
