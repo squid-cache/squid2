@@ -1141,7 +1141,7 @@ aclMatchTime(struct _acl_time_data *data, time_t when)
 int
 aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
 {
-    const request_t *r = checklist->request;
+    request_t *r = checklist->request;
     const ipcache_addrs *ia = NULL;
     const char *fqdn = NULL;
     int k;
@@ -1228,6 +1228,7 @@ aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
 	} else {
 	    /* register that we used the proxy authentication header */
 	    checklist->state[ACL_PROXY_AUTH] = ACL_LOOKUP_DONE;
+	    BIT_SET(r->flags, REQ_USED_PROXY_AUTH);
 	    return 1;
 	}
 	/* NOTREACHED */

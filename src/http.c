@@ -809,7 +809,7 @@ httpBuildRequestHeader(request_t * request,
 	    continue;
 	if (strncasecmp(xbuf, "Proxy-authorization:", 20) == 0)
 	    /* If we're not going to do proxy auth, then it must be passed on */
-	    if (Config.proxyAuth.File)
+	    if (BIT_TEST(request->flags, REQ_USED_PROXY_AUTH))
 		continue;
 	if (strncasecmp(xbuf, "Connection:", 11) == 0)
 	    continue;
