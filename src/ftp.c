@@ -642,7 +642,7 @@ ftpParseListing(FtpStateData * ftpState, int len)
 static void
 ftpReadComplete(FtpStateData * ftpState)
 {
-    debug(9, 0) ("ftpReadComplete\n");
+    debug(9, 3) ("ftpReadComplete\n");
     /* Connection closed; retrieval done. */
     if (EBIT_TEST(ftpState->flags, FTP_HTML_HEADER_SENT))
 	ftpListingFinish(ftpState);
