@@ -97,6 +97,9 @@ snmpInit(void)
 
     snmplib_debug_hook = snmpSnmplibDebug;
 
+    /* XXX: This leaks memory due to snmpAddNode duplicating the passed
+     * oid node, and we are not freeing the one returned by snmpCreateOid
+     */
     mib_tree_head = snmpAddNode(snmpCreateOid(1, 1),
 	1, NULL, NULL, 1,
 	snmpAddNode(snmpCreateOid(2, 1, 3),
