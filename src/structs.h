@@ -367,6 +367,7 @@ struct _SquidConfig {
 #if SQUID_SNMP
 	acl_access *snmp;
 #endif
+	acl_access *brokenPosts;
     } accessList;
     acl_deny_info_list *denyInfoList;
     char *proxyAuthRealm;

@@ -119,7 +119,6 @@ pumpStart(int s_fd, FwdState * fwd, CWCB * callback, void *cbdata)
     PumpStateData *p = NULL;
     request_t *r = fwd->request;
     size_t copy_sz;
-    int complete = 0;
     debug(61, 3) ("pumpStart: FD %d, key %s\n",
 	s_fd, storeKeyText(fwd->entry->key));
     /*
@@ -147,12 +146,8 @@ pumpStart(int s_fd, FwdState * fwd, CWCB * callback, void *cbdata)
     if (p->rcvd < p->cont_len && r->body_sz > 0) {
 	assert(p->request_entry->store_status == STORE_PENDING);
 	assert(r->body != NULL);
-	if (r->flags.proxy_keepalive) {
-	    assert(r->body_sz <= p->cont_len);
-	    copy_sz = XMIN(r->body_sz, p->cont_len);
-	} else {
-	    copy_sz = r->body_sz;
-	}
+	assert(r->body_sz <= p->cont_len);
+	copy_sz = XMIN(r->body_sz, p->cont_len);
 	debug(61, 3) ("pumpStart: Appending %d bytes from r->body\n", copy_sz);
 	storeAppend(p->request_entry, r->body, copy_sz);
 	p->rcvd = copy_sz;
@@ -167,15 +162,7 @@ pumpStart(int s_fd, FwdState * fwd, CWCB * callback, void *cbdata)
 	commSetDefer(p->c_fd, pumpReadDefer, p);
     }
     p->sent = 0;
-    if (p->sent != p->cont_len)
-	complete = 0;
-    else if (r->flags.proxy_keepalive)
-	complete = 1;
-    else if (p->rcvd == 0)
-	complete = 1;
-    else
-	complete = 0;
-    if (complete) {
+    if (p->sent == p->cont_len) {
 	pumpServerCopyComplete(p->s_fd, NULL, 0, DISK_OK, p);
     } else {
 	storeClientCopy(p->request_entry, p->sent, p->sent, 4096,
@@ -224,8 +211,7 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
 	return;
     }
     p->sent += size;
-    if (p->req->flags.proxy_keepalive)
-	assert(p->sent <= p->cont_len);
+    assert(p->sent <= p->cont_len);
     if (p->sent < p->cont_len) {
 	storeClientCopy(p->request_entry, p->sent, p->sent, 4096,
 	    memAllocate(MEM_4K_BUF),
@@ -253,12 +239,9 @@ pumpReadFromClient(int fd, void *data)
     PumpStateData *p = data;
     StoreEntry *req = p->request_entry;
     LOCAL_ARRAY(char, buf, SQUID_TCP_SO_RCVBUF);
-    int bytes_to_read = SQUID_TCP_SO_RCVBUF;
+    int bytes_to_read = XMIN(p->cont_len - p->rcvd, SQUID_TCP_SO_RCVBUF);
     int len = 0;
     errno = 0;
-    if (p->cont_len - p->rcvd < bytes_to_read)
-	if (p->req->flags.proxy_keepalive)
-	    bytes_to_read = p->cont_len - p->rcvd;
     Counter.syscalls.sock.reads++;
     len = read(fd, buf, bytes_to_read);
     fd_bytes(fd, len, FD_READ);

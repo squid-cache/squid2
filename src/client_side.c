@@ -805,9 +805,6 @@ clientSetKeepaliveFlag(clientHttpRequest * http)
 	RequestMethodStr[request->method]);
     if (httpMsgIsPersistent(request->http_ver, req_hdr))
 	request->flags.proxy_keepalive = 1;
-    if (request->method == METHOD_POST || request->method == METHOD_PUT)
-	if (!Config.onoff.persistent_client_posts)
-	    request->flags.proxy_keepalive = 0;
 }
 
 static int
@@ -2280,9 +2277,7 @@ clientReadRequest(int fd, void *data)
 	     */
 	    if (request->method != METHOD_GET) {
 		int cont_len = httpHeaderGetInt(&request->header, HDR_CONTENT_LENGTH);
-		int copy_len = conn->in.offset;
-		if (cont_len < copy_len && request->flags.proxy_keepalive)
-		    copy_len = cont_len;
+		int copy_len = XMIN(conn->in.offset, cont_len);
 		if (copy_len > 0) {
 		    assert(conn->in.offset >= copy_len);
 		    request->body_sz = copy_len;
