@@ -1249,7 +1249,8 @@ aclDumpUserMaxIP(void *data)
     return W;
 }
 
-/* aclMatchUserMaxIP - check for users logging in from multiple IP's 
+/*
+ * aclMatchUserMaxIP - check for users logging in from multiple IP's 
  * 0 : No match
  * 1 : Match 
  */
@@ -1258,7 +1259,9 @@ aclMatchUserMaxIP(void *data, auth_user_request_t * auth_user_request,
     struct in_addr src_addr)
 {
 /*
- * > the logic for flush the ip list when the limit is hit vs keep it sorted in most recent access order and just drop the oldest one off is currently undecided
+ * the logic for flush the ip list when the limit is hit vs keep
+ * it sorted in most recent access order and just drop the oldest
+ * one off is currently undecided
  */
     acl_user_ip_data *acldata = data;
 
@@ -1267,14 +1270,16 @@ aclMatchUserMaxIP(void *data, auth_user_request_t * auth_user_request,
 
     /* this is a match */
     if (acldata->flags.strict) {
-	/* simply deny access - the user name is already associated with
+	/*
+	 * simply deny access - the user name is already associated with
 	 * the request 
 	 */
 	/* remove _this_ ip, as it is the culprit for going over the limit */
 	authenticateAuthUserRequestRemoveIp(auth_user_request, src_addr);
 	debug(28, 4) ("aclMatchUserMaxIP: Denying access in strict mode\n");
     } else {
-	/* non-strict - remove some/all of the cached entries 
+	/*
+	 * non-strict - remove some/all of the cached entries 
 	 * ie to allow the user to move machines easily
 	 */
 	authenticateAuthUserRequestClearIp(auth_user_request);
@@ -1288,7 +1293,8 @@ static void
 aclLookupProxyAuthStart(aclCheck_t * checklist)
 {
     auth_user_request_t *auth_user_request;
-    assert(checklist->auth_user_request != NULL);	/* this is created for us */
+    /* make sure someone created auth_user_request for us */
+    assert(checklist->auth_user_request != NULL);
     auth_user_request = checklist->auth_user_request;
 
     assert(authenticateValidateUser(auth_user_request));
