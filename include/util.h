@@ -183,5 +183,7 @@ extern char *mkrfc850 _PARAMS((time_t *));
 extern void init_log3 _PARAMS((char *pn, FILE *a, FILE *b));
 extern void debug_init();
 extern void log_errno2 _PARAMS((char *, int, char *));
+extern void Log ();
+extern void errorlog ();
 
 #endif /* ndef _UTIL_H_ */

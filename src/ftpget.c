@@ -405,7 +405,8 @@ void timeout_handler()
     static char buf[SMALLBUFSIZ];
 
     now = time(NULL);
-    sprintf(buf, "Timeout after %d seconds.\n", now - last_alarm_set);
+    sprintf(buf, "Timeout after %d seconds.\n",
+	(int) (now - last_alarm_set));
     errorlog(buf);
     if (MainRequest == NULL)
 	exit(1);
