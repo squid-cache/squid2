@@ -1560,7 +1560,7 @@ static void
 ftpAbort(void *data)
 {
     FtpStateData *ftpState = data;
-    debug(9, 1) ("ftpAbort: %s\n", ftpState->entry->url);
+    debug(9, 2) ("ftpAbort: %s\n", ftpState->entry->url);
     if (ftpState->data.fd >= 0) {
 	comm_close(ftpState->data.fd);
 	ftpState->data.fd = -1;

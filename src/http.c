@@ -1041,7 +1041,7 @@ static void
 httpRestart(HttpStateData * httpState)
 {
     /* restart a botched request from a persistent connection */
-    debug(11, 1) ("Retrying HTTP request for %s\n", httpState->entry->url);
+    debug(11, 2) ("Retrying HTTP request for %s\n", httpState->entry->url);
     if (httpState->fd >= 0) {
 	comm_remove_close_handler(httpState->fd, httpStateFree, httpState);
 	comm_close(httpState->fd);
@@ -1123,7 +1123,7 @@ static void
 httpAbort(void *data)
 {
     HttpStateData *httpState = data;
-    debug(11, 1) ("httpAbort: %s\n", httpState->entry->url);
+    debug(11, 2) ("httpAbort: %s\n", httpState->entry->url);
     comm_close(httpState->fd);
 }
 
