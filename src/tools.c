@@ -897,14 +897,14 @@ gb_to_str(const gb_t * g)
 }
 
 void
-debugObj(int section, int level, void *obj, void (*packMeth)(void *obj, Packer *p))
+debugObj(int section, int level, void *obj, ObjPackMethod pm)
 {
     MemBuf mb;
     Packer p;
     assert(obj);
     memBufDefInit(&mb);
     packerToMemInit(&p, &mb);
-    (*packMeth)(obj, &p);
+    (*pm)(obj, &p);
     debug(section, level) ("%s", mb.buf);
     packerClean(&p);
     memBufClean(&mb);
