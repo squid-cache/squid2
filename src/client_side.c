@@ -376,6 +376,7 @@ icpProcessExpired(int fd, icpStateData * icpState)
     icpState->old_entry = icpState->entry;
     entry = storeCreateEntry(url,
 	request_hdr,
+	icpState->req_hdr_sz,
 	icpState->request->flags,
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
