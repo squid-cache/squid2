@@ -638,7 +638,6 @@ struct _SquidConfig {
     } icons;
     char *errorDirectory;
     struct {
-	time_t timeout;
 	int maxtries;
     } retry;
     struct {
