@@ -344,6 +344,7 @@ AC_CHECK_FUNCS(\
 	syslog \
 	tempnam \
 	timegm \
+	vsnprintf \
 )
 
 case "$host" in
