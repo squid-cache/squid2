@@ -652,20 +652,10 @@ fqdncacheChangeKey(fqdncache_entry * f)
     hash_join(fqdn_table, (hash_link *) f);
 }
 
-/* call during reconfigure phase to clear out all the
- * pending and dispatched reqeusts that got lost */
+/* Recalculate FQDN cache size upon reconfigure */
 void
 fqdncache_restart(void)
 {
-    fqdncache_entry *this;
-    assert(fqdn_table);
-    hash_first(fqdn_table);
-    while ((this = (fqdncache_entry *) hash_next(fqdn_table))) {
-	if (this->status == FQDN_CACHED)
-	    continue;
-	if (this->status == FQDN_NEGATIVE_CACHED)
-	    continue;
-    }
     fqdncache_high = (long) (((float) Config.fqdncache.size *
 	    (float) FQDN_HIGH_WATER) / (float) 100);
     fqdncache_low = (long) (((float) Config.fqdncache.size *

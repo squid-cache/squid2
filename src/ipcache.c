@@ -837,21 +837,10 @@ ipcacheChangeKey(ipcache_entry * i)
     hash_join(ip_table, (hash_link *) i);
 }
 
-/* call during reconfigure phase to clear out all the 
- * pending and dispatched reqeusts that got lost */
+/* Recalculate IP cache size upon reconfigure */
 void
 ipcache_restart(void)
 {
-    ipcache_entry *this;
-    assert(ip_table != NULL);
-    hash_first(ip_table);
-    while ((this = (ipcache_entry *) hash_next(ip_table))) {
-	if (this->status == IP_CACHED)
-	    continue;
-	if (this->status == IP_NEGATIVE_CACHED)
-	    continue;
-    }
-    /* recalculate these while we're at it */
     ipcache_high = (long) (((float) Config.ipcache.size *
 	    (float) Config.ipcache.high) / (float) 100);
     ipcache_low = (long) (((float) Config.ipcache.size *
