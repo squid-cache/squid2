@@ -368,6 +368,7 @@ comm_select(int msec)
 	    howmany(maxfd, FD_MASK_BITS) * FD_MASK_BYTES);
 	/* remove stalled FDs, and deal with pending descriptors */
 	pending = 0;
+	FD_ZERO(&pendingfds);
 	maxindex = howmany(maxfd, FD_MASK_BITS);
 	fdsp = (fd_mask *) & readfds;
 	for (j = 0; j < maxindex; j++) {
