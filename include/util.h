@@ -147,6 +147,7 @@ extern void xxfree _PARAMS((void *));
 
 /* rfc1738.c */
 extern char *rfc1738_escape _PARAMS((const char *));
+void rfc1738_unescape _PARAMS((char *));
 
 #if XMALLOC_STATISTICS
 void malloc_statistics _PARAMS((void (*)_PARAMS((int, int, void *)), void *));
