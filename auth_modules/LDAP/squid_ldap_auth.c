@@ -1,106 +1,266 @@
 /*
-
-  squid_ldap_auth: authentication via ldap for squid proxy server
-     
-  Author: Glen Newton 
-	  glen.newton@nrc.ca
-          Advanced Services 
-          CISTI
-	  National Research Council
-
-  Usage: squid_ldap_auth <ldap_server_name>
-
-  Dependencies: You need to get the OpenLDAP libraries
-          from http://www.openldap.org
-
-  License: squid_ldap_auth is free software; you can redistribute it 
-           and/or modify it under the terms of the GNU General Public License 
-	   as published by the Free Software Foundation; either version 2, 
-	   or (at your option) any later version.
+ * 
+ * squid_ldap_auth: authentication via ldap for squid proxy server
+ * 
+ * Maintainer: Henrik Nordstrom <hno@squid-cache.org>
+ *
+ * Author: Glen Newton 
+ * glen.newton@nrc.ca
+ * Advanced Services 
+ * CISTI
+ * National Research Council
+ * 
+ * Usage: squid_ldap_auth -b basedn [-s searchscope]
+ *			  [-f searchfilter] [-D binddn -w bindpasswd]
+ *                        [-u attr] [-p] [-R] <ldap_server_name>
+ * 
+ * Dependencies: You need to get the OpenLDAP libraries
+ * from http://www.openldap.org
+ * 
+ * License: squid_ldap_auth is free software; you can redistribute it 
+ * and/or modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2, 
+ * or (at your option) any later version.
+ *
+ * Changes:
+ * 2001-04-15: Henrik Nordstrom <hno@squid-cache.org>
+ *             - Added command line option for basedn
+ *             - Added the ability to search for the user DN
+ * 2001-04-16: Henrik Nordstrom <hno@squid-cache.org>
+ *             - Added -D binddn -w bindpasswd.
+ * 2001-04-17: Henrik Nordstrom <hno@squid-cache.org>
+ *             - Added -R to disable referrals
+ *             - Added -a to control alias dereferencing
+ * 2001-04-17: Henrik Nordstrom <hno@squid-cache.org>
+ *             - Added -u, DN username attribute name
+ * 2001-04-18: Henrik Nordstrom <hno@squid-cache.org>
+ *             - Allow full filter specifications in -f
  */
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <lber.h>
 #include <ldap_cdefs.h>
 #include <ldap.h>
 
 /* Change this to your search base */
-#define SEARCHBASE "ou=people,o=nrc.ca"
+static char *basedn;
+static char *searchfilter = NULL;
+static char *binddn = NULL;
+static char *bindpasswd = NULL;
+static char *userattr = NULL;
+static int searchscope = LDAP_SCOPE_SUBTREE;
+static int persistent = 0;
+static int noreferrals = 0;
+static int aliasderef = LDAP_DEREF_NEVER;
 
-int checkLDAP( LDAP *ld, char *userid, char *password);
+static int checkLDAP(LDAP * ld, char *userid, char *password);
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
-  char buf[256]; 
-  char *user, *passwd, *p;
-  char *ldapServer;
-  LDAP *ld;
-  LDAPMessage *result, *e;
+    char buf[256];
+    char *user, *passwd, *p;
+    char *ldapServer;
+    LDAP *ld = NULL;
+    int tryagain;
 
-  setbuf(stdout, NULL);
+    setbuf(stdout, NULL);
 
-  if (argc != 2) 
-    {
-      fprintf(stderr, "Usage: squid_ldap_auth ldap_server_name\n");
-      exit(1);
+    while (argc > 2 && argv[1][0] == '-') {
+	char *value = "";
+	char option = argv[1][1];
+	switch(option) {
+	case 'p':
+	case 'R':
+	    break;
+	default:
+	    if (strlen(argv[1]) > 2) {
+		value = argv[1]+2;
+	    } else {
+		value = argv[2];
+		argv++;
+		argc--;
+	    }
+	    break;
+	}
+	argv++;
+	argc--;
+	switch(option) {
+	case 'b':
+		basedn = value;
+		break;
+	case 'f':
+		searchfilter = value;
+		break;
+	case 'u':
+		userattr = value;
+		break;
+	case 's':
+		if (strcmp(value, "base") == 0)
+		    searchscope = LDAP_SCOPE_BASE;
+		else if (strcmp(value, "one") == 0)
+		    searchscope = LDAP_SCOPE_ONELEVEL;
+		else if (strcmp(value, "sub") == 0)
+		    searchscope = LDAP_SCOPE_SUBTREE;
+		else {
+		    fprintf(stderr, "squid_ldap_auth: ERROR: Unknown search scope '%s'\n", value);
+		    exit(1);
+		}
+		break;
+	case 'a':
+		if (strcmp(value, "never") == 0)
+		    aliasderef = LDAP_DEREF_NEVER;
+		else if (strcmp(value, "always") == 0)
+		    aliasderef = LDAP_DEREF_ALWAYS;
+		else if (strcmp(value, "search") == 0)
+		    aliasderef = LDAP_DEREF_SEARCHING;
+		else if (strcmp(value, "find") == 0)
+		    aliasderef = LDAP_DEREF_FINDING;
+		else {
+		    fprintf(stderr, "squid_ldap_auth: ERROR: Unknown alias dereference method '%s'\n", value);
+		    exit(1);
+		}
+		break;
+	case 'D':
+		binddn = value;
+		break;
+	case 'w':
+		bindpasswd = value;
+		break;
+	case 'p':
+		persistent = !persistent;
+		break;
+	case 'R':
+		noreferrals = !noreferrals;
+		break;
+	default:
+		fprintf(stderr, "squid_ldap_auth: ERROR: Unknown command line option '%c'\n", option);
+		exit(1);
+	}
     }
 
-  ldapServer = (char*)argv[1];
-  
-  while (fgets(buf, 256, stdin) != NULL) 
-    {
-      /* You can put this ldap connect outside the loop, but i didn't want to 
-	 have the connection open too much. If you have a site which will 
-	 be doing >1 authentication per second, you should move this (and the 
-	 below ldap_unbind()) outside the loop. 
-      */
-      if( (ld = ldap_init(ldapServer, LDAP_PORT)) == NULL)
-	{
-	  fprintf(stderr, "\nUnable to connect to LDAP server:%s port:%d\n",
-		  ldapServer, LDAP_PORT);
-	  exit(1);
-	}
-
-      if ((p = strchr(buf, '\n')) != NULL)
-	*p = '\0';		/* strip \n */
-
-      if ((user = strtok(buf, " ")) == NULL) 
-	{
-	  printf("ERR\n");
-	  continue;
-	}
-      if ((passwd = strtok(NULL, "")) == NULL) 
-	{
-	  printf("ERR\n");
-	  continue;
-	}
-      if(checkLDAP(ld, user, passwd) != 0)
-	{
-	  printf("ERR\n");
-	  continue;
-	}
-      else
-	{
-	  printf("OK\n");
-	}      
-      ldap_unbind(ld);
+    if (!basedn || argc != 2) {
+	fprintf(stderr, "Usage: squid_ldap_auth [options] ldap_server_name\n\n");
+	fprintf(stderr, "\t-b basedn (REQUIRED)\tbase dn under which to search\n");
+	fprintf(stderr, "\t-f filter\t\tsearch filter to locate user DN\n");
+	fprintf(stderr, "\t-u userattr\t\tusername DN attribute\n");
+	fprintf(stderr, "\t-s base|one|sub\t\tsearch scope\n");
+	fprintf(stderr, "\t-D binddn\t\tDN to bind as to perform searches\n");
+	fprintf(stderr, "\t-w bindpasswd\t\tpassword for binddn\n");
+	fprintf(stderr, "\t-p\t\t\tpersistent LDAP connection\n");
+	fprintf(stderr, "\t-R\t\t\tdo not follow referrals\n");
+	fprintf(stderr, "\t-a never|always|search|find\n\t\t\t\twhen to dereference aliases\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "\tIf no search filter is specified, then the dn <userattr>=user,basedn\n\twill be used (same as specifying a search filter of '<userattr>=',\n\tbut quicker as as there is no need to search for the user DN)\n\n");
+	fprintf(stderr, "\tIf you need to bind as a user to perform searches then use the\n\t-D binddn -w bindpasswd options\n\n");
+	exit(1);
     }
+    ldapServer = (char *) argv[1];
+
+    while (fgets(buf, 256, stdin) != NULL) {
+	if ((p = strchr(buf, '\n')) != NULL)
+	    *p = '\0';		/* strip \n */
+	if ((p = strchr(buf, '\r')) != NULL)
+	    *p = '\0';		/* strip \r */
+
+	user = buf;
+	if ((passwd = strrchr(buf, ' ')) == NULL) {
+	    printf("ERR\n");
+	    continue;
+	}
+	*passwd++ = '\0';	/* Cut in username,password */
+	tryagain = 1;
+recover:
+	if (ld == NULL) {
+	    if ((ld = ldap_init(ldapServer, LDAP_PORT)) == NULL) {
+		fprintf(stderr, "\nUnable to connect to LDAP server:%s port:%d\n",
+		    ldapServer, LDAP_PORT);
+		exit(1);
+	    }
+	    if (noreferrals)
+		ld->ld_options &= ~LDAP_OPT_REFERRALS;
+	    ld->ld_deref = aliasderef;
+	}
+	if (checkLDAP(ld, user, passwd) != 0) {
+	    if (tryagain && ld->ld_errno != LDAP_INVALID_CREDENTIALS) {
+		tryagain = 0;
+		ldap_unbind(ld);
+		ld = NULL;
+		goto recover;
+	    }
+	    printf("ERR\n");
+	} else {
+	    printf("OK\n");
+	}
+	if (!persistent || (ld->ld_errno != LDAP_SUCCESS && ld->ld_errno != LDAP_INVALID_CREDENTIALS)) {
+	    ldap_unbind(ld);
+	    ld = NULL;
+	}
+    }
+    if (ld)
+	ldap_unbind(ld);
+    return 0;
 }
 
-
-
-int checkLDAP(  LDAP *ld, char *userid, char *password)
+static int
+checkLDAP(LDAP * ld, char *userid, char *password)
 {
-  char str[256];
+    char dn[256];
 
-  /*sprintf(str,"uid=[%s][%s], %s",userid, password, SEARCHBASE); */
-  sprintf(str,"uid=%s, %s",userid, SEARCHBASE);
-  
-  if(ldap_simple_bind_s(ld, str, password) != LDAP_SUCCESS)
-    {
-      /*fprintf(stderr, "\nUnable to bind\n");*/
-      return 33;
+    if (!*password) {
+	/* LDAP can't bind with a blank password. Seen as "anonymous"
+	 * and always granted access
+	 */
+	return 1;
     }
-  return 0;
+    if (searchfilter) {
+	char filter[256];
+	LDAPMessage *res = NULL;
+	LDAPMessage *entry;
+	char *searchattr[] = {NULL};
+	char *userdn;
+	int rc;
+
+	if (binddn) {
+	    rc = ldap_simple_bind_s(ld, binddn, bindpasswd);
+	    if (rc != LDAP_SUCCESS) {
+		fprintf(stderr, "squid_ldap_auth: WARNING, could not bind to binddn '%s'\n", ldap_err2string(rc));
+		return 1;
+	    }
+	}
+	snprintf(filter, sizeof(filter), searchfilter, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid);
+	if (ldap_search_s(ld, basedn, searchscope, filter, searchattr, 1, &res) != LDAP_SUCCESS) {
+	    int rc = ldap_result2error(ld, res, 0);
+	    if (noreferrals && rc == LDAP_PARTIAL_RESULTS) {
+		/* Everything is fine. This is expected when referrals
+		 * are disabled.
+		 */
+	    } else {
+		fprintf(stderr, "squid_ldap_auth: WARNING, LDAP search error '%s'\n", ldap_err2string(rc));
+	    }
+	}
+	entry = ldap_first_entry(ld, res);
+	if (!entry) {
+	    ldap_msgfree(res);
+	    return 1;
+	}
+	userdn = ldap_get_dn(ld, entry);
+	if (!userdn) {
+	    fprintf(stderr, "squid_ldap_auth: ERROR, could not get user DN for '%s'\n", userid);
+	    ldap_msgfree(res);
+	    return 1;
+	}
+	snprintf(dn, sizeof(dn), "%s", userdn);
+	free(userdn);
+	ldap_msgfree(res);
+    } else {
+	snprintf(dn, sizeof(dn), "%s=%s,%s", userattr, userid, basedn);
+    }
+
+    if (ldap_simple_bind_s(ld, dn, password) != LDAP_SUCCESS)
+	return 1;
+    
+    return 0;
 }
