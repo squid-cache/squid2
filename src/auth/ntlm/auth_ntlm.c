@@ -92,6 +92,7 @@ static auth_ntlm_config *ntlmConfig = NULL;
 
 static hash_table *ntlm_challenge_cache = NULL;
 
+static void authenticateNTLMReleaseServer(ntlm_request_t * ntlm_request);
 /*
  *
  * Private Functions
@@ -381,8 +382,7 @@ authNTLMRequestFree(ntlm_request_t * ntlm_request)
 	xfree(ntlm_request->ntlmauthenticate);
     if (ntlm_request->authserver != NULL) {
 	debug(29, 9) ("authenticateNTLMRequestFree: releasing server '%p'\n", ntlm_request->authserver);
-	helperStatefulReleaseServer(ntlm_request->authserver);
-	ntlm_request->authserver = NULL;
+	authenticateNTLMReleaseServer(ntlm_request);
     }
     memPoolFree(ntlm_request_pool, ntlm_request);
 }
@@ -420,6 +420,10 @@ authenticateNTLMReleaseServer(ntlm_request_t * ntlm_request)
     helper_stateful_server *server = ntlm_request->authserver;
     debug(29, 9) ("authenticateNTLMReleaseServer: releasing server '%p'\n", server);
     ntlm_request->authserver = NULL;
+    if (!ntlmConfig->challengeuses) {
+	ntlm_helper_state_t *helperstate = helperStatefulServerGetData(server);
+	helperstate->starve = 1;
+    }
     helperStatefulReleaseServer(server);
 }
 
@@ -429,7 +433,7 @@ authenticateNTLMResetServer(ntlm_request_t * ntlm_request)
 {
     helper_stateful_server *server = ntlm_request->authserver;
     ntlm_helper_state_t *helperstate = helperStatefulServerGetData(server);
-    debug(29, 9) ("authenticateNTLMReleaseServer: releasing server '%p'\n", server);
+    debug(29, 9) ("authenticateNTLMResetServer: releasing server '%p'\n", server);
     ntlm_request->authserver = NULL;
     helperstate->starve = 1;
     helperStatefulReleaseServer(server);
@@ -690,7 +694,7 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
 	    while ((server != NULL) && authenticateNTLMChangeChallenge_p(helperstate)) {
 		/* flag this helper for challenge changing */
 		helperstate->starve = 1;
-		helperStatefulReset(server);
+		helperStatefulReleaseServer(server);
 		/* Get another server */
 		server = helperStatefulGetServer(ntlmauthenticators);
 		helperstate = server ? helperStatefulServerGetData(server) : NULL;
@@ -725,6 +729,8 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
 		helperStatefulSubmit(ntlmauthenticators, buf, authenticateNTLMHandleReply, r, ntlm_request->authserver);
 	    }
 	} else {
+	    if (!ntlmConfig->challengeuses)
+		debug(29, 0) ("authenticateNTLMStart: Reused challenge in server %p even if challenge reuse is disabled!", server);
 	    /* (server != NULL and we have a valid challenge) */
 	    /* TODO: turn the below into a function and call from here and handlereply */
 	    /* increment the challenge uses */
