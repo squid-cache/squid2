@@ -161,6 +161,11 @@ Changes to Squid-2.2 (April 19, 1999):
 	- Typo "applicatoin" in src/mime.conf
 	- The unlinkd daemon never saw the USE_TRUNCATE_NOT_UNLINK
 	  #define because it didn't include squid.h.
+	- Changed "maximum number of filedescriptors" detection in
+	  configure to always simply open /dev/null in a loop until
+	  open fails.  The #if statement was quite complex, and maybe
+	  impossible to get right for all platforms.  Note, getrlimit()
+	  can't be reliably used because it might return RLIM_INFINITY.
 
 Changes to Squid-2.1 (November 16, 1998):
 
