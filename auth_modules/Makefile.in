@@ -31,8 +31,8 @@ distclean:
 	done
 
 .DEFAULT:
-	@if test "$(SUBDIRS)" ; then \
-	    for dir in $(SUBDIRS); do \
+	@for dir in $(SUBDIRS); do \
+	    if [ -f $$dir/Makefile ]; then \
 		sh -c "cd $$dir && $(MAKE) $@" || exit 1; \
-	    done; \
-	fi
+	    fi; \
+	done;
