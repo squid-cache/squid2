@@ -711,6 +711,8 @@ ipcache_nbgethostbyname(const char *name, int fd, IPH handler, void *handlerData
     }
     if (addrs != NULL)		/* TEMPORARY */
 	debug_trap("ipcache_nbgethostbyname: Stack Trashed");
+    if (NDnsServersAlloc)
+        debug(14, 0, "WARNING: blocking on gethostbyname() for '%s'\n", name);
     ipcache_gethostbyname(name, IP_BLOCKING_LOOKUP);
     ipcache_call_pending(i);
 }
@@ -843,8 +845,6 @@ ipcache_gethostbyname(const char *name, int flags)
     IpcacheStats.misses++;
     if (BIT_TEST(flags, IP_BLOCKING_LOOKUP)) {
 	IpcacheStats.ghbn_calls++;
-	debug(14, NDnsServersAlloc ? 0 : 3,
-	    "WARNING: blocking on gethostbyname() for '%s'\n", name);
 	hp = gethostbyname(name);
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && ip_table) {
 	    /* good address, cached */
