@@ -138,7 +138,7 @@ carpSelectParent(request_t * request)
     unsigned int combined_hash;
     double score;
     double high_score = 0;
-    char *key = NULL;
+    const char *key = NULL;
 
     if (n_carp_peers == 0)
 	return NULL;
