@@ -43,7 +43,7 @@ typedef struct swapout_ctrl_t {
 
 static FOCB storeSwapOutFileOpened;
 static off_t storeSwapOutObjectBytesOnDisk(const MemObject *);
-static int storeSwapOutAble(const StoreEntry *e);
+static int storeSwapOutAble(const StoreEntry * e);
 
 /* start swapping object to disk */
 void
@@ -186,11 +186,14 @@ storeCheckSwapOut(StoreEntry * e)
     debug(20, 3) ("storeCheckSwapOut: swapout_size = %d\n",
 	(int) swapout_size);
     if (swapout_size == 0) {
-	if (e->store_status == STORE_OK) {
+	if (e->store_status == STORE_OK && !storeSwapOutWriteQueued(mem)) {
 	    debug(20, 1) ("storeCheckSwapOut: nothing to write for STORE_OK\n");
-	    storeUnlinkFileno(e->swap_file_number);
-	    storeDirMapBitReset(e->swap_file_number);
-	    e->swap_file_number = -1;
+	    debug(20, 1) ("\t%s\n", storeUrl(e));
+	    if (e->swap_file_number > -1) {
+		storeUnlinkFileno(e->swap_file_number);
+		storeDirMapBitReset(e->swap_file_number);
+		e->swap_file_number = -1;
+	    }
 	    e->swap_status = SWAPOUT_NONE;
 	    storeSwapOutFileClose(e);
 	}
