@@ -119,6 +119,7 @@ const char *log_tags[] =
     "TCP_IMS_MISS",
     "TCP_SWAPFAIL_MISS",
     "TCP_NEGATIVE_HIT",
+    "TCP_MEM_HIT",
     "UDP_HIT",
     "UDP_HIT_OBJ",
     "UDP_MISS",
@@ -462,6 +463,10 @@ isTcpHit(log_type code)
     if (code == LOG_TCP_REFRESH_FAIL_HIT)
 	return 1;
     if (code == LOG_TCP_REFRESH_HIT)
+	return 1;
+    if (code == LOG_TCP_NEGATIVE_HIT)
+	return 1;
+    if (code == LOG_TCP_MEM_HIT)
 	return 1;
     return 0;
 }
@@ -880,7 +885,10 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	/* this object isn't in the cache */
 	http->log_type = LOG_TCP_MISS;
     } else if (BIT_TEST(entry->flag, ENTRY_SPECIAL)) {
-	http->log_type = LOG_TCP_HIT;
+	if (entry->mem_status == IN_MEMORY)
+	    http->log_type = LOG_TCP_MEM_HIT;
+	else
+	    http->log_type = LOG_TCP_HIT;
     } else if (!storeEntryValidToSend(entry)) {
 	http->log_type = LOG_TCP_MISS;
 	storeRelease(entry);
@@ -914,7 +922,10 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	/* User-initiated IMS request for something we think is valid */
 	http->log_type = LOG_TCP_IMS_MISS;
     } else {
-	http->log_type = LOG_TCP_HIT;
+	if (entry->mem_status == IN_MEMORY)
+	    http->log_type = LOG_TCP_MEM_HIT;
+	else
+	    http->log_type = LOG_TCP_HIT;
     }
     debug(12, 4) ("icpProcessRequest: %s for '%s'\n",
 	log_tags[http->log_type],
@@ -928,6 +939,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
     switch (http->log_type) {
     case LOG_TCP_HIT:
     case LOG_TCP_NEGATIVE_HIT:
+    case LOG_TCP_MEM_HIT:
 	entry->refcount++;	/* HIT CASE */
 	storeClientCopy(entry,
 	    http->out.offset,
