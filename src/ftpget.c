@@ -2778,6 +2778,8 @@ main(int argc, char *argv[])
 	strcat(r->url, "@");
     }
     strcat(r->url, r->host);
+    if (r->port != FTP_PORT)
+	sprintf(&r->url[strlen(r->url)], ":%d", r->port);
     strcat(r->url, "/");
     if (!(r->flags & F_BASEDIR))
 	strcat(r->url, r->path);
@@ -2789,6 +2791,8 @@ main(int argc, char *argv[])
 	strcat(r->title_url, "@");
     }
     strcat(r->title_url, r->host);
+    if (r->port != FTP_PORT)
+	sprintf(&r->title_url[strlen(r->title_url)], ":%d", r->port);
     strcat(r->title_url, "/");
     if (!(r->flags & F_BASEDIR))
 	strcat(r->title_url, r->path);
