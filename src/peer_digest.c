@@ -123,7 +123,7 @@ peerDigestDestroy(PeerDigest * pd)
     assert(pd);
 
     /* inform peer (if any) that we are gone */
-    if (cbdataReferenceValidDone(pd->peer, &p))
+    if (cbdataReferenceValidDone(pd->peer, (void **)&p))
 	peerNoteDigestGone(p);
 
     peerDigestClean(pd);
