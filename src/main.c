@@ -704,6 +704,7 @@ SquidShutdown(void *unused)
     snmpConnectionClose();
 #endif
     releaseServerSockets();
+    redirectShutdownServers(NULL);
     commCloseAllSockets();
     unlinkdClose();
     storeDirWriteCleanLogs(0);
@@ -715,7 +716,6 @@ SquidShutdown(void *unused)
     configFreeMemory();
     storeFreeMemory();
     dnsFreeMemory();
-    redirectFreeMemory();
     /*stmemFreeMemory(); */
     netdbFreeMemory();
     ipcacheFreeMemory();

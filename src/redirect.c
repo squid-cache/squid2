@@ -353,6 +353,7 @@ redirectOpenServers(void)
 	}
 	NRedirectorsOpen++;
 	redirector = xcalloc(1, sizeof(redirector_t));
+	cbdataAdd(redirector, MEM_NONE);
 	redirector->flags.alive = 1;
 	redirector->index = k;
 	redirector->fd = redirectsocket;
