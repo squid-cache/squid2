@@ -596,8 +596,8 @@ static void parseQuickAbort()
 	Config.quickAbort.pct = 0;
 	Config.quickAbort.max = 0;
     } else {
-        if (sscanf(token, "%d", &i) != 1)
-                self_destruct();
+	if (sscanf(token, "%d", &i) != 1)
+	    self_destruct();
 	Config.quickAbort.min = i * 1024;
 	GetInteger(i);
 	Config.quickAbort.pct = i * 128 / 100;	/* 128 is full scale */
