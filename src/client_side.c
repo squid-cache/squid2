@@ -124,7 +124,7 @@ static int clientHierarchical(clientHttpRequest * http);
 static int clientCheckContentLength(request_t * r);
 static DEFER httpAcceptDefer;
 static log_type clientProcessRequest2(clientHttpRequest * http);
-static int clientReplyBodyTooLarge(HttpReply *, ssize_t clen);
+static int clientReplyBodyTooLarge(clientHttpRequest *, ssize_t clen);
 static int clientRequestBodyTooLarge(int clen);
 static void clientProcessBody(ConnStateData * conn);
 
@@ -1806,14 +1806,39 @@ clientPackMoreRanges(clientHttpRequest * http, const char *buf, ssize_t size, Me
     return i->debt_size > 0;
 }
 
-static int
-clientReplyBodyTooLarge(HttpReply * rep, ssize_t clen)
+/*
+ * Calculates the maximum size allowed for an HTTP response
+ */
+static void
+clientMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply * reply)
 {
-    if (0 == rep->maxBodySize)
+    body_size *bs;
+    aclCheck_t *checklist;
+    bs = (body_size *) Config.ReplyBodySize.head;
+    while (bs) {
+	checklist = clientAclChecklistCreate(bs->access_list, http);
+	checklist->reply = reply;
+	if (1 != aclCheckFast(bs->access_list, checklist)) {
+	    /* deny - skip this entry */
+	    bs = (body_size *) bs->node.next;
+	} else {
+	    /* Allow - use this entry */
+	    http->maxBodySize = bs->maxsize;
+	    bs = NULL;
+	    debug(58, 3) ("httpReplyBodyBuildSize: Setting maxBodySize to %ld\n", (long int) http->maxBodySize);
+	}
+	aclChecklistFree(checklist);
+    }
+}
+
+static int
+clientReplyBodyTooLarge(clientHttpRequest * http, ssize_t clen)
+{
+    if (0 == http->maxBodySize)
 	return 0;		/* disabled */
     if (clen < 0)
 	return 0;		/* unknown */
-    if (clen > rep->maxBodySize)
+    if (clen > http->maxBodySize)
 	return 1;		/* too large */
     return 0;
 }
@@ -1856,7 +1881,6 @@ clientAlwaysAllowResponse(http_status sline)
 	return 0;
     }
 }
-
 
 /*
  * accepts chunk of a http message in buf, parses prefix, filters headers and
@@ -1918,8 +1942,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	if (rep) {
 	    aclCheck_t *ch;
 	    int rv;
-	    httpReplyBodyBuildSize(http->request, rep, &Config.ReplyBodySize);
-	    if (clientReplyBodyTooLarge(rep, rep->content_length)) {
+	    clientMaxBodySize(http->request, http, rep);
+	    if (clientReplyBodyTooLarge(http, rep->content_length)) {
 		ErrorState *err = errorCon(ERR_TOO_BIG, HTTP_FORBIDDEN);
 		err->request = requestLink(http->request);
 		storeUnregister(http->sc, http->entry, http);
@@ -2172,7 +2196,8 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	} else {
 	    comm_close(fd);
 	}
-    } else if (clientReplyBodyTooLarge(entry->mem_obj->reply, http->out.offset)) {
+    } else if (clientReplyBodyTooLarge(http, http->out.offset - 4096)) {
+	/* 4096 is a margin for the HTTP headers included in out.offset */
 	comm_close(fd);
     } else {
 	/* More data will be coming from primary server; register with 

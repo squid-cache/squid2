@@ -959,7 +959,6 @@ struct _HttpReply {
     HttpStatusLine sline;
     HttpHeader header;
     HttpBody body;		/* for small constant memory-resident text bodies only */
-    size_t maxBodySize;
 };
 
 struct _http_state_flags {
@@ -1083,6 +1082,7 @@ struct _clientHttpRequest {
 	char *location;
     } redirect;
     dlink_node active;
+    size_t maxBodySize;
 };
 
 struct _ConnStateData {
