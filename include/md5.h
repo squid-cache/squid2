@@ -7,6 +7,11 @@
 
 #if USE_OPENSSL
 
+/*
+ * If Squid is compiled with OpenSSL then we use the MD5 routines
+ * from there via some wrapper macros, and the rest of this file is ignored..
+ */
+
 #if HAVE_OPENSSL_MD5_H
 #include <openssl/md5.h>
 #else
