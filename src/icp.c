@@ -286,6 +286,7 @@ icpStateFree(int fd, void *data)
 	    ntohs(icpState->me.sin_port));
     }
 #ifdef HIER_EXPERIMENT
+    if (icpState->log_type == LOG_TCP_MISS)
 	log_hier_expt(icpState->start, hierData);
 #endif
     if (icpState->redirect_state == REDIRECT_PENDING)

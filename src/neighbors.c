@@ -379,17 +379,19 @@ peer *
 getRandomParent(request_t * request)
 {
     peer *e;
-    peer *f = NULL;
-    peer *next = Peers.peers_head;
+    static peer *f = NULL;
+    peer *next = f;
     int n = squid_random() % Peers.n;
-    while (n--) {
-	e = next;
-	next = e->next ? e->next : Peers.peers_head;
+    int x = n<<1;
+    while (n && x--) {
+	e = next ? next : Peers.peers_head;
+	next = e->next;
 	if (neighborType(e, request) != PEER_PARENT)
 	    continue;
 	if (!peerHTTPOkay(e, request))
 	    continue;
 	f = e;
+	n--;
     }
     return f;
 }
@@ -604,7 +606,7 @@ neighborsUdpPing(protodispatch_data * proto)
 		host);
 	}
     }
-#if LOG_ICP_NUMBERS
+#if LOG_ICP_NUMBERS || defined(HIER_EXPERIMENT)
     request->hierarchy.n_sent = queries_sent;
     request->hierarchy.n_expect = mem->e_pings_n_pings;
 #endif

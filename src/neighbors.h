@@ -220,10 +220,10 @@ struct _hierarchyLogData {
     int delay;
 #endif
 #ifdef HIER_EXPERIMENT
-#define HIER_METH_DIRECT 1
-#define HIER_METH_RAND   2
-#define HIER_METH_ICP1   3
-#define HIER_METH_ICP2   4
+#define HIER_METH_DIRECT 0
+#define HIER_METH_RAND   1
+#define HIER_METH_ICP1   2
+#define HIER_METH_ICP2   3
 #define HIER_METHODS     4
     int hier_method;
 #endif

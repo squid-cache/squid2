@@ -347,8 +347,11 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 		protoDispatchDNSHandle, protoData);
     } else if (request->hierarchy.hier_method == HIER_METH_RAND) {
 	protoData->default_parent = getRandomParent(request);
-	protoData->direct_fetch = DIRECT_MAYBE;
-	protoDispatchDNSHandle(fd, NULL, protoData);
+	if (protoData->default_parent) {
+		protoData->direct_fetch = DIRECT_NO;
+		protoData->n_peers = 0;
+		protoDispatchDNSHandle(fd, NULL, protoData);
+	}
     } else
 #endif
     if (Config.firewall_ip_list) {
@@ -545,7 +548,7 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
     protoCancelTimeout(fd, entry);
     netdbPingSite(request->host);
-#ifdef LOG_ICP_NUMBERS
+#if defined(LOG_ICP_NUMBERS) || defined(HIER_EXPERIMENT)
     request->hierarchy.n_recv = entry->mem_obj->e_pings_n_acks;
     if (entry->mem_obj->start_ping.tv_sec)
 	request->hierarchy.delay = tvSubUsec(entry->mem_obj->start_ping, current_time);
