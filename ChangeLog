@@ -3,6 +3,16 @@
 	  as it fails the first time fire off a connection attempt and
 	  if that succeeds mark it back with 10 fresh chances.
 	- Re-fixed handling long lines in Gopher replies (John Line).
+	- Fixed dereference bug in BIN_TREE version of
+	  aclMatchDomainList().
+	- Added Date: and Expires: to proxy-auth message.
+	- Fixed using Proxy Auth and User based ACLs without any ident
+	  lookups; the ident field of the aclChecklist was never filled
+	  (Milton Ngan).
+	- Updated contrib/nextstep directory from Gerben Wierda.
+	- Added ability to generate HTTP redirect messages from
+	  the redirector output by prepending "301:" or "302:" to the
+	  new url.  See FAQ 4.16 for more details.
 
 Changes to squid-1.1.18 (October 31, 1997):
 

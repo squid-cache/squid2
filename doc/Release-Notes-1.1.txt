@@ -843,9 +843,7 @@ The file store.log consists of the following fields:
     reply headers.  All are expressed in Unix time.  A missing header
     is represented with -2 and an unparsable header is represented as -1.
 
-    date       The value of the HTTP Date reply header.  If the Date
-               header is missing or invalid, the time of the request
-               is used instead.
+    date       The value of the HTTP Date: reply header.
 
     lastmod    The value of the HTTP Last-Modified: reply header.
 
