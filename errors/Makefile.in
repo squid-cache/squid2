@@ -28,7 +28,7 @@ install: install-mkdirs
 		else \
 			echo "$(INSTALL_FILE) $$f $(DEFAULT_ERROR_DIR)"; \
 			$(INSTALL_FILE) $$f $(DEFAULT_ERROR_DIR); \
-		fi \
+		fi; \
 	done
 
 install-mkdirs:
