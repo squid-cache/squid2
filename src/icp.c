@@ -67,7 +67,7 @@ typedef struct iwd {
 
 static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
-#define ICP_MAX_UDP_SIZE (1<<14)
+#define ICP_MAX_UDP_SIZE 12288
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
 typedef void (*complete_handler) _PARAMS((int fd, char *buf, int size, int errflag, void *data));
