@@ -420,6 +420,8 @@ peerGetSomeParent(ps_state * ps)
     debug(44, 3) ("peerGetSomeParent: %s %s\n",
 	RequestMethodStr[request->method],
 	request->host);
+    if (ps->direct == DIRECT_YES)
+	return;
     if ((p = getDefaultParent(request))) {
 	code = DEFAULT_PARENT;
     } else if ((p = getRoundRobinParent(request))) {

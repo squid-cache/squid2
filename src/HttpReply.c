@@ -198,7 +198,7 @@ MemBuf
 httpPacked304Reply(const HttpReply * rep)
 {
     static const http_hdr_type ImsEntries[] =
-    {HDR_DATE, HDR_CONTENT_LENGTH, HDR_CONTENT_TYPE, HDR_EXPIRES, HDR_LAST_MODIFIED, /* eof */ HDR_OTHER};
+    {HDR_DATE, HDR_CONTENT_TYPE, HDR_EXPIRES, HDR_LAST_MODIFIED, /* eof */ HDR_OTHER};
     int t;
     MemBuf mb;
     Packer p;

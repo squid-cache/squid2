@@ -32,30 +32,12 @@
  *
  */
 
+#include "squid.h"
+
 #ifdef UNLINK_DAEMON
 
 /* This is the external unlinkd process */
 
-#include "config.h"
-
-#if HAVE_LIBC_H
-#include <libc.h>
-#endif
-#if HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#if HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
 #define UNLINK_BUF_LEN 1024
 
 int
@@ -79,8 +61,6 @@ main(int argc, char *argv[])
 #else /* UNLINK_DAEMON */
 
 /* This code gets linked to Squid */
-
-#include "squid.h"
 
 #if USE_UNLINKD
 static int unlinkd_wfd = -1;

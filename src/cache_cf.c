@@ -118,6 +118,17 @@ wordlistCat(const wordlist * w, MemBuf * mb)
     }
 }
 
+wordlist *
+wordlistDup(const wordlist * w)
+{
+    wordlist *D = NULL;
+    while (NULL != w) {
+	wordlistAdd(&D, w->key);
+	w = w->next;
+    }
+    return D;
+}
+
 void
 intlistDestroy(intlist ** list)
 {

@@ -136,6 +136,15 @@ fwdServerClosed(int fd, void *data)
 	debug(17, 3) ("fwdServerClosed: re-forwarding (%d tries, %d secs)\n",
 	    fwdState->n_tries,
 	    (int) (squid_curtime - fwdState->start));
+	if (fwdState->servers->next) {
+	    /* cycle */
+	    FwdServer *fs = fwdState->servers;
+	    FwdServer **T;
+	    fwdState->servers = fs->next;
+	    for (T = &fwdState->servers; *T; T = &(*T)->next);
+	    *T = fs;
+	    fs->next = NULL;
+	}
 	/* use eventAdd to break potential call sequence loops */
 	eventAdd("fwdConnectStart", fwdConnectStart, fwdState, 0.0, 1);
     } else {

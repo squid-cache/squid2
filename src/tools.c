@@ -1,6 +1,7 @@
 
 /*
  * $Id$
+ * $Id$
  *
  * DEBUG: section 21    Misc Functions
  * AUTHOR: Harvest Derived
@@ -186,7 +187,7 @@ rusage_maxrss(struct rusage *r)
     return r->ru_maxrss;
 #elif defined(BSD4_4)
     return r->ru_maxrss;
-#elif HAVE_GETPAGESIZE
+#elif defined(HAVE_GETPAGESIZE) && HAVE_GETPAGESIZE != 0
     return (r->ru_maxrss * getpagesize()) >> 10;
 #elif defined(PAGESIZE)
     return (r->ru_maxrss * PAGESIZE) >> 10;
@@ -298,8 +299,7 @@ static void
 fatal_common(const char *message)
 {
 #if HAVE_SYSLOG
-    if (opt_syslog_enable)
-	syslog(LOG_ALERT, "%s", message);
+    syslog(LOG_ALERT, "%s", message);
 #endif
     fprintf(debug_log, "FATAL: %s\n", message);
     if (opt_debug_stderr && debug_log != stderr)
