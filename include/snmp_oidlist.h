@@ -2,25 +2,25 @@
 #define _SQUID_SNMP_OID_LIST_H_
 
 /* Function called to parse an OID */
-typedef variable_list *(oid_ParseFn)(variable_list *, long *);
+typedef variable_list *(oid_ParseFn)(variable_list *, snint *);
 
 /* Function called when looking for an OID in a MIB */
-typedef oid_ParseFn *(oid_GetFn)(oid *, long);
+typedef oid_ParseFn *(oid_GetFn)(oid *, snint);
 
 /* Function called when looking for the next OID in a MIB */
-typedef oid_ParseFn *(oid_GetNextFn)(oid *, long, oid **, long *);
+typedef oid_ParseFn *(oid_GetNextFn)(oid *, snint, oid **, snint *);
 
 /* Find things in the master oidlist */
-oid_ParseFn *oidlist_Find(oid *, long);
-oid_ParseFn *oidlist_Next(oid *, long, oid **, long *);
+oid_ParseFn *oidlist_Find(oid *, snint);
+oid_ParseFn *oidlist_Next(oid *, snint, oid **, snint *);
 
-void print_oid(oid *, long);
-int  oidcmp(oid *, long, oid *, long);
-oid *oiddup(oid *, long);
+void print_oid(oid *, snint);
+int  oidcmp(oid *, snint, oid *, snint);
+oid *oiddup(oid *, snint);
 
 struct OidListEntry {
   oid          Name[1];
-  long         NameLen;
+  snint         NameLen;
   oid_ParseFn *ParseFn;
 };
 

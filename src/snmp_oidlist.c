@@ -2,8 +2,9 @@
 #include "snmp.h"
 #include "asn1.h"
 #include "snmp_vars.h"
-#include "snmp_oidlist.h"
 #include "cache_snmp.h"
+#include "snmp_oidlist.h"
+
 
 /*
  * squid is under:   .1.3.6.1.3.25.17   ( length=7)
@@ -18,34 +19,34 @@
 
 /* group handler definition */
 
-oid_ParseFn *basicGetFn(oid *, long);
-oid_ParseFn *basicGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *sysGetFn(oid *, long);
-oid_ParseFn *sysGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *sysFdGetFn(oid *, long);
-oid_ParseFn *sysFdGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *confGetFn(oid *, long);
-oid_ParseFn *confGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *confPtblGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *confStGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *confTioGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *prfSysGetFn(oid *, long);
-oid_ParseFn *prfSysGetFn(oid *, long);
-oid_ParseFn *prfSysGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *prfPeerGetFn(oid *, long);
-oid_ParseFn *prfPeerGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *prfProtoGetFn(oid *, long);
-oid_ParseFn *prfProtoGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *netdbGetFn(oid *, long);
-oid_ParseFn *netdbGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *dnsGetFn(oid *, long);
-oid_ParseFn *dnsGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *secGetFn(oid *, long);
-oid_ParseFn *secGetNextFn(oid *, long, oid **, long *);
-oid_ParseFn *accGetFn(oid *, long);
-oid_ParseFn *accGetNextFn(oid *, long, oid **, long *);
+oid_ParseFn *basicGetFn(oid *, snint);
+oid_ParseFn *basicGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *sysGetFn(oid *, snint);
+oid_ParseFn *sysGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *sysFdGetFn(oid *, snint);
+oid_ParseFn *sysFdGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *confGetFn(oid *, snint);
+oid_ParseFn *confGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *confPtblGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *confStGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *confTioGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *prfSysGetFn(oid *, snint);
+oid_ParseFn *prfSysGetFn(oid *, snint);
+oid_ParseFn *prfSysGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *prfPeerGetFn(oid *, snint);
+oid_ParseFn *prfPeerGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *prfProtoGetFn(oid *, snint);
+oid_ParseFn *prfProtoGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *netdbGetFn(oid *, snint);
+oid_ParseFn *netdbGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *dnsGetFn(oid *, snint);
+oid_ParseFn *dnsGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *secGetFn(oid *, snint);
+oid_ParseFn *secGetNextFn(oid *, snint, oid **, snint *);
+oid_ParseFn *accGetFn(oid *, snint);
+oid_ParseFn *accGetNextFn(oid *, snint, oid **, snint *);
 
-oid_ParseFn *genericGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen,
+oid_ParseFn *genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen,
     oid * MIBRoot, int MIBRootLen, int LEN_MIB, oid * MIBTail,
     oid_ParseFn * mygetFn, int MIBTailLen, int MIB_ACTION_INDEX);
 
@@ -90,7 +91,7 @@ extern int netdb_getMax();
  * General OID Functions
  **********************************************************************/
 void
-print_oid(oid * Name, long Len)
+print_oid(oid * Name, snint Len)
 {
     static char mbuf[16], objid[1024];
     int x;
@@ -103,11 +104,11 @@ print_oid(oid * Name, long Len)
 }
 
 int
-oidcmp(oid * A, long ALen, oid * B, long BLen)
+oidcmp(oid * A, snint ALen, oid * B, snint BLen)
 {
     oid *aptr = A;
     oid *bptr = B;
-    long m = MIN(ALen, BLen);
+    snint m = MIN(ALen, BLen);
 
     /* Compare the first M bytes. */
     while (m) {
@@ -132,12 +133,12 @@ oidcmp(oid * A, long ALen, oid * B, long BLen)
 }
 
 int
-oidncmp(oid * A, long ALen, oid * B, long BLen, long CompLen)
+oidncmp(oid * A, snint ALen, oid * B, snint BLen, snint CompLen)
 {
     oid *aptr = A;
     oid *bptr = B;
-    long m = MIN(MIN(ALen, BLen), CompLen);
-    long count = 0;
+    snint m = MIN(MIN(ALen, BLen), CompLen);
+    snint count = 0;
 
     /* Compare the first M bytes. */
     while (count != m) {
@@ -165,7 +166,7 @@ oidncmp(oid * A, long ALen, oid * B, long BLen, long CompLen)
 /* Allocate space for, and copy, an OID.  Returns new oid, or NULL.
  */
 oid *
-oiddup(oid * A, long ALen)
+oiddup(oid * A, snint ALen)
 {
     oid *Ans;
 
@@ -183,7 +184,7 @@ oiddup(oid * A, long ALen)
  **********************************************************************/
 
 oid_ParseFn *
-oidlist_Find(oid * Src, long SrcLen)
+oidlist_Find(oid * Src, snint SrcLen)
 {
     struct MIBListEntry *Ptr;
     int ret;
@@ -220,7 +221,7 @@ oidlist_Find(oid * Src, long SrcLen)
  * 
  */
 oid_ParseFn *
-oidlist_Next(oid * Src, long SrcLen, oid ** DestP, long *DestLenP)
+oidlist_Next(oid * Src, snint SrcLen, oid ** DestP, snint *DestLenP)
 {
     struct MIBListEntry *Ptr;
     int ret;
@@ -276,7 +277,7 @@ oidlist_Next(oid * Src, long SrcLen, oid ** DestP, long *DestLenP)
 /* SQUID MIB implementation */
 
 oid_ParseFn *
-genericGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen,
+genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen,
     oid * MIBRoot, int MIBRootLen, int LEN_MIB, oid * MIBTail,
     oid_ParseFn * mygetFn, int MIBTailLen, int MIB_ACTION_INDEX)
 {
@@ -343,7 +344,7 @@ genericGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen,
 	    for (i = SrcLen - 1; i < MIBTailLen; i++)
 		Ptr[i] = 1;
     } else {
-	/* Src too long.  Just copy the first part. */
+	/* Src too snint.  Just copy the first part. */
 	xmemcpy(Ptr, Src, (MIBTailLen * sizeof(oid)));
     }
 
@@ -373,7 +374,7 @@ genericGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen,
 }
 
 oid_ParseFn *
-basicGetFn(oid * Src, long SrcLen)
+basicGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("basicGetFn: here,requested:%d\n", Src[7]);
     if (((SrcLen == (LEN_SYSMIB + 1)) ||
@@ -385,7 +386,7 @@ basicGetFn(oid * Src, long SrcLen)
     return NULL;
 }
 oid_ParseFn *
-basicGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+basicGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid_ParseFn *retFn = NULL;
     oid MIBRoot[] =
@@ -403,7 +404,7 @@ basicGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 
 
 oid_ParseFn *
-sysGetFn(oid * Src, long SrcLen)
+sysGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("sysGetFn: here! with Src[8]=%d\n", Src[8]);
     if (SrcLen == LEN_SQ_SYS + 4 && Src[LEN_SQ_SYS] == SYSFDTBL)
@@ -417,7 +418,7 @@ sysGetFn(oid * Src, long SrcLen)
 }
 
 oid_ParseFn *
-sysGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+sysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_SYS};
@@ -433,7 +434,7 @@ sysGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 }
 
 oid_ParseFn *
-sysFdGetFn(oid * Src, long SrcLen)
+sysFdGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("sysGetFn: here, requested: %d\n", Src[8]);
     if (SrcLen == LEN_SQ_SYS + 4 && Src[LEN_SQ_SYS] == SYSFDTBL)
@@ -443,7 +444,7 @@ sysFdGetFn(oid * Src, long SrcLen)
 }
 
 oid_ParseFn *
-sysFdGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+sysFdGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_SYS, 3};
@@ -462,7 +463,7 @@ sysFdGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 
 
 oid_ParseFn *
-confGetFn(oid * Src, long SrcLen)
+confGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("confGetFn: here! with Src[8]=%d and %d\n", Src[8], SrcLen);
 
@@ -482,7 +483,7 @@ confGetFn(oid * Src, long SrcLen)
     return snmp_confFn;
 }
 oid_ParseFn *
-confGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+confGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_CONF};
@@ -498,7 +499,7 @@ confGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 }
 
 oid_ParseFn *
-confStGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+confStGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_CONF, CONF_STORAGE};
@@ -514,7 +515,7 @@ confStGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 }
 
 oid_ParseFn *
-confTioGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+confTioGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_CONF, CONF_TIO};
@@ -530,7 +531,7 @@ confTioGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 }
 
 oid_ParseFn *
-confPtblGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+confPtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_CONF, CONF_PTBL};
@@ -555,7 +556,7 @@ confPtblGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 }
 
 oid_ParseFn *
-prfSysGetFn(oid * Src, long SrcLen)
+prfSysGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("prfSysGetFn: called with %d, %d, %d\n", SrcLen,
 	Src[LEN_SQ_PRF + 1], LEN_SQ_PRF + 1);
@@ -566,7 +567,7 @@ prfSysGetFn(oid * Src, long SrcLen)
 }
 
 oid_ParseFn *
-prfSysGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+prfSysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_PRF, PERF_SYS};
@@ -583,7 +584,7 @@ prfSysGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 }
 
 oid_ParseFn *
-prfProtoGetFn(oid * Src, long SrcLen)
+prfProtoGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("prfProtoGetFn: called with %d\n", SrcLen);
 
@@ -596,7 +597,7 @@ prfProtoGetFn(oid * Src, long SrcLen)
 }
 
 oid_ParseFn *
-prfProtoGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+prfProtoGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, 1, 0, 0};
@@ -629,7 +630,7 @@ prfProtoGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 }
 
 oid_ParseFn *
-prfPeerGetFn(oid * Src, long SrcLen)
+prfPeerGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("prfPeerGetFn: called with %d\n", SrcLen);
 
@@ -640,7 +641,7 @@ prfPeerGetFn(oid * Src, long SrcLen)
 }
 
 oid_ParseFn *
-prfPeerGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+prfPeerGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_PRF, PERF_PEER, 1, 1};
@@ -669,7 +670,7 @@ prfPeerGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 }
 
 oid_ParseFn *
-netdbGetFn(oid * Src, long SrcLen)
+netdbGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("netdbGetFn: called with %d\n", SrcLen);
     if (SrcLen != LEN_SQ_PRF + 4)
@@ -679,7 +680,7 @@ netdbGetFn(oid * Src, long SrcLen)
 }
 
 oid_ParseFn *
-netdbGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+netdbGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_NET, NET_NETDBTBL, 1};
@@ -701,7 +702,7 @@ netdbGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 }
 
 oid_ParseFn *
-dnsGetFn(oid * Src, long SrcLen)
+dnsGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("dnsGetFn: called with %d\n", SrcLen);
     if (SrcLen != LEN_SQ_NET + 5)
@@ -711,7 +712,7 @@ dnsGetFn(oid * Src, long SrcLen)
 }
 
 oid_ParseFn *
-dnsGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+dnsGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     oid MIBRoot[] =
     {SQ_NET, NET_DNS, NET_DNS_IPCACHE, 1, 1};
@@ -756,25 +757,25 @@ dnsGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 }
 
 oid_ParseFn *
-secGetFn(oid * Src, long SrcLen)
+secGetFn(oid * Src, snint SrcLen)
 {
     return NULL;
 }
 
 oid_ParseFn *
-secGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+secGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     return NULL;
 }
 
 oid_ParseFn *
-accGetFn(oid * Src, long SrcLen)
+accGetFn(oid * Src, snint SrcLen)
 {
     return NULL;
 }
 
 oid_ParseFn *
-accGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
+accGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 {
     return NULL;
 }
