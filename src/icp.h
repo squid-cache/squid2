@@ -198,6 +198,7 @@ typedef struct iwd {
 	int state;
     } ident;
     int redirect_state;
+    aclCheck_t *acl_checklist;	/* need ptr back so we can unreg if needed */
 } icpStateData;
 
 extern void *icpCreateMessage _PARAMS((icp_opcode opcode,

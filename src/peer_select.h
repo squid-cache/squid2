@@ -76,6 +76,7 @@ typedef struct {
     peer *first_parent_miss;
     peer *closest_parent_miss;
     icp_ping_data icp;
+    aclCheck_t *acl_checklist;
 } ps_state;
 
 

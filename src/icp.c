@@ -288,6 +288,9 @@ icpStateFree(int fd, void *data)
 	redirectUnregister(icpState->url, fd);
     if (icpState->ident.fd > -1)
 	comm_close(icpState->ident.fd);
+    if (icpState->acl_checklist) {
+	aclChecklistFree(icpState->acl_checklist);
+    }
     checkFailureRatio(icpState->log_type,
 	hierData ? hierData->code : HIER_NONE);
     safe_free(icpState->inbuf);
@@ -1842,8 +1845,6 @@ requestTimeout(int fd, void *data)
 	return;
     if (entry == NULL)
 	comm_close(fd);
-    else if (entry->store_status == STORE_PENDING)
-	storeAbort(entry, NULL);
 }
 
 /* Handle a new connection on ascii input socket. */

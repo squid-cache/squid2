@@ -122,23 +122,23 @@ typedef enum {
 struct _aclCheck_t {
     const struct _acl_access *access_list;
     struct in_addr src_addr;
+    struct in_addr dst_addr;
     request_t *request;
     char ident[ICP_IDENT_SZ];
     char browser[BROWSERNAMELEN];
     acl_lookup_state state[ACL_ENUM_MAX];
     PF *callback;
     void *callback_data;
-    ipcache_addrs *dst_ia;
 };
 
-extern void aclNBCheck _PARAMS((const struct _acl_access * A,
-	request_t * request,
-	struct in_addr src_addr,
-	char *user_agent,
-	char *ident,
-	PF * callback,
-	void *callback_data));
+extern aclCheck_t *aclChecklistCreate _PARAMS((const struct _acl_access *,
+	request_t *,
+	struct in_addr src,
+	char *ua,
+	char *id));
+extern void aclNBCheck _PARAMS((aclCheck_t *, PF *, void *));
 extern int aclCheckFast _PARAMS((const struct _acl_access * A, aclCheck_t *));
+extern void aclChecklistFree _PARAMS((aclCheck_t *));
 extern int aclMatchAcl _PARAMS((struct _acl *, aclCheck_t *));
 extern void aclDestroyAccessList _PARAMS((struct _acl_access ** list));
 extern void aclDestroyAcls _PARAMS((void));
@@ -150,7 +150,6 @@ extern void aclParseDenyInfoLine _PARAMS((struct _acl_deny_info_list **));
 extern void aclDestroyDenyInfoList _PARAMS((struct _acl_deny_info_list **));
 extern void aclDestroyRegexList _PARAMS((struct _relist * data));
 extern int aclMatchRegex _PARAMS((relist * data, const char *word));
-
 extern void aclParseRegexList _PARAMS((void *curlist, int icase));
 
 extern struct _acl_access *HTTPAccessList;
