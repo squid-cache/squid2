@@ -558,7 +558,6 @@ main(int argc, char **argv)
     comm_init();
 
     /* we have to init fdstat here. */
-    fdstat_init();
     fd_open(0, FD_LOG, "stdin");
     fd_open(1, FD_LOG, "stdout");
     fd_open(2, FD_LOG, "stderr");

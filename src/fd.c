@@ -31,6 +31,16 @@
 
 #include "squid.h"
 
+const char *fdTypeStr[] =
+{
+    "None",
+    "Log",
+    "File",
+    "Socket",
+    "Pipe",
+    "Unknown"
+};
+
 static void fdUpdateBiggest(int fd, unsigned int status);
 
 static void
@@ -123,4 +133,10 @@ fdDumpOpen(void)
 	    continue;
 	debug(51, 1) ("Open FD %4d %s\n", i, F->desc);
     }
+}
+
+int
+fdNFree(void)
+{
+    return Squid_MaxFD - Number_FD;
 }

@@ -1792,7 +1792,7 @@ requestTimeout(int fd, void *data)
 int
 httpAcceptDefer(int fdnotused, void *notused)
 {
-    return !fdstat_are_n_free_fd(RESERVED_FD);
+    return fdNFree() < RESERVED_FD;
 }
 
 /* Handle a new connection on HTTP socket. */
