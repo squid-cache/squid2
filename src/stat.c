@@ -886,7 +886,7 @@ statCountersInitSpecial(StatCounters * C)
     statHistLogInit(&C->icp.server_svc_time, 300, 0.0, 3600000.0 * 30.0);
     statHistEnumInit(&C->cd.peer_choice_count, Config.npeers);
     statHistEnumInit(&C->cd.peer_ichoice_count, Config.npeers);
-    statHistEnumInit(&C->cd.on_xition_count, CacheDigestHashCount);
+    statHistEnumInit(&C->cd.on_xition_count, CacheDigestHashFuncCount);
 #endif
 }
 

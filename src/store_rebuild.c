@@ -593,7 +593,7 @@ storeCleanup(void *datanotused)
 	if (opt_store_doublecheck)
 	    assert(store_errors == 0);
 	if (store_digest)
-	    storeDigestRewriteStart(NULL);
+	    storeDigestNoteStoreReady();
 	return;
     }
     link_next = hash_get_bucket(store_table, bucketnum);
@@ -744,10 +744,6 @@ storeRebuildStart(void)
     int i;
     memset(&RebuildState, '\0', sizeof(RebuildState));
     RebuildState.start = squid_curtime;
-#if OLD_CODE
-    if (store_digest)
-	storeDigestRewriteStart("store-rebuild");
-#endif
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
 	d = xcalloc(1, sizeof(rebuild_dir));
 	d->dirn = i;

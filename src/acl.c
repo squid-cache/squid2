@@ -1402,12 +1402,14 @@ int
 aclCheckFast(const acl_access * A, aclCheck_t * checklist)
 {
     int allow = 0;
+    debug(28, 5) ("aclCheckFast: list: %p\n", A);
     while (A) {
 	allow = A->allow;
 	if (aclMatchAclList(A->acl_list, checklist))
 	    return allow;
 	A = A->next;
     }
+    debug(28, 5) ("aclCheckFast: no matches, returning: %d\n", !allow);
     return !allow;
 }
 
