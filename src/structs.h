@@ -778,6 +778,7 @@ struct _HttpStateData {
     StoreEntry *entry;
     request_t *request;
     char *reply_hdr;
+    size_t reply_hdr_size;
     int reply_hdr_state;
     peer *peer;			/* peer request made to */
     int eof;			/* reached end-of-object? */
