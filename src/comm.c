@@ -92,6 +92,9 @@ HISTORY OF FREE SOFTWARE STATUS
 
 #include "squid.h"
 
+#ifdef HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>
+#endif
 
 /* Block processing new client requests (accepts on ascii port) when we start
  * running shy of free file descriptors.  For example, under SunOS, we'll keep
@@ -125,6 +128,9 @@ static int examine_select _PARAMS((fd_set *, fd_set *, fd_set *));
 static void commSetNoLinger _PARAMS((int));
 static void comm_select_incoming _PARAMS((void));
 static int commBind _PARAMS((int s, struct in_addr, u_short port));
+#ifdef TCP_NODELAY
+static void commSetTcpNoDelay _PARAMS((int));
+#endif
 
 static int *fd_lifetime = NULL;
 static struct timeval zero_tv;
