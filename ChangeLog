@@ -208,3 +208,10 @@ beta10:
 	- Fixed bug when request arrives in fragmented IP packets.
 	- Fixed ACL bug which denied cache manager access while in
  	  httpd_accel mode.
+	- Changed ftpget to "fail nicely" for sites which do not allow
+	  PORT requests (if compiled with PASVONLY).
+	- Fixed Unix domain socket off-by-one bug in ftpget.
+	- Fixed lingering sockets after shutdown by SIGTERM.
+	- Added dnsserver use histogram to ipcache stats.
+	- Changed domain ACL's to match only the end of the hostname, not
+	  just anywhere in the string.
