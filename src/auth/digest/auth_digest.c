@@ -523,8 +523,10 @@ authDigestRequestDelete(digest_request_h * digest_request)
 static void
 authDigestAURequestFree(auth_user_request_t * auth_user_request)
 {
-    if (auth_user_request->scheme_data != NULL)
+    if (auth_user_request->scheme_data != NULL) {
 	authDigestRequestDelete((digest_request_h *) auth_user_request->scheme_data);
+	auth_user_request->scheme_data = NULL;
+    }
 }
 
 static digest_request_h *
