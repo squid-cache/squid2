@@ -130,3 +130,14 @@ Changes to squid-1.0.beta6:
 	- Changed requested listen queue length to 1/4 of getMaxFD().
 	- Rewrote SSL/CONNECT handlers.  Now doesn't use a StoreEntry.
 	- Fixed some aborted objects getting stuck in VM bug.
+	- Fixed ftpget PASV reply sscanf to work for VMS ftpd.
+	- Changed FTP URL parsing to use urlParse().
+	- Changed ftpget to skip RETR command if URLs ends with '/'.
+	- Changed ftpget to display README at the bottom if there are other
+	  server messages.
+	- Changed ftpget to not reopen a new data connection
+  	  if one is already open.
+	- Fixed handling of FTP URLs with spaces (and other unsafe characters)
+	- Changed ftpget to only generate BASE HREF if the FTP URL does
+	  not end with '/'.
+
