@@ -183,6 +183,7 @@ static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
 static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
 static void icpStateFree _PARAMS((int fd, void *data));
 static int icpCheckTransferDone _PARAMS((icpStateData *));
+static void clientReadRequest _PARAMS((int fd, void *data));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -1518,7 +1519,7 @@ do_append_domain(const char *url, const char *ad)
  *  parseHttpRequest()
  * 
  *  Called by
- *    asciiProcessInput() after the request has been read
+ *    clientReadRequest() after the request has been read
  *  Calls
  *    do_append_domain()
  *  Returns
@@ -1676,19 +1677,23 @@ parseHttpRequest(icpStateData * icpState)
 #define ASCII_INBUF_BLOCKSIZE 4096
 
 static void
-asciiProcessInput(int fd, char *buf, int size, int flag, void *data)
+clientReadRequest(int fd, void *data)
 {
     icpStateData *icpState = data;
     int parser_return_code = 0;
     int k;
     request_t *request = NULL;
     char *wbuf = NULL;
+    int size;
+    int len;
 
-    debug(12, 4, "asciiProcessInput: FD %d: reading request...\n", fd);
-    debug(12, 4, "asciiProcessInput: size = %d\n", size);
+    len = icpState->inbufsize - icpState->offset;
+    debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
+    debug(12, 4, "clientReadRequest: len = %d\n", len);
+    size = read(fd, icpState->inbuf + icpState->offset, len);
 
-    if (flag != COMM_OK) {
-	/* connection closed by foreign host */
+    if (len < 0) {
+	debug(50,2, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
 	comm_close(fd);
 	return;
     }
@@ -1738,7 +1743,7 @@ asciiProcessInput(int fd, char *buf, int size, int flag, void *data)
 	if (k == 0) {
 	    if (icpState->offset >= Config.maxRequestSize) {
 		/* The request is too large to handle */
-		debug(12, 0, "asciiProcessInput: Request won't fit in buffer.\n");
+		debug(12, 0, "clientReadRequest: Request won't fit in buffer.\n");
 		debug(12, 0, "-->     max size = %d\n", Config.maxRequestSize);
 		debug(12, 0, "--> icpState->offset = %d\n", icpState->offset);
 		icpSendERROR(fd,
@@ -1756,16 +1761,14 @@ asciiProcessInput(int fd, char *buf, int size, int flag, void *data)
 		icpState->offset, icpState->inbufsize);
 	    k = icpState->inbufsize - 1 - icpState->offset;
 	}
-	comm_read(fd,
-	    icpState->inbuf + icpState->offset,
-	    k,			/* size */
-	    30,			/* timeout */
-	    TRUE,		/* handle immed */
-	    asciiProcessInput,
-	    (void *) icpState);
+	commSetSelect(fd,
+		COMM_SELECT_READ,
+		clientReadRequest,
+		(void *) icpState,
+		0);
     } else {
 	/* parser returned -1 */
-	debug(12, 1, "asciiProcessInput: FD %d Invalid Request\n", fd);
+	debug(12, 1, "clientReadRequest: FD %d Invalid Request\n", fd);
 	wbuf = squid_error_request(icpState->inbuf,
 	    ERR_INVALID_REQ,
 	    fd_table[fd].ipaddr,
@@ -1846,13 +1849,11 @@ asciiHandleConn(int sock, void *notused)
     comm_add_close_handler(fd,
 	icpStateFree,
 	(void *) icpState);
-    comm_read(fd,
-	icpState->inbuf,
-	icpState->inbufsize - 1,	/* size */
-	30,			/* timeout */
-	1,			/* handle immed */
-	asciiProcessInput,
-	(void *) icpState);
+	commSetSelect(fd,
+		COMM_SELECT_READ,
+		clientReadRequest,
+		(void *) icpState,
+		0);
     /* start reverse lookup */
     if (Config.Log.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
@@ -2046,13 +2047,11 @@ icpDetectNewRequest(int fd)
     comm_add_close_handler(fd,
 	icpStateFree,
 	(void *) icpState);
-    comm_read(fd,
-	icpState->inbuf,
-	icpState->inbufsize - 1,	/* size */
-	30,			/* timeout */
-	1,			/* handle immed */
-	asciiProcessInput,
-	(void *) icpState);
+	commSetSelect(fd,
+		COMM_SELECT_READ,
+		clientReadRequest,
+		(void *) icpState,
+		0);
     /* start reverse lookup */
     if (Config.Log.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
