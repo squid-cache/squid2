@@ -435,6 +435,8 @@ static void parseCacheHostLine()
 	    self_destruct();
 	}
     }
+    if (weight < 1)
+	weight = 1;
     neighbors_cf_add(hostname, type, ascii_port, udp_port, proxy_only, weight);
 }
 
