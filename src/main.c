@@ -420,7 +420,6 @@ static void mainInitialize()
 #endif
 
     if (first_time) {
-	first_time = 0;
 	/* module initialization */
 	urlInitialize();
 	stat_init(&CacheInfo, getAccessLogFile());
@@ -451,6 +450,7 @@ static void mainInitialize()
     squid_signal(SIGTERM, shut_down, SA_NODEFER | SA_RESETHAND | SA_RESTART);
     squid_signal(SIGINT, shut_down, SA_NODEFER | SA_RESETHAND | SA_RESTART);
     debug(1, 0, "Ready to serve requests.\n");
+    first_time = 0;
 }
 
 
