@@ -43,7 +43,7 @@ typedef struct {
 	int len;
 	int offset;
 	char *buf;
-    } client    , server;
+    } client, server;
     time_t timeout;
     int *size_ptr;		/* pointer to size for logging */
     int proxying;
