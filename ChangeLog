@@ -1,4 +1,16 @@
 	- Require 0 <= multicast ttl <= 128.
+	- Changed 'unsigned int inaddr_none' to 'struct in_addr no_addr'.
+	- Added debug_trap() if unlocking a StoreEntry which still 
+	  has registered clients.
+	- Added missing storeUnregister() calls.
+	- Fixed storeClientListAdd() bug of adding same FD twice.
+	- Fixed reconfigure/SIGHUP to wait 'shutdown_lifetime' seconds
+	  after receiving signal (Ron Gomes).
+	- Added missing commSetSelect() in icpDetectClientClose()
+	  (Mark Treacy).
+	- Fixed multicast group member counting bug with fake
+	  StoreEntry's.
+	- Only enable ICP_FLAG_SRC_RTT if the peer is ICP_VERSION_2.
 
 Changes to squid-1.1.9 (March 30, 1997):
 
