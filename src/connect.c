@@ -30,7 +30,6 @@ static void connectSendRemote _PARAMS((int fd, ConnectData * data));
 static void connectReadClient _PARAMS((int fd, ConnectData * data));
 static void connectConnected _PARAMS((int fd, ConnectData * data));
 static void connectConnInProgress _PARAMS((int fd, ConnectData * data));
-static void connectCloseAndFree _PARAMS((int fd, ConnectData * data));
 
 /* This will be called when socket lifetime is expired. */
 static void connectLifetimeExpire(fd, data)
@@ -38,7 +37,7 @@ static void connectLifetimeExpire(fd, data)
      ConnectData *data;
 {
     debug(26, 4, "connectLifeTimeExpire: FD %d: <URL:%s>\n", fd, data->entry->url);
-    connectCloseAndFree(fd, data);
+    comm_close(fd);
 }
 
 /* This will be called when data is ready to be read from fd.  Read until
@@ -70,7 +69,7 @@ static void connectReadRemote(fd, data)
 	} else {
 	    /* we can terminate connection right now */
 	    squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
-	    connectCloseAndFree(fd, data);
+	    comm_close(fd);
 	    return;
 	}
     }
@@ -95,18 +94,18 @@ static void connectReadRemote(fd, data)
 	    BIT_RESET(entry->flag, CACHABLE);
 	    storeReleaseRequest(entry);
 	    squid_error_entry(entry, ERR_READ_ERROR, xstrerror());
-	    connectCloseAndFree(fd, data);
+	    comm_close(fd);
 	}
     } else if (len == 0 && entry->mem_obj->e_current_len == 0) {
 	squid_error_entry(entry,
 	    ERR_ZERO_SIZE_OBJECT,
 	    errno ? xstrerror() : NULL);
-	connectCloseAndFree(fd, data);
+	comm_close(fd);
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */
 	storeExpireNow(entry);
 	storeComplete(entry);
-	connectCloseAndFree(fd, data);
+	comm_close(fd);
     } else if (((entry->mem_obj->e_current_len + len) > ConnectMaxObjSize) &&
 	!(entry->flag & DELETE_BEHIND)) {
 	/*  accept data, but start to delete behind it */
@@ -148,7 +147,7 @@ static void connectSendRemote(fd, data)
     if (len < 0) {
 	debug(26, 2, "connectSendRemote: FD %d: write failure: %s.\n",
 	    fd, xstrerror());
-	connectCloseAndFree(fd, data);
+	comm_close(fd);
 	return;
     }
     if ((data->offset += len) >= data->len) {
@@ -176,7 +175,7 @@ static void connectReadClient(fd, data)
 	if (data->len < 0)
 	    debug(26, 2, "connectReadClient: FD %d: read failure: %s.\n",
 		fd, xstrerror());
-	connectCloseAndFree(fd, data);
+	comm_close(fd);
 	return;
     }
     data->offset = 0;
@@ -201,7 +200,7 @@ static void connectReadTimeout(fd, data)
      ConnectData *data;
 {
     squid_error_entry(data->entry, ERR_READ_TIMEOUT, NULL);
-    connectCloseAndFree(fd, data);
+    comm_close(fd);
 }
 
 static void connectConnected(fd, data)
@@ -221,19 +220,14 @@ static void connectConnected(fd, data)
 }
 
 
-static void connectCloseAndFree(fd, data)
+static int connectStateFree(fd, connectState)
      int fd;
-     ConnectData *data;
+     ConnectData *connectState;
 {
-    if (fd >= 0) {
-	comm_set_select_handler_plus_timeout(fd,
-	    COMM_SELECT_TIMEOUT,
-	    NULL,
-	    NULL,
-	    0);
-	comm_close(data->remote);
-    }
-    safe_free(data);
+    if (connectState == NULL)
+	return 1;
+    safe_free(connectState);
+    return 0;
 }
 
 void connectConnInProgress(fd, data)
@@ -262,7 +256,7 @@ void connectConnInProgress(fd, data)
 	    break;
 	default:
 	    squid_error_entry(data->entry, ERR_CONNECT_FAIL, xstrerror());
-	    connectCloseAndFree(fd, data);
+	    comm_close(fd);
 	    return;
 	}
     }
@@ -281,30 +275,35 @@ int connectStart(fd, url, request, mime_hdr, entry)
 {
     /* Create state structure. */
     int sock, status;
-    ConnectData *data = (ConnectData *) xcalloc(1, sizeof(ConnectData));
-
-    data->entry = entry;
+    ConnectData *data = NULL;
 
     debug(26, 3, "connectStart: '%s %s'\n",
 	RequestMethodStr[request->method], url);
     debug(26, 4, "            header: %s\n", mime_hdr);
 
-    data->request = request;
-    data->mime_hdr = mime_hdr;
-    data->client = fd;
-    data->timeout = getReadTimeout();
 
     /* Create socket. */
     sock = comm_open(COMM_NONBLOCKING, 0, 0, url);
     if (sock == COMM_ERROR) {
 	debug(26, 4, "connectStart: Failed because we're out of sockets.\n");
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
-	safe_free(data);
 	return COMM_ERROR;
     }
+
+    data = (ConnectData *) xcalloc(1, sizeof(ConnectData));
+    data->entry = entry;
+    data->request = request;
+    data->mime_hdr = mime_hdr;
+    data->client = fd;
+    data->timeout = getReadTimeout();
     data->remote = sock;
+    comm_set_select_handler(sock,
+	COMM_SELECT_CLOSE,
+	connectStateFree,
+	(void *) data);
+
 #ifdef STAT_FD_ASSOC
-    stat_fd_assoc(fd, sock);
+    stat_fd_assoc(fd, sock);	/* XXX what is this? */
 #endif
 
     /* check if IP is already in cache. It must be. 
@@ -313,7 +312,7 @@ int connectStart(fd, url, request, mime_hdr, entry)
     if (!ipcache_gethostbyname(request->host)) {
 	debug(26, 4, "connectstart: Called without IP entry in ipcache. OR lookup failed.\n");
 	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
-	connectCloseAndFree(sock, data);
+	comm_close(sock);
 	return COMM_ERROR;
     }
     debug(26, 5, "connectStart: client=%d remote=%d\n", fd, sock);
@@ -326,7 +325,7 @@ int connectStart(fd, url, request, mime_hdr, entry)
     if ((status = comm_connect(sock, request->host, request->port))) {
 	if (status != EINPROGRESS) {
 	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
-	    connectCloseAndFree(sock, data);
+	    comm_close(sock);
 	    return COMM_ERROR;
 	} else {
 	    debug(26, 5, "connectStart: conn %d EINPROGRESS\n", sock);
