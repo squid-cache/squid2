@@ -233,7 +233,9 @@ _db_rotate_log(void)
     int i;
     LOCAL_ARRAY(char, from, MAXPATHLEN);
     LOCAL_ARRAY(char, to, MAXPATHLEN);
+#ifdef S_ISREG
     struct stat sb;
+#endif
 
     if (debug_log_file == NULL)
 	return;

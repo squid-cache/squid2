@@ -143,6 +143,7 @@ AC_CHECK_HEADERS( \
 	errno.h \
 	fcntl.h \
 	getopt.h \
+	gnumalloc.h \
 	grp.h \
 	libc.h \
 	limits.h \
@@ -268,7 +269,7 @@ AC_SUBST(CRYPTLIB)
 dnl System-specific library modifications
 dnl
 case "$host" in
-	i386-*-solaris2.?)
+	i386-*-solaris2.*)
     		if test "$GCC" = "yes"; then
 			echo "Removing -O for gcc on $host"
 			CFLAGS="`echo $CFLAGS | sed -e 's/-O[[0-9]]*//'`"
@@ -323,6 +324,7 @@ AC_CHECK_FUNCS(\
 	memcpy \
 	memmove \
 	mktime \
+	mstats \
 	poll \
 	random \
 	regcomp \

@@ -203,10 +203,10 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	debug_trap("protoStart: ping_status is PING_WAITING");
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
     netdbPingSite(request->host);
-#ifdef LOG_ICP_NUMBERS
+#if defined(LOG_ICP_NUMBERS) || defined(HIER_EXPERIMENT)
     request->hierarchy.n_recv = entry->mem_obj->e_pings_n_acks;
     if (entry->mem_obj->start_ping.tv_sec)
-	request->hierarchy.delay = tvSubMsec(entry->mem_obj->start_ping, current_time);
+	request->hierarchy.delay = tvSubUsec(entry->mem_obj->start_ping, current_time);
 #endif
     if (e) {
 	e->stats.fetches++;

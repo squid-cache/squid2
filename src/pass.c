@@ -43,7 +43,6 @@ typedef struct {
 	int offset;
 	char *buf;
     } client, server;
-    time_t timeout;
     int *size_ptr;		/* pointer to size for logging */
     int proxying;
 } PassStateData;
@@ -99,12 +98,8 @@ passStateFree(int fd, void *data)
 	return;
     if (fd != passState->server.fd)
 	fatal_dump("passStateFree: FD mismatch!\n");
-    if (passState->client.fd > -1) {
-	commSetSelect(passState->client.fd,
-	    COMM_SELECT_READ,
-	    NULL,
-	    NULL, 0);
-    }
+    if (passState->client.fd > -1)
+	commSetSelect(passState->client.fd, COMM_SELECT_READ, NULL, NULL, 0);
     safe_free(passState->server.buf);
     safe_free(passState->client.buf);
     xfree(passState->url);
@@ -143,6 +138,10 @@ passReadServer(int fd, void *data)
 		COMM_SELECT_READ,
 		passReadServer,
 		passState, 0);
+	    commSetTimeout(passState->server.fd,
+		Config.Timeout.read,
+		NULL,
+		NULL);
 	} else {
 	    passClose(passState);
 	}
@@ -226,6 +225,10 @@ passWriteServer(int fd, void *data)
 	    COMM_SELECT_READ,
 	    passReadClient,
 	    passState, 0);
+	commSetTimeout(passState->server.fd,
+	    Config.Timeout.read,
+	    NULL,
+	    NULL);
     } else {
 	/* still have more to write */
 	commSetSelect(passState->server.fd,
@@ -271,6 +274,10 @@ passWriteClient(int fd, void *data)
 	    COMM_SELECT_READ,
 	    passReadServer,
 	    passState, 0);
+	commSetTimeout(passState->server.fd,
+	    Config.Timeout.read,
+	    NULL,
+	    NULL);
     } else {
 	/* still have more to write */
 	commSetSelect(passState->client.fd,
@@ -399,7 +406,6 @@ passStart(int fd,
     cbdataAdd(passState);
     passState->url = xstrdup(url);
     passState->request = requestLink(request);
-    passState->timeout = Config.Timeout.read;
     passState->host = request->host;
     passState->port = request->port;
     passState->size_ptr = size_ptr;

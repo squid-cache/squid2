@@ -120,7 +120,9 @@
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#if HAVE_MALLOC_H && !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
+#if HAVE_GNUMALLLOC_H
+#include <gnumalloc.h>
+#elif HAVE_MALLOC_H && !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
 #include <malloc.h>
 #endif
 #if HAVE_ERRNO_H
@@ -457,6 +459,13 @@ tvSubMsec(struct timeval t1, struct timeval t2)
 {
     return (t2.tv_sec - t1.tv_sec) * 1000 +
 	(t2.tv_usec - t1.tv_usec) / 1000;
+}
+
+int
+tvSubUsec(struct timeval t1, struct timeval t2)
+{
+    return (t2.tv_sec - t1.tv_sec) * 1000000 +
+	(t2.tv_usec - t1.tv_usec);
 }
 
 /*

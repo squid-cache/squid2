@@ -127,7 +127,7 @@ char *log_tags[] =
     "UDP_MISS_NOFETCH",
     "ERR_READ_TIMEOUT",
     "ERR_LIFETIME_EXP",
-    "ERR_NO_CLIENTS_BIG_OBJ",
+    "ERR_NO_CLIENTS",
     "ERR_READ_ERROR",
     "ERR_CLIENT_ABORT",
     "ERR_CONNECT_FAIL",
@@ -292,6 +292,7 @@ httpRequestFree(void *data)
 	aclChecklistFree(http->acl_checklist);
     checkFailureRatio(http->log_type, http->al.hier.code);
     safe_free(http->url);
+    safe_free(http->log_url);
     safe_free(http->al.headers.reply);
     if (entry) {
 	storeUnregister(entry, http);
@@ -360,7 +361,16 @@ icpParseRequestHeaders(clientHttpRequest * http)
 	if (!strcasecmp(t, "no-cache"))
 	    BIT_SET(request->flags, REQ_NOCACHE);
     }
+    if (mime_get_header(request_hdr, "Range")) {
+	BIT_SET(request->flags, REQ_NOCACHE);
+	BIT_SET(request->flags, REQ_RANGE);
+    } else if (mime_get_header(request_hdr, "Request-Range")) {
+	BIT_SET(request->flags, REQ_NOCACHE);
+	BIT_SET(request->flags, REQ_RANGE);
+    }
     if (mime_get_header(request_hdr, "Authorization"))
+	BIT_SET(request->flags, REQ_AUTH);
+    if (request->login[0] != '\0')
 	BIT_SET(request->flags, REQ_AUTH);
     if ((t = mime_get_header(request_hdr, "Proxy-Connection"))) {
 	if (!strcasecmp(t, "Keep-Alive"))
@@ -916,11 +926,16 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	storeRelease(entry);
 	entry = NULL;
     } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
-	/* IMS+NOCACHE should not eject valid object */
-	if (!BIT_TEST(request->flags, REQ_IMS))
+	/* NOCACHE should always eject a negative cached object */
+	if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
 	    storeRelease(entry);
-	/* NOCACHE should always eject negative cached object */
-	else if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
+	/* NOCACHE+IMS should not eject a valid object */
+	else if (BIT_TEST(request->flags, REQ_IMS))
+	    (void) 0;
+	/* Request-Range should not eject a valid object */
+	else if (BIT_TEST(request->flags, REQ_RANGE))
+	    (void) 0;
+	else
 	    storeRelease(entry);
 	ipcacheReleaseInvalid(http->request->host);
 	entry = NULL;
@@ -1099,6 +1114,7 @@ icpProcessMISS(int fd, clientHttpRequest * http)
 	http->entry = NULL;
     }
     entry = storeCreateEntry(url,
+	http->log_url,
 	http->request->flags,
 	http->request->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
@@ -1295,6 +1311,8 @@ icpCheckUdpHit(StoreEntry * e, request_t * request)
 	return 0;
     if (!storeEntryValidToSend(e))
 	return 0;
+    if (Config.Options.icp_hit_stale)
+	return 1;
     if (refreshCheck(e, request, 30))
 	return 0;
     /* MUST NOT do UDP_HIT_OBJ if object is not in memory with async_io. The */
@@ -1636,7 +1654,7 @@ icpHandleUdp(int sock, void *not_used)
 
     commSetSelect(sock, COMM_SELECT_READ, icpHandleUdp, NULL, 0);
     from_len = sizeof(from);
-    memset(&from, 0, from_len);
+    memset(&from, '\0', from_len);
     len = recvfrom(sock,
 	buf,
 	SQUID_UDP_SO_RCVBUF - 1,
@@ -1699,7 +1717,6 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     float http_ver;
     char *token = NULL;
     char *t = NULL;
-    char *s = NULL;
     char *end = NULL;
     int free_request = 0;
     size_t header_sz;		/* size of headers, not including first line */
@@ -1814,8 +1831,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	     * refer to www.playboy.com.  The 'dst' and/or 'dst_domain' ACL 
 	     * types should be used to prevent httpd-accelerators 
 	     * handling requests for non-local servers */
-	    if ((s = strchr(t, ':')))
-		*s = '\0';
+	    strtok(t, " :/;@");
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
 	    http->url = xcalloc(url_sz, 1);
 	    sprintf(http->url, "http://%s:%d%s",
@@ -1834,7 +1850,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	strcpy(http->url, url);
 	http->accel = 0;
     }
-
+    http->log_url = xstrdup(http->url);
     debug(12, 5) ("parseHttpRequest: Complete request received\n");
     if (free_request)
 	safe_free(url);

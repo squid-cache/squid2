@@ -298,6 +298,45 @@ urlCanonical(const request_t * request, char *buf)
     return buf;
 }
 
+char *
+urlCanonicalClean(const request_t * request)
+{
+    LOCAL_ARRAY(char, buf, MAX_URL);
+    LOCAL_ARRAY(char, portbuf, 32);
+    char *t;
+    switch (request->method) {
+    case METHOD_CONNECT:
+	sprintf(buf, "%s:%d", request->host, request->port);
+	break;
+    default:
+	portbuf[0] = '\0';
+	if (request->port != urlDefaultPort(request->protocol))
+	    sprintf(portbuf, ":%d", request->port);
+	sprintf(buf, "%s://%s%s%s",
+	    ProtocolStr[request->protocol],
+	    request->host,
+	    portbuf,
+	    request->urlpath);
+	if ((t = strchr(buf, '?')))
+	    *t = '\0';
+	break;
+    }
+    return buf;
+}
+
+char *
+urlClean(char *dirty)
+{
+    char *clean;
+    request_t *r = urlParse(METHOD_GET, dirty);
+    if (r == NULL)
+	return dirty;
+    clean = urlCanonicalClean(r);
+    put_free_request_t(r);
+    return clean;
+}
+
+
 request_t *
 requestLink(request_t * request)
 {
@@ -341,6 +380,8 @@ urlCheckRequest(const request_t * r)
     if (r->method == METHOD_CONNECT)
 	return 1;
     if (r->method == METHOD_TRACE)
+	return 1;
+    if (r->method == METHOD_PURGE)
 	return 1;
     switch (r->protocol) {
     case PROTO_HTTP:

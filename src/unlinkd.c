@@ -35,6 +35,10 @@ static char hello_string[] = "hi there\n";
 /* This is the external unlinkd process */
 
 #include "config.h"
+
+#if HAVE_LIBC_H
+#include <libc.h>
+#endif
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif

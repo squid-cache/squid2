@@ -55,7 +55,6 @@ static void configDoConfigure _PARAMS((void));
 static void parse_refreshpattern _PARAMS((refresh_t **));
 static int parseTimeUnits _PARAMS((const char *unit));
 static void parseTimeLine _PARAMS((time_t * tptr, const char *units));
-
 static void parse_string _PARAMS((char **));
 static void parse_wordlist _PARAMS((wordlist **));
 static void default_all _PARAMS((void));
@@ -502,7 +501,7 @@ debug(0,0)("token = %p\n", token);
     }
     p->host = xstrdup(token);
     if ((token = strtok(NULL, w_space)) == NULL) {
-	debug(0,0)("bad type\n");
+	debug(0, 0) ("bad type\n");
 	self_destruct();
     }
     p->type = parseNeighborType(token);

@@ -252,7 +252,6 @@ aioRead(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
     return;
 }				/* aioRead */
 
-
 void
 aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data)
 {
@@ -283,7 +282,6 @@ aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data)
     used_list = ctrlp;
     return;
 }				/* aioStat */
-
 
 void
 aioUnlink(const char *path, AIOCB * callback, void *callback_data)

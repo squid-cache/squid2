@@ -6,7 +6,7 @@ TABLE OF CONTENTS:
 
 	Ident (RFC 931) lookups
 	URL Redirector
-	Reverse IP Lookups, client hostname ACLs.
+	Reverse IP Lookups, client hostname ACLs
 	Cache directory structure changes
         Getting true DNS TTL info into Squid's IP cache
 	Using a neighbor as both a parent and a sibling
@@ -68,7 +68,7 @@ a decision.  The input line consists of four fields:
 The ip-address is always given, the fqdn and ident fields will be given if
 available, or will be "-" otherwise.  Note that the ident value will only
 be available if 'ident_lookup' in enabled in the config file.  The
-Rrequest method is GET, POST, etc.
+request method is GET, POST, etc.
 
 Note that when used in conjunction with the -V option (on a virtual hosted
 machine) this provides a mechanism to use a single Squid cache as a front
@@ -244,7 +244,7 @@ default from the cache_host line.
 Forcing your neighbors to use you as a sibling
 ==============================================================================
 In a distributed cache hierarchy, you may need to force your peer
-caches to use you as a sibling and not a parent.  I.e., its okay for
+caches to use you as a sibling and not a parent; ie its okay for
 them to fetch HITs from you, but not okay to resolve MISSes through
 your cache (using your resources).
 
@@ -343,23 +343,34 @@ policies would send you stale objects (by your configuration).
 
 Object Purge Policy
 ==============================================================================
-With Squid-1.1 there are two ways that an object gets removed from the
-cache.  First, old objects get "bumped" to make room for new objects.
-This happens as a regular part of the cache maintenance.  When the
-cache disk space reaches the high water mark, the maintenance routes
-enter a "purge mode" and they look for objects to delete.
+Squid attempts to keep the size of the disk cache relatively "smooth"
+or "flat."  That is, objects are removed at the same rate they are
+added.  Earlier versions had a "sawtooth" behavior where objects were
+removed only when disk space reached an upper limit.
 
-In this mode we scan 256 objects every second, sort them by their time
-of last reference, and then remove the eight (8) least-recently-used
-objects.  This continues until the disk space is below the low water
-mark.
+Squid uses a Least-Recently-Used (LRU) replacement algorithm.  Objects
+with large LRU age values are removed before objects with small LRU age
+values.  We dynamically calculate the LRU age threshold, above which
+objects are removed.  The threshold is calculated as an exponential
+function between the high and low water marks.  When the store swap
+size is near the low water mark, the LRU threshold is large.  This
+encourages more objects to be cached.  When the store swap size is near
+the high water mark, the LRU threshold is small, encouraging more
+objects to be removed.  The 'reference_age' configuration parameter
+specifies the upper limit on the LRU age threshold.
 
-The second way that objects can get removed is from the 'reference_age'
-configuration parameter.  If an object has not been accessed for longer
-than the reference_age value, it will be purged.  By default
-reference_age is disabled (set to zero) so that objects are only
-removed by the first method.
+The Squid cache storage is implemented as a hash table with some number
+of "hash buckets."  Squid scans one bucket at a time and sorts all the
+objects in the bucket by their LRU age.  Objects with an LRU age
+over the threshold are removed.  The scan rate is adjusted so that
+it takes approximately 24 hours to scan the entire cache.  The 
+store buckets are randomized so that we don't always scan the same
+buckets at the same time of the day.
 
+If the store swap size somehow exceeds the high water mark, Squid
+performs an "emergency" object purge.  We sort up to 256 objects in a
+store bucket and remove the eight (8) least recently used ones.  This
+continues until the disk space is below the low water mark.
 
 X-Forwarded-For request header
 ==============================================================================
@@ -391,7 +402,7 @@ Using ICMP to Measure the Network
 As of version 1.1.9, Squid is able to utilize ICMP Round-Trip-Time (RTT)
 measurements to select the optimal location to forward a cache miss.
 Previously, cache misses would be forwarded to the parent cache
-which returned the first ICP reply message.   These were logged
+which returned the first ICP reply message.  These were logged
 with FIRST_PARENT_MISS in the access.log file.  Now we can 
 select the parent which is closest (RTT-wise) to the origin 
 server.  
@@ -589,7 +600,7 @@ configuration parameters:
 
 	cache_swap
 	store_avg_object_size		# default 20K
-	store_objects_per_bucket	# default 50
+	store_objects_per_bucket	# default 20
 
 We first estimate the number of objects your cache can hold:
 
@@ -695,12 +706,12 @@ Access Log Tags
 
 "UDP_" refers to requests on the ICP port (3130)
 
-        UDP_HIT         A valid copy of the requested object was in the cache
+        UDP_HIT         A valid copy of the requested object was in the cache.
         UDP_HIT_OBJ     Same as UDP_HIT, but the object data was small enough
                         to be sent in the UDP reply packet.  Saves the
                         following TCP request.
-        UDP_MISS        The requested object was not in the cache
-        UDP_DENIED      Access was denied for this request
+        UDP_MISS        The requested object was not in the cache.
+        UDP_DENIED      Access was denied for this request.
         UDP_INVALID     An invalid request was received.
 	UDP_RELOADING	The ICP request was "refused" because the cache is
 			busy reloading its metadata.
