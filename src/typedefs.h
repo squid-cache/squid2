@@ -198,7 +198,7 @@ typedef void UH(void *data, wordlist *);
 typedef int DEFER(int fd, void *data);
 
 typedef void STIOCB(void *their_data, int errflag, storeIOState *);
-typedef void STRCB(void *their_data, const char *buf, size_t len);
+typedef void STRCB(void *their_data, const char *buf, ssize_t len);
 
 typedef void SIH(storeIOState *, void *);	/* swap in */
 typedef int QS(const void *, const void *);	/* qsort */

@@ -206,15 +206,18 @@ aio_init(void)
 static void *
 aio_thread_loop(void *ptr)
 {
-    aio_thread_t *threadp = (aio_thread_t *) ptr;
+    aio_thread_t *threadp = ptr;
     aio_request_t *request;
     sigset_t new;
 #if !AIO_PROPER_MUTEX
     struct timespec wait_time;
 #endif
 
-    /* Make sure to ignore signals which may possibly get sent to the parent */
-    /* squid thread.  Causes havoc with mutex's and condition waits otherwise */
+    /*
+     * Make sure to ignore signals which may possibly get sent to
+     * the parent squid thread.  Causes havoc with mutex's and
+     * condition waits otherwise
+     */
 
     sigemptyset(&new);
     sigaddset(&new, SIGPIPE);
@@ -237,7 +240,7 @@ aio_thread_loop(void *ptr)
 #if AIO_PROPER_MUTEX
 	while (threadp->req == NULL) {
 	    threadp->status = _THREAD_WAITING;
-	    pthread_cond_wait(&(threadp->cond), &(threadp->mutex));
+	    pthread_cond_wait(&threadp->cond, &threadp->mutex);
 	}
 #else
 	/* The timeout is used to unlock the race condition where
@@ -250,8 +253,7 @@ aio_thread_loop(void *ptr)
 	wait_time.tv_nsec = 0;
 	while (threadp->req == NULL) {
 	    threadp->status = _THREAD_WAITING;
-	    pthread_cond_timedwait(&(threadp->cond), &(threadp->mutex),
-		&wait_time);
+	    pthread_cond_timedwait(&threadp->cond, &threadp->mutex, &wait_time);
 	    wait_time.tv_sec += 3;	/* then wait 3 seconds between each check */
 	}
 #endif
@@ -769,8 +771,8 @@ aio_poll_threads(void)
 	prev = NULL;
 	threadp = busy_threads_head;
 	while (threadp) {
-	    debug(43, 5) ("%d: %d -> %d\n",
-		threadp->thread,
+	    debug(43, 9) ("aio_poll_threads: %p: request type %d -> status %d\n",
+		threadp,
 		threadp->processed_req->request_type,
 		threadp->status);
 #if AIO_PROPER_MUTEX
@@ -861,8 +863,10 @@ aio_overloaded(void)
 int
 aio_sync(void)
 {
+    int loop_count = 0;
     do {
 	aio_poll_threads();
+	assert(++loop_count < 10);
     } while (request_queue_len > 0);
     return aio_operations_pending();
 }

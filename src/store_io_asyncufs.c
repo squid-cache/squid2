@@ -38,6 +38,7 @@ storeAufsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     sio->mode = mode;
     sio->callback = callback;
     sio->callback_data = callback_data;
+    cbdataLock(callback_data);
     if (mode == O_WRONLY)
 	mode |= (O_CREAT | O_TRUNC);
     sio->type.aufs.flags.opening = 1;
@@ -84,6 +85,17 @@ storeAufsWrite(storeIOState * sio, char *buf, size_t size, off_t offset, FREE * 
 	/* disk file not opened yet */
 	struct _queued_write *q;
 	assert(sio->type.aufs.flags.opening);
+	q = xcalloc(1, sizeof(*q));
+	q->buf = buf;
+	q->size = size;
+	q->offset = offset;
+	q->free_func = free_func;
+	linklistPush(&sio->type.aufs.pending_writes, q);
+	return;
+    }
+    if (sio->type.aufs.flags.writing) {
+	struct _queued_write *q;
+	debug(78, 3) ("storeAufsWrite: queuing write\n");
 	q = xcalloc(1, sizeof(*q));
 	q->buf = buf;
 	q->size = size;
@@ -150,6 +162,7 @@ storeAufsOpenDone(int unused, void *my_data, int fd, int errflag)
      * XXX TODO
      * We don't have queued reads yet
      */
+    debug(78, 3) ("storeAufsOpenDone: exiting\n");
 }
 
 static void
@@ -158,21 +171,23 @@ storeAufsReadDone(int fd, void *my_data, int len, int errflag)
     storeIOState *sio = my_data;
     STRCB *callback = sio->read.callback;
     void *their_data = sio->read.callback_data;
+    ssize_t rlen;
     debug(78, 3) ("storeAufsReadDone: fileno %08X, FD %d, len %d\n",
 	sio->swap_file_number, fd, len);
     sio->type.aufs.flags.reading = 0;
     if (errflag) {
 	debug(78, 3) ("storeAufsReadDone: got failure (%d)\n", errflag);
-	storeAufsIOCallback(sio, errflag);
-	return;
+	rlen = -1;
+    } else {
+	rlen = (ssize_t) len;
+	sio->offset += len;
     }
-    sio->offset += len;
     assert(callback);
     assert(their_data);
     sio->read.callback = NULL;
     sio->read.callback_data = NULL;
     if (cbdataValid(their_data))
-	callback(their_data, sio->type.aufs.read_buf, (size_t) len);
+	callback(their_data, sio->type.aufs.read_buf, rlen);
     cbdataUnlock(their_data);
 }
 
@@ -208,15 +223,29 @@ storeAufsWriteDone(int fd, void *my_data, int len, int errflag)
 static void
 storeAufsIOCallback(storeIOState * sio, int errflag)
 {
+    STIOCB *callback = sio->callback;
+    void *their_data = sio->callback_data;
+    int fd = sio->type.aufs.fd;
     debug(78, 3) ("storeAufsIOCallback: errflag=%d\n", errflag);
-    if (sio->type.aufs.fd > -1) {
-	aioClose(sio->type.aufs.fd);
-	fd_close(sio->type.aufs.fd);
-	store_open_disk_fd--;
-    }
-    sio->callback(sio->callback_data, errflag, sio);
+    sio->callback = NULL;
+    sio->callback_data = NULL;
+    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
+    if (callback)
+	if (NULL == their_data || cbdataValid(their_data))
+	    callback(their_data, errflag, sio);
+    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
+    cbdataUnlock(their_data);
+    sio->type.aufs.fd = -1;
     cbdataFree(sio);
+    if (fd < 0)
+	return;
+    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
+    aioClose(fd);
+    fd_close(fd);
+    store_open_disk_fd--;
+    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
 }
+
 
 static int
 storeAufsSomethingPending(storeIOState * sio)

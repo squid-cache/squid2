@@ -303,7 +303,7 @@ storeClientFileRead(store_client * sc)
 }
 
 static void
-storeClientReadBody(void *data, const char *buf, size_t len)
+storeClientReadBody(void *data, const char *buf, ssize_t len)
 {
     store_client *sc = data;
     MemObject *mem = sc->entry->mem_obj;
@@ -319,7 +319,7 @@ storeClientReadBody(void *data, const char *buf, size_t len)
 }
 
 static void
-storeClientReadHeader(void *data, const char *buf, size_t len)
+storeClientReadHeader(void *data, const char *buf, ssize_t len)
 {
     store_client *sc = data;
     StoreEntry *e = sc->entry;
