@@ -404,7 +404,7 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
     fde *F = &fd_table[sock];
     int x;
     int err = 0;
-    int errlen;
+    socklen_t errlen;
     assert(ntohs(address->sin_port) != 0);
     /* Establish connection. */
     errno = 0;
