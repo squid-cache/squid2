@@ -768,22 +768,28 @@ neighborsUdpAck(int fd, const char *url, icp_common_t * header, const struct soc
 		inet_ntoa(from->sin_addr));
 	} else if (ntype != PEER_PARENT) {
 	    (void) 0;		/* ignore MISS from non-parent */
-	} else if (Config.Options.query_icmp && BIT_TEST(header->flags, ICP_FLAG_SRC_RTT)) {
-	    u_num32 p = header->pad;
-	    int rtt = p & 0xFFFF;
-	    int hops = (p >> 16) & 0xFFFF;
-	    if (rtt > 0 && rtt < 0xFFFF)
-		netdbUpdatePeer(mem->request, e, rtt, hops);
-	    if (rtt && (mem->p_rtt == 0 || rtt < mem->p_rtt)) {
-		mem->e_pings_closest_parent = e;
-		mem->p_rtt = rtt;
+	} else {
+	    /* only use SRC_RTT data if we asked for it */
+	    if (Config.Options.query_icmp) {
+		if (BIT_TEST(header->flags, ICP_FLAG_SRC_RTT)) {
+		    u_num32 p = header->pad;
+		    int rtt = p & 0xFFFF;
+		    int hops = (p >> 16) & 0xFFFF;
+		    if (rtt > 0 && rtt < 0xFFFF)
+			netdbUpdatePeer(mem->request, e, rtt, hops);
+		    if (rtt && (mem->p_rtt == 0 || rtt < mem->p_rtt)) {
+			mem->e_pings_closest_parent = e;
+			mem->p_rtt = rtt;
+		    }
+		}
 	    }
-	}
-	if (mem->e_pings_closest_parent == NULL) {
-	    w_rtt = tvSubMsec(mem->start_ping, current_time) / e->weight;
-	    if (mem->w_rtt == 0 || w_rtt < mem->w_rtt) {
-		mem->e_pings_first_miss = e;
-		mem->w_rtt = w_rtt;
+	    /* set FIRST_MISS if thre is no CLOSEST parent */
+	    if (mem->e_pings_closest_parent == NULL) {
+		w_rtt = tvSubMsec(mem->start_ping, current_time) / e->weight;
+		if (mem->w_rtt == 0 || w_rtt < mem->w_rtt) {
+		    mem->e_pings_first_miss = e;
+		    mem->w_rtt = w_rtt;
+		}
 	    }
 	}
     } else if (opcode == ICP_OP_DENIED) {
