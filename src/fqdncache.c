@@ -973,6 +973,7 @@ fqdncacheFreeMemory(void)
     }
     xfree(list);
     hashFreeMemory(fqdn_table);
+    fqdn_table = NULL;
 }
 
 static void

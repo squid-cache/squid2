@@ -321,7 +321,6 @@ hash_create(HASHCMP * cmp_func, int hash_sz, HASHHASH * hash_func)
     hid->hash = hash_func;
     hid->current_ptr = NULL;
     hid->current_slot = 0;
-    hid->valid = 1;
     return hid;
 }
 
@@ -337,7 +336,6 @@ hash_insert(hash_table * hid, const char *k, void *item)
 {
     int i;
     hash_link *new;
-    assert(hid->valid);
     assert(k != NULL);
     /* Add to the given hash table 'hid' */
     new = xcalloc(1, sizeof(hash_link));
@@ -360,8 +358,6 @@ int
 hash_join(hash_table * hid, hash_link * lnk)
 {
     int i;
-    if (!hid->valid)
-	return -1;
     i = hid->hash(lnk->key, hid->size);
     lnk->next = hid->buckets[i];
     hid->buckets[i] = lnk;
@@ -379,8 +375,6 @@ hash_lookup(hash_table * hid, const char *k)
     hash_link *walker;
     int b;
 
-    if (!hid->valid)
-	return NULL;
     if (k == NULL)
 	return NULL;
     b = hid->hash(k, hid->size);
@@ -400,8 +394,6 @@ hash_lookup_and_move(hash_table * hid, const char *k)
     hash_link **walker, *match;
     int b;
 
-    if (!hid->valid)
-	return NULL;
     if (k == NULL)
 	return NULL;
     b = hid->hash(k, hid->size);
@@ -430,8 +422,6 @@ hash_link *
 hash_first(hash_table * hid)
 {
     int i;
-    if (!hid->valid)
-	return NULL;
 
     for (i = 0; i < hid->size; i++) {
 	hid->current_slot = i;
@@ -451,9 +441,6 @@ hash_link *
 hash_next(hash_table * hid)
 {
     int i;
-
-    if (!hid->valid)
-	return NULL;
 
     if (hid->current_ptr != NULL) {
 	hid->current_ptr = hid->current_ptr->next;
@@ -487,7 +474,6 @@ hash_unlink(hash_table * hid, hash_link * hl, int FreeLink)
 {
     hash_link *walker, *prev;
     int i;
-    assert(hid->valid);
     if (hl == NULL)
 	return -1;
     i = hid->hash(hl->key, hid->size);
@@ -533,8 +519,6 @@ hash_remove_link(hash_table * hid, hash_link * hl)
 hash_link *
 hash_get_bucket(hash_table * hid, unsigned int bucket)
 {
-    if (!hid->valid)
-	return NULL;
     if (bucket >= hid->size)
 	return NULL;
     return (hid->buckets[bucket]);
@@ -545,7 +529,6 @@ void
 hashFreeMemory(hash_table * hid)
 {
     safe_free(hid->buckets);
-    hid->valid = 0;
 }
 
 

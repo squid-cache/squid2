@@ -1087,6 +1087,7 @@ ipcacheFreeMemory(void)
     }
     xfree(list);
     hashFreeMemory(ip_table);
+    ip_table = NULL;
 }
 
 static void

@@ -526,6 +526,8 @@ netdbFreeMemory(void)
     xfree(L2);
     hashFreeMemory(addr_table);
     hashFreeMemory(host_table);
+    addr_table = NULL;
+    host_table = NULL;
     wordlistDestroy(&peer_names);
     peer_names = NULL;
     peer_names_tail = &peer_names;
