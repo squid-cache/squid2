@@ -721,7 +721,7 @@ DEFAULT: @DEFAULT_ACCESS_LOG@
 LOC: Config.Log.access
 DOC_START
 	Logs the client request activity.  Contains an entry for
-	every HTTP and ICP queries received.
+	every HTTP and ICP queries received. To disable, enter "none".
 DOC_END
 
 
