@@ -297,6 +297,9 @@ main(int argc, char *argv[])
 #ifdef RES_DEFNAMES
 	    _res.options |= RES_DEFNAMES;
 #endif
+#ifdef RES_DNSRCH
+	    _res.options |= RES_DNSRCH;
+#endif
 	    break;
 	case 'h':
 	default:
