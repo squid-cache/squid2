@@ -726,13 +726,6 @@ main(int argc, char **argv)
 	    do_shutdown = 0;
 	    shutting_down = 1;
 	    serverConnectionsClose();
-#if USE_DNSSERVERS
-	    dnsShutdown();
-#else
-	    idnsShutdown();
-#endif
-	    redirectShutdown();
-	    externalAclShutdown();
 	    eventAdd("SquidShutdown", SquidShutdown, NULL, (double) (wait + 1), 1);
 	}
 	eventRun();
@@ -950,6 +943,13 @@ static void
 SquidShutdown(void *unused)
 {
     debug(1, 1) ("Shutting down...\n");
+#if USE_DNSSERVERS
+    dnsShutdown();
+#else
+    idnsShutdown();
+#endif
+    redirectShutdown();
+    externalAclShutdown();
     icpConnectionClose();
 #if USE_HTCP
     htcpSocketClose();
