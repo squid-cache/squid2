@@ -355,7 +355,7 @@ cacheReport(Cache * cache)
 	    cache->name, 
 	    cache->digest->count, cache->digest->capacity,
 	    xpercentInt(cache->digest->count, cache->digest->capacity),
-	    bit_count*8
+	    bit_count/8
 	);
 	fprintf(stdout, "%s: digest bits: on: %d cap: %d util: %d%%\n", 
 	    cache->name,
