@@ -114,7 +114,7 @@ identReadReply(int fd, icpStateData * icpState)
 	    *t = '\0';
 	if ((t = strchr(buf, '\n')))
 	    *t = '\0';
-	debug(30, 1, "identReadReply: FD %d: Read '%s'\n", fd, buf);
+	debug(30, 5, "identReadReply: FD %d: Read '%s'\n", fd, buf);
 	if (strstr(buf, "USERID")) {
 	    if ((t = strrchr(buf, ':'))) {
 		while (isspace(*++t));
