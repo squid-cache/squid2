@@ -3226,5 +3226,13 @@ DOC_START
 	the administrators attention.
 DOC_END
 
+NAME: store_dir_select_algorithm
+TYPE: string
+LOC: Config.store_dir_select_algorithm
+DEFAULT: least-load
+DOC_START
+	Set this to 'round-robin' as an alternative.
+DOC_END
+
 EOF
 

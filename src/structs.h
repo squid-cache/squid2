@@ -504,6 +504,7 @@ struct _SquidConfig {
 	int high_pf;
 	int high_memory;
     } warnings;
+    char *store_dir_select_algorithm;
 };
 
 struct _SquidConfig2 {

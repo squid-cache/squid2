@@ -309,4 +309,7 @@ typedef struct _htcpReplyData htcpReplyData;
 #endif
 
 typedef RemovalPolicy *REMOVALPOLICYCREATE(wordlist * args);
+
+typedef int STDIRSELECT(const StoreEntry *);
+
 #endif /* _TYPEDEFS_H_ */

@@ -909,7 +909,7 @@ extern char *storeSwapFullPath(int, char *);
 extern char *storeSwapSubSubDir(int, char *);
 extern const char *storeSwapPath(int);
 extern int storeDirWriteCleanLogs(int reopen);
-extern int storeDirSelectSwapDir(const StoreEntry *);
+extern STDIRSELECT *storeDirSelectSwapDir;
 extern int storeVerifySwapDirs(void);
 extern void storeCreateSwapDirectories(void);
 extern void storeDirCloseSwapLogs(void);

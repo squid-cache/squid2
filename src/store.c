@@ -71,6 +71,8 @@ typedef struct lock_ctrl_t {
     StoreEntry *e;
 } lock_ctrl_t;
 
+extern OBJH storeIOStats;
+
 /*
  * local function prototypes
  */
@@ -938,6 +940,9 @@ storeInit(void)
     cachemgrRegister("store_check_cachable_stats",
 	"storeCheckCachable() Stats",
 	storeCheckCachableStats, 0, 1);
+    cachemgrRegister("store_io",
+	"Store IO Interface Stats",
+	storeIOStats, 0, 1);
 }
 
 void
