@@ -352,7 +352,6 @@ extern int objcacheStart _PARAMS((int, const char *, StoreEntry *));
 extern void send_announce _PARAMS((void *unused));
 extern int sslStart _PARAMS((int fd, const char *, request_t *, char *, int *sz));
 extern const char *storeToString _PARAMS((const StoreEntry *));
-extern void timestampsSet _PARAMS((StoreEntry *));
 extern int waisStart _PARAMS((int, const char *, method_t, char *, StoreEntry *));
 extern void storeDirClean _PARAMS((void *unused));
 extern int passStart _PARAMS((int fd,
@@ -366,5 +365,7 @@ extern void identStart _PARAMS((int, icpStateData *,
 
 extern const char *const dash_str;
 extern const char *const null_string;
+
+#define OR(A,B) (A ? A : B)
 
 #endif /* SQUID_H */

@@ -1,5 +1,6 @@
 
 
+
 /*
  * $Id$
  *
@@ -314,7 +315,7 @@ extern int storeClientListAdd _PARAMS((StoreEntry *, int, int));
 extern void InvokeHandlers _PARAMS((StoreEntry *));
 extern int storeEntryValidToSend _PARAMS((StoreEntry *));
 extern int storeFirstClientFD _PARAMS((MemObject * mem));
-
+extern void storeTimestampsSet _PARAMS((StoreEntry *));
 
 #ifdef __STDC__
 extern void storeAppendPrintf _PARAMS((StoreEntry *, const char *,...));

@@ -111,7 +111,6 @@ OBJS	 	= \
 		store_clean.o \
 		storetoString.o \
 		tools.o \
-		timestamps.o \
 		url.o \
 		wais.o \
 		useragent.o \

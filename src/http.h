@@ -114,10 +114,10 @@ struct _http_reply {
     int content_length;
     int hdr_sz;
     int cache_control;
+    time_t date;
+    time_t expires;
+    time_t last_modified;
     char content_type[HTTP_REPLY_FIELD_SZ];
-    char date[HTTP_REPLY_FIELD_SZ];
-    char expires[HTTP_REPLY_FIELD_SZ];
-    char last_modified[HTTP_REPLY_FIELD_SZ];
     char user_agent[HTTP_REPLY_FIELD_SZ << 2];
 };
 

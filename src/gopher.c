@@ -800,7 +800,7 @@ gopherReadReply(int fd, GopherStateData * data)
 	if (data->conversion != NORMAL)
 	    gopherEndHTML(data);
 	if (!(entry->flag & DELETE_BEHIND))
-	    timestampsSet(entry);
+	    storeTimestampsSet(entry);
 	BIT_RESET(entry->flag, DELAY_SENDING);
 	storeComplete(entry);
 	comm_close(fd);

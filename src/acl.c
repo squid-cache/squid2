@@ -220,7 +220,7 @@ decode_addr(const char *asc, struct in_addr *addr, struct in_addr *mask)
 	break;
     case 1:			/* a significant bits value for a mask */
 	if (a1 >= 0 && a1 < 33) {
-	    addr->s_addr = htonl(0xfffffffful << (32 - a1));
+	    addr->s_addr = a1 ? htonl(0xfffffffful << (32 - a1)) : 0;
 	    break;
 	}
     default:

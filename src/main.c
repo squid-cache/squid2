@@ -439,10 +439,10 @@ serverConnectionsOpen(void)
 	    ttl = 0;
 	    x = sizeof(char);
 	    getsockopt(vizSock, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, &x);
-	    debug(0,0,"vizSock on FD %d, ttl=%d\n", vizSock, (int) ttl);
+	    debug(0, 0, "vizSock on FD %d, ttl=%d\n", vizSock, (int) ttl);
 	}
 #else
-	debug(1,0,"vizSock: Could not join multicast group\n");
+	debug(1, 0, "vizSock: Could not join multicast group\n");
 #endif
 	memset((char *) &Config.vizHack.S, '\0', sizeof(struct sockaddr_in));
 	Config.vizHack.S.sin_family = AF_INET;

@@ -241,14 +241,17 @@ icpStateFree(int fd, void *data)
     int http_code = 0;
     int elapsed_msec;
     struct _hierarchyLogData *hierData = NULL;
+    const char *content_type = NULL;
 
     if (!icpState)
 	return;
     if (icpState->log_type < LOG_TAG_NONE || icpState->log_type > ERR_MAX)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
-	if (icpState->entry->mem_obj)
+	if (icpState->entry->mem_obj) {
 	    http_code = icpState->entry->mem_obj->reply->code;
+	    content_type = icpState->entry->mem_obj->reply->content_type;
+	}
     } else {
 	http_code = icpState->http_code;
     }
@@ -265,13 +268,12 @@ icpStateFree(int fd, void *data)
 	    http_code,
 	    elapsed_msec,
 	    icpState->ident.ident,
-#if !LOG_FULL_HEADERS
-	    hierData);
-#else
 	    hierData,
+#if LOG_FULL_HEADERS
 	    icpState->request_hdr,
-	    icpState->reply_hdr);
+	    icpState->reply_hdr,
 #endif /* LOG_FULL_HEADERS */
+	    content_type);
 	HTTPCacheInfo->proto_count(HTTPCacheInfo,
 	    icpState->request ? icpState->request->protocol : PROTO_NONE,
 	    icpState->log_type);
@@ -331,7 +333,7 @@ icpParseRequestHeaders(icpStateData * icpState)
     if ((t = mime_get_header(request_hdr, "Via")))
 	if (strstr(t, getMyHostname())) {
 	    if (!icpState->accel) {
-	        debug(12, 1, "WARNING: Forwarding loop detected for '%s'\n",
+		debug(12, 1, "WARNING: Forwarding loop detected for '%s'\n",
 		    icpState->url);
 		debug(12, 1, "--> %s\n", t);
 	    }
@@ -487,9 +489,6 @@ icpSendMoreData(int fd, icpStateData * icpState)
 {
     StoreEntry *entry = icpState->entry;
     int len;
-    int tcode = 555;
-    double http_ver;
-    LOCAL_ARRAY(char, scanbuf, 20);
     char *buf = NULL;
     char *p = NULL;
 
@@ -498,25 +497,24 @@ icpSendMoreData(int fd, icpStateData * icpState)
 	entry->object_len,
 	entry->mem_obj ? entry->mem_obj->e_current_len : 0,
 	icpState->offset);
-
     buf = get_free_4k_page();
-    storeClientCopy(icpState->entry, icpState->offset, ICP_SENDMOREDATA_BUF, buf, &len, fd);
-
-    /* look for HTTP reply code */
-    if (icpState->offset == 0 && entry->mem_obj->reply->code == 0 && len > 0) {
-	memset(scanbuf, '\0', 20);
-	xmemcpy(scanbuf, buf, len > 19 ? 19 : len);
-	sscanf(scanbuf, "HTTP/%lf %d", &http_ver, &tcode);
-	entry->mem_obj->reply->code = tcode;
+    storeClientCopy(icpState->entry,
+	icpState->offset,
+	ICP_SENDMOREDATA_BUF,
+	buf,
+	&len,
+	fd);
 #if LOG_FULL_HEADERS
+    if (icpState->offset == 0 && len > 0)
 	icp_maybe_remember_reply_hdr(icpState);
 #endif /* LOG_FULL_HEADERS */
-    }
     icpState->offset += len;
-    if (icpState->request->method == METHOD_HEAD && (p = mime_headers_end(buf))) {
-	*p = '\0';
-	len = p - buf;
-	icpState->offset = entry->mem_obj->e_current_len;	/* force end */
+    if (icpState->request->method == METHOD_HEAD) {
+	if ((p = mime_headers_end(buf))) {
+	    *p = '\0';
+	    len = p - buf;
+	    icpState->offset = entry->mem_obj->e_current_len;	/* force end */
+	}
     }
     comm_write(fd,
 	buf,
@@ -609,7 +607,7 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     char *IMS_hdr = NULL;
     time_t IMS;
     int IMS_length;
-    time_t date;
+    time_t lmt;
     int length;
     char *reply = NULL;
 
@@ -657,13 +655,9 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	    IMS_length = atoi(strchr(p, '=') + 1);
     }
 
-    /* Find date when the object last was modified */
-    if (*mem->reply->last_modified)
-	date = parse_rfc1123(mem->reply->last_modified);
-    else if (*mem->reply->date)
-	date = parse_rfc1123(mem->reply->date);
-    else
-	date = entry->timestamp;
+    lmt = mem->reply->last_modified;
+    if (lmt < 0)
+	debug(12, 0, "WARNING: '%s' has LMTIME=%s\n", mkrfc1123(lmt));
 
     /* Find size of the object */
     if (mem->reply->content_length)
@@ -677,7 +671,7 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 
     entry->refcount++;
     /* Compare with If-Modified-Since header */
-    if (IMS > date || (IMS == date && (IMS_length < 0 || IMS_length == length))) {
+    if (IMS > lmt || (IMS == lmt && (IMS_length < 0 || IMS_length == length))) {
 	/* The object is not modified */
 	debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
 	reply = icpConstruct304reply(mem->reply);
@@ -913,13 +907,12 @@ icpLogIcp(icpUdpData * queue)
 	0,
 	tvSubMsec(queue->start, current_time),
 	NULL,			/* ident */
-#if !LOG_FULL_HEADERS
-	NULL);			/* hierarchy data */
-#else
 	NULL,			/* hierarchy data */
+#if LOG_FULL_HEADERS
 	NULL,			/* request header */
-	NULL);			/* reply header */
+	NULL,			/* reply header */
 #endif /* LOG_FULL_HEADERS */
+	NULL);			/* content-type */
     ICPCacheInfo->proto_touchobject(ICPCacheInfo,
 	queue->proto,
 	queue->len);
@@ -2075,8 +2068,8 @@ icpConstruct304reply(struct _http_reply *source)
     LOCAL_ARRAY(char, reply, 8192);
     memset(reply, '\0', 8192);
     strcpy(reply, "HTTP/1.0 304 Not Modified\r\n");
-    if ((int) strlen(source->date) > 0) {
-	sprintf(line, "Date: %s\n", source->date);
+    if (source->date > -1) {
+	sprintf(line, "Date: %s\n", mkrfc1123(source->date));
 	strcat(reply, line);
     }
     if ((int) strlen(source->content_type) > 0) {
@@ -2087,12 +2080,12 @@ icpConstruct304reply(struct _http_reply *source)
 	sprintf(line, "Content-length: %d\n", source->content_length);
 	strcat(reply, line);
     }
-    if ((int) strlen(source->expires) > 0) {
-	sprintf(line, "Expires: %s\n", source->expires);
+    if (source->expires > -1) {
+	sprintf(line, "Expires: %s\n", mkrfc1123(source->expires));
 	strcat(reply, line);
     }
-    if ((int) strlen(source->last_modified) > 0) {
-	sprintf(line, "Last-modified: %s\n", source->last_modified);
+    if (source->last_modified > -1) {
+	sprintf(line, "Last-modified: %s\n", mkrfc1123(source->last_modified));
 	strcat(reply, line);
     }
     sprintf(line, "\r\n");
