@@ -820,6 +820,10 @@ struct _clientHttpRequest {
 	unsigned int internal:1;
 	unsigned int done_copying:1;
     } flags;
+    struct {
+	http_status status;
+	char *location;
+    } redirect;
 };
 
 struct _ConnStateData {

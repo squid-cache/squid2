@@ -245,6 +245,21 @@ httpReplySetHeaders(HttpReply * reply, double ver, http_status status, const cha
 }
 
 void
+httpRedirectReply(HttpReply * reply, http_status status, const char *loc)
+{
+    HttpHeader *hdr;
+    assert(reply);
+    httpStatusLineSet(&reply->sline, 1.0, status, httpStatusString(status));
+    hdr = &reply->header;
+    httpHeaderPutStr(hdr, HDR_SERVER, full_appname_string);
+    httpHeaderPutTime(hdr, HDR_DATE, squid_curtime);
+    httpHeaderPutInt(hdr, HDR_CONTENT_LENGTH, 0);
+    httpHeaderPutStr(hdr, HDR_LOCATION, loc);
+    reply->date = squid_curtime;
+    reply->content_length = 0;
+}
+
+void
 httpReplyUpdateOnNotModified(HttpReply * rep, HttpReply * freshRep)
 {
     assert(rep && freshRep);
