@@ -110,7 +110,9 @@
 #define MAX_LINELEN (4096)
 #define max(a,b)  ((a)>(b)? (a): (b))
 
+#ifdef HIER_EXPERIMENT
 static FILE *hierexplog = NULL;
+#endif
 
 typedef struct _log_read_data_t {
     StoreEntry *sentry;
