@@ -61,7 +61,6 @@ static struct {
     int misses;
     int negative_hits;
     int errors;
-    int ghbn_calls;		/* # calls to blocking gethostbyname() */
     int release_locked;
 } IpcacheStats;
 
@@ -105,7 +104,6 @@ ipcache_testname(void)
     if ((w = Config.dns_testname_list) == NULL)
 	return 1;
     for (; w; w = w->next) {
-	IpcacheStats.ghbn_calls++;
 	if (gethostbyname(w->key) != NULL)
 	    return 1;
     }
@@ -536,8 +534,6 @@ stat_ipcache_get(StoreEntry * sentry)
 	IpcacheStats.negative_hits);
     storeAppendPrintf(sentry, "IPcache Misses: %d\n",
 	IpcacheStats.misses);
-    storeAppendPrintf(sentry, "Blocking calls to gethostbyname(): %d\n",
-	IpcacheStats.ghbn_calls);
     storeAppendPrintf(sentry, "Attempts to release locked entries: %d\n",
 	IpcacheStats.release_locked);
     storeAppendPrintf(sentry, "\n\n");
@@ -788,7 +784,7 @@ snmp_netIpFn(variable_list * Var, snint * ErrP)
 	break;
     case IP_PENDHIT:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
-	    0,
+	    0,			/* deprecated */
 	    SMI_GAUGE32);
 	break;
     case IP_NEGHIT:
@@ -803,7 +799,7 @@ snmp_netIpFn(variable_list * Var, snint * ErrP)
 	break;
     case IP_GHBN:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
-	    IpcacheStats.ghbn_calls,
+	    0,			/* deprecated */
 	    SMI_COUNTER32);
 	break;
     case IP_LOC:
