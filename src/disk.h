@@ -168,7 +168,7 @@ typedef struct _FileEntry {
 	NO, YES
     } at_eof;
     enum {
-	NOT_OPEN, OPEN
+	FILE_NOT_OPEN, FILE_OPEN
     } open_stat;
     enum {
 	NOT_REQUEST, REQUEST
