@@ -632,7 +632,7 @@ write_with_timeout(int fd, char *buf, int sz)
 	x = write(fd, buf, sz);
 	debug(38, 7, "write_with_timeout: write returned %d\n", x);
 	if (x < 0) {
-	    debug(38, 0, "write: %s\n", xstrerror());
+	    debug(38, 0, "ftpget: write: %s\n", xstrerror());
 	    return x;
 	}
 	if (x == 0)
