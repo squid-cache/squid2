@@ -714,7 +714,6 @@ SquidShutdown(void *unused)
 #if PURIFY || XMALLOC_TRACE
     configFreeMemory();
     storeFreeMemory();
-    dnsFreeMemory();
     /*stmemFreeMemory(); */
     netdbFreeMemory();
     ipcacheFreeMemory();
