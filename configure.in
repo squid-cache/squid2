@@ -694,7 +694,7 @@ case "$host" in
 		ac_cv_func_poll='no'
 		;;
 	*)
-		AC_CHECK_FUNC(poll)
+		AC_CHECK_FUNCS(poll)
 		;;
 esac
 
