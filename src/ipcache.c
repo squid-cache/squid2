@@ -275,7 +275,7 @@ ipcacheParse(const char *inbuf)
     }
     i.flags.negcached = 0;
     ttl = atoi(token);
-    if (ttl > 0)
+    if (ttl > 0 && ttl < Config.positiveDnsTtl)
 	i.expires = squid_curtime + ttl;
     else
 	i.expires = squid_curtime + Config.positiveDnsTtl;
@@ -344,8 +344,12 @@ ipcacheParse(rfc1035_rr * answers, int nr)
 	    continue;
 	if (answers[k].class != RFC1035_CLASS_IN)
 	    continue;
-	if (j == 0)
-	    i.expires = squid_curtime + answers[k].ttl;
+	if (j == 0) {
+	    if (answers[k].ttl < Config.positiveDnsTtl)
+		i.expires = squid_curtime + answers[k].ttl;
+	    else
+		i.expires = squid_curtime + Config.positiveDnsTtl;
+	}
 	assert(answers[k].rdlength == 4);
 	xmemcpy(&i.addrs.in_addrs[j++], answers[k].rdata, 4);
 	debug(14, 3) ("ipcacheParse: #%d %s\n",

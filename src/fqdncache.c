@@ -260,7 +260,7 @@ fqdncacheParse(const char *inbuf)
     }
     f.flags.negcached = 0;
     ttl = atoi(token);
-    if (ttl > 0)
+    if (ttl > 0 && ttl < Config.positiveDnsTtl)
 	f.expires = squid_curtime + ttl;
     else
 	f.expires = squid_curtime + Config.positiveDnsTtl;
@@ -303,7 +303,10 @@ fqdncacheParse(rfc1035_rr * answers, int nr)
 	f.flags.negcached = 0;
 	f.names[0] = xstrdup(answers[k].rdata);
 	f.name_count = 1;
-	f.expires = squid_curtime + answers[k].ttl;
+	if (answers[k].ttl < Config.positiveDnsTtl)
+	    f.expires = squid_curtime + answers[k].ttl;
+	else
+	    f.expires = squid_curtime + Config.positiveDnsTtl;
 	return &f;
     }
     debug(35, 1) ("fqdncacheParse: No PTR record\n");

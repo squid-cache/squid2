@@ -1733,7 +1733,7 @@ TYPE: time_t
 LOC: Config.positiveDnsTtl
 DEFAULT: 6 hours
 DOC_START
-	Time-to-Live (TTL) for positive caching of successful DNS lookups.
+	Upper limit on how long Squid will cache positive DNS responses.
 	Default is 6 hours (360 minutes).  If you want to minimize the
 	use of Squid's ipcache, set this to 1, not 0.
 DOC_END

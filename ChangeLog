@@ -13,6 +13,7 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	- Bug #806: Segfault if failing to load error page
 	- Bug #812: Mozilla/Netscape plugins mime type defined (.xpi)
 	- Bug #817: maximum_object_size too large causes squid not to cache
+	- Bug #799: positive_dns_ttl ignored when using internal DNS.
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 
