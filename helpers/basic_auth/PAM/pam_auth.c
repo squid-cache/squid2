@@ -2,7 +2,7 @@
  * $Id$
  *
  * PAM authenticator module for Squid.
- * Copyright (C) 1999 Henrik Nordstrom <hno@hem.passagen.se>
+ * Copyright (C) 1999 Henrik Nordstrom <hno@squid-cache.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
