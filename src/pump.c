@@ -344,8 +344,7 @@ pumpFree(int fd, void *data)
     req = p->request_entry;
     rep = p->reply_entry;
     if (req != NULL) {
-	if (p->sent < p->cont_len)
-	    storeUnregister(req, p);
+	storeUnregister(req, p);
 	if (req->store_status == STORE_PENDING)
 	    storeAbort(req, 0);
 	storeUnlockObject(req);
