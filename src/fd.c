@@ -84,11 +84,11 @@ fd_close(int fd)
 	assert(F->write_handler == NULL);
     }
     debug(51, 3) ("fd_close FD %d %s\n", fd, F->desc);
-    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
-    commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
     F->flags.open = 0;
     fdUpdateBiggest(fd, 0);
     Number_FD--;
+    commUpdateReadBits(fd, NULL);
+    commUpdateWriteBits(fd, NULL);
     memset(F, '\0', sizeof(fde));
     F->timeout = 0;
 }
@@ -176,6 +176,17 @@ int
 fdNFree(void)
 {
     return Squid_MaxFD - Number_FD - Opening_FD;
+}
+
+int
+fdUsageHigh(void)
+{
+    int nrfree = fdNFree();
+    if (nrfree < (RESERVED_FD << 1))
+	return 1;
+    if (nrfree < (Number_FD >> 2))
+	return 1;
+    return 0;
 }
 
 /* Called when we runs out of file descriptors */

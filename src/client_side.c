@@ -1401,6 +1401,10 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	debug(33, 3) ("clientBuildReplyHeader: can't keep-alive, unknown body size\n");
 	request->flags.proxy_keepalive = 0;
     }
+    if (fdUsageHigh()) {
+	debug(33, 3) ("clientBuildReplyHeader: Not many unused FDs, can't keep-alive\n");
+	request->flags.proxy_keepalive = 0;
+    }
     /* Signal keep-alive if needed */
     httpHeaderPutStr(hdr,
 	http->flags.accel ? HDR_CONNECTION : HDR_PROXY_CONNECTION,
