@@ -69,11 +69,6 @@
 #undef STORE_KEY_MD5 1
 
 /*
- * Define this for Aschyncronous I/O suport.
- */
-#undef USE_ASYNC_IO 1
-
-/*
  * Define this to include code which lets you specify access control
  * elements based on ethernet hardware addresses.  This code uses
  * functions found in 4.4 BSD derviations (e.g. FreeBSD, ?).
