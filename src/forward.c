@@ -137,8 +137,8 @@ fwdServerClosed(int fd, void *data)
 	    FwdServer *fs = fwdState->servers;
 	    FwdServer **T, *T2 = NULL;
 	    fwdState->servers = fs->next;
-	    for (T = &fwdState->servers; *T; T2=*T, T = &(*T)->next);
-	    if (T2 && T2->peer)  {
+	    for (T = &fwdState->servers; *T; T2 = *T, T = &(*T)->next);
+	    if (T2 && T2->peer) {
 		/* cycle */
 		*T = fs;
 		fs->next = NULL;
@@ -251,7 +251,7 @@ fwdConnectStart(void *data)
 	ctimeout = fs->peer->connect_timeout > 0 ? fs->peer->connect_timeout
 	    : Config.Timeout.peer_connect;
     } else if (fwdState->request->flags.accelerated &&
-	    	Config.Accel.single_host && Config.Accel.host) {
+	Config.Accel.single_host && Config.Accel.host) {
 	host = Config.Accel.host;
 	port = Config.Accel.port;
 	ctimeout = Config.Timeout.connect;

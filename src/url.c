@@ -243,10 +243,10 @@ urlParse(method_t method, char *url)
 	port = urlDefaultPort(protocol);
 	/* Is there any login informaiton? */
 	if ((t = strrchr(host, '@'))) {
-	    strcpy((char *)login, (char *)host);
+	    strcpy((char *) login, (char *) host);
 	    t = strrchr(login, '@');
 	    *t = 0;
-	    strcpy((char *)host, t + 1);
+	    strcpy((char *) host, t + 1);
 	}
 	if ((t = strrchr(host, ':'))) {
 	    *t++ = '\0';

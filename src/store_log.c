@@ -71,7 +71,7 @@ storeLog(int tag, const StoreEntry * e)
 	(int) current_time.tv_sec,
 	(int) current_time.tv_usec / 1000,
 	storeLogTags[tag],
-        e->swap_dirn,
+	e->swap_dirn,
 	e->swap_filen,
 	reply->sline.status,
 	(int) reply->date,

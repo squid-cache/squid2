@@ -279,9 +279,9 @@ snmp_prfSysFn(variable_list * Var, snint * ErrP)
 	    ASN_INTEGER);
 	break;
     case PERF_SYS_CURLRUEXP:
-        /* No global LRU info anymore */
+	/* No global LRU info anymore */
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
-            0,
+	    0,
 	    SMI_TIMETICKS);
 	break;
     case PERF_SYS_CURUNLREQ:
