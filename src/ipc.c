@@ -207,9 +207,9 @@ ipcCreate(int type, const char *prog, char *const args[], const char *name, int 
     /* child */
     no_suid();			/* give up extra priviliges */
     /* close shared socket with parent */
-    comm_close(prfd);
+    close(prfd);
     if (pwfd != prfd)
-	comm_close(pwfd);
+	close(pwfd);
     pwfd = prfd = -1;
 
     if (type == IPC_TCP_SOCKET) {
