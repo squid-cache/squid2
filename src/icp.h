@@ -26,7 +26,8 @@ typedef enum {
     ERR_CANNOT_FETCH,		/* 19 */
     ERR_NO_RELAY,		/* 20 */
     ERR_DISK_IO,		/* 21 */
-    ERR_URL_BLOCKED		/* 22 */
+    ERR_URL_BLOCKED,		/* 22 */
+    ERR_ZERO_SIZE_OBJECT	/* 23 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT

@@ -86,6 +86,9 @@ error_data ErrorData[] =
     {"ERR_URL_BLOCKED",
 	"Access Denied",
 	"You are not allowed to access this URL."},
+    {"ERR_ZERO_SIZE_OBJECT",
+	"No Object Data",
+	"The remote server closed the connection before sending any data."},
     {"ERR_MAX"
 	"",
 	""}
