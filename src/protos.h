@@ -700,7 +700,6 @@ extern void memFree4K(void *);
 extern void memFree8K(void *);
 extern void memFreeDISK(void *);
 extern int memInUse(mem_type);
-extern size_t memTotalAllocated();
 
 /* MemPool */
 extern MemPool *memPoolCreate(const char *label, size_t obj_size);
