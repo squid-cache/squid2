@@ -36,5 +36,5 @@ extern int aioFileQueueWrite _PARAMS((int,
 	int (*) _PARAMS((int, FileEntry *)),
 	FileEntry *));
 extern int aioFileQueueRead _PARAMS((int,
-	int (*) _PARAMS((int, dread_ctrl *)),q
+	int (*) _PARAMS((int, dread_ctrl *)),
 	dread_ctrl *));
