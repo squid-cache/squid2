@@ -300,6 +300,7 @@ typedef int (*QS) (const void *, const void *);
 #include "client_db.h"
 #include "objcache.h"
 #include "refresh.h"
+#include "peer_select.h"
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"

@@ -101,6 +101,7 @@ OBJS	 	= \
 		net_db.o \
 		objcache.o \
 		pass.o \
+		peer_select.o \
 		proto.o \
 		redirect.o \
 		refresh.o \

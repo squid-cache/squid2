@@ -277,22 +277,11 @@ extern int icp_dataend _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, char *
 
 typedef struct _protodispatch_data {
     int fd;
-    char *url;
     StoreEntry *entry;
     request_t *request;
-    int inside_firewall;
-    int direct_fetch;
-    int source_ping;
-    int hierarchical;
-    int n_peers;
-    struct _peer *single_parent;
-    struct _peer *default_parent;
-#if DELAY_HACK
-    int delay_fetch;
-#endif
 } protodispatch_data;
 
-extern int protoDispatch _PARAMS((int, char *, StoreEntry *, request_t *));
+extern void protoDispatch _PARAMS((int, char *, StoreEntry *, request_t *));
 extern int protoUnregister _PARAMS((int fd,
 	StoreEntry *,
 	request_t *,
@@ -300,7 +289,6 @@ extern int protoUnregister _PARAMS((int fd,
 extern int getFromDefaultSource _PARAMS((int, StoreEntry *));
 extern int protoStart _PARAMS((int, StoreEntry *, peer *, request_t *));
 extern void protoCancelTimeout _PARAMS((int fd, StoreEntry *));
-extern int matchInsideFirewall _PARAMS((const char *));
 
 #define DIRECT_NO    0
 #define DIRECT_MAYBE 1

@@ -168,7 +168,7 @@ typedef struct {
 /* Local functions */
 static char *icpConstruct304reply _PARAMS((struct _http_reply *));
 static int CheckQuickAbort2 _PARAMS((const icpStateData *));
-static int icpProcessMISS _PARAMS((int, icpStateData *));
+static void icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
 static void checkFailureRatio _PARAMS((log_type, hier_code));
 static void icpHandleStore _PARAMS((int, StoreEntry *, void *));
@@ -633,8 +633,10 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     char *reply = NULL;
 
     if (mem->reply->code == 0) {
-	if (entry->mem_status == IN_MEMORY)
-	    return icpProcessMISS(fd, icpState);
+	if (entry->mem_status == IN_MEMORY) {
+	    icpProcessMISS(fd, icpState);
+	    return COMM_OK;
+	}
 	/* All headers are not yet available, wait for more data */
 	storeRegister(entry, fd, icpHandleStoreIMS, (void *) icpState);
 	return COMM_OK;
@@ -645,7 +647,8 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     if (mem->reply->code != 200) {
 	debug(12, 4, "icpGetHeadersForIMS: Reply code %d!=200\n",
 	    mem->reply->code);
-	return icpProcessMISS(fd, icpState);
+	icpProcessMISS(fd, icpState);
+	return COMM_OK;
     }
     icpState->log_type = LOG_TCP_IMS_HIT;
     entry->refcount++;
@@ -820,11 +823,10 @@ icpProcessRequest(int fd, icpStateData * icpState)
     }
 }
 
-
 /*
  * Prepare to fetch the object as it's a cache miss of some kind.
  */
-static int
+static void
 icpProcessMISS(int fd, icpStateData * icpState)
 {
     char *url = icpState->url;
@@ -851,7 +853,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
 	    icpState->url,
 	    fd_table[fd].ipaddr);
 	icpSendERROR(fd, LOG_TCP_DENIED, buf, icpState, icpState->http_code);
-	return 0;
+	return;
     }
     /* Get rid of any references to a StoreEntry (if any) */
     if (icpState->entry) {
@@ -879,7 +881,8 @@ icpProcessMISS(int fd, icpStateData * icpState)
     if (aclCheck(DelayAccessList, &ch))
 	_delay_fetch = 1;
 #endif
-    return (protoDispatch(fd, url, icpState->entry, icpState->request));
+    protoDispatch(fd, url, icpState->entry, icpState->request);
+    return;
 }
 
 static void

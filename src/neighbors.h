@@ -202,7 +202,7 @@ extern peer *getFirstUpParent _PARAMS((request_t *));
 extern peer *getNextPeer _PARAMS((peer *));
 extern peer *getSingleParent _PARAMS((request_t *));
 extern int neighborsCount _PARAMS((request_t *));
-extern int neighborsUdpPing _PARAMS((protodispatch_data *));
+extern int neighborsUdpPing _PARAMS((request_t *, StoreEntry *));
 extern void neighborAddDomainPing _PARAMS((const char *, const char *));
 extern void neighborAddDomainType _PARAMS((const char *, const char *, const char *));
 extern void neighborAddAcl _PARAMS((const char *, const char *));

@@ -107,24 +107,11 @@
 
 #include "squid.h"
 
-static int matchLocalDomain _PARAMS((const char *));
 static int protoCantFetchObject _PARAMS((int, StoreEntry *, char *));
 static int protoNotImplemented _PARAMS((int, const char *, StoreEntry *));
 static int protoDNSError _PARAMS((int, StoreEntry *));
-static void protoDataFree _PARAMS((int, protodispatch_data *));
+static void protoDataFree _PARAMS((int, void *));
 static void protoDispatchDNSHandle _PARAMS((int, const ipcache_addrs *, void *));
-
-#define OUTSIDE_FIREWALL 0
-#define INSIDE_FIREWALL  1
-#define NO_FIREWALL      2
-
-/* for debugging */
-static char *firewall_desc_str[] =
-{
-    "OUTSIDE_FIREWALL",
-    "INSIDE_FIREWALL",
-    "NO_FIREWALL"
-};
 
 char *IcpOpcodeStr[] =
 {
@@ -160,8 +147,9 @@ extern int _delay_fetch;
 #endif
 
 static void
-protoDataFree(int fdunused, protodispatch_data * protoData)
+protoDataFree(int fdunused, void *data)
 {
+    protodispatch_data *protoData = data;
     requestUnlink(protoData->request);
     safe_free(protoData);
 }
@@ -170,231 +158,43 @@ protoDataFree(int fdunused, protodispatch_data * protoData)
 static void
 protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 {
-    peer *e = NULL;
-    struct in_addr srv_addr;
     protodispatch_data *protoData = (protodispatch_data *) data;
     StoreEntry *entry = protoData->entry;
     request_t *req = protoData->request;
-
+    int fd = protoData->fd;
     /* NOTE: We get here after a DNS lookup, whether or not the
      * lookup was successful.  Even if the URL hostname is bad,
      * we might still ping the hierarchy */
-
     BIT_RESET(entry->flag, IP_LOOKUP_PENDING);
-
-    if (protoData->direct_fetch == DIRECT_YES) {
-	if (ia == NULL) {
-	    protoDNSError(protoData->fd, entry);
-	    return;
-	}
-	hierarchyNote(req, HIER_DIRECT, 0, req->host);
-	protoStart(protoData->fd, entry, NULL, req);
-	return;
-    }
-    if (protoData->direct_fetch == DIRECT_MAYBE && (Config.local_ip_list || Config.firewall_ip_list)) {
-	if (ia == NULL) {
-	    debug(17, 3, "Unknown host: %s\n", req->host);
-	    protoData->direct_fetch = DIRECT_NO;
-	} else if (Config.firewall_ip_list) {
-	    srv_addr = ia->in_addrs[ia->cur];
-	    if (ip_access_check(srv_addr, Config.firewall_ip_list) == IP_DENY) {
-		hierarchyNote(req, HIER_FIREWALL_IP_DIRECT, 0, req->host);
-		protoStart(protoData->fd, entry, NULL, req);
-		return;
-	    } else {
-#ifdef NOT_SURE
-		/* Even though the address is NOT in firewall_ip_list,
-		 * we might still be able to go direct, depending on if
-		 * there are any peers to query, etc.  If this is set to
-		 * DIRECT_NO then requests will fail if the host matches
-		 * inside_firewall but not firewall_ip_list. */
-		protoData->direct_fetch = DIRECT_MAYBE;
-#endif
-		protoData->direct_fetch = DIRECT_NO;
-	    }
-	} else if (Config.local_ip_list) {
-	    srv_addr = ia->in_addrs[ia->cur];
-	    if (ip_access_check(srv_addr, Config.local_ip_list) == IP_DENY) {
-		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
-		protoStart(protoData->fd, entry, NULL, req);
-		return;
-	    }
-	}
-    }
-    if ((e = protoData->single_parent) &&
-	(Config.singleParentBypass || protoData->direct_fetch == DIRECT_NO)) {
-	/* Only one parent for this host, and okay to skip pinging stuff */
-	hierarchyNote(req, HIER_SINGLE_PARENT, 0, e->host);
-	protoStart(protoData->fd, entry, e, req);
-	return;
-    }
-    if (protoData->n_peers == 0 && protoData->direct_fetch == DIRECT_NO) {
-	if ((e = protoData->default_parent)) {
-	    hierarchyNote(req, HIER_DEFAULT_PARENT, 0, e->host);
-	    protoStart(protoData->fd, entry, e, req);
-	} else {
-	    hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
-	    protoCantFetchObject(protoData->fd, entry, "No peers to query and the host is beyond your firewall.");
-	}
-	return;
-    }
-    if (!neighbors_do_private_keys && !protoData->hierarchical &&
-	(e = getFirstUpParent(req))) {
-	/* for private objects we should just fetch directly (because
-	 * icpHandleUdp() won't properly deal with the ICP replies). */
-	hierarchyNote(req, HIER_FIRSTUP_PARENT, 0, e->host);
-	protoStart(protoData->fd, entry, e, req);
-	return;
-    } else if (protoData->direct_fetch == DIRECT_MAYBE && ia
-	&& netdbHops(ia->in_addrs[ia->cur]) <= Config.minDirectHops) {
-	hierarchyNote(req, HIER_DIRECT, 0, req->host);
-	protoStart(protoData->fd, entry, NULL, req);
-	return;
-    } else if (neighborsUdpPing(protoData)) {
-	/* call neighborUdpPing and start timeout routine */
-	if (entry->ping_status != PING_NONE)
-	    fatal_dump("protoDispatchDNSHandle: bad ping_status");
-	if (entry->store_status != STORE_PENDING)
-	    fatal_dump("protoDispatchDNSHandle: bad store_status");
-	if (entry->swap_status != NO_SWAP)
-	    fatal_dump("protoDispatchDNSHandle: bad swap_status");
-	entry->ping_status = PING_WAITING;
-	commSetSelect(protoData->fd,
-	    COMM_SELECT_TIMEOUT,
-	    (PF) getFromDefaultSource,
-	    (void *) entry,
-	    Config.neighborTimeout);
-#ifdef DELAY_HACK
-	if (protoData->delay_fetch && entry->mem_obj)
-	    entry->mem_obj->e_pings_n_pings++;
-#endif
-	return;
-    }
-    if ((e = protoData->default_parent)) {
-	hierarchyNote(req, HIER_DEFAULT_PARENT, 0, e->host);
-	protoStart(protoData->fd, entry, e, req);
-    } else if ((e = getRoundRobinParent(req))) {
-	hierarchyNote(req, HIER_ROUNDROBIN_PARENT, 0, e->host);
-	protoStart(protoData->fd, entry, e, req);
-    } else if (protoData->direct_fetch == DIRECT_NO) {
-	hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
-	protoCantFetchObject(protoData->fd, entry,
-	    "No neighbors or parents were queried and the host is beyond your firewall.");
-    } else if (ia == NULL) {
-	protoDNSError(protoData->fd, entry);
-    } else {
-	hierarchyNote(req, HIER_DIRECT, 0, req->host);
-	protoStart(protoData->fd, entry, NULL, req);
-    }
+    comm_remove_close_handler(protoData->fd, protoDataFree, protoData);
+    protoDataFree(protoData->fd, protoData);
+    protoData = NULL;
+    peerSelect(fd, req, entry);
 }
 
-int
+void
 protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 {
     protodispatch_data *protoData = NULL;
-    const char *method;
-    char *request_hdr;
-
-    method = RequestMethodStr[request->method];
-    request_hdr = entry->mem_obj->mime_hdr;
-
-    debug(17, 5, "protoDispatch: %s URL: %s\n", method, url);
-    debug(17, 10, "request_hdr: %s\n", request_hdr);
-
     if (request->protocol == PROTO_CACHEOBJ)
-	return protoStart(fd, entry, NULL, request);
+	protoStart(fd, entry, NULL, request);
     if (request->protocol == PROTO_WAIS)
-	return protoStart(fd, entry, NULL, request);
-
+	protoStart(fd, entry, NULL, request);
+    if (!Config.firewall_ip_list && !Config.local_ip_list)
+	peerSelect(fd, request, entry);
     protoData = xcalloc(1, sizeof(protodispatch_data));
     protoData->fd = fd;
-    protoData->url = url;
     protoData->entry = entry;
     protoData->request = requestLink(request);
     entry->mem_obj->request = requestLink(request);
     comm_add_close_handler(fd,
-	(PF) protoDataFree,
+	protoDataFree,
 	(void *) protoData);
-
-    protoData->inside_firewall = matchInsideFirewall(request->host);
-    protoData->hierarchical = BIT_TEST(entry->flag, HIERARCHICAL) ? 1 : 0;
-    protoData->single_parent = getSingleParent(request);
-    protoData->default_parent = getDefaultParent(request);
-    protoData->n_peers = neighborsCount(request);
-#ifdef DELAY_HACK
-    protoData->delay_fetch = _delay_fetch;
-#endif
-
-    debug(17, 2, "protoDispatch: inside_firewall = %d (%s)\n",
-	protoData->inside_firewall,
-	firewall_desc_str[protoData->inside_firewall]);
-    debug(17, 2, "protoDispatch:    hierarchical = %d\n", protoData->hierarchical);
-    debug(17, 2, "protoDispatch:         n_peers = %d\n", protoData->n_peers);
-    debug(17, 2, "protoDispatch:   single_parent = %s\n",
-	protoData->single_parent ? protoData->single_parent->host : "N/A");
-    debug(17, 2, "protoDispatch:  default_parent = %s\n",
-	protoData->default_parent ? protoData->default_parent->host : "N/A");
-
-    if (Config.firewall_ip_list) {
-	/* Have to look up the url address so we can compare it */
-	protoData->source_ping = Config.sourcePing;
-	protoData->direct_fetch = DIRECT_MAYBE;
-	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
-	ipcache_nbgethostbyname(request->host,
-	    fd,
-	    protoDispatchDNSHandle,
-	    (void *) protoData);
-    } else if (!protoData->inside_firewall) {
-	/* There are firewall restrictions, and this host is outside. */
-	/* No DNS lookups, call protoDispatchDNSHandle() directly */
-	protoData->source_ping = 0;
-	protoData->direct_fetch = DIRECT_NO;
-	protoDispatchDNSHandle(fd,
-	    NULL,
-	    (void *) protoData);
-    } else if (matchLocalDomain(request->host) || !protoData->hierarchical) {
-	/* will fetch from source */
-	protoData->direct_fetch = DIRECT_YES;
-	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
-	ipcache_nbgethostbyname(request->host,
-	    fd,
-	    protoDispatchDNSHandle,
-	    (void *) protoData);
-    } else if (protoData->n_peers == 0) {
-	/* will fetch from source */
-	protoData->direct_fetch = DIRECT_YES;
-	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
-	ipcache_nbgethostbyname(request->host,
-	    fd,
-	    protoDispatchDNSHandle,
-	    (void *) protoData);
-    } else if (Config.local_ip_list) {
-	/* Have to look up the url address so we can compare it */
-	protoData->source_ping = Config.sourcePing;
-	protoData->direct_fetch = DIRECT_MAYBE;
-	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
-	ipcache_nbgethostbyname(request->host,
-	    fd,
-	    protoDispatchDNSHandle,
-	    (void *) protoData);
-    } else if (protoData->single_parent && Config.singleParentBypass &&
-	!(protoData->source_ping = Config.sourcePing)) {
-	/* will fetch from single parent */
-	protoData->direct_fetch = DIRECT_MAYBE;
-	protoDispatchDNSHandle(fd,
-	    NULL,
-	    (void *) protoData);
-    } else {
-	/* will use ping resolution */
-	protoData->source_ping = Config.sourcePing;
-	protoData->direct_fetch = DIRECT_MAYBE;
-	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
-	ipcache_nbgethostbyname(request->host,
-	    fd,
-	    protoDispatchDNSHandle,
-	    (void *) protoData);
-    }
-    return 0;
+    BIT_SET(entry->flag, IP_LOOKUP_PENDING);
+    ipcache_nbgethostbyname(request->host,
+	fd,
+	protoDispatchDNSHandle,
+	(void *) protoData);
 }
 
 int
@@ -583,56 +383,5 @@ protoDNSError(int fd, StoreEntry * entry)
     debug(17, 2, "protoDNSError: FD %d '%s'\n", fd, entry->url);
     protoCancelTimeout(fd, entry);
     squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
-    return 0;
-}
-
-/*
- * return 0 if the host is outside the firewall (no domains matched), and
- * return 1 if the host is inside the firewall or no domains at all.
- */
-int
-matchInsideFirewall(const char *host)
-{
-    const wordlist *s = Config.inside_firewall_list;
-    const char *key = NULL;
-    int result = NO_FIREWALL;
-    struct in_addr addr;
-    if (!s && !Config.firewall_ip_list)
-	/* no firewall goop, all hosts are "inside" the firewall */
-	return NO_FIREWALL;
-    for (; s; s = s->next) {
-	key = s->key;
-	if (!strcasecmp(key, "none"))
-	    /* no domains are inside the firewall, all domains are outside */
-	    return OUTSIDE_FIREWALL;
-	if (*key == '!') {
-	    key++;
-	    result = OUTSIDE_FIREWALL;
-	} else {
-	    result = INSIDE_FIREWALL;
-	}
-	if (matchDomainName(key, host))
-	    return result;
-    }
-    /* Check for dotted-quads */
-    if (Config.firewall_ip_list) {
-	if ((addr.s_addr = inet_addr(host)) != inaddr_none) {
-	    if (ip_access_check(addr, Config.firewall_ip_list) == IP_DENY)
-		return INSIDE_FIREWALL;
-	}
-    }
-    /* all through the list and no domains matched, this host must
-     * not be inside the firewall, it must be outside */
-    return OUTSIDE_FIREWALL;
-}
-
-static int
-matchLocalDomain(const char *host)
-{
-    const wordlist *s = NULL;
-    for (s = Config.local_domain_list; s; s = s->next) {
-	if (matchDomainName(s->key, host))
-	    return 1;
-    }
     return 0;
 }
