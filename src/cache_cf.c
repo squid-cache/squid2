@@ -1899,11 +1899,13 @@ parse_refreshpattern(refresh_t ** head)
     safe_free(pattern);
 }
 
+#if UNUSED_CODE
 static int
 check_null_refreshpattern(refresh_t * data)
 {
     return data == NULL;
 }
+#endif
 
 static void
 free_refreshpattern(refresh_t ** head)
