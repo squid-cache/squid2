@@ -119,6 +119,7 @@
  * KEY_CHANGE           If the key for this URL has been changed
  */
 
+#define READ_DEFERRED		(1<<15)
 #define ENTRY_NEGCACHED		(1<<14)
 #define HIERARCHICAL 		(1<<13)		/* can we query neighbors? */
 #define KEY_PRIVATE 		(1<<12)		/* is the key currently private? */

@@ -191,7 +191,7 @@ int objcacheStart(fd, url, entry)
     /* before we generate new object */
     data->entry->expires = squid_curtime + STAT_TTL;
 
-    debug(16, 3, "objectcacheStart - url: %s\n", url);
+    debug(16, 3, "objectcacheStart: '%s'\n", url);
 
     /* Parse url. */
     password[0] = '\0';

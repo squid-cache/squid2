@@ -436,10 +436,15 @@ static void httpReadReply(fd, httpState)
 	    (PF) NULL,
 	    (void *) NULL,
 	    (time_t) 0);
-	comm_set_fd_lifetime(fd, 3600);		/* limit during deferring */
+	if (!BIT_TEST(entry->flag, READ_DEFERRED)) {
+	    comm_set_fd_lifetime(fd, 3600);	/* limit during deferring */
+	    BIT_SET(entry->flag, READ_DEFERRED);
+	}
 	/* dont try reading again for a while */
 	comm_set_stall(fd, Config.stallDelay);
 	return;
+    } else {
+	BIT_RESET(entry->flag, READ_DEFERRED);
     }
     errno = 0;
     len = read(fd, buf, SQUID_TCP_SO_RCVBUF);

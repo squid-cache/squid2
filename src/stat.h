@@ -234,7 +234,7 @@ struct _iostats {
 	int read_hist[16];
 	int writes;
 	int write_hist[16];
-    } Http, Ftp;
+    } Http, Ftp, Gopher, Wais;
 };
 
 extern struct _iostats IOStats;
