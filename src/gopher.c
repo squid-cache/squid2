@@ -660,6 +660,7 @@ int gopherReadReply(fd, data)
 		    (caddr_t) NULL,
 		    (time_t) 0);
 #endif
+		comm_set_stall(fd, getStallDelay());	/* dont try reading again for a while */
 		return 0;
 	    }
 	} else {

@@ -176,6 +176,7 @@ int ftpReadReply(fd, data)
 		    COMM_SELECT_READ,
 		    (PF) ftpReadReply,
 		    (caddr_t) data);
+		comm_set_stall(fd, getStallDelay());	/* dont try reading again for a while */
 		return 0;
 	    }
 	} else {

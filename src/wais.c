@@ -101,9 +101,24 @@ void waisReadReply(fd, data)
 		    entry->mem_obj->e_lowest_offset);
 
 		/* reschedule, so it will automatically reactivated when Gap is big enough. */
-		comm_set_select_handler(fd, COMM_SELECT_READ, (PF) waisReadReply, (caddr_t) data);
-		comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT, (PF) waisReadReplyTimeout,
-		    (caddr_t) data, getReadTimeout());
+		comm_set_select_handler(fd,
+		    COMM_SELECT_READ,
+		    (PF) waisReadReply,
+		    (caddr_t) data);
+#ifdef INSTALL_READ_TIMEOUT_ABOVE_GAP
+		comm_set_select_handler_plus_timeout(fd,
+		    COMM_SELECT_TIMEOUT,
+		    (PF) waisReadReplyTimeout,
+		    (caddr_t) data,
+		    getReadTimeout());
+#else
+		comm_set_select_handler_plus_timeout(fd,
+		    COMM_SELECT_TIMEOUT,
+		    (PF) NULL,
+		    (caddr_t) NULL,
+		    (time_t) 0);
+#endif
+		comm_set_stall(fd, getStallDelay());	/* dont try reading again for a while */
 		return;
 	    }
 	} else {
