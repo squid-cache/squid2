@@ -207,7 +207,9 @@ memInit(void)
     memDataInit(MEM_AIO_RESULT_T, "aio_result_t", sizeof(aio_result_t), 0);
     memDataInit(MEM_CACHEMGR_PASSWD, "cachemgr_passwd",
 	sizeof(cachemgr_passwd), 0);
+#if USE_CACHE_DIGESTS
     memDataInit(MEM_CACHE_DIGEST, "CacheDigest", sizeof(CacheDigest), 0);
+#endif
     memDataInit(MEM_CLIENTHTTPREQUEST, "clientHttpRequest",
 	sizeof(clientHttpRequest), 0);
     memDataInit(MEM_CLOSE_HANDLER, "close_handler", sizeof(close_handler), 0);
