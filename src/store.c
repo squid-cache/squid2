@@ -290,7 +290,7 @@ storeGetPublic(const char *uri, const method_t method)
 	key = storeKeyPublicOld(uri, method);
 	e = storeGet(key);
     }
-    return storeGet(key);
+    return e;
 }
 
 static int
@@ -789,6 +789,8 @@ storeRelease(StoreEntry * e)
 	storeExpireNow(e);
 	storeSetPrivateKey(e);
 	EBIT_SET(e->flags, RELEASE_REQUEST);
+	/* we must clear ENTRY_CACHABLE if not using storeReleaseRequest() */
+	EBIT_CLR(e->flags, ENTRY_CACHABLE);
 	return;
     }
 #if USE_ASYNC_IO
