@@ -181,8 +181,6 @@ ip_access_type ip_access_check(address, list)
     {0};
     ip_acl *p = NULL;
     struct in_addr naddr;	/* network byte-order IP addr */
-    static char buf[100];
-
 
     if (!list)
 	return IP_ALLOW;
