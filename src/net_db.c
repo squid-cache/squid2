@@ -452,10 +452,7 @@ netdbPingSite(const char *hostname)
     if ((n = netdbLookupHost(hostname)) != NULL)
 	if (n->next_ping_time > squid_curtime)
 	    return;
-    ipcache_nbgethostbyname(hostname,
-	netdbSendPing,
-	(void *) xstrdup(hostname),
-	NULL);
+    ipcache_nbgethostbyname(hostname, netdbSendPing, (void *) xstrdup(hostname));
 #endif
 }
 
