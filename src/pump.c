@@ -223,15 +223,15 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
 	return;
     }
     debug(61, 5) ("pumpServerCopyComplete: Done!\n", size);
-    if (cbdataValid(p->cbdata))
-	p->callback(p->s_fd, NULL, p->sent, 0, p->cbdata);
-    cbdataUnlock(p->cbdata);
-    storeUnregister(p->request_entry, p);
     /*
      * we don't care what happens on the server side now
      */
     comm_remove_close_handler(p->s_fd, pumpServerClosed, p);
     p->s_fd = -1;
+    if (cbdataValid(p->cbdata))
+	p->callback(p->s_fd, NULL, p->sent, 0, p->cbdata);
+    cbdataUnlock(p->cbdata);
+    storeUnregister(p->request_entry, p);
     storeUnlockObject(p->reply_entry);
     p->reply_entry = NULL;
 }
