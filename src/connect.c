@@ -178,7 +178,12 @@ static void connectReadClient(cfd, data)
 	if (data->len < 0)
 	    debug(26, 2, "connectReadClient: FD %d: read failure: %s.\n",
 		cfd, xstrerror());
-	comm_close(cfd);
+	/* disable client read handler */
+	comm_set_select_handler(cfd,
+	    COMM_SELECT_READ,
+	    NULL,
+	    NULL);
+	comm_close(data->remote);
 	return;
     }
     if (!fdstat_isopen(data->remote))
@@ -238,6 +243,7 @@ static int connectStateFree(rfd, connectState)
      int rfd;
      ConnectData *connectState;
 {
+    debug(26, 3, "connectStateFree: FD %d, connectState=%p\n", rfd, connectState);
     if (connectState == NULL)
 	return 1;
     if (rfd != connectState->remote)
