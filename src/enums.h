@@ -231,7 +231,6 @@ typedef enum {
     HDR_ENUM_END
 } http_hdr_type;
 
-/* server cache-control */
 typedef enum {
     CC_PUBLIC,
     CC_PRIVATE,
@@ -242,6 +241,7 @@ typedef enum {
     CC_PROXY_REVALIDATE,
     CC_MAX_AGE,
     CC_S_MAXAGE,
+    CC_MAX_STALE,
     CC_ONLY_IF_CACHED,
     CC_OTHER,
     CC_ENUM_END
