@@ -1997,7 +1997,7 @@ storeWriteCleanLogs(int reopen)
 	outbufs[dirn] = xcalloc(Config.cacheSwap.n_configured, CLEAN_BUF_SZ);
 	outbuflens[dirn] = 0;
     }
-    for (m = all_list.tail; m; m = m->prev) {
+    for (m = all_list.head; m; m = m->next) {
 	e = m->data;
 	if (e->swap_file_number < 0)
 	    continue;
