@@ -182,7 +182,7 @@ void hierarchy_log_append(entry, code, timeout, cache_host)
     if (code > HIER_MAX)
 	code = HIER_MAX;
     if (mem)
-	mem->hierarchy_code = code;
+	mem->request->hierarchy_code = code;
 
     if (emulate_httpd_log) {
 	if (squid_curtime != last_time) {
@@ -747,7 +747,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	}
     } else if (header->opcode == ICP_OP_RELOADING) {
 	if (e)
-	    debug(15,3,"neighborsUdpAck: %s is RELOADING\n", e->host);
+	    debug(15, 3, "neighborsUdpAck: %s is RELOADING\n", e->host);
     } else {
 	debug(15, 0, "neighborsUdpAck: Unexpected ICP reply: %s\n",
 	    IcpOpcodeStr[header->opcode]);

@@ -212,7 +212,6 @@ static int icpStateFree(fd, icpState)
     int size = 0;
     int http_code = 0;
     int elapsed_msec;
-    hier_code hierarchy_code = HIER_NONE;
 
     if (!icpState)
 	return 1;
@@ -225,7 +224,6 @@ static int icpStateFree(fd, icpState)
     }
     if (icpState->entry) {
 	http_code = icpState->entry->mem_obj->reply->code;
-	hierarchy_code = icpState->entry->mem_obj->hierarchy_code;
     } else {
 	http_code = icpState->http_code;
     }
@@ -238,7 +236,7 @@ static int icpStateFree(fd, icpState)
 	RequestMethodStr[icpState->method],
 	http_code,
 	elapsed_msec,
-	hierarchy_code);
+	icpState->request->hierarchy_code);
     safe_free(icpState->inbuf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);

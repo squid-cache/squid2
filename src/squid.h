@@ -182,6 +182,7 @@ typedef struct mem_hdr *mem_ptr;
 typedef struct _edge edge;
 typedef struct icp_common_s icp_common_t;
 typedef struct _cacheinfo cacheinfo;
+typedef struct _request request_t;
 
 /* 32 bit integer compatability hack */
 #if SIZEOF_INT == 4
@@ -209,13 +210,13 @@ typedef void (*SIH) _PARAMS((int, void *));	/* swap in */
 #include "fdstat.h"
 #include "filemap.h"
 #include "hash.h"
+#include "proto.h"		/* must go before neighbors.h */
+#include "neighbors.h"		/* must go before url.h */
 #include "url.h"
-#include "proto.h"
 #include "icp.h"
 #include "errorpage.h"		/* must go after icp.h */
 #include "ipcache.h"
 #include "mime.h"
-#include "neighbors.h"
 #include "stack.h"
 #include "stat.h"
 #include "stmem.h"
