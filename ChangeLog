@@ -3,6 +3,7 @@
 	- Fixed comm_poll() to deal with ERESTART errors.
 	- Fixed icpSendMoreData() buffer overrun bug
 	  for HEAD requests.
+	- Added Mike Pelletier's connect retry code.
 
 Changes to squid-1.1.21 (March 17, 1998):
 
