@@ -81,6 +81,8 @@ DOC_START
 	number listed here.   That option will NOT override an IP
 	address, however.
 
+	You may specify multiple socket addresses on multiple lines.
+
 http_port 3128
 DOC_END
 
