@@ -1314,10 +1314,10 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
 	    icpUdpSend(fd, url, header.reqnum, &from, 0,
-		ICP_OP_DENIED, LOG_UDP_DENIED, p);
+		ICP_OP_DENIED, LOG_UDP_RELOADING, p);
 	} else if (hit_only_mode_until > squid_curtime) {
 	    icpUdpSend(fd, url, header.reqnum, &from, 0,
-		ICP_OP_RELOADING, LOG_UDP_RELOADING, p);
+		ICP_OP_DENIED, LOG_UDP_RELOADING, p);
 	} else {
 	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_MISS, LOG_UDP_MISS, p);
