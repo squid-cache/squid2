@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.13 
+# From configure.in Revision: 1.18.2.14 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2154,8 +2154,10 @@ cat > conftest.$ac_ext <<EOF
 #include <netinet/in.h>
 main ()
 {
-        int val, len = sizeof(int);
-        getsockopt(socket(AF_INET, SOCK_DGRAM, 0), SOL_SOCKET, SO_SNDBUF, &val, &len);
+        int fd,val=0,len=sizeof(int);
+	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) exit(1);
+        if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) < 0) exit(1);
+	if (val<=0) exit(1);
         fprintf (fopen("conftestval", "w"), "%d\n", val);
 	exit(0);
 }
@@ -2180,7 +2182,7 @@ if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_RCVBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2184 "configure"
+#line 2186 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2188,8 +2190,10 @@ cat > conftest.$ac_ext <<EOF
 #include <netinet/in.h>
 main ()
 {
-        int val, len = sizeof(int);
-        getsockopt(socket(AF_INET, SOCK_DGRAM, 0), SOL_SOCKET, SO_RCVBUF, &val, &len);
+        int fd,val=0,len=sizeof(int);
+	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) exit(1);
+        if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &val, &len) < 0) exit(1);
+	if (val <= 0) exit(1);
         fprintf (fopen("conftestval", "w"), "%d\n", val);
 	exit(0);
 }
@@ -2214,7 +2218,7 @@ if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_SNDBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2218 "configure"
+#line 2222 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2222,8 +2226,10 @@ cat > conftest.$ac_ext <<EOF
 #include <netinet/in.h>
 main ()
 {
-        int val, len = sizeof(int);
-        getsockopt(socket(AF_INET, SOCK_STREAM, 0), SOL_SOCKET, SO_SNDBUF, &val, &len);
+        int fd,val=0,len=sizeof(int);
+	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) exit(1);
+        if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) < 0) exit(1);
+	if (val <= 0) exit(1);
         fprintf (fopen("conftestval", "w"), "%d\n", val);
 	exit(0);
 }
@@ -2248,7 +2254,7 @@ if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_RCVBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2252 "configure"
+#line 2258 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2256,8 +2262,10 @@ cat > conftest.$ac_ext <<EOF
 #include <netinet/in.h>
 main ()
 {
-        int val, len = sizeof(int);
-        getsockopt(socket(AF_INET, SOCK_STREAM, 0), SOL_SOCKET, SO_RCVBUF, &val, &len);
+        int fd,val=0,len=sizeof(int);
+	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) exit(1);
+        if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &val, &len) < 0) exit(1);
+	if (val <= 0) exit(1);
         fprintf (fopen("conftestval", "w"), "%d\n", val);
 	exit(0);
 }
