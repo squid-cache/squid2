@@ -384,7 +384,7 @@ int protoUndispatch(fd, url, entry, request)
     if (request->protocol == PROTO_CACHEOBJ)
 	return 0;
 
-    (void) redirectUnregister(fd, url);
+    (void) redirectUnregister(url, fd);
     /* clean up DNS pending list for this name/fd look up here */
     if (!ipcache_unregister(request->host, fd)) {
 	debug(17, 5, "protoUndispatch: ipcache failed to unregister '%s'\n",
