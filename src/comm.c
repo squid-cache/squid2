@@ -846,8 +846,7 @@ comm_poll(time_t sec)
 #if !ALARM_UPDATES_TIME
 	getCurrentTime();
 #endif
-#if 0
-	if (shutdown_pending || reconfigure_pending) {
+	if (shutdown_pending) {
 	    serverConnectionsClose();
 	    dnsShutdownServers();
 	    redirectShutdownServers();
@@ -860,7 +859,6 @@ comm_poll(time_t sec)
 	    else
 		setSocketShutdownLifetimes(1);
 	}
-#endif
 	nfds = 0;
 	maxfd = Biggest_FD + 1;
 	for (i = 0; i < maxfd; i++) {
