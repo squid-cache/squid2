@@ -2705,7 +2705,6 @@ void storeRotateLog()
 	file_close(storelog_fd);
 	storelog_fd = -1;
     }
-
     if ((fname = getStoreLogFile()) == NULL)
 	return;
 

@@ -347,7 +347,7 @@ void check_suid()
 	setgid(pwd->pw_gid);
     }
 #if defined(HAVE_SETRESUID)
-    setresuid(pwd->pw_uid,pwd->pw_uid,0);
+    setresuid(pwd->pw_uid, pwd->pw_uid, 0);
 #elif defined(HAVE_SETEUID)
     seteuid(pwd->pw_uid);
 #else
@@ -358,7 +358,7 @@ void check_suid()
 void get_suid()
 {
 #if defined(HAVE_SETRESUID)
-    setresuid(-1,0,-1);
+    setresuid(-1, 0, -1);
 #else
     setuid(0);
 #endif
@@ -368,9 +368,9 @@ void no_suid()
 {
     uid_t uid;
     check_suid();
-    uid=geteuid();
+    uid = geteuid();
 #if defined(HAVE_SETRESUID)
-    setresuid(uid,uid,uid);
+    setresuid(uid, uid, uid);
 #else
     setuid(0);
     setuid(uid);

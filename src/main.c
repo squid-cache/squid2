@@ -109,7 +109,7 @@ void serverConnectionsOpen()
 {
     /* Get our real priviliges */
     get_suid();
-    
+
     /* Open server ports */
     theAsciiConnection = comm_open(COMM_NONBLOCKING,
 	getAsciiPortNum(),
@@ -144,7 +144,6 @@ void serverConnectionsOpen()
 		theUdpConnection);
 	}
     }
-
     /* And restore our priviliges to normal */
     check_suid();
 }
