@@ -1,4 +1,3 @@
-#include "autoconf.h"	/* get the #defines from GNU autoconf */
 /* Extended regular expression matching and search library,
    version 0.12.
    (Implements POSIX draft P10003.2/D11.2, except for
@@ -27,11 +26,10 @@
 
 #define _GNU_SOURCE
 
-/* We need this for `regex.h', and perhaps for the Emacs include files.  */
-#include <sys/types.h>
-
-#ifdef HAVE_CONFIG_H
 #include "config.h"
+
+#if !HAVE_ALLOCA
+#define REGEX_MALLOC 1
 #endif
 
 /* The `emacs' switch turns on certain matching commands

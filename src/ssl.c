@@ -5,8 +5,6 @@
  */
 #include "squid.h"
 
-#define SSL_BUFSIZ (1<<14)
-
 typedef struct {
     char *url;
     request_t *request;
@@ -70,7 +68,7 @@ static void sslReadServer(fd, sslState)
      SslStateData *sslState;
 {
     int len;
-    len = read(sslState->server.fd, sslState->server.buf, 4096);
+    len = read(sslState->server.fd, sslState->server.buf, SQUID_TCP_SO_RCVBUF);
     debug(26, 5, "sslReadServer FD %d, read %d bytes\n", fd, len);
     if (len < 0) {
 	debug(26, 1, "sslReadServer: FD %d: read failure: %s\n",
@@ -120,7 +118,7 @@ static void sslReadClient(fd, sslState)
      SslStateData *sslState;
 {
     int len;
-    len = read(sslState->client.fd, sslState->client.buf, 4096);
+    len = read(sslState->client.fd, sslState->client.buf, SQUID_TCP_SO_RCVBUF);
     debug(26, 5, "sslReadClient FD %d, read %d bytes\n",
 	sslState->client.fd, len);
     if (len < 0) {
@@ -339,8 +337,8 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
     sslState->size_ptr = size_ptr;
     sslState->client.fd = fd;
     sslState->server.fd = sock;
-    sslState->server.buf = xmalloc(SSL_BUFSIZ);
-    sslState->client.buf = xmalloc(SSL_BUFSIZ);
+    sslState->server.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
+    sslState->client.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
     comm_set_select_handler(sslState->server.fd,
 	COMM_SELECT_CLOSE,
 	(PF) sslStateFree,

@@ -14,7 +14,6 @@
 
 extern int emulate_httpd_log;
 
-#define MIN_BUFSIZE (4096)
 #define MAX_LINELEN (4096)
 #define max(a,b)  ((a)>(b)? (a): (b))
 

@@ -69,8 +69,6 @@
 
 
 #include "config.h"
-#include "autoconf.h"
-#include "version.h"
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -265,7 +263,6 @@ u_short o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
 #define SMALLBUFSIZ 1024
 #define MIDBUFSIZ 2048
 #define BIGBUFSIZ 8192
-#define READBUFSIZ SMALLBUFSIZ
 
 
 /*
@@ -1566,10 +1563,10 @@ state_t read_data(r)
 {
     int code;
     int n;
-    static char buf[READBUFSIZ];
+    static char buf[SQUID_TCP_SO_RCVBUF];
     int x;
 
-    n = read_with_timeout(r->dfd, buf, READBUFSIZ);
+    n = read_with_timeout(r->dfd, buf, SQUID_TCP_SO_RCVBUF);
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
     } else if (n < 0) {

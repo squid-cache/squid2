@@ -2,8 +2,6 @@
 /* $Id$ */
 
 #include "config.h"
-#include "autoconf.h"
-#include "version.h"
 
 #include <stdio.h>
 #include <stdlib.h>

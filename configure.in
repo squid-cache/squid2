@@ -307,6 +307,82 @@ SQUID_FD_SETSIZE=256)
 AC_MSG_RESULT($SQUID_FD_SETSIZE)
 AC_DEFINE_UNQUOTED(SQUID_FD_SETSIZE, $SQUID_FD_SETSIZE)
 
+AC_MSG_CHECKING(UDP send buffer size)
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+main ()
+{
+        int val, len = sizeof(int);
+        getsockopt(socket(AF_INET, SOCK_DGRAM, 0), SOL_SOCKET, SO_SNDBUF, &val, &len);
+        fprintf (fopen("conftestval", "w"), "%d\n", val);
+	exit(0);
+}
+],
+SQUID_UDP_SO_SNDBUF=`cat conftestval`,
+SQUID_UDP_SO_SNDBUF=8192,
+SQUID_UDP_SO_SNDBUF=8192)
+AC_MSG_RESULT($SQUID_UDP_SO_SNDBUF)
+AC_DEFINE_UNQUOTED(SQUID_UDP_SO_SNDBUF, $SQUID_UDP_SO_SNDBUF)
+
+AC_MSG_CHECKING(UDP receive buffer size)
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+main ()
+{
+        int val, len = sizeof(int);
+        getsockopt(socket(AF_INET, SOCK_DGRAM, 0), SOL_SOCKET, SO_RCVBUF, &val, &len);
+        fprintf (fopen("conftestval", "w"), "%d\n", val);
+	exit(0);
+}
+],
+SQUID_UDP_SO_RCVBUF=`cat conftestval`,
+SQUID_UDP_SO_RCVBUF=8192,
+SQUID_UDP_SO_RCVBUF=8192)
+AC_MSG_RESULT($SQUID_UDP_SO_RCVBUF)
+AC_DEFINE_UNQUOTED(SQUID_UDP_SO_RCVBUF, $SQUID_UDP_SO_RCVBUF)
+
+AC_MSG_CHECKING(TCP send buffer size)
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+main ()
+{
+        int val, len = sizeof(int);
+        getsockopt(socket(AF_INET, SOCK_DGRAM, 0), SOL_SOCKET, SO_SNDBUF, &val, &len);
+        fprintf (fopen("conftestval", "w"), "%d\n", val);
+	exit(0);
+}
+],
+SQUID_TCP_SO_SNDBUF=`cat conftestval`,
+SQUID_TCP_SO_SNDBUF=8192,
+SQUID_TCP_SO_SNDBUF=8192)
+AC_MSG_RESULT($SQUID_TCP_SO_SNDBUF)
+AC_DEFINE_UNQUOTED(SQUID_TCP_SO_SNDBUF, $SQUID_TCP_SO_SNDBUF)
+
+AC_MSG_CHECKING(TCP receive buffer size)
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+main ()
+{
+        int val, len = sizeof(int);
+        getsockopt(socket(AF_INET, SOCK_DGRAM, 0), SOL_SOCKET, SO_RCVBUF, &val, &len);
+        fprintf (fopen("conftestval", "w"), "%d\n", val);
+	exit(0);
+}
+],
+SQUID_TCP_SO_RCVBUF=`cat conftestval`,
+SQUID_TCP_SO_RCVBUF=8192,
+SQUID_TCP_SO_RCVBUF=8192)
+AC_MSG_RESULT($SQUID_TCP_SO_RCVBUF)
+AC_DEFINE_UNQUOTED(SQUID_TCP_SO_RCVBUF, $SQUID_TCP_SO_RCVBUF)
+
 dnl Need the debugging version of malloc if available
 XTRA_OBJS=''
 if test "$HAVE_LIBMALLOC" = "yes" ; then

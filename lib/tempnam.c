@@ -19,8 +19,6 @@
 /* tempnam for NEXTSTEP. from Linux GNU libc. Hacked by lukeh@schnet.edu.au */
 
 #include "config.h"
-#include "autoconf.h"
-#include "version.h"
 
 #if !HAVE_TEMPNAM
 

@@ -6,7 +6,6 @@
 
 #include "squid.h"
 
-#define READBUFSIZ	(1<<14)
 #define HTTP_DELETE_GAP   (1<<18)
 
 typedef struct _httpdata {
@@ -230,7 +229,7 @@ static void httpReadReply(fd, data)
      int fd;
      HttpData *data;
 {
-    static char buf[READBUFSIZ];
+    static char buf[SQUID_TCP_SO_RCVBUF];
     int len;
     int bin;
     int clen;
@@ -271,7 +270,7 @@ static void httpReadReply(fd, data)
     }
     errno = 0;
     IOStats.Http.reads++;
-    len = read(fd, buf, READBUFSIZ);
+    len = read(fd, buf, SQUID_TCP_SO_RCVBUF);
     debug(11, 5, "httpReadReply: FD %d: len %d.\n", fd, len);
     comm_set_fd_lifetime(fd, -1);	/* disable after good read */
     if (len > 0) {

@@ -2,8 +2,6 @@
 /* $Id$ */
 
 #include "config.h"
-#include "autoconf.h"
-#include "version.h"
 
 #if SQUID_FD_SETSIZE > 256
 #define FD_SETSIZE SQUID_FD_SETSIZE

@@ -67,7 +67,6 @@ typedef struct iwd {
 
 static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
-#define ICP_MAX_UDP_SIZE 12288
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
 typedef void (*complete_handler) _PARAMS((int fd, char *buf, int size, int errflag, void *data));
@@ -1032,7 +1031,7 @@ int icpHandleUdp(sock, not_used)
     int result = 0;
     struct sockaddr_in from;
     int from_len;
-    static char buf[ICP_MAX_UDP_SIZE];
+    static char buf[SQUID_UDP_SO_RCVBUF];
     int len;
     icp_common_t header;
     icp_common_t *headerp = NULL;
@@ -1051,7 +1050,7 @@ int icpHandleUdp(sock, not_used)
 
     from_len = sizeof(from);
     memset(&from, 0, from_len);
-    len = comm_udp_recv(sock, buf, ICP_MAX_UDP_SIZE - 1, &from, &from_len);
+    len = comm_udp_recv(sock, buf, SQUID_UDP_SO_RCVBUF - 1, &from, &from_len);
     nudpconn++;
     if (len < 0) {
 	debug(12, 1, "icpHandleUdp: FD %d: error receiving.\n", sock);
@@ -1113,7 +1112,7 @@ int icpHandleUdp(sock, not_used)
 	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
 #ifdef UDP_HIT_WITH_OBJ
 	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
-	    if (header.flags & ICP_FLAG_HIT_OBJ && pkt_len < ICP_MAX_UDP_SIZE) {
+	    if (header.flags & ICP_FLAG_HIT_OBJ && pkt_len < SQUID_UDP_SO_SNDBUF) {
 		icpHitObjState = xcalloc(1, sizeof(icpHitObjStateData));
 		icpHitObjState->entry = entry;
 		icpHitObjState->fd = sock;

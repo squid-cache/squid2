@@ -1258,7 +1258,10 @@ static int storeDoRebuildFromDisk(data)
     off_t size;
     int delta;
     int sfileno = 0;
+    int count;
 
+    /* load 5 object per invocation */
+    for (count=0; count< 5; count++) {
     if (!fgets(data->line_in, 4095, data->log))
 	return 0;
 
@@ -1390,6 +1393,7 @@ static int storeDoRebuildFromDisk(data)
 	CacheInfo->proto_id(url),
 	(int) size,
 	TRUE);
+    }
 
     return 1;
 }

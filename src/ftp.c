@@ -7,7 +7,6 @@
 #include "squid.h"
 
 #define FTP_DELETE_GAP  (1<<18)
-#define READBUFSIZ	(1<<14)
 #define MAGIC_MARKER    "\004\004\004"	/* No doubt this should be more configurable */
 #define MAGIC_MARKER_SZ 3
 
@@ -260,7 +259,7 @@ int ftpReadReply(fd, data)
      int fd;
      FtpData *data;
 {
-    static char buf[READBUFSIZ];
+    static char buf[SQUID_TCP_SO_RCVBUF];
     int len;
     int clen;
     int off;
@@ -295,7 +294,7 @@ int ftpReadReply(fd, data)
     }
     errno = 0;
     IOStats.Ftp.reads++;
-    len = read(fd, buf, READBUFSIZ);
+    len = read(fd, buf, SQUID_TCP_SO_RCVBUF);
     debug(9, 5, "ftpReadReply: FD %d, Read %d bytes\n", fd, len);
     if (len > 0) {
 	for (clen = len - 1, bin = 0; clen; bin++)
