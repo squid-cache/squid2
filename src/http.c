@@ -545,15 +545,7 @@ httpReadReply(int fd, void *data)
     int bin;
     int clen;
     int off;
-    StoreEntry *entry = NULL;
-
-    entry = httpState->entry;
-    if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
-	/* we can terminate connection right now */
-	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
-	comm_close(fd);
-	return;
-    }
+    StoreEntry *entry = httpState->entry;
     /* check if we want to defer reading */
     clen = entry->mem_obj->e_current_len;
     off = storeGetLowestReaderOffset(entry);
@@ -633,6 +625,10 @@ httpReadReply(int fd, void *data)
 	/* append the last bit of info we get */
 	storeAppend(entry, buf, len);
 	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
+	comm_close(fd);
+    } else if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+	/* we can terminate connection right now */
+	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	comm_close(fd);
     } else {
 	if (httpState->reply_hdr_state < 2)

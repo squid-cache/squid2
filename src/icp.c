@@ -129,7 +129,7 @@ char *log_tags[] =
     "UDP_MISS_NOFETCH",
     "ERR_READ_TIMEOUT",
     "ERR_LIFETIME_EXP",
-    "ERR_NO_CLIENTS_BIG_OBJ",
+    "ERR_NO_CLIENTS",
     "ERR_READ_ERROR",
     "ERR_CLIENT_ABORT",
     "ERR_CONNECT_FAIL",

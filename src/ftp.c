@@ -269,15 +269,8 @@ ftpReadReply(int fd, FtpStateData * data)
     int clen;
     int off;
     int bin;
-    StoreEntry *entry = NULL;
+    StoreEntry *entry = data->entry;
 
-    entry = data->entry;
-    if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
-	/* we can terminate connection right now */
-	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
-	comm_close(fd);
-	return 0;
-    }
     /* check if we want to defer reading */
     clen = entry->mem_obj->e_current_len;
     off = storeGetLowestReaderOffset(entry);
@@ -355,6 +348,10 @@ ftpReadReply(int fd, FtpStateData * data)
 	/* append the last bit of info we get */
 	storeAppend(entry, buf, len);
 	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
+	comm_close(fd);
+    } else if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+	/* we can terminate connection right now */
+	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	comm_close(fd);
     } else {
 	if (data->got_marker) {

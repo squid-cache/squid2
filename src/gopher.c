@@ -712,16 +712,9 @@ gopherReadReply(int fd, GopherStateData * data)
     int len;
     int clen;
     int off;
-    StoreEntry *entry = NULL;
+    StoreEntry *entry = data->entry;
     int bin;
 
-    entry = data->entry;
-    if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
-	/* we can terminate connection right now */
-	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
-	comm_close(fd);
-	return;
-    }
     /* check if we want to defer reading */
     clen = entry->mem_obj->e_current_len;
     off = storeGetLowestReaderOffset(entry);
@@ -814,6 +807,10 @@ gopherReadReply(int fd, GopherStateData * data)
 	if (data->conversion != NORMAL)
 	    gopherEndHTML(data);
 	BIT_RESET(entry->flag, DELAY_SENDING);
+	comm_close(fd);
+    } else if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+	/* we can terminate connection right now */
+	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	comm_close(fd);
     } else {
 	if (data->conversion != NORMAL) {
