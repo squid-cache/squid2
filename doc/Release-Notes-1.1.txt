@@ -35,15 +35,16 @@ purposes.
 
 URL Redirector
 ==============================================================================
-Squid now has the ability to rewrite requested URLs.  This is implemented
-as an external process, much like the dnsservers.  Every incoming URL
-is written to a 'redirector' process which then returns a new URL, or
-a blank line to indicate no change.
+Squid now has the ability to rewrite requested URLs.  Implemented
+as an external process (similar to a dnsserver), Squid can be
+configured to pass every incoming URL through a 'redirector' process 
+that returns either a new URL, or a blank line to indicate no change.
 
-The redirector program is NOT provided in the Squid package (although
-there are a couple of user-contributed redirectors in the "contrib/"
-directory).  Currently, it is up to the individual users to write their
-own implementation.  For testing, this very simple Perl script can be
+The redirector program is NOT a standard part of the Squid package.
+However there are a couple of user-contributed redirectors in the
+"contrib/" directory.  Since everyone has different needs, it is up to
+the individual administrators to write their own implementation.  For
+testing, and a place to start, this very simple Perl script can be
 used:
 
     #!/usr/local/bin/perl
@@ -52,16 +53,16 @@ used:
 
 The redirector program must read URLs (one per line) on standard input,
 and write rewritten URLs or blank lines on standard output.  Note that
-the redirector program can not use buffered I/O.  Additional information
-is written after the URL which a redirector can use to make a decision.
-The input line consists of four fields:
+the redirector program can not use buffered I/O.  Squid writes
+additional information after the URL which a redirector can use to make
+a decision.  The input line consists of four fields:
 
     URL ip-address/fqdn ident method
 
-The ip-address is always written, the fqdn will be provided if
-available (otherwise it will be "-").  Similarly, the user ident will
-be provided if available (i.e. 'ident_lookup on' in config file).  The
-method is GET, POST, etc..
+The ip-address is always given, the fqdn and ident fields will be given if
+available, or will be "-" otherwise.  Note that the ident value will only
+be available if 'ident_lookup' in enabled in the config file.  The
+requestrequest method is GET, POST, etc.
 
 Note that when used in conjunction with the -V option (on a virtual hosted
 machine) this provides a mechanism to use a single Squid cache as a front
@@ -225,9 +226,9 @@ sibling for others.  This can now be accomplished with the
 	neighbor_type_domain cache.foo.org sibling .au .de
 
 Note that neighbor_type_domain is totally separate from the
-cache_host_domain option (which controls whether or not the neighbor
-should be queried).  In the absence of cache_host_domain restrictions,
-the neighbor cache.foo.org will be queried for all requests.
+cache_host_domain option (which controls whether or not to query the
+neighbor).  In the absence of cache_host_domain restrictions, the
+neighbor cache.foo.org will be queried for all requests.
 
 If the URL host domain is .com, .net, .au, or .de then cache.foo.org is
 treated as a sibling (and MISSES will NOT be fetched through
@@ -407,13 +408,13 @@ The cache has seen two hosts which are in the 198.53.148.0 network.
 Eight pings have been sent, and eight have been received.  The averaged
 RTT is 98.6 milliseconds, and this network is roughly 9 hops away.
 
-These measurements can be returned in the ICP query replies to neighbor
-caches.  For example if my cache knows nothing about the host
+When ICP-queried, neighbor caches can return these measurements in ICP
+replies.  For example if my cache knows nothing about the host
 www.vaxxine.com, it can send an ICP query to all of its neighbors.  The
-ICP replies will include the RTT and hop count.  After my cache has
-collected all the replies it can choose the neighbor which is "closest"
-to the source.  "Closest" might mean least hops, best RTT, or some
-combination depending on local configuration.
+ICP replies will include the RTT and hop count.  After collecting all
+the replies, my cache can choose the neighbor "closest" to the source,
+where "closest" might mean least hops, best RTT, or some combination
+depending on local configuration.
 
 There is a configuration option called 'minimum_direct_hops.'  If a
 server is less than minimum_direct_hops away, Squid will fetch it
@@ -450,28 +451,28 @@ increasing the 'cache_mem' value or decreasing the
 'maximum_object_size' value.  If the cache_mem usage is above the low
 water mark, then Squid will check for objects larger than
 'maximum_object_size.'  Any such objects are put into "delete behind"
-mode which means Squid releases the section of the object which have
+mode which means Squid releases the section of the object which has
 been delivered to all clients reading from it.
 
 Default Parent
 ==============================================================================
-Squid has the ability to mark parent caches as 'default' way to 
-fetch objects.  This is probably only useful if the 'no-query' option
-is also used.  For example, consider this configuration
+Squid has the ability to mark parent caches as the 'default' way to 
+fetch objects.  This is probably only useful with the 'no-query' option.
+For example, the configuration
 
      cache_host N1 sibling 3128 3130
      cache_host N2 sibling 3128 3130
      cache_host N3 sibling 3128 3130
      cache_host P1 parent 3128 3130 no-query default
 
-This has the effect that the sibling caches N1, N2, and N3 are queried
-for objects with ICP.  If none of the siblings has the requested object
-then it will be retrieved through parent P1 due to the 'default'
-designation.  Note that 'default' does not conflict with any
-'cache_host_domain' restrictions which might be placed on a neighbor.
+will result in ICP queries to sibling caches N1, N2, and N3.  If none
+of the siblings has the requested object then it will be retrieved
+through parent P1 due to the 'default' designation.  Note that
+'default' does not conflict with any 'cache_host_domain' restrictions
+which might be placed on a neighbor.
 
 We do not normally recommend use of the default option.  If your
-parent cache(s) use ICP then you should also send them ICP queries.
+parent cache(s) uses ICP then you should also send them ICP queries.
 If your default parent is unreachable then Squid will return error
 messages, it will not attempt direct connections to the source.
 
@@ -479,7 +480,7 @@ Cachemgr Passwords
 ==============================================================================
 Squid-1.1 allows cachemgr passwords to be specified in the squid.conf
 file (instead of an /etc/passwd entry).  There may be a different
-password fore each cachemgr operation, but only one password per
+password for each cachemgr operation, but only one password per
 operation.  Some sensitive operations require a password, others may be
 executed if no passwords are given in the squid.conf file.  Operations
 may be disabled by setting the password to "none." See squid.conf for a
