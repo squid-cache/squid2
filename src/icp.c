@@ -1,6 +1,3 @@
-
-
-
 /* $Id$ */
 
 /*
@@ -619,21 +616,6 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, icpState)
     }
 }
 
-#ifdef OLD_CODE
-int icpDoQuery(fd, icpState)
-     int fd;
-     icpStateData *icpState;
-{
-    icpState->buf = icpState->ptr_to_4k_page = NULL;	/* Nothing to free */
-    /* XXX not implemented over tcp. */
-    icpSendERROR(fd,
-	ICP_ERROR_INTERNAL,
-	"not implemented over tcp",
-	icpState);
-    return COMM_OK;
-}
-#endif
-
 /*
  * Below, we check whether the object is a hit or a miss.  If it's a hit,
  * we check whether the object is still valid or whether it is a MISS_TTL.
@@ -743,20 +725,6 @@ static int icpProcessMISS(fd, icpState)
 	RequestMethodStr[icpState->method], url);
     debug(12, 10, "icpProcessMISS: request_hdr:\n%s\n", request_hdr);
 
-#ifdef OLD_CODE
-    if ((entry = storeGet(key))) {
-	debug(12, 4, "icpProcessMISS: key '%s' already exists, moving.\n", key);
-	/* get rid of the old entry */
-	if (storeEntryLocked(entry)) {
-	    /* change original hash key to get out of the new object's way */
-	    if (!storeOriginalKey(entry))
-		fatal_dump("ProcessMISS: Object located by changed key?");
-	    storeSetPrivateKey(entry);
-	} else {
-	    storeRelease(entry);
-	}
-    }
-#endif
     entry = storeCreateEntry(url,
 	request_hdr,
 	icpState->flags,

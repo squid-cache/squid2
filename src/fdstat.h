@@ -14,9 +14,6 @@ typedef enum {
 } File_Desc_Type;
 
 extern File_Desc_Type fdstat_type _PARAMS((int fd));
-#ifdef UNUSED_CODE
-extern char *fd_describe _PARAMS((int fd));
-#endif
 extern int fdstat_biggest_fd _PARAMS((void));
 extern int fdstat_init _PARAMS((int preopen));
 extern int fdstat_isopen _PARAMS((int fd));

@@ -183,9 +183,6 @@ extern int storeOriginalKey _PARAMS((StoreEntry *));
 extern int storeRelease _PARAMS((StoreEntry *));
 extern int storeUnlockObject _PARAMS((StoreEntry *));
 extern int storeUnregister _PARAMS((StoreEntry *, int));
-#ifdef NOT_USED_CODE
-extern int storeGrep _PARAMS((StoreEntry *, char *, int));
-#endif
 extern char *storeGeneratePublicKey _PARAMS((char *, method_t));
 extern char *storeGeneratePrivateKey _PARAMS((char *, method_t, int));
 extern char *storeMatchMime _PARAMS((StoreEntry *, char *, char *, int));

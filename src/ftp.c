@@ -459,18 +459,7 @@ void ftpSendRequest(fd, data)
 	    mode = ftpBinary;
     }
 
-#ifdef NO_NEED_TO_DO_THIS
-    /* Remove leading slash from FTP url-path so that we can
-     *  handle ftp://user:pw@host/path objects where path and /path
-     *  are quite different.         -DW */
-    if (!strcmp(path, "/"))
-	*path = '.';
-    if (*path == '/')
-	path++;
-#endif
-
     /* Start building the buffer ... */
-
     strcat(buf, getFtpProgram());
     strcat(buf, space);
 
@@ -524,7 +513,7 @@ void ftpConnInProgress(fd, data)
 
     debug(9, 5, "ftpConnInProgress: FD %d\n", fd);
 
-#ifdef FTPGET_USE_INET_SOCK
+#ifdef USE_FTPGET_INET_SOCK
     if (comm_connect(fd, localhost, ftpget_port) != COMM_OK) {
 #else
     if (comm_connect_unix(fd, ftpget_socket_path) != COMM_OK) {

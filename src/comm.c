@@ -768,50 +768,6 @@ int comm_select(sec, failtime)
     return COMM_TIMEOUT;
 }
 
-
-#ifdef UNUSED_CODE
-/* Select on fd to see if any io pending. */
-int comm_pending(fd, sec, usec)
-     int fd;
-     long sec, usec;
-{
-    fd_set readfds;
-    int num;
-    struct timeval timeout;
-
-    /* Find a fd ready for reading. */
-    FD_ZERO(&readfds);
-    FD_SET(fd, &readfds);
-
-    while (1) {
-	timeout.tv_sec = (time_t) sec;
-	timeout.tv_usec = (time_t) usec;
-	num = select(FD_SETSIZE, &readfds, NULL, NULL, &timeout);
-	if (num >= 0)
-	    break;
-	switch (errno) {
-#if EAGAIN != EWOULDBLOCK
-	case EAGAIN:
-#endif
-	case EWOULDBLOCK:
-	    return COMM_NOMESSAGE;
-	case EINTR:
-	    break;		/* if select interrupted, try again */
-	default:
-	    debug(5, 1, "comm_pending: select failure: %s\n", xstrerror());
-	    return COMM_ERROR;
-	}
-    }
-
-    debug(5, 5, "comm_pending: %d sockets ready for reading\n", num);
-
-    if (num && FD_ISSET(fd, &readfds)) {
-	return COMM_OK;
-    }
-    return COMM_TIMEOUT;
-}
-#endif /* UNUSED_CODE */
-
 void comm_set_select_handler(fd, type, handler, client_data)
      int fd;
      unsigned int type;

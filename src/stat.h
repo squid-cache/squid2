@@ -3,19 +3,6 @@
 #ifndef STAT_H
 #define STAT_H
 
-#ifdef OLD_CODE
-/* protocol id */
-#define PROTOCOL_SUPPORTED 3
-#define PROTOCOL_EXTRA     4	/* included total, cacheobj, abort, notimplemented */
-#define TOTAL_ID     0
-#define HTTP_ID      1
-#define GOPHER_ID    2
-#define FTP_ID       3
-#define CACHEOBJ_ID  PROTOCOL_SUPPORTED + 1
-#define ABORT_ID     PROTOCOL_SUPPORTED + 2
-#define NOTIMPLE_ID  PROTOCOL_SUPPORTED + 3	/* for robustness */
-#endif
-
 /* logfile status */
 #define LOG_ENABLE  1
 #define LOG_DISABLE 0

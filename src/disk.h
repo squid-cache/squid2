@@ -35,9 +35,6 @@ extern int file_walk _PARAMS((int fd,
 	int       (*line_handler)
 	          (int fd, char *buf, int size, void *line_data),
 	void *line_data));
-#ifdef NOTUSED_CODE
-extern int file_get_fd _PARAMS((char *filename));
-#endif
 extern int file_update_open _PARAMS((int fd, char *path));
 extern int file_write_lock _PARAMS((int fd));
 extern int disk_init _PARAMS((void));

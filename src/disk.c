@@ -209,25 +209,6 @@ int file_close(fd)
     return DISK_ERROR;
 }
 
-
-#ifdef NOTUSED_CODE
-/* return a opened fd associate with given path name. */
-/* return DISK_FILE_NOT_FOUND if not found. */
-int file_get_fd(filename)
-     char *filename;
-{
-    int fd;
-    for (fd = 1; fd < FD_SETSIZE; fd++) {
-	if (file_table[fd].open_stat == OPEN) {
-	    if (strncmp(file_table[fd].filename, filename, MAX_FILE_NAME_LEN) == 0) {
-		return fd;
-	    }
-	}
-    }
-    return DISK_FILE_NOT_FOUND;
-}
-#endif /* NOTUSED_CODE */
-
 /* grab a writing lock for file */
 int file_write_lock(fd)
      int fd;

@@ -68,32 +68,6 @@ static void protoDataFree(protoData)
     safe_free(protoData);
 }
 
-#ifdef NOTUSED_CODE
-/* return 1 for cachable url
- * return 0 for uncachable url */
-int proto_cachable(url, method)
-     char *url;
-     int method;
-{
-    if (url == (char *) NULL)
-	return 0;
-
-    if (!strncasecmp(url, "http://", 7))
-	return httpCachable(url, method);
-    if (!strncasecmp(url, "ftp://", 6))
-	return ftpCachable(url);
-    if (!strncasecmp(url, "gopher://", 9))
-	return gopherCachable(url);
-    if (!strncasecmp(url, "wais://", 7))
-	return 0;
-    if (method == METHOD_CONNECT)
-	return 0;
-    if (!strncasecmp(url, "cache_object://", 15))
-	return 0;
-    return 1;
-}
-#endif
-
 /* called when DNS lookup is done by ipcache. */
 int protoDispatchDNSHandle(unused1, unused2, data)
      int unused1;		/* filedescriptor */
@@ -218,14 +192,6 @@ int protoDispatch(fd, url, entry, request)
     /* Start retrieval process. */
     if (strncasecmp(url, "cache_object:", 13) == 0)
 	return objcacheStart(fd, url, entry);
-
-#ifdef OLD_CODE			/* now in icpAccessCheck() */
-    /* Check for Proxy request in Accel mode */
-    if (httpd_accel_mode &&
-	strncmp(url, getAccelPrefix(), strlen(getAccelPrefix())) &&
-	!getAccelWithProxy())
-	return protoNotImplemented(fd, url, entry);
-#endif
 
     protoData = xcalloc(1, sizeof(protodispatch_data));
 
