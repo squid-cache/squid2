@@ -180,6 +180,7 @@ new_MemObject(const char *url, const char *log_url)
     mem->log_url = xstrdup(log_url);
     mem->swapout.fd = -1;
     mem->object_sz = -1;
+    mem->fd = -1;
     /* XXX account log_url */
     debug(20, 3) ("new_MemObject: returning %p\n", mem);
     return mem;
