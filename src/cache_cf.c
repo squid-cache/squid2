@@ -953,7 +953,7 @@ parseVizHackLine(void)
     if (sscanf(token, "%d", &i) == 1)
 	Config.vizHack.port = i;
     Config.vizHack.mcast_ttl = 64;
-    if ((token = strtok(NULL, w_space)) != NULL)
+    if ((token = strtok(NULL, w_space)) == NULL)
 	return;
     if (sscanf(token, "%d", &i) == 1)
 	Config.vizHack.mcast_ttl = i;
