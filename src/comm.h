@@ -120,7 +120,6 @@
 /* Select types. */
 #define COMM_SELECT_READ   (0x1)
 #define COMM_SELECT_WRITE  (0x2)
-#define COMM_SELECT_EXCEPT (0x4)
 #define COMM_SELECT_TIMEOUT (0x8)
 #define COMM_SELECT_LIFETIME (0x10)
 
@@ -158,8 +157,6 @@ typedef struct fde {
     void *read_data;		/* App. data to associate w/ handled conn. */
     PF write_handler;		/* Write select handler. */
     void *write_data;		/* App. data to associate w/ handled conn. */
-    PF except_handler;		/* Except select handler. */
-    void *except_data;		/* App. data to associate w/ handled conn. */
     PF timeout_handler;		/* Timeout handler. */
     time_t timeout_time;	/* Allow 1-second granularity timeouts */
     time_t timeout_delta;	/* The delta requested */
