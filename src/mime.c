@@ -294,7 +294,7 @@ mimeInit(char *filename)
     if (filename == NULL)
 	return;
     if ((fp = fopen(filename, "r")) == NULL) {
-	debug(50, 1) ("mimeInit: %s: %s\n", filename, xstrerror());
+	debug(25, 1) ("mimeInit: %s: %s\n", filename, xstrerror());
 	return;
     }
 #if defined (_SQUID_CYGWIN_)
@@ -416,7 +416,7 @@ mimeLoadIconFile(const char *icon)
 	return;
     }
     if (fstat(fd, &sb) < 0) {
-	debug(50, 0) ("mimeLoadIconFile: FD %d: fstat: %s\n", fd, xstrerror());
+	debug(25, 0) ("mimeLoadIconFile: FD %d: fstat: %s\n", fd, xstrerror());
 	file_close(fd);
 	return;
     }
