@@ -102,7 +102,7 @@ aioInit(void)
 void
 aioDone(void)
 {
-    memPoolDestroy(squidaio_ctrl_pool);
+    memPoolDestroy(&squidaio_ctrl_pool);
     initialised = 0;
 }
 

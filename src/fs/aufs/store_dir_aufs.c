@@ -1687,9 +1687,9 @@ static void
 storeAufsDirDone(void)
 {
     aioDone();
-    memPoolDestroy(squidaio_state_pool);
-    memPoolDestroy(aufs_qread_pool);
-    memPoolDestroy(aufs_qwrite_pool);
+    memPoolDestroy(&squidaio_state_pool);
+    memPoolDestroy(&aufs_qread_pool);
+    memPoolDestroy(&aufs_qwrite_pool);
     asyncufs_initialised = 0;
 }
 
