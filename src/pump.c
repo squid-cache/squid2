@@ -200,6 +200,7 @@ static void
 pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 {
     PumpStateData *p = data;
+    int sfd;
     debug(61, 5) ("pumpServerCopyComplete: called with size=%d (%d,%d)\n",
 	size, p->sent + size, p->cont_len);
     if (errflag == COMM_ERR_CLOSING)
@@ -226,10 +227,11 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
     /*
      * we don't care what happens on the server side now
      */
+    sfd = p->s_fd;
     comm_remove_close_handler(p->s_fd, pumpServerClosed, p);
     p->s_fd = -1;
     if (cbdataValid(p->cbdata))
-	p->callback(p->s_fd, NULL, p->sent, 0, p->cbdata);
+	p->callback(sfd, NULL, p->sent, 0, p->cbdata);
     cbdataUnlock(p->cbdata);
     storeUnregister(p->request_entry, p);
     storeUnlockObject(p->reply_entry);
