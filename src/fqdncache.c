@@ -739,7 +739,7 @@ fqdncache_gethostbyaddr(struct in_addr addr, int flags)
     char *name = inet_ntoa(addr);
     fqdncache_entry *f = NULL;
     const struct hostent *hp = NULL;
-    unsigned int ip;
+    struct in_addr ip;
     static char *static_name = NULL;
 
     if (!name)
@@ -761,13 +761,13 @@ fqdncache_gethostbyaddr(struct in_addr addr, int flags)
     }
     FqdncacheStats.misses++;
     /* check if it's already a FQDN address in text form. */
-    if (inet_addr(name) == inaddr_none) {
+    if (inet_addr(name) == no_addr.s_addr) {
 	return name;
     }
     if (flags & FQDN_BLOCKING_LOOKUP) {
 	FqdncacheStats.ghba_calls++;
-	ip = inet_addr(name);
-	hp = gethostbyaddr((char *) &ip, 4, AF_INET);
+	ip.s_addr = inet_addr(name);
+	hp = gethostbyaddr((char *) &ip.s_addr, 4, AF_INET);
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && fqdn_table) {
 	    if (f->status == FQDN_PENDING || f->status == FQDN_DISPATCHED) {
 		xfree(static_name);

@@ -312,7 +312,7 @@ static int o_max_bps = 0;	/* max bytes/sec */
 static int o_skip_whitespace = 0;	/* skip whitespace in listings */
 static struct timeval starttime;
 static struct timeval currenttime;
-unsigned int inaddr_none;
+static struct in_addr no_addr;
 
 char *rfc1738_escape _PARAMS((const char *));
 void rfc1738_unescape _PARAMS((char *));
@@ -1192,7 +1192,7 @@ parse_request(ftp_request_t * r)
     char *host = proxy_host ? proxy_host : r->host;
     debug(38, 3, "parse_request: looking up '%s'\n", host);
     r->host_addr.s_addr = inet_addr(host);	/* try numeric */
-    if (r->host_addr.s_addr != inaddr_none)
+    if (r->host_addr.s_addr != no_addr.s_addr)
 	return PARSE_OK;
     hp = gethostbyname(host);
     if (hp == NULL) {
@@ -2582,7 +2582,7 @@ main(int argc, char *argv[])
     const struct hostent *hp = NULL;
     int c;
 
-    inaddr_none = inet_addr("255.255.255.255");
+    no_addr.s_addr = inet_addr("255.255.255.255");
     fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
 	progname = xstrdup(t + 1);
@@ -2620,7 +2620,7 @@ main(int argc, char *argv[])
 	}
     }
 
-    xstrcpy(visible_hostname, getfullhostname(), SMALLBUFSIZ);
+    xstrncpy(visible_hostname, getfullhostname(), SMALLBUFSIZ);
 
     while ((c = getopt(argc, argv, "AC:D:G:H:P:RS:Wab:c:hl:n:o:p:r:s:t:vw:")) != -1) {
 	switch (c) {
@@ -2685,7 +2685,7 @@ main(int argc, char *argv[])
 	    o_neg_ttl = atoi(optarg);
 	    break;
 	case 'o':
-	    if ((ip = inet_addr(optarg)) != inaddr_none)
+	    if ((ip = inet_addr(optarg)) != no_addr.s_addr)
 		outgoingTcpAddr.s_addr = ip;
 	    else if ((hp = gethostbyname(optarg)) != NULL)
 		outgoingTcpAddr = *(struct in_addr *) (void *) (hp->h_addr_list[0]);

@@ -2002,6 +2002,11 @@ icpDetectClientClose(int fd, void *data)
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
 	comm_set_stall(fd, 10);	/* check again in 10 seconds */
+	commSetSelect(fd,
+	    COMM_SELECT_READ,
+	    icpDetectClientClose,
+	    (void *) icpState,
+	    0);
     }
 }
 

@@ -412,7 +412,7 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
 	return 0;
     if (url)
 	redirectUnregister(url, fd);
-    if (src_addr.s_addr != inaddr_none)
+    if (src_addr.s_addr != no_addr.s_addr)
 	fqdncacheUnregister(src_addr, fd);
     if (host)
 	ipcache_unregister(host, fd);
@@ -636,7 +636,7 @@ matchInsideFirewall(const char *host)
     }
     /* Check for dotted-quads */
     if (Config.firewall_ip_list) {
-	if ((addr.s_addr = inet_addr(host)) != inaddr_none) {
+	if ((addr.s_addr = inet_addr(host)) != no_addr.s_addr) {
 	    if (ip_access_check(addr, Config.firewall_ip_list) == IP_DENY)
 		return INSIDE_FIREWALL;
 	}

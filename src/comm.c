@@ -282,7 +282,7 @@ comm_open(int sock_type,
 	if (do_reuse)
 	    commSetReuseAddr(new_socket);
     }
-    if (addr.s_addr != inaddr_none)
+    if (addr.s_addr != no_addr.s_addr)
 	if (commBind(new_socket, addr, port) != COMM_OK)
 	    return COMM_ERROR;
     conn->local_port = port;

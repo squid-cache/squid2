@@ -139,7 +139,6 @@ struct in_addr theOutICPAddr;
 const char *const dash_str = "-";
 const char *const null_string = "";
 char ThisCache[SQUIDHOSTNAMELEN << 1];
-unsigned int inaddr_none;
 
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) _PARAMS((const char *));
@@ -378,7 +377,7 @@ serverConnectionsOpen(void)
 	    debug(1, 1, "Accepting ICP connections on FD %d.\n",
 		theInIcpConnection);
 
-	    if ((addr = Config.Addrs.udp_outgoing).s_addr != inaddr_none) {
+	    if ((addr = Config.Addrs.udp_outgoing).s_addr != no_addr.s_addr) {
 		enter_suid();
 		theOutIcpConnection = comm_open(SOCK_DGRAM,
 		    0,
@@ -646,7 +645,6 @@ main(int argc, char **argv)
     any_addr.s_addr = inet_addr("0.0.0.0");
     memset(&no_addr, '\0', sizeof(struct in_addr));
     no_addr.s_addr = inet_addr("255.255.255.255");
-    inaddr_none = inet_addr("255.255.255.255");
 
 #if HAVE_SRANDOM
     srandom(time(NULL));

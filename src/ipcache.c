@@ -155,8 +155,8 @@ static void ipcacheEnqueue _PARAMS((ipcache_entry *));
 static void *ipcacheDequeue _PARAMS((void));
 static void ipcache_dnsDispatch _PARAMS((dnsserver_t *, ipcache_entry *));
 static void ipcacheStatPrint _PARAMS((ipcache_entry *, StoreEntry *));
-static void ipcacheUnlockEntry _PARAMS((ipcache_entry *));
-static void ipcacheLockEntry _PARAMS((ipcache_entry *));
+static void ipcacheUnlockEntry _PARAMS((ipcache_entry *, char *));
+static void ipcacheLockEntry _PARAMS((ipcache_entry *, char *));
 static void ipcacheNudgeQueue _PARAMS((void));
 static void ipcacheChangeKey _PARAMS((ipcache_entry * i));
 
@@ -451,7 +451,7 @@ ipcache_call_pending(ipcache_entry * i)
 
     i->lastref = squid_curtime;
 
-    ipcacheLockEntry(i);
+    ipcacheLockEntry(i, "ipcache_call_pending");
     while (i->pending_head != NULL) {
 	p = i->pending_head;
 	i->pending_head = p->next;
@@ -466,7 +466,7 @@ ipcache_call_pending(ipcache_entry * i)
     }
     i->pending_head = NULL;	/* nuke list */
     debug(14, 10, "ipcache_call_pending: Called %d handlers.\n", nhandler);
-    ipcacheUnlockEntry(i);
+    ipcacheUnlockEntry(i, "ipcache_call_pending");
 }
 
 static ipcache_entry *
@@ -604,7 +604,7 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	    i->expires = x->expires;
 	    ipcache_call_pending(i);
 	}
-	ipcacheUnlockEntry(i);	/* unlock from IP_DISPATCHED */
+	ipcacheUnlockEntry(i, "ipcache_dnsHandleRead");	/* unlock from IP_DISPATCHED */
     }
     if (dnsData->offset == 0) {
 	dnsData->data = NULL;
@@ -748,7 +748,7 @@ ipcache_dnsDispatch(dnsserver_t * dns, ipcache_entry * i)
     dns->dispatch_time = current_time;
     DnsStats.requests++;
     DnsStats.hist[dns->id - 1]++;
-    ipcacheLockEntry(i);	/* lock while IP_DISPATCHED */
+    ipcacheLockEntry(i, "ipcache_dnsDispatch");	/* lock while IP_DISPATCHED */
 }
 
 
@@ -991,13 +991,13 @@ ipcacheInvalidate(const char *name)
 ipcache_addrs *
 ipcacheCheckNumeric(const char *name)
 {
-    unsigned int ip;
+    struct in_addr ip;
     /* check if it's already a IP address in text form. */
-    if ((ip = inet_addr(name)) == inaddr_none)
+    if ((ip.s_addr = inet_addr(name)) == no_addr.s_addr)
 	return NULL;
     static_addrs.count = 1;
     static_addrs.cur = 0;
-    static_addrs.in_addrs[0].s_addr = ip;
+    static_addrs.in_addrs[0].s_addr = ip.s_addr;
     return &static_addrs;
 }
 
@@ -1011,19 +1011,21 @@ ipcacheQueueDrain(void)
 }
 
 static void
-ipcacheLockEntry(ipcache_entry * i)
+ipcacheLockEntry(ipcache_entry * i, char *func)
 {
     i->locks++;
+    debug(14,1,"  LOCK: Now %d locks, by %s\n", func);
 }
 
 static void
-ipcacheUnlockEntry(ipcache_entry * i)
+ipcacheUnlockEntry(ipcache_entry * i, char *func)
 {
     if (i->locks == 0) {
 	debug_trap("ipcacheUnlockEntry: Entry has no locks");
 	return;
     }
     i->locks--;
+    debug(14,1,"UNLOCK: Now %d locks, by %s\n", func);
     if (ipcacheExpiredEntry(i))
 	ipcache_release(i);
 }
