@@ -569,7 +569,7 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
     FREE *freefunc = put_free_4k_page;
     int hack = 0;
     char C = '\0';
-    assert(0 <= size && size <= SM_PAGE_SIZE);
+    assert(size <= SM_PAGE_SIZE);
     debug(12, 5) ("icpSendMoreData: FD %d '%s', out.offset=%d\n",
 	fd, entry->url, http->out.offset);
     if (conn->chr != http) {
