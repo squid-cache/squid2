@@ -113,6 +113,7 @@ install: all install-mkdirs
 		echo $(INSTALL_BIN) $$f $(bindir); \
 		$(INSTALL_BIN) $$f $(bindir); \
 	done
+	$(INSTALL_FILE) squid.conf $(sysconfdir)/squid.conf.default
 	@if test -f $(sysconfdir)/squid.conf ; then \
 		echo "$@ will not overwrite existing $(sysconfdir)/squid.conf" ; \
 	else \
