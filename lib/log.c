@@ -1,3 +1,4 @@
+
 /* $Id$ */
 
 #include <stdio.h>
@@ -89,7 +90,7 @@ void Log(va_alist)
     lbuf[0] = '\0';
     vsprintf(lbuf, fmt, ap);
     va_end(ap);
-    fprintf (fp_log, "%s: %s", standard_msg(), lbuf);
+    fprintf(fp_log, "%s: %s", standard_msg(), lbuf);
 }
 
 /*

@@ -153,8 +153,8 @@ static Host *new_host(hostname)
 }
 
 void dump_host_cache(d_sec, d_lvl)
-	int d_sec;
-	int d_lvl;
+     int d_sec;
+     int d_lvl;
 {
     int i;
     Host *h = NULL;
