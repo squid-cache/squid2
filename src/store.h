@@ -275,7 +275,7 @@ extern int storeWalkThrough _PARAMS((int (*proc) (), void *data));
 extern int storePurgeOld _PARAMS((void));
 extern void storeSanityCheck _PARAMS(());
 extern void storeComplete _PARAMS((StoreEntry *));
-extern int storeInit _PARAMS(());
+extern void storeInit _PARAMS(());
 extern int storeReleaseEntry _PARAMS((StoreEntry *));
 extern int storeClientWaiting _PARAMS((StoreEntry *));
 extern int storeAbort _PARAMS((StoreEntry *, char *));
@@ -313,6 +313,7 @@ extern void storeRotateLog _PARAMS((void));
 extern unsigned int getKeyCounter _PARAMS((void));
 extern int storeGetLowestReaderOffset _PARAMS((StoreEntry *));
 extern void storeCloseLog _PARAMS((void));
+extern void storeConfigure _PARAMS((void));
 
 #if defined(__STRICT_ANSI__)
 extern void storeAppendPrintf _PARAMS((StoreEntry *, char *,...));
