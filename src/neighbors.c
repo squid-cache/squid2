@@ -1170,4 +1170,7 @@ peerCountMcastPeersDone(void *data)
 	fake->mem_obj->e_pings_n_acks,
 	p->mcast.avg_n_members);
     p->mcast.n_replies_expected = (int) p->mcast.avg_n_members;
+    fake->store_status = STORE_ABORTED;
+    storeReleaseRequest(fake);
+    storeUnlockObject(fake);
 }
