@@ -876,7 +876,7 @@ statAvgTick(void *notused)
     StatCounters *p = &CountHist[1];
     StatCounters *c = &Counter;
     struct rusage rusage;
-    eventAdd("statAvgTick", statAvgTick, NULL, COUNT_INTERVAL, 1);
+    eventAdd("statAvgTick", statAvgTick, NULL, (double) COUNT_INTERVAL, 1);
     squid_getrusage(&rusage);
     c->page_faults = rusage_pagefaults(&rusage);
     c->cputime = rusage_cputime(&rusage);
