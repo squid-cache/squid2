@@ -344,7 +344,7 @@ fatal_dump(char *message)
 {
     if (message)
 	fatal_common(message);
-    if (!opt_catch_signals)
+    if (opt_catch_signals)
 	storeWriteCleanLog();
     abort();
 }
@@ -353,7 +353,7 @@ fatal_dump(char *message)
 void
 _debug_trap(char *message)
 {
-    if (opt_catch_signals)
+    if (!opt_catch_signals)
 	fatal_dump(message);
     _db_print(0, 0, "WARNING: %s\n", message);
 }
