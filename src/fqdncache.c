@@ -208,14 +208,14 @@ fqdncacheParse(const char *inbuf)
     char *token;
     static fqdncache_entry f;
     int ttl;
-    xstrncpy(buf, inbuf, DNS_INBUF_SZ);
-    debug(35, 5) ("fqdncacheParse: parsing: {%s}\n", buf);
     f.expires = squid_curtime;
     f.flags.negcached = 1;
     if (inbuf == NULL) {
 	debug(35, 1) ("fqdncacheParse: Got <NULL> reply\n");
 	return &f;
     }
+    xstrncpy(buf, inbuf, DNS_INBUF_SZ);
+    debug(35, 5) ("fqdncacheParse: parsing: {%s}\n", buf);
     token = strtok(buf, w_space);
     if (NULL == token) {
 	debug(35, 1) ("fqdncacheParse: Got <NULL>, expecting '$name'\n");
