@@ -124,6 +124,8 @@ typedef struct _ttl_t {
 
 static ttl_t *TTL_tbl = NULL;
 static ttl_t *TTL_tail = NULL;
+static ttl_t *TTL_tbl_force = NULL;
+static ttl_t *TTL_tail_force = NULL;
 
 #define TTL_EXPIRES	0x01
 #define TTL_SERVERDATE	0x02
@@ -132,6 +134,27 @@ static ttl_t *TTL_tail = NULL;
 #define TTL_PCTAGE	0x10
 #define TTL_ABSOLUTE	0x20
 #define TTL_DEFAULT	0x40
+#define TTL_FORCE	0x80
+
+static void ttlFreeListgeneric(t)
+     ttl_t *t;
+{
+    ttl_t *tnext;
+
+    for (; t; t = tnext) {
+	tnext = t->next;
+	safe_free(t->pattern);
+	regfree(&t->compiled_pattern);
+	safe_free(t);
+    }
+}
+
+void ttlFreeList()
+{
+    ttlFreeListgeneric(TTL_tbl);
+    ttlFreeListgeneric(TTL_tbl_force);
+    TTL_tail = TTL_tbl = TTL_tail_force = TTL_tbl_force = 0;
+}
 
 void ttlAddToList(pattern, abs_ttl, pct_age, age_max)
      char *pattern;
@@ -147,7 +170,7 @@ void ttlAddToList(pattern, abs_ttl, pct_age, age_max)
 	    pattern);
 	return;
     }
-    pct_age = pct_age < 0 ? 0 : pct_age > 100 ? 100 : pct_age;
+    pct_age = pct_age < 0 ? 0 : pct_age;
     age_max = age_max < 0 ? 0 : age_max;
 
     t = xcalloc(1, sizeof(ttl_t));
@@ -163,6 +186,35 @@ void ttlAddToList(pattern, abs_ttl, pct_age, age_max)
     if (TTL_tail)
 	TTL_tail->next = t;
     TTL_tail = t;
+}
+
+void ttlAddToForceList(pattern, abs_ttl, age_max)
+     char *pattern;
+     time_t abs_ttl;
+     time_t age_max;
+{
+    ttl_t *t;
+    regex_t comp;
+
+    if (regcomp(&comp, pattern, REG_EXTENDED) != REG_NOERROR) {
+	debug(22, 0, "ttlAddToList: Invalid regular expression: %s\n",
+	    pattern);
+	return;
+    }
+    age_max = age_max < 0 ? 0 : age_max;
+
+    t = xcalloc(1, sizeof(ttl_t));
+    t->pattern = (char *) xstrdup(pattern);
+    t->compiled_pattern = comp;
+    t->abs_ttl = abs_ttl;
+    t->age_max = age_max;
+    t->next = NULL;
+
+    if (!TTL_tbl_force)
+	TTL_tbl_force = t;
+    if (TTL_tail_force)
+	TTL_tail_force->next = t;
+    TTL_tail_force = t;
 }
 
 
@@ -222,18 +274,7 @@ void ttlSet(entry)
 
     if (expire > -1) {
 	ttl = (expire - squid_curtime);
-	debug(22, 4, "ttlSet: [%c%c%c%c%c%c%c] %6.2lf days %s\n",
-	    flags & TTL_EXPIRES ? 'E' : '.',
-	    flags & TTL_SERVERDATE ? 'S' : '.',
-	    flags & TTL_LASTMOD ? 'L' : '.',
-	    flags & TTL_MATCHED ? 'M' : '.',
-	    flags & TTL_PCTAGE ? 'P' : '.',
-	    flags & TTL_ABSOLUTE ? 'A' : '.',
-	    flags & TTL_DEFAULT ? 'D' : '.',
-	    (double) ttl / 86400, entry->url);
-	entry->expires = expire;
-	entry->lastmod = last_modified > -1 ? last_modified : served_date;
-	return;
+	goto finalcheck;
     }
     /*  Calculate default TTL for later use */
     if (request->protocol == PROTO_HTTP)
@@ -245,13 +286,14 @@ void ttlSet(entry)
 
     match = NULL;
     for (t = TTL_tbl; t; t = t->next) {
-	if (regexec(&(t->compiled_pattern), entry->url, 0, 0, 0) == 0) {
-	    match = t;
-	    debug(22, 5, "ttlSet: Matched '%s %d %d%%'\n",
-		match->pattern, match->abs_ttl > 0 ? match->abs_ttl : default_ttl,
+	if (regexec(&(t->compiled_pattern), entry->url, 0, 0, 0) != 0)
+		continue;
+	match = t;
+	debug(22, 5, "ttlSet: Matched '%s %d %d%%'\n",
+		match->pattern,
+		match->abs_ttl > 0 ? match->abs_ttl : default_ttl,
 		match->pct_age);
-	    flags |= TTL_MATCHED;
-	}
+	flags |= TTL_MATCHED;
     }
 
     /* Return a TTL that is a percent of the object's age if a last-mod
@@ -281,7 +323,25 @@ void ttlSet(entry)
 	flags |= TTL_DEFAULT;
     }
 
-    debug(22, 4, "ttlSet: [%c%c%c%c%c%c%c] %6.2lf days %s\n",
+  finalcheck:
+    if (flags & (TTL_EXPIRES | TTL_PCTAGE)) {
+	match = NULL;
+	for (t = TTL_tbl_force; t; t = t->next) {
+	    if (t->age_max < ttl)
+		continue;
+	    if (regexec(&(t->compiled_pattern), entry->url, 0, 0, 0) != 0)
+		continue;
+	    match = t;
+	    debug(22, 5, "ttlSet: Matched '%s %d'\n",
+	        match->pattern,
+	        match->abs_ttl);
+	}
+	if (match) {
+	    ttl = match->abs_ttl;
+	    flags |= TTL_FORCE;
+	}
+    }
+    debug(22, 4, "ttlSet: [%c%c%c%c%c%c%c%c] %6.2lf days %s\n",
 	flags & TTL_EXPIRES ? 'E' : '.',
 	flags & TTL_SERVERDATE ? 'S' : '.',
 	flags & TTL_LASTMOD ? 'L' : '.',
@@ -289,6 +349,7 @@ void ttlSet(entry)
 	flags & TTL_PCTAGE ? 'P' : '.',
 	flags & TTL_ABSOLUTE ? 'A' : '.',
 	flags & TTL_DEFAULT ? 'D' : '.',
+	flags & TTL_FORCE ? 'F' : '.',
 	(double) ttl / 86400, entry->url);
 
     entry->expires = squid_curtime + ttl;

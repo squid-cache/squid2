@@ -162,16 +162,14 @@ char *storeToString(e)
     strcat(stsbuf, tmpbuf);
 
     t = (time_t) e->lastref;
-    sprintf(tmpbuf, "Lastref  : %9d [%s]\n", (int) e->lastref,
-	mkhttpdlogtime(&t));
+    sprintf(tmpbuf, "Lastref  : %9d [%s]\n", (int) t, mkhttpdlogtime(&t));
     strcat(stsbuf, tmpbuf);
 
     t = (time_t) e->expires;
-    sprintf(tmpbuf, "Expires  : %9d [%s]\n", (int) e->expires,
-	mkhttpdlogtime(&t));
+    sprintf(tmpbuf, "Expires  : %9d [%s]\n", (int) t, mkhttpdlogtime(&t));
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "ObjectLen: %d\n", e->object_len);
+    sprintf(tmpbuf, "ObjectLen: %d\n", (int) e->object_len);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "SwapFileNumber: %d\n", e->swap_file_number);

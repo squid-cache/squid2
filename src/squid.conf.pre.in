@@ -482,7 +482,23 @@ request_size 100
 #	file descriptors by repeatedly aborting and re-requesting
 #	non-cachable objects.
 #	
-#quick_abort    off
+#	Usage: quick_abort    minlength percent maxlength
+#
+#       When the user aborts a request, Squid will check the
+#	quick_abort values to the amount of data transfered until
+#	then.
+#
+#	If the transfer has less than 'minlength' bytes remaining, it
+#	will finish the retrieval.  Setting minlength to -1 will
+#	disable the quick_abort feature.
+#
+#	If the transfer has more than 'maxlength' bytes remaining, it
+#	will abort the retrieval.
+#
+#	If more than 'percent' of the transfer has completed, it will
+#	finish the retrieval.
+#
+#quick_abort    -1 0 0
 
 #  TAG: negative_ttl (in minutes)         
 #	Time-to-Live (TTL) for failed requests.  Certain types of

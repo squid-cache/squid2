@@ -152,6 +152,11 @@ struct SquidConfig {
 	char *relayHost;
 	u_short relayPort;
     } Wais;
+    struct {
+	int min;
+	int pct;
+	int max;
+    } quickAbort;
     int negativeTtl;
     int negativeDnsTtl;
     int positiveDnsTtl;
@@ -187,7 +192,6 @@ struct SquidConfig {
     int dnsChildren;
     int redirectChildren;
     int sourcePing;
-    int quickAbort;
     int commonLogFormat;
     int identLookup;
     int neighborTimeout;

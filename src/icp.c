@@ -163,6 +163,7 @@ static int icpProcessHIT _PARAMS((int, icpStateData *));
 static int icpProcessIMS _PARAMS((int, icpStateData *));
 static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
+static int CheckQuickAbort2 _PARAMS((icpStateData *));
 extern void identStart _PARAMS((int, icpStateData *));
 static void icpHitObjHandler _PARAMS((int, void *));
 static void icpLogIcp _PARAMS((icpUdpData *));
@@ -442,8 +443,8 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, data)
     icpState->size += size;
     debug(12, 5, "icpHandleStoreComplete: FD %d: sz %d: err %d: off %d: len %d: tsmp %d: lref %d.\n",
 	fd, size, errflag,
-	icpState->offset, entry->object_len,
-	entry->timestamp, entry->lastref);
+       icpState->offset, entry->object_len,
+       entry->timestamp, entry->lastref);
     if (errflag) {
 	/* if runs in quick abort mode, set flag to tell 
 	 * fetching module to abort the fetching */
@@ -516,6 +517,8 @@ static int icpGetHeadersForIMS(fd, icpState)
     /* Only objects with statuscode==200 can be "Not modified" */
     /* XXX: Should we ignore this? */
     if (mem->reply->code != 200) {
+	debug(12, 4, "icpGetHeadersForIMS: Reply code %d!=200\n",
+	    mem->reply->code);
 	put_free_8k_page(icpState->buf);
 	icpState->buf = NULL;
 	return icpProcessMISS(fd, icpState);
@@ -759,7 +762,7 @@ static int icpProcessMISS(fd, icpState)
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
 
-    entry->refcount++;		/* MISS CASE */
+    entry->refcount++;         /* MISS CASE */
     entry->mem_obj->fd_of_first_client = fd;
     fd_table[fd].store_entry = entry;
     BIT_SET(entry->flag, IP_LOOKUP_PENDING);
@@ -1798,6 +1801,41 @@ void AppendUdp(item)
     }
 }
 
+/* return 1 if the request should be aborted */
+static int CheckQuickAbort2(icpState)
+     icpStateData *icpState;
+{
+    long curlen;
+    long minlen;
+    long expectlen;
+    if (!BIT_TEST(icpState->flags, REQ_CACHABLE))
+	return 1;
+    if (BIT_TEST(icpState->entry->flag, KEY_PRIVATE))
+	return 1;
+    if (icpState->entry->mem_obj == NULL)
+	return 1;
+    expectlen = icpState->entry->mem_obj->reply->content_length;
+    curlen = icpState->entry->mem_obj->e_current_len;
+    minlen = Config.quickAbort.min;
+    if (minlen < 0)
+	/* disabled */
+	return 0;
+    if (curlen > expectlen)
+	/* bad content length */
+	return 1;
+    if ((expectlen - curlen) < minlen)
+	/* only little more left */
+	return 0;
+    if ((expectlen - curlen) > Config.quickAbort.max)
+	/* too much left to go */
+	return 1;
+    if ((curlen / (expectlen / 128U)) > Config.quickAbort.pct)
+	/* past point of no return */
+	return 0;
+    return 1;
+}
+
+
 static void CheckQuickAbort(icpState)
      icpStateData *icpState;
 {
@@ -1807,9 +1845,7 @@ static void CheckQuickAbort(icpState)
 	return;
     if (icpState->entry->store_status == STORE_OK)
 	return;
-    if (!Config.quickAbort &&
-	BIT_TEST(icpState->flags, REQ_CACHABLE) &&
-	!BIT_TEST(icpState->entry->flag, KEY_PRIVATE))
+    if (CheckQuickAbort2(icpState) == 0)
 	return;
     BIT_SET(icpState->entry->flag, CLIENT_ABORT_REQUEST);
     storeReleaseRequest(icpState->entry);

@@ -288,6 +288,8 @@ extern void send_announce _PARAMS((void));
 extern int sslStart _PARAMS((int fd, char *, request_t *, char *, int *sz));
 extern char *storeToString _PARAMS((StoreEntry *));
 extern void ttlSet _PARAMS((StoreEntry *));
+extern void ttlFreeList _PARAMS((void));
 extern void ttlAddToList _PARAMS((char *, time_t, int, time_t));
+extern void ttlAddToForceList _PARAMS((char *, time_t, time_t));
 extern int waisStart _PARAMS((int, char *, method_t, char *, StoreEntry *));
 extern void storeDirClean _PARAMS((void));
