@@ -818,7 +818,7 @@ ftpDataRead(int fd, void *data)
 	    assert(ftpState->data.offset == 0);
 	    storeAppend(entry, ftpState->data.buf, len);
 	}
-	if (ftpState->size && mem->inmem_hi >= ftpState->size + mem->reply->hdr_sz)
+	if (ftpState->size > 0 && mem->inmem_hi >= ftpState->size + mem->reply->hdr_sz)
 	    ftpReadComplete(ftpState);
 	else
 	    commSetSelect(fd,
