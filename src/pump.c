@@ -192,6 +192,7 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
     if (errflag != 0) {
 	debug(61, 5) ("pumpServerCopyComplete: aborted, errflag %d\n", errflag);
 	pumpClose(p);
+	return;
     }
     if (p->request_entry->store_status == STORE_ABORTED) {
 	debug(61, 5) ("pumpServerCopyComplete: STORE_ABORTED\n");
