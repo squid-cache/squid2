@@ -53,6 +53,8 @@ extern void log_trace_done();
 extern void log_trace_init(char *);
 #endif
 
+extern void (*failure_notify) (const char *);
+
 void
 releaseServerSockets(void)
 {
@@ -364,6 +366,7 @@ fatalvf(const char *fmt, va_list args)
 void
 fatal_dump(const char *message)
 {
+    failure_notify = NULL;
     releaseServerSockets();
     if (message)
 	fatal_common(message);
