@@ -132,7 +132,6 @@
 #include "squid.h"		/* goes first */
 
 #define REBUILD_TIMESTAMP_DELTA_MAX 2
-#define MAX_SWAP_FILE		(1<<21)
 #define SWAP_BUF		DISK_PAGE_SIZE
 
 #define WITH_MEMOBJ	1
@@ -259,6 +258,7 @@ static HashID in_mem_table = 0;
 /* current memory storage size */
 unsigned long store_mem_size = 0;
 
+static int MAX_SWAP_FILE = 1<<21;
 static int store_pages_max = 0;
 static int store_pages_high = 0;
 static int store_pages_low = 0;
@@ -2358,6 +2358,7 @@ storeInitHashValues(void)
     int i;
     /* Calculate size of hash table (maximum currently 64k buckets).  */
     i = Config.Swap.maxSize / Config.Store.avgObjectSize;
+    MAX_SWAP_FILE = i * 3 / 2;	/* 150% of estimated objects */
     debug(20, 1, "Swap maxSize %d, estimated %d objects\n",
 	Config.Swap.maxSize, i);
     i /= Config.Store.objectsPerBucket;
@@ -2389,8 +2390,8 @@ storeInit(void)
 {
     wordlist *w = NULL;
     char *fname = NULL;
-    file_map_create(MAX_SWAP_FILE);
     storeInitHashValues();
+    file_map_create(MAX_SWAP_FILE);
     storeCreateHashTable(urlcmp);
     if (strcmp((fname = Config.Log.store), "none") == 0)
 	storelog_fd = -1;
