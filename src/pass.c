@@ -117,7 +117,6 @@ passStateFree(int fd, void *data)
     xfree(passState->url);
     requestUnlink(passState->request);
     requestUnlink(passState->proxy_request);
-    memset(passState, '\0', sizeof(PassStateData));
     safe_free(passState);
 }
 

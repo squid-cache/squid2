@@ -255,7 +255,6 @@ ipcache_release(ipcache_entry * i)
     }
     safe_free(i->name);
     safe_free(i->error_message);
-    memset(i, '\0', sizeof(ipcache_entry));
     safe_free(i);
     --meta_data.ipcache_count;
     return;
@@ -465,7 +464,6 @@ ipcache_call_pending(ipcache_entry * i)
 		i->status == IP_CACHED ? &i->addrs : NULL,
 		p->handlerData);
 	}
-	memset(p, '\0', sizeof(struct _ip_pending));
 	safe_free(p);
     }
     i->pending_head = NULL;	/* nuke list */

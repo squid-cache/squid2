@@ -173,7 +173,7 @@
 #include "squid.h"
 #include "mime_table.h"
 
-char *proxy_host = NULL;
+static char *proxy_host = NULL;
 
 #ifndef HAVE_GETOPT_H
 extern int optind;
@@ -182,7 +182,7 @@ extern int optind;
 /* Junk so we can link with debug.o */
 int opt_syslog_enable = 0;
 volatile int unbuffered_logs = 1;
-const char *const w_space = " \t\n\r";
+static const char *const w_space = " \t\n\r";
 const char *const appname = "ftpget";
 struct timeval current_time;
 time_t squid_curtime;
@@ -2714,6 +2714,7 @@ main(int argc, char *argv[])
 	case 'v':
 	    printf("%s version %s\n", progname, SQUID_VERSION);
 	    exit(0);
+           /* NOTREACHED */
 	case 'w':
 	    o_list_width = atoi(optarg);
 	    break;

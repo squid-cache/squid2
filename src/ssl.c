@@ -117,7 +117,6 @@ sslStateFree(int fd, void *data)
     safe_free(sslState->client.buf);
     xfree(sslState->url);
     requestUnlink(sslState->request);
-    memset(sslState, '\0', sizeof(SslStateData));
     safe_free(sslState);
 }
 

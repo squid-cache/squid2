@@ -134,7 +134,6 @@ const char *const appname = "squid";
 const char *const localhost = "127.0.0.1";
 struct in_addr local_addr;
 struct in_addr no_addr;
-struct in_addr any_addr;
 struct in_addr theOutICPAddr;
 const char *const dash_str = "-";
 const char *const null_string = "";
@@ -147,6 +146,7 @@ extern void (*failure_notify) _PARAMS((const char *));
 static volatile int rotate_pending = 0;		/* set by SIGUSR1 handler */
 static int httpPortNumOverride = 1;
 static int icpPortNumOverride = 1;	/* Want to detect "-u 0" */
+static struct in_addr any_addr;
 #if MALLOC_DBG
 static int malloc_debug_level = 0;
 #endif
@@ -424,7 +424,7 @@ serverConnectionsOpen(void)
 	if (Config.vizHack.addr.s_addr > inet_addr("224.0.0.0")) {
 	    struct ip_mreq mr;
 	    char ttl = (char) Config.vizHack.mcast_ttl;
-	    memset((char *) &mr, '\0', sizeof(struct ip_mreq));
+	    memset(&mr, '\0', sizeof(struct ip_mreq));
 	    mr.imr_multiaddr.s_addr = Config.vizHack.addr.s_addr;
 	    mr.imr_interface.s_addr = INADDR_ANY;
 	    x = setsockopt(vizSock,
@@ -451,7 +451,7 @@ serverConnectionsOpen(void)
 #else
 	debug(1, 0, "vizSock: Could not join multicast group\n");
 #endif
-	memset((char *) &Config.vizHack.S, '\0', sizeof(struct sockaddr_in));
+	memset(&Config.vizHack.S, '\0', sizeof(struct sockaddr_in));
 	Config.vizHack.S.sin_family = AF_INET;
 	Config.vizHack.S.sin_addr = Config.vizHack.addr;
 	Config.vizHack.S.sin_port = htons(Config.vizHack.port);
@@ -724,7 +724,6 @@ main(int argc, char **argv)
 	    }
 	    if (shutdown_pending) {
 		normal_shutdown();
-		exit(0);
 	    } else if (reread_pending) {
 		mainReinitialize();
 		reread_pending = 0;	/* reset */

@@ -185,6 +185,8 @@ static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_
 static void icpStateFree _PARAMS((int fd, void *data));
 static int icpCheckTransferDone _PARAMS((icpStateData *));
 static void clientReadRequest _PARAMS((int fd, void *data));
+static void *icpCreateHitObjMessage _PARAMS((icp_opcode, int, const char *, int, int, StoreEntry *));
+static void icpDetectNewRequest _PARAMS((int fd));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -842,7 +844,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     debug(12, 10, "icpProcessMISS: request_hdr:\n%s\n", request_hdr);
 
     /* Check if this host is allowed to fetch MISSES from us */
-    memset((char *) &ch, '\0', sizeof(aclCheck_t));
+    memset(&ch, '\0', sizeof(aclCheck_t));
     ch.src_addr = icpState->peer.sin_addr;
     ch.request = requestLink(icpState->request);
     answer = aclCheck(MISSAccessList, &ch);
@@ -996,7 +998,7 @@ icpCreateMessage(
     return buf;
 }
 
-void *
+static void *
 icpCreateHitObjMessage(
     icp_opcode opcode,
     int flags,
@@ -1832,8 +1834,8 @@ asciiHandleConn(int sock, void *notused)
     struct sockaddr_in peer;
     struct sockaddr_in me;
 
-    memset((char *) &peer, '\0', sizeof(struct sockaddr_in));
-    memset((char *) &me, '\0', sizeof(struct sockaddr_in));
+    memset(&peer, '\0', sizeof(struct sockaddr_in));
+    memset(&me, '\0', sizeof(struct sockaddr_in));
 
     commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
     if ((fd = comm_accept(sock, &peer, &me)) < 0) {
@@ -2026,7 +2028,7 @@ icpDetectClientClose(int fd, void *data)
     }
 }
 
-void
+static void
 icpDetectNewRequest(int fd)
 {
 #if TRY_KEEPALIVE_SUPPORT
@@ -2040,8 +2042,8 @@ icpDetectNewRequest(int fd)
     lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
     len = sizeof(struct sockaddr_in);
 
-    memset((char *) &me, '\0', len);
-    memset((char *) &peer, '\0', len);
+    memset(&me, '\0', len);
+    memset(&peer, '\0', len);
     if (getsockname(fd, (struct sockaddr *) &me, &len) < -1) {
 	debug(50, 1, "icpDetectNewRequest: FD %d: getsockname failure: %s\n",
 	    fd, xstrerror());

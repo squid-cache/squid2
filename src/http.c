@@ -112,7 +112,6 @@
 
 #define HTTP_DELETE_GAP   (1<<18)
 
-static const char *const w_space = " \t\n\r";
 static const char *const crlf = "\r\n";
 
 typedef enum {
@@ -158,7 +157,7 @@ typedef enum {
     HDR_MISC_END
 } http_hdr_misc_t;
 
-char *HttpServerCCStr[] =
+static char *HttpServerCCStr[] =
 {
     "public",
     "private",
@@ -429,10 +428,8 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 
     debug(11, 3, "httpProcessReplyHeader: key '%s'\n", entry->key);
 
-    if (httpState->reply_hdr == NULL) {
+    if (httpState->reply_hdr == NULL)
 	httpState->reply_hdr = get_free_8k_page();
-	memset(httpState->reply_hdr, '\0', 8192);
-    }
     if (httpState->reply_hdr_state == 0) {
 	hdr_len = strlen(httpState->reply_hdr);
 	room = 8191 - hdr_len;
@@ -721,7 +718,6 @@ httpBuildRequestHeader(request_t * request,
     char *end = NULL;
     size_t len = 0;
     size_t hdr_len = 0;
-    size_t in_sz;
     size_t l;
     int hdr_flags = 0;
     int cc_flags = 0;
@@ -742,7 +738,6 @@ httpBuildRequestHeader(request_t * request,
 	EBIT_SET(hdr_flags, HDR_IMS);
     }
     end = mime_headers_end(hdr_in);
-    in_sz = strlen(hdr_in);
     for (t = hdr_in; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
 	hdr_len = t - hdr_in;
 	l = strcspn(t, crlf) + 1;
@@ -841,7 +836,6 @@ httpSendRequest(int fd, void *data)
     }
     if (buflen < DISK_PAGE_SIZE) {
 	buf = get_free_8k_page();
-	memset(buf, '\0', buflen);
 	buftype = BUF_TYPE_8K;
 	buflen = DISK_PAGE_SIZE;
     } else {

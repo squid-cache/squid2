@@ -41,10 +41,6 @@
 /* Global */
 const char *AclMatchedName = NULL;
 
-/* for reading ACL's from files */
-int aclFromFile = 0;
-FILE *aclFile;
-
 /* These should never be referenced directly in this file! */
 struct _acl_deny_info_list *DenyInfoList = NULL;
 struct _acl_access *HTTPAccessList = NULL;
@@ -57,6 +53,8 @@ struct _acl_access *DelayAccessList = NULL;
 static struct _acl *AclList = NULL;
 static struct _acl **AclListTail = &AclList;
 static const char *const w_space = " \t\n\r";	/* Jasper sez so */
+static int aclFromFile = 0;
+static FILE *aclFile;
 
 static void aclDestroyAclList _PARAMS((struct _acl_list * list));
 static void aclDestroyTimeList _PARAMS((struct _acl_time_data * data));
@@ -100,8 +98,9 @@ static void aclParseWordList _PARAMS((void *curlist));
 static void aclParseProtoList _PARAMS((void *curlist));
 static void aclParseMethodList _PARAMS((void *curlist));
 static void aclParseTimeSpec _PARAMS((void *curlist));
+static char *strtokFile _PARAMS((void));
 
-char *
+static char *
 strtokFile(void)
 {
     char *t, *fn;

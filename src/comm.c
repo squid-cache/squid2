@@ -1191,7 +1191,7 @@ comm_join_mcast_groups(int fd)
 	    debug(5, 0, "Unknown host: %s\n", s->key);
 	    continue;
 	}
-	for (i = 0; i < ia->count; i++) {
+	for (i = 0; i < (int) ia->count; i++) {
 	    mr.imr_multiaddr.s_addr = (ia->in_addrs + i)->s_addr;
 	    mr.imr_interface.s_addr = INADDR_ANY;
 	    x = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,

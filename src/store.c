@@ -281,9 +281,9 @@ int ncache_dirs = 0;
 
 /* expiration parameters and stats */
 static int store_buckets;
-int store_maintain_rate;
+static int store_maintain_rate;
 static int store_maintain_buckets;
-int scan_revolutions;
+static int scan_revolutions;
 static struct _bucketOrder *MaintBucketsOrder = NULL;
 
 static MemObject *
@@ -324,7 +324,6 @@ destroy_MemObject(MemObject * mem)
     safe_free(mem->e_abort_msg);
     requestUnlink(mem->request);
     mem->request = NULL;
-    memset(mem, '\0', sizeof(MemObject));
     put_free_mem_obj(mem);
     meta_data.mem_obj_count--;
     meta_data.misc -= sizeof(struct _http_reply);
@@ -350,7 +349,6 @@ destroy_StoreEntry(StoreEntry * e)
 	e->key = NULL;
     else
 	safe_free(e->key);
-    memset(e, '\0', sizeof(StoreEntry));
     xfree(e);
     meta_data.store_entries--;
 }

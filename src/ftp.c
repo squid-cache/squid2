@@ -205,10 +205,8 @@ ftpProcessReplyHeader(FtpStateData * data, const char *buf, int size)
 
     debug(11, 3, "ftpProcessReplyHeader: key '%s'\n", entry->key);
 
-    if (data->reply_hdr == NULL) {
+    if (data->reply_hdr == NULL)
 	data->reply_hdr = get_free_8k_page();
-	memset(data->reply_hdr, '\0', 8192);
-    }
     if (data->reply_hdr_state == 0) {
 	hdr_len = strlen(data->reply_hdr);
 	room = 8191 - hdr_len;
@@ -460,8 +458,7 @@ ftpSendRequest(int fd, FtpStateData * data)
     debug(9, 5, "ftpSendRequest: FD %d\n", fd);
 
     buflen = strlen(data->request->urlpath) + 256;
-    buf = (char *) get_free_8k_page();
-    memset(buf, '\0', buflen);
+    buf = get_free_8k_page();
 
     path = data->request->urlpath;
     mode = ftpTransferMode(path);

@@ -81,7 +81,7 @@ icmpRecv(int unused1, void *unused2)
 	COMM_SELECT_READ,
 	(PF) icmpRecv,
 	(void *) -1, 0);
-    memset((char *) &preply, '\0', sizeof(pingerReplyData));
+    memset(&preply, '\0', sizeof(pingerReplyData));
     n = recv(icmp_sock,
 	(char *) &preply,
 	sizeof(pingerReplyData),

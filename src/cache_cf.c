@@ -129,12 +129,15 @@ struct SquidConfig Config;
 #define DefaultConnectTimeout	(2 * 60)	/* 2 min */
 #define DefaultCleanRate	-1	/* disabled */
 #define DefaultDnsChildren	5	/* 5 processes */
+#define DefaultOptionsResDefnames 0    /* default off */
+#define DefaultOptionsAnonymizer  0    /* default off */
 #define DefaultRedirectChildren	5	/* 5 processes */
 #define DefaultMaxRequestSize	(100 << 10)	/* 100Kb */
 
 #define DefaultHttpPortNum	CACHE_HTTP_PORT
 #define DefaultIcpPortNum	CACHE_ICP_PORT
 
+#define DefaultLogLogFqdn      0       /* default off */
 #define DefaultCacheLogFile	DEFAULT_CACHE_LOG
 #define DefaultAccessLogFile	DEFAULT_ACCESS_LOG
 #define DefaultUseragentLogFile	(char *)NULL	/* default NONE */
@@ -186,8 +189,10 @@ struct SquidConfig Config;
 #define DefaultUdpIncomingAddr	INADDR_ANY
 #define DefaultUdpOutgoingAddr	inaddr_none
 #define DefaultClientNetmask    0xFFFFFFFFul
+#define DefaultPassProxyPort   0
+#define DefaultPassProxyHost   NULL
 #define DefaultSslProxyPort	0
-#define DefaultSslProxyHost	(char *)NULL
+#define DefaultSslProxyHost	NULL
 #define DefaultIpcacheSize	1024
 #define DefaultIpcacheLow	90
 #define DefaultIpcacheHigh	95
@@ -199,6 +204,7 @@ struct SquidConfig Config;
 #define DefaultLevelOneDirs	16
 #define DefaultLevelTwoDirs	256
 #define DefaultOptionsLogUdp	1	/* on */
+#define DefaultOptionsEnablePurge 0    /* default off */
 
 int httpd_accel_mode = 0;	/* for fast access */
 const char *DefaultSwapDir = DEFAULT_SWAP_DIR;
@@ -303,7 +309,7 @@ ip_access_check(struct in_addr address, const ip_acl * list)
 	return IP_ALLOW;
 
     if (!init) {
-	memset((char *) &localhost, '\0', sizeof(struct in_addr));
+	memset(&localhost, '\0', sizeof(struct in_addr));
 	localhost.s_addr = inet_addr("127.0.0.1");
 	init = 1;
     }
@@ -1506,7 +1512,7 @@ configFreeMemory(void)
 static void
 configSetFactoryDefaults(void)
 {
-    memset((char *) &Config, '\0', sizeof(Config));
+    memset(&Config, '\0', sizeof(Config));
     Config.Mem.maxSize = DefaultMemMaxSize;
     Config.Mem.highWaterMark = DefaultMemHighWaterMark;
     Config.Mem.lowWaterMark = DefaultMemLowWaterMark;
@@ -1539,6 +1545,7 @@ configSetFactoryDefaults(void)
 #if LOG_FULL_HEADERS
     Config.logMimeHdrs = DefaultLogMimeHdrs;
 #endif /* LOG_FULL_HEADERS */
+    Config.identLookup = DefaultIdentLookup;
     Config.debugOptions = safe_xstrdup(DefaultDebugOptions);
     Config.neighborTimeout = DefaultNeighborTimeout;
     Config.stallDelay = DefaultStallDelay;
@@ -1548,9 +1555,9 @@ configSetFactoryDefaults(void)
     Config.effectiveGroup = safe_xstrdup(DefaultEffectiveGroup);
     Config.appendDomain = safe_xstrdup(DefaultAppendDomain);
     Config.errHtmlText = safe_xstrdup(DefaultErrHtmlText);
-
     Config.Port.http = DefaultHttpPortNum;
     Config.Port.icp = DefaultIcpPortNum;
+    Config.Log.log_fqdn = DefaultLogLogFqdn;
     Config.Log.log = safe_xstrdup(DefaultCacheLogFile);
     Config.Log.access = safe_xstrdup(DefaultAccessLogFile);
     Config.Log.store = safe_xstrdup(DefaultStoreLogFile);
@@ -1587,6 +1594,8 @@ configSetFactoryDefaults(void)
     Config.Addrs.udp_outgoing.s_addr = DefaultUdpOutgoingAddr;
     Config.Addrs.udp_incoming.s_addr = DefaultUdpIncomingAddr;
     Config.Addrs.client_netmask.s_addr = DefaultClientNetmask;
+    Config.passProxy = DefaultPassProxyHost;
+    Config.sslProxy = DefaultSslProxyHost;
     Config.ipcache.size = DefaultIpcacheSize;
     Config.ipcache.low = DefaultIpcacheLow;
     Config.ipcache.high = DefaultIpcacheHigh;
@@ -1597,6 +1606,9 @@ configSetFactoryDefaults(void)
     Config.levelOneDirs = DefaultLevelOneDirs;
     Config.levelTwoDirs = DefaultLevelTwoDirs;
     Config.Options.log_udp = DefaultOptionsLogUdp;
+    Config.Options.res_defnames = DefaultOptionsResDefnames;
+    Config.Options.anonymizer = DefaultOptionsAnonymizer;
+    Config.Options.enable_purge = DefaultOptionsEnablePurge;
 }
 
 static void
