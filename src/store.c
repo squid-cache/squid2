@@ -181,10 +181,6 @@ static int storeClientListSearch _PARAMS((const MemObject *, int));
 static int storeEntryLocked _PARAMS((const StoreEntry *));
 static int storeEntryValidLength _PARAMS((const StoreEntry *));
 static int storeHashDelete _PARAMS((StoreEntry *));
-#ifdef OLD_CODE
-static int storeCheckPurgeMem _PARAMS((const StoreEntry *));
-static int storeShouldPurgeMem _PARAMS((const StoreEntry *));
-#endif
 static MemObject *new_MemObject _PARAMS((void));
 static StoreEntry *new_StoreEntry _PARAMS((int));
 static StoreEntry *storeAddDiskRestore _PARAMS((const char *, int, int, time_t, time_t, time_t));
@@ -419,6 +415,8 @@ storeUnlockObject(StoreEntry * e)
 #endif
 	e->store_status = STORE_ABORTED;
     }
+    if (storePendingNClients(e) > 0)
+	fatal_dump("storeUnlockObject: unlocked with pending clients\n");
     if (e->swap_status != SWAP_OK)
 	fatal_dump("storeUnlockObject: bad swap_status");
     if (BIT_TEST(e->flag, RELEASE_REQUEST))
@@ -680,7 +678,7 @@ storeRegister(StoreEntry * e, int fd, PIF handler, void *data, off_t offset)
     MemObject *mem = e->mem_obj;
     debug(20, 3, "storeRegister: FD %d '%s'\n", fd, e->key);
     if ((i = storeClientListSearch(mem, fd)) < 0)
-	i = storeClientListAdd(e, fd, 0);
+	i = storeClientListAdd(e, fd);
     if (mem->clients[i].callback)
 	fatal_dump("storeRegister: handler already exists");
     mem->clients[i].offset = offset;
@@ -1577,7 +1575,7 @@ storeClientListSearch(const MemObject * mem, int fd)
 
 /* add client with fd to client list */
 int
-storeClientListAdd(StoreEntry * e, int fd, off_t offset)
+storeClientListAdd(StoreEntry * e, int fd)
 {
     int i;
     MemObject *mem = e->mem_obj;
@@ -1591,6 +1589,8 @@ storeClientListAdd(StoreEntry * e, int fd, off_t offset)
 	    mem->clients[i].fd = -1;
     }
     for (i = 0; i < mem->nclients; i++) {
+	if (mem->clients[i].fd == fd)
+	    return i;		/* its already here */
 	if (mem->clients[i].fd == -1)
 	    break;
     }
@@ -1609,7 +1609,7 @@ storeClientListAdd(StoreEntry * e, int fd, off_t offset)
 	i = oldsize;
     }
     mem->clients[i].fd = fd;
-    mem->clients[i].offset = offset;
+    mem->clients[i].offset = 0;
     return i;
 }
 
@@ -2092,33 +2092,6 @@ storeRotateLog(void)
 	debug(20, 1, "Store logging disabled\n");
     }
 }
-
-#ifdef OLD_CODE
-static int
-storeShouldPurgeMem(const StoreEntry * e)
-{
-    if (storeCheckPurgeMem(e) == 0)
-	return 0;
-    return 1;
-}
-
-/*
- * Check if its okay to remove the memory data for this object, but 
- * leave the StoreEntry around.  Designed to be called from
- * storeUnlockObject()
- */
-static int
-storeCheckPurgeMem(const StoreEntry * e)
-{
-    if (storeEntryLocked(e))
-	return 0;
-    if (e->store_status != STORE_OK)
-	return 0;
-    if (e->swap_status != SWAP_OK)
-	return 0;
-    return 1;
-}
-#endif
 
 static int
 storeCheckExpired(const StoreEntry * e, int check_lru_age)

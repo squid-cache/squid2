@@ -160,10 +160,6 @@ static int logReadHandler _PARAMS((int, const char *, int, log_read_data_t *));
 static int squidReadHandler _PARAMS((int, const char *, int, squid_read_data_t *));
 static int memoryAccounted _PARAMS((void));
 
-#ifdef UNUSED_CODE
-static int mallinfoTotal _PARAMS((void));
-#endif
-
 #ifdef XMALLOC_STATISTICS
 static void info_get_mallstat _PARAMS((int, int, StoreEntry *));
 #endif
@@ -382,6 +378,7 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
     int N = 0;
     FILE *fp;
     size_t l = 0;
+    int j;
 
     fp = fdopen(sentry->mem_obj->swapout_fd, "w");
     l += fprintf(fp, open_bracket);
@@ -405,6 +402,15 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
 	    mem ? mem->swap_length : -1,
 	    (int) mem ? mem->swapout_fd : -2,
 	    entry->url);
+ 	if (mem) {
+	    for (j=0; j<mem->nclients; j++) {
+		fprintf(fp, "\t{FD%d offset %9d handler %p data %p}\n",
+			mem->clients[j].fd,
+			(int) mem->clients[j].offset,
+			mem->clients[j].callback,
+			mem->clients[j].callback_data);
+	    }
+	}
     }
     l += fprintf(fp, close_bracket);
     fflush(fp);
@@ -713,20 +719,6 @@ memoryAccounted(void)
                  meta_data.client_info * client_info_sz +
                  meta_data.misc;
 }
-
-#ifdef UNUSED_CODE
-static int
-mallinfoTotal(void)
-{
-    int total = 0;
-#if HAVE_MALLINFO
-    struct mallinfo mp;
-    mp = mallinfo();
-    total = mp.arena;
-#endif
-    return total;
-}
-#endif
 
 static void
 info_get(const cacheinfo * obj, StoreEntry * sentry)

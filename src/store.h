@@ -277,7 +277,7 @@ extern void storeConfigure _PARAMS((void));
 extern void storeNegativeCache _PARAMS((StoreEntry *));
 extern void storeFreeMemory _PARAMS((void));
 extern int expiresMoreThan _PARAMS((time_t, time_t));
-extern int storeClientListAdd _PARAMS((StoreEntry *, int, off_t));
+extern int storeClientListAdd _PARAMS((StoreEntry *, int));
 extern void InvokeHandlers _PARAMS((StoreEntry *));
 extern int storeEntryValidToSend _PARAMS((StoreEntry *));
 extern int storeFirstClientFD _PARAMS((MemObject * mem));

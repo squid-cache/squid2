@@ -189,7 +189,6 @@ static void icpStateFree _PARAMS((int fd, void *data));
 static int icpCheckTransferDone _PARAMS((icpStateData *));
 static int icpReadDataDone _PARAMS((int fd, char *buf, int len, int err, void *data));
 static void clientReadRequest _PARAMS((int fd, void *data));
-static void *icpCreateHitObjMessage _PARAMS((icp_opcode, int, const char *, int, int, StoreEntry *));
 static void icpDetectNewRequest _PARAMS((int fd));
 
 /*
@@ -806,7 +805,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
     }
     if (entry) {
 	storeLockObject(entry);
-	storeClientListAdd(entry, fd, 0);
+	storeClientListAdd(entry, fd);
     }
     icpState->entry = entry;	/* Save a reference to the object */
     icpState->out.size = 0;
@@ -878,7 +877,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
 	icpState->request->flags,
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
-    storeClientListAdd(entry, fd, 0);
+    storeClientListAdd(entry, fd);
     icpState->swapin_fd = storeOpenSwapFileRead(entry);
     if (icpState->swapin_fd < 0)
 	fatal_dump("Swapfile open failed");
@@ -1007,56 +1006,6 @@ icpCreateMessage(
 	urloffset += sizeof(u_num32);
     xmemcpy(urloffset, url, strlen(url));
     return buf;
-}
-
-static void *
-icpCreateHitObjMessage(
-    icp_opcode opcode,
-    int flags,
-    const char *url,
-    int reqnum,
-    int pad,
-    StoreEntry * entry)
-{
-    debug(12, 1, "icpCreateHitObjMessage: NOT WORKING in this version\n");
-    return NULL;
-#ifdef NOT_WORKING
-    char *buf = NULL;
-    char *entryoffset = NULL;
-    char *urloffset = NULL;
-    icp_common_t *headerp = NULL;
-    int buf_len;
-    u_short data_sz;
-    int size;
-    MemObject *m = entry->mem_obj;
-
-    buf_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
-    if (opcode == ICP_OP_QUERY)
-	buf_len += sizeof(u_num32);
-    buf = xcalloc(buf_len, 1);
-    headerp = (icp_common_t *) (void *) buf;
-    headerp->opcode = opcode;
-    headerp->version = ICP_VERSION_CURRENT;
-    headerp->length = htons(buf_len);
-    headerp->reqnum = htonl(reqnum);
-    headerp->flags = htonl(flags);
-    headerp->pad = htonl(pad);
-    headerp->shostid = htonl(theOutICPAddr.s_addr);
-    urloffset = buf + sizeof(icp_common_t);
-    xmemcpy(urloffset, url, strlen(url));
-    data_sz = htons((u_short) entry->object_len);
-    entryoffset = urloffset + strlen(url) + 1;
-    xmemcpy(entryoffset, &data_sz, sizeof(u_short));
-    entryoffset += sizeof(u_short);
-    size = read(m->swapin_fd, entryoffset, entry->object_len);
-    if (size != entry->object_len) {
-	debug(12, 1, "icpCreateHitObjMessage: copy failed, wanted %d got %d bytes\n",
-	    entry->object_len, size);
-	safe_free(buf);
-	return NULL;
-    }
-    return buf;
-#endif
 }
 
 void
@@ -1587,20 +1536,6 @@ parseHttpRequest(icpStateData * icpState)
     if ((t = strchr(url, '#')))	/* remove HTML anchors */
 	*t = '\0';
 
-#ifdef OLD_CODE
-    if (Config.appendDomain) {
-	if ((t = do_append_domain(url, Config.appendDomain))) {
-	    if (free_request)
-		safe_free(url);
-	    url = t;
-	    free_request = 1;
-	    /* NOTE: We don't have to free the old request pointer
-	     * because it points to inside inbuf. But
-	     * do_append_domain() allocates new memory so set a flag
-	     * if the request should be freed later. */
-	}
-    }
-#endif
     /* see if we running in httpd_accel_mode, if so got to convert it to URL */
     if (httpd_accel_mode && *url == '/') {
 	/* prepend the accel prefix */
@@ -1990,6 +1925,7 @@ icpDetectClientClose(int fd, void *data)
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
 	comm_set_stall(fd, 10);	/* check again in 10 seconds */
+        commSetSelect(fd, COMM_SELECT_READ, icpDetectClientClose, icpState, 0);
     }
 }
 

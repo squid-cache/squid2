@@ -429,14 +429,17 @@ icpProcessExpired(int fd, void *data)
 
     BIT_SET(icpState->request->flags, REQ_REFRESH);
     icpState->old_entry = icpState->entry;
+    /* Create an entry for the IMS request; hopefully it comes back 304 */
     entry = storeCreateEntry(url,
 	request_hdr,
 	icpState->req_hdr_sz,
 	icpState->request->flags,
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
-    storeClientListAdd(entry, fd, 0);
-    storeClientListAdd(icpState->old_entry, fd, 0);
+    /* Tell store we're interested in both objects.  Otherwise they might
+     * go into delete-behind mode */
+    storeClientListAdd(entry, fd);
+    storeClientListAdd(icpState->old_entry, fd);
 
     entry->lastmod = icpState->old_entry->lastmod;
     debug(33, 5, "icpProcessExpired: setting lmt = %d\n",
@@ -486,7 +489,6 @@ icpHandleIMSReply(int fd, void *data)
     int unlink_request = 0;
     StoreEntry *oldentry;
     debug(33, 3, "icpHandleIMSReply: FD %d '%s'\n", fd, entry->key);
-    /* unregister this handler */
     if (entry->store_status == STORE_ABORTED) {
 	debug(33, 3, "icpHandleIMSReply: ABORTED/%s '%s'\n",
 	    log_tags[entry->mem_obj->abort_code], entry->url);
