@@ -263,3 +263,13 @@ Changes to squid-1.0.beta14 (June 7, 1996):
 	- Fixed SSL bug which assumed the requested host name would
 	  already be in the IP cache.
 	- Fixed names of generated HTTP reply headers.
+
+Changes to squid-1.0.beta14 (June 9, 1996):
+
+	- Fixed storeSwapoutHandle coredump bug
+	- Fixed DNS lookup failure of neighbor hosts after a few hours
+	  of operation
+	- Changed memcpy() to memmove() for overlapping memory copies
+	- Changed store rebuidling to unlink the log-last-clean file
+	  in case of a crash during rebuild
+	- Added forwarding loop detection
