@@ -102,13 +102,14 @@ static int PrintRusage(f, lf)
      void (*f) ();
      FILE *lf;
 {
-#if HAVE_RUSAGE && defined(RUSAGE_SELF)
+#if HAVE_GETRUSAGE && defined(RUSAGE_SELF)
     struct rusage rusage;
     getrusage(RUSAGE_SELF, &rusage);
-    fprintf(lf, "CPU Usage: user %d sys %d\nMemory Usage: rss %d KB\n",
-	rusage.ru_utime.tv_sec, rusage.ru_stime.tv_sec,
+    fprintf(lf, "CPU Usage: user %d sys %d\n",
+	(int) rusage.ru_utime.tv_sec, (int) rusage.ru_stime.tv_sec);
+    fprintf(lf, "Memory Usage: rss %ld KB\n",
 	rusage.ru_maxrss * getpagesize() / 1000);
-    fprintf(lf, "Page faults with physical i/o: %d\n",
+    fprintf(lf, "Page faults with physical i/o: %ld\n",
 	rusage.ru_majflt);
 #endif
     dumpMallocStats(lf);
@@ -220,10 +221,14 @@ void fatal_dump(message)
 void sig_child(sig)
      int sig;
 {
+#ifdef _SQUID_NEXT_
+    union wait status;
+#else
     int status;
+#endif
     int pid;
 
-    if ((pid = waitpid(-1, &status, WNOHANG)) > 0)
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0 || errno == EINTR)
 	debug(21, 3, "sig_child: Ate pid %d\n", pid);
     signal(sig, sig_child);
 }
