@@ -900,8 +900,9 @@ comm_incoming(void)
     incame = 0;
     if (theInIcpConnection > 0)
 	icpHandleUdp(theInIcpConnection, &incame);
-    if (theInIcpConnection != theOutIcpConnection)
-	icpHandleUdp(theOutIcpConnection, &incame);
+        if (theInIcpConnection != theOutIcpConnection)
+	    icpHandleUdp(theOutIcpConnection, &incame);
+    }
     for (j = 0; j < NHttpSockets; j++) {
 	if (HttpSockets[j] < 0)
 	    continue;
