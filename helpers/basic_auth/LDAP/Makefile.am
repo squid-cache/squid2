@@ -11,4 +11,5 @@ man_MANS 		= squid_ldap_auth.8
 EXTRA_DIST		= squid_ldap_auth.8
 squid_ldap_auth_SOURCES	= squid_ldap_auth.c
 
-LDADD = -lldap -llber
+LDADD = -L$(top_builddir)/lib -lmiscutil -lldap -llber $(XTRA_LIBS)
+INCLUDES      = -I$(top_srcdir)/include

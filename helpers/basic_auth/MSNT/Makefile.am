@@ -27,10 +27,9 @@ EXTRA_DIST = \
 sysconf_DATA = \
 	msntauth.conf.default
 
-LDADD	= @XTRA_LIBS@
+LDADD = -L$(top_builddir)/lib -lmiscutil $(XTRA_LIBS)
 
-INCLUDES      = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
-		-I$(top_srcdir)/src/
+INCLUDES      = -I$(top_srcdir)/include
 
 confload.o: confload.c
 	$(COMPILE) -DSYSCONFDIR=\"$(sysconfdir)\" -c $(srcdir)/confload.c -o $@

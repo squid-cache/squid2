@@ -6,9 +6,8 @@
 #  Uncomment and customize the following to suit your needs:
 #
 
-INCLUDES	= -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
-		  -I$(top_srcdir)/src/
+INCLUDES	= -I$(top_srcdir)/include
 
 libexec_PROGRAMS	= sasl_auth
-LDADD			= -lsasl $(XTRA_LIBS)
+LDADD			= -L$(top_builddir)/lib -lmiscutil -lsasl $(XTRA_LIBS)
 EXTRA_DIST		= squid_sasl_auth squid_sasl_auth.conf
