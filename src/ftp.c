@@ -387,30 +387,6 @@ int ftpReadReply(fd, data)
 }
 
 
-#ifdef OLD_CODE
-/* This will be called when request write is complete. Schedule read of reply. */
-int ftpSendComplete(fd, buf, size, errflag, data)
-     int fd;
-     char *buf;
-     int size;
-     int errflag;
-     FtpData *data;
-{
-    debug(1, "ftpSendComplete - THIS SHOULD NOT HAPPEN fd: %d size: %d errflag: %d\n",
-	fd, size, errflag);
-    return 0;
-}
-
-/* This will be called when connect completes. Write request. */
-int ftpSendRequest(fd, data)
-     int fd;
-     FtpData *data;
-{
-    debug(1, "ftpSendRequest - THIS SHOULD NOT HAPPEN fd: %d\n", fd);
-    return 0;
-}
-#endif
-
 int ftpStart(unusedfd, url, entry)
      int unusedfd;
      char *url;
