@@ -303,7 +303,7 @@ void neighbors_open(fd)
 	e->n_addresses = 0;
 	for (j = 0; *list && j < EDGE_MAX_ADDRESSES; j++) {
 	    ina = &e->addresses[j];
-	    memcpy(&(ina->s_addr), *list, 4);
+	    xmemcpy(&(ina->s_addr), *list, 4);
 	    list++;
 	    e->n_addresses++;
 	}
@@ -461,7 +461,7 @@ int neighborsUdpPing(proto)
 	    debug(15, 6, "neighborsUdpPing: url=%s, host=%s, t=%d\n",
 		url, host, t);
 	    to_addr.sin_family = AF_INET;
-	    memcpy(&to_addr.sin_addr, hep->h_addr, hep->h_length);
+	    xmemcpy(&to_addr.sin_addr, hep->h_addr, hep->h_length);
 	    to_addr.sin_port = htons(echo_port);
 	    echo_hdr.reqnum = squid_curtime;
 	    debug(15, 6, "neighborsUdpPing - url: %s to url-host %s \n",

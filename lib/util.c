@@ -299,3 +299,17 @@ char *strdup(s)
     return (xstrdup(s));
 }
 #endif
+
+void xmemcpy(from, to, len)
+     void *from;
+     void *to;
+     int len;
+{
+#if HAVE_MEMMOVE
+    (void) memmove(from, to, len);
+#elif HAVE_BCOPY
+    bcopy(to, from, len);
+#else
+    (void) memcpy(from, to, len);
+#endif
+}

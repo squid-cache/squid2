@@ -231,7 +231,9 @@ static ipcache_entry *ipcache_get(name)
 	if ((e = hash_lookup(ip_table, name)) != NULL)
 	    i = (ipcache_entry *) e;
     }
-    if (i->status == IP_NEGATIVE_CACHED && ipcacheEntryExpired(i)) {
+    if (i == NULL)
+	return NULL;
+    if (i->status == IP_NEGATIVE_CACHED && ipcacheExpiredEntry(i)) {
 	ipcache_release(i);
 	i = NULL;
     }
@@ -410,7 +412,7 @@ static void ipcache_add(name, i, hp, cached)
 	i->entry.h_addr_list = xcalloc(addr_count + 1, sizeof(char *));
 	for (k = 0; k < addr_count; k++) {
 	    i->entry.h_addr_list[k] = xcalloc(1, hp->h_length);
-	    memcpy(i->entry.h_addr_list[k], hp->h_addr_list[k], hp->h_length);
+	    xmemcpy(i->entry.h_addr_list[k], hp->h_addr_list[k], hp->h_length);
 	}
 
 	if (alias_count) {
@@ -747,20 +749,9 @@ static int ipcache_dnsHandleRead(fd, dnsData)
 	    dnsData);
 	if (char_scanned > 0) {
 	    /* update buffer */
-#if HAVE_MEMMOVE
-	    memmove(dnsData->ip_inbuf,
+	    xmemcpy(dnsData->ip_inbuf,
 		dnsData->ip_inbuf + char_scanned,
 		dnsData->offset - char_scanned);
-#elif HAVE_BCOPY
-	    bcopy(dnsData->ip_inbuf + char_scanned,
-		dnsData->ip_inbuf,
-		dnsData->offset - char_scanned);
-#else
-	    /* pray memcpy handles overlaps */
-	    memcpy(dnsData->ip_inbuf,
-		dnsData->ip_inbuf + char_scanned,
-		dnsData->offset - char_scanned);
-#endif
 	    dnsData->offset -= char_scanned;
 	    dnsData->ip_inbuf[dnsData->offset] = '\0';
 	}
@@ -800,7 +791,7 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 	return 0;
     }
     if ((i = ipcache_get(name))) {
-	if (ipcacheEntryExpired(i)) {
+	if (ipcacheExpiredEntry(i)) {
 	    ipcache_release(i);
 	    i = NULL;
 	}
@@ -1162,7 +1153,7 @@ void stat_ipcache_get(sentry, obj)
 	    i->name, status, ttl, i->addr_count);
 	for (k = 0; k < (int) i->addr_count; k++) {
 	    struct in_addr addr;
-	    memcpy((char *) &addr, i->entry.h_addr_list[k], i->entry.h_length);
+	    xmemcpy(&addr, i->entry.h_addr_list[k], i->entry.h_length);
 	    storeAppendPrintf(sentry, " %s", inet_ntoa(addr));
 	}
 	for (k = 0; k < (int) i->alias_count; k++) {

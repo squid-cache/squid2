@@ -304,7 +304,7 @@ int comm_connect(sock, dest_host, dest_port)
 	debug(5, 1, "comm_connect: Failure to lookup host: %s.\n", dest_host);
 	return (COMM_ERROR);
     }
-    memcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
+    xmemcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
     to_addr.sin_port = htons(dest_port);
     return comm_connect_addr(sock, &to_addr);
 }
@@ -516,7 +516,7 @@ int comm_udp_send(fd, host, port, buf, len)
 	    host, xstrerror());
 	return (COMM_ERROR);
     }
-    memcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
+    xmemcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
     to_addr.sin_port = htons(port);
     if ((bytes_sent = sendto(fd, buf, len, 0, (struct sockaddr *) &to_addr,
 		sizeof(to_addr))) < 0) {
@@ -926,7 +926,7 @@ struct in_addr *getAddress(name)
     if (name == NULL)
 	return NULL;
     if ((list = getAddressList(name))) {
-	memcpy(&first.s_addr, *list, 4);
+	xmemcpy(&first.s_addr, *list, 4);
 	return (&first);
     }
     debug(5, 0, "getAddress: gethostbyname failure: %s: %s\n",

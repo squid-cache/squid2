@@ -44,6 +44,7 @@ void xxfree _PARAMS((void *));	/* Wrapper for free(3) */
 char *xstrdup _PARAMS((char *));
 char *xstrerror _PARAMS((void));
 char *getfullhostname _PARAMS((void));
+void xmemcpy _PARAMS((void *, void*, int));
 
 #if XMALLOC_STATISTICS
 void malloc_statistics _PARAMS((void (*)(int, int, void *), void *));

@@ -920,7 +920,7 @@ static void parseAddressLine(addr)
     if (inet_addr(token) != INADDR_NONE)
 	(*addr).s_addr = inet_addr(token);
     else if ((hp = gethostbyname(token)))
-	memcpy(addr, hp->h_addr, hp->h_length);
+	xmemcpy(addr, hp->h_addr, hp->h_length);
     else
 	self_destruct();
 }

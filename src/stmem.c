@@ -119,7 +119,7 @@ int memAppend(mem, data, len)
     if (mem->head && mem->tail && (mem->tail->len < SM_PAGE_SIZE)) {
 	avail_len = SM_PAGE_SIZE - (mem->tail->len);
 	len_to_copy = min(avail_len, len);
-	memcpy((mem->tail->data + mem->tail->len), data, len_to_copy);
+	xmemcpy((mem->tail->data + mem->tail->len), data, len_to_copy);
 	/* Adjust the ptr and len according to what was deposited in the page */
 	data += len_to_copy;
 	len -= len_to_copy;
@@ -131,7 +131,7 @@ int memAppend(mem, data, len)
 	p->next = NULL;
 	p->len = len_to_copy;
 	p->data = get_free_4k_page();
-	memcpy(p->data, data, len_to_copy);
+	xmemcpy(p->data, data, len_to_copy);
 
 	if (!mem->head) {
 	    /* The chain is empty */
@@ -237,18 +237,18 @@ int memCopy(mem, offset, buf, size)
     bytes_from_this_packet = min(bytes_to_go,
 	p->len - bytes_into_this_packet);
 
-    memcpy(buf, p->data + bytes_into_this_packet, bytes_from_this_packet);
+    xmemcpy(buf, p->data + bytes_into_this_packet, bytes_from_this_packet);
     bytes_to_go -= bytes_from_this_packet;
     ptr_to_buf = buf + bytes_from_this_packet;
     p = p->next;
 
     while (p && bytes_to_go > 0) {
 	if (bytes_to_go > p->len) {
-	    memcpy(ptr_to_buf, p->data, p->len);
+	    xmemcpy(ptr_to_buf, p->data, p->len);
 	    ptr_to_buf += p->len;
 	    bytes_to_go -= p->len;
 	} else {
-	    memcpy(ptr_to_buf, p->data, bytes_to_go);
+	    xmemcpy(ptr_to_buf, p->data, bytes_to_go);
 	    bytes_to_go -= bytes_to_go;
 	}
 	p = p->next;

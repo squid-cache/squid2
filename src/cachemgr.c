@@ -744,7 +744,7 @@ static int client_comm_connect(sock, dest_host, dest_port)
     if ((hp = gethostbyname(dest_host)) == 0) {
 	return (-1);
     }
-    memcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
+    xmemcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
     to_addr.sin_port = htons(dest_port);
     return connect(sock, (struct sockaddr *) &to_addr, sizeof(struct sockaddr_in));
 }

@@ -1120,7 +1120,7 @@ state_t do_connect(r)
 	return FAIL_CONNECT;
     }
     h = get_host(r->host);
-    memcpy(&(S.sin_addr.s_addr), h->ipaddr, h->addrlen);
+    xmemcpy(&(S.sin_addr.s_addr), h->ipaddr, h->addrlen);
     S.sin_family = AF_INET;
     S.sin_port = htons(r->port);
 

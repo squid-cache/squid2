@@ -103,7 +103,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	if ((hp = ipcache_gethostbyname(req->host, 0)) == NULL) {
 	    debug(17, 1, "Unknown host: %s\n", req->host);
 	} else {
-	    memcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);
+	    xmemcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);
 	    if (ip_access_check(srv_addr, local_ip_list) == IP_DENY) {
 		hierarchy_log_append(protoData->url,
 		    HIER_LOCAL_IP_DIRECT, 0,

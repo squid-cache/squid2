@@ -314,7 +314,7 @@ static int icpSendMoreData(fd, icpState)
 
     if (icpState->offset == 0 && entry->mem_obj->reply->code == 0 && len > 0) {
 	memset(scanbuf, '\0', 20);
-	memcpy(scanbuf, buf, len > 19 ? 19 : len);
+	xmemcpy(scanbuf, buf, len > 19 ? 19 : len);
 	sscanf(scanbuf, "HTTP/%lf %d", &http_ver, &tcode);
 	entry->mem_obj->reply->code = tcode;
     }
@@ -826,7 +826,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode, logcode)
     if (opcode == ICP_OP_QUERY)
 	headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->pad = 0;
-    /* memcpy(headerp->auth, , ICP_AUTH_SIZE); */
+    /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
     headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
     debug(12, 5, "icpUdpSend: headerp->reqnum = %d\n", headerp->reqnum);
 
@@ -835,7 +835,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode, logcode)
     if (opcode == ICP_OP_QUERY)
 	urloffset += sizeof(u_num32);
     /* it's already zero filled by xcalloc */
-    memcpy(urloffset, url, strlen(url));
+    xmemcpy(urloffset, url, strlen(url));
     data->msg = buf;
     data->len = buf_len;
     data->start = current_time;
@@ -904,10 +904,10 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
     headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
     urloffset = buf + sizeof(icp_common_t);
-    memcpy(urloffset, url, strlen(url));
+    xmemcpy(urloffset, url, strlen(url));
     data_sz = htons((u_short) entry->object_len);
     entryoffset = urloffset + strlen(url) + 1;
-    memcpy(entryoffset, &data_sz, sizeof(u_short));
+    xmemcpy(entryoffset, &data_sz, sizeof(u_short));
     entryoffset += sizeof(u_short);
     size = m->data->mem_copy(m->data, 0, entryoffset, entry->object_len);
     if (size != entry->object_len) {
@@ -1008,7 +1008,7 @@ int icpHandleUdp(sock, not_used)
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
     header.flags = ntohl(headerp->flags);
-    /* memcpy(headerp->auth, , ICP_AUTH_SIZE); */
+    /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
     header.shostid = ntohl(headerp->shostid);
 
     switch (header.opcode) {
@@ -1090,7 +1090,7 @@ int icpHandleUdp(sock, not_used)
 	url = buf + sizeof(header);
 	if (header.opcode == ICP_OP_HIT_OBJ) {
 	    data = url + strlen(url) + 1;
-	    memcpy((char *) &u, data, sizeof(u_short));
+	    xmemcpy((char *) &u, data, sizeof(u_short));
 	    data += sizeof(u_short);
 	    data_sz = ntohs(u);
 	    if (data_sz > (len - (data - buf))) {
@@ -1202,10 +1202,10 @@ static int parseHttpRequest(icpState)
 	debug(12, 5, "Incomplete request line, waiting for more data");
 	return 0;
     }
-    /* Use xmalloc/memcpy instead of xstrdup because inbuf might
+    /* Use xmalloc/xmemcpy instead of xstrdup because inbuf might
      * contain NULL bytes; especially for POST data  */
     inbuf = xmalloc(icpState->offset + 1);
-    memcpy(inbuf, icpState->inbuf, icpState->offset);
+    xmemcpy(inbuf, icpState->inbuf, icpState->offset);
     *(inbuf + icpState->offset) = '\0';
 
     /* Look for request method */
@@ -1253,7 +1253,7 @@ static int parseHttpRequest(icpState)
     }
     /* Ok, all headers are received */
     icpState->request_hdr = xmalloc(req_hdr_sz + 1);
-    memcpy(icpState->request_hdr, req_hdr, req_hdr_sz);
+    xmemcpy(icpState->request_hdr, req_hdr, req_hdr_sz);
     *(icpState->request_hdr + req_hdr_sz) = '\0';
 
     debug(12, 5, "parseHttpRequest: Request Header is\n---\n%s\n---\n",

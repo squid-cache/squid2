@@ -340,7 +340,7 @@ void gopherToHTML(data, inbuf, len)
 			entry->url);
 		    len = TEMP_BUF_SIZE - data->len;
 		}
-		memcpy(data->buf + data->len, inbuf, len);
+		xmemcpy(data->buf + data->len, inbuf, len);
 		data->len += len;
 		return;
 	    }
@@ -367,7 +367,7 @@ void gopherToHTML(data, inbuf, len)
 		    len = TEMP_BUF_SIZE;
 		}
 		if (len > (pos - inbuf)) {
-		    memcpy(data->buf, pos, len - (pos - inbuf));
+		    xmemcpy(data->buf, pos, len - (pos - inbuf));
 		    data->len = len - (pos - inbuf);
 		}
 		break;

@@ -139,7 +139,7 @@ static int decode_addr(asc, addr, mask)
     default:
 	if ((hp = gethostbyname(asc)) != NULL) {
 	    /* We got a host name */
-	    memcpy(addr, hp->h_addr, hp->h_length);
+	    xmemcpy(addr, hp->h_addr, hp->h_length);
 	} else {
 	    /* XXX: Here we could use getnetbyname */
 	    debug(28, 0, "decode_addr: Invalid IP address or hostname  '%s'\n", asc);
@@ -588,7 +588,7 @@ static int aclMatchTime(data, when)
 
     if (when != last_when) {
 	last_when = when;
-	memcpy(&tm, localtime(&when), sizeof(struct tm));
+	xmemcpy(&tm, localtime(&when), sizeof(struct tm));
     }
     debug(28, 3, "aclMatchTime: checking %d-%d, weekbits=%x\n",
 	data->start, data->stop, data->weekbits);
@@ -625,7 +625,7 @@ int aclMatchAcl(acl, c, m, pr, h, po, r)
 	    return 0;		/* cant check, return no match */
 	}
 	for (k = 0; hp->h_addr_list[k]; k++) {
-	    memcpy((char *) &dst.s_addr, hp->h_addr_list[k], hp->h_length);
+	    xmemcpy(&dst.s_addr, hp->h_addr_list[k], hp->h_length);
 	    if (aclMatchIp(acl->data, dst))
 		return 1;
 	}
