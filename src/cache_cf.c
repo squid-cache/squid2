@@ -659,6 +659,7 @@ free_peer(peer ** P)
 	*P = p->next;
 	peerDestroy(p);
     }
+    Config.npeers = 0;
 }
 
 static void
