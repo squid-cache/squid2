@@ -39,6 +39,9 @@
 
 #define MB ((size_t)1024*1024)
 
+/* exported */
+unsigned int mem_pool_alloc_calls = 0;
+unsigned int mem_pool_free_calls = 0;
 
 /* module globals */
 
@@ -231,6 +234,7 @@ memPoolAlloc(MemPool * pool)
     gb_inc(&TheMeter.total, pool->obj_size);
     memMeterAdd(TheMeter.inuse, pool->obj_size);
     gb_inc(&mem_traffic_volume, pool->obj_size);
+    mem_pool_alloc_calls++;
     if (pool->pstack.count) {
 	assert(pool->meter.idle.level);
 	memMeterDec(pool->meter.idle);
@@ -252,6 +256,7 @@ memPoolFree(MemPool * pool, void *obj)
     assert(pool && obj);
     memMeterDec(pool->meter.inuse);
     memMeterDel(TheMeter.inuse, pool->obj_size);
+    mem_pool_free_calls++;
     if (TheMeter.idle.level + pool->obj_size <= mem_idle_limit) {
 	memMeterInc(pool->meter.idle);
 	memMeterAdd(TheMeter.idle, pool->obj_size);
@@ -371,4 +376,6 @@ memReport(StoreEntry * e)
 	overhd_size, xpercent(overhd_size, TheMeter.inuse.level));
     /* limits */
     storeAppendPrintf(e, "Idle pool limit: %.2f MB\n", toMB(mem_idle_limit));
+    storeAppendPrintf(e, "memPoolAlloc calls: %d\n", mem_pool_alloc_calls);
+    storeAppendPrintf(e, "memPoolFree calls: %d\n", mem_pool_free_calls);
 }

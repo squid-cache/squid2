@@ -87,6 +87,9 @@ static int NCountHist = 0;
 static StatCounters CountHourHist[N_COUNT_HOUR_HIST];
 static int NCountHourHist = 0;
 
+extern unsigned int mem_pool_alloc_calls;
+extern unsigned int mem_pool_free_calls;
+
 static void
 statUtilization(StoreEntry * e)
 {
@@ -587,6 +590,10 @@ info_get(StoreEntry * sentry)
     storeAppendPrintf(sentry, "Memory accounted for:\n");
     storeAppendPrintf(sentry, "\tTotal accounted:       %6d KB\n",
 	memTotalAllocated() >> 10);
+    storeAppendPrintf(sentry, "\tmemPoolAlloc calls: %d\n",
+	mem_pool_alloc_calls);
+    storeAppendPrintf(sentry, "\tmemPoolFree calls: %d\n",
+	mem_pool_free_calls);
 
     storeAppendPrintf(sentry, "File descriptor usage for %s:\n", appname);
     storeAppendPrintf(sentry, "\tMaximum number of file descriptors:   %4d\n",
