@@ -286,8 +286,14 @@ ftpStateFree(int fdnotused, void *data)
     safe_free(ftpState->filepath);
     safe_free(ftpState->data.host);
     if (ftpState->data.fd > -1) {
-	comm_close(ftpState->data.fd);
-	ftpState->data.fd = -1;
+	if (fd_table[ftpState->data.fd].flags.open) {
+	    comm_close(ftpState->data.fd);
+	    ftpState->data.fd = -1;
+	} else {
+	    debug(9,1)("ftpStateFree: data FD %d somehow got closed\n",
+		ftpState->data.fd);
+	    ftpState->data.fd = -1;
+	}
     }
     cbdataFree(ftpState);
 }
