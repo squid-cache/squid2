@@ -376,7 +376,7 @@ AC_ARG_ENABLE(arp_acl,
 ])
 
 AC_ARG_ENABLE(htcp,
-[  --enable-htpc           Enable HTCP protocol],
+[  --enable-htcp           Enable HTCP protocol],
 [ if test "$enableval" = "yes" ; then
     echo "HTCP enabled"
     HTCP_OBJS='$(HTCP_OBJS)'
