@@ -541,7 +541,7 @@ CheckQuickAbort2(StoreEntry * entry)
 	debug(20, 3) ("CheckQuickAbort2: YES KEY_PRIVATE\n");
 	return 1;
     }
-    expectlen = mem->reply->content_length;
+    expectlen = mem->reply->content_length + mem->reply->hdr_sz;
     curlen = (int) mem->inmem_hi;
     minlen = (int) Config.quickAbort.min << 10;
     if (minlen < 0) {
