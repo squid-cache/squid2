@@ -1507,6 +1507,7 @@ configFreeMemory(void)
 static void
 configSetFactoryDefaults(void)
 {
+    memset((char *) &Config, '\0', sizeof(Config));
     Config.Mem.maxSize = DefaultMemMaxSize;
     Config.Mem.highWaterMark = DefaultMemHighWaterMark;
     Config.Mem.lowWaterMark = DefaultMemLowWaterMark;
