@@ -270,75 +270,75 @@ objcacheStart(int fd, StoreEntry * entry)
 	shut_down(0);
 	break;
     case MGR_INFO:
-	HTTPCacheInfo->info_get(HTTPCacheInfo, entry);
+	info_get(entry);
 	break;
     case MGR_OBJECTS:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "objects", entry);
+	stat_get("objects", entry);
 	break;
     case MGR_VM_OBJECTS:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "vm_objects", entry);
+	stat_get("vm_objects", entry);
 	break;
     case MGR_UTILIZATION:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "utilization", entry);
+	stat_get("utilization", entry);
 	break;
     case MGR_IPCACHE:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "ipcache", entry);
+	stat_get("ipcache", entry);
 	break;
     case MGR_FQDNCACHE:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "fqdncache", entry);
+	stat_get("fqdncache", entry);
 	break;
     case MGR_DNSSERVERS:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "dns", entry);
+	stat_get("dns", entry);
 	break;
     case MGR_REDIRECTORS:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "redirector", entry);
+	stat_get("redirector", entry);
 	break;
     case MGR_IO:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "io", entry);
+	stat_get("io", entry);
 	break;
     case MGR_REPLY_HDRS:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "reply_headers", entry);
+	stat_get("reply_headers", entry);
 	break;
     case MGR_FILEDESCRIPTORS:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "filedescriptors", entry);
+	stat_get("filedescriptors", entry);
 	break;
     case MGR_NETDB:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "netdb", entry);
+	stat_get("netdb", entry);
 	break;
     case MGR_LOG_STATUS:
-	HTTPCacheInfo->log_status_get(HTTPCacheInfo, entry);
+	log_status_get(entry);
 	break;
     case MGR_LOG_ENABLE:
-	HTTPCacheInfo->log_enable(HTTPCacheInfo, entry);
+	log_enable(entry);
 	break;
     case MGR_LOG_DISABLE:
-	HTTPCacheInfo->log_disable(HTTPCacheInfo, entry);
+	log_disable(entry);
 	break;
     case MGR_LOG_CLEAR:
-	HTTPCacheInfo->log_clear(HTTPCacheInfo, entry);
+	log_clear(entry);
 	break;
     case MGR_LOG_VIEW:
-	HTTPCacheInfo->log_get_start(HTTPCacheInfo, entry);
+	log_get_start(entry);
 	complete_flag = 0;
 	break;
     case MGR_CONFIG:
-	HTTPCacheInfo->parameter_get(HTTPCacheInfo, entry);
+	parameter_get(entry);
 	break;
     case MGR_SERVER_LIST:
-	HTTPCacheInfo->server_list(HTTPCacheInfo, entry);
+	server_list(entry);
 	break;
     case MGR_CLIENT_LIST:
 	clientdbDump(entry);
 	break;
     case MGR_CONFIG_FILE:
-	HTTPCacheInfo->squid_get_start(HTTPCacheInfo, entry);
+	squid_get_start(entry);
 	complete_flag = 0;
 	break;
     case MGR_STOREDIR:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "storedir", entry);
+	stat_get("storedir", entry);
 	break;
     case MGR_CBDATA:
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "cbdata", entry);
+	stat_get("cbdata", entry);
 	break;
     default:
 	debug(16, 5) ("Bad Object Cache URL %s ... negative cached.\n", entry->url);

@@ -149,32 +149,6 @@ extern Meta_data meta_data;
 
 struct _cacheinfo {
 
-    /* information retrieval method */
-    /* get a processed statistic object */
-    void (*stat_get) (const struct _cacheinfo * c, const char *req, StoreEntry * sentry);
-
-    /* get a processed info object */
-    void (*info_get) (const struct _cacheinfo * c, StoreEntry * sentry);
-
-    /* get a processed logfile object */
-    void (*log_get_start) (const struct _cacheinfo * c, StoreEntry * sentry);
-
-    /* get a processed logfile status */
-    void (*log_status_get) (const struct _cacheinfo * c, StoreEntry * sentry);
-
-    /* get a processed squid.conf object */
-    void (*squid_get_start) (const struct _cacheinfo * c, StoreEntry * sentry);
-
-    /* get a parameter object */
-    void (*parameter_get) (const struct _cacheinfo * c, StoreEntry * sentry);
-    void (*server_list) (const struct _cacheinfo * c, StoreEntry * sentry);
-
-
-    /* get a total bytes for object in cache */
-    int (*cache_size_get) (const struct _cacheinfo * c);
-
-    /* statistic update method */
-
     /* add a transaction to system log */
     void (*log_append) (const struct _cacheinfo * obj,
 	const char *url,
@@ -191,45 +165,13 @@ struct _cacheinfo {
 	const char *reply_hdrs,
 #endif				/* LOG_FULL_HEADERS */
 	const char *content_type);
-
-    /* clear logfile */
-    void (*log_clear) (struct _cacheinfo * obj, StoreEntry * sentry);
-
-    /* enable logfile */
-    void (*log_enable) (struct _cacheinfo * obj, StoreEntry * sentry);
-
-    /* disable logfile */
-    void (*log_disable) (struct _cacheinfo * obj, StoreEntry * sentry);
-
-    /* protocol specific stat update method */
-    /* return a proto_id for a given url */
-         protocol_t(*proto_id) (const char *url);
-
-    /* a new object cached. update obj count, size */
+    protocol_t (*proto_id) (const char *url);
     void (*proto_newobject) (struct _cacheinfo * c, protocol_t proto_id, int len, int flag);
-
-    /* an object purged */
     void (*proto_purgeobject) (struct _cacheinfo * c, protocol_t proto_id, int len);
-
-    /* an object is referred to. */
     void (*proto_touchobject) (struct _cacheinfo * c, protocol_t proto_id, int len);
-
-    /* a hit. update hit count, transfer byted. refcount */
     void (*proto_count) (struct _cacheinfo * obj, protocol_t proto_id,
 	log_type);
-
-    /* dummy Notimplemented object handler */
-    void (*NotImplement) (struct _cacheinfo * c, StoreEntry * sentry);
-
-    /* stat table and data */
-    char logfilename[SQUID_MAXPATHLEN];		/* logfile name */
-    int logfile_fd;		/* logfile fd */
-    /* logfile status {enable, disable} */
-    int logfile_status;
-
-    /* protocol stat data */
     proto_stat proto_stat_data[PROTO_MAX + 1];
-
 };
 
 struct _iostats {
@@ -254,5 +196,15 @@ extern const char *const close_bracket;
 extern void stat_init _PARAMS((cacheinfo **, const char *));
 extern void stat_rotate_log _PARAMS((void));
 extern void statCloseLog _PARAMS((void));
+extern void stat_get _PARAMS((const char *req, StoreEntry *));
+extern void log_clear _PARAMS((StoreEntry *));
+extern void log_disable _PARAMS((StoreEntry *));
+extern void log_enable _PARAMS((StoreEntry *));
+extern void log_get_start _PARAMS((StoreEntry *));
+extern void log_status_get _PARAMS((StoreEntry *));
+extern void info_get _PARAMS((StoreEntry *));
+extern void server_list _PARAMS((StoreEntry *));
+extern void parameter_get _PARAMS((StoreEntry *));
+extern void squid_get_start _PARAMS((StoreEntry *));
 
 #endif /*STAT_H */
