@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.16">
  <TITLE>Squid 2.5 release notes</TITLE>
 </HEAD>
 <BODY>
@@ -13,32 +13,7 @@
 Squid is a WWW Cache application developed by the National Laboratory
 for Applied Network Research and members of the Web Caching community.</EM>
 <HR>
-<H2><A NAME="s1">1. Key changes squid-2.5.STABLE1 to 2.5.STABLE2:</A></H2>
-
-<P>
-<UL>
-<LI>authentication now works in most access directives if
-first enforced in http_access</LI>
-<LI>contrib files included in the distribution again</LI>
-<LI>aufs bugfixes to address both stability and data
-corruption issues, and some aufs performance improvements.</LI>
-<LI>now possible to specify acl values with spaces in them
-via the "include file" technique</LI>
-<LI>winbind helpers updated to match Samba-2.2.7a and should
-work with Samba-2.2.6 or later (required). For compability with
-older Samba versions A new configure option --with-samba-sources=...
-has been added to allow you to specify which Samba version the
-helpers should be built for if different than the above versions.</LI>
-<LI>squid_ldap_group updated to correctly handle LDAP groups</LI>
-<LI>new experimental configure option --disable-hostname-checks to make Squid not validate that received hostnames are valid for use within HTTP. Required to participate in testbeds for international domain names etc.</LI>
-<LI>several assertion or segmentation faults corrected</LI>
-<LI>a large number of minor bugfixes. See the list of 
-<A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE1">squid-2.5.STABLE1 patches</A> and the 
-<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
-</UL>
-</P>
-
-<H2><A NAME="s2">2. Key changes from squid 2.4:</A></H2>
+<H2><A NAME="s1">1. Key changes from squid 2.4:</A></H2>
 
 <P>
 <UL>
@@ -112,7 +87,7 @@ exacly where you want to have them in your system.</LI>
 </UL>
 </P>
 
-<H2><A NAME="s3">3. Changes to squid.conf</A></H2>
+<H2><A NAME="s2">2. Changes to squid.conf</A></H2>
 
 <P>
 <DL>
@@ -157,7 +132,7 @@ exacly where you want to have them in your system.</LI>
 </DL>
 </P>
 
-<H2><A NAME="s4">4. Known limitations</A></H2>
+<H2><A NAME="s3">3. Known limitations</A></H2>
 
 <P>There is a few limitations to this version of Squid that we hope to correct in a later release</P>
 <P>
@@ -165,6 +140,38 @@ exacly where you want to have them in your system.</LI>
 <DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access </P>
 </DL>
 </P>
+
+<H2><A NAME="s4">4. Key changes squid-2.5.STABLE1 to 2.5.STABLE2:</A></H2>
+
+<P>
+<UL>
+<LI>authentication now works in most access directives if
+first enforced in http_access</LI>
+<LI>contrib files included in the distribution again</LI>
+<LI>aufs bugfixes to address both stability and data
+corruption issues, and some aufs performance improvements.</LI>
+<LI>now possible to specify acl values with spaces in them
+via the "include file" technique</LI>
+<LI>winbind helpers updated to match Samba-2.2.7a and should
+work with Samba-2.2.6 or later (required). For compability with
+older Samba versions A new configure option --with-samba-sources=...
+has been added to allow you to specify which Samba version the
+helpers should be built for if different than the above versions.</LI>
+<LI>squid_ldap_group updated to correctly handle LDAP groups</LI>
+<LI>new experimental configure option --disable-hostname-checks to make Squid not validate that received hostnames are valid for use within HTTP. Required to participate in testbeds for international domain names etc.</LI>
+<LI>several assertion or segmentation faults corrected</LI>
+<LI>a large number of minor bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE1">squid-2.5.STABLE1 patches</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s5">5. Key changes squid-2.5.STABLE2 to 2.5.STABLE3:</A></H2>
+
+<P>Squid-2.5.STABLE3 is a bugfix release. No changes to configuration
+or usage. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE2">squid-2.5.STABLE2 patches</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</P>
 
 </BODY>
 </HTML>
