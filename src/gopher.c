@@ -161,7 +161,7 @@ typedef struct gopher_ds {
 } GopherStateData;
 
 static PF gopherStateFree;
-static void gopher_mime_content(MemBuf *mb, const char *name, const char *def);
+static void gopher_mime_content(MemBuf * mb, const char *name, const char *def);
 static void gopherMimeCreate(GopherStateData *);
 static int gopher_url_parser(const char *url,
     char *host,
@@ -199,7 +199,7 @@ gopherStateFree(int fdnotused, void *data)
 
 /* figure out content type from file extension */
 static void
-gopher_mime_content(MemBuf *mb, const char *name, const char *def_ctype)
+gopher_mime_content(MemBuf * mb, const char *name, const char *def_ctype)
 {
     char *ctype = mimeGetContentType(name);
     char *cenc = mimeGetContentEncoding(name);
@@ -219,7 +219,7 @@ gopherMimeCreate(GopherStateData * gopherState)
 
     memBufDefInit(&mb);
 
-    memBufPrintf(&mb, 
+    memBufPrintf(&mb,
 	"HTTP/1.0 200 OK Gatewaying\r\n"
 	"Server: Squid/%s\r\n"
 	"Date: %s\r\n"

@@ -265,7 +265,7 @@ static void
 waisSendRequest(int fd, void *data)
 {
     WaisStateData *waisState = data;
-#if OLD_CODE    
+#if OLD_CODE
     int len = strlen(waisState->request) + 4;
     char *buf = NULL;
 #else

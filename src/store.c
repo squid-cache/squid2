@@ -991,7 +991,7 @@ storeTimestampsSet(StoreEntry * entry)
 	served_date = squid_curtime;
     entry->expires = reply->expires;
     if (reply->last_modified > -1)
-        entry->lastmod = reply->last_modified;
+	entry->lastmod = reply->last_modified;
     if (entry->lastmod < 0)
 	entry->lastmod = served_date;
     entry->timestamp = served_date;

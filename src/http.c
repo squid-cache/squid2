@@ -613,7 +613,7 @@ httpBuildRequestHeader(request_t * request,
     debug(11, 3) ("httpBuildRequestHeader:\n%s", orig_request->prefix);
 #endif
     httpHeaderInit(hdr_out, hoRequest);
-    
+
     /* append our IMS header */
     if (entry && entry->lastmod > -1 && request->method == METHOD_GET)
 	httpHeaderPutTime(hdr_out, HDR_IF_MODIFIED_SINCE, entry->lastmod);

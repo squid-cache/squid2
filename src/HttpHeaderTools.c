@@ -109,7 +109,7 @@ httpHeaderIdByName(const char *name, int name_len, const HttpHeaderFieldInfo * i
 /* same as httpHeaderPutStr, but formats the string using snprintf first */
 #ifdef __STDC__
 void
-httpHeaderPutStrf(HttpHeader * hdr, http_hdr_type id, const char *fmt, ...)
+httpHeaderPutStrf(HttpHeader * hdr, http_hdr_type id, const char *fmt,...)
 {
     va_list args;
     va_start(args, fmt);

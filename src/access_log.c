@@ -35,8 +35,8 @@
 
 static void accessLogOpen(const char *fname);
 static char *log_quote(const char *header);
-static void accessLogSquid(AccessLogEntry * al, MemBuf *mb);
-static void accessLogCommon(AccessLogEntry * al, MemBuf *mb);
+static void accessLogSquid(AccessLogEntry * al, MemBuf * mb);
+static void accessLogCommon(AccessLogEntry * al, MemBuf * mb);
 
 const char *log_tags[] =
 {
@@ -154,7 +154,7 @@ log_quote(const char *header)
 }
 
 static void
-accessLogSquid(AccessLogEntry * al, MemBuf *mb)
+accessLogSquid(AccessLogEntry * al, MemBuf * mb)
 {
     const char *client = NULL;
     if (Config.onoff.log_fqdn)
@@ -179,7 +179,7 @@ accessLogSquid(AccessLogEntry * al, MemBuf *mb)
 }
 
 static void
-accessLogCommon(AccessLogEntry * al, MemBuf *mb)
+accessLogCommon(AccessLogEntry * al, MemBuf * mb)
 {
     const char *client = NULL;
     if (Config.onoff.log_fqdn)

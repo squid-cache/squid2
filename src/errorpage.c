@@ -372,8 +372,8 @@ errorConvert(char token, ErrorState * err)
 {
     request_t *r = err->request;
     static MemBuf mb = MemBufNULL;
-    const char *p = NULL; /* takes priority over mb if set */
-    
+    const char *p = NULL;	/* takes priority over mb if set */
+
     memBufReset(&mb);
     switch (token) {
     case 'B':
@@ -503,7 +503,7 @@ errorConvert(char token, ErrorState * err)
 	break;
     }
     if (!p)
-	p = mb.buf; /* do not use mb after this assignment! */
+	p = mb.buf;		/* do not use mb after this assignment! */
     assert(p);
     debug(4, 3) ("errorConvert: %%%c --> '%s'\n", token, p);
     return p;

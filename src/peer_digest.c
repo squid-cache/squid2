@@ -506,7 +506,7 @@ peerDigestFetchFinish(DigestFetchState * fetch, char *buf, const char *err_msg)
     const time_t expires = fetch->entry->expires;
     const time_t fetch_resp_time = squid_curtime - fetch->start_time;
     const int b_read = (fetch->entry->store_status == STORE_PENDING) ?
-	mem->inmem_hi : mem->object_sz;
+    mem->inmem_hi : mem->object_sz;
     const int req_len = req ? httpRequestPrefixLen(req) : 0;
     assert(req);
     /* final checks */

@@ -116,7 +116,7 @@ wordlistAdd(wordlist ** list, const char *key)
 }
 
 void
-wordlistCat(const wordlist * w, MemBuf *mb)
+wordlistCat(const wordlist * w, MemBuf * mb)
 {
     while (NULL != w) {
 	memBufPrintf(mb, "%s\n", w->key);

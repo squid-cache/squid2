@@ -192,7 +192,7 @@ statHistBinDumper(StoreEntry * sentry, int idx, double val, double size, int cou
 }
 
 void
-statHistDump(const StatHist * H, StoreEntry * sentry, StatHistBinDumper *bd)
+statHistDump(const StatHist * H, StoreEntry * sentry, StatHistBinDumper * bd)
 {
     int i;
     double left_border = H->min;
@@ -248,7 +248,7 @@ statHistEnumDumper(StoreEntry * sentry, int idx, double val, double size, int co
 void
 statHistIntInit(StatHist * H, int n)
 {
-    statHistInit(H, n, &Null, &Null, 0, n-1);
+    statHistInit(H, n, &Null, &Null, 0, n - 1);
 }
 
 void
