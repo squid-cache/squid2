@@ -221,7 +221,35 @@ Changes to Squid-2.2 (April 19, 1999):
 	  'Cache-control: only-if-cached, this generates 504 Gateway
 	  Timeout responses and the request may not be re-forwardable.
 	- Fixed a filedescriptor leak for some aborted requests.
-	
+
+	2.2.STABLE5:
+
+	- Changed configure to look for IP-Filter header files
+	  in both /usr/include and /usr/include/netinet.
+	- Fixed an ACL subdomain comparison bug (aclDomainCompare).
+	- Fixed an ACL host <=> domain comparison bug
+	  (aclHostDomainCompare).
+	- Fixed a "xstrdup: tried to dup a NULL pointer!" bug
+	  caused by illegal hostname characters when certain
+	  ACL types are in use.
+	- Fixed res_init() bug in dnsserver.  We used to call
+	  res_init(), and then clear the RES_INIT bit in
+	  _res.options.  This caused res_init() to be
+	  called again as soon as we use gethostbyname(), and
+	  this second initialization wipes out our changing
+	  the nameservers.  The fix is just to NOT set
+	  _res.options to RES_DEFAULT after calling res_init().
+	- Changed FTP to close data sockets as soon as the transfer
+	  ends, rather than waiting for the reply message on the
+	  control socket (Alexander V. Lukyanov).
+	- Fixed some buffering problems between Squid and the
+	  unlinkd process.  By using file_write(), unlink requests
+	  were being buffered and experiencing long delays under
+	  heavy load.  Now use use good ol' write() instead.  Also
+	  added some feedback from unlinkd to squid so we can track
+	  the unlink request queue.  If the queue becomes too large,
+	  we block a little and wait for some acks from unlinkd.
+
 Changes to Squid-2.1 (November 16, 1998):
 
 	- Changed delayPoolsUpdate() to be called as an event.
