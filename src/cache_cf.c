@@ -137,12 +137,21 @@ intlistDestroy(intlist ** list)
 {
     intlist *w = NULL;
     intlist *n = NULL;
-
     for (w = *list; w; w = n) {
 	n = w->next;
 	safe_free(w);
     }
     *list = NULL;
+}
+
+int
+intlistFind(intlist * list, int i)
+{
+    intlist *w = NULL;
+    for (w = list; w; w = w->next)
+	if (w->i == i)
+	    return 1;
+    return 0;
 }
 
 
