@@ -1591,7 +1591,10 @@ storeDiskdDirReplAdd(SwapDir * SD, StoreEntry * e)
 void
 storeDiskdDirReplRemove(StoreEntry * e)
 {
-    SwapDir *SD = INDEXSD(e->swap_dirn);
+    SwapDir *SD;
+    if (e->swap_dirn < 0)
+	return;
+    SD = INDEXSD(e->swap_dirn);
     debug(20, 4) ("storeDiskdDirReplRemove: remove node %p from dir %d\n", e,
 	SD->index);
     SD->repl->Remove(SD->repl, e, &e->repl);
