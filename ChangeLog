@@ -19,6 +19,8 @@
 	  sort the other way when removing in-mem objects.
 	- Changed storeShouldPurgeMem() to use the high water mark
 	  instead of the low water mark.
+	- If a deny_info URL has 'cgi' in it, then append CGI args for
+	  client's IP address, requested URL, and the denying cache.
 
 Changes to squid-1.1.20 (January 9, 1998):
 
