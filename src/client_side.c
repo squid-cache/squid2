@@ -2469,6 +2469,11 @@ clientReadRequest(int fd, void *data)
 		    if (conn->in.offset)
 			xmemmove(conn->in.buf, conn->in.buf + copy_len, conn->in.offset);
 		}
+		/*
+		 * ick; cancel the read handler for NON-GET requests
+		 * until this request is forwarded/resolved
+		 */
+    		commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 		break;
 	    }
 	    continue;		/* while offset > 0 */
