@@ -196,6 +196,7 @@ EXTRA_squid_SOURCES = \
 	snmp_agent.c \
 	unlinkd.c \
 	ssl_support.c \
+	ssl_support.h \
 	win32.c
 
 
@@ -586,7 +587,7 @@ all: $(BUILT_SOURCES)
 .SUFFIXES: .c .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/Makefile
+	  $(AUTOMAKE) --foreign  src/Makefile
 Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && \
 	  CONFIG_HEADERS= CONFIG_LINKS= \

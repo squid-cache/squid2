@@ -126,7 +126,13 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 makesnmplib = @makesnmplib@
 
-libexec_SCRIPTS = smb_auth.pl
+libexec_SCRIPTS = \
+	smb_auth.pl
+
+
+EXTRA_DIST = \
+	smb_auth.pl
+
 subdir = src/auth/basic/helpers/multi-domain-NTLM
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/autoconf.h
