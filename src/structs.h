@@ -150,7 +150,6 @@ struct _aclCheck_t {
     ConnStateData *conn;	/* hack for ident */
     char ident[USER_IDENT_SZ];
 #endif
-    char browser[BROWSERNAMELEN];
     acl_proxy_auth_user *auth_user;
     acl_lookup_state state[ACL_ENUM_MAX];
 #if SQUID_SNMP

@@ -139,15 +139,12 @@ clientAccessCheck(void *data)
 {
     clientHttpRequest *http = data;
     ConnStateData *conn = http->conn;
-    const char *browser;
     if (checkAccelOnly(http)) {
 	clientAccessCheckDone(0, http);
 	return;
     }
-    browser = httpHeaderGetStr(&http->request->header, HDR_USER_AGENT);
     http->acl_checklist = aclChecklistCreate(Config.accessList.http,
 	http->request,
-	browser,
 	conn->ident);
 #if USE_IDENT
     /*
