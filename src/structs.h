@@ -1054,6 +1054,7 @@ struct _peer {
 	int ignored_replies;
 	int n_keepalives_sent;
 	int n_keepalives_recv;
+	time_t probe_start;
 	time_t last_query;
 	time_t last_reply;
 	int logged_state;	/* so we can print dead/revived msgs */
