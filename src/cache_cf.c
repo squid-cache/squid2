@@ -406,7 +406,7 @@ parseBytesLine(size_t * bptr, const char *units)
 	self_destruct();
     d = atof(token);
     m = u;			/* default to 'units' if none specified */
-    if (0 == d)
+    if (0.0 == d)
 	(void) 0;
     else if ((token = strtok(NULL, w_space)) == NULL)
 	debug(3, 0) ("WARNING: No units on '%s', assuming %f %s\n",
