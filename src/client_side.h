@@ -1,4 +1,4 @@
-extern void clientAccessCheck(icpStateData *, void (*) __P((icpStateData *, int)));
+extern void clientAccessCheck(icpStateData *, void (*)__P((icpStateData *, int)));
 extern void clientAccessCheckDone __P((icpStateData *, int answer));
 extern int icpProcessExpired __P((int fd, icpStateData *));
 

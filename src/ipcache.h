@@ -135,9 +135,9 @@ typedef struct _ipcache_entry {
 } ipcache_entry;
 
 extern void ipcache_nbgethostbyname __P((char *name,
-    int fd,
-    IPH handler,
-    void *handlerData));
+	int fd,
+	IPH handler,
+	void *handlerData));
 extern int ipcache_purgelru __P((void));
 extern int ipcache_unregister __P((char *, int));
 extern struct hostent *ipcache_gethostbyname __P((char *, int flags));

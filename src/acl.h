@@ -126,7 +126,7 @@ struct _aclCheck_t {
 
 extern int aclCheck __P((struct _acl_access *, aclCheck_t *));
 extern int aclMatchAcl __P((struct _acl *, aclCheck_t *));
-extern void aclDestroyAccessList __P((struct _acl_access **list));
+extern void aclDestroyAccessList __P((struct _acl_access ** list));
 extern void aclDestroyAcls __P((void));
 extern void aclParseAccessLine __P((struct _acl_access **));
 extern void aclParseAclLine __P((void));

@@ -193,19 +193,19 @@ extern struct in_addr *getAddress __P((char *name));
 extern void comm_set_stall __P((int, int));
 extern int comm_get_fd_timeout __P((int fd));
 extern void comm_read __P((int fd,
-    char *buf,
-    int size,
-    int timeout,
-    int immed,
-    rw_complete_handler * handler,
-    void *handler_data));
+	char *buf,
+	int size,
+	int timeout,
+	int immed,
+	rw_complete_handler * handler,
+	void *handler_data));
 extern void comm_write __P((int fd,
-    char *buf,
-    int size,
-    int timeout,
-    rw_complete_handler * handler,
-    void *handler_data,
-    void (*) __P((void *))));
+	char *buf,
+	int size,
+	int timeout,
+	rw_complete_handler * handler,
+	void *handler_data,
+	void       (*)__P((void *))));
 
 extern int RESERVED_FD;
 

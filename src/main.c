@@ -130,7 +130,7 @@ struct in_addr local_addr;
 char *dash_str = "-";
 
 /* for error reporting from xmalloc and friends */
-extern void (*failure_notify)  __P((char *));
+extern void (*failure_notify) __P((char *));
 
 static int rotate_pending = 0;	/* set by SIGUSR1 handler */
 static int httpPortNumOverride = 1;

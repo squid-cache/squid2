@@ -120,7 +120,7 @@ extern time_t getCurrentTime __P((void));
 extern void normal_shutdown __P((void));
 extern int tvSubMsec __P((struct timeval, struct timeval));
 extern int percent __P((int, int));
-extern void squid_signal __P((int sig, void (*func)  __P((int)), int flags));
+extern void squid_signal __P((int sig, void (*func) __P((int)), int flags));
 extern char *accessLogTime __P((time_t));
 extern int readPidFile __P((void));
 extern void _debug_trap __P((char *message));

@@ -178,21 +178,21 @@ typedef struct _FileEntry {
 
 extern FileEntry *file_table;
 
-extern int file_open __P((char *path, int (*handler)  __P((void)), int mode));
+extern int file_open __P((char *path, int (*handler) __P((void)), int mode));
 extern int file_close __P((int fd));
 extern int file_write __P((int fd,
-    char *buf,
-    int len,
-    int access_code,
-    void (*handle) __P((int, int, StoreEntry *)),
-    void *handle_data,
-    void (*free) __P((void *))));
+	char *buf,
+	int len,
+	int access_code,
+	void       (*handle) __P((int, int, StoreEntry *)),
+	void *handle_data,
+	void       (*free) __P((void *))));
 extern int file_write_unlock __P((int fd, int access_code));
 extern int file_read __P((int fd,
 	char *buf,
 	int req_len,
 	int offset,
-    	int (*handler) __P((int fd,
+	int       (*handler) __P((int fd,
 		char *buf,
 		int size,
 		int errflag,
@@ -200,10 +200,10 @@ extern int file_read __P((int fd,
 		int offset)),
 	void *client_data));
 extern int file_walk __P((int fd,
-    int (*handler) __P((int fd, int errflag, void *data)),
-    void *client_data,
-    int (*line_handler) __P((int fd, char *buf, int size, void *line_data)),
-    void *line_data));
+	int       (*handler) __P((int fd, int errflag, void *data)),
+	void *client_data,
+	int       (*line_handler) __P((int fd, char *buf, int size, void *line_data)),
+	void *line_data));
 extern int file_write_lock __P((int fd));
 extern int disk_init __P((void));
 extern int diskWriteIsComplete __P((int));
