@@ -764,6 +764,7 @@ aclParseAclLine(acl ** head)
     case ACL_BROWSER:
     case ACL_SRC_DOM_REGEX:
     case ACL_DST_DOM_REGEX:
+    case ACL_REQ_MIME_TYPE:
 	aclParseRegexList(&A->data);
 	break;
     case ACL_SRC_ASN:
