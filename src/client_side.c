@@ -397,7 +397,7 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
     LOCAL_ARRAY(char, hbuf, 8192);
     int len;
     int unlink_request = 0;
-    debug(33, 0, "icpHandleIMSReply: FD %d '%s'\n", fd, entry->url);
+    debug(33, 3, "icpHandleIMSReply: FD %d '%s'\n", fd, entry->url);
     /* unregister this handler */
     storeUnregister(entry, fd);
     if (entry->store_status == STORE_ABORTED) {
