@@ -836,7 +836,7 @@ httpStart(request_t * request, StoreEntry * entry, peer * e)
     Counter.server.all.requests++;
     Counter.server.http.requests++;
     if (e) {
-	if (e->options & NEIGHBOR_PROXY_ONLY)
+	if (EBIT_TEST(e->options, NEIGHBOR_PROXY_ONLY))
 	    storeReleaseRequest(entry);
 	if ((fd = pconnPop(e->host, e->http_port)) >= 0) {
 	    debug(11, 3) ("httpStart: reusing pconn FD %d\n", fd);
