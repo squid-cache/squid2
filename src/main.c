@@ -926,11 +926,6 @@ static void
 SquidShutdown(void *unused)
 {
     debug(1, 1) ("Shutting down...\n");
-    if (Config.pidFilename && strcmp(Config.pidFilename, "none")) {
-	enter_suid();
-	safeunlink(Config.pidFilename, 0);
-	leave_suid();
-    }
     icpConnectionClose();
 #if USE_HTCP
     htcpSocketClose();
@@ -993,6 +988,11 @@ SquidShutdown(void *unused)
 #if MEM_GEN_TRACE
     log_trace_done();
 #endif
+    if (Config.pidFilename && strcmp(Config.pidFilename, "none") != 0) {
+	enter_suid();
+	safeunlink(Config.pidFilename, 0);
+	leave_suid();
+    }
     debug(1, 1) ("Squid Cache (Version %s): Exiting normally.\n",
 	version_string);
     if (debug_log)
