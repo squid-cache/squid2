@@ -160,3 +160,10 @@ beta8:
 	- More friendly CFLAGS and LDFLAGS for configure
 	- ACL_ALLWEEK bugfix
 	- Added missing increment of UDP connection counter.
+	- Changed ftpget select to check for EWOULDBLOCK/EAGAIN
+	  (workaround for broken Solaris select(2)).
+	- Fixed MALLINFO calls for Linux
+	- Fixed strerror() problems on SunOS 4.1.x
+	- Fixed DefaultAnnounceRate; set to zero by defult.
+	- Changed all port variables to u_short.
+	- Created AF_UNIX versions of comm_open(), comm_connect().
