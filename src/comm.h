@@ -213,6 +213,8 @@ extern void comm_write _PARAMS((int fd,
 	void       (*)_PARAMS((void *))));
 extern void commFreeMemory _PARAMS((void));
 extern void commCallCloseHandlers _PARAMS((int fd));
+extern void commCancelRWHandler _PARAMS((int fd));
+
 
 
 extern int RESERVED_FD;

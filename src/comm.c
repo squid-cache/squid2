@@ -155,6 +155,17 @@ static void commSetTcpRcvbuf _PARAMS((int, int));
 static int *fd_lifetime = NULL;
 static struct timeval zero_tv;
 
+void
+commCancelRWHandler(int fd)
+{
+    RWStateData *RWState = fd_table[fd].rwstate;
+    if (RWState) {
+        RWState->handler = NULL;
+        RWState->handler_data = NULL;
+    }
+}
+
+
 static void
 RWStateCallbackAndFree(int fd, int code)
 {
