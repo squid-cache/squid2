@@ -1986,11 +1986,18 @@ clientReadRequest(int fd, void *data)
 			http->uri, prefix);
 		/* continue anyway? */
 	    }
-	    if (!http->flags.internal)
-		if (internalCheck(strBuf(request->urlpath)))
-		    if (0 == strcasecmp(request->host, getMyHostname()))
+	    if (!http->flags.internal) {
+		if (internalCheck(strBuf(request->urlpath))) {
+		    if (0 == strcasecmp(request->host, getMyHostname())) {
 			if (request->port == Config.Port.http->i)
 			    http->flags.internal = 1;
+		    } else if (internalStaticCheck(strBuf(request->urlpath))) {
+			    xstrncpy(request->host, getMyHostname(), SQUIDHOSTNAMELEN);
+			    request->port = Config.Port.http->i;
+			    http->flags.internal = 1;
+		    }
+		}
+	    }
 	    safe_free(http->log_uri);
 	    http->log_uri = xstrdup(urlCanonicalClean(request));
 	    request->client_addr = conn->peer.sin_addr;
