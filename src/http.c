@@ -573,15 +573,14 @@ httpPconnTransferDone(HttpStateData * httpState)
 	return 0;
     debug(11, 5) ("httpPconnTransferDone: content_length=%d\n",
 	reply->content_length);
-#if DONT_THINK_THIS_MATTERS
     /*
      * !200 replies maybe don't have content-length, so
      * if we saw the end of the headers then try being persistent.
      */
     if (reply->code != 200)
-	if (httpState->reply_hdr_state > 1)
-	    return 1;
-#endif
+	if (reply->content_length < 0)
+	    if (httpState->reply_hdr_state > 1)
+	        return 1;
     /*
      * If there is no content-length, then we probably can't be persistent
      */
