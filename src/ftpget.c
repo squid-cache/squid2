@@ -1052,7 +1052,7 @@ read_reply(int fd)
 	    quit = (buf[0] >= '0' && buf[0] <= '9' && buf[3] == ' ');
 	if (!quit) {
 	    l = xmalloc(sizeof(list_t));
-	    if (sscanf(buf, "%3d-", &n) == 1)
+	    if (buf[0] >= '0' && buf[0] <= '9' && buf[3] == '-')
 		l->ptr = xstrdup(&buf[4]);
 	    else
 		l->ptr = xstrdup(buf);
