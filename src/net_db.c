@@ -798,6 +798,7 @@ netdbDump(StoreEntry * sentry)
     httpBuildVersion(&version, 1, 0);
     httpReplySetHeaders(reply, version, HTTP_BAD_REQUEST, "Bad Request",
 	NULL, -1, squid_curtime, -2);
+    httpReplySwapOut(reply, sentry);
     storeAppendPrintf(sentry,
 	"NETDB support not compiled into this Squid cache.\n");
 #endif
@@ -969,6 +970,7 @@ netdbBinaryExchange(StoreEntry * s)
     httpBuildVersion(&version, 1, 0);
     httpReplySetHeaders(reply, version, HTTP_BAD_REQUEST, "Bad Request",
 	NULL, -1, squid_curtime, -2);
+    httpReplySwapOut(reply, s);
     storeAppendPrintf(s, "NETDB support not compiled into this Squid cache.\n");
 #endif
     storeComplete(s);
