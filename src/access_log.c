@@ -389,7 +389,7 @@ accessLogInit(void)
     logfile = logfileOpen(Config.Log.access, MAX_URL << 1, 1);
     LogfileStatus = LOG_ENABLE;
 #if HEADERS_LOG
-    headerslog = logfileOpen("/usr/local/squid/logs/headers.log", 512);
+    headerslog = logfileOpen("/usr/local/squid/logs/headers.log", MAX_URL << 1, 0);
     assert(NULL != headerslog);
 #endif
 #if FORW_VIA_DB
