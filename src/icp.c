@@ -183,9 +183,6 @@ static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
-#ifdef UNUSED_CODE
-static void icpHandleAbort _PARAMS((int fd, void *));
-#endif
 static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
 static void icpStateFree _PARAMS((int fd, void *data));
 static int icpCheckTransferDone _PARAMS((icpStateData *));
@@ -2001,40 +1998,3 @@ vizHackSendPkt(const struct sockaddr_in *from, int type)
 	(struct sockaddr *) &Config.vizHack.S,
 	sizeof(struct sockaddr_in));
 }
-
-#ifdef UNUSED_CODE
-/* 
- * icpHandleAbort()
- * Call for objects which might have been aborted.  If the entry
- * was aborted, AND the client has not seen any data yet, then
- * Queue the error page via icpSendERROR().  Otherwise just
- * close the socket.
- */
-static void
-icpHandleAbort(int fd, void *data)
-{
-    icpStateData *icpState = data;
-    StoreEntry *entry = icpState->entry;
-    if (entry == NULL) {
-	comm_close(fd);
-	return;
-    }
-    if (entry->store_status != STORE_ABORTED) {
-	comm_close(fd);
-	return;
-    }
-    if (icpState->out.size > 0) {
-	comm_close(fd);
-	return;
-    }
-    if (entry->mem_obj->e_abort_msg == NULL) {
-	comm_close(fd);
-	return;
-    }
-    icpSendERROR(fd,
-	entry->mem_obj->abort_code,
-	entry->mem_obj->e_abort_msg,
-	icpState,
-	400);
-}
-#endif
