@@ -154,8 +154,8 @@ getfullhostname(void)
     static char buf[SQUIDHOSTNAMELEN + 1];
 
     if (gethostname(buf, SQUIDHOSTNAMELEN) < 0)
-	return (NULL);
-    if ((hp = gethostbyname(buf)) == NULL)
-	return (buf);
-    return (hp->h_name);
+	return NULL;
+    if ((hp = gethostbyname(buf)) != NULL)
+	strncpy(buf, hp->h_name, SQUIDHOSTNAMELEN);
+    return buf;
 }
