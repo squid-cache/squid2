@@ -133,10 +133,10 @@ aioClose(int fd)
     ctrlp->operation = _AIO_CLOSE;
     if (aio_close(fd, &(ctrlp->result)) < 0) {
 	close(fd);		/* Can't create thread - do a normal close */
+	memPoolFree(aio_ctrl_pool, ctrlp);
+	fd_was_closed(fd);
 	return;
     }
-    memPoolFree(aio_ctrl_pool, ctrlp);
-    fd_was_closed(fd);
     ctrlp->next = used_list;
     used_list = ctrlp;
     return;
@@ -288,9 +288,9 @@ aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data, void
 	    errno = EWOULDBLOCK;
 	if (callback)
 	    (callback) (ctrlp->fd, callback_data, -1, errno);
+	memPoolFree(aio_ctrl_pool, ctrlp);
 	return;
     }
-    memPoolFree(aio_ctrl_pool, ctrlp);
     ctrlp->next = used_list;
     used_list = ctrlp;
     return;
