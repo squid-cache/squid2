@@ -52,7 +52,7 @@
 /* Linux requires proper use of mutexes or it will segfault deep in the
  * thread libraries. Observed on Alpha SMP Linux 2.2.10-ac12.
  */
-#define USE_PROPER_MUTEX 1
+#define AIO_PROPER_MUTEX 1
 #endif
 
 enum _aio_thread_status {
