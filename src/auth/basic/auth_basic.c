@@ -212,7 +212,7 @@ authenticateBasicDirection(auth_user_request_t * auth_user_request)
     case 2:			/* paused while waiting for a username:password check on another request */
 	return -1;
     case 3:			/* authentication process failed. */
-	return -2;
+	return 0;
     }
     return -2;
 }
