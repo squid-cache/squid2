@@ -128,12 +128,11 @@ static void *aio_do_opendir(aio_request_t *);
 static void aio_debug(aio_request_t *);
 static void aio_poll_threads(void);
 
-static aio_thread_t thread[NUMTHREADS];
+static aio_thread_t *threads;
 static int aio_initialised = 0;
 
 static int request_queue_len = 0;
-static aio_request_t *free_requests = NULL;
-static int num_free_requests = 0;
+static MemPool *aio_request_pool = NULL;
 static aio_request_t *request_queue_head = NULL;
 static aio_request_t *request_queue_tail = NULL;
 static aio_request_t *request_done_head = NULL;
@@ -169,9 +168,10 @@ aio_init(void)
 #endif
 
     /* Create threads and get them to sit in their wait loop */
+    threads = xcalloc( NUMTHREADS, sizeof(aio_thread_t));
 
     for (i = 0; i < NUMTHREADS; i++) {
-	threadp = thread + i;
+	threadp = &threads[i];
 	threadp->status = _THREAD_STARTING;
 	if (pthread_mutex_init(&(threadp->mutex), NULL)) {
 	    threadp->status = _THREAD_FAILED;
@@ -194,6 +194,9 @@ aio_init(void)
 	pthread_mutex_lock(&threadp->mutex);
 #endif
     }
+
+    /* Create request pool */
+    aio_request_pool = memPoolCreate("aio_request", sizeof(aio_request_t));
 
     aio_initialised = 1;
 }
@@ -291,42 +294,6 @@ aio_thread_loop(void *ptr)
     }				/* while */
 }				/* aio_thread_loop */
 
-
-static aio_request_t *
-aio_alloc_request()
-{
-    aio_request_t *req;
-
-    if ((req = free_requests) != NULL) {
-	free_requests = req->next;
-	num_free_requests--;
-	req->next = NULL;
-	return req;
-    }
-    return (aio_request_t *) xmalloc(sizeof(aio_request_t));
-}				/* aio_alloc_request */
-
-
-static void
-aio_free_request(aio_request_t * req)
-{
-    /* Below doesn't have to be NUMTHREADS but it's a kinda cute value since */
-    /* it reflects the sort of load the squid server will experience.  A */
-    /* higher load will mean a need for more threads, which will in turn mean */
-    /* a need for a bigger free request pool. */
-    /* Threads <-> requests are now partially asyncronous, use NUMTHREADS * 2 */
-
-    if (num_free_requests >= NUMTHREADS * 2) {
-	xfree(req);
-	return;
-    }
-    memset(req, 0, sizeof(*req));
-    req->next = free_requests;
-    free_requests = req;
-    num_free_requests++;
-}				/* aio_free_request */
-
-
 static void
 aio_do_request(aio_request_t * requestp)
 {
@@ -335,7 +302,6 @@ aio_do_request(aio_request_t * requestp)
 	exit(-1);
     }
     aio_queue_request(requestp);
-    aio_process_request_queue();
 }				/* aio_do_request */
 
 
@@ -344,6 +310,8 @@ aio_queue_request(aio_request_t * requestp)
 {
     aio_request_t *rp;
     static int last_warn = 0;
+    static int high_start = 0;
+    static int queue_high, queue_low;
     int i;
 
     /* Mark it as not executed (failing result, no error) */
@@ -362,33 +330,47 @@ aio_queue_request(aio_request_t * requestp)
     /* Poll done threads if needed */
     if (wait_threads == NULL)
 	aio_poll_threads();
+    /* Kick it rolling */
+    aio_process_request_queue();
     /* Warn if out of threads */
-    if (request_queue_len > (NUMTHREADS << 1)) {
-	if (squid_curtime > (last_warn + 15)) {
-	    debug(43, 1) ("aio_queue_request: WARNING - Request queue growing\n"
-		"\tQueue Length = %d\n", request_queue_len);
-	    debug(43, 1) ("aio_queue_request: Perhaps you should increase NUMTHREADS in aiops.c\n");
-	    debug(43, 1) ("aio_queue_request: First %d items on request queue\n", NUMTHREADS);
+    if (request_queue_len > (NUMTHREADS >> 1)) {
+	if (high_start == 0) {
+	    high_start = squid_curtime;
+	    queue_high = request_queue_len;
+	    queue_low = request_queue_len;
+	}
+	if (request_queue_len > queue_high)
+	    queue_high = request_queue_len;
+	if (request_queue_len < queue_low)
+	    queue_low = request_queue_len;
+	if (squid_curtime >= (last_warn + 15) &&
+		squid_curtime >= (high_start + 1)) {
+	    debug(43, 1) ("aio_queue_request: WARNING - Running out of I/O theads\n");
+	    debug(43, 2) ("aio_queue_request: Queue Length: current=%d, high=%d, low=%d, duration=%d\n",
+		    request_queue_len, queue_high, queue_low, squid_curtime - high_start);
+	    debug(43, 1) ("aio_queue_request: Perhaps you should increase NUMTHREADS\n");
+	    debug(43, 1) ("aio_queue_request: Or install more disks to share the load\n");
+	    debug(43, 3) ("aio_queue_request: First %d items on request queue\n", NUMTHREADS);
 	    rp = request_queue_head;
 	    for (i = 1; i <= NUMTHREADS; i++) {
 		switch (rp->request_type) {
 		case _AIO_OP_OPEN:
-		    debug(43, 1) ("aio_queue_request: %d : open -> %s\n", i, rp->path);
+		    debug(43, 3) ("aio_queue_request: %d : open -> %s\n", i, rp->path);
 		    break;
 		case _AIO_OP_READ:
-		    debug(43, 1) ("aio_queue_request: %d : read -> FD = %d\n", i, rp->fd);
+		    debug(43, 3) ("aio_queue_request: %d : read -> FD = %d\n", i, rp->fd);
 		    break;
 		case _AIO_OP_WRITE:
-		    debug(43, 1) ("aio_queue_request: %d : write -> FD = %d\n", i, rp->fd);
+		    debug(43, 3) ("aio_queue_request: %d : write -> FD = %d\n", i, rp->fd);
 		    break;
 		case _AIO_OP_CLOSE:
-		    debug(43, 1) ("aio_queue_request: %d : close -> FD = %d\n", i, rp->fd);
+		    debug(43, 3) ("aio_queue_request: %d : close -> FD = %d\n", i, rp->fd);
 		    break;
 		case _AIO_OP_UNLINK:
-		    debug(43, 1) ("aio_queue_request: %d : unlink -> %s\n", i, rp->path);
+		    debug(43, 3) ("aio_queue_request: %d : unlink -> %s\n", i, rp->path);
 		    break;
 		case _AIO_OP_STAT:
-		    debug(43, 1) ("aio_queue_request: %d : stat -> %s\n", i, rp->path);
+		    debug(43, 3) ("aio_queue_request: %d : stat -> %s\n", i, rp->path);
 		    break;
 		default:
 		    debug(43, 1) ("aio_queue_request: %d : Unimplemented request type: %d\n", i, rp->request_type);
@@ -399,6 +381,8 @@ aio_queue_request(aio_request_t * requestp)
 	    }
 	    last_warn = squid_curtime;
 	}
+    } else {
+	high_start = 0;
     }
     if (request_queue_len > RIDICULOUS_LENGTH) {
 	debug(43, 0) ("aio_queue_request: Async request queue growing uncontrollably!\n");
@@ -489,7 +473,7 @@ aio_cleanup_request(aio_request_t * requestp)
 	resultp->aio_return = requestp->ret;
 	resultp->aio_errno = requestp->err;
     }
-    aio_free_request(requestp);
+    memPoolFree(aio_request_pool, requestp);
 }				/* aio_cleanup_request */
 
 
@@ -529,13 +513,13 @@ aio_open(const char *path, int oflag, mode_t mode, aio_result_t * resultp)
 
     if (!aio_initialised)
 	aio_init();
-    if ((requestp = aio_alloc_request()) == NULL) {
+    if ((requestp = memPoolAlloc(aio_request_pool)) == NULL) {
 	errno = ENOMEM;
 	return -1;
     }
     len = strlen(path) + 1;
     if ((requestp->path = (char *) xmalloc(len)) == NULL) {
-	aio_free_request(requestp);
+	memPoolFree(aio_request_pool, requestp);
 	errno = ENOMEM;
 	return -1;
     }
@@ -566,14 +550,14 @@ aio_read(int fd, char *bufp, int bufs, off_t offset, int whence, aio_result_t * 
 
     if (!aio_initialised)
 	aio_init();
-    if ((requestp = aio_alloc_request()) == NULL) {
+    if ((requestp = memPoolAlloc(aio_request_pool)) == NULL) {
 	errno = ENOMEM;
 	return -1;
     }
     requestp->fd = fd;
     requestp->bufferp = bufp;
     if ((requestp->tmpbufp = (char *) xmalloc(bufs)) == NULL) {
-	aio_free_request(requestp);
+	memPoolFree(aio_request_pool, requestp);
 	errno = ENOMEM;
 	return -1;
     }
@@ -605,13 +589,13 @@ aio_write(int fd, char *bufp, int bufs, off_t offset, int whence, aio_result_t *
 
     if (!aio_initialised)
 	aio_init();
-    if ((requestp = aio_alloc_request()) == NULL) {
+    if ((requestp = memPoolAlloc(aio_request_pool)) == NULL) {
 	errno = ENOMEM;
 	return -1;
     }
     requestp->fd = fd;
     if ((requestp->tmpbufp = (char *) xmalloc(bufs)) == NULL) {
-	aio_free_request(requestp);
+	memPoolFree(aio_request_pool, requestp);
 	errno = ENOMEM;
 	return -1;
     }
@@ -643,7 +627,7 @@ aio_close(int fd, aio_result_t * resultp)
 
     if (!aio_initialised)
 	aio_init();
-    if ((requestp = aio_alloc_request()) == NULL) {
+    if ((requestp = memPoolAlloc(aio_request_pool)) == NULL) {
 	errno = ENOMEM;
 	return -1;
     }
@@ -673,13 +657,13 @@ aio_stat(const char *path, struct stat *sb, aio_result_t * resultp)
 
     if (!aio_initialised)
 	aio_init();
-    if ((requestp = aio_alloc_request()) == NULL) {
+    if ((requestp = memPoolAlloc(aio_request_pool)) == NULL) {
 	errno = ENOMEM;
 	return -1;
     }
     len = strlen(path) + 1;
     if ((requestp->path = (char *) xmalloc(len)) == NULL) {
-	aio_free_request(requestp);
+	memPoolFree(aio_request_pool, requestp);
 	errno = ENOMEM;
 	return -1;
     }
@@ -687,7 +671,7 @@ aio_stat(const char *path, struct stat *sb, aio_result_t * resultp)
     requestp->statp = sb;
     if ((requestp->tmpstatp = (struct stat *) xmalloc(sizeof(struct stat))) == NULL) {
 	xfree(requestp->path);
-	aio_free_request(requestp);
+	memPoolFree(aio_request_pool, requestp);
 	errno = ENOMEM;
 	return -1;
     }
@@ -716,13 +700,13 @@ aio_unlink(const char *path, aio_result_t * resultp)
 
     if (!aio_initialised)
 	aio_init();
-    if ((requestp = aio_alloc_request()) == NULL) {
+    if ((requestp = memPoolAlloc(aio_request_pool)) == NULL) {
 	errno = ENOMEM;
 	return -1;
     }
     len = strlen(path) + 1;
     if ((requestp->path = (char *) xmalloc(len)) == NULL) {
-	aio_free_request(requestp);
+	memPoolFree(aio_request_pool, requestp);
 	errno = ENOMEM;
 	return -1;
     }
@@ -755,7 +739,7 @@ aio_opendir(const char *path, aio_result_t * resultp)
 
     if (!aio_initialised)
 	aio_init();
-    if ((requestp = aio_alloc_request()) == NULL) {
+    if ((requestp = memPoolAlloc(aio_request_pool)) == NULL) {
 	errno = ENOMEM;
 	return -1;
     }
@@ -782,7 +766,7 @@ aio_poll_threads(void)
 	prev = NULL;
 	threadp = busy_threads_head;
 	while (threadp) {
-	    debug(43, 3) ("%d: %d -> %d\n",
+	    debug(43, 5) ("%d: %d -> %d\n",
 		threadp->thread,
 		threadp->processed_req->request_type,
 		threadp->status);
@@ -798,7 +782,7 @@ aio_poll_threads(void)
 	    threadp = threadp->next;
 	}
 	if (threadp == NULL)
-	    return;
+	    break;
 
 	if (prev == NULL)
 	    busy_threads_head = busy_threads_head->next;
@@ -844,32 +828,41 @@ aio_poll_done()
     resultp = requestp->resultp;
     cancelled = requestp->cancelled;
     aio_debug(requestp);
-    debug(43, 3) ("DONE: %d -> %d\n", requestp->ret, requestp->err);
+    debug(43, 5) ("DONE: %d -> %d\n", requestp->ret, requestp->err);
     aio_cleanup_request(requestp);
     if (cancelled)
 	goto AIO_REPOLL;
     return resultp;
 }				/* aio_poll_done */
 
+int
+aio_operations_pending(void)
+{
+    if (request_done_head)
+	return 1;
+    if (busy_threads_head)
+	return 1;
+    return 0;
+}
 
 static void
 aio_debug(aio_request_t * requestp)
 {
     switch (requestp->request_type) {
     case _AIO_OP_OPEN:
-	debug(43, 3) ("OPEN of %s to FD %d\n", requestp->path, requestp->ret);
+	debug(43, 5) ("OPEN of %s to FD %d\n", requestp->path, requestp->ret);
 	break;
     case _AIO_OP_READ:
-	debug(43, 3) ("READ on fd: %d\n", requestp->fd);
+	debug(43, 5) ("READ on fd: %d\n", requestp->fd);
 	break;
     case _AIO_OP_WRITE:
-	debug(43, 3) ("WRITE on fd: %d\n", requestp->fd);
+	debug(43, 5) ("WRITE on fd: %d\n", requestp->fd);
 	break;
     case _AIO_OP_CLOSE:
-	debug(43, 3) ("CLOSE of fd: %d\n", requestp->fd);
+	debug(43, 5) ("CLOSE of fd: %d\n", requestp->fd);
 	break;
     case _AIO_OP_UNLINK:
-	debug(43, 3) ("UNLINK of %s\n", requestp->path);
+	debug(43, 5) ("UNLINK of %s\n", requestp->path);
 	break;
     default:
 	break;

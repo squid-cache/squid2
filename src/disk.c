@@ -161,6 +161,7 @@ file_close(int fd)
      * leaking write state data by closing the descriptor
      */
     assert(F->write_handler == NULL);
+    F->flags.closing = 1;
 #if USE_ASYNC_IO
     aioClose(fd);
 #else
@@ -171,7 +172,9 @@ file_close(int fd)
 #endif
     debug(6, F->flags.close_request ? 2 : 5)
 	("file_close: FD %d, really closing\n", fd);
+#if !USE_ASYNC_IO
     fd_close(fd);
+#endif
     Counter.syscalls.disk.closes++;
 }
 
