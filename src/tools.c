@@ -253,6 +253,8 @@ rusage_maxrss(struct rusage *r)
     return r->ru_maxrss;
 #elif HAVE_GETPAGESIZE
     return (r->ru_maxrss * getpagesize()) >> 10;
+#elif defined(PAGESIZE)
+    return (r->ru_maxrss * PAGESIZE) >> 10;
 #else
     return r->ru_maxrss;
 #endif
