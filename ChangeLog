@@ -1,3 +1,5 @@
+Changes to squid-1.1.19 (December 15, 1997):
+
 	- Applied David Luyer's TCP retry algorithm: Give a parent (or
 	  peer) cache 10 chances before marking it truly dead, as soon
 	  as it fails the first time fire off a connection attempt and
