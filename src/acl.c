@@ -998,18 +998,20 @@ aclDecodeProxyAuth(const char *proxy_auth, char **user, char **password, char *b
 {
     char *sent_auth;
     char *cleartext;
-    debug(28, 6) ("aclDecodeProxyAuth: header = '%s'\n", proxy_auth);
     if (proxy_auth == NULL)
 	return 0;
-    if (strlen(proxy_auth) < SKIP_BASIC_SZ)
+    debug(28, 6) ("aclDecodeProxyAuth: header = '%s'\n", proxy_auth);
+    if (strncasecmp(proxy_auth, "Basic ", 6) != 0) {
+	debug(28, 1) ("aclDecodeProxyAuth: Unsupported proxy-auth sheme, '%s'\n", proxy_auth);
 	return 0;
-    proxy_auth += SKIP_BASIC_SZ;
-    sent_auth = xstrdup(proxy_auth);	/* username and password */
-    /* Trim trailing \n before decoding */
-    strtok(sent_auth, "\n");
+    }
+    proxy_auth += 6;		/* "Basic " */
     /* Trim leading whitespace before decoding */
     while (xisspace(*proxy_auth))
 	proxy_auth++;
+    sent_auth = xstrdup(proxy_auth);	/* username and password */
+    /* Trim trailing \n before decoding */
+    strtok(sent_auth, "\n");
     cleartext = uudecode(sent_auth);
     xfree(sent_auth);
     debug(28, 6) ("aclDecodeProxyAuth: cleartext = '%s'\n", cleartext);
