@@ -224,6 +224,7 @@ static void ipcache_release(i)
 	    result->name);
     }
     safe_free(result->name);
+    safe_free(result->error_message);
     memset(result, '\0', sizeof(ipcache_entry));
     safe_free(result);
     --meta_data.ipcache_count;
@@ -453,6 +454,7 @@ static void ipcache_call_pending(i)
 	i->pending_head = p->next;
 	if (p->handler) {
 	    nhandler++;
+	    dns_error_message = i->error_message;
 	    p->handler(p->fd,
 		(i->status == IP_CACHED) ? &(i->entry) : NULL,
 		p->handlerData);
@@ -506,7 +508,6 @@ static int ipcache_parsebuffer(buf, offset, dnsData)
     int aliascount;
     ipcache_entry *i = NULL;
 
-    *dns_error_message = '\0';
 
     pos = buf;
     while (pos < (buf + offset)) {
@@ -558,22 +559,18 @@ static int ipcache_parsebuffer(buf, offset, dnsData)
 	     *      $fail host\n$message msg\n$end\n
 	     */
 	    token = strtok(line_head->line, w_space);	/* skip first token */
-	    token = strtok(NULL, w_space);
-
-	    line_cur = line_head->next;
-	    if (line_cur && !strncmp(line_cur->line, "$message", 8)) {
-		strcpy(dns_error_message, line_cur->line + 8);
-	    }
-	    if (token == NULL) {
-		debug(14, 1, "ipcache_parsebuffer: Invalid $fail for DNS table?\n");
+	    if ((token = strtok(NULL, w_space)) == NULL) {
+		debug(14, 1, "ipcache_parsebuffer: Invalid $fail?\n");
 	    } else {
+	        line_cur = line_head->next;
 		i = dnsData->ip_entry;
 		i->lastref = i->timestamp = squid_curtime;
 		i->ttl = getNegativeDNSTTL();
 		i->status = IP_NEGATIVE_CACHED;
+	        if (line_cur && !strncmp(line_cur->line, "$message", 8))
+		    i->error_message = xstrdup(line_cur->line + 8);
+                dns_error_message = i->error_message;
 		ipcache_call_pending(i);
-		debug(14, 10, "ipcache_parsebuffer: $fail succeeded: %s.\n",
-		    dns_error_message[0] ? dns_error_message : "why?");
 	    }
 	    free_lines(line_head);
 	} else if (strstr(line_head->line, "$name")) {
@@ -986,9 +983,6 @@ void ipcache_init()
 
     debug(14, 3, "Initializing IP Cache...\n");
 
-    if (!dns_error_message)
-	dns_error_message = xcalloc(1, 256);
-
     memset(&IpcacheStats, '\0', sizeof(IpcacheStats));
 
     /* test naming lookup */
@@ -1060,6 +1054,7 @@ struct hostent *ipcache_gethostbyname(name, flags)
 	    return NULL;
 	} else if (i->status == IP_NEGATIVE_CACHED) {
 	    IpcacheStats.negative_hits++;
+	    dns_error_message = i->error_message;
 	    return NULL;
 	} else {
 	    IpcacheStats.hits++;

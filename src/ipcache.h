@@ -29,6 +29,7 @@ typedef struct _ipcache_entry {
     unsigned char lock;
     struct hostent entry;
     struct _ip_pending *pending_head;
+    char *error_message;
     ipcache_status_t status:3;
 } ipcache_entry;
 

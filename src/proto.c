@@ -60,7 +60,6 @@ extern ip_acl *local_ip_list;
 extern ip_acl *firewall_ip_list;
 extern time_t neighbor_timeout;
 extern single_parent_bypass;
-extern char *dns_error_message;
 
 static void protoDataFree(fdunused, protoData)
      int fdunused;
