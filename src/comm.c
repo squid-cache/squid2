@@ -545,10 +545,10 @@ comm_close(int fd)
     }
     conn->openned = 0;
     RWStateCallbackAndFree(fd, COMM_ERROR);
-    comm_set_fd_lifetime(fd, -1);	/* invalidate the lifetime */
     fdstat_close(fd);		/* update fdstat */
     commCallCloseHandlers(fd);
     memset(conn, '\0', sizeof(FD_ENTRY));
+    conn->lifetime = -1;
     close(fd);
 }
 
@@ -1394,8 +1394,10 @@ checkTimeouts(void)
     FD_ENTRY *f = NULL;
     void *data;
     /* scan for timeout */
-    for (fd = 0; fd < Squid_MaxFD; ++fd) {
+    for (fd = 0; fd < Biggest_FD; ++fd) {
 	f = &fd_table[fd];
+	if (!f->openned)
+	    continue;
 	if ((hdl = f->timeout_handler) == NULL)
 	    continue;
 	if (f->timeout_time > squid_curtime)
@@ -1416,9 +1418,11 @@ checkLifetimes(void)
 
     PF hdl = NULL;
 
-    for (fd = 0; fd < Squid_MaxFD; fd++) {
+    for (fd = 0; fd < Biggest_FD; fd++) {
 	fde = &fd_table[fd];
-	if (fde->lifetime == -1)
+	if (!fde->openned)
+	    continue;
+	if (fde->lifetime < 0)
 	    continue;
 	if (fde->lifetime > squid_curtime)
 	    continue;
