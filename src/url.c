@@ -309,6 +309,8 @@ int urlCheckRequest(r)
      request_t *r;
 {
     int rc = 0;
+    if (r->method == METHOD_CONNECT)
+	return 1;
     switch (r->protocol) {
     case PROTO_HTTP:
     case PROTO_CACHEOBJ:
