@@ -7,13 +7,18 @@
  * This program authenticates users against a PAM configured authentication
  * service "squid". This allows you to authenticate Squid users to any
  * authentication source for which you have a PAM module. Commonly available
- * PAM modules includes "UNIX", RADIUS, Kerberos, SMB, but a lot of other
- * PAM modules are available from other sources.
+ * PAM modules includes "UNIX", RADIUS, Kerberos and SMB, but a lot of other
+ * PAM modules are available from various sources.
  *
- * Example PAM configuration for standard UNIX authentication:
+ * Example PAM configuration for standard UNIX passwd authentication:
  * /etc/pam.conf:
- *  squid password required /lib/security/pam_unix.so.1
+ *  squid auth     required /lib/security/pam_unix.so.1
  *  squid account  required /lib/security/pam_unix.so.1
+ *
+ * Note that some PAM modules (for example shadow password authentication)
+ * requires the program to be installed suid root, or PAM will not allow
+ * it to authenticate other users than it runs as (this is a security
+ * limitation of PAM, to avoid probing of passwords).
  *
  * (C)1999 Henrik Nordstrom <hno@hem.passagen.se>
  *
@@ -47,7 +52,7 @@
 /* The default PAM service name */
 #define DEFAULT_SERVICE_NAME "squid"
 
-/* How often to reinitialize PAM, in seconds. Undefined = never */
+/* How often to reinitialize PAM, in seconds. Undefined = never, 0=always */
 /* #define PAM_CONNECTION_TTL 60 */
 
 static int reset_pam = 1;	/* Set to one if it is time to reset PAM processing */
@@ -126,7 +131,7 @@ main(int argc, char *argv[])
 	*password++ = '\0';
 	conv.appdata_ptr = (char *) password;	/* from buf above. not allocated */
 #ifdef PAM_CONNECTION_TTL
-	if (pamh_created + PAM_CONNECTION_TTL > time(NULL))
+	if (pamh_created + PAM_CONNECTION_TTL >= time(NULL))
 	    reset_pam = 1;
 #endif
 	if (reset_pam && pamh) {
@@ -139,7 +144,7 @@ main(int argc, char *argv[])
 	}
 	if (!pamh) {
 	    /* Initialize PAM connection */
-	    retval = pam_start("check_user", "squid@", &conv, &pamh);
+	    retval = pam_start("squid", "squid@", &conv, &pamh);
 	    if (retval != PAM_SUCCESS) {
 		fprintf(stderr, "ERROR: failed to create PAM authenticator\n");
 	    }
@@ -161,10 +166,12 @@ main(int argc, char *argv[])
 	}
     }
 
-    retval = pam_end(pamh, retval);
-    if (retval != PAM_SUCCESS) {
-	pamh = NULL;
-	fprintf(stderr, "ERROR: failed to release PAM authenticator\n");
+    if (pamh) {
+	retval = pam_end(pamh, retval);
+	if (retval != PAM_SUCCESS) {
+	    pamh = NULL;
+	    fprintf(stderr, "ERROR: failed to release PAM authenticator\n");
+	}
     }
     return (retval == PAM_SUCCESS ? 0 : 1);	/* indicate success */
 }
