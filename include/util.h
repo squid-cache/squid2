@@ -136,6 +136,7 @@ extern const char *xstrerror(void);
 extern const char *xbstrerror(int);
 extern int tvSubMsec(struct timeval, struct timeval);
 extern int tvSubUsec(struct timeval, struct timeval);
+extern double tvSubDsec(struct timeval, struct timeval);
 extern char *xstrncpy(char *, const char *, size_t);
 extern time_t parse_rfc1123(const char *str);
 extern void *xcalloc(int, size_t);
