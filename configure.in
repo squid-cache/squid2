@@ -360,7 +360,7 @@ AC_ARG_ENABLE(err-language,
 	echo "ERROR! Unknown language $enableval, see errors/"
 	exit 1
     fi
-ERR_],[LANGUAGE="English"])
+ERR_],[ERR_LANGUAGE="English"])
 AC_SUBST(ERR_LANGUAGE)
 
 # Force some compilers to use ANSI features
