@@ -626,25 +626,28 @@ aclParseUserList(void **current)
     splayNode *Top = NULL;
 
     debug(28, 2) ("aclParseUserList: parsing user list\n");
+    t = strtokFile();
+    if (!t) {
+	debug(28, 5) ("aclParseUserList: No data defined\n");
+	return;
+    }
+    debug(28, 5) ("aclParseUserList: First token is %s\n", t);
     if (*current == NULL) {
 	debug(28, 3) ("aclParseUserList: current is null. Creating\n");
 	*current = memAllocate(MEM_ACL_USER_DATA);
     }
     data = *current;
     Top = data->names;
-    if ((t = strtokFile())) {
-	debug(28, 5) ("aclParseUserList: First token is %s\n", t);
-	if (strcmp("-i", t) == 0) {
-	    debug(28, 5) ("aclParseUserList: Going case-insensitive\n");
-	    data->flags.case_insensitive = 1;
-	} else if (strcmp("REQUIRED", t) == 0) {
-	    debug(28, 5) ("aclParseUserList: REQUIRED-type enabled\n");
-	    data->flags.required = 1;
-	} else {
-	    if (data->flags.case_insensitive)
-		Tolower(t);
-	    Top = splay_insert(xstrdup(t), Top, (SPLAYCMP *) strcmp);
-	}
+    if (strcmp("-i", t) == 0) {
+	debug(28, 5) ("aclParseUserList: Going case-insensitive\n");
+	data->flags.case_insensitive = 1;
+    } else if (strcmp("REQUIRED", t) == 0) {
+	debug(28, 5) ("aclParseUserList: REQUIRED-type enabled\n");
+	data->flags.required = 1;
+    } else {
+	if (data->flags.case_insensitive)
+	    Tolower(t);
+	Top = splay_insert(xstrdup(t), Top, (SPLAYCMP *) strcmp);
     }
     debug(28, 3) ("aclParseUserList: Case-insensitive-switch is %d\n",
 	data->flags.case_insensitive);
