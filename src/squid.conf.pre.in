@@ -299,7 +299,7 @@
 #	log file, so be careful.  The magic word "ALL" sets debugging
 #	levels for all sections.  We recommend normally running with
 #	"ALL,1".
-debug_options ALL,1
+#debug_options ALL,1
 
 
 # OPTIONS FOR EXTERNAL SUPPORT PROGRAMS
