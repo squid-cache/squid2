@@ -2594,6 +2594,12 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     xmemcpy(inbuf, conn->in.buf, req_sz);
     *(inbuf + req_sz) = '\0';
 
+    /* Enforce max_request_size */
+    if (req_sz >= Config.maxRequestHeaderSize) {
+	debug(33, 5) ("parseHttpRequest: Too large request\n");
+	xfree(inbuf);
+	return parseHttpRequestAbort(conn, "error:request-too-large");
+    }
     /* Barf on NULL characters in the headers */
     if (strlen(inbuf) != req_sz) {
 	debug(33, 1) ("parseHttpRequest: Requestheader contains NULL characters\n");
