@@ -116,8 +116,13 @@ OBJS	 	= \
 		stmem.o \
 		store.o \
 		store_clean.o \
+		store_client.o \
 		store_dir.o \
-		store_key_@STORE_KEY@.o \
+		store_key_md5.o \
+		store_rebuild.o \
+		store_swapin.o \
+		store_swapmeta.o \
+		store_swapout.o \
 		string_arrays.o \
 		tools.o \
 		unlinkd.o \

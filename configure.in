@@ -171,31 +171,6 @@ AC_ARG_ENABLE(gnuregex,
 [  --enable-gnuregex       Compile GNUregex],
 [USE_GNUREGEX=$enableval])
 
-AC_ARG_ENABLE(new_storekey,
-[  --enable-new-storekey[=sha|md5]
-                          Use SHA/MD5 as store index, instead of URL],
-[ case "$enableval" in
-  yes|sha)
-  	echo "Store key set to SHA"
-  	AC_DEFINE(STORE_KEY_SHA)
-	STORE_KEY=sha
-      	;;
-  md5)
-  	echo "Store key set to MD5"
-  	AC_DEFINE(STORE_KEY_MD5)
-	STORE_KEY=md5
-	;;
-  no|url)
-	echo "Store key set to URL"
-	AC_DEFINE(STORE_KEY_URL)
-	STORE_KEY=url
-  esac
-],[
-  STORE_KEY=url
-  AC_DEFINE(STORE_KEY_URL)
-])
-AC_SUBST(STORE_KEY)
-
 AC_ARG_ENABLE(acltree,
 [  --enable-acltree[=bin|splay]
                           Use tree function to store ACL lists],
