@@ -1065,7 +1065,7 @@ storeSwapInStart(StoreEntry * e, SIH * callback, void *callback_data)
 	    return;
 	}
     }
-    assert(e->swap_status == SWAPOUT_DONE);
+    assert(e->swap_status == SWAPOUT_WRITING || e->swap_status == SWAPOUT_DONE);
     assert(e->swap_file_number >= 0);
     assert(e->mem_obj != NULL);
     ctrlp = xmalloc(sizeof(swapin_ctrl_t));
