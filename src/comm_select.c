@@ -670,7 +670,9 @@ comm_select(int msec)
     fde *F;
     do {
 #if !ALARM_UPDATES_TIME
+	double start;
 	getCurrentTime();
+	start = current_dtime;
 #endif
 #if DELAY_POOLS
 	FD_ZERO(&slowfds);
@@ -894,6 +896,10 @@ comm_select(int msec)
 		    comm_select_http_incoming();
 	    }
 	}
+#endif
+#if !ALARM_UPDATES_TIME
+	getCurrentTime();
+	statCounter.select_time += (current_dtime - start);
 #endif
 	return COMM_OK;
     }
