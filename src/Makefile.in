@@ -82,6 +82,7 @@ OBJS	 	= \
 		access_log.o \
 		acl.o \
 		aiops.o \
+		asn.o \
 		async_io.o \
 		cache_cf.o \
 		cbdata.o \

@@ -528,6 +528,7 @@ mainInitialize(void)
     useragentOpenLog();
     errorInitialize();
     accessLogInit();
+    asnAclInitialize(Config.aclList);
 
 #if MALLOC_DBG
     malloc_debug(0, malloc_debug_level);
