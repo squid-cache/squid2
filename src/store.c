@@ -2930,7 +2930,7 @@ storeSetLogUrl(StoreEntry * entry, request_t * request)
     else if (request->login[0] == '\0')
 	mem->log_url = xstrdup(entry->url);
     else
-	mem->log_url = xstrdup(urlNoLogin(request, NULL));
+	mem->log_url = xstrdup(urlCanonicalClean(request, NULL));
 }
 
 void

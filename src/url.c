@@ -300,10 +300,11 @@ urlCanonical(const request_t * request, char *buf)
 }
 
 char *
-urlNoLogin(const request_t * request, char *buf)
+urlCanonicalClean(const request_t * request, char *buf)
 {
     LOCAL_ARRAY(char, urlbuf, MAX_URL);
     LOCAL_ARRAY(char, portbuf, 32);
+    char *t;
     if (buf == NULL)
 	buf = urlbuf;
     switch (request->method) {
@@ -319,6 +320,8 @@ urlNoLogin(const request_t * request, char *buf)
 	    request->host,
 	    portbuf,
 	    request->urlpath);
+        if ((t = strchr(buf, '?')))
+		*t = '\0';
 	break;
     }
     return buf;

@@ -969,7 +969,7 @@ httpConnectDone(int fd, int status, void *data)
 	/* Install connection complete handler. */
 	if (opt_no_ipcache)
 	    ipcacheInvalidate(request->host);
-	fd_note(fd, entry->url);
+	fd_note(fd, entry->mem_obj->log_url);
 	commSetSelect(fd, COMM_SELECT_LIFETIME,
 	    httpLifetimeExpire, (void *) httpState, 0);
 	commSetSelect(fd, COMM_SELECT_WRITE,

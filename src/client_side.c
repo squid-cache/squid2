@@ -284,7 +284,7 @@ clientRedirectDone(void *data, char *result)
 	urlCanonical(icpState->request, icpState->url);
     }
     icpParseRequestHeaders(icpState);
-    fd_note(fd, icpState->url);
+    fd_note(fd, urlCanonicalClean(icpState->request, NULL));
     if (!BIT_TEST(icpState->request->flags, REQ_PROXY_KEEPALIVE)) {
 	commSetSelect(fd,
 	    COMM_SELECT_READ,
