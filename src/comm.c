@@ -642,7 +642,13 @@ comm_close(int fd)
     if (F->uses)		/* assume persistent connect count */
 	pconnHistCount(1, F->uses);
     fd_close(fd);		/* update fdstat */
-#if USE_ASYNC_IO
+#if defined(_SQUID_LINUX_)
+    /*
+     * michael@metal.iinet.net.au sez close() on
+     * network sockets never blocks.
+     */
+    close(fd);
+#elsif USE_ASYNC_IO
     aioClose(fd);
 #else
     close(fd);
