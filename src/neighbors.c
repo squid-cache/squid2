@@ -924,6 +924,8 @@ parseNeighborType(const char *s)
 	return PEER_SIBLING;
     if (!strcasecmp(s, "sibling"))
 	return PEER_SIBLING;
+    if (!strcasecmp(s, "multicast"))
+	return PEER_MULTICAST;
     debug(15, 0, "WARNING: Unknown neighbor type: %s\n", s);
     return PEER_SIBLING;
 }
