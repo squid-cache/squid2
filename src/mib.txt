@@ -45,10 +45,11 @@ squid MODULE-IDENTITY
 --     version of the SNMP library. Remove the following seven lines
 --     before using with SNMP tools.
 --
+
 org            OBJECT IDENTIFIER ::= { iso 1 }
 dod            OBJECT IDENTIFIER ::= { org 6 }
-intenet                OBJECT IDENTIFIER ::= { dod 1 }
-private                OBJECT IDENTIFIER ::= { intenet 4 }
+internet       OBJECT IDENTIFIER ::= { dod 1 }
+private        OBJECT IDENTIFIER ::= { internet 4 }
 enterprises    OBJECT IDENTIFIER ::= { private 1 }
 nlanr          OBJECT IDENTIFIER ::= { enterprises 3495 }
 squid          OBJECT IDENTIFIER ::= { nlanr 1 }
