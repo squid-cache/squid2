@@ -220,6 +220,8 @@ storeEntryFlags(const StoreEntry * entry)
 	strcat(buf, "DISPATCHED,");
     if (EBIT_TEST(flags, KEY_PRIVATE))
 	strcat(buf, "PRIVATE,");
+    if (EBIT_TEST(flags, ENTRY_HDR_WAIT))
+	strcat(buf, "HDR_WAIT,");
     if (EBIT_TEST(flags, ENTRY_NEGCACHED))
 	strcat(buf, "NEGCACHED,");
     if (EBIT_TEST(flags, ENTRY_VALIDATED))
