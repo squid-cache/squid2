@@ -355,4 +355,11 @@ struct rusage {
 #if SQUID_SNMP
 extern struct snmp_mib_tree *Mib;
 #endif
+
+/*
+ * maintain a digest of cache contents and send the digest to neighbors upon
+ * request; if disabled we still can request digests from other caches
+ */
+#define SQUID_MAINTAIN_CACHE_DIGEST 1
+
 #endif /* SQUID_H */

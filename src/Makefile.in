@@ -72,6 +72,7 @@ OBJS	 	= \
 		asn.o \
 		@ASYNC_OBJS@ \
 		cache_cf.o \
+		CacheDigest.o \
 		cbdata.o \
 		client_db.o \
 		client_side.o \
@@ -132,6 +133,7 @@ OBJS	 	= \
 		store.o \
 		store_clean.o \
 		store_client.o \
+		store_digest.o \
 		store_dir.o \
 		store_key_md5.o \
 		store_log.o \

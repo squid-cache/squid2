@@ -681,6 +681,8 @@ parse_peer(peer ** head)
 	    EBIT_SET(p->options, NEIGHBOR_PROXY_ONLY);
 	} else if (!strcasecmp(token, "no-query")) {
 	    EBIT_SET(p->options, NEIGHBOR_NO_QUERY);
+	} else if (!strcasecmp(token, "no-digest")) {
+	    EBIT_SET(p->options, NEIGHBOR_NO_DIGEST);
 	} else if (!strcasecmp(token, "multicast-responder")) {
 	    EBIT_SET(p->options, NEIGHBOR_MCAST_RESPONDER);
 	} else if (!strncasecmp(token, "weight=", 7)) {
