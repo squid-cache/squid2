@@ -30,6 +30,8 @@
  * or (at your option) any later version.
  *
  * Changes:
+ * 2004-01-05: Henrik Nordstrom <hno@squid-cache.org>
+ *	       - Corrected TLS mode
  * 2003-03-01: David J N Begley
  * 	       - Support for Netscape API method of ldap over SSL
  * 	         connections
