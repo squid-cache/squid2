@@ -141,7 +141,6 @@ static int icpPortNumOverride = 1;	/* Want to detect "-u 0" */
 #if MALLOC_DBG
 static int malloc_debug_level = 0;
 #endif
-static char *get_url;
 
 static time_t next_cleaning;
 static time_t next_maintain;
