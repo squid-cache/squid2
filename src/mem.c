@@ -120,6 +120,8 @@ memInit(void)
     memDataInit(MEM_FILEMAP, "fileMap", sizeof(fileMap), 0);
     memDataInit(MEM_FQDNCACHE_ENTRY, "fqdncache_entry",
 	sizeof(fqdncache_entry), 0);
+    memDataInit(MEM_FQDNCACHE_PENDING, "fqdn_pending",
+	sizeof(fqdn_pending), 0);
     memDataInit(MEM_HASH_LINK, "hash_link", sizeof(hash_link), 0);
     memDataInit(MEM_HASH_TABLE, "hash_table", sizeof(hash_table), 0);
     memDataInit(MEM_HIERARCHYLOGENTRY, "HierarchyLogEntry",
