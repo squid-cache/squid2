@@ -920,6 +920,7 @@ struct _domain_type {
     domain_type *next;
 };
 
+#if USE_CACHE_DIGESTS
 struct _Version {
     short int current;		/* current version */
     short int required;		/* minimal version that can safely handle current version */
@@ -979,6 +980,7 @@ struct _PeerDigest {
 	kb_t kbytes_recv;
     } stats;
 };
+#endif
 
 struct _peer {
     char *host;
@@ -1040,7 +1042,9 @@ struct _peer {
 	    unsigned int counting:1;
 	} flags;
     } mcast;
+#if USE_CACHE_DIGESTS
     PeerDigest digest;
+#endif
     int tcp_up;			/* 0 if a connect() fails */
     time_t last_fail_time;
     struct in_addr addresses[10];
@@ -1433,7 +1437,9 @@ struct _StatCounters {
 	kb_t memory;
 	int msgs_sent;
 	int msgs_recv;
+#if USE_CACHE_DIGESTS
 	cd_guess_stats guess;
+#endif
 	StatHist on_xition_count;
     } cd;
     struct {
