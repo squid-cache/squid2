@@ -158,12 +158,12 @@ asnInit(void)
     extern int max_keylen;
     static int inited = 0;
     max_keylen = 40;
+    CBDATA_INIT_TYPE(ASState);
     if (0 == inited++)
 	rn_init();
     rn_inithead((void **) &AS_tree_head, 8);
     asnAclInitialize(Config.aclList);
     cachemgrRegister("asndb", "AS Number Database", asnStats, 0, 1);
-    CBDATA_INIT_TYPE(ASState);
 }
 
 void
