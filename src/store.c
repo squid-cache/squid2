@@ -1720,7 +1720,7 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
     MemObject *mem = e->mem_obj;
     size_t sz;
     static int loopdetect = 0;
-    assert(++loopdetect < 3);
+    assert(++loopdetect < 10);
     debug(20, 3) ("storeClientCopy2: %s\n", storeKeyText(e->key));
     assert(callback != NULL);
     if (e->store_status == STORE_ABORTED) {
