@@ -243,7 +243,7 @@ urlParse(method_t method, char *url)
     request->protocol = protocol;
     xstrncpy(request->host, host, SQUIDHOSTNAMELEN);
     xstrncpy(request->login, login, MAX_LOGIN_SZ);
-    request->port = port;
+    request->port = (u_short) port;
     xstrncpy(request->urlpath, urlpath, MAX_URL);
     request->max_age = -1;
     return request;
