@@ -245,6 +245,7 @@ clientAccessCheckDone(int answer, void *data)
 	http->redirect_state = REDIRECT_PENDING;
 	redirectStart(http, clientRedirectDone, http);
     } else {
+	int require_auth = (answer == ACCESS_REQ_PROXY_AUTH || aclIsProxyAuth(AclMatchedName));
 	debug(33, 5) ("Access Denied: %s\n", http->uri);
 	debug(33, 5) ("AclMatchedName = %s\n",
 	    AclMatchedName ? AclMatchedName : "<null>");
@@ -260,7 +261,7 @@ clientAccessCheckDone(int answer, void *data)
 	http->log_type = LOG_TCP_DENIED;
 	http->entry = clientCreateStoreEntry(http, http->request->method,
 	    null_request_flags);
-	if (answer == ACCESS_REQ_PROXY_AUTH || aclIsProxyAuth(AclMatchedName)) {
+	if (require_auth) {
 	    if (!http->flags.accel) {
 		/* Proxy authorisation needed */
 		status = HTTP_PROXY_AUTHENTICATION_REQUIRED;
