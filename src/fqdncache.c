@@ -1032,6 +1032,6 @@ char *fqdnFromAddr(addr)
     static char buf[32];
     if ((n = fqdncache_gethostbyaddr(addr, 0)))
 	return n;
-    strcpy(buf, inet_ntoa(addr));
+    strncpy(buf, inet_ntoa(addr), 31);
     return buf;
 }
