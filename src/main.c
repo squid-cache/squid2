@@ -599,7 +599,9 @@ main(int argc, char **argv)
 	case COMM_SHUTDOWN:
 	    /* delayed close so we can transmit while shutdown pending */
 	    icpConnectionClose();
+#ifdef SQUID_SNMP
 	    snmpConnectionClose();
+#endif
 	    if (shutdown_pending) {
 		normal_shutdown();
 #if 0
