@@ -2116,7 +2116,7 @@ int storeGetSwapSpace(size)
 	swap_help = 0;
     }
 
-    debug(20, 1, "Removed %d objects\n", removed);
+    debug(20, 2, "Removed %d objects\n", removed);
     return 0;
 }
 
@@ -2638,7 +2638,7 @@ int storeMaintainSwapSpace()
 	    link_ptr = next;
 	}
     }
-    debug(20, rm_obj ? 1 : 3, "Removed %d expired objects\n", rm_obj);
+    debug(20, rm_obj ? 2 : 3, "Removed %d expired objects\n", rm_obj);
     return rm_obj;
 }
 

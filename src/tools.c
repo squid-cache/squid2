@@ -287,7 +287,7 @@ char *getMyHostname()
 		xstrerror());
 	    return NULL;
 	} else {
-	    if ((h = ipcache_gethostbyname(host)) != NULL) {
+	    if ((h = ipcache_gethostbyname(host, IP_BLOCKING_LOOKUP)) != NULL) {
 		/* DNS lookup successful */
 		/* use the official name from DNS lookup */
 		strcpy(host, h->h_name);

@@ -6,11 +6,13 @@
 typedef int (*IPH) _PARAMS((int, struct hostent *, void *));
 
 typedef enum {
-    CACHED,
-    PENDING,
-    NEGATIVE_CACHED
+    IP_CACHED,
+    IP_PENDING,
+    IP_NEGATIVE_CACHED
 } ipcache_status_t;
 
+#define IP_BLOCKING_LOOKUP	0x01
+#define IP_LOOKUP_IF_MISS	0x02
 
 typedef struct _ipcache_entry {
     /* first two items must be equivalent to hash_link in hash.h */
@@ -28,8 +30,7 @@ typedef struct _ipcache_entry {
 
 extern int ipcache_nbgethostbyname _PARAMS((char *, int, IPH, void *));
 extern int ipcache_unregister _PARAMS((char *, int));
-extern struct hostent *ipcache_gethostbyname _PARAMS((char *));
-extern struct hostent *ipcache_getcached _PARAMS((char *, int lookup_flag));
+extern struct hostent *ipcache_gethostbyname _PARAMS((char *, int flags));
 extern void ipcache_init _PARAMS((void));
 extern void stat_ipcache_get _PARAMS((StoreEntry *, cacheinfo *));
 extern void ipcacheShutdownServers _PARAMS((void));

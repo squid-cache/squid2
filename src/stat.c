@@ -618,9 +618,10 @@ void info_get(obj, sentry)
 	}
     }
     storeAppendPrintf(sentry, "{Internal Data Structures:}\n");
-
     storeAppendPrintf(sentry, "{\tHot Object Cache Items %d}\n",
 	meta_data.hot_vm);
+    storeAppendPrintf(sentry, "{\tStoreEntries with MemObjects %d}\n",
+	meta_data.store_in_mem_objects);
 
     storeAppendPrintf(sentry, "{Meta Data:}\n");
 

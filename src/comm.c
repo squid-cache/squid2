@@ -300,7 +300,7 @@ int comm_connect(sock, dest_host, dest_port)
     /* Set up the destination socket address for message to send to. */
     to_addr.sin_family = AF_INET;
 
-    if ((hp = ipcache_gethostbyname(dest_host)) == 0) {
+    if ((hp = ipcache_gethostbyname(dest_host, IP_BLOCKING_LOOKUP)) == 0) {
 	debug(5, 1, "comm_connect: Failure to lookup host: %s.\n", dest_host);
 	return (COMM_ERROR);
     }
@@ -511,7 +511,7 @@ int comm_udp_send(fd, host, port, buf, len)
     /* Set up the destination socket address for message to send to. */
     to_addr.sin_family = AF_INET;
 
-    if ((hp = ipcache_gethostbyname(host)) == 0) {
+    if ((hp = ipcache_gethostbyname(host, IP_BLOCKING_LOOKUP)) == 0) {
 	debug(5, 1, "comm_udp_send: gethostbyname failure: %s: %s\n",
 	    host, xstrerror());
 	return (COMM_ERROR);
@@ -911,7 +911,7 @@ char **getAddressList(name)
     struct hostent *hp = NULL;
     if (name == NULL)
 	return NULL;
-    if ((hp = ipcache_gethostbyname(name)))
+    if ((hp = ipcache_gethostbyname(name, IP_BLOCKING_LOOKUP)))
 	return hp->h_addr_list;
     debug(5, 0, "getAddress: gethostbyname failure: %s: %s\n",
 	name, xstrerror());

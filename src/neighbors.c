@@ -23,6 +23,7 @@ char *hier_strings[] =
     "NEIGHBOR_HIT",
     "PARENT_HIT",
     "SINGLE_PARENT",
+    "FIRST_UP_PARENT",
     "NO_PARENT_DIRECT",
     "FIRST_PARENT_MISS",
     "LOCAL_IP_DIRECT",
@@ -454,7 +455,7 @@ int neighborsUdpPing(proto)
 
     /* only do source_ping if we have neighbors */
     if (echo_hdr.opcode) {
-	if (proto->source_ping && (hep = ipcache_gethostbyname(host))) {
+	if (proto->source_ping && (hep = ipcache_gethostbyname(host, IP_BLOCKING_LOOKUP))) {
 	    debug(15, 6, "neighborsUdpPing: Send to original host\n");
 	    debug(15, 6, "neighborsUdpPing: url=%s, host=%s, t=%d\n",
 		url, host, t);

@@ -347,7 +347,7 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
      * Otherwise, we cannot check return code for ssl. */
-    if (!ipcache_gethostbyname(request->host)) {
+    if (!ipcache_gethostbyname(request->host, 0)) {
 	debug(26, 4, "sslstart: Called without IP entry in ipcache. OR lookup failed.\n");
 	squid_error_url(url,
 	    request->method,

@@ -588,7 +588,7 @@ int proxyhttpStart(e, url, entry)
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
      * Otherwise, we cannot check return code for connect. */
-    if (!ipcache_gethostbyname(request->host)) {
+    if (!ipcache_gethostbyname(request->host, 0)) {
 	debug(11, 4, "proxyhttpstart: Called without IP entry in ipcache. OR lookup failed.\n");
 	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
 	comm_close(sock);
@@ -654,7 +654,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
      * Otherwise, we cannot check return code for connect. */
-    if (!ipcache_gethostbyname(request->host)) {
+    if (!ipcache_gethostbyname(request->host, 0)) {
 	debug(11, 4, "httpstart: Called without IP entry in ipcache. OR lookup failed.\n");
 	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
 	comm_close(sock);

@@ -23,7 +23,7 @@ void send_announce()
     host = getAnnounceHost();
     port = getAnnouncePort();
 
-    if ((hp = ipcache_gethostbyname(host)) == NULL) {
+    if ((hp = ipcache_gethostbyname(host, IP_BLOCKING_LOOKUP)) == NULL) {
 	debug(27, 1, "send_announce: Unknown host '%s'\n", host);
 	return;
     }

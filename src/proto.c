@@ -88,7 +88,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     BIT_RESET(entry->flag, IP_LOOKUP_PENDING);
 
     if (protoData->direct_fetch == DIRECT_YES) {
-	if (ipcache_gethostbyname(req->host) == NULL) {
+	if (ipcache_gethostbyname(req->host, 0) == NULL) {
 	    protoDNSError(protoData->fd, entry);
 	    protoDataFree(protoData);
 	    return 0;
@@ -100,9 +100,8 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_MAYBE && local_ip_list) {
-	if ((hp = ipcache_gethostbyname(req->host)) == NULL) {
-	    debug(17, 1, "Unknown host: %s\n",
-		req->host);
+	if ((hp = ipcache_gethostbyname(req->host, 0)) == NULL) {
+	    debug(17, 1, "Unknown host: %s\n", req->host);
 	} else {
 	    memcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);
 	    if (ip_access_check(srv_addr, local_ip_list) == IP_DENY) {
@@ -136,6 +135,8 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     if (!neighbors_do_private_keys && !protoData->query_neighbors && (e = getFirstUpParent(req))) {
 	/* for private objects we should just fetch directly (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
+	hierarchy_log_append(protoData->url, HIER_FIRSTUP_PARENT, 0, e->host);
+	mem->hierarchy_code = HIER_FIRSTUP_PARENT;
 	getFromCache(protoData->fd, entry, e, req);
 	protoDataFree(protoData);
 	return 0;
@@ -161,7 +162,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents were queried and the host is beyond your firewall.");
     } else {
-	if (ipcache_gethostbyname(req->host) == NULL) {
+	if (ipcache_gethostbyname(req->host, 0) == NULL) {
 	    protoDNSError(protoData->fd, entry);
 	    protoDataFree(protoData);
 	    return 0;
@@ -359,7 +360,7 @@ int getFromDefaultSource(fd, entry)
 	return getFromCache(fd, entry, e, request);
     }
     if (matchInsideFirewall(request->host)) {
-	if (ipcache_gethostbyname(request->host) == NULL) {
+	if (ipcache_gethostbyname(request->host, 0) == NULL) {
 	    return protoDNSError(fd, entry);
 	}
 	hierarchy_log_append(url, HIER_DIRECT, fd, request->host);
@@ -371,6 +372,11 @@ int getFromDefaultSource(fd, entry)
 	 * packet got lost */
 	hierarchy_log_append(url, HIER_SINGLE_PARENT, fd, e->host);
 	mem->hierarchy_code = HIER_SINGLE_PARENT;
+	return getFromCache(fd, entry, e, request);
+    }
+    if ((e = getFirstUpParent(request))) {
+	hierarchy_log_append(url, HIER_FIRSTUP_PARENT, fd, e->host);
+	mem->hierarchy_code = HIER_FIRSTUP_PARENT;
 	return getFromCache(fd, entry, e, request);
     }
     hierarchy_log_append(url, HIER_NO_DIRECT_FAIL, fd, request->host);

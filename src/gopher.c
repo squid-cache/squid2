@@ -877,7 +877,7 @@ int gopherStart(unusedfd, url, entry)
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
      * Otherwise, we cannot check return code for connect. */
-    if (!ipcache_gethostbyname(data->host)) {
+    if (!ipcache_gethostbyname(data->host, 0)) {
 	debug(10, 4, "gopherStart: Called without IP entry in ipcache. OR lookup failed.\n");
 	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
 	comm_close(sock);

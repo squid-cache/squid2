@@ -9,8 +9,8 @@
 #define MAX_LINELEN (4096)
 
 #define MAX_IP		 1024	/* Maximum cached IP */
-#define IP_LOW_WATER       70
-#define IP_HIGH_WATER      90
+#define IP_LOW_WATER       90
+#define IP_HIGH_WATER      95
 #define MAX_HOST_NAME	  256
 #define IP_INBUF_SZ	 4096
 
@@ -43,7 +43,8 @@ static struct {
     int requests;
     int hits;
     int misses;
-    int pendings;
+    int pending_hits;
+    int negative_hits;
     int dnsserver_requests;
     int dnsserver_replies;
     int errors;
@@ -72,7 +73,7 @@ static int ipcache_dnsHandleRead _PARAMS((int, dnsserver_t *));
 static int ipcache_hash_entry_count _PARAMS((void));
 static int ipcache_parsebuffer _PARAMS((char *buf, unsigned int offset, dnsserver_t *));
 static int ipcache_purgelru _PARAMS((void));
-static int ipcache_release _PARAMS((ipcache_entry *));
+static void ipcache_release _PARAMS((ipcache_entry *));
 static ipcache_entry *ipcache_GetFirst _PARAMS((void));
 static ipcache_entry *ipcache_GetNext _PARAMS((void));
 static ipcache_entry *ipcache_create _PARAMS((void));
@@ -122,7 +123,6 @@ int ipcache_create_dnsserver(command)
     int pid;
     u_short port;
     struct sockaddr_in S;
-    static int n_dnsserver = 0;
     int cfd;
     int sfd;
     int len;
@@ -162,8 +162,6 @@ int ipcache_create_dnsserver(command)
 	    return -1;
 	}
 	comm_set_fd_lifetime(sfd, -1);
-	debug(14, 4, "ipcache_create_dnsserver: FD %d connected to %s #%d.\n",
-	    sfd, command, n_dnsserver);
 	return sfd;
     }
     /* child */
@@ -179,7 +177,7 @@ int ipcache_create_dnsserver(command)
 }
 
 /* removes the given ipcache entry */
-int ipcache_release(i)
+static void ipcache_release(i)
      ipcache_entry *i;
 {
     ipcache_entry *result = 0;
@@ -188,46 +186,48 @@ int ipcache_release(i)
 
     debug(14, 5, "ipcache_release: ipcache_count before: %d \n",
 	meta_data.ipcache_count);
-    if (i == NULL)
-	fatal_dump("ipcache_release: NULL ipcache_entry");
-    if ((table_entry = hash_lookup(ip_table, i->name)) == NULL)
-	return -1;
+    if ((table_entry = hash_lookup(ip_table, i->name)) == NULL) {
+	debug(14, 0, "ipcache_release: Could not find key '%s'\n", i->name);
+	return;
+    }
     result = (ipcache_entry *) table_entry;
+    if (i != result)
+	fatal_dump("ipcache_release: expected i == result!");
+    if (result->status == IP_PENDING) {
+	debug(14, 1, "ipcache_release: Someone called on a PENDING entry\n");
+	return;
+    }
     debug(14, 5, "HASH table count before delete: %d\n",
 	ipcache_hash_entry_count());
     if (hash_remove_link(ip_table, table_entry)) {
-	debug(14, 3, "ipcache_release: Can't delete '%s' from hash table %d\n",
-	    i->name, ip_table);
+	debug(14, 0, "ipcache_release: hash_remove_link() failed for '%s'\n",
+	    result->name);
+	return;
     }
     debug(14, 5, "HASH table count after delete: %d\n",
 	ipcache_hash_entry_count());
-    if (result) {
-	if (result->status == PENDING) {
-	    debug(14, 1, "ipcache_release: Try to release entry with PENDING status. ignored.\n");
-	    debug(14, 5, "ipcache_release: ipcache_count: %d \n", meta_data.ipcache_count);
-	    return -1;
-	}
-	if (result->status == CACHED) {
-	    if (result->addr_count)
-		for (k = 0; k < (int) result->addr_count; k++)
-		    safe_free(result->entry.h_addr_list[k]);
-	    safe_free(result->entry.h_addr_list);
-	    if (result->alias_count)
-		for (k = 0; k < (int) result->alias_count; k++)
-		    safe_free(result->entry.h_aliases[k]);
-	    if (result->entry.h_aliases)
-		safe_free(result->entry.h_aliases);
-	    safe_free(result->entry.h_name);
-	    debug(14, 5, "ipcache_release: Released IP cached record for '%s'.\n", i->name);
-	}
-	safe_free(result->name);
-	memset(result, '\0', sizeof(ipcache_entry));
-	safe_free(result);
+    if (result->status == IP_CACHED) {
+	for (k = 0; k < (int) result->addr_count; k++)
+	    safe_free(result->entry.h_addr_list[k]);
+	safe_free(result->entry.h_addr_list);
+	for (k = 0; k < (int) result->alias_count; k++)
+	    safe_free(result->entry.h_aliases[k]);
+	if (result->entry.h_aliases)
+	    safe_free(result->entry.h_aliases);
+	safe_free(result->entry.h_name);
+	debug(14, 5, "ipcache_release: Released IP cached record for '%s'.\n",
+	    result->name);
+    } else {
+	debug(14,0,"ipcache_release: HELP, '%s' status = %d\n",
+		result->name, result->status);
     }
+    safe_free(result->name);
+    memset(result, '\0', sizeof(ipcache_entry));
+    safe_free(result);
     --meta_data.ipcache_count;
     debug(14, 5, "ipcache_release: ipcache_count when return: %d \n",
 	meta_data.ipcache_count);
-    return meta_data.ipcache_count;
+    return;
 }
 
 /* return match for given name */
@@ -246,7 +246,7 @@ static ipcache_entry *ipcache_get(name)
 	return NULL;
 
     if (((result->timestamp + result->ttl) < squid_curtime) &&
-	(result->status != PENDING)) {	/* expired? */
+	(result->status != IP_PENDING)) {	/* expired? */
 	ipcache_release(result);
 	return NULL;
     }
@@ -317,7 +317,7 @@ static int ipcache_purgelru()
 	    LRU_list = xrealloc((char *) LRU_list,
 		LRU_cur_size * sizeof(ipcache_entry *));
 	}
-	if ((i->status != PENDING) && (i->pending_head == NULL)) {
+	if ((i->status != IP_PENDING) && (i->pending_head == NULL)) {
 	    local_ip_notpending_count++;
 	    LRU_list[LRU_list_count++] = i;
 	}
@@ -362,7 +362,7 @@ ipcache_entry *ipcache_create()
 	    if (!ipe) {
 		debug(14, 1, "ipcache_create: First entry is a null pointer ???\n");
 		/* have to let it grow beyond limit here */
-	    } else if (ipe && ipe->status != PENDING) {
+	    } else if (ipe && ipe->status != IP_PENDING) {
 		ipcache_release(ipe);
 	    } else {
 		debug(14, 1, "ipcache_create: First entry is also PENDING entry.\n");
@@ -405,9 +405,13 @@ void ipcache_add(name, i, hp, cached)
     debug(14, 10, "ipcache_add: Adding name '%s' (%s).\n", name,
 	cached ? "cached" : "not cached");
 
+    if (ipcache_get(name)) {
+	debug(14,0,"WHOA: '%s' is already in the IP cache!\n", name);
+	fatal_dump("ipcache_add: somebody adding a duplicate!");
+    }
+
     i->name = xstrdup(name);
     if (cached) {
-
 	/* count for IPs */
 	addr_count = 0;
 	while ((addr_count < 255) && hp->h_addr_list[addr_count])
@@ -441,11 +445,11 @@ void ipcache_add(name, i, hp, cached)
 	i->entry.h_length = hp->h_length;
 	i->entry.h_name = xstrdup(hp->h_name);
 	i->lastref = i->timestamp = squid_curtime;
-	i->status = CACHED;
+	i->status = IP_CACHED;
 	i->ttl = DnsPositiveTtl;
     } else {
 	i->lastref = i->timestamp = squid_curtime;
-	i->status = NEGATIVE_CACHED;
+	i->status = IP_NEGATIVE_CACHED;
 	i->ttl = getNegativeDNSTTL();
     }
     ipcache_add_to_hash(i);
@@ -469,7 +473,7 @@ void ipcache_call_pending(i)
 	if (p->handler) {
 	    nhandler++;
 	    p->handler(p->fd,
-		(i->status == CACHED) ? &(i->entry) : NULL,
+		(i->status == IP_CACHED) ? &(i->entry) : NULL,
 		p->handlerData);
 	}
 	memset(p, '\0', sizeof(struct _ip_pending));
@@ -585,7 +589,7 @@ int ipcache_parsebuffer(buf, offset, dnsData)
 		i = dnsData->ip_entry;
 		i->lastref = i->timestamp = squid_curtime;
 		i->ttl = getNegativeDNSTTL();
-		i->status = NEGATIVE_CACHED;
+		i->status = IP_NEGATIVE_CACHED;
 		ipcache_call_pending(i);
 		debug(14, 10, "ipcache_parsebuffer: $fail succeeded: %s.\n",
 		    dns_error_message[0] ? dns_error_message : "why?");
@@ -599,12 +603,12 @@ int ipcache_parsebuffer(buf, offset, dnsData)
 		debug(14, 0, "ipcache_parsebuffer: Invalid OPCODE?\n");
 	    } else {
 		i = dnsData->ip_entry;
-		if (i->status != PENDING) {
+		if (i->status != IP_PENDING) {
 		    debug(14, 0, "ipcache_parsebuffer: DNS record already resolved.\n");
 		} else {
 		    i->lastref = i->timestamp = squid_curtime;
 		    i->ttl = DnsPositiveTtl;
-		    i->status = CACHED;
+		    i->status = IP_CACHED;
 
 		    line_cur = line_head->next;
 
@@ -743,7 +747,7 @@ int ipcache_dnsHandleRead(fd, dnsData)
     if (len <= 0) {
 	debug(14, dnsData->flags & DNS_FLAG_CLOSING ? 5 : 1,
 	    "FD %d: Connection from DNSSERVER #%d is closed, disabling\n",
-	    fd, dnsData->id + 1);
+	    fd, dnsData->id);
 	dnsData->flags = 0;
 	comm_close(fd);
 	return 0;
@@ -805,31 +809,8 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 	ipcache_call_pending_badname(fd, handler, handlerData);
 	return 0;
     }
-    i = ipcache_get(name);
-    if (i != NULL && i->status != PENDING) {
-	/* hit here */
-	debug(14, 4, "ipcache_nbgethostbyname: HIT for '%s'\n", name);
-	IpcacheStats.hits++;
-	pending = xcalloc(1, sizeof(struct _ip_pending));
-	pending->fd = fd;
-	pending->handler = handler;
-	pending->handlerData = handlerData;
-	for (I = &(i->pending_head); *I; I = &((*I)->next));
-	*I = pending;
-	ipcache_call_pending(i);
-	return 0;
-    } else if (i != NULL) {
-	debug(14, 4, "ipcache_nbgethostbyname: PENDING for '%s'\n", name);
-	IpcacheStats.pendings++;
-	pending = xcalloc(1, sizeof(struct _ip_pending));
-	pending->fd = fd;
-	pending->handler = handler;
-	pending->handlerData = handlerData;
-	for (I = &(i->pending_head); *I; I = &((*I)->next));
-	*I = pending;
-	return 0;
-    } else {
-	/* No entry, create the new one */
+    if ((i = ipcache_get(name)) == NULL) {
+	/* MISS: No entry, create the new one */
 	debug(14, 5, "ipcache_nbgethostbyname: MISS for '%s'\n", name);
 	IpcacheStats.misses++;
 	pending = xcalloc(1, sizeof(struct _ip_pending));
@@ -838,9 +819,36 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 	pending->handlerData = handlerData;
 	i = ipcache_create();
 	i->name = xstrdup(name);
-	i->status = PENDING;
+	i->status = IP_PENDING;
 	i->pending_head = pending;
 	ipcache_add_to_hash(i);
+    } else if (i->status == IP_CACHED || i->status == IP_NEGATIVE_CACHED) {
+	/* HIT */
+	debug(14, 4, "ipcache_nbgethostbyname: HIT for '%s'\n", name);
+	if (i->status == IP_NEGATIVE_CACHED)
+	    IpcacheStats.negative_hits++;
+	else
+	    IpcacheStats.hits++;
+	pending = xcalloc(1, sizeof(struct _ip_pending));
+	pending->fd = fd;
+	pending->handler = handler;
+	pending->handlerData = handlerData;
+	for (I = &(i->pending_head); *I; I = &((*I)->next));
+	*I = pending;
+	ipcache_call_pending(i);
+	return 0;
+    } else if (i->status == IP_PENDING) {
+	debug(14, 4, "ipcache_nbgethostbyname: PENDING for '%s'\n", name);
+	IpcacheStats.pending_hits++;
+	pending = xcalloc(1, sizeof(struct _ip_pending));
+	pending->fd = fd;
+	pending->handler = handler;
+	pending->handlerData = handlerData;
+	for (I = &(i->pending_head); *I; I = &((*I)->next));
+	*I = pending;
+	return 0;
+    } else {
+	fatal_dump("ipcache_nbgethostbyname: BAD ipcache_entry status");
     }
 
     /* for HIT or PENDING, we've returned.  For MISS we continue ... */
@@ -920,7 +928,7 @@ static void dnsDispatch(dns, i)
 	NULL,			/* Handler */
 	NULL);			/* Handler-data */
     debug(14, 5, "dnsDispatch: Request sent to DNS server #%d.\n",
-	dns->id + 1);
+	dns->id);
     dns->dispatch_time = current_time;
     IpcacheStats.dnsserver_requests++;
     IpcacheStats.dnsserver_hist[dns->id]++;
@@ -953,8 +961,10 @@ void ipcacheOpenServers()
 	    debug(14, 1, "              Fallling back to the blocking version.\n");
 	    dns_child_table[k]->flags &= ~DNS_FLAG_ALIVE;
 	} else {
+	    debug(14, 4, "ipcacheOpenServers: FD %d connected to %s #%d.\n",
+	       dnssocket, command, k+1);
 	    dns_child_table[k]->flags |= DNS_FLAG_ALIVE;
-	    dns_child_table[k]->id = k;
+	    dns_child_table[k]->id = k+1;
 	    dns_child_table[k]->inpipe = dnssocket;
 	    dns_child_table[k]->outpipe = dnssocket;
 	    dns_child_table[k]->lastcall = squid_curtime;
@@ -964,7 +974,7 @@ void ipcacheOpenServers()
 
 	    /* update fd_stat */
 
-	    sprintf(fd_note_buf, "%s #%d", prg, dns_child_table[k]->id + 1);
+	    sprintf(fd_note_buf, "%s #%d", prg, dns_child_table[k]->id);
 	    fd_note(dns_child_table[k]->inpipe, fd_note_buf);
 	    commSetNonBlocking(dns_child_table[k]->inpipe);
 
@@ -1036,7 +1046,7 @@ int ipcache_unregister(name, fd)
 
     if ((i = ipcache_get(name)) == NULL)
 	return 0;
-    if (i->status != PENDING)
+    if (i->status != IP_PENDING)
 	return 0;
     /* look for matched fd */
     for (p = i->pending_head; p; p = p->next) {
@@ -1054,50 +1064,29 @@ int ipcache_unregister(name, fd)
     return 0;
 }
 
-
-struct hostent *ipcache_gethostbyname(name)
+struct hostent *ipcache_gethostbyname(name, flags)
      char *name;
+     int flags;
 {
     ipcache_entry *result = NULL;
     struct hostent *hp = NULL;
-
-    if (!name)
-	fatal_dump("ipcache_gethostbyname: NULL name");
-    if ((hp = ipcache_getcached(name, 0)))
-	return hp;
-    IpcacheStats.ghbn_calls++;
-    hp = gethostbyname(name);
-    if (hp && hp->h_name && (hp->h_name[0] != '\0')) {
-	/* good address, cached */
-	debug(14, 10, "ipcache_gethostbyname: DNS success: cache for '%s'.\n", name);
-	ipcache_add(name, ipcache_create(), hp, 1);
-	result = ipcache_get(name);
-	return &result->entry;
-    }
-    /* bad address, negative cached */
-    debug(14, 3, "ipcache_gethostbyname: DNS failure: negative cache for '%s'.\n", name);
-    ipcache_add(name, ipcache_create(), hp, 0);
-    return NULL;
-}
-
-struct hostent *ipcache_getcached(name, lookup_if_miss)
-     char *name;
-     int lookup_if_miss;
-{
-    ipcache_entry *result;
     unsigned int ip;
 
     if (!name)
-	fatal_dump("ipcache_getcached: NULL name");
+	fatal_dump("ipcache_gethostbyname: NULL name");
     IpcacheStats.requests++;
     if ((result = ipcache_get(name))) {
-	if (result->status != CACHED) {
-	    IpcacheStats.pendings++;
+	if (result->status == IP_PENDING) {
+	    IpcacheStats.pending_hits++;
 	    return NULL;
-	}
-	IpcacheStats.hits++;
-	result->lastref = squid_curtime;
-	return &result->entry;
+	} else if (result->status == IP_NEGATIVE_CACHED) {
+	    IpcacheStats.negative_hits++;
+	    return NULL;
+        } else {
+	    IpcacheStats.hits++;
+	    result->lastref = squid_curtime;
+	    return &result->entry;
+        }
     }
     IpcacheStats.misses++;
     /* check if it's already a IP address in text form. */
@@ -1106,7 +1095,20 @@ struct hostent *ipcache_getcached(name, lookup_if_miss)
 	strncpy(static_result->h_name, name, MAX_HOST_NAME);
 	return static_result;
     }
-    if (lookup_if_miss)
+    if (flags & IP_BLOCKING_LOOKUP) {
+        IpcacheStats.ghbn_calls++;
+        hp = gethostbyname(name);
+        if (hp && hp->h_name && (hp->h_name[0] != '\0')) {
+            /* good address, cached */
+            ipcache_add(name, ipcache_create(), hp, 1);
+            result = ipcache_get(name);
+            return &result->entry;
+        }
+        /* bad address, negative cached */
+        ipcache_add(name, ipcache_create(), hp, 0);
+        return NULL;
+    }
+    if (flags & IP_LOOKUP_IF_MISS)
 	ipcache_nbgethostbyname(name, -1, dummy_handler, NULL);
     return NULL;
 }
@@ -1123,14 +1125,20 @@ void stat_ipcache_get(sentry, obj)
     char status;
 
     storeAppendPrintf(sentry, "{IP Cache Statistics:\n");
+    storeAppendPrintf(sentry, "{IPcache Entries: %d}\n",
+	meta_data.ipcache_count);
     storeAppendPrintf(sentry, "{IPcache Requests: %d}\n",
 	IpcacheStats.requests);
     storeAppendPrintf(sentry, "{IPcache Hits: %d}\n",
 	IpcacheStats.hits);
+    storeAppendPrintf(sentry, "{IPcache Pending Hits: %d}\n",
+	IpcacheStats.pending_hits);
+    storeAppendPrintf(sentry, "{IPcache Negative Hits: %d}\n",
+	IpcacheStats.negative_hits);
     storeAppendPrintf(sentry, "{IPcache Misses: %d}\n",
 	IpcacheStats.misses);
-    storeAppendPrintf(sentry, "{IPcache Pendings: %d}\n",
-	IpcacheStats.pendings);
+    storeAppendPrintf(sentry, "{Blocking calls to gethostbyname(): %d}\n",
+	IpcacheStats.ghbn_calls);
     storeAppendPrintf(sentry, "{dnsserver requests: %d}\n",
 	IpcacheStats.dnsserver_requests);
     storeAppendPrintf(sentry, "{dnsserver replies: %d}\n",
@@ -1139,8 +1147,6 @@ void stat_ipcache_get(sentry, obj)
 	IpcacheStats.avg_svc_time);
     storeAppendPrintf(sentry, "{number of dnsservers: %d}\n",
 	getDnsChildren());
-    storeAppendPrintf(sentry, "{Calls to gethostbyname(): %d\n",
-	IpcacheStats.ghbn_calls);
     storeAppendPrintf(sentry, "{dnsservers use histogram:}\n");
     for (k = 0; k < getDnsChildren(); k++) {
 	storeAppendPrintf(sentry, "{    dnsserver #%d: %d}\n",
@@ -1177,11 +1183,11 @@ char ipcache_status_char(i)
      ipcache_entry *i;
 {
     switch (i->status) {
-    case CACHED:
+    case IP_CACHED:
 	return ('C');
-    case PENDING:
+    case IP_PENDING:
 	return ('P');
-    case NEGATIVE_CACHED:
+    case IP_NEGATIVE_CACHED:
 	return ('N');
     default:
 	debug(14, 1, "ipcache_status_char: unexpected IP cache status.\n");
@@ -1208,7 +1214,7 @@ void ipcacheShutdownServers()
 
     for (k = 0; k < getDnsChildren(); k++) {
 	dnsData = *(dns_child_table + k);
-	debug(14, 3, "ipcacheShutdownServers: sending '$shutdown' to dnsserver #%d\n", k);
+	debug(14, 3, "ipcacheShutdownServers: sending '$shutdown' to dnsserver #%d\n", dnsData->id);
 	debug(14, 3, "ipcacheShutdownServers: --> FD %d\n", dnsData->outpipe);
 	comm_write(dnsData->outpipe,
 	    xstrdup(shutdown),

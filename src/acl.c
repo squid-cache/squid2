@@ -619,7 +619,7 @@ int aclMatchAcl(acl, c, m, pr, h, po, r)
 	return aclMatchIp(acl->data, c);
 	/* NOTREACHED */
     case ACL_DST_IP:
-	if ((hp = ipcache_getcached(h, 1)) == NULL) {
+	if ((hp = ipcache_gethostbyname(h, IP_LOOKUP_IF_MISS)) == NULL) {
 	    debug(28, 3, "aclMatchAcl: Can't yet compare '%s' ACL for '%s'\n",
 		acl->name, h);
 	    return 0;		/* cant check, return no match */
