@@ -1,0 +1,71 @@
+==============================================================================
+From:    Richard Huveneers <linuxml@hekkihek.hacom.nl>
+To:      squid-users@ircache.net
+Subject: Announce: SMB proxy authentication
+Date:    Fri, 31 Jul 1998 22:37:58 +0200
+==============================================================================
+
+
+
+I've written an authenticator for use with Arjan de Vet's
+external proxy authentication patch. This authenticator
+uses the SMB protocol to authenticate against a NT server,
+Samba server, etc.
+
+This authenticator has been in use in our network for two
+weeks now without a single problem.
+
+Please let me know if you are using this authenticator, so
+that I know it's worth spending time on.
+
+INSTALL:
+
+(this procedure can be much smoother, and I will spend time
+on that if there is sufficient interest)
+
+- First, you need the smbvalid.a library.
+  - download pam_smb from http://www.csn.ul.ie/~airlied/pam_smb/
+  - Type: ./configure
+  - Edit the Makefile and remove -fPIC
+  - Type: make smbvalid
+
+- Download ftp://ftp.hacom.nl/pub/users/richard/smb_auth-0.1.c
+
+- Specify your NT domain(s) in the "ntd" array. If you change
+  the number of domains, then don't forget to change the
+  NUMNTDOMAINS define too.
+
+- Compile the program with
+  gcc -Ismbval -o smb_auth -O2 -Wall smb_auth-0.1.c smbval/smbvalid.a
+
+- Copy the smb_auth binary to /usr/local/bin and use it in your
+  squid.conf file.
+
+USAGE:
+
+If you have more than one NT domain on your network (like me)
+than the authenticator needs a hint which NT domain to
+authenticate against.
+
+This must be done by appending \domainname to the username when
+entering the username and password in the browser. If there is
+no backslash in the username, than the authenticator picks the NT
+domain which has an empty abbreviation in the ntd array.
+
+So if you have just one NT domain, then leave the abbreviation
+for this domain blank and your users don't have to specify any
+domain.
+
+The authenticator accepts any valid account in the NT domain,
+so check your domain for unwanted guest accounts.
+
+TODO list:
+
+- move the domain defines to the arguments so they can be
+  specified in the squid.conf file.
+- smoothen installation
+- only accept members of a specific group
+- write documentation
+- write a web page for this proggie
+
+Richard.
