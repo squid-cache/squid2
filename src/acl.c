@@ -611,7 +611,6 @@ static int aclMatchTime(data, when)
     static time_t last_when = 0;
     static struct tm tm;
     time_t t;
-    int rc;
 
     if (when != last_when) {
 	last_when = when;
