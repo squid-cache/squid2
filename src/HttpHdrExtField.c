@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 6?    HTTP Header: Extension Field
+ * DEBUG: section 69    HTTP Header: Extension Field
  * AUTHOR: Alex Rousskov
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/

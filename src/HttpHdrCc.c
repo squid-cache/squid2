@@ -151,7 +151,7 @@ httpHdrCcDup(const HttpHdrCc * cc)
 }
 
 void
-httpHdrCcPackValueInto(const HttpHdrCc * cc, Packer * p)
+httpHdrCcPackInto(const HttpHdrCc * cc, Packer * p)
 {
     http_hdr_cc_type flag;
     int pcount = 0;
