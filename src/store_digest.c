@@ -263,6 +263,7 @@ storeDigestRewriteStart(void *datanotused)
     EBIT_SET(flags, REQ_CACHABLE);
     sd_state.rewrite_lock = e = storeCreateEntry(url, url, flags, METHOD_GET);
     assert(sd_state.rewrite_lock);
+    cbdataAdd(sd_state.rewrite_lock, MEM_DONTFREE);
     debug(71, 3) ("storeDigestRewrite: url: %s key: %s\n", url, storeKeyText(e->key));
     e->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
     /* wait for rebuild (if any) to finish */
@@ -310,6 +311,11 @@ storeDigestRewriteFinish(StoreEntry * e)
     requestUnlink(e->mem_obj->request);
     e->mem_obj->request = NULL;
     storeUnlockObject(e);
+	/*
+	 * note, it won't really get free()'d here because we used
+	 * MEM_DONTFREE in the call to cbdataAdd().
+	 */
+    cbdataFree(sd_state.rewrite_lock);
     sd_state.rewrite_lock = e = NULL;
     sd_state.rewrite_count++;
     eventAdd("storeDigestRewriteStart", storeDigestRewriteStart, NULL, StoreDigestRewritePeriod);

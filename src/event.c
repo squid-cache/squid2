@@ -52,6 +52,8 @@ eventAdd(const char *name, EVH * func, void *arg, time_t when)
     event->arg = arg;
     event->name = name;
     event->when = squid_curtime + when;
+    if (NULL != arg)
+        cbdataLock(arg);
     debug(41, 7) ("eventAdd: Adding '%s', in %d seconds\n", name, (int) when);
     /* Insert after the last event with the same or earlier time */
     for (E = &tasks; *E; E = &(*E)->next) {
@@ -84,6 +86,8 @@ eventDelete(EVH * func, void *arg)
 	if (event->arg != arg)
 	    continue;
 	*E = event->next;
+	if (NULL != event->arg)
+	    cbdataUnlock(event->arg);
 	xfree(event);
 	return;
     }
@@ -100,13 +104,19 @@ eventRun(void)
 	return;
     if (event->when > squid_curtime)
 	return;
-    debug(41, 7) ("eventRun: Running '%s'\n", event->name);
     func = event->func;
     arg = event->arg;
     event->func = NULL;
     event->arg = NULL;
     tasks = event->next;
     safe_free(event);
+    if (NULL != arg) {
+        int valid = cbdataValid(arg);
+        cbdataUnlock(arg);
+        if (!valid)
+	    return;
+    }
+    debug(41, 7) ("eventRun: Running '%s'\n", event->name);
     func(arg);
 }
 

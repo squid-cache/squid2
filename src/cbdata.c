@@ -137,6 +137,8 @@ cbdataReallyFree(cbdata * c)
     hash_remove_link(htable, (hash_link *) c);
     cbdataCount--;
     xfree(c);
+    if (mem_type == MEM_DONTFREE)
+	return;
     debug(45, 3) ("cbdataReallyFree: Freeing %p\n", p);
     if (mem_type == MEM_NONE)
 	xfree(p);
