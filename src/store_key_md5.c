@@ -130,9 +130,8 @@ storeKeyPublic(const char *url, method_t method)
 const cache_key *
 storeKeyDup(const cache_key * key)
 {
-    cache_key *dup = xmalloc(MD5_DIGEST_CHARS);
+    cache_key *dup = memAllocate(MEM_MD5_DIGEST);
     xmemcpy(dup, key, MD5_DIGEST_CHARS);
-    /* XXX account key */
     return dup;
 }
 
@@ -147,7 +146,6 @@ void
 storeKeyFree(const cache_key * key)
 {
     xfree((void *) key);
-    /* XXX account key */
 }
 
 int

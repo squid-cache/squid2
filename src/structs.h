@@ -330,6 +330,9 @@ struct _SquidConfig {
 	int low;
 	int high;
     } ipcache;
+    struct {
+	int size;
+    } fqdncache;
     int minDirectHops;
     cachemgr_passwd *passwd_list;
     struct {

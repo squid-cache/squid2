@@ -1510,6 +1510,9 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	    kb_incr(&Counter.client_http.hit_kbytes_out, size);
     }
     if (errflag) {
+	/*
+	 * just close the socket, httpRequestFree will abort if needed
+	 */
 	comm_close(fd);
     } else if (NULL == entry) {
 	comm_close(fd);		/* yuk */

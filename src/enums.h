@@ -589,6 +589,7 @@ typedef enum {
     MEM_DLINK_LIST,
     MEM_STATCOUNTERS,
     MEM_CLIENT_INFO,
+    MEM_MD5_DIGEST,
     MEM_MAX
 } mem_type;
 
