@@ -1038,7 +1038,8 @@ ipcacheCycleAddr(const char *name)
 	return;
     if (i->status != IP_CACHED)
 	return;
-    if (++i->addrs.cur == i->addrs.count)
+    i->addrs.cur++;
+    if (i->addrs.cur == i->addrs.count)
 	i->addrs.cur = 0;
 }
 
