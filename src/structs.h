@@ -138,6 +138,11 @@ struct _auth_user_request_t {
     void *scheme_data;
     /* how many 'processes' are working on this data */
     size_t references;
+    /* We only attempt authentication once per http request. This 
+     * is to allow multiple auth acl references from different _access areas
+     * when using connection based authentication
+     */
+    auth_acl_t lastReply;
 };
 
 
