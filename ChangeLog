@@ -1,4 +1,4 @@
-Changes to squid-1.novm.9 ():
+Changes to squid-1.NOVM.9 (April 16, 1997):
 
 	- Fixed handling len=0 in storeAppend().
 	- call InvokeHandlers() after setting store_status in
