@@ -248,10 +248,11 @@ memBufVPrintf(MemBuf * mb, const char *fmt, va_list vargs)
     /* on Linux and FreeBSD, '\0' is not counted in return value */
     /* on XXX it might be counted */
     /* check that '\0' is appended and not counted */
-    if (!mb->size || mb->buf[mb->size - 1])
+    if (!mb->size || mb->buf[mb->size - 1]) {
 	assert(!mb->buf[mb->size]);
-    else
+    } else {
 	mb->size--;
+    }
 }
 
 /*
