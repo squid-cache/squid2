@@ -2398,13 +2398,13 @@ storeRandomizeBuckets(void)
 {
     int i;
     if (MaintBucketsOrder == NULL)
-        MaintBucketsOrder = xcalloc(store_buckets, sizeof(unsigned int));
+	MaintBucketsOrder = xcalloc(store_buckets, sizeof(unsigned int));
     for (i = 0; i < store_buckets; i++)
 	*(MaintBucketsOrder + i) = (unsigned int) i;
     qsort((char *) MaintBucketsOrder,
 	store_buckets,
 	sizeof(unsigned int),
-	(QS) compareRandom);
+	    (QS) compareRandom);
 }
 
 static void
@@ -2575,7 +2575,7 @@ storeMaintainSwapSpace(void *unused)
 		scan_revolutions++;
 		debug(20, 1, "Completed %d full expiration scans of store table\n",
 		    scan_revolutions);
-    		storeRandomizeBuckets();
+		storeRandomizeBuckets();
 	    }
 	    bucket = *(MaintBucketsOrder + bucket_index);
 	    bucket_index++;
