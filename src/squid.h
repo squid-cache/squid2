@@ -147,7 +147,6 @@
  * is given to the author. */
 
 /* assume signal.h is protected against multiple inclusion */
-#include <signal.h>
 static struct sigaction _fixsig_sa_act, _fixsig_sa_oact;
 static sigset_t _fixsig_sigset;
 #define signal(s,f) \
