@@ -586,12 +586,26 @@ icpSendMoreData(int fd, icpStateData * icpState)
 #endif /* LOG_FULL_HEADERS */
     icpState->out_offset += len;
     if (icpState->request->method == METHOD_HEAD) {
+	int hack = 0;
+	char C = '\0';
+	int size = len;
+        if (size == ICP_SENDMOREDATA_BUF) {
+            hack = 1;
+            size--;
+            C = *(buf + size);
+        }
+        *(buf + size) = '\0';
 	if ((p = mime_headers_end(buf))) {
 	    *p = '\0';
 	    len = p - buf;
 	    /* force end */
-	    icpState->out_offset = entry->mem_obj->e_current_len;
+	    if (entry->store_status == STORE_PENDING)
+	        icpState->out_offset = entry->mem_obj->e_current_len;
+	    else
+		icpState->out_offset = entry->object_len;
 	}
+	if (hack)
+            *(buf + size++) = C;
     }
     comm_write(fd,
 	buf,
@@ -1994,6 +2008,9 @@ CheckQuickAbort2(const icpStateData * icpState)
     if ((expectlen - curlen) > Config.quickAbort.max)
 	/* too much left to go */
 	return 1;
+    if (expectlen < 128U)
+	/* avoid FPE */
+	return 0;
     if ((curlen / (expectlen / 128U)) > Config.quickAbort.pct)
 	/* past point of no return */
 	return 0;
