@@ -102,7 +102,7 @@ static void clientProcessOnlyIfCachedMiss(clientHttpRequest * http);
 static int clientCachable(clientHttpRequest * http);
 static int clientHierarchical(clientHttpRequest * http);
 static int clientCheckContentLength(request_t * r);
-static int httpAcceptDefer(void);
+static DEFER httpAcceptDefer;
 static log_type clientProcessRequest2(clientHttpRequest * http);
 static int clientReplyBodyTooLarge(int clen);
 static int clientRequestBodyTooLarge(int clen);
@@ -2593,7 +2593,7 @@ requestTimeout(int fd, void *data)
 }
 
 static int
-httpAcceptDefer(void)
+httpAcceptDefer(int fdunused, void *dataunused)
 {
     static time_t last_warn = 0;
     if (fdNFree() >= RESERVED_FD)
@@ -2619,7 +2619,7 @@ httpAccept(int sock, void *data)
     static aclCheck_t identChecklist;
 #endif
     commSetSelect(sock, COMM_SELECT_READ, httpAccept, NULL, 0);
-    while (max-- && !httpAcceptDefer()) {
+    while (max-- && !httpAcceptDefer(sock, NULL)) {
 	memset(&peer, '\0', sizeof(struct sockaddr_in));
 	memset(&me, '\0', sizeof(struct sockaddr_in));
 	if ((fd = comm_accept(sock, &peer, &me)) < 0) {
@@ -2799,7 +2799,11 @@ clientHttpConnectionsOpen(void)
 	    continue;
 	comm_listen(fd);
 	commSetSelect(fd, COMM_SELECT_READ, httpAccept, NULL, 0);
-	/*commSetDefer(fd, httpAcceptDefer, NULL); */
+	/*
+	 * We need to set a defer handler here so that we don't
+	 * peg the CPU with select() when we hit the FD limit.
+	 */
+	commSetDefer(fd, httpAcceptDefer, NULL);
 	debug(1, 1) ("Accepting HTTP connections at %s, port %d, FD %d.\n",
 	    inet_ntoa(s->s.sin_addr),
 	    (int) ntohs(s->s.sin_port),
