@@ -197,7 +197,7 @@ a_file_callback(async_queue_t * q)
 		type = aqe->aq_e_type;
 
 		/* Free slot */
-		bzero(aqe, sizeof(async_queue_entry_t));
+		memset(aqe, 0, sizeof(async_queue_entry_t));
 		aqe->aq_e_state = AQ_ENTRY_FREE;
 		q->aq_numpending--;
 
