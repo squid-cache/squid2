@@ -192,6 +192,7 @@ idnsSendQuery(idns_query * q)
 	    DnsSocket, xstrerror());
     } else {
 	fd_bytes(DnsSocket, x, FD_WRITE);
+	commSetSelect(DnsSocket, COMM_SELECT_READ, idnsRead, NULL, 0);
     }
     q->nsends++;
     q->sent_t = current_time;
@@ -275,7 +276,6 @@ idnsRead(int fd, void *data)
     int max = 10;
     static char rbuf[512];
     int ns;
-    commSetSelect(fd, COMM_SELECT_READ, idnsRead, NULL, 0);
     while (max--) {
 	from_len = sizeof(from);
 	memset(&from, '\0', from_len);
@@ -312,6 +312,8 @@ idnsRead(int fd, void *data)
 	nameservers[ns].nreplies++;
 	idnsGrokReply(rbuf, len);
     }
+    if (lru_list.head)
+	commSetSelect(DnsSocket, COMM_SELECT_READ, idnsRead, NULL, 0);
 }
 
 static void
@@ -361,7 +363,6 @@ idnsInit(void)
 	if (DnsSocket < 0)
 	    fatal("Could not create a DNS socket");
 	debug(78, 1) ("DNS Socket created on FD %d\n", DnsSocket);
-	commSetSelect(DnsSocket, COMM_SELECT_READ, idnsRead, NULL, 0);
     }
     if (nns == 0)
 	idnsParseResolvConf();
