@@ -189,3 +189,7 @@ Changes to squid-1.0.beta8 (May 22, 1996):
 	- Changed mallopt option M_MXFAST to 512 bytes.
 	- Added -Y option to only return UDP_HIT or UDP_DENIED during
 	  store reload.
+	- Added UDP_HIT_OBJ type.  Just like a UDP_HIT, but object data
+	  is returned in the UDP packet if it will fit; saves a TCP
+	  connection.  Not compiled in by default, add -DUDP_HIT_WITH_OBJ
+	  to src/Makefile DEFINES.
