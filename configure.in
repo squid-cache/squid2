@@ -1925,6 +1925,7 @@ AC_REPLACE_FUNCS(\
 	drand48 \
 	tempnam \
 	strerror \
+	initgroups
 )
 
 dnl Not cached since people are likely to tune this

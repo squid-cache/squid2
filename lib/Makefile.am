@@ -24,7 +24,12 @@ noinst_LIBRARIES = \
 	@LIBREGEX@
 EXTRA_libmiscutil_a_SOURCES = \
 	md5.c \
-	snprintf.c
+	snprintf.c \
+	drand48.c \
+	tempnam.c \
+	strerror.c \
+	initgroups.c
+
 libmiscutil_a_SOURCES = \
 	Array.c \
 	base64.c \
