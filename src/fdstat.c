@@ -143,14 +143,14 @@ fdstat_init(int preopen)
 {
     int i;
 
-    fd_stat_tab = xcalloc(SQUID_MAXFD, sizeof(FDENTRY));
-    meta_data.misc += SQUID_MAXFD * sizeof(FDENTRY);
+    fd_stat_tab = xcalloc(Squid_MaxFD, sizeof(FDENTRY));
+    meta_data.misc += Squid_MaxFD * sizeof(FDENTRY);
     for (i = 0; i < preopen; ++i) {
 	fd_stat_tab[i].status = FDSTAT_OPEN;
 	fd_stat_tab[i].type = FD_FILE;
     }
 
-    for (i = preopen; i < SQUID_MAXFD; ++i) {
+    for (i = preopen; i < Squid_MaxFD; ++i) {
 	fd_stat_tab[i].status = FDSTAT_CLOSE;
 	fd_stat_tab[i].type = FD_UNKNOWN;
     }
@@ -165,7 +165,7 @@ fdstat_update(int fd, File_Desc_Status status)
 {
     unsigned int i;
 
-    if (fd >= SQUID_MAXFD)
+    if (fd >= Squid_MaxFD)
 	debug(7, 0, "Running out of file descriptors.\n");
 
     if (fd < Biggest_FD) {
@@ -174,7 +174,7 @@ fdstat_update(int fd, File_Desc_Status status)
     }
     if ((fd > Biggest_FD) && (status == FDSTAT_OPEN)) {
 	/* just update the biggest one */
-	Biggest_FD = fd;	/* % SQUID_MAXFD; */
+	Biggest_FD = fd;	/* % Squid_MaxFD; */
 	return;
     }
     if ((fd == Biggest_FD) && (status == FDSTAT_CLOSE)) {
@@ -241,15 +241,15 @@ fdstat_are_n_free_fd(int n)
     int n_free_fd = 0;
 
     if (n == 0) {
-	for (fd = 0; fd < SQUID_MAXFD; ++fd)
+	for (fd = 0; fd < Squid_MaxFD; ++fd)
 	    if (fd_stat_tab[fd].status == FDSTAT_CLOSE)
 		++n;
 	return (n);
     }
-    if ((SQUID_MAXFD - Biggest_FD) > n)
+    if ((Squid_MaxFD - Biggest_FD) > n)
 	return 1;
     else {
-	for (fd = SQUID_MAXFD - 1; ((fd > 0) && (n_free_fd < n)); --fd) {
+	for (fd = Squid_MaxFD - 1; ((fd > 0) && (n_free_fd < n)); --fd) {
 	    if (fd_stat_tab[fd].status == FDSTAT_CLOSE) {
 		++n_free_fd;
 	    }

@@ -724,7 +724,7 @@ ftpInitialize(void)
 	return -1;
     }
     ftpget_port = ntohs(S.sin_port);
-    listen(cfd, SQUID_MAXFD >> 2);
+    listen(cfd, Squid_MaxFD >> 2);
     if ((pid = fork()) < 0) {
 	debug(50, 0, "ftpInitialize: fork: %s\n", xstrerror());
 	comm_close(cfd);
