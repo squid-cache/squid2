@@ -1,4 +1,4 @@
-Changes to squid-1.1.10 (April 21, 1997):
+Changes to squid-1.1.10 (April 22, 1997):
 
 	- Require 0 <= multicast ttl <= 128.
 	- Changed 'unsigned int inaddr_none' to 'struct in_addr no_addr'.
@@ -26,6 +26,8 @@ Changes to squid-1.1.10 (April 21, 1997):
 	- Added -m option to ftpget for defining default MIME type.
 	  (Neil Murray).
 	- Optimized comm_select() functions (Mark Treacy).
+	- Fixed up rebuild code to handle swapfile/URL clash
+	  cases better.
 
 
 Changes to squid-1.1.9 (March 30, 1997):
