@@ -592,7 +592,7 @@ httpBuildRequestHeader(request_t * request,
      *  the server and fetch only the requested content) 
      */
     we_do_ranges =
-	orig_request->range && orig_request->flags.cachable && !httpHdrRangeWillBeComplex(orig_request->range);
+	orig_request->range && orig_request->flags.cachable && !httpHdrRangeWillBeComplex(orig_request->range) && (Config.rangeOffsetLimit == -1 || httpHdrRangeFirstOffset(orig_request->range) <= Config.rangeOffsetLimit);
     debug(11, 8) ("httpBuildRequestHeader: range specs: %p, cachable: %d; we_do_ranges: %d\n",
 	orig_request->range, orig_request->flags.cachable, we_do_ranges);
 

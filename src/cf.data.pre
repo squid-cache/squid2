@@ -1212,6 +1212,31 @@ DOC_START
 negative_dns_ttl 5 minutes
 DOC_END
 
+NAME: range_offset_limit
+COMMENT: (bytes)
+TYPE: b_size_t
+LOC: Config.rangeOffsetLimit
+DEFAULT: 0 KB
+DOC_START
+	Sets a upper limit on how far into the the file a Range request
+	may be to cause Squid to prefetch the whole file. If beyond this
+	limit then Squid forwards the Range request as it is and the result
+	is NOT cached.
+
+	This is to stop a far ahead range request (lets say start at 17MB)
+	from making Squid fetch the whole object up to that point before
+	sending anything to the client.
+
+	A value of -1 causes Squid to always fetch the object from the
+	beginning so that it may cache the result. (2.0 style)
+
+	A value of 0 causes Squid to never fetch more than the client
+	client requested. (default)
+
+range_offset_limit 0 KB
+DOC_END
+
+
 COMMENT_START
  TIMEOUTS
  -----------------------------------------------------------------------------

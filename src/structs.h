@@ -438,6 +438,7 @@ struct _SquidConfig {
     } comm_incoming;
     int max_open_disk_fds;
     int uri_whitespace;
+    size_t rangeOffsetLimit;
 };
 
 struct _SquidConfig2 {
