@@ -1469,6 +1469,7 @@ storeCleanup(void *data)
     e = (StoreEntry *) hash_lookup(store_table, curr->key);
     if (e != NULL) {
 	assert(!BIT_TEST(e->flag, ENTRY_VALIDATED));
+        storeLockObject(e);
 	storeValidate(e, storeCleanupComplete, e);
 	if ((++validnum & 0xFFF) == 0)
 	    debug(20, 1) ("  %7d Entries Validated so far.\n", validnum);
