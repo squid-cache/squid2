@@ -314,6 +314,7 @@ void leave_suid()
 {
     struct passwd *pwd = NULL;
     struct group *grp = NULL;
+    debug(21, 3, "leave_suid: PID %d called\n", getpid());
     if (geteuid() != 0)
 	return;
     /* Started as a root, check suid option */
@@ -326,6 +327,8 @@ void leave_suid()
     } else {
 	setgid(pwd->pw_gid);
     }
+    debug(21, 3, "leave_suid: PID %d giving up root, becoming '%s'\n",
+	getpid(), pwd->pw_name);
 #if HAVE_SETRESUID
     setresuid(pwd->pw_uid, pwd->pw_uid, 0);
 #elif HAVE_SETEUID
@@ -338,6 +341,7 @@ void leave_suid()
 /* Enter a privilegied section */
 void enter_suid()
 {
+    debug(21, 3, "enter_suid: PID %d taking root priveleges\n", getpid());
 #if HAVE_SETRESUID
     setresuid(-1, 0, -1);
 #else
@@ -353,6 +357,7 @@ void no_suid()
     uid_t uid;
     leave_suid();
     uid = geteuid();
+    debug(21, 3, "leave_suid: PID %d giving up root priveleges forever\n", getpid());
 #if HAVE_SETRESUID
     setresuid(uid, uid, uid);
 #else
