@@ -142,7 +142,7 @@ fwdServerClosed(int fd, void *data)
 	    fs->next = NULL;
 	}
 	/* use eventAdd to break potential call sequence loops */
-	eventAdd("fwdConnectStart", fwdConnectStart, fwdState, 0.0, 1);
+	eventAdd("fwdConnectStart", fwdConnectStart, fwdState, 0.0, 0);
     } else {
 	fwdStateFree(fwdState);
     }
