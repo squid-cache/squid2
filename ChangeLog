@@ -15,6 +15,7 @@ Changes to squid-1.1.8 (February @@@, 1997):
 	  background and don't mark the peer as 'up' until a connection
 	  succeeds.
 	- Okay to increase FD_SETSIZE on FreeBSD 2.2.x (Peter Wemm).
+	- Fixed HTTP anonymizer bug in 'standard' mode.
 
 Changes to squid-1.1.7 (February 25, 1997):
 
