@@ -142,11 +142,11 @@ void rotate_logs(sig)
 {
     debug(21, 1, "rotate_logs: SIGUSR1 received.\n");
 
+    _db_rotate_log();		/* cache.log */
     storeWriteCleanLog();
-    storeRotateLog();
-    neighbors_rotate_log();
-    stat_rotate_log();
-    _db_rotate_log();
+    storeRotateLog();		/* store.log */
+    neighbors_rotate_log();	/* hierarchy.log */
+    stat_rotate_log();		/* access.log */
     signal(sig, rotate_logs);
 }
 
