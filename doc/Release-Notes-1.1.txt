@@ -744,6 +744,24 @@ Hierarchy Data Tags
 				option 'passthrough_proxy' was used.
 	SSL_PARENT_MISS		The neighbor or proxy defined in the config
 				option 'ssl_proxy' was used.
+	DEFAULT_PARENT		No ICP queries were sent to any parent
+				caches.  This parent was chosen because
+				it was marked as 'default' in the config
+				file.
+	ROUNDROBIN_PARENT	No ICP queries were received from any parent
+				caches.  This parent was chosen because
+				it was marked as 'default' in the config 
+				file and it had the lowest round-robin use
+				count.
+	CLOSEST_PARENT_MISS	This parent was selected because it
+				included the lowest RTT measurement to
+				the origin server.  This only appears
+				with 'query_icmp on' set in the config
+				file.
+	CLOSEST_DIRECT		The object was fetched directly from the
+				origin server because this cache measured
+				a lower RTT than any of the parent caches.
+
 
 Almost any of these may be preceeded by 'TIMEOUT_' if the two-second
 (default) timeout occurs waiting for all ICP replies to arrive from
