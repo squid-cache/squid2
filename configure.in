@@ -1395,4 +1395,5 @@ AC_OUTPUT(\
 	./errors/Makefile \
 	./auth_modules/dummy \
 	./auth_modules/NCSA/Makefile \
+	./auth_modules/getpwnam/Makefile \
 )
