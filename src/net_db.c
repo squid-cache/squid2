@@ -714,10 +714,10 @@ netdbGetRowFn(oid * New, oid * Oid)
     } else {
 	snprintf(key, 15, "%d.%d.%d.%d", Oid[0], Oid[1], Oid[2], Oid[3]);
 	c = (netdbEntry *) hash_lookup(addr_table, key);
-	if (!c)
-	    return 0;
-	debug(49, 8) ("netdbGetRowFn: [%s] found\n", key);
-	c = (netdbEntry *) hash_next(addr_table);
+	if (NULL != c) {
+	    debug(49, 8) ("netdbGetRowFn: [%s] found\n", key);
+	    c = c->next;
+	}
 	if (!c)
 	    debug(49, 8) ("netdbGetRowFn: next does not exist!\n");
     }

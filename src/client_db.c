@@ -200,9 +200,8 @@ meshCtblGetRowFn(oid * New, oid * Oid)
     else {
 	snprintf(key, 15, "%d.%d.%d.%d", Oid[0], Oid[1], Oid[2], Oid[3]);
 	c = (ClientInfo *) hash_lookup(client_table, key);
-	if (!c)
-	    return 0;
-	c = (ClientInfo *) hash_next(client_table);
+	if (NULL != c)
+	    c = c->next;
     }
     if (!c)
 	return 0;
