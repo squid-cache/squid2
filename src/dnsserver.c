@@ -213,7 +213,9 @@
 #include "util.h"
 #include "snprintf.h"
 
+#if !defined(_SQUID_AIX_)
 extern int h_errno;
+#endif
 
 #if LIBRESOLV_DNS_TTL_HACK
 extern int _dns_ttl_;		/* this is a really *dirty* hack - bne */

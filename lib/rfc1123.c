@@ -251,7 +251,10 @@ parse_rfc1123(const char *str)
     t = mktime(&tm);
     {
 	time_t dst = 0;
-#if !defined _TIMEZONE && !defined _timezone
+#if defined (_TIMEZONE)
+#elif defined (_timezone)
+#elif defined(_SQUID_AIX_)
+#else
 	extern time_t timezone;
 #endif
 	/*
