@@ -499,7 +499,7 @@ snmpDecodePacket(snmp_request_t * rq)
     PDU = snmp_pdu_create(0);
     Session.Version = SNMP_VERSION_1;
     Community = snmp_parse(&Session, PDU, buf, len);
-
+    memset(&checklist, '\0', sizeof(checklist));
     checklist.src_addr = rq->from.sin_addr;
     checklist.snmp_community = (char *) Community;
 

@@ -146,6 +146,7 @@ peerAllowedToUse(const peer * p, request_t * request)
 	return do_ping;
     if (p->access == NULL)
 	return do_ping;
+    memset(&checklist, '\0', sizeof(checklist));
     checklist.src_addr = request->client_addr;
     checklist.my_addr = request->my_addr;
     checklist.my_port = request->my_port;
