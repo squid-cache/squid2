@@ -239,9 +239,9 @@ squidaio_xstrfree(char *str)
 static void
 squidaio_fdhandler(int fd, void *data)
 {
-    char buf[256];
-    done_signalled = 0;
-    read(fd, buf, sizeof(buf));
+    /* The actual pipe data is dealt with in squidaio_poll_done(),
+     * called once per comm loop
+     */
     commSetSelect(fd, COMM_SELECT_READ, squidaio_fdhandler, NULL, 0);
 }
 
@@ -839,6 +839,11 @@ squidaio_poll_done(void)
   AIO_REPOLL:
     request = done_requests.head;
     if (request == NULL && !polled) {
+	if (done_signalled) {
+	    char junk[256];
+	    read(done_fd, junk, sizeof(junk));
+	    done_signalled = 0;
+	}
 	squidaio_poll_queues();
 	polled = 1;
 	request = done_requests.head;
