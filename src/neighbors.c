@@ -932,6 +932,9 @@ peerDNSConfigure(const ipcache_addrs * ia, void *data)
     ap->sin_port = htons(p->icp_port);
     if (p->type == PEER_MULTICAST)
 	peerCountMcastPeersSchedule(p, 10);
+#if USE_PEER_NETDB
+    eventAddIsh("netdbExchangeStart", netdbExchangeStart, p, 30);
+#endif
 }
 
 static void
@@ -946,7 +949,7 @@ peerRefreshDNS(void *datanotused)
 	ipcache_nbgethostbyname(p->host, peerDNSConfigure, p);
     }
     /* Reconfigure the peers every hour */
-    eventAdd("peerRefreshDNS", peerRefreshDNS, NULL, 3600);
+    eventAddIsh("peerRefreshDNS", peerRefreshDNS, NULL, 3600);
 }
 
 static void
