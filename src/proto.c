@@ -459,7 +459,6 @@ int getFromDefaultSource(fd, entry)
 	}
 	return 0;
     }
-
     if ((e = entry->mem_obj->e_pings_first_miss)) {
 	hierarchy_log_append(entry, HIER_FIRST_PARENT_MISS, fd, e->host);
 	return getFromCache(fd, entry, e, request);
