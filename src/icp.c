@@ -86,6 +86,7 @@ typedef struct ireadd {
     time_t time;
     complete_handler handler;
     void *client_data;
+    int handle_immed;
 } icpReadWriteData;
 
 /* Local functions */
@@ -93,6 +94,7 @@ static void icpHandleStore _PARAMS((int, StoreEntry *, icpStateData *));
 static void icpHandleStoreComplete _PARAMS((int, char *, int, int, icpStateData *));
 static int icpProcessMISS _PARAMS((int, icpStateData *, char *key));
 static void CheckQuickAbort _PARAMS((icpStateData *));
+static void icpRead _PARAMS((int, int, char *, int, int, int, complete_handler, void *));
 
 static void icpFreeBufOrPage(icpState)
      icpStateData *icpState;
@@ -174,18 +176,23 @@ int icpCachable(icpState)
 	return gopherCachable(request);
     if (!strncasecmp(request, "wais://", 7))
 	return 0;
+    if (!strncasecmp(request, "connect://", 10))
+	return 0;
     if (!strncasecmp(request, "cache_object://", 15))
 	return 0;
     return 1;
 }
 
 /* Read from FD. */
-int icpHandleRead(fd, rw_state_machine)
+int icpHandleRead(fd, rwsm)
      int fd;
-     icpReadWriteData *rw_state_machine;
+     icpReadWriteData *rwsm;
 {
-    int len = read(fd, rw_state_machine->buf + rw_state_machine->offset,
-	rw_state_machine->size - rw_state_machine->offset);
+    int len;
+
+    len = read(fd, rwsm->buf + rwsm->offset, rwsm->size - rwsm->offset);
+
+    debug(12, 5, "icpHandleRead: read %d bytes\n", len);
 
     if (len <= 0) {
 	switch (errno) {
@@ -194,41 +201,41 @@ int icpHandleRead(fd, rw_state_machine)
 #endif
 	case EWOULDBLOCK:
 	    /* reschedule self */
-	    comm_set_select_handler(fd, COMM_SELECT_READ,
+	    comm_set_select_handler(fd,
+		COMM_SELECT_READ,
 		(PF) icpHandleRead,
-		(void *) rw_state_machine);
+		(void *) rwsm);
 	    return COMM_OK;
 	default:
 	    /* Len == 0 means connection closed; otherwise,  would not have been
 	     * called by comm_select(). */
 	    debug(12, 1, "icpHandleRead: FD %d: read failure: %s\n",
 		fd, len == 0 ? "connection closed" : xstrerror());
-	    rw_state_machine->handler(fd,
-		rw_state_machine->buf,
-		rw_state_machine->offset,
+	    rwsm->handler(fd,
+		rwsm->buf,
+		rwsm->offset,
 		COMM_ERROR,
-		rw_state_machine->client_data);
-	    safe_free(rw_state_machine);
+		rwsm->client_data);
+	    safe_free(rwsm);
 	    return COMM_ERROR;
 	}
     }
-    rw_state_machine->offset += len;
+    rwsm->offset += len;
 
     /* Check for \r\n delimiting end of ascii transmission, or */
     /* if we've read content-length bytes already */
-    if ((rw_state_machine->offset >= rw_state_machine->size)
-	|| (strstr(rw_state_machine->buf, "\r\n") != (char *) NULL)) {
-	rw_state_machine->handler(fd,
-	    rw_state_machine->buf,
-	    rw_state_machine->offset,
+    if (rwsm->offset >= rwsm->size || rwsm->handle_immed) {
+	rwsm->handler(fd,
+	    rwsm->buf,
+	    rwsm->offset,
 	    COMM_OK,
-	    rw_state_machine->client_data);
-	safe_free(rw_state_machine);
+	    rwsm->client_data);
+	safe_free(rwsm);
     } else {
 	comm_set_select_handler(fd,
 	    COMM_SELECT_READ,
 	    (PF) icpHandleRead,
-	    (void *) rw_state_machine);
+	    (void *) rwsm);
     }
 
     return COMM_OK;
@@ -236,12 +243,13 @@ int icpHandleRead(fd, rw_state_machine)
 
 /* Select for reading on FD, until SIZE bytes are received.  Call
  * HANDLER when complete. */
-void icpRead(fd, bin_mode, buf, size, timeout, handler, client_data)
+static void icpRead(fd, bin_mode, buf, size, timeout, immed, handler, client_data)
      int fd;
      int bin_mode;
      char *buf;
      int size;
      int timeout;
+     int immed;
      void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, void *data));
      void *client_data;
 {
@@ -253,6 +261,7 @@ void icpRead(fd, bin_mode, buf, size, timeout, handler, client_data)
     data->offset = 0;
     data->handler = handler;
     data->timeout = timeout;
+    data->handle_immed = immed;
     data->time = cached_curtime;
     data->client_data = client_data;
     comm_set_select_handler(fd,
@@ -601,6 +610,8 @@ void icp_hit_or_miss(fd, usm)
     debug(12, 4, "icp_hit_or_miss: %s <URL:%s>\n",
 	RequestMethodStr[usm->method],
 	url);
+
+    /* XXX we should not even look here for CONNECT etc */
 
     pubkey = storeGeneratePublicKey(usm->url, usm->method);
     if ((entry = storeGet(pubkey)) == NULL) {
@@ -1218,6 +1229,16 @@ int parseHttpRequest(icpState)
     }
     /* Assign icpState->url */
 
+    if (icpState->method == METHOD_CONNECT) {
+	/* Prepend the host name with connect:// on CONNECT */
+	t = xcalloc(strlen(request) + 12, 1);
+	strcpy(t, "connect://");
+	strcat(t, request);
+	if (free_request)
+	    safe_free(request);
+	request = t;
+	free_request = 1;
+    }
     if ((t = strchr(request, '\n')))	/* remove NL */
 	*t = '\0';
     if ((t = strchr(request, '\r')))	/* remove CR */
@@ -1227,6 +1248,8 @@ int parseHttpRequest(icpState)
 
     if ((ad = getAppendDomain())) {
 	if ((t = do_append_domain(request, ad))) {
+	    if (free_request)
+		safe_free(request);
 	    request = t;
 	    free_request = 1;
 	    /* NOTE: We don't have to free the old request pointer
@@ -1290,7 +1313,7 @@ static int check_valid_url(fd, astm)
     protocol_t protocol;
     int port;
     proto[0] = host[0] = urlpath[0] = '\0';
-    if (sscanf(astm->url, "%[^:]://%[^/]%s", proto, host, urlpath) != 3)
+    if (sscanf(astm->url, "%[^:]://%[^/]%s", proto, host, urlpath) < 2)
 	return ERR_INVALID_URL;
     for (t = host; *t; t++)
 	*t = tolower(*t);
@@ -1435,8 +1458,9 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	icpRead(fd,
 	    FALSE,
 	    astm->inbuf + astm->offset,
-	    k,
-	    30,
+	    k,			/* size */
+	    30,			/* timeout */
+	    TRUE,		/* handle immed */
 	    asciiProcessInput,
 	    (void *) astm);
     } else {
@@ -1583,8 +1607,9 @@ int asciiHandleConn(sock, notused)
 	icpRead(fd,
 	    FALSE,
 	    astm->inbuf,
-	    astm->inbufsize - 1,
-	    30,
+	    astm->inbufsize - 1,	/* size */
+	    30,			/* timeout */
+	    1,			/* handle immed */
 	    asciiProcessInput,
 	    (void *) astm);
 #ifdef OLD_CODE
