@@ -442,18 +442,15 @@ commSetTimeout(int fd, int timeout, PF * handler, void *data)
 	cbdataReferenceDone(F->timeout_data);
 	F->timeout_handler = NULL;
 	F->timeout = 0;
-	return F->timeout;
+    } else {
+	assert(handler || F->timeout_handler);
+	if (handler) {
+	    cbdataReferenceDone(F->timeout_data);
+	    F->timeout_handler = handler;
+	    F->timeout_data = cbdataReference(data);
+	}
+	F->timeout = squid_curtime + (time_t) timeout;
     }
-    assert(handler || F->timeout_handler);
-    if (handler || data) {
-	/* new timeout handler installed. If NULL then the timeout
-	 * is only extended
-	 */
-	cbdataReferenceDone(F->timeout_data);
-	F->timeout_handler = handler;
-	F->timeout_data = cbdataReference(data);
-    }
-    F->timeout = squid_curtime + (time_t) timeout;
     return F->timeout;
 }
 
