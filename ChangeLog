@@ -1,4 +1,6 @@
-	- Forced INADDR_NONE to be defined in ftpget.c.
+Changes to squid-1.0.10 (August 26, 1996):
+
+	- Fixed INADDR_NONE not being set for ftpget.c.
 	- Remove "Connection: Keep-Alive" lines from HTTP requests
 	  since Squid doesn't support them.
 	- Fixed IP Address/netmask bug.  Now 1.2.3.4/255.255.255.0 is
