@@ -913,7 +913,7 @@ httpBuildRequestHeader(request_t * request,
 	}
     }
     /* Now mangle the headers. */
-    httpHdrMangleList(hdr_out, request);
+    httpHdrMangleList(hdr_out, orig_request);
     stringClean(&strConnection);
 }
 
