@@ -451,7 +451,7 @@ storeLog(int tag, const StoreEntry * e)
 	(int) reply->expires,
 	reply->content_type[0] ? reply->content_type : "unknown",
 	reply->content_length,
-	mem->inmem_hi - mem->reply->hdr_sz,
+	(int) (mem->inmem_hi - mem->reply->hdr_sz),
 	RequestMethodStr[e->method],
 	mem->log_url);
     file_write(storelog_fd,
