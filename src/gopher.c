@@ -239,7 +239,9 @@ void gopherMimeCreate(data)
     sprintf(tempMIME, "\
 HTTP/1.0 200 OK Gatewaying\r\n\
 Server: Squid/%s\r\n\
-MIME-version: 1.0\r\n", version_string);
+Date: %s\r\n\
+MIME-version: 1.0\r\n",
+	version_string,	mkrfc850(&squid_curtime));
 
     switch (data->type_id) {
 
