@@ -146,7 +146,6 @@ protoDispatchFail(peer * peernotused, void *data)
 static void
 protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 {
-    ErrorState *err;
     debug(17, 5) ("protoStart: FD %d: Fetching '%s %s' from %s\n",
 	fd,
 	RequestMethodStr[request->method],
