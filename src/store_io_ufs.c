@@ -1,3 +1,4 @@
+
 /*
  * DEBUG 78
  */
@@ -23,7 +24,7 @@ storeUfsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     assert(mode == O_RDONLY || mode == O_WRONLY);
     sio = memAllocate(MEM_STORE_IO);
     cbdataAdd(sio, memFree, MEM_STORE_IO);
-    sio->fd = -1;
+    sio->type.ufs.fd = -1;
     sio->swap_file_number = f;
     sio->mode = mode;
     sio->callback = callback;
@@ -39,7 +40,7 @@ void
 storeUfsClose(storeIOState * sio)
 {
     debug(78, 3) ("storeUfsClose: fileno %08X, FD %d\n",
-	sio->swap_file_number, sio->fd);
+	sio->swap_file_number, sio->type.ufs.fd);
     if (sio->type.ufs.flags.reading || sio->type.ufs.flags.writing) {
 	sio->type.ufs.flags.close_request = 1;
 	return;
@@ -56,10 +57,10 @@ storeUfsRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB * c
     sio->read.callback_data = callback_data;
     cbdataLock(callback_data);
     debug(78, 3) ("storeUfsRead: fileno %08X, FD %d\n",
-	sio->swap_file_number, sio->fd);
+	sio->swap_file_number, sio->type.ufs.fd);
     sio->offset = offset;
     sio->type.ufs.flags.reading = 1;
-    file_read(sio->fd,
+    file_read(sio->type.ufs.fd,
 	buf,
 	size,
 	offset,
@@ -70,9 +71,9 @@ storeUfsRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB * c
 void
 storeUfsWrite(storeIOState * sio, char *buf, size_t size, off_t offset, FREE * free_func)
 {
-    debug(78, 3) ("storeUfsWrite: fileno %08X, FD %d\n", sio->swap_file_number, sio->fd);
+    debug(78, 3) ("storeUfsWrite: fileno %08X, FD %d\n", sio->swap_file_number, sio->type.ufs.fd);
     sio->type.ufs.flags.writing = 1;
-    file_write(sio->fd,
+    file_write(sio->type.ufs.fd,
 	offset,
 	buf,
 	size,
@@ -103,7 +104,7 @@ storeUfsOpenDone(void *my_data, int fd, int errflag)
 	storeUfsIOCallback(sio, errflag);
 	return;
     }
-    sio->fd = fd;
+    sio->type.ufs.fd = fd;
     if (sio->mode == O_RDONLY)
 	if (fstat(fd, &sb) == 0)
 	    sio->st_size = sb.st_size;
@@ -173,8 +174,8 @@ static void
 storeUfsIOCallback(storeIOState * sio, int errflag)
 {
     debug(78, 3) ("storeUfsIOCallback: errflag=%d\n", errflag);
-    if (sio->fd > -1) {
-	file_close(sio->fd);
+    if (sio->type.ufs.fd > -1) {
+	file_close(sio->type.ufs.fd);
 	store_open_disk_fd--;
     }
     sio->callback(sio->callback_data, errflag, sio);

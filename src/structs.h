@@ -1321,7 +1321,6 @@ struct _request_flags {
 };
 
 struct _storeIOState {
-    int fd;
     sfileno swap_file_number;
     mode_t mode;
     size_t st_size;		/* do stat(2) after read open */
@@ -1337,6 +1336,7 @@ struct _storeIOState {
     } flags;
     union {
 	struct {
+	    int fd;
 	    struct {
 		unsigned int close_request:1;
 		unsigned int reading:1;
