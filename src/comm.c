@@ -330,6 +330,7 @@ commConnectDnsHandle(const ipcache_addrs * ia, void *data)
 	commConnectCallback(cs, COMM_ERR_DNS);
 	return;
     }
+    assert(ia->cur < ia->count);
     cs->in_addr = ia->in_addrs[ia->cur];
     commConnectHandle(cs->fd, cs);
 }
