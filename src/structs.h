@@ -593,6 +593,7 @@ struct _SquidConfig {
 	int vary_ignore_expire;
 	int pipeline_prefetch;
 	int request_entities;
+	int detect_broken_server_pconns;
     } onoff;
     acl *aclList;
     struct {

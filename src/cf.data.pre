@@ -3766,6 +3766,21 @@ DOC_START
 	disable persistent connections with clients and/or servers.
 DOC_END
 
+NAME: detect_broken_pconn
+TYPE: onoff
+LOC: Config.onoff.detect_broken_server_pconns
+DEFAULT: off
+DOC_START
+	Some servers have been found to incorrectly signal the use
+	of HTTP/1.0 persistent connections even on replies not
+	compatible, causing significant delays. This server problem
+	has mostly been seen on redirects.
+
+	By enabling this directive Squid attempts to detect such
+	broken replies and automatically assume the reply is finished
+	after 10 seconds timeout.
+DOC_END
+
 NAME: pipeline_prefetch
 TYPE: onoff
 LOC: Config.onoff.pipeline_prefetch

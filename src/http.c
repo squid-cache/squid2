@@ -476,8 +476,10 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     if (reply->keep_alive) {
 	if (httpState->peer)
 	    httpState->peer->stats.n_keepalives_recv++;
-	if (httpReplyBodySize(httpState->request->method, reply) == -1) {
+	if (Config.onoff.detect_broken_server_pconns && httpReplyBodySize(httpState->request->method, reply) == -1) {
 	    debug(11, 1) ("httpProcessReplyHeader: Impossible keep-alive header from '%s'\n", storeUrl(entry));
+	    debug(11, 2) ("GOT HTTP REPLY HDR:\n---------\n%s\n----------\n",
+		httpState->reply_hdr);
 	    httpState->flags.keepalive_broken = 1;
 	}
     }
