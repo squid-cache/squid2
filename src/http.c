@@ -875,6 +875,7 @@ httpSendRequest(int fd, void *data)
     int cfd;
     static int xcount = 0;
     peer *p = httpState->peer;
+    double d;
 
     debug(11, 5) ("httpSendRequest: FD %d: httpState %p.\n", fd, httpState);
     buflen = strlen(req->urlpath);
@@ -903,13 +904,14 @@ httpSendRequest(int fd, void *data)
     if (p != NULL)
 	BIT_SET(httpState->flags, HTTP_PROXYING);
     if (req->method == METHOD_GET) {
-	BIT_SET(httpState->flags, HTTP_KEEPALIVE);
 	if (p) {
-	    p->stats.n_keepalives_sent++;
+	    d = (double) ++p->stats.n_keepalives_recv / p->stats.n_keepalives_sent;
 	    if ((xcount++ & 0x3F) == 0)
-		debug(0, 0) ("%s Keepalive Ratio = %f\n",
-		    p->host,
-		    (double) p->stats.n_keepalives_recv / (double) p->stats.n_keepalives_sent);
+		debug(0, 0) ("%s Keepalive Ratio = %f\n", p->host, d);
+	    if (d > 0.50 ||  p->stats.n_keepalives_sent < 10)
+	        BIT_SET(httpState->flags, HTTP_KEEPALIVE);
+	} else {
+	    BIT_SET(httpState->flags, HTTP_KEEPALIVE);
 	}
     }
     len = httpBuildRequestHeader(req,
