@@ -954,7 +954,9 @@ static int
 storeAufsDirWriteCleanStart(SwapDir * sd)
 {
     struct _clean_state *state = xcalloc(1, sizeof(*state));
+#if HAVE_FCHMOD
     struct stat sb;
+#endif
     sd->log.clean.write = NULL;
     sd->log.clean.state = NULL;
     state->new = xstrdup(storeAufsDirSwapLogFile(sd, ".clean"));
