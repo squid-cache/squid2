@@ -9,7 +9,7 @@
 # the command line like "env acver=.. amver=... ./bootstrap.sh"
 
 acversions="${acver:-2.13}"
-amversions="${amver:-1.6 1.5}"
+amversions="${amver:-1.5}"
 
 check_version()
 {
