@@ -444,7 +444,7 @@ int icpHandleIMSReply(fd, entry, data)
 	icpState->log_type = LOG_TCP_EXPIRED_MISS;
 	storeUnlockObject(icpState->old_entry);
     }
-    icpState->old_entry = NULL;		/* done with old_entry */
+    icpState->old_entry = NULL;	/* done with old_entry */
     icpSendMoreData(fd, icpState);	/* give data to the client */
     return 1;
 }
