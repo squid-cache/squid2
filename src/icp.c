@@ -387,8 +387,8 @@ icpParseRequestHeaders(icpStateData * icpState)
 	}
     }
 #if FORW_VIA_LOG
-        if (forw_via_log)
-	    fprintf(forw_via_log, "%s", t ? t : null_string);
+    if (forw_via_log)
+	fprintf(forw_via_log, "%s", t ? t : null_string);
 #endif
 #if USE_USERAGENT_LOG
     if ((t = mime_get_header(request_hdr, "User-Agent")))
@@ -396,7 +396,7 @@ icpParseRequestHeaders(icpStateData * icpState)
 #endif
 #if FORW_VIA_LOG
     if (forw_via_log) {
-        t = mime_get_header(request_hdr, "X-Forwarded-For");
+	t = mime_get_header(request_hdr, "X-Forwarded-For");
 	fprintf(forw_via_log, "|%s%s%s\n",
 	    t ? t : null_string,
 	    t ? ", " : null_string,
@@ -1262,6 +1262,14 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    if (clientdbDeniedPercent(from.sin_addr) < 95) {
 		reply = icpCreateMessage(ICP_OP_DENIED, 0, url, header.reqnum, 0);
 		icpUdpSend(fd, &from, reply, LOG_UDP_DENIED, icp_request->protocol);
+	    } else {
+		/*
+		 * count this DENIED query in the clientdb, even though
+		 * we're not sending an ICP reply...
+		 */
+		clientdbUpdate(from.sin_addr,
+		    LOG_UDP_DENIED,
+		    Config.Port.icp);
 	    }
 	    break;
 	}
@@ -1422,6 +1430,14 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    if (clientdbDeniedPercent(from.sin_addr) < 95) {
 		reply = icpCreateMessage(ICP_OP_DENIED, 0, url, header.reqnum, 0);
 		icpUdpSend(fd, &from, reply, LOG_UDP_DENIED, icp_request->protocol);
+	    } else {
+		/*
+		 * count this DENIED query in the clientdb, even though
+		 * we're not sending an ICP reply...
+		 */
+		clientdbUpdate(from.sin_addr,
+		    LOG_UDP_DENIED,
+		    Config.Port.icp);
 	    }
 	    break;
 	}
@@ -2236,13 +2252,13 @@ icpInit(int op)
     int i;
     LOCAL_ARRAY(char, from, MAXPATHLEN);
     LOCAL_ARRAY(char, to, MAXPATHLEN);
-debug(0,0,"icpInit: op=%d\n", op);
+    debug(0, 0, "icpInit: op=%d\n", op);
     if (op == 0) {
 	if (forw_via_log != NULL)
-		fclose(forw_via_log);
+	    fclose(forw_via_log);
 	forw_via_log = fopen(FV_PATH, "a+");
 	if (forw_via_log == NULL)
-		perror(FV_PATH);
+	    perror(FV_PATH);
     } else if (op == 1 && forw_via_log != NULL) {
 	for (i = Config.Log.rotateNumber; i > 1;) {
 	    i--;
@@ -2257,6 +2273,6 @@ debug(0,0,"icpInit: op=%d\n", op);
 	icpInit(0);
 	return;
     }
-debug(0,0,"icpInit: %s is FD %d\n", FV_PATH, fileno(forw_via_log));
+    debug(0, 0, "icpInit: %s is FD %d\n", FV_PATH, fileno(forw_via_log));
 }
 #endif
