@@ -315,9 +315,6 @@ storeClientFileRead(store_client * sc)
 {
     MemObject *mem = sc->entry->mem_obj;
     assert(sc->callback != NULL);
-#ifdef OPTIMISTIC_IO
-    sc->flags.disk_io_pending = 1;
-#endif
     if (mem->swap_hdr_sz == 0) {
 	file_read(sc->swapin_fd,
 	    sc->copy_buf,
@@ -335,9 +332,6 @@ storeClientFileRead(store_client * sc)
 	    storeClientReadBody,
 	    sc);
     }
-#ifndef OPTIMISTIC_IO
-    sc->flags.disk_io_pending = 1;
-#endif
 }
 
 static void

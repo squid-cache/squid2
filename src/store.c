@@ -410,14 +410,8 @@ storeAppend(StoreEntry * e, const char *buf, int len)
     }
     if (EBIT_TEST(e->flags, DELAY_SENDING))
 	return;
-#ifdef OPTIMISTIC_IO
-    storeLockObject(e);
-#endif
     InvokeHandlers(e);
     storeCheckSwapOut(e);
-#ifdef OPTIMISTIC_IO
-    storeUnlockObject(e);
-#endif
 }
 
 void
