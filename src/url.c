@@ -173,8 +173,6 @@ request_t *urlParse(method, url)
 	port = CONNECT_PORT;
 	if (sscanf(url, "%[^:]:%d", host, &port) < 1)
 	    return NULL;
-	if (!aclMatchInteger(connect_port_list, port))
-	    return NULL;
     } else {
 	if (sscanf(url, "%[^:]://%[^/]%s", proto, host, urlpath) < 2)
 	    return NULL;

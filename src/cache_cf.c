@@ -151,20 +151,6 @@ static struct {
 #define DefaultAnnounceFile	(char *)NULL	/* default NONE */
 #define DefaultAnnounceRate	86400	/* every 24 hours */
 
- /* default CONNECT ports */
-intlist snews =
-{
-    563,
-    NULL
-};
-intlist https =
-{
-    443,
-    &snews
-};
-intlist *connect_port_list = &https;
-
-
 ip_acl *local_ip_list = NULL;
 
 int zap_disk_store = 0;		/* off, try to rebuild from disk */
@@ -1029,19 +1015,6 @@ static void parseFtpUserLine()
     Config.ftpUser = xstrdup(token);
 }
 
-static void parseConnectPortsLine()
-{
-    char *token;
-    static char origPortList = 1;
-    if (origPortList) {
-	connect_port_list = NULL;
-	origPortList = 0;
-    }
-    while ((token = strtok(NULL, w_space))) {
-	intlistAdd(&connect_port_list, token);
-    }
-}
-
 static void parseCacheAnnounceLine()
 {
     char *token;
@@ -1340,9 +1313,6 @@ int parseConfigFile(file_name)
 
 	else if (!strcmp(token, "ftp_user"))
 	    parseFtpUserLine();
-
-	else if (!strcmp(token, "connect_ports"))
-	    parseConnectPortsLine();
 
 	else if (!strcmp(token, "cache_announce"))
 	    parseCacheAnnounceLine();
