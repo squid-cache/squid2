@@ -472,7 +472,7 @@ neighborsUdpPing(request_t * request,
      * If there is a configured timeout, use it
      */
     if (Config.Timeout.icp_query)
-	*timeout = Config.Timeout.icp_query * 1000;
+	*timeout = Config.Timeout.icp_query;
     else if (*exprep > 0)
 	(*timeout) = 2 * (*timeout) / (*exprep);
     else
