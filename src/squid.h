@@ -258,6 +258,10 @@ typedef unsigned long u_num32;
 #define LOCAL_ARRAY(type,name,size) static type name[size]
 #endif
 
+#if defined(_SQUID_NEXT_) && !defined(S_ISDIR)
+#define S_ISDIR(mode) (((mode) & (_S_IFMT)) == (_S_IFDIR))
+#endif
+
 #include "ansiproto.h"
 
 #ifdef USE_GNUREGEX
