@@ -54,8 +54,8 @@ typedef struct wwd {
 extern char *icpWrite _PARAMS((int, char *, int, int, void (*handler) (), void *));
 extern int icpUdpSend _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, icp_opcode));
 
-extern int icpHandleUdp _PARAMS((int sock, void * data));
-extern int asciiHandleConn _PARAMS((int sock, void * data));
+extern int icpHandleUdp _PARAMS((int sock, void *data));
+extern int asciiHandleConn _PARAMS((int sock, void *data));
 
 extern int neighbors_do_private_keys;
 extern char *IcpOpcodeStr[];

@@ -35,19 +35,19 @@ typedef struct fde {
     StoreEntry *store_entry;
 
     /* Select handlers. */
-    void * client_data;	/* App. data to associate w/ handled conn. */
+    void *client_data;		/* App. data to associate w/ handled conn. */
     int (*read_handler) ();	/* Read  select handler. */
-    void * read_data;		/* App. data to associate w/ handled conn. */
+    void *read_data;		/* App. data to associate w/ handled conn. */
     int (*write_handler) ();	/* Write select handler. */
-    void * write_data;		/* App. data to associate w/ handled conn. */
+    void *write_data;		/* App. data to associate w/ handled conn. */
     int (*except_handler) ();	/* Except select handler. */
-    void * except_data;	/* App. data to associate w/ handled conn. */
+    void *except_data;		/* App. data to associate w/ handled conn. */
     int (*timeout_handler) ();	/* Timeout handler. */
     time_t timeout_time;	/* Allow 1-second granularity timeouts */
     time_t timeout_delta;	/* The delta requested */
-    void * timeout_data;	/* App. data to associate w/ handled conn. */
+    void *timeout_data;		/* App. data to associate w/ handled conn. */
     int (*lifetime_handler) ();	/* Lifetime expire handler. */
-    void * lifetime_data;	/* App. data to associate w/ handled conn. */
+    void *lifetime_data;	/* App. data to associate w/ handled conn. */
     char ascii_note[FD_ASCII_NOTE_SZ];
     unsigned int comm_type;
     time_t stall_until;		/* don't select for read until this time reached */
@@ -65,7 +65,7 @@ extern int comm_close _PARAMS((int fd));
 extern int comm_connect _PARAMS((int sock, char *hst, int prt));
 extern int comm_connect_addr _PARAMS((int sock, struct sockaddr_in *));
 extern int comm_get_fd_lifetime _PARAMS((int fd));
-extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void * *));
+extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void **));
 extern int comm_init _PARAMS((void));
 extern int comm_init _PARAMS((void));
 extern int comm_listen _PARAMS((int sock));

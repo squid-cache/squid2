@@ -132,7 +132,7 @@ typedef int (*PIF) _PARAMS((int, StoreEntry *, void *));
 typedef struct pentry {
     short fd;
     PIF handler;
-    void * data;
+    void *data;
 } PendingEntry;
 
 extern int has_mem_obj _PARAMS((StoreEntry *));
@@ -143,7 +143,7 @@ extern void storeSetPrivateKey _PARAMS((StoreEntry *));
 extern StoreEntry *storeGetFirst _PARAMS((void));
 extern StoreEntry *storeGetNext _PARAMS((void));
 extern StoreEntry *storeLRU _PARAMS((void));
-extern int storeWalkThrough _PARAMS((int (*proc) (), void * data));
+extern int storeWalkThrough _PARAMS((int (*proc) (), void *data));
 extern int storePurgeOld _PARAMS((void));
 extern void storeSanityCheck _PARAMS(());
 extern void storeComplete _PARAMS((StoreEntry *));

@@ -80,7 +80,7 @@ static icpUdpData *tail = NULL;
 #define UDP_HIT_THRESH 300
 #endif
 
-typedef void (*complete_handler) _PARAMS((int fd, char *buf, int size, int errflag, void * data));
+typedef void (*complete_handler) _PARAMS((int fd, char *buf, int size, int errflag, void *data));
 typedef struct ireadd {
     int fd;
     char *buf;
@@ -89,7 +89,7 @@ typedef struct ireadd {
     int timeout;		/* XXX Not used at present. */
     time_t time;
     complete_handler handler;
-    void * client_data;
+    void *client_data;
 } icpReadWriteData;
 
 /* Local functions */
@@ -248,8 +248,8 @@ void icpRead(fd, bin_mode, buf, size, timeout, handler, client_data)
      char *buf;
      int size;
      int timeout;
-     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, void * data));
-     void * client_data;
+     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, void *data));
+     void *client_data;
 {
     icpReadWriteData *data = NULL;
     data = (icpReadWriteData *) xcalloc(1, sizeof(icpReadWriteData));
@@ -345,8 +345,8 @@ char *icpWrite(fd, buf, size, timeout, handler, client_data)
      char *buf;
      int size;
      int timeout;
-     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, void * data));
-     void * client_data;
+     void (*handler) _PARAMS((int fd, char *buf, int size, int errflag, void *data));
+     void *client_data;
 {
     icpReadWriteData *data = NULL;
 
@@ -944,7 +944,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
 
 int icpHandleUdp(sock, not_used)
      int sock;
-     void * not_used;
+     void *not_used;
 {
 
     int result = 0;
@@ -1598,11 +1598,11 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 /* general lifetime handler for ascii connection */
 void asciiConnLifetimeHandle(fd, data)
      int fd;
-     void * data;
+     void *data;
 {
     icpStateData *astm = (icpStateData *) data;
     PF handler;
-    void * client_data;
+    void *client_data;
     icpReadWriteData *rw_state = NULL;
     StoreEntry *entry = NULL;
 
@@ -1619,7 +1619,7 @@ void asciiConnLifetimeHandle(fd, data)
     client_data = NULL;
     comm_get_select_handler(fd,
 	COMM_SELECT_WRITE,
-	(PF *) &handler,
+	(PF *) & handler,
 	(void **) &client_data);
     if ((handler != NULL) && (client_data != NULL)) {
 	rw_state = (icpReadWriteData *) client_data;
@@ -1633,7 +1633,7 @@ void asciiConnLifetimeHandle(fd, data)
     client_data = NULL;
     comm_get_select_handler(fd,
 	COMM_SELECT_READ,
-	(PF *) &handler,
+	(PF *) & handler,
 	(void **) &client_data);
     if ((handler != NULL) && (client_data != NULL)) {
 	rw_state = (icpReadWriteData *) client_data;
@@ -1663,7 +1663,7 @@ void asciiConnLifetimeHandle(fd, data)
 /* Handle a new connection on ascii input socket. */
 int asciiHandleConn(sock, notused)
      int sock;
-     void * notused;
+     void *notused;
 {
     int fd = -1;
     int lft = -1;

@@ -75,7 +75,7 @@ int proto_cachable(url, method, request_hdr)
 
 /* called when DNS lookup is done by ipcache. */
 int protoDispatchDNSHandle(unused1, unused2, data)
-     int unused1;	/* filedescriptor */
+     int unused1;		/* filedescriptor */
      struct hostent *unused2;
      void *data;
 {
