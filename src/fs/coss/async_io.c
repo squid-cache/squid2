@@ -159,6 +159,7 @@ a_file_callback(async_queue_t * q)
     DWCB *wc;
     FREE *freefunc;
     void *cbdata;
+    int callback_valid;
     void *buf;
     int fd;
     async_queue_entry_t *aqe;
@@ -186,6 +187,7 @@ a_file_callback(async_queue_t * q)
 		buf = aqe->aq_e_buf;
 		fd = aqe->aq_e_fd;
 		type = aqe->aq_e_type;
+		callback_valid = cbdataReferenceValidDone(aqe->aq_e_callback_data, &cbdata);
 
 		/* Free slot */
 		bzero(aqe, sizeof(async_queue_entry_t));
@@ -193,7 +195,7 @@ a_file_callback(async_queue_t * q)
 		q->aq_numpending--;
 
 		/* Callback */
-		if (cbdataReferenceValidDone(aqe->aq_e_callback_data, &cbdata)) {
+		if (callback_valid) {
 		    if (type == AQ_ENTRY_READ)
 			rc(fd, buf, retval, reterr, cbdata);
 		    if (type == AQ_ENTRY_WRITE)
