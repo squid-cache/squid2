@@ -120,8 +120,6 @@ fwdStateFree(FwdState * fwdState)
 	fwdState->server_fd = -1;
 	debug(17, 3) ("fwdStateFree: closing FD %d\n", sfd);
 	comm_close(sfd);
-	if (p)
-	    p->stats.conn_open--;
     }
     cbdataFree(fwdState);
 }
@@ -179,12 +177,8 @@ static void
 fwdServerClosed(int fd, void *data)
 {
     FwdState *fwdState = data;
-    peer *p;
     debug(17, 2) ("fwdServerClosed: FD %d %s\n", fd, storeUrl(fwdState->entry));
     assert(fwdState->server_fd == fd);
-    p = fwdStateServerPeer(fwdState);
-    if (p)
-	p->stats.conn_open--;
     fwdState->server_fd = -1;
     if (fwdCheckRetry(fwdState)) {
 	int originserver = (fwdState->servers->peer == NULL);
@@ -396,8 +390,6 @@ fwdConnectStart(void *data)
 	    fwdState->n_tries++;
 	    if (!fs->peer)
 		fwdState->origin_tries++;
-	    else
-		comm_remove_close_handler(fd, fwdPeerClosed, fs->peer);
 	    comm_add_close_handler(fd, fwdServerClosed, fwdState);
 	    fwdConnectDone(fd, COMM_OK, fwdState);
 	    return;
@@ -443,8 +435,10 @@ fwdConnectStart(void *data)
      * based on the max-conn option.  We need to increment here,
      * even if the connection may fail.
      */
-    if (fs->peer)
+    if (fs->peer) {
 	fs->peer->stats.conn_open++;
+	comm_add_close_handler(fd, fwdPeerClosed, fs->peer);
+    }
     comm_add_close_handler(fd, fwdServerClosed, fwdState);
     commSetTimeout(fd,
 	ctimeout,
@@ -740,15 +734,11 @@ fwdPeerClosed(int fd, void *data)
 void
 fwdUnregister(int fd, FwdState * fwdState)
 {
-    peer *p;
     debug(17, 3) ("fwdUnregister: %s\n", storeUrl(fwdState->entry));
     assert(fd == fwdState->server_fd);
     assert(fd > -1);
     comm_remove_close_handler(fd, fwdServerClosed, fwdState);
     fwdState->server_fd = -1;
-    p = fwdStateServerPeer(fwdState);
-    if (p)
-	comm_add_close_handler(fd, fwdPeerClosed, p);
 }
 
 /*
