@@ -180,7 +180,7 @@ name="ChangeLog"> file for details.
 <p>
 <itemize>
 	<item>several memory leaks corrected
-	<item>segmentation fault if more than one deny_info defined
+	<item>segmentation fault if more than one deny_info corrected
 	<item>Lithuanian error messages added
 	<item>a crash related to ftpTimeout: timeout in SENT_PASV state corrected
 	<item>http_reply_access deny now logs the request with
@@ -201,7 +201,7 @@ name="ChangeLog"> file for details.
 	from the trouble when upgrading to Squid-3 later.
 	<item>a large number of minor bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE3"
-	name="squid-2.5.STABLE1 patches"> and the <url url="ChangeLog"
+	name="squid-2.5.STABLE3 patches"> and the <url url="ChangeLog"
 	name="ChangeLog"> file for details.
 </itemize>
 
