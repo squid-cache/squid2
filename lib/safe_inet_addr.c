@@ -35,7 +35,18 @@ safe_inet_addr(const char *buf, struct in_addr *addr)
     int a1 = 0, a2 = 0, a3 = 0, a4 = 0;
     struct in_addr A;
     char x;
+#if _SQUID_HPUX_
+    /*
+     * MIYOSHI Tsutomu <mijosxi@ike.tottori-u.ac.jp> says scanning 'buf'
+     * causes a bus error on hppa1.1-hp-hpux9.07, so we
+     * have a broad hack for all HP systems.
+     */
+    static char buftmp[32];
+    snprintf(buftmp, 32, "%s", buf);
+    if (sscanf(buftmp, "%d.%d.%d.%d%c", &a1, &a2, &a3, &a4, &x) != 4)
+#else
     if (sscanf(buf, "%d.%d.%d.%d%c", &a1, &a2, &a3, &a4, &x) != 4)
+#endif
 	return 0;
     if (a1 < 0 || a1 > 255)
 	return 0;
