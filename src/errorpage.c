@@ -239,7 +239,7 @@ errorConvert(char token, ErrorState * err)
 	if (err->xerrno)
 	snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->xerrno, strerror(err->xerrno));
 	else
-	    snprintf(buf, CVT_BUF_SZ, "(%d) -unknown-", err->xerrno);
+	    snprintf(buf, CVT_BUF_SZ, "[No Error]");
 	break;
     case 'f':
 	/* FTP REQUEST LINE */
