@@ -268,7 +268,7 @@ mkrfc1123(time_t t)
 }
 
 const char *
-mkhttpdlogtime(const time_t *t)
+mkhttpdlogtime(const time_t * t)
 {
     static char buf[128];
 

@@ -1016,7 +1016,7 @@ parseStoplistPattern(int icase)
 {
     relist *r, **T;
     r = aclParseRegexList(icase);
-    for (T = &Config.cache_stop_relist; *T; T=&(*T)->next);
+    for (T = &Config.cache_stop_relist; *T; T = &(*T)->next);
     *T = r;
 }
 

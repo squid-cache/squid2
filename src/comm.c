@@ -160,8 +160,8 @@ commCancelRWHandler(int fd)
 {
     RWStateData *RWState = fd_table[fd].rwstate;
     if (RWState) {
-        RWState->handler = NULL;
-        RWState->handler_data = NULL;
+	RWState->handler = NULL;
+	RWState->handler_data = NULL;
     }
 }
 
