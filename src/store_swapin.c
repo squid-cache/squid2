@@ -42,6 +42,7 @@ void
 storeSwapInStart(store_client * sc)
 {
     StoreEntry *e = sc->entry;
+    storeIOState *sio;
     assert(e->mem_status == NOT_IN_MEMORY);
     if (!EBIT_TEST(e->flags, ENTRY_VALIDATED)) {
 	/* We're still reloading and haven't validated this entry yet */
@@ -61,9 +62,8 @@ storeSwapInStart(store_client * sc)
     assert(e->mem_obj != NULL);
     debug(20, 3) ("storeSwapInStart: Opening fileno %08X\n",
 	e->swap_filen);
-    sc->swapin_sio = storeOpen(e, storeSwapInFileNotify, storeSwapInFileClosed,
-	sc);
-    cbdataLock(sc->swapin_sio);
+    sio = storeOpen(e, storeSwapInFileNotify, storeSwapInFileClosed, sc);
+    sc->swapin_sio = cbdataReference(sio);
 }
 
 static void
@@ -73,8 +73,7 @@ storeSwapInFileClosed(void *data, int errflag, storeIOState * sio)
     STCB *callback;
     debug(20, 3) ("storeSwapInFileClosed: sio=%p, errflag=%d\n",
 	sio, errflag);
-    cbdataUnlock(sio);
-    sc->swapin_sio = NULL;
+    cbdataReferenceDone(sc->swapin_sio);
     if ((callback = sc->callback)) {
 	assert(errflag <= 0);
 	sc->callback = NULL;

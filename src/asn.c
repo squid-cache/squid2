@@ -228,7 +228,7 @@ asHandleReply(void *data, char *unused_buf, ssize_t retsize)
     char *buf = asState->reqbuf;
     int leftoversz = -1;
 
-    debug(53, 3) ("asHandleReply: Called with size=%d\n", (int)retsize);
+    debug(53, 3) ("asHandleReply: Called with size=%d\n", (int) retsize);
     debug(53, 3) ("asHandleReply: buffer='%s'\n", buf);
 
     /* First figure out whether we should abort the request */
@@ -249,7 +249,6 @@ asHandleReply(void *data, char *unused_buf, ssize_t retsize)
 	asStateFree(asState);
 	return;
     }
-
     /*
      * Next, attempt to parse our request
      * Remembering that the actual buffer size is retsize + reqofs!
@@ -291,7 +290,7 @@ asHandleReply(void *data, char *unused_buf, ssize_t retsize)
      */
     asState->offset += retsize;
     asState->reqofs = leftoversz;
-    debug(53, 3) ("asState->offset = %ld\n",(long int) asState->offset);
+    debug(53, 3) ("asState->offset = %ld\n", (long int) asState->offset);
     if (e->store_status == STORE_PENDING) {
 	debug(53, 3) ("asHandleReply: store_status == STORE_PENDING: %s\n", storeUrl(e));
 	storeClientCopy(asState->sc,

@@ -852,7 +852,7 @@ htcpInit(void)
 	 *      mem.c::memCheckInit() will bail out.
 	 */
 	memDataInit(MEM_HTCP_SPECIFIER, "htcpSpecifier",
-		sizeof(htcpSpecifier), 0);
+	    sizeof(htcpSpecifier), 0);
 	memDataInit(MEM_HTCP_DETAIL, "htcpDetail", sizeof(htcpDetail), 0);
 	htcpInSocket = -1;
 	debug(31, 1) ("HTCP Disabled.\n");

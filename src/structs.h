@@ -1432,6 +1432,9 @@ struct _store_client {
     char *copy_buf;
     STCB *callback;
     void *callback_data;
+#if STORE_CLIENT_LIST_DEBUG
+    void *owner;
+#endif
     StoreEntry *entry;		/* ptr to the parent StoreEntry, argh! */
     storeIOState *swapin_sio;
     struct {

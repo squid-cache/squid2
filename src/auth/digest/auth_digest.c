@@ -836,8 +836,8 @@ authenticateDigestHandleReply(void *data, char *reply)
     auth_user_request_t *auth_user_request;
     digest_request_h *digest_request;
     digest_user_h *digest_user;
-    int valid;
     char *t = NULL;
+    void *cbdata;
     debug(29, 9) ("authenticateDigestHandleReply: {%s}\n", reply ? reply : "<NULL>");
     if (reply) {
 	if ((t = strchr(reply, ' ')))
@@ -856,10 +856,8 @@ authenticateDigestHandleReply(void *data, char *reply)
 	CvtBin(reply, digest_user->HA1);
 	digest_user->HA1created = 1;
     }
-    valid = cbdataValid(r->data);
-    if (valid)
-	r->handler(r->data, NULL);
-    cbdataUnlock(r->data);
+    if (cbdataReferenceValidDone(r->data, &cbdata))
+	r->handler(cbdata, NULL);
     authenticateStateFree(r);
 }
 
@@ -1348,8 +1346,7 @@ authenticateDigestStart(auth_user_request_t * auth_user_request, RH * handler, v
     }
     r = cbdataAlloc(authenticateStateData);
     r->handler = handler;
-    cbdataLock(data);
-    r->data = data;
+    r->data = cbdataReference(data);
     r->auth_user_request = auth_user_request;
     snprintf(buf, 8192, "\"%s\":\"%s\"\n", digest_user->username, digest_request->realm);
     helperSubmit(digestauthenticators, buf, authenticateDigestHandleReply, r);

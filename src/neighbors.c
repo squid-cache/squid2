@@ -957,11 +957,7 @@ peerDestroy(void *data)
     }
     safe_free(p->host);
 #if USE_CACHE_DIGESTS
-    if (p->digest) {
-	PeerDigest *pd = p->digest;
-	p->digest = NULL;
-	cbdataUnlock(pd);
-    }
+    cbdataReferenceDone(p->digest);
 #endif
 }
 
@@ -969,11 +965,7 @@ void
 peerNoteDigestGone(peer * p)
 {
 #if USE_CACHE_DIGESTS
-    if (p->digest) {
-	PeerDigest *pd = p->digest;
-	p->digest = NULL;
-	cbdataUnlock(pd);
-    }
+    cbdataReferenceDone(p->digest);
 #endif
 }
 

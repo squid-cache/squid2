@@ -2420,7 +2420,7 @@ ftpSendReply(FtpStateData * ftpState)
     err_type err_code = ERR_NONE;
     debug(9, 5) ("ftpSendReply: %s, code %d\n",
 	storeUrl(ftpState->entry), code);
-    if (cbdataValid(ftpState))
+    if (cbdataReferenceValid(ftpState))
 	debug(9, 5) ("ftpSendReply: ftpState (%p) is valid!\n", ftpState);
     if (code == 226) {
 	err_code = (ftpState->mdtm > 0) ? ERR_FTP_PUT_MODIFIED : ERR_FTP_PUT_CREATED;

@@ -214,19 +214,18 @@ ipcacheAddEntry(ipcache_entry * i)
 static void
 ipcacheCallback(ipcache_entry * i)
 {
-    IPH *handler = i->handler;
-    void *handlerData = i->handlerData;
+    IPH *callback = i->handler;
+    void *cbdata;
     i->lastref = squid_curtime;
-    ipcacheLockEntry(i);
-    if (NULL == handler)
+    if (!i->handler)
 	return;
+    ipcacheLockEntry(i);
+    callback = i->handler;
     i->handler = NULL;
-    i->handlerData = NULL;
-    if (cbdataValid(handlerData)) {
+    if (cbdataReferenceValidDone(i->handlerData, &cbdata)) {
 	dns_error_message = i->error_message;
-	handler(i->flags.negcached ? NULL : &i->addrs, handlerData);
+	callback(i->flags.negcached ? NULL : &i->addrs, cbdata);
     }
-    cbdataUnlock(handlerData);
     ipcacheUnlockEntry(i);
 }
 
@@ -420,8 +419,7 @@ ipcache_nbgethostbyname(const char *name, IPH * handler, void *handlerData)
 	else
 	    IpcacheStats.hits++;
 	i->handler = handler;
-	i->handlerData = handlerData;
-	cbdataLock(handlerData);
+	i->handlerData = cbdataReference(handlerData);
 	ipcacheCallback(i);
 	return;
     }
@@ -429,8 +427,7 @@ ipcache_nbgethostbyname(const char *name, IPH * handler, void *handlerData)
     IpcacheStats.misses++;
     i = ipcacheCreateEntry(name);
     i->handler = handler;
-    i->handlerData = handlerData;
-    cbdataLock(handlerData);
+    i->handlerData = cbdataReference(handlerData);
     i->request_time = current_time;
     c = cbdataAlloc(generic_cbdata);
     c->data = i;

@@ -1510,8 +1510,11 @@ parse_peer(peer ** head)
     p->test_fd = -1;
 #if USE_CACHE_DIGESTS
     if (!p->options.no_digest) {
-	p->digest = peerDigestCreate(p);
-	cbdataLock(p->digest);	/* so we know when/if digest disappears */
+	/* XXX This looks odd.. who has the original pointer
+	 * then?
+	 */
+	PeerDigest *pd = peerDigestCreate(p);
+	p->digest = cbdataReference(pd);
     }
 #endif
     while (*head != NULL)
@@ -1528,9 +1531,7 @@ free_peer(peer ** P)
     while ((p = *P) != NULL) {
 	*P = p->next;
 #if USE_CACHE_DIGESTS
-	if (p->digest)
-	    cbdataUnlock(p->digest);
-	p->digest = NULL;
+	cbdataReferenceDone(p->digest);
 #endif
 	cbdataFree(p);
     }

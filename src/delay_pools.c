@@ -648,8 +648,6 @@ delayMostBytesWanted(const MemObject * mem, int max)
     dlink_node *node;
     for (node = mem->clients.head; node; node = node->next) {
 	sc = (store_client *) node->data;
-	if (sc->callback_data == NULL)	/* open slot */
-	    continue;
 	if (sc->type != STORE_MEM_CLIENT)
 	    continue;
 	i = delayBytesWanted(sc->delay_id, i, max);

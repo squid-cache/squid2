@@ -287,12 +287,23 @@
 #endif
 
 /* cbdata macros */
+#if CBDATA_DEBUG
+#define cbdataAlloc(type)	((type *)cbdataInternalAllocDbg(CBDATA_##type,__FILE__,__LINE__))
+#define cbdataFree(var)		do {if (var) {cbdataInternalFreeDbg(var,__FILE__,__LINE__); var = NULL;}} while(0)
+#define cbdataInternalLock(a)		cbdataInternalLockDbg(a,__FILE__,__LINE__)
+#define cbdataInternalUnlock(a)		cbdataInternalUnlockDbg(a,__FILE__,__LINE__)
+#define cbdataReferenceValidDone(var, ptr) cbdataInternalReferenceDoneValidDbg((void **)&(var), (ptr), __FILE__,__LINE__)
+#else
 #define cbdataAlloc(type) ((type *)cbdataInternalAlloc(CBDATA_##type))
-#define cbdataFree(var) (var = (var != NULL ? cbdataInternalFree(var): NULL))
+#define cbdataFree(var)		do {if (var) {cbdataInternalFree(var); var = NULL;}} while(0)
+#define cbdataReferenceValidDone(var, ptr) cbdataInternalReferenceDoneValid((void **)&(var), (ptr))
+#endif
+#define cbdataReference(var)	(cbdataInternalLock(var), var)
+#define cbdataReferenceDone(var) do {if (var) {cbdataInternalUnlock(var); var = NULL;}} while(0)
 #define CBDATA_TYPE(type)	static cbdata_type CBDATA_##type = 0
 #define CBDATA_GLOBAL_TYPE(type)	cbdata_type CBDATA_##type
-#define CBDATA_INIT_TYPE(type)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataAddType(CBDATA_##type, #type, sizeof(type), NULL)))
-#define CBDATA_INIT_TYPE_FREECB(type, free_func)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataAddType(CBDATA_##type, #type, sizeof(type), free_func)))
+#define CBDATA_INIT_TYPE(type)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataInternalAddType(CBDATA_##type, #type, sizeof(type), NULL)))
+#define CBDATA_INIT_TYPE_FREECB(type, free_func)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataInternalAddType(CBDATA_##type, #type, sizeof(type), free_func)))
 
 #ifndef O_TEXT
 #define O_TEXT 0

@@ -338,6 +338,11 @@
 #undef LINUX_NETFILTER
 
 /*
+ * Enable for cbdata debug information
+ */
+#undef CBDATA_DEBUG
+
+/*
  * Do we have unix sockets? (required for the winbind ntlm helper
  */
 #undef HAVE_UNIXSOCKET
