@@ -1,7 +1,23 @@
+Changes to squid-1.0.14 (September 13, 1996):
+
+	- Added '#if DELAY_HACK' code for Mike Groeneweg
+	  <mikeg@scorpion.murdoch.edu.au>.
+	- Fixed debug bug in ttlSet().
+	- Moved icpState->flags to request->flags.
+	- Fixed edgeWouldBePinged() to skip SIBLINGS and NO-CACHE
+	  requests.
+	- Fixed bad SET/TEST in httpProcessReplyHeader() (Miguel A.L.
+	  Paraz).
+
+Changes to squid-1.0.13 (September 12, 1996):
+
 	- Fixed ftpget parsing PASV reply bug (Carson Gaspar).
-	- Forced include of <netinet/in_systm.h> for NeXT (Holger Hoffstaette).
-	- Promulgate tcp_outgoing_addr to ftpget with -o option (Edward Moy).
-	- add Date: header to Squid-generated Gopher objects (Geoffrey Keating).
+	- Forced include of <netinet/in_systm.h> for NeXT (Holger
+	  Hoffstaette).
+	- Promulgate tcp_outgoing_addr to ftpget with -o option (Edward
+	  Moy).
+	- add Date: header to Squid-generated Gopher objects (Geoffrey
+	  Keating).
 	- cachemgr.cgi HTML fixes (Cord Beermann).
 	- Collapsed some config parsing functions to parseOnOff().
 	- Added config option: memory_pools on|off
