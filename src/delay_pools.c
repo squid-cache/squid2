@@ -113,8 +113,12 @@ delayIdPtrHash(const void *key, unsigned int n)
 static int
 delayIdPtrHashCmp(const void *a, const void *b)
 {
-    /* Sort by POINTER VALUE. */
-    return b - a;
+    /*
+     * Compare POINTER VALUE.
+     * Note, we can't subtract void pointers, but we don't need
+     * to anyway.  All we need is a test for equality.
+     */
+    return a != b;
 }
 
 void
