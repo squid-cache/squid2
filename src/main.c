@@ -465,8 +465,10 @@ mainInitialize(void)
     if (!configured_once)
 	writePidFile();		/* write PID file */
 
+#if !(defined(_SQUID_LINUX_) && USE_ASYNC_IO)
     squid_signal(SIGUSR1, rotate_logs, SA_RESTART);
     squid_signal(SIGUSR2, sigusr2_handle, SA_RESTART);
+#endif
     squid_signal(SIGHUP, reconfigure, SA_RESTART);
     squid_signal(SIGTERM, shut_down, SA_NODEFER | SA_RESETHAND | SA_RESTART);
     squid_signal(SIGINT, shut_down, SA_NODEFER | SA_RESETHAND | SA_RESTART);
