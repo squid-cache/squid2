@@ -1,3 +1,4 @@
+	- WCCP establishes and registers with the router faster.	
 	- Added 'maxconn' acl type to limit the number of established
 	  connections from a single client IP address.  Submitted
 	  by Vadim Kolontsov.
