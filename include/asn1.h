@@ -96,6 +96,6 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-
 #endif
+
 #endif				/* _SNMP_ASN1_H_ */
