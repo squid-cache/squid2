@@ -177,9 +177,9 @@ storeHashInsert(StoreEntry * e, const cache_key * key)
     e->key = storeKeyDup(key);
     hash_join(store_table, (hash_link *) e);
     if (EBIT_TEST(e->flag, KEY_PRIVATE))
-        dlinkAddTail(e, &e->lru, &store_list);
+	dlinkAddTail(e, &e->lru, &store_list);
     else
-        dlinkAdd(e, &e->lru, &store_list);
+	dlinkAdd(e, &e->lru, &store_list);
 }
 
 static void
