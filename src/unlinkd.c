@@ -157,7 +157,7 @@ unlinkdInit(void)
 	debug(43, 0, "unlinkdInit: failed to start unlinkd\n");
 	return;
     }
-    debug(43, 0, "unlinkd opened on FD %d\n", unlinkd_fd);
+    debug(43, 0, "Unlinkd pipe opened on FD %d\n", unlinkd_fd);
 }
 
 #endif /* ndef UNLINK_DAEMON */
