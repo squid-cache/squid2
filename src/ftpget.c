@@ -2079,9 +2079,10 @@ htmlify_listing(ftp_request_t * r)
     fprintf(wfp, "<!-- %s -->\n", http_time(stamp));
     fprintf(wfp, "<HTML><HEAD><TITLE>\n");
     fprintf(wfp, "FTP Directory: %s\n", r->title_url);
-    fprintf(wfp, "</TITLE></HEAD><BODY>\n");
+    fprintf(wfp, "</TITLE>\n");
     if (r->flags & F_USEBASE)
 	fprintf(wfp, "<BASE HREF=\"%s\">\n", r->url_escaped);
+    fprintf(wfp, "</HEAD><BODY>\n");
 
     if (r->cmd_msg) {		/* There was a message sent with the CWD cmd */
 	list_t *l;
