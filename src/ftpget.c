@@ -529,7 +529,8 @@ void fail(r)
 	    Debug(26, 1, ("Preparing HTML error message\n"));
 	    expire_time = time(NULL) + o_neg_ttl;
 	    fprintf(fp, "HTTP/1.0 500 Proxy Error\r\n");
-	    fprintf(fp, "Expires: %s\r\n", mkrfc850(&expire_time));
+	    fprintf(fp, "Date: %s\r\n", http_time(time(NULL)));
+	    fprintf(fp, "Expires: %s\r\n", http_time(expire_time));
 	    fprintf(fp, "MIME-Version: 1.0\r\n");
 	    fprintf(fp, "Server: Squid %s\r\n", SQUID_VERSION);
 	    fprintf(fp, "Content-Type: text/html\r\n");
@@ -998,6 +999,7 @@ void send_success_hdr(r)
     }
     setbuf(fp, NULL);
     fprintf(fp, "HTTP/1.0 200 Gatewaying\r\n");
+    fprintf(fp, "Date: %s\r\n", http_time(time(NULL)));
     fprintf(fp, "MIME-Version: 1.0\r\n");
     fprintf(fp, "Server: Squid %s\r\n", SQUID_VERSION);
     if (r->mime_type)
