@@ -172,12 +172,14 @@ static int compareLastRef _PARAMS((StoreEntry **, StoreEntry **));
 static int compareRandom _PARAMS((int *a, int *b));
 static int storeAddSwapDisk _PARAMS((const char *));
 static int storeCheckExpired _PARAMS((const StoreEntry *));
-static int storeCheckPurgeMem _PARAMS((const StoreEntry *));
 static int storeClientListSearch _PARAMS((const MemObject *, int));
 static int storeEntryLocked _PARAMS((const StoreEntry *));
 static int storeEntryValidLength _PARAMS((const StoreEntry *));
 static int storeHashDelete _PARAMS((StoreEntry *));
+#ifdef OLD_CODE
+static int storeCheckPurgeMem _PARAMS((const StoreEntry *));
 static int storeShouldPurgeMem _PARAMS((const StoreEntry *));
+#endif
 static MemObject *new_MemObject _PARAMS((void));
 static StoreEntry *new_StoreEntry _PARAMS((int));
 static StoreEntry *storeAddDiskRestore _PARAMS((const char *, int, int, time_t, time_t, time_t));
@@ -2066,6 +2068,7 @@ storeRotateLog(void)
     }
 }
 
+#ifdef OLD_CODE
 static int
 storeShouldPurgeMem(const StoreEntry * e)
 {
@@ -2073,7 +2076,6 @@ storeShouldPurgeMem(const StoreEntry * e)
 	return 0;
     return 1;
 }
-
 
 /*
  * Check if its okay to remove the memory data for this object, but 
@@ -2091,6 +2093,7 @@ storeCheckPurgeMem(const StoreEntry * e)
 	return 0;
     return 1;
 }
+#endif
 
 static int
 storeCheckExpired(const StoreEntry * e)

@@ -157,6 +157,7 @@ static icpUdpData *UdpQueueTail = NULL;
 
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
+#ifdef NO_HIT_OBJ_SUPPORT
 typedef struct {
     int fd;
     struct sockaddr_in to;
@@ -164,6 +165,7 @@ typedef struct {
     icp_common_t header;
     int pad;
 } icpHitObjStateData;
+#endif
 
 /* Local functions */
 static char *icpConstruct304reply _PARAMS((struct _http_reply *));
@@ -172,16 +174,17 @@ static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
 static void checkFailureRatio _PARAMS((log_type, hier_code));
 static void clientWriteComplete _PARAMS((int, char *, int, int, void *icpState));
-static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, void *));
 static void icpHandleIMSComplete _PARAMS((int, char *, int, int, void *icpState));
+#ifdef NO_HIT_OBJ_SUPPORT
 static void icpHitObjHandler _PARAMS((int, void *));
+static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
+#endif
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
 static void icpHandleAbort _PARAMS((int fd, void *));
 static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
-static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
 static void icpStateFree _PARAMS((int fd, void *data));
 static int icpCheckTransferDone _PARAMS((icpStateData *));
 static int icpReadDataDone _PARAMS((int fd, char *buf, int len, int err, void *data));
@@ -628,8 +631,6 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	return icpProcessMISS(fd, icpState);
     }
     if (mem->reply->code == 0) {
-	if (entry->mem_status == IN_MEMORY)
-	    return icpProcessMISS(fd, icpState);
 	/* All headers are not yet available, wait for more data */
 	storeRegister(entry, fd, icpSendMoreData, (void *) icpState, icpState->out.offset);
 	return COMM_OK;
@@ -659,12 +660,6 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	icpState,
 	xfree);
     return COMM_OK;
-}
-
-static void
-icpHandleStoreIMS(int fd, StoreEntry * entry, void *data)
-{
-    icpGetHeadersForIMS(fd, data);
 }
 
 static void
@@ -1071,6 +1066,7 @@ icpUdpSend(int fd,
 	(void *) UdpQueueHead, 0);
 }
 
+#ifdef NO_HIT_OBJ_SUPPORT
 static void
 icpHitObjHandler(int errflag, void *data)
 {
@@ -1101,6 +1097,7 @@ icpHitObjHandler(int errflag, void *data)
     storeUnlockObject(entry);
     safe_free(icpHitObjState);
 }
+#endif
 
 static int
 icpCheckUdpHit(StoreEntry * e, request_t * request)
@@ -1114,6 +1111,7 @@ icpCheckUdpHit(StoreEntry * e, request_t * request)
     return 1;
 }
 
+#ifdef NO_HIT_OBJ_SUPPORT
 static int
 icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
 {
@@ -1129,6 +1127,7 @@ icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
 #endif
     return 1;
 }
+#endif
 
 static void
 icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
@@ -1143,7 +1142,6 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     char *data = NULL;
     u_short data_sz = 0;
     u_short u;
-    icpHitObjStateData *icpHitObjState = NULL;
     int pkt_len;
     aclCheck_t checklist;
     icp_common_t *reply;
@@ -1678,10 +1676,10 @@ clientReadRequest(int fd, void *data)
     int size;
     int len;
 
-    len = icpState->inbufsize - icpState->in_offset - 1;
+    len = icpState->in.size - icpState->in.offset - 1;
     debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
     debug(12, 4, "clientReadRequest: len = %d\n", len);
-    size = read(fd, icpState->inbuf + icpState->in_offset, len);
+    size = read(fd, icpState->in.buf + icpState->in.offset, len);
 
     if (size == 0) {
 	comm_close(fd);
@@ -1760,7 +1758,7 @@ clientReadRequest(int fd, void *data)
 	    icpState->in.size += ASCII_INBUF_BLOCKSIZE;
 	    icpState->in.buf = xrealloc(icpState->in.buf, icpState->in.size);
 	    meta_data.misc += ASCII_INBUF_BLOCKSIZE;
-	    debug(12, 2, "Handling a large request, offset=%d inbufsize=%d\n",
+	    debug(12, 2, "Handling a large request, offset=%d in.size=%d\n",
 		icpState->in.offset, icpState->in.size);
 	    k = icpState->in.size - 1 - icpState->in.offset;
 	}
