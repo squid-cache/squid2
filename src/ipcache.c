@@ -518,7 +518,7 @@ ipcache_dnsHandleRead(int fd, void *data)
     assert(i->status == IP_DISPATCHED);
     if (strstr(dnsData->ip_inbuf, "$end\n")) {
 	/* end of record found */
-	statLogHistCount(&Counter.dns.svc_time,
+	statHistCount(&Counter.dns.svc_time,
 	    tvSubMsec(dnsData->dispatch_time, current_time));
 	if ((x = ipcache_parsebuffer(dnsData->ip_inbuf, dnsData)) == NULL) {
 	    debug(14, 0) ("ipcache_dnsHandleRead: ipcache_parsebuffer failed?!\n");

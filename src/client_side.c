@@ -569,7 +569,7 @@ clientUpdateCounters(clientHttpRequest * http)
     }
     if (http->request->err_type != ERR_NONE)
 	Counter.client_http.errors++;
-    statLogHistCount(&Counter.client_http.all_svc_time, svc_time);
+    statHistCount(&Counter.client_http.all_svc_time, svc_time);
     /*
      * The idea here is not to be complete, but to get service times
      * for only well-defined types.  For example, we don't include
@@ -578,15 +578,15 @@ clientUpdateCounters(clientHttpRequest * http)
      */
     switch (http->log_type) {
     case LOG_TCP_IMS_HIT:
-	statLogHistCount(&Counter.client_http.nm_svc_time, svc_time);
+	statHistCount(&Counter.client_http.nm_svc_time, svc_time);
 	break;
     case LOG_TCP_HIT:
     case LOG_TCP_MEM_HIT:
-	statLogHistCount(&Counter.client_http.hit_svc_time, svc_time);
+	statHistCount(&Counter.client_http.hit_svc_time, svc_time);
 	break;
     case LOG_TCP_MISS:
     case LOG_TCP_CLIENT_REFRESH_MISS:
-	statLogHistCount(&Counter.client_http.miss_svc_time, svc_time);
+	statHistCount(&Counter.client_http.miss_svc_time, svc_time);
 	break;
     default:
 	/* make compiler warnings go away */
@@ -594,7 +594,7 @@ clientUpdateCounters(clientHttpRequest * http)
     }
     i = &http->request->hier.icp;
     if (0 != i->stop.tv_sec)
-	statLogHistCount(&Counter.icp.query_svc_time, tvSubUsec(i->start, i->stop));
+	statHistCount(&Counter.icp.query_svc_time, tvSubUsec(i->start, i->stop));
 }
 
 static void

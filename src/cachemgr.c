@@ -213,8 +213,8 @@ print_trailer(void)
 static void
 auth_html(char *host, int port, const char *user_name)
 {
-    if (!user_name)
-	user_name = "";
+    if (!user_name) user_name = "";
+    if (!host || !strlen(host)) host = "localhost";
     printf("Content-type: text/html\r\n\r\n");
     printf("<HTML><HEAD><TITLE>Cache Manager Interface</TITLE></HEAD>\n");
     printf("<BODY><H1>Cache Manager Interface</H1>\n");
@@ -224,7 +224,7 @@ auth_html(char *host, int port, const char *user_name)
     printf("<FORM METHOD=\"POST\" ACTION=\"%s\">\n", script_name);
     printf("<TABLE BORDER=0>\n");
     printf("<TR><TH ALIGN=\"left\">Cache Host:</TH><TD><INPUT NAME=\"host\" ");
-    printf("SIZE=30 VALUE=\"%s\"></TD></TR>\n", host ? host : "localhost");
+    printf("SIZE=30 VALUE=\"%s\"></TD></TR>\n", host);
     printf("<TR><TH ALIGN=\"left\">Cache Port:</TH><TD><INPUT NAME=\"port\" ");
     printf("SIZE=30 VALUE=\"%d\"></TD></TR>\n", port);
     printf("<TR><TH ALIGN=\"left\">Manager name:</TH><TD><INPUT NAME=\"user_name\" ");

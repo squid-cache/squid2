@@ -118,6 +118,7 @@ OBJS	 	= \
 		@SNMP_OBJS@ \
 		ssl.o \
 		stat.o \
+		StatHist.o \
 		stmem.o \
 		store.o \
 		store_clean.o \

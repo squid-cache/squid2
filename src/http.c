@@ -1165,9 +1165,6 @@ httpReplyHeaderStats(StoreEntry * entry)
 void
 httpInit(void)
 {
-    cachemgrRegister("reply_headers",
-	"HTTP Reply Header Histograms",
-	httpHeaderStoreRepReport, 0);
 }
 
 static void

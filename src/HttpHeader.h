@@ -84,7 +84,6 @@ typedef enum {
     SCC_MUST_REVALIDATE,
     SCC_PROXY_REVALIDATE,
     SCC_MAX_AGE,
-    SCC_OTHER,
     SCC_ENUM_END
 } http_scc_type;
 
@@ -178,10 +177,7 @@ int httpHeaderDelFields(HttpHeader *hdr, const char *name);
 
 
 
-/* pack report about current header usage and other stats */
+/* store report about current header usage and other stats */
 extern void httpHeaderStoreReport(StoreEntry *e);
-extern void httpHeaderStoreReqReport(StoreEntry *e);
-extern void httpHeaderStoreRepReport(StoreEntry *e);
-
 
 #endif /* ndef _HTTP_HEADER_H_ */
