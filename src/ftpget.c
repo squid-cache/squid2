@@ -2594,9 +2594,9 @@ main(int argc, char *argv[])
 
 
 #ifdef NSIG
-    for (i = 0; i < NSIG; i++) {
+    for (i = 1; i < NSIG; i++) {
 #else
-    for (i = 0; i < _sys_nsig; i++) {
+    for (i = 1; i < _sys_nsig; i++) {
 #endif
 	switch (i) {
 	case SIGALRM:
