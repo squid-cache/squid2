@@ -1116,7 +1116,7 @@ var_perfsys_entry(struct variable * vp, oid * name, int *length, int exact, int 
 	return (u_char *) & long_return;
 
     case PERF_SYS_NUMOBJCNT:
-	long_return = (long) meta_data.mem_obj_count;
+	long_return = (long) memInUse(MEM_STOREENTRY);
 	return (u_char *) & long_return;
 
 
