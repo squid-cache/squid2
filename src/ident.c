@@ -83,7 +83,8 @@ void identStart(sock, icpState)
 	strlen(reqbuf),
 	5,			/* timeout */
 	identRequestComplete,
-	(void *) icpState);
+	(void *) icpState,
+	NULL);
     comm_set_select_handler(sock,
 	COMM_SELECT_READ,
 	(PF) identReadReply,

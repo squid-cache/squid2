@@ -260,6 +260,7 @@ static void destroy_MemObject(mem)
     safe_free(mem->mime_hdr);
     safe_free(mem->reply);
     safe_free(mem->e_abort_msg);
+    safe_free(mem->hierarchy_host);
     requestUnlink(mem->request);
     mem->request = NULL;
     put_free_mem_obj(mem);
@@ -1413,7 +1414,6 @@ static int storeDoRebuildFromDisk(data)
 	    &scan3,		/* last modified */
 	    &scan4,		/* size */
 	    url);		/* url */
-	debug(20, 9, "x = %d\n", x);
 	if (x > 0)
 	    storeSwapFullPath(sfileno, swapfile);
 	if (x != 6) {

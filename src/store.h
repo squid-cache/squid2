@@ -189,6 +189,7 @@ typedef struct _MemObject {
     SIH swapin_complete_handler;
     void *swapin_complete_data;
     hier_code hierarchy_code;
+    char *hierarchy_host;
 } MemObject;
 typedef enum {
     NOT_IN_MEMORY,

@@ -482,6 +482,13 @@ void stmemInit()
     mem_obj_pool.n_pages_in_use = 0;
     mem_obj_pool.max_pages = FD_SETSIZE >> 3;
 
+#if PURIFY
+    sm_stats.max_pages = 0;
+    disk_stats.max_pages = 0;
+    request_pool.max_pages = 0;
+    mem_obj_pool.max_pages = 0;
+#endif
+
     init_stack(&sm_stats.free_page_stack, sm_stats.max_pages);
     init_stack(&disk_stats.free_page_stack, disk_stats.max_pages);
     init_stack(&request_pool.free_page_stack, request_pool.max_pages);

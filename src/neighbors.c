@@ -182,6 +182,8 @@ void hierarchy_log_append(entry, code, timeout, cache_host)
 	code = HIER_MAX;
     if (mem)
 	mem->hierarchy_code = code;
+    if (mem && cache_host)
+	mem->hierarchy_host = xstrdup(cache_host);
 
     if (emulate_httpd_log) {
 	if (squid_curtime != last_time) {

@@ -187,7 +187,6 @@ typedef struct iwd {
     struct sockaddr_in peer;
     struct sockaddr_in me;
     struct in_addr log_addr;
-    char *ptr_to_4k_page;
     char *buf;
     struct timeval start;
     int flags;

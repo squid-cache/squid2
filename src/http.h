@@ -124,9 +124,6 @@ typedef struct {
     StoreEntry *entry;
     request_t *request;
     char *req_hdr;
-    int buf_type;		/* BUF_TYPE_8K or BUF_TYPE_MALLOC */
-    char *reqbuf;		/* Holds the HTTP request being sent to
-				 * the neighbor/origin server. */
     char *icp_rwd_ptr;		/* When a lifetime expires during the
 				 * middle of an icpwrite, don't lose the
 				 * icpReadWriteData */

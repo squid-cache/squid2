@@ -269,7 +269,8 @@ static void redirectDispatch(redirect, r)
 	len,
 	0,			/* timeout */
 	NULL,			/* Handler */
-	NULL);			/* Handler-data */
+	NULL,			/* Handler-data */
+	xfree);
     debug(29, 5, "redirectDispatch: Request sent to Redirector #%d, %d bytes\n",
 	redirect->index + 1, len);
     RedirectStats.use_hist[redirect->index]++;
