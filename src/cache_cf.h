@@ -45,6 +45,7 @@ extern ip_acl *accel_ip_acl;
 extern ip_acl *manager_ip_acl;
 extern char config_input_line[];
 extern int config_lineno;
+extern int DnsPositiveTtl;
 
 
 /* cache_cf.c */

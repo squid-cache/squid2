@@ -455,6 +455,13 @@ cache_dns_program @prefix@/bin/dnsserver
 #negative_ttl 5
 
 #
+#  TAG: positive_dns_ttl (in minutes)         
+#	Time-to-Live (TTL) for positive caching of successful DNS lookups.
+#	Default is 6 hours (360 minutes).
+#
+#positive_dns_ttl 360
+
+#
 #  TAG: negative_dns_ttl (in minutes)         
 #	Time-to-Live (TTL) for negative caching of failed DNS lookups.
 #
