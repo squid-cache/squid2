@@ -299,7 +299,6 @@ pumpFree(int fd, void *data)
 
     for (p=pump_head ; p && p!=pumpState ; q=p, p=p->next);
 
-    assert(p);
     if (!p) {
            debug(61,4)("pumpFree: already cleaned.\n");
            return;
