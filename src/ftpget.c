@@ -164,10 +164,6 @@ typedef enum {
     FAIL_HARD			/* do cache these */
 } state_t;
 
-#define DFD_TYPE_NONE 0
-#define DFD_TYPE_PASV 1
-#define DFD_TYPE_PORT 2
-
 typedef struct _request {
     char *host;
     int port;
@@ -181,7 +177,6 @@ typedef struct _request {
     int cfd;
     int sfd;
     int dfd;
-    int dfd_type;
     int conn_att;
     int login_att;
     state_t state;
@@ -951,6 +946,46 @@ time_t parse_iso3307_time(buf)
         }
 
 /*
+ *  close_dfd()
+ *  Close any open data channel
+ */
+void close_dfd(r)
+     request_t *r;
+{
+    if (r->dfd >= 0)
+	close(r->dfd);
+    r->flags &= ~F_NEEDACCEPT;
+    r->dfd = -1;
+}
+
+/*
+ *  is_dfd_open()
+ *  Check if a data channel is already open
+ */
+int is_dfd_open(r)
+     request_t *r;
+{
+    if (r->dfd >= 0 && !(r->flags & F_NEEDACCEPT)) {
+	fd_set R;
+	struct timeval tv;
+	FD_ZERO(&R);
+	FD_SET(r->dfd, &R);
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
+	    Debug(26, 3, ("Data channel already connected (FD=%d)\n", r->dfd));
+	    return 1;
+	} else {
+	    Debug(26, 2, ("Data channel closed by server (%s)\n", xstrerror()));
+	}
+    } else if (r->dfd >= 0) {
+	Debug(26, 2, ("Data socket not connected, closing\n"));
+    }
+    close_dfd(r);
+    return 0;
+}
+
+/*
  *  parse_request()
  *  Perform validity checks on request parameters.
  *    - lookup hostname
@@ -1178,24 +1213,9 @@ state_t do_port(r)
     int port = 0;
     static int init = 0;
 
-    if (r->dfd >= 0 && r->dfd_type == DFD_TYPE_PORT) {
-	fd_set R;
-	struct timeval tv;
-	FD_ZERO(&R);
-	FD_SET(r->dfd, &R);
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
-	    Debug(26, 3, ("do_port: FD %d Already connected\n", r->dfd));
-	    r->flags |= F_NEEDACCEPT;
-	    return PORT_OK;
-	} else {
-	    Debug(26, 2, ("Data connection closed by server (%s)\n", xstrerror()));
-	    close(r->dfd);
-	    r->dfd = -1;
-	    r->dfd_type = DFD_TYPE_NONE;
-	}
-    }
+    if (is_dfd_open(r))
+	return PORT_OK;
+
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
@@ -1250,7 +1270,6 @@ state_t do_port(r)
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code == 200) {
 	    r->dfd = sock;
-	    r->dfd_type = DFD_TYPE_PORT;
 	    r->flags |= F_NEEDACCEPT;
 	    return PORT_OK;
 	}
@@ -1278,24 +1297,9 @@ state_t do_pasv(r)
     if (!pasv_supported)
 	return PASV_FAIL;
 
-    if (r->dfd >= 0 && r->dfd_type == DFD_TYPE_PASV) {
-	fd_set R;
-	struct timeval tv;
-	FD_ZERO(&R);
-	FD_SET(r->dfd, &R);
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
-	    Debug(26, 3, ("do_pasv: FD %d Already connected\n", r->dfd));
-	    return PORT_OK;
-	} else {
-	    Debug(26, 2, ("Data connection closed by server (%s)\n", xstrerror()));
-	    close(r->dfd);
-	    r->dfd = -1;
-	    r->dfd_type = DFD_TYPE_NONE;
-	}
-    }
-    r->flags &= ~F_NEEDACCEPT;
+    /* If there already are a open data connection, use that */
+    if (is_dfd_open(r))
+	return PORT_OK;
 
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
@@ -1335,7 +1339,6 @@ state_t do_pasv(r)
 	return FAIL_SOFT;
     }
     r->dfd = sock;
-    r->dfd_type = DFD_TYPE_PASV;
     return PORT_OK;
 }
 
@@ -1356,7 +1359,7 @@ state_t do_cwd(r)
 	if (code >= 200 && code < 300)
 	    return CWD_OK;
 #ifdef TRY_CWD_FIRST
-	if (!r->flags & F_ISDIR)
+	if (!(r->flags & F_ISDIR))
 	    return CWD_FAIL;
 #endif
 	r->errmsg = xstrdup(server_reply_msg);
@@ -1478,11 +1481,8 @@ state_t do_accept(r)
 	r->rc = 3;
 	return FAIL_SOFT;
     }
-    r->flags &= ~F_NEEDACCEPT;
-    if (r->dfd >= 0)
-	close(r->dfd);
+    close_dfd(r);
     r->dfd = sock;
-    r->dfd_type = DFD_TYPE_PORT;
     return DATA_TRANSFER;
 }
 
@@ -1498,21 +1498,13 @@ state_t read_data(r)
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
     } else if (n < 0) {
-	if (r->dfd >= 0) {
-	    close(r->dfd);
-	    r->dfd = -1;
-	    r->dfd_type = DFD_TYPE_NONE;
-	}
+	close_dfd(r);
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
     } else if (n == 0) {
-	if (r->dfd >= 0) {
-	    close(r->dfd);
-	    r->dfd = -1;
-	    r->dfd_type = DFD_TYPE_NONE;
-	}
+	close_dfd(r);
 	if ((code = read_reply(r->sfd)) > 0) {
 	    if (code == 226)
 		return TRANSFER_DONE;
@@ -1778,9 +1770,12 @@ void try_readme(r)
     readme->path = xstrdup("README");
     readme->cfd = fd;
     readme->sfd = r->sfd;
-    readme->dfd = r->dfd;
-    r->dfd = -1;
-    r->dfd_type = DFD_TYPE_NONE;
+    if (is_dfd_open(r)) {
+	readme->dfd = r->dfd;
+	r->dfd = -1;
+    } else {
+	readme->dfd = -1;
+    }
 #ifdef TRY_CWD_FIRST
     readme->state = CWD_FAIL;
 #else
@@ -1793,13 +1788,10 @@ void try_readme(r)
 	close(readme->cfd);
 	readme->cfd = -1;
     }
-    if (readme->dfd >= 0) {
-	if (r->dfd == -1)
-	    r->dfd = readme->dfd;
-	else
-	    close(readme->dfd);
+    if (is_dfd_open(readme)) {
+	close_dfd(r);
+	r->dfd = readme->dfd;
 	readme->dfd = -1;
-	readme->dfd_type = DFD_TYPE_NONE;
     }
     fp = fopen(tfname, "r");
     unlink(tfname);
@@ -1881,11 +1873,7 @@ state_t htmlify_listing(r)
 	    xfree(t);
 	}
     }
-    if (r->dfd >= 0) {
-	close(r->dfd);
-	r->dfd = -1;
-	r->dfd_type = DFD_TYPE_NONE;
-    }
+    close_dfd(r);
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
     } else if (n < 0) {
@@ -2061,9 +2049,6 @@ static int process_request(r)
 	    }
 	    break;
 	case FAIL_SOFT:
-	    fail(r);
-	    return (r->rc);
-	    /* NOTREACHED */
 	case FAIL_HARD:
 	    fail(r);
 	    return (r->rc);
@@ -2455,7 +2440,6 @@ int main(argc, argv)
     r->port = port;
     r->sfd = -1;
     r->dfd = -1;
-    r->dfd_type = DFD_TYPE_NONE;
     r->size = -1;
     r->state = BEGIN;
     r->flags |= o_httpify ? F_HTTPIFY : 0;
@@ -2510,8 +2494,7 @@ int main(argc, argv)
 	close(r->sfd);
     if (r->cfd >= 0)
 	close(r->cfd);
-    if (r->dfd >= 0)
-	close(r->dfd);
+    close_dfd(r);
     close(0);
     close(1);
     exit(rc);
