@@ -923,6 +923,7 @@ httpConnect(int fd, const ipcache_addrs * ia, void *data)
     HttpStateData *httpState = data;
     request_t *request = httpState->request;
     StoreEntry *entry = httpState->entry;
+    httpState->ip_lookup_pending = 0;
     if (ia == NULL) {
 	debug(11, 4, "httpConnect: Unknown host: %s\n", request->host);
 	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
