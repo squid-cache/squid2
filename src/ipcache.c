@@ -699,11 +699,11 @@ ipcache_nbgethostbyname(const char *name, int fd, IPH handler, void *handlerData
 
     /* for HIT, PENDING, DISPATCHED we've returned.  For MISS we continue */
 
-    if ((dnsData = dnsGetFirstAvailable()))
+    if ((dnsData = dnsGetFirstAvailable())) {
 	ipcache_dnsDispatch(dnsData, i);
-    else if (NDnsServersAlloc > 0)
+    } else if (NDnsServersAlloc > 0) {
 	ipcacheEnqueue(i);
-    else {
+    } else {
 	ipcache_gethostbyname(name, IP_BLOCKING_LOOKUP);
 	ipcache_call_pending(i);
     }
