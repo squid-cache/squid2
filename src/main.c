@@ -193,7 +193,7 @@ mainParseOptions(int argc, char *argv[])
     extern char *optarg;
     int c;
 
-    while ((c = getopt(argc, argv, "CDFRUVYa:bf:hik:m:su:vz?")) != -1) {
+    while ((c = getopt(argc, argv, "CDFRUVYXa:bf:hik:m:su:vz?")) != -1) {
 	switch (c) {
 	case 'C':
 	    opt_catch_signals = 0;
@@ -212,6 +212,10 @@ mainParseOptions(int argc, char *argv[])
 	    break;
 	case 'V':
 	    vhost_mode = 1;
+	    break;
+	case 'X':
+	    /* force full debugging */
+	    sigusr2_handle(SIGUSR2);
 	    break;
 	case 'Y':
 	    opt_reload_hit_only = 1;
