@@ -1251,7 +1251,7 @@ DOC_START
 	program reads a line containing "username password" and replies
 	"OK" or "ERR" in an endless loop.  If you use an authenticator,
 	make sure you have 1 acl of type proxy_auth.  By default, the
-	authenticate_program is not used.
+	basic authentication sheme is not used unless a program is specified.
 
 	If you want to use the traditional proxy authentication,
 	jump over to the ../auth_modules/NCSA directory and
@@ -1938,7 +1938,7 @@ DOC_START
 	  #
 	  # NOTE: proxy_auth requires a EXTERNAL authentication program
 	  # to check username/password combinations (see
-	  # authenticate_program).
+	  # auth_param directive).
 	  #
 	  # WARNING: proxy_auth can't be used in a transparent proxy. It
 	  # collides with any authentication done by origin servers. It may
