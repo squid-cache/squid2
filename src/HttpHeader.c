@@ -440,6 +440,11 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 		    getStringPrefix(field_start, header_end));
 		return httpHeaderReset(hdr);
 	    }
+	    if (this_line + 1 == field_end && this_line > field_start) {
+		debug(55, 1) ("WARNING: Blank continuation line in HTTP header near {%s}\n",
+		    getStringPrefix(field_start, header_end));
+		return httpHeaderReset(hdr);
+	    }
 	} while (field_ptr < header_end && (*field_ptr == ' ' || *field_ptr == '\t'));
 	if (field_start == field_end) {
 	    if (field_ptr < header_end) {
