@@ -909,11 +909,11 @@ miss_access allow  all
 #
 # Format:	announce_to   host[:port] [filename]
 #
-# Hostname will default to 'sd.cache.nlanr.net' and port will default
+# Hostname will default to 'tracker.ircache.net' and port will default
 # to 3131.  If the 'filename' argument is given, the contents of that
 # file will be included in the announce message.
 #
-#announce_to sd.cache.nlanr.net:3131
+#announce_to tracker.ircache.net:3131
 
 
 # HTTPD-ACCELERATOR OPTIONS
@@ -1220,6 +1220,15 @@ minimum_direct_hops 4
 #	option to 'on'.  If you have sibling relationships with caches
 #	in other administrative domains, this should be 'off'.  If you only
 #	have sibling relationships with caches under your control, then
-#	it is probably okay to set this to 'on'.
+#	it is probably okay to set this to 'on'.  NEVER enable
+#	icp_hit_stale if you also use 'miss_access'.
 #
 #icp_hit_stale off
+
+#  TAG: reload_into_ims
+#	Enable this if you want to turn 'Pragma: no-cache' requests
+#       into If-Modified-Since requests.  Off by default, use at your
+#	own risk.  This feature is not compiled in by default.  You
+#	must add -DRELOAD_INTO_IMS in src/Makefile.
+#
+#reload_into_ims off
