@@ -531,6 +531,7 @@ invalid objects.
 Appending A -- Why ICP is useful.
 .sp
 
+.np
 .nf
            ___________________________________________
           (                                           )
