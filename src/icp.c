@@ -301,7 +301,10 @@ icpStateFree(int fd, void *data)
 	storeUnlockObject(icpState->entry);
 	icpState->entry = NULL;
     }
+    /* old_entry might still be set if we didn't yet get the reply
+     * code in icpHandleIMSReply() */
     if (icpState->old_entry) {
+	storeUnregister(icpState->old_entry, fd);
 	storeUnlockObject(icpState->old_entry);
 	icpState->old_entry = NULL;
     }
@@ -695,6 +698,7 @@ icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data
 	icpState->request->protocol,
 	size);
     /* Set up everything for the logging */
+    storeUnregister(entry, fd);
     storeUnlockObject(entry);
     icpState->entry = NULL;
     icpState->size += size;
@@ -1284,6 +1288,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	break;
 
     case ICP_OP_INVALID:
+    case ICP_OP_ERR:
 	break;
 
     default:
@@ -1369,6 +1374,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     case ICP_OP_DECHO:
     case ICP_OP_MISS:
     case ICP_OP_DENIED:
+    case ICP_OP_MISS_NOFETCH:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
 	    debug(12, 0, "icpHandleIcpV3: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
@@ -1491,7 +1497,7 @@ icpHandleUdp(int sock, void *not_used)
     else if (icp_version == ICP_VERSION_3)
 	icpHandleIcpV3(sock, from, buf, len);
     else
-	debug(12, 0, "Unused ICP version %d received from %s:%d\n",
+	debug(12, 0, "WARNING: Unused ICP version %d received from %s:%d\n",
 	    icp_version,
 	    inet_ntoa(from.sin_addr),
 	    ntohs(from.sin_port));
@@ -2002,11 +2008,7 @@ icpDetectClientClose(int fd, void *data)
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
 	comm_set_stall(fd, 10);	/* check again in 10 seconds */
-	commSetSelect(fd,
-	    COMM_SELECT_READ,
-	    icpDetectClientClose,
-	    (void *) icpState,
-	    0);
+	commSetSelect(fd, COMM_SELECT_READ, icpDetectClientClose, icpState, 0);
     }
 }
 
