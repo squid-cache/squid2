@@ -470,6 +470,7 @@ struct _SquidConfig {
 #if MULTICAST_MISS_STREAM
     struct {
 	struct in_addr addr;
+	int ttl;
 	unsigned short port;
 	char *encode_key;
     } mcast_miss;

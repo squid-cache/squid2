@@ -2964,6 +2964,17 @@ DOC_START
 	certain you understand what you are doing.
 DOC_END
 
+NAME: mcast_miss_ttl
+IFDEF: MULTICAST_MISS_TTL
+TYPE: ushort
+LOC: Config.mcast_miss.ttl
+DEFAULT: 16
+DOC_START
+	This is the time-to-live value for packets multicasted
+	when multicasting off cache miss URLs is enabled.  By
+	default this is set to 'site scope', i.e. 16.
+DOC_END
+
 NAME: mcast_miss_port
 IFDEF: MULTICAST_MISS_STREAM
 TYPE: ushort
