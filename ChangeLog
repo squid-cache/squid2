@@ -1,3 +1,11 @@
+	- Fixed ftpget's "Generated" timestamp trailer on error
+	  messages (Oskar Pearson).
+	- Count (in the client_list database) DENIED ICP queries
+	  occuring after the 95% threshold, even though we don't
+	  transmit an ICP reply.
+	- Fixed bug causing 'ipcache_purgelru()' to be added to
+	  the event queue multiple times.
+
 Changes to squid-1.1.20 (January 9, 1998):
 
 	- Changed default 'average_object_size' to 13 KB.
