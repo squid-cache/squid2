@@ -331,7 +331,7 @@ netdbSaveState(void *foo)
     next = (netdbEntry *) hash_first(addr_table);
     while ((n = next)) {
 	next = (netdbEntry *) hash_next(addr_table);
-	if (n->rtt == 0.0)
+	if (n->pings_recv == 0)
 	    continue;
 	fprintf(fp, "%s %d %d %10.5f %10.5f %d %d",
 	    n->network,
@@ -381,6 +381,11 @@ netdbReloadState(void)
 	if ((t = strtok(NULL, w_space)) == NULL)
 	    continue;
 	N.pings_recv = atoi(t);
+	if (N.pings_recv == 0)
+	    continue;
+	/* give this measurement low weight */
+	N.pings_sent = 1;
+	N.pings_recv = 1;
 	if ((t = strtok(NULL, w_space)) == NULL)
 	    continue;
 	N.hops = atof(t);
@@ -466,8 +471,8 @@ netdbHandlePingReply(const struct sockaddr_in *from, int hops, int rtt)
     if ((n = netdbLookupAddr(from->sin_addr)) == NULL)
 	return;
     N = ++n->pings_recv;
-    if (N > 100)
-	N = 100;
+    if (N > 5)
+	N = 5;
     n->hops = ((n->hops * (N - 1)) + hops) / N;
     n->rtt = ((n->rtt * (N - 1)) + rtt) / N;
     debug(37, 3, "netdbHandlePingReply: %s; rtt=%5.1f  hops=%4.1f\n",
