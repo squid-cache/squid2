@@ -257,7 +257,8 @@ SMB_Handle_Type SMB_Connect(SMB_Handle_Type Con_Handle,
   /* Now figure out the host portion of the service */
 
   strcpy(temp, service);
-  host = strtok(temp, "/\\");     /* Separate host name portion */
+  /* AI - Added (char *) to stop compiler warnings */
+  host = (char *) strtok(temp, "/\\");     /* Separate host name portion */
   strcpy(con -> desthost, host);
 
   /* Now connect to the remote end, but first upper case the name of the

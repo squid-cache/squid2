@@ -50,8 +50,9 @@ CFLAGS 		= $(AC_CFLAGS) $(INCLUDE) $(DEFINES)
 AUTH_LIBS	= $(XTRA_LIBS)
 
 LIBPROGS        = $(AUTH_EXE)
-OBJS	 	= md4.o rfcnb-io.o rfcnb-util.o session.o smbauth.o smbdes.o \
-		  smbencrypt.o smblib-util.o smblib.o valid.o denyusers.o
+OBJS            = md4.o rfcnb-io.o rfcnb-util.o session.o msntauth.o \
+		  smbdes.o smbencrypt.o smblib-util.o smblib.o \
+		  valid.o denyusers.o allowusers.o confload.o
 
 all:    $(AUTH_EXE)
 

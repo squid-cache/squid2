@@ -1,18 +1,18 @@
 
 /*
-  msntauth
+  MSNT - Microsoft Windows NT domain squid authenticator module
+  Version 1.2 by Stellar-X Pty Ltd, Antonino Iannella
+  Fri Sep 22 00:56:05 CST 2000
 
   Modified to act as a Squid authenticator module.
   Removed all Pike stuff.
   Returns OK for a successful authentication, or ERR upon error.
 
-  Antonino Iannella, Camtech SA Pty Ltd
-  Mon Apr 10 22:24:26 CST 2000
-
   Uses code from -
     Andrew Tridgell 1997
     Richard Sharpe 1996
     Bill Welliver 1999
+    Duane Wessels 2000
 
   Released under GNU Public License
 
@@ -33,14 +33,16 @@
 
 #include <stdio.h>
 #include <signal.h>
+#include <syslog.h>
 #include <sys/time.h>
-#include "sitedef.h"
 
-extern void Checkforchange();       /* For signal() to find the function */
-extern int Read_denyusers(void);
-extern int Check_user(char *);
-extern int Valid_User(char *,char *,char *,char *, char *);
-
+extern int  OpenConfigFile();
+extern int  QueryServers(char *, char *);
+extern void Checktimer();
+extern void Check_forchange();
+extern int  Read_denyusers(void);
+extern int  Read_allowusers(void);
+extern int  Check_user(char *);
 
 /* Main program for simple authentication.
    Reads the denied user file. Sets alarm timer.
@@ -52,13 +54,17 @@ int main()
   char username[256];
   char password[256];
   char wstr[256];
-  struct itimerval TimeOut;
 
-  /* Read denied user file. If it fails there is a serious problem.
+  /* Read configuration file. Abort wildly if error. */
+  if (OpenConfigFile() == 1)
+     return 1;
+
+  /* Read denied and allowed user files.
+     If they fails, there is a serious problem.
      Check syslog messages. Deny all users while in this state.
-     The process should then be killed. */
+     The msntauth process should then be killed. */
 
-  if (Read_denyusers() == 1)
+  if ((Read_denyusers() == 1) || (Read_allowusers() == 1))
   {
      while (1)
      {
@@ -68,16 +74,10 @@ int main()
      }
   }
 
-  /* An alarm timer is used to check the denied user file for changes
-     every minute. Reload the file if it has changed. */ 
-
-  TimeOut.it_interval.tv_sec = 60;
-  TimeOut.it_interval.tv_usec = 0;
-  TimeOut.it_value.tv_sec = 60;
-  TimeOut.it_value.tv_usec = 0;
-  setitimer(ITIMER_REAL, &TimeOut, 0);
-  signal(SIGALRM, Checkforchange);
-  signal(SIGHUP, Checkforchange);
+  /* Make Check_forchange() the handle for HUP signals.
+     Don't use alarms any more. I don't think it was very
+     portable between systems. */
+  signal(SIGHUP, Check_forchange);
 
   while (1)
   {
@@ -92,33 +92,30 @@ int main()
 
     /* Check for invalid or blank entries */
     if ((username[0] == '\0') || (password[0] == '\0'))
-  {
+    {
        puts("ERR");
        fflush(stdout);
        continue;
     }
 
-    if (Check_user(username) == 1)            /* Check if user is denied */
-        puts("ERR");
+    Checktimer();                /* Check if the user lists have changed */
+
+    /* Check if user is explicitly denied or allowed.
+       If user passes both checks, they can be authenticated. */
+
+    if (Check_user(username) == 1)
+       puts("ERR");
     else
     {
-    if (Valid_User(username, password, PRIMARY_DC, BACKUP_DC, NTDOMAIN) == 0)
-       puts("OK");
-    else
-       puts("ERR");
-  }
+       if (QueryServers(username, password) == 0)
+          puts("OK");
+       else
+          puts("ERR");
+    }
 
     fflush(stdout);
   }
   
   return 0;
 }
-
-/* Valid_User return codes -
-
-   0 - User authenticated successfully.
-   1 - Server error.
-   2 - Protocol error.
-   3 - Logon error; Incorrect password or username given.
-*/
 
