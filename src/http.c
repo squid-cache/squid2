@@ -264,6 +264,7 @@ static void httpReadReply(fd, data)
 	    (PF) NULL,
 	    (void *) NULL,
 	    (time_t) 0);
+	comm_set_fd_lifetime(fd, 3600);	/* limit during deferring */
 	/* dont try reading again for a while */
 	comm_set_stall(fd, getStallDelay());
 	return;
@@ -272,6 +273,7 @@ static void httpReadReply(fd, data)
     IOStats.Http.reads++;
     len = read(fd, buf, READBUFSIZ);
     debug(11, 5, "httpReadReply: FD %d: len %d.\n", fd, len);
+    comm_set_fd_lifetime(fd, -1);	/* disable after good read */
     if (len > 0) {
 	for (clen = len - 1, bin = 0; clen; bin++)
 	    clen >>= 1;
