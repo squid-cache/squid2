@@ -614,14 +614,24 @@ debug_options ALL,1
 #Default:
 #refresh_pattern 	.	0 20% 4320
 
-#  TAG: reference_age (in minutes)
-#	If set, objects which have not been referenced for this amount
-#	of time will be purged from the cache.  This is the only
-#	parameter for removing cache objects except when the disk space
-#	reaches the high water mark.  By default reference_age is
-#	computed dynamically so that the store swap size stays within
-#	the low and high water mark limits.
-#reference_age 0
+#  TAG: reference_age
+#	As a part of normal operation, Squid performs Least Recently
+#	Used removal of cached objects.  The LRU age for removal is
+#	computed dynamically, based on the amount of disk space in
+#	use.  The 'reference_age' value defines the maximum LRU age.
+#	For example, setting reference_age to '1 week' will cause
+#	objects to be removed if they have not been accessed for a week
+#	or more.  If set to zero, LRU removal is disabled, and objects
+#	will be removed only when disk usage is over the high water
+#	mark.  The default value is one year.
+#
+#	Specify a number here, followed by units of time.  For example:
+#		1 week
+#		3.5 days
+#		4 months
+#		2.2 hours
+#
+#reference_age 1 year
 
 #  TAG: quick_abort
 #	By default the cache continues to retrieve objects from

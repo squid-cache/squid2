@@ -120,7 +120,7 @@ struct SquidConfig Config;
 #define DefaultWaisRelayHost	(char *)NULL
 #define DefaultWaisRelayPort	0
 
-#define DefaultReferenceAge	0	/* disabled */
+#define DefaultReferenceAge	(86400*365)	/* 1 year */
 #define DefaultNegativeTtl	(5 * 60)	/* 5 min */
 #define DefaultNegativeDnsTtl	(2 * 60)	/* 2 min */
 #define DefaultPositiveDnsTtl	(360 * 60)	/* 6 hours */
