@@ -224,7 +224,6 @@ int objcacheStart(fd, url, entry)
 	    safe_free(buf);
 	    shut_down(0);
 	}
-
     } else if (strcmp(data->request, "info") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
 	CacheInfo->info_get(CacheInfo, data->entry);
@@ -274,17 +273,33 @@ int objcacheStart(fd, url, entry)
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "log/enable") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->log_enable(CacheInfo, data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
+	if (objcache_CheckPassword(password, username) != 0) {
+	    buf = xstrdup(BADPassword);
+	    storeAppendPrintf(data->entry, buf);
+	    storeAbort(data->entry, "SQUID:OBJCACHE Incorrect Password\n");
+	    /* override negative TTL */
+	    data->entry->expires = squid_curtime + STAT_TTL;
+	    debug(16, 1, "Attempt to log/enable with incorrect password\n");
+	} else {
+	    BIT_SET(data->entry->flag, DELAY_SENDING);
+	    CacheInfo->log_enable(CacheInfo, data->entry);
+	    BIT_RESET(data->entry->flag, DELAY_SENDING);
+	    storeComplete(data->entry);
+	}
     } else if (strcmp(data->request, "log/disable") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->log_disable(CacheInfo, data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
+	if (objcache_CheckPassword(password, username) != 0) {
+	    buf = xstrdup(BADPassword);
+	    storeAppendPrintf(data->entry, buf);
+	    storeAbort(data->entry, "SQUID:OBJCACHE Incorrect Password\n");
+	    /* override negative TTL */
+	    data->entry->expires = squid_curtime + STAT_TTL;
+	    debug(16, 1, "Attempt to log/disable with incorrect password\n");
+	} else {
+	    BIT_SET(data->entry->flag, DELAY_SENDING);
+	    CacheInfo->log_disable(CacheInfo, data->entry);
+	    BIT_RESET(data->entry->flag, DELAY_SENDING);
+	    storeComplete(data->entry);
+	}
     } else if (strcmp(data->request, "log/clear") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
 	CacheInfo->log_clear(CacheInfo, data->entry);
