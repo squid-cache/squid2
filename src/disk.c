@@ -143,8 +143,8 @@ int file_open(path, handler, mode)
 	return DISK_ERROR;
     }
 #else
-    if (fcntl(fd, F_SETFL, FNDELAY) < 0) {
-	debug(0, 0, "file_open: FD %d: Failure to set FNDELAY: %s\n",
+    if (fcntl(fd, F_SETFL, O_NDELAY) < 0) {
+	debug(0, 0, "file_open: FD %d: Failure to set O_NDELAY: %s\n",
 	    fd, xstrerror());
 	return DISK_ERROR;
     }

@@ -173,8 +173,8 @@ int comm_open(io_type, port, handler, note)
 	    return (COMM_ERROR);
 	}
 #else
-	if (fcntl(new_socket, F_SETFL, FNDELAY)) {
-	    debug(0, 0, "comm_open: FD %d: Failure to set FNDELAY: %s\n",
+	if (fcntl(new_socket, F_SETFL, O_NDELAY)) {
+	    debug(0, 0, "comm_open: FD %d: Failure to set O_NDELAY: %s\n",
 		new_socket, xstrerror());
 	    return (COMM_ERROR);
 	}
@@ -815,8 +815,8 @@ int commSetNonBlocking(fd)
 	return (COMM_ERROR);
     }
 #else
-    if (fcntl(fd, F_SETFL, FNDELAY)) {
-	debug(0, 0, "comm_open: FD %d: error setting FNDELAY: %s\n",
+    if (fcntl(fd, F_SETFL, O_NDELAY)) {
+	debug(0, 0, "comm_open: FD %d: error setting O_NDELAY: %s\n",
 	    fd, xstrerror());
 	return (COMM_ERROR);
     }
