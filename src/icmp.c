@@ -45,7 +45,7 @@ static void icmpHandleSourcePing(const struct sockaddr_in *from, const char *buf
 static void
 icmpSendEcho(struct in_addr to, int opcode, const char *payload, int len)
 {
-    pingerEchoData pecho;
+    static pingerEchoData pecho;
     if (payload && len == 0)
 	len = strlen(payload);
     pecho.to = to;
