@@ -85,7 +85,7 @@ extern char *rfc1738_escape_part(const char *);
 extern void rfc1738_unescape(char *);
 
 #if XMALLOC_STATISTICS
-extern void malloc_statistics(void (*)(int, int, void *), void *);
+extern void malloc_statistics(void (*)(int, int, int, void *), void *);
 #endif
 
 #if XMALLOC_TRACE

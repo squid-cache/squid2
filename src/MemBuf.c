@@ -317,6 +317,14 @@ memBufGrow(MemBuf * mb, mb_size_t min_cap)
 	mb->buf = memAllocate(MEM_8K_BUF);
 	mb->freefunc = &memFree8K;
 	break;
+    case 16384:
+	mb->buf = memAllocate(MEM_16K_BUF);
+	mb->freefunc = &memFree16K;
+	break;
+    case 32768:
+	mb->buf = memAllocate(MEM_32K_BUF);
+	mb->freefunc = &memFree32K;
+	break;
     default:
 	/* recycle if old buffer was not "pool"ed */
 	if (old_mb.freefunc == &xfree) {

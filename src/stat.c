@@ -79,7 +79,9 @@ static OBJH statCountersHistograms;
 static OBJH statClientRequests;
 
 #ifdef XMALLOC_STATISTICS
-static void info_get_mallstat(int, int, void *);
+static void info_get_mallstat(int, int, int, void *);
+static double xm_time;
+static double xm_deltat;
 #endif
 
 StatCounters CountHist[N_COUNT_HIST];
@@ -388,11 +390,11 @@ statOpenfdObj(StoreEntry * sentry)
 
 #ifdef XMALLOC_STATISTICS
 static void
-info_get_mallstat(int size, int number, void *data)
+info_get_mallstat(int size, int number, int oldnum, void *data)
 {
     StoreEntry *sentry = data;
     if (number > 0)
-	storeAppendPrintf(sentry, "\t%d = %d\n", size, number);
+	storeAppendPrintf(sentry, "%d\t %d\t %d\t %.1f\n", size, number, number - oldnum , xdiv((number - oldnum),xm_deltat));
 }
 #endif
 
@@ -622,7 +624,10 @@ info_get(StoreEntry * sentry)
 	n_disk_objects);
 
 #if XMALLOC_STATISTICS
-    storeAppendPrintf(sentry, "Memory allocation statistics\n");
+    xm_deltat = current_dtime - xm_time;
+    xm_time = current_dtime;
+    storeAppendPrintf(sentry, "\nMemory allocation statistics\n");
+    storeAppendPrintf(sentry, "Allocation Size\t Alloc Count\t Alloc Delta\t Allocs/sec \n");
     malloc_statistics(info_get_mallstat, sentry);
 #endif
 }

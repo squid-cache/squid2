@@ -606,10 +606,16 @@ storeCossDirWriteCleanDone(SwapDir * sd)
 }
 
 static void
+storeSwapLogDataFree(void *s)
+{
+    memFree(s, MEM_SWAP_LOG_DATA);
+}
+
+static void
 storeCossDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
 {
     CossInfo *cs = (CossInfo *) sd->fsdata;
-    storeSwapLogData *s = xcalloc(1, sizeof(storeSwapLogData));
+    storeSwapLogData *s = memAllocate(MEM_SWAP_LOG_DATA);
     s->op = (char) op;
     s->swap_filen = e->swap_filen;
     s->timestamp = e->timestamp;
@@ -626,7 +632,7 @@ storeCossDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
 	sizeof(storeSwapLogData),
 	NULL,
 	NULL,
-	xfree);
+	(FREE *) storeSwapLogDataFree);
 }
 
 static void

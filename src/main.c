@@ -621,11 +621,11 @@ main(int argc, char **argv)
 	if (!ConfigFile)
 	    ConfigFile = xstrdup(DefaultConfigFile);
 	assert(!configured_once);
+	memInit();		/* memInit is required for config parsing */
 	cbdataInit();
 #if USE_LEAKFINDER
 	leakInit();
 #endif
-	memInit();		/* memInit is required for config parsing */
 	eventInit();		/* eventInit() is required for config parsing */
 	storeFsInit();		/* required for config parsing */
 	parse_err = parseConfigFile(ConfigFile);

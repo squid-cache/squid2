@@ -38,7 +38,7 @@
 static tlv **
 storeSwapTLVAdd(int type, const void *ptr, size_t len, tlv ** tail)
 {
-    tlv *t = xcalloc(1, sizeof(tlv));
+    tlv *t = memAllocate(MEM_TLV);
     t->type = (char) type;
     t->length = (int) len;
     t->value = xmalloc(len);
@@ -54,7 +54,7 @@ storeSwapTLVFree(tlv * n)
     while ((t = n) != NULL) {
 	n = t->next;
 	xfree(t->value);
-	xfree(t);
+	memFree(t, MEM_TLV);
     }
 }
 

@@ -1269,10 +1269,16 @@ storeDiskdDirWriteCleanDone(SwapDir * sd)
 }
 
 static void
+storeSwapLogDataFree(void *s)
+{
+    memFree(s, MEM_SWAP_LOG_DATA);
+}
+
+static void
 storeDiskdDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
 {
     diskdinfo_t *diskdinfo = sd->fsdata;
-    storeSwapLogData *s = xcalloc(1, sizeof(storeSwapLogData));
+    storeSwapLogData *s = memAllocate(MEM_SWAP_LOG_DATA);
     s->op = (char) op;
     s->swap_filen = e->swap_filen;
     s->timestamp = e->timestamp;
@@ -1289,7 +1295,7 @@ storeDiskdDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
 	sizeof(storeSwapLogData),
 	NULL,
 	NULL,
-	xfree);
+	(FREE *) storeSwapLogDataFree);
 }
 
 static void

@@ -858,7 +858,7 @@ stringHasWhitespace(const char *s)
 void
 linklistPush(link_list ** L, void *p)
 {
-    link_list *l = xmalloc(sizeof(*l));
+    link_list *l = memAllocate(MEM_LINK_LIST);
     l->next = NULL;
     l->ptr = p;
     while (*L)
@@ -876,7 +876,7 @@ linklistShift(link_list ** L)
     l = *L;
     p = l->ptr;
     *L = (*L)->next;
-    xfree(l);
+    memFree(l, MEM_LINK_LIST);
     return p;
 }
 

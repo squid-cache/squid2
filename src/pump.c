@@ -37,27 +37,7 @@
 
 #define PUMP_MAXBUFFER 2*SQUID_UDP_SO_SNDBUF
 
-struct _PumpStateData {
-    FwdState *fwd;
-    request_t *req;
-    store_client *sc;		/* The store client we're using */
-    int c_fd;			/* client fd */
-    int s_fd;			/* server end */
-    int rcvd;			/* bytes received from client */
-    int sent;			/* bytes sent to server */
-    StoreEntry *request_entry;	/* the request entry */
-    StoreEntry *reply_entry;	/* the reply entry */
-    CWCB *callback;		/* what to do when we finish sending */
-    void *cbdata;		/* callback data passed to callback func */
-    struct {
-	int closing:1;
-    } flags;
-    struct _PumpStateData *next;
-};
-
 #define PUMP_FLAG_CLOSING	0x01
-
-typedef struct _PumpStateData PumpStateData;
 
 static PumpStateData *pump_head = NULL;
 
@@ -74,8 +54,8 @@ void
 pumpInit(int fd, request_t * r, char *uri)
 {
     request_flags flags;
+    PumpStateData *p = memAllocate(MEM_PUMP_STATE_DATA);
     LOCAL_ARRAY(char, new_key, MAX_URL + 8);
-    PumpStateData *p = xcalloc(1, sizeof(PumpStateData));
     debug(61, 3) ("pumpInit: FD %d, uri=%s\n", fd, uri);
     /*
      * create a StoreEntry which will buffer the data 
@@ -90,7 +70,7 @@ pumpInit(int fd, request_t * r, char *uri)
     flags = null_request_flags;
     flags.nocache = 1;
     snprintf(new_key, MAX_URL + 5, "%s|Pump", uri);
-    cbdataAdd(p, cbdataXfree, 0);
+    cbdataAdd(p, memFree, MEM_PUMP_STATE_DATA);
     p->request_entry = storeCreateEntry(new_key, new_key, flags, r->method);
     p->sc = storeClientListAdd(p->request_entry, p);
     EBIT_SET(p->request_entry->flags, ENTRY_DONT_LOG);

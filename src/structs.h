@@ -1845,6 +1845,24 @@ struct _store_rebuild_data {
     int zero_object_sz;
 };
 
+struct _PumpStateData {
+    FwdState *fwd;
+    request_t *req;
+    store_client *sc;           /* The store client we're using */
+    int c_fd;                   /* client fd */
+    int s_fd;                   /* server end */
+    int rcvd;                   /* bytes received from client */
+    int sent;                   /* bytes sent to server */
+    StoreEntry *request_entry;  /* the request entry */
+    StoreEntry *reply_entry;    /* the reply entry */
+    CWCB *callback;             /* what to do when we finish sending */
+    void *cbdata;               /* callback data passed to callback func */
+    struct {
+        int closing:1;
+    } flags;
+    struct _PumpStateData *next;
+};
+
 /*
  * This defines an fs type
  */

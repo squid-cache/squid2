@@ -172,6 +172,7 @@
 
 #define AUTH_MSG_SZ 4096
 #define HTTP_REPLY_BUF_SZ 4096
+#define CLIENT_REQ_BUF_SZ 4096
 
 #if !defined(ERROR_BUF_SZ) && defined(MAX_URL)
 #define ERROR_BUF_SZ (MAX_URL << 2)
