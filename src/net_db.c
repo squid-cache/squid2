@@ -443,7 +443,7 @@ netdbReloadState(void)
 	return;
     }
     t = buf = xcalloc(1, sb.st_size + 1);
-    l = read(fd, buf, sb.st_size);
+    l = FD_READ_METHOD(fd, buf, sb.st_size);
     file_close(fd);
     if (l <= 0)
 	return;
