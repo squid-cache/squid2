@@ -11,6 +11,14 @@
 	- Fixed multicast group member counting bug with fake
 	  StoreEntry's.
 	- Only enable ICP_FLAG_SRC_RTT if the peer is ICP_VERSION_2.
+	- Change some ipcache_entry fields to be 32-bits for Linux
+	  (Roberto A. Lumbreras Pastor).
+	- Fixed compiling unlinkd in a separate directory (Assar Westerlund).
+	- Fixed comm_select_incoming SEGV for poll() version when using
+	  udp_{incoming,outgoing}_address  (Mark Treacy).
+	- Fixed some SIGHUP related memory problems with redirectors,
+	  ipcache, and fqdncache, and peerCountMcastPeers*().
+
 
 Changes to squid-1.1.9 (March 30, 1997):
 
