@@ -230,20 +230,6 @@ void sig_child(sig)
 #endif
 }
 
-#define MAX_ZOMBIES_TO_KILL 20
-void kill_zombie()
-{
-    int status;
-    int i = 0;
-    int pid;
-
-    while ((pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
-	debug(3, "kill_zombie: Ate pid %d\n", pid);
-	if (++i > MAX_ZOMBIES_TO_KILL)
-	    break;
-    }
-}
-
 /*
  *  getMaxFD - returns the file descriptor table size
  */

@@ -386,9 +386,6 @@ Usage: cached [-Rsehvz] [-f config-file] [-d debug-level] [-[apu] port]\n\
 		next_cleaning = cached_curtime + getCleanRate();
 	    }
 	    /* house keeping */
-#ifdef THIS_BREAKS_FTP
-	    kill_zombie();
-#endif
 	    break;
 	default:
 	    debug(0, "MAIN: Internal error -- this should never happen.\n");
