@@ -155,6 +155,11 @@ int icpStateFree(fdunused, icpState)
     safe_free(icpState->inbuf);
     safe_free(icpState->url);
     safe_free(icpState->request_hdr);
+    if (icpState->entry) {
+	storeUnregister(icpState->entry, fd);
+	storeUnlockObject(icpState->entry);
+	icpState->entry = NULL;
+    }
     if (icpState->request && --icpState->request->link_count == 0)
 	safe_free(icpState->request);
     safe_free(icpState);
@@ -433,13 +438,6 @@ void icpSendERRORComplete(fd, buf, size, errflag, icpState)
     entry = icpState->entry;
     icpFreeBufOrPage(icpState);
     comm_close(fd);
-    /* If storeAbort() has been called, then we don't execute this.
-     * If we timed out on the client side, then we need to
-     * unregister/unlock */
-    if (entry) {
-	storeUnregister(entry, fd);
-	storeUnlockObject(entry);
-    }
 }
 
 /* Send ERROR message. */
@@ -604,8 +602,6 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, icpState)
 	    icpState->offset);
 	/* Now we release the entry and DON'T touch it from here on out */
 	comm_close(fd);
-	storeUnregister(entry, fd);
-	storeUnlockObject(entry);
     } else if (icpState->offset < entry->mem_obj->e_current_len) {
 	/* More data available locally; write it now */
 	icpSendMoreData(fd, icpState);
@@ -616,8 +612,6 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, icpState)
 	    CacheInfo->proto_id(entry->url),
 	    icpState->offset);
 	comm_close(fd);
-	storeUnregister(entry, fd);
-	storeUnlockObject(entry);	/* unlock after comm_close().. */
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
@@ -1627,10 +1621,6 @@ void asciiConnLifetimeHandle(fd, data)
 	 * URL. */
 	protoUndispatch(fd, icpState->url, entry, icpState->request);
     comm_close(fd);
-    if (entry) {
-	storeUnregister(entry, fd);
-	storeUnlockObject(entry);
-    }
 }
 
 /* Handle a new connection on ascii input socket. */
@@ -1746,8 +1736,6 @@ static void icpDetectClientClose(fd, icpState)
 	    CacheInfo->proto_id(entry->url),
 	    icpState->offset);
 	comm_close(fd);
-	storeUnregister(entry, fd);
-	storeUnlockObject(entry);	/* unlock after comm_close().. */
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
 	debug(12, 5, "--> URL '%s'\n", icpState->url);
@@ -1766,9 +1754,5 @@ static void icpDetectClientClose(fd, icpState)
 	    protoUndispatch(fd, icpState->url, entry, icpState->request);
 	icpFreeBufOrPage(icpState);
 	comm_close(fd);
-	if (entry) {
-	    storeUnregister(entry, fd);
-	    storeUnlockObject(entry);
-	}
     }
 }
