@@ -1017,12 +1017,14 @@ minimum_direct_hops 4
 #		parameter
 #		server_list
 #		client_list
-#		squid.conf
+#		squid.conf *
 #
 #	* Indicates actions which will not be performed without a
 #	  valid password, others can be performed if not listed here.
 #
-#	To disable an action, set the password to "none".
+#	To disable an action, set the password to "disable".
+#       To allow performing an action without a password, set the
+#	password to "none".
 #
 #Examples:
 #
