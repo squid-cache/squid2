@@ -140,27 +140,33 @@ exacly where you want to have them in your system.</LI>
 <P>There is a few known issues and limitations in this version of Squid which we hope to correct in a later release</P>
 <P>
 <DL>
-<DT><B>Bug #761</B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
-<DT><B>Bug #835</B><DD><P>assertion failed: pinger.c:187: "icmp_pktsize &lt;= MAX_PKT_SZ"</P>
-<DT><B>Bug #853</B><DD><P>SIGSEGV on FTP PUT</P>
-<DT><B>Bug #571</B><DD><P>need to close persistent connections when under high load</P>
-<DT><B>Bug #856</B><DD><P>icon URLs are unneededly complex and often gets wrong</P>
-<DT><B>Bug #592</B><DD><P>always/never_direct and NTLM authentication</P>
-<DT><B>Bug #585</B><DD><P>cache_peer_access fails with NTLM authentication</P>
-<DT><B>Bug #779</B><DD><P>users going above their allowed IP count no longer logged in cache.log</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
 
-<DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access </P>
-<DT><B>Bug #692</B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
-<DT><B>Bug #616</B><DD><P>Negative cached 404 replies with VARY header never matches</P>
-<DT><B>Bug #581</B><DD><P>acl max_user_ip and multiple authentication schemes</P>
-<DT><B>Bug #528</B><DD><P>miss_access fails on "slow" acl types such as dst.</P>
-<DT><B>Bug #513</B><DD><P>squid -F is starting server sockets to early</P>
-<DT><B>Bug #518</B><DD><P>wb_auth fails on TRU64 and probably other 64 bit platforms</P>
-<DT><B>Bug #500</B><DD><P>delay_pools stops working on -k reconfigure</P>
-<DT><B>Bug #457</B><DD><P>does not handle swap.state corruption properly</P>
-<DT><B>Bug #426</B><DD><P>Vary: * does not work</P>
-<DT><B>Bug #410</B><DD><P>unstable if runs out of disk space</P>
-<DT><B>Bug #355</B><DD><P>diskd may appear slow on low loads</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=779">#779</A></B><DD><P>users going above their allowed IP count no longer logged in cache.log</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=692">#692</A></B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=616">#616</A></B><DD><P>Negative cached 404 replies with VARY header never matches</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=581">#581</A></B><DD><P>acl max_user_ip and multiple authentication schemes</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=528">#528</A></B><DD><P>miss_access fails on "slow" acl types such as dst.</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=513">#513</A></B><DD><P>squid -F is starting server sockets to early</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=518">#518</A></B><DD><P>wb_auth fails on TRU64 and probably other 64 bit platforms</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=500">#500</A></B><DD><P>delay_pools stops working on -k reconfigure</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=457">#457</A></B><DD><P>does not handle swap.state corruption properly</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=426">#426</A></B><DD><P>Vary: * does not work</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=410">#410</A></B><DD><P>unstable if runs out of disk space</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=355">#355</A></B><DD><P>diskd may appear slow on low loads</P>
 </DL>
 </P>
 
@@ -251,6 +257,13 @@ when requesting icons.</LI>
 <LI>A new "urllogin" ACL type has been introducing allowing regex
 matches to the "login" component of Internet style URLs
 (protocol://user:password@host/path/to/file).</LI>
+<LI>Squid now respects the Telnet protocol on connections to FTP
+servers. The ftp_telnet_protocol directice can be used to revert back
+to the old incorrect implementation.</LI>
+<LI>Several NTLM related bugfixes and improvements fixing the problem
+of random auth popups and account lockouts. Support for the NEGOTIATE
+NTLM packet is also added to allow Samba-3.0.2 or later to negotiate the
+use of NTLMv2.</LI>
 <LI>a large number of minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4">squid-2.5.STABLE4 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>

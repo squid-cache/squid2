@@ -48,6 +48,15 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	  connections
 	- Bug #908: Random auth popups and account lockouts when using ntlm
 	- Support for NTLM_NEGOTIATE exchanges with ntlm helpers
+	- Bug #585: cache_peer_access fails with NTLM authentication
+	- Bug #592: always/never_direct fails with NTLM authentication
+	- wbinfo_group update for Samba-3
+	- Bug #892: helpers/ntlm_auth/SMB/ fails to compile on FreeBSD 5.0
+	- Bug #924: miss_access restricts internal and cachemgr requests
+	  even if these are local
+	- Bug #925: auth headers send by squidclient are mildly malformed
+	- Bug #924: miss_access and delay_access and several other
+	  authentication related bug fixes.
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 
