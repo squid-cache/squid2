@@ -247,7 +247,7 @@ extern StoreEntry *storeGetFirst _PARAMS((void));
 extern StoreEntry *storeGetNext _PARAMS((void));
 extern StoreEntry *storeLRU _PARAMS((void));
 extern int storeWalkThrough _PARAMS((int (*proc) _PARAMS((void)), void *data));
-extern void storePurgeOld _PARAMS((void *unused));
+extern EVH storePurgeOld;
 extern void storeComplete _PARAMS((StoreEntry *));
 extern void storeInit _PARAMS((void));
 extern int storeReleaseEntry _PARAMS((StoreEntry *));
@@ -277,7 +277,7 @@ extern int storeWriteCleanLogs _PARAMS((void));
 extern void storeRegister _PARAMS((StoreEntry *, STCB *, void *, off_t));
 #endif
 extern int urlcmp _PARAMS((const char *, const char *));
-extern void storeMaintainSwapSpace _PARAMS((void *unused));
+extern EVH storeMaintainSwapSpace;
 extern void storeExpireNow _PARAMS((StoreEntry *));
 extern void storeReleaseRequest _PARAMS((StoreEntry *));
 extern void storeRotateLog _PARAMS((void));
