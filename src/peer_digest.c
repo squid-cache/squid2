@@ -126,7 +126,7 @@ peerDigestDestroy(PeerDigest * pd)
     /* inform peer (if any) that we are gone */
     if (cbdataValid(p))
 	peerNoteDigestGone(p);
-    cbdataUnlock(p);   /* must unlock, valid or not */
+    cbdataUnlock(p);		/* must unlock, valid or not */
 
     peerDigestClean(pd);
     cbdataFree(pd);
@@ -220,7 +220,10 @@ peerDigestCheck(void *data)
     PeerDigest *pd = data;
     time_t req_time;
 
-    assert(cbdataValid(pd));
+    /*
+     * you can't assert(cbdataValid(pd)) -- if its not valid this
+     * function never gets called
+     */
     assert(!pd->flags.requested);
 
     pd->times.next_check = 0;	/* unknown */
