@@ -27,6 +27,9 @@
  *  
  */
 
+#ifndef _CONFIG_H_
+#define _CONFIG_H_
+
 #include "autoconf.h"	/* For GNU autoconf variables */
 #include "version.h"
 
