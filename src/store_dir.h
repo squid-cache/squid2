@@ -134,7 +134,7 @@ extern void storeDirMapBitSet _PARAMS((int fn));
 extern void storeDirMapBitReset _PARAMS((int fn));
 extern int storeDirMapAllocate _PARAMS((void));
 extern char *storeSwapDir _PARAMS((int));
-extern FILE * storeDirOpenTmpSwapLog _PARAMS((int dirn, int *clean_flag));
+extern FILE *storeDirOpenTmpSwapLog _PARAMS((int dirn, int *clean_flag));
 extern void storeDirCloseTmpSwapLog _PARAMS((int dirn));
 extern void storeDirOpenSwapLogs _PARAMS((void));
 extern void storeDirCloseSwapLogs _PARAMS((void));
@@ -143,7 +143,7 @@ extern void storeDirSwapLog _PARAMS((const StoreEntry *));
 extern int storeDirNumber _PARAMS((int fileno));
 extern void storeDirUpdateSwapSize _PARAMS((int fn, size_t size, int sign));
 extern int storeDirProperFileno _PARAMS((int dirn, int fn));
-extern void storeDirStats _PARAMS((StoreEntry *sentry));
+extern void storeDirStats _PARAMS((StoreEntry * sentry));
 
 
 extern int ncache_dirs;
