@@ -31,6 +31,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 char *SMB_Prots[] = {"PC NETWORK PROGRAM 1.0",
                             "MICROSOFT NETWORKS 1.03",
