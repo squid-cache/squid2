@@ -1947,6 +1947,7 @@ clientReadRequest(int fd, void *data)
     fde *F = &fd_table[fd];
     int len = conn->in.size - conn->in.offset - 1;
     debug(33, 4) ("clientReadRequest: FD %d: reading request...\n", fd);
+    Counter.syscalls.sock.reads++;
     size = read(fd, conn->in.buf + conn->in.offset, len);
     if (size > 0) {
 	fd_bytes(fd, size, FD_READ);

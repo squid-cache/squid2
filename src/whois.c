@@ -85,6 +85,7 @@ whoisReadReply(int fd, void *data)
     StoreEntry *entry = p->entry;
     char *buf = memAllocate(MEM_4K_BUF);
     int len;
+    Counter.syscalls.sock.reads++;
     len = read(fd, buf, 4095);
     buf[len] = '\0';
     debug(75, 3) ("whoisReadReply: FD %d read %d bytes\n", fd, len);

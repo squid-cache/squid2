@@ -117,6 +117,7 @@ identReadReply(int fd, void *data)
     int len = -1;
 
     buf[0] = '\0';
+    Counter.syscalls.sock.reads++;
     len = read(fd, buf, BUFSIZ);
     fd_bytes(fd, len, FD_READ);
     if (len > 0) {

@@ -93,6 +93,7 @@ redirectHandleRead(int fd, void *data)
     char *t = NULL;
     int n;
 
+    Counter.syscalls.sock.reads++;
     len = read(fd,
 	redirector->inbuf + redirector->offset,
 	redirector->size - redirector->offset);

@@ -132,6 +132,7 @@ snmpHandleUdp(int sock, void *not_used)
     commSetSelect(sock, COMM_SELECT_READ, snmpHandleUdp, NULL, 0);
     from_len = sizeof(struct sockaddr_in);
     memset(&from, '\0', from_len);
+    Counter.syscalls.sock.recvfroms++;
     len = recvfrom(sock,
 	buf,
 	SNMP_REQUEST_SIZE,

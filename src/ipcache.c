@@ -393,6 +393,7 @@ ipcache_dnsHandleRead(int fd, void *data)
     ipcache_entry *i = NULL;
     ipcache_entry *x = NULL;
 
+    Counter.syscalls.sock.reads++;
     len = read(fd,
 	dnsData->ip_inbuf + dnsData->offset,
 	dnsData->size - dnsData->offset);

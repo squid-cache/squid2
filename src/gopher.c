@@ -612,6 +612,7 @@ gopherReadReply(int fd, void *data)
     read_sz = delayBytesWanted(delay_id, 1, read_sz);
 #endif
     /* leave one space for \0 in gopherToHTML */
+    Counter.syscalls.sock.reads++;
     len = read(fd, buf, read_sz);
     if (len > 0) {
 	fd_bytes(fd, len, FD_READ);

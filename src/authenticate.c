@@ -90,6 +90,7 @@ authenticateHandleRead(int fd, void *data)
     char *t = NULL;
     int n;
 
+    Counter.syscalls.sock.reads++;
     len = read(fd,
 	authenticator->inbuf + authenticator->offset,
 	authenticator->size - authenticator->offset);

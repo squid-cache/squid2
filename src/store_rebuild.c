@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -143,6 +144,7 @@ storeRebuildFromDirectory(rebuild_dir * d)
 	    debug(20, 1) ("  %7d files opened so far.\n",
 		RebuildState.statcount);
 	debug(20, 9) ("file_in: fd=%d %08X\n", fd, sfileno);
+	Counter.syscalls.disk.reads++;
 	if (read(fd, hdr_buf, DISK_PAGE_SIZE) < 0) {
 	    debug(20, 1) ("storeRebuildFromDirectory: read(FD %d): %s\n",
 		fd, xstrerror());

@@ -344,6 +344,7 @@ fqdncache_dnsHandleRead(int fd, void *data)
     fqdncache_entry *f = NULL;
     fqdncache_entry *x = NULL;
 
+    Counter.syscalls.sock.reads++;
     len = read(fd,
 	dnsData->ip_inbuf + dnsData->offset,
 	dnsData->size - dnsData->offset);

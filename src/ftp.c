@@ -809,6 +809,7 @@ ftpDataRead(int fd, void *data)
     read_sz = delayBytesWanted(delay_id, 1, read_sz);
 #endif
     memset(ftpState->data.buf + ftpState->data.offset, '\0', read_sz);
+    Counter.syscalls.sock.reads++;
     len = read(fd, ftpState->data.buf + ftpState->data.offset, read_sz);
     if (len > 0) {
 	fd_bytes(fd, len, FD_READ);
@@ -1142,6 +1143,7 @@ ftpReadControlReply(int fd, void *data)
     ErrorState *err;
     debug(9, 5) ("ftpReadControlReply\n");
     assert(ftpState->ctrl.offset < ftpState->ctrl.size);
+    Counter.syscalls.sock.reads++;
     len = read(fd,
 	ftpState->ctrl.buf + ftpState->ctrl.offset,
 	ftpState->ctrl.size - ftpState->ctrl.offset);
