@@ -912,24 +912,24 @@ int icpHandleUdp(sock, not_used)
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
-	        debug(12, 2, "icpHandleUdp: Invalid URL '%s'.\n", url);
-            CacheInfo->log_append(CacheInfo,    /* UDP_INVALID */
-                url,
-                inet_ntoa(from.sin_addr),
-                len,
-                log_tags[LOG_UDP_INVALID],
-                IcpOpcodeStr[header.opcode],
-                0,
-                0);
-            break;
+	    debug(12, 2, "icpHandleUdp: Invalid URL '%s'.\n", url);
+	    CacheInfo->log_append(CacheInfo,	/* UDP_INVALID */
+		url,
+		inet_ntoa(from.sin_addr),
+		len,
+		log_tags[LOG_UDP_INVALID],
+		IcpOpcodeStr[header.opcode],
+		0,
+		0);
+	    break;
 	}
 	allow = aclCheck(ICPAccessList,
-		from.sin_addr,
-		icp_request->method,
-		icp_request->protocol,
-		icp_request->host,
-		icp_request->port,
-		icp_request->urlpath);
+	    from.sin_addr,
+	    icp_request->method,
+	    icp_request->protocol,
+	    icp_request->host,
+	    icp_request->port,
+	    icp_request->urlpath);
 	safe_free(icp_request);
 	if (!allow) {
 	    debug(12, 2, "icpHandleUdp: Access Denied for %s.\n",
