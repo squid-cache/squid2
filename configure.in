@@ -569,7 +569,7 @@ AC_ARG_WITH(openssl,
 			  installation can be specified if outside of the
 			  system standard directories],
 [ 
-  case "$with_ssl" in
+  case "$with_openssl" in
   yes)
     USE_OPENSSL=1
     ;;
@@ -577,8 +577,8 @@ AC_ARG_WITH(openssl,
     USE_OPENSSL=
     ;;
   *)
-    SSLLIBDIR="$with_ssl/lib"
-    CFLAGS="-I$with_ssl/include $CFLAGS"
+    SSLLIBDIR="$with_openssl/lib"
+    CFLAGS="-I$with_openssl/include $CFLAGS"
     USE_OPENSSL=1
   esac
 ])
