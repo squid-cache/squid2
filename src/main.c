@@ -127,6 +127,7 @@ int opt_accel_uses_host = 0;
 int vhost_mode = 0;
 int Squid_MaxFD = SQUID_MAXFD;
 int Biggest_FD = -1;
+int select_loops = 0;		/* how many times thru select loop */
 volatile int unbuffered_logs = 1;	/* debug and hierarchy unbuffered by default */
 volatile int shutdown_pending = 0;	/* set by SIGTERM handler (shut_down()) */
 volatile int reread_pending = 0;	/* set by SIGHUP handler */

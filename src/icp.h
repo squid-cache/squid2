@@ -152,7 +152,9 @@ typedef struct wwd {
     void *msg;
     size_t len;
     struct wwd *next;
+#ifndef LESS_TIMING
     struct timeval start;
+#endif
     log_type logcode;
     protocol_t proto;
 } icpUdpData;

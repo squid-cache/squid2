@@ -932,7 +932,11 @@ icpLogIcp(icpUdpData * queue)
 	log_tags[queue->logcode],
 	IcpOpcodeStr[ICP_OP_QUERY],
 	0,
+#ifndef LESS_TIMING
 	tvSubMsec(queue->start, current_time),
+#else
+	0,
+#endif
 	NULL,			/* ident */
 	NULL,			/* hierarchy data */
 #if LOG_FULL_HEADERS
@@ -1080,7 +1084,9 @@ icpUdpSend(int fd,
     data->address = *to;
     data->msg = msg;
     data->len = (int) ntohs(msg->length);
+#ifndef LESS_TIMING
     data->start = current_time;	/* wrong for HIT_OBJ */
+#endif
     data->logcode = logcode;
     data->proto = proto;
     AppendUdp(data);

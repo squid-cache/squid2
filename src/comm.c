@@ -663,7 +663,9 @@ comm_select_incoming(void)
 	return;
     if (poll(pfds, nfds, 0) < 1)
 	return;
+#ifndef LESS_TIMING
     getCurrentTime();
+#endif
     for (i = 0; i < nfds; i++) {
 	int revents;
 	if (((revents = pfds[i].revents) == 0) || ((fd = pfds[i].fd) == -1))
@@ -722,7 +724,9 @@ comm_select_incoming(void)
 	return;
     if (select(maxfd, &read_mask, &write_mask, NULL, &zero_tv) < 1)
 	return;
+#ifndef LESS_TIMING
     getCurrentTime();
+#endif
     for (i = 0; i < N; i++) {
 	fd = fds[i];
 	if (FD_ISSET(fd, &read_mask)) {
@@ -810,6 +814,7 @@ comm_select(time_t sec)
 	for (;;) {
 	    poll_time = sec > 0 ? 1000 : 0;
 	    num = poll(pfds, nfds, poll_time);
+	    select_loops++;
 	    getCurrentTime();
 	    if (num >= 0)
 		break;
@@ -988,6 +993,7 @@ comm_select(time_t sec)
 	    poll_time.tv_sec = sec > 0 ? 1 : 0;
 	    poll_time.tv_usec = 0;
 	    num = select(maxfd, &readfds, &writefds, NULL, &poll_time);
+	    select_loops++;
 	    getCurrentTime();
 	    if (num >= 0)
 		break;
