@@ -653,9 +653,8 @@ snmpTreeGet(oid * Current, snint CurrentLen)
 	    count++;
 	}
     }
-    if((mibTreeEntry) && (mibTreeEntry->parsefunction)){
+    if (mibTreeEntry && mibTreeEntry->parsefunction)
 	Fn = mibTreeEntry->parsefunction;
-    } 
     debug(49, 5) ("snmpTreeGet: return\n");
     return (Fn);
 }
