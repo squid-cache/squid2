@@ -75,7 +75,7 @@ static void
 peerSelectStateFree(ps_state * psstate)
 {
     if (psstate->acl_checklist) {
-	debug(0, 0) ("calling aclChecklistFree() from peerSelectStateFree\n");
+	debug(44, 1) ("calling aclChecklistFree() from peerSelectStateFree\n");
 	aclChecklistFree(psstate->acl_checklist);
     }
     requestUnlink(psstate->request);
