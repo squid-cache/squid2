@@ -297,7 +297,6 @@ peerSelectFoo(ps_state * psstate)
 	return;
     }
     psstate->single_parent = getSingleParent(request);
-    debug(0, 0) ("psstate->single_parent = %p\n", psstate->single_parent);
     if (psstate->single_parent != NULL) {
 	debug(44, 3) ("peerSelect: found single parent, skipping ICP query\n");
     } else if (peerSelectIcpPing(request, direct, entry)) {
