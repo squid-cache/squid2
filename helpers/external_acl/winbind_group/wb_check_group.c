@@ -78,6 +78,7 @@ strwordtok(char *buf, char **t)
 	case '"':
 	    quoted = !quoted;
 	    p++;
+	    break;
 	default:
 	    if (!quoted && isspace(*p)) {
 		p++;
