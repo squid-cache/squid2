@@ -599,10 +599,13 @@ authenticateTryToAuthenticateAndSetAuthUser(auth_user_request_t ** auth_user_req
     auth_acl_t result;
     if (t && t->lastReply != AUTH_ACL_CANNOT_AUTHENTICATE
 	&& t->lastReply != AUTH_ACL_HELPER) {
-	result = t->lastReply;
 	if (!*auth_user_request) {
 	    *auth_user_request = t;
 	    authenticateAuthUserRequestLock(*auth_user_request);
+	}
+	if (!request->auth_user_request) {
+	    request->auth_user_request = t;
+	    authenticateAuthUserRequestLock(request->auth_user_request);
 	}
 	return t->lastReply;
     }

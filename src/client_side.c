@@ -1852,6 +1852,8 @@ clientMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply * rep
 {
     body_size *bs;
     aclCheck_t *checklist;
+    if (http->log_type == LOG_TCP_DENIED)
+	return;
     bs = (body_size *) Config.ReplyBodySize.head;
     while (bs) {
 	checklist = clientAclChecklistCreate(bs->access_list, http);
