@@ -1644,9 +1644,10 @@ if test -z "$ac_cv_func_poll"; then
 			# Henrik Nordstrom (hno@squid-cache.org) 19980817
 			# poll is problematic on Linux.  We disable it
 			# by default until Linux gets it right.
+			# See also bug #932
 			rev=`uname -r | awk -F. '{printf "%03d%03d",$1,$2}'`
-			if test $rev -lt 002002; then
-			    echo "disabling poll for $host < 2.2..."
+			if test $rev -lt 002004; then
+			    echo "disabling poll for $host < 2.4..."
 			    ac_cv_func_poll='no'
 			fi
 			;;
