@@ -39,6 +39,8 @@ AC_CFLAGS	= @CFLAGS@
 LDFLAGS		= @LDFLAGS@
 XTRA_LIBS	= @XTRA_LIBS@
 XTRA_OBJS 	= @XTRA_OBJS@
+MV		= @MV@
+RM		= @RM@
 SHELL		= /bin/sh
 
 
@@ -132,16 +134,40 @@ install-mkdirs:
 
 install: all install-mkdirs
 	@for f in $(PROGS); do \
+		if test -f $(bindir)/$$f; then \
+			echo $(MV) $(bindir)/$$f $(bindir)/$$f.old; \
+			$(MV) $(bindir)/$$f $(bindir)/$$f.old; \
+		fi; \
 		echo $(INSTALL_BIN) $$f $(bindir); \
 		$(INSTALL_BIN) $$f $(bindir); \
+		if test -f $(bindir)/$$f.old; then \
+			echo $(RM) -f $(bindir)/$$f.old; \
+			$(RM) $(bindir)/$$f.old; \
+		fi; \
 	done
 	@for f in $(UTILS); do \
+		if test -f $(libexecdir)/$$f; then \
+			echo $(MV) $(libexecdir)/$$f $(libexecdir)/$$f.old; \
+			$(MV) $(libexecdir)/$$f $(libexecdir)/$$f.old; \
+		fi; \
 		echo $(INSTALL_BIN) $$f $(libexecdir); \
 		$(INSTALL_BIN) $$f $(libexecdir); \
+		if test -f $(libexecdir)/$$f.old; then \
+			echo $(RM) -f $(libexecdir)/$$f.old; \
+			$(RM) $(libexecdir)/$$f.old; \
+		fi; \
 	done
 	@for f in $(CGIPROGS); do \
+		if test -f $(libexecdir)/$$f; then \
+			echo $(MV) $(libexecdir)/$$f $(libexecdir)/$$f.old; \
+			$(MV) $(libexecdir)/$$f $(libexecdir)/$$f.old; \
+		fi; \
 		echo $(INSTALL_BIN) $$f $(libexecdir); \
 		$(INSTALL_BIN) $$f $(libexecdir); \
+		if test -f $(libexecdir)/$$f.old; then \
+			echo $(RM) -f $(libexecdir)/$$f.old; \
+			$(RM) $(libexecdir)/$$f.old; \
+		fi; \
 	done
 	$(INSTALL_FILE) squid.conf $(sysconfdir)/squid.conf.default
 	@if test -f $(sysconfdir)/squid.conf ; then \
