@@ -124,8 +124,10 @@ unlinkdUnlink(const char *path)
 {
     char *buf;
     int l;
-    if (unlinkd_fd < 0)
+    if (unlinkd_fd < 0) {
+	safeunlink(path, 0);
 	return;
+    }
     l = strlen(path) + 1;
     buf = xcalloc(1, l + 1);
     strcpy(buf, path);
