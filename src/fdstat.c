@@ -108,7 +108,8 @@
 static int Biggest_FD = 0;
 
 typedef enum {
-    FDSTAT_CLOSE, FDSTAT_OPEN
+    FDSTAT_CLOSE,
+    FDSTAT_OPEN
 } File_Desc_Status;
 
 typedef struct _FDENTRY {
@@ -126,28 +127,14 @@ File_Desc_Type fdstatGetType(fd)
     return fd_stat_tab[fd].type;
 }
 
-char *fdfiletype(type)
-     File_Desc_Type type;
-{
-    switch (type) {
-    case FD_LOG:
-	return ("Log");
-	/* NOTREACHED */
-    case FD_FILE:
-	return ("File");
-	/* NOTREACHED */
-    case FD_SOCKET:
-	return ("Socket");
-	/* NOTREACHED */
-    case FD_PIPE:
-	return ("Pipe");
-	/* NOTREACHED */
-    case FD_UNKNOWN:
-    default:
-	break;
-    }
-    return ("Unknown");
-}
+char *fdstatTypeStr[] = {
+	"None",
+	"Log",
+	"File",
+	"Socket",
+	"Pipe",
+	"Unknown"
+};
 
 /* init fd stat module */
 int fdstat_init(preopen)
@@ -210,7 +197,7 @@ static void fdstat_update(fd, status)
     debug(7, 0, "         fd_stat_tab[%d].status == %s\n",
 	fd, fd_stat_tab[fd].status == FDSTAT_OPEN ? "OPEN" : "CLOSE");
     debug(7, 0, "         fd_stat_tab[%d].type == %s\n", fd,
-	fdfiletype(fd_stat_tab[fd].type));
+	fdstatTypeStr[fd_stat_tab[fd].type]);
 
     return;
 }
@@ -230,12 +217,6 @@ int fdstat_isopen(fd)
      int fd;
 {
     return (fd_stat_tab[fd].status == FDSTAT_OPEN);
-}
-
-File_Desc_Type fdstat_type(fd)
-     int fd;
-{
-    return fd_stat_tab[fd].type;
 }
 
 /* call when close fd */
