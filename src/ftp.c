@@ -1805,6 +1805,7 @@ ftpReadPort(FtpStateData * ftpState)
 	/* Fall back on using the same port as the control connection */
 	debug(9, 3) ("PORT not supported by remote end\n");
 	comm_close(ftpState->data.fd);
+	ftpState->data.fd = -1;
 	ftpOpenListenSocket(ftpState, 1);
     }
     ftpRestOrList(ftpState);
