@@ -1,51 +1,60 @@
-
-section 0     Announement Server
-section 0     CGI Cache Manager
-section 0     Client Database
-section 0     DNS Resolver
-section 0     Debug Routines
-section 0     Hash Tables
-section 0     Stack Primitives
-section 0     Store Entry Debugging
-section 0     WWW Client
-section 1     Startup and Main Loop
-section 3     Configuration File Parsing
-section 4     Error Generation
-section 5     Socket Functions
-section 6     Disk I/O Routines
-section 7     File Descriptor Status
-section 8     Swap File Bitmap
-section 9     File Transfer Protocol (FTP)
-section 10    Gopher
-section 11    Hypertext Transfer Protocol (HTTP)
-section 12    Client Handling
-section 14    IP Cache
-section 15    Neighbor Routines
-section 16    Cache Manager Objects
-section 17    Neighbor Selection
-section 18    Cache Manager Statistics
-section 19    Memory Primitives
-section 20    Storeage Manager
-section 21    Misc Functions
-section 22    Refresh Calculation
-section 23    URL Parsing
-section 24    WAIS Relay
-section 25    MIME Parsing
-section 26    Secure Sockets Layer Proxy
-section 27    Cache Announcer
-section 28    Access Control
-section 29    Redirector
-section 30    Ident (RFC 931)
-section 32    Asynchronous Disk I/O
-section 33    Client-side Routines
-section 34    Dnsserver interface
-section 35    FQDN Cache
-section 36    Cache Directory Cleanup
-section 37    ICMP Routines
-section 37    Network Measurement Database
-section 38    FTP Retrieval
-section 39    HTTP Passthrough
-section 40    User-Agent logging
-section 41    Event Processing
-section 42    ICMP Pinger program
-section 43    Unlink Daemon
+ * DEBUG: 
+ * DEBUG: none
+ * DEBUG: section 0     Announcement Server
+ * DEBUG: section 0     CGI Cache Manager
+ * DEBUG: section 0     Client Database
+ * DEBUG: section 0     DNS Resolver
+ * DEBUG: section 0     Debug Routines
+ * DEBUG: section 0     Hash Tables
+ * DEBUG: section 0     WWW Client
+ * DEBUG: section 1     Startup and Main Loop
+ * DEBUG: section 3     Configuration File Parsing
+ * DEBUG: section 4     Error Generation
+ * DEBUG: section 5     Socket Functions
+ * DEBUG: section 6     Disk I/O Routines
+ * DEBUG: section 7     Multicast
+ * DEBUG: section 8     Swap File Bitmap
+ * DEBUG: section 9     File Transfer Protocol (FTP)
+ * DEBUG: section 10    Gopher
+ * DEBUG: section 11    Hypertext Transfer Protocol (HTTP)
+ * DEBUG: section 12    Unlink Daemon
+ * DEBUG: section 13    Memory Pool Management
+ * DEBUG: section 14    IP Cache
+ * DEBUG: section 15    Neighbor Routines
+ * DEBUG: section 16    Cache Manager Objects
+ * DEBUG: section 17    Neighbor Selection
+ * DEBUG: section 18    Cache Manager Statistics
+ * DEBUG: section 19    Store Memory Primitives
+ * DEBUG: section 20    Storeage Manager
+ * DEBUG: section 21    Misc Functions
+ * DEBUG: section 22    Refresh Calculation
+ * DEBUG: section 23    URL Parsing
+ * DEBUG: section 24    WAIS Relay
+ * DEBUG: section 25    MIME Parsing
+ * DEBUG: section 26    Secure Sockets Layer Proxy
+ * DEBUG: section 27    Cache Announcer
+ * DEBUG: section 28    Access Control
+ * DEBUG: section 29    Redirector
+ * DEBUG: section 30    Ident (RFC 931)
+ * DEBUG: section 32    Asynchronous Disk I/O
+ * DEBUG: section 33    Client-side Routines
+ * DEBUG: section 34    Dnsserver interface
+ * DEBUG: section 35    FQDN Cache
+ * DEBUG: section 36    Cache Directory Cleanup
+ * DEBUG: section 37    ICMP Routines
+ * DEBUG: section 37    Network Measurement Database
+ * DEBUG: section 39    HTTP Passthrough
+ * DEBUG: section 40    User-Agent logging
+ * DEBUG: section 41    Event Processing
+ * DEBUG: section 42    ICMP Pinger program
+ * DEBUG: section 43    AIOPS
+ * DEBUG: section 44    Peer Selection Algorithm
+ * DEBUG: section 45    Callback Data Registry
+ * DEBUG: section 46    Access Log
+ * DEBUG: section 47    Store Directory Routines
+ * DEBUG: section 48    Persistent Connections
+ * DEBUG: section 49    SNMP support
+ * DEBUG: section 51    Filedescriptor Functions
+ * DEBUG: section 52    URN Parsing
+ * DEBUG: section 53    AS Number handling
+ * DEBUG: section 54    Interprocess Communication
