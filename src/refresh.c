@@ -293,7 +293,7 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
     }
     /*
      * At this point the response is stale, unless one of
-     * the override optios kicks in.
+     * the override options kicks in.
      */
     if (sf.expires) {
 #if HTTP_VIOLATIONS
