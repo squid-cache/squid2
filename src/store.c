@@ -969,6 +969,7 @@ storeRelease(StoreEntry * e)
 	 * we'll just call storeUnlockObject() on these.
 	 */
 	e->lock_count++;
+	EBIT_SET(e->flags, RELEASE_REQUEST);
 	stackPush(&LateReleaseStack, e);
 	return;
     }
