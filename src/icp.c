@@ -604,17 +604,17 @@ static void icpHandleIMSComplete(fd, buf, size, errflag, data)
      int errflag;
      void *data;
 {
-    icpStateData *icpState = (icpStateData *) data;
+    icpStateData *icpState = data;
     StoreEntry *entry = icpState->entry;
     debug(12, 5, "icpHandleIMSComplete: Not Modified sent '%s'\n", entry->url);
-    /* XXX: Is this correct? */
     CacheInfo->proto_touchobject(CacheInfo,
 	CacheInfo->proto_id(entry->url),
 	strlen(buf));
     /* Set up everything for the logging */
-    storeUnlockObject(icpState->entry);
+    storeUnlockObject(entry);
     icpState->entry = NULL;
     icpState->size = strlen(buf);
+    icpState->http_code = 304;
     comm_close(fd);
 }
 
@@ -672,6 +672,7 @@ static void icp_hit_or_miss(fd, icpState)
 	/* IMS+NOCACHE should not eject valid object */
 	if (!BIT_TEST(icpState->flags, REQ_IMS))
 	    storeRelease(entry);
+	ipcacheReleaseInvalid(icpState->request->host);
 	entry = NULL;
 	icpState->log_type = LOG_TCP_USER_REFRESH;
     } else if (BIT_TEST(icpState->flags, REQ_IMS)) {
@@ -1609,7 +1610,6 @@ static void asciiProcessInput(fd, buf, size, flag, data)
      void *data;
 {
     icpStateData *icpState = (icpStateData *) data;
-    static char client_msg[64];
     int parser_return_code = 0;
     int k;
     request_t *request = NULL;
@@ -1668,11 +1668,7 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 	/* The request is good, let's go... */
 	urlCanonical(icpState->request, icpState->url);
 	icpParseRequestHeaders(icpState);
-	sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
-	    fd_note(fd, 0),
-	    RequestMethodStr[icpState->method],
-	    icpState->url);
-	fd_note(fd, client_msg);
+	fd_note(fd, icpState->url);
 	comm_set_select_handler(fd,
 	    COMM_SELECT_READ,
 	    (PF) icpDetectClientClose,
