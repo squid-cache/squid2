@@ -179,7 +179,7 @@ static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
 static void icpHandleAbort _PARAMS((int fd, StoreEntry *, void *));
-static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t *request));
+static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
 static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
 static void icpStateFree _PARAMS((int fd, void *data));
 
@@ -328,8 +328,11 @@ icpParseRequestHeaders(icpStateData * icpState)
 	    BIT_SET(request->flags, REQ_PROXY_KEEPALIVE);
 #endif
     if ((t = mime_get_header(request_hdr, "Via")))
-	if (strstr(t, getMyHostname()))
+	if (strstr(t, getMyHostname())) {
+	    debug(12, 1, "WARNING: Forwarding loop detected for '%s'\n",
+		icpState->url);
 	    BIT_SET(request->flags, REQ_LOOPDETECT);
+	}
 #if USE_USERAGENT_LOG
     if ((t = mime_get_header(request_hdr, "User-Agent")))
 	logUserAgent(fqdnFromAddr(icpState->peer.sin_addr), t);
@@ -1095,7 +1098,7 @@ icpHitObjHandler(int errflag, void *data)
 }
 
 static int
-icpCheckUdpHit(StoreEntry * e, request_t *request)
+icpCheckUdpHit(StoreEntry * e, request_t * request)
 {
     if (e == NULL)
 	return 0;
