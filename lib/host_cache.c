@@ -83,10 +83,10 @@ Host *get_host(hostname)
     if (!strcmp(HostTable[idx].key, hn))
 	h = &HostTable[idx];
 
-    if (!h) {
+    if (!h)
 	h = new_host(hostname);
+    if (!h)
 	return NULL;
-    }
 
     h->n++;
     h->last_t = now;
