@@ -408,8 +408,7 @@ configDoConfigure(void)
 		 * during reconfigure.
 		 */
 		fatalf("getpwnam failed to find userid for effective user '%s'",
-		    Config.effectiveUser,
-		    xstrerror());
+		    Config.effectiveUser);
 	    Config2.effectiveUserID = pwd->pw_uid;
 	    Config2.effectiveGroupID = pwd->pw_gid;
 	}
@@ -421,8 +420,7 @@ configDoConfigure(void)
 	struct group *grp = getgrnam(Config.effectiveGroup);
 	if (NULL == grp)
 	    fatalf("getgrnam failed to find groupid for effective group '%s'",
-		Config.effectiveGroup,
-		xstrerror());
+		Config.effectiveGroup);
 	Config2.effectiveGroupID = grp->gr_gid;
     }
     urlExtMethodConfigure();
@@ -1262,7 +1260,7 @@ parse_cachedir_option_maxsize(SwapDir * sd, const char *option, const char *valu
     size = atoi(value);
 
     if (reconfiguring && sd->max_objsize != size)
-	debug(3, 1) ("Cache dir '%s' max object size now %d\n", size);
+	debug(3, 1) ("Cache dir '%s' max object size now %d\n", sd->path, size);
 
     sd->max_objsize = size;
 }
