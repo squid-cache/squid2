@@ -1311,6 +1311,10 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	} else if (entry->lock_count == 0) {
 	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for Entry without locks.\n",
 		IcpOpcodeStr[header.opcode]);
+	} else if (entry->ping_status != PING_WAITING) {
+	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for %s Entry.\n",
+		IcpOpcodeStr[header.opcode],
+		pingStatusStr[entry->ping_status]);
 	} else {
 	    neighborsUdpAck(fd,
 		url,
