@@ -136,7 +136,7 @@ create_user(tokens)
 	return -1;
     }
     for (up = Config.Snmp.users; up; prev = up, up = up->next) {
-	if (strcmp(tokens[1], up->userName) == 0)
+	if (strcmp(tokens[1], (char *)up->userName) == 0)
 	    break;
     }
 
@@ -165,7 +165,7 @@ create_user(tokens)
     while (*cp && *cp != '/')
 	cp++;
     new->userLen = cp - start;
-    strncpy(new->userName, start, cp - start);
+    strncpy((char *)new->userName, start, cp - start);
 
     if (new->userLen == 0) {
 	debug(49, 0) ("create_user: user name invalid, line %d\n", linenumber);

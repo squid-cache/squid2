@@ -51,7 +51,7 @@ hex_dump(char *hdr, short len, unsigned char *msg)
 	    asc[i] = ch;
 	else
 	    asc[i] = '.';
-	sprintf(&hex[i * 3], "%02X ", ch);
+	sprintf((char *)&hex[i * 3], (char *)"%02X ", ch);
 	i++;
     }
     if (i) {
@@ -136,7 +136,7 @@ parse_app_community_string(struct snmp_session *session)
 	while (*cp && *cp != '/')
 	    cp++;
 	session->userLen = cp - start;
-	strncpy(session->userName, start, cp - start);
+	strncpy((char *)session->userName, (char *)start, (int)(cp - start));
 	session->userName[cp - start] = 0;
 
 	if (session->userLen == 0) {
@@ -155,14 +155,14 @@ parse_app_community_string(struct snmp_session *session)
 	start = cp;
 	while (*cp && *cp != '/')
 	    cp++;
-	if ((cp - start > 2) && (strncmp(start, "0x", 2) == 0)) {
+	if ((cp - start > 2) && (strncmp((char *)start, "0x", 2) == 0)) {
 	    if (cp - start != 34) {
 		fprintf(stderr, "auth key not 16 octets\n");
 		return -1;
 	    }
 	    start += 2;
 	    for (i = 0; i < 16; i++) {
-		if (sscanf(start, "%2x", &ch) != 1) {
+		if (sscanf((char *)start, "%2x", &ch) != 1) {
 		    fprintf(stderr, "auth key contains non hex digits\n");
 		    return -1;
 		}
@@ -182,14 +182,14 @@ parse_app_community_string(struct snmp_session *session)
 	start = cp;
 	while (*cp && *cp != '/')
 	    cp++;
-	if ((cp - start > 2) && (strncmp(start, "0x", 2) == 0)) {
+	if ((cp - start > 2) && (strncmp((char *)start, "0x", 2) == 0)) {
 	    if (cp - start != 34) {
 		fprintf(stderr, "priv key not 16 octets\n");
 		return -1;
 	    }
 	    start += 2;
 	    for (i = 0; i < 16; i++) {
-		if (sscanf(start, "%2x", &ch) != 1) {
+		if (sscanf((char *)start, "%2x", &ch) != 1) {
 		    fprintf(stderr, "priv key contains non hex digits\n");
 		    return -1;
 		}
@@ -210,7 +210,7 @@ parse_app_community_string(struct snmp_session *session)
 	while (*cp && *cp != '/')
 	    cp++;
 	session->contextLen = cp - start;
-	strncpy(session->contextSelector, start, cp - start);
+	strncpy((char *)session->contextSelector, (char *)start, cp - start);
     }
     return 0;
 }
