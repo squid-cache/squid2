@@ -104,6 +104,7 @@ helperOpenServers(helper * hlp)
 	}
 	hlp->n_running++;
 	srv = cbdataAlloc(helper_server);
+	srv->pid = x;
 	srv->flags.alive = 1;
 	srv->index = k;
 	srv->rfd = rfd;
@@ -420,7 +421,7 @@ helperStats(StoreEntry * sentry, helper * hlp)
     storeAppendPrintf(sentry, "%7s\t%7s\t%7s\t%11s\t%s\t%7s\t%7s\t%7s\n",
 	"#",
 	"FD",
-	"PID"
+	"PID",
 	"# Requests",
 	"Flags",
 	"Time",
