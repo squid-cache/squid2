@@ -1112,7 +1112,6 @@ struct _ps_state {
      */
     struct sockaddr_in first_parent_miss;
     struct sockaddr_in closest_parent_miss;
-    struct sockaddr_in single_parent;
     ping_data ping;
     aclCheck_t *acl_checklist;
 };
