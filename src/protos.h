@@ -744,9 +744,6 @@ extern FREE authenticateFreeProxyAuthUser;
 extern void authenticateFreeProxyAuthUserACLResults(void *data);
 extern void authenticateProxyUserCacheCleanup(void *);
 extern void authenticateInitUserCache();
-#if 0
-extern void authenticateProxyAuthCacheAddLink(const char *key, auth_user_t *);
-#endif
 extern int authenticateActiveSchemeCount();
 extern int authenticateSchemeCount();
 extern void authenticateUserNameCacheAdd(auth_user_t * auth_user);
