@@ -574,17 +574,23 @@ void icp_hit_or_miss(fd, usm)
 	    /* Send object to requestor */
 	    entry->refcount++;	/* HIT CASE */
 
+#ifdef HANDLE_IMS		/* work in progress */
 	    /* Handle IMS */
-/*          if(mime_get_header(mime_hdr,"if-modified-since"))
- * icpSendIMS(fd, usm);
- * else
- */ icpSendMoreData(fd, usm);
+	    if (mime_get_header(mime_hdr, "if-modified-since")) {
+		icpSendIMS(fd, usm);
+		return;
+	    }
+#endif /* HANDLE_IMS */
+
+	    icpSendMoreData(fd, usm);
 	    return;
 	}
 	/* We do NOT hold a lock on the existing "entry" because we're
 	 * about to eject it */
+#ifdef REDUNDANT_CODE
 	if (lock < 0)
 	    debug(12, 0, "icp_hit_or_miss: swap file open failed\n");
+#endif
 	tmp_in_addr.s_addr = htonl(usm->header.shostid);
 	usm->log_type = LOG_TCP_EXPIRED;
 	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
