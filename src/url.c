@@ -186,9 +186,10 @@ request_t *urlParse(method, url)
 	    *t = 0;
 	    strcpy(host, t + 1);
 	}
-	if ((t = strrchr(host, ':')) && *(t + 1) != '\0') {
-	    *t = '\0';
-	    port = atoi(t + 1);
+	if ((t = strrchr(host, ':'))) {
+	    *t++ = '\0';
+	    if (*t != '\0')
+		port = atoi(t);
 	}
     }
     for (t = host; *t; t++)
