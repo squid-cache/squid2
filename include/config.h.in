@@ -60,6 +60,8 @@
 #define _SQUID_SGI_
 #elif defined(__NeXT__)
 #define _SQUID_NEXT_
+#elif defined(__bsdi__)
+#define _SQUID_BSDI_                          /* BSD/OS */
 #endif
 
 #if !defined(CACHE_HTTP_PORT)

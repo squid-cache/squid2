@@ -290,7 +290,7 @@
 
 #  TAG: pid_filename
 #	A pathname to write the process-id to.  There is no default.
-#pid_filename
+#pid_filename /tmp/squid.pid
 
 #  TAG: debug_options
 #	Logging options are set as section,level where each source file
@@ -309,7 +309,7 @@ debug_options ALL,1
 #	Where to find the 'ftpget' program that retrieves FTP data (HTTP
 #	and Gopher protocol support are built into the cache).  
 #
-cache_ftp_program @DEFAULT_FTPGET@
+#cache_ftp_program @DEFAULT_FTPGET@
 
 #  TAG: cache_ftp_options
 #	Options for the 'ftpget' program.  Please run 'ftpget' without
@@ -576,9 +576,9 @@ icp_access  allow  all
 
 #  TAG: cache_mgr 
 #	Email-address of local cache manager who will receive
-#	mail if the cache dies.  The default is not to send mail.
+#	mail if the cache dies.  The default is "webmaster."
 #
-#cache_mgr your.name@your.domain.com
+#cache_mgr webmaster
 
 #  TAG: cache_effective_user
 #	If the cache is run as root, it will change its effective/real
@@ -665,10 +665,10 @@ icp_access  allow  all
 #
 #		hot_vm_count = cache_mem * hot_vm_factor / 1048576
 #
-#	The default is 0, which disables hot_vm objects.  The suggested
+#	The default is 0.0, which disables hot_vm objects.  The suggested
 #	value for httpd_accel_mode is 12.5.
 #
-#cache_hot_vm_factor 0
+#cache_hot_vm_factor 0.0
 
 
 # MISCELLANEOUS

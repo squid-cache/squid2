@@ -202,3 +202,9 @@ Changes to squid-1.0.beta9 (May 23, 1996):
 	  address ACLs.
 	- Fixed ftpget listing parsing coredump bug.
 	- Fixed neighborsUdpAck() coredump for late-arriving ICP replies.
+
+beta10:
+
+	- Fixed bug when request arrives in fragmented IP packets.
+	- Fixed ACL bug which denied cache manager access while in
+ 	  httpd_accel mode.

@@ -32,9 +32,13 @@ static int malloc_debug_level = 0;
 static void usage()
 {
     fprintf(stderr, "\
-Usage: %s [-Rsehvz] [-f config-file] [-[apu] port]\n\
+Usage: %s [-hsvzCDRUVY] [-f config-file] [-[au] port]\n\
+       -a port   Specify ASCII port number (default: %d).\n\
+       -f file   Use given config-file instead of\n\
+                 %s\n\
        -h        Print help message.\n\
        -s        Enable logging to syslog.\n\
+       -u port   Specify UDP port number (default: %d), disable with 0.\n\
        -v        Print version.\n\
        -z        Zap disk storage -- deletes all objects in disk cache.\n\
        -C        Do not catch fatal signals.\n\
@@ -42,12 +46,8 @@ Usage: %s [-Rsehvz] [-f config-file] [-[apu] port]\n\
        -R        Do not set REUSEADDR on port.\n\
        -U        Unlink expired objects on reload.\n\
        -V        Virtual host httpd-accelerator.\n\
-       -Y        Only return UDP_HIT or UDP_DENIED during store reload.\n\
-       -f file   Use given config-file instead of\n\
-                 %s\n\
-       -a port	 Specify ASCII port number (default: %d).\n\
-       -u port	 Specify UDP port number (default: %d), disable with 0.\n",
-	appname, DefaultConfigFile, CACHE_HTTP_PORT, CACHE_ICP_PORT);
+       -Y        Only return UDP_HIT or UDP_DENIED during store reload.\n",
+	appname, CACHE_HTTP_PORT, DefaultConfigFile, CACHE_ICP_PORT);
     exit(1);
 }
 
@@ -58,26 +58,13 @@ static void mainParseOptions(argc, argv)
     extern char *optarg;
     int c;
 
-    while ((c = getopt(argc, argv, "vCDRVUbsiYf:a:p:u:m:zh?")) != -1) {
+    while ((c = getopt(argc, argv, "CDRUVYa:bf:hm:su:vz?")) != -1) {
 	switch (c) {
-	case 'v':
-	    printf("Squid Cache: Version %s\n", version_string);
-	    exit(0);
-	    /* NOTREACHED */
-	case 'b':
-	    unbuffered_logs = 0;
-	    break;
-	case 'V':
-	    vhost_mode = 1;
-	    break;
 	case 'C':
 	    catch_signals = 0;
 	    break;
 	case 'D':
 	    do_dns_test = 0;
-	    break;
-	case 's':
-	    syslog_enable = 0;
 	    break;
 	case 'R':
 	    do_reuse = 0;
@@ -85,17 +72,24 @@ static void mainParseOptions(argc, argv)
 	case 'U':
 	    opt_unlink_on_reload = 1;
 	    break;
-	case 'f':
-	    xfree(ConfigFile);
-	    ConfigFile = xstrdup(optarg);
+	case 'V':
+	    vhost_mode = 1;
+	    break;
+	case 'Y':
+	    opt_reload_hit_only = 1;
 	    break;
 	case 'a':
 	    asciiPortNumOverride = atoi(optarg);
 	    break;
-	case 'u':
-	    udpPortNumOverride = atoi(optarg);
-	    if (udpPortNumOverride < 0)
-		udpPortNumOverride = 0;
+	case 'b':
+	    unbuffered_logs = 0;
+	    break;
+	case 'f':
+	    xfree(ConfigFile);
+	    ConfigFile = xstrdup(optarg);
+	    break;
+	case 'h':
+	    usage();
 	    break;
 	case 'm':
 #if MALLOC_DBG
@@ -104,14 +98,22 @@ static void mainParseOptions(argc, argv)
 #else
 	    fatal("Need to add -DMALLOC_DBG when compiling to use -m option");
 #endif
+	case 's':
+	    syslog_enable = 0;
+	    break;
+	case 'u':
+	    udpPortNumOverride = atoi(optarg);
+	    if (udpPortNumOverride < 0)
+		udpPortNumOverride = 0;
+	    break;
+	case 'v':
+	    printf("Squid Cache: Version %s\n", version_string);
+	    exit(0);
+	    /* NOTREACHED */
 	case 'z':
 	    zap_disk_store = 1;
 	    break;
-	case 'Y':
-	    opt_reload_hit_only = 1;
-	    break;
 	case '?':
-	case 'h':
 	default:
 	    usage();
 	    break;
