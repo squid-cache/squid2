@@ -263,10 +263,10 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	return;
     }
     if ((e = protoData->default_parent)) {
-	hierarchyNote(req, HIER_DEFAULT_PARENT, protoData->fd, e->host);
+	hierarchyNote(req, HIER_DEFAULT_PARENT, 0, e->host);
 	protoStart(protoData->fd, entry, e, req);
     } else if ((e = getRoundRobinParent(req))) {
-	hierarchyNote(req, HIER_ROUNDROBIN_PARENT, protoData->fd, e->host);
+	hierarchyNote(req, HIER_ROUNDROBIN_PARENT, 0, e->host);
 	protoStart(protoData->fd, entry, e, req);
     } else if (protoData->direct_fetch == DIRECT_NO) {
 	hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
