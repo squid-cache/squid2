@@ -273,8 +273,8 @@ int diskHandleWrite(fd, entry)
 		return DISK_OK;
 	    default:
 		/* disk i/o failure--flushing all outstanding writes  */
-		debug(6, 1, "diskHandleWrite: disk write error %s\n",
-		    xstrerror());
+		debug(6, 1, "diskHandleWrite: FD %d: disk write error: %s\n",
+		    fd, xstrerror());
 		entry->write_daemon = NOT_PRESENT;
 		entry->write_pending = NO_WRT_PENDING;
 		/* call finish handler */
