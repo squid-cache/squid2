@@ -54,6 +54,9 @@ storeDirClean(void *datanotused)
     struct dirent *de = NULL;
     LOCAL_ARRAY(char, p1, MAXPATHLEN + 1);
     LOCAL_ARRAY(char, p2, MAXPATHLEN + 1);
+#if USE_TRUNCATE_NOT_UNLINK
+    struct stat sb;
+#endif
     int files[20];
     int swapfileno;
     int fn;			/* same as swapfileno, but with dirn bits set */
@@ -93,6 +96,11 @@ storeDirClean(void *datanotused)
 	    if (storeDirMapBitTest(fn))
 		if (storeFilenoBelongsHere(fn, D0, D1, D2))
 		    continue;
+#if USE_TRUNCATE_NOT_UNLINK
+	if (!stat(de->d_name, &sb))
+	    if (sb.st_size == 0)
+	        continue;
+#endif
 	files[k++] = swapfileno;
     }
     closedir(dp);
@@ -105,7 +113,11 @@ storeDirClean(void *datanotused)
     for (n = 0; n < k; n++) {
 	debug(36, 3) ("storeDirClean: Cleaning file %08X\n", files[n]);
 	snprintf(p2, MAXPATHLEN + 1, "%s/%08X", p1, files[n]);
+#if USE_TRUNCATE_NOT_UNLINK
+	truncate(p2, 0);
+#else
 	safeunlink(p2, 0);
+#endif
 	Counter.swap_files_cleaned++;
     }
     debug(36, 3) ("Cleaned %d unused files from %s\n", k, p1);

@@ -67,7 +67,11 @@ main(int argc, char *argv[])
     while (fgets(buf, UNLINK_BUF_LEN, stdin)) {
 	if ((t = strchr(buf, '\n')))
 	    *t = '\0';
+#if USE_TRUNCATE_NOT_UNLINK
+	truncate(buf, 0);
+#else
 	unlink(buf);
+#endif
     }
     exit(0);
 }
