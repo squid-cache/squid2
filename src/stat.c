@@ -289,8 +289,6 @@ describeFlags(const StoreEntry * entry)
 	strcat(buf, "ED,");
     if (EBIT_TEST(flags, KEY_PRIVATE))
 	strcat(buf, "KP,");
-    if (EBIT_TEST(flags, HIERARCHICAL))
-	strcat(buf, "HI,");
     if (EBIT_TEST(flags, ENTRY_NEGCACHED))
 	strcat(buf, "NG,");
     if ((t = strrchr(buf, ',')))
