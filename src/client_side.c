@@ -874,7 +874,7 @@ clientIfRangeMatch(clientHttpRequest * http, HttpReply * rep)
 static void
 clientBuildRangeHeader(clientHttpRequest * http, HttpReply * rep)
 {
-    HttpHeader *hdr = &rep->header;
+    HttpHeader *hdr = rep ? &rep->header : 0;
     const char *range_err = NULL;
     assert(http->request->range);
     /* check if we still want to do ranges */
