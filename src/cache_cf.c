@@ -174,6 +174,7 @@ int emulate_httpd_log = DefaultCommonLogFormat;		/* for fast access */
 time_t neighbor_timeout = DefaultNeighborTimeout;	/* for fast access */
 int single_parent_bypass = 0;
 int DnsPositiveTtl = DefaultPositiveDnsTtl;
+char *DefaultSwapDir = DEFAULT_SWAP_DIR;
 char *config_file = DEFAULT_CONFIG_FILE;
 char *cfg_filename = NULL;	/* just the last part */
 

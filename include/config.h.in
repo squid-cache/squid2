@@ -116,4 +116,8 @@
 #define DEFAULT_DNSSERVER_PATH "@prefix@/bin/dnsserver"
 #endif
 
+#if !defined(DEFAULT_SWAP_DIR)
+#define DEFAULT_SWAP_DIR "@prefix@/cache"
+#endif
+
 #endif /* _CONFIG_H_ */

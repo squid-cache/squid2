@@ -56,7 +56,8 @@ DEFAULTS        = \
 	-DDEFAULT_CACHE_LOG=\"$(prefix)/logs/cache.log\" \
 	-DDEFAULT_ACCESS_LOG=\"$(prefix)/logs/access.log\" \
 	-DDEFAULT_HIERARCHY_LOG=\"$(prefix)/logs/hierarchy.log\" \
-	-DDEFAULT_STORE_LOG=\"$(prefix)/logs/store.log\"
+	-DDEFAULT_STORE_LOG=\"$(prefix)/logs/store.log\" \
+	-DDEFAULT_SWAP_DIR=\"$(prefix)/cache\"
 
 all:	$(PROGS) $(UTILS) $(CGIPROGS)
 
