@@ -41,7 +41,7 @@ static void aclDestroyAclList _PARAMS((struct _acl_list * list));
 static void aclDestroyIpList _PARAMS((struct _acl_ip_data * data));
 static void aclDestroyRegexList _PARAMS((struct _relist * data));
 static void aclDestroyTimeList _PARAMS((struct _acl_time_data * data));
-static int aclMatchAclList _PARAMS((struct _acl_list *, struct in_addr, request_t *request));
+static int aclMatchAclList _PARAMS((struct _acl_list *, struct in_addr, request_t * request));
 static int aclMatchInteger _PARAMS((intlist * data, int i));
 static int aclMatchIp _PARAMS((struct _acl_ip_data * data, struct in_addr c));
 static int aclMatchRegex _PARAMS((relist * data, char *word));

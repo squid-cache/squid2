@@ -96,7 +96,7 @@ struct _acl_access {
 };
 
 extern int aclCheck _PARAMS((struct _acl_access *, struct in_addr, request_t *));
-extern int aclMatchAcl _PARAMS(( struct _acl * acl, struct in_addr c, request_t *));
+extern int aclMatchAcl _PARAMS((struct _acl * acl, struct in_addr c, request_t *));
 extern void aclDestroyAccessList _PARAMS((struct _acl_access ** list));
 extern void aclDestroyAcls _PARAMS((void));
 extern void aclParseAccessLine _PARAMS((struct _acl_access **));

@@ -238,7 +238,7 @@ static struct {
 #define DefaultEffectiveUser	(char *)NULL	/* default NONE */
 #define DefaultEffectiveGroup	(char *)NULL	/* default NONE */
 #define DefaultAppendDomain	(char *)NULL	/* default NONE */
-#define DefaultErrHtmlText	(char *)NULL    /* default NONE */
+#define DefaultErrHtmlText	(char *)NULL	/* default NONE */
 
 #define DefaultDebugOptions	"ALL,1"		/* All sections at level 1 */
 #define DefaultAccelHost	(char *)NULL	/* default NONE */
@@ -1830,7 +1830,8 @@ u_short setIcpPortNum(port)
 {
     return (Config.Port.icp = port);
 }
-char *getErrHtmlText() {
+char *getErrHtmlText()
+{
     return Config.errHtmlText ? Config.errHtmlText : "";
 }
 

@@ -1819,9 +1819,9 @@ parts_t *parse_entry(buf)
     /* try it as a DOS listing */
     if (n_tokens > 3 && p->name == NULL &&
 	sscanf(tokens[0], "%[0-9]-%[0-9]-%[0-9]", sbuf, sbuf, sbuf) == 3 &&
-		/* 04-05-70 */
+    /* 04-05-70 */
 	sscanf(tokens[1], "%[0-9]:%[0-9]%[AaPp]%[Mm]", sbuf, sbuf, sbuf, sbuf) == 4) {
-		/* 09:33PM */
+	/* 09:33PM */
 	if (!strcasecmp(tokens[2], "<dir>")) {
 	    p->type = 'd';
 	} else {
