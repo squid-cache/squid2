@@ -235,7 +235,7 @@ ErrorState *
 errorCon(err_type type, http_status status)
 {
     ErrorState *err;
-    err = CBDATA_ALLOC(ErrorState, NULL);
+    err = cbdataAlloc(ErrorState);
     err->page_id = type;	/* has to be reset manually if needed */
     err->type = type;
     err->http_status = status;

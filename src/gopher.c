@@ -818,7 +818,7 @@ CreateGopherStateData(void)
 {
     GopherStateData *gd;
     CBDATA_INIT_TYPE(GopherStateData);
-    gd = CBDATA_ALLOC(GopherStateData, NULL);
+    gd = cbdataAlloc(GopherStateData);
     gd->buf = memAllocate(MEM_4K_BUF);
     return (gd);
 }

@@ -1047,7 +1047,7 @@ ftpStart(FwdState * fwd)
     HttpReply *reply;
 
     CBDATA_INIT_TYPE(FtpStateData);
-    ftpState = CBDATA_ALLOC(FtpStateData, NULL);
+    ftpState = cbdataAlloc(FtpStateData);
     debug(9, 3) ("ftpStart: '%s'\n", url);
     statCounter.server.all.requests++;
     statCounter.server.ftp.requests++;

@@ -825,7 +825,7 @@ storeUfsDirRebuild(SwapDir * sd)
     FILE *fp;
     EVH *func = NULL;
     CBDATA_INIT_TYPE(RebuildState);
-    rb = CBDATA_ALLOC(RebuildState, NULL);
+    rb = cbdataAlloc(RebuildState);
     rb->sd = sd;
     rb->speed = opt_foreground_rebuild ? 1 << 30 : 50;
     /*

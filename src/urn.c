@@ -108,7 +108,7 @@ urnStart(request_t * r, StoreEntry * e)
     ErrorState *err;
     debug(52, 3) ("urnStart: '%s'\n", storeUrl(e));
     CBDATA_INIT_TYPE(UrnState);
-    urnState = CBDATA_ALLOC(UrnState, NULL);
+    urnState = cbdataAlloc(UrnState);
     urnState->entry = e;
     urnState->request = requestLink(r);
     storeLockObject(urnState->entry);

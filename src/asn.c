@@ -187,7 +187,7 @@ asnCacheStart(int as)
     StoreEntry *e;
     request_t *req;
     ASState *asState;
-    asState = CBDATA_ALLOC(ASState, NULL);
+    asState = cbdataAlloc(ASState);
     debug(53, 3) ("asnCacheStart: AS %d\n", as);
     snprintf(asres, 4096, "whois://%s/!gAS%d", Config.as_whois_server, as);
     asState->as_number = as;

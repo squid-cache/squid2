@@ -59,7 +59,7 @@ whoisStart(FwdState * fwd)
     char *buf;
     size_t l;
     CBDATA_INIT_TYPE(WhoisState);
-    p = CBDATA_ALLOC(WhoisState, NULL);
+    p = cbdataAlloc(WhoisState);
     p->request = fwd->request;
     p->entry = fwd->entry;
     p->fwd = fwd;

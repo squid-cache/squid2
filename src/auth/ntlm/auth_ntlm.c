@@ -625,7 +625,7 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
 	return;
     }
 #ifdef NTLMHELPPROTOCOLV2
-    r = CBDATA_ALLOC(authenticateStateData, NULL);
+    r = cbdataAlloc(authenticateStateData);
     r->handler = handler;
     cbdataLock(data);
     r->data = data;
@@ -663,7 +663,7 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
 	debug(29, 9) ("authenticateNTLMStart: helper '%d' assigned\n", server);
 	/* valid challenge? */
 	if ((server == NULL) || !authenticateNTLMValidChallenge(helperstate)) {
-	    r = CBDATA_ALLOC(authenticateStateData, NULL);
+	    r = cbdataAlloc(authenticateStateData);
 	    r->handler = handler;
 	    cbdataLock(data);
 	    r->data = data;
@@ -687,7 +687,7 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
 
 	break;
     case AUTHENTICATE_STATE_RESPONSE:
-	r = CBDATA_ALLOC(authenticateStateData, NULL);
+	r = cbdataAlloc(authenticateStateData);
 	r->handler = handler;
 	cbdataLock(data);
 	r->data = data;

@@ -387,7 +387,7 @@ fqdncache_nbgethostbyaddr(struct in_addr addr, FQDNH * handler, void *handlerDat
     f->handlerData = handlerData;
     cbdataLock(handlerData);
     f->request_time = current_time;
-    c = CBDATA_ALLOC(generic_cbdata, NULL);
+    c = cbdataAlloc(generic_cbdata);
     c->data = f;
 #if USE_DNSSERVERS
     dnsSubmit(hashKeyStr(&f->hash), fqdncacheHandleReply, c);

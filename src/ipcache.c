@@ -432,7 +432,7 @@ ipcache_nbgethostbyname(const char *name, IPH * handler, void *handlerData)
     i->handlerData = handlerData;
     cbdataLock(handlerData);
     i->request_time = current_time;
-    c = CBDATA_ALLOC(generic_cbdata, NULL);
+    c = cbdataAlloc(generic_cbdata);
     c->data = i;
 #if USE_DNSSERVERS
     dnsSubmit(hashKeyStr(&i->hash), ipcacheHandleReply, c);

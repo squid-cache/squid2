@@ -42,6 +42,8 @@ static DWCB storeUfsWriteDone;
 static void storeUfsIOCallback(storeIOState * sio, int errflag);
 static CBDUNL storeUfsIOFreeEntry;
 
+CBDATA_TYPE(storeIOState);
+
 /* === PUBLIC =========================================================== */
 
 storeIOState *
@@ -60,7 +62,8 @@ storeUfsOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
 	return NULL;
     }
     debug(79, 3) ("storeUfsOpen: opened FD %d\n", fd);
-    sio = CBDATA_ALLOC(storeIOState, storeUfsIOFreeEntry);
+    CBDATA_INIT_TYPE_FREECB(storeIOState, storeUfsIOFreeEntry);
+    sio = cbdataAlloc(storeIOState);
     sio->fsstate = memPoolAlloc(ufs_state_pool);
 
     sio->swap_filen = f;
@@ -107,7 +110,8 @@ storeUfsCreate(SwapDir * SD, StoreEntry * e, STFNCB * file_callback, STIOCB * ca
 	return NULL;
     }
     debug(79, 3) ("storeUfsCreate: opened FD %d\n", fd);
-    sio = CBDATA_ALLOC(storeIOState, storeUfsIOFreeEntry);
+    CBDATA_INIT_TYPE_FREECB(storeIOState, storeUfsIOFreeEntry);
+    sio = cbdataAlloc(storeIOState);
     sio->fsstate = memPoolAlloc(ufs_state_pool);
 
     sio->swap_filen = filn;

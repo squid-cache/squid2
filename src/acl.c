@@ -967,7 +967,7 @@ aclParseAccessLine(acl_access ** head)
 	debug(28, 0) ("aclParseAccessLine: missing 'allow' or 'deny'.\n");
 	return;
     }
-    A = CBDATA_ALLOC(acl_access, NULL);
+    A = cbdataAlloc(acl_access);
 
     if (!strcmp(t, "allow"))
 	A->allow = 1;
@@ -1933,7 +1933,7 @@ aclChecklistCreate(const acl_access * A,
 {
     int i;
     aclCheck_t *checklist;
-    checklist = CBDATA_ALLOC(aclCheck_t, NULL);
+    checklist = cbdataAlloc(aclCheck_t);
     checklist->access_list = A;
     /*
      * aclCheck() makes sure checklist->access_list is a valid

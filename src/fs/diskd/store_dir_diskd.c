@@ -1021,7 +1021,7 @@ storeDiskdDirRebuild(SwapDir * sd)
     FILE *fp;
     EVH *func = NULL;
     CBDATA_INIT_TYPE(RebuildState);
-    rb = CBDATA_ALLOC(RebuildState, NULL);
+    rb = cbdataAlloc(RebuildState);
     rb->sd = sd;
     rb->speed = opt_foreground_rebuild ? 1 << 30 : 50;
     /*
@@ -1706,7 +1706,7 @@ storeDiskdDirStats(SwapDir * SD, StoreEntry * sentry)
     storeAppendPrintf(sentry, "Pending operations: %d\n", diskdinfo->away);
 }
 
-static void 
+static void
 storeDiskdDirParseQ1(SwapDir * sd, const char *name, const char *value, int reconfiguring)
 {
     diskdinfo_t *diskdinfo = sd->fsdata;
@@ -1716,7 +1716,7 @@ storeDiskdDirParseQ1(SwapDir * sd, const char *name, const char *value, int reco
 	debug(3, 1) ("cache_dir '%s' new Q1 value '%d'\n", diskdinfo->magic1);
 }
 
-static void 
+static void
 storeDiskdDirParseQ2(SwapDir * sd, const char *name, const char *value, int reconfiguring)
 {
     diskdinfo_t *diskdinfo = sd->fsdata;

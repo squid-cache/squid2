@@ -216,7 +216,7 @@ identStart(struct sockaddr_in *me, struct sockaddr_in *my_peer, IDCB * callback,
 	return;
     }
     CBDATA_INIT_TYPE(IdentStateData);
-    state = CBDATA_ALLOC(IdentStateData, NULL);
+    state = cbdataAlloc(IdentStateData);
     state->hash.key = xstrdup(key);
     state->fd = fd;
     state->me = *me;

@@ -230,7 +230,7 @@ waisStart(FwdState * fwd)
     statCounter.server.all.requests++;
     statCounter.server.other.requests++;
     CBDATA_INIT_TYPE(WaisStateData);
-    waisState = CBDATA_ALLOC(WaisStateData, NULL);
+    waisState = cbdataAlloc(WaisStateData);
     waisState->method = method;
     waisState->request_hdr = &request->header;
     waisState->fd = fd;

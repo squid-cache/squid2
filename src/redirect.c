@@ -123,7 +123,7 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
 	handler(data, NULL);
 	return;
     }
-    r = CBDATA_ALLOC(redirectStateData, NULL);
+    r = cbdataAlloc(redirectStateData);
     r->orig_url = xstrdup(http->uri);
     r->client_addr = conn->log_addr;
     if (http->request->auth_user_request)

@@ -484,7 +484,7 @@ sslStart(int fd, const char *url, request_t * request, size_t * size_ptr, int *s
 	return;
     }
     CBDATA_INIT_TYPE(SslStateData);
-    sslState = CBDATA_ALLOC(SslStateData, NULL);
+    sslState = cbdataAlloc(SslStateData);
 #if DELAY_POOLS
     sslState->delay_id = delayClient(request);
     delayRegisterDelayIdPtr(&sslState->delay_id);

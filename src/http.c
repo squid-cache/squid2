@@ -928,7 +928,7 @@ httpStart(FwdState * fwd)
     debug(11, 3) ("httpStart: \"%s %s\"\n",
 	RequestMethodStr[orig_req->method],
 	storeUrl(fwd->entry));
-    httpState = CBDATA_ALLOC(HttpStateData, NULL);
+    httpState = cbdataAlloc(HttpStateData);
     storeLockObject(fwd->entry);
     httpState->fwd = fwd;
     httpState->entry = fwd->entry;

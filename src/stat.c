@@ -345,7 +345,7 @@ static void
 statObjectsStart(StoreEntry * sentry, STOBJFLT * filter)
 {
     StatObjectsState *state;
-    state = CBDATA_ALLOC(StatObjectsState, NULL);
+    state = cbdataAlloc(StatObjectsState);
     state->sentry = sentry;
     state->filter = filter;
     storeLockObject(sentry);

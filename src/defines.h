@@ -281,10 +281,12 @@
 #endif
 
 /* cbdata macros */
-#define CBDATA_ALLOC(type, unl) ((type *)cbdataInternalAlloc(CBDATA_##type, unl))
+#define cbdataAlloc(type) ((type *)cbdataInternalAlloc(CBDATA_##type))
+#define cbdataFree(var) (var = (cbdataInternalFree(var), NULL))
 #define CBDATA_TYPE(type)	static cbdata_type CBDATA_##type = 0
 #define CBDATA_GLOBAL_TYPE(type)	cbdata_type CBDATA_##type
-#define CBDATA_INIT_TYPE(type)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataAddType(CBDATA_##type, #type, sizeof(type))))
+#define CBDATA_INIT_TYPE(type)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataAddType(CBDATA_##type, #type, sizeof(type), NULL)))
+#define CBDATA_INIT_TYPE_FREECB(type, free_func)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataAddType(CBDATA_##type, #type, sizeof(type), free_func)))
 
 #ifndef O_TEXT
 #define O_TEXT 0
