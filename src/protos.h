@@ -44,6 +44,7 @@ extern void fvdbCountForw(const char *key);
 #if HEADERS_LOG
 extern void headersLog(int cs, int pq, method_t m, void *data);
 #endif
+char *log_quote(const char *header);
 
 extern aclCheck_t *aclChecklistCreate(const struct _acl_access *,
     request_t *,

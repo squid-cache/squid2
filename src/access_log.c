@@ -37,7 +37,6 @@
 
 #include "squid.h"
 
-static char *log_quote(const char *header);
 static void accessLogSquid(AccessLogEntry * al);
 static void accessLogCommon(AccessLogEntry * al);
 static Logfile *logfile = NULL;
@@ -118,7 +117,7 @@ static const char c2x[] =
 
 /* log_quote -- URL-style encoding on MIME headers. */
 
-static char *
+char *
 log_quote(const char *header)
 {
     int c;
