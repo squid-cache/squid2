@@ -68,3 +68,6 @@
 
 /* Define to use async disk I/O operations */
 #undef USE_ASYNC_IO
+
+/* Define if you have struct rusage */
+#undef HAVE_STRUCT_RUSAGE

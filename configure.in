@@ -219,6 +219,19 @@ if test $ac_cv_have_ext_mallinfo = "yes" ; then
   AC_DEFINE(HAVE_EXT_MALLINFO)
 fi
 
+AC_CACHE_CHECK(for struct rusage,ac_cv_have_struct_rusage, [
+  AC_TRY_COMPILE([
+#if HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif],
+    [struct rusage R;],
+    ac_cv_have_struct_rusage="yes",
+    ac_cv_have_struct_rusage="no")
+])
+if test $ac_cv_have_struct_rusage = "yes" ; then
+  AC_DEFINE(HAVE_STRUCT_RUSAGE)
+fi
+
 AC_CACHE_CHECK(for ip->ip_hl, ac_cv_have_ip_hl, [
   AC_TRY_COMPILE([#include <sys/types.h>
 #include <netinet/in.h>
