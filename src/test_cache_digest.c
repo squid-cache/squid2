@@ -272,7 +272,7 @@ cacheResetDigest(Cache * cache)
     if (cache->digest)
 	cacheDigestDestroy(cache->digest);
     hash = cache->hash;
-    cache->digest = cacheDigestCreate(2 * cache->count + 1);	/* 50% utilization */
+    cache->digest = cacheDigestCreate(cache->count+1, 6);
     if (!cache->count)
 	return;
     gettimeofday(&t_start, NULL);
