@@ -480,7 +480,9 @@ storeCossDirWriteCleanStart(SwapDir * sd)
 {
     CossInfo *cs = (CossInfo *) sd->fsdata;
     struct _clean_state *state = xcalloc(1, sizeof(*state));
+#if HAVE_FCHMOD
     struct stat sb;
+#endif
     state->new = xstrdup(storeCossDirSwapLogFile(sd, ".clean"));
     state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC);
     if (state->fd < 0) {
