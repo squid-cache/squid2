@@ -814,15 +814,6 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	icpState->log_type = LOG_TCP_MISS;
 	storeRelease(entry);
 	entry = NULL;
-#ifdef RELOAD_INTO_IMS
-    } else if (BIT_TEST(request->flags, REQ_NOCACHE_SPECIAL)) {
-	if (BIT_TEST(request->flags, REQ_IMS))
-	    icpState->log_type = LOG_TCP_IMS_MISS;
-	else if (request->protocol == PROTO_HTTP)
-	    icpState->log_type = LOG_TCP_REFRESH_MISS;
-	else
-	    icpState->log_type = LOG_TCP_MISS;	/* XXX zoinks */
-#endif /* RELOAD_INTO_IMS */
     } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
 	/* NOCACHE should always eject a negative cached object */
 	if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
@@ -849,6 +840,13 @@ icpProcessRequest(int fd, icpStateData * icpState)
     } else if (BIT_TEST(request->flags, REQ_IMS)) {
 	/* User-initiated IMS request for something we think is valid */
 	icpState->log_type = LOG_TCP_IMS_MISS;
+#ifdef RELOAD_INTO_IMS
+    } else if (BIT_TEST(request->flags, REQ_NOCACHE_SPECIAL)) {
+	if (request->protocol == PROTO_HTTP)
+	    icpState->log_type = LOG_TCP_REFRESH_MISS;
+	else
+	    icpState->log_type = LOG_TCP_MISS;	/* XXX zoinks */
+#endif /* RELOAD_INTO_IMS */
     } else {
 	icpState->log_type = LOG_TCP_HIT;
     }
