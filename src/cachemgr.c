@@ -126,6 +126,8 @@
 #include <sys/select.h>
 #endif
 
+#include <assert.h>
+
 #include "util.h"
 #include "snprintf.h"
 
@@ -532,8 +534,10 @@ process_request(cachemgr_request * req)
     }
     memset(&S, '\0', sizeof(struct sockaddr_in));
     S.sin_family = AF_INET;
-    if ((hp = gethostbyname(req->hostname)) != NULL)
+    if ((hp = gethostbyname(req->hostname)) != NULL) {
+	assert(hp->h_length <= sizeof(S.sin_addr.s_addr));
 	xmemcpy(&S.sin_addr.s_addr, hp->h_addr, hp->h_length);
+    }
     else if (safe_inet_addr(req->hostname, &S.sin_addr))
 	(void) 0;
     else {
@@ -736,6 +740,7 @@ make_auth_header(const cachemgr_request * req)
 
     str64 = base64_encode(buf);
     l += snprintf(buf, sizeof(buf), "Authorization: Basic %s\r\n", str64);
+    assert(l < sizeof(buf));
     l += snprintf(&buf[l], sizeof(buf) - l,
 	"Proxy-Authorization: Basic %s\r\n", str64);
     return buf;
