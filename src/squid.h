@@ -245,6 +245,10 @@
 #define LOCAL_ARRAY(type,name,size) static type name[size]
 #endif
 
+#if CBDATA_DEBUG
+#define cbdataAdd(a)	cbdataAddDbg(a,__FILE__,__LINE__)
+#endif
+
 #ifdef USE_GNUREGEX
 #include "GNUregex.h"
 #elif HAVE_REGEX_H
