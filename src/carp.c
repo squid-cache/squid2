@@ -59,7 +59,8 @@ carpInit(void)
     }
     /*
      * sum of carp-load-factor's for all cache_peer's in squid.conf
-     * must equal 1.0
+     * must equal 1.0.  If this doesn't work, see
+     * http://www.eskimo.com/~scs/C-faq/q14.4.html
      */
     assert(1000 == (int) (1000.0 * a));
     k = 1;
