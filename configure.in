@@ -184,6 +184,7 @@ dnl Clean up after OSF/1 core dump bug
 rm -f core 
 
 AC_OUTPUT(\
+	./makefile \
 	./lib/Makefile \
 	./src/Makefile \
 	./include/paths.h \
