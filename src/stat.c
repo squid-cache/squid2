@@ -903,7 +903,7 @@ void log_append(obj, url, caddr, size, action, method, http_code, msec, ident, h
 	ident = dash;
     if (hierData) {
 	hier_code = hierData->code;
-	hier_host = hierData->host;
+	hier_host = hierData->host ? hierData->host : dash;
 	hier_timeout = hierData->timeout;
     }
     if (obj->logfile_status == LOG_ENABLE) {
