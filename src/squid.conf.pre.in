@@ -1,18 +1,6 @@
+# @configure_input@
+#
 # $Id$
-#
-#  NOTE: Upon installation, cached.conf is a symbolic link to this file,
-#	 cached.conf.default.  If you want to change this file, please
-#	 remove the symbolic link and copy cached.conf.default to
-#	 cached.conf.  Then make your changes to cached.conf.
-#
-#
-#  cached.conf - Harvest Object Cache configuration file
-#
-#	Host:           ???
-#	Description:    ???
-#
-#	For more information about the Harvest Object Cache, refer to
-#	http://harvest.cs.colorado.edu/harvest/doc.html
 #
 
 #  TAG: ascii_port
