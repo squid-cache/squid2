@@ -852,6 +852,8 @@ extern int storeDirValidFileno(int fn);
 extern int storeFilenoBelongsHere(int, int, int, int);
 extern OBJH storeDirStats;
 extern int storeDirMapBitsInUse(void);
+extern void storeDirConfigure(void);
+extern void storeDirDiskFull(int fn);
 
 
 /*

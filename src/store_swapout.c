@@ -79,12 +79,12 @@ storeSwapOutHandle(int fdnotused, int flag, size_t len, void *data)
 	if (e->swap_file_number > -1) {
 	    storeUnlinkFileno(e->swap_file_number);
 	    storeDirMapBitReset(e->swap_file_number);
+	    if (flag == DISK_NO_SPACE_LEFT) {
+		storeDirDiskFull(e->swap_file_number);
+		storeDirConfigure();
+		storeConfigure();
+	    }
 	    e->swap_file_number = -1;
-	}
-	if (flag == DISK_NO_SPACE_LEFT) {
-	    /* reduce the swap_size limit to the current size. */
-	    Config.Swap.maxSize = store_swap_size;
-	    storeConfigure();
 	}
 	storeReleaseRequest(e);
 	storeSwapOutFileClose(e);
