@@ -375,6 +375,9 @@ debug_options ALL,1
 
 #  TAG: redirect_program 
 #	Specify the location of the executable for the URL redirector.
+#	Currently, you must provide your own redirector program.
+#	See the Release-Notes for how to write one.
+#	By default, the redirector is not used.
 #
 #redirect_program /bin/false
 
