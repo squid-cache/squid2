@@ -16,6 +16,10 @@
 #include <syslog.h>
 #include <errno.h>
 #include <sys/param.h>
+#include <netdb.h>
+
+#include "msntauth.h"
+#include "valid.h"
 
 #define CONFIGFILE   "/usr/local/squid/etc/msntauth.conf"	/* Path to configuration file */
 #define DENYUSERSDEFAULT   "/usr/local/squid/etc/denyusers"
@@ -38,13 +42,9 @@ int Serversqueried = 0;		/* Number of servers queried */
 
 /* Declarations */
 
-int OpenConfigFile();
-void ProcessLine(char *);
-void AddServer(char *, char *, char *);
-int QueryServers(char *, char *);
-int QueryServerForUser(int, char *, char *);
-extern int Valid_User(char *, char *, char *, char *, char *);
-
+static void ProcessLine(char *);
+static void AddServer(char *, char *, char *);
+static int QueryServerForUser(int, char *, char *);
 
 /*
  * Opens and reads the configuration file.
@@ -52,7 +52,7 @@ extern int Valid_User(char *, char *, char *, char *, char *);
  */
 
 int
-OpenConfigFile()
+OpenConfigFile(void)
 {
     FILE *ConfigFile;
     char Confbuf[2049];		/* Line reading buffer */
@@ -91,7 +91,7 @@ OpenConfigFile()
 
 /* Parses a configuration file line. */
 
-void
+static void
 ProcessLine(char *Linebuf)
 {
     char *Directive;
@@ -154,6 +154,7 @@ ProcessLine(char *Linebuf)
 
 /*
  * Adds a server to query to the server array.
+ * Checks if the server IP is resolvable.
  * Checks if the number of servers to query is not exceeded.
  * Does not allow parameters longer than NTHOSTLEN.
  */
@@ -162,7 +163,15 @@ void
 AddServer(char *ParamPDC, char *ParamBDC, char *ParamDomain)
 {
     if (Serversqueried + 1 > MAXSERVERS) {
-	syslog(LOG_USER | LOG_ERR, "ProcessLine: Ignoring '%s' server line; too many servers.", ParamPDC);
+	syslog(LOG_USER | LOG_ERR, "AddServer: Ignoring '%s' server line; too many servers.", ParamPDC);
+	return;
+    }
+    if (gethostbyname(ParamPDC) == (struct hostent *) NULL) {
+	syslog(LOG_USER | LOG_ERR, "AddServer: Ignoring host '%s'. Cannot resolve its address.", ParamPDC);
+	return;
+    }
+    if (gethostbyname(ParamBDC) == (struct hostent *) NULL) {
+	syslog(LOG_USER | LOG_ERR, "AddServer: Ignoring host '%s'. Cannot resolve its address.", ParamBDC);
 	return;
     }
     Serversqueried++;
@@ -201,6 +210,11 @@ QueryServers(char *username, char *password)
  * Logs syslog messages for different errors.
  * Returns 0 on success, non-zero on failure.
  */
+
+/* Define for systems which don't support it, like Solaris */
+#ifndef LOG_AUTHPRIV
+#define LOG_AUTHPRIV LOG_AUTH
+#endif
 
 int
 QueryServerForUser(int x, char *username, char *password)
