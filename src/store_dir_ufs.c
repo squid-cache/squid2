@@ -306,8 +306,8 @@ storeRebuildFromDirectory(void *data)
 	    continue;
 	}
 	if ((++rb->counts.scancount & 0xFFFF) == 0)
-	    debug(20, 1) ("  %7d files opened so far.\n",
-		rb->counts.scancount);
+	    debug(20, 3) ("  %s %7d files opened so far.\n",
+		rb->sd->path, rb->counts.scancount);
 	debug(20, 9) ("file_in: fd=%d %08X\n", fd, sfileno);
 	Counter.syscalls.disk.reads++;
 	if (read(fd, hdr_buf, DISK_PAGE_SIZE) < 0) {
