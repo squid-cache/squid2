@@ -1,4 +1,4 @@
-Changes to squid-2.5.STABLE7 ()
+Changes to squid-2.5.STABLE7 (11 Oct 2004)
 
 	- [Medium] No objects cached in ufs cache_dir type in some
 	  configurations. Issue introduced in 2.5.STABLE6 by the patch for
@@ -60,6 +60,7 @@ Changes to squid-2.5.STABLE7 ()
 	  (Bug #874)
 	- [Minor] Suspected instability on aborted PUT/POST requests
 	  (Bug #1089)
+	- [Security] SNMP Denial of Service fix (CAN-2004-0918)
 
 Changes to squid-2.5.STABLE6 (9 Jul 2004)
 

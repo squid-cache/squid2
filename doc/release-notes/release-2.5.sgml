@@ -271,6 +271,7 @@ name="ChangeLog"> file for details.
 
 <P>
 <itemize>
+	<item>SNMP related Denial of Service issue corrected (CAN-2004-0918)
 	<item>NTLM related bugfix noticed by the Samba group
 	<item>UFS cache_dir bugfix to issue introduced in STABLE6 causing
 	no objects to get cached in some configurations.
