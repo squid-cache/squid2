@@ -1477,7 +1477,8 @@ icpHandleUdp(int sock, void *not_used)
 	/* Some Linux systems seem to set the FD for reading and then
 	 * return ECONNREFUSED when sendto() fails and generates an ICMP
 	 * port unreachable message. */
-	if (errno != ECONNREFUSED)
+	/* or maybe an EHOSTUNREACH "No route to host" message */
+	if (errno != ECONNREFUSED && errno != EHOSTUNREACH)
 #endif
 	    debug(50, 1, "icpHandleUdp: FD %d recvfrom: %s\n",
 		sock, xstrerror());
@@ -1963,7 +1964,6 @@ icpDetectClientClose(int fd, void *data)
     icpStateData *icpState = data;
     LOCAL_ARRAY(char, buf, 256);
     int n;
-    int x;
     StoreEntry *entry = icpState->entry;
 
     errno = 0;
@@ -2003,12 +2003,11 @@ icpDetectClientClose(int fd, void *data)
 	    storeUnregister(entry, fd);
 	    storeRegister(entry, fd, icpHandleAbort, (void *) icpState);
 	}
-	x = protoUnregister(fd,
+	protoUnregister(fd,
 	    entry,
 	    icpState->request,
 	    icpState->peer.sin_addr);
-	if (x == 0)
-	    comm_close(fd);
+	comm_close(fd);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
 	comm_set_stall(fd, 10);	/* check again in 10 seconds */
