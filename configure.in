@@ -904,6 +904,19 @@ AC_ARG_ENABLE(stacktraces,
   fi
 ])
 
+dnl Enable X-Accelerator-Vary for Vary support within an accelerator setup
+AC_ARG_ENABLE(x_accelerator_vary,
+[  --enable-x-accelerator-vary	Enable support for the X-Accelerator-Vary
+				HTTP header. Can be used to indicate
+				variance within an accelerator setup.
+				Typically used together with other code
+				that adds custom HTTP headers to the requests.],
+[ if test "$enableval" = "yes" ; then
+    echo "Enabling support for X-Accelerator-Vary"
+    AC_DEFINE(X_ACCELERATOR_VARY, 1)
+  fi
+])
+
 # Force some compilers to use ANSI features
 #
 case "$host" in

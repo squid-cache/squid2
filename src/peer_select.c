@@ -326,7 +326,7 @@ peerGetSomeNeighbor(ps_state * ps)
 	return;
     }
 #if USE_CACHE_DIGESTS
-    if ((p = neighborsDigestSelect(request, entry))) {
+    if ((p = neighborsDigestSelect(request))) {
 	if (neighborType(p, request) == PEER_PARENT)
 	    code = CD_PARENT_HIT;
 	else

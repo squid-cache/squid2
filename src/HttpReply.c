@@ -316,6 +316,13 @@ httpReplyHdrExpirationTime(const HttpReply * rep)
 		return squid_curtime;
 	}
     }
+    if (Config.onoff.vary_ignore_expire &&
+	httpHeaderHas(&rep->header, HDR_VARY)) {
+	const time_t d = httpHeaderGetTime(&rep->header, HDR_DATE);
+	const time_t e = httpHeaderGetTime(&rep->header, HDR_EXPIRES);
+	if (d == e)
+	    return -1;
+    }
     if (httpHeaderHas(&rep->header, HDR_EXPIRES)) {
 	const time_t e = httpHeaderGetTime(&rep->header, HDR_EXPIRES);
 	/*

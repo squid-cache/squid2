@@ -433,6 +433,15 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 	    break;
 	case STORE_META_STD:
 	    break;
+	case STORE_META_VARY_HEADERS:
+	    if (mem->vary_headers) {
+		if (strcmp(mem->vary_headers, t->value) != 0)
+		    swap_object_ok = 0;
+	    } else {
+		/* Assume the object is OK.. remember the vary request headers */
+		mem->vary_headers = xstrdup(t->value);
+	    }
+	    break;
 	default:
 	    debug(20, 1) ("WARNING: got unused STORE_META type %d\n", t->type);
 	    break;

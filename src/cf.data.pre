@@ -3648,5 +3648,20 @@ DOC_START
 	force fresh content.
 DOC_END
 
+NAME: vary_ignore_expire
+COMMENT: on|off
+TYPE: onoff
+LOC: Config.onoff.vary_ignore_expire
+DEFAULT: off
+DOC_START
+	Many HTTP servers supporting Vary gives such objects
+	immediate expiry time with no cache-control header
+	when requested by a HTTP/1.0 client. This option
+	enables Squid to ignore such expiry times until
+	HTTP/1.1 is fully implemented.
+	WARNING: This may eventually cause some varying
+	objects not intended for caching to get cached.
+DOC_END
+
 EOF
 

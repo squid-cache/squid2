@@ -120,6 +120,28 @@ storeKeyPublic(const char *url, const method_t method)
     return digest;
 }
 
+const cache_key *
+storeKeyPublicByRequest(request_t * request)
+{
+    return storeKeyPublicByRequestMethod(request, request->method);
+}
+
+const cache_key *
+storeKeyPublicByRequestMethod(request_t * request, const method_t method)
+{
+    static cache_key digest[MD5_DIGEST_CHARS];
+    unsigned char m = (unsigned char) method;
+    const char *url = urlCanonical(request);
+    MD5_CTX M;
+    MD5Init(&M);
+    MD5Update(&M, &m, sizeof(m));
+    MD5Update(&M, (unsigned char *) url, strlen(url));
+    if (request->vary_headers)
+	MD5Update(&M, (unsigned char *) request->vary_headers, strlen(request->vary_headers));
+    MD5Final(digest, &M);
+    return digest;
+}
+
 cache_key *
 storeKeyDup(const cache_key * key)
 {

@@ -67,6 +67,7 @@ storeSwapMetaBuild(StoreEntry * e)
     tlv *TLV = NULL;		/* we'll return this */
     tlv **T = &TLV;
     const char *url;
+    const char *vary;
     assert(e->mem_obj != NULL);
     assert(e->swap_status == SWAPOUT_WRITING);
     url = storeUrl(e);
@@ -74,6 +75,9 @@ storeSwapMetaBuild(StoreEntry * e)
     T = storeSwapTLVAdd(STORE_META_KEY, e->hash.key, MD5_DIGEST_CHARS, T);
     T = storeSwapTLVAdd(STORE_META_STD, &e->timestamp, STORE_HDR_METASIZE, T);
     T = storeSwapTLVAdd(STORE_META_URL, url, strlen(url) + 1, T);
+    vary = e->mem_obj->vary_headers;
+    if (vary)
+	T = storeSwapTLVAdd(STORE_META_VARY_HEADERS, vary, strlen(vary) + 1, T);
     return TLV;
 }
 
