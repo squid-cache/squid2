@@ -430,6 +430,10 @@ icpCachable(icpStateData * icpState)
     request_t *req = icpState->request;
     method_t method = req->method;
     const wordlist *p;
+#ifdef NO_CACHE_ACL
+    const ipcache_addrs *ia;
+    aclCheck_t checklist;
+#endif /* NO_CACHE_ACL */
 
     if (BIT_TEST(icpState->request->flags, REQ_AUTH))
 	return 0;
@@ -440,6 +444,15 @@ icpCachable(icpStateData * icpState)
     if (Config.cache_stop_relist)
 	if (aclMatchRegex(Config.cache_stop_relist, request))
 	    return 0;
+#ifdef NO_CACHE_ACL
+    ia = ipcache_gethostbyname(req->host, 0);
+    if (ia != NULL) {
+	checklist.dst_addr = ia->in_addrs[ia->cur];
+	checklist.request = req;
+	if (!aclCheck(UncacheableList, &checklist))
+	    return 0;
+    }
+#endif /* NO_CACHE_ACL */
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(request, method);
     /* FTP is always cachable */
@@ -588,11 +601,26 @@ icpReadDataDone(int fd, char *buf, int len, int err, void *data)
 	    httpParseReplyHeaders(buf, mem->reply);
     icpState->out.offset += len;
     if (icpState->request->method == METHOD_HEAD) {
+	int hack = 0;
+	char C = '\0';
+	int size = len;
+	if (size == ICP_SENDMOREDATA_BUF) {
+	    hack = 1;
+	    size--;
+	    C = *(buf + size);
+	}
+	*(buf + size) = '\0';
 	if ((p = mime_headers_end(buf))) {
 	    *p = '\0';
 	    len = p - buf;
-	    icpState->out.size = entry->object_len;	/* force end */
+	    /* force end */
+	    if (entry->store_status == STORE_PENDING)
+		icpState->out.size = entry->mem_obj->e_current_len;
+	    else
+		icpState->out.size = entry->object_len;
 	}
+	if (hack)
+	    *(buf + size++) = C;
     }
     comm_write(icpState->fd,
 	icpState->out.buf,
@@ -947,7 +975,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     answer = aclCheck(MISSAccessList, &ch);
     requestUnlink(ch.request);
     if (answer == 0) {
-	icpState->http_code = 400;
+	icpState->http_code = 403;
 	buf = access_denied_msg(icpState->http_code,
 	    icpState->method,
 	    icpState->url,
@@ -1677,6 +1705,11 @@ clientReadRequest(int fd, void *data)
     char *wbuf = NULL;
     int size;
     int len;
+#ifdef RETRY_PATCH
+    int lft = -1;
+
+    lft = comm_set_fd_lifetime(fd, Config.readTimeout);		/* die when the read timeout expires */
+#endif /* RETRY_PATCH */
 
     len = icpState->in.size - icpState->in.offset - 1;
     debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
@@ -1737,6 +1770,10 @@ clientReadRequest(int fd, void *data)
 		xfree);
 	    return;
 	}
+#ifdef RETRY_PATCH
+	/* have request, extend life */
+	lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
+#endif /* RETRY_PATCH */
 	icpState->request = requestLink(request);
 	clientAccessCheck(icpState, clientAccessCheckDone);
     } else if (parser_return_code == 0) {
@@ -1843,7 +1880,12 @@ asciiHandleConn(int sock, void *notused)
 	if (vizSock > -1)
 	    vizHackSendPkt(&peer, 1);
 	/* set the hardwired lifetime */
+#ifdef RETRY_PATCH
+	/* if no data, die soon */
+	lft = comm_set_fd_lifetime(fd, Config.connectTimeout);
+#else
 	lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
+#endif /* RETRY_PATCH */
 	ntcpconn++;
 
 	debug(12, 4, "asciiHandleConn: FD %d: accepted, lifetime %d\n", fd, lft);
@@ -1928,8 +1970,9 @@ CheckQuickAbort2(const icpStateData * icpState)
     if ((expectlen - curlen) > Config.quickAbort.max)
 	/* too much left to go */
 	return 1;
-    if (expectlen <= 0)
-	return 1;
+    if (expectlen < 128U)
+	/* avoid FPE */
+	return 0;
     if ((curlen / (expectlen / 128U)) > Config.quickAbort.pct)
 	/* past point of no return */
 	return 0;
@@ -2037,7 +2080,11 @@ icpDetectNewRequest(int fd)
     int len;
 
     /* set the hardwired lifetime */
+#ifdef RETRY_PATCH
+    lft = comm_set_fd_lifetime(fd, Config.readTimeout);
+#else
     lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
+#endif /* RETRY_PATCH */
     len = sizeof(struct sockaddr_in);
 
     memset(&me, '\0', len);

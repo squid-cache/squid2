@@ -45,6 +45,9 @@ const char *AclMatchedName = NULL;
 struct _acl_deny_info_list *DenyInfoList = NULL;
 struct _acl_access *HTTPAccessList = NULL;
 struct _acl_access *ICPAccessList = NULL;
+#ifdef NO_CACHE_ACL
+struct _acl_access *UncacheableList = NULL;
+#endif /* NO_CACHE_ACL */
 struct _acl_access *MISSAccessList = NULL;
 #if DELAY_HACK
 struct _acl_access *DelayAccessList = NULL;
@@ -374,11 +377,13 @@ aclParseIpList(void *curlist)
     char *t = NULL;
     splayNode **Top = curlist;
     struct _acl_ip_data *q = NULL;
+    struct _acl_ip_data *next = NULL;
     while ((t = strtokFile())) {
-	q = aclParseIpData(t);
-	while (q != NULL) {
+	next = aclParseIpData(t);
+	while ((q = next) != NULL) {
+	    next = q->next;
+	    q->next = NULL;
 	    *Top = splay_insert(q, *Top, aclIpNetworkCompare);
-	    q = q->next;
 	}
     }
 }

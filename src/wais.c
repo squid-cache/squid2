@@ -362,6 +362,16 @@ waisStart(int unusedfd, const char *url, method_t method, char *mime_hdr, StoreE
     comm_add_close_handler(waisState->fd,
 	(PF) waisStateFree,
 	(void *) waisState);
+
+#ifdef RETRY_PATCH
+    /* set timeout handler */
+    commSetSelect(fd,
+	COMM_SELECT_TIMEOUT,
+	(PF) waisReadReplyTimeout,
+	(void *) waisState,
+	Config.connectTimeout);
+#endif /* RETRY_PATCH */
+
     waisState->ip_lookup_pending = 1;
     ipcache_nbgethostbyname(waisState->relayhost,
 	waisState->fd,

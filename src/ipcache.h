@@ -121,6 +121,10 @@ typedef unsigned int ipcache_status_t;
 typedef struct {
     unsigned char count;
     unsigned char cur;
+#ifdef RETRY_PATCH
+    unsigned char badcount;
+    unsigned char *bad_addrs;
+#endif /* RETRY_PATCH */
     struct in_addr *in_addrs;
 } ipcache_addrs;
 
@@ -155,7 +159,12 @@ extern void stat_ipcache_get _PARAMS((StoreEntry *));
 extern int ipcacheQueueDrain _PARAMS((void));
 extern void ipcacheOpenServers _PARAMS((void));
 extern void ipcacheCycleAddr _PARAMS((const char *name));
+#ifdef RETRY_PATCH
+extern void ipcacheMarkBadAddr _PARAMS((const char *name, struct in_addr));
+extern void ipcacheMarkGoodAddr _PARAMS((const char *name, struct in_addr));
+#else
 extern void ipcacheRemoveBadAddr _PARAMS((const char *name, struct in_addr));
+#endif /* RETRY_PATCH */
 extern void ipcacheFreeMemory _PARAMS((void));
 extern ipcache_addrs *ipcacheCheckNumeric _PARAMS((const char *name));
 extern void ipcache_restart _PARAMS((void));

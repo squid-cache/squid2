@@ -61,9 +61,7 @@ struct _acl_ip_data {
     struct in_addr addr1;	/* if addr2 non-zero then its a range */
     struct in_addr addr2;
     struct in_addr mask;
-#ifndef USE_SPLAY_TREE
     struct _acl_ip_data *next;
-#endif
 };
 
 struct _acl_time_data {
@@ -147,6 +145,9 @@ extern void aclParseRegexList _PARAMS((void *curlist, int icase));
 extern struct _acl_access *HTTPAccessList;
 extern struct _acl_access *MISSAccessList;
 extern struct _acl_access *ICPAccessList;
+#ifdef NO_CACHE_ACL
+extern struct _acl_access *UncacheableList;
+#endif /* NO_CACHE_ACL */
 extern struct _acl_deny_info_list *DenyInfoList;
 extern const char *AclMatchedName;
 
