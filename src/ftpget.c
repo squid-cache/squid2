@@ -173,7 +173,7 @@
 #include "squid.h"
 #include "mime_table.h"
 
-char *proxy_host = NULL;
+static char *proxy_host = NULL;
 
 #ifndef HAVE_GETOPT_H
 extern int optind;
@@ -182,7 +182,7 @@ extern int optind;
 /* Junk so we can link with debug.o */
 int opt_syslog_enable = 0;
 volatile int unbuffered_logs = 1;
-const char *const w_space = " \t\n\r";
+static const char *const w_space = " \t\n\r";
 const char *const appname = "ftpget";
 struct timeval current_time;
 time_t squid_curtime;
@@ -598,9 +598,9 @@ sigchld_handler(int sig)
     pid_t pid;
 
 #if defined(_SQUID_NEXT_) && !defined(_POSIX_SOURCE)
-    if ((pid = wait4(0, &status, WNOHANG, NULL)) > 0)
+    while ((pid = wait4(0, &status, WNOHANG, NULL)) > 0)
 #else
-    if ((pid = waitpid(0, &status, WNOHANG)) > 0)
+    while ((pid = waitpid(0, &status, WNOHANG)) > 0)
 #endif
 	debug(38, 5, "sigchld_handler: Ate pid %d\n", pid);
     signal(sig, sigchld_handler);
@@ -2642,7 +2642,8 @@ main(int argc, char *argv[])
 	    proxy_host = xstrdup(optarg);
 	    break;
 	case 'H':
-	    strcpy(visible_hostname, optarg);
+	    strncpy(visible_hostname, optarg, BUFSIZ);
+	    visible_hostname[BUFSIZ]='\0';
 	    break;
 	case 'P':
 	    port = atoi(optarg);
@@ -2714,6 +2715,7 @@ main(int argc, char *argv[])
 	case 'v':
 	    printf("%s version %s\n", progname, SQUID_VERSION);
 	    exit(0);
+	    /* NOTREACHED */
 	case 'w':
 	    o_list_width = atoi(optarg);
 	    break;

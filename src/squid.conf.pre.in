@@ -353,10 +353,10 @@ cache_stoplist cgi-bin ?
 #	The low- and high-water marks for cache LRU replacement.
 #	LRU replacement begins when the high-water mark is reached
 #	and ends when enough objects have been removed and the low-water
-#	mark is reached. Defaults are 75% and 90%.
+#	mark is reached. Defaults are 90% and 95%.
 #	
-#cache_swap_low  75
-#cache_swap_high 90
+#cache_swap_low  90
+#cache_swap_high 95
 
 #  TAG: cache_mem_low  (in percent, 0-100)         
 #  TAG: cache_mem_high (in percent, 0-100)
@@ -792,6 +792,7 @@ icp_access  allow  all
 #
 #	By default, allow all clients who passed the http_access rules
 #	to fetch MISSES from us.
+#
 miss_access allow  all
 
 #  TAG: cache_host_acl
@@ -1028,6 +1029,7 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	If set, ICP queries are logged to access.log.  ICP logging
 #	is enabled by default, so uncomment and change the line
 #	below to disable it.
+#
 #log_icp_queries on
 
 
@@ -1096,12 +1098,14 @@ minimum_direct_hops 4
 #	Average object size, used to estimate number of objects your
 #	cache can hold.  See doc/Release-Notes-1.1.txt.  The default is
 #	20K.
+#
 #store_avg_object_size 20
 
 #  TAG: store_objects_per_bucket 50
 #	Target number of objects per bucket in the store hash table.
 #	Lowering this value increases the total number of buckets and
 #	also the storage maintenance rate.  The default is 50.
+#
 #store_objects_per_bucket 50
 
 #  TAG: http_anonymizer
@@ -1113,4 +1117,5 @@ minimum_direct_hops 4
 #		'paranoid'	Only specific headers are allowed.
 #	To see which headers are allowed or denied, please see the
 #	http-anon.c source file.
+#
 #http_anonymizer off

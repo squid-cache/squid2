@@ -124,6 +124,7 @@
 #define COMM_SELECT_LIFETIME (0x10)
 
 typedef void (*PF) (int, void *);
+typedef void (*CCH) _PARAMS((int fd, int status, void *data));
 
 typedef void rw_complete_handler(int fd, char *buf, int size, int errflag, void *data);
 typedef struct _RWStateData RWStateData;
@@ -137,11 +138,10 @@ struct close_handler {
 };
 
 typedef struct {
-    int fd;
-    const char *host;
+    char *host;
     u_short port;
     struct sockaddr_in S;
-    void (*handler) _PARAMS((int fd, int status, void *data));
+    CCH callback;
     void *data;
 } ConnectStateData;
 
@@ -177,7 +177,7 @@ extern int commSetNonBlocking _PARAMS((int fd));
 extern void commSetCloseOnExec _PARAMS((int fd));
 extern int comm_accept _PARAMS((int fd, struct sockaddr_in *, struct sockaddr_in *));
 extern void comm_close _PARAMS((int fd));
-extern void comm_nbconnect _PARAMS((int sock, void *));
+extern void commConnectStart _PARAMS((int fd, const char *, u_short, CCH, void *));
 extern int comm_connect_addr _PARAMS((int sock, const struct sockaddr_in *));
 extern int comm_get_fd_lifetime _PARAMS((int fd));
 extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void **));

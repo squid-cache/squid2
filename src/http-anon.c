@@ -123,8 +123,6 @@ httpAnonSearchHeaderField(const struct http_anon_struct_header *header_field,
     const char *line)
 {
     const struct http_anon_struct_header *ppc;
-    if (*line == '\0')		/* the terminating empty line */
-	return 1;
     for (ppc = header_field; ppc->len; ppc++)
 	if (strncasecmp(line, ppc->name, ppc->len) == 0)
 	    return 1;
@@ -133,11 +131,15 @@ httpAnonSearchHeaderField(const struct http_anon_struct_header *header_field,
 int
 httpAnonAllowed(const char *line)
 {
+    if (*line == '\0')		/* the terminating empty line */
+	return 1;
     return httpAnonSearchHeaderField(http_anon_allowed_header, line);
 }
 
 int
 httpAnonDenied(const char *line)
 {
+    if (*line == '\0')		/* the terminating empty line */
+	return 0;
     return httpAnonSearchHeaderField(http_anon_denied_header, line);
 }

@@ -48,7 +48,6 @@ typedef struct {
     time_t timeout;
     int *size_ptr;		/* pointer to size for logging */
     int proxying;
-    ConnectStateData connectState;
 } PassStateData;
 
 static void passLifetimeExpire _PARAMS((int fd, void *));
@@ -119,7 +118,6 @@ passStateFree(int fd, void *data)
     xfree(passState->url);
     requestUnlink(passState->request);
     requestUnlink(passState->proxy_request);
-    memset(passState, '\0', sizeof(PassStateData));
     safe_free(passState);
 }
 
@@ -325,7 +323,7 @@ passConnected(int fd, void *data)
 	opt_forwarded_for ? passState->client.fd : -1);
     debug(39, 3, "passConnected: Appending %d bytes of content\n",
 	passState->buflen - hdr_len);
-    memcpy(passState->client.buf + passState->client.len,
+    xmemcpy(passState->client.buf + passState->client.len,
 	passState->buf + hdr_len,
 	passState->buflen - hdr_len);
     passState->client.len += passState->buflen - hdr_len;
@@ -391,12 +389,11 @@ passConnect(int fd, const ipcache_addrs * ia, void *data)
 	COMM_SELECT_LIFETIME,
 	passLifetimeExpire,
 	(void *) passState, 0);
-    passState->connectState.fd = fd;
-    passState->connectState.host = passState->host;
-    passState->connectState.port = passState->port;
-    passState->connectState.handler = passConnectDone;
-    passState->connectState.data = passState;
-    comm_nbconnect(fd, &passState->connectState);
+    commConnectStart(fd,
+	passState->host,
+	passState->port,
+	passConnectDone,
+	passState);
 }
 
 static void
@@ -423,8 +420,6 @@ passConnectDone(int fd, int status, void *data)
     if (opt_no_ipcache)
 	ipcacheInvalidate(passState->host);
     passConnected(passState->server.fd, passState);
-    if (vizSock > -1)
-	vizHackSendPkt(&passState->connectState.S, 2);
 }
 
 int
