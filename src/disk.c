@@ -394,9 +394,10 @@ static void
 diskHandleRead(int fd, void *data)
 {
     dread_ctrl *ctrl_dat = data;
+#if !USE_ASYNC_IO
     int len;
-    disk_ctrl_t *ctrlp;
-    ctrlp = xcalloc(1, sizeof(disk_ctrl_t));
+#endif
+    disk_ctrl_t *ctrlp = xcalloc(1, sizeof(disk_ctrl_t));
     ctrlp->fd = fd;
     ctrlp->data = ctrl_dat;
 #if USE_ASYNC_IO
@@ -512,13 +513,15 @@ static void
 diskHandleWalk(int fd, void *data)
 {
     dwalk_ctrl *walk_dat = data;
+#if !USE_ASYNC_IO
     int len;
-    disk_ctrl_t *ctrlp;
-    ctrlp = xcalloc(1, sizeof(disk_ctrl_t));
+#endif
+    disk_ctrl_t *ctrlp = xcalloc(1, sizeof(disk_ctrl_t));
     ctrlp->fd = fd;
     ctrlp->data = walk_dat;
 #if USE_ASYNC_IO
-    aioRead(fd, walk_dat->buf,
+    aioRead(fd,
+	walk_dat->buf,
 	DISK_LINE_LEN - 1,
 	diskHandleWalkComplete,
 	ctrlp);

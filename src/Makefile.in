@@ -75,6 +75,8 @@ SUID_UTILS	= pinger
 CGIPROGS	= cachemgr.cgi
 OBJS	 	= \
 		acl.o \
+		aiops.o \
+		async_io.o \
 		cache_cf.o \
 		client_db.o \
 		client_side.o \

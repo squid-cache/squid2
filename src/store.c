@@ -1495,7 +1495,9 @@ storeValidate(StoreEntry * e, VCB callback, void *callback_data)
     valid_ctrl_t *ctrlp;
     char *path;
     struct stat *sb;
+#if !USE_ASYNC_IO
     int x;
+#endif
     assert(!BIT_TEST(e->flag, ENTRY_VALIDATED));
     if (e->swap_file_number < 0) {
 	BIT_RESET(e->flag, ENTRY_VALIDATED);
