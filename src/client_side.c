@@ -1358,7 +1358,8 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 		squid_curtime - http->entry->timestamp);
     }
     /* Filter unproxyable authentication types */
-    if (httpHeaderHas(hdr, HDR_WWW_AUTHENTICATE) || httpHeaderHas(hdr, HDR_PROXY_AUTHENTICATE)) {
+    if (http->log_type != LOG_TCP_DENIED &&
+	(httpHeaderHas(hdr, HDR_WWW_AUTHENTICATE) || httpHeaderHas(hdr, HDR_PROXY_AUTHENTICATE))) {
 	HttpHeaderPos pos = HttpHeaderInitPos;
 	HttpHeaderEntry *e;
 	while ((e = httpHeaderGetEntry(hdr, &pos))) {
