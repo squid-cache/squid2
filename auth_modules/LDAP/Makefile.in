@@ -40,7 +40,7 @@ SHELL		= /bin/sh
 all: $(LDAP_EXE)
 
 $(LDAP_EXE): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) $(XTRA_LIBS)
 
 install-mkdirs:
 	-@if test ! -d $(prefix); then \

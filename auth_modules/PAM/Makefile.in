@@ -47,7 +47,7 @@ DEFINES		=
 
 INCLUDE		= -I. -I../../include -I$(top_srcdir)/include
 CFLAGS 		= $(AC_CFLAGS) $(INCLUDE) $(DEFINES)
-AUTH_LIBS	= -lpam -ldl
+AUTH_LIBS	= -lpam -ldl $(XTRA_LIBS)
 
 LIBPROGS        = $(PAM_AUTH_EXE)
 OBJS	 	= pam_auth.o
