@@ -546,7 +546,7 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
 	CheckQuickAbort(state);
 	/* Log the number of bytes that we managed to read */
 	CacheInfo->proto_touchobject(CacheInfo,
-	    proto_url_to_id(entry->url),
+	    urlParseProtocol(entry->url),
 	    state->offset);
 	/* Now we release the entry and DON'T touch it from here on out */
 	icpCloseAndFree(fd, state, __LINE__);
@@ -972,17 +972,21 @@ int icpHandleUdp(sock, not_used)
     header.version = ntohs(headerp->version);
     /*  memcpy(headerp->auth, , ICP_AUTH_SIZE); */
 
-    if (neighbors_do_private_keys && header.reqnum == 0) {
-	debug(12, 0, "icpHandleUdp: Neighbor %s returned reqnum = 0\n",
-	    inet_ntoa(from.sin_addr));
-	debug(12, 0, "icpHandleUdp: Disabling use of private keys\n");
-	neighbors_do_private_keys = 0;
-    }
     switch (header.opcode) {
     case ICP_OP_QUERY:
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
+#ifdef OLD_CODE
 	if (ip_access_check(from.sin_addr, proxy_ip_acl) == IP_DENY) {
+#else
+	if (!aclCheck(ICPAccessList,
+		from.sin_addr,
+		METHOD_GET,
+		PROTO_NONE,	/* XXX need work here */
+		NULL,		/* host */
+		0,		/* port */
+		NULL)) {	/* request */
+#endif
 	    debug(12, 2, "icpHandleUdp: Access Denied for %s.\n",
 		inet_ntoa(from.sin_addr));
 	    CacheInfo->log_append(CacheInfo,	/* UDP_DENIED */
@@ -1033,6 +1037,13 @@ int icpHandleUdp(sock, not_used)
     case ICP_OP_SECHO:
     case ICP_OP_DECHO:
     case ICP_OP_MISS:
+
+	if (neighbors_do_private_keys && header.reqnum == 0) {
+	    debug(12, 0, "icpHandleUdp: Neighbor %s returned reqnum = 0\n",
+		inet_ntoa(from.sin_addr));
+	    debug(12, 0, "icpHandleUdp: Disabling use of private keys\n");
+	    neighbors_do_private_keys = 0;
+	}
 	url = buf + sizeof(header);
 	debug(12, 3, "icpHandleUdp: %s from %s for '%s'\n",
 	    IcpOpcodeStr[header.opcode],
@@ -1138,13 +1149,8 @@ int parseHttpRequest(icpState)
 	debug(12, 1, "parseHttpRequest: Can't get request method\n");
 	return -1;
     }
-    if (strcasecmp(method, "GET") == 0) {
-	icpState->method = METHOD_GET;
-    } else if (strcasecmp(method, "POST") == 0) {
-	icpState->method = METHOD_POST;
-    } else if (strcasecmp(method, "HEAD") == 0) {
-	icpState->method = METHOD_HEAD;
-    } else {
+    icpState->method = urlParseMethod(method);
+    if (icpState->method == METHOD_NONE) {
 	debug(12, 1, "parseHttpRequest: Unsupported method '%s'\n", method);
 	return -1;
     }
@@ -1247,6 +1253,7 @@ int parseHttpRequest(icpState)
     return 1;
 }
 
+#ifdef OLD_CODE
 ip_access_type second_ip_acl_check(fd_unused, astm)
      int fd_unused;
      icpStateData *astm;
@@ -1255,6 +1262,7 @@ ip_access_type second_ip_acl_check(fd_unused, astm)
 	return ip_access_check(astm->peer.sin_addr, accel_ip_acl);
     return ip_access_check(astm->peer.sin_addr, proxy_ip_acl);
 }
+#endif
 
 
 /* Also rewrites URLs... */
@@ -1265,6 +1273,7 @@ static int check_valid_url(fd, astm)
     static char proto[MAX_URL];
     static char host[MAX_URL];
     static char urlpath[MAX_URL];
+    static char portbuf[32];
     char *t = NULL;
     protocol_t protocol;
     int port;
@@ -1272,32 +1281,27 @@ static int check_valid_url(fd, astm)
 	return ERR_INVALID_URL;
     for (t = host; *t; t++)
 	*t = tolower(*t);
-    protocol = proto_url_to_id(proto);
-    port = proto_default_port(protocol);
+    protocol = urlParseProtocol(proto);
+    port = urlDefaultPort(protocol);
     if ((t = strchr(host, ':'))) {
-	switch (port = atoi(t + 1)) {
-	case 80:
-	    if (protocol == PROTO_HTTP)
-		*t = '\0';
-	    break;
-	case 21:
-	    if (protocol == PROTO_FTP)
-		*t = '\0';
-	    break;
-	case 70:
-	    if (protocol == PROTO_GOPHER)
-		*t = '\0';
-	    break;
-	default:
-	    break;
-	}
+	*t = '\0';
+	port = atoi(t + 1);
     }
-    sprintf(astm->url, "%s://%s%s", proto, host, urlpath);
-    if (!aclCheck(astm->peer.sin_addr, protocol, host, port, urlpath))
+    portbuf[0] = '\0';
+    if (port != urlDefaultPort(protocol))
+	sprintf(portbuf, ":%d", port);
+
+    sprintf(astm->url, "%s://%s%s%s", proto, host, portbuf, urlpath);
+    if (!aclCheck(HTTPAccessList,
+	    astm->peer.sin_addr,
+	    astm->method,
+	    protocol,
+	    host,
+	    port,
+	    urlpath))
 	return LOG_TCP_DENIED;
     return 0;
 }
-
 
 
 #define ASCII_INBUF_BLOCKSIZE 4096
@@ -1532,6 +1536,7 @@ int asciiHandleConn(sock, notused)
     astm = (icpStateData *) xcalloc(1, sizeof(icpStateData));
     astm->start = current_time;
 
+#ifdef OLD_CODE
     if (ip_access_check(peer.sin_addr, proxy_ip_acl) == IP_DENY
 	&& ip_access_check(peer.sin_addr, accel_ip_acl) == IP_DENY) {
 	debug(12, 2, "asciiHandleConn: %s: Access denied.\n",
@@ -1550,6 +1555,7 @@ int asciiHandleConn(sock, notused)
 	    icpSendERRORComplete,
 	    (void *) astm);
     } else {
+#endif
 	astm->inbufsize = ASCII_INBUF_BLOCKSIZE;
 	astm->inbuf = (char *) xcalloc(astm->inbufsize, 1);
 	astm->header.shostid = htonl(peer.sin_addr.s_addr);
@@ -1566,7 +1572,9 @@ int asciiHandleConn(sock, notused)
 	    30,
 	    asciiProcessInput,
 	    (void *) astm);
+#ifdef OLD_CODE
     }
+#endif
     comm_set_select_handler(sock,
 	COMM_SELECT_READ,
 	asciiHandleConn,
