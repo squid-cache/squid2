@@ -145,7 +145,7 @@ storeKeyCopy(cache_key * dst, const cache_key *src)
 void
 storeKeyFree(const cache_key * key)
 {
-    xfree((void *) key);
+    memFree(MEM_MD5_DIGEST, (void *)key);
 }
 
 int
