@@ -168,7 +168,7 @@ void serverConnectionsClose()
 
 static void mainReinitialize()
 {
-    debug(1, 0, "Retarting Squid Cache (version %s)...\n", version_string);
+    debug(1, 0, "Restarting Squid Cache (version %s)...\n", version_string);
     /* Already called serverConnectionsClose and ipcacheShutdownServers() */
     neighborsDestroy();
 
