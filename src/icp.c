@@ -741,7 +741,11 @@ icpProcessRequest(int fd, icpStateData * icpState)
     debug(12, 4, "icpProcessRequest: %s '%s'\n",
 	RequestMethodStr[icpState->method],
 	url);
-    if (icpState->method == METHOD_CONNECT) {
+    if (icpState->method == METHOD_GET) {
+	(void) 0;		/* fall through */
+    } else if (icpState->method == METHOD_HEAD) {
+	(void) 0;		/* fall through */
+    } else if (icpState->method == METHOD_CONNECT) {
 	icpState->log_type = LOG_TCP_MISS;
 	sslStart(fd,
 	    url,
@@ -765,7 +769,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	    return;
 	}
 	/* yes, continue */
-    } else if (icpState->method != METHOD_GET) {
+    } else {
 	icpState->log_type = LOG_TCP_MISS;
 	passStart(fd,
 	    url,
@@ -2025,7 +2029,7 @@ icpDetectClientClose(int fd, void *data)
 	comm_close(fd);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
-	comm_set_stall(fd, 10);	/* check again in 10 seconds */
+	comm_set_stall(fd, 1);	/* check again in 1 seconds */
 	commSetSelect(fd, COMM_SELECT_READ, icpDetectClientClose, icpState, 0);
     }
 }
