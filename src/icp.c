@@ -657,7 +657,7 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 
     lmt = mem->reply->last_modified;
     if (lmt < 0)
-	debug(12, 0, "WARNING: '%s' has LMTIME=%s\n", mkrfc1123(lmt));
+	debug(12, 0, "WARNING: '%s' has LMTIME=%s\n", entry->url, mkrfc1123(lmt));
 
     /* Find size of the object */
     if (mem->reply->content_length)
