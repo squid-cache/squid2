@@ -141,7 +141,8 @@ static int edgeWouldBePinged(e, request)
 	    do_ping = !d->do_ping;
 	    continue;
 	}
-	if (strcasecmp(d->domain, host + offset) == 0) {
+	if (strcasecmp(d->domain, host + offset) == 0
+	    && (offset == 0 || host[offset - 1] == '.')) {
 	    /* found a match, no need to check any more domains */
 	    return d->do_ping;
 	} else {
