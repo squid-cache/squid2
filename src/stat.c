@@ -58,7 +58,7 @@ static void statCountersInitSpecial(StatCounters *);
 static void statCountersClean(StatCounters *);
 static void statCountersCopy(StatCounters * dest, const StatCounters * orig);
 static double statMedianSvc(int, int);
-static void statStoreEntry(StoreEntry * s, StoreEntry * e);
+static void statStoreEntry(MemBuf * mb, StoreEntry * e);
 static double statCPUUsage(int minutes);
 static OBJH stat_io_get;
 static OBJH stat_objects_get;
@@ -254,55 +254,55 @@ describeTimestamps(const StoreEntry * entry)
 }
 
 static void
-statStoreEntry(StoreEntry * s, StoreEntry * e)
+statStoreEntry(MemBuf * mb, StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
     int i;
     struct _store_client *sc;
     dlink_node *node;
-    storeAppendPrintf(s, "KEY %s\n", storeKeyText(e->hash.key));
+    memBufPrintf(mb, "KEY %s\n", storeKeyText(e->hash.key));
     if (mem)
-	storeAppendPrintf(s, "\t%s %s\n",
+	memBufPrintf(mb, "\t%s %s\n",
 	    RequestMethodStr[mem->method], mem->log_url);
-    storeAppendPrintf(s, "\t%s\n", describeStatuses(e));
-    storeAppendPrintf(s, "\t%s\n", storeEntryFlags(e));
-    storeAppendPrintf(s, "\t%s\n", describeTimestamps(e));
-    storeAppendPrintf(s, "\t%d locks, %d clients, %d refs\n",
+    memBufPrintf(mb, "\t%s\n", describeStatuses(e));
+    memBufPrintf(mb, "\t%s\n", storeEntryFlags(e));
+    memBufPrintf(mb, "\t%s\n", describeTimestamps(e));
+    memBufPrintf(mb, "\t%d locks, %d clients, %d refs\n",
 	(int) e->lock_count,
 	storePendingNClients(e),
 	(int) e->refcount);
-    storeAppendPrintf(s, "\tSwap Dir %d, File %#08X\n",
+    memBufPrintf(mb, "\tSwap Dir %d, File %#08X\n",
 	e->swap_dirn, e->swap_filen);
     if (mem != NULL) {
-	storeAppendPrintf(s, "\tinmem_lo: %d\n", (int) mem->inmem_lo);
-	storeAppendPrintf(s, "\tinmem_hi: %d\n", (int) mem->inmem_hi);
-	storeAppendPrintf(s, "\tswapout: %d bytes queued\n",
+	memBufPrintf(mb, "\tinmem_lo: %d\n", (int) mem->inmem_lo);
+	memBufPrintf(mb, "\tinmem_hi: %d\n", (int) mem->inmem_hi);
+	memBufPrintf(mb, "\tswapout: %d bytes queued\n",
 	    (int) mem->swapout.queue_offset);
 	if (mem->swapout.sio)
-	    storeAppendPrintf(s, "\tswapout: %d bytes written\n",
+	    memBufPrintf(mb, "\tswapout: %d bytes written\n",
 		(int) storeOffset(mem->swapout.sio));
 	for (i = 0, node = mem->clients.head; node; node = node->next, i++) {
 	    sc = (store_client *) node->data;
 	    if (sc->callback_data == NULL)
 		continue;
-	    storeAppendPrintf(s, "\tClient #%d, %p\n", i, sc->callback_data);
-	    storeAppendPrintf(s, "\t\tcopy_offset: %d\n",
+	    memBufPrintf(mb, "\tClient #%d, %p\n", i, sc->callback_data);
+	    memBufPrintf(mb, "\t\tcopy_offset: %d\n",
 		(int) sc->copy_offset);
-	    storeAppendPrintf(s, "\t\tseen_offset: %d\n",
+	    memBufPrintf(mb, "\t\tseen_offset: %d\n",
 		(int) sc->seen_offset);
-	    storeAppendPrintf(s, "\t\tcopy_size: %d\n",
+	    memBufPrintf(mb, "\t\tcopy_size: %d\n",
 		(int) sc->copy_size);
-	    storeAppendPrintf(s, "\t\tflags:");
+	    memBufPrintf(mb, "\t\tflags:");
 	    if (sc->flags.disk_io_pending)
-		storeAppendPrintf(s, " disk_io_pending");
+		memBufPrintf(mb, " disk_io_pending");
 	    if (sc->flags.store_copying)
-		storeAppendPrintf(s, " store_copying");
+		memBufPrintf(mb, " store_copying");
 	    if (sc->flags.copy_event_pending)
-		storeAppendPrintf(s, " copy_event_pending");
-	    storeAppendPrintf(s, "\n");
+		memBufPrintf(mb, " copy_event_pending");
+	    memBufPrintf(mb, "\n");
 	}
     }
-    storeAppendPrintf(s, "\n");
+    memBufPrintf(mb, "\n");
 }
 
 /* process objects list */
@@ -326,19 +326,23 @@ statObjects(void *data)
 	eventAdd("statObjects", statObjects, state, 0.1, 1);
 	return;
     }
-    storeBuffer(state->sentry);
     debug(49, 3) ("statObjects: Bucket #%d\n", state->bucket);
     link_next = hash_get_bucket(store_table, state->bucket);
-    while (NULL != (link_ptr = link_next)) {
-	link_next = link_ptr->next;
-	e = (StoreEntry *) link_ptr;
-	if (state->filter && 0 == state->filter(e))
-	    continue;
-	statStoreEntry(state->sentry, e);
+    if (link_next) {
+	MemBuf mb;
+	memBufDefInit(&mb);
+	while (NULL != (link_ptr = link_next)) {
+	    link_next = link_ptr->next;
+	    e = (StoreEntry *) link_ptr;
+	    if (state->filter && 0 == state->filter(e))
+		continue;
+	    statStoreEntry(&mb, e);
+	}
+	storeAppend(state->sentry, mb.buf, mb.size);
+	memBufClean(&mb);
     }
     state->bucket++;
     eventAdd("statObjects", statObjects, state, 0.0, 1);
-    storeBufferFlush(state->sentry);
 }
 
 static void
