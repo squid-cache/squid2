@@ -98,6 +98,20 @@ statHistCopy(StatHist * Dest, const StatHist * Orig)
     xmemcpy(Dest->bins, Orig->bins, Dest->capacity * sizeof(*Dest->bins));
 }
 
+/*
+ * same as statHistCopy but will do nothing if capacities do not match; the
+ * latter happens, for example, when #peers changes during reconfiguration;
+ * if it happens too often we should think about more general solution..
+ */
+void
+statHistSafeCopy(StatHist * Dest, const StatHist * Orig)
+{
+    assert(Dest && Orig);
+    assert(Dest->bins);
+    if (Dest->capacity == Orig->capacity)
+	statHistCopy(Dest, Orig);
+}
+
 void
 statHistCount(StatHist * H, double val)
 {

@@ -936,8 +936,8 @@ statCountersCopy(StatCounters * dest, const StatCounters * orig)
     statHistCopy(&dest->icp.client_svc_time, &orig->icp.client_svc_time);
     statHistCopy(&dest->cd.server_svc_time, &orig->cd.server_svc_time);
     statHistCopy(&dest->icp.server_svc_time, &orig->icp.server_svc_time);
-    statHistCopy(&dest->cd.peer_choice_count, &orig->cd.peer_choice_count);
-    statHistCopy(&dest->cd.peer_ichoice_count, &orig->cd.peer_ichoice_count);
+    statHistSafeCopy(&dest->cd.peer_choice_count, &orig->cd.peer_choice_count);
+    statHistSafeCopy(&dest->cd.peer_ichoice_count, &orig->cd.peer_ichoice_count);
     statHistCopy(&dest->cd.on_xition_count, &orig->cd.on_xition_count);
 #endif
 }
