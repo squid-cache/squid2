@@ -390,9 +390,8 @@ static int ipcache_purgelru()
     int k;
     ipcache_entry **LRU_list = NULL;
     int LRU_list_count = 0;
-    int LRU_cur_size = meta_data.ipcache_count;
 
-    LRU_list = xcalloc(LRU_cur_size, sizeof(ipcache_entry *));
+    LRU_list = xcalloc(meta_data.ipcache_count, sizeof(ipcache_entry *));
 
     for (i = ipcache_GetFirst(); i; i = ipcache_GetNext()) {
 	if (ipcacheExpiredEntry(i)) {
@@ -402,14 +401,8 @@ static int ipcache_purgelru()
 	}
 	local_ip_count++;
 
-	if (LRU_list_count >= LRU_cur_size) {
-	    /* have to realloc  */
-	    LRU_cur_size += 16;
-	    debug(14, 3, "ipcache_purgelru: Have to grow LRU_list to %d. This shouldn't happen.\n",
-		LRU_cur_size);
-	    LRU_list = xrealloc((char *) LRU_list,
-		LRU_cur_size * sizeof(ipcache_entry *));
-	}
+	if (LRU_list_count == meta_data.ipcache_count)
+	    break;
 	if (i->status == IP_PENDING)
 	    continue;
 	if (i->status == IP_DISPATCHED)
@@ -432,9 +425,11 @@ static int ipcache_purgelru()
 	LRU_list_count,
 	sizeof(ipcache_entry *),
 	(QS) ipcache_compareLastRef);
-    for (k = 0; LRU_list[k] && (meta_data.ipcache_count > ipcache_low)
-	&& k < LRU_list_count;
-	++k) {
+    for (k = 0; k < LRU_list_count; k++) {
+	if (meta_data.ipcache_count < ipcache_low)
+	    break;
+	if (LRU_list[k] == NULL)
+	    break;
 	ipcache_release(LRU_list[k]);
 	removed++;
     }
@@ -1160,6 +1155,12 @@ struct hostent *ipcache_gethostbyname(name, flags)
 	fatal_dump("ipcache_gethostbyname: NULL name");
     IpcacheStats.requests++;
     if ((i = ipcache_get(name))) {
+	if (ipcacheExpiredEntry(i)) {
+	    ipcache_release(i);
+	    i = NULL;
+	}
+    }
+    if (i) {
 	if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
 	    IpcacheStats.pending_hits++;
 	    return NULL;
