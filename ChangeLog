@@ -1,3 +1,11 @@
+Changes to squid-1.0 (June 14, 1996):
+
+	- Fixed beta17 "fd_lifetime" typo bug
+	- Added 'firewall_ip_list' to configuration options
+	- Set resolver options to disable searching default domains
+	  and parent domains.
+	- Added blocking-rebuild -F option.
+	- Fixed storeMaintainSwapSpace to be called every 10 seconds.
 
 Changes to squid-1.0.beta17 (June 12, 1996):
 
