@@ -141,6 +141,7 @@ extern void fqdnStats _PARAMS((StoreEntry *));
 extern void fqdncacheShutdownServers _PARAMS((void));
 extern void fqdncacheOpenServers _PARAMS((void));
 extern void fqdncacheReleaseInvalid _PARAMS((char *));
+extern char *fqdnFromAddr _PARAMS((struct in_addr));
 
 extern char *dns_error_message;
 

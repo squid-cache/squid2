@@ -1025,3 +1025,12 @@ void fqdncacheReleaseInvalid(name)
 	return;
     fqdncache_release(f);
 }
+
+char *fqdnFromAddr(addr)
+     struct in_addr addr;
+{
+    char *n;
+    if ((n = fqdncache_gethostbyaddr(addr, 0)))
+	return n;
+    return inet_ntoa(addr);
+}
