@@ -128,7 +128,7 @@ strtokFile(void)
 		debug(28, 0) ("strtokFile: %s not found\n", fn);
 		return (NULL);
 	    }
-#if defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
 	    setmode(fileno(aclFile), O_TEXT);
 #endif
 	    aclFromFile = 1;

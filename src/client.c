@@ -223,7 +223,7 @@ main(int argc, char *argv[])
 		xstrerror());
 	    exit(-1);
 	}
-#if defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
 	setmode(put_fd, O_BINARY);
 #endif
 	fstat(put_fd, &sb);

@@ -297,7 +297,7 @@ mimeInit(char *filename)
 	debug(50, 1) ("mimeInit: %s: %s\n", filename, xstrerror());
 	return;
     }
-#if defined (_SQUID_CYGWIN_)
+#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
     setmode(fileno(fp), O_TEXT);
 #endif
     mimeFreeMemory();

@@ -275,7 +275,7 @@ parseConfigFile(const char *file_name)
     if (fp == NULL)
 	fatalf("Unable to open configuration file: %s: %s",
 	    file_name, xstrerror());
-#if defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
     setmode(fileno(fp), O_TEXT);
 #endif
     cfg_filename = file_name;
