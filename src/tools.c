@@ -53,6 +53,13 @@ extern void log_trace_done();
 extern void log_trace_init(char *);
 #endif
 
+#ifdef _SQUID_LINUX_
+/* Workaround for crappy glic header files */
+extern int backtrace(void *, int);
+extern void backtrace_symbols_fd(void *, int, int);
+extern int setresuid(uid_t, uid_t, uid_t);
+#endif /* _SQUID_LINUX */
+
 extern void (*failure_notify) (const char *);
 
 void
