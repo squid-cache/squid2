@@ -416,6 +416,7 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	icpState->log_type = LOG_TCP_EXPIRED_FAIL_HIT;
 	storeUnlockObject(entry);
 	icpState->entry = icpState->old_entry;
+	icpState->entry->refcount++;
     } else if (mem->reply->code == 0) {
 	debug(33, 1, "icpHandleIMSReply: Incomplete headers for '%s'\n",
 	    entry->url);
