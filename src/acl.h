@@ -72,12 +72,12 @@ struct _acl_time_data {
 };
 
 struct _acl_name_list {
-    char name[ACL_NAME_SZ + 1];
+    char name[ACL_NAME_SZ];
     struct _acl_name_list *next;
 };
 
 struct _acl_deny_info_list {
-    char url[MAX_URL + 1];
+    char url[MAX_URL];
     struct _acl_name_list *acl_list;
     struct _acl_deny_info_list *next;
 };
@@ -90,7 +90,7 @@ struct _acl_deny_info_list {
 /* method data is just a intlist */
 
 struct _acl {
-    char name[ACL_NAME_SZ + 1];
+    char name[ACL_NAME_SZ];
     squid_acl type;
     void *data;
     char *cfgline;

@@ -277,8 +277,6 @@ extern int httpd_accel_mode;
 extern int parseConfigFile _PARAMS((const char *file_name));
 extern int setCacheSwapMax _PARAMS((int size));
 extern ip_access_type ip_access_check _PARAMS((struct in_addr, const ip_acl *));
-extern u_short setHttpPortNum _PARAMS((u_short));
-extern u_short setIcpPortNum _PARAMS((u_short));
 extern void intlistDestroy _PARAMS((intlist **));
 extern void wordlistDestroy _PARAMS((wordlist **));
 extern void configFreeMemory _PARAMS((void));

@@ -167,7 +167,7 @@ typedef struct wwd {
     protocol_t proto;
 } icpUdpData;
 
-#define ICP_IDENT_SZ 63
+#define ICP_IDENT_SZ 64
 #define IDENT_NONE 0
 #define IDENT_PENDING 1
 #define IDENT_DONE 2

@@ -433,7 +433,6 @@ icpSendERROR(int fd,
     buf_len = buf_len > 4095 ? 4095 : buf_len;
     buf = get_free_4k_page();
     xstrncpy(buf, text, buf_len);
-    *(buf + buf_len) = '\0';
     comm_write(fd,
 	buf,
 	buf_len,
@@ -462,7 +461,6 @@ icp_maybe_remember_reply_hdr(icpStateData * icpState)
 	char *buf = xcalloc(mime_len + 1, 1);
 
 	xstrncpy(buf, mime, mime_len);
-	buf[mime_len] = 0;
 	icpState->reply_hdr = buf;
 	debug(12, 5, "icp_maybe_remember_reply_hdr: ->\n%s<-\n", buf);
     } else {
@@ -1508,11 +1506,11 @@ do_append_domain(const char *url, const char *ad)
     lo = strlen(url);
     ln = lo + (adlen = strlen(ad));
     u = xcalloc(ln + 1, 1);
-    xstrncpy(u, url, (e - url));	/* copy first part */
+    strncpy(u, url, (e - url));	/* copy first part */
     b = u + (e - url);
     p = b + adlen;
-    xstrncpy(b, ad, adlen);	/* copy middle part */
-    xstrncpy(p, e, lo - (e - url));	/* copy last part */
+    strncpy(b, ad, adlen);	/* copy middle part */
+    strncpy(p, e, lo - (e - url));	/* copy last part */
     return (u);
 }
 
@@ -1591,7 +1589,7 @@ parseHttpRequest(icpStateData * icpState)
     }
     len = (int) (t - token);
     memset(http_ver, '\0', 32);
-    xstrncpy(http_ver, token, len < 31 ? len : 31);
+    xstrncpy(http_ver, token, 32);
     sscanf(http_ver, "%f", &icpState->http_ver);
     debug(12, 5, "parseHttpRequest: HTTP version is '%s'\n", http_ver);
 
@@ -2040,7 +2038,7 @@ icpDetectNewRequest(int fd)
     }
     ntcpconn++;
     if (Config.vizHackAddr.sin_port)
-	vizHackSendPkt(&peer);
+	vizHackSendPkt(&peer, 1);
     debug(12, 4, "icpDetectRequest: FD %d: accepted, lifetime %d\n", fd, lft);
     icpState = xcalloc(1, sizeof(icpStateData));
     icpState->start = current_time;

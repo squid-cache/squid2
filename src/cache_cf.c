@@ -1402,17 +1402,6 @@ parseConfigFile(const char *file_name)
     return 0;
 }
 
-u_short
-setHttpPortNum(u_short port)
-{
-    return (Config.Port.http = port);
-}
-u_short
-setIcpPortNum(u_short port)
-{
-    return (Config.Port.icp = port);
-}
-
 static char *
 safe_xstrdup(const char *p)
 {

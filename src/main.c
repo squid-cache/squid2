@@ -483,9 +483,9 @@ mainInitialize(void)
 #endif
 
     if (httpPortNumOverride != 1)
-	setHttpPortNum((u_short) httpPortNumOverride);
+	Config.Port.http = (u_short) httpPortNumOverride;
     if (icpPortNumOverride != 1)
-	setIcpPortNum((u_short) icpPortNumOverride);
+	Config.Port.icp = (u_short) icpPortNumOverride;
 
     _db_init(Config.Log.log, Config.debugOptions);
     fdstat_open(fileno(debug_log), FD_LOG);

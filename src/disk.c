@@ -535,7 +535,6 @@ diskHandleWalk(int fd, dwalk_ctrl * walk_dat)
 	if (walk_dat->buf[end_pos] == '\n') {
 	    /* new line found */
 	    xstrncpy(temp_line, walk_dat->buf + st_pos, end_pos - st_pos);
-	    temp_line[end_pos - st_pos] = '\0';
 	    used_bytes += end_pos - st_pos + 1;
 
 	    /* invoke line handler */

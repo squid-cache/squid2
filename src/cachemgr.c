@@ -681,16 +681,12 @@ main(int argc, char *argv[])
 
 	if (!strcmp(s, "host")) {
 	    xstrncpy(hostname, v, sizeof hostname);
-	    hostname[sizeof hostname - 1] = '\0';
 	} else if (!strcmp(s, "operation")) {
 	    xstrncpy(operation, v, sizeof operation);
-	    operation[sizeof operation - 1] = '\0';
 	} else if (!strcmp(s, "password")) {
 	    xstrncpy(password, v, sizeof password);
-	    password[sizeof password - 1] = '\0';
 	} else if (!strcmp(s, "url")) {
 	    xstrncpy(url, v, sizeof url);
-	    url[sizeof url - 1] = '\0';
 	} else if (!strcmp(s, "port")) {
 	    portnum = atoi(v);
 	} else {

@@ -58,10 +58,10 @@ typedef enum {
 struct _request {
     method_t method;
     protocol_t protocol;
-    char login[MAX_LOGIN_SZ + 1];
-    char host[SQUIDHOSTNAMELEN + 1];
+    char login[MAX_LOGIN_SZ];
+    char host[SQUIDHOSTNAMELEN+1];
     int port;
-    char urlpath[MAX_URL + 1];
+    char urlpath[MAX_URL];
     int link_count;		/* free when zero */
     struct _hierarchyLogData hierarchy;
     int flags;

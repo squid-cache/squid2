@@ -115,7 +115,7 @@ typedef struct {
     char *relayhost;
     int relayport;
     char *mime_hdr;
-    char request[MAX_URL + 1];
+    char request[MAX_URL];
     ConnectStateData connectState;
 } WaisStateData;
 
