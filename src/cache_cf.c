@@ -2438,10 +2438,17 @@ strtokFile(void)
 	fromFile = 0;
 	goto strtok_again;
     } else {
+	char *t2, *t3;
 	t = buf;
 	/* skip leading and trailing white space */
 	t += strspn(buf, w_space);
-	t[strcspn(t, w_space)] = '\0';
+	t2 = t + strcspn(t, w_space);
+	t3 = t2 + strspn(t2, w_space);
+	while (*t3 && *t3 != '#') {
+	    t2 = t3 + strcspn(t3, w_space);
+	    t3 = t2 + strspn(t2, w_space);
+	}
+	*t2 = '\0';
 	/* skip comments */
 	if (*t == '#')
 	    goto strtok_again;
@@ -2451,4 +2458,3 @@ strtokFile(void)
 	return t;
     }
 }
-
