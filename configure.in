@@ -88,6 +88,8 @@ if test -z "$PRESET_CFLAGS"; then
     	    # sunos has too many warnings for this to be useful
 	    # motorola too
     	    ;;
+	*m88k*-openbsd*)
+	    ;;
 	*m88k*)
 	    # Motorola cc/ld does not like -02 but is ok on -O
 	    CFLAGS=`echo $CFLAGS | sed -e 's/-O[0-9]/-O/'`
@@ -1591,6 +1593,8 @@ dnl during compile.
 				ac_cv_func_vsnprintf=no
 			;;
 		esac
+		;;
+	*m88k*-openbsd*)
 		;;
 	*m88k*)
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"
