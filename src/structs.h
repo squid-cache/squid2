@@ -397,6 +397,7 @@ struct _SquidConfig {
 	time_t connect;
 	time_t peer_connect;
 	time_t request;
+	time_t persistent_request;
 	time_t pconn;
 	time_t siteSelect;
 	time_t deadPeer;

@@ -2023,7 +2023,7 @@ clientKeepaliveNextRequest(clientHttpRequest * http)
 	/*
 	 * Set the timeout BEFORE calling clientReadRequest().
 	 */
-	commSetTimeout(conn->fd, Config.Timeout.pconn, requestTimeout, conn);
+	commSetTimeout(conn->fd, Config.Timeout.persistent_request, requestTimeout, conn);
 	/*
 	 * CYGWIN has a problem and is blocking on read() requests when there
 	 * is no data present.
