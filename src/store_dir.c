@@ -246,11 +246,9 @@ storeDirSelectSwapDir(void)
     if (nconf != Config.cacheSwap.n_configured) {
 	nconf = Config.cacheSwap.n_configured;
 	nleast = (nconf * 3) / 4;
-	if (dirq != NULL)
-	    xfree(dirq);
+	safe_free(dirq);
 	dirq = (int *) xmalloc(sizeof(int) * nleast);
-	if (diru != NULL)
-	    xfree(diru);
+	safe_free(diru);
 	diru = (double *) xmalloc(sizeof(double) * nconf);
 	for (j = 0; j < nleast; j++)
 	    dirq[j] = -1;
