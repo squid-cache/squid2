@@ -2679,6 +2679,12 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     end = req_hdr + header_sz;
     debug(33, 3) ("parseHttpRequest: end = {%s}\n", end);
 
+    if (strstr(req_hdr, "\r\r\n")) {
+	debug(33, 1) ("WARNING: suspicious HTTP request contains double CR\n");
+	*status = 0;
+	xfree(inbuf);
+	return parseHttpRequestAbort(conn, "error:double-CR");
+    }
     prefix_sz = end - inbuf;
     *req_line_sz_p = req_hdr - inbuf;
     debug(33, 3) ("parseHttpRequest: prefix_sz = %d, req_line_sz = %d\n",
