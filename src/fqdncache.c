@@ -481,8 +481,8 @@ fqdncache_nbgethostbyaddr(struct in_addr addr, FQDNH * handler, void *handlerDat
 	}
 	return;
     } else {
-	debug(35,1)("fqdncache_nbgethostbyaddr: BAD status %d",
-		(int) f->status);
+	debug(35, 1) ("fqdncache_nbgethostbyaddr: BAD status %d",
+	    (int) f->status);
 	assert(0);
     }
 

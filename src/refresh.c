@@ -117,7 +117,7 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
 	uri = urlCanonical(request);
     debug(22, 3) ("refreshCheck: '%s'\n", uri);
     refreshCounts.total++;
-    if (entry->flags.entry_revalidate) {
+    if (EBIT_TEST(entry->flags, ENTRY_REVALIDATE)) {
 	debug(22, 3) ("refreshCheck: YES: Required Authorization\n");
 	refreshCounts.revalidate_stale++;
 	return 1;
@@ -233,7 +233,7 @@ refreshWhen(const StoreEntry * entry)
 	assert(entry->mem_obj->url);
 	debug(22, 3) ("refreshWhen: key '%s'\n", storeKeyText(entry->key));
 	debug(22, 3) ("refreshWhen: url '%s'\n", entry->mem_obj->url);
-	if (entry->flags.entry_revalidate) {
+	if (EBIT_TEST(entry->flags, ENTRY_REVALIDATE)) {
 	    debug(22, 3) ("refreshWhen: NOW: Required Authorization\n");
 	    return refresh_time;
 	}

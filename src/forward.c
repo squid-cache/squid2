@@ -260,10 +260,10 @@ fwdDispatch(FwdState * fwdState)
 	fwdState->client_fd,
 	RequestMethodStr[request->method],
 	storeUrl(entry));
-    /*assert(!entry->flags.entry_dispatched); */
+    /*assert(!EBIT_TEST(entry->flags, ENTRY_DISPATCHED)); */
     assert(entry->ping_status != PING_WAITING);
     assert(entry->lock_count);
-    entry->flags.entry_dispatched = 1;
+    EBIT_SET(entry->flags, ENTRY_DISPATCHED);
     netdbPingSite(request->host);
     /*
      * Assert that server_fd is set.  This is to guarantee that fwdState
@@ -412,7 +412,7 @@ void
 fwdFail(FwdState * fwdState, int err_code, http_status http_code, int xerrno)
 {
 #ifdef PPNR_WIP
-    assert(fwdState->entry->flags.entry_fwd_hdr_wait);
+    assert(EBIT_TEST(fwdState->entry->flags, ENTRY_FWD_HDR_WAIT));
 #endif /* PPNR_WIP */
     debug(17, 3) ("fwdFail: %s \"%s\"\n\t%s\n",
 	err_type_str[err_code],

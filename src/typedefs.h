@@ -132,7 +132,6 @@ typedef struct _MemObject MemObject;
 typedef struct _StoreEntry StoreEntry;
 typedef struct _SwapDir SwapDir;
 typedef struct _request_flags request_flags;
-typedef struct _store_flags store_flags;
 typedef struct _helper_flags helper_flags;
 typedef struct _http_state_flags http_state_flags;
 typedef struct _request_t request_t;
