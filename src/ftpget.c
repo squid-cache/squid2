@@ -249,7 +249,7 @@
 char *rfc1738_escape(char *);
 void rfc1738_unescape(char *);
 char *http_time();
-static int check_data_rate(int size);
+static int check_data_rate __P((int size));
 
 typedef struct _ext_table_entry {
     char *name;
@@ -405,8 +405,8 @@ char visible_hostname[SMALLBUFSIZ];
  * reply code line is sent for a FTP command */
 list_t *cmd_msg = NULL;
 
-static int process_request(request_t *);
-static int write_with_timeout(int fd, char *buf, int len);
+static int process_request __P((request_t *));
+static int write_with_timeout __P((int fd, char *buf, int len));
 
 static char *state_str[] =
 {

@@ -114,8 +114,8 @@
 #define MAIN
 #include "util.h"
 
-static void debug_enable(int, int);
-static void debug_disable(int);
+static void debug_enable __P((int, int));
+static void debug_disable __P((int));
 
 int Harvest_debug_levels[MAX_DEBUG_LEVELS];
 int Harvest_do_debug = 0;

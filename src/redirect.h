@@ -31,8 +31,8 @@
 
 typedef void (*RH) (void *data, char *result);
 
-extern void redirectStart(int cfd, icpStateData *, RH, void *);
-extern void redirectOpenServers(void);
-extern void redirectShutdownServers(void);
-extern void redirectStats(StoreEntry *);
-extern int redirectUnregister(char *url, int fd);
+extern void redirectStart __P((int cfd, icpStateData *, RH, void *));
+extern void redirectOpenServers __P((void));
+extern void redirectShutdownServers __P((void));
+extern void redirectStats __P((StoreEntry *));
+extern int redirectUnregister __P((char *url, int fd));

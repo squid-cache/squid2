@@ -28,9 +28,13 @@
  *  
  */
 
-extern void aioExamine(void);
-extern void aioSigHandler(int sig);
-extern int aioFileWriteComplete(int ed, FileEntry * entry);
-extern int aioFileReadComplete(int fd, dread_ctrl * ctrl_dat);
-extern int aioFileQueueWrite(int, int (*)(int, FileEntry *), FileEntry *);
-extern int aioFileQueueRead(int, int (*)(int, dread_ctrl *), dread_ctrl *);
+extern void aioExamine __P((void));
+extern void aioSigHandler __P((int sig));
+extern int aioFileWriteComplete __P((int ed, FileEntry * entry));
+extern int aioFileReadComplete __P((int fd, dread_ctrl * ctrl_dat));
+extern int aioFileQueueWrite __P((int,
+	int (*) __P((int, FileEntry *)),
+	FileEntry *));
+extern int aioFileQueueRead __P((int,
+	int (*) __P((int, dread_ctrl *)),
+	dread_ctrl *));

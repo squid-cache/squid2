@@ -265,12 +265,12 @@ typedef struct icp_message_s icp_message_t;
 #define ICP_VERSION_CURRENT	ICP_VERSION_2
 
 extern int icp_proto_errno;	/* operation errors */
-extern int icp_hit(int sock, u_num32 reqnum, u_num32 * auth, u_num32 size);
-extern int icp_miss(int sock, u_num32 reqnum, u_num32 * auth);
-extern int icp_error(int sock, u_num32 reqnum, u_num32 * auth, unsigned short errcode, char *errstr);
-extern int icp_databegin(int sock, u_num32 reqnum, u_num32 * auth, u_num32 ttl, u_num32 timestamp, char *data);
-extern int icp_data(int sock, u_num32 reqnum, u_num32 * auth, char *data);
-extern int icp_dataend(int sock, u_num32 reqnum, u_num32 * auth, char *data);
+extern int icp_hit __P((int sock, u_num32 reqnum, u_num32 * auth, u_num32 size));
+extern int icp_miss __P((int sock, u_num32 reqnum, u_num32 * auth));
+extern int icp_error __P((int sock, u_num32 reqnum, u_num32 * auth, unsigned short errcode, char *errstr));
+extern int icp_databegin __P((int sock, u_num32 reqnum, u_num32 * auth, u_num32 ttl, u_num32 timestamp, char *data));
+extern int icp_data __P((int sock, u_num32 reqnum, u_num32 * auth, char *data));
+extern int icp_dataend __P((int sock, u_num32 reqnum, u_num32 * auth, char *data));
 
 typedef struct _protodispatch_data {
     int fd;
@@ -285,15 +285,15 @@ typedef struct _protodispatch_data {
     struct _edge *single_parent;
 } protodispatch_data;
 
-extern int proto_cachable(char *url, int method);
-extern int protoDispatch(int, char *, StoreEntry *, request_t *);
+extern int proto_cachable __P((char *url, int method));
+extern int protoDispatch __P((int, char *, StoreEntry *, request_t *));
 extern void protoUnregister(int fd,
     StoreEntry *,
     request_t *,
     struct in_addr);
-extern int getFromDefaultSource(int, StoreEntry *);
-extern int protoStart(int, StoreEntry *, edge *, request_t *);
-extern void protoCancelTimeout(int fd, StoreEntry *);
+extern int getFromDefaultSource __P((int, StoreEntry *));
+extern int protoStart __P((int, StoreEntry *, edge *, request_t *));
+extern void protoCancelTimeout __P((int fd, StoreEntry *));
 
 #define DIRECT_NO    0
 #define DIRECT_MAYBE 1

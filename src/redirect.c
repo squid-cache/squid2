@@ -70,12 +70,12 @@ struct redirectQueueData {
     redirectStateData *redirectState;
 };
 
-static redirector_t *GetFirstAvailable(void);
-static int redirectCreateRedirector(char *command);
-static int redirectHandleRead(int, redirector_t *);
-static redirectStateData *Dequeue();
-static void Enqueue(redirectStateData *);
-static void redirectDispatch(redirector_t *, redirectStateData *);
+static redirector_t *GetFirstAvailable __P((void));
+static int redirectCreateRedirector __P((char *command));
+static int redirectHandleRead __P((int, redirector_t *));
+static redirectStateData *Dequeue __P((void));
+static void Enqueue __P((redirectStateData *));
+static void redirectDispatch __P((redirector_t *, redirectStateData *));
 
 
 static redirector_t **redirect_child_table = NULL;

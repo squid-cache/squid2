@@ -204,22 +204,22 @@ extern int icpUdpSend(int,
     icp_opcode,
     log_type,
     protocol_t);
-extern int icpHandleUdp(int sock, void *data);
-extern int asciiHandleConn(int sock, void *data);
+extern int icpHandleUdp __P((int sock, void *data));
+extern int asciiHandleConn __P((int sock, void *data));
 extern int icpSendERROR(int fd,
     log_type errorCode,
     char *text,
     icpStateData *,
     int httpCode);
-extern void AppendUdp(icpUdpData *);
-extern void icpParseRequestHeaders(icpStateData *);
-extern void icpDetectClientClose(int fd, icpStateData *);
-extern void icpProcessRequest(int fd, icpStateData *);
-extern void icpHandleStore(int, StoreEntry *, icpStateData *);
-extern int icpSendMoreData(int fd, icpStateData *);
+extern void AppendUdp __P((icpUdpData *));
+extern void icpParseRequestHeaders __P((icpStateData *));
+extern void icpDetectClientClose __P((int fd, icpStateData *));
+extern void icpProcessRequest __P((int fd, icpStateData *));
+extern void icpHandleStore __P((int, StoreEntry *, icpStateData *));
+extern int icpSendMoreData __P((int fd, icpStateData *));
 
 extern int neighbors_do_private_keys;
 extern char *IcpOpcodeStr[];
-extern int icpUdpReply(int fd, icpUdpData * queue);
+extern int icpUdpReply __P((int fd, icpUdpData * queue));
 
 #endif /* ICP_H */

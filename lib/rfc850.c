@@ -131,8 +131,8 @@
 
 #include "util.h"
 
-static int make_month(char *s);
-static int make_num(char *s);
+static int make_month __P((char *s));
+static int make_num __P((char *s));
 
 static char *month_names[12] =
 {

@@ -106,12 +106,12 @@
 
 #include "squid.h"
 
-static int matchInsideFirewall(char *host);
-static int matchLocalDomain(char *host);
-static int protoCantFetchObject(int, StoreEntry *, char *);
-static int protoNotImplemented(int fd_unused, char *url, StoreEntry * entry);
-static int protoDNSError(int fd_unused, StoreEntry * entry);
-static void protoDataFree(int fdunused, protodispatch_data *);
+static int matchInsideFirewall __P((char *host));
+static int matchLocalDomain __P((char *host));
+static int protoCantFetchObject __P((int, StoreEntry *, char *));
+static int protoNotImplemented __P((int fd_unused, char *url, StoreEntry * entry));
+static int protoDNSError __P((int fd_unused, StoreEntry * entry));
+static void protoDataFree __P((int fdunused, protodispatch_data *));
 
 #define OUTSIDE_FIREWALL 0
 #define INSIDE_FIREWALL  1

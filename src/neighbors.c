@@ -105,9 +105,9 @@
 
 #include "squid.h"
 
-static int edgeWouldBePinged(edge *, request_t *);
-static void neighborRemove(edge *);
-static edge *whichEdge(icp_common_t *, struct sockaddr_in *);
+static int edgeWouldBePinged __P((edge *, request_t *));
+static void neighborRemove __P((edge *));
+static edge *whichEdge __P((icp_common_t *, struct sockaddr_in *));
 
 static neighbors *friends = NULL;
 static struct neighbor_cf *Neighbor_cf = NULL;

@@ -268,7 +268,7 @@ int hasTables = FALSE;
 char *script_name = "/cgi-bin/cachemgr.cgi";
 char *progname = NULL;
 
-static int client_comm_connect(int sock, char *dest_host, u_short dest_port);
+static int client_comm_connect __P((int sock, char *dest_host, u_short dest_port));
 
 void
 print_trailer(void)

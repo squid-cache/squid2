@@ -114,10 +114,10 @@ typedef struct _fileMap {
     unsigned long *file_map;
 } fileMap;
 
-extern fileMap *file_map_create(int);
-extern int file_map_allocate(int);
-extern int file_map_bit_set(int);
-extern int file_map_bit_test(int);
-extern void file_map_bit_reset(int);
+extern fileMap *file_map_create __P((int));
+extern int file_map_allocate __P((int));
+extern int file_map_bit_set __P((int));
+extern int file_map_bit_test __P((int));
+extern void file_map_bit_reset __P((int));
 
 #endif /* _FILEMAP_H_ */

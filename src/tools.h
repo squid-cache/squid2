@@ -103,27 +103,27 @@
  *   re-implementations of code complying to this set of standards.  
  */
 
-extern char *getMyHostname(void);
-extern int safeunlink(char *path, int quiet);
-extern void death(int sig);
-extern void fatal(char *message);
-extern void fatal_dump(char *message);
-extern void sigusr2_handle(int sig);
-extern void sig_child(int sig);
-extern void leave_suid(void);
-extern void enter_suid(void);
-extern void no_suid(void);
-extern void writePidFile(void);
-extern void setSocketShutdownLifetimes(void);
-extern void setMaxFD(void);
-extern time_t getCurrentTime(void);
-extern void normal_shutdown(void);
-extern int tvSubMsec(struct timeval, struct timeval);
-extern int percent(int, int);
-extern void squid_signal(int sig, void (*func) (), int flags);
-extern char *accessLogTime(time_t);
-extern int readPidFile(void);
-extern void _debug_trap(char *message);
+extern char *getMyHostname __P((void));
+extern int safeunlink __P((char *path, int quiet));
+extern void death __P((int sig));
+extern void fatal __P((char *message));
+extern void fatal_dump __P((char *message));
+extern void sigusr2_handle __P((int sig));
+extern void sig_child __P((int sig));
+extern void leave_suid __P((void));
+extern void enter_suid __P((void));
+extern void no_suid __P((void));
+extern void writePidFile __P((void));
+extern void setSocketShutdownLifetimes __P((void));
+extern void setMaxFD __P((void));
+extern time_t getCurrentTime __P((void));
+extern void normal_shutdown __P((void));
+extern int tvSubMsec __P((struct timeval, struct timeval));
+extern int percent __P((int, int));
+extern void squid_signal __P((int sig, void (*func)  __P((void)), int flags));
+extern char *accessLogTime __P((time_t));
+extern int readPidFile __P((void));
+extern void _debug_trap __P((char *message));
 
 extern int do_mallinfo;
 extern time_t squid_curtime;

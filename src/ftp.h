@@ -102,6 +102,6 @@
  *   re-implementations of code complying to this set of standards.  
  */
 
-extern int ftpStart(int unusedfd, char *url, request_t * req, StoreEntry * entry);
-extern int ftpInitialize(void);
-extern void ftpServerClose(void);
+extern int ftpStart __P((int unusedfd, char *url, request_t * req, StoreEntry * entry));
+extern int ftpInitialize __P((void));
+extern void ftpServerClose __P((void));

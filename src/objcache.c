@@ -107,7 +107,7 @@
 
 #define STAT_TTL 2
 
-extern void shut_down(int);
+extern void shut_down __P((int));
 
 cacheinfo *HTTPCacheInfo = NULL;
 cacheinfo *ICPCacheInfo = NULL;

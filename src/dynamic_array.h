@@ -115,9 +115,9 @@ typedef struct _dynamic_array {
 } dynamic_array;
 
 
-extern dynamic_array *create_dynamic_array(int size, int delta);
-extern int cut_dynamic_array(dynamic_array * ary, unsigned int new_size);
-extern int insert_dynamic_array(dynamic_array * ary, void *entry);
-extern void destroy_dynamic_array(dynamic_array * ary);
+extern dynamic_array *create_dynamic_array __P((int size, int delta));
+extern int cut_dynamic_array __P((dynamic_array * ary, unsigned int new_size));
+extern int insert_dynamic_array __P((dynamic_array * ary, void *entry));
+extern void destroy_dynamic_array __P((dynamic_array * ary));
 
 #endif

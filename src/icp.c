@@ -158,18 +158,18 @@ typedef struct {
 } icpHitObjStateData;
 
 /* Local functions */
-static void icpHandleStoreComplete(int, char *, int, int, void *icpState);
-static void icpHandleStoreIMS(int, StoreEntry *, icpStateData *);
-static void icpHandleIMSComplete(int, char *, int, int, void *icpState);
-static int icpProcessMISS(int, icpStateData *);
-static void CheckQuickAbort(icpStateData *);
-static int CheckQuickAbort2(icpStateData *);
-extern void identStart(int, icpStateData *);
-static void icpHitObjHandler(int, void *);
-static void icpLogIcp(icpUdpData *);
-static void icpHandleIcpV2(int fd, struct sockaddr_in, char *, int len);
-static void icpHandleIcpV3(int fd, struct sockaddr_in, char *, int len);
-static char *icpConstruct304reply(struct _http_reply *);
+static void icpHandleStoreComplete __P((int, char *, int, int, void *icpState));
+static void icpHandleStoreIMS __P((int, StoreEntry *, icpStateData *));
+static void icpHandleIMSComplete __P((int, char *, int, int, void *icpState));
+static int icpProcessMISS __P((int, icpStateData *));
+static void CheckQuickAbort __P((icpStateData *));
+static int CheckQuickAbort2 __P((icpStateData *));
+extern void identStart __P((int, icpStateData *));
+static void icpHitObjHandler __P((int, void *));
+static void icpLogIcp __P((icpUdpData *));
+static void icpHandleIcpV2 __P((int fd, struct sockaddr_in, char *, int len));
+static void icpHandleIcpV3 __P((int fd, struct sockaddr_in, char *, int len));
+static char *icpConstruct304reply __P((struct _http_reply *));
 static void icpUdpSendEntry(int fd,
     char *url,
     icp_common_t * reqheaderp,

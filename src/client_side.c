@@ -31,8 +31,8 @@
 
 #include "squid.h"
 
-static void clientRedirectDone(void *data, char *result);
-static int icpHandleIMSReply(int fd, StoreEntry * entry, void *data);
+static void clientRedirectDone __P((void *data, char *result));
+static int icpHandleIMSReply __P((int fd, StoreEntry * entry, void *data));
 
 
 static int

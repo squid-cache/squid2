@@ -117,7 +117,7 @@
 
 #define RECV_BUF_SIZE 8192
 
-extern void xmemcpy(void *from, void *to, int len);
+extern void xmemcpy __P((void *from, void *to, int len));
 
 /*
  * This program must be run from inetd.  First add something like this

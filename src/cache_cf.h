@@ -266,14 +266,14 @@ extern int unbuffered_logs;
 extern char ForwardedBy[];
 extern int httpd_accel_mode;
 
-extern int ip_acl_match(struct in_addr, ip_acl *);
-extern int parseConfigFile(char *file_name);
-extern int setCacheSwapMax(int size);
-extern ip_access_type ip_access_check(struct in_addr, ip_acl *);
-extern u_short setHttpPortNum(u_short);
-extern u_short setIcpPortNum(u_short);
-extern void intlistDestroy(intlist **);
-extern void wordlistDestroy(wordlist **);
+extern int ip_acl_match __P((struct in_addr, ip_acl *));
+extern int parseConfigFile __P((char *file_name));
+extern int setCacheSwapMax __P((int size));
+extern ip_access_type ip_access_check __P((struct in_addr, ip_acl *));
+extern u_short setHttpPortNum __P((u_short));
+extern u_short setIcpPortNum __P((u_short));
+extern void intlistDestroy __P((intlist **));
+extern void wordlistDestroy __P((wordlist **));
 
 
 #endif /* ndef  _CACHE_CONFIG_H_ */

@@ -145,15 +145,15 @@ extern stmem_stats disk_stats;
 extern stmem_stats request_pool;
 extern stmem_stats mem_obj_pool;
 
-extern char *get_free_4k_page();
-extern char *get_free_8k_page();
-extern void *get_free_request_t();
-extern void *get_free_mem_obj();
-extern mem_ptr memInit(void);
-extern void put_free_4k_page(void *);
-extern void put_free_8k_page(void *);
-extern void put_free_request_t(void *);
-extern void put_free_mem_obj(void *);
-extern void stmemInit(void);
+extern char *get_free_4k_page __P((void));
+extern char *get_free_8k_page __P((void));
+extern void *get_free_request_t __P((void));
+extern void *get_free_mem_obj __P((void));
+extern mem_ptr memInit __P((void));
+extern void put_free_4k_page __P((void *));
+extern void put_free_8k_page __P((void *));
+extern void put_free_request_t __P((void *));
+extern void put_free_mem_obj __P((void *));
+extern void stmemInit __P((void));
 
 #endif

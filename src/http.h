@@ -132,9 +132,9 @@ typedef struct {
     edge *neighbor;		/* neighbor request made to */
 } HttpStateData;
 
-extern int httpCachable(char *, int);
-extern int proxyhttpStart(edge *, char *, StoreEntry *);
-extern int httpStart(int, char *, request_t *, char *, StoreEntry *);
-extern void httpParseHeaders(char *, struct _http_reply *);
-extern void httpProcessReplyHeader(HttpStateData *, char *, int);
-extern void httpReplyHeaderStats(StoreEntry *);
+extern int httpCachable __P((char *, int));
+extern int proxyhttpStart __P((edge *, char *, StoreEntry *));
+extern int httpStart __P((int, char *, request_t *, char *, StoreEntry *));
+extern void httpParseHeaders __P((char *, struct _http_reply *));
+extern void httpProcessReplyHeader __P((HttpStateData *, char *, int));
+extern void httpReplyHeaderStats __P((StoreEntry *));

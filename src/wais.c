@@ -118,14 +118,14 @@ typedef struct {
     char request[MAX_URL + 1];
 } WaisStateData;
 
-static int waisStateFree(int, WaisStateData *);
-static void waisReadReplyTimeout(int, WaisStateData *);
-static void waisLifetimeExpire(int, WaisStateData *);
-static void waisReadReply(int, WaisStateData *);
-static void waisSendComplete(int, char *, int, int, void *);
-static void waisSendRequest(int, WaisStateData *);
-static void waisConnInProgress(int, WaisStateData *);
-static int waisConnect(int, struct hostent *, WaisStateData *);
+static int waisStateFree __P((int, WaisStateData *));
+static void waisReadReplyTimeout __P((int, WaisStateData *));
+static void waisLifetimeExpire __P((int, WaisStateData *));
+static void waisReadReply __P((int, WaisStateData *));
+static void waisSendComplete __P((int, char *, int, int, void *));
+static void waisSendRequest __P((int, WaisStateData *));
+static void waisConnInProgress __P((int, WaisStateData *));
+static int waisConnect __P((int, struct hostent *, WaisStateData *));
 
 static int
 waisStateFree(int fd, WaisStateData * waisState)

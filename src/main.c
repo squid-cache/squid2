@@ -130,7 +130,7 @@ struct in_addr local_addr;
 char *dash_str = "-";
 
 /* for error reporting from xmalloc and friends */
-extern void (*failure_notify) (char *);
+extern void (*failure_notify)  __P((char *));
 
 static int rotate_pending = 0;	/* set by SIGUSR1 handler */
 static int httpPortNumOverride = 1;
@@ -145,14 +145,14 @@ static time_t next_dirclean;
 static time_t next_announce;
 static time_t next_ip_purge;
 
-static void rotate_logs(int);
-static void reconfigure(int);
-static void mainInitialize(void);
-static void mainReinitialize(void);
-static time_t mainMaintenance(void);
-static void usage(void);
-static void mainParseOptions(int, char **);
-static void sendSignal(void);
+static void rotate_logs __P((int));
+static void reconfigure __P((int));
+static void mainInitialize __P((void));
+static void mainReinitialize __P((void));
+static time_t mainMaintenance __P((void));
+static void usage __P((void));
+static void mainParseOptions __P((int, char **));
+static void sendSignal __P((void));
 
 static void
 usage()

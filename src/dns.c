@@ -110,7 +110,7 @@ struct dnsQueueData {
     void *data;
 };
 
-static int dnsOpenServer(char *command);
+static int dnsOpenServer __P((char *command));
 
 static dnsserver_t **dns_child_table = NULL;
 static int NDnsServersAlloc = 0;

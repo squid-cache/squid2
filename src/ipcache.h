@@ -138,16 +138,16 @@ extern void ipcache_nbgethostbyname(char *name,
     int fd,
     IPH handler,
     void *handlerData);
-extern int ipcache_purgelru(void);
-extern int ipcache_unregister(char *, int);
-extern struct hostent *ipcache_gethostbyname(char *, int flags);
-extern void ipcacheInvalidate(char *);
-extern void ipcacheReleaseInvalid(char *);
-extern void ipcacheOpenServers(void);
-extern void ipcacheShutdownServers(void);
-extern void ipcache_init(void);
-extern void stat_ipcache_get(StoreEntry *);
-extern int ipcacheQueueDrain(void);
+extern int ipcache_purgelru __P((void));
+extern int ipcache_unregister __P((char *, int));
+extern struct hostent *ipcache_gethostbyname __P((char *, int flags));
+extern void ipcacheInvalidate __P((char *));
+extern void ipcacheReleaseInvalid __P((char *));
+extern void ipcacheOpenServers __P((void));
+extern void ipcacheShutdownServers __P((void));
+extern void ipcache_init __P((void));
+extern void stat_ipcache_get __P((StoreEntry *));
+extern int ipcacheQueueDrain __P((void));
 
 extern char *dns_error_message;
 

@@ -124,16 +124,16 @@ struct _aclCheck_t {
     acl_lookup_state state[ACL_ENUM_MAX];
 };
 
-extern int aclCheck(struct _acl_access *, aclCheck_t *);
-extern int aclMatchAcl(struct _acl *, aclCheck_t *);
-extern void aclDestroyAccessList(struct _acl_access **list);
-extern void aclDestroyAcls(void);
-extern void aclParseAccessLine(struct _acl_access **);
-extern void aclParseAclLine(void);
-extern struct _acl *aclFindByName(char *name);
-extern char *aclGetDenyInfoUrl(struct _acl_deny_info_list **, char *name);
-extern void aclParseDenyInfoLine(struct _acl_deny_info_list **);
-extern void aclDestroyDenyInfoList(struct _acl_deny_info_list **);
+extern int aclCheck __P((struct _acl_access *, aclCheck_t *));
+extern int aclMatchAcl __P((struct _acl *, aclCheck_t *));
+extern void aclDestroyAccessList __P((struct _acl_access **list));
+extern void aclDestroyAcls __P((void));
+extern void aclParseAccessLine __P((struct _acl_access **));
+extern void aclParseAclLine __P((void));
+extern struct _acl *aclFindByName __P((char *name));
+extern char *aclGetDenyInfoUrl __P((struct _acl_deny_info_list **, char *name));
+extern void aclParseDenyInfoLine __P((struct _acl_deny_info_list **));
+extern void aclDestroyDenyInfoList __P((struct _acl_deny_info_list **));
 
 
 extern struct _acl_access *HTTPAccessList;
