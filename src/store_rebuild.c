@@ -83,7 +83,7 @@ storeCleanup(void *datanotused)
     hash_link *link_ptr = NULL;
     hash_link *link_next = NULL;
     validnum_start = validnum;
-    while (validnum - validnum_start < 50) {
+    while (validnum - validnum_start < 500) {
 	if (++bucketnum >= store_hash_buckets) {
 	    debug(20, 1) ("  Completed Validation Procedure\n");
 	    debug(20, 1) ("  Validated %d Entries\n", validnum);
