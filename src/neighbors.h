@@ -45,7 +45,8 @@ struct _edge {
     int rtt;
     int ack_deficit;
     enum {
-	is_a_neighbor = 0, is_a_parent = 1
+	EDGE_SIBLING,
+	EDGE_PARENT
     } type;			/* 0 if neighbor, 1 if parent */
 
     int num_pings;

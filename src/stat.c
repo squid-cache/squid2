@@ -352,7 +352,7 @@ void server_list(obj, sentry)
 	sprintf(tempbuf, "\n{Hostname:    %s}\n", e->host);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
 	sprintf(tempbuf, "{Edge type:   %s}\n",
-	    e->type == is_a_parent ? "parent" : "neighbor");
+	    e->type == EDGE_PARENT ? "parent" : "neighbor");
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
 	sprintf(tempbuf, "{Status:      %s}\n",
 	    e->neighbor_up ? "Up" : "Down");
