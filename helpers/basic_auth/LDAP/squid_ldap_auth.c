@@ -587,8 +587,7 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
 	char escaped_login[256];
 	LDAPMessage *res = NULL;
 	LDAPMessage *entry;
-	char *searchattr[] =
-	{NULL};
+	char *searchattr[] = {LDAP_NO_ATTR, NULL};
 	char *userdn;
 	int rc;
 	LDAP *search_ld = persistent_ld;
