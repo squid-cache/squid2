@@ -318,7 +318,7 @@ neighborRemove(peer * target)
     }
     if (p) {
 	*P = p->next;
-	cbdataUnlock(p);
+	cbdataFree(p);
 	Config.npeers--;
     }
     first_ping = Config.peers;
