@@ -245,7 +245,7 @@ parse_rfc1123(const char *str)
     tm->tm_isdst = -1;
 #ifdef HAVE_TIMEGM
     t = timegm(tm);
-#elif HAVE_TM_GMTOFF
+#elif HAVE_TM_TM_GMTOFF
     t = mktime(tm);
     {
 	struct tm *local = localtime(&t);

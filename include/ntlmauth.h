@@ -54,7 +54,7 @@
 #define SQUID_NTLMAUTH_H
 
 /* int*_t */
-#include "squid_types.h"
+#include "config.h"
 
 /* All of this cruft is little endian */
 #ifdef WORDS_BIGENDIAN
