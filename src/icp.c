@@ -1679,18 +1679,7 @@ parseHttpRequest(icpStateData * icpState)
 }
 
 #define ASCII_INBUF_BLOCKSIZE 4096
-/*
- * asciiProcessInput()
- * 
- * Handler set by
- *   asciiHandleConn()
- * Called by
- *   comm_select() when data has been read
- * Calls
- *   parseAsciiUrl()
- *   icpProcessRequest()
- *   icpSendERROR()
- */
+
 static void
 asciiProcessInput(int fd, char *buf, int size, int flag, void *data)
 {
