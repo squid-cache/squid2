@@ -89,7 +89,7 @@ union _delayPool {
 typedef union _delayPool delayPool;
 
 static delayPool *delay_data = NULL;
-static fd_set delay_no_delay;
+static d_fd_set delay_no_delay;
 static time_t delay_pools_last_update = 0;
 static hash_table *delay_id_ptr_hash = NULL;
 static long memory_used = 0;
@@ -134,7 +134,7 @@ void
 delayPoolsInit(void)
 {
     delay_pools_last_update = getCurrentTime();
-    FD_ZERO(&delay_no_delay);
+    D_FD_ZERO(&delay_no_delay);
     cachemgrRegister("delay", "Delay Pool Levels", delayPoolStats, 0, 1);
 }
 
@@ -283,19 +283,22 @@ delayFreeDelayPool(unsigned short pool)
 void
 delaySetNoDelay(int fd)
 {
-    FD_SET(fd, &delay_no_delay);
+    assert(fd < SQUID_MAXFD);
+    D_FD_SET(fd, &delay_no_delay);
 }
 
 void
 delayClearNoDelay(int fd)
 {
-    FD_CLR(fd, &delay_no_delay);
+    assert(fd < SQUID_MAXFD);
+    D_FD_CLR(fd, &delay_no_delay);
 }
 
 int
 delayIsNoDelay(int fd)
 {
-    return FD_ISSET(fd, &delay_no_delay);
+    assert(fd < SQUID_MAXFD);
+    return D_FD_ISSET(fd, &delay_no_delay);
 }
 
 static delay_id
