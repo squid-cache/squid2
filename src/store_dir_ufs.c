@@ -1057,6 +1057,7 @@ storeUfsDirCleanEvent(void *unused)
 {
     static int swap_index = 0;
     int i;
+    int j = 0;
     int n = 0;
     /*
      * Assert that there are UFS cache_dirs configured, otherwise
@@ -1064,16 +1065,26 @@ storeUfsDirCleanEvent(void *unused)
      */
     assert(n_ufs_dirs);
     if (NULL == ufs_dir_index) {
+	SwapDir *sd;
 	/*
 	 * Initialize the little array that translates UFS cache_dir
 	 * number into the Config.cacheSwap.swapDirs array index.
 	 */
 	ufs_dir_index = xcalloc(n_ufs_dirs, sizeof(*ufs_dir_index));
 	for (i = 0, n = 0; i < Config.cacheSwap.n_configured; i++) {
-	    if (storeUfsDirIs(&Config.cacheSwap.swapDirs[i]))
-		ufs_dir_index[n++] = i;
+	    sd = &Config.cacheSwap.swapDirs[i];
+	    if (!storeUfsDirIs(sd))
+		continue;
+	    ufs_dir_index[n++] = i;
+	    j += (sd->u.ufs.l1 * sd->u.ufs.l2);
 	}
 	assert(n == n_ufs_dirs);
+	/*
+	 * Start the storeUfsDirClean() swap_index with a random
+	 * value.  j equals the total number of UFS level 2
+	 * swap directories
+	 */
+	swap_index = (int) (squid_random() % j);
     }
     if (0 == store_dirs_rebuilding) {
 	n = storeUfsDirClean(swap_index);
