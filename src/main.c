@@ -27,7 +27,7 @@ struct in_addr local_addr;
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) _PARAMS((char *));
 
-static int rotate_pending = 0;		/* set by SIGUSR1 handler */
+static int rotate_pending = 0;	/* set by SIGUSR1 handler */
 static int httpPortNumOverride = 1;
 static int icpPortNumOverride = 1;	/* Want to detect "-u 0" */
 #if MALLOC_DBG
@@ -147,7 +147,7 @@ void reconfigure(sig)
 {
     debug(21, 1, "reconfigure: SIGHUP received\n");
     debug(21, 1, "Waiting %d seconds for active connections to finish\n",
-        getShutdownLifetime());
+	getShutdownLifetime());
     reread_pending = 1;
 #if !HAVE_SIGACTION
     signal(sig, reconfigure);
@@ -158,9 +158,9 @@ void shut_down(sig)
      int sig;
 {
     debug(21, 1, "Preparing for shutdown after %d connections\n",
-        ntcpconn + nudpconn);
+	ntcpconn + nudpconn);
     debug(21, 1, "Waiting %d seconds for active connections to finish\n",
-        getShutdownLifetime());
+	getShutdownLifetime());
     shutdown_pending = 1;
 }
 
@@ -426,12 +426,12 @@ int main(argc, argv)
 	}
 	if (rotate_pending) {
 	    ftpServerClose();
-    	    _db_rotate_log();           /* cache.log */
-    	    storeWriteCleanLog();
-    	    storeRotateLog();           /* store.log */
-    	    neighbors_rotate_log();     /* hierarchy.log */
-    	    stat_rotate_log();          /* access.log */
-    	    (void) ftpInitialize();
+	    _db_rotate_log();	/* cache.log */
+	    storeWriteCleanLog();
+	    storeRotateLog();	/* store.log */
+	    neighbors_rotate_log();	/* hierarchy.log */
+	    stat_rotate_log();	/* access.log */
+	    (void) ftpInitialize();
 	    rotate_pending = 0;
 	}
 	/* do background processing */
@@ -486,4 +486,3 @@ int main(argc, argv)
     exit(0);
     return 0;
 }
-
