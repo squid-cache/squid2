@@ -317,7 +317,6 @@ extern int storeFirstClientFD _PARAMS((MemObject * mem));
 extern void storeTimestampsSet _PARAMS((StoreEntry *));
 extern unsigned int storeReqnum _PARAMS((StoreEntry * entry, method_t));
 extern time_t storeExpiredReferenceAge _PARAMS((void));
-extern void storeSetLogUrl _PARAMS((StoreEntry *, request_t *));
 extern void storeMemObjectDump _PARAMS((MemObject *));
 
 #ifdef __STDC__
