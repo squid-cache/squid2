@@ -164,6 +164,10 @@ typedef enum {
     FAIL_HARD			/* do cache these */
 } state_t;
 
+#define DFD_TYPE_NONE 0
+#define DFD_TYPE_PASV 1
+#define DFD_TYPE_PORT 2
+
 typedef struct _request {
     char *host;
     int port;
@@ -177,6 +181,7 @@ typedef struct _request {
     int cfd;
     int sfd;
     int dfd;
+    int dfd_type;
     int conn_att;
     int login_att;
     state_t state;
@@ -307,7 +312,7 @@ static char *state_str[] =
 While trying to retrieve the URL:\n\
 <A HREF=\"%s\">%s</A>\n\
 <P>\n\
-The following %s error was encountered:\n\
+The following FTP error was encountered:\n\
 <UL>\n\
 <LI><STRONG>%s</STRONG>\n\
 </UL>\n\
@@ -378,7 +383,6 @@ void fail(r)
 	sprintf(htmlbuf, CACHED_RETRIEVE_ERROR_MSG,
 	    r->title_url,
 	    r->title_url,
-	    "FTP",
 	    r->errmsg,
 	    longmsg);
 	if (!(r->flags & F_HDRSENT)) {
@@ -633,10 +637,8 @@ int connect_with_timeout(fd, S, len)
 
     orig_flags = fcntl(fd, F_GETFL, 0);
     Debug(26, 7, ("orig_flags = %x\n", orig_flags));
-#ifdef 0
     if (fcntl(fd, F_SETFL, O_NDELAY) < 0)
 	log_errno2(__FILE__, __LINE__, "fcntl O_NDELAY");
-#endif
     rc = connect_with_timeout2(fd, S, len);
     if (fcntl(fd, F_SETFL, orig_flags) < 0)
 	log_errno2(__FILE__, __LINE__, "fcntl orig");
@@ -1176,7 +1178,7 @@ state_t do_port(r)
     int port = 0;
     static int init = 0;
 
-    if (r->dfd >= 0) {
+    if (r->dfd >= 0 && r->dfd_type == DFD_TYPE_PORT) {
 	fd_set R;
 	struct timeval tv;
 	FD_ZERO(&R);
@@ -1184,12 +1186,14 @@ state_t do_port(r)
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
 	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
-	    Debug(26, 3, ("Already connected, fd=%d\n", r->dfd));
+	    Debug(26, 3, ("do_port: FD %d Already connected\n", r->dfd));
+	    r->flags |= F_NEEDACCEPT;
 	    return PORT_OK;
 	} else {
 	    Debug(26, 2, ("Data connection closed by server (%s)\n", xstrerror()));
 	    close(r->dfd);
 	    r->dfd = -1;
+	    r->dfd_type = DFD_TYPE_NONE;
 	}
     }
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -1246,6 +1250,7 @@ state_t do_port(r)
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code == 200) {
 	    r->dfd = sock;
+	    r->dfd_type = DFD_TYPE_PORT;
 	    r->flags |= F_NEEDACCEPT;
 	    return PORT_OK;
 	}
@@ -1268,7 +1273,12 @@ state_t do_pasv(r)
     static char junk[SMALLBUFSIZ];
     static int pasv_supported = 1;
 
-    if (r->dfd >= 0) {
+    /* if PASV previously failed, don't even try it again.  Just return
+     * PASV_FAIL and let the state machine fall back to using PORT */
+    if (!pasv_supported)
+	return PASV_FAIL;
+
+    if (r->dfd >= 0 && r->dfd_type == DFD_TYPE_PASV) {
 	fd_set R;
 	struct timeval tv;
 	FD_ZERO(&R);
@@ -1276,18 +1286,15 @@ state_t do_pasv(r)
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
 	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
-	    Debug(26, 3, ("Already connected, fd=%d\n", r->dfd));
+	    Debug(26, 3, ("do_pasv: FD %d Already connected\n", r->dfd));
 	    return PORT_OK;
 	} else {
 	    Debug(26, 2, ("Data connection closed by server (%s)\n", xstrerror()));
 	    close(r->dfd);
 	    r->dfd = -1;
+	    r->dfd_type = DFD_TYPE_NONE;
 	}
     }
-    /* if PASV previously failed, don't even try it again.  Just return
-     * PASV_FAIL and let the state machine fall back to using PORT */
-    if (!pasv_supported)
-	return PASV_FAIL;
 
     r->flags &= ~F_NEEDACCEPT;
 
@@ -1329,6 +1336,7 @@ state_t do_pasv(r)
 	return FAIL_SOFT;
     }
     r->dfd = sock;
+    r->dfd_type = DFD_TYPE_PASV;
     return PORT_OK;
 }
 
@@ -1349,12 +1357,12 @@ state_t do_cwd(r)
 	if (code >= 200 && code < 300)
 	    return CWD_OK;
 #ifdef TRY_CWD_FIRST
-	return CWD_FAIL;
-#else
+	if (!r->flags & F_ISDIR)
+	    return CWD_FAIL;
+#endif
 	r->errmsg = xstrdup(server_reply_msg);
 	r->rc = 10;
 	return FAIL_HARD;
-#endif
     }
     r->errmsg = xstrdup(server_reply_msg);
     r->rc = code < 0 ? 4 : 5;
@@ -1475,6 +1483,7 @@ state_t do_accept(r)
     if (r->dfd >= 0)
 	close(r->dfd);
     r->dfd = sock;
+    r->dfd_type = DFD_TYPE_PORT;
     return DATA_TRANSFER;
 }
 
@@ -1493,6 +1502,7 @@ state_t read_data(r)
 	if (r->dfd >= 0) {
 	    close(r->dfd);
 	    r->dfd = -1;
+	    r->dfd_type = DFD_TYPE_NONE;
 	}
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
@@ -1502,6 +1512,7 @@ state_t read_data(r)
 	if (r->dfd >= 0) {
 	    close(r->dfd);
 	    r->dfd = -1;
+	    r->dfd_type = DFD_TYPE_NONE;
 	}
 	if ((code = read_reply(r->sfd)) > 0) {
 	    if (code == 226)
@@ -1770,6 +1781,7 @@ void try_readme(r)
     readme->sfd = r->sfd;
     readme->dfd = r->dfd;
     r->dfd = -1;
+	    r->dfd_type = DFD_TYPE_NONE;
 #ifdef TRY_CWD_FIRST
     readme->state = CWD_FAIL;
 #else
@@ -1788,6 +1800,7 @@ void try_readme(r)
 	else
 	    close(readme->dfd);
 	readme->dfd = -1;
+	    readme->dfd_type = DFD_TYPE_NONE;
     }
     fp = fopen(tfname, "r");
     unlink(tfname);
@@ -1872,6 +1885,7 @@ state_t htmlify_listing(r)
     if (r->dfd >= 0) {
 	close(r->dfd);
 	r->dfd = -1;
+	r->dfd_type = DFD_TYPE_NONE;
     }
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
@@ -1960,7 +1974,10 @@ static int process_request(r)
 	    }
 	    break;
 	case TYPE_OK:
-	    r->state = do_mdtm(r);
+	    if (r->flags & F_ISDIR)
+		r->state = do_cwd(r);
+	    else
+		r->state = do_mdtm(r);
 	    break;
 	case MDTM_OK:
 	    r->state = do_size(r);
@@ -2439,6 +2456,7 @@ int main(argc, argv)
     r->port = port;
     r->sfd = -1;
     r->dfd = -1;
+    r->dfd_type = DFD_TYPE_NONE;
     r->size = -1;
     r->state = BEGIN;
     r->flags |= o_httpify ? F_HTTPIFY : 0;
