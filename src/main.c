@@ -578,6 +578,7 @@ main(int argc, char **argv)
 	if (ConfigFile == NULL)
 	    ConfigFile = xstrdup(DefaultConfigFile);
 	cbdataInit();
+	memInit();		/* memInit is required for config parsing */
 	parseConfigFile(ConfigFile);
 	setEffectiveUser();
 	debug(0, 0) ("Creating Swap Directories\n");
