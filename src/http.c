@@ -610,7 +610,7 @@ httpBuildRequestHeader(request_t * request,
 	    break;
 	case HDR_HOST:
 	    /* Don't use client's Host: header for redirected requests */
-	    if (!request->flags.redirected)
+	    if (!request->flags.redirected || !Config.onoff.redir_rewrites_host)
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
 	    break;
 	case HDR_IF_MODIFIED_SINCE:

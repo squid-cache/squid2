@@ -377,6 +377,7 @@ struct _SquidConfig {
 	int reload_into_ims;
 #endif
 	int offline;
+	int redir_rewrites_host;
     } onoff;
     acl *aclList;
     struct {
