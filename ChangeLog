@@ -37,6 +37,9 @@ Changes to squid-2.5.STABLE4 (not yet released):
 	  digest not found
 	- Bug #710: round-robin cache_dir selection incorrectly
 	  compares max-size.
+	- Bug #715: statCounter.syscalls.disk counters treated
+	  inconsistently.  Now increment the counters in AUFS
+	  functions and for unlinkd.
 
 Changes to squid-2.5.STABLE3 (25 May 2003):
 
