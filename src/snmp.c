@@ -277,9 +277,9 @@ snmpInit(void)
     init_mib(Config.Snmp.mibPath);
 #endif
     if (!Config.Snmp.communities)
-	debug(49, 5) ("snmpInit: communities not defined yet !\n");
+	debug(49, 2) ("snmpInit: WARNING:communities not defined yet!\n");
     else
-	debug(49, 5) ("snmpInit: well, well , communities defined!\n");
+	debug(49, 5) ("snmpInit: communities defined.\n");
     if (default_auth() < 0)
 	exit(2);
 
