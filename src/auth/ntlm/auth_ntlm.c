@@ -235,10 +235,11 @@ authNTLMInit(authScheme * scheme)
 int
 authenticateNTLMActive()
 {
-    if (authntlm_initialised)
-	return 1;
-    else
-	return 0;
+    if ((ntlmConfig != NULL) && (ntlmConfig->authenticate != NULL) &&
+        (ntlmConfig->authenticateChildren != 0) && (ntlmConfig->challengeuses > -1) 
+        && (ntlmConfig->challengelifetime>-1))
+        return 1;
+    return 0;
 }
 
 /* NTLM Scheme */
