@@ -932,7 +932,9 @@ peerDNSConfigure(const ipcache_addrs * ia, void *data)
     ap->sin_port = htons(p->icp_port);
     if (p->type == PEER_MULTICAST)
 	peerCountMcastPeersSchedule(p, 10);
+#if 0
     eventAddIsh("netdbExchangeStart", netdbExchangeStart, p, 30);
+#endif
 }
 
 static void
