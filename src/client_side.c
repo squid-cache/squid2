@@ -752,6 +752,8 @@ clientUpdateCounters(clientHttpRequest * http)
 #endif
     case SIBLING_HIT:
     case PARENT_HIT:
+    case FIRST_PARENT_MISS:
+    case CLOSEST_PARENT_MISS:
 	statCounter.icp.times_used++;
 	i = &H->ping;
 	if (0 != i->stop.tv_sec && 0 != i->start.tv_sec)
@@ -760,7 +762,6 @@ clientUpdateCounters(clientHttpRequest * http)
 	if (i->timeout)
 	    statCounter.icp.query_timeouts++;
 	break;
-    case CLOSEST_PARENT_MISS:
     case CLOSEST_PARENT:
     case CLOSEST_DIRECT:
 	statCounter.netdb.times_used++;
