@@ -35,7 +35,7 @@
 
 #include "squid.h"
 
-static char *storeLogTags[] =
+static const char *storeLogTags[] =
 {
     "CREATE",
     "SWAPIN",

@@ -1319,7 +1319,7 @@ storeFsDone(void)
  * called to add another store fs module
  */
 void
-storeFsAdd(char *type, STSETUP * setup)
+storeFsAdd(const char *type, STSETUP * setup)
 {
     int i;
     /* find the number of currently known storefs types */
@@ -1338,7 +1338,7 @@ storeFsAdd(char *type, STSETUP * setup)
  * called to add another store removal policy module
  */
 void
-storeReplAdd(char *type, REMOVALPOLICYCREATE * create)
+storeReplAdd(const char *type, REMOVALPOLICYCREATE * create)
 {
     int i;
     /* find the number of currently known repl types */

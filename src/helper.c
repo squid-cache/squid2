@@ -64,7 +64,7 @@ helperOpenServers(helper * hlp)
     char *progname;
     char *shortname;
     char *procname;
-    char *args[HELPER_MAX_ARGS];
+    const char *args[HELPER_MAX_ARGS];
     char fd_note_buf[FD_DESC_SZ];
     helper_server *srv;
     int nargs = 0;
@@ -140,7 +140,7 @@ helperStatefulOpenServers(statefulhelper * hlp)
     char *progname;
     char *shortname;
     char *procname;
-    char *args[HELPER_MAX_ARGS];
+    const char *args[HELPER_MAX_ARGS];
     char fd_note_buf[FD_DESC_SZ];
     helper_stateful_server *srv;
     int nargs = 0;

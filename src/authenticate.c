@@ -931,7 +931,7 @@ authenticateUserCacheRestart(void)
  * called to add another auth scheme module
  */
 void
-authSchemeAdd(char *type, AUTHSSETUP * setup)
+authSchemeAdd(const char *type, AUTHSSETUP * setup)
 {
     int i;
     debug(29, 4) ("authSchemeAdd: adding %s\n", type);

@@ -66,7 +66,7 @@ static u_short echo_port;
 static int NLateReplies = 0;
 static peer *first_ping = NULL;
 
-char *
+const char *
 neighborTypeStr(const peer * p)
 {
     if (p->type == PEER_NONE)

@@ -66,7 +66,7 @@ static struct {
     int timeouts;
 } PeerStats;
 
-static char *DirectStr[] =
+static const char *DirectStr[] =
 {
     "DIRECT_UNKNOWN",
     "DIRECT_NO",

@@ -159,7 +159,7 @@ void
 unlinkdInit(void)
 {
     int x;
-    char *args[2];
+    const char *args[2];
     struct timeval slp;
     args[0] = "(unlinkd)";
     args[1] = NULL;

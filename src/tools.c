@@ -761,8 +761,8 @@ logsFlush(void)
 	fflush(debug_log);
 }
 
-char *
-checkNullString(char *p)
+const char *
+checkNullString(const char *p)
 {
     return p ? p : "(NULL)";
 }

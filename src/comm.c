@@ -920,7 +920,7 @@ commHandleWrite(int fd, void *data)
 /* Select for Writing on FD, until SIZE bytes are sent.  Call
  * *HANDLER when complete. */
 void
-comm_write(int fd, char *buf, int size, CWCB * handler, void *handler_data, FREE * free_func)
+comm_write(int fd, const char *buf, int size, CWCB * handler, void *handler_data, FREE * free_func)
 {
     CommWriteStateData *state = fd_table[fd].rwstate;
     debug(5, 5) ("comm_write: FD %d: sz %d: hndl %p: data %p.\n",
@@ -931,7 +931,7 @@ comm_write(int fd, char *buf, int size, CWCB * handler, void *handler_data, FREE
 	fd_table[fd].rwstate = NULL;
     }
     fd_table[fd].rwstate = state = memPoolAlloc(comm_write_pool);
-    state->buf = buf;
+    state->buf = (char *) buf;
     state->size = size;
     state->offset = 0;
     state->handler = handler;

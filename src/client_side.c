@@ -2559,7 +2559,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	if (opt_accel_uses_host && (t = mime_get_header(req_hdr, "Host"))) {
 	    int vport;
 	    char *q;
-	    char *protocol_name = "http";
+	    const char *protocol_name = "http";
 	    if (vport_mode)
 		vport = (int) ntohs(http->conn->me.sin_port);
 	    else

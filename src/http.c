@@ -878,7 +878,7 @@ httpBuildRequestHeader(request_t * request,
 	if (*orig_request->peer_login == '*') {
 	    /* Special mode, to pass the username to the upstream cache */
 	    char loginbuf[256];
-	    char *username = "-";
+	    const char *username = "-";
 	    if (orig_request->auth_user_request)
 		username = authenticateUserRequestUsername(orig_request->auth_user_request);
 	    snprintf(loginbuf, sizeof(loginbuf), "%s%s", username, orig_request->peer_login + 1);

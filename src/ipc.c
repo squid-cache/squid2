@@ -281,7 +281,7 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 #if HAVE_SETSID
     setsid();
 #endif
-    execvp(prog, args);
+    execvp(prog, (char *const *) args);
     debug_log = fdopen(2, "a+");
     debug(50, 0) ("ipcCreate: %s: %s\n", prog, xstrerror());
     _exit(1);
