@@ -348,8 +348,10 @@ static void protoCancelTimeout(fd, entry)
     }
     /* cancel the timeout handler */
     comm_set_select_handler_plus_timeout(fd,
-	COMM_SELECT_TIMEOUT | COMM_SELECT_READ,
-	(PF) 0, (void *) 0, (time_t) 0);
+	COMM_SELECT_TIMEOUT,
+	NULL,
+	NULL,
+	0);
 }
 
 /*
