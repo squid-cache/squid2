@@ -541,7 +541,7 @@ mainInitialize(void)
 	next_cleaning = squid_curtime + Config.cleanRate;
 	next_maintain = squid_curtime + 0;
 	next_dirclean = squid_curtime + 15;
-	next_announce = squid_curtime + Config.Announce.rate;
+	next_announce = squid_curtime + 3600;
 	next_ip_purge = squid_curtime + 10;
     }
     first_time = 0;

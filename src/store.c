@@ -256,7 +256,7 @@ static int store_pages_high = 0;
 static int store_pages_low = 0;
 
 /* current file name, swap file, use number as a filename */
-static unsigned long swapfileno = 0;
+static int swapfileno = 0;
 static int store_swap_size = 0;	/* kilobytes !! */
 static unsigned long store_swap_high = 0;
 static unsigned long store_swap_low = 0;

@@ -286,7 +286,7 @@ main(int argc, char *argv[])
 	}
     }
 
-    while (1) {
+    for (;;) {
 	int retry_count = 0;
 	int addrbuf;
 	memset(request, '\0', 256);

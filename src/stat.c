@@ -750,7 +750,7 @@ info_get(cacheinfo * obj, StoreEntry * sentry)
 
     f = (float) (squid_curtime - squid_starttime);
     storeAppendPrintf(sentry, "{\tConnections per hour:\t%.1f}\n",
-	f == 0.0 ? 0.0 : ((ntcpconn + nudpconn) / (f / 3600)));
+	f == 0.0 ? 0.0 : ((ntcpconn + nudpconn) / (f / 3600.0)));
 
     storeAppendPrintf(sentry, "{Cache information for %s:}\n",
 	appname);
