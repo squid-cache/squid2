@@ -1358,7 +1358,7 @@ clientPackRange(clientHttpRequest * http, HttpHdrRangeIter * i, const char **buf
 	packerClean(&p);
 	httpHeaderClean(&hdr);
 	/* append <crlf> (we packed a header, not a reply */
-	memBufPrintf(mb, "\r\n");
+	memBufPrintf(mb, crlf);
     }
     /* append */
     debug(33, 3) ("clientPackRange: appending %d bytes\n", copy_sz);
