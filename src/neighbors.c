@@ -769,9 +769,9 @@ neighborsUdpAck(int fd, const char *url, icp_common_t * header, const struct soc
 	    debug(15, 1, "Ignoring MISS from non-peer %s\n",
 		inet_ntoa(from->sin_addr));
 	} else if (ntype != PEER_PARENT) {
-		(void) 0;	/* ignore MISS from non-parent */
+	    (void) 0;		/* ignore MISS from non-parent */
 	} else if (BIT_TEST(e->options, NEIGHBOR_MCAST_RESPONDER) && !peerHTTPOkay(e, mem->request)) {
-		(void) 0;	/* ignore multicast miss */
+	    (void) 0;		/* ignore multicast miss */
 	} else {
 	    w_rtt = tvSubMsec(mem->start_ping, current_time) / e->weight;
 	    if (mem->w_rtt == 0 || w_rtt < mem->w_rtt) {

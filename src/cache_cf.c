@@ -1032,7 +1032,7 @@ parseHttpAnonymizer(int *iptr)
     char *token;
     token = strtok(NULL, w_space);
     if (token == NULL)
-        self_destruct();
+	self_destruct();
     if (!strcasecmp(token, "off"))
 	*iptr = ANONYMIZER_NONE;
     else if (!strcasecmp(token, "paranoid"))

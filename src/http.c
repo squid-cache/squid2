@@ -689,10 +689,10 @@ httpAppendRequestHeader(char *hdr, const char *line, size_t * sz, size_t max)
     if (n >= max)
 	return;
     if (Config.Options.anonymizer == ANONYMIZER_PARANOID) {
-        if (!httpAnonAllowed(line))
+	if (!httpAnonAllowed(line))
 	    return;
     } else if (Config.Options.anonymizer == ANONYMIZER_STANDARD) {
-        if (httpAnonDenied(line))
+	if (httpAnonDenied(line))
 	    return;
     }
     /* allowed header, explicitly known to be not dangerous */
