@@ -767,6 +767,7 @@ ftpCleanupUrlpath(FtpStateData * ftpState)
 	if (*request->urlpath == '\0') {
 	    xstrncpy(request->urlpath, ".", MAX_URL);
 	    EBIT_SET(ftpState->flags, FTP_ROOT_DIR);
+	    EBIT_SET(ftpState->flags, FTP_ISDIR);
 	    again = 1;
 	} else if ((l >= 1) && (*(request->urlpath + l - 1) == '/')) {
 	    /* remove any trailing slashes from path */
