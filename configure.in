@@ -666,7 +666,7 @@ if test "$ac_cv_func_setresuid" = "yes" ; then
 fi
 
 AC_MSG_CHECKING(if GNUregex needs to be compiled)
-if test "$ac_cv_func_regcomp" = "no" ; then
+if test "$ac_cv_func_regcomp" = "no" || test "$USE_GNUREGEX" = "yes" ; then
 	USE_GNUREGEX="yes"
 else
 	USE_GNUREGEX="no"
