@@ -126,7 +126,8 @@ libexec_SCRIPTS = \
 
 
 EXTRA_DIST = \
-	smb_auth.pl
+	smb_auth.pl \
+	README.txt
 
 subdir = src/auth/basic/helpers/multi-domain-NTLM
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
