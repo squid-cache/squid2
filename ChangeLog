@@ -1,6 +1,6 @@
-Changes to Squid-2.4.STABLE4 ()
+Changes to Squid-2.4.STABLE4 (Feb 19, 2001):
 
-	- htcp_port 0 now properly disabled htcp
+	- htcp_port 0 now properly disables htcp
         - Fixed problem with certain non-anonymous ftp:// style URL's
 	- SNMP bugfixes including several memory leaks
 
