@@ -514,7 +514,7 @@ int icpSendMoreData(fd, icpState)
 
     if (icpState->offset == 0 && entry->mem_obj->reply->code == 0 && len > 0) {
 	memset(scanbuf, '\0', 20);
-	memcpy(scanbuf, buf, 20);
+	memcpy(scanbuf, buf, 19);
 	sscanf(scanbuf, "HTTP/%lf %d", &http_ver, &tcode);
 	entry->mem_obj->reply->code = tcode;
     }
