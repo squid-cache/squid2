@@ -1021,3 +1021,9 @@ fqdncache_restart(void)
 	fqdncache_release(this);
     }
 }
+
+int
+fqdncacheAvgSvcTime(void)
+{
+        return FqdncacheStats.avg_svc_time;
+}

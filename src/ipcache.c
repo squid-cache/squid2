@@ -1148,3 +1148,9 @@ ipcache_restart(void)
     ipcache_low = (long) (((float) Config.ipcache.size *
 	    (float) Config.ipcache.low) / (float) 100);
 }
+
+int
+ipcacheAvgSvcTime(void)
+{
+	return IpcacheStats.avg_svc_time;
+}

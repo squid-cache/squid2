@@ -944,6 +944,12 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
     malloc_statistics(info_get_mallstat, sentry);
 #endif
 
+    storeAppendPrintf(sentry, "{Miscellaneous:}\n");
+    storeAppendPrintf(sentry, "{\tAverage Name-to-address lookup time:\t%f seconds}\n",
+	ipcacheAvgSvcTime() / 1000.0);
+    storeAppendPrintf(sentry, "{\tAverage Address-to-name lookup time:\t%f seconds}\n",
+	fqdncacheAvgSvcTime() / 1000.0);
+
     storeAppendPrintf(sentry, close_bracket);
 }
 
