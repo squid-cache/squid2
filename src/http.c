@@ -941,12 +941,11 @@ httpConnect(int fd, const ipcache_addrs * ia, void *data)
 	return;
     }
     /* Open connection. */
-    httpState->connectState.fd = fd;
-    httpState->connectState.host = request->host;
-    httpState->connectState.port = request->port;
-    httpState->connectState.handler = httpConnectDone;
-    httpState->connectState.data = httpState;
-    comm_nbconnect(fd, &httpState->connectState);
+    commConnectStart(fd,
+	request->host,
+	request->port,
+	httpConnectDone,
+	httpState);
 }
 
 static void
@@ -969,8 +968,6 @@ httpConnectDone(int fd, int status, void *data)
 	    httpLifetimeExpire, (void *) httpState, 0);
 	commSetSelect(fd, COMM_SELECT_WRITE,
 	    httpSendRequest, (void *) httpState, 0);
-	if (vizSock > -1)
-	    vizHackSendPkt(&httpState->connectState.S, 2);
     }
 }
 

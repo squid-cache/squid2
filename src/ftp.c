@@ -125,7 +125,6 @@ typedef struct _Ftpdata {
     int got_marker;		/* denotes end of successful request */
     int reply_hdr_state;
     int authenticated;		/* This ftp request is authenticated */
-    ConnectStateData connectState;
 } FtpStateData;
 
 /* Local functions */
@@ -609,12 +608,11 @@ ftpStart(int unusedfd, const char *url, request_t * request, StoreEntry * entry)
 	(void *) ftpData);
 
     /* Now connect ... */
-    ftpData->connectState.fd = ftpData->ftp_fd;
-    ftpData->connectState.host = localhost;
-    ftpData->connectState.port = ftpget_port;
-    ftpData->connectState.handler = ftpConnectDone;
-    ftpData->connectState.data = ftpData;
-    comm_nbconnect(ftpData->ftp_fd, &ftpData->connectState);
+    commConnectStart(ftpData->ftp_fd,
+	localhost,
+	ftpget_port,
+	ftpConnectDone,
+	ftpData);
     return COMM_OK;
 }
 
@@ -644,8 +642,6 @@ ftpConnectDone(int fd, int status, void *data)
 	(void *) ftpData, 0);
     if (opt_no_ipcache)
 	ipcacheInvalidate(ftpData->request->host);
-    if (vizSock > -1)
-	vizHackSendPkt(&ftpData->connectState.S, 2);
 }
 
 static void

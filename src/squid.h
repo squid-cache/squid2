@@ -43,6 +43,7 @@
 
 /* Cannot increase FD_SETSIZE on Linux */
 #if defined(_SQUID_LINUX_)
+#undef CHANGE_FD_SETSIZE
 #define CHANGE_FD_SETSIZE 0
 #endif
 
@@ -53,6 +54,7 @@
 #if defined(_SQUID_FREEBSD_)
 #include <osreldate.h>
 #if __FreeBSD_version__ < 220000
+#undef CHANGE_FD_SETSIZE
 #define CHANGE_FD_SETSIZE 0
 #endif
 #endif
@@ -177,10 +179,6 @@
 /* Make sure syslog goes after stdarg/varargs */
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
-#endif
-
-#if HAVE_SHADOW_H
-#include <shadow.h>
 #endif
 
 #if HAVE_MATH_H

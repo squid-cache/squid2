@@ -196,7 +196,6 @@ typedef struct iwd {
 	void (*callback) _PARAMS((void *));
 	int state;
     } ident;
-    ConnectStateData identConnectState;
 } icpStateData;
 
 extern void *icpCreateMessage _PARAMS((icp_opcode opcode,

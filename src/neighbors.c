@@ -1042,14 +1042,11 @@ static void
 peerCheckConnect2(int fd, const ipcache_addrs * ia, void *data)
 {
     peer *p = data;
-    ConnectStateData *cs = xcalloc(1, sizeof(ConnectStateData));
-    cs->fd = fd;
-    cs->host = p->host;
-    cs->port = p->http_port;
-    cs->handler = peerCheckConnectDone;
-    cs->data = p;
-    cs->free_func = xfree;
-    comm_nbconnect(fd, cs);
+    commConnectStart(fd,
+	p->host,
+	p->http_port,
+	peerCheckConnectDone,
+	p);
 }
 
 void

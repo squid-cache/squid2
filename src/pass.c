@@ -48,7 +48,6 @@ typedef struct {
     time_t timeout;
     int *size_ptr;		/* pointer to size for logging */
     int proxying;
-    ConnectStateData connectState;
 } PassStateData;
 
 static void passLifetimeExpire _PARAMS((int fd, void *));
@@ -376,12 +375,11 @@ passConnect(int fd, const ipcache_addrs * ia, void *data)
 	COMM_SELECT_LIFETIME,
 	passLifetimeExpire,
 	(void *) passState, 0);
-    passState->connectState.fd = fd;
-    passState->connectState.host = passState->host;
-    passState->connectState.port = passState->port;
-    passState->connectState.handler = passConnectDone;
-    passState->connectState.data = passState;
-    comm_nbconnect(fd, &passState->connectState);
+    commConnectStart(fd,
+	passState->host,
+	passState->port,
+	passConnectDone,
+	passState);
 }
 
 static void
@@ -408,8 +406,6 @@ passConnectDone(int fd, int status, void *data)
     if (opt_no_ipcache)
 	ipcacheInvalidate(passState->host);
     passConnected(passState->server.fd, passState);
-    if (vizSock > -1)
-	vizHackSendPkt(&passState->connectState.S, 2);
 }
 
 int

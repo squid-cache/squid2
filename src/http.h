@@ -136,7 +136,6 @@ typedef struct {
     int req_hdr_sz;
     int reply_hdr_state;
     peer *neighbor;		/* neighbor request made to */
-    ConnectStateData connectState;
     int eof;			/* reached end-of-object? */
     request_t *orig_request;
 } HttpStateData;
