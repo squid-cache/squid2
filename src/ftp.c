@@ -84,7 +84,7 @@ int ftp_url_parser(url, data)
     if (t < 3) {
 	strcpy(host, user);	/* no login/passwd information */
 	strcpy(user, "anonymous");
-	strcpy(password, "harvest@");
+	strcpy(password, getFtpUser());
     }
     /* we need to convert user and password for URL encodings */
     tmp = url_convert_hex(user);

@@ -709,3 +709,15 @@ announce_organization	Your Organization
 #debug_options
 #pid_filename
 #visible_hostname
+
+# If you want the anonymous login password to be more informative
+# (and enable the use of picky ftp servers), set this to something
+# resonable for your domain, like wwwuser@somewhere.net
+#
+# The reason why this is domainless by default is that the
+# request can be made on the behalf of a user in any domain.
+# depending on how the cache is used.
+# Some ftp server also validate that the email adress is valid
+# (for example perl.com).
+#
+ftp_user Harvest@
