@@ -88,5 +88,6 @@ extern int urlCheckRequest _PARAMS((request_t *));
 #define 	REQ_UNUSED2	0x20
 #define 	REQ_HIERARCHICAL 0x40
 #define 	REQ_LOOPDETECT  0x80
+#define		REQ_PROXY_KEEPALIVE 0x100
 
 #endif /* _URL_HEADER_ */

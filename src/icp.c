@@ -253,28 +253,30 @@ icpStateFree(int fd, icpStateData * icpState)
     elapsed_msec = tvSubMsec(icpState->start, current_time);
     if (icpState->request)
 	hierData = &icpState->request->hierarchy;
-    HTTPCacheInfo->log_append(HTTPCacheInfo,
-	icpState->url,
-	icpState->log_addr,
-	icpState->size,
-	log_tags[icpState->log_type],
-	RequestMethodStr[icpState->method],
-	http_code,
-	elapsed_msec,
-	icpState->ident,
+    if (icpState->size || icpState->log_type) {
+        HTTPCacheInfo->log_append(HTTPCacheInfo,
+	    icpState->url,
+	    icpState->log_addr,
+	    icpState->size,
+	    log_tags[icpState->log_type],
+	    RequestMethodStr[icpState->method],
+	    http_code,
+	    elapsed_msec,
+	    icpState->ident,
 #if !LOG_FULL_HEADERS
-	hierData);
+	    hierData);
 #else
-	hierData,
-	icpState->request_hdr,
-	icpState->reply_hdr);
+	    hierData,
+	    icpState->request_hdr,
+	    icpState->reply_hdr);
 #endif /* LOG_FULL_HEADERS */
-    HTTPCacheInfo->proto_count(HTTPCacheInfo,
-	icpState->request ? icpState->request->protocol : PROTO_NONE,
-	icpState->log_type);
-    clientdbUpdate(icpState->peer.sin_addr,
-	icpState->log_type,
-	ntohs(icpState->me.sin_port));
+        HTTPCacheInfo->proto_count(HTTPCacheInfo,
+	    icpState->request ? icpState->request->protocol : PROTO_NONE,
+	    icpState->log_type);
+        clientdbUpdate(icpState->peer.sin_addr,
+	    icpState->log_type,
+	    ntohs(icpState->me.sin_port));
+    }
     if (icpState->ident_fd)
 	comm_close(icpState->ident_fd);
     checkFailureRatio(icpState->log_type,
@@ -315,6 +317,11 @@ icpParseRequestHeaders(icpStateData * icpState)
     }
     if (mime_get_header(request_hdr, "Authorization"))
 	BIT_SET(request->flags, REQ_AUTH);
+#if TRY_KEEPALIVE_SUPPORT
+    if ((t = mime_get_header(request_hdr, "Proxy-Connection")))
+	if (!strcasecmp(t, "Keep-Alive"))
+	    BIT_SET(request->flags, REQ_PROXY_KEEPALIVE);
+#endif
     if (strstr(request_hdr, ForwardedBy))
 	BIT_SET(request->flags, REQ_LOOPDETECT);
 }
@@ -555,7 +562,6 @@ icpHandleStoreComplete(int fd, char *buf, int size, int errflag, void *data)
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    urlParseProtocol(entry->url),
 	    icpState->offset);
-	/* Now we release the entry and DON'T touch it from here on out */
 	comm_close(fd);
     } else if (icpState->offset < entry->mem_obj->e_current_len) {
 	/* More data available locally; write it now */
@@ -566,7 +572,12 @@ icpHandleStoreComplete(int fd, char *buf, int size, int errflag, void *data)
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    icpState->request->protocol,
 	    icpState->offset);
-	comm_close(fd);
+        if (BIT_TEST(icpState->request->flags, REQ_PROXY_KEEPALIVE)) {
+            commCallCloseHandlers(fd);
+            icpDetectNewRequest(fd);
+        } else {
+            comm_close(fd);
+        }
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
@@ -1935,8 +1946,9 @@ CheckQuickAbort(icpStateData * icpState)
 }
 
 void
-icpDetectClientClose(int fd, icpStateData * icpState)
+icpDetectClientClose(int fd, void *data)
 {
+    icpStateData * icpState = data;
     LOCAL_ARRAY(char, buf, 256);
     int n;
     StoreEntry *entry = icpState->entry;
@@ -1975,6 +1987,66 @@ icpDetectClientClose(int fd, icpStateData * icpState)
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
 	comm_set_stall(fd, 60);	/* check again in a minute */
     }
+}
+
+void
+icpDetectNewRequest(int fd)
+{
+#if TRY_KEEPALIVE_SUPPORT
+    int lft = -1;
+    icpStateData *icpState = NULL;
+    struct sockaddr_in me;
+    struct sockaddr_in peer;
+    int len;
+    /* set the hardwired lifetime */
+    lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
+    len = sizeof(struct sockaddr_in);
+    memset((char*)&me, '\0', len);
+    memset((char*)&peer, '\0', len);
+    if (getsockname(fd, (struct sockaddr *) &me, &len) < -1) {
+	debug(12, 1, "icpDetectNewRequest: FD %d: getsockname failure: %s\n",
+	    fd, xstrerror());
+	return;
+    }
+    len = sizeof(struct sockaddr_in);
+    if (getpeername(fd, (struct sockaddr *) &peer, &len) < -1) {
+	debug(12, 1, "icpDetectNewRequest: FD %d: getpeername failure: %s\n",
+	    fd, xstrerror());
+	return;
+    }
+    ntcpconn++;
+    if (Config.vizHackAddr.sin_port)
+	vizHackSendPkt(&peer);
+    debug(12, 4, "icpDetectRequest: FD %d: accepted, lifetime %d\n", fd, lft);
+    icpState = xcalloc(1, sizeof(icpStateData));
+    icpState->start = current_time;
+    icpState->inbufsize = ASCII_INBUF_BLOCKSIZE;
+    icpState->inbuf = xcalloc(icpState->inbufsize, 1);
+    icpState->header.shostid = htonl(peer.sin_addr.s_addr);
+    icpState->peer = peer;
+    icpState->log_addr = peer.sin_addr;
+    icpState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
+    icpState->me = me;
+    icpState->entry = NULL;
+    icpState->fd = fd;
+    fd_note(fd, inet_ntoa(icpState->log_addr));
+    meta_data.misc += ASCII_INBUF_BLOCKSIZE;
+    comm_add_close_handler(fd,
+	(PF) icpStateFree,
+	(void *) icpState);
+    comm_read(fd,
+	icpState->inbuf,
+	icpState->inbufsize - 1,	/* size */
+	30,			/* timeout */
+	1,			/* handle immed */
+	asciiProcessInput,
+	(void *) icpState);
+    if (Config.identLookup)
+	identStart(-1, icpState);
+    /* start reverse lookup */
+    if (Config.Log.log_fqdn)
+	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
+#endif
 }
 
 static char *

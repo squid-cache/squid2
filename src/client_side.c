@@ -218,11 +218,13 @@ clientRedirectDone(void *data, char *result)
     }
     icpParseRequestHeaders(icpState);
     fd_note(fd, icpState->url);
-    commSetSelect(fd,
-	COMM_SELECT_READ,
-	(PF) icpDetectClientClose,
-	(void *) icpState,
-	0);
+    if (!BIT_TEST(icpState->request->flags, REQ_PROXY_KEEPALIVE)) {
+	commSetSelect(fd,
+	    COMM_SELECT_READ,
+	    icpDetectClientClose,
+	    (void *) icpState,
+	    0);
+    }
     icpProcessRequest(fd, icpState);
 }
 
