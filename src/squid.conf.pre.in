@@ -753,4 +753,4 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	HTML text to include in error messages.  Make this a "mailto"
 #	URL to your admin address, or maybe just a link to your 
 #	organizations Web page.
-#html_text
+#err_html_text
