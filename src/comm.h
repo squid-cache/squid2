@@ -192,6 +192,7 @@ extern "C" {
 	caddr_t lifetime_data;	/* App. data to associate w/ handled conn. */
 	char ascii_note[FD_ASCII_NOTE_SZ];
 	unsigned int comm_type;
+	time_t stall_until;	/* don't select for read until this time reached */
     } FD_ENTRY;
 
     extern FD_ENTRY *fd_table;
@@ -221,8 +222,9 @@ extern "C" {
     extern int comm_udp_sendto _PARAMS((int fd, struct sockaddr_in *, int size, char *buf, int len));
     extern int comm_udp_recv _PARAMS((int, char *, int, struct sockaddr_in *, int *));
     extern int comm_init();
-    extern comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
-    extern comm_get_fd_lifetime _PARAMS((int fd));
+    extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
+    extern int comm_get_fd_lifetime _PARAMS((int fd));
+    extern void comm_set_stall _PARAMS((int, int));
     extern char *fd_note _PARAMS((int fd, char *));
     extern int commSetNonBlocking _PARAMS((int fd));
     extern char **getAddressList _PARAMS((char *name));
