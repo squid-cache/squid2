@@ -706,8 +706,6 @@ storeGetMemSpace(int size)
     pages_needed = (size / SM_PAGE_SIZE) + 1;
     if (memInUse(MEM_STMEM_BUF) + pages_needed < store_pages_max)
 	return;
-    if (store_dirs_rebuilding)
-	return;
     debug(20, 2) ("storeGetMemSpace: Starting, need %d pages\n", pages_needed);
 #if HEAP_REPLACEMENT
     while (heap_nodes(inmem_heap) > 0) {
