@@ -361,8 +361,8 @@ storeExpireNow(StoreEntry * e)
 {
     debug(20, 3) ("storeExpireNow: '%s'\n", storeKeyText(e->key));
     e->expires = squid_curtime;
-    dlinkDelete(&e->lru, &inmem_list);
-    dlinkAddTail(e, &e->lru, &inmem_list);
+    dlinkDelete(&e->lru, &store_list);
+    dlinkAddTail(e, &e->lru, &store_list);
 }
 
 /* Append incoming data from a primary server to an entry. */
