@@ -1297,9 +1297,8 @@ aclMatchProxyAuth(void *data, auth_user_request_t * auth_user_request,
     /* this ACL check completed */
     authenticateAuthUserRequestUnlock(auth_user_request);
     /* check to see if we have matched the user-acl before */
-    return aclCacheMatchAcl(&auth_user_request->auth_user->
-	proxy_match_cache, acltype, data,
-	authenticateUserRequestUsername(auth_user_request));
+    return aclCacheMatchAcl(&auth_user_request->auth_user->proxy_match_cache,
+	acltype, data, authenticateUserRequestUsername(auth_user_request));
 }
 
 CBDATA_TYPE(acl_user_ip_data);
