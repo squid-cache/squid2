@@ -580,7 +580,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    debug(15, 0, "Too late UDP_HIT_OBJ '%s'?\n", entry->url);
 	    return;
 	}
-	/* ACK, how to parse headers? */
+	protoCancelTimeout(0, entry);
+	entry->ping_status = PING_DONE;
 	httpState = xcalloc(1, sizeof(HttpStateData));
 	httpState->entry = entry;
 	httpProcessReplyHeader(httpState, data, data_sz);
