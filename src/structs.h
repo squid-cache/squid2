@@ -375,6 +375,7 @@ struct _SquidConfig {
 	int objectsPerBucket;
 	size_t avgObjectSize;
 	size_t maxObjectSize;
+	size_t minObjectSize;
     } Store;
     struct {
 	int high;

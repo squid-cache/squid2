@@ -559,6 +559,18 @@ DOC_START
 maximum_object_size 4096 KB
 DOC_END
 
+NAME: minimum_object_size
+COMMENT: (bytes)
+TYPE: b_size_t
+DEFAULT: 0 KB
+LOC: Config.Store.minObjectSize
+DOC_START
+	Objects smaller than this size will NOT be saved on disk.  The
+	value is specified in kilobytes, and the default is 0 KB, which
+	means there is no minimum.
+minimum_object_size 0 KB
+DOC_END
+
 
 NAME: ipcache_size
 COMMENT: (number of entries)

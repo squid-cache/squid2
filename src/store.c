@@ -501,6 +501,7 @@ struct _store_check_cachable_hist {
 	int wrong_content_length;
 	int negative_cached;
 	int too_big;
+	int too_small;
 	int private_key;
 	int too_many_open_files;
 	int too_many_open_fds;
@@ -518,6 +519,19 @@ storeTooManyDiskFilesOpen(void)
 	return 0;
     if (store_open_disk_fd > Config.max_open_disk_fds)
 	return 1;
+    return 0;
+}
+
+static int
+storeCheckTooSmall(StoreEntry * e)
+{
+    MemObject *mem = e->mem_obj;
+    if (STORE_OK == e->store_status)
+	if (mem->object_sz < Config.Store.minObjectSize)
+	    return 1;
+    if (mem->reply->content_length > -1)
+	if (mem->reply->content_length < (int) Config.Store.minObjectSize)
+	    return 1;
     return 0;
 }
 
@@ -549,6 +563,9 @@ storeCheckCachable(StoreEntry * e)
     } else if (e->mem_obj->reply->content_length > (int) Config.Store.maxObjectSize) {
 	debug(20, 2) ("storeCheckCachable: NO: too big\n");
 	store_check_cachable_hist.no.too_big++;
+    } else if (storeCheckTooSmall(e)) {
+	debug(20, 2) ("storeCheckCachable: NO: too small\n");
+	store_check_cachable_hist.no.too_small++;
     } else if (EBIT_TEST(e->flags, KEY_PRIVATE)) {
 	debug(20, 3) ("storeCheckCachable: NO: private key\n");
 	store_check_cachable_hist.no.private_key++;
@@ -603,6 +620,8 @@ storeCheckCachableStats(StoreEntry * sentry)
 	store_check_cachable_hist.no.negative_cached);
     storeAppendPrintf(sentry, "no.too_big\t%d\n",
 	store_check_cachable_hist.no.too_big);
+    storeAppendPrintf(sentry, "no.too_small\t%d\n",
+	store_check_cachable_hist.no.too_small);
     storeAppendPrintf(sentry, "no.private_key\t%d\n",
 	store_check_cachable_hist.no.private_key);
     storeAppendPrintf(sentry, "no.too_many_open_files\t%d\n",
