@@ -334,6 +334,7 @@ extern int opt_no_ipcache;	/* main.c */
 extern int vhost_mode;		/* main.c */
 extern int Squid_MaxFD;		/* main.c */
 extern int Biggest_FD;		/* main.c */
+extern int Number_FD;		/* main.c */
 extern int select_loops;	/* main.c */
 extern const char *const version_string;	/* main.c */
 extern const char *const appname;	/* main.c */

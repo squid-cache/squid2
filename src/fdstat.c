@@ -182,6 +182,7 @@ fdstat_open(int fd, File_Desc_Type type)
     fd_stat_tab[fd].status = FDSTAT_OPEN;
     fd_stat_tab[fd].type = type;
     fdstat_update(fd, FDSTAT_OPEN);
+    Number_FD++;
 }
 
 int
@@ -196,6 +197,7 @@ fdstat_close(int fd)
 {
     fd_stat_tab[fd].status = FDSTAT_CLOSE;
     fdstat_update(fd, FDSTAT_CLOSE);
+    Number_FD--;
 }
 
 int
