@@ -34,7 +34,6 @@
 const char *err_string[] =
 {
     "ERR_NONE",
-    "ERR_NO_CLIENTS",
     "ERR_READ_TIMEOUT",
     "ERR_LIFETIME_EXP",
     "ERR_READ_ERROR",
