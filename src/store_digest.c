@@ -298,8 +298,8 @@ storeDigestRebuildFinish(void)
 static void
 storeDigestRebuildStep(void *datanotused)
 {
-    int bcount = (int) ceil(store_hash_buckets *
-	(Config.digest.rebuild_chunk_percentage / 100));
+    int bcount = (int) ceil((double) store_hash_buckets *
+	(double) Config.digest.rebuild_chunk_percentage / 100.0);
     assert(sd_state.rebuild_lock);
     if (sd_state.rebuild_offset + bcount > store_hash_buckets)
 	bcount = store_hash_buckets - sd_state.rebuild_offset;
