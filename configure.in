@@ -112,6 +112,7 @@ AC_PATH_PROG(MV, mv, /bin/false)
 AC_PATH_PROG(MKDIR, mkdir, /bin/false)
 AC_PATH_PROG(LN, ln, cp)
 AC_PATH_PROG(PERL, perl, /usr/local/bin/perl)
+AC_PATH_PROG(MAKEDEPEND, makedepend, /bin/true)
 
 
 dnl Check for headers
@@ -504,3 +505,8 @@ AC_OUTPUT(\
 	./src/squid.conf.pre \
 	./contrib/Makefile \
 )
+
+echo "Running make depend in lib"
+(cd lib; make depend)
+echo "Running make depend in src"
+(cd src; make depend)

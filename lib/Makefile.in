@@ -11,6 +11,7 @@ VPATH		= @srcdir@
 
 
 CC		= @CC@
+MAKEDEPEND	= @MAKEDEPEND@
 INSTALL		= @INSTALL@
 INSTALL_BIN 	= @INSTALL_PROGRAM@
 INSTALL_FILE 	= @INSTALL_DATA@
@@ -53,3 +54,7 @@ realclean: clean
 	-rm -f Makefile
 
 install: all
+
+depend:
+	$(MAKEDEPEND) -I../include -I. -fMakefile *.c
+
