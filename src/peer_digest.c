@@ -262,6 +262,8 @@ peerDigestCheck(void *data)
 	peerDigestSetCheck(pd, req_time - squid_curtime);
 }
 
+CBDATA_TYPE(DigestFetchState);
+
 /* ask store for a digest */
 static void
 peerDigestRequest(PeerDigest * pd)
@@ -295,6 +297,7 @@ peerDigestRequest(PeerDigest * pd)
     if (p->login)
 	xstrncpy(req->login, p->login, MAX_LOGIN_SZ);
     /* create fetch state structure */
+    CBDATA_INIT_TYPE(DigestFetchState);
     fetch = cbdataAlloc(DigestFetchState);
     fetch->request = requestLink(req);
     fetch->pd = pd;
