@@ -304,6 +304,7 @@ pumpClose(void *data)
     StoreEntry *req = p->request_entry;
     StoreEntry *rep = p->reply_entry;
     sigusr2_handle(0);
+    cbdataLock(p);
     debug(61, 3) ("pumpClose: %p Server FD %d, Client FD %d\n",
 	p, p->s_fd, p->c_fd);
     /* double-call detection */
@@ -313,17 +314,14 @@ pumpClose(void *data)
 	storeUnregister(req, p);
 	storeAbort(req, 0);
     }
+    if (p->s_fd > -1)
+	comm_remove_close_handler(p->s_fd, pumpServerClosed, p);
     if (rep != NULL && rep->store_status == STORE_PENDING) {
 	storeAbort(rep, 0);
     }
-    if (p->s_fd > -1) {
-	comm_remove_close_handler(p->s_fd, pumpServerClosed, p);
-	comm_close(p->s_fd);
-	p->s_fd = -1;
-    }
-    if (p->c_fd > -1) {
-	comm_close(p->c_fd);
-    }
+    /* This tests that pumpFree() got called somewhere */
+    assert(0 == cbdataValid(p));
+    cbdataUnlock(p);
     sigusr2_handle(0);
 }
 
