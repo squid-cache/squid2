@@ -239,7 +239,12 @@ peerDigestRequest(peer * p)
     url = internalRemoteUri(p->host, p->http_port, "/squid-internal-periodic/", StoreDigestUrlPath);
     key = storeKeyPublic(url, METHOD_GET);
     debug(72, 2) ("peerDigestRequest: %s key: %s\n", url, storeKeyText(key));
-    req = requestLink(urlParse(METHOD_GET, url));
+    req = urlParse(METHOD_GET, url);
+    if (NULL == req) {
+	debug(72,1)("peerDigestRequest: Bad URI: %s\n", url);
+	return;		/* @?@ */
+    }
+    requestLink(req);
     assert(req);
     /* add custom headers */
     /* rewrite this when requests get new header interface */
