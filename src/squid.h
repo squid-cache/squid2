@@ -218,10 +218,11 @@
  * places
  */
 typedef void struct {
-        struct timeval ru_stime;
-        int ru_maxrss;
-        int ru_majflt;
+    struct timeval ru_stime;
+    int ru_maxrss;
+    int ru_majflt;
 } rusage;
+
 #endif
 #endif
 
@@ -311,6 +312,7 @@ typedef void struct {
 #include "globals.h"
 
 #include "util.h"
+#include "radix.h"
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"

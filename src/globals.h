@@ -102,6 +102,7 @@ extern time_t hit_only_mode_until;	/* 0 */
 extern StatCounters Counter;
 extern char *err_type_str[];
 extern char *icp_opcode_str[];
+extern struct radix_node_head *AS_tree_head;
 
 #ifdef HAVE_SYSLOG
 extern int _db_level;
