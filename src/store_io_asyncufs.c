@@ -232,6 +232,13 @@ storeAufsReadDone(int fd, void *my_data, int len, int errflag)
     if (cbdataValid(their_data))
 	callback(their_data, sio->type.aufs.read_buf, rlen);
     cbdataUnlock(their_data);
+    /* 
+     * XXX is this safe?  The above callback may have caused sio
+     * to be freed/closed already? Philip Guenther <guenther@gac.edu>
+     * says it fixes his FD leaks, with no side effects.
+     */
+    if (sio->type.aufs.flags.close_request)
+	storeAufsIOCallback(sio, DISK_OK);
 }
 
 /*
