@@ -419,7 +419,7 @@ storeAufsIOCallback(storeIOState * sio, int errflag)
     aioClose(fd);
     fd_close(fd);
     store_open_disk_fd--;
-    debug(79, 0) ("%s:%d\n", __FILE__, __LINE__);
+    debug(79, 9) ("%s:%d\n", __FILE__, __LINE__);
 }
 
 
