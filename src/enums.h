@@ -147,14 +147,6 @@ enum {
     FD_WRITE
 };
 
-enum {
-    IP_CACHED,
-    IP_NEGATIVE_CACHED,
-    IP_PENDING,			/* waiting to be dispatched */
-    IP_DISPATCHED		/* waiting for reply from dnsserver */
-};
-typedef unsigned int ipcache_status_t;
-
 typedef enum {
     PEER_NONE,
     PEER_SIBLING,
@@ -574,7 +566,6 @@ typedef enum {
     MEM_INTLIST,
     MEM_IOSTATS,
     MEM_IPCACHE_ENTRY,
-    MEM_IPCACHE_PENDING,
     MEM_MD5_DIGEST,
     MEM_MEMOBJECT,
     MEM_MEM_NODE,

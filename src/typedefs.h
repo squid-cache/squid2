@@ -106,8 +106,6 @@ typedef struct _icpUdpData icpUdpData;
 typedef struct _clientHttpRequest clientHttpRequest;
 typedef struct _ConnStateData ConnStateData;
 typedef struct _ipcache_addrs ipcache_addrs;
-typedef struct _ipcache_entry ipcache_entry;
-typedef struct _ip_pending ip_pending;
 typedef struct _domain_ping domain_ping;
 typedef struct _domain_type domain_type;
 typedef struct _DynPool DynPool;

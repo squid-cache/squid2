@@ -924,27 +924,6 @@ struct _ipcache_addrs {
     unsigned char badcount;
 };
 
-struct _ip_pending {
-    IPH *handler;
-    void *handlerData;
-    ip_pending *next;
-};
-
-struct _ipcache_entry {
-    /* first two items must be equivalent to hash_link */
-    char *name;
-    ipcache_entry *next;
-    time_t lastref;
-    time_t expires;
-    ipcache_addrs addrs;
-    ip_pending *pending_head;
-    char *error_message;
-    struct timeval request_time;
-    dlink_node lru;
-    u_char locks;
-    ipcache_status_t status:3;
-};
-
 struct _domain_ping {
     char *domain;
     int do_ping;		/* boolean */

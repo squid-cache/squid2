@@ -1686,8 +1686,6 @@ aclCheck(aclCheck_t * checklist)
 void
 aclChecklistFree(aclCheck_t * checklist)
 {
-    if (checklist->state[ACL_DST_IP] == ACL_LOOKUP_PENDING)
-	ipcacheUnregister(checklist->request->host, checklist);
     if (checklist->request)
 	requestUnlink(checklist->request);
     checklist->request = NULL;

@@ -282,8 +282,6 @@ commConnectFree(int fd, void *data)
 {
     ConnectStateData *cs = data;
     debug(5, 3) ("commConnectFree: FD %d\n", fd);
-    if (cs->locks)
-	ipcacheUnregister(cs->host, cs);
     if (cs->data)
 	cbdataUnlock(cs->data);
     safe_free(cs->host);

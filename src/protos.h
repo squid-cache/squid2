@@ -555,7 +555,6 @@ extern void ipcacheMarkGoodAddr(const char *name, struct in_addr);
 extern void ipcacheFreeMemory(void);
 extern ipcache_addrs *ipcacheCheckNumeric(const char *name);
 extern void ipcache_restart(void);
-extern int ipcacheUnregister(const char *name, void *data);
 
 /* MemBuf */
 /* init with specific sizes */
