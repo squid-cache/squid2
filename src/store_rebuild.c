@@ -117,7 +117,7 @@ storeCleanup(void *datanotused)
 	     * otherwise, set it in the validation procedure
 	     */
 	    storeDirUpdateSwapSize(e->swap_file_number, e->swap_file_sz, 1);
-	    if ((++validnum & 0xFFFF) == 0)
+	    if ((++validnum & 0x3FFFF) == 0)
 		debug(20, 1) ("  %7d Entries Validated so far.\n", validnum);
 	}
     }
