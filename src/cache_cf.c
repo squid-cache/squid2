@@ -898,7 +898,8 @@ parse_delay_pool_class(delayConfig * cfg)
 	delayFreeDelayPool(pool);
 	safe_free(cfg->rates[pool]);
     }
-    cfg->rates[pool] = xmalloc(class * sizeof(delaySpecSet));
+    /* Allocates a "delaySpecSet" just as large as needed for the class */
+    cfg->rates[pool] = xmalloc(class * sizeof(delaySpec));
     cfg->class[pool] = class;
     cfg->rates[pool]->aggregate.restore_bps = cfg->rates[pool]->aggregate.max_bytes = -1;
     if (cfg->class[pool] >= 3)
