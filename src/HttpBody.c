@@ -72,7 +72,8 @@ httpBodySet(HttpBody * body, const char *buf, int size, FREE * freefunc)
 	xmemcpy(body->buf, buf, size);
 	freefunc = &xfree;
     } else {
-	body->buf = buf;
+	/* @?@ @?@ Fix this cast: we should probably have two httpBodySet()s */
+	body->buf = (char*)buf;
     }
     body->freefunc = freefunc;
     body->size = size;
