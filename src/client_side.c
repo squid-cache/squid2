@@ -524,6 +524,8 @@ clientUpdateCounters(clientHttpRequest * http)
     }
     if (http->request->err_type != ERR_NONE)
 	Counter.client_http.errors++;
+    statLogHistCount(&Counter.client_http.svc_time,
+	tvSubMsec(http->start, current_time));
 }
 
 static void
