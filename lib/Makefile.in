@@ -26,7 +26,8 @@ UTILOBJS	= rfc850.o \
 		  host_cache.o \
 		  getfullhostname.o \
 		  debug.o \
-		  log.o
+		  log.o \
+		  tempnam.o
 REGEXOBJS	= GNUregex.o
 LIBS		= libmiscutil.a libregex.a
 
