@@ -327,7 +327,7 @@ configDoConfigure(void)
 	    cbdataFree(Config.Wais.peer);
 	Config.Wais.peer = memAllocate(MEM_PEER);
 	cbdataAdd(Config.Wais.peer, peerDestroy, MEM_PEER);
-	Config.Wais.peer->host = Config.Wais.relayHost;
+	Config.Wais.peer->host = xstrdup(Config.Wais.relayHost);
 	Config.Wais.peer->http_port = Config.Wais.relayPort;
     }
 }
@@ -997,7 +997,8 @@ parse_peer(peer ** head)
 	    p->carp.hash += (p->carp.hash << 19) + *token;
     }
 #endif
-    cbdataAdd(p, peerDestroy, MEM_PEER);	/* must preceed peerDigestCreate */
+    /* This must preceed peerDigestCreate */
+    cbdataAdd(p, peerDestroy, MEM_PEER);
 #if USE_CACHE_DIGESTS
     if (!p->options.no_digest) {
 	p->digest = peerDigestCreate(p);
