@@ -169,6 +169,7 @@ typedef struct _generic_cbdata generic_cbdata;
 typedef struct _storeIOState storeIOState;
 typedef struct _link_list link_list;
 typedef struct _storefs_entry storefs_entry_t;
+typedef struct _storerepl_entry storerepl_entry_t;
 typedef struct _diskd_queue diskd_queue;
 typedef struct _Logfile Logfile;
 typedef struct _RemovalPolicy RemovalPolicy;

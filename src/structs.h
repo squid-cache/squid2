@@ -1896,6 +1896,15 @@ struct _storefs_entry {
 };
 
 /*
+ * This defines an repl type
+ */
+
+struct _storerepl_entry {
+    char *typestr;
+    REMOVALPOLICYCREATE *create;
+};
+
+/*
  * Async disk IO - this defines a async disk io queue
  */
 

@@ -852,9 +852,13 @@ extern void storeSwapFileNumberSet(StoreEntry * e, sfileno filn);
 extern void storeFsInit(void);
 extern void storeFsDone(void);
 extern void storeFsAdd(char *, STSETUP *);
+extern void storeReplAdd(char *, REMOVALPOLICYCREATE *);
 
 /* store_modules.c */
 extern void storeFsSetup(void);
+
+/* repl_modules.c */
+extern void storeReplSetup(void);
 
 /* store_io.c */
 extern storeIOState *storeCreate(StoreEntry *, STFNCB *, STIOCB *, void *);
