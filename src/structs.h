@@ -1246,6 +1246,9 @@ struct _SwapDir {
     int suggest;
     fileMap *map;
     int swaplog_fd;
+    struct {
+	unsigned int selected:1;
+    } flags;
 };
 
 struct _request_flags {
