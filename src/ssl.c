@@ -108,10 +108,12 @@ sslStateFree(int fd, void *data)
 	return;
     if (fd != sslState->server.fd)
 	fatal_dump("sslStateFree: FD mismatch!\n");
-    commSetSelect(sslState->client.fd,
-	COMM_SELECT_READ,
-	NULL,
-	NULL, 0);
+    if (sslState->client.fd > -1) {
+	commSetSelect(sslState->client.fd,
+	    COMM_SELECT_READ,
+	    NULL,
+	    NULL, 0);
+    }
     safe_free(sslState->server.buf);
     safe_free(sslState->client.buf);
     xfree(sslState->url);
