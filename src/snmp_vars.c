@@ -73,6 +73,7 @@ long long_return;
  * 1.2
  * 1.2.0
  */
+#ifndef CACHE_SNMP_H
 struct subtree {
     oid name[16];		/* objid prefix of subtree */
     u_char namelen;		/* number of subid's in name above */
@@ -133,7 +134,7 @@ struct variable13 {
 };
 
 #endif
-
+#endif
 /*
  * ##############################################################
  * IMPORTANT NOTE:
