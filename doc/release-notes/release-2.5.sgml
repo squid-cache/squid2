@@ -128,9 +128,9 @@ for Applied Network Research and members of the Web Caching community.
 
 <descrip>
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=761" name="#761"></tag>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=910" name="#910"></tag>ntlm auth_user_hash_pointer memory leak if challenge reuses are enabled
-
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=779" name="#779"></tag>users going above their allowed IP count no longer logged in cache.log
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059" name="#1059"></tag>mime.conf and referenced icons must be within chroot
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1033" name="#1033"></tag>CARP ignores cache_peer_access and cache_peer_domain
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=692" name="#692"></tag>tcp_outgoing_address using an ident ACL does not work
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=581" name="#581"></tag>acl max_user_ip and multiple authentication schemes
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=528" name="#528"></tag>miss_access fails on "slow" acl types such as dst.
