@@ -49,7 +49,7 @@
 #undef USE_ASYNC_IO
 
 /* Defines how many threads to use for async I/O */
-#undef NUMTHREADS
+#undef ASYNC_IO_THREADS
 
 /*
  * If you want to use Squid's ICMP features (highly recommended!) then
@@ -271,3 +271,6 @@
  * message type for message queues
  */
 #undef mtyp_t
+
+/* Define if you want to set the COSS membuf size */
+#undef COSS_MEMBUF_SZ

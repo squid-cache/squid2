@@ -13,10 +13,10 @@
  *  Internet community.  Development is led by Duane Wessels of the
  *  National Laboratory for Applied Network Research and funded by the
  *  National Science Foundation.  Squid is Copyrighted (C) 1998 by
- *  the Regents of the University of California.  Please see the
- *  COPYRIGHT file for full details.  Squid incorporates software
- *  developed and/or copyrighted by other sources.  Please see the
- *  CREDITS file for full details.
+ *  Duane Wessels and the University of California San Diego.  Please
+ *  see the COPYRIGHT file for full details.  Squid incorporates
+ *  software developed and/or copyrighted by other sources.  Please see
+ *  the CREDITS file for full details.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,8 +35,7 @@
  */
 
 #include "squid.h"
-
-#if USE_ASYNC_IO
+#include "store_asyncufs.h"
 
 #define _AIO_OPEN	0
 #define _AIO_READ	1
@@ -77,6 +76,8 @@ static OBJH aioStats;
 static MemPool *aio_ctrl_pool;
 static void aioFDWasClosed(int fd);
 
+MemPool * aio_state_pool;
+
 static void
 aioFDWasClosed(int fd)
 {
@@ -90,9 +91,19 @@ aioInit(void)
     if (initialised)
 	return;
     aio_ctrl_pool = memPoolCreate("aio_ctrl", sizeof(aio_ctrl_t));
+    aio_state_pool = memPoolCreate("Async UFS IO State data", sizeof(aiostate_t));
     cachemgrRegister("aio_counts", "Async IO Function Counters",
 	aioStats, 0, 1);
     initialised = 1;
+    comm_quick_poll_required();
+}
+
+void
+aioDone(void)
+{
+    memPoolDestroy(aio_ctrl_pool);
+    memPoolDestroy(aio_state_pool);
+    initialised = 0;
 }
 
 void
@@ -175,7 +186,7 @@ aioCancel(int fd)
 	    their_data = curr->done_handler_data;
 	    curr->done_handler = NULL;
 	    curr->done_handler_data = NULL;
-	    debug(32, 2) ("this be aioCancel\n");
+	    debug(0, 0) ("this be aioCancel\n");
 	    if (cbdataValid(their_data))
 		done_handler(fd, their_data, -2, -2);
 	    cbdataUnlock(their_data);
@@ -203,11 +214,12 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
 	if (ctrlp->fd == fd)
 	    break;
     if (ctrlp != NULL) {
-	debug(32, 2) ("aioWrite: EWOULDBLOCK\n");
+	debug(0, 0) ("aioWrite: EWOULDBLOCK\n");
 	errno = EWOULDBLOCK;
 	if (callback)
 	    (callback) (fd, callback_data, -1, errno);
-	free_func(bufp);
+	if (free_func)
+            free_func(bufp);
 	return;
     }
     ctrlp = memPoolAlloc(aio_ctrl_pool);
@@ -236,7 +248,8 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
     /*
      * aio_write copies the buffer so we can free it here
      */
-    free_func(bufp);
+    if (free_func)
+        free_func(bufp);
 }				/* aioWrite */
 
 
@@ -339,7 +352,7 @@ aioUnlink(const char *pathname, AIOCB * callback, void *callback_data)
 
 
 void
-aioCheckCallbacks(void)
+aioCheckCallbacks(SwapDir *SD)
 {
     aio_result_t *resultp;
     aio_ctrl_t *ctrlp;
@@ -394,14 +407,14 @@ aioStats(StoreEntry * sentry)
 
 /* Flush all pending I/O */
 void
-aioSync(void)
+aioSync(SwapDir *SD)
 {
     if (!initialised)
 	return;			/* nothing to do then */
     /* Flush all pending operations */
     debug(32, 1) ("aioSync: flushing pending I/O operations\n");
     do {
-	aioCheckCallbacks();
+	aioCheckCallbacks(SD);
     } while (aio_sync());
     debug(32, 1) ("aioSync: done\n");
 }
@@ -411,5 +424,3 @@ aioQueueSize(void)
 {
     return memPoolInUseCount(aio_ctrl_pool);
 }
-
-#endif /* USE_ASYNC_IO */

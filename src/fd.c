@@ -95,12 +95,6 @@ fd_open(int fd, unsigned int type, const char *desc)
 {
     fde *F = &fd_table[fd];
     assert(fd >= 0);
-#if USE_ASYNC_IO
-    if (F->flags.closing) {
-	/* Reuse of a closed FD before we have noticed it is closed */
-	fd_close(fd);
-    }
-#endif
     if (F->flags.open) {
 	debug(51, 1) ("WARNING: Closing open FD %4d\n", fd);
 	fd_close(fd);

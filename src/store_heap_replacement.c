@@ -41,6 +41,10 @@
  *  http://www.hpl.hp.com/techreports/1999/HPL-1999-69.html
  */
 
+#include "squid.h"
+
+#if HEAP_REPLACEMENT
+
 /*
  * Key generation function to implement the LFU-DA policy (Least
  * Frequently Used with Dynamic Aging).  Similar to classical LFU
@@ -54,7 +58,7 @@
  * (e->lastref): for objects that have the same reference count
  * the most recent object wins (gets a higher key value).
  */
-static heap_key
+heap_key
 HeapKeyGen_StoreEntry_LFUDA(void *entry, double age)
 {
     StoreEntry *e = entry;
@@ -81,7 +85,7 @@ HeapKeyGen_StoreEntry_LFUDA(void *entry, double age)
  * (e->lastref): for objects that have the same reference count
  * the most recent object wins (gets a higher key value).
  */
-static heap_key
+heap_key
 HeapKeyGen_StoreEntry_GDSF(void *entry, double age)
 {
     StoreEntry *e = entry;
@@ -97,9 +101,11 @@ HeapKeyGen_StoreEntry_GDSF(void *entry, double age)
  * Don't use it unless you are trying to compare performance among
  * heap-based replacement policies...
  */
-static heap_key
+heap_key
 HeapKeyGen_StoreEntry_LRU(void *entry, double age)
 {
     StoreEntry *e = entry;
     return (heap_key) e->lastref;
 }
+
+#endif
