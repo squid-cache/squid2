@@ -422,17 +422,18 @@ storeAppend(StoreEntry * e, const char *buf, int len)
 #endif
 }
 
-#if STDC_HEADERS
 void
+#if STDC_HEADERS
 storeAppendPrintf(StoreEntry * e, const char *fmt,...)
+#else
+storeAppendPrintf(va_alist)
+     va_dcl
+#endif
 {
+#if STDC_HEADERS
     va_list args;
     va_start(args, fmt);
 #else
-void
-storeAppendPrintf(va_alist)
-     va_dcl
-{
     va_list args;
     StoreEntry *e = NULL;
     const char *fmt = NULL;
