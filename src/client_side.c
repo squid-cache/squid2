@@ -176,7 +176,7 @@ clientAccessCheck(void *data)
 
 /*
  * returns true if client specified that the object must come from the cache
- * witout contacting origin server
+ * without contacting origin server
  */
 static int
 clientOnlyIfCached(clientHttpRequest * http)
