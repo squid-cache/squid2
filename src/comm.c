@@ -1361,4 +1361,5 @@ void
 commFreeMemory(void)
 {
     safe_free(fd_table);
+    safe_free(fd_lifetime);
 }

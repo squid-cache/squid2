@@ -205,3 +205,9 @@ pop(Stack * stack)
     *stack->top = NULL;
     return p;
 }
+
+void
+stackFreeMemory(Stack * stack)
+{
+    safe_free(stack->base);
+}

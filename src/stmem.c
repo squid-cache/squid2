@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -451,6 +452,7 @@ stmemFreeThingMemory(stmem_stats * thing)
 	p = pop(&thing->free_page_stack);
 	safe_free(p);
     }
+    stackFreeMemory(&thing->free_page_stack);
 }
 
 void

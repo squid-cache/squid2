@@ -2847,11 +2847,19 @@ void
 storeFreeMemory(void)
 {
     StoreEntry *e;
-#ifdef THIS_IS_SLOW
-    while ((e = (StoreEntry *) storeFindFirst(store_table))) {
-	storeHashDelete(e);
-	destroy_StoreEntry(e);
+    StoreEntry **list;
+    int i = 0;
+    list = xcalloc(meta_data.store_entries, sizeof(StoreEntry));
+    e = (StoreEntry *) hash_first(store_table);
+    while (e && i < meta_data.store_entries) {
+	*(list + i) = e;
+	i++;
+	e = (StoreEntry *) hash_next(store_table);
     }
-#endif
+    while (i) {
+	destroy_StoreEntry(*(list + i));
+	i--;
+    }
+    xfree(list);
     hashFreeMemory(store_table);
 }
