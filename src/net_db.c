@@ -39,6 +39,8 @@ typedef struct {
 	request_t *r;
 	off_t seen;
 	off_t used;
+	size_t buf_sz;
+	char *buf;
 } netdbExchangeState;
 
 static hash_table *addr_table = NULL;
@@ -929,10 +931,12 @@ netdbExchangeStart(void *data)
 	ex->r->headers = xstrdup("\r\n");
 	ex->r->headers_sz = strlen(ex->r->headers);
 	ex->e = storeCreateEntry(uri, uri, 0, METHOD_GET);
+	ex->buf_sz = SQUID_TCP_SO_RCVBUF;
+	ex->buf = xmalloc(ex->buf_sz);
 	assert(NULL != ex->e);
 	storeClientListAdd(ex->e, ex);
-	storeClientCopy(ex->e, ex->seen, ex->used, 4096,
-		memAllocate(MEM_4K_BUF), netdbExchangeHandleReply, ex);
+	storeClientCopy(ex->e, ex->seen, ex->used, ex->buf_sz,
+		ex->buf, netdbExchangeHandleReply, ex);
 	httpStart(ex->r, ex->e, NULL);
 }
 
@@ -1011,14 +1015,15 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
     }
 debug(0,0)("SEEN %d, USED %d\n", (int) ex->seen, (int) ex->used);
     if (ex->e->store_status != STORE_OK) {
-	storeClientCopy(ex->e, ex->seen, ex->used, 4096,
-	    buf, netdbExchangeHandleReply, ex);
+	storeClientCopy(ex->e, ex->seen, ex->used, ex->buf_sz,
+	    ex->buf, netdbExchangeHandleReply, ex);
     }
 }
 
 static void
 netdbExchangeDone(netdbExchangeState *ex)
 {
+	safe_free(ex->buf);
 	requestUnlink(ex->r);
 	storeUnregister(ex->e, ex);
 	storeUnlockObject(ex->e);
