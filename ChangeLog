@@ -1,3 +1,8 @@
+	- Relocated rfc1738_unescape() calls in ftpget so that
+          ftp://foo.org/%2fbar/ works (Jonathan Larmour).
+	- Applied neighborAlive() fix from v1.1.
+	- Removed some fatal_dump() calls.
+
 Changes to squid-1.0.20 (November 2, 1996):
 
 	- Fixed !firewall_ip bug (Hiroyuki Inoue).
