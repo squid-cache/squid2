@@ -430,7 +430,7 @@ static void parseCacheHostLine()
 	} else if (!strncasecmp(token, "weight=", 7)) {
 	    weight = atoi(token + 7);
 	} else {
-	    debug(3,0,"parseCacheHostLine: token='%s'\n", token);
+	    debug(3, 0, "parseCacheHostLine: token='%s'\n", token);
 	    self_destruct();
 	}
     }
