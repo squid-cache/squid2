@@ -1295,7 +1295,6 @@ state_t do_pasv(r)
 	    r->dfd_type = DFD_TYPE_NONE;
 	}
     }
-
     r->flags &= ~F_NEEDACCEPT;
 
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -1781,7 +1780,7 @@ void try_readme(r)
     readme->sfd = r->sfd;
     readme->dfd = r->dfd;
     r->dfd = -1;
-	    r->dfd_type = DFD_TYPE_NONE;
+    r->dfd_type = DFD_TYPE_NONE;
 #ifdef TRY_CWD_FIRST
     readme->state = CWD_FAIL;
 #else
@@ -1800,7 +1799,7 @@ void try_readme(r)
 	else
 	    close(readme->dfd);
 	readme->dfd = -1;
-	    readme->dfd_type = DFD_TYPE_NONE;
+	readme->dfd_type = DFD_TYPE_NONE;
     }
     fp = fopen(tfname, "r");
     unlink(tfname);
