@@ -118,7 +118,7 @@ struct icp_common_s {
 };
 
 #define ICP_FLAG_HIT_OBJ     0x80000000ul
-#define ICP_FLAG_MISS_GUNK   0x40000000ul
+#define ICP_FLAG_NETDB_GUNK   0x40000000ul
 
 #define ICP_COMMON_SZ (sizeof(icp_common_t))
 #define ICP_HDR_SZ (sizeof(icp_common_t)+sizeof(u_num32))
