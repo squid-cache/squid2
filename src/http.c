@@ -348,9 +348,9 @@ void httpProcessReplyHeader(httpState, buf, size)
 	case 301:		/* Moved Permanently */
 	case 410:		/* Gone */
 	    /* don't cache objects from neighbors w/o LMT, Date, or Expires */
-	    if (BIT_SET(reply->cache_control, HTTP_CC_PRIVATE))
+	    if (BIT_TEST(reply->cache_control, HTTP_CC_PRIVATE))
 		httpMakePrivate(entry);
-	    else if (BIT_SET(reply->cache_control, HTTP_CC_NOCACHE))
+	    else if (BIT_TEST(reply->cache_control, HTTP_CC_NOCACHE))
 		httpMakePrivate(entry);
 	    else if (*reply->date)
 		httpMakePublic(entry);
