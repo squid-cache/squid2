@@ -281,7 +281,7 @@ int protoUndispatch(fd, url, entry, request)
     /* The pending DNS lookup was cleared, now have to junk the entry */
     debug(17, 5, "protoUndispatch: the entry is stranded with a pending DNS event\n");
     if (entry)
-        protoDNSError(fd, entry);
+	protoDNSError(fd, entry);
     return 1;
 }
 
