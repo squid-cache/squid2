@@ -43,7 +43,7 @@ typedef struct {
 	int len;
 	int offset;
 	char *buf;
-    } client, server;
+    } client    , server;
     time_t timeout;
     int *size_ptr;		/* pointer to size for logging */
     int proxying;
@@ -64,6 +64,7 @@ static void passClientClosed _PARAMS((int fd, void *));
 static void passConnectDone _PARAMS((int fd, int status, void *data));
 static void passStateFree _PARAMS((int fd, void *data));
 static void passSelectNeighbor _PARAMS((int, const ipcache_addrs *, void *));
+static int passParseHeaders _PARAMS((PassStateData * passState));
 
 static char crlf[] = "\r\n";
 
@@ -285,38 +286,24 @@ passReadTimeout(int fd, void *data)
     passClose(passState);
 }
 
-static void
-passConnected(int fd, void *data)
+static int
+passParseHeaders(PassStateData * passState)
 {
-    PassStateData *passState = data;
     char *ybuf = NULL;
     char *xbuf = NULL;
     char *viabuf = NULL;
     char *t = NULL;
     char *s = NULL;
+    char *end;
     int l;
     int hdr_len = 0;
     int saw_host = 0;
     int content_length = 0;
     int buflen = SQUID_TCP_SO_RCVBUF >> 1;
-    debug(39, 3, "passConnected: FD %d passState=%p\n", fd, passState);
-    if (passState->proxying) {
-	sprintf(passState->client.buf, "%s %s HTTP/1.0\r\n",
-	    RequestMethodStr[passState->request->method],
-	    passState->url);
-    } else {
-	sprintf(passState->client.buf, "%s %s HTTP/1.0\r\n",
-	    RequestMethodStr[passState->request->method],
-	    passState->request->urlpath);
-    }
-    passState->client.len = strlen(passState->client.buf);
-    /* passState->buf is the request header; parse it */
+    if ((end = mime_headers_end(passState->buf)) == NULL)
+	return 0;
     xbuf = get_free_4k_page();
-    for (t = passState->buf; *t; t += strcspn(t, "\n\r")) {
-	if (strncmp(t, "\r\n\r\n", 4) == 0 || strncmp(t, "\n\n", 2) == 0)
-	    break;
-	while (isspace(*t))
-	    t++;
+    for (t = passState->buf; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
 	hdr_len = t - passState->buf;
 	if (passState->buflen - hdr_len <= content_length)
 	    break;
@@ -336,8 +323,7 @@ passConnected(int fd, void *data)
 	    strcat(viabuf, ", ");
 	    continue;
 	}
-	/* just ignore any If-Modified-Since headers */
-	l = strcspn(t, "\n\r") + 1;
+	l = strcspn(t, crlf) + 1;
 	if (l > 4096)
 	    l = 4096;
 	xstrncpy(xbuf, t, l);
@@ -349,7 +335,7 @@ passConnected(int fd, void *data)
 	strcat(passState->client.buf + passState->client.len, crlf);
 	passState->client.len += (l + 2);
     }
-
+    hdr_len = t - passState->buf;
     /* Add Via: header */
     if (viabuf == NULL) {
 	viabuf = get_free_4k_page();
@@ -374,8 +360,28 @@ passConnected(int fd, void *data)
 	passState->client.len += strlen(ybuf);
 	put_free_4k_page(ybuf);
     }
-    debug(0, 0, "pass: request header:\n%s\n", passState->client.buf);
+    strcat(passState->client.buf + passState->client.len, crlf);
+    passState->client.len += 2;
+    return hdr_len;
+}
 
+static void
+passConnected(int fd, void *data)
+{
+    PassStateData *passState = data;
+    int hdr_len = 0;
+    debug(39, 3, "passConnected: FD %d passState=%p\n", fd, passState);
+    if (passState->proxying) {
+	sprintf(passState->client.buf, "%s %s HTTP/1.0\r\n",
+	    RequestMethodStr[passState->request->method],
+	    passState->url);
+    } else {
+	sprintf(passState->client.buf, "%s %s HTTP/1.0\r\n",
+	    RequestMethodStr[passState->request->method],
+	    passState->request->urlpath);
+    }
+    passState->client.len = strlen(passState->client.buf);
+    hdr_len = passParseHeaders(passState);
     memcpy(passState->client.buf + passState->client.len,
 	passState->buf + hdr_len,
 	passState->buflen - hdr_len);
