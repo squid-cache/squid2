@@ -106,3 +106,7 @@ extern char *icp_opcode_str[];
 #ifdef HAVE_SYSLOG
 extern int _db_level;
 #endif
+
+#if SQUID_SNMP
+extern struct tree *Mib;
+#endif
