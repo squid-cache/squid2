@@ -1003,5 +1003,5 @@ getMyPort(void)
 	return ntohs(Config.Sockaddr.https->s.sin_port);
 #endif
     fatal("No port defined");
-    return 0; /* NOT REACHED */
+    return 0;			/* NOT REACHED */
 }
