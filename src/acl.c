@@ -24,7 +24,7 @@ static int aclMatchInteger _PARAMS((intlist * data, int i));
 static int aclMatchIp _PARAMS((struct _acl_ip_data * data, struct in_addr c));
 static int aclMatchRegex _PARAMS((relist * data, char *word));
 static int aclMatchTime _PARAMS((struct _acl_time_data * data, time_t when));
-static int aclMatchWord _PARAMS((wordlist * data, char *word));
+static int aclMatchEndOfWord _PARAMS((wordlist * data, char *word));
 static intlist *aclParseIntlist _PARAMS((void));
 static struct _acl_ip_data *aclParseIpList _PARAMS((void));
 static intlist *aclParseMethodList _PARAMS((void));
@@ -513,6 +513,7 @@ static int aclMatchIp(data, c)
     return 0;
 }
 
+#ifdef UNUSED_CODE
 static int aclMatchWord(data, word)
      wordlist *data;
      char *word;
@@ -544,6 +545,26 @@ static int aclMatchRegex(data, word)
     }
     return 0;
 }
+#endif
+
+static int aclMatchEndOfWord(data, word)
+     wordlist *data;
+     char *word;
+{
+    int offset;
+    if (word == NULL)
+      return 0;
+    debug(28, 3, "aclMatchEndOfWord: checking '%s'\n", word);
+    for(;data;data=data->next) {
+      debug(28, 3, "aclMatchEndOfWord: looking for '%s'\n", data->key);
+      if ((offset = strlen(word) - strlen(data->key)) < 0)
+          continue;
+      if (strcmp(word + offset, data->key)==0)
+          return 1;
+    }
+    return 0;
+}
+
 
 static int aclMatchInteger(data, i)
      intlist *data;
@@ -595,7 +616,7 @@ static int aclMatchAcl(acl, c, m, pr, h, po, r)
 	return aclMatchIp(acl->data, c);
 	/* NOTREACHED */
     case ACL_DST_DOMAIN:
-	return aclMatchWord(acl->data, h);
+	return aclMatchEndOfWord(acl->data, h);
 	/* NOTREACHED */
     case ACL_TIME:
 	return aclMatchTime(acl->data, squid_curtime);
