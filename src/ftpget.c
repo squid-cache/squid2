@@ -2105,6 +2105,8 @@ int ftpget_srv_mode(port)
 	i = 0;
 	t = strtok(buf, w_space);
 	while (t && i < MAX_ARGS - 1) {
+	    if (strcmp(t, "\"\"") == 0)
+		t = "";
 	    args[i] = xstrdup(t);
 	    Debug(26, 5, ("args[%d] = %s\n", i, args[i]));
 	    t = strtok(NULL, w_space);

@@ -508,13 +508,13 @@ void ftpSendRequest(fd, data)
     strcat(buf, "- ");		/* stdout */
     strcat(buf, data->host);
     strcat(buf, space);
-    strcat(buf, path);
+    strcat(buf, *path ? path : "\"\"");
     strcat(buf, space);
     strcat(buf, mode);		/* A or I */
     strcat(buf, space);
-    strcat(buf, data->user);
+    strcat(buf, *data->user ? data->user : "\"\"");
     strcat(buf, space);
-    strcat(buf, data->password);
+    strcat(buf, *data->password ? data->password : "\"\"");
     strcat(buf, "\n");
     debug(9, 5, "ftpSendRequest: FD %d: buf '%s'\n", fd, buf);
     data->icp_rwd_ptr = icpWrite(fd,
