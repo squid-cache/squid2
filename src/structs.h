@@ -1672,13 +1672,18 @@ struct _request_t {
     struct in_addr my_addr;
     unsigned short my_port;
     HttpHeader header;
-    ConnStateData *body_connection;	/* used by clientReadBody() */
     int content_length;
     HierarchyLogEntry hier;
     err_type err_type;
     char *peer_login;		/* Configured peer login:password */
     time_t lastmod;		/* Used on refreshes */
     const char *vary_headers;	/* Used when varying entities are detected. Changes how the store key is calculated */
+#if USE_ICAP
+    /* linked lists of pointers to icap_services to use */
+    IcapClass *icap_class;
+#endif
+    BODY_HANDLER *body_reader;
+    void *body_reader_data;
 };
 
 struct _cachemgr_passwd {

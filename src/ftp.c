@@ -2309,7 +2309,7 @@ ftpDataWriteCallback(int fd, char *buf, size_t size, int err, void *data)
 	return;
     if (!err) {
 	/* Shedule the rest of the request */
-	clientReadBody(ftpState->request, ftpState->data.buf, ftpState->data.size, ftpRequestBody, ftpState);
+	requestReadBody(ftpState->request, ftpState->data.buf, ftpState->data.size, ftpRequestBody, ftpState);
     } else {
 	debug(9, 1) ("ftpDataWriteCallback: write error: %s\n", xstrerror());
 	ftpFailed(ftpState, ERR_WRITE_ERROR);
@@ -2322,7 +2322,7 @@ ftpDataWrite(int ftp, void *data)
     FtpStateData *ftpState = (FtpStateData *) data;
     debug(9, 3) ("ftpDataWrite\n");
     /* This starts the body transfer */
-    clientReadBody(ftpState->request, ftpState->data.buf, ftpState->data.size, ftpRequestBody, ftpState);
+    requestReadBody(ftpState->request, ftpState->data.buf, ftpState->data.size, ftpRequestBody, ftpState);
 }
 
 static void

@@ -65,9 +65,7 @@ httpStateFree(int fd, void *data)
     if (httpState == NULL)
 	return;
     if (httpState->body_buf) {
-	if (httpState->orig_request->body_connection) {
-	    clientAbortBody(httpState->orig_request);
-	}
+	requestAbortBody(httpState->orig_request);
 	if (httpState->body_buf) {
 	    memFree(httpState->body_buf, MEM_8K_BUF);
 	    httpState->body_buf = NULL;
@@ -1033,7 +1031,7 @@ httpSendRequest(HttpStateData * httpState)
     commSetTimeout(fd, Config.Timeout.lifetime, httpTimeout, httpState);
     commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 
-    if (httpState->orig_request->body_connection)
+    if (httpState->orig_request->body_reader)
 	sendHeaderDone = httpSendRequestEntry;
     else
 	sendHeaderDone = httpSendComplete;
@@ -1219,7 +1217,7 @@ httpSendRequestEntry(int fd, char *bufnotused, size_t size, int errflag, void *d
 	return;
     }
     httpState->body_buf = memAllocate(MEM_8K_BUF);
-    clientReadBody(httpState->orig_request, httpState->body_buf, 8192, httpRequestBodyHandler, httpState);
+    requestReadBody(httpState->orig_request, httpState->body_buf, 8192, httpRequestBodyHandler, httpState);
 }
 
 void

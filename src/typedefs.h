@@ -236,6 +236,7 @@ typedef int DEFER(int fd, void *data);
 typedef int READ_HANDLER(int, char *, int);
 typedef int WRITE_HANDLER(int, const char *, int);
 typedef void CBCB(char *buf, ssize_t size, void *data);
+typedef void BODY_HANDLER(request_t * req, char *, size_t, CBCB *, void *);
 
 typedef void STIOCB(void *their_data, int errflag, storeIOState *);
 typedef void STFNCB(void *their_data, int errflag, storeIOState *);

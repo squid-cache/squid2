@@ -152,7 +152,7 @@ fwdCheckRetriable(FwdState * fwdState)
     /* If there is a request body then Squid can only try once
      * even if the method is indempotent
      */
-    if (fwdState->request->body_connection)
+    if (fwdState->request->body_reader)
 	return 0;
 
     /* RFC2616 9.1 Safe and Idempotent Methods */
