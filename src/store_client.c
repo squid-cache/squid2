@@ -580,5 +580,5 @@ CheckQuickAbort(StoreEntry * entry)
     if (CheckQuickAbort2(entry) == 0)
 	return;
     Counter.aborted_requests++;
-    storeAbort(entry, 1);
+    storeAbort(entry);
 }

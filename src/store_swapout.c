@@ -156,7 +156,7 @@ storeCheckSwapOut(StoreEntry * e)
 	(int) mem->swapout.done_offset);
 #if USE_ASYNC_IO
     if (mem->inmem_hi < mem->swapout.queue_offset) {
-	storeAbort(e, 0);
+	storeAbort(e);
 	assert(EBIT_TEST(e->flags, RELEASE_REQUEST));
 	storeSwapOutFileClose(e);
 	return;

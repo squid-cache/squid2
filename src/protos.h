@@ -761,7 +761,7 @@ extern void storeSetPublicKey(StoreEntry *);
 extern void storeComplete(StoreEntry *);
 extern void storeInit(void);
 extern int storeClientWaiting(const StoreEntry *);
-extern void storeAbort(StoreEntry *, int);
+extern void storeAbort(StoreEntry *);
 extern void storeAppend(StoreEntry *, const char *, int);
 extern void storeLockObject(StoreEntry *);
 extern void storeSwapInStart(StoreEntry *, SIH *, void *data);

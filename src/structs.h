@@ -491,7 +491,6 @@ struct _ETag {
 
 struct _fde {
     unsigned int type;
-    unsigned int mode;		/* FD_READ|FD_WRITE */
     u_short local_port;
     u_short remote_port;
     char ipaddr[16];		/* dotted decimal address of peer */

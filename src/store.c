@@ -591,7 +591,7 @@ storeComplete(StoreEntry * e)
  * entry for releasing 
  */
 void
-storeAbort(StoreEntry * e, int cbflag)
+storeAbort(StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
     STABH *callback;
@@ -613,7 +613,7 @@ storeAbort(StoreEntry * e, int cbflag)
      */
     mem->object_sz = mem->inmem_hi;
     /* Notify the server side */
-    if (cbflag && mem->abort.callback) {
+    if (mem->abort.callback) {
 	callback = mem->abort.callback;
 	data = mem->abort.data;
 	mem->abort.callback = NULL;
