@@ -605,10 +605,10 @@ clientUpdateCounters(clientHttpRequest * http)
 	debug(33,2) ("clientUpdateCounters: peer %s real/guess: %d/%d for %s!\n",
 	    H->cd_host, real_hit, guess_hit, http->request->host);
 	cacheDigestGuessStatsUpdate(&Counter.cd.guess, real_hit, guess_hit);
-	if (peer)
+	if (peer) {
 	    cacheDigestGuessStatsUpdate(&peer->digest.stats.guess,
 		real_hit, guess_hit);
-	else {
+	} else {
 	    /* temporary paranoid debug */
 	    static int max_count = 200;
 	    if (max_count > 0) {
