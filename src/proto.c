@@ -401,6 +401,7 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
 	return;
     if (entry->store_status != STORE_PENDING)
 	return;
+    protoCancelTimeout(fd, entry);
     squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 }
 
@@ -415,11 +416,10 @@ protoCancelTimeout(int fd, StoreEntry * entry)
 	debug(17, 1, "protoCancelTimeout: No client for '%s'\n", entry->url);
 	return;
     }
-    debug(17, 2, "protoCancelTimeout: FD %d <URL:%s>\n", fd, entry->url);
+    debug(17, 2, "protoCancelTimeout: FD %d '%s'\n", fd, entry->url);
     if (fdstatGetType(fd) != FD_SOCKET) {
-	debug(17, 0, "FD %d: Someone called protoCancelTimeout() on a non-socket\n",
-	    fd);
-	fatal_dump(NULL);
+	debug_trap("protoCancelTimeout: called on non-socket");
+	return;
     }
     /* cancel the timeout handler */
     commSetSelect(fd,
@@ -447,7 +447,7 @@ getFromDefaultSource(int fd, StoreEntry * entry)
 
     if (fd) {
 	entry->ping_status = PING_TIMEOUT;
-	debug(17, 5, "getFromDefaultSource: Timeout occured pinging for <URL:%s>\n",
+	debug(17, 5, "getFromDefaultSource: Timeout occured pinging for '%s'\n",
 	    url);
     }
     /* Check if someone forgot to disable the read timer */
@@ -524,7 +524,7 @@ protoNotImplemented(int fd, const char *url, StoreEntry *entry)
 {
     LOCAL_ARRAY(char, buf, 256);
 
-    debug(17, 1, "protoNotImplemented: Cannot retrieve <URL:%s>\n", url);
+    debug(17, 1, "protoNotImplemented: Cannot retrieve '%s'\n", url);
 
     buf[0] = '\0';
     if (httpd_accel_mode)
@@ -542,7 +542,7 @@ protoCantFetchObject(int fd, StoreEntry * entry, char *reason)
     LOCAL_ARRAY(char, buf, 2048);
 
     debug(17, 1, "protoCantFetchObject: FD %d %s\n", fd, reason);
-    debug(17, 1, "--> <URL:%s>\n", entry->url);
+    debug(17, 1, "--> '%s'\n", entry->url);
 
     buf[0] = '\0';
     sprintf(buf, "%s\n\nThe cache administrator may need to double-check the cache configuration.",
@@ -554,7 +554,7 @@ protoCantFetchObject(int fd, StoreEntry * entry, char *reason)
 static int
 protoDNSError(int fd, StoreEntry * entry)
 {
-    debug(17, 2, "protoDNSError: FD %d <URL:%s>\n", fd, entry->url);
+    debug(17, 2, "protoDNSError: FD %d '%s'\n", fd, entry->url);
     protoCancelTimeout(fd, entry);
     squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
     return 0;
