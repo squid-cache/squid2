@@ -900,6 +900,8 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	ipcacheReleaseInvalid(http->request->host);
 	entry = NULL;
 	http->log_type = LOG_TCP_CLIENT_REFRESH;
+    } else if (checkNegativeHit(entry)) {
+	http->log_type = LOG_TCP_NEGATIVE_HIT;
     } else if (refreshCheck(entry, request, 0)) {
 	/* The object is in the cache, but it needs to be validated.  Use
 	 * LOG_TCP_REFRESH_MISS for the time being, maybe change it to
@@ -925,6 +927,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
     http->out.offset = 0;
     switch (http->log_type) {
     case LOG_TCP_HIT:
+    case LOG_TCP_NEGATIVE_HIT:
 	entry->refcount++;	/* HIT CASE */
 	storeClientCopy(entry,
 	    http->out.offset,

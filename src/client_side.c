@@ -373,3 +373,15 @@ clientPurgeRequest(clientHttpRequest * http)
 	strcat(msg, "\r\n");
     comm_write(fd, xstrdup(msg), strlen(msg), clientWriteComplete, http, xfree);
 }
+
+int
+checkNegativeHit(StoreEntry *e)
+{
+	if (!BIT_TEST(e->flag, ENTRY_NEGCACHED))
+	    return 0;
+	if (e->expires <= squid_curtime)
+            return 0;
+	if (e->store_status != STORE_OK)
+	    return 0;
+	return 1;
+}
