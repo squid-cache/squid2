@@ -1626,30 +1626,32 @@ parse_sockaddr_in_list(sockaddr_in_list ** head)
 {
     char *token;
     char *t;
-    char *host = NULL;
+    char *host;
     const struct hostent *hp;
-    int i;
+    unsigned short port;
     sockaddr_in_list *s;
     while ((token = strtok(NULL, w_space))) {
+	host = NULL;
+	port = 0;
 	if ((t = strchr(token, ':'))) {
 	    /* host:port */
 	    host = token;
 	    *t = '\0';
-	    i = atoi(t + 1);
-	    if (i <= 0)
+	    port = (unsigned short) atoi(t + 1);
+	    if (0 == port)
 		self_destruct();
-	} else if ((i = atoi(token)) > 0) {
+	} else if ((port = atoi(token)) > 0) {
 	    /* port */
 	} else {
 	    self_destruct();
 	}
 	s = xcalloc(1, sizeof(*s));
-	s->s.sin_port = htons(i);
+	s->s.sin_port = htons(port);
 	if (NULL == host)
 	    s->s.sin_addr = any_addr;
 	else if (1 == safe_inet_addr(host, &s->s.sin_addr))
 	    (void) 0;
-	else if ((hp = gethostbyname(token)))	/* dont use ipcache */
+	else if ((hp = gethostbyname(host)))	/* dont use ipcache */
 	    s->s.sin_addr = inaddrFromHostent(hp);
 	else
 	    self_destruct();
