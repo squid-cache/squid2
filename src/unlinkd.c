@@ -56,16 +56,11 @@ main(int argc, char *argv[])
     char buf[UNLINK_BUF_LEN];
     char *t;
     setbuf(stdin, NULL);
-    setbuf(stdout, NULL);
-    setbuf(stderr, NULL);
     while (fgets(buf, UNLINK_BUF_LEN, stdin)) {
 	if ((t = strchr(buf, '\n')))
 	    *t = '\0';
-	fprintf(stderr, "unlinkd: %s\n", buf);
-	if (unlink(buf) < 0)
-	    perror(buf);
+	unlink(buf);
     }
-    fprintf(stderr, "unlinkd exiting\n");
     exit(0);
 }
 
