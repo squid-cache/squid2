@@ -50,17 +50,17 @@ dnl Check for GNU cc
 AC_PROG_CC
 
 dnl Warn if not using GNU cc
-if test $ac_cv_prog_gcc = no; then
-        echo '**************************************************************';
-        echo '**************************************************************';
-        echo '**';
-        echo '**   WARNING:  Squid is only guaranteed to compile with GNU cc.';
-        echo "**   Currently, you're using $CC";
-        echo '**';
-        echo '**************************************************************';
-        echo '**************************************************************';
-	sleep 5
-fi
+dnl if test $ac_cv_prog_gcc = no; then
+dnl     echo '**************************************************************';
+dnl     echo '**************************************************************';
+dnl     echo '**';
+dnl     echo '**   WARNING:  Squid is only guaranteed to compile with GNU cc.';
+dnl     echo "**   Currently, you're using $CC";
+dnl     echo '**';
+dnl     echo '**************************************************************';
+dnl     echo '**************************************************************';
+dnl sleep 5
+dnl fi
 
 dnl Gerben Wierda <Gerben_Wierda@RnA.nl>
 case "$host" in
