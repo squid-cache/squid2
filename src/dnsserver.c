@@ -286,7 +286,17 @@ main(int argc, char *argv[])
 #if HAVE_RES_INIT
 	    if (opt_s == 0) {
 		_res.nscount = 0;
+		/*
+		 * Setting RES_INIT here causes coredumps when -s is
+		 * used with -D option.  It looks to me like setting
+		 * RES_INIT is wrong.  The resolver code sets RES_INIT
+		 * after calling res_init().  When we change the _res
+		 * structure and set RES_INIT, some internal resolver
+		 * structures get confused.		-DW 2.1.p1
+		 */
+#if SEEMS_WRONG
 		_res.options |= RES_INIT;
+#endif
 		opt_s = 1;
 	    }
 #if HAVE_RES_NSADDR_LIST
