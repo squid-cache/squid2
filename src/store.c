@@ -2242,7 +2242,9 @@ storeClientCopy(StoreEntry * e,
     MemObject *mem = e->mem_obj;
     int available_to_write = mem->e_current_len - stateoffset;
     if (stateoffset < mem->e_lowest_offset) {
-	debug_trap("storeClientCopy: requested offst < lowest offset");
+	debug_trap("storeClientCopy: requested offset < lowest offset");
+	debug(20,0, " --> %d < %d\n",
+		stateoffset, mem->e_lowest_offset);
 	debug(20, 0, "--> '%s'\n", e->url);
 	*size = 0;
 	return 0;
