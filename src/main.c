@@ -336,6 +336,9 @@ serverConnectionsOpen(void)
 {
     clientHttpConnectionsOpen();
     icpConnectionsOpen();
+#if USE_HTCP
+    htcpInit();
+#endif
 #ifdef SQUID_SNMP
     snmpConnectionOpen();
 #endif
