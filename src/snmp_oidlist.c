@@ -188,12 +188,10 @@ oidlist_Find(oid * Src, long SrcLen)
     struct MIBListEntry *Ptr;
     int ret;
 
-    debug(49, 5) ("SNMP OIDFIND:  Called.\n ");
+    debug(49, 5) ("oidlist_Find:  Called.\n ");
     print_oid(Src, SrcLen);
 
     for (Ptr = MIBList; Ptr->GetFn; Ptr++) {
-	debug(49, 5) ("Hmmm.. we have %d and %d\n", Ptr->NameLen, SrcLen);
-	print_oid(Ptr->Name, Ptr->NameLen);
 
 	ret = oidncmp(Src, SrcLen, Ptr->Name, Ptr->NameLen, Ptr->NameLen);
 
@@ -201,18 +199,18 @@ oidlist_Find(oid * Src, long SrcLen)
 
 	    /* Cool.  We found the mib it's in.  Let it find the function.
 	     */
-	    debug(49, 5) ("SNMP OIDFIND:  found, returning GetFn Ptr! \n");
+	    debug(49, 7) ("oidlist_Find:  found, returning GetFn Ptr! \n");
 
 	    return ((*Ptr->GetFn) (Src, SrcLen));
 	}
 	if (ret < 0) {
-	    debug(49, 5) ("SNMP OIDFIND:  We just passed it, so it doesn't exist.\n ");
+	    debug(49, 7) ("oidlist_Find:  We just passed it, so it doesn't exist.\n ");
 	    /* We just passed it, so it doesn't exist. */
 	    return (NULL);
 	}
     }
 
-    debug(49, 5) ("SNMP OIDFIND:  We get here if the request was past the end.  It doesn't exist.\n");
+    debug(49, 5) ("oidlist_Find:  the request was past the end.  It doesn't exist.\n");
     /* We get here if the request was past the end.  It doesn't exist. */
     return (NULL);
 }
@@ -235,9 +233,6 @@ oidlist_Next(oid * Src, long SrcLen, oid ** DestP, long *DestLenP)
 
 	/* Only look at as much as we have stored */
 	ret = oidncmp(Src, SrcLen, Ptr->Name, Ptr->NameLen, Ptr->NameLen);
-	debug(49, 6) ("oidlist_Next: Now with ret=%d at: (Src,Ptr)\n ", ret);
-	print_oid(Src, SrcLen);
-	print_oid(Ptr->Name, Ptr->NameLen);
 
 	if (!ret) {
 	    debug(49, 6) ("oidlist_Next: Checking MIB\n");
@@ -250,29 +245,29 @@ oidlist_Next(oid * Src, long SrcLen, oid ** DestP, long *DestLenP)
 		    /* If this returned NULL, we're looking for the first
 		     * in the next MIB.
 		     */
-		    debug(49, 6) ("oidlist_Next: Not in the same mib.  Looking at the next.\n");
+		    debug(49, 6) ("oidlist_Next: Not in this entry. Trying next.\n");
 		    Ptr++;
 		    continue;
 		}
-		debug(49, 6) ("oidlist_Next: Found %x\n", Fn);
-		debug(49, 6) ("oidlist_Next: Next OID is:\n ");
+#if 0
+		debug(49, 4) ("oidlist_Next: Next OID is:\n ");
 		print_oid(*DestP, *DestLenP);
+#endif
 		return Fn;
 	    }
 	    /* Return what we found.  NULL if it wasn't in the MIB, and there
 	     * were no more MIBs. 
 	     */
-	    debug(49, 6) ("oidlist_Next: No next mib.\n");
+	    debug(49, 3) ("oidlist_Next: No next mib.\n");
 	    return NULL;
 	}
 	if (ret < 0) {
 	    /* We just passed the mib it would be in.  Return 
 	     * the next in this MIB.
 	     */
-	    debug(49, 6) ("oidlist_Next: Passed mib.  Checking this one.\n");
+	    debug(49, 3) ("oidlist_Next: Passed mib.  Checking this one.\n");
 	    return ((*Ptr->GetNextFn) (Src, SrcLen, DestP, DestLenP));
 	}
-	debug(49, 6) ("oidlist_Next: Checking next MIB entry.\n");
     }
 
     /* We get here if the request was past the end.  It doesn't exist. */
@@ -293,7 +288,7 @@ genericGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen,
     oid *Ptr;
     int i = 0;
 
-    debug(49, 5) ("genericGetNextFn: Called with root=%d, tail=%d index=%d:\n",
+    debug(49, 6) ("genericGetNextFn: Called with root=%d, tail=%d index=%d:\n",
 	MIBRootLen, MIBTailLen, MIB_ACTION_INDEX);
     print_oid(MIBRoot, MIBRootLen);
 
@@ -316,7 +311,7 @@ genericGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen,
 	Ptr[MIB_ACTION_INDEX] = 1;
 	Ptr[MIBTailLen - 1] = 1;
 
-	debug(49, 5) ("genericGetNextFn:  On this mib (%d).\n", MIB_ACTION_INDEX);
+	debug(49, 6) ("genericGetNextFn:  On this mib (%d).\n", MIB_ACTION_INDEX);
 	return (mygetFn);
     }
     ret = oidcmp(Src, SrcLen, MIBTail, MIBTailLen);
@@ -345,17 +340,13 @@ genericGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen,
     Ptr = *Dest;
     if (SrcLen <= MIBTailLen) {
 	/* Copy everything we can, and fill in the blanks */
-	debug(49, 5) ("genericGetNextFn: nulling.\n");
+	debug(49, 5) ("genericGetNextFn: Adding missing information.\n");
 	xmemcpy(Ptr, Src, (SrcLen * sizeof(oid)));
 
 	if (SrcLen != MIBTailLen)
 	    for (i = SrcLen - 1; i < MIBTailLen; i++)
 		Ptr[i] = 1;
-#if 0
-	Ptr[MIB_ACTION_INDEX] = 1;	/* Prime this */
-#endif
     } else {
-	debug(49, 5) ("genericGetNextFn: src too long.\n");
 	/* Src too long.  Just copy the first part. */
 	xmemcpy(Ptr, Src, (MIBTailLen * sizeof(oid)));
     }
@@ -371,10 +362,9 @@ genericGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen,
 	    Ptr[MIB_ACTION_INDEX]++;
 	    Ptr[MIBTailLen - 1] = 1;
 	    if (Ptr[MIB_ACTION_INDEX] > MIBTail[MIB_ACTION_INDEX]) {
-		debug(49, 5) ("genericGetNextFn:Beyond last action! (%d)\n", Ptr[MIB_ACTION_INDEX]);
-#if 0
+		debug(49, 5) ("genericGetNextFn:Beyond last action! (%d)\n", 
+			Ptr[MIB_ACTION_INDEX]);
 		xfree(*Dest);
-#endif
 		return (NULL);
 	    }
 	} else {
@@ -389,7 +379,7 @@ genericGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen,
 oid_ParseFn *
 basicGetFn(oid * Src, long SrcLen)
 {
-    debug(49, 5) ("basicGetFn: here! with Src[7]=%d\n", Src[7]);
+    debug(49, 5) ("basicGetFn: here,requested:%d\n", Src[7]);
     if (((SrcLen == (LEN_SYSMIB + 1)) ||
 	    ((SrcLen == (LEN_SYSMIB + 2)) && (Src[LEN_SYSMIB + 1] == 0))) &&
 	(Src[LEN_SYSMIB] > 0) &&
@@ -449,7 +439,7 @@ sysGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
 oid_ParseFn *
 sysFdGetFn(oid * Src, long SrcLen)
 {
-    debug(49, 5) ("sysGetFn: here! with Src[8]=%d\n", Src[8]);
+    debug(49, 5) ("sysGetFn: here, requested: %d\n", Src[8]);
     if (SrcLen == LEN_SQ_SYS + 4 && Src[LEN_SQ_SYS] == SYSFDTBL)
 	return snmp_sysFn;
 
@@ -635,10 +625,6 @@ prfProtoGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
     MIBTail[LEN_SQ_PRF+2  ] = 1;
     MIBTail[LEN_SQ_PRF+3  ] = PERF_MEDIAN_END-1;
     MIBTail[LEN_SQ_PRF+4  ] = N_COUNT_HIST-1;
-
-    debug(49,5)("prfProtoGetNextFn: checking for medians. :\n");
-    print_oid(MIBRoot, MIBRootLen);
-    print_oid(MIBTail, LEN_SQ_PRF+5);
 
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
                 MIBRoot, MIBRootLen, LEN_SQ_PRF + 1, MIBTail, snmp_prfProtoFn,
