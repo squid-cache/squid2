@@ -370,6 +370,7 @@ struct _SquidConfig {
 	acl_access *noCache;
     } accessList;
     acl_deny_info_list *denyInfoList;
+    char *proxyAuthRealm;
     struct {
 	size_t list_width;
 	int list_wrap;
