@@ -127,3 +127,4 @@ extern int theAsciiConnection;	/* main.c */
 extern int theUdpConnection;	/* main.c */
 extern int shutdown_pending;	/* main.c */
 extern int reread_pending;	/* main.c */
+extern int opt_unlink_on_reload;	/* main.c */

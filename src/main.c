@@ -9,6 +9,7 @@ time_t next_cleaning = 0;
 int theAsciiConnection = -1;
 int theUdpConnection = -1;
 int do_reuse = 1;
+int opt_unlink_on_reload = 0;
 int catch_signals = 1;
 int do_dns_test = 1;
 char *config_file = NULL;
@@ -34,6 +35,7 @@ Usage: cached [-Rsehvz] [-f config-file] [-[apu] port]\n\
        -C        Do not catch fatal signals.\n\
        -D        Disable initial DNS tests.\n\
        -R        Do not set REUSEADDR on port.\n\
+       -U        Unlink expired objects on reload.\n\
        -f file   Use given config-file instead of\n\
                  $HARVEST_HOME/lib/cached.conf.\n\
        -a port	 Specify ASCII port number (default: %d).\n\
@@ -73,6 +75,9 @@ static void mainParseOptions(argc, argv)
 	    break;
 	case 'R':
 	    do_reuse = 0;
+	    break;
+	case 'U':
+	    opt_unlink_on_reload = 1;
 	    break;
 	case 'f':
 	    xfree(config_file);
