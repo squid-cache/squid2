@@ -730,7 +730,8 @@ if test -z "$USE_GNUREGEX"; then
 if test "$ac_cv_func_regcomp" = "no" || test "$USE_GNUREGEX" = "yes" ; then
 	USE_GNUREGEX="yes"
 else
-	AC_TRY_COMPILE([#include <regex.h>],[regex_t t; regcomp(&t,"",0);],
+	AC_TRY_COMPILE([#include <sys/types.h>
+#include <regex.h>],[regex_t t; regcomp(&t,"",0);],
 		USE_GNUREGEX="no",
 		USE_GNUREGEX="yes")
 fi
