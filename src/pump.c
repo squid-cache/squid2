@@ -70,31 +70,34 @@ pumpInit(int fd, request_t * r, char *uri)
     HttpHeader hdr;
     int clen = 0;
     int x;
-    char *hdrStart, *hdrEnd;
+    char *hdrStart;
+    char *hdrEnd;
     PumpStateData *p = xcalloc(1, sizeof(PumpStateData));
     debug(61, 3) ("pumpInit: FD %d, uri=%s\n", fd, uri);
-    /* create a StoreEntry which will buffer the data 
-     * to be pumped */
-
+    /*
+     * create a StoreEntry which will buffer the data 
+     * to be pumped
+     */
     assert(fd > -1);
-    assert(uri);
-    assert(r);
-
+    assert(uri != NULL);
+    assert(r != NULL);
     memset(&hdr, '\0', sizeof(HttpHeader));
     hdrStart = r->headers;
     hdrEnd = &r->headers[r->headers_sz];
     x = httpHeaderParse(&hdr, hdrStart, hdrEnd);
-    assert(x != 0);		/* we shouldn't be here if we can't parse req hdrs */
+    /* we shouldn't have gotten this far if we can't parse req hdrs */
+    assert(x != 0);
     clen = httpHeaderGetInt(&hdr, HDR_CONTENT_LENGTH);
-    assert(clen >= 0);		/* we shouldn't be here if clen is invalid */
+    /* we shouldn't have gotten this far if content-length is invalid */
+    assert(clen >= 0);
     debug(61, 4) ("pumpInit: Content-Length=%d.\n", clen);
     EBIT_SET(flags, REQ_NOCACHE);
     snprintf(new_key, MAX_URL + 5, "%s|Pump", uri);
     p->request_entry = storeCreateEntry(new_key, new_key, flags, r->method);
     storeClientListAdd(p->request_entry, p);
-
-/* initialize data structure */
-
+    /*
+     * initialize data structure
+     */
     p->c_fd = fd;
     p->s_fd = -1;
     p->cont_len = clen;
@@ -162,9 +165,7 @@ static void
 pumpServerCopy(void *data, char *buf, ssize_t size)
 {
     PumpStateData *p = data;
-
     debug(61, 5) ("pumpServerCopy: called with size=%d\n", size);
-
     if (size < 0) {
 	debug(61, 5) ("pumpServerCopy: freeing and returning\n");
 	memFree(MEM_4K_BUF, buf);
@@ -177,7 +178,6 @@ pumpServerCopy(void *data, char *buf, ssize_t size)
 	return;
     }
     debug(61, 5) ("pumpServerCopy: to FD %d, %d bytes\n", p->s_fd, size);
-
     comm_write(p->s_fd, buf, size, pumpServerCopyComplete, p, memFree4K);
 }
 
@@ -290,7 +290,7 @@ pumpReadDefer(int fd, void *data)
     assert(p->rcvd >= p->sent);
     if ((p->rcvd - p->sent) < PUMP_MAXBUFFER)
 	return 0;
-    debug(61, 9) ("pumpReadDefer: deferring, rcvd=%d, sent=%d\n",
+    debug(61, 5) ("pumpReadDefer: deferring, rcvd=%d, sent=%d\n",
 	p->rcvd, p->sent);
     return 1;
 }
@@ -301,7 +301,7 @@ pumpClose(void *data)
     PumpStateData *p = data;
     StoreEntry *req = p->request_entry;
     StoreEntry *rep = p->reply_entry;
-    debug(0, 0) ("pumpClose: %p Server FD %d, Client FD %d\n",
+    debug(61, 3) ("pumpClose: %p Server FD %d, Client FD %d\n",
 	p, p->s_fd, p->c_fd);
     /* double-call detection */
     assert(!EBIT_TEST(p->flags, PUMP_FLAG_CLOSING));
@@ -311,7 +311,6 @@ pumpClose(void *data)
 	storeAbort(req, 0);
     }
     if (rep != NULL && rep->store_status == STORE_PENDING) {
-	storeUnregister(rep, p);
 	storeAbort(rep, 0);
     }
     if (p->s_fd > -1) {
@@ -331,7 +330,7 @@ pumpFree(int fd, void *data)
     PumpStateData *q = NULL;
     StoreEntry *req;
     StoreEntry *rep;
-    debug(61, 2) ("pumpFree: FD %d, releasing %p!\n", fd, data);
+    debug(61, 3) ("pumpFree: FD %d, releasing %p!\n", fd, data);
     for (p = pump_head; p && p != data; q = p, p = p->next);
     if (p == NULL) {
 	debug(61, 1) ("pumpFree: p=%p not found?\n", p);
@@ -345,18 +344,16 @@ pumpFree(int fd, void *data)
     req = p->request_entry;
     rep = p->reply_entry;
     if (req != NULL) {
-	if (req->store_status == STORE_PENDING) {
+	if (p->sent < p->cont_len)
 	    storeUnregister(req, p);
+	if (req->store_status == STORE_PENDING)
 	    storeAbort(req, 0);
-	}
 	storeUnlockObject(req);
 	p->request_entry = NULL;
     }
     if (rep != NULL) {
-	if (rep->store_status == STORE_PENDING) {
-	    storeUnregister(rep, p);
+	if (rep->store_status == STORE_PENDING)
 	    storeAbort(rep, 0);
-	}
 	storeUnlockObject(rep);
 	p->reply_entry = NULL;
     }
@@ -368,8 +365,7 @@ static void
 pumpTimeout(int fd, void *data)
 {
     PumpStateData *p = data;
-    debug(0, 0) ("pumpTimeout: FD %d\n", p->c_fd);
-    /* XXX need more here */
+    debug(61, 3) ("pumpTimeout: FD %d\n", p->c_fd);
     pumpClose(p);
 }
 
@@ -385,6 +381,5 @@ pumpServerClosed(int fd, void *data)
      * we have been called from comm_close for the server side, so
      * just need to clean up the client side
      */
-    /* XXX I'm sure we need to do something here */
     comm_close(p->c_fd);
 }
