@@ -319,6 +319,7 @@ static void
 serverConnectionsOpen(void)
 {
     struct in_addr addr;
+    struct sockaddr_in xaddr;
     u_short port;
     int len;
     int x;
@@ -385,13 +386,16 @@ serverConnectionsOpen(void)
 	    } else {
 		theOutIcpConnection = theInIcpConnection;
 	    }
+	    memset(&theOutICPAddr, '\0', sizeof(struct in_addr));
 	    len = sizeof(struct sockaddr_in);
+	    memset(&xaddr, '\0', len);
 	    x = getsockname(theOutIcpConnection,
-		(struct sockaddr *) &theOutICPAddr,
-		&len);
+		(struct sockaddr *) &xaddr, &len);
 	    if (x < 0)
 		debug(1, 1, "theOutIcpConnection FD %d: getsockname: %s\n",
 		    theOutIcpConnection, xstrerror());
+	    else
+		theOutICPAddr = xaddr.sin_addr;
 	}
     }
     clientdbInit();
