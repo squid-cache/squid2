@@ -51,6 +51,16 @@ easier to code, it suffers from portability and performance problems.
 Instead Squid maintains data structures and state information for
 each active request.
 
+The code is often difficult to follow because there are no explicit
+state variables for the active requests.  Instead, thread execution
+progresses as a sequence of ``handler functions'' which get called
+when I/O is ready to occur.  As a handler completes, it will register
+another handler for the next time I/O occurs.
+
+Note that the Squid source changes rapidly, and some parts of this
+document may become out-of-date.  If you find any inconsistencies, please
+feel free to notify us at {\tt squid-dev@nlanr.net}.
+
 %%
 %% Chapter : MAIN LOOP
 %%
@@ -59,6 +69,38 @@ each active request.
 At the core of Squid is the {\tt select(2)} system call.  Squid uses
 {\tt select()} (or alternatively {\tt poll(2)} in recent versions) to 
 process I/O on all open file descriptors.
+
+For every open file descriptor, there are N types of handler functions.
+\begin{itemize}
+\item Read
+\item Write
+\item Timeout
+\item Lifetime
+\item Close
+\end{itemize}
+
+These handlers are stored in the {\em FD\_ENTRY} structure as defined in
+\path|comm.h|.  {\tt fd\_table[]} is the global array of {\em FD\_ENTRY}
+structures.  The handler functions are of type {\em PF}, which is a
+typedef:
+\begin{verbatim}
+    typedef void (*PF) (int, void *);
+\end{verbatim}
+The close handler is really a linked list of handler functions.
+Each handler also has an associated pointer ({\tt void *data)} to
+some kind of data structure.
+
+{\tt comm\_select()} is the function which issues the select() system
+call.  It scans the entire {\tt fd\_table[]} array looking for handler
+functions.  Each file descriptor with a read handler will be set in
+the {\tt fd\_set} read bitmask.  Similarly, write handlers are scanned and
+bits set for the write bitmask.  {\tt select()} is then called, and the
+return read and write bitmasks are scanned for descriptors with pending
+I/O.  For each ready descriptor, the handler is called.  Note that
+the handler is cleared from the {\tt FD\_ENTRY} before it is called.
+
+After each handler is called, {\tt comm\_select\_incoming()} is
+called to process new HTTP and ICP requests.
 
 %%
 %% Chapter : DATA STRUCTURES
@@ -85,6 +127,16 @@ process I/O on all open file descriptors.
 \section{Wais}
 \section{SSL}
 \section{Passthrough}
+
+%%
+%% Chapter : TIMEOUTS
+%%
+\chapter{Timeouts}
+
+%%
+%% Chapter : EVENTS
+%%
+\chapter{Events}
 
 %%
 %% Chapter : ACCESS CONTROLS
