@@ -191,6 +191,7 @@ eventFreeMemory(void)
 {
     struct ev_entry *event;
     while ((event = tasks)) {
+	tasks = event->next;
 	if (NULL != event->arg)
 	    cbdataUnlock(event->arg);
 	memFree(event, MEM_EVENT);
