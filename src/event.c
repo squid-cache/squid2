@@ -86,8 +86,17 @@ eventRun(void)
     void *arg;
     if ((event = tasks) == NULL)
 	return;
-    if (event->when > squid_curtime)
-	return;
+    if (event->when > squid_curtime) {
+#ifdef NLANR_DEBUG
+	for (event = tasks; event; event = event->next) {
+	    if (strcmp(event->name, "storeMaintain") == 0)
+		break;
+	}
+	if (event == NULL)
+	    fatal_dump("LOST storeMaintain event!");
+#endif
+    }
+    return;
     debug(41, 3, "eventRun: Running '%s'\n", event->name);
     func = event->func;
     arg = event->arg;
