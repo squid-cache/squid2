@@ -2027,6 +2027,7 @@ struct _helper {
     const char *id_name;
     int n_to_start;
     int n_running;
+    int n_active;
     int ipc_type;
     time_t last_queue_warn;
     struct {
@@ -2046,6 +2047,7 @@ struct _helper_stateful {
     const char *id_name;
     int n_to_start;
     int n_running;
+    int n_active;
     int ipc_type;
     MemPool *datapool;
     HLPSAVAIL *IsAvailable;
@@ -2075,7 +2077,6 @@ struct _helper_server {
     helper *parent;
     helper_request *request;
     struct _helper_flags {
-	unsigned int alive:1;
 	unsigned int busy:1;
 	unsigned int closing:1;
 	unsigned int shutdown:1;
