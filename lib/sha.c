@@ -4,6 +4,7 @@
 /* Applied Cryptography by Bruce Schneier */
 /* This code is hereby placed in the public domain */
 
+#include "config.h"
 #if HAVE_STRING_H
 #include <string.h>
 #endif

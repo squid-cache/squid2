@@ -9,6 +9,7 @@
 
 /* Useful defines & typedefs */
 
+#define SHA_DIGEST_INTS		5
 #define SHA_BLOCKSIZE		64
 #define SHA_DIGESTSIZE		20
 
