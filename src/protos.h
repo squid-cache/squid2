@@ -937,7 +937,8 @@ extern void storeDirSync(void);
 extern void storeDirCallback(void);
 extern void storeDirLRUDelete(StoreEntry *);
 extern void storeDirLRUAdd(StoreEntry *);
-int storeDirGetBlkSize(const char *path, int *blksize);
+extern int storeDirGetBlkSize(const char *path, int *blksize);
+extern int storeDirGetUFSStats(const char *, int *, int *, int *, int *);
 
 /*
  * store_swapmeta.c
