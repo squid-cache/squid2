@@ -755,7 +755,8 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
 	if (cerrno == EINVAL) {
 	    len = sizeof(x);
 	    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
-		cerrno = x;
+		errno = cerrno = x;
+	    debug(38, 7, "connect: %s\n", xstrerror());
 	}
 	if (cerrno != EINPROGRESS && cerrno != EAGAIN)
 	    return y;
@@ -1566,6 +1567,7 @@ do_pasv(ftp_request_t * r)
 	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s, port %d: %s", junk, port, xstrerror());
 	r->rc = 2;
+	pasv_supported = 0;
 	return FAIL_SOFT;
     }
     r->dfd = sock;
