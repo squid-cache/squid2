@@ -1962,8 +1962,6 @@ clientProcessMiss(clientHttpRequest * http)
 {
     char *url = http->uri;
     request_t *r = http->request;
-    aclCheck_t ch;
-    int answer;
     ErrorState *err = NULL;
     debug(33, 4) ("clientProcessMiss: '%s %s'\n",
 	RequestMethodStr[r->method], url);
