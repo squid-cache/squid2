@@ -34,7 +34,6 @@ UTILOBJS	= rfc1123.o \
 		  snprintf.o \
 		  md5.o \
 		  radix.o \
-		  String.o \
 		  stub_memaccount.o \
 		  Stack.o \
 		  $(LIBOBJS)
