@@ -105,7 +105,7 @@ struct _external_acl_format {
 	EXT_ACL_HEADER,
 	EXT_ACL_HEADER_MEMBER,
 	EXT_ACL_HEADER_ID,
-	EXT_ACL_HEADER_ID_MEMBER,
+	EXT_ACL_HEADER_ID_MEMBER
     } type;
     external_acl_format *next;
     char *header;
