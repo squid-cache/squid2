@@ -1922,16 +1922,22 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	*method_p = METHOD_NONE;
 	return NULL;
     }
+    assert(req_sz <= conn->in.offset);
     /* Use memcpy, not strdup! */
-    inbuf = xmalloc(conn->in.offset + 1);
-    xmemcpy(inbuf, conn->in.buf, conn->in.offset);
-    *(inbuf + conn->in.offset) = '\0';
+    inbuf = xmalloc(req_sz + 1);
+    xmemcpy(inbuf, conn->in.buf, req_sz);
+    *(inbuf + req_sz) = '\0';
 
     /* pre-set these values to make aborting simpler */
     *prefix_p = inbuf;
     *method_p = METHOD_NONE;
     *status = -1;
 
+    /* Barf on NULL characters in the headers */
+    if (strlen(inbuf) != req_sz) {
+	debug(33, 1) ("parseHttpRequest: Requestheader contains NULL characters\n");
+	return parseHttpRequestAbort(conn, "error:invalid-request");
+    }
     /* Look for request method */
     if ((mstr = strtok(inbuf, "\t ")) == NULL) {
 	debug(33, 1) ("parseHttpRequest: Can't get request method\n");
@@ -1946,7 +1952,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     *method_p = method;
 
     /* look for URL+HTTP/x.x */
-    if ((url = strtok(NULL, "\r\n")) == NULL) {
+    if ((url = strtok(NULL, "\n")) == NULL) {
 	debug(33, 1) ("parseHttpRequest: Missing URL\n");
 	return parseHttpRequestAbort(conn, "error:missing-url");
     }
@@ -1985,15 +1991,6 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	debug(33, 3) ("parseHttpRequest: header_sz == 0\n");
 	*status = 0;
 	return NULL;
-    }
-    /*
-     * Skip whitespace at the end of the first line, up to the
-     * first newline.
-     */
-    while (*req_hdr == ' ' || *req_hdr == '\t') {
-	header_sz--;
-	if (*(req_hdr++) == '\n')
-	    break;
     }
     assert(header_sz > 0);
     debug(33, 3) ("parseHttpRequest: req_hdr = {%s}\n", req_hdr);
@@ -2301,7 +2298,7 @@ clientReadRequest(int fd, void *data)
 		int cont_len = httpHeaderGetInt(&request->header, HDR_CONTENT_LENGTH);
 		int copy_len = conn->in.offset;
 		if (cont_len < copy_len && request->flags.proxy_keepalive)
-			copy_len = cont_len;
+		    copy_len = cont_len;
 		if (copy_len > 0) {
 		    assert(conn->in.offset >= copy_len);
 		    request->body_sz = copy_len;
