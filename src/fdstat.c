@@ -1,94 +1,9 @@
-static char rcsid[] = "$Id$";
-/* 
- *  File:         fdstat.c
- *  Description:  File descript stat module
- *  Author:       Anawat Chankhunthod, USC
- *  Created:      Fri Jul  1 00:09:05 PDT 1994
- *  Language:     C
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
- */
-#include "config.h"
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
 
-#include "debug.h"
-#include "fdstat.h"
-#include "util.h"
+/* $Id$ */
+
+/* DEBUG: Section 7             fdstat: */
+
+#include "squid.h"
 
 static int Biggest_FD = 0;
 
@@ -101,10 +16,12 @@ typedef struct _FDENTRY {
     File_Desc_Type type;
 } FDENTRY;
 
-static FDENTRY *fd_stat_tab;
+static FDENTRY *fd_stat_tab = NULL;
 
-extern int getMaxFD();
-
+File_Desc_Type fdstatGetType(fd)
+{
+    return fd_stat_tab[fd].type;
+}
 
 char *fdfiletype(type)
      File_Desc_Type type;
@@ -159,7 +76,7 @@ void fdstat_update(fd, status)
     unsigned int i;
 
     if (fd >= getMaxFD())
-	debug(0, "Running out of file descriptors");
+	debug(7, 0, "Running out of file descriptors.\n");
 
     if (fd < Biggest_FD) {
 	/* nothing to do here */
@@ -167,7 +84,7 @@ void fdstat_update(fd, status)
     }
     if ((fd > Biggest_FD) && (status == OPEN)) {
 	/* just update the biggest one */
-	Biggest_FD = fd % getMaxFD();
+	Biggest_FD = fd;	/* % getMaxFD(); */
 	return;
     }
     if ((fd == Biggest_FD) && (status == CLOSE)) {
@@ -184,12 +101,12 @@ void fdstat_update(fd, status)
 	/* it could happen since some of fd are out of our control */
 	return;
     }
-    debug(0, "WARNING: fdstat_update: Internal inconsistency:\n");
-    debug(0, "         Biggest_FD = %d, this fd = %d, status = %s\n",
+    debug(7, 0, "WARNING: fdstat_update: Internal inconsistency:\n");
+    debug(7, 0, "         Biggest_FD = %d, this fd = %d, status = %s\n",
 	Biggest_FD, fd, status == OPEN ? "OPEN" : "CLOSE");
-    debug(0, "         fd_stat_tab[%d].status == %s\n",
+    debug(7, 0, "         fd_stat_tab[%d].status == %s\n",
 	fd, fd_stat_tab[fd].status == OPEN ? "OPEN" : "CLOSE");
-    debug(0, "         fd_stat_tab[%d].type == %s\n", fd,
+    debug(7, 0, "         fd_stat_tab[%d].type == %s\n", fd,
 	fdfiletype(fd_stat_tab[fd].type));
 
     return;
@@ -255,6 +172,7 @@ int fdstat_are_n_free_fd(n)
 {
     int fd;
     int n_free_fd = 0;
+    int maxfd = getMaxFD();
 
 #if  FD_TEST
     int lowest_avail_fd;
@@ -267,23 +185,22 @@ int fdstat_are_n_free_fd(n)
 	for (fd = 0; fd < getMaxFD(); ++fd) {
 	    if (fd_stat_tab[fd].status == CLOSE) {
 		if (ln_cnt == 0) {
-		    fprintf(stderr, "Fd-Free: %3d ", fd);
+		    debug(0, 0, "fdstat_are_n_free_fd: Fd-Free: %3d\n", fd);
 		    ++ln_cnt;
 		} else if (ln_cnt == 20) {
-		    fprintf(stderr, "%3d\n", fd);
+		    debug(0, 0, "fdstat_are_n_free_fd: %3d\n", fd);
 		    ln_cnt = 0;
 		} else {
-		    fprintf(stderr, "%3d ", fd);
+		    debug(0, 0, "fdstat_are_n_free_fd: %3d\n", fd);
 		    ln_cnt++;
 		}
 	    }
 	}
-	fprintf(stderr, "\n");
     }
 #endif
 
     if (n == 0) {
-	for (fd = 0; fd < getMaxFD(); ++fd)
+	for (fd = 0; fd < maxfd; ++fd)
 	    if (fd_stat_tab[fd].status == CLOSE)
 		++n;
 	return (n);
@@ -291,7 +208,7 @@ int fdstat_are_n_free_fd(n)
     if ((getMaxFD() - Biggest_FD) > n)
 	return 1;
     else {
-	for (fd = (getMaxFD() - 1); ((fd > 0) && (n_free_fd < n)); --fd) {
+	for (fd = maxfd - 1; ((fd > 0) && (n_free_fd < n)); --fd) {
 	    if (fd_stat_tab[fd].status == CLOSE) {
 		++n_free_fd;
 	    }
