@@ -104,11 +104,7 @@
 
 /* default values for buffer sizes, used by memBufDefInit */
 #define MEM_BUF_INIT_SIZE   (2*1024)
-#if CLIENT_SOCK_SZ < 16384
-#define MEM_BUF_MAX_SIZE   (32*1024)
-#else
-#define MEM_BUF_MAX_SIZE   (CLIENT_SOCK_SZ<<1)
-#endif
+#define MEM_BUF_MAX_SIZE    (2*1000*1024*1024)
 
 
 /* local routines */
