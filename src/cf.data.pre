@@ -2606,6 +2606,8 @@ DOC_START
 	in other administrative domains, this should be 'off'.  If you only
 	have sibling relationships with caches under your control, then
 	it is probably okay to set this to 'on'.
+	If set to 'on', then your siblings should use the option "allow-miss"
+	on their cache_peer lines for connecting to you.
 DOC_END
 
 
