@@ -178,9 +178,9 @@ int comm_listen(sock)
      int sock;
 {
     int x;
-    if ((x = listen(sock, getMaxFD()>>2)) < 0) {
+    if ((x = listen(sock, getMaxFD() >> 2)) < 0) {
 	debug(5, 0, "comm_listen: listen(%d, %d): %s\n",
-	    getMaxFD()>>2,
+	    getMaxFD() >> 2,
 	    sock, xstrerror());
 	return x;
     }
