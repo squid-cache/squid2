@@ -975,9 +975,18 @@ aclIsProxyAuth(const char *name)
     acl *a;
     if (NULL == name)
 	return 0;
-    if ((a = aclFindByName(name)))
-	return a->type == ACL_PROXY_AUTH || a->type == ACL_PROXY_AUTH_REGEX;
-    return 0;
+    a = aclFindByName(name);
+    if (a == NULL)
+	return 0;
+    switch (a->type) {
+    case ACL_PROXY_AUTH:
+    case ACL_PROXY_AUTH_REGEX:
+	return 1;
+    case ACL_EXTERNAL:
+	return externalAclRequiresAuth(a->data);
+    default:
+	return 0;
+    }
 }
 
 

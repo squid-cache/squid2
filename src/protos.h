@@ -1334,6 +1334,7 @@ typedef void EAH(void *data, void *result);
 extern void externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * handler, void *data);
 extern void externalAclInit(void);
 extern void externalAclShutdown(void);
+extern int externalAclRequiresAuth(void *acl_data);
 extern char *strtokFile(void);
 
 #endif /* SQUID_PROTOS_H */

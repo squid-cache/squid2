@@ -838,6 +838,13 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
     memBufClean(&buf);
 }
 
+int
+externalAclRequiresAuth(void *acl_data)
+{
+    external_acl_data *acl = acl_data;
+    return acl->def->require_auth;
+}
+
 static void
 externalAclStats(StoreEntry * sentry)
 {
