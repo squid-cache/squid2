@@ -78,8 +78,7 @@ const char *log_tags[] =
 
 #if FORW_VIA_DB
 typedef struct {
-    char *key;
-    void *next;
+    hash_link hash;
     int n;
 } fvdb_entry;
 static hash_table *via_table = NULL;

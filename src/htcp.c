@@ -910,7 +910,7 @@ htcpQuery(StoreEntry * e, request_t * req, peer * p)
     }
     htcpSend(pkt, (int) pktlen, &p->in_addr);
     save_key = queried_keys[stuff.msg_id % N_QUERIED_KEYS];
-    storeKeyCopy(save_key, e->key);
+    storeKeyCopy(save_key, e->hash.key);
     debug(31, 3) ("htcpQuery: key (%p) %s\n", save_key, storeKeyText(save_key));
     xfree(pkt);
 }
