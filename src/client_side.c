@@ -2498,7 +2498,8 @@ clientReadRequest(int fd, void *data)
 	    debug(33, 3) ("clientReadRequest: FD %d max concurrent requests reached\n", fd);
 	    debug(33, 5) ("clientReadRequest: FD %d defering new request until one is done\n", fd);
 	    conn->defer.until = squid_curtime + 100;	/* Reset when a request is complete */
-	    break;
+	    conn->defer.n++;
+	    return;
 	}
 	conn->in.buf[conn->in.offset] = '\0';	/* Terminate the string */
 	if (nrequests == 0)
