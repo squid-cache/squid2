@@ -488,8 +488,11 @@ icpProcessExpired(int fd, void *data)
     entry->refcount++;		/* EXPIRED CASE */
     icpState->entry = entry;
     icpState->swapin_fd = storeOpenSwapFileRead(entry);
-    if (icpState->swapin_fd < 0)
-	fatal_dump("icpProcessExpired: Swapfile open failed");
+    if (icpState->swapin_fd < 0) {
+	debug_trap("icpProcessExpired: Swapfile open failed");
+	comm_close(icpState->fd);
+	return;
+    }
     icpState->out.offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, icpHandleIMSReply, (void *) icpState, icpState->out.offset);
