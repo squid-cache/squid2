@@ -15,7 +15,6 @@ Changes to squid-1.0 (June 20, 1996):
 	  space.
 	- Added disabling of a neighbor cache if 95% of replies are
 	  UDP_DENIED.
-	- Added BSD->POSIX signal() macros for Solaris
 	- Added accounting for misc memory/data structures
 	- Added 'no-query' option for 'cache_host' config line
 	- Added error reporting to SSL requests.
@@ -25,6 +24,10 @@ Changes to squid-1.0 (June 20, 1996):
 	- Fixed ipcache error messages by giving each entry its
 	  own string.
 	- Use sigaction() instead of signal() if available.
+	- Fixed ipcache bug causing some lookups to get stuck in
+	  PENDING state if all dnsservers are busy.
+	- Fixed domain name matching bug when using '.com' instead of
+	  'com'.
 
 Changes to squid-1.0.beta17 (June 12, 1996):
 
