@@ -1277,7 +1277,7 @@ DOC_START
 	basic authentication sheme is not used unless a program is specified.
 
 	If you want to use the traditional proxy authentication,
-	jump over to the ../auth_modules/NCSA directory and
+	jump over to the helpers/basic_auth/NCSA directory and
 	type:
 		% make
 		% make install
@@ -1285,9 +1285,9 @@ DOC_START
 	Then, set this line to something like
 
 	auth_param basic program @DEFAULT_PREFIX@/bin/ncsa_auth @DEFAULT_PREFIX@/etc/passwd
-
+	
 	"children" numberofchildren
-	The number of authenticator processes to spawn (no default).
+	The number of authenticator processes to spawn.
 	If you start too few Squid will have to wait for them to
 	process a backlog of usercode/password verifications, slowing
 	it down. When password verifications are done via a (slow)
@@ -1299,7 +1299,7 @@ DOC_START
 	Specifies the realm name which is to be reported to the
 	client for the basic proxy authentication scheme (part of
 	the text the user will see when prompted their username and
-	password). There is no default.
+	password).
 	auth_param basic realm Squid proxy-caching web server
 
 	"credentialsttl" timetolive
@@ -1312,6 +1312,7 @@ DOC_START
 	system (such as SecureID).  If you are using such a system,
 	you will be vulnerable to replay attacks unless you also
 	use the max_user_ip ACL in an http_access rule.
+	auth_param basic credentialsttl 2 hours
 
 	=== Parameters for the digest scheme follow ===
 
@@ -1321,10 +1322,11 @@ DOC_START
 	replies with the appropriate H(A1) value base64 encoded.
 	See rfc 2616 for the definition of H(A1).  If you use an
 	authenticator, make sure you have 1 acl of type proxy_auth.
-	By default, authentication is not used.
+	By default, the digest authentication scheme is not used
+	unless a program is specified.
 
-	If you want to use build an authenticator,
-	jump over to the ../digest_auth_modules directory and choose the
+	If you want to use a digest authenticator, jump over to
+	the helpers/digest_auth/ directory and choose the
 	authenticator to use. It it's directory type
         	% make
 	        % make install
@@ -1346,37 +1348,43 @@ DOC_START
 	Specifies the realm name which is to be reported to the
 	client for the digest proxy authentication scheme (part of
 	the text the user will see when prompted their username and
-	password). There is no default.
+	password).
 	auth_param digest realm Squid proxy-caching web server
 
 	"nonce_garbage_interval" timeinterval
 	Specifies the interval that nonces that have been issued
 	to client_agent's are checked for validity.
+	auth_param digest nonce_garbage_interval 5 minutes
 
 	"nonce_max_duration" timeinterval
 	Specifies the maximum length of time a given nonce will be
 	valid for.
+	auth_param digest nonce_max_duration 30 minutes
 
 	"nonce_max_count" number
 	Specifies the maximum number of times a given nonce can be
 	used.
+	auth_param digest nonce_max_count 50
 
 	"nonce_strictness" on|off
 	Determines if squid requires strict increment-by-1 behaviour
 	for nonce counts, or just incrementing (off - for use when
 	useragents generate nonce counts that occasionally miss 1
-	(ie, 1,2,4,6)). Default off.
+	(ie, 1,2,4,6)).
+	auth_param digest nonce_strictness off
 
 	"check_nonce_count" on|off
 	This directive if set to off can disable the nonce count check
 	completely to work around buggy digest qop implementations in
 	certain mainstream browser versions. Default on to check the
 	nonce count to protect from authentication replay attacks.
+	auth_param digest check_nonce_count on
 
 	"post_workaround" on|off
 	This is a workaround to certain buggy browsers who sends
 	an incorrect request digest in POST requests when reusing
 	the same nonce as aquired earlier on a GET request.
+	auth_param digest post_workaround off
 
 	=== NTLM scheme options follow ===
 
@@ -1386,8 +1394,8 @@ DOC_START
 	and replies with the ntlm CHALLENGE, then waits for the
 	response and answers with "OK" or "ERR" in an endless loop.
 	If you use an ntlm authenticator, make sure you have 1 acl
-	of type proxy_auth.  By default, the ntlm authenticator_program
-	is not used.
+	of type proxy_auth.  By default, the ntlm authentication scheme
+	is not used unless a program is specified.
 
 	auth_param ntlm program @DEFAULT_PREFIX@/bin/ntlm_auth
 

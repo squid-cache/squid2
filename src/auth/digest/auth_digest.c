@@ -960,6 +960,7 @@ authDigestParse(authScheme * scheme, int n_configured, char *param_str)
 	memset(scheme->scheme_data, 0, sizeof(auth_digest_config));
 	digestConfig = scheme->scheme_data;
 	digestConfig->authenticateChildren = 5;
+	digestConfig->digestAuthRealm = xstrdup("Squid proxy-caching web server");
 	/* 5 minutes */
 	digestConfig->nonceGCInterval = 5 * 60;
 	/* 30 minutes */
@@ -970,6 +971,7 @@ authDigestParse(authScheme * scheme, int n_configured, char *param_str)
 	digestConfig->NonceStrictness = 0;
 	/* Verify nonce count */
 	digestConfig->CheckNonceCount = 1;
+	digestConfig->PostWorkaround = 0;
     }
     digestConfig = scheme->scheme_data;
     if (strcasecmp(param_str, "program") == 0) {

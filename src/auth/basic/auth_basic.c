@@ -321,6 +321,7 @@ authBasicParse(authScheme * scheme, int n_configured, char *param_str)
 	scheme->scheme_data = xmalloc(sizeof(auth_basic_config));
 	memset(scheme->scheme_data, 0, sizeof(auth_basic_config));
 	basicConfig = scheme->scheme_data;
+	basicConfig->basicAuthRealm = xstrdup("Squid proxy-caching web server");
 	basicConfig->authenticateChildren = 5;
 	basicConfig->credentialsTTL = 2 * 60 * 60;	/* two hours */
     }
