@@ -319,8 +319,11 @@ file_write(int fd,
 {
     dwrite_q *wq = NULL;
 
+    if (fd < 0)
+	fatal_dump("file_write: bad FD");
     if (file_table[fd].open_stat == FILE_NOT_OPEN) {
-	debug_trap("file_write: FILE_NOT_OPEN");
+	debug(6, 0, "WARNING: file_write: FD %d: FILE_NOT_OPEN\n", fd);
+	debug_trap("");
 	return DISK_ERROR;
     }
     /* if we got here. Caller is eligible to write. */
