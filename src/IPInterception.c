@@ -35,6 +35,7 @@
 
 #include "squid.h"
 #include "clientStream.h"
+#include "IPInterception.h"
 
 #if IPF_TRANSPARENT
 #if HAVE_SYS_IOCTL_H
