@@ -154,10 +154,11 @@ helperStats(StoreEntry * sentry, helper * hlp)
 void
 helperShutdown(helper * hlp)
 {
-    dlink_node *link;
+    dlink_node *link = hlp->servers.head;
     helper_server *srv;
-    for (link = hlp->servers.head; link; link = link->next) {
+    while (link) {
 	srv = link->data;
+	link = link->next;
 	if (!srv->flags.alive) {
 	    debug(34, 3) ("helperShutdown: %s #%d is NOT ALIVE.\n",
 		hlp->id_name, srv->index + 1);
