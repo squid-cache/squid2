@@ -141,7 +141,6 @@
 
 
 typedef void (*PIF) (int, StoreEntry *, void *);
-typedef void (*IRCB) _PARAMS((peer *, icp_opcode, void *data));
 
 /* keep track each client receiving data from that particular StoreEntry */
 struct _store_client {
@@ -172,6 +171,7 @@ struct _MemObject {
     struct _http_reply *reply;
     request_t *request;
     int mime_hdr_sz;
+    struct timeval start_ping;
     IRCB icp_reply_callback;
     void *ircb_data;
 };

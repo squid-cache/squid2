@@ -959,7 +959,6 @@ proxyhttpStartComplete(void *data, int status)
 	sock,
 	httpConnect,
 	httpState);
-    xfree(url);
     return;
 }
 

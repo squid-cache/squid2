@@ -272,6 +272,7 @@ typedef int (*QS) (const void *, const void *);
 #include "filemap.h"
 #include "hash.h"
 #include "proto.h"		/* must go before neighbors.h */
+#include "peer_select.h"	/* must go before neighbors.h */
 #include "neighbors.h"		/* must go before url.h */
 #include "url.h"
 #include "icp.h"
@@ -300,7 +301,6 @@ typedef int (*QS) (const void *, const void *);
 #include "client_db.h"
 #include "objcache.h"
 #include "refresh.h"
-#include "peer_select.h"
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"
