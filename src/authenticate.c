@@ -97,6 +97,7 @@ authenticateStart(acl_proxy_auth_user * auth_user, RH * handler, void *data)
     r = xcalloc(1, sizeof(authenticateStateData));
     cbdataAdd(r, MEM_NONE);
     r->handler = handler;
+    cbdataLock(data);
     r->data = data;
     r->auth_user = auth_user;
     snprintf(buf, 8192, "%s %s\n", r->auth_user->user, r->auth_user->passwd);
