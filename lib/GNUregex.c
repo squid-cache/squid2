@@ -4440,18 +4440,18 @@ re_comp(s)
 
     if (!s) {
 	if (!re_comp_buf.buffer)
-	    return "No previous regular expression";
+	    return (char *)"No previous regular expression";
 	return 0;
     }
     if (!re_comp_buf.buffer) {
 	re_comp_buf.buffer = (unsigned char *) malloc(200);
 	if (re_comp_buf.buffer == NULL)
-	    return "Memory exhausted";
+	    return (char *)"Memory exhausted";
 	re_comp_buf.allocated = 200;
 
 	re_comp_buf.fastmap = (char *) malloc(1 << BYTEWIDTH);
 	if (re_comp_buf.fastmap == NULL)
-	    return "Memory exhausted";
+	    return (char *)"Memory exhausted";
     }
     /* Since `re_exec' always passes NULL for the `regs' argument, we
      * don't need to initialize the pattern buffer fields which affect it.  */
