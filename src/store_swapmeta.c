@@ -126,7 +126,15 @@ storeSwapMetaUnpack(const char *buf, int *hdr_len)
     assert(buflen > (sizeof(char) + sizeof(int)));
     while (buflen - j > (sizeof(char) + sizeof(int))) {
 	type = buf[j++];
+	if (type < STORE_META_VOID || type > STORE_META_END) {
+	    debug(20, 0) ("storeSwapMetaUnpack: bad type (%d)!\n", type);
+	    break;
+	}
 	xmemcpy(&length, &buf[j], sizeof(int));
+	if (length < 0 || length > (1 << 10)) {
+	    debug(20, 0) ("storeSwapMetaUnpack: insane length (%d)!\n", length);
+	    break;
+	}
 	j += sizeof(int);
 	if (j + length > buflen) {
 	    debug(20, 0) ("storeSwapMetaUnpack: overflow!\n");
