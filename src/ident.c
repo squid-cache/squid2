@@ -118,9 +118,10 @@ identReadReply(int fd, void *data)
 
     buf[0] = '\0';
     Counter.syscalls.sock.reads++;
-    len = read(fd, buf, BUFSIZ);
+    len = read(fd, buf, BUFSIZ - 1);
     fd_bytes(fd, len, FD_READ);
     if (len > 0) {
+	buf[len] = '\0';
 	if ((t = strchr(buf, '\r')))
 	    *t = '\0';
 	if ((t = strchr(buf, '\n')))
