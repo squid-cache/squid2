@@ -109,8 +109,11 @@ rfc1738_do_escape(const char *url, int encode_reserved)
 		break;
 	    }
 	}
+	/* Handle % separately */
+	if (encode_reserved >= 0 && *p == '%')
+	    do_escape = 1;
 	/* RFC 1738 defines these chars as reserved */
-	for (i = 0; i < sizeof(rfc1738_reserved_chars) && encode_reserved; i++) {
+	for (i = 0; i < sizeof(rfc1738_reserved_chars) && encode_reserved > 0; i++) {
 	    if (*p == rfc1738_reserved_chars[i]) {
 		do_escape = 1;
 		break;
@@ -145,8 +148,8 @@ rfc1738_do_escape(const char *url, int encode_reserved)
 }
 
 /*
- *  rfc1738_escape - Returns a static buffer contains the RFC 1738 
- *  compliant, escaped version of the given url.
+ * rfc1738_escape - Returns a static buffer that contains the RFC
+ * 1738 compliant, escaped version of the given url.
  */
 char *
 rfc1738_escape(const char *url)
@@ -155,8 +158,18 @@ rfc1738_escape(const char *url)
 }
 
 /*
- *  rfc1738_escape_part - Returns a static buffer contains the RFC 1738 
- *  compliant, escaped version of the given url segment.
+ * rfc1738_escape_unescaped - Returns a static buffer that contains
+ * the RFC 1738 compliant, escaped version of the given url.
+ */
+char *
+rfc1738_escape_unescaped(const char *url)
+{
+    return rfc1738_do_escape(url, -1);
+}
+
+/*
+ * rfc1738_escape_part - Returns a static buffer that contains the
+ * RFC 1738 compliant, escaped version of the given url segment.
  */
 char *
 rfc1738_escape_part(const char *url)
