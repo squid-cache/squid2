@@ -535,9 +535,9 @@ ftpListParseParts(const char *buf, struct _ftp_flags flags)
 	    /* Directory.. name begins with first printable after <dir> */
 	    ct = strstr(buf, tokens[2]);
 	    ct += strlen(tokens[2]);
-	    while (isspace(*t))
+	    while (isspace(*ct))
 		ct++;
-	    if (!*t)
+	    if (!*ct)
 		ct = NULL;
 	} else {
 	    /* A file. Name begins after size, with a space in between */
