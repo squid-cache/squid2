@@ -270,7 +270,7 @@ icpStateFree(int fd, icpStateData * icpState)
 	icpState->request ? icpState->request->protocol : PROTO_NONE,
 	icpState->log_type);
     clientdbUpdate(icpState->peer.sin_addr,
-	icpState->log_type, 
+	icpState->log_type,
 	ntohs(icpState->me.sin_port));
     if (icpState->ident_fd)
 	comm_close(icpState->ident_fd);
@@ -876,8 +876,8 @@ icpLogIcp(icpUdpData * queue)
 	queue->proto,
 	queue->logcode);
     clientdbUpdate(queue->address.sin_addr,
-        queue->logcode,
-        CACHE_ICP_PORT);
+	queue->logcode,
+	CACHE_ICP_PORT);
 }
 
 int
@@ -1147,7 +1147,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
 	    if (clientdbDeniedPercent(from.sin_addr) < 95)
-	        icpUdpSend(fd, url, header.reqnum, &from, 0,
+		icpUdpSend(fd, url, header.reqnum, &from, 0,
 		    ICP_OP_DENIED, LOG_UDP_DENIED, p);
 	    break;
 	}
@@ -1295,8 +1295,8 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
 	    if (clientdbDeniedPercent(from.sin_addr) < 95)
-	        icpUdpSend(fd, url, header.reqnum, &from, 0,
-	    	    ICP_OP_DENIED, LOG_UDP_DENIED, p);
+		icpUdpSend(fd, url, header.reqnum, &from, 0,
+		    ICP_OP_DENIED, LOG_UDP_DENIED, p);
 	    break;
 	}
 	/* The peer is allowed to use this cache */

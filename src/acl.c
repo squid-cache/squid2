@@ -227,7 +227,7 @@ decode_addr(char *asc, struct in_addr *addr, struct in_addr *mask)
 	}
     default:
 	/* Note, must use plain gethostbyname() here because at startup
-	   ipcache hasn't been initialized */
+	 * ipcache hasn't been initialized */
 	if ((hp = gethostbyname(asc)) != NULL) {
 	    *addr = inaddrFromHostent(hp);
 	} else {
