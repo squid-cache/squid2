@@ -271,7 +271,9 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	break;
 
     case ICP_HIT:
+#if ALLOW_SOURCE_PING
     case ICP_SECHO:
+#endif
     case ICP_DECHO:
     case ICP_MISS:
     case ICP_DENIED:

@@ -173,6 +173,7 @@ typedef void CWCB(int fd, char *, size_t size, int flag, void *data);
 typedef void CNCB(int fd, int status, void *);
 
 typedef void FREE(void *);
+typedef void CBDUNL(void *, int);
 typedef void FOCB(void *, int fd, int errcode);
 typedef void EVH(void *);
 typedef void PF(int, void *);
@@ -182,7 +183,7 @@ typedef void FQDNH(const char *, void *);
 typedef void IDCB(void *);
 typedef void IPH(const ipcache_addrs *, void *);
 typedef void IRCB(peer *, peer_t, protocol_t, void *, void *data);
-typedef void PSC(peer *, void *);
+typedef void PSC(FwdServer *, void *);
 typedef void RH(void *data, char *);
 typedef void UH(void *data, wordlist *);
 typedef int DEFER(int fd, void *data);

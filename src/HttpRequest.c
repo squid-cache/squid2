@@ -64,7 +64,7 @@ requestDestroy(request_t * req)
 	httpHdrCcDestroy(req->cache_control);
     if (req->range)
 	httpHdrRangeDestroy(req->range);
-    memFree(MEM_REQUEST_T, req);
+    memFree(req, MEM_REQUEST_T);
 }
 
 request_t *

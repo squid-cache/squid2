@@ -106,7 +106,7 @@ pumpInit(int fd, request_t * r, char *uri)
     p->cbdata = NULL;
     p->next = pump_head;
     pump_head = p;
-    cbdataAdd(p, MEM_NONE);
+    cbdataAdd(p, cbdataXfree, 0);
     comm_add_close_handler(p->c_fd, pumpFree, p);
     commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
     debug(61, 4) ("pumpInit: FD %d, Created %p\n", fd, p);
@@ -178,13 +178,13 @@ pumpServerCopy(void *data, char *buf, ssize_t size)
     debug(61, 5) ("pumpServerCopy: called with size=%d\n", size);
     if (size < 0) {
 	debug(61, 5) ("pumpServerCopy: freeing and returning\n");
-	memFree(MEM_4K_BUF, buf);
+	memFree(buf, MEM_4K_BUF);
 	return;
     }
     if (size == 0) {
 	debug(61, 5) ("pumpServerCopy: done, finishing\n", size);
 	pumpServerCopyComplete(p->s_fd, NULL, 0, DISK_OK, p);
-	memFree(MEM_4K_BUF, buf);
+	memFree(buf, MEM_4K_BUF);
 	return;
     }
     debug(61, 5) ("pumpServerCopy: to FD %d, %d bytes\n", p->s_fd, size);

@@ -121,9 +121,10 @@
 #define ICP_VERSION_3		3
 #define ICP_VERSION_CURRENT	ICP_VERSION_2
 
-#define DIRECT_NO    0
-#define DIRECT_MAYBE 1
-#define DIRECT_YES   2
+#define DIRECT_UNKNOWN 0
+#define DIRECT_NO    1
+#define DIRECT_MAYBE 2
+#define DIRECT_YES   3
 
 #define REDIRECT_AV_FACTOR 1000
 

@@ -328,7 +328,7 @@ statObjectsStart(StoreEntry * sentry, STOBJFLT * filter)
     state->sentry = sentry;
     state->filter = filter;
     storeLockObject(sentry);
-    cbdataAdd(state, MEM_NONE);
+    cbdataAdd(state, cbdataXfree, 0);
     eventAdd("statObjects", statObjects, state, 0.0, 1);
 }
 

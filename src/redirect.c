@@ -100,7 +100,7 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
 	return;
     }
     r = xcalloc(1, sizeof(redirectStateData));
-    cbdataAdd(r, MEM_NONE);
+    cbdataAdd(r, cbdataXfree, 0);
     r->orig_url = xstrdup(http->uri);
     r->client_addr = conn->log_addr;
     if (conn->ident.ident == NULL || *conn->ident.ident == '\0') {

@@ -312,7 +312,7 @@ errorSend(int fd, ErrorState * err)
 	err->request->err_type = err->type;
     /* moved in front of errorBuildBuf @?@ */
     err->flags.flag_cbdata = 1;
-    cbdataAdd(err, MEM_NONE);
+    cbdataAdd(err, cbdataXfree, 0);
     rep = errorBuildReply(err);
     comm_write_mbuf(fd, httpReplyPack(rep), errorSendComplete, err);
     httpReplyDestroy(rep);

@@ -50,7 +50,7 @@ storeSwapOutStart(StoreEntry * e)
 {
     swapout_ctrl_t *ctrlp = xmalloc(sizeof(swapout_ctrl_t));
     assert(e->mem_obj);
-    cbdataAdd(ctrlp, MEM_NONE);
+    cbdataAdd(ctrlp, cbdataXfree, 0);
     storeLockObject(e);
     e->swap_file_number = storeDirMapAllocate();
     ctrlp->swapfilename = xstrdup(storeSwapFullPath(e->swap_file_number, NULL));
@@ -235,7 +235,7 @@ storeCheckSwapOut(StoreEntry * e)
 	storeDirMapBitReset(e->swap_file_number);
 	e->swap_file_number = -1;
 	e->swap_status = SWAPOUT_NONE;
-	memFree(MEM_DISK_BUF, swap_buf);
+	memFree(swap_buf, MEM_DISK_BUF);
 	storeReleaseRequest(e);
 	storeSwapOutFileClose(e);
 	return;

@@ -169,7 +169,7 @@ icmpSourcePing(struct in_addr to, const icp_common_t * header, const char *url)
     strcpy(payload + len, url);
     len += ulen + 1;
     icmpSendEcho(to, S_ICMP_ICP, payload, len);
-    memFree(MEM_8K_BUF, payload);
+    memFree(payload, MEM_8K_BUF);
 #endif
 }
 #endif

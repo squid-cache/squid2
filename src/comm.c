@@ -231,7 +231,7 @@ commConnectStart(int fd, const char *host, u_short port, CNCB * callback, void *
 {
     ConnectStateData *cs = xcalloc(1, sizeof(ConnectStateData));
     debug(5, 3) ("commConnectStart: FD %d, %s:%d\n", fd, host, (int) port);
-    cbdataAdd(cs, MEM_NONE);
+    cbdataAdd(cs, cbdataXfree, 0);
     cs->fd = fd;
     cs->host = xstrdup(host);
     cs->port = port;

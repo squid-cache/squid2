@@ -432,5 +432,5 @@ mimeLoadIconFile(const char *icon)
     EBIT_SET(e->flags, ENTRY_SPECIAL);
     debug(25, 3) ("Loaded icon %s\n", url);
     storeUnlockObject(e);
-    memFree(MEM_4K_BUF, buf);
+    memFree(buf, MEM_4K_BUF);
 }

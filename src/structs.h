@@ -1,4 +1,5 @@
 
+
 /*
  * $Id$
  *
@@ -191,6 +192,7 @@ struct _SquidConfig {
     struct {
 	char *relayHost;
 	u_short relayPort;
+	peer *peer;
     } Wais;
     struct {
 	size_t min;
@@ -670,6 +672,7 @@ struct _HttpReply {
 struct _http_state_flags {
     unsigned int proxying:1;
     unsigned int keepalive:1;
+    unsigned int only_if_cached:1;
 };
 
 struct _HttpStateData {
@@ -682,7 +685,7 @@ struct _HttpStateData {
     request_t *orig_request;
     int fd;
     http_state_flags flags;
-    FwdState *fwdState;
+    FwdState *fwd;
 };
 
 struct _icpUdpData {
@@ -1082,9 +1085,10 @@ struct _ps_state {
     StoreEntry *entry;
     int always_direct;
     int never_direct;
+    int direct;
     PSC *callback;
-    PSC *fail_callback;
     void *callback_data;
+    FwdServer *servers;
     /*
      * Why are these struct sockaddr_in instead of peer *?  Because a
      * peer structure can become invalid during the peer selection
@@ -1094,6 +1098,15 @@ struct _ps_state {
      */
     struct sockaddr_in first_parent_miss;
     struct sockaddr_in closest_parent_miss;
+    /*
+     * ->hit and ->secho can be peer* because they should only be
+     * accessed during the thread when they are set
+     */
+    peer *hit;
+    peer_t hit_type;
+#if ALLOW_SOURCE_PING
+    peer *secho;
+#endif
     ping_data ping;
     aclCheck_t *acl_checklist;
 };
@@ -1558,6 +1571,12 @@ struct _CacheDigest {
     int del_count;		/* number of deletions performed so far */
 };
 
+struct _FwdServer {
+    peer *peer;			/* NULL --> origin server */
+    hier_code code;
+    FwdServer *next;
+};
+
 struct _FwdState {
     int client_fd;
     StoreEntry *entry;
@@ -1571,13 +1590,6 @@ struct _FwdState {
     } fail;
     time_t start;
     int n_tries;
-};
-
-struct _FwdServer {
-    char *host;
-    u_short port;
-    peer *peer;
-    struct _FwdServer *next;
 };
 
 #if USE_HTCP
