@@ -490,7 +490,7 @@ parse_peer(peer ** head)
     peer *p;
     int i;
     ushortlist *u;
-    const char *me = getMyHostname();;
+    const char *me = null_string; /* XXX */
     p = xcalloc(1, sizeof(peer));
     p->http_port = CACHE_HTTP_PORT;
     p->icp_port = CACHE_ICP_PORT;
