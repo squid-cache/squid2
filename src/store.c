@@ -913,16 +913,19 @@ storeSwapOutHandle(int fd, int flag, size_t len, void *data)
 	storeCheckSwapOut(e);
 	return;
     }
-    assert(storeCheckCachable(e));
     /* swapping complete */
-    e->swap_status = SWAPOUT_DONE;
     file_close(mem->swapout.fd);
+    put_free_8k_page(mem->e_swap_buf);
     mem->swapout.fd = -1;
-    storeLog(STORE_LOG_SWAPOUT, e);
     debug(20, 5) ("storeSwapOutHandle: SwapOut complete: '%s' to %s.\n",
 	e->url, storeSwapFullPath(e->swap_file_number, NULL));
-    put_free_8k_page(mem->e_swap_buf);
-    storeDirSwapLog(e);
+    if (!storeCheckCachable(e)) {
+	storeReleaseRequest(e);
+    } else {
+    	e->swap_status = SWAPOUT_DONE;
+    	storeLog(STORE_LOG_SWAPOUT, e);
+        storeDirSwapLog(e);
+    }
     HTTPCacheInfo->proto_newobject(HTTPCacheInfo,
 	mem->request->protocol,
 	e->object_len,
