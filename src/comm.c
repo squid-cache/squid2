@@ -629,8 +629,9 @@ comm_select_incoming(void)
     PF hdl = NULL;
     if (theInIcpConnection >= 0)
 	fds[N++] = theInIcpConnection;
-    if (theOutIcpConnection >= 0)
-	fds[N++] = theOutIcpConnection;
+    if (theInIcpConnection != theOutIcpConnection)
+        if (theOutIcpConnection >= 0)
+	    fds[N++] = theOutIcpConnection;
     if (theHttpConnection >= 0 && fdstat_are_n_free_fd(RESERVED_FD))
 	fds[N++] = theHttpConnection;
     fds[N++] = 0;
@@ -692,8 +693,9 @@ comm_select_incoming(void)
 	fds[N++] = theHttpConnection;
     if (theInIcpConnection >= 0)
 	fds[N++] = theInIcpConnection;
-    if (theOutIcpConnection >= 0)
-	fds[N++] = theOutIcpConnection;
+    if (theInIcpConnection != theOutIcpConnection)
+	if (theOutIcpConnection >= 0)
+	    fds[N++] = theOutIcpConnection;
     fds[N++] = 0;
     for (i = 0; i < N; i++) {
 	fd = fds[i];
