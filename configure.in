@@ -307,7 +307,7 @@ SQUID_FD_SETSIZE=256)
 AC_MSG_RESULT($SQUID_FD_SETSIZE)
 AC_DEFINE_UNQUOTED(SQUID_FD_SETSIZE, $SQUID_FD_SETSIZE)
 
-AC_MSG_CHECKING(UDP send buffer size)
+AC_MSG_CHECKING(Default UDP send buffer size)
 AC_TRY_RUN([
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -326,7 +326,7 @@ SQUID_UDP_SO_SNDBUF=8192)
 AC_MSG_RESULT($SQUID_UDP_SO_SNDBUF)
 AC_DEFINE_UNQUOTED(SQUID_UDP_SO_SNDBUF, $SQUID_UDP_SO_SNDBUF)
 
-AC_MSG_CHECKING(UDP receive buffer size)
+AC_MSG_CHECKING(Default UDP receive buffer size)
 AC_TRY_RUN([
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -345,7 +345,7 @@ SQUID_UDP_SO_RCVBUF=8192)
 AC_MSG_RESULT($SQUID_UDP_SO_RCVBUF)
 AC_DEFINE_UNQUOTED(SQUID_UDP_SO_RCVBUF, $SQUID_UDP_SO_RCVBUF)
 
-AC_MSG_CHECKING(TCP send buffer size)
+AC_MSG_CHECKING(Default TCP send buffer size)
 AC_TRY_RUN([
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -364,7 +364,7 @@ SQUID_TCP_SO_SNDBUF=8192)
 AC_MSG_RESULT($SQUID_TCP_SO_SNDBUF)
 AC_DEFINE_UNQUOTED(SQUID_TCP_SO_SNDBUF, $SQUID_TCP_SO_SNDBUF)
 
-AC_MSG_CHECKING(TCP receive buffer size)
+AC_MSG_CHECKING(Default TCP receive buffer size)
 AC_TRY_RUN([
 #include <sys/types.h>
 #include <sys/socket.h>

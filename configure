@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.11 
+# From configure.in Revision: 1.18.2.12 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2141,7 +2141,7 @@ cat >> confdefs.h <<EOF
 EOF
 
 
-echo $ac_n "checking UDP send buffer size""... $ac_c" 1>&6
+echo $ac_n "checking Default UDP send buffer size""... $ac_c" 1>&6
 if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_SNDBUF=8192
 else
@@ -2175,7 +2175,7 @@ cat >> confdefs.h <<EOF
 EOF
 
 
-echo $ac_n "checking UDP receive buffer size""... $ac_c" 1>&6
+echo $ac_n "checking Default UDP receive buffer size""... $ac_c" 1>&6
 if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_RCVBUF=8192
 else
@@ -2209,7 +2209,7 @@ cat >> confdefs.h <<EOF
 EOF
 
 
-echo $ac_n "checking TCP send buffer size""... $ac_c" 1>&6
+echo $ac_n "checking Default TCP send buffer size""... $ac_c" 1>&6
 if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_SNDBUF=8192
 else
@@ -2243,7 +2243,7 @@ cat >> confdefs.h <<EOF
 EOF
 
 
-echo $ac_n "checking TCP receive buffer size""... $ac_c" 1>&6
+echo $ac_n "checking Default TCP receive buffer size""... $ac_c" 1>&6
 if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_RCVBUF=8192
 else
