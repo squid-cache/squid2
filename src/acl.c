@@ -1921,10 +1921,10 @@ aclDestroyIntRange(intrange * list)
 /* compare two domains */
 
 static int
-aclDomainCompare(const void *data, splayNode * n)
+aclDomainCompare(const void *a, const void *b)
 {
-    const char *d1 = data;
-    const char *d2 = n->data;
+    const char *d1 = a;
+    const char *d2 = b;
     int l1;
     int l2;
     while ('.' == *d1)
@@ -1959,10 +1959,10 @@ aclDomainCompare(const void *data, splayNode * n)
 /* compare a host and a domain */
 
 static int
-aclHostDomainCompare(const void *data, splayNode * n)
+aclHostDomainCompare(const void *a, const void *b)
 {
-    const char *h = data;
-    char *d = n->data;
+    const char *h = a;
+    const char *d = b;
     int l1;
     int l2;
     if (matchDomainName(d, h))
@@ -2000,12 +2000,12 @@ aclHostDomainCompare(const void *data, splayNode * n)
 /* compare an address and a network spec */
 
 static int
-aclIpNetworkCompare(const void *a, splayNode * n)
+aclIpNetworkCompare(const void *a, const void *b)
 {
-    struct in_addr A = *(struct in_addr *) a;
-    acl_ip_data *q = n->data;
-    struct in_addr B = q->addr1;
-    struct in_addr C = q->addr2;
+    struct in_addr A = *(const struct in_addr *) a;
+    const acl_ip_data *q = b;
+    const struct in_addr B = q->addr1;
+    const struct in_addr C = q->addr2;
     int rc = 0;
     A.s_addr &= q->mask.s_addr;	/* apply netmask */
     if (C.s_addr == 0) {	/* single address check */
@@ -2343,10 +2343,10 @@ aclMatchArp(void *dataptr, struct in_addr c)
 }
 
 static int
-aclArpCompare(const void *data, splayNode * n)
+aclArpCompare(const void *a, const void *b)
 {
-    const unsigned short *d1 = data;
-    const unsigned short *d2 = n->data;
+    const unsigned short *d1 = a;
+    const unsigned short *d2 = b;
     if (d1[0] != d2[0])
 	return (d1[0] > d2[0]) ? 1 : -1;
     if (d1[1] != d2[1])
