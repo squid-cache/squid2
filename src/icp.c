@@ -1106,12 +1106,18 @@ int parseHttpRequest(icpState)
     int post_sz;
     int len;
 
+    /* Make sure a complete line has been received */
+    if (strchr(icpState->inbuf, '\n') == NULL) {
+	debug(12, 5, "Incomplete request line, waiting for more data");
+	return 0;
+    }
     /* Use xmalloc/memcpy instead of xstrdup because inbuf might
      * contain NULL bytes; especially for POST data  */
     inbuf = (char *) xmalloc(icpState->offset + 1);
     memcpy(inbuf, icpState->inbuf, icpState->offset);
     *(inbuf + icpState->offset) = '\0';
 
+    /* Look for request method */
     if ((method = strtok(inbuf, "\t ")) == NULL) {
 	debug(12, 1, "parseHttpRequest: Can't get request method\n");
 	xfree(inbuf);
@@ -1124,9 +1130,9 @@ int parseHttpRequest(icpState)
 	return -1;
     }
     debug(12, 5, "parseHttpRequest: Method is '%s'\n", method);
-
     BIT_SET(icpState->flags, REQ_HTML);
 
+    /* look for URL */
     if ((request = strtok(NULL, "\r\n\t ")) == NULL) {
 	debug(12, 1, "parseHttpRequest: Missing URL\n");
 	xfree(inbuf);
@@ -1147,22 +1153,26 @@ int parseHttpRequest(icpState)
 
     req_hdr = t;
     req_hdr_sz = icpState->offset - (req_hdr - inbuf);
+
+    /* The request is received when a empty header line is receied */
+    if (!strstr(req_hdr, "\r\n\r\n") && !strstr(req_hdr, "\n\n")) {
+	xfree(inbuf);
+	return 0;		/* not a complete request */
+    }
+    /* Ok, all headers are received */
     icpState->request_hdr = (char *) xmalloc(req_hdr_sz + 1);
     memcpy(icpState->request_hdr, req_hdr, req_hdr_sz);
     *(icpState->request_hdr + req_hdr_sz) = '\0';
 
-    if (icpState->request_hdr) {
-	debug(12, 5, "parseHttpRequest: Request Header is\n---\n%s\n---\n",
-	    icpState->request_hdr);
-    } else {
-	debug(12, 5, "parseHttpRequest: No Request Header present\n");
-    }
+    debug(12, 5, "parseHttpRequest: Request Header is\n---\n%s\n---\n",
+        icpState->request_hdr);
 
     if (icpState->method == METHOD_POST) {
 	/* Expect Content-Length: and POST data after the headers */
 	if ((t = mime_get_header(req_hdr, "Content-Length")) == NULL) {
 	    xfree(inbuf);
-	    return 0;		/* not a complete request */
+	    debug(12, 2, "POST without Content-Length\n");
+	    return -1;
 	}
 	content_length = atoi(t);
 	debug(12, 3, "parseHttpRequest: Expecting POST Content-Length of %d\n",
@@ -1172,6 +1182,7 @@ int parseHttpRequest(icpState)
 	} else if ((t = strstr(req_hdr, "\n\n"))) {
 	    post_data = t + 2;
 	} else {
+	    debug(12, 1, "parseHttpRequest: Can't find end of headers in POST request?\m";
 	    xfree(inbuf);
 	    return 0;		/* not a complete request */
 	}
@@ -1182,9 +1193,6 @@ int parseHttpRequest(icpState)
 	    xfree(inbuf);
 	    return 0;
 	}
-    } else if (!strstr(req_hdr, "\r\n\r\n") && !strstr(req_hdr, "\n\n")) {
-	xfree(inbuf);
-	return 0;		/* not a complete request */
     }
     /* Assign icpState->url */
     if ((t = strchr(request, '\n')))	/* remove NL */
@@ -1201,8 +1209,8 @@ int parseHttpRequest(icpState)
 	    request = t;
 	    free_request = 1;
 	    /* NOTE: We don't have to free the old request pointer
-	     * because it points to inside xbuf. But
-	     * do_append_domain() allocates memory so set a flag
+	     * because it points to inside inbuf. But
+	     * do_append_domain() allocates new memory so set a flag
 	     * if the request should be freed later. */
 	}
     }
