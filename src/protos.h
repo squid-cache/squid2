@@ -793,6 +793,7 @@ extern void storeSetPrivateKey(StoreEntry *);
 extern int objectLen(const StoreEntry * e);
 extern int contentLen(const StoreEntry * e);
 extern HttpReply *storeEntryReply(StoreEntry *);
+extern int storeTooManyDiskFilesOpen(void);
 
 /*
  * store_log.c
