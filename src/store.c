@@ -416,8 +416,11 @@ storeSetPublicKey(StoreEntry * e)
 		    storeRelease(pe);
 	    }
 	    /* Make sure the request knows the variance status */
-	    if (!request->vary_headers)
-		request->vary_headers = xstrdup(httpMakeVaryMark(request, mem->reply));
+	    if (!request->vary_headers) {
+		const char *vary = httpMakeVaryMark(request, mem->reply);
+		if (vary)
+		    request->vary_headers = xstrdup(vary);
+	    }
 	}
 	if (mem->vary_headers && !storeGetPublic(mem->url, mem->method)) {
 	    /* Create "vary" base object */
