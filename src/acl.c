@@ -1197,6 +1197,7 @@ aclCheck(aclCheck_t * checklist)
 	}
 	checklist->access_list = A->next;
     }
+    debug(28, 3, "aclCheck: NO match found, returning %d\n", !allow);
     aclCheckCallback(checklist, !allow);
 }
 
