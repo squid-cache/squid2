@@ -456,7 +456,6 @@ storeAppend(StoreEntry * e, const char *buf, int len)
 	debug(20, 5) ("storeAppend: appending %d bytes for '%s'\n",
 	    len,
 	    storeKeyText(e->key));
-	tmp_debug(here) ("bytes: '%.20s'\n", buf);	/* @?@ @?@ */
 	storeGetMemSpace(len);
 	stmemAppend(mem->data, buf, len);
 	mem->inmem_hi += len;

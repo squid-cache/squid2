@@ -158,7 +158,6 @@ packerPrintf(va_alist)
 #endif
     assert(p);
     assert(p->real_handler && p->vprintf);
-    tmp_debug(here) ("printf: fmt: '%s'\n", fmt);
     p->vprintf(p->real_handler, fmt, args);
     va_end(args);
 }

@@ -1099,7 +1099,7 @@ snmp_ipcacheFn(variable_list * Var, long *ErrP)
 	xfree(Answer->val.integer);
 	Answer->type = SMI_STRING;
 	Answer->val_len = strlen(IPc->name);
-	Answer->val.string = xstrdup(IPc->name);
+	Answer->val.string = (u_char *)xstrdup(IPc->name);
 	break;
     case NET_IPC_IP:
 	Answer->type = SMI_IPADDRESS;
