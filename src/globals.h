@@ -130,7 +130,7 @@ extern int hot_obj_count;	/* 0 */
 extern int _db_level;
 extern const int CacheDigestHashFuncCount;	/* 4 */
 extern CacheDigest *store_digest;	/* NULL */
-extern const char *StoreDigestFileName;	/* "store_digest" */
+extern const char *StoreDigestFileName;		/* "store_digest" */
 extern const char *StoreDigestMimeStr;	/* "application/cache-digest" */
 #if USE_CACHE_DIGESTS
 extern const Version CacheDigestVer;	/* { 5, 3 } */
