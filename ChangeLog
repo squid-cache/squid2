@@ -1,8 +1,12 @@
-Changes to squid-1.1.8 (February 25, 1997):
+Changes to squid-1.1.8 (February @@@, 1997):
 
+	- Fixed neighborsUdpAck() coredump bug for source-ping and
+	  non-peer ICP replies.
 	- Prevent ipcache_gethostbyname from changing an IP_DISPATCHED
-	  entry to IP_CACHED.
+	  entry to IP_CACHED; fqdncache too.
 	- Made send_announce non-blocking.
+	- Force release of negative-cached objects upon receipt of
+	  no-cache request.
 
 Changes to squid-1.1.7 (February 25, 1997):
 
