@@ -143,7 +143,7 @@ void _db_init(logfile, options)
     }
     debugOpenLog(logfile);
 
-#if HAVE_SYSLOG
+#if HAVE_SYSLOG && defined(LOG_LOCAL4)
     if (syslog_enable)
 	openlog(appname, LOG_PID | LOG_NDELAY | LOG_CONS, LOG_LOCAL4);
 #endif /* HAVE_SYSLOG */
