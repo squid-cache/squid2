@@ -69,10 +69,14 @@ useragentRotateLog(void)
     int i;
     LOCAL_ARRAY(char, from, MAXPATHLEN);
     LOCAL_ARRAY(char, to, MAXPATHLEN);
+    struct stat sb;
     if ((fname = Config.Log.useragent) == NULL)
 	return;
     if (strcmp(fname, "none") == 0)
 	return;
+    if (stat(fname, &sb) == 0)
+	if (S_ISREG(sb.st_mode) == 0)
+	    return;
     debug(40, 1, "useragentRotateLog: Rotating.\n");
     /* Rotate numbers 0 through N up one */
     for (i = Config.Log.rotateNumber; i > 1;) {

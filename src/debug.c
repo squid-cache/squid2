@@ -247,9 +247,13 @@ _db_rotate_log(void)
     int i;
     LOCAL_ARRAY(char, from, MAXPATHLEN);
     LOCAL_ARRAY(char, to, MAXPATHLEN);
+    struct stat sb;
 
     if (debug_log_file == NULL)
 	return;
+    if (stat(debug_log_file, &sb) == 0)
+	if (S_ISREG(sb.st_mode) == 0)
+	    return;
 
     /* Rotate numbers 0 through N up one */
     for (i = Config.Log.rotateNumber; i > 1;) {

@@ -1342,9 +1342,13 @@ stat_rotate_log(void)
     LOCAL_ARRAY(char, from, MAXPATHLEN);
     LOCAL_ARRAY(char, to, MAXPATHLEN);
     char *fname = NULL;
+    struct stat sb;
 
     if ((fname = HTTPCacheInfo->logfilename) == NULL)
 	return;
+    if (stat(fname, &sb) == 0)
+	if (S_ISREG(sb.st_mode) == 0)
+	    return;
 
     debug(18, 1, "stat_rotate_log: Rotating\n");
 
