@@ -132,7 +132,9 @@ extern const int CacheDigestHashFuncCount;	/* 4 */
 extern CacheDigest *store_digest;	/* NULL */
 extern const char *StoreDigestUrlPath;	/* "store_digest" */
 extern const char *StoreDigestMimeStr;	/* "application/cache-digest" */
+#if USE_CACHE_DIGESTS
 extern const Version CacheDigestVer;	/* { 4, 3 } */
+#endif
 extern const char *MultipartMsgBoundaryStr;	/* "Unique-Squid-Separator" */
 extern icpUdpData *IcpQueueHead;	/* NULL */
 #if HTTP_VIOLATIONS
