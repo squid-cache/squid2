@@ -114,12 +114,12 @@ typedef struct _ext_table_entry {
     char *icon;
 } ext_table_entry;
 
-extern char *mime_get_header __P((char *mime, char *header));
-extern char *mime_headers_end __P((char *mime));
-extern int mime_headers_size __P((char *mime));
-extern void mime_process __P((char *mime));
-extern ext_table_entry *mime_ext_to_type __P((char *extension));
-extern int mk_mime_hdr __P((char *result, char *type, int size, time_t ttl, time_t lmt));
+extern char *mime_get_header _PARAMS((char *mime, char *header));
+extern char *mime_headers_end _PARAMS((char *mime));
+extern int mime_headers_size _PARAMS((char *mime));
+extern void mime_process _PARAMS((char *mime));
+extern ext_table_entry *mime_ext_to_type _PARAMS((char *extension));
+extern int mk_mime_hdr _PARAMS((char *result, char *type, int size, time_t ttl, time_t lmt));
 
 
 #endif

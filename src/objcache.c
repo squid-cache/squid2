@@ -108,7 +108,7 @@
 
 #define STAT_TTL 2
 
-extern void shut_down __P((int));
+extern void shut_down _PARAMS((int));
 
 cacheinfo *HTTPCacheInfo = NULL;
 cacheinfo *ICPCacheInfo = NULL;
@@ -123,7 +123,7 @@ typedef struct objcache_ds {
 /* user name for shutdown password in /etc/passwd */
 char *username = "cache";
 
-static int objcache_url_parser __P((char *url,
+static int objcache_url_parser _PARAMS((char *url,
 	char *host,
 	char *request,
 	char *password));
@@ -292,6 +292,14 @@ objcacheStart(int fd, char *url, StoreEntry * entry)
 	HTTPCacheInfo->stat_get(HTTPCacheInfo, "filedescriptors", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
+
+#if USE_ICMP
+    } else if (strcmp(data->request, "stats/netdb") == 0) {
+	BIT_SET(data->entry->flag, DELAY_SENDING);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "netdb", data->entry);
+	BIT_RESET(data->entry->flag, DELAY_SENDING);
+	storeComplete(data->entry);
+#endif
 
     } else if (strcmp(data->request, "log/status") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);

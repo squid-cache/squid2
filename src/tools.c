@@ -594,7 +594,7 @@ percent(int a, int b)
 }
 
 void
-squid_signal(int sig, void (*func) (), int flags)
+squid_signal(int sig, void (*func) _PARAMS((int)), int flags)
 {
 #if HAVE_SIGACTION
     struct sigaction sa;

@@ -102,5 +102,5 @@
  *   re-implementations of code complying to this set of standards.  
  */
 
-extern int gopherStart __P((int, char *, StoreEntry *));
-extern int gopherCachable __P((char *));
+extern int gopherStart _PARAMS((int, char *, StoreEntry *));
+extern int gopherCachable _PARAMS((char *));

@@ -122,7 +122,7 @@ struct master_table {
 static int default_hash_size = -1;
 struct master_table htbl[MAX_HTABLE];
 
-extern void *xcalloc __P((int, size_t));
+extern void *xcalloc _PARAMS((int, size_t));
 
 /*
  *  hash_url() - Returns a well-distributed hash function for URLs.

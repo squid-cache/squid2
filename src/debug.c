@@ -114,7 +114,7 @@ static char *debug_log_file = NULL;
 #define MAX_DEBUG_SECTIONS 50
 static int debugLevels[MAX_DEBUG_SECTIONS];
 
-#if __STDC__ 
+#if __STDC__
 void
 _db_print(int section, int level, char *format,...)
 {
@@ -135,7 +135,7 @@ _db_print(va_alist)
     if (debug_log == NULL)
 	return;
 
-#if __STDC__ 
+#if __STDC__
     va_start(args, format);
 #else
     va_start(args);

@@ -28,13 +28,13 @@
  *  
  */
 
-extern void aioExamine __P((void));
-extern void aioSigHandler __P((int sig));
-extern int aioFileWriteComplete __P((int ed, FileEntry * entry));
-extern int aioFileReadComplete __P((int fd, dread_ctrl * ctrl_dat));
-extern int aioFileQueueWrite __P((int,
-	int               (*)__P((int, FileEntry *)),
+extern void aioExamine _PARAMS((void));
+extern void aioSigHandler _PARAMS((int sig));
+extern int aioFileWriteComplete _PARAMS((int ed, FileEntry * entry));
+extern int aioFileReadComplete _PARAMS((int fd, dread_ctrl * ctrl_dat));
+extern int aioFileQueueWrite _PARAMS((int,
+	int               (*)_PARAMS((int, FileEntry *)),
 	FileEntry *));
-extern int aioFileQueueRead __P((int,
-	int              (*)__P((int, dread_ctrl *)),
+extern int aioFileQueueRead _PARAMS((int,
+	int              (*)_PARAMS((int, dread_ctrl *)),
 	dread_ctrl *));

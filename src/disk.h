@@ -178,34 +178,34 @@ typedef struct _FileEntry {
 
 extern FileEntry *file_table;
 
-extern int file_open __P((char *path, int (*handler) __P((void)), int mode));
-extern int file_close __P((int fd));
-extern int file_write __P((int fd,
+extern int file_open _PARAMS((char *path, int (*handler) _PARAMS((void)), int mode));
+extern int file_close _PARAMS((int fd));
+extern int file_write _PARAMS((int fd,
 	char *buf,
 	int len,
 	int access_code,
-	void       (*handle) __P((int, int, StoreEntry *)),
+	void       (*handle) _PARAMS((int, int, StoreEntry *)),
 	void *handle_data,
-	void       (*free) __P((void *))));
-extern int file_write_unlock __P((int fd, int access_code));
-extern int file_read __P((int fd,
+	void       (*free) _PARAMS((void *))));
+extern int file_write_unlock _PARAMS((int fd, int access_code));
+extern int file_read _PARAMS((int fd,
 	char *buf,
 	int req_len,
 	int offset,
-	int       (*handler) __P((int fd,
+	int       (*handler) _PARAMS((int fd,
 		char *buf,
 		int size,
 		int errflag,
 		void *data,
 		int offset)),
 	void *client_data));
-extern int file_walk __P((int fd,
-	int       (*handler) __P((int fd, int errflag, void *data)),
+extern int file_walk _PARAMS((int fd,
+	int       (*handler) _PARAMS((int fd, int errflag, void *data)),
 	void *client_data,
-	int       (*line_handler) __P((int fd, char *buf, int size, void *line_data)),
+	int       (*line_handler) _PARAMS((int fd, char *buf, int size, void *line_data)),
 	void *line_data));
-extern int file_write_lock __P((int fd));
-extern int disk_init __P((void));
-extern int diskWriteIsComplete __P((int));
+extern int file_write_lock _PARAMS((int fd));
+extern int disk_init _PARAMS((void));
+extern int diskWriteIsComplete _PARAMS((int));
 
 #endif /* DISK_H */

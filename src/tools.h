@@ -103,28 +103,28 @@
  *   re-implementations of code complying to this set of standards.  
  */
 
-extern char *getMyHostname __P((void));
-extern int safeunlink __P((char *path, int quiet));
-extern void death __P((int sig));
-extern void fatal __P((char *message));
-extern void fatal_dump __P((char *message));
-extern void sigusr2_handle __P((int sig));
-extern void sig_child __P((int sig));
-extern void leave_suid __P((void));
-extern void enter_suid __P((void));
-extern void no_suid __P((void));
-extern void writePidFile __P((void));
-extern void setSocketShutdownLifetimes __P((void));
-extern void setMaxFD __P((void));
-extern time_t getCurrentTime __P((void));
-extern void normal_shutdown __P((void));
-extern int tvSubMsec __P((struct timeval, struct timeval));
-extern int percent __P((int, int));
-extern void squid_signal __P((int sig, void (*func) __P((int)), int flags));
-extern char *accessLogTime __P((time_t));
-extern int readPidFile __P((void));
-extern void _debug_trap __P((char *message));
-extern struct in_addr inaddrFromHostent __P((struct hostent * hp));
+extern char *getMyHostname _PARAMS((void));
+extern int safeunlink _PARAMS((char *path, int quiet));
+extern void death _PARAMS((int sig));
+extern void fatal _PARAMS((char *message));
+extern void fatal_dump _PARAMS((char *message));
+extern void sigusr2_handle _PARAMS((int sig));
+extern void sig_child _PARAMS((int sig));
+extern void leave_suid _PARAMS((void));
+extern void enter_suid _PARAMS((void));
+extern void no_suid _PARAMS((void));
+extern void writePidFile _PARAMS((void));
+extern void setSocketShutdownLifetimes _PARAMS((void));
+extern void setMaxFD _PARAMS((void));
+extern time_t getCurrentTime _PARAMS((void));
+extern void normal_shutdown _PARAMS((void));
+extern int tvSubMsec _PARAMS((struct timeval, struct timeval));
+extern int percent _PARAMS((int, int));
+extern void squid_signal _PARAMS((int sig, void (*func) _PARAMS((int)), int flags));
+extern char *accessLogTime _PARAMS((time_t));
+extern int readPidFile _PARAMS((void));
+extern void _debug_trap _PARAMS((char *message));
+extern struct in_addr inaddrFromHostent _PARAMS((struct hostent * hp));
 
 
 extern int do_mallinfo;

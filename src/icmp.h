@@ -36,11 +36,11 @@
 
 extern int icmp_sock;
 
-extern void icmpOpen __P((void));
-extern void icmpClose __P((void));
-void icmpPing __P((struct in_addr to));
-void icmpSourcePing __P((struct in_addr to, icp_common_t *, char *url));
-void icmpDomainPing __P((struct in_addr to, char *domain));
+extern void icmpOpen _PARAMS((void));
+extern void icmpClose _PARAMS((void));
+extern void icmpPing _PARAMS((struct in_addr to));
+extern void icmpSourcePing _PARAMS((struct in_addr to, icp_common_t *, char *url));
+extern void icmpDomainPing _PARAMS((struct in_addr to, char *domain));
 
 #endif /* USE_ICMP */
 

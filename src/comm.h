@@ -164,47 +164,47 @@ typedef struct fde {
 
 extern FD_ENTRY *fd_table;
 
-extern char **getAddressList __P((char *name));
-extern char *fd_note __P((int fd, char *));
-extern int commSetNonBlocking __P((int fd));
-extern void commSetCloseOnExec __P((int fd));
-extern int comm_accept __P((int fd, struct sockaddr_in *, struct sockaddr_in *));
-extern void comm_close __P((int fd));
-extern int comm_connect __P((int sock, char *hst, u_short prt));
-extern int comm_connect_addr __P((int sock, struct sockaddr_in *));
-extern int comm_get_fd_lifetime __P((int fd));
-extern int comm_get_select_handler __P((int fd, unsigned int type, PF *, void **));
-extern int comm_init __P((void));
-extern int comm_listen __P((int sock));
-extern int comm_open __P((int, int, struct in_addr, u_short port, int, char *note));
-extern u_short comm_local_port __P((int fd));
-extern int comm_select __P((time_t));
-extern int comm_set_fd_lifetime __P((int fd, int lifetime));
-extern void comm_set_select_handler __P((int fd, unsigned int type, PF, void *));
-extern void comm_set_select_handler_plus_timeout __P((int, unsigned int, PF, void *, time_t));
-extern void comm_add_close_handler __P((int fd, PF, void *));
-extern void comm_remove_close_handler __P((int fd, PF, void *));
-extern int comm_udp_recv __P((int, char *, int, struct sockaddr_in *, int *));
-extern int comm_udp_send __P((int fd, char *host, u_short port, char *buf, int len));
-extern int comm_udp_sendto __P((int fd, struct sockaddr_in *, int size, char *buf, int len));
-extern int fd_of_first_client __P((StoreEntry *));
-extern struct in_addr *getAddress __P((char *name));
-extern void comm_set_stall __P((int, int));
-extern int comm_get_fd_timeout __P((int fd));
-extern void comm_read __P((int fd,
+extern char **getAddressList _PARAMS((char *name));
+extern char *fd_note _PARAMS((int fd, char *));
+extern int commSetNonBlocking _PARAMS((int fd));
+extern void commSetCloseOnExec _PARAMS((int fd));
+extern int comm_accept _PARAMS((int fd, struct sockaddr_in *, struct sockaddr_in *));
+extern void comm_close _PARAMS((int fd));
+extern int comm_connect _PARAMS((int sock, char *hst, u_short prt));
+extern int comm_connect_addr _PARAMS((int sock, struct sockaddr_in *));
+extern int comm_get_fd_lifetime _PARAMS((int fd));
+extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void **));
+extern int comm_init _PARAMS((void));
+extern int comm_listen _PARAMS((int sock));
+extern int comm_open _PARAMS((int, int, struct in_addr, u_short port, int, char *note));
+extern u_short comm_local_port _PARAMS((int fd));
+extern int comm_select _PARAMS((time_t));
+extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
+extern void comm_set_select_handler _PARAMS((int fd, unsigned int type, PF, void *));
+extern void comm_set_select_handler_plus_timeout _PARAMS((int, unsigned int, PF, void *, time_t));
+extern void comm_add_close_handler _PARAMS((int fd, PF, void *));
+extern void comm_remove_close_handler _PARAMS((int fd, PF, void *));
+extern int comm_udp_recv _PARAMS((int, char *, int, struct sockaddr_in *, int *));
+extern int comm_udp_send _PARAMS((int fd, char *host, u_short port, char *buf, int len));
+extern int comm_udp_sendto _PARAMS((int fd, struct sockaddr_in *, int size, char *buf, int len));
+extern int fd_of_first_client _PARAMS((StoreEntry *));
+extern struct in_addr *getAddress _PARAMS((char *name));
+extern void comm_set_stall _PARAMS((int, int));
+extern int comm_get_fd_timeout _PARAMS((int fd));
+extern void comm_read _PARAMS((int fd,
 	char *buf,
 	int size,
 	int timeout,
 	int immed,
 	rw_complete_handler * handler,
 	void *handler_data));
-extern void comm_write __P((int fd,
+extern void comm_write _PARAMS((int fd,
 	char *buf,
 	int size,
 	int timeout,
 	rw_complete_handler * handler,
 	void *handler_data,
-	void       (*)__P((void *))));
+	void       (*)_PARAMS((void *))));
 
 extern int RESERVED_FD;
 

@@ -119,7 +119,7 @@ typedef struct _FDENTRY {
 
 static FDENTRY *fd_stat_tab = NULL;
 
-static void fdstat_update __P((int fd, File_Desc_Status status));
+static void fdstat_update _PARAMS((int fd, File_Desc_Status status));
 
 File_Desc_Type
 fdstatGetType(int fd)

@@ -28,15 +28,15 @@
  *  
  */
 
-extern void squid_error_entry __P((StoreEntry *, log_type, char *));
-extern char *squid_error_url __P((char *, int, int, char *, int, char *));
-extern char *squid_error_request __P((char *, int, char *, int));
-extern void errorInitialize __P((void));
-extern char *access_denied_msg __P((int, int, char *, char *));
-extern char *access_denied_redirect __P((int, int, char *, char *, char *));
+extern void squid_error_entry _PARAMS((StoreEntry *, log_type, char *));
+extern char *squid_error_url _PARAMS((char *, int, int, char *, int, char *));
+extern char *squid_error_request _PARAMS((char *, int, char *, int));
+extern void errorInitialize _PARAMS((void));
+extern char *access_denied_msg _PARAMS((int, int, char *, char *));
+extern char *access_denied_redirect _PARAMS((int, int, char *, char *, char *));
 #if USE_PROXY_AUTH
-extern char *proxy_denied_msg __P((int, int, char *, char *));
+extern char *proxy_denied_msg _PARAMS((int, int, char *, char *));
 #endif /* USE_PROXY_AUTH */
-extern char *authorization_needed_msg __P((request_t *, char *));
+extern char *authorization_needed_msg _PARAMS((request_t *, char *));
 
 extern char *tmp_error_buf;

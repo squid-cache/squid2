@@ -106,12 +106,12 @@
 
 #include "squid.h"
 
-static int matchInsideFirewall __P((char *host));
-static int matchLocalDomain __P((char *host));
-static int protoCantFetchObject __P((int, StoreEntry *, char *));
-static int protoNotImplemented __P((int fd_unused, char *url, StoreEntry * entry));
-static int protoDNSError __P((int fd_unused, StoreEntry * entry));
-static void protoDataFree __P((int fdunused, protodispatch_data *));
+static int matchInsideFirewall _PARAMS((char *host));
+static int matchLocalDomain _PARAMS((char *host));
+static int protoCantFetchObject _PARAMS((int, StoreEntry *, char *));
+static int protoNotImplemented _PARAMS((int fd_unused, char *url, StoreEntry * entry));
+static int protoDNSError _PARAMS((int fd_unused, StoreEntry * entry));
+static void protoDataFree _PARAMS((int fdunused, protodispatch_data *));
 
 #define OUTSIDE_FIREWALL 0
 #define INSIDE_FIREWALL  1
@@ -487,6 +487,9 @@ protoStart(int fd, StoreEntry * entry, edge * e, request_t * request)
 	fatal_dump("protoStart: object already being fetched");
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
     protoCancelTimeout(fd, entry);
+#if USE_ICMP
+    netdbPingSite(request->host);
+#endif
     if (e) {
 	e->stats.fetches++;
 	return proxyhttpStart(e, url, entry);

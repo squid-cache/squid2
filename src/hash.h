@@ -140,25 +140,25 @@ typedef struct HASH_LINK {
 typedef int HashID;
 
 /* init */
-extern void hash_init __P((int));
-extern HashID hash_create __P((int (*)__P((char *, char *)),
+extern void hash_init _PARAMS((int));
+extern HashID hash_create _PARAMS((int (*)_PARAMS((char *, char *)),
 	int,
-	int         (*)__P((char *, HashID))));
+	int         (*)_PARAMS((char *, HashID))));
 
 /* insert/delete */
-extern int hash_insert __P((HashID, char *, void *));
-extern int hash_delete __P((HashID, char *));
-extern int hash_delete_link __P((HashID, hash_link *));
-extern int hash_join __P((HashID, hash_link *));
-extern int hash_remove_link __P((HashID, hash_link *));
+extern int hash_insert _PARAMS((HashID, char *, void *));
+extern int hash_delete _PARAMS((HashID, char *));
+extern int hash_delete_link _PARAMS((HashID, hash_link *));
+extern int hash_join _PARAMS((HashID, hash_link *));
+extern int hash_remove_link _PARAMS((HashID, hash_link *));
 
 /* searching, accessing */
-extern hash_link *hash_lookup __P((HashID, char *));
-extern hash_link *hash_first __P((HashID));
-extern hash_link *hash_next __P((HashID));
-extern hash_link *hash_get_bucket __P((HashID, unsigned int));
-extern int hash_url __P((char *, HashID));
-extern int hash_string __P((char *, HashID));
+extern hash_link *hash_lookup _PARAMS((HashID, char *));
+extern hash_link *hash_first _PARAMS((HashID));
+extern hash_link *hash_next _PARAMS((HashID));
+extern hash_link *hash_get_bucket _PARAMS((HashID, unsigned int));
+extern int hash_url _PARAMS((char *, HashID));
+extern int hash_string _PARAMS((char *, HashID));
 
 extern int hash_links_allocated;
 

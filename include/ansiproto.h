@@ -1,9 +1,9 @@
 
 
-#ifndef __P
+#ifndef _PARAMS
 #if __STDC__ || defined(__cplusplus)
-#define __P(ARGS) ARGS
+#define _PARAMS(ARGS) ARGS
 #else /* Traditional C */
-#define __P(ARGS) ()
+#define _PARAMS(ARGS) ()
 #endif /* __STDC__ */
-#endif /* __P */
+#endif /* _PARAMS */

@@ -162,18 +162,18 @@ typedef struct {
 } icpHitObjStateData;
 
 /* Local functions */
-static void icpHandleStoreComplete __P((int, char *, int, int, void *icpState));
-static void icpHandleStoreIMS __P((int, StoreEntry *, icpStateData *));
-static void icpHandleIMSComplete __P((int, char *, int, int, void *icpState));
-static int icpProcessMISS __P((int, icpStateData *));
-static void CheckQuickAbort __P((icpStateData *));
-static int CheckQuickAbort2 __P((icpStateData *));
-extern void identStart __P((int, icpStateData *));
-static void icpHitObjHandler __P((int, void *));
-static void icpLogIcp __P((icpUdpData *));
-static void icpHandleIcpV2 __P((int fd, struct sockaddr_in, char *, int len));
-static void icpHandleIcpV3 __P((int fd, struct sockaddr_in, char *, int len));
-static char *icpConstruct304reply __P((struct _http_reply *));
+static void icpHandleStoreComplete _PARAMS((int, char *, int, int, void *icpState));
+static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, icpStateData *));
+static void icpHandleIMSComplete _PARAMS((int, char *, int, int, void *icpState));
+static int icpProcessMISS _PARAMS((int, icpStateData *));
+static void CheckQuickAbort _PARAMS((icpStateData *));
+static int CheckQuickAbort2 _PARAMS((icpStateData *));
+extern void identStart _PARAMS((int, icpStateData *));
+static void icpHitObjHandler _PARAMS((int, void *));
+static void icpLogIcp _PARAMS((icpUdpData *));
+static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
+static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
+static char *icpConstruct304reply _PARAMS((struct _http_reply *));
 static void icpUdpSendEntry(int fd,
     char *url,
     icp_common_t * reqheaderp,
@@ -181,7 +181,7 @@ static void icpUdpSendEntry(int fd,
     icp_opcode opcode,
     StoreEntry * entry,
     struct timeval start_time);
-static void checkFailureRatio __P((log_type, hier_code));
+static void checkFailureRatio _PARAMS((log_type, hier_code));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -201,9 +201,7 @@ static void checkFailureRatio __P((log_type, hier_code));
 static time_t hit_only_mode_until = 0;
 
 static void
-checkFailureRatio(rcode, hcode)
-     log_type rcode;
-     hier_code hcode;
+checkFailureRatio(log_type rcode, hier_code hcode)
 {
     static double fail_ratio = 0.0;
     static double magic_factor = 100;

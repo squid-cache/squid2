@@ -110,13 +110,13 @@ extern volatile int _db_line;
 extern int syslog_enable;
 extern FILE *debug_log;
 
-extern void _db_init __P((char *logfile, char *options));
-extern void _db_rotate_log __P((void));
+extern void _db_init _PARAMS((char *logfile, char *options));
+extern void _db_rotate_log _PARAMS((void));
 
-#if __STDC__ 
-extern void _db_print __P((int, int, char *,...));
+#if __STDC__
+extern void _db_print _PARAMS((int, int, char *,...));
 #else
-extern void _db_print __P(());
+extern void _db_print _PARAMS(());
 #endif
 
 #define debug \

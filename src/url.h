@@ -69,18 +69,18 @@ struct _request {
     int flags;
 };
 
-extern char *url_convert_hex __P((char *org_url, int allocate));
-extern char *url_escape __P((char *url));
-extern protocol_t urlParseProtocol __P((char *));
-extern method_t urlParseMethod __P((char *));
-extern int urlDefaultPort __P((protocol_t));
-extern void urlInitialize __P((void));
-extern request_t *urlParse __P((method_t, char *));
-extern char *urlCanonical __P((request_t *, char *));
-extern request_t *requestLink __P((request_t *));
-extern void requestUnlink __P((request_t *));
-extern int matchDomainName __P((char *d, char *h));
-extern int urlCheckRequest __P((request_t *));
+extern char *url_convert_hex _PARAMS((char *org_url, int allocate));
+extern char *url_escape _PARAMS((char *url));
+extern protocol_t urlParseProtocol _PARAMS((char *));
+extern method_t urlParseMethod _PARAMS((char *));
+extern int urlDefaultPort _PARAMS((protocol_t));
+extern void urlInitialize _PARAMS((void));
+extern request_t *urlParse _PARAMS((method_t, char *));
+extern char *urlCanonical _PARAMS((request_t *, char *));
+extern request_t *requestLink _PARAMS((request_t *));
+extern void requestUnlink _PARAMS((request_t *));
+extern int matchDomainName _PARAMS((char *d, char *h));
+extern int urlCheckRequest _PARAMS((request_t *));
 
 /* bitfields for the flags member */
 #define		REQ_UNUSED1	0x01

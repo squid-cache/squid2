@@ -143,12 +143,12 @@
 
 #ifdef _SQUID_NEXT_
 typedef int pid_t;
-extern pid_t getpid __P((void));
+extern pid_t getpid _PARAMS((void));
 #endif
 
 
 /* Local functions */
-static char *standard_msg __P((void));
+static char *standard_msg _PARAMS((void));
 
 /* Local variables */
 static FILE *fp_log = NULL;

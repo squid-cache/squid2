@@ -131,13 +131,13 @@ struct _dnsStats {
     int hist[DefaultDnsChildrenMax];
 };
 
-extern void statDns __P((StoreEntry *));
-extern void dnsShutdownServers __P((void));
-extern void dnsOpenServers __P((void));
-extern void dnsEnqueue __P((void *));
-extern void *dnsDequeue __P((void));
-extern dnsserver_t *dnsGetFirstAvailable __P((void));
-extern void dnsStats __P((StoreEntry *));
+extern void statDns _PARAMS((StoreEntry *));
+extern void dnsShutdownServers _PARAMS((void));
+extern void dnsOpenServers _PARAMS((void));
+extern void dnsEnqueue _PARAMS((void *));
+extern void *dnsDequeue _PARAMS((void));
+extern dnsserver_t *dnsGetFirstAvailable _PARAMS((void));
+extern void dnsStats _PARAMS((StoreEntry *));
 
 extern char *dns_error_message;
 extern struct _dnsStats DnsStats;
