@@ -206,9 +206,9 @@ xstrtok(char **str, char del)
 	    *str = NULL;
 	/* trim */
 	len = strlen(tok);
-	while (len && isspace(tok[len - 1]))
+	while (len && xisspace(tok[len - 1]))
 	    tok[--len] = '\0';
-	while (isspace(*tok))
+	while (xisspace(*tok))
 	    tok++;
 	return tok;
     } else
@@ -273,8 +273,8 @@ parse_status_line(const char *sline, const char **statusStr)
 	*statusStr = NULL;
     if (strncasecmp(sline, "HTTP/", 5) || !sp)
 	return -1;
-    while (isspace(*++sp));
-    if (!isdigit(*sp))
+    while (xisspace(*++sp));
+    if (!xisdigit(*sp))
 	return -1;
     if (statusStr)
 	*statusStr = sp;

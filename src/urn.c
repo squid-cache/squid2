@@ -231,7 +231,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
 	errorAppendEntry(e, err);
 	return;
     }
-    while (isspace(*s))
+    while (xisspace(*s))
 	s++;
     urls = urnParseReply(s, urnState->request->method);
     for (i = 0; NULL != urls[i].url; i++)

@@ -476,7 +476,7 @@ httpReadReply(int fd, void *data)
     }
     if (!httpState->reply_hdr && len > 0) {
 	/* Skip whitespace */
-	while (len > 0 && isspace(*buf))
+	while (len > 0 && xisspace(*buf))
 	    xmemmove(buf, buf + 1, len--);
 	if (len == 0) {
 	    /* Continue to read... */

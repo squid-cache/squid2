@@ -159,7 +159,7 @@ identReadReply(int fd, void *data)
     debug(30, 5) ("identReadReply: FD %d: Read '%s'\n", fd, buf);
     if (strstr(buf, "USERID")) {
 	if ((ident = strrchr(buf, ':'))) {
-	    while (isspace(*++ident));
+	    while (xisspace(*++ident));
 	    identCallback(state, ident);
 	}
     }

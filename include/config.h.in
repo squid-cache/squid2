@@ -154,6 +154,14 @@
 #define xmemmove(d,s,n) bcopy((s),(d),(n))
 #endif
 
+#define xisspace(x) isspace((unsigned char)x)
+#define xtoupper(x) toupper((unsigned char)x)
+#define xtolower(x) tolower((unsigned char)x)
+#define xisdigit(x) isdigit((unsigned char)x)
+#define xisascii(x) isascii((unsigned char)x)
+#define xislower(x) islower((unsigned char)x)
+#define xisalpha(x) isalpha((unsigned char)x)
+
 #if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
 #define SQUID_NONBLOCK O_NONBLOCK
 #else

@@ -996,7 +996,7 @@ aclDecodeProxyAuth(const char *proxy_auth, char **user, char **password, char *b
     /* Trim trailing \n before decoding */
     strtok(sent_auth, "\n");
     /* Trim leading whitespace before decoding */
-    while (isspace(*proxy_auth))
+    while (xisspace(*proxy_auth))
 	proxy_auth++;
     cleartext = uudecode(sent_auth);
     xfree(sent_auth);
@@ -1905,7 +1905,7 @@ aclHostDomainCompare(const void *data, splayNode * n)
     l1 = strlen(h);
     l2 = strlen(d);
     /* h != d */
-    while (tolower(h[l1]) == tolower(d[l2])) {
+    while (xtolower(h[l1]) == xtolower(d[l2])) {
 	if (l1 == 0)
 	    break;
 	if (l2 == 0)
@@ -1918,7 +1918,7 @@ aclHostDomainCompare(const void *data, splayNode * n)
 	return -1;		/* domain(h) < d */
     if ((d[l2] == '.') || (l2 == 0))
 	return 1;		/* domain(h) > d */
-    return (tolower(h[l1]) - tolower(d[l2]));
+    return (xtolower(h[l1]) - xtolower(d[l2]));
 }
 
 /* compare two network specs

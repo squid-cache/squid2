@@ -535,7 +535,7 @@ ftpListParseParts(const char *buf, struct _ftp_flags flags)
 	    /* Directory.. name begins with first printable after <dir> */
 	    ct = strstr(buf, tokens[2]);
 	    ct += strlen(tokens[2]);
-	    while (isspace(*ct))
+	    while (xisspace(*ct))
 		ct++;
 	    if (!*ct)
 		ct = NULL;
@@ -666,8 +666,8 @@ ftpHtmlifyListEntry(char *line, FtpStateData * ftpState)
     if ((parts = ftpListParseParts(line, ftpState->flags)) == NULL) {
 	char *p;
 	snprintf(html, 8192, "%s\n", line);
-	for (p = line; *p && isspace(*p); p++);
-	if (*p && !isspace(*p))
+	for (p = line; *p && xisspace(*p); p++);
+	if (*p && !xisspace(*p))
 	    ftpState->flags.listformat_unknown = 1;
 	return html;
     }

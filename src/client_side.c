@@ -1947,19 +1947,19 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	debug(33, 1) ("parseHttpRequest: Missing URL\n");
 	return parseHttpRequestAbort(conn, "error:missing-url");
     }
-    while (isspace(*url))
+    while (xisspace(*url))
 	url++;
     t = url + strlen(url);
     assert(*t == '\0');
     token = NULL;
     while (t > url) {
 	t--;
-	if (isspace(*t) && !strncmp(t + 1, "HTTP/", 5)) {
+	if (xisspace(*t) && !strncmp(t + 1, "HTTP/", 5)) {
 	    token = t + 1;
 	    break;
 	}
     }
-    while (t > url && isspace(*t))
+    while (t > url && xisspace(*t))
 	*(t--) = '\0';
     debug(33, 5) ("parseHttpRequest: URI is '%s'\n", url);
     if (token == NULL) {
@@ -2174,7 +2174,7 @@ clientReadRequest(int fd, void *data)
     while (conn->in.offset > 0) {
 	int nrequests;
 	size_t req_line_sz;
-	while (conn->in.offset > 0 && isspace(conn->in.buf[0])) {
+	while (conn->in.offset > 0 && xisspace(conn->in.buf[0])) {
 	    xmemmove(conn->in.buf, conn->in.buf + 1, conn->in.offset - 1);
 	    conn->in.offset--;
 	}

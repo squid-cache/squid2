@@ -73,7 +73,7 @@ httpHdrExtFieldParseCreate(const char *field_start, const char *field_end)
 
     value_start = name_end + 1;	/* skip ':' */
     /* skip white space */
-    while (value_start < field_end && isspace(*value_start))
+    while (value_start < field_end && xisspace(*value_start))
 	value_start++;
 
     return httpHdrExtFieldDoCreate(

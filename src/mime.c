@@ -84,11 +84,11 @@ mime_get_header_field(const char *mime, const char *name, const char *prefix)
     for (p = mime; *p; p += strcspn(p, "\n\r")) {
 	if (strcmp(p, "\r\n\r\n") == 0 || strcmp(p, "\n\n") == 0)
 	    return NULL;
-	while (isspace(*p))
+	while (xisspace(*p))
 	    p++;
 	if (strncasecmp(p, name, namelen))
 	    continue;
-	if (!isspace(p[namelen]) && p[namelen] != ':')
+	if (!xisspace(p[namelen]) && p[namelen] != ':')
 	    continue;
 	l = strcspn(p, "\n\r") + 1;
 	if (l > GET_HDR_SZ)
@@ -99,12 +99,12 @@ mime_get_header_field(const char *mime, const char *name, const char *prefix)
 	q += namelen;
 	if (*q == ':')
 	    q++, got = 1;
-	while (isspace(*q))
+	while (xisspace(*q))
 	    q++, got = 1;
 	if (got && prefix) {
 	    /* we could process list entries here if we had strcasestr(). */
 	    /* make sure we did not match a part of another field-value */
-	    got = !strncasecmp(q, prefix, preflen) && !isalpha(q[preflen]);
+	    got = !strncasecmp(q, prefix, preflen) && !xisalpha(q[preflen]);
 	}
 	if (got) {
 	    debug(25, 5) ("mime_get_header: returning '%s'\n", q);

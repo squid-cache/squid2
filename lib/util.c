@@ -678,7 +678,7 @@ xcountws(const char *str)
 {
     size_t count = 0;
     if (str) {
-	while (isspace(*str)) {
+	while (xisspace(*str)) {
 	    str++;
 	    count++;
 	}
