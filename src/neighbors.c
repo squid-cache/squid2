@@ -1004,18 +1004,19 @@ peerDestroy(peer * e)
 	safe_free(l->domain);
 	safe_free(l);
     }
+    if (e->ip_lookup_pending)
+	ipcache_unregister(e->host, e->ipcache_fd);
     safe_free(e->host);
     safe_free(e);
 }
 
-/* XXX There are FMR bugs here.  The peer structure might be freed
- * during a reconfigure while this lookup is pending */
 static void
 peerDNSConfigure(int fd, const ipcache_addrs * ia, void *data)
 {
     peer *e = data;
     struct sockaddr_in *ap;
     int j;
+    e->ip_lookup_pending = 0;
     if (e->n_addresses == 0) {
 	debug(15, 1, "Configuring %s %s/%d/%d\n", neighborTypeStr(e),
 	    e->host, e->http_port, e->icp_port);
@@ -1052,7 +1053,10 @@ peerRefreshDNS(void *junk)
     peer *next = Peers.peers_head;
     while ((e = next)) {
 	next = e->next;
-	ipcache_nbgethostbyname(e->host, 0, peerDNSConfigure, (void *) e);
+	e->ip_lookup_pending = 1;
+	/* some random, bogus FD for ipcache */
+	e->ipcache_fd = Squid_MaxFD + current_time.tv_usec;
+	ipcache_nbgethostbyname(e->host, e->ipcache_fd, peerDNSConfigure, e);
     }
     /* Reconfigure the peers every hour */
     eventAdd("peerRefreshDNS", peerRefreshDNS, NULL, 3600);
@@ -1067,6 +1071,8 @@ peerCheckConnect(void *data)
 	0, COMM_NONBLOCKING, p->host);
     if (fd < 0)
 	return;
+    p->ip_lookup_pending = 1;
+    p->ipcache_fd = fd;
     ipcache_nbgethostbyname(p->host, fd, peerCheckConnect2, p);
 }
 
@@ -1074,6 +1080,7 @@ static void
 peerCheckConnect2(int fd, const ipcache_addrs * ia, void *data)
 {
     peer *p = data;
+    p->ip_lookup_pending = 0;
     commConnectStart(fd,
 	p->host,
 	p->http_port,

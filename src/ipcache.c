@@ -800,6 +800,8 @@ ipcache_unregister(const char *name, int fd)
 	    }
 	}
     }
+    if (n == 0)
+	debug_trap("ipcache_unregister: Didn't find FD");
     debug(14, 3, "ipcache_unregister: unregistered %d handlers\n", n);
     return n;
 }

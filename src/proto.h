@@ -290,6 +290,7 @@ typedef struct _protodispatch_data {
 #if DELAY_HACK
     int delay_fetch;
 #endif
+    int ip_lookup_pending;
 } protodispatch_data;
 
 extern int protoDispatch _PARAMS((int, char *, StoreEntry *, request_t *));

@@ -135,6 +135,8 @@ typedef struct {
     peer *neighbor;		/* neighbor request made to */
     int eof;			/* reached end-of-object? */
     request_t *orig_request;
+    int fd;			/* needed as identifier for ipcache */
+    int ip_lookup_pending;
 } HttpStateData;
 
 extern int httpCachable _PARAMS((const char *, int));
