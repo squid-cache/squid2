@@ -497,7 +497,7 @@ storeDiskdDirCallback(SwapDir * SD)
 	    else
 		break;
 	} else if (x != msg_snd_rcv_sz) {
-	    debug(81, 1) ("storeDiskdReadIndividualQueue: msgget returns %d\n",
+	    debug(81, 1) ("storeDiskdDirCallback: msgget returns %d\n",
 		x);
 	    break;
 	}
