@@ -1185,7 +1185,6 @@ main ()
 {
 	FILE *fp;
         int fd,val=0,len=sizeof(int);
-	FILE *fp;
 	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) exit(1);
         if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) < 0) exit(1);
 	if (val <= 0) exit(1);
@@ -1212,7 +1211,6 @@ main ()
 {
 	FILE *fp;
         int fd,val=0,len=sizeof(int);
-	FILE *fp;
 	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) exit(1);
         if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &val, &len) < 0) exit(1);
 	if (val <= 0) exit(1);
