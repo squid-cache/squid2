@@ -316,18 +316,11 @@
 #	"ALL,1".
 debug_options ALL,1
 
-
-#	A pathname to write the process-id to.  There is no default.
-#pid_filename /tmp/squid.pid
-
-#  TAG: debug_options
-#	Logging options are set as section,level where each source file
-#	is assigned a unique section.  Lower levels result in less
-#	output,  Full debugging (level 9) can result in a very large
-#	log file, so be careful.  The magic word "ALL" sets debugging
-#	levels for all sections.  We recommend normally running with
-#	"ALL,1".
-#debug_options ALL,1
+#  TAG: ident_lookup
+#	If you wish to make an RFC931/ident lookup of the client username
+#	for each connection, enable this.  It is off by default.
+#
+#ident_lookup off
 
 
 # OPTIONS FOR EXTERNAL SUPPORT PROGRAMS

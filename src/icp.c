@@ -1838,7 +1838,8 @@ int asciiHandleConn(sock, notused)
 	COMM_SELECT_READ,
 	asciiHandleConn,
 	0);
-    identStart(-1, icpState);
+    if (identLookup)
+	identStart(-1, icpState);
     return 0;
 }
 
