@@ -12,15 +12,18 @@
 
 typedef struct tree_s {
     void *data;
-    short bal;
     struct tree_s *left, *right;
+    int bal;
 } tree;
 
+typedef int BTREE_CMP(void *, void *);
+typedef int BTREE_UAR(void *);
+
 void tree_init(tree **);
-void *tree_srch(tree **, int (*)(), void *);
-void *tree_add(tree **, int (*)(), void *, void (*)());
-int tree_delete(tree **, int (*)(), void *, void (*)());
-int tree_trav(tree **, int (*)());
-void tree_mung(tree **, void (*)());
+void *tree_srch(tree **, BTREE_CMP *, void *);
+void *tree_add(tree **, int (*)(), void *, BTREE_UAR *);
+int tree_delete(tree **, BTREE_CMP *, void *, BTREE_UAR *);
+int tree_trav(tree **, BTREE_UAR *);
+void tree_mung(tree **, BTREE_UAR *);
 
 #endif /* _TREE_H_INCLUDED */

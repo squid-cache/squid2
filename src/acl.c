@@ -867,8 +867,8 @@ aclMatchIp(void *dataptr, struct in_addr c)
 static int
 aclMatchIp(void *dataptr, struct in_addr c)
 {
-    tree **data = dataptr;
-    if (tree_srch(data, bintreeIpNetworkCompare, &c)) {
+    tree ***data = dataptr;
+    if (tree_srch(*data, bintreeIpNetworkCompare, &c)) {
 	debug(28, 3) ("aclMatchIp: '%s' found\n", inet_ntoa(c));
 	return 1;
     }

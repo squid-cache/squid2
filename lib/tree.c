@@ -30,6 +30,7 @@
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#include "util.h"
 #include "tree.h"
 
 #ifndef FALSE
@@ -39,65 +40,50 @@
 #define TRUE !FALSE
 #endif
 
-static tree *sprout(tree **, void *, int *, int (*)(), void (*)());
-static int delete(tree **, int (*)(), void *, void (*)(), int *, int *);
-static void del(tree **, int *, tree **, void (*)(), int *);
+static tree *sprout(tree **, void *, int *, BTREE_CMP *, BTREE_UAR *);
+static int delete(tree **, BTREE_CMP, void *, BTREE_UAR, int *, int *);
+static void del(tree **, int *, tree **, BTREE_UAR, int *);
 static void bal_L(tree **, int *);
 static void bal_R(tree **, int *);
 
 void
-tree_init(ppr_tree)
-     tree **ppr_tree;
+tree_init(tree ** ppr_tree)
 {
     *ppr_tree = NULL;
     return;
 }
 
 void *
-tree_srch(ppr_tree, pfi_compare, p_user)
-     tree **ppr_tree;
-     int (*pfi_compare) ();
-     void *p_user;
+tree_srch(tree ** ppr_tree, BTREE_CMP * pfi_compare, void *p_user)
 {
     register int i_comp;
-    if (*ppr_tree) {
-	i_comp = (*pfi_compare) (p_user, (**ppr_tree).data);
+    tree *t = *ppr_tree;
+    if (t) {
+	i_comp = (*pfi_compare) (p_user, t->data);
 	if (i_comp > 0)
-	    return tree_srch(&(**ppr_tree).right,
-		pfi_compare,
-		p_user);
+	    return tree_srch(&t->right, pfi_compare, p_user);
 	if (i_comp < 0)
-	    return tree_srch(&(**ppr_tree).left,
-		pfi_compare,
-		p_user);
-	/* not higher, not lower... this must be the one.
-	 */
-	return (**ppr_tree).data;
+	    return tree_srch(&t->left, pfi_compare, p_user);
+	/* not higher, not lower... this must be the one.  */
+	return t->data;
     }
-    /* grounded. NOT found.
-     */
+    /* grounded. NOT found.  */
     return NULL;
 }
 
 void *
-tree_add(ppr_tree, pfi_compare, p_user, pfv_uar)
-     tree **ppr_tree;
-     int (*pfi_compare) ();
-     void *p_user;
-     void (*pfv_uar) ();
+tree_add(tree ** ppr_tree, BTREE_CMP * pfi_compare, void *p_user, BTREE_UAR * pfv_uar)
 {
     int i_balance = FALSE;
+    if (p_user == NULL)
+	abort();
     if (!sprout(ppr_tree, p_user, &i_balance, pfi_compare, pfv_uar))
 	return NULL;
     return p_user;
 }
 
 int
-tree_delete(ppr_p, pfi_compare, p_user, pfv_uar)
-     tree **ppr_p;
-     int (*pfi_compare) ();
-     void *p_user;
-     void (*pfv_uar) ();
+tree_delete(tree ** ppr_p, BTREE_CMP * pfi_compare, void *p_user, BTREE_UAR * pfv_uar)
 {
     int i_balance = FALSE, i_uar_called = FALSE;
     return delete(ppr_p, pfi_compare, p_user, pfv_uar,
@@ -105,9 +91,7 @@ tree_delete(ppr_p, pfi_compare, p_user, pfv_uar)
 }
 
 int
-tree_trav(ppr_tree, pfi_uar)
-     tree **ppr_tree;
-     int (*pfi_uar) ();
+tree_trav(tree ** ppr_tree, BTREE_UAR * pfi_uar)
 {
     if (!*ppr_tree)
 	return TRUE;
@@ -121,9 +105,7 @@ tree_trav(ppr_tree, pfi_uar)
 }
 
 void
-tree_mung(ppr_tree, pfv_uar)
-     tree **ppr_tree;
-     void (*pfv_uar) ();
+tree_mung(tree ** ppr_tree, BTREE_UAR * pfv_uar)
 {
     if (*ppr_tree) {
 	tree_mung(&(**ppr_tree).left, pfv_uar);
@@ -137,70 +119,65 @@ tree_mung(ppr_tree, pfv_uar)
 }
 
 static tree *
-sprout(ppr, p_data, pi_balance, pfi_compare, pfv_delete)
-     tree **ppr;
-     void *p_data;
-     int *pi_balance;
-     int (*pfi_compare) ();
-     void (*pfv_delete) ();
+sprout(tree ** ppr, void *p_data, int *pi_balance, BTREE_CMP * pfi_compare, BTREE_UAR * pfv_delete)
 {
     tree *p1, *p2, *sub;
+    tree *t;
     int cmp;
     /* are we grounded?  if so, add the node "here" and set the rebalance
      * flag, then exit.
      */
-    if (!*ppr) {
-	*ppr = (tree *) malloc(sizeof(tree));
-	if (*ppr) {
-	    (*ppr)->left = NULL;
-	    (*ppr)->right = NULL;
-	    (*ppr)->bal = 0;
-	    (*ppr)->data = p_data;
-	    *pi_balance = TRUE;
-	}
-	return *ppr;
+    if (*ppr == NULL) {
+	t = xmalloc(sizeof(tree));
+	t->left = NULL;
+	t->right = NULL;
+	t->bal = 0;
+	t->data = p_data;
+	*pi_balance = TRUE;
+	return *ppr = t;
     }
     /* compare the data using routine passed by caller.
      */
-    cmp = (*pfi_compare) (p_data, (*ppr)->data);
+    t = *ppr;
+    cmp = (*pfi_compare) (p_data, t->data);
     /* if LESS, prepare to move to the left.
      */
     if (cmp < 0) {
-	sub = sprout(&(*ppr)->left, p_data, pi_balance,
+	sub = sprout(&t->left, p_data, pi_balance,
 	    pfi_compare, pfv_delete);
 	if (sub && *pi_balance) {	/* left branch has grown */
-	    switch ((*ppr)->bal) {
+	    switch (t->bal) {
 	    case 1:		/* right branch WAS longer; bal is ok now */
-		(*ppr)->bal = 0;
+		t->bal = 0;
 		*pi_balance = FALSE;
 		break;
 	    case 0:		/* balance WAS okay; now left branch longer */
-		(*ppr)->bal = -1;
+		t->bal = -1;
 		break;
 	    case -1:		/* left branch was already too long. rebal */
-		p1 = (*ppr)->left;
+		p1 = t->left;
 		if (p1->bal == -1) {	/* LL */
-		    (*ppr)->left = p1->right;
-		    p1->right = *ppr;
-		    (*ppr)->bal = 0;
-		    *ppr = p1;
+		    t->left = p1->right;
+		    p1->right = t;
+		    t->bal = 0;
+		    t = p1;
 		} else {	/* double LR */
 		    p2 = p1->right;
 		    p1->right = p2->left;
 		    p2->left = p1;
-		    (*ppr)->left = p2->right;
-		    p2->right = *ppr;
+		    t->left = p2->right;
+		    p2->right = t;
 		    if (p2->bal == -1)
-			(*ppr)->bal = 1;
+			t->bal = 1;
 		    else
-			(*ppr)->bal = 0;
+			t->bal = 0;
 		    if (p2->bal == 1)
 			p1->bal = -1;
 		    else
 			p1->bal = 0;
-		    *ppr = p2;
+		    t = p2;
 		}		/*else */
-		(*ppr)->bal = 0;
+		t->bal = 0;
 		*pi_balance = FALSE;
 	    }			/*switch */
 	}			/*if */
@@ -209,41 +186,41 @@ sprout(ppr, p_data, pi_balance, pfi_compare, pfv_delete)
     /* if MORE, prepare to move to the right.
      */
     if (cmp > 0) {
-	sub = sprout(&(*ppr)->right, p_data, pi_balance,
+	sub = sprout(&t->right, p_data, pi_balance,
 	    pfi_compare, pfv_delete);
 	if (sub && *pi_balance) {
-	    switch ((*ppr)->bal) {
+	    switch (t->bal) {
 	    case -1:
-		(*ppr)->bal = 0;
+		t->bal = 0;
 		*pi_balance = FALSE;
 		break;
 	    case 0:
-		(*ppr)->bal = 1;
+		t->bal = 1;
 		break;
 	    case 1:
-		p1 = (*ppr)->right;
+		p1 = t->right;
 		if (p1->bal == 1) {	/* RR */
-		    (*ppr)->right = p1->left;
-		    p1->left = *ppr;
-		    (*ppr)->bal = 0;
-		    *ppr = p1;
+		    t->right = p1->left;
+		    p1->left = t;
+		    t->bal = 0;
+		    t = p1;
 		} else {	/* double RL */
 		    p2 = p1->left;
 		    p1->left = p2->right;
 		    p2->right = p1;
-		    (*ppr)->right = p2->left;
-		    p2->left = *ppr;
+		    t->right = p2->left;
+		    p2->left = t;
 		    if (p2->bal == 1)
-			(*ppr)->bal = -1;
+			t->bal = -1;
 		    else
-			(*ppr)->bal = 0;
+			t->bal = 0;
 		    if (p2->bal == -1)
 			p1->bal = 1;
 		    else
 			p1->bal = 0;
-		    *ppr = p2;
+		    t = p2;
 		}		/*else */
-		(*ppr)->bal = 0;
+		t->bal = 0;
 		*pi_balance = FALSE;
 	    }			/*switch */
 	}			/*if */
@@ -253,19 +230,13 @@ sprout(ppr, p_data, pi_balance, pfi_compare, pfv_delete)
      */
     *pi_balance = FALSE;
     if (pfv_delete)
-	(*pfv_delete) ((*ppr)->data);
-    (*ppr)->data = p_data;
-    return *ppr;
+	(*pfv_delete) (t->data);
+    t->data = p_data;
+    return *ppr = t;
 }
 
 static int
-delete(ppr_p, pfi_compare, p_user, pfv_uar, pi_balance, pi_uar_called)
-     tree **ppr_p;
-     int (*pfi_compare) ();
-     void *p_user;
-     void (*pfv_uar) ();
-     int *pi_balance;
-     int *pi_uar_called;
+delete(tree ** ppr_p, BTREE_CMP * pfi_compare, void *p_user, BTREE_UAR * pfv_uar, int *pi_balance, int *pi_uar_called)
 {
     tree *pr_q;
     int i_comp, i_ret;
@@ -306,12 +277,7 @@ delete(ppr_p, pfi_compare, p_user, pfv_uar, pi_balance, pi_uar_called)
 }
 
 static void
-del(ppr_r, pi_balance, ppr_q, pfv_uar, pi_uar_called)
-     tree **ppr_r;
-     int *pi_balance;
-     tree **ppr_q;
-     void (*pfv_uar) ();
-     int *pi_uar_called;
+del(tree ** ppr_r, int *pi_balance, tree ** ppr_q, BTREE_UAR * pfv_uar, int *pi_uar_called)
 {
     if ((*ppr_r)->right != NULL) {
 	del(&(*ppr_r)->right, pi_balance, ppr_q,
@@ -331,9 +297,7 @@ del(ppr_r, pi_balance, ppr_q, pfv_uar, pi_uar_called)
 }
 
 static void
-bal_L(ppr_p, pi_balance)
-     tree **ppr_p;
-     int *pi_balance;
+bal_L(tree ** ppr_p, int *pi_balance)
 {
     tree *p1, *p2;
     int b1, b2;
@@ -383,9 +347,7 @@ bal_L(ppr_p, pi_balance)
 }
 
 static void
-bal_R(ppr_p, pi_balance)
-     tree **ppr_p;
-     int *pi_balance;
+bal_R(tree ** ppr_p, int *pi_balance)
 {
     tree *p1, *p2;
     int b1, b2;
