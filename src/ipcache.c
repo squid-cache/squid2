@@ -1376,13 +1376,12 @@ void stat_ipcache_get(sentry, obj)
 	IpcacheStats.avg_svc_time);
     storeAppendPrintf(sentry, "{number of dnsservers: %d}\n",
 	getDnsChildren());
-    storeAppendPrintf(sentry, "{dnsservers use histogram:}\n{\n");
+    storeAppendPrintf(sentry, "{dnsservers use histogram:}\n");
     for (i = 0; i < getDnsChildren(); i++) {
-	storeAppendPrintf(sentry, "{dnsserver #%d: %d}\n",
+	storeAppendPrintf(sentry, "{    dnsserver #%d: %d}\n",
 	    i + 1,
 	    IpcacheStats.dnsserver_hist[i]);
     }
-    storeAppendPrintf(sentry, "}\n");
     storeAppendPrintf(sentry, "}\n\n");
     storeAppendPrintf(sentry, "{IP Cache Contents:\n\n");
 
