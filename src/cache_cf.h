@@ -141,7 +141,7 @@ struct SquidConfig {
 	int maxSize;
 	int highWaterMark;
 	int lowWaterMark;
-    } Mem , Swap;
+    } Mem, Swap;
     struct {
 	int maxObjSize;
 	int defaultTtl;
@@ -157,7 +157,6 @@ struct SquidConfig {
 	int pct;
 	int max;
     } quickAbort;
-    int expireAge;
     int referenceAge;
     int negativeTtl;
     int negativeDnsTtl;
@@ -252,6 +251,10 @@ struct SquidConfig {
 	int high;
     } ipcache;
     int minDirectHops;
+    struct {
+	int objectsPerBucket;
+	int avgObjectSize;
+    } storeHash;
 };
 
 extern struct SquidConfig Config;

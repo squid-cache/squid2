@@ -160,6 +160,7 @@ struct _edge {
 	int fetches;
 	int rtt;
 	int counts[ICP_OP_END];
+	int ignored_replies;
     } stats;
 
     u_short icp_port;

@@ -513,21 +513,55 @@ debug_options ALL,1
 #
 request_size 100
 
-#  TAG: expire_age (minutes)
-#	An object must have expired this long ago before it will
-#	be forcibly removed from the cache.  Otherwise, the object
-#	will remain in the cache and we will issue an If-Modified-Since
-#	request for it when it is next requested.  The default is
-#	one week.
+#  TAG: refresh_pattern		# case sensitive
+#  TAG: refresh_pattern/i	# case insensitive
 #
-#expire_age 10080
 
-#  TAG: ttl_pattern		# case sensitive
-#  TAG: ttl_pattern/i		# case insensitive
-#	Selection of TTL's based on URL regular expressions (syntax is
-#	the POSIX standard).  Regular expressions are case-sensitive
-#	with 'ttl_pattern' and case-insensitive with 'ttl_pattern/i'.
-#
+	Selection of refresh times based on URL regular expressions
+	(syntax is the POSIX standard).  Regular expressions are
+	case-sensitive with 'refresh_pattern' and case-insensitive with
+	'refresh_pattern/i'.
+
+	When there is a request for an object in the cache, we check
+	the timestamps to see if it is fresh enough.  To
+	accomplish this, we calculate these values:
+
+	'AGE' is how much the object has aged *since* it was retrieved:
+
+		AGE = NOW - OBJECT_DATE
+
+	'LM_AGE' is how old the object was *when* it was retrieved:
+
+		LM_AGE = OBJECT_DATE - LAST_MODIFIED_TIME
+
+	'LM_FACTOR' is the ratio of AGE to LM_AGE:
+
+		LM_FACTOR = AGE / LM_AGE
+
+	Additionally, the object may have an EXPIRES value from
+	the HTTP reply header.
+
+	Each 'refresh_pattern' line has three values:
+		MIN_AGE
+		PERCENT
+		MAX_AGE
+
+	A cached object is considered "fresh" if it meets one of these
+	criteria:
+
+		1) AGE <= MIN_AGE, or
+		2) NOW <= EXPIRES, and
+		   AGE < MAX_AGE, and
+		   LM_FACTOR < PERCENT
+
+	Or, putting it differently, an object is considered "stale" if:
+
+		1) AGE > MIN_AGE, and
+		2) NOW > EXPIRES, or
+		   AGE >= MAX_AGE, or
+		   LM_FACTOR >= PERCENT
+		
+
 #	The list of URL patterns are searched in the order listed here.
 #	All patterns in the list are checked and the last match is used.
 #	There are two ways to specify the TTL: an absolute value, and
@@ -944,3 +978,6 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	If using the ICMP pinging stuff, do direct fetches for sites
 #	which are no more than this many hops away.
 minimum_direct_hops 4
+
+store_objects_per_bucket 50
+store_avg_object_size 20

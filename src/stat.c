@@ -575,6 +575,9 @@ server_list(cacheinfo * obj, StoreEntry * sentry)
 	storeAppendPrintf(sentry, "{PINGS ACKED: %8d %3d%%}\n",
 	    e->stats.pings_acked,
 	    percent(e->stats.pings_acked, e->stats.pings_sent));
+	storeAppendPrintf(sentry, "{IGNORED    : %8d %3d%%}\n",
+	    e->stats.ignored_replies,
+	    percent(e->stats.ignored_replies, e->stats.pings_acked));
 	storeAppendPrintf(sentry, "{Histogram of PINGS ACKED:}\n");
 	for (op = ICP_OP_INVALID; op < ICP_OP_END; op++) {
 	    if (e->stats.counts[op] == 0)
@@ -1260,6 +1263,7 @@ proto_count(cacheinfo * obj, protocol_t proto_id, log_type type)
     case LOG_TCP_HIT:
     case LOG_TCP_IMS_HIT:
     case LOG_TCP_EXPIRED_HIT:
+    case LOG_TCP_EXPIRED_FAIL_HIT:
     case LOG_UDP_HIT:
     case LOG_UDP_HIT_OBJ:
 	obj->proto_stat_data[proto_id].hit++;

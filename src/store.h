@@ -290,7 +290,6 @@ extern void storeAppend _PARAMS((StoreEntry *, char *, int));
 extern int storeGetMemSize _PARAMS((void));
 extern int storeGetSwapSize _PARAMS((void));
 extern int storeGetSwapSpace _PARAMS((int));
-extern int storeEntryValidToSend _PARAMS((StoreEntry *));
 extern int storeLockObject _PARAMS((StoreEntry *, SIH, void *));
 extern int storeOriginalKey _PARAMS((StoreEntry *));
 extern int storeRelease _PARAMS((StoreEntry *));
@@ -316,6 +315,7 @@ extern void storeCloseLog _PARAMS((void));
 extern void storeConfigure _PARAMS((void));
 extern void storeNegativeCache _PARAMS((StoreEntry *));
 extern void storeFreeMemory _PARAMS((void));
+extern int expiresMoreThan _PARAMS((time_t, time_t));
 
 #ifdef __STDC__
 extern void storeAppendPrintf _PARAMS((StoreEntry *, char *,...));

@@ -748,13 +748,13 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	ipcacheReleaseInvalid(icpState->request->host);
 	entry = NULL;
 	icpState->log_type = LOG_TCP_USER_REFRESH;
-    } else if (!storeEntryValidToSend(entry) && request->protocol == PROTO_HTTP) {
-	/* The object is in the cache, but is not valid.  Use
+    } else if (refreshCheck(entry, request)) {
+	/* The object is in the cache, but it needs to be validated.  Use
 	 * LOG_TCP_EXPIRED_MISS for the time being, maybe change it to
 	 * _HIT later in icpHandleIMSReply() */
 	icpState->log_type = LOG_TCP_EXPIRED_MISS;
     } else if (BIT_TEST(request->flags, REQ_IMS)) {
-	/* A cached IMS request */
+	/* User-initiated IMS request for something we think is valid */
 	icpState->log_type = LOG_TCP_IMS_MISS;
     } else {
 	icpState->log_type = LOG_TCP_HIT;
@@ -1160,7 +1160,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	debug(12, 5, "icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
-	    (entry->expires > (squid_curtime + Config.negativeTtl))) {
+	    expiresMoreThan(entry->expires, Config.negativeTtl)) {
 	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
 	    if (header.flags & ICP_FLAG_HIT_OBJ && pkt_len < SQUID_UDP_SO_SNDBUF) {
 		icpHitObjState = xcalloc(1, sizeof(icpHitObjStateData));
@@ -1306,7 +1306,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    IcpOpcodeStr[header.opcode]);
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
-	    (entry->expires > (squid_curtime + Config.negativeTtl))) {
+	    expiresMoreThan(entry->expires, Config.negativeTtl)) {
 	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_HIT, LOG_UDP_HIT, p);
 	    break;

@@ -449,7 +449,7 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	entry->timestamp = squid_curtime;
 	if (mime_headers_end(hbuf)) {
 	    httpParseHeaders(hbuf, entry->mem_obj->reply);
-	    ttlSet(entry);
+	    timestampsSet(entry);
 	} else {
 	    debug(33, 1, "icpHandleIMSReply: No end-of-headers, len=%d\n", len);
 	    debug(33, 1, "  --> '%s'\n", entry->url);

@@ -727,6 +727,7 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
     fd_set W;
     fd_set R;
     struct timeval tv;
+    int cerrno;
     debug(38, 7, "connect_with_timeout2: starting...\n");
 
     for (;;) {
@@ -735,22 +736,22 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
 	    (int) ntohs(S->sin_port),
 	    len);
 	y = connect(fd, (struct sockaddr *) S, len);
-	debug(38, 7, "connect returned %d\n", y);
+	cerrno = errno;
 	if (y < 0)
 	    debug(38, 7, "connect: %s\n", xstrerror());
 	if (y >= 0)
 	    return y;
-	if (errno == EISCONN)
+	if (cerrno == EISCONN)
 	    return 0;
-	if (errno == EINVAL) {
+	if (cerrno == EINVAL) {
 	    len = sizeof(x);
 	    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
-		errno = x;
+		cerrno = x;
 	}
-	if (errno != EINPROGRESS && errno != EAGAIN)
+	if (cerrno != EINPROGRESS && cerrno != EAGAIN)
 	    return y;
 
-	/* if we get here, y<0 and errno==EINPROGRESS|EAGAIN */
+	/* if we get here, y<0 and cerrno==EINPROGRESS|EAGAIN */
 
 	tv.tv_sec = o_timeout;
 	tv.tv_usec = 0;
@@ -761,13 +762,14 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
 	last_alarm_set = time(NULL);
 	debug(38, 7, "connect_with_timeout2: selecting on FD %d\n", fd);
 	x = select(fd + 1, &R, &W, NULL, &tv);
+	cerrno = errno;
 	debug(38, 7, "select returned: %d\n", x);
 	if (x == 0)
 	    return READ_TIMEOUT;
 	if (x < 0) {
-	    if (errno == EWOULDBLOCK)
+	    if (cerrno == EWOULDBLOCK)
 		continue;
-	    if (errno == EAGAIN)
+	    if (cerrno == EAGAIN)
 		continue;
 	    /* anything else, fail */
 	    return x;

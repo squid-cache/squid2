@@ -236,6 +236,7 @@ ftpProcessReplyHeader(FtpStateData * data, char *buf, int size)
 	    data->reply_hdr);
 	/* Parse headers into reply structure */
 	httpParseHeaders(data->reply_hdr, reply);
+	timestampsSet(entry);
 	/* Check if object is cacheable or not based on reply code */
 	if (reply->code)
 	    debug(11, 3, "ftpProcessReplyHeader: HTTP CODE: %d\n", reply->code);
@@ -246,7 +247,6 @@ ftpProcessReplyHeader(FtpStateData * data, char *buf, int size)
 	case 301:		/* Moved Permanently */
 	case 410:		/* Gone */
 	    /* These can be cached for a long time, make the key public */
-	    ttlSet(entry);
 	    if (BIT_TEST(entry->flag, ENTRY_CACHABLE))
 		storeSetPublicKey(entry);
 	    break;
@@ -358,7 +358,7 @@ ftpReadReply(int fd, FtpStateData * data)
 	    BIT_RESET(entry->flag, ENTRY_CACHABLE);
 	    storeReleaseRequest(entry);
 	} else if (!(entry->flag & DELETE_BEHIND)) {
-	    ttlSet(entry);
+	    timestampsSet(entry);
 	}
 	/* update fdstat and fdtable */
 	storeComplete(entry);
