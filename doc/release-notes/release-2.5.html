@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.16">
  <TITLE>Squid 2.5 release notes</TITLE>
 </HEAD>
 <BODY>
@@ -164,8 +164,6 @@ exacly where you want to have them in your system.</LI>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=457">#457</A></B><DD><P>does not handle swap.state corruption properly</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=426">#426</A></B><DD><P>Vary: * does not work</P>
-<DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=410">#410</A></B><DD><P>unstable if runs out of disk space</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=355">#355</A></B><DD><P>diskd may appear slow on low loads</P>
@@ -276,6 +274,22 @@ contents regardless of their mime type assignment.</LI>
 <LI>url_regex enhanced to allow matching of %00</LI>
 <LI>a large number of minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4">squid-2.5.STABLE4 patches</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s8">8. Key changes squid-2.5.STABLE5 to 2.5.STABLE6:</A></H2>
+
+<P>
+<UL>
+<LI>Several "Assertion error" bugs fixed</LI>
+<LI>Several "Segmentation fault" bugs fixes</LI>
+<LI>Corrects a security issue in the old ntlm_auth NTLM helper
+used in transparent NTLM authentication to a NT domain without
+using samba.</LI>
+<LI>Processing of Vary: * and Vary on error messages corrected</LI>
+<LI>a large number of minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE5">squid-2.5.STABLE5 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>
