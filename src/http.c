@@ -464,7 +464,9 @@ static void httpSendRequest(fd, data)
 
     /* Add Forwarded: header */
     ybuf = get_free_4k_page(__FILE__,__LINE__);
-    if ((cfd = storePendingFirstFD(data->entry)) < 0) {
+    if (data->entry->mem_obj)
+	cfd = data->entry->mem_obj->fd_of_first_client;
+    if (cfd < 0) {
         sprintf(ybuf, "Forwarded: by http://%s:%d/\r\n",
 	    getMyHostname(), getAsciiPortNum());
     } else {
