@@ -174,15 +174,19 @@ extern int commSetTimeout(int fd, int, PF *, void *);
 extern void commSetDefer(int fd, DEFER * func, void *);
 extern int ignoreErrno(int);
 extern void commCloseAllSockets(void);
-extern void checkTimeouts(void);
-extern int commDeferRead(int fd);
 
 
 /*
  * comm_select.c
  */
 extern void comm_select_init(void);
+#if HAVE_POLL
+extern int comm_poll(int);
+#else
 extern int comm_select(int);
+#endif
+extern void commUpdateReadBits(int, PF *);
+extern void commUpdateWriteBits(int, PF *);
 extern void comm_quick_poll_required(void);
 
 extern void packerToStoreInit(Packer * p, StoreEntry * e);
@@ -1230,7 +1234,7 @@ extern peer *carpSelectParent(request_t *);
 #if DELAY_POOLS
 extern void delayPoolsInit(void);
 extern void delayInitDelayData(unsigned short pools);
-extern void delayFreeDelayData(void);
+extern void delayFreeDelayData(unsigned short pools);
 extern void delayCreateDelayPool(unsigned short pool, u_char class);
 extern void delayInitDelayPool(unsigned short pool, u_char class, delaySpecSet * rates);
 extern void delayFreeDelayPool(unsigned short pool);
