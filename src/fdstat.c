@@ -18,6 +18,11 @@ typedef struct _FDENTRY {
 
 static FDENTRY *fd_stat_tab = NULL;
 
+File_Desc_Type fdstatGetType(fd)
+{
+	return fd_stat_tab[fd].type;
+}
+
 char *fdfiletype(type)
      File_Desc_Type type;
 {
