@@ -22,6 +22,8 @@ Changes to squid-1.1.11 (June XX, 1997):
 	  number is being used, but the file is in the wrong directory.
 	- Allow PURGE method on all protocols.
 	- Added 'icp_hit_stale' option.
+	- Don't check for other filename extensions if an FTP URL
+	  ends with .txt (Ed Knowles).
 
 Changes to squid-1.1.10 (April 24, 1997):
 
