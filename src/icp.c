@@ -438,7 +438,7 @@ static int icpSendERROR(fd, errorCode, msg, icpState)
 	fatal_dump(tmp_error_buf);
     }
     if (icpState->entry && icpState->entry->mem_obj) {
-	if (icpState->entry->mem_obj->e_current_len > 0) {
+	if (icpState->size) > 0) {
 	    comm_close(fd);
 	    return COMM_OK;
 	}
@@ -2003,6 +2003,7 @@ static void icpDetectClientClose(fd, icpState)
 	CheckQuickAbort(icpState);
 	if (entry && icpState->url)
 	    protoUndispatch(fd, icpState->url, entry, icpState->request);
+	entry = icpState->entry;
 	if (entry && entry->ping_status == PING_WAITING)
 	    storeReleaseRequest(entry);
 	comm_close(fd);
