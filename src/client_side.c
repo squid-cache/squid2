@@ -131,6 +131,8 @@ checkAccelOnly(clientHttpRequest * http)
 	return 0;
     if (http->flags.accel)
 	return 0;
+    if (http->request->method == METHOD_PURGE)
+	return 0;
     return 1;
 }
 
