@@ -825,12 +825,6 @@ snmp_netIpFn(variable_list * Var, snint * ErrP)
     case IP_LOC:
 	*(Answer->val.integer) = IpcacheStats.release_locked;
 	break;
-#if DELETE_ME
-    case IP_LENG:
-	*(Answer->val.integer) = queue_length;
-	Answer->type = SMI_GAUGE32;
-	break;
-#endif
     default:
 	*ErrP = SNMP_ERR_NOSUCHNAME;
 	snmp_var_free(Answer);

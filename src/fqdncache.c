@@ -658,12 +658,6 @@ snmp_netFqdnFn(variable_list * Var, snint * ErrP)
     case FQDN_GHBN:
 	*(Answer->val.integer) = FqdncacheStats.ghba_calls;
 	break;
-#if DELETE_ME
-    case FQDN_LENG:
-	*(Answer->val.integer) = queue_length;
-	Answer->type = SMI_GAUGE32;
-	break;
-#endif
     default:
 	*ErrP = SNMP_ERR_NOSUCHNAME;
 	snmp_var_free(Answer);

@@ -143,7 +143,6 @@ enum {
     IP_MISS,
     IP_GHBN,
     IP_LOC,
-    IP_LENG,
     IP_END
 };
 
@@ -156,7 +155,6 @@ enum {
     FQDN_NEGHIT,
     FQDN_MISS,
     FQDN_GHBN,
-    FQDN_LENG,
     FQDN_END
 };
 
