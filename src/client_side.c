@@ -2485,12 +2485,16 @@ clientReadRequest(int fd, void *data)
 	    k = conn->in.size - 1 - conn->in.offset;
 	    if (k == 0) {
 		if (conn->in.offset >= Config.maxRequestHeaderSize) {
+		    int fd = open("/tmp/error:request-too-large", O_WRONLY | O_CREAT | O_TRUNC);
+		    if (fd >= 0) {
+			write(fd, conn->in.buf, conn->in.offset);
+			close(fd);
+		    }
 		    /* The request is too large to handle */
-		    debug(33, 0) ("Request won't fit in buffer.\n");
-		    debug(33, 0) ("Config 'request_header_max_size'= %d bytes.\n",
-			Config.maxRequestHeaderSize);
-		    debug(33, 0) ("This request = %d bytes.\n",
+		    debug(33, 0) ("Request header is too large (%d bytes)\n",
 			(int) conn->in.offset);
+		    debug(33, 1) ("Config 'request_header_max_size'= %d bytes.\n",
+			Config.maxRequestHeaderSize);
 		    err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE);
 		    http = parseHttpRequestAbort(conn, "error:request-too-large");
 		    /* add to the client request queue */
