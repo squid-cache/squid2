@@ -2089,7 +2089,7 @@ DOC_START
 	Lowering this value increases the total number of buckets and
 	also the storage maintenance rate.  The default is 20.
 
-store_objects_per_bucket 20
+store_objects_per_bucket 50
 DOC_END
 
 NAME: client_db
