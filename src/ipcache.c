@@ -233,6 +233,7 @@ static int ipcache_create_dnsserver(command)
     int sfd;
     int len;
     int fd;
+    static char buf[128];
 
     cfd = comm_open(COMM_NOCLOEXEC,
 	local_addr,
@@ -267,6 +268,17 @@ static int ipcache_create_dnsserver(command)
 	    comm_close(sfd);
 	    return -1;
 	}
+        if (write(sfd, "$hello\n", 7) < 0) {
+            debug(14, 0, "ipcache_create_dnsserver: $hello write test failed\n");
+            comm_close(sfd);
+            return -1;
+        }
+        memset(buf, '\0', 128);
+        if (read(sfd, buf, 128) < 0 || strcmp(buf, "$alive\n$end\n")) {
+            debug(14, 0, "ipcache_create_dnsserver: $hello read test failed\n");
+            comm_close(sfd);
+            return -1;
+        }
 	comm_set_fd_lifetime(sfd, -1);
 	return sfd;
     }
