@@ -372,7 +372,7 @@ commRetryConnect(int fd, ConnectStateData * connectState)
     close(fd2);
     return 1;
 #else
-  debug(5, 2, "commRetryConnect not supported\n");
+    debug(5, 2, "commRetryConnect not supported\n");
     return 0;
 #endif
 }
@@ -408,7 +408,7 @@ commConnectHandle(int fd, void *data)
 	    debug(5, 1, "Retrying connection to %s\n", connectState->host);
 	    connectState->S.sin_addr.s_addr = 0;
 	    ipcacheCycleAddr(connectState->host);
-            ipcache_nbgethostbyname(connectState->host,
+	    ipcache_nbgethostbyname(connectState->host,
 		fd,
 		commConnectDnsHandle,
 		connectState);

@@ -398,7 +398,7 @@ diskHandleRead(int fd, dread_ctrl * ctrl_dat)
 	return DISK_OK;
     }
     if (len > 0)
-        ctrl_dat->cur_len += len;
+	ctrl_dat->cur_len += len;
     ctrl_dat->offset = lseek(fd, 0L, SEEK_CUR);
 
     /* reschedule if need more data. */
