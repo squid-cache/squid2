@@ -184,6 +184,7 @@ typedef struct iwd {
     int ident_fd;
     aclCheck_t *aclChecklist;
     void (*aclHandler) _PARAMS((struct iwd *, int answer));
+    float http_ver;
 } icpStateData;
 
 extern int icpUdpSend _PARAMS((int,
