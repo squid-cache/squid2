@@ -603,7 +603,7 @@ fi
 
 
 
-# From configure.in Revision: 1.176.2.3 
+# From configure.in Revision: 1.176.2.4 
 ac_aux_dir=
 for ac_dir in cfgaux $srcdir/cfgaux; do
   if test -f $ac_dir/install-sh; then
@@ -5116,6 +5116,7 @@ trap 'rm -fr `echo "\
 	./auth_modules/PAM/Makefile \
 	./auth_modules/SMB/Makefile
 	./auth_modules/getpwnam/Makefile \
+	./auth_modules/LDAP/Makefile \
  include/autoconf.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
@@ -5249,6 +5250,7 @@ CONFIG_FILES=\${CONFIG_FILES-"\
 	./auth_modules/PAM/Makefile \
 	./auth_modules/SMB/Makefile
 	./auth_modules/getpwnam/Makefile \
+	./auth_modules/LDAP/Makefile \
 "}
 EOF
 cat >> $CONFIG_STATUS <<\EOF

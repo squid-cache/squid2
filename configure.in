@@ -1431,4 +1431,5 @@ AC_OUTPUT(\
 	./auth_modules/PAM/Makefile \
 	./auth_modules/SMB/Makefile
 	./auth_modules/getpwnam/Makefile \
+	./auth_modules/LDAP/Makefile \
 )
