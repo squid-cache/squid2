@@ -863,7 +863,6 @@ AC_CHECK_TYPE(ssize_t, int)
 AC_CHECK_TYPE(off_t, int)
 AC_CHECK_TYPE(mode_t, u_short)
 AC_CHECK_TYPE(fd_mask, int)
-AC_CHECK_TYPE(mtyp_t, long)
 
 dnl Check for type in sys/socket.h
 AC_CACHE_CHECK(for socklen_t, ac_cv_type_socklen_t, [
@@ -879,6 +878,18 @@ AC_CACHE_CHECK(for socklen_t, ac_cv_type_socklen_t, [
 if test $ac_cv_type_socklen_t = no; then
   AC_DEFINE(socklen_t, int)
 fi
+
+dnl Check for mtyp_t in some headers
+AC_CACHE_CHECK(for mtyp_t, ac_cv_type_mtyp_t, [
+  AC_EGREP_CPP([mtyp_t[^a-zA-Z_0-9]], [#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>],
+    ac_cv_type_mtyp_t=yes,
+    ac_cv_type_mtyp_t=no)
+])
+if test $ac_cv_type_mtyp_t = no; then
+  AC_DEFINE(mtyp_t, long)
+ fi
 
 dnl Check for needed libraries
 AC_CHECK_LIB(nsl, main)
