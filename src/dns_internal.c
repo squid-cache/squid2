@@ -130,8 +130,8 @@ idnsParseResolvConf(void)
     idnsFreeNameservers();
     while (fgets(buf, 512, fp)) {
 	t = strtok(buf, w_space);
-	if (t == NULL)
-	    continue;;
+	if (NULL == t)
+	    continue;
 	if (strcasecmp(t, "nameserver"))
 	    continue;
 	t = strtok(NULL, w_space);
