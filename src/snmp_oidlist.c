@@ -41,16 +41,16 @@ oid_ParseFn *dnsGetFn(oid *, snint);
 oid_ParseFn *dnsGetNextFn(oid *, snint, oid **, snint *);
 oid_ParseFn *meshGetFn(oid *, snint);
 oid_ParseFn *meshPtblGetNextFn(oid *, snint, oid **, snint *);
-int meshPtblGetRowFn(oid *,oid *);
-int sysConnGetRowFn(oid *,oid *);
-extern int meshCtblGetRowFn(oid *,oid *);
-extern int netdbGetRowFn(oid *,oid *);
+int meshPtblGetRowFn(oid *, oid *);
+int sysConnGetRowFn(oid *, oid *);
+extern int meshCtblGetRowFn(oid *, oid *);
+extern int netdbGetRowFn(oid *, oid *);
 oid_ParseFn *meshCtblGetNextFn(oid *, snint, oid **, snint *);
 oid_ParseFn *accGetFn(oid *, snint);
 oid_ParseFn *accGetNextFn(oid *, snint, oid **, snint *);
 
-oid_ParseFn *genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen,
-    oid * MIBRoot, int MIBRootLen, oid_GetRowFn *getRowFn, int tblen, oid * MIBTail,
+oid_ParseFn *genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen,
+    oid * MIBRoot, int MIBRootLen, oid_GetRowFn * getRowFn, int tblen, oid * MIBTail,
     oid_ParseFn * mygetFn, int MIBTailLen, int MIB_ACTION_INDEX);
 
 struct MIBListEntry MIBList[] =
@@ -60,7 +60,7 @@ struct MIBListEntry MIBList[] =
     {
 	{SQ_SYS}, LEN_SQ_SYS, sysGetFn, sysGetNextFn},
     {
-        {SQ_SYS, 3}, LEN_SQ_SYS + 1, sysConnGetFn, sysConnGetNextFn},
+	{SQ_SYS, 3}, LEN_SQ_SYS + 1, sysConnGetFn, sysConnGetNextFn},
     {
 	{SQ_SYS, 4}, LEN_SQ_SYS + 1, sysFdGetFn, sysFdGetNextFn},
     {
@@ -76,16 +76,16 @@ struct MIBListEntry MIBList[] =
     {
 	{SQ_NET, 2}, LEN_SQ_NET + 1, dnsGetFn, dnsGetNextFn},
     {
-	{SQ_MESH, 1}, LEN_SQ_MESH + 1, meshGetFn,meshPtblGetNextFn},
+	{SQ_MESH, 1}, LEN_SQ_MESH + 1, meshGetFn, meshPtblGetNextFn},
     {
-        {SQ_MESH, 2}, LEN_SQ_MESH + 1, meshGetFn,meshCtblGetNextFn},
+	{SQ_MESH, 2}, LEN_SQ_MESH + 1, meshGetFn, meshCtblGetNextFn},
     {
 	{0}, 0, NULL, NULL}
 };
 
 extern int fqdn_getMax(), ipcache_getMax();
 int fd_getMax();
-struct in_addr * gen_getMax();
+struct in_addr *gen_getMax();
 
 /**********************************************************************
  * General OID Functions
@@ -221,7 +221,7 @@ oidlist_Find(oid * Src, snint SrcLen)
  * 
  */
 oid_ParseFn *
-oidlist_Next(oid * Src, snint SrcLen, oid ** DestP, snint *DestLenP)
+oidlist_Next(oid * Src, snint SrcLen, oid ** DestP, snint * DestLenP)
 {
     struct MIBListEntry *Ptr;
     int ret;
@@ -277,14 +277,15 @@ oidlist_Next(oid * Src, snint SrcLen, oid ** DestP, snint *DestLenP)
 /* SQUID MIB implementation */
 
 oid_ParseFn *
-genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen,
-    oid * MIBRoot, int MIBRootLen, oid_GetRowFn *getRowFn, int tblen, oid * MIBTail,
+genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen,
+    oid * MIBRoot, int MIBRootLen, oid_GetRowFn * getRowFn, int tblen, oid * MIBTail,
     oid_ParseFn * mygetFn, int MIBTailLen, int MIB_ACTION_INDEX)
 {
     int ret;
     oid *Ptr;
     int i = 0;
-    oid nullOid[] = { 0,0,0,0, 0};
+    oid nullOid[] =
+    {0, 0, 0, 0, 0};
 
     debug(49, 6) ("genericGetNextFn: Called with root=%d, tail=%d index=%d:\n",
 	MIBRootLen, MIBTailLen, MIB_ACTION_INDEX);
@@ -308,10 +309,9 @@ genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen,
 
 	Ptr[MIB_ACTION_INDEX] = 1;
 	if (!getRowFn)
-		Ptr[MIBTailLen - 1] = 1;
-	else
-		if (!getRowFn(&Ptr[MIBTailLen-tblen], nullOid))
-			return NULL;
+	    Ptr[MIBTailLen - 1] = 1;
+	else if (!getRowFn(&Ptr[MIBTailLen - tblen], nullOid))
+	    return NULL;
 
 	debug(49, 6) ("genericGetNextFn:  On this mib (%d).\n", MIB_ACTION_INDEX);
 	return (mygetFn);
@@ -340,8 +340,8 @@ genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen,
      * have already been returned.
      */
     Ptr = *Dest;
-    debug(49,9)("genericGetNextFn: SrcLen=%d , MIBTailLen=%d\n", 
-		SrcLen, MIBTailLen);
+    debug(49, 9) ("genericGetNextFn: SrcLen=%d , MIBTailLen=%d\n",
+	SrcLen, MIBTailLen);
     if (SrcLen <= MIBTailLen) {
 	/* Copy everything we can, and fill in the blanks */
 	debug(49, 5) ("genericGetNextFn: Adding missing information.\n");
@@ -350,9 +350,9 @@ genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen,
 	if (SrcLen != MIBTailLen) {
 	    for (i = SrcLen - 1; i < MIBTailLen; i++)
 		Ptr[i] = 1;
-	    if (getRowFn) 
-		if (!getRowFn(&Ptr[MIBTailLen-tblen], nullOid))
-                        return NULL;
+	    if (getRowFn)
+		if (!getRowFn(&Ptr[MIBTailLen - tblen], nullOid))
+		    return NULL;
 	}
     } else {
 	/* Src too long.  Just copy the first part. */
@@ -364,39 +364,39 @@ genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen,
     /* Look at the next item */
 
     if (getRowFn) {
-	if (!getRowFn(&Ptr[MIBTailLen-tblen], &Ptr[MIBTailLen-tblen])) {
-            debug(49, 5) ("genericGetNextFn:end of row!\n");
-		/* no more rows, next action or finished. */
+	if (!getRowFn(&Ptr[MIBTailLen - tblen], &Ptr[MIBTailLen - tblen])) {
+	    debug(49, 5) ("genericGetNextFn:end of row!\n");
+	    /* no more rows, next action or finished. */
 	    Ptr[MIB_ACTION_INDEX]++;
-	    if (Ptr[MIB_ACTION_INDEX] > MIBTail[MIB_ACTION_INDEX]) {
-                debug(49, 5) ("genericGetNextFn:Beyond last action! (%d)\n",
-                    Ptr[MIB_ACTION_INDEX]);
-                xfree(*Dest);
-                return (NULL);
-            }
-	    assert (getRowFn(&Ptr[MIBTailLen-tblen], nullOid));
-	}
-    } else {
-
-    Ptr[MIBTailLen - 1]++;
-
-    if (Ptr[MIBTailLen - 1] > MIBTail[MIBTailLen - 1]) {
-	/* Too far! */
-	if (MIBTailLen > MIBRootLen + 1) {
-	    Ptr[MIB_ACTION_INDEX]++;
-	    Ptr[MIBTailLen - 1] = 1;
 	    if (Ptr[MIB_ACTION_INDEX] > MIBTail[MIB_ACTION_INDEX]) {
 		debug(49, 5) ("genericGetNextFn:Beyond last action! (%d)\n",
 		    Ptr[MIB_ACTION_INDEX]);
 		xfree(*Dest);
 		return (NULL);
 	    }
-	} else {
-	    debug(49, 5) ("genericGetNextFn:Beyond last entry! (%d)\n", Ptr[MIBTailLen - 1]);
-	    xfree(*Dest);
-	    return (NULL);
+	    assert(getRowFn(&Ptr[MIBTailLen - tblen], nullOid));
 	}
-    }
+    } else {
+
+	Ptr[MIBTailLen - 1]++;
+
+	if (Ptr[MIBTailLen - 1] > MIBTail[MIBTailLen - 1]) {
+	    /* Too far! */
+	    if (MIBTailLen > MIBRootLen + 1) {
+		Ptr[MIB_ACTION_INDEX]++;
+		Ptr[MIBTailLen - 1] = 1;
+		if (Ptr[MIB_ACTION_INDEX] > MIBTail[MIB_ACTION_INDEX]) {
+		    debug(49, 5) ("genericGetNextFn:Beyond last action! (%d)\n",
+			Ptr[MIB_ACTION_INDEX]);
+		    xfree(*Dest);
+		    return (NULL);
+		}
+	    } else {
+		debug(49, 5) ("genericGetNextFn:Beyond last entry! (%d)\n", Ptr[MIBTailLen - 1]);
+		xfree(*Dest);
+		return (NULL);
+	    }
+	}
     }
     return (mygetFn);
 }
@@ -414,14 +414,14 @@ basicGetFn(oid * Src, snint SrcLen)
     return NULL;
 }
 oid_ParseFn *
-basicGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+basicGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid_ParseFn *retFn = NULL;
     oid MIBRoot[] =
     {SYSMIB};
     int MIBRootLen = LEN_SYSMIB;
     oid MIBTail[LEN_SYSMIB + 1] =
-    {SYSMIB, SYS_END-1};
+    {SYSMIB, SYS_END - 1};
 
     retFn = genericGetNextFn(Src, SrcLen, Dest, DestLen,
 	MIBRoot, MIBRootLen, NULL, 1, MIBTail, snmp_basicFn,
@@ -435,7 +435,7 @@ oid_ParseFn *
 sysGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("sysGetFn: here! with Src[8]=%d\n", Src[8]);
-    if ((SrcLen == LEN_SQ_SYS + 4 && Src[LEN_SQ_SYS] == SYSFDTBL)||
+    if ((SrcLen == LEN_SQ_SYS + 4 && Src[LEN_SQ_SYS] == SYSFDTBL) ||
 	(SrcLen == LEN_SQ_SYS + 8 && Src[LEN_SQ_SYS] == SYSCONNTBL))
 	return snmp_sysFn;
     if (SrcLen != LEN_SQ_SYS + 1)
@@ -447,7 +447,7 @@ sysGetFn(oid * Src, snint SrcLen)
 }
 
 oid_ParseFn *
-sysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+sysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_SYS};
@@ -477,13 +477,13 @@ sysConnGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("sysGetFn: here, requested: %d\n", Src[8]);
     if (SrcLen == LEN_SQ_SYS + 8 && Src[LEN_SQ_SYS] == SYSCONNTBL)
-        return snmp_sysFn;
+	return snmp_sysFn;
 
     return NULL;
 }
 
 oid_ParseFn *
-sysConnGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+sysConnGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_SYS, SYSCONNTBL};
@@ -492,17 +492,17 @@ sysConnGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
     {SQ_SYS, SYSCONNTBL, 1, SYS_CONN_END - 1, 0, 0, 0, 0, 0};
     oid_ParseFn *ret;
 
-    addr2oid( *gen_getMax(), &MIBTail[LEN_SQ_MESH +3] );
+    addr2oid(*gen_getMax(), &MIBTail[LEN_SQ_MESH + 3]);
     MIBTail[LEN_SQ_SYS + 7] = 0;
 
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-        MIBRoot, MIBRootLen, sysConnGetRowFn , 5, MIBTail, snmp_sysFn,
-        LEN_SQ_SYS + 8, LEN_SQ_SYS + 2);
+	MIBRoot, MIBRootLen, sysConnGetRowFn, 5, MIBTail, snmp_sysFn,
+	LEN_SQ_SYS + 8, LEN_SQ_SYS + 2);
     return ret;
 }
 
 oid_ParseFn *
-sysFdGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+sysFdGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_SYS, SYSFDTBL};
@@ -514,7 +514,7 @@ sysFdGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
     MIBTail[LEN_SQ_SYS + 3] = fd_getMax();
 
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	MIBRoot, MIBRootLen, NULL , 1, MIBTail, snmp_sysFn,
+	MIBRoot, MIBRootLen, NULL, 1, MIBTail, snmp_sysFn,
 	LEN_SQ_SYS + 4, LEN_SQ_SYS + 2);
     return ret;
 }
@@ -525,12 +525,12 @@ meshGetFn(oid * Src, snint SrcLen)
     debug(49, 5) ("meshGetFn: here! with Src[8]=%d and %d\n", Src[8], SrcLen);
 
     if (SrcLen != LEN_SQ_MESH + 7)
-        return NULL;
+	return NULL;
     switch (Src[LEN_SQ_MESH]) {
     case MESH_PTBL:
-        return snmp_meshPtblFn;
+	return snmp_meshPtblFn;
     case MESH_CTBL:
-        return snmp_meshCtblFn;
+	return snmp_meshCtblFn;
     }
     return NULL;
 }
@@ -552,7 +552,7 @@ confGetFn(oid * Src, snint SrcLen)
     return snmp_confFn;
 }
 oid_ParseFn *
-confGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+confGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_CONF};
@@ -568,7 +568,7 @@ confGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 }
 
 oid_ParseFn *
-confStGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+confStGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_CONF, CONF_STORAGE};
@@ -578,117 +578,117 @@ confStGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
     oid_ParseFn *ret;
 
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	MIBRoot, MIBRootLen, NULL , 1, MIBTail, snmp_confFn,
+	MIBRoot, MIBRootLen, NULL, 1, MIBTail, snmp_confFn,
 	LEN_SQ_CONF + 2, LEN_SQ_CONF + 1);
     return ret;
 }
 
 int
-sysConnGetRowFn(oid *New, oid *Oid)
+sysConnGetRowFn(oid * New, oid * Oid)
 {
-	int cnt=0, act=0;
-        int port=0;
-	static char buf[16];
-	static fde *f = NULL;
-	static fde *ff = NULL;
+    int cnt = 0, act = 0;
+    int port = 0;
+    static char buf[16];
+    static fde *f = NULL;
+    static fde *ff = NULL;
 
-        if (!Oid[0]&&!Oid[1]&&!Oid[2]&&!Oid[3])
-		act=1;
-	else {
-		snprintf(buf,16, "%d.%d.%d.%d", Oid[0], Oid[1],Oid[2],Oid[3]);
-		port=Oid[4];
-		debug(49,9)("sysConnGetRowFn: input [%s]:%d\n", buf,port);
+    if (!Oid[0] && !Oid[1] && !Oid[2] && !Oid[3])
+	act = 1;
+    else {
+	snprintf(buf, 16, "%d.%d.%d.%d", Oid[0], Oid[1], Oid[2], Oid[3]);
+	port = Oid[4];
+	debug(49, 9) ("sysConnGetRowFn: input [%s]:%d\n", buf, port);
+    }
+    while (cnt < Squid_MaxFD) {
+	f = &fd_table[cnt++];
+	if (!f->open)
+	    continue;
+	if (f->type == FD_SOCKET && f->remote_port != 0) {
+	    debug(49, 9) ("sysConnGetRowFn: now [%s]:%d\n", f->ipaddr, f->remote_port);
+	    if (ff)
+		debug(49, 9) ("sysConnGetRowFn: prev [%s]:%d\n", ff->ipaddr, ff->remote_port);
+	    if (act || (ff && !strcmp(ff->ipaddr, buf) && (port == ff->remote_port)))
+		break;
+	    ff = f;
 	}
-        while (cnt < Squid_MaxFD) {
-            f = &fd_table[cnt++];
-            if (!f->open)
-                continue;
-            if (f->type==FD_SOCKET && f->remote_port!=0) {
-		debug(49,9)("sysConnGetRowFn: now [%s]:%d\n", f->ipaddr,f->remote_port);
-		if (ff)
-		debug(49,9)("sysConnGetRowFn: prev [%s]:%d\n", ff->ipaddr,ff->remote_port);
-		if (act || (ff && !strcmp(ff->ipaddr, buf )&& (port==ff->remote_port)))
-			break;
-	    	ff=f;
-	    }
-        }
-	if (!f || f->type!=FD_SOCKET || !f->ipaddr) {
-		debug(49,9)("sysConnGetRowFn: returning 0\n", buf);
-		return 0;
-	}
-
-	debug(49,9)("sysConnGetRowFn: returning [%s]:%d\n", f->ipaddr,f->remote_port);
-	sscanf(f->ipaddr, "%d.%d.%d.%d", &New[0],&New[1],&New[2],&New[3]);
-	New[4]=f->remote_port;
-	return 1;	
+    }
+    if (!f || f->type != FD_SOCKET || !f->ipaddr) {
+	debug(49, 9) ("sysConnGetRowFn: returning 0\n", buf);
+	return 0;
+    }
+    debug(49, 9) ("sysConnGetRowFn: returning [%s]:%d\n", f->ipaddr, f->remote_port);
+    sscanf(f->ipaddr, "%d.%d.%d.%d", &New[0], &New[1], &New[2], &New[3]);
+    New[4] = f->remote_port;
+    return 1;
 }
 
-int 
-meshPtblGetRowFn(oid *New, oid *Oid)
+int
+meshPtblGetRowFn(oid * New, oid * Oid)
 {
-	peer *p;
-	struct in_addr *maddr;
-	if (!Oid[0]&&!Oid[1]&&!Oid[2]&&!Oid[3])
-		p=Config.peers;
-	else {
-		maddr=oid2addr(Oid);
-		for (p=Config.peers; p!=NULL ; p=p->next) {
-			if ( p->in_addr.sin_addr.s_addr == 
-				maddr->s_addr)
-				break;
-		}
-		if (!p || !p->next) return 0;
-		p=p->next;
+    peer *p;
+    struct in_addr *maddr;
+    if (!Oid[0] && !Oid[1] && !Oid[2] && !Oid[3])
+	p = Config.peers;
+    else {
+	maddr = oid2addr(Oid);
+	for (p = Config.peers; p != NULL; p = p->next) {
+	    if (p->in_addr.sin_addr.s_addr ==
+		maddr->s_addr)
+		break;
 	}
-	addr2oid(p->in_addr.sin_addr, New);
-	return 1;
+	if (!p || !p->next)
+	    return 0;
+	p = p->next;
+    }
+    addr2oid(p->in_addr.sin_addr, New);
+    return 1;
 }
 
 oid_ParseFn *
-meshPtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+meshPtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_MESH, MESH_PTBL};
     int MIBRootLen = LEN_SQ_MESH + 1;
     oid MIBTail[LEN_SQ_MESH + 7] =
-    {SQ_MESH, MESH_PTBL, 1, MESH_PTBL_END - 1, 0 , 0, 0 , 0};
+    {SQ_MESH, MESH_PTBL, 1, MESH_PTBL_END - 1, 0, 0, 0, 0};
     int numPeers = 0;
-    snint max_addr=0;
+    snint max_addr = 0;
     oid_ParseFn *ret;
     /* XXX should be smarter than that */
-    peer *pp= NULL;
+    peer *pp = NULL;
     peer *p = Config.peers;
     while (p) {
 	numPeers++;
 	if (p->in_addr.sin_addr.s_addr > max_addr) {
-		max_addr=p->in_addr.sin_addr.s_addr;
-		pp=p;
+	    max_addr = p->in_addr.sin_addr.s_addr;
+	    pp = p;
 	}
 	p = p->next;
     }
-    addr2oid(pp->in_addr.sin_addr , &MIBTail[LEN_SQ_MESH +3] );
+    addr2oid(pp->in_addr.sin_addr, &MIBTail[LEN_SQ_MESH + 3]);
 
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	MIBRoot, MIBRootLen, meshPtblGetRowFn , 4, MIBTail, snmp_meshPtblFn,
+	MIBRoot, MIBRootLen, meshPtblGetRowFn, 4, MIBTail, snmp_meshPtblFn,
 	LEN_SQ_MESH + 7, LEN_SQ_MESH + 2);
     return ret;
 }
 
 oid_ParseFn *
-meshCtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+meshCtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_MESH, MESH_CTBL};
     int MIBRootLen = LEN_SQ_MESH + 1;
     oid MIBTail[LEN_SQ_MESH + 7] =
-    {SQ_MESH, MESH_CTBL, 1, MESH_CTBL_END - 1, 0, 0, 0 , 0};
+    {SQ_MESH, MESH_CTBL, 1, MESH_CTBL_END - 1, 0, 0, 0, 0};
     oid_ParseFn *ret;
 
-    addr2oid( *gen_getMax(), &MIBTail[LEN_SQ_MESH +3] );
+    addr2oid(*gen_getMax(), &MIBTail[LEN_SQ_MESH + 3]);
 
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-        MIBRoot, MIBRootLen, meshCtblGetRowFn , 4, MIBTail, snmp_meshCtblFn,
-        LEN_SQ_MESH + 7, LEN_SQ_MESH + 2);
+	MIBRoot, MIBRootLen, meshCtblGetRowFn, 4, MIBTail, snmp_meshCtblFn,
+	LEN_SQ_MESH + 7, LEN_SQ_MESH + 2);
     return ret;
 }
 
@@ -704,7 +704,7 @@ prfSysGetFn(oid * Src, snint SrcLen)
 }
 
 oid_ParseFn *
-prfSysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+prfSysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_PRF, PERF_SYS};
@@ -715,7 +715,7 @@ prfSysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
     debug(49, 5) ("prfSysGetNextFn: called.\n");
 
     return genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	MIBRoot, MIBRootLen, NULL , 1 , MIBTail, snmp_prfSysFn,
+	MIBRoot, MIBRootLen, NULL, 1, MIBTail, snmp_prfSysFn,
 	LEN_SQ_PRF + 2, LEN_SQ_PRF + 1);
 
 }
@@ -734,7 +734,7 @@ prfProtoGetFn(oid * Src, snint SrcLen)
 }
 
 oid_ParseFn *
-prfProtoGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+prfProtoGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, 1, 0, 0};
@@ -745,7 +745,7 @@ prfProtoGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 
     if (Src[LEN_SQ_PRF + 1] <= PERF_PROTOSTAT_AGGR) {
 	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	    MIBRoot, MIBRootLen, NULL , 1, MIBTail, snmp_prfProtoFn,
+	    MIBRoot, MIBRootLen, NULL, 1, MIBTail, snmp_prfProtoFn,
 	    LEN_SQ_PRF + 3, LEN_SQ_PRF + 2);
 	if (ret)
 	    return ret;
@@ -760,7 +760,7 @@ prfProtoGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
     MIBTail[LEN_SQ_PRF + 4] = N_COUNT_HIST - 1;
 
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	MIBRoot, MIBRootLen, NULL , 1, MIBTail, snmp_prfProtoFn,
+	MIBRoot, MIBRootLen, NULL, 1, MIBTail, snmp_prfProtoFn,
 	LEN_SQ_PRF + 5, LEN_SQ_PRF + 3);
 
     return ret;
@@ -770,7 +770,7 @@ prfProtoGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 oid_ParseFn *
 netdbGetFn(oid * Src, snint SrcLen)
 {
-    debug(49, 5) ("netdbGetFn: called with %d %p\n", SrcLen,Src);
+    debug(49, 5) ("netdbGetFn: called with %d %p\n", SrcLen, Src);
     if (SrcLen != LEN_SQ_PRF + 7)
 	return NULL;
 
@@ -778,7 +778,7 @@ netdbGetFn(oid * Src, snint SrcLen)
 }
 
 oid_ParseFn *
-netdbGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+netdbGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_NET, NET_NETDBTBL, 1};
@@ -790,11 +790,11 @@ netdbGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
     int max;
 #endif
     debug(49, 5) ("netdbGetNextFn: called with %d\n", SrcLen);
-    addr2oid( *gen_getMax(), &MIBTail[LEN_SQ_MESH +3] );
+    addr2oid(*gen_getMax(), &MIBTail[LEN_SQ_MESH + 3]);
 
     print_oid(MIBTail, LEN_SQ_NET + 7);
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	MIBRoot, MIBRootLen, netdbGetRowFn , 4, MIBTail, snmp_netdbFn,
+	MIBRoot, MIBRootLen, netdbGetRowFn, 4, MIBTail, snmp_netdbFn,
 	LEN_SQ_NET + 7, LEN_SQ_NET + 2);
     return ret;
 }
@@ -810,7 +810,7 @@ dnsGetFn(oid * Src, snint SrcLen)
 }
 
 oid_ParseFn *
-dnsGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+dnsGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     oid MIBRoot[] =
     {SQ_NET, NET_DNS, NET_DNS_IPCACHE, 1, 1};
@@ -832,7 +832,7 @@ dnsGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 	debug(49, 6) ("dnsGetNextFn: Tail is:\n");
 	print_oid(MIBTail, LEN_SQ_NET + 5);
 	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	    MIBRoot, MIBRootLen, NULL , 1 , MIBTail, snmp_dnsFn,
+	    MIBRoot, MIBRootLen, NULL, 1, MIBTail, snmp_dnsFn,
 	    LEN_SQ_NET + 5, LEN_SQ_NET + 3);
 	if (ret)
 	    return ret;
@@ -849,7 +849,7 @@ dnsGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
     /* number of fqdn cache entries */
     MIBTail[LEN_SQ_NET + 4] = fqdn_getMax();
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	MIBRoot, MIBRootLen, NULL , 1, MIBTail, snmp_dnsFn,
+	MIBRoot, MIBRootLen, NULL, 1, MIBTail, snmp_dnsFn,
 	LEN_SQ_NET + 5, LEN_SQ_NET + 3);
     return ret;
 }
@@ -861,7 +861,7 @@ secGetFn(oid * Src, snint SrcLen)
 }
 
 oid_ParseFn *
-secGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+secGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     return NULL;
 }
@@ -873,7 +873,7 @@ accGetFn(oid * Src, snint SrcLen)
 }
 
 oid_ParseFn *
-accGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
+accGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
     return NULL;
 }
@@ -882,25 +882,26 @@ accGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint *DestLen)
 struct in_addr *
 gen_getMax()
 {
-        static struct in_addr maddr;
+    static struct in_addr maddr;
 #if USE_ICMP
-        safe_inet_addr("255.255.255.255", &maddr);
+    safe_inet_addr("255.255.255.255", &maddr);
 #else
-        safe_inet_addr("0.0.0.0", &maddr);
+    safe_inet_addr("0.0.0.0", &maddr);
 #endif
-        return &maddr;
+    return &maddr;
 }
 
-int fd_getMax()
+int 
+fd_getMax()
 {
-	fde *f;
-	int cnt=0,num=0;
-        while (cnt < Squid_MaxFD) {
-            f = &fd_table[cnt++];
-            if (!f->open)
-                continue;
-            if (f->type!=FD_SOCKET)
-                num++;
-        }
-	return num;
+    fde *f;
+    int cnt = 0, num = 0;
+    while (cnt < Squid_MaxFD) {
+	f = &fd_table[cnt++];
+	if (!f->open)
+	    continue;
+	if (f->type != FD_SOCKET)
+	    num++;
+    }
+    return num;
 }
