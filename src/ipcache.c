@@ -48,7 +48,7 @@ static struct {
     int dnsserver_replies;
     int errors;
     int avg_svc_time;
-    int ghbn_calls;	/* # calls to blocking gethostbyname() */
+    int ghbn_calls;		/* # calls to blocking gethostbyname() */
     int dnsserver_hist[DefaultDnsChildrenMax];
 } IpcacheStats;
 
@@ -86,7 +86,7 @@ static void dnsEnqueue _PARAMS((ipcache_entry *));
 static void dnsDispatch _PARAMS((dnsserver_t *, ipcache_entry *));
 static int ipcacheHasPending _PARAMS((ipcache_entry *));
 static ipcache_entry *ipcache_get _PARAMS((char *));
-static int dummy_handler _PARAMS((int, struct hostent *hp, void *));
+static int dummy_handler _PARAMS((int, struct hostent * hp, void *));
 
 
 static dnsserver_t **dns_child_table = NULL;
@@ -197,7 +197,7 @@ int ipcache_release(i)
 	ipcache_hash_entry_count());
     if (hash_remove_link(ip_table, table_entry)) {
 	debug(14, 3, "ipcache_release: Can't delete '%s' from hash table %d\n",
-		i->name, ip_table);
+	    i->name, ip_table);
     }
     debug(14, 5, "HASH table count after delete: %d\n",
 	ipcache_hash_entry_count());
@@ -1096,7 +1096,7 @@ struct hostent *ipcache_gethostbyname(name)
     }
     if (result->status != CACHED) {
 	IpcacheStats.pendings++;
-        debug(14, 5, "ipcache_gethostbyname: PENDING for '%s'\n", name);
+	debug(14, 5, "ipcache_gethostbyname: PENDING for '%s'\n", name);
 	return NULL;
     }
     debug(14, 5, "ipcache_gethostbyname: HIT for '%s'\n", name);
@@ -1117,8 +1117,8 @@ struct hostent *ipcache_getcached(name, lookup_if_miss)
     IpcacheStats.requests++;
     if ((result = ipcache_get(name))) {
 	if (result->status != CACHED) {
-	 	IpcacheStats.pendings++;
-		return NULL;
+	    IpcacheStats.pendings++;
+	    return NULL;
 	}
 	IpcacheStats.hits++;
 	result->lastref = squid_curtime;
@@ -1132,7 +1132,7 @@ struct hostent *ipcache_getcached(name, lookup_if_miss)
 	return static_result;
     }
     if (lookup_if_miss)
-        ipcache_nbgethostbyname(name, -1, dummy_handler, NULL);
+	ipcache_nbgethostbyname(name, -1, dummy_handler, NULL);
     return NULL;
 }
 
