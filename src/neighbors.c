@@ -480,7 +480,7 @@ neighborsUdpPing(request_t * request,
 	    /* Neighbor is dead; ping it anyway, but don't expect a reply */
 	    /* log it once at the threshold */
 	    if (p->stats.logged_state == PEER_ALIVE) {
-		debug(15, 0) ("Detected DEAD %s: %s/%d/%d\n",
+		debug(15, 1) ("Detected DEAD %s: %s/%d/%d\n",
 		    neighborTypeStr(p),
 		    p->host, p->http_port, p->icp_port);
 		p->stats.logged_state = PEER_DEAD;
@@ -535,7 +535,7 @@ neighborAlive(peer * p, const MemObject * mem, const icp_common_t * header)
     int rtt;
     int n;
     if (p->stats.logged_state == PEER_DEAD && p->tcp_up) {
-	debug(15, 0) ("Detected REVIVED %s: %s/%d/%d\n",
+	debug(15, 1) ("Detected REVIVED %s: %s/%d/%d\n",
 	    neighborTypeStr(p),
 	    p->host, p->http_port, p->icp_port);
 	p->stats.logged_state = PEER_ALIVE;
