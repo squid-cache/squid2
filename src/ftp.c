@@ -257,7 +257,6 @@ FTPSM *FTP_SM_FUNCS[] =
     ftpReadQuit,		/* SENT_QUIT */
     ftpReadTransferDone,	/* READING_DATA (RETR,LIST,NLST) */
     ftpWriteTransferDone,	/* WRITING_DATA (STOR) */
-    ftpSendReply,		/* WRITTEN_DATA? (STOR) */
     ftpReadMkdir		/* SENT_MKDIR */
 };
 
