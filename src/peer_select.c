@@ -433,7 +433,7 @@ peerIcpParentMiss(peer * p, icp_common_t * header, ps_state * ps)
 	}
     }
     /* if closest-only is set, then don't allow FIRST_PARENT_MISS */
-    if (EBIT_TEST(p->options, NEIGHBOR_CLOSEST_ONLY))
+    if (p->options.closest_only)
 	return;
     /* set FIRST_MISS if there is no CLOSEST parent */
     if (ps->closest_parent_miss.sin_addr.s_addr != any_addr.s_addr)
@@ -526,7 +526,7 @@ peerHtcpParentMiss(peer * p, htcpReplyData * htcp, ps_state * ps)
 	}
     }
     /* if closest-only is set, then don't allow FIRST_PARENT_MISS */
-    if (EBIT_TEST(p->options, NEIGHBOR_CLOSEST_ONLY))
+    if (p->options.closest_only)
 	return;
     /* set FIRST_MISS if there is no CLOSEST parent */
     if (ps->closest_parent_miss.sin_addr.s_addr != any_addr.s_addr)

@@ -78,7 +78,7 @@ peerDigestInit(void *data)
     assert(p->digest.flags == (1 << PD_INIT_PENDING));
     assert(!p->digest.cd);
     assert(SM_PAGE_SIZE == 4096);	/* we use MEM_4K_BUF */
-    if (EBIT_TEST(p->options, NEIGHBOR_NO_DIGEST)) {
+    if (p->options.no_digest) {
 	peerDigestDisable(p);
     } else {
 	cbdataLock(p);

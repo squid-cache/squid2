@@ -795,10 +795,10 @@ httpStart(FwdState * fwdState, int fd)
 	 * We might end up getting the object from somewhere else if,
 	 * for example, the request to this neighbor fails.
 	 */
-	if (EBIT_TEST(httpState->peer->options, NEIGHBOR_PROXY_ONLY))
+	if (httpState->peer->options.proxy_only)
 	    storeReleaseRequest(httpState->entry);
 #if DELAY_POOLS
-	if (EBIT_TEST(httpState->peer->options, NEIGHBOR_NO_DELAY)) {
+	if (httpState->peer->options.no_delay) {
 	    proxy_req->delay_id = 0;
 	} else {
 	    proxy_req->delay_id = orig_req->delay_id;
