@@ -688,11 +688,11 @@ httpBuildRequestHeader(request_t * request,
     strcat(fwdbuf, cfd < 0 ? "unknown" : fd_table[cfd].ipaddr);
     httpAppendRequestHeader(hdr_out, fwdbuf, &len, out_sz, 1);
     if (!EBIT_TEST(hdr_flags, HDR_HOST)) {
-	snprintf(ybuf, YBUF_SZ, "Host: %s", orig_request->host);
-	if (orig_request->port != urlDefaultPort(orig_request->protocol)) {
-	    int l = strlen(ybuf);
-	    snprintf(ybuf + l, YBUF_SZ - l, ":%d", (int) orig_request->port);
-	}
+	if (orig_request->port == urlDefaultPort(orig_request->protocol))
+	    snprintf(ybuf, YBUF_SZ, "Host: %s", orig_request->host);
+	else
+	    snprintf(ybuf, YBUF_SZ, "Host: %s:%d", orig_request->host,
+		orig_request->port);
 	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz, 1);
     }
     if (!EBIT_TEST(cc_flags, CCC_MAXAGE)) {
