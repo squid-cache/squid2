@@ -272,7 +272,6 @@ configDoConfigure(void)
     requirePathnameExists("unlinkd_program", Config.Program.unlinkd);
     if (Config.Program.redirect)
 	requirePathnameExists("redirect_program", Config.Program.redirect);
-    requirePathnameExists("announce_file", Config.Announce.file);
     requirePathnameExists("Icon Directory", Config.icons.directory);
     requirePathnameExists("Error Directory", Config.errorDirectory);
 }
