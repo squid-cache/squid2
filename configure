@@ -591,7 +591,7 @@ fi
 
 
 
-# From configure.in Revision: 1.167.2.1 
+# From configure.in Revision: 1.167.2.2 
 ac_aux_dir=
 for ac_dir in cfgaux $srcdir/cfgaux; do
   if test -f $ac_dir/install-sh; then
@@ -4694,17 +4694,19 @@ if test "$INET_NTOA_RESULT" = "1.2.3.4" ; then
 	echo "$ac_t"""yes"" 1>&6
 else
 	echo "$ac_t"""no"" 1>&6
-	echo "WARNING: This looks bad, and probably prevents Squid from working."
-	echo "         If you're on IRIX and using GCC 2.8, you probably need"
-	echo "         to use the IRIX C compiler instead."
-	sleep 10
+	echo "Will use our own inet_ntoa()."
+	LIBOBJS="$LIBOBJS net_ntoa.o"
+#	echo "WARNING: This looks bad, and probably prevents Squid from working."
+#	echo "         If you're on IRIX and using GCC 2.8, you probably need"
+#	echo "         to use the IRIX C compiler instead."
+#	sleep 10
 fi
 
 if test "$ac_cv_func_statvfs" = "yes" ; then
 echo $ac_n "checking for working statvfs() interface""... $ac_c" 1>&6
-echo "configure:4706: checking for working statvfs() interface" >&5
+echo "configure:4708: checking for working statvfs() interface" >&5
 cat > conftest.$ac_ext <<EOF
-#line 4708 "configure"
+#line 4710 "configure"
 #include "confdefs.h"
 
 #include <stdlib.h>
@@ -4721,7 +4723,7 @@ statvfs("/tmp", &sfs);
 
 ; return 0; }
 EOF
-if { (eval echo configure:4725: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4727: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_func_statvfs=yes
 else
@@ -4735,12 +4737,12 @@ echo "$ac_t""$ac_cv_func_statvfs" 1>&6
 fi
 
 echo $ac_n "checking for _res.nsaddr_list""... $ac_c" 1>&6
-echo "configure:4739: checking for _res.nsaddr_list" >&5
+echo "configure:4741: checking for _res.nsaddr_list" >&5
 if eval "test \"`echo '$''{'ac_cv_have_res_nsaddr_list'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4744 "configure"
+#line 4746 "configure"
 #include "confdefs.h"
 
 #if HAVE_SYS_TYPES_H
@@ -4763,7 +4765,7 @@ int main() {
 _res.nsaddr_list[0];
 ; return 0; }
 EOF
-if { (eval echo configure:4767: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4769: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_have_res_nsaddr_list="yes"
 else
@@ -4785,12 +4787,12 @@ fi
 
 if test $ac_cv_have_res_nsaddr_list = "no" ; then
 echo $ac_n "checking for _res.ns_list""... $ac_c" 1>&6
-echo "configure:4789: checking for _res.ns_list" >&5
+echo "configure:4791: checking for _res.ns_list" >&5
 if eval "test \"`echo '$''{'ac_cv_have_res_ns_list'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4794 "configure"
+#line 4796 "configure"
 #include "confdefs.h"
 
 #if HAVE_SYS_TYPES_H
@@ -4813,7 +4815,7 @@ int main() {
 _res.ns_list[0].addr;
 ; return 0; }
 EOF
-if { (eval echo configure:4817: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:4819: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_have_res_ns_list="yes"
 else

@@ -106,6 +106,8 @@ Changes to Squid-2.2 ():
 	  the number of open disk FD's is above the 'max_open_disk_fds'
 	  limit.  Otherwise, a very loaded cache will end up with
 	  all disk files open for reading, and none for writing.
+	- Added lib/inet_ntoa.c from BSD Unix for systems that have
+	  broken inet_ntoa().  (Erik Hofman).
 
 Changes to Squid-2.1 (November 16, 1998):
 

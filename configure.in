@@ -1264,10 +1264,12 @@ if test "$INET_NTOA_RESULT" = "1.2.3.4" ; then
 	AC_MSG_RESULT("yes")
 else
 	AC_MSG_RESULT("no")
-	echo "WARNING: This looks bad, and probably prevents Squid from working."
-	echo "         If you're on IRIX and using GCC 2.8, you probably need"
-	echo "         to use the IRIX C compiler instead."
-	sleep 10
+	echo "Will use our own inet_ntoa()."
+	LIBOBJS="$LIBOBJS net_ntoa.o"
+#	echo "WARNING: This looks bad, and probably prevents Squid from working."
+#	echo "         If you're on IRIX and using GCC 2.8, you probably need"
+#	echo "         to use the IRIX C compiler instead."
+#	sleep 10
 fi
 
 if test "$ac_cv_func_statvfs" = "yes" ; then
