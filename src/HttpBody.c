@@ -84,7 +84,7 @@ void
 httpBodyPackInto(const HttpBody * body, Packer * p)
 {
     assert(body && p);
-    /* assume it was a 0-terminating buffer */
+    /* assume it was a 0-terminated buffer */
     if (body->size)
 	packerAppend(p, body->buf, body->size - 1);
 }

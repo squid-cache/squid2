@@ -227,6 +227,7 @@ accessLogLog(AccessLogEntry * al)
     if (!al->http.content_type || *al->http.content_type == '\0')
 	al->http.content_type = dash_str;
     if (!al->cache.ident || *al->cache.ident == '\0') {
+	/* argh, binary headers did not come through */
 	t = mime_get_header(al->headers.request, "Proxy-authorization:");
 	if (t == NULL) {
 	    al->cache.ident = dash_str;

@@ -1053,8 +1053,6 @@ netdbExchangeStart(void *data)
 #if OLD_CODE
     ex->r->headers = xstrdup("\r\n");
     ex->r->headers_sz = strlen(ex->r->headers);
-#else
-    httpRequestSetHeaders(ex->r, METHOD_GET, uri, "");
 #endif
     ex->r->http_ver = 1.0;
     ex->e = storeCreateEntry(uri, uri, 0, METHOD_GET);

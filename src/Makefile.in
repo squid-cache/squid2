@@ -110,6 +110,7 @@ OBJS	 	= \
 		HttpHeader.o \
 		HttpHeaderTools.o \
 		HttpBody.o \
+		HttpMsg.o \
 		HttpReply.o \
 		HttpRequest.o \
 		icmp.o \
