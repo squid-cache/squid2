@@ -544,7 +544,7 @@ info_get(StoreEntry * sentry)
 	statCPUUsage(60));
 #if HAVE_SBRK
     storeAppendPrintf(sentry, "\tProcess Data Segment Size via sbrk(): %d KB\n",
-	(sbrk(0) - sbrk_start) >> 10);
+	(int) (((char *) sbrk(0) - (char *) sbrk_start) >> 10));
 #endif
     storeAppendPrintf(sentry, "\tMaximum Resident Size: %d KB\n",
 	rusage_maxrss(&rusage));
