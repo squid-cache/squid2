@@ -193,7 +193,7 @@ void httpHeaderTestParser(const char *hstr)
     MemBuf mb;
     assert(hstr);
     /* do not print too much, kludge */
-    if (bug_count > 100 && (lrand48() % bug_count) > 50L)
+    if (bug_count > 50 && (lrand48() % bug_count) > 25L)
 	return;
     /* skip start line if any */
     if (!strncasecmp(hstr, "HTTP/", 5)) {
