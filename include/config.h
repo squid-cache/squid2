@@ -162,6 +162,7 @@
 #define xisdigit(x) isdigit((unsigned char)x)
 #define xisascii(x) isascii((unsigned char)x)
 #define xislower(x) islower((unsigned char)x)
+#define xisupper(x) islower((unsigned char)x)
 #define xisalpha(x) isalpha((unsigned char)x)
 #define xisalnum(x) isalnum((unsigned char)x)
 #define xisgraph(x) isgraph((unsigned char)x)
