@@ -11,3 +11,4 @@ INCLUDES	= -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
 
 libexec_PROGRAMS	= sasl_auth
 LDADD			= -lsasl $(XTRA_LIBS)
+EXTRA_DIST		= squid_sasl_auth squid_sasl_auth.conf
