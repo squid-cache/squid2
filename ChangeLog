@@ -277,3 +277,12 @@ Changes to squid-1.0.beta15 (June 9, 1996):
 	  memcpy.
 	- Fixed coredump bug from partial dnsserver reads, manifest on
 	  FreeBSD and NetBSD.
+
+Changes to squid-1.0.beta15 (June 10, 1996):
+
+	- Fixed two coredump-causing bugs in ipcache_unregister().
+	- Changed 'close_handler' to a linked list.
+	- Changed freeing of protodispatch_data structures to use
+	  new close_handler (attached to client FD).
+	- Fixed URL handling to accomodate browswers which do not handle
+	  relative URL parsing.
