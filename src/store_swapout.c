@@ -366,8 +366,8 @@ storeSwapOutAble(const StoreEntry * e)
 	if (((store_client *) node->data)->type == STORE_DISK_CLIENT)
 	    return 1;
     }
-    if (store_dirs_rebuilding)
-	if (!EBIT_TEST(e->flags, ENTRY_SPECIAL))
-	    return 0;
+    /* Don't pollute the disk with icons and other special entries */
+    if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
+	return 0;
     return EBIT_TEST(e->flags, ENTRY_CACHABLE);
 }
