@@ -941,7 +941,7 @@ icpUdpReply(int fd, icpUdpData * queue)
 		result = COMM_ERROR;
 	}
 	UdpQueueHead = queue->next;
-	if (queue->logcode)
+	if (queue->logcode && Config.Options.log_udp)
 	    icpLogIcp(queue);
 	safe_free(queue->msg);
 	safe_free(queue);

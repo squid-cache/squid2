@@ -991,6 +991,12 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #
 #forwarded_for on
 
+#  TAG:	log_icp_queries on|off
+#	If set, ICP queries are logged to access.log.  ICP logging
+#	is enabled by default, so uncomment and change the line
+#	below to disable it.
+#log_icp_queries on
+
 
 #  TAG: minimum_direct_hops
 #	If using the ICMP pinging stuff, do direct fetches for sites

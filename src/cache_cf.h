@@ -265,6 +265,9 @@ struct SquidConfig {
 	int low;
 	int ttl;
     } Netdb;
+    struct {
+	int log_udp;
+    } Options;
 };
 
 extern struct SquidConfig Config;
