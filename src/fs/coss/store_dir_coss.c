@@ -831,7 +831,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     max_offset = (off_t) 0xFFFFFF << cs->blksz_bits;
     if (sd->max_size > (max_offset >> 10)) {
 	debug(47, 0) ("COSS block-size = %d bytes\n", 1 << cs->blksz_bits);
-	debug(47, 0) ("COSS largest file offset = %llu KB\n", max_offset >> 10);
+	debug(47, 0) ("COSS largest file offset = %lu KB\n", (unsigned long) max_offset >> 10);
 	debug(47, 0) ("COSS cache_dir size = %d KB\n", sd->max_size);
 	fatal("COSS cache_dir size exceeds largest offset\n");
     }
