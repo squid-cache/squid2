@@ -31,8 +31,8 @@
 
 #include "squid.h"
 
-
 #if USE_ICMP
+
 static hash_table *addr_table = NULL;
 static hash_table *host_table = NULL;
 
