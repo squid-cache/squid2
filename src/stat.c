@@ -950,6 +950,8 @@ statAvgTick(void *notused)
 #elif HAVE_MALLINFO && HAVE_STRUCT_MALLINFO
 	struct mallinfo mp = mallinfo();
 	i = mp.arena;
+#elif HAVE_SBRK
+	i = (size_t) ((char *) sbrk(0) - (char *) sbrk_start);
 #endif
 	if (Config.warnings.high_memory < i)
 	    debug(18, 0) ("WARNING: Memory usage at %d MB\n", i >> 20);
