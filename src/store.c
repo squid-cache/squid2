@@ -133,7 +133,8 @@ destroy_MemObject(StoreEntry * e)
     const Ctx ctx = ctx_enter(mem->url);
     debug(20, 3) ("destroy_MemObject: destroying %p\n", mem);
     e->mem_obj = NULL;
-    assert(mem->swapout.fd == -1);
+    if (!shutting_down)
+        assert(mem->swapout.fd == -1);
     stmemFree(&mem->data_hdr);
     mem->inmem_hi = 0;
     /* XXX account log_url */
