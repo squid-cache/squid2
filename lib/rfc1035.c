@@ -415,6 +415,8 @@ rfc1035AnswersUnpack(const char *buf,
 	assert(off <= sz);
     }
     i = (int) hdr.ancount;
+    if (i == 0)
+	return 0;
     recs = calloc(i, sizeof(*recs));
     while (i--) {
 	off = rfc1035RRUnpack(buf, sz, off, &recs[i]);
