@@ -393,7 +393,7 @@ mimeLoadIconFile(const char *icon)
     LOCAL_ARRAY(char, url, MAX_URL);
     char *buf;
     const char *type = mimeGetContentType(icon);
-    HttpHdrCc *cc;
+    HttpReply *reply;
     if (type == NULL)
 	fatal("Unknown icon format while reading mime.conf\n");
     buf = internalLocalUri("/squid-internal-static/icons/", icon);
@@ -419,14 +419,13 @@ mimeLoadIconFile(const char *icon)
     assert(e != NULL);
     storeSetPublicKey(e);
     e->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
-    httpReplyReset(e->mem_obj->reply);
-    httpReplySetHeaders(e->mem_obj->reply, 1.0, HTTP_OK, NULL,
+    httpReplyReset(reply = e->mem_obj->reply);
+    httpReplySetHeaders(reply, 1.0, HTTP_OK, NULL,
 	type, (int) sb.st_size, sb.st_mtime, -1);
-    cc = httpHdrCcCreate();
-    httpHdrCcSetMaxAge(cc, 86400);
-    httpHeaderPutCc(&e->mem_obj->reply->header, cc);
-    httpReplySwapOut(e->mem_obj->reply, e);
-    httpHdrCcDestroy(cc);
+    reply->cache_control = httpHdrCcCreate();
+    httpHdrCcSetMaxAge(reply->cache_control, 86400);
+    httpHeaderPutCc(&reply->header, reply->cache_control);
+    httpReplySwapOut(reply, e);
     /* read the file into the buffer and append it to store */
     buf = memAllocate(MEM_4K_BUF);
     while ((n = read(fd, buf, 4096)) > 0)
