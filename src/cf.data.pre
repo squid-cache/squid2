@@ -1288,7 +1288,7 @@ DOC_START
 	to replay attacks unless you are using an one-time password
 	system (such as SecureID).  If you are using such a system,
 	you will be vulnerable to replay attacks unless you also
-	enable the IP ttl is strict option.
+	use the max_user_ip ACL in an http_access rule.
 
 	=== Parameters for the digest scheme follow ===
 
