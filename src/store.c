@@ -561,6 +561,7 @@ storeAbort(StoreEntry * e, int cbflag)
     assert(e->store_status == STORE_PENDING);
     assert(mem != NULL);
     debug(20, 6) ("storeAbort: %s\n", storeKeyText(e->key));
+    storeLockObject(e);		/* lock while aborting */
     storeNegativeCache(e);
     storeReleaseRequest(e);
     e->store_status = STORE_ABORTED;
@@ -585,18 +586,17 @@ storeAbort(StoreEntry * e, int cbflag)
 #if USE_ASYNC_IO
     aioCancel(-1, e);
 #endif
-    if (e->swap_file_number == -1)
-	return;
+    if (e->swap_file_number > -1) {
 #if USE_ASYNC_IO
-    /* Need to cancel any pending ASYNC writes right now */
-    if (mem->swapout.fd >= 0)
-	aioCancel(mem->swapout.fd, NULL);
+	/* Need to cancel any pending ASYNC writes right now */
+	if (mem->swapout.fd >= 0)
+	    aioCancel(mem->swapout.fd, NULL);
 #endif
-    /* but dont close if a disk write is queued, the handler will close up */
-    if (mem->swapout.queue_offset > mem->swapout.done_offset)
-	return;
-    /* we do */
-    storeSwapOutFileClose(e);
+	/* we have to close the disk file if there is no write pending */
+	if (mem->swapout.queue_offset == mem->swapout.done_offset)
+	    storeSwapOutFileClose(e);
+    }
+    storeUnlockObject(e);	/* unlock */
 }
 
 /* Clear Memory storage to accommodate the given object len */
@@ -1131,8 +1131,8 @@ HttpReply *
 storeEntryReply(StoreEntry * e)
 {
     if (NULL == e)
-       return NULL;
+	return NULL;
     if (NULL == e->mem_obj)
-       return NULL;
+	return NULL;
     return e->mem_obj->reply;
 }
