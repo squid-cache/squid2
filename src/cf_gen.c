@@ -119,13 +119,18 @@ main(int argc, char *argv[])
     enum State state;
     int rc = 0;
     char *ptr = NULL;
+#ifdef _SQUID_OS2_
+    const char *rmode = "rt";
+#else
+    const char *rmode = "r";
+#endif
 
     /*-------------------------------------------------------------------*
      * Parse input file
      *-------------------------------------------------------------------*/
 
     /* Open input file */
-    if ((fp = fopen(input_filename, "r")) == NULL) {
+    if ((fp = fopen(input_filename, rmode)) == NULL) {
 	perror(input_filename);
 	exit(1);
     }

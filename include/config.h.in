@@ -103,6 +103,19 @@
 #elif defined(sony_news) && defined(__svr4)
 #define _SQUID_NEWSOS6_
 
+#elif defined(__EMX__) || defined(OS2) || defined(__OS2__)
+#define _SQUID_OS2_
+/*
+ *  FIXME: the os2 port of bash seems to have problems checking
+ *  the return codes of programs in if statements.  These options
+ *  need to be overridden.
+ */
+#ifndef socklen_t
+#define socklen_t int
+#endif
+#ifndef fd_mask
+#define fd_mask unsigned long
+#endif
 #endif
 
 #if !defined(CACHE_HTTP_PORT)

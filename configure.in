@@ -28,7 +28,7 @@ fi
 
 dnl use .exe suffix for executables on cygwin32 platform
 case "$host_os" in
-cygwin32)
+cygwin32|os2)
 	exec_suffix=".exe"
 	cgi_suffix=".exe"
 	;;

@@ -143,9 +143,18 @@ file_close(int fd)
 	callback(-1, F->read_data);
     }
     if (F->flags.write_daemon) {
+#if defined(_SQUID_MSWIN_) || defined(_SQUID_OS2_)
+	/*
+	 * on some operating systems, you can not delete or rename
+	 * open files, so we won't allow delayed close.
+	 */
+	while (!diskWriteIsComplete(fd))
+	    diskHandleWrite(fd, NULL);
+#else
 	F->flags.close_request = 1;
 	debug(6, 2) ("file_close: FD %d, delaying close\n", fd);
 	return;
+#endif
     }
     /*
      * Assert there is no write callback.  Otherwise we might be

@@ -360,6 +360,9 @@ static void
 setEffectiveUser(void)
 {
     leave_suid();		/* Run as non privilegied user */
+#ifdef _SQUID_OS2_
+    return;
+#endif
     if (geteuid() == 0) {
 	debug(0, 0) ("Squid is not safe to run as root!  If you must\n");
 	debug(0, 0) ("start Squid as root, then you must configure\n");

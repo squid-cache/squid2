@@ -111,6 +111,14 @@ cachemgrParseUrl(const char *url)
     t = sscanf(url, "cache_object://%[^/]/%[^@]@%s", host, request, password);
     if (t < 2) {
 	xstrncpy(request, "menu", MAX_URL);
+#ifdef _SQUID_OS2_
+    /*
+     * emx's sscanf insists of returning 2 because it sets request
+     * to null
+     */
+    } else if (request[0] == '\0') {
+	xstrncpy(request, "menu", MAX_URL);
+#endif
     } else if ((a = cachemgrFindAction(request)) == NULL) {
 	debug(16, 1) ("cachemgrParseUrl: action '%s' not found\n", request);
 	return NULL;

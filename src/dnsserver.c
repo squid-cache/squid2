@@ -158,6 +158,11 @@ struct hostent *_res_gethostbyname(char *name);
 
 static struct in_addr no_addr;
 
+#ifdef _SQUID_OS2_
+struct state _res =
+{0};				/* it's not in any of the libraries */
+#endif
+
 /* error messages from gethostbyname() */
 static char *
 my_h_msgs(int x)

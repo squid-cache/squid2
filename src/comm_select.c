@@ -610,6 +610,10 @@ comm_select(int msec)
 	}
 	if (msec > MAX_POLL_TIME)
 	    msec = MAX_POLL_TIME;
+#ifdef _SQUID_OS2_
+	if (msec < 0)
+	    msec = MAX_POLL_TIME;
+#endif
 	for (;;) {
 	    poll_time.tv_sec = msec / 1000;
 	    poll_time.tv_usec = (msec % 1000) * 1000;
