@@ -1898,6 +1898,7 @@ clientReadRequest(int fd, void *data)
 		errorSend(fd, err);
 		continue;	/* while offset > 0 */
 	    }
+	    request->client_addr = conn->peer.sin_addr;
 	    request->http_ver = http->http_ver;
 	    request->headers = headers;
 	    request->headers_sz = headers_sz;

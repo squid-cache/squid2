@@ -1002,6 +1002,7 @@ httpBuildState(int fd, StoreEntry * entry, request_t * orig_request, peer * e)
     }
     /* register the handler to free HTTP state data when the FD closes */
     comm_add_close_handler(httpState->fd, httpStateFree, httpState);
+    storeRegisterAbort(entry, httpAbort, httpState);
     return httpState;
 }
 
@@ -1044,7 +1045,6 @@ httpStart(request_t * request, StoreEntry * entry, peer * e)
     if ((fd = httpSocketOpen(entry, NULL)) < 0)
 	return;
     httpState = httpBuildState(fd, entry, request, e);
-    storeRegisterAbort(entry, httpAbort, httpState);
     commSetTimeout(httpState->fd,
 	Config.Timeout.connect,
 	httpTimeout,

@@ -51,6 +51,7 @@ static char *objcacheOpcodeStr[] =
     "remove",
     "reply_headers",
     "server_list",
+    "non_peers",
     "shutdown",
     "utilization",
     "vm_objects",

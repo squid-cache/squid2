@@ -613,7 +613,7 @@ main(int argc, char **argv)
 	if (rotate_pending) {
 	    icmpClose();
 	    _db_rotate_log();	/* cache.log */
-	    storeWriteCleanLogs();
+	    storeWriteCleanLogs(1);
 	    storeRotateLog();	/* store.log */
 	    accessLogRotate();	/* access.log */
 	    useragentRotateLog();	/* useragent.log */

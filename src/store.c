@@ -1629,7 +1629,7 @@ storeCheckSwapable(StoreEntry * e)
     } else if (e->mem_obj->e_current_len > Config.Store.maxObjectSize) {
 	debug(20, 2) ("storeCheckSwapable: NO: too big\n");
     } else if (BIT_TEST(e->flag, KEY_PRIVATE)) {
-	debug(20, 1) ("storeCheckSwapable: NO: private key\n");
+	debug(20, 3) ("storeCheckSwapable: NO: private key\n");
     } else {
 	return 1;
     }
@@ -2391,7 +2391,7 @@ storeMaintainSwapSpace(void *unused)
  *  Writes a "clean" swap log file from in-memory metadata.
  */
 int
-storeWriteCleanLogs(void)
+storeWriteCleanLogs(int reopen)
 {
     StoreEntry *e = NULL;
     int *fd;
@@ -2482,7 +2482,8 @@ storeWriteCleanLogs(void)
 	}
     }
     storeDirCloseSwapLogs();
-    storeDirOpenSwapLogs();
+    if (reopen)
+	storeDirOpenSwapLogs();
     stop = squid_curtime;
     r = stop - start;
     debug(20, 1) ("  Finished.  Wrote %d lines.\n", n);

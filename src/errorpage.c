@@ -151,7 +151,7 @@ errorConvert(char token, ErrorState * err)
     }
     if (p == NULL)
 	p = "<NULL>";
-    debug(4, 1) ("errorConvert: %%%c --> '%s'\n", token, p);
+    debug(4, 3) ("errorConvert: %%%c --> '%s'\n", token, p);
     return p;
 }
 

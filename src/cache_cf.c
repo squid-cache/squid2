@@ -1129,4 +1129,3 @@ configFreeMemory(void)
 {
     free_all();
 }
-
