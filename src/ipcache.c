@@ -1014,6 +1014,10 @@ ipcacheLockEntry(ipcache_entry * i)
 static void
 ipcacheUnlockEntry(ipcache_entry * i)
 {
+    if (i->locks == 0) {
+	debug_trap("ipcacheUnlockEntry: Entry has no locks");
+	return;
+    }
     i->locks--;
     if (ipcacheExpiredEntry(i))
 	ipcache_release(i);
