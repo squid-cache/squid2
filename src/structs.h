@@ -396,6 +396,7 @@ struct _SquidConfig {
 	int prefer_direct;
 	int strip_query_terms;
 	int redirector_bypass;
+	int ignore_unknown_nameservers;
     } onoff;
     acl *aclList;
     struct {

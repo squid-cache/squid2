@@ -306,12 +306,17 @@ idnsRead(int fd, void *data)
 	    len,
 	    inet_ntoa(from.sin_addr));
 	ns = idnsFromKnownNameserver(&from);
-	if (ns < 0) {
-	    debug(78, 1) ("idnsRead: Reply from unknown nameserver [%s]\n",
-		inet_ntoa(from.sin_addr));
+	if (ns >= 0) {
+	    nameservers[ns].nreplies++;
+	} else if (Config.onoff.ignore_unknown_nameservers) {
+	    static time_t last_warning = 0;
+	    if (squid_curtime - last_warning > 60) {
+		debug(78, 1) ("WARNING: Reply from unknown nameserver [%s]\n",
+		    inet_ntoa(from.sin_addr));
+		last_warning = squid_curtime;
+	    }
 	    continue;
 	}
-	nameservers[ns].nreplies++;
 	idnsGrokReply(rbuf, len);
     }
     if (lru_list.head)

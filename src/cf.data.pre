@@ -3011,4 +3011,17 @@ DOC_START
 	be allowed to request.
 DOC_END
 
+NAME: ignore_unknown_nameservers
+TYPE: onoff
+LOC: Config.onoff.ignore_unknown_nameservers
+DEFAULT: on
+DOC_START
+	By default Squid checks that DNS responses are received
+	from the same IP addresses that they are sent to.  If they
+	don't match, Squid ignores the response and writes a warning
+	message to cache.log.  You can allow responses from unknown
+	nameservers by setting this option to 'off'.
+ignore_unknown_nameservers on
+DOC_END
+
 EOF
