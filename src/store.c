@@ -598,7 +598,7 @@ void storeSetPublicKey(e)
 
     newkey = storeGeneratePublicKey(e->url, e->method);
     while ((table_entry = hash_lookup(table, newkey))) {
-	debug(20, 0, "storeSetPublicKey: Making old '%s' private.\n", newkey);
+	debug(20, 3, "storeSetPublicKey: Making old '%s' private.\n", newkey);
 	e2 = (StoreEntry *) table_entry;
 	storeSetPrivateKey(e2);
 	storeReleaseRequest(e2);
