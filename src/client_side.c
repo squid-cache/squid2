@@ -1626,6 +1626,7 @@ clientReadRequest(int fd, void *data)
 	    err = errorCon(ERR_INVALID_REQ, HTTP_BAD_REQUEST);
 	    err->callback = clientErrorComplete;
 	    err->callback_data = NULL;
+	    err->request_hdrs = xstrdup(conn->in.buf);
 	    errorSend(fd, err);
 	    return;
 	}
@@ -1662,7 +1663,7 @@ httpAcceptDefer(int fdnotused, void *notused)
     return !fdstat_are_n_free_fd(RESERVED_FD);
 }
 
-/* Handle a new connection on ascii input socket. */
+/* Handle a new connection on HTTP socket. */
 void
 httpAccept(int sock, void *notused)
 {
