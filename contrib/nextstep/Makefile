@@ -1,11 +1,13 @@
 PRG=Squid
-REL=1.1.10
 
-pkg:
+FILENAME=`basename ${PRG}-*.pkg`
+
+${FILENAME}:
 	./makepkg
+	cp -p Squid.README ${FILENAME}.README
 
-tar:
-	gnutar zcvf ${PRG}-${REL}.pkg.tar.gz ${PRG}-${REL}.pkg
+tar: ${FILENAME}
+	gnutar zcvf ${FILENAME}.tar.gz ${FILENAME} ${FILENAME}.README
 
 clean:
-	rm -rf ${PRG}-${REL}.pkg ${PRG}-${REL}.pkg.tar.gz
+	rm -rf ${FILENAME} ${FILENAME}.tar.gz ${FILENAME}.README

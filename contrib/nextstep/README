@@ -1,1 +1,2 @@
-Run ./makepkg after you have run make install in ../..
+First run 'make install' from directory ../..
+Then run './makepkg' from this directory

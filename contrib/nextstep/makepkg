@@ -11,7 +11,11 @@ failed()
 [ `/usr/ucb/whoami` = root ] || failed "must be super user"
 
 PRG=Squid
-REL=1.1.10
+SRCDIR=`cd ../..;pwd`
+REL=`basename $SRCDIR | sed 's/.*-//'`
+
+# Make info file from info.in:
+cat info.in | sed "s/--VERSION--/$REL/" | sed "s/--DATE--/`date`/" >info
 
 TMPDIR=/tmp/${PRG}-${REL}
 rm -rf ${TMPDIR}
@@ -31,7 +35,10 @@ strip ${TMPDIR}/usr/local/squid/bin/*
 /NextAdmin/Installer.app/package /tmp/${PRG}-${REL} ${PRG}-${REL}.info
 cp ${PRG}-${REL}.pre_install ${PRG}-${REL}.pkg
 cp ${PRG}-${REL}.post_install ${PRG}-${REL}.pkg
+cp -p $PRG}.README ${PRG{-${REL}.pkg.README
+
 for f in post_install pre_install info
 do
 	rm ${PRG}-${REL}.${f}
 done
+rm info
