@@ -495,7 +495,7 @@ clientPurgeRequest(clientHttpRequest * http)
 	http->http_code = HTTP_OK;
     }
     msg = httpReplyHeader(1.0, http->http_code, NULL, 0, 0, -1);
-    if ((int)strlen(msg) < 8190)
+    if ((int) strlen(msg) < 8190)
 	strcat(msg, "\r\n");
     comm_write(fd, xstrdup(msg), strlen(msg), clientWriteComplete, http, xfree);
 }
