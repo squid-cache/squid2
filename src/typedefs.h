@@ -55,7 +55,7 @@ typedef long squid_off_t;
 
 #if LARGE_CACHE_FILES
 typedef squid_off_t squid_file_sz;
-#define SIZEOF_SQUID_FILE_SZ SQUIDOF_SQUID_OFF_T
+#define SIZEOF_SQUID_FILE_SZ SIZEOF_SQUID_OFF_T
 #else
 typedef size_t squid_file_sz;
 #define SIZEOF_SQUID_FILE_SZ SIZEOF_SIZE_T
