@@ -412,7 +412,7 @@ protoCancelTimeout(int fd, StoreEntry * entry)
     /* If fd = 0 then this thread was called from neighborsUdpAck and
      * we must look up the FD in the pending list. */
     if (!fd)
-	fd = entry->mem_obj->fd_of_first_client;
+	fd = storeFirstClientFD(entry->mem_obj);
     if (fd < 1) {
 	debug(17, 1, "protoCancelTimeout: No client for '%s'\n", entry->url);
 	return;

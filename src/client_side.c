@@ -394,7 +394,6 @@ icpProcessExpired(int fd, void *data)
 	entry->lastmod);
 
     entry->refcount++;		/* EXPIRED CASE */
-    entry->mem_obj->fd_of_first_client = fd;
     icpState->entry = entry;
     icpState->offset = 0;
     /* Register with storage manager to receive updates when data comes in. */

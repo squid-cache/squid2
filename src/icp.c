@@ -872,7 +872,6 @@ icpProcessMISS(int fd, icpStateData * icpState)
     storeClientListAdd(entry, fd, 0);
 
     entry->refcount++;		/* MISS CASE */
-    entry->mem_obj->fd_of_first_client = fd;
     icpState->entry = entry;
     icpState->offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
@@ -2144,6 +2143,10 @@ icpHandleAbort(int fd, StoreEntry * entry, void *data)
 	return;
     }
     if (icpState->size > 0) {
+	comm_close(fd);
+	return;
+    }
+    if (entry->mem_obj->e_abort_msg == NULL) {
 	comm_close(fd);
 	return;
     }

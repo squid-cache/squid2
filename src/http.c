@@ -670,7 +670,7 @@ httpSendRequest(int fd, void *data)
     /* Add Forwarded: header */
     ybuf = get_free_4k_page();
     if (entry->mem_obj)
-	cfd = entry->mem_obj->fd_of_first_client;
+	cfd = storeFirstClientFD(entry->mem_obj);
     if (cfd > -1 && opt_forwarded_for) {
 	sprintf(ybuf, "%s for %s\r\n", ForwardedBy, fd_table[cfd].ipaddr);
     } else {
