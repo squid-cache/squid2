@@ -986,9 +986,8 @@ extern void errorSend(int fd, ErrorState *);
 extern void errorAppendEntry(StoreEntry *, ErrorState *);
 extern void errorStateFree(ErrorState * err);
 extern void errorInitialize(void);
-extern void errorFreeMemory(void);
 extern int errorReservePageId(const char *page_name);
-extern void errorFree(void);
+extern void errorFreeMemory(void);
 extern ErrorState *errorCon(err_type type, http_status);
 
 extern void pconnPush(int, const char *host, u_short port);

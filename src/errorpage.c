@@ -106,26 +106,17 @@ errorInitialize(void)
 	/* hard-coded ? */
 	if ((text = errorFindHardText(i)))
 	    error_text[i] = xstrdup(text);
-	else
+	else if (i < ERR_MAX) {
 	    /* precompiled ? */
-	if (i < ERR_MAX)
 	    error_text[i] = errorLoadText(err_type_str[i]);
-	/* dynamic */
-	else {
+	} else {
+	    /* dynamic */
 	    ErrorDynamicPageInfo *info = ErrorDynamicPages.items[i - ERR_MAX];
 	    assert(info && info->id == i && info->page_name);
 	    error_text[i] = errorLoadText(info->page_name);
 	}
 	assert(error_text[i]);
     }
-}
-
-void
-errorFreeMemory(void)
-{
-    err_type i;
-    for (i = ERR_NONE, i++; i < error_page_count; i++)
-	safe_free(error_text[i]);
 }
 
 static const char *
@@ -219,11 +210,12 @@ errorPageName(int pageId)
     return "ERR_UNKNOWN"; /* should not happen */
 }
 
+
 void
-errorFree(void)
+errorFreeMemory(void)
 {
-    int i;
-    for (i = ERR_NONE + 1; i < error_page_count; i++)
+    err_type i;
+    for (i = ERR_NONE, i++; i < error_page_count; i++)
 	safe_free(error_text[i]);
     while (ErrorDynamicPages.count)
 	errorDynamicPageInfoDestroy(stackPop(&ErrorDynamicPages));
