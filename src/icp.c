@@ -8,6 +8,7 @@
 
 int neighbors_do_private_keys = 1;
 
+static char NotModified[] = "HTTP/1.0 304 Not Modified\r\n\r\n";
 static char *log_tags[] =
 {
     "LOG_NONE",
@@ -415,12 +416,12 @@ static int icpGetHeadersForIMS(fd, icpState)
      icpStateData *icpState;
 {
     StoreEntry *entry = icpState->entry;
-    char *buf = icpState->buf;
+    MemObject *mem = entry->mem_obj;
     int buf_len = icpState->offset;
     int len;
     int max_len = 8191 - buf_len;
-    char *p = buf + buf_len;
-    char *IMS_hdr;
+    char *p = icpState->buf + buf_len;
+    char *IMS_hdr = NULL;
     time_t IMS;
     int IMS_length;
     time_t date;
@@ -436,17 +437,14 @@ static int icpGetHeadersForIMS(fd, icpState)
     storeClientCopy(entry, icpState->offset, max_len, p, &len, fd);
     buf_len = icpState->offset = +len;
 
-    if (!mime_headers_end(buf)) {
+    if (!mime_headers_end(icpState->buf)) {
 	/* All headers are not yet available, wait for more data */
 	storeRegister(entry, fd, (PIF) icpHandleStoreIMS, (void *) icpState);
 	return COMM_OK;
     }
     /* All headers are available, check if object is modified or not */
     IMS_hdr = mime_get_header(icpState->request_hdr, "If-Modified-Since");
-    httpParseHeaders(buf, entry->mem_obj->reply);
-
-    /* Headers is no longer needed (they are parsed) */
-    icpFreeBufOrPage(icpState);
+    httpParseHeaders(icpState->buf, mem->reply);
 
     if (!IMS_hdr)
 	fatal_dump("icpGetHeadersForIMS: Cant find IMS header in request\n");
@@ -455,7 +453,7 @@ static int icpGetHeadersForIMS(fd, icpState)
 
     /* Only objects with statuscode==200 can be "Not modified" */
     /* XXX: Should we ignore this? */
-    if (entry->mem_obj->reply->code != 200)
+    if (mem->reply->code != 200)
 	return icpProcessMISS(fd, icpState);
     p = strtok(IMS_hdr, ";");
     IMS = parse_rfc850(p);
@@ -468,25 +466,32 @@ static int icpGetHeadersForIMS(fd, icpState)
     }
 
     /* Find date when the object last was modified */
-    if (*entry->mem_obj->reply->last_modified)
-	date = parse_rfc850(entry->mem_obj->reply->last_modified);
-    else if (*entry->mem_obj->reply->date)
-	date = parse_rfc850(entry->mem_obj->reply->date);
+    if (*mem->reply->last_modified)
+	date = parse_rfc850(mem->reply->last_modified);
+    else if (*mem->reply->date)
+	date = parse_rfc850(mem->reply->date);
     else
 	date = entry->timestamp;
 
     /* Find size of the object */
-    if (entry->mem_obj->reply->content_length)
-	length = entry->mem_obj->reply->content_length;
+    if (mem->reply->content_length)
+	length = mem->reply->content_length;
     else
-	length = entry->object_len - mime_headers_size(buf);
+	length = entry->object_len - mime_headers_size(icpState->buf);
+
+    /* Headers is no longer needed (they are parsed) */
+    icpFreeBufOrPage(icpState);
 
     /* Compare with If-Modified-Since header */
     if (IMS > date || (IMS == date && (IMS_length < 0 || IMS_length == length))) {
 	/* The object is not modified */
 	debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
-	strcpy(buf, "HTTP/1.0 304 Not modified\n\r\n\r");
-	comm_write(fd, "HTTP/1.0 304 Not modified\r\n\r\n", strlen("HTTP/1.0 304 Not modified\r\n\r\n"), 30, icpHandleIMSComplete, (void *) icpState);
+	comm_write(fd,
+		NotModified,
+		strlen(NotModified),
+		30,
+		icpHandleIMSComplete,
+		icpState);
 	return COMM_OK;
     } else {
 	debug(12, 4, "icpGetHeadersForIMS: We have newer '%s'\n", entry->url);
