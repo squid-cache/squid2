@@ -152,7 +152,6 @@ AC_ARG_ENABLE(dlmalloc,
    unset ac_cv_func_malloc_trim
    unset ac_cv_func_malloc_usable_size
    unset ac_cv_func_malloc_stats
-   unset ac_cv_func_mallinfo
    unset ac_cv_func_mallopt
    unset ac_cv_lib_gnumalloc
    unset ac_cv_header_gnumalloc_h
@@ -175,7 +174,6 @@ AC_ARG_ENABLE(dlmalloc,
     ac_cv_func_malloc_trim="yes"
     ac_cv_func_malloc_usable_size="yes"
     ac_cv_func_malloc_stats="yes"
-    ac_cv_func_mallinfo="yes"
     ac_cv_func_mallopt="yes"
     ac_cv_lib_gnumalloc="no"
     ac_cv_header_gnumalloc_h="no"
@@ -202,7 +200,6 @@ AC_ARG_ENABLE(dlmalloc,
     ac_cv_func_malloc_trim="yes"
     ac_cv_func_malloc_usable_size="yes"
     ac_cv_func_malloc_stats="yes"
-    ac_cv_func_mallinfo="yes"
     ac_cv_func_mallopt="yes"
     ac_cv_lib_gnumalloc="no"
     ac_cv_header_gnumalloc_h="no"
@@ -227,7 +224,6 @@ AC_ARG_ENABLE(dlmalloc,
    unset ac_cv_func_malloc_trim
    unset ac_cv_func_malloc_usable_size
    unset ac_cv_func_malloc_stats
-   unset ac_cv_func_mallinfo
    unset ac_cv_func_mallopt
    unset ac_cv_lib_gnumalloc
    unset ac_cv_header_gnumalloc_h
@@ -653,6 +649,27 @@ AC_CACHE_CHECK(for tm->tm_gmtoff,ac_cv_have_tm_gmoff, [
 ])
 if test $ac_cv_have_tm_gmoff = "yes" ; then
   AC_DEFINE(HAVE_TM_GMTOFF)
+fi
+
+AC_CACHE_CHECK(for struct mallinfo,ac_cv_have_struct_mallinfo, [
+  AC_TRY_COMPILE([#include <sys/types.h>
+#if HAVE_MALLOC_H
+#include <malloc.h>
+#endif],
+    [struct mallinfo foo;
+    foo.arena = 0;
+    foo.ordblks = 0;
+    foo.smblks = 0;
+    foo.hblks = 0;
+    foo.hblkhd = 0;
+    foo.uordblks = 0;
+    foo.fordblks = 0;
+    foo.keepcost = 0;],
+    ac_cv_have_struct_mallinfo="yes",
+    ac_cv_have_struct_mallinfo="no")
+])
+if test $ac_cv_have_struct_mallinfo = "yes" ; then
+  AC_DEFINE(HAVE_STRUCT_MALLINFO)
 fi
 
 AC_CACHE_CHECK(for extended mallinfo,ac_cv_have_ext_mallinfo, [

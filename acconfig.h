@@ -228,3 +228,7 @@
  */
 #undef HAVE_STATVFS
 
+/*
+ * we check for struct mallinfo
+ */
+#undef HAVE_STRUCT_MALLINFO
