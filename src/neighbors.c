@@ -440,7 +440,7 @@ neighborsUdpPing(request_t * request,
 	if (p->type == PEER_MULTICAST)
 	    mcastSetTtl(theOutIcpConnection, p->mcast.ttl);
 	reqnum = mem->reqnum;
-	debug(15, 3) ("neighborsUdpPing: key = '%s'\n", entry->key);
+	debug(15, 3) ("neighborsUdpPing: key = '%s'\n", storeKeyText(entry->key));
 	debug(15, 3) ("neighborsUdpPing: reqnum = %d\n", reqnum);
 
 	if (p->icp_port == echo_port) {
