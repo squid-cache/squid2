@@ -432,7 +432,7 @@ snmpUdpReply(int fd, void *data)
 	    queue->msg,
 	    queue->len);
 	if (x < 0) {
-	    if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)
+	    if (ignoreErrno(errno))
 		break;		/* don't de-queue */
 	}
 	snmpUdpHead = queue->next;
