@@ -141,6 +141,7 @@ static http_hdr_type ListHeadersArr[] =
     HDR_CONNECTION,
     HDR_IF_MATCH, HDR_IF_NONE_MATCH,
     HDR_LINK, HDR_PRAGMA,
+    HDR_PROXY_CONNECTION,
     /* HDR_TRANSFER_ENCODING, */
     HDR_UPGRADE,
     HDR_VARY,
