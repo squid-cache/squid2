@@ -39,16 +39,16 @@ static void ftpCloseAndFree(fd, data)
     if (fd >= 0)
 	comm_close(fd);
     if (data) {
-        if (data->reply_hdr) {
-            put_free_8k_page(data->reply_hdr, __FILE__, __LINE__);
-            data->reply_hdr = NULL;
-        }
-        if (data->icp_page_ptr) {
-            put_free_8k_page(data->icp_page_ptr, __FILE__, __LINE__);
-            data->icp_page_ptr = NULL;
-        }
-        if (data->icp_rwd_ptr)
-            safe_free(data->icp_rwd_ptr);
+	if (data->reply_hdr) {
+	    put_free_8k_page(data->reply_hdr, __FILE__, __LINE__);
+	    data->reply_hdr = NULL;
+	}
+	if (data->icp_page_ptr) {
+	    put_free_8k_page(data->icp_page_ptr, __FILE__, __LINE__);
+	    data->icp_page_ptr = NULL;
+	}
+	if (data->icp_rwd_ptr)
+	    safe_free(data->icp_rwd_ptr);
     }
     xfree(data);
 }
@@ -140,7 +140,7 @@ void ftpLifetimeExpire(fd, data)
 
 
 /* This is too much duplicated code from httpProcessReplyHeader.  Only
-difference is FtpData vs HttpData. */
+ * difference is FtpData vs HttpData. */
 static void ftpProcessReplyHeader(data, buf, size)
      FtpData *data;
      char *buf;			/* chunk just read by ftpReadReply() */
@@ -370,8 +370,8 @@ int ftpReadReply(fd, data)
 	    }
 	}
 	storeAppend(entry, buf, len);
-        if (data->reply_hdr_state < 2 && len > 0)
-            ftpProcessReplyHeader(data, buf, len);
+	if (data->reply_hdr_state < 2 && len > 0)
+	    ftpProcessReplyHeader(data, buf, len);
 	comm_set_select_handler(fd,
 	    COMM_SELECT_READ,
 	    (PF) ftpReadReply,
