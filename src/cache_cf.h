@@ -120,6 +120,11 @@ typedef struct _intlist {
     struct _intlist *next;
 } intlist;
 
+typedef struct _ushortlist {
+    u_short i;
+    struct _ushortlist *next;
+} ushortlist;
+
 typedef struct _relist {
     char *pattern;
     regex_t regex;
@@ -156,8 +161,7 @@ struct SquidConfig {
     int cleanRate;
     int maxRequestSize;
     struct {
-	u_short http[MAXHTTPPORTS];
-	int n_http;
+	ushortlist *http;
 	u_short icp;
     } Port;
     struct {
@@ -165,18 +169,14 @@ struct SquidConfig {
 	char *access;
 	char *store;
 	char *swap;
-#if USE_USERAGENT_LOG
 	char *useragent;
-#endif				/* USE_USERAGENT_LOG */
 	int rotateNumber;
 	int log_fqdn;
     } Log;
-#if USE_PROXY_AUTH
     struct {
 	char *File;
 	relist *IgnoreDomains;
     } proxyAuth;
-#endif				/* USE_PROXY_AUTH */
     char *adminEmail;
     char *effectiveUser;
     char *effectiveGroup;

@@ -202,7 +202,7 @@ proxyAuthenticate(const char *headers)
      * table of users and passwords handy */
     static time_t last_time = 0;
     static time_t change_time = 0;
-    static hash_table * validated = NULL;
+    static hash_table *validated = NULL;
     static char *passwords = NULL;
     LOCAL_ARRAY(char, sent_user, ICP_IDENT_SZ);
 
