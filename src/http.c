@@ -627,7 +627,7 @@ httpBuildRequestHeader(request_t * request,
     int cfd)
 {
     char *xbuf = get_free_4k_page();
-    char *ybuf = get_free_4k_page();
+    char *ybuf = get_free_8k_page();
     char *viabuf = get_free_4k_page();
     char *fwdbuf = get_free_4k_page();
     char *t = NULL;
@@ -718,7 +718,7 @@ httpBuildRequestHeader(request_t * request,
     }
     httpAppendRequestHeader(hdr_out, null_string, &len, out_sz);
     put_free_4k_page(xbuf);
-    put_free_4k_page(ybuf);
+    put_free_8k_page(ybuf);
     put_free_4k_page(viabuf);
     put_free_4k_page(fwdbuf);
     if (in_len)
