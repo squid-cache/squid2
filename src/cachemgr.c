@@ -626,7 +626,7 @@ main(int argc, char *argv[])
     int single = TRUE;
     float f1;
 
-    inaddr_none = inet_addr("X");
+    inaddr_none = inet_addr("255.255.255.255");
     now = time(NULL);
     if ((s = strrchr(argv[0], '/')))
 	progname = xstrdup(s + 1);

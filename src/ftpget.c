@@ -2569,7 +2569,7 @@ main(int argc, char *argv[])
     const struct hostent *hp = NULL;
     int c;
 
-    inaddr_none = inet_addr("X");
+    inaddr_none = inet_addr("255.255.255.255");
     fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
 	progname = xstrdup(t + 1);

@@ -628,7 +628,7 @@ main(int argc, char **argv)
     any_addr.s_addr = inet_addr("0.0.0.0");
     memset(&no_addr, '\0', sizeof(struct in_addr));
     no_addr.s_addr = inet_addr("255.255.255.255");
-    inaddr_none = inet_addr("X");
+    inaddr_none = inet_addr("255.255.255.255");
 
     errorInitialize();
 
