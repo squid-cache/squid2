@@ -134,7 +134,7 @@ SNMP_OBJS	= \
 ASYNC_OBJS	= \
 		aiops.o \
 		async_io.o
-		
+
 DEFAULTS        = \
 	-DDEFAULT_CONFIG_FILE=\"$(DEFAULT_CONFIG_FILE)\"
 
