@@ -1988,6 +1988,10 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    null_request_flags);
 		errorAppendEntry(http->entry, err);
 		httpReplyDestroy(rep);
+		/*
+		 * log with TCP_DENIED, the same as for http_access checks
+		 */
+		http->log_type = LOG_TCP_DENIED;
 		memFree(buf, MEM_CLIENT_SOCK_BUF);
 		return;
 	    }
