@@ -7,6 +7,7 @@ extern void death _PARAMS((int sig));
 extern void fatal _PARAMS((char *message));
 extern void fatal_dump _PARAMS((char *message));
 extern void rotate_logs _PARAMS((int sig));
+extern void sigusr2_handle _PARAMS((int sig));
 extern void shut_down _PARAMS((int sig));
 extern void sig_child _PARAMS((int sig));
 extern void leave_suid _PARAMS((void));

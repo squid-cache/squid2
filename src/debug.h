@@ -8,7 +8,7 @@ extern int _db_line;
 extern int syslog_enable;
 extern FILE *debug_log;
 
-void _db_init _PARAMS((char *logfile));
+void _db_init _PARAMS((char *logfile, char *options));
 #if defined(__STRICT_ANSI__)
 void _db_print _PARAMS((int, int, char *,...));
 #else

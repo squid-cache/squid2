@@ -137,6 +137,21 @@ void death(sig)
 }
 
 
+void sigusr2_handle(sig)
+     int sig;
+{
+    static int state = 0;
+    debug(21, 1, "sigusr2_handle: SIGUSR2 received.\n");
+    if (state == 0) {
+	_db_init(getCacheLogFile(), "ALL,10");
+	state = 1;
+    } else {
+	_db_init(getCacheLogFile(), getDebugOptions());
+	state = 0;
+    }
+    signal(sig, sigusr2_handle);	/* reinstall */
+}
+
 void rotate_logs(sig)
      int sig;
 {

@@ -195,7 +195,7 @@ static void mainReinitialize()
     neighborsDestroy();
 
     parseConfigFile(ConfigFile);
-    _db_init(getCacheLogFile());
+    _db_init(getCacheLogFile(), getDebugOptions());
     neighbors_init();
     ipcacheOpenServers();
     serverConnectionsOpen();
@@ -228,7 +228,7 @@ static void mainInitialize()
     if (udpPortNumOverride != 1)
 	setUdpPortNum((u_short) udpPortNumOverride);
 
-    _db_init(getCacheLogFile());
+    _db_init(getCacheLogFile(), getDebugOptions());
     fdstat_open(fileno(debug_log), LOG);
     fd_note(fileno(debug_log), getCacheLogFile());
 
@@ -273,6 +273,7 @@ static void mainInitialize()
 	neighbors_open(theUdpConnection);
 
     signal(SIGUSR1, rotate_logs);
+    signal(SIGUSR2, sigusr2_handle);
     signal(SIGHUP, reconfigure);
     signal(SIGTERM, shut_down);
     signal(SIGINT, shut_down);
