@@ -128,7 +128,7 @@ EXTRA_DIST = \
 INCLUDES = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
     -I$(top_srcdir)/src
 
-LDADD = -L$(top_builddir)/lib -lmiscutil -lntlmauth -lm
+LDADD = -L$(top_builddir)/lib -lmiscutil -lntlmauth $(XTRA_LIBS)
 subdir = src/auth/ntlm/helpers/winbind
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/autoconf.h
