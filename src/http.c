@@ -373,8 +373,7 @@ httpReadReply(int fd, void *data)
     errno = 0;
     read_sz = SQUID_TCP_SO_RCVBUF;
 #if DELAY_POOLS
-    read_sz = delayBytesWanted(delay_id, read_sz);
-    assert(read_sz > 0);
+    read_sz = delayBytesWanted(delay_id, 1, read_sz);
 #endif
     len = read(fd, buf, read_sz);
     debug(11, 5) ("httpReadReply: FD %d: len %d.\n", fd, len);

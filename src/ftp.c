@@ -806,8 +806,7 @@ ftpDataRead(int fd, void *data)
     errno = 0;
     read_sz = ftpState->data.size - ftpState->data.offset;
 #if DELAY_POOLS
-    read_sz = delayBytesWanted(delay_id, read_sz);
-    assert(read_sz > 0);
+    read_sz = delayBytesWanted(delay_id, 1, read_sz);
 #endif
     memset(ftpState->data.buf + ftpState->data.offset, '\0', read_sz);
     len = read(fd, ftpState->data.buf + ftpState->data.offset, read_sz);

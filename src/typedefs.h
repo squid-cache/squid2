@@ -228,6 +228,4 @@ typedef void (*ObjPackMethod) (void *obj, Packer * p);
 
 #if DELAY_POOLS
 typedef int delay_id;
-#else
-typedef int delay_id;
 #endif

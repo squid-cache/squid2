@@ -201,10 +201,12 @@ struct _relist {
     relist *next;
 };
 
+#if DELAY_POOLS
 struct _delay_spec {
     int restore_bps;
     int max_bytes;
 };
+#endif
 
 struct _SquidConfig {
     struct {

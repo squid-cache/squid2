@@ -1066,7 +1066,7 @@ extern int delayMostBytesWanted(const MemObject * mem, int max);
 extern int delayMostBytesAllowed(const MemObject * mem);
 extern void delayBytesIn(delay_id, int qty);
 extern void delaySetStoreClient(StoreEntry * e, void *data, delay_id delay_id);
-extern int delayBytesWanted(delay_id d, int max);
+extern int delayBytesWanted(delay_id d, int min, int max);
 #endif
 
 /*

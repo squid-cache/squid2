@@ -101,8 +101,7 @@ waisReadReply(int fd, void *data)
     errno = 0;
     read_sz = 4096;
 #if DELAY_POOLS
-    read_sz = delayBytesWanted(delay_id, read_sz);
-    assert(read_sz > 0);
+    read_sz = delayBytesWanted(delay_id, 1, read_sz);
 #endif
     len = read(fd, buf, read_sz);
     if (len > 0) {

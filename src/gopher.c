@@ -609,8 +609,7 @@ gopherReadReply(int fd, void *data)
     buf = memAllocate(MEM_4K_BUF);
     read_sz = 4096 - 1;		/* leave room for termination */
 #if DELAY_POOLS
-    read_sz = delayBytesWanted(delay_id, read_sz);
-    assert(read_sz > 0);
+    read_sz = delayBytesWanted(delay_id, 1, read_sz);
 #endif
     /* leave one space for \0 in gopherToHTML */
     len = read(fd, buf, read_sz);
