@@ -32,6 +32,9 @@ CRYPTLIB=''
 REGEXLIB=''	# -lregex
 LIBREGEX=''	# libregex.a
 
+dnl Check for pkg-config
+AC_PATH_PROG(PKGCONFIG, pkg-config, /usr/bin/false)
+
 dnl find out the exe extension for this platform. If it's not empty, use it for CGI's as well.
 AC_EXEEXT
 AC_OBJEXT
@@ -594,11 +597,9 @@ if test -n "$USE_OPENSSL"; then
   if test -z "$SSLLIB"; then
     SSLLIB="-lcrypto" # for MD5 routines
   fi
-  dnl This is a workaround for RedHat 9 brain damage..
-  if test -d /usr/kerberos/include && test -z "$SSLLIBDIR" && test -f /usr/include/openssl/kssl.h; then
-    echo "OpenSSL depends on Kerberos"
-    SSLLIBDIR="/usr/kerberos/lib"
-    CPPFLAGS="$CPPFLAGS -I/usr/kerberos/include"
+  if $PKGCONFIG --exists openssl; then
+    SSLLIB="`$PKGCONFIG --libs openssl`"
+    CPPFLAGS="`$PKGCONFIG --cflags openssl` $CPPFLAGS"
   fi
 fi
 if test -n "$SSLLIBDIR"; then
