@@ -929,7 +929,7 @@ char *fqdncache_gethostbyaddr(addr, flags)
     if (flags & FQDN_BLOCKING_LOOKUP) {
 	FqdncacheStats.ghba_calls++;
 	ip = inet_addr(name);
-	hp = gethostbyaddr(&ip, 4, AF_INET);
+	hp = gethostbyaddr((char *) &ip, 4, AF_INET);
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && fqdn_table) {
 	    /* good address, cached */
 	    fqdncache_add(name, fqdncache_create(), hp, 1);

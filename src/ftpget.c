@@ -2352,6 +2352,7 @@ int ftpget_srv_mode(arg)
     setpgrp(getpid(), 0);
 #endif
     sock = 3;
+    memset(&R, '\0', sizeof(R));
     for (;;) {
 	FD_ZERO(&R);
 	FD_SET(0, &R);
@@ -2386,8 +2387,6 @@ int ftpget_srv_mode(arg)
 	    close(c);
 	    continue;
 	}
-	buflen = 0;
-	memset(buf, '\0', BUFSIZ);
 	if ((flags = fcntl(c, F_GETFL, 0)) < 0)
 	    log_errno2(__FILE__, __LINE__, "fcntl F_GETFL");
 #ifdef O_NONBLOCK
@@ -2398,6 +2397,8 @@ int ftpget_srv_mode(arg)
 #endif
 	if (fcntl(c, F_SETFL, flags) < 0)
 	    log_errno2(__FILE__, __LINE__, "fcntl F_SETFL");
+	buflen = 0;
+	memset(buf, '\0', BUFSIZ);
 	do {
 	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) <= 0) {
 		if (n < 0)

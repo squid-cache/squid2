@@ -408,12 +408,12 @@ void *get_free_mem_obj()
 
 char *get_free_4k_page()
 {
-    return get_free_thing(&sm_stats);
+    return (char *) get_free_thing(&sm_stats);
 }
 
 char *get_free_8k_page()
 {
-    return get_free_thing(&disk_stats);
+    return (char *) get_free_thing(&disk_stats);
 }
 
 static void put_free_thing(thing, p)

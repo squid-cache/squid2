@@ -268,7 +268,7 @@ int main(argc, argv)
 #endif
 	    addrbuf = inet_addr(request);
 	    for (;;) {
-		result = gethostbyaddr(&addrbuf, 4, AF_INET);
+		result = gethostbyaddr((char *)&addrbuf, 4, AF_INET);
 		if (result || h_errno != TRY_AGAIN)
 		    break;
 		if (++retry_count == 2)
