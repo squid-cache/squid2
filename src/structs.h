@@ -45,7 +45,7 @@ struct _dlink_list {
     dlink_node *tail;
 };
 
-struct _acl_proxy_auth_data {
+struct _acl_user_data {
     splayNode *names;
     struct {
 	unsigned int case_insensitive:1;
