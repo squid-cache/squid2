@@ -377,7 +377,7 @@ static void ip_acl_destroy(a)
 	n = b->next;
 	safe_free(b);
     }
-    a = NULL;
+    *a = NULL;
 }
 
 ip_access_type ip_access_check(address, list)
