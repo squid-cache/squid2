@@ -29,7 +29,7 @@
  */
 
 /*
- * Copy\"right\" (c) 1994, 1995.  All \"right\"s reserved.
+ * Copyright (c) 1994, 1995.  All rights reserved.
  *  
  *   The Harvest software was developed by the Internet Research Task
  *   Force Research Group on Resource Discovery (IRTF-RD):
@@ -41,10 +41,10 @@
  *         Michael F. Schwartz of the University of Colorado at Boulder.
  *         Duane Wessels of the University of Colorado at Boulder.
  *  
- *   This copy\"right\" notice applies to software in the Harvest
+ *   This copyright notice applies to software in the Harvest
  *   ``src/'' directory only.  Users should consult the individual
- *   copy\"right\" notices in the ``components/'' subdirectories for
- *   copy\"right\" information about other software bundled with the
+ *   copyright notices in the ``components/'' subdirectories for
+ *   copyright information about other software bundled with the
  *   Harvest source code distribution.
  *  
  * TERMS OF USE
@@ -61,7 +61,7 @@
  *   The Harvest software is provided ``as is'', without express or
  *   implied warranty, and with no support nor obligation to assist
  *   in its use, correction, modification or enhancement.  We assume
- *   no liability with respect to the infringement of copy\"right\"s,
+ *   no liability with respect to the infringement of copyrights,
  *   trade secrets, or any patents, and are not responsible for
  *   consequential damages.  Proper use of the Harvest software is
  *   entirely the responsibility of the user.
@@ -71,7 +71,7 @@
  *   Users may make derivative works from the Harvest software, subject 
  *   to the following constraints:
  *  
- *     - You must include the above copy\"right\" notice and these 
+ *     - You must include the above copyright notice and these 
  *       accompanying paragraphs in all forms of derivative works, 
  *       and any documentation and other materials related to such 
  *       distribution and use acknowledge that the software was 
@@ -83,11 +83,11 @@
  *     - You must clearly notify users that your are distributing 
  *       a modified version and not the original Harvest software.
  *  
- *     - Any derivative product is also subject to these copy\"right\" 
+ *     - Any derivative product is also subject to these copyright 
  *       and use restrictions.
  *  
  *   Note that the Harvest software is NOT in the public domain.  We
- *   retain copy\"right\", as specified above.
+ *   retain copyright, as specified above.
  *  
  * HISTORY OF FREE SOFTWARE STATUS
  *  
@@ -787,7 +787,7 @@ int main(int argc, char *argv[])
 		    d1 = 0;
 		    sscanf(reserve, "%s %d \"%[^\"]", s1, &d1, s2);
 		    if (hasTables)
-			printf("<tr><td><STRONG>%s</STRONG><td ALIGN=\"\"right\"\">%d<td>%s\n", s1, d1, s2 + 2);
+			printf("<tr><td><STRONG>%s</STRONG><td ALIGN=\"right\">%d<td>%s\n", s1, d1, s2 + 2);
 		    else
 			printf("%14s %7d %s\n", s1, d1, s2 + 2);
 		    break;
