@@ -1006,7 +1006,7 @@ comm_select(time_t sec)
 		if (fd_table[i].stall_until <= squid_curtime) {
 		    nfds++;
 		    FD_SET(i, &readfds);
-	        }
+		}
 	    }
 	    if (fd_table[i].write_handler) {
 		nfds++;
