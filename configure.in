@@ -225,7 +225,7 @@ AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(malloc, main, [HAVE_LIBMALLOC="yes"; LIBS="$LIBS -lmalloc"])
 AC_CHECK_LIB(resolv, main)
 AC_CHECK_LIB(bsd, main)
-AC_CHECK_LIB(regex, main, [REGEXLIB="-lregex"]);
+AC_CHECK_LIB(regex, main, [REGEXLIB="-lregex"])
 
 dnl We found a version of libresolv on SunOS 4.x which requires -l44bsd
 dnl We have to first check to see if -l44bsd is present and has the
@@ -235,8 +235,8 @@ AC_CHECK_LIB(resolv, inet_aton, [if test "$HAVE_LIB44BSD" = "yes"; then LIBS="$L
 
 dnl Check for libcrypt
 dnl We use crypt(3) which may be in libc, or in libcrypt (eg FreeBSD)
-AC_CHECK_LIB(crypt, crypt, [CRYPT_LIB="-lcrypt"])
-AC_SUBST(CRYPT_LIB)
+AC_CHECK_LIB(crypt, crypt, [CRYPTLIB="-lcrypt"])
+AC_SUBST(CRYPTLIB)
 
 dnl Check for libshadow which is needed by the shadow password suite
 AC_CHECK_LIB(shadow, main)
