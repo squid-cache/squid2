@@ -142,13 +142,13 @@
 #endif
 
 
-typedef void (*PIF) (int, StoreEntry *, void *);
+typedef void PIF _PARAMS((int, StoreEntry *, void *));
 
 /* keep track each client receiving data from that particular StoreEntry */
 struct _store_client {
     int fd;
     int last_offset;
-    PIF callback;
+    PIF *callback;
     void *callback_data;
 };
 
@@ -176,7 +176,7 @@ struct _MemObject {
     request_t *request;
     int mime_hdr_sz;
     struct timeval start_ping;
-    IRCB icp_reply_callback;
+    IRCB *icp_reply_callback;
     void *ircb_data;
 };
 
@@ -257,7 +257,7 @@ extern void storeAppend _PARAMS((StoreEntry *, const char *, int));
 extern int storeGetMemSize _PARAMS((void));
 extern int storeGetSwapSize _PARAMS((void));
 extern int storeGetSwapSpace _PARAMS((int));
-extern void storeLockObject _PARAMS((StoreEntry *, SIH, void *));
+extern void storeLockObject _PARAMS((StoreEntry *, SIH *, void *));
 extern int storeRelease _PARAMS((StoreEntry *));
 extern int storeUnlockObject _PARAMS((StoreEntry *));
 extern int storeUnregister _PARAMS((StoreEntry *, int));
@@ -267,7 +267,7 @@ extern void storeStartDeleteBehind _PARAMS((StoreEntry *));
 extern int storeClientCopy _PARAMS((StoreEntry *, int, int, char *, int *, int));
 extern int storePendingNClients _PARAMS((const StoreEntry *));
 extern int storeWriteCleanLogs _PARAMS((void));
-extern int storeRegister _PARAMS((StoreEntry *, int, PIF, void *));
+extern int storeRegister _PARAMS((StoreEntry *, int, PIF *, void *));
 extern int urlcmp _PARAMS((const char *, const char *));
 extern void storeMaintainSwapSpace _PARAMS((void *unused));
 extern void storeExpireNow _PARAMS((StoreEntry *));

@@ -126,7 +126,7 @@ struct _aclCheck_t {
     char ident[ICP_IDENT_SZ];
     char browser[BROWSERNAMELEN];
     acl_lookup_state state[ACL_ENUM_MAX];
-    PF callback;
+    PF *callback;
     void *callback_data;
 };
 
@@ -135,7 +135,7 @@ extern void aclNBCheck _PARAMS((const struct _acl_access * A,
 	struct in_addr src_addr,
 	char *user_agent,
 	char *ident,
-	PF callback,
+	PF * callback,
 	void *callback_data));
 extern int aclCheckFast _PARAMS((const struct _acl_access * A, aclCheck_t *));
 extern int aclMatchAcl _PARAMS((struct _acl *, aclCheck_t *));

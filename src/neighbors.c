@@ -438,7 +438,7 @@ neighbors_open(int fd)
 int
 neighborsUdpPing(request_t * request,
     StoreEntry * entry,
-    IRCB callback,
+    IRCB * callback,
     void *callback_data,
     int *exprep)
 {

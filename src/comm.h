@@ -123,8 +123,8 @@
 #define COMM_SELECT_TIMEOUT (0x8)
 #define COMM_SELECT_LIFETIME (0x10)
 
-typedef void (*PF) (int, void *);
-typedef void (*CCH) _PARAMS((int fd, int status, void *data));
+typedef void PF _PARAMS((int, void *));
+typedef void CCH _PARAMS((int fd, int status, void *data));
 
 typedef void rw_complete_handler(int fd, char *buf, int size, int errflag, void *data);
 typedef struct _RWStateData RWStateData;
@@ -132,7 +132,7 @@ typedef struct _RWStateData RWStateData;
 #define FD_ASCII_NOTE_SZ 64
 
 struct close_handler {
-    PF handler;
+    PF *handler;
     void *data;
     struct close_handler *next;
 };
@@ -141,7 +141,7 @@ typedef struct {
     char *host;
     u_short port;
     struct sockaddr_in S;
-    CCH callback;
+    CCH *callback;
     void *data;
 } ConnectStateData;
 
@@ -153,16 +153,16 @@ typedef struct fde {
     char ipaddr[16];		/* dotted decimal address of peer */
 
     /* Select handlers. */
-    PF read_handler;		/* Read  select handler. */
+    PF *read_handler;		/* Read  select handler. */
     void *read_data;		/* App. data to associate w/ handled conn. */
-    PF write_handler;		/* Write select handler. */
+    PF *write_handler;		/* Write select handler. */
     void *write_data;		/* App. data to associate w/ handled conn. */
-    PF timeout_handler;		/* Timeout handler. */
+    PF *timeout_handler;	/* Timeout handler. */
     time_t timeout_time;	/* Allow 1-second granularity timeouts */
     time_t timeout_delta;	/* The delta requested */
     void *timeout_data;		/* App. data to associate w/ handled conn. */
     int lifetime;
-    PF lifetime_handler;	/* Lifetime expire handler. */
+    PF *lifetime_handler;	/* Lifetime expire handler. */
     void *lifetime_data;	/* App. data to associate w/ handled conn. */
     struct close_handler *close_handler;	/* Linked list of close handlers */
     char ascii_note[FD_ASCII_NOTE_SZ];
@@ -178,18 +178,17 @@ extern int commSetNonBlocking _PARAMS((int fd));
 extern void commSetCloseOnExec _PARAMS((int fd));
 extern int comm_accept _PARAMS((int fd, struct sockaddr_in *, struct sockaddr_in *));
 extern void comm_close _PARAMS((int fd));
-extern void commConnectStart _PARAMS((int fd, const char *, u_short, CCH, void *));
+extern void commConnectStart _PARAMS((int fd, const char *, u_short, CCH *, void *));
 extern int comm_connect_addr _PARAMS((int sock, const struct sockaddr_in *));
-extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void **));
 extern int comm_init _PARAMS((void));
 extern int comm_listen _PARAMS((int sock));
 extern int comm_open _PARAMS((int, int, struct in_addr, u_short port, int, const char *note));
 extern u_short comm_local_port _PARAMS((int fd));
 extern int comm_select _PARAMS((time_t));
 extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
-extern void commSetSelect _PARAMS((int, unsigned int, PF, void *, time_t));
-extern void comm_add_close_handler _PARAMS((int fd, PF, void *));
-extern void comm_remove_close_handler _PARAMS((int fd, PF, void *));
+extern void commSetSelect _PARAMS((int, unsigned int, PF *, void *, time_t));
+extern void comm_add_close_handler _PARAMS((int fd, PF *, void *));
+extern void comm_remove_close_handler _PARAMS((int fd, PF *, void *));
 extern int comm_set_mcast_ttl _PARAMS((int, int));
 extern int comm_join_mcast_groups _PARAMS((int));
 extern int comm_udp_send _PARAMS((int fd, const char *host, u_short port, const char *buf, int len));

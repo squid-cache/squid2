@@ -112,11 +112,10 @@
 #define DISK_FILE_NOT_FOUND      (-5)
 #define DISK_NO_SPACE_LEFT       (-6)
 
-typedef int (*FILE_READ_HD) (int fd, char *buf, int size, int errflag,
-    void *data);
-typedef void (*FILE_WRITE_HD) (int, int, StoreEntry *);
-typedef int (*FILE_WALK_HD) (int fd, int errflag, void *data);
-typedef int (*FILE_WALK_LHD) (int fd, char *buf, int size, void *line_data);
+typedef void FILE_READ_HD(int fd, const char *buf, int size, int errflag, void *data);
+typedef void FILE_WRITE_HD(int, int, void *);
+typedef void FILE_WALK_HD(int fd, int errflag, void *data);
+typedef void FILE_WALK_LHD(int fd, const char *buf, int size, void *line_data);
 
 typedef struct _dwrite_q {
     char *buf;
@@ -133,7 +132,7 @@ typedef struct _dread_ctrl {
     char *buf;
     int cur_len;
     int end_of_file;
-    FILE_READ_HD handler;
+    FILE_READ_HD *handler;
     void *client_data;
 } dread_ctrl;
 
@@ -154,7 +153,7 @@ typedef struct _FileEntry {
     enum {
 	NO_WRT_PENDING, WRT_PENDING
     } write_pending;
-    FILE_WRITE_HD wrt_handle;
+    FILE_WRITE_HD *wrt_handle;
     void *wrt_handle_data;
     dwrite_q *write_q;
     dwrite_q *write_q_tail;
@@ -168,20 +167,16 @@ extern int file_close _PARAMS((int fd));
 extern int file_write _PARAMS((int fd,
 	char *buf,
 	int len,
-	FILE_WRITE_HD handle,
+	FILE_WRITE_HD * handle,
 	void *handle_data,
 	void       (*free) _PARAMS((void *))));
 extern int file_read _PARAMS((int fd,
 	char *buf,
 	int req_len,
 	int offset,
-	FILE_READ_HD handler,
+	FILE_READ_HD * handler,
 	void *client_data));
-extern int file_walk _PARAMS((int fd,
-	int       (*handler) _PARAMS((int fd, int errflag, void *data)),
-	void *client_data,
-	int       (*line_handler) _PARAMS((int fd, char *buf, int size, void *line_data)),
-	void *line_data));
+extern int file_walk _PARAMS((int fd, FILE_WALK_HD *, void *, FILE_WALK_LHD *, void *));
 extern int disk_init _PARAMS((void));
 extern int diskWriteIsComplete _PARAMS((int));
 extern void diskFreeMemory _PARAMS((void));

@@ -31,7 +31,7 @@
 
 #include "squid.h"
 
-static void clientRedirectDone _PARAMS((void *data, char *result));
+static RH clientRedirectDone;
 static void icpHandleIMSReply _PARAMS((int fd, StoreEntry * entry, void *data));
 static int clientGetsOldEntry _PARAMS((StoreEntry * new, StoreEntry * old, request_t * request));
 static int checkAccelOnly _PARAMS((icpStateData * icpState));

@@ -53,7 +53,7 @@ typedef enum {
     HIER_MAX
 } hier_code;
 
-typedef void (*PSC) _PARAMS((peer *, void *));
+typedef void PSC _PARAMS((peer *, void *));
 
 typedef struct {
     struct timeval start;
@@ -70,8 +70,8 @@ typedef struct {
     StoreEntry *entry;
     int always_direct;
     int never_direct;
-    PSC callback;
-    PSC fail_callback;
+    PSC *callback;
+    PSC *fail_callback;
     void *callback_data;
     peer *first_parent_miss;
     peer *closest_parent_miss;
@@ -79,7 +79,7 @@ typedef struct {
 } ps_state;
 
 
-extern void peerSelect _PARAMS((request_t *, StoreEntry *, PSC, PSC, void *data));
+extern void peerSelect _PARAMS((request_t *, StoreEntry *, PSC *, PSC *, void *data));
 extern int peerSelectDirect _PARAMS((request_t *));
 extern peer *peerGetSomeParent _PARAMS((request_t *, hier_code *));
 extern int matchInsideFirewall _PARAMS((const char *));

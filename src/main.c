@@ -607,7 +607,7 @@ mainInitialize(void)
 	eventAdd("storeDirClean", storeDirClean, NULL, 15);
 	if (Config.Announce.on)
 	    eventAdd("start_announce", start_announce, NULL, 3600);
-	eventAdd("ipcache_purgelru", (EVH) ipcache_purgelru, NULL, 10);
+	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10);
     }
     first_time = 0;
 }

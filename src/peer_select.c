@@ -121,8 +121,8 @@ peerGetSomeParent(request_t * request, hier_code * code)
 void
 peerSelect(request_t * request,
     StoreEntry * entry,
-    PSC callback,
-    PSC fail_callback,
+    PSC * callback,
+    PSC * fail_callback,
     void *callback_data)
 {
     ps_state *psstate = xcalloc(1, sizeof(ps_state));

@@ -189,7 +189,7 @@ typedef struct iwd {
     struct timeval start;
     int accel;
     int size;			/* hack for CONNECT which doesnt use sentry */
-    PF aclHandler;
+    PF *aclHandler;
     float http_ver;
     struct {
 	int fd;
@@ -211,8 +211,8 @@ extern void icpUdpSend _PARAMS((int fd,
 	icp_common_t * msg,
 	log_type,
 	protocol_t));
-extern void icpHandleUdp _PARAMS((int sock, void *data));
-extern void asciiHandleConn _PARAMS((int sock, void *data));
+extern PF icpHandleUdp;
+extern PF asciiHandleConn;
 extern void icpSendERROR _PARAMS((int fd,
 	log_type errorCode,
 	const char *text,
@@ -220,10 +220,10 @@ extern void icpSendERROR _PARAMS((int fd,
 	int httpCode));
 extern void AppendUdp _PARAMS((icpUdpData *));
 extern void icpParseRequestHeaders _PARAMS((icpStateData *));
-extern void icpDetectClientClose _PARAMS((int fd, void *data));
-extern void icpProcessRequest _PARAMS((int fd, icpStateData *));
+extern PF icpDetectClientClose;
+extern void icpProcessRequest _PARAMS((int, icpStateData *));
 extern int icpSendMoreData _PARAMS((int fd, icpStateData *));
-extern int icpUdpReply _PARAMS((int fd, icpUdpData * queue));
+extern PF icpUdpReply;
 extern void vizHackSendPkt _PARAMS((const struct sockaddr_in * from, int type));
 extern void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
 

@@ -1012,10 +1012,10 @@ icpLogIcp(icpUdpData * queue)
 	NULL);			/* content-type */
 }
 
-int
-icpUdpReply(int fd, icpUdpData * queue)
+void
+icpUdpReply(int fd, void *data)
 {
-    int result = COMM_OK;
+    icpUdpData *queue = data;
     int x;
 
     /* Disable handler, in case of errors. */
@@ -1038,8 +1038,6 @@ icpUdpReply(int fd, icpUdpData * queue)
 	if (x < 0) {
 	    if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)
 		break;		/* don't de-queue */
-	    else
-		result = COMM_ERROR;
 	}
 	UdpQueueHead = queue->next;
 	if (queue->logcode)
@@ -1054,7 +1052,6 @@ icpUdpReply(int fd, icpUdpData * queue)
 	    icpUdpReply,
 	    UdpQueueHead, 0);
     }
-    return result;
 }
 
 void *
@@ -1831,8 +1828,9 @@ clientReadRequest(int fd, void *data)
 
 /* general lifetime handler for ascii connection */
 static void
-asciiConnLifetimeHandle(int fd, icpStateData * icpState)
+asciiConnLifetimeHandle(int fd, void *data)
 {
+    icpStateData *icpState = data;
     int x;
     StoreEntry *entry = icpState->entry;
 

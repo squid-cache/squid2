@@ -33,14 +33,15 @@
 #define IDENT_PORT 113
 
 static void identRequestComplete _PARAMS((int, char *, int, int, void *));
-static void identReadReply _PARAMS((int, icpStateData *));
-static void identClose _PARAMS((int, icpStateData *));
-static void identConnectDone _PARAMS((int fd, int status, void *data));
+static PF identReadReply;
+static PF identClose;
+static CCH identConnectDone;
 static void identCallback _PARAMS((icpStateData * icpState));
 
 static void
-identClose(int fd, icpStateData * icpState)
+identClose(int fd, void *data)
 {
+    icpStateData *icpState = data;
     icpState->ident.fd = -1;
 }
 
@@ -106,8 +107,9 @@ identRequestComplete(int fd, char *buf, int size, int errflag, void *data)
 }
 
 static void
-identReadReply(int fd, icpStateData * icpState)
+identReadReply(int fd, void *data)
 {
+    icpStateData *icpState = data;
     LOCAL_ARRAY(char, buf, BUFSIZ);
     char *t = NULL;
     int len = -1;

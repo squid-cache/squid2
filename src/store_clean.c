@@ -96,7 +96,7 @@ storeDirClean(void *unused)
     swap_index++;
     if (k == 0)
 	return;
-    qsort(files, k, sizeof(int), (QS) rev_int_sort);
+    qsort(files, k, sizeof(int), (QS *) rev_int_sort);
     if (k > 10)
 	k = 10;
     for (n = 0; n < k; n++) {

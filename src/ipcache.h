@@ -137,13 +137,13 @@ typedef struct _ipcache_entry {
     ipcache_status_t status:3;
 } ipcache_entry;
 
-typedef void (*IPH) (int, const ipcache_addrs *, void *);
+typedef void IPH _PARAMS((int, const ipcache_addrs *, void *));
 
 extern void ipcache_nbgethostbyname _PARAMS((const char *name,
 	int fd,
-	IPH handler,
+	IPH * handler,
 	void *handlerData));
-extern int ipcache_purgelru _PARAMS((void *unused));
+extern EVH ipcache_purgelru;
 extern int ipcache_unregister _PARAMS((const char *, int));
 extern const ipcache_addrs *ipcache_gethostbyname _PARAMS((const char *, int flags));
 extern void ipcacheInvalidate _PARAMS((const char *));

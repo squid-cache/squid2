@@ -118,7 +118,7 @@ typedef enum {
     PEER_MULTICAST
 } peer_t;
 
-typedef void (*IRCB) _PARAMS((peer *, peer_t, icp_opcode, void *data));
+typedef void IRCB _PARAMS((peer *, peer_t, icp_opcode, void *data));
 
 /* Mark a neighbor cache as dead if it doesn't answer this many pings */
 #define HIER_MAX_DEFICIT  20
@@ -207,7 +207,7 @@ extern peer *getSingleParent _PARAMS((request_t *));
 extern int neighborsCount _PARAMS((request_t *));
 extern int neighborsUdpPing _PARAMS((request_t *,
 	StoreEntry *,
-	IRCB callback,
+	IRCB * callback,
 	void *data,
 	int *exprep));
 extern void neighborAddDomainPing _PARAMS((const char *, const char *));

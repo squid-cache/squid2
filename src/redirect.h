@@ -32,9 +32,9 @@
 
 #define REDIRECT_AV_FACTOR 1000
 
-typedef void (*RH) (void *data, char *result);
+typedef void RH _PARAMS((void *data, char *result));
 
-extern void redirectStart _PARAMS((int cfd, icpStateData *, RH, void *));
+extern void redirectStart _PARAMS((int cfd, icpStateData *, RH *, void *));
 extern void redirectOpenServers _PARAMS((void));
 extern void redirectShutdownServers _PARAMS((void));
 extern void redirectStats _PARAMS((StoreEntry *));
