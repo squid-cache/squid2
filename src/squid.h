@@ -216,6 +216,10 @@
 #include <unix.h>
 #endif
 
+#if HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+
 /*
  * We require poll.h before using poll().  If the symbols used
  * by poll() are defined elsewhere, we will need to make this
@@ -421,9 +425,6 @@ struct rusage {
 #else
 #define SQUID_NONBLOCK O_NDELAY
 #endif
-
-#include <sys/param.h>
-#include <sys/mount.h>
 
 /*
  * I'm sick of having to keep doing this ..
