@@ -1018,7 +1018,7 @@ INSTALL_STRIP_PROGRAM="\${SHELL} \$(install_sh) -c -s"
 
   
 
-# From configure.in Revision: 1.251.2.17 
+# From configure.in Revision: 1.251.2.18 
 echo $ac_n "checking whether to enable maintainer-specific portions of Makefiles""... $ac_c" 1>&6
 echo "configure:1024: checking whether to enable maintainer-specific portions of Makefiles" >&5
     # Check whether --enable-maintainer-mode or --disable-maintainer-mode was given.
@@ -8122,8 +8122,8 @@ trap 'rm -fr `echo "\
 	src/auth/ntlm/helpers/Makefile \
 	src/auth/ntlm/helpers/fakeauth/Makefile \
 	src/auth/ntlm/helpers/no_check/Makefile \
-	src/auth/ntlm/helpers/NTLMSSP/Makefile \
-	src/auth/ntlm/helpers/NTLMSSP/smbval/Makefile \
+	src/auth/ntlm/helpers/SMB/Makefile \
+	src/auth/ntlm/helpers/SMB/smbval/Makefile \
 	contrib/Makefile \
 	snmplib/Makefile \
 	icons/Makefile \
@@ -8334,8 +8334,8 @@ CONFIG_FILES=\${CONFIG_FILES-"\
 	src/auth/ntlm/helpers/Makefile \
 	src/auth/ntlm/helpers/fakeauth/Makefile \
 	src/auth/ntlm/helpers/no_check/Makefile \
-	src/auth/ntlm/helpers/NTLMSSP/Makefile \
-	src/auth/ntlm/helpers/NTLMSSP/smbval/Makefile \
+	src/auth/ntlm/helpers/SMB/Makefile \
+	src/auth/ntlm/helpers/SMB/smbval/Makefile \
 	contrib/Makefile \
 	snmplib/Makefile \
 	icons/Makefile \
