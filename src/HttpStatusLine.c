@@ -35,11 +35,6 @@
 /* local constants */
 const char *HttpStatusLineFormat = "HTTP/%3.1f %3d %s\r\n";
 
-/* local routines */
-static const char *httpStatusString(http_status status);
-
-
-
 void
 httpStatusLineInit(HttpStatusLine * sline)
 {
@@ -101,7 +96,7 @@ httpStatusLineReason(const HttpStatusLine * sline)
     return sline->reason ? sline->reason : httpStatusString(sline->status);
 }
 
-static const char *
+const char *
 httpStatusString(http_status status)
 {
     /* why not to return matching string instead of using "p" ? @?@ */
