@@ -656,6 +656,7 @@ comm_select(int msec)
 		    Counter.select_fds++;
 		} else {
 		    debug(5, 1)("comm_select: NO READ HANDLER FOR FD %d\n", fd);
+		    debug(5, 1)("comm_select: %s\n", fd_table[fd].desc);
 		}
 		if (commCheckICPIncoming)
 		    comm_select_icp_incoming();
@@ -696,6 +697,7 @@ comm_select(int msec)
 		    Counter.select_fds++;
 		} else {
 		    debug(5, 1)("comm_select: NO WRITE HANDLER FOR FD %d\n", fd);
+		    debug(5, 1)("comm_select: %s\n", fd_table[fd].desc);
 		}
 		if (commCheckICPIncoming)
 		    comm_select_icp_incoming();
