@@ -584,12 +584,18 @@ AC_CHECK_LIB(m, main)
 
 dnl Check for libcrypt
 dnl We use crypt(3) which may be in libc, or in libcrypt (eg FreeBSD)
-AC_CHECK_LIB(crypt, crypt, [CRYPTLIB="-lcrypt"])
+AC_CHECK_LIB(crypt, crypt)
+if test $ac_cv_lib_crypt_crypt = "yes"; then
+  CRYPTLIB="-lcrypt"
+fi
 AC_SUBST(CRYPTLIB)
 
 dnl Check for pthreads
 dnl We use pthreads when doing ASYNC I/O
-AC_CHECK_LIB(pthread, main, [PTHREADLIB="-lpthread"])
+AC_CHECK_LIB(pthread, main)
+if test $ac_cv_lib_pthread_main = "yes"; then
+  PTHREADLIB="-lpthread"
+fi
 AC_SUBST(PTHREADLIB)
 
 dnl System-specific library modifications
@@ -970,6 +976,12 @@ AC_SUBST(XTRA_OBJS)
 
 if test -z "$XTRA_LIBS"; then
 	XTRA_LIBS="$LIBS"
+	dnl -lcrypt is set in CRYPTLIB
+	XTRA_LIBS=`echo $XTRA_LIBS | sed -e "s/-lcrypt//"`
+	dnl -lpthread is set in PTHREADLIB
+	XTRA_LIBS=`echo $XTRA_LIBS | sed -e "s/-lpthread//"`
+	dnl minor cleanup
+	XTRA_LIBS=`echo $XTRA_LIBS | sed -e "s/  */ /g"`
 	LIBS=''
 fi
 AC_SUBST(XTRA_LIBS)
