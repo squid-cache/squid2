@@ -78,7 +78,7 @@ static char msg[128];
 #if !defined(__CYGWIN__)
 extern int sys_nerr;
 #else
-  #define sys_nerr _sys_nerr
+#define sys_nerr _sys_nerr
 #endif
 
 
@@ -112,7 +112,6 @@ log_trace_done()
 #define DBG_GRAIN_SM  (4)
 #define DBG_OFFSET    (DBG_SPLIT/DBG_GRAIN_SM - DBG_SPLIT/DBG_GRAIN )
 #define DBG_MAXINDEX  (DBG_MAXSIZE/DBG_GRAIN + DBG_OFFSET)
-// #define DBG_INDEX(sz) (sz<DBG_MAXSIZE?(sz+DBG_GRAIN-1)/DBG_GRAIN:DBG_MAXINDEX)
 static int malloc_sizes[DBG_MAXINDEX + 1];
 static int malloc_histo[DBG_MAXINDEX + 1];
 static int dbg_stat_init = 0;
