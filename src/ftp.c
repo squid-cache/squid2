@@ -659,22 +659,22 @@ int ftpInitialize()
 	0,
 	"ftpget -S socket");
     if (cfd == COMM_ERROR) {
-        debug(9, 0, "ftpInitialize: Failed to create socket\n");
-        return -1;
+	debug(9, 0, "ftpInitialize: Failed to create socket\n");
+	return -1;
     }
     len = sizeof(S);
     memset(&S, '\0', len);
     if (getsockname(cfd, &S, &len) < 0) {
-        debug(9, 0, "ftpInitialize: getsockname: %s\n", xstrerror());
-        comm_close(cfd);
-        return -1;
+	debug(9, 0, "ftpInitialize: getsockname: %s\n", xstrerror());
+	comm_close(cfd);
+	return -1;
     }
     ftpget_port = ntohs(S.sin_port);
-    listen(cfd, FD_SETSIZE>>2);
+    listen(cfd, FD_SETSIZE >> 2);
     if ((pid = fork()) < 0) {
-        debug(9, 0, "ftpInitialize: fork: %s\n", xstrerror());
-        comm_close(cfd);
-        return -1;
+	debug(9, 0, "ftpInitialize: fork: %s\n", xstrerror());
+	comm_close(cfd);
+	return -1;
     }
     if (pid != 0) {		/* parent */
 	comm_close(cfd);
@@ -706,7 +706,7 @@ int ftpInitialize()
     close(squid_to_ftpget[1]);
     close(ftpget_to_squid[0]);
     close(ftpget_to_squid[1]);
-    dup2(cfd, 3);	/* pass listening socket to ftpget */
+    dup2(cfd, 3);		/* pass listening socket to ftpget */
     /* inherit stdin,stdout,stderr */
     for (cfd = 4; cfd <= fdstat_biggest_fd(); cfd++)
 	(void) close(cfd);

@@ -285,7 +285,7 @@ int ipcache_create_dnsserver(command)
     }
     /* child */
 
-    no_suid(); /* give up extra priviliges */
+    no_suid();			/* give up extra priviliges */
     dup2(cfd, 3);
     for (fd = FD_SETSIZE; fd > 3; fd--)
 	close(fd);
@@ -1230,11 +1230,11 @@ void ipcacheOpenServers()
 	    /* update fd_stat */
 
 	    /*
-	    sprintf(fd_note_buf, "%s #%d",
-		prg,
-		dns_child_table[i]->id);
-	    file_update_open(dns_child_table[i]->inpipe, fd_note_buf);
-	    */
+	     * sprintf(fd_note_buf, "%s #%d",
+	     * prg,
+	     * dns_child_table[i]->id);
+	     * file_update_open(dns_child_table[i]->inpipe, fd_note_buf);
+	     */
 
 	    debug(14, 5, "Calling fd_note() with FD %d and buf '%s'\n",
 		dns_child_table[i]->inpipe, fd_note_buf);

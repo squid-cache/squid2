@@ -2286,15 +2286,15 @@ int ftpget_srv_mode(arg)
 	buflen = 0;
 	memset(buf, '\0', BUFSIZ);
 	if ((flags = fcntl(c, F_GETFL, 0)) < 0)
-		log_errno2(__FILE__,__LINE__,"fcntl F_GETFL");
+	    log_errno2(__FILE__, __LINE__, "fcntl F_GETFL");
 #ifdef O_NONBLOCK
-	flags &= ~ O_NONBLOCK;
+	flags &= ~O_NONBLOCK;
 #else
-ifdef O_NDELAY
-	flags &= ~ O_NDELAY;
+	ifdef O_NDELAY
+	      flags &= ~O_NDELAY;
 #endif
 	if (fcntl(c, F_SETFL, flags) < 0)
-		log_errno2(__FILE__,__LINE__,"fcntl F_SETFL");
+	    log_errno2(__FILE__, __LINE__, "fcntl F_SETFL");
 	do {
 	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) < 0) {
 		log_errno2(__FILE__, __LINE__, "read");

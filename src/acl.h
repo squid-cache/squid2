@@ -67,13 +67,13 @@ struct _acl_access {
 
 extern int aclCheck _PARAMS((struct _acl_access *, struct in_addr, method_t, protocol_t, char *, int, char *));
 extern int aclMatchAcl _PARAMS((
-     struct _acl *acl,
-     struct in_addr c,
-     method_t m,
-     protocol_t pr,
-     char *h,
-     int po,
-     char *r));
+	struct _acl * acl,
+	struct in_addr c,
+	method_t m,
+	protocol_t pr,
+	char *h,
+	int po,
+	char *r));
 extern void aclDestroyAccessList _PARAMS((struct _acl_access ** list));
 extern void aclDestroyAcls _PARAMS((void));
 extern void aclParseAccessLine _PARAMS((struct _acl_access **));

@@ -764,9 +764,9 @@ void neighbors_cf_acl(host, aclname)
     if (a->type == ACL_SRC_IP) {
 	debug(15, 0, "%s line %d: %s\n",
 	    cfg_filename, config_lineno, config_input_line);
-	debug(15,0, "neighbors_cf_acl: 'src' ALC's not supported for 'cache_host_acl'\n");
+	debug(15, 0, "neighbors_cf_acl: 'src' ALC's not supported for 'cache_host_acl'\n");
 	xfree(L);
-        return;
+	return;
     }
     L->acl = a;
     for (Tail = &(t->acls); *Tail; Tail = &((*Tail)->next));

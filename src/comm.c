@@ -46,12 +46,12 @@ static struct timeval zero_tv;
 static struct in_addr wildcard_addr;
 
 static void RWStateFree(RWState)
-	struct _RWStateData *RWState;
+     struct _RWStateData *RWState;
 {
-	if (!RWState)
-		return;
-	RWStateFree(RWState->next);
-	safe_free(RWState);
+    if (!RWState)
+	return;
+    RWStateFree(RWState->next);
+    safe_free(RWState);
 }
 
 /* Return the local port associated with fd. */
@@ -1293,21 +1293,21 @@ static void commHandleWrite(fd, state)
 	    debug(5, 2, "commHandleWrite: FD %d: write failure: connection closed with %d bytes remaining.\n", fd, nleft);
 	    fd_table[fd].wstate = NULL;
 	    if (state->handler)
-	        state->handler(fd,
+		state->handler(fd,
 		    state->buf,
 		    state->offset,
 		    COMM_ERROR,
 		    state->handler_data);
 	    RWStateFree(state);
 	} else {
-            fd_table[fd].wstate = state->next;
+	    fd_table[fd].wstate = state->next;
 	    if (state->handler)
-	        state->handler(fd,
+		state->handler(fd,
 		    state->buf,
 		    state->offset,
 		    COMM_OK,
 		    state->handler_data);
-            safe_free(state);
+	    safe_free(state);
 	}
 	return;
     }

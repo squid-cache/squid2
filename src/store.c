@@ -2200,9 +2200,9 @@ int storeRelease(e)
 	file_map_bit_reset(e->swap_file_number);
 	e->swap_file_number = -1;
 	store_swap_size -= (e->object_len + 1023) >> 10;
-        CacheInfo->proto_purgeobject(CacheInfo,
-            CacheInfo->proto_id(e->url),
-            e->object_len);
+	CacheInfo->proto_purgeobject(CacheInfo,
+	    CacheInfo->proto_id(e->url),
+	    e->object_len);
     }
     if (hptr)
 	storeHashDelete(hptr);
