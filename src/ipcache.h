@@ -142,7 +142,7 @@ extern void ipcache_nbgethostbyname _PARAMS((const char *name,
 	int fd,
 	IPH handler,
 	void *handlerData));
-extern int ipcache_purgelru _PARAMS((void));
+extern int ipcache_purgelru _PARAMS((void *unused));
 extern int ipcache_unregister _PARAMS((const char *, int));
 extern const ipcache_addrs *ipcache_gethostbyname _PARAMS((const char *, int flags));
 extern void ipcacheInvalidate _PARAMS((const char *));

@@ -109,8 +109,8 @@ clientAccessCheck(icpStateData * icpState, void (*handler) (icpStateData *, int)
     char *browser = NULL;
 
     if (Config.identLookup && icpState->ident.state == IDENT_NONE) {
-        icpState->aclHandler = handler;
-        identStart(-1, icpState, clientLookupIdentDone);
+	icpState->aclHandler = handler;
+	identStart(-1, icpState, clientLookupIdentDone);
 	return;
     }
     if (icpState->aclChecklist == NULL) {
@@ -456,7 +456,7 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	entry = icpState->entry = oldentry;
 	entry->timestamp = squid_curtime;
 	if (mime_headers_end(hbuf)) {
-	    httpParseHeaders(hbuf, entry->mem_obj->reply);
+	    httpParseReplyHeaders(hbuf, entry->mem_obj->reply);
 	    timestampsSet(entry);
 	} else {
 	    debug(33, 1, "icpHandleIMSReply: No end-of-headers, len=%d\n", len);

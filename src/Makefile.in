@@ -64,7 +64,6 @@ CGIPROGS	= cachemgr.cgi
 OBJS	 	= \
 		acl.o \
 		async_io.o \
-		background.o \
 		cache_cf.o \
 		client_db.o \
 		client_side.o \
@@ -73,6 +72,7 @@ OBJS	 	= \
 		disk.o \
 		dns.o \
 		errorpage.o \
+		event.o \
 		fdstat.o \
 		filemap.o \
 		fqdncache.o \

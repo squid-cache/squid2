@@ -173,7 +173,7 @@ struct SquidConfig {
 	char *swap;
 #if USE_USERAGENT_LOG
 	char *useragent;
-#endif	/* USE_USERAGENT_LOG */
+#endif				/* USE_USERAGENT_LOG */
 	int rotateNumber;
 	int log_fqdn;
     } Log;

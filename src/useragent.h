@@ -35,4 +35,4 @@ extern void useragentOpenLog _PARAMS((void));
 extern void useragentRotateLog _PARAMS((void));
 extern void logUserAgent _PARAMS((const char *, const char *));
 
-#endif	/* USERAGENT_H */
+#endif /* USERAGENT_H */

@@ -245,6 +245,7 @@ urlParse(method_t method, char *url)
     strncpy(request->login, login, MAX_LOGIN_SZ);
     request->port = port;
     strncpy(request->urlpath, urlpath, MAX_URL);
+    request->max_age = -1;
     return request;
 }
 

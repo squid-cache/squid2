@@ -1,3 +1,4 @@
+
 #ifndef NET_DB_H
 #define NET_DB_H
 
@@ -26,5 +27,7 @@ extern void netdbInit _PARAMS((void));
 extern void netdbDump _PARAMS((StoreEntry *));
 extern int netdbHops _PARAMS((struct in_addr));
 extern void netdbFreeMemory _PARAMS((void));
+extern int netdbHostHops _PARAMS((const char *host));
+extern int netdbHostRtt _PARAMS((const char *host));
 
 #endif /* NET_DB_H */

@@ -159,7 +159,7 @@ typedef enum {
 
 typedef struct wwd {
     struct sockaddr_in address;
-    char *msg;
+    void *msg;
     size_t len;
     struct wwd *next;
     struct timeval start;
@@ -201,20 +201,22 @@ typedef struct iwd {
     void (*aclHandler) (struct iwd *, int answer);
     float http_ver;
     struct {
-        int fd;
-        char ident[ICP_IDENT_SZ];
+	int fd;
+	char ident[ICP_IDENT_SZ];
 	void (*callback) _PARAMS((void *));
 	int state;
     } ident;
     ConnectStateData identConnectState;
 } icpStateData;
 
-extern int icpUdpSend _PARAMS((int,
-	char *,
-	int reqnum,
-	struct sockaddr_in *,
+extern void *icpCreateMessage _PARAMS((icp_opcode opcode,
 	int flags,
-	icp_opcode,
+	char *url,
+	int reqnum,
+	int pad));
+extern void icpUdpSend _PARAMS((int fd,
+	struct sockaddr_in *,
+	icp_common_t * msg,
 	log_type,
 	protocol_t));
 extern void icpHandleUdp _PARAMS((int sock, void *data));

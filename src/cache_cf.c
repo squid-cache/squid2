@@ -136,7 +136,7 @@ struct SquidConfig Config;
 
 #define DefaultCacheLogFile	DEFAULT_CACHE_LOG
 #define DefaultAccessLogFile	DEFAULT_ACCESS_LOG
-#define DefaultUseragentLogFile	(char *)NULL    /* default NONE */
+#define DefaultUseragentLogFile	(char *)NULL	/* default NONE */
 #define DefaultStoreLogFile	DEFAULT_STORE_LOG
 #define DefaultSwapLogFile	(char *)NULL	/* default swappath(0) */
 #if USE_PROXY_AUTH

@@ -36,7 +36,7 @@ static void identRequestComplete _PARAMS((int, char *, int, int, void *));
 static void identReadReply _PARAMS((int, icpStateData *));
 static void identClose _PARAMS((int, icpStateData *));
 static void identConnectDone _PARAMS((int fd, int status, void *data));
-static void identCallback _PARAMS((icpStateData *icpState));
+static void identCallback _PARAMS((icpStateData * icpState));
 
 static void
 identClose(int fd, icpStateData * icpState)

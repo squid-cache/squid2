@@ -36,5 +36,6 @@
 extern void refreshFreeMemory _PARAMS((void));
 extern void refreshAddToList _PARAMS((const char *, int, time_t, int, time_t));
 extern int refreshCheck _PARAMS((const StoreEntry *, const request_t *));
+extern time_t getMaxAge _PARAMS((const char *url));
 
 #endif /* REFRESH_H */

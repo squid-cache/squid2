@@ -388,7 +388,6 @@ neighbors_open(int fd)
     }
 }
 
-
 int
 neighborsUdpPing(protodispatch_data * proto)
 {

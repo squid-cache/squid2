@@ -65,6 +65,7 @@ struct _request {
     int link_count;		/* free when zero */
     struct _hierarchyLogData hierarchy;
     int flags;
+    time_t max_age;
 };
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));

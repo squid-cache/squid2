@@ -193,7 +193,8 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
     }
     if (protoData->direct_fetch == DIRECT_MAYBE && (Config.local_ip_list || Config.firewall_ip_list)) {
 	if (ia == NULL) {
-	    debug(17, 1, "Unknown host: %s\n", req->host);
+	    debug(17, 3, "Unknown host: %s\n", req->host);
+	    protoData->direct_fetch = DIRECT_NO;
 	} else if (Config.firewall_ip_list) {
 	    srv_addr = ia->in_addrs[ia->cur];
 	    if (ip_access_check(srv_addr, Config.firewall_ip_list) == IP_DENY) {

@@ -142,7 +142,7 @@ typedef struct {
 extern int httpCachable _PARAMS((const char *, int));
 extern int proxyhttpStart _PARAMS((edge *, const char *, StoreEntry *));
 extern int httpStart _PARAMS((int, char *, request_t *, char *, int, StoreEntry *));
-extern void httpParseHeaders _PARAMS((const char *, struct _http_reply *));
+extern void httpParseReplyHeaders _PARAMS((const char *, struct _http_reply *));
 extern void httpProcessReplyHeader _PARAMS((HttpStateData *, const char *, int));
 extern void httpReplyHeaderStats _PARAMS((StoreEntry *));
 

@@ -57,7 +57,7 @@ rev_int_sort(const int *i1, const int *i2)
 }
 
 void
-storeDirClean(void)
+storeDirClean(void *unused)
 {
     static int swap_index = 0;
     DIR *dp = NULL;
@@ -68,6 +68,9 @@ storeDirClean(void)
     int swapfileno;
     int n = 0;
     int k = 0;
+    eventAdd("storeDirClean", storeDirClean, NULL, 15);
+    if (store_rebuilding == STORE_REBUILDING_FAST)
+	return;
     sprintf(p1, "%s/%02X/%02X",
 	swappath(swap_index),
 	(swap_index / ncache_dirs) % SWAP_DIRECTORIES_L1,
