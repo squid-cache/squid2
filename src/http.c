@@ -703,6 +703,9 @@ httpSendRequest(int fd, void *data)
     strcat(viabuf, ybuf);
     strcat(buf, viabuf);
     len += strlen(viabuf);
+    put_free_4k_page(viabuf);
+    put_free_4k_page(ybuf);
+    viabuf = ybuf = NULL;
 
     if (!saw_host) {
 	ybuf = get_free_4k_page();
