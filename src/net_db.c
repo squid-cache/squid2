@@ -61,6 +61,8 @@ static void
 netdbHashInsert(netdbEntry * n, struct in_addr addr)
 {
     xstrncpy(n->network, inet_ntoa(networkFromInaddr(addr)), 16);
+    if (hash_lookup(addr_table, n->network))
+	fatal_dump("netdbHashInsert: dup!");
     n->key = n->network;
     hash_join(addr_table, (hash_link *) n);
     meta_data.netdb_addrs++;
@@ -204,8 +206,10 @@ netdbPurgeLRU(void)
 static netdbEntry *
 netdbLookupAddr(struct in_addr addr)
 {
+    netdbEntry *n;
     char *key = inet_ntoa(networkFromInaddr(addr));
-    return (netdbEntry *) hash_lookup(addr_table, key);
+    n = (netdbEntry *) hash_lookup(addr_table, key);
+    return n;
 }
 
 static netdbEntry *
@@ -245,17 +249,15 @@ netdbSendPing(int fdunused, const ipcache_addrs * ia, void *data)
 	 */
 	if (na == NULL)
 	    na = netdbAdd(addr, hostname);
-	debug(37, 1, "netdbSendPing: NOTE: %s moved from %s to %s\n",
+	debug(37, 3, "netdbSendPing: NOTE: %s moved from %s to %s\n",
 	    hostname, n->network, na->network);
 	x = (net_db_name *) hash_lookup(host_table, hostname);
 	if (x == NULL)
 	    fatal_dump("netdbSendPing: net_db_name list bug");
 	/* remove net_db_name from 'network n' linked list */
-debug(0,0,"net_db_name is for %s\n", x->name);
 i = 0;
         for (X = &n->hosts; *X; X = &(*X)->next) {
     	    if (*X == x) {
-debug(0,0,"assigning *(%p) = %p\n", X, x->next);
     	        *X = x->next;
 		break;
 	    }
@@ -540,9 +542,8 @@ netdbFreeMemory(void)
 #if USE_ICMP
     netdbEntry *n;
     netdbEntry **L1;
-    hash_link *h;
-    hash_link **L2;
     net_db_name *x;
+    net_db_name **L2;
     int i = 0;
     int j;
     L1 = xcalloc(meta_data.netdb_addrs, sizeof(netdbEntry *));
@@ -554,26 +555,22 @@ netdbFreeMemory(void)
     }
     for (j = 0; j < i; j++) {
 	n = *(L1 + j);
-	while ((x = n->hosts)) {
-	    n->hosts = x->next;
-	    safe_free(x);
-	}
 	safe_free(n->peers);
 	xfree(n);
     }
     xfree(L1);
     i = 0;
-    L2 = xcalloc(meta_data.netdb_hosts, sizeof(hash_link *));
-    h = hash_first(host_table);
-    while (h && i < meta_data.netdb_hosts) {
-	*(L2 + i) = h;
+    L2 = xcalloc(meta_data.netdb_hosts, sizeof(net_db_name *));
+    x = (net_db_name *) hash_first(host_table);
+    while (x && i < meta_data.netdb_hosts) {
+	*(L2 + i) = x;
 	i++;
-	h = hash_next(host_table);
+	x = (net_db_name *) hash_next(host_table);
     }
     for (j = 0; j < i; j++) {
-	h = *(L2 + j);
-	xfree(h->key);
-	xfree(h);
+	x = *(L2 + j);
+	xfree(x->name);
+	xfree(x);
     }
     xfree(L2);
     hashFreeMemory(addr_table);
