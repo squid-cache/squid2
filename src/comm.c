@@ -1107,76 +1107,40 @@ static void checkLifetimes()
 {
     int fd;
     time_t lft;
-    int (*tmp_local) () = NULL;
-    int use_lifetime_handler = 0;
-    int use_read = 0;
+    int (*func) () = NULL;
 
-    /* scan for hardwired lifetime expires, do the timeouts first though */
     for (fd = 0; fd < FD_SETSIZE; fd++) {
-	lft = comm_get_fd_lifetime(fd);
-	if ((lft != -1) && (lft < squid_curtime)) {
-	    if (fd_table[fd].lifetime_handler != NULL) {
-		use_lifetime_handler = 1;
-		tmp_local = fd_table[fd].lifetime_handler;
-		fd_table[fd].lifetime_handler = 0;	/* reset it */
-	    } else if (fd_table[fd].read_handler != NULL) {
-		use_read = 1;
-		tmp_local = fd_table[fd].read_handler;
-		fd_table[fd].read_handler = 0;	/* reset it */
-	    } else if (fd_table[fd].write_handler != NULL) {
-		use_read = 0;
-		tmp_local = fd_table[fd].write_handler;
-		fd_table[fd].write_handler = 0;		/* reset it */
-	    } else {
-		use_read = 0;
-		tmp_local = NULL;
-	    }
-	    if (tmp_local) {
-		if (use_lifetime_handler) {
-		    debug(5, 2, "checkLifetimes: FD %d lifetime expire: %d < %d (Lifetime handler %p)\n",
-			fd, lft, squid_curtime, tmp_local);
-		} else {
-		    debug(5, 2, "checkLifetimes: FD %d lifetime expire: %d < %d (%s handler %p)\n",
-			fd, lft, squid_curtime,
-			use_read ? "read" : "write", tmp_local);
-		}
-	    } else {
-		debug(5, 1, "checkLifetimes: FD %d lifetime expire: %d < %d (handler not available.)\n",
-		    fd, lft, squid_curtime);
-	    }
-
-	    if (tmp_local != NULL) {
-		if (use_lifetime_handler) {
-		    tmp_local(fd, fd_table[fd].lifetime_data);
-		} else {
-		    /* 
-		     *  we close(2) first so that the handler fails and 
-		     *  deallocates the structure.
-		     */
-		    (void) close(fd);
-		    debug(5, 0, "checkLifetimes: Forcing close on FD %d\n", fd);
-		    tmp_local(fd, use_read ? fd_table[fd].read_data :
-			fd_table[fd].write_data);
-		}
-		if (fd_table[fd].openned) {
-		    /* hmm.. still openned. do full comm_close */
-		    debug(5, 5, "checkLifetimes: FD %d lifetime expire: %d < %d : Handler did not close the socket.\n comm_select will do.\n",
-			fd, lft, squid_curtime);
-		    comm_close(fd);
-		} else {
-		    /* seems like handle closed it. 
-		     * clean up fd_table just to make sure */
-		    debug(5, 5, "checkLifetimes: FD %d lifetime expire: %d : Handler closed the socket.\n",
-			fd, lft);
-		    /* just to make sure here */
-		    comm_cleanup_fd_entry(fd);
-		}
-	    } else {
-		/* no handle. do full comm_close */
-		debug(5, 5, "checkLifetimes: FD %d lifetime expire: %d < %d : No handler to close the socket.\n comm_select will do.\n",
-		    fd, lft, squid_curtime);
-		comm_close(fd);
-	    }
+	if ((lft = comm_get_fd_lifetime(fd)) == -1)
+	    continue;
+	if (lft > squid_curtime)
+	    continue;
+	debug(5, 5, "checkLifetimes: FD %d Expired\n", fd);
+	if ((func = fd_table[fd].lifetime_handler)) {
+	    debug(5, 5, "checkLifetimes: FD %d: Calling lifetime handler\n", fd);
+	    func(fd, fd_table[fd].lifetime_data);
+	    fd_table[fd].lifetime_handler = NULL;
+	} else if ((func = fd_table[fd].read_handler)) {
+	    debug(5, 5, "checkLifetimes: FD %d: Calling read handler\n", fd);
+	    func(fd, fd_table[fd].read_data);
+	    fd_table[fd].read_handler = NULL;
+	} else if ((func = fd_table[fd].read_handler)) {
+	    debug(5, 5, "checkLifetimes: FD %d: Calling read handler\n", fd);
+	    func(fd, fd_table[fd].read_data);
+	    fd_table[fd].read_handler = NULL;
+	} else if ((func = fd_table[fd].write_handler)) {
+	    debug(5, 5, "checkLifetimes: FD %d: Calling write handler\n", fd);
+	    func(fd, fd_table[fd].write_data);
+	    fd_table[fd].write_handler = NULL;
+	} else {
+	    debug(5, 5, "checkLifetimes: FD %d: No handlers, calling comm_close()\n", fd);
+	    comm_close(fd);
+	    comm_cleanup_fd_entry(fd);
+	}
+	if (fd_table[fd].openned) {
+	    /* still opened */
+	    debug(5, 5, "checkLifetimes: FD %d: Forcing comm_close()\n", fd);
+	    comm_close(fd);
+	    comm_cleanup_fd_entry(fd);
 	}
     }
 }
