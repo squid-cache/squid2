@@ -456,6 +456,7 @@ sslStart(int fd, const char *url, request_t * request, size_t * size_ptr, int *s
 	answer = aclCheckFast(Config.accessList.miss, &ch);
 	if (answer == 0) {
 	    err = errorCon(ERR_FORWARDING_DENIED, HTTP_FORBIDDEN);
+	    *status_ptr = HTTP_FORBIDDEN;
 	    err->request = requestLink(request);
 	    err->src_addr = request->client_addr;
 	    errorSend(fd, err);
@@ -477,7 +478,7 @@ sslStart(int fd, const char *url, request_t * request, size_t * size_ptr, int *s
     if (sock == COMM_ERROR) {
 	debug(26, 4) ("sslStart: Failed because we're out of sockets.\n");
 	err = errorCon(ERR_SOCKET_FAILURE, HTTP_INTERNAL_SERVER_ERROR);
-	*sslState->status_ptr = HTTP_INTERNAL_SERVER_ERROR;
+	*status_ptr = HTTP_INTERNAL_SERVER_ERROR;
 	err->xerrno = errno;
 	err->request = requestLink(request);
 	errorSend(fd, err);
