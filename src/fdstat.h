@@ -124,6 +124,6 @@ extern void fdstat_close _PARAMS((int fd));
 extern void fdstat_open _PARAMS((int fd, File_Desc_Type type));
 extern int fdstat_are_n_free_fd _PARAMS((int));
 extern File_Desc_Type fdstatGetType _PARAMS((int));
-
+extern char *fdfiletype _PARAMS((File_Desc_Type));
 
 #endif
