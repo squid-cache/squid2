@@ -7,7 +7,7 @@ port="-a 80"
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-PATH=@bindir@:/bin
+PATH=@bindir@:/bin:/usr/bin
 export PATH
 
 if test $# = 1 ; then
