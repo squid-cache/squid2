@@ -396,11 +396,11 @@ struct rusage {
 #include "enums.h"
 #include "typedefs.h"
 #include "util.h"
+#include "profiling.h"
 #include "MemPool.h"
 #include "structs.h"
 #include "protos.h"
 #include "globals.h"
-
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"

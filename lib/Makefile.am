@@ -3,6 +3,12 @@
 #  $Id$
 #
 
+if ENABLE_XPROF_STATS
+XPROF_STATS_SOURCE = Profiler.c
+else
+XPROF_STATS_SOURCE = 
+endif
+
 if NEED_OWN_SNPRINTF
 SNPRINTFSOURCE=snprintf.c
 else
@@ -24,6 +30,7 @@ noinst_LIBRARIES = \
 	@LIBREGEX@
 EXTRA_libmiscutil_a_SOURCES = \
 	md5.c \
+	Profiler.c \
 	snprintf.c
 libmiscutil_a_SOURCES = \
 	MemPool.c \
@@ -46,7 +53,8 @@ libmiscutil_a_SOURCES = \
 	Stack.c \
 	stub_memaccount.c \
 	util.c \
-	uudecode.c
+	uudecode.c \
+	$(XPROF_STATS_SOURCE)
 libmiscutil_a_LIBADD = \
 	@LIBOBJS@
 # $(top_srcdir)/include/version.h should be a dependency

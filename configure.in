@@ -1127,6 +1127,27 @@ AC_ARG_ENABLE(stacktraces,
   fi
 ])
 
+AM_CONDITIONAL(ENABLE_XPROF_STATS, false)
+dnl Enable USE_XPROF_STATS
+AC_ARG_ENABLE(cpu-profiling,
+[  --enable-cpu-profiling
+                          This option allows you to see which internal functions
+                          in Squid are consuming how much CPU. Compiles in probes
+                          that measure time spent in probed functions. Needs
+                          source modifications to add new probes. This is meant
+                          for developers to assist in performance optimisations
+                          of Squid internal functions.
+                          If you are not developer and not interested in the stats
+                          you shouldn't enable this, as overhead added, although
+                          small, is still overhead. See lib/Profiler.c for more.
+                          ],
+[ if test "$enableval" = "yes" ; then
+    echo "Enabling cpu-profiling"
+    AC_DEFINE(USE_XPROF_STATS, 1)
+    AM_CONDITIONAL(ENABLE_XPROF_STATS, true)
+  fi
+])
+
 dnl Enable X-Accelerator-Vary for Vary support within an accelerator setup
 AC_ARG_ENABLE(x_accelerator_vary,
 [  --enable-x-accelerator-vary

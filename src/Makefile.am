@@ -26,6 +26,12 @@ else
 DELAY_POOL_SOURCE = 
 endif
 
+if ENABLE_XPROF_STATS
+XPROF_STATS_SOURCE = ProfStats.c
+else
+XPROF_STATS_SOURCE = 
+endif
+
 if ENABLE_HTCP
 HTCPSOURCE = htcp.c
 endif
@@ -178,6 +184,7 @@ squid_SOURCES = \
 	neighbors.c \
 	net_db.c \
 	Packer.c \
+	$(XPROF_STATS_SOURCE) \
 	pconn.c \
 	peer_digest.c \
 	peer_select.c \
