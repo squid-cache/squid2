@@ -37,6 +37,7 @@ Changes to squid-2.5.STABLE8 ()
 	  (Bug #1200)
 	- [Medium security] Buffer overflow in WCCP recvfrom() call
 	  (Bug #1217)
+	- [Security] Properly handle oversized reply headers (Bug #1216)
 
 Changes to squid-2.5.STABLE7 (11 Oct 2004)
 
