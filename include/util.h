@@ -113,4 +113,8 @@ extern double xdiv(double nom, double denom);
 
 extern const char *xitoa(int num);
 
+#if !HAVE_DRAND48
+double drand48(void);
+#endif
+
 #endif /* ndef _UTIL_H_ */
