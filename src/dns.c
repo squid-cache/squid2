@@ -113,8 +113,8 @@ struct dnsQueueData {
 static int dnsOpenServer _PARAMS((char *command));
 
 static dnsserver_t **dns_child_table = NULL;
-static int NDnsServersAlloc = 0;
 
+int NDnsServersAlloc = 0;
 char *dns_error_message = NULL;	/* possible error message */
 struct _dnsStats DnsStats;
 

@@ -142,6 +142,7 @@ extern void dnsFreeMemory _PARAMS((void));
 
 extern char *dns_error_message;
 extern struct _dnsStats DnsStats;
+extern int NDnsServersAlloc;
 
 #define IPCACHE_AV_FACTOR 1000
 
