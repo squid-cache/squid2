@@ -1755,12 +1755,18 @@ asciiConnLifetimeHandle(int fd, icpStateData * icpState)
 	entry,
 	icpState->request,
 	icpState->peer.sin_addr);
+#ifdef OLD_CODE
     if (x != 0)
 	return;
     if (entry == NULL) {
 	comm_close(fd);
 	return;
     }
+#else
+    if (x == 0)
+	comm_close(fd);
+    return;
+#endif
 #ifdef DONT_DO_THIS
     /* Why is this here? */
     if (entry->store_status == STORE_PENDING)
