@@ -1,12 +1,16 @@
+Changes to squid-1.0.19 (October 30, 1996):
+
 	- Fixed virtual-host coredump bug (Aaron Hopkins).
 	- Disabled storeDirClean() for Unixware.
-	- Protected objcache log/enable, log/disable with password.
 	- Fixed protoDispatch() to check firewall_ip_list before
 	  'inside_firewall'.
 	- Added '!' condition feature for the 'firewall_ip' list
 	  (Hiroyuki Inoue).
 	- Fixed BASE tag in ftpget output (broken since v1.0.10).
 	- Added Martin's multicast code inside '#ifdef USE_MULTICAST'.
+	- Removing -lbsd for AIX (Joerg Schumacher).
+	- Added "(Squid/version)" to Forwarded: header.
+	- Don't append error messages to partially delivered objects.
 
 Changes to squid-1.0.18 (October 7, 1996):
 
