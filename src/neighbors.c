@@ -410,7 +410,6 @@ void neighbors_open(fd)
 	    safe_free(e);
 	    continue;
 	}
-	ipcacheLockEntry(e->host);
 	e->n_addresses = 0;
 	for (j = 0; *list && j < EDGE_MAX_ADDRESSES; j++) {
 	    ina = &e->addresses[j];
