@@ -2321,6 +2321,7 @@ storeCreateSwapDirectories(void)
 	storeCreateDirectory(name, 0);
 	for (i = 0; i < Config.levelOneDirs; i++) {
 	    sprintf(name, "%s/%02X", swappath(j), i);
+	    getCurrentTime();
 	    storeCreateDirectory(name, 0);
 	    for (k = 0; k < Config.levelTwoDirs; k++) {
 		sprintf(name, "%s/%02X/%02X", swappath(j), i, k);
