@@ -1086,7 +1086,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	 * we don't have full reply headers yet; either wait for more or
 	 * punt to clientProcessMiss.
 	 */
-	if (e->mem_status == IN_MEMORY || e->store_status == STORE_COMPLETE) {
+	if (e->mem_status == IN_MEMORY || e->store_status == STORE_OK) {
 	    memFree(MEM_4K_BUF, buf);
 	    clientProcessMiss(http);
 	} else if (size == SM_PAGE_SIZE && http->out.offset == 0) {
