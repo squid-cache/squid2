@@ -144,6 +144,9 @@ extern void xfree _PARAMS((void *));
 extern void xmemcpy _PARAMS((void *, void *, int));
 extern void xxfree _PARAMS((void *));
 
+/* rfc1738.c */
+extern char *rfc1738_escape _PARAMS((const char *));
+
 #if XMALLOC_STATISTICS
 void malloc_statistics _PARAMS((void (*)_PARAMS((int, int, void *)), void *));
 #endif
