@@ -143,16 +143,17 @@ httpReplyParse(HttpReply * rep, const char *buf, ssize_t end)
      * becuase somebody may feed a non NULL-terminated buffer to
      * us.
      */
-    char *headers = memAllocate(MEM_4K_BUF);
+    MemBuf mb = MemBufNull;
     int success;
-    size_t s = XMIN(end + 1, 4096);
     /* reset current state, because we are not used in incremental fashion */
     httpReplyReset(rep);
     /* put a string terminator.  s is how many bytes to touch in
      * 'buf' including the terminating NULL. */
-    xstrncpy(headers, buf, s);
-    success = httpReplyParseStep(rep, headers, 0);
-    memFree(headers, MEM_4K_BUF);
+    memBufDefInit(&mb);
+    memBufAppend(&mb, buf, end);
+    memBufAppend(&mb, "\0", 1);
+    success = httpReplyParseStep(rep, mb.buf, 0);
+    memBufClean(&mb);
     return success == 1;
 }
 

@@ -431,6 +431,7 @@ struct _SquidConfig {
     } Timeout;
     size_t maxRequestHeaderSize;
     size_t maxRequestBodySize;
+    size_t maxReplyHeaderSize;
     dlink_list ReplyBodySize;
     struct {
 	u_short icp;
@@ -987,8 +988,7 @@ struct _http_state_flags {
 struct _HttpStateData {
     StoreEntry *entry;
     request_t *request;
-    char *reply_hdr;
-    size_t reply_hdr_size;
+    MemBuf reply_hdr;
     int reply_hdr_state;
     peer *peer;			/* peer request made to */
     int eof;			/* reached end-of-object? */

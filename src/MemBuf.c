@@ -158,7 +158,7 @@ memBufClean(MemBuf * mb)
     (*mb->freefunc) (mb->buf);	/* free */
     mb->freefunc = NULL;	/* freeze */
     mb->buf = NULL;
-    mb->size = mb->capacity = 0;
+    mb->size = mb->capacity = mb->max_capacity = 0;
 }
 
 /* cleans the buffer without changing its capacity 

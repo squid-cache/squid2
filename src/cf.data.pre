@@ -2366,6 +2366,19 @@ DOC_START
 	matching line.
 DOC_END
 
+NAME: reply_header_max_size
+COMMENT: (KB)
+TYPE: b_size_t
+DEFAULT: 20 KB
+LOC: Config.maxReplyHeaderSize
+DOC_START
+	This specifies the maximum size for HTTP headers in a reply.
+	Reply headers are usually relatively small (about 512 bytes).
+	Placing a limit on the reply header size will catch certain
+	bugs (for example with persistent connections) and possibly
+	buffer-overflow or denial-of-service attacks.
+DOC_END
+
 NAME: reply_body_max_size
 COMMENT: bytes allow|deny acl acl...
 TYPE: body_size_t

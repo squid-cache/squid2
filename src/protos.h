@@ -304,8 +304,6 @@ extern void whoisStart(FwdState *);
 /* http.c */
 extern int httpCachable(method_t);
 extern void httpStart(FwdState *);
-extern void httpParseReplyHeaders(const char *, http_reply *);
-extern void httpProcessReplyHeader(HttpStateData *, const char *, int);
 extern mb_size_t httpBuildRequestPrefix(request_t * request,
     request_t * orig_request,
     StoreEntry * entry,
