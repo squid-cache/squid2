@@ -91,10 +91,11 @@ static void icpFreeBufOrPage(icpState)
 {
     if (icpState->ptr_to_4k_page && icpState->buf)
 	fatal_dump("icpFreeBufOrPage: Shouldn't have both a 4k ptr and a string");
-    if (icpState->ptr_to_4k_page)
+    if (icpState->ptr_to_4k_page) {
 	put_free_4k_page(icpState->ptr_to_4k_page);
-    else
+    } else {
 	safe_free(icpState->buf);
+    }
     icpState->ptr_to_4k_page = icpState->buf = NULL;
 }
 
@@ -580,10 +581,9 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
     } else if (state->offset < entry->mem_obj->e_current_len) {
 	/* More data available locally; write it now */
 	icpSendMoreData(fd, state);
-    } else
-	/* We're finished case */
-	if (state->offset == entry->object_len &&
+    } else if (state->offset == entry->object_len &&
 	entry->store_status != STORE_PENDING) {
+	/* We're finished case */
 	CacheInfo->proto_touchobject(CacheInfo,
 	    CacheInfo->proto_id(entry->url),
 	    state->offset);
@@ -995,10 +995,11 @@ int icpHandleUdp(sock, not_used)
 	    IcpOpcodeStr[header.opcode],
 	    inet_ntoa(from.sin_addr),
 	    url);
-	if (neighbors_do_private_keys && header.reqnum)
+	if (neighbors_do_private_keys && header.reqnum) {
 	    key = storeGeneratePrivateKey(url, METHOD_GET, header.reqnum);
-	else
+	} else {
 	    key = storeGeneratePublicKey(url, METHOD_GET);
+	}
 	debug(12, 3, "icpHandleUdp: Looking for key '%s'\n", key);
 	if ((entry = storeGet(key)) == NULL) {
 	    debug(12, 3, "icpHandleUdp: Ignoring %s for NULL Entry.\n",
@@ -1075,7 +1076,7 @@ int parseHttpRequest(icpState)
     char *method = NULL;
     char *request = NULL;
     char *req_hdr = NULL;
-    char *http_ver = NULL;
+    static char http_ver[32];
     char *token = NULL;
     char *t = NULL;
     char *ad = NULL;
@@ -1084,6 +1085,7 @@ int parseHttpRequest(icpState)
     int content_length;
     int req_hdr_sz;
     int post_sz;
+    int len;
 
     /* Use xmalloc/memcpy instead of xstrdup because inbuf might
      * contain NULL bytes; especially for POST data  */
@@ -1106,35 +1108,36 @@ int parseHttpRequest(icpState)
 
     BIT_SET(icpState->flags, REQ_HTML);
 
-    if ((request = strtok(NULL, "\n\r\t ")) == NULL) {
+    if ((request = strtok(NULL, "\r\n\t ")) == NULL) {
 	debug(12, 1, "parseHttpRequest: Missing URL\n");
 	xfree(inbuf);
 	return -1;
     }
     debug(12, 5, "parseHttpRequest: Request is '%s'\n", request);
-    if ((http_ver = strtok(NULL, "\n\r\t ")) == NULL)
-	debug(12, 3, "parseHttpRequest: Missing HTTP identifier\n");
-    else
-	debug(12, 5, "parseHttpRequest: HTTP version is '%s'\n", http_ver);
 
-    if ((token = (char *) strtok(NULL, ""))) {
-	req_hdr = token;
-	while (*req_hdr == '\r' || *req_hdr == '\n')
-	    req_hdr++;
-	req_hdr_sz = icpState->offset - (req_hdr - inbuf);
-	icpState->request_hdr = (char *) xmalloc(req_hdr_sz + 1);
-	memcpy(icpState->request_hdr, req_hdr, req_hdr_sz);
-	*(icpState->request_hdr + req_hdr_sz) = '\0';
-    } else if (icpState->method == METHOD_POST) {
-	debug(12, 3, "parseHttpRequest: Partial POST request\n");
-	xfree(inbuf);
-	return 0;		/* reschedule us after next read */
+    token = strtok(NULL, "");
+    for (t = token; t && *t && *t != '\n' && *t != '\r'; t++);
+    if (t == NULL || *t == '\0' || t == token) {
+	debug(12, 3, "parseHttpRequest: Missing HTTP identifier\n");
+	return -1;
     }
-    if (icpState->request_hdr)
+    len = (int) (t - token);
+    memset(http_ver, '\0', 32);
+    strncpy(http_ver, token, len < 31 ? len : 31);
+    debug(12, 5, "parseHttpRequest: HTTP version is '%s'\n", http_ver);
+
+    req_hdr = t;
+    req_hdr_sz = icpState->offset - (req_hdr - inbuf);
+    icpState->request_hdr = (char *) xmalloc(req_hdr_sz + 1);
+    memcpy(icpState->request_hdr, req_hdr, req_hdr_sz);
+    *(icpState->request_hdr + req_hdr_sz) = '\0';
+
+    if (icpState->request_hdr) {
 	debug(12, 5, "parseHttpRequest: Request Header is\n---\n%s\n---\n",
 	    icpState->request_hdr);
-    else
+    } else {
 	debug(12, 5, "parseHttpRequest: No Request Header present\n");
+    }
 
     if (icpState->method == METHOD_POST) {
 	/* Expect Content-Length: and POST data after the headers */
@@ -1160,6 +1163,9 @@ int parseHttpRequest(icpState)
 	    xfree(inbuf);
 	    return 0;
 	}
+    } else if (!strstr(req_hdr, "\r\n\r\n") && !strstr(req_hdr, "\n\n")) {
+	xfree(inbuf);
+	return 0;		/* not a complete request */
     }
     /* Assign icpState->url */
     if ((t = strchr(request, '\n')))	/* remove NL */
