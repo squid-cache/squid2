@@ -1,4 +1,12 @@
+Changes to squid-2.5.STABLE5 (not yet released):
+
+	- cache.log message on "squid -k reconfigure" was slightly confusing,
+	  claiming Squid restarted when it just reread the configuration.
+	- Bug #787: digest auth never detects password changes
+	- Bug #789: login with space confuses redirector helpers
+
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
+
 	- Lithuanian error messages added to the distribution
 	- Bug #660: segfauld if more than one custom deny_info line
 	- cache_dir disd documentation cleanup

@@ -205,5 +205,17 @@ name="ChangeLog"> file for details.
 	name="ChangeLog"> file for details.
 </itemize>
 
+<sect>Key changes squid-2.5.STABLE4 to 2.5.STABLE5:
+
+<p>
+<itemize>
+	<item>redirector interface modified to try to deal with login names
+	containing spaces or other odd characters. This is accomplished
+	by URL-encoding the login name before sent to redirectors. Note:
+       	Existing redirectors or their configuration may need to be slightly
+       	modified in how they process the ident column to support the new
+	username format (only applies to redirectors looking into the username)
+</itemize>
+
 </article>
 
