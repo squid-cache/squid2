@@ -309,8 +309,6 @@ icpStateFree(int fd, void *data)
 	storeUnlockObject(icpState->old_entry);
 	icpState->old_entry = NULL;
     }
-    if (icpState->ip_lookup_pending)
-	ipcache_unregister(icpState->request->host, icpState->fd);
     requestUnlink(icpState->request);
     safe_free(icpState);
     return;

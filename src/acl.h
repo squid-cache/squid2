@@ -128,6 +128,10 @@ struct _aclCheck_t {
     acl_lookup_state state[ACL_ENUM_MAX];
     PF *callback;
     void *callback_data;
+    int src_fqdn_lookup_pending;
+    int dst_fqdn_lookup_pending;
+    int dst_ip_lookup_pending;
+    ipcache_addrs *dst_ia;
 };
 
 extern void aclNBCheck _PARAMS((const struct _acl_access * A,

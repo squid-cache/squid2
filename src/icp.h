@@ -197,7 +197,6 @@ typedef struct iwd {
 	void (*callback) _PARAMS((void *));
 	int state;
     } ident;
-    int ip_lookup_pending;
     int redirect_state;
 } icpStateData;
 

@@ -57,7 +57,7 @@ static void passReadClient _PARAMS((int fd, void *));
 static void passWriteServer _PARAMS((int fd, void *));
 static void passWriteClient _PARAMS((int fd, void *));
 static void passConnected _PARAMS((int fd, void *));
-static void passConnect _PARAMS((int fd, const ipcache_addrs *, void *));
+static IPH passConnect;
 static void passErrorComplete _PARAMS((int, char *, int, int, void *));
 static void passClose _PARAMS((PassStateData * passState));
 static void passClientClosed _PARAMS((int fd, void *));
@@ -108,7 +108,7 @@ passStateFree(int fd, void *data)
     if (fd != passState->server.fd)
 	fatal_dump("passStateFree: FD mismatch!\n");
     if (passState->ip_lookup_pending)
-	ipcache_unregister(passState->host, passState->server.fd);
+	ipcacheUnregister(passState->host, passState);
     if (passState->client.fd > -1) {
 	commSetSelect(passState->client.fd,
 	    COMM_SELECT_READ,
@@ -213,6 +213,7 @@ passWriteServer(int fd, void *data)
     len = write(passState->server.fd,
 	passState->client.buf + passState->client.offset,
 	passState->client.len - passState->client.offset);
+    fd_bytes(fd, len, FD_WRITE);
     debug(39, 5, "passWriteServer FD %d, wrote %d bytes\n", fd, len);
     if (len < 0) {
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
@@ -255,6 +256,7 @@ passWriteClient(int fd, void *data)
     len = write(passState->client.fd,
 	passState->server.buf + passState->server.offset,
 	passState->server.len - passState->server.offset);
+    fd_bytes(fd, len, FD_WRITE);
     debug(39, 5, "passWriteClient FD %d, wrote %d bytes\n", fd, len);
     if (len < 0) {
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {

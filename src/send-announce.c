@@ -31,8 +31,7 @@
 
 #include "squid.h"
 
-static void
-send_announce _PARAMS((int fd, const ipcache_addrs * ia, void *data));
+static IPH send_announce;
 
 void
 start_announce(void *unused)
