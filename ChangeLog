@@ -177,3 +177,4 @@ beta8:
 	- Changed ftpget to use an additional pipe() for crash detection
 	- Added ICP_OP_DENIED message type
 	- Added patches for Nextstep port from Luke Howard <lukeh@vurt.schnet.edu.au>
+	- Added a lifetime to HTTP server connections being deferred.
