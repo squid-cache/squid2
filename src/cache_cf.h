@@ -226,7 +226,6 @@ struct SquidConfig {
     } Addrs;
     int tcpRcvBufsz;
     int udpMaxHitObjsz;
-    wordlist *cache_dirs;
     wordlist *cache_stoplist;
     wordlist *hierarchy_stoplist;
     wordlist *mcast_group_list;
@@ -251,8 +250,6 @@ struct SquidConfig {
 	int mcast_ttl;
 	struct sockaddr_in S;
     } vizHack;
-    int levelOneDirs;
-    int levelTwoDirs;
     struct {
 	int high;
 	int low;

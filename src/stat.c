@@ -1134,7 +1134,7 @@ log_append(const cacheinfo * obj,
 	    ident,
 	    hier_strings[hier_code],
 	    hier_host,
-	    ns,ne,nr,tt,
+	    ns, ne, nr, tt,
 	    content_type);
 #if LOG_FULL_HEADERS
     if (Config.logMimeHdrs) {

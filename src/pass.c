@@ -487,15 +487,15 @@ passStart(int fd,
 	NULL,
 	NULL, 0);
     peerSelect(request,
-        NULL,   
-        passPeerSelectComplete,
-        passPeerSelectFail,
-        passState);
+	NULL,
+	passPeerSelectComplete,
+	passPeerSelectFail,
+	passState);
     return COMM_OK;
 }
 
 static void
-passPeerSelectComplete (peer * p, void *data)
+passPeerSelectComplete(peer * p, void *data)
 {
     PassStateData *passState = data;
     request_t *request = passState->request;
@@ -503,25 +503,24 @@ passPeerSelectComplete (peer * p, void *data)
     passState->proxying = p ? 1 : 0;
     passState->host = p ? p->host : request->host;
     if (p == NULL) {
-        passState->port = request->port;
+	passState->port = request->port;
     } else if (p->http_port != 0) {
-        passState->port = p->http_port;
+	passState->port = p->http_port;
     } else if ((g = neighborFindByName(p->host))) {
-        passState->port = g->http_port;
+	passState->port = g->http_port;
     } else {
-        passState->port = CACHE_HTTP_PORT;
+	passState->port = CACHE_HTTP_PORT;
     }
     ipcache_nbgethostbyname(passState->host,
-        passState->server.fd,
-        passConnect,
-        passState);
+	passState->server.fd,
+	passConnect,
+	passState);
 }
 
 static void
-passPeerSelectFail (peer * p, void *data)
+passPeerSelectFail(peer * p, void *data)
 {
     PassStateData *passState = data;
     squid_error_request(passState->url, ERR_CANNOT_FETCH, 400);
     passClose(passState);
 }
-

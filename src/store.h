@@ -254,13 +254,11 @@ extern int storeGetMemSize _PARAMS((void));
 extern int storeGetSwapSize _PARAMS((void));
 extern int storeGetSwapSpace _PARAMS((int));
 extern void storeLockObject _PARAMS((StoreEntry *, SIH, void *));
-extern int storeOriginalKey _PARAMS((const StoreEntry *));
 extern int storeRelease _PARAMS((StoreEntry *));
 extern int storeUnlockObject _PARAMS((StoreEntry *));
 extern int storeUnregister _PARAMS((StoreEntry *, int));
 extern const char *storeGeneratePublicKey _PARAMS((const char *, method_t));
 extern const char *storeGeneratePrivateKey _PARAMS((const char *, method_t, int));
-extern const char *swappath _PARAMS((int));
 extern void storeStartDeleteBehind _PARAMS((StoreEntry *));
 extern int storeClientCopy _PARAMS((StoreEntry *, int, int, char *, int *, int));
 extern int storePendingNClients _PARAMS((const StoreEntry *));
@@ -296,7 +294,6 @@ extern int store_rebuilding;
 #define STORE_REBUILDING_SLOW 1
 #define STORE_REBUILDING_FAST 2
 
-extern int ncache_dirs;
 extern unsigned long store_mem_size;
 
 #endif

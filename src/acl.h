@@ -130,14 +130,14 @@ struct _aclCheck_t {
     void *callback_data;
 };
 
-extern void aclNBCheck _PARAMS((const struct _acl_access *A,
-        request_t *request,
-        struct in_addr src_addr,
-        char *user_agent,
-        char *ident,
-        PF callback,
-        void *callback_data));
-extern int aclCheckFast _PARAMS((const struct _acl_access *A, aclCheck_t *));
+extern void aclNBCheck _PARAMS((const struct _acl_access * A,
+	request_t * request,
+	struct in_addr src_addr,
+	char *user_agent,
+	char *ident,
+	PF callback,
+	void *callback_data));
+extern int aclCheckFast _PARAMS((const struct _acl_access * A, aclCheck_t *));
 extern int aclMatchAcl _PARAMS((struct _acl *, aclCheck_t *));
 extern void aclDestroyAccessList _PARAMS((struct _acl_access ** list));
 extern void aclDestroyAcls _PARAMS((void));
@@ -157,4 +157,3 @@ extern struct _acl_access *MISSAccessList;
 extern struct _acl_access *ICPAccessList;
 extern struct _acl_deny_info_list *DenyInfoList;
 extern const char *AclMatchedName;
-

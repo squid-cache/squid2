@@ -567,7 +567,7 @@ ftpStartComplete(void *data, int status)
 {
     LOCAL_ARRAY(char, realm, 8192);
     ftp_ctrl_t *ctrlp = data;
-    request_t * request = ctrlp->request;
+    request_t *request = ctrlp->request;
     StoreEntry *entry = ctrlp->entry;
     char *url = entry->url;
     FtpStateData *ftpData = xcalloc(1, sizeof(FtpStateData));

@@ -456,7 +456,7 @@ sslStart(int fd, const char *url, request_t * request, char *mime_hdr, int *size
 	sslClientClosed,
 	(void *) sslState);
     peerSelect(request,
-	NULL,	
+	NULL,
 	sslPeerSelectComplete,
 	sslPeerSelectFail,
 	sslState);
@@ -484,7 +484,7 @@ sslProxyConnected(int fd, void *data)
 }
 
 static void
-sslPeerSelectComplete (peer * p, void *data)
+sslPeerSelectComplete(peer * p, void *data)
 {
     SslStateData *sslState = data;
     request_t *request = sslState->request;
@@ -507,7 +507,7 @@ sslPeerSelectComplete (peer * p, void *data)
 }
 
 static void
-sslPeerSelectFail (peer * p, void *data)
+sslPeerSelectFail(peer * p, void *data)
 {
     SslStateData *sslState = data;
     squid_error_request(sslState->url, ERR_CANNOT_FETCH, 400);

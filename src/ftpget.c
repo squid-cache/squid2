@@ -2643,7 +2643,7 @@ main(int argc, char *argv[])
 	    break;
 	case 'H':
 	    strncpy(visible_hostname, optarg, BUFSIZ);
-	    visible_hostname[BUFSIZ]='\0';
+	    visible_hostname[BUFSIZ] = '\0';
 	    break;
 	case 'P':
 	    port = atoi(optarg);
