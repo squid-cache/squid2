@@ -267,7 +267,10 @@ refreshCheckICP(const StoreEntry * entry, request_t * request)
 int
 refreshCheckDigest(const StoreEntry * entry, time_t delta)
 {
-    return refreshCheck(entry, NULL, delta, &refreshCounts[rcCDigest]);
+    return refreshCheck(entry,
+	entry->mem_obj ? entry->mem_obj->request : NULL, 
+	delta, 
+	&refreshCounts[rcCDigest]);
 }
 
 time_t
