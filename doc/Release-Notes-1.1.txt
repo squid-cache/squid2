@@ -28,6 +28,7 @@ TABLE OF CONTENTS:
 	Hierarchy Data Tags
 	Using Multicast ICP
 	Store.log Fields
+	Notes for running Squid under NEXTSTEP
 
 
 Ident (RFC 931) lookups
@@ -785,4 +786,25 @@ The file store.log consists of the following fields:
                which never become public will have cache keys that include
                a unique integer sequence number, the request method, and
                then the URL.
+
+
+Notes for running Squid under NEXTSTEP
+==============================================================================
+When running Squid under NEXTSTEP 3.x, and when that NEXTSTEP system
+runs a BIND named process (most NEXTSTEPS handle that through netinfo
+and netinfo might contact a BIND named on another system) squid can
+trigger an error in the older BIND named that comes with NEXTSTEP 3.x.
+It is therefore necessary for systems running NEXTSTEP 3.x, which run
+their own BIND named, to run a more recent version of BIND. Luckily you
+don't have to compile BIND yourself, a fat (m68k i486 hppa sparc)
+Installer package for BIND-4.9.5 is available through
+ftp://ftp.nluug.nl/pub/comp/next/Internet.
+
+NB: It might be necessary to have BIND running to run Squid under
+NEXTSTEP releases before NEXTSTEP 3.3+patch. Earlier releases of
+NEXTSTEP did not have a multithreaded netinfo resolver, which means
+that Squid's use of multiple dnsserver processes to prevent blocking is
+thwarted by netinfo blocking on every request.
+
+Gerben Wierda <Gerben_Wierda@RnA.nl>
 
