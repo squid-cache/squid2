@@ -356,7 +356,6 @@ for fs in $STORE_MODULES none; do
     case "$fs" in
     diskd)
         STORE_MODULE_SUBDIRS="$STORE_MODULE_SUBDIRS $fs"
-	OPT_DISKD_EXE='diskd$(EXEEXT)'
 	;;
     aufs)
 	if test -z "$with_pthreads"; then
@@ -374,7 +373,6 @@ for fs in $STORE_MODULES none; do
 done
 AC_SUBST(STORE_MODULES)
 AC_SUBST(STORE_MODULE_SUBDIRS)
-AC_SUBST(OPT_DISKD_EXE)
 
 
 dnl --enable-heap-replacement compability option
@@ -422,19 +420,15 @@ AC_SUBST(REPL_OBJS)
 REPL_LIBS="`echo $REPL_OBJS|sed -e 's%repl/%%g'`"
 AC_SUBST(REPL_LIBS)
 
-OPT_PINGER=''
-OPT_PINGER_EXE=''
+AM_CONDITIONAL(ENABLE_PINGER, false)
 AC_ARG_ENABLE(icmp,
 [  --enable-icmp           Enable ICMP pinging],
 [ if test "$enableval" = "yes" ; then
     echo "ICMP enabled"
     AC_DEFINE(USE_ICMP)
-    OPT_PINGER='pinger'
-    OPT_PINGER_EXE='pinger$(EXEEXT)'
+    AM_CONDITIONAL(ENABLE_PINGER, true)
   fi
 ])
-AC_SUBST(OPT_PINGER)
-AC_SUBST(OPT_PINGER_EXE)
 
 AM_CONDITIONAL(USE_DELAY_POOLS, false)
 AC_ARG_ENABLE(delay-pools,
@@ -787,12 +781,8 @@ AC_ARG_ENABLE(internal-dns,
 ])
 if test "$use_dnsserver" = "yes"; then
     AC_DEFINE(USE_DNSSERVERS)
-    OPT_DNSSERVER_EXE='dnsserver$(EXEEXT)'
     AM_CONDITIONAL(USE_DNSSERVER, true)
-else
-    OPT_DNSSERVER_EXE=''
 fi
-AC_SUBST(OPT_DNSSERVER_EXE)
 
 AC_ARG_ENABLE(truncate,
 [  --enable-truncate       This uses truncate() instead of unlink() when
