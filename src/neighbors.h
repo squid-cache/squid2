@@ -210,6 +210,7 @@ extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));
 extern void neighbors_rotate_log _PARAMS((void));
 extern void neighborsDestroy _PARAMS((void));
+extern edge *neighborFindByName _PARAMS((char *));
 
 extern char *hier_strings[];
 

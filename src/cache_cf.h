@@ -228,6 +228,10 @@ struct SquidConfig {
     wordlist *dns_testname_list;
     ip_acl *local_ip_list;
     ip_acl *firewall_ip_list;
+    struct {
+	char *host;
+	u_short port;
+    } sslProxy;
 };
 
 extern struct SquidConfig Config;
