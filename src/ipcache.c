@@ -1205,7 +1205,7 @@ void ipcacheOpenServers()
 	}
 	safe_free(dns_child_table);
     }
-    dns_child_table = xcalloc(N, sizeof(dnsserver_entry));
+    dns_child_table = xcalloc(N, sizeof(dnsserver_entry *));
     NChildrenAlloc = N;
     dns_child_alive = 0;
     debug(14, 1, "ipcacheOpenServers: Starting %d 'dns_server' processes\n", N);
@@ -1229,16 +1229,7 @@ void ipcacheOpenServers()
 
 	    /* update fd_stat */
 
-	    /*
-	     * sprintf(fd_note_buf, "%s #%d",
-	     * prg,
-	     * dns_child_table[i]->id);
-	     * file_update_open(dns_child_table[i]->inpipe, fd_note_buf);
-	     */
-
-	    debug(14, 5, "Calling fd_note() with FD %d and buf '%s'\n",
-		dns_child_table[i]->inpipe, fd_note_buf);
-
+	    sprintf(fd_note_buf, "%s #%d", prg, dns_child_table[i]->id+1);
 	    fd_note(dns_child_table[i]->inpipe, fd_note_buf);
 	    commSetNonBlocking(dns_child_table[i]->inpipe);
 
