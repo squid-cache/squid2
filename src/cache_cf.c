@@ -1113,7 +1113,7 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&Config.Accel.withProxy);
 
 	else if (!strcmp(token, "httpd_accel_uses_host_header"))
-	    parseOnOff(&opt_accel_users_host);
+	    parseOnOff(&opt_accel_uses_host);
 
 	else if (!strcmp(token, "httpd_accel"))
 	    parseHttpdAccelLine();

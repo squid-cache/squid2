@@ -333,6 +333,7 @@ extern struct in_addr no_addr;	/* comm.c */
 extern int opt_udp_hit_obj;	/* main.c */
 extern int opt_mem_pools;	/* main.c */
 extern int opt_forwarded_for;	/* main.c */
+extern int opt_accel_uses_host;	/* main.c */
 
 /* Prototypes and definitions which don't really deserve a seaprate
  * include file */
