@@ -735,7 +735,7 @@ aio_poll_done()
 	    threadp->thread,
 	    threadp->donereq->request_type,
 	    threadp->status);
-	if (threadp->status == _THREAD_WAITING)
+	if (!threadp->req)
 	    break;
 	prev = threadp;
 	threadp = threadp->next;
