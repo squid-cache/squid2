@@ -40,8 +40,6 @@ extern int commSetNonBlocking(int fd);
 
 void clientNegotiateSSL(int fd, void *data);
 void clientReadSSLRequest(int fd, void *data);
-void connFreeSSL(int fd, void *data);
-
 
 static RSA *
 ssl_temp_rsa_cb(SSL * ssl, int export, int keylen)
