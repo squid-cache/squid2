@@ -232,6 +232,9 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	if ((e = protoData->default_parent)) {
 	    hierarchyNote(req, HIER_DEFAULT_PARENT, 0, e->host);
 	    protoStart(protoData->fd, entry, e, req);
+	} else if ((e = getFirstUpParent(protoData->request))) {
+	    hierarchyNote(req, HIER_FIRSTUP_PARENT, 0, e->host);
+	    protoStart(protoData->fd, entry, e, req);
 	} else {
 	    hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
 	    protoCantFetchObject(protoData->fd, entry, "No peers to query and the host is beyond your firewall.");
