@@ -86,7 +86,7 @@ carpInit(void)
 peer *
 carpSelectParent(request_t * request)
 {
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> ((sizeof(u_long)*8)-(n))))
+#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (((sizeof(unsigned long)*8)-(n)))))
     const char *c;
     peer *p = NULL;
     peer *tp;

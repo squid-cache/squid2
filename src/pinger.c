@@ -43,11 +43,13 @@
 #include <netinet/ip_icmp.h>
 
 #ifndef _SQUID_LINUX_
+#ifndef _SQUID_CYGWIN_
 #define icmphdr icmp
 #define iphdr ip
 #endif
+#endif
 
-#ifdef _SQUID_LINUX_
+#if defined (_SQUID_LINUX_) || defined (_SQUID_CYGWIN_)
 #ifdef icmp_id
 #undef icmp_id
 #endif

@@ -78,8 +78,9 @@ static char msg[128];
 #if !defined(__CYGWIN__)
 extern int sys_nerr;
 #else
-extern __declspec(dllimport) int sys_nerr;
+  #define sys_nerr _sys_nerr
 #endif
+
 
 #if MEM_GEN_TRACE
 

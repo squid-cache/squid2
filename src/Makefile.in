@@ -391,7 +391,7 @@ install: all install-mkdirs
 	fi
 
 install-pinger:
-	@f=pinger; \
+	@f=$(PINGER_EXE); \
 	if test -f $(libexecdir)/$$f; then \
 		echo $(MV) $(libexecdir)/$$f $(libexecdir)/-$$f; \
 		$(MV) $(libexecdir)/$$f $(libexecdir)/-$$f; \

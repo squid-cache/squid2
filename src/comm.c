@@ -720,6 +720,16 @@ commSetNonBlocking(int fd)
 {
     int flags;
     int dummy = 0;
+#ifdef _SQUID_CYGWIN_ 
+    int nonblocking = TRUE;
+    if(fd_table[fd].type != FD_PIPE) {
+        if(ioctl(fd, FIONBIO, &nonblocking) < 0) {
+            debug(50, 0) ("commSetNonBlocking: FD %d: %s %D\n", fd, xstrerror(), fd_table[fd].type);
+            return COMM_ERROR;
+        }
+    }
+    else {
+#endif 
     if ((flags = fcntl(fd, F_GETFL, dummy)) < 0) {
 	debug(50, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
 	return COMM_ERROR;
@@ -728,6 +738,9 @@ commSetNonBlocking(int fd)
 	debug(50, 0) ("commSetNonBlocking: FD %d: %s\n", fd, xstrerror());
 	return COMM_ERROR;
     }
+#ifdef _SQUID_CYGWIN_ 
+   } 
+#endif 
     fd_table[fd].flags.nonblocking = 1;
     return 0;
 }
