@@ -127,7 +127,7 @@ static log_type clientProcessRequest2(clientHttpRequest * http);
 static int clientReplyBodyTooLarge(clientHttpRequest *, ssize_t clen);
 static int clientRequestBodyTooLarge(int clen);
 static void clientProcessBody(ConnStateData * conn);
-static void clientEatRequestBody(ConnStateData * conn);
+static void clientEatRequestBody(clientHttpRequest *);
 
 static int
 checkAccelOnly(clientHttpRequest * http)
@@ -2190,16 +2190,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
     } else if ((done = clientCheckTransferDone(http)) != 0 || size == 0) {
 	debug(33, 5) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
-	if (http->conn->body.size_left > 0) {
-	    debug(33, 5) ("clientWriteComplete: closing, but first we need to read the rest of the request\n");
-	    /* XXX We assumes the reply does fit in the TCP transmit window.
-	     * If not the connection may stall while sending the reply
-	     * (before reaching here) if the client does not try to read the
-	     * response while sending the request body. As of yet we have
-	     * not received any complaints indicating this may be an issue.
-	     */
-	    clientEatRequestBody(http->conn);
-	} else if (httpReplyBodySize(http->request->method, entry->mem_obj->reply) < 0) {
+	if (httpReplyBodySize(http->request->method, entry->mem_obj->reply) < 0) {
 	    debug(33, 5) ("clientWriteComplete: closing, content_length < 0\n");
 	    comm_close(fd);
 	} else if (!done) {
@@ -2208,6 +2199,15 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	} else if (clientGotNotEnough(http)) {
 	    debug(33, 5) ("clientWriteComplete: client didn't get all it expected\n");
 	    comm_close(fd);
+	} else if (http->request->body_connection) {
+	    debug(33, 5) ("clientWriteComplete: closing, but first we need to read the rest of the request\n");
+	    /* XXX We assumes the reply does fit in the TCP transmit window.
+	     * If not the connection may stall while sending the reply
+	     * (before reaching here) if the client does not try to read the
+	     * response while sending the request body. As of yet we have
+	     * not received any complaints indicating this may be an issue.
+	     */
+	    clientEatRequestBody(http);
 	} else if (http->request->flags.proxy_keepalive) {
 	    debug(33, 5) ("clientWriteComplete: FD %d Keeping Alive\n", fd);
 	    clientKeepaliveNextRequest(http);
@@ -3154,27 +3154,37 @@ clientReadBody(request_t * request, char *buf, size_t size, CBCB * callback, voi
 static void
 clientEatRequestBodyHandler(char *buf, ssize_t size, void *data)
 {
-    ConnStateData *conn = data;
+    clientHttpRequest *http = data;
+    ConnStateData *conn = http->conn;
+    if (buf && size < 0) {
+	return;			/* Aborted, don't care */
+    }
     if (conn->body.size_left > 0) {
 	conn->body.callback = clientEatRequestBodyHandler;
-	conn->body.cbdata = conn;
+	conn->body.cbdata = http;
 	cbdataLock(conn->body.cbdata);
 	conn->body.buf = NULL;
 	conn->body.bufsize = SQUID_TCP_SO_RCVBUF;
 	clientProcessBody(conn);
     } else {
-	comm_close(conn->fd);
+	if (http->request->flags.proxy_keepalive) {
+	    debug(33, 5) ("clientWriteComplete: FD %d Keeping Alive\n", conn->fd);
+	    clientKeepaliveNextRequest(http);
+	} else {
+	    comm_close(conn->fd);
+	}
     }
 }
 
 static void
-clientEatRequestBody(ConnStateData * conn)
+clientEatRequestBody(clientHttpRequest * http)
 {
+    ConnStateData *conn = http->conn;
     cbdataLock(conn);
     if (conn->body.request)
 	clientAbortBody(conn->body.request);
     if (cbdataValid(conn))
-	clientEatRequestBodyHandler(NULL, -1, conn);
+	clientEatRequestBodyHandler(NULL, -1, http);
     cbdataUnlock(conn);
 }
 
