@@ -453,10 +453,8 @@ storeUnregister(StoreEntry * e, void *data)
     if (e->store_status == STORE_OK && e->swap_status != SWAPOUT_DONE)
 	storeCheckSwapOut(e);
     if (sc->swapin_fd > -1) {
-	commSetSelect(sc->swapin_fd, COMM_SELECT_READ, NULL, NULL, 0);
 	file_close(sc->swapin_fd);
 	store_open_disk_fd--;
-	/* XXX this probably leaks file_read handler structures */
     }
 #if USE_ASYNC_IO
     else
