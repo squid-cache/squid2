@@ -371,7 +371,7 @@ void no_suid()
     uid=geteuid();
 #if defined(HAVE_SETRESUID)
     setresuid(uid,uid,uid);
-#elif
+#else
     setuid(0);
     setuid(uid);
 #endif
