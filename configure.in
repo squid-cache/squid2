@@ -595,4 +595,5 @@ AC_OUTPUT(\
 	./src/Makefile \
 	./contrib/Makefile \
 	./icons/Makefile \
+	./errors/Makefile \
 )
