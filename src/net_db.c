@@ -658,6 +658,27 @@ netdbHostRtt(const char *host)
     return 0;
 }
 
+int
+netdbHostPeerRtt(const char *host, peer * peer)
+{
+#if USE_ICMP
+    netdbEntry *n = netdbLookupHost(host);
+    net_db_peer *p;
+    int i;
+    if (NULL == n)
+	return 0;
+    p = n->peers;
+    for (i = 0; i < n->n_peers; i++, p++) {
+	if (strcmp(p->peername, peer->host))
+	    continue;
+	if (p->expires < squid_curtime)
+	    break;
+	return p->rtt;
+    }
+#endif
+    return 0;
+}
+
 void
 netdbUpdatePeer(request_t * r, peer * e, int irtt, int ihops)
 {
