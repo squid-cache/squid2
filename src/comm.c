@@ -1288,7 +1288,7 @@ examine_select(fd_set * readfds, fd_set * writefds)
 	    continue;
 	}
 	f = &fd_table[fd];
-	debug(5, 0, "FD %d: %s\n", xstrerror());
+	debug(5, 0, "FD %d: %s\n", fd, xstrerror());
 	debug(5, 0, "WARNING: FD %d has handlers, but it's invalid.\n", fd);
 	debug(5, 0, "FD %d is a %s called '%s'\n",
 	    fd,
