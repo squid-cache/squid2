@@ -23,6 +23,10 @@ mkdir -p cfgaux
 bootstrap aclocal
 bootstrap autoheader
 bootstrap automake --foreign --add-missing
-bootstrap autoconf
+if autoconf --version | grep -q 2.13; then
+  bootstrap autoconf
+else
+  bootstrap autoconf213
+fi
 
 echo "Autotool bootstrapping complete."
