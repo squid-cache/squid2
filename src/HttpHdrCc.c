@@ -47,9 +47,6 @@ static const HttpHeaderFieldAttrs CcAttrs[CC_ENUM_END] =
 };
 HttpHeaderFieldInfo *CcFieldsInfo = NULL;
 
-/* counters */
-static int CcParsedCount = 0;
-
 /* local prototypes */
 static int httpHdrCcParseInit(HttpHdrCc * cc, const String * str);
 
@@ -102,7 +99,6 @@ httpHdrCcParseInit(HttpHdrCc * cc, const String * str)
     int ilen;
     assert(cc && str);
 
-    CcParsedCount++;
     /* iterate through comma separated list */
     while (strListGetItem(str, ',', &item, &ilen, &pos)) {
 	/* strip '=' statements @?@ */
@@ -209,10 +205,11 @@ httpHdrCcUpdateStats(const HttpHdrCc * cc, StatHist * hist)
 void
 httpHdrCcStatDumper(StoreEntry * sentry, int idx, double val, double size, int count)
 {
+    extern const HttpHeaderStat *dump_stat; /* argh! */
     const int id = (int) val;
     const int valid_id = id >= 0 && id < CC_ENUM_END;
     const char *name = valid_id ? strBuf(CcFieldsInfo[id].name) : "INVALID";
     if (count || valid_id)
 	storeAppendPrintf(sentry, "%2d\t %-20s\t %5d\t %6.2f\n",
-	    id, name, count, xdiv(count, CcParsedCount));
+	    id, name, count, xdiv(count, dump_stat->ccParsedCount));
 }
