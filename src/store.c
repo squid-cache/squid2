@@ -2806,7 +2806,7 @@ storeCheckExpired(const StoreEntry * e)
  * very busy then store_swap_size stays closer to the low water mark, if
  * it is not busy, then it will stay near the high water mark.  The LRU
  * age value can be examined on the cachemgr 'info' page.
-*/
+ */
 time_t
 storeExpiredReferenceAge(void)
 {
