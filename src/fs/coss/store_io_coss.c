@@ -529,14 +529,12 @@ storeCossStartMembuf(SwapDir * sd)
 }
 
 /*
- * We can't pass memFree() as a free function here, because we need to free
- * the fsstate variable ..
+ * Clean up any references from the SIO before it get's released.
  */
 static void
 storeCossIOFreeEntry(void *sio)
 {
     memPoolFree(coss_state_pool, ((storeIOState *) sio)->fsstate);
-    memFree(sio, MEM_STORE_IO);
 }
 
 /*
