@@ -103,4 +103,4 @@ extern const int CacheDigestHashFuncCount;	/* 4 */
 extern CacheDigest *store_digest;	/* NULL */
 extern const char *StoreDigestUrlPath;	/* "store_digest" */
 extern const char *StoreDigestMimeStr;	/* "application/cache-digest" */
-extern const Version CacheDigestVer;	/* { 2, 2 } */
+extern const Version CacheDigestVer;	/* { 3, 3 } */
