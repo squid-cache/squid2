@@ -159,4 +159,4 @@ beta8:
 
 	- More friendly CFLAGS and LDFLAGS for configure
 	- ACL_ALLWEEK bugfix
-	
+	- Added missing increment of UDP connection counter.
