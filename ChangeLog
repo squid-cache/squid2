@@ -1,3 +1,7 @@
+Changes to squid-2.5.STABLE9 ()
+
+	- [Major] Assertion failures on certain odd DNS responses (Bug #1234)
+
 Changes to squid-2.5.STABLE8 (11 Feb 2005)
 
 	- [Minor] 100% CPU usage on half-closed PUT/POST requests (Bug #354,
