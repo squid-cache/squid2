@@ -1294,15 +1294,15 @@ void stat_ipcache_get(sentry, obj)
 		struct in_addr addr;
 		memcpy((char *) &addr, e->entry.h_addr_list[i], e->entry.h_length);
 
-		sprintf(buffer, "%s ", inet_ntoa(addr));
+		sprintf(buffer, " %s", inet_ntoa(addr));
 		storeAppend(sentry, buffer, strlen(buffer));
 	    }
 	    for (i = 0; i < (int) e->alias_count; i++) {
-		sprintf(buffer, "%s ", e->entry.h_aliases[i]);
+		sprintf(buffer, " %s", e->entry.h_aliases[i]);
 		storeAppend(sentry, buffer, strlen(buffer));
 	    }
 	    if (e->entry.h_name && strncmp(e->name, e->entry.h_name, MAX_LINELEN)) {
-		sprintf(buffer, "%s ", e->entry.h_name);
+		sprintf(buffer, " %s", e->entry.h_name);
 		storeAppend(sentry, buffer, strlen(buffer));
 	    }
 	    sprintf(buffer, "}\n");
