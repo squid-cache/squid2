@@ -124,8 +124,9 @@ static char *tbuf = NULL;
 void errorInitialize()
 {
     tmp_error_buf = xmalloc(MAX_URL * 4);
+    meta_data.misc += MAX_URL * 4;
     tbuf = xmalloc(MAX_URL * 3);
-    meta_data.misc += MAX_URL * 7;
+    meta_data.misc += MAX_URL * 3;
 }
 
 void squid_error_entry(entry, type, msg)
