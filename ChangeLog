@@ -164,11 +164,10 @@ Changes to Squid-2.2 (April 19, 1999):
 	- Fixed commRetryFD() when bind() fails.   commRetryFD was
 	  closing the filedescriptor, but it is the upper layer's
 	  job to close it.
-	- Changed "maximum number of filedescriptors" detection in
-	  configure to always simply open /dev/null in a loop until
-	  open fails.  The #if statement was quite complex, and maybe
-	  impossible to get right for all platforms.  Note, getrlimit()
-	  can't be reliably used because it might return RLIM_INFINITY.
+	- Changed configure's "maximum number of filedescriptors"
+	  detection to only use getrlimit() for Linux.  On AIX,
+	  getrlimit returns RLIM_INFINITY.
+	- Fixed snmpInit() nesting bug.
 
 Changes to Squid-2.1 (November 16, 1998):
 
