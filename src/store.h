@@ -175,7 +175,7 @@ struct _MemObject {
     struct timeval start_ping;
     IRCB *icp_reply_callback;
     void *ircb_data;
-    int fd;		/* FD of client creating this entry */
+    int fd;			/* FD of client creating this entry */
 };
 
 enum {
@@ -255,7 +255,8 @@ extern void storeAppend _PARAMS((StoreEntry *, const char *, int));
 extern int storeGetMemSize _PARAMS((void));
 extern int storeGetSwapSize _PARAMS((void));
 extern int storeGetSwapSpace _PARAMS((int));
-extern void storeLockObject _PARAMS((StoreEntry *, SIH *, void *));
+extern void storeLockObject _PARAMS((StoreEntry *));
+extern void storeSwapInStart _PARAMS((StoreEntry *, SIH *, void *data));
 extern int storeRelease _PARAMS((StoreEntry *));
 extern int storeUnlockObject _PARAMS((StoreEntry *));
 extern int storeUnregister _PARAMS((StoreEntry *, void *));
