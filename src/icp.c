@@ -1071,7 +1071,7 @@ icpCreateMessage(
     headerp->reqnum = htonl(reqnum);
     headerp->flags = htonl(flags);
     headerp->pad = htonl(pad);
-    headerp->shostid = htonl(theOutICPAddr.s_addr);
+    headerp->shostid = theOutICPAddr.s_addr;
     urloffset = buf + sizeof(icp_common_t);
     if (opcode == ICP_OP_QUERY)
 	urloffset += sizeof(u_num32);
@@ -1108,7 +1108,7 @@ icpCreateHitObjMessage(
     headerp->reqnum = htonl(reqnum);
     headerp->flags = htonl(flags);
     headerp->pad = htonl(pad);
-    headerp->shostid = htonl(theOutICPAddr.s_addr);
+    headerp->shostid = theOutICPAddr.s_addr;
     urloffset = buf + sizeof(icp_common_t);
     xmemcpy(urloffset, url, strlen(url));
     data_sz = htons((u_short) entry->object_len);
@@ -1240,7 +1240,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
     header.flags = ntohl(headerp->flags);
-    header.shostid = ntohl(headerp->shostid);
+    header.shostid = headerp->shostid;
     header.pad = ntohl(headerp->pad);
 
     switch (header.opcode) {
@@ -1409,7 +1409,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
     header.flags = ntohl(headerp->flags);
-    header.shostid = ntohl(headerp->shostid);
+    header.shostid = headerp->shostid;
 
     switch (header.opcode) {
     case ICP_OP_QUERY:
@@ -1538,7 +1538,7 @@ icpPktDump(icp_common_t * pkt)
     debug(12, 9, "length:  %-8d\n", (int) ntohs(pkt->length));
     debug(12, 9, "reqnum:  %-8d\n", ntohl(pkt->reqnum));
     debug(12, 9, "flags:   %-8x\n", ntohl(pkt->flags));
-    a.s_addr = ntohl(pkt->shostid);
+    a.s_addr = pkt->shostid;
     debug(12, 9, "shostid: %s\n", inet_ntoa(a));
     debug(12, 9, "payload: %s\n", (char *) pkt + sizeof(icp_common_t));
 }
@@ -1925,7 +1925,7 @@ asciiHandleConn(int sock, void *notused)
 	icpState->start = current_time;
 	icpState->inbufsize = ASCII_INBUF_BLOCKSIZE;
 	icpState->inbuf = xcalloc(icpState->inbufsize, 1);
-	icpState->header.shostid = htonl(peer.sin_addr.s_addr);
+	icpState->header.shostid = peer.sin_addr.s_addr;
 	icpState->peer = peer;
 	icpState->log_addr = peer.sin_addr;
 	icpState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
@@ -2134,7 +2134,7 @@ icpDetectNewRequest(int fd)
     icpState->start = current_time;
     icpState->inbufsize = ASCII_INBUF_BLOCKSIZE;
     icpState->inbuf = xcalloc(icpState->inbufsize, 1);
-    icpState->header.shostid = htonl(peer.sin_addr.s_addr);
+    icpState->header.shostid = peer.sin_addr.s_addr;
     icpState->peer = peer;
     icpState->log_addr = peer.sin_addr;
     icpState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
