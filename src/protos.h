@@ -828,7 +828,11 @@ extern int storeClientCopyPending(StoreEntry *, void *);
 extern void InvokeHandlers(StoreEntry *);
 extern int storeEntryValidToSend(StoreEntry *);
 extern void storeTimestampsSet(StoreEntry *);
+#if HEAP_REPLACEMENT
+extern heap_key storeReplacementThreshold(void);
+#else
 extern time_t storeExpiredReferenceAge(void);
+#endif
 extern void storeRegisterAbort(StoreEntry * e, STABH * cb, void *);
 extern void storeUnregisterAbort(StoreEntry * e);
 extern void storeMemObjectDump(MemObject * mem);
