@@ -170,6 +170,8 @@ hash_link *hash_lookup(hid, k)
 	walker = walker->next) {
 	if (htbl[hid].cmp(k, walker->key) == 0)
 	    return (walker);
+	if (walker == walker->next)
+	    break;
     }
     return NULL;
 }

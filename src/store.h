@@ -13,11 +13,13 @@
 
 /* 
  * KEY_URL              If e->key and e->url point to the same location
- * KEY_CHANGE   If the key for this URL has been changed
+ * KEY_CHANGE           If the key for this URL has been changed
  */
 
-#define REQ_DISPATCHED 		(1<<11)
-#define REQ_HTML 		(1<<10)
+#define ENTRY_PRIVATE 		(1<<13)		/* should this entry be private? */
+#define KEY_PRIVATE 		(1<<12)		/* is the key currently private? */
+#define ENTRY_DISPATCHED 	(1<<11)
+#define ENTRY_HTML 		(1<<10)
 #define KEY_CHANGE 		(1<<9)
 #define KEY_URL    		(1<<8)
 #define CACHABLE   		(1<<7)
@@ -28,13 +30,6 @@
 #define CLIENT_ABORT_REQUEST 	(1<<2)
 #define DELETE_BEHIND   	(1<<1)
 #define IP_LOOKUP_PENDING      	(1<<0)
-
-/* type id for REQUEST opcode */
-#define REQUEST_OP_GET     	0
-#define REQUEST_OP_POST    	1
-#define REQUEST_OP_HEAD    	2
-
-extern char *HTTP_OPS[];
 
 
 /* keep track each client receiving data from that particular StoreEntry */
@@ -119,15 +114,11 @@ struct sentry {
     enum {
 	NO_SWAP, SWAPPING_OUT, SWAP_OK
     } swap_status:3;
-    enum {
-	REQ_GET = 0, REQ_POST = 1, REQ_HEAD = 2
-    } type_id:3;
-
+    int type_id:3;
 
     /* WARNING: Explicit assummption that fewer than 256
      * WARNING:  clients all hop onto the same object.  The code
-     * WARNING:  doesn't deal with this case.
-     */
+     * WARNING:  doesn't deal with this case.  */
     unsigned char lock_count;
 
 };
@@ -144,15 +135,14 @@ typedef struct pentry {
 
 extern int has_mem_obj _PARAMS((StoreEntry *));
 extern StoreEntry *storeGet _PARAMS((char *));
-extern StoreEntry *storeCreateEntry _PARAMS((char *, char *, int, int, int));
-extern void storeAddEntry _PARAMS((StoreEntry *));
+extern StoreEntry *storeCreateEntry _PARAMS((char *, char *, int, int));
+extern void storeSetPublicKey _PARAMS((StoreEntry *));
+extern void storeSetPrivateKey _PARAMS((StoreEntry *));
 extern StoreEntry *storeGetFirst _PARAMS((void));
 extern StoreEntry *storeGetNext _PARAMS((void));
 extern StoreEntry *storeLRU _PARAMS((void));
 extern int storeWalkThrough _PARAMS((int (*proc) (), caddr_t data));
 extern int storePurgeOld _PARAMS((void));
-extern void storeChangeKey _PARAMS((StoreEntry *));
-extern void storeUnChangeKey _PARAMS((StoreEntry *));
 extern void storeSanityCheck _PARAMS(());
 extern void storeComplete _PARAMS((StoreEntry *));
 extern int storeInit _PARAMS(());
@@ -172,7 +162,8 @@ extern int storeRelease _PARAMS((StoreEntry *));
 extern int storeUnlockObject _PARAMS((StoreEntry *));
 extern int storeUnregister _PARAMS((StoreEntry *, int));
 extern int storeGrep _PARAMS((StoreEntry *, char *, int));
-extern char *storeGenerateKey _PARAMS((char *, int));
+extern char *storeGeneratePublicKey _PARAMS((char *, int));
+extern char *storeGeneratePrivateKey _PARAMS((char *, int, int));
 extern char *storeMatchMime _PARAMS((StoreEntry *, char *, char *, int));
 extern int storeAddSwapDisk _PARAMS((char *));
 extern char *swappath _PARAMS((int));

@@ -1,3 +1,3 @@
 
 extern int gopherStart _PARAMS((int, char *, StoreEntry *));
-extern int gopherCachable _PARAMS((char *, char *, char *));
+extern int gopherCachable _PARAMS((char *));

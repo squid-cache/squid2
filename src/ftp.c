@@ -98,10 +98,8 @@ int ftp_url_parser(url, data)
     return 0;
 }
 
-int ftpCachable(url, type, mime_hdr)
+int ftpCachable(url)
      char *url;
-     char *type;
-     char *mime_hdr;
 {
     stoplist *p = NULL;
 
@@ -467,7 +465,8 @@ int ftpStart(unusedfd, url, entry)
 	COMM_SELECT_LIFETIME,
 	(PF) ftpLifetimeExpire,
 	(caddr_t) data);
-    storeAddEntry(entry);	/* Make it public */
+    if (!BIT_TEST(entry->flag, ENTRY_PRIVATE))
+	storeSetPublicKey(entry);	/* Make it public */
 
     return COMM_OK;
 }

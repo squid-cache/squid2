@@ -24,6 +24,24 @@ static char *firewall_desc_str[] =
     "NO_FIREWALL"
 };
 
+char *IcpOpcodeStr[] =
+{
+    "ICP_INVALID",
+    "ICP_QUERY",
+    "ICP_HIT",
+    "ICP_MISS",
+    "ICP_ERR",
+    "ICP_SEND",
+    "ICP_SENDA",
+    "ICP_DATABEG",
+    "ICP_DATA",
+    "ICP_DATAEND",
+    "ICP_SECHO",
+    "ICP_DECHO",
+    "ICP_END"
+};
+
+
 extern int httpd_accel_mode;
 extern ip_acl *local_ip_list;
 extern time_t neighbor_timeout;
@@ -34,20 +52,20 @@ extern char *dns_error_message;
 
 /* return 1 for cachable url
  * return 0 for uncachable url */
-int proto_cachable(url, type, mime_hdr)
+int proto_cachable(url, method, request_hdr)
      char *url;
-     char *type;
-     char *mime_hdr;
+     int method;
+     char *request_hdr;
 {
     if (url == (char *) NULL)
 	return 0;
 
     if (!strncasecmp(url, "http://", 7))
-	return httpCachable(url, type, mime_hdr);
+	return httpCachable(url, method, request_hdr);
     if (!strncasecmp(url, "ftp://", 6))
-	return ftpCachable(url, type, mime_hdr);
+	return ftpCachable(url);
     if (!strncasecmp(url, "gopher://", 9))
-	return gopherCachable(url, type, mime_hdr);
+	return gopherCachable(url);
     if (!strncasecmp(url, "wais://", 7))
 	return 0;
     if (!strncasecmp(url, "cache_object://", 15))
@@ -166,14 +184,14 @@ int protoDispatch(fd, url, entry)
     char *host = NULL;
     protodispatch_data *data = NULL;
     char *method;
-    char *mime_hdr;
+    char *request_hdr;
     int n;
 
-    method = HTTP_OPS[entry->type_id];
-    mime_hdr = entry->mem_obj->mime_hdr;
+    method = RequestMethodStr[entry->type_id];
+    request_hdr = entry->mem_obj->mime_hdr;
 
     debug(17, 5, "protoDispatch: %s URL: %s\n", method, url);
-    debug(17, 10, "    mime_hdr: %s\n", mime_hdr);
+    debug(17, 10, "request_hdr: %s\n", request_hdr);
 
     /* Start retrieval process. */
     if (strncasecmp(url, "cache_object:", 13) == 0)
@@ -202,7 +220,7 @@ int protoDispatch(fd, url, entry)
     strncpy(data->host, host, SQUIDHOSTNAMELEN);
 
     data->inside_firewall = matchInsideFirewall(host);
-    data->cachable = proto_cachable(url, method, mime_hdr);
+    data->cachable = proto_cachable(url, entry->type_id, request_hdr);
     data->single_parent = getSingleParent(host, &n);
     data->n_edges = n;
 
@@ -224,16 +242,25 @@ int protoDispatch(fd, url, entry)
     } else if (matchLocalDomain(host) || !data->cachable) {
 	/* will fetch from source */
 	data->direct_fetch = DIRECT_YES;
-	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, (caddr_t) data);
+	ipcache_nbgethostbyname(data->host,
+	    fd,
+	    protoDispatchDNSHandle,
+	    (caddr_t) data);
     } else if (data->n_edges == 0) {
 	/* will fetch from source */
 	data->direct_fetch = DIRECT_YES;
-	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, (caddr_t) data);
+	ipcache_nbgethostbyname(data->host,
+	    fd,
+	    protoDispatchDNSHandle,
+	    (caddr_t) data);
     } else if (local_ip_list) {
 	/* Have to look up the url address so we can compare it */
 	data->source_ping = getSourcePing();
 	data->direct_fetch = DIRECT_MAYBE;
-	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, (caddr_t) data);
+	ipcache_nbgethostbyname(data->host,
+	    fd,
+	    protoDispatchDNSHandle,
+	    (caddr_t) data);
     } else if (data->single_parent && single_parent_bypass &&
 	!(data->source_ping = getSourcePing())) {
 	/* will fetch from single parent */
@@ -244,7 +271,10 @@ int protoDispatch(fd, url, entry)
 	/* will use ping resolution */
 	data->source_ping = getSourcePing();
 	data->direct_fetch = DIRECT_MAYBE;
-	ipcache_nbgethostbyname(data->host, fd, protoDispatchDNSHandle, (caddr_t) data);
+	ipcache_nbgethostbyname(data->host,
+	    fd,
+	    protoDispatchDNSHandle,
+	    (caddr_t) data);
     }
     return 0;
 }
@@ -346,7 +376,7 @@ int getFromDefaultSource(fd, entry)
 	    url);
     }
     /* Check if someone forgot to disable the read timer */
-    if (fd && BIT_TEST(entry->flag, REQ_DISPATCHED)) {
+    if (fd && BIT_TEST(entry->flag, ENTRY_DISPATCHED)) {
 	if (entry->ping_status == TIMEOUT) {
 	    debug(17, 0, "FD %d Someone forgot to disable the read timer.\n", fd);
 	    debug(17, 0, "--> <URL:%s>\n", entry->url);
@@ -356,7 +386,7 @@ int getFromDefaultSource(fd, entry)
 	}
 	return 0;
     }
-    BIT_SET(entry->flag, REQ_DISPATCHED);
+    BIT_SET(entry->flag, ENTRY_DISPATCHED);
 
     if ((e = entry->mem_obj->e_pings_first_miss)) {
 	hierarchy_log_append(url, HIER_FIRST_PARENT_MISS, fd, e->host);
@@ -406,8 +436,8 @@ int getFromCache(fd, entry, e)
      edge *e;
 {
     char *url = entry->url;
-    char *type = HTTP_OPS[entry->type_id];
-    char *mime_hdr = entry->mem_obj->mime_hdr;
+    char *type = RequestMethodStr[entry->type_id];
+    char *request_hdr = entry->mem_obj->mime_hdr;
 
     debug(17, 5, "getFromCache: FD %d <URL:%s>\n", fd, entry->url);
     debug(17, 5, "getFromCache: --> type = %s\n", type);
@@ -423,7 +453,7 @@ int getFromCache(fd, entry, e)
     if (e) {
 	return proxyhttpStart(e, url, entry);
     } else if (strncasecmp(url, "http://", 7) == 0) {
-	return httpStart(fd, url, type, mime_hdr, entry);
+	return httpStart(fd, url, type, request_hdr, entry);
     } else if (strncasecmp(url, "gopher://", 9) == 0) {
 	return gopherStart(fd, url, entry);
     } else if (strncasecmp(url, "news://", 7) == 0) {
@@ -437,7 +467,7 @@ int getFromCache(fd, entry, e)
     } else if (strncasecmp(url, "ftp://", 6) == 0) {
 	return ftpStart(fd, url, entry);
     } else if (strncasecmp(url, "wais://", 7) == 0) {
-	return waisStart(fd, url, type, mime_hdr, entry);
+	return waisStart(fd, url, type, request_hdr, entry);
     } else if (strncasecmp(url, "dht://", 6) == 0) {
 	return protoNotImplemented(fd, url, entry);
     } else {

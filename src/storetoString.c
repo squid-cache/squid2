@@ -186,16 +186,16 @@ char *storeToString(e)
     sprintf(tmpbuf, "TypeId: ");
     switch (e->type_id) {
 
-    case REQ_GET:
-	strcat(tmpbuf, "REQ_GET\n");
+    case METHOD_GET:
+	strcat(tmpbuf, "METHOD_GET\n");
 	break;
 
-    case REQ_POST:
-	strcat(tmpbuf, "REQ_POST\n");
+    case METHOD_POST:
+	strcat(tmpbuf, "METHOD_POST\n");
 	break;
 
-    case REQ_HEAD:
-	strcat(tmpbuf, "REQ_POST\n");
+    case METHOD_HEAD:
+	strcat(tmpbuf, "METHOD_HEAD\n");
 	break;
 
     default:

@@ -9,34 +9,40 @@ typedef enum {
     LOG_TCP_MISS,		/* 2 */
     LOG_TCP_EXPIRED,		/* 3 */
     LOG_TCP_USER_REFRESH,	/* 4 */
-    LOG_TCP_SWAPIN_FAIL,	/* 5 */
-    LOG_TCP_BLOCK,		/* 6 */
-    LOG_TCP_DENIED,		/* 7 */
-    LOG_UDP_HIT,		/* 8 */
-    LOG_UDP_MISS,		/* 9 */
-    LOG_UDP_DENIED,		/* 10 */
-    ERR_READ_TIMEOUT,		/* 11 */
-    ERR_LIFETIME_EXP,		/* 12 */
-    ERR_NO_CLIENTS_BIG_OBJ,	/* 13 */
-    ERR_READ_ERROR,		/* 14 */
-    ERR_CLIENT_ABORT,		/* 15 */
-    ERR_CONNECT_FAIL,		/* 16 */
-    ERR_INVALID_URL,		/* 17 */
-    ERR_NO_FDS,			/* 18 */
-    ERR_DNS_FAIL,		/* 19 */
-    ERR_NOT_IMPLEMENTED,	/* 20 */
-    ERR_CANNOT_FETCH,		/* 21 */
-    ERR_NO_RELAY,		/* 22 */
-    ERR_DISK_IO,		/* 23 */
-    ERR_URL_BLOCKED,		/* 24 */
-    ERR_ZERO_SIZE_OBJECT	/* 25 */
+    LOG_TCP_IFMODSINCE,		/* 5 */
+    LOG_TCP_SWAPIN_FAIL,	/* 6 */
+    LOG_TCP_BLOCK,		/* 7 */
+    LOG_TCP_DENIED,		/* 8 */
+    LOG_UDP_HIT,		/* 9 */
+    LOG_UDP_MISS,		/* 10 */
+    LOG_UDP_DENIED,		/* 11 */
+    ERR_READ_TIMEOUT,		/* 12 */
+    ERR_LIFETIME_EXP,		/* 13 */
+    ERR_NO_CLIENTS_BIG_OBJ,	/* 14 */
+    ERR_READ_ERROR,		/* 15 */
+    ERR_CLIENT_ABORT,		/* 16 */
+    ERR_CONNECT_FAIL,		/* 17 */
+    ERR_INVALID_REQ,		/* 18 */
+    ERR_INVALID_URL,		/* 19 */
+    ERR_NO_FDS,			/* 20 */
+    ERR_DNS_FAIL,		/* 21 */
+    ERR_NOT_IMPLEMENTED,	/* 22 */
+    ERR_CANNOT_FETCH,		/* 23 */
+    ERR_NO_RELAY,		/* 24 */
+    ERR_DISK_IO,		/* 25 */
+    ERR_URL_BLOCKED,		/* 26 */
+    ERR_ZERO_SIZE_OBJECT	/* 27 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT
-#define ERR_MAX ERR_URL_BLOCKED
+#define ERR_MAX ERR_ZERO_SIZE_OBJECT
 
-extern int icpHandleUdp _PARAMS((int sock, caddr_t data));
-extern int asciiHandleConn _PARAMS((int sock, caddr_t data));
+/* bitfields for the icpStateData 'flags' element */
+#define		REQ_HTML	0x01
+#define		REQ_NOCACHE	0x02
+#define		REQ_IMS		0x04
+#define		REQ_AUTH	0x08
+#define		REQ_PUBLIC	0x10
 
 typedef struct wwd {
     struct sockaddr_in address;
@@ -47,5 +53,11 @@ typedef struct wwd {
 
 extern char *icpWrite _PARAMS((int, char *, int, int, void (*handler) (), caddr_t));
 extern int icpUdpSend _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, icp_opcode));
+
+extern int icpHandleUdp _PARAMS((int sock, caddr_t data));
+extern int asciiHandleConn _PARAMS((int sock, caddr_t data));
+
+extern int neighbors_do_private_keys;
+extern char *IcpOpcodeStr[];
 
 #endif
