@@ -774,7 +774,7 @@ aclParseAclLine(acl ** head)
 	break;
 #endif
     case ACL_REQ_MIME_TYPE:
-	aclParseWordList(&A->data);
+	aclParseRegexList(&A->data);
 	break;
     case ACL_NONE:
     default:
