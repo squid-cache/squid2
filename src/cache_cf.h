@@ -178,8 +178,10 @@ struct SquidConfig {
 	int log_fqdn;
     } Log;
 #if USE_PROXY_AUTH
-    char *proxyAuthFile;
-    char *proxyAuthIgnoreDomain;
+    struct {
+	char *File;
+	relist *IgnoreDomains;
+    } proxyAuth;
 #endif				/* USE_PROXY_AUTH */
     char *adminEmail;
     char *effectiveUser;
