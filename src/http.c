@@ -25,8 +25,7 @@ static int httpStateFree(fd, httpState)
     } else {
 	safe_free(httpState->reqbuf)
     }
-    if (--httpState->request->link_count == 0)
-	put_free_request_t(httpState->request);
+    requestUnlink(httpState->request);
     xfree(httpState);
     return 0;
 }
@@ -574,8 +573,7 @@ int proxyhttpStart(e, url, entry)
     storeLockObject(httpState->entry = entry, NULL, NULL);
     httpState->req_hdr = entry->mem_obj->mime_hdr;
     request = get_free_request_t();
-    httpState->request = request;
-    request->link_count++;
+    httpState->request = requestLink(request);
     /* register the handler to free HTTP state data when the FD closes */
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
@@ -647,8 +645,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
     httpState = xcalloc(1, sizeof(HttpStateData));
     storeLockObject(httpState->entry = entry, NULL, NULL);
     httpState->req_hdr = req_hdr;
-    httpState->request = request;
-    request->link_count++;
+    httpState->request = requestLink(request);
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
 	(PF) httpStateFree,

@@ -47,8 +47,7 @@ static int sslStateFree(fd, sslState)
     safe_free(sslState->server.buf);
     safe_free(sslState->client.buf);
     xfree(sslState->url);
-    if (--sslState->request->link_count == 0)
-	put_free_request_t(sslState->request);
+    requestUnlink(sslState->request);
     memset(sslState, '\0', sizeof(SslStateData));
     safe_free(sslState);
     return 0;
@@ -332,8 +331,7 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
     }
     sslState = xcalloc(1, sizeof(SslStateData));
     sslState->url = xstrdup(url);
-    sslState->request = request;
-    sslState->request->link_count++;
+    sslState->request = requestLink(request);
     sslState->mime_hdr = mime_hdr;
     sslState->timeout = getReadTimeout();
     sslState->size_ptr = size_ptr;

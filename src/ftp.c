@@ -60,8 +60,7 @@ static int ftpStateFree(fd, ftpState)
 	put_free_8k_page(ftpState->icp_page_ptr);
 	ftpState->icp_page_ptr = NULL;
     }
-    if (--ftpState->request->link_count == 0)
-	put_free_request_t(ftpState->request);
+    requestUnlink(ftpState->request);
     xfree(ftpState);
     return 0;
 }
@@ -491,8 +490,7 @@ int ftpStart(unusedfd, url, request, entry)
 
     data = xcalloc(1, sizeof(FtpData));
     storeLockObject(data->entry = entry, NULL, NULL);
-    data->request = request;
-    request->link_count++;
+    data->request = requestLink(request);
 
     /* Parse login info. */
     ftp_login_parser(request->login, data);

@@ -159,8 +159,8 @@ static void destroy_MemObject(mem)
     safe_free(mem->mime_hdr);
     safe_free(mem->reply);
     safe_free(mem->e_abort_msg);
-    if (mem->request && --mem->request->link_count == 0)
-	put_free_request_t(mem->request);
+    requestUnlink(mem->request);
+    mem->request = NULL;
     put_free_mem_obj(mem);
     meta_data.store_in_mem_objects--;
 }

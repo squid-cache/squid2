@@ -143,8 +143,7 @@ static int icpStateFree(fd, icpState)
 	storeUnlockObject(icpState->entry);
 	icpState->entry = NULL;
     }
-    if (icpState->request && --icpState->request->link_count == 0)
-	put_free_request_t(icpState->request);
+    requestUnlink(icpState->request);
     icpFreeBufOrPage(icpState);
     safe_free(icpState);
     return 0;			/* XXX gack, all comm handlers return ints */
@@ -514,17 +513,14 @@ static void icpHandleIMSComplete(fd, buf, size, errflag, data)
     icpStateData *icpState = (icpStateData *) data;
     StoreEntry *entry = icpState->entry;
     debug(12, 5, "icpHandleIMSComplete: Not Modified sent '%s'\n", entry->url);
-
     /* XXX: Is this correct? */
     CacheInfo->proto_touchobject(CacheInfo,
 	CacheInfo->proto_id(entry->url),
 	strlen(buf));
-
     /* Set up everything for the logging */
     storeUnlockObject(icpState->entry);
     icpState->entry = NULL;
     icpState->size = strlen(buf);
-
     comm_close(fd);
 }
 
@@ -1371,6 +1367,7 @@ static void asciiProcessInput(fd, buf, size, flag, data)
     static char client_msg[64];
     int parser_return_code = 0;
     int k;
+    request_t *request = NULL;
 
     debug(12, 4, "asciiProcessInput: FD %d: reading request...\n", fd);
     debug(12, 4, "asciiProcessInput: size = %d\n", size);
@@ -1385,7 +1382,7 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 
     parser_return_code = parseHttpRequest(icpState);
     if (parser_return_code == 1) {
-	if ((icpState->request = urlParse(icpState->method, icpState->url)) == NULL) {
+	if ((request = urlParse(icpState->method, icpState->url)) == NULL) {
 	    debug(12, 5, "Invalid URL: %s\n", icpState->url);
 	    icpState->log_type = ERR_INVALID_URL;
 	    icpState->http_code = 400;
@@ -1404,7 +1401,7 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 		(void *) icpState);
 	    return;
 	}
-	icpState->request->link_count++;
+	icpState->request = requestLink(request);
 	if (!icpAccessCheck(icpState)) {
 	    debug(12, 5, "Access Denied: %s\n", icpState->url);
 	    icpState->log_type = LOG_TCP_DENIED;

@@ -63,8 +63,7 @@ extern char *dns_error_message;
 static void protoDataFree(protoData)
      protodispatch_data *protoData;
 {
-    if (--protoData->request->link_count == 0)
-	put_free_request_t(protoData->request);
+    requestUnlink(protoData->request);
     safe_free(protoData);
 }
 
@@ -201,8 +200,8 @@ int protoDispatch(fd, url, entry, request)
     protoData->fd = fd;
     protoData->url = url;
     protoData->entry = entry;
-    protoData->request = entry->mem_obj->request = request;
-    request->link_count += 2;
+    protoData->request = requestLink(request);
+    entry->mem_obj->request = requestLink(request);
 
     protoData->inside_firewall = matchInsideFirewall(request->host);
     protoData->query_neighbors = BIT_TEST(entry->flag, HIERARCHICAL);
@@ -397,11 +396,8 @@ int getFromCache(fd, entry, e, request)
     debug(17, 5, "getFromCache: --> getting from '%s'\n", e ? e->host : "source");
 
     /* We only need entry->mem_obj->request to get us through the pinging */
-    if (entry->mem_obj->request) {
-	if (--entry->mem_obj->request->link_count == 0)
-	    put_free_request_t(entry->mem_obj->request);
-	entry->mem_obj->request = NULL;
-    }
+    requestUnlink(entry->mem_obj->request);
+    entry->mem_obj->request = NULL;
     /*
      * If this is called from our neighbor detection, then we have to
      * reset the signal handler.  We probably need to check for a race

@@ -237,3 +237,20 @@ char *urlCanonical(request, buf)
     }
     return buf;
 }
+
+request_t *requestLink(request)
+     request_t *request;
+{
+    request->link_count++;
+    return request;
+}
+
+void requestUnlink(request)
+     request_t *request;
+{
+    if (request == NULL)
+	return;
+    request->link_count--;
+    if (request->link_count == 0)
+	put_free_request_t(request);
+}
