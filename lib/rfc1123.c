@@ -125,7 +125,7 @@ tmSaneValues(struct tm *tm)
 }
 
 static struct tm *
-inline parse_date_elements(const char *day, const char *month, const char *year,
+parse_date_elements(const char *day, const char *month, const char *year,
 	const char *time, const char *zone)
 {
     static struct tm tm;
