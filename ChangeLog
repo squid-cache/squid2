@@ -1,4 +1,4 @@
-Changes to squid-1.1.8 (March 3 1997):
+Changes to squid-1.1.8 (March 3, 1997):
 
 	- Fixed neighborsUdpAck() coredump bug for source-ping and
 	  non-peer ICP replies.
