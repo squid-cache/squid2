@@ -2872,6 +2872,15 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		vport, url);
 #endif
 	    debug(33, 5) ("VHOST REWRITE: '%s'\n", http->uri);
+	} else if (vport_mode) {
+	    int vport;
+	    const char *protocol_name = "http";
+	    vport = (int) ntohs(http->conn->me.sin_port);
+	    url_sz = strlen(url) + 32 + Config.appendDomainLen +
+		strlen(Config.Accel.host);
+	    http->uri = xcalloc(url_sz, 1);
+	    snprintf(http->uri, url_sz, "%s://%s:%d%s",
+		protocol_name, Config.Accel.host, vport, url);
 	} else {
 	    url_sz = strlen(Config2.Accel.prefix) + strlen(url) +
 		Config.appendDomainLen + 1;
