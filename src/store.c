@@ -2357,7 +2357,7 @@ int storeEntryValidToSend(e)
 {
     if (squid_curtime < e->expires)
 	return 1;
-    if (e->expires == 0 && e->store_status == STORE_PENDING)
+    if (e->expires == 0 && e->store_status == STORE_PENDING && e->mem_status != NOT_IN_MEMORY)
 	return 1;
     return 0;
 }
