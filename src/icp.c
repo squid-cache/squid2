@@ -194,6 +194,7 @@ static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpDetectClientClose _PARAMS((int, icpStateData *));
 static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
+static void checkFailureRatio _PARAMS((log_type, hier_code));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -297,7 +298,7 @@ static int icpStateFree(fd, icpState)
 	http_code,
 	elapsed_msec,
 	hier_code);
-    checkFailureRatio(icpState->log_type);
+    checkFailureRatio(icpState->log_type, hier_code);
     safe_free(icpState->inbuf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
