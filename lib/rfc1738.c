@@ -113,6 +113,7 @@
 #endif
 
 #include "util.h"
+#include "snprintf.h"
 
 /*  
  *  RFC 1738 defines that these characters should be escaped, as well

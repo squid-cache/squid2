@@ -131,6 +131,7 @@
 #endif
 
 #include "util.h"
+#include "snprintf.h"
 
 void (*failure_notify) (const char *) = NULL;
 static char msg[128];
