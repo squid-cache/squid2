@@ -98,7 +98,7 @@ ftpget: ftpget.o
 	$(CC) -o $@ $(LDFLAGS) ftpget.o $(LIBS)
 
 pinger: pinger.o
-	$(CC) -o debug.o $@ $(LDFLAGS) pinger.o $(LIBS)
+	$(CC) -o $@ $(LDFLAGS) pinger.o debug.o $(LIBS)
 
 squid.conf: squid.conf.pre Makefile
 	sed "\
