@@ -1202,9 +1202,9 @@ struct hostent *ipcache_gethostbyname(name, flags)
 	    return &i->entry;
 	}
     }
-    IpcacheStats.misses++;
     if ((hp = ipcacheCheckNumeric(name)))
 	return hp;
+    IpcacheStats.misses++;
     if (flags & IP_BLOCKING_LOOKUP) {
 	IpcacheStats.ghbn_calls++;
 	hp = gethostbyname(name);
