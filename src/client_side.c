@@ -617,7 +617,7 @@ clientPurgeRequest(icpStateData * icpState)
     LOCAL_ARRAY(char, msg, 8192);
     LOCAL_ARRAY(char, line, 256);
     StoreEntry *entry;
-debug(0,0,"Config.Options.enable_purge = %d\n", Config.Options.enable_purge);
+    debug(0, 0, "Config.Options.enable_purge = %d\n", Config.Options.enable_purge);
     if (!Config.Options.enable_purge) {
 	buf = access_denied_msg(icpState->http_code = 401,
 	    icpState->method,

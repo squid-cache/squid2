@@ -1139,7 +1139,7 @@ comm_set_mcast_ttl(int fd, int mcast_ttl)
 #ifdef IP_MULTICAST_TTL
     char ttl = (char) mcast_ttl;
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, 1) < 0)
-	     debug(50, 1, "comm_set_mcast_ttl: FD %d, TTL: %d: %s\n",
+	debug(50, 1, "comm_set_mcast_ttl: FD %d, TTL: %d: %s\n",
 	    fd, mcast_ttl, xstrerror());
 #endif
     return 0;
