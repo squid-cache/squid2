@@ -68,7 +68,7 @@ int main(argc, argv)
 
     setMaxFD();
 
-#if USE_MALLOPT
+#if HAVE_MALLOPT
     /* set malloc option */
     /* use small block algorithm for faster allocation */
     /* grain of small block */
