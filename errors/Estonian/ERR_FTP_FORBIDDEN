@@ -1,17 +1,15 @@
 <HTML><HEAD>
-<TITLE>ERROR: The requested URL could not be retrieved</TITLE>
+<TITLE>VIGA: P&auml;ring URLile ei saa vastust</TITLE>
 </HEAD><BODY>
-<H1>ERROR</H1>
-<H2>The requested URL could not be retrieved</H2>
+<H1>VIGA</H1>
+<H2>P&auml;ring URLile ei saa vastust</H2>
 <HR>
 <P>
-An FTP authentication failure occurred
-while trying to retrieve the URL:
-<A HREF="%U">%U</A>
+URLi <A HREF="%U">%U</A> lugemisel tekkis t&otilde;rge FTP autentimisel.
 <P>
-Squid sent the following FTP command:
+Squid saatis j&auml;rgneva FTP k&auml;su:
 <blockquote><strong><pre>%f</pre></strong></blockquote>
-and then received this reply
+ja sai sellise vastuse
 <blockquote><strong><pre>%F</pre></strong></blockquote>
 <blockquote><strong><pre>%g</pre></strong></blockquote>
 </P>

@@ -1,21 +1,20 @@
 <HTML><HEAD>
-<TITLE>ERROR: The requested URL could not be retrieved</TITLE>
+<TITLE>VIGA: P&auml;ring URLile ei saa vastust</TITLE>
 </HEAD><BODY>
-<H1>ERROR</H1>
-<H2>The requested URL could not be retrieved</H2>
+<H1>VIGA</H1>
+<H2>P&auml;ring URLile ei saa vastust</H2>
 <HR>
 <P>
-The following URL could not be retrieved:
-<A HREF="%U">%U</A>
+URLi <A HREF="%U">%U</A> ei &otilde;nnestu lugeda:
 <P>
-Squid sent the following FTP command:
+Squid saatis j&auml;rgneva ftp k&auml;su:
 <blockquote><strong><pre>%f</pre></strong></blockquote>
-and then received this reply
+ja sai sellise vastuse
 <blockquote><strong><pre>%F</pre></strong></blockquote>
 <blockquote><strong><pre>%g</pre></strong></blockquote>
 <P>
-This might be caused by an FTP URL with an absolute path (which does
-not comply with RFC 1738).  If this is the cause, then the file
-can be found at <A HREF="%B">%B</A>.
+See olukord v&otilde;ib olla tekkinud, kui FTP URL on antud absoluutse
+teega (mis on vastuolus RFC 1738-ga). Kui see on nii, siis saab faili 
+aadressilt <A HREF="%B">%B</A>.
 </P>
 
