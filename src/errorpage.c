@@ -120,6 +120,13 @@ errorInitialize(void)
     }
 }
 
+void
+errorFreeMemory(void)
+{
+    for (i = ERR_NONE, i++; i < error_page_count; i++)
+        safe_free(error_text[i]);
+}
+
 static const char *
 errorFindHardText(err_type type)
 {

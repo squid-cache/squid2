@@ -984,6 +984,7 @@ extern void errorSend(int fd, ErrorState *);
 extern void errorAppendEntry(StoreEntry *, ErrorState *);
 extern void errorStateFree(ErrorState * err);
 extern void errorInitialize(void);
+extern void errorFreeMemory(void);
 extern int errorReservePageId(const char *page_name);
 extern void errorFree(void);
 extern ErrorState *errorCon(err_type type, http_status);
