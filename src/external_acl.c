@@ -493,7 +493,7 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	const char *str = NULL;
 	switch (format->type) {
 	case EXT_ACL_LOGIN:
-	    str = authenticateUserRequestUsername(request->auth_user_request);
+	    str = authenticateUserRequestUsername(ch->auth_user_request);
 	    break;
 #if USE_IDENT
 	case EXT_ACL_IDENT:
