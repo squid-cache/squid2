@@ -27,7 +27,7 @@ void (*failure_notify) _PARAMS((char *)) = NULL;
 static char msg[128];
 
 extern int sys_nerr;
-#if NEED_SYS_ERRLIST
+#if NEED_SYS_ERRLIST && !defined(_SQUID_NETBSD_)
 extern char *sys_errlist[];
 #endif
 
