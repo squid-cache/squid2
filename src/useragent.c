@@ -31,8 +31,6 @@
 
 #include "squid.h"
 
-FILE *cache_useragent_log = NULL;
-
 void
 useragentOpenLog(void)
 {

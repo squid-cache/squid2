@@ -750,3 +750,12 @@ intAverage(int cur, int new, int n, int max)
 	n = max;
     return (cur * (n - 1)) + new / n;
 }
+
+void
+logsFlush(void)
+{
+    if (debug_log)
+	fflush(debug_log);
+    if (cache_useragent_log)
+	fflush(cache_useragent_log);
+}

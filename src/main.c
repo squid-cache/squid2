@@ -482,6 +482,7 @@ mainInitialize(void)
     debug(1, 0) ("Starting Squid Cache version %s for %s...\n",
 	version_string,
 	CONFIG_HOST_TYPE);
+    debug(1, 0) ("Process ID %d\n", (int) getpid());
     debug(1, 1) ("With %d file descriptors available\n", Squid_MaxFD);
 
     if (!configured_once) {

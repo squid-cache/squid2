@@ -1446,7 +1446,6 @@ ftpAppendSuccessHeader(FtpStateData * ftpState)
     char *t = NULL;
     StoreEntry *e = ftpState->entry;
     http_reply *reply = e->mem_obj->reply;
-    debug(0,0)("ftpAppendSuccessHeader: %s\n", ftpState->entry->url);
     if (EBIT_TEST(ftpState->flags, FTP_HTTP_HEADER_SENT))
 	return;
     EBIT_SET(ftpState->flags, FTP_HTTP_HEADER_SENT);

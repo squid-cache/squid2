@@ -113,6 +113,8 @@ redirectCreateRedirector(const char *command)
 	return -1;
     }
     listen(cfd, 1);
+    /* flush or else we get dup data if unbuffered_logs is set */
+    logsFlush();
     if ((pid = fork()) < 0) {
 	debug(50, 0) ("redirect_create_redirector: fork: %s\n", xstrerror());
 	comm_close(cfd);
