@@ -70,9 +70,6 @@ if test -z "$PRESET_CFLAGS"; then
         *-sun-sunos*)
     	    # sunos has too many warnings for this to be useful
     	    ;;
-	*-next-nextstep*)
-	    CFLAGS="$CFLAGS -no-precomp -posix"
-	    ;;
         *)
     	    CFLAGS="$CFLAGS -Wall"
     	    ;;
@@ -101,9 +98,6 @@ dnl Set LDFLAGS
 if test -z "$PRESET_LDFLAGS"; then
     if test "$GCC" = "yes"; then
         case "$host" in
-	*-next-nextstep*)
-	    LDFLAGS="$LDFLAGS -posix -lposix"
-	    ;;
         *)
     	    # nothing
 	    ;;

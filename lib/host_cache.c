@@ -10,7 +10,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#if HAVE_NETDB_H
+#if HAVE_NETDB_H && !defined(_SQUID_NETDB_H_)	/* protect NEXTSTEP */
+#define _SQUID_NETDB_H_
 #include <netdb.h>
 #endif
 #include <ctype.h>

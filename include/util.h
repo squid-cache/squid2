@@ -11,7 +11,10 @@
 
 #if !defined(SQUIDHOSTNAMELEN)
 #include <sys/param.h>
+#ifndef _SQUID_NETDB_H_		/* need protection on NEXTSTEP */
+#define _SQUID_NETDB_H_
 #include <netdb.h>
+#endif
 #if !defined(MAXHOSTNAMELEN) || (MAXHOSTNAMELEN < 128)
 #define SQUIDHOSTNAMELEN 128
 #else
@@ -28,7 +31,7 @@
 #endif /* _PARAMS */
 
 #if !HAVE_STRDUP
-extern char *strdup PARAMS((char *));
+extern char *strdup _PARAMS((char *));
 #endif
 extern char *xstrdup _PARAMS((char *));		/* Duplicate a string */
 
