@@ -287,7 +287,7 @@ serverConnectionsOpen(void)
 void
 serverConnectionsClose(void)
 {
-    assert(shutting_down);
+    assert(shutting_down || reconfiguring);
     clientHttpConnectionsClose();
     icpConnectionShutdown();
 #if USE_HTCP
