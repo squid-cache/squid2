@@ -662,6 +662,7 @@ AC_CHECK_HEADERS( \
 	strings.h \
 	sys/file.h \
 	sys/ioctl.h \
+	sys/msg.h \
 	sys/param.h \
 	sys/resource.h \
 	sys/select.h\
