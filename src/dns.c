@@ -47,6 +47,7 @@ dnsStats(StoreEntry * sentry)
 void
 dnsInit(void)
 {
+#if USE_DNSSERVERS
     static int init = 0;
     wordlist *w;
     if (!Config.Program.dnsserver)
@@ -70,6 +71,7 @@ dnsInit(void)
 	    dnsStats, 0, 1);
     }
     init++;
+#endif
 }
 
 void

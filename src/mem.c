@@ -291,6 +291,8 @@ memInit(void)
 	sizeof(helper_request), 0);
     memDataInit(MEM_HELPER_SERVER, "helper_server",
 	sizeof(helper_server), 0);
+    memDataInit(MEM_IDNS_QUERY, "idns_query",
+	sizeof(idns_query), 0);
     /* test that all entries are initialized */
     for (t = MEM_NONE, t++; t < MEM_MAX; t++) {
 	if (MEM_DONTFREE == t)

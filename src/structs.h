@@ -1672,3 +1672,14 @@ struct _helper_server {
 struct _generic_cbdata {
     void *data;
 };
+
+struct _idns_query {
+    char buf[512];
+    size_t sz;
+    unsigned short id;
+    int nsends;
+    struct timeval start;
+    dlink_node lru;
+    IDNSCB *callback;
+    void *callback_data;
+};

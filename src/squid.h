@@ -344,6 +344,7 @@ struct rusage {
 #endif
 
 #include "hash.h"
+#include "rfc1035.h"
 
 #include "defines.h"
 #include "enums.h"

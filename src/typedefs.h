@@ -161,6 +161,7 @@ typedef struct _helper helper;
 typedef struct _helper_server helper_server;
 typedef struct _helper_request helper_request;
 typedef struct _generic_cbdata generic_cbdata;
+typedef struct _idns_query idns_query;
 
 #if SQUID_SNMP
 typedef variable_list *(oid_ParseFn) (variable_list *, snint *);
@@ -204,6 +205,7 @@ typedef void SIGHDLR(int sig);
 typedef void STVLDCB(void *, int, int);
 typedef void HLPCB(void *, char *buf);
 typedef void HLPCMDOPTS(int *argc, char **argv);
+typedef void IDNSCB(void *, rfc1035_rr *, int);
 
 typedef double hbase_f(double);
 typedef void StatHistBinDumper(StoreEntry *, int idx, double val, double size, int count);

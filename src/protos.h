@@ -213,6 +213,11 @@ extern void dnsShutdown(void);
 extern void dnsInit(void);
 extern void dnsSubmit(const char *lookup, HLPCB * callback, void *data);
 
+/* dns_internal.c */
+extern void idnsInit(void);
+extern void idnsShutdown(void);
+extern void idnsALookup(const char *, IDNSCB *, void *);
+
 extern void eventAdd(const char *name, EVH * func, void *arg, double when, int);
 extern void eventAddIsh(const char *name, EVH * func, void *arg, double delta_ish, int);
 extern void eventRun(void);

@@ -553,6 +553,7 @@ typedef enum {
     MEM_SWAPDIR,
     MEM_USHORTLIST,
     MEM_WORDLIST,
+    MEM_IDNS_QUERY,
     MEM_MAX
 } mem_type;
 
