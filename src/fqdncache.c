@@ -671,8 +671,7 @@ variable_list *
 snmp_netFqdnFn(variable_list * Var, snint * ErrP)
 {
     variable_list *Answer = NULL;
-    debug(49, 5) ("snmp_netFqdnFn: Processing request:\n", Var->name[LEN_SQ_NET +
-	    1]);
+    debug(49, 5) ("snmp_netFqdnFn: Processing request:\n", Var->name[LEN_SQ_NET + 1]);
     snmpDebugOid(5, Var->name, Var->name_length);
     *ErrP = SNMP_ERR_NOERROR;
     switch (Var->name[LEN_SQ_NET + 1]) {
