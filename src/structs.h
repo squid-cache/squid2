@@ -385,7 +385,6 @@ struct _SquidConfig {
 #endif
 	int offline;
 	int redir_rewrites_host;
-	int persistent_client_posts;
 	int prefer_direct;
 	int strip_query_terms;
     } onoff;
