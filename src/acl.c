@@ -2115,6 +2115,8 @@ aclDumpGeneric(const acl * a)
 	break;
     case ACL_SRC_DOMAIN:
     case ACL_DST_DOMAIN:
+	return aclDumpDomainList(a->data);
+	break;
 #if SQUID_SNMP
     case ACL_SNMP_COMMUNITY:
 #endif
@@ -2122,7 +2124,7 @@ aclDumpGeneric(const acl * a)
     case ACL_IDENT:
 #endif
     case ACL_PROXY_AUTH:
-	return aclDumpDomainList(a->data);
+	return wordlistDup(a->data);
 	break;
     case ACL_TIME:
 	return aclDumpTimeSpecList(a->data);
