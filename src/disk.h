@@ -124,30 +124,12 @@ typedef int (*FILE_WALK_LHD) _PARAMS((int fd, char *buf, int size, void *line_da
 
 
 
-extern int file_open _PARAMS((char *path, int (*handler) (), int mode));
-extern int file_close _PARAMS((int fd));
-extern int file_write _PARAMS((int fd, char *buf, int len, int access_code,
-	void       (*handle) (), void *handle_data));
-extern int file_write_unlock _PARAMS((int fd, int access_code));
-extern int file_read _PARAMS((int fd, char *buf, int req_len, int offset,
-	int       (*handler) (int fd, char *buf, int size,
-	    int errflag, void *data, int offset),
-	void *client_data));
-extern int file_walk _PARAMS((int fd,
-	int       (*handler) (int fd, int errflag, void *data),
-	void *client_data,
-	int       (*line_handler)
-	          (int fd, char *buf, int size, void *line_data),
-	void *line_data));
-extern int file_update_open _PARAMS((int fd, char *path));
-extern int file_write_lock _PARAMS((int fd));
-extern int disk_init _PARAMS((void));
-
 typedef struct _dwrite_q {
     char *buf;
     int len;
     int cur_offset;
     struct _dwrite_q *next;
+    void (*free) _PARAMS((void *));
 } dwrite_q;
 
 typedef struct _dread_ctrl {
@@ -195,5 +177,32 @@ typedef struct _FileEntry {
 } FileEntry;
 
 extern FileEntry *file_table;
+
+extern int file_open _PARAMS((char *path, int (*handler) (), int mode));
+extern int file_close _PARAMS((int fd));
+extern int file_write _PARAMS((int fd,
+	char *buf,
+	int len,
+	int access_code,
+	void       (*handle) (),
+	void *handle_data,
+	void       (*free) _PARAMS((void *))));
+extern int file_write_unlock _PARAMS((int fd, int access_code));
+extern int file_read _PARAMS((int fd, char *buf, int req_len, int offset,
+	int       (*handler) (int fd, char *buf, int size,
+	    int errflag, void *data, int offset),
+	void *client_data));
+extern int file_walk _PARAMS((int fd,
+	int       (*handler) (int fd, int errflag, void *data),
+	void *client_data,
+	int       (*line_handler)
+	          (int fd, char *buf, int size, void *line_data),
+	void *line_data));
+#ifdef UNUSED_CODE
+extern int file_update_open _PARAMS((int fd, char *path));
+#endif
+extern int file_write_lock _PARAMS((int fd));
+extern int disk_init _PARAMS((void));
+extern int diskWriteIsComplete _PARAMS((int));
 
 #endif /* DISK_H */
