@@ -49,7 +49,7 @@ const char *hier_strings[] =
     "ROUNDROBIN_PARENT",
 #if SQUID_PEER_DIGEST
     "CACHE_DIGEST_HIT",
-    "CACHE_DIGEST_MISS",
+    "NO_CACHE_DIGEST_DIRECT",
 #endif
     "INVALID CODE"
 };
@@ -327,7 +327,7 @@ peerSelectFoo(ps_state * psstate)
 		peerSelectCallback(psstate, p); /* @?@: p used to be NULL */
 		return;
 	    case LOOKUP_MISS:
-		code = CACHE_DIGEST_MISS_DIRECT;
+		code = NO_CACHE_DIGEST_DIRECT;
 		/* fall through */
 	    case LOOKUP_NONE:
 		/* go direct */
