@@ -77,8 +77,8 @@ visible_hostname
 After editing squid.conf to your liking, run Squid from the command
 line TWICE:
 
-    % /usr/local/squid/bin/squid -z
-    % /usr/local/squid/bin/squid 
+    % /usr/local/squid/sbin/squid -z
+    % /usr/local/squid/sbin/squid 
 
 Check in the cache.log (/usr/local/squid/logs/cache.log) that
 everything is all right.  Note that "WARNING: Cannot write to swap
