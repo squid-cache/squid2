@@ -114,6 +114,10 @@
 #define SQUIDHOSTNAMELEN MAXHOSTNAMELEN
 #endif
 
+#if !defined(INADDR_NONE)
+#define INADDR_NONE 0xffffffff
+#endif
+
 #ifndef BUFSIZ
 #define BUFSIZ  4096		/* make reasonable guess */
 #endif
