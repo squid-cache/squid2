@@ -88,5 +88,5 @@ static ext_table_entry ext_mime_table[] =
     {"xbm", "image/x-xbitmap", "binary", "image"},
     {"xpm", "image/x-xpixmap", "binary", "image"},
     {"xwd", "image/x-xwindowdump", "binary", "image"},
-    {"zip", "application/zip", "zip", "binary"}
+    {"zip", "application/x-zip-compressed", "zip", "binary"}
 };
