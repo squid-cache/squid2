@@ -973,17 +973,6 @@ static void parseBindAddressLine()
     wordlistAdd(&Config.bind_addr_list, token);
 }
 
-#ifdef OLD_CODE
-static void parseBlockListLine()
-{
-    char *token;
-    token = strtok(NULL, w_space);
-    if (token == (char *) NULL)
-	return;
-    blockAddToList(token);
-}
-#endif
-
 static void parseLocalDomainLine()
 {
     char *token;

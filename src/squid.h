@@ -87,7 +87,6 @@ typedef unsigned long u_num32;
 
 #include "GNUregex.h"
 #include "ansihelp.h"
-#include "blocklist.h"
 #include "cache_cf.h"
 #include "comm.h"
 #include "debug.h"
