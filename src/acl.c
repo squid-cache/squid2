@@ -781,15 +781,13 @@ aclParseAclLine(acl ** head)
     case ACL_DST_DOMAIN:
 	aclParseDomainList(&A->data);
 	break;
-    case ACL_SRC_DOM_REGEX:
-    case ACL_DST_DOM_REGEX:
-	aclParseRegexList(&A->data);
-	break;
     case ACL_TIME:
 	aclParseTimeSpec(&A->data);
 	break;
     case ACL_URL_REGEX:
     case ACL_URLPATH_REGEX:
+    case ACL_SRC_DOM_REGEX:
+    case ACL_DST_DOM_REGEX:
 	aclParseRegexList(&A->data);
 	break;
     case ACL_URL_PORT:
