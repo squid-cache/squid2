@@ -1990,7 +1990,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
      * Skip whitespace at the end of the first line, up to the
      * first newline.
      */
-    while (isspace(*req_hdr)) {
+    while (*req_hdr == ' ' || *req_hdr == '\t') {
 	header_sz--;
 	if (*(req_hdr++) == '\n')
 	    break;
