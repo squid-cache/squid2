@@ -106,3 +106,5 @@ Changes to squid-1.0.beta4:
 	  be negative-cached.
 	- Added a small run-time check to configure to see if signal
 	  handlers should be restarted after invocation (ala SYSV).
+	- Determine Maximum filedescriptors in configure and change
+	  FD_SETSIZE if needed.
