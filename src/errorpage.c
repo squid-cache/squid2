@@ -312,6 +312,9 @@ errorConvert(char token, ErrorState * err)
 	else
 	    p = "[unknown]";
 	break;
+    case '%':
+	p = "%";
+	break;
     default:
 	p = "%UNKNOWN%";
 	break;
