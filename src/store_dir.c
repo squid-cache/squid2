@@ -401,7 +401,8 @@ storeDirWriteCleanLogs(int reopen)
     /* Flush */
     for (dirn = 0; dirn < Config.cacheSwap.n_configured; dirn++) {
 	sd = &Config.cacheSwap.swapDirs[dirn];
-	sd->log.clean.done(sd);
+	if (sd->log.clean.done)
+	    sd->log.clean.done(sd);
     }
     if (reopen)
 	storeDirOpenSwapLogs();
