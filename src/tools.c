@@ -155,9 +155,9 @@ void normal_shutdown()
 {
     debug(21, 1, "Shutting down...\n");
     if (getPidFilename()) {
-	get_suid();
+	enter_suid();
 	safeunlink(getPidFilename(), 0);
-	check_suid();
+	leave_suid();
     }
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
@@ -306,7 +306,12 @@ int safeunlink(s, quiet)
     return (err);
 }
 
-void check_suid()
+/* leave a privilegied section. (Give up any privilegies)
+ * Routines that need privilegies can rap themselves in enter_suid()
+ * and leave_suid()
+ * To give upp all posibilites to gain privilegies use no_suid()
+ */
+void leave_suid()
 {
     struct passwd *pwd = NULL;
     struct group *grp = NULL;
@@ -331,7 +336,8 @@ void check_suid()
 #endif
 }
 
-void get_suid()
+/* Enter a privilegied section */
+void enter_suid()
 {
 #if HAVE_SETRESUID
     setresuid(-1, 0, -1);
@@ -340,10 +346,13 @@ void get_suid()
 #endif
 }
 
+/* Give up the posibility to gain privilegies.
+ * this should be used before starting a sub process
+ */
 void no_suid()
 {
     uid_t uid;
-    check_suid();
+    leave_suid();
     uid = geteuid();
 #if HAVE_SETRESUID
     setresuid(uid, uid, uid);
@@ -358,6 +367,7 @@ void writePidFile()
     FILE *pid_fp = NULL;
     char *f = NULL;
 
+    enter_suid();
     if ((f = getPidFilename()) == NULL)
 	return;
     if ((pid_fp = fopen(f, "w")) == NULL) {
@@ -367,6 +377,7 @@ void writePidFile()
     }
     fprintf(pid_fp, "%d\n", (int) getpid());
     fclose(pid_fp);
+    leave_suid();
 }
 
 

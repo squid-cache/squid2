@@ -117,7 +117,7 @@ static void mainParseOptions(argc, argv)
 void serverConnectionsOpen()
 {
     /* Get our real priviliges */
-    get_suid();
+    enter_suid();
 
     /* Open server ports */
     theAsciiConnection = comm_open(COMM_NONBLOCKING,
@@ -154,7 +154,7 @@ void serverConnectionsOpen()
 	}
     }
     /* And restore our priviliges to normal */
-    check_suid();
+    leave_suid();
 }
 
 void serverConnectionsClose()
@@ -215,7 +215,8 @@ static void mainInitialize()
     if (ConfigFile == NULL)
 	ConfigFile = xstrdup(DefaultConfigFile);
     parseConfigFile(ConfigFile);
-    check_suid();
+
+    leave_suid(); /* Run as non privilegied user */
 
     if (asciiPortNumOverride != 1)
 	setAsciiPortNum((u_short) asciiPortNumOverride);
@@ -231,7 +232,7 @@ static void mainInitialize()
 
     if (first_time) {
 	disk_init();		/* disk_init must go before ipcache_init() */
-	writePidFile();		/* write PID file before setuid() */
+	writePidFile();		/* write PID file */
     }
     ipcache_init();
     neighbors_init();
