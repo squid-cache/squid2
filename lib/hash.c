@@ -249,8 +249,8 @@ hash_last(hash_table * hid)
  *  hash table 'hid'.  Does not free the item, only removes it
  *  from the list.
  *
- *  On success, it returns 0 and deletes the link; otherwise, 
- *  returns non-zero on error.
+ *  An assertion is triggered if the hash_link is not found in the
+ *  list.
  */
 void
 hash_remove_link(hash_table * hid, hash_link * hl)
