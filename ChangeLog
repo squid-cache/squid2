@@ -1,3 +1,54 @@
+Changes to squid-1.1.9 (March 25, 1997):
+
+	- Fixed aclIpNetworkCompare for USE_SPLAY_TREE; was applying
+	  netmask to non-local variable through pointer.  (Ansgar
+	  Hockmann).
+	- Fixed cachemgr bug incorrectly assigning connect() return
+	  value (Nigel Metheringham).
+	- Fixed diskHandleWrite bug: not setting write_daemon = PRESENT.
+	- Fixed situation where all requests would be handled by
+	  "single parent" and other peers would never be queried
+	  again.
+	- Added more dnsserver status information to cachemgr output.
+	- In httpReadReply: extend FD lifetime only after successful
+	  read, not every read.
+	- In httpBuildRequestHeader: link size of 'ybuf' to MAX_URL.
+	- Added routines to count number of members of each multicast
+	  peer.
+	- Fixed multicast ICP bug causing unnecessary timeouts.
+	- Added error messages if setuid/setgid functions fail.
+	- Added non-POSIX tempnam.c replacement for NeXTStep (Gerben
+	  Wierda).
+	- Removed redundant file:// --> ftp:// check (Willy TARREAU).
+	- Removed check for reply->code == 200 in icpGetHeadersForIMS().
+	- Fixed IP cache bug which caused 'dns_children 0' to break;
+	- Deny access to dangerous TCP ports (7, 9, 19).
+	- Removed single-line functions: fdstat_biggest_fd(),
+	  comm_get_fd_lifetime(), comm_get_fd_timeout().
+	- Removed storeCheckExpired() from storeGetSwapSpace() as
+	  likely cause of slowing down cache when exceeding the high
+	  water mark.
+	- Lowered 'store_objects_per_bucket' to 20 so that
+	  storeMaintainSwapSpace() runs frequently enough to 
+	  keep up with incoming objects.
+	- Fixed FTP to use the Authorization header only when the
+	  usernames match.
+	- Fixed another continuation-lines-not-starting-with-NNN bug
+	  in ftpget.
+	- Added 'client_db' config option to disable keeping statistics 
+	  for each client address.
+	- Added support for using ICMP data stuffed into ICP replies
+	  for peer selection algorithm.  Enable with 'query_icmp'
+	  in squid.conf.
+	- Fixed net_db design bug where _net_db_peer structures pointed
+	  to 'peer' structures that get freed and reallocated during a
+	  reconfigure.
+	- Moved comm.c fd_lifetime[] array into FD_ENTRY structure.
+	- Cleaned up storeCopy().  debug_trap on requested offset <
+	  e_lowest_offset.
+	- Cleaned up fdstat_init() and fdstat_update().
+	- Cleaned up ftp_login_parser().
+
 Changes to squid-1.1.8 (March 3, 1997):
 
 	- Fixed neighborsUdpAck() coredump bug for source-ping and

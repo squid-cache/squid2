@@ -106,8 +106,6 @@
 #ifndef FDSTAT_H
 #define FDSTAT_H
 
-#define PREOPEN_FD 3		/* number of preopened fd when process start */
-
 typedef enum {
     FD_NONE,
     FD_LOG,
@@ -117,8 +115,7 @@ typedef enum {
     FD_UNKNOWN
 } File_Desc_Type;
 
-extern int fdstat_biggest_fd _PARAMS((void));
-extern int fdstat_init _PARAMS((int preopen));
+extern void fdstat_init _PARAMS((void));
 extern int fdstat_isopen _PARAMS((int fd));
 extern void fdstat_close _PARAMS((int fd));
 extern void fdstat_open _PARAMS((int fd, File_Desc_Type type));

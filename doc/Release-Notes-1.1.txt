@@ -27,6 +27,7 @@ TABLE OF CONTENTS:
 	Access Log Tags
 	Hierarchy Data Tags
 	Using Multicast ICP
+	Store.log Fields
 
 
 Ident (RFC 931) lookups
@@ -739,3 +740,49 @@ replies expected for each query.  In this manner, the number of replies
 expected is dynamically adjusted over time so that Squid optimizes the
 chance of receiving a HIT, but minimizes the chance of suffering the
 ICP timeout.
+
+Store.log Fields
+==============================================================================
+The file store.log consists of the following fields:
+
+    time action code date lastmod expires type expect-len/real-len method key
+
+    time       The time this entry was logged.  The value is the
+               raw Unix time plus milliseconds.
+
+    action     One of RELEASE, SWAPIN, or SWAPOUT.
+               RELEASE means the object has been removed from the cache.
+               SWAPOUT means the object has been saved to disk.
+               SWAPIN  means the object existed on disk and has been
+                       swapped into memory.
+
+    code       The HTTP reply code.
+
+    The following three fields are timestamps parsed from the HTTP
+    reply headers.  All are expressed in Unix time.  A missing header
+    is represented with -2 and an unparsable header is represented as -1.
+
+    date       The value of the HTTP Date reply header.  If the Date
+               header is missing or invalid, the time of the request
+               is used instead.
+
+    lastmod    The value of the HTTP Last-Modified: reply header.
+
+    expires    The value of the HTTP Expires: reply header.
+
+    type       The HTTP Content-Type reply header.
+
+    expect-len The value of the HTTP Content-Length reply header.
+               Zero if Content-Length was missing.
+
+    real-len   The number of bytes of content actually read.  If the
+               expect-len is non-zero, and not equal to the real-len,
+               the object will be released from the cache.
+
+    method     HTTP request method
+
+    key        The cache key.  Often this is simply the URL.  Cache objects
+               which never become public will have cache keys that include
+               a unique integer sequence number, the request method, and
+               then the URL.
+

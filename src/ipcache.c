@@ -106,8 +106,6 @@
 
 #include "squid.h"
 
-#define MAX_LINELEN (4096)
-
 #define IP_LOW_WATER       90
 #define IP_HIGH_WATER      95
 
@@ -483,7 +481,6 @@ ipcache_parsebuffer(const char *inbuf, dnsserver_t * dnsData)
     debug(14, 5, "ipcache_parsebuffer: parsing:\n%s", inbuf);
     memset(&i, '\0', sizeof(ipcache_entry));
     i.expires = squid_curtime + Config.positiveDnsTtl;
-    i.status = IP_DISPATCHED;
     for (token = strtok(buf, w_space); token; token = strtok(NULL, w_space)) {
 	if (!strcmp(token, "$end")) {
 	    break;
@@ -642,7 +639,7 @@ ipcache_nbgethostbyname(const char *name, int fd, IPH handler, void *handlerData
 {
     ipcache_entry *i = NULL;
     dnsserver_t *dnsData = NULL;
-    ipcache_addrs *addrs = NULL;
+    const ipcache_addrs *addrs = NULL;
 
     if (!handler)
 	fatal_dump("ipcache_nbgethostbyname: NULL handler");
@@ -722,17 +719,18 @@ ipcache_dnsDispatch(dnsserver_t * dns, ipcache_entry * i)
     if (!BIT_TEST(dns->flags, DNS_FLAG_ALIVE))
 	debug_trap("Dispatching a dead DNS server");
     if (!ipcacheHasPending(i)) {
-	debug(14, 0, "ipcache_dnsDispatch: skipping '%s' because no handler.\n",
+	debug(14, 0, "Skipping lookup of '%s' because client(s) disappeared.\n",
 	    i->name);
 	i->status = IP_NEGATIVE_CACHED;
 	ipcache_release(i);
 	return;
     }
+    if (i->status != IP_PENDING)
+	debug_trap("ipcache_dnsDispatch: status != IP_PENDING");
     buf = xcalloc(1, 256);
     sprintf(buf, "%1.254s\n", i->name);
     dns->flags |= DNS_FLAG_BUSY;
     dns->data = i;
-    dns->lastcall = squid_curtime;
     i->status = IP_DISPATCHED;
     comm_write(dns->outpipe,
 	buf,
@@ -849,7 +847,7 @@ ipcache_gethostbyname(const char *name, int flags)
 	    /* good address, cached */
 	    if (i == NULL) {
 		i = ipcacheAddNew(name, hp, IP_CACHED);
-	    } else if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
+	    } else if (i->status == IP_DISPATCHED) {
 		/* only dnsHandleRead() can change from DISPATCHED to CACHED */
 		static_addrs.count = 1;
 		static_addrs.cur = 0;

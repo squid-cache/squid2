@@ -41,6 +41,8 @@
 .ustar     application/x-ustar              binary       1.0    binary
 .au        audio/basic                      binary       1.0    sound
 .snd       audio/basic                      binary       1.0    sound
+.mp2       audio/basic                      binary       1.0    sound
+.mp3       audio/basic                      binary       1.0    sound
 .aif       audio/x-aiff                     binary       1.0    sound
 .aiff      audio/x-aiff                     binary       1.0    sound
 .aifc      audio/x-aiff                     binary       1.0    sound

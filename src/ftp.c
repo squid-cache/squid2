@@ -161,23 +161,18 @@ ftpStateFree(int fd, FtpStateData * ftpState)
 static void
 ftp_login_parser(const char *login, FtpStateData * data)
 {
-    char *user = data->user;
-    char *password = data->password;
     char *s = NULL;
-
-    strcpy(user, login);
-    s = strchr(user, ':');
-    if (s) {
+    xstrncpy(data->user, login, MAX_URL);
+    if ((s = strchr(data->user, ':'))) {
 	*s = 0;
-	strcpy(password, s + 1);
+	xstrncpy(data->password, s + 1, MAX_URL);
     } else {
-	strcpy(password, null_string);
+	xstrncpy(data->password, null_string, MAX_URL);
     }
-
-    if (!*user && !*password) {
-	strcpy(user, "anonymous");
-	strcpy(password, Config.ftpUser);
-    }
+    if (data->user[0] || data->password[0])
+	return;
+    xstrncpy(data->user, "anonymous", MAX_URL);
+    xstrncpy(data->password, Config.ftpUser, MAX_URL);
 }
 
 /* This will be called when socket lifetime is expired. */
@@ -453,11 +448,9 @@ ftpSendRequest(int fd, FtpStateData * data)
     char *s = NULL;
     int got_timeout = 0;
     int got_negttl = 0;
-    int buflen;
 
     debug(9, 5, "ftpSendRequest: FD %d\n", fd);
 
-    buflen = strlen(data->request->urlpath) + 256;
     buf = get_free_8k_page();
 
     path = data->request->urlpath;
@@ -539,6 +532,38 @@ ftpGetBasicAuth(const char *req_hdr)
     return base64_decode(t);
 }
 
+/*
+ * ftpCheckAuth
+ *
+ * Return 1 if we have everything needed to complete this request.
+ * Return 0 if something is missing.
+ */
+static int
+ftpCheckAuth(FtpStateData * ftpState, char *req_hdr)
+{
+    char *orig_user;
+    char *auth;
+    ftp_login_parser(ftpState->request->login, ftpState);
+    if (ftpState->user[0] && ftpState->password[0])
+	return 1;		/* name and passwd both in URL */
+    if (!ftpState->user[0] && !ftpState->password[0])
+	return 1;		/* no name or passwd */
+    if (ftpState->password[0])
+	return 1;		/* passwd with no name? */
+    /* URL has name, but no passwd */
+    if ((auth = ftpGetBasicAuth(req_hdr)) == NULL)
+	return 0;		/* need auth header */
+    orig_user = xstrdup(ftpState->user);
+    ftp_login_parser(auth, ftpState);
+    if (!strcmp(orig_user, ftpState->user)) {
+	xfree(orig_user);
+	return 1;		/* same username */
+    }
+    strcpy(ftpState->user, orig_user);
+    xfree(orig_user);
+    return 0;			/* different username */
+}
+
 
 int
 ftpStart(int unusedfd, const char *url, request_t * request, StoreEntry * entry)
@@ -547,7 +572,6 @@ ftpStart(int unusedfd, const char *url, request_t * request, StoreEntry * entry)
     FtpStateData *ftpData = NULL;
     char *req_hdr = entry->mem_obj->mime_hdr;
     char *response;
-    char *auth;
 
     debug(9, 3, "FtpStart: FD %d '%s'\n", unusedfd, url);
 
@@ -559,29 +583,21 @@ ftpStart(int unusedfd, const char *url, request_t * request, StoreEntry * entry)
     storeLockObject(ftpData->entry = entry, NULL, NULL);
     ftpData->request = requestLink(request);
 
-    /* Parse login info. */
-    if ((auth = ftpGetBasicAuth(req_hdr))) {
-	ftp_login_parser(auth, ftpData);
-	ftpData->authenticated = 1;
-    } else {
-	ftp_login_parser(request->login, ftpData);
-	if (*ftpData->user && !*ftpData->password) {
-	    /* This request is not fully authenticated */
-	    if (request->port == 21) {
-		sprintf(realm, "ftp %s", ftpData->user);
-	    } else {
-		sprintf(realm, "ftp %s port %d",
-		    ftpData->user, request->port);
-	    }
-	    response = authorization_needed_msg(request, realm);
-	    storeAppend(entry, response, strlen(response));
-	    httpParseReplyHeaders(response, entry->mem_obj->reply);
-	    storeComplete(entry);
-	    ftpStateFree(-1, ftpData);
-	    return COMM_OK;
+    if (!ftpCheckAuth(ftpData, req_hdr)) {
+	/* This request is not fully authenticated */
+	if (request->port == 21) {
+	    sprintf(realm, "ftp %s", ftpData->user);
+	} else {
+	    sprintf(realm, "ftp %s port %d",
+		ftpData->user, request->port);
 	}
+	response = authorization_needed_msg(request, realm);
+	storeAppend(entry, response, strlen(response));
+	httpParseReplyHeaders(response, entry->mem_obj->reply);
+	storeComplete(entry);
+	ftpStateFree(-1, ftpData);
+	return COMM_OK;
     }
-
     debug(9, 5, "FtpStart: FD %d, host=%s, path=%s, user=%s, passwd=%s\n",
 	unusedfd, ftpData->request->host, ftpData->request->urlpath,
 	ftpData->user, ftpData->password);
@@ -622,7 +638,6 @@ ftpConnectDone(int fd, int status, void *data)
 	comm_close(fd);
 	return;
     }
-    fdstat_open(fd, FD_SOCKET);
     commSetNonBlocking(fd);
     (void) fd_note(fd, ftpData->entry->url);
     /* Install connection complete handler. */
@@ -764,7 +779,7 @@ ftpInitialize(void)
     close(ftpget_to_squid[1]);
     dup2(cfd, 3);		/* pass listening socket to ftpget */
     /* inherit stdin,stdout,stderr */
-    for (cfd = 4; cfd <= fdstat_biggest_fd(); cfd++)
+    for (cfd = 4; cfd <= Biggest_FD; cfd++)
 	(void) close(cfd);
     sprintf(pbuf, "%d", ftpget_port);
     execlp(ftpget, ftpget, "-S", pbuf, NULL);

@@ -21,6 +21,20 @@
 #       This tag specifies a list of multicast groups which your
 #       server should join to receive multicasted ICP requests.
 #
+#	NOTE!  Be very careful what you put here!  Be sure you
+#	understand the difference between an ICP _query_ and an ICP
+#	_reply_.  This option is to be set only if you want to RECEIVE
+#	multicast queries.  Do NOT set this option to SEND multicast
+#	ICP (use cache_host for that).  ICP replies are always sent via
+#	unicast, so this option does not affect whether or not you will
+#	receive replies from multicast group members.
+#
+#	You must be very careful to NOT use a multicast address which
+#	is already in use by another group of caches.  NLANR has been
+#	assigned a block of multicast address space for use in Web
+#	Caching.  Plese write to us at nlanr-cache@nlanr.net to receive
+#	an address for your own use.
+#
 #       Usage:  mcast_groups 239.128.16.128 224.0.1.20
 #
 #       By default, squid doesn't listen on any multicast groups.
@@ -180,7 +194,7 @@
 #
 #	The use of this tag affects the server selection algorithm in
 #	two ways.  Objects which do not match any of the listed domains
-#	will be considered "beyond the firewall."  For these:"
+#	will be considered "beyond the firewall."  For these:
 #		- There will be no DNS lookups for the URL-host.
 #		- The object will always be fetched from one of
 #		  the parent or neighbor caches.
@@ -704,18 +718,6 @@ debug_options ALL,1
 #
 #shutdown_lifetime 30
 
-#  TAG: clean_rate (in minutes)
-#	How often to force a full garbage collection.   Garbage collection
-#	involves checking the expire time of every object in the cache.
-#
-#	NOTE: this option is provided only for backwards compatibility.
-#	We recommend that you leave it disabled (i.e. set to -1).  Expired
-#	objects are removed from the cache little by little as a part of
-#	its normal operations.
-#
-#clean_rate -1
-
-
 # ACCESS CONTROLS
 #-----------------------------------------------------------------------------
 
@@ -759,6 +761,7 @@ acl localhost src 127.0.0.1/255.255.255.255
 acl all src 0.0.0.0/0.0.0.0
 
 acl SSL_ports port 443 563
+acl Dangerous_ports port 7 9 19
 acl CONNECT method CONNECT
 
 # Allowing or Denying access based on defined access lists
@@ -772,6 +775,7 @@ acl CONNECT method CONNECT
 # Only allow access to the cache manager functions from the local host.
 http_access deny manager !localhost
 http_access deny CONNECT !SSL_ports
+http_access deny Dangerous_ports
 
 # Allow everything else
 http_access allow  all
@@ -1019,9 +1023,12 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	If set, Squid will include your system's IP address or name
 #	in the HTTP requests it forwards.  By default it looks like
 #	this:
-#		Forwarded: by http://foo.org:3128/ for 192.1.2.3
+#
+#		X-Forwarded-For: 192.1.2.3
+#
 #	If you disable this, it will appear as
-#		Forwarded: by http://foo.org:3128/
+#
+#		X-Forwarded-For: unknown
 #
 #forwarded_for on
 
@@ -1075,10 +1082,13 @@ minimum_direct_hops 4
 #       To allow performing an action without a password, set the
 #	password to "none".
 #
+#	Use the keyword "all" to set the same password for all actions.
+#
 #Examples:
 #
 #	cachemgr_passwd secret shutdown
 #	cachemgr_passwd lesssssssecret info stats/objects
+#	cachemgr_passwd disable all
 #
 #Defaults: none
 
@@ -1101,12 +1111,12 @@ minimum_direct_hops 4
 #
 #store_avg_object_size 20
 
-#  TAG: store_objects_per_bucket 50
+#  TAG: store_objects_per_bucket
 #	Target number of objects per bucket in the store hash table.
 #	Lowering this value increases the total number of buckets and
-#	also the storage maintenance rate.  The default is 50.
+#	also the storage maintenance rate.  The default is 20.
 #
-#store_objects_per_bucket 50
+#store_objects_per_bucket 20
 
 #  TAG: http_anonymizer
 #	If you want to filter out certain HTTP request headers for
@@ -1119,3 +1129,25 @@ minimum_direct_hops 4
 #	http-anon.c source file.
 #
 #http_anonymizer off
+
+#  TAG: client_db
+#	If you want to disable collecting per-client statistics, then
+#	turn off client_db here.
+#
+#client_db on
+
+#  TAG: query_icmp
+#	If you want to ask your peers to include ICMP data in their ICP
+#	replies, enable this option.
+#
+#	If your peer has build squid with '-DUSE_ICMP=1' then that peer
+#	will send ICMP pings to origin server sites of the URLs it
+#	receives.  If you enable this option then the ICP replies from
+#	that peer will include the ICMP data (if available).  Then,
+#	when choosing a parent cache, Squid will choose the parent with
+#	the minimal RTT to the origin server.  When this happens, the
+#	hierarchy field of the access.log will be
+#	"CLOSEST_PARENT_MISS".  This option is off by default.
+#
+#query_icmp off
+

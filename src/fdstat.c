@@ -105,8 +105,6 @@
 
 #include "squid.h"
 
-static int Biggest_FD = 0;
-
 typedef enum {
     FDSTAT_CLOSE,
     FDSTAT_OPEN
@@ -138,70 +136,44 @@ const char *fdstatTypeStr[] =
 };
 
 /* init fd stat module */
-int
-fdstat_init(int preopen)
+void
+fdstat_init(void)
 {
     int i;
-
     fd_stat_tab = xcalloc(Squid_MaxFD, sizeof(FDENTRY));
     meta_data.misc += Squid_MaxFD * sizeof(FDENTRY);
-    for (i = 0; i < preopen; ++i) {
-	fd_stat_tab[i].status = FDSTAT_OPEN;
-	fd_stat_tab[i].type = FD_FILE;
-    }
-
-    for (i = preopen; i < Squid_MaxFD; ++i) {
+    for (i = 0; i < Squid_MaxFD; ++i) {
 	fd_stat_tab[i].status = FDSTAT_CLOSE;
 	fd_stat_tab[i].type = FD_UNKNOWN;
     }
-
-    Biggest_FD = preopen - 1;
-    return 0;
+    Biggest_FD = -1;
 }
 
 /* call for updating the current biggest fd */
 static void
 fdstat_update(int fd, File_Desc_Status status)
 {
-    unsigned int i;
-
-    if (fd >= Squid_MaxFD)
-	debug(7, 0, "Running out of file descriptors.\n");
-
-    if (fd < Biggest_FD) {
-	/* nothing to do here */
+    if (fd < Biggest_FD)
+	return;
+    if (fd >= Squid_MaxFD) {
+	debug_trap("Running out of file descriptors.\n");
 	return;
     }
-    if ((fd > Biggest_FD) && (status == FDSTAT_OPEN)) {
-	/* just update the biggest one */
-	Biggest_FD = fd;	/* % Squid_MaxFD; */
+    if (fd > Biggest_FD) {
+	if (status == FDSTAT_OPEN)
+	    Biggest_FD = fd;
+	else
+	    debug_trap("fdstat_update: Biggest_FD inconsistency");
 	return;
     }
-    if ((fd == Biggest_FD) && (status == FDSTAT_CLOSE)) {
-	/* just scan to Biggest_FD - 1 */
-	for (i = Biggest_FD; i > 0; --i) {
-	    if (fd_stat_tab[i].status == FDSTAT_OPEN)
-		break;
-	}
-	Biggest_FD = i;
-	return;
+    /* if we are here, then fd == Biggest_FD */
+    if (status == FDSTAT_CLOSE) {
+	while (fd_stat_tab[Biggest_FD].status != FDSTAT_OPEN)
+	    Biggest_FD--;
+    } else {
+	debug_trap("fdstat_update: re-opening Biggest_FD?");
     }
-    if ((fd == Biggest_FD) && (status == FDSTAT_OPEN)) {
-	/* do nothing here */
-	/* it could happen since some of fd are out of our control */
-	return;
-    }
-    debug(7, 0, "WARNING: fdstat_update: Internal inconsistency:\n");
-    debug(7, 0, "         Biggest_FD = %d, this fd = %d, status = %s\n",
-	Biggest_FD, fd, status == FDSTAT_OPEN ? "OPEN" : "CLOSE");
-    debug(7, 0, "         fd_stat_tab[%d].status == %s\n",
-	fd, fd_stat_tab[fd].status == FDSTAT_OPEN ? "OPEN" : "CLOSE");
-    debug(7, 0, "         fd_stat_tab[%d].type == %s\n", fd,
-	fdstatTypeStr[fd_stat_tab[fd].type]);
-
-    return;
 }
-
 
 /* call when open fd */
 void
@@ -225,14 +197,6 @@ fdstat_close(int fd)
     fd_stat_tab[fd].status = FDSTAT_CLOSE;
     fdstat_update(fd, FDSTAT_CLOSE);
 }
-
-/* return the biggest fd */
-int
-fdstat_biggest_fd(void)
-{
-    return Biggest_FD;
-}
-
 
 int
 fdstat_are_n_free_fd(int n)

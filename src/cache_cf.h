@@ -274,6 +274,8 @@ struct SquidConfig {
 	int enable_purge;
 	int res_defnames;
 	int anonymizer;
+	int client_db;
+	int query_icmp;
     } Options;
 };
 

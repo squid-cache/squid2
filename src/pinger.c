@@ -72,7 +72,8 @@ struct SquidConfig Config;
 #define ip_dst daddr
 #endif
 
-#define MAX_PAYLOAD (8192 - sizeof(struct icmphdr) - sizeof (char) - sizeof(struct timeval) - 1)
+#define MAX_PKT_SZ 8192
+#define MAX_PAYLOAD (MAX_PKT_SZ - sizeof(struct icmphdr) - sizeof (char) - sizeof(struct timeval) - 1)
 
 typedef struct {
     struct timeval tv;
@@ -143,13 +144,13 @@ pingerClose(void)
 static void
 pingerSendEcho(struct in_addr to, int opcode, char *payload, int len)
 {
-    LOCAL_ARRAY(char, pkt, 8192);
+    LOCAL_ARRAY(char, pkt, MAX_PKT_SZ);
     struct icmphdr *icmp = NULL;
     icmpEchoData *echo;
     int icmp_pktsize = sizeof(struct icmphdr);
     int x;
     struct sockaddr_in S;
-    memset(pkt, '\0', 8192);
+    memset(pkt, '\0', MAX_PKT_SZ);
     icmp = (struct icmphdr *) (void *) pkt;
     icmp->icmp_type = ICMP_ECHO;
     icmp->icmp_code = 0;
@@ -188,7 +189,7 @@ pingerRecv(void)
     int iphdrlen = 20;
     struct iphdr *ip = NULL;
     struct icmphdr *icmp = NULL;
-    LOCAL_ARRAY(char, pkt, 8192);
+    LOCAL_ARRAY(char, pkt, MAX_PKT_SZ);
     struct timeval now;
     icmpEchoData *echo;
     static pingerReplyData preply;
@@ -196,7 +197,7 @@ pingerRecv(void)
     fromlen = sizeof(from);
     n = recvfrom(icmp_sock,
 	pkt,
-	8192,
+	MAX_PKT_SZ,
 	0,
 	(struct sockaddr *) &from,
 	&fromlen);
@@ -223,7 +224,7 @@ pingerRecv(void)
     preply.opcode = echo->opcode;
     preply.hops = ipHops(ip->ip_ttl);
     preply.rtt = tvSubMsec(echo->tv, now);
-    preply.psize = n - iphdrlen - (sizeof(icmpEchoData) - 8192);
+    preply.psize = n - iphdrlen - (sizeof(icmpEchoData) - MAX_PKT_SZ);
     pingerSendtoSquid(&preply);
     pingerLog(icmp, from.sin_addr, preply.rtt, preply.hops);
 }
@@ -292,7 +293,7 @@ pingerReadRequest(void)
 	perror("recv");
 	return n;
     }
-    guess_size = n - (sizeof(pingerEchoData) - 8192);
+    guess_size = n - (sizeof(pingerEchoData) - MAX_PKT_SZ);
     if (guess_size != pecho.psize)
 	fprintf(stderr, "size mismatch, guess=%d psize=%d\n",
 	    guess_size, pecho.psize);
@@ -306,7 +307,7 @@ pingerReadRequest(void)
 static void
 pingerSendtoSquid(pingerReplyData * preply)
 {
-    int len = sizeof(pingerReplyData) - 8192 + preply->psize;
+    int len = sizeof(pingerReplyData) - MAX_PKT_SZ + preply->psize;
     if (send(1, (char *) preply, len, 0) < 0) {
 	debug(50, 0, "pinger: send: %s\n", xstrerror());
 	exit(1);

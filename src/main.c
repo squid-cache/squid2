@@ -126,6 +126,7 @@ int opt_forwarded_for = 1;
 int opt_accel_uses_host = 0;
 int vhost_mode = 0;
 int Squid_MaxFD = SQUID_MAXFD;
+int Biggest_FD = -1;
 volatile int unbuffered_logs = 1;	/* debug and hierarchy unbuffered by default */
 volatile int shutdown_pending = 0;	/* set by SIGTERM handler (shut_down()) */
 volatile int reread_pending = 0;	/* set by SIGHUP handler */
@@ -182,7 +183,7 @@ usage(void)
 	"       -R        Do not set REUSEADDR on port.\n"
 	"       -U        Unlink expired objects on reload.\n"
 	"       -V        Virtual host httpd-accelerator.\n"
-	"       -Y        Only return UDP_HIT or UDP_RELOADING during fast reload.\n",
+	"       -Y        Only return UDP_HIT or UDP_MISS_NOFETCH during fast reload.\n",
 	appname, CACHE_HTTP_PORT, DefaultConfigFile, CACHE_ICP_PORT);
     exit(1);
 }
@@ -606,7 +607,6 @@ mainInitialize(void)
 	if (Config.Announce.on)
 	    eventAdd("start_announce", start_announce, NULL, 3600);
 	eventAdd("ipcache_purgelru", (EVH) ipcache_purgelru, NULL, 10);
-	eventAdd("peerUpdateFudge", peerUpdateFudge, NULL, 10);
     }
     first_time = 0;
 }
@@ -675,7 +675,7 @@ main(int argc, char **argv)
     comm_init();
 
     /* we have to init fdstat here. */
-    fdstat_init(PREOPEN_FD);
+    fdstat_init();
     fdstat_open(0, FD_LOG);
     fdstat_open(1, FD_LOG);
     fdstat_open(2, FD_LOG);

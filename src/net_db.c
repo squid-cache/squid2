@@ -45,6 +45,16 @@ static void netdbHashDelete _PARAMS((const char *key));
 static void netdbHashLink _PARAMS((netdbEntry * n, const char *hostname));
 static void netdbHashUnlink _PARAMS((const char *key));
 static void netdbPurgeLRU _PARAMS((void));
+static struct _net_db_peer *netdbPeerByName _PARAMS((const netdbEntry * n, const char *));
+static struct _net_db_peer *netdbPeerAdd _PARAMS((netdbEntry * n, peer * e));
+static char *netdbPeerName _PARAMS((const char *name));
+
+/* We have to keep a local list of peer names.  The Peers structure
+ * gets freed during a reconfigure.  We want this database to
+ * remain persisitent, so _net_db_peer->peername points into this
+ * linked list */
+static wordlist *peer_names = NULL;
+static wordlist **peer_names_tail = &peer_names;
 
 static void
 netdbHashInsert(netdbEntry * n, struct in_addr addr)
@@ -125,6 +135,11 @@ netdbRelease(netdbEntry * n)
 	safe_free(x);
     }
     n->hosts = NULL;
+    safe_free(n->peers);
+    meta_data.netdb_peers -= n->n_peers_alloc;
+    n->peers = NULL;
+    n->n_peers = 0;
+    n->n_peers_alloc = 0;
     if (n->link_count == 0) {
 	netdbHashDelete(n->network);
 	xfree(n);
@@ -237,6 +252,110 @@ sortByHops(netdbEntry ** n1, netdbEntry ** n2)
 	return 0;
 }
 
+static struct _net_db_peer *
+netdbPeerByName(const netdbEntry * n, const char *peername)
+{
+    int i;
+    struct _net_db_peer *p = n->peers;
+    for (i = 0; i < n->n_peers; i++, p++) {
+	if (!strcmp(p->peername, peername))
+	    return p;
+    }
+    return NULL;
+}
+
+static struct _net_db_peer *
+netdbPeerAdd(netdbEntry * n, peer * e)
+{
+    struct _net_db_peer *p;
+    struct _net_db_peer *o;
+    int osize;
+    int i;
+    if (n->n_peers == n->n_peers_alloc) {
+	o = n->peers;
+	osize = n->n_peers_alloc;
+	if (n->n_peers_alloc == 0)
+	    n->n_peers_alloc = 2;
+	else
+	    n->n_peers_alloc <<= 1;
+	debug(37, 3, "netdbPeerAdd: Growing peer list for '%s' to %d\n",
+	    n->network, n->n_peers_alloc);
+	n->peers = xcalloc(n->n_peers_alloc, sizeof(struct _net_db_peer));
+	meta_data.netdb_peers += n->n_peers_alloc;
+	for (i = 0; i < osize; i++)
+	    *(n->peers + i) = *(o + i);
+	if (osize) {
+	    safe_free(o);
+	    meta_data.netdb_peers -= osize;
+	}
+    }
+    p = n->peers + n->n_peers;
+    p->peername = netdbPeerName(e->host);
+    n->n_peers++;
+    return p;
+}
+
+static int
+sortPeerByHops(struct _net_db_peer *p1, struct _net_db_peer *p2)
+{
+    if (p1->hops > p2->hops)
+	return 1;
+    else if (p1->hops < p2->hops)
+	return -1;
+    else
+	return 0;
+}
+
+static void
+netdbSaveState(void *foo)
+{
+    LOCAL_ARRAY(char, path, SQUID_MAXPATHLEN);
+    FILE *fp;
+    netdbEntry *n;
+    struct _net_db_name *x;
+    sprintf(path, "%s/netdb_state", swappath(0));
+    fp = fopen(path, "w");
+    if (fp == NULL) {
+	debug(50, 1, "netdbSaveState: %s: %s\n", path, xstrerror());
+	return;
+    }
+    n = (netdbEntry *) hash_first(addr_table);
+    while (n) {
+	fprintf(fp, "%s %d %d %10.5f %10.5f %d %d",
+	    n->network,
+	    n->pings_sent,
+	    n->pings_recv,
+	    n->hops,
+	    n->rtt,
+	    (int) n->next_ping_time,
+	    (int) n->last_use_time);
+	for (x = n->hosts; x; x = x->next)
+	    fprintf(fp, " %s", x->name);
+	fprintf(fp, "\n");
+	n = (netdbEntry *) hash_next(addr_table);
+    }
+    fclose(fp);
+    debug(37, 0, "NETDB state saved\n");
+    eventAdd("netdbSaveState", netdbSaveState, NULL, 3617);
+}
+
+static char *
+netdbPeerName(const char *name)
+{
+    wordlist *w;
+    for (w = peer_names; w; w = w->next) {
+	if (!strcmp(w->key, name))
+	    return w->key;
+    }
+    w = xcalloc(1, sizeof(wordlist));
+    w->key = xstrdup(name);
+    *peer_names_tail = w;
+    peer_names_tail = &w->next;
+    return w->key;
+}
+
+
+
 #endif /* USE_ICMP */
 
 /* PUBLIC FUNCTIONS */
@@ -249,6 +368,7 @@ netdbInit(void)
 	return;
     addr_table = hash_create((int (*)_PARAMS((const char *, const char *))) strcmp, 229, hash_string);
     host_table = hash_create((int (*)_PARAMS((const char *, const char *))) strcmp, 467, hash_string);
+    eventAdd("netdbSaveState", netdbSaveState, NULL, 3617);
 #endif
 }
 
@@ -276,12 +396,11 @@ netdbHandlePingReply(const struct sockaddr_in *from, int hops, int rtt)
     debug(37, 3, "netdbHandlePingReply: from %s\n", inet_ntoa(from->sin_addr));
     if ((n = netdbLookupAddr(from->sin_addr)) == NULL)
 	return;
-    N = ++n->n;
+    N = ++n->pings_recv;
     if (N > 100)
 	N = 100;
     n->hops = ((n->hops * (N - 1)) + hops) / N;
     n->rtt = ((n->rtt * (N - 1)) + rtt) / N;
-    n->pings_recv++;
     debug(37, 3, "netdbHandlePingReply: %s; rtt=%5.1f  hops=%4.1f\n",
 	n->network,
 	n->rtt,
@@ -313,6 +432,7 @@ netdbFreeMemory(void)
 	    n->hosts = x->next;
 	    safe_free(x);
 	}
+	safe_free(n->peers);
 	xfree(n);
     }
     xfree(L1);
@@ -332,6 +452,9 @@ netdbFreeMemory(void)
     xfree(L2);
     hashFreeMemory(addr_table);
     hashFreeMemory(host_table);
+    wordlistDestroy(&peer_names);
+    peer_names = NULL;
+    peer_names_tail = &peer_names;
 #endif
 }
 
@@ -357,6 +480,8 @@ netdbDump(StoreEntry * sentry)
     struct _net_db_name *x;
     int k;
     int i;
+    int j;
+    struct _net_db_peer *p;
     storeAppendPrintf(sentry, "{Network DB Statistics:\n");	/* } */
     storeAppendPrintf(sentry, "{%-16.16s %9s %7s %5s %s}\n",
 	"Network",
@@ -386,6 +511,13 @@ netdbDump(StoreEntry * sentry)
 	for (x = n->hosts; x; x = x->next)
 	    storeAppendPrintf(sentry, " %s", x->name);
 	storeAppendPrintf(sentry, close_bracket);
+	p = n->peers;
+	for (j = 0; j < n->n_peers; j++, p++) {
+	    storeAppendPrintf(sentry, "{    %-22.22s %7.1f %5.1f}\n",
+		p->peername,
+		p->rtt,
+		p->hops);
+	}
     }
     storeAppendPrintf(sentry, close_bracket);
     xfree(list);
@@ -400,7 +532,7 @@ netdbHostHops(const char *host)
     if (n)
 	return (int) (n->hops + 0.5);
 #endif
-    return 0xFFFF;
+    return 0;
 }
 
 int
@@ -411,5 +543,33 @@ netdbHostRtt(const char *host)
     if (n)
 	return (int) (n->rtt + 0.5);
 #endif
-    return 0xFFFF;
+    return 0;
+}
+
+void
+netdbUpdatePeer(request_t * r, peer * e, int irtt, int ihops)
+{
+#if USE_ICMP
+    netdbEntry *n;
+    double rtt = (double) irtt;
+    double hops = (double) ihops;
+    struct _net_db_peer *p;
+    debug(37, 3, "netdbUpdatePeer: '%s', %d hops, %d rtt\n", r->host, ihops, irtt);
+    n = netdbLookupHost(r->host);
+    if (n == NULL) {
+	debug(37, 3, "netdbUpdatePeer: host '%s' not found\n", r->host);
+	return;
+    }
+    if ((p = netdbPeerByName(n, e->host)) == NULL)
+	p = netdbPeerAdd(n, e);
+    p->rtt = rtt;
+    p->hops = hops;
+    p->expires = squid_curtime + 3600;
+    if (n->n_peers < 2)
+	return;
+    qsort((char *) n->peers,
+	n->n_peers,
+	sizeof(struct _net_db_peer),
+	             (QS) sortPeerByHops);
+#endif
 }

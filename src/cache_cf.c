@@ -115,6 +115,7 @@ struct SquidConfig Config;
 #define DefaultSwapLowWaterMark  90	/* 90% */
 #define DefaultNetdbHigh	1000	/* counts, not percents */
 #define DefaultNetdbLow		 900
+#define DefaultNetdbTtl          300	/* 5 minutes */
 
 #define DefaultWaisRelayHost	(char *)NULL
 #define DefaultWaisRelayPort	0
@@ -203,6 +204,9 @@ struct SquidConfig Config;
 #define DefaultLevelTwoDirs	256
 #define DefaultOptionsLogUdp	1	/* on */
 #define DefaultOptionsEnablePurge 0	/* default off */
+#define DefaultOptionsClientDb	1	/* default on */
+#define DefaultOptionsQueryIcmp	0	/* default off */
+
 
 int httpd_accel_mode = 0;	/* for fast access */
 const char *DefaultSwapDir = DEFAULT_SWAP_DIR;
@@ -1370,6 +1374,10 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&Config.Options.log_udp);
 	else if (!strcmp(token, "http_anonymizer"))
 	    parseHttpAnonymizer(&Config.Options.anonymizer);
+	else if (!strcmp(token, "client_db"))
+	    parseOnOff(&Config.Options.client_db);
+	else if (!strcmp(token, "query_icmp"))
+	    parseOnOff(&Config.Options.query_icmp);
 
 	else if (!strcmp(token, "minimum_direct_hops"))
 	    parseIntegerValue(&Config.minDirectHops);
@@ -1519,6 +1527,7 @@ configSetFactoryDefaults(void)
     Config.Swap.lowWaterMark = DefaultSwapLowWaterMark;
     Config.Netdb.high = DefaultNetdbHigh;
     Config.Netdb.low = DefaultNetdbLow;
+    Config.Netdb.ttl = DefaultNetdbTtl;
 
     Config.Wais.relayHost = safe_xstrdup(DefaultWaisRelayHost);
     Config.Wais.relayPort = DefaultWaisRelayPort;
@@ -1607,6 +1616,8 @@ configSetFactoryDefaults(void)
     Config.Options.res_defnames = DefaultOptionsResDefnames;
     Config.Options.anonymizer = DefaultOptionsAnonymizer;
     Config.Options.enable_purge = DefaultOptionsEnablePurge;
+    Config.Options.client_db = DefaultOptionsClientDb;
+    Config.Options.query_icmp = DefaultOptionsQueryIcmp;
 }
 
 static void

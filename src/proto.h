@@ -118,7 +118,7 @@ struct icp_common_s {
 };
 
 #define ICP_FLAG_HIT_OBJ     0x80000000ul
-#define ICP_FLAG_NETDB_GUNK   0x40000000ul
+#define ICP_FLAG_SRC_RTT     0x40000000ul
 
 #define ICP_COMMON_SZ (sizeof(icp_common_t))
 #define ICP_HDR_SZ (sizeof(icp_common_t)+sizeof(u_num32))
@@ -144,7 +144,7 @@ typedef enum {
     ICP_OP_UNUSED6,		/* 18 */
     ICP_OP_UNUSED7,		/* 19 */
     ICP_OP_UNUSED8,		/* 20 */
-    ICP_OP_RELOADING,		/* 21 access denied while reloading */
+    ICP_OP_MISS_NOFETCH,	/* 21 access denied while reloading */
     ICP_OP_DENIED,		/* 22 access denied (cl<-sv) */
     ICP_OP_HIT_OBJ,		/* 23 hit with object data (cl<-sv) */
     ICP_OP_END			/* 24 marks end of opcodes */

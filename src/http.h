@@ -129,9 +129,6 @@ typedef struct {
     StoreEntry *entry;
     request_t *request;
     char *req_hdr;
-    char *icp_rwd_ptr;		/* When a lifetime expires during the
-				 * middle of an icpwrite, don't lose the
-				 * icpReadWriteData */
     char *reply_hdr;
     int req_hdr_sz;
     int reply_hdr_state;

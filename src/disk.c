@@ -337,6 +337,7 @@ file_write(int fd,
 	(PF) diskHandleWrite,
 	(void *) &file_table[fd],
 	0);
+    file_table[fd].write_daemon = PRESENT;
     return DISK_OK;
 }
 

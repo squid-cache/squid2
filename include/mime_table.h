@@ -1,4 +1,4 @@
-#define EXT_TABLE_LEN 93
+#define EXT_TABLE_LEN 95
 static ext_table_entry ext_mime_table[] =
 {
     {"Z", "application/x-compressed", "x-compress", "binary"},
@@ -46,6 +46,8 @@ static ext_table_entry ext_mime_table[] =
     {"mime", "www/mime", "8bit", "text"},
     {"mov", "video/quicktime", "binary", "movie"},
     {"movie", "video/x-sgi-movie", "binary", "movie"},
+    {"mp2", "audio/basic", "binary", "sound"},
+    {"mp3", "audio/basic", "binary", "sound"},
     {"mpe", "video/mpeg", "binary", "movie"},
     {"mpeg", "video/mpeg", "binary", "movie"},
     {"mpg", "video/mpeg", "binary", "movie"},

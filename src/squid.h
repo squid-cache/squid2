@@ -330,6 +330,7 @@ extern int opt_catch_signals;	/* main.c */
 extern int opt_no_ipcache;	/* main.c */
 extern int vhost_mode;		/* main.c */
 extern int Squid_MaxFD;		/* main.c */
+extern int Biggest_FD;		/* main.c */
 extern const char *const version_string;	/* main.c */
 extern const char *const appname;	/* main.c */
 extern struct in_addr local_addr;	/* main.c */
@@ -343,12 +344,11 @@ extern int opt_forwarded_for;	/* main.c */
 extern int opt_accel_uses_host;	/* main.c */
 extern char ThisCache[];	/* main.c */
 
-/* Prototypes and definitions which don't really deserve a seaprate
+/* Prototypes and definitions which don't really deserve a separate
  * include file */
 
 #define  CONNECT_PORT        443
 
-extern int objcacheStart _PARAMS((int, const char *, StoreEntry *));
 extern void start_announce _PARAMS((void *unused));
 extern int sslStart _PARAMS((int fd, const char *, request_t *, char *, int *sz));
 extern const char *storeToString _PARAMS((const StoreEntry *));

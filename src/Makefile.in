@@ -47,6 +47,7 @@ MAKEDEPEND	= @MAKEDEPEND@
 INSTALL		= @INSTALL@
 INSTALL_BIN 	= @INSTALL_PROGRAM@
 INSTALL_FILE 	= @INSTALL_DATA@
+INSTALL_SUID	= @INSTALL_PROGRAM@ -o root -m 4755
 RANLIB		= @RANLIB@
 LN_S		= @LN_S@
 PERL            = @PERL@
@@ -70,7 +71,8 @@ FTPGET_LIBS	= -L../lib -lmiscutil $(XTRA_LIBS)
 PINGER_LIBS	= -L../lib -lmiscutil $(XTRA_LIBS)
 
 PROGS           = squid client
-UTILS           = dnsserver ftpget pinger
+UTILS           = dnsserver ftpget
+SUID_UTILS	= pinger
 CGIPROGS	= cachemgr.cgi
 OBJS	 	= \
 		acl.o \
@@ -129,7 +131,7 @@ DEFAULTS        = \
 	-DDEFAULT_SWAP_DIR=\"$(DEFAULT_SWAP_DIR)\" \
 	-DDEFAULT_PINGER=\"$(DEFAULT_PINGER)\"
 
-all:    squid.conf $(PROGS) $(UTILS) $(CGIPROGS)
+all:    squid.conf $(PROGS) $(UTILS) $(SUID_UTILS) $(CGIPROGS)
 
 $(OBJS): ../include/version.h
 
@@ -240,6 +242,19 @@ install: all install-mkdirs
 	else \
 		echo "$(INSTALL_FILE) squid.conf $(sysconfdir)"; \
 		$(INSTALL_FILE) squid.conf $(sysconfdir); \
+	fi
+
+install-pinger:
+	@f=pinger; \
+	if test -f $(libexecdir)/$$f; then \
+		echo $(MV) $(libexecdir)/$$f $(libexecdir)/-$$f; \
+		$(MV) $(libexecdir)/$$f $(libexecdir)/-$$f; \
+	fi; \
+	echo $(INSTALL_SUID) $$f $(libexecdir); \
+	$(INSTALL_SUID) $$f $(libexecdir) || exit 1; \
+	if test -f $(libexecdir)/-$$f; then \
+		echo $(RM) -f $(libexecdir)/-$$f; \
+		$(RM) -f $(libexecdir)/-$$f; \
 	fi
 
 clean: 

@@ -35,7 +35,6 @@ typedef struct _net_db {
     char *key;
     struct _net_db *next;
     char network[16];
-    int n;
     int pings_sent;
     int pings_recv;
     double hops;
@@ -43,11 +42,18 @@ typedef struct _net_db {
     time_t next_ping_time;
     time_t last_use_time;
     int link_count;
-    struct in_addr addr;
     struct _net_db_name {
 	char *name;
 	struct _net_db_name *next;
     }           *hosts;
+    struct _net_db_peer {
+	char *peername;
+	double hops;
+	double rtt;
+	time_t expires;
+    }           *peers;
+    int n_peers_alloc;
+    int n_peers;
 } netdbEntry;
 
 extern void netdbHandlePingReply _PARAMS((const struct sockaddr_in * from, int hops, int rtt));
@@ -58,5 +64,7 @@ extern int netdbHops _PARAMS((struct in_addr));
 extern void netdbFreeMemory _PARAMS((void));
 extern int netdbHostHops _PARAMS((const char *host));
 extern int netdbHostRtt _PARAMS((const char *host));
+extern void netdbUpdatePeer _PARAMS((request_t *, peer * e, int rtt, int hops));
+
 
 #endif /* NET_DB_H */
