@@ -182,10 +182,10 @@ cf.data: cf.data.pre Makefile
 store_modules.c: store_modules.sh Makefile
 	$(SHELL) $(srcdir)/store_modules.sh $(STORE_MODULES) >store_modules.c
 
-repl_modules.c: repl_modules.sh 
+repl_modules.c: repl_modules.sh Makefile
 	$(SHELL) $(srcdir)/repl_modules.sh $(REPL_POLICIES) > repl_modules.c
 
-auth_modules.c: auth_modules.sh
+auth_modules.c: auth_modules.sh Makefile
 	@$(SHELL) $(srcdir)/auth_modules.sh $(AUTH_MODULES) >auth_modules.c
 
 install-data-local:
