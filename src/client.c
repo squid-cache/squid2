@@ -176,7 +176,7 @@ main(int argc, char *argv[])
 			*t = '\r', *(t + 1) = '\n';
 		}
 		break;
-	    case 'T*':
+	    case 'T':
 		io_timeout = atoi(optarg);
 		break;
 	    case 'v':
