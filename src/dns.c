@@ -242,7 +242,7 @@ dnsOpenServers(void)
 
     dnsFreeMemory();
     dns_child_table = xcalloc(N, sizeof(dnsserver_t *));
-    debug(34, 1, "dnsOpenServers: Starting %d 'dns_server' processes\n", N);
+    debug(34, 1, "dnsOpenServers: Starting %d 'dnsserver' processes\n", N);
     NDnsServersAlloc = 0;
     for (k = 0; k < N; k++) {
 	dns_child_table[k] = xcalloc(1, sizeof(dnsserver_t));
