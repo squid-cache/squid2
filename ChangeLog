@@ -15,6 +15,9 @@ Changes to squid-2.5.STABLE8 ()
 	- [Cosmetic] Document -v (protocol version) option to LDAP helpers
 	- [Minor] 100% CPU usage on half-closed PUT/POST requests (Bug #354,
 	  #1096)
+	- [Minor] fakeauth_auth memory leak and NULL pointer access (Bug #1183)
+	- [Minor security] buffer overflow bug in gopherToHTML() (Bug #1189)
+	- [Medium security] Denial of service with forged WCCP messages (Bug #1190)
 
 Changes to squid-2.5.STABLE7 (11 Oct 2004)
 
