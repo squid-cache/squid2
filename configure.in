@@ -107,12 +107,14 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PROG_LN_S
-AC_PATH_PROG(RM, rm, /bin/false)
-AC_PATH_PROG(MV, mv, /bin/false)
-AC_PATH_PROG(MKDIR, mkdir, /bin/false)
+AC_PATH_PROG(FALSE, false, /usr/bin/false)
+AC_PATH_PROG(TRUE, true, /usr/bin/true)
+AC_PATH_PROG(RM, rm, $FALSE)
+AC_PATH_PROG(MV, mv, $FALSE)
+AC_PATH_PROG(MKDIR, mkdir, $FALSE)
 AC_PATH_PROG(LN, ln, cp)
 AC_PATH_PROG(PERL, perl, /usr/local/bin/perl)
-AC_PATH_PROG(MAKEDEPEND, makedepend, /bin/true)
+AC_PATH_PROG(MAKEDEPEND, makedepend, $TRUE)
 
 
 dnl Check for headers
@@ -505,8 +507,3 @@ AC_OUTPUT(\
 	./src/squid.conf.pre \
 	./contrib/Makefile \
 )
-
-echo "Running make depend in lib"
-(cd lib; make depend)
-echo "Running make depend in src"
-(cd src; make depend)
