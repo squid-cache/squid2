@@ -395,7 +395,6 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
 	if (vm_or_not && mem == NULL)
 	    continue;
 	if ((++N & 0xFF) == 0) {
-	    getCurrentTime();
 	    debug(18, 3) ("stat_objects_get:  Processed %d objects...\n", N);
 	}
 	storeAppendPrintf(sentry, "{%s %dL %-25s %s %3d %2d %8d %s}\n",
@@ -1084,9 +1083,6 @@ log_append(const cacheinfo * obj,
 	client = fqdncache_gethostbyaddr(caddr, 0);
     if (client == NULL)
 	client = inet_ntoa(caddr);
-
-    getCurrentTime();
-
     if (!method)
 	method = dash_str;
     if (!url)

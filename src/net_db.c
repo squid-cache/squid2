@@ -347,7 +347,6 @@ netdbSaveState(void *foo)
 	count++;
     }
     fclose(fp);
-    getCurrentTime();
     debug(37, 0) ("NETDB state saved; %d entries, %d msec\n",
 	count, tvSubMsec(start, current_time));
     eventAdd("netdbSaveState", netdbSaveState, NULL, 3617);
@@ -407,7 +406,6 @@ netdbReloadState(void)
     }
     put_free_4k_page(buf);
     fclose(fp);
-    getCurrentTime();
     debug(37, 0) ("NETDB state reloaded; %d entries, %d msec\n",
 	count, tvSubMsec(start, current_time));
 }
