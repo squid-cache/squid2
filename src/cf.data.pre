@@ -1342,8 +1342,8 @@ DOC_START
 	"program" cmdline
 	Specify the command for the external authenticator.  Such a program
 	reads a line containing "username":"realm" and replies with the
-	appropriate H(A1) value base64 encoded.  See rfc 2616 for the
-	definition of H(A1).
+	appropriate H(A1) value base64 encoded or ERR if the user (or his H(A1)
+	hash) does not exists.  See rfc 2616 for the definition of H(A1).
 
 	By default, the digest authentication scheme is not used unless a
 	program is specified.
