@@ -461,8 +461,9 @@ peerHandleIcpReply(peer * p, peer_t type, icp_common_t * header, void *data)
 	storeUrl(psstate->entry));
 #if SQUID_PEER_DIGEST
     /* do cd lookup to count false misses */
-    peerNoteDigestLookup(request, p, 
-	peerDigestLookup(p, request, psstate->entry));
+    if (p && request)
+	peerNoteDigestLookup(request, p, 
+	    peerDigestLookup(p, request, psstate->entry));
 #endif
     psstate->icp.n_recv++;
     if (op == ICP_MISS || op == ICP_DECHO) {
