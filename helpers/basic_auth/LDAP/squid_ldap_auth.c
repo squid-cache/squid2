@@ -30,8 +30,10 @@
  * or (at your option) any later version.
  *
  * Changes:
- * 2004-01-05: Henrik Nordstrom <hno@squid-cache.org>
- *	       - Corrected TLS mode
+ * 2004-03-01: Henrik Nordstrom <hno@squid-cache.org>
+ *	       - corrected building of search filters to escape
+ *		 unsafe input
+ *	       - -d option for "debug" like squid_ldap_group
  * 2003-03-01: David J N Begley
  * 	       - Support for Netscape API method of ldap over SSL
  * 	         connections
@@ -95,6 +97,7 @@ static int sslinit = 0;
 #endif
 static int connect_timeout = 0;
 static int timelimit = LDAP_NO_LIMIT;
+static int debug = 0;
 
 /* Added for TLS support and version 3 */
 static int use_tls = 0;
@@ -208,6 +211,7 @@ main(int argc, char **argv)
 	case 'R':
 	case 'z':
 	case 'Z':
+	case 'd':
 	    break;
 	default:
 	    if (strlen(argv[1]) > 2) {
@@ -333,6 +337,9 @@ main(int argc, char **argv)
 	    use_tls = 1;
 	    break;
 #endif
+	case 'd':
+	    debug++;
+	    break;
 	default:
 	    fprintf(stderr, PROGRAM_NAME ": ERROR: Unknown command line option '%c'\n", option);
 	    exit(1);
@@ -447,7 +454,7 @@ main(int argc, char **argv)
                 exit(1);
 	    }
 
-	    if ( use_tls && ( version == LDAP_VERSION3 ) && ( ldap_start_tls_s( ld, NULL, NULL ) != LDAP_SUCCESS )) {
+	    if ( use_tls && ( version == LDAP_VERSION3 ) && ( ldap_start_tls_s( ld, NULL, NULL ) == LDAP_SUCCESS )) {
                 fprintf( stderr, "Could not Activate TLS connection\n");
                 exit(1);
 	    }
@@ -478,6 +485,34 @@ main(int argc, char **argv)
 }
 
 static int
+ldap_escape_value(char *escaped, int size, const char *src)
+{
+    int n = 0;
+    while (size > 4 && *src) {
+	switch(*src) {
+	case '*':
+	case '(':
+	case ')':
+	case '\\':
+	    n += 3;
+	    size -= 3;
+	    if (size > 0) {
+		*escaped++ = '\\';
+		snprintf(escaped, 3, "%02x", (unsigned char)*src++);
+		escaped+=2;
+	    }
+	    break;
+	default:
+	    *escaped++ = *src++;
+	    n++;
+	    size--;
+	}
+    }
+    *escaped = '\0';
+    return n;
+}
+
+static int
 checkLDAP(LDAP * ld, const char *userid, const char *password)
 {
     char dn[256];
@@ -490,6 +525,7 @@ checkLDAP(LDAP * ld, const char *userid, const char *password)
     }
     if (searchfilter) {
 	char filter[256];
+	char escaped_login[256];
 	LDAPMessage *res = NULL;
 	LDAPMessage *entry;
 	char *searchattr[] =
@@ -497,6 +533,7 @@ checkLDAP(LDAP * ld, const char *userid, const char *password)
 	char *userdn;
 	int rc;
 
+	ldap_escape_value(escaped_login, sizeof(escaped_login), userid);
 	if (binddn) {
 	    rc = ldap_simple_bind_s(ld, binddn, bindpasswd);
 	    if (rc != LDAP_SUCCESS) {
@@ -504,7 +541,9 @@ checkLDAP(LDAP * ld, const char *userid, const char *password)
 		return 1;
 	    }
 	}
-	snprintf(filter, sizeof(filter), searchfilter, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid, userid);
+	snprintf(filter, sizeof(filter), searchfilter, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login);
+	if (debug)
+	    fprintf(stderr, "user filter '%s', searchbase '%s'\n", filter, basedn);
 	rc = ldap_search_s(ld, basedn, searchscope, filter, searchattr, 1, &res);
 	if (rc != LDAP_SUCCESS) {
 	    if (noreferrals && rc == LDAP_PARTIAL_RESULTS) {
@@ -541,6 +580,8 @@ checkLDAP(LDAP * ld, const char *userid, const char *password)
 	snprintf(dn, sizeof(dn), "%s=%s,%s", userattr, userid, basedn);
     }
 
+    if (debug)
+	fprintf(stderr, "attempting to bind to user '%s'\n", dn);
     if (ldap_simple_bind_s(ld, dn, password) != LDAP_SUCCESS)
 	return 1;
 
