@@ -135,8 +135,10 @@ eventRun(void)
 	if (NULL != arg) {
 	    int valid = cbdataValid(arg);
 	    cbdataUnlock(arg);
-	    if (!valid)
+	    if (!valid) {
+		safe_free(event);
 		return;
+	    }
 	}
 	weight += event->weight;
 	debug(41, 5) ("eventRun: Running '%s', id %d\n", event->name, event->id);
