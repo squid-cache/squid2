@@ -55,6 +55,9 @@
 #if HAVE_ASSERT_H
 #include <assert.h>
 #endif
+#if HAVE_MATH_H
+#include <math.h>
+#endif
 
 #include "hash.h"
 #include "util.h"
