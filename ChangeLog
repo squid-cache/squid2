@@ -7,6 +7,9 @@
 	- Fixed extra disk read() bug for swapins.  Now a disk
 	  read calls back immediately if any data was read instead
 	  of trying to fill the 8k buffer.
+	- Fixed asciiHandleConn().  The 'while (1)' loop broke things
+	  badly under very high loads.  Limit to 10 times through
+	  the loop, or until RESERVED_FD limit is reached.
 
 Changes to squid-1.1.16 (August 25, 1997):
 
