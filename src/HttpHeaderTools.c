@@ -244,11 +244,12 @@ int
 strListGetItem(const String * str, char del, const char **item, int *ilen, const char **pos)
 {
     size_t len;
-    char delim[2][3] =
+    static char delim[2][3] =
     {
-	{'"', del, 0},
+	{'"', 0, 0},
 	{'"', '\\', 0}};
     int quoted = 0;
+    delim[0][1] = del;
     assert(str && item && pos);
     if (*pos) {
 	if (!**pos)		/* end of string */
