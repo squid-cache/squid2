@@ -1,3 +1,30 @@
+Changes to squid-1.NOVM.19 (December 18, 1997):
+
+	- Fixed gopherReadReply() bug.  Don't call gopherEndHTML()
+	  for aborted requests.
+	- merged 1.1.19 changes
+
+Changes to squid-1.1.19 (December 18, 1997):
+
+	- Applied David Luyer's TCP retry algorithm: Give a parent (or
+	  peer) cache 10 chances before marking it truly dead, as soon
+	  as it fails the first time fire off a connection attempt and
+	  if that succeeds mark it back with 10 fresh chances.
+	- Re-fixed handling long lines in Gopher replies (John Line).
+	- Fixed dereference bug in BIN_TREE version of
+	  aclMatchDomainList().
+	- Added Date: and Expires: to proxy-auth message.
+	- Fixed using Proxy Auth and User based ACLs without any ident
+	  lookups; the ident field of the aclChecklist was never filled
+	  (Milton Ngan).
+	- Updated contrib/nextstep directory from Gerben Wierda.
+	- Added ability to generate HTTP redirect messages from
+	  the redirector output by prepending "301:" or "302:" to the
+	  new url.  See FAQ 4.16 for more details.
+	- Fixed errorpage.c buffer overrun.
+	- Changed storeInit() to allocate 1.5 times the estimated number
+	  of cache objects for the 'filemap' bitmap.
+
 Changes to squid-1.NOVM.18 (October 31, 1997):
 
 	- merged 1.1.18 changes
@@ -16,6 +43,7 @@ Changes to squid-1.1.18 (October 31, 1997):
 Changes to squid-1.NOVM.17 (October 19, 1997):
 
 	- merged 1.1.17 changes
+	- Fixed handling long lines in Gopher replies (John Line).
 
 Changes to squid-1.1.17 (October 19, 1997):
 

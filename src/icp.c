@@ -154,6 +154,10 @@ int _delay_fetch;
 
 static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
+#if FORW_VIA_LOG
+#define FV_PATH "/usr/local/squid/logs/forw_via.log"
+static FILE *forw_via_log = NULL;
+#endif
 
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
@@ -381,7 +385,7 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (!strcasecmp(t, "Keep-Alive"))
 	    BIT_SET(request->flags, REQ_PROXY_KEEPALIVE);
 #endif
-    if ((t = mime_get_header(request_hdr, "Via")))
+    if ((t = mime_get_header(request_hdr, "Via"))) {
 	if (strstr(t, ThisCache)) {
 	    if (!icpState->accel) {
 		debug(12, 1, "WARNING: Forwarding loop detected for '%s'\n",
@@ -390,9 +394,23 @@ icpParseRequestHeaders(icpStateData * icpState)
 	    }
 	    BIT_SET(request->flags, REQ_LOOPDETECT);
 	}
+    }
+#if FORW_VIA_LOG
+        if (forw_via_log)
+	    fprintf(forw_via_log, "%s", t ? t : null_string);
+#endif
 #if USE_USERAGENT_LOG
     if ((t = mime_get_header(request_hdr, "User-Agent")))
 	logUserAgent(fqdnFromAddr(icpState->peer.sin_addr), t);
+#endif
+#if FORW_VIA_LOG
+    if (forw_via_log) {
+        t = mime_get_header(request_hdr, "X-Forwarded-For");
+	fprintf(forw_via_log, "|%s%s%s\n",
+	    t ? t : null_string,
+	    t ? ", " : null_string,
+	    inet_ntoa(icpState->peer.sin_addr));
+    }
 #endif
     request->max_age = -1;
     if ((t = mime_get_header(request_hdr, "Cache-control"))) {
@@ -1149,6 +1167,8 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     icp_common_t *reply;
     int src_rtt = 0;
     u_num32 flags = 0;
+    int rtt = 0;
+    int hops = 0;
 
     header.opcode = headerp->opcode;
     header.version = headerp->version;
@@ -1180,14 +1200,16 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    }
 	    break;
 	}
+	/* The peer is allowed to use this cache */
 	if (header.flags & ICP_FLAG_SRC_RTT) {
-	    int rtt = netdbHostRtt(icp_request->host);
-	    int hops = netdbHostHops(icp_request->host);
+	    rtt = netdbHostRtt(icp_request->host);
+	    hops = netdbHostHops(icp_request->host);
 	    src_rtt = ((hops & 0xFFFF) << 16) | (rtt & 0xFFFF);
 	    if (rtt)
 		flags |= ICP_FLAG_SRC_RTT;
+	    else
+		netdbPingSite(icp_request->host);
 	}
-	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
 	debug(12, 5, "icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (icpCheckUdpHit(entry, icp_request)) {
@@ -1196,11 +1218,18 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
 	    break;
 	}
+	if (Config.Options.test_reachability && rtt == 0) {
+	    if ((rtt = netdbHostRtt(icp_request->host)) == 0)
+		netdbPingSite(icp_request->host);
+	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
 	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, flags, url, header.reqnum, src_rtt);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
+	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, flags, url, header.reqnum, src_rtt);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
+	} else if (Config.Options.test_reachability && rtt == 0) {
 	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, flags, url, header.reqnum, src_rtt);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
 	} else {
@@ -1732,6 +1761,7 @@ clientReadRequest(int fd, void *data)
 	/* parser returned -1 */
 	debug(12, 1, "clientReadRequest: FD %d Invalid Request\n", fd);
 	wbuf = squid_error_request(icpState->in.buf,
+	    icpState->in.offset,
 	    ERR_INVALID_REQ,
 	    fd_table[fd].ipaddr,
 	    400);
@@ -2093,3 +2123,35 @@ vizHackSendPkt(const struct sockaddr_in *from, int type)
 	(struct sockaddr *) &Config.vizHack.S,
 	sizeof(struct sockaddr_in));
 }
+
+#if FORW_VIA_LOG
+void
+icpInit(int op)
+{
+    int i;
+    LOCAL_ARRAY(char, from, MAXPATHLEN);
+    LOCAL_ARRAY(char, to, MAXPATHLEN);
+debug(0,0,"icpInit: op=%d\n", op);
+    if (op == 0) {
+	if (forw_via_log != NULL)
+		fclose(forw_via_log);
+	forw_via_log = fopen(FV_PATH, "a+");
+	if (forw_via_log == NULL)
+		perror(FV_PATH);
+    } else if (op == 1 && forw_via_log != NULL) {
+	for (i = Config.Log.rotateNumber; i > 1;) {
+	    i--;
+	    sprintf(from, "%s.%d", FV_PATH, i - 1);
+	    sprintf(to, "%s.%d", FV_PATH, i);
+	    rename(from, to);
+	}
+	if (Config.Log.rotateNumber > 0) {
+	    sprintf(to, "%s.%d", FV_PATH, 0);
+	    rename(FV_PATH, to);
+	}
+	icpInit(0);
+	return;
+    }
+debug(0,0,"icpInit: %s is FD %d\n", FV_PATH, fileno(forw_via_log));
+}
+#endif

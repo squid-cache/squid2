@@ -883,7 +883,7 @@ neighborAdd(const char *host,
     e->acls = NULL;
     e->icp_version = ICP_VERSION_CURRENT;
     e->type = parseNeighborType(type);
-    e->tcp_up = 1;
+    e->tcp_up = 10;
 
     /* Append peer */
     if (!Peers.peers_head)
@@ -1129,13 +1129,13 @@ static void
 peerCheckConnectDone(int fd, int status, void *data)
 {
     peer *p = data;
-    p->tcp_up = status == COMM_OK ? 1 : 0;
-    if (p->tcp_up) {
+    if (status == COMM_OK) {
+	p->tcp_up = 10;
 	debug(15, 0, "TCP connection to %s/%d succeeded\n",
 	    p->host, p->http_port);
     } else {
 	p->ck_conn_event_pend++;
-	eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
+	eventAdd("peerCheckConnect", peerCheckConnect, p, 60);
     }
     comm_close(fd);
     return;
@@ -1147,10 +1147,12 @@ peerCheckConnectStart(peer * p)
     if (!p->tcp_up)
 	return;
     debug(15, 0, "TCP connection to %s/%d failed\n", p->host, p->http_port);
-    p->tcp_up = 0;
+    p->tcp_up--;
+    if (p->tcp_up != 9)
+	return;
     p->last_fail_time = squid_curtime;
     p->ck_conn_event_pend++;
-    eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
+    eventAdd("peerCheckConnect", peerCheckConnect, p, 30);
 }
 
 static void

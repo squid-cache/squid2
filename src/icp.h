@@ -232,6 +232,7 @@ extern void icpSendMoreData _PARAMS((int fd, void *data));
 extern int icpUdpReply _PARAMS((int fd, icpUdpData * queue));
 extern void vizHackSendPkt _PARAMS((const struct sockaddr_in * from, int type));
 extern void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
+extern void icpInit(int);
 
 extern int neighbors_do_private_keys;
 extern char *IcpOpcodeStr[];

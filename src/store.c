@@ -107,7 +107,6 @@
 #include "squid.h"		/* goes first */
 
 #define REBUILD_TIMESTAMP_DELTA_MAX 2
-#define MAX_SWAP_FILE		(1<<21)
 #define SWAP_BUF		DISK_PAGE_SIZE
 
 #define WITH_MEMOBJ	1
@@ -204,6 +203,7 @@ static void storeGetSwapSpace _PARAMS((void));
  * to access a value in internal storage data structure. */
 static HashID store_table = 0;
 
+static int MAX_SWAP_FILE = 1<<21;
 static int store_pages_max = 0;
 static int store_pages_high = 0;
 static int store_pages_low = 0;
@@ -1693,7 +1693,10 @@ storeEntryValidLength(const StoreEntry * e)
 static void
 storeCreateDirectory(const char *path, int lvl)
 {
-    if (mkdir(path, 0755) == 0) {
+    struct stat st;
+    if (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) {
+	debug(20, lvl, "%s exists\n", path);
+    } else if (mkdir(path, 0755) == 0) {
 	debug(20, lvl, "%s created\n", path);
     } else if (errno == EEXIST) {
 	debug(20, lvl, "%s exists\n", path);
@@ -1753,6 +1756,7 @@ storeInitHashValues(void)
     int i;
     /* Calculate size of hash table (maximum currently 64k buckets).  */
     i = Config.Swap.maxSize / Config.Store.avgObjectSize;
+    MAX_SWAP_FILE = i * 3 / 2;	/* 150% of estimated objects */
     debug(20, 1, "Swap maxSize %d, estimated %d objects\n",
 	Config.Swap.maxSize, i);
     i /= Config.Store.objectsPerBucket;
@@ -1784,8 +1788,8 @@ storeInit(void)
 {
     wordlist *w = NULL;
     char *fname = NULL;
-    file_map_create(MAX_SWAP_FILE);
     storeInitHashValues();
+    file_map_create(MAX_SWAP_FILE);
     storeCreateHashTable(urlcmp);
     if (strcmp((fname = Config.Log.store), "none") == 0)
 	storelog_fd = -1;

@@ -167,6 +167,11 @@ netdbPurgeLRU(void)
     int removed = 0;
     list = xcalloc(meta_data.netdb_addrs, sizeof(netdbEntry *));
     for (n = netdbGetFirst(addr_table); n; n = netdbGetNext(addr_table)) {
+	if (n->rtt == 0 && n->next_ping_time < squid_curtime) {
+	    netdbRelease(n);
+	    removed++;
+	    continue;
+	}
 	*(list + list_count) = n;
 	list_count++;
 	if (list_count > meta_data.netdb_addrs)
@@ -649,5 +654,17 @@ netdbUpdatePeer(request_t * r, peer * e, int irtt, int ihops)
 	n->n_peers,
 	sizeof(net_db_peer),
 	(QS) sortPeerByRtt);
+#endif
+}
+
+void
+netdbDeleteAddrNetwork(struct in_addr addr)
+{
+#if USE_ICMP
+    netdbEntry *n = netdbLookupAddr(addr);
+    if (n == NULL)
+	return;
+    debug(37,1,"netdbDeleteAddrNetwork: %s\n", n->network);
+    netdbRelease(n);
 #endif
 }

@@ -281,6 +281,7 @@ struct SquidConfig {
 #ifdef RELOAD_INTO_IMS
 	int reload_into_ims;
 #endif				/* RELOAD_INTO_IMS */
+	int test_reachability;
     } Options;
     char *fake_ua;
 };

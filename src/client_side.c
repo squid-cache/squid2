@@ -38,7 +38,7 @@ static void clientLookupSrcFQDNDone _PARAMS((int fd, const char *fqdn, void *dat
 static void clientLookupDstFQDNDone _PARAMS((int fd, const char *fqdn, void *data));
 static int clientGetsOldEntry _PARAMS((StoreEntry * new, StoreEntry * old, request_t * request));
 static int checkAccelOnly _PARAMS((icpStateData * icpState));
-
+static char *clientConstructRedirectReply _PARAMS((int code, char *url));
 
 static void
 clientLookupDstIPDone(int fd, const ipcache_addrs * ia, void *data)
@@ -113,6 +113,7 @@ clientProxyAuthCheck(icpStateData * icpState)
     }
     proxy_user = proxyAuthenticate(icpState->request_hdr);
     xstrncpy(icpState->ident.ident, proxy_user, ICP_IDENT_SZ);
+    xstrncpy(icpState->aclChecklist->ident, proxy_user, ICP_IDENT_SZ);
     debug(33, 6, "clientProxyAuthCheck: user = %s\n", icpState->ident.ident);
 
     if (strcmp(icpState->ident.ident, dash_str) == 0)
@@ -268,8 +269,27 @@ clientRedirectDone(void *data, char *result)
     if (icpState->redirect_state != REDIRECT_PENDING)
 	fatal_dump("clientRedirectDone: wrong redirect_state");
     icpState->redirect_state = REDIRECT_DONE;
-    if (result)
+    if (result) {
+	int code = atoi(result);
+	if (code == 301 || code == 302) {
+	    char *t = result;
+	    if ((t = strchr(result, ':')) != NULL) {
+	        char *buf;
+		t++;
+	        buf = clientConstructRedirectReply(code, t);
+	        icpState->http_code = code;
+	        comm_write(fd,
+		    xstrdup(buf),
+		    strlen(buf),
+		    30,
+		    icpSendERRORComplete,
+		    icpState,
+		    xfree);
+	        return;
+	    }
+	}
 	new_request = urlParse(old_request->method, result);
+    }
     if (new_request) {
 	safe_free(icpState->url);
 	/* need to malloc because the URL returned by the redirector might
@@ -686,4 +706,20 @@ clientPurgeRequest(icpStateData * icpState)
 	icpSendERRORComplete,
 	(void *) icpState,
 	NULL);
+}
+
+static char *
+clientConstructRedirectReply(int code, char *url)
+{
+    LOCAL_ARRAY(char, line, MAX_URL + 100);
+    LOCAL_ARRAY(char, reply, MAX_URL << 1);
+    memset(reply, '\0', 8192);
+    sprintf(line, "HTTP/1.0 %d Moved\r\n", code);
+    strcat(reply, line);
+    sprintf(line, "Date: %s\r\n", mkrfc1123(squid_curtime));
+    strcat(reply, line);
+    sprintf(line, "Location: %s\r\n", url);
+    strcat(reply, line);
+    strcat(reply, "\r\n");
+    return reply;
 }

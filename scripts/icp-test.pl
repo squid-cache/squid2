@@ -69,6 +69,7 @@ while ($ARGV[0] =~ /([^:]+):(\d+)/) {
 	$ip = join('.', unpack('C4', $themaddr));
 	$FQDN{$ip} = $fqdn;
 	shift;
+	print "Sending ICP queries to $host [$ip] port $port\n";
 }
 
 while (<>) {

@@ -236,6 +236,9 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	if ((e = protoData->default_parent)) {
 	    hierarchyNote(req, HIER_DEFAULT_PARENT, 0, e->host);
 	    protoStart(protoData->fd, entry, e, req);
+	} else if ((e = getRoundRobinParent(protoData->request))) {
+	    hierarchyNote(req, HIER_ROUNDROBIN_PARENT, 0, e->host);
+	    protoStart(protoData->fd, entry, e, req);
 	} else if ((e = getFirstUpParent(protoData->request))) {
 	    hierarchyNote(req, HIER_FIRSTUP_PARENT, 0, e->host);
 	    protoStart(protoData->fd, entry, e, req);
@@ -515,7 +518,7 @@ getFromDefaultSource(int fd, StoreEntry * entry)
 	fatal_dump("getFromDefaultSource: object already being fetched");
     if ((e = entry->mem_obj->e_pings_closest_parent)) {
 	myrtt = netdbHostRtt(request->host);
-	if (myrtt && myrtt < entry->mem_obj->p_rtt) {
+	if (myrtt && myrtt < entry->mem_obj->p_rtt && matchInsideFirewall(request->host)) {
 	    hierarchyNote(request, HIER_CLOSEST_DIRECT, fd, request->host);
 	    return protoStart(fd, entry, NULL, request);
 	} else {

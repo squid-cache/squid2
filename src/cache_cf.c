@@ -1366,6 +1366,8 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&Config.Options.client_db);
 	else if (!strcmp(token, "query_icmp"))
 	    parseOnOff(&Config.Options.query_icmp);
+	else if (!strcmp(token, "test_reachability"))
+	    parseOnOff(&Config.Options.test_reachability);
 #ifdef RELOAD_INTO_IMS
 	else if (!strcmp(token, "reload_into_ims"))
 	    parseOnOff(&Config.Options.reload_into_ims);

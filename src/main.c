@@ -583,6 +583,9 @@ mainInitialize(void)
 	stat_init(&HTTPCacheInfo, Config.Log.access);
 	stat_init(&ICPCacheInfo, NULL);
 	storeInit();
+#if FORW_VIA_LOG
+	icpInit(0);
+#endif
 
 	if (Config.effectiveUser) {
 	    /* we were probably started as root, so cd to a swap
@@ -709,6 +712,9 @@ main(int argc, char **argv)
 	    useragentRotateLog();	/* useragent.log */
 	    ftpInitialize();
 	    icmpOpen();
+#if FORW_VIA_LOG
+	    icpInit(1);
+#endif
 	    rotate_pending = 0;
 	}
 	eventRun();
