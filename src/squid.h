@@ -345,4 +345,12 @@ struct rusage {
 #define XMIN(x,y) ((x)<(y)? (x) : (y))
 #define XMAX(a,b) ((a)>(b)? (a) : (b))
 
+/*
+ * Squid source files should not call these functions directly
+ */
+#define malloc +
+#define free +
+#define calloc +
+#define sprintf +
+
 #endif /* SQUID_H */
