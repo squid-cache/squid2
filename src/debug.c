@@ -112,6 +112,8 @@ static void debugOpenLog(logfile)
     if (debug_log_file)
 	xfree(debug_log_file);
     debug_log_file = xstrdup(logfile);	/* keep a static copy */
+    if (debug_log)
+    	fclose(debug_log);
     debug_log = fopen(logfile, "a+");
     if (!debug_log) {
 	fprintf(stderr, "WARNING: Cannot write log file: %s\n", logfile);
@@ -171,8 +173,6 @@ void _db_rotate_log()
     }
     /* Close and reopen the log.  It may have been renamed "manually"
      * before HUP'ing us. */
-    if (debug_log != stderr) {
-	fclose(debug_log);
+    if (debug_log != stderr)
 	debugOpenLog(debug_log_file);
-    }
 }
