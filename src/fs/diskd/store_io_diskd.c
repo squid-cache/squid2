@@ -61,8 +61,7 @@ storeDiskdOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
     diskdinfo_t *diskdinfo = SD->fsdata;
     debug(81, 3) ("storeDiskdOpen: fileno %08X\n", f);
     /*
-     * XXX Eventually there should be an option here to fail on open()
-     * If there are too many requests queued.
+     * Fail on open() if there are too many requests queued.
      */
     if (diskdinfo->away > diskdinfo->magic1) {
 	debug(81, 3) ("storeDiskdOpen: FAILING, too many requests away\n");
@@ -118,8 +117,7 @@ storeDiskdCreate(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
     diskdinfo_t *diskdinfo = SD->fsdata;
     diskdstate_t *diskdstate;
     /*
-     * XXX Eventually there should be an option here to fail on open()
-     * If there are too many requests queued.
+     * Fail on open() if there are too many requests queued.
      */
     if (diskdinfo->away > diskdinfo->magic1) {
 	diskd_stats.open_fail_queue_len++;
