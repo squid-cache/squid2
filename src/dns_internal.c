@@ -42,6 +42,8 @@
 #define DOMAIN_PORT 53
 #endif
 
+#define IDNS_MAX_TRIES 20
+
 typedef struct _ns ns;
 struct _ns {
     struct sockaddr_in S;
@@ -297,7 +299,17 @@ idnsCheckQueue(void *unused)
 	debug(78, 1) ("idnsCheckQueue: ID %#04x timeout\n",
 	    q->id);
 	dlinkDelete(&q->lru, &lru_list);
-	idnsSendQuery(q);
+	if (q->nsends < IDNS_MAX_TRIES) {
+	    idnsSendQuery(q);
+	} else {
+	    int v = cbdataValid(q->callback_data);
+	    debug(78, 1) ("idnsCheckQueue: ID %x: giving up after %d tries\n",
+		q->nsends);
+	    cbdataUnlock(q->callback_data);
+	    if (v)
+		q->callback(q->callback_data, NULL, 0);
+	    memFree(q, MEM_IDNS_QUERY);
+	}
     }
 }
 
