@@ -693,6 +693,7 @@ aclParseAclLine(acl ** head)
 	break;
     case ACL_URL_REGEX:
     case ACL_URLPATH_REGEX:
+    case ACL_BROWSER:
     case ACL_SRC_DOM_REGEX:
     case ACL_DST_DOM_REGEX:
 	aclParseRegexList(&A->data);
@@ -715,9 +716,6 @@ aclParseAclLine(acl ** head)
 	break;
     case ACL_METHOD:
 	aclParseMethodList(&A->data);
-	break;
-    case ACL_BROWSER:
-	aclParseRegexList(&A->data);
 	break;
     case ACL_PROXY_AUTH:
 	aclParseWordList(&A->data);
@@ -1811,7 +1809,7 @@ aclDestroyAcls(acl ** head)
 	    break;
 	case ACL_NONE:
 	default:
-	    assert(0);
+	    debug(28,1)("aclDestroyAcls: no case for ACL type %d\n", a->type);
 	    break;
 	}
 	safe_free(a->cfgline);
@@ -2135,6 +2133,8 @@ aclDumpGeneric(const acl * a)
     case ACL_URL_REGEX:
     case ACL_URLPATH_REGEX:
     case ACL_BROWSER:
+    case ACL_SRC_DOM_REGEX:
+    case ACL_DST_DOM_REGEX:
 	return aclDumpRegexList(a->data);
 	break;
     case ACL_SRC_ASN:
@@ -2157,6 +2157,7 @@ aclDumpGeneric(const acl * a)
 #endif
     case ACL_NONE:
     default:
+	debug(28, 1) ("aclDumpGeneric: no case for ACL type %d\n", a->type);
 	break;
     }
     return NULL;
