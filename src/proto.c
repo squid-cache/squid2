@@ -50,16 +50,15 @@ extern char *dns_error_message;
 
 /* return 1 for cachable url
  * return 0 for uncachable url */
-int proto_cachable(url, method, request_hdr)
+int proto_cachable(url, method)
      char *url;
      int method;
-     char *request_hdr;
 {
     if (url == (char *) NULL)
 	return 0;
 
     if (!strncasecmp(url, "http://", 7))
-	return httpCachable(url, method, request_hdr);
+	return httpCachable(url, method);
     if (!strncasecmp(url, "ftp://", 6))
 	return ftpCachable(url);
     if (!strncasecmp(url, "gopher://", 9))
@@ -87,39 +86,38 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     edge *e = NULL;
     struct in_addr srv_addr;
     struct hostent *hp = NULL;
-    StoreEntry *entry = NULL;
     protodispatch_data *protoData = (protodispatch_data *) data;
+    StoreEntry *entry = protoData->entry;
+    request_t *req = protoData->request;
 
     /* NOTE: We get here after a DNS lookup, whether or not the
      * lookup was successful.  Even if the URL hostname is bad,
      * we might still ping the hierarchy */
 
-    entry = protoData->entry;
-
     BIT_RESET(entry->flag, IP_LOOKUP_PENDING);
 
     if (protoData->direct_fetch == DIRECT_YES) {
-	if (ipcache_gethostbyname(protoData->host) == NULL) {
+	if (ipcache_gethostbyname(req->host) == NULL) {
 	    protoDNSError(protoData->fd, entry);
 	    safe_free(protoData);
 	    return 0;
 	}
-	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, protoData->host);
-	getFromOrgSource(protoData->fd, entry);
+	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, req->host);
+	getFromCache(protoData->fd, entry, NULL, req);
 	safe_free(protoData);
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_MAYBE && local_ip_list) {
-	if ((hp = ipcache_gethostbyname(protoData->host)) == NULL) {
+	if ((hp = ipcache_gethostbyname(req->host)) == NULL) {
 	    debug(17, 1, "protoDispatchDNSHandle: Failure to lookup host: %s.\n",
-		protoData->host);
+		req->host);
 	} else {
 	    memcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);
 	    if (ip_access_check(srv_addr, local_ip_list) == IP_DENY) {
 		hierarchy_log_append(protoData->url,
 		    HIER_LOCAL_IP_DIRECT, 0,
-		    protoData->host);
-		getFromOrgSource(protoData->fd, entry);
+		    req->host);
+		getFromCache(protoData->fd, entry, NULL, req);
 		safe_free(protoData);
 		return 0;
 	    }
@@ -129,21 +127,21 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	(single_parent_bypass || protoData->direct_fetch == DIRECT_NO)) {
 	/* Only one parent for this host, and okay to skip pinging stuff */
 	hierarchy_log_append(protoData->url, HIER_SINGLE_PARENT, 0, e->host);
-	getFromCache(protoData->fd, entry, e);
+	getFromCache(protoData->fd, entry, e, req);
 	safe_free(protoData);
 	return 0;
     }
     if (protoData->n_edges == 0 && protoData->direct_fetch == DIRECT_NO) {
-	hierarchy_log_append(protoData->url, HIER_NO_DIRECT_FAIL, 0, protoData->host);
+	hierarchy_log_append(protoData->url, HIER_NO_DIRECT_FAIL, 0, req->host);
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents to query and the host is beyond your firewall.");
 	safe_free(protoData);
 	return 0;
     }
-    if (!protoData->cachable && (e = getFirstParent(protoData->host))) {
+    if (!protoData->cachable && (e = getFirstParent(req->host))) {
 	/* for uncachable objects we should not ping the hierarchy (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
-	getFromCache(protoData->fd, entry, e);
+	getFromCache(protoData->fd, entry, e, req);
 	safe_free(protoData);
 	return 0;
     } else if (neighborsUdpPing(protoData)) {
@@ -163,37 +161,34 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_NO) {
-	hierarchy_log_append(protoData->url, HIER_NO_DIRECT_FAIL, 0, protoData->host);
+	hierarchy_log_append(protoData->url, HIER_NO_DIRECT_FAIL, 0, req->host);
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents were queried and the host is beyond your firewall.");
     } else {
-	if (ipcache_gethostbyname(protoData->host) == NULL) {
+	if (ipcache_gethostbyname(req->host) == NULL) {
 	    protoDNSError(protoData->fd, entry);
 	    safe_free(protoData);
 	    return 0;
 	}
-	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, protoData->host);
-	getFromOrgSource(protoData->fd, entry);
+	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, req->host);
+	getFromCache(protoData->fd, entry, NULL, req);
     }
     safe_free(protoData);
     return 0;
 }
 
-int protoDispatch(fd, url, entry)
+int protoDispatch(fd, url, entry, request)
      int fd;
      char *url;
      StoreEntry *entry;
+    request_t *request;
 {
-    static char junk[BUFSIZ];
-    static char hostbuf[BUFSIZ];
-    char *s = NULL;
-    char *host = NULL;
     protodispatch_data *data = NULL;
     char *method;
     char *request_hdr;
     int n;
 
-    method = RequestMethodStr[entry->method];
+    method = RequestMethodStr[request->method];
     request_hdr = entry->mem_obj->mime_hdr;
 
     debug(17, 5, "protoDispatch: %s URL: %s\n", method, url);
@@ -214,24 +209,11 @@ int protoDispatch(fd, url, entry)
     data->fd = fd;
     data->url = url;
     data->entry = entry;
+    data->request = request;
 
-    junk[0] = '\0';
-    hostbuf[0] = '\0';
-    if (entry->method == METHOD_CONNECT) {
-	strcpy(hostbuf, url);
-    } else {
-        sscanf(url, "%[^:]://%[^/]", junk, hostbuf);
-    }
-    host = &hostbuf[0];
-    if ((s = strchr(host, '@')))
-	host = s + 1;
-    if ((s = strchr(host, ':')))
-	*s = '\0';
-    strncpy(data->host, host, SQUIDHOSTNAMELEN);
-
-    data->inside_firewall = matchInsideFirewall(host);
-    data->cachable = proto_cachable(url, entry->method, request_hdr);
-    data->single_parent = getSingleParent(host, &n);
+    data->inside_firewall = matchInsideFirewall(request->host);
+    data->cachable = proto_cachable(url, request->method);
+    data->single_parent = getSingleParent(request->host, &n);
     data->n_edges = n;
 
     debug(17, 2, "protoDispatch: inside_firewall = %d (%s)\n",
@@ -249,17 +231,17 @@ int protoDispatch(fd, url, entry)
 	data->source_ping = 0;
 	data->direct_fetch = DIRECT_NO;
 	protoDispatchDNSHandle(fd, (struct hostent *) NULL, data);
-    } else if (matchLocalDomain(host) || !data->cachable) {
+    } else if (matchLocalDomain(request->host) || !data->cachable) {
 	/* will fetch from source */
 	data->direct_fetch = DIRECT_YES;
-	ipcache_nbgethostbyname(data->host,
+	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
 	    (void *) data);
     } else if (data->n_edges == 0) {
 	/* will fetch from source */
 	data->direct_fetch = DIRECT_YES;
-	ipcache_nbgethostbyname(data->host,
+	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
 	    (void *) data);
@@ -267,7 +249,7 @@ int protoDispatch(fd, url, entry)
 	/* Have to look up the url address so we can compare it */
 	data->source_ping = getSourcePing();
 	data->direct_fetch = DIRECT_MAYBE;
-	ipcache_nbgethostbyname(data->host,
+	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
 	    (void *) data);
@@ -281,7 +263,7 @@ int protoDispatch(fd, url, entry)
 	/* will use ping resolution */
 	data->source_ping = getSourcePing();
 	data->direct_fetch = DIRECT_MAYBE;
-	ipcache_nbgethostbyname(data->host,
+	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
 	    (void *) data);
@@ -292,36 +274,22 @@ int protoDispatch(fd, url, entry)
 /* Use to undispatch a particular url/fd from DNS pending list */
 /* I have it here because the code that understand protocol/url */
 /* should be here. */
-int protoUndispatch(fd, url, entry)
+int protoUndispatch(fd, url, entry, request)
      int fd;
      char *url;
      StoreEntry *entry;
+    request_t *request;
 {
-    static char junk[BUFSIZ];
-    static char hostbuf[BUFSIZ];
-    char *s = NULL;
-    char *host = NULL;
-
     debug(17, 5, "protoUndispatch FD %d <URL:%s>\n", fd, url);
 
     /* Cache objects don't need to be unregistered  */
     if (strncasecmp(url, "cache_object:", 13) == 0)
 	return 0;
 
-    hostbuf[0] = '\0';
-    junk[0] = '\0';
-    sscanf(url, "%[^:]://%[^/]", junk, hostbuf);
-    host = &hostbuf[0];
-    if ((s = strchr(host, '@')))
-	host = s + 1;
-    if ((s = strchr(host, ':')))
-	*s = '\0';
-
     /* clean up DNS pending list for this name/fd look up here */
-    if (*host) {
-	if (!ipcache_unregister(host, fd)) {
+	if (!ipcache_unregister(request->host, fd)) {
 	    debug(17, 5, "protoUndispatch: ipcache failed to unregister '%s'\n",
-		host);
+		request->host);
 	    return 0;
 	} else {
 	    debug(17, 5, "protoUndispatch: the entry is stranded with a pending DNS event\n");
@@ -330,7 +298,6 @@ int protoUndispatch(fd, url, entry)
 		protoDNSError(fd, entry);
 	    return 1;
 	}
-    }
     return 0;
 }
 
@@ -364,16 +331,13 @@ static void protoCancelTimeout(fd, entry)
  *  Called from comm_select() if neighbor pings timeout or from
  *  neighborsUdpAck() if all parents and neighbors miss.
  */
-int getFromDefaultSource(fd, entry)
+int getFromDefaultSource(fd, entry, request)
      int fd;
      StoreEntry *entry;
+    request_t *request;
 {
     edge *e = NULL;
-    static char junk[BUFSIZ];
-    static char hostbuf[BUFSIZ];
     char *url = NULL;
-    char *t = NULL;
-    char *host = NULL;
 
     url = entry->url;
 
@@ -400,50 +364,33 @@ int getFromDefaultSource(fd, entry)
 
     if ((e = entry->mem_obj->e_pings_first_miss)) {
 	hierarchy_log_append(url, HIER_FIRST_PARENT_MISS, fd, e->host);
-	return getFromCache(fd, entry, e);
+	return getFromCache(fd, entry, e, request);
     }
-    if (sscanf(url, "%[^:]://%[^/]", junk, hostbuf) != 2) {
-	debug(17, 0, "getFromDefaultSource: Invalid URL '%s'\n", url);
-	debug(17, 0, "getFromDefaultSource: --> shouldn't have gotten this far!\n");
-	return 0;
-    }
-    host = &hostbuf[0];
-    if ((t = strchr(host, '@')))
-	host = t + 1;
-    if ((t = strchr(host, ':')))
-	*t = '\0';
-    if (matchInsideFirewall(host)) {
-	if (ipcache_gethostbyname(host) == NULL) {
+    if (matchInsideFirewall(request->host)) {
+	if (ipcache_gethostbyname(request->host) == NULL) {
 	    return protoDNSError(fd, entry);
 	}
-	hierarchy_log_append(url, HIER_DIRECT, fd, host);
-	return getFromOrgSource(fd, entry);
+	hierarchy_log_append(url, HIER_DIRECT, fd, request->host);
+	return getFromCache(fd, entry, NULL, request);
     }
-    if ((e = getSingleParent(host, NULL))) {
+    if ((e = getSingleParent(request->host, NULL))) {
 	/* last chance effort; maybe there was a single_parent and a ICP
 	 * packet got lost */
 	hierarchy_log_append(url, HIER_SINGLE_PARENT, fd, e->host);
-	return getFromCache(fd, entry, e);
+	return getFromCache(fd, entry, e, request);
     }
-    hierarchy_log_append(url, HIER_NO_DIRECT_FAIL, fd, host);
+    hierarchy_log_append(url, HIER_NO_DIRECT_FAIL, fd, request->host);
     protoCancelTimeout(fd, entry);
     protoCantFetchObject(fd, entry,
 	"No ICP replies received and the host is beyond the firewall.");
     return 0;
 }
 
-int getFromOrgSource(fd, entry)
-     int fd;
-     StoreEntry *entry;
-{
-    return getFromCache(fd, entry, 0);
-}
-
-
-int getFromCache(fd, entry, e)
+int getFromCache(fd, entry, e, request)
      int fd;
      StoreEntry *entry;
      edge *e;
+     request_t *request;
 {
     char *url = entry->url;
     char *request_hdr = entry->mem_obj->mime_hdr;
@@ -462,31 +409,21 @@ int getFromCache(fd, entry, e)
 
     if (e) {
 	return proxyhttpStart(e, url, entry);
-    } else if (strncasecmp(url, "http://", 7) == 0) {
-	return httpStart(fd, url, entry->method, request_hdr, entry);
-    } else if (strncasecmp(url, "gopher://", 9) == 0) {
+    } else if (request->protocol == PROTO_HTTP) {
+	return httpStart(fd, url, request, request_hdr, entry);
+    } else if (request->protocol == PROTO_GOPHER) {
 	return gopherStart(fd, url, entry);
-    } else if (strncasecmp(url, "news://", 7) == 0) {
-	return protoNotImplemented(fd, url, entry);
-    } else if (strncasecmp(url, "file://", 7) == 0) {
-#ifndef NO_FTP_FOR_FILE
+    } else if (request->protocol == PROTO_FTP) {
 	return ftpStart(fd, url, entry);
-#else
-	return protoNotImplemented(fd, url, entry);
-#endif
-    } else if (strncasecmp(url, "ftp://", 6) == 0) {
-	return ftpStart(fd, url, entry);
-    } else if (strncasecmp(url, "wais://", 7) == 0) {
+    } else if (request->protocol == PROTO_WAIS) {
 	return waisStart(fd, url, entry->method, request_hdr, entry);
 #ifdef NEED_PROTO_CONNECT
     } else if (strncasecmp(url, "connect://", 8) == 0) {
-	return connectStart(fd, url, entry->method, request_hdr, entry);
+	return connectStart(fd, url, request, request_hdr, entry);
 #else
     } else if (entry->method == METHOD_CONNECT) {
-	return connectStart(fd, url, entry->method, request_hdr, entry);
+	return connectStart(fd, url, request, request_hdr, entry);
 #endif
-    } else if (strncasecmp(url, "dht://", 6) == 0) {
-	return protoNotImplemented(fd, url, entry);
     } else {
 	return protoNotImplemented(fd, url, entry);
     }

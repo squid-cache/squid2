@@ -15,7 +15,6 @@ struct icp_common_s {
 
 #define ICP_COMMON_SZ (sizeof(icp_common_t))
 #define ICP_HDR_SZ (sizeof(icp_common_t)+sizeof(u_num32))
-#define ICP_MAX_URL (4096)
 typedef enum {
     ICP_OP_INVALID,		/* to insure 0 doesn't get accidently interpreted. */
     ICP_OP_QUERY,		/* query opcode (cl->sv) */
@@ -159,8 +158,8 @@ extern int icp_dataend _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, char *
 typedef struct _protodispatch_data {
     int fd;
     char *url;
-    struct sentry *entry;
-    char host[SQUIDHOSTNAMELEN + 1];
+    StoreEntry *entry;
+    request_t *request;
     int inside_firewall;
     int direct_fetch;
     int source_ping;
@@ -169,12 +168,11 @@ typedef struct _protodispatch_data {
     struct _edge *single_parent;
 } protodispatch_data;
 
-extern int proto_cachable _PARAMS((char *url, int method, char *mime_hdr));
-extern int protoDispatch _PARAMS((int, char *, StoreEntry *));
-extern int protoUndispatch _PARAMS((int, char *, StoreEntry *));
-extern int getFromDefaultSource _PARAMS((int, StoreEntry *));
-extern int getFromOrgSource _PARAMS((int, StoreEntry *));
-extern int getFromCache _PARAMS((int, StoreEntry *, edge *));
+extern int proto_cachable _PARAMS((char *url, int method));
+extern int protoDispatch _PARAMS((int, char *, StoreEntry *, request_t *));
+extern int protoUndispatch _PARAMS((int, char *, StoreEntry *, request_t *));
+extern int getFromDefaultSource _PARAMS((int, StoreEntry *, request_t *));
+extern int getFromCache _PARAMS((int, StoreEntry *, edge *, request_t *));
 
 
 #define DIRECT_NO    0

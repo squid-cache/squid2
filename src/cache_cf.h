@@ -122,5 +122,6 @@ extern void intlistDestroy _PARAMS((intlist **));
 
 
 extern char w_space[];
+extern intlist *connect_port_list;
 
 #endif /* ndef  _CACHE_CONFIG_H_ */

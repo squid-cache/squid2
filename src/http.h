@@ -1,8 +1,8 @@
 
 
-extern int httpCachable _PARAMS((char *, int, char *));
+extern int httpCachable _PARAMS((char *, int));
 extern int proxyhttpStart _PARAMS((edge *, char *, StoreEntry *));
-extern int httpStart _PARAMS((int, char *, int, char *, StoreEntry *));
+extern int httpStart _PARAMS((int, char *, request_t *, char *, StoreEntry *));
 
 #define HTTP_REPLY_FIELD_SZ 128
 struct _http_reply {

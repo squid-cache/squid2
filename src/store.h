@@ -83,7 +83,7 @@ typedef struct _MemObject {
     short swap_fd;
     int fd_of_first_client;
     struct _http_reply *reply;
-
+    request_t *request;
 } MemObject;
 
 /* A cut down structure for store manager */

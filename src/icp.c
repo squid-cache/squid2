@@ -48,6 +48,7 @@ typedef struct iwd {
     char *inbuf;
     int inbufsize;
     int method;			/* GET, POST, ... */
+    request_t *request;		/* Parsed URL ... */
     char *request_hdr;		/* Mime header */
     StoreEntry *entry;
     long offset;
@@ -138,6 +139,7 @@ static void icpCloseAndFree(fd, icpState, line)
     safe_free(icpState->inbuf);
     safe_free(icpState->url);
     safe_free(icpState->request_hdr);
+    safe_free(icpState->request);
     safe_free(icpState);
 }
 
@@ -146,7 +148,8 @@ int icpCachable(icpState)
 {
     char *request_hdr = icpState->request_hdr;
     char *request = icpState->url;
-    int method = icpState->method;
+    request_t *req = icpState->request;
+    int method = req->method;
     char *t = NULL;
 
     if (mime_get_header(request_hdr, "If-Modified-Since")) {
@@ -162,13 +165,13 @@ int icpCachable(icpState)
 	BIT_SET(icpState->flags, REQ_AUTH);
 	return 0;
     }
-    if (!strncasecmp(request, "http://", 7))
-	return httpCachable(request, method, request_hdr);
-    if (!strncasecmp(request, "ftp://", 6))
+    if (req->protocol == PROTO_HTTP)
+	return httpCachable(request, method);
+    if (req->protocol == PROTO_FTP)
 	return ftpCachable(request);
-    if (!strncasecmp(request, "gopher://", 9))
+    if (req->protocol == PROTO_GOPHER)
 	return gopherCachable(request);
-    if (!strncasecmp(request, "wais://", 7))
+    if (req->protocol == PROTO_WAIS)
 	return 0;
 #ifdef NEED_PROTO_CONNECT
     if (!strncasecmp(request, "connect://", 10))
@@ -177,7 +180,7 @@ int icpCachable(icpState)
     if (method == METHOD_CONNECT)
 	return 0;
 #endif
-    if (!strncasecmp(request, "cache_object://", 15))
+    if (req->protocol == PROTO_CACHEOBJ)
 	return 0;
     return 1;
 }
@@ -712,7 +715,7 @@ static int icpProcessMISS(fd, usm, key)
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, (PIF) icpHandleStore, (void *) usm);
 
-    return (protoDispatch(fd, url, usm->entry));
+    return (protoDispatch(fd, url, usm->entry, usm->request));
 }
 
 
@@ -1193,52 +1196,18 @@ int parseHttpRequest(icpState)
     return 1;
 }
 
-
-/* Also rewrites URLs... */
-static int check_valid_url(fd, astm)
-     int fd;
-     icpStateData *astm;
+static int icpAccessCheck(icpState)
+     icpStateData *icpState;
 {
-    static char proto[MAX_URL];
-    static char host[MAX_URL];
-    static char urlpath[MAX_URL];
-    static char portbuf[32];
-    char *t = NULL;
-    protocol_t protocol = PROTO_NONE;
-    int port = 0;
-    proto[0] = host[0] = urlpath[0] = '\0';
-
-    if (astm->method == METHOD_CONNECT) {
-	if (sscanf(astm->url, "%[^:]:%d", host, &port) < 1)
-	    return ERR_INVALID_URL;
-    } else {
-	if (sscanf(astm->url, "%[^:]://%[^/]%s", proto, host, urlpath) < 2)
-	    return ERR_INVALID_URL;
-	for (t = host; *t; t++)
-	    *t = tolower(*t);
-	protocol = urlParseProtocol(proto);
-	port = urlDefaultPort(protocol);
-	if ((t = strchr(host, ':'))) {
-	    *t = '\0';
-	    port = atoi(t + 1);
-	}
-	portbuf[0] = '\0';
-	if (port > 0 && port != urlDefaultPort(protocol))
-	    sprintf(portbuf, ":%d", port);
-	sprintf(astm->url, "%s://%s%s%s", proto, host, portbuf, urlpath);
-    }
-
-    if (!aclCheck(HTTPAccessList,
-	    astm->peer.sin_addr,
-	    astm->method,
-	    protocol,
-	    host,
-	    port,
-	    urlpath))
-	return LOG_TCP_DENIED;
-    return 0;
+    request_t *r = icpState->request;
+    return aclCheck(HTTPAccessList,
+	icpState->peer.sin_addr,
+	r->method,
+	r->protocol,
+	r->host,
+	r->port,
+	r->urlpath);
 }
-
 
 #define ASCII_INBUF_BLOCKSIZE 4096
 /*
@@ -1299,8 +1268,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 
     parser_return_code = parseHttpRequest(astm);
     if (parser_return_code == 1) {
-        switch (check_valid_url(fd, astm)) {
-        case ERR_INVALID_URL:
+	if ((astm->request = urlParse(astm->method, astm->url)) == NULL) {
             debug(12, 5, "Invalid URL: %s\n", astm->url);
             astm->log_type = ERR_INVALID_URL;
             astm->http_code = 400;
@@ -1317,8 +1285,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
                 30,
                 icpSendERRORComplete,
                 (void *) astm);
-            break;
-        case LOG_TCP_DENIED:
+	} else if (!icpAccessCheck(astm)) {
             debug(12, 5, "Access Denied: %s\n", astm->url);
             astm->log_type = LOG_TCP_DENIED;
             astm->http_code = 403;
@@ -1334,16 +1301,15 @@ void asciiProcessInput(fd, buf, size, flag, astm)
                 icpSendERRORComplete,
                 (void *) astm);
             astm->log_type = LOG_TCP_DENIED;
-            break;
-        default:
+	} else {
             /* The request is good, let's go... */
+	    urlCanonical(request, astm->url);
             sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
                 fd_note(fd, 0),
                 RequestMethodStr[astm->method],
                 astm->url);
             fd_note(fd, client_msg);
             icp_hit_or_miss(fd, astm);
-            break;
         }
     } else if (parser_return_code == 0) {
 	/*
@@ -1438,7 +1404,7 @@ void asciiConnLifetimeHandle(fd, data)
 	     * related storeAbort() for other attached clients.  If this
 	     * doesn't succeed, then the fetch has already started for this
 	     * URL. */
-	    protoUndispatch(fd, astm->url, entry);
+	    protoUndispatch(fd, astm->url, entry, astm->request);
 	}
 	storeUnlockObject(entry);
     }

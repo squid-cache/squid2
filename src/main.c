@@ -220,6 +220,7 @@ static void mainInitialize()
     if (first_time) {
 	first_time = 0;
 	/* module initialization */
+	urlInitialize();
 	disk_init();
 	stat_init(&CacheInfo, getAccessLogFile());
 	storeInit();

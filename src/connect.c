@@ -7,14 +7,11 @@
 
 #define  CONNECT_BUFSIZE     4096
 #define  CONNECT_DELETE_GAP  (64*1024)
-#define  CONNECT_PORT        443
 #define  ConnectMaxObjSize   (4 << 20)	/* 4 MB */
 
 typedef struct {
     StoreEntry *entry;
-    char host[SQUIDHOSTNAMELEN + 1];
-    int port;
-    int method;
+    request_t *request;
     char *mime_hdr;
     int len;
     int offset;
@@ -26,7 +23,6 @@ typedef struct {
 
 static char conn_established[] = "HTTP/1.0 200 Connection established\r\n\r\n";
 
-static int connect_url_parser _PARAMS((char *url, ConnectData *));
 static void connectLifetimeExpire _PARAMS((int fd, ConnectData * data));
 static void connectReadRemote _PARAMS((int fd, ConnectData * data));
 static void connectReadTimeout _PARAMS((int fd, ConnectData * data));
@@ -35,27 +31,6 @@ static void connectReadClient _PARAMS((int fd, ConnectData * data));
 static void connectConnected _PARAMS((int fd, ConnectData * data));
 static void connectConnInProgress _PARAMS((int fd, ConnectData * data));
 static void connectCloseAndFree _PARAMS((int fd, ConnectData * data));
-
-extern intlist *connect_port_list;
-
-static int connect_url_parser(url, connectData)
-     char *url;
-     ConnectData *connectData;
-{
-    char *host = connectData->host;
-    char *t = NULL;
-    /* initialize everything */
-    connectData->port = CONNECT_PORT;
-    strncpy(host, url, SQUIDHOSTNAMELEN);
-    if ((t = strchr(host, ':')) && *(t + 1) != '\0') {
-	*t = '\0';
-	connectData->port = atoi(t + 1);
-    }
-    /* Fail if port is not in list of approved ports */
-    if (!aclMatchInteger(connect_port_list, connectData->port))
-	return -1;
-    return 0;
-}
 
 /* This will be called when socket lifetime is expired. */
 static void connectLifetimeExpire(fd, data)
@@ -265,9 +240,10 @@ void connectConnInProgress(fd, data)
      int fd;
      ConnectData *data;
 {
+    request_t *req = data->request;
     debug(26, 5, "connectConnInProgress: FD %d data=%p\n", fd, data);
 
-    if (comm_connect(fd, data->host, data->port) != COMM_OK) {
+    if (comm_connect(fd, req->host, req->port) != COMM_OK) {
 	debug(26, 5, "connectConnInProgress: FD %d errno=%d", fd, errno);
 	switch (errno) {
 #if EINPROGRESS != EALREADY
@@ -296,10 +272,10 @@ void connectConnInProgress(fd, data)
 }
 
 
-int connectStart(fd, url, method, mime_hdr, entry)
+int connectStart(fd, url, request, mime_hdr, entry)
      int fd;
      char *url;
-     int method;
+     request_t *request;
      char *mime_hdr;
      StoreEntry *entry;
 {
@@ -309,20 +285,15 @@ int connectStart(fd, url, method, mime_hdr, entry)
 
     data->entry = entry;
 
-    debug(26, 3, "connectStart: '%s %s'\n", RequestMethodStr[method], url);
+    debug(26, 3, "connectStart: '%s %s'\n",
+	RequestMethodStr[request->method], url);
     debug(26, 4, "            header: %s\n", mime_hdr);
 
-    data->method = method;
+    data->request = request;
     data->mime_hdr = mime_hdr;
     data->client = fd;
     data->timeout = getReadTimeout();
 
-    /* Parse url. */
-    if (connect_url_parser(url, data)) {
-	cached_error_entry(entry, ERR_INVALID_URL, NULL);
-	safe_free(data);
-	return COMM_ERROR;
-    }
     /* Create socket. */
     sock = comm_open(COMM_NONBLOCKING, 0, 0, url);
     if (sock == COMM_ERROR) {
@@ -339,7 +310,7 @@ int connectStart(fd, url, method, mime_hdr, entry)
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
      * Otherwise, we cannot check return code for connect. */
-    if (!ipcache_gethostbyname(data->host)) {
+    if (!ipcache_gethostbyname(request->host)) {
 	debug(26, 4, "connectstart: Called without IP entry in ipcache. OR lookup failed.\n");
 	cached_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
 	connectCloseAndFree(sock, data);
@@ -352,7 +323,7 @@ int connectStart(fd, url, method, mime_hdr, entry)
 	(PF) connectLifetimeExpire,
 	(void *) data);
     /* Open connection. */
-    if ((status = comm_connect(sock, data->host, data->port))) {
+    if ((status = comm_connect(sock, request->host, request->port))) {
 	if (status != EINPROGRESS) {
 	    cached_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	    connectCloseAndFree(sock, data);
