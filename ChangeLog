@@ -1,4 +1,4 @@
-Changes to squid-1.1.12 (July 9, 1997):
+Changes to squid-1.1.13 (July 9, 1997):
 
 	- Fixed storeLog() coredump on mem->log_url.
 	- Fixed string bounds bug if a redirector returns a short
