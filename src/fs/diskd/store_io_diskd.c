@@ -41,10 +41,6 @@
 #include <sys/msg.h>
 #include <sys/shm.h>
 
-#undef assert
-#include <assert.h>
-
-
 static int storeDiskdSend(int, SwapDir *, int, storeIOState *, int, int, int);
 static void storeDiskdIOCallback(storeIOState * sio, int errflag);
 static void storeDiskdIOFreeEntry(void *sio, int foo);
