@@ -352,8 +352,12 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    assert(0);
 	    break;
 	}
-	if (reply->cache_control && EBIT_TEST(reply->cache_control->mask, CC_PROXY_REVALIDATE))
-	    EBIT_SET(entry->flag, ENTRY_REVALIDATE);
+	if (reply->cache_control) {
+	    if (EBIT_TEST(reply->cache_control->mask, CC_PROXY_REVALIDATE))
+	        EBIT_SET(entry->flag, ENTRY_REVALIDATE);
+	    else if (EBIT_TEST(reply->cache_control->mask, CC_REVALIDATE))
+	        EBIT_SET(entry->flag, ENTRY_REVALIDATE);
+	}
 	if (EBIT_TEST(httpState->flags, HTTP_KEEPALIVE))
 	    if (httpState->peer)
 		httpState->peer->stats.n_keepalives_sent++;
