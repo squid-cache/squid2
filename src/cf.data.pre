@@ -2728,6 +2728,27 @@ DOC_START
 persistent_client_posts on
 DOC_END
 
+NAME: mcast_miss_addr
+IFDEF: MULTICAST_MISS_STREAM
+TYPE: address
+LOC: Config.mcast_miss.addr
+DEFAULT: 255.255.255.255
+DOC_NONE
+
+NAME: mcast_miss_port
+IFDEF: MULTICAST_MISS_STREAM
+TYPE: ushort
+LOC: Config.mcast_miss.port
+DEFAULT: 3135
+DOC_NONE
+
+NAME: mcast_miss_encode_key
+IFDEF: MULTICAST_MISS_STREAM
+TYPE: string
+LOC: Config.mcast_miss.encode_key
+DEFAULT: XXXXXXXXXXXXXXXX
+DOC_NONE
+
 NAME: prefer_direct
 TYPE: onoff
 LOC: Config.onoff.prefer_direct

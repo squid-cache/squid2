@@ -419,6 +419,13 @@ struct _SquidConfig {
     int max_open_disk_fds;
     int uri_whitespace;
     size_t rangeOffsetLimit;
+#if MULTICAST_MISS_STREAM
+    struct {
+	struct in_addr addr;
+	unsigned short port;
+	char *encode_key;
+    } mcast_miss;
+#endif
 };
 
 struct _SquidConfig2 {
