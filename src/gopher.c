@@ -802,7 +802,7 @@ gopherStart(FwdState * fwdState)
 	    }
 	}
 	gopherToHTML(gopherState, (char *) NULL, 0);
-	fwdComplete(gopherState->fwdState);
+	fwdComplete(fwdState);
 	comm_close(fd);
 	return;
     }
