@@ -399,7 +399,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 {
     StoreEntry *entry = httpState->entry;
     size_t hdr_len;
-    size_t hdr_size = headersEnd(buf, size);
+    size_t hdr_size;
     HttpReply *reply = entry->mem_obj->reply;
     Ctx ctx = ctx_enter(entry->mem_obj->url);
     debug(11, 3) ("httpProcessReplyHeader: key '%s'\n",
@@ -407,10 +407,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     if (memBufIsNull(&httpState->reply_hdr))
 	memBufDefInit(&httpState->reply_hdr);
     assert(httpState->reply_hdr_state == 0);
-    if (hdr_size)
-	memBufAppend(&httpState->reply_hdr, buf, hdr_size);
-    else
-	memBufAppend(&httpState->reply_hdr, buf, size);
+    memBufAppend(&httpState->reply_hdr, buf, size);
     hdr_len = httpState->reply_hdr.size;
     if (hdr_len > 4 && strncmp(httpState->reply_hdr.buf, "HTTP/", 5)) {
 	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr.buf);
@@ -421,8 +418,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	ctx_exit(ctx);
 	return;
     }
-    if (hdr_size != hdr_len)
-	hdr_size = headersEnd(httpState->reply_hdr.buf, hdr_len);
+    hdr_size = headersEnd(httpState->reply_hdr.buf, hdr_len);
     if (hdr_size)
 	hdr_len = hdr_size;
     if (hdr_len > Config.maxReplyHeaderSize) {
