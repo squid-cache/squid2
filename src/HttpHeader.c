@@ -383,9 +383,22 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
     HttpHeaderStats[hdr->owner].parsedCount++;
     /* commonn format headers are "<name>:[ws]<value>" lines delimited by <CRLF> */
     while (field_start < header_end) {
-	const char *field_end = field_start + strcspn(field_start, "\r\n");
+	const char *field_end = field_start;
+	do {
+	    field_end = field_end + strcspn(field_end, "\r\n");
+	    /* skip CRLF */
+	    if (*field_end == '\r')
+		field_end++;
+	    if (*field_end == '\n')
+		field_end++;
+	} while (*field_end == ' ' || *field_end == '\t');
 	if (!*field_end || field_end > header_end)
 	    return httpHeaderReset(hdr);	/* missing <CRLF> */
+	/* back up over CRLF */
+	if (field_end > field_start && field_end[-1] == '\n')
+	    field_end--;
+	if (field_end > field_start && field_end[-1] == '\r')
+	    field_end--;
 	e = httpHeaderEntryParseCreate(field_start, field_end);
 	if (e != NULL)
 	    httpHeaderAddEntry(hdr, e);
