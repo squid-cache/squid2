@@ -135,12 +135,15 @@
 #define RELEASE_REQUEST 	(1<<5)
 #define ABORT_MSG_PENDING 	(1<<4)
 #define DELAY_SENDING 		(1<<3)
+#ifdef OLD_CODE
 #define CLIENT_ABORT_REQUEST 	(1<<2)
+#endif
 #define DELETE_BEHIND   	(1<<1)
 #ifdef OLD_CODE
 #define IP_LOOKUP_PENDING      	(1<<0)
 #endif
 
+typedef void STABH _PARAMS((void *));
 
 /* keep track each client receiving data from that particular StoreEntry */
 struct _store_client {
@@ -177,6 +180,10 @@ struct _MemObject {
     IRCB *icp_reply_callback;
     void *ircb_data;
     int fd;			/* FD of client creating this entry */
+    struct {
+    	STABH *callback;
+	void *data;
+    } abort;
 };
 
 enum {
@@ -293,6 +300,8 @@ extern int storeEntryValidToSend _PARAMS((StoreEntry *));
 extern void storeTimestampsSet _PARAMS((StoreEntry *));
 extern unsigned int storeReqnum _PARAMS((StoreEntry * entry, method_t));
 extern time_t storeExpiredReferenceAge _PARAMS((void));
+extern void storeRegisterAbort _PARAMS((StoreEntry * e, STABH * cb, void *));
+extern void storeUnregisterAbort _PARAMS((StoreEntry * e));
 
 #ifdef __STDC__
 extern void storeAppendPrintf _PARAMS((StoreEntry *, const char *,...));

@@ -1807,6 +1807,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     *headers_sz_p = header_sz;
     *headers_p = xmalloc(header_sz + 1);
     xmemcpy(*headers_p, req_hdr, header_sz);
+    *(*headers_p + header_sz) = '\0';
 
     debug(12, 5, "parseHttpRequest: Request Header is\n%s\n", *headers_p);
 
@@ -2133,12 +2134,12 @@ CheckQuickAbort(clientHttpRequest * http)
 	return;
     if (storePendingNClients(http->entry) > 1)
 	return;
-    if (http->entry->store_status == STORE_OK)
+    if (http->entry->store_status != STORE_PENDING)
 	return;
     if (CheckQuickAbort2(http) == 0)
 	return;
     debug(12, 3, "CheckQuickAbort: ABORTING %s\n", http->entry->url);
-    BIT_SET(http->entry->flag, CLIENT_ABORT_REQUEST);
+    storeAbort(http->entry, "aborted by client");
     storeReleaseRequest(http->entry);
     http->log_type = ERR_CLIENT_ABORT;
 }

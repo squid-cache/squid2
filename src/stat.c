@@ -333,8 +333,10 @@ describeFlags(const StoreEntry * entry)
 #endif
     if (BIT_TEST(flags, DELETE_BEHIND))
 	strcat(buf, "DB,");
+#ifdef OLD_CODE
     if (BIT_TEST(flags, CLIENT_ABORT_REQUEST))
 	strcat(buf, "CA,");
+#endif
     if (BIT_TEST(flags, DELAY_SENDING))
 	strcat(buf, "DS,");
     if (BIT_TEST(flags, ABORT_MSG_PENDING))
