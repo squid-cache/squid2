@@ -1135,7 +1135,7 @@ int parseConfigFile(file_name)
 	    parseIntegerValue(&Config.Swap.highWaterMark);
 
 	else if (!strcmp(token, "cache_swap_low"))
-	    parseIntegerValue(&Config.Swap.highWaterMark);
+	    parseIntegerValue(&Config.Swap.lowWaterMark);
 
 	else if (!strcmp(token, "cache_mem_high"))
 	    parseIntegerValue(&Config.Mem.highWaterMark);
