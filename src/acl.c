@@ -239,7 +239,6 @@ decode_addr(const char *asc, struct in_addr *addr, struct in_addr *mask)
     u_num32 a;
     int a1 = 0, a2 = 0, a3 = 0, a4 = 0;
     struct hostent *hp = NULL;
-    char *safe_addr;
 
     switch (sscanf(asc, "%d.%d.%d.%d", &a1, &a2, &a3, &a4)) {
     case 4:			/* a dotted quad */
