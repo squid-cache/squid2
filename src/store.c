@@ -805,9 +805,11 @@ storeAppend(StoreEntry * e, const char *data, int len)
 	debug_trap("storeAppend: NULL e->mem_obj");
 	return;
     }
-    if (len < 1) {
-	InvokeHandlers(e);
-	return;
+    if (len < 0)
+	fatal_dump("storeAppend: len < 0");
+    if (len == 0) {
+	storeAppendDone(mem->swapout_fd, 0, len, e);
+        return;
     }
     debug(20, 3, "storeAppend: FD %d appending %d bytes for '%s'\n",
 	mem->swapout_fd, len, e->key);
