@@ -61,10 +61,11 @@ int main(argc, argv)
     int alias_count = 0;
     int i;
     char *dnsServerPathname = NULL;
+    int dnsServerTCP = 0;
     int c;
     extern char *optarg;
 
-    while ((c = getopt(argc, argv, "vhdp:")) != -1)
+    while ((c = getopt(argc, argv, "vhdtp:")) != -1) {
 	switch (c) {
 	case 'v':
 	case 'h':
@@ -81,18 +82,23 @@ int main(argc, argv)
 	case 'p':
 	    dnsServerPathname = xstrdup(optarg);
 	    break;
+	case 't':
+	    dnsServerTCP = 1;
+	    break;
 	default:
 	    fprintf(stderr, "usage: dnsserver -h -d -p socket-filename\n");
 	    exit(1);
 	    break;
 	}
+    }
 
     socket_from_cache = 3;
 
     /* accept DNS look up from ipcache */
-    if (dnsServerPathname) {
-	fd = accept(socket_from_cache, (struct sockaddr *) 0, (int *) 0);
-	unlink(dnsServerPathname);
+    if (dnsServerPathname || dnsServerTCP) {
+	fd = accept(socket_from_cache, NULL, NULL);
+	if (dnsServerPathname)
+	    unlink(dnsServerPathname);
 	if (fd < 0) {
 	    fprintf(stderr, "dnsserver: accept: %s\n", xstrerror());
 	    exit(1);
@@ -104,6 +110,7 @@ int main(argc, argv)
 	dup2(fd, 0);
 	close(fd);
     }
+
     while (1) {
 	memset(request, '\0', 256);
 

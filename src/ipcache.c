@@ -235,9 +235,81 @@ int ipcache_create_dnsserver(command)
 int ipcache_create_dnsserver(command)
      char *command;
 {
-    fatal_dump("ipcache_create_dnsserver needs UNIX sockets or socketpair()");
-}
+    int pid;
+    u_short port;
+    struct sockaddr_in S;
+    static int n_dnsserver = 0;
+    int cfd;
+    int sfd;
+    int len;
+    int fd;
 
+    if ((cfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	debug(14, 0, "ipcache_create_dnsserver: socket: %s\n", xstrerror());
+	return -1;
+    }
+    fdstat_open(cfd, Socket);
+    fd_note(cfd, "socket to dnsserver");
+    memset(&S, '\0', sizeof(S));
+    S.sin_family = AF_INET;
+    S.sin_addr.s_addr = htonl(inet_addr("127.0.0.1"));
+    if (bind(cfd, (struct sockaddr *) &S, sizeof(S)) < 0) {
+	close(cfd);
+	debug(14, 0, "ipcache_create_dnsserver: bind: %s\n", xstrerror());
+	return -1;
+    }
+    len = sizeof(S);
+    memset(&S, '\0', len);
+    if (getsockname(cfd, &S, &len) < 0) {
+	close(cfd);
+	debug(14, 0, "ipcache_create_dnsserver: getsockname: %s\n", xstrerror());
+	return -1;
+    }
+    port = ntohs(S.sin_port);
+    debug(14, 4, "ipcache_create_dnsserver: bind to local host.\n");
+    listen(cfd, 1);
+    if ((pid = fork()) < 0) {
+	debug(14, 0, "ipcache_create_dnsserver: fork: %s\n", xstrerror());
+	close(cfd);
+	return -1;
+    }
+    if (pid > 0) {		/* parent */
+	close(cfd);		/* close shared socket with child */
+	/* open new socket for parent process */
+	if ((sfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	    debug(14, 0, "ipcache_create_dnsserver: socket: %s\n", xstrerror());
+	    return -1;
+	}
+	fcntl(sfd, F_SETFD, 1);	/* set close-on-exec */
+	memset(&S, '\0', sizeof(S));
+	S.sin_family = AF_INET;
+	S.sin_addr.s_addr = htonl(inet_addr("127.0.0.1"));
+	S.sin_port = htons(port);
+	if (connect(sfd, (struct sockaddr *) &S, sizeof(S)) < 0) {
+	    close(sfd);
+	    debug(14, 0, "ipcache_create_dnsserver: connect: %s\n", xstrerror());
+	    return -1;
+	}
+	debug(14, 4, "ipcache_create_dnsserver: FD %d connected to %s #%d.\n",
+	    sfd, command, n_dnsserver);
+	return sfd;
+    }
+    /* child */
+
+    /* give up extra priviliges */
+    no_suid();
+
+    /* setup filedescriptors */
+    dup2(cfd, 3);
+    for (fd = FD_SETSIZE; fd > 3; fd--) {
+	close(fd);
+    }
+
+    execlp(command, "(dnsserver)", "-t", NULL);
+    debug(14, 0, "ipcache_create_dnsserver: %s: %s\n", command, xstrerror());
+    _exit(1);
+    return 0;
+}
 #endif
 
 /* removes the given ipcache entry */
