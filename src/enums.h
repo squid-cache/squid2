@@ -229,6 +229,7 @@ typedef enum {
     HDR_SERVER,
     HDR_SET_COOKIE,
     HDR_TITLE,
+    HDR_TRANSFER_ENCODING,
     HDR_UPGRADE,
     HDR_USER_AGENT,
     HDR_VARY,
