@@ -262,7 +262,7 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
 	debug(20, 3) ("storeClientCopy2: Need to open swap in file\n");
 	assert(sc->type == STORE_DISK_CLIENT);
 	/* gotta open the swapin file */
-	if (store_open_disk_fd > Config.max_open_disk_fds) {
+	if (storeTooManyDiskFilesOpen()) {
 	    /* yuck -- this causes a TCP_SWAPFAIL_MISS on the client side */
 	    sc->callback = NULL;
 	    callback(sc->callback_data, sc->copy_buf, -1);
