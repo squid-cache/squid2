@@ -133,6 +133,7 @@ storeClientListAdd(StoreEntry * e, void *data)
     for (T = &mem->clients; *T; T = &(*T)->next);
     *T = sc;
 #if DELAY_POOLS
+    sc->delay_id = 0;
     delayRegisterDelayIdPtr(&sc->delay_id);
 #endif
 }
