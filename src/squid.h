@@ -45,24 +45,10 @@
  */
 #define CHANGE_FD_SETSIZE 1
 
-/*
- * Cannot increase FD_SETSIZE on Linux, but we can increase __FD_SETSIZE
- * with glibc 2.2 (or later? remains to be seen). We do this by including
- * bits/types.h which defines __FD_SETSIZE first, then we redefine
- * __FD_SETSIZE. Ofcourse a user program may NEVER include bits/whatever.h
- * directly, so this is a dirty hack!
- */
+/* Cannot increase FD_SETSIZE on Linux */
 #if defined(_SQUID_LINUX_)
 #undef CHANGE_FD_SETSIZE
 #define CHANGE_FD_SETSIZE 0
-#include <features.h>
-#if (__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 2)
-#if SQUID_MAXFD > DEFAULT_FD_SETSIZE
-#include <bits/types.h>
-#undef __FD_SETSIZE
-#define __FD_SETSIZE SQUID_MAXFD
-#endif
-#endif
 #endif
 
 /*
@@ -198,6 +184,9 @@
 #endif
 #if HAVE_BSTRING_H
 #include <bstring.h>
+#endif
+#ifdef HAVE_CRYPT_H
+#include <crypt.h>
 #endif
 #if HAVE_SYS_SELECT_H
 #include <sys/select.h>
@@ -476,24 +465,5 @@ struct rusage {
 
 #define FD_READ_METHOD(fd, buf, len) (*fd_table[fd].read_method)(fd, buf, len)
 #define FD_WRITE_METHOD(fd, buf, len) (*fd_table[fd].write_method)(fd, buf, len)
-
-
-#if DELAY_POOLS
-
-typedef int32_t d_fd_mask;
-#define D_NBBY    8		/* number of bits in a byte */
-#define D_NFDBITS (sizeof(fd_mask) * NBBY)	/* bits per mask */
-
-typedef struct d_fd_set {
-    d_fd_mask d_fds_bits[howmany(SQUID_MAXFD, NFDBITS)];
-} d_fd_set;
-
-#define D_FD_SET(n, p)    ((p)->d_fds_bits[(n)/D_NFDBITS] |= (1 << ((n) % D_NFDBITS)))
-#define D_FD_CLR(n, p)    ((p)->d_fds_bits[(n)/D_NFDBITS] &= ~(1 << ((n) % D_NFDBITS)))
-#define D_FD_ISSET(n, p)  ((p)->d_fds_bits[(n)/D_NFDBITS] & (1 << ((n) % D_NFDBITS)))
-#define D_FD_COPY(f, t)   bcopy(f, t, sizeof(*(f)))
-#define D_FD_ZERO(p)      bzero(p, sizeof(*(p)))
-
-#endif
 
 #endif /* SQUID_H */

@@ -173,7 +173,6 @@ fdIsHttp(int fd)
 #if DELAY_POOLS
 static int slowfdcnt = 0;
 static int slowfdarr[SQUID_MAXFD];
-static d_fd_set slowfds;
 
 static void
 commAddSlowFd(int fd)
@@ -310,6 +309,9 @@ int
 comm_poll(int msec)
 {
     struct pollfd pfds[SQUID_MAXFD];
+#if DELAY_POOLS
+    fd_set slowfds;
+#endif
     PF *hdl = NULL;
     int fd;
     int i;
@@ -330,7 +332,7 @@ comm_poll(int msec)
 	/* Handle any fs callbacks that need doing */
 	storeDirCallback();
 #if DELAY_POOLS
-	D_FD_ZERO(&slowfds);
+	FD_ZERO(&slowfds);
 #endif
 	if (commCheckICPIncoming)
 	    comm_poll_icp_incoming();
@@ -356,7 +358,7 @@ comm_poll(int msec)
 #if DELAY_POOLS
 		case -1:
 		    events |= POLLRDNORM;
-		    D_FD_SET(i, &slowfds);
+		    FD_SET(i, &slowfds);
 		    break;
 #endif
 		default:
@@ -435,7 +437,7 @@ comm_poll(int msec)
 		if (NULL == (hdl = F->read_handler))
 		    (void) 0;
 #if DELAY_POOLS
-		else if (D_FD_ISSET(fd, &slowfds))
+		else if (FD_ISSET(fd, &slowfds))
 		    commAddSlowFd(fd);
 #endif
 		else {
@@ -643,6 +645,9 @@ comm_select(int msec)
     fd_set readfds;
     fd_set pendingfds;
     fd_set writefds;
+#if DELAY_POOLS
+    fd_set slowfds;
+#endif
     PF *hdl = NULL;
     int fd;
     int maxfd;
@@ -670,7 +675,7 @@ comm_select(int msec)
 	start = current_dtime;
 #endif
 #if DELAY_POOLS
-	D_FD_ZERO(&slowfds);
+	FD_ZERO(&slowfds);
 #endif
 	/* Handle any fs callbacks that need doing */
 	storeDirCallback();
@@ -707,7 +712,7 @@ comm_select(int msec)
 		    break;
 #if DELAY_POOLS
 		case -1:
-		    D_FD_SET(fd, &slowfds);
+		    FD_SET(fd, &slowfds);
 		    break;
 #endif
 		default:
@@ -807,7 +812,7 @@ comm_select(int msec)
 		if (NULL == (hdl = F->read_handler))
 		    (void) 0;
 #if DELAY_POOLS
-		else if (D_FD_ISSET(fd, &slowfds))
+		else if (FD_ISSET(fd, &slowfds))
 		    commAddSlowFd(fd);
 #endif
 		else {

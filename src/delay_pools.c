@@ -89,7 +89,7 @@ union _delayPool {
 typedef union _delayPool delayPool;
 
 static delayPool *delay_data = NULL;
-static d_fd_set delay_no_delay;
+static fd_set delay_no_delay;
 static time_t delay_pools_last_update = 0;
 static hash_table *delay_id_ptr_hash = NULL;
 static long memory_used = 0;
@@ -134,7 +134,7 @@ void
 delayPoolsInit(void)
 {
     delay_pools_last_update = getCurrentTime();
-    D_FD_ZERO(&delay_no_delay);
+    FD_ZERO(&delay_no_delay);
     cachemgrRegister("delay", "Delay Pool Levels", delayPoolStats, 0, 1);
 }
 
@@ -144,7 +144,7 @@ delayInitDelayData(unsigned short pools)
     if (!pools)
 	return;
     delay_data = xcalloc(pools, sizeof(*delay_data));
-    memory_used += pools * sizeof(*delay_data);
+    memory_used += sizeof(*delay_data);
     eventAdd("delayPoolsUpdate", delayPoolsUpdate, NULL, 1.0, 1);
     delay_id_ptr_hash = hash_create(delayIdPtrHashCmp, 256, delayIdPtrHash);
 }
@@ -160,10 +160,10 @@ delayIdZero(void *hlink)
 }
 
 void
-delayFreeDelayData(unsigned short pools)
+delayFreeDelayData(void)
 {
     safe_free(delay_data);
-    memory_used -= pools * sizeof(*delay_data);
+    memory_used -= sizeof(*delay_data);
     if (!delay_id_ptr_hash)
 	return;
     hashFreeItems(delay_id_ptr_hash, delayIdZero);
@@ -283,22 +283,19 @@ delayFreeDelayPool(unsigned short pool)
 void
 delaySetNoDelay(int fd)
 {
-    assert(fd < SQUID_MAXFD);
-    D_FD_SET(fd, &delay_no_delay);
+    FD_SET(fd, &delay_no_delay);
 }
 
 void
 delayClearNoDelay(int fd)
 {
-    assert(fd < SQUID_MAXFD);
-    D_FD_CLR(fd, &delay_no_delay);
+    FD_CLR(fd, &delay_no_delay);
 }
 
 int
 delayIsNoDelay(int fd)
 {
-    assert(fd < SQUID_MAXFD);
-    return D_FD_ISSET(fd, &delay_no_delay);
+    return FD_ISSET(fd, &delay_no_delay);
 }
 
 static delay_id
@@ -308,23 +305,19 @@ delayId(unsigned short pool, unsigned short position)
 }
 
 delay_id
-delayClient(clientHttpRequest * http)
+delayClient(request_t * r)
 {
-    request_t *r;
     aclCheck_t ch;
     int i;
     int j;
     unsigned int host;
     unsigned short pool, position;
     unsigned char class, net;
-    assert(http);
-    r = http->request;
 
     memset(&ch, '\0', sizeof(ch));
     ch.src_addr = r->client_addr;
     ch.my_addr = r->my_addr;
     ch.my_port = r->my_port;
-    ch.conn = http->conn;
     ch.request = r;
     if (r->client_addr.s_addr == INADDR_BROADCAST) {
 	debug(77, 2) ("delayClient: WARNING: Called with 'allones' address, ignoring\n");
