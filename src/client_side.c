@@ -757,7 +757,7 @@ httpRequestFree(void *data)
      * code in clientHandleIMSReply() */
     if ((e = http->old_entry)) {
 	http->old_entry = NULL;
-	storeUnregister(http->sc, e, http);
+	storeUnregister(http->old_sc, e, http);
 	http->old_sc = NULL;
 	storeUnlockObject(e);
     }
