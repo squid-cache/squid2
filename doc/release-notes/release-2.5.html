@@ -119,6 +119,7 @@ cache_peer option.</LI>
 <DT><B>pipeline_prefetch</B><DD><P>Now defaults to off for bandwidth management and access logging reasons.</P>
 <DT><B>vary_ignore_expire</B><DD><P>Enables a workaround for web servers that immediately expire Varied objects because they think squid is unable to handle Vary:.</P>
 <DT><B>sleep_after_fork</B><DD><P>Give the OS a small amount of time to accomodate the fork+exec used to launch helpers - if squid has a lot of virtual memory allocated the OS may run out of virtual memory during helper spawning otherwise.</P>
+<DT><B>reference_age</B><DD><P>This has been removed - starting with Squid-2.4 this directive have had no effect and has now been fully removed to avoid confusion.</P>
 </DL>
 </P>
 </BODY>
