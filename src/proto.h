@@ -283,7 +283,7 @@ typedef struct _protodispatch_data {
     int inside_firewall;
     int direct_fetch;
     int source_ping;
-    int query_neighbors;
+    int hierarchical;
     int n_peers;
     struct _peer *single_parent;
     struct _peer *default_parent;
