@@ -79,7 +79,7 @@ void storeDirClean()
 	fatal_dump(NULL);
     }
     while ((de = readdir(dp)) && k < 20) {
-	if (sscanf(de->d_name, "%d", &fileno) != 1)
+	if (sscanf(de->d_name, "%X", &fileno) != 1)
 	    continue;
 	if (file_map_bit_test(fileno))
 	    continue;
