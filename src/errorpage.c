@@ -190,7 +190,9 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
     HttpReply *rep;
 #endif
     MemObject *mem = entry->mem_obj;
+#if 0	/* we might have an ok store for put etc */
     assert(entry->store_status == STORE_PENDING);
+#endif
     assert(mem != NULL);
     assert(mem->inmem_hi == 0);
 #if 0

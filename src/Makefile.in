@@ -116,6 +116,7 @@ OBJS	 	= \
 		pconn.o \
 		peer_select.o \
 		proto.o \
+		pump.o \
 		redirect.o \
 		refresh.o \
 		send-announce.o \

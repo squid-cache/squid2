@@ -1261,14 +1261,17 @@ clientProcessRequest(clientHttpRequest * http)
 	/* yes, continue */
     } else if (r->protocol != PROTO_HTTP) {
 	(void) 0;		/* fallthrough */
+#if OLD_POST_CODE
     } else if (r->method == METHOD_POST) {
 	http->log_type = LOG_TCP_MISS;
 	passStart(fd, url, r, &http->out.size);
 	return;
-    } else if (r->method == METHOD_PUT) {
+#else
+    }
+    if ( r->method == METHOD_PUT || r->method == METHOD_POST )  {
 	http->log_type = LOG_TCP_MISS;
-	passStart(fd, url, r, &http->out.size);
-	return;
+	pumpInit(fd, r, http->uri);
+#endif
     }
     http->log_type = clientProcessRequest2(http);
     debug(33, 4) ("clientProcessRequest: %s for '%s'\n",
