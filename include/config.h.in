@@ -145,10 +145,10 @@
 #define squid_srandom srandom
 #elif HAVE_LRAND48
 #define squid_random lrand48
-#define squid_random srand48
+#define squid_srandom srand48
 #else
 #define squid_random rand
-#define squid_random srand
+#define squid_srandom srand
 #endif
 
 
