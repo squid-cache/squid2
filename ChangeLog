@@ -215,3 +215,4 @@ beta10:
 	- Added dnsserver use histogram to ipcache stats.
 	- Changed domain ACL's to match only the end of the hostname, not
 	  just anywhere in the string.
+	- Fixed setuid bugs when pid_filename was not defined
