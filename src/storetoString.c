@@ -119,23 +119,18 @@ char *storeToString(e)
 
     sprintf(tmpbuf, "PingStatus: ");
     switch (e->ping_status) {
-
     case WAITING:
 	strcat(tmpbuf, "WAITING\n");
 	break;
-
     case TIMEOUT:
 	strcat(tmpbuf, "TIMEOUT\n");
 	break;
-
     case DONE:
 	strcat(tmpbuf, "DONE\n");
 	break;
-
     case NOPING:
 	strcat(tmpbuf, "NOPING\n");
 	break;
-
     default:
 	strcat(tmpbuf, "UNKNOWN\n");
 	break;
@@ -145,25 +140,20 @@ char *storeToString(e)
 
     sprintf(tmpbuf, "SwapStatus: ");
     switch (e->swap_status) {
-
     case NO_SWAP:
 	strcat(tmpbuf, "NO_SWAP\n");
 	break;
-
     case SWAPPING_OUT:
 	strcat(tmpbuf, "SWAPPING_OUT\n");
 	break;
-
     case SWAP_OK:
 	strcat(tmpbuf, "SWAP_OK\n");
 	break;
-
     default:
 	strcat(tmpbuf, "UNKNOWN\n");
 	break;
     }
     strcat(stsbuf, tmpbuf);
-
 
     sprintf(tmpbuf, "Method: %s", RequestMethodStr[e->method]);
     strcat(stsbuf, tmpbuf);
@@ -178,10 +168,9 @@ char *storeToString(e)
 	sprintf(tmpbuf, "MemObject: NULL.\n");
 	strcat(stsbuf, tmpbuf);
 	return stsbuf;
-    } else {
+    }
 	sprintf(tmpbuf, "MemObject: 0x%p\n****************\n", e->mem_obj);
 	strcat(stsbuf, tmpbuf);
-    }
 
     if (!e->mem_obj->mime_hdr) {
 	sprintf(tmpbuf, "MimeHdr: NULL.\n");
