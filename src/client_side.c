@@ -2000,8 +2000,11 @@ clientProcessMiss(clientHttpRequest * http)
      * or IMS request.
      */
     if (http->entry) {
-	if (EBIT_TEST(http->entry->flags, ENTRY_SPECIAL))
+	if (EBIT_TEST(http->entry->flags, ENTRY_SPECIAL)) {
 	    debug(33, 0) ("clientProcessMiss: miss on a special object (%s).\n", url);
+	    debug(33, 0) ("\tlog_type = %s\n", log_tags[http->log_type]);
+	    storeEntryDump(http->entry, 1);
+	}
 	storeUnregister(http->entry, http);
 	storeUnlockObject(http->entry);
 	http->entry = NULL;
