@@ -177,7 +177,9 @@ sslReadClient(int fd, void *data)
 	}
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */
+#if DONT
 	sslClose(sslState);
+#endif
     } else {
 	sslState->client.offset = 0;
 	sslState->client.len = len;

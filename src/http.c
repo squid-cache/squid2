@@ -691,7 +691,7 @@ httpBuildRequestHeader(request_t * request,
 	if (!cc)
 	    cc = httpHdrCcCreate();
 	if (!EBIT_TEST(cc->mask, CC_MAX_AGE)) {
-	    const char *url = entry ? storeUrl(entry) : urlCanonical(orig_request, NULL);
+	    const char *url = entry ? storeUrl(entry) : urlCanonical(orig_request);
 	    httpHdrCcSetMaxAge(cc, getMaxAge(url));
 	    if (strLen(request->urlpath))
 		assert(strstr(url, strBuf(request->urlpath)));

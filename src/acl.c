@@ -1319,7 +1319,7 @@ aclMatchAcl(acl * acl, aclCheck_t * checklist)
 	return k;
 	/* NOTREACHED */
     case ACL_URL_REGEX:
-	esc_buf = xstrdup(urlCanonical(r, NULL));
+	esc_buf = xstrdup(urlCanonical(r));
 	rfc1738_unescape(esc_buf);
 	k = aclMatchRegex(acl->data, esc_buf);
 	safe_free(esc_buf);
