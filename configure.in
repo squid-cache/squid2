@@ -706,6 +706,7 @@ fi
 dnl Check for typedefs
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(void *)
 
 dnl Check for special functions
 AC_FUNC_ALLOCA

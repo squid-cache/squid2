@@ -247,6 +247,9 @@
 /* The number of bytes in a long.  */
 #undef SIZEOF_LONG
 
+/* The number of bytes in a void *.  */
+#undef SIZEOF_VOID_P
+
 /* Define if you have the bcopy function.  */
 #undef HAVE_BCOPY
 

@@ -466,6 +466,9 @@ storeUnregister(StoreEntry * e, void *data)
 	sc->callback = NULL;
 	callback(sc->callback_data, sc->copy_buf, -1);
     }
+#if DELAY_POOLS
+    delayUnregisterDelayIdPtr(&sc->delay_id);
+#endif
     cbdataFree(sc);
     assert(e->lock_count > 0);
     if (mem->nclients == 0)
