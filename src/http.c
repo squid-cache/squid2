@@ -579,7 +579,7 @@ int proxyhttpStart(e, url, entry)
 
     request->method = entry->method;
     strncpy(request->host, e->host, SQUIDHOSTNAMELEN);
-    request->port = e->ascii_port;
+    request->port = e->http_port;
     strncpy(request->urlpath, url, MAX_URL);
 
     /* check if IP is already in cache. It must be. 

@@ -58,7 +58,7 @@ edge *whichEdge(header, from)
 
     for (e = friends->edges_head; e; e = e->next) {
 	for (j = 0; j < e->n_addresses; j++) {
-	    if (ip.s_addr == e->addresses[j].s_addr && port == e->udp_port) {
+	    if (ip.s_addr == e->addresses[j].s_addr && port == e->icp_port) {
 		return e;
 	    }
 	}
@@ -328,17 +328,17 @@ void neighbors_open(fd)
 	memset(ap, '\0', sizeof(struct sockaddr_in));
 	ap->sin_family = AF_INET;
 	ap->sin_addr = e->addresses[0];
-	ap->sin_port = htons(e->udp_port);
+	ap->sin_port = htons(e->icp_port);
 
 	if (e->type == EDGE_PARENT) {
 	    debug(15, 3, "parent_install: host %s addr %s port %d\n",
 		e->host, inet_ntoa(ap->sin_addr),
-		e->udp_port);
+		e->icp_port);
 	    e->neighbor_up = 1;
 	} else {
 	    debug(15, 3, "neighbor_install: host %s addr %s port %d\n",
 		e->host, inet_ntoa(ap->sin_addr),
-		e->udp_port);
+		e->icp_port);
 	    e->neighbor_up = 1;
 	}
 	E = &e->next;
@@ -412,7 +412,7 @@ int neighborsUdpPing(proto)
 	debug(15, 3, "neighborsUdpPing: key = '%s'\n", entry->key);
 	debug(15, 3, "neighborsUdpPing: reqnum = %d\n", e->header.reqnum);
 
-	if (e->udp_port == echo_port) {
+	if (e->icp_port == echo_port) {
 	    debug(15, 4, "neighborsUdpPing: Looks like a dumb cache, send DECHO ping\n");
 	    icpUdpSend(friends->fd, url, &echo_hdr, &e->in_addr, ICP_OP_DECHO, LOG_TAG_NONE);
 	} else {
@@ -665,11 +665,11 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
     }
 }
 
-void neighbors_cf_add(host, type, ascii_port, udp_port, proxy_only, weight)
+void neighbors_cf_add(host, type, http_port, icp_port, proxy_only, weight)
      char *host;
      char *type;
-     int ascii_port;
-     int udp_port;
+     int http_port;
+     int icp_port;
      int proxy_only;
      int weight;
 {
@@ -678,8 +678,8 @@ void neighbors_cf_add(host, type, ascii_port, udp_port, proxy_only, weight)
     t = xcalloc(sizeof(struct neighbor_cf), 1);
     t->host = xstrdup(host);
     t->type = xstrdup(type);
-    t->ascii_port = ascii_port;
-    t->udp_port = udp_port;
+    t->http_port = http_port;
+    t->icp_port = icp_port;
     t->proxy_only = proxy_only;
     t->weight = weight;
     t->next = (struct neighbor_cf *) NULL;
@@ -739,16 +739,17 @@ void neighbors_init()
 
     for (t = Neighbor_cf; t; t = next) {
 	next = t->next;
-	if (!strcmp(t->host, me) && t->ascii_port == getAsciiPortNum()) {
+	if (!strcmp(t->host, me) && t->http_port == getAsciiPortNum()) {
 	    debug(15, 0, "neighbors_init: skipping cache_host %s %s %d %d\n",
-		t->type, t->host, t->ascii_port, t->udp_port);
+		t->type, t->host, t->http_port, t->icp_port);
 	    continue;
 	}
-	debug(15, 1, "Adding a %s: %s\n", t->type, t->host);
+	debug(15, 1, "Adding a %s: %s/%d/%d\n",
+		t->type, t->host, t->http_port, t->icp_port);
 
 	e = xcalloc(1, sizeof(edge));
-	e->ascii_port = t->ascii_port;
-	e->udp_port = t->udp_port;
+	e->http_port = t->http_port;
+	e->icp_port = t->icp_port;
 	e->proxy_only = t->proxy_only;
 	e->weight = t->weight;
 	e->host = t->host;

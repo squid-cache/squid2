@@ -416,8 +416,8 @@ void server_list(obj, sentry)
 	sprintf(tempbuf, "\n{%-11.11s: %s/%d/%d}\n",
 	    e->type == EDGE_PARENT ? "Parent" : "Sibling",
 	    e->host,
-	    e->ascii_port,
-	    e->udp_port);
+	    e->http_port,
+	    e->icp_port);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
 	sprintf(tempbuf, "{Status     : %s}\n",
 	    e->neighbor_up ? "Up" : "Down");
@@ -828,7 +828,7 @@ void parameter_get(obj, sentry)
     sprintf(line, "{ReadTimeout %d \"# Maximum idle connection (s)\"}\n", getReadTimeout());
     storeAppend(sentry, line, strlen(line));
 
-    sprintf(line, "{ClientLifetime %d \"# Lifetime for incoming ascii port requests or outgoing clients (s)\"}\n", getClientLifetime());
+    sprintf(line, "{ClientLifetime %d \"# Lifetime for incoming HTTP requests or outgoing clients (s)\"}\n", getClientLifetime());
     storeAppend(sentry, line, strlen(line));
 
     sprintf(line, "{CleanRate %d \"# Rate for periodic object expiring\"}\n",

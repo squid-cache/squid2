@@ -60,8 +60,8 @@ struct _edge {
 	int counts[ICP_OP_END];
     } stats;
 
-    u_short udp_port;
-    u_short ascii_port;
+    u_short icp_port;
+    u_short http_port;
     icp_common_t header;
     dom_list *domains;
     int proxy_only;
@@ -85,8 +85,8 @@ typedef struct {
 struct neighbor_cf {
     char *host;
     char *type;
-    int ascii_port;
-    int udp_port;
+    int http_port;
+    int icp_port;
     int proxy_only;
     int weight;
     dom_list *domains;
