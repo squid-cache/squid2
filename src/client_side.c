@@ -141,6 +141,9 @@ clientAccessCheck(icpStateData * icpState, void (*handler) (icpStateData *, int)
 	} else {
 	    icpState->aclChecklist->browser[0] = '\0';
 	}
+	xstrncpy(icpState->aclChecklist->ident,
+	    icpState->ident.ident,
+	    ICP_IDENT_SZ);
     }
 #if USE_PROXY_AUTH
     if (clientProxyAuthCheck(icpState) == 0) {
