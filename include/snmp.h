@@ -69,12 +69,6 @@
 #include <mib.h>
 #include <parse.h>
 #include <snmp_compat.h>
+#include <snmp_debug.h>
 
-#ifndef SQUID_H
-#ifdef __STDC__
-void (*snmplib_debug) (int,char *, ...); 
-#else
-void (*snmplib_debug) (va_alist));
-#endif
-#endif
 #endif /* _SNMP_H_ */

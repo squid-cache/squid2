@@ -45,6 +45,9 @@ almostclean: clean
 distclean: almostclean
 	rm -f config.status config.cache
 
+targz: distclean
+	tar cvf current.tar . ; gzip current.tar
+
 makefile: configure config.status makefile.in lib/Makefile.in include/config.h.in src/Makefile.in include/version.h
 	@echo "Package configuration updated. Cleaning and reconfiguring" ;\
 	./config.status --recheck;\
