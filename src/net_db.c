@@ -318,6 +318,7 @@ netdbSaveState(void *foo)
     LOCAL_ARRAY(char, path, SQUID_MAXPATHLEN);
     FILE *fp;
     netdbEntry *n;
+    netdbEntry *next;
     net_db_name *x;
     struct timeval start = current_time;
     int count = 0;
@@ -327,10 +328,11 @@ netdbSaveState(void *foo)
 	debug(50, 1, "netdbSaveState: %s: %s\n", path, xstrerror());
 	return;
     }
-    n = (netdbEntry *) hash_first(addr_table);
-    while (n) {
+    next = (netdbEntry *) hash_first(addr_table);
+    while ((n = next)) {
+	next = (netdbEntry *) hash_next(addr_table);
 	if (n->rtt == 0.0)
-		continue;
+	    continue;
 	fprintf(fp, "%s %d %d %10.5f %10.5f %d %d",
 	    n->network,
 	    n->pings_sent,
@@ -342,7 +344,6 @@ netdbSaveState(void *foo)
 	for (x = n->hosts; x; x = x->next)
 	    fprintf(fp, " %s", x->name);
 	fprintf(fp, "\n");
-	n = (netdbEntry *) hash_next(addr_table);
 	count++;
     }
     fclose(fp);
