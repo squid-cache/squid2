@@ -104,7 +104,6 @@
  * such as splay trees and binary trees.  Define only one of these.
  */
 #undef USE_SPLAY_TREE
-#undef USE_BIN_TREE
 
 /*
  * Squid frequently calls gettimeofday() for accurate timestamping.
