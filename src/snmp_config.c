@@ -286,10 +286,10 @@ read_config()
     char buff[200];
 #endif
     char *tokens[10];
+    char *t;
     /* comes from snmpd.c: */
 #ifdef READ_OLD_STYLE_CONFIG
     extern char *snmp_configfile;
-    char *t;
 
     if (snmp_configfile == NULL)
 	fatal("snmp.c : read_config() with a NULL snmp_configfile!\n");
