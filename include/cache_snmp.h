@@ -2,8 +2,8 @@
  * $Id$
  */
 
-#ifndef SQUID_SNMP_H
-#define SQUID_SNMP_H
+#ifndef SQUID_CACHE_SNMP_H
+#define SQUID_CACHE_SNMP_H
 
 #ifdef SQUID_SNMP
 
@@ -256,4 +256,4 @@ enum {
 
 #endif /* SQUID_SNMP */
 
-#endif /* SQUID_SNMP_H */
+#endif /* SQUID_CACHE_SNMP_H */
