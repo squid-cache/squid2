@@ -755,10 +755,10 @@ watch_child(char *argv[])
 	time(&stop);
 	if (stop - start < 10)
 	    failcount++;
+	else
+	    failcount = 0;
 	if (failcount == 5)
 	    exit(1);
-	debug(0, 0) ("exit status = %d\n", WEXITSTATUS(status));
-	debug(0, 0) ("term sig    = %d\n", WTERMSIG(status));
 	if (WIFEXITED(status))
 	    if (WEXITSTATUS(status) == 0)
 		exit(0);
