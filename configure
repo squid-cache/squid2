@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.12 
+# From configure.in Revision: 1.18.2.13 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2223,7 +2223,7 @@ cat > conftest.$ac_ext <<EOF
 main ()
 {
         int val, len = sizeof(int);
-        getsockopt(socket(AF_INET, SOCK_DGRAM, 0), SOL_SOCKET, SO_SNDBUF, &val, &len);
+        getsockopt(socket(AF_INET, SOCK_STREAM, 0), SOL_SOCKET, SO_SNDBUF, &val, &len);
         fprintf (fopen("conftestval", "w"), "%d\n", val);
 	exit(0);
 }
@@ -2257,7 +2257,7 @@ cat > conftest.$ac_ext <<EOF
 main ()
 {
         int val, len = sizeof(int);
-        getsockopt(socket(AF_INET, SOCK_DGRAM, 0), SOL_SOCKET, SO_RCVBUF, &val, &len);
+        getsockopt(socket(AF_INET, SOCK_STREAM, 0), SOL_SOCKET, SO_RCVBUF, &val, &len);
         fprintf (fopen("conftestval", "w"), "%d\n", val);
 	exit(0);
 }

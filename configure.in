@@ -353,7 +353,7 @@ AC_TRY_RUN([
 main ()
 {
         int val, len = sizeof(int);
-        getsockopt(socket(AF_INET, SOCK_DGRAM, 0), SOL_SOCKET, SO_SNDBUF, &val, &len);
+        getsockopt(socket(AF_INET, SOCK_STREAM, 0), SOL_SOCKET, SO_SNDBUF, &val, &len);
         fprintf (fopen("conftestval", "w"), "%d\n", val);
 	exit(0);
 }
@@ -372,7 +372,7 @@ AC_TRY_RUN([
 main ()
 {
         int val, len = sizeof(int);
-        getsockopt(socket(AF_INET, SOCK_DGRAM, 0), SOL_SOCKET, SO_RCVBUF, &val, &len);
+        getsockopt(socket(AF_INET, SOCK_STREAM, 0), SOL_SOCKET, SO_RCVBUF, &val, &len);
         fprintf (fopen("conftestval", "w"), "%d\n", val);
 	exit(0);
 }
