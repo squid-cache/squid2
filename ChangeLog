@@ -8,14 +8,24 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	  internal DNS
 	- pam_auth fails on Solaris when using pam_authtok_get. Persistent
 	  PAM connections are unsafe and now disabled by default.
+	- auth_param documentation clarifications and added default realm
+	  values making only the helper program a required attribute
 	- Bug #795: German ERR_DNS_FAIL correction
 	- Bug #803: Lithuantian error messages update
 	- Bug #806: Segfault if failing to load error page
 	- Bug #812: Mozilla/Netscape plugins mime type defined (.xpi)
 	- Bug #817: maximum_object_size too large causes squid not to cache
+	- Bug #824: 100% CPU loop if external_acl combined with separate
+          authentication acl in the same http_access line
+	- squid_ldap_group updated to version 2.12 with support for ldaps://
+	  (LDAPv2 over SSL) and a numer of other improvements.
 	- Bug #799: positive_dns_ttl ignored when using internal DNS.
+	- Bug #690: Incorrect html on empty Gopher responses
+	- Bug #729: --enable-arp-acl may give warning about net/route.h
 	- Bug #14: attempts to establish connection may look like syn flood
 	  attack if the contacted server is refusing connections
+	- errorpage README files included in the distribution again showing
+	  who contributed which translation
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 
