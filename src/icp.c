@@ -1693,6 +1693,8 @@ parseHttpRequest(icpStateData * icpState)
 	icpState->accel = 0;
     }
     icpState->log_url = xstrdup(icpState->url);
+    if (strlen(icpState->log_url) > 512)
+	*(icpState->log_url + 512) = '\0';
 
     debug(12, 5, "parseHttpRequest: Complete request received\n");
     if (free_request)
@@ -1708,7 +1710,6 @@ clientReadRequest(int fd, void *data)
 {
     icpStateData *icpState = data;
     int parser_return_code = 0;
-    int k;
     request_t *request = NULL;
     char *wbuf = NULL;
     int size;
@@ -1780,8 +1781,7 @@ clientReadRequest(int fd, void *data)
 	 *    Partial request received; reschedule until parseAsciiUrl()
 	 *    is happy with the input
 	 */
-	k = icpState->inbufsize - 1 - icpState->in_offset;
-	if (k == 0) {
+	if (icpState->in_offset == icpState->inbufsize - 1) {
 	    if (icpState->in_offset >= Config.maxRequestSize) {
 		/* The request is too large to handle */
 		debug(12, 0, "clientReadRequest: Request won't fit in buffer.\n");
@@ -1800,7 +1800,6 @@ clientReadRequest(int fd, void *data)
 	    meta_data.misc += ASCII_INBUF_BLOCKSIZE;
 	    debug(12, 2, "Handling a large request, offset=%d inbufsize=%d\n",
 		icpState->in_offset, icpState->inbufsize);
-	    k = icpState->inbufsize - 1 - icpState->in_offset;
 	}
 	commSetSelect(fd,
 	    COMM_SELECT_READ,
@@ -1850,56 +1849,61 @@ asciiHandleConn(int sock, void *notused)
 {
     int fd = -1;
     int lft = -1;
-    icpStateData *icpState = NULL;
+    icpStateData *icpState;
     struct sockaddr_in peer;
     struct sockaddr_in me;
 
-    memset(&peer, '\0', sizeof(struct sockaddr_in));
-    memset(&me, '\0', sizeof(struct sockaddr_in));
+    while (1) {
+	icpState = NULL;
+	memset(&peer, '\0', sizeof(struct sockaddr_in));
+	memset(&me, '\0', sizeof(struct sockaddr_in));
 
-    commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
-    if ((fd = comm_accept(sock, &peer, &me)) < 0) {
-	debug(50, 1, "asciiHandleConn: FD %d: accept failure: %s\n",
-	    sock, xstrerror());
-	return;
+	commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
+	if ((fd = comm_accept(sock, &peer, &me)) < 0) {
+	    if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)
+		return;
+	    debug(50, 1, "asciiHandleConn: FD %d: accept failure: %s\n",
+		sock, xstrerror());
+	    return;
+	}
+	if (vizSock > -1)
+	    vizHackSendPkt(&peer, 1);
+	/* set the hardwired lifetime */
+	lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
+	ntcpconn++;
+
+	debug(12, 4, "asciiHandleConn: FD %d: accepted, lifetime %d\n", fd, lft);
+
+	icpState = xcalloc(1, sizeof(icpStateData));
+	icpState->start = current_time;
+	icpState->inbufsize = ASCII_INBUF_BLOCKSIZE;
+	icpState->inbuf = xcalloc(icpState->inbufsize, 1);
+	icpState->header.shostid = htonl(peer.sin_addr.s_addr);
+	icpState->peer = peer;
+	icpState->log_addr = peer.sin_addr;
+	icpState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
+	icpState->me = me;
+	icpState->entry = NULL;
+	icpState->fd = fd;
+	icpState->ident.fd = -1;
+	fd_note(fd, inet_ntoa(icpState->log_addr));
+	meta_data.misc += ASCII_INBUF_BLOCKSIZE;
+	commSetSelect(fd,
+	    COMM_SELECT_LIFETIME,
+	    (PF) asciiConnLifetimeHandle,
+	    (void *) icpState, 0);
+	comm_add_close_handler(fd,
+	    icpStateFree,
+	    (void *) icpState);
+	commSetSelect(fd,
+	    COMM_SELECT_READ,
+	    clientReadRequest,
+	    (void *) icpState,
+	    0);
+	/* start reverse lookup */
+	if (Config.Log.log_fqdn)
+	    fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
     }
-    if (vizSock > -1)
-	vizHackSendPkt(&peer, 1);
-    /* set the hardwired lifetime */
-    lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
-    ntcpconn++;
-
-    debug(12, 4, "asciiHandleConn: FD %d: accepted, lifetime %d\n", fd, lft);
-
-    icpState = xcalloc(1, sizeof(icpStateData));
-    icpState->start = current_time;
-    icpState->inbufsize = ASCII_INBUF_BLOCKSIZE;
-    icpState->inbuf = xcalloc(icpState->inbufsize, 1);
-    icpState->header.shostid = htonl(peer.sin_addr.s_addr);
-    icpState->peer = peer;
-    icpState->log_addr = peer.sin_addr;
-    icpState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
-    icpState->me = me;
-    icpState->entry = NULL;
-    icpState->fd = fd;
-    icpState->ident.fd = -1;
-    fd_note(fd, inet_ntoa(icpState->log_addr));
-    meta_data.misc += ASCII_INBUF_BLOCKSIZE;
-    commSetSelect(fd,
-	COMM_SELECT_LIFETIME,
-	(PF) asciiConnLifetimeHandle,
-	(void *) icpState, 0);
-    comm_add_close_handler(fd,
-	icpStateFree,
-	(void *) icpState);
-    commSetSelect(fd,
-	COMM_SELECT_READ,
-	clientReadRequest,
-	(void *) icpState,
-	0);
-    /* start reverse lookup */
-    if (Config.Log.log_fqdn)
-	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
 }
 
 void
