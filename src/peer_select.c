@@ -201,6 +201,7 @@ peerSelectCallbackFail(ps_state * psstate)
 	psstate->fail_callback(NULL, data);
     cbdataUnlock(data);
     peerSelectStateFree(psstate);
+    /* XXX When this happens, the client request just hangs */
 }
 
 static void
