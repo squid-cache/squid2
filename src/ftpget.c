@@ -456,7 +456,7 @@ void generic_sig_handler(sig)
     static char buf[SMALLBUFSIZ];
 
     if (socket_pathname)
-        unlink(socket_pathname);
+	unlink(socket_pathname);
     sprintf(buf, "Received signal %d, exiting.\n", sig);
     errorlog(buf);
     if (MainRequest == NULL)
@@ -824,6 +824,8 @@ char *mime_get_icon(name)
     char *t = NULL;
     int i = 0;
 
+    if (name == NULL)
+	return xstrdup("unknown");
     if (!(t = strrchr(name, '.')))
 	return xstrdup("unknown");
     ext = xstrdup(t + 1);
@@ -1302,14 +1304,14 @@ state_t do_port(r)
 
     if (!init) {
 	init = 1;
-#if defined(HAVE_SRAND48)
+#if HAVE_SRAND48
 	srand48(time(NULL));
 #else
 	srand(time(NULL));
 #endif
     }
     for (;;) {
-#if defined(HAVE_LRAND48)
+#if HAVE_LRAND48
 	port = (lrand48() % (o_conn_max - o_conn_min)) + o_conn_min;
 #else
 	port = (rand() % (o_conn_max - o_conn_min)) + o_conn_min;
@@ -2263,8 +2265,8 @@ int ftpget_srv_mode(arg)
     }
     if (listen(sock, 50) < 0) {
 	log_errno2(__FILE__, __LINE__, "listen");
-    if (socket_pathname)
-        unlink(socket_pathname);
+	if (socket_pathname)
+	    unlink(socket_pathname);
 	exit(1);
     }
     for (;;) {
@@ -2285,7 +2287,7 @@ int ftpget_srv_mode(arg)
 	    /* exit server mode if any activity on stdin */
 	    close(sock);
 	    if (socket_pathname)
-	        unlink(socket_pathname);
+		unlink(socket_pathname);
 	    return 0;
 	}
 	if (!FD_ISSET(sock, &R))
@@ -2293,7 +2295,7 @@ int ftpget_srv_mode(arg)
 	if ((c = accept(sock, NULL, 0)) < 0) {
 	    log_errno2(__FILE__, __LINE__, "accept");
 	    if (socket_pathname)
-	        unlink(socket_pathname);
+		unlink(socket_pathname);
 	    exit(1);
 	}
 	if (fork()) {
