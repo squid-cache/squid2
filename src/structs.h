@@ -139,6 +139,7 @@ struct _authscheme_entry {
     AUTHSADDTRAILER *AddTrailer;
     AUTHSAUTHED *authenticated;
     AUTHSAUTHUSER *authAuthenticate;
+    AUTHSCONFIGURED *configured;
     AUTHSDUMP *dump;
     AUTHSFIXERR *authFixHeader;
     AUTHSFREE *FreeUser;

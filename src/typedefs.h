@@ -293,6 +293,7 @@ typedef void StatHistBinDumper(StoreEntry *, int idx, double val, double size, i
 typedef int AUTHSACTIVE();
 typedef int AUTHSAUTHED(auth_user_request_t *);
 typedef void AUTHSAUTHUSER(auth_user_request_t *, request_t *, ConnStateData *, http_hdr_type);
+typedef int AUTHSCONFIGURED();
 typedef void AUTHSDECODE(auth_user_request_t *, const char *);
 typedef int AUTHSDIRECTION(auth_user_request_t *);
 typedef void AUTHSDUMP(StoreEntry *, const char *, authScheme *);

@@ -785,6 +785,32 @@ if test -n "$NTLM_AUTH_HELPERS"; then
 fi
 AC_SUBST(NTLM_AUTH_HELPERS)
 
+dnl Select digest auth scheme helpers to build
+DIGEST_AUTH_HELPERS=
+AC_ARG_ENABLE(digest-auth-helpers,
+[  --enable-digest-auth-helpers=\"list of helpers\"
+                          This option selects which digest scheme authentication
+                          helpers to build and install as part of the normal build
+                          process. For a list of available modules see the
+                          src/auth/digest/helpers directory.],
+[ case "$enableval" in
+  yes)
+    for helper in $srcdir/src/auth/digest/helpers/*; do
+        if test -f $helper/Makefile.in; then
+            DIGEST_AUTH_HELPERS="$DIGEST_AUTH_HELPERS `basename $helper`"
+        fi
+    done
+    ;;
+  no)
+    ;;
+  *)
+    DIGEST_AUTH_HELPERS="`echo $enableval| sed -e 's/,/ /g;s/  */ /g'`"
+  esac
+])
+if test -n "$DIGEST_AUTH_HELPERS"; then
+    echo "Digest auth helpers built: $DIGEST_AUTH_HELPERS"
+fi
+AC_SUBST(DIGEST_AUTH_HELPERS)
 
 dnl Disable "unlinkd" code
 AC_ARG_ENABLE(unlinkd,
