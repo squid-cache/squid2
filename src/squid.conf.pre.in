@@ -530,6 +530,9 @@ acl manager proto cache_object
 acl localhost src 127.0.0.1/255.255.255.255
 acl all src 0.0.0.0/0.0.0.0
 
+acl SSL_ports port 443 563
+acl CONNECT method CONNECT
+
 # Allowing or Denying access based on defined access lists
 #
 # Access to the HTTP port:
@@ -540,6 +543,7 @@ acl all src 0.0.0.0/0.0.0.0
 
 # Only allow access to the cache manager functions from the local host.
 http_access deny manager !localhost
+http_access deny CONNECT !SSL_ports
 
 # Allow everything else
 http_access allow  all
