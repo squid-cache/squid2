@@ -308,21 +308,30 @@ pumpFree(int fd, void *data)
            q->next = p->next;
     else
            pump_head = p->next;
-    assert(p->c_fd>0);
-    comm_remove_close_handler(p->c_fd, pumpFree, pumpState);
-    commSetSelect(pumpState->c_fd, COMM_SELECT_READ, NULL, NULL, 0);
-  
+
+    if (p->c_fd>0) {
+        debug(61,3)("pumpFree: cleaning client side\n");
+    	comm_remove_close_handler(p->c_fd, pumpFree, pumpState);
+    	commSetSelect(pumpState->c_fd, COMM_SELECT_READ, NULL, NULL, 0);
+    	p->c_fd=-1;
+    } else
+        debug(61,3)("pumpFree: NOT cleaning server side\n");
+
     if (p->s_fd>0) {
+        debug(61,3)("pumpFree: cleaning server side\n");
     	comm_remove_close_handler(p->s_fd, pumpFree, pumpState);
     	commSetSelect(pumpState->s_fd, COMM_SELECT_READ, NULL, NULL, 0);
  
     	storeUnlockObject(pumpState->buf_entry);
     	storeUnregister(pumpState->buf_entry, pumpState);
-    }
+    } else
+        debug(61,3)("pumpFree: NOT cleaning server side\n");
 
     requestUnlink(pumpState->req);
     s_fd=pumpState->s_fd;
+    pumpState->s_fd=NULL;
     hdl = pumpState->callback;
+    pumpState->callback=NULL;
     cbdata = pumpState->cbdata;
     cbdataFree(data);
     if (hdl) {
