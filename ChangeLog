@@ -1,7 +1,7 @@
 Changes to Squid-2.3.STABLE1 (Jan 9, 2000):
 
 	- Updated PAM authentication module from Henrik Nordstrom.
-	- Updated Bulgarian error messages from @@
+	- Updated Bulgarian error messages from Svetlin Simeonov.
 	- Changed ACL routines so that User-Agent (browser) string
 	  is always taken from compiled HTTP request headers
 	  instead of passed as an argument to aclCreateChecklist.
