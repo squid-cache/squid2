@@ -3109,8 +3109,10 @@ clientReadRequest(int fd, void *data)
 			http->flags.internal = 1;
 		    }
 		}
-		if (http->flags.internal)
+		if (http->flags.internal) {
 		    request->protocol = PROTO_HTTP;
+		    request->login[0] = '\0';
+		}
 	    }
 	    /*
 	     * cache the Content-length value in request_t.
