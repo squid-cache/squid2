@@ -1695,16 +1695,7 @@ parseHttpRequest(icpStateData * icpState)
     /* see if we running in httpd_accel_mode, if so got to convert it to URL */
     if (httpd_accel_mode && *url == '/') {
 	/* prepend the accel prefix */
-	if (vhost_mode) {
-	    /* Put the local socket IP address as the hostname */
-	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
-	    icpState->url = xcalloc(url_sz, 1);
-	    sprintf(icpState->url, "http://%s:%d%s",
-		inet_ntoa(icpState->me.sin_addr),
-		(int) Config.Accel.port,
-		url);
-	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
-	} else if (opt_accel_uses_host && (t = mime_get_header(req_hdr, "Host"))) {
+	if (opt_accel_uses_host && (t = mime_get_header(req_hdr, "Host"))) {
 	    /* If a Host: header was specified, use it to build the URL 
 	     * instead of the one in the Config file. */
 	    /*
@@ -1719,6 +1710,15 @@ parseHttpRequest(icpStateData * icpState)
 	    icpState->url = xcalloc(url_sz, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		t, (int) Config.Accel.port, url);
+	} else if (vhost_mode) {
+	    /* Put the local socket IP address as the hostname */
+	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
+	    icpState->url = xcalloc(url_sz, 1);
+	    sprintf(icpState->url, "http://%s:%d%s",
+		inet_ntoa(icpState->me.sin_addr),
+		(int) Config.Accel.port,
+		url);
+	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
 	} else {
 	    url_sz = strlen(Config.Accel.prefix) + strlen(url) +
 		Config.appendDomainLen + 1;
