@@ -1,0 +1,16 @@
+
+A new, free WWW cache server is now available for beta testing.  This
+is derivative of the Harvest object cache (``Cached'') and is named
+``Squid.'' It picks up where cached-1.4.pl3 left off.  A number of new
+features have been added, including:
+
+	- Improved parsing of HTTP requests and replies.
+	- Handling of If-Modified-Since GET requests.
+	- Background reloading of cache metadata on restart.
+	- Extensive access control mechanisms.
+	- Improved and more accurate access logging.
+	- HUP signal causes the configuration file to be re-read.
+	- Support for SSL.
+
+For more information, including the source code, please visit the
+Squid home page at http://www.nlanr.net/Squid/.
