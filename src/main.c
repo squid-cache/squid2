@@ -130,7 +130,10 @@ static void mainParseOptions(int, char **);
 static void sendSignal(void);
 static void serverConnectionsOpen(void);
 static void watch_child(char **);
-
+#ifdef SQUID_SNMP
+extern void init_snmp();
+extern void initSquidSnmp();
+#endif
 static void
 usage(void)
 {
@@ -401,24 +404,8 @@ serverConnectionsOpen(void)
 	}
     }
 #ifdef SQUID_SNMP
-    if (Config.Port.snmp) {
-	enter_suid();
-	fd = comm_open(SOCK_STREAM,
-	    0,
-	    Config.Addrs.snmp_incoming,
-	    SQUID_SNMP_PORT,
-	    COMM_NONBLOCKING,
-	    "SNMP Socket");
-	leave_suid();
-	if (fd < 0)
-	    continue;
-	comm_listen(fd);
-	commSetSelect(fd, COMM_SELECT_READ, snmpAccept, NULL, 0);
-	debug(1, 1) ("Accepting SNMP connections on port %d, FD %d.\n",
-	    (int) SQUID_SNMP_PORT, fd);
-    }
-#endif /* SQUID_SNMP */
-
+        initSquidSnmp();
+#endif
 
     clientdbInit();
     icmpOpen();
@@ -583,6 +570,10 @@ mainInitialize(void)
 	statAvgInit();
     }
     configured_once = 1;
+
+#ifdef SQUID_SNMP
+	init_snmp();
+#endif
 }
 
 int

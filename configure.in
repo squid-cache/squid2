@@ -584,6 +584,9 @@ if test "$ac_cv_lib_malloc_main" = "yes" ; then
 		XTRA_OBJS="$XTRA_OBJS /usr/lib/debug/mallocmap.o"
 	fi
 fi
+SNMPLIB='libsnmp.a'
+AC_SUBST(SNMPLIB)
+
 AC_SUBST(XTRA_OBJS)
 
 if test -z "$XTRA_LIBS"; then
@@ -604,6 +607,7 @@ AC_OUTPUT(\
 	./scripts/RunAccel \
 	./src/Makefile \
 	./contrib/Makefile \
+	./snmplib/Makefile \
 	./icons/Makefile \
 	./errors/Makefile \
 )

@@ -270,7 +270,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "client: ERROR: Cannot connect to %s:%d: Host unknown.\n", hostname, port);
 	    } else {
 		char tbuf[BUFSIZ];
-		sprintf(tbuf, "client: ERROR: Cannot connect to %s:%d",
+		snprintf(tbuf, BUFSIZ, "client: ERROR: Cannot connect to %s:%d",
 		    hostname, port);
 		perror(tbuf);
 	    }
