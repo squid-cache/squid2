@@ -518,6 +518,7 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	case EXT_ACL_PORT:
 	    snprintf(buf, sizeof(buf), "%d", request->port);
 	    str = buf;
+	    break;
 	case EXT_ACL_METHOD:
 	    str = RequestMethodStr[request->method];
 	    break;
