@@ -284,7 +284,6 @@ memInit(void)
     memDataInit(MEM_16K_BUF, "16K Buffer", 16384, 10);
     memDataInit(MEM_32K_BUF, "32K Buffer", 32768, 10);
     memDataInit(MEM_64K_BUF, "64K Buffer", 65536, 10);
-    memDataInit(MEM_CLIENT_SOCK_BUF, "Client Socket Buffer", CLIENT_SOCK_SZ, 0);
     memDataInit(MEM_ACL, "acl", sizeof(acl), 0);
     memDataInit(MEM_ACL_DENY_INFO_LIST, "acl_deny_info_list",
 	sizeof(acl_deny_info_list), 0);
