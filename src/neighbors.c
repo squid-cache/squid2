@@ -304,7 +304,7 @@ void
 neighbors_open(int fd)
 {
     struct sockaddr_in name;
-    int len = sizeof(struct sockaddr_in);
+    socklen_t len = sizeof(struct sockaddr_in);
     struct servent *sep = NULL;
     memset(&name, '\0', sizeof(struct sockaddr_in));
     if (getsockname(fd, (struct sockaddr *) &name, &len) < 0)

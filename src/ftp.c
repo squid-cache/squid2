@@ -1535,7 +1535,7 @@ ftpSendPasv(FtpStateData * ftpState)
 {
     int fd;
     struct sockaddr_in addr;
-    int addr_len;
+    socklen_t addr_len;
     if (ftpState->data.fd >= 0) {
 	if (!ftpState->flags.datachannel_hack) {
 	    /* We are already connected, reuse this connection. */
@@ -1660,7 +1660,7 @@ ftpOpenListenSocket(FtpStateData * ftpState, int fallback)
 {
     int fd;
     struct sockaddr_in addr;
-    int addr_len;
+    socklen_t addr_len;
     int on = 1;
     u_short port = 0;
     /*
@@ -1707,7 +1707,7 @@ ftpSendPort(FtpStateData * ftpState)
 {
     int fd;
     struct sockaddr_in addr;
-    int addr_len;
+    socklen_t addr_len;
     unsigned char *addrptr;
     unsigned char *portptr;
     debug(9, 3) ("This is ftpSendPort\n");

@@ -66,7 +66,7 @@ ipcCreate(int type, const char *prog, char *const args[], const char *name, int 
     int cwfd = -1;
     int pwfd = -1;
     int fd;
-    int len;
+    socklen_t len;
     int tmp_s;
     char *env_str;
     int x;

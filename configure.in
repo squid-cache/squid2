@@ -603,6 +603,21 @@ AC_CHECK_TYPE(ssize_t, int)
 AC_CHECK_TYPE(off_t, int)
 AC_CHECK_TYPE(mode_t, u_short)
 
+dnl Check for type in sys/socket.h
+AC_CACHE_CHECK(for socklen_t, ac_cv_type_socklen_t, [
+  AC_EGREP_CPP([socklen_t[^a-zA-Z_0-9]], [#include <sys/types.h>
+#include <sys/socket.h>
+#if STDC_HEADERS
+#include <stdlib.h>
+#include <stddef.h>
+#endif],
+    ac_cv_type_socklen_t=yes,
+    ac_cv_type_socklen_t=no)
+])
+if test $ac_cv_type_socklen_t = no; then
+  AC_DEFINE(socklen_t, int)
+fi
+
 dnl Check for needed libraries
 AC_CHECK_LIB(nsl, main)
 AC_CHECK_LIB(socket, main)

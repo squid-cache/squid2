@@ -104,7 +104,7 @@ u_short
 comm_local_port(int fd)
 {
     struct sockaddr_in addr;
-    int addr_len = 0;
+    socklen_t addr_len = 0;
     fde *F = &fd_table[fd];
 
     /* If the fd is closed already, just return */
@@ -398,7 +398,7 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 {
     int status = COMM_OK;
     fde *F = &fd_table[sock];
-    int len;
+    socklen_t len;
     int x;
     assert(ntohs(address->sin_port) != 0);
     /* Establish connection. */
@@ -457,7 +457,7 @@ comm_accept(int fd, struct sockaddr_in *peer, struct sockaddr_in *me)
     int sock;
     struct sockaddr_in P;
     struct sockaddr_in M;
-    int Slen;
+    socklen_t Slen;
     fde *F = NULL;
     Slen = sizeof(P);
     if ((sock = accept(fd, (struct sockaddr *) &P, &Slen)) < 0) {

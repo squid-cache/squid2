@@ -53,7 +53,7 @@ enum _aio_thread_status {
     _THREAD_WAITING,
     _THREAD_BUSY,
     _THREAD_FAILED,
-    _THREAD_DONE,
+    _THREAD_DONE
 };
 
 enum _aio_request_type {
@@ -64,7 +64,7 @@ enum _aio_request_type {
     _AIO_OP_CLOSE,
     _AIO_OP_UNLINK,
     _AIO_OP_OPENDIR,
-    _AIO_OP_STAT,
+    _AIO_OP_STAT
 };
 
 typedef struct aio_request_t {
