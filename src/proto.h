@@ -20,31 +20,31 @@ struct icp_common_s {
 #define ICP_COMMON_SZ (sizeof(icp_common_t))
 #define ICP_HDR_SZ (sizeof(icp_common_t)+sizeof(u_num32))
 typedef enum {
-    ICP_OP_INVALID,		/* to insure 0 doesn't get accidently interpreted. */
-    ICP_OP_QUERY,		/* query opcode (cl->sv) */
-    ICP_OP_HIT,			/* hit (cl<-sv) */
-    ICP_OP_MISS,		/* miss (cl<-sv) */
-    ICP_OP_ERR,			/* error (cl<-sv) */
-    ICP_OP_SEND,		/* send object non-auth (cl->sv) */
-    ICP_OP_SENDA,		/* send object authoritative (cl->sv) */
-    ICP_OP_DATABEG,		/* first data, but not last (sv<-cl) */
-    ICP_OP_DATA,		/* data middle of stream (sv<-cl) */
-    ICP_OP_DATAEND,		/* last data (sv<-cl) */
-    ICP_OP_SECHO,		/* echo from source (sv<-os) */
-    ICP_OP_DECHO,		/* echo from dumb cache (sv<-dc) */
-    ICP_OP_UNUSED0,
-    ICP_OP_UNUSED1,
-    ICP_OP_UNUSED2,
-    ICP_OP_UNUSED3,
-    ICP_OP_UNUSED4,
-    ICP_OP_UNUSED5,
-    ICP_OP_UNUSED6,
-    ICP_OP_UNUSED7,
-    ICP_OP_UNUSED8,
-    ICP_OP_UNUSED9,
-    ICP_OP_DENIED,		/* access denied (cl<-sv) */
-    ICP_OP_HIT_OBJ,		/* hit with object data (cl<-sv) */
-    ICP_OP_END			/* marks end of opcodes */
+    ICP_OP_INVALID,		/* 00 to insure 0 doesn't get accidently interpreted. */
+    ICP_OP_QUERY,		/* 01 query opcode (cl->sv) */
+    ICP_OP_HIT,			/* 02 hit (cl<-sv) */
+    ICP_OP_MISS,		/* 03 miss (cl<-sv) */
+    ICP_OP_ERR,			/* 04 error (cl<-sv) */
+    ICP_OP_SEND,		/* 05 send object non-auth (cl->sv) */
+    ICP_OP_SENDA,		/* 06 send object authoritative (cl->sv) */
+    ICP_OP_DATABEG,		/* 07 first data, but not last (sv<-cl) */
+    ICP_OP_DATA,		/* 08 data middle of stream (sv<-cl) */
+    ICP_OP_DATAEND,		/* 09 last data (sv<-cl) */
+    ICP_OP_SECHO,		/* 10 echo from source (sv<-os) */
+    ICP_OP_DECHO,		/* 11 echo from dumb cache (sv<-dc) */
+    ICP_OP_UNUSED0,		/* 12 */
+    ICP_OP_UNUSED1,		/* 13 */
+    ICP_OP_UNUSED2,		/* 14 */
+    ICP_OP_UNUSED3,		/* 15 */
+    ICP_OP_UNUSED4,		/* 16 */
+    ICP_OP_UNUSED5,		/* 17 */
+    ICP_OP_UNUSED6,		/* 18 */
+    ICP_OP_UNUSED7,		/* 19 */
+    ICP_OP_UNUSED8,		/* 20 */
+    ICP_OP_UNUSED9,		/* 21 */
+    ICP_OP_DENIED,		/* 22 access denied (cl<-sv) */
+    ICP_OP_HIT_OBJ,		/* 23 hit with object data (cl<-sv) */
+    ICP_OP_END			/* 24 marks end of opcodes */
 } icp_opcode;
 
 #define ICP_OP_HIGHEST (ICP_OP_END - 1)		/* highest valid opcode */
