@@ -325,7 +325,7 @@ main(int argc, char *argv[])
     return 0;
 }
 
-#elsif USE_DISKD
+#elif USE_DISKD
 
 /*
  * DEBUG 79
