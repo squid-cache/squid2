@@ -249,15 +249,12 @@ httpRequestFree(void *data)
     int elapsed_msec;
     struct _hierarchyLogData *hierData = NULL;
     const char *content_type = NULL;
+    method_t method = METHOD_NONE;
     if (http == NULL)
 	fatal_dump("httpRequestFree: http == NULL");
     icpProcessRequestControl(http, ICP_OP_DEL);
     if (http->log_type > ERR_MAX)
 	fatal_dump("httpRequestFree: http->log_type out of range.");
-if (http->entry)
-    debug(0,0,"httpRequestFree: '%s'\n", http->entry->url);
-else
-    debug(0,0,"httpRequestFree: %p\n", http);
     if (http->entry) {
 	if (http->entry->mem_obj) {
 	    http_code = http->entry->mem_obj->reply->code;
@@ -267,15 +264,17 @@ else
 	http_code = http->http_code;
     }
     elapsed_msec = tvSubMsec(http->start, current_time);
-    if (http->request)
+    if (http->request) {
 	hierData = &http->request->hierarchy;
+	method = http->request->method;
+    }
     if (http->out.size || http->log_type) {
 	HTTPCacheInfo->log_append(HTTPCacheInfo,
 	    http->url,
 	    conn->log_addr,
 	    http->out.size,
 	    log_tags[http->log_type],
-	    RequestMethodStr[http->request->method],
+	    RequestMethodStr[method],
 	    http_code,
 	    elapsed_msec,
 	    conn->ident.ident,
@@ -323,9 +322,9 @@ else
     H = &http->conn->chr;
     while (*H) {
 	if (*H == NULL)
-		fatal_dump("httpRequestFree: link list error");
+	    fatal_dump("httpRequestFree: link list error");
 	if (*H == http)
-		break;	
+	    break;
 	H = &(*H)->next;
     }
     *H = http->next;
@@ -351,7 +350,7 @@ connStateFree(int fd, void *data)
     }
     if (connState->ident.fd > -1)
 	comm_close(connState->ident.fd);
-    debug(0,0,"connStateFree: FD %d handled %d requests\n",
+    debug(0, 0, "connStateFree: FD %d handled %d requests\n",
 	fd, connState->nrequests);
     safe_free(connState);
 }
@@ -380,10 +379,8 @@ icpParseRequestHeaders(clientHttpRequest * http)
     if (mime_get_header(request_hdr, "Authorization"))
 	BIT_SET(request->flags, REQ_AUTH);
     if ((t = mime_get_header(request_hdr, "Proxy-Connection"))) {
-	if (!strcasecmp(t, "Keep-Alive")) {
+	if (!strcasecmp(t, "Keep-Alive"))
 	    BIT_SET(request->flags, REQ_PROXY_KEEPALIVE);
-	    debug(0, 0, "Got: %s\n", t);
-	}
     }
     if ((t = mime_get_header(request_hdr, "Via")))
 	if (strstr(t, ThisCache)) {
@@ -520,47 +517,19 @@ icpSendERROR(int fd,
 	put_free_4k_page);
 }
 
-#if LOG_FULL_HEADERS
-/*
- * Scan beginning of swap object being returned and hope that it contains
- * a complete MIME header for use in reply header logging (log_append).
- */
-void
-icp_maybe_remember_reply_hdr(clientHttpRequest * http)
-{
-    char *mime;
-    char *end;
-
-    if (connState && http->entry && http->entry->mem_obj
-	&& http->entry->mem_obj->data && http->entry->mem_obj->data->head
-	&& (mime = http->entry->mem_obj->data->head->data) != NULL
-	&& (end = mime_headers_end(mime)) != NULL) {
-	int mime_len = end - mime;
-	char *buf = xcalloc(mime_len + 1, 1);
-
-	xstrncpy(buf, mime, mime_len);
-	http->reply_hdr = buf;
-	debug(12, 5, "icp_maybe_remember_reply_hdr: ->\n%s<-\n", buf);
-    } else {
-	http->reply_hdr = 0;
-    }
-}
-
-#endif /* LOG_FULL_HEADERS */
-
 int
 isTcpHit(log_type code)
 {
-	/* this should be a bitmap for better optimization */
-	if (code == LOG_TCP_HIT)
-		return 1;
-	if (code == LOG_TCP_IMS_HIT)
-		return 1;
-	if (code == LOG_TCP_REFRESH_FAIL_HIT)
-		return 1;
-	if (code == LOG_TCP_REFRESH_HIT)
-		return 1;
-	return 0;
+    /* this should be a bitmap for better optimization */
+    if (code == LOG_TCP_HIT)
+	return 1;
+    if (code == LOG_TCP_IMS_HIT)
+	return 1;
+    if (code == LOG_TCP_REFRESH_FAIL_HIT)
+	return 1;
+    if (code == LOG_TCP_REFRESH_HIT)
+	return 1;
+    return 0;
 }
 
 static void
@@ -568,7 +537,7 @@ clientAppendReplyHeader(char *hdr, const char *line, size_t * sz, size_t max)
 {
     size_t n = *sz + strlen(line) + 2;
     if (n >= max)
-        return;
+	return;
     strcpy(hdr + (*sz), line);
     strcat(hdr + (*sz), crlf);
     *sz = n;
@@ -577,7 +546,7 @@ clientAppendReplyHeader(char *hdr, const char *line, size_t * sz, size_t max)
 size_t
 clientBuildReplyHeader(clientHttpRequest * http,
     char *hdr_in,
-    size_t *in_len,
+    size_t * in_len,
     char *hdr_out,
     size_t out_sz)
 {
@@ -588,42 +557,41 @@ clientBuildReplyHeader(clientHttpRequest * http,
     size_t len = 0;
     size_t hdr_len = 0;
     size_t l;
-    debug(0, 0, "clientBuildReplyHeader: INPUT:\n%s\n", hdr_in);
     end = mime_headers_end(hdr_in);
     if (end == NULL) {
-        debug(0, 0, "clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
+	debug(0, 0, "clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
 	return 0;
     }
     for (t = hdr_in; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
-        hdr_len = t - hdr_in;
-        l = strcspn(t, crlf) + 1;
-        xstrncpy(xbuf, t, l > 4096 ? 4096 : l);
-        debug(11, 5, "clientBuildReplyHeader: %s\n", xbuf);
-        if (strncasecmp(xbuf, "Proxy-Connection:", 17) == 0)
-            continue;
-        if (strncasecmp(xbuf, "Connection:", 11) == 0)
-            continue;
+	hdr_len = t - hdr_in;
+	l = strcspn(t, crlf) + 1;
+	xstrncpy(xbuf, t, l > 4096 ? 4096 : l);
+	debug(11, 5, "clientBuildReplyHeader: %s\n", xbuf);
+	if (strncasecmp(xbuf, "Proxy-Connection:", 17) == 0)
+	    continue;
+	if (strncasecmp(xbuf, "Connection:", 11) == 0)
+	    continue;
 	if (strncasecmp(xbuf, "Set-Cookie:", 11) == 0)
-		if (isTcpHit(http->log_type))
-			continue;
-        httpAppendRequestHeader(hdr_out, xbuf, &len, out_sz - 512);
+	    if (isTcpHit(http->log_type))
+		continue;
+	clientAppendReplyHeader(hdr_out, xbuf, &len, out_sz - 512);
     }
     hdr_len = t - hdr_in;
     /* Append X-Cache: */
     sprintf(ybuf, "X-Cache: %s", isTcpHit(http->log_type) ? "HIT" : "MISS");
-    httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz);
+    clientAppendReplyHeader(hdr_out, ybuf, &len, out_sz);
     /* Append Proxy-Connection: */
     if (BIT_TEST(http->request->flags, REQ_PROXY_KEEPALIVE)) {
-        sprintf(ybuf, "Proxy-Connection: Keep-Alive");
-        httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz);
+	sprintf(ybuf, "Proxy-Connection: Keep-Alive");
+	clientAppendReplyHeader(hdr_out, ybuf, &len, out_sz);
     }
-    httpAppendRequestHeader(hdr_out, null_string, &len, out_sz);
+    clientAppendReplyHeader(hdr_out, null_string, &len, out_sz);
     put_free_4k_page(xbuf);
     if (in_len)
-        *in_len = hdr_len;
+	*in_len = hdr_len;
     if ((l = strlen(hdr_out)) != len) {
-        debug_trap("clientBuildReplyHeader: size mismatch");
-        len = l;
+	debug_trap("clientBuildReplyHeader: size mismatch");
+	len = l;
     }
     debug(11, 3, "clientBuildReplyHeader: OUTPUT:\n%s\n", hdr_out);
     return len;
@@ -640,8 +608,10 @@ icpSendMoreData(int fd, clientHttpRequest * http)
     int x;
     size_t hdrlen;
     size_t newbuflen;
-    size_t l;
+    size_t l = 0;
+    size_t writelen;
     char *newbuf;
+    FREE *freefunc;
 
     debug(12, 5, "icpSendMoreData: '%s' sz %d: len %d: off %d.\n",
 	entry->url,
@@ -649,6 +619,7 @@ icpSendMoreData(int fd, clientHttpRequest * http)
 	entry->mem_obj ? entry->mem_obj->e_current_len : 0,
 	http->out.offset);
     buf = get_free_4k_page();
+    freefunc = put_free_4k_page;
     x = storeClientCopy(http->entry,
 	http->out.offset,
 	ICP_SENDMOREDATA_BUF,
@@ -661,37 +632,58 @@ icpSendMoreData(int fd, clientHttpRequest * http)
 	comm_close(fd);
 	return COMM_ERROR;
     }
+    writelen = len;
+
     if (http->out.offset == 0 && len > 0) {
 	newbuf = get_free_8k_page();
 	newbuflen = 8192;
 	hdrlen = 0;
 	l = clientBuildReplyHeader(http, buf, &hdrlen, newbuf, newbuflen);
-	if (l == 0) {
-		put_free_8k_page(newbuf);
-		len = 0; /* fake out comm_write */
+	if (l != 0) {
+	    writelen = l + len - hdrlen;
+	    if (writelen > 8192)
+		fatal_dump("icpSendMoreData: newbuf overflow");
+	    /*
+	     * l is the length of the new headers in newbuf
+	     * hdrlen is the length of the old headers in buf
+	     * len - hdrlen is the amount of body in buf
+	     */
+	    memcpy(newbuf + l, buf + hdrlen, len - hdrlen);
+	    /* replace buf with newbuf */
+	    freefunc(buf);
+	    buf = newbuf;
+	    freefunc = put_free_8k_page;
+	} else if (len < ICP_SENDMOREDATA_BUF && entry->store_status == STORE_PENDING) {
+	    /* wait for more to arrive */
+	    len = 0;
+	    writelen = 0;
+	    /* fallthrough to comm_write */
 	}
-	XXX argh, just realized that http->out.offset will be incorrect
-        if the output header is different size than the input header.
     }
 #if LOG_FULL_HEADERS
-    if (http->out.offset == 0 && len > 0)
-	icp_maybe_remember_reply_hdr(http);
+    if (http->out.offset == 0 && len > 0) {
+	if ((p = mime_headers_end(buf))) {
+	    safe_free(http->reply_hdr);
+	    http->reply_hdr = xcalloc(1 + p - buf, 1);
+	    xstrncpy(http->reply_hdr, buf, p - buf);
+	}
+    }
 #endif /* LOG_FULL_HEADERS */
     http->out.offset += len;
     if (http->request->method == METHOD_HEAD) {
 	if ((p = mime_headers_end(buf))) {
 	    *p = '\0';
-	    len = p - buf;
+	    writelen = p - buf;
 	    /* force end */
 	    http->out.offset = entry->mem_obj->e_current_len;
 	}
     }
     comm_write(fd,
 	buf,
-	len,
+	writelen,
 	clientWriteComplete,
 	http,
-	put_free_4k_page);
+	freefunc);
     return COMM_OK;
 }
 
@@ -747,7 +739,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    http->request->protocol,
 	    http->out.size);
 	if (http->entry->mem_obj->reply->content_length <= 0) {
-debug(0,0,"clientWriteComplete: closing FD %d; no content-length\n", fd);
+	    debug(0, 0, "clientWriteComplete: closing FD %d; no content-length\n", fd);
 	    comm_close(fd);
 	} else if (BIT_TEST(http->request->flags, REQ_PROXY_KEEPALIVE)) {
 	    conn = http->conn;
@@ -1842,11 +1834,10 @@ clientReadRequest(int fd, void *data)
     debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
     debug(12, 4, "clientReadRequest: len = %d\n", len);
     size = read(fd, http->in.buf + http->in.offset, len);
-debug(0,0,"clientReadRequest: read %d bytes\n", size);
     fd_bytes(fd, size, FD_READ);
 
     if (size == 0) {
-        http->conn->nrequests--;
+	http->conn->nrequests--;
 	comm_close(fd);
 	return;
     } else if (size < 0) {
@@ -1859,7 +1850,7 @@ debug(0,0,"clientReadRequest: read %d bytes\n", size);
 		0);
 	} else {
 	    debug(50, 2, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
-            http->conn->nrequests--;
+	    http->conn->nrequests--;
 	    comm_close(fd);
 	}
 	return;
@@ -2171,7 +2162,7 @@ icpDetectNewRequest(int fd, void *data)
 	vizHackSendPkt(&connState->peer, 1);
     if (fd != connState->fd)
 	fatal_dump("icpDetectNewRequest: FD mismatch");
-    debug(0, 0, "icpDetectNewRequest: FD %d: accepted\n", fd);
+    debug(0, 3, "icpDetectNewRequest: FD %d: accepted\n", fd);
     http = xcalloc(1, sizeof(clientHttpRequest));
     http->start = current_time;
     http->in.size = ASCII_INBUF_BLOCKSIZE;
@@ -2182,10 +2173,10 @@ icpDetectNewRequest(int fd, void *data)
     fd_note(fd, "Reading Request");
     commSetTimeout(fd, Config.Timeout.read, requestTimeout, http);
     commSetSelect(fd,
-        COMM_SELECT_READ,
-        clientReadRequest,
-        http,
-        0);
+	COMM_SELECT_READ,
+	clientReadRequest,
+	http,
+	0);
     commSetSelect(fd,
 	COMM_SELECT_READ,
 	clientReadRequest,
