@@ -209,7 +209,8 @@ httpLifetimeExpire(int fd, void *data)
     HttpStateData *httpState = data;
     StoreEntry *entry = httpState->entry;
     debug(11, 4, "httpLifeTimeExpire: FD %d: '%s'\n", fd, entry->url);
-    squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
+    if (entry->store_status == STORE_PENDING)
+	squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
     commSetSelect(fd, COMM_SELECT_READ | COMM_SELECT_WRITE, NULL, NULL, 0);
     comm_close(fd);
 }

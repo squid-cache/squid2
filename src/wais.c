@@ -159,7 +159,8 @@ waisLifetimeExpire(int fd, WaisStateData * waisState)
 
     entry = waisState->entry;
     debug(24, 4, "waisLifeTimeExpire: FD %d: '%s'\n", fd, entry->url);
-    squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
+    if (entry->store_status == STORE_PENDING)
+    	squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
     commSetSelect(fd, COMM_SELECT_READ | COMM_SELECT_WRITE, NULL, NULL, 0);
     comm_close(fd);
 }

@@ -187,7 +187,8 @@ ftpLifetimeExpire(int fd, FtpStateData * data)
     StoreEntry *entry = NULL;
     entry = data->entry;
     debug(9, 4, "ftpLifeTimeExpire: FD %d: '%s'\n", fd, entry->url);
-    squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
+    if (entry->store_status == STORE_PENDING)
+    	squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
     comm_close(fd);
 }
 
