@@ -112,7 +112,7 @@ static void debugOpenLog(logfile)
     if (debug_log_file)
 	xfree(debug_log_file);
     debug_log_file = xstrdup(logfile);	/* keep a static copy */
-    if (debug_log)
+    if (debug_log && debug_log != stderr)
 	fclose(debug_log);
     debug_log = fopen(logfile, "a+");
     if (!debug_log) {
