@@ -1866,7 +1866,7 @@ static void CheckQuickAbort(icpState)
 {
     if (icpState->entry == NULL)
 	return;
-    if (icpState->entry->lock_count != 1)
+    if (icpState->entry->lock_count < 1)
 	return;
     if (icpState->entry->store_status == STORE_OK)
 	return;
