@@ -49,7 +49,6 @@ const char *pingStatusStr[] =
 {
     "PING_NONE",
     "PING_WAITING",
-    "PING_TIMEOUT",
     "PING_DONE"
 };
 
