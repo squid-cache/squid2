@@ -694,6 +694,7 @@ AC_CHECK_HEADERS( \
 	strings.h \
 	sys/file.h \
 	sys/ioctl.h \
+	sys/mount.h \
 	sys/msg.h \
 	sys/param.h \
 	sys/resource.h \
@@ -701,6 +702,7 @@ AC_CHECK_HEADERS( \
 	sys/socket.h \
 	sys/stat.h \
 	sys/statvfs.h \
+	sys/vfs.h \
 	sys/syscall.h \
 	sys/time.h \
 	sys/types.h \
@@ -1037,6 +1039,7 @@ AC_CHECK_FUNCS(\
 	snprintf \
 	srand48 \
 	srandom \
+	statfs \
 	sysconf \
 	syslog \
 	timegm \

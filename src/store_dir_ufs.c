@@ -38,6 +38,13 @@
 #if HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
 #endif
+#elif HAVE_STATFS
+#if HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif
+#if HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
 #endif
 
 #define DefaultLevelOneDirs     16
@@ -1134,6 +1141,8 @@ storeUfsDirStats(StoreEntry * sentry)
     SwapDir *SD;
 #if HAVE_STATVFS
     struct statvfs sfs;
+#elif HAVE_STATFS
+    struct statfs sfs;
 #endif
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
 	SD = &Config.cacheSwap.swapDirs[i];
@@ -1151,18 +1160,25 @@ storeUfsDirStats(StoreEntry * sentry)
 	    percent(SD->map->n_files_in_map, SD->map->max_n_files));
 	storeAppendPrintf(sentry, "Removals: %d\n", SD->removals);
 	storeAppendPrintf(sentry, " Scanned: %d\n", SD->scanned);
-#if HAVE_STATVFS
 #define fsbtoblk(num, fsbs, bs) \
         (((fsbs) != 0 && (fsbs) < (bs)) ? \
                 (num) / ((bs) / (fsbs)) : (num) * ((fsbs) / (bs)))
+#if HAVE_STATVFS
 	if (!statvfs(SD->path, &sfs)) {
-	    storeAppendPrintf(sentry, "Filesystem Space in use: %d/%d KB (%d%%)\n",
-		fsbtoblk((sfs.f_blocks - sfs.f_bfree), sfs.f_frsize, 1024),
-		fsbtoblk(sfs.f_blocks, sfs.f_frsize, 1024),
-		percent(sfs.f_blocks - sfs.f_bfree, sfs.f_blocks));
-	    storeAppendPrintf(sentry, "Filesystem Inodes in use: %d/%d (%d%%)\n",
-		sfs.f_files - sfs.f_ffree, sfs.f_files,
-		percent(sfs.f_files - sfs.f_ffree, sfs.f_files));
+	    /* Work around for Linux and others with no fragments.. */
+	    if (sfs.f_frsize == 0)
+		sfs.f_frsize = sfs.f_bsize;
+	    storeAppendPrintf(sentry, "Filesystem Space in use: %ld/%ld KB (%d%%)\n",
+		(long int)fsbtoblk((sfs.f_blocks - sfs.f_bavail), sfs.f_frsize, 1024),
+		(long int)fsbtoblk(sfs.f_blocks - sfs.f_bfree + sfs.f_bavail, sfs.f_frsize, 1024),
+		(int)percent(sfs.f_blocks - sfs.f_bfree, sfs.f_blocks - sfs.f_bfree + sfs.f_bavail));
+	}
+#elif HAVE_STATFS
+	if (!statfs(SD->path, &sfs)) {
+	    storeAppendPrintf(sentry, "Filesystem Space in use: %ld/%ld KB (%d%%)\n",
+		(long int)fsbtoblk((sfs.f_blocks - sfs.f_bfree), sfs.f_bsize, 1024),
+		(long int)fsbtoblk(sfs.f_blocks - sfs.f_bfree + sfs.f_bavail, sfs.f_bsize, 1024),
+		(int)percent(sfs.f_blocks - sfs.f_bfree, sfs.f_blocks - sfs.f_bfree + sfs.f_bavail));
 	}
 #endif
 	storeAppendPrintf(sentry, "Flags:");
