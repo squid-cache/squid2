@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.30 
+# From configure.in Revision: 1.18.2.31 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2004,6 +2004,12 @@ case "$host" in
         	LIBS=`echo $LIBS | sed -e s/-lmalloc//`
         	HAVE_LIBMALLOC="no"
 		;;
+	i386-*-solaris2.?)
+    		if test "$GCC" = "yes"; then
+			echo "Removing -O for gcc on $host"
+			CFLAGS="`echo $CFLAGS | sed -e s/-O//`"
+		fi
+		;;
 	*-sgi-irix*)
         	echo "Removing -lsocket for IRIX..."
         	LIBS=`echo $LIBS | sed -e s/-lsocket//`
@@ -2012,8 +2018,17 @@ case "$host" in
 		;;
 	*m88k*)
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"
-		;;
+		cat >> confdefs.h <<\EOF
+#define GETTIMEOFDAY_NO_TZP 1
+EOF
 
+		;;
+	*-*-solaris2.0-4)
+		cat >> confdefs.h <<\EOF
+#define GETTIMEOFDAY_NO_TZP 1
+EOF
+
+		;;
 esac
 
 for ac_func in \
@@ -2048,7 +2063,7 @@ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2052 "configure"
+#line 2067 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -2098,7 +2113,7 @@ if test "$cross_compiling" = yes; then
   SQUID_FD_SETSIZE=256
 else
 cat > conftest.$ac_ext <<EOF
-#line 2102 "configure"
+#line 2117 "configure"
 #include "confdefs.h"
 
 #include <unistd.h>
@@ -2166,7 +2181,7 @@ if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_SNDBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2170 "configure"
+#line 2185 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2202,7 +2217,7 @@ if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_RCVBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2206 "configure"
+#line 2221 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2238,7 +2253,7 @@ if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_SNDBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2242 "configure"
+#line 2257 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2274,7 +2289,7 @@ if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_RCVBUF=8192
 else
 cat > conftest.$ac_ext <<EOF
-#line 2278 "configure"
+#line 2293 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2307,7 +2322,7 @@ EOF
 
 echo $ac_n "checking if sys_errlist is already defined""... $ac_c" 1>&6
 cat > conftest.$ac_ext <<EOF
-#line 2311 "configure"
+#line 2326 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() { return 0; }

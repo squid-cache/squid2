@@ -26,3 +26,6 @@
 
 /* If we need to declare sys_errlist[] as external */
 #undef NEED_SYS_ERRLIST
+
+/* If gettimeofday is known to take only one argument */
+#undef GETTIMEOFDAY_NO_TZP
