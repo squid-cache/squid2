@@ -452,9 +452,7 @@ errorConvert(char token, ErrorState * err)
 	p = r ? ftpUrlWith2f(r) : "[no URL]";
 	break;
     case 'c':
-	assert(err->type >= ERR_NONE);
-	assert(err->type < ERR_MAX);
-	p = err_type_str[err->type];
+	p = errorPageName[err->type];
 	break;
     case 'e':
 	memBufPrintf(&mb, "%d", err->xerrno);
