@@ -1061,12 +1061,15 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     if (http->request->range)
 	clientBuildRangeHeader(http, rep);
     /* Add Age header, not that our header must replace Age headers from other caches if any */
-    httpHeaderDelById(hdr, HDR_AGE);
-    /* we do not follow HTTP/1.1 precisely here becuase we rely on Date
-     * header when computing entry->timestamp; we should be using _request_ time
-     * if Date header is not available or if it is out of sync */
-    httpHeaderPutInt(hdr, HDR_AGE,
-	http->entry->timestamp <= squid_curtime ? squid_curtime - http->entry->timestamp : 0);
+    if (http->entry->timestamp > 0) {
+	httpHeaderDelById(hdr, HDR_AGE);
+	/* we do not follow HTTP/1.1 precisely here becuase we rely on Date
+	* header when computing entry->timestamp; we should be using _request_ time
+	* if Date header is not available or if it is out of sync */
+	httpHeaderPutInt(hdr, HDR_AGE,
+	    http->entry->timestamp <= squid_curtime ? 
+		squid_curtime - http->entry->timestamp : 0);
+    }
     /* Append X-Cache */
     httpHeaderPutStrf(hdr, HDR_X_CACHE, "%s from %s",
 	is_hit ? "HIT" : "MISS", getMyHostname());
