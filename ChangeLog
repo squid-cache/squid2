@@ -21,6 +21,12 @@
 	  instead of the low water mark.
 	- If a deny_info URL has 'cgi' in it, then append CGI args for
 	  client's IP address, requested URL, and the denying cache.
+	- Added configure check for broken setresuid().
+	- Updated contrib/nextstep directory (Gerben Wierda).
+	- Changed acl.c to check "unescaped" versions of URLs so
+	  that URL-escaping does not bypass access controls.
+	- Fixed double-call bug (and comm_remove_close_handler
+	  coredump?) for POST and SSL requests.
 
 Changes to squid-1.1.20 (January 9, 1998):
 
