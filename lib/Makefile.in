@@ -37,6 +37,8 @@ CFLAGS		= $(AC_CFLAGS) $(INCLUDE)
 
 all: $(LIBS)
 
+$(UTILOBJS): ../include/version.h
+
 libmiscutil.a: $(UTILOBJS)
 	$(RM) -f $@
 	ar r $@ $(UTILOBJS)
