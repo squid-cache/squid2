@@ -362,7 +362,7 @@ normal_shutdown(void)
 #if PURIFY
     configFreeMemory();
     storeFreeMemory();
-    commFreeMemory();
+    fdFreeMemory();
     dnsFreeMemory();
     redirectFreeMemory();
     errorpageFreeMemory();

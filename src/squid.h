@@ -234,6 +234,7 @@ typedef struct _request request_t;
 typedef struct _MemObject MemObject;
 typedef struct _cachemgr_passwd cachemgr_passwd;
 typedef struct _fileMap fileMap;
+typedef struct _cwstate CommWriteStateData;
 
 /* 32 bit integer compatability hack */
 #if SIZEOF_INT == 4

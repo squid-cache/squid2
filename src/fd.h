@@ -71,13 +71,14 @@ typedef struct fde {
     void *lifetime_data;
     struct close_handler *close_handler;	/* linked list */
     time_t stall_until;		/* don't select for read until this time */
-    struct _RWStateData *rwstate;	/* State data for comm_write */
+    CommWriteStateData *rwstate;	/* State data for comm_write */
 } FD_ENTRY;
 
 extern void fd_close _PARAMS((int fd));
 extern void fd_open _PARAMS((int fd, unsigned int type, const char *));
 extern void fd_note _PARAMS((int fd, const char *));
 extern void fd_bytes _PARAMS((int fd, int len, unsigned int type));
+extern void fdFreeMemory _PARAMS((void));
 
 extern FD_ENTRY *fd_table;
 extern const char *fdstatTypeStr[];

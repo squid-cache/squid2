@@ -123,7 +123,9 @@ typedef struct _dread_ctrl {
     void *client_data;
 } dread_ctrl;
 
-extern int file_open _PARAMS((const char *path, int (*handler) _PARAMS((void)), int mode, void (*callback) (), void *callback_data));
+typedef void FOCB _PARAMS((void *, int fd));
+
+extern int file_open _PARAMS((const char *path, int mode, FOCB *, void *callback_data));
 extern void file_must_close _PARAMS((int fd));
 extern void file_close _PARAMS((int fd));
 extern int file_write _PARAMS((int fd,
@@ -131,7 +133,7 @@ extern int file_write _PARAMS((int fd,
 	int len,
 	FILE_WRITE_HD * handle,
 	void *handle_data,
-	void       (*free) _PARAMS((void *))));
+	FREE *));
 extern int file_read _PARAMS((int fd,
 	char *buf,
 	int req_len,

@@ -284,11 +284,16 @@ icpStateFree(int fd, void *data)
 	    icpState->log_type,
 	    ntohs(icpState->me.sin_port));
     }
+    if (fd_table[fd].rwstate) {
+	debug(0,0,"icpStateFree: calling commCancelWriteHandler()\n");
+	commCancelWriteHandler(fd);
+    }
     if (icpState->redirect_state == REDIRECT_PENDING)
 	redirectUnregister(icpState->url, fd);
     if (icpState->ident.fd > -1)
 	comm_close(icpState->ident.fd);
     if (icpState->acl_checklist) {
+	debug(0,0,"icpStateFree: calling aclChecklistFree()\n");
 	aclChecklistFree(icpState->acl_checklist);
     }
     checkFailureRatio(icpState->log_type,
@@ -1833,18 +1838,22 @@ requestTimeout(int fd, void *data)
     StoreEntry *entry = icpState->entry;
     debug(12, 2, "requestTimeout: FD %d: lifetime is expired.\n", fd);
     CheckQuickAbort(icpState);
-    if (entry) {
+    if (entry)
 	storeUnregister(entry, fd);
-	storeRegister(entry, fd, icpHandleAbort, icpState);
-    }
-    x = protoUnregister(fd,
-	entry,
-	icpState->request,
-	icpState->peer.sin_addr);
-    if (x != 0)
-	return;
-    if (entry == NULL)
+    /* There might be a comm_write() thread; cancel callback */
+    if (fd_table[fd].rwstate) {
+	/* Some data has been sent to the client, just cancel the
+	   callback and close the FD */
+        commCancelWriteHandler(fd);
 	comm_close(fd);
+    } else {
+	/* Send an error message if nothing has been sent yet */
+        icpSendERROR(fd,
+		ERR_LIFETIME_EXP,
+		"Client Lifetime Expired",
+		icpState,
+		504);
+    }
 }
 
 /* Handle a new connection on ascii input socket. */
@@ -2030,7 +2039,6 @@ icpDetectClientClose(int fd, void *data)
 	else if (errno)
 	    debug(50, 1, "icpDetectClientClose: ERROR %s: %s\n",
 		fd_table[fd].ipaddr, xstrerror());
-	commCancelRWHandler(fd);
 	CheckQuickAbort(icpState);
 	if (entry) {
 	    if (entry->ping_status == PING_WAITING)

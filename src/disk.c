@@ -114,7 +114,7 @@ typedef struct disk_ctrl_t {
 
 
 typedef struct open_ctrl_t {
-    void (*callback) ();
+    FOCB *callback;
     void *callback_data;
     char *path;
 } open_ctrl_t;
@@ -148,7 +148,7 @@ disk_init(void)
 
 /* Open a disk file. Return a file descriptor */
 int
-file_open(const char *path, int (*handler) _PARAMS((void)), int mode, void (*callback) (), void *callback_data)
+file_open(const char *path, int mode, FOCB *callback, void *callback_data)
 {
     int fd;
     open_ctrl_t *ctrlp;
@@ -164,22 +164,16 @@ file_open(const char *path, int (*handler) _PARAMS((void)), int mode, void (*cal
 
     /* Open file */
 #if USE_ASYNC_IO
-    if (callback == NULL) {
-	fd = open(path, mode, 0644);
-	file_open_complete(ctrlp, fd, errno);
-	if (fd < 0)
-	    return DISK_ERROR;
-	return fd;
+    if (callback != NULL) {
+        aioOpen(path, mode, 0644, file_open_complete, ctrlp);
+        return DISK_OK;
     }
-    aioOpen(path, mode, 0644, file_open_complete, ctrlp);
-    return DISK_OK;
-#else
+#endif
     fd = open(path, mode, 0644);
     file_open_complete(ctrlp, fd, errno);
     if (fd < 0)
 	return DISK_ERROR;
     return fd;
-#endif
 }
 
 

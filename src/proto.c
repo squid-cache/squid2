@@ -150,6 +150,8 @@ static void
 protoDispatchComplete(peer * p, void *data)
 {
     pctrl_t *pctrl = data;
+    if (!storeUnlockObject(pctrl->entry))
+	return;
     protoStart(pctrl->fd, pctrl->entry, p, pctrl->request);
     requestUnlink(pctrl->request);
     xfree(pctrl);
@@ -159,6 +161,8 @@ static void
 protoDispatchFail(peer * p, void *data)
 {
     pctrl_t *pctrl = data;
+    if (!storeUnlockObject(pctrl->entry))
+	return;
     squid_error_entry(pctrl->entry, ERR_CANNOT_FETCH, NULL);
     requestUnlink(pctrl->request);
     xfree(pctrl);
@@ -190,27 +194,8 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
 	return 0;
     if (entry->store_status != STORE_PENDING)
 	return 0;
-    protoCancelTimeout(fd, entry);
     squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
     return 1;
-}
-
-void
-protoCancelTimeout(int fd, StoreEntry * entry)
-{
-    /* If fd = 0 then this thread was called from neighborsUdpAck and
-     * we must look up the FD in the pending list. */
-    if (!fd)
-	fd = storeFirstClientFD(entry->mem_obj);
-    if (fd < 1) {
-	debug(17, 1, "protoCancelTimeout: No client for '%s'\n", entry->url);
-	return;
-    }
-    debug(17, 2, "protoCancelTimeout: FD %d '%s'\n", fd, entry->url);
-    if (fd_table[fd].type != FD_SOCKET) {
-	debug_trap("protoCancelTimeout: called on non-socket");
-	return;
-    }
 }
 
 int
@@ -228,7 +213,6 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     if (entry->ping_status == PING_WAITING)
 	debug_trap("protoStart: ping_status is PING_WAITING");
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
-    protoCancelTimeout(fd, entry);
     netdbPingSite(request->host);
 #ifdef LOG_ICP_NUMBERS
     request->hierarchy.n_recv = entry->mem_obj->e_pings_n_acks;
@@ -274,6 +258,8 @@ protoDispatch(int fd, StoreEntry * entry, request_t * request)
     pctrl->entry = entry;
     pctrl->fd = fd;
     pctrl->request = requestLink(request);
+    /* Keep the StoreEntry locked during peer selection phase */
+    storeLockObject(entry, NULL, NULL);
     peerSelect(request,
 	entry,
 	protoDispatchComplete,

@@ -187,10 +187,10 @@ enum {
 };
 
 enum {
+    PING_NONE,
     PING_WAITING,
     PING_TIMEOUT,
-    PING_DONE,
-    PING_NONE
+    PING_DONE
 };
 
 enum {

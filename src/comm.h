@@ -121,7 +121,7 @@
 #define COMM_SELECT_READ   (0x1)
 #define COMM_SELECT_WRITE  (0x2)
 
-typedef void RWCB _PARAMS((int fd, char *, int size, int errflag, void *data));
+typedef void CWCB _PARAMS((int fd, char *, int size, int errflag, void *data));
 typedef void CNCB _PARAMS((int fd, int status, void *data));
 typedef void FREE _PARAMS((void *));
 
@@ -162,12 +162,11 @@ extern void comm_set_stall _PARAMS((int, int));
 extern void comm_write _PARAMS((int fd,
 	char *buf,
 	int size,
-	RWCB * handler,
+	CWCB * handler,
 	void *handler_data,
 	FREE *));
-extern void commFreeMemory _PARAMS((void));
 extern void commCallCloseHandlers _PARAMS((int fd));
-extern void commCancelRWHandler _PARAMS((int fd));
+extern void commCancelWriteHandler _PARAMS((int fd));
 extern int commSetTimeout _PARAMS((int fd, int, PF *, void *));
 
 extern int RESERVED_FD;
