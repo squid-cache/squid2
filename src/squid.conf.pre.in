@@ -948,6 +948,10 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	'ignore-domain' is a domain name for which authorization will
 #	*not* be required.
 #
+#	NOTE, proxy_auth support is not compiled into Squid by default.
+#	To use this feature you must enable the USE_PROXY_AUTH option
+#	near the top of src/Makefile.
+#
 #proxy_auth /dev/null
 
 #  TAG: err_html_text
