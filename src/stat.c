@@ -929,7 +929,7 @@ statAvgTick(void *notused)
 	struct mallinfo mp = mallinfo();
 	i = mp.arena;
 #endif
-	if (Config.warnings.high_pf < i)
+	if (Config.warnings.high_memory < i)
 	    debug(18, 0) ("WARNING: Memory usage at %d MB\n", i >> 20);
     }
 }
