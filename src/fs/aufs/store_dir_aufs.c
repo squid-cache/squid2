@@ -111,7 +111,6 @@ static STUNREFOBJ storeAufsDirUnrefObj;
 static QS rev_int_sort;
 static int storeAufsDirClean(int swap_index);
 static EVH storeAufsDirCleanEvent;
-static int storeAufsDirIs(SwapDir * sd);
 static int storeAufsFilenoBelongsHere(int fn, int F0, int F1, int F2);
 static int storeAufsCleanupDoubleCheck(SwapDir *, StoreEntry *);
 static void storeAufsDirStats(SwapDir *, StoreEntry *);
@@ -331,10 +330,6 @@ storeAufsDirOpenSwapLog(SwapDir * sd)
     }
     debug(50, 3) ("Cache Dir #%d log opened on FD %d\n", sd->index, fd);
     aioinfo->swaplog_fd = fd;
-    if (0 == n_asyncufs_dirs)
-	assert(NULL == asyncufs_dir_index);
-    n_asyncufs_dirs++;
-    assert(n_asyncufs_dirs <= Config.cacheSwap.n_configured);
 }
 
 static void
@@ -347,10 +342,6 @@ storeAufsDirCloseSwapLog(SwapDir * sd)
     debug(47, 3) ("Cache Dir #%d log closed on FD %d\n",
 	sd->index, aioinfo->swaplog_fd);
     aioinfo->swaplog_fd = -1;
-    n_asyncufs_dirs--;
-    assert(n_asyncufs_dirs >= 0);
-    if (0 == n_asyncufs_dirs)
-	safe_free(asyncufs_dir_index);
 }
 
 static void
@@ -1228,53 +1219,36 @@ storeAufsDirClean(int swap_index)
 static void
 storeAufsDirCleanEvent(void *unused)
 {
-    static int swap_index = 0;
-    int i;
+    static int swap_index = -1;
     int j = 0;
     int n = 0;
     /*
      * Assert that there are AUFS cache_dirs configured, otherwise
      * we should never be called.
      */
-    assert(n_asyncufs_dirs);
-    if (NULL == asyncufs_dir_index) {
+    if (swap_index == -1) {
 	SwapDir *sd;
 	squidaioinfo_t *aioinfo;
-	/*
-	 * Initialize the little array that translates AUFS cache_dir
-	 * number into the Config.cacheSwap.swapDirs array index.
-	 */
-	asyncufs_dir_index = xcalloc(n_asyncufs_dirs, sizeof(*asyncufs_dir_index));
-	for (i = 0, n = 0; i < Config.cacheSwap.n_configured; i++) {
-	    sd = &Config.cacheSwap.swapDirs[i];
-	    if (!storeAufsDirIs(sd))
-		continue;
-	    asyncufs_dir_index[n++] = i;
-	    aioinfo = (squidaioinfo_t *) sd->fsdata;
-	    j += (aioinfo->l1 * aioinfo->l2);
-	}
-	assert(n == n_asyncufs_dirs);
 	/*
 	 * Start the storeAufsDirClean() swap_index with a random
 	 * value.  j equals the total number of AUFS level 2
 	 * swap directories
 	 */
+	for (n = 0; n < n_asyncufs_dirs; n++) {
+	    sd = &Config.cacheSwap.swapDirs[asyncufs_dir_index[n]];
+	    aioinfo = (squidaioinfo_t *) sd->fsdata;
+	    j += (aioinfo->l1 * aioinfo->l2);
+	}
 	swap_index = (int) (squid_random() % j);
     }
     if (0 == store_dirs_rebuilding) {
 	n = storeAufsDirClean(swap_index);
 	swap_index++;
+	if (swap_index < 0)
+	    swap_index = 0;
     }
     eventAdd("storeDirClean", storeAufsDirCleanEvent, NULL,
 	15.0 * exp(-0.25 * n), 1);
-}
-
-static int
-storeAufsDirIs(SwapDir * sd)
-{
-    if (strncmp(sd->type, "aufs", 4) == 0)
-	return 1;
-    return 0;
 }
 
 /*
@@ -1690,6 +1664,9 @@ storeAufsDirParse(SwapDir * sd, int index, char *path)
 
     /* Initialise replacement policy stuff */
     sd->repl = createRemovalPolicy(Config.replPolicy);
+
+    asyncufs_dir_index = realloc(asyncufs_dir_index, (n_asyncufs_dirs + 1) * sizeof(*asyncufs_dir_index));
+    asyncufs_dir_index[n_asyncufs_dirs++] = index;
 }
 
 /*
