@@ -259,12 +259,12 @@ void neighbors_install(host, type, ascii_port, udp_port, proxy_only, domains)
     friends->n++;
 }
 
-static void neighborFriendsFree()
+void neighborsDestroy()
 {
     edge *e = NULL;
     edge *next = NULL;
 
-    debug(15, 1, "neighborFriendsFree()\n");
+    debug(15, 1, "neighborEdgesFree()\n");
 
     for (e = friends->edges_head; e; e = next) {
 	next = e->next;

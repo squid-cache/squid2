@@ -99,5 +99,6 @@ extern void neighbors_cf_add _PARAMS((char *, char *, int, int, int));
 extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));
 extern void neighbors_rotate_log _PARAMS((void));
+extern void neighborsDestroy _PARAMS((void));
 
 #endif
