@@ -1548,7 +1548,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	if (e->mem_status == IN_MEMORY)
 	    http->log_type = LOG_TCP_MEM_HIT;
 	clientSendMoreData(data, buf, size);
-    } else if (refreshCheckHTTP(e, r) && !http->flags.internal) {
+    } else if (!Config.onoff.offline && refreshCheckHTTP(e, r) && !http->flags.internal) {
 	debug(33, 5) ("clientCacheHit: in refreshCheck() block\n");
 	/*
 	 * We hold a stale copy; it needs to be validated
