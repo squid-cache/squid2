@@ -435,6 +435,8 @@ stat_get(const cacheinfo * obj, const char *req, StoreEntry * sentry)
 	statFiledescriptors(sentry);
     } else if (strcmp(req, "netdb") == 0) {
 	netdbDump(sentry);
+    } else if (strcmp(req, "storedir") == 0) {
+	storeDirStats(sentry);
     }
 }
 
@@ -756,8 +758,8 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 
     storeAppendPrintf(sentry, "{Cache information for %s:}\n",
 	appname);
-    storeAppendPrintf(sentry, "{\tStorage Swap size:\t%d MB}\n",
-	store_swap_size >> 10);
+    storeAppendPrintf(sentry, "{\tStorage Swap size:\t%d KB}\n",
+	store_swap_size);
     storeAppendPrintf(sentry, "{\tStorage Mem size:\t%d KB}\n",
 	store_mem_size >> 10);
     storeAppendPrintf(sentry, "{\tStorage LRU Expiration Age:\t%6.2f days}\n",
