@@ -364,6 +364,7 @@ netdbReloadState(void)
     netdbEntry N;
     struct in_addr addr;
     int count = 0;
+    struct timeval start = squid_curtime;
     sprintf(path, "%s/netdb_state", swappath(0));
     fp = fopen(path, "r");
     if (fp == NULL)
@@ -402,7 +403,8 @@ netdbReloadState(void)
     put_free_4k_page(buf);
     fclose(fp);
     getCurrentTime();
-    debug(37, 0, "%d NETDB entries reloaded\n", count);
+    debug(37, 0, "NETDB state reloaded; %d entries, %d msec\n",
+	count, tvSubMsec(start, current_time));
 }
 
 static char *
