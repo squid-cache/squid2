@@ -173,10 +173,14 @@ dnsOpenServer(const char *command)
 	    return -1;
 	}
 	memset(buf, '\0', 128);
-	errno = 0;
-	if (read(sfd, buf, 128) < 0 || strcmp(buf, "$alive\n$end\n")) {
+	if (read(sfd, buf, 127) < 0) {
 	    debug(50, 0, "dnsOpenServer: $hello read test failed\n");
 	    debug(50, 0, "--> read: %s\n", xstrerror());
+	    comm_close(sfd);
+	    return -1;
+	} else if (strcmp(buf, "$alive\n$end\n")) {
+	    debug(50, 0, "dnsOpenServer: $hello read test failed\n");
+	    debug(50, 0, "--> got '%s'\n", rfc1738_escape(buf));
 	    comm_close(sfd);
 	    return -1;
 	}

@@ -1639,7 +1639,7 @@ parseHttpRequest(icpStateData * icpState)
 		(int) Config.Accel.port,
 		url);
 	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
-	} else if ((t = mime_get_header(req_hdr, "Host"))) {
+	} else if (opt_accel_uses_host && (t = mime_get_header(req_hdr, "Host"))) {
 	    /* If a Host: header was specified, use it to build the URL 
 	     * instead of the one in the Config file. */
 	    /*

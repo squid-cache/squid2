@@ -123,6 +123,7 @@ static int opt_send_signal = -1;	/* no signal to send */
 int opt_udp_hit_obj = 1;
 int opt_mem_pools = 1;
 int opt_forwarded_for = 1;
+int opt_accel_uses_host = 0;
 int vhost_mode = 0;
 volatile int unbuffered_logs = 1;	/* debug and hierarchy unbuffered by default */
 volatile int shutdown_pending = 0;	/* set by SIGTERM handler (shut_down()) */

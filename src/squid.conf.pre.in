@@ -862,6 +862,16 @@ miss_access allow  all
 #
 #httpd_accel_with_proxy off
 
+#  TAG: httpd_accel_uses_host_header
+#	HTTP/1.1 requests include a Host: header which is basically the
+#	hostname from the URL.  Squid can be an accelerator for
+#	different HTTP servers by looking at this header.  However,
+#	Squid does NOT check the value of the Host header, so it opens
+#	a big security hole.  We recommend that this option remain
+#	disabled unless you are sure of what you are doing.
+#
+#httpd_accel_uses_host_header off
+
 
 # MISCELLANEOUS
 #-----------------------------------------------------------------------------
