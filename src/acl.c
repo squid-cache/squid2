@@ -673,6 +673,7 @@ aclParseAclLine(acl ** head)
 	debug(28, 3) ("aclParseAclLine: Appending to '%s'\n", aclname);
 	new_acl = 0;
     }
+    AclMatchedName = aclname;	/* ugly */
     switch (A->type) {
     case ACL_SRC_IP:
     case ACL_DST_IP:
@@ -737,6 +738,7 @@ aclParseAclLine(acl ** head)
 	fatal("Bad ACL type");
 	break;
     }
+    AclMatchedName = NULL;	/* ugly */
     if (!new_acl)
 	return;
     if (A->data == NULL) {
@@ -1883,10 +1885,18 @@ aclDomainCompare(const void *data, splayNode * n)
     while (d1[l1] == d2[l2]) {
 	if ((l1 == 0) && (l2 == 0))
 	    return 0;		/* d1 == d2 */
-	if (l1-- == 0)
+	if (l1-- == 0) {
+	    debug(28, 0) ("WARNING: %s is a subdomain of %s\n", d1, d2);
+	    debug(28, 0) ("WARNING: This may break Splay tree searching\n");
+	    debug(28, 0) ("WARNING: You should remove '%s' from the ACL named '%s'\n", d2, AclMatchedName);
 	    return -1;		/* d1 < d2 */
-	if (l2-- == 0)
+	}
+	if (l2-- == 0) {
+	    debug(28, 0) ("WARNING: %s is a subdomain of %s\n", d2, d1);
+	    debug(28, 0) ("WARNING: This may break Splay tree searching\n");
+	    debug(28, 0) ("WARNING: You should remove '%s' from the ACL named '%s'\n", d1, AclMatchedName);
 	    return 1;		/* d1 > d2 */
+	}
     }
     return (d1[l1] - d2[l2]);
 }
