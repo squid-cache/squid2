@@ -297,6 +297,7 @@ AC_CHECK_FUNCS(\
 	mallinfo \
 	mallocblksize \
 	mallopt \
+	memcpy \
 	memmove \
 	mktime \
 	regcomp \
