@@ -444,13 +444,13 @@ aio_cleanup_request(aio_request_t * requestp)
 	    xmemcpy(requestp->statp, requestp->tmpstatp, sizeof(struct stat));
 	xfree(requestp->tmpstatp);
     case _AIO_OP_OPEN:
-	if(cancelled && requestp->ret >= 0)
+	if (cancelled && requestp->ret >= 0)
 	    /* The open() was cancelled but completed */
 	    close(requestp->ret);
 	xfree(requestp->path);
 	break;
     case _AIO_OP_CLOSE:
-	if(cancelled && requestp->ret < 0)
+	if (cancelled && requestp->ret < 0)
 	    /* The close() was cancelled and never got executed */
 	    close(requestp->fd);
 	break;

@@ -272,12 +272,12 @@ httpCachableReply(HttpStateData * httpState)
 	/* NOTREACHED */
 	break;
 	/* Some responses can never be cached */
-    case HTTP_PARTIAL_CONTENT:			/* Not yet supported */
+    case HTTP_PARTIAL_CONTENT:	/* Not yet supported */
     case HTTP_SEE_OTHER:
     case HTTP_NOT_MODIFIED:
     case HTTP_UNAUTHORIZED:
     case HTTP_PROXY_AUTHENTICATION_REQUIRED:
-    case HTTP_INVALID_HEADER:		/* Squid header parsing error */
+    case HTTP_INVALID_HEADER:	/* Squid header parsing error */
     default:			/* Unknown status code */
 	return 0;
 	/* NOTREACHED */
@@ -348,9 +348,9 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	}
 	if (reply->cache_control) {
 	    if (EBIT_TEST(reply->cache_control->mask, CC_PROXY_REVALIDATE))
-	        EBIT_SET(entry->flag, ENTRY_REVALIDATE);
+		EBIT_SET(entry->flag, ENTRY_REVALIDATE);
 	    else if (EBIT_TEST(reply->cache_control->mask, CC_MUST_REVALIDATE))
-	        EBIT_SET(entry->flag, ENTRY_REVALIDATE);
+		EBIT_SET(entry->flag, ENTRY_REVALIDATE);
 	}
 	if (EBIT_TEST(httpState->flags, HTTP_KEEPALIVE))
 	    if (httpState->peer)

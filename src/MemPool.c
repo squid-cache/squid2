@@ -78,7 +78,7 @@ memConfigure(void)
     size_t new_pool_limit = mem_idle_limit;
     /* set to configured value first */
 #if PURIFY
-    debug(63,1)("Disabling Memory pools under purify\n");
+    debug(63, 1) ("Disabling Memory pools under purify\n");
     Config.onoff.mem_pools = 0;
 #endif
     if (!Config.onoff.mem_pools)
@@ -133,12 +133,12 @@ memShrink(size_t new_limit)
     size_t start_limit = TheMeter.idle.level;
     int i;
     assert(start_limit >= 0 && new_limit >= 0);
-    debug(63, 1) ("memShrink: started with %d KB goal: %d KB\n", 
+    debug(63, 1) ("memShrink: started with %d KB goal: %d KB\n",
 	toKB(TheMeter.idle.level), toKB(new_limit));
     /* first phase: cut proportionally to the pool idle size */
     for (i = 0; i < Pools.count && TheMeter.idle.level > new_limit; ++i) {
 	MemPool *pool = Pools.items[i];
-	const size_t target_pool_size = (size_t) ((double)pool->meter.idle.level * new_limit) / start_limit;
+	const size_t target_pool_size = (size_t) ((double) pool->meter.idle.level * new_limit) / start_limit;
 	memPoolShrink(pool, target_pool_size);
     }
     debug(63, 1) ("memShrink: 1st phase done with %d KB left\n", toKB(TheMeter.idle.level));
@@ -146,7 +146,7 @@ memShrink(size_t new_limit)
     for (i = 0; i < Pools.count && TheMeter.idle.level > new_limit; ++i)
 	memPoolShrink(Pools.items[i], 0);
     debug(63, 1) ("memShrink: 2nd phase done with %d KB left\n", toKB(TheMeter.idle.level));
-    assert(TheMeter.idle.level <= new_limit); /* paranoid */
+    assert(TheMeter.idle.level <= new_limit);	/* paranoid */
 }
 
 /* MemPoolMeter */
@@ -271,7 +271,7 @@ memPoolShrink(MemPool * pool, size_t new_limit)
 	memMeterDel(TheMeter.alloc, pool->obj_size);
 	xfree(stackPop(&pool->pstack));
     }
-    assert(pool->meter.idle.level <= new_limit); /* paranoid */
+    assert(pool->meter.idle.level <= new_limit);	/* paranoid */
 }
 
 int

@@ -50,11 +50,11 @@ httpBodyClean(HttpBody * body)
 
 /* set body by absorbing mb */
 void
-httpBodySet(HttpBody * body, MemBuf *mb)
+httpBodySet(HttpBody * body, MemBuf * mb)
 {
     assert(body);
     assert(memBufIsNull(&body->mb));
-    body->mb = *mb; /* absorb */
+    body->mb = *mb;		/* absorb */
 }
 
 void

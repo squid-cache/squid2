@@ -105,7 +105,7 @@ httpRequestSwapOut(const request_t * req, StoreEntry * e)
 
 /* packs request-line and headers, appends <crlf> terminator */
 void
-httpRequestPack(const request_t * req, Packer *p)
+httpRequestPack(const request_t * req, Packer * p)
 {
     assert(req && p);
     /* pack request-line */

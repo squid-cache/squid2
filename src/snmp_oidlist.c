@@ -403,13 +403,13 @@ meshPtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 	}
 	p = p->next;
     }
-    if(pp != NULL){
-    	addr2oid(pp->in_addr.sin_addr, &mibTail[LEN_SQ_MESH + 3]);
+    if (pp != NULL) {
+	addr2oid(pp->in_addr.sin_addr, &mibTail[LEN_SQ_MESH + 3]);
 
-    	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-		mibRoot, mibRootLen, meshPtblGetRowFn, 4, mibTail, snmp_meshPtblFn,
-		LEN_SQ_MESH + 7, LEN_SQ_MESH + 2);
-    }else{
+	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
+	    mibRoot, mibRootLen, meshPtblGetRowFn, 4, mibTail, snmp_meshPtblFn,
+	    LEN_SQ_MESH + 7, LEN_SQ_MESH + 2);
+    } else {
 	ret = NULL;
     }
     return ret;

@@ -171,8 +171,8 @@ memBufIsNull(MemBuf * mb)
 {
     assert(mb);
     if (!mb->buf && !mb->max_capacity && !mb->capacity && !mb->size)
-	return 1; /* null, not initialized */
-    assert(mb->buf && mb->max_capacity && mb->capacity); /* paranoid */
+	return 1;		/* null, not initialized */
+    assert(mb->buf && mb->max_capacity && mb->capacity);	/* paranoid */
     return 0;
 }
 

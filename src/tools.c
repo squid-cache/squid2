@@ -904,7 +904,7 @@ debugObj(int section, int level, const char *label, void *obj, ObjPackMethod pm)
     assert(label && obj && pm);
     memBufDefInit(&mb);
     packerToMemInit(&p, &mb);
-    (*pm)(obj, &p);
+    (*pm) (obj, &p);
     debug(section, level) ("%s%s", label, mb.buf);
     packerClean(&p);
     memBufClean(&mb);

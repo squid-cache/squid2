@@ -148,7 +148,7 @@ neighborTypeStr(const peer * p)
 
 
 peer *
-whichPeer(const struct sockaddr_in *from)
+whichPeer(const struct sockaddr_in * from)
 {
     int j;
     u_short port = ntohs(from->sin_port);

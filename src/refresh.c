@@ -58,7 +58,7 @@ struct {
 #define REFRESH_DEFAULT_PCT	0.20
 #define REFRESH_DEFAULT_MAX	(time_t)259200
 
-static const refresh_t * refreshLimits(const char *);
+static const refresh_t *refreshLimits(const char *);
 static const refresh_t *refreshUncompiledPattern(const char *);
 static OBJH refreshStats;
 

@@ -56,7 +56,7 @@ whoisStart(FwdState * fwdState, int fd)
     cbdataAdd(p, MEM_NONE);
     storeLockObject(p->entry);
     comm_add_close_handler(fd, whoisClose, p);
-    l = strLen(p->request->urlpath)+3;
+    l = strLen(p->request->urlpath) + 3;
     buf = xmalloc(l);
     snprintf(buf, l, "%s\r\n", strBuf(p->request->urlpath) + 1);
     comm_write(fd, buf, strlen(buf), NULL, p, xfree);

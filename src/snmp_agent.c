@@ -63,10 +63,10 @@ snmp_basicFn(variable_list * Var, snint * ErrP)
     switch (Var->name[7]) {
     case SYS_DESCR:
 	pp = SQUID_SYS_DESCR;
-        Answer->type = ASN_OCTET_STR;
-        Answer->val_len = strlen(pp);
-        Answer->val.string = (u_char *) xstrdup(pp);
-        break;
+	Answer->type = ASN_OCTET_STR;
+	Answer->val_len = strlen(pp);
+	Answer->val.string = (u_char *) xstrdup(pp);
+	break;
     case SYS_OBJECT_ID:
 	pp = SQUID_VERSION;
 	Answer->type = ASN_OCTET_STR;
