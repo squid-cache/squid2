@@ -245,9 +245,6 @@ memInit(void)
     memDataInit(MEM_RELIST, "relist", sizeof(relist), 0);
     memDataInit(MEM_REQUEST_T, "request_t", sizeof(request_t),
 	Squid_MaxFD >> 3);
-#if SQUID_SNMP
-    memDataInit(MEM_SNMPCONF, "snmpconf", sizeof(snmpconf), 0);
-#endif
     memDataInit(MEM_SQUIDCONFIG, "SquidConfig", sizeof(SquidConfig), 0);
     memDataInit(MEM_SQUIDCONFIG2, "SquidConfig2", sizeof(SquidConfig2), 0);
     memDataInit(MEM_STATCOUNTERS, "StatCounters", sizeof(StatCounters), 0);
