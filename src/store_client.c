@@ -230,14 +230,6 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
      */
     if (storeClientNoMoreToSend(e, sc)) {
 	/* There is no more to send! */
-#if USE_ASYNC_IO
-	if (sc->flags.disk_io_pending) {
-	    if (sc->swapin_fd >= 0)
-		aioCancel(sc->swapin_fd, NULL);
-	    else
-		aioCancel(-1, sc);
-	}
-#endif
 	sc->flags.disk_io_pending = 0;
 	sc->callback = NULL;
 	callback(sc->callback_data, sc->copy_buf, 0);
@@ -248,14 +240,6 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
 	/* What the client wants is in memory */
 	debug(20, 3) ("storeClientCopy2: Copying from memory\n");
 	sz = stmemCopy(&mem->data_hdr, sc->copy_offset, sc->copy_buf, sc->copy_size);
-#if USE_ASYNC_IO
-	if (sc->flags.disk_io_pending) {
-	    if (sc->swapin_fd >= 0)
-		aioCancel(sc->swapin_fd, NULL);
-	    else
-		aioCancel(-1, sc);
-	}
-#endif
 	sc->flags.disk_io_pending = 0;
 	sc->callback = NULL;
 	callback(sc->callback_data, sc->copy_buf, sz);
@@ -439,10 +423,6 @@ storeUnregister(StoreEntry * e, void *data)
 	storeClose(sc->swapin_sio);
 	/* XXX this probably leaks file_read handler structures */
     }
-#if USE_ASYNC_IO
-    else
-	aioCancel(-1, sc);
-#endif
     if ((callback = sc->callback) != NULL) {
 	/* callback with ssize = -1 to indicate unexpected termination */
 	debug(20, 3) ("storeUnregister: store_client for %s has a callback\n",

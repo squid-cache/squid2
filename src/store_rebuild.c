@@ -527,10 +527,10 @@ storeGetNextFile(rebuild_dir * d, int *sfileno, int *size)
 	    store_open_disk_fd++;
 	}
 	d->in_dir = 0;
-	if (++d->curlvl2 < Config.cacheSwap.swapDirs[d->dirn].l2)
+	if (++d->curlvl2 < Config.cacheSwap.swapDirs[d->dirn].u.ufs.l2)
 	    continue;
 	d->curlvl2 = 0;
-	if (++d->curlvl1 < Config.cacheSwap.swapDirs[d->dirn].l1)
+	if (++d->curlvl1 < Config.cacheSwap.swapDirs[d->dirn].u.ufs.l1)
 	    continue;
 	d->curlvl1 = 0;
 	d->done = 1;

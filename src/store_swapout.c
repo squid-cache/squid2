@@ -99,16 +99,7 @@ storeSwapOut(StoreEntry * e)
     if (mem->swapout.sio)
 	debug(20, 7) ("storeSwapOut: storeOffset() = %d\n",
 	    (int) storeOffset(mem->swapout.sio));
-#if USE_ASYNC_IO
-    if (mem->inmem_hi < mem->swapout.queue_offset) {
-	storeAbort(e);
-	assert(EBIT_TEST(e->flags, RELEASE_REQUEST));
-	storeSwapOutFileClose(e);
-	return;
-    }
-#else
     assert(mem->inmem_hi >= mem->swapout.queue_offset);
-#endif
     lowest_offset = storeLowestMemReaderOffset(e);
     debug(20, 7) ("storeSwapOut: lowest_offset = %d\n",
 	(int) lowest_offset);

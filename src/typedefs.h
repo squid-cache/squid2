@@ -211,6 +211,12 @@ typedef void HLPCB(void *, char *buf);
 typedef void HLPCMDOPTS(int *argc, char **argv);
 typedef void IDNSCB(void *, rfc1035_rr *, int);
 
+typedef storeIOState *STOPEN(sfileno, mode_t, STIOCB *, void *);
+typedef void STCLOSE(storeIOState *);
+typedef void STREAD(storeIOState *, char *, size_t, off_t, STRCB *, void *);
+typedef void STWRITE(storeIOState *, char *, size_t, off_t, FREE *);
+typedef void STUNLINK(sfileno);
+
 typedef double hbase_f(double);
 typedef void StatHistBinDumper(StoreEntry *, int idx, double val, double size, int count);
 

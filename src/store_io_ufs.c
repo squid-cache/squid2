@@ -85,11 +85,7 @@ void
 storeUfsUnlink(sfileno f)
 {
     debug(78, 3) ("storeUfsUnlink: fileno %08X\n", f);
-#if USE_ASYNC_IO
-    safeunlink(storeSwapFullPath(f, NULL), 1);
-#else
     unlinkdUnlink(storeSwapFullPath(f, NULL));
-#endif
 }
 
 /*  === STATIC =========================================================== */
@@ -160,8 +156,8 @@ storeUfsFullPath(int fn, char *fullpath)
     int dirn = (fn >> SWAP_DIR_SHIFT) % Config.cacheSwap.n_configured;
     int filn = fn & SWAP_FILE_MASK;
     SwapDir *SD = &Config.cacheSwap.swapDirs[dirn];
-    int L1 = SD->l1;
-    int L2 = SD->l2;
+    int L1 = SD->u.ufs.l1;
+    int L2 = SD->u.ufs.l2;
     if (!fullpath)
 	fullpath = fullfilename;
     fullpath[0] = '\0';

@@ -56,7 +56,7 @@ storeUfsSwapSubDir(int dirn, int subdirn)
     SwapDir *SD;
     assert(0 <= dirn && dirn < Config.cacheSwap.n_configured);
     SD = &Config.cacheSwap.swapDirs[dirn];
-    assert(0 <= subdirn && subdirn < SD->l1);
+    assert(0 <= subdirn && subdirn < SD->u.ufs.l1);
     snprintf(fullfilename, SQUID_MAXPATHLEN, "%s/%02X",
 	Config.cacheSwap.swapDirs[dirn].path,
 	subdirn);
@@ -77,8 +77,8 @@ storeUfsFilenoBelongsHere(int fn, int F0, int F1, int F2)
     int L1, L2;
     int filn = fn & SWAP_FILE_MASK;
     assert(F0 < Config.cacheSwap.n_configured);
-    L1 = Config.cacheSwap.swapDirs[F0].l1;
-    L2 = Config.cacheSwap.swapDirs[F0].l2;
+    L1 = Config.cacheSwap.swapDirs[F0].u.ufs.l1;
+    L2 = Config.cacheSwap.swapDirs[F0].u.ufs.l2;
     D1 = ((filn / L2) / L2) % L1;
     if (F1 != D1)
 	return 0;
@@ -140,7 +140,7 @@ storeUfsVerifyCacheDirs(void)
 	path = Config.cacheSwap.swapDirs[i].path;
 	if (storeUfsVerifyDirectory(path) < 0)
 	    return -1;
-	for (j = 0; j < Config.cacheSwap.swapDirs[i].l1; j++) {
+	for (j = 0; j < Config.cacheSwap.swapDirs[i].u.ufs.l1; j++) {
 	    path = storeUfsSwapSubDir(i, j);
 	    if (storeUfsVerifyDirectory(path) < 0)
 		return -1;
@@ -148,6 +148,29 @@ storeUfsVerifyCacheDirs(void)
     }
     return 0;
 }
+
+static void
+storeUfsCreateSwapSubDirs(int j)
+{
+    int i, k;
+    int should_exist;
+    SwapDir *SD = &Config.cacheSwap.swapDirs[j];
+    LOCAL_ARRAY(char, name, MAXPATHLEN);
+    for (i = 0; i < SD->u.ufs.l1; i++) {
+	snprintf(name, MAXPATHLEN, "%s/%02X", SD->path, i);
+	if (storeUfsCreateDirectory(name, 0))
+	    should_exist = 0;
+	else
+	    should_exist = 1;
+	debug(47, 1) ("Making directories in %s\n", name);
+	for (k = 0; k < SD->u.ufs.l2; k++) {
+	    snprintf(name, MAXPATHLEN, "%s/%02X/%02X", SD->path, i, k);
+	    storeUfsCreateDirectory(name, should_exist);
+	}
+    }
+}
+
+/* ========== LOCAL FUNCTIONS ABOVE, GLOBAL FUNCTIONS BELOW ========== */
 
 void
 storeUfsCreateSwapDirectories(void)
@@ -159,27 +182,6 @@ storeUfsCreateSwapDirectories(void)
 	debug(47, 3) ("Creating swap space in %s\n", path);
 	storeUfsCreateDirectory(path, 0);
 	storeUfsCreateSwapSubDirs(i);
-    }
-}
-
-static void
-storeUfsCreateSwapSubDirs(int j)
-{
-    int i, k;
-    int should_exist;
-    SwapDir *SD = &Config.cacheSwap.swapDirs[j];
-    LOCAL_ARRAY(char, name, MAXPATHLEN);
-    for (i = 0; i < SD->l1; i++) {
-	snprintf(name, MAXPATHLEN, "%s/%02X", SD->path, i);
-	if (storeUfsCreateDirectory(name, 0))
-	    should_exist = 0;
-	else
-	    should_exist = 1;
-	debug(47, 1) ("Making directories in %s\n", name);
-	for (k = 0; k < SD->l2; k++) {
-	    snprintf(name, MAXPATHLEN, "%s/%02X/%02X", SD->path, i, k);
-	    storeUfsCreateDirectory(name, should_exist);
-	}
     }
 }
 
@@ -198,7 +200,7 @@ storeUfsDirSwapLog(const StoreEntry * e, int op)
     s->refcount = e->refcount;
     s->flags = e->flags;
     xmemcpy(s->key, e->key, MD5_DIGEST_CHARS);
-    file_write(Config.cacheSwap.swapDirs[dirn].swaplog_fd,
+    file_write(Config.cacheSwap.swapDirs[dirn].u.ufs.swaplog_fd,
 	-1,
 	s,
 	sizeof(storeSwapLogData),
@@ -242,7 +244,7 @@ storeUfsDirOpenSwapLogs(void)
 	    fatal("storeDirOpenSwapLogs: Failed to open swap log.");
 	}
 	debug(47, 3) ("Cache Dir #%d log opened on FD %d\n", i, fd);
-	SD->swaplog_fd = fd;
+	SD->u.ufs.swaplog_fd = fd;
     }
 }
 
@@ -253,11 +255,11 @@ storeUfsDirCloseSwapLogs(void)
     SwapDir *SD;
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
 	SD = &Config.cacheSwap.swapDirs[i];
-	if (SD->swaplog_fd < 0)	/* not open */
+	if (SD->u.ufs.swaplog_fd < 0)	/* not open */
 	    continue;
-	file_close(SD->swaplog_fd);
-	debug(47, 3) ("Cache Dir #%d log closed on FD %d\n", i, SD->swaplog_fd);
-	SD->swaplog_fd = -1;
+	file_close(SD->u.ufs.swaplog_fd);
+	debug(47, 3) ("Cache Dir #%d log closed on FD %d\n", i, SD->u.ufs.swaplog_fd);
+	SD->u.ufs.swaplog_fd = -1;
     }
 }
 
@@ -281,15 +283,15 @@ storeUfsDirOpenTmpSwapLog(int dirn, int *clean_flag, int *zero_flag)
     }
     *zero_flag = log_sb.st_size == 0 ? 1 : 0;
     /* close the existing write-only FD */
-    if (SD->swaplog_fd >= 0)
-	file_close(SD->swaplog_fd);
+    if (SD->u.ufs.swaplog_fd >= 0)
+	file_close(SD->u.ufs.swaplog_fd);
     /* open a write-only FD for the new log */
     fd = file_open(new_path, O_WRONLY | O_CREAT | O_TRUNC, NULL, NULL, NULL);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", new_path, xstrerror());
 	fatal("storeDirOpenTmpSwapLog: Failed to open swap log.");
     }
-    SD->swaplog_fd = fd;
+    SD->u.ufs.swaplog_fd = fd;
     /* open a read-only stream of the old log */
     fp = fopen(swaplog_path, "r");
     if (fp == NULL) {
@@ -317,7 +319,7 @@ storeUfsDirCloseTmpSwapLog(int dirn)
     char *new_path = xstrdup(storeDirSwapLogFile(dirn, ".new"));
     SwapDir *SD = &Config.cacheSwap.swapDirs[dirn];
     int fd;
-    file_close(SD->swaplog_fd);
+    file_close(SD->u.ufs.swaplog_fd);
 #ifdef _SQUID_OS2_
     if (unlink(swaplog_path) < 0) {
 	debug(50, 0) ("%s: %s\n", swaplog_path, xstrerror());
@@ -335,7 +337,7 @@ storeUfsDirCloseTmpSwapLog(int dirn)
     }
     safe_free(swaplog_path);
     safe_free(new_path);
-    SD->swaplog_fd = fd;
+    SD->u.ufs.swaplog_fd = fd;
     debug(47, 3) ("Cache Dir #%d log opened on FD %d\n", dirn, fd);
 }
 
@@ -351,8 +353,8 @@ storeUfsDirStats(StoreEntry * sentry)
 	SD = &Config.cacheSwap.swapDirs[i];
 	storeAppendPrintf(sentry, "\n");
 	storeAppendPrintf(sentry, "Store Directory #%d: %s\n", i, SD->path);
-	storeAppendPrintf(sentry, "First level subdirectories: %d\n", SD->l1);
-	storeAppendPrintf(sentry, "Second level subdirectories: %d\n", SD->l2);
+	storeAppendPrintf(sentry, "First level subdirectories: %d\n", SD->u.ufs.l1);
+	storeAppendPrintf(sentry, "Second level subdirectories: %d\n", SD->u.ufs.l2);
 	storeAppendPrintf(sentry, "Maximum Size: %d KB\n", SD->max_size);
 	storeAppendPrintf(sentry, "Current Size: %d KB\n", SD->cur_size);
 	storeAppendPrintf(sentry, "Percent Used: %0.2f%%\n",
@@ -582,4 +584,90 @@ storeUfsDirInit(void)
 	fatal(errmsg);
     storeUfsDirOpenSwapLogs();
     storeUfsRebuildStart();
+}
+
+void
+storeUfsDirParse(cacheSwap * swap)
+{
+    char *token;
+    char *path;
+    int i;
+    int size;
+    int l1;
+    int l2;
+    unsigned int read_only = 0;
+    SwapDir *sd = NULL;
+    if ((path = strtok(NULL, w_space)) == NULL)
+	self_destruct();
+    i = GetInteger();
+    size = i << 10;		/* Mbytes to kbytes */
+    if (size <= 0)
+	fatal("storeUfsDirParse: invalid size value");
+    i = GetInteger();
+    l1 = i;
+    if (l1 <= 0)
+	fatal("storeUfsDirParse: invalid level 1 directories value");
+    i = GetInteger();
+    l2 = i;
+    if (l2 <= 0)
+	fatal("storeUfsDirParse: invalid level 2 directories value");
+    if ((token = strtok(NULL, w_space)))
+	if (!strcasecmp(token, "read-only"))
+	    read_only = 1;
+    for (i = 0; i < swap->n_configured; i++) {
+	sd = swap->swapDirs + i;
+	if (!strcmp(path, sd->path)) {
+	    /* just reconfigure it */
+	    if (size == sd->max_size)
+		debug(3, 1) ("Cache dir '%s' size remains unchanged at %d KB\n",
+		    path, size);
+	    else
+		debug(3, 1) ("Cache dir '%s' size changed to %d KB\n",
+		    path, size);
+	    sd->max_size = size;
+	    if (sd->flags.read_only != read_only)
+		debug(3, 1) ("Cache dir '%s' now %s\n",
+		    path, read_only ? "Read-Only" : "Read-Write");
+	    sd->flags.read_only = read_only;
+	    return;
+	}
+    }
+    allocate_new_swapdir(swap);
+    sd = swap->swapDirs + swap->n_configured;
+    sd->path = xstrdup(path);
+    sd->max_size = size;
+    sd->u.ufs.l1 = l1;
+    sd->u.ufs.l2 = l2;
+    sd->u.ufs.swaplog_fd = -1;
+    sd->flags.read_only = read_only;
+    sd->open = storeUfsOpen;
+    sd->close = storeUfsClose;
+    sd->read = storeUfsRead;
+    sd->write = storeUfsWrite;
+    sd->unlink = storeUfsUnlink;
+    swap->n_configured++;
+}
+
+void
+storeUfsDirDump(StoreEntry * entry, const char *name, SwapDir * s)
+{
+    storeAppendPrintf(entry, "%s %s %s %d %d %d\n",
+	name,
+	SwapDirType[s->type],
+	s->path,
+	s->max_size >> 10,
+	s->u.ufs.l1,
+	s->u.ufs.l2);
+}
+
+/*
+ * Only "free" the filesystem specific stuff here
+ */
+void
+storeUfsDirFree(SwapDir * s)
+{
+    if (s->u.ufs.swaplog_fd > -1) {
+	file_close(s->u.ufs.swaplog_fd);
+	s->u.ufs.swaplog_fd = -1;
+    }
 }

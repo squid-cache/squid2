@@ -625,3 +625,9 @@ enum {
     NETDB_EX_RTT,
     NETDB_EX_HOPS
 };
+
+typedef enum {
+    SWAPDIR_UFS,
+    SWAPDIR_UFS_ASYNC,
+    SWAPDIR_MAX
+} swapdir_t;

@@ -35,6 +35,12 @@
 
 #include "squid.h"
 
+const char *SwapDirType[] =
+{
+    "ufs",
+    "!ERROR!"
+};
+
 void
 storeDirInit(void)
 {
