@@ -352,7 +352,7 @@ main(int argc, char *argv[])
 	    return 1;
 	if (FD_ISSET(0, &R))
 	    if (pingerReadRequest() < 0) {
-	        debug(42, 0, "Pinger exiting.\n"):
+	        debug(42, 0, "Pinger exiting.\n");
 		return 1;
 	}
 	if (FD_ISSET(icmp_sock, &R))
