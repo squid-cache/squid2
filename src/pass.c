@@ -303,9 +303,7 @@ passConnectDone(int fd, int status, void *data)
     ErrorState *err = NULL;
     if (status == COMM_ERR_DNS) {
 	debug(39, 4) ("passConnectDone: Unknown host: %s\n", passState->host);
-	err = xcalloc(1, sizeof(ErrorState));
-	err->type = ERR_DNS_FAIL;
-	err->http_status = HTTP_NOT_FOUND;
+	err = errorCon(ERR_DNS_FAIL, HTTP_NOT_FOUND);
 	err->request = requestLink(request);
 	err->dnsserver_msg = xstrdup(dns_error_message);
 	err->callback = passErrorComplete;
@@ -313,9 +311,7 @@ passConnectDone(int fd, int status, void *data)
 	errorSend(passState->client.fd, err);
 	return;
     } else if (status != COMM_OK) {
-	err = xcalloc(1, sizeof(ErrorState));
-	err->type = ERR_CONNECT_FAIL;
-	err->http_status = HTTP_SERVICE_UNAVAILABLE;
+	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
 	err->xerrno = errno;
 	err->host = xstrdup(passState->host);
 	err->port = passState->port;
@@ -375,9 +371,7 @@ passStart(int fd, const char *url, request_t * request, size_t * size_ptr)
 	url);
     if (sock == COMM_ERROR) {
 	debug(39, 4) ("passStart: Failed because we're out of sockets.\n");
-	err = xcalloc(1, sizeof(ErrorState));
-	err->type = ERR_SOCKET_FAILURE;
-	err->http_status = HTTP_INTERNAL_SERVER_ERROR;
+	err = errorCon(ERR_SOCKET_FAILURE, HTTP_INTERNAL_SERVER_ERROR);
 	err->xerrno = errno;
 	err->request = requestLink(request);
 	errorSend(fd, err);
@@ -444,9 +438,9 @@ static void
 passPeerSelectFail(peer * p, void *data)
 {
     PassStateData *passState = data;
-    ErrorState *err = xcalloc(1, sizeof(ErrorState));
-    err->type = ERR_CANNOT_FORWARD;
-    err->http_status = HTTP_SERVICE_UNAVAILABLE;
+    ErrorState *err;
+
+    err = errorCon(ERR_CANNOT_FORWARD, HTTP_SERVICE_UNAVAILABLE);
     err->request = requestLink(passState->request);
     err->callback = passErrorComplete;
     err->callback_data = passState;

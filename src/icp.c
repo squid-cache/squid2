@@ -985,9 +985,8 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     answer = aclCheckFast(Config.accessList.miss, &ch);
     if (answer == 0) {
 	http->al.http.code = HTTP_FORBIDDEN;
-	err = xcalloc(1, sizeof(ErrorState));
-	err->type = ERR_CANNOT_FORWARD;
-	err->http_status = HTTP_FORBIDDEN;
+
+	err = errorCon(ERR_CANNOT_FORWARD, HTTP_FORBIDDEN);
 	err->request = requestLink(http->request);
 	err->src_addr = http->conn->peer.sin_addr;
 	err->callback = icpErrorComplete;
@@ -1829,13 +1828,13 @@ clientReadRequest(int fd, void *data)
 	    commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
 	    if ((request = urlParse(method, http->url)) == NULL) {
 		debug(12, 5) ("Invalid URL: %s\n", http->url);
-		err = xcalloc(1, sizeof(ErrorState));
-		err->type = ERR_INVALID_URL;
-		err->http_status = HTTP_BAD_REQUEST;
+
+		err = errorCon(ERR_INVALID_URL, HTTP_BAD_REQUEST);
 		err->src_addr = conn->peer.sin_addr;
 		err->callback = icpErrorComplete;
 		err->callback_data = http;
 		err->url = xstrdup(http->url);
+
 		http->al.http.code = err->http_status;
 		errorSend(fd, err);
 		safe_free(headers);
@@ -1846,14 +1845,12 @@ clientReadRequest(int fd, void *data)
 	    request->headers = headers;
 	    request->headers_sz = headers_sz;
 	    if (!urlCheckRequest(request)) {
-		http->al.http.code = HTTP_NOT_IMPLEMENTED;
-		err = xcalloc(1, sizeof(ErrorState));
-		err->type = ERR_UNSUP_REQ;
-		err->http_status = HTTP_NOT_IMPLEMENTED;
+		err = errorCon(ERR_UNSUP_REQ, HTTP_NOT_IMPLEMENTED);
 		err->src_addr = conn->peer.sin_addr;
 		err->callback = icpErrorComplete;
 		err->callback_data = http;
 		err->request = requestLink(request);
+
 		http->al.http.code = err->http_status;
 		errorSend(fd, err);
 		return;
@@ -1888,10 +1885,9 @@ clientReadRequest(int fd, void *data)
 			Config.maxRequestSize);
 		    debug(12, 0) ("This request = %d bytes.\n",
 			conn->in.offset);
-		    err = xcalloc(1, sizeof(ErrorState));
-		    err->type = ERR_INVALID_REQ;
-		    err->http_status = HTTP_REQUEST_ENTITY_TOO_LARGE;
+		    err = errorCon(ERR_INVALID_REQ, HTTP_REQUEST_ENTITY_TOO_LARGE);
 		    err->callback = icpErrorComplete;
+		    err->callback_data = NULL;
 		    errorSend(fd, err);
 		    return;
 		}
@@ -1908,10 +1904,10 @@ clientReadRequest(int fd, void *data)
 	} else {
 	    /* parser returned -1 */
 	    debug(12, 1) ("clientReadRequest: FD %d Invalid Request\n", fd);
-	    err = xcalloc(1, sizeof(ErrorState));
-	    err->type = ERR_INVALID_REQ;
-	    err->http_status = HTTP_BAD_REQUEST;
+
+	    err = errorCon(ERR_INVALID_REQ, HTTP_BAD_REQUEST);
 	    err->callback = icpErrorComplete;
+	    err->callback_data = NULL;
 	    errorSend(fd, err);
 	    return;
 	}
@@ -1934,9 +1930,7 @@ requestTimeout(int fd, void *data)
 	comm_close(fd);
     } else {
 	/* Generate an error */
-	err = xcalloc(1, sizeof(ErrorState));
-	err->type = ERR_LIFETIME_EXP;
-	err->http_status = HTTP_REQUEST_TIMEOUT;
+	err = errorCon(ERR_LIFETIME_EXP, HTTP_REQUEST_TIMEOUT);
 	err->callback = icpErrorComplete;
 	err->url = xstrdup("N/A");
 	errorSend(fd, err);
