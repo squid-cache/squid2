@@ -730,13 +730,18 @@ int icpUdpReply(fd, queue)
 	COMM_SELECT_WRITE,
 	0,
 	0);
+    debug(12, 1, "icpUdpReply: FD %d sending %d bytes to %s port %d\n",
+	fd,
+	queue->len,
+	inet_ntoa(queue->address.sin_addr),
+	ntohs(queue->address.sin_port));
     if (comm_udp_sendto(fd, &queue->address, sizeof(struct sockaddr_in),
 	    queue->msg, queue->len) < 0) {
 	debug(12, 1, "icpUdpReply: error sending\n");
 	result = COMM_ERROR;
     }
     /* Reinstate handler if needed */
-    if ((UdpQueueHead = UdpQueueHead->next)) {
+    if ((UdpQueueHead = queue->next)) {
 	comm_set_select_handler(fd,
 	    COMM_SELECT_WRITE,
 	    (PF) icpUdpReply,
@@ -837,8 +842,10 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
     data->len = buf_len;
 
     AppendUdp(data);
-    debug(12, 4, "icpUdpSend: op %d: to %s: sz %d: <URL:%s>\n", opcode,
-	inet_ntoa(to->sin_addr), buf_len, url);
+    debug(12, 4, "icpUdpSend: Queueing for %s: \"%s %s\"\n",
+	inet_ntoa(to->sin_addr),
+	IcpOpcodeStr[opcode],
+	url);
     comm_set_select_handler(fd,
 	COMM_SELECT_WRITE,
 	(PF) icpUdpReply,
@@ -1186,9 +1193,6 @@ int parseHttpRequest(icpState)
 	BIT_RESET(icpState->flags, REQ_ACCEL);
     }
 
-    if (icpCachable(icpState))
-	BIT_SET(icpState->flags, REQ_PUBLIC);
-
     debug(12, 5, "parseHttpRequest: Complete request received\n");
     if (free_request)
 	safe_free(request);
@@ -1303,6 +1307,8 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	    astm->log_type = LOG_TCP_DENIED;
 	} else {
 	    /* The request is good, let's go... */
+	    if (icpCachable(astm))
+		BIT_SET(astm->flags, REQ_PUBLIC);
 	    urlCanonical(astm->request, astm->url);
 	    sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
 		fd_note(fd, 0),
