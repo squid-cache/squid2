@@ -901,7 +901,6 @@ storeSwapOutHandle(int fd, int flag, size_t len, void *data)
 	}
 	return;
     }
-    storeDirUpdateSwapSize(e->swap_file_number, len, 1);
     mem->swapout.done_offset += len;
     if (e->store_status == STORE_PENDING || mem->swapout.done_offset < e->object_len) {
 	storeCheckSwapOut(e);
@@ -916,6 +915,7 @@ storeSwapOutHandle(int fd, int flag, size_t len, void *data)
 	storeReleaseRequest(e);
     } else {
 	e->swap_status = SWAPOUT_DONE;
+	storeDirUpdateSwapSize(e->swap_file_number, mem->swapout.done_offset, 1);
 	storeLog(STORE_LOG_SWAPOUT, e);
 	storeDirSwapLog(e);
     }
@@ -1810,7 +1810,8 @@ storeRelease(StoreEntry * e)
 	BIT_SET(e->flag, RELEASE_REQUEST);
 	return 0;
     }
-    if (e->swap_status == SWAPOUT_DONE && (e->swap_file_number > -1)) {
+    if (e->swap_file_number > -1) {
+	assert(e->swap_status == SWAPOUT_DONE);
 	if (BIT_TEST(e->flag, ENTRY_VALIDATED))
 	    storePutUnusedFileno(e->swap_file_number);
 	storeDirUpdateSwapSize(e->swap_file_number, e->object_len, -1);
