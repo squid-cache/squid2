@@ -460,8 +460,11 @@ storeDiskdStats(StoreEntry * sentry)
 static void
 storeDiskdDirSync(SwapDir * SD)
 {
-    /* XXX NOT DONE YET! */
-#warning "storeDiskdSync() needs to be written"
+    diskdinfo_t *diskdinfo = SD->fsdata;
+    while (diskdinfo->away > 0) {
+	debug(47, 1) ("storeDiskdDirSync: %d messages away\n", diskdinfo->away);
+	storeDiskdDirCallback(SD);
+    }
 }
 
 
