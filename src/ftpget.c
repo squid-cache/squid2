@@ -2578,7 +2578,7 @@ main(int argc, char *argv[])
     u_short port = FTP_PORT;
     const char *debug_args = "ALL,1";
     extern char *optarg;
-    unsigned long ip;
+    struct in_addr ip;
     const struct hostent *hp = NULL;
     int c;
 
@@ -2685,8 +2685,8 @@ main(int argc, char *argv[])
 	    o_neg_ttl = atoi(optarg);
 	    break;
 	case 'o':
-	    if ((ip = inet_addr(optarg)) != no_addr.s_addr)
-		outgoingTcpAddr.s_addr = ip;
+	    if ((ip.s_addr = inet_addr(optarg)) != no_addr.s_addr)
+		outgoingTcpAddr.s_addr = ip.s_addr;
 	    else if ((hp = gethostbyname(optarg)) != NULL)
 		outgoingTcpAddr = *(struct in_addr *) (void *) (hp->h_addr_list[0]);
 	    else {

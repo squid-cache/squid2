@@ -994,7 +994,7 @@ client_comm_connect(int sock, char *dest_host, u_short dest_port)
 {
     const struct hostent *hp;
     static struct sockaddr_in to_addr;
-    unsigned long haddr;
+    struct in_addr ip;
 
     /* Set up the destination socket address for message to send to. */
     memset(&to_addr, '\0', sizeof(struct sockaddr_in));
@@ -1002,8 +1002,8 @@ client_comm_connect(int sock, char *dest_host, u_short dest_port)
 
     if ((hp = gethostbyname(dest_host)) != NULL)
 	xmemcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
-    else if ((haddr = inet_addr(dest_host)) != no_addr.s_addr)
-	xmemcpy(&to_addr.sin_addr, &haddr, sizeof(haddr));
+    else if ((ip.s_addr = inet_addr(dest_host)) != no_addr.s_addr)
+	xmemcpy(&to_addr.sin_addr, &ip.s_addr, sizeof(ip.s_addr));
     else
 	return (-1);
 
