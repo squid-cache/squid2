@@ -517,7 +517,7 @@ static void icpHandleStore(fd, entry, state)
 	state->entry = NULL;	/* Don't use a subsequently freed storeEntry */
 #endif
 	state->log_type = entry->mem_obj->abort_code;
-	debug(12, 1, "icpHandleStore: abort_code=%d\n", entry->mem_obj->abort_code);
+	debug(12, 3, "icpHandleStore: abort_code=%d\n", entry->mem_obj->abort_code);
 	state->ptr_to_4k_page = NULL;	/* Nothing to deallocate */
 	state->buf = NULL;	/* Nothing to deallocate */
 	icpSendERROR(fd,
