@@ -23,6 +23,9 @@ TABLE OF CONTENTS:
 	Store Hash Configuration Options
 	GNU malloc
 	GNU regex
+	Access Log Fields
+	Access Log Tags
+	Hierarchy Data Tags
 
 
 Ident (RFC 931) lookups
@@ -540,3 +543,124 @@ Squid's configure script attempts to determine whether or not it should
 compile the GNU regex functions supplied in the source distribution.
 If your system appears to have its own POSIX compliant regex functions
 then configure may decide to use those instead of GNU regex.
+
+Access Log Fields
+==============================================================================
+The native access.log has ten (10) fields.  There is one entry here for
+each HTTP (client) request and each ICP Query.  HTTP requests are
+logged when the client socket is closed.  A single dash ('-') indicates
+unavailable data.
+
+ 1) Timestamp
+	The time when the client socket is closed.  The format is "Unix
+	time" (seconds since Jan 1, 1970) with millisecond resolution.
+ 2) Elapsed Time
+	The elapsed time of the request, in milliseconds.  This is time
+	time between the accept() and close() of the client socket.
+ 3) Client Address
+	The IP address of the connecting client, or the FQDN if the
+	'log_fqdn' option is enabled in the config file.
+ 4) Log Tag / HTTP Code
+	The Log Tag describes how the request was treated locally (hit,
+	miss, etc).  All the tags are described below.  The HTTP code
+	is the reply code taken from the first line of the HTTP reply
+	header.  Non-HTTP requests may have zero reply codes.
+ 5) Size
+	The number of bytes written to the client.
+ 6) Request Method
+	The HTTP request method, or ICP_QUERY for ICP requests.
+ 7) URL
+	The requested URL.
+ 8) Ident
+	If 'ident_lookup' is on, this field may contain the username
+	associated with the client connection as derived from the
+	ident service.
+ 9) Hierarchy Data / Hostname
+	A description of how and where the requested object was
+	fetched.  
+10) Content Type
+	The Content-type field from the HTTP reply.
+
+Access Log Tags
+==============================================================================
+"TCP_" refers to requests on the HTTP port (3128)
+
+        TCP_HIT			A valid copy of the requested object was
+				in the cache.
+        TCP_MISS		The requested object was not in the cache.
+	TCP_REFRESH_HIT		The object was in the cache, but STALE.
+				An If-Modified-Since request was made and
+				a "304 Not Modified" reply was received.
+	TCP_REF_FAIL_HIT	The object was in the cache, but STALE.
+				The request to validate the object failed,
+				so the old (stale) object was returned.
+	TCP_REFRESH_MISS	The object was in the cache, but STALE.
+				An If-Modified-Since request was made and
+				the reply contained new content.
+	TCP_CLIENT_REFRESH	The client issued a request with the
+				"no-cache" pragma.
+	TCP_IMS_HIT		The client issued an If-Modified-Since
+				request and the object was in the cache
+				and still fresh.
+	TCP_IMS_MISS		The client issued an If-Modified-Since
+				request for a stale object.
+        TCP_SWAPFAIL		The object was believed to be in the cache,
+				but could not be accessed.
+        TCP_DENIED		Access was denied for this request
+
+"UDP_" refers to requests on the ICP port (3130)
+
+        UDP_HIT         A valid copy of the requested object was in the cache
+        UDP_HIT_OBJ     Same as UDP_HIT, but the object data was small enough
+                        to be sent in the UDP reply packet.  Saves the
+                        following TCP request.
+        UDP_MISS        The requested object was not in the cache
+        UDP_DENIED      Access was denied for this request
+        UDP_INVALID     An invalid request was received.
+	UDP_RELOADING	The ICP request was "refused" because the cache is
+			busy reloading its metadata.
+
+"ERR_" refers to various types of errors for HTTP requests.
+
+Hierarchy Data Tags
+==============================================================================
+
+        DIRECT                  The object has been requested from the origin
+                                server.
+        FIREWALL_IP_DIRECT      The object has been requested from the origin
+                                server because the origin host IP address is
+                                inside your firewall.
+        FIRST_PARENT_MISS       The object has been requested from the
+                                parent cache with the fastest weighted round
+                                trip time.
+        FIRST_UP_PARENT         The object has been requested from the first
+                                available parent in your list.
+        LOCAL_IP_DIRECT         The object has been requested from the origin
+                                server because the origin host IP address 
+                                matched your 'local_ip' list.
+        SIBLING_HIT		The object was requested from a sibling cache
+                                which replied with a UDP_HIT.
+        NO_DIRECT_FAIL          The object could not be requested because
+                                of firewall restrictions and no parent caches
+                                were available.
+        NO_PARENT_DIRECT        The object was requested from the origin server
+                                because no parent caches exist for the URL.
+        PARENT_HIT              The object was requested from a parent cache
+                                which replied with a UDP_HIT.
+        SINGLE_PARENT           The object was requested from the only
+                                parent cache appropriate for this URL.
+        SOURCE_FASTEST          The object was requested from the origin server
+                                because the 'source_ping' reply arrived first.
+        PARENT_UDP_HIT_OBJ      The object was received in a UDP_HIT_OBJ reply
+                                from a parent cache.
+        SIBLING_UDP_HIT_OBJ     The object was received in a UDP_HIT_OBJ reply
+                                from a sibling cache.
+	PASSTHROUGH_PARENT	The neighbor or proxy defined in the config
+				option 'passthrough_proxy' was used.
+	SSL_PARENT_MISS		The neighbor or proxy defined in the config
+				option 'ssl_proxy' was used.
+
+Almost any of these may be preceeded by 'TIMEOUT_' if the two-second
+(default) timeout occurs waiting for all ICP replies to arrive from
+neighbors.
+
