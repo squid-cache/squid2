@@ -2868,6 +2868,7 @@ storeFreeMemory(void)
 	destroy_StoreEntry(*(list + j));
     xfree(list);
     hashFreeMemory(store_table);
+    safe_free(MaintBucketsOrder);
 }
 
 int
