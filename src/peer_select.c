@@ -83,6 +83,10 @@ peerSelectStateFree(ps_state * psstate)
     }
     requestUnlink(psstate->request);
     psstate->request = NULL;
+    if (psstate->entry) {
+        storeUnlockObject(psstate->entry);
+        psstate->entry = NULL;
+    }
     cbdataFree(psstate);
 }
 
@@ -142,6 +146,7 @@ peerSelect(request_t * request,
     else
 	debug(44, 3) ("peerSelect: %s\n", RequestMethodStr[request->method]);
     cbdataAdd(psstate, MEM_NONE);
+    storeLockObject(entry);
     psstate->request = requestLink(request);
     psstate->entry = entry;
     psstate->callback = callback;
@@ -368,6 +373,12 @@ peerPingTimeout(void *data)
 {
     ps_state *psstate = data;
     StoreEntry *entry = psstate->entry;
+    if (!cbdataValid(psstate->callback_data)) {
+	/* request aborted */
+	cbdataUnlock(psstate->callback_data);
+        peerSelectStateFree(psstate);
+	return;
+    }
     if (entry)
 	debug(44, 3) ("peerPingTimeout: '%s'\n", storeUrl(entry));
     entry->ping_status = PING_TIMEOUT;
