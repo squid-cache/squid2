@@ -322,6 +322,7 @@ idnsRead(int fd, void *data)
 	    break;
 	}
 	fd_bytes(DnsSocket, len, FD_READ);
+	assert(N);
 	(*N)++;
 	debug(78, 3) ("idnsRead: FD %d: received %d bytes from %s.\n",
 	    fd,
