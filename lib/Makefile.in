@@ -29,14 +29,14 @@ UTILOBJS	= rfc850.o \
 		  debug.o \
 		  log.o
 REGEXOBJS	= GNUregex.o
-LIBS		= libutil.a libregex.a
+LIBS		= libmiscutil.a libregex.a
 
 CFLAGS		= $(STD_CFLAGS) $(XTRA_CFLAGS) $(INCLUDE)
 LDFLAGS		= $(STD_LDFLAGS)
 
 all: $(LIBS)
 
-libutil.a: $(UTILOBJS)
+libmiscutil.a: $(UTILOBJS)
 	ar r $@ $(UTILOBJS)
 	$(RANLIB) $@
 

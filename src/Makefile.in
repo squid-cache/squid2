@@ -46,8 +46,8 @@ SHELL		= /bin/sh
 INCLUDE		= -I. -I../include -I$(srcdir)/../include
 CFLAGS 		= $(STD_CFLAGS) $(XTRA_CFLAGS) $(INCLUDE) $(DEFINES)
 LDFLAGS         = $(STD_LDFLAGS)
-LIBS		= -L../lib -lregex -lutil $(XTRA_LIBS)
-CLIENT_LIBS	= -L../lib -lutil $(XTRA_LIBS)
+LIBS		= -L../lib -lregex -lmiscutil $(XTRA_LIBS)
+CLIENT_LIBS	= -L../lib -lmiscutil $(XTRA_LIBS)
 
 PROGS           = squid client
 UTILS           = dnsserver ftpget
