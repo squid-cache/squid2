@@ -1330,7 +1330,6 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     char *mstr = NULL;
     char *url = NULL;
     char *req_hdr = NULL;
-    LOCAL_ARRAY(char, http_ver_s, 32);
     float http_ver;
     char *token = NULL;
     char *t = NULL;
