@@ -1,5 +1,7 @@
 /* $Id$ */
 
+/* DEBUG: Section 4             cached_error: Error printing routines */
+
 #include "squid.h"
 
 
