@@ -334,7 +334,7 @@ repl_modules.c: repl_modules.sh Makefile
 auth_modules.c: auth_modules.sh Makefile
 	@$(SHELL) $(srcdir)/auth_modules.sh $(AUTH_MODULES) >auth_modules.c
 
-install-data-local:
+install-data-local: install-sysconfDATA
 	@if test -f $(DESTDIR)$(sysconfdir)/mime.conf ; then \
 	        echo "$@ will not overwrite existing $(DESTDIR)$(sysconfdir)/mime.conf" ; \
 	else \
