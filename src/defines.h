@@ -263,3 +263,7 @@
 #define URI_WHITESPACE_ALLOW 1
 #define URI_WHITESPACE_ENCODE 2
 #define URI_WHITESPACE_CHOP 3
+
+#ifndef _PATH_DEVNULL
+#define _PATH_DEVNULL "/dev/null"
+#endif
