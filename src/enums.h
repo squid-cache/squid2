@@ -371,7 +371,7 @@ typedef enum {
     STORE_DISK_CLIENT
 } store_client_t;
 
-enum {
+typedef enum {
     METHOD_NONE,		/* 000 */
     METHOD_GET,			/* 001 */
     METHOD_POST,		/* 010 */
@@ -419,8 +419,7 @@ enum {
     METHOD_EXT18,
     METHOD_EXT19,
     METHOD_ENUM_END
-};
-typedef unsigned int method_t;
+} method_t;
 
 typedef enum {
     PROTO_NONE,
