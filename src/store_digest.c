@@ -185,11 +185,12 @@ storeDigestAdd(const StoreEntry * entry)
 	storeKeyText(entry->key));
     /* only public entries are digested */
     if (!EBIT_TEST(entry->flag, KEY_PRIVATE)) {
+	const time_t refresh = refreshWhen(entry);
 	debug(71, 6) ("storeDigestAdd: entry expires in %d secs\n",
-	    (int) (entry->refresh - squid_curtime));
+	    (int) (refresh - squid_curtime));
 	/* if expires too soon, ignore */
 	/* Note: We should use the time of the next rebuild, not cur_time @?@ */
-	if (entry->refresh <= squid_curtime + StoreDigestRebuildPeriod) {
+	if (refresh <= squid_curtime + StoreDigestRebuildPeriod) {
 	    debug(71, 6) ("storeDigestAdd: entry expires too early, ignoring\n");
 	} else {
 	    good_entry = 1;
