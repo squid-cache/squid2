@@ -253,8 +253,8 @@ struct SquidConfig {
 	int maxObjectSize;
     } Store;
     struct sockaddr_in vizHackAddr;
-    unsigned int levelOneDirs;
-    unsigned int levelTwoDirs;
+    int levelOneDirs;
+    int levelTwoDirs;
 };
 
 extern struct SquidConfig Config;
