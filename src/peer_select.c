@@ -143,7 +143,6 @@ peerSelect(request_t * request,
     psstate->fail_callback = fail_callback;
     psstate->callback_data = callback_data;
     cbdataLock(callback_data);
-    psstate->icp.start = current_time;
     peerSelectCheckAS(psstate);
 }
 
@@ -302,6 +301,7 @@ peerSelectFoo(ps_state * psstate)
     } else if (peerSelectIcpPing(request, direct, entry)) {
 	assert(entry->ping_status == PING_NONE);
 	debug(44, 3) ("peerSelect: Doing ICP pings\n");
+        psstate->icp.start = current_time;
 	psstate->icp.n_sent = neighborsUdpPing(request,
 	    entry,
 	    peerHandleIcpReply,
