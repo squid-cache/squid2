@@ -1,4 +1,14 @@
 
+Changes to squid-1.0.beta17 (June 12, 1996):
+
+	- Fixed another ipcache coredump problem where an entry could
+	  be released between writing to and reading from dnsserver.
+	- Fixed store.c bug of purging aborted objects.
+	- Cleaned up checkLifetimes() function to make it simpler.
+	- Added visible_hostname support to ftpget.
+	- Fixed null edge dereferencing bug for UDP_HIT_OBJ.
+
+
 Changes to squid-1.0.beta16 (June 10, 1996):
 
 	- Fixed two coredump-causing bugs in ipcache_unregister().
