@@ -71,7 +71,7 @@ void fdstat_update(fd, status)
     unsigned int i;
 
     if (fd >= getMaxFD())
-	debug(7, 0, "Running out of file descriptors");
+	debug(7, 0, "Running out of file descriptors.\n");
 
     if (fd < Biggest_FD) {
 	/* nothing to do here */
@@ -79,7 +79,7 @@ void fdstat_update(fd, status)
     }
     if ((fd > Biggest_FD) && (status == OPEN)) {
 	/* just update the biggest one */
-	Biggest_FD = fd % getMaxFD();
+	Biggest_FD = fd; /* % getMaxFD(); */
 	return;
     }
     if ((fd == Biggest_FD) && (status == CLOSE)) {
