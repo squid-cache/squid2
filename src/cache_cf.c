@@ -372,7 +372,7 @@ parse_snmp_conf(snmpconf ** s)
 	    fatal("snmp_mib_path should be defined before any snmp_agent_conf\n");
     }
     p = strtok(NULL, null_string);
-    strcpy(buff, p);
+    xstrncpy(buff, p, 256);
     tokenize(buff, tokens, 10);
     if (!strcmp("view", tokens[0])) {
 	if (create_view(tokens) < 0)
