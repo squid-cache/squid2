@@ -113,13 +113,11 @@ void
 unlinkdClose(void)
 {
 #if USE_UNLINKD
-    if (unlinkd_wfd < 0) {
-	debug_trap("unlinkdClose: unlinkd_wfd < 0");
-	return;
-    }
+    assert(unlinkd_wfd > -1);
     debug(12, 1) ("Closing unlinkd pipe on FD %d\n", unlinkd_wfd);
     file_close(unlinkd_wfd);
-    file_close(unlinkd_rfd);
+    if (unlinkd_wfd != unlinkd_rfd)
+        file_close(unlinkd_rfd);
     unlinkd_wfd = -1;
     unlinkd_rfd = -1;
 #endif
