@@ -1971,7 +1971,7 @@ int storeGetSwapSpace(size)
 	    e = (StoreEntry *) link_ptr;
 
 	    /* Identify objects that aren't locked, for replacement */
-	    if ((e->store_status != STORE_PENDING) &&		/* We're still fetching the object */
+	    if ((e->store_status != STORE_PENDING) &&	/* We're still fetching the object */
 		(e->swap_status == SWAP_OK) &&	/* Only release it if it is on disk */
 		(e->lock_count == 0) &&		/* Be overly cautious */
 		(e->mem_status != SWAPPING_IN)) {	/* Not if it's being faulted into memory */

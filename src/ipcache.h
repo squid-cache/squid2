@@ -6,9 +6,9 @@
 typedef int (*IPH) _PARAMS((int, struct hostent *, void *));
 
 typedef enum {
-	CACHED,
-	PENDING,
-	NEGATIVE_CACHED
+    CACHED,
+    PENDING,
+    NEGATIVE_CACHED
 } ipcache_status_t;
 
 

@@ -2110,7 +2110,7 @@ int ftpget_srv_mode(port)
 }
 
 void usage(argcount)
-	int argcount;
+     int argcount;
 {
     fprintf(stderr, "usage: %s options filename host path A,I user pass\n",
 	progname);
