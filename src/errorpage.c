@@ -275,6 +275,7 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
 	errorStateFree(err);
 	return;
     }
+    storeLockObject(entry);
     storeBuffer(entry);
     rep = errorBuildReply(err);
     /* Add authentication header */
@@ -302,6 +303,7 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
     storeComplete(entry);
     storeNegativeCache(entry);
     storeReleaseRequest(entry);
+    storeUnlockObject(entry);
     errorStateFree(err);
 }
 
