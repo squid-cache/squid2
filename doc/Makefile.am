@@ -11,4 +11,5 @@ man_MANS = \
 
 EXTRA_DIST = \
 	squid.8 \
-	debug-sections.txt
+	debug-sections.txt \
+	release-notes/release-2.5.html

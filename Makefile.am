@@ -20,6 +20,7 @@ dist-hook:
 	    rm -f $(distdir)/$$subdir/autoconf.h; \
 	  fi; \
 	done
+	ln -s doc/release-notes/release-2.5.html $(distdir)/ReleaseNotes.html
 
 EXTRA_DIST = \
 	ChangeLog \
