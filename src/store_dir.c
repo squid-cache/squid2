@@ -263,7 +263,7 @@ storeDirSwapLog(const StoreEntry * e, int op)
 	storeKeyText(e->key),
 	e->swap_file_number);
     sd = &Config.cacheSwap.swapDirs[dirn];
-    sd->obj.log(sd, e, op);
+    sd->log.write(sd, e, op);
 }
 
 void

@@ -1279,11 +1279,11 @@ struct _SwapDir {
 	STOBJREAD *read;
 	STOBJWRITE *write;
 	STOBJUNLINK *unlink;
-	STOBJLOG *log;
     } obj;
     struct {
 	STLOGOPEN *open;
 	STLOGCLOSE *close;
+	STLOGWRITE *write;
 	struct {
 	    STLOGCLEANOPEN *open;
 	    STLOGCLEANWRITE *write;

@@ -938,7 +938,6 @@ extern void storeDirUpdateSwapSize(int fn, size_t size, int sign);
  * store_dir_ufs.c
  */
 extern OBJH storeUfsDirStats;
-extern int storeUfsFilenoBelongsHere(int, int, int, int);
 extern void storeUfsDirParse(cacheSwap * swap);
 extern void storeUfsDirDump(StoreEntry * entry, const char *name, SwapDir * s);
 extern void storeUfsDirFree(SwapDir *);

@@ -98,12 +98,13 @@ static STLOGCLEANOPEN storeUfsDirWriteCleanOpen;
 static void storeUfsDirWriteCleanClose(SwapDir * sd);
 static STLOGCLEANWRITE storeUfsDirWriteCleanEntry;
 static STLOGCLOSE storeUfsDirCloseSwapLog;
-static STOBJLOG storeUfsDirSwapLog;
+static STLOGWRITE storeUfsDirSwapLog;
 static STNEWFS storeUfsDirNewfs;
 static QS rev_int_sort;
 static int storeUfsDirClean(int swap_index);
 static EVH storeUfsDirCleanEvent;
 static int storeUfsDirIs(SwapDir * sd);
+static int storeUfsFilenoBelongsHere(int fn, int F0, int F1, int F2);
 
 static char *
 storeUfsSwapSubDir(SwapDir * sd, int subdirn)
@@ -1087,8 +1088,6 @@ storeUfsDirIs(SwapDir * sd)
     return 0;
 }
 
-/* ========== LOCAL FUNCTIONS ABOVE, GLOBAL FUNCTIONS BELOW ========== */
-
 /*
  * Does swapfile number 'fn' belong in cachedir #F0,
  * level1 dir #F1, level2 dir #F2?
@@ -1096,7 +1095,7 @@ storeUfsDirIs(SwapDir * sd)
  * Don't check that (fn >> SWAP_DIR_SHIFT) == F0 because
  * 'fn' may not have the directory bits set.
  */
-int
+static int
 storeUfsFilenoBelongsHere(int fn, int F0, int F1, int F2)
 {
     int D1, D2;
@@ -1113,6 +1112,8 @@ storeUfsFilenoBelongsHere(int fn, int F0, int F1, int F2)
 	return 0;
     return 1;
 }
+
+/* ========== LOCAL FUNCTIONS ABOVE, GLOBAL FUNCTIONS BELOW ========== */
 
 void
 storeUfsDirStats(StoreEntry * sentry)
@@ -1220,9 +1221,9 @@ storeUfsDirParse(cacheSwap * swap)
     sd->obj.read = storeUfsRead;
     sd->obj.write = storeUfsWrite;
     sd->obj.unlink = storeUfsUnlink;
-    sd->obj.log = storeUfsDirSwapLog;
     sd->log.open = storeUfsDirOpenSwapLog;
     sd->log.close = storeUfsDirCloseSwapLog;
+    sd->log.write = storeUfsDirSwapLog;
     sd->log.clean.open = storeUfsDirWriteCleanOpen;
     swap->n_configured++;
 }
