@@ -139,7 +139,7 @@ Access Log Types:
 ..............................................................................
 Hierarchy Log Types:
 
-	DEAD_NEIGHBOR		A siblink has been detected as dead after
+	DEAD_NEIGHBOR		A sibling has been detected as dead after
 				failing to reply to 20 consecutive ICP
 				queries.
 	DEAD_PARENT		A parent has been detected as dead.
@@ -155,7 +155,7 @@ Hierarchy Log Types:
 				available parent in your list.
 	LOCAL_IP_DIRECT		The object has been requested from the origin
 				server because the origin host IP address 
-				matced your 'local_ip' list.
+				matched your 'local_ip' list.
 	NEIGHBOR_HIT		The object was requested from a sibling cache
 				which replied with a UDP_HIT.
 	NO_DIRECT_FAIL		The object could not be requested because
@@ -173,6 +173,11 @@ Hierarchy Log Types:
 				because the 'source_ping' reply arrived first.
 	UDP_HIT_OBJ		The object was received in a UDP_HIT_OBJ reply
 				from a neighbor cache.
+
+Almost any of these may be preceeded by 'TIMEOUT_' if the two-second
+(default) timeout occurs waiting for all ICP replies to arrive from
+neighbors.
+
 
 Metadata reloads in the background
 ==============================================================================
