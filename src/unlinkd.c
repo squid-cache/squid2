@@ -145,7 +145,8 @@ unlinkdUnlink(const char *path)
 void
 unlinkdClose(void)
 {
-    assert(unlinkd_wfd > -1);
+    if (unlinkd_wfd < 0)
+	return;
     debug(12, 1) ("Closing unlinkd pipe on FD %d\n", unlinkd_wfd);
     file_close(unlinkd_wfd);
     if (unlinkd_wfd != unlinkd_rfd)
