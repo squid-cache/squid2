@@ -89,6 +89,7 @@ typedef enum {
     ACL_NONE,
     ACL_SRC_IP,
     ACL_DST_IP,
+    ACL_MY_IP,
     ACL_SRC_DOMAIN,
     ACL_DST_DOMAIN,
     ACL_SRC_DOM_REGEX,

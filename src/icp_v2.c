@@ -218,6 +218,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    break;
 	}
 	checklist.src_addr = from.sin_addr;
+	checklist.my_addr = no_addr;
 	checklist.request = icp_request;
 	allow = aclCheckFast(Config.accessList.icp, &checklist);
 	if (!allow) {

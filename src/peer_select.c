@@ -237,6 +237,7 @@ peerSelectFoo(ps_state * ps)
 		Config.accessList.AlwaysDirect,
 		request,
 		request->client_addr,
+		no_addr,	/* XXX wrong */
 		NULL,		/* user agent */
 		NULL);		/* ident */
 	    aclNBCheck(ps->acl_checklist,
@@ -250,6 +251,7 @@ peerSelectFoo(ps_state * ps)
 		Config.accessList.NeverDirect,
 		request,
 		request->client_addr,
+		no_addr,	/* XXX wrong */
 		NULL,		/* user agent */
 		NULL);		/* ident */
 	    aclNBCheck(ps->acl_checklist,

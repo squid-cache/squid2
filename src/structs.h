@@ -141,6 +141,7 @@ struct _aclCheck_t {
     const acl_access *access_list;
     struct in_addr src_addr;
     struct in_addr dst_addr;
+    struct in_addr my_addr;
     request_t *request;
 #if USE_IDENT
     ConnStateData *conn;	/* hack for ident */
