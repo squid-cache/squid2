@@ -553,8 +553,6 @@ snmpConstructReponse(snmp_request_t * rq)
 /*
  * Decide how to respond to the request, construct a response and
  * return the response to the requester.
- * 
- * If configured forward any reponses which are not for this agent.
  */
 static struct snmp_pdu *
 snmpAgentResponse(struct snmp_pdu *PDU)
