@@ -389,8 +389,10 @@ void protoUnregister(fd, entry, request, src_addr)
 	return;
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
 	return;
-    if (entry->ping_status == PING_DONE)
-	fatal_dump("PING_DONE but not ENTRY_DISPATCHED?");
+    if (entry->mem_status != NOT_IN_MEMORY)
+	return;
+    if (entry->store_status != STORE_PENDING)
+	return;
     squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 }
 
