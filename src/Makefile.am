@@ -131,7 +131,7 @@ DEFAULT_ICON_DIR	= $(sysconfdir)/icons
 DEFAULT_ERROR_DIR	= $(sysconfdir)/errors
 DEFAULT_MIB_PATH	= $(sysconfdir)/mib.txt
 
-DEFS =  -DDEFAULT_CONFIG_FILE=\"$(DEFAULT_CONFIG_FILE)\"
+DEFS = @DEFS@ -DDEFAULT_CONFIG_FILE=\"$(DEFAULT_CONFIG_FILE)\"
 
 $(OBJS): $(top_srcdir)/include/version.h ../include/autoconf.h
 
