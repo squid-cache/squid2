@@ -503,36 +503,36 @@ aclParseTimeSpec(void *curlist)
     acl_time_data **Tail;
     int h1, m1, h2, m2;
     char *t = NULL;
+    long weekbits = 0;
     for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
-    q = memAllocate(MEM_ACL_TIME_DATA);
     while ((t = strtokFile())) {
 	if (*t < '0' || *t > '9') {
 	    /* assume its day-of-week spec */
 	    while (*t) {
 		switch (*t++) {
 		case 'S':
-		    q->weekbits |= ACL_SUNDAY;
+		    weekbits |= ACL_SUNDAY;
 		    break;
 		case 'M':
-		    q->weekbits |= ACL_MONDAY;
+		    weekbits |= ACL_MONDAY;
 		    break;
 		case 'T':
-		    q->weekbits |= ACL_TUESDAY;
+		    weekbits |= ACL_TUESDAY;
 		    break;
 		case 'W':
-		    q->weekbits |= ACL_WEDNESDAY;
+		    weekbits |= ACL_WEDNESDAY;
 		    break;
 		case 'H':
-		    q->weekbits |= ACL_THURSDAY;
+		    weekbits |= ACL_THURSDAY;
 		    break;
 		case 'F':
-		    q->weekbits |= ACL_FRIDAY;
+		    weekbits |= ACL_FRIDAY;
 		    break;
 		case 'A':
-		    q->weekbits |= ACL_SATURDAY;
+		    weekbits |= ACL_SATURDAY;
 		    break;
 		case 'D':
-		    q->weekbits |= ACL_WEEKDAYS;
+		    weekbits |= ACL_WEEKDAYS;
 		    break;
 		case '-':
 		    /* ignore placeholder */
@@ -553,8 +553,11 @@ aclParseTimeSpec(void *curlist)
 		memFree(q, MEM_ACL_TIME_DATA);
 		return;
 	    }
+	    q = memAllocate(MEM_ACL_TIME_DATA);
 	    q->start = h1 * 60 + m1;
 	    q->stop = h2 * 60 + m2;
+	    q->weekbits = weekbits;
+	    weekbits = 0;
 	    if (q->start > q->stop) {
 		debug(28, 0) ("%s line %d: %s\n",
 		    cfg_filename, config_lineno, config_input_line);
@@ -562,14 +565,20 @@ aclParseTimeSpec(void *curlist)
 		memFree(q, MEM_ACL_TIME_DATA);
 		return;
 	    }
+	    if (q->weekbits == 0)
+		q->weekbits = ACL_ALLWEEK;
+	    *(Tail) = q;
+	    Tail = &q->next;
 	}
     }
-    if (q->start == 0 && q->stop == 0)
-	q->stop = 23 * 60 + 59;
-    if (q->weekbits == 0)
-	q->weekbits = ACL_ALLWEEK;
-    *(Tail) = q;
-    Tail = &q->next;
+    if (weekbits) {
+	q = memAllocate(MEM_ACL_TIME_DATA);
+	q->start = 0 * 60 + 0;
+	q->stop = 24 * 60 + 0;
+	q->weekbits = weekbits;
+	*(Tail) = q;
+	Tail = &q->next;
+    }
 }
 
 void
