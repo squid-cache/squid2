@@ -623,7 +623,7 @@ httpBuildRequestHeader(request_t * request,
     httpHeaderInit(hdr_out);
 
     /* append our IMS header */
-    if (entry && entry->lastmod && request->method == METHOD_GET)
+    if (entry && entry->lastmod > -1 && request->method == METHOD_GET)
 	httpHeaderPutTime(hdr_out, HDR_IF_MODIFIED_SINCE, entry->lastmod);
 
     strConnection = httpHeaderGetList(hdr_in, HDR_CONNECTION);
