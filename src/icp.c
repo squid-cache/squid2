@@ -103,6 +103,7 @@ static void icpRead _PARAMS((int, int, char *, int, int, int, complete_handler, 
 static void icpHitObjHandler _PARAMS((int, void *));
 #endif
 static void icpLogIcp _PARAMS((icpUdpData *));
+static void icpDetectClientClose _PARAMS((int, icpStateData *));
 
 static void icpFreeBufOrPage(icpState)
      icpStateData *icpState;
@@ -153,7 +154,7 @@ int icpStateFree(fdunused, icpState)
     safe_free(icpState->inbuf);
     safe_free(icpState->url);
     safe_free(icpState->request_hdr);
-    if (--icpState->request->link_count == 0)
+    if (icpState->request && --icpState->request->link_count == 0)
 	safe_free(icpState->request);
     safe_free(icpState);
     return 0;			/* XXX gack, all comm handlers return ints */
@@ -1522,6 +1523,10 @@ void asciiProcessInput(fd, buf, size, flag, icpState)
 	    RequestMethodStr[icpState->method],
 	    icpState->url);
 	fd_note(fd, client_msg);
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) icpDetectClientClose,
+	    (void *) icpState);
 	icp_hit_or_miss(fd, icpState);
     } else if (parser_return_code == 0) {
 	/*
@@ -1579,7 +1584,7 @@ void asciiConnLifetimeHandle(fd, data)
     client_data = NULL;
     comm_get_select_handler(fd,
 	COMM_SELECT_WRITE,
-	(PF *) & handler,
+	&handler,
 	(void **) &client_data);
     if ((handler != NULL) && (client_data != NULL)) {
 	icpRWState = (icpRWStateData *) client_data;
@@ -1593,9 +1598,9 @@ void asciiConnLifetimeHandle(fd, data)
     client_data = NULL;
     comm_get_select_handler(fd,
 	COMM_SELECT_READ,
-	(PF *) & handler,
+	&handler,
 	(void **) &client_data);
-    if ((handler != NULL) && (client_data != NULL)) {
+    if (handler == icpHandleRead && client_data != NULL) {
 	icpRWState = (icpRWStateData *) client_data;
 	safe_free(icpRWState);
     }
@@ -1700,3 +1705,35 @@ static void CheckQuickAbort(icpState)
     storeReleaseRequest(icpState->entry);
     icpState->log_type = ERR_CLIENT_ABORT;
 }
+
+static void icpDetectClientClose(fd, icpState)
+     int fd;
+     icpStateData *icpState;
+{
+    static char buf[256];
+    int n;
+    StoreEntry *entry = NULL;
+    n = read(fd, buf, 256);
+    if (n > 0) {
+	debug(12, 0, "icpDetectClientClose: FD %d, %d unexpected bytes\n",
+	    fd, n);
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) icpDetectClientClose,
+	    (void *) icpState);
+	return;
+    }
+	debug(12, 1, "icpDetectClientClose: FD %d: %s\n", fd, xstrerror());
+    /* Clean up client side statemachine */
+    entry = icpState->entry;
+    icpFreeBufOrPage(icpState);
+    comm_close(fd);
+    /* If storeAbort() has been called, then we don't execute this.
+     * If we timed out on the client side, then we need to
+     * unregister/unlock */
+    if (entry) {
+	storeUnregister(entry, fd);
+	storeUnlockObject(entry);
+    }
+}
+
