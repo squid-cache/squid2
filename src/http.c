@@ -1,179 +1,65 @@
-static char rcsid[] = "$Id$";
-/* 
- *  File:         http.c
- *  Description:  state machine for http retrieval protocol.  
- *                Based on John's gopher retrieval module.
- *  Author:       Anawat Chankhunthod, USC
- *  Created:      Tue May 28 10:57:11 1994
- *  Language:     C
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
+/* $Id$ */
+
+/*
+ * DEBUG: Section 11          http: HTTP
  */
-#include "config.h"
-#include <sys/errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
-#include "ansihelp.h"
-#include "comm.h"
-#include "store.h"
-#include "stat.h"
-#include "url.h"
-#include "ipcache.h"
-#include "cache_cf.h"
-#include "ttl.h"
-#include "icp.h"
-#include "util.h"
+#include "squid.h"
 
-#define HTTP_PORT         80
 #define HTTP_DELETE_GAP   (64*1024)
-
-extern int errno;
-extern char *dns_error_message;
-extern time_t cached_curtime;
+#define READBUFSIZ	4096
 
 typedef struct _httpdata {
     StoreEntry *entry;
-    char host[HARVESTHOSTNAMELEN + 1];
-    int port;
-    char *type;
-    char *mime_hdr;
-    char type_id;
-    char request[MAX_URL + 1];
+    request_t *request;
+    char *req_hdr;
     char *icp_page_ptr;		/* Used to send proxy-http request: 
 				 * put_free_8k_page(me) if the lifetime
 				 * expires */
     char *icp_rwd_ptr;		/* When a lifetime expires during the
 				 * middle of an icpwrite, don't lose the
 				 * icpReadWriteData */
+    char *reply_hdr;
+    int reply_hdr_state;
+    int free_request;
 } HttpData;
 
-extern char *tmp_error_buf;
-
-char *HTTP_OPS[] =
-{"GET", "POST", "HEAD", ""};
-
-int http_url_parser(url, host, port, request)
-     char *url;
-     char *host;
-     int *port;
-     char *request;
+static int httpStateFree(fd, httpState)
+     int fd;
+     HttpData *httpState;
 {
-    static char hostbuf[MAX_URL];
-    static char atypebuf[MAX_URL];
-    int t;
-
-    /* initialize everything */
-    (*port) = 0;
-    atypebuf[0] = hostbuf[0] = request[0] = host[0] = '\0';
-
-    t = sscanf(url, "%[a-zA-Z]://%[^/]%s", atypebuf, hostbuf, request);
-    if ((t < 2) || (strcasecmp(atypebuf, "http") != 0)) {
-	return -1;
-    } else if (t == 2) {
-	strcpy(request, "/");
+    if (httpState == NULL)
+	return 1;
+    if (httpState->reply_hdr) {
+	put_free_8k_page(httpState->reply_hdr);
+	httpState->reply_hdr = NULL;
     }
-    if (sscanf(hostbuf, "%[^:]:%d", host, port) < 2)
-	(*port) = HTTP_PORT;
+    if (httpState->icp_page_ptr) {
+	put_free_8k_page(httpState->icp_page_ptr);
+	httpState->icp_page_ptr = NULL;
+    }
+    if (httpState->icp_rwd_ptr)
+	safe_free(httpState->icp_rwd_ptr);
+    if (httpState->free_request)
+	safe_free(httpState->request);
+    xfree(httpState);
     return 0;
 }
 
-int httpCachable(url, type, mime_hdr)
+int httpCachable(url, method)
      char *url;
-     char *type;
-     char *mime_hdr;
+     int method;
 {
-    stoplist *p;
+    wordlist *p = NULL;
 
     /* GET and HEAD are cachable. Others are not. */
-    if (((strncasecmp(type, "GET", 3) != 0)) &&
-	(strncasecmp(type, "HEAD", 4) != 0))
-	return 0;
-
-    /* url's requiring authentication are uncachable */
-    if (mime_hdr && (strstr(mime_hdr, "Authorization")))
+    if (method != METHOD_GET && method != METHOD_HEAD)
 	return 0;
 
     /* scan stop list */
-    p = http_stoplist;
-    while (p) {
+    for (p = getHttpStoplist(); p; p = p->next) {
 	if (strstr(url, p->key))
 	    return 0;
-	p = p->next;
     }
 
     /* else cachable */
@@ -181,93 +67,171 @@ int httpCachable(url, type, mime_hdr)
 }
 
 /* This will be called when timeout on read. */
-void httpReadReplyTimeout(fd, data)
+static void httpReadReplyTimeout(fd, data)
      int fd;
      HttpData *data;
 {
     StoreEntry *entry = NULL;
 
     entry = data->entry;
-    debug(4, "httpReadReplyTimeout: FD %d: <URL:%s>\n", fd, entry->url);
-    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	entry->url,
-	entry->url,
-	"HTTP",
-	103,
-	"Read timeout",
-	"The Network/Remote site may be down.  Try again later.",
-	HARVEST_VERSION,
-	comm_hostname());
-
-    if (data->icp_rwd_ptr)
-	safe_free(data->icp_rwd_ptr);
-    if (data->icp_page_ptr) {
-	put_free_8k_page(data->icp_page_ptr);
-	data->icp_page_ptr = NULL;
-    }
-    storeAbort(entry, tmp_error_buf);
+    debug(11, 4, "httpReadReplyTimeout: FD %d: <URL:%s>\n", fd, entry->url);
+    squid_error_entry(entry, ERR_READ_TIMEOUT, NULL);
     comm_set_select_handler(fd, COMM_SELECT_READ, 0, 0);
     comm_close(fd);
-#ifdef LOG_ERRORS
-    CacheInfo->log_append(CacheInfo,
-	entry->url,
-	"0.0.0.0",
-	store_mem_obj(entry, e_current_len),
-	"ERR_103",		/* HTTP READ TIMEOUT */
-	data->type ? data->type : "NULL");
-#endif
-    safe_free(data);
 }
 
 /* This will be called when socket lifetime is expired. */
-void httpLifetimeExpire(fd, data)
+static void httpLifetimeExpire(fd, data)
      int fd;
      HttpData *data;
 {
     StoreEntry *entry = NULL;
 
     entry = data->entry;
-    debug(4, "httpLifeTimeExpire: FD %d: <URL:%s>\n", fd, entry->url);
+    debug(11, 4, "httpLifeTimeExpire: FD %d: <URL:%s>\n", fd, entry->url);
 
-    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	entry->url,
-	entry->url,
-	"HTTP",
-	110,
-	"Transaction Timeout",
-	"The Network/Remote site may be down or too slow.  Try again later.",
-	HARVEST_VERSION,
-	comm_hostname());
-
-    if (data->icp_page_ptr) {
-	put_free_8k_page(data->icp_page_ptr);
-	data->icp_page_ptr = NULL;
-    }
-    if (data->icp_rwd_ptr)
-	safe_free(data->icp_rwd_ptr);
-    storeAbort(entry, tmp_error_buf);
+    squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
     comm_set_select_handler(fd, COMM_SELECT_READ | COMM_SELECT_WRITE, 0, 0);
     comm_close(fd);
-#ifdef LOG_ERRORS
-    CacheInfo->log_append(CacheInfo,
-	entry->url,
-	"0.0.0.0",
-	store_mem_obj(entry, e_current_len),
-	"ERR_110",		/* HTTP LIFETIME EXPIRE */
-	data->type ? data->type : "NULL");
-#endif
-    safe_free(data);
 }
 
+
+static void httpProcessReplyHeader(data, buf, size)
+     HttpData *data;
+     char *buf;			/* chunk just read by httpReadReply() */
+     int size;
+{
+    char *s = NULL;
+    char *t = NULL;
+    char *t1 = NULL;
+    char *t2 = NULL;
+    StoreEntry *entry = data->entry;
+    char *headers = NULL;
+    int room;
+    int hdr_len;
+    struct _http_reply *reply = NULL;
+
+    debug(11, 3, "httpProcessReplyHeader: key '%s'\n", entry->key);
+
+    if (data->reply_hdr == NULL) {
+	data->reply_hdr = get_free_8k_page();
+	memset(data->reply_hdr, '\0', 8192);
+    }
+    if (data->reply_hdr_state == 0) {
+	hdr_len = strlen(data->reply_hdr);
+	room = 8191 - hdr_len;
+	strncat(data->reply_hdr, buf, room < size ? room : size);
+	hdr_len += room < size ? room : size;
+	if (hdr_len > 4 && strncmp(data->reply_hdr, "HTTP/", 5)) {
+	    debug(11, 3, "httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", entry->key);
+	    data->reply_hdr_state += 2;
+	    return;
+	}
+	/* need to take the lowest, non-zero pointer to the end of the headers.
+	 * some objects have \n\n separating header and body, but \r\n\r\n in
+	 * body text. */
+	t1 = strstr(data->reply_hdr, "\r\n\r\n");
+	t2 = strstr(data->reply_hdr, "\n\n");
+	if (t1 && t2)
+	    t = t2 < t1 ? t2 : t1;
+	else
+	    t = t2 ? t2 : t1;
+	if (!t)
+	    return;		/* headers not complete */
+	t += (t == t1 ? 4 : 2);
+	*t = '\0';
+	reply = entry->mem_obj->reply;
+	reply->hdr_sz = t - data->reply_hdr;
+	debug(11, 7, "httpProcessReplyHeader: hdr_sz = %d\n", reply->hdr_sz);
+	data->reply_hdr_state++;
+    }
+    if (data->reply_hdr_state == 1) {
+	headers = xstrdup(data->reply_hdr);
+	data->reply_hdr_state++;
+	debug(11, 9, "GOT HTTP REPLY HDR:\n---------\n%s\n----------\n",
+	    data->reply_hdr);
+	t = strtok(headers, "\n");
+	while (t) {
+	    s = t + strlen(t);
+	    while (*s == '\r')
+		*s-- = '\0';
+	    if (!strncasecmp(t, "HTTP", 4)) {
+		sscanf(t + 1, "%lf", &reply->version);
+		if ((t = strchr(t, ' '))) {
+		    t++;
+		    reply->code = atoi(t);
+		}
+	    } else if (!strncasecmp(t, "Content-type:", 13)) {
+		if ((t = strchr(t, ' '))) {
+		    t++;
+		    strncpy(reply->content_type, t, HTTP_REPLY_FIELD_SZ - 1);
+		}
+	    } else if (!strncasecmp(t, "Content-length:", 15)) {
+		if ((t = strchr(t, ' '))) {
+		    t++;
+		    reply->content_length = atoi(t);
+		}
+	    } else if (!strncasecmp(t, "Date:", 5)) {
+		if ((t = strchr(t, ' '))) {
+		    t++;
+		    strncpy(reply->date, t, HTTP_REPLY_FIELD_SZ - 1);
+		}
+	    } else if (!strncasecmp(t, "Expires:", 8)) {
+		if ((t = strchr(t, ' '))) {
+		    t++;
+		    strncpy(reply->expires, t, HTTP_REPLY_FIELD_SZ - 1);
+		}
+	    } else if (!strncasecmp(t, "Last-Modified:", 14)) {
+		if ((t = strchr(t, ' '))) {
+		    t++;
+		    strncpy(reply->last_modified, t, HTTP_REPLY_FIELD_SZ - 1);
+		}
+	    }
+	    t = strtok(NULL, "\n");
+	}
+	safe_free(headers);
+	if (reply->code)
+	    debug(11, 3, "httpProcessReplyHeader: HTTP CODE: %d\n", reply->code);
+	switch (reply->code) {
+	case 200:		/* OK */
+	case 203:		/* Non-Authoritative Information */
+	case 300:		/* Multiple Choices */
+	case 301:		/* Moved Permanently */
+	case 410:		/* Gone */
+	    /* These can be cached for a long time, make the key public */
+	    entry->expires = squid_curtime + ttlSet(entry);
+	    if (!BIT_TEST(entry->flag, ENTRY_PRIVATE))
+		storeSetPublicKey(entry);
+	    break;
+	case 304:		/* Not Modified -- just in case */
+	case 401:		/* Unauthorized */
+	case 407:		/* Proxy Authentication Required */
+	    /* These should never be cached at all */
+	    if (BIT_TEST(entry->flag, ENTRY_PRIVATE))
+		storeSetPrivateKey(entry);
+	    storeExpireNow(entry);
+	    BIT_RESET(entry->flag, CACHABLE);
+	    storeReleaseRequest(entry);
+	    break;
+	default:
+	    /* These can be negative cached, make key public */
+	    entry->expires = squid_curtime + getNegativeTTL();
+	    if (!BIT_TEST(entry->flag, ENTRY_PRIVATE))
+		storeSetPublicKey(entry);
+	    break;
+	}
+    }
+}
 
 
 /* This will be called when data is ready to be read from fd.  Read until
  * error or connection closed. */
-void httpReadReply(fd, data)
+/* XXX this function is too long! */
+static void httpReadReply(fd, data)
      int fd;
      HttpData *data;
 {
-    static char buf[4096];
+    static char buf[READBUFSIZ];
     int len;
     int clen;
     int off;
@@ -277,152 +241,102 @@ void httpReadReply(fd, data)
     if (entry->flag & DELETE_BEHIND) {
 	if (storeClientWaiting(entry)) {
 	    /* check if we want to defer reading */
-	    clen = store_mem_obj(entry, e_current_len);
-	    off = store_mem_obj(entry, e_lowest_offset);
+	    clen = entry->mem_obj->e_current_len;
+	    off = entry->mem_obj->e_lowest_offset;
 	    if ((clen - off) > HTTP_DELETE_GAP) {
-		debug(3, "httpReadReply: Read deferred for Object: %s\n",
-		    entry->key);
-		debug(3, "                Current Gap: %d bytes\n",
-		    clen - off);
-
+		debug(11, 3, "httpReadReply: Read deferred for Object: %s\n",
+		    entry->url);
+		debug(11, 3, "                Current Gap: %d bytes\n", clen - off);
 		/* reschedule, so it will be automatically reactivated
 		 * when Gap is big enough. */
 		comm_set_select_handler(fd,
 		    COMM_SELECT_READ,
 		    (PF) httpReadReply,
-		    (caddr_t) data);
-
-/* don't install read timeout until we are below the GAP */
-#ifdef INSTALL_READ_TIMEOUT_ABOVE_GAP
-		comm_set_select_handler_plus_timeout(fd,
-		    COMM_SELECT_TIMEOUT,
-		    (PF) httpReadReplyTimeout,
-		    (caddr_t) data,
-		    getReadTimeout());
-#else
+		    (void *) data);
+		/* don't install read timeout until we are below the GAP */
 		comm_set_select_handler_plus_timeout(fd,
 		    COMM_SELECT_TIMEOUT,
 		    (PF) NULL,
-		    (caddr_t) NULL,
+		    (void *) NULL,
 		    (time_t) 0);
-#endif
+		/* dont try reading again for a while */
+		comm_set_stall(fd, getStallDelay());
 		return;
 	    }
 	} else {
 	    /* we can terminate connection right now */
-	    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-		entry->url,
-		entry->url,
-		"HTTP",
-		119,
-		"No Client",
-		"All Clients went away before tranmission is complete and object is too big to cache.",
-		HARVEST_VERSION,
-		comm_hostname());
-	    storeAbort(entry, tmp_error_buf);
+	    squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	    comm_close(fd);
-#ifdef LOG_ERRORS
-	    CacheInfo->log_append(CacheInfo,
-		entry->url,
-		"0.0.0.0",
-		store_mem_obj(entry, e_current_len),
-		"ERR_119",	/* HTTP NO CLIENTS, BIG OBJ */
-		data->type ? data->type : "NULL");
-#endif
-	    safe_free(data);
 	    return;
 	}
     }
-    len = read(fd, buf, 4096);
-    debug(5, "httpReadReply: FD %d: len %d.\n", fd, len);
+    errno = 0;
+    len = read(fd, buf, READBUFSIZ);
+    debug(11, 5, "httpReadReply: FD %d: len %d.\n", fd, len);
 
-    if (len < 0 || ((len == 0) && (store_mem_obj(entry, e_current_len) == 0))) {
-	/* XXX we we should log when len==0 and current_len==0 */
-	debug(2, "httpReadReply: FD %d: read failure: %s.\n",
+    if (len < 0) {
+	debug(11, 2, "httpReadReply: FD %d: read failure: %s.\n",
 	    fd, xstrerror());
-	if (errno == ECONNRESET) {
-	    /* Connection reset by peer */
-	    /* consider it as a EOF */
-	    if (!(entry->flag & DELETE_BEHIND))
-		entry->expires = cached_curtime + ttlSet(entry);
-	    sprintf(tmp_error_buf, "\n<p>Warning: The Remote Server sent RESET at the end of transmission.\n");
-	    storeAppend(entry, tmp_error_buf, strlen(tmp_error_buf));
-	    storeComplete(entry);
+	if (errno == EAGAIN || errno == EWOULDBLOCK) {
+	    /* reinstall handlers */
+	    /* XXX This may loop forever */
+	    comm_set_select_handler(fd, COMM_SELECT_READ,
+		(PF) httpReadReply, (void *) data);
+	    comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT,
+		(PF) httpReadReplyTimeout, (void *) data, getReadTimeout());
 	} else {
-	    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-		entry->url,
-		entry->url,
-		"HTTP",
-		105,
-		"Read error",
-		"Network/Remote site is down.  Try again later.",
-		HARVEST_VERSION,
-		comm_hostname());
-	    storeAbort(entry, tmp_error_buf);
+	    BIT_RESET(entry->flag, CACHABLE);
+	    storeReleaseRequest(entry);
+	    squid_error_entry(entry, ERR_READ_ERROR, xstrerror());
+	    comm_close(fd);
 	}
+    } else if (len == 0 && entry->mem_obj->e_current_len == 0) {
+	squid_error_entry(entry,
+	    ERR_ZERO_SIZE_OBJECT,
+	    errno ? xstrerror() : NULL);
 	comm_close(fd);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_105",		/* HTTP READ ERROR */
-	    data->type ? data->type : "NULL");
-#endif
-	safe_free(data);
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */
-	if (!(entry->flag & DELETE_BEHIND))
-	    entry->expires = cached_curtime + ttlSet(entry);
 	storeComplete(entry);
 	comm_close(fd);
-	safe_free(data);
-    } else if (((store_mem_obj(entry, e_current_len) + len) > getHttpMax()) &&
+    } else if ((entry->mem_obj->e_current_len + len) > getHttpMax() &&
 	!(entry->flag & DELETE_BEHIND)) {
 	/*  accept data, but start to delete behind it */
 	storeStartDeleteBehind(entry);
-
 	storeAppend(entry, buf, len);
-	comm_set_select_handler(fd, COMM_SELECT_READ,
-	    (PF) httpReadReply, (caddr_t) data);
-	comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT,
-	    (PF) httpReadReplyTimeout, (caddr_t) data, getReadTimeout());
-
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) httpReadReply,
+	    (void *) data);
+	comm_set_select_handler_plus_timeout(fd,
+	    COMM_SELECT_TIMEOUT,
+	    (PF) httpReadReplyTimeout,
+	    (void *) data,
+	    getReadTimeout());
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
 	/* append the last bit of info we get */
 	storeAppend(entry, buf, len);
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "HTTP",
-	    107,
-	    "Client Aborted",
-	    "Client(s) dropped connection before transmission is complete.\nObject fetching is aborted.\n",
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
+	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 	comm_close(fd);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_107",		/* HTTP CLIENT ABORT */
-	    data->type ? data->type : "NULL");
-#endif
-	safe_free(data);
     } else {
 	storeAppend(entry, buf, len);
-	comm_set_select_handler(fd, COMM_SELECT_READ,
-	    (PF) httpReadReply, (caddr_t) data);
-	comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT,
-	    (PF) httpReadReplyTimeout, (caddr_t) data, getReadTimeout());
+	if (data->reply_hdr_state < 2 && len > 0)
+	    httpProcessReplyHeader(data, buf, len);
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) httpReadReply,
+	    (void *) data);
+	comm_set_select_handler_plus_timeout(fd,
+	    COMM_SELECT_TIMEOUT,
+	    (PF) httpReadReplyTimeout,
+	    (void *) data,
+	    getReadTimeout());
     }
 }
 
 /* This will be called when request write is complete. Schedule read of
  * reply. */
-void httpSendComplete(fd, buf, size, errflag, data)
+static void httpSendComplete(fd, buf, size, errflag, data)
      int fd;
      char *buf;
      int size;
@@ -432,7 +346,7 @@ void httpSendComplete(fd, buf, size, errflag, data)
     StoreEntry *entry = NULL;
 
     entry = data->entry;
-    debug(5, "httpSendComplete: FD %d: size %d: errflag %d.\n",
+    debug(11, 5, "httpSendComplete: FD %d: size %d: errflag %d.\n",
 	fd, size, errflag);
 
     if (buf) {
@@ -443,40 +357,26 @@ void httpSendComplete(fd, buf, size, errflag, data)
     data->icp_rwd_ptr = NULL;	/* Don't double free in lifetimeexpire */
 
     if (errflag) {
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "HTTP",
-	    101,
-	    "Cannot connect to the original site",
-	    "The remote site may be down.",
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
+	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	comm_close(fd);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_101",		/* HTTP CONNECT FAIL */
-	    data->type ? data->type : "NULL");
-#endif
-	safe_free(data);
 	return;
     } else {
 	/* Schedule read reply. */
-	comm_set_select_handler(fd, COMM_SELECT_READ,
-	    (PF) httpReadReply, (caddr_t) data);
-	comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT,
-	    (PF) httpReadReplyTimeout, (caddr_t) data, getReadTimeout());
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) httpReadReply,
+	    (void *) data);
+	comm_set_select_handler_plus_timeout(fd,
+	    COMM_SELECT_TIMEOUT,
+	    (PF) httpReadReplyTimeout,
+	    (void *) data,
+	    getReadTimeout());
 	comm_set_fd_lifetime(fd, -1);	/* disable lifetime DPW */
-
     }
 }
 
 /* This will be called when connect completes. Write request. */
-void httpSendRequest(fd, data)
+static void httpSendRequest(fd, data)
      int fd;
      HttpData *data;
 {
@@ -486,18 +386,21 @@ void httpSendRequest(fd, data)
     char *t = NULL;
     char *post_buf = NULL;
     static char *crlf = "\r\n";
-    static char *HARVEST_PROXY_TEXT = "via Harvest Cache version";
+    static char *VIA_PROXY_TEXT = "via Sqiud Cache version";
     int len = 0;
     int buflen;
+    int cfd = -1;
+    request_t *req = data->request;
+    char *Method = RequestMethodStr[req->method];
 
-    debug(5, "httpSendRequest: FD %d: data %p.\n", fd, data);
-    buflen = strlen(data->type) + strlen(data->request);
-    if (data->mime_hdr)
-	buflen += strlen(data->mime_hdr);
+    debug(11, 5, "httpSendRequest: FD %d: data %p.\n", fd, data);
+    buflen = strlen(Method) + strlen(req->urlpath);
+    if (data->req_hdr)
+	buflen += strlen(data->req_hdr);
     buflen += 512;		/* lots of extra */
 
-    if (!strcasecmp(data->type, "POST") && data->mime_hdr) {
-	if ((t = strstr(data->mime_hdr, "\r\n\r\n"))) {
+    if (req->method == METHOD_POST && data->req_hdr) {
+	if ((t = strstr(data->req_hdr, "\r\n\r\n"))) {
 	    post_buf = xstrdup(t + 4);
 	    *(t + 4) = '\0';
 	}
@@ -507,23 +410,21 @@ void httpSendRequest(fd, data)
     buf = (char *) get_free_8k_page();
     data->icp_page_ptr = buf;
     if (buflen > DISK_PAGE_SIZE) {
-	debug(0, "Mime header length %d is breaking ICP code\n", buflen);
+	debug(11, 0, "Mime header length %d is breaking ICP code\n", buflen);
     }
     memset(buf, '\0', buflen);
 
-    sprintf(buf, "%s %s ", data->type, data->request);
+    sprintf(buf, "%s %s HTTP/1.0\r\n", Method, req->urlpath);
     len = strlen(buf);
-    if (data->mime_hdr) {	/* we have to parse the MIME header */
-	xbuf = xstrdup(data->mime_hdr);
+    if (data->req_hdr) {	/* we have to parse the request header */
+	xbuf = xstrdup(data->req_hdr);
 	for (t = strtok(xbuf, crlf); t; t = strtok(NULL, crlf)) {
 	    if (strncasecmp(t, "User-Agent:", 11) == 0) {
 		ybuf = (char *) get_free_4k_page();
 		memset(ybuf, '\0', SM_PAGE_SIZE);
-		sprintf(ybuf, "%s %s %s", t, HARVEST_PROXY_TEXT, HARVEST_VERSION);
+		sprintf(ybuf, "%s %s %s", t, VIA_PROXY_TEXT, version_string);
 		t = ybuf;
 	    }
-	    if (strncasecmp(t, "If-Modified-Since:", 18) == 0)
-		continue;
 	    if (len + (int) strlen(t) > buflen - 10)
 		continue;
 	    strcat(buf, t);
@@ -536,6 +437,22 @@ void httpSendRequest(fd, data)
 	    ybuf = NULL;
 	}
     }
+    /* Add Forwarded: header */
+    ybuf = get_free_4k_page();
+    if (data->entry->mem_obj)
+	cfd = data->entry->mem_obj->fd_of_first_client;
+    if (cfd < 0) {
+	sprintf(ybuf, "Forwarded: by http://%s:%d/\r\n",
+	    getMyHostname(), getAsciiPortNum());
+    } else {
+	sprintf(ybuf, "Forwarded: by http://%s:%d/ for %s\r\n",
+	    getMyHostname(), getAsciiPortNum(), fd_table[cfd].ipaddr);
+    }
+    strcat(buf, ybuf);
+    len += strlen(ybuf);
+    put_free_4k_page(ybuf);
+    ybuf = NULL;
+
     strcat(buf, crlf);
     len += 2;
     if (post_buf) {
@@ -543,17 +460,26 @@ void httpSendRequest(fd, data)
 	len += strlen(post_buf);
 	xfree(post_buf);
     }
-    debug(6, "httpSendRequest: FD %d: buf '%s'\n", fd, buf);
-    data->icp_rwd_ptr = icpWrite(fd, buf, len, 30, httpSendComplete, data);
+    debug(11, 6, "httpSendRequest: FD %d: buf '%s'\n", fd, buf);
+    data->icp_rwd_ptr = icpWrite(fd,
+	buf,
+	len,
+	30,
+	httpSendComplete,
+	(void *) data);
 }
 
-void httpConnInProgress(fd, data)
+static void httpConnInProgress(fd, data)
      int fd;
      HttpData *data;
 {
     StoreEntry *entry = data->entry;
+    request_t *req = data->request;
 
-    if (comm_connect(fd, data->host, data->port) != COMM_OK)
+    debug(11, 5, "httpConnInProgress: FD %d data=%p\n", fd, data);
+
+    if (comm_connect(fd, req->host, req->port) != COMM_OK) {
+	debug(11, 5, "httpConnInProgress: FD %d errno=%d\n", fd, errno);
 	switch (errno) {
 	case EINPROGRESS:
 	case EALREADY:
@@ -561,36 +487,19 @@ void httpConnInProgress(fd, data)
 	    comm_set_select_handler(fd,
 		COMM_SELECT_WRITE,
 		(PF) httpConnInProgress,
-		(caddr_t) data);
+		(void *) data);
 	    return;
 	case EISCONN:
 	    break;		/* cool, we're connected */
 	default:
+	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	    comm_close(fd);
-	    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-		entry->url,
-		entry->url,
-		"HTTP",
-		104,
-		"Cannot connect to the original site",
-		"The remote site may be down.",
-		HARVEST_VERSION,
-		comm_hostname());
-	    storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	    CacheInfo->log_append(CacheInfo,
-		entry->url,
-		"0.0.0.0",
-		store_mem_obj(entry, e_current_len),
-		"ERR_104",	/* HTTP CONNECT FAIL */
-		data->type ? data->type : "NULL");
-#endif
-	    safe_free(data);
 	    return;
 	}
+    }
     /* Call the real write handler, now that we're fully connected */
     comm_set_select_handler(fd, COMM_SELECT_WRITE,
-	(PF) httpSendRequest, (caddr_t) data);
+	(PF) httpSendRequest, (void *) data);
 }
 
 int proxyhttpStart(e, url, entry)
@@ -598,23 +507,15 @@ int proxyhttpStart(e, url, entry)
      char *url;
      StoreEntry *entry;
 {
+    int sock;
+    int status;
+    HttpData *data = NULL;
+    request_t *request = NULL;
 
-    /* Create state structure. */
-    int sock, status;
-    HttpData *data = (HttpData *) xmalloc(sizeof(HttpData));
-
-    debug(3, "proxyhttpStart: <URL:%s>\n", url);
-    debug(10, "proxyhttpStart: HTTP request header:\n%s\n",
-	store_mem_obj(entry, mime_hdr));
-
-    memset(data, '\0', sizeof(HttpData));
-    data->entry = entry;
-
-    strncpy(data->request, url, sizeof(data->request) - 1);
-    data->type = HTTP_OPS[entry->type_id];
-    data->port = e->ascii_port;
-    data->mime_hdr = store_mem_obj(entry, mime_hdr);
-    strncpy(data->host, e->host, sizeof(data->host) - 1);
+    debug(11, 3, "proxyhttpStart: \"%s %s\"\n",
+	RequestMethodStr[entry->method], url);
+    debug(11, 10, "proxyhttpStart: HTTP request header:\n%s\n",
+	entry->mem_obj->mime_hdr);
 
     if (e->proxy_only)
 	storeStartDeleteBehind(entry);
@@ -622,232 +523,122 @@ int proxyhttpStart(e, url, entry)
     /* Create socket. */
     sock = comm_open(COMM_NONBLOCKING, 0, 0, url);
     if (sock == COMM_ERROR) {
-	debug(4, "proxyhttpStart: Failed because we're out of sockets.\n");
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "HTTP",
-	    111,
-	    "Cached short of file-descriptors, sorry",
-	    "",
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_111",		/* HTTP NO FD'S */
-	    data->type ? data->type : "NULL");
-#endif
-	safe_free(data);
+	debug(11, 4, "proxyhttpStart: Failed because we're out of sockets.\n");
+	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
 	return COMM_ERROR;
     }
+    data = (HttpData *) xcalloc(1, sizeof(HttpData));
+    data->entry = entry;
+    data->req_hdr = entry->mem_obj->mime_hdr;
+    request = (request_t *) xcalloc(1, sizeof(request_t));
+    data->free_request = 1;
+    data->request = request;
+    /* register the handler to free HTTP state data when the FD closes */
+    comm_set_select_handler(sock,
+	COMM_SELECT_CLOSE,
+	httpStateFree,
+	(void *) data);
+
+    request->method = entry->method;
+    strncpy(request->host, e->host, SQUIDHOSTNAMELEN);
+    request->port = e->ascii_port;
+    strncpy(request->urlpath, url, MAX_URL);
+
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
      * Otherwise, we cannot check return code for connect. */
-    if (!ipcache_gethostbyname(data->host)) {
-	debug(4, "proxyhttpstart: Called without IP entry in ipcache. OR lookup failed.\n");
+    if (!ipcache_gethostbyname(request->host)) {
+	debug(11, 4, "proxyhttpstart: Called without IP entry in ipcache. OR lookup failed.\n");
+	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
 	comm_close(sock);
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "HTTP",
-	    102,
-	    "DNS name lookup failure",
-	    dns_error_message,
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_102",		/* HTTP DNS FAIL */
-	    data->type ? data->type : "NULL");
-#endif
-	safe_free(data);
 	return COMM_ERROR;
     }
     /* Open connection. */
-    if ((status = comm_connect(sock, data->host, data->port))) {
+    if ((status = comm_connect(sock, request->host, request->port))) {
 	if (status != EINPROGRESS) {
+	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	    comm_close(sock);
-	    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-		entry->url,
-		entry->url,
-		"HTTP",
-		104,
-		"Cannot connect to the original site",
-		"The remote site may be down.",
-		HARVEST_VERSION,
-		comm_hostname());
-	    storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	    CacheInfo->log_append(CacheInfo,
-		entry->url,
-		"0.0.0.0",
-		store_mem_obj(entry, e_current_len),
-		"ERR_104",	/* HTTP CONNECT FAIL */
-		data->type ? data->type : "NULL");
-#endif
-	    safe_free(data);
-	    e->last_fail_time = cached_curtime;
+	    e->last_fail_time = squid_curtime;
 	    e->neighbor_up = 0;
 	    return COMM_ERROR;
 	} else {
-	    debug(5, "proxyhttpStart: FD %d: EINPROGRESS.\n", sock);
+	    debug(11, 5, "proxyhttpStart: FD %d: EINPROGRESS.\n", sock);
 	    comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-		(PF) httpLifetimeExpire, (caddr_t) data);
+		(PF) httpLifetimeExpire, (void *) data);
 	    comm_set_select_handler(sock, COMM_SELECT_WRITE,
-		(PF) httpConnInProgress, (caddr_t) data);
+		(PF) httpConnInProgress, (void *) data);
 	    return COMM_OK;
 	}
     }
     /* Install connection complete handler. */
     fd_note(sock, entry->url);
     comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-	(PF) httpLifetimeExpire, (caddr_t) data);
+	(PF) httpLifetimeExpire, (void *) data);
     comm_set_select_handler(sock, COMM_SELECT_WRITE,
-	(PF) httpSendRequest, (caddr_t) data);
+	(PF) httpSendRequest, (void *) data);
     return COMM_OK;
-
 }
 
-int httpStart(unusedfd, url, type, mime_hdr, entry)
+int httpStart(unusedfd, url, request, req_hdr, entry)
      int unusedfd;
      char *url;
-     char *type;
-     char *mime_hdr;
+     request_t *request;
+     char *req_hdr;
      StoreEntry *entry;
 {
     /* Create state structure. */
     int sock, status;
-    HttpData *data = (HttpData *) xmalloc(sizeof(HttpData));
+    HttpData *data = NULL;
 
-    debug(3, "httpStart: %s <URL:%s>\n", type, url);
-    debug(10, "httpStart: mime_hdr '%s'\n", mime_hdr);
+    debug(11, 3, "httpStart: \"%s %s\"\n",
+	RequestMethodStr[request->method], url);
+    debug(11, 10, "httpStart: req_hdr '%s'\n", req_hdr);
 
-    memset(data, '\0', sizeof(HttpData));
-    data->entry = entry;
-    data->type = type;
-    data->mime_hdr = mime_hdr;
-
-    /* Parse url. */
-    if (http_url_parser(url, data->host, &data->port, data->request)) {
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "HTTP",
-	    110,
-	    "Invalid URL syntax:  Cannot parse.",
-	    "Contact your system administrator for further help.",
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_110",		/* HTTP INVALID URL */
-	    data->type ? data->type : "NULL");
-#endif
-	safe_free(data);
-	return COMM_ERROR;
-    }
     /* Create socket. */
     sock = comm_open(COMM_NONBLOCKING, 0, 0, url);
     if (sock == COMM_ERROR) {
-	debug(4, "httpStart: Failed because we're out of sockets.\n");
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "HTTP",
-	    111,
-	    "Cached short of file-descriptors, sorry",
-	    "",
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_111",		/* HTTP NO FD'S */
-	    data->type ? data->type : "NULL");
-#endif
-	safe_free(data);
+	debug(11, 4, "httpStart: Failed because we're out of sockets.\n");
+	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
 	return COMM_ERROR;
     }
+    data = (HttpData *) xcalloc(1, sizeof(HttpData));
+    data->entry = entry;
+    data->req_hdr = req_hdr;
+    data->request = request;
+    comm_set_select_handler(sock,
+	COMM_SELECT_CLOSE,
+	httpStateFree,
+	(void *) data);
+
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
      * Otherwise, we cannot check return code for connect. */
-    if (!ipcache_gethostbyname(data->host)) {
-	debug(4, "httpstart: Called without IP entry in ipcache. OR lookup failed.\n");
+    if (!ipcache_gethostbyname(request->host)) {
+	debug(11, 4, "httpstart: Called without IP entry in ipcache. OR lookup failed.\n");
+	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
 	comm_close(sock);
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "HTTP",
-	    108,
-	    "DNS name lookup failure",
-	    dns_error_message,
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_108",		/* HTTP DNS FAIL */
-	    data->type ? data->type : "NULL");
-#endif
-	safe_free(data);
 	return COMM_ERROR;
     }
     /* Open connection. */
-    if ((status = comm_connect(sock, data->host, data->port))) {
+    if ((status = comm_connect(sock, request->host, request->port))) {
 	if (status != EINPROGRESS) {
+	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	    comm_close(sock);
-	    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-		entry->url,
-		entry->url,
-		"HTTP",
-		109,
-		"Cannot connect to the original site",
-		"The remote site may be down.",
-		HARVEST_VERSION,
-		comm_hostname());
-	    storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	    CacheInfo->log_append(CacheInfo,
-		entry->url,
-		"0.0.0.0",
-		store_mem_obj(entry, e_current_len),
-		"ERR_109",	/* HTTP CONNECT FAIL */
-		data->type ? data->type : "NULL");
-#endif
-	    safe_free(data);
 	    return COMM_ERROR;
 	} else {
-	    debug(5, "httpStart: FD %d: EINPROGRESS.\n", sock);
+	    debug(11, 5, "httpStart: FD %d: EINPROGRESS.\n", sock);
 	    comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-		(PF) httpLifetimeExpire, (caddr_t) data);
+		(PF) httpLifetimeExpire, (void *) data);
 	    comm_set_select_handler(sock, COMM_SELECT_WRITE,
-		(PF) httpConnInProgress, (caddr_t) data);
+		(PF) httpConnInProgress, (void *) data);
 	    return COMM_OK;
 	}
     }
     /* Install connection complete handler. */
     fd_note(sock, entry->url);
     comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-	(PF) httpLifetimeExpire, (caddr_t) data);
+	(PF) httpLifetimeExpire, (void *) data);
     comm_set_select_handler(sock, COMM_SELECT_WRITE,
-	(PF) httpSendRequest, (caddr_t) data);
+	(PF) httpSendRequest, (void *) data);
     return COMM_OK;
 }
