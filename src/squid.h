@@ -293,3 +293,4 @@ extern void ttlAddToList _PARAMS((char *, time_t, int, time_t));
 extern void ttlAddToForceList _PARAMS((char *, time_t, time_t));
 extern int waisStart _PARAMS((int, char *, method_t, char *, StoreEntry *));
 extern void storeDirClean _PARAMS((void));
+extern char *dash_str;

@@ -139,7 +139,8 @@ static char *log_tags[] =
     "ERR_CANNOT_FETCH",
     "ERR_NO_RELAY",
     "ERR_DISK_IO",
-    "ERR_ZERO_SIZE_OBJECT"
+    "ERR_ZERO_SIZE_OBJECT",
+    "ERR_PROXY_DENIED"
 };
 
 static icpUdpData *UdpQueueHead = NULL;
@@ -182,7 +183,7 @@ static int icpStateFree(fd, icpState)
 
     if (!icpState)
 	return 1;
-    if (icpState->log_type < LOG_TAG_NONE || icpState->log_type > ERR_ZERO_SIZE_OBJECT)
+    if (icpState->log_type < LOG_TAG_NONE || icpState->log_type > ERR_MAX)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
 	if (icpState->entry->mem_obj)

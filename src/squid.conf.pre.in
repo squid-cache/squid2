@@ -781,7 +781,27 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #tcp_recv_bufsize 0
 
 
-#ssl_proxy cache_host  | host:port
+#  TAG: ssl_proxy
+#	Specify the name of a 'cache_host' listed above, or a hostname
+#	and port number where all SSL requests should be forwarded to.
+#
+#	Usage: ssl_proxy cache_host
+#	       ssl_proxy host:port
+#
+#ssl_proxy none
+
+#  TAG: proxy_auth_file
+#	Apache-style file of passwords for authenticated proxy access
+#	Looks like user:password, with the password being standard
+#	crypt() format.  Proxy authentication is disabled by default.
+#
+#proxy_auth_file /dev/null
+
+#  TAG: proxy_auth_ignore_domain
+#       Don't ask for proxy authentication for URLs in this domain.
+#
+#proxy_auth_ignore_domain foo.org
+
 #  TAG: err_html_text
 #	HTML text to include in error messages.  Make this a "mailto"
 #	URL to your admin address, or maybe just a link to your 

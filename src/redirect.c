@@ -83,7 +83,6 @@ static int NRedirectors = 0;
 static int NRedirectorsOpen = 0;
 static struct redirectQueueData *redirectQueueHead = NULL;
 static struct redirectQueueData **redirectQueueTailP = &redirectQueueHead;
-static char *dash_str = "-";
 
 static int redirectCreateRedirector(command)
      char *command;

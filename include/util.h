@@ -199,4 +199,6 @@ extern void errorlog();
 
 extern void Tolower _PARAMS((char *));
 
+extern char *uudecode _PARAMS((char *));
+
 #endif /* ndef _UTIL_H_ */

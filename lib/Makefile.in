@@ -27,7 +27,8 @@ UTILOBJS	= rfc850.o \
 		  debug.o \
 		  log.o \
 		  tempnam.o \
-		  base64.o
+		  base64.o \
+		  uudecode.o
 REGEXOBJS	= GNUregex.o
 LIBS		= libmiscutil.a libregex.a
 
