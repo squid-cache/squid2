@@ -498,8 +498,8 @@ mainInitialize(void)
     squid_signal(SIGALRM, time_tick, SA_RESTART);
     alarm(1);
 #endif
+    memCheckInit();
     debug(1, 1) ("Ready to serve requests.\n");
-
     if (!configured_once) {
 	eventAdd("storeMaintain", storeMaintainSwapSpace, NULL, 1.0, 1);
 	eventAdd("storeDirClean", storeDirClean, NULL, 15.0, 1);

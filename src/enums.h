@@ -557,6 +557,7 @@ typedef enum {
     MEM_USHORTLIST,
     MEM_WORDLIST,
     MEM_IDNS_QUERY,
+    MEM_EVENT,
     MEM_MAX
 } mem_type;
 

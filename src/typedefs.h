@@ -161,7 +161,6 @@ typedef struct _helper helper;
 typedef struct _helper_server helper_server;
 typedef struct _helper_request helper_request;
 typedef struct _generic_cbdata generic_cbdata;
-typedef struct _idns_query idns_query;
 
 #if SQUID_SNMP
 typedef variable_list *(oid_ParseFn) (variable_list *, snint *);
