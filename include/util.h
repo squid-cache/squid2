@@ -80,7 +80,7 @@ extern void *xmalloc(size_t);
 extern void *xrealloc(void *, size_t);
 extern void Tolower(char *);
 extern void xfree(void *);
-extern void xxfree(void *);
+extern void xxfree(const void *);
 
 /* rfc1738.c */
 extern char *rfc1738_escape(const char *);
