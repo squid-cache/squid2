@@ -125,7 +125,6 @@ enum {
 
 static CNCB httpConnectDone;
 static CWCB httpSendComplete;
-static CWCB *sendHeaderDone;
 static CWCB httpSendRequestEntry;
 
 static PF httpReadReply;
@@ -722,6 +721,7 @@ httpSendRequest(int fd, void *data)
     StoreEntry *entry = httpState->entry;
     int cfd;
     peer *p = httpState->peer;
+    CWCB *sendHeaderDone;
 
     debug(11, 5) ("httpSendRequest: FD %d: httpState %p.\n", fd, httpState);
     buflen = strLen(req->urlpath);
@@ -894,7 +894,7 @@ httpRestart(HttpStateData * httpState)
 {
     /* restart a botched request from a persistent connection */
     debug(11, 2) ("Retrying HTTP request for %s\n", storeUrl(httpState->entry));
-    if (httpState->orig_request->method != METHOD_GET) {
+    if (pumpMethod(httpState->orig_request->method)) {
 	debug(11, 1) ("Potential Coredump: httpRestart %s %s\n",
 	    RequestMethodStr[httpState->orig_request->method],
 	    storeUrl(httpState->entry));

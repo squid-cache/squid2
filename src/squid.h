@@ -31,7 +31,6 @@
 #ifndef SQUID_H
 #define SQUID_H
 
-
 #include "config.h"
 
 /*
@@ -307,7 +306,6 @@ struct rusage {
 #endif
 
 #include "md5.h"
-
 #include "Stack.h"
 
 #ifdef SQUID_SNMP

@@ -111,7 +111,7 @@ static void aio_thread_write(aio_thread_t *);
 static void aio_thread_close(aio_thread_t *);
 static void aio_thread_stat(aio_thread_t *);
 static void aio_thread_unlink(aio_thread_t *);
-#if 0
+#if AIO_OPENDIR
 static void *aio_thread_opendir(void *);
 #endif
 static void aio_debug(aio_request_t *);
@@ -232,7 +232,7 @@ aio_thread_loop(void *ptr)
 	case _AIO_OP_UNLINK:
 	    aio_thread_unlink(threadp);
 	    break;
-#if 0
+#if AIO_OPENDIR
 	    /* Opendir not implemented yet */
 	case _AIO_OP_OPENDIR:
 	    aio_thread_opendir(threadp);
@@ -680,7 +680,7 @@ aio_thread_unlink(aio_thread_t * threadp)
 }
 
 
-#if 0
+#if AIO_OPENDIR
 /* XXX aio_opendir NOT implemented? */
 
 int
