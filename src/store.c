@@ -527,21 +527,13 @@ void storeReleaseRequest(e)
 int storeUnlockObject(e)
      StoreEntry *e;
 {
-    int lock_count;
-
-    if ((int) e->lock_count > 0)
-	e->lock_count--;
-    else if (e->lock_count == 0) {
-	debug(20, 0, "Entry lock count %d is out-of-whack\n", e->lock_count);
-    }
-    debug(20, 3, "storeUnlockObject: key '%s' count=%d\n", e->key, e->lock_count);
-
+    e->lock_count--;
+    debug(20, 3, "storeUnlockObject: key '%s' count=%d\n",
+	e->key, e->lock_count);
     if (e->lock_count)
-	return e->lock_count;
-
-    /* Prevent UMR if we end up freeing the entry */
-    lock_count = (int) e->lock_count;
-
+        return (int) e->lock_count;
+    if (e->store_status == STORE_PENDING)
+	e->store_status = STORE_ABORTED;
     if (e->flag & RELEASE_REQUEST) {
 	storeRelease(e);
     } else if (e->flag & ABORT_MSG_PENDING) {
@@ -559,7 +551,7 @@ int storeUnlockObject(e)
     } else if (storeCheckPurgeMem(e)) {
 	storePurgeMem(e);
     }
-    return lock_count;
+    return 0;
 }
 
 /* Lookup an object in the cache. 
