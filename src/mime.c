@@ -47,7 +47,7 @@ int mime_refresh_request(mime)
     char *pr = NULL;
     if (mime == NULL)
 	return 0;
-    if (mime_get_header("If-Modified-Since"))
+    if (mime_get_header(mime, "If-Modified-Since"))
 	return 1;
     if ((pr = mime_get_header(mime, "pragma"))) {
 	/* why strstr and not strcmp? -DPW */
