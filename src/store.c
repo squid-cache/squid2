@@ -440,6 +440,8 @@ void storeReleaseRequest(e)
 {
     if (e->flag & RELEASE_REQUEST)
 	return;
+    if (!storeEntryLocked(e))
+	fatal_dump("Somebody called storeReleaseRequest on an unlocked entry");
     debug(20, 3, "storeReleaseRequest: FOR '%s'\n", e->key ? e->key : e->url);
     e->flag |= RELEASE_REQUEST;
 }
@@ -598,7 +600,7 @@ void storeSetPublicKey(e)
 	debug(20, 3, "storeSetPublicKey: Making old '%s' private.\n", newkey);
 	e2 = (StoreEntry *) table_entry;
 	storeSetPrivateKey(e2);
-	storeReleaseRequest(e2);
+	storeRelease(e2);
 	if (loop_detect++ == 10)
 	    fatal_dump("storeSetPublicKey() is looping!!");
 	newkey = storeGeneratePublicKey(e->url, e->method);
