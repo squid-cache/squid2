@@ -193,14 +193,13 @@ memCompChunks(MemChunk * chunkA, MemChunk * chunkB)
 }
 
 /* Compare object to chunk */
+/* XXX Note: this depends on lastPool */
 static int
 memCompObjChunks(void *obj, MemChunk * chunk)
 {
-    int bounds;
-    bounds = (char *)obj - (char *)chunk->objCache;
-    if (bounds < 0)
+    if (obj < chunk->objCache)
 	return -1;
-    if (bounds < lastPool->chunk_size)
+    if (obj < (void *)((char *)chunk->objCache + lastPool->chunk_size))
 	return 0;
     return 1;
 }
