@@ -470,6 +470,9 @@
 /* Define if you have the getspnam function.  */
 #undef HAVE_GETSPNAM
 
+/* Define if you have the initgroups function.  */
+#undef HAVE_INITGROUPS
+
 /* Define if you have the lrand48 function.  */
 #undef HAVE_LRAND48
 
