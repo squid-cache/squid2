@@ -54,7 +54,7 @@ struct _file_state {
     file_state *next;
     int id;
     int fd;
-    squid_off_t offset;
+    off_t offset;
 };
 
 static hash_table *hash = NULL;

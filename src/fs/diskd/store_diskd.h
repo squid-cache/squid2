@@ -59,7 +59,7 @@ typedef struct _diomsg {
     int seq_no;
     void *callback_data;
     int size;
-    squid_off_t offset;
+    off_t offset;
     int status;
     int shm_offset;
 } diomsg;
