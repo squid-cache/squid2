@@ -195,7 +195,7 @@ storeAufsOpenDone(int unused, void *my_data, int fd, int errflag)
 	errno = errflag;
 	debug(78, 0) ("storeAufsOpenDone: %s\n", xstrerror());
 	debug(78, 1) ("\t%s\n", storeUfsFullPath(sio->swap_file_number, NULL));
-	storeAufsIOCallback(sio, errflag);
+	storeAufsIOCallback(sio, DISK_ERROR);
 	return;
     }
     sio->type.aufs.fd = fd;
@@ -251,7 +251,7 @@ storeAufsWriteDone(int fd, void *my_data, int len, int errflag)
     sio->type.aufs.flags.writing = 0;
     if (errflag) {
 	debug(78, 3) ("storeAufsWriteDone: got failure (%d)\n", errflag);
-	storeAufsIOCallback(sio, errflag);
+	storeAufsIOCallback(sio, DISK_ERROR);
 	loop_detect--;
 	return;
     }
@@ -259,7 +259,7 @@ storeAufsWriteDone(int fd, void *my_data, int len, int errflag)
     if (storeAufsKickWriteQueue(sio))
 	(void) 0;
     else if (sio->type.aufs.flags.close_request)
-	storeAufsIOCallback(sio, errflag);
+	storeAufsIOCallback(sio, DISK_ERROR);
     loop_detect--;
 }
 
