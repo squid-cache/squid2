@@ -702,16 +702,16 @@ externalAclHandleReply(void *data, char *reply)
 	}
     }
     dlinkDelete(&state->list, &state->def->queue);
-    if (reply && cbdataValid(state->def))
-	entry = external_acl_cache_add(state->def, state->key, result, user, error);
-    else {
-	if (!reply) {
+    if (cbdataValid(state->def)) {
+	if (reply)
+	    entry = external_acl_cache_add(state->def, state->key, result, user, error);
+	else {
 	    entry = hash_lookup(state->def->cache, state->key);
 	    if (entry)
 		external_acl_cache_delete(state->def, entry);
 	}
+    } else
 	entry = NULL;
-    }
 
     do {
 	cbdataUnlock(state->def);
