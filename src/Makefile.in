@@ -254,7 +254,7 @@ squid.conf cf_parser.c: cf.data cf_gen
 cf_gen: cf_gen.o
 	$(CC) -o $@ $(LDFLAGS) cf_gen.o $(STD_APP_LIBS)
 
-cf_gen.o: cf_gen_defines.h Makefile defines.h ../include/autoconf.h
+cf_gen.o: cf_gen.c cf_gen_defines.h Makefile defines.h ../include/autoconf.h
 
 cf_gen_defines.h: $(srcdir)/cf_gen_defines $(srcdir)/cf.data.pre
 	awk -f $(srcdir)/cf_gen_defines <$(srcdir)/cf.data.pre >cf_gen_defines.h
