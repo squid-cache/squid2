@@ -10,4 +10,5 @@ man_MANS = \
 	squid.8
 
 EXTRA_DIST = \
-	squid.8
+	squid.8 \
+	debug-sections.txt
