@@ -44,15 +44,6 @@ SOFTWARE.
 #endif
 #endif
 
-/*
- * Error codes:
- */
-/*
- * These must not clash with SNMP error codes (all positive).
- */
-#define PARSE_ERROR	-1
-#define BUILD_ERROR	-2
-
 #define SID_MAX_LEN	64
 
 #ifndef NULL
