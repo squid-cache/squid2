@@ -483,6 +483,10 @@ storeLog(int tag, const StoreEntry * e)
 	return;
     if (mem == NULL)
 	return;
+    if (mem->log_url == NULL) {
+	debug_trap("NULL log_url");
+	mem->log_url = xstrdup(e->url);
+    }
     reply = mem->reply;
     sprintf(logmsg, "%9d.%03d %-7s %4d %9d %9d %9d %s %d/%d %s %s\n",
 	(int) current_time.tv_sec,
@@ -496,7 +500,7 @@ storeLog(int tag, const StoreEntry * e)
 	reply->content_length,
 	mem->e_current_len - mem->reply->hdr_sz,
 	RequestMethodStr[e->method],
-	mem->log_url ? mem->log_url : e->url);
+	mem->log_url);
     file_write(storelog_fd,
 	xstrdup(logmsg),
 	strlen(logmsg),

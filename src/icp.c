@@ -839,6 +839,8 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	entry = NULL;
 	icpState->log_type = LOG_TCP_SWAPIN_FAIL;
     }
+    if (entry && entry->mem_obj->log_url == NULL)
+	storeSetLogUrl(entry, request);
     if (entry)
 	storeClientListAdd(entry, fd, 0);
     icpState->entry = entry;	/* Save a reference to the object */

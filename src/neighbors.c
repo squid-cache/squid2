@@ -1179,6 +1179,7 @@ peerCountMcastPeersStart(void *data)
     mem->e_pings_n_pings = 0;
     mem->e_pings_n_acks = 0;
     mem->start_ping = current_time;
+    mem->log_url = xstrdup(url);
     comm_set_mcast_ttl(theOutIcpConnection, p->mcast.ttl);
     p->mcast.reqnum = storeReqnum(fake, METHOD_GET);
     query = icpCreateMessage(ICP_OP_QUERY, 0, url, p->mcast.reqnum, 0);
