@@ -877,7 +877,6 @@ struct _clientHttpRequest {
 #if USE_CACHE_DIGESTS
     const char *lookup_type;	/* temporary hack: storeGet() result: HIT/MISS/NONE */
 #endif
-    http_status http_code;
     struct timeval start;
     float http_ver;
     int redirect_state;
