@@ -1,3 +1,8 @@
+Changes to squid-1.NOVM.21 ():
+
+	- Fixed false "8k page leak" on MemObject->e_abort_msg.
+	  (Kazuyoshi Komine).
+
 Changes to squid-1.NOVM.20 (January 9, 1998):
 
 	- Fixed bug related to parsing Not Modified reply headers which
