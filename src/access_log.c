@@ -252,7 +252,7 @@ accessLogSquid(AccessLogEntry * al)
 	(long int) al->cache.size,
 	al->private.method_str,
 	al->url,
-	user ? user : dash_str,
+	user && *user ? user : dash_str,
 	al->hier.ping.timedout ? "TIMEOUT_" : "",
 	hier_strings[al->hier.code],
 	al->hier.host,
