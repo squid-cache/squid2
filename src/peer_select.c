@@ -146,7 +146,6 @@ peerSelect(request_t * request,
     else
 	debug(44, 3) ("peerSelect: %s\n", RequestMethodStr[request->method]);
     cbdataAdd(psstate, MEM_NONE);
-    storeLockObject(entry);
     psstate->request = requestLink(request);
     psstate->entry = entry;
     psstate->callback = callback;
@@ -155,6 +154,8 @@ peerSelect(request_t * request,
 #if USE_CACHE_DIGESTS
     request->hier.peer_select_start = current_time;
 #endif
+    if (psstate->entry)
+        storeLockObject(psstate->entry);
     cbdataLock(callback_data);
     peerSelectFoo(psstate);
 }
