@@ -1124,6 +1124,13 @@ clientBuildReply(clientHttpRequest * http, const char *buf, size_t size)
     return rep;
 }
 
+/*
+ * clientCacheHit should only be called until the HTTP reply headers
+ * have been parsed.  Normally this should be a single call, but
+ * it might take more than one.  As soon as we have the headers,
+ * we hand off to clientSendMoreData, clientProcessExpired, or
+ * clientProcessMiss.
+ */
 static void
 clientCacheHit(void *data, char *buf, ssize_t size)
 {
