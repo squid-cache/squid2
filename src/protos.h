@@ -139,6 +139,7 @@ extern StoreEntry *clientCreateStoreEntry(clientHttpRequest *, method_t, request
 extern int isTcpHit(log_type);
 
 extern int commSetNonBlocking(int fd);
+extern int commUnsetNonBlocking(int fd);
 extern void commSetCloseOnExec(int fd);
 extern int comm_accept(int fd, struct sockaddr_in *, struct sockaddr_in *);
 extern void comm_close(int fd);

@@ -720,6 +720,23 @@ commSetNonBlocking(int fd)
     return 0;
 }
 
+int
+commUnsetNonBlocking(int fd)
+{
+    int flags;
+    int dummy = 0;
+    if ((flags = fcntl(fd, F_GETFL, dummy)) < 0) {
+	debug(50, 0) ("FD %d: fcntl F_GETFL: %s\n", fd, xstrerror());
+	return COMM_ERROR;
+    }
+    if (fcntl(fd, F_SETFL, flags & (~SQUID_NONBLOCK)) < 0) {
+	debug(50, 0) ("commUnsetNonBlocking: FD %d: %s\n", fd, xstrerror());
+	return COMM_ERROR;
+    }
+    fd_table[fd].flags.nonblocking = 0;
+    return 0;
+}
+
 void
 commSetCloseOnExec(int fd)
 {
