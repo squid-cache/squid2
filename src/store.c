@@ -176,8 +176,12 @@ static void destroy_StoreEntry(e)
 	fatal_dump("destroy_StoreEntry: NULL Entry");
     if (e->mem_obj)
 	destroy_MemObject(e->mem_obj);
-    meta_data.url_strings -= strlen(e->url);
-    safe_free(e->url);
+    if (e->url) {
+	meta_data.url_strings -= strlen(e->url);
+	safe_free(e->url);
+    } else {
+	debug(20, 3, "destroy_StoreEntry: WARNING!  Entry without URL string!\n");
+    }
     if (BIT_TEST(e->flag, KEY_URL))
 	e->key = NULL;
     else
@@ -1173,6 +1177,10 @@ void storeSwapOutHandle(fd, flag, e)
 	    swaplog_lock,
 	    NULL,
 	    NULL);
+	CacheInfo->proto_newobject(CacheInfo,
+	    CacheInfo->proto_id(e->url),
+	    e->object_len,
+	    FALSE);
 	/* check if it's request to be released. */
 	if (e->flag & RELEASE_REQUEST)
 	    storeRelease(e);
@@ -1567,10 +1575,6 @@ void storeComplete(e)
 	storeSwapOutStart(e);
     /* free up incoming MIME */
     safe_free(e->mem_obj->mime_hdr);
-    CacheInfo->proto_newobject(CacheInfo,
-	CacheInfo->proto_id(e->url),
-	e->object_len,
-	FALSE);
     if (e->flag & RELEASE_REQUEST)
 	storeRelease(e);
 }
