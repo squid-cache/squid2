@@ -558,8 +558,10 @@ storeAbort(StoreEntry * e, int cbflag)
     storeSetMemStatus(e, NOT_IN_MEMORY);
     /* No DISK swap for negative cached object */
     e->swap_status = SWAPOUT_NONE;
-    /* We assign an object length here--The only other place we assign the
-     * object length is in storeComplete() */
+    /*
+     * We assign an object length here.  The only other place we assign
+     * the object length is in storeComplete()
+     */
     mem->object_sz = mem->inmem_hi;
     /* Notify the server side */
     if (cbflag && mem->abort.callback) {
