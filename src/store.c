@@ -937,6 +937,7 @@ storeInit(void)
     store_list.head = store_list.tail = NULL;
     inmem_list.head = inmem_list.tail = NULL;
     stackInit(&LateReleaseStack);
+    eventAdd("storeLateRelease", storeLateRelease, NULL, 1.0, 1);
     storeRebuildStart();
     cachemgrRegister("storedir",
 	"Store Directory Stats",
