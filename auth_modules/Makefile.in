@@ -13,7 +13,7 @@ all:
 	    if [ -f $$dir/Makefile ]; then \
 	        sh -c "cd $$dir && $(MAKE) all" || exit 1; \
 	    fi; \
-	done; \
+	done;
 
 clean:
 	-for dir in *; do \
