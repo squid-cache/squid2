@@ -1,33 +1,35 @@
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/param.h>
-#include <sys/time.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#ifdef linux
+#include "config.h"
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#if HAVE_STDLIB_H
 #include <stdlib.h>
-#include <string.h>
+#endif
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#if HAVE_CTYPE_H
 #include <ctype.h>
 #endif
-
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 
 #include "asn1.h"
 #include "snmp.h"
 #include "snmp_impl.h"
 #include "snmp_api.h"
 #include "snmp_client.h"
-
 #include "md5.h"
+#include "util.h"
 
 u_long snmpStats[SNMP_LAST_STAT + 1] =
 {0};
-
-/*
- * extern void snmp_add_null_var();
- * extern int snmp_build();
- */
 
 void 
 hex_dump(hdr, msg, len)
@@ -302,7 +304,7 @@ create_report(session, out_data, out_length, stat, reqid)
     report->reqid = reqid;
     snmp_add_null_var(report, name, name_length);
     report->variables->type = COUNTER;
-    report->variables->val.string = (u_char *) calloc(1, sizeof(u_long));
+    report->variables->val.string = xcalloc(1, sizeof(u_long));
     report->variables->val_len = sizeof(u_long);
     *(u_long *) report->variables->val.string = snmpStats[stat];
     snmp_build(session, report, out_data, out_length, 1);

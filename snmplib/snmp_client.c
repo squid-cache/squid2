@@ -24,15 +24,39 @@
  * SOFTWARE.
  */
 
-#include <sys/types.h>
-#include <sys/param.h>
-#include <stdio.h>
-#include <netinet/in.h>
-#include <sys/time.h>
-#include <errno.h>
-#ifdef linux
-#include <string.h>
+#include "config.h"
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#if HAVE_CTYPE_H
+#include <ctype.h>
+#endif
+#if HAVE_GNUMALLOC_H
+#include <gnumalloc.h>
+#elif HAVE_MALLOC_H && !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
+#include <malloc.h>
+#endif
+#if HAVE_MEMORY_H
+#include <memory.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
+#if HAVE_BSTRING_H
+#include <bstring.h>
+#endif
+#if HAVE_ERRNO_H
+#include <errno.h>
 #endif
 
 #include "asn1.h"
