@@ -494,6 +494,7 @@ icpConnectionClose(void)
     if (theOutIcpConnection > -1) {
 	debug(12, 1) ("FD %d Closing ICP connection\n", theOutIcpConnection);
 	comm_close(theOutIcpConnection);
+	theOutIcpConnection = -1;
     }
 }
 

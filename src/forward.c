@@ -396,6 +396,13 @@ fwdStart(int fd, StoreEntry * e, request_t * r, struct in_addr client_addr)
 	    return;
 	}
     }
+    if (shutting_down) {
+	/* more yuck */
+	err = errorCon(ERR_SHUTTING_DOWN, HTTP_SERVICE_UNAVAILABLE);
+	err->request = requestLink(r);
+	errorAppendEntry(e, err);
+	return;
+    }
     debug(17, 3) ("fwdStart: '%s'\n", storeUrl(e));
     e->mem_obj->request = requestLink(r);
     e->mem_obj->fd = fd;
