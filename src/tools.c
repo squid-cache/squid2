@@ -134,11 +134,11 @@ releaseServerSockets(void)
 {
     /* Release the main ports as early as possible */
     if (theHttpConnection >= 0)
-	(void) close(theHttpConnection);
+	close(theHttpConnection);
     if (theInIcpConnection >= 0)
-	(void) close(theInIcpConnection);
+	close(theInIcpConnection);
     if (theOutIcpConnection >= 0 && theOutIcpConnection != theInIcpConnection)
-	(void) close(theOutIcpConnection);
+	close(theOutIcpConnection);
 }
 
 static char *
@@ -171,7 +171,14 @@ mail_warranty(void)
 static void
 dumpMallocStats(FILE * f)
 {
-#if HAVE_MALLINFO
+#if HAVE_MSTATS
+    struct mstats ms = mstats();
+    fprintf(f, "\ttotal space in arena:  %6d KB\n",
+	ms.bytes_total >> 10);
+    fprintf(f, "\tTotal free:            %6d KB %d%%\n",
+	ms.bytes_free >> 10,
+	percent(ms.bytes_free, ms.bytes_total));
+#elif HAVE_MALLINFO
     struct mallinfo mp;
     int t;
     if (!do_mallinfo)
@@ -213,7 +220,7 @@ dumpMallocStats(FILE * f)
 #if PRINT_MMAP
     mallocmap();
 #endif /* PRINT_MMAP */
-#endif /* HAVE_MALLINFO */
+#endif
 }
 
 static int
@@ -691,7 +698,7 @@ squid_signal(int sig, void (*func) _PARAMS((int)), int flags)
     if (sigaction(sig, &sa, NULL) < 0)
 	debug(50, 0, "sigaction: sig=%d func=%p: %s\n", sig, func, xstrerror());
 #else
-    (void) signal(sig, func);
+    signal(sig, func);
 #endif
 }
 

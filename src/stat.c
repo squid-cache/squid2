@@ -110,6 +110,8 @@
 #define MAX_LINELEN (4096)
 #define max(a,b)  ((a)>(b)? (a): (b))
 
+static FILE *hierexplog = NULL;
+
 typedef struct _log_read_data_t {
     StoreEntry *sentry;
 } log_read_data_t;
@@ -732,16 +734,14 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 {
     const char *tod = NULL;
     float f;
-#if HAVE_MALLINFO
-    int t;
-#endif
-
 #if defined(HAVE_GETRUSAGE) && defined(RUSAGE_SELF)
     struct rusage rusage;
 #endif
-
-#if HAVE_MALLINFO
+#if HAVE_MSTATS
+    struct mstats ms;
+#elif HAVE_MALLINFO
     struct mallinfo mp;
+    int t;
 #endif
 
     storeAppendPrintf(sentry, open_bracket);
@@ -806,7 +806,15 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	rusage.ru_majflt);
 #endif
 
-#if HAVE_MALLINFO
+#if HAVE_MSTATS
+    ms = mstats();
+    storeAppendPrintf(sentry, "{Memory usage for %s via mstats():}\n",
+	appname);
+    storeAppendPrintf(sentry, "{\tTotal space in arena:  %6d KB}\n",
+	ms.bytes_total >> 10);
+    storeAppendPrintf(sentry, "{\tTotal free:            %6d KB %d%%}\n",
+	ms.bytes_free >> 10, percent(ms.bytes_free, ms.bytes_total));
+#elif HAVE_MALLINFO
     mp = mallinfo();
     storeAppendPrintf(sentry, "{Memory usage for %s via mallinfo():}\n",
 	appname);
@@ -849,6 +857,8 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	Number_FD);
     storeAppendPrintf(sentry, "{\tLargest file desc currently in use:   %4d}\n",
 	Biggest_FD);
+    storeAppendPrintf(sentry, "{\tNumber of file desc currently in use: %4d}\n",
+	Number_FD);
     storeAppendPrintf(sentry, "{\tAvailable number of file descriptors: %4d}\n",
 	fdstat_are_n_free_fd(0));
     storeAppendPrintf(sentry, "{\tReserved number of file descriptors:  %4d}\n",
@@ -1194,6 +1204,29 @@ log_append(const cacheinfo * obj,
 	debug(18, 1, "log_append: File write failed.\n");
 }
 
+#ifdef HIER_EXPERIMENT
+extern int HierMethodHist[HIER_METHODS];
+void
+log_hier_expt(struct timeval s, struct _hierarchyLogData *h)
+{
+    int usec = tvSubUsec(s, current_time);
+    if (h == NULL)
+	return;
+    fprintf(hierexplog, "%d.%03d %d %10d %2d %2d %2d %10d %s\n",
+	(int) current_time.tv_sec,
+	(int) current_time.tv_usec / 1000,
+	h->hier_method,
+	usec,
+	h->n_sent,
+	h->n_expect,
+	h->n_recv,
+	h->delay,
+	hier_strings[h->code]);
+    HierMethodHist[h->hier_method]++;
+}
+
+#endif
+
 static void
 log_enable(cacheinfo * obj, StoreEntry * sentry)
 {
@@ -1377,6 +1410,9 @@ stat_init(cacheinfo ** object, const char *logfilename)
 	obj->proto_stat_data[i].kb.now = 0;
     }
     *object = obj;
+#ifdef HIER_EXPERIMENT
+    hierexplog = fopen("/usr/local/squid/logs/hierexp.log", "a");
+#endif
 }
 
 void
@@ -1386,7 +1422,9 @@ stat_rotate_log(void)
     LOCAL_ARRAY(char, from, MAXPATHLEN);
     LOCAL_ARRAY(char, to, MAXPATHLEN);
     char *fname = NULL;
+#ifdef S_ISREG
     struct stat sb;
+#endif
 
     if ((fname = HTTPCacheInfo->logfilename) == NULL)
 	return;

@@ -545,9 +545,7 @@ httpReadReply(int fd, void *data)
     int bin;
     int clen;
     int off;
-    StoreEntry *entry = NULL;
-
-    entry = httpState->entry;
+    StoreEntry *entry = httpState->entry;
     /* check if we want to defer reading */
     clen = entry->object_len;
     off = storeGetLowestReaderOffset(entry);
@@ -625,6 +623,10 @@ httpReadReply(int fd, void *data)
 	comm_close(fd);
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
 	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
+	comm_close(fd);
+    } else if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+	/* we can terminate connection right now */
+	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	comm_close(fd);
     } else {
 	if (httpState->reply_hdr_state < 2)
@@ -740,6 +742,8 @@ httpBuildRequestHeader(request_t * request,
 	xstrncpy(xbuf, t, l);
 	debug(11, 5, "httpBuildRequestHeader: %s\n", xbuf);
 	if (strncasecmp(xbuf, "Proxy-Connection:", 17) == 0)
+	    continue;
+	if (strncasecmp(xbuf, "Proxy-authorization:", 20) == 0)
 	    continue;
 	if (strncasecmp(xbuf, "Connection:", 11) == 0)
 	    continue;

@@ -323,7 +323,7 @@ gopher_url_parser(const char *url, char *host, int *port, char *type_id, char *r
 	request[0] = '\0';
     } else {
 	/* convert %xx to char */
-	(void) url_convert_hex(request, 0);
+	url_convert_hex(request, 0);
     }
 
     host[0] = '\0';
@@ -712,10 +712,9 @@ gopherReadReply(int fd, GopherStateData * data)
     int len;
     int clen;
     int off;
-    StoreEntry *entry = NULL;
+    StoreEntry *entry = data->entry;
     int bin;
 
-    entry = data->entry;
     /* check if we want to defer reading */
     clen = entry->object_len;
     off = storeGetLowestReaderOffset(entry);
@@ -800,6 +799,10 @@ gopherReadReply(int fd, GopherStateData * data)
 	if (data->conversion != NORMAL)
 	    gopherEndHTML(data);
 	BIT_RESET(entry->flag, DELAY_SENDING);
+	comm_close(fd);
+    } else if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+	/* we can terminate connection right now */
+	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	comm_close(fd);
     } else {
 	if (data->conversion != NORMAL) {

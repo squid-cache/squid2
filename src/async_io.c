@@ -186,7 +186,7 @@ aioFileQueueWrite(int fd, int (*handler) (int, FileEntry *), FileEntry * entry)
     file_table[fd].at_eof = YES;
 
     aio = &file_table[fd].aio_cb;
-    memset(aio, 0, sizeof(struct aiocb));
+    memset(aio, '\0', sizeof(struct aiocb));
     aio->aio_fildes = fd;
     aio->aio_nbytes = entry->write_q->len - entry->write_q->cur_offset;
     aio->aio_offset = offset;
@@ -214,7 +214,7 @@ aioFileQueueRead(int fd, int (*handler) (int, dread_ctrl *), dread_ctrl * ctrl_d
      * are ever scheduled, we're hosed
      */
     aio = &file_table[fd].aio_cb;
-    memset(aio, 0, sizeof(struct aiocb));
+    memset(aio, '\0', sizeof(struct aiocb));
     aio->aio_fildes = fd;
     aio->aio_nbytes = ctrl_dat->req_len - ctrl_dat->cur_len;
     aio->aio_offset = ctrl_dat->offset;

@@ -18,7 +18,7 @@ TABLE OF CONTENTS:
 	Changes to cache shutdown
 	Assigning weights to cache neighbors
 	Converting 'cache/log' from cached-1.4.pl3
-	Notes on stoplists vs. ttl_pattern
+	Notes on stoplists vs ttl_pattern
         SIGUSR1 now rotates log files
 	``no-query'' option for cache_host lines
 
@@ -99,42 +99,42 @@ The format is now
    timestamp  elapsed  src-address  type/code/hierarchy  size  method  URL
 
 	- timestamp:	When the request is completed with millisecond
-			resolution
-	- elapsed:	elapsed time of the request, in milliseconds
-	- src-address: 	IP address of the requesting client
+			resolution.
+	- elapsed:	elapsed time of the request, in milliseconds.
+	- src-address: 	IP address of the requesting client.
 	- type:		An indication of how the request was handled
-			by the cache.  These are described further below
+			by the cache.  These are described further below.
 	- code: 	The HTTP reply code when available.  For ICP
 			requests this is always "000."  If the reply code
 			was not given, it will be logged as "555."
-	- hierarchy	The code from the hierarchy.log file.
+	- hierarchy:	The code from the hierarchy.log file.
 	- size:		For TCP requests, the amount of data written
 			to the client.  For UDP requests, the size
-			of the request.  (in bytes)
+			of the request (in bytes).
 	- method:	The request method (GET, POST, etc).
-	- URL		The URL of the request
+	- URL:		The URL of the request.
 
 Access Log Types:
 
 "TCP_" refers to requests on the HTTP port (3128)
 
-	TCP_HIT		A valid copy of the requested object was in the cache
-	TCP_MISS	The requested object was not in the cache
-	TCP_EXPIRED	The object was in the cache, but it had expired
-	TCP_REFRESH	The user forced a refresh ("reload")
+	TCP_HIT		A valid copy of the requested object was in the cache.
+	TCP_MISS	The requested object was not in the cache.
+	TCP_EXPIRED	The object was in the cache, but it had expired.
+	TCP_REFRESH	The user forced a refresh ("reload").
 	TCP_IFMODSINCE	An If-Modified-Since GET request.
 	TCP_SWAPFAIL	The object was believed to be in the cache,
 			but could not be accessed.
-	TCP_DENIED	Access was denied for this request
+	TCP_DENIED	Access was denied for this request.
 
 "UDP_" refers to requests on the ICP port (3130)
 
-	UDP_HIT		A valid copy of the requested object was in the cache
+	UDP_HIT		A valid copy of the requested object was in the cache.
 	UDP_HIT_OBJ	Same as UDP_HIT, but the object data was small enough
 			to be sent in the UDP reply packet.  Saves the
 			following TCP request.
-	UDP_MISS	The requested object was not in the cache
-	UDP_DENIED	Access was denied for this request
+	UDP_MISS	The requested object was not in the cache.
+	UDP_DENIED	Access was denied for this request.
 	UDP_INVALID	An invalid request was received.
 ..............................................................................
 Hierarchy Log Types:
@@ -328,7 +328,7 @@ Using SIGHUP to reconfigure the cache
 Sending the squid process a HUP signal will prompt it to re-read its
 configuration file.  Before it can be reconfigured, it must make sure
 that all active connections are closed.  For this purpose squid
-pretends to do a shutdown as described above.  ie, it will wait up to
+pretends to do a shutdown as described above; ie, it will wait up to
 30 seconds for active requests to complete before re-reading the
 configuration file.
 
@@ -369,7 +369,7 @@ file before starting Squid.  To do that use a simple awk command:
      awk '{print $2,$4,$5,$6,$7}' < log.old > log
 
 
-Notes on stoplists vs. ttl_pattern
+Notes on stoplists vs ttl_pattern
 ==============================================================================
 You can use the stoplists ('http_stop', etc) in the configuration file
 to prevent objects from being cached.  Using a 'ttl_pattern' with the
@@ -397,7 +397,7 @@ rotate the logs.
 ==============================================================================
 Some cache configurations behind firewalls may require ICP to be used
 for caches behind the firewall, but not to caches on the other side
-(because the firwall blocks UDP traffic).  To achieve this, use the
+(because the firewall blocks UDP traffic).  To achieve this, use the
 no-query option:
 
      cache_host   outside.my.org   parent   3128 3130  no-query

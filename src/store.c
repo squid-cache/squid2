@@ -1723,14 +1723,6 @@ storeCreateSwapSubDirs(void)
     }
 }
 
-#if HAVE_RANDOM
-#define squid_random random
-#elif HAVE_LRAND48
-#define squid_random lrand48
-#else
-#define squid_random rand
-#endif
-
 static void
 storeRandomizeBuckets(void)
 {
@@ -2053,7 +2045,9 @@ storeRotateLog(void)
     int i;
     LOCAL_ARRAY(char, from, MAXPATHLEN);
     LOCAL_ARRAY(char, to, MAXPATHLEN);
+#ifdef S_ISREG
     struct stat sb;
+#endif
 
     if (storelog_fd > -1) {
 	file_close(storelog_fd);

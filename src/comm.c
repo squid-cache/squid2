@@ -1,4 +1,3 @@
-
 /*
  * $Id$
  *
@@ -344,6 +343,31 @@ commConnectFree(int fd, void *data)
     xfree(cs);
 }
 
+static int
+commRetryConnect(int fd, ConnectStateData * connectState)
+{
+#if RETRY_CONNECT
+    int fd2;
+    if (++connectState->tries == 4)
+	return 0;
+    fd2 = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd2 < 0) {
+	debug(5, 0, "commRetryConnect: socket: %s\n", xstrerror());
+	return 0;
+    }
+    if (dup2(fd2, fd) < 0) {
+	debug(5, 0, "commRetryConnect: dup2: %s\n", xstrerror());
+	return 0;
+    }
+    commSetNonBlocking(fd);
+    close(fd2);
+    return 1;
+#else
+    debug(5, 2, "commRetryConnect not supported\n");
+    return 0;
+#endif
+}
+
 /* Connect SOCK to specified DEST_PORT at DEST_HOST. */
 static void
 commConnectHandle(int fd, void *data)
@@ -381,8 +405,15 @@ commConnectHandle(int fd, void *data)
 	connectState->callback(fd, COMM_OK, connectState->data);
 	break;
     default:
-	ipcacheRemoveBadAddr(connectState->host, connectState->S.sin_addr);
-	connectState->callback(fd, COMM_ERROR, connectState->data);
+	if (commRetryConnect(fd, connectState)) {
+	    debug(5, 1, "Retrying connection to %s\n", connectState->host);
+	    connectState->S.sin_addr.s_addr = 0;
+	    ipcacheCycleAddr(connectState->host);
+	    commConnectHandle(fd, connectState);
+	} else {
+	    ipcacheRemoveBadAddr(connectState->host, connectState->S.sin_addr);
+	    connectState->callback(fd, COMM_ERROR, connectState->data);
+	}
 	break;
     }
 }
@@ -563,7 +594,7 @@ comm_cleanup_fd_entry(int fd)
 {
     FD_ENTRY *conn = &fd_table[fd];
     RWStateCallbackAndFree(fd, COMM_ERROR);
-    memset(conn, 0, sizeof(FD_ENTRY));
+    memset(conn, '\0', sizeof(FD_ENTRY));
     return 0;
 }
 
@@ -1197,7 +1228,6 @@ comm_join_mcast_groups(int fd)
 		debug(5, 1,
 		    "comm_join_mcast_groups: can't disable m'cast loopback: %s\n",
 		    xstrerror());
-
 	}
     }
 #endif

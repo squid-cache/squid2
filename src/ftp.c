@@ -269,9 +269,8 @@ ftpReadReply(int fd, FtpStateData * data)
     int clen;
     int off;
     int bin;
-    StoreEntry *entry = NULL;
+    StoreEntry *entry = data->entry;
 
-    entry = data->entry;
     /* check if we want to defer reading */
     clen = entry->object_len;
     off = storeGetLowestReaderOffset(entry);
@@ -345,6 +344,10 @@ ftpReadReply(int fd, FtpStateData * data)
 	comm_close(fd);
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
 	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
+	comm_close(fd);
+    } else if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+	/* we can terminate connection right now */
+	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	comm_close(fd);
     } else {
 	if (data->got_marker) {
@@ -629,7 +632,7 @@ ftpConnectDone(int fd, int status, void *data)
 	return;
     }
     commSetNonBlocking(fd);
-    (void) fd_note(fd, ftpData->entry->url);
+    fd_note(fd, ftpData->entry->url);
     /* Install connection complete handler. */
     fd_note(fd, ftpData->entry->url);
     commSetSelect(fd,
@@ -660,7 +663,7 @@ ftpServerClosed(int fd, void *nodata)
     }
     last_restart = squid_curtime;
     debug(9, 1, "Restarting ftpget server...\n");
-    (void) ftpInitialize();
+    ftpInitialize();
 }
 
 void
@@ -770,7 +773,7 @@ ftpInitialize(void)
     dup2(cfd, 3);		/* pass listening socket to ftpget */
     /* inherit stdin,stdout,stderr */
     for (cfd = 4; cfd <= Biggest_FD; cfd++)
-	(void) close(cfd);
+	close(cfd);
     sprintf(pbuf, "%d", ftpget_port);
     execlp(ftpget, ftpget, "-S", pbuf, NULL);
     debug(50, 0, "ftpInitialize: %s: %s\n", ftpget, xstrerror());

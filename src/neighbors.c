@@ -374,6 +374,31 @@ getDefaultParent(request_t * request)
     return NULL;
 }
 
+#ifdef HIER_EXPERIMENT
+peer *
+getRandomParent(request_t * request)
+{
+    peer *e;
+    static peer *f = NULL;
+    peer *next = f;
+    int n = squid_random() % Peers.n;
+    int x = n << 1;
+    while (n && x--) {
+	e = next ? next : Peers.peers_head;
+	next = e->next;
+	if (neighborType(e, request) != PEER_PARENT)
+	    continue;
+	if (!peerHTTPOkay(e, request))
+	    continue;
+	f = e;
+	n--;
+    }
+    if (f && !peerHTTPOkay(f, request))
+	return NULL;
+    return f;
+}
+#endif
+
 peer *
 getNextPeer(peer * e)
 {
@@ -522,8 +547,11 @@ neighborsUdpPing(protodispatch_data * proto)
 		    if (e->icp_version == ICP_VERSION_2)
 			flags |= ICP_FLAG_HIT_OBJ;
 	    if (Config.Options.query_icmp)
-		if (e->icp_version == ICP_VERSION_2)
-		    flags |= ICP_FLAG_SRC_RTT;
+#ifdef HIER_EXPERIMENT
+		if (request->hierarchy.hier_method == HIER_METH_ICP2)
+#endif
+		    if (e->icp_version == ICP_VERSION_2)
+			flags |= ICP_FLAG_SRC_RTT;
 	    query = icpCreateMessage(ICP_OP_QUERY, flags, url, reqnum, 0);
 	    icpUdpSend(theOutIcpConnection,
 		&e->in_addr,
@@ -582,7 +610,7 @@ neighborsUdpPing(protodispatch_data * proto)
 		host);
 	}
     }
-#if LOG_ICP_NUMBERS
+#if LOG_ICP_NUMBERS || defined(HIER_EXPERIMENT)
     request->hierarchy.n_sent = queries_sent;
     request->hierarchy.n_expect = mem->e_pings_n_pings;
 #endif
@@ -995,7 +1023,7 @@ peerDestroy(peer * e)
     struct _domain_ping *nl = NULL;
     if (e == NULL)
 	return;
-    if (!e->tcp_up)
+    if (e->ck_conn_event_pend)
 	eventDelete(peerCheckConnect, e);
     if (e->type == PEER_MULTICAST) {
 	if (e->mcast.flags & PEER_COUNT_EVENT_PENDING)
@@ -1071,6 +1099,9 @@ peerCheckConnect(void *data)
 {
     peer *p = data;
     int fd;
+    if (p->ck_conn_event_pend != 1)
+	debug_trap("bad ck_conn_event_pend counter");
+    p->ck_conn_event_pend--;
     fd = comm_open(SOCK_STREAM, 0, Config.Addrs.tcp_outgoing,
 	0, COMM_NONBLOCKING, p->host);
     if (fd < 0)
@@ -1101,6 +1132,7 @@ peerCheckConnectDone(int fd, int status, void *data)
 	debug(15, 0, "TCP connection to %s/%d succeeded\n",
 	    p->host, p->http_port);
     } else {
+	p->ck_conn_event_pend++;
 	eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
     }
     comm_close(fd);
@@ -1115,6 +1147,7 @@ peerCheckConnectStart(peer * p)
     debug(15, 0, "TCP connection to %s/%d failed\n", p->host, p->http_port);
     p->tcp_up = 0;
     p->last_fail_time = squid_curtime;
+    p->ck_conn_event_pend++;
     eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
 }
 

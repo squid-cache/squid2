@@ -277,6 +277,7 @@ struct SquidConfig {
 	int anonymizer;
 	int client_db;
 	int query_icmp;
+	int icp_hit_stale;
     } Options;
 };
 

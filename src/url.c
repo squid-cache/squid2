@@ -343,6 +343,8 @@ urlCheckRequest(const request_t * r)
 	return 1;
     if (r->method == METHOD_TRACE)
 	return 1;
+    if (r->method == METHOD_PURGE)
+	return 1;
     switch (r->protocol) {
     case PROTO_HTTP:
     case PROTO_CACHEOBJ:

@@ -75,7 +75,7 @@
 # OPTIONS WHICH AFFECT THE NEIGHBOR SELECTION ALGORITHM
 #-----------------------------------------------------------------------------
 
-#  TAG: cache_host 
+#  TAG: cache_host
 #	To specify other caches in a hierarchy, use the format:
 #
 #	    hostname type http_port icp_port
@@ -191,6 +191,7 @@
 #	firewall.
 #
 #	Usage: inside_firewall my.domain  [ my.other.domain ...]
+#	       !out.my.domain my.domain
 #
 #	The use of this tag affects the server selection algorithm in
 #	two ways.  Objects which do not match any of the listed domains
@@ -201,6 +202,8 @@
 #
 #	As a special case you may specify the domain as 'none' to force
 #	all requests to be fetched from neghbors and parents.
+#	Prefixing a domain name with '!' means the domain is NOT inside
+#	your firewall.
 #
 #inside_firewall topsecret.com
 
@@ -246,7 +249,7 @@
 #
 #	Usage: single_parent_bypass on|off
 #
-#	Before actually sending ICP "ping" packets to parents and 
+#	Before actually sending ICP "ping" packets to parents and
 #	neighbors, we figure out which hosts would be pinged based
 #	on the cache_host_domain rules, etc.  Often it may be the
 #	case that only a single parent cache would be pinged.
@@ -324,7 +327,7 @@ cache_stoplist cgi-bin ?
 #-----------------------------------------------------------------------------
 
 #
-#  TAG: cache_mem (in megabytes)       
+#  TAG: cache_mem (megabytes)
 #	Maximum amout of VM used to store objects in memory.
 #	This includes:
 #		in-transit objects,
@@ -351,12 +354,12 @@ cache_stoplist cgi-bin ?
 #
 #cache_mem  8
 
-#  TAG: cache_swap (in megabytes)
+#  TAG: cache_swap (megabytes)
 #	Maximum about of disk space used by the cache.  The default is
 #	100 megabytes.  When the disk usage gets to this size, the cache
 #	uses LRU replacement to evict objects as new objects are cached.
-#	Note that cache_swap is set to: 
-#	        max(cache_mem, cache_swap_specified) 
+#	Note that cache_swap is set to:
+#	        max(cache_mem, cache_swap_specified)
 #	to guard against users' accidentally specifying a smaller
 #	cache_swap than cache_mem size.
 #	
@@ -372,8 +375,8 @@ cache_stoplist cgi-bin ?
 #cache_swap_low  90
 #cache_swap_high 95
 
-#  TAG: cache_mem_low  (in percent, 0-100)         
-#  TAG: cache_mem_high (in percent, 0-100)
+#  TAG: cache_mem_low  (percent, 0-100)
+#  TAG: cache_mem_high (percent, 0-100)
 #	The low- and high-water mark for cache memory storage.  When
 #	the amount of RAM used by the hot-object RAM cache reaches this
 #	point, the cache starts throwing objects out of the RAM cache
@@ -401,7 +404,7 @@ cache_stoplist cgi-bin ?
 # LOGFILE PATHNAMES AND CACHE DIRECTORIES
 #-----------------------------------------------------------------------------
 
-#  TAG: cache_dir 
+#  TAG: cache_dir
 #	Directory for on-disk cache storage.  The cache will change into
 #	this directory when running.  The default is
 #       @DEFAULT_SWAP_DIR@.
@@ -411,13 +414,13 @@ cache_stoplist cgi-bin ?
 #
 #cache_dir @DEFAULT_SWAP_DIR@
 
-#  TAG: cache_access_log 
-#	Logs the client request activity.  Contains an entry for 
+#  TAG: cache_access_log
+#	Logs the client request activity.  Contains an entry for
 #	every HTTP and ICP request received.
 #
 #cache_access_log @DEFAULT_ACCESS_LOG@
 
-#  TAG: cache_log 
+#  TAG: cache_log
 #	Cache logging file.  Set logging levels with "debug_options" below.
 #
 #cache_log @DEFAULT_CACHE_LOG@
@@ -441,8 +444,8 @@ cache_stoplist cgi-bin ?
 
 #  TAG: emulate_httpd_log
 #	The Cache can emulate the log file format which many 'httpd'
-#	programs use.  To disable/enable this emulation, set 
-#	emulate_httpd_log to 'off' or 'on'.  The default 
+#	programs use.  To disable/enable this emulation, set
+#	emulate_httpd_log to 'off' or 'on'.  The default
 #	is to use the native log format.
 #
 #emulate_httpd_log off
@@ -504,9 +507,9 @@ debug_options ALL,1
 # OPTIONS FOR EXTERNAL SUPPORT PROGRAMS
 #-----------------------------------------------------------------------------
 
-#  TAG: ftpget_program 
+#  TAG: ftpget_program
 #	Where to find the 'ftpget' program that retrieves FTP data (HTTP
-#	and Gopher protocol support are built into the cache).  
+#	and Gopher protocol support are built into the cache).
 #
 #	To disable ftpget and the ability to retrieve FTP objects, set
 #	this to "none".  Note that ftpget is automatically disabled for
@@ -535,14 +538,14 @@ debug_options ALL,1
 #
 #ftp_user squid@
 
-#  TAG: cache_dns_program 
+#  TAG: cache_dns_program
 #	Specify the location of the executable for dnslookup process.
 #
 #cache_dns_program @DEFAULT_DNSSERVER@
 
 #  TAG: dns_children
 #	The number of processes spawn to service DNS name lookups.
-#	For heavily loaded caches on large servers, you should 
+#	For heavily loaded caches on large servers, you should
 #	probably increase this value to at least 10.  The maximum
 #	is 32.  The default is 5.
 #
@@ -561,17 +564,17 @@ debug_options ALL,1
 #
 #dns_defnames off
 
-#  TAG: unlinkd_program 
+#  TAG: unlinkd_program
 #	Specify the location of the executable for file deletion process.
 #
 #unlinkd_program @DEFAULT_UNLINKD@
 
-#  TAG: pinger_program 
+#  TAG: pinger_program
 #	Specify the location of the executable for the pinger process.
 #
 #pinger_program @DEFAULT_PINGER@
 
-#  TAG: redirect_program 
+#  TAG: redirect_program
 #	Specify the location of the executable for the URL redirector.
 #	Currently, you must provide your own redirector program.
 #	See the Release-Notes for how to write one.
@@ -589,7 +592,7 @@ debug_options ALL,1
 #-----------------------------------------------------------------------------
 
 #  TAG: wais_relay
-#	Relay WAIS request to host (1st arg) at port (2 arg).  
+#	Relay WAIS request to host (1st arg) at port (2 arg).
 #
 #wais_relay localhost 8000
 
@@ -668,7 +671,7 @@ debug_options ALL,1
 #
 #quick_abort    -1 0 0
 
-#  TAG: negative_ttl (in minutes)         
+#  TAG: negative_ttl (minutes)
 #	Time-to-Live (TTL) for failed requests.  Certain types of
 #	failures (such as "connection refused" and "404 Not Found") are
 #	negatively-cached for a small amount of time.  The default is 5
@@ -678,14 +681,14 @@ debug_options ALL,1
 #negative_ttl 5
 
 #
-#  TAG: positive_dns_ttl (in minutes)         
+#  TAG: positive_dns_ttl (minutes)
 #	Time-to-Live (TTL) for positive caching of successful DNS lookups.
 #	Default is 6 hours (360 minutes).  If you want to minimize the
 #	use of Squid's ipcache, set this to 1, not 0.
 #
 #positive_dns_ttl 360
 
-#  TAG: negative_dns_ttl (in minutes)         
+#  TAG: negative_dns_ttl (minutes)
 #	Time-to-Live (TTL) for negative caching of failed DNS lookups.
 #
 #negative_dns_ttl 5
@@ -694,7 +697,7 @@ debug_options ALL,1
 # TIMEOUTS
 #-----------------------------------------------------------------------------
 
-#  TAG: connect_timeout (in seconds)
+#  TAG: connect_timeout (seconds)
 #	Some systems (notably Linux) can not be relied upon to properly
 #	time out connect(2) requests.  Therefore the squid process
 #	enforces its own timeout on server connections.  This parameter
@@ -703,7 +706,7 @@ debug_options ALL,1
 #
 #connect_timeout 120
 
-#  TAG: read_timeout (in minutes)         
+#  TAG: read_timeout (minutes)
 #	An active connection will be aborted after read_timeout minutes
 #	of no activity on that connection (i.e., assume the remote server
 #	or network connection died after the connection was established).
@@ -711,7 +714,7 @@ debug_options ALL,1
 #
 #read_timeout 15
 
-#  TAG: client_lifetime (in minutes)         
+#  TAG: client_lifetime (minutes)
 #	The maximum amount of time that a client (browser) is allowed to
 #	remain connected to the cache process.  This protects the Cache
 #	from having alot of sockets (and hence file descriptors) tied up
@@ -728,7 +731,7 @@ debug_options ALL,1
 #
 #client_lifetime 200
 
-#  TAG: shutdown_lifetime (in seconds)
+#  TAG: shutdown_lifetime (seconds)
 #
 #	When SIGTERM or SIGHUP is received, the cache is put into
 #	"shutdown pending" mode until all active sockets are closed.
@@ -750,7 +753,7 @@ debug_options ALL,1
 #
 # acltype is one of src dst srcdomain dstdomain url_pattern urlpath_pattern
 #	            time port proto method browser user
-# 
+#
 # acl aclname src      ip-address/netmask ... (clients IP address)
 # acl aclname src      addr1-addr2/netmask ... (range of addresses)
 # acl aclname dst      ip-address/netmask ... (URL host's IP address)
@@ -788,7 +791,7 @@ acl CONNECT method CONNECT
 #
 # Access to the HTTP port:
 #     http_access allow|deny [!]aclname ...
-# 
+#
 # Access to the ICP port:
 #     icp_access  allow|deny [!]aclname ...
 #
@@ -850,7 +853,7 @@ miss_access allow  all
 # ADMINISTRATIVE PARAMETERS
 #-----------------------------------------------------------------------------
 
-#  TAG: cache_mgr 
+#  TAG: cache_mgr
 #	Email-address of local cache manager who will receive
 #	mail if the cache dies.  The default is "webmaster."
 #
@@ -902,7 +905,7 @@ miss_access allow  all
 #cache_announce 24
 
 # This is the hostname and portnumber where the registration message
-# will be sent.  
+# will be sent.
 #
 # Format:	announce_to   host[:port] [filename]
 #
@@ -916,7 +919,7 @@ miss_access allow  all
 # HTTPD-ACCELERATOR OPTIONS
 #-----------------------------------------------------------------------------
 
-#  TAG: httpd_accel 
+#  TAG: httpd_accel
 #	If you want to run squid as an httpd accelerator, define the
 #	host name and port number where the real HTTP server is.
 #
@@ -962,7 +965,7 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #
 #logfile_rotate 10
 
-#  TAG: append_domain 
+#  TAG: append_domain
 #	Appends local domain name to hostnames without any dots in them.
 #	append_domain must begin with a period.
 #
@@ -1014,7 +1017,7 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 
 #  TAG: err_html_text
 #	HTML text to include in error messages.  Make this a "mailto"
-#	URL to your admin address, or maybe just a link to your 
+#	URL to your admin address, or maybe just a link to your
 #	organizations Web page.
 #
 #err_html_text
@@ -1201,3 +1204,11 @@ minimum_direct_hops 4
 #
 #query_icmp off
 
+#  TAG: icp_hit_stale
+#	If you want to return ICP_HIT for stale cache objects, set this
+#	option to 'on'.  If you have sibling relationships with caches
+#	in other administrative domains, this should be 'off'.  If you only
+#	have sibling relationships with caches under your control, then
+#	it is probably okay to set this to 'on'.
+#
+#icp_hit_stale off

@@ -175,12 +175,11 @@ waisReadReply(int fd, WaisStateData * waisState)
 {
     LOCAL_ARRAY(char, buf, 4096);
     int len;
-    StoreEntry *entry = NULL;
+    StoreEntry *entry = waisState->entry;
     int clen;
     int off;
     int bin;
 
-    entry = waisState->entry;
     /* check if we want to defer reading */
     clen = entry->object_len;
     off = storeGetLowestReaderOffset(entry);
@@ -248,6 +247,10 @@ waisReadReply(int fd, WaisStateData * waisState)
 	/* Connection closed; retrieval done. */
 	entry->expires = squid_curtime;
 	storeComplete(entry);
+	comm_close(fd);
+    } else if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+	/* we can terminate connection right now */
+	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	comm_close(fd);
     } else {
 	storeAppend(entry, buf, len);

@@ -289,6 +289,22 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
     }
 }
 
+#ifdef HIER_EXPERIMENT
+int HierMethodHist[HIER_METHODS];
+int
+getRandomHierMethod(void)
+{
+    int i;
+    int min_meth = 0;
+    for (i = 0; i < HIER_METHODS; i++) {
+	if (HierMethodHist[i] >= HierMethodHist[min_meth])
+	    continue;
+	min_meth = i;
+    }
+    return min_meth;
+}
+#endif
+
 int
 protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 {
@@ -336,6 +352,30 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     debug(17, 2, "protoDispatch:  default_parent = %s\n",
 	protoData->default_parent ? protoData->default_parent->host : "N/A");
 
+#ifdef HIER_EXPERIMENT
+    request->hierarchy.hier_method = getRandomHierMethod();
+    if (protoData->n_peers == 0)
+	request->hierarchy.hier_method = HIER_METH_DIRECT;
+    if (request->hierarchy.hier_method == HIER_METH_RAND) {
+	protoData->default_parent = getRandomParent(request);
+	if (protoData->default_parent) {
+	    protoData->direct_fetch = DIRECT_NO;
+	    protoData->n_peers = 0;
+	    protoDispatchDNSHandle(fd, NULL, protoData);
+	    return 0;
+	} else {
+	    request->hierarchy.hier_method = HIER_METH_DIRECT;
+	}
+    }
+    if (request->hierarchy.hier_method == HIER_METH_DIRECT) {
+	protoData->direct_fetch = DIRECT_YES;
+	protoData->n_peers = 0;
+	protoData->ip_lookup_pending = 1;
+	ipcache_nbgethostbyname(request->host, fd,
+	    protoDispatchDNSHandle, protoData);
+	return 0;
+    } else
+#endif
     if (Config.firewall_ip_list) {
 	/* Have to look up the url address so we can compare it */
 	protoData->source_ping = Config.sourcePing;
@@ -528,10 +568,10 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
     protoCancelTimeout(fd, entry);
     netdbPingSite(request->host);
-#ifdef LOG_ICP_NUMBERS
+#if defined(LOG_ICP_NUMBERS) || defined(HIER_EXPERIMENT)
     request->hierarchy.n_recv = entry->mem_obj->e_pings_n_acks;
     if (entry->mem_obj->start_ping.tv_sec)
-	request->hierarchy.delay = tvSubMsec(entry->mem_obj->start_ping, current_time);
+	request->hierarchy.delay = tvSubUsec(entry->mem_obj->start_ping, current_time);
 #endif
     if (e) {
 	e->stats.fetches++;

@@ -142,6 +142,7 @@ AC_CHECK_HEADERS( \
 	errno.h \
 	fcntl.h \
 	getopt.h \
+	gnumalloc.h \
 	grp.h \
 	libc.h \
 	limits.h \
@@ -321,6 +322,7 @@ AC_CHECK_FUNCS(\
 	memcpy \
 	memmove \
 	mktime \
+	mstats \
 	poll \
 	random \
 	regcomp \

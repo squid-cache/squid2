@@ -49,11 +49,22 @@
 #endif /* HAVE_DIRENT_H */
 
 static int rev_int_sort _PARAMS((const int *, const int *));
+static int belongsHere _PARAMS((int fn, int si));
 
 static int
 rev_int_sort(const int *i1, const int *i2)
 {
     return *i2 - *i1;
+}
+
+static int
+belongsHere(int fn, int si)
+{
+    int l1s = (si / ncache_dirs) % Config.levelOneDirs;
+    int l1f = (fn / ncache_dirs) % Config.levelOneDirs;
+    int l2s = (si / ncache_dirs) / Config.levelOneDirs % Config.levelTwoDirs;
+    int l2f = (fn / ncache_dirs) / Config.levelOneDirs % Config.levelTwoDirs;
+    return (l1f == l1s && l2f == l2s);
 }
 
 void
@@ -92,7 +103,8 @@ storeDirClean(void *unused)
 	if (sscanf(de->d_name, "%X", &swapfileno) != 1)
 	    continue;
 	if (file_map_bit_test(swapfileno))
-	    continue;
+	    if (belongsHere(swapfileno, swap_index))
+		continue;
 	files[k++] = swapfileno;
     }
     closedir(dp);

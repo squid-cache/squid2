@@ -129,7 +129,7 @@ char *log_tags[] =
     "UDP_MISS_NOFETCH",
     "ERR_READ_TIMEOUT",
     "ERR_LIFETIME_EXP",
-    "ERR_NO_CLIENTS_BIG_OBJ",
+    "ERR_NO_CLIENTS",
     "ERR_READ_ERROR",
     "ERR_CLIENT_ABORT",
     "ERR_CONNECT_FAIL",
@@ -289,6 +289,10 @@ icpStateFree(int fd, void *data)
 	    icpState->log_type,
 	    ntohs(icpState->me.sin_port));
     }
+#ifdef HIER_EXPERIMENT
+    if (icpState->log_type == LOG_TCP_MISS)
+	log_hier_expt(icpState->start, hierData);
+#endif
     if (icpState->redirect_state == REDIRECT_PENDING)
 	redirectUnregister(icpState->url, fd);
     if (icpState->ident.fd > -1)
@@ -333,7 +337,6 @@ icpParseRequestHeaders(icpStateData * icpState)
     char *request_hdr = icpState->request_hdr;
     char *t = NULL;
     request_t *request = icpState->request;
-
     request->ims = -2;
     request->imslen = -1;
     if ((t = mime_get_header(request_hdr, "If-Modified-Since"))) {
@@ -350,6 +353,10 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (!strcasecmp(t, "no-cache"))
 	    BIT_SET(request->flags, REQ_NOCACHE);
     }
+    if (mime_get_header(request_hdr, "Range"))
+	BIT_SET(request->flags, REQ_NOCACHE);
+    else if (mime_get_header(request_hdr, "Request-Range"))
+	BIT_SET(request->flags, REQ_NOCACHE);
     if (mime_get_header(request_hdr, "Authorization"))
 	BIT_SET(request->flags, REQ_AUTH);
 #if TRY_KEEPALIVE_SUPPORT
@@ -1058,6 +1065,8 @@ icpCheckUdpHit(StoreEntry * e, request_t * request)
 	return 0;
     if (!storeEntryValidToSend(e))
 	return 0;
+    if (Config.Options.icp_hit_stale)
+	return 1;
     if (refreshCheck(e, request, 30))
 	return 0;
     return 1;
@@ -1364,7 +1373,7 @@ icpHandleUdp(int sock, void *not_used)
 
     commSetSelect(sock, COMM_SELECT_READ, icpHandleUdp, NULL, 0);
     from_len = sizeof(from);
-    memset(&from, 0, from_len);
+    memset(&from, '\0', from_len);
     len = recvfrom(sock,
 	buf,
 	SQUID_UDP_SO_RCVBUF - 1,
@@ -1429,7 +1438,6 @@ parseHttpRequest(icpStateData * icpState)
     LOCAL_ARRAY(char, http_ver, 32);
     char *token = NULL;
     char *t = NULL;
-    char *s = NULL;
     int free_request = 0;
     int req_hdr_sz;
     int url_sz;
@@ -1528,9 +1536,8 @@ parseHttpRequest(icpStateData * icpState)
 	     * refer to www.playboy.com.  The 'dst' and/or 'dst_domain' ACL 
 	     * types should be used to prevent httpd-accelerators 
 	     * handling requests for non-local servers */
-	    if ((s = strchr(t, ':')))
-		*s = '\0';
-	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
+	    strtok(t, " :/;@");
+	    url_sz = strlen(url) + strlen(t) + 32 + Config.appendDomainLen;
 	    icpState->url = xcalloc(url_sz, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		t, (int) Config.Accel.port, url);

@@ -1,3 +1,5 @@
+Changes to squid-1.NOVM.11 (June 20, 1997):
+
 	- Not obeying 'maximum_object_size'.  All objects were cached.
 	- Fixed poor handling of "disk full" write errors:
 	- We were only calling storeMaintainSwapSpace() once per
@@ -19,6 +21,36 @@
 	  fdstat_are_n_free_fd().
 	- Added changing IP cache key for stuck entries.
 	- Fixed NULL mem_obj coredump bug in storeCheckDoneWriting().
+
+Changes to squid-1.1.11 (June 14, 1997):
+
+	- Clean up NeXTStep compiler warnings (Karsten Heinze, Ed Knowles).
+	- Don't forward 'Proxy-Authorization' headers (Chris Pascoe).
+	- Fixed up Host: header parsing (Henrik Nordstrom).
+	- Changed DefaultObjectsPerBucket to 20 in cache_cf.c.
+	- Fixed parsePathname() bug for magic word "none".
+	- Fixed ipcache_release to rename entries which get stuck with locks.
+	- Fixed "eventDelete(peerCheckConnect, e);" bug when the DNS lookup
+	  is pending.
+	- Add sys/types.h to lib/safe_inet_addr.c for NeXTSTEP (Timo
+	  Hennerich).
+	- Fixed cur_len decrement bug in diskHandleRead()
+	  (Michael O'Reilly).
+	- Added contrib/rredir.pl from Peter Eisenhauer.
+	- Always forward requests with 'Request-Range' headers (Ron Gomes).
+	- Fixed StoreEntry client offset bug which could trigger a
+	  fatal_dump().
+	- Fixed noticing that dnsservers have shut down during restart.
+	- Added contrib/nextstep installer package from Gerben Wierda.
+	- Modified storeDirClean() to remove swap files where the
+	  number is being used, but the file is in the wrong directory.
+	- Allow PURGE method on all protocols.
+	- Added 'icp_hit_stale' option.
+	- Fixed proxy auth refresh bug (Chris Pascoe).
+	- Don't check for other filename extensions if an FTP URL
+	  ends with .txt (Ed Knowles).
+	- Relocated ERR_NO_CLIENT_BIG_OBJ check to eliminate incorrect
+	  (but harmless) error message.
 
 Changes to squid-1.NOVM.10 (April 25, 1997):
 

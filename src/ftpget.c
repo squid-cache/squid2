@@ -901,9 +901,9 @@ mime_get_type(ftp_request_t * r)
 	}
     }
     /* now check for another extension */
-
     *t = '\0';
-    if (!(t = strrchr(filename, '.')))
+    /* may not fix all problems, but should fix most common --EK */
+    if ((!(t = strrchr(filename, '.'))) || (!strcasecmp(ext, "txt")))
 	goto mime_get_type_done;
     xfree(ext);
     ext = xstrdup(t + 1);
@@ -1237,7 +1237,7 @@ do_connect(ftp_request_t * r)
 
     x = connect_with_timeout(sock, &S, sizeof(S));
     if (x == READ_TIMEOUT) {
-	(void) ftp_request_timeout(r);
+	ftp_request_timeout(r);
 	return FAIL_CONNECT;
     }
     if (x < 0) {
