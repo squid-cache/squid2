@@ -246,6 +246,10 @@
  */
 #define INCOMING_ICP_MAX 15
 /*
+ * Max number of DNS messages to receive per call to DNS read handler
+ */
+#define INCOMING_DNS_MAX 15
+/*
  * Max number of HTTP connections to accept per call to httpAccept
  * and PER HTTP PORT
  */
