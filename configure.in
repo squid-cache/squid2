@@ -381,7 +381,7 @@ AC_ARG_ENABLE(icmp,
 AC_SUBST(OPT_PINGER_EXE)
 
 AC_ARG_ENABLE(delay-pools,
-[  --enable-delay-pools    Enable delay pools to limit bandwith usage],
+[  --enable-delay-pools    Enable delay pools to limit bandwidth usage],
 [ if test "$enableval" = "yes" ; then
     echo "Delay pools enabled"
     DELAY_OBJS='$(DELAY_OBJS)'
@@ -664,7 +664,7 @@ AC_ARG_ENABLE(truncate,
 dnl Enable underscore in hostnames
 AC_ARG_ENABLE(underscores,
 [  --enable-underscores    Squid by default rejects any host names with _
-                          in their name to conform with internet standars.
+                          in their name to conform with internet standards.
                           If you disagree with this you may allow _ in
                           hostnames by using this switch, provided that
                           the resolver library on the host where Squid runs
