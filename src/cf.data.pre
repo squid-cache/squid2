@@ -2629,6 +2629,9 @@ DOC_START
 
 	You may use ERR_ pages that come with Squid or create your own pages
 	and put them into the configured errors/ directory.
+
+	Alternatively you can tell Squid to reset the TCP connection
+	by specifying TCP_RESET.
 DOC_END
 
 NAME: memory_pools

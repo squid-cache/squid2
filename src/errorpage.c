@@ -63,10 +63,14 @@ static const struct {
 
     {
 	ERR_SQUID_SIGNATURE,
-	    "\n<br clear=\"all\">\n"
-	    "<hr noshade size=1>\n"
+	    "\n<BR clear=\"all\">\n"
+	    "<HR noshade size=1>\n"
 	    "Generated %T by %h (%s)\n"
 	    "</BODY></HTML>\n"
+    },
+    {
+	TCP_RESET,
+	    "reset"
     }
 };
 
@@ -274,9 +278,9 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
 	errorStateFree(err);
 	return;
     }
-    if (0 == strncmp(error_text[err->page_id], "reset", 5)) {
+    if (err->page_id == TCP_RESET) {
 	if (err->request) {
-	    debug(0, 0) ("RSTing this reply\n");
+	    debug(4, 2) ("RSTing this reply\n");
 	    err->request->flags.reset_tcp = 1;
 	}
     }
