@@ -468,7 +468,7 @@ storeRebuildFromSwapLog(void *data)
 	if ((++rb->counts.scancount & 0xFFFF) == 0)
 	    debug(20, 3) ("  %7d %s Entries read so far.\n",
 		rb->counts.scancount, rb->sd->path);
-	if (!storeDirValidFileno(s.swap_file_number)) {
+	if (!storeDirValidFileno(s.swap_file_number, 0)) {
 	    rb->counts.invalid++;
 	    continue;
 	}
@@ -1017,7 +1017,7 @@ storeUfsDirClean(int swap_index)
 	if (sscanf(de->d_name, "%X", &swapfileno) != 1)
 	    continue;
 	fn = storeDirProperFileno(D0, swapfileno);
-	if (storeDirValidFileno(fn))
+	if (storeDirValidFileno(fn, 1))
 	    if (storeDirMapBitTest(fn))
 		if (storeUfsFilenoBelongsHere(fn, D0, D1, D2))
 		    continue;
