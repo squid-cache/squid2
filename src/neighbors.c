@@ -699,7 +699,7 @@ neighborsUdpAck(int fd, char *url, icp_common_t * header, struct sockaddr_in *fr
 		neighborRemove(e);
 		e = NULL;
 	    } else {
-	        neighborCountIgnored(e, opcode);
+		neighborCountIgnored(e, opcode);
 	    }
 	}
     } else if (opcode == ICP_OP_RELOADING) {

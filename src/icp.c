@@ -254,7 +254,7 @@ icpStateFree(int fd, icpStateData * icpState)
     if (icpState->request)
 	hierData = &icpState->request->hierarchy;
     if (icpState->size || icpState->log_type) {
-        HTTPCacheInfo->log_append(HTTPCacheInfo,
+	HTTPCacheInfo->log_append(HTTPCacheInfo,
 	    icpState->url,
 	    icpState->log_addr,
 	    icpState->size,
@@ -270,10 +270,10 @@ icpStateFree(int fd, icpStateData * icpState)
 	    icpState->request_hdr,
 	    icpState->reply_hdr);
 #endif /* LOG_FULL_HEADERS */
-        HTTPCacheInfo->proto_count(HTTPCacheInfo,
+	HTTPCacheInfo->proto_count(HTTPCacheInfo,
 	    icpState->request ? icpState->request->protocol : PROTO_NONE,
 	    icpState->log_type);
-        clientdbUpdate(icpState->peer.sin_addr,
+	clientdbUpdate(icpState->peer.sin_addr,
 	    icpState->log_type,
 	    ntohs(icpState->me.sin_port));
     }
@@ -572,12 +572,12 @@ icpHandleStoreComplete(int fd, char *buf, int size, int errflag, void *data)
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    icpState->request->protocol,
 	    icpState->offset);
-        if (BIT_TEST(icpState->request->flags, REQ_PROXY_KEEPALIVE)) {
-            commCallCloseHandlers(fd);
-            icpDetectNewRequest(fd);
-        } else {
-            comm_close(fd);
-        }
+	if (BIT_TEST(icpState->request->flags, REQ_PROXY_KEEPALIVE)) {
+	    commCallCloseHandlers(fd);
+	    icpDetectNewRequest(fd);
+	} else {
+	    comm_close(fd);
+	}
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
@@ -1951,7 +1951,7 @@ CheckQuickAbort(icpStateData * icpState)
 void
 icpDetectClientClose(int fd, void *data)
 {
-    icpStateData * icpState = data;
+    icpStateData *icpState = data;
     LOCAL_ARRAY(char, buf, 256);
     int n;
     StoreEntry *entry = icpState->entry;
@@ -2003,8 +2003,8 @@ icpDetectNewRequest(int fd)
     /* set the hardwired lifetime */
     lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
     len = sizeof(struct sockaddr_in);
-    memset((char*)&me, '\0', len);
-    memset((char*)&peer, '\0', len);
+    memset((char *) &me, '\0', len);
+    memset((char *) &peer, '\0', len);
     if (getsockname(fd, (struct sockaddr *) &me, &len) < -1) {
 	debug(12, 1, "icpDetectNewRequest: FD %d: getsockname failure: %s\n",
 	    fd, xstrerror());

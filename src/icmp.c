@@ -92,7 +92,7 @@ icmpRecv(int unused1, void *unused2)
 	    commSetSelect(icmp_sock,
 		COMM_SELECT_READ,
 		NULL,
-		NULL,	
+		NULL,
 		0);
 	    comm_close(icmp_sock);
 	    icmp_sock = -1;
