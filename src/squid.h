@@ -369,11 +369,21 @@ struct rusage {
 /*
  * Squid source files should not call these functions directly
  */
+#ifndef malloc
 #define malloc +
+#endif
+#ifndef free
 #define free +
+#endif
+#ifndef calloc
 #define calloc +
+#endif
+#ifndef sprintf
 #define sprintf +
+#endif
+#ifndef strdup
 #define strdup +
+#endif
 
 #if SQUID_SNMP
 extern struct snmp_mib_tree *Mib;
