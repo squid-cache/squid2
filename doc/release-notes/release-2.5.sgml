@@ -162,7 +162,7 @@ for Applied Network Research and members of the Web Caching community.
 	<item>several assertion or segmentation faults corrected
 	<item>a large number of minor bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE1"
-	name="squid-2.5.STABLE1 patches"> and the <url url="ChangeLog.txt"
+	name="squid-2.5.STABLE1 patches"> and the <url url="ChangeLog"
 	name="ChangeLog"> file for details.
 </itemize>
 
@@ -172,7 +172,7 @@ for Applied Network Research and members of the Web Caching community.
 <itemize>
 	<item>a large number of minor bug fixes. See the list of <url
 url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE2"
-name="squid-2.5.STABLE2 patches"> and the <url url="ChangeLog.txt"
+name="squid-2.5.STABLE2 patches"> and the <url url="ChangeLog"
 name="ChangeLog"> file for details.
 </itemize>
 
@@ -202,7 +202,7 @@ name="ChangeLog"> file for details.
 	from the trouble when upgrading to Squid-3 later.
 	<item>a large number of minor bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE3"
-	name="squid-2.5.STABLE3 patches"> and the <url url="ChangeLog.txt"
+	name="squid-2.5.STABLE3 patches"> and the <url url="ChangeLog"
 	name="ChangeLog"> file for details.
 </itemize>
 
@@ -245,7 +245,7 @@ name="ChangeLog"> file for details.
 	<item>url_regex enhanced to allow matching of %00
 	<item>a large number of minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4"
-	name="squid-2.5.STABLE4 patches"> and the <url url="ChangeLog.txt"
+	name="squid-2.5.STABLE4 patches"> and the <url url="ChangeLog"
 	name="ChangeLog"> file for details.
 </itemize>
 
@@ -261,7 +261,7 @@ name="ChangeLog"> file for details.
 	<item>Processing of Vary: * and Vary on error messages corrected
 	<item>a large number of minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE5"
-	name="squid-2.5.STABLE5 patches"> and the <url url="ChangeLog.txt"
+	name="squid-2.5.STABLE5 patches"> and the <url url="ChangeLog"
 	name="ChangeLog"> file for details.
 </itemize>
 	
@@ -282,7 +282,7 @@ name="ChangeLog"> file for details.
 	from 10 KB to 20 KB which should be sufficient for most uses.
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE6"
-	name="squid-2.5.STABLE6 patches"> and the <url url="ChangeLog.txt"
+	name="squid-2.5.STABLE6 patches"> and the <url url="ChangeLog"
 	name="ChangeLog"> file for details.
 </itemize>
 	
