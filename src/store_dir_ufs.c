@@ -586,6 +586,7 @@ storeGetNextFile(RebuildState * rb, int *sfileno, int *size)
 		rb->curlvl1, rb->curlvl2);
 	    if (rb->flags.init && rb->td != NULL)
 		closedir(rb->td);
+	    rb->td = NULL;
 	    if (dirs_opened)
 		return -1;
 	    rb->td = opendir(rb->fullpath);
