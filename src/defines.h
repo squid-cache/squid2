@@ -200,7 +200,8 @@
 #define SwapMetaType(x) (char)x[0]
 #define SwapMetaSize(x) &x[sizeof(char)]
 #define SwapMetaData(x) &x[STORE_META_TLD_START]
-#define STORE_HDR_METASIZE (4*sizeof(time_t)+2*sizeof(u_short)+sizeof(size_t))
+#define STORE_HDR_METASIZE (4*sizeof(time_t)+2*sizeof(u_short)+sizeof(squid_file_sz))
+#define STORE_HDR_METASIZE_OLD (4*sizeof(time_t)+2*sizeof(u_short)+sizeof(size_t))
 
 #define STORE_ENTRY_WITH_MEMOBJ		1
 #define STORE_ENTRY_WITHOUT_MEMOBJ	0

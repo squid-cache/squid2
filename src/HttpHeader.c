@@ -80,7 +80,7 @@ static const HttpHeaderFieldAttrs HeadersAttrs[] =
     {"Content-Disposition", HDR_CONTENT_DISPOSITION, ftStr},
     {"Content-Encoding", HDR_CONTENT_ENCODING, ftStr},
     {"Content-Language", HDR_CONTENT_LANGUAGE, ftStr},
-    {"Content-Length", HDR_CONTENT_LENGTH, ftInt},
+    {"Content-Length", HDR_CONTENT_LENGTH, ftSize},
     {"Content-Location", HDR_CONTENT_LOCATION, ftStr},
     {"Content-MD5", HDR_CONTENT_MD5, ftStr},	/* for now */
     {"Content-Range", HDR_CONTENT_RANGE, ftPContRange},
@@ -814,6 +814,17 @@ httpHeaderPutInt(HttpHeader * hdr, http_hdr_type id, int number)
 }
 
 void
+httpHeaderPutSize(HttpHeader * hdr, http_hdr_type id, squid_off_t number)
+{
+    char size[64];
+    assert_eid(id);
+    assert(Headers[id].type == ftSize);		/* must be of an appropriate type */
+    assert(number >= 0);
+    snprintf(size, sizeof(size), "%" PRINTF_OFF_T, number);
+    httpHeaderAddEntry(hdr, httpHeaderEntryCreate(id, NULL, size));
+}
+
+void
 httpHeaderPutTime(HttpHeader * hdr, http_hdr_type id, time_t htime)
 {
     assert_eid(id);
@@ -914,6 +925,21 @@ httpHeaderGetInt(const HttpHeader * hdr, http_hdr_type id)
     assert(Headers[id].type == ftInt);	/* must be of an appropriate type */
     if ((e = httpHeaderFindEntry(hdr, id))) {
 	ok = httpHeaderParseInt(strBuf(e->value), &value);
+	httpHeaderNoteParsedEntry(e->id, e->value, !ok);
+    }
+    return value;
+}
+
+squid_off_t
+httpHeaderGetSize(const HttpHeader * hdr, http_hdr_type id)
+{
+    HttpHeaderEntry *e;
+    squid_off_t value = -1;
+    int ok;
+    assert_eid(id);
+    assert(Headers[id].type == ftSize);		/* must be of an appropriate type */
+    if ((e = httpHeaderFindEntry(hdr, id))) {
+	ok = httpHeaderParseSize(strBuf(e->value), &value);
 	httpHeaderNoteParsedEntry(e->id, e->value, !ok);
     }
     return value;

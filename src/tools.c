@@ -841,7 +841,7 @@ dlinkDelete(dlink_node * m, dlink_list * list)
 }
 
 void
-kb_incr(kb_t * k, size_t v)
+kb_incr(kb_t * k, squid_off_t v)
 {
     k->bytes += v;
     k->kb += (k->bytes >> 10);

@@ -192,7 +192,7 @@ memBufIsNull(MemBuf * mb)
 
 /* calls memcpy, appends exactly size bytes, extends buffer if needed */
 void
-memBufAppend(MemBuf * mb, const char *buf, mb_size_t sz)
+memBufAppend(MemBuf * mb, const char *buf, int sz)
 {
     assert(mb && buf && sz >= 0);
     assert(mb->buf);

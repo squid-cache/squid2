@@ -77,7 +77,7 @@ clientdbInit(void)
 }
 
 void
-clientdbUpdate(struct in_addr addr, log_type ltype, protocol_t p, size_t size)
+clientdbUpdate(struct in_addr addr, log_type ltype, protocol_t p, squid_off_t size)
 {
     char *key;
     ClientInfo *c;

@@ -113,10 +113,10 @@ static const char *Alphanum =
  * Packs a rfc1035_header structure into a buffer.
  * Returns number of octets packed (should always be 12)
  */
-static off_t
+static int
 rfc1035HeaderPack(char *buf, size_t sz, rfc1035_header * hdr)
 {
-    off_t off = 0;
+    int off = 0;
     unsigned short s;
     unsigned short t;
     assert(sz >= 12);
@@ -158,10 +158,10 @@ rfc1035HeaderPack(char *buf, size_t sz, rfc1035_header * hdr)
  * bytes to follow.  Labels must be smaller than 64 octets.
  * Returns number of octets packed.
  */
-static off_t
+static int
 rfc1035LabelPack(char *buf, size_t sz, const char *label)
 {
-    off_t off = 0;
+    int off = 0;
     size_t len = label ? strlen(label) : 0;
     if (label)
 	assert(!strchr(label, '.'));
@@ -183,10 +183,10 @@ rfc1035LabelPack(char *buf, size_t sz, const char *label)
  * Note message compression is not supported here.
  * Returns number of octets packed.
  */
-static off_t
+static int
 rfc1035NamePack(char *buf, size_t sz, const char *name)
 {
-    off_t off = 0;
+    int off = 0;
     char *copy = strdup(name);
     char *t;
     /*
@@ -206,14 +206,14 @@ rfc1035NamePack(char *buf, size_t sz, const char *name)
  * Packs a QUESTION section of a message.
  * Returns number of octets packed.
  */
-static off_t
+static int
 rfc1035QuestionPack(char *buf,
     size_t sz,
     const char *name,
     unsigned short type,
     unsigned short class)
 {
-    off_t off = 0;
+    int off = 0;
     unsigned short s;
     off += rfc1035NamePack(buf + off, sz - off, name);
     s = htons(type);
@@ -238,7 +238,7 @@ rfc1035QuestionPack(char *buf,
  * Returns 0 (success) or 1 (error)
  */
 static int
-rfc1035HeaderUnpack(const char *buf, size_t sz, off_t * off, rfc1035_header * h)
+rfc1035HeaderUnpack(const char *buf, size_t sz, int *off, rfc1035_header * h)
 {
     unsigned short s;
     unsigned short t;
@@ -299,9 +299,9 @@ rfc1035HeaderUnpack(const char *buf, size_t sz, off_t * off, rfc1035_header * h)
  * Returns 0 (success) or 1 (error)
  */
 static int
-rfc1035NameUnpack(const char *buf, size_t sz, off_t * off, unsigned short *rdlength, char *name, size_t ns, int rdepth)
+rfc1035NameUnpack(const char *buf, size_t sz, int *off, unsigned short *rdlength, char *name, size_t ns, int rdepth)
 {
-    off_t no = 0;
+    int no = 0;
     unsigned char c;
     size_t len;
     assert(ns > 0);
@@ -311,8 +311,8 @@ rfc1035NameUnpack(const char *buf, size_t sz, off_t * off, unsigned short *rdlen
 	if (c > 191) {
 	    /* blasted compression */
 	    unsigned short s;
-	    off_t ptr;
-	    if (rdepth > 64)		/* infinite pointer loop */
+	    int ptr;
+	    if (rdepth > 64)	/* infinite pointer loop */
 		return 1;
 	    memcpy(&s, buf + (*off), sizeof(s));
 	    s = ntohs(s);
@@ -367,12 +367,12 @@ rfc1035NameUnpack(const char *buf, size_t sz, off_t * off, unsigned short *rdlen
  * Returns 0 (success) or 1 (error)
  */
 static int
-rfc1035RRUnpack(const char *buf, size_t sz, off_t * off, rfc1035_rr * RR)
+rfc1035RRUnpack(const char *buf, size_t sz, int *off, rfc1035_rr * RR)
 {
     unsigned short s;
     unsigned int i;
     unsigned short rdlength;
-    off_t rdata_off;
+    int rdata_off;
     if (rfc1035NameUnpack(buf, sz, off, NULL, RR->name, RFC1035_MAXHOSTNAMESZ, 0)) {
 	RFC1035_UNPACK_DEBUG;
 	memset(RR, '\0', sizeof(*RR));
@@ -413,7 +413,7 @@ rfc1035RRUnpack(const char *buf, size_t sz, off_t * off, rfc1035_rr * RR)
     case RFC1035_TYPE_PTR:
 	RR->rdata = malloc(RFC1035_MAXHOSTNAMESZ);
 	rdata_off = *off;
-	RR->rdlength = 0; /* Filled in by rfc1035NameUnpack */
+	RR->rdlength = 0;	/* Filled in by rfc1035NameUnpack */
 	if (rfc1035NameUnpack(buf, sz, &rdata_off, &RR->rdlength, RR->rdata, RFC1035_MAXHOSTNAMESZ, 0))
 	    return 1;
 	if (rdata_off != ((*off) + rdlength)) {
@@ -515,7 +515,7 @@ rfc1035AnswersUnpack(const char *buf,
     rfc1035_rr ** records,
     unsigned short *id)
 {
-    off_t off = 0;
+    int off = 0;
     int l;
     int i;
     int nr = 0;
@@ -562,8 +562,8 @@ rfc1035AnswersUnpack(const char *buf,
     }
     if (hdr.ancount == 0)
 	return 0;
-    recs = calloc((int)hdr.ancount, sizeof(*recs));
-    for (i = 0; i < (int)hdr.ancount; i++) {
+    recs = calloc((int) hdr.ancount, sizeof(*recs));
+    for (i = 0; i < (int) hdr.ancount; i++) {
 	if (off >= sz) {	/* corrupt packet */
 	    RFC1035_UNPACK_DEBUG;
 	    break;

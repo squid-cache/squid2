@@ -606,7 +606,7 @@ storeCheckTooSmall(StoreEntry * e)
 	if (mem->object_sz < Config.Store.minObjectSize)
 	    return 1;
     if (mem->reply->content_length > -1)
-	if (mem->reply->content_length < (int) Config.Store.minObjectSize)
+	if (mem->reply->content_length < Config.Store.minObjectSize)
 	    return 1;
     return 0;
 }
@@ -636,9 +636,6 @@ storeCheckCachable(StoreEntry * e)
     } else if ((e->mem_obj->reply->content_length > 0 &&
 		e->mem_obj->reply->content_length > Config.Store.maxObjectSize) ||
 	e->mem_obj->inmem_hi > Config.Store.maxObjectSize) {
-	debug(20, 2) ("storeCheckCachable: NO: too big\n");
-	store_check_cachable_hist.no.too_big++;
-    } else if (e->mem_obj->reply->content_length > (int) Config.Store.maxObjectSize) {
 	debug(20, 2) ("storeCheckCachable: NO: too big\n");
 	store_check_cachable_hist.no.too_big++;
     } else if (storeCheckTooSmall(e)) {
@@ -939,18 +936,18 @@ storeEntryLocked(const StoreEntry * e)
 static int
 storeEntryValidLength(const StoreEntry * e)
 {
-    int diff;
-    int clen;
+    squid_off_t diff;
+    squid_off_t clen;
     const HttpReply *reply;
     assert(e->mem_obj != NULL);
     reply = e->mem_obj->reply;
     debug(20, 3) ("storeEntryValidLength: Checking '%s'\n", storeKeyText(e->hash.key));
-    debug(20, 5) ("storeEntryValidLength:     object_len = %d\n",
+    debug(20, 5) ("storeEntryValidLength:     object_len = %" PRINTF_OFF_T "\n",
 	objectLen(e));
     debug(20, 5) ("storeEntryValidLength:         hdr_sz = %d\n",
 	reply->hdr_sz);
     clen = httpReplyBodySize(e->mem_obj->method, reply);
-    debug(20, 5) ("storeEntryValidLength: content_length = %d\n",
+    debug(20, 5) ("storeEntryValidLength: content_length = %" PRINTF_OFF_T "\n",
 	clen);
     if (clen < 0) {
 	debug(20, 5) ("storeEntryValidLength: Unspecified content length: %s\n",
@@ -960,7 +957,7 @@ storeEntryValidLength(const StoreEntry * e)
     diff = reply->hdr_sz + clen - objectLen(e);
     if (diff == 0)
 	return 1;
-    debug(20, 2) ("storeEntryValidLength: %d bytes too %s; '%s'\n",
+    debug(20, 2) ("storeEntryValidLength: %" PRINTF_OFF_T " bytes too %s; '%s'\n",
 	diff < 0 ? -diff : diff,
 	diff < 0 ? "big" : "small",
 	storeKeyText(e->hash.key));
@@ -1128,15 +1125,15 @@ storeMemObjectDump(MemObject * mem)
 	mem->data_hdr.head);
     debug(20, 1) ("MemObject->data.tail: %p\n",
 	mem->data_hdr.tail);
-    debug(20, 1) ("MemObject->data.origin_offset: %d\n",
+    debug(20, 1) ("MemObject->data.origin_offset: %" PRINTF_OFF_T "\n",
 	mem->data_hdr.origin_offset);
-    debug(20, 1) ("MemObject->start_ping: %d.%06d\n",
-	(int) mem->start_ping.tv_sec,
+    debug(20, 1) ("MemObject->start_ping: %ld.%06d\n",
+	(long int) mem->start_ping.tv_sec,
 	(int) mem->start_ping.tv_usec);
-    debug(20, 1) ("MemObject->inmem_hi: %d\n",
-	(int) mem->inmem_hi);
-    debug(20, 1) ("MemObject->inmem_lo: %d\n",
-	(int) mem->inmem_lo);
+    debug(20, 1) ("MemObject->inmem_hi: %" PRINTF_OFF_T "\n",
+	mem->inmem_hi);
+    debug(20, 1) ("MemObject->inmem_lo: %" PRINTF_OFF_T "\n",
+	mem->inmem_lo);
     debug(20, 1) ("MemObject->nclients: %d\n",
 	mem->nclients);
     debug(20, 1) ("MemObject->reply: %p\n",
@@ -1154,11 +1151,11 @@ storeEntryDump(const StoreEntry * e, int l)
     debug(20, l) ("StoreEntry->key: %s\n", storeKeyText(e->hash.key));
     debug(20, l) ("StoreEntry->next: %p\n", e->hash.next);
     debug(20, l) ("StoreEntry->mem_obj: %p\n", e->mem_obj);
-    debug(20, l) ("StoreEntry->timestamp: %d\n", (int) e->timestamp);
-    debug(20, l) ("StoreEntry->lastref: %d\n", (int) e->lastref);
-    debug(20, l) ("StoreEntry->expires: %d\n", (int) e->expires);
-    debug(20, l) ("StoreEntry->lastmod: %d\n", (int) e->lastmod);
-    debug(20, l) ("StoreEntry->swap_file_sz: %d\n", (int) e->swap_file_sz);
+    debug(20, l) ("StoreEntry->timestamp: %ld\n", (long int) e->timestamp);
+    debug(20, l) ("StoreEntry->lastref: %ld\n", (long int) e->lastref);
+    debug(20, l) ("StoreEntry->expires: %ld\n", (long int) e->expires);
+    debug(20, l) ("StoreEntry->lastmod: %ld\n", (long int) e->lastmod);
+    debug(20, l) ("StoreEntry->swap_file_sz: %" PRINTF_OFF_T "\n", (squid_off_t) e->swap_file_sz);
     debug(20, l) ("StoreEntry->refcount: %d\n", e->refcount);
     debug(20, l) ("StoreEntry->flags: %s\n", storeEntryFlags(e));
     debug(20, l) ("StoreEntry->swap_dirn: %d\n", (int) e->swap_dirn);
@@ -1240,14 +1237,14 @@ storeBufferFlush(StoreEntry * e)
     storeSwapOut(e);
 }
 
-int
+squid_off_t
 objectLen(const StoreEntry * e)
 {
     assert(e->mem_obj != NULL);
     return e->mem_obj->object_sz;
 }
 
-int
+squid_off_t
 contentLen(const StoreEntry * e)
 {
     assert(e->mem_obj != NULL);

@@ -227,14 +227,14 @@ htcpBuildCountstr(char *buf, size_t buflen, const char *s)
 {
     u_short length;
     size_t len;
-    off_t off = 0;
+    int off = 0;
     if (buflen - off < 2)
 	return -1;
     if (s)
 	len = strlen(s);
     else
 	len = 0;
-    debug(31, 3) ("htcpBuildCountstr: LENGTH = %d\n", len);
+    debug(31, 3) ("htcpBuildCountstr: LENGTH = %d\n", (int) len);
     debug(31, 3) ("htcpBuildCountstr: TEXT = {%s}\n", s ? s : "<NULL>");
     length = htons((u_short) len);
     xmemcpy(buf + off, &length, 2);

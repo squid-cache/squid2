@@ -747,6 +747,75 @@ AC_ARG_ENABLE(linux-netfilter,
   fi
 ])
 
+dnl Enable Large file support
+buildmodel=""
+needlargefiles=
+
+AC_ARG_WITH(large-files,
+[  --with-large-files      Enable support for large files (logs etc).],
+[ if test "$withval" = yes; then
+	needlargefiles=1
+  fi
+])
+
+AC_ARG_ENABLE(large-cache-files,
+[  --enable-cache-large-files
+                          Enable support for large cache files (>2GB).
+                          WARNING: on-disk cache format is changed by this option],
+[ if test "$enableval" = "yes" ; then
+	echo "Large cache file support enabled"
+	AC_DEFINE(LARGE_CACHE_FILES, 1, [Support large cache files > 2GB])
+dnl	needlargefiles=1
+  fi
+])
+
+dnl UNIX Build environment
+AC_ARG_WITH(build-environment,
+[  --with-build-environment=model
+                          The build environment to use. Normally one of
+                          POSIX_V6_ILP32_OFF32   32 bits
+                          POSIX_V6_ILP32_OFFBIG  32 bits with large file support
+                          POSIX_V6_LP64_OFF64    64 bits
+                          POSIX_V6_LPBIG_OFFBIG  large pointers and files
+                          XBS5_ILP32_OFF32       32 bits (legacy)
+                          XBS5_ILP32_OFFBIG      32 bits with large file support (legacy)
+                          XBS5_LP64_OFF64        64 bits (legacy)
+                          XBS5_LPBIG_OFFBIG      large pointers and files (legacy)
+                          default                The default for your OS],
+[ case "$enableval" in
+  yes|no)
+	echo "--with-build-environment expects a build environment string as used by getconf"
+	exit 1
+	;;
+  _*)
+	buildmodel="$enableval"
+	;;
+  *)
+	buildmodel="_$enableval"
+	;;
+  esac
+])
+
+if test $needlargefiles && test -z "$buildmodel"; then
+	for model in POSIX_V6_ILP32_OFFBIG XBS5_ILP32_OFFBIG POSIX_V6_LP64_OFF64 XBS5_LP64_OFF64 POSIX_V6_LPBIG_OFFBIG XBS5_LPBIG_OFFBIG; do
+		if test "`getconf _$model 2>/dev/null || true`" = 1 || test "`getconf $model 2>/dev/null || true`" ; then
+			buildmodel=$model
+			break
+		fi
+	done
+	if test -z "$buildmodel"; then
+		echo "WARNING: No suitable build environment found for large files. Trying to use _FILE_OFFSET_BITS=64"
+		sleep 1
+		CFLAGS="-D_FILE_OFFSET_BITS=64 $CFLAGS"
+	fi
+fi
+if test -n "$buildmodel" && test "$buildmodel" != "_default"; then
+	echo "Using $buildmodel build environment"
+	CFLAGS="`getconf ${buildmodel}_CFLAGS` $CFLAGS"
+	LIBS="`getconf ${buildmodel}_LIBS` $LIBS"
+	LDFLAGS="`getconf ${buildmodel}_LDFLAGS` $LDFLAGS"
+fi
+
 AM_CONDITIONAL(MAKE_LEAKFINDER, false)
 dnl Enable Leak Finding Functions
 AC_ARG_ENABLE(leakfinder,
@@ -1743,6 +1812,7 @@ AC_CHECK_FUNCS(\
 	srand48 \
 	srandom \
 	statfs \
+	strtoll \
 	sysconf \
 	syslog \
 	timegm \

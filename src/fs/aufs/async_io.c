@@ -186,7 +186,7 @@ aioCancel(int fd)
 
 
 void
-aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callback_data, FREE * free_func)
+aioWrite(int fd, off_t offset, char *bufp, int len, AIOCB * callback, void *callback_data, FREE * free_func)
 {
     squidaio_ctrl_t *ctrlp;
     int seekmode;
@@ -214,7 +214,7 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
 
 
 void
-aioRead(int fd, int offset, int len, AIOCB * callback, void *callback_data)
+aioRead(int fd, off_t offset, int len, AIOCB * callback, void *callback_data)
 {
     squidaio_ctrl_t *ctrlp;
     int seekmode;

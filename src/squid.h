@@ -481,4 +481,12 @@ struct rusage {
 #define FD_READ_METHOD(fd, buf, len) (*fd_table[fd].read_method)(fd, buf, len)
 #define FD_WRITE_METHOD(fd, buf, len) (*fd_table[fd].write_method)(fd, buf, len)
 
+/*
+ * Trap attempts to build large file cache support without support for
+ * large objects
+ */
+#if LARGE_CACHE_FILES && SIZEOF_SQUID_OFF_T <= 4
+#error Your platform does not support large integers. Can not build with --enable-large-cache-files
+#endif
+
 #endif /* SQUID_H */

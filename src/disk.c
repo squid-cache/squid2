@@ -239,7 +239,7 @@ diskHandleWrite(int fd, void *notused)
 	q->buf_offset += len;
 	if (q->buf_offset > q->len)
 	    debug(50, 1) ("diskHandleWriteComplete: q->buf_offset > q->len (%p,%d, %d, %d FD %d)\n",
-		q, (int) q->buf_offset, q->len, len, fd);
+		q, (int) q->buf_offset, (int) q->len, len, fd);
 	assert(q->buf_offset <= q->len);
 	if (q->buf_offset == q->len) {
 	    /* complete write */
@@ -293,7 +293,7 @@ void
 file_write(int fd,
     off_t file_offset,
     void *ptr_to_buf,
-    int len,
+    size_t len,
     DWCB * handle,
     void *handle_data,
     FREE * free_func)
@@ -331,9 +331,9 @@ file_write(int fd,
  * in a snap
  */
 void
-file_write_mbuf(int fd, off_t off, MemBuf mb, DWCB * handler, void *handler_data)
+file_write_mbuf(int fd, off_t file_offset, MemBuf mb, DWCB * handler, void *handler_data)
 {
-    file_write(fd, off, mb.buf, mb.size, handler, handler_data, memBufFreeFunc(&mb));
+    file_write(fd, file_offset, mb.buf, mb.size, handler, handler_data, memBufFreeFunc(&mb));
 }
 
 /* Read from FD */
@@ -352,12 +352,12 @@ diskHandleRead(int fd, void *data)
 	memFree(ctrl_dat, MEM_DREAD_CTRL);
 	return;
     }
-    if (F->disk.offset != ctrl_dat->offset) {
+    if (F->disk.offset != ctrl_dat->file_offset) {
 	debug(6, 3) ("diskHandleRead: FD %d seeking to offset %d\n",
-	    fd, (int) ctrl_dat->offset);
-	lseek(fd, ctrl_dat->offset, SEEK_SET);	/* XXX ignore return? */
+	    fd, (int) ctrl_dat->file_offset);
+	lseek(fd, ctrl_dat->file_offset, SEEK_SET);	/* XXX ignore return? */
 	statCounter.syscalls.disk.seeks++;
-	F->disk.offset = ctrl_dat->offset;
+	F->disk.offset = ctrl_dat->file_offset;
     }
     errno = 0;
     len = FD_READ_METHOD(fd, ctrl_dat->buf, ctrl_dat->req_len);
@@ -388,13 +388,13 @@ diskHandleRead(int fd, void *data)
  * It must have at least req_len space in there. 
  * call handler when a reading is complete. */
 void
-file_read(int fd, char *buf, int req_len, off_t offset, DRCB * handler, void *client_data)
+file_read(int fd, char *buf, size_t req_len, off_t file_offset, DRCB * handler, void *client_data)
 {
     dread_ctrl *ctrl_dat;
     assert(fd >= 0);
     ctrl_dat = memAllocate(MEM_DREAD_CTRL);
     ctrl_dat->fd = fd;
-    ctrl_dat->offset = offset;
+    ctrl_dat->file_offset = file_offset;
     ctrl_dat->req_len = req_len;
     ctrl_dat->buf = buf;
     ctrl_dat->end_of_file = 0;

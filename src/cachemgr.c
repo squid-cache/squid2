@@ -735,7 +735,7 @@ static const char *
 make_auth_header(const cachemgr_request * req)
 {
     static char buf[1024];
-    off_t l = 0;
+    int l = 0;
     const char *str64;
     if (!req->passwd)
 	return "";

@@ -57,7 +57,7 @@ struct _acl_user_data {
 };
 
 struct _acl_user_ip_data {
-    size_t max;
+    int max;
     struct {
 	unsigned int strict:1;
     } flags;
@@ -122,10 +122,10 @@ struct _auth_user_t {
     dlink_list proxy_match_cache;
     /* what ip addresses has this user been seen at?, plus a list length cache */
     dlink_list ip_list;
-    size_t ipcount;
+    int ipcount;
     long expiretime;
     /* how many references are outstanding to this instance */
-    size_t references;
+    int references;
     /* the auth scheme has it's own private data area */
     void *scheme_data;
     /* the auth_user_request structures that link to this. Yes it could be a splaytree
@@ -143,7 +143,7 @@ struct _auth_user_request_t {
     /* any scheme specific request related data */
     void *scheme_data;
     /* how many 'processes' are working on this data */
-    size_t references;
+    int references;
     /* We only attempt authentication once per http request. This 
      * is to allow multiple auth acl references from different _access areas
      * when using connection based authentication
@@ -228,7 +228,7 @@ struct _header_mangler {
 struct _body_size {
     dlink_node node;
     acl_access *access_list;
-    size_t maxsize;
+    squid_off_t maxsize;
 };
 
 struct _http_version_t {
@@ -385,20 +385,20 @@ struct _RemovalPolicySettings {
 
 struct _SquidConfig {
     struct {
-	size_t maxSize;
+	squid_off_t maxSize;
 	int highWaterMark;
 	int lowWaterMark;
     } Swap;
-    size_t memMaxSize;
+    squid_off_t memMaxSize;
     struct {
 	char *relayHost;
 	u_short relayPort;
 	peer *peer;
     } Wais;
     struct {
-	size_t min;
+	squid_off_t min;
 	int pct;
-	size_t max;
+	squid_off_t max;
     } quickAbort;
     RemovalPolicySettings *replPolicy;
     RemovalPolicySettings *memPolicy;
@@ -428,9 +428,9 @@ struct _SquidConfig {
 	time_t idns_query;
 #endif
     } Timeout;
-    size_t maxRequestHeaderSize;
-    size_t maxRequestBodySize;
-    size_t maxReplyHeaderSize;
+    squid_off_t maxRequestHeaderSize;
+    squid_off_t maxRequestBodySize;
+    squid_off_t maxReplyHeaderSize;
     dlink_list ReplyBodySize;
     struct {
 	u_short icp;
@@ -507,7 +507,7 @@ struct _SquidConfig {
 	u_short port;
     } Accel;
     char *appendDomain;
-    size_t appendDomainLen;
+    int appendDomainLen;
     char *debugOptions;
     char *pidFilename;
     char *mimeTablePathname;
@@ -531,8 +531,8 @@ struct _SquidConfig {
 #endif
 	struct in_addr client_netmask;
     } Addrs;
-    size_t tcpRcvBufsz;
-    size_t udpMaxHitObjsz;
+    squid_off_t tcpRcvBufsz;
+    squid_off_t udpMaxHitObjsz;
     wordlist *hierarchy_stoplist;
     wordlist *mcast_group_list;
     wordlist *dns_testname_list;
@@ -552,10 +552,10 @@ struct _SquidConfig {
     cachemgr_passwd *passwd_list;
     struct {
 	int objectsPerBucket;
-	size_t avgObjectSize;
-	size_t maxObjectSize;
-	size_t minObjectSize;
-	size_t maxInMemObjSize;
+	squid_off_t avgObjectSize;
+	squid_off_t maxObjectSize;
+	squid_off_t minObjectSize;
+	squid_off_t maxInMemObjSize;
     } Store;
     struct {
 	int high;
@@ -637,7 +637,7 @@ struct _SquidConfig {
 	int n_configured;
     } authConfig;
     struct {
-	size_t list_width;
+	int list_width;
 	int list_wrap;
 	char *anon_user;
 	int passive;
@@ -660,7 +660,7 @@ struct _SquidConfig {
 	int onerror;
     } retry;
     struct {
-	size_t limit;
+	squid_off_t limit;
     } MemPools;
 #if DELAY_POOLS
     delayConfig Delay;
@@ -675,7 +675,7 @@ struct _SquidConfig {
     } comm_incoming;
     int max_open_disk_fds;
     int uri_whitespace;
-    size_t rangeOffsetLimit;
+    squid_off_t rangeOffsetLimit;
 #if MULTICAST_MISS_STREAM
     struct {
 	struct in_addr addr;
@@ -692,7 +692,7 @@ struct _SquidConfig {
 	int bits_per_entry;
 	time_t rebuild_period;
 	time_t rewrite_period;
-	size_t swapout_chunk_size;
+	squid_off_t swapout_chunk_size;
 	int rebuild_chunk_percentage;
     } digest;
 #endif
@@ -705,7 +705,7 @@ struct _SquidConfig {
     struct {
 	int high_rptm;
 	int high_pf;
-	size_t high_memory;
+	squid_off_t high_memory;
     } warnings;
     char *store_dir_select_algorithm;
     int sleep_after_fork;	/* microseconds */
@@ -732,31 +732,19 @@ struct _close_handler {
 
 struct _dread_ctrl {
     int fd;
-    off_t offset;
-    int req_len;
+    squid_off_t file_offset;
+    size_t req_len;
     char *buf;
     int end_of_file;
     DRCB *handler;
     void *client_data;
 };
 
-struct _dnsserver_t {
-    int id;
-    int inpipe;
-    int outpipe;
-    time_t answer;
-    off_t offset;
-    size_t size;
-    char ip_inbuf[DNS_INBUF_SZ];
-    struct timeval dispatch_time;
-    void *data;
-};
-
 struct _dwrite_q {
-    off_t file_offset;
+    squid_off_t file_offset;
     char *buf;
-    int len;
-    off_t buf_offset;
+    size_t len;
+    size_t buf_offset;
     dwrite_q *next;
     FREE *free_func;
 };
@@ -793,15 +781,15 @@ struct _fde {
 	unsigned int close_on_exec:1;
 	unsigned int read_pending:1;
     } flags;
-    int bytes_read;
-    int bytes_written;
+    squid_off_t bytes_read;
+    squid_off_t bytes_written;
     int uses;			/* ie # req's over persistent conn */
     struct _fde_disk {
 	DWCB *wrt_handle;
 	void *wrt_handle_data;
 	dwrite_q *write_q;
 	dwrite_q *write_q_tail;
-	off_t offset;
+	squid_off_t offset;
     } disk;
     PF *read_handler;
     void *read_data;
@@ -849,7 +837,7 @@ struct _Packer {
     /* protected, use interface functions instead */
     append_f append;
     vprintf_f vprintf;
-    void *real_handler;		/* first parameter to real append and vprintf */
+    void *real_handle;		/* first parameter to real append and vprintf */
 };
 
 /* http status line */
@@ -885,8 +873,8 @@ struct _HttpHdrCc {
 
 /* http byte-range-spec */
 struct _HttpHdrRangeSpec {
-    ssize_t offset;
-    ssize_t length;
+    squid_off_t offset;
+    squid_off_t length;
 };
 
 /* There may be more than one byte range specified in the request.
@@ -900,7 +888,7 @@ struct _HttpHdrRange {
 /* http content-range header field */
 struct _HttpHdrContRange {
     HttpHdrRangeSpec spec;
-    ssize_t elength;		/* entity length, not content length */
+    squid_off_t elength;	/* entity length, not content length */
 };
 
 /* some fields can hold either time or etag specs (e.g. If-Range) */
@@ -914,8 +902,8 @@ struct _TimeOrTag {
 struct _HttpHdrRangeIter {
     HttpHdrRangePos pos;
     const HttpHdrRangeSpec *spec;	/* current spec at pos */
-    ssize_t debt_size;		/* bytes left to send from the current spec */
-    ssize_t prefix_size;	/* the size of the incoming HTTP msg prefix */
+    squid_off_t debt_size;	/* bytes left to send from the current spec */
+    squid_off_t prefix_size;	/* the size of the incoming HTTP msg prefix */
     String boundary;		/* boundary for multipart responses */
 };
 
@@ -962,7 +950,7 @@ struct _HttpReply {
     int hdr_sz;			/* sums _stored_ status-line, headers, and <CRLF> */
 
     /* public, readable; never update these or their .hdr equivalents directly */
-    int content_length;
+    squid_off_t content_length;
     time_t date;
     time_t last_modified;
     time_t expires;
@@ -1053,7 +1041,7 @@ struct _AccessLogEntry {
     } icp;
     struct {
 	struct in_addr caddr;
-	size_t size;
+	squid_off_t size;
 	log_type code;
 	int msec;
 	const char *rfc931;
@@ -1077,8 +1065,8 @@ struct _clientHttpRequest {
     char *uri;
     char *log_uri;
     struct {
-	off_t offset;
-	size_t size;
+	squid_off_t offset;
+	squid_off_t size;
     } out;
     HttpHdrRangeIter range_iter;	/* data for iterating thru range specs */
     size_t req_sz;		/* raw request size on input, not current request size */
@@ -1106,18 +1094,18 @@ struct _clientHttpRequest {
 	char *location;
     } redirect;
     dlink_node active;
-    size_t maxBodySize;
+    squid_off_t maxBodySize;
 };
 
 struct _ConnStateData {
     int fd;
     struct {
 	char *buf;
-	off_t offset;
+	size_t offset;
 	size_t size;
     } in;
     struct {
-	size_t size_left;	/* How much body left to process */
+	squid_off_t size_left;	/* How much body left to process */
 	request_t *request;	/* Parameters passed to clientReadBody */
 	char *buf;
 	size_t bufsize;
@@ -1187,8 +1175,8 @@ struct _DigestFetchState {
     store_client *sc;
     store_client *old_sc;
     request_t *request;
-    int offset;
-    int mask_offset;
+    squid_off_t offset;
+    squid_off_t mask_offset;
     time_t start_time;
     time_t resp_time;
     time_t expires;
@@ -1438,14 +1426,14 @@ struct _mem_node {
 struct _mem_hdr {
     mem_node *head;
     mem_node *tail;
-    int origin_offset;
+    squid_off_t origin_offset;
 };
 
 /* keep track each client receiving data from that particular StoreEntry */
 struct _store_client {
     int type;
-    off_t copy_offset;
-    off_t seen_offset;
+    squid_off_t copy_offset;
+    squid_off_t seen_offset;
     size_t copy_size;
     char *copy_buf;
     STCB *callback;
@@ -1503,12 +1491,12 @@ struct _MemObject {
     method_t method;
     char *url;
     mem_hdr data_hdr;
-    off_t inmem_hi;
-    off_t inmem_lo;
+    squid_off_t inmem_hi;
+    squid_off_t inmem_lo;
     dlink_list clients;
     int nclients;
     struct {
-	off_t queue_offset;	/* relative to in-mem data */
+	squid_off_t queue_offset;	/* relative to in-mem data */
 	mem_node *memnode;	/* which node we're currently paging out */
 	storeIOState *sio;
     } swapout;
@@ -1524,7 +1512,7 @@ struct _MemObject {
     char *log_url;
     RemovalPolicyNode repl;
     int id;
-    ssize_t object_sz;
+    squid_off_t object_sz;
     size_t swap_hdr_sz;
 #if URL_CHECKSUM_DEBUG
     unsigned int chksum;
@@ -1541,7 +1529,7 @@ struct _StoreEntry {
     time_t lastref;
     time_t expires;
     time_t lastmod;
-    size_t swap_file_sz;
+    squid_file_sz swap_file_sz;
     u_short refcount;
     u_short flags;
     /* END OF ON-DISK STORE_META_STD */
@@ -1561,7 +1549,7 @@ struct _SwapDir {
     int max_size;
     char *path;
     int index;			/* This entry's index into the swapDirs array */
-    ssize_t max_objsize;
+    squid_off_t max_objsize;
     RemovalPolicy *repl;
     int removals;
     int scanned;
@@ -1641,8 +1629,8 @@ struct _storeIOState {
     sfileno swap_filen;
     StoreEntry *e;		/* Need this so the FS layers can play god */
     mode_t mode;
-    size_t st_size;		/* do stat(2) after read open */
-    off_t offset;		/* current on-disk offset pointer */
+    squid_off_t st_size;	/* do stat(2) after read open */
+    squid_off_t offset;		/* current on-disk offset pointer */
     STFNCB *file_callback;	/* called on delayed sfileno assignments */
     STIOCB *callback;
     void *callback_data;
@@ -1678,7 +1666,7 @@ struct _request_t {
     struct in_addr my_addr;
     unsigned short my_port;
     HttpHeader header;
-    int content_length;
+    squid_off_t content_length;
     HierarchyLogEntry hier;
     err_type err_type;
     char *peer_login;		/* Configured peer login:password */
@@ -1715,7 +1703,7 @@ struct _refresh_t {
 struct _CommWriteStateData {
     char *buf;
     size_t size;
-    off_t offset;
+    squid_off_t offset;
     CWCB *handler;
     void *handler_data;
     FREE *free_func;
@@ -1912,11 +1900,34 @@ struct _storeSwapLogData {
     time_t lastref;
     time_t expires;
     time_t lastmod;
+    squid_file_sz swap_file_sz;
+    u_short refcount;
+    u_short flags;
+    unsigned char key[MD5_DIGEST_CHARS];
+};
+
+struct _storeSwapLogHeader {
+    char op;
+    int version;
+    int record_size;
+};
+
+#if SIZEOF_SQUID_FILE_SZ != SIZEOF_SIZE_T
+struct _storeSwapLogDataOld {
+    char op;
+    sfileno swap_filen;
+    time_t timestamp;
+    time_t lastref;
+    time_t expires;
+    time_t lastmod;
     size_t swap_file_sz;
     u_short refcount;
     u_short flags;
     unsigned char key[MD5_DIGEST_CHARS];
 };
+
+#endif
+
 
 /* object to track per-action memory usage (e.g. #idle objects) */
 struct _MemMeter {
@@ -1964,7 +1975,7 @@ struct _ClientInfo {
 struct _CacheDigest {
     /* public, read-only */
     char *mask;			/* bit mask */
-    size_t mask_size;		/* mask size in bytes */
+    int mask_size;		/* mask size in bytes */
     int capacity;		/* expected maximum for .count, not a hard limit */
     int bits_per_entry;		/* number of bits allocated for each entry from capacity */
     int count;			/* number of digested entries */
@@ -2076,7 +2087,7 @@ struct _helper_server {
     int wfd;
     char *buf;
     size_t buf_sz;
-    off_t offset;
+    int offset;
     struct timeval dispatch_time;
     struct timeval answer_time;
     dlink_node link;
@@ -2100,7 +2111,7 @@ struct _helper_stateful_server {
     int wfd;
     char *buf;
     size_t buf_sz;
-    off_t offset;
+    int offset;
     struct timeval dispatch_time;
     struct timeval answer_time;
     dlink_node link;
@@ -2185,7 +2196,7 @@ struct _Logfile {
     char path[MAXPATHLEN];
     char *buf;
     size_t bufsz;
-    off_t offset;
+    ssize_t offset;
     struct {
 	unsigned int fatal:1;
     } flags;

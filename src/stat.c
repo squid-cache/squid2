@@ -432,7 +432,7 @@ statFiledescriptors(StoreEntry * sentry)
 	f = &fd_table[i];
 	if (!f->flags.open)
 	    continue;
-	storeAppendPrintf(sentry, "%4d %-6.6s %4d %7d%c %7d%c %-21s %s\n",
+	storeAppendPrintf(sentry, "%4d %-6.6s %4d %7" PRINTF_OFF_T "%c %7" PRINTF_OFF_T "%c %-21s %s\n",
 	    i,
 	    fdTypeStr[f->type],
 	    f->timeout_handler ? (int) (f->timeout - squid_curtime) / 60 : 0,
@@ -1397,7 +1397,7 @@ statByteHitRatio(int minutes)
      */
     cd = CountHist[0].cd.kbytes_recv.kb - CountHist[minutes].cd.kbytes_recv.kb;
     if (s < cd)
-	debug(18, 1) ("STRANGE: srv_kbytes=%d, cd_kbytes=%d\n", s, cd);
+	debug(18, 1) ("STRANGE: srv_kbytes=%d, cd_kbytes=%d\n", (int) s, (int) cd);
     s -= cd;
 #endif
     if (c > s)
@@ -1421,7 +1421,7 @@ statClientRequests(StoreEntry * s)
 	storeAppendPrintf(s, "Connection: %p\n", conn);
 	if (conn) {
 	    fd = conn->fd;
-	    storeAppendPrintf(s, "\tFD %d, read %d, wrote %d\n", fd,
+	    storeAppendPrintf(s, "\tFD %d, read %" PRINTF_OFF_T ", wrote %" PRINTF_OFF_T "\n", fd,
 		fd_table[fd].bytes_read, fd_table[fd].bytes_written);
 	    storeAppendPrintf(s, "\tFD desc: %s\n", fd_table[fd].desc);
 	    storeAppendPrintf(s, "\tin: buf %p, offset %ld, size %ld\n",

@@ -46,7 +46,7 @@ typedef struct {
 	int len;
 	char *buf;
     } client, server;
-    size_t *size_ptr;		/* pointer to size in an ConnStateData for logging */
+    squid_off_t *size_ptr;	/* pointer to size in an ConnStateData for logging */
     int *status_ptr;		/* pointer to status for logging */
 #if DELAY_POOLS
     delay_id delay_id;
@@ -297,6 +297,12 @@ sslWriteServer(int fd, void *data)
 	fd_bytes(fd, len, FD_WRITE);
 	kb_incr(&statCounter.server.all.kbytes_out, len);
 	kb_incr(&statCounter.server.other.kbytes_out, len);
+	/* increment total object size */
+	if (sslState->size_ptr)
+#if SIZEOF_SQUID_OFF_T <= 4
+	    if (*sslState->size_ptr < 0x7FFF0000)
+#endif
+		*sslState->size_ptr += len;
 	assert(len <= sslState->client.len);
 	sslState->client.len -= len;
 	if (sslState->client.len > 0) {
@@ -339,7 +345,7 @@ sslWriteClient(int fd, void *data)
 	sslState->server.len -= len;
 	/* increment total object size */
 	if (sslState->size_ptr)
-#if SIZEOF_SIZE_T == 4
+#if SIZEOF_SQUID_OFF_T <= 4
 	    if (*sslState->size_ptr < 0x7FFF0000)
 #endif
 		*sslState->size_ptr += len;
@@ -471,7 +477,7 @@ sslConnectTimeout(int fd, void *data)
 
 CBDATA_TYPE(SslStateData);
 void
-sslStart(clientHttpRequest * http, size_t * size_ptr, int *status_ptr)
+sslStart(clientHttpRequest * http, squid_off_t * size_ptr, int *status_ptr)
 {
     /* Create state structure. */
     SslStateData *sslState = NULL;

@@ -528,9 +528,9 @@ httpPconnTransferDone(HttpStateData * httpState)
     /* return 1 if we got the last of the data on a persistent connection */
     MemObject *mem = httpState->entry->mem_obj;
     HttpReply *reply = mem->reply;
-    int clen;
+    squid_off_t clen;
     debug(11, 3) ("httpPconnTransferDone: FD %d\n", httpState->fd);
-    debug(11, 5) ("httpPconnTransferDone: content_length=%d\n",
+    debug(11, 5) ("httpPconnTransferDone: content_length=%" PRINTF_OFF_T "\n",
 	reply->content_length);
     /* If we haven't seen the end of reply headers, we are not done */
     if (httpState->reply_hdr_state < 2)
@@ -1061,7 +1061,7 @@ httpBuildRequestHeader(request_t * request,
 
 /* build request prefix and append it to a given MemBuf; 
  * return the length of the prefix */
-mb_size_t
+int
 httpBuildRequestPrefix(request_t * request,
     request_t * orig_request,
     StoreEntry * entry,

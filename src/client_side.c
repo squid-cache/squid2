@@ -125,8 +125,8 @@ static int clientHierarchical(clientHttpRequest * http);
 static int clientCheckContentLength(request_t * r);
 static DEFER httpAcceptDefer;
 static log_type clientProcessRequest2(clientHttpRequest * http);
-static int clientReplyBodyTooLarge(clientHttpRequest *, ssize_t clen);
-static int clientRequestBodyTooLarge(int clen);
+static int clientReplyBodyTooLarge(clientHttpRequest *, squid_off_t clen);
+static int clientRequestBodyTooLarge(squid_off_t clen);
 static void clientProcessBody(ConnStateData * conn);
 static void clientEatRequestBody(clientHttpRequest *);
 static BODY_HANDLER clientReadBody;
@@ -603,7 +603,7 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 int
 modifiedSince(StoreEntry * entry, request_t * request)
 {
-    int object_length;
+    squid_off_t object_length;
     MemObject *mem = entry->mem_obj;
     time_t mod_time = entry->lastmod;
     debug(33, 3) ("modifiedSince: '%s'\n", storeUrl(entry));
@@ -1225,10 +1225,10 @@ clientIfRangeMatch(clientHttpRequest * http, HttpReply * rep)
  * warning: assumes that HTTP headers for individual ranges at the
  *          time of the actuall assembly will be exactly the same as
  *          the headers when clientMRangeCLen() is called */
-static int
+static squid_off_t
 clientMRangeCLen(clientHttpRequest * http)
 {
-    int clen = 0;
+    squid_off_t clen = 0;
     HttpHdrRangePos pos = HttpHdrRangeInitPos;
     const HttpHdrRangeSpec *spec;
     MemBuf mb;
@@ -1247,8 +1247,8 @@ clientMRangeCLen(clientHttpRequest * http)
 	/* account for range content */
 	clen += spec->length;
 
-	debug(33, 6) ("clientMRangeCLen: (clen += %ld + %ld) == %d\n",
-	    (long int) mb.size, (long int) spec->length, clen);
+	debug(33, 6) ("clientMRangeCLen: (clen += %ld + %" PRINTF_OFF_T ") == %" PRINTF_OFF_T "\n",
+	    (long int) mb.size, spec->length, clen);
     }
     /* account for the terminating boundary */
     memBufReset(&mb);
@@ -1295,9 +1295,9 @@ clientBuildRangeHeader(clientHttpRequest * http, HttpReply * rep)
 	http->request->range = NULL;
     } else {
 	const int spec_count = http->request->range->specs.count;
-	int actual_clen = -1;
+	squid_off_t actual_clen = -1;
 
-	debug(33, 3) ("clientBuildRangeHeader: range spec count: %d virgin clen: %d\n",
+	debug(33, 3) ("clientBuildRangeHeader: range spec count: %d virgin clen: %" PRINTF_OFF_T "\n",
 	    spec_count, rep->content_length);
 	assert(spec_count > 0);
 	/* ETags should not be returned with Partial Content replies? */
@@ -1329,8 +1329,8 @@ clientBuildRangeHeader(clientHttpRequest * http, HttpReply * rep)
 	/* replace Content-Length header */
 	assert(actual_clen >= 0);
 	httpHeaderDelById(hdr, HDR_CONTENT_LENGTH);
-	httpHeaderPutInt(hdr, HDR_CONTENT_LENGTH, actual_clen);
-	debug(33, 3) ("clientBuildRangeHeader: actual content length: %d\n", actual_clen);
+	httpHeaderPutSize(hdr, HDR_CONTENT_LENGTH, actual_clen);
+	debug(33, 3) ("clientBuildRangeHeader: actual content length: %" PRINTF_OFF_T "\n", actual_clen);
     }
 }
 
@@ -1734,11 +1734,11 @@ static void
 clientPackRange(clientHttpRequest * http,
     HttpHdrRangeIter * i,
     const char **buf,
-    ssize_t * size,
+    size_t * size,
     MemBuf * mb)
 {
-    const ssize_t copy_sz = i->debt_size <= *size ? i->debt_size : *size;
-    off_t body_off = http->out.offset - i->prefix_size;
+    const size_t copy_sz = i->debt_size <= *size ? i->debt_size : *size;
+    squid_off_t body_off = http->out.offset - i->prefix_size;
     assert(*size > 0);
     assert(i->spec);
     /*
@@ -1782,7 +1782,7 @@ clientPackRange(clientHttpRequest * http,
  * increments iterator "i"
  * used by clientPackMoreRanges */
 static int
-clientCanPackMoreRanges(const clientHttpRequest * http, HttpHdrRangeIter * i, ssize_t size)
+clientCanPackMoreRanges(const clientHttpRequest * http, HttpHdrRangeIter * i, size_t size)
 {
     /* first update "i" if needed */
     if (!i->debt_size) {
@@ -1797,17 +1797,17 @@ clientCanPackMoreRanges(const clientHttpRequest * http, HttpHdrRangeIter * i, ss
 /* extracts "ranges" from buf and appends them to mb, updating all offsets and such */
 /* returns true if we need more data */
 static int
-clientPackMoreRanges(clientHttpRequest * http, const char *buf, ssize_t size, MemBuf * mb)
+clientPackMoreRanges(clientHttpRequest * http, const char *buf, size_t size, MemBuf * mb)
 {
     HttpHdrRangeIter *i = &http->range_iter;
     /* offset in range specs does not count the prefix of an http msg */
-    off_t body_off = http->out.offset - i->prefix_size;
+    squid_off_t body_off = http->out.offset - i->prefix_size;
     assert(size >= 0);
     /* check: reply was parsed and range iterator was initialized */
     assert(i->prefix_size > 0);
     /* filter out data according to range specs */
     while (clientCanPackMoreRanges(http, i, size)) {
-	off_t start;		/* offset of still missing data */
+	squid_off_t start;	/* offset of still missing data */
 	assert(i->spec);
 	start = i->spec->offset + i->spec->length - i->debt_size;
 	debug(33, 3) ("clientPackMoreRanges: in:  offset: %ld size: %ld\n",
@@ -1881,7 +1881,7 @@ clientMaxBodySize(request_t * request, clientHttpRequest * http, HttpReply * rep
 }
 
 static int
-clientReplyBodyTooLarge(clientHttpRequest * http, ssize_t clen)
+clientReplyBodyTooLarge(clientHttpRequest * http, squid_off_t clen)
 {
     if (0 == http->maxBodySize)
 	return 0;		/* disabled */
@@ -1893,7 +1893,7 @@ clientReplyBodyTooLarge(clientHttpRequest * http, ssize_t clen)
 }
 
 static int
-clientRequestBodyTooLarge(int clen)
+clientRequestBodyTooLarge(squid_off_t clen)
 {
     if (0 == Config.maxRequestBodySize)
 	return 0;		/* disabled */
@@ -1944,9 +1944,9 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
     int fd = conn->fd;
     HttpReply *rep = NULL;
     const char *body_buf = buf;
-    ssize_t body_size = size;
+    squid_off_t body_size = size;
     MemBuf mb;
-    ssize_t check_size = 0;
+    squid_off_t check_size = 0;
     debug(33, 5) ("clientSendMoreData: %s, %d bytes\n", http->uri, (int) size);
     assert(size <= CLIENT_SOCK_SZ);
     assert(http->request != NULL);
@@ -2189,14 +2189,14 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
     StoreEntry *entry = http->entry;
     int done;
     http->out.size += size;
-    debug(33, 5) ("clientWriteComplete: FD %d, sz %ld, err %d, off %ld, len %d\n",
-	fd, (long int) size, errflag, (long int) http->out.offset, entry ? objectLen(entry) : 0);
+    debug(33, 5) ("clientWriteComplete: FD %d, sz %d, err %d, off %" PRINTF_OFF_T ", len %" PRINTF_OFF_T "\n",
+	fd, (int) size, errflag, http->out.offset, entry ? objectLen(entry) : (squid_off_t) 0);
     if (size > 0) {
 	kb_incr(&statCounter.client_http.kbytes_out, size);
 	if (isTcpHit(http->log_type))
 	    kb_incr(&statCounter.client_http.hit_kbytes_out, size);
     }
-#if SIZEOF_SIZE_T == 4
+#if SIZEOF_SQUID_OFF_T <= 4
     if (http->out.size > 0x7FFF0000) {
 	debug(33, 1) ("WARNING: closing FD %d to prevent counter overflow\n", fd);
 	debug(33, 1) ("\tclient %s\n", inet_ntoa(http->conn->peer.sin_addr));
@@ -2205,7 +2205,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
 	comm_close(fd);
     } else
 #endif
-#if SIZEOF_OFF_T == 4
+#if SIZEOF_SQUID_OFF_T <= 4
     if (http->out.offset > 0x7FFF0000) {
 	debug(33, 1) ("WARNING: closing FD %d to prevent counter overflow\n", fd);
 	debug(33, 1) ("\tclient %s\n", inet_ntoa(http->conn->peer.sin_addr));
@@ -2595,7 +2595,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     static int pffd = -1;
 #endif
 #if LINUX_NETFILTER
-    size_t sock_sz = sizeof(conn->me);
+    socklen_t sock_sz = sizeof(conn->me);
 #endif
 
     /* pre-set these values to make aborting simpler */
@@ -3130,7 +3130,7 @@ clientReadRequest(int fd, void *data)
 	    /*
 	     * cache the Content-length value in request_t.
 	     */
-	    request->content_length = httpHeaderGetInt(&request->header,
+	    request->content_length = httpHeaderGetSize(&request->header,
 		HDR_CONTENT_LENGTH);
 	    request->flags.internal = http->flags.internal;
 	    safe_free(prefix);
@@ -3642,7 +3642,7 @@ clientCheckTransferDone(clientHttpRequest * http)
     StoreEntry *entry = http->entry;
     MemObject *mem;
     http_reply *reply;
-    int sendlen;
+    squid_off_t sendlen;
     if (entry == NULL)
 	return 0;
     /*
@@ -3705,7 +3705,7 @@ clientCheckTransferDone(clientHttpRequest * http)
 static int
 clientGotNotEnough(clientHttpRequest * http)
 {
-    int cl = httpReplyBodySize(http->request->method, http->entry->mem_obj->reply);
+    squid_off_t cl = httpReplyBodySize(http->request->method, http->entry->mem_obj->reply);
     int hs = http->entry->mem_obj->reply->hdr_sz;
     assert(cl >= 0);
     if (http->out.offset < cl + hs)

@@ -352,7 +352,7 @@ authenticateAuthUserRequestClearIp(auth_user_request_t * auth_user_request)
 	authenticateAuthUserClearIp(auth_user_request->auth_user);
 }
 
-size_t
+int
 authenticateAuthUserRequestIPCount(auth_user_request_t * auth_user_request)
 {
     assert(auth_user_request);

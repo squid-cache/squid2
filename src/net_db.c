@@ -42,8 +42,8 @@ typedef struct {
     StoreEntry *e;
     store_client *sc;
     request_t *r;
-    off_t seen;
-    off_t used;
+    squid_off_t seen;
+    squid_off_t used;
     size_t buf_sz;
     char *buf;
 } netdbExchangeState;
@@ -531,7 +531,7 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
 {
     netdbExchangeState *ex = data;
     int rec_sz = 0;
-    off_t o;
+    ssize_t o;
     struct in_addr addr;
     double rtt;
     double hops;

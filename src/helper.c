@@ -374,7 +374,7 @@ helperStats(StoreEntry * sentry, helper * hlp)
 	    srv->flags.closing ? 'C' : ' ',
 	    srv->flags.shutdown ? 'S' : ' ',
 	    tt < 0.0 ? 0.0 : tt,
-	    (int) srv->offset,
+	    srv->offset,
 	    srv->request ? log_quote(srv->request->buf) : "(none)");
     }
     storeAppendPrintf(sentry, "\nFlags key:\n\n");
@@ -423,7 +423,7 @@ helperStatefulStats(StoreEntry * sentry, statefulhelper * hlp)
 	    srv->flags.reserved ? 'R' : ' ',
 	    srv->flags.shutdown ? 'S' : ' ',
 	    tt < 0.0 ? 0.0 : tt,
-	    (int) srv->offset,
+	    srv->offset,
 	    srv->request ? log_quote(srv->request->buf) : "(none)");
     }
     storeAppendPrintf(sentry, "\nFlags key:\n\n");

@@ -1046,7 +1046,7 @@ DOC_START
 DOC_END
 
 NAME: ftp_list_width
-TYPE: size_t
+TYPE: int
 DEFAULT: 32
 LOC: Config.Ftp.list_width
 DOC_START

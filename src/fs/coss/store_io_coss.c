@@ -49,8 +49,8 @@ static void storeCossWriteMemBufDone(int fd, int errflag, size_t len, void *my_d
 static CossMemBuf *storeCossCreateMemBuf(SwapDir * SD, size_t start,
     sfileno curfn, int *collision);
 static CBDUNL storeCossIOFreeEntry;
-static off_t storeCossFilenoToDiskOffset(sfileno f, CossInfo *);
-static sfileno storeCossDiskOffsetToFileno(off_t o, CossInfo *);
+static squid_off_t storeCossFilenoToDiskOffset(sfileno f, CossInfo *);
+static sfileno storeCossDiskOffsetToFileno(squid_off_t o, CossInfo *);
 static void storeCossMaybeWriteMemBuf(SwapDir * SD, CossMemBuf * t);
 
 static void membuf_describe(CossMemBuf * t, int level, int line);
@@ -72,7 +72,7 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 {
     CossInfo *cs = (CossInfo *) SD->fsdata;
     CossMemBuf *newmb;
-    off_t retofs;
+    squid_off_t retofs;
     size_t allocsize;
     int coll = 0;
     sfileno checkf;
@@ -95,7 +95,7 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
     assert(which != COSS_ALLOC_NOTIFY);
 
     /* Check if we have overflowed the disk .. */
-    if ((cs->current_offset + allocsize) > ((off_t) SD->max_size << 10)) {
+    if ((cs->current_offset + allocsize) > ((squid_off_t) SD->max_size << 10)) {
 	/*
 	 * tried to allocate past the end of the disk, so wrap
 	 * back to the beginning
@@ -296,7 +296,7 @@ storeCossClose(SwapDir * SD, storeIOState * sio)
 }
 
 void
-storeCossRead(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t offset, STRCB * callback, void *callback_data)
+storeCossRead(SwapDir * SD, storeIOState * sio, char *buf, size_t size, squid_off_t offset, STRCB * callback, void *callback_data)
 {
     char *p;
     CossState *cstate = (CossState *) sio->fsstate;
@@ -337,11 +337,11 @@ storeCossRead(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t of
 }
 
 void
-storeCossWrite(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t offset, FREE * free_func)
+storeCossWrite(SwapDir * SD, storeIOState * sio, char *buf, size_t size, squid_off_t offset, FREE * free_func)
 {
     char *dest;
     CossMemBuf *membuf;
-    off_t diskoffset;
+    squid_off_t diskoffset;
 
     /*
      * If we get handed an object with a size of -1,
@@ -450,7 +450,7 @@ storeCossFilenoToMembuf(SwapDir * SD, sfileno s)
     CossMemBuf *t = NULL;
     dlink_node *m;
     CossInfo *cs = (CossInfo *) SD->fsdata;
-    off_t o = storeCossFilenoToDiskOffset(s, cs);
+    squid_off_t o = storeCossFilenoToDiskOffset(s, cs);
     for (m = cs->membufs.head; m; m = m->next) {
 	t = m->data;
 	if ((o >= t->diskstart) && (o < t->diskend))
@@ -547,7 +547,7 @@ storeCossWriteMemBufDone(int fd, int errflag, size_t len, void *my_data)
     if (errflag) {
 	coss_stats.stripe_write.fail++;
 	debug(79, 1) ("storeCossWriteMemBufDone: got failure (%d)\n", errflag);
-	debug(79, 1) ("FD %d, size=%x\n", fd, t->diskend - t->diskstart);
+	debug(79, 1) ("FD %d, size=%x\n", fd, (int) (t->diskend - t->diskstart));
     } else {
 	coss_stats.stripe_write.success++;
     }
@@ -590,7 +590,7 @@ storeCossCreateMemBuf(SwapDir * SD, size_t start,
      * Kill objects from the tail to make space for a new chunk
      */
     for (m = cs->index.tail; m; m = prev) {
-	off_t o;
+	squid_off_t o;
 	prev = m->prev;
 	e = m->data;
 	o = storeCossFilenoToDiskOffset(e->swap_filen, cs);
@@ -633,14 +633,14 @@ storeCossIOFreeEntry(void *sio)
     memPoolFree(coss_state_pool, ((storeIOState *) sio)->fsstate);
 }
 
-static off_t
+static squid_off_t
 storeCossFilenoToDiskOffset(sfileno f, CossInfo * cs)
 {
-    return (off_t) f << cs->blksz_bits;
+    return (squid_off_t) f << cs->blksz_bits;
 }
 
 static sfileno
-storeCossDiskOffsetToFileno(off_t o, CossInfo * cs)
+storeCossDiskOffsetToFileno(squid_off_t o, CossInfo * cs)
 {
     assert(0 == (o & cs->blksz_mask));
     return o >> cs->blksz_bits;
