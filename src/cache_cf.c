@@ -194,6 +194,9 @@ struct SquidConfig Config;
 #define DefaultAvgObjectSize	20	/* 20k */
 #define DefaultObjectsPerBucket	50
 
+#define DefaultLevelOneDirs	16
+#define DefaultLevelTwoDirs	256
+
 int httpd_accel_mode = 0;	/* for fast access */
 const char *DefaultSwapDir = DEFAULT_SWAP_DIR;
 const char *DefaultConfigFile = DEFAULT_CONFIG_FILE;
@@ -1329,6 +1332,11 @@ parseConfigFile(const char *file_name)
 	else if (!strcmp(token, "viz_hack_addr"))
 	    parseVizHackLine();
 
+	else if (!strcmp(token, "swap_level1_dirs"))
+	    parseIntegerValue(&Config.levelOneDirs);
+	else if (!strcmp(token, "swap_level2_dirs"))
+	    parseIntegerValue(&Config.levelTwoDirs);
+
 	/* If unknown, treat as a comment line */
 	else {
 	    debug(3, 0, "parseConfigFile: line %d unrecognized: '%s'\n",
@@ -1531,6 +1539,8 @@ configSetFactoryDefaults(void)
     Config.Store.maxObjectSize = DefaultMaxObjectSize;
     Config.Store.avgObjectSize = DefaultAvgObjectSize;
     Config.Store.objectsPerBucket = DefaultObjectsPerBucket;
+    Config.levelOneDirs = DefaultLevelOneDirs;
+    Config.levelTwoDirs = DefaultLevelTwoDirs;
 }
 
 static void

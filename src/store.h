@@ -328,8 +328,8 @@ extern int store_rebuilding;
 #define STORE_REBUILDING_SLOW 1
 #define STORE_REBUILDING_FAST 2
 
-#define SWAP_DIRECTORIES_L1	16
-#define SWAP_DIRECTORIES_L2	256
+#define SWAP_DIRECTORIES_L1	(Config.levelOneDirs)
+#define SWAP_DIRECTORIES_L2	(Config.levelTwoDirs)
 extern int ncache_dirs;
 extern unsigned long store_mem_size;
 
