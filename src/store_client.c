@@ -573,7 +573,7 @@ off_t
 storeLowestMemReaderOffset(const StoreEntry * entry)
 {
     const MemObject *mem = entry->mem_obj;
-    off_t lowest = mem->inmem_hi + 1;
+    off_t lowest = mem->inmem_hi;
     store_client *sc;
     dlink_node *nx = NULL;
     dlink_node *node;

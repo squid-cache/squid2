@@ -225,7 +225,7 @@ wccpHandleUdp(int sock, void *not_used)
 	0,
 	(struct sockaddr *) &from,
 	&from_len);
-    debug(80, 3) ("wccpHandleUdp: %d bytes WCCP pkt from %s: type=%d, version=%d, change=%d, id=%d, number=%d\n",
+    debug(80, 3) ("wccpHandleUdp: %d bytes WCCP pkt from %s: type=%ld, version=%ld, change=%ld, id=%ld, number=%ld\n",
 	len,
 	inet_ntoa(from.sin_addr),
 	ntohl(wccp_i_see_you.type),
