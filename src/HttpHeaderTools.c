@@ -204,7 +204,10 @@ strListAdd(String * str, const char *item, char del)
 {
     assert(str && item);
     if (strLen(*str)) {
-	char buf[3] = { del, ' ', '\0' };
+	char buf[3];
+	buf[0] = del;
+	buf[1] = ' ';
+	buf[2] = '\0';
 	stringAppend(str, buf, 2);
     }
     stringAppend(str, item, strlen(item));
