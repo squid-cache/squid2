@@ -216,6 +216,7 @@ urlParse(method_t method, char *url)
     LOCAL_ARRAY(char, urlpath, MAX_URL);
     request_t *request = NULL;
     char *t = NULL;
+    char *q = NULL;
     int port;
     protocol_t protocol = PROTO_NONE;
     int l;
@@ -288,6 +289,15 @@ urlParse(method_t method, char *url)
 	case URI_WHITESPACE_CHOP:
 	    *(urlpath + strcspn(urlpath, w_space)) = '\0';
 	    break;
+	case URI_WHITESPACE_STRIP:
+	default:
+	    t = q = urlpath;
+	    while (*t) {
+		if (!xisspace(*t))
+		    *q++ = *t;
+		t++;
+	    }
+	    *q = '\0';
 	}
     }
     request = requestCreate(method, protocol, urlpath);

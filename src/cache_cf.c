@@ -1567,7 +1567,9 @@ parse_uri_whitespace(int *var)
     char *token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    if (!strcasecmp(token, "deny"))
+    if (!strcasecmp(token, "strip"))
+	*var = URI_WHITESPACE_STRIP;
+    else if (!strcasecmp(token, "deny"))
 	*var = URI_WHITESPACE_DENY;
     else if (!strcasecmp(token, "allow"))
 	*var = URI_WHITESPACE_ALLOW;
@@ -1590,8 +1592,10 @@ dump_uri_whitespace(StoreEntry * entry, const char *name, int var)
 	s = "encode";
     else if (var == URI_WHITESPACE_CHOP)
 	s = "chop";
-    else
+    else if (var == URI_WHITESPACE_DENY)
 	s = "deny";
+    else
+	s = "strip";
     storeAppendPrintf(entry, "%s %s\n", name, s);
 }
 

@@ -2908,11 +2908,13 @@ DOC_END
 NAME: uri_whitespace
 TYPE: uri_whitespace
 LOC: Config.uri_whitespace
-DEFAULT: deny
+DEFAULT: strip
 DOC_START
 	What to do with requests that have whitespace characters in the
 	URI.  Options:
 
+	strip:  The whitespace characters are stripped out of the URL.
+		This is the behavior recommended by RFC2616.
 	deny:   The request is denied.  The user receives an "Invalid
 		Request" message.
 	allow:  The request is allowed and the URI is not changed.  The
@@ -2926,7 +2928,7 @@ DOC_START
 	chop:	The request is allowed and the URI is chopped at the
 		first whitespace.  This might also be considered a
 		violation.
-uri_whitespace deny
+uri_whitespace strip
 DOC_END
 
 NAME: broken_posts
