@@ -207,7 +207,7 @@ int memCopy(mem, offset, buf, size)
     mem_node p = mem->head;
     int t_off = mem->origin_offset;
     int bytes_to_go = size;
-    char *ptr_to_buf;
+    char *ptr_to_buf = NULL;
     int bytes_from_this_packet = 0;
     int bytes_into_this_packet = 0;
 
