@@ -603,6 +603,7 @@ storeUnlockObject(StoreEntry * e)
 	storePurgeMem(e);
     } else {
 	requestUnlink(mem->request);
+        mem->request = NULL;
     }
     return 0;
 }
