@@ -1,4 +1,4 @@
-Changes to squid-1.1.11 (June XX, 1997):
+Changes to squid-1.1.11 (June 14, 1997):
 
 	- Clean up NeXTStep compiler warnings (Karsten Heinze, Ed Knowles).
 	- Don't forward 'Proxy-Authorization' headers (Chris Pascoe).
