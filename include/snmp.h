@@ -58,8 +58,9 @@
 #include <version.h>
 #include <snmp_error.h>
 #include <snmp_api_error.h>
+#if 0
 #include <mini-client.h>
-
+#endif
 /* Other stuff I didn't touch */
 #include <snmp_impl.h>
 #include <snmp_api.h>
