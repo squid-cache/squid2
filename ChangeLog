@@ -182,4 +182,5 @@ beta8:
 	- Added FQDN's in 'src' ACLs
 	- Fixed request structure free-memory-read/coredump bug.
 	- Changed icp.c to select on client socket to detect aborts.
-	- Changed "302 Moved Temporarily" to never be cached.
+	- Better compliance with HTTP/1.1 *DRAFT* regarding which reply
+	  codes can be cached.
