@@ -1243,5 +1243,5 @@ httpHeaderNameById(int id)
     if (!Headers)
 	Headers = httpHeaderBuildFieldsInfo(HeadersAttrs, HDR_ENUM_END);
     assert(id >= 0 && id < HDR_ENUM_END);
-    return HeadersAttrs[id].name;
+    return strBuf(Headers[id].name);
 }
