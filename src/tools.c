@@ -150,6 +150,25 @@ void rotate_logs(sig)
     signal(sig, rotate_logs);
 }
 
+void setSocketShutdownLifetimes()
+{
+    FD_ENTRY *f = NULL;
+    int lft = getShutdownLifetime();
+    int cur;
+    int i;
+    for (i = fdstat_biggest_fd(); i >= 0; i--) {
+	f = &fd_table[i];
+	if (!f->read_handler && !f->write_handler && !f->except_handler)
+	    continue;
+	if (fdstatGetType(i) != Socket)
+	    continue;
+	cur = comm_get_fd_lifetime(i);
+	if (cur > 0 && (cur - squid_curtime) <= lft)
+	    continue;
+	comm_set_fd_lifetime(i, lft);
+    }
+}
+
 void normal_shutdown()
 {
     debug(21, 1, "Shutting down...\n");
@@ -167,20 +186,12 @@ void normal_shutdown()
 void shut_down(sig)
      int sig;
 {
-    int i;
-    int lft = getShutdownLifetime();
-    FD_ENTRY *f;
     debug(21, 1, "Preparing for shutdown after %d connections\n",
 	ntcpconn + nudpconn);
     serverConnectionsClose();
     ipcacheShutdownServers();
     ftpServerClose();
-    for (i = fdstat_biggest_fd(); i >= 0; i--) {
-	f = &fd_table[i];
-	if (f->read_handler || f->write_handler || f->except_handler)
-	    if (fdstatGetType(i) == Socket)
-		comm_set_fd_lifetime(i, lft);
-    }
+    setSocketShutdownLifetimes();
     shutdown_pending = 1;
     /* reinstall signal handler? */
 }
@@ -228,12 +239,14 @@ void sig_child(sig)
 #endif
     int pid;
 
+    do {
 #ifdef _SQUID_NEXT_
-    while ((pid = wait3(&status, WNOHANG, NULL)) > 0 || errno == EINTR)
+        pid = wait3(&status, WNOHANG, NULL);
 #else
-    while ((pid = waitpid(-1, &status, WNOHANG)) > 0 || errno == EINTR)
+        pid = waitpid(-1, &status, WNOHANG);
 #endif
 	debug(21, 3, "sig_child: Ate pid %d\n", pid);
+    } while (pid > 0 || (pid < 0 && errno == EINTR));
     signal(sig, sig_child);
 }
 
@@ -406,20 +419,12 @@ time_t getCurrentTime()
 void reconfigure(sig)
      int sig;
 {
-    int i;
-    int lft = getShutdownLifetime();
-    FD_ENTRY *f;
     debug(21, 1, "reconfigure: SIGHUP received.\n");
     serverConnectionsClose();
     ipcacheShutdownServers();
     ftpServerClose();
     reread_pending = 1;
-    for (i = fdstat_biggest_fd(); i >= 0; i--) {
-	f = &fd_table[i];
-	if (f->read_handler || f->write_handler || f->except_handler)
-	    if (fdstatGetType(i) == Socket)
-		comm_set_fd_lifetime(i, lft);
-    }
+    setSocketShutdownLifetimes();
     signal(sig, reconfigure);
 }
 
