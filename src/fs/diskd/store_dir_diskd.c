@@ -441,6 +441,8 @@ storeDiskdDirInit(SwapDir * sd)
 	eventAdd("storeDirClean", storeDiskdDirCleanEvent, NULL, 15.0, 1);
 	started_clean_event = 1;
     }
+    if (0 == storeDirGetBlkSize(sd->path, &sd->fs.blksize))
+	sd->fs.kperblk = sd->fs.blksize >> 10;
 }
 
 

@@ -1388,6 +1388,10 @@ struct _SwapDir {
 	} clean;
 	int writes_since_clean;
     } log;
+    struct {
+	int blksize;
+	int kperblk;
+    } fs;
     void *fsdata;
 };
 
