@@ -75,6 +75,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -209,6 +210,7 @@ int o_list_wrap = 0;		/* wrap long directory names ? */
  *  GLOBALS
  */
 char *progname = NULL;
+char *fullprogname = NULL;
 static char cbuf[SMALLBUFSIZ];	/* send command buffer */
 static char htmlbuf[BIGBUFSIZ];
 char *server_reply_msg = NULL;
@@ -399,7 +401,8 @@ void generic_sig_handler(sig)
     exit(MainRequest->rc);
 }
 
-void timeout_handler()
+void timeout_handler(sig)
+     int sig;
 {
     time_t now;
     static char buf[SMALLBUFSIZ];
@@ -417,6 +420,20 @@ void timeout_handler()
     MainRequest->errmsg = xstrdup(buf);
     MainRequest->state = FAIL_TIMEOUT;
 }
+
+void sigchld_handler(sig)
+     int sig;
+{
+    int status;
+    int pid;
+
+    if ((pid = waitpid(0, &status, WNOHANG)) > 0)
+	Debug(26, 5, ("sigchld_handler: Ate pid %d\n", pid));
+#if defined(_SQUID_SYSV_SIGNALS_)
+    signal(sig, sigchld_handler);
+#endif
+}
+
 
 void reset_timeout(r)
      request_t *r;
@@ -1786,6 +1803,96 @@ void cleanup_path(r)
     } while (again);
 }
 
+#define MAX_ARGS 64
+int ftpget_srv_mode(port)
+     int port;
+{
+    /* Accept connections on localhost:port.  For each request,
+     * parse into args and exec ftpget. */
+    int sock;
+    int c;
+    struct sockaddr_in S;
+    fd_set R;
+    char *args[MAX_ARGS];
+    char *t = NULL;
+    int i;
+    int n;
+    static char *w_space = " \t\n\r";
+    static char buf[BUFSIZ];
+
+    setsid();			/* become session leader */
+
+    if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+	log_errno2(__FILE__, __LINE__, "socket");
+	exit(1);
+    }
+    i = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &i, sizeof(int));
+    memset((char *) &S, '\0', sizeof(S));
+    S.sin_addr.s_addr = inet_addr("127.0.0.1");
+    S.sin_port = htons(port);
+    S.sin_family = AF_INET;
+    Debug(26, 1, ("Binding to %s, port %d\n",
+	    inet_ntoa(S.sin_addr),
+	    ntohs(S.sin_port)));
+    if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+	log_errno2(__FILE__, __LINE__, "bind");
+	exit(1);
+    }
+    if (listen(sock, 50) < 0) {
+	log_errno2(__FILE__, __LINE__, "listen");
+	exit(1);
+    }
+    while (1) {
+	FD_ZERO(&R);
+	FD_SET(0, &R);
+	FD_SET(sock, &R);
+	if (select(sock + 1, &R, NULL, NULL, NULL) < 0) {
+	    log_errno2(__FILE__, __LINE__, "select");
+	    continue;
+	}
+	if (FD_ISSET(0, &R)) {
+	    /* exit server mode if any activity on stdin */
+	    close(sock);
+	    return 0;
+	}
+	if (!FD_ISSET(sock, &R))
+	    continue;
+	if ((c = accept(sock, NULL, 0)) < 0) {
+	    log_errno2(__FILE__, __LINE__, "listen");
+	    exit(1);
+	}
+	buf[0] = '\0';
+	/* XXX Assume we get the whole request in one read! */
+	if ((n = read(c, buf, BUFSIZ)) <= 0) {
+	    log_errno2(__FILE__, __LINE__, "read");
+	    close(c);
+	    continue;
+	}
+	buf[n] = '\0';		/* Must terminate it */
+	i = 0;
+	t = strtok(buf, w_space);
+	while (t && i < MAX_ARGS - 1) {
+	    args[i] = xstrdup(t);
+	    Debug(26, 5, ("args[%d] = %s\n", i, args[i]));
+	    t = strtok(NULL, w_space);
+	    i++;
+	}
+	args[i] = NULL;
+	if (fork()) {
+	    /* parent */
+	    close(c);
+	    continue;
+	}
+	dup2(c, 1);
+	close(c);
+	execvp(fullprogname, args);
+	log_errno2(__FILE__, __LINE__, fullprogname);
+	_exit(1);
+    }
+    return 1;
+}
+
 void usage()
 {
     fprintf(stderr, "usage: %s options filename host path A,I user pass\n",
@@ -1804,6 +1911,8 @@ void usage()
     fprintf(stderr, "\t-W              Wrap long filenames\n");
     fprintf(stderr, "\t-Ddbg           Debug options\n");
     fprintf(stderr, "\t-v              Version\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "usage: %s -S port\n", progname);
     exit(1);
 }
 
@@ -1820,6 +1929,7 @@ int main(argc, argv)
     int len;
     int j, k;
 
+    fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
 	progname = xstrdup(t + 1);
     } else
@@ -1830,7 +1940,36 @@ int main(argc, argv)
 	logfp = stderr;
     init_log3(progname, logfp, stderr);
     debug_init();
+
+#ifdef NSIG
+    for (i = 0; i < NSIG; i++) {
+#else
+    for (i = 0; i < _sys_nsig; i++) {
+#endif
+	switch (i) {
+	case SIGALRM:
+	    signal(SIGALRM, timeout_handler);
+	    break;
+	case SIGINT:
+	case SIGHUP:
+	case SIGTERM:
+	case SIGQUIT:
+	    signal(i, generic_sig_handler);
+	    break;
+	case SIGSEGV:
+	case SIGBUS:
+	    break;
+	case SIGCHLD:
+	    signal(i, sigchld_handler);
+	    break;
+	default:
+	    signal(i, SIG_IGN);
+	    break;
+	}
+    }
+
     for (argc--, argv++; argc > 0 && **argv == '-'; argc--, argv++) {
+	Debug(26, 9, ("processing arg '%s'\n", *argv));
 	if (!strcmp(*argv, "-"))
 	    break;
 	if (!strncmp(*argv, "-D", 2)) {
@@ -1840,6 +1979,15 @@ int main(argc, argv)
 	    !strcmp(*argv, "-h")) {
 	    o_httpify = 1;
 	    continue;
+	} else if (!strcmp(*argv, "-S")) {
+	    if (--argc < 1)
+		usage();
+	    argv++;
+	    j = atoi(*argv);
+	    Debug(26, 1, ("argv=%s j=%d\n", *argv, j));
+	    if (j > 0)
+		return (ftpget_srv_mode(j));
+	    usage();
 	} else if (!strcmp(*argv, "-t")) {
 	    if (--argc < 1)
 		usage();
@@ -1922,9 +2070,10 @@ int main(argc, argv)
 	}
     }
 
-    if (argc != 6)
+    if (argc != 6) {
+	fprintf(stderr, "Too many arguments left (%d)\n", argc);
 	usage();
-
+    }
     r = (request_t *) xmalloc(sizeof(request_t));
     memset(r, '\0', sizeof(request_t));
 
@@ -1986,30 +2135,6 @@ int main(argc, argv)
     t = rfc1738_escape(r->url);
     r->url_escaped = (char *) xmalloc(strlen(t) + 10);
     strcpy(r->url_escaped, t);
-
-#ifdef NSIG
-    for (i = 0; i < NSIG; i++) {
-#else
-    for (i = 0; i < _sys_nsig; i++) {
-#endif
-	switch (i) {
-	case SIGALRM:
-	    signal(SIGALRM, timeout_handler);
-	    break;
-	case SIGINT:
-	case SIGHUP:
-	case SIGTERM:
-	case SIGQUIT:
-	    signal(i, generic_sig_handler);
-	    break;
-	case SIGSEGV:
-	case SIGBUS:
-	    break;
-	default:
-	    signal(i, SIG_IGN);
-	    break;
-	}
-    }
 
     reset_timeout(r);
     rc = process_request(MainRequest = r);
