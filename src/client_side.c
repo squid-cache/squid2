@@ -3386,6 +3386,7 @@ httpAccept(int sock, void *data)
 {
     int *N = &incoming_sockets_accepted;
     int fd = -1;
+    fde *F;
     ConnStateData *connState = NULL;
     struct sockaddr_in peer;
     struct sockaddr_in me;
@@ -3403,7 +3404,8 @@ httpAccept(int sock, void *data)
 		    sock, xstrerror());
 	    break;
 	}
-	debug(33, 4) ("httpAccept: FD %d: accepted\n", fd);
+	F = &fd_table[fd];
+	debug(33, 4) ("httpAccept: FD %d: accepted port %d client %s:%d\n", fd, F->local_port, F->ipaddr, F->remote_port);
 	connState = cbdataAlloc(ConnStateData);
 	connState->peer = peer;
 	connState->log_addr = peer.sin_addr;
@@ -3488,6 +3490,7 @@ httpsAccept(int sock, void *data)
     https_port_data *https_port = data;
     SSL_CTX *sslContext = https_port->sslContext;
     int fd = -1;
+    fde *F;
     ConnStateData *connState = NULL;
     struct sockaddr_in peer;
     struct sockaddr_in me;
@@ -3514,10 +3517,12 @@ httpsAccept(int sock, void *data)
 	    break;
 	}
 	SSL_set_fd(ssl, fd);
-	fd_table[fd].ssl = ssl;
-	fd_table[fd].read_method = &ssl_read_method;
-	fd_table[fd].write_method = &ssl_write_method;
-	debug(50, 5) ("httpsAccept: FD %d accepted, starting SSL negotiation.\n", fd);
+	F = &fd_table[fd];
+	F->ssl = ssl;
+	F->read_method = &ssl_read_method;
+	F->write_method = &ssl_write_method;
+	debug(33, 4) ("httpsAccept: FD %d: accepted port %d client %s:%d\n", fd, F->local_port, F->ipaddr, F->remote_port);
+	debug(50, 5) ("httpsAccept: FD %d: starting SSL negotiation.\n", fd);
 
 	connState = cbdataAlloc(ConnStateData);
 	connState->peer = peer;
