@@ -1,4 +1,4 @@
-Changes to squid-1.1.10 (April 22, 1997):
+Changes to squid-1.1.10 (April 24, 1997):
 
 	- Require 0 <= multicast ttl <= 128.
 	- Changed 'unsigned int inaddr_none' to 'struct in_addr no_addr'.
