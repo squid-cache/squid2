@@ -263,9 +263,9 @@ httpRequestFree(void *data)
     safe_free(http->log_url);
     safe_free(http->al.headers.reply);
     if (entry) {
+	http->entry = NULL;
 	storeUnregister(entry, http);
 	storeUnlockObject(entry);
-	http->entry = NULL;
     }
     /* old_entry might still be set if we didn't yet get the reply
      * code in icpHandleIMSReply() */
@@ -545,12 +545,14 @@ void
 clientCacheHit(void *data, char *buf, ssize_t size)
 {
     clientHttpRequest *http = data;
-    if (size < 0) {
+    if (size >= 0) {
+	icpSendMoreData(data, buf, size);
+    } else if (http->entry == NULL) {
+	debug(12, 3) ("clientCacheHit: request aborted\n");
+    } else {
 	/* swap in failure */
 	http->log_type = LOG_TCP_SWAPFAIL_MISS;
 	icpProcessMISS(http->conn->fd, http);
-    } else {
-	icpSendMoreData(data, buf, size);
     }
 }
 
