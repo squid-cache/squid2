@@ -196,6 +196,7 @@
 #endif
 
 #include "util.h"
+#include "ansiproto.h"
 
 #define MAX_ENTRIES 10000
 

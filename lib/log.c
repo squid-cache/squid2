@@ -139,6 +139,7 @@
 #endif
 
 #include "util.h"
+#include "ansiproto.h"
 
 #ifdef _SQUID_NEXT_
 typedef int pid_t;

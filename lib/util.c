@@ -128,6 +128,7 @@
 #endif
 
 #include "util.h"
+#include "ansiproto.h"
 
 void (*failure_notify) __P((char *)) = NULL;
 static char msg[128];

@@ -214,7 +214,7 @@ typedef unsigned long u_num32;
 #endif
 
 #include "GNUregex.h"
-#include "ansihelp.h"
+#include "ansiproto.h"
 
 typedef void (*SIH) (int, void *);	/* swap in */
 typedef int (*QS) (const void *, const void *);

@@ -234,6 +234,7 @@
 #endif
 
 #include "util.h"
+#include "ansiproto.h"
 #if !HAVE_TEMPNAM
 #include "tempnam.h"
 #endif

@@ -130,6 +130,7 @@
 #endif
 
 #include "util.h"
+#include "ansiproto.h"
 
 static int make_month __P((char *s));
 static int make_num __P((char *s));
