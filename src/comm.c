@@ -1375,7 +1375,7 @@ void comm_write(fd, buf, size, timeout, handler, handler_data, free)
 	fd, size, timeout, handler, handler_data);
 
     if (fd_table[fd].rwstate) {
-	debug(5, 1, "comm_write: WARNING! FD %d: A comm_read/comm_write is already active.\n", fd);
+	debug(5, 1, "WARNING! FD %d: A comm_read/comm_write is already active.\n", fd);
 	RWStateCallbackAndFree(fd, COMM_ERROR);
     }
     state = xcalloc(1, sizeof(RWStateData));
