@@ -1,4 +1,4 @@
-Changes to Squid-2.3:
+Changes to Squid-2.3.STABLE5 (Jul 13, 2001):
 
 	- Fixed more domain-matching bugs, this time relating
 	  to the '-' character.  Copied the improved aclDomainCompare
@@ -18,6 +18,8 @@ Changes to Squid-2.3:
 	  (www....squid-cache....org), which can fool some access
 	  controls.  Changed URL parsing in url.c to collapse these
 	  multiple dots.
+	- clientAccessCheck() was incorrectly allowing all proxy
+	  requests in accel_only mode.
 
 Changes to Squid-2.3.STABLE4 (July 18, 2000):
 
