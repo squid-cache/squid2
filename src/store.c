@@ -1906,7 +1906,6 @@ storeGetSwapSpace(int size)
     StoreEntry *e = NULL;
     int scanned = 0;
     int removed = 0;
-    int expired = 0;
     int locked = 0;
     int locked_size = 0;
     int list_count = 0;
