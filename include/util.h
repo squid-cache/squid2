@@ -183,7 +183,14 @@ extern char *mkrfc850 _PARAMS((time_t *));
 extern void init_log3 _PARAMS((char *pn, FILE *a, FILE *b));
 extern void debug_init();
 extern void log_errno2 _PARAMS((char *, int, char *));
+
+#if defined(__STRICT_ANSI__)
+extern void Log _PARAMS((char *, ...));
+extern void errorlog  _PARAMS((char *, ...));
+#else
 extern void Log ();
 extern void errorlog ();
+#endif /* __STRICT_ANSI__ */
+
 
 #endif /* ndef _UTIL_H_ */
