@@ -195,12 +195,12 @@ snmp_meshPtblFn(variable_list * Var, snint * ErrP)
     case MESH_PTBL_SENT:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
 	    p->stats.pings_sent,
-	    ASN_INTEGER);
+	    SMI_COUNTER32);
 	break;
     case MESH_PTBL_PACKED:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
 	    p->stats.pings_acked,
-	    ASN_INTEGER);
+	    SMI_COUNTER32);
 	break;
     case MESH_PTBL_FETCHES:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
