@@ -3181,3 +3181,23 @@ DOC_START
 DOC_END
 EOF
 
+NAME: client_persistent_connections
+TYPE: onoff
+LOC: Config.onoff.client_pconns
+DEFAULT: on
+DOC_NONE
+
+NAME: server_persistent_connections
+TYPE: onoff
+LOC: Config.onoff.server_pconns
+DEFAULT: on
+DOC_START
+	Persistent connection support for clients and servers.  By
+	default, Squid uses persistent connections (when allowed)
+	with its clients and servers.  You can use these options to
+	disable persistent connections with clients and/or servers.
+client_persistent_connections on
+server_persistent_connections on
+DOC_END
+EOF
+

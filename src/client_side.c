@@ -848,7 +848,9 @@ clientSetKeepaliveFlag(clientHttpRequest * http)
 	request->http_ver);
     debug(33, 3) ("clientSetKeepaliveFlag: method = %s\n",
 	RequestMethodStr[request->method]);
-    if (httpMsgIsPersistent(request->http_ver, req_hdr))
+    if (!Config.onoff.client_pconns)
+	request->flags.proxy_keepalive = 0;
+    else if (httpMsgIsPersistent(request->http_ver, req_hdr))
 	request->flags.proxy_keepalive = 1;
 }
 

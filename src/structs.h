@@ -405,6 +405,8 @@ struct _SquidConfig {
 	int strip_query_terms;
 	int redirector_bypass;
 	int ignore_unknown_nameservers;
+	int client_pconns;
+	int server_pconns;
 #if USE_CACHE_DIGESTS
 	int digest_generation;
 #endif

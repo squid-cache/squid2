@@ -851,7 +851,9 @@ httpSendRequest(HttpStateData * httpState)
     /*
      * Is keep-alive okay for all request methods?
      */
-    if (p == NULL)
+    if (!Config.onoff.server_pconns)
+	httpState->flags.keepalive = 0;
+    else if (p == NULL)
 	httpState->flags.keepalive = 1;
     else if (p->stats.n_keepalives_sent < 10)
 	httpState->flags.keepalive = 1;
