@@ -11,7 +11,7 @@ DISTCLEANFILES = include/stamp-h include/stamp-h[0-9]*
 DEFAULT_PINGER		= $(libexecdir)/pinger$(EXEEXT)
 
 dist-hook:
-	@ for subdir in "include include/samba/nsswitch"; do \
+	@ for subdir in include include/samba/nsswitch; do \
 	  if test "$$subdir" = .; then :; else \
 	    test -d $(distdir)/$$subdir \
 	    || mkdir $(distdir)/$$subdir \
@@ -37,7 +37,8 @@ EXTRA_DIST = \
 	QUICKSTART \
 	README \
 	SPONSORS \
-	bootstrap.sh
+	bootstrap.sh \
+	include/samba/README.txt
 
 install-pinger:
 	chown root $(DEFAULT_PINGER) 
