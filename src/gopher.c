@@ -579,7 +579,7 @@ void gopherToHTML(data, inbuf, len)
 		int t;
 		int code;
 		int recno;
-		char result[MAX_CSO_RESULT];
+		static char result[MAX_CSO_RESULT];
 
 		tline = line;
 

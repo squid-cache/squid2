@@ -792,7 +792,7 @@ static void parseDirLine()
 static void parseHttpdAccelLine()
 {
     char *token;
-    char buf[1024];
+    static char buf[BUFSIZ];
     int i;
 
     token = strtok(NULL, w_space);
@@ -1019,7 +1019,7 @@ static void parseAddressLine(addr)
 static void parseLocalDomainFile(fname)
      char *fname;
 {
-    char tmp_line[BUFSIZ];
+    static char tmp_line[BUFSIZ];
     FILE *fp = NULL;
     char *t = NULL;
 

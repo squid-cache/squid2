@@ -156,7 +156,7 @@ int objcacheStart(fd, url, entry)
     char *buf = NULL;
     char *BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";
     char *BADPassword = "Incorrect password, sorry.\n";
-    char password[64];
+    static char password[64];
     struct sockaddr_in peer_socket_name;
     int sock_name_length = sizeof(peer_socket_name);
 

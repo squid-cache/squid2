@@ -679,7 +679,7 @@ int ftpInitialize()
     int cfd;
     int squid_to_ftpget[2];
     int ftpget_to_squid[2];
-    char pbuf[128];
+    static char pbuf[128];
     char *ftpget = getFtpProgram();
     struct sockaddr_in S;
     int len;

@@ -404,8 +404,10 @@ hash_link *hash_get_bucket(hid, bucket)
  */
 int main()
 {
-    int hid, i;
-    char buf[BUFSIZ], todelete[BUFSIZ];
+    int hid;
+    int i;
+    static char buf[BUFSIZ];
+    static char todelete[BUFSIZ];
     hash_link *walker = NULL;
 
     todelete[0] = '\0';
