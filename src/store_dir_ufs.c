@@ -627,9 +627,10 @@ storeGetNextFile(RebuildState * rb, int *sfileno, int *size)
 		rb->fullpath, rb->entry->d_name);
 	    debug(20, 3) ("storeGetNextFile: Opening %s\n", rb->fullfilename);
 	    fd = file_open(rb->fullfilename, O_RDONLY);
-	    if (fd < 0)
+	    if (fd < 0) {
 		debug(50, 1) ("storeGetNextFile: %s: %s\n", rb->fullfilename, xstrerror());
-	    continue;
+		continue;
+	    }
 	    store_open_disk_fd++;
 	}
 	rb->in_dir = 0;
