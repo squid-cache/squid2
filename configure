@@ -1018,7 +1018,7 @@ INSTALL_STRIP_PROGRAM="\${SHELL} \$(install_sh) -c -s"
 
   
 
-# From configure.in Revision: 1.251.2.2 
+# From configure.in Revision: 1.251.2.3 
 echo $ac_n "checking whether to enable maintainer-specific portions of Makefiles""... $ac_c" 1>&6
 echo "configure:1024: checking whether to enable maintainer-specific portions of Makefiles" >&5
     # Check whether --enable-maintainer-mode or --disable-maintainer-mode was given.
@@ -2439,7 +2439,7 @@ else
   
     ERR_LANGUAGES=
     for l in $srcdir/errors/*; do
-        if test -f $l/generic; then
+        if test -f $l/ERR_ACCESS_DENIED; then
             ERR_LANGUAGES="$ERR_LANGUAGES `basename $l`"
 	fi
     done
