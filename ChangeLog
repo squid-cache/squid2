@@ -1,11 +1,26 @@
+Changes to squid-1.NOVM.20 (January 9, 1998):
+
 	- Fixed bug related to parsing Not Modified reply headers which
 	  caused valid objects to be RELEASED.
+	- merged 1.1.20 changes.
+
+Changes to squid-1.1.20 (January 9, 1998):
+
+	- Changed default 'average_object_size' to 13 KB.
+	- Changed number of allocated file numbers to twice
+	  the number estimated.
+	- Changed file_map_allocate() to not coredump when the filemap
+	  list becomes full.  Instead, a warning is logged and new
+	  objects will not be saved until some swap files become
+	  available.
+	- Year-2000 fixes (Arjan de Vet).
 
 Changes to squid-1.NOVM.19 (December 18, 1997):
 
 	- Fixed gopherReadReply() bug.  Don't call gopherEndHTML()
 	  for aborted requests.
 	- merged 1.1.19 changes
+	- Added HTTP reply header for error messages in storeAbort().
 
 Changes to squid-1.1.19 (December 18, 1997):
 

@@ -153,16 +153,10 @@ file_map_bit_set(int file_number)
 #endif
 
     fm->file_map[file_number >> LONG_BIT_SHIFT] |= bitmask;
-
     fm->n_files_in_map++;
-    if (!fm->toggle && (fm->n_files_in_map > ((fm->max_n_files * 7) >> 3))) {
-	fm->toggle++;
-	debug(8, 0, "You should increment MAX_SWAP_FILE\n");
-    } else if (fm->n_files_in_map > (fm->max_n_files - 100)) {
-	debug_trap("You've run out of swap file numbers!");
-	storeLowerSwapSize();
-    }
-    return (file_number);
+    if (fm->n_files_in_map > fm->max_n_files)
+	fatal_dump("fm->n_files_in_map > fm->max_n_files");
+    return file_number;
 }
 
 static int available[100];
@@ -192,6 +186,7 @@ file_map_allocate(int suggestion)
     int word;
     int bit;
     int count;
+    static time_t warn_time = 0;
 
     while (avail_count > 0) {
 	avail_count--;
@@ -200,7 +195,8 @@ file_map_allocate(int suggestion)
 	fm->last_file_number_allocated = available[avail_count];
 	return file_map_bit_set(available[avail_count]);
     }
-
+    if (suggestion > fm->max_n_files)
+	suggestion %= fm->max_n_files;
     if (!file_map_bit_test(suggestion)) {
 	fm->last_file_number_allocated = suggestion;
 	return file_map_bit_set(suggestion);
@@ -219,11 +215,13 @@ file_map_allocate(int suggestion)
 	    return file_map_bit_set(suggestion);
 	}
     }
-
-    debug(8, 0, "file_map_allocate: All %d files are in use!\n", fm->max_n_files);
-    debug(8, 0, "You need to recompile with a larger value for MAX_SWAP_FILE\n");
-    fatal_dump(NULL);
-    return (0);			/* NOTREACHED */
+    if (squid_curtime - warn_time > 3600) {
+	warn_time = squid_curtime;
+        debug(8, 0, "WARNING: All %d swap files are in use.\n", fm->max_n_files);
+	debug(8, 0, "         You should probably use a lower value for\n");
+	debug(8, 0, "         'store_avg_object_size' in squid.conf\n");
+    }
+    return -1;
 }
 
 void
@@ -231,6 +229,12 @@ filemapFreeMemory(void)
 {
     safe_free(fm->file_map);
     safe_free(fm);
+}
+
+int
+filemapMax(void)
+{
+	return fm->max_n_files;
 }
 
 #ifdef TEST

@@ -120,5 +120,7 @@ extern int file_map_bit_set _PARAMS((int));
 extern int file_map_bit_test _PARAMS((int));
 extern void file_map_bit_reset _PARAMS((int));
 extern void filemapFreeMemory _PARAMS((void));
+extern int filemapMax _PARAMS((void));
+
 
 #endif /* _FILEMAP_H_ */

@@ -664,7 +664,7 @@ netdbDeleteAddrNetwork(struct in_addr addr)
     netdbEntry *n = netdbLookupAddr(addr);
     if (n == NULL)
 	return;
-    debug(37,1,"netdbDeleteAddrNetwork: %s\n", n->network);
+    debug(37, 1, "netdbDeleteAddrNetwork: %s\n", n->network);
     netdbRelease(n);
 #endif
 }
