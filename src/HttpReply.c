@@ -144,12 +144,12 @@ httpReplyParse(HttpReply * rep, const char *buf, ssize_t end)
      */
     char *headers = memAllocate(MEM_4K_BUF);
     int success;
+    size_t s = XMIN(end + 1, 4096);
     /* reset current state, because we are not used in incremental fashion */
     httpReplyReset(rep);
-    /* put a string terminator */
-    xstrncpy(headers, buf, 4096);
-    if (end >= 0 && end < 4096)
-	*(headers + end) = '\0';
+    /* put a string terminator.  s is how many bytes to touch in
+     * 'buf' including the terminating NULL. */
+    xstrncpy(headers, buf, s);
     success = httpReplyParseStep(rep, headers, 0);
     memFree(headers, MEM_4K_BUF);
     return success == 1;
