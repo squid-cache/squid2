@@ -4,6 +4,7 @@
 #define _URL_HEADER_
 
 #define MAX_URL  4096
+#define MAX_LOGIN_SZ  128
 
 typedef enum {
     METHOD_NONE,
@@ -30,6 +31,7 @@ extern char *ProtocolStr[];
 typedef struct _request {
     method_t method;
     protocol_t protocol;
+    char login[MAX_LOGIN_SZ + 1];
     char host[SQUIDHOSTNAMELEN + 1];
     int port;
     char urlpath[MAX_URL + 1];

@@ -874,7 +874,7 @@ int gopherStart(unusedfd, url, entry)
     }
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
-	gopherStateFree,
+	(PF) gopherStateFree,
 	(void *) data);
 
     /* check if IP is already in cache. It must be. 

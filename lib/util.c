@@ -4,7 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#ifndef _SQUID_FREEBSD_		/* "Obsolete" Markus Stumpf <maex@Space.NET> */
 #include <malloc.h>
+#endif
 #include <errno.h>
 
 void (*failure_notify) () = NULL;

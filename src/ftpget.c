@@ -99,8 +99,13 @@
 
 #include "util.h"
 
+#ifndef BUFSIZ
+#define BUFSIZ 4096
+#endif
 
-char *rfc1738_escape();
+
+char *rfc1738_escape _PARAMS((char *));
+void rfc1738_unescape _PARAMS((char *));
 char *http_time();
 
 typedef struct _ext_table_entry {
@@ -126,6 +131,7 @@ typedef struct _ext_table_entry {
 #define F_TRYDIR	0x10
 #define F_NEEDACCEPT	0x20
 #define F_USEBASE	0x40
+#define F_BASEDIR	0x80
 
 typedef enum {
     BEGIN,
@@ -158,6 +164,10 @@ typedef enum {
     FAIL_HARD			/* do cache these */
 } state_t;
 
+#define DFD_TYPE_NONE 0
+#define DFD_TYPE_PASV 1
+#define DFD_TYPE_PORT 2
+
 typedef struct _request {
     char *host;
     int port;
@@ -171,6 +181,7 @@ typedef struct _request {
     int cfd;
     int sfd;
     int dfd;
+    int dfd_type;
     int conn_att;
     int login_att;
     state_t state;
@@ -301,7 +312,7 @@ static char *state_str[] =
 While trying to retrieve the URL:\n\
 <A HREF=\"%s\">%s</A>\n\
 <P>\n\
-The following %s error was encountered:\n\
+The following FTP error was encountered:\n\
 <UL>\n\
 <LI><STRONG>%s</STRONG>\n\
 </UL>\n\
@@ -372,7 +383,6 @@ void fail(r)
 	sprintf(htmlbuf, CACHED_RETRIEVE_ERROR_MSG,
 	    r->title_url,
 	    r->title_url,
-	    "FTP",
 	    r->errmsg,
 	    longmsg);
 	if (!(r->flags & F_HDRSENT)) {
@@ -403,7 +413,7 @@ void fail(r)
 	fputs(html_trailer(), fp);
 	fclose(fp);
 	if (r->flags & F_HTTPIFY) {
-	    Debug(26, 9, ("Writing Marker to FD %d\n", r->cfd));
+	    Debug(26, 7, ("Writing Marker to FD %d\n", r->cfd));
 	    write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
 	}
     } else if (r->errmsg) {
@@ -454,7 +464,7 @@ void sigchld_handler(sig)
 #endif
 }
 
-int write_with_timeout(fd, buf, sz)
+static int write_with_timeout(fd, buf, sz)
      int fd;
      char *buf;
      int sz;
@@ -469,11 +479,13 @@ int write_with_timeout(fd, buf, sz)
 	tv.tv_sec = o_timeout;
 	tv.tv_usec = 0;
 	FD_ZERO(&R);
+	FD_ZERO(&W);
 	FD_SET(fd, &W);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
+	Debug(26, 7, ("write_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec));
 	x = select(fd + 1, &R, &W, NULL, &tv);
-	Debug(26, 9, ("write_with_timeout: select returned %d\n", x));
+	Debug(26, 7, ("write_with_timeout: select returned %d\n", x));
 	if (x < 0)
 	    return x;
 	if (x == 0)		/* timeout */
@@ -481,7 +493,7 @@ int write_with_timeout(fd, buf, sz)
 	if (FD_ISSET(0, &R))
 	    exit(1);		/* XXX very ungraceful! */
 	x = write(fd, buf, sz);
-	Debug(26, 9, ("write_with_timeout: write returned %d\n", x));
+	Debug(26, 7, ("write_with_timeout: write returned %d\n", x));
 	if (x < 0) {
 	    log_errno2(__FILE__, __LINE__, "write");
 	    return x;
@@ -509,6 +521,7 @@ int read_with_timeout(fd, buf, sz)
     FD_SET(fd, &R);
     FD_SET(0, &R);
     last_alarm_set = time(NULL);
+    Debug(26, 3, ("read_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec));
     x = select(fd + 1, &R, NULL, NULL, &tv);
     if (x < 0)
 	return x;
@@ -561,7 +574,7 @@ int readline_with_timeout(fd, buf, sz)
 
 int connect_with_timeout2(fd, S, len)
      int fd;
-     struct sockaddr *S;
+     struct sockaddr_in *S;
      int len;
 {
     int x;
@@ -569,17 +582,26 @@ int connect_with_timeout2(fd, S, len)
     fd_set W;
     fd_set R;
     struct timeval tv;
-    Debug(26, 9, ("connect_with_timeout2: starting...\n"));
-    while (1) {
+    Debug(26, 7, ("connect_with_timeout2: starting...\n"));
 
-	y = connect(fd, S, len);
-	Debug(26, 9, ("connect returned %d\n", y));
+    for (;;) {
+	Debug(26, 5, ("Connecting FD %d to: %s, port %d, len = %d\n", fd,
+		inet_ntoa(S->sin_addr),
+		(int) ntohs(S->sin_port),
+		len));
+	y = connect(fd, (struct sockaddr *) S, len);
+	Debug(26, 7, ("connect returned %d\n", y));
 	if (y < 0)
-	    Debug(26, 9, ("connect: %s\n", xstrerror()));
+	    Debug(26, 7, ("connect: %s\n", xstrerror()));
 	if (y >= 0)
 	    return y;
 	if (errno == EISCONN)
 	    return 0;
+	if (errno == EINVAL) {
+	    len = sizeof(x);
+	    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
+		errno = x;
+	}
 	if (errno != EINPROGRESS && errno != EAGAIN)
 	    return y;
 
@@ -592,9 +614,9 @@ int connect_with_timeout2(fd, S, len)
 	FD_SET(fd, &W);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	Debug(26, 9, ("selecting on FD %d\n", fd));
+	Debug(26, 7, ("connect_with_timeout2: selecting on FD %d\n", fd));
 	x = select(fd + 1, &R, &W, NULL, &tv);
-	Debug(26, 9, ("select returned: %d\n", x));
+	Debug(26, 7, ("select returned: %d\n", x));
 	if (x == 0)
 	    return READ_TIMEOUT;
 	if (x < 0)
@@ -607,14 +629,14 @@ int connect_with_timeout2(fd, S, len)
 /* stupid wrapper for so we can set and clear O_NDELAY */
 int connect_with_timeout(fd, S, len)
      int fd;
-     struct sockaddr *S;
+     struct sockaddr_in *S;
      int len;
 {
     int orig_flags;
     int rc;
 
     orig_flags = fcntl(fd, F_GETFL, 0);
-    Debug(26, 9, ("orig_flags = %x\n", orig_flags));
+    Debug(26, 7, ("orig_flags = %x\n", orig_flags));
     if (fcntl(fd, F_SETFL, O_NDELAY) < 0)
 	log_errno2(__FILE__, __LINE__, "fcntl O_NDELAY");
     rc = connect_with_timeout2(fd, S, len);
@@ -625,7 +647,7 @@ int connect_with_timeout(fd, S, len)
 
 int accept_with_timeout(fd, S, len)
      int fd;
-     struct sockaddr *S;
+     struct sockaddr_in *S;
      int *len;
 {
     int x;
@@ -637,16 +659,16 @@ int accept_with_timeout(fd, S, len)
     FD_SET(fd, &R);
     FD_SET(0, &R);
     last_alarm_set = time(NULL);
-    Debug(26, 9, ("selecting on FD %d\n", fd));
+    Debug(26, 7, ("accept_with_timeout: selecting on FD %d\n", fd));
     x = select(fd + 1, &R, NULL, NULL, &tv);
-    Debug(26, 9, ("select returned: %d\n", x));
+    Debug(26, 7, ("select returned: %d\n", x));
     if (x == 0)
 	return READ_TIMEOUT;
     if (x < 0)
 	return x;
     if (FD_ISSET(0, &R))
 	exit(1);
-    return accept(fd, S, len);
+    return accept(fd, (struct sockaddr *) S, len);
 }
 
 
@@ -834,7 +856,7 @@ int read_reply(fd)
 
     while (!quit) {
 	n = readline_with_timeout(fd, buf, SMALLBUFSIZ);
-	Debug(26, 1, ("read_reply: readline returned %d\n", n));
+	Debug(26, 9, ("read_reply: readline returned %d\n", n));
 	if (n < 0) {
 	    xfree(server_reply_msg);
 	    server_reply_msg = xstrdup(xstrerror());
@@ -981,7 +1003,7 @@ state_t do_connect(r)
     S.sin_family = AF_INET;
     S.sin_port = htons(r->port);
 
-    x = connect_with_timeout(sock, (struct sockaddr *) &S, sizeof(S));
+    x = connect_with_timeout(sock, &S, sizeof(S));
     if (x == READ_TIMEOUT) {
 	(void) request_timeout(r);
 	return FAIL_CONNECT;
@@ -1156,6 +1178,24 @@ state_t do_port(r)
     int port = 0;
     static int init = 0;
 
+    if (r->dfd >= 0 && r->dfd_type == DFD_TYPE_PORT) {
+	fd_set R;
+	struct timeval tv;
+	FD_ZERO(&R);
+	FD_SET(r->dfd, &R);
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
+	    Debug(26, 3, ("do_port: FD %d Already connected\n", r->dfd));
+	    r->flags |= F_NEEDACCEPT;
+	    return PORT_OK;
+	} else {
+	    Debug(26, 2, ("Data connection closed by server (%s)\n", xstrerror()));
+	    close(r->dfd);
+	    r->dfd = -1;
+	    r->dfd_type = DFD_TYPE_NONE;
+	}
+    }
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
@@ -1173,7 +1213,7 @@ state_t do_port(r)
 	srand(time(NULL));
 #endif
     }
-    while (1) {
+    for (;;) {
 #if defined(HAVE_LRAND48)
 	port = (lrand48() % (o_conn_max - o_conn_min)) + o_conn_min;
 #else
@@ -1196,6 +1236,7 @@ state_t do_port(r)
 	r->rc = 2;
 	return FAIL_SOFT;
     }
+    Debug(26, 3, ("listening on FD %d\n", sock));
     naddr = ntohl(ifc_addr.sin_addr.s_addr);
     sprintf(cbuf, "PORT %d,%d,%d,%d,%d,%d",
 	(naddr >> 24) & 0xFF,
@@ -1209,6 +1250,7 @@ state_t do_port(r)
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code == 200) {
 	    r->dfd = sock;
+	    r->dfd_type = DFD_TYPE_PORT;
 	    r->flags |= F_NEEDACCEPT;
 	    return PORT_OK;
 	}
@@ -1236,6 +1278,25 @@ state_t do_pasv(r)
     if (!pasv_supported)
 	return PASV_FAIL;
 
+    if (r->dfd >= 0 && r->dfd_type == DFD_TYPE_PASV) {
+	fd_set R;
+	struct timeval tv;
+	FD_ZERO(&R);
+	FD_SET(r->dfd, &R);
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
+	    Debug(26, 3, ("do_pasv: FD %d Already connected\n", r->dfd));
+	    return PORT_OK;
+	} else {
+	    Debug(26, 2, ("Data connection closed by server (%s)\n", xstrerror()));
+	    close(r->dfd);
+	    r->dfd = -1;
+	    r->dfd_type = DFD_TYPE_NONE;
+	}
+    }
+    r->flags &= ~F_NEEDACCEPT;
+
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
@@ -1255,7 +1316,7 @@ state_t do_pasv(r)
 	return PASV_FAIL;
     }
     /*  227 Entering Passive Mode (h1,h2,h3,h4,p1,p2).  */
-    n = sscanf(server_reply_msg, "%[^(](%d,%d,%d,%d,%d,%d)",
+    n = sscanf(server_reply_msg + 3, "%[^0-9]%d,%d,%d,%d,%d,%d",
 	junk, &h1, &h2, &h3, &h4, &p1, &p2);
     if (n != 7) {
 	r->errmsg = xstrdup(server_reply_msg);
@@ -1265,15 +1326,16 @@ state_t do_pasv(r)
     }
     sprintf(junk, "%d.%d.%d.%d", h1, h2, h3, h4);
     S.sin_addr.s_addr = inet_addr(junk);
-    S.sin_port = htons((p1 << 8) + p2);
+    S.sin_port = htons(port = ((p1 << 8) + p2));
 
-    if (connect_with_timeout(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+    if (connect_with_timeout(sock, &S, sizeof(S)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s, port %d: %s", junk, port, xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
     }
     r->dfd = sock;
+    r->dfd_type = DFD_TYPE_PASV;
     return PORT_OK;
 }
 
@@ -1282,7 +1344,9 @@ state_t do_cwd(r)
 {
     int code;
 
-    if (!strcmp(r->path, "."))
+    Debug(26, 10, ("do_cwd: \"%s\"\n", r->path));
+
+    if (r->flags & F_BASEDIR)
 	return CWD_OK;
 
     sprintf(cbuf, "CWD %s", r->path);
@@ -1292,12 +1356,12 @@ state_t do_cwd(r)
 	if (code >= 200 && code < 300)
 	    return CWD_OK;
 #ifdef TRY_CWD_FIRST
-	return CWD_FAIL;
-#else
+	if (!r->flags & F_ISDIR)
+	    return CWD_FAIL;
+#endif
 	r->errmsg = xstrdup(server_reply_msg);
 	r->rc = 10;
 	return FAIL_HARD;
-#endif
     }
     r->errmsg = xstrdup(server_reply_msg);
     r->rc = code < 0 ? 4 : 5;
@@ -1346,8 +1410,6 @@ state_t do_retr(r)
 	    return FAIL_HARD;
 	}
 #else
-	if (r->dfd > 0)
-	    close(r->dfd);
 	if (r->flags & F_TRYDIR)
 	    return RETR_FAIL;
 	r->errmsg = xstrdup(server_reply_msg);
@@ -1416,8 +1478,11 @@ state_t do_accept(r)
 	r->rc = 3;
 	return FAIL_SOFT;
     }
-    close(r->dfd);
+    r->flags &= ~F_NEEDACCEPT;
+    if (r->dfd >= 0)
+	close(r->dfd);
     r->dfd = sock;
+    r->dfd_type = DFD_TYPE_PORT;
     return DATA_TRANSFER;
 }
 
@@ -1433,11 +1498,21 @@ state_t read_data(r)
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
     } else if (n < 0) {
+	if (r->dfd >= 0) {
+	    close(r->dfd);
+	    r->dfd = -1;
+	    r->dfd_type = DFD_TYPE_NONE;
+	}
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
     } else if (n == 0) {
+	if (r->dfd >= 0) {
+	    close(r->dfd);
+	    r->dfd = -1;
+	    r->dfd_type = DFD_TYPE_NONE;
+	}
 	if ((code = read_reply(r->sfd)) > 0) {
 	    if (code == 226)
 		return TRANSFER_DONE;
@@ -1703,7 +1778,9 @@ void try_readme(r)
     readme->path = xstrdup("README");
     readme->cfd = fd;
     readme->sfd = r->sfd;
-    readme->dfd = -1;
+    readme->dfd = r->dfd;
+    r->dfd = -1;
+    r->dfd_type = DFD_TYPE_NONE;
 #ifdef TRY_CWD_FIRST
     readme->state = CWD_FAIL;
 #else
@@ -1712,11 +1789,18 @@ void try_readme(r)
     readme->flags = F_NOERRS;
 
     process_request(readme);
-    if (readme->cfd > 0)
+    if (readme->cfd >= 0) {
 	close(readme->cfd);
-    if (readme->dfd > 0)
-	close(readme->dfd);
-
+	readme->cfd = -1;
+    }
+    if (readme->dfd >= 0) {
+	if (r->dfd == -1)
+	    r->dfd = readme->dfd;
+	else
+	    close(readme->dfd);
+	readme->dfd = -1;
+	readme->dfd_type = DFD_TYPE_NONE;
+    }
     fp = fopen(tfname, "r");
     unlink(tfname);
 
@@ -1764,12 +1848,13 @@ state_t htmlify_listing(r)
 	    write_with_timeout(r->cfd, l->ptr, strlen(l->ptr));
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
-    } else if (r->readme_fp) {
+    } else if (r->readme_fp && r->flags & F_BASEDIR) {
 	fprintf(wfp, "<H4>README file from %s</H4>\n", r->title_url);
 	fprintf(wfp, "<PRE>\n");
 	while (fgets(buf, SMALLBUFSIZ, r->readme_fp))
 	    fputs(buf, wfp);
 	fclose(r->readme_fp);
+	r->readme_fp = NULL;
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
     }
@@ -1777,7 +1862,7 @@ state_t htmlify_listing(r)
     fprintf(wfp, "FTP Directory: %s\n", r->title_url);
     fprintf(wfp, "</H2>\n");
     fprintf(wfp, "<PRE>\n");
-    if (strcmp(r->path, ".")) {
+    if (!(r->flags & F_BASEDIR)) {
 	if ((t = htmlize_list_entry("..", r))) {
 	    fputs(t, wfp);
 	    xfree(t);
@@ -1796,6 +1881,11 @@ state_t htmlify_listing(r)
 	    xfree(t);
 	}
     }
+    if (r->dfd >= 0) {
+	close(r->dfd);
+	r->dfd = -1;
+	r->dfd_type = DFD_TYPE_NONE;
+    }
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
     } else if (n < 0) {
@@ -1806,6 +1896,15 @@ state_t htmlify_listing(r)
     }
     fprintf(wfp, "</PRE>\n");
     fprintf(wfp, "<HR>\n");
+    if (r->readme_fp) {
+	fprintf(wfp, "<H4>README file from %s</H4>\n", r->title_url);
+	fprintf(wfp, "<PRE>\n");
+	while (fgets(buf, SMALLBUFSIZ, r->readme_fp))
+	    fputs(buf, wfp);
+	fclose(r->readme_fp);
+	fprintf(wfp, "</PRE>\n");
+	fprintf(wfp, "<HR>\n");
+    }
     fprintf(wfp, "<ADDRESS>\n");
     fprintf(wfp, "Generated %s, by %s/%s@%s\n",
 	http_time(stamp), progname, SQUID_VERSION, getfullhostname());
@@ -1827,7 +1926,7 @@ static int process_request(r)
     if (r == (request_t *) NULL)
 	return 1;
 
-    while (1) {
+    for (;;) {
 	Debug(26, 1, ("process_request: in state %s\n",
 		state_str[r->state]));
 	switch (r->state) {
@@ -1839,6 +1938,11 @@ static int process_request(r)
 	    break;
 	case CONNECTED:
 	    r->state = read_welcome(r);
+	    if ((r->flags & F_HTTPIFY) && (r->flags & F_BASEDIR) && cmd_msg) {
+		list_t *t = r->cmd_msg;
+		r->cmd_msg = cmd_msg;
+		cmd_msg = t;
+	    }
 	    break;
 	case FAIL_CONNECT:
 	    r->state = FAIL_SOFT;
@@ -1854,6 +1958,11 @@ static int process_request(r)
 	    r->state = do_passwd(r);
 	    break;
 	case LOGGED_IN:
+	    if ((r->flags & F_HTTPIFY) && (r->flags & F_BASEDIR) && cmd_msg) {
+		list_t *t = r->cmd_msg;
+		r->cmd_msg = cmd_msg;
+		cmd_msg = t;
+	    }
 	    r->state = do_type(r);
 	    break;
 	case FAIL_LOGIN:
@@ -1864,7 +1973,10 @@ static int process_request(r)
 	    }
 	    break;
 	case TYPE_OK:
-	    r->state = do_mdtm(r);
+	    if (r->flags & F_ISDIR)
+		r->state = do_cwd(r);
+	    else
+		r->state = do_mdtm(r);
 	    break;
 	case MDTM_OK:
 	    r->state = do_size(r);
@@ -1877,37 +1989,32 @@ static int process_request(r)
 #endif
 	    break;
 	case CWD_OK:
+	    if (!r->flags & F_ISDIR)
+		r->flags |= F_USEBASE;
 	    r->flags |= F_ISDIR;
-	    if (strcmp(r->path, ".")) {
+	    if (!(r->flags & F_BASEDIR)) {
 		/* tack on the trailing slash now that we know its a dir */
 		strcat(r->url, "/");
 		strcat(r->title_url, "/");
 		strcat(r->url_escaped, "/");
-		if (*(r->path + strlen(r->path) - 1) != '/')
-		    r->flags |= F_USEBASE;
-	    } else {
-		/* We must do this only because Netscape's browser is broken */
-		r->flags |= F_USEBASE;
 	    }
 	    if (r->flags & F_HTTPIFY) {
-		if (cmd_msg) {
+		if (!(r->flags & F_BASEDIR) || cmd_msg) {
+		    list_t *t = r->cmd_msg;
 		    r->cmd_msg = cmd_msg;
-		    cmd_msg = NULL;
-		} else {
-		    if (o_readme)
-			try_readme(r);
+		    cmd_msg = t;
 		}
+		if (o_readme)
+		    try_readme(r);
 	    }
 	    r->state = do_pasv(r);
 	    break;
 #ifdef TRY_CWD_FIRST
 	case CWD_FAIL:
-	    r->flags &= ~F_ISDIR;
 	    r->state = do_pasv(r);
 	    break;
 #else
 	case RETR_FAIL:
-	    r->flags |= F_ISDIR;
 	    r->state = do_cwd(r);
 	    break;
 #endif
@@ -1941,7 +2048,7 @@ static int process_request(r)
 	    break;
 	case DONE:
 	    if (r->flags & F_HTTPIFY) {
-		Debug(26, 9, ("Writing Marker to FD %d\n", r->cfd));
+		Debug(26, 7, ("Writing Marker to FD %d\n", r->cfd));
 		write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
 	    }
 	    return 0;
@@ -1953,8 +2060,11 @@ static int process_request(r)
 		r->state = PARSE_OK;
 	    }
 	    break;
-	case FAIL_HARD:
 	case FAIL_SOFT:
+	    fail(r);
+	    return (r->rc);
+	    /* NOTREACHED */
+	case FAIL_HARD:
 	    fail(r);
 	    return (r->rc);
 	    /* NOTREACHED */
@@ -1982,7 +2092,20 @@ void cleanup_path(r)
 	if (*r->path == '\0') {
 	    t = r->path;
 	    r->path = xstrdup(".");
+	    r->flags |= F_BASEDIR;
 	    xfree(t);
+	    again = 1;
+	} else if ((l >= 1) && (*(r->path + l - 1) == '/')) {
+	    /* remove any trailing slashes from path */
+	    *(r->path + l - 1) = '\0';
+	    r->flags |= F_ISDIR;
+	    r->flags &= ~F_USEBASE;
+	    again = 1;
+	} else if ((l >= 2) && (!strcmp(r->path + l - 2, "/."))) {
+	    /* remove trailing /. */
+	    *(r->path + l - 2) = '\0';
+	    r->flags |= F_ISDIR;
+	    r->flags &= ~F_USEBASE;
 	    again = 1;
 	} else if (*r->path == '/') {
 	    /* remove any leading slashes from path */
@@ -1995,14 +2118,6 @@ void cleanup_path(r)
 	    t = r->path;
 	    r->path = xstrdup(t + 2);
 	    xfree(t);
-	    again = 1;
-	} else if (*(r->path + l - 1) == '/') {
-	    /* remove any trailing slashes from path */
-	    *(r->path + l - 1) = '\0';
-	    again = 1;
-	} else if (!strcmp(r->path + l - 2, "/.")) {
-	    /* remove trailing /. */
-	    *(r->path + l - 2) = '\0';
 	    again = 1;
 	} else if ((t = strstr(r->path, "/./"))) {
 	    /* remove /./ */
@@ -2066,7 +2181,7 @@ int ftpget_srv_mode(port)
 	log_errno2(__FILE__, __LINE__, "listen");
 	exit(1);
     }
-    while (1) {
+    for (;;) {
 	FD_ZERO(&R);
 	FD_SET(0, &R);
 	FD_SET(sock, &R);
@@ -2108,6 +2223,7 @@ int ftpget_srv_mode(port)
 	    if (strcmp(t, "\"\"") == 0)
 		t = "";
 	    args[i] = xstrdup(t);
+	    rfc1738_unescape(args[i]);
 	    Debug(26, 5, ("args[%d] = %s\n", i, args[i]));
 	    t = strtok(NULL, w_space);
 	    i++;
@@ -2198,7 +2314,7 @@ int main(argc, argv)
     }
 
     for (argc--, argv++; argc > 0 && **argv == '-'; argc--, argv++) {
-	Debug(26, 9, ("processing arg '%s'\n", *argv));
+	Debug(26, 7, ("processing arg '%s'\n", *argv));
 	if (!strcmp(*argv, "-"))
 	    break;
 	if (!strncmp(*argv, "-D", 2)) {
@@ -2339,10 +2455,12 @@ int main(argc, argv)
     r->port = port;
     r->sfd = -1;
     r->dfd = -1;
+    r->dfd_type = DFD_TYPE_NONE;
     r->size = -1;
     r->state = BEGIN;
     r->flags |= o_httpify ? F_HTTPIFY : 0;
     r->flags |= F_TRYDIR;
+    r->flags |= F_USEBASE;
     r->rest_implemented = 1;
 
     if (*(r->type) != 'A' && *(r->type) != 'I') {
@@ -2366,7 +2484,7 @@ int main(argc, argv)
     }
     strcat(r->url, r->host);
     strcat(r->url, "/");
-    if (strcmp(r->path, "."))
+    if (!(r->flags & F_BASEDIR))
 	strcat(r->url, r->path);
 
     *r->title_url = '\0';
@@ -2377,7 +2495,7 @@ int main(argc, argv)
     }
     strcat(r->title_url, r->host);
     strcat(r->title_url, "/");
-    if (strcmp(r->path, "."))
+    if (!(r->flags & F_BASEDIR))
 	strcat(r->title_url, r->path);
 
     /* Make a copy of the escaped URL with some room to grow at the end */
@@ -2386,13 +2504,13 @@ int main(argc, argv)
     strcpy(r->url_escaped, t);
 
     rc = process_request(MainRequest = r);
-    if (r->sfd > 0)
+    if (r->sfd >= 0)
 	send_cmd(r->sfd, "QUIT");
-    if (r->sfd > 0)
+    if (r->sfd >= 0)
 	close(r->sfd);
-    if (r->cfd > 0)
+    if (r->cfd >= 0)
 	close(r->cfd);
-    if (r->dfd > 0)
+    if (r->dfd >= 0)
 	close(r->dfd);
     close(0);
     close(1);

@@ -4,7 +4,7 @@
 #
 
 prefix		= /usr/local/squid
-exec_prefix	= ${prefix}
+exec_prefix     = '$${prefix}'
 
 SHELL		= /bin/sh
 

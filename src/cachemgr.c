@@ -2,6 +2,7 @@
 
 #include "config.h"
 #include "autoconf.h"
+#include "version.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -11,7 +12,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
+#ifndef _SQUID_FREEBSD_		/* "Obsolete" Markus Stumpf <maex@Space.NET> */
 #include <malloc.h>
+#endif
 #include <memory.h>
 #include <netdb.h>
 #include <pwd.h>
@@ -51,8 +54,13 @@
 
 #define MAX_ENTRIES 10000
 
+#ifndef FALSE
 #define FALSE 0
+#endif
+#ifndef TRUE
 #define TRUE !FALSE
+#endif
+
 #define LF 10
 #define CR 13
 
@@ -196,7 +204,7 @@ char *fmakeword(FILE * f, char stop, int *cl)
     ll = 0;
     word = (char *) malloc(sizeof(char) * (wsize + 1));
 
-    while (1) {
+    for (;;) {
 	word[ll] = (char) fgetc(f);
 	if (ll == wsize) {
 	    word[ll + 1] = '\0';
@@ -348,7 +356,7 @@ int main(int argc, char *argv[])
     int len;
     int bytesWritten;
     int portnum = CACHE_HTTP_PORT;
-    int op;
+    int op = 0;
     int p_state;
     int n_loops;
     int cpy_ind;
@@ -670,6 +678,7 @@ int main(int argc, char *argv[])
     (void) close(conn);
     exit(0);
     /* NOTREACHED */
+    return 0;
 }
 
 static int client_comm_connect(sock, dest_host, dest_port)

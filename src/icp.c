@@ -97,6 +97,10 @@ int icpStateFree(fdunused, icpState)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
 	size = icpState->entry->mem_obj->e_current_len;
+    } else {
+	size = icpState->size;	/* hack added for CONNECT objects */
+    }
+    if (icpState->entry) {
 	http_code = icpState->entry->mem_obj->reply->code;
     } else {
 	http_code = icpState->http_code;
@@ -326,7 +330,7 @@ void icpHandleWrite(fd, rwsm)
     /* A successful write, continue */
     rwsm->offset += len;
     if (rwsm->offset < rwsm->size) {
-	/* Reinstall the read handler and get some more */
+	/* Reinstall the read handler and write some more */
 	comm_set_select_handler(fd,
 	    COMM_SELECT_WRITE,
 	    (PF) icpHandleWrite,
@@ -418,7 +422,8 @@ int icpSendERROR(fd, errorCode, msg, state)
 	/* This file descriptor isn't bound to a socket anymore.
 	 * It probably timed out. */
 	debug(12, 2, "icpSendERROR: COMM_ERROR msg: %80.80s\n", msg);
-	comm_close(fd);
+	/* comm_close(fd); */
+	icpSendERRORComplete(fd, NULL, 0, 1, state);
 	return COMM_ERROR;
     }
     if (port != getAsciiPortNum()) {
@@ -535,7 +540,7 @@ static void icpHandleStore(fd, entry, state)
     icpSendMoreData(fd, state);
 }
 
-void icpHandleStoreComplete(fd, buf, size, errflag, state)
+static void icpHandleStoreComplete(fd, buf, size, errflag, state)
      int fd;
      char *buf;
      int size;
@@ -614,6 +619,11 @@ void icp_hit_or_miss(fd, usm)
 	RequestMethodStr[usm->method],
 	url);
 
+    if (usm->method == METHOD_CONNECT) {
+	usm->log_type = LOG_TCP_MISS;
+	sslStart(fd, url, usm->request, usm->request_hdr, &usm->size);
+	return;
+    }
     if (icpCachable(usm))
 	BIT_SET(usm->flags, REQ_CACHABLE);
     if (icpHierarchical(usm))
@@ -813,7 +823,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
 	buf_len += sizeof(u_num32);
     buf = xcalloc(buf_len, 1);
 
-    headerp = (icp_common_t *) buf;
+    headerp = (icp_common_t *) (void *) buf;
     headerp->opcode = opcode;
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
@@ -884,7 +894,7 @@ int icpHandleUdp(sock, not_used)
 	return result;
     }
     /* Get fields from incoming message. */
-    headerp = (icp_common_t *) buf;
+    headerp = (icp_common_t *) (void *) buf;
     header.opcode = headerp->opcode;
     header.version = headerp->version;
     header.length = ntohs(headerp->length);
@@ -1331,7 +1341,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	    k,			/* size */
 	    30,			/* timeout */
 	    TRUE,		/* handle immed */
-	    asciiProcessInput,
+	    (complete_handler) asciiProcessInput,
 	    (void *) astm);
     } else {
 	/* parser returned -1 */
@@ -1447,7 +1457,7 @@ int asciiHandleConn(sock, notused)
 	(void *) astm);
     comm_set_select_handler(fd,
 	COMM_SELECT_CLOSE,
-	icpStateFree,
+	(PF) icpStateFree,
 	(void *) astm);
     icpRead(fd,
 	FALSE,
@@ -1455,7 +1465,7 @@ int asciiHandleConn(sock, notused)
 	astm->inbufsize - 1,	/* size */
 	30,			/* timeout */
 	1,			/* handle immed */
-	asciiProcessInput,
+	(complete_handler) asciiProcessInput,
 	(void *) astm);
     comm_set_select_handler(sock,
 	COMM_SELECT_READ,

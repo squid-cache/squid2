@@ -41,7 +41,7 @@ Usage: %s [-Rsehvz] [-f config-file] [-[apu] port]\n\
                  %s\n\
        -a port	 Specify ASCII port number (default: %d).\n\
        -u port	 Specify UDP port number (default: %d).\n",
-	appname, DEFAULT_CONFIG_FILE, CACHE_HTTP_PORT, CACHE_ICP_PORT);
+	appname, DefaultConfigFile, CACHE_HTTP_PORT, CACHE_ICP_PORT);
     exit(1);
 }
 
@@ -72,7 +72,6 @@ static void mainParseOptions(argc, argv)
 	    break;
 	case 's':
 	    syslog_enable = 0;
-	    break;
 	    break;
 	case 'R':
 	    do_reuse = 0;
@@ -322,7 +321,7 @@ int main(argc, argv)
     /* main loop */
     if (getCleanRate() > 0)
 	next_cleaning = time(NULL) + getCleanRate();
-    while (1) {
+    for (;;) {
 	loop_delay = (time_t) 60;
 	/* maintain cache storage */
 	if (squid_curtime > last_maintain) {
@@ -382,4 +381,5 @@ int main(argc, argv)
     }
     /* NOTREACHED */
     exit(0);
+    return 0;
 }

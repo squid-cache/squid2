@@ -1,4 +1,3 @@
-
 $Id$
 
 Release Notes for version 1.0 of the Squid cache.

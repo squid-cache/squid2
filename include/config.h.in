@@ -29,13 +29,6 @@
 #endif
 #endif
 
-#ifndef BUFSIZ
-#include <stdio.h>		/* try to find it... */
-#ifndef BUFSIZ
-#define BUFSIZ  4096		/* make reasonable guess */
-#endif
-#endif
-
 #if defined(SYSTYPE_SYSV) || defined(__svr4__) || defined(SYSTYPE_SVR4) || defined(__SYSTYPE_SVR4__)
 #define _SQUID_SYSV_
 #else
@@ -86,38 +79,6 @@
 
 #if !defined(CACHEMGR_HOSTNAME)
 #define CACHEMGR_HOSTNAME ""
-#endif
-
-#if !defined(DEFAULT_CONFIG_FILE)
-#define DEFAULT_CONFIG_FILE "@prefix@/etc/squid.conf"
-#endif
-
-#if !defined(DEFAULT_CACHE_LOG)
-#define DEFAULT_CACHE_LOG "@prefix@/logs/cache.log"
-#endif
-
-#if !defined(DEFAULT_ACCESS_LOG)
-#define DEFAULT_ACCESS_LOG "@prefix@/logs/access.log"
-#endif
-
-#if !defined(DEFAULT_HIERARCHY_LOG)
-#define DEFAULT_HIERARCHY_LOG "@prefix@/logs/hierarchy.log"
-#endif
-
-#if !defined(DEFAULT_STORE_LOG)
-#define DEFAULT_STORE_LOG "@prefix@/logs/store.log"
-#endif
-
-#if !defined(DEFAULT_FTPGET_PATH)
-#define DEFAULT_FTPGET_PATH "@prefix@/bin/ftpget"
-#endif
-
-#if !defined(DEFAULT_DNSSERVER_PATH)
-#define DEFAULT_DNSSERVER_PATH "@prefix@/bin/dnsserver"
-#endif
-
-#if !defined(DEFAULT_SWAP_DIR)
-#define DEFAULT_SWAP_DIR "@prefix@/cache"
 #endif
 
 #endif /* _CONFIG_H_ */
