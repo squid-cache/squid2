@@ -292,7 +292,7 @@ int protoUndispatch(fd, url, entry, request)
     return 1;
 }
 
-static void protoCancelTimeout(fd, entry)
+void protoCancelTimeout(fd, entry)
      int fd;
      StoreEntry *entry;
 {

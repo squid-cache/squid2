@@ -187,6 +187,7 @@ extern int protoDispatch _PARAMS((int, char *, StoreEntry *, request_t *));
 extern int protoUndispatch _PARAMS((int, char *, StoreEntry *, request_t *));
 extern int getFromDefaultSource _PARAMS((int, StoreEntry *));
 extern int getFromCache _PARAMS((int, StoreEntry *, edge *, request_t *));
+extern void protoCancelTimeout _PARAMS((int fd, StoreEntry *));
 
 #define DIRECT_NO    0
 #define DIRECT_MAYBE 1
