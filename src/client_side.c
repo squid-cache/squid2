@@ -251,7 +251,7 @@ clientProcessExpired(void *data)
     /*
      * check if we are allowed to contact other servers
      * @?@: Instead of a 504 (Gateway Timeout) reply, we may want to return 
-     *      stale entry *if* it matches client requirements
+     *      a stale entry *if* it matches client requirements
      */
     if (clientOnlyIfCached(http)) {
 	clientProcessOnlyIfCachedMiss(http);
