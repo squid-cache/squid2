@@ -430,6 +430,7 @@ neighborsUdpPing(request_t * request,
     int peers_pinged = 0;
     int parent_timeout = 0, parent_exprep = 0;
     int sibling_timeout = 0, sibling_exprep = 0;
+    int mcast_timeout = 0, mcast_exprep = 0;
 
     if (Config.peers == NULL)
 	return 0;
@@ -490,7 +491,8 @@ neighborsUdpPing(request_t * request,
 	     * says a multicast peer is dead.
 	     */
 	    p->stats.last_reply = squid_curtime;
-	    (*exprep) += p->mcast.n_replies_expected;
+	    mcast_exprep += p->mcast.n_replies_expected;
+	    mcast_timeout += (p->stats.rtt * p->mcast.n_replies_expected);
 	} else if (neighborUp(p)) {
 	    /* its alive, expect a reply from it */
 	    if (neighborType(p, request) == PEER_PARENT) {
@@ -551,7 +553,7 @@ neighborsUdpPing(request_t * request,
     /*
      * How many replies to expect?
      */
-    *exprep = parent_exprep + sibling_exprep;
+    *exprep = parent_exprep + sibling_exprep + mcast_exprep;
 
     /*
      * If there is a configured timeout, use it
@@ -562,6 +564,8 @@ neighborsUdpPing(request_t * request,
 	if (*exprep > 0) {
 	    if (parent_exprep)
 		*timeout = 2 * parent_timeout / parent_exprep;
+	    else if (mcast_exprep)
+		*timeout = 2 * mcast_timeout / mcast_exprep;
 	    else
 		*timeout = 2 * sibling_timeout / sibling_exprep;
 	} else
