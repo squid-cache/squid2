@@ -1482,6 +1482,15 @@ storeAufsDirStats(SwapDir * SD, StoreEntry * sentry)
 #endif /* OLD_UNUSED_CODE */
 }
 
+static struct cache_dir_option options[] =
+{
+#if NOT_YET_DONE
+    {"L1", storeAufsDirParseL1},
+    {"L2", storeAufsDirParseL2},
+#endif
+    {NULL, NULL}
+};
+
 /*
  * storeAufsDirReconfigure
  *
@@ -1490,12 +1499,10 @@ storeAufsDirStats(SwapDir * SD, StoreEntry * sentry)
 void
 storeAufsDirReconfigure(SwapDir * sd, int index, char *path)
 {
-    char *token;
     int i;
     int size;
     int l1;
     int l2;
-    unsigned int read_only = 0;
 
     i = GetInteger();
     size = i << 10;		/* Mbytes to kbytes */
@@ -1509,9 +1516,6 @@ storeAufsDirReconfigure(SwapDir * sd, int index, char *path)
     l2 = i;
     if (l2 <= 0)
 	fatal("storeAufsDirReconfigure: invalid level 2 directories value");
-    if ((token = strtok(NULL, w_space)))
-	if (!strcasecmp(token, "read-only"))
-	    read_only = 1;
 
     /* just reconfigure it */
     if (size == sd->max_size)
@@ -1521,10 +1525,9 @@ storeAufsDirReconfigure(SwapDir * sd, int index, char *path)
 	debug(3, 1) ("Cache dir '%s' size changed to %d KB\n",
 	    path, size);
     sd->max_size = size;
-    if (sd->flags.read_only != read_only)
-	debug(3, 1) ("Cache dir '%s' now %s\n",
-	    path, read_only ? "Read-Only" : "Read-Write");
-    sd->flags.read_only = read_only;
+
+    parse_cachedir_options(sd, options, 0);
+
     return;
 }
 
@@ -1614,12 +1617,10 @@ storeAufsCleanupDoubleCheck(SwapDir * sd, StoreEntry * e)
 void
 storeAufsDirParse(SwapDir * sd, int index, char *path)
 {
-    char *token;
     int i;
     int size;
     int l1;
     int l2;
-    unsigned int read_only = 0;
     aioinfo_t *aioinfo;
 
     i = GetInteger();
@@ -1634,9 +1635,6 @@ storeAufsDirParse(SwapDir * sd, int index, char *path)
     l2 = i;
     if (l2 <= 0)
 	fatal("storeAufsDirParse: invalid level 2 directories value");
-    if ((token = strtok(NULL, w_space)))
-	if (!strcasecmp(token, "read-only"))
-	    read_only = 1;
 
     aioinfo = xmalloc(sizeof(aioinfo_t));
     if (aioinfo == NULL)
@@ -1651,7 +1649,6 @@ storeAufsDirParse(SwapDir * sd, int index, char *path)
     aioinfo->swaplog_fd = -1;
     aioinfo->map = NULL;	/* Debugging purposes */
     aioinfo->suggest = 0;
-    sd->flags.read_only = read_only;
     sd->init = storeAufsDirInit;
     sd->newfs = storeAufsDirNewfs;
     sd->dump = storeAufsDirDump;
@@ -1676,6 +1673,8 @@ storeAufsDirParse(SwapDir * sd, int index, char *path)
     sd->log.clean.start = storeAufsDirWriteCleanStart;
     sd->log.clean.nextentry = storeAufsDirCleanLogNextEntry;
     sd->log.clean.done = storeAufsDirWriteCleanDone;
+
+    parse_cachedir_options(sd, options, 0);
 
     /* Initialise replacement policy stuff */
     sd->repl = createRemovalPolicy(Config.replPolicy);

@@ -1920,3 +1920,8 @@ struct _Logfile {
 	unsigned int fatal:1;
     } flags;
 };
+
+struct cache_dir_option {
+    char *name;
+    void (*parse) (SwapDir * sd, const char *option, const char *value, int reconfiguring);
+};

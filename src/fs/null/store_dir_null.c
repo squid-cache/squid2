@@ -155,6 +155,7 @@ storeNullDirParse(SwapDir * sd, int index, char *path)
     sd->checkobj = storeNullDirCheckObj;
     sd->log.clean.start = storeNullDirWriteCleanStart;
     sd->log.clean.done = storeNullDirWriteCleanDone;
+    parse_cachedir_options(sd, NULL, 0);
 }
 
 void

@@ -84,7 +84,7 @@ extern void wordlistCat(const wordlist *, MemBuf * mb);
 extern void allocate_new_swapdir(cacheSwap *);
 extern void self_destruct(void);
 extern int GetInteger(void);
-
+extern void parse_cachedir_options(SwapDir * sd, struct cache_dir_option *options, int reconfiguring);
 
 extern void cbdataInit(void);
 #if CBDATA_DEBUG
