@@ -745,8 +745,11 @@ httpBuildRequestHeader(request_t * request,
 	debug(11, 5, "httpBuildRequestHeader: %s\n", xbuf);
 	if (strncasecmp(xbuf, "Proxy-Connection:", 17) == 0)
 	    continue;
+#if USE_PROXY_AUTH
 	if (strncasecmp(xbuf, "Proxy-authorization:", 20) == 0)
-	    continue;
+	    if (Config.proxyAuth.File)
+	        continue;
+#endif
 	if (strncasecmp(xbuf, "Connection:", 11) == 0)
 	    continue;
 	if (strncasecmp(xbuf, "Host:", 5) == 0) {
