@@ -252,7 +252,7 @@ main(int argc, char *argv[])
     char buf[256];
     char user[256];
     char *p;
-    char *cleartext;
+    char *cleartext = NULL;
     struct ntlm_challenge chal;
     int len;
     char *data = NULL;
@@ -314,6 +314,8 @@ main(int argc, char *argv[])
 	    }
 	}
 #endif /*v2 */
+	free(cleartext);
+	cleartext = NULL;
     }
     exit(0);
 }
