@@ -5,7 +5,8 @@
 PATH=@prefix@/bin:/bin
 export PATH
 
-if test $#argv = 1 ; then
+conf=""
+if test "$1" ; then
 	conf="-f $1"
 	shift;
 fi

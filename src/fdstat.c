@@ -172,6 +172,7 @@ int fdstat_are_n_free_fd(n)
 {
     int fd;
     int n_free_fd = 0;
+    int maxfd = getMaxFD();
 
 #if  FD_TEST
     int lowest_avail_fd;
@@ -199,7 +200,7 @@ int fdstat_are_n_free_fd(n)
 #endif
 
     if (n == 0) {
-	for (fd = 0; fd < getMaxFD(); ++fd)
+	for (fd = 0; fd < maxfd; ++fd)
 	    if (fd_stat_tab[fd].status == CLOSE)
 		++n;
 	return (n);
@@ -207,7 +208,7 @@ int fdstat_are_n_free_fd(n)
     if ((getMaxFD() - Biggest_FD) > n)
 	return 1;
     else {
-	for (fd = (getMaxFD() - 1); ((fd > 0) && (n_free_fd < n)); --fd) {
+	for (fd = maxfd - 1; ((fd > 0) && (n_free_fd < n)); --fd) {
 	    if (fd_stat_tab[fd].status == CLOSE) {
 		++n_free_fd;
 	    }

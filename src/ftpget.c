@@ -79,6 +79,9 @@
 #include <signal.h>
 #include <time.h>
 #include <sys/time.h>		/* for select(2) */
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -215,6 +218,8 @@ char *o_iconprefix = "internal-";	/* URL prefix for icons */
 char *o_iconsuffix = "";	/* URL suffix for icons */
 int o_list_width = 32;		/* size of filenames in directory list */
 int o_list_wrap = 0;		/* wrap long directory names ? */
+int o_conn_min = 0x4000;	/* min. port number to use */
+int o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
 
 #define SMALLBUFSIZ 1024
 #define MIDBUFSIZ 2048
@@ -239,6 +244,7 @@ request_t *MainRequest = NULL;
 list_t *cmd_msg = NULL;
 
 static int process_request _PARAMS((request_t *));
+static int write_with_timeout _PARAMS((int fd, char *buf, int len));
 
 static char *state_str[] =
 {
@@ -359,6 +365,8 @@ void fail(r)
 	    log_errno2(__FILE__, __LINE__, "fdopen");
 	    exit(1);
 	}
+	if (r->errmsg == NULL)
+	    r->errmsg = xstrdup(xstrerror());	/* safety net */
 	setbuf(fp, NULL);
 	htmlbuf[0] = '\0';
 	sprintf(htmlbuf, CACHED_RETRIEVE_ERROR_MSG,
@@ -375,7 +383,7 @@ void fail(r)
 	    fprintf(fp, "MIME-Version: 1.0\r\n");
 	    fprintf(fp, "Server: Squid %s\r\n", SQUID_VERSION);
 	    fprintf(fp, "Content-Type: text/html\r\n");
-	    fprintf(fp, "Content-Length: %d\r\n", (int) strlen(htmlbuf));
+	    /*fprintf(fp, "Content-Length: %d\r\n", (int) strlen(htmlbuf)); */
 	    fprintf(fp, "\r\n");
 	}
 	fputs(htmlbuf, fp);
@@ -394,6 +402,10 @@ void fail(r)
 	}
 	fputs(html_trailer(), fp);
 	fclose(fp);
+	if (r->flags & F_HTTPIFY) {
+	    Debug(26, 9, ("Writing Marker to FD %d\n", r->cfd));
+	    write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
+	}
     } else if (r->errmsg) {
 	errorlog("%s\n\t<URL:%s>\n", r->errmsg, r->url);
     }
@@ -437,7 +449,7 @@ void sigchld_handler(sig)
 
     if ((pid = waitpid(0, &status, WNOHANG)) > 0)
 	Debug(26, 5, ("sigchld_handler: Ate pid %d\n", pid));
-#if defined(_SQUID_SYSV_SIGNALS_)
+#if RESET_SIGNAL_HANDLER
     signal(sig, sigchld_handler);
 #endif
 }
@@ -1163,9 +1175,9 @@ state_t do_port(r)
     }
     while (1) {
 #if defined(HAVE_LRAND48)
-	port = (lrand48() & 0x3FFF) | 0x4000;
+	port = (lrand48() % (o_conn_max - o_conn_min)) + o_conn_min;
 #else
-	port = (rand() & 0x3FFF) | 0x4000;
+	port = (rand() % (o_conn_max - o_conn_min)) + o_conn_min;
 #endif
 	S.sin_port = htons(port);
 	if (bind(sock, (struct sockaddr *) &S, sizeof(S)) >= 0)
@@ -1438,6 +1450,8 @@ state_t read_data(r)
     if (x == READ_TIMEOUT)
 	return request_timeout(r);
     if (x < 0) {
+	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	sprintf(r->errmsg, "write: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
     }
@@ -2022,6 +2036,7 @@ int ftpget_srv_mode(port)
     int n;
     static char *w_space = " \t\n\r";
     static char buf[BUFSIZ];
+    int buflen;
 
     setsid();			/* become session leader */
 
@@ -2044,6 +2059,7 @@ int ftpget_srv_mode(port)
 	    ntohs(S.sin_port)));
     if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
 	log_errno2(__FILE__, __LINE__, "bind");
+	sleep(5);		/* sleep here so that the cache will restart us */
 	exit(1);
     }
     if (listen(sock, 50) < 0) {
@@ -2071,29 +2087,33 @@ int ftpget_srv_mode(port)
 	    log_errno2(__FILE__, __LINE__, "accept");
 	    exit(1);
 	}
-	buf[0] = '\0';
-	/* XXX Assume we get the whole request in one read! */
-	/* Probably okay since it should be coming on the loopback */
-	if ((n = read(c, buf, BUFSIZ)) <= 0) {
-	    log_errno2(__FILE__, __LINE__, "read");
+	if (fork()) {
+	    /* parent */
 	    close(c);
 	    continue;
 	}
-	buf[n] = '\0';		/* Must terminate it */
+	buflen = 0;
+	memset(buf, '\0', BUFSIZ);
+	do {
+	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) <= 0) {
+		log_errno2(__FILE__, __LINE__, "read");
+		close(c);
+		_exit(1);
+	    }
+	    buflen += n;
+	} while (!strchr(buf, '\n'));
 	i = 0;
 	t = strtok(buf, w_space);
 	while (t && i < MAX_ARGS - 1) {
+	    if (strcmp(t, "\"\"") == 0)
+		t = "";
 	    args[i] = xstrdup(t);
 	    Debug(26, 5, ("args[%d] = %s\n", i, args[i]));
 	    t = strtok(NULL, w_space);
 	    i++;
 	}
 	args[i] = NULL;
-	if (fork()) {
-	    /* parent */
-	    close(c);
-	    continue;
-	}
+
 	dup2(c, 1);
 	close(c);
 	execvp(fullprogname, args);
@@ -2103,10 +2123,13 @@ int ftpget_srv_mode(port)
     return 1;
 }
 
-void usage()
+void usage(argcount)
+     int argcount;
 {
     fprintf(stderr, "usage: %s options filename host path A,I user pass\n",
 	progname);
+    if (argcount != 0)
+	return;
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "\t-c num[:delay]  Max connect attempts and retry delay\n");
     fprintf(stderr, "\t-l num[:delay]  Max login attempts and retry delay\n");
@@ -2119,6 +2142,7 @@ void usage()
     fprintf(stderr, "\t-R              DON'T get README file\n");
     fprintf(stderr, "\t-w chars        Filename width in directory listing\n");
     fprintf(stderr, "\t-W              Wrap long filenames\n");
+    fprintf(stderr, "\t-C min:max      Min and max port numbers to used for data\n");
     fprintf(stderr, "\t-Ddbg           Debug options\n");
     fprintf(stderr, "\t-P port         FTP Port number\n");
     fprintf(stderr, "\t-v              Version\n");
@@ -2186,16 +2210,16 @@ int main(argc, argv)
 	    continue;
 	} else if (!strcmp(*argv, "-S")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    j = atoi(*argv);
 	    Debug(26, 1, ("argv=%s j=%d\n", *argv, j));
 	    if (j > 0)
 		return (ftpget_srv_mode(j));
-	    usage();
+	    usage(argc);
 	} else if (!strcmp(*argv, "-t")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    j = atoi(*argv);
 	    if (j > 0)
@@ -2203,7 +2227,7 @@ int main(argc, argv)
 	    continue;
 	} else if (!strcmp(*argv, "-w")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    j = atoi(*argv);
 	    if (j > 0)
@@ -2211,7 +2235,7 @@ int main(argc, argv)
 	    continue;
 	} else if (!strcmp(*argv, "-n")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    j = atoi(*argv);
 	    if (j > 0)
@@ -2219,19 +2243,19 @@ int main(argc, argv)
 	    continue;
 	} else if (!strcmp(*argv, "-p")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    o_iconprefix = xstrdup(*argv);
 	    continue;
 	} else if (!strcmp(*argv, "-s")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    o_iconsuffix = xstrdup(*argv);
 	    continue;
 	} else if (!strcmp(*argv, "-c")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    j = k = 0;
 	    sscanf(*argv, "%d:%d", &j, &k);
@@ -2242,7 +2266,7 @@ int main(argc, argv)
 	    continue;
 	} else if (!strcmp(*argv, "-l")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    j = k = 0;
 	    sscanf(*argv, "%d:%d", &j, &k);
@@ -2253,7 +2277,7 @@ int main(argc, argv)
 	    continue;
 	} else if (!strcmp(*argv, "-r")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    j = k = 0;
 	    sscanf(*argv, "%d:%d", &j, &k);
@@ -2262,13 +2286,24 @@ int main(argc, argv)
 	    if (k)
 		o_rest_del = k;
 	    continue;
+	} else if (!strcmp(*argv, "-C")) {
+	    if (--argc < 1)
+		usage();
+	    argv++;
+	    j = k = 0;
+	    sscanf(*argv, "%d:%d", &j, &k);
+	    if (j)
+		o_conn_min = j;
+	    if (k)
+		o_conn_max = k;
+	    continue;
 	} else if (!strcmp(*argv, "-R")) {
 	    o_readme = 0;
 	} else if (!strcmp(*argv, "-W")) {
 	    o_list_wrap = 1;
 	} else if (!strcmp(*argv, "-P")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    j = atoi(*argv);
 	    if (j > 0)
@@ -2278,14 +2313,14 @@ int main(argc, argv)
 	    printf("%s version %s\n", progname, SQUID_VERSION);
 	    exit(0);
 	} else {
-	    usage();
+	    usage(argc);
 	    exit(1);
 	}
     }
 
     if (argc != 6) {
-	fprintf(stderr, "Too many arguments left (%d)\n", argc);
-	usage();
+	fprintf(stderr, "Wrong number of arguments left (%d)\n", argc);
+	usage(argc);
     }
     r = (request_t *) xmalloc(sizeof(request_t));
     memset(r, '\0', sizeof(request_t));
@@ -2312,7 +2347,7 @@ int main(argc, argv)
 
     if (*(r->type) != 'A' && *(r->type) != 'I') {
 	errorlog("Invalid transfer type: %s\n", r->type);
-	usage();
+	usage(argc);
     }
     cleanup_path(r);
 

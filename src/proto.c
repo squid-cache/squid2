@@ -48,6 +48,7 @@ extern time_t neighbor_timeout;
 extern single_parent_bypass;
 extern char *dns_error_message;
 
+#ifdef NOTUSED_CODE
 /* return 1 for cachable url
  * return 0 for uncachable url */
 int proto_cachable(url, method)
@@ -65,17 +66,13 @@ int proto_cachable(url, method)
 	return gopherCachable(url);
     if (!strncasecmp(url, "wais://", 7))
 	return 0;
-#ifdef NEED_PROTO_CONNECT
-    if (!strncasecmp(url, "connect://", 8))
-	return 0;
-#else
     if (method == METHOD_CONNECT)
 	return 0;
-#endif
     if (!strncasecmp(url, "cache_object://", 15))
 	return 0;
     return 1;
 }
+#endif
 
 /* called when DNS lookup is done by ipcache. */
 int protoDispatchDNSHandle(unused1, unused2, data)
@@ -138,15 +135,15 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	safe_free(protoData);
 	return 0;
     }
-    if (!protoData->cachable && (e = getFirstParent(req->host))) {
-	/* for uncachable objects we should not ping the hierarchy (because
+    if (!protoData->query_neighbors && (e = getFirstParent(req->host))) {
+	/* for private objects we should not ping the hierarchy (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
 	getFromCache(protoData->fd, entry, e, req);
 	safe_free(protoData);
 	return 0;
     } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */
-	if ((entry->ping_status == DONE) || entry->status == STORE_OK) {
+	if ((entry->ping_status == DONE) || entry->store_status == STORE_OK) {
 	    debug(17, 0, "Starting a source ping for a valid object %s!\n",
 		storeToString(entry));
 	    fatal_dump(NULL);
@@ -212,14 +209,14 @@ int protoDispatch(fd, url, entry, request)
     data->request = entry->mem_obj->request = request;
 
     data->inside_firewall = matchInsideFirewall(request->host);
-    data->cachable = proto_cachable(url, request->method);
+    data->query_neighbors = BIT_TEST(entry->flag, HIERARCHICAL);
     data->single_parent = getSingleParent(request->host, &n);
     data->n_edges = n;
 
     debug(17, 2, "protoDispatch: inside_firewall = %d (%s)\n",
 	data->inside_firewall,
 	firewall_desc_str[data->inside_firewall]);
-    debug(17, 2, "protoDispatch:        cachable = %d\n", data->cachable);
+    debug(17, 2, "protoDispatch: query_neighbors = %d\n", data->query_neighbors);
     debug(17, 2, "protoDispatch:         n_edges = %d\n", data->n_edges);
     debug(17, 2, "protoDispatch:   single_parent = %s\n",
 	data->single_parent ? data->single_parent->host : "N/A");
@@ -231,7 +228,7 @@ int protoDispatch(fd, url, entry, request)
 	data->source_ping = 0;
 	data->direct_fetch = DIRECT_NO;
 	protoDispatchDNSHandle(fd, (struct hostent *) NULL, data);
-    } else if (matchLocalDomain(request->host) || !data->cachable) {
+    } else if (matchLocalDomain(request->host) || !data->query_neighbors) {
 	/* will fetch from source */
 	data->direct_fetch = DIRECT_YES;
 	ipcache_nbgethostbyname(request->host,
@@ -417,13 +414,8 @@ int getFromCache(fd, entry, e, request)
 	return ftpStart(fd, url, entry);
     } else if (request->protocol == PROTO_WAIS) {
 	return waisStart(fd, url, entry->method, request_hdr, entry);
-#ifdef NEED_PROTO_CONNECT
-    } else if (strncasecmp(url, "connect://", 8) == 0) {
-	return connectStart(fd, url, request, request_hdr, entry);
-#else
     } else if (entry->method == METHOD_CONNECT) {
 	return connectStart(fd, url, request, request_hdr, entry);
-#endif
     } else {
 	return protoNotImplemented(fd, url, entry);
     }

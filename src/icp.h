@@ -11,11 +11,11 @@ typedef enum {
     LOG_TCP_USER_REFRESH,	/* 4 */
     LOG_TCP_IFMODSINCE,		/* 5 */
     LOG_TCP_SWAPIN_FAIL,	/* 6 */
-    LOG_TCP_BLOCK,		/* 7 */
-    LOG_TCP_DENIED,		/* 8 */
-    LOG_UDP_HIT,		/* 9 */
-    LOG_UDP_MISS,		/* 10 */
-    LOG_UDP_DENIED,		/* 11 */
+    LOG_TCP_DENIED,		/* 7 */
+    LOG_UDP_HIT,		/* 8 */
+    LOG_UDP_MISS,		/* 9 */
+    LOG_UDP_DENIED,		/* 10 */
+    LOG_UDP_INVALID,		/* 11 */
     ERR_READ_TIMEOUT,		/* 12 */
     ERR_LIFETIME_EXP,		/* 13 */
     ERR_NO_CLIENTS_BIG_OBJ,	/* 14 */
@@ -30,8 +30,7 @@ typedef enum {
     ERR_CANNOT_FETCH,		/* 23 */
     ERR_NO_RELAY,		/* 24 */
     ERR_DISK_IO,		/* 25 */
-    ERR_URL_BLOCKED,		/* 26 */
-    ERR_ZERO_SIZE_OBJECT	/* 27 */
+    ERR_ZERO_SIZE_OBJECT	/* 26 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT
@@ -42,8 +41,9 @@ typedef enum {
 #define		REQ_NOCACHE	0x02
 #define		REQ_IMS		0x04
 #define		REQ_AUTH	0x08
-#define		REQ_PUBLIC	0x10
+#define		REQ_CACHABLE	0x10
 #define 	REQ_ACCEL	0x20
+#define 	REQ_HIERARCHICAL 0x40
 
 typedef struct wwd {
     struct sockaddr_in address;

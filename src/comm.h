@@ -50,7 +50,7 @@ typedef struct fde {
     void *timeout_data;		/* App. data to associate w/ handled conn. */
     int (*lifetime_handler) ();	/* Lifetime expire handler. */
     void *lifetime_data;	/* App. data to associate w/ handled conn. */
-    int (*close_handler)();
+    int (*close_handler) ();
     void *close_data;
     char ascii_note[FD_ASCII_NOTE_SZ];
     unsigned int comm_type;

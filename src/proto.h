@@ -163,7 +163,7 @@ typedef struct _protodispatch_data {
     int inside_firewall;
     int direct_fetch;
     int source_ping;
-    int cachable;
+    int query_neighbors;
     int n_edges;
     struct _edge *single_parent;
 } protodispatch_data;

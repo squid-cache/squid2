@@ -77,7 +77,7 @@ static void connectReadRemote(fd, data)
     debug(26, 5, "connectReadRemote FD %d read len:%d\n", fd, len);
 
     if (len < 0) {
-	debug(26, 1, "connectReadRemote: FD %d: read failure: %s.\n", xstrerror());
+	debug(26, 1, "connectReadRemote: FD %d: read failure: %s.\n", fd, xstrerror());
 	if (errno == EAGAIN || errno == EWOULDBLOCK) {
 	    /* reinstall handlers */
 	    /* XXX This may loop forever */
@@ -89,7 +89,7 @@ static void connectReadRemote(fd, data)
 		COMM_SELECT_TIMEOUT,
 		(PF) connectReadTimeout,
 		(void *) data,
-		getReadTimeout());
+		data->timeout);
 	} else {
 	    BIT_RESET(entry->flag, CACHABLE);
 	    storeReleaseRequest(entry);
@@ -178,6 +178,8 @@ static void connectReadClient(fd, data)
 	comm_close(fd);
 	return;
     }
+    if (!fdstat_isopen(data->remote))
+	fatal_dump("connectReadClient called after remote side closed\n");
     data->offset = 0;
     comm_set_select_handler_plus_timeout(data->client,
 	COMM_SELECT_TIMEOUT,
@@ -207,6 +209,7 @@ static void connectConnected(fd, data)
      int fd;
      ConnectData *data;
 {
+    debug(26, 3, "connectConnected: FD %d data=%p\n", fd, data);
     storeAppend(data->entry, conn_established, strlen(conn_established));
     comm_set_fd_lifetime(fd, -1);	/* disable lifetime DPW */
     comm_set_select_handler_plus_timeout(data->remote, COMM_SELECT_TIMEOUT,
@@ -226,6 +229,11 @@ static int connectStateFree(fd, connectState)
 {
     if (connectState == NULL)
 	return 1;
+    comm_set_select_handler(connectState->client,
+	COMM_SELECT_READ,
+	NULL,
+	NULL);
+    memset(connectState, '\0', sizeof(ConnectData));
     safe_free(connectState);
     return 0;
 }
@@ -238,7 +246,7 @@ void connectConnInProgress(fd, data)
     debug(26, 5, "connectConnInProgress: FD %d data=%p\n", fd, data);
 
     if (comm_connect(fd, req->host, req->port) != COMM_OK) {
-	debug(26, 5, "connectConnInProgress: FD %d errno=%d", fd, errno);
+	debug(26, 5, "connectConnInProgress: FD %d: %s", fd, xstrerror());
 	switch (errno) {
 #if EINPROGRESS != EALREADY
 	case EINPROGRESS:
@@ -289,7 +297,6 @@ int connectStart(fd, url, request, mime_hdr, entry)
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
 	return COMM_ERROR;
     }
-
     data = (ConnectData *) xcalloc(1, sizeof(ConnectData));
     data->entry = entry;
     data->request = request;
@@ -334,6 +341,7 @@ int connectStart(fd, url, request, mime_hdr, entry)
 		COMM_SELECT_WRITE,
 		(PF) connectConnInProgress,
 		(void *) data);
+	    return COMM_OK;
 	}
     }
     /* We got immediately connected. (can this happen?) */

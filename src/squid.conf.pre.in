@@ -5,61 +5,29 @@
 
 #  TAG: ascii_port
 #	The port number where cached will listen for HTTP client
-#	requests.  The default is 3128 (actually specified in
-#	src/include/config.h).  For httpd-accel mode, use 80.  The value
-#	given here may be overridden by using the -a command line
-#	option.
+#	requests.  Default is 3128, for httpd-accel mode use port 80.
+#	May be overridden with -a on the command line.
 #ascii_port @CACHE_HTTP_PORT@
 
 #  TAG: udp_port
 #	The port number where cached will listen for ICP requests from
-#	neighbor caches.  The default is 3130 (actually specified in
-#	src/include/config.h).  For httpd-accel mode, it can be disabled
-#	with -1.  The value given here may be overridden by using the -u
-#	command line option.
+#	neighbor caches.  Default is 3130.  To disable use "-1".
+#	May be overridden with -u on the command line.
 #udp_port @CACHE_ICP_PORT@
 
+#  TAG: bind_address
+#	Use this to force the cache to listen on a specific IP address
+#	(interface) instead of listening on all addresses.  Either
+#	an IP address or hostname can be given.  For example:
 #
-#  TAG: httpd_accel 
-#	If you want to run cached as an httpd accelerator, define the
-#	host name and port number of the httpd server to which the
-#	accelerator should forward requests that miss in the cache.  The
-#	default is to disable the httpd accelerator mode.  If you
-#	want to  run the cache as both an accelerator and a normal proxy
-#	cache 'set httpd_accel_with_proxy on' below
-#
-#httpd_accel your.real.httpd.host your.real.httpd.port
-
-#
-#  TAG: cache_hot_vm_factor
-#	This parameter is only used when the cache is running strictly
-#	in httpd_accel mode.  In this case the cache keeps a number of
-#	objects entirely in memory.  We keep 'hot_vm_factor' such
-#	objects for each megabyte of cache_mem.  So, the number of
-#	number of hot_vm objects is calculated as
-#
-#		hot_vm_count = cache_mem * hot_vm_factor / 1048576
-#
-#	The default is 0, which disables hot_vm objects.  The suggested
-#	value for httpd_accel_mode is 12.5.
-#
-#cache_hot_vm_factor 0
-
-#
-#  TAG: httpd_accel_with_proxy
-#	If you want to use cached as both a local httpd accelerator
-#	and as a proxy, change this to 'on'.  The default is 'off'
-#	which will generate an error message when you try to proxy
-#	through the cache in httpd-accel mode.
-#
-#httpd_accel_with_proxy off
+#	    bind_address 172.16.1.1
+#	    bind_address localhost
+#	    bind_address www-slip.my.domain
 
 
-######################################################################
-#  Parameters to define where the cache fits into the caching topology
-######################################################################
+# OPTIONS WHICH AFFECT THE NEIGHBOR SELECTION ALGORITHM
+#-----------------------------------------------------------------------------
 
-#
 #  TAG: cache_host 
 #	To specify other caches in a hierarchy, use the format:
 #
@@ -122,7 +90,6 @@
 #		  for all requests.
 #		* There are no defaults.
 
-#
 #  TAG:	inside_firewall
 #	This tag specifies a list of domains inside your Internet
 #	firewall.
@@ -141,7 +108,6 @@
 #
 #inside_firewall topsecret.com
 
-#
 #  TAG:	local_domain
 #	This tag specifies a list of domains local to your organization.
 #
@@ -153,7 +119,6 @@
 #
 #local_domain bigbucks.com
 
-#
 #  TAG: local_ip
 #	This tag specifies a list of network addresses local to your
 #	organization.
@@ -197,7 +162,6 @@
 #
 #single_parent_bypass off
 
-#
 #  TAG: source_ping
 #	If source_ping is enabled, then cached will include the source
 #	provider site in its selection algorithm.  This is accomplished
@@ -214,7 +178,6 @@
 #
 #source_ping off
 
-#
 #  TAG: neighbor_timeout (seconds)
 #	This controls how long to wait for replies from neighbor caches.
 #	If none of the parent or neighbor caches reply before this many
@@ -224,9 +187,8 @@
 #
 #neighbor_timeout 2
 
-###################################################################
-#  Parameters to tune the size, location, and TTLs of the cache
-###################################################################
+# OPTIONS WHICH AFFECT THE CACHE SIZE
+#-----------------------------------------------------------------------------
 
 #
 #  TAG: cache_mem (in megabytes)       
@@ -237,7 +199,6 @@
 #	
 #cache_mem  16
 
-#
 #  TAG: cache_swap (in megabytes)
 #	Maximum about of disk space used by the cache.  The default is
 #	100 megabytes.  When the disk usage gets to this size, the cache
@@ -249,89 +210,60 @@
 #	
 #cache_swap 100
 
-#
 #  TAG: cache_swap_low  (percent, 0-100)
 #  TAG: cache_swap_high (percent, 0-100)
 #	The low- and high-water marks for cache LRU replacement.
 #	LRU replacement begins when the high-water mark is reached
 #	and ends when enough objects have been removed and the low-water
-#	mark is reached.
+#	mark is reached. Defaults are 75% and 90%.
 #	
-#cache_swap_low  60
+#cache_swap_low  75
 #cache_swap_high 90
 
+#  TAG: cache_mem_low (in percent)         
+#  TAG: cache_mem_high (in percent)
+#	The low- and high-water mark for cache memory storage.  When
+#	the amount of RAM used by the hot-object RAM cache reaches this
+#	point, the cache starts throwing objects out of the RAM cache
+#	(but they remain on disk).  Defaults are 75% and 90%.
 #
+#cache_mem_low 75
+#cache_mem_high 90
+
+
+# LOGFILE PATHNAMES AND CACHE DIRECTORIES
+#-----------------------------------------------------------------------------
+
 #  TAG: cache_dir 
 #	Directory for on-disk cache storage.  The cache will change into
-#	this directory when running.  The default is @prefix@/cache.
+#	this directory when running.  The default is
+#	@prefix@/cache.
 #
 #	You can specify multiple cache_dir lines to spread the
 #	cache among different disk partitions.
-#
 #cache_dir @prefix@/cache
 
-###################################################################
-#  Parameters for defining cache server behaviour
-###################################################################
-
-#
-#  TAG: http_stop, gopher_stop, ftp_stop 
-#	Stoplist for URL's.  URL's which contain these strings will be
-#	marked as un-cacheable.  NOTE, these objects are still proxied,
-#	but not saved by the cache.
-#
-http_stop     /cgi-bin/
-http_stop     ?
-gopher_stop   ?
-
-#
-#  TAG: quick_abort
-#	By default the cache continues to retrieve objects from
-#	aborted requests.  This may be undesirable on slow (e.g. SLIP)
-#	links and/or very busy caches.  Impatient users may tie up
-#	file descriptors by repeatedly aborting and re-requesting
-#	non-cachable objects.
-#	
-#quick_abort    off
-
-#
-#  TAG: bind_address
-#	Use this to force the cache to listen on a specific IP address
-#	(interface) instead of listening on all addresses.  Either
-#	an IP address or hostname can be given.  For example:
-#
-#	    bind_address 172.16.1.1
-#	    bind_address localhost
-#	    bind_address www-slip.my.domain
-
-###################################################################
-#  Logging paramaters and files for the cache.  Refer to the
-#  User's Manual for information on the formats of these files.
-###################################################################
-
-#
 #  TAG: cache_access_log 
-#	Cache access logfile, which logs the hits/misses.  
-#	The default is "cache.access.log" in the current directory.
-#
+#	Logs the client request activity.  Contains an entry for 
+#	every HTTP and ICP request received.
 #cache_access_log @prefix@/logs/access.log
 
-#
 #  TAG: cache_log 
-#	Cache logging file.
-#	Set logging levels with "debug_options" below.
-#
+#	Cache logging file.  Set logging levels with "debug_options" below.
 #cache_log @prefix@/logs/cache.log
 
-#
 #  TAG: cache_hierarchy_log 
 #	Hierachical caching access logfile.  It shows which parent,
 #	neighbor, or source host a request is satisfied from.
-#	The default filename is cache.hierarchy.log.
-#
+#	To disable, enter "none".
 #cache_hierarchy_log @prefix@/logs/hierarchy.log 
 
-#
+#  TAG:	cache_store_log
+#	Logs the activities of the storage manager.  Shows which
+#	objects are ejected from the cache, and which objects are
+#	saved and for how long.  To disable, enter "none".
+#cache_store_log @prefix@/logs/store.log 
+
 #  TAG: emulate_httpd_log
 #	The Cache can emulate the log file format which many 'httpd'
 #	programs use.  To disable/enable this emulation, set 
@@ -340,19 +272,29 @@ gopher_stop   ?
 #
 #emulate_httpd_log on
 
-###################################################################
-#  External programs needed by the cache
-###################################################################
+#  TAG: pid_filename
+#	A pathname to write the process-id to.  There is no default.
+#pid_filename
 
-#
+#  TAG: debug_options
+#	Logging options are set as section,level where each source file
+#	is assigned a unique section.  Lower levels result in less
+#	output,  Full debugging (level 9) can result in a very large
+#	log file, so be careful.  The magic word "ALL" sets debugging
+#	levels for all sections.  We recommend normally running with
+#	"ALL,1".
+debug_options ALL,1
+
+
+# OPTIONS FOR EXTERNAL SUPPORT PROGRAMS
+#-----------------------------------------------------------------------------
+
 #  TAG: cache_ftp_program 
 #	Where to find the 'ftpget' program that retrieves FTP data (HTTP
-#	and Gopher protocol support are built into the cache).  The
-#	default is ftpget, so the program must be in your PATH.
+#	and Gopher protocol support are built into the cache).  
 #
 cache_ftp_program @prefix@/bin/ftpget
 
-#
 #  TAG: cache_ftp_options
 #	Options for the 'ftpget' program.  Please run 'ftpget' without
 #	any arguments to see a list of options.  The default is
@@ -362,18 +304,44 @@ cache_ftp_program @prefix@/bin/ftpget
 #
 #cache_ftp_options
 
+# If you want the anonymous login password to be more informative
+# (and enable the use of picky ftp servers), set this to something
+# resonable for your domain, like wwwuser@somewhere.net
 #
+# The reason why this is domainless by default is that the
+# request can be made on the behalf of a user in any domain.
+# depending on how the cache is used.
+# Some ftp server also validate that the email adress is valid
+# (for example perl.com).
+#
+#ftp_user squid@
+
 #  TAG: cache_dns_program 
 #	Specify the location of the executable for dnslookup process.
 #	The default is dnsserver, so the program must be in your PATH.
 #
 cache_dns_program @prefix@/bin/dnsserver
 
-###################################################################
-#  Parameters for tuning the cache
-###################################################################
-
+#  TAG: dns_children
+#	The number of processes spawn to service DNS name lookups.
+#	For heavily loaded caches on large servers, you should 
+#	probably increase this value to at least 10.  The maximum
+#	is 32.  The default is 5.
 #
+#dns_children 5
+
+
+# OPTIONS FOR TUNING THE CACHE
+#-----------------------------------------------------------------------------
+
+#  TAG: http_stop, gopher_stop, ftp_stop 
+#	Stoplist for URL's.  URL's which contain these strings will be
+#	never be saved in the cache.
+#
+http_stop     /cgi-bin/
+http_stop     ?
+gopher_stop   ?
+
 #  TAG: ftp, gopher, http
 #	Object size limits (in MB) and default TTLs (in minutes) 
 #	per access type.
@@ -393,7 +361,18 @@ cache_dns_program @prefix@/bin/dnsserver
 #http                    4            10080 
 #ftp                     4            10080 
 
+#  TAG: wais_relay
+#	Relay WAIS request to host (1st arg) at port (2 arg).  
+#	Third argument is max object size.
+#wais_relay localhost 8000 4
+
+#  TAG: request_size
+#	Maximum allowed request size in kilobytes.  If people are using
+#	POST to upload files, then set this to the largest acceptable
+#	filesize plus a few extra kbytes.
 #
+request_size 100
+
 #  TAG: ttl_pattern
 #	Selection of TTL's based on URL regular expressions (syntax
 #	is the POSIX standard).  There are no defaults.
@@ -437,17 +416,15 @@ cache_dns_program @prefix@/bin/dnsserver
 #ttl_pattern    \.gif$                      2880        50%      43200
 #ttl_pattern    /cgi-bin/                      0         0%      43200
 
-#
-#  TAG: wais_relay
-#	Relay WAIS request to host (1st arg) at port (2 arg).  
-#	Third argument is max object size.
-#
-#	wais_relay is not supported by default.  To use this feature
-#	add -DUSE_WAIS_RELAY to the DEFINES in src/server/Makefile
-#
-#wais_relay localhost 8000 4
+#  TAG: quick_abort
+#	By default the cache continues to retrieve objects from
+#	aborted requests.  This may be undesirable on slow (e.g. SLIP)
+#	links and/or very busy caches.  Impatient users may tie up
+#	file descriptors by repeatedly aborting and re-requesting
+#	non-cachable objects.
+#	
+#quick_abort    off
 
-#
 #  TAG: negative_ttl (in minutes)         
 #	Time-to-Live (TTL) for negative caching of retrieved objects.
 #	The default is 5 minutes.  Note that this is different from
@@ -462,30 +439,15 @@ cache_dns_program @prefix@/bin/dnsserver
 #
 #positive_dns_ttl 360
 
-#
 #  TAG: negative_dns_ttl (in minutes)         
 #	Time-to-Live (TTL) for negative caching of failed DNS lookups.
 #
 #negative_dns_ttl 5
 
-#
-#  TAG: cache_mem_high (in percent)
-#	The high water mark for cache memory storage.  When the amount of
-#	RAM used by the hot-object RAM cache reaches this point, the
-#	cache starts throwing objects out of the RAM cache (but they
-#	remain on disk).  The default is 90%.
-#
-#cache_mem_high 90
 
-#
-#  TAG: cache_mem_low (in percent)         
-#	The low water mark for cache memory storage.  When the amount of
-#	RAM used by the hot object cache reaches this point, the cache
-#	stops throwing objects out of the cache.  The default is 60%.
-#
-#cache_mem_low 60
+# TIMEOUTS
+#-----------------------------------------------------------------------------
 
-#
 #  TAG: connect_timeout (in seconds)
 #	Some systems (notably Linux) can not be relied upon to properly
 #	time out connect(2) requests.  Therefore the cached process
@@ -495,7 +457,6 @@ cache_dns_program @prefix@/bin/dnsserver
 #
 #connect_timeout 120
 
-#
 #  TAG: read_timeout (in minutes)         
 #	An active connection will be aborted after read_timeout minutes
 #	of no activity on that connection (i.e., assume the remote server
@@ -504,7 +465,6 @@ cache_dns_program @prefix@/bin/dnsserver
 #
 #read_timeout 15
 
-#
 #  TAG: client_lifetime (in minutes)         
 #	The maximum amount of time that a client (browser) is allowed to
 #	remain connected to the cache process.  This protects the Cache
@@ -522,7 +482,12 @@ cache_dns_program @prefix@/bin/dnsserver
 #
 #client_lifetime 200
 
-#
+# When SIGTERM or SIGHUP is received, the cache is put into "shutdown pending"
+# mode until all active sockets are closed.  This value is the lifetime
+# to set for all open descriptors during shutdown mode.  Any active
+# clients after this many seconds will receive a 'lifetime expire' message
+shutdown_lifetime 30
+
 #  TAG: clean_rate (in minutes)
 #	How often to force a full garbage collection.   Garbage collection
 #	involves checking the expire time of every object in the cache.
@@ -538,34 +503,60 @@ cache_dns_program @prefix@/bin/dnsserver
 #
 #clean_rate -1
 
-#
-#  TAG: append_domain 
-#	Appends local domain name to hostnames without any dots in them.
-#	append_domain must begin with a period.
-#
-#append_domain .yourdomain.com
+# ACCESS CONTROLS
+#-----------------------------------------------------------------------------
 
+# Defining an Access List
 #
-#  TAG: dns_children
-#	The number of processes spawn to service DNS name lookups.
-#	For heavily loaded caches on large servers, you should 
-#	probably increase this value to at least 10.  The maximum
-#	is 32.  The default is 5.
-#
-#dns_children 5
+# acl aclname src|domain|time|pattern|port|proto|method string1 ...
+# 
+# acl aclname src      ip-address/netmask ...
+# acl aclname domain   .foo.com ...
+# acl aclname time     day-abbrevs  h1:m1-h2:m2
+#	day-abbrevs:
+#		S - Sunday
+#		M - Monday
+#		T - Tuesday
+#		W - Wednesday
+#		H - Thursday
+#		F - Friday
+#		A - Saturday
+#	h1:m1 must be less than h2:m2
+# acl aclname pattern  \.gif$ ...
+# acl aclname port     80 70 21 ...
+# acl aclname proto    HTTP FTP ...
+# acl aclname method   GET POST ...
 
-###################################################################
-#  Administrative parameters for the cache
-###################################################################
+acl manager proto cache_object
+acl localhost src 127.0.0.1/255.255.255.255
+acl all src 0.0.0.0/0.0.0.0
 
+# Allowing or Denying access based on defined access lists
 #
+# Access to the HTTP port:
+#     http_access allow|deny [!]aclname ...
+# 
+# Access to the ICP port:
+#     icp_access  allow|deny [!]aclname ...
+
+# Only allow access to the cache manager functions from the local host.
+http_access deny manager !localhost
+
+# Allow everything else
+http_access allow  all
+
+# Reply to all ICP queries we receive
+icp_access  allow  all
+
+# ADMINISTRATIVE PARAMETERS
+#-----------------------------------------------------------------------------
+
 #  TAG: cache_mgr 
 #	Email-address of local cache manager who will receive
 #	mail if the cache dies.  The default is not to send mail.
 #
 #cache_mgr your.name@your.domain.com
 
-#
 #  TAG: cache_effective_user
 #	If the cache is run as root, it will change its effective/real
 #	UID/GID to the UID/GID specified below.  The default is not to
@@ -573,22 +564,16 @@ cache_dns_program @prefix@/bin/dnsserver
 #
 #cache_effective_user nobody nogroup
 
-#
-#  TAG: logfile_rotate #
-#	Specifies the number of logfile rotations to make upon receiving
-#	a HUP signal.  The default is 10, which will rotate with
-#	extensions 0 through 9.  Setting logfile_rotate to 0 will
-#	disable the rotation, but the logfiles are still closed and
-#	re-opened.  This will enable you to rename the logfiles yourself
-#	just before sending a HUP signal to the cached process.
-#
-#logfile_rotate 10
+#  TAG: visible_hostname
+#	If you want to present a special hostname in error messages, etc,
+#	then define this.  Otherwise, the return value of gethostname()
+#	will be used.
+#visible_hostname www-cache.foo.org
 
 
 
-###################################################################
-#  Parameters for the cache registration service
-###################################################################
+# OPTIONS FOR THE CACHE REGISTRATION SERVICE
+#-----------------------------------------------------------------------------
 #
 #	This section contains parameters for the (optional) cache
 #	announcement service.  This service is provided to help
@@ -608,10 +593,6 @@ cache_dns_program @prefix@/bin/dnsserver
 #		ascii_port
 #		udp_port
 #		cache_mgr
-#		announce_organization
-#		announce_latitude
-#		announce_longitude
-#		announce_comment
 #
 #	All current information is processed regularly and made
 #	available on the Web at http://www.nlanr.net/Cache/Tracker/.
@@ -636,72 +617,39 @@ cache_dns_program @prefix@/bin/dnsserver
 #announce_to sd.cache.nlanr.net:3131
 
 
-# NEW THINGS
 
-#debug_options
-#pid_filename
-#visible_hostname
 
-# If you want the anonymous login password to be more informative
-# (and enable the use of picky ftp servers), set this to something
-# resonable for your domain, like wwwuser@somewhere.net
+
+# HTTPD-ACCELERATOR OPTIONS
+#-----------------------------------------------------------------------------
+
+#  TAG: httpd_accel 
+#	If you want to run cached as an httpd accelerator, define the
+#	host name and port number where the real HTTP server is.
+#httpd_accel your.real.httpd.host your.real.httpd.port
+
+#  TAG: httpd_accel_with_proxy
+#	If you want to use cached as both a local httpd accelerator
+#	and as a proxy, change this to 'on'.
+#httpd_accel_with_proxy off
+
+#  TAG: cache_hot_vm_factor
+#	This parameter is only used when the cache is running strictly
+#	in httpd_accel mode.  In this case the cache keeps a number of
+#	objects entirely in memory.  We keep 'hot_vm_factor' such
+#	objects for each megabyte of cache_mem.  So, the number of
+#	number of hot_vm objects is calculated as
 #
-# The reason why this is domainless by default is that the
-# request can be made on the behalf of a user in any domain.
-# depending on how the cache is used.
-# Some ftp server also validate that the email adress is valid
-# (for example perl.com).
+#		hot_vm_count = cache_mem * hot_vm_factor / 1048576
 #
-ftp_user squid@
-
-# Maximum allowed request size in kilobyte. If people are using 
-# POST file upload set this to largest filesize + a few kb.
+#	The default is 0, which disables hot_vm objects.  The suggested
+#	value for httpd_accel_mode is 12.5.
 #
-request_size 100
+#cache_hot_vm_factor 0
 
 
-
-#  TAG: connect_port
-#       The port number(s) where cached will listen allow outbound CONNECT
-#       (SSL).  The defaults are 443 (https) and 563 (snews).
-#connect_ports 443 563
-
-#cache_store_log @prefix@/logs/store.log 
-
-
-## acl aclname src|domain|time|pattern|port|proto|method string1 ...
-## 
-## acl aclname src      A.B.C.D/a.b.c.d ...
-## acl aclname src      A.B.C.D/N ...
-## acl aclname domain   .foo.com ...
-## acl aclname time     day-abbrevs  h1:m1-h2:m2
-##	day-abbrevs:
-##		S - Sunday
-##		M - Monday
-##		T - Tuesday
-##		W - Wednesday
-##		H - Thursday
-##		F - Friday
-##		A - Saturday
-##	h1:m1 must be less than h2:m2
-## acl aclname pattern  \.gif$ ...
-## acl aclname port     80 70 21 ...
-## acl aclname proto    HTTP FTP ...
-## acl aclname method   GET POST ...
-## 
-## http_access allow|deny [!]aclname ...
-## 
-## icp_access  allow|deny [!]aclname ...
-
-acl manager proto cache_object
-acl localhost src 127.0.0.1/255.255.255.255
-acl all src 0.0.0.0/0.0.0.0
-
-http_access deny manager !localhost
-http_access allow  all
-
-icp_access  allow  all
-
+# MISCELLANEOUS
+#-----------------------------------------------------------------------------
 
 # The DNS tests exit as soon as the first site is successfully looked up
 #
@@ -710,8 +658,23 @@ icp_access  allow  all
 #
 dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 
-# When SIGTERM or SIGHUP is received, the cache is put into "shutdown pending"
-# mode until all active sockets are closed.  This value is the lifetime
-# to set for all open descriptors during shutdown mode.  Any active
-# clients after this many seconds will receive a 'lifetime expire' message
-shutdown_lifetime 30
+#  TAG: logfile_rotate #
+#	Specifies the number of logfile rotations to make upon receiving
+#	a HUP signal.  The default is 10, which will rotate with
+#	extensions 0 through 9.  Setting logfile_rotate to 0 will
+#	disable the rotation, but the logfiles are still closed and
+#	re-opened.  This will enable you to rename the logfiles yourself
+#	just before sending a HUP signal to the cached process.
+#
+#logfile_rotate 10
+
+#  TAG: append_domain 
+#	Appends local domain name to hostnames without any dots in them.
+#	append_domain must begin with a period.
+#
+#append_domain .yourdomain.com
+
+#  TAG: connect_port
+#       The port number(s) where cached will listen allow outbound CONNECT
+#       (SSL).  The defaults are 443 (https) and 563 (snews).
+#connect_ports 443 563

@@ -22,9 +22,6 @@ typedef enum {
     PROTO_GOPHER,
     PROTO_WAIS,
     PROTO_CACHEOBJ,
-#ifdef NEED_PROTO_CONNECT
-    PROTO_CONNECT
-#endif
     PROTO_MAX
 } protocol_t;
 

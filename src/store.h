@@ -17,7 +17,7 @@
  * KEY_CHANGE           If the key for this URL has been changed
  */
 
-#define ENTRY_PRIVATE 		(1<<13)		/* should this entry be private? */
+#define HIERARCHICAL 		(1<<13)		/* can we query neighbors? */
 #define KEY_PRIVATE 		(1<<12)		/* is the key currently private? */
 #define ENTRY_DISPATCHED 	(1<<11)
 #define ENTRY_HTML 		(1<<10)
@@ -86,6 +86,31 @@ typedef struct _MemObject {
     request_t *request;
 } MemObject;
 
+typedef enum {
+    NOT_IN_MEMORY,
+    SWAPPING_IN,
+    IN_MEMORY
+} mem_status_t;
+
+typedef enum {
+    WAITING,
+    TIMEOUT,
+    DONE,
+    NOPING
+} ping_status_t;
+
+typedef enum {
+    STORE_OK,
+    STORE_PENDING,
+    STORE_ABORTED
+} store_status_t;
+
+typedef enum {
+    NO_SWAP,
+    SWAPPING_OUT,
+    SWAP_OK
+} swap_status_t;
+
 /* A cut down structure for store manager */
 struct sentry {
     /* first two items must be same as hash_link in hash.h */
@@ -105,19 +130,11 @@ struct sentry {
     int object_len;
     int swap_file_number;
 
-    enum {
-	NOT_IN_MEMORY, SWAPPING_IN, IN_MEMORY
-    } mem_status:3;
-    enum {
-	WAITING, TIMEOUT, DONE, NOPING
-    } ping_status:3;
-    enum {
-	STORE_OK, STORE_PENDING, STORE_ABORTED
-    } status:3;
-    enum {
-	NO_SWAP, SWAPPING_OUT, SWAP_OK
-    } swap_status:3;
-    unsigned int method:3;
+    mem_status_t mem_status:3;
+    ping_status_t ping_status:3;
+    store_status_t store_status:3;
+    swap_status_t swap_status:3;
+    method_t method:3;
 
     /* WARNING: Explicit assummption that fewer than 256
      * WARNING:  clients all hop onto the same object.  The code
@@ -187,6 +204,7 @@ extern void storeExpireNow _PARAMS((StoreEntry *));
 extern void storeReleaseRequest _PARAMS((StoreEntry *));
 extern void storeRotateLog _PARAMS((void));
 extern unsigned int getKeyCounter _PARAMS((void));
+extern int storeGetLowestReaderOffset _PARAMS((StoreEntry *));
 
 #if defined(__STRICT_ANSI__)
 extern void storeAppendPrintf _PARAMS((StoreEntry *, char *, ...));

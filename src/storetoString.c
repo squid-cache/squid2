@@ -75,7 +75,7 @@ char *storeToString(e)
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "Status: ");
-    switch (e->status) {
+    switch (e->store_status) {
 
     case STORE_OK:
 	strcat(tmpbuf, "STORE_OK\n");
