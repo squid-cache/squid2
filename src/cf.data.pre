@@ -2331,10 +2331,12 @@ DOC_START
 	tcp_outgoing_tos 0x20 good_service_net
 
 	TOS/DSCP values really only have local significance - so you should
-	know what you're specifying. For more, see RFC 2474
+	know what you're specifying. For more, see RFC 2474 and 
 
 	The TOS/DSCP byte must be exactly that - a byte, value  0 - 255, or
-	"default" to use whatever default your host has.
+	"default" to use whatever default your host has. Note that in
+	practice often only values 0 - 63 is useable as the two highest bits
+	have been redefined for use by ECN (RFC2168).
 
 	Processing proceeds in the order specified, and stops at first fully
 	matching line.
