@@ -137,7 +137,7 @@ static AIOCB diskHandleWriteComplete;
 static AIOCB diskHandleReadComplete;
 static PF diskHandleRead;
 static PF diskHandleWrite;
-static void file_open_complete _PARAMS((void *, int, int));
+static void file_open_complete(void *, int, int);
 
 #if UNUSED_CODE
 static AIOCB diskHandleWalkComplete;

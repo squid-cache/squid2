@@ -112,9 +112,9 @@
 #define USE_MEMALIGN 0
 #endif
 
-static void *get_free_thing _PARAMS((stmem_stats *));
-static void put_free_thing _PARAMS((stmem_stats *, void *));
-static void stmemFreeThingMemory _PARAMS((stmem_stats *));
+static void *get_free_thing(stmem_stats *);
+static void put_free_thing(stmem_stats *, void *);
+static void stmemFreeThingMemory(stmem_stats *);
 
 void
 memFree(mem_hdr * mem)

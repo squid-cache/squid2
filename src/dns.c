@@ -111,7 +111,7 @@ struct dnsQueueData {
     void *data;
 };
 
-static int dnsOpenServer _PARAMS((const char *command));
+static int dnsOpenServer(const char *command);
 static PF dnsShutdownRead;
 static dnsserver_t **dns_child_table = NULL;
 

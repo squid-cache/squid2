@@ -65,13 +65,13 @@ static char *DirectStr[] =
     "DIRECT_YES"
 };
 
-static void peerSelectFoo _PARAMS((ps_state *));
-static void peerPingTimeout _PARAMS((void *data));
-static void peerSelectCallbackFail _PARAMS((ps_state * psstate));
+static void peerSelectFoo(ps_state *);
+static void peerPingTimeout(void *data);
+static void peerSelectCallbackFail(ps_state * psstate);
 static IRCB peerHandleIcpReply;
-static void peerSelectStateFree _PARAMS((ps_state * psstate));
-static void peerIcpParentMiss _PARAMS((peer *, icp_common_t *, ps_state *));
-static int peerCheckNetdbDirect _PARAMS((ps_state * psstate));
+static void peerSelectStateFree(ps_state * psstate);
+static void peerIcpParentMiss(peer *, icp_common_t *, ps_state *);
+static int peerCheckNetdbDirect(ps_state * psstate);
 
 static void
 peerSelectStateFree(ps_state * psstate)

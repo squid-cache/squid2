@@ -121,9 +121,9 @@ struct op_table {
     OBJH *handler;
 };
 
-static ObjectCacheData *objcache_url_parser _PARAMS((const char *url));
-static int objcache_CheckPassword _PARAMS((ObjectCacheData *));
-static char *objcachePasswdGet _PARAMS((cachemgr_passwd ** a, objcache_op op));
+static ObjectCacheData *objcache_url_parser(const char *url);
+static int objcache_CheckPassword(ObjectCacheData *);
+static char *objcachePasswdGet(cachemgr_passwd ** a, objcache_op op);
 static OBJH objcacheUnimplemented;
 static OBJH cachemgrShutdown;
 

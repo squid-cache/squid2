@@ -120,7 +120,7 @@ typedef struct _mime_entry {
 static mimeEntry *MimeTable = NULL;
 static mimeEntry **MimeTableTail = NULL;
 
-static void mimeLoadIconFile _PARAMS((const char *icon));
+static void mimeLoadIconFile(const char *icon);
 
 char *
 mime_get_header(const char *mime, const char *name)

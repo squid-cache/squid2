@@ -30,7 +30,7 @@
 
 #include "squid.h"
 
-static void fdUpdateBiggest _PARAMS((int fd, unsigned int status));
+static void fdUpdateBiggest(int fd, unsigned int status);
 
 static void
 fdUpdateBiggest(int fd, unsigned int status)

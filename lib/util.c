@@ -129,10 +129,9 @@
 #include <errno.h>
 #endif
 
-#include "ansiproto.h"
 #include "util.h"
 
-void (*failure_notify) _PARAMS((const char *)) = NULL;
+void (*failure_notify) (const char *) = NULL;
 static char msg[128];
 
 extern int sys_nerr;

@@ -112,11 +112,10 @@
 #include <string.h>
 #endif
 #define MAIN
-#include "ansiproto.h"
 #include "util.h"
 
-static void debug_enable _PARAMS((int, int));
-static void debug_disable _PARAMS((int));
+static void debug_enable(int, int);
+static void debug_disable(int);
 
 int Harvest_debug_levels[MAX_DEBUG_LEVELS];
 int Harvest_do_debug = 0;

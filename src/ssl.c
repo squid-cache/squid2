@@ -49,19 +49,19 @@ typedef struct {
 static const char *const conn_established = "HTTP/1.0 200 Connection established\r\n\r\n";
 
 static PF sslTimeout;
-static void sslReadServer _PARAMS((int fd, void *));
-static void sslReadClient _PARAMS((int fd, void *));
-static void sslWriteServer _PARAMS((int fd, void *));
-static void sslWriteClient _PARAMS((int fd, void *));
-static void sslConnected _PARAMS((int fd, void *));
-static void sslProxyConnected _PARAMS((int fd, void *));
+static void sslReadServer(int fd, void *);
+static void sslReadClient(int fd, void *);
+static void sslWriteServer(int fd, void *);
+static void sslWriteClient(int fd, void *);
+static void sslConnected(int fd, void *);
+static void sslProxyConnected(int fd, void *);
 static ERCB sslErrorComplete;
-static void sslClose _PARAMS((SslStateData * sslState));
-static void sslClientClosed _PARAMS((int fd, void *));
+static void sslClose(SslStateData * sslState);
+static void sslClientClosed(int fd, void *);
 static CNCB sslConnectDone;
-static void sslStateFree _PARAMS((int fd, void *data));
-static void sslPeerSelectComplete _PARAMS((peer * p, void *data));
-static void sslPeerSelectFail _PARAMS((peer * p, void *data));
+static void sslStateFree(int fd, void *data);
+static void sslPeerSelectComplete(peer * p, void *data);
+static void sslPeerSelectFail(peer * p, void *data);
 
 static void
 sslClose(SslStateData * sslState)

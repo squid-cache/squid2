@@ -97,14 +97,11 @@ static const char *icmpPktStr[] =
     "Out of Range Type"
 };
 
-static int in_cksum _PARAMS((unsigned short *ptr, int size));
-static void pingerRecv _PARAMS((void));
-static void pingerLog _PARAMS((struct icmphdr * icmp,
-	struct in_addr addr,
-	int rtt,
-	int hops));
-static int ipHops _PARAMS((int ttl));
-static void pingerSendtoSquid _PARAMS((pingerReplyData * preply));
+static int in_cksum(unsigned short *ptr, int size);
+static void pingerRecv(void);
+static void pingerLog(struct icmphdr *, struct in_addr, int, int);
+static int ipHops(int ttl);
+static void pingerSendtoSquid(pingerReplyData * preply);
 
 void
 pingerOpen(void)

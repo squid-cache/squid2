@@ -210,7 +210,6 @@
 #include <resolv.h>
 #endif
 
-#include "ansiproto.h"
 #include "util.h"
 #include "snprintf.h"
 

@@ -129,14 +129,13 @@
 #include <sys/time.h>
 #endif
 
-#include "ansiproto.h"
 #include "util.h"
 
 #define RFC850_STRFTIME "%A, %d-%b-%y %H:%M:%S GMT"
 #define RFC1123_STRFTIME "%a, %d %b %Y %H:%M:%S GMT"
 
-static int make_month _PARAMS((const char *s));
-static int make_num _PARAMS((const char *s));
+static int make_month(const char *s);
+static int make_num(const char *s);
 
 static char *month_names[12] =
 {

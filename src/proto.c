@@ -113,8 +113,8 @@ typedef struct {
     request_t *request;
 } pctrl_t;
 
-static void protoDispatchComplete _PARAMS((peer * p, void *data));
-static void protoDispatchFail _PARAMS((peer * p, void *data));
+static void protoDispatchComplete(peer * p, void *data);
+static void protoDispatchFail(peer * p, void *data);
 
 char *IcpOpcodeStr[] =
 {

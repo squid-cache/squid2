@@ -138,17 +138,16 @@
 #include <varargs.h>
 #endif
 
-#include "ansiproto.h"
 #include "util.h"
 
 #ifdef _SQUID_NEXT_
 typedef int pid_t;
-extern pid_t getpid _PARAMS((void));
+extern pid_t getpid(void);
 #endif
 
 
 /* Local functions */
-static char *standard_msg _PARAMS((void));
+static char *standard_msg(void);
 
 /* Local variables */
 static FILE *fp_log = NULL;

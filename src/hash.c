@@ -106,7 +106,7 @@
 
 #include "squid.h"
 
-static int hash_unlink _PARAMS((hash_table *, hash_link *, int));
+static int hash_unlink(hash_table *, hash_link *, int);
 
 /*
  *  hash_url() - Returns a well-distributed hash function for URLs.

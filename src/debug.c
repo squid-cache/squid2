@@ -106,7 +106,7 @@
 #include "squid.h"
 
 static char *debug_log_file = NULL;
-static char *accessLogTime _PARAMS((time_t));
+static char *accessLogTime(time_t);
 
 #ifdef __STDC__
 void

@@ -112,7 +112,6 @@
 #include <string.h>
 #endif
 
-#include "ansiproto.h"
 #include "util.h"
 
 /*  

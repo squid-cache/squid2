@@ -30,7 +30,6 @@
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
-#include "ansiproto.h"
 #include "tree.h"
 
 #ifndef FALSE
@@ -40,11 +39,11 @@
 #define TRUE !FALSE
 #endif
 
-static tree *sprout _PARAMS((tree **, void *, int *, int (*)(), void (*)()));
-static int delete _PARAMS((tree **, int (*)(), void *, void (*)(), int *, int *));
-static void del _PARAMS((tree **, int *, tree **, void (*)(), int *));
-static void bal_L _PARAMS((tree **, int *));
-static void bal_R _PARAMS((tree **, int *));
+static tree *sprout(tree **, void *, int *, int (*)(), void (*)());
+static int delete(tree **, int (*)(), void *, void (*)(), int *, int *);
+static void del(tree **, int *, tree **, void (*)(), int *);
+static void bal_L(tree **, int *);
+static void bal_R(tree **, int *);
 
 void
 tree_init(ppr_tree)

@@ -33,8 +33,8 @@
 
 static RH clientRedirectDone;
 static STCB icpHandleIMSReply;
-static int clientGetsOldEntry _PARAMS((StoreEntry * new, StoreEntry * old, request_t * request));
-static int checkAccelOnly _PARAMS((clientHttpRequest *));
+static int clientGetsOldEntry(StoreEntry * new, StoreEntry * old, request_t * request);
+static int checkAccelOnly(clientHttpRequest *);
 
 static int
 checkAccelOnly(clientHttpRequest * http)

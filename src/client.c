@@ -116,8 +116,8 @@
 #endif
 
 /* Local functions */
-static int client_comm_connect _PARAMS((int sock, char *dest_host, u_short dest_port));
-static void usage _PARAMS((const char *progname));
+static int client_comm_connect(int sock, char *dest_host, u_short dest_port);
+static void usage(const char *progname);
 
 static void
 usage(const char *progname)

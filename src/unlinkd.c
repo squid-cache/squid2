@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 
 static int unlinkd_fd = -1;
 
-static int unlinkdCreate _PARAMS((void));
+static int unlinkdCreate(void);
 
 #define HELLO_BUFSIZ 128
 static int

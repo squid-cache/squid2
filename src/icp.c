@@ -144,23 +144,23 @@ static PF clientReadRequest;
 static PF connStateFree;
 static PF requestTimeout;
 static STCB icpGetHeadersForIMS;
-static char *icpConstruct304reply _PARAMS((struct _http_reply *));
-static int CheckQuickAbort2 _PARAMS((const clientHttpRequest *));
-static int icpCheckTransferDone _PARAMS((clientHttpRequest *));
-static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
+static char *icpConstruct304reply(struct _http_reply *);
+static int CheckQuickAbort2(const clientHttpRequest *);
+static int icpCheckTransferDone(clientHttpRequest *);
+static int icpCheckUdpHit(StoreEntry *, request_t * request);
 #if USE_ICP_HIT_OBJ
-static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
-static void *icpCreateHitObjMessage _PARAMS((icp_opcode, int, const char *, int, int, StoreEntry *));
+static int icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len);
+static void *icpCreateHitObjMessage(icp_opcode, int, const char *, int, int, StoreEntry *);
 #endif
-static void CheckQuickAbort _PARAMS((clientHttpRequest *));
-static void checkFailureRatio _PARAMS((log_type, hier_code));
-static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
-static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
-static void icpLogIcp _PARAMS((icpUdpData *));
-static void icpProcessMISS _PARAMS((int, clientHttpRequest *));
-static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, size_t));
-size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
-static clientHttpRequest *parseHttpRequest _PARAMS((ConnStateData *, method_t *, int *, char **, size_t *));
+static void CheckQuickAbort(clientHttpRequest *);
+static void checkFailureRatio(log_type, hier_code);
+static void icpHandleIcpV2(int, struct sockaddr_in, char *, int);
+static void icpHandleIcpV3(int, struct sockaddr_in, char *, int);
+static void icpLogIcp(icpUdpData *);
+static void icpProcessMISS(int, clientHttpRequest *);
+static void clientAppendReplyHeader(char *, const char *, size_t *, size_t);
+size_t clientBuildReplyHeader(clientHttpRequest *, char *, size_t *, char *, size_t);
+static clientHttpRequest *parseHttpRequest(ConnStateData *, method_t *, int *, char **, size_t *);
 
 /*
  * This function is designed to serve a fairly specific purpose.

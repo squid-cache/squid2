@@ -55,9 +55,9 @@ const char *err_string[] =
 
 static char *error_text[ERR_MAX];
 
-static void errorStateFree _PARAMS((ErrorState * err));
-static char *errorConvert _PARAMS((char token, ErrorState * err));
-static char *errorBuildBuf _PARAMS((ErrorState * err, int *len));
+static void errorStateFree(ErrorState * err);
+static char *errorConvert(char token, ErrorState * err);
+static char *errorBuildBuf(ErrorState * err, int *len);
 static CWCB errorSendComplete;
 
 void

@@ -37,7 +37,7 @@ static CWCB identRequestComplete;
 static PF identReadReply;
 static PF identClose;
 static CNCB identConnectDone;
-static void identCallback _PARAMS((ConnStateData * connState));
+static void identCallback(ConnStateData * connState);
 
 static void
 identClose(int fd, void *data)

@@ -142,7 +142,6 @@
 #include <unistd.h>
 #endif
 
-#include "ansiproto.h"
 #include "util.h"
 
 /*

@@ -48,17 +48,17 @@ typedef struct {
 } PassStateData;
 
 static PF passTimeout;
-static void passReadServer _PARAMS((int fd, void *));
-static void passReadClient _PARAMS((int fd, void *));
-static void passWriteServer _PARAMS((int fd, void *));
-static void passWriteClient _PARAMS((int fd, void *));
+static void passReadServer(int fd, void *);
+static void passReadClient(int fd, void *);
+static void passWriteServer(int fd, void *);
+static void passWriteClient(int fd, void *);
 static ERCB passErrorComplete;
-static void passClose _PARAMS((PassStateData * passState));
-static void passClientClosed _PARAMS((int fd, void *));
+static void passClose(PassStateData * passState);
+static void passClientClosed(int fd, void *);
 static CNCB passConnectDone;
-static void passStateFree _PARAMS((int fd, void *data));
-static void passPeerSelectComplete _PARAMS((peer * p, void *data));
-static void passPeerSelectFail _PARAMS((peer * p, void *data));
+static void passStateFree(int fd, void *data);
+static void passPeerSelectComplete(peer * p, void *data);
+static void passPeerSelectFail(peer * p, void *data);
 
 static void
 passClose(PassStateData * passState)

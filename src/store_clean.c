@@ -48,7 +48,7 @@
 #endif /* HAVE_NDIR_H */
 #endif /* HAVE_DIRENT_H */
 
-static int rev_int_sort _PARAMS((const int *, const int *));
+static int rev_int_sort(const int *, const int *);
 
 static int
 rev_int_sort(const int *i1, const int *i2)
