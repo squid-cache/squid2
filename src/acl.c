@@ -1750,8 +1750,6 @@ aclCheckCleanup(aclCheck_t * checklist)
     if (checklist->auth_user_request) {
 	authenticateAuthUserRequestUnlock(checklist->auth_user_request);
 	checklist->auth_user_request = NULL;
-	authenticateAuthUserRequestUnlock(checklist->auth_user_request);
-	checklist->auth_user_request = NULL;
 	if (checklist->request) {
 	    if (checklist->request->auth_user_request) {
 		authenticateAuthUserRequestUnlock(checklist->request->auth_user_request);
