@@ -166,13 +166,8 @@ int icpCachable(icpState)
 	return gopherCachable(request);
     if (req->protocol == PROTO_WAIS)
 	return 0;
-#ifdef NEED_PROTO_CONNECT
-    if (!strncasecmp(request, "connect://", 10))
-	return 0;
-#else
     if (method == METHOD_CONNECT)
 	return 0;
-#endif
     if (req->protocol == PROTO_CACHEOBJ)
 	return 0;
     return 1;
@@ -1099,19 +1094,6 @@ int parseHttpRequest(icpState)
 	}
     }
     /* Assign icpState->url */
-
-#ifdef NEED_PROTO_CONNECT
-    if (icpState->method == METHOD_CONNECT) {
-	/* Prepend the host name with connect:// on CONNECT */
-	t = xcalloc(strlen(request) + 12, 1);
-	strcpy(t, "connect://");
-	strcat(t, request);
-	if (free_request)
-	    safe_free(request);
-	request = t;
-	free_request = 1;
-    }
-#endif
     if ((t = strchr(request, '\n')))	/* remove NL */
 	*t = '\0';
     if ((t = strchr(request, '\r')))	/* remove CR */
