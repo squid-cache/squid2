@@ -763,9 +763,6 @@ struct _Packer {
 struct _HttpStatusLine {
     /* public, read only */
     http_version_t version;
-#if 0
-    float version;
-#endif
     const char *reason;		/* points to a _constant_ string (default or supplied), never free()d */
     http_status status;
 };
