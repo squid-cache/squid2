@@ -405,7 +405,7 @@ int
 httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_end)
 {
     const char *field_start = header_start;
-    HttpHeaderEntry *e;
+    HttpHeaderEntry *e, *e2;
 
     assert(hdr);
     assert(header_start && header_end);
@@ -430,10 +430,12 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	if (NULL == e) {
 	    debug(55, 1) ("WARNING: ignoring unparseable HTTP header field near '%s'\n",
 		getStringPrefix(field_start, field_end));
-	} else if (e->id == HDR_CONTENT_LENGTH && httpHeaderHas(hdr, HDR_CONTENT_LENGTH)) {
-	    debug(55, 1) ("WARNING: found double content-length header\n");
-	    httpHeaderEntryDestroy(e);
-	    return httpHeaderReset(hdr);
+	} else if (e->id == HDR_CONTENT_LENGTH && (e2 = httpHeaderFindEntry(hdr, e->id)) != NULL) {
+	    if (strCmp(e->value, strBuf(e2->value)) != 0) {
+		debug(55, 1) ("WARNING: found double content-length header\n");
+		httpHeaderEntryDestroy(e);
+		return httpHeaderReset(hdr);
+	    }
 	} else if (e->id == HDR_OTHER && stringHasWhitespace(strBuf(e->name))) {
 	    debug(55, 1) ("WARNING: found whitespace in HTTP header {%s}\n", strBuf(e->name));
 	    httpHeaderEntryDestroy(e);
