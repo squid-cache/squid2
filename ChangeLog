@@ -54,6 +54,8 @@ Changes to Squid-2.0 (October 2, 1998):
 	  because there can be more than one client hanging on the
 	  StoreEntry.  This hopefully fixes "store_status !=
 	  STORE_ABORTED" assertions.
+	- Added temporary fix to httpMakePublic() to prevent assertions
+	  (!EBIT_TEST(e->flags, RELEASE_REQUEST)) in storeSetPublicKey().
 
 Changes to squid-1.2.beta25 (September 21, 1998):
 
