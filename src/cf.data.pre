@@ -3850,6 +3850,19 @@ DOC_START
 	after 10 seconds timeout.
 DOC_END
 
+NAME: balance_on_multiple_ip
+TYPE: onoff
+LOC: Config.onoff.balance_on_multiple_ip
+DEFAULT: on
+DOC_START
+	Some load balancing servers based on round robin DNS have been 
+	found not to preserve user session state across requests
+	to different IP addresses.
+
+	By default Squid rotates IP's per request. By disabling
+	this directive only connection failure trigers rotation.
+DOC_END
+
 NAME: pipeline_prefetch
 TYPE: onoff
 LOC: Config.onoff.pipeline_prefetch

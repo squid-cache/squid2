@@ -290,7 +290,8 @@ commConnectDnsHandle(const ipcache_addrs * ia, void *data)
     }
     assert(ia->cur < ia->count);
     cs->in_addr = ia->in_addrs[ia->cur];
-    ipcacheCycleAddr(cs->host, NULL);
+    if (Config.onoff.balance_on_multiple_ip)
+	ipcacheCycleAddr(cs->host, NULL);
     cs->addrcount = ia->count;
     cs->connstart = squid_curtime;
     commConnectHandle(cs->fd, cs);

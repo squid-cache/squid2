@@ -604,6 +604,7 @@ struct _SquidConfig {
 	int pipeline_prefetch;
 	int request_entities;
 	int detect_broken_server_pconns;
+	int balance_on_multiple_ip;
     } onoff;
     acl *aclList;
     struct {

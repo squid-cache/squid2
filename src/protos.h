@@ -585,10 +585,9 @@ extern void ipcache_nbgethostbyname(const char *name,
 extern EVH ipcache_purgelru;
 extern const ipcache_addrs *ipcache_gethostbyname(const char *, int flags);
 extern void ipcacheInvalidate(const char *);
-extern void ipcacheReleaseInvalid(const char *);
+extern void ipcacheInvalidateNegative(const char *);
 extern void ipcache_init(void);
 extern void stat_ipcache_get(StoreEntry *);
-extern int ipcacheQueueDrain(void);
 extern void ipcacheCycleAddr(const char *name, ipcache_addrs *);
 extern void ipcacheMarkBadAddr(const char *name, struct in_addr);
 extern void ipcacheMarkGoodAddr(const char *name, struct in_addr);
