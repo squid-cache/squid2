@@ -586,6 +586,7 @@ int main(argc, argv)
 		    send_announce();
 		last_announce = squid_curtime;
 	    }
+	    ipcache_purgelru();
 	    /* house keeping */
 	    break;
 	case COMM_SHUTDOWN:
