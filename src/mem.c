@@ -517,7 +517,7 @@ memFreeBufFunc(size_t size)
 static void
 memPoolReport(const MemPoolStats * mp_st, const MemPoolMeter * AllMeter, StoreEntry * e)
 {
-    int excess;
+    int excess = 0;
     int needed = 0;
     MemPoolMeter *pm = mp_st->meter;
 
