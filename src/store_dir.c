@@ -246,7 +246,7 @@ storeDirSwapLogFile(int dirn, const char *ext)
 	strncat(path, digit, 3);
     } else {
 	xstrncpy(path, storeSwapDir(dirn), SQUID_MAXPATHLEN - 64);
-	strcat(path, "/log");
+	strcat(path, "/swap.state");
     }
     if (ext)
 	strncat(path, ext, 16);
