@@ -31,7 +31,6 @@
 #define _HTTP_REPLY_H_
 
 #include "HttpStatusLine.h"
-#include "HttpHeader.h"
 #include "HttpBody.h"
 
 /* tmp hack @?@ delete it */

@@ -30,7 +30,6 @@
 
 #include "squid.h"
 #include "MemPool.h"
-#include "HttpHeader.h"
 
 /*
    On naming conventions:
