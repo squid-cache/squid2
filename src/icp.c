@@ -12,7 +12,6 @@ static char *crlf = "\r\n";
 typedef struct iwd {
     icp_common_t header;	/* Allows access to previous header */
     u_num32 query_host;
-    int binary_mode;		/* If FALSE, transfer in ascii mode */
     char *url;
     char *type;			/* GET, POST, ... */
     int type_id;
@@ -41,7 +40,6 @@ icpUdpData *AppendUdp();
 typedef void (*complete_handler) _PARAMS((int fd, char *buf, int size, int errflag, caddr_t data));
 typedef struct ireadd {
     int fd;
-    int binary_mode;
     char *buf;
     long size;
     long offset;
@@ -50,11 +48,6 @@ typedef struct ireadd {
     complete_handler handler;
     caddr_t client_data;
 } icpReadWriteData;
-
-/* A couple useful macros */
-#define asciiMode(X)  (!(X->binary_mode))
-#define binaryMode(X) ((X->binary_mode))
-
 
 /* Local functions */
 void icpHandleStore _PARAMS((int fd, StoreEntry * entry, icpStateData * state));
@@ -97,7 +90,6 @@ int icpHandleRead(fd, rw_state_machine)
     }
     rw_state_machine->offset += len;
 
-    if (asciiMode(rw_state_machine)) {
 	/* Check for \r\n delimiting end of ascii transmission, or */
 	/* if we've read content-length bytes already */
 	if ((rw_state_machine->offset >= rw_state_machine->size)
@@ -114,20 +106,7 @@ int icpHandleRead(fd, rw_state_machine)
 		(PF) icpHandleRead,
 		(caddr_t) rw_state_machine);
 	}
-    } else if (rw_state_machine->offset < rw_state_machine->size) {
-	comm_set_select_handler(fd,
-	    COMM_SELECT_READ,
-	    (PF) icpHandleRead,
-	    (caddr_t) rw_state_machine);
-    } else {
-	rw_state_machine->handler(fd,
-	    rw_state_machine->buf,
-	    rw_state_machine->offset,
-	    COMM_OK,
-	    rw_state_machine->client_data);
-	/* We've read.  Toss state machine */
-	safe_free(rw_state_machine);
-    }
+
     return COMM_OK;
 }
 
@@ -152,7 +131,6 @@ void icpRead(fd, bin_mode, buf, size, timeout, handler, client_data)
     data->timeout = timeout;
     data->time = cached_curtime;
     data->client_data = client_data;
-    data->binary_mode = bin_mode;
     comm_set_select_handler(fd,
 	COMM_SELECT_READ,
 	(PF) icpHandleRead,
@@ -308,9 +286,6 @@ int icpSendERROR(fd, errorCode, msg, state)
      icpStateData *state;
 {
     char *buf = NULL;
-    char *p = NULL;
-    unsigned short tmp_error = 0;
-    icp_common_t tmp_header;
     int buf_len = 0, port = 0;
 
     port = comm_port(fd);
@@ -336,27 +311,8 @@ int icpSendERROR(fd, errorCode, msg, state)
 	state->buf = NULL;
 	memset(buf, '\0', buf_len);
 	strcpy(buf, msg);
-    } else {			/* Default to binary error message */
-	buf_len = strlen(msg) + 1;
-	buf_len += sizeof(icp_common_t);
-	buf_len += sizeof(unsigned short);
-	state->ptr_to_4k_page = buf = (char *) get_free_4k_page();
-	state->buf = NULL;
-	memset(buf, '\0', buf_len);
-
-	memset((char *) &tmp_header, '\0', sizeof(icp_common_t));
-	tmp_header.opcode = ICP_OP_ERR;
-	tmp_header.length = buf_len;
-
-	p = buf;
-	memcpy(p, (char *) &tmp_header, sizeof(icp_common_t));
-	p += sizeof(icp_common_t);
-
-	tmp_error = htons(errorCode);
-	memcpy(p, (char *) &tmp_error, sizeof(unsigned short));
-	p += sizeof(unsigned short);
-
-	memcpy(p, msg, strlen(msg) + 1);	/* include \0 */
+    } else {
+        fatal_dump("This should not happen!\n");
     }
     icpWrite(fd, buf, buf_len, 30, icpSendERRORComplete, (caddr_t) state);
     return COMM_OK;
@@ -373,7 +329,7 @@ int icpSendMoreData(fd, state)
     char *p = NULL;
     StoreEntry *entry = state->entry;
     int result = COMM_ERROR, max_len = 0;
-    icp_common_t tmp_header, *header = &state->header;
+    icp_common_t *header = &state->header;
     int buf_len, len;
 
     debug(0, 5, "icpSendMoreData: <URL:%s> sz %d: len %d: off %d.\n",
@@ -386,13 +342,7 @@ int icpSendMoreData(fd, state)
     /* Set maxlen to largest amount of data w/o header
      * place p pointing to beginning of data portion of message */
 
-    if (asciiMode(state))	/* No header for ascii mode */
-	buf_len = 0;
-    else if ((state->offset == 0) && (header->opcode != ICP_OP_DATABEG))
-	/* This is a DATA BEGIN message */
-	buf_len = ICP_HDR_SZ + 2 * sizeof(u_num32);
-    else
-	buf_len = ICP_HDR_SZ;
+	buf_len = 0; /* No header for ascii mode */
 
     max_len = ICP_SENDMOREDATA_BUF - buf_len;
     /* Should limit max_len to something like 1.5x last successful write */
@@ -418,29 +368,6 @@ int icpSendMoreData(fd, state)
 
     header->length = buf_len;
 
-    if (binaryMode(state)) {	/* Copy in a header */
-	p = buf;
-
-	tmp_header.opcode = header->opcode;
-	tmp_header.version = header->version;
-	tmp_header.length = htons(header->length);
-	tmp_header.reqnum = htonl(header->reqnum);
-	memcpy(tmp_header.auth, header->auth, sizeof(header->auth));
-	tmp_header.shostid = htonl(header->shostid);
-
-	memcpy(p, (char *) &tmp_header, sizeof(icp_common_t));
-	p += sizeof(icp_common_t);
-	if (header->opcode == ICP_OP_DATABEG) {
-	    icp_datab_t msg;
-	    msg.db_ttl = htonl(entry->expires - cached_curtime);
-	    msg.db_ts = htonl(entry->timestamp);
-	    msg.db_size = htonl(entry->object_len);
-	    memcpy(p, (char *) &msg, 3 * sizeof(u_num32));
-	} else {
-	    u_num32 tmp = htonl(state->offset);
-	    memcpy(p, (char *) &tmp, sizeof(u_num32));
-	}
-    }
     state->offset += len;
 
     /* Do this here, so HandleStoreComplete can tell whether more data 
@@ -482,8 +409,6 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
      int errflag;
      icpStateData *state;
 {
-    icp_common_t *header = &state->header;
-
     debug(0, 5, "icpHandleStoreComplete: FD %d: sz %d: err %d: off %d: len %d: tsmp %d: lref %d.\n",
 	fd, size, errflag,
 	state->offset, state->entry->object_len,
@@ -522,10 +447,8 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
 	icpSendMoreData(fd, state);
     } else
 	/* We're finished case */
-	if ((binaryMode(state) && (header->opcode == ICP_OP_DATAEND)) ||
-	    (asciiMode(state) && (state->offset == state->entry->object_len)
-	    && state->entry->status != STORE_PENDING)) {
-
+	if (state->offset == state->entry->object_len &&
+		state->entry->status != STORE_PENDING) {
 	if (state->tcp_missed) {
 	    CacheInfo->log_append(CacheInfo,	/* TCP_DONE */
 		state->url,
@@ -544,11 +467,6 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
 	safe_free(state->type);
 	safe_free(state->mime_hdr);
 	safe_free(state);
-    } else
-	/* We're in binary mode and we owe a DATAEND */
-	if (binaryMode(state) && (header->opcode != ICP_OP_DATAEND) &&
-	(state->offset == state->entry->object_len)) {
-	icpSendMoreData(fd, state);
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
@@ -809,35 +727,6 @@ int icpProcessHeader(fd, buf_notused, size, flag, state)
 	}
     }
     return result;
-}
-
-int icpHandleTcp(sock, notused)
-     int sock;
-     caddr_t notused;
-{
-    int fd = -1;
-    icpStateData *data = NULL;
-
-    if ((fd = comm_accept(sock, NULL, NULL)) < 0) {
-	debug(0, 1, "icphandleTcp: accept failure: %d\n", sock);
-	/* XXX Should we close and exit? */
-	return -1;
-    }
-    debug(0, 4, "icpHandleTcp: FD %d: accept succeeded.\n", fd);
-    /* Schedule read of message header. */
-    data = (icpStateData *) xcalloc(1, sizeof(icpStateData));
-    data->binary_mode = 1;
-    (void) icpRead(fd,
-	TRUE,
-	&data->header,
-	sizeof(icp_common_t),
-	30,
-	icpProcessHeader,
-	(caddr_t) data);
-
-    /* Reschedule accept handler. */
-    comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleTcp, 0);
-    return 0;
 }
 
 
@@ -1593,7 +1482,6 @@ int asciiHandleConn(sock, notused)
 	/* icpSendERRORComplete() will close the FD and deallocate astm */
     } else {
 	astm = (icpStateData *) xcalloc(1, sizeof(icpStateData));
-	astm->binary_mode = FALSE;
 	astm->url = (char *) xcalloc(ASCII_INBUF_SIZE, 1);
 	astm->header.shostid = htonl(peer.sin_addr.s_addr);
 	astm->peer = peer;
