@@ -91,7 +91,7 @@ usage(void)
 	"       -z        Create swap directories\n"
 	"       -C        Do not catch fatal signals.\n"
 	"       -D        Disable initial DNS tests.\n"
-	"       -F        Foreground fast store rebuild.\n"
+	"       -F        Don't serve any requests until store is rebuilt.\n"
 	"       -N        No daemon mode.\n"
 	"       -R        Do not set REUSEADDR on port.\n"
 	"       -V        Virtual host httpd-accelerator.\n"
