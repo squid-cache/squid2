@@ -99,7 +99,6 @@ struct _aclCheck_t {
     struct in_addr src_addr;
     struct in_addr dst_addr;
     char src_fqdn[SQUIDHOSTNAMELEN];
-    char dst_fqdn[SQUIDHOSTNAMELEN];
     request_t *request;
     char ident[ICP_IDENT_SZ];
     int need;
