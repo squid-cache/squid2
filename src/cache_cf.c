@@ -111,8 +111,8 @@ struct SquidConfig Config;
 #define DefaultMemHighWaterMark 90	/* 90% */
 #define DefaultMemLowWaterMark  75	/* 75% */
 #define DefaultSwapMaxSize	(100 << 10)	/* 100 MB (100*1024 kbytes) */
-#define DefaultSwapHighWaterMark 90	/* 90% */
-#define DefaultSwapLowWaterMark  75	/* 75% */
+#define DefaultSwapHighWaterMark 95	/* 95% */
+#define DefaultSwapLowWaterMark  90	/* 90% */
 #define DefaultNetdbHigh	1000	/* counts, not percents */
 #define DefaultNetdbLow		 900
 
@@ -189,10 +189,8 @@ struct SquidConfig Config;
 #define DefaultUdpIncomingAddr	INADDR_ANY
 #define DefaultUdpOutgoingAddr	inaddr_none
 #define DefaultClientNetmask    0xFFFFFFFFul
-#define DefaultPassProxyPort   0
-#define DefaultPassProxyHost   NULL
-#define DefaultSslProxyPort	0
-#define DefaultSslProxyHost	NULL
+#define DefaultPassProxy	NULL
+#define DefaultSslProxy		NULL
 #define DefaultIpcacheSize	1024
 #define DefaultIpcacheLow	90
 #define DefaultIpcacheHigh	95
@@ -1594,8 +1592,8 @@ configSetFactoryDefaults(void)
     Config.Addrs.udp_outgoing.s_addr = DefaultUdpOutgoingAddr;
     Config.Addrs.udp_incoming.s_addr = DefaultUdpIncomingAddr;
     Config.Addrs.client_netmask.s_addr = DefaultClientNetmask;
-    Config.passProxy = DefaultPassProxyHost;
-    Config.sslProxy = DefaultSslProxyHost;
+    Config.passProxy = DefaultPassProxy;
+    Config.sslProxy = DefaultSslProxy;
     Config.ipcache.size = DefaultIpcacheSize;
     Config.ipcache.low = DefaultIpcacheLow;
     Config.ipcache.high = DefaultIpcacheHigh;

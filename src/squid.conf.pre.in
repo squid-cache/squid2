@@ -353,10 +353,10 @@ cache_stoplist cgi-bin ?
 #	The low- and high-water marks for cache LRU replacement.
 #	LRU replacement begins when the high-water mark is reached
 #	and ends when enough objects have been removed and the low-water
-#	mark is reached. Defaults are 75% and 90%.
+#	mark is reached. Defaults are 90% and 95%.
 #	
-#cache_swap_low  75
-#cache_swap_high 90
+#cache_swap_low  90
+#cache_swap_high 95
 
 #  TAG: cache_mem_low  (in percent, 0-100)         
 #  TAG: cache_mem_high (in percent, 0-100)
