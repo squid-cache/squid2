@@ -653,7 +653,7 @@ gopherTimeout(int fd, void *data)
 
     debug(10, 4) ("gopherTimeout: FD %d: '%s'\n", fd, entry->url);
     /* was assert */
-    if (entry->object_len == 0) {
+    if (entry->mem_obj->inmem_hi == 0) {
 	err = xcalloc(1, sizeof(ErrorState));
 	err->type = ERR_READ_TIMEOUT;
 	err->http_status = HTTP_GATEWAY_TIMEOUT;
