@@ -1550,7 +1550,8 @@ parseHttpRequest(icpStateData * icpState)
     /* Use xmalloc/xmemcpy instead of xstrdup because inbuf might
      * contain NULL bytes; especially for POST data  */
     inbuf = xmalloc(icpState->in_offset + 1);
-    xstrncpy(inbuf, icpState->inbuf, icpState->in_offset + 1);
+    memcpy(inbuf, icpState->inbuf, icpState->in_offset);
+    *(inbuf + icpState->in_offset) = '\0';
 
     /* Look for request method */
     if ((method = strtok(inbuf, "\t ")) == NULL) {
@@ -1782,7 +1783,7 @@ clientReadRequest(int fd, void *data)
 	wbuf = squid_error_request(icpState->inbuf,
 	    ERR_INVALID_REQ,
 	    fd_table[fd].ipaddr,
-	    icpState->http_code);
+	    400);
 	icpSendERROR(fd, ERR_INVALID_REQ, wbuf, icpState, 400);
     }
 }
