@@ -847,7 +847,7 @@ clientCachable(clientHttpRequest * http)
      */
     ch.src_addr = http->conn->peer.sin_addr;
     ch.request = http->request;
-    if (0 == aclCheckFast(Config.accessList.noCache, &ch))
+    if (aclCheckFast(Config.accessList.noCache, &ch))
 	    return 0;
     if (Config.cache_stop_relist)
 	if (aclMatchRegex(Config.cache_stop_relist, url))
