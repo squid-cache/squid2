@@ -89,6 +89,11 @@ static void idnsTickleQueue(void);
 static void
 idnsAddNameserver(const char *buf)
 {
+    struct in_addr A;
+    if (!safe_inet_addr(buf, &A)) {
+	debug(78, 0) ("WARNING: rejecting '%s' as a name server, because it is not a numeric IP address\n", buf);
+	return;
+    }
     if (nns == nns_alloc) {
 	int oldalloc = nns_alloc;
 	ns *oldptr = nameservers;
@@ -105,7 +110,7 @@ idnsAddNameserver(const char *buf)
     assert(nns < nns_alloc);
     nameservers[nns].S.sin_family = AF_INET;
     nameservers[nns].S.sin_port = htons(DOMAIN_PORT);
-    nameservers[nns].S.sin_addr.s_addr = inet_addr(buf);
+    nameservers[nns].S.sin_addr.s_addr = A.s_addr;
     debug(78, 3) ("idnsAddNameserver: Added nameserver #%d: %s\n",
 	nns, inet_ntoa(nameservers[nns].S.sin_addr));
     nns++;
