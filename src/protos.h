@@ -107,7 +107,7 @@ extern int cbdataValid(const void *p);
 extern void cbdataDump(StoreEntry *);
 
 extern void clientdbInit(void);
-extern void clientdbUpdate(struct in_addr, log_type, protocol_t, size_t);
+extern void clientdbUpdate(struct in_addr, log_type, protocol_t, size_t, request_flags);
 extern int clientdbCutoffDenied(struct in_addr);
 extern void clientdbDump(StoreEntry *);
 extern void clientdbFreeMemory(void);
@@ -213,6 +213,7 @@ extern void eventRun(void);
 extern time_t eventNextTime(void);
 extern void eventDelete(EVH * func, void *arg);
 extern void eventInit(void);
+extern void eventFreeMemory(void);
 
 extern void fd_close(int fd);
 extern void fd_open(int fd, unsigned int type, const char *);

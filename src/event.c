@@ -174,3 +174,15 @@ eventDump(StoreEntry * sentry)
 	e = e->next;
     }
 }
+
+void
+eventFreeMemory(void)
+{
+    struct ev_entry *event;
+    while ((event = tasks)) {
+	if (NULL != event->arg)
+	    cbdataUnlock(event->arg);
+	xfree(event);
+    }
+    tasks = NULL;
+}
