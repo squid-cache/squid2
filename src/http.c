@@ -955,12 +955,11 @@ httpConnectDone(int fd, int status, void *data)
     HttpStateData *httpState = data;
     request_t *request = httpState->request;
     StoreEntry *entry = httpState->entry;
-    peer *e = NULL;
     if (status != COMM_OK) {
-	if ((e = httpState->neighbor))
-	    e->last_fail_time = squid_curtime;
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
-	comm_close(fd);
+	if (httpState->neighbor)
+	    peerCheckConnectDone(fd, status, httpState->neighbor);
+	/* peerCheckConnectDone calls comm_close */
     } else {
 	/* Install connection complete handler. */
 	if (opt_no_ipcache)
