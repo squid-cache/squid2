@@ -181,6 +181,9 @@ pconnPush(int fd, const char *host, u_short port)
 	debug(48, 3) ("pconnPush: Not many unused FDs\n");
 	comm_close(fd);
 	return;
+    } else if (shutting_down) {
+	comm_close(fd);
+	return
     }
     assert(table != NULL);
     strcpy(key, pconnKey(host, port));
