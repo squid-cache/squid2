@@ -76,7 +76,7 @@ all:    squid.conf $(PROGS) $(UTILS) $(CGIPROGS)
 squid:	$(OBJS)
 	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(CRYPT_LIB) $(LIBS)
 
-cache_cf.o: cache_cf.c
+cache_cf.o: cache_cf.c Makefile
 	$(CC) -c $< $(CFLAGS) $(DEFAULTS)
 
 client:	client.o
@@ -91,7 +91,7 @@ cachemgr.cgi:	cachemgr.o
 ftpget: ftpget.o
 	$(CC) -o $@ $(LDFLAGS) ftpget.o $(LIBS)
 
-squid.conf: squid.conf.pre
+squid.conf: squid.conf.pre Makefile
 	sed "\
 	s%@DEFAULT_CONFIG_FILE@%$(DEFAULT_CONFIG_FILE)%g;\
 	s%@DEFAULT_FTPGET@%$(DEFAULT_FTPGET)%g;\
@@ -100,7 +100,7 @@ squid.conf: squid.conf.pre
 	s%@DEFAULT_ACCESS_LOG@%$(DEFAULT_ACCESS_LOG)%g;\
 	s%@DEFAULT_HIERARCHY_LOG@%$(DEFAULT_HIERARCHY_LOG)%g;\
 	s%@DEFAULT_STORE_LOG@%$(DEFAULT_STORE_LOG)%g;\
-	s%@DEFAULT_SWAP_DIR@%$(DEFAULT_SWAP_DIR)%g" <$? >$@
+	s%@DEFAULT_SWAP_DIR@%$(DEFAULT_SWAP_DIR)%g" < squid.conf.pre >$@
 
 install-mkdirs:
 	-@if test ! -d $(prefix); then \
