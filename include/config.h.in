@@ -45,12 +45,6 @@
 #endif
 #endif
 
-#if defined(SYSTYPE_SYSV) || defined(__svr4__) || defined(SYSTYPE_SVR4) || defined(__SYSTYPE_SVR4__)
-#define _SQUID_SYSV_
-#else
-#define _SQUID_BSD_
-#endif
-
 /* define the _SQUID_TYPE_ based on a guess of the OS */
 #if defined(__sun__)				/* SUN */
 #define _SQUID_SUN_
@@ -96,6 +90,10 @@
 
 #elif defined(__NetBSD__)
 #define _SQUID_NETBSD_
+
+#elif defined(__CYGWIN32__) || defined(WIN32) || defined(WINNT)
+#define _SQUID_MSWIN_
+
 #endif
 
 #if !defined(CACHE_HTTP_PORT)
