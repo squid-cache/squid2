@@ -761,7 +761,8 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 #endif
     if (httpHeaderHas(req_hdr, HDR_VIA)) {
 	String s = httpHeaderGetList(req_hdr, HDR_VIA);
-	if (strListIsMember(&s, ThisCache, ',')) {
+	/* ThisCache cannot be a member of Via header, "1.0 ThisCache" can */
+	if (strListIsSubstr(&s, ThisCache, ',')) {
 	    if (!http->flags.accel) {
 		debug(33, 1) ("WARNING: Forwarding loop detected for '%s'\n",
 		    http->uri);

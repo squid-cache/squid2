@@ -139,6 +139,20 @@ strListIsMember(const String *list, const char *m, char del)
     return 0;
 }
 
+/* returns true iff "s" is a substring of a member of the list */
+int
+strListIsSubstr(const String *list, const char *s, char del)
+{
+    const char *pos = NULL;
+    const char *item;
+    assert(list && s);
+    while (strListGetItem(list, del, &item, NULL, &pos)) {
+	if (strstr(item, s))
+	    return 1;
+    }
+    return 0;
+}
+
 /* appends an item to the list */
 void
 strListAdd(String *str, const char *item, char del)
