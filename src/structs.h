@@ -1866,7 +1866,7 @@ struct _PumpStateData {
     CWCB *callback;		/* what to do when we finish sending */
     void *cbdata;		/* callback data passed to callback func */
     struct {
-	int closing:1;
+	unsigned int closing:1;
     } flags;
     struct _PumpStateData *next;
 };
