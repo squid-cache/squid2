@@ -285,7 +285,7 @@ snmp_prfSysFn(variable_list * Var, snint * ErrP)
     case PERF_SYS_CURUNLREQ:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
 	    (snint) statCounter.unlink.requests,
-	    SMI_GAUGE32);
+	    SMI_COUNTER32);
 	break;
     case PERF_SYS_CURUNUSED_FD:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
