@@ -105,7 +105,7 @@
 
 /*
  * Anonymizing patch by lutz@as-node.jena.thur.de
- * have a look into http.anon.c to get more informations.
+ * have a look into http-anon.c to get more informations.
  */
 
 #include "squid.h"
