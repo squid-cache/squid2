@@ -801,8 +801,13 @@ connect_with_timeout(int fd, struct sockaddr_in *S, int len)
     }
     orig_flags = fcntl(fd, F_GETFL, 0);
     debug(38, 7, "orig_flags = %x\n", orig_flags);
+#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
+    if (fcntl(fd, F_SETFL, orig_flags | O_NONBLOCK) < 0)
+	debug(38, 0, "fcntl O_NONBLOCK: %s\n", xstrerror());
+#else
     if (fcntl(fd, F_SETFL, orig_flags | O_NDELAY) < 0)
 	debug(38, 0, "fcntl O_NDELAY: %s\n", xstrerror());
+#endif
     rc = connect_with_timeout2(fd, S, len);
     if (fcntl(fd, F_SETFL, orig_flags) < 0)
 	debug(38, 0, "fcntl orig: %s\n", xstrerror());
@@ -2437,10 +2442,9 @@ ftpget_srv_mode(char *arg)
 	}
 	if ((flags = fcntl(c, F_GETFL, 0)) < 0)
 	    debug(38, 0, "fcntl F_GETFL: %s\n", xstrerror());
-#ifdef O_NONBLOCK
+#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
 	flags &= ~O_NONBLOCK;
-#endif
-#ifdef O_NDELAY
+#else
 	flags &= ~O_NDELAY;
 #endif
 	if (fcntl(c, F_SETFL, flags) < 0)
