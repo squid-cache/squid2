@@ -1381,7 +1381,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	case LOG_TCP_DENIED:
 	    debug(12, 5, "Access Denied: %s\n", astm->url);
 	    astm->log_type = LOG_TCP_DENIED;
-	    astm->http_code = 400;
+	    astm->http_code = 403;
 	    astm->buf = xstrdup(access_denied_msg(astm->http_code,
 		    astm->method,
 		    astm->url,
