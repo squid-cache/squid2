@@ -1026,15 +1026,6 @@ parseCachemgrPasswd(void)
     wordlistDestroy(&actions);
 }
 
-static void
-parseStoplistPattern(int icase)
-{
-    relist *r, **T;
-    r = aclParseRegexList(icase);
-    for (T = &Config.cache_stop_relist; *T; T = &(*T)->next);
-    *T = r;
-}
-
 int
 parseConfigFile(const char *file_name)
 {
@@ -1170,9 +1161,9 @@ parseConfigFile(const char *file_name)
 	else if (!strcmp(token, "cache_stoplist"))
 	    parseWordlist(&Config.cache_stoplist);
 	else if (!strcmp(token, "cache_stoplist_pattern"))
-	    parseStoplistPattern(0);
+            aclParseRegexList(&Config.cache_stop_relist, 0);
 	else if (!strcmp(token, "cache_stoplist_pattern/i"))
-	    parseStoplistPattern(1);
+            aclParseRegexList(&Config.cache_stop_relist, 1);
 
 #if DELAY_HACK
 	else if (!strcmp(token, "delay_access"))
