@@ -110,7 +110,7 @@ The format is now
 			resolution
 	- elapsed:	elapsed time of the request, in milliseconds
 	- src-address: 	IP address of the requesting client
-	- type:		An indiciation of how the request was handled
+	- type:		An indication of how the request was handled
 			by the cache.  These are described further below
 	- code: 	The HTTP reply code when available.  For ICP
 			requests this is always "000."  If the reply code
