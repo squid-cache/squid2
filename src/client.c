@@ -345,8 +345,8 @@ main(int argc, char *argv[])
 	if (put_file) {
 	    int x;
 	    lseek(put_fd, 0, SEEK_SET);
-	    while ((x = read(put_fd, msg, BUFSIZ)) > 0) {
-		x = write(conn, msg, x);
+	    while ((x = read(put_fd, buf, sizeof(buf))) > 0) {
+		x = write(conn, buf, x);
 		total_bytes += x;
 		if (x <= 0)
 		    break;
