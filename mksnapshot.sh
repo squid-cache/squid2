@@ -43,7 +43,7 @@ if (echo $VERSION | grep PRE) || (echo $VERSION | grep STABLE); then
 	if [ -f $basetarball ]; then
 		tar jxf ${PACKAGE}-${VERSION}-${date}.tar.bz2
 		tar jxf $basetarball
-		diff -ruN ${PACKAGE}-${VERSION} ${PACKAGE}-${VERSION}-${date} >>${PACKAGE}-${VERSION}-${date}.diff
+		diff -ruN ${PACKAGE}-${VERSION} ${PACKAGE}-${VERSION}-${date} >>${PACKAGE}-${VERSION}-${date}.diff || true
 	else
 		cvs -q rdiff -u -r SQUID_`echo $VERSION | tr .- __` -r $tag $module >>${PACKAGE}-${VERSION}-${date}.diff
 	fi
