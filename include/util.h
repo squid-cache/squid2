@@ -181,13 +181,13 @@ extern void init_log3 __P((char *pn, FILE * a, FILE * b));
 extern void debug_init __P((void));
 extern void log_errno2 __P((char *, int, char *));
 
-#if defined(__STRICT_ANSI__)
+#if __STDC__
 extern void Log __P((char *,...));
 extern void errorlog __P((char *,...));
 #else
 extern void Log __P(());
 extern void errorlog __P(());
-#endif /* __STRICT_ANSI__ */
+#endif /* __STDC__ */
 
 extern void Tolower __P((char *));
 

@@ -132,7 +132,7 @@
 #include <aio.h>
 #endif
 
-#if defined(__STRICT_ANSI__)
+#if __STDC__ 
 #include <stdarg.h>
 #else
 #include <varargs.h>

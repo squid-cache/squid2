@@ -1,7 +1,7 @@
 
 
 #ifndef __P
-#if defined(__STDC__) || defined(__cplusplus) || defined(__STRICT_ANSI__)
+#if __STDC__ || defined(__cplusplus)
 #define __P(ARGS) ARGS
 #else /* Traditional C */
 #define __P(ARGS) ()

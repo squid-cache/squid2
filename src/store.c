@@ -1023,7 +1023,7 @@ storeAppend(StoreEntry * e, char *data, int len)
 	InvokeHandlers(e);
 }
 
-#if defined(__STRICT_ANSI__)
+#if __STDC__ 
 void
 storeAppendPrintf(StoreEntry * e, char *fmt,...)
 {
