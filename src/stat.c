@@ -402,13 +402,13 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
 	    mem ? mem->swap_length : -1,
 	    (int) mem ? mem->swapout_fd : -2,
 	    entry->url);
- 	if (mem) {
-	    for (j=0; j<mem->nclients; j++) {
+	if (mem) {
+	    for (j = 0; j < mem->nclients; j++) {
 		fprintf(fp, "\t{FD%d offset %9d handler %p data %p}\n",
-			mem->clients[j].fd,
-			(int) mem->clients[j].offset,
-			mem->clients[j].callback,
-			mem->clients[j].callback_data);
+		    mem->clients[j].fd,
+		    (int) mem->clients[j].offset,
+		    mem->clients[j].callback,
+		    mem->clients[j].callback_data);
 	    }
 	}
     }

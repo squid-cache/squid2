@@ -167,7 +167,7 @@ commCancelRWHandler(int fd)
 	}
 	RWState->handler = NULL;
 	RWState->handler_data = NULL;
-        commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
+	commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
     }
 }
 
