@@ -1208,7 +1208,7 @@ int ipcache_unregister(name, fd)
 
     if (p == NULL) {
 	/* Can not find this ipcache_entry, weird */
-	debug(14, 1, "ipcache_unregister: Failed to unregister FD %d from name: %s, can't find this FD.\n",
+	debug(14, 3, "ipcache_unregister: Failed to unregister FD %d from name: %s, can't find this FD.\n",
 	    fd, name);
 	return 0;
     }
@@ -1247,7 +1247,7 @@ struct hostent *ipcache_gethostbyname(name)
      char *name;
 {
     ipcache_entry *result;
-    unsigned int a1, a2, a3, a4;
+    unsigned int ip;
     struct hostent *s_result = NULL;
 
     if (!name) {
@@ -1261,8 +1261,8 @@ struct hostent *ipcache_gethostbyname(name)
 	    debug(14, 5, "ipcache_gethostbyname: IPcache miss for '%s'.\n", name);
 	IpcacheStats.misses++;
 	/* check if it's already a IP address in text form. */
-	if (sscanf(name, "%u.%u.%u.%u", &a1, &a2, &a3, &a4) == 4) {
-	    *((unsigned long *) (void *) static_result->h_addr_list[0]) = inet_addr(name);
+	if ((ip = inet_addr(name)) != INADDR_NONE) {
+	    *((unsigned long *) (void *) static_result->h_addr_list[0]) = ip;
 	    strncpy(static_result->h_name, name, MAX_HOST_NAME);
 	    return static_result;
 	} else {
