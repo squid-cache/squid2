@@ -291,7 +291,7 @@ diskHandleWrite(int fd, void *notused)
 /* call a handle when writing is complete. */
 void
 file_write(int fd,
-    squid_off_t file_offset,
+    off_t file_offset,
     void *ptr_to_buf,
     size_t len,
     DWCB * handle,
@@ -331,7 +331,7 @@ file_write(int fd,
  * in a snap
  */
 void
-file_write_mbuf(int fd, squid_off_t file_offset, MemBuf mb, DWCB * handler, void *handler_data)
+file_write_mbuf(int fd, off_t file_offset, MemBuf mb, DWCB * handler, void *handler_data)
 {
     file_write(fd, file_offset, mb.buf, mb.size, handler, handler_data, memBufFreeFunc(&mb));
 }
@@ -388,7 +388,7 @@ diskHandleRead(int fd, void *data)
  * It must have at least req_len space in there. 
  * call handler when a reading is complete. */
 void
-file_read(int fd, char *buf, size_t req_len, squid_off_t file_offset, DRCB * handler, void *client_data)
+file_read(int fd, char *buf, size_t req_len, off_t file_offset, DRCB * handler, void *client_data)
 {
     dread_ctrl *ctrl_dat;
     assert(fd >= 0);

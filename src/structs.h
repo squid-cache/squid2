@@ -732,7 +732,7 @@ struct _close_handler {
 
 struct _dread_ctrl {
     int fd;
-    squid_off_t file_offset;
+    off_t file_offset;
     size_t req_len;
     char *buf;
     int end_of_file;
@@ -741,7 +741,7 @@ struct _dread_ctrl {
 };
 
 struct _dwrite_q {
-    squid_off_t file_offset;
+    off_t file_offset;
     char *buf;
     size_t len;
     size_t buf_offset;
@@ -789,7 +789,7 @@ struct _fde {
 	void *wrt_handle_data;
 	dwrite_q *write_q;
 	dwrite_q *write_q_tail;
-	squid_off_t offset;
+	off_t offset;
     } disk;
     PF *read_handler;
     void *read_data;
@@ -1703,7 +1703,7 @@ struct _refresh_t {
 struct _CommWriteStateData {
     char *buf;
     size_t size;
-    squid_off_t offset;
+    size_t offset;
     CWCB *handler;
     void *handler_data;
     FREE *free_func;

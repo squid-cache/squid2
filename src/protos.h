@@ -223,9 +223,9 @@ extern void debugObj(int section, int level, const char *label, void *obj, ObjPa
 /* disk.c */
 extern int file_open(const char *path, int mode);
 extern void file_close(int fd);
-extern void file_write(int, squid_off_t, void *, size_t len, DWCB *, void *, FREE *);
-extern void file_write_mbuf(int fd, squid_off_t, MemBuf mb, DWCB * handler, void *handler_data);
-extern void file_read(int, char *, size_t, squid_off_t, DRCB *, void *);
+extern void file_write(int, off_t, void *, size_t len, DWCB *, void *, FREE *);
+extern void file_write_mbuf(int fd, off_t, MemBuf mb, DWCB * handler, void *handler_data);
+extern void file_read(int, char *, size_t, off_t, DRCB *, void *);
 extern void disk_init(void);
 
 /* dns.s */
