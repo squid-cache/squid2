@@ -594,6 +594,8 @@ static void statFiledescriptors(sentry)
 		lft = (lft - squid_curtime) / 60;
 	    if (to > 0)
 		to = (to - squid_curtime) / 60;
+	    if (fd_table[i].timeout_handler == NULL)
+		to = 0;
 	    storeAppendPrintf(sentry, "%4d %4d %-21s %s}\n",
 		lft,
 		to,
