@@ -187,6 +187,7 @@ static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
 static void icpStateFree _PARAMS((int fd, void *data));
 static int icpCheckTransferDone _PARAMS((icpStateData *));
 static int icpReadDataDone _PARAMS((int fd, char *buf, int len, int err, void *data));
+static int icpGetHeadersForIMS _PARAMS((int fd, char *buf, int len, int err, void *data));
 static void clientReadRequest _PARAMS((int fd, void *data));
 static void icpDetectNewRequest _PARAMS((int fd));
 
@@ -637,23 +638,29 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
     }
 }
 
+
 static int
-icpGetHeadersForIMS(int fd, icpStateData * icpState)
+icpGetHeadersForIMS(int fd, char *buf, int len, int err, void *data)
 {
+    icpStateData *icpState = data;
     StoreEntry *entry = icpState->entry;
     MemObject *mem = entry->mem_obj;
-    int max_len = 8191 - icpState->out.offset;
     char *reply = NULL;
-    if (max_len <= 0) {
-	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n",
-	    entry->key ? entry->key : entry->url);
-	icpState->out.offset = 0;
-	return icpProcessMISS(fd, icpState);
-    }
-    if (mem->reply->code == 0) {
-	/* All headers are not yet available, wait for more data */
-	storeRegister(entry, fd, icpSendMoreData, (void *) icpState, icpState->out.offset);
+    debug(12, 3, "icpGetHeadersForIMS: FD %d, len=%d, err=%d, '%s'\n",
+	fd, len, err, entry->key);
+    if (len == 0 && err == DISK_EOF) {
+	comm_close(icpState->fd);
 	return COMM_OK;
+    }
+    if (icpState->out.offset == 0 && entry->object_len > 0)
+	if (mem->reply->code == 0)
+	    httpParseReplyHeaders(buf, mem->reply);
+    if (mem->reply->code == 0) {
+	/* We should have gotten the headers in the first read.
+	 * Well, turn this into a cache MISS then, pretend like
+	 * it was icpReadDataDone() which got called as the
+	 * callback */
+	return icpReadDataDone(fd, buf, len, err, data);
     }
     /* All headers are available, check if object is modified or not */
     /* Restart the object from the beginning */
@@ -675,18 +682,16 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     if (mem->reply->code != 200) {
 	debug(12, 4, "icpGetHeadersForIMS: Reply code %d!=200\n",
 	    mem->reply->code);
-	return icpProcessMISS(fd, icpState);
+	return icpReadDataDone(fd, buf, len, err, data);
     }
 #endif
     icpState->log_type = LOG_TCP_IMS_HIT;
     entry->refcount++;
-    if (modifiedSince(entry, icpState->request)) {
-	icpSendMoreData(fd, icpState);
-	return COMM_OK;
-    }
+    if (modifiedSince(entry, icpState->request))
+	return icpReadDataDone(fd, buf, len, err, data);
     debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
     reply = icpConstruct304reply(mem->reply);
-    comm_write(fd,
+    comm_write(icpState->fd,
 	xstrdup(reply),
 	strlen(reply),
 	30,
@@ -850,7 +855,12 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	icpSendMoreData(fd, icpState);
 	break;
     case LOG_TCP_IMS_MISS:
-	icpGetHeadersForIMS(fd, icpState);
+	file_read(icpState->swapin_fd,
+	    icpState->out.buf,
+	    DISK_PAGE_SIZE,
+	    0,
+	    icpGetHeadersForIMS,
+	    icpState);
 	break;
     case LOG_TCP_REFRESH_MISS:
 	icpProcessExpired(fd, icpState);
@@ -1923,7 +1933,7 @@ icpDetectClientClose(int fd, void *data)
 	comm_close(fd);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
-	comm_set_stall(fd, 10);	/* check again in 10 seconds */
+	comm_set_stall(fd, 1);	/* check again in 1 second */
 	commSetSelect(fd, COMM_SELECT_READ, icpDetectClientClose, icpState, 0);
     }
 }
