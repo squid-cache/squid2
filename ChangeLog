@@ -13,6 +13,7 @@
 	- Added ability to generate HTTP redirect messages from
 	  the redirector output by prepending "301:" or "302:" to the
 	  new url.  See FAQ 4.16 for more details.
+	- Fixed errorpage.c buffer overrun.
 
 Changes to squid-1.1.18 (October 31, 1997):
 
