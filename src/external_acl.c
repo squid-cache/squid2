@@ -234,7 +234,7 @@ parse_externalAclHelper(external_acl ** list)
 		    format->type = EXT_ACL_HEADER_ID;
 	    }
 	}
-	if (strcmp(token, "%LOGIN") == 0) {
+	else if (strcmp(token, "%LOGIN") == 0) {
 	    format->type = EXT_ACL_LOGIN;
 	    a->require_auth = 1;
 	}
