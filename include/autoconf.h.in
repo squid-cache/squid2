@@ -260,6 +260,12 @@
 #undef IPF_TRANSPARENT
 
 /*
+ * Enable support for Transparent Proxy on systems using PF address
+ * redirection. This provides "masquerading" support for OpenBSD.
+ */
+#undef PF_TRANSPARENT
+
+/*
  * Enable code for assiting in finding memory leaks.  Hacker stuff only.
  */
 #undef USE_LEAKFINDER
@@ -647,6 +653,9 @@
 
 /* Define if you have the <net/if.h> header file.  */
 #undef HAVE_NET_IF_H
+
+/* Define if you have the <net/pfvar.h> header file.  */
+#undef HAVE_NET_PFVAR_H
 
 /* Define if you have the <netdb.h> header file.  */
 #undef HAVE_NETDB_H
