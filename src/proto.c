@@ -510,7 +510,9 @@ static int matchInsideFirewall(host)
 	}
 	if ((offset = strlen(host) - strlen(key)) < 0)
 	    continue;
-	if (strcasecmp(key, host + offset) == 0)
+	if (strcasecmp(key, host + offset))
+	    continue;
+	if (offset == 0 || host[offset - 1] == '.')
 	    /* a match, this host is inside/outside the firewall */
 	    return result;
     }
@@ -527,7 +529,9 @@ static int matchLocalDomain(host)
     for (s = getLocalDomainList(); s; s = s->next) {
 	if ((offset = strlen(host) - strlen(s->key)) < 0)
 	    continue;
-	if (strcasecmp(s->key, host + offset) == 0)
+	if (strcasecmp(s->key, host + offset))
+	    continue;
+	if (offset == 0 || host[offset - 1] == '.')
 	    /* a match */
 	    return 1;
     }
