@@ -108,7 +108,7 @@ packerToStoreInit(Packer * p, StoreEntry * e)
 {
     assert(p && e);
     p->append = (append_f) store_append;
-    p->vprintf = (vprintf_f) storeAppendVPrintf;
+    p->vprintf = (vprintf_f) store_vprintf;
     p->real_handler = e;
 }
 
