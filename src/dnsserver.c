@@ -269,6 +269,9 @@ main(int argc, char *argv[])
 
 #if HAVE_RES_INIT
     res_init();
+#ifdef RES_DEFAULT
+    _res.options = RES_DEFAULT;
+#endif
 #ifdef RES_DEFNAMES
     _res.options &= ~RES_DEFNAMES;
 #endif
