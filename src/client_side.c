@@ -2584,6 +2584,10 @@ requestTimeout(int fd, void *data)
 	 * if we don't close() here, we still need a timeout handler!
 	 */
 	commSetTimeout(fd, 30, requestTimeout, conn);
+	/*
+	 * Aha, but we don't want a read handler!
+	 */
+	commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
     }
 }
 
