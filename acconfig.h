@@ -46,6 +46,9 @@
 /* Define to do simple malloc debugging */
 #undef XMALLOC_DEBUG
 
+/* Define for log file trace of mem alloc/free */
+#undef MEM_GEN_TRACE
+
 /* Define to have malloc statistics */
 #undef XMALLOC_STATISTICS
 
