@@ -424,7 +424,9 @@ mainSetCwd(void)
 {
     char *p;
     if (Config.coredump_dir) {
-	if (chdir(Config.coredump_dir) == 0) {
+	if (0 == strcmp("none", Config.coredump_dir)) {
+	    (void) 0;
+	} else if (chdir(Config.coredump_dir) == 0) {
 	    debug(0, 1) ("Set Current Directory to %s\n", Config.coredump_dir);
 	    return;
 	} else {
