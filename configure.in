@@ -50,14 +50,7 @@ dnl Check for GNU cc
 AC_PROG_CC
 
 dnl Warn if not using GNU cc
-XXXCC=`echo $CC | awk '{print $1}'`
-if test "`basename $XXXCC`" = "gcc"; then
-	:
-elif test "`basename $XXXCC`" = "shlicc"; then
-	:
-elif test "`basename $XXXCC`" = "shlicc2"; then
-	:
-else
+if test $ac_cv_prog_gcc = no; then
         echo '**************************************************************';
         echo '**************************************************************';
         echo '**';
