@@ -97,6 +97,9 @@
 /* Define if you have the setsid function.  */
 #undef HAVE_SETSID
 
+/* Define if you have the socketpair function.  */
+#undef HAVE_SOCKETPAIR
+
 /* Define if you have the srand48 function.  */
 #undef HAVE_SRAND48
 

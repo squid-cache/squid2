@@ -251,6 +251,7 @@ AC_CHECK_FUNCS(\
 	setresuid \
 	setrlimit \
 	setsid \
+	socketpair \
 	srand48 \
 	strdup \
 	sysconf \

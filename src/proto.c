@@ -473,18 +473,27 @@ static int matchInsideFirewall(host)
 {
     int offset;
     wordlist *s = getInsideFirewallList();
+    char *key = NULL;
+    int result;
     if (!s)
 	/* no domains, all hosts are "inside" the firewall */
 	return NO_FIREWALL;
     for (; s; s = s->next) {
-	if (!strcasecmp(s->key, "none"))
+	key = s->key;
+	if (!strcasecmp(key, "none"))
 	    /* no domains are inside the firewall, all domains are outside */
 	    return OUTSIDE_FIREWALL;
-	if ((offset = strlen(host) - strlen(s->key)) < 0)
+	if (*key == '!') {
+	    key++;
+	    result = OUTSIDE_FIREWALL;
+	} else {
+	    result = INSIDE_FIREWALL;
+	}
+	if ((offset = strlen(host) - strlen(key)) < 0)
 	    continue;
-	if (strcasecmp(s->key, host + offset) == 0)
-	    /* a match, this host is inside the firewall */
-	    return INSIDE_FIREWALL;
+	if (strcasecmp(key, host + offset) == 0)
+	    /* a match, this host is inside/outside the firewall */
+	    return result;
     }
     /* all through the list and no domains matched, this host must
      * not be inside the firewall, it must be outside */

@@ -107,6 +107,7 @@ int ipcache_testname()
 /*
  * open a UNIX domain socket for rendevouing with dnsservers
  */
+#if HAVE_WORKING_UNIX_SOCKETS
 int ipcache_create_dnsserver(command)
      char *command;
 {
@@ -185,7 +186,58 @@ int ipcache_create_dnsserver(command)
     _exit(1);
     return (0);
 }
+#elif HAVE_SOCKETPAIR
+int ipcache_create_dnsserver(command)
+     char *command;
+{
+    int pid;
+    static int n_dnsserver = 0;
+    int scfd[2];		/* sockets for server (squid) and child (dnsserver) */
+    int fd;
 
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, scfd) < 0) {
+	debug(14, 0, "ipcache_create_dnsserver: socketpair: %s\n", xstrerror());
+	return -1;
+    }
+    if ((pid = fork()) < 0) {
+	debug(14, 0, "ipcache_create_dnsserver: fork: %s\n", xstrerror());
+	close(scfd[0]);
+	close(scfd[1]);
+	return -1;
+    }
+    if (pid > 0) {		/* parent */
+	close(scfd[1]);		/* close shared socket with child */
+
+	fcntl(scfd[0], F_SETFD, 1);	/* set close-on-exec */
+	debug(14, 4, "ipcache_create_dnsserver: FD %d connected to %s #%d.\n",
+	    scfd[0], command, n_dnsserver);
+	return scfd[0];
+    }
+    /* child */
+
+    /* give up extra priviliges */
+    no_suid();
+
+    /* setup filedescriptors */
+    dup2(scfd[1], 0);
+    dup2(scfd[1], 1);
+    for (fd = FD_SETSIZE; fd > 2; fd--) {
+	close(fd);
+    }
+
+    execlp(command, "(dnsserver)", NULL);
+    debug(14, 0, "ipcache_create_dnsserver: %s: %s\n", command, xstrerror());
+    _exit(1);
+    return (0);
+}
+#else
+int ipcache_create_dnsserver(command)
+     char *command;
+{
+    fatal_dump("ipcache_create_dnsserver needs UNIX sockets or socketpair()");
+}
+
+#endif
 
 /* removes the given ipcache entry */
 int ipcache_release(e)
