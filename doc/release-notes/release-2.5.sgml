@@ -295,5 +295,20 @@ name="ChangeLog"> file for details.
 	name="ChangeLog"> file for details.
 </itemize>
 	
+<sect>Key changes squid-2.5.STABLE7 to 2.5.STABLE8:
+
+<p>
+<itemize>
+	<item>Squid no longer closes all open filedescriptors. Previous Squid
+	versions have for increased security closed any open filedescriptors left
+	open by the process starting Squid, but this is not really our business
+	and causes problems for certain libraries opening internal filedescriptors
+	in some conditions (some SSL libraries, syslog, DNS resolver etc). (Bug #1177)
+	<item>Configuration parser made more strict and consistent. Previously empty acl
+	declarations were ignored in http_access causing some unexpected results.
+	Now empty acl declarations are allowed (matching nothing) and http_access
+	requires all listed acls to be defined. (Bug #1166)
+	<item>A minor information leak in error messages due to malformed host
+	names corrected (Bug #1143)
 </article>
 

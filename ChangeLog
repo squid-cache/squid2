@@ -1,3 +1,21 @@
+Changes to squid-2.5.STABLE8 ()
+
+	- [Minor security] Confusing results on empty acl declarations (Bug #1166)
+	- [Minor] cachemgr vm_objects segfault (Bug #1149)
+	- [Minor] httpd_accel_port 0 (virtual) not working correctly (Bug #1121)
+	- [Minor security] Random error messages in response to malformed host
+	  name (Bug #1143)
+	- [Minor] Squid fails to close TCP connection after blank HTTP response
+	  (Bug #1116)
+	- [Minor] Don't use O_NONBLOCK on disk files. (Bug #1102)
+	- [Minor] Failure to shut down busy helpers on -k rotate/reconfigure
+	  (Bug #1118)
+	- [Minor] The new req_header and resp_header acls segfaults immediately
+	  on parse of squid.conf
+	- [Cosmetic] Document -v (protocol version) option to LDAP helpers
+	- [Minor] 100% CPU usage on half-closed PUT/POST requests (Bug #354,
+	  #1096)
+
 Changes to squid-2.5.STABLE7 (11 Oct 2004)
 
 	- [Medium] No objects cached in ufs cache_dir type in some
