@@ -29,6 +29,7 @@ typedef struct _ipcache_entry {
 extern int ipcache_nbgethostbyname _PARAMS((char *, int, IPH, void *));
 extern int ipcache_unregister _PARAMS((char *, int));
 extern struct hostent *ipcache_gethostbyname _PARAMS((char *));
+extern struct hostent *ipcache_getcached _PARAMS((char *, int lookup_flag));
 extern void ipcache_init _PARAMS((void));
 extern void stat_ipcache_get _PARAMS((StoreEntry *, cacheinfo *));
 extern void ipcacheShutdownServers _PARAMS((void));

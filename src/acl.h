@@ -4,6 +4,7 @@
 typedef enum {
     ACL_NONE,
     ACL_SRC_IP,
+    ACL_DST_IP,
     ACL_DST_DOMAIN,
     ACL_TIME,
     ACL_URL_REGEX,

@@ -37,6 +37,8 @@ static acl_t aclType(s)
 {
     if (!strcmp(s, "src"))
 	return ACL_SRC_IP;
+    if (!strcmp(s, "dst"))
+	return ACL_DST_IP;
     if (!strcmp(s, "domain"))
 	return ACL_DST_DOMAIN;
     if (!strcmp(s, "time"))
@@ -374,6 +376,7 @@ void aclParseAclLine()
     }
     switch (A->type = aclType(t)) {
     case ACL_SRC_IP:
+    case ACL_DST_IP:
 	A->data = (void *) aclParseIpList();
 	break;
     case ACL_DST_DOMAIN:
@@ -605,12 +608,27 @@ int aclMatchAcl(acl, c, m, pr, h, po, r)
      int po;
      char *r;
 {
+    struct hostent *hp = NULL;
+    struct in_addr dst;
+    int k;
     if (!acl)
 	return 0;
     debug(28, 3, "aclMatchAcl: checking '%s'\n", acl->cfgline);
     switch (acl->type) {
     case ACL_SRC_IP:
 	return aclMatchIp(acl->data, c);
+	/* NOTREACHED */
+    case ACL_DST_IP:
+	if ((hp = ipcache_getcached(h, 1)) == NULL) {
+	    debug(28, 0, "aclMatchAcl: Can't compare 'dst' ACL\n");
+	    return 0;		/* cant check, return no match */
+	}
+	for (k = 0; hp->h_addr_list[k]; k++) {
+	    memcpy((char *) &dst.s_addr, hp->h_addr_list[k], hp->h_length);
+	    if (aclMatchIp(acl->data, dst))
+		return 1;
+	}
+	return 0;
 	/* NOTREACHED */
     case ACL_DST_DOMAIN:
 	return aclMatchEndOfWord(acl->data, h);
@@ -735,6 +753,7 @@ void aclDestroyAcls()
 	debug(28, 3, "aclDestroyAcls: '%s'\n", a->cfgline);
 	switch (a->type) {
 	case ACL_SRC_IP:
+	case ACL_DST_IP:
 	    aclDestroyIpList(a->data);
 	    break;
 	case ACL_DST_DOMAIN:
