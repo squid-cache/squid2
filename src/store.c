@@ -166,7 +166,7 @@ destroy_MemObject(StoreEntry * e)
     ctx_exit(ctx);		/* must exit before we free mem->url */
     safe_free(mem->url);
     safe_free(mem->log_url);	/* XXX account log_url */
-    safe_free((void *) mem->vary_headers);
+    safe_free(mem->vary_headers);
     memFree(mem, MEM_MEMOBJECT);
 }
 
