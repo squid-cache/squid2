@@ -10,7 +10,7 @@ extern FILE *debug_log;
 
 void _db_init _PARAMS((char *logfile));
 #if defined(__STRICT_ANSI__)
-void _db_print _PARAMS((int,int,char *,...));
+void _db_print _PARAMS((int, int, char *,...));
 #else
 void _db_print();
 #endif

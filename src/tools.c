@@ -386,6 +386,6 @@ void setMaxFD()
 
 time_t getCurrentTime()
 {
-	gettimeofday(&current_time, NULL);
-	return cached_curtime = current_time.tv_sec;
+    gettimeofday(&current_time, NULL);
+    return cached_curtime = current_time.tv_sec;
 }
