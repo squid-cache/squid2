@@ -1747,7 +1747,55 @@ AM_CONDITIONAL(NEED_OWN_SNPRINTF, false)
 if test "$ac_cv_func_snprintf" = "no" || test "$ac_cv_func_vsnprintf" = "no" ; then
   AM_CONDITIONAL(NEED_OWN_SNPRINTF, true)
 fi
-  
+
+dnl
+dnl Test for va_copy
+dnl
+AC_CACHE_CHECK(if va_copy is implemented, ac_cv_func_va_copy,
+  AC_TRY_RUN([
+      #include <stdarg.h>
+      void f (int i, ...) {
+         va_list args1, args2;
+         va_start (args1, i);
+         va_copy (args2, args1);
+         if (va_arg (args2, int) != 42 || va_arg (args1, int) != 42)
+            exit (1);
+         va_end (args1); va_end (args2);
+      }
+      int main() {
+         f (0, 42);
+         return 0;
+      }
+      ],ac_cv_func_va_copy="yes",ac_cv_func_va_copy="no")
+)
+if test "$ac_cv_func_va_copy" = "yes" ; then
+  AC_DEFINE(HAVE_VA_COPY)
+fi
+
+dnl
+dnl Some systems support __va_copy
+dnl
+AC_CACHE_CHECK(if __va_copy is implemented, ac_cv_func___va_copy,
+  AC_TRY_RUN([
+      #include <stdarg.h>
+      void f (int i, ...) {
+         va_list args1, args2;
+         va_start (args1, i);
+         __va_copy (args2, args1);
+         if (va_arg (args2, int) != 42 || va_arg (args1, int) != 42)
+            exit (1);
+         va_end (args1); va_end (args2);
+      }
+      int main() {
+         f (0, 42);
+         return 0;
+      }
+      ],ac_cv_func___va_copy="yes",ac_cv_func___va_copy="no")
+)
+if test "$ac_cv_func___va_copy" = "yes" ; then
+  AC_DEFINE(HAVE___VA_COPY)
+fi
+
 dnl IP-Filter support requires ipf header files. These aren't
 dnl installed by default, so we need to check for them
 if test "$IPF_TRANSPARENT" ; then
