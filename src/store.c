@@ -704,7 +704,6 @@ StoreEntry *storeAddDiskRestore(url, file_number, size, expires, timestamp)
     /* if you call this you'd better be sure file_number is not 
      * already in use! */
 
-    meta_data.store_entries++;
     meta_data.url_strings += strlen(url);
 
     e = new_StoreEntry(WITHOUT_MEMOBJ);
