@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 0     Announement Server
+ * DEBUG: section 0     Announcement Server
  * AUTHOR: Harvest Derived
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
