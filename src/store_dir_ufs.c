@@ -280,6 +280,8 @@ storeRebuildFromDirectory(void *data)
     tlv *tlv_list;
     tlv *t;
     assert(rb != NULL);
+    if (opt_foreground_rebuild)
+	getCurrentTime();
     debug(20, 3) ("storeRebuildFromDirectory: DIR #%d\n", rb->sd->index);
     for (count = 0; count < rb->speed; count++) {
 	assert(fd == -1);
