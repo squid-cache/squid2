@@ -2352,7 +2352,11 @@ clientReadRequest(int fd, void *data)
 		    debug(33, 0) ("This request = %d bytes.\n",
 			(int) conn->in.offset);
 		    err = errorCon(ERR_INVALID_REQ, HTTP_REQUEST_ENTITY_TOO_LARGE);
-		    http->entry = clientCreateStoreEntry(http, request->method, null_request_flags);
+		    http = parseHttpRequestAbort(conn, "error:request-too-large");
+		    /* add to the client request queue */
+		    for (H = &conn->chr; *H; H = &(*H)->next);
+		    *H = http;
+		    http->entry = clientCreateStoreEntry(http, METHOD_NONE, null_request_flags);
 		    errorAppendEntry(http->entry, err);
 		    return;
 		}
