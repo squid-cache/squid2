@@ -39,12 +39,14 @@ DISTCLEANFILES =
 $(ICON2): $(ICON1)
 
 $(ICON1):
-	@$(SHELL) "$(srcdir)/icons.shar"
-##	@$(SHELL) -c "cd $(srcdir); $(SHELL) icons.shar"
+	@if [ ! -f "$(srcdir)/$(ICON1)" ]; then \
+	    $(SHELL) "$(srcdir)/icons.shar" ; \
+	    touch -r "$(srcdir)/icons.shar" *.gif ; \
+	fi
 
-icons.shar:
+update-icons.shar:
+	shar --no-timestamp $(ICON1) $(ICON2) > $@ 2>/dev/null || \
 	shar $(ICON1) $(ICON2) > $@
-##	shar --no-timestamp $(ICON1) $(ICON2) > $@
 
 ## DEFAULT_ICON_DIR        = $(sysconfdir)/icons
 
