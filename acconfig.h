@@ -257,3 +257,7 @@
  */
 #undef ALLOW_HOSTNAME_UNDERSCORES
 
+/*
+ * Use the heap-based replacement techniques
+ */
+#undef HEAP_REPLACEMENT

@@ -513,7 +513,7 @@ AC_ARG_ENABLE(ident-lookups,
 ])
 
 AC_ARG_ENABLE(internal-dns,
-[  --disable-internal-dns This prevents Squid from directly sending and
+[  --disable-internal-dns  This prevents Squid from directly sending and
                           receiving DNS messages, and instead enables the
                           old external 'dnsserver' processes.],
 [ if test "$enableval" = "no" ; then
@@ -525,7 +525,7 @@ AC_ARG_ENABLE(internal-dns,
 ])
 
 AC_ARG_ENABLE(truncate,
-[  --enable-truncate      This uses truncate() instead of unlink() when
+[  --enable-truncate       This uses truncate() instead of unlink() when
                           removing cache files.  Truncate gives a little
                           performance improvement, but may cause problems
                           when used with async I/O.  Truncate uses more
@@ -547,6 +547,19 @@ AC_ARG_ENABLE(underscores,
 [ if test "$enableval" = "yes" ; then
     echo "Enabling the use of underscores in host names"
     AC_DEFINE(ALLOW_HOSTNAME_UNDERSCORES, 1)
+  fi
+])
+
+dnl Enable HEAP_REPLACEMENT
+AC_ARG_ENABLE(heap-replacement,
+[  --enable-heap-replacement
+                          This option allows you to use various cache
+                          replacement algorithms, instead of the standard
+                          LRU algorithm.
+                          ],
+[ if test "$enableval" = "yes" ; then
+    echo "Enabling the use of underscores in host names"
+    AC_DEFINE(HEAP_REPLACEMENT, 1)
   fi
 ])
 
