@@ -50,7 +50,7 @@ clientdbInit(void)
 {
     if (client_table)
 	return;
-    client_table = hash_create((HASHCMP *) strcmp, 229, hash_string);
+    client_table = hash_create((HASHCMP *) strcmp, 467, hash_string);
     cachemgrRegister("client_list",
 	"Cache Client List",
 	clientdbDump,

@@ -475,10 +475,13 @@ void
 netdbInit(void)
 {
 #if USE_ICMP
+    int n;
     if (addr_table)
 	return;
-    addr_table = hash_create((HASHCMP *) strcmp, 229, hash_string);
-    host_table = hash_create((HASHCMP *) strcmp, 467, hash_string);
+    n = hashPrime(Config.Netdb.high / 4);
+    addr_table = hash_create((HASHCMP *) strcmp, n, hash_string);
+    n = hashPrime(3 * Config.Netdb.high / 4);
+    host_table = hash_create((HASHCMP *) strcmp, n, hash_string);
     eventAdd("netdbSaveState", netdbSaveState, NULL, 3617);
     netdbReloadState();
     cachemgrRegister("netdb",
