@@ -307,6 +307,12 @@ getDefaultParent(request_t * request)
     return NULL;
 }
 
+/*
+ * XXX DW thinks this function is equivalent to/redundant with
+ * getFirstUpParent().  peerHTTPOkay() only returns true if the
+ * peer is UP anyway, so this function would not return a 
+ * DOWN parent.
+ */
 peer *
 getAnyParent(request_t * request)
 {
