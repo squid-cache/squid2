@@ -32,6 +32,10 @@
  *
  */
 
+#ifndef _REENTRANT
+#error "_REENTRANT MUST be defined to build squid async io support."
+#endif
+
 #include "squid.h"
 #include "store_asyncufs.h"
 
