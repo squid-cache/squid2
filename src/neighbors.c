@@ -497,7 +497,9 @@ int neighborsUdpPing(proto)
     for (i = 0, e = friends->first_ping; i++ < friends->n; e = e->next) {
 	if (e == (edge *) NULL)
 	    e = friends->edges_head;
-	debug(15, 5, "neighborsUdpPing: Edge %s\n", e->host);
+	debug(15, 5, "neighborsUdpPing: %s %s\n",
+	    e->type == EDGE_PARENT ? "PARENT" : "SIBLING",
+	    e->host);
 
 	/* skip any cache where we failed to connect() w/in the last 60s */
 	if (squid_curtime - e->last_fail_time < 60)
@@ -544,36 +546,19 @@ int neighborsUdpPing(proto)
 		LOG_TAG_NONE);
 	}
 
-#ifndef USE_MULTICAST
 	e->stats.ack_deficit++;
-#else
-	if (e->mcast_ttl > 0) {
-	    /* XXX kill us off, so Squid won't expect a reply */
-	    e->stats.ack_deficit = HIER_MAX_DEFICIT;
-	} else {
-	    e->stats.ack_deficit++;
-	}
-#endif /* USE_MULTICAST */
 	e->stats.pings_sent++;
-
-	if (e->stats.ack_deficit < HIER_MAX_DEFICIT) {
-	    /* its alive, expect a reply from it */
-	    e->neighbor_up = 1;
-	    mem->e_pings_n_pings++;
-	} else {
-	    /* Neighbor is dead; ping it anyway, but don't expect a reply */
+	if (e->neighbor_up && e->stats.ack_deficit >= HIER_MAX_DEFICIT) {
+	    debug(15, 0, "neighborsUdpPing: Detected DEAD %s: %s\n",
+		e->type == EDGE_SIBLING ? "SIBLING" : "PARENT",
+		e->host);
 	    e->neighbor_up = 0;
-	    if (e->stats.ack_deficit > (HIER_MAX_DEFICIT << 1))
-		/* do this to prevent wrap around but we still want it
-		 * to move a bit so we can debug it easier. */
-		e->stats.ack_deficit = HIER_MAX_DEFICIT + 1;
-	    /* log it once at the threshold */
-	    if ((e->stats.ack_deficit == HIER_MAX_DEFICIT)) {
-		debug(15, 0, "neighborsUdpPing: Detected DEAD %s: %s\n",
-		    e->type == EDGE_SIBLING ? "SIBLING" : "PARENT",
-		    e->host);
-	    }
 	}
+#ifdef USE_MULTICAST
+	if (e->ttl == 0)
+#endif
+	    if (e->neighbor_up)
+		mem->e_pings_n_pings++;		/* expect a reply from it */
 	friends->first_ping = e->next;
     }
 
@@ -603,6 +588,29 @@ int neighborsUdpPing(proto)
     return (mem->e_pings_n_pings);
 }
 
+static void neighborAlive(edge * e, const MemObject * mem, const icp_common_t * header)
+{
+    int rtt;
+    int n;
+    /* Neighbor is alive, reset the ack deficit */
+    if (e->stats.ack_deficit >= HIER_MAX_DEFICIT) {
+	debug(15, 0, "Detected REVIVED %s: %s/%d/%d\n",
+	    e->type == EDGE_SIBLING ? "SIBLING" : "PARENT",
+	    e->host, e->http_port, e->icp_port);
+    }
+    e->neighbor_up = 1;
+    e->stats.ack_deficit = 0;
+    n = ++e->stats.pings_acked;
+    if ((icp_opcode) header->opcode <= ICP_OP_END)
+	e->stats.counts[header->opcode]++;
+    if (n > RTT_AV_FACTOR)
+	n = RTT_AV_FACTOR;
+    if (mem) {
+	rtt = tvSubMsec(mem->start_ping, current_time);
+	e->stats.rtt = (e->stats.rtt * (n - 1) + rtt) / n;
+	e->icp_version = (int) header->version;
+    }
+}
 
 /* I should attach these records to the entry.  We take the first
  * hit we get our wait until everyone misses.  The timeout handler
@@ -622,48 +630,37 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
     edge *e = NULL;
     MemObject *mem = entry->mem_obj;
     int w_rtt;
-    int rtt;
-    int n;
     HttpStateData *httpState = NULL;
 
     debug(15, 6, "neighborsUdpAck: opcode %d '%s'\n",
 	(int) header->opcode, url);
+    if ((e = whichEdge(from)))
+        neighborAlive(e, mem, header);
     if (header->opcode > ICP_OP_END)
 	return;
+    /* check if someone is already fetching it */
+    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED)) {
+	debug(15, 3, "neighborsUdpAck: '%s' already being fetched.\n", url);
+	return;
+    }
     if (mem == NULL) {
 	debug(15, 1, "Ignoring ICP reply for missing mem_obj: %s\n", url);
 	return;
     }
-    if ((e = whichEdge(header, from))) {
-	/* Neighbor is alive, reset the ack deficit */
-	if (e->stats.ack_deficit >= HIER_MAX_DEFICIT) {
-	    debug(15, 0, "neighborsUdpAck: Detected REVIVED %s: %s\n",
-		e->type == EDGE_SIBLING ? "SIBLING" : "PARENT",
-		e->host);
-	}
-	e->neighbor_up = 1;
-	e->stats.ack_deficit = 0;
-	n = ++e->stats.pings_acked;
-	e->stats.counts[header->opcode]++;
-	if (n > RTT_AV_FACTOR)
-	    n = RTT_AV_FACTOR;
-	rtt = tvSubMsec(mem->start_ping, current_time);
-	e->stats.rtt = (e->stats.rtt * (n - 1) + rtt) / n;
-	e->icp_version = (int) header->version;
-    }
-    /* check if someone is already fetching it */
-    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED)) {
-	debug(15, 5, "neighborsUdpAck: '%s' already being fetched.\n", url);
-	return;
-    }
     if (entry->ping_status != PING_WAITING) {
-	debug(15, 5, "neighborsUdpAck: '%s' unexpected ICP reply.\n", url);
+	debug(15, 1, "neighborsUdpAck: '%s' unexpected ICP reply.\n", url);
 	return;
     }
-    debug(15, 3, "neighborsUdpAck: %s for '%s' from %s \n",
-	IcpOpcodeStr[header->opcode], url, e ? e->host : "source");
-
+    if (entry->lock_count == 0) {
+        debug(12, 1, "neighborsUdpAck: '%s' has no locks\n", url);
+        return;
+    }
+    debug(15, 3, "neighborsUdpAck: %s for '%s' from %s %s \n",
+	IcpOpcodeStr[header->opcode], url,
+	e ? e->type == EDGE_PARENT ? "PARENT" : "SIBLING" : "UNKNOWN",
+	e ? e->host : "source");
     mem->e_pings_n_acks++;
+
     if (header->opcode == ICP_OP_SECHO) {
 	/* Received source-ping reply */
 	if (e) {
@@ -761,7 +758,6 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	/* pass in fd=0 here so getFromCache() looks up the real FD
 	 * and resets the timeout handler */
 	getFromDefaultSource(0, entry);
-	return;
     }
 }
 
