@@ -1959,12 +1959,10 @@ state_t htmlify_listing(r)
     fprintf(wfp, "FTP Directory: %s\n", r->title_url);
     fprintf(wfp, "</H2>\n");
     fprintf(wfp, "<PRE>\n");
-    if (!(r->flags & F_BASEDIR)) {
 	if ((t = htmlize_list_entry("..", r))) {
 	    fputs(t, wfp);
 	    xfree(t);
 	}
-    }
     while ((n = readline_with_timeout(r->dfd, buf, BIGBUFSIZ)) > 0) {
 	Debug(26, 1, ("Input: %s", buf));
 	if ((t = strchr(buf, '\r')))
