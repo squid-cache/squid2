@@ -402,7 +402,7 @@ fvdbDumpTable(StoreEntry * e, hash_table * hash)
     if (hash == NULL)
 	return;
     hash_first(hash);
-    while (h = hash_next(hash)) {
+    while ((h = hash_next(hash))) {
 	fv = (fvdb_entry *) h;
 	storeAppendPrintf(e, "%9d %s\n", fv->n, fv->key);
     }
