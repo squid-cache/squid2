@@ -234,6 +234,7 @@ DOC_START
 		     no-delay
 		     login=user:password
 		     connect-timeout=nn
+		     digest-url=url
 
 		     use 'proxy-only' to specify that objects fetched
 		     from this cache should not be saved locally.
@@ -286,6 +287,10 @@ DOC_START
 		     specific connect timeout (also see the
 		     peer_connect_timeout directive)
 
+		     use 'digest-url=url' to tell Squid to fetch the cache
+		     digest (if digests are enabled) for this host from
+		     the specified URL rather than the Squid default
+		     location.
 
 	NOTE: non-ICP neighbors must be specified as 'parent'.
 

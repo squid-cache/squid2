@@ -275,7 +275,12 @@ peerDigestRequest(PeerDigest * pd)
     pd->flags.requested = 1;
 
     /* compute future request components */
-    url = internalRemoteUri(p->host, p->http_port, "/squid-internal-periodic/", StoreDigestFileName);
+    if (p->digest_url)
+	url = xstrdup(p->digest_url);
+    else
+	url = internalRemoteUri(p->host, p->http_port,
+	    "/squid-internal-periodic/", StoreDigestFileName);
+
     key = storeKeyPublic(url, METHOD_GET);
     debug(72, 2) ("peerDigestRequest: %s key: %s\n", url, storeKeyText(key));
     req = urlParse(METHOD_GET, url);

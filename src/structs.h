@@ -1086,6 +1086,7 @@ struct _peer {
     } mcast;
 #if USE_CACHE_DIGESTS
     PeerDigest *digest;
+    char *digest_url;
 #endif
     int tcp_up;			/* 0 if a connect() fails */
     time_t last_fail_time;

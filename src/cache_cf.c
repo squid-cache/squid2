@@ -981,6 +981,10 @@ parse_peer(peer ** head)
 	    p->login = xstrdup(token + 6);
 	} else if (!strncasecmp(token, "connect-timeout=", 16)) {
 	    p->connect_timeout = atoi(token + 16);
+#if USE_CACHE_DIGESTS
+	} else if (!strncasecmp(token, "digest-url=", 11)) {
+	    p->digest_url = xstrdup(token + 11);
+#endif
 	} else {
 	    debug(3, 0) ("parse_peer: token='%s'\n", token);
 	    self_destruct();
