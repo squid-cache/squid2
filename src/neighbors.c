@@ -599,7 +599,7 @@ void neighborsUdpAck(fd, url, header, from, entry)
 	    debug(15, 6, "Receive MISSes from all neighbors and parents\n");
 	    /* pass in fd=0 here so getFromCache() looks up the real FD
 	     * and resets the timeout handler */
-	    getFromCache(0, entry, NULL, entry->mem_obj->request);
+	    getFromDefaultSource(0, entry);
 	    return;
 	}
     } else {
