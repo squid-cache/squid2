@@ -601,6 +601,10 @@ void icp_hit_or_miss(fd, usm)
 
     /* XXX we should not even look here for CONNECT etc */
 
+    /* XXX hmm, should we check for IFMODSINCE and USER_REFRESH before
+	TCP_MISS?  It is possible to get IMS header for objects
+	not in the cache */
+
     pubkey = storeGeneratePublicKey(usm->url, usm->method);
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* This object isn't in the cache.  We do not hold a lock yet */
