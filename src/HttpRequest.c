@@ -101,7 +101,7 @@ httpRequestSwapOut(const request_t * req, StoreEntry * e)
     assert(req && e);
     /* store request-line */
     storeAppendPrintf(e, "%s %s HTTP/1.0\r\n",
-	RequestMethodStr[req->method], req->urlpath);
+	RequestMethodStr[req->method], strBuf(req->urlpath));
     /* store headers */
     {
 	Packer p;
