@@ -1653,6 +1653,7 @@ dump_sockaddr_in_list(StoreEntry * e, const char *n, const sockaddr_in_list * s)
 {
     while (s) {
 	storeAppendPrintf(e, "%s %s:%d\n",
+	    n,
 	    inet_ntoa(s->s.sin_addr),
 	    ntohs(s->s.sin_port));
 	s = s->next;
