@@ -129,12 +129,8 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	protoDataFree(protoData);
 	return 0;
     }
-#ifdef SOMEONE_CONFIRM_THIS_WORKS
     if (!neighbors_do_private_keys && !protoData->query_neighbors && (e = getFirstUpParent(req->host))) {
-#else
-    if (!protoData->query_neighbors && (e = getFirstUpParent(req->host))) {
-#endif
-	/* for private objects we should not ping the hierarchy (because
+	/* for private objects we should just fetch directly (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
 	getFromCache(protoData->fd, entry, e, req);
 	protoDataFree(protoData);
