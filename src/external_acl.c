@@ -231,7 +231,7 @@ parse_externalAclHelper(external_acl ** list)
 	    if (member) {
 		/* Split in header and member */
 		*member++ = '\0';
-		if (!isalnum(*member))
+		if (!isalnum((int) *member))
 		    format->separator = *member++;
 		else
 		    format->separator = ',';

@@ -836,7 +836,7 @@ checkRunningPid(void)
 	return 0;
     if (kill(pid, 0) < 0)
 	return 0;
-    debug(0, 0) ("Squid is already running!  Process ID %d\n", pid);
+    debug(0, 0) ("Squid is already running!  Process ID %ld\n", (long int) pid);
     return 1;
 }
 

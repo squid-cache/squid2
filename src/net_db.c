@@ -621,7 +621,7 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
     }
     debug(38, 3) ("netdbExchangeHandleReply: used %d entries, (x %d bytes) == %d bytes total\n",
 	nused, rec_sz, nused * rec_sz);
-    debug(38, 3) ("netdbExchangeHandleReply: seen %d, used %d\n", ex->seen, ex->used);
+    debug(38, 3) ("netdbExchangeHandleReply: seen %ld, used %ld\n", (long int) ex->seen, (long int) ex->used);
     if (EBIT_TEST(ex->e->flags, ENTRY_ABORTED)) {
 	debug(38, 3) ("netdbExchangeHandleReply: ENTRY_ABORTED\n");
 	netdbExchangeDone(ex);
