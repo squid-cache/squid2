@@ -233,8 +233,8 @@ void ttlSet(entry)
 	    flags & TTL_ABSOLUTE ? 'A' : '.',
 	    flags & TTL_DEFAULT ? 'D' : '.',
 	    (double) ttl / 86400, entry->url);
-        entry->expires = squid_curtime + ttl;
-        entry->lastmod = last_modified > 0 ? last_modified : squid_curtime;
+	entry->expires = squid_curtime + ttl;
+	entry->lastmod = last_modified > 0 ? last_modified : squid_curtime;
 	return;
     }
     /*  Calculate default TTL for later use */

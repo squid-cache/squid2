@@ -467,7 +467,7 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, data)
      int errflag;
      void *data;
 {
-e   icpStateData *icpState = (icpStateData *) data;
+    e icpStateData *icpState = (icpStateData *) data;
     StoreEntry *entry = NULL;
 
     entry = icpState->entry;
@@ -1329,19 +1329,19 @@ static void icpHandleIcpV3(fd, from, buf, len)
 
 #ifdef ICP_PKT_DUMP
 static void icpPktDump(pkt)
-	icp_common_t *pkt;
+     icp_common_t *pkt;
 {
-	struct in_addr a;
-	debug(12,9,"opcode:     %3d %s\n",
-		(int) pkt->opcode,
-		IcpOpcodeStr[pkt->opcode]);
-	debug(12,9,"version: %-8d\n", (int) pkt->version);
-	debug(12,9,"length:  %-8d\n", (int) ntohs (pkt->length));
-	debug(12,9,"reqnum:  %-8d\n", ntohl (pkt->reqnum));
-	debug(12,9,"flags:   %-8x\n", ntohl (pkt->flags));
-	a.s_addr = ntohl (pkt->shostid);
-	debug(12,9,"shostid: %s\n", inet_ntoa(a));
-	debug(12,9,"payload: %s\n", (char*) pkt+sizeof(icp_common_t));
+    struct in_addr a;
+    debug(12, 9, "opcode:     %3d %s\n",
+	(int) pkt->opcode,
+	IcpOpcodeStr[pkt->opcode]);
+    debug(12, 9, "version: %-8d\n", (int) pkt->version);
+    debug(12, 9, "length:  %-8d\n", (int) ntohs(pkt->length));
+    debug(12, 9, "reqnum:  %-8d\n", ntohl(pkt->reqnum));
+    debug(12, 9, "flags:   %-8x\n", ntohl(pkt->flags));
+    a.s_addr = ntohl(pkt->shostid);
+    debug(12, 9, "shostid: %s\n", inet_ntoa(a));
+    debug(12, 9, "payload: %s\n", (char *) pkt + sizeof(icp_common_t));
 }
 #endif
 
