@@ -31,6 +31,8 @@
 
 #include "squid.h"
 
+#if SQUID_PEER_DIGEST
+
 /* local types */
 
 /* local prototypes */
@@ -522,3 +524,4 @@ peerDigestUpdateMask(peer *peer, int offset, const char *buf, int size)
     return 1;
 }
 		
+#endif
