@@ -878,6 +878,9 @@ icpProcessMISS(int fd, icpStateData * icpState)
 	storeUnregister(icpState->entry, fd);
 	storeUnlockObject(icpState->entry);
 	icpState->entry = NULL;
+        if (icpState->swapin_fd > -1)
+    	    file_close(icpState->swapin_fd);
+	icpState->swapin_fd = -1;
     }
     entry = storeCreateEntry(url,
 	request_hdr,
@@ -886,6 +889,8 @@ icpProcessMISS(int fd, icpStateData * icpState)
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     storeClientListAdd(entry, fd);
+    if (icpState->swapin_fd != -1)
+	fatal_dump("icpProcessMISS: swapin_fd != -1");
     icpState->swapin_fd = storeOpenSwapFileRead(entry);
     if (icpState->swapin_fd < 0)
 	fatal_dump("Swapfile open failed");
