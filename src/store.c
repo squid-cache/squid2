@@ -1074,8 +1074,6 @@ storeSwapInStart(StoreEntry * e, SIH * callback, void *callback_data)
     if (!BIT_TEST(e->flag, ENTRY_VALIDATED)) {
 	if (storeDirMapBitTest(e->swap_file_number)) {
 	    /* someone took our file while we weren't looking */
-	    debug(0, 0) ("storeSwapInStart: someone took our file while we weren't looking\n");
-	    debug(0, 0) ("storeSwapInStart: for %s\n", e->url);
 	    callback(-1, callback_data);
 	    return;
 	}
@@ -1929,6 +1927,7 @@ storeClientCopy(StoreEntry * e,
 	data);
     sc = storeClientListSearch(mem, data);
     assert(sc != NULL);
+    assert(sc->callback == NULL);
     sc->copy_offset = copy_offset;
     sc->seen_offset = seen_offset;
     sc->callback = callback;
@@ -1969,7 +1968,7 @@ storeClientCopyFileOpened(int fd, void *data)
     store_client *sc = data;
     STCB *callback = sc->callback;
     if (fd < 0) {
-	debug(20, 1) ("storeClientCopyFileOpened: failed\n");
+	debug(20, 3) ("storeClientCopyFileOpened: failed\n");
 	sc->callback = NULL;
 	callback(sc->callback_data, sc->copy_buf, -1);
 	return;
