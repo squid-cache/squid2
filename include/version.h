@@ -3,5 +3,5 @@
  *  SQUID_VERSION - String for version id of this distribution
  */
 #ifndef SQUID_VERSION
-#define SQUID_VERSION	"1.0.beta4"
+#define SQUID_VERSION	"1.0.beta5"
 #endif
