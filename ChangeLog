@@ -240,8 +240,12 @@ Changes to squid-1.0.beta12:
 	- Fixed INADDR_NONE bug on 64bit systems.
 	- Fixed store rebuilding bug; temporary log file was not being
 	  truncated.
-	- Made all external processes communicate with TCP sockets.
+	- Made all external processes communicate with TCP sockets
+	  (no more Unix domain sockets).
 	- Semi-major rewrite of ipcache implementation.
-	- Fixed a couple little memory bugs found by purify
+	- Fixed a couple memory bugs found by purify.
 	- Fixed sending large (>8192 bytes) HTTP requests.
 	- Added "lazy" server IP address ACL checks (type 'dst').
+	- Changed handling of IMS requests.  Now will return "304
+	  Not Modified" if the requested object is in the cache
+	  and not expired.
