@@ -17,6 +17,7 @@ fi
 failcount=0
 while : ; do
 	echo "Running: squid -sY $conf >> $logdir/squid.out 2>&1"
+	echo "Startup: `date`" >> $logdir/squid.out
 	start=`date '+%d%H%M%S'`
 	squid -sY $conf >> $logdir/squid.out 2>&1
 	stop=`date '+%d%H%M%S'`
