@@ -1839,6 +1839,8 @@ struct _store_rebuild_data {
     int cancelcount;		/* # SWAP_LOG_DEL objects purged */
     int invalid;		/* # bad lines */
     int badflags;		/* # bad e->flags */
+    int missingcount;		/* # swapfiles not on disk */
+    int filesizemismatchcount;  /* # swapfiles with a wrong size */
     int bad_log_op;
     int zero_object_sz;
 };
