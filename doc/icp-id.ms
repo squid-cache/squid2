@@ -82,30 +82,6 @@ from a cache may inidicate a network or system failure.  The order in
 which the replies arrive may be used to select the ``closest''
 neighbor.
 
-.nf
-           ___________________________________________
-          (                                           )
-          (          T H E   I N T E R N E T          )
-          (___________________________________________)
-              /                |                \\
-             /                 |                 \\
-            /                  |                  \\
-           /                   |                   \\
-          /                    |                    \\
-       SLOW                   SLOW                  SLOW
-        /                      |                       \\
-       /                       |                        \\
-  -----------              -----------              -----------
- |           |            |           |            |           |
- |   ISP 1   | <--FAST--> |   ISP 2   | <--FAST--> |   ISP 3   |
- |           |            |           |            |           |
-  -----------              -----------              -----------
-    |  |  |                  |  |  |                  |  |  |
-    |  |  |                  |  |  |                  |  |  |
-    |  |  |                  |  |  |                  |  |  |
-     USERS                    USERS                    USERS
-.fi
-
 
 
 
@@ -218,7 +194,11 @@ Value    Name
     9    ICP_OP_DATAEND
    10    ICP_OP_SECHO
    11    ICP_OP_DECHO
-12-20    UNUSED
+   12    ICP_OP_PREFETCH
+13-17    UNUSED
+   18    ICP_OP_MISS_POINTER
+   19    ICP_OP_ADVERTISE
+   20    ICP_OP_UNADVERTISE
    21    ICP_OP_RELOADING
    22    ICP_OP_DENIED
    23    ICP_OP_HIT_OBJ
@@ -257,7 +237,7 @@ Payload Format:
 
 In response to an ICP_OP_QUERY, the receipient must return one of:
 ICP_OP_HIT, ICP_OP_MISS, ICP_OP_ERR, ICP_OP_RELOADING, ICP_OP_DENIED,
-or ICP_OP_HIT_OBJ.
+ICP_OP_HIT_OBJ, or ICP_OP_MISS_POINTER.
 
 .in 3
 ICP_OP_SECHO
@@ -402,6 +382,59 @@ because they still exist in some source code.  Any future implementations
 of cache-cache multiplexing will likely need to redefine these.
 
 .in 3
+ICP_OP_PREFETCH
+.in 6
+Work-in-progress.  Reserved for folks working with 'Wcol'.
+
+.in 3
+ICP_OP_MISS_POINTER
+.in 6
+This message type is only valid as a response to ICP_OP_QUERY with the
+ICP_FLAG_POINTER option set.  An ICP_OP_MISS_POINTER response indicates
+that the responder does not have the requested URL, but that it knows
+of at least one third party cache which is likely to hold the object.
+The ICP_OP_MISS_POINTER payload consists of a list of (IPv4) addresses
+of third party caches.  The URL is NOT included in the payload.  The
+receiving site can determine request from the unique reqnum field.
+
+Payload Format:
+
+.nf
+ 0                   1                   2                   3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                 Intermediate Cache Address                  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                 Intermediate Cache Address                  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                             /
+/                                                             /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+.fi 
+
+
+.in 3
+ICP_OP_ADVERTISE
+.in 6
+This message is an announcement that the sender holds a specific URL,
+which is given in the payload.  There is no reply for this message.
+
+.nf
+/*
+ * Should the 'padding' field be used to hold a TTL?
+ * -DW
+ */
+.fi
+
+.in 3
+ICP_OP_UNADVERTISE
+.in 6
+This message is an announcement that the sender no longer holds a
+specific URL, which is given in the payload.  There is no reply for
+this message.
+
+
+.in 3
 ICP_OP_SEND
 .in 6
 Request for object data (non authoritative).
@@ -441,10 +474,30 @@ ICP Options
 .sp
 
 .in 3
-0x80000000  ICP_FLAG_HIT_OBJ
+0x80000000  ICP_FLAG_HIT_OBJ.
 This flag is set in an ICP_OP_QUERY message indicating that it is
 okay to respond with an ICP_OP_HIT_OBJ message if the object data
 will fit.
+
+0x40000000  ICP_FLAG_NETDB_GUNK.
+Work-in-progress for Squid.
+
+0x20000000  ICP_FLAG_POINTER.  This flag is set in an ICP_OP_QUERY
+message indicating that it is OK to respond with an ICP_OP_MISS_POINTER
+message if the object is not held locally but is known to have been
+held by a third party within recent history.
+
+0x10000000  ICP_FLAG_PREADVERTISE.  This flag is set in an ICP_OP_QUERY
+message indicating that the requesting party is pre-advertising the
+fact that it holds this URL.  This is an optimisation, combining the
+ICP_OP_ADVERTISE and ICP_OP_QUERY messages together, because the
+requesting party intends to fetch this URL itself if it is unable to
+discover it in a neighbor cache.  A further implication of this flag is
+that the requestor's operations policy allows it to offer this URL to
+other (some, but not necessarily all) third party caches.
+
+0x08000000  ICP_FLAG_MD5_KEY.  Instead of a URL in the payload,
+use an MD5 hash of the URL.
 
 
 .sp
@@ -469,6 +522,35 @@ The ICP_OP_HIT_OBJ message is especially senstive to security issues since
 it contains actual object data in the response.  In combination with 
 IP spoofing it is most likely possible to pollute the cache with
 invalid objects.
+
+.sp
+.in 0
+Appending A -- Why ICP is useful.
+.sp
+
+.nf
+           ___________________________________________
+          (                                           )
+          (          T H E   I N T E R N E T          )
+          (___________________________________________)
+              /                |                \\
+             /                 |                 \\
+            /                  |                  \\
+           /                   |                   \\
+          /                    |                    \\
+       SLOW                   SLOW                  SLOW
+        /                      |                       \\
+       /                       |                        \\
+  -----------              -----------              -----------
+ |           |            |           |            |           |
+ |   ISP 1   | <--FAST--> |   ISP 2   | <--FAST--> |   ISP 3   |
+ |           |            |           |            |           |
+  -----------              -----------              -----------
+    |  |  |                  |  |  |                  |  |  |
+    |  |  |                  |  |  |                  |  |  |
+    |  |  |                  |  |  |                  |  |  |
+     USERS                    USERS                    USERS
+.fi
 
 .in 0
 .ne 5

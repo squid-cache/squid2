@@ -74,28 +74,6 @@ Internet-Draft                                          18 December 1996
    order in which the replies arrive may be used to select the
    ``closest'' neighbor.
 
-              ___________________________________________
-             (                                           )
-             (          T H E   I N T E R N E T          )
-             (___________________________________________)
-                 /                |                \
-                /                 |                 \
-               /                  |                  \
-              /                   |                   \
-             /                    |                    \
-          SLOW                   SLOW                  SLOW
-           /                      |                       \
-          /                       |                        \
-     -----------              -----------              -----------
-    |           |            |           |            |           |
-    |   ISP 1   | <--FAST--> |   ISP 2   | <--FAST--> |   ISP 3   |
-    |           |            |           |            |           |
-     -----------              -----------              -----------
-       |  |  |                  |  |  |                  |  |  |
-       |  |  |                  |  |  |                  |  |  |
-       |  |  |                  |  |  |                  |  |  |
-        USERS                    USERS                    USERS
-
 
 
 
@@ -108,14 +86,6 @@ ICP Message Format
    |     Opcode    |    Version    |        Message Length       |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                         Request Number                      |
-
-
-
-Wessels                                                         [Page 2]
-
-Internet-Draft                                          18 December 1996
-
-
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                            Options                          |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -138,6 +108,13 @@ Internet-Draft                                          18 December 1996
    Version
       The ICP protocol version number.  At the time of this writing,
       both versions two and three are in use.
+
+
+
+Wessels                                                         [Page 2]
+
+Internet-Draft                                          18 December 1996
+
 
    Message Length
       The total length of the ICP message.
@@ -164,14 +141,6 @@ Internet-Draft                                          18 December 1996
       should probably not be trusted over what is  provided by
       getpeername(), accept(), and recvfrom().  There is some abmiguity
       over the original purpose of this field.  In practice it is not
-
-
-
-Wessels                                                         [Page 3]
-
-Internet-Draft                                          18 December 1996
-
-
       used.
 
    Payload
@@ -195,9 +164,21 @@ ICP Opcodes
        7    ICP_OP_DATABEG
        8    ICP_OP_DATA
        9    ICP_OP_DATAEND
+
+
+
+Wessels                                                         [Page 3]
+
+Internet-Draft                                          18 December 1996
+
+
       10    ICP_OP_SECHO
       11    ICP_OP_DECHO
-   12-20    UNUSED
+      12    ICP_OP_PREFETCH
+   13-17    UNUSED
+      18    ICP_OP_MISS_POINTER
+      19    ICP_OP_ADVERTISE
+      20    ICP_OP_UNADVERTISE
       21    ICP_OP_RELOADING
       22    ICP_OP_DENIED
       23    ICP_OP_HIT_OBJ
@@ -220,14 +201,6 @@ ICP Opcodes
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |                     Requestor Host Address                  |
-
-
-
-Wessels                                                         [Page 4]
-
-Internet-Draft                                          18 December 1996
-
-
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |                                                             |
       /                       Null-Terminated URL                   /
@@ -237,7 +210,7 @@ Internet-Draft                                          18 December 1996
 
       In response to an ICP_OP_QUERY, the receipient must return one of:
       ICP_OP_HIT, ICP_OP_MISS, ICP_OP_ERR, ICP_OP_RELOADING,
-      ICP_OP_DENIED, or ICP_OP_HIT_OBJ.
+      ICP_OP_DENIED, ICP_OP_HIT_OBJ, or ICP_OP_MISS_POINTER.
 
    ICP_OP_SECHO
       Similar to ICP_OP_QUERY, but for use in simulating a query to an
@@ -247,6 +220,14 @@ Internet-Draft                                          18 December 1996
       the null-terminated URL.
 
       NOTE: the echo server won't interpret the data (i.e. we could send
+
+
+
+Wessels                                                         [Page 4]
+
+Internet-Draft                                          18 December 1996
+
+
       it anything).  This opcode is used to tell the difference between
       a legitimate query or response, random garbage, and an echo
       response.
@@ -277,13 +258,6 @@ Internet-Draft                                          18 December 1996
       does not exist in this cache.  The querying cache may still choose
       to fetch the URL from the replying cache.
 
-
-
-Wessels                                                         [Page 5]
-
-Internet-Draft                                          18 December 1996
-
-
    ICP_OP_ERR
       Sending an ICP_OP_ERR indicates some kind of error in parsing or
       handling the query message.
@@ -302,6 +276,14 @@ Internet-Draft                                          18 December 1996
       replying cache.
 
    ICP_OP_DENIED
+
+
+
+Wessels                                                         [Page 5]
+
+Internet-Draft                                          18 December 1996
+
+
       Sending an ICP_OP_DENIED response indicates that the querying site
       is not allowed to retrieve the named object from this cache.
       Caches and proxies may implement complex access controls.  This
@@ -332,14 +314,6 @@ Internet-Draft                                          18 December 1996
       Payload Format:
 
        0                   1                   2                   3
-
-
-
-Wessels                                                         [Page 6]
-
-Internet-Draft                                          18 December 1996
-
-
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |                                                             |
@@ -358,6 +332,14 @@ Internet-Draft                                          18 December 1996
       The protocol does not impose any limits on the maximum size of the
       Object Data.  Software that the author is familiar with will use
       ICP_OP_HIT_OBJ over ICP_OP_HIT if the entire message is less than
+
+
+
+Wessels                                                         [Page 6]
+
+Internet-Draft                                          18 December 1996
+
+
       the system's maximum UDP transmission size.
 
       The receiving application should check to make sure it actually
@@ -377,6 +359,57 @@ Internet-Draft                                          18 December 1996
    future implementations of cache-cache multiplexing will likely need
    to redefine these.
 
+   ICP_OP_PREFETCH
+      Work-in-progress.  Reserved for folks working with 'Wcol'.
+
+   ICP_OP_MISS_POINTER
+      This message type is only valid as a response to ICP_OP_QUERY with
+      the ICP_FLAG_POINTER option set.  An ICP_OP_MISS_POINTER response
+      indicates that the responder does not have the requested URL, but
+      that it knows of at least one third party cache which is likely to
+      hold the object.  The ICP_OP_MISS_POINTER payload consists of a
+      list of (IPv4) addresses of third party caches.  The URL is NOT
+      included in the payload.  The receiving site can determine request
+      from the unique reqnum field.
+
+      Payload Format:
+
+       0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                 Intermediate Cache Address                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                 Intermediate Cache Address                  |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      /                                                             /
+      /                                                             /
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+   ICP_OP_ADVERTISE
+      This message is an announcement that the sender holds a specific
+
+
+
+Wessels                                                         [Page 7]
+
+Internet-Draft                                          18 December 1996
+
+
+      URL, which is given in the payload.  There is no reply for this
+      message.
+
+      /*
+       * Should the 'padding' field be used to hold a TTL?
+       * -DW
+       */
+
+   ICP_OP_UNADVERTISE
+      This message is an announcement that the sender no longer holds a
+      specific URL, which is given in the payload.  There is no reply
+      for this message.
+
+
    ICP_OP_SEND
       Request for object data (non authoritative).  TO BE REMOVED:
       UNIMPLEMENTED, SUPERCEEDED BY HTTP/1.1
@@ -388,13 +421,6 @@ Internet-Draft                                          18 December 1996
    ICP_OP_DATABEG
       Beginning of data transmission.  TO BE REMOVED: UNIMPLEMENTED,
       SUPERCEEDED BY HTTP/1.1
-
-
-
-Wessels                                                         [Page 7]
-
-Internet-Draft                                          18 December 1996
-
 
    ICP_OP_DATA
       Middle of data transmission.  TO BE REMOVED: UNIMPLEMENTED,
@@ -411,9 +437,37 @@ Internet-Draft                                          18 December 1996
 ICP Options
 
 
-   0x80000000  ICP_FLAG_HIT_OBJ This flag is set in an ICP_OP_QUERY
+   0x80000000  ICP_FLAG_HIT_OBJ.  This flag is set in an ICP_OP_QUERY
    message indicating that it is okay to respond with an ICP_OP_HIT_OBJ
    message if the object data will fit.
+
+   0x40000000  ICP_FLAG_NETDB_GUNK.  Work-in-progress for Squid.
+
+   0x20000000  ICP_FLAG_POINTER.  This flag is set in an ICP_OP_QUERY
+
+
+
+Wessels                                                         [Page 8]
+
+Internet-Draft                                          18 December 1996
+
+
+   message indicating that it is OK to respond with an
+   ICP_OP_MISS_POINTER message if the object is not held locally but is
+   known to have been held by a third party within recent history.
+
+   0x10000000  ICP_FLAG_PREADVERTISE.  This flag is set in an
+   ICP_OP_QUERY message indicating that the requesting party is pre-
+   advertising the fact that it holds this URL.  This is an
+   optimisation, combining the ICP_OP_ADVERTISE and ICP_OP_QUERY
+   messages together, because the requesting party intends to fetch this
+   URL itself if it is unable to discover it in a neighbor cache.  A
+   further implication of this flag is that the requestor's operations
+   policy allows it to offer this URL to other (some, but not
+   necessarily all) third party caches.
+
+   0x08000000  ICP_FLAG_MD5_KEY.  Instead of a URL in the payload, use
+   an MD5 hash of the URL.
 
 
 
@@ -435,6 +489,40 @@ Security Considerations
    with IP spoofing it is most likely possible to pollute the cache with
    invalid objects.
 
+
+Appending A -- Why ICP is useful.
+
+
+           ___________________________________________
+          (                                           )
+          (          T H E   I N T E R N E T          )
+          (___________________________________________)
+              /                |                \
+             /                 |                 \
+            /                  |                  \
+
+
+
+Wessels                                                         [Page 9]
+
+Internet-Draft                                          18 December 1996
+
+
+           /                   |                   \
+          /                    |                    \
+       SLOW                   SLOW                  SLOW
+        /                      |                       \
+       /                       |                        \
+  -----------              -----------              -----------
+ |           |            |           |            |           |
+ |   ISP 1   | <--FAST--> |   ISP 2   | <--FAST--> |   ISP 3   |
+ |           |            |           |            |           |
+  -----------              -----------              -----------
+    |  |  |                  |  |  |                  |  |  |
+    |  |  |                  |  |  |                  |  |  |
+    |  |  |                  |  |  |                  |  |  |
+     USERS                    USERS                    USERS
+
 Author's  Address:
 
    Duane Wessels
@@ -447,9 +535,6 @@ Author's  Address:
 
 
 
-Wessels                                                         [Page 8]
-
-Internet-Draft                                          18 December 1996
 
 
 
@@ -474,34 +559,5 @@ Internet-Draft                                          18 December 1996
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Wessels                                                         [Page 9]
+Wessels                                                        [Page 10]
 
