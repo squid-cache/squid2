@@ -1604,32 +1604,37 @@ clientProcessRequest2(clientHttpRequest * http)
     if (NULL == e) {
 	/* this object isn't in the cache */
 	return LOG_TCP_MISS;
-    } else if (!storeEntryValidToSend(e)) {
+    }
+    if (!storeEntryValidToSend(e)) {
 	http->entry = NULL;
 	return LOG_TCP_MISS;
-    } else if (EBIT_TEST(e->flags, ENTRY_SPECIAL)) {
+    }
+    if (EBIT_TEST(e->flags, ENTRY_SPECIAL)) {
 	/* Special entries are always hits, no matter what the client says */
 	http->entry = e;
 	return LOG_TCP_HIT;
+    }
 #if HTTP_VIOLATIONS
-    } else if (r->flags.nocache_hack) {
-	http->entry = NULL;
+    if (r->flags.nocache_hack) {
+        /* if nocache_hack is set, nocache should always be clear, right? */
+        assert(!r->flags.nocache);
 	ipcacheReleaseInvalid(r->host);
-	return LOG_TCP_CLIENT_REFRESH_MISS;
+	/* continue! */
+    }
 #endif
-    } else if (r->flags.nocache) {
+    if (r->flags.nocache) {
 	http->entry = NULL;
 	ipcacheReleaseInvalid(r->host);
 	return LOG_TCP_CLIENT_REFRESH_MISS;
-    } else if (r->range && httpHdrRangeWillBeComplex(r->range)) {
+    }
+    if (r->range && httpHdrRangeWillBeComplex(r->range)) {
 	/* some clients break if we return "200 OK" for a Range request
-	 * and we _will_ return 200 if ranges happen to bee too complex */
+	 * and we _will_ return 200 if ranges happen to be too complex */
 	http->entry = NULL;
 	return LOG_TCP_MISS;
-    } else {
-	http->entry = e;
-	return LOG_TCP_HIT;
     }
+    http->entry = e;
+    return LOG_TCP_HIT;
 }
 
 static void
