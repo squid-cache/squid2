@@ -212,10 +212,8 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	RequestMethodStr[request->method],
 	entry->url,
 	e ? e->host : "source");
-    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
-	fatal_dump("protoStart: object already being fetched");
-    if (entry->ping_status == PING_WAITING)
-	debug_trap("protoStart: ping_status is PING_WAITING");
+    assert(!BIT_TEST(entry->flag, ENTRY_DISPATCHED));
+    assert(entry->ping_status != PING_WAITING);
     BIT_SET(entry->flag, ENTRY_DISPATCHED);
     netdbPingSite(request->host);
 #if defined(LOG_ICP_NUMBERS) || defined(HIER_EXPERIMENT)
@@ -299,4 +297,14 @@ protoAbortFetch(StoreEntry * entry)
     if (mem->inmem_hi < reply->content_length + reply->hdr_sz)
 	return 1;
     return 0;
+}
+
+int
+protoCheckDeferRead(int fd, void *data)
+{
+    StoreEntry *e = data;
+    size_t gap = e->mem_obj->inmem_hi - storeLowestMemReaderOffset(e);
+    if (gap < READ_AHEAD_GAP)
+	return 0;
+    return 1;
 }

@@ -1742,6 +1742,13 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     return http;
 }
 
+static int
+clientReadDefer(int fd, void *data)
+{
+    ConnStateData *conn = data;
+    return conn->defer.until > squid_curtime;
+}
+
 static void
 clientReadRequest(int fd, void *data)
 {
@@ -1774,7 +1781,8 @@ clientReadRequest(int fd, void *data)
 	/* It might be half-closed, we can't tell */
 	debug(12, 5) ("clientReadRequest: FD %d closed?\n", fd);
 	BIT_SET(F->flags, FD_SOCKET_EOF);
-	comm_set_stall(fd, 1);	/* check again in 1 seconds */
+	conn->defer.until = squid_curtime + 1;
+	conn->defer.n++;
 	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	return;
     } else if (size < 0) {
@@ -1925,6 +1933,12 @@ requestTimeout(int fd, void *data)
     }
 }
 
+int
+httpAcceptDefer(int fd, void *notused)
+{
+    return !fdstat_are_n_free_fd(RESERVED_FD);
+}
+
 /* Handle a new connection on ascii input socket. */
 void
 httpAccept(int sock, void *notused)
@@ -1933,10 +1947,6 @@ httpAccept(int sock, void *notused)
     ConnStateData *connState = NULL;
     struct sockaddr_in peer;
     struct sockaddr_in me;
-    if (!fdstat_are_n_free_fd(RESERVED_FD)) {
-	debug(12, 0) ("WARNING: Near FD limit, delaying new connections\n");
-	comm_set_stall(sock, 1);
-    }
     memset(&peer, '\0', sizeof(struct sockaddr_in));
     memset(&me, '\0', sizeof(struct sockaddr_in));
     commSetSelect(sock, COMM_SELECT_READ, httpAccept, NULL, 0);
@@ -1963,6 +1973,7 @@ httpAccept(int sock, void *notused)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
     commSetTimeout(fd, Config.Timeout.request, requestTimeout, connState);
     commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, connState, 0);
+    commSetDefer(fd, clientReadDefer);
 }
 
 void

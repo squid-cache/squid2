@@ -326,6 +326,7 @@ serverConnectionsOpen(void)
 	    continue;
 	comm_listen(fd);
 	commSetSelect(fd, COMM_SELECT_READ, httpAccept, NULL, 0);
+	commSetDefer(fd, httpAcceptDefer);
 	debug(1, 1) ("Accepting HTTP connections on port %d, FD %d.\n",
 	    (int) u->i, fd);
 	HttpSockets[NHttpSockets++] = fd;

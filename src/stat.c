@@ -311,8 +311,6 @@ describeFlags(const StoreEntry * entry)
 	strcat(buf, "HI,");
     if (BIT_TEST(flags, ENTRY_NEGCACHED))
 	strcat(buf, "NG,");
-    if (BIT_TEST(flags, READ_DEFERRED))
-	strcat(buf, "RD,");
     if ((t = strrchr(buf, ',')))
 	*t = '\0';
     return buf;

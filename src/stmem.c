@@ -128,7 +128,7 @@ memFree(mem_hdr * mem)
 	    p = p->next;
 	    if (lastp) {
 		put_free_4k_page(lastp->data);
-	        store_mem_size -= SM_PAGE_SIZE;
+		store_mem_size -= SM_PAGE_SIZE;
 		safe_free(lastp);
 	    }
 	}
