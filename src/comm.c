@@ -1346,7 +1346,7 @@ static void commHandleWrite(fd, state)
 
 
 /* Select for Writing on FD, until SIZE bytes are sent.  Call
-* HANDLER when complete. */
+ * * HANDLER when complete. */
 void comm_write(fd, buf, size, timeout, handler, handler_data)
      int fd;
      char *buf;
