@@ -130,7 +130,9 @@ void _db_print(va_alist)
     char *format = NULL;
 #endif
     static char f[BUFSIZ];
-    static char tmpbuf[BUFSIZ];
+#if HAVE_SYSLOG
+    static char tmpbuf[8192];
+#endif
     char *s = NULL;
 
     if (debug_log == NULL)
@@ -167,7 +169,8 @@ void _db_print(va_alist)
     if ((level == 0) && opt_syslog_enable) {
 	tmpbuf[0] = '\0';
 	vsprintf(tmpbuf, f, args);
-	syslog(LOG_ERR, tmpbuf);
+	tmpbuf[1023] = '\0';
+	syslog(LOG_ERR, "%s", tmpbuf);
     }
 #endif /* HAVE_SYSLOG */
 
