@@ -593,7 +593,7 @@ storeAbort(StoreEntry * e, int cbflag)
 	    aioCancel(mem->swapout.fd, NULL);
 #endif
 	/* we have to close the disk file if there is no write pending */
-	if (mem->swapout.queue_offset == mem->swapout.done_offset)
+	if (!storeSwapOutWriteQueued(mem))
 	    storeSwapOutFileClose(e);
     }
     storeUnlockObject(e);	/* unlock */
