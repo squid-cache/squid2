@@ -91,7 +91,7 @@
 #elif defined(__NetBSD__)
 #define _SQUID_NETBSD_
 
-#elif defined(__CYGWIN32__) || defined(WIN32) || defined(WINNT) defined(__WIN32__) || defined(__WIN32)
+#elif defined(__CYGWIN32__) || defined(WIN32) || defined(WINNT) || defined(__WIN32__) || defined(__WIN32)
 #define _SQUID_MSWIN_
 
 #endif
