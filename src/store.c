@@ -2161,7 +2161,7 @@ int storeRelease(e)
 	debug(20, 5, "storeRelease: Release anonymous object\n");
 
     if (e->swap_status == SWAP_OK && (e->swap_file_number > -1)) {
-	(void) safeunlink(storeSwapFullPath(e->swap_file_number, NULL), 0);
+	(void) safeunlink(storeSwapFullPath(e->swap_file_number, NULL), 1);
 	file_map_bit_reset(e->swap_file_number);
 	e->swap_file_number = -1;
 	store_swap_size -= (e->object_len + 1023) >> 10;
