@@ -379,6 +379,11 @@ netdbSaveState(void *foo)
      * Solaris bugs, its a bad idea.  fopen can fail if more than
      * 256 FDs are open.
      */
+    /*
+     * unlink() is here because there is currently no way to make
+     * logfileOpen() use O_TRUNC.
+     */
+    unlink(path);
     lf = logfileOpen(path, 4096, 0);
     if (NULL == lf) {
 	debug(50, 1) ("netdbSaveState: %s: %s\n", path, xstrerror());
