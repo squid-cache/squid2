@@ -45,7 +45,7 @@ typedef struct {
 	char *buf;
     } client, server;
     time_t timeout;
-    int *size_ptr;		/* pointer to size in an icpStateData for logging */
+    size_t *size_ptr;		/* pointer to size in an icpStateData for logging */
     ConnectStateData connectState;
     int proxying;
 } SslStateData;
@@ -392,7 +392,7 @@ sslConnectDone(int fd, int status, void *data)
 }
 
 int
-sslStart(int fd, const char *url, request_t * request, char *mime_hdr, int *size_ptr)
+sslStart(int fd, const char *url, request_t * request, char *mime_hdr, size_t *size_ptr)
 {
     /* Create state structure. */
     SslStateData *sslState = NULL;

@@ -46,7 +46,7 @@ typedef struct {
 	char *buf;
     } client, server;
     time_t timeout;
-    int *size_ptr;		/* pointer to size for logging */
+    size_t *size_ptr;		/* pointer to size for logging */
     int proxying;
     ConnectStateData connectState;
 } PassStateData;
@@ -508,7 +508,7 @@ passStart(int fd,
     request_t * request,
     char *buf,
     int buflen,
-    int *size_ptr)
+    size_t *size_ptr)
 {
     /* Create state structure. */
     PassStateData *passState = NULL;

@@ -115,7 +115,7 @@
 #define DISK_NO_SPACE_LEFT       (-6)
 
 typedef int (*FILE_READ_HD) (int fd, char *buf, int size, int errflag, void *data);
-typedef void (*FILE_WRITE_HD) (int, int, StoreEntry *);
+typedef void (*FILE_WRITE_HD) (int, int, int, StoreEntry *);
 
 typedef int (*FILE_WALK_HD) (int fd, int errflag, void *data);
 
