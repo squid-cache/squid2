@@ -25,8 +25,6 @@ UTILOBJS	= rfc850.o \
 		  rfc1738.o \
 		  util.o \
 		  getfullhostname.o \
-		  debug.o \
-		  log.o \
 		  tempnam.o \
 		  base64.o \
 		  uudecode.o

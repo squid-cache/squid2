@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 0     FTP Retrieval
+ * DEBUG: section 38    FTP Retrieval
  * AUTHOR: Harvest Derived
  *
  * SQUID Internet Object Cache  http://www.nlanr.net/Squid/
@@ -170,91 +170,17 @@
  *      
  */
 
-#include "config.h"
-
-#if HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#if HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#if HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#if HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#if HAVE_STRING_H
-#include <string.h>
-#endif
-#if HAVE_STRINGS_H
-#include <strings.h>
-#endif
-#if HAVE_SIGNAL_H
-#include <signal.h>
-#endif
-#if HAVE_TIME_H
-#include <time.h>
-#endif
-#if HAVE_SYS_TIME_H
-#include <sys/time.h>		/* for select(2) */
-#endif
-#if HAVE_SYS_SELECT_H
-#include <sys/select.h>
-#endif
-#if HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#if HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-#if HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-#if HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#if HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
-#if HAVE_SYS_UN_H
-#include <sys/un.h>
-#endif
-#if HAVE_LIBC_H
-#include <libc.h>
-#endif
-#if HAVE_BSTRING_H
-#include <bstring.h>
-#endif
-
-#include "ansiproto.h"
-#include "util.h"
-#if !HAVE_TEMPNAM
-#include "tempnam.h"
-#endif
-
-#ifndef BUFSIZ
-#define BUFSIZ 4096
-#endif
-
-#ifndef INADDR_NONE
-#define INADDR_NONE -1
-#endif
-
-typedef struct _ext_table_entry {
-    char *name;
-    char *mime_type;
-    char *mime_encoding;
-    char *icon;
-} ext_table_entry;
-
+#include "squid.h"
 #include "mime_table.h"
+
+/* Junk so we can link with debug.o */
+int opt_syslog_enable = 0;
+volatile int unbuffered_logs = 1;
+char w_space[] = " \t\n\r";
+char appname[] = "pinger";
+struct timeval current_time;
+time_t squid_curtime;
+struct SquidConfig Config;
 
 #define FTP_PORT 21
 #define DEFAULT_MIME_TYPE "text/plain"
@@ -308,7 +234,7 @@ typedef enum {
     FAIL_HARD			/* do cache these */
 } state_t;
 
-typedef struct _request {
+typedef struct _ftp_request {
     char *host;
     u_short port;
     char *path;
@@ -339,7 +265,7 @@ typedef struct _request {
     int rest_implemented;
     struct in_addr host_addr;
     int bytes_written;
-} request_t;
+} ftp_request_t;
 
 typedef struct _parts {
     char type;
@@ -384,47 +310,47 @@ void rfc1738_unescape _PARAMS((char *));
 static char *dots_fill _PARAMS((size_t));
 static char *http_time _PARAMS((time_t));
 static char *html_trailer _PARAMS((void));
-static char *htmlize_list_entry _PARAMS((char *, request_t *));
+static char *htmlize_list_entry _PARAMS((char *, ftp_request_t *));
 static char *mime_get_icon _PARAMS((char *));
 static int accept_with_timeout _PARAMS((int, struct sockaddr *, int *));
 static int check_data_rate _PARAMS((int));
 static int connect_with_timeout _PARAMS((int, struct sockaddr_in *, int));
 static int connect_with_timeout2 _PARAMS((int, struct sockaddr_in *, int));
 static int ftpget_srv_mode _PARAMS((char *));
-static int is_dfd_open _PARAMS((request_t *));
+static int is_dfd_open _PARAMS((ftp_request_t *));
 static int is_month _PARAMS((char *));
 static int read_with_timeout _PARAMS((int, char *, int));
 static int read_reply _PARAMS((int));
 static int readline_with_timeout _PARAMS((int, char *, int));
 static int send_cmd _PARAMS((int, char *));
 static parts_t *parse_entry _PARAMS((char *));
-static state_t do_accept _PARAMS((request_t *));
-static state_t do_connect _PARAMS((request_t *));
-static state_t do_cwd _PARAMS((request_t *));
-static state_t do_list _PARAMS((request_t *));
-static state_t do_mdtm _PARAMS((request_t *));
-static state_t do_passwd _PARAMS((request_t *));
-static state_t do_pasv _PARAMS((request_t *));
-static state_t do_port _PARAMS((request_t *));
-static state_t do_rest _PARAMS((request_t *));
-static state_t do_retr _PARAMS((request_t *));
-static state_t do_size _PARAMS((request_t *));
-static state_t do_type _PARAMS((request_t *));
-static state_t do_user _PARAMS((request_t *));
-static state_t htmlify_listing _PARAMS((request_t *));
-static state_t parse_request _PARAMS((request_t *));
-static state_t read_data _PARAMS((request_t *));
-static state_t read_welcome _PARAMS((request_t *));
-static state_t request_timeout _PARAMS((request_t *));
+static state_t do_accept _PARAMS((ftp_request_t *));
+static state_t do_connect _PARAMS((ftp_request_t *));
+static state_t do_cwd _PARAMS((ftp_request_t *));
+static state_t do_list _PARAMS((ftp_request_t *));
+static state_t do_mdtm _PARAMS((ftp_request_t *));
+static state_t do_passwd _PARAMS((ftp_request_t *));
+static state_t do_pasv _PARAMS((ftp_request_t *));
+static state_t do_port _PARAMS((ftp_request_t *));
+static state_t do_rest _PARAMS((ftp_request_t *));
+static state_t do_retr _PARAMS((ftp_request_t *));
+static state_t do_size _PARAMS((ftp_request_t *));
+static state_t do_type _PARAMS((ftp_request_t *));
+static state_t do_user _PARAMS((ftp_request_t *));
+static state_t htmlify_listing _PARAMS((ftp_request_t *));
+static state_t parse_request _PARAMS((ftp_request_t *));
+static state_t read_data _PARAMS((ftp_request_t *));
+static state_t read_welcome _PARAMS((ftp_request_t *));
+static state_t ftp_request_timeout _PARAMS((ftp_request_t *));
 static time_t parse_iso3307_time _PARAMS((char *));
-static void cleanup_path _PARAMS((request_t *));
-static void close_dfd _PARAMS((request_t *));
-static void fail _PARAMS((request_t *));
+static void cleanup_path _PARAMS((ftp_request_t *));
+static void close_dfd _PARAMS((ftp_request_t *));
+static void fail _PARAMS((ftp_request_t *));
 static void generic_sig_handler _PARAMS((int));
-static void mime_get_type _PARAMS((request_t * r));
-static void send_success_hdr _PARAMS((request_t *));
+static void mime_get_type _PARAMS((ftp_request_t * r));
+static void send_success_hdr _PARAMS((ftp_request_t *));
 static void sigchld_handler _PARAMS((int));
-static void try_readme _PARAMS((request_t *));
+static void try_readme _PARAMS((ftp_request_t *));
 static void usage _PARAMS((int));
 
 #define SMALLBUFSIZ 1024
@@ -442,7 +368,7 @@ static char htmlbuf[BIGBUFSIZ];
 static char *server_reply_msg = NULL;
 static struct sockaddr_in ifc_addr;
 static time_t last_alarm_set = 0;
-static request_t *MainRequest = NULL;
+static ftp_request_t *MainRequest = NULL;
 static char visible_hostname[SMALLBUFSIZ];
 static struct in_addr outgoingTcpAddr;
 
@@ -450,7 +376,7 @@ static struct in_addr outgoingTcpAddr;
  * reply code line is sent for a FTP command */
 static list_t *cmd_msg = NULL;
 
-static int process_request _PARAMS((request_t *));
+static int process_request _PARAMS((ftp_request_t *));
 static int write_with_timeout _PARAMS((int fd, char *buf, int len));
 
 static char *state_str[] =
@@ -529,7 +455,7 @@ html_trailer(void)
 }
 
 static void
-fail(request_t * r)
+fail(ftp_request_t * r)
 {
     FILE *fp = NULL;
     char *longmsg = NULL;
@@ -570,7 +496,7 @@ fail(request_t * r)
 
     if ((r->flags & F_HTTPIFY)) {
 	if ((fp = fdopen(dup(r->cfd), "w")) == NULL) {
-	    log_errno2(__FILE__, __LINE__, "fdopen");
+	    debug(38, 0, "fdopen: %s\n", xstrerror());
 	    exit(1);
 	}
 	if (r->errmsg == NULL)
@@ -583,7 +509,7 @@ fail(request_t * r)
 	    r->errmsg,
 	    longmsg);
 	if (!(r->flags & F_HDRSENT)) {
-	    Debug(26, 1, ("Preparing HTML error message\n"));
+	    debug(38, 3, "Preparing HTML error message\n");
 	    expire_time = time(NULL) + o_neg_ttl;
 	    fprintf(fp, "HTTP/1.0 500 Proxy Error\r\n");
 	    fprintf(fp, "Date: %s\r\n", http_time(time(NULL)));
@@ -611,11 +537,12 @@ fail(request_t * r)
 	fputs(html_trailer(), fp);
 	fclose(fp);
 	if (r->flags & F_HTTPIFY) {
-	    Debug(26, 7, ("Writing Marker to FD %d\n", r->cfd));
+	    debug(38, 7, "Writing Marker to FD %d\n", r->cfd);
 	    write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
 	}
     } else if (r->errmsg) {
-	errorlog("%s\n\t<URL:%s>\n", r->errmsg, r->url);
+	debug(38, 0, "ftpget: %s\n", r->errmsg);
+	debug(38, 0, "ftpget: '%s'\n", r->url);
     }
     xfree(r->errmsg);
 }
@@ -628,7 +555,7 @@ generic_sig_handler(int sig)
     if (socket_pathname)
 	unlink(socket_pathname);
     sprintf(buf, "Received signal %d, exiting.\n", sig);
-    errorlog(buf);
+    debug(38, 0, "ftpget: %s", buf);
     if (MainRequest == NULL)
 	exit(1);
     MainRequest->rc = 6;
@@ -638,14 +565,14 @@ generic_sig_handler(int sig)
 }
 
 static state_t
-request_timeout(request_t * r)
+ftp_request_timeout(ftp_request_t * r)
 {
     time_t now;
     static char buf[SMALLBUFSIZ];
     now = time(NULL);
     sprintf(buf, "Timeout after %d seconds.\n",
 	(int) (now - last_alarm_set));
-    errorlog(buf);
+    debug(38, 0, "ftpget: %s", buf);
     r->errmsg = xstrdup(buf);
     r->rc = 7;
     return FAIL_TIMEOUT;
@@ -666,7 +593,7 @@ sigchld_handler(int sig)
 #else
     if ((pid = waitpid(0, &status, WNOHANG)) > 0)
 #endif
-	Debug(26, 5, ("sigchld_handler: Ate pid %d\n", pid));
+	debug(38, 5, "sigchld_handler: Ate pid %d\n", pid);
     signal(sig, sigchld_handler);
 }
 
@@ -687,9 +614,9 @@ write_with_timeout(int fd, char *buf, int sz)
 	FD_SET(fd, &W);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	Debug(26, 7, ("write_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec));
+	debug(38, 7, "write_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec);
 	x = select(fd + 1, &R, &W, NULL, &tv);
-	Debug(26, 7, ("write_with_timeout: select returned %d\n", x));
+	debug(38, 7, "write_with_timeout: select returned %d\n", x);
 	if (x < 0) {
 	    if (errno == EWOULDBLOCK)
 		continue;
@@ -703,9 +630,9 @@ write_with_timeout(int fd, char *buf, int sz)
 	if (FD_ISSET(0, &R))
 	    exit(1);		/* XXX very ungraceful! */
 	x = write(fd, buf, sz);
-	Debug(26, 7, ("write_with_timeout: write returned %d\n", x));
+	debug(38, 7, "write_with_timeout: write returned %d\n", x);
 	if (x < 0) {
-	    log_errno2(__FILE__, __LINE__, "write");
+	    debug(38, 0, "write: %s\n", xstrerror());
 	    return x;
 	}
 	if (x == 0)
@@ -730,7 +657,7 @@ read_with_timeout(int fd, char *buf, int sz)
 	FD_SET(fd, &R);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	Debug(26, 3, ("read_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec));
+	debug(38, 3, "read_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec);
 	x = select(fd + 1, &R, NULL, NULL, &tv);
 	if (x < 0) {
 	    if (errno == EWOULDBLOCK)
@@ -779,7 +706,7 @@ readline_with_timeout(int fd, char *buf, int sz)
 	if (FD_ISSET(0, &R))
 	    exit(1);		/* XXX very ungraceful! */
 	x = read(fd, &c, 1);
-	Debug(26, 9, ("readline: x=%d  c='%c'\n", x, c));
+	debug(38, 9, "readline: x=%d  c='%c'\n", x, c);
 	if (x < 0)
 	    return x;
 	if (x == 0)
@@ -800,17 +727,17 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
     fd_set W;
     fd_set R;
     struct timeval tv;
-    Debug(26, 7, ("connect_with_timeout2: starting...\n"));
+    debug(38, 7, "connect_with_timeout2: starting...\n");
 
     for (;;) {
-	Debug(26, 5, ("Connecting FD %d to: %s, port %d, len = %d\n", fd,
-		inet_ntoa(S->sin_addr),
-		(int) ntohs(S->sin_port),
-		len));
+	debug(38, 5, "Connecting FD %d to: %s, port %d, len = %d\n", fd,
+	    inet_ntoa(S->sin_addr),
+	    (int) ntohs(S->sin_port),
+	    len);
 	y = connect(fd, (struct sockaddr *) S, len);
-	Debug(26, 7, ("connect returned %d\n", y));
+	debug(38, 7, "connect returned %d\n", y);
 	if (y < 0)
-	    Debug(26, 7, ("connect: %s\n", xstrerror()));
+	    debug(38, 7, "connect: %s\n", xstrerror());
 	if (y >= 0)
 	    return y;
 	if (errno == EISCONN)
@@ -832,9 +759,9 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
 	FD_SET(fd, &W);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	Debug(26, 7, ("connect_with_timeout2: selecting on FD %d\n", fd));
+	debug(38, 7, "connect_with_timeout2: selecting on FD %d\n", fd);
 	x = select(fd + 1, &R, &W, NULL, &tv);
-	Debug(26, 7, ("select returned: %d\n", x));
+	debug(38, 7, "select returned: %d\n", x);
 	if (x == 0)
 	    return READ_TIMEOUT;
 	if (x < 0) {
@@ -865,15 +792,15 @@ connect_with_timeout(int fd, struct sockaddr_in *S, int len)
 	sock.sin_addr = outgoingTcpAddr;
 	sock.sin_port = 0;
 	if (bind(fd, (struct sockaddr *) &sock, sizeof(struct sockaddr_in)) < 0)
-	                log_errno2(__FILE__, __LINE__, "bind");
+	                debug(38, 0, "bind: %s\n", xstrerror());
     }
     orig_flags = fcntl(fd, F_GETFL, 0);
-    Debug(26, 7, ("orig_flags = %x\n", orig_flags));
+    debug(38, 7, "orig_flags = %x\n", orig_flags);
     if (fcntl(fd, F_SETFL, orig_flags | O_NDELAY) < 0)
-	log_errno2(__FILE__, __LINE__, "fcntl O_NDELAY");
+	debug(38, 0, "fcntl O_NDELAY: %s\n", xstrerror());
     rc = connect_with_timeout2(fd, S, len);
     if (fcntl(fd, F_SETFL, orig_flags) < 0)
-	log_errno2(__FILE__, __LINE__, "fcntl orig");
+	debug(38, 0, "fcntl orig: %s\n", xstrerror());
     return rc;
 }
 
@@ -890,9 +817,9 @@ accept_with_timeout(int fd, struct sockaddr *S, int *len)
 	FD_SET(fd, &R);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	Debug(26, 7, ("accept_with_timeout: selecting on FD %d\n", fd));
+	debug(38, 7, "accept_with_timeout: selecting on FD %d\n", fd);
 	x = select(fd + 1, &R, NULL, NULL, &tv);
-	Debug(26, 7, ("select returned: %d\n", x));
+	debug(38, 7, "select returned: %d\n", x);
 	if (x == 0)
 	    return READ_TIMEOUT;
 	if (x < 0) {
@@ -917,7 +844,7 @@ accept_with_timeout(int fd, struct sockaddr *S, int *len)
  *  type becomes the content encoding (eg .gz)
  */
 static void
-mime_get_type(request_t * r)
+mime_get_type(ftp_request_t * r)
 {
     char *filename = NULL;
     char *ext = NULL;
@@ -997,12 +924,12 @@ mime_get_icon(char *name)
     if (!(t = strrchr(name, '.')))
 	return xstrdup("unknown");
     ext = xstrdup(t + 1);
-    Debug(26, 1, ("mime_get_icon: ext = '%s'\n", ext));
+    debug(38, 3, "mime_get_icon: ext = '%s'\n", ext);
     for (i = 0; i < EXT_TABLE_LEN; i++) {
 	if (!strcmp(ext, ext_mime_table[i].name)) {
-	    Debug(26, 1, ("mime_get_icon: matched entry #%d\n", i));
-	    Debug(26, 1, ("mime_get_icon: returning '%s'\n",
-		    ext_mime_table[i].icon));
+	    debug(38, 3, "mime_get_icon: matched entry #%d\n", i);
+	    debug(38, 3, "mime_get_icon: returning '%s'\n",
+		ext_mime_table[i].icon);
 	    xfree(ext);
 	    return xstrdup(ext_mime_table[i].icon);
 	    /* NOTREACHED */
@@ -1011,9 +938,9 @@ mime_get_icon(char *name)
     if (i == EXT_TABLE_LEN) {
 	for (i = 0; i < EXT_TABLE_LEN; i++) {
 	    if (!strcasecmp(ext, ext_mime_table[i].name)) {
-		Debug(26, 1, ("mime_get_icon: matched entry #%d\n", i));
-		Debug(26, 1, ("mime_get_icon: returning '%s'\n",
-			ext_mime_table[i].icon));
+		debug(38, 3, "mime_get_icon: matched entry #%d\n", i);
+		debug(38, 3, "mime_get_icon: returning '%s'\n",
+		    ext_mime_table[i].icon);
 		xfree(ext);
 		return xstrdup(ext_mime_table[i].icon);
 		/* NOTREACHED */
@@ -1037,7 +964,7 @@ http_time(time_t t)
 }
 
 static void
-send_success_hdr(request_t * r)
+send_success_hdr(ftp_request_t * r)
 {
     FILE *fp = NULL;
 
@@ -1049,7 +976,7 @@ send_success_hdr(request_t * r)
     mime_get_type(r);
 
     if ((fp = fdopen(dup(r->cfd), "w")) == NULL) {
-	log_errno2(__FILE__, __LINE__, "fdopen");
+	debug(38, 0, "fdopen: %s\n", xstrerror());
 	exit(1);
     }
     setbuf(fp, NULL);
@@ -1097,7 +1024,7 @@ read_reply(int fd)
 
     while (!quit) {
 	n = readline_with_timeout(fd, buf, SMALLBUFSIZ);
-	Debug(26, 9, ("read_reply: readline returned %d\n", n));
+	debug(38, 9, "read_reply: readline returned %d\n", n);
 	if (n < 0) {
 	    xfree(server_reply_msg);
 	    server_reply_msg = xstrdup(xstrerror());
@@ -1118,7 +1045,7 @@ read_reply(int fd)
 	    *t = 0;
 	if ((t = strchr(buf, '\n')))
 	    *t = 0;
-	Debug(26, 1, ("read_reply: %s\n", buf));
+	debug(38, 3, "read_reply: %s\n", buf);
     }
     code = atoi(buf);
     xfree(server_reply_msg);
@@ -1142,7 +1069,7 @@ send_cmd(int fd, char *buf)
     len = strlen(buf) + 2;
     xbuf = xmalloc(len + 1);
     sprintf(xbuf, "%s\r\n", buf);
-    Debug(26, 1, ("send_cmd: %s\n", buf));
+    debug(38, 3, "send_cmd: %s\n", buf);
     x = write_with_timeout(fd, xbuf, len);
     xfree(xbuf);
     return x;
@@ -1177,7 +1104,7 @@ parse_iso3307_time(char *buf)
     t = (time_t) 0;
 #endif
 
-    Debug(26, 1, ("parse_iso3307_time: %d\n", t));
+    debug(38, 3, "parse_iso3307_time: %d\n", t);
     return t;
 }
 #undef ASCII_DIGIT
@@ -1195,7 +1122,7 @@ parse_iso3307_time(char *buf)
  *  Close any open data channel
  */
 static void
-close_dfd(request_t * r)
+close_dfd(ftp_request_t * r)
 {
     if (r->dfd >= 0)
 	close(r->dfd);
@@ -1208,7 +1135,7 @@ close_dfd(request_t * r)
  *  Check if a data channel is already open
  */
 static int
-is_dfd_open(request_t * r)
+is_dfd_open(ftp_request_t * r)
 {
     if (r->dfd >= 0 && !(r->flags & F_NEEDACCEPT)) {
 	fd_set R;
@@ -1218,13 +1145,13 @@ is_dfd_open(request_t * r)
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
 	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
-	    Debug(26, 3, ("Data channel already connected (FD=%d)\n", r->dfd));
+	    debug(38, 3, "Data channel already connected (FD=%d)\n", r->dfd);
 	    return 1;
 	} else {
-	    Debug(26, 2, ("Data channel closed by server (%s)\n", xstrerror()));
+	    debug(38, 2, "Data channel closed by server (%s)\n", xstrerror());
 	}
     } else if (r->dfd >= 0) {
-	Debug(26, 2, ("Data socket not connected, closing\n"));
+	debug(38, 2, "Data socket not connected, closing\n");
     }
     close_dfd(r);
     return 0;
@@ -1240,10 +1167,10 @@ is_dfd_open(request_t * r)
  *    PARSE_OK
  */
 static state_t
-parse_request(request_t * r)
+parse_request(ftp_request_t * r)
 {
     struct hostent *hp;
-    Debug(26, 1, ("parse_request: looking up '%s'\n", r->host));
+    debug(38, 3, "parse_request: looking up '%s'\n", r->host);
 
     r->host_addr.s_addr = inet_addr(r->host);	/* try numeric */
     if (r->host_addr.s_addr != INADDR_NONE)
@@ -1268,7 +1195,7 @@ parse_request(request_t * r)
  *    FAIL_CONNECT
  */
 static state_t
-do_connect(request_t * r)
+do_connect(ftp_request_t * r)
 {
     int sock;
     struct sockaddr_in S;
@@ -1276,8 +1203,8 @@ do_connect(request_t * r)
     int x;
 
     r->conn_att++;
-    Debug(26, 1, ("do_connect: connect attempt #%d to '%s'\n",
-	    r->conn_att, r->host));
+    debug(38, 3, "do_connect: connect attempt #%d to '%s'\n",
+	r->conn_att, r->host);
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
@@ -1290,7 +1217,7 @@ do_connect(request_t * r)
 
     x = connect_with_timeout(sock, &S, sizeof(S));
     if (x == READ_TIMEOUT) {
-	(void) request_timeout(r);
+	(void) ftp_request_timeout(r);
 	return FAIL_CONNECT;
     }
     if (x < 0) {
@@ -1306,7 +1233,7 @@ do_connect(request_t * r)
     /* what to use in the PORT command.                             */
     len = sizeof(ifc_addr);
     if (getsockname(sock, (struct sockaddr *) &ifc_addr, &len) < 0) {
-	log_errno2(__FILE__, __LINE__, "getsockname");
+	debug(38, 0, "getsockname: %s\n", xstrerror());
 	exit(1);
     }
     if (outgoingTcpAddr.s_addr)
@@ -1323,7 +1250,7 @@ do_connect(request_t * r)
  *    FAIL_CONNECT
  */
 static state_t
-read_welcome(request_t * r)
+read_welcome(ftp_request_t * r)
 {
     int code;
 
@@ -1352,7 +1279,7 @@ read_welcome(request_t * r)
  *    FAIL_LOGIN
  */
 static state_t
-do_user(request_t * r)
+do_user(ftp_request_t * r)
 {
     int code;
 
@@ -1385,7 +1312,7 @@ do_user(request_t * r)
  *    FAIL_LOGIN
  */
 static state_t
-do_passwd(request_t * r)
+do_passwd(ftp_request_t * r)
 {
     int code;
 
@@ -1404,7 +1331,7 @@ do_passwd(request_t * r)
 }
 
 static state_t
-do_type(request_t * r)
+do_type(ftp_request_t * r)
 {
     int code;
 
@@ -1421,7 +1348,7 @@ do_type(request_t * r)
 }
 
 static state_t
-do_mdtm(request_t * r)
+do_mdtm(ftp_request_t * r)
 {
     int code;
 
@@ -1441,7 +1368,7 @@ do_mdtm(request_t * r)
 }
 
 static state_t
-do_size(request_t * r)
+do_size(ftp_request_t * r)
 {
     int code;
 
@@ -1461,7 +1388,7 @@ do_size(request_t * r)
 }
 
 static state_t
-do_port(request_t * r)
+do_port(ftp_request_t * r)
 {
     int code;
     int sock;
@@ -1530,7 +1457,7 @@ do_port(request_t * r)
 	r->rc = 2;
 	return FAIL_SOFT;
     }
-    Debug(26, 3, ("listening on FD %d\n", sock));
+    debug(38, 3, "listening on FD %d\n", sock);
     naddr = ntohl(ifc_addr.sin_addr.s_addr);
     sprintf(cbuf, "PORT %d,%d,%d,%d,%d,%d",
 	(naddr >> 24) & 0xFF,
@@ -1554,7 +1481,7 @@ do_port(request_t * r)
 }
 
 static state_t
-do_pasv(request_t * r)
+do_pasv(ftp_request_t * r)
 {
     int code;
     int sock;
@@ -1618,11 +1545,11 @@ do_pasv(request_t * r)
 }
 
 static state_t
-do_cwd(request_t * r)
+do_cwd(ftp_request_t * r)
 {
     int code;
 
-    Debug(26, 10, ("do_cwd: \"%s\"\n", r->path));
+    debug(38, 9, "do_cwd: \"%s\"\n", r->path);
 
     if (r->flags & F_BASEDIR)
 	return CWD_OK;
@@ -1647,7 +1574,7 @@ do_cwd(request_t * r)
 }
 
 static state_t
-do_rest(request_t * r)
+do_rest(ftp_request_t * r)
 {
     int code;
 
@@ -1671,7 +1598,7 @@ do_rest(request_t * r)
 
 
 static state_t
-do_retr(request_t * r)
+do_retr(ftp_request_t * r)
 {
     int code;
 
@@ -1701,7 +1628,7 @@ do_retr(request_t * r)
 }
 
 static state_t
-do_list(request_t * r)
+do_list(ftp_request_t * r)
 {
     int code;
 
@@ -1739,7 +1666,7 @@ do_list(request_t * r)
 }
 
 static state_t
-do_accept(request_t * r)
+do_accept(ftp_request_t * r)
 {
     int sock;
     struct sockaddr S;
@@ -1749,7 +1676,7 @@ do_accept(request_t * r)
     memset(&S, '\0', len);
     sock = accept_with_timeout(r->dfd, &S, &len);
     if (sock == READ_TIMEOUT)
-	return request_timeout(r);
+	return ftp_request_timeout(r);
     if (sock < 0) {
 	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "accept: %s", xstrerror());
@@ -1762,7 +1689,7 @@ do_accept(request_t * r)
 }
 
 static state_t
-read_data(request_t * r)
+read_data(ftp_request_t * r)
 {
     int code;
     int n;
@@ -1776,7 +1703,7 @@ read_data(request_t * r)
 	read_sz = o_max_bps;
     n = read_with_timeout(r->dfd, buf, read_sz);
     if (n == READ_TIMEOUT) {
-	return request_timeout(r);
+	return ftp_request_timeout(r);
     } else if (n < 0) {
 	close_dfd(r);
 	r->errmsg = xmalloc(SMALLBUFSIZ);
@@ -1795,7 +1722,7 @@ read_data(request_t * r)
     }
     x = write_with_timeout(r->cfd, buf, n);
     if (x == READ_TIMEOUT)
-	return request_timeout(r);
+	return ftp_request_timeout(r);
     if (x < 0) {
 	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "write: %s", xstrerror());
@@ -1976,7 +1903,7 @@ dots_fill(size_t len)
 }
 
 static char *
-htmlize_list_entry(char *line, request_t * r)
+htmlize_list_entry(char *line, ftp_request_t * r)
 {
     char *link = NULL;
     char *icon = NULL;
@@ -2070,11 +1997,11 @@ htmlize_list_entry(char *line, request_t * r)
 }
 
 static void
-try_readme(request_t * r)
+try_readme(ftp_request_t * r)
 {
     char *t = NULL;
     char *tfname = NULL;
-    request_t *readme = NULL;
+    ftp_request_t *readme = NULL;
     int fd = -1;
     struct stat sb;
     FILE *fp = NULL;
@@ -2088,7 +2015,7 @@ try_readme(request_t * r)
 	xfree(tfname);
 	return;
     }
-    readme = xcalloc(1, sizeof(request_t));
+    readme = xcalloc(1, sizeof(ftp_request_t));
     readme->path = xstrdup("README");
     readme->cfd = fd;
     readme->sfd = r->sfd;
@@ -2133,7 +2060,7 @@ try_readme(request_t * r)
 
 
 static state_t
-htmlify_listing(request_t * r)
+htmlify_listing(ftp_request_t * r)
 {
     int code;
     static char buf[BIGBUFSIZ];
@@ -2184,7 +2111,7 @@ htmlify_listing(request_t * r)
 	xfree(t);
     }
     while ((n = readline_with_timeout(r->dfd, buf, BIGBUFSIZ)) > 0) {
-	Debug(26, 1, ("Input: %s", buf));
+	debug(38, 3, "Input: %s", buf);
 	if ((t = strchr(buf, '\r')))
 	    *t = '\0';
 	if ((t = strchr(buf, '\n')))
@@ -2198,7 +2125,7 @@ htmlify_listing(request_t * r)
     }
     close_dfd(r);
     if (n == READ_TIMEOUT) {
-	return request_timeout(r);
+	return ftp_request_timeout(r);
     } else if (n < 0) {
 	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
@@ -2232,14 +2159,14 @@ htmlify_listing(request_t * r)
 }
 
 static int
-process_request(request_t * r)
+process_request(ftp_request_t * r)
 {
     if (r == NULL)
 	return 1;
 
     for (;;) {
-	Debug(26, 1, ("process_request: in state %s\n",
-		state_str[r->state]));
+	debug(38, 3, "process_request: in state %s\n",
+	    state_str[r->state]);
 	switch (r->state) {
 	case BEGIN:
 	    r->state = parse_request(r);
@@ -2359,7 +2286,7 @@ process_request(request_t * r)
 	    break;
 	case DONE:
 	    if (r->flags & F_HTTPIFY) {
-		Debug(26, 7, ("Writing Marker to FD %d\n", r->cfd));
+		debug(38, 7, "Writing Marker to FD %d\n", r->cfd);
 		write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
 	    }
 	    return 0;
@@ -2377,7 +2304,7 @@ process_request(request_t * r)
 	    return (r->rc);
 	    /* NOTREACHED */
 	default:
-	    errorlog("Nothing to do with state %s\n",
+	    debug(38, 0, "Nothing to do with state %s\n",
 		state_str[r->state]);
 	    return (1);
 	    /* NOTREACHED */
@@ -2386,7 +2313,7 @@ process_request(request_t * r)
 }
 
 static void
-cleanup_path(request_t * r)
+cleanup_path(ftp_request_t * r)
 {
     int again;
     int l;
@@ -2479,7 +2406,7 @@ ftpget_srv_mode(char *arg)
 		continue;
 	    if (errno == EINTR)
 		continue;
-	    log_errno2(__FILE__, __LINE__, "select");
+	    debug(38, 0, "select: %s\n", xstrerror());
 	    return 1;
 	}
 	if (FD_ISSET(0, &R)) {
@@ -2492,7 +2419,7 @@ ftpget_srv_mode(char *arg)
 	if (!FD_ISSET(sock, &R))
 	    continue;
 	if ((c = accept(sock, NULL, 0)) < 0) {
-	    log_errno2(__FILE__, __LINE__, "accept");
+	    debug(38, 0, "accept: %s\n", xstrerror());
 	    if (socket_pathname)
 		unlink(socket_pathname);
 	    exit(1);
@@ -2503,7 +2430,7 @@ ftpget_srv_mode(char *arg)
 	    continue;
 	}
 	if ((flags = fcntl(c, F_GETFL, 0)) < 0)
-	    log_errno2(__FILE__, __LINE__, "fcntl F_GETFL");
+	    debug(38, 0, "fcntl F_GETFL: %s\n", xstrerror());
 #ifdef O_NONBLOCK
 	flags &= ~O_NONBLOCK;
 #endif
@@ -2511,13 +2438,13 @@ ftpget_srv_mode(char *arg)
 	flags &= ~O_NDELAY;
 #endif
 	if (fcntl(c, F_SETFL, flags) < 0)
-	    log_errno2(__FILE__, __LINE__, "fcntl F_SETFL");
+	    debug(38, 0, "fcntl F_SETFL: %s\n", xstrerror());
 	buflen = 0;
 	memset(buf, '\0', BUFSIZ);
 	do {
 	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) <= 0) {
 		if (n < 0)
-		    log_errno2(__FILE__, __LINE__, "read");
+		    debug(38, 0, "read: %s\n", xstrerror());
 		close(c);
 		_exit(1);
 	    }
@@ -2530,7 +2457,7 @@ ftpget_srv_mode(char *arg)
 		t = "";
 	    args[i] = xstrdup(t);
 	    rfc1738_unescape(args[i]);
-	    Debug(26, 5, ("args[%d] = %s\n", i, args[i]));
+	    debug(38, 5, "args[%d] = %s\n", i, args[i]);
 	    t = strtok(NULL, w_space);
 	    i++;
 	}
@@ -2539,7 +2466,7 @@ ftpget_srv_mode(char *arg)
 	dup2(c, 1);
 	close(c);
 	execvp(fullprogname, args);
-	log_errno2(__FILE__, __LINE__, fullprogname);
+	debug(38, 0, "%s: %s\n", fullprogname, xstrerror());
 	_exit(1);
     }
     /* NOTREACHED */
@@ -2568,7 +2495,7 @@ usage(int argcount)
     fprintf(stderr, "\t-w chars        Filename width in directory listing\n");
     fprintf(stderr, "\t-W              Wrap long filenames\n");
     fprintf(stderr, "\t-C min:max      Min and max port numbers to used for data\n");
-    fprintf(stderr, "\t-Ddbg           Debug options\n");
+    fprintf(stderr, "\t-D dbg          Debug options\n");
     fprintf(stderr, "\t-P port         FTP Port number\n");
     fprintf(stderr, "\t-b              Maximum bytes/sec rate\n");
     fprintf(stderr, "\t-v              Version\n");
@@ -2597,31 +2524,40 @@ check_data_rate(int size)
     return rate > o_max_bps ? 1 : 0;
 }
 
+time_t
+getCurrentTime(void)
+{
+#if GETTIMEOFDAY_NO_TZP
+    gettimeofday(&current_time);
+#else
+    gettimeofday(&current_time, NULL);
+#endif
+    return squid_curtime = current_time.tv_sec;
+}
 
 
 int
 main(int argc, char *argv[])
 {
-    request_t *r = NULL;
+    ftp_request_t *r = NULL;
     char *t = NULL;
     int rc;
     int i;
     int len;
     int j, k;
     u_short port = FTP_PORT;
+    char *debug_args = "ALL,1";
 
     fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
 	progname = xstrdup(t + 1);
     } else
 	progname = xstrdup(argv[0]);
-    init_log3(progname, stderr, stderr);
-    debug_init();
-#if GETTIMEOFDAY_NO_TZP
-    gettimeofday(&starttime);
-#else
-    gettimeofday(&starttime, NULL);
-#endif
+    if ((t = getenv("SQUID_DEBUG")))
+	debug_args = xstrdup(t);
+    getCurrentTime();
+    starttime = current_time;
+    _db_init(NULL, debug_args);
 
 
 #ifdef NSIG
@@ -2652,11 +2588,11 @@ main(int argc, char *argv[])
     strcpy(visible_hostname, getfullhostname());
 
     for (argc--, argv++; argc > 0 && **argv == '-'; argc--, argv++) {
-	Debug(26, 7, ("processing arg '%s'\n", *argv));
+	debug(38, 7, "processing arg '%s'\n", *argv);
 	if (!strcmp(*argv, "-"))
 	    break;
 	if (!strncmp(*argv, "-D", 2)) {
-	    debug_flag(*argv);
+	    _db_init(NULL, *argv);
 	    continue;
 	} else if (!strcmp(*argv, "-htmlify") || !strcmp(*argv, "-httpify") ||
 	    !strcmp(*argv, "-h")) {
@@ -2807,7 +2743,7 @@ main(int argc, char *argv[])
 	fprintf(stderr, "Wrong number of arguments left (%d)\n", argc);
 	usage(argc);
     }
-    r = xcalloc(1, sizeof(request_t));
+    r = xcalloc(1, sizeof(ftp_request_t));
 
     if (strcmp(argv[0], "-") == 0) {
 	r->cfd = 1;
@@ -2831,7 +2767,7 @@ main(int argc, char *argv[])
     r->rest_implemented = 1;
 
     if (*(r->type) != 'A' && *(r->type) != 'I') {
-	errorlog("Invalid transfer type: %s\n", r->type);
+	debug(38, 0, "ftpget: Invalid transfer type: %s\n", r->type);
 	usage(argc);
     }
     cleanup_path(r);
