@@ -2187,7 +2187,7 @@ int ftpget_srv_mode(arg)
 
 #if HAVE_SETSID
     setsid();			/* become session leader */
-#elsif HAVE_SETPGRP
+#elif HAVE_SETPGRP
     setpgrp(getpid(), 0);
 #endif
     port = (u_short) atoi(arg);

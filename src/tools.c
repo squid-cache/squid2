@@ -232,6 +232,7 @@ void sig_child(sig)
     while ((pid = wait3(&status, WNOHANG, NULL)) > 0 || errno == EINTR)
 #else
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0 || errno == EINTR)
+#endif
 	debug(21, 3, "sig_child: Ate pid %d\n", pid);
     signal(sig, sig_child);
 }
