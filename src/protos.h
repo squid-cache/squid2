@@ -516,7 +516,11 @@ extern variable_list *snmp_prfProtoFn(variable_list *, snint *);
 extern variable_list *snmp_prfPeerFn(variable_list *, snint *);
 extern variable_list *snmp_netIpFn(variable_list *, snint *);
 extern variable_list *snmp_netFqdnFn(variable_list *, snint *);
+#if USE_DNSSERVERS
 extern variable_list *snmp_netDnsFn(variable_list *, snint *);
+#else
+extern variable_list *snmp_netIdnsFn(variable_list *, snint *);
+#endif
 extern variable_list *snmp_meshPtblFn(variable_list *, snint *);
 extern variable_list *snmp_meshCtblFn(variable_list *, snint *);
 #endif /* SQUID_SNMP */
