@@ -1421,7 +1421,14 @@ snmpConnectionClose(void)
 {
     if (theInSnmpConnection < 0)
 	return;
-    comm_close(theInSnmpConnection);
+    if (theInSnmpConnection != theOutSnmpConnection)
+    	comm_close(theInSnmpConnection);
+    /*
+     * Here we set 'theInSnmpConnection' to -1 even though the SNMP 'in'
+     * and 'out' sockets might be just one FD.  This prevents this
+     * function from executing repeatedly.  When we are really ready to
+     * exit or restart, main will comm_close the 'out' descriptor.
+     */
     theInSnmpConnection = -1;
     /* 
      * Normally we only write to the outgoing SNMP socket, but we
@@ -1429,6 +1436,6 @@ snmpConnectionClose(void)
      * specific interface.  During shutdown, we must disable reading
      * on the outgoing socket.
      */
-    if (theOutSnmpConnection > -1)
-        commSetSelect(theOutSnmpConnection, COMM_SELECT_READ, NULL, NULL, 0);
+    assert(theOutSnmpConnection > -1);
+    commSetSelect(theOutSnmpConnection, COMM_SELECT_READ, NULL, NULL, 0);
 }
