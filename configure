@@ -1045,7 +1045,7 @@ INSTALL_STRIP_PROGRAM="\${SHELL} \$(install_sh) -c -s"
 
   
 
-# From configure.in Revision: 1.251.2.40 
+# From configure.in Revision: 1.251.2.41 
 echo $ac_n "checking whether to enable maintainer-specific portions of Makefiles""... $ac_c" 1>&6
 echo "configure:1051: checking whether to enable maintainer-specific portions of Makefiles" >&5
     # Check whether --enable-maintainer-mode or --disable-maintainer-mode was given.
@@ -2628,7 +2628,7 @@ enable_hostname_checks=1
 # Check whether --enable-hostname_checks or --disable-hostname_checks was given.
 if test "${enable_hostname_checks+set}" = set; then
   enableval="$enable_hostname_checks"
-   if text "$enableval" = "no"; then
+   if test "$enableval" = "no"; then
     echo "Disabling hostname sanity checks"
     enable_hostname_checks=0
   fi
