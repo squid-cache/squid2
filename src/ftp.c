@@ -831,6 +831,14 @@ ftpReadComplete(FtpStateData * ftpState)
 {
     debug(9, 3) ("ftpReadComplete\n");
     /* Connection closed; retrieval done. */
+    if (ftpState->data.fd > -1) {
+	/*
+	 * close data socket so it does not occupy resources while
+	 * we wait
+	 */
+	comm_close(ftpState->data.fd);
+	ftpState->data.fd = -1;
+    }
     if (ftpState->flags.html_header_sent)
 	ftpListingFinish(ftpState);
     if (!ftpState->flags.put) {
