@@ -206,8 +206,13 @@ aio_thread_loop(void *ptr)
     sigemptyset(&new);
     sigaddset(&new, SIGPIPE);
     sigaddset(&new, SIGCHLD);
+#if (defined(_SQUID_LINUX_) && USE_ASYNC_IO)
+    sigaddset(&new, SIGQUIT);
+    sigaddset(&new, SIGTRAP);
+#else
     sigaddset(&new, SIGUSR1);
     sigaddset(&new, SIGUSR2);
+#endif
     sigaddset(&new, SIGHUP);
     sigaddset(&new, SIGTERM);
     sigaddset(&new, SIGINT);
