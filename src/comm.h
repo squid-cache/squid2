@@ -133,16 +133,6 @@ struct close_handler {
     struct close_handler *next;
 };
 
-typedef struct {
-    char *host;
-    u_short port;
-    struct sockaddr_in S;
-    CNCB *callback;
-    void *data;
-    int tries;
-    struct in_addr in_addr;
-} ConnectStateData;
-
 extern int commSetNonBlocking _PARAMS((int fd));
 extern void commSetCloseOnExec _PARAMS((int fd));
 extern int comm_accept _PARAMS((int fd, struct sockaddr_in *, struct sockaddr_in *));

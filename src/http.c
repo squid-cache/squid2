@@ -216,8 +216,8 @@ httpStateFree(int fd, void *data)
     HttpStateData *httpState = data;
     if (httpState == NULL)
 	return;
-    storeUnlockObject(httpState->entry);
     storeUnregisterAbort(httpState->entry);
+    storeUnlockObject(httpState->entry);
     if (httpState->reply_hdr) {
 	put_free_8k_page(httpState->reply_hdr);
 	httpState->reply_hdr = NULL;

@@ -191,8 +191,8 @@ gopherStateFree(int fd, void *data)
     if (gopherState == NULL)
 	return;
     if (gopherState->entry) {
-	storeUnlockObject(gopherState->entry);
 	storeUnregisterAbort(gopherState->entry);
+	storeUnlockObject(gopherState->entry);
     }
     put_free_4k_page(gopherState->buf);
     xfree(gopherState);

@@ -132,8 +132,8 @@ waisStateFree(int fd, void *data)
     WaisStateData *waisState = data;
     if (waisState == NULL)
 	return;
-    storeUnlockObject(waisState->entry);
     storeUnregisterAbort(waisState->entry);
+    storeUnlockObject(waisState->entry);
     xfree(waisState);
 }
 

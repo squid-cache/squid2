@@ -182,8 +182,8 @@ ftpStateFree(int fd, void *data)
     FtpStateData *ftpState = data;
     if (ftpState == NULL)
 	return;
-    storeUnlockObject(ftpState->entry);
     storeUnregisterAbort(ftpState->entry);
+    storeUnlockObject(ftpState->entry);
     if (ftpState->reply_hdr) {
 	put_free_8k_page(ftpState->reply_hdr);
 	ftpState->reply_hdr = NULL;

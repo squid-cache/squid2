@@ -1399,7 +1399,7 @@ configSetFactoryDefaults(void)
     Config.Ftp.icon_suffix = safe_xstrdup(DefaultFtpIconSuffix);
     Config.Ftp.list_width = DefaultFtpListWidth;
     Config.Ftp.list_wrap = DefaultFtpListWrap;
-    Config.Ftp.anon_user = DefaultFtpAnonUser;
+    Config.Ftp.anon_user = safe_xstrdup(DefaultFtpAnonUser);
 }
 
 static void
