@@ -5,9 +5,13 @@
  * DEBUG: section ?     HEAP based removal policies
  * AUTHOR: Henrik Nordstrom
  *
- * Based on the ideas of the HEAP policy implemented by John Dilley of
+ * Based on the ideas of the heap policy implemented by John Dilley of
  * Hewlett Packard. Rewritten from scratch when modularizing the removal
  * policy implementation of Squid.
+ *
+ * For details on the original heap policy work and the thinking behind see
+ * http://www.hpl.hp.com/techreports/1999/HPL-1999-69.html
+ *
  * 
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
  * ----------------------------------------------------------
