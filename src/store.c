@@ -187,7 +187,7 @@ storeHashInsert(StoreEntry * e, const cache_key * key)
 	(void) 0;
     } else {
 	e->node = heap_insert(store_heap, e);
-	debug(20, 4) ("storeHashInsert: inserted node 0x%x\n", e->node);
+	debug(20, 4) ("storeHashInsert: inserted node %p\n", e->node);
     }
 #else
     dlinkAdd(e, &e->lru, &store_list);
@@ -200,7 +200,7 @@ storeHashDelete(StoreEntry * e)
     hash_remove_link(store_table, (hash_link *) e);
 #if HEAP_REPLACEMENT
     if (e->node) {
-	debug(20, 4) ("storeHashDelete: deleting node 0x%x\n", e->node);
+	debug(20, 4) ("storeHashDelete: deleting node %p\n", e->node);
 	heap_delete(store_heap, e->node);
 	e->node = NULL;
     }
@@ -241,7 +241,7 @@ storeLockObject(StoreEntry * e)
 	 * replacement algorithm.  We can't do that so we will just
 	 * have to handle them.
 	 */
-	debug(20, 4) ("storeLockObject: just locked node 0x%x\n", e->node);
+	debug(20, 4) ("storeLockObject: just locked node %p\n", e->node);
 #else
 	dlinkDelete(&e->lru, &store_list);
 	dlinkAdd(e, &e->lru, &store_list);
@@ -281,6 +281,7 @@ storeUnlockObject(StoreEntry * e)
     if (e->store_status == STORE_PENDING)
 	EBIT_SET(e->flags, RELEASE_REQUEST);
     assert(storePendingNClients(e) == 0);
+    storeHeapPositionUpdate(e);
     if (EBIT_TEST(e->flags, RELEASE_REQUEST))
 	storeRelease(e);
     else if (storeKeepInMemory(e)) {
@@ -295,7 +296,7 @@ storeUnlockObject(StoreEntry * e)
 	     * Squid/LRU is moving things around in the linked list in order
 	     * to keep from bumping into them when purging from the LRU list.
 	     */
-	    debug(20, 4) ("storeUnlockObject: purged private node 0x%x\n",
+	    debug(20, 4) ("storeUnlockObject: purged private node %p\n",
 		e->node);
 #else
 	    dlinkDelete(&e->lru, &store_list);
@@ -824,8 +825,6 @@ storeMaintainSwapSpace(void *datanotused)
 	if (scanned >= max_scan)
 	    break;
 	age = heap_peepminkey(store_heap);
-	if (age > storeReplacementThreshold())
-	    break;
 	e = heap_extractmin(store_heap);
 	e->node = NULL;		/* no longer in the heap */
 	scanned++;
@@ -865,11 +864,17 @@ storeMaintainSwapSpace(void *datanotused)
 	    linklistPush(&locked_entries, e);
 	    continue;
 	}
+        if (store_swap_size < store_swap_low)
+	    break;
+	else if (expired >= max_remove)
+	    break;
+        else if (scanned >= max_scan)
+            break;
     }
     /*
      * Bump the heap age factor.
      */
-    if (min_age > 0)
+    if (min_age > 0.0)
 	store_heap->age = min_age;
     /*
      * Reinsert all bumped locked entries back into heap...
@@ -1167,27 +1172,7 @@ storeCheckExpired(const StoreEntry * e)
 #endif
 }
 
-#if HEAP_REPLACEMENT
-/*
- * storeReplacementThreshold
- *
- */
-heap_key
-storeReplacementThreshold(void)
-{
-    double x;
-    x = (double) (store_swap_size - store_swap_low) / (store_swap_high - store_swap_low);
-    x = x * 2.0 - 1.0;
-    if (x < -2.0)
-	x = -2.0;
-    else if (x > 2.0)
-	x = 2.0;
-    if (x > 0.0)
-	return pow(1000000.0, x) - 1.0;
-    else
-	return -1.0 * pow(1000000.0, -x) + 1.0;
-}
-#else
+#if !HEAP_REPLACEMENT
 /*
  * storeExpiredReferenceAge
  *
@@ -1358,7 +1343,7 @@ storeSetMemStatus(StoreEntry * e, int new_status)
 		    mem->url);
 	    } else {
 		mem->node = heap_insert(inmem_heap, e);
-		debug(20, 4) ("storeSetMemStatus: inserted mem node 0x%x\n",
+		debug(20, 4) ("storeSetMemStatus: inserted mem node %p\n",
 		    mem->node);
 	    }
 	}
@@ -1373,7 +1358,7 @@ storeSetMemStatus(StoreEntry * e, int new_status)
 	 */
 	if (mem->node) {
 	    heap_delete(inmem_heap, mem->node);
-	    debug(20, 4) ("storeSetMemStatus: deleted mem node 0x%x\n",
+	    debug(20, 4) ("storeSetMemStatus: deleted mem node %p\n",
 		mem->node);
 	    mem->node = NULL;
 	}
@@ -1464,8 +1449,7 @@ storeHeapPositionUpdate(StoreEntry * e)
 {
     if (e->node)
 	heap_update(store_heap, e->node, e);
-    assert(e->mem_obj);
-    if (e->mem_obj->node)
+    if (e->mem_obj && e->mem_obj->node)
 	heap_update(inmem_heap, e->mem_obj->node, e);
 }
 #endif

@@ -123,6 +123,7 @@ storeClientListAdd(StoreEntry * e, void *data)
     assert(mem);
     if (storeClientListSearch(mem, data) != NULL)
 	return;
+    e->refcount++;
     mem->nclients++;
     sc = memAllocate(MEM_STORE_CLIENT);
     cbdataAdd(sc, memFree, MEM_STORE_CLIENT);	/* sc is callback_data for file_read */

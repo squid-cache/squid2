@@ -60,9 +60,9 @@ HeapKeyGen_StoreEntry_LFUDA(void *entry, double age)
     StoreEntry *e = entry;
     double tie;
     if (e->lastref <= 0)
-	tie = 1.0;
+	tie = 0.0;
     else if (squid_curtime <= e->lastref)
-	tie = 1.0;
+	tie = 0.0;
     else
 	tie = 1.0 - exp((double) (e->lastref - squid_curtime) / 86400.0);
     return age + (double) e->refcount - tie;
