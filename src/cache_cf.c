@@ -457,7 +457,16 @@ parse_cachedir(struct _cacheSwap *swap)
 	tmp = swap->swapDirs + i;
 	if (!strcmp(path, tmp->path)) {
 	    /* just reconfigure it */
+	    if (size == tmp->max_size)
+		debug(3,1)("Cache dir '%s' size remains unchanged at %d MB\n",
+			path, size);
+	    else
+		debug(3,1)("Cache dir '%s' size changed to %d MB\n",
+			path, size);
 	    tmp->max_size = size;
+	    if (tmp->read_only != readonly)
+		debug(3,1)("Cache dir '%s' now %s\n",
+			readonly ? "Read-Only" : "Read-Write");
 	    tmp->read_only = readonly;
 	    return;
 	}
@@ -490,6 +499,9 @@ free_cachedir(struct _cacheSwap *swap)
 {
     SwapDir *s;
     int i;
+    /* DON'T FREE THESE FOR RECONFIGURE */
+    if (reconfigure_pending)
+	return;
     for (i = 0; i < swap->n_configured; i++) {
 	s = swap->swapDirs + i;
 	if (s->swaplog_fd > -1) {
