@@ -324,6 +324,7 @@ serverConnectionsOpen(void)
     clientdbInit();
     icmpOpen();
     netdbInit();
+    asndbInit();
     peerSelectInit();
 }
 
@@ -374,12 +375,16 @@ mainReconfigure(void)
 	theOutIcpConnection = -1;
     }
     dnsShutdownServers();
+    asnCleanup();
     redirectShutdownServers();
     storeDirCloseSwapLogs();
+    errorFree();
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
+    asnAclInitialize(Config.aclList);	/* reload network->AS database */
     ipcache_restart();		/* clear stuck entries */
     fqdncache_restart();	/* sigh, fqdncache too */
+    errorInitialize();		/* reload error pages */
     dnsOpenServers();
     redirectOpenServers();
     serverConnectionsOpen();
@@ -439,7 +444,6 @@ mainInitialize(void)
     useragentOpenLog();
     errorInitialize();
     accessLogInit();
-    asnAclInitialize(Config.aclList);
 
 #if MALLOC_DBG
     malloc_debug(0, malloc_debug_level);
@@ -453,7 +457,7 @@ mainInitialize(void)
 	stat_init(&ICPCacheInfo, NULL);
 	objcacheInit();
 	storeInit();
-
+	asnAclInitialize(Config.aclList);
 	if (Config.effectiveUser) {
 	    /* we were probably started as root, so cd to a swap
 	     * directory in case we dump core */

@@ -79,6 +79,14 @@ errorInitialize(void)
     }
 }
 
+void
+errorFree(void)
+{
+    int i;
+    for (i = ERR_NONE + 1; i < ERR_MAX; i++)
+	safe_free(error_text[i]);
+}
+
 /*
  * Function:  errorCon
  *
@@ -237,7 +245,7 @@ errorConvert(char token, ErrorState * err)
 	break;
     case 'E':
 	if (err->xerrno)
-	snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->xerrno, strerror(err->xerrno));
+	    snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->xerrno, strerror(err->xerrno));
 	else
 	    snprintf(buf, CVT_BUF_SZ, "[No Error]");
 	break;

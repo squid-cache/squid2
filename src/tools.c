@@ -396,6 +396,7 @@ normal_shutdown(void)
     netdbFreeMemory();
     ipcacheFreeMemory();
     fqdncacheFreeMemory();
+    asndbFreeMemory();
 #endif
     file_close(0);
     file_close(1);

@@ -180,8 +180,11 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	    objcacheStart(fd, entry);
 	    break;
 	case PROTO_URN:
-	     urnStart(request, entry);
-	     break;
+	    urnStart(request, entry);
+	    break;
+	case PROTO_WHOIS:
+	    whoisStart(request, entry);
+	    break;
 	default:
 	    if (request->method == METHOD_CONNECT) {
 		ErrorState *err;

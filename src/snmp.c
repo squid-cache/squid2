@@ -91,7 +91,7 @@ void snmpAppendUdp(snmpUdpData *);
 void snmpUdpSend(int, const struct sockaddr_in *, void *, int);
 
 /* now include mib location definitions
-   and magic numbers */
+ * and magic numbers */
 
 #include "cache_snmp.h"
 
@@ -116,15 +116,24 @@ struct variable cachesys_vars[] =
 	{2}}
 };
 
-struct variable2 system_variables[] = {
-    {VERSION_DESCR, STRING, RONLY, var_system, 1, {1}},
-    {VERSION_ID, OBJID, RONLY, var_system, 1, {2}},
-    {UPTIME, TIMETICKS, RONLY, var_system, 1, {3}},
-    {SYSCONTACT, STRING, RWRITE, var_system, 1, {4}},
-    {SYSYSNAME, STRING, RWRITE, var_system, 1, {5}},
-    {SYSLOCATION, STRING, RWRITE, var_system, 1, {6}},
-    {SYSSERVICES, INTEGER, RONLY, var_system, 1, {7}},
-    {SYSORLASTCHANGE, TIMETICKS, RONLY, var_system, 1, {8}}
+struct variable2 system_variables[] =
+{
+    {VERSION_DESCR, STRING, RONLY, var_system, 1,
+	{1}},
+    {VERSION_ID, OBJID, RONLY, var_system, 1,
+	{2}},
+    {UPTIME, TIMETICKS, RONLY, var_system, 1,
+	{3}},
+    {SYSCONTACT, STRING, RWRITE, var_system, 1,
+	{4}},
+    {SYSYSNAME, STRING, RWRITE, var_system, 1,
+	{5}},
+    {SYSLOCATION, STRING, RWRITE, var_system, 1,
+	{6}},
+    {SYSSERVICES, INTEGER, RONLY, var_system, 1,
+	{7}},
+    {SYSORLASTCHANGE, TIMETICKS, RONLY, var_system, 1,
+	{8}}
 };
 
 struct variable4 cacheperf_vars[] =
@@ -441,10 +450,12 @@ snmpInit(void)
     if (read_config() < 0)
 	exit(2);
 
-    { static oid base[] = {1, 3, 6, 1, 2, 1, 1};
-      mib_register (base, 7, system_variables,
-         sizeof(system_variables)/sizeof(*system_variables),
-         sizeof(*system_variables));
+    {
+	static oid base[] =
+	{1, 3, 6, 1, 2, 1, 1};
+	mib_register(base, 7, system_variables,
+	    sizeof(system_variables) / sizeof(*system_variables),
+	    sizeof(*system_variables));
     }
 
     {
@@ -1368,41 +1379,41 @@ var_system(struct variable * vp, oid * name, int *length, int exact,
 {
     oid newname[MAX_NAME_LEN];
     int result;
-	char *pp;
-    bcopy((char *)vp->name, (char *)newname, (int)vp->namelen * sizeof(oid));
+    char *pp;
+    bcopy((char *) vp->name, (char *) newname, (int) vp->namelen * sizeof(oid));
     newname[8] = 0;
-    result = compare(name, *length, newname, (int)vp->namelen + 1);
+    result = compare(name, *length, newname, (int) vp->namelen + 1);
     if ((exact && (result != 0)) || (!exact && (result >= 0)))
-        return NULL;
-    bcopy((char *)newname, (char *)name, ((int)vp->namelen + 1) * sizeof(oid));
+	return NULL;
+    bcopy((char *) newname, (char *) name, ((int) vp->namelen + 1) * sizeof(oid));
     *length = vp->namelen + 1;
     *write_method = 0;
-    *var_len = sizeof(long);    /* default length */
-    switch (vp->magic){
-        case VERSION_DESCR:
-	case VERSION_ID:
-		pp=SQUID_VERSION;
-            *var_len = strlen(pp);
-            return (u_char *)pp;
-        case UPTIME:
-        case SYSORLASTCHANGE:
-        long_return = tvSubDsec(squid_start, current_time);
-            return (u_char *)&long_return;
-        case SYSCONTACT:
-            *var_len = strlen(Config.adminEmail);
-            return (u_char *)Config.adminEmail;
-        case SYSYSNAME:
-            *var_len = strlen(Config.visibleHostname);
-            return (u_char *)Config.visibleHostname;
-        case SYSLOCATION:
-		pp="Cyberspace";
-            *var_len = strlen(pp);
-            return (u_char *)pp;
-        case SYSSERVICES:
-            long_return = 72;
-            return (u_char *)&long_return;
-        default:
-            ERROR("");
+    *var_len = sizeof(long);	/* default length */
+    switch (vp->magic) {
+    case VERSION_DESCR:
+    case VERSION_ID:
+	pp = SQUID_VERSION;
+	*var_len = strlen(pp);
+	return (u_char *) pp;
+    case UPTIME:
+    case SYSORLASTCHANGE:
+	long_return = tvSubDsec(squid_start, current_time);
+	return (u_char *) & long_return;
+    case SYSCONTACT:
+	*var_len = strlen(Config.adminEmail);
+	return (u_char *) Config.adminEmail;
+    case SYSYSNAME:
+	*var_len = strlen(Config.visibleHostname);
+	return (u_char *) Config.visibleHostname;
+    case SYSLOCATION:
+	pp = "Cyberspace";
+	*var_len = strlen(pp);
+	return (u_char *) pp;
+    case SYSSERVICES:
+	long_return = 72;
+	return (u_char *) & long_return;
+    default:
+	ERROR("");
     }
     return NULL;
 }

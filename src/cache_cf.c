@@ -485,6 +485,12 @@ check_null_cachedir(struct _cacheSwap swap)
     return swap.swapDirs == NULL;
 }
 
+static int
+check_null_string(char *s)
+{
+    return s == NULL;
+}
+
 static void
 parse_cachedir(struct _cacheSwap *swap)
 {
@@ -719,6 +725,7 @@ parse_peeracl(void)
 {
     char *host = NULL;
     char *aclname = NULL;
+
     if (!(host = strtok(NULL, w_space)))
 	self_destruct();
     while ((aclname = strtok(NULL, list_sep))) {
