@@ -572,6 +572,7 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 	}
     } else {
 	/* the client can handle this reply, whatever it is */
+	http->flags.hit = 0;
 	http->log_type = LOG_TCP_REFRESH_MISS;
 	if (HTTP_NOT_MODIFIED == mem->reply->sline.status) {
 	    httpReplyUpdateOnNotModified(http->old_entry->mem_obj->reply,
@@ -1265,7 +1266,6 @@ clientBuildRangeHeader(clientHttpRequest * http, HttpReply * rep)
     HttpHeader *hdr = rep ? &rep->header : 0;
     const char *range_err = NULL;
     request_t *request = http->request;
-    int is_hit = isTcpHit(http->log_type);
     assert(request->range);
     /* check if we still want to do ranges */
     if (!rep)
@@ -1286,7 +1286,7 @@ clientBuildRangeHeader(clientHttpRequest * http, HttpReply * rep)
 	range_err = "too complex range header";
     else if (!request->flags.cachable)	/* from we_do_ranges in http.c */
 	range_err = "non-cachable request";
-    else if (!is_hit && httpHdrRangeOffsetLimit(http->request->range))
+    else if (!http->flags.hit && httpHdrRangeOffsetLimit(http->request->range))
 	range_err = "range outside range_offset_limit";
     /* get rid of our range specs on error */
     if (range_err) {
@@ -1343,7 +1343,6 @@ static void
 clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 {
     HttpHeader *hdr = &rep->header;
-    int is_hit = isTcpHit(http->log_type);
     request_t *request = http->request;
 #if DONT_FILTER_THESE
     /* but you might want to if you run Squid as an HTTP accelerator */
@@ -1354,7 +1353,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     /* here: Keep-Alive is a field-name, not a connection directive! */
     httpHeaderDelByName(hdr, "Keep-Alive");
     /* remove Set-Cookie if a hit */
-    if (is_hit)
+    if (http->flags.hit)
 	httpHeaderDelById(hdr, HDR_SET_COOKIE);
     /* handle Connection header */
     if (httpHeaderHas(hdr, HDR_CONNECTION)) {
@@ -1383,7 +1382,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     /*
      * Add a estimated Age header on cache hits.
      */
-    if (is_hit) {
+    if (http->flags.hit) {
 	/*
 	 * Remove any existing Age header sent by upstream caches
 	 * (note that the existing header is passed along unmodified
@@ -1431,7 +1430,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	authenticateFixHeader(rep, request->auth_user_request, request, http->flags.accel, 0);
     /* Append X-Cache */
     httpHeaderPutStrf(hdr, HDR_X_CACHE, "%s from %s",
-	is_hit ? "HIT" : "MISS", getMyHostname());
+	http->flags.hit ? "HIT" : "MISS", getMyHostname());
 #if USE_CACHE_DIGESTS
     /* Append X-Cache-Lookup: -- temporary hack, to be removed @?@ @?@ */
     httpHeaderPutStrf(hdr, HDR_X_CACHE_LOOKUP, "%s from %s:%d",
@@ -1505,6 +1504,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
     MemObject *mem;
     request_t *r = http->request;
     debug(33, 3) ("clientCacheHit: %s, %d bytes\n", http->uri, (int) size);
+    http->flags.hit = 0;
     if (http->entry == NULL) {
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
 	debug(33, 3) ("clientCacheHit: request aborted\n");
@@ -1592,6 +1592,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	clientPurgeRequest(http);
 	return;
     }
+    http->flags.hit = 1;
     if (checkNegativeHit(e)) {
 	http->log_type = LOG_TCP_NEGATIVE_HIT;
 	clientSendMoreData(data, buf, size);
@@ -2276,6 +2277,7 @@ clientProcessOnlyIfCachedMiss(clientHttpRequest * http)
     char *url = http->uri;
     request_t *r = http->request;
     ErrorState *err = NULL;
+    http->flags.hit = 0;
     debug(33, 4) ("clientProcessOnlyIfCachedMiss: '%s %s'\n",
 	RequestMethodStr[r->method], url);
     http->al.http.code = HTTP_GATEWAY_TIMEOUT;
