@@ -270,7 +270,7 @@ rfc1035NameUnpack(const char *buf, size_t sz, off_t off, char *name, size_t ns)
     do {
 	c = *(buf + off);
 	if (c > RFC1035_MAXLABELSZ) {
-	    /* fucking compression */
+	    /* blasted compression */
 	    unsigned short s;
 	    off_t ptr;
 	    memcpy(&s, buf + off, sizeof(s));
