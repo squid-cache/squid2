@@ -622,17 +622,17 @@ static void icpHandleIMSComplete(fd, buf, size, errflag, data)
      int errflag;
      void *data;
 {
-    icpStateData *icpState = (icpStateData *) data;
+    icpStateData *icpState = data;
     StoreEntry *entry = icpState->entry;
     debug(12, 5, "icpHandleIMSComplete: Not Modified sent '%s'\n", entry->url);
-    /* XXX: Is this correct? */
     CacheInfo->proto_touchobject(CacheInfo,
 	CacheInfo->proto_id(entry->url),
 	strlen(buf));
     /* Set up everything for the logging */
-    storeUnlockObject(icpState->entry);
+    storeUnlockObject(entry);
     icpState->entry = NULL;
     icpState->size = strlen(buf);
+    icpState->http_code = 304;
     comm_close(fd);
 }
 
