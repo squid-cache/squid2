@@ -271,6 +271,7 @@ AC_ARG_ENABLE(async_io,
 [  --enable-async-io       Do ASYNC disk I/O using threads],
 [ if test "$enableval" = "yes" ; then
     echo "Async I/O enabled"
+    async_io=yes
     AC_DEFINE(USE_ASYNC_IO)
     ASYNC_OBJS='$(ASYNC_OBJS)'
     SQUID_PTHREAD_LIB='$(PTHREADLIB)'
@@ -881,6 +882,14 @@ AC_CHECK_FUNCS(\
 	timegm \
 	vsnprintf \
 )
+
+if test "$async_io" = "yes" ; then
+	AC_CHECK_FUNCS(\
+		pthread_attr_setscope \
+		pthread_setschedparam \
+		pthread_attr_setschedparam \
+	)
+fi
 
 dnl Yay!  Another Linux brokenness.  Its not good enough
 dnl to know that setresuid() exists, because RedHat 5.0 declares
