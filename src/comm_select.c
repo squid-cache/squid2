@@ -748,6 +748,7 @@ examine_select(fd_set * readfds, fd_set * writefds)
     struct timeval tv;
     close_handler *ch = NULL;
     fde *F = NULL;
+    struct stat sb;
     debug(5, 0) ("examine_select: Examining open file descriptors...\n");
     for (fd = 0; fd < Squid_MaxFD; fd++) {
 	FD_ZERO(&read_x);
@@ -761,8 +762,7 @@ examine_select(fd_set * readfds, fd_set * writefds)
 	    continue;
 	Counter.syscalls.selects++;
 	errno = 0;
-	num = select(Squid_MaxFD, &read_x, &write_x, NULL, &tv);
-	if (num > -1) {
+	if (!fstat(fd, &sb)) {
 	    debug(5, 5) ("FD %d is valid.\n", fd);
 	    continue;
 	}
