@@ -140,6 +140,7 @@ pconnPush(int fd, const char *host, u_short port)
 	    key, p->nfds);
 	close(fd);
 	xfree(key);
+	commSetTimeout(fd, -1, NULL, NULL);
 	return;
     }
     p->fds[p->nfds++] = fd;
