@@ -388,10 +388,12 @@ static ipcache_entry *
 ipcache_create(const char *name)
 {
     static ipcache_entry *new;
+#if DONT_DO_THIS
     if (meta_data.ipcache_count > ipcache_high) {
 	if (ipcache_purgelru(NULL) < 0)
 	    debug(14, 0, "HELP!! IP Cache is overflowing!\n");
     }
+#endif
     meta_data.ipcache_count++;
     new = xcalloc(1, sizeof(ipcache_entry));
     new->name = xstrdup(name);
