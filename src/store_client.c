@@ -153,7 +153,6 @@ storeClientCallback(store_client * sc, ssize_t sz)
     char *buf = sc->copy_buf;
     assert(sc->callback);
     assert(sc->copy_buf);
-    leakTouch(buf);
     sc->callback = NULL;
     sc->copy_buf = NULL;
     if (cbdataValid(sc->callback_data))
