@@ -1267,49 +1267,49 @@ AC_CHECK_SIZEOF_SYSTYPE(u_int64_t)
 
 dnl int16_t
 if test "x$ac_cv_sizeof_short" = "x2"; then
-	AC_CHECK_TYPE(int16_t,short)
+	AC_CHECK_SYSTYPE(int16_t,short)
 elif test "x$ac_cv_sizeof_int" = "x2"; then
-	AC_CHECK_TYPE(int16_t,int)
+	AC_CHECK_SYSTYPE(int16_t,int)
 fi
 dnl u_int16t_t
 if test "x$ac_cv_sizeof_uint16_t" = "x2"; then
-	AC_CHECK_TYPE(u_int16_t,uint16_t)
+	AC_CHECK_SYSTYPE(u_int16_t,uint16_t)
 elif test "x$ac_cv_sizeof_short" = "x2"; then
-	AC_CHECK_TYPE(u_int16_t,unsigned short)
+	AC_CHECK_SYSTYPE(u_int16_t,unsigned short)
 elif test "x$ac_cv_sizeof_int" = "x2"; then
-	AC_CHECK_TYPE(u_int16_t,unsigned int)
+	AC_CHECK_SYSTYPE(u_int16_t,unsigned int)
 fi
 dnl int32_t
 if test "x$ac_cv_sizeof_int" = "x4"; then
-	AC_CHECK_TYPE(int32_t,int)
+	AC_CHECK_SYSTYPE(int32_t,int)
 elif "x$ac_cv_sizeof_long" = "x4"; then
-	AC_CHECK_TYPE(int32_t,long)
+	AC_CHECK_SYSTYPE(int32_t,long)
 fi
 dnl u_int32_t
 if test "x$ac_cv_sizeof_uint32_t" = "x4"; then
-	AC_CHECK_TYPE(u_int32_t,uint32_t)
+	AC_CHECK_SYSTYPE(u_int32_t,uint32_t)
 elif test "x$ac_cv_sizeof_int" = "x4"; then
-	AC_CHECK_TYPE(u_int32_t,unsigned int)
+	AC_CHECK_SYSTYPE(u_int32_t,unsigned int)
 elif test "x$ac_cv_sizeof_long" = "x4"; then
-	AC_CHECK_TYPE(u_int32_t,unsigned long)
+	AC_CHECK_SYSTYPE(u_int32_t,unsigned long)
 fi
 dnl int64_t
 if test "x$ac_cv_sizeof_long" = "x8"; then
-	AC_CHECK_TYPE(int64_t,long)
+	AC_CHECK_SYSTYPE(int64_t,long)
 elif test "x$ac_cv_sizeof_long_long" = "x8"; then
-	AC_CHECK_TYPE(int64_t,long long)
+	AC_CHECK_SYSTYPE(int64_t,long long)
 elif test "x$ac_cv_sizeof___int64" = "x8"; then
-	AC_CHECK_TYPE(int64_t,__int64)
+	AC_CHECK_SYSTYPE(int64_t,__int64)
 fi
 dnl u_int64_t
 if test "x$ac_cv_sizeof_uint64_t" = "x8"; then
-	AC_CHECK_TYPE(u_int64_t,uint64_t)
+	AC_CHECK_SYSTYPE(u_int64_t,uint64_t)
 elif test "x$ac_cv_sizeof_long" = "x8"; then
-	AC_CHECK_TYPE(u_int64_t,unsigned long)
+	AC_CHECK_SYSTYPE(u_int64_t,unsigned long)
 elif test "x$ac_cv_sizeof_long_long" = "x8"; then
-	AC_CHECK_TYPE(u_int64_t,unsigned long long)
+	AC_CHECK_SYSTYPE(u_int64_t,unsigned long long)
 elif test "x$ac_cv_sizeof___int64" = "x8"; then
-	AC_CHECK_TYPE(int64_t,unsigned __int64)
+	AC_CHECK_SYSTYPE(int64_t,unsigned __int64)
 fi
 
 AC_CHECK_TYPE(pid_t, int)
