@@ -1,5 +1,6 @@
 
 /* $Id$ */
+#ident "$Id$"
 
 /*
  * DEBUG: Section 20          store
