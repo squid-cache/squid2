@@ -170,7 +170,7 @@ extern int xmalloc_line;
 extern char *xmalloc_file;
 extern char *xmalloc_func;
 extern int xmalloc_trace;
-extern int xmalloc_total;
+extern size_t xmalloc_total;
 extern void xmalloc_find_leaks(void);
 #endif
 
