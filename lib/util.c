@@ -461,6 +461,13 @@ tvSubMsec(struct timeval t1, struct timeval t2)
 	(t2.tv_usec - t1.tv_usec) / 1000;
 }
 
+int
+tvSubUsec(struct timeval t1, struct timeval t2)
+{
+    return (t2.tv_sec - t1.tv_sec) * 1000000 +
+	(t2.tv_usec - t1.tv_usec);
+}
+
 /*
  *  xstrncpy() - similar to strncpy(3) but terminates string
  *  always with '\0' if n != 0, and doesn't do padding
