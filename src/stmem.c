@@ -203,7 +203,7 @@ memFreeDataUpto(mem_ptr mem, int target_offset)
 
 
 /* Append incoming data. */
-int
+void
 memAppend(mem_ptr mem, const char *data, int len)
 {
     mem_node p;
@@ -244,7 +244,6 @@ memAppend(mem_ptr mem, const char *data, int len)
 	len -= len_to_copy;
 	data += len_to_copy;
     }
-    return len;
 }
 
 size_t
