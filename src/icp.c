@@ -330,8 +330,11 @@ icpParseRequestHeaders(icpStateData * icpState)
 #endif
     if ((t = mime_get_header(request_hdr, "Via")))
 	if (strstr(t, getMyHostname())) {
-	    debug(12, 1, "WARNING: Forwarding loop detected for '%s'\n",
-		icpState->url);
+	    if (!icpState->accel) {
+	        debug(12, 1, "WARNING: Forwarding loop detected for '%s'\n",
+		    icpState->url);
+		debug(12, 1, "--> %s\n", t);
+	    }
 	    BIT_SET(request->flags, REQ_LOOPDETECT);
 	}
 #if USE_USERAGENT_LOG
