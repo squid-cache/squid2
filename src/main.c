@@ -71,6 +71,7 @@ extern void log_trace_init(char *);
 #endif
 static EVH SquidShutdown;
 static void mainSetCwd(void);
+static int checkRunningPid(void);
 
 #if TEST_ACCESS
 #include "test_access.c"
@@ -614,6 +615,8 @@ main(int argc, char **argv)
 	if (opt_parse_cfg_only)
 	    return parse_err;
     }
+    if (checkRunningPid())
+	exit(1);
 
 #if TEST_ACCESS
     comm_init();
@@ -739,6 +742,20 @@ sendSignal(void)
     }
     /* signal successfully sent */
     exit(0);
+}
+
+static int
+checkRunningPid(void)
+{
+    pid_t pid;
+    debug_log = stderr;
+    pid = readPidFile();
+    if (pid < 2)
+	return 0;
+    if (kill(pid, 0) < 0)
+	return 0;
+    debug(0, 0) ("Squid is already running!  Process ID %d\n", pid);
+    return 1;
 }
 
 static void
