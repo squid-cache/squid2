@@ -5,11 +5,6 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#ifdef OLD_CODE
-#if !defined(_SQUID_LINUX_)
-#include <sys/uio.h>
-#endif
-#endif /* OLD_CODE */
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
