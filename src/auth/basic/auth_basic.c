@@ -442,10 +442,14 @@ authenticateBasicDecodeAuth(auth_user_request_t * auth_user_request, const char 
      * Don't allow NL or CR in the credentials.
      * Oezguer Kesim <oec@codeblau.de>
      */
-    strtok(cleartext, "\r\n");
     debug(29, 9) ("authenticateBasicDecodeAuth: cleartext = '%s'\n", cleartext);
-    local_basic.username = xstrndup(cleartext, USER_IDENT_SZ);
-    xfree(cleartext);
+    if (strcspn(cleartext, "\r\n") != strlen(cleartext)) {
+	debug(29, 1) ("authenticateBasicDecodeAuth: bad characters in authorization header '%s'\n",
+	    proxy_auth);
+	xfree(cleartext);
+	return;
+    }
+    local_basic.username = cleartext;
     if ((cleartext = strchr(local_basic.username, ':')) != NULL)
 	*(cleartext)++ = '\0';
     local_basic.passwd = cleartext;
