@@ -996,11 +996,11 @@ static char c2x[] =
 
 /* log_quote -- URL-style encoding on MIME headers. */
 
-char *
-log_quote(const char *header)
+static char *
+log_quote(const unsigned char *header)
 {
     int c, i;
-    char *buf, *buf_cursor;
+    unsigned char *buf, *buf_cursor;
     if (header == NULL) {
 	buf = xcalloc(1, 1);
 	*buf = '\0';
