@@ -301,7 +301,7 @@ fqdncacheParse(rfc1035_rr * answers, int nr)
 	    continue;
 	na++;
 	f.flags.negcached = 0;
-	f.names[0] = xstrdup(answers[k].rdata);
+	f.names[0] = xstrndup(answers[k].rdata, answers[k].rdlength);
 	f.name_count = 1;
 	if (answers[k].ttl < Config.positiveDnsTtl)
 	    f.expires = squid_curtime + answers[k].ttl;
