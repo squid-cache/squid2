@@ -1639,6 +1639,7 @@ AC_CHECK_FUNCS(\
 	regfree \
 	res_init \
 	rint \
+	sbrk \
 	seteuid \
 	setgroups \
 	setpgrp \

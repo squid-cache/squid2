@@ -163,5 +163,8 @@ extern int incoming_sockets_accepted;
 extern unsigned int WIN32_OS_version;	/* 0 */
 extern char *WIN32_OS_string;	/* NULL */
 #endif
+#if HAVE_SBRK
+extern void *sbrk_start;	/* 0 */
+#endif
 
 #endif /* SQUID_GLOBALS_H */
