@@ -2316,27 +2316,122 @@ aclMatchArp(void *dataptr, struct in_addr c)
 {
     struct arpreq arpReq;
     struct sockaddr_in ipAddr;
+    unsigned char ifbuffer[sizeof(struct ifreq) * 64];
+    struct ifconf ifc;
+    struct ifreq *ifr;
+    int offset;
     splayNode **Top = dataptr;
+    /*
+     * The linux kernel 2.2 maintains per interface ARP caches and
+     * thus requires an interface name when doing ARP queries.
+     * 
+     * The older 2.0 kernels appear to use a unified ARP cache,
+     * and require an empty interface name
+     * 
+     * To support both, we attempt the lookup with a blank interface
+     * name first. If that does not succeed, the try each interface
+     * in turn
+     */
+    /*
+     * Set up structures for ARP lookup with blank interface name
+     */
     ipAddr.sin_family = AF_INET;
     ipAddr.sin_port = 0;
     ipAddr.sin_addr = c;
+    memset(&arpReq, '\0', sizeof(arpReq));
     memcpy(&arpReq.arp_pa, &ipAddr, sizeof(struct sockaddr_in));
-    arpReq.arp_dev[0] = '\0';
-    arpReq.arp_flags = 0;
-    /* any AF_INET socket will do... gives back hardware type, device, etc */
-    if (ioctl(HttpSockets[0], SIOCGARP, &arpReq) == -1) {
-	debug(28, 1) ("ARP query failed - %d", errno);
-	return 0;
-    } else if (arpReq.arp_ha.sa_family != ARPHRD_ETHER) {
-	debug(28, 1) ("Non-ethernet interface returned from ARP query - %d",
-	    arpReq.arp_ha.sa_family);
-	/* update here and MAC address parsing to handle non-ethernet */
-	return 0;
-    } else
+    /* Query ARP table */
+    if (ioctl(HttpSockets[0], SIOCGARP, &arpReq) != -1) {
+	/* Skip non-ethernet interfaces */
+	if (arpReq.arp_ha.sa_family != ARPHRD_ETHER) {
+	    return 0;
+	}
+	debug(28, 4) ("Got address %02x:%02x:%02x:%02x:%02x:%02x\n",
+	    arpReq.arp_ha.sa_data[0] & 0xff, arpReq.arp_ha.sa_data[1] & 0xff,
+	    arpReq.arp_ha.sa_data[2] & 0xff, arpReq.arp_ha.sa_data[3] & 0xff,
+	    arpReq.arp_ha.sa_data[4] & 0xff, arpReq.arp_ha.sa_data[5] & 0xff);
+	/* Do lookup */
 	*Top = splay_splay(&arpReq.arp_ha.sa_data, *Top, aclArpCompare);
-    debug(28, 3) ("aclMatchArp: '%s' %s\n",
-	inet_ntoa(c), splayLastResult ? "NOT found" : "found");
-    return !splayLastResult;
+	debug(28, 3) ("aclMatchArp: '%s' %s\n",
+	    inet_ntoa(c), splayLastResult ? "NOT found" : "found");
+	return (0 == splayLastResult);
+    }
+    /* lookup list of interface names */
+    ifc.ifc_len = sizeof(ifbuffer);
+    ifc.ifc_buf = ifbuffer;
+    if (ioctl(HttpSockets[0], SIOCGIFCONF, &ifc) < 0) {
+	debug(28, 1) ("Attempt to retrieve interface list failed: %s\n",
+	    xstrerror());
+	return 0;
+    }
+    if (ifc.ifc_len > sizeof(ifbuffer)) {
+	debug(28, 1) ("Interface list too long - %d\n", ifc.ifc_len);
+	return 0;
+    }
+    /* Attempt ARP lookup on each interface */
+    offset = 0;
+    while (offset < ifc.ifc_len) {
+	ifr = (struct ifreq *) (ifbuffer + offset);
+	offset += sizeof(*ifr);
+	/* Skip loopback and aliased interfaces */
+	if (0 == strncmp(ifr->ifr_name, "lo", 2))
+	    continue;
+	if (NULL != strchr(ifr->ifr_name, ':'))
+	    continue;
+	debug(28, 4) ("Looking up ARP address for %s on %s\n", inet_ntoa(c),
+	    ifr->ifr_name);
+	/* Set up structures for ARP lookup */
+	ipAddr.sin_family = AF_INET;
+	ipAddr.sin_port = 0;
+	ipAddr.sin_addr = c;
+	memset(&arpReq, '\0', sizeof(arpReq));
+	memcpy(&arpReq.arp_pa, &ipAddr, sizeof(struct sockaddr_in));
+	strncpy(arpReq.arp_dev, ifr->ifr_name, sizeof(arpReq.arp_dev) - 1);
+	arpReq.arp_dev[sizeof(arpReq.arp_dev) - 1] = '\0';
+	/* Query ARP table */
+	if (-1 == ioctl(HttpSockets[0], SIOCGARP, &arpReq)) {
+	    /*
+	     * Query failed.  Do not log failed lookups or "device
+	     * not supported"
+	     */
+	    if (ENXIO == errno)
+		(void) 0;
+	    else if (ENODEV == errno)
+		(void) 0;
+	    else
+		debug(28, 1) ("ARP query failed: %s: %s\n",
+		    ifr->ifr_name, xstrerror());
+	    continue;
+	}
+	/* Skip non-ethernet interfaces */
+	if (arpReq.arp_ha.sa_family != ARPHRD_ETHER)
+	    continue;
+	debug(28, 4) ("Got address %02x:%02x:%02x:%02x:%02x:%02x on %s\n",
+	    arpReq.arp_ha.sa_data[0] & 0xff,
+	    arpReq.arp_ha.sa_data[1] & 0xff,
+	    arpReq.arp_ha.sa_data[2] & 0xff,
+	    arpReq.arp_ha.sa_data[3] & 0xff,
+	    arpReq.arp_ha.sa_data[4] & 0xff,
+	    arpReq.arp_ha.sa_data[5] & 0xff,
+	    ifr->ifr_name);
+	/* Do lookup */
+	*Top = splay_splay(&arpReq.arp_ha.sa_data, *Top, aclArpCompare);
+	/* Return if match, otherwise continue to other interfaces */
+	if (0 == splayLastResult) {
+	    debug(28, 3) ("aclMatchArp: %s found on %s\n",
+		inet_ntoa(c), ifr->ifr_name);
+	    return 1;
+	}
+	/*
+	 * Should we stop looking here? Can the same IP address
+	 * exist on multiple interfaces?
+	 */
+    }
+    /*
+     * Address was not found on any interface
+     */
+    debug(28, 3) ("aclMatchArp: %s NOT found\n", inet_ntoa(c));
+    return 0;
 }
 
 static int
