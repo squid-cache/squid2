@@ -349,11 +349,11 @@ enum {
     SWAPOUT_DONE
 };
 
-enum {
+typedef enum {
     STORE_NON_CLIENT,
     STORE_MEM_CLIENT,
     STORE_DISK_CLIENT
-};
+} store_client_t;
 
 enum {
     METHOD_NONE,		/* 000 */
