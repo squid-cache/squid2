@@ -120,7 +120,7 @@ storeKeyPublic(const char *url, const method_t method)
     return digest;
 }
 
-const cache_key *
+cache_key *
 storeKeyDup(const cache_key * key)
 {
     cache_key *dup = memAllocate(MEM_MD5_DIGEST);

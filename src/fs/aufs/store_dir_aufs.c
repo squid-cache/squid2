@@ -467,7 +467,7 @@ storeAufsDirRebuildFromDirectory(void *data)
 	    storeAufsDirUnlinkFile(SD, sfileno);
 	    continue;
 	}
-	tmpe.key = key;
+	tmpe.hash.key = key;
 	/* check sizes */
 	if (tmpe.swap_file_sz == 0) {
 	    tmpe.swap_file_sz = sb.st_size;
@@ -1005,7 +1005,7 @@ storeAufsDirWriteCleanEntry(SwapDir * sd, const StoreEntry * e)
     s.swap_file_sz = e->swap_file_sz;
     s.refcount = e->refcount;
     s.flags = e->flags;
-    xmemcpy(&s.key, e->key, MD5_DIGEST_CHARS);
+    xmemcpy(&s.key, e->hash.key, MD5_DIGEST_CHARS);
     xmemcpy(state->outbuf + state->outbuf_offset, &s, ss);
     state->outbuf_offset += ss;
     /* buffered write */
@@ -1097,7 +1097,7 @@ storeAufsDirSwapLog(const SwapDir * sd, const StoreEntry * e, int op)
     s->swap_file_sz = e->swap_file_sz;
     s->refcount = e->refcount;
     s->flags = e->flags;
-    xmemcpy(s->key, e->key, MD5_DIGEST_CHARS);
+    xmemcpy(s->key, e->hash.key, MD5_DIGEST_CHARS);
     file_write(aioinfo->swaplog_fd,
 	-1,
 	s,

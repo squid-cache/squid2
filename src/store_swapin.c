@@ -48,7 +48,7 @@ storeSwapInStart(store_client * sc)
 	return;
     }
     debug(20, 3) ("storeSwapInStart: called for %d %08X %s \n",
-	e->swap_dirn, e->swap_filen, storeKeyText(e->key));
+	e->swap_dirn, e->swap_filen, storeKeyText(e->hash.key));
     if (e->swap_status != SWAPOUT_WRITING && e->swap_status != SWAPOUT_DONE) {
 	debug(20, 1) ("storeSwapInStart: bad swap_status (%s)\n",
 	    swapStatusStr[e->swap_status]);

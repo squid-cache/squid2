@@ -347,6 +347,15 @@ hashPrime(int n)
     return best_prime;
 }
 
+/*
+ * return the key of a hash_link as a const string
+ */
+const char *
+hashKeyStr(hash_link * hl)
+{
+    return (const char *) hl->key;
+}
+
 
 #ifdef USE_HASH_DRIVER
 /*

@@ -238,7 +238,7 @@ storeDirSwapLog(const StoreEntry * e, int op)
     assert(op > SWAP_LOG_NOP && op < SWAP_LOG_MAX);
     debug(20, 3) ("storeDirSwapLog: %s %s %d %08X\n",
 	swap_log_op_str[op],
-	storeKeyText(e->key),
+	storeKeyText(e->hash.key),
 	e->swap_dirn,
 	e->swap_filen);
     sd = &Config.cacheSwap.swapDirs[e->swap_dirn];

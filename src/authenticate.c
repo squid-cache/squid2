@@ -88,7 +88,7 @@ authenticateStart(acl_proxy_auth_user * auth_user, RH * handler, void *data)
     char buf[8192];
     assert(auth_user);
     assert(handler);
-    debug(29, 5) ("authenticateStart: '%s:%s'\n", auth_user->user,
+    debug(29, 5) ("authenticateStart: '%s:%s'\n", hashKeyStr(&auth_user->hash),
 	auth_user->passwd);
     if (Config.Program.authenticate == NULL) {
 	handler(data, NULL);
@@ -100,7 +100,8 @@ authenticateStart(acl_proxy_auth_user * auth_user, RH * handler, void *data)
     cbdataLock(data);
     r->data = data;
     r->auth_user = auth_user;
-    snprintf(buf, 8192, "%s %s\n", r->auth_user->user, r->auth_user->passwd);
+    snprintf(buf, 8192, "%s %s\n", hashKeyStr(&r->auth_user->hash),
+	r->auth_user->passwd);
     helperSubmit(authenticators, buf, authenticateHandleReply, r);
 }
 

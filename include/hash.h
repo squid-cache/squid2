@@ -9,7 +9,7 @@ typedef struct _hash_link hash_link;
 typedef struct _hash_table hash_table;
 
 struct _hash_link {
-    char *key;
+    void *key;
     hash_link *next;
 };
 
@@ -36,6 +36,7 @@ extern void hashFreeMemory(hash_table *);
 extern void hashFreeItems(hash_table *, HASHFREE *);
 extern HASHHASH hash_string;
 extern HASHHASH hash4;
+extern const char *hashKeyStr(hash_link *);
 
 /*
  *  Here are some good prime number choices.  It's important not to
@@ -54,4 +55,4 @@ extern HASHHASH hash4;
  *  HASH_SIZE 33493             // prime number < 32768
  *  HASH_SIZE 65357             // prime number < 65536
  */
-#define  DEFAULT_HASH_SIZE 7951 /* prime number < 8192 */
+#define  DEFAULT_HASH_SIZE 7951	/* prime number < 8192 */

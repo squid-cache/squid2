@@ -172,7 +172,7 @@ cacheIndexScan(CacheIndex * idx, const char *fname, FILE * file)
 		idx->bad_add_count++;
 	    } else {
 		CacheEntry *e = cacheEntryCreate(&s);
-		hash_join(idx->hash, (hash_link *) e);
+		hash_join(idx->hash, &e->hash);
 		idx->count++;
 	    }
 	} else if (s.op == SWAP_LOG_DEL) {

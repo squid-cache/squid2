@@ -467,7 +467,7 @@ cacheStore(Cache * cache, storeSwapLogData * s, int update_digest)
 	cache->bad_add_count++;
     } else {
 	CacheEntry *e = cacheEntryCreate(s);
-	hash_join(cache->hash, (hash_link *) e);
+	hash_join(cache->hash, &e->hash);
 	cache->count++;
 	if (update_digest)
 	    cacheDigestAdd(cache->digest, e->key);

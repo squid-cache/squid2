@@ -73,7 +73,7 @@ storeLog(int tag, const StoreEntry * e)
 	    storeLogTags[tag],
 	    e->swap_dirn,
 	    e->swap_filen,
-	    storeKeyText(e->key),
+	    storeKeyText(e->hash.key),
 	    reply->sline.status,
 	    (int) reply->date,
 	    (int) reply->last_modified,
@@ -91,7 +91,7 @@ storeLog(int tag, const StoreEntry * e)
 	    storeLogTags[tag],
 	    e->swap_dirn,
 	    e->swap_filen,
-	    storeKeyText(e->key));
+	    storeKeyText(e->hash.key));
     }
 }
 

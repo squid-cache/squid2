@@ -44,6 +44,7 @@ static hash_table *htable = NULL;
 static int leakCount = 0;
 
 typedef struct _ptr {
+    hash_link hash;		/* must be first */
     void *key;
     struct _ptr *next;
     const char *file;
@@ -79,7 +80,7 @@ leakAddFL(void *p, const char *file, int line)
     c->file = file;
     c->line = line;
     c->when = squid_curtime;
-    hash_join(htable, (hash_link *) c);
+    hash_join(htable, &c->hash);
     leakCount++;
     return p;
 }

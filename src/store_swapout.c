@@ -264,7 +264,7 @@ storeSwapOutFileClose(StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
     assert(mem != NULL);
-    debug(20, 3) ("storeSwapOutFileClose: %s\n", storeKeyText(e->key));
+    debug(20, 3) ("storeSwapOutFileClose: %s\n", storeKeyText(e->hash.key));
     debug(20, 3) ("storeSwapOutFileClose: sio = %p\n", mem->swapout.sio);
     if (mem->swapout.sio == NULL)
 	return;

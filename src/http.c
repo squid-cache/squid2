@@ -325,7 +325,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     HttpReply *reply = entry->mem_obj->reply;
     Ctx ctx;
     debug(11, 3) ("httpProcessReplyHeader: key '%s'\n",
-	storeKeyText(entry->key));
+	storeKeyText(entry->hash.key));
     if (httpState->reply_hdr == NULL)
 	httpState->reply_hdr = memAllocate(MEM_8K_BUF);
     assert(httpState->reply_hdr_state == 0);

@@ -467,7 +467,7 @@ httpHdrRangeBoundaryStr(clientHttpRequest * http)
     assert(http);
     stringAppend(&b, full_appname_string, strlen(full_appname_string));
     stringAppend(&b, ":", 1);
-    key = storeKeyText(http->entry->key);
+    key = storeKeyText(http->entry->hash.key);
     stringAppend(&b, key, strlen(key));
     return b;
 }
