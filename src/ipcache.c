@@ -962,7 +962,7 @@ void ipcacheOpenServers()
 	    dns_child_table[k]->flags &= ~DNS_FLAG_ALIVE;
 	} else {
 	    debug(14, 4, "ipcacheOpenServers: FD %d connected to %s #%d.\n",
-	       dnssocket, command, k+1);
+	       dnssocket, prg, k+1);
 	    dns_child_table[k]->flags |= DNS_FLAG_ALIVE;
 	    dns_child_table[k]->id = k+1;
 	    dns_child_table[k]->inpipe = dnssocket;
