@@ -174,9 +174,9 @@ hash_string(char *s, HashID hid)
 unsigned int
 hash1(char *keyarg, HashID hid)
 {
-    register const u_char *key;
-    register unsigned int h;
-    register size_t len;
+    const u_char *key;
+    unsigned int h;
+    size_t len;
 
     /* Convert string to integer */
     len = strlen(keyarg);
@@ -196,9 +196,9 @@ hash2(keyarg, hid)
      const void *keyarg;
      HashID hid;
 {
-    register const u_char *e, *key;
-    register unsigned int h;
-    register u_char c;
+    const u_char *e, *key;
+    unsigned int h;
+    u_char c;
     size_t len;
 
     key = keyarg;
@@ -227,10 +227,10 @@ hash3(keyarg, hid)
      const void *keyarg;
      HashID hid;
 {
-    register const u_char *key;
-    register size_t loop;
-    register unsigned int h;
-    register size_t len;
+    const u_char *key;
+    size_t loop;
+    unsigned int h;
+    size_t len;
 
 #define HASHC   h = *key++ + 65599 * h
 
@@ -276,10 +276,10 @@ hash3(keyarg, hid)
 unsigned int
 hash4(char *keyarg, HashID hid)
 {
-    register const u_char *key;
-    register size_t loop;
-    register unsigned int h;
-    register size_t len;
+    const u_char *key;
+    size_t loop;
+    unsigned int h;
+    size_t len;
 
 #define HASH4a   h = (h << 5) - h + *key++;
 #define HASH4b   h = (h << 5) + h + *key++;

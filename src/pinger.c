@@ -188,7 +188,7 @@ pingerRecv(void)
     struct sockaddr_in from;
     int iphdrlen = 20;
     struct iphdr *ip = NULL;
-    register struct icmphdr *icmp = NULL;
+    struct icmphdr *icmp = NULL;
     LOCAL_ARRAY(char, pkt, 8192);
     struct timeval now;
     icmpEchoData *echo;
@@ -233,9 +233,9 @@ pingerRecv(void)
 static int
 in_cksum(unsigned short *ptr, int size)
 {
-    register long sum;
+    long sum;
     unsigned short oddbyte;
-    register unsigned short answer;
+    unsigned short answer;
     sum = 0;
     while (size > 1) {
 	sum += *ptr++;

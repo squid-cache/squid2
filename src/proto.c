@@ -388,11 +388,11 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
     if (proto == PROTO_CACHEOBJ)
 	return;
     if (url)
-	(void) redirectUnregister(url, fd);
+	redirectUnregister(url, fd);
     if (src_addr.s_addr != INADDR_NONE)
-	(void) fqdncacheUnregister(src_addr, fd);
+	fqdncacheUnregister(src_addr, fd);
     if (host)
-	(void) ipcache_unregister(host, fd);
+	ipcache_unregister(host, fd);
     if (entry == NULL)
 	return;
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
