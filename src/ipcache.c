@@ -128,6 +128,7 @@ static struct {
     int errors;
     int avg_svc_time;
     int ghbn_calls;		/* # calls to blocking gethostbyname() */
+    int release_locked;
 } IpcacheStats;
 
 static int ipcache_testname _PARAMS((void));
@@ -232,12 +233,9 @@ ipcache_release(ipcache_entry * i)
     }
     if (i != (ipcache_entry *) table_entry)
 	fatal_dump("ipcache_release: i != table_entry!");
-    if (i->status == IP_PENDING) {
-	debug(14, 1, "ipcache_release: Someone called on a PENDING entry\n");
-	return;
-    }
-    if (i->status == IP_DISPATCHED) {
-	debug(14, 1, "ipcache_release: Someone called on a DISPATCHED entry\n");
+    if (i->locks) {
+	i->expires = squid_curtime;
+        IpcacheStats.release_locked++;
 	return;
     }
     if (hash_remove_link(ip_table, table_entry)) {
@@ -911,6 +909,8 @@ stat_ipcache_get(StoreEntry * sentry)
 	IpcacheStats.misses);
     storeAppendPrintf(sentry, "{Blocking calls to gethostbyname(): %d}\n",
 	IpcacheStats.ghbn_calls);
+    storeAppendPrintf(sentry, "{Attempts to release locked entries: %d}\n",
+	IpcacheStats.release_locked);
     storeAppendPrintf(sentry, "{dnsserver avg service time: %d msec}\n",
 	IpcacheStats.avg_svc_time);
     storeAppendPrintf(sentry, "}\n\n");
