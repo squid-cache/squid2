@@ -49,6 +49,7 @@
 static int null_initialised = 0;
 static void storeNullDirInit(SwapDir * sd);
 static void storeNullDirStats(SwapDir * SD, StoreEntry * sentry);
+static STCHECKOBJ storeNullDirCheckObj;
 static EVH storeNullDirRebuildComplete;
 
 int
@@ -99,7 +100,7 @@ storeNullDirMaintain(SwapDir * SD)
 int
 storeNullDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
-    return 1;
+    return -1;
 }
 
 void
@@ -145,7 +146,6 @@ storeNullDirDump(StoreEntry * entry, const char *name, SwapDir * s)
     storeAppendPrintf(entry, "%s null\n", name);
 }
 
-
 void
 storeNullDirParse(SwapDir * sd, int index, char *path)
 {
@@ -153,6 +153,7 @@ storeNullDirParse(SwapDir * sd, int index, char *path)
     sd->path = xstrdup(path);
     sd->statfs = storeNullDirStats;
     sd->init = storeNullDirInit;
+    sd->checkobj = storeNullDirCheckObj;
 }
 
 void
