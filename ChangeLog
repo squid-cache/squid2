@@ -141,3 +141,12 @@ Changes to squid-1.0.beta6:
 	- Changed ftpget to only generate BASE HREF if the FTP URL does
 	  not end with '/'.
 
+
+changes to beta7
+
+	- Fixed comm_udp_sendto continuous loop bug
+	- Fixed URLs-with-colon-but-no-port-number bug
+	- Fixed sending ICP queries for HEAD requests
+	- Changed 'server_list' output.  Added RTT, Fetches, Hits, Misses,
+	  and percents.
+	- Fixed setuid bug causing some logs to be owned by root.
