@@ -1002,6 +1002,8 @@ storeDoRebuildFromDisk(void *data)
     int sfileno = 0;
     int count;
     int x;
+    int used;			/* is swapfile already in use? */
+    int newer;			/* is the log entry newer than current entry? */
 
     /* load a number of objects per invocation */
     for (count = 0; count < rebuildData->speed; count++) {
@@ -1069,30 +1071,41 @@ storeDoRebuildFromDisk(void *data)
 	    debug(20, 9, "storeRebuildFromDisk: swap file exists: '%s': %s\n",
 		url, swapfile);
 	}
-	if ((e = storeGet(url))) {
-	    if (e->timestamp > timestamp) {
-		/* already have a newer object in memory, throw old one away */
-		debug(20, 3, "storeRebuildFromDisk: Replaced: %s\n", url);
-		if (opt_unlink_on_reload)
-		    safeunlink(swapfile, 1);
-		rebuildData->dupcount++;
-		continue;
-	    }
-	    debug(20, 6, "storeRebuildFromDisk: Duplicate: '%s'\n", url);
-	    storeRelease(e);
-	    rebuildData->objcount--;
-	    rebuildData->dupcount++;
-	}
-	/* Is the swap file number already taken? */
-	if (file_map_bit_test(sfileno)) {
-	    /* Yes it is, we can't use this swapfile */
-	    debug(20, 2, "storeRebuildFromDisk: Line %d Active clash: file #%d\n",
-		rebuildData->linecount,
-		sfileno);
-	    debug(20, 3, "storeRebuildFromDisk: --> '%s'\n", url);
-	    /* don't unlink the file!  just skip this log entry */
+	e = storeGet(url);
+	used = file_map_bit_test(sfileno);
+	newer = e ? timestamp > e->timestamp ? 1 : 0 : 1;
+	if (!newer) {
+	    /* log entry is old, ignore it */
 	    rebuildData->clashcount++;
 	    continue;
+	} else if (used && e && e->swap_file_number == sfileno) {
+	    /* swapfile taken, same URL, newer, update meta */
+	    e->lastref = timestamp;
+	    e->timestamp = timestamp;
+	    e->expires = expires;
+	    e->lastmod = lastmod;
+	    continue;
+	} else if (used) {
+	    /* swapfile in use, not by this URL, log entry is newer */
+	    /* This is sorta bad: the log entry should NOT be newer at this
+	     * point.  If the log is dirty, the filesize check should have
+	     * caught this.  If the log is clean, there should never be a
+	     * newer entry */
+	    debug(20, 1, "WARNING: newer swaplog entry for fileno %08X\n",
+		sfileno);
+	    /* ignore log entry and remove the swapfile to be safe */
+	    /* expect SWAPFAIL errors from this */
+	    safeunlink(swapfile, 1);
+	    rebuildData->clashcount++;
+	    continue;
+	} else if (e) {
+	    /* URL already exists, this swapfile not being used */
+	    /* junk old, load new */
+	    storeRelease(e);	/* release old entry */
+	    rebuildData->dupcount++;
+	} else {
+	    /* URL doesnt exist, swapfile not in use */
+	    /* load new */
 	}
 	/* update store_swap_size */
 	store_swap_size += (int) ((size + 1023) >> 10);
