@@ -556,6 +556,8 @@ void
 storeAbort(StoreEntry * e, int cbflag)
 {
     MemObject *mem = e->mem_obj;
+    STABH *callback;
+    void *data;
     assert(e->store_status == STORE_PENDING);
     assert(mem != NULL);
     debug(20, 6) ("storeAbort: %s\n", storeKeyText(e->key));
@@ -573,8 +575,11 @@ storeAbort(StoreEntry * e, int cbflag)
     mem->object_sz = mem->inmem_hi;
     /* Notify the server side */
     if (cbflag && mem->abort.callback) {
-	mem->abort.callback(mem->abort.data);
+	callback = mem->abort.callback;
+	data = mem->abort.data;
 	mem->abort.callback = NULL;
+	mem->abort.data = NULL;
+	callback(data);
     }
     /* Notify the client side */
     InvokeHandlers(e);

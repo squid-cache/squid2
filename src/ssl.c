@@ -88,7 +88,6 @@ sslClientClosed(int fd, void *data)
     debug(26, 3) ("sslClientClosed: FD %d\n", fd);
     /* we have been called from comm_close for the client side, so
      * just need to clean up the server side */
-    fwdUnregister(NULL, sslState->request);
     comm_close(sslState->server.fd);
 }
 
