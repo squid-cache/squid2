@@ -498,7 +498,7 @@ void addToIPACL(list, ip_str, access)
 	}
     }
 
-    q->access = inv ? (q->access == IP_ALLOW ? IP_DENY : IP_ALLOW) : access;
+    q->access = inv ? (access == IP_ALLOW ? IP_DENY : IP_ALLOW) : access;
     q->addr.s_addr = htonl(a1 * 0x1000000 + a2 * 0x10000 + a3 * 0x100 + a4);
     q->mask.s_addr = lmask.s_addr;
 }
