@@ -212,12 +212,12 @@ destroy_MemObject(StoreEntry * e)
 #endif
     assert(mem->clients == NULL);
     httpReplyDestroy(mem->reply);
-    safe_free(mem->url);
-    safe_free(mem->log_url);
     requestUnlink(mem->request);
     mem->request = NULL;
+    ctx_exit(ctx); /* must exit before we free mem->url */
+    safe_free(mem->url);
+    safe_free(mem->log_url);
     memFree(MEM_MEMOBJECT, mem);
-    ctx_exit(ctx);
 }
 
 static void
