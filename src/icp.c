@@ -132,6 +132,7 @@ static char *log_tags[] =
     "ERR_CLIENT_ABORT",
     "ERR_CONNECT_FAIL",
     "ERR_INVALID_REQ",
+    "ERR_UNSUP_REQ",
     "ERR_INVALID_URL",
     "ERR_NO_FDS",
     "ERR_DNS_FAIL",
@@ -1663,6 +1664,24 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 	    icpState->buf = xstrdup(squid_error_url(icpState->url,
 		    icpState->method,
 		    ERR_INVALID_URL,
+		    fd_table[fd].ipaddr,
+		    icpState->http_code,
+		    NULL));
+	    icpState->ptr_to_4k_page = NULL;
+	    comm_write(fd,
+		icpState->buf,
+		strlen(icpState->buf),
+		30,
+		icpSendERRORComplete,
+		(void *) icpState);
+	    return;
+	}
+	if (!urlCheckRequest(request)) {
+	    icpState->log_type = ERR_UNSUP_REQ;
+	    icpState->http_code = 501;
+	    icpState->buf = xstrdup(squid_error_url(icpState->url,
+		    icpState->method,
+		    ERR_UNSUP_REQ,
 		    fd_table[fd].ipaddr,
 		    icpState->http_code,
 		    NULL));
