@@ -268,7 +268,7 @@ waisSendComplete(int fd, char *buf, int size, int errflag, void *data)
 	    COMM_SELECT_READ,
 	    waisReadReply,
 	    waisState, 0);
-	commSetDefer(fd, protoCheckDeferRead);
+	commSetDefer(fd, protoCheckDeferRead, entry);
     }
 }
 

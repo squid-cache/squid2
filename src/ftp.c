@@ -1431,7 +1431,7 @@ ftpReadList(FtpStateData * ftpState)
 	    ftpReadData,
 	    ftpState,
 	    0);
-	commSetDefer(ftpState->data.fd, protoCheckDeferRead);
+	commSetDefer(ftpState->data.fd, protoCheckDeferRead, ftpState->entry);
 	ftpState->state = READING_DATA;
 	return;
     } else if (!EBIT_TEST(ftpState->flags, FTP_TRIED_NLST)) {
@@ -1458,7 +1458,7 @@ ftpReadRetr(FtpStateData * ftpState)
 	    ftpReadData,
 	    ftpState,
 	    0);
-	commSetDefer(ftpState->data.fd, protoCheckDeferRead);
+	commSetDefer(ftpState->data.fd, protoCheckDeferRead, ftpState->entry);
 	ftpState->state = READING_DATA;
     } else {
 	ftpFail(ftpState);

@@ -759,8 +759,7 @@ static void
 gopherSendComplete(int fd, char *buf, int size, int errflag, void *data)
 {
     GopherStateData *gopherState = (GopherStateData *) data;
-    StoreEntry *entry = NULL;
-    entry = gopherState->entry;
+    StoreEntry *entry = gopherState->entry;
     debug(10, 5) ("gopherSendComplete: FD %d size: %d errflag: %d\n",
 	fd, size, errflag);
     if (errflag) {
@@ -811,7 +810,7 @@ gopherSendComplete(int fd, char *buf, int size, int errflag, void *data)
     }
     /* Schedule read reply. */
     commSetSelect(fd, COMM_SELECT_READ, gopherReadReply, gopherState, 0);
-    commSetDefer(fd, protoCheckDeferRead);
+    commSetDefer(fd, protoCheckDeferRead, entry);
     if (buf)
 	put_free_4k_page(buf);	/* Allocated by gopherSendRequest. */
 }

@@ -709,7 +709,7 @@ httpSendComplete(int fd, char *buf, int size, int errflag, void *data)
 	    COMM_SELECT_READ,
 	    httpReadReply,
 	    httpState, 0);
-	commSetDefer(fd, protoCheckDeferRead);
+	commSetDefer(fd, protoCheckDeferRead, entry);
     }
 }
 

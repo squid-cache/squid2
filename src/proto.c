@@ -303,8 +303,10 @@ int
 protoCheckDeferRead(int fd, void *data)
 {
     StoreEntry *e = data;
-    size_t gap = e->mem_obj->inmem_hi - storeLowestMemReaderOffset(e);
-    if (gap < READ_AHEAD_GAP)
+    MemObject *mem = e->mem_obj;
+    if (mem == NULL)
+	return 0;
+    if (mem->inmem_hi - storeLowestMemReaderOffset(e) < READ_AHEAD_GAP)
 	return 0;
     return 1;
 }

@@ -1973,7 +1973,7 @@ httpAccept(int sock, void *notused)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
     commSetTimeout(fd, Config.Timeout.request, requestTimeout, connState);
     commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, connState, 0);
-    commSetDefer(fd, clientReadDefer);
+    commSetDefer(fd, clientReadDefer, connState);
 }
 
 void
