@@ -111,11 +111,9 @@ struct _auth_user_t {
     /* we may have many proxy-authenticate strings that decode to the same user */
     dlink_list proxy_auth_list;
     dlink_list proxy_match_cache;
+    /* what ip addresses has this user been seen at?, plus a list length cache */
     dlink_list ip_list;
     size_t ipcount;
-    struct {
-	unsigned int credentials_ok:2;	/*0=unchecked,1=ok,2=failed */
-    } flags;
     long expiretime;
     /* how many references are outstanding to this instance */
     size_t references;
