@@ -140,6 +140,11 @@
 #include <syslog.h>
 #endif
 
+/* Only enable shadow password suite if both header and library exist */
+#if HAVE_SHADOW_H && HAVE_LIBSHADOW
+#include <shadow.h>
+#endif
+
 #if !defined(MAXHOSTNAMELEN) || (MAXHOSTNAMELEN < 128)
 #define SQUIDHOSTNAMELEN 128
 #else

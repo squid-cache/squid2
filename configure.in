@@ -140,6 +140,7 @@ AC_CHECK_HEADERS( \
 	pwd.h \
 	regex.h \
 	resolv.h \
+	shadow.h \
 	signal.h \
 	stdarg.h \
 	stddef.h \
@@ -206,6 +207,9 @@ dnl Check for libcrypt
 dnl We use crypt(3) which may be in libc, or in libcrypt (eg FreeBSD)
 AC_CHECK_LIB(crypt, crypt, [CRYPT_LIB="-lcrypt"])
 AC_SUBST(CRYPT_LIB)
+
+dnl Check for libshadow which is needed by the shadow password suite
+AC_CHECK_LIB(shadow, main)
 
 dnl Check for libs needed for aio_read()/aio_write()
 AIO_LIBS=""

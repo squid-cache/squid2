@@ -146,20 +146,32 @@ int objcache_CheckPassword(password, user)
      char *user;
 {
     struct passwd *pwd = NULL;
-    char *salted_passwd = NULL;
-
+#ifdef HAVE_LIB_SHADOW && defined(SHADOW)
+	struct spwd *spwd = NULL;
+#endif
     if (!password || !user)
 	return -1;
-
     /* get password record from /etc/passwd */
     if ((pwd = getpwnam(user)) == NULL)
 	return -1;
-
-    salted_passwd = pwd->pw_passwd;
-    if (strcmp(salted_passwd, (char *) crypt(password, salted_passwd)) == 0)
+#ifdef HAVE_LIB_SHADOW && defined(SHADOW)
+    /* get shadow password record if /etc/shadow exists */
+    enter_suid();
+    if (access(SHADOW, F_OK) == 0) {
+	struct spwd *spwd = NULL;
+	spwd = getspnam(pwd->pw_name);
+	leave_suid();
+	if (spwd == NULL)
+	    return -1;
+	if (strcmp(spwd->sp_pwdp, (char *) pw_encrypt(password, spwd->sp_pwdp)) == 0)
+	    return 0;
+	return -1;
+    }
+    leave_suid();
+#endif
+    if (strcmp(pwd->pw_passwd, (char *) crypt(password, pwd->pw_passwd)) == 0)
 	return 0;
     return -1;
-
 }
 
 int objcacheStart(fd, url, entry)
