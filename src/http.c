@@ -401,7 +401,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     size_t hdr_len;
     size_t hdr_size = headersEnd(buf, size);
     HttpReply *reply = entry->mem_obj->reply;
-    Ctx ctx;
+    Ctx ctx = ctx_enter(entry->mem_obj->url);
     debug(11, 3) ("httpProcessReplyHeader: key '%s'\n",
 	storeKeyText(entry->hash.key));
     if (memBufIsNull(&httpState->reply_hdr))
@@ -418,6 +418,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	memBufClean(&httpState->reply_hdr);
 	httpBuildVersion(&reply->sline.version, 0, 9);
 	reply->sline.status = HTTP_INVALID_HEADER;
+	ctx_exit(ctx);
 	return;
     }
     if (hdr_size != hdr_len)
@@ -429,21 +430,24 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	if (!memBufIsNull(&httpState->reply_hdr))
 	    memBufClean(&httpState->reply_hdr);
 	reply->sline.status = HTTP_HEADER_TOO_LARGE;
+	httpState->reply_hdr_state += 2;
+	ctx_exit(ctx);
 	return;
     }
     /* headers can be incomplete only if object still arriving */
     if (!hdr_size) {
 	if (httpState->eof)
 	    hdr_size = hdr_len;
-	else
+	else {
+	    ctx_exit(ctx);
 	    return;		/* headers not complete */
+	}
     }
     /* Cut away any excess body data (only needed for debug?) */
     memBufAppend(&httpState->reply_hdr, "\0", 1);
     httpState->reply_hdr.buf[hdr_size] = '\0';
     httpState->reply_hdr_state++;
     assert(httpState->reply_hdr_state == 1);
-    ctx = ctx_enter(entry->mem_obj->url);
     httpState->reply_hdr_state++;
     debug(11, 9) ("GOT HTTP REPLY HDR:\n---------\n%s\n----------\n",
 	httpState->reply_hdr.buf);
@@ -453,6 +457,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     if (reply->sline.status >= HTTP_INVALID_HEADER) {
 	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr.buf);
 	memBufClean(&httpState->reply_hdr);
+	ctx_exit(ctx);
 	return;
     }
     storeTimestampsSet(entry);
