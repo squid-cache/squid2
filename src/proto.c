@@ -364,25 +364,17 @@ void protoUnregister(fd, entry, request, src_addr)
      request_t *request;
      struct in_addr src_addr;
 {
-    char *url = NULL;
-    if (entry)
-	url = entry->url;
-    debug(17, 5, "protoUndispatch FD %d <URL:%s>\n", fd, url);
-
-    /* Cache objects don't need to be unregistered  */
-    if (request->protocol == PROTO_CACHEOBJ)
+    char *url = entry ? entry->url : NULL;
+    char *host = request ? request->host : NULL;
+    protocol_t proto = request ? request->protocol : PROTO_NONE;
+    debug(17, 5, "protoUndispatch FD %d '%s'\n", fd, url ? url : "NULL");
+    if (proto == PROTO_CACHEOBJ)
 	return;
-
     if (url)
 	(void) redirectUnregister(url, fd);
     (void) fqdncacheUnregister(src_addr, fd);
-    if (!ipcache_unregister(request->host, fd)) {
-	debug(17, 5, "protoUndispatch: ipcache failed to unregister '%s'\n",
-	    request->host);
-	return;
-    }
-    /* The pending DNS lookup was cleared, now have to junk the entry */
-    debug(17, 5, "protoUndispatch: entry is stranded with pending DNS event\n");
+    if (host)
+	(void) ipcache_unregister(host, fd);
     if (entry)
 	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 }
