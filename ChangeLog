@@ -14,6 +14,7 @@ Changes to squid-1.1.8 (February @@@, 1997):
 	  status.  Now retry TCP connections at regular intervals in the
 	  background and don't mark the peer as 'up' until a connection
 	  succeeds.
+	- Okay to increase FD_SETSIZE on FreeBSD 2.2.x (Peter Wemm).
 
 Changes to squid-1.1.7 (February 25, 1997):
 
