@@ -498,7 +498,7 @@ void
 clientUpdateCounters(clientHttpRequest * http)
 {
     int svc_time = tvSubMsec(http->start, current_time);
-    icp_ping_data *i;
+    ping_data *i;
     HierarchyLogEntry *H;
     Counter.client_http.requests++;
     if (isTcpHit(http->log_type))
@@ -538,7 +538,7 @@ clientUpdateCounters(clientHttpRequest * http)
 	break;
     case PEER_SA_ICP:
 	Counter.icp.times_used++;
-	i = &H->icp;
+	i = &H->ping;
 	if (0 != i->stop.tv_sec && 0 != i->start.tv_sec)
 	    statHistCount(&Counter.icp.query_svc_time,
 		tvSubUsec(i->start, i->stop));

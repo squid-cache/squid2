@@ -177,7 +177,7 @@ accessLogSquid(AccessLogEntry * al, MemBuf * mb)
 	al->private.method_str,
 	al->url,
 	al->cache.ident,
-	al->hier.icp.timedout ? "TIMEOUT_" : "",
+	al->hier.ping.timedout ? "TIMEOUT_" : "",
 	hier_strings[al->hier.code],
 	al->hier.host,
 	al->http.content_type);
@@ -312,15 +312,15 @@ accessLogClose(void)
 void
 hierarchyNote(HierarchyLogEntry * hl,
     hier_code code,
-    icp_ping_data * icpdata,
+    ping_data * pingdata,
     const char *cache_peer)
 {
     assert(hl != NULL);
     hl->code = code;
-    if (icpdata)
-	hl->icp = *icpdata;
+    if (pingdata)
+	hl->ping = *pingdata;
     xstrncpy(hl->host, cache_peer, SQUIDHOSTNAMELEN);
-    hl->icp.stop = current_time;
+    hl->ping.stop = current_time;
 }
 
 void
