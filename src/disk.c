@@ -127,6 +127,7 @@ void
 file_close(int fd)
 {
     fde *F = &fd_table[fd];
+    PF *callback;
 #if USE_ASYNC_IO
     if (fd < 0) {
 	debug(6, 0) ("file_close: FD less than zero: %d\n", fd);
@@ -136,11 +137,20 @@ file_close(int fd)
     assert(fd >= 0);
 #endif
     assert(F->open);
+    if ((callback = F->read_handler)) {
+	F->read_handler = NULL;
+	callback(-1, F->read_data);
+    }
     if (F->flags.write_daemon) {
 	F->flags.close_request = 1;
 	debug(6, 2) ("file_close: FD %d, delaying close\n", fd);
 	return;
     }
+    /*
+     * Assert there is no write callback.  Otherwise we might be
+     * leaking write state data by closing the descriptor
+     */
+    assert(F->write_handler == NULL);
 #if USE_ASYNC_IO
     aioClose(fd);
 #else
@@ -427,6 +437,14 @@ diskHandleRead(int fd, void *data)
 #ifdef OPTIMISTIC_IO
     assert(!F->flags.calling_io_handler);
 #endif /* OPTIMISTIC_IO */
+    /*
+     * FD < 0 indicates premature close; we just have to free
+     * the state data.
+     */
+    if (fd < 0) {
+        memFree(MEM_DREAD_CTRL, ctrl_dat);
+	return;
+    }
 #if USE_ASYNC_IO
     aioRead(fd,
 	ctrl_dat->offset,
