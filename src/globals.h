@@ -90,6 +90,7 @@ extern StatCounters Counter;
 extern char *err_type_str[];
 extern char *icp_opcode_str[];
 extern char *swap_log_op_str[];
+extern char *lookup_t_str[];
 extern double request_failure_ratio;	/* 0.0 */
 extern int store_hash_buckets;	/* 0 */
 extern hash_table *store_table;	/* NULL */
@@ -97,4 +98,7 @@ extern dlink_list store_list;
 extern const String StringNull;	/* { 0, 0, NULL } */
 extern int hot_obj_count;	/* 0 */
 extern int _db_level;
-extern CacheDigest *store_digest;	/* NULL */
+extern CacheDigest *store_digest; /* NULL */
+extern const char *StoreDigestUrlPath; /* "store_digest" */
+extern const char *StoreDigestMimeStr; /* "application/cache-digest" */
+extern const Version CacheDigestVer; /* { 1, 1 } */
