@@ -555,6 +555,7 @@ mainInitialize(void)
 	    eventAdd("start_announce", start_announce, NULL, 3600.0, 1);
 	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10.0, 1);
 	eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 15.0, 1);
+	eventAdd("memPoolCleanIdlePools", memPoolCleanIdlePools, NULL, 15.0, 1);
     }
     configured_once = 1;
 }

@@ -109,18 +109,15 @@ authNTLMDone(void)
     ntlmauthenticators = NULL;
     if (ntlm_helper_state_pool) {
 	assert(memPoolInUseCount(ntlm_helper_state_pool) == 0);
-	memPoolDestroy(ntlm_helper_state_pool);
-	ntlm_helper_state_pool = NULL;
+	memPoolDestroy(&ntlm_helper_state_pool);
     }
     if (ntlm_request_pool) {
 	assert(memPoolInUseCount(ntlm_request_pool) == 0);
-	memPoolDestroy(ntlm_request_pool);
-	ntlm_request_pool = NULL;
+	memPoolDestroy(&ntlm_request_pool);
     }
     if (ntlm_user_pool) {
 	assert(memPoolInUseCount(ntlm_user_pool) == 0);
-	memPoolDestroy(ntlm_user_pool);
-	ntlm_user_pool = NULL;
+	memPoolDestroy(&ntlm_user_pool);
     }
     debug(29, 2) ("authNTLMDone: NTLM authentication Shutdown.\n");
 }

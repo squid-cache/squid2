@@ -120,7 +120,7 @@ authBasicDone(void)
 	helperFree(basicauthenticators);
     basicauthenticators = NULL;
     if (basic_data_pool) {
-	memPoolDestroy(basic_data_pool);
+	memPoolDestroy(&basic_data_pool);
 	basic_data_pool = NULL;
     }
     debug(29, 2) ("authBasicDone: Basic authentication Shutdown.\n");

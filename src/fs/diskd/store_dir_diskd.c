@@ -1941,7 +1941,7 @@ storeDiskdDirParse(SwapDir * sd, int index, char *path)
 static void
 storeDiskdDirDone(void)
 {
-    memPoolDestroy(diskd_state_pool);
+    memPoolDestroy(&diskd_state_pool);
     diskd_initialised = 0;
 }
 

@@ -238,8 +238,7 @@ authenticateDigestNonceShutdown(void)
     }
     if (digest_nonce_pool) {
 	assert(memPoolInUseCount(digest_nonce_pool) == 0);
-	memPoolDestroy(digest_nonce_pool);
-	digest_nonce_pool = NULL;
+	memPoolDestroy(&digest_nonce_pool);
     }
     debug(29, 2) ("authenticateDigestNonceShutdown: Nonce cache shutdown\n");
 }
@@ -480,8 +479,7 @@ authDigestUserShutdown(void)
     }
     if (digest_user_pool) {
 	assert(memPoolInUseCount(digest_user_pool) == 0);
-	memPoolDestroy(digest_user_pool);
-	digest_user_pool = NULL;
+	memPoolDestroy(&digest_user_pool);
     }
 }
 
@@ -544,8 +542,7 @@ authDigestRequestShutdown(void)
     /* No requests should be in progress when we get here */
     if (digest_request_pool) {
 	assert(memPoolInUseCount(digest_request_pool) == 0);
-	memPoolDestroy(digest_request_pool);
-	digest_request_pool = NULL;
+	memPoolDestroy(&digest_request_pool);
     }
 }
 

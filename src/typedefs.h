@@ -46,12 +46,6 @@ typedef struct {
     size_t kb;
 } kb_t;
 
-typedef struct {
-    size_t count;
-    size_t bytes;
-    size_t gb;
-} gb_t;
-
 /*
  * grep '^struct' structs.h \
  * | perl -ne '($a,$b)=split;$c=$b;$c=~s/^_//; print "typedef struct $b $c;\n";'
@@ -163,9 +157,6 @@ typedef struct _authConfig authConfig;
 typedef struct _cacheSwap cacheSwap;
 typedef struct _StatHist StatHist;
 typedef struct _String String;
-typedef struct _MemMeter MemMeter;
-typedef struct _MemPoolMeter MemPoolMeter;
-typedef struct _MemPool MemPool;
 typedef struct _ClientInfo ClientInfo;
 typedef struct _cd_guess_stats cd_guess_stats;
 typedef struct _CacheDigest CacheDigest;

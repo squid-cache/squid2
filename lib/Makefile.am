@@ -26,6 +26,7 @@ EXTRA_libmiscutil_a_SOURCES = \
 	md5.c \
 	snprintf.c
 libmiscutil_a_SOURCES = \
+	MemPool.c \
 	Array.c \
 	base64.c \
 	getfullhostname.c \

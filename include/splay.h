@@ -19,6 +19,7 @@ extern int splayLastResult;
 
 extern splayNode *splay_insert(void *, splayNode *, SPLAYCMP *);
 extern splayNode *splay_splay(const void *, splayNode *, SPLAYCMP *);
+extern splayNode *splay_delete(const void *, splayNode *, SPLAYCMP *);
 extern void splay_destroy(splayNode *, SPLAYFREE *);
 extern void splay_walk(splayNode *, SPLAYWALKEE *, void *);
 

@@ -155,7 +155,6 @@ squid_SOURCES = \
 	logfile.c \
 	main.c \
 	mem.c \
-	MemPool.c \
 	MemBuf.c \
 	mime.c \
 	multicast.c \

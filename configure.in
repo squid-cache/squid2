@@ -68,6 +68,9 @@ AC_DEFINE_UNQUOTED(CONFIG_HOST_TYPE, "$host")
 
 AC_DEFINE_UNQUOTED(SQUID_CONFIGURE_OPTIONS, "$ac_configure_args")
 
+dnl Check for GNU cc
+AC_PROG_CC
+
 dnl Gerben Wierda <Gerben_Wierda@RnA.nl>
 case "$host" in
     mab-next-nextstep3)
@@ -205,6 +208,7 @@ if test "$use_dlmalloc" = yes; then
     ac_cv_header_gnumalloc_h="no"
     ac_cv_lib_malloc="no"
     ac_cv_enabled_dlmalloc="yes"
+    AC_DEFINE(USE_DLMALLOC, 1)
 fi
 
 AC_SUBST(LIBDLMALLOC)
@@ -990,6 +994,17 @@ AC_ARG_ENABLE(ntlm-fail-open,
                           the user.],
 [ if test "$enableval" = "yes" ; then
     AC_DEFINE(NTLM_FAIL_OPEN)
+  fi
+])
+
+dnl Disable "memPools" code
+AC_ARG_ENABLE(mempools,
+[  --disable-mempools      Disable memPools],
+[ if test "$enableval" = "no" ; then
+    echo "memPools disabled"
+    AC_DEFINE(DISABLE_POOLS, 1)
+  else
+    AC_DEFINE(DISABLE_POOLS, 0)
   fi
 ])
 
