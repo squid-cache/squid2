@@ -906,6 +906,10 @@ httpBuildRequestHeader(request_t * request,
 	    if (strLen(request->urlpath))
 		assert(strstr(url, strBuf(request->urlpath)));
 	}
+	/* Set no-cache if determined needed but not found */
+	if (orig_request->flags.nocache && !httpHeaderHas(hdr_in, HDR_PRAGMA))
+	    EBIT_SET(cc->mask, CC_NO_CACHE);
+	/* Enforce sibling relations */
 	if (flags.only_if_cached)
 	    EBIT_SET(cc->mask, CC_ONLY_IF_CACHED);
 	httpHeaderPutCc(hdr_out, cc);
