@@ -246,7 +246,7 @@ mk_mime_hdr(char *result, const char *type, int size, time_t ttl, time_t lmt)
     expiretime = ttl ? t + ttl : 0;
     date[0] = expires[0] = last_modified[0] = '\0';
     content_length[0] = result[0] = '\0';
-    xsnprintf(date, 100, "Date: %s\r\n", mkrfc1123(t));
+    snprintf(date, 100, "Date: %s\r\n", mkrfc1123(t));
     if (ttl >= 0)
 	snprintf(expires, 100, "Expires: %s\r\n", mkrfc1123(expiretime));
     if (lmt)

@@ -2389,7 +2389,7 @@ aclDumpArpList(acl_arp_data * data)
     char buf[24];
     while (data != NULL) {
 	wordlist *w = xcalloc(1, sizeof(wordlist));
-	xsnprintf(buf, sizeof(buf), "%02x:%02x:02x:02x:02x:02x",
+	snprintf(buf, sizeof(buf), "%02x:%02x:02x:02x:02x:02x",
 	    data->eth[0], data->eth[1], data->eth[2], data->eth[3],
 	    data->eth[4], data->eth[5]);
 	w->key = xstrdup(buf);
