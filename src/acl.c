@@ -1742,9 +1742,31 @@ aclCheckCleanup(aclCheck_t * checklist)
 	cbdataUnlock(checklist->extacl_entry);
 	checklist->extacl_entry = NULL;
     }
+    /* During reconfigure or if authentication is used in aclCheckFast without
+     * first being authenticated in http_access we can end up not finishing call
+     * sequences into the auth code. In such case we must make sure to forget
+     * the authentication state completely
+     */
     if (checklist->auth_user_request) {
 	authenticateAuthUserRequestUnlock(checklist->auth_user_request);
 	checklist->auth_user_request = NULL;
+	authenticateAuthUserRequestUnlock(checklist->auth_user_request);
+	checklist->auth_user_request = NULL;
+	if (checklist->request) {
+	    if (checklist->request->auth_user_request) {
+		authenticateAuthUserRequestUnlock(checklist->request->auth_user_request);
+		checklist->request->auth_user_request = NULL;
+	    }
+	}
+	/* it might have been connection based */
+	if (checklist->conn) {
+	    if (checklist->conn->auth_user_request) {
+		authenticateAuthUserRequestUnlock(checklist->conn->auth_user_request);
+		checklist->conn->auth_user_request = NULL;
+	    }
+	    assert(checklist->request);
+	    checklist->conn->auth_type = AUTH_BROKEN;
+	}
     }
     checklist->current_acl = NULL;
 }
@@ -1908,24 +1930,7 @@ static void
 aclCheckCallback(aclCheck_t * checklist, allow_t answer)
 {
     debug(28, 3) ("aclCheckCallback: answer=%d\n", answer);
-    /* During reconfigure, we can end up not finishing call sequences into the auth code */
-    if (checklist->auth_user_request) {
-	/* the checklist lock */
-	authenticateAuthUserRequestUnlock(checklist->auth_user_request);
-	checklist->auth_user_request = NULL;
-	/* it might have been connection based */
-	assert(checklist->conn);
-	if (checklist->conn->auth_user_request) {
-	    authenticateAuthUserRequestUnlock(checklist->conn->auth_user_request);
-	    checklist->conn->auth_user_request = NULL;
-	}
-	assert(checklist->request);
-	if (checklist->request->auth_user_request) {
-	    authenticateAuthUserRequestUnlock(checklist->request->auth_user_request);
-	    checklist->request->auth_user_request = NULL;
-	}
-	checklist->conn->auth_type = AUTH_BROKEN;
-    }
+    aclCheckCleanup(checklist);
     if (cbdataValid(checklist->callback_data))
 	checklist->callback(answer, checklist->callback_data);
     cbdataUnlock(checklist->callback_data);
