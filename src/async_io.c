@@ -56,6 +56,16 @@ typedef struct aio_ctrl_t {
     void *tag;
 } aio_ctrl_t;
 
+struct {
+    int open;
+    int close;
+    int cancel;
+    int write;
+    int read;
+    int stat;
+    int unlink;
+    int check_callback;
+} aio_counts;
 
 typedef struct aio_unlinkq_t {
     char *path;
@@ -67,6 +77,7 @@ static aio_ctrl_t *used_list = NULL;
 static aio_ctrl_t pool[SQUID_MAXFD];
 static int initialised = 0;
 static int outunlink = 0;
+static OBJH aioStats;
 
 static void
 aioInit()
@@ -81,6 +92,8 @@ aioInit()
 	node->next = free_list;
 	free_list = node;
     }
+    cachemgrRegister("aio_counts", "Async IO Function Counters",
+	aioStats, 0, 1);
     initialised = 1;
 }
 
@@ -93,6 +106,7 @@ aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callba
 
     if (!initialised)
 	aioInit();
+    aio_counts.open++;
     if (free_list == NULL) {
 	ret = open(path, oflag, mode);
 	if (callback)
@@ -125,6 +139,7 @@ aioClose(int fd)
 
     if (!initialised)
 	aioInit();
+    aio_counts.close++;
     aioCancel(fd, NULL);
     if (free_list == NULL) {
 	close(fd);
@@ -155,6 +170,7 @@ aioCancel(int fd, void *tag)
 
     if (!initialised)
 	aioInit();
+    aio_counts.cancel++;
     prev = NULL;
     curr = used_list;
     for (;;) {
@@ -200,6 +216,7 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
 
     if (!initialised)
 	aioInit();
+    aio_counts.write++;
     if (free_list == NULL) {
 	errno = EWOULDBLOCK;
 	if (callback)
@@ -249,6 +266,7 @@ aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callbac
 
     if (!initialised)
 	aioInit();
+    aio_counts.read++;
     if (free_list == NULL) {
 	errno = EWOULDBLOCK;
 	if (callback)
@@ -296,6 +314,7 @@ aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data, void
 
     if (!initialised)
 	aioInit();
+    aio_counts.stat++;
     if (free_list == NULL) {
 	errno = EWOULDBLOCK;
 	if (callback)
@@ -330,6 +349,7 @@ aioUnlink(const char *path, AIOCB * callback, void *callback_data)
 
     if (!initialised)
 	aioInit();
+    aio_counts.unlink++;
     if (path) {
 	this = xmalloc(sizeof(aio_unlinkq_t));
 	this->path = xstrdup(path);
@@ -373,6 +393,7 @@ aioCheckCallbacks()
 
     if (!initialised)
 	aioInit();
+    aio_counts.check_callback++;
     for (;;) {
 	if ((resultp = aio_poll_done()) == NULL)
 	    break;
@@ -398,6 +419,20 @@ aioCheckCallbacks()
     }
     if (callunlink)
 	aioUnlink(NULL, NULL, NULL);
+}
+
+void
+aioStats(StoreEntry * sentry)
+{
+    storeAppendPrintf(sentry, "ASYNC IO Counters:\n");
+    storeAppendPrintf(sentry, "open\t%d\n", aio_counts.open);
+    storeAppendPrintf(sentry, "close\t%d\n", aio_counts.close);
+    storeAppendPrintf(sentry, "cancel\t%d\n", aio_counts.cancel);
+    storeAppendPrintf(sentry, "write\t%d\n", aio_counts.write);
+    storeAppendPrintf(sentry, "read\t%d\n", aio_counts.read);
+    storeAppendPrintf(sentry, "stat\t%d\n", aio_counts.stat);
+    storeAppendPrintf(sentry, "unlink\t%d\n", aio_counts.unlink);
+    storeAppendPrintf(sentry, "check_callback\t%d\n", aio_counts.check_callback);
 }
 
 #endif /* USE_ASYNC_IO */
