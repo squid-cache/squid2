@@ -2973,7 +2973,8 @@ clientReadRequest(int fd, void *data)
 	    request->my_addr = conn->me.sin_addr;
 	    request->my_port = ntohs(conn->me.sin_port);
 	    request->http_ver = http->http_ver;
-	    if (!urlCheckRequest(request)) {
+	    if (!urlCheckRequest(request) ||
+		httpHeaderHas(&request->header, HDR_TRANSFER_ENCODING)) {
 		err = errorCon(ERR_UNSUP_REQ, HTTP_NOT_IMPLEMENTED);
 		err->src_addr = conn->peer.sin_addr;
 		err->request = requestLink(request);
