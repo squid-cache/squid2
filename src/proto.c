@@ -231,11 +231,12 @@ int protoDispatchDNSHandle(unused1, hp, data)
 	return 0;
     } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */
-	if ((entry->ping_status == PING_DONE) || entry->store_status == STORE_OK) {
-	    debug(17, 0, "Starting a source ping for a valid object %s!\n",
-		storeToString(entry));
-	    fatal_dump(NULL);
-	}
+	if (entry->ping_status != PING_NONE)
+		fatal_dump("protoDispatchDNSHandle: bad ping_status");
+	if (entry->store_status != STORE_PENDING)
+		fatal_dump("protoDispatchDNSHandle: bad store_status");
+	if (entry->swap_status != NO_SWAP)
+		fatal_dump("protoDispatchDNSHandle: bad swap_status");
 	entry->ping_status = PING_WAITING;
 	comm_set_select_handler_plus_timeout(protoData->fd,
 	    COMM_SELECT_TIMEOUT,
@@ -387,7 +388,7 @@ void protoCancelTimeout(fd, entry)
     /* If fd = 0 then this thread was called from neighborsUdpAck and
      * we must look up the FD in the pending list. */
     if (!fd)
-	fd = fd_of_first_client(entry);
+	fd = entry->mem_obj->fd_of_first_client;
     if (fd < 1) {
 	debug(17, 1, "protoCancelTimeout: No client for '%s'\n", entry->url);
 	return;
