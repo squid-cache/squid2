@@ -85,9 +85,10 @@ dist-hook:
 	    || mkdir $(distdir)/$$lang \
 	    || exit 1; \
 	    cp -p $(srcdir)/$$lang/ERR_* $(distdir)/$$lang \
-	      || exit 1; \
+	    || exit 1; \
 	    if test -f $(srcdir)/$$lang/README; then \
 	      cp -p $(srcdir)/$$lang/README $(distdir)/$$lang \
+	      || exit 1; \
 	    fi; \
 	  fi; \
 	done
