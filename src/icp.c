@@ -349,8 +349,6 @@ connStateFree(int fd, void *data)
 	assert(connState->chr != connState->chr->next);
 	httpRequestFree(http);
     }
-    if (fd_table[fd].rwstate)
-	commCancelWriteHandler(fd);
     if (connState->ident.fd > -1)
 	comm_close(connState->ident.fd);
     safe_free(connState->in.buf);
@@ -2028,9 +2026,7 @@ requestTimeout(int fd, void *data)
     debug(12, 2) ("requestTimeout: FD %d: lifetime is expired.\n", fd);
     /* There might be a comm_write() thread; cancel callback */
     if (fd_table[fd].rwstate) {
-	/* Some data has been sent to the client, just cancel the
-	 * callback and close the FD */
-	commCancelWriteHandler(fd);
+	/* Some data has been sent to the client, just close the FD */
 	comm_close(fd);
     } else if (conn->nrequests) {
 	/* assume its a persistent connection; just close it */
