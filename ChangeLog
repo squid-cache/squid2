@@ -88,3 +88,8 @@ Changes to 1.0.beta3:
 	- Fixed disabling store.log and hierarchy.log when set to "none"
 	- Fixed numerous problems related to setuid().
 	- Fixed 'check_cache.pl' to use new swaplog format (without "FILE").
+	- Fixed ACL coredumps when checking NULL words.
+	- Changed pid_filename to be written and unlinked as root.
+	- Added "-i seconds" option to 'client' for testing IMS GET.
+	- Fixed a bug where an IMS request caused the valid object to
+	  get ejected from the cache.
