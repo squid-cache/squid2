@@ -45,10 +45,15 @@ int mime_refresh_request(mime)
      char *mime;
 {
     char *pr = NULL;
-    if ((pr = mime_get_header(mime, "pragma")) == NULL)
+    if (mime == NULL)
 	return 0;
-    if (strstr(pr, "no-cache"))		/* why strstr and not strcmp? -DPW */
+    if (mime_get_header("If-Modified-Since"))
 	return 1;
+    if ((pr = mime_get_header(mime, "pragma"))) {
+	/* why strstr and not strcmp? -DPW */
+	if (strstr(pr, "no-cache"))
+	    return 1;
+    }
     return 0;
 }
 
