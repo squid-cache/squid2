@@ -1066,8 +1066,13 @@ comm_select(time_t sec)
 	if (nfds == 0)
 	    return COMM_SHUTDOWN;
 	for (;;) {
-	    poll_time.tv_sec = sec > 0 ? 1 : 0;
+#if USE_ASYNC_IO
+	    poll_time.tv_sec = 0;
+	    poll_time.tv_usec = sec > 0 ? 50000 : 0;	/* 50 ms */
+#else
+	    poll_time.tv_sec = sec > 0 ? 1 : 0;		/* 1 sec */
 	    poll_time.tv_usec = 0;
+#endif
 	    num = select(maxfd, &readfds, &writefds, NULL, &poll_time);
 	    Counter.select_loops++;
 	    if (num >= 0)
