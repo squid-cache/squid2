@@ -2593,7 +2593,7 @@ main(int argc, char *argv[])
 	if (!strcmp(*argv, "-"))
 	    break;
 	if (!strncmp(*argv, "-D", 2)) {
-	    _db_init(NULL, (*argv)+2);
+	    _db_init(NULL, (*argv) + 2);
 	    continue;
 	} else if (!strcmp(*argv, "-htmlify") || !strcmp(*argv, "-httpify") ||
 	    !strcmp(*argv, "-h")) {
