@@ -35,6 +35,8 @@ Changes to squid-2.5.STABLE8 ()
 	  short_icon_urls is on (Bug #1203)
 	- [Security] Harden Squid agains HTTP response splitting attacks
 	  (Bug #1200)
+	- [Medium security] Buffer overflow in WCCP recvfrom() call
+	  (Bug #1217)
 
 Changes to squid-2.5.STABLE7 (11 Oct 2004)
 
