@@ -1839,13 +1839,6 @@ asciiHandleConn(int sock, void *notused)
 
     commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
     if ((fd = comm_accept(sock, &peer, &me)) < 0) {
-	if (errno == EWOULDBLOCK || errno == EAGAIN) {
-	    /* reschedule */
-	    commSetSelect(sock,
-		COMM_SELECT_READ,
-		asciiHandleConn,
-		NULL, 0);
-	}
 	debug(50, 1, "asciiHandleConn: FD %d: accept failure: %s\n",
 	    sock, xstrerror());
 	return;
