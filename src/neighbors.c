@@ -107,6 +107,7 @@
 
 static int edgeWouldBePinged _PARAMS((edge *, request_t *));
 static void neighborRemove _PARAMS((edge *));
+static edge *whichEdge _PARAMS((icp_common_t *, struct sockaddr_in *));
 
 static neighbors *friends = NULL;
 static struct neighbor_cf *Neighbor_cf = NULL;
@@ -139,7 +140,7 @@ char *hier_strings[] =
 };
 
 
-edge *whichEdge(header, from)
+static edge *whichEdge(header, from)
      icp_common_t *header;
      struct sockaddr_in *from;
 {
@@ -634,7 +635,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 
     debug(15, 6, "neighborsUdpAck: opcode %d '%s'\n",
 	(int) header->opcode, url);
-    if ((e = whichEdge(from)))
+    if ((e = whichEdge(header, from)))
 	neighborAlive(e, mem, header);
     if (header->opcode > ICP_OP_END)
 	return;
