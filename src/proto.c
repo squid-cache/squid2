@@ -114,10 +114,6 @@ static int protoDNSError _PARAMS((int, StoreEntry *));
 static void protoDataFree _PARAMS((int, protodispatch_data *));
 static void protoDispatchDNSHandle _PARAMS((int, const ipcache_addrs *, void *));
 
-#define OUTSIDE_FIREWALL 0
-#define INSIDE_FIREWALL  1
-#define NO_FIREWALL      2
-
 /* for debugging */
 static char *firewall_desc_str[] =
 {
