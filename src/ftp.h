@@ -1,16 +1,7 @@
-#ifndef FTP_H
-#define FTP_H
 
-typedef struct _ftpget_thread {
-    pid_t pid;
-    int state;
-    int status;
-    int wait_retval;
-    int fd;
-    struct _ftpget_thread *next;
-} ftpget_thread;
+/* $Id$ */
 
-#define FTPGET_THREAD_RUNNING  0
-#define FTPGET_THREAD_WAITED   1
-
-#endif
+extern int ftpStart _PARAMS((int unusedfd, char *url, StoreEntry * entry));
+extern int ftpInitialize _PARAMS((void));
+extern int ftpCachable _PARAMS((char *));
+extern void ftpServerClose _PARAMS((void));
