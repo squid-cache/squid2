@@ -1913,10 +1913,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	    http->range_iter.prefix_size = rep->hdr_sz;
 	    debug(33, 3) ("clientSendMoreData: Appending %d bytes after %d bytes of headers\n",
 		(int) body_size, rep->hdr_sz);
-	    ch = aclChecklistCreate(Config.accessList.reply, http->request, NULL);
+	    ch = clientAclChecklistCreate(Config.accessList.reply, http);
 	    ch->reply = rep;
-	    if (http->conn)
-		ch->conn = cbdataLock(http->conn); /* acl.c frees */
 	    rv = aclCheckFast(Config.accessList.reply, ch);
 	    aclChecklistFree(ch);
 	    ch = NULL;
