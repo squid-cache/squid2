@@ -1957,7 +1957,9 @@ icpDetectClientClose(int fd, icpStateData * icpState)
 	else
 	    debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	CheckQuickAbort(icpState);
+#ifdef DONT_DO_THIS
 	protoUnregister(fd, entry, icpState->request, icpState->peer.sin_addr);
+#endif
 	if (entry && entry->ping_status == PING_WAITING)
 	    storeReleaseRequest(entry);
 	comm_close(fd);
@@ -2015,7 +2017,7 @@ static void
 vizHackSendPkt(struct sockaddr_in *from)
 {
     static struct viz_pkt v;
-    v.from = htonl(from->sin_addr.s_addr);
+    v.from = from->sin_addr.s_addr;
     comm_udp_sendto(theOutIcpConnection,
 	&Config.vizHackAddr,
 	sizeof(struct sockaddr_in),
