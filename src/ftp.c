@@ -1093,7 +1093,7 @@ ftpParseControlReply(char *buf, size_t len, int *codep)
 {
     char *s;
     int complete = 0;
-    wordlist *head;
+    wordlist *head = NULL;
     wordlist *list;
     wordlist **tail = &head;
     off_t offset;
