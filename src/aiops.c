@@ -791,7 +791,7 @@ aio_poll_threads(void)
 aio_result_t *
 aio_poll_done()
 {
-    aio_request_t *requestp, *prev;
+    aio_request_t *requestp;
     aio_result_t *resultp;
     int cancelled;
 
@@ -800,17 +800,10 @@ aio_poll_done()
     if (request_done_head == NULL) {
 	return NULL;
     }
-    prev = NULL;
     requestp = request_done_head;
-    while (requestp->next) {
-	prev = requestp;
-	requestp = requestp->next;
-    }
-    if (prev == NULL)
-	request_done_head = requestp->next;
-    else
-	prev->next = requestp->next;
-    request_done_tail = prev;
+    request_done_head = requestp->next;
+    if (!request_done_head)
+	request_done_tail = NULL;
 
     resultp = requestp->resultp;
     cancelled = requestp->cancelled;
