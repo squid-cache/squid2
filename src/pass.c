@@ -335,9 +335,8 @@ passConnectDone(int fd, int status, void *data)
 	xstrncpy(request->urlpath, passState->url, MAX_URL);
     }
     passState->client.len = httpBuildRequestHeader(request,
-	passState->request,	/* orig_request */
+	request,		/* orig_request */
 	NULL,			/* entry */
-	request->headers,
 	&hdr_len,
 	passState->client.buf,
 	SQUID_TCP_SO_RCVBUF >> 1,

@@ -145,7 +145,6 @@ extern void httpReplyHeaderStats _PARAMS((StoreEntry *));
 extern size_t httpBuildRequestHeader _PARAMS((request_t * request,
 	request_t * orig_request,
 	StoreEntry * entry,
-	char *hdr_in,
 	size_t * in_len,
 	char *hdr_out,
 	size_t out_sz,
