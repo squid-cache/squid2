@@ -670,11 +670,8 @@ aclParseProxyAuth(void *data)
 	p->timeout = 10;
 
     /* First time around, 7921 should be big enough */
-    if ((p->hash = hash_create((HASHCMP *) strcmp, 7921, hash_string)) < 0) {
-	debug(28, 0) ("aclParseProxyAuth: cannot create hash table, turning proxy_auth off\n");
-	*q = NULL;
-	return;
-    }
+    p->hash = hash_create((HASHCMP *) strcmp, 7921, hash_string);
+    assert(p->hash);
     *q = p;
     return;
 }
