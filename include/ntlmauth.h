@@ -140,7 +140,6 @@ typedef struct _ntlmhdr {
 typedef struct _ntlm_negotiate {
     char signature[8];		/* "NTLMSSP" */
     int32_t type;		/* LSWAP(0x1) */
-    ntlmhdr hdr;		/* NTLM header */
     u_int32_t flags;		/* Request flags */
     strhdr domain;		/* Domain we wish to authenticate in */
     strhdr workstation;		/* Client workstation name */
