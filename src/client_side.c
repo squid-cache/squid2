@@ -817,6 +817,7 @@ httpRequestFree(void *data)
     safe_free(http->log_uri);
     safe_free(http->al.headers.request);
     safe_free(http->al.headers.reply);
+    safe_free(http->al.cache.authuser);
     safe_free(http->redirect.location);
     stringClean(&http->range_iter.boundary);
     if ((e = http->entry)) {
