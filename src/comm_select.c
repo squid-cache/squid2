@@ -214,14 +214,16 @@ comm_check_incoming_poll_handlers(int nfds, int *fds)
 		fd_table[fd].read_handler = NULL;
 		hdl(fd, &incame);
 	    } else
-		debug(5, 1) ("comm_poll_incoming: NULL read handler\n");
+		debug(5, 1) ("comm_poll_incoming: FD %d NULL read handler\n",
+		    fd);
 	}
 	if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR)) {
 	    if ((hdl = fd_table[fd].write_handler)) {
 		fd_table[fd].write_handler = NULL;
 		hdl(fd, &incame);
 	    } else
-		debug(5, 1) ("comm_poll_incoming: NULL write handler\n");
+		debug(5, 1) ("comm_poll_incoming: FD %d NULL write_handler\n",
+		    fd);
 	}
     }
     return incame;
@@ -489,7 +491,8 @@ comm_check_incoming_select_handlers(int nfds, int *fds)
 		commUpdateReadBits(fd, NULL);
 		hdl(fd, &incame);
 	    } else {
-		debug(5, 1) ("comm_select_incoming: NULL read handler\n");
+		debug(5, 1) ("comm_select_incoming: FD %d NULL read handler\n",
+		    fd);
 	    }
 	}
 	if (FD_ISSET(fd, &write_mask)) {
@@ -498,7 +501,8 @@ comm_check_incoming_select_handlers(int nfds, int *fds)
 		commUpdateWriteBits(fd, NULL);
 		hdl(fd, &incame);
 	    } else {
-		debug(5, 1) ("comm_select_incoming: NULL write handler\n");
+		debug(5, 1) ("comm_select_incoming: FD %d NULL write handler\n",
+		    fd);
 	    }
 	}
     }
