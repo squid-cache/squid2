@@ -15,7 +15,8 @@ msnt_auth_SOURCES = md4.c rfcnb-io.c rfcnb-util.c session.c msntauth.c \
 		usersfile.c \
 		byteorder.h rfcnb-common.h rfcnb-error.h rfcnb.h \
 		rfcnb-io.h rfcnb-priv.h rfcnb-util.h smblib-common.h \
-		smblib.h smblib-priv.h std-defines.h std-includes.h valid.h
+		smblib.h smblib-priv.h std-defines.h std-includes.h valid.h \
+		md4.h  smbdes.h smbencrypt.h
 
 EXTRA_DIST = \
 	COPYING-2.0 \
