@@ -122,7 +122,7 @@ static int decode_addr(asc, addr, mask)
     struct hostent *hp;
     long a;
 
-    if ((a = inet_addr(asc)) != INADDR_NONE || !strcmp(asc, "255.255.255.255")) {
+    if ((a = inet_addr(asc)) != SQUID_INADDR_NONE || !strcmp(asc, "255.255.255.255")) {
 	addr->s_addr = a;	/* inet_addr() outputs in network byte order */
     } else if ((hp = gethostbyname(asc)) != NULL) {
 	/* We got a host name */

@@ -1261,7 +1261,7 @@ struct hostent *ipcache_gethostbyname(name)
 	    debug(14, 5, "ipcache_gethostbyname: IPcache miss for '%s'.\n", name);
 	IpcacheStats.misses++;
 	/* check if it's already a IP address in text form. */
-	if ((ip = inet_addr(name)) != INADDR_NONE) {
+	if ((ip = inet_addr(name)) != SQUID_INADDR_NONE) {
 	    *((unsigned long *) (void *) static_result->h_addr_list[0]) = ip;
 	    strncpy(static_result->h_name, name, MAX_HOST_NAME);
 	    return static_result;

@@ -134,11 +134,11 @@ static int commTryBind(fd, port)
     struct in_addr in_addr;
     if (port == 0) {
 	in_addr = getOutboundAddr();
-	if (in_addr.s_addr != INADDR_NONE)
+	if (in_addr.s_addr != SQUID_INADDR_NONE)
 	    return commBind(fd, in_addr, port);
     }
     in_addr = getBindAddr();
-    if (in_addr.s_addr != INADDR_NONE)
+    if (in_addr.s_addr != SQUID_INADDR_NONE)
 	return commBind(fd, in_addr, port);
     if (port == 0)
 	return COMM_OK;

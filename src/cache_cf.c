@@ -152,8 +152,8 @@ static struct {
 #define DefaultAnnouncePort	3131
 #define DefaultAnnounceFile	(char *)NULL	/* default NONE */
 #define DefaultAnnounceRate	0	/* Default off */
-#define DefaultBindAddr		INADDR_NONE
-#define DefaultOutboundAddr	INADDR_NONE
+#define DefaultBindAddr		SQUID_INADDR_NONE
+#define DefaultOutboundAddr	SQUID_INADDR_NONE
 
 ip_acl *local_ip_list = NULL;
 
@@ -902,7 +902,7 @@ static void parseBindAddressLine()
 	self_destruct();
     debug(3, 1, "parseBindAddressLine: %s\n", token);
     Config.bind_addr.s_addr = inet_addr(token);
-    if (Config.bind_addr.s_addr == INADDR_NONE)
+    if (Config.bind_addr.s_addr == SQUID_INADDR_NONE)
 	self_destruct();
 }
 
@@ -914,7 +914,7 @@ static void parseOutboundAddressLine()
 	self_destruct();
     debug(3, 1, "parseOutboundAddressLine: %s\n", token);
     Config.outbound_addr.s_addr = inet_addr(token);
-    if (Config.outbound_addr.s_addr == INADDR_NONE)
+    if (Config.outbound_addr.s_addr == SQUID_INADDR_NONE)
 	self_destruct();
 }
 
