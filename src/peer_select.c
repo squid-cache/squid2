@@ -428,7 +428,7 @@ peerIcpParentMiss(peer * p, icp_common_t * header, ps_state * ps)
 	    }
 	}
     }
-    /* if closest-only is set, the don't allow FIRST_PARENT_MISS */
+    /* if closest-only is set, then don't allow FIRST_PARENT_MISS */
     if (EBIT_TEST(p->options, NEIGHBOR_CLOSEST_ONLY))
 	return;
     /* set FIRST_MISS if there is no CLOSEST parent */
