@@ -326,7 +326,7 @@ snmpHandleUdp(int sock, void *not_used)
     char *outbuf;
     LOCAL_ARRAY(char, deb_line, 4096);
     int len;
-    int outlen = SNMP_REQUEST_SIZE;
+    int outlen;
     snmp_dump_packet = 1;
     debug(49, 5) ("snmpHandleUdp: Initialized.\n");
     commSetSelect(sock, COMM_SELECT_READ, snmpHandleUdp, NULL, 0);
@@ -335,7 +335,7 @@ snmpHandleUdp(int sock, void *not_used)
     memset(&from, '\0', from_len);
     len = recvfrom(sock,
 	buf,
-	SQUID_UDP_SO_RCVBUF - 1,
+	SNMP_REQUEST_SIZE,
 	0,
 	(struct sockaddr *) &from,
 	&from_len);
@@ -368,7 +368,7 @@ snmpHandleUdp(int sock, void *not_used)
 	sock,
 	len,
 	inet_ntoa(from.sin_addr));
-    outbuf = xmalloc(SNMP_REQUEST_SIZE);
+    outbuf = xmalloc(outlen = SNMP_REQUEST_SIZE);
     errstat = snmp_agent_parse(buf, len, outbuf, &outlen,
 	(u_long) (from.sin_addr.s_addr), (long *) (&this_reqid));
     if (memcmp(&from, &local_snmpd, sizeof(from)) == 0) {
