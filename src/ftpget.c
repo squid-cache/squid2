@@ -459,7 +459,7 @@ html_trailer(void)
 {
     static char buf[SMALLBUFSIZ];
 
-    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n</BODY></HTML>\n", mkrfc1123((time_t) NULL), SQUID_VERSION, visible_hostname);
+    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n</BODY></HTML>\n", mkrfc1123(time(NULL)), SQUID_VERSION, visible_hostname);
     return buf;
 }
 
