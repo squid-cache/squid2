@@ -2112,5 +2112,4 @@ AC_OUTPUT([\
 	src/fs/ufs/Makefile \
 	src/repl/heap/Makefile \
 	src/repl/lru/Makefile \
-	]
-)
+])
