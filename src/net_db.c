@@ -248,11 +248,11 @@ networkFromInaddr(struct in_addr a)
 }
 
 static int
-sortByHops(netdbEntry ** n1, netdbEntry ** n2)
+sortByRtt(netdbEntry ** n1, netdbEntry ** n2)
 {
-    if ((*n1)->hops > (*n2)->hops)
+    if ((*n1)->rtt > (*n2)->rtt)
 	return 1;
-    else if ((*n1)->hops < (*n2)->hops)
+    else if ((*n1)->rtt < (*n2)->rtt)
 	return -1;
     else
 	return 0;
@@ -557,7 +557,7 @@ netdbDump(StoreEntry * sentry)
     qsort((char *) list,
 	i,
 	sizeof(netdbEntry *),
-	(QS) sortPeerByRtt);
+	(QS) sortByRtt);
     for (k = 0; k < i; k++) {
 	n = *(list + k);
 	storeAppendPrintf(sentry, "{%-16.16s %4d/%4d %7.1f %5.1f",	/* } */
