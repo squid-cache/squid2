@@ -1636,6 +1636,7 @@ storeUfsDirParse(SwapDir * sd, int index, char *path)
     ufsinfo->swaplog_fd = -1;
     ufsinfo->map = NULL;	/* Debugging purposes */
     ufsinfo->suggest = 0;
+    ufsinfo->open_files = 0;
     sd->init = storeUfsDirInit;
     sd->newfs = storeUfsDirNewfs;
     sd->dump = storeUfsDirDump;
