@@ -1254,14 +1254,10 @@ httpReplyHeader(double ver,
     time_t expires)
 {
     LOCAL_ARRAY(char, buf, HTTP_REPLY_BUF_SZ);
-    LOCAL_ARRAY(char, float_buf, 64);
     int l = 0;
     int s = HTTP_REPLY_BUF_SZ;
-    /* argh, ../lib/snprintf.c doesn't support '%f' */
-    snprintf(float_buf, 64, "%3.1f", ver);
-    assert(strlen(float_buf) == 3);
-    l += snprintf(buf + l, s - l, "HTTP/%s %d %s\r\n",
-	float_buf,
+    l += snprintf(buf + l, s - l, "HTTP/%3.1f %d %s\r\n",
+	ver,
 	(int) status,
 	httpStatusString(status));
     l += snprintf(buf + l, s - l, "Server: Squid/%s\r\n", SQUID_VERSION);
