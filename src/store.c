@@ -721,7 +721,8 @@ storeRelease(StoreEntry * e)
     if (e->swap_file_number > -1) {
 	storeUnlinkFileno(e->swap_file_number);
 	if (e->swap_status == SWAPOUT_DONE)
-	    storeDirUpdateSwapSize(e->swap_file_number, e->swap_file_sz, -1);
+	    if (EBIT_TEST(e->flag, ENTRY_VALIDATED))
+		storeDirUpdateSwapSize(e->swap_file_number, e->swap_file_sz, -1);
 	if (!EBIT_TEST(e->flag, KEY_PRIVATE))
 	    storeDirSwapLog(e, SWAP_LOG_DEL);
     }
