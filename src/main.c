@@ -525,10 +525,6 @@ mainInitialize(void)
 	    eventAdd("start_announce", start_announce, NULL, 3600.0, 1);
 	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10.0, 1);
 	eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 15.0, 1);
-#if USE_WCCP
-	if (Config.Wccp.router.s_addr != inet_addr("0.0.0.0"))
-	    eventAdd("wccpHereIam", wccpHereIam, NULL, 10.0, 1);
-#endif
     }
     configured_once = 1;
 }

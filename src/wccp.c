@@ -103,14 +103,13 @@ void
 wccpInit(void)
 {
     debug(80, 5) ("wccpInit: Called\n");
-
     memset(&wccp_here_i_am, '\0', sizeof(wccp_here_i_am));
     wccp_here_i_am.type = htonl(WCCP_HERE_I_AM);
     wccp_here_i_am.version = htonl(WCCP_VERSION);
     wccp_here_i_am.revision = htonl(WCCP_REVISION);
-
     change = 1;
-
+    if (Config.Wccp.router.s_addr != any_addr.s_addr)
+	eventAdd("wccpHereIam", wccpHereIam, NULL, 10.0, 1);
 }
 
 void
