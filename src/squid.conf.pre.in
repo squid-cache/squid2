@@ -580,6 +580,13 @@ debug_options ALL,1
 #Default:
 #refresh_pattern 	.	0 20% 4320
 
+#  TAG: reference_age
+#	If set, objects which have not been referenced for this amount
+#	of time will be purged from the cache.  This is the only
+#	parameter for removing cache objects except when the disk space
+#	reaches the high water mark.  By default reference_age is 
+#	disabled.
+#reference_age 0
 
 #  TAG: quick_abort
 #	By default the cache continues to retrieve objects from
