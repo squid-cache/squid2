@@ -244,7 +244,6 @@ icmpRecv(int unused1, void *unused2)
 	&fromlen);
     debug(37, 9, "icmpRecv: %d bytes from %s\n", n, inet_ntoa(from.sin_addr));
     ip = (struct iphdr *) (void *) pkt;
-    iphdrlen = ip->ip_hl << 2;
 #if HAVE_IP_HL 
     iphdrlen = ip->ip_hl << 2;
 #else
