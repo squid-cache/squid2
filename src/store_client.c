@@ -91,10 +91,16 @@ storeClientListAdd(StoreEntry * e, void *data)
     sc->swapin_fd = -1;
     sc->flags.disk_io_pending = 0;
     sc->entry = e;
-    if (e->store_status == STORE_PENDING && mem->swapout.fd == -1)
+    if (e->store_status == STORE_PENDING && mem->swapout.fd == -1) {
 	sc->type = STORE_MEM_CLIENT;
-    else
+	/* assert we'll be able to get the data we want */
+	assert(mem->inmem_lo == 0);
+    } else {
 	sc->type = STORE_DISK_CLIENT;
+	/* assert we'll be able to get the data we want */
+	/* maybe we should open swapin_fd here */
+	assert(e->swap_file_number > -1);
+    }
     for (T = &mem->clients; *T; T = &(*T)->next);
     *T = sc;
 }
