@@ -864,7 +864,7 @@ storeEntryValidLength(const StoreEntry * e)
 	return 1;
     debug(20, 3) ("storeEntryValidLength: %d bytes too %s; '%s'\n",
 	diff < 0 ? -diff : diff,
-	diff < 0 ? "small" : "big",
+	diff < 0 ? "big" : "small",
 	storeKeyText(e->key));
     return 0;
 }
