@@ -161,11 +161,15 @@ commCancelRWHandler(int fd)
 {
     RWStateData *RWState = fd_table[fd].rwstate;
     if (RWState) {
+	if (RWState->free) {
+	    RWState->free(RWState->buf);
+	    RWState->buf = NULL;
+	}
 	RWState->handler = NULL;
 	RWState->handler_data = NULL;
+        commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
     }
 }
-
 
 static void
 RWStateCallbackAndFree(int fd, int code)
@@ -1036,18 +1040,16 @@ comm_select(time_t sec)
 		continue;
 	    if (FD_ISSET(fd, &readfds)) {
 		debug(5, 6, "comm_select: FD %d ready for reading\n", fd);
-		if (fd_table[fd].read_handler) {
-		    hdl = fd_table[fd].read_handler;
-		    fd_table[fd].read_handler = 0;
+		if ((hdl = fd_table[fd].read_handler)) {
+		    fd_table[fd].read_handler = NULL;
 		    hdl(fd, fd_table[fd].read_data);
 		    comm_select_incoming();
 		}
 	    }
 	    if (FD_ISSET(fd, &writefds)) {
 		debug(5, 5, "comm_select: FD %d ready for writing\n", fd);
-		if (fd_table[fd].write_handler) {
-		    hdl = fd_table[fd].write_handler;
-		    fd_table[fd].write_handler = 0;
+		if ((hdl = fd_table[fd].write_handler)) {
+		    fd_table[fd].write_handler = NULL;
 		    hdl(fd, fd_table[fd].write_data);
 		    comm_select_incoming();
 		}
