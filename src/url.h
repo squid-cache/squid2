@@ -76,6 +76,8 @@ struct _request {
     struct in_addr client_addr;
     char *headers;
     size_t headers_sz;
+    char *body;
+    size_t body_sz;
 };
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));
