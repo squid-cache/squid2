@@ -1190,6 +1190,7 @@ AC_CHECK_HEADERS( \
 	stdlib.h \
 	string.h \
 	strings.h \
+	sys/bitypes.h \
 	sys/file.h \
 	sys/ioctl.h \
 	sys/mount.h \
