@@ -301,9 +301,7 @@ static void protoCancelTimeout(fd, entry)
     if (!fd)
 	fd = fd_of_first_client(entry);
     if (fd < 1) {
-	debug(17, 1, "protoCancelTimeout: WARNING! Unable to locate a client FD\n");
-	debug(17, 1, "--> <URL:%s>\n", entry->url);
-	debug(17, 5, "%s\n", storeToString(entry));
+	debug(17, 1, "protoCancelTimeout: No client for '%s'\n", entry->url);
 	return;
     }
     debug(17, 2, "protoCancelTimeout: FD %d <URL:%s>\n", fd, entry->url);
