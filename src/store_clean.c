@@ -115,7 +115,7 @@ storeDirClean(void *unused)
     if (k > 10)
 	k = 10;
     for (n = 0; n < k; n++) {
-	debug(36, 3, "storeDirClean: Cleaning file %d\n", files[n]);
+	debug(36, 3, "storeDirClean: Cleaning file %08X\n", files[n]);
 	sprintf(p2, "%s/%08X", p1, files[n]);
 	safeunlink(p2, 0);
     }
