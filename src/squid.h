@@ -233,6 +233,7 @@
 #ifdef HAVE_SYSLOG_H
 #ifdef _SQUID_AIX_
 #define _XOPEN_EXTENDED_SOURCE
+#define _XOPEN_SOURCE_EXTENDED 1
 #endif
 #include <syslog.h>
 #endif
