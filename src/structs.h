@@ -1272,6 +1272,9 @@ struct _peer {
 	unsigned int no_delay:1;
 #endif
 	unsigned int allow_miss:1;
+#if USE_CARP
+	unsigned int carp:1;
+#endif
     } options;
     int weight;
     struct {
@@ -1300,7 +1303,7 @@ struct _peer {
     struct {
 	unsigned int hash;
 	double load_multiplier;
-	float load_factor;
+	double load_factor;	/* normalized weight value */
     } carp;
 #endif
     char *login;		/* Proxy authorization */

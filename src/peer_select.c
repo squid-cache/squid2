@@ -333,11 +333,6 @@ peerGetSomeNeighbor(ps_state * ps)
 	    code = CD_SIBLING_HIT;
     } else
 #endif
-#if USE_CARP
-    if ((p = carpSelectParent(request))) {
-	code = CARP;
-    } else
-#endif
     if ((p = netdbClosestParent(request))) {
 	code = CLOSEST_PARENT;
     } else if (peerSelectIcpPing(request, ps->direct, entry)) {
@@ -443,6 +438,10 @@ peerGetSomeParent(ps_state * ps)
 	return;
     if ((p = getDefaultParent(request))) {
 	code = DEFAULT_PARENT;
+#if USE_CARP
+    } else if ((p = carpSelectParent(request))) {
+	code = CARP;
+#endif
     } else if ((p = getRoundRobinParent(request))) {
 	code = ROUNDROBIN_PARENT;
     } else if ((p = getFirstUpParent(request))) {
