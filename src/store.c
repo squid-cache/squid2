@@ -1268,7 +1268,7 @@ static int storeDoRebuildFromDisk(data)
     /* load a number of objects per invocation */
     for (count = 0; count < data->speed; count++) {
 	if (!fgets(data->line_in, 4095, data->log))
-	    return 0;
+	    return 0;	/* We are done */
 
 	if ((++data->linecount & 0xFFF) == 0)
 	    debug(20, 1, "  %7d Lines read so far.\n", data->linecount);
@@ -1276,7 +1276,7 @@ static int storeDoRebuildFromDisk(data)
 	debug(20, 10, "line_in: %s", data->line_in);
 	if ((data->line_in[0] == '\0') || (data->line_in[0] == '\n') ||
 	    (data->line_in[0] == '#'))
-	    return 1;		/* skip bad lines */
+	    continue;		/* skip bad lines */
 
 	url[0] = log_swapfile[0] = '\0';
 	expires = squid_curtime;
@@ -1287,7 +1287,7 @@ static int storeDoRebuildFromDisk(data)
 		log_swapfile, url, &scan1, &scan2, &scan3) != 5) {
 	    if (opt_unlink_on_reload && log_swapfile[0])
 		safeunlink(log_swapfile, 0);
-	    return 1;
+	    continue;
 	}
 	expires = (time_t) scan1;
 	timestamp = (time_t) scan2;
@@ -1315,26 +1315,26 @@ static int storeDoRebuildFromDisk(data)
 		    if (opt_unlink_on_reload)
 			safeunlink(log_swapfile, 1);
 		}
-		return 1;
+		continue;
 	    }
 	    /* Empty swap file? */
 	    if (sb.st_size == 0) {
 		if (opt_unlink_on_reload)
 		    safeunlink(log_swapfile, 1);
-		return 1;
+		continue;
 	    }
 	    /* timestamp might be a little bigger than sb.st_mtime */
 	    delta = (int) (timestamp - sb.st_mtime);
 	    if (delta > REBUILD_TIMESTAMP_DELTA_MAX || delta < 0) {
 		/* this log entry doesn't correspond to this file */
 		data->clashcount++;
-		return 1;
+		continue;
 	    }
 	    /* Wrong size? */
 	    if (sb.st_size != size) {
 		/* this log entry doesn't correspond to this file */
 		data->clashcount++;
-		return 1;
+		continue;
 	    }
 	    timestamp = sb.st_mtime;
 	    debug(20, 10, "storeRebuildFromDisk: swap file exists: <URL:%s>: %s\n",
@@ -1347,7 +1347,7 @@ static int storeDoRebuildFromDisk(data)
 		if (opt_unlink_on_reload)
 		    safeunlink(swapfile, 1);
 		data->dupcount++;
-		return 1;
+		continue;
 	    }
 	    debug(20, 6, "storeRebuildFromDisk: Duplicate: <URL:%s>\n", url);
 	    storeRelease(e);
@@ -1359,18 +1359,18 @@ static int storeDoRebuildFromDisk(data)
 	    if (opt_unlink_on_reload)
 		safeunlink(swapfile, 1);
 	    data->expcount++;
-	    return 1;
+	    continue;
 	}
 	/* Is the swap file number already taken? */
 	if (file_map_bit_test(sfileno)) {
-	    /* Yes is is, we can't use this swapfile */
-	    debug(20, 1, "storeRebuildFromDisk: Line %d Active clash: file #%d\n",
+	    /* Yes it is, we can't use this swapfile */
+	    debug(20, 2, "storeRebuildFromDisk: Line %d Active clash: file #%d\n",
 		data->linecount,
 		sfileno);
 	    debug(20, 3, "storeRebuildFromDisk: --> <URL:%s>\n", url);
 	    /* don't unlink the file!  just skip this log entry */
 	    data->clashcount++;
-	    return 1;
+	    continue;
 	}
 	/* update store_swap_size */
 	store_swap_size += (int) ((size + 1023) >> 10);
