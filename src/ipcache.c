@@ -135,8 +135,8 @@ static dlink_list lru_list;
 static int ipcache_testname(void);
 #if OLD_CODE
 static QS ipcache_compareLastRef;
-#endif
 static QS ipcache_reverseLastRef;
+#endif
 static PF ipcache_dnsHandleRead;
 static ipcache_entry *ipcache_parsebuffer(const char *buf, dnsserver_t *);
 static void ipcache_release(ipcache_entry *);
@@ -289,7 +289,6 @@ ipcache_compareLastRef(const void *A, const void *B)
 	return (-1);
     return (0);
 }
-#endif
 
 static int
 ipcache_reverseLastRef(const void *A, const void *B)
@@ -303,6 +302,7 @@ ipcache_reverseLastRef(const void *A, const void *B)
 	return (-1);
     return (0);
 }
+#endif
 
 static int
 ipcacheExpiredEntry(ipcache_entry * i)
