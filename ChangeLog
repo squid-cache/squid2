@@ -1,3 +1,18 @@
+Changes to squid-1.1.15 ():
+
+	- Fixed bug in diskHandleWrite().  'break' should be 'continue'
+	  (Michael O'Reilly).
+	- Fixed a storeDoRebuildFromDisk() bug; needed to check for
+	  swapfile < 0 earlier.
+	- HEAD requests should not be given to passStart() (Taketo Kabe).
+	- Generate an 'INVALID URL' error if a hostname contains
+	  illegal characters.
+	- Added keyword 'all' for inside_firewall option (Javier Achirica).
+	- Fixed logging of wrong URL for requests changed by a
+	  redirector.
+	- Added first-cut RELOAD_INTO_IMS feature.  #ifdef'd to
+	  protect the innocent.
+
 Changes to squid-1.1.14 (July 11, 1997):
 
 	- Another try at log_url crap.  Added icpState->log_url

@@ -880,11 +880,11 @@ don't have to compile BIND yourself, a fat (m68k i486 hppa sparc)
 Installer package for BIND-4.9.5 is available through
 ftp://ftp.nluug.nl/pub/comp/next/Internet.
 
-NB: It might be necessary to have BIND running to run Squid under
-NEXTSTEP releases before NEXTSTEP 3.3+patch. Earlier releases of
-NEXTSTEP did not have a multithreaded netinfo resolver, which means
-that Squid's use of multiple dnsserver processes to prevent blocking is
-thwarted by netinfo blocking on every request.
+NB: Under NEXTSTEP, it is currently necessary to have BIND running on
+the system that runs Squid. The dnsserver processes query BIND directly
+and bypass both Netinfo and YP. (It does so because the Netinfo- and
+YP-aware gethostbyname sets h_errno wrong. If someone knows a solution
+for this, please inform Gerben_Wierda@RnA.nl).
 
 Gerben Wierda <Gerben_Wierda@RnA.nl>
 
