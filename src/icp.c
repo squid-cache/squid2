@@ -154,6 +154,9 @@ int _delay_fetch;
 
 static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
+#if FORW_VIA_LOG
+static FILE *forw_via_log = NULL;
+#endif
 
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
@@ -372,7 +375,14 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (!strcasecmp(t, "Keep-Alive"))
 	    BIT_SET(request->flags, REQ_PROXY_KEEPALIVE);
 #endif
-    if ((t = mime_get_header(request_hdr, "Via")))
+#if FORW_VIA_LOG
+    if (forw_via_log)
+	fprintf(forw_via_log, "%d.%06d|%s",
+		(int) current_time.tv_sec,
+		(int) current_time.tv_usec,
+		icpState->log_url);
+#endif
+    if ((t = mime_get_header(request_hdr, "Via"))) {
 	if (strstr(t, ThisCache)) {
 	    if (!icpState->accel) {
 		debug(12, 1, "WARNING: Forwarding loop detected for '%s'\n",
@@ -381,9 +391,23 @@ icpParseRequestHeaders(icpStateData * icpState)
 	    }
 	    BIT_SET(request->flags, REQ_LOOPDETECT);
 	}
+    }
+#if FORW_VIA_LOG
+        if (forw_via_log)
+	    fprintf(forw_via_log, "|%s", t ? t : null_string);
+#endif
 #if USE_USERAGENT_LOG
     if ((t = mime_get_header(request_hdr, "User-Agent")))
 	logUserAgent(fqdnFromAddr(icpState->peer.sin_addr), t);
+#endif
+#if FORW_VIA_LOG
+    if (forw_via_log) {
+        t = mime_get_header(request_hdr, "X-Forwarded-For");
+	fprintf(forw_via_log, "|%s%s%s\n",
+	    t ? t : null_string,
+	    t ? ", " : null_string,
+	    inet_ntoa(icpState->peer.sin_addr));
+    }
 #endif
     request->max_age = -1;
     if ((t = mime_get_header(request_hdr, "Cache-control"))) {
@@ -2209,3 +2233,35 @@ icpHandleAbort(int fd, StoreEntry * entry, void *data)
 	icpState,
 	400);
 }
+
+#if FORW_VIA_LOG
+#define FV_PATH "/usr/local/squid/logs/forw_via.log"
+void
+icpInit(int op)
+{
+    int i;
+    LOCAL_ARRAY(char, from, MAXPATHLEN);
+    LOCAL_ARRAY(char, to, MAXPATHLEN);
+debug(0,0,"icpInit: op=%d\n", op);
+    if (op == 0) {
+	if (forw_via_log != NULL)
+		fclose(forw_via_log);
+	forw_via_log = fopen(FV_PATH, "a+");
+	if (forw_via_log == NULL)
+		perror(FV_PATH);
+    } else if (op == 1 && forw_via_log != NULL) {
+	for (i = Config.Log.rotateNumber; i > 1;) {
+	    i--;
+	    sprintf(from, "%s.%d", FV_PATH, i - 1);
+	    sprintf(to, "%s.%d", FV_PATH, i);
+	    rename(from, to);
+	}
+	if (Config.Log.rotateNumber > 0) {
+	    sprintf(to, "%s.%d", FV_PATH, 0);
+	    rename(FV_PATH, to);
+	}
+	return icpInit(0);
+    }
+debug(0,0,"icpInit: %s is FD %d\n", FV_PATH, fileno(forw_via_log));
+}
+#endif
