@@ -344,7 +344,7 @@ int main(argc, argv)
 	case COMM_SHUTDOWN:
 	    /* delayed close so we can transmit while shutdown pending */
 	    if (theUdpConnection > 0) {
-		comm_close (theUdpConnection);
+		comm_close(theUdpConnection);
 		theUdpConnection = -1;
 	    }
 	    if (shutdown_pending) {

@@ -727,24 +727,24 @@ int icpUdpReply(fd, queue)
 	0,
 	0);
     while ((queue = UdpQueueHead)) {
-        debug(12, 5, "icpUdpReply: FD %d sending %d bytes to %s port %d\n",
+	debug(12, 5, "icpUdpReply: FD %d sending %d bytes to %s port %d\n",
 	    fd,
 	    queue->len,
 	    inet_ntoa(queue->address.sin_addr),
 	    ntohs(queue->address.sin_port));
-        x = comm_udp_sendto(fd,
-		&queue->address,
-		sizeof(struct sockaddr_in),
-	        queue->msg,
-		queue->len);
+	x = comm_udp_sendto(fd,
+	    &queue->address,
+	    sizeof(struct sockaddr_in),
+	    queue->msg,
+	    queue->len);
 	if (x < 0) {
 	    if (errno != EWOULDBLOCK && errno != EAGAIN)
-	        result = COMM_ERROR;
+		result = COMM_ERROR;
 	    break;
 	}
 	UdpQueueHead = queue->next;
-        safe_free(queue->msg);
-        safe_free(queue);
+	safe_free(queue->msg);
+	safe_free(queue);
     }
     /* Reinstate handler if needed */
     if (UdpQueueHead) {
