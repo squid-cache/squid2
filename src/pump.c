@@ -312,10 +312,10 @@ pumpClose(void *data)
     assert(!EBIT_TEST(p->flags, PUMP_FLAG_CLOSING));
     EBIT_SET(p->flags, PUMP_FLAG_CLOSING);
     if (p->s_fd > -1)
-        comm_remove_close_handler(p->s_fd, pumpServerClosed, p);
+	comm_remove_close_handler(p->s_fd, pumpServerClosed, p);
     if (req != NULL && req->store_status == STORE_PENDING) {
-        storeUnregister(req, p);
-        storeAbort(req, 0);
+	storeUnregister(req, p);
+	storeAbort(req, 0);
     }
     if (rep != NULL && rep->store_status == STORE_PENDING) {
 	/*
@@ -323,14 +323,14 @@ pumpClose(void *data)
 	 * abort handler (httpAbort) gets called and the server-side
 	 * FD gets closed.
 	 */
-        storeAbort(rep, 1);
+	storeAbort(rep, 1);
     }
     if (p->s_fd > -1) {
-        comm_close(p->s_fd);
-        p->s_fd = -1;
+	comm_close(p->s_fd);
+	p->s_fd = -1;
     }
     if (p->c_fd > -1) {
-        comm_close(p->c_fd);
+	comm_close(p->c_fd);
     }
     /* This tests that pumpFree() got called somewhere */
     assert(0 == cbdataValid(p));
@@ -405,7 +405,7 @@ pumpServerClosed(int fd, void *data)
      * we have been called from comm_close for the server side, so
      * just need to clean up the client side
      */
-    assert(p->s_fd == fd):
+  assert(p->s_fd == fd):
     p->s_fd = -1;
     comm_close(p->c_fd);
 }

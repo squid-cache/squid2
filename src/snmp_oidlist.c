@@ -1,3 +1,4 @@
+
 #include "squid.h"
 #include "snmp.h"
 #include "asn1.h"
@@ -86,8 +87,8 @@ genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen,
 		Ptr[i] = 1;
 	    if (getRowFn)
 		if (!getRowFn(&Ptr[mibTailLen - mibRowLen], nullOid)) {
-			debug(49, 5) ("genericGetNextFn: End of Table.\n");
-		    	return NULL;
+		    debug(49, 5) ("genericGetNextFn: End of Table.\n");
+		    return NULL;
 		}
 	}
     } else {

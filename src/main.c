@@ -497,7 +497,6 @@ mainInitialize(void)
 	pconnInit();
 	eventInit();
     }
-
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0 && (!Config2.Accel.on || Config.onoff.accel_with_proxy))
 	neighbors_open(theOutIcpConnection);

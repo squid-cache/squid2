@@ -38,7 +38,7 @@ static HttpHdrExtField *httpHdrExtFieldDoCreate(const char *name, int name_len, 
 /* implementation */
 
 static HttpHdrExtField *
-httpHdrExtFieldDoCreate(const char *name, int name_len, 
+httpHdrExtFieldDoCreate(const char *name, int name_len,
     const char *value, int value_len)
 {
     HttpHdrExtField *f = xcalloc(1, sizeof(HttpHdrExtField));
@@ -51,7 +51,7 @@ HttpHdrExtField *
 httpHdrExtFieldCreate(const char *name, const char *value)
 {
     return httpHdrExtFieldDoCreate(
-	name, strlen(name), 
+	name, strlen(name),
 	value, strlen(value));
 }
 
@@ -80,7 +80,7 @@ httpHdrExtFieldParseCreate(const char *field_start, const char *field_end)
     }
     return httpHdrExtFieldDoCreate(
 	field_start, name_end - field_start,
-	value_start, field_end - value_start);				   
+	value_start, field_end - value_start);
 }
 
 void

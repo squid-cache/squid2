@@ -1032,7 +1032,7 @@ statMedianSvc(int interval, int which)
 int
 get_median_svc(int interval, int which)
 {
-	return(int) statMedianSvc(interval, which);
+    return (int) statMedianSvc(interval, which);
 }
 
 StatCounters *

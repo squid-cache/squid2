@@ -46,20 +46,21 @@ static size_t mem_idle_limit = 0;
 
 /* memory pool accounting */
 static MemPoolMeter TheMeter;
-static gb_t mem_traffic_volume = {0, 0};
+static gb_t mem_traffic_volume =
+{0, 0};
 static Stack Pools;
 
 /* local prototypes */
 static void memPoolDescribe(const MemPool * pool);
 
 
-static double 
+static double
 toMB(size_t size)
 {
     return ((double) size) / MB;
 }
 
-static size_t 
+static size_t
 toKB(size_t size)
 {
     return (size + 1024 - 1) / 1024;
@@ -132,7 +133,7 @@ memPoolMeterReport(const MemPoolMeter * pm, size_t obj_size,
 	alloc_count,
 	toKB(obj_size * pm->alloc.level),
 	toKB(obj_size * pm->alloc.hwater_level),
-	(double)((squid_curtime - pm->alloc.hwater_stamp)/3600.),
+	(double) ((squid_curtime - pm->alloc.hwater_stamp) / 3600.),
 	xpercentInt(obj_size * pm->alloc.level, TheMeter.alloc.level),
     /* in use */
 	inuse_count,
@@ -153,7 +154,7 @@ memPoolMeterReport(const MemPoolMeter * pm, size_t obj_size,
 /* MemMeter */
 
 void
-memMeterSyncHWater(MemMeter *m)
+memMeterSyncHWater(MemMeter * m)
 {
     assert(m);
     if (m->hwater_level < m->level) {

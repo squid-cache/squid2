@@ -1658,7 +1658,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     /* handle internal objects */
     if (*url == '/' && strncmp(url, "/squid-internal/", 16) == 0) {
 	/* prepend our name & port */
-	http->uri = xstrdup(urlInternal(NULL, url+16));
+	http->uri = xstrdup(urlInternal(NULL, url + 16));
 	http->internal = 1;
     }
     /* see if we running in Config2.Accel.on, if so got to convert it to URL */

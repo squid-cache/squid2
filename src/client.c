@@ -1,8 +1,4 @@
 
-
-
-
-
 /*
  * $Id$
  *
@@ -237,7 +233,7 @@ main(int argc, char *argv[])
 		    char *t;
 		    strncpy(extra_hdrs, optarg, sizeof(extra_hdrs));
 		    while ((t = strstr(extra_hdrs, "\\n")))
-			*t = '\r', *(t+1) = '\n';
+			*t = '\r', *(t + 1) = '\n';
 		}
 		break;
 	    case 'v':

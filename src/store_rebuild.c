@@ -560,7 +560,7 @@ storeAddDiskRestore(const cache_key * key,
     e->ping_status = PING_NONE;
     EBIT_CLR(e->flag, ENTRY_VALIDATED);
     storeDirMapBitSet(e->swap_file_number);
-    storeHashInsert(e, key); /* do it after we clear KEY_PRIVATE */
+    storeHashInsert(e, key);	/* do it after we clear KEY_PRIVATE */
     return e;
 }
 

@@ -67,7 +67,7 @@ void
 eventAddIsh(const char *name, EVH * func, void *arg, time_t delta_ish)
 {
     if (delta_ish >= 3) {
-	const time_t two_third = (2*delta_ish)/3;
+	const time_t two_third = (2 * delta_ish) / 3;
 	delta_ish = two_third + (squid_random() % two_third);
     }
     eventAdd(name, func, arg, delta_ish);

@@ -58,15 +58,15 @@ static int snmpCommunityCheck(char *b, oid * name, int namelen);
 void
 snmpAclCheckStart(void *data)
 {
-    snmp_request_t * rq=(snmp_request_t *) data;
+    snmp_request_t *rq = (snmp_request_t *) data;
     communityEntry *cp;
     for (cp = Config.Snmp.communities; cp != NULL; cp = cp->next)
-        if (!strcmp((char *) rq->community, cp->name) && cp->acls) {
-            rq->acl_checklist = aclChecklistCreate(cp->acls,
-                NULL, rq->from.sin_addr, NULL, NULL);
-            aclNBCheck(rq->acl_checklist, snmpAclCheckDone, rq);
-            return;
-        }
+	if (!strcmp((char *) rq->community, cp->name) && cp->acls) {
+	    rq->acl_checklist = aclChecklistCreate(cp->acls,
+		NULL, rq->from.sin_addr, NULL, NULL);
+	    aclNBCheck(rq->acl_checklist, snmpAclCheckDone, rq);
+	    return;
+	}
     snmpAclCheckDone(ACCESS_ALLOWED, rq);
 }
 
@@ -88,22 +88,22 @@ snmpAclCheckDone(int answer, void *data)
     Community = rq->community;
 
     if (answer == ACCESS_DENIED) {
-        debug(49, 3) ("snmpAclCheckDone: ACCESS DENIED (source)\n");
-        snmpAgentParseDone(0, rq);
-        return;
+	debug(49, 3) ("snmpAclCheckDone: ACCESS DENIED (source)\n");
+	snmpAgentParseDone(0, rq);
+	return;
     }
     for (VarPtrP = &(PDU->variables);
-        *VarPtrP;
-        VarPtrP = &((*VarPtrP)->next_variable)) {
-        VarPtr = *VarPtrP;
+	*VarPtrP;
+	VarPtrP = &((*VarPtrP)->next_variable)) {
+	VarPtr = *VarPtrP;
 
-        /* access check for each variable */
+	/* access check for each variable */
 
-        if (!snmpCommunityCheck((char *) Community, VarPtr->name, VarPtr->name_length)) {
-            debug(49, 3) ("snmpAclCheckDone: ACCESS DENIED (requested oid).\n");
-            snmpAgentParseDone(0, rq);
-            return;
-        }
+	if (!snmpCommunityCheck((char *) Community, VarPtr->name, VarPtr->name_length)) {
+	    debug(49, 3) ("snmpAclCheckDone: ACCESS DENIED (requested oid).\n");
+	    snmpAgentParseDone(0, rq);
+	    return;
+	}
     }
     debug(49, 7) ("snmpAclCheckDone: done checking communities.\n");
     Session->community = Community;
@@ -111,17 +111,17 @@ snmpAclCheckDone(int answer, void *data)
     RespPDU = snmpAgentResponse(PDU);
     snmp_free_pdu(PDU);
     if (RespPDU == NULL) {
-        debug(49, 5) ("snmpAclCheckDone: failed, might forward.\n");
-        snmpAgentParseDone(2, rq);
-        return;
+	debug(49, 5) ("snmpAclCheckDone: failed, might forward.\n");
+	snmpAgentParseDone(2, rq);
+	return;
     }
     debug(49, 6) ("snmpAclCheckDone: reqid=%u errstat=%d.\n",
-        RespPDU->reqid,RespPDU->errstat);
+	RespPDU->reqid, RespPDU->errstat);
 
     /* Encode it */
     ret = snmp_build(Session, RespPDU, outbuf, &rq->outlen);
     snmp_free_pdu(RespPDU);
-    debug(49, 5) ("snmpAclCheckDone: ok ret=%d!\n",ret);
+    debug(49, 5) ("snmpAclCheckDone: ok ret=%d!\n", ret);
     snmpAgentParseDone(1, rq);
 }
 
@@ -132,25 +132,25 @@ snmpViewCheck(oid * name, int namelen, int viewIndex)
 
     debug(49, 8) ("snmpViewCheck: called with index=%d\n", viewIndex);
     for (vwp = Config.Snmp.views; vwp; vwp = vwp->next) {
-        if (vwp->viewIndex != viewIndex)
-            continue;
-        debug(49, 7) ("snmpViewCheck: found view for subtree:\n");
-        snmpDebugOid(7, vwp->viewSubtree, vwp->viewSubtreeLen);
-        if (vwp->viewSubtreeLen > namelen
-            || memcmp(vwp->viewSubtree, name, vwp->viewSubtreeLen * sizeof(oid)))
-            continue;
-        /* no wildcards here yet */
-        if (!savedvwp) {
-            savedvwp = vwp;
-        } else {
-            if (vwp->viewSubtreeLen > savedvwp->viewSubtreeLen)
-                savedvwp = vwp;
-        }
+	if (vwp->viewIndex != viewIndex)
+	    continue;
+	debug(49, 7) ("snmpViewCheck: found view for subtree:\n");
+	snmpDebugOid(7, vwp->viewSubtree, vwp->viewSubtreeLen);
+	if (vwp->viewSubtreeLen > namelen
+	    || memcmp(vwp->viewSubtree, name, vwp->viewSubtreeLen * sizeof(oid)))
+	    continue;
+	/* no wildcards here yet */
+	if (!savedvwp) {
+	    savedvwp = vwp;
+	} else {
+	    if (vwp->viewSubtreeLen > savedvwp->viewSubtreeLen)
+		savedvwp = vwp;
+	}
     }
     if (!savedvwp)
-        return FALSE;
+	return FALSE;
     if (savedvwp->viewType == VIEWINCLUDED)
-        return TRUE;
+	return TRUE;
     return FALSE;
 }
 
@@ -161,9 +161,9 @@ snmpCommunityCheck(char *b, oid * name, int namelen)
     debug(49, 9) ("snmpCommunityCheck: %s against:\n", b);
     snmpDebugOid(9, name, namelen);
     for (cp = Config.Snmp.communities; cp; cp = cp->next)
-        if (!strcmp(b, cp->name)) {
-            return snmpViewCheck(name, namelen, cp->readView);
-        }
+	if (!strcmp(b, cp->name)) {
+	    return snmpViewCheck(name, namelen, cp->readView);
+	}
     return 0;
 }
 
@@ -177,4 +177,3 @@ snmpInitAgentAuth()
     Session->community_len = 6;
     return 1;
 }
-

@@ -419,7 +419,7 @@ fvdbDumpForw(StoreEntry * e)
 }
 
 static
-void 
+void
 fvdbFreeEntry(void *data)
 {
     fvdb_entry *fv = data;

@@ -744,17 +744,17 @@ aclParseProxyAuth(void *data)
 static void
 aclParseSnmpComm(void *data)
 {
-    acl_snmp_comm **q=data;
+    acl_snmp_comm **q = data;
     acl_snmp_comm *p;
     char *t;
     t = strtok(NULL, w_space);
     if (t) {
-	p=xcalloc(1, sizeof(acl_snmp_comm));
-	p->name=xstrdup(t);
-	p->community=NULL;
-	*q=p;
+	p = xcalloc(1, sizeof(acl_snmp_comm));
+	p->name = xstrdup(t);
+	p->community = NULL;
+	*q = p;
     }
-    t=strtok(NULL, w_space);
+    t = strtok(NULL, w_space);
     return;
 }
 
