@@ -202,16 +202,16 @@ clientdbFreeMemory(void)
 
 #if SQUID_SNMP
 struct in_addr *
-client_entry(struct in_addr * current)
+client_entry(struct in_addr *current)
 {
     ClientInfo *c = NULL;
     char *key;
 
-    if(current){
+    if (current) {
 	key = inet_ntoa(*current);
 	hash_first(client_table);
 	while ((c = (ClientInfo *) hash_next(client_table))) {
-	    if(!strcmp(key, c->key))
+	    if (!strcmp(key, c->key))
 		break;
 	}
 	c = (ClientInfo *) hash_next(client_table);
@@ -220,10 +220,10 @@ client_entry(struct in_addr * current)
 	c = (ClientInfo *) hash_next(client_table);
     }
     hash_last(client_table);
-    if(c)
-        return (&c->addr);
+    if (c)
+	return (&c->addr);
     else
-	return(NULL);
+	return (NULL);
 
 }
 
@@ -241,7 +241,7 @@ snmp_meshCtblFn(variable_list * Var, snint * ErrP)
 
     debug(49, 6) ("snmp_meshCtblFn: Current : \n");
     snmpDebugOid(6, Var->name, Var->name_length);
- 
+
     snprintf(key, sizeof(key), "%d.%d.%d.%d", Var->name[LEN_SQ_NET + 3], Var->name[LEN_SQ_NET + 4],
 	Var->name[LEN_SQ_NET + 5], Var->name[LEN_SQ_NET + 6]);
     debug(49, 5) ("snmp_meshCtblFn: [%s] requested!\n", key);

@@ -496,7 +496,7 @@ extern void snmpConnectionClose(void);
 extern void snmpDebugOid(int lvl, oid * Name, snint Len);
 extern void addr2oid(struct in_addr addr, oid * Dest);
 extern struct in_addr *oid2addr(oid * id);
-extern struct in_addr *client_entry(struct in_addr * current);
+extern struct in_addr *client_entry(struct in_addr *current);
 extern variable_list *snmp_basicFn(variable_list *, snint *);
 extern variable_list *snmp_confFn(variable_list *, snint *);
 extern variable_list *snmp_sysFn(variable_list *, snint *);
@@ -1122,8 +1122,8 @@ extern void delayBytesIn(delay_id, int qty);
 extern int delayMostBytesWanted(const MemObject * mem, int max);
 extern delay_id delayMostBytesAllowed(const MemObject * mem);
 extern void delaySetStoreClient(StoreEntry * e, void *data, delay_id delay_id);
-void delayRegisterDelayIdPtr(delay_id *loc);
-void delayUnregisterDelayIdPtr(delay_id *loc);
+void delayRegisterDelayIdPtr(delay_id * loc);
+void delayUnregisterDelayIdPtr(delay_id * loc);
 #endif
 
 /* helper.c */

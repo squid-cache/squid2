@@ -471,4 +471,3 @@ snmp_prfProtoFn(variable_list * Var, snint * ErrP)
     snmp_var_free(Answer);
     return (NULL);
 }
-

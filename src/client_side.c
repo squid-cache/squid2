@@ -289,6 +289,11 @@ clientProcessExpired(void *data)
     }
     http->request->flags.refresh = 1;
     http->old_entry = http->entry;
+    /*
+     * Assert that 'http' is already a client of old_entry.  If 
+     * it is not, then the beginning of the object data might get
+     * freed from memory before we need to access it.
+     */
     assert(storeClientListSearch(http->old_entry->mem_obj, http));
     entry = storeCreateEntry(url,
 	http->log_uri,

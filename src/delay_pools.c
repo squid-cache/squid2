@@ -90,20 +90,20 @@ static OBJH delayPoolStats;
 static unsigned int
 delayIdPtrHash(const void *key, unsigned int n)
 {
-  /* Hashes actual POINTER VALUE.
-   * Assumes <= 256 hash buckets & even hash size.
-   * Assumes the most variation in pointers to inside
-   * medium size objects occurs in the 2nd and 3rd
-   * least significant bytes.
-   */
-  const char *ptr = (char *)&key;
+    /* Hashes actual POINTER VALUE.
+     * Assumes <= 256 hash buckets & even hash size.
+     * Assumes the most variation in pointers to inside
+     * medium size objects occurs in the 2nd and 3rd
+     * least significant bytes.
+     */
+    const char *ptr = (char *) &key;
 #if SIZEOF_VOID_P == 4
-  return (ptr[1] ^ ptr[2]) & (n - 1);
+    return (ptr[1] ^ ptr[2]) & (n - 1);
 #elif SIZEOF_VOID_P == 8
 #if WORDS_BIGENDIAN
-  return (ptr[5] ^ ptr[6]) & (n - 1);
+    return (ptr[5] ^ ptr[6]) & (n - 1);
 #else
-  return (ptr[1] ^ ptr[2]) & (n - 1);
+    return (ptr[1] ^ ptr[2]) & (n - 1);
 #endif
 #else
 #error What kind of a sick architecture are you on anyway?
@@ -113,8 +113,8 @@ delayIdPtrHash(const void *key, unsigned int n)
 static int
 delayIdPtrHashCmp(const void *a, const void *b)
 {
-  /* Sort by POINTER VALUE. */
-  return b - a;
+    /* Sort by POINTER VALUE. */
+    return b - a;
 }
 
 void
@@ -139,7 +139,7 @@ static void
 delayIdZero(void *hlink)
 {
     hash_link *h = hlink;
-    *(delay_id *)(h->key) = 0;
+    *(delay_id *) (h->key) = 0;
     xfree(h);
 }
 
@@ -147,30 +147,30 @@ void
 delayFreeDelayData()
 {
     safe_free(delay_data);
-    if(delay_id_ptr_hash) {
-      hashFreeItems(delay_id_ptr_hash, delayIdZero);
-      hashFreeMemory(delay_id_ptr_hash);
-      delay_id_ptr_hash = NULL;
+    if (delay_id_ptr_hash) {
+	hashFreeItems(delay_id_ptr_hash, delayIdZero);
+	hashFreeMemory(delay_id_ptr_hash);
+	delay_id_ptr_hash = NULL;
     }
 }
 
 void
-delayRegisterDelayIdPtr(delay_id *loc)
+delayRegisterDelayIdPtr(delay_id * loc)
 {
-   hash_link *lnk = xmalloc(sizeof(hash_link));
+    hash_link *lnk = xmalloc(sizeof(hash_link));
 
-   lnk->key = (char *)loc;
-   hash_join(delay_id_ptr_hash, lnk);
+    lnk->key = (char *) loc;
+    hash_join(delay_id_ptr_hash, lnk);
 }
 
 void
-delayUnregisterDelayIdPtr(delay_id *loc)
+delayUnregisterDelayIdPtr(delay_id * loc)
 {
-   hash_link *lnk = hash_lookup(delay_id_ptr_hash, loc);
+    hash_link *lnk = hash_lookup(delay_id_ptr_hash, loc);
 
-   assert(lnk);
-   hash_remove_link(delay_id_ptr_hash, lnk);
-   xxfree(lnk);
+    assert(lnk);
+    hash_remove_link(delay_id_ptr_hash, lnk);
+    xxfree(lnk);
 }
 
 void
