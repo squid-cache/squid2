@@ -134,14 +134,12 @@
 #define SQUID_UDP_SO_RCVBUF 16384
 #endif
 
-#ifndef HAVE_MEMCPY
+#ifdef HAVE_MEMCPY
 #define xmemcpy(d,s,n) memcpy((d),(s),(n))
 #elif HAVE_BCOPY
 #define xmemcpy(d,s,n) bcopy((s),(d),(n))
-#elif HAVE_MEMMOVE
-#define xmemcpy(d,s,n) memcpy((d),(s),(n))
 #else
-#define xmemcpy(d,s,n) memcpy((d),(s),(n))
+#define xmemcpy(d,s,n) memmove((d),(s),(n))
 #endif
 
 #endif /* _CONFIG_H_ */
