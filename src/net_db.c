@@ -662,18 +662,11 @@ int
 netdbHostPeerRtt(const char *host, peer * peer)
 {
 #if USE_ICMP
-    netdbEntry *n = netdbLookupHost(host);
-    net_db_peer *p;
-    int i;
-    if (NULL == n)
-	return 0;
-    p = n->peers;
-    for (i = 0; i < n->n_peers; i++, p++) {
-	if (strcmp(p->peername, peer->host))
-	    continue;
-	if (p->expires < squid_curtime)
-	    break;
-	return p->rtt;
+    const netdbEntry *n = netdbLookupHost(host);
+    if (n) {
+	const net_db_peer *p = netdbPeerByName(n, peer->host);
+	if (p && p->expires >= squid_curtime)
+	    return (int) (p->rtt + 0.5);
     }
 #endif
     return 0;
