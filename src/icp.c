@@ -1480,7 +1480,7 @@ icpHandleUdp(int sock, void *not_used)
 
     commSetSelect(sock, COMM_SELECT_READ, icpHandleUdp, NULL, 0);
     from_len = sizeof(from);
-    memset(&from, 0, from_len);
+    memset(&from, '\0', from_len);
     len = recvfrom(sock,
 	buf,
 	SQUID_UDP_SO_RCVBUF - 1,

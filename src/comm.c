@@ -590,7 +590,7 @@ comm_cleanup_fd_entry(int fd)
 {
     FD_ENTRY *conn = &fd_table[fd];
     RWStateCallbackAndFree(fd, COMM_ERROR);
-    memset(conn, 0, sizeof(FD_ENTRY));
+    memset(conn, '\0', sizeof(FD_ENTRY));
     return 0;
 }
 

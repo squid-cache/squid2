@@ -323,7 +323,7 @@ gopher_url_parser(const char *url, char *host, int *port, char *type_id, char *r
 	request[0] = '\0';
     } else {
 	/* convert %xx to char */
-	(void) url_convert_hex(request, 0);
+	url_convert_hex(request, 0);
     }
 
     host[0] = '\0';

@@ -514,7 +514,7 @@ mainReinitialize(void)
     dnsOpenServers();
     redirectOpenServers();
     serverConnectionsOpen();
-    (void) ftpInitialize();
+    ftpInitialize();
     if (theOutIcpConnection >= 0 && (!httpd_accel_mode || Config.Accel.withProxy))
 	neighbors_open(theOutIcpConnection);
     debug(1, 0, "Ready to serve requests.\n");
@@ -566,7 +566,7 @@ mainInitialize(void)
     dnsOpenServers();
     redirectOpenServers();
     useragentOpenLog();
-    (void) ftpInitialize();
+    ftpInitialize();
 
 #if MALLOC_DBG
     malloc_debug(0, malloc_debug_level);
@@ -695,7 +695,7 @@ main(int argc, char **argv)
 	    storeRotateLog();	/* store.log */
 	    stat_rotate_log();	/* access.log */
 	    useragentRotateLog();	/* useragent.log */
-	    (void) ftpInitialize();
+	    ftpInitialize();
 	    icmpOpen();
 	    rotate_pending = 0;
 	}

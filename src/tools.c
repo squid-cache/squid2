@@ -134,11 +134,11 @@ releaseServerSockets(void)
 {
     /* Release the main ports as early as possible */
     if (theHttpConnection >= 0)
-	(void) close(theHttpConnection);
+	close(theHttpConnection);
     if (theInIcpConnection >= 0)
-	(void) close(theInIcpConnection);
+	close(theInIcpConnection);
     if (theOutIcpConnection >= 0 && theOutIcpConnection != theInIcpConnection)
-	(void) close(theOutIcpConnection);
+	close(theOutIcpConnection);
 }
 
 static char *
@@ -698,7 +698,7 @@ squid_signal(int sig, void (*func) _PARAMS((int)), int flags)
     if (sigaction(sig, &sa, NULL) < 0)
 	debug(50, 0, "sigaction: sig=%d func=%p: %s\n", sig, func, xstrerror());
 #else
-    (void) signal(sig, func);
+    signal(sig, func);
 #endif
 }
 

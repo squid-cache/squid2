@@ -1002,7 +1002,7 @@ storeAppend(StoreEntry * e, const char *data, int len)
 		storeStartDeleteBehind(e);
 	}
 	store_mem_size += len;
-	(void) mem->data->mem_append(mem->data, data, len);
+	mem->data->mem_append(mem->data, data, len);
 	mem->e_current_len += len;
     }
     if (e->store_status != STORE_ABORTED && !BIT_TEST(e->flag, DELAY_SENDING))
@@ -2151,7 +2151,7 @@ storeCopy(const StoreEntry * e, int stateoffset, int maxSize, char *buf, int *si
 	s = maxSize;
     debug(20, 6, "storeCopy: copying %d bytes at offset %d\n", s, stateoffset);
     if (s > 0)
-	(void) mem->data->mem_copy(mem->data, stateoffset, buf, s);
+	mem->data->mem_copy(mem->data, stateoffset, buf, s);
     return *size = s;
 }
 
@@ -2259,7 +2259,7 @@ storeClientCopy(StoreEntry * e,
     /* update the lowest requested offset */
     mem->clients[ci].last_offset = stateoffset;
     if (sz > 0)
-	(void) mem->data->mem_copy(mem->data, stateoffset, buf, sz);
+	mem->data->mem_copy(mem->data, stateoffset, buf, sz);
     /* see if we can get rid of some data if we are in "delete behind" mode . */
     if (BIT_TEST(e->flag, DELETE_BEHIND))
 	storeDeleteBehind(e);
