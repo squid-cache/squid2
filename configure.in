@@ -305,6 +305,7 @@ AC_CHECK_FUNCS(\
 	memcpy \
 	memmove \
 	mktime \
+	pw_encrypt \
 	regcomp \
 	regexec \
 	regfree \
