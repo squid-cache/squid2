@@ -16,6 +16,7 @@ Changes to squid-1.0 (June 14, 1996):
 	- Added disabling of a neighbor cache if 95% of replies are
 	  UDP_DENIED.
 	- Added BSD->POSIX signal() macros for Solaris
+	- Added accounting for misc memory/data structures
 
 Changes to squid-1.0.beta17 (June 12, 1996):
 
