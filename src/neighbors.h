@@ -42,6 +42,10 @@ typedef struct _dom_list {
     struct _dom_list *next;
 } dom_list;
 
+/* bitfields for edge->options */
+#define NEIGHBOR_PROXY_ONLY 0x01
+#define NEIGHBOR_NO_QUERY   0x02
+
 #define EDGE_MAX_ADDRESSES 10
 #define RTT_AV_FACTOR      1000
 struct _edge {
@@ -63,7 +67,7 @@ struct _edge {
     icp_common_t header;
     dom_list *domains;
     struct _acl_list *acls;
-    int proxy_only;
+    int options;
     int weight;
     time_t last_fail_time;	/* detect down dumb caches */
     struct in_addr addresses[10];
@@ -86,7 +90,7 @@ struct neighbor_cf {
     char *type;
     int http_port;
     int icp_port;
-    int proxy_only;
+    int options;
     int weight;
     dom_list *domains;
     struct _acl_list *acls;

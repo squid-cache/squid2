@@ -389,7 +389,7 @@ static void parseCacheHostLine()
     char *token = NULL;
     u_short http_port = CACHE_HTTP_PORT;
     u_short icp_port = CACHE_ICP_PORT;
-    int proxy_only = 0;
+    int options = 0;
     int weight = 1;
     int i;
 
@@ -405,7 +405,9 @@ static void parseCacheHostLine()
     icp_port = (u_short) i;
     while ((token = strtok(NULL, w_space))) {
 	if (!strcasecmp(token, "proxy-only")) {
-	    proxy_only = 1;
+	    options |= NEIGHBOR_PROXY_ONLY;
+	} else if (!strcasecmp(token, "no-query")) {
+	    options |= NEIGHBOR_NO_QUERY;
 	} else if (!strncasecmp(token, "weight=", 7)) {
 	    weight = atoi(token + 7);
 	} else {
@@ -415,7 +417,7 @@ static void parseCacheHostLine()
     }
     if (weight < 1)
 	weight = 1;
-    neighbors_cf_add(hostname, type, http_port, icp_port, proxy_only, weight);
+    neighbors_cf_add(hostname, type, http_port, icp_port, options, weight);
 }
 
 static void parseHostDomainLine()

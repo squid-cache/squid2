@@ -576,7 +576,7 @@ int proxyhttpStart(e, url, entry)
     debug(11, 10, "proxyhttpStart: HTTP request header:\n%s\n",
 	entry->mem_obj->mime_hdr);
 
-    if (e->proxy_only)
+    if (e->options & NEIGHBOR_PROXY_ONLY)
 	storeStartDeleteBehind(entry);
 
     /* Create socket. */

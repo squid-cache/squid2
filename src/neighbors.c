@@ -426,6 +426,8 @@ int neighborsUdpPing(proto)
 
 	if (!edgeWouldBePinged(e, proto->request))
 	    continue;		/* next edge */
+	if (e->options & NEIGHBOR_NO_QUERY)
+	    continue;
 
 	debug(15, 4, "neighborsUdpPing: pinging cache %s for <URL:%s>\n",
 	    e->host, url);
@@ -703,12 +705,12 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
     }
 }
 
-void neighbors_cf_add(host, type, http_port, icp_port, proxy_only, weight)
+void neighbors_cf_add(host, type, http_port, icp_port, options, weight)
      char *host;
      char *type;
      int http_port;
      int icp_port;
-     int proxy_only;
+     int options;
      int weight;
 {
     struct neighbor_cf *t, *u;
@@ -718,7 +720,7 @@ void neighbors_cf_add(host, type, http_port, icp_port, proxy_only, weight)
     t->type = xstrdup(type);
     t->http_port = http_port;
     t->icp_port = icp_port;
-    t->proxy_only = proxy_only;
+    t->options = options;
     t->weight = weight;
     t->next = (struct neighbor_cf *) NULL;
 
@@ -833,7 +835,7 @@ void neighbors_init()
 	e = xcalloc(1, sizeof(edge));
 	e->http_port = t->http_port;
 	e->icp_port = t->icp_port;
-	e->proxy_only = t->proxy_only;
+	e->options = t->options;
 	e->weight = t->weight;
 	e->host = t->host;
 	e->domains = t->domains;
