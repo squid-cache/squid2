@@ -424,6 +424,10 @@ void ftpSendRequest(fd, data)
 	sprintf(tbuf, "-P %d ", data->request->port);
 	strcat(buf, tbuf);
     }
+    if ((s = getVisibleHostname())) {
+	sprintf(tbuf, "-H %s ", s);
+	strcat(buf, tbuf);
+    }
     strcat(buf, "-h ");		/* httpify */
     strcat(buf, "- ");		/* stdout */
     strcat(buf, data->request->host);

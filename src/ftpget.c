@@ -67,7 +67,6 @@
  *      
  */
 
-
 #include "config.h"
 
 #if HAVE_UNISTD_H
@@ -286,6 +285,7 @@ char *server_reply_msg = NULL;
 struct sockaddr_in ifc_addr;
 static time_t last_alarm_set = 0;
 request_t *MainRequest = NULL;
+char visible_hostname[SMALLBUFSIZ];
 
 /* This linked list holds the "continuation" lines before the final
  * reply code line is sent for a FTP command */
@@ -364,7 +364,7 @@ char *html_trailer()
 {
     static char buf[SMALLBUFSIZ];
 
-    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n </BODY></HTML>\n", http_time((time_t) NULL), SQUID_VERSION, getfullhostname());
+    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n </BODY></HTML>\n", http_time((time_t) NULL), SQUID_VERSION, visible_hostname);
     return buf;
 }
 
@@ -2000,7 +2000,7 @@ state_t htmlify_listing(r)
     }
     fprintf(wfp, "<ADDRESS>\n");
     fprintf(wfp, "Generated %s, by %s/%s@%s\n",
-	http_time(stamp), progname, SQUID_VERSION, getfullhostname());
+	http_time(stamp), progname, SQUID_VERSION, visible_hostname);
     fprintf(wfp, "</ADDRESS>\n");
     fclose(wfp);
 
@@ -2341,6 +2341,7 @@ void usage(argcount)
     fprintf(stderr, "\t-p path         Icon URL prefix\n");
     fprintf(stderr, "\t-s .ext         Icon URL suffix\n");
     fprintf(stderr, "\t-h              Convert to HTTP\n");
+    fprintf(stderr, "\t-H hostname     Visible hostname\n");
     fprintf(stderr, "\t-R              DON'T get README file\n");
     fprintf(stderr, "\t-w chars        Filename width in directory listing\n");
     fprintf(stderr, "\t-W              Wrap long filenames\n");
@@ -2399,6 +2400,8 @@ int main(argc, argv)
 	}
     }
 
+    strcpy(visible_hostname, getfullhostname());
+
     for (argc--, argv++; argc > 0 && **argv == '-'; argc--, argv++) {
 	Debug(26, 7, ("processing arg '%s'\n", *argv));
 	if (!strcmp(*argv, "-"))
@@ -2445,6 +2448,12 @@ int main(argc, argv)
 		usage(argc);
 	    argv++;
 	    o_iconprefix = xstrdup(*argv);
+	    continue;
+	} else if (!strcmp(*argv, "-H")) {
+	    if (--argc < 1)
+		usage(argc);
+	    argv++;
+	    strcpy(visible_hostname, *argv);
 	    continue;
 	} else if (!strcmp(*argv, "-s")) {
 	    if (--argc < 1)
