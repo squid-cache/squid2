@@ -153,7 +153,8 @@ int icpStateFree(fdunused, icpState)
     safe_free(icpState->inbuf);
     safe_free(icpState->url);
     safe_free(icpState->request_hdr);
-    safe_free(icpState->request);
+    if (--icpState->request->link_count == 0)
+	safe_free(icpState->request);
     safe_free(icpState);
     return 0;			/* XXX gack, all comm handlers return ints */
 }
@@ -1492,7 +1493,10 @@ void asciiProcessInput(fd, buf, size, flag, icpState)
 		30,
 		icpSendERRORComplete,
 		(void *) icpState);
-	} else if (!icpAccessCheck(icpState)) {
+	    return;
+	}
+	icpState->request->link_count++;
+	if (!icpAccessCheck(icpState)) {
 	    debug(12, 5, "Access Denied: %s\n", icpState->url);
 	    icpState->log_type = LOG_TCP_DENIED;
 	    icpState->http_code = 403;
@@ -1508,17 +1512,17 @@ void asciiProcessInput(fd, buf, size, flag, icpState)
 		icpSendERRORComplete,
 		(void *) icpState);
 	    icpState->log_type = LOG_TCP_DENIED;
-	} else {
-	    /* The request is good, let's go... */
-	    urlCanonical(icpState->request, icpState->url);
-	    icpParseRequestHeaders(icpState);
-	    sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
-		fd_note(fd, 0),
-		RequestMethodStr[icpState->method],
-		icpState->url);
-	    fd_note(fd, client_msg);
-	    icp_hit_or_miss(fd, icpState);
+	    return;
 	}
+	/* The request is good, let's go... */
+	urlCanonical(icpState->request, icpState->url);
+	icpParseRequestHeaders(icpState);
+	sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
+	    fd_note(fd, 0),
+	    RequestMethodStr[icpState->method],
+	    icpState->url);
+	fd_note(fd, client_msg);
+	icp_hit_or_miss(fd, icpState);
     } else if (parser_return_code == 0) {
 	/*
 	 *    Partial request received; reschedule until parseAsciiUrl()

@@ -20,7 +20,6 @@ typedef struct _httpdata {
 				 * icpReadWriteData */
     char *reply_hdr;
     int reply_hdr_state;
-    int free_request;
 } HttpData;
 
 static int httpStateFree(fd, httpState)
@@ -39,7 +38,7 @@ static int httpStateFree(fd, httpState)
     }
     if (httpState->icp_rwd_ptr)
 	safe_free(httpState->icp_rwd_ptr);
-    if (httpState->free_request)
+    if (--httpState->request->link_count == 0)
 	safe_free(httpState->request);
     xfree(httpState);
     return 0;
@@ -532,8 +531,8 @@ int proxyhttpStart(e, url, entry)
     data->entry = entry;
     data->req_hdr = entry->mem_obj->mime_hdr;
     request = xcalloc(1, sizeof(request_t));
-    data->free_request = 1;
     data->request = request;
+    request->link_count++;
     /* register the handler to free HTTP state data when the FD closes */
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
@@ -606,6 +605,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
     data->entry = entry;
     data->req_hdr = req_hdr;
     data->request = request;
+    request->link_count++;
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
 	(PF) httpStateFree,

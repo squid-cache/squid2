@@ -1,3 +1,4 @@
+
 /*
  *  $Id$ 
  *
@@ -47,6 +48,8 @@ static int sslStateFree(fd, sslState)
     safe_free(sslState->client.buf);
     xfree(sslState->url);
     memset(sslState, '\0', sizeof(SslStateData));
+    if (--sslState->request->link_count == 0)
+	xfree(sslState->request);
     safe_free(sslState);
     return 0;
 }
@@ -332,6 +335,7 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
     sslState = xcalloc(1, sizeof(SslStateData));
     sslState->url = xstrdup(url);
     sslState->request = request;
+    sslState->request->link_count++;
     sslState->mime_hdr = mime_hdr;
     sslState->timeout = getReadTimeout();
     sslState->size_ptr = size_ptr;

@@ -35,6 +35,7 @@ typedef struct _request {
     char host[SQUIDHOSTNAMELEN + 1];
     int port;
     char urlpath[MAX_URL + 1];
+    int link_count;	/* free when zero */
 } request_t;
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));

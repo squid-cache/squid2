@@ -1091,7 +1091,7 @@ void ipcacheOpenServers()
 	for (i = 0; i < NChildrenAlloc; i++) {
 	    safe_free(dns_child_table[i]->ip_inbuf);
 	    safe_free(dns_child_table[i]);
-        }
+	}
 	safe_free(dns_child_table);
     }
     dns_child_table = xcalloc(N, sizeof(dnsserver_entry));

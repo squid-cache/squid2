@@ -69,6 +69,8 @@ static int ftpStateFree(fd, ftpState)
     }
     if (ftpState->icp_rwd_ptr)
 	safe_free(ftpState->icp_rwd_ptr);
+    if (--ftpState->request->link_count == 0)
+	safe_free(ftpState->request);
     xfree(ftpState);
     return 0;
 }
@@ -558,6 +560,7 @@ int ftpStart(unusedfd, url, request, entry)
     data = xcalloc(1, sizeof(FtpData));
     data->entry = entry;
     data->request = request;
+    request->link_count++;
 
     /* Parse login info. */
     ftp_login_parser(request->login, data);
