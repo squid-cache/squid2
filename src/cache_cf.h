@@ -250,6 +250,7 @@ struct SquidConfig {
 	int avgObjectSize;
 	int maxObjectSize;
     } Store;
+    struct sockaddr_in vizHackAddr;
 };
 
 extern struct SquidConfig Config;
