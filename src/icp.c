@@ -204,7 +204,7 @@ static void clientReadRequest _PARAMS((int fd, void *data));
 #define FAILURE_MODE_TIME 300
 static time_t hit_only_mode_until = 0;
 
-static void 
+static void
 checkFailureRatio(log_type rcode, hier_code hcode)
 {
     static double fail_ratio = 0.0;
@@ -238,7 +238,7 @@ checkFailureRatio(log_type rcode, hier_code hcode)
 }
 
 /* This is a handler normally called by comm_close() */
-static void 
+static void
 icpStateFree(int fd, void *data)
 {
     icpStateData *icpState = data;
@@ -315,7 +315,7 @@ icpStateFree(int fd, void *data)
     return;
 }
 
-void 
+void
 icpParseRequestHeaders(icpStateData * icpState)
 {
     char *request_hdr = icpState->request_hdr;
@@ -368,7 +368,7 @@ icpParseRequestHeaders(icpStateData * icpState)
     }
 }
 
-static int 
+static int
 icpCachable(icpStateData * icpState)
 {
     const char *request = icpState->url;
@@ -402,7 +402,7 @@ icpCachable(icpStateData * icpState)
 }
 
 /* Return true if we can query our neighbors for this object */
-static int 
+static int
 icpHierarchical(icpStateData * icpState)
 {
     const char *url = icpState->url;
@@ -437,7 +437,7 @@ icpHierarchical(icpStateData * icpState)
     return 1;
 }
 
-static void 
+static void
 icpSendERRORComplete(int fd, char *buf, int size, int errflag, void *data)
 {
     icpStateData *icpState = data;
@@ -449,7 +449,7 @@ icpSendERRORComplete(int fd, char *buf, int size, int errflag, void *data)
 }
 
 /* Send ERROR message. */
-void 
+void
 icpSendERROR(int fd,
     log_type errorCode,
     const char *text,
@@ -489,7 +489,7 @@ icpSendERROR(int fd,
  * Scan beginning of swap object being returned and hope that it contains
  * a complete MIME header for use in reply header logging (log_append).
  */
-void 
+void
 icp_maybe_remember_reply_hdr(icpStateData * icpState)
 {
     char *mime;
@@ -514,7 +514,7 @@ icp_maybe_remember_reply_hdr(icpStateData * icpState)
 /* Send available data from an object in the cache.  This is called either
  * on select for  write or directly by icpHandleStore. */
 
-int 
+int
 icpSendMoreData(int fd, icpStateData * icpState)
 {
     StoreEntry *entry = icpState->entry;
@@ -562,7 +562,7 @@ icpSendMoreData(int fd, icpStateData * icpState)
  * error messages.  We get here by invoking the handlers in the
  * pending list.
  */
-static void 
+static void
 icpHandleStore(int fd, StoreEntry * entry, void *data)
 {
     icpStateData *icpState = data;
@@ -583,7 +583,7 @@ icpHandleStore(int fd, StoreEntry * entry, void *data)
     icpSendMoreData(fd, icpState);
 }
 
-static void 
+static void
 clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 {
     icpStateData *icpState = data;
@@ -626,7 +626,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
     }
 }
 
-static int 
+static int
 icpGetHeadersForIMS(int fd, icpStateData * icpState)
 {
     StoreEntry *entry = icpState->entry;
@@ -664,13 +664,13 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     return COMM_OK;
 }
 
-static void 
+static void
 icpHandleStoreIMS(int fd, StoreEntry * entry, void *data)
 {
     icpGetHeadersForIMS(fd, data);
 }
 
-static void 
+static void
 icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data)
 {
     icpStateData *icpState = data;
@@ -692,7 +692,7 @@ icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data
  * Below, we check whether the object is a hit or a miss.  If it's a hit,
  * we check whether the object is still valid or whether it is a MISS_TTL.
  */
-void 
+void
 icpProcessRequest(int fd, icpStateData * icpState)
 {
     char *url = icpState->url;
@@ -822,7 +822,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
 /*
  * Prepare to fetch the object as it's a cache miss of some kind.
  */
-static int 
+static int
 icpProcessMISS(int fd, icpStateData * icpState)
 {
     char *url = icpState->url;
@@ -880,7 +880,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     return (protoDispatch(fd, url, icpState->entry, icpState->request));
 }
 
-static void 
+static void
 icpLogIcp(icpUdpData * queue)
 {
     icp_common_t *header = (icp_common_t *) (void *) queue->msg;
@@ -914,7 +914,7 @@ icpLogIcp(icpUdpData * queue)
 	NULL);			/* content-type */
 }
 
-int 
+int
 icpUdpReply(int fd, icpUdpData * queue)
 {
     int result = COMM_OK;
@@ -1037,7 +1037,7 @@ icpCreateHitObjMessage(
     return buf;
 }
 
-void 
+void
 icpUdpSend(int fd,
     const struct sockaddr_in *to,
     icp_common_t * msg,
@@ -1062,7 +1062,7 @@ icpUdpSend(int fd,
 	(void *) UdpQueueHead, 0);
 }
 
-static void 
+static void
 icpHitObjHandler(int errflag, void *data)
 {
     icpHitObjStateData *icpHitObjState = data;
@@ -1093,7 +1093,7 @@ icpHitObjHandler(int errflag, void *data)
     safe_free(icpHitObjState);
 }
 
-static int 
+static int
 icpCheckUdpHit(StoreEntry * e, request_t * request)
 {
     if (e == NULL)
@@ -1105,7 +1105,7 @@ icpCheckUdpHit(StoreEntry * e, request_t * request)
     return 1;
 }
 
-static int 
+static int
 icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
 {
     if (!BIT_TEST(h->flags, ICP_FLAG_HIT_OBJ))	/* not requested */
@@ -1121,7 +1121,7 @@ icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
     return 1;
 }
 
-static void 
+static void
 icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 {
     icp_common_t header;
@@ -1276,7 +1276,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 }
 
 /* Currently Harvest cached-2.x uses ICP_VERSION_3 */
-static void 
+static void
 icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 {
     icp_common_t header;
@@ -1406,7 +1406,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 }
 
 #ifdef ICP_PKT_DUMP
-static void 
+static void
 icpPktDump(icp_common_t * pkt)
 {
     struct in_addr a;
@@ -1424,7 +1424,7 @@ icpPktDump(icp_common_t * pkt)
 }
 #endif
 
-void 
+void
 icpHandleUdp(int sock, void *not_used)
 {
     struct sockaddr_in from;
@@ -1524,7 +1524,7 @@ do_append_domain(const char *url, const char *ad)
  *    0 on incomplete request
  *    1 on success
  */
-static int 
+static int
 parseHttpRequest(icpStateData * icpState)
 {
     char *inbuf = NULL;
@@ -1672,7 +1672,7 @@ parseHttpRequest(icpStateData * icpState)
 
 #define ASCII_INBUF_BLOCKSIZE 4096
 
-static void 
+static void
 clientReadRequest(int fd, void *data)
 {
     icpStateData *icpState = data;
@@ -1688,7 +1688,10 @@ clientReadRequest(int fd, void *data)
     debug(12, 4, "clientReadRequest: len = %d\n", len);
     size = read(fd, icpState->inbuf + icpState->in_offset, len);
 
-    if (size < 0) {
+    if (size == 0) {
+	comm_close(fd);
+	return;
+    } else if (size < 0) {
 	if (errno == EWOULDBLOCK || errno == EAGAIN) {
 	    debug(50, 0, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
 	    commSetSelect(fd,
@@ -1784,7 +1787,7 @@ clientReadRequest(int fd, void *data)
 
 
 /* general lifetime handler for ascii connection */
-static void 
+static void
 asciiConnLifetimeHandle(int fd, icpStateData * icpState)
 {
     int x;
@@ -1809,7 +1812,7 @@ asciiConnLifetimeHandle(int fd, icpStateData * icpState)
 }
 
 /* Handle a new connection on ascii input socket. */
-void 
+void
 asciiHandleConn(int sock, void *notused)
 {
     int fd = -1;
@@ -1866,7 +1869,7 @@ asciiHandleConn(int sock, void *notused)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
 }
 
-void 
+void
 AppendUdp(icpUdpData * item)
 {
     item->next = NULL;
@@ -1883,7 +1886,7 @@ AppendUdp(icpUdpData * item)
 }
 
 /* return 1 if the request should be aborted */
-static int 
+static int
 CheckQuickAbort2(const icpStateData * icpState)
 {
     long curlen;
@@ -1918,7 +1921,7 @@ CheckQuickAbort2(const icpStateData * icpState)
 }
 
 
-static void 
+static void
 CheckQuickAbort(icpStateData * icpState)
 {
     if (icpState->entry == NULL)
@@ -1934,7 +1937,7 @@ CheckQuickAbort(icpStateData * icpState)
     icpState->log_type = ERR_CLIENT_ABORT;
 }
 
-static int 
+static int
 icpCheckTransferDone(icpStateData * icpState)
 {
     StoreEntry *entry = icpState->entry;
@@ -1954,7 +1957,7 @@ icpCheckTransferDone(icpStateData * icpState)
     return 0;
 }
 
-void 
+void
 icpDetectClientClose(int fd, void *data)
 {
     icpStateData *icpState = data;
@@ -2012,7 +2015,7 @@ icpDetectClientClose(int fd, void *data)
     }
 }
 
-void 
+void
 icpDetectNewRequest(int fd)
 {
 #if TRY_KEEPALIVE_SUPPORT
@@ -2109,7 +2112,7 @@ struct viz_pkt {
     char type;
 };
 
-void 
+void
 vizHackSendPkt(const struct sockaddr_in *from, int type)
 {
     static struct viz_pkt v;
@@ -2131,7 +2134,7 @@ vizHackSendPkt(const struct sockaddr_in *from, int type)
  * Queue the error page via icpSendERROR().  Otherwise just
  * close the socket.
  */
-static void 
+static void
 icpHandleAbort(int fd, StoreEntry * entry, void *data)
 {
     icpStateData *icpState = data;
