@@ -322,7 +322,7 @@ statObjects(StoreEntry * sentry, int vm_or_not)
 	storeAppendPrintf(sentry, "KEY %s\n", storeKeyText(entry->key));
 	if (mem)
 	    storeAppendPrintf(sentry, "\t%s %s\n",
-		RequestMethodStr[mem->method], mem->url);
+		RequestMethodStr[mem->method], mem->log_url);
 	storeAppendPrintf(sentry, "\t%s\n", describeStatuses(entry));
 	storeAppendPrintf(sentry, "\t%s\n", describeFlags(entry));
 	storeAppendPrintf(sentry, "\t%s\n", describeTimestamps(entry));
