@@ -875,7 +875,6 @@ comm_write(int fd, char *buf, int size, CWCB * handler, void *handler_data, FREE
 	memPoolFree(comm_write_pool, state);
 	fd_table[fd].rwstate = NULL;
     }
-    assert(state == NULL);
     fd_table[fd].rwstate = state = memPoolAlloc(comm_write_pool);
     state->buf = buf;
     state->size = size;
