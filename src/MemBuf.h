@@ -92,7 +92,7 @@
 
 /* default values for buffer sizes, use memBufInit to overwrite */
 #define MEM_BUF_INIT_SIZE   (2*1024)
-#define MEM_BUF_MAX_SIZE   (16*1024)
+#define MEM_BUF_MAX_SIZE   (32*1024)
 
 typedef size_t mb_size_t; /* in case we want to change it later */
 
