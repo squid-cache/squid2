@@ -196,6 +196,8 @@ typedef void (*SIH) _PARAMS((int, void *));	/* swap in */
 #endif
 
 extern void serverConnectionsClose _PARAMS((void));
+extern void shut_down _PARAMS((int));
+
 
 extern time_t squid_starttime;	/* main.c */
 extern time_t next_cleaning;	/* main.c */

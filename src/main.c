@@ -27,11 +27,14 @@ struct in_addr local_addr;
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) _PARAMS((char *));
 
+static int rotate_pending = 0;		/* set by SIGUSR1 handler */
 static int httpPortNumOverride = 1;
 static int icpPortNumOverride = 1;	/* Want to detect "-u 0" */
 #if MALLOC_DBG
 static int malloc_debug_level = 0;
 #endif
+static void rotate_logs _PARAMS((int));
+static void reconfigure _PARAMS((int));
 
 static void usage()
 {
@@ -127,6 +130,38 @@ static void mainParseOptions(argc, argv)
 	    break;
 	}
     }
+}
+
+void rotate_logs(sig)
+     int sig;
+{
+    debug(21, 1, "rotate_logs: SIGUSR1 received.\n");
+    rotate_pending = 1;
+#if !HAVE_SIGACTION
+    signal(sig, rotate_logs);
+#endif
+}
+
+void reconfigure(sig)
+     int sig;
+{
+    debug(21, 1, "reconfigure: SIGHUP received\n");
+    debug(21, 1, "Waiting %d seconds for active connections to finish\n",
+        getShutdownLifetime());
+    reread_pending = 1;
+#if !HAVE_SIGACTION
+    signal(sig, reconfigure);
+#endif
+}
+
+void shut_down(sig)
+     int sig;
+{
+    debug(21, 1, "Preparing for shutdown after %d connections\n",
+        ntcpconn + nudpconn);
+    debug(21, 1, "Waiting %d seconds for active connections to finish\n",
+        getShutdownLifetime());
+    shutdown_pending = 1;
 }
 
 void serverConnectionsOpen()
@@ -344,7 +379,7 @@ static void mainInitialize()
     sa.sa_handler = reconfigure;
     if (sigaction(SIGHUP, &sa, NULL) < 0)
 	debug(1, 0, "sigaction: SIGHUP, reconfigure: %s\n", xstrerror());
-    sa.sa_flags = SA_NODEFER | SA_RESETHAND;
+    sa.sa_flags = SA_NODEFER | SA_RESETHAND | SA_RESTART;
     sa.sa_handler = shut_down;
     if (sigaction(SIGINT, &sa, NULL) < 0)
 	debug(1, 0, "sigaction: SIGINT, shut_down: %s\n", xstrerror());
@@ -433,6 +468,16 @@ int main(argc, argv)
 	    storeMaintainSwapSpace();
 	    last_maintain = squid_curtime;
 	}
+	if (rotate_pending) {
+	    ftpServerClose();
+    	    _db_rotate_log();           /* cache.log */
+    	    storeWriteCleanLog();
+    	    storeRotateLog();           /* store.log */
+    	    neighbors_rotate_log();     /* hierarchy.log */
+    	    stat_rotate_log();          /* access.log */
+    	    (void) ftpInitialize();
+	    rotate_pending = 0;
+	}
 	/* do background processing */
 	if (doBackgroundProcessing())
 	    loop_delay = (time_t) 0;
@@ -447,9 +492,6 @@ int main(argc, argv)
 		fatal_dump("Select Loop failed!");
 	    break;
 	case COMM_TIMEOUT:
-	    /* this happens after 1 minute of idle time, or
-	     * when next_cleaning has arrived */
-	    /* garbage collection */
 	    if (getCleanRate() > 0 && squid_curtime >= next_cleaning) {
 		debug(1, 1, "Performing a garbage collection...\n");
 		n = storePurgeOld();
@@ -488,3 +530,4 @@ int main(argc, argv)
     exit(0);
     return 0;
 }
+

@@ -154,25 +154,6 @@ void sigusr2_handle(sig)
 #endif
 }
 
-void rotate_logs(sig)
-     int sig;
-{
-    debug(21, 1, "rotate_logs: SIGUSR1 received.\n");
-
-    /* close and reopen ftpget server so it's stderr goes to the right
-     * place */
-    ftpServerClose();
-    _db_rotate_log();		/* cache.log */
-    storeWriteCleanLog();
-    storeRotateLog();		/* store.log */
-    neighbors_rotate_log();	/* hierarchy.log */
-    stat_rotate_log();		/* access.log */
-    (void) ftpInitialize();
-#if !HAVE_SIGACTION
-    signal(sig, rotate_logs);
-#endif
-}
-
 void setSocketShutdownLifetimes()
 {
     FD_ENTRY *f = NULL;
@@ -205,14 +186,6 @@ void normal_shutdown()
     debug(21, 0, "Squid Cache (Version %s): Exiting normally.\n",
 	version_string);
     exit(0);
-}
-void shut_down(sig)
-     int sig;
-{
-    debug(21, 1, "Preparing for shutdown after %d connections\n",
-	ntcpconn + nudpconn);
-    shutdown_pending = 1;
-    /* reinstall signal handler? */
 }
 
 void fatal_common(message)
@@ -446,17 +419,6 @@ time_t getCurrentTime()
 {
     gettimeofday(&current_time, NULL);
     return squid_curtime = current_time.tv_sec;
-}
-
-
-void reconfigure(sig)
-     int sig;
-{
-    debug(21, 1, "reconfigure: SIGHUP received.\n");
-    reread_pending = 1;
-#if !HAVE_SIGACTION
-    signal(sig, reconfigure);
-#endif
 }
 
 int tvSubMsec(t1, t2)
