@@ -1682,8 +1682,11 @@ asciiConnLifetimeHandle(int fd, icpStateData * icpState)
 	comm_close(fd);
 	return;
     }
+#ifdef DONT_DO_THIS
+    /* Why is this here? */
     if (entry->store_status == STORE_PENDING)
 	storeAbort(entry, NULL);
+#endif
 }
 
 /* Handle a new connection on ascii input socket. */
