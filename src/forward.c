@@ -138,7 +138,7 @@ fwdCheckRetry(FwdState * fwdState)
 	return 0;
     if (fwdState->origin_tries > 2)
 	return 0;
-    if (squid_curtime - fwdState->start > Config.Timeout.connect)
+    if (squid_curtime - fwdState->start > Config.Timeout.forward)
 	return 0;
     if (fwdState->flags.dont_retry)
 	return 0;
@@ -365,7 +365,8 @@ fwdConnectStart(void *data)
     FwdServer *fs = fwdState->servers;
     const char *host;
     unsigned short port;
-    time_t ctimeout;
+    int ctimeout;
+    int ftimeout = Config.Timeout.forward - (squid_curtime - fwdState->start);
     struct in_addr outgoing;
     unsigned short tos;
     assert(fs);
@@ -386,6 +387,10 @@ fwdConnectStart(void *data)
 	port = fwdState->request->port;
 	ctimeout = Config.Timeout.connect;
     }
+    if (ftimeout < 0)
+	ftimeout = 5;
+    if (ftimeout < ctimeout)
+	ctimeout = ftimeout;
     if (fwdCheckRetriable(fwdState)) {
 	if ((fd = pconnPop(host, port)) >= 0) {
 	    debug(17, 3) ("fwdConnectStart: reusing pconn FD %d\n", fd);

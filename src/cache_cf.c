@@ -431,6 +431,14 @@ configDoConfigure(void)
 	    debug(22, 0) ("WARNING: 'maxconn' ACL (%s) won't work with client_db disabled\n", a->name);
 	}
     }
+    if (Config.negativeDnsTtl <= 0) {
+	debug(22, 0) ("WARNING: resetting negative_dns_ttl to 1 second\n");
+	Config.negativeDnsTtl = 1;
+    }
+    if (Config.positiveDnsTtl < Config.negativeDnsTtl) {
+	debug(22, 0) ("NOTICE: positive_dns_ttl must be larger than negative_dns_ttl. Resetting negative_dns_ttl to match\n");
+	Config.positiveDnsTtl = Config.negativeDnsTtl;
+    }
 }
 
 /* Parse a time specification from the config file.  Store the

@@ -1106,7 +1106,7 @@ DOC_END
 
 NAME: dns_timeout
 TYPE: time_t
-DEFAULT: 5 minutes
+DEFAULT: 2 minutes
 LOC: Config.Timeout.idns_query
 IFDEF: !USE_DNSSERVERS
 DOC_START
@@ -1734,8 +1734,8 @@ LOC: Config.positiveDnsTtl
 DEFAULT: 6 hours
 DOC_START
 	Upper limit on how long Squid will cache positive DNS responses.
-	Default is 6 hours (360 minutes).  If you want to minimize the
-	use of Squid's ipcache, set this to 1, not 0.
+	Default is 6 hours (360 minutes). This directive must be set
+	larger than negative_dns_ttl.
 DOC_END
 
 
@@ -1743,9 +1743,12 @@ NAME: negative_dns_ttl
 COMMENT: time-units
 TYPE: time_t
 LOC: Config.negativeDnsTtl
-DEFAULT: 5 minutes
+DEFAULT: 1 minute
 DOC_START
 	Time-to-Live (TTL) for negative caching of failed DNS lookups.
+	This also makes sets the lower cache limit on positive lookups.
+	Minimum value is 1 second, and it is not recommendable to go
+	much below 10 seconds.
 DOC_END
 
 NAME: range_offset_limit
@@ -1776,17 +1779,25 @@ COMMENT_START
  -----------------------------------------------------------------------------
 COMMENT_END
 
+NAME: forward_timeout
+COMMENT: time-units
+TYPE: time_t
+LOC: Config.Timeout.forward
+DEFAULT: 4 minutes
+DOC_START
+	This parameter specifies how long Squid should at most attempt in
+	finding a forwarding path for the request before giving up.
+DOC_END
+
 NAME: connect_timeout
 COMMENT: time-units
 TYPE: time_t
 LOC: Config.Timeout.connect
-DEFAULT: 2 minutes
+DEFAULT: 1 minute
 DOC_START
-	Some systems (notably Linux) can not be relied upon to properly
-	time out connect(2) requests.  Therefore the Squid process
-	enforces its own timeout on server connections.  This parameter
-	specifies how long to wait for the connect to complete.  The
-	default is two minutes (120 seconds).
+	This parameter specifies how long to wait for the TCP connect to
+	the requested server or peer to complete before Squid should
+	attempt to find another path where to forward the request.
 DOC_END
 
 NAME: peer_connect_timeout

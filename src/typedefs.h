@@ -253,7 +253,7 @@ typedef stateful_helper_callback_t HLPSCB(void *, void *lastserver, char *buf);
 typedef int HLPSAVAIL(void *);
 typedef void HLPSONEQ(void *);
 typedef void HLPCMDOPTS(int *argc, char **argv);
-typedef void IDNSCB(void *, rfc1035_rr *, int);
+typedef void IDNSCB(void *, rfc1035_rr *, int, const char *);
 
 typedef void STINIT(SwapDir *);
 typedef void STNEWFS(SwapDir *);

@@ -400,6 +400,7 @@ struct _SquidConfig {
     struct {
 	time_t read;
 	time_t lifetime;
+	time_t forward;
 	time_t connect;
 	time_t peer_connect;
 	time_t request;
