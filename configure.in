@@ -203,9 +203,9 @@ dnl Check for special functions
 AC_FUNC_ALLOCA
 
 dnl Check for needed libraries
+AC_CHECK_LIB(nsl, main)
 AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(malloc, main, [HAVE_LIBMALLOC="yes"; LIBS="$LIBS -lmalloc"])
-AC_CHECK_LIB(nsl, main)
 AC_CHECK_LIB(resolv, main)
 AC_CHECK_LIB(bsd, main)
 
