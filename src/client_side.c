@@ -652,6 +652,7 @@ httpRequestFree(void *data)
 	    packerToMemInit(&p, &mb);
 	    httpHeaderPackInto(&request->header, &p);
 	    http->al.http.method = request->method;
+	    http->al.http.version = request->http_ver;
 	    http->al.headers.request = xstrdup(mb.buf);
 	    http->al.hier = request->hier;
 	    packerClean(&p);

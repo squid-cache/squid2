@@ -762,6 +762,7 @@ struct _AccessLogEntry {
 	method_t method;
 	int code;
 	const char *content_type;
+	float version;
     } http;
     struct {
 	icp_opcode opcode;
