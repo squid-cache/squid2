@@ -2100,7 +2100,14 @@ requestTimeout(int fd, void *data)
 int
 httpAcceptDefer(int fdnotused, void *notused)
 {
-    return fdNFree() < RESERVED_FD;
+    static time_t last_warn = 0;
+    if (fdNFree() >= RESERVED_FD)
+	return 0;
+    if (last_warn + 15 < squid_curtime) {
+	debug(33, 0) ("WARNING! Your cache is running out of filedescriptors\n");
+	last_warn = squid_curtime;
+    }
+    return 1;
 }
 
 /* Handle a new connection on HTTP socket. */
