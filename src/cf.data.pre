@@ -1453,9 +1453,6 @@ DOC_START
 			to service external acl lookups of this type.
 	  cache=n	result cache size, 0 is unbounded (default)
 	
-	The helper receives lines per the FORMAT specification, and returns
-	OK or ERR indicating the validity of the request.
-
 	FORMAT specifications
 
 	  %LOGIN	Authenticated user login name
@@ -1472,10 +1469,27 @@ DOC_START
 	  		list separator. ; can be any non-alphanumeric
 			character.
 
-	In addition, any string specified in the referencing acl will also be
-	included in the helper request line, after the specified formats
-	(see the acl directive)
+	In addition, any string specified in the referencing acl will
+	also be included in the helper request line, after the specified
+	formats (see the "acl external" directive)
 
+	The helper receives lines per the above format specification,
+	and returns lines starting with OK or ERR indicating the validity
+	of the request and optionally followed by additional keywords with
+	more details.
+
+	General result syntax:
+	
+	  OK/ERR keyword=value ...
+
+	Defined keywords:
+
+	  user=		The users name (login)
+	  error=	Error description (only defined for ERR results)
+
+	Keyword values need to be enclosed in quotes if they may contain
+	whitespace, or the whitespace escaped using \. Any quotes or \
+	characters within the keyword value must be \ escaped.
 DOC_END
 
 COMMENT_START
