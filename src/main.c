@@ -268,7 +268,8 @@ shut_down(int sig)
 #ifdef KILL_PARENT_OPT
     if (getppid() > 1) {
 	debug(1, 1) ("Killing RunCache, pid %d\n", getppid());
-	kill(getppid(), sig);
+	if (kill(getppid(), sig) < 0)
+	    debug(1, 1) ("kill %d: %s\n", getppid(), xstrerror());
     }
 #endif
 #if SA_RESETHAND == 0
