@@ -969,8 +969,7 @@ void aclDestroyAccessList(list)
 }
 
 /* maex@space.net (06.09.1996)
- *    destroy an _acl_deny_info_list
- */
+ *    destroy an _acl_deny_info_list */
 void aclDestroyDenyInfoList(list)
      struct _acl_deny_info_list **list;
 {
@@ -987,4 +986,5 @@ void aclDestroyDenyInfoList(list)
 	a_next = a->next;
 	safe_free(a);
     }
+    *list = NULL;
 }
