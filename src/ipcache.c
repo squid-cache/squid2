@@ -87,6 +87,7 @@ static void dnsDispatch _PARAMS((dnsserver_t *, ipcache_entry *));
 static int ipcacheHasPending _PARAMS((ipcache_entry *));
 static ipcache_entry *ipcache_get _PARAMS((char *));
 static int dummy_handler _PARAMS((int, struct hostent * hp, void *));
+static int ipcacheExpiredEntry _PARAMS((ipcache_entry *));
 #ifdef UNUSED_CODE
 static int ipcache_hash_entry_count _PARAMS((void));
 #endif
@@ -223,25 +224,18 @@ static ipcache_entry *ipcache_get(name)
      char *name;
 {
     hash_link *e;
-    static ipcache_entry *result;
+    static ipcache_entry *i;
 
-    result = NULL;
+    i = NULL;
     if (ip_table) {
 	if ((e = hash_lookup(ip_table, name)) != NULL)
-	    result = (ipcache_entry *) e;
+	    i = (ipcache_entry *) e;
     }
-    if (result == NULL)
-	return NULL;
-
-    if ((result->timestamp + result->ttl) > squid_curtime)
-	return result;
-    if (result->status == IP_PENDING)
-	return result;
-    if (result->lock)
-	return result;
-    /* else its expired */
-    ipcache_release(result);
-    return NULL;
+    if (i->status == IP_NEGATIVE_CACHED && ipcacheEntryExpired(i)) {
+	ipcache_release(i);
+	i = NULL;
+    }
+    return i;
 }
 
 /* get the first ip entry in the storage */
@@ -276,6 +270,18 @@ static int ipcache_compareLastRef(e1, e2)
     return (0);
 }
 
+static int ipcacheExpiredEntry(i)
+     ipcache_entry *i;
+{
+    if (i->lock)
+	return 0;
+    if (i->status == IP_PENDING)
+	return 0;
+    if (i->ttl + i->lastref < squid_curtime)
+	return 0;
+    return 1;
+}
+
 /* finds the LRU and deletes */
 static int ipcache_purgelru()
 {
@@ -291,6 +297,10 @@ static int ipcache_purgelru()
     LRU_list = xcalloc(LRU_cur_size, sizeof(ipcache_entry *));
 
     for (i = ipcache_GetFirst(); i; i = ipcache_GetNext()) {
+	if (ipcacheExpiredEntry(i)) {
+	    ipcache_release(i);
+	    continue;
+	}
 	local_ip_count++;
 
 	if (LRU_list_count >= LRU_cur_size) {
@@ -789,7 +799,13 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 	ipcache_call_pending_badname(fd, handler, handlerData);
 	return 0;
     }
-    if ((i = ipcache_get(name)) == NULL) {
+    if ((i = ipcache_get(name))) {
+	if (ipcacheEntryExpired(i)) {
+	    ipcache_release(i);
+	    i = NULL;
+	}
+    }
+    if (i == NULL) {
 	/* MISS: No entry, create the new one */
 	debug(14, 5, "ipcache_nbgethostbyname: MISS for '%s'\n", name);
 	IpcacheStats.misses++;
