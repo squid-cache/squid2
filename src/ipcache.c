@@ -734,6 +734,7 @@ ipcache_dnsDispatch(dnsserver_t * dns, ipcache_entry * i)
     sprintf(buf, "%1.254s\n", i->name);
     dns->flags |= DNS_FLAG_BUSY;
     dns->data = i;
+    dns->lastcall = squid_curtime;
     i->status = IP_DISPATCHED;
     comm_write(dns->outpipe,
 	buf,
@@ -847,6 +848,15 @@ ipcache_gethostbyname(const char *name, int flags)
 	IpcacheStats.ghbn_calls++;
 	hp = gethostbyname(name);
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && ip_table) {
+	    /* only dnsHandleRead() can change from DISPATCHED to CACHED */
+	    if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
+		static_addrs.count = 1;
+		static_addrs.cur = 0;
+		memcpy(&static_addrs.in_addrs[0].s_addr,
+		    *(hp->h_addr_list),
+		    hp->h_length);
+		return &static_addrs;
+	    }
 	    /* good address, cached */
 	    if (i == NULL) {
 		i = ipcacheAddNew(name, hp, IP_CACHED);
