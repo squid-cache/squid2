@@ -47,9 +47,9 @@ static int sslStateFree(fd, sslState)
     safe_free(sslState->server.buf);
     safe_free(sslState->client.buf);
     xfree(sslState->url);
-    memset(sslState, '\0', sizeof(SslStateData));
     if (--sslState->request->link_count == 0)
 	xfree(sslState->request);
+    memset(sslState, '\0', sizeof(SslStateData));
     safe_free(sslState);
     return 0;
 }
