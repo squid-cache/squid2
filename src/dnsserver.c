@@ -397,7 +397,7 @@ int main(argc, argv)
 	msg[0] = '\0';
 	if (!result) {
 	    if (h_errno == TRY_AGAIN) {
-		sprintf(msg, "Name Server for domain '%s' is unavailable.",
+		sprintf(msg, "Name Server for domain '%s' is unavailable.\n",
 		    request);
 	    } else {
 		sprintf(msg, "DNS Domain '%s' is invalid: %s.\n",
