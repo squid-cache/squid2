@@ -876,11 +876,10 @@ linklistShift(link_list ** L)
 int
 xrename(const char *from, const char *to)
 {
-    int res;
     debug(21, 2) ("xrename: renaming %s to %s\n", from, to);
-    res = rename(from, to);
-    if (res != 0)
-	debug(21, 0) ("xrename: Cannot rename %s to %s: %s\n",
-	    from, to, xstrerror());
-    return res;
+    if (0 == rename(from, to))
+	return 0;
+    debug(21, errno == ENOENT ? 2 : 1) ("xrename: Cannot rename %s to %s: %s\n",
+	from, to, xstrerror());
+    return -1;
 }
