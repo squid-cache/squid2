@@ -235,6 +235,7 @@ authenticateAuthUserRequestFree(auth_user_request_t * auth_user_request)
 	assert(auth_user_request->scheme_data == NULL);
     if (auth_user_request->message)
 	xfree(auth_user_request->message);
+    memPoolFree(auth_user_request_pool, auth_user_request);
 }
 
 char *
@@ -676,11 +677,6 @@ void
 authenticateFixHeader(HttpReply * rep, auth_user_request_t * auth_user_request, request_t * request, int accelerated, int internal)
 /* send the auth types we are configured to support (and have compiled in!) */
 {
-/*    auth_type_t auth_type=err->auth_type;
- * auth_state_t auth_state=err->auth_state;
- * char *authchallenge=err->authchallenge;
- * auth_user_request_t *auth_user_request=err->auth_user_request;
- */
     int type = 0;
     switch (rep->sline.status) {
     case HTTP_PROXY_AUTHENTICATION_REQUIRED:

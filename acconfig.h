@@ -326,6 +326,11 @@
 #undef LINUX_NETFILTER
 
 /*
+ * Do we have unix sockets? (required for the winbind ntlm helper
+ */
+#undef HAVE_UNIXSOCKET
+
+/*
  * Known-size intgers
  */
 

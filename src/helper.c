@@ -670,6 +670,7 @@ helperStatefulServerFree(int fd, void *data)
 	helperStatefulRequestFree(r);
 	srv->request = NULL;
     }
+    /* TODO: walk the local queue of requests and carry them all out */
     if (srv->wfd != srv->rfd && srv->wfd != -1)
 	comm_close(srv->wfd);
     dlinkDelete(&srv->link, &hlp->servers);

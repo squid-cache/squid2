@@ -526,14 +526,6 @@ typedef enum {
     AUTH_BROKEN			/* known type, but broken data */
 } auth_type_t;
 
-typedef enum {
-    AUTHENTICATE_STATE_NONE,
-    AUTHENTICATE_STATE_NEGOTIATE,
-    AUTHENTICATE_STATE_CHALLENGE,
-    AUTHENTICATE_STATE_RESPONSE,
-    AUTHENTICATE_STATE_DONE
-} auth_state_t;			/* connection level auth state */
-
 /* stateful helper callback response codes */
 typedef enum {
     S_HELPER_UNKNOWN,
