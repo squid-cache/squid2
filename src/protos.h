@@ -94,6 +94,7 @@ extern void parse_wordlist(wordlist ** list);
 extern void requirePathnameExists(const char *name, const char *path);
 extern void parse_time_t(time_t * var);
 extern void parse_cachedir_options(SwapDir * sd, struct cache_dir_option *options, int reconfiguring);
+extern void dump_cachedir_options(StoreEntry * e, struct cache_dir_option *options, SwapDir * sd);
 
 
 /*

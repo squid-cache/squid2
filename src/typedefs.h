@@ -252,7 +252,7 @@ typedef void IDNSCB(void *, rfc1035_rr *, int);
 
 typedef void STINIT(SwapDir *);
 typedef void STNEWFS(SwapDir *);
-typedef void STDUMP(StoreEntry *, const char *, SwapDir *);
+typedef void STDUMP(StoreEntry *, SwapDir *);
 typedef void STFREE(SwapDir *);
 typedef int STDBLCHECK(SwapDir *, StoreEntry *);
 typedef void STSTATFS(SwapDir *, StoreEntry *);

@@ -2110,4 +2110,5 @@ struct _Logfile {
 struct cache_dir_option {
     char *name;
     void (*parse) (SwapDir * sd, const char *option, const char *value, int reconfiguring);
+    void (*dump) (StoreEntry * e, const char *option, SwapDir * sd);
 };
