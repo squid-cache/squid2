@@ -135,7 +135,6 @@ passReadServer(int fd, void *data)
     PassStateData *passState = data;
     int len;
     len = read(passState->server.fd, passState->server.buf, SQUID_TCP_SO_RCVBUF);
-    debug(0, 0, "%s\n", passState->server.buf);
     debug(39, 5, "passReadServer FD %d, read %d bytes\n", fd, len);
     if (len < 0) {
 	debug(39, 1, "passReadServer: FD %d: read failure: %s\n",
@@ -175,7 +174,6 @@ passReadClient(int fd, void *data)
     PassStateData *passState = data;
     int len;
     len = read(passState->client.fd, passState->client.buf, SQUID_TCP_SO_RCVBUF);
-    debug(0, 0, "%s\n", passState->client.buf);
     debug(39, 5, "passReadClient FD %d, read %d bytes\n",
 	passState->client.fd, len);
     if (len < 0) {
@@ -214,7 +212,6 @@ passWriteServer(int fd, void *data)
 	passState->client.buf + passState->client.offset,
 	passState->client.len - passState->client.offset);
     debug(39, 5, "passWriteServer FD %d, wrote %d bytes\n", fd, len);
-    debug(0, 0, "%s\n", passState->client.buf + passState->client.offset);
     if (len < 0) {
 	debug(39, 2, "passWriteServer: FD %d: write failure: %s.\n",
 	    passState->server.fd, xstrerror());
@@ -255,7 +252,6 @@ passWriteClient(int fd, void *data)
 	passState->server.buf + passState->server.offset,
 	passState->server.len - passState->server.offset);
     debug(39, 5, "passWriteClient FD %d, wrote %d bytes\n", fd, len);
-    debug(0, 0, "%s\n", passState->server.buf + passState->server.offset);
     if (len < 0) {
 	debug(39, 2, "passWriteClient: FD %d: write failure: %s.\n",
 	    passState->client.fd, xstrerror());
