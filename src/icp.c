@@ -1025,6 +1025,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
     icpHitObjStateData *icpHitObjState = NULL;
     int pkt_len;
     protocol_t p;
+    aclCheck_t checklist;
 
     header.opcode = headerp->opcode;
     header.version = headerp->version;
@@ -1044,13 +1045,9 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	    break;
 	}
 	p = icp_request->protocol;
-	allow = aclCheck(ICPAccessList,
-	    from.sin_addr,
-	    icp_request->method,
-	    icp_request->protocol,
-	    icp_request->host,
-	    icp_request->port,
-	    icp_request->urlpath);
+	checklist.src_addr = from.sin_addr;
+	checklist.request = icp_request;
+	allow = aclCheck(ICPAccessList, &checklist);
 	put_free_request_t(icp_request);
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s.\n",
@@ -1173,6 +1170,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
     u_short data_sz = 0;
     u_short u;
     protocol_t p;
+    aclCheck_t checklist;
 
     header.opcode = headerp->opcode;
     header.version = headerp->version;
@@ -1197,13 +1195,9 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	    break;
 	}
 	p = icp_request->protocol;
-	allow = aclCheck(ICPAccessList,
-	    from.sin_addr,
-	    icp_request->method,
-	    icp_request->protocol,
-	    icp_request->host,
-	    icp_request->port,
-	    icp_request->urlpath);
+	checklist.src_addr = from.sin_addr;
+	checklist.request = icp_request;
+	allow = aclCheck(ICPAccessList, &checklist);
 	put_free_request_t(icp_request);
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s.\n",
@@ -1575,18 +1569,18 @@ static void icpAccessCheck(icpState, handler)
 {
     int answer = 1;
     request_t *r = icpState->request;
+    aclCheck_t *checklist = NULL;
     if (httpd_accel_mode && !getAccelWithProxy() && r->protocol != PROTO_CACHEOBJ) {
 	/* this cache is an httpd accelerator ONLY */
 	if (!BIT_TEST(icpState->flags, REQ_ACCEL))
 	    answer = 0;
     } else {
-	answer = aclCheck(HTTPAccessList,
-	    icpState->peer.sin_addr,
-	    r->method,
-	    r->protocol,
-	    r->host,
-	    r->port,
-	    r->urlpath);
+	checklist = xcalloc(1, sizeof(aclCheck_t));
+	checklist->src_addr = icpState->peer.sin_addr;
+	checklist->request = requestLink(icpState->request);
+	answer = aclCheck(HTTPAccessList, checklist);
+	requestUnlink(checklist->request);
+	safe_free(checklist);
     }
     (*handler) (icpState, answer);
 }
