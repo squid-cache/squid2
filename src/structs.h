@@ -628,6 +628,7 @@ struct _SquidConfig {
 	char *anon_user;
 	int passive;
 	int sanitycheck;
+	int telnet;
     } Ftp;
     refresh_t *Refresh;
     struct _cacheSwap {

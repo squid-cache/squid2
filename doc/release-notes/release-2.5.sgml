@@ -236,6 +236,9 @@ name="ChangeLog"> file for details.
 	<item>A new "urllogin" ACL type has been introducing allowing regex
 	matches to the "login" component of Internet style URLs
 	(protocol://user:password@host/path/to/file).
+	<item>Squid now respects the Telnet protocol on connections to FTP
+	servers. The ftp_telnet_protocol directice can be used to revert back
+	to the old incorrect implementation.
 	<item>a large number of minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4"
 	name="squid-2.5.STABLE4 patches"> and the <url url="ChangeLog"

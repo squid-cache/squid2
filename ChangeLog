@@ -44,6 +44,8 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	- Bug #867: cache_peer max-conn=.. option does not work
 	- Bug #868: refuses to start if pid_filename none is specified
 	- Bug #887: LDAP helper -Z (TLS) option does not work
+	- Bug #877: Squid doesn't follow telnet protocol on FTP control
+	  connections
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 

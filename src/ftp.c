@@ -1131,16 +1131,55 @@ ftpStart(FwdState * fwd)
 
 /* ====================================================================== */
 
+/* escapes any IAC (0xFF) characters. Returns a new string */
+static char *
+escapeIAC(const char *buf)
+{
+    int n;
+    char *ret;
+    unsigned const char *p;
+    unsigned char *r;
+    for (p = (unsigned const char *) buf, n = 1; *p; n++, p++)
+	if (*p == 255)
+	    n++;
+    ret = xmalloc(n);
+    for (p = (unsigned const char *) buf, r = (unsigned char *) ret; *p; p++) {
+	*r++ = *p;
+	if (*p == 255)
+	    *r++ = 255;
+    }
+    *r++ = '\0';
+    assert((r - (unsigned char *) ret) == n);
+    return ret;
+}
+
+/* removes any telnet options. Same string returned */
+static char *
+decodeTelnet(char *buf)
+{
+    char *p = buf;
+    while ((p = strstr(p, "\377\377")) != NULL) {
+	p++;
+	memmove(p, p + 1, strlen(p + 1) + 1);
+    }
+    return buf;
+}
+
 static void
 ftpWriteCommand(const char *buf, FtpStateData * ftpState)
 {
+    char *ebuf;
     debug(9, 5) ("ftpWriteCommand: %s\n", buf);
+    if (Config.Ftp.telnet)
+	ebuf = escapeIAC(buf);
+    else
+	ebuf = xstrdup(buf);
     safe_free(ftpState->ctrl.last_command);
     safe_free(ftpState->ctrl.last_reply);
     ftpState->ctrl.last_command = xstrdup(buf);
     comm_write(ftpState->ctrl.fd,
-	xstrdup(buf),
-	strlen(buf),
+	ebuf,
+	strlen(ebuf),
 	ftpWriteCommandCallback,
 	ftpState,
 	xfree);
@@ -1219,6 +1258,8 @@ ftpParseControlReply(char *buf, size_t len, int *codep, int *used)
 	list = memAllocate(MEM_WORDLIST);
 	list->key = xmalloc(linelen - offset);
 	xstrncpy(list->key, s + offset, linelen - offset);
+	if (Config.Ftp.telnet)
+	    decodeTelnet(list->key);
 	debug(9, 7) ("%d %s\n", code, list->key);
 	*tail = list;
 	tail = &list->next;
