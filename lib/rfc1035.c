@@ -495,7 +495,6 @@ rfc1035BuildPTRQuery(const struct in_addr addr, char *buf, size_t * szp)
 	(i >> 16) & 255,
 	(i >> 8) & 255,
 	i & 255);
-    printf("rfc1035BuildPTRQuery: {%s}\n", rev);
     h.id = rfc1035Qid();
     h.qr = 0;
     h.rd = 1;
