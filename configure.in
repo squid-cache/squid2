@@ -2117,6 +2117,10 @@ SQUID_TCP_SO_SNDBUF=`cat conftestval`,
 SQUID_TCP_SO_SNDBUF=16384,
 SQUID_TCP_SO_SNDBUF=16384)
 AC_MSG_RESULT($SQUID_TCP_SO_SNDBUF)
+if test $SQUID_TCP_SO_SNDBUF -gt 32768; then
+    echo "Limiting send buffer size to 32K"
+    SQUID_TCP_SO_SNDBUF=32768
+fi
 AC_DEFINE_UNQUOTED(SQUID_TCP_SO_SNDBUF, $SQUID_TCP_SO_SNDBUF)
 
 dnl Not cached since people are likely to tune this
@@ -2143,8 +2147,11 @@ SQUID_TCP_SO_RCVBUF=`cat conftestval`,
 SQUID_TCP_SO_RCVBUF=16384,
 SQUID_TCP_SO_RCVBUF=16384)
 AC_MSG_RESULT($SQUID_TCP_SO_RCVBUF)
+if test $SQUID_TCP_SO_RCVBUF -gt 65535; then
+    echo "Limiting receive buffer size to 64K"
+    SQUID_TCP_SO_RCVBUF=65535
+fi
 AC_DEFINE_UNQUOTED(SQUID_TCP_SO_RCVBUF, $SQUID_TCP_SO_RCVBUF)
-
 AC_CACHE_CHECK(if sys_errlist is already defined, ac_cv_needs_sys_errlist,
   AC_TRY_COMPILE([#include <stdio.h>],[char *s = sys_errlist;],
     ac_cv_needs_sys_errlist="no",
