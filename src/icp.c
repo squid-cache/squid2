@@ -195,6 +195,13 @@ static void icpDetectClientClose _PARAMS((int, icpStateData *));
 static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static void checkFailureRatio _PARAMS((log_type, hier_code));
+static void icpUdpSendEntry _PARAMS((int fd,
+	char *url,
+	int reqnum,
+	struct sockaddr_in * to,
+	icp_opcode opcode,
+	StoreEntry * entry,
+	struct timeval start_time));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -943,12 +950,12 @@ int icpUdpReply(fd, queue)
     return result;
 }
 
-int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode)
+int icpUdpSend(fd, url, reqnum, to, flags, opcode, logcode)
      int fd;
      char *url;
-     icp_common_t *reqheaderp;
+     int reqnum;
      struct sockaddr_in *to;
-     int flags;			/* request->flags */
+     int flags;			/* icp_common_t->flags */
      icp_opcode opcode;
      log_type logcode;
 {
@@ -983,10 +990,11 @@ int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode)
     headerp->opcode = opcode;
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
-    headerp->reqnum = htonl(reqheaderp->reqnum);
+    headerp->reqnum = htonl(reqnum);
     if (opcode == ICP_OP_QUERY && !BIT_TEST(flags, REQ_NOCACHE)
 	&& opt_udp_hit_obj)
 	headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
+    headerp->flags = htonl(flags);
     headerp->pad = 0;
     /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
     headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
@@ -1014,10 +1022,10 @@ int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode)
     return COMM_OK;
 }
 
-static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
+static void icpUdpSendEntry(fd, url, reqnum, to, opcode, entry, start_time)
      int fd;
      char *url;
-     icp_common_t *reqheaderp;
+     int reqnum;
      struct sockaddr_in *to;
      icp_opcode opcode;
      StoreEntry *entry;
@@ -1061,7 +1069,7 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
     headerp->opcode = opcode;
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
-    headerp->reqnum = htonl(reqheaderp->reqnum);
+    headerp->reqnum = htonl(reqnum);
     headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
     urloffset = buf + sizeof(icp_common_t);
@@ -1107,7 +1115,7 @@ static void icpHitObjHandler(errflag, data)
     if (!errflag) {
 	icpUdpSendEntry(icpHitObjState->fd,
 	    entry->url,
-	    &icpHitObjState->header,
+	    icpHitObjState->header.reqnum,
 	    &icpHitObjState->to,
 	    ICP_OP_HIT_OBJ,
 	    icpHitObjState->entry,
@@ -1155,7 +1163,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
 	    icpUdpSend(fd,
 		url,
-		&header,
+		header.reqnum,
 		&from,
 		0,
 		ICP_OP_ERR,
@@ -1169,7 +1177,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		inet_ntoa(from.sin_addr));
 	    icpUdpSend(fd,
 		url,
-		&header,
+		header.reqnum,
 		&from,
 		0,
 		ICP_OP_DENIED,
@@ -1196,14 +1204,14 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		safe_free(icpHitObjState);
 	    }
 	    CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
-	    icpUdpSend(fd, url, &header, &from, 0, ICP_OP_HIT, LOG_UDP_HIT);
+	    icpUdpSend(fd, url, header.reqnum, &from, 0, ICP_OP_HIT, LOG_UDP_HIT);
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
 	    icpUdpSend(fd,
 		url,
-		&header,
+		header.reqnum,
 		&from,
 		0,
 		ICP_OP_RELOADING,
@@ -1211,14 +1219,14 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	} else if (hit_only_mode_until > squid_curtime) {
 	    icpUdpSend(fd,
 		url,
-		&header,
+		header.reqnum,
 		&from,
 		0,
 		ICP_OP_RELOADING,
 		LOG_UDP_RELOADING);
 	} else {
 	    CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
-	    icpUdpSend(fd, url, &header, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
+	    icpUdpSend(fd, url, header.reqnum, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
 	}
 	break;
 
@@ -1317,7 +1325,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
 	    icpUdpSend(fd,
 		url,
-		&header,
+		header.reqnum,
 		&from,
 		0,
 		ICP_OP_INVALID,
@@ -1331,7 +1339,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
 		inet_ntoa(from.sin_addr));
 	    icpUdpSend(fd,
 		url,
-		&header,
+		header.reqnum,
 		&from,
 		0,
 		ICP_OP_DENIED,
@@ -1345,14 +1353,14 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
 	    CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
-	    icpUdpSend(fd, url, &header, &from, 0, ICP_OP_HIT, LOG_UDP_HIT);
+	    icpUdpSend(fd, url, header.reqnum, &from, 0, ICP_OP_HIT, LOG_UDP_HIT);
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
 	    icpUdpSend(fd,
 		url,
-		&header,
+		header.reqnum,
 		&from,
 		0,
 		ICP_OP_RELOADING,
@@ -1360,14 +1368,14 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	} else if (hit_only_mode_until > squid_curtime) {
 	    icpUdpSend(fd,
 		url,
-		&header,
+		header.reqnum,
 		&from,
 		0,
 		ICP_OP_RELOADING,
 		LOG_UDP_RELOADING);
 	} else {
 	    CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
-	    icpUdpSend(fd, url, &header, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
+	    icpUdpSend(fd, url, header.reqnum, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
 	}
 	break;
 

@@ -153,7 +153,7 @@ typedef struct wwd {
 extern char *icpWrite _PARAMS((int, char *, int, int, void (*handler) (), void *));
 extern int icpUdpSend _PARAMS((int,
 	char *,
-	icp_common_t *,
+	int reqnum,
 	struct sockaddr_in *,
 	int flags,
 	icp_opcode,

@@ -165,7 +165,7 @@ struct _edge {
 
     u_short icp_port;
     u_short http_port;
-    icp_common_t header;
+    int icp_version;
     dom_list *domains;
     struct _acl_list *acls;
     int options;
