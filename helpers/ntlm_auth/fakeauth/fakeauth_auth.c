@@ -38,6 +38,9 @@
 #if HAVE_PWD_H
 #include <pwd.h>
 #endif
+#if HAVE_ASSERT_H
+#include <assert.h>
+#endif
 
 #if 0
 #define NTLM_STATIC_CHALLENGE "deadbeef"
@@ -200,29 +203,34 @@ ntlmDecodeAuth(struct ntlm_authenticate *auth, char *buf, size_t size)
     if (!buf)
 	return 1;
     origbuf = buf;
-    if (ntlmCheckHeader(&auth->hdr, NTLM_AUTHENTICATE)) {
+    assert (0 == ntlmCheckHeader(&auth->hdr, NTLM_AUTHENTICATE));
 
-	fprintf(stderr, "ntlmDecodeAuth: header check fails\n");
-	return -1;
-    }
-/* only on when you need to debug
- * fprintf(stderr,"ntlmDecodeAuth: size of %d\n", size);
- * fprintf(stderr,"ntlmDecodeAuth: flg %08x\n", auth->flags);
- * fprintf(stderr,"ntlmDecodeAuth: usr o(%d) l(%d)\n", auth->user.offset, auth->user.len);
- */
+#if DEBUG_FAKEAUTH
+    fprintf(stderr,"ntlmDecodeAuth: size of %d\n", size);
+    fprintf(stderr,"ntlmDecodeAuth: flg %08x\n", auth->flags);
+    fprintf(stderr,"ntlmDecodeAuth: usr o(%d) l(%d)\n", auth->user.offset,
+	auth->user.len);
+#endif
+
     if ((p = ntlmGetString(&auth->hdr, &auth->domain, 2)) == NULL)
 	p = authenticate_ntlm_domain;
-    /* fprintf(stderr,"ntlmDecodeAuth: Domain '%s'.\n",p); */
+#if DEBUG_FAKEAUTH
+    fprintf(stderr,"ntlmDecodeAuth: Domain '%s'.\n",p);
+#endif
     if ((s = strlen(p) + 1) >= size)
 	return 1;
     strcpy(buf, p);
-    /* fprintf(stdout,"ntlmDecodeAuth: Domain '%s'.\n",buf); */
+#if DEBUG_FAKEAUTH
+    fprintf(stdout,"ntlmDecodeAuth: Domain '%s'.\n",buf);
+#endif
 
     size -= s;
     buf += (s - 1);
     *buf++ = '\\';		/* Using \ is more consistent with MS-proxy */
 
     p = ntlmGetString(&auth->hdr, &auth->user, 2);
+    if (NULL == p)
+	return 1;
     if ((s = strlen(p) + 1) >= size)
 	return 1;
     while (*p)
@@ -230,7 +238,9 @@ ntlmDecodeAuth(struct ntlm_authenticate *auth, char *buf, size_t size)
 
     *buf++ = '\0';
     size -= s;
-    /* fprintf(stderr, "ntlmDecodeAuth: user: %s%s\n",origbuf, p); */
+#if DEBUG_FAKEAUTH
+    fprintf(stderr, "ntlmDecodeAuth: user: %s%s\n",origbuf, p);
+#endif
 
     return 0;
 }
