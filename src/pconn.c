@@ -198,7 +198,7 @@ pconnPush(int fd, const char *host, u_short port)
 	p->nfds_alloc <<= 1;
 	old = p->fds;
 	p->fds = xmalloc(p->nfds_alloc * sizeof(int));
-	xmemcpy(p->fds, old, p->nfds);
+	xmemcpy(p->fds, old, p->nfds * sizeof(int));
 	xfree(old);
     }
     p->fds[p->nfds++] = fd;
