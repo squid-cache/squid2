@@ -69,7 +69,7 @@ storeDirClean(void *unused)
     int n = 0;
     int k = 0;
     eventAdd("storeDirClean", storeDirClean, NULL, 15);
-    if (store_rebuilding == STORE_REBUILDING_CLEAN)
+    if (store_rebuilding)
 	return;
     storeSwapSubSubDir(swap_index, p1);
     debug(36, 3, "storeDirClean: Cleaning directory %s\n", p1);

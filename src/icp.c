@@ -1038,10 +1038,7 @@ icpProcessRequestComplete(void *data, int status)
     if (entry && status < 0) {
 	storeRelease(entry);
 	http->log_type = LOG_TCP_SWAPFAIL_MISS;
-	debug(0, 0, "icpProcessRequestComplete: status=%d\n", status);
-	debug(0, 0, "--> %s\n", entry->url);
-	debug(0, 0, "--> fileno %08X\n", entry->swap_file_number);
-	debug(0, 0, "--> path %s\n", storeSwapFullPath(entry->swap_file_number, NULL));
+	debug(12, 1, "Swapin Failure: '%s', %s\n", entry->url, storeSwapFullPath(entry->swap_file_number, NULL));
 	entry = NULL;
     }
     if (entry)
@@ -1435,7 +1432,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    }
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
-	if (store_rebuilding == STORE_REBUILDING_CLEAN && opt_reload_hit_only) {
+	if (store_rebuilding && opt_reload_hit_only) {
 	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, flags, url, header.reqnum, src_rtt);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
@@ -1565,7 +1562,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
-	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_CLEAN) {
+	if (opt_reload_hit_only && store_rebuilding) {
 	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, 0, url, header.reqnum, 0);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
