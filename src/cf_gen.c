@@ -121,10 +121,8 @@ main(int argc, char *argv[])
 		    printf("Error in input file\n");
 		    exit(1);
 		}
-		curr = malloc(sizeof(Entry));
+		curr = calloc(1, sizeof(Entry));
 		curr->name = strdup(name);
-		curr->loc = NULL;
-		curr->doc = NULL;
 		state = s1;
 
 	    } else if (!strcmp(buff, "EOF")) {
@@ -209,7 +207,7 @@ main(int argc, char *argv[])
 
 		state = sSTART;
 	    } else {
-		Line *line = malloc(sizeof(Line));
+		Line *line = calloc(1, sizeof(Line));
 
 		line->data = strdup(buff);
 		line->next = curr->doc;
