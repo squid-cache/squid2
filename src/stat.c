@@ -35,8 +35,8 @@ char *elapsed_time();
 char *diskFileName();
 
 /* LOCALS */
-static char *open_bracket = "{\n";
-static char *close_bracket = "}\n";
+char *open_bracket = "{\n";
+char *close_bracket = "}\n";
 
 static int percent _PARAMS((int, int));
 
@@ -106,8 +106,7 @@ void stat_utilization_get(obj, sentry)
     storeAppendPrintf(sentry, close_bracket);
 }
 
-void stat_io_get(obj, sentry)
-     cacheinfo *obj;
+void stat_io_get(sentry)
      StoreEntry *sentry;
 {
     int i;
@@ -159,17 +158,6 @@ int cache_size_get(obj)
 	size += obj->proto_stat_data[proto_id].kb.now;
     return size;
 }
-
-/* process general IP cache information */
-void stat_general_get(obj, sentry)
-     cacheinfo *obj;
-     StoreEntry *sentry;
-{
-    /* have to use old method for this guy, 
-     * otherwise we have to make ipcache know about StoreEntry */
-    stat_ipcache_get(sentry, obj);
-}
-
 
 /* process objects list */
 void stat_objects_get(obj, sentry, vm_or_not)
@@ -225,16 +213,20 @@ void stat_get(obj, req, sentry)
      StoreEntry *sentry;
 {
 
-    if (strncmp(req, "objects", strlen("objects")) == 0) {
+    if (strcmp(req, "objects") == 0) {
 	stat_objects_get(obj, sentry, 0);
-    } else if (strncmp(req, "vm_objects", strlen("vm_objects")) == 0) {
+    } else if (strcmp(req, "vm_objects") == 0) {
 	stat_objects_get(obj, sentry, 1);
-    } else if (strncmp(req, "general", strlen("general")) == 0) {
-	stat_general_get(obj, sentry);
-    } else if (strncmp(req, "utilization", strlen("utilization")) == 0) {
+    } else if (strcmp(req, "general") == 0) {
+	stat_ipcache_get(sentry);
+    } else if (strcmp(req, "general") == 0) {
+	stat_ipcache_get(sentry);
+    } else if (strcmp(req, "utilization") == 0) {
 	stat_utilization_get(obj, sentry);
     } else if (strcmp(req, "io") == 0) {
-	stat_io_get(obj, sentry);
+	stat_io_get(sentry);
+    } else if (strcmp(req, "reply_headers") == 0) {
+	httpReplyHeaderStats(sentry);
     }
 }
 
