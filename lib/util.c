@@ -725,12 +725,14 @@ xpercent(double part, double whole)
 int
 xpercentInt(double part, double whole)
 {
+    double result;
 #if HAVE_RINT
-    return (int) rint(xpercent(part, whole));
+    result = rint(xpercent(part, whole));
 #else
     /* SCO 3.2v4.2 doesn't have rint() -- mauri@mbp.ee */
-    return (int) floor(xpercent(part, whole) + 0.5);
+    result = floor(xpercent(part, whole) + 0.5);
 #endif
+    return (int) result;
 }
 
 /* somewhat safer division */
@@ -751,9 +753,9 @@ xitoa(int num)
 
 /* A default failure notifier when the main program hasn't installed any */
 void
-default_failure_notify(const char *msg)
+default_failure_notify(const char *message)
 {
-    write(2, msg, strlen(msg));
+    write(2, message, strlen(message));
     write(2, "\n", 1);
     abort();
 }

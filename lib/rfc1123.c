@@ -74,7 +74,7 @@ static const char *const w_space = " \t\r\n";
 static int make_month(const char *s);
 static int make_num(const char *s);
 
-static char *month_names[12] =
+static const char *month_names[12] =
 {
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
