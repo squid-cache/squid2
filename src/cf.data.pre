@@ -842,7 +842,7 @@ DOC_END
 
 NAME: cache_dns_program
 TYPE: string
-IFDEF: USE_DNSSERVER
+IFDEF: USE_DNSSERVERS
 DEFAULT: @DEFAULT_DNSSERVER@
 LOC: Config.Program.dnsserver
 DOC_START
@@ -887,7 +887,7 @@ DOC_END
 
 NAME: dns_defnames
 COMMENT: on|off
-IFDEF: USE_DNSSERVER
+IFDEF: USE_DNSSERVERS
 TYPE: onoff
 DEFAULT: off
 LOC: Config.onoff.res_defnames
