@@ -255,3 +255,11 @@ Changes to squid-1.0.beta13 (June 7, 1996):
 	- Fixed coredump bug where StoreEntry key was free'd too soon.
 	- Fixed UDP_HIT_OBJ bug: cancel the hierarchy timeout and set
 	  the ping_status to DONE for UDP_HIT_OBJ replies.
+
+Changes to squid-1.0.beta14 (June 7, 1996):
+
+	- Fixed coredump bug in icp.c when generating ``Not Modified''
+	  replies.
+	- Fixed SSL bug which assumed the requested host name would
+	  already be in the IP cache.
+	- Fixed names of generated HTTP reply headers.
