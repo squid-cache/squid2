@@ -36,6 +36,10 @@
 
 #include "squid.h"
 
+enum {
+    URN_FORCE_MENU
+};
+
 typedef struct {
     StoreEntry *entry;
     StoreEntry *urlres_e;
