@@ -760,6 +760,7 @@ examine_select(fd_set * readfds, fd_set * writefds)
 	else
 	    continue;
 	Counter.syscalls.selects++;
+	errno = 0;
 	num = select(Squid_MaxFD, &read_x, &write_x, NULL, &tv);
 	if (num > -1) {
 	    debug(5, 5) ("FD %d is valid.\n", fd);
