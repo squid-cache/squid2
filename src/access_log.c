@@ -174,6 +174,8 @@ accessLogLog(AccessLogEntry * al)
 	al->private.method_str = IcpOpcodeStr[al->icp.opcode];
     else
 	al->private.method_str = RequestMethodStr[al->http.method];
+    if (al->hier.host[0] == '\0')
+	xstrncpy(al->hier.host, dash_str, SQUIDHOSTNAMELEN);
     if (Config.commonLogFormat)
 	l = accessLogCommon(al);
     else
