@@ -299,7 +299,7 @@ fqdncacheParse(rfc1035_rr * answers, int nr)
 	f.error_message = xstrdup("No DNS records");
 	return &f;
     }
-    debug(35, 1) ("fqdncacheParse: %d answers\n", nr);
+    debug(35, 3) ("fqdncacheParse: %d answers\n", nr);
     assert(answers);
     for (j = 0, k = 0; k < nr; k++) {
 	if (answers[k].type != RFC1035_TYPE_PTR)
