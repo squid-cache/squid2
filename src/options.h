@@ -78,4 +78,4 @@
  * elements based on ethernet hardware addresses.  This code uses
  * functions found in 4.4 BSD derviations (e.g. FreeBSD, ?).
  */
-#define USE_ARP_ACL 1
+#undef USE_ARP_ACL 1
