@@ -527,6 +527,8 @@ static int
 storeCheckTooSmall(StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
+    if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
+	return 1;
     if (STORE_OK == e->store_status)
 	if (mem->object_sz < Config.Store.minObjectSize)
 	    return 1;

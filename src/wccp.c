@@ -103,8 +103,6 @@ void
 wccpInit(void)
 {
     debug(80, 5) ("wccpInit: Called\n");
-    if (eventFind(wccpHereIam, NULL))
-	return;
     memset(&wccp_here_i_am, '\0', sizeof(wccp_here_i_am));
     wccp_here_i_am.type = htonl(WCCP_HERE_I_AM);
     wccp_here_i_am.version = htonl(Config.Wccp.version);
