@@ -3208,8 +3208,10 @@ clientNegotiateSSL(int fd, void *data)
 	    return;
 	}
 	ret = ERR_get_error();
-	debug(81, 1) ("clientNegotiateSSL: Error negotiating SSL connection on FD %d: %s\n",
-	    fd, ERR_error_string(ret, NULL));
+	if (ret) {
+	    debug(81, 1) ("clientNegotiateSSL: Error negotiating SSL connection on FD %d: %s\n",
+		fd, ERR_error_string(ret, NULL));
+	}
 	comm_close(fd);
 	return;
     }
