@@ -181,6 +181,7 @@ static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
 static void icpUdpSendEntry _PARAMS((int, char *, int,
 	struct sockaddr_in *, icp_opcode, StoreEntry *, struct timeval));
+static void vizHackSendPkt _PARAMS((struct sockaddr_in *from));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -741,8 +742,17 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	pubkey = storeGeneratePublicKey(icpState->url, icpState->method);
 
     if ((entry = storeGet(pubkey)) == NULL) {
-	/* This object isn't in the cache.  We do not hold a lock yet */
+	/* this object isn't in the cache */
 	icpState->log_type = LOG_TCP_MISS;
+    } else if (BIT_TEST(entry->flag, ENTRY_NEGCACHED)) {
+	/* found a negative-cached object, check when it expires */
+	if (entry->expires < squid_curtime) {
+	    icpState->log_type = LOG_TCP_MISS;
+	    storeRelease(entry);
+	    entry = NULL;
+	} else {
+	    icpState->log_type = LOG_TCP_HIT;
+	}
     } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
 	/* IMS+NOCACHE should not eject valid object */
 	if (!BIT_TEST(request->flags, REQ_IMS))
@@ -1815,6 +1825,8 @@ asciiHandleConn(int sock, void *notused)
 	    sock, xstrerror());
 	return;
     }
+    if (Config.vizHackAddr.sin_port)
+        vizHackSendPkt(&peer);
     /* set the hardwired lifetime */
     lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
     ntcpconn++;
@@ -1994,3 +2006,20 @@ icpConstruct304reply(struct _http_reply *source)
     strcat(reply, line);
     return reply;
 }
+
+struct viz_pkt {
+	u_num32 from;
+};
+
+static void
+vizHackSendPkt(struct sockaddr_in *from)
+{
+    static struct viz_pkt v;
+    v.from = htonl(from->sin_addr.s_addr);
+    comm_udp_sendto(theOutIcpConnection,
+	&Config.vizHackAddr,
+	sizeof(struct sockaddr_in),
+	(char *) &v,
+	sizeof(v));
+}
+
