@@ -327,8 +327,9 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (!strcasecmp(t, "Keep-Alive"))
 	    BIT_SET(request->flags, REQ_PROXY_KEEPALIVE);
 #endif
-    if (strstr(request_hdr, ViaString))
-	BIT_SET(request->flags, REQ_LOOPDETECT);
+    if ((t = mime_get_header(request_hdr, "Via")))
+	if (strstr(t, getMyHostname()))
+	    BIT_SET(request->flags, REQ_LOOPDETECT);
 #if USE_USERAGENT_LOG
     if ((t = mime_get_header(request_hdr, "User-Agent")))
 	logUserAgent(fqdnFromAddr(icpState->peer.sin_addr), t);
@@ -1579,7 +1580,7 @@ parseHttpRequest(icpStateData * icpState)
     len = (int) (t - token);
     memset(http_ver, '\0', 32);
     strncpy(http_ver, token, len < 31 ? len : 31);
-    sscanf(http_ver, "%f", &icpState->http_ver);
+    sscanf(http_ver, "HTTP/%f", &icpState->http_ver);
     debug(12, 5, "parseHttpRequest: HTTP version is '%s'\n", http_ver);
 
     req_hdr = t;
@@ -1731,6 +1732,7 @@ asciiProcessInput(int fd, char *buf, int size, int flag, void *data)
 	    }
 	    return;
 	}
+	request->http_ver = icpState->http_ver;
 	if (!urlCheckRequest(request)) {
 	    icpState->log_type = ERR_UNSUP_REQ;
 	    icpState->http_code = 501;

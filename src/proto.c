@@ -499,9 +499,9 @@ protoStart(int fd, StoreEntry * entry, edge * e, request_t * request)
     netdbPingSite(request->host);
     if (e) {
 	e->stats.fetches++;
-	return proxyhttpStart(e, url, entry);
+	return proxyhttpStart(url, request, entry, e);
     } else if (request->protocol == PROTO_HTTP) {
-	return httpStart(fd, url, request, request_hdr, request_hdr_sz, entry);
+	return httpStart(url, request, request_hdr, request_hdr_sz, entry);
     } else if (request->protocol == PROTO_GOPHER) {
 	return gopherStart(fd, url, entry);
     } else if (request->protocol == PROTO_FTP) {

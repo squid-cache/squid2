@@ -275,7 +275,6 @@ extern const char *cfg_filename;	/* Only the tail component of the path */
 extern char config_input_line[];
 extern int config_lineno;
 extern volatile int unbuffered_logs;
-extern char ViaString[];
 extern int httpd_accel_mode;
 
 extern int parseConfigFile _PARAMS((const char *file_name));

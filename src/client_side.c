@@ -208,14 +208,16 @@ clientRedirectDone(void *data, char *result)
     icpStateData *icpState = data;
     int fd = icpState->fd;
     request_t *new_request = NULL;
+    request_t *old_request = icpState->request;
     debug(33, 5, "clientRedirectDone: '%s' result=%s\n", icpState->url,
 	result ? result : "NULL");
     if (result)
-	new_request = urlParse(icpState->request->method, result);
+	new_request = urlParse(old_request->method, result);
     if (new_request) {
 	safe_free(icpState->url);
 	icpState->url = xstrdup(result);
-	requestUnlink(icpState->request);
+	new_request->http_ver = old_request->http_ver;
+	requestUnlink(old_request);
 	icpState->request = requestLink(new_request);
 	urlCanonical(icpState->request, icpState->url);
     }
