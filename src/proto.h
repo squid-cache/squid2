@@ -159,6 +159,7 @@ typedef struct icp_message_s icp_message_t;
 /* Version */
 #define ICP_VERSION_1		1
 #define ICP_VERSION_2		2
+#define ICP_VERSION_3		3
 #define ICP_VERSION_CURRENT	ICP_VERSION_2
 
 extern int icp_proto_errno;	/* operation errors */
