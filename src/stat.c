@@ -535,17 +535,18 @@ void info_get(obj, sentry)
     sprintf(line, "{\tStorage Expiration at:\t%s}\n", tod);
     storeAppend(sentry, line, strlen(line));
 
-#if defined(HAVE_GETRUSAGE) && defined(RUSAGE_SELF)
+#if HAVE_GETRUSAGE && defined(RUSAGE_SELF)
     sprintf(line, "{Resource usage for %s:}\n", appname);
     storeAppend(sentry, line, strlen(line));
 
     getrusage(RUSAGE_SELF, &rusage);
-    sprintf(line, "{\tCPU Usage: user %d sys %d}\n{\tProcess Size: rss %d KB}\n",
-	rusage.ru_utime.tv_sec, rusage.ru_stime.tv_sec,
+    sprintf(line, "{\tCPU Usage: user %d sys %d}\n",
+	(int) rusage.ru_utime.tv_sec, (int) rusage.ru_stime.tv_sec);
+    sprintf(line, "{\tProcess Size: rss %ld KB}\n",
 	rusage.ru_maxrss * getpagesize() >> 10);
     storeAppend(sentry, line, strlen(line));
 
-    sprintf(line, "{\tPage faults with physical i/o:\t%d}\n",
+    sprintf(line, "{\tPage faults with physical i/o: %ld}\n",
 	rusage.ru_majflt);
     storeAppend(sentry, line, strlen(line));
 
