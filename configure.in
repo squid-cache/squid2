@@ -196,7 +196,6 @@ if test "$use_dlmalloc" = yes; then
     ac_cv_func_malloc_trim="yes"
     ac_cv_func_malloc_usable_size="yes"
     ac_cv_func_malloc_stats="yes"
-    ac_cv_func_mallinfo="yes"
     ac_cv_func_mallopt="yes"
     ac_cv_lib_gnumalloc="no"
     ac_cv_header_gnumalloc_h="no"
@@ -589,6 +588,9 @@ AC_CHECK_HEADERS( \
 	netdb.h \
 	netinet/in.h \
 	netinet/tcp.h \
+	netinet/ip_compat.h \
+	netinet/ip_fil.h \
+	netinet/ip_nat.h \
 	poll.h \
 	pwd.h \
 	regex.h \
@@ -644,6 +646,27 @@ AC_CACHE_CHECK(for tm->tm_gmtoff,ac_cv_have_tm_gmoff, [
 ])
 if test $ac_cv_have_tm_gmoff = "yes" ; then
   AC_DEFINE(HAVE_TM_GMTOFF)
+fi
+
+AC_CACHE_CHECK(for struct mallinfo,ac_cv_have_struct_mallinfo, [
+  AC_TRY_COMPILE([#include <sys/types.h>
+#if HAVE_MALLOC_H
+#include <malloc.h>
+#endif],
+    [struct mallinfo foo;
+    foo.arena = 0;
+    foo.ordblks = 0;
+    foo.smblks = 0;
+    foo.hblks = 0;
+    foo.hblkhd = 0;
+    foo.uordblks = 0;
+    foo.fordblks = 0;
+    foo.keepcost = 0;],
+    ac_cv_have_struct_mallinfo="yes",
+    ac_cv_have_struct_mallinfo="no")
+])
+if test $ac_cv_have_struct_mallinfo = "yes" ; then
+  AC_DEFINE(HAVE_STRUCT_MALLINFO)
 fi
 
 AC_CACHE_CHECK(for extended mallinfo,ac_cv_have_ext_mallinfo, [
@@ -959,14 +982,19 @@ dnl IP-Filter support requires ipf header files. These aren't
 dnl installed by default, so we need to check for them
 if test "$IPF_TRANSPARENT" ; then
     AC_MSG_CHECKING(if IP-Filter header files are installed)
-    if test "$ac_cv_header_ip_compat_h" = "no" ||
-       test "$ac_cv_header_ip_fil_h" = "no" ||
-       test "$ac_cv_header_ip_nat_h" = "no" ; then
+    if test "$ac_cv_header_ip_compat_h" = "yes" &&
+       test "$ac_cv_header_ip_fil_h" = "yes" &&
+       test "$ac_cv_header_ip_nat_h" = "yes" ; then
+        IPF_TRANSPARENT="yes"
+        AC_DEFINE(IPF_TRANSPARENT, 1)
+    elif test "$ac_cv_header_netinet_ip_compat_h" = "yes" &&
+         test "$ac_cv_header_netinet_ip_fil_h" = "yes" &&
+         test "$ac_cv_header_netinet_ip_nat_h" = "yes" ; then
+        IPF_TRANSPARENT="yes"
+        AC_DEFINE(IPF_TRANSPARENT, 1)
+    else
         IPF_TRANSPARENT="no"
         AC_DEFINE(IPF_TRANSPARENT, 0)
-    else
-        IPF_TRANSPARENT="yes"
-        AC_DEFINE(IPF_TRANSPARENT)
     fi
     AC_MSG_RESULT($IPF_TRANSPARENT)
 fi 

@@ -239,3 +239,7 @@
  */
 #undef USE_DNSSERVERS
 
+/*
+ * we check for the existance of struct mallinfo
+ */
+#undef HAVE_STRUCT_MALLINFO
