@@ -898,6 +898,7 @@ int icpHandleUdp(sock, not_used)
     memset(buf, 0, ICP_MAX_UDP_SIZE);
 
     len = comm_udp_recv(sock, buf, ICP_MAX_UDP_SIZE - 1, &from, &from_len);
+    nudpconn++;
     if (len < 0) {
 	debug(12, 1, "icpHandleUdp: FD %d: error receiving.\n", sock);
 	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
