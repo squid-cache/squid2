@@ -205,7 +205,7 @@ const char *DefaultSwapDir = DEFAULT_SWAP_DIR;
 const char *DefaultConfigFile = DEFAULT_CONFIG_FILE;
 char *ConfigFile = NULL;	/* the whole thing */
 const char *cfg_filename = NULL;	/* just the last part */
-char ForwardedBy[256] = "";
+char ViaString[256] = "";
 
 static const char *const w_space = " \t\n\r";
 static const char *const list_sep = ", \t\n\r";
@@ -1562,7 +1562,7 @@ static void
 configDoConfigure(void)
 {
     httpd_accel_mode = Config.Accel.prefix ? 1 : 0;
-    sprintf(ForwardedBy, "Forwarded: by http://%s:%d/ (Squid/%s)",
+    sprintf(ViaString, "Via: 1.0 %s:%d (Squid/%s)\r\n",
 	getMyHostname(), Config.Port.http, SQUID_VERSION);
     if (Config.errHtmlText == NULL)
 	Config.errHtmlText = xstrdup(null_string);

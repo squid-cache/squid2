@@ -325,7 +325,7 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (!strcasecmp(t, "Keep-Alive"))
 	    BIT_SET(request->flags, REQ_PROXY_KEEPALIVE);
 #endif
-    if (strstr(request_hdr, ForwardedBy))
+    if (strstr(request_hdr, ViaString))
 	BIT_SET(request->flags, REQ_LOOPDETECT);
 #if USE_USERAGENT_LOG
     if ((t = mime_get_header(request_hdr, "User-Agent")))
