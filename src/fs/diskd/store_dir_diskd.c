@@ -470,9 +470,14 @@ storeDiskdStats(StoreEntry * sentry)
 static void
 storeDiskdDirSync(SwapDir * SD)
 {
+    static time_t lastmsg = 0;
     diskdinfo_t *diskdinfo = SD->fsdata;
     while (diskdinfo->away > 0) {
-	debug(47, 1) ("storeDiskdDirSync: %d messages away\n", diskdinfo->away);
+	if (squid_curtime > lastmsg) {
+	    debug(47, 1) ("storeDiskdDirSync: %d messages away\n",
+		diskdinfo->away);
+	    lastmsg = squid_curtime;
+	}
 	storeDiskdDirCallback(SD);
     }
 }
