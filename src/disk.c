@@ -212,7 +212,7 @@ file_close(int fd)
     assert(F->open);
     if (EBIT_TEST(F->flags, FD_WRITE_DAEMON)) {
 	EBIT_SET(F->flags, FD_CLOSE_REQUEST);
-	debug(6, 2) ("file_close: FD %d, delaying close\n");
+	debug(6, 2) ("file_close: FD %d, delaying close\n", fd);
 	return;
     }
 #if USE_ASYNC_IO
