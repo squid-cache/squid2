@@ -1,4 +1,4 @@
-Changes to squid-1.NOVM.15 ()
+Changes to squid-1.NOVM.15 (August 11, 1997)
 
 	- Fixed unlinkd socket being incorrectly closed by
 	  lifetime handlers.
@@ -23,7 +23,7 @@ Changes to squid-1.NOVM.15 ()
 	  swapout FDs to remain open.  (Thanks to John Line for debugging
 	  help).
 
-Changes to squid-1.1.15 ():
+Changes to squid-1.1.15 (August 11, 1997):
 
 	- Fixed bug in diskHandleWrite().  'break' should be 'continue'
 	  (Michael O'Reilly).
