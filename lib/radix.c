@@ -69,7 +69,6 @@
  */
 
 #include "config.h"
-#include "radix.h"
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
