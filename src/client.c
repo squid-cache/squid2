@@ -134,7 +134,7 @@ int main(argc, argv)
 static int client_comm_connect(sock, dest_host, dest_port)
      int sock;			/* Type of communication to use. */
      char *dest_host;		/* Server's host name. */
-     int dest_port;		/* Server's port. */
+     u_short dest_port;		/* Server's port. */
 {
     struct hostent *hp;
     static struct sockaddr_in to_addr;

@@ -9,6 +9,9 @@
 #define MAIN
 #include "util.h"
 
+static void debug_enable _PARAMS((int, int));
+static void debug_disable _PARAMS((int));
+
 int Harvest_debug_levels[MAX_DEBUG_LEVELS];
 int Harvest_do_debug = 0;
 
@@ -29,7 +32,7 @@ void debug_reset()
 /*
  *  debug_enable() - Enables debugging output for section s, level l.
  */
-void debug_enable(s, l)
+static void debug_enable(s, l)
      int s, l;
 {
 #ifdef USE_NO_DEBUGGING

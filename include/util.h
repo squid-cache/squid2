@@ -73,10 +73,10 @@ extern int Harvest_debug_levels[];
         {if (debug_ok_fast((section),(level))) {Log X;}}
 #endif
 
-void debug_enable _PARAMS((int, int));
-void debug_disable _PARAMS((int));
 void debug_flag _PARAMS((char *));
 #ifdef UNUSED_CODE
+void debug_enable _PARAMS((int, int));
+void debug_disable _PARAMS((int));
 void debug_reset _PARAMS((void));
 int debug_ok _PARAMS((int, int));
 #endif /* UNUSED_CODE */
@@ -96,13 +96,12 @@ typedef struct _host {
 
 extern Host *thisHost;
 
-void host_cache_init _PARAMS((void));
 Host *get_host _PARAMS((char *hostname));
 int delete_host _PARAMS((Host * h));
 int expire_host_cache _PARAMS((time_t timeout));
+#ifdef UNUSED_CODE
 void dump_host_cache _PARAMS((int, int));
-
-
+#endif
 
 char *mkhttpdlogtime _PARAMS((time_t *));
 extern char *mkrfc850 _PARAMS((time_t *));

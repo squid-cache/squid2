@@ -31,7 +31,7 @@ static struct timeval zero_tv;
 static void comm_select_incoming _PARAMS((void));
 
 /* Return the local port associated with fd. */
-int comm_port(fd)
+u_short comm_port(fd)
      int fd;
 {
     struct sockaddr_in addr;
@@ -59,7 +59,7 @@ int comm_port(fd)
 static int do_bind(s, host, port)
      int s;
      char *host;
-     int port;
+     u_short port;
 {
     struct sockaddr_in S;
     struct in_addr *addr = NULL;
@@ -88,7 +88,7 @@ static int do_bind(s, host, port)
  * is OR of flags specified in comm.h. */
 int comm_open(io_type, port, handler, note)
      unsigned int io_type;
-     int port;
+     u_short port;
      int (*handler) ();		/* Interrupt handler. */
      char *note;
 {
@@ -192,7 +192,7 @@ int comm_listen(sock)
 int comm_connect(sock, dest_host, dest_port)
      int sock;			/* Type of communication to use. */
      char *dest_host;		/* Server's host name. */
-     int dest_port;		/* Server's port. */
+     u_short dest_port;		/* Server's port. */
 {
     struct hostent *hp = NULL;
     static struct sockaddr_in to_addr;
@@ -390,7 +390,7 @@ int comm_cleanup_fd_entry(fd)
 int comm_udp_send(fd, host, port, buf, len)
      int fd;
      char *host;
-     int port;
+     u_short port;
      char *buf;
      int len;
 {
@@ -877,7 +877,7 @@ int comm_init()
 {
     int i, max_fd = getMaxFD();
 
-    fd_table = (FD_ENTRY *) xcalloc(max_fd, sizeof(FD_ENTRY));
+    fd_table = xcalloc(max_fd, sizeof(FD_ENTRY));
     /* Keep a few file descriptors free so that we don't run out of FD's
      * after accepting a client but before it opens a socket or a file.
      * Since getMaxFD can be as high as several thousand, don't waste them */

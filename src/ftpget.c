@@ -166,7 +166,7 @@ typedef enum {
 
 typedef struct _request {
     char *host;
-    int port;
+    u_short port;
     char *path;
     char *type;
     char *user;
@@ -224,8 +224,8 @@ char *o_iconprefix = "internal-";	/* URL prefix for icons */
 char *o_iconsuffix = "";	/* URL suffix for icons */
 int o_list_width = 32;		/* size of filenames in directory list */
 int o_list_wrap = 0;		/* wrap long directory names ? */
-int o_conn_min = 0x4000;	/* min. port number to use */
-int o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
+u_short o_conn_min = 0x4000;	/* min. port number to use */
+u_short o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
 
 #define SMALLBUFSIZ 1024
 #define MIDBUFSIZ 2048
@@ -998,7 +998,7 @@ state_t parse_request(r)
      request_t *r;
 {
     Debug(26, 1, ("parse_request: looking up '%s'\n", r->host));
-    if (get_host(r->host) == (Host *) NULL) {
+    if (get_host(r->host) == NULL) {
 	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "Unknown host: %s", r->host);
 	r->rc = 10;
@@ -1210,7 +1210,7 @@ state_t do_port(r)
     struct sockaddr_in S;
     unsigned int naddr;
     int tries = 0;
-    int port = 0;
+    u_short port = 0;
     static int init = 0;
 
     if (is_dfd_open(r))
@@ -1285,7 +1285,7 @@ state_t do_pasv(r)
     int code;
     int sock;
     struct sockaddr_in S;
-    int port = 0;
+    u_short port = 0;
     int n;
     int h1, h2, h3, h4;
     int p1, p2;
@@ -1908,7 +1908,7 @@ state_t htmlify_listing(r)
 static int process_request(r)
      request_t *r;
 {
-    if (r == (request_t *) NULL)
+    if (r == NULL)
 	return 1;
 
     for (;;) {
@@ -2119,7 +2119,7 @@ void cleanup_path(r)
 
 #define MAX_ARGS 64
 int ftpget_srv_mode(port)
-     int port;
+     u_short port;
 {
     /* Accept connections on localhost:port.  For each request,
      * parse into args and exec ftpget. */
@@ -2260,7 +2260,7 @@ int main(argc, argv)
     int i;
     int len;
     int j, k;
-    int port = FTP_PORT;
+    u_short port = FTP_PORT;
 
     fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {

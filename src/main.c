@@ -91,10 +91,12 @@ static void mainParseOptions(argc, argv)
 	case 'u':
 	    udpPortNumOverride = atoi(optarg);
 	    break;
-#if defined(MALLOC_DBG)
 	case 'm':
+#if defined(MALLOC_DBG)
 	    malloc_debug_level = atoi(optarg);
 	    break;
+#else
+	    fatal("Need to add -DMALLOC_DBG when compiling to use -m option");
 #endif
 	case 'z':
 	    zap_disk_store = 1;

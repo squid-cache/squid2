@@ -15,7 +15,7 @@ void send_announce()
     struct hostent *hp = NULL;
     char *host = NULL;
     char *file = NULL;
-    int port;
+    u_short port;
     int fd;
     int l;
     int n;

@@ -54,7 +54,7 @@ extern wordlist *http_stoplist;
 
 /* Global Functions */
 extern char *getAccelPrefix _PARAMS((void));
-extern int getAccelPort _PARAMS((void));
+extern u_short getAccelPort _PARAMS((void));
 extern char *getAccessLogFile _PARAMS((void));
 extern char *getAdminEmail _PARAMS((void));
 extern char *getAnnounceFile _PARAMS((void));
@@ -75,7 +75,7 @@ extern char *getVisibleHostname _PARAMS((void));
 extern char *getWaisRelayHost _PARAMS((void));
 extern double getCacheHotVmFactor _PARAMS((void));
 extern int getAccelWithProxy _PARAMS((void));
-extern int getAnnouncePort _PARAMS((void));
+extern u_short getAnnouncePort _PARAMS((void));
 extern int getAnnounceRate _PARAMS((void));
 extern int getAsciiPortNum _PARAMS((void));
 extern int getBehindFirewall _PARAMS((void));

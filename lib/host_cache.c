@@ -38,7 +38,7 @@ static int hash_index(buf)
 }
 
 Host *get_host _PARAMS((char *hostname));
-void host_cache_init _PARAMS((void));
+static void host_cache_init _PARAMS((void));
 static Host *new_host _PARAMS((char *hostname));
 static void Tolower _PARAMS((char *));
 void dump_host_cache _PARAMS((int, int));
@@ -46,10 +46,8 @@ static int cache_inited = 0;
 
 /* ========== PUBLIC FUNCTIONS ============================================= */
 
-void host_cache_init()
+static void host_cache_init()
 {
-    char *getfullhostname();
-
     memset(HostTable, '\0', HASHTABLE_N * sizeof(Host));
     cache_inited = 1;
 
@@ -69,7 +67,7 @@ Host *get_host(hostname)
     time_t now = time(0);
 
     if (hostname == (char *) 0)
-	return 0;
+	return NULL;
 
     Debug(86, 1, ("host_cache: get_host (%s)\n", hostname));
 
@@ -85,10 +83,10 @@ Host *get_host(hostname)
     if (!strcmp(HostTable[idx].key, hn))
 	h = &HostTable[idx];
 
-    if (!h)
+    if (!h) {
 	h = new_host(hostname);
-    if (!h)
-	return 0;
+	return NULL;
+    }
 
     h->n++;
     h->last_t = now;

@@ -402,7 +402,7 @@ int file_write(fd, ptr_to_buf, len, access_code, handle, handle_data)
 	return DISK_WRT_WRONG_CODE;
     }
     /* if we got here. Caller is eligible to write. */
-    wq = (dwrite_q *) xcalloc(1, sizeof(dwrite_q));
+    wq = xcalloc(1, sizeof(dwrite_q));
 
     wq->buf = ptr_to_buf;
 

@@ -209,7 +209,7 @@ char *fmakeword(FILE * f, char stop, int *cl)
 	if (ll == wsize) {
 	    word[ll + 1] = '\0';
 	    wsize += 102400;
-	    word = (char *) realloc(word, sizeof(char) * (wsize + 1));
+	    word = realloc(word, sizeof(char) * (wsize + 1));
 	}
 	--(*cl);
 	if ((word[ll] == stop) || (feof(f)) || (!(*cl))) {
@@ -691,7 +691,7 @@ int main(int argc, char *argv[])
 static int client_comm_connect(sock, dest_host, dest_port)
      int sock;			/* Type of communication to use. */
      char *dest_host;		/* Server's host name. */
-     int dest_port;		/* Server's port. */
+     u_short dest_port;		/* Server's port. */
 {
     struct hostent *hp;
     static struct sockaddr_in to_addr;

@@ -60,7 +60,7 @@ static struct {
     struct {
 	char *host;
 	char *prefix;
-	int port;
+	u_short port;
 	int withProxy;
     } Accel;
     char *appendDomain;
@@ -70,7 +70,7 @@ static struct {
     char *ftpUser;
     struct {
 	char *host;
-	int port;
+	u_short port;
 	char *file;
 	int rate;
     } Announce;
@@ -246,7 +246,7 @@ void addToIPACL(list, ip_str, access)
     }
     if (!(*list)) {
 	/* empty list */
-	*list = (ip_acl *) xcalloc(1, sizeof(ip_acl));
+	*list = xcalloc(1, sizeof(ip_acl));
 	(*list)->next = NULL;
 	q = *list;
     } else {
@@ -254,7 +254,7 @@ void addToIPACL(list, ip_str, access)
 	p = *list;
 	while (p->next)
 	    p = p->next;
-	q = (ip_acl *) xcalloc(1, sizeof(ip_acl));
+	q = xcalloc(1, sizeof(ip_acl));
 	q->next = NULL;
 	p->next = q;
     }
@@ -331,14 +331,14 @@ void wordlistAdd(list, key)
 
     if (!(*list)) {
 	/* empty list */
-	*list = (wordlist *) xcalloc(1, sizeof(wordlist));
+	*list = xcalloc(1, sizeof(wordlist));
 	(*list)->key = xstrdup(key);
 	(*list)->next = NULL;
     } else {
 	p = *list;
 	while (p->next)
 	    p = p->next;
-	q = (wordlist *) xcalloc(1, sizeof(wordlist));
+	q = xcalloc(1, sizeof(wordlist));
 	q->key = xstrdup(key);
 	q->next = NULL;
 	p->next = q;
@@ -376,10 +376,11 @@ static void parseCacheHostLine()
     char *type = NULL;
     char *hostname = NULL;
     char *token = NULL;
-    int ascii_port = CACHE_HTTP_PORT;
-    int udp_port = CACHE_ICP_PORT;
+    u_short ascii_port = CACHE_HTTP_PORT;
+    u_short udp_port = CACHE_ICP_PORT;
     int proxy_only = 0;
     int weight = 1;
+    int i;
 
     /* Parse a cache_host line */
     if (!(hostname = strtok(NULL, w_space)))
@@ -387,8 +388,10 @@ static void parseCacheHostLine()
     if (!(type = strtok(NULL, w_space)))
 	self_destruct();
 
-    GetInteger(ascii_port);
-    GetInteger(udp_port);
+    GetInteger(i);
+    ascii_port = (u_short) i;
+    GetInteger(i);
+    udp_port = (u_short) i;
     while ((token = strtok(NULL, w_space))) {
 	if (!strcasecmp(token, "proxy-only")) {
 	    proxy_only = 1;
@@ -1501,7 +1504,7 @@ char *getAccelPrefix()
 {
     return Config.Accel.prefix;
 }
-int getAccelPort()
+u_short getAccelPort()
 {
     return Config.Accel.port;
 }
@@ -1529,11 +1532,11 @@ char *getCacheLogFile()
 {
     return Config.Log.log;
 }
-int getAsciiPortNum()
+u_short getAsciiPortNum()
 {
     return Config.Port.ascii;
 }
-int getUdpPortNum()
+u_short getUdpPortNum()
 {
     return Config.Port.udp;
 }
@@ -1589,7 +1592,7 @@ char *getAnnounceHost()
 {
     return Config.Announce.host;
 }
-int getAnnouncePort()
+u_short getAnnouncePort()
 {
     return Config.Announce.port;
 }
