@@ -1940,6 +1940,7 @@ struct _ClientInfo {
 	int n_denied;
     } cutoff;
     int n_established;		/* number of current established connections */
+    time_t last_seen;
 };
 
 struct _CacheDigest {
