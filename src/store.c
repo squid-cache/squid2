@@ -988,7 +988,9 @@ storeTimestampsSet(StoreEntry * entry)
     if (entry->lastmod < 0)
 	entry->lastmod = served_date;
     entry->timestamp = served_date;
-
+#if USE_CACHE_DIGESTS
+    entry->refresh = refreshWhen(entry);
+#endif
 }
 
 void
