@@ -89,6 +89,11 @@ useragentRotateLog(void)
 	snprintf(to, MAXPATHLEN, "%s.%d", fname, i);
 	rename(from, to);
     }
+    if (cache_useragent_log) {
+	file_close(fileno(cache_useragent_log));
+	fclose(cache_useragent_log);
+	cache_useragent_log = NULL;
+    }
     /* Rotate the current log to .0 */
     if (Config.Log.rotateNumber > 0) {
 	snprintf(to, MAXPATHLEN, "%s.%d", fname, 0);
