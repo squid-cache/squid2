@@ -266,7 +266,7 @@ ipcacheParse(const char *inbuf)
     int ttl;
     char A[32][16];
     xstrncpy(buf, inbuf, DNS_INBUF_SZ);
-    debug(14, 5) ("ipcacheParse: parsing:\n%s", buf);
+    debug(14, 5) ("ipcacheParse: parsing:%s\n", buf);
     memset(&i, '\0', sizeof(i));
     i.expires = squid_curtime;
     i.status = IP_NEGATIVE_CACHED;
