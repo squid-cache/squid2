@@ -328,10 +328,13 @@ urlCanonicalClean(const request_t * request)
 char *
 urlClean(char *dirty)
 {
+    char *clean;
     request_t *r = urlParse(METHOD_GET, dirty);
     if (r == NULL)
 	return dirty;
-    return urlCanonicalClean(r);
+    clean = urlCanonicalClean(r);
+    put_free_request_t(r);
+    return clean;
 }
 
 
