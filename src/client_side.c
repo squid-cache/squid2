@@ -1777,11 +1777,19 @@ icpCheckTransferDone(clientHttpRequest * http)
 	return 0;
     if (mem->reply->content_length < 0) {
 	/*
+	 * for 200 replies, we MUST have a content length,
+	 * or wait for EOF on the socket.
+	 */
+	if (mem->reply->code == 200)
+		return 0;
+	/*
 	 * reply->hdr_sz will be set by httpParseReplyHeaders()
 	 * if we find the end of the headers.  If we find the end,
 	 * and there is no content length, stick a fork in us. 
 	 */
-	if (mem->reply->hdr_sz > 0)
+	else if (mem->reply->hdr_sz == 0)
+	    return 0;
+	else if (http->out.offset >= mem->reply->hdr_sz)
 	    return 1;
 	else
 	    return 0;
