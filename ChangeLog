@@ -129,6 +129,8 @@ Changes to Squid-2.2 ():
 	  next storeMaintainSwapSpace event.
 	- Fixed a quick_abort bug that incorrectly calculated
 	  content lengths.
+	- Added getpwnam() auth module from Erik Hofman.
+	- Added 'coredump_dir' option.
 	- Fixed a peerDestroy() assertion that required peer->digest
 	  to be NULL at the end of peerDestroy().
 
