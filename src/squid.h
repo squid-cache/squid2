@@ -158,6 +158,9 @@
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+#if HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif
 #if HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
