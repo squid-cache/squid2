@@ -321,6 +321,10 @@ typedef void STCB _PARAMS((void *, char *, ssize_t));	/* store callback */
 #include "tempnam.h"
 #endif
 
+#if !HAVE_SNPRINTF
+#include "snprintf.h"
+#endif
+
 extern void serverConnectionsClose _PARAMS((void));
 extern void shut_down _PARAMS((int));
 
