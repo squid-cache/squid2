@@ -1,6 +1,10 @@
 /* $Id$ */
 
-#include "squid.h"		/* goes first */
+/*
+ * DEBUG: Section 17          proto:
+ */
+
+#include "squid.h"
 
 static int matchInsideFirewall _PARAMS((char *host));
 static int matchLocalDomain _PARAMS((char *host));
@@ -96,7 +100,7 @@ int protoDispatchDNSHandle(fdunused, unused_hp, data)
     }
     if (data->direct_fetch == DIRECT_MAYBE && local_ip_list) {
 	if ((hp = ipcache_gethostbyname(data->host)) == NULL) {
-	    debug(0, 1, "protoDispatchDNSHandle: Failure to lookup host: %s.\n",
+	    debug(17, 1, "protoDispatchDNSHandle: Failure to lookup host: %s.\n",
 		data->host);
 	} else {
 	    memcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);
@@ -134,7 +138,7 @@ int protoDispatchDNSHandle(fdunused, unused_hp, data)
     } else if (neighborsUdpPing(data)) {
 	/* call neighborUdpPing and start timeout routine */
 	if ((entry->ping_status == DONE) || entry->status == STORE_OK) {
-	    debug(0, 0, "Starting a source ping for a valid object %s!\n",
+	    debug(17, 0, "Starting a source ping for a valid object %s!\n",
 		storeToString(entry));
 	    fatal_dump(NULL);
 	}
@@ -181,8 +185,8 @@ int protoDispatch(fd, url, entry)
     method = HTTP_OPS[entry->type_id];
     mime_hdr = entry->mem_obj->mime_hdr;
 
-    debug(0, 5, "protoDispatch: %s URL: %s\n", method, url);
-    debug(0, 10, "    mime_hdr: %s\n", mime_hdr);
+    debug(17, 5, "protoDispatch: %s URL: %s\n", method, url);
+    debug(17, 10, "    mime_hdr: %s\n", mime_hdr);
 
     /* Start retrieval process. */
     if (strncasecmp(url, "cache_object:", 13) == 0)
@@ -215,12 +219,12 @@ int protoDispatch(fd, url, entry)
     data->single_parent = getSingleParent(host, &n);
     data->n_edges = n;
 
-    debug(0, 2, "protoDispatch: inside_firewall = %d (%s)\n",
+    debug(17, 2, "protoDispatch: inside_firewall = %d (%s)\n",
 	data->inside_firewall,
 	firewall_desc_str[data->inside_firewall]);
-    debug(0, 2, "protoDispatch:        cachable = %d\n", data->cachable);
-    debug(0, 2, "protoDispatch:         n_edges = %d\n", data->n_edges);
-    debug(0, 2, "protoDispatch:   single_parent = %s\n",
+    debug(17, 2, "protoDispatch:        cachable = %d\n", data->cachable);
+    debug(17, 2, "protoDispatch:         n_edges = %d\n", data->n_edges);
+    debug(17, 2, "protoDispatch:   single_parent = %s\n",
 	data->single_parent ? data->single_parent->host : "N/A");
 
     if (!data->inside_firewall) {
@@ -271,7 +275,7 @@ int protoUndispatch(fd, url, entry)
     char *s = NULL;
     char *host = NULL;
 
-    debug(0, 5, "protoUndispatch FD %d <URL:%s>\n", fd, url);
+    debug(17, 5, "protoUndispatch FD %d <URL:%s>\n", fd, url);
 
     /* Cache objects don't need to be unregistered  */
     if (strncasecmp(url, "cache_object:", 13) == 0)
@@ -289,11 +293,11 @@ int protoUndispatch(fd, url, entry)
     /* clean up DNS pending list for this name/fd look up here */
     if (*host) {
 	if (!ipcache_unregister(host, fd)) {
-	    debug(0, 5, "protoUndispatch: ipcache failed to unregister '%s'\n",
+	    debug(17, 5, "protoUndispatch: ipcache failed to unregister '%s'\n",
 		host);
 	    return 0;
 	} else {
-	    debug(0, 5, "protoUndispatch: the entry is stranded with a pending DNS event\n");
+	    debug(17, 5, "protoUndispatch: the entry is stranded with a pending DNS event\n");
 	    /* Have to force a storeabort() on this entry */
 	    if (entry)
 		protoDNSError(fd, entry);
@@ -312,14 +316,14 @@ static void protoCancelTimeout(fd, entry)
     if (!fd)
 	fd = fd_of_first_client(entry);
     if (fd < 1) {
-	debug(0, 1, "protoCancelTimeout: WARNING! Unable to locate a client FD\n");
-	debug(0, 1, "--> <URL:%s>\n", entry->url);
-	debug(0, 5, "%s\n", storeToString(entry));
+	debug(17, 1, "protoCancelTimeout: WARNING! Unable to locate a client FD\n");
+	debug(17, 1, "--> <URL:%s>\n", entry->url);
+	debug(17, 5, "%s\n", storeToString(entry));
 	return;
     }
-    debug(0, 2, "protoCancelTimeout: FD %d <URL:%s>\n", fd, entry->url);
+    debug(17, 2, "protoCancelTimeout: FD %d <URL:%s>\n", fd, entry->url);
     if (fdstat_type(fd) != Socket) {
-	debug(0, 0, "FD %d: Someone called protoCancelTimeout() on a non-socket\n",
+	debug(17, 0, "FD %d: Someone called protoCancelTimeout() on a non-socket\n",
 	    fd);
 	fatal_dump(NULL);
     }
@@ -351,17 +355,17 @@ int getFromDefaultSource(fd, entry)
 
     if (fd) {
 	entry->ping_status = TIMEOUT;
-	debug(0, 5, "getFromDefaultSource: Timeout occured pinging for <URL:%s>\n",
+	debug(17, 5, "getFromDefaultSource: Timeout occured pinging for <URL:%s>\n",
 	    url);
     }
     /* Check if someone forgot to disable the read timer */
     if (fd && BIT_TEST(entry->flag, REQ_DISPATCHED)) {
 	if (entry->ping_status == TIMEOUT) {
-	    debug(0, 0, "FD %d Someone forgot to disable the read timer.\n", fd);
-	    debug(0, 0, "--> <URL:%s>\n", entry->url);
+	    debug(17, 0, "FD %d Someone forgot to disable the read timer.\n", fd);
+	    debug(17, 0, "--> <URL:%s>\n", entry->url);
 	} else {
-	    debug(0, 0, "FD %d Someone is refetching this object.\n", fd);
-	    debug(0, 0, "--> <URL:%s>\n", entry->url);
+	    debug(17, 0, "FD %d Someone is refetching this object.\n", fd);
+	    debug(17, 0, "--> <URL:%s>\n", entry->url);
 	}
 	return 0;
     }
@@ -372,8 +376,8 @@ int getFromDefaultSource(fd, entry)
 	return getFromCache(fd, entry, e);
     }
     if (sscanf(url, "%[^:]://%[^/]", junk, hostbuf) != 2) {
-	debug(0, 0, "getFromDefaultSource: Invalid URL '%s'\n", url);
-	debug(0, 0, "getFromDefaultSource: --> shouldn't have gotten this far!\n");
+	debug(17, 0, "getFromDefaultSource: Invalid URL '%s'\n", url);
+	debug(17, 0, "getFromDefaultSource: --> shouldn't have gotten this far!\n");
 	return 0;
     }
     host = &hostbuf[0];
@@ -418,9 +422,9 @@ int getFromCache(fd, entry, e)
     char *type = HTTP_OPS[entry->type_id];
     char *mime_hdr = entry->mem_obj->mime_hdr;
 
-    debug(0, 5, "getFromCache: FD %d <URL:%s>\n", fd, entry->url);
-    debug(0, 5, "getFromCache: --> type = %s\n", type);
-    debug(0, 5, "getFromCache: --> getting from '%s'\n", e ? e->host : "source");
+    debug(17, 5, "getFromCache: FD %d <URL:%s>\n", fd, entry->url);
+    debug(17, 5, "getFromCache: --> type = %s\n", type);
+    debug(17, 5, "getFromCache: --> getting from '%s'\n", e ? e->host : "source");
 
     /*
      * If this is called from our neighbor detection, then we have to
@@ -463,7 +467,7 @@ static int protoNotImplemented(fd, url, entry)
 {
     static char buf[256];
 
-    debug(0, 1, "protoNotImplemented: Cannot retrieve <URL:%s>\n", url);
+    debug(17, 1, "protoNotImplemented: Cannot retrieve <URL:%s>\n", url);
 
     buf[0] = '\0';
     if (httpd_accel_mode)
@@ -482,8 +486,8 @@ static int protoCantFetchObject(fd, entry, reason)
 {
     static char buf[2048];
 
-    debug(0, 1, "protoCantFetchObject: FD %d %s\n", fd, reason);
-    debug(0, 1, "--> <URL:%s>\n", entry->url);
+    debug(17, 1, "protoCantFetchObject: FD %d %s\n", fd, reason);
+    debug(17, 1, "--> <URL:%s>\n", entry->url);
 
     buf[0] = '\0';
     sprintf(buf, "%s\n\nThe cache administrator may need to double-check the cache configuration.",
@@ -496,7 +500,7 @@ static int protoDNSError(fd, entry)
      int fd;
      StoreEntry *entry;
 {
-    debug(0, 2, "protoDNSError: FD %d <URL:%s>\n", fd, entry->url);
+    debug(17, 2, "protoDNSError: FD %d <URL:%s>\n", fd, entry->url);
     protoCancelTimeout(fd, entry);
     cached_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
     return 0;

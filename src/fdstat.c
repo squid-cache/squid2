@@ -1,6 +1,8 @@
 
 /* $Id$ */
 
+/* DEBUG: Section 7             fdstat: */
+
 #include "squid.h"
 
 static int Biggest_FD = 0;
@@ -69,7 +71,7 @@ void fdstat_update(fd, status)
     unsigned int i;
 
     if (fd >= getMaxFD())
-	debug(0, 0, "Running out of file descriptors");
+	debug(7, 0, "Running out of file descriptors");
 
     if (fd < Biggest_FD) {
 	/* nothing to do here */
@@ -94,12 +96,12 @@ void fdstat_update(fd, status)
 	/* it could happen since some of fd are out of our control */
 	return;
     }
-    debug(0, 0, "WARNING: fdstat_update: Internal inconsistency:\n");
-    debug(0, 0, "         Biggest_FD = %d, this fd = %d, status = %s\n",
+    debug(7, 0, "WARNING: fdstat_update: Internal inconsistency:\n");
+    debug(7, 0, "         Biggest_FD = %d, this fd = %d, status = %s\n",
 	Biggest_FD, fd, status == OPEN ? "OPEN" : "CLOSE");
-    debug(0, 0, "         fd_stat_tab[%d].status == %s\n",
+    debug(7, 0, "         fd_stat_tab[%d].status == %s\n",
 	fd, fd_stat_tab[fd].status == OPEN ? "OPEN" : "CLOSE");
-    debug(0, 0, "         fd_stat_tab[%d].type == %s\n", fd,
+    debug(7, 0, "         fd_stat_tab[%d].type == %s\n", fd,
 	fdfiletype(fd_stat_tab[fd].type));
 
     return;

@@ -1,4 +1,9 @@
+
 /* $Id$ */
+
+/*
+ * DEBUG: Section 22          ttl
+ */
 
 #ifndef USE_POSIX_REGEX
 #define USE_POSIX_REGEX		/* put before includes; always use POSIX */
@@ -38,7 +43,7 @@ void ttlAddToList(pattern, abs_ttl, pct_age, age_max)
     regex_t comp;
 
     if (regcomp(&comp, pattern, REG_EXTENDED) != REG_NOERROR) {
-	debug(0, 0, "ttlAddToList: Invalid regular expression: %s\n",
+	debug(22, 0, "ttlAddToList: Invalid regular expression: %s\n",
 	    pattern);
 	return;
     }
@@ -80,7 +85,7 @@ time_t ttlSet(entry)
     double d;
     int flags = 0;
 
-    debug(0, 5, "ttlSet: Choosing TTL for %s\n", entry->url);
+    debug(22, 5, "ttlSet: Choosing TTL for %s\n", entry->url);
 
     /*
      * Check for Unauthorized HTTP requests.
@@ -116,11 +121,11 @@ time_t ttlSet(entry)
 	}
     }
     if (last_modified > 0)
-	debug(0, 5, "ttlSet: Last-Modified: %s\n", mkrfc850(&last_modified));
+	debug(22, 5, "ttlSet: Last-Modified: %s\n", mkrfc850(&last_modified));
     if (expire > 0)
-	debug(0, 5, "ttlSet:       Expires: %s\n", mkrfc850(&expire));
+	debug(22, 5, "ttlSet:       Expires: %s\n", mkrfc850(&expire));
     if (their_date > 0)
-	debug(0, 5, "ttlSet:   Server-Date: %s\n", mkrfc850(&their_date));
+	debug(22, 5, "ttlSet:   Server-Date: %s\n", mkrfc850(&their_date));
 
     now = their_date > 0 ? their_date : cached_curtime;
 
@@ -128,7 +133,7 @@ time_t ttlSet(entry)
 	ttl = (expire - now);
 	if (ttl < 0)
 	    ttl = 0;
-	debug(0, 4, "ttlSet: [%c%c%c%c%c%c%c] %6.2lf days %s\n",
+	debug(22, 4, "ttlSet: [%c%c%c%c%c%c%c] %6.2lf days %s\n",
 	    flags & TTL_EXPIRES ? 'E' : '.',
 	    flags & TTL_SERVERDATE ? 'S' : '.',
 	    flags & TTL_LASTMOD ? 'L' : '.',
@@ -153,7 +158,7 @@ time_t ttlSet(entry)
     for (t = TTL_tbl; t; t = t->next) {
 	if (regexec(&(t->compiled_pattern), entry->url, 0, 0, 0) == 0) {
 	    match = t;
-	    debug(0, 5, "ttlSet: Matched '%s %d %d%%'\n",
+	    debug(22, 5, "ttlSet: Matched '%s %d %d%%'\n",
 		match->pattern, match->abs_ttl, match->pct_age);
 	    flags |= TTL_MATCHED;
 	}
@@ -189,7 +194,7 @@ time_t ttlSet(entry)
 	flags |= TTL_DEFAULT;
     }
 
-    debug(0, 4, "ttlSet: [%c%c%c%c%c%c%c] %6.2lf days %s\n",
+    debug(22, 4, "ttlSet: [%c%c%c%c%c%c%c] %6.2lf days %s\n",
 	flags & TTL_EXPIRES ? 'E' : '.',
 	flags & TTL_SERVERDATE ? 'S' : '.',
 	flags & TTL_LASTMOD ? 'L' : '.',

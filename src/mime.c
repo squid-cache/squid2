@@ -16,8 +16,7 @@ int mime_refresh_request(mime)
     return 0;
 }
 
-ext_table_entry *
-                mime_ext_to_type(extension)
+ext_table_entry *mime_ext_to_type(extension)
      char *extension;
 {
     int i, low, high, comp;

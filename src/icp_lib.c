@@ -1,6 +1,11 @@
 /* $Id$ */
 
+/*
+ * DEBUG: Section 13          icp_lib
+ */
+
 #include "squid.h"
+
 
 
 /* Send a QUERY request to server  */
@@ -70,7 +75,7 @@ static int ReadDataBegin(sock, msg)
 
     if ((len = read(sock, (char *) &tmp, 3 * sizeof(u_num32))) <= 0) {
 	/* Return error; assume zero bytes read is closed connection. */
-	debug(0, 1, "icp_libReadDataBegin - error reading DATABEG header\n");
+	debug(13, 1, "icp_libReadDataBegin - error reading DATABEG header\n");
 	result = COMM_ERROR;
     } else {
 	char *buf, *p;
@@ -91,21 +96,21 @@ static int ReadDataBegin(sock, msg)
 	    3 * sizeof(u_num32));
 	p = buf;
 
-	debug(0, 4, "ReadDataBegin - reading data size = %d\n", to_read);
+	debug(13, 4, "ReadDataBegin - reading data size = %d\n", to_read);
 
 	while (to_read) {
 	    if ((len = read(sock, p, to_read)) < 0) {
-		debug(0, 1, "ReadDataBegin - error reading data: %s\n",
+		debug(13, 1, "ReadDataBegin - error reading data: %s\n",
 		    xstrerror());
 		result = COMM_ERROR;
 	    } else {
-		debug(0, 4, "ReadDataBegin - read  %d bytes\n", len);
+		debug(13, 4, "ReadDataBegin - read  %d bytes\n", len);
 		to_read -= len;
 		p += len;
 		result = COMM_OK;
 	    }
 	}
-	debug(0, 4, "ReadDataBegin - total %d bytes read\n", p - buf);
+	debug(13, 4, "ReadDataBegin - total %d bytes read\n", p - buf);
 	msg->data = buf;
 	msg->offset += p - buf;
     }
@@ -119,10 +124,10 @@ static int ReadData(sock, msg)
     int result = COMM_OK, len;
     u_num32 tmp;
 
-    debug(0, 3, "ReadData\n");
+    debug(13, 3, "ReadData\n");
     if ((len = read(sock, (char *) &tmp, sizeof(u_num32))) <= 0) {
 	/* Return error; assume zero bytes read is closed connection. */
-	debug(0, 1, "ReadData - error reading DATA header\n");
+	debug(13, 1, "ReadData - error reading DATA header\n");
 	result = COMM_ERROR;
     } else {
 	int msg_len = (msg->header.length - sizeof(icp_common_t)
@@ -134,7 +139,7 @@ static int ReadData(sock, msg)
 	while (msg_len) {
 	    if ((len = read(sock, msg->data + msg->offset, msg_len)) < 0) {
 		/* Return error; assume zero bytes read is closed connection. */
-		debug(0, 1, "ReadData - error reading data\n");
+		debug(13, 1, "ReadData - error reading data\n");
 		result = COMM_ERROR;
 	    } else {
 		msg->offset += len;
@@ -155,16 +160,16 @@ static void ReadError(sock, msg)
     unsigned short code;
     char *buf = (char *) xcalloc(1, buf_len);
 
-    debug(0, 1, "ReadError\n");
+    debug(13, 1, "ReadError\n");
 
     if ((len = read(sock, (char *) &code, sizeof(unsigned short))) <= 0) {
 	/* Return error; assume zero bytes read is closed connection. */
-	debug(0, 1, "ReadError - error reading error code\n");
+	debug(13, 1, "ReadError - error reading error code\n");
     } else if ((len = read(sock, (char *) buf, buf_len)) <= 0) {
 	/* Return error; assume zero bytes read is closed connection. */
-	debug(0, 1, "ReadError - error reading error message\n");
+	debug(13, 1, "ReadError - error reading error message\n");
     } else {
-	debug(0, 1, "ReadError - msg: %s\n", buf);
+	debug(13, 1, "ReadError - msg: %s\n", buf);
 	msg->data = buf;
     }
 }
@@ -178,28 +183,28 @@ int icp_receive_data(sock, msg)
     while (!done && !result) {
 	if ((len = read(sock, (char *) &msg->header, sizeof(icp_common_t))) <= 0) {
 	    /* Return error; assume zero bytes read is closed connection. */
-	    debug(0, 1, "icp_receive_data - error reading header\n");
+	    debug(13, 1, "icp_receive_data - error reading header\n");
 	    result = COMM_ERROR;	/* Will cause HandleRead to close conn. */
 	} else {
 	    int op = ntohs(msg->header.opcode);
 	    /* Process request. */
 	    if (op == ICP_OP_DATABEG) {
-		debug(0, 1, "icp_receive_data - processing ICP_OP_DATABEG\n");
+		debug(13, 1, "icp_receive_data - processing ICP_OP_DATABEG\n");
 		result = ReadDataBegin(sock, msg);
 	    } else if (op == ICP_OP_DATA) {
-		debug(0, 1, "icp_receive_data - processing ICP_OP_DATA\n");
+		debug(13, 1, "icp_receive_data - processing ICP_OP_DATA\n");
 		result = ReadData(sock, msg);
 	    } else if (op == ICP_OP_DATAEND) {
-		debug(0, 1, "icp_receive_data - processing ICP_OP_DATAEND\n");
+		debug(13, 1, "icp_receive_data - processing ICP_OP_DATAEND\n");
 		result = ReadData(sock, msg);
 		done = 1;
 	    } else if (op == ICP_OP_ERR) {
-		debug(0, 1, "icp_receive_data - processing ICP_OP_ERR\n");
+		debug(13, 1, "icp_receive_data - processing ICP_OP_ERR\n");
 		ReadError(sock, msg);
 		done = 1;
 	    } else {
 		/* Should not be any other opcode. */
-		debug(0, 1, "icp_receive_data - invalid opcode recieved: %d\n", op);
+		debug(13, 1, "icp_receive_data - invalid opcode recieved: %d\n", op);
 	    }
 /*      if (msg->offset == msg->object_size) done = 1; */
 	}
