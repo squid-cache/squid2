@@ -8,7 +8,6 @@
 #include "squid.h"
 
 #ifdef _SQUID_HPUX_
-#include <sys/syscall.h>
 #define getrusage(a, b)  syscall(SYS_GETRUSAGE, a, b)
 #define getpagesize( )   sysconf(_SC_PAGE_SIZE)
 #endif /* _SQUID_HPUX_ */
