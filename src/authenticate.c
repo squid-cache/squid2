@@ -265,7 +265,7 @@ authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct
 	tempnode = (auth_user_ip_t *) ipdata->node.next;
 	/* walk the ip list */
 	if (ipdata->ipaddr.s_addr == ipaddr.s_addr) {
-	    /* This ip has alreadu been seen. */
+	    /* This ip has already been seen. */
 	    found = 1;
 	    /* update IP ttl */
 	    ipdata->ip_expiretime = squid_curtime;
@@ -585,7 +585,6 @@ authenticateTryToAuthenticateAndSetAuthUser(auth_user_request_t ** auth_user_req
 	    *auth_user_request = t;
 	return t->lastReply;
     }
-
     /* ok, call the actual authenticator routine. */
     result = authenticateAuthenticate(auth_user_request, headertype, request, conn, src_addr);
     t = *auth_user_request ? *auth_user_request : conn->auth_user_request;
