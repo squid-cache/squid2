@@ -2267,7 +2267,7 @@ int ftpget_srv_mode(arg)
 		sock, xstrerror()));
     }
     i = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &i, sizeof(int));
+    (void) setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &i, sizeof(int));
     if (port > 0) {
 	memset((char *) &S, '\0', sizeof(S));
 	S.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -2336,7 +2336,7 @@ int ftpget_srv_mode(arg)
 	buflen = 0;
 	memset(buf, '\0', BUFSIZ);
 	do {
-	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) <= 0) {
+	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) < 0) {
 		log_errno2(__FILE__, __LINE__, "read");
 		close(c);
 		_exit(1);
