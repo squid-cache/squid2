@@ -319,6 +319,8 @@ netdbSaveState(void *foo)
     FILE *fp;
     netdbEntry *n;
     net_db_name *x;
+    struct timeval start = current_time;
+    int count = 0;
     sprintf(path, "%s/netdb_state", swappath(0));
     fp = fopen(path, "w");
     if (fp == NULL) {
@@ -339,9 +341,12 @@ netdbSaveState(void *foo)
 	    fprintf(fp, " %s", x->name);
 	fprintf(fp, "\n");
 	n = (netdbEntry *) hash_next(addr_table);
+	count++;
     }
     fclose(fp);
-    debug(37, 0, "NETDB state saved\n");
+    getCurrentTime();
+    debug(37, 0, "NETDB state saved; %d entries, %d msec\n",
+	count, tvSubMsec(start,current_time));
     eventAdd("netdbSaveState", netdbSaveState, NULL, 3617);
 }
 
