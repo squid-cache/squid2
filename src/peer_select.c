@@ -538,7 +538,6 @@ static void
 peerHandleHtcpReply(peer * p, peer_t type, htcpReplyData * htcp, void *data)
 {
     ps_state *psstate = data;
-    request_t *request = psstate->request;
     debug(44, 3) ("peerHandleIcpReply: %s %s\n",
 	htcp->hit ? "HIT" : "MISS",
 	storeUrl(psstate->entry));
