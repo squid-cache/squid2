@@ -523,6 +523,8 @@ parse_peer(peer ** head)
 	    p->options |= NEIGHBOR_MCAST_RESPONDER;
 	} else if (!strncasecmp(token, "weight=", 7)) {
 	    p->weight = atoi(token + 7);
+	} else if (!strncasecmp(token, "closest-only", 12)) {
+	    p->options |= NEIGHBOR_CLOSEST_ONLY;
 	} else if (!strncasecmp(token, "ttl=", 4)) {
 	    p->mcast.ttl = atoi(token + 4);
 	    if (p->mcast.ttl < 0)
