@@ -154,6 +154,15 @@
 #define SA_NODEFER 0
 #endif
 
+#ifndef SA_RESETHAND
+#ifdef SA_ONESHOT
+#define SA_RESETHAND SA_ONESHOT
+#else
+#define SA_RESETHAND 0
+#define HAVE_SIGACTION 0
+#endif /* SA_ONESHOT */
+#endif /* SA_RESETHAND */
+
 typedef struct sentry StoreEntry;
 typedef struct mem_hdr *mem_ptr;
 typedef struct _edge edge;
