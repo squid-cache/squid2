@@ -1606,6 +1606,10 @@ clientProcessRequest2(clientHttpRequest * http)
 	storeRelease(e);
 	http->entry = NULL;
 	return LOG_TCP_MISS;
+    } else if (EBIT_TEST(e->flag, ENTRY_SPECIAL)) {
+	/* Special entries are always hits, no matter what the client says */
+	http->entry = e;
+	return LOG_TCP_HIT;
     } else if (EBIT_TEST(r->flags, REQ_NOCACHE)) {
 	/* NOCACHE should always eject a negative cached object */
 	if (EBIT_TEST(e->flag, ENTRY_NEGCACHED))
