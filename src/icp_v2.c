@@ -381,7 +381,7 @@ icpHandleUdp(int sock, void *data)
 	else if (icp_version == ICP_VERSION_3)
 	    icpHandleIcpV3(sock, from, buf, len);
 	else
-	    debug(12, 0) ("WARNING: Unused ICP version %d received from %s:%d\n",
+	    debug(12, 1) ("WARNING: Unused ICP version %d received from %s:%d\n",
 		icp_version,
 		inet_ntoa(from.sin_addr),
 		ntohs(from.sin_port));
