@@ -1426,8 +1426,8 @@ comm_write(int fd, char *buf, int size, RWCB * handler, void *handler_data, void
 {
     RWStateData *state = NULL;
 
-    debug(5, 5, "comm_write: FD %d: sz %d: tout %d: hndl %p: data %p.\n",
-	fd, size, timeout, handler, handler_data);
+    debug(5, 5, "comm_write: FD %d: sz %d: hndl %p: data %p.\n",
+	fd, size, handler, handler_data);
 
     if (fd_table[fd].rwstate) {
 	debug(5, 1, "WARNING: FD %d: A comm_write is already active.\n", fd);
