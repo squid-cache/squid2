@@ -32,13 +32,6 @@ CRYPTLIB=''
 REGEXLIB=''	# -lregex
 LIBREGEX=''	# libregex.a
 
-dnl use directory structure of cached as default (hack)
-if test "$libexecdir" = '${exec_prefix}/libexec' &&
-   test "$localstatedir" = '${prefix}/var'; then
-	libexecdir='${prefix}/libexec/squid'
-	localstatedir='${prefix}'
-fi
-
 dnl find out the exe extension for this platform. If it's not empty, use it for CGI's as well.
 AC_EXEEXT
 AC_OBJEXT
@@ -622,19 +615,41 @@ AC_ARG_ENABLE(cache-digests,
   fi
 ])
 
-dnl Select Error language
-AC_ARG_ENABLE(err-language,
-[  --enable-err-language=lang
-                          Select language for Error pages (see errors dir) ],
+dnl Select Default Error language
+AC_ARG_ENABLE(default-err-language,
+[  --enable-default-err-language=lang
+                          Select default language for Error pages (see errors dir) ],
 [
     if test -d $srcdir/errors/$enableval; then
-	ERR_LANGUAGE=$enableval
+	ERR_DEFAULT_LANGUAGE=$enableval
     else
 	echo "ERROR! Unknown language $enableval, see errors/"
 	exit 1
     fi
-],[ERR_LANGUAGE="English"])
-AC_SUBST(ERR_LANGUAGE)
+],[ERR_DEFAULT_LANGUAGE="English"])
+AC_SUBST(ERR_DEFAULT_LANGUAGE)
+
+dnl Select languages to be installed
+AC_ARG_ENABLE(err-languages,
+[  --enable-err-languages=\"lang1 lang2..\"
+                          Select languages to be installed. (All will be installed by default) ],
+[
+    for l in $enableval; do
+        if test -d $srcdir/errors/$l; then :; else
+	    echo "ERROR! Unknown language $$l, see errors/"
+	    exit 1
+	fi
+    done
+    ERR_LANGUAGES=$enableval
+],[
+    ERR_LANGUAGES=
+    for l in $srcdir/errors/*; do
+        if test -f $l/generic; then
+            ERR_LANGUAGES="$ERR_LANGUAGES `basename $l`"
+	fi
+    done
+])
+AC_SUBST(ERR_LANGUAGES)
 
 dnl Size of COSS memory buffer
 AC_ARG_WITH(coss-membuf-size,
