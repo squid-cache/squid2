@@ -11,6 +11,9 @@ Changes to squid-1.novm.9 ():
 	- removed icpHandleAbort(); just close the socket already.
 	- Fixed up rebuild code to handle swapfile/URL clash
 	  cases better.
+	- Fixed handling of freeing data structures which are
+	  IP cache lookup callback data pointers.
+	- Fixed icpState->swapin_fd leak in icpProxessMISS().
 
 Changes to squid-1.1.9 (March 30, 1997):
 
