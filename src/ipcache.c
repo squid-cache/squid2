@@ -1302,52 +1302,35 @@ void stat_ipcache_get(sentry, obj)
      StoreEntry *sentry;
      cacheinfo *obj;
 {
-    char buffer[MAX_LINELEN];
     ipcache_entry *e = NULL;
     int i;
     int ttl;
     char status;
 
-    sprintf(buffer, "{IP Cache Statistics:\n");
-    storeAppend(sentry, buffer, strlen(buffer));
-    sprintf(buffer, "{IPcache Requests: %d}\n",
+    storeAppendPrintf(sentry, "{IP Cache Statistics:\n");
+    storeAppendPrintf(sentry, "{IPcache Requests: %d}\n",
 	IpcacheStats.requests);
-    storeAppend(sentry, buffer, strlen(buffer));
-    sprintf(buffer, "{IPcache Hits: %d}\n",
+    storeAppendPrintf(sentry, "{IPcache Hits: %d}\n",
 	IpcacheStats.hits);
-    storeAppend(sentry, buffer, strlen(buffer));
-    sprintf(buffer, "{IPcache Misses: %d}\n",
+    storeAppendPrintf(sentry, "{IPcache Misses: %d}\n",
 	IpcacheStats.misses);
-    storeAppend(sentry, buffer, strlen(buffer));
-    sprintf(buffer, "{dnsserver requests: %d}\n",
+    storeAppendPrintf(sentry, "{dnsserver requests: %d}\n",
 	IpcacheStats.dnsserver_requests);
-    storeAppend(sentry, buffer, strlen(buffer));
-    sprintf(buffer, "{dnsserver replies: %d}\n",
+    storeAppendPrintf(sentry, "{dnsserver replies: %d}\n",
 	IpcacheStats.dnsserver_replies);
-    storeAppend(sentry, buffer, strlen(buffer));
-    sprintf(buffer, "{dnsserver avg service time: %d msec}\n",
+    storeAppendPrintf(sentry, "{dnsserver avg service time: %d msec}\n",
 	IpcacheStats.avg_svc_time);
-    storeAppend(sentry, buffer, strlen(buffer));
-    sprintf(buffer, "{number of dnsservers: %d}\n",
+    storeAppendPrintf(sentry, "{number of dnsservers: %d}\n",
 	getDnsChildren());
-    storeAppend(sentry, buffer, strlen(buffer));
-
-    sprintf(buffer, "{dnsservers use histogram:}\n{\n");
-    storeAppend(sentry, buffer, strlen(buffer));
+    storeAppendPrintf(sentry, "{dnsservers use histogram:}\n{\n");
     for (i = 0; i < getDnsChildren(); i++) {
-	sprintf(buffer, "{dnsserver #%d: %d}\n",
+	storeAppendPrintf(sentry, "{dnsserver #%d: %d}\n",
 	    i + 1,
 	    IpcacheStats.dnsserver_hist[i]);
-	storeAppend(sentry, buffer, strlen(buffer));
     }
-    sprintf(buffer, "}\n");
-    storeAppend(sentry, buffer, strlen(buffer));
-
-    sprintf(buffer, "}\n\n");
-    storeAppend(sentry, buffer, strlen(buffer));
-
-    sprintf(buffer, "{IP Cache Contents:\n\n");
-    storeAppend(sentry, buffer, strlen(buffer));
+    storeAppendPrintf(sentry, "}\n");
+    storeAppendPrintf(sentry, "}\n\n");
+    storeAppendPrintf(sentry, "{IP Cache Contents:\n\n");
 
     for (e = ipcache_GetFirst(); (e); e = ipcache_GetNext()) {
 	if (e) {
@@ -1355,33 +1338,23 @@ void stat_ipcache_get(sentry, obj)
 	    status = ipcache_status_char(e);
 	    if (status == 'P')
 		ttl = 0;
-
-	    sprintf(buffer, " {%s %c %d %d",
+	    storeAppendPrintf(sentry, " {%s %c %d %d",
 		e->name, status, ttl, e->addr_count);
-	    storeAppend(sentry, buffer, strlen(buffer));
-
 	    for (i = 0; i < (int) e->addr_count; i++) {
 		struct in_addr addr;
 		memcpy((char *) &addr, e->entry.h_addr_list[i], e->entry.h_length);
-
-		sprintf(buffer, " %s", inet_ntoa(addr));
-		storeAppend(sentry, buffer, strlen(buffer));
+		storeAppendPrintf(sentry, " %s", inet_ntoa(addr));
 	    }
 	    for (i = 0; i < (int) e->alias_count; i++) {
-		sprintf(buffer, " %s", e->entry.h_aliases[i]);
-		storeAppend(sentry, buffer, strlen(buffer));
+		storeAppendPrintf(sentry, " %s", e->entry.h_aliases[i]);
 	    }
 	    if (e->entry.h_name && strncmp(e->name, e->entry.h_name, MAX_LINELEN)) {
-		sprintf(buffer, " %s", e->entry.h_name);
-		storeAppend(sentry, buffer, strlen(buffer));
+		storeAppendPrintf(sentry, " %s", e->entry.h_name);
 	    }
-	    sprintf(buffer, "}\n");
-	    storeAppend(sentry, buffer, strlen(buffer));
+	    storeAppendPrintf(sentry, "}\n");
 	}
     }
-    sprintf(buffer, "}\n");
-    storeAppend(sentry, buffer, strlen(buffer));
-
+    storeAppendPrintf(sentry, "}\n");
 }
 
 char ipcache_status_char(e)

@@ -70,7 +70,6 @@ int objcacheStart(fd, url, entry)
      StoreEntry *entry;
 {
     char *buf = NULL;
-    char *badentry = NULL;
     char *BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";
     char *BADPassword = "Incorrect password, sorry.\n";
     char password[64];
@@ -104,7 +103,7 @@ int objcacheStart(fd, url, entry)
     if (strcmp(data->request, "shutdown") == 0) {
 	if (objcache_CheckPassword(password, username) != 0) {
 	    buf = xstrdup(BADPassword);
-	    storeAppend(data->entry, buf, strlen(buf));
+	    storeAppendPrintf(data->entry, buf);
 	    storeAbort(data->entry, "SQUID:OBJCACHE Incorrect Password\n");
 	    /* override negative TTL */
 	    data->entry->expires = squid_curtime + STAT_TTL;
@@ -201,10 +200,7 @@ int objcacheStart(fd, url, entry)
 
     } else {
 	debug(16, 5, "Bad Object Cache URL %s ... negative cached.\n", url);
-	badentry = xcalloc(1, strlen(BADCacheURL) + strlen(url));
-	sprintf(badentry, BADCacheURL, url);
-	storeAppend(entry, badentry, strlen(badentry));
-	safe_free(badentry);
+	storeAppendPrintf(entry, BADCacheURL, url);
 	storeComplete(entry);
     }
 
