@@ -2071,7 +2071,7 @@ clientProcessRequest(clientHttpRequest * http)
 	url);
     if (r->method == METHOD_CONNECT) {
 	http->log_type = LOG_TCP_MISS;
-	sslStart(fd, url, r, &http->out.size);
+	sslStart(fd, url, r, &http->out.size, &http->al.http.code);
 	return;
     } else if (r->method == METHOD_PURGE) {
 	clientPurgeRequest(http);

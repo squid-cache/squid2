@@ -708,7 +708,7 @@ extern void shut_down(int);
 
 
 extern void start_announce(void *unused);
-extern void sslStart(int fd, const char *, request_t *, size_t * sz);
+extern void sslStart(int fd, const char *, request_t *, size_t *, int *);
 extern void waisStart(FwdState *);
 
 /* ident.c */
