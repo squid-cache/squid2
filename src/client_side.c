@@ -1641,6 +1641,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	    http->entry = clientCreateStoreEntry(http, http->request->method,
 		null_request_flags);
 	    errorAppendEntry(http->entry, err);
+	    httpReplyDestroy(rep);
 	    return;
 	} else if (rep) {
 	    body_size = size - rep->hdr_sz;
