@@ -410,6 +410,7 @@ httpParseReplyHeaders(const char *buf, struct _http_reply *reply)
 	    }
 	} else if (!strncasecmp(t, "Set-Cookie:", 11)) {
 	    EBIT_SET(reply->misc_headers, HDR_SET_COOKIE);
+	    ReplyHeaderStats.misc[HDR_SET_COOKIE]++;
 	}
     }
     put_free_4k_page(headers);
