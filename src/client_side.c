@@ -460,11 +460,12 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	}
     } else {
 	/* the client can handle this reply, whatever it is */
+	icpState->log_type = LOG_TCP_EXPIRED_MISS;
 	if (mem->reply->code == 304) {
 	    icpState->old_entry->timestamp = squid_curtime;
 	    icpState->old_entry->refcount++;
+	    icpState->log_type = LOG_TCP_EXPIRED_HIT;
 	}
-	icpState->log_type = LOG_TCP_EXPIRED_MISS;
 	storeUnlockObject(icpState->old_entry);
     }
     icpState->old_entry = NULL;	/* done with old_entry */
