@@ -868,6 +868,16 @@ DOC_START
 ftp_list_width 32
 DOC_END
 
+NAME: ftp_passive
+TYPE: onoff
+DEFAULT: on
+LOC: Config.Ftp.passive
+DOC_START
+	If your firewall does not allow Squid to use passive
+	connections, then turn off this option.
+#ftp_passive on
+DOC_END
+
 NAME: cache_dns_program
 TYPE: string
 IFDEF: USE_DNSSERVERS

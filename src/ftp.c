@@ -1051,7 +1051,12 @@ ftpStart(FwdState * fwd)
     ftpState->data.fd = -1;
     ftpState->size = -1;
     ftpState->mdtm = -1;
-    ftpState->flags.pasv_supported = !fwd->flags.ftp_pasv_failed;
+    if (!Config.Ftp.passive)
+	ftpState->flags.rest_supported = 0;
+    else if (fwd->flags.ftp_pasv_failed)
+	ftpState->flags.pasv_supported = 0;
+    else
+	ftpState->flags.pasv_supported = 1;
     ftpState->flags.rest_supported = 1;
     ftpState->fwd = fwd;
     comm_add_close_handler(fd, ftpStateFree, ftpState);
