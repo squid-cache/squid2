@@ -3132,21 +3132,5 @@ DOC_START
 	disable persistent connections with clients and/or servers.
 DOC_END
 
-NAME: diskd_magic1
-IFDEF: USE_DISKD
-TYPE: int
-LOC: Config.diskd.magic1
-DEFAULT: 64
-DOC_NONE
-
-NAME: diskd_magic2
-IFDEF: USE_DISKD
-TYPE: int
-LOC: Config.diskd.magic2
-DEFAULT: 72
-DOC_START
-	Macic constants for the diskd daemon..
-DOC_END
-
 EOF
 
