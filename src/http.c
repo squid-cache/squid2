@@ -148,18 +148,9 @@ int httpCachable(url, method)
      char *url;
      int method;
 {
-    wordlist *p = NULL;
-
     /* GET and HEAD are cachable. Others are not. */
     if (method != METHOD_GET && method != METHOD_HEAD)
 	return 0;
-
-    /* scan stop list */
-    for (p = Config.http_stoplist; p; p = p->next) {
-	if (strstr(url, p->key))
-	    return 0;
-    }
-
     /* else cachable */
     return 1;
 }

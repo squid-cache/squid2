@@ -258,8 +258,7 @@ static int icpCachable(icpState)
 	return 0;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(request, method);
-    if (req->protocol == PROTO_FTP)
-	return ftpCachable(request);
+    /* FTP is always cachable */
     if (req->protocol == PROTO_GOPHER)
 	return gopherCachable(request);
     if (req->protocol == PROTO_WAIS)
@@ -293,8 +292,6 @@ static int icpHierarchical(icpState)
 	return 0;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(request, method);
-    if (req->protocol == PROTO_FTP)
-	return ftpCachable(request);
     if (req->protocol == PROTO_GOPHER)
 	return gopherCachable(request);
     if (req->protocol == PROTO_WAIS)

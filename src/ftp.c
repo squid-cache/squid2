@@ -183,21 +183,6 @@ static void ftp_login_parser(login, data)
     }
 }
 
-int ftpCachable(url)
-     char *url;
-{
-    wordlist *p = NULL;
-
-    /* scan stop list */
-    for (p = Config.ftp_stoplist; p; p = p->next) {
-	if (strstr(url, p->key))
-	    return 0;
-    }
-
-    /* else cachable */
-    return 1;
-}
-
 /* This will be called when socket lifetime is expired. */
 void ftpLifetimeExpire(fd, data)
      int fd;

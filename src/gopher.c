@@ -321,14 +321,8 @@ int gopher_url_parser(url, host, port, type_id, request)
 int gopherCachable(url)
      char *url;
 {
-    wordlist *p = NULL;
     GopherData *data = NULL;
     int cachable = 1;
-
-    /* scan stop list */
-    for (p = Config.gopher_stoplist; p; p = p->next)
-	if (strstr(url, p->key))
-	    return 0;
 
     /* use as temp data structure to parse gopher URL */
     data = CreateGopherData();

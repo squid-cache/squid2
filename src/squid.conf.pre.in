@@ -213,9 +213,6 @@
 #	to not query neighbor caches for certain objects.  You may
 #	list this option multiple times.
 #
-#	NOTE: this option will partially replace 'http_stop' etc, in a
-#	future release.
-#
 #hierarchy_stoplist
 
 # OPTIONS WHICH AFFECT THE CACHE SIZE
@@ -393,18 +390,6 @@ debug_options ALL,1
 
 # OPTIONS FOR TUNING THE CACHE
 #-----------------------------------------------------------------------------
-
-#  TAG: http_stop, gopher_stop, ftp_stop 
-#	Stoplist for URL's.  URL's which contain these strings will be
-#	never be saved in the cache.
-#
-#	NOTE: these options will be removed in a future release, their
-#	functionality will be more appropriately provided by 'ttl_pattern'
-#	and 'hierarchy_stoplist'.
-#
-http_stop     /cgi-bin/
-http_stop     ?
-gopher_stop   ?
 
 #  TAG: ftp, gopher, http
 #	Object size limits (in MB) and default TTLs (in minutes) 
