@@ -587,6 +587,7 @@ passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
     PassStateData *passState = data;
     request_t *request = passState->request;
     edge *e = NULL;
+    edge *g = NULL;
     int fw_ip_match = IP_ALLOW;
     if (ia && Config.firewall_ip_list)
 	fw_ip_match = ip_access_check(ia->in_addrs[ia->cur], Config.firewall_ip_list);
@@ -605,7 +606,15 @@ passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
     }
     passState->proxying = e ? 1 : 0;
     passState->host = e ? e->host : request->host;
-    passState->port = e ? e->http_port : request->port;
+    if (e == NULL) {
+	passState->port = request->port;
+    } else if (e->http_port != 0) {
+	passState->port = e->http_port;
+    } else if ((g = neighborFindByName(e->host))) {
+	passState->port = g->http_port;
+    } else {
+	passState->port = CACHE_HTTP_PORT;
+    }
     ipcache_nbgethostbyname(passState->host,
 	passState->server.fd,
 	passConnect,
