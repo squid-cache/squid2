@@ -956,6 +956,7 @@ SquidShutdown(void *unused)
     storeDirSync();		/* Flush log writes */
     storeLogClose();
     accessLogClose();
+    useragentLogClose();
 #if WIP_FWD_LOG
     fwdUninit();
 #endif

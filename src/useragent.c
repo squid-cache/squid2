@@ -82,3 +82,12 @@ logUserAgent(const char *client, const char *agent)
 	agent);
 #endif
 }
+
+void
+useragentLogClose(void)
+{
+#if USE_USERAGENT_LOG
+    logfileClose(useragentlog);
+    useragentlog = NULL;
+#endif
+}

@@ -1109,6 +1109,7 @@ extern void urlExtMethodConfigure(void);
 extern void useragentOpenLog(void);
 extern void useragentRotateLog(void);
 extern void logUserAgent(const char *, const char *);
+extern void useragentLogClose(void);
 extern void refererOpenLog(void);
 extern void refererRotateLog(void);
 extern void logReferer(const char *, const char *, const char *);
