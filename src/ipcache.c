@@ -723,8 +723,8 @@ static int ipcache_dnsHandleRead(fd, dnsData)
     len = read(fd,
 	dnsData->ip_inbuf + dnsData->offset,
 	dnsData->size - dnsData->offset);
-    debug(14, 5, "ipcache_dnsHandleRead: Result from DNS ID %d.\n",
-	dnsData->id);
+    debug(14, 5, "ipcache_dnsHandleRead: Result from DNS ID %d (%d bytes)\n",
+	dnsData->id, len);
     if (len <= 0) {
 	debug(14, dnsData->flags & DNS_FLAG_CLOSING ? 5 : 1,
 	    "FD %d: Connection from DNSSERVER #%d is closed, disabling\n",
@@ -756,8 +756,10 @@ static int ipcache_dnsHandleRead(fd, dnsData)
 	    dnsData->ip_inbuf[dnsData->offset] = '\0';
 	}
     }
-    dnsData->ip_entry = NULL;
-    dnsData->flags &= ~DNS_FLAG_BUSY;
+    if (dnsData->offset == 0) {
+	dnsData->ip_entry = NULL;
+	dnsData->flags &= ~DNS_FLAG_BUSY;
+    }
     /* reschedule */
     comm_set_select_handler(dnsData->inpipe,
 	COMM_SELECT_READ,
