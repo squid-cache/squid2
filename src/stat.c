@@ -393,7 +393,7 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
 	    getCurrentTime();
 	    debug(18, 3, "stat_objects_get:  Processed %d objects...\n", N);
 	}
-	l += fprintf(fp, "{%s %dL %-25s %s %3d %2d %8d %s}\n",
+	l += fprintf(fp, "{%s %dL %-25s %s %3d %2d %8d/%d/FD%d %s}\n",
 	    describeStatuses(entry),
 	    (int) entry->lock_count,
 	    describeFlags(entry),
@@ -401,6 +401,8 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
 	    (int) entry->refcount,
 	    storePendingNClients(entry),
 	    entry->object_len,
+	    mem ? mem->swap_length : -1,
+	    (int) mem ? mem->swapout_fd : -2,
 	    entry->url);
     }
     l += fprintf(fp, close_bracket);
