@@ -17,15 +17,12 @@
 #include "debug.h"
 #include "cache_cf.h"
 #include "autoconf.h"
-#include "ftp.h"		/* sig_child() needs to know FTP threads */
-
 
 void death(), deathb(), neighbors_rotate_log(), stat_rotate_log();
 void mail_warranty(), print_warranty(), _db_rotate_log();
 int do_mallinfo = 0;		/* don't do mallinfo() unless this gets set */
 int PrintRusage _PARAMS((void (*)(), FILE *));
 
-extern ftpget_thread *FtpgetThread;
 extern int catch_signals;	/* main.c */
 extern int storeWriteCleanLog _PARAMS((void));
 
@@ -254,22 +251,10 @@ void sig_child(sig)
 {
     int status;
     int pid;
-    ftpget_thread *t = NULL;
 
-    if ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+    if ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 	debug(3, "sig_child: Ate pid %d\n", pid);
-	for (t = FtpgetThread; t; t = t->next) {
-	    debug(5, "sig_child: checking pid=%d  state=%d\n",
-		t->pid, t->state);
-	    if (t->pid == pid && t->state == FTPGET_THREAD_RUNNING) {
-		debug(5, "sig_child: GOT IT!\n");
-		t->state = FTPGET_THREAD_WAITED;
-		t->status = status;
-		t->wait_retval = pid;
-		break;
-	    }
-	}
-    }
+
 #if defined(_SQUID_SYSV_SIGNALS_)
     signal(sig, sig_child);
 #endif
