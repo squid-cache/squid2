@@ -403,6 +403,14 @@ AC_ARG_ENABLE(useragent_log,
   fi
 ])
 
+AC_ARG_ENABLE(referer-log,
+[  --enable-referer-log  Enable logging of Referer header],
+[ if test "$enableval" = "yes" ; then
+    echo "Referer logging enabled"
+    AC_DEFINE(USE_REFERER_LOG)
+  fi
+])
+
 AC_ARG_ENABLE(wccp,  
 [  --disable-wccp      Disable Web Cache Coordination Protocol],
 [ if test "$enableval" = "no" ; then
