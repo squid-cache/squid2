@@ -3132,6 +3132,7 @@ DOC_START
 DOC_END
 
 NAME: header_replace
+IFDEF: HTTP_VIOLATIONS
 TYPE: http_header_replace[]
 LOC: Config.header_access
 DEFAULT: none
