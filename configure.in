@@ -946,6 +946,14 @@ AC_ARG_ENABLE(basic-auth-helpers,
   esac
 ])
 if test -n "$BASIC_AUTH_HELPERS"; then
+    for helper in $BASIC_AUTH_HELPERS; do
+	if test -f $srcdir/helpers/basic_auth/$helper/Makefile.in; then
+		:
+	else
+		echo "ERROR: Basic auth helper $helper does not exists"
+		exit 1
+	fi
+    done
     echo "Basic auth helpers built: $BASIC_AUTH_HELPERS"
 fi
 AC_SUBST(BASIC_AUTH_HELPERS)
@@ -973,6 +981,14 @@ AC_ARG_ENABLE(ntlm-auth-helpers,
   esac
 ])
 if test -n "$NTLM_AUTH_HELPERS"; then
+    for helper in $NTLM_AUTH_HELPERS; do
+	if test -f $srcdir/helpers/ntlm_auth/$helper/Makefile.in; then
+		:
+	else
+		echo "ERROR: NTLM auth helper $helper does not exists"
+		exit 1
+	fi
+    done
     echo "NTLM auth helpers built: $NTLM_AUTH_HELPERS"
 fi
 AC_SUBST(NTLM_AUTH_HELPERS)
@@ -1037,6 +1053,14 @@ AC_ARG_ENABLE(external-acl-helpers,
   esac
 ])
 if test -n "$EXTERNAL_ACL_HELPERS"; then
+    for helper in $EXTERNAL_ACL_HELPERS; do
+	if test -f $srcdir/helpers/external_acl/$helper/Makefile.in; then
+		:
+	else
+		echo "ERROR: NTLM external acl helper $helper does not exists"
+		exit 1
+	fi
+    done
     echo "External acl helpers built: $EXTERNAL_ACL_HELPERS"
 fi
 AC_SUBST(EXTERNAL_ACL_HELPERS)
