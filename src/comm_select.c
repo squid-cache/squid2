@@ -415,10 +415,6 @@ comm_select(int msec)
 	}
 	if (msec > MAX_POLL_TIME)
 	    msec = MAX_POLL_TIME;
-#ifdef _SQUID_OS2_
-	if (msec < 0)
-	    msec = MAX_POLL_TIME;
-#endif
 	if (pending)
 	    msec = 0;
 	for (;;) {

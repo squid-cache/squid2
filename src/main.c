@@ -559,7 +559,7 @@ main(int argc, char **argv)
 {
     int errcount = 0;
     int n;			/* # of GC'd objects */
-    time_t loop_delay;
+    int loop_delay;
     mode_t oldmask;
 #if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
     int WIN32_init_err;
