@@ -1,4 +1,4 @@
-Changes to squid-2.5.STABLE9 ()
+Changes to squid-2.5.STABLE9 (24 Feb 2005)
 
 	- [Medium] Don't retry requests on 403 errors (Bug #1210)
 	- [Minor] Ignore invalid FQDN DNS responses (Bug #1222)
