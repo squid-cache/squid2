@@ -325,7 +325,7 @@ main(int argc, char *argv[])
     return 0;
 }
 
-#else
+#elsif USE_DISKD
 
 /*
  * DEBUG 79
@@ -595,6 +595,7 @@ storeDiskdReadQueue(void)
 	storeDiskdReadIndividualQueue(sd);
     }
 }
+
 
 /*  === STATIC =========================================================== */
 
