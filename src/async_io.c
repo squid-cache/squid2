@@ -191,10 +191,6 @@ aioCancel(int fd)
 }
 
 
-/*
- * XXX Note, we don't do anything with 'free_func' here yet.  Maybe it
- * shouldn't be here anyway.  Can we free in storeAufsWriteDone()?
- */
 void
 aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callback_data, FREE * free_func)
 {
@@ -211,6 +207,7 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
 	errno = EWOULDBLOCK;
 	if (callback)
 	    (callback) (fd, callback_data, -1, errno);
+	free_func(bufp);
 	return;
     }
     ctrlp = memPoolAlloc(aio_ctrl_pool);
@@ -232,11 +229,14 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
 	    (callback) (fd, callback_data, -1, errno);
 	cbdataUnlock(callback_data);
 	memPoolFree(aio_ctrl_pool, ctrlp);
-	return;
+    } else {
+	ctrlp->next = used_list;
+	used_list = ctrlp;
     }
-    ctrlp->next = used_list;
-    used_list = ctrlp;
-    return;
+    /*
+     * aio_write copies the buffer so we can free it here
+     */
+    free_func(bufp);
 }				/* aioWrite */
 
 
