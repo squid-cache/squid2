@@ -154,13 +154,6 @@ char *IcpOpcodeStr[] =
     "ICP_END"
 };
 
-
-extern int httpd_accel_mode;
-extern ip_acl *local_ip_list;
-extern ip_acl *firewall_ip_list;
-extern time_t neighbor_timeout;
-extern single_parent_bypass;
-
 static void protoDataFree(fdunused, protoData)
      int fdunused;
      protodispatch_data *protoData;
@@ -197,21 +190,21 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	getFromCache(protoData->fd, entry, NULL, req);
 	return 0;
     }
-    if (protoData->direct_fetch == DIRECT_MAYBE && (local_ip_list || firewall_ip_list)) {
+    if (protoData->direct_fetch == DIRECT_MAYBE && (Config.local_ip_list || Config.firewall_ip_list)) {
 	if ((hp = ipcache_gethostbyname(req->host, 0)) == NULL) {
 	    debug(17, 1, "Unknown host: %s\n", req->host);
-	} else if (firewall_ip_list) {
+	} else if (Config.firewall_ip_list) {
 	    xmemcpy(&srv_addr, *(hp->h_addr_list + 0), hp->h_length);
-	    if (ip_access_check(srv_addr, firewall_ip_list) == IP_DENY) {
+	    if (ip_access_check(srv_addr, Config.firewall_ip_list) == IP_DENY) {
 		hierarchy_log_append(entry,
 		    HIER_LOCAL_IP_DIRECT, 0,
 		    req->host);
 		getFromCache(protoData->fd, entry, NULL, req);
 		return 0;
 	    }
-	} else if (local_ip_list) {
+	} else if (Config.local_ip_list) {
 	    xmemcpy(&srv_addr, *(hp->h_addr_list + 0), hp->h_length);
-	    if (ip_access_check(srv_addr, local_ip_list) == IP_DENY) {
+	    if (ip_access_check(srv_addr, Config.local_ip_list) == IP_DENY) {
 		hierarchy_log_append(entry,
 		    HIER_LOCAL_IP_DIRECT, 0,
 		    req->host);
@@ -221,7 +214,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	}
     }
     if ((e = protoData->single_parent) &&
-	(single_parent_bypass || protoData->direct_fetch == DIRECT_NO)) {
+	(Config.singleParentBypass || protoData->direct_fetch == DIRECT_NO)) {
 	/* Only one parent for this host, and okay to skip pinging stuff */
 	hierarchy_log_append(entry, HIER_SINGLE_PARENT, 0, e->host);
 	getFromCache(protoData->fd, entry, e, req);
@@ -251,7 +244,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	    COMM_SELECT_TIMEOUT,
 	    (PF) getFromDefaultSource,
 	    (void *) entry,
-	    neighbor_timeout);
+	    Config.neighborTimeout);
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_NO) {
@@ -321,9 +314,9 @@ int protoDispatch(fd, url, entry, request)
 	protoData->source_ping = 0;
 	protoData->direct_fetch = DIRECT_NO;
 	protoDispatchDNSHandle(fd, (struct hostent *) NULL, protoData);
-    } else if (firewall_ip_list) {
+    } else if (Config.firewall_ip_list) {
 	/* Have to look up the url address so we can compare it */
-	protoData->source_ping = getSourcePing();
+	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
@@ -343,23 +336,23 @@ int protoDispatch(fd, url, entry, request)
 	    fd,
 	    protoDispatchDNSHandle,
 	    (void *) protoData);
-    } else if (local_ip_list) {
+    } else if (Config.local_ip_list) {
 	/* Have to look up the url address so we can compare it */
-	protoData->source_ping = getSourcePing();
+	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
 	    (void *) protoData);
-    } else if (protoData->single_parent && single_parent_bypass &&
-	!(protoData->source_ping = getSourcePing())) {
+    } else if (protoData->single_parent && Config.singleParentBypass &&
+	!(protoData->source_ping = Config.sourcePing)) {
 	/* will fetch from single parent */
 	protoData->direct_fetch = DIRECT_MAYBE;
 	BIT_RESET(protoData->entry->flag, IP_LOOKUP_PENDING);
 	protoDispatchDNSHandle(fd, (struct hostent *) NULL, protoData);
     } else {
 	/* will use ping resolution */
-	protoData->source_ping = getSourcePing();
+	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
@@ -584,7 +577,7 @@ static int protoDNSError(fd, entry)
 static int matchInsideFirewall(host)
      char *host;
 {
-    wordlist *s = getInsideFirewallList();
+    wordlist *s = Config.inside_firewall_list;
     char *key = NULL;
     int result;
     if (!s)
@@ -613,7 +606,7 @@ static int matchLocalDomain(host)
      char *host;
 {
     wordlist *s = NULL;
-    for (s = getLocalDomainList(); s; s = s->next) {
+    for (s = Config.local_domain_list; s; s = s->next) {
 	if (matchDomainName(s->key, host))
 	    return 1;
     }

@@ -137,6 +137,7 @@ extern void dnsOpenServers _PARAMS((void));
 extern void dnsEnqueue _PARAMS((void *));
 extern void *dnsDequeue _PARAMS((void));
 extern dnsserver_t *dnsGetFirstAvailable _PARAMS((void));
+extern void dnsStats _PARAMS((StoreEntry *));
 
 extern char *dns_error_message;
 extern struct _dnsStats DnsStats;

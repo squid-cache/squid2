@@ -284,7 +284,7 @@ static int icpHierarchical(icpState)
     if (method != METHOD_GET)
 	return 0;
     /* scan hierarchy_stoplist */
-    for (p = getHierarchyStoplist(); p; p = p->next)
+    for (p = Config.hierarchy_stoplist; p; p = p->next)
 	if (strstr(request, p->key))
 	    return 0;
     if (BIT_TEST(icpState->flags, REQ_LOOPDETECT))
@@ -337,7 +337,7 @@ int icpSendERROR(fd, errorCode, text, icpState, httpCode)
 	comm_close(fd);
 	return COMM_ERROR;
     }
-    if (port != getHttpPortNum()) {
+    if (port != Config.Port.http) {
 	sprintf(tmp_error_buf, "icpSendERROR: FD %d unexpected port %hd.",
 	    fd, port);
 	fatal_dump(tmp_error_buf);
@@ -1062,7 +1062,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	debug(12, 5, "icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
-	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
+	    (entry->expires > (squid_curtime + Config.negativeTtl))) {
 	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
 	    if (header.flags & ICP_FLAG_HIT_OBJ && pkt_len < SQUID_UDP_SO_SNDBUF) {
 		icpHitObjState = xcalloc(1, sizeof(icpHitObjStateData));
@@ -1213,7 +1213,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	    IcpOpcodeStr[header.opcode]);
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
-	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
+	    (entry->expires > (squid_curtime + Config.negativeTtl))) {
 	    CacheInfo->proto_hit(CacheInfo, p);
 	    icpUdpSend(fd, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
 	    break;
@@ -1521,7 +1521,7 @@ static int parseHttpRequest(icpState)
     if ((t = strchr(request, '#')))	/* remove HTML anchors */
 	*t = '\0';
 
-    if ((ad = getAppendDomain())) {
+    if ((ad = Config.appendDomain)) {
 	if ((t = do_append_domain(request, ad))) {
 	    if (free_request)
 		safe_free(request);
@@ -1537,16 +1537,16 @@ static int parseHttpRequest(icpState)
     if (httpd_accel_mode && *request == '/') {
 	if (!vhost_mode) {
 	    /* prepend the accel prefix */
-	    icpState->url = xcalloc(strlen(getAccelPrefix()) +
+	    icpState->url = xcalloc(strlen(Config.Accel.prefix) +
 		strlen(request) +
 		1, 1);
-	    sprintf(icpState->url, "%s%s", getAccelPrefix(), request);
+	    sprintf(icpState->url, "%s%s", Config.Accel.prefix, request);
 	} else {
 	    /* Put the local socket IP address as the hostname */
 	    icpState->url = xcalloc(strlen(request) + 24, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		inet_ntoa(icpState->me.sin_addr),
-		getAccelPort(),
+		Config.Accel.port,
 		request);
 	    debug(12, 0, "VHOST REWRITE: '%s'\n", icpState->url);
 	}
@@ -1631,10 +1631,10 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 	 */
 	k = icpState->inbufsize - 1 - icpState->offset;
 	if (k == 0) {
-	    if (icpState->offset >= getMaxRequestSize()) {
+	    if (icpState->offset >= Config.maxRequestSize) {
 		/* The request is too large to handle */
 		debug(12, 0, "asciiProcessInput: Request won't fit in buffer.\n");
-		debug(12, 0, "-->     max size = %d\n", getMaxRequestSize());
+		debug(12, 0, "-->     max size = %d\n", Config.maxRequestSize);
 		debug(12, 0, "--> icpState->offset = %d\n", icpState->offset);
 		icpSendERROR(fd,
 		    ICP_ERROR_INTERNAL,
@@ -1706,7 +1706,7 @@ int asciiHandleConn(sock, notused)
 	return -1;
     }
     /* set the hardwired lifetime */
-    lft = comm_set_fd_lifetime(fd, getClientLifetime());
+    lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
     ntcpconn++;
 
     debug(12, 4, "asciiHandleConn: FD %d: accepted, lifetime %d\n", fd, lft);
@@ -1718,7 +1718,7 @@ int asciiHandleConn(sock, notused)
     icpState->header.shostid = htonl(peer.sin_addr.s_addr);
     icpState->peer = peer;
     icpState->log_addr = peer.sin_addr;
-    icpState->log_addr.s_addr &= getClientNetmask().s_addr;
+    icpState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
     icpState->me = me;
     icpState->entry = NULL;
     icpState->fd = fd;
@@ -1742,10 +1742,10 @@ int asciiHandleConn(sock, notused)
 	COMM_SELECT_READ,
 	asciiHandleConn,
 	0);
-    if (identLookup)
+    if (Config.identLookup)
 	identStart(-1, icpState);
     /* start reverse lookup */
-    if (opt_log_fqdn)
+    if (Config.Log.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
     return 0;
 }
@@ -1775,7 +1775,7 @@ static void CheckQuickAbort(icpState)
 	return;
     if (icpState->entry->store_status == STORE_OK)
 	return;
-    if (!getQuickAbort() &&
+    if (!Config.quickAbort &&
 	BIT_TEST(icpState->flags, REQ_CACHABLE) &&
 	!BIT_TEST(icpState->entry->flag, KEY_PRIVATE))
 	return;

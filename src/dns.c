@@ -192,8 +192,8 @@ dnsserver_t *dnsGetFirstAvailable()
 
 void dnsOpenServers()
 {
-    int N = getDnsChildren();
-    char *prg = getDnsProgram();
+    int N = Config.dnsChildren;
+    char *prg = Config.Program.dnsserver;
     int k;
     int dnssocket;
     LOCAL_ARRAY(char, fd_note_buf, FD_ASCII_NOTE_SZ);

@@ -262,19 +262,19 @@ void _db_rotate_log()
 	return;
 
     /* Rotate numbers 0 through N up one */
-    for (i = getLogfileRotateNumber(); i > 1;) {
+    for (i = Config.Log.rotateNumber; i > 1;) {
 	i--;
 	sprintf(from, "%s.%d", debug_log_file, i - 1);
 	sprintf(to, "%s.%d", debug_log_file, i);
 	rename(from, to);
     }
     /* Rotate the current log to .0 */
-    if (getLogfileRotateNumber() > 0) {
+    if (Config.Log.rotateNumber > 0) {
 	sprintf(to, "%s.%d", debug_log_file, 0);
 	rename(debug_log_file, to);
     }
     /* Close and reopen the log.  It may have been renamed "manually"
      * before HUP'ing us. */
     if (debug_log != stderr)
-	debugOpenLog(getCacheLogFile());
+	debugOpenLog(Config.Log.log);
 }

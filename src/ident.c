@@ -56,7 +56,7 @@ void identStart(sock, icpState)
     port = ntohs(icpState->peer.sin_port);
 
     if (sock < 0) {
-	sock = comm_open(COMM_NONBLOCKING, getTcpOutgoingAddr(), 0, "ident");
+	sock = comm_open(COMM_NONBLOCKING, Config.Addrs.tcp_outgoing, 0, "ident");
 	if (sock == COMM_ERROR)
 	    return;
     }

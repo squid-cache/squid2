@@ -144,7 +144,7 @@ int do_debug = 0;
  * Squid creates UNIX domain sockets named dns.PID.NN, e.g. dns.19215.11
  * 
  * In ipcache_init():
- *       . dnssocket = ipcache_opensocket(getDnsProgram())
+ *       . dnssocket = ipcache_opensocket(Config.Program.dnsserver)
  *       . dns_child_table[i]->inpipe = dnssocket
  *       . dns_child_table[i]->outpipe = dnssocket
  * 
@@ -268,7 +268,7 @@ int main(argc, argv)
 #endif
 	    addrbuf = inet_addr(request);
 	    for (;;) {
-		result = gethostbyaddr((char *)&addrbuf, 4, AF_INET);
+		result = gethostbyaddr((char *) &addrbuf, 4, AF_INET);
 		if (result || h_errno != TRY_AGAIN)
 		    break;
 		if (++retry_count == 2)
