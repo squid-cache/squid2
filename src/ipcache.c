@@ -253,6 +253,7 @@ static int ipcache_create_dnsserver(command)
     port = ntohs(S.sin_port);
     debug(14, 4, "ipcache_create_dnsserver: bind to local host.\n");
     listen(cfd, 1);
+    getCurrentTime();
     if ((pid = fork()) < 0) {
 	debug(14, 0, "ipcache_create_dnsserver: fork: %s\n", xstrerror());
 	comm_close(cfd);
