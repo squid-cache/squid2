@@ -169,6 +169,8 @@ AC_CHECK_HEADERS( \
 	varargs.h \
 )
 
+AC_C_CONST
+
 AC_MSG_CHECKING(for tm->tm_gmtoff)
 AC_TRY_COMPILE([#include <time.h>
 #include <sys/time.h>],
