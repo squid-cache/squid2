@@ -1045,6 +1045,7 @@ aclMatchProxyAuth(wordlist * data, const char *proxy_auth, acl_proxy_auth_user *
 	    /* password was checked and did match */
 	    debug(28, 4) ("aclMatchProxyAuth: user '%s' validated OK\n", user);
 	    /* store validated user in hash, after filling in expiretime */
+	    xstrncpy(checklist->request->user_ident, user, USER_IDENT_SZ);
 	    auth_user->expiretime = current_time.tv_sec + Config.authenticateTTL;
 	    hash_join(proxy_auth_cache, (hash_link *) auth_user);
 	    /* Continue checking below, as normal */
