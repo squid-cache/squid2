@@ -51,7 +51,10 @@ static gb_t mem_traffic_volume =
 static Stack Pools;
 
 /* local prototypes */
+static void memShrink(size_t new_limit);
 static void memPoolDescribe(const MemPool * pool);
+static void memPoolShrink(MemPool * pool, size_t new_limit);
+
 
 
 static double
@@ -80,12 +83,10 @@ memConfigure(void)
 	new_pool_limit = Config.MemPools.limit;
     else
 	new_pool_limit = mem_unlimited_size;
-    /* currently, we cannot decrease current memory pool */
-    if (new_pool_limit < TheMeter.idle.level) {
-	debug(63, 0) ("Warning: configured mem pool limit is below current consumpion.\n");
-	debug(63, 0) ("         seting limit[MB] to %.2f instead of %.2f, was %.2f.\n",
-	    toMB(TheMeter.idle.level), toMB(new_pool_limit), toMB(mem_idle_limit));
-	new_pool_limit = TheMeter.idle.level;
+    /* shrink memory pools if needed */
+    if (TheMeter.idle.level > new_pool_limit) {
+	debug(63, 1) ("Shrinking idle mem pools to %.2f MB\n", toMB(new_pool_limit));
+	memShrink(new_pool_limit);
     }
     assert(TheMeter.idle.level <= new_pool_limit);
     mem_idle_limit = new_pool_limit;
@@ -119,6 +120,29 @@ memCleanModule(void)
 	debug(63, 2) ("memCleanModule: %d pools are left dirty\n", dirty_count);
     /* we clean the stack anyway */
     stackClean(&Pools);
+}
+
+
+static void
+memShrink(size_t new_limit)
+{
+    size_t start_limit = TheMeter.idle.level;
+    int i;
+    assert(start_limit >= 0 && new_limit >= 0);
+    debug(63, 1) ("memShrink: started with %d KB goal: %d KB\n", 
+	toKB(TheMeter.idle.level), toKB(new_limit));
+    /* first phase: cut proportionally to the pool idle size */
+    for (i = 0; i < Pools.count && TheMeter.idle.level > new_limit; ++i) {
+	MemPool *pool = Pools.items[i];
+	const size_t target_pool_size = (size_t) ((double)pool->meter.idle.level * new_limit) / start_limit;
+	memPoolShrink(pool, target_pool_size);
+    }
+    debug(63, 1) ("memShrink: 1st phase done with %d KB left\n", toKB(TheMeter.idle.level));
+    /* second phase: cut to 0 */
+    for (i = 0; i < Pools.count && TheMeter.idle.level > new_limit; ++i)
+	memPoolShrink(Pools.items[i], 0);
+    debug(63, 1) ("memShrink: 2nd phase done with %d KB left\n", toKB(TheMeter.idle.level));
+    assert(TheMeter.idle.level <= new_limit); /* paranoid */
 }
 
 /* MemPoolMeter */
@@ -229,6 +253,21 @@ memPoolFree(MemPool * pool, void *obj)
 	xfree(obj);
     }
     assert(pool->meter.idle.level <= pool->meter.alloc.level);
+}
+
+static void
+memPoolShrink(MemPool * pool, size_t new_limit)
+{
+    assert(pool);
+    assert(new_limit >= 0);
+    while (pool->meter.idle.level > new_limit && pool->pstack.count > 0) {
+	memMeterDec(pool->meter.alloc);
+	memMeterDec(pool->meter.idle);
+	memMeterDel(TheMeter.idle, pool->obj_size);
+	memMeterDel(TheMeter.alloc, pool->obj_size);
+	xfree(stackPop(&pool->pstack));
+    }
+    assert(pool->meter.idle.level <= new_limit); /* paranoid */
 }
 
 int
