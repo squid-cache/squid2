@@ -548,7 +548,9 @@ icpReadDataDone(int fd, char *buf, int len, int err, void *data)
     char *p = NULL;
     debug(12, 3, "icpReadDataDone: FD %d, len=%d, err=%d, '%s'\n",
 	fd, len, err, entry->key);
-    if (len == 0 && err == DISK_EOF) {
+    if (err == DISK_EOF) {
+	if (len != 0)
+	    debug_trap("err == DISK_EOF and len != 0");
 	comm_close(icpState->fd);
 	return COMM_OK;
     } else if (err != DISK_OK) {
