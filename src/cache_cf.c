@@ -181,16 +181,19 @@ ip_access_type ip_access_check(address, list)
      struct in_addr address;
      ip_acl *list;
 {
-    static struct in_addr localhost =
-    {};				/* Initialized to all zero */
+    static int init = 0;
+    static struct in_addr localhost;
     ip_acl *p = NULL;
     struct in_addr naddr;	/* network byte-order IP addr */
 
     if (!list)
 	return IP_ALLOW;
 
-    if (!localhost.s_addr)
+    if (!init) {
+	memset((char *) &localhost, '\0', sizeof(struct in_addr));
 	localhost.s_addr = inet_addr("127.0.0.1");
+	init = 1;
+    }
 
     naddr.s_addr = address.s_addr;
     if (naddr.s_addr == localhost.s_addr)
