@@ -417,6 +417,7 @@ int getFromCache(fd, entry, e, request)
 	return waisStart(fd, url, entry->method, request_hdr, entry);
     } else if (entry->method == METHOD_CONNECT) {
 	fatal_dump("getFromCache() should not be handling CONNECT");
+	return 0;
     } else {
 	return protoNotImplemented(fd, url, entry);
     }
