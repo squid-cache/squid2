@@ -247,17 +247,18 @@ helperStatefulSubmit(statefulhelper * hlp, const char *buf, HLPSCB * callback, v
     }
     r->callback = callback;
     r->data = data;
-    r->buf = xstrdup(buf);
+    if (buf)
+	r->buf = xstrdup(buf);
     cbdataLock(r->data);
     if (!srv)
 	srv = helperStatefulGetServer(hlp);
     if (srv) {
-	assert(buf != NULL);
-	debug(84, 5) ("helperStatefulSubmit: sever %p, buf '%s'.\n", srv, buf);
+	debug(84, 5) ("helperStatefulSubmit: sever %p, buf '%s'.\n", srv, buf ? buf : "NULL");
 	assert(!srv->request);
+	assert(!srv->flags.busy);
 	helperStatefulDispatch(srv, r);
     } else {
-	debug(84, 9) ("helperStatefulSubmit: enqueued, buf '%s'.\n", buf);
+	debug(84, 9) ("helperStatefulSubmit: enqueued, buf '%s'.\n", buf ? buf : "NULL");
 	StatefulEnqueue(hlp, r);
     }
 }
@@ -888,6 +889,15 @@ helperStatefulDispatch(helper_stateful_server * srv, helper_stateful_request * r
     statefulhelper *hlp = srv->parent;
     if (!cbdataValid(r->data)) {
 	debug(84, 1) ("helperStatefulDispatch: invalid callback data\n");
+	helperStatefulRequestFree(r);
+	return;
+    }
+    if (!r->buf) {
+	if (cbdataValid(r->data)) {
+	    r->callback(r->data, srv, NULL);
+	} else {
+	    debug(84, 1) ("helperStatefulDispatch: no callback data registered\n");
+	}
 	helperStatefulRequestFree(r);
 	return;
     }
