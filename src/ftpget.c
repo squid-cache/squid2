@@ -365,6 +365,8 @@ void fail(r)
 	    log_errno2(__FILE__, __LINE__, "fdopen");
 	    exit(1);
 	}
+	if (r->errmsg == NULL)
+		r->errmsg = xstrdup(xstrerror());	/* safety net */
 	setbuf(fp, NULL);
 	htmlbuf[0] = '\0';
 	sprintf(htmlbuf, CACHED_RETRIEVE_ERROR_MSG,
@@ -1448,6 +1450,8 @@ state_t read_data(r)
     if (x == READ_TIMEOUT)
 	return request_timeout(r);
     if (x < 0) {
+	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	sprintf(r->errmsg, "write: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
     }
