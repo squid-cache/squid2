@@ -1,4 +1,4 @@
-/*
+*
  * $Id$
  *
  * DEBUG: section 49    SNMP support
@@ -540,7 +540,7 @@ snmpHandleUdp(int sock, void *not_used)
 	snmp_rq->len = len;
 	snmp_rq->sock = sock;
 	snmp_rq->outbuf = xmalloc(snmp_rq->outlen = SNMP_REQUEST_SIZE);
-	memcpy(&snmp_rq->from, &from, sizeof(struct sockaddr_in));
+	xmemcpy(&snmp_rq->from, &from, sizeof(struct sockaddr_in));
 	snmpDecodePacket(snmp_rq);
 	xfree(snmp_rq);
     } else {
@@ -564,7 +564,7 @@ snmpDecodePacket(snmp_request_t * rq)
 
     debug(49, 5) ("snmpDecodePacket: Called.\n");
     /* Now that we have the data, turn it into a PDU */
-    Session = (struct snmp_session *) xmalloc(sizeof(struct snmp_session));
+    Session = xmalloc(sizeof(struct snmp_session));
     Session->Version = SNMP_VERSION_1;
     Session->authenticator = NULL;
     Session->community = (u_char *) xstrdup("public");
@@ -979,17 +979,14 @@ snmpCreateOid(va_alist)
 }
 
 /*
- * Allocate space for, and copy, an OID.  Returns new oid, or NULL.
+ * Allocate space for, and copy, an OID.  Returns new oid.
  */
 oid *
 snmpOidDup(oid * A, snint ALen)
 {
-    oid *Ans;
-
-    Ans = (oid *) xmalloc(sizeof(oid) * ALen);
-    if (Ans)
-	memcpy(Ans, A, (sizeof(oid) * ALen));
-    return (Ans);
+    oid *Ans = xmalloc(sizeof(oid) * ALen);
+    xmemcpy(Ans, A, (sizeof(oid) * ALen));
+    return Ans;
 }
 
 /*
