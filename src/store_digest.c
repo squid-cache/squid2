@@ -94,7 +94,7 @@ static int storeDigestResize();
 void
 storeDigestInit()
 {
-#if SQUID_MAINTAIN_CACHE_DIGEST
+#if USE_CACHE_DIGESTS
     const int cap = storeDigestCalcCap();
     store_digest = cacheDigestCreate(cap, StoreDigestBitsPerEntry);
     debug(71, 1) ("Local cache digest enabled; rebuild/rewrite every %d/%d sec\n",

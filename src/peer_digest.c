@@ -31,7 +31,7 @@
 
 #include "squid.h"
 
-#if SQUID_PEER_DIGEST
+#if USE_CACHE_DIGESTS
 
 /* local types */
 

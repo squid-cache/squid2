@@ -115,17 +115,10 @@
 #undef USE_HTCP
 
 /*
- * maintain a digest of cache contents and send the digest to neighbors
- * upon request; if disabled we still can request digests from other
- * caches
+ * Use Cache Digests for locating objects in neighbor caches.  This
+ * code is still semi-experimental. 
  */
-#undef SQUID_MAINTAIN_CACHE_DIGEST
-
-/*
- * ask peers about their digests and use them
- * must be set before including structs.h
- */
-#undef SQUID_PEER_DIGEST
+#undef USE_CACHE_DIGESTS
 
 /********************************
  *  END OF CONFIGURABLE OPTIONS *

@@ -537,7 +537,7 @@ storeComplete(StoreEntry * e)
     assert(e->mem_status == NOT_IN_MEMORY);
     if (!storeEntryValidLength(e))
 	EBIT_SET(e->flag, ENTRY_BAD_LENGTH);
-#if SQUID_PEER_DIGEST
+#if USE_CACHE_DIGESTS
     if (e->mem_obj->request)
 	e->mem_obj->request->hier.store_complete_stop = current_time;
 #endif

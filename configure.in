@@ -340,19 +340,11 @@ AC_ARG_ENABLE(forw-via-db,
   fi
 ])
 
-AC_ARG_ENABLE(cache-digest,
-[  --enable-cache-digest   Maintain a digest of our cache ],
+AC_ARG_ENABLE(cache-digests,
+[  --enable-cache-digests  Use Cache Digests],
 [ if test "$enableval" = "yes" ; then
-    echo "SQUID_MAINTAIN_CACHE_DIGEST enabled"
-    AC_DEFINE(SQUID_MAINTAIN_CACHE_DIGEST)
-  fi
-])
-
-AC_ARG_ENABLE(peer-digests,
-[  --enable-peer-digests   Query peers for their cache digests],
-[ if test "$enableval" = "yes" ; then
-    echo "SQUID_PEER_DIGEST enabled"
-    AC_DEFINE(SQUID_PEER_DIGEST)
+    echo "USE_CACHE_DIGESTS enabled"
+    AC_DEFINE(USE_CACHE_DIGESTS)
   fi
 ])
 
