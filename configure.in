@@ -20,7 +20,8 @@ REGEXLIB=''	# -lregex
 LIBREGEX=''	# libregex.a
 
 dnl use directory structure of cached as default (hack)
-if test "$libexecdir" = '${exec_prefix}/libexec'; then
+if test "$libexecdir" = '${exec_prefix}/libexec' &&
+   test "$localstatedir" = '${prefix}/var'; then
 	libexecdir='${bindir}'
 	localstatedir='${prefix}'
 
