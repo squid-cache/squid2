@@ -322,6 +322,17 @@ debug_options ALL,1
 #
 #ident_lookup off
 
+#  TAG: log_fqdn
+#	Turn this on if you wish to log fully qualified domain names
+#	in the access.log.
+#log_fqdn off
+
+#  TAG: client_netmask
+#	A netmask for client addresses in logfiles and cachemgr output.
+#	Change this to protect the privacy of your cache clients.
+#
+#client_netmask 255.255.255.255
+
 
 # OPTIONS FOR EXTERNAL SUPPORT PROGRAMS
 #-----------------------------------------------------------------------------
@@ -568,11 +579,16 @@ shutdown_lifetime 30
 
 # Defining an Access List
 #
-# acl aclname src|domain|time|pattern|port|proto|method string1 ...
+# acl aclname acltype string1 ...
+#
+# acltype is one of src dst srcdomain dstdomain time pattern port
+#	            proto method
 # 
-# acl aclname src      ip-address/netmask ...
-# acl aclname domain   .foo.com ...
-# acl aclname time     day-abbrevs  h1:m1-h2:m2
+# acl aclname src      ip-address/netmask ... (clients IP address)
+# acl aclname dst      ip-address/netmask ... (URL host's IP address)
+# acl aclname srcdomain   .foo.com ... (taken from reverse DNS lookup)
+# acl aclname dstdomain   .foo.com ... (taken from the URL)
+# acl aclname time     [day-abbrevs]  [h1:m1-h2:m2]
 #	day-abbrevs:
 #		S - Sunday
 #		M - Monday
@@ -582,7 +598,7 @@ shutdown_lifetime 30
 #		F - Friday
 #		A - Saturday
 #	h1:m1 must be less than h2:m2
-# acl aclname pattern  \.gif$ ...
+# acl aclname pattern  \.gif$ ...	(URL-path only)
 # acl aclname port     80 70 21 ...
 # acl aclname proto    HTTP FTP ...
 # acl aclname method   GET POST ...
