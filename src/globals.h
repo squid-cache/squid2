@@ -80,8 +80,8 @@ extern struct in_addr theOutSNMPAddr;
 extern struct timeval current_time;
 extern struct timeval squid_start;
 extern time_t squid_curtime;	/* 0 */
-extern volatile int reconfigure_pending;	/* 0 */
 extern volatile int shutdown_pending;	/* 0 */
+extern int reconfiguring; 	/* 0 */
 extern int store_rebuilding;	/* 1 */
 extern int store_swap_size;	/* 0 */
 extern unsigned long store_mem_size;	/* 0 */

@@ -613,7 +613,7 @@ free_cachedir(cacheSwap * swap)
     SwapDir *s;
     int i;
     /* DON'T FREE THESE FOR RECONFIGURE */
-    if (reconfigure_pending)
+    if (reconfiguring)
 	return;
     for (i = 0; i < swap->n_configured; i++) {
 	s = swap->swapDirs + i;
