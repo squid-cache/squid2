@@ -321,9 +321,9 @@ urlCheckRequest(const request_t * r)
     switch (r->protocol) {
     case PROTO_HTTP:
     case PROTO_CACHEOBJ:
+    case PROTO_FTP:
 	rc = 1;
 	break;
-    case PROTO_FTP:
     case PROTO_GOPHER:
     case PROTO_WAIS:
 	if (r->method == METHOD_GET)
