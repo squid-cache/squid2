@@ -248,7 +248,7 @@ struct _aclCheck_t {
     unsigned short my_port;
     request_t *request;
     /* for acls that look at reply data */
-    HttpReply * reply;
+    HttpReply *reply;
     ConnStateData *conn;	/* hack for ident and NTLM */
     char rfc931[USER_IDENT_SZ];
     auth_user_request_t *auth_user_request;
@@ -2099,4 +2099,9 @@ struct _Logfile {
     struct {
 	unsigned int fatal:1;
     } flags;
+};
+
+struct cache_dir_option {
+    char *name;
+    void (*parse) (SwapDir * sd, const char *option, const char *value, int reconfiguring);
 };

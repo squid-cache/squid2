@@ -113,6 +113,7 @@ storeNullDirParse(SwapDir * sd, int index, char *path)
     sd->checkobj = storeNullDirCheckObj;
     sd->log.clean.start = storeNullDirWriteCleanStart;
     sd->log.clean.done = storeNullDirWriteCleanDone;
+    parse_cachedir_options(sd, NULL, 0);
 }
 
 /* Setup and register the store module */
@@ -126,4 +127,3 @@ storeFsSetup_null(storefs_entry_t * storefs)
     storefs->donefunc = storeNullDirDone;
     null_initialised = 1;
 }
-
