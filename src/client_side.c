@@ -289,13 +289,13 @@ clientProcessExpired(void *data)
     }
     http->request->flags.refresh = 1;
     http->old_entry = http->entry;
+    assert(storeClientListSearch(http->old_entry->mem_obj, http));
     entry = storeCreateEntry(url,
 	http->log_uri,
 	http->request->flags,
 	http->request->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     storeClientListAdd(entry, http);
-    storeClientListAdd(http->old_entry, http);
 #if DELAY_POOLS
     /* delay_id is already set on original store client */
     delaySetStoreClient(entry, http, delayClient(http->request));
@@ -2439,6 +2439,7 @@ httpAccept(int sock, void *data)
 	commSetTimeout(fd, Config.Timeout.request, requestTimeout, connState);
 #if USE_IDENT
 	identChecklist.src_addr = peer.sin_addr;
+	identChecklist.my_addr = me.sin_addr;
 	if (aclCheckFast(Config.accessList.identLookup, &identChecklist))
 	    identStart(&me, &peer, clientIdentDone, connState);
 #endif
