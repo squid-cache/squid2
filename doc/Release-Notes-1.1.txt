@@ -131,12 +131,38 @@ or gethostbyaddr() calls.
 
 Cache directory structure changes
 ==============================================================================
-Squid-1.1 uses a different directory structure for cache files.
-Squid-1.0 used 100 directories for each 'cache_dir'.  Squid-1.1 uses a
-two level structure with 16 first-level directories, and 256 second
-level directories.  In addition, directory and file names are in
-hexadecimal, and fixed length.  These changes mean that Squid-1.1 will
-fail to reload metadata from a Squid-1.0 swap log.
+Squid-1.0 used 100 first-level directories for each 'cache_dir'.  For
+very large caches, this meant between 5,000-10,000 files per directory,
+which isn't good for performance on any unix system.  As well as the
+directory search times being slow, the amount of disk traffic due to
+directory operations was quite large (due to directory fragmentation
+(variable length filenames) each directory was about 100k in size).
+
+To reduce the number of files per directory it was necessary to
+increase the number of directories used.  If this was done using a
+single level directory structure we would have a single 'cache_dir'
+with an excessive number of directories in it.  Hence we went to a 2
+level structure.  We wanted to keep each directory smaller than a
+filesystem block (usually 4-8k), and also wanted to be able to
+accommodate 1M+ objects.  Assuming approximately 256 objects per
+directory, we settled on 16 first-level (L1) and 256 second-level (L2)
+directories for a total of 16x256x256 = 1,048,576 objects.
+
+With recent squid-1.1 versions, the number of L1 and L2 directories
+is configurable in the squid.conf file.  To estimate the optimal numbers
+for your installation, we recommend the following forumla:
+
+given:
+	DS = amount of 'cache_swap' / number of 'cache_dir's
+	OS = avg object size = 20k
+	NO = objects per L2 directory = 256
+
+calculate:
+	L1 = number of L1 directories
+	L2 = number of L2 directories
+
+such that:
+	L1 x L2 = DS / OS / NO
 
 
 Getting true DNS TTL info into Squid's IP cache
