@@ -59,7 +59,6 @@ WIN32SOURCE =
 endif
 
 SUBDIRS		= fs repl auth
-CGIEXT = @CGIEXT@
 
 INCLUDES        = -I. -I$(srcdir) -I$(top_builddir)/include -I$(top_srcdir)/include
 
