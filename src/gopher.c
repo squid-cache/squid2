@@ -1,110 +1,10 @@
-static char rcsid[] = "$Id$";
-/* 
- * File:         gopher.c
- * Description:  state machine for gopher retrieval protocol.  Based on Anawat's
- *               gopher retrieval module.
- * Author:       John Noll, USC, Anawat
- * Created:      Thu Apr 28 10:57:11 1994
- * Language:     C
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
+/* $Id$ */
+
+/*
+ * DEBUG: Section 10          gopher: GOPHER
  */
-#include "config.h"
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <unistd.h>
 
-#include "ansihelp.h"
-#include "comm.h"
-#include "store.h"
-#include "stat.h"
-#include "url.h"
-#include "mime.h"
-#include "cache_cf.h"
-#include "ttl.h"
-#include "util.h"
-#include "stmem.h"
-#include "ipcache.h"
-#include "icp.h"
-
-extern char *dns_error_message;
-extern time_t cached_curtime;
-extern char *tmp_error_buf;
+#include "squid.h"
 
 /* gopher type code from rfc. Anawat. */
 #define GOPHER_FILE         '0'
@@ -140,7 +40,7 @@ extern char *tmp_error_buf;
 
 typedef struct gopher_ds {
     StoreEntry *entry;
-    char host[HARVESTHOSTNAMELEN + 1];
+    char host[SQUIDHOSTNAMELEN + 1];
     enum {
 	NORMAL,
 	HTML_DIR,
@@ -151,7 +51,6 @@ typedef struct gopher_ds {
     } conversion;
     int HTML_header_added;
     int port;
-    char *mime_hdr;
     char type_id;
     char request[MAX_URL];
     int data_in;
@@ -164,10 +63,20 @@ typedef struct gopher_ds {
 
 GopherData *CreateGopherData();
 
-static void freeGopherData _PARAMS((GopherData *));
-
 char def_gopher_bin[] = "www/unknown";
 char def_gopher_text[] = "text/plain";
+
+static int gopherStateFree(fd, gopherState)
+     int fd;
+     GopherData *gopherState;
+{
+    if (gopherState == NULL)
+	return 1;
+    put_free_4k_page(gopherState->buf);
+    xfree(gopherState);
+    return 0;
+}
+
 
 /* figure out content type from file extension */
 static void gopher_mime_content(buf, name, def)
@@ -229,8 +138,8 @@ void gopherMimeCreate(data)
 
     sprintf(tempMIME, "\
 HTTP/1.0 200 OK Gatewaying\r\n\
-Server: HarvestCache/%s\r\n\
-MIME-version: 1.0\r\n", HARVEST_VERSION);
+Server: Squid/%s\r\n\
+MIME-version: 1.0\r\n", version_string);
 
     switch (data->type_id) {
 
@@ -280,19 +189,18 @@ int gopher_url_parser(url, host, port, type_id, request)
      char *type_id;
      char *request;
 {
-    static char atypebuf[MAX_URL];
+    static char proto[MAX_URL];
     static char hostbuf[MAX_URL];
-    char *tmp = NULL;
     int t;
 
-    atypebuf[0] = hostbuf[0] = '\0';
+    proto[0] = hostbuf[0] = '\0';
     host[0] = request[0] = '\0';
     (*port) = 0;
     (*type_id) = 0;
 
-    t = sscanf(url, "%[a-zA-Z]://%[^/]/%c%s", atypebuf, hostbuf,
+    t = sscanf(url, "%[a-zA-Z]://%[^/]/%c%s", proto, hostbuf,
 	type_id, request);
-    if ((t < 2) || strcasecmp(atypebuf, "gopher")) {
+    if ((t < 2) || strcasecmp(proto, "gopher")) {
 	return -1;
     } else if (t == 2) {
 	(*type_id) = GOPHER_DIRECTORY;
@@ -301,9 +209,7 @@ int gopher_url_parser(url, host, port, type_id, request)
 	request[0] = '\0';
     } else {
 	/* convert %xx to char */
-	tmp = url_convert_hex(request);
-	strncpy(request, tmp, MAX_URL);
-	safe_free(tmp);
+	(void) url_convert_hex(request, 0);
     }
 
     host[0] = '\0';
@@ -313,17 +219,15 @@ int gopher_url_parser(url, host, port, type_id, request)
     return 0;
 }
 
-int gopherCachable(url, type, mime_hdr)
+int gopherCachable(url)
      char *url;
-     char *type;
-     char *mime_hdr;
 {
-    stoplist *p = NULL;
+    wordlist *p = NULL;
     GopherData *data = NULL;
     int cachable = 1;
 
     /* scan stop list */
-    for (p = gopher_stoplist; p; p = p->next)
+    for (p = getGopherStoplist(); p; p = p->next)
 	if (strstr(url, p->key))
 	    return 0;
 
@@ -343,7 +247,7 @@ int gopherCachable(url, type, mime_hdr)
     default:
 	cachable = 1;
     }
-    freeGopherData(data);
+    gopherStateFree(-1, data);
 
     return cachable;
 }
@@ -431,7 +335,7 @@ void gopherToHTML(data, inbuf, len)
 		/* there is no complete line in inbuf */
 		/* copy it to temp buffer */
 		if (data->len + len > TEMP_BUF_SIZE) {
-		    debug(1, "GopherHTML: Buffer overflow. Lost some data on URL: %s\n",
+		    debug(10, 1, "GopherHTML: Buffer overflow. Lost some data on URL: %s\n",
 			entry->url);
 		    len = TEMP_BUF_SIZE - data->len;
 		}
@@ -457,7 +361,7 @@ void gopherToHTML(data, inbuf, len)
 		/* there is no complete line in inbuf */
 		/* copy it to temp buffer */
 		if ((len - (pos - inbuf)) > TEMP_BUF_SIZE) {
-		    debug(1, "GopherHTML: Buffer overflow. Lost some data on URL: %s\n",
+		    debug(10, 1, "GopherHTML: Buffer overflow. Lost some data on URL: %s\n",
 			entry->url);
 		    len = TEMP_BUF_SIZE;
 		}
@@ -663,31 +567,13 @@ int gopherReadReplyTimeout(fd, data)
 {
     StoreEntry *entry = NULL;
     entry = data->entry;
-    debug(4, "GopherReadReplyTimeout: Timeout on %d\n url: %s\n", fd, entry->url);
-    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	entry->url,
-	entry->url,
-	"Gopher",
-	203,
-	"Read timeout",
-	"Network/Remote site may be down.  Try again later.",
-	HARVEST_VERSION,
-	comm_hostname());
-    storeAbort(entry, tmp_error_buf);
+    debug(10, 4, "GopherReadReplyTimeout: Timeout on %d\n url: %s\n", fd, entry->url);
+    squid_error_entry(entry, ERR_READ_TIMEOUT, NULL);
     if (data->icp_page_ptr)
 	put_free_4k_page(data->icp_page_ptr);
     if (data->icp_rwd_ptr)
 	safe_free(data->icp_rwd_ptr);
     comm_close(fd);
-#ifdef LOG_ERRORS
-    CacheInfo->log_append(CacheInfo,
-	entry->url,
-	"0.0.0.0",
-	store_mem_obj(entry, e_current_len),
-	"ERR_203",		/* GOPHER READ TIMEOUT */
-	"GET");
-#endif
-    freeGopherData(data);
     return 0;
 }
 
@@ -698,32 +584,17 @@ void gopherLifetimeExpire(fd, data)
 {
     StoreEntry *entry = NULL;
     entry = data->entry;
-    debug(4, "gopherLifeTimeExpire: FD %d: <URL:%s>\n", fd, entry->url);
-    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	entry->url,
-	entry->url,
-	"GOPHER",
-	210,
-	"Transaction Timeout",
-	"The Network/Remote site may be down or too slow.  Try again later.",
-	HARVEST_VERSION,
-	comm_hostname());
-    storeAbort(entry, tmp_error_buf);
+    debug(10, 4, "gopherLifeTimeExpire: FD %d: <URL:%s>\n", fd, entry->url);
+    squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
     if (data->icp_page_ptr)
 	put_free_4k_page(data->icp_page_ptr);
     if (data->icp_rwd_ptr)
 	safe_free(data->icp_rwd_ptr);
-    comm_set_select_handler(fd, COMM_SELECT_READ | COMM_SELECT_WRITE, 0, 0);
+    comm_set_select_handler(fd,
+	COMM_SELECT_READ | COMM_SELECT_WRITE,
+	0,
+	0);
     comm_close(fd);
-#ifdef LOG_ERRORS
-    CacheInfo->log_append(CacheInfo,
-	entry->url,
-	"0.0.0.0",
-	store_mem_obj(entry, e_current_len),
-	"ERR_210",		/* GOPHER LIFETIME EXPIRE */
-	"GET");
-#endif
-    freeGopherData(data);
 }
 
 
@@ -744,12 +615,12 @@ int gopherReadReply(fd, data)
     entry = data->entry;
     if (entry->flag & DELETE_BEHIND) {
 	if (storeClientWaiting(entry)) {
-	    clen = store_mem_obj(entry, e_current_len);
-	    off = store_mem_obj(entry, e_lowest_offset);
+	    clen = entry->mem_obj->e_current_len;
+	    off = entry->mem_obj->e_lowest_offset;
 	    if ((clen - off) > GOPHER_DELETE_GAP) {
-		debug(3, "gopherReadReply: Read deferred for Object: %s\n",
-		    entry->key);
-		debug(3, "                Current Gap: %d bytes\n",
+		debug(10, 3, "gopherReadReply: Read deferred for Object: %s\n",
+		    entry->url);
+		debug(10, 3, "                Current Gap: %d bytes\n",
 		    clen - off);
 
 		/* reschedule, so it will automatically reactivated when
@@ -757,89 +628,59 @@ int gopherReadReply(fd, data)
 		comm_set_select_handler(fd,
 		    COMM_SELECT_READ,
 		    (PF) gopherReadReply,
-		    (caddr_t) data);
-/* don't install read timeout until we are below the GAP */
-#ifdef INSTALL_READ_TIMEOUT_ABOVE_GAP
-		comm_set_select_handler_plus_timeout(fd,
-		    COMM_SELECT_TIMEOUT,
-		    (PF) gopherReadReplyTimeout,
-		    (caddr_t) data,
-		    getReadTimeout());
-#else
+		    (void *) data);
+		/* don't install read timeout until we are below the GAP */
 		comm_set_select_handler_plus_timeout(fd,
 		    COMM_SELECT_TIMEOUT,
 		    (PF) NULL,
-		    (caddr_t) NULL,
+		    (void *) NULL,
 		    (time_t) 0);
-#endif
+		comm_set_stall(fd, getStallDelay());	/* dont try reading again for a while */
 		return 0;
 	    }
 	} else {
 	    /* we can terminate connection right now */
-	    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-		entry->url,
-		entry->url,
-		"Gopher",
-		219,
-		"No Client",
-		"All Clients went away before tranmission is complete and object is too big to cache.",
-		HARVEST_VERSION,
-		comm_hostname());
-	    storeAbort(entry, tmp_error_buf);
+	    squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	    comm_close(fd);
-#ifdef LOG_ERRORS
-	    CacheInfo->log_append(CacheInfo,
-		entry->url,
-		"0.0.0.0",
-		store_mem_obj(entry, e_current_len),
-		"ERR_219",	/* GOPHER NO CLIENTS, BIG OBJ */
-		"GET");
-#endif
-	    freeGopherData(data);
 	    return 0;
 	}
     }
     buf = get_free_4k_page();
+    errno = 0;
     len = read(fd, buf, TEMP_BUF_SIZE - 1);	/* leave one space for \0 in gopherToHTML */
-    debug(5, "gopherReadReply - fd: %d read len:%d\n", fd, len);
+    debug(10, 5, "gopherReadReply: FD %d read len=%d\n", fd, len);
 
-    if (len < 0 || ((len == 0) && (store_mem_obj(entry, e_current_len) == 0))) {
-	debug(1, "gopherReadReply - error reading: %s\n",
-	    xstrerror());
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "Gopher",
-	    205,
-	    "Read error",
-	    "Network/Remote Site is down.  Try again later.",
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
+    if (len < 0) {
+	debug(10, 1, "gopherReadReply: error reading: %s\n", xstrerror());
+	if (errno == EAGAIN || errno == EWOULDBLOCK) {
+	    /* reinstall handlers */
+	    /* XXX This may loop forever */
+	    comm_set_select_handler(fd, COMM_SELECT_READ,
+		(PF) gopherReadReply, (void *) data);
+	    comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT,
+		(PF) gopherReadReplyTimeout, (void *) data, getReadTimeout());
+	} else {
+	    BIT_RESET(entry->flag, CACHABLE);
+	    storeReleaseRequest(entry);
+	    squid_error_entry(entry, ERR_READ_ERROR, xstrerror());
+	    comm_close(fd);
+	}
+    } else if (len == 0 && entry->mem_obj->e_current_len == 0) {
+	squid_error_entry(entry,
+	    ERR_ZERO_SIZE_OBJECT,
+	    errno ? xstrerror() : NULL);
 	comm_close(fd);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_205",		/* GOPHER READ FAIL */
-	    "GET");
-#endif
-	freeGopherData(data);
-
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */
 	/* flush the rest of data in temp buf if there is one. */
 	if (data->conversion != NORMAL)
 	    gopherEndHTML(data);
 	if (!(entry->flag & DELETE_BEHIND))
-	    entry->expires = cached_curtime + ttlSet(entry);
+	    entry->expires = squid_curtime + ttlSet(entry);
 	BIT_RESET(entry->flag, DELAY_SENDING);
 	storeComplete(entry);
 	comm_close(fd);
-	freeGopherData(data);
-
-    } else if (((store_mem_obj(entry, e_current_len) + len) > getGopherMax()) &&
+    } else if (((entry->mem_obj->e_current_len + len) > getGopherMax()) &&
 	!(entry->flag & DELETE_BEHIND)) {
 	/*  accept data, but start to delete behind it */
 	storeStartDeleteBehind(entry);
@@ -849,10 +690,15 @@ int gopherReadReply(fd, data)
 	} else {
 	    storeAppend(entry, buf, len);
 	}
-	comm_set_select_handler(fd, COMM_SELECT_READ, (PF) gopherReadReply, (caddr_t) data);
-	comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT, (PF) gopherReadReplyTimeout,
-	    (caddr_t) data, getReadTimeout());
-
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) gopherReadReply,
+	    (void *) data);
+	comm_set_select_handler_plus_timeout(fd,
+	    COMM_SELECT_TIMEOUT,
+	    (PF) gopherReadReplyTimeout,
+	    (void *) data,
+	    getReadTimeout());
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
 	/* append the last bit of info we got */
 	if (data->conversion != NORMAL) {
@@ -860,39 +706,26 @@ int gopherReadReply(fd, data)
 	} else {
 	    storeAppend(entry, buf, len);
 	}
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "Gopher",
-	    207,
-	    "Client Aborted",
-	    "Client(s) dropped connection before transmission is complete.\nObject fetching is aborted.\n",
-	    HARVEST_VERSION,
-	    comm_hostname());
+	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 	if (data->conversion != NORMAL)
 	    gopherEndHTML(data);
 	BIT_RESET(entry->flag, DELAY_SENDING);
-	storeAbort(entry, tmp_error_buf);
 	comm_close(fd);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_207",		/* GOPHER CLIENT ABORT */
-	    "GET");
-#endif
-	freeGopherData(data);
-
     } else {
 	if (data->conversion != NORMAL) {
 	    gopherToHTML(data, buf, len);
 	} else {
 	    storeAppend(entry, buf, len);
 	}
-	comm_set_select_handler(fd, COMM_SELECT_READ, (PF) gopherReadReply, (caddr_t) data);
-	comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT, (PF) gopherReadReplyTimeout,
-	    (caddr_t) data, getReadTimeout());
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) gopherReadReply,
+	    (void *) data);
+	comm_set_select_handler_plus_timeout(fd,
+	    COMM_SELECT_TIMEOUT,
+	    (PF) gopherReadReplyTimeout,
+	    (void *) data,
+	    getReadTimeout());
     }
     put_free_4k_page(buf);
     return 0;
@@ -900,7 +733,7 @@ int gopherReadReply(fd, data)
 
 /* This will be called when request write is complete. Schedule read of
  * reply. */
-int gopherSendComplete(fd, buf, size, errflag, data)
+void gopherSendComplete(fd, buf, size, errflag, data)
      int fd;
      char *buf;
      int size;
@@ -909,32 +742,14 @@ int gopherSendComplete(fd, buf, size, errflag, data)
 {
     StoreEntry *entry = NULL;
     entry = data->entry;
-    debug(5, "gopherSendComplete - fd: %d size: %d errflag: %d\n",
+    debug(10, 5, "gopherSendComplete: FD %d size: %d errflag: %d\n",
 	fd, size, errflag);
     if (errflag) {
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "Gopher",
-	    201,
-	    "Cannot connect to the original site",
-	    "The remote site may be down.",
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
+	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	comm_close(fd);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_201",		/* GOPHER CONNECT FAIL */
-	    "GET");
-#endif
-	freeGopherData(data);
 	if (buf)
 	    put_free_4k_page(buf);	/* Allocated by gopherSendRequest. */
-	return 0;
+	return;
     }
     /* 
      * OK. We successfully reach remote site.  Start MIME typing
@@ -942,7 +757,7 @@ int gopherSendComplete(fd, buf, size, errflag, data)
      */
     gopherMimeCreate(data);
 
-    if (!BIT_TEST(entry->flag, REQ_HTML))
+    if (!BIT_TEST(entry->flag, ENTRY_HTML))
 	data->conversion = NORMAL;
     else
 	switch (data->type_id) {
@@ -977,11 +792,11 @@ int gopherSendComplete(fd, buf, size, errflag, data)
     comm_set_select_handler(fd,
 	COMM_SELECT_READ,
 	(PF) gopherReadReply,
-	(caddr_t) data);
+	(void *) data);
     comm_set_select_handler_plus_timeout(fd,
 	COMM_SELECT_TIMEOUT,
 	(PF) gopherReadReplyTimeout,
-	(caddr_t) data,
+	(void *) data,
 	getReadTimeout());
     comm_set_fd_lifetime(fd, -1);	/* disable */
 
@@ -989,16 +804,13 @@ int gopherSendComplete(fd, buf, size, errflag, data)
 	put_free_4k_page(buf);	/* Allocated by gopherSendRequest. */
     data->icp_page_ptr = NULL;
     data->icp_rwd_ptr = NULL;
-    return 0;
 }
 
 /* This will be called when connect completes. Write request. */
-int gopherSendRequest(fd, data)
+void gopherSendRequest(fd, data)
      int fd;
      GopherData *data;
 {
-#define CR '\015'
-#define LF '\012'
     int len;
     static char query[MAX_URL];
     char *buf = get_free_4k_page();
@@ -1008,22 +820,28 @@ int gopherSendRequest(fd, data)
     if (data->type_id == GOPHER_CSO) {
 	sscanf(data->request, "?%s", query);
 	len = strlen(query) + 15;
-	sprintf(buf, "query %s%c%cquit%c%c", query, CR, LF, CR, LF);
+	sprintf(buf, "query %s\r\nquit\r\n", query);
     } else if (data->type_id == GOPHER_INDEX) {
 	char *c_ptr = strchr(data->request, '?');
 	if (c_ptr) {
 	    *c_ptr = '\t';
 	}
 	len = strlen(data->request) + 3;
-	sprintf(buf, "%s%c%c", data->request, CR, LF);
+	sprintf(buf, "%s\r\n", data->request);
     } else {
 	len = strlen(data->request) + 3;
-	sprintf(buf, "%s%c%c", data->request, CR, LF);
+	sprintf(buf, "%s\r\n", data->request);
     }
 
-    debug(5, "gopherSendRequest - fd: %d\n", fd);
-    data->icp_rwd_ptr = icpWrite(fd, buf, len, 30, gopherSendComplete, data);
-    return 0;
+    debug(10, 5, "gopherSendRequest: FD %d\n", fd);
+    data->icp_rwd_ptr = icpWrite(fd,
+	buf,
+	len,
+	30,
+	gopherSendComplete,
+	(void *) data);
+    if (BIT_TEST(data->entry->flag, CACHABLE))
+	storeSetPublicKey(data->entry);		/* Make it public */
 }
 
 int gopherStart(unusedfd, url, entry)
@@ -1037,88 +855,40 @@ int gopherStart(unusedfd, url, entry)
 
     data->entry = entry;
 
-    debug(3, "gopherStart - url: %s\n", url);
+    debug(10, 3, "gopherStart: url: %s\n", url);
 
     /* Parse url. */
     if (gopher_url_parser(url, data->host, &data->port,
 	    &data->type_id, data->request)) {
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "Gopher",
-	    208,
-	    "Invalid URL syntax: Cannot parse.",
-	    "Contact your system adminstrator for further help.",
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_208",		/* GOPHER INVALID URL */
-	    "GET");
-#endif
-	freeGopherData(data);
+	squid_error_entry(entry, ERR_INVALID_URL, NULL);
+	gopherStateFree(-1, data);
 	return COMM_ERROR;
     }
     /* Create socket. */
     sock = comm_open(COMM_NONBLOCKING, 0, 0, url);
-
     if (sock == COMM_ERROR) {
-	debug(4, "gopherStart: Failed because we're out of sockets.\n");
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "Gopher",
-	    211,
-	    "Cached short of file-descriptors, sorry",
-	    "",
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_211",		/* GOPHER NO FD'S */
-	    "GET");
-#endif
-	freeGopherData(data);
+	debug(10, 4, "gopherStart: Failed because we're out of sockets.\n");
+	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
+	gopherStateFree(-1, data);
 	return COMM_ERROR;
     }
+    comm_set_select_handler(sock,
+	COMM_SELECT_CLOSE,
+	gopherStateFree,
+	(void *) data);
+
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
      * Otherwise, we cannot check return code for connect. */
     if (!ipcache_gethostbyname(data->host)) {
-	debug(4, "gopherStart: Called without IP entry in ipcache. OR lookup failed.\n");
+	debug(10, 4, "gopherStart: Called without IP entry in ipcache. OR lookup failed.\n");
+	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
 	comm_close(sock);
-	sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-	    entry->url,
-	    entry->url,
-	    "Gopher",
-	    202,
-	    "DNS name lookup failure",
-	    dns_error_message,
-	    HARVEST_VERSION,
-	    comm_hostname());
-	storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	CacheInfo->log_append(CacheInfo,
-	    entry->url,
-	    "0.0.0.0",
-	    store_mem_obj(entry, e_current_len),
-	    "ERR_202",		/* GOPHER DNS FAIL */
-	    "GET");
-#endif
-	freeGopherData(data);
 	return COMM_ERROR;
     }
     if (((data->type_id == GOPHER_INDEX) || (data->type_id == GOPHER_CSO))
 	&& (strchr(data->request, '?') == NULL)
-	&& (BIT_TEST(entry->flag, REQ_HTML))) {
+	&& (BIT_TEST(entry->flag, ENTRY_HTML))) {
 	/* Index URL without query word */
 	/* We have to generate search page back to client. No need for connection */
 	gopherMimeCreate(data);
@@ -1134,44 +904,28 @@ int gopherStart(unusedfd, url, entry)
 	}
 	gopherToHTML(data, (char *) NULL, 0);
 	storeComplete(entry);
-	freeGopherData(data);
 	comm_close(sock);
 	return COMM_OK;
     }
     /* Open connection. */
     if ((status = comm_connect(sock, data->host, data->port)) != 0) {
 	if (status != EINPROGRESS) {
+	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	    comm_close(sock);
-	    sprintf(tmp_error_buf, CACHED_RETRIEVE_ERROR_MSG,
-		entry->url,
-		entry->url,
-		"Gopher",
-		204,
-		"Cannot connect to the original site",
-		"The remote site may be down.",
-		HARVEST_VERSION,
-		comm_hostname());
-	    storeAbort(entry, tmp_error_buf);
-#ifdef LOG_ERRORS
-	    CacheInfo->log_append(CacheInfo,
-		entry->url,
-		"0.0.0.0",
-		store_mem_obj(entry, e_current_len),
-		"ERR_204",	/* GOPHER CONNECT FAIL */
-		"GET");
-#endif
-	    freeGopherData(data);
 	    return COMM_ERROR;
 	} else {
-	    debug(5, "startGopher - conn %d EINPROGRESS\n", sock);
+	    debug(10, 5, "startGopher: conn %d EINPROGRESS\n", sock);
 	}
     }
     /* Install connection complete handler. */
-    comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-	(PF) gopherLifetimeExpire, (caddr_t) data);
-    comm_set_select_handler(sock, COMM_SELECT_WRITE,
-	(PF) gopherSendRequest, (caddr_t) data);
-
+    comm_set_select_handler(sock,
+	COMM_SELECT_LIFETIME,
+	(PF) gopherLifetimeExpire,
+	(void *) data);
+    comm_set_select_handler(sock,
+	COMM_SELECT_WRITE,
+	(PF) gopherSendRequest,
+	(void *) data);
     return COMM_OK;
 }
 
@@ -1181,11 +935,4 @@ GopherData *CreateGopherData()
     GopherData *gd = (GopherData *) xcalloc(1, sizeof(GopherData));
     gd->buf = get_free_4k_page();
     return (gd);
-}
-
-static void freeGopherData(gd)
-     GopherData *gd;
-{
-    put_free_4k_page(gd->buf);
-    safe_free(gd);
 }

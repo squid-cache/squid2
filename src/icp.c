@@ -81,7 +81,7 @@ typedef struct ireadd {
 /* Local functions */
 static void icpHandleStore _PARAMS((int, StoreEntry *, icpStateData *));
 static void icpHandleStoreComplete _PARAMS((int, char *, int, int, icpStateData *));
-static int icpProcessMISS _PARAMS((int, icpStateData *, char *key));
+static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
 static void icpRead _PARAMS((int, int, char *, int, int, int, complete_handler, void *));
 
@@ -134,28 +134,55 @@ int icpStateFree(fdunused, icpState)
     return 0;			/* XXX gack, all comm handlers return ints */
 }
 
-int icpCachable(icpState)
+static void icpParseRequestHeaders(icpState)
      icpStateData *icpState;
 {
     char *request_hdr = icpState->request_hdr;
+    char *t = NULL;
+    if (mime_get_header(request_hdr, "If-Modified-Since"))
+	BIT_SET(icpState->flags, REQ_IMS);
+    if ((t = mime_get_header(request_hdr, "Pragma"))) {
+	if (!strcasecmp(t, "no-cache"))
+	    BIT_SET(icpState->flags, REQ_NOCACHE);
+    }
+    if (mime_get_header(request_hdr, "Authorization"))
+	BIT_SET(icpState->flags, REQ_AUTH);
+}
+
+int icpCachable(icpState)
+     icpStateData *icpState;
+{
     char *request = icpState->url;
     request_t *req = icpState->request;
     int method = req->method;
-    char *t = NULL;
+    if (BIT_TEST(icpState->flags, REQ_AUTH))
+	return 0;
+    if (req->protocol == PROTO_HTTP)
+	return httpCachable(request, method);
+    if (req->protocol == PROTO_FTP)
+	return ftpCachable(request);
+    if (req->protocol == PROTO_GOPHER)
+	return gopherCachable(request);
+    if (req->protocol == PROTO_WAIS)
+	return 0;
+    if (method == METHOD_CONNECT)
+	return 0;
+    if (req->protocol == PROTO_CACHEOBJ)
+	return 0;
+    return 1;
+}
 
-    if (mime_get_header(request_hdr, "If-Modified-Since")) {
-	BIT_SET(icpState->flags, REQ_IMS);
+/* Return true if we can query our neighbors for this object */
+int icpHierarchical(icpState)
+     icpStateData *icpState;
+{
+    char *request = icpState->url;
+    request_t *req = icpState->request;
+    int method = req->method;
+    if (BIT_TEST(icpState->flags, REQ_IMS))
 	return 0;
-    }
-    if ((t = mime_get_header(request_hdr, "Pragma"))) {
-	BIT_SET(icpState->flags, REQ_NOCACHE);
-	if (strcasecmp(t, "no-cache"))
-	    return 0;
-    }
-    if (mime_get_header(request_hdr, "Authorization")) {
-	BIT_SET(icpState->flags, REQ_AUTH);
+    if (BIT_TEST(icpState->flags, REQ_AUTH))
 	return 0;
-    }
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(request, method);
     if (req->protocol == PROTO_FTP)
@@ -599,6 +626,18 @@ void icp_hit_or_miss(fd, usm)
 	RequestMethodStr[usm->method],
 	url);
 
+    if (icpCachable(usm))
+	BIT_SET(usm->flags, REQ_CACHABLE);
+    if (icpHierarchical(usm))
+	BIT_SET(usm->flags, REQ_HIERARCHICAL);
+
+    debug(12, 5, "icp_hit_or_miss: REQ_NOCACHE = %s\n",
+	BIT_TEST(usm->flags, REQ_NOCACHE) ? "SET" : "NOT SET");
+    debug(12, 5, "icp_hit_or_miss: REQ_CACHABLE = %s\n",
+	BIT_TEST(usm->flags, REQ_CACHABLE) ? "SET" : "NOT SET");
+    debug(12, 5, "icp_hit_or_miss: REQ_HIERARCHICAL = %s\n",
+	BIT_TEST(usm->flags, REQ_HIERARCHICAL) ? "SET" : "NOT SET");
+
     /* XXX we should not even look here for CONNECT etc */
 
     /* XXX hmm, should we check for IFMODSINCE and USER_REFRESH before
@@ -610,20 +649,26 @@ void icp_hit_or_miss(fd, usm)
 	/* This object isn't in the cache.  We do not hold a lock yet */
 	usm->log_type = LOG_TCP_MISS;
 	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
-	icpProcessMISS(fd, usm, pubkey);
+	icpProcessMISS(fd, usm);
 	return;
     }
     /* The object is in the cache, but is it valid? */
-    if (!storeEntryValidToSend(entry))
+    if (!storeEntryValidToSend(entry)) {
+	storeRelease(entry);
 	usm->log_type = LOG_TCP_EXPIRED;
-    else if (BIT_TEST(usm->flags, REQ_NOCACHE))
+    } else if (BIT_TEST(usm->flags, REQ_NOCACHE)) {
+	storeRelease(entry);
 	usm->log_type = LOG_TCP_USER_REFRESH;
-    else if (BIT_TEST(usm->flags, REQ_IMS))
+    } else if (BIT_TEST(usm->flags, REQ_IMS)) {
+	/* no storeRelease() here because this request will always
+	start private (IMS clears HIERARCHICAL) */
 	usm->log_type = LOG_TCP_IFMODSINCE;
-    else if ((lock = storeLockObject(entry)) < 0)
+    } else if ((lock = storeLockObject(entry)) < 0) {
+	storeRelease(entry);
 	usm->log_type = LOG_TCP_SWAPIN_FAIL;
-    else
+    } else {
 	usm->log_type = LOG_TCP_HIT;
+    }
 
     debug(12, 4, "icp_hit_or_miss: %s for '%s'\n",
 	log_tags[usm->log_type],
@@ -648,7 +693,7 @@ void icp_hit_or_miss(fd, usm)
 	break;
     default:
 	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
-	icpProcessMISS(fd, usm, pubkey);
+	icpProcessMISS(fd, usm);
 	break;
     }
 }
@@ -658,10 +703,9 @@ void icp_hit_or_miss(fd, usm)
  * The calling client should NOT hold a lock on object at this
  * time, as we're about to release any TCP_MISS version of the object.
  */
-static int icpProcessMISS(fd, usm, key)
+static int icpProcessMISS(fd, usm)
      int fd;
      icpStateData *usm;
-     char *key;
 {
     char *url = usm->url;
     char *request_hdr = usm->request_hdr;
@@ -671,6 +715,7 @@ static int icpProcessMISS(fd, usm, key)
 	RequestMethodStr[usm->method], url);
     debug(12, 10, "icpProcessMISS: request_hdr:\n%s\n", request_hdr);
 
+#ifdef OLD_CODE
     if ((entry = storeGet(key))) {
 	debug(12, 4, "icpProcessMISS: key '%s' already exists, moving.\n", key);
 	/* get rid of the old entry */
@@ -683,6 +728,7 @@ static int icpProcessMISS(fd, usm, key)
 	    storeRelease(entry);
 	}
     }
+#endif
     entry = storeCreateEntry(url,
 	request_hdr,
 	usm->flags,
@@ -1249,9 +1295,8 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	    astm->log_type = LOG_TCP_DENIED;
 	} else {
 	    /* The request is good, let's go... */
-	    if (icpCachable(astm))
-		BIT_SET(astm->flags, REQ_PUBLIC);
 	    urlCanonical(astm->request, astm->url);
+	    icpParseRequestHeaders(astm);
 	    sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
 		fd_note(fd, 0),
 		RequestMethodStr[astm->method],
@@ -1426,8 +1471,6 @@ static void CheckQuickAbort(astm)
     if (!getQuickAbort())
 	return;
     if (astm->entry == NULL)
-	return;
-    if (BIT_TEST(astm->flags, REQ_PUBLIC))
 	return;
     if (astm->entry->lock_count != 1)
 	return;

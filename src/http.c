@@ -200,15 +200,14 @@ static void httpProcessReplyHeader(data, buf, size)
 	case 410:		/* Gone */
 	    /* These can be cached for a long time, make the key public */
 	    entry->expires = squid_curtime + ttlSet(entry);
-	    if (!BIT_TEST(entry->flag, ENTRY_PRIVATE))
+	    if (BIT_TEST(entry->flag, CACHABLE))
 		storeSetPublicKey(entry);
 	    break;
-	case 304:		/* Not Modified -- just in case */
+	case 304:		/* Not Modified */
 	case 401:		/* Unauthorized */
 	case 407:		/* Proxy Authentication Required */
 	    /* These should never be cached at all */
-	    if (BIT_TEST(entry->flag, ENTRY_PRIVATE))
-		storeSetPrivateKey(entry);
+	    storeSetPrivateKey(entry);
 	    storeExpireNow(entry);
 	    BIT_RESET(entry->flag, CACHABLE);
 	    storeReleaseRequest(entry);
@@ -216,7 +215,7 @@ static void httpProcessReplyHeader(data, buf, size)
 	default:
 	    /* These can be negative cached, make key public */
 	    entry->expires = squid_curtime + getNegativeTTL();
-	    if (!BIT_TEST(entry->flag, ENTRY_PRIVATE))
+	    if (BIT_TEST(entry->flag, CACHABLE))
 		storeSetPublicKey(entry);
 	    break;
 	}

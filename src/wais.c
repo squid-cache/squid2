@@ -219,7 +219,7 @@ void waisSendRequest(fd, data)
 	30,
 	waisSendComplete,
 	(void *) data);
-    if (!BIT_TEST(data->entry->flag, ENTRY_PRIVATE))
+    if (BIT_TEST(data->entry->flag, CACHABLE))
 	storeSetPublicKey(data->entry);		/* Make it public */
 }
 

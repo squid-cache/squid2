@@ -40,8 +40,9 @@ typedef enum {
 #define		REQ_NOCACHE	0x02
 #define		REQ_IMS		0x04
 #define		REQ_AUTH	0x08
-#define		REQ_PUBLIC	0x10
+#define		REQ_CACHABLE	0x10
 #define 	REQ_ACCEL	0x20
+#define 	REQ_HIERARCHICAL 0x40
 
 typedef struct wwd {
     struct sockaddr_in address;

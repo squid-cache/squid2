@@ -616,16 +616,18 @@ StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
 	m->mime_hdr = xstrdup(req_hdr);
     if (BIT_TEST(flags, REQ_NOCACHE))
 	BIT_SET(e->flag, REFRESH_REQUEST);
-    if (BIT_TEST(flags, REQ_PUBLIC)) {
+    if (BIT_TEST(flags, REQ_CACHABLE)) {
 	BIT_SET(e->flag, CACHABLE);
 	BIT_RESET(e->flag, RELEASE_REQUEST);
-	BIT_RESET(e->flag, ENTRY_PRIVATE);
     } else {
 	BIT_RESET(e->flag, CACHABLE);
 	storeReleaseRequest(e);
-	BIT_SET(e->flag, ENTRY_PRIVATE);
     }
-    if (neighbors_do_private_keys || !BIT_TEST(flags, REQ_PUBLIC))
+    if (BIT_TEST(flags, REQ_HIERARCHICAL))
+	BIT_SET(e->flag, HIERARCHICAL);
+    else
+	BIT_RESET(e->flag, HIERARCHICAL);
+    if (neighbors_do_private_keys || !BIT_TEST(flags, REQ_HIERARCHICAL))
 	storeSetPrivateKey(e);
     else
 	storeSetPublicKey(e);
@@ -679,7 +681,6 @@ StoreEntry *storeAddDiskRestore(url, file_number, size, expires, timestamp)
 
     e = new_StoreEntry(WITHOUT_MEMOBJ);
     e->url = xstrdup(url);
-    BIT_RESET(e->flag, ENTRY_PRIVATE);
     e->method = METHOD_GET;
     storeSetPublicKey(e);
     BIT_SET(e->flag, CACHABLE);
@@ -1483,9 +1484,7 @@ static int storeCheckSwapable(e)
      StoreEntry *e;
 {
 
-    if (BIT_TEST(e->flag, ENTRY_PRIVATE)) {
-	debug(20, 2, "storeCheckSwapable: NO: private entry\n");
-    } else if (e->expires <= squid_curtime) {
+    if (e->expires <= squid_curtime) {
 	debug(20, 2, "storeCheckSwapable: NO: already expired\n");
     } else if (e->method != METHOD_GET) {
 	debug(20, 2, "storeCheckSwapable: NO: non-GET method\n");
