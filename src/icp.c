@@ -349,10 +349,13 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (!strcasecmp(t, "no-cache"))
 	    BIT_SET(request->flags, REQ_NOCACHE);
     }
-    if (mime_get_header(request_hdr, "Range"))
+    if (mime_get_header(request_hdr, "Range")) {
 	BIT_SET(request->flags, REQ_NOCACHE);
-    else if (mime_get_header(request_hdr, "Request-Range"))
+	BIT_SET(request->flags, REQ_RANGE);
+    } else if (mime_get_header(request_hdr, "Request-Range")) {
 	BIT_SET(request->flags, REQ_NOCACHE);
+	BIT_SET(request->flags, REQ_RANGE);
+    }
     if (mime_get_header(request_hdr, "Authorization"))
 	BIT_SET(request->flags, REQ_AUTH);
     if (request->login[0] != '\0')
@@ -801,11 +804,16 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	storeRelease(entry);
 	entry = NULL;
     } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
-	/* IMS+NOCACHE should not eject valid object */
-	if (!BIT_TEST(request->flags, REQ_IMS))
+	/* NOCACHE should always eject a negative cached object */
+	if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
 	    storeRelease(entry);
-	/* NOCACHE should always eject negative cached object */
-	else if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
+	/* NOCACHE+IMS should not eject a valid object */
+	else if (BIT_TEST(request->flags, REQ_IMS))
+	    (void) 0;
+	/* Request-Range should not eject a valid object */
+	else if (BIT_TEST(request->flags, REQ_RANGE))
+	    (void) 0;
+	else
 	    storeRelease(entry);
 	ipcacheReleaseInvalid(icpState->request->host);
 	entry = NULL;

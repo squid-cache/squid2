@@ -89,7 +89,7 @@ extern int matchDomainName _PARAMS((const char *d, const char *h));
 extern int urlCheckRequest _PARAMS((const request_t *));
 
 /* bitfields for the flags member */
-#define REQ_UNUSED1		0x01
+#define REQ_RANGE		0x01
 #define REQ_NOCACHE		0x02
 #define REQ_IMS			0x04
 #define REQ_AUTH		0x08

@@ -520,6 +520,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    httpCacheNegatively(entry);
 	    break;
 	    /* Some responses can never be cached */
+	case 206:		/* Partial Content -- Not yet supported */
 	case 303:		/* See Other */
 	case 304:		/* Not Modified */
 	case 401:		/* Unauthorized */
