@@ -72,7 +72,7 @@ noinst_PROGRAMS = \
 
 bin_PROGRAMS = \
 	squid \
-	client
+	squidclient
 
 libexec_PROGRAMS = \
 	@OPT_PINGER@ \
@@ -83,6 +83,7 @@ libexec_PROGRAMS = \
 cf_gen_SOURCES = cf_gen.c defines.h
 nodist_cf_gen_HEADER = cf_gen_defines.h
 cf_gen.$(OBJEXT): cf_gen_defines.h
+squidclient_SOURCES = client.c
 
 EXTRA_squid_SOURCES = \
 	delay_pools.c \
