@@ -318,15 +318,13 @@ ftpTimeout(int fd, void *data)
 {
     FtpStateData *ftpState = data;
     StoreEntry *entry = ftpState->entry;
-    ErrorState *err;
     debug(9, 4) ("ftpTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
-    if (entry->store_status == STORE_PENDING) {
-	if (entry->mem_obj->inmem_hi == 0) {
-	    err = errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT);
-	    err->request = requestLink(ftpState->request);
-	    errorAppendEntry(entry, err);
-	}
-    }
+    if (entry->store_status == STORE_PENDING) { 
+        if (entry->mem_obj->inmem_hi == 0) {
+            fwdFail(ftpState->fwd,
+                errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
+        }   
+    }   
     if (ftpState->data.fd > -1) {
 	comm_close(ftpState->data.fd);
 	ftpState->data.fd = -1;

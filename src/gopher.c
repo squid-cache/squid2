@@ -575,13 +575,13 @@ gopherTimeout(int fd, void *data)
 {
     GopherStateData *gopherState = data;
     StoreEntry *entry = gopherState->entry;
-    ErrorState *err;
     debug(10, 4) ("gopherTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
-    if (entry->mem_obj->inmem_hi == 0) {
-	err = errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT);
-	err->url = xstrdup(gopherState->request);
-	errorAppendEntry(entry, err);
-    }
+    if (entry->store_status == STORE_PENDING) { 
+        if (entry->mem_obj->inmem_hi == 0) {
+            fwdFail(gopherState->fwdState,
+                errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
+        }   
+    }   
     comm_close(fd);
 }
 

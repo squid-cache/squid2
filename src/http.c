@@ -90,10 +90,11 @@ httpTimeout(int fd, void *data)
     HttpStateData *httpState = data;
     StoreEntry *entry = httpState->entry;
     debug(11, 4) ("httpTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
-    assert(entry->store_status == STORE_PENDING);
-    if (entry->mem_obj->inmem_hi == 0) {
-	fwdFail(httpState->fwd,
-	    errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
+    if (entry->store_status == STORE_PENDING) {
+	if (entry->mem_obj->inmem_hi == 0) {
+	    fwdFail(httpState->fwd,
+		errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
+	}
     }
     comm_close(fd);
 }
