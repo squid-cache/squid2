@@ -287,7 +287,7 @@ peerDigestRequest(peer * p)
     fetch->offset = 0;
     debug(72, 3) ("peerDigestRequest: forwarding to protoDispatch...\n");
     /* push towards peer cache */
-    protoDispatch(0, e, req);
+    protoDispatch(-1, e, req);
     storeClientCopy(e, 0, 0, SM_PAGE_SIZE, memAllocate(MEM_4K_BUF),
 	peerDigestFetchReply, fetch);
 }

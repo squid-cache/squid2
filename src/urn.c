@@ -139,7 +139,7 @@ urnStart(request_t * r, StoreEntry * e)
     if ((urlres_e = storeGet(k)) == NULL) {
 	urlres_e = storeCreateEntry(urlres, urlres, 0, METHOD_GET);
 	storeClientListAdd(urlres_e, urnState);
-	protoDispatch(0, urlres_e, urlres_r);
+	protoDispatch(-1, urlres_e, urlres_r);
     } else {
 	storeLockObject(urlres_e);
 	storeClientListAdd(urlres_e, urnState);

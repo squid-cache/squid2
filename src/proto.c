@@ -232,6 +232,7 @@ protoDispatch(int fd, StoreEntry * entry, request_t * request)
     pctrl_t *pctrl;
     debug(17, 3) ("protoDispatch: '%s'\n", storeUrl(entry));
     entry->mem_obj->request = requestLink(request);
+    entry->mem_obj->fd = fd;
     switch (request->protocol) {
     case PROTO_CACHEOBJ:
     case PROTO_WAIS:

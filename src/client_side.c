@@ -1655,7 +1655,6 @@ clientProcessMiss(clientHttpRequest * http)
     }
     assert(http->out.offset == 0);
     http->entry = clientCreateStoreEntry(http, r->method, r->flags);
-    http->entry->mem_obj->fd = http->conn->fd;
     http->entry->refcount++;
     if (http->flags.internal)
 	r->protocol = PROTO_INTERNAL;

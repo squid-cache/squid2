@@ -189,7 +189,7 @@ asnCacheStart(int as)
     if ((e = storeGet(k)) == NULL) {
 	e = storeCreateEntry(asres, asres, 0, METHOD_GET);
 	storeClientListAdd(e, asState);
-	protoDispatch(0, e, asState->request);
+	protoDispatch(-1, e, asState->request);
     } else {
 	storeLockObject(e);
 	storeClientListAdd(e, asState);

@@ -781,6 +781,7 @@ httpSendRequest(int fd, void *data)
 	cfd = -1;
     else
 	cfd = entry->mem_obj->fd;
+    assert(-1 == cfd || FD_SOCKET == fd_table[cfd].type);
     if (p != NULL)
 	EBIT_SET(httpState->flags, HTTP_PROXYING);
     /*
