@@ -2179,6 +2179,13 @@ int storeRelease(e)
 	    }
 	}
     }
+    if (store_is_rebuilding) {
+	debug(20, 2, "storeRelease: Delaying release until store is rebuilt: '%s'\n",
+	    e->key ? e->key : e->url ? e->url : "NO URL");
+	storeExpireNow(e);
+	storeSetPrivateKey(e);
+	return -1;
+    }
     if (e->key)
 	debug(20, 5, "storeRelease: Release object key: %s\n", e->key);
     else
@@ -2606,6 +2613,10 @@ int storeMaintainSwapSpace()
     hash_link *link_ptr = NULL, *next = NULL;
     StoreEntry *e = NULL;
     int rm_obj = 0;
+
+    /* We can't delete objects while rebuilding swap */
+    if (store_is_rebuilding)
+	return -1;
 
     /* Scan row of hash table each second and free storage if we're
      * over the high-water mark */
