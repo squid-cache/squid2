@@ -703,7 +703,7 @@ watch_child(char *argv[])
     /* NOTREACHED */
 }
 
-void
+static void
 normal_shutdown(void)
 {
     debug(1, 1) ("Shutting down...\n");
