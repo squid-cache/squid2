@@ -32,7 +32,6 @@ UTILOBJS	= rfc1123.o \
 		  safe_inet_addr.o \
 		  iso3307.o \
 		  snprintf.o \
-		  sha.o \
 		  md5.o \
 		  radix.o \
 		  String.o \
