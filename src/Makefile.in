@@ -197,11 +197,12 @@ LEAKFINDER_OBJS	= \
 DEFAULTS        = \
 	-DDEFAULT_CONFIG_FILE=\"$(DEFAULT_CONFIG_FILE)\"
 
-all:    squid.conf $(PROGS) $(UTILS) $(SUID_UTILS) $(CGIPROGS)
+all:    squid.conf
 	@for dir in $(SUBDIRS); do \
 		echo "Making $@ in $$dir..."; \
 		(cd $$dir ; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@) || exit 1; \
 	done
+	@$(MAKE) $(MFLAGS) $(PROGS) $(UTILS) $(SUID_UTILS) $(CGIPROGS)
 
 $(OBJS): $(top_srcdir)/include/version.h ../include/autoconf.h
 
