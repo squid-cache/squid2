@@ -199,10 +199,16 @@ clientAccessCheckDone(int answer, void *data)
 	debug(33, 5) ("Access Denied: %s\n", http->uri);
 	debug(33, 5) ("AclMatchedName = %s\n",
 	    AclMatchedName ? AclMatchedName : "<null>");
+	/*
+	 * NOTE: get page_id here, based on AclMatchedName because
+	 * if USE_DELAY_POOLS is enabled, then AclMatchedName gets
+	 * clobbered in the clientCreateStoreEntry() call
+	 * just below.  Pedro Ribeiro <pribeiro@isel.pt>
+	 */
+	page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName);
 	http->log_type = LOG_TCP_DENIED;
 	http->entry = clientCreateStoreEntry(http, http->request->method,
 	    null_request_flags);
-	page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName);
 	if (answer == ACCESS_REQ_PROXY_AUTH || aclIsProxyAuth(AclMatchedName)) {
 	    if (!http->flags.accel) {
 		/* Proxy authorisation needed */

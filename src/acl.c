@@ -673,6 +673,10 @@ aclParseAclLine(acl ** head)
 	debug(28, 3) ("aclParseAclLine: Appending to '%s'\n", aclname);
 	new_acl = 0;
     }
+    /*
+     * Here we set AclMatchedName in case we need to use it in a
+     * warning message in aclDomainCompare().
+     */
     AclMatchedName = aclname;	/* ugly */
     switch (A->type) {
     case ACL_SRC_IP:
@@ -738,6 +742,9 @@ aclParseAclLine(acl ** head)
 	fatal("Bad ACL type");
 	break;
     }
+    /*
+     * Clear AclMatchedName from our temporary hack
+    */
     AclMatchedName = NULL;	/* ugly */
     if (!new_acl)
 	return;
