@@ -215,8 +215,6 @@ static void
 diskHandleWrite(int fd, void *notused)
 {
     int len = 0;
-    dwrite_q *q = NULL;
-    dwrite_q *wq = NULL;
     fde *F = &fd_table[fd];
     struct _fde_disk *fdd = &F->disk;
     if (!fdd->write_q)
