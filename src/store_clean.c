@@ -53,8 +53,8 @@ void storeDirClean()
     static int subdirno = 0;
     static DIR *dp = NULL;
     struct dirent *de = NULL;
-    static char p2[MAXNAMELEN + 1];
-    static char p1[MAXNAMELEN + 1];
+    static char p2[MAXPATHLEN + 1];
+    static char p1[MAXPATHLEN + 1];
     int fileno;
     int count = 0;
     sprintf(p1, "%s/%02d", swappath(dirno), subdirno);
