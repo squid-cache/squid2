@@ -42,8 +42,7 @@
 
 CBDATA_TYPE(auth_user_ip_t);
 
-static void
-     authenticateDecodeAuth(const char *proxy_auth, auth_user_request_t * auth_user_request);
+static void authenticateDecodeAuth(const char *proxy_auth, auth_user_request_t * auth_user_request);
 static auth_acl_t authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type headertype, request_t * request, ConnStateData * conn, struct in_addr src_addr);
 
 /*
@@ -83,7 +82,7 @@ authenticateAuthSchemeId(const char *typestr)
     return -1;
 }
 
-void
+static void
 authenticateDecodeAuth(const char *proxy_auth, auth_user_request_t * auth_user_request)
 {
     int i = 0;
