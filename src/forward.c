@@ -138,7 +138,7 @@ fwdCheckRetry(FwdState * fwdState)
 	return 0;
     if (fwdState->origin_tries > 2)
 	return 0;
-    if (squid_curtime - fwdState->start > Config.Timeout.forward)
+    if (squid_curtime - fwdState->start >= Config.Timeout.forward)
 	return 0;
     if (fwdState->flags.dont_retry)
 	return 0;
