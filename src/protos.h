@@ -546,6 +546,7 @@ extern size_t headersEnd(const char *, size_t);
 extern const char *mime_get_auth(const char *hdr, const char *auth_scheme, const char **auth_field);
 
 extern void mimeInit(char *filename);
+extern void mimeFreeMemory(void);
 extern char *mimeGetContentEncoding(const char *fn);
 extern char *mimeGetContentType(const char *fn);
 extern char *mimeGetIcon(const char *fn);
