@@ -13,10 +13,10 @@
  *  Internet community.  Development is led by Duane Wessels of the
  *  National Laboratory for Applied Network Research and funded by the
  *  National Science Foundation.  Squid is Copyrighted (C) 1998 by
- *  Duane Wessels and the University of California San Diego.  Please
- *  see the COPYRIGHT file for full details.  Squid incorporates
- *  software developed and/or copyrighted by other sources.  Please see
- *  the CREDITS file for full details.
+ *  the Regents of the University of California.  Please see the
+ *  COPYRIGHT file for full details.  Squid incorporates software
+ *  developed and/or copyrighted by other sources.  Please see the
+ *  CREDITS file for full details.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -175,7 +175,7 @@ aioCancel(int fd)
 	    their_data = curr->done_handler_data;
 	    curr->done_handler = NULL;
 	    curr->done_handler_data = NULL;
-	    debug(0, 0) ("this be aioCancel\n");
+	    debug(32, 2) ("this be aioCancel\n");
 	    if (cbdataValid(their_data))
 		done_handler(fd, their_data, -2, -2);
 	    cbdataUnlock(their_data);
@@ -203,7 +203,7 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
 	if (ctrlp->fd == fd)
 	    break;
     if (ctrlp != NULL) {
-	debug(0, 0) ("aioWrite: EWOULDBLOCK\n");
+	debug(32, 2) ("aioWrite: EWOULDBLOCK\n");
 	errno = EWOULDBLOCK;
 	if (callback)
 	    (callback) (fd, callback_data, -1, errno);

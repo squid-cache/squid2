@@ -12,10 +12,10 @@
  *  Internet community.  Development is led by Duane Wessels of the
  *  National Laboratory for Applied Network Research and funded by the
  *  National Science Foundation.  Squid is Copyrighted (C) 1998 by
- *  Duane Wessels and the University of California San Diego.  Please
- *  see the COPYRIGHT file for full details.  Squid incorporates
- *  software developed and/or copyrighted by other sources.  Please see
- *  the CREDITS file for full details.
+ *  the Regents of the University of California.  Please see the
+ *  COPYRIGHT file for full details.  Squid incorporates software
+ *  developed and/or copyrighted by other sources.  Please see the
+ *  CREDITS file for full details.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -854,7 +854,9 @@ httpSendRequest(HttpStateData * httpState)
     /*
      * Is keep-alive okay for all request methods?
      */
-    if (p == NULL)
+    if (!Config.onoff.server_pconns)
+	httpState->flags.keepalive = 0;
+    else if (p == NULL)
 	httpState->flags.keepalive = 1;
     else if (p->stats.n_keepalives_sent < 10)
 	httpState->flags.keepalive = 1;

@@ -11,10 +11,10 @@
  *  Internet community.  Development is led by Duane Wessels of the
  *  National Laboratory for Applied Network Research and funded by the
  *  National Science Foundation.  Squid is Copyrighted (C) 1998 by
- *  Duane Wessels and the University of California San Diego.  Please
- *  see the COPYRIGHT file for full details.  Squid incorporates
- *  software developed and/or copyrighted by other sources.  Please see
- *  the CREDITS file for full details.
+ *  the Regents of the University of California.  Please see the
+ *  COPYRIGHT file for full details.  Squid incorporates software
+ *  developed and/or copyrighted by other sources.  Please see the
+ *  CREDITS file for full details.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -160,7 +160,15 @@ aio_init(void)
 
     pthread_attr_init(&globattr);
 #if HAVE_PTHREAD_ATTR_SETSCOPE
+#if defined(_SQUID_SGI_)
+    /* 
+     * Erik Hofman <erik.hofman@a1.nl> suggests PTHREAD_SCOPE_PROCESS
+     * instead of PTHREAD_SCOPE_SYSTEM, esp for IRIX.
+     */
+    pthread_attr_setscope(&globattr, PTHREAD_SCOPE_PROCESS);
+#else
     pthread_attr_setscope(&globattr, PTHREAD_SCOPE_SYSTEM);
+#endif
 #endif
     globsched.sched_priority = 1;
     main_thread = pthread_self();
@@ -170,6 +178,9 @@ aio_init(void)
     globsched.sched_priority = 2;
 #if HAVE_PTHREAD_ATTR_SETSCHEDPARAM
     pthread_attr_setschedparam(&globattr, &globsched);
+#endif
+#if defined(_SQUID_SGI_)
+    pthread_setconcurrency(NUMTHREADS + 1);
 #endif
 
     /* Create threads and get them to sit in their wait loop */
