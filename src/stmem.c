@@ -445,13 +445,13 @@ void put_free_mem_obj(mem)
 }
 
 void put_free_4k_page(page)
-     char *page;
+     void *page;
 {
     put_free_thing(&sm_stats, page);
 }
 
 void put_free_8k_page(page)
-     char *page;
+     void *page;
 {
     put_free_thing(&disk_stats, page);
 }
