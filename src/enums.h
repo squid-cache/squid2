@@ -428,19 +428,6 @@ typedef enum {
     HTTP_INVALID_HEADER = 600	/* Squid header parsing error */
 } http_status;
 
-typedef enum {
-    PD_INITED,			/* initialized */
-    PD_USABLE,			/* ready to use */
-    PD_REQUESTED,		/* we are in the process of receiving a [fresh] digest */
-    PD_DISABLED,		/* do not use/validate the digest */
-    PD_INIT_PENDING
-} peer_cd_t;
-
-enum {
-    HTTP_PROXYING,
-    HTTP_KEEPALIVE
-};
-
 enum {
     ERR_FLAG_CBDATA
 };

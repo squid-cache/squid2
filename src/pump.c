@@ -47,7 +47,9 @@ struct _PumpStateData {
     StoreEntry *reply_entry;	/* the reply entry */
     CWCB *callback;		/* what to do when we finish sending */
     void *cbdata;		/* callback data passed to callback func */
-    int flags;
+    struct {
+	int closing:1;
+    } flags;
     struct _PumpStateData *next;
 };
 
@@ -313,8 +315,8 @@ pumpClose(void *data)
     debug(61, 3) ("pumpClose: %p Server FD %d, Client FD %d\n",
 	p, p->s_fd, p->c_fd);
     /* double-call detection */
-    assert(!EBIT_TEST(p->flags, PUMP_FLAG_CLOSING));
-    EBIT_SET(p->flags, PUMP_FLAG_CLOSING);
+    assert(!p->flags.closing);
+    P->flags.closing = 1;
     if (req != NULL && req->store_status == STORE_PENDING) {
 	storeUnregister(req, p);
 	storeAbort(req, 0);
@@ -408,7 +410,7 @@ pumpServerClosed(int fd, void *data)
      */
     assert(p->s_fd == fd);
     p->s_fd = -1;
-    if (EBIT_TEST(p->flags, PUMP_FLAG_CLOSING))
+    if (p->flags.closing)
 	return;
     comm_close(p->c_fd);
 }

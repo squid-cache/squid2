@@ -296,7 +296,7 @@ errorSend(int fd, ErrorState * err)
     if (err->request)
 	err->request->err_type = err->type;
     /* moved in front of errorBuildBuf @?@ */
-    EBIT_SET(err->flags, ERR_FLAG_CBDATA);
+    err->flags.flag_cbdata = 1;
     cbdataAdd(err, MEM_NONE);
     rep = errorBuildReply(err);
     comm_write_mbuf(fd, httpReplyPack(rep), errorSendComplete, err);
@@ -335,7 +335,7 @@ errorStateFree(ErrorState * err)
     safe_free(err->host);
     safe_free(err->dnsserver_msg);
     safe_free(err->request_hdrs);
-    if (EBIT_TEST(err->flags, ERR_FLAG_CBDATA))
+    if (err->flags.flag_cbdata)
 	cbdataFree(err);
     else
 	safe_free(err);

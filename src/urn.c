@@ -36,16 +36,14 @@
 
 #include "squid.h"
 
-enum {
-    URN_FORCE_MENU
-};
-
 typedef struct {
     StoreEntry *entry;
     StoreEntry *urlres_e;
     request_t *request;
     request_t *urlres_r;
-    int flags;
+    struct {
+	int force_menu:1;
+    } flags;
 } UrnState;
 
 typedef struct {
@@ -116,7 +114,7 @@ urnStart(request_t * r, StoreEntry * e)
     storeLockObject(urnState->entry);
     if (strncasecmp(strBuf(r->urlpath), "menu.", 5) == 0) {
 	char *new_path = xstrdup(strBuf(r->urlpath) + 5);
-	EBIT_SET(urnState->flags, URN_FORCE_MENU);
+	urnState->flags.force_menu = 1;
 	stringReset(&r->urlpath, new_path);
 	xfree(new_path);
     }
@@ -282,7 +280,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
     httpReplyReset(rep);
     httpReplySetHeaders(rep, 1.0, HTTP_MOVED_TEMPORARILY, NULL,
 	"text/html", mb.size, 0, squid_curtime);
-    if (EBIT_TEST(urnState->flags, URN_FORCE_MENU)) {
+    if (urnState->flags.force_menu) {
 	debug(51, 3) ("urnHandleReply: forcing menu\n");
     } else if (min_u) {
 	httpHeaderPutStr(&rep->header, HDR_LOCATION, min_u->url);

@@ -167,10 +167,6 @@
 #define PEER_MAX_ADDRESSES 10
 #define RTT_AV_FACTOR      50
 
-/* flags for peer->mcast.flags */
-#define PEER_COUNT_EVENT_PENDING 1
-#define PEER_COUNTING		 2
-
 #define PEER_DEAD 0
 #define PEER_ALIVE 1
 
