@@ -108,3 +108,11 @@ Changes to squid-1.0.beta4:
 	  handlers should be restarted after invocation (ala SYSV).
 	- Determine Maximum filedescriptors in configure and change
 	  FD_SETSIZE if needed.
+	- Changed read stall algorithm for HTTP.  No don't wait until
+	  the object is in DELETE_BEHIND mode to stall the server read
+	  and wait for the client to catch up.  Also changed from 4k to
+	  16k read buffer.
+	- Fixed HTTP request parsing to check for blank line at the
+	  end of all requests.  Symptoms were "connection reset"
+	  messages.
+
