@@ -195,11 +195,6 @@ void httpHeaderTestParser(const char *hstr)
     Packer p;
     MemBuf mb;
     assert(hstr);
-    /* disabled for now */
-    /* return; */
-    /* do not print too much, kludge */
-    if (bug_count > 25 && (lrand48() % bug_count) > 3L)
-	return;
     /* skip start line if any */
     if (!strncasecmp(hstr, "HTTP/", 5)) {
 	const char *p = strchr(hstr, '\n');
