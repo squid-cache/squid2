@@ -448,10 +448,7 @@ storeRebuildFromSwapLog(void *data)
 		 */
 		storeExpireNow(e);
 		storeReleaseRequest(e);
-		if (e->swap_file_number > -1) {
-		    storeDirMapBitReset(e->swap_file_number);
-		    e->swap_file_number = -1;
-		}
+		storeSwapFileNumberSet(e, -1);
 		rb->counts.objcount--;
 		rb->counts.cancelcount++;
 	    }
@@ -532,10 +529,7 @@ storeRebuildFromSwapLog(void *data)
 	    /* junk old, load new */
 	    storeExpireNow(e);
 	    storeReleaseRequest(e);
-	    if (e->swap_file_number > -1) {
-		storeDirMapBitReset(e->swap_file_number);
-		e->swap_file_number = -1;
-	    }
+	    storeSwapFileNumberSet(e, -1);
 	    rb->counts.dupcount++;
 	} else {
 	    /* URL doesnt exist, swapfile not in use */
@@ -667,7 +661,7 @@ storeAddDiskRestore(const cache_key * key,
     e->store_status = STORE_OK;
     storeSetMemStatus(e, NOT_IN_MEMORY);
     e->swap_status = SWAPOUT_DONE;
-    e->swap_file_number = file_number;
+    storeSwapFileNumberSet(e, file_number);
     e->swap_file_sz = swap_file_sz;
     e->lock_count = 0;
 #if !HEAP_REPLACEMENT
@@ -684,7 +678,6 @@ storeAddDiskRestore(const cache_key * key,
     EBIT_CLR(e->flags, KEY_PRIVATE);
     e->ping_status = PING_NONE;
     EBIT_CLR(e->flags, ENTRY_VALIDATED);
-    storeDirMapBitSet(e->swap_file_number);
     storeHashInsert(e, key);	/* do it after we clear KEY_PRIVATE */
     return e;
 }
@@ -1147,12 +1140,15 @@ storeUfsDirStats(StoreEntry * sentry)
 	storeAppendPrintf(sentry, "First level subdirectories: %d\n", SD->u.ufs.l1);
 	storeAppendPrintf(sentry, "Second level subdirectories: %d\n", SD->u.ufs.l2);
 	storeAppendPrintf(sentry, "Maximum Size: %d KB\n", SD->max_size);
+	storeAppendPrintf(sentry, "HiWater Size: %d KB\n", SD->high_size);
 	storeAppendPrintf(sentry, "Current Size: %d KB\n", SD->cur_size);
 	storeAppendPrintf(sentry, "Percent Used: %0.2f%%\n",
 	    100.0 * SD->cur_size / SD->max_size);
 	storeAppendPrintf(sentry, "Filemap bits in use: %d of %d (%d%%)\n",
 	    SD->map->n_files_in_map, SD->map->max_n_files,
 	    percent(SD->map->n_files_in_map, SD->map->max_n_files));
+	storeAppendPrintf(sentry, "Removals: %d\n", SD->removals);
+	storeAppendPrintf(sentry, " Scanned: %d\n", SD->scanned);
 #if HAVE_STATVFS
 #define fsbtoblk(num, fsbs, bs) \
         (((fsbs) != 0 && (fsbs) < (bs)) ? \
