@@ -328,7 +328,7 @@ death(int sig)
 
 
 void
-sigusr2_handle(int signotused)
+sigusr2_handle(int sig)
 {
     static int state = 0;
     /* no debug() here; bad things happen if the signal is delivered during _db_print() */
@@ -460,7 +460,7 @@ debug_trap(const char *message)
 }
 
 void
-sig_child(int signotused)
+sig_child(int sig)
 {
 #ifdef _SQUID_NEXT_
     union wait status;

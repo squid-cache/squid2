@@ -127,6 +127,7 @@ OBJS	 	= \
 		tools.o \
 		unlinkd.o \
 		url.o \
+		urn.o \
 		useragent.o \
 		wais.o \
 		$(XTRA_OBJS)

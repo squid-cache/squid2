@@ -236,7 +236,10 @@ errorConvert(char token, ErrorState * err)
 	snprintf(buf, CVT_BUF_SZ, "%d", err->xerrno);
 	break;
     case 'E':
+	if (err->xerrno)
 	snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->xerrno, strerror(err->xerrno));
+	else
+	    snprintf(buf, CVT_BUF_SZ, "(%d) -unknown-", err->xerrno);
 	break;
     case 'f':
 	/* FTP REQUEST LINE */

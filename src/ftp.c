@@ -1816,6 +1816,8 @@ ftpUrlWith2f(const request_t * request)
     LOCAL_ARRAY(char, portbuf, 32);
     char *t;
     portbuf[0] = '\0';
+    if (request->protocol != PROTO_FTP)
+	return NULL;
     if (request->port != urlDefaultPort(request->protocol))
 	snprintf(portbuf, 32, ":%d", request->port);
     loginbuf[0] = '\0';
