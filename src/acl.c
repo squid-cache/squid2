@@ -708,6 +708,11 @@ aclParseAclLine(acl ** head)
 	    assert(proxy_auth_cache);
 	}
 	break;
+#if SQUID_SNMP
+    case ACL_SNMP_COMMUNITY:
+        aclParseWordList(&A->data);
+	break;
+#endif  
 #if USE_ARP_ACL
     case ACL_SRC_ARP:
 	aclParseArpList(&A->data);
