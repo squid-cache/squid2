@@ -390,7 +390,7 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
 
     for (entry = storeGetFirst(); entry != NULL; entry = storeGetNext()) {
 	mem = entry->mem_obj;
-	if (vm_or_not && mem == NULL)
+	if (vm_or_not && mem == NULL && entry->lock_count == 0)
 	    continue;
 	if ((++N & 0xFF) == 0) {
 	    getCurrentTime();
