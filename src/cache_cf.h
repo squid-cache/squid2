@@ -149,32 +149,33 @@ int ip_acl_match _PARAMS((int c1, int c2, int c3, int c4,
 ip_access_type ip_access_check _PARAMS((struct in_addr address,
 	ip_acl * list));
 
-int getSourcePing();
-int getBehindFirewall();
-int getQuickAbort();
-int getCacheNeighborObj();
-char *getAccelPrefix();
-int getAccelWithProxy();
-char *getAccessLogFile();
-char *getHierarchyLogFile();
-char *getCacheLogFile();
-int getAsciiPortNum();
-int getBinaryPortNum();
-int getUdpPortNum();
-char *getFtpProgram();
-char *getFtpOptions();
-char *getDnsProgram();
-char *getAdminEmail();
-int getDebugLevel();
-char *getAppendDomain();
+int getSourcePing _PARAMS((void));
+int getBehindFirewall _PARAMS((void));
+int getQuickAbort _PARAMS((void));
+int getCacheNeighborObj _PARAMS((void));
+char *getAccelPrefix _PARAMS((void));
+int getAccelWithProxy _PARAMS((void));
+char *getAccessLogFile _PARAMS((void));
+char *getHierarchyLogFile _PARAMS((void));
+char *getCacheLogFile _PARAMS((void));
+int getAsciiPortNum _PARAMS((void));
+int getBinaryPortNum _PARAMS((void));
+int getUdpPortNum _PARAMS((void));
+char *getFtpProgram _PARAMS((void));
+char *getFtpOptions _PARAMS((void));
+char *getDnsProgram _PARAMS((void));
+char *getAdminEmail _PARAMS((void));
+int getDebugLevel _PARAMS((void));
+int getStallDelay _PARAMS((void));
+char *getAppendDomain _PARAMS((void));
 int setAsciiPortNum _PARAMS((int));
 int setUdpPortNum _PARAMS((int));
 int setBinaryPortNum _PARAMS((int));
 int getLogfileRotateNumber _PARAMS((void));
 
 #if USE_WAIS_RELAY
-char *getWaisRelayHost();
-int getWaisRelayPort();
+char *getWaisRelayHost _PARAMS((void));
+int getWaisRelayPort _PARAMS((void));
 #endif
 
 
