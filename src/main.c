@@ -478,10 +478,6 @@ serverConnectionsClose(void)
 	debug(1, 1, "FD %d Closing HTTP connection\n",
 	    theHttpConnection);
 	comm_close(theHttpConnection);
-	commSetSelect(theHttpConnection,
-	    COMM_SELECT_READ,
-	    NULL,
-	    NULL, 0);
 	theHttpConnection = -1;
     }
     if (theInIcpConnection >= 0) {
@@ -491,15 +487,7 @@ serverConnectionsClose(void)
 	    theInIcpConnection);
 	if (theInIcpConnection != theOutIcpConnection)
 	    comm_close(theInIcpConnection);
-	commSetSelect(theInIcpConnection,
-	    COMM_SELECT_READ,
-	    NULL,
-	    NULL, 0);
 	if (theInIcpConnection != theOutIcpConnection)
-	    commSetSelect(theOutIcpConnection,
-		COMM_SELECT_READ,
-		NULL,
-		NULL, 0);
 	theInIcpConnection = -1;
     }
     if (icmp_sock > -1)
