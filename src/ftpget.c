@@ -218,6 +218,8 @@ char *o_iconprefix = "internal-";	/* URL prefix for icons */
 char *o_iconsuffix = "";	/* URL suffix for icons */
 int o_list_width = 32;		/* size of filenames in directory list */
 int o_list_wrap = 0;		/* wrap long directory names ? */
+int o_conn_min = 0x4000;	/* min. port number to use */
+int o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
 
 #define SMALLBUFSIZ 1024
 #define MIDBUFSIZ 2048
@@ -1166,9 +1168,9 @@ state_t do_port(r)
     }
     while (1) {
 #if defined(HAVE_LRAND48)
-	port = (lrand48() & 0x3FFF) | 0x4000;
+	port = (lrand48() % (o_conn_max - o_conn_min)) + o_conn_min;
 #else
-	port = (rand() & 0x3FFF) | 0x4000;
+	port = (rand() % (o_conn_max - o_conn_min)) + o_conn_min;
 #endif
 	S.sin_port = htons(port);
 	if (bind(sock, (struct sockaddr *) &S, sizeof(S)) >= 0)
@@ -2128,6 +2130,7 @@ void usage(argcount)
     fprintf(stderr, "\t-R              DON'T get README file\n");
     fprintf(stderr, "\t-w chars        Filename width in directory listing\n");
     fprintf(stderr, "\t-W              Wrap long filenames\n");
+    fprintf(stderr, "\t-C min:max      Min and max port numbers to used for data\n");
     fprintf(stderr, "\t-Ddbg           Debug options\n");
     fprintf(stderr, "\t-P port         FTP Port number\n");
     fprintf(stderr, "\t-v              Version\n");
@@ -2270,6 +2273,17 @@ int main(argc, argv)
 		o_rest_ret = j;
 	    if (k)
 		o_rest_del = k;
+	    continue;
+	} else if (!strcmp(*argv, "-C")) {
+	    if (--argc < 1)
+		usage();
+	    argv++;
+	    j = k = 0;
+	    sscanf(*argv, "%d:%d", &j, &k);
+	    if (j)
+		o_conn_min = j;
+	    if (k)
+		o_conn_max = k;
 	    continue;
 	} else if (!strcmp(*argv, "-R")) {
 	    o_readme = 0;
