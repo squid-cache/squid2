@@ -1698,10 +1698,15 @@ aclMatchAclList(const acl_list * list, aclCheck_t * checklist)
 	debug(28, 3) ("aclMatchAclList: checking %s%s\n",
 	    list->op ? null_string : "!", list->acl->name);
 	answer = aclMatchAcl(list->acl, checklist);
+#if NOT_SURE_THIS_IS_GOOD
+	/* This will make access denied if an acl cannot be evaluated.
+	 * Normally Squid will just continue to the next rule
+	 */
 	if (answer < 0) {
 	    debug(28, 3) ("aclMatchAclList: failure. returning -1\n");
 	    return -1;
 	}
+#endif
 	if (answer != list->op) {
 	    debug(28, 3) ("aclMatchAclList: no match, returning 0\n");
 	    return 0;
