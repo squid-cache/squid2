@@ -33,7 +33,7 @@
 #define _ICMP_H_
 
 #if USE_ICMP
-
+ 
 extern int icmp_sock;
 
 extern void icmpOpen _PARAMS((void));
