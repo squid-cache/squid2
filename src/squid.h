@@ -217,7 +217,7 @@
 
 typedef struct sentry StoreEntry;
 typedef struct mem_hdr *mem_ptr;
-typedef struct _edge edge;
+typedef struct _peer peer;
 typedef struct icp_common_s icp_common_t;
 typedef struct _cacheinfo cacheinfo;
 typedef struct _aclCheck_t aclCheck_t;

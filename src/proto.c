@@ -170,7 +170,7 @@ protoDataFree(int fdunused, protodispatch_data * protoData)
 static void
 protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 {
-    edge *e = NULL;
+    peer *e = NULL;
     struct in_addr srv_addr;
     protodispatch_data *protoData = (protodispatch_data *) data;
     StoreEntry *entry = protoData->entry;
@@ -220,7 +220,7 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	protoStart(protoData->fd, entry, e, req);
 	return;
     }
-    if (protoData->n_edges == 0 && protoData->direct_fetch == DIRECT_NO) {
+    if (protoData->n_peers == 0 && protoData->direct_fetch == DIRECT_NO) {
 	if ((e = protoData->default_parent)) {
 	    hierarchyNote(req, HIER_DEFAULT_PARENT, 0, e->host);
 	    protoStart(protoData->fd, entry, e, req);
@@ -312,7 +312,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     protoData->query_neighbors = BIT_TEST(entry->flag, HIERARCHICAL);
     protoData->single_parent = getSingleParent(request);
     protoData->default_parent = getDefaultParent(request);
-    protoData->n_edges = neighborsCount(request);
+    protoData->n_peers = neighborsCount(request);
 #ifdef DELAY_HACK
     protoData->delay_fetch = _delay_fetch;
 #endif
@@ -321,7 +321,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	protoData->inside_firewall,
 	firewall_desc_str[protoData->inside_firewall]);
     debug(17, 2, "protoDispatch: query_neighbors = %d\n", protoData->query_neighbors);
-    debug(17, 2, "protoDispatch:         n_edges = %d\n", protoData->n_edges);
+    debug(17, 2, "protoDispatch:         n_peers = %d\n", protoData->n_peers);
     debug(17, 2, "protoDispatch:   single_parent = %s\n",
 	protoData->single_parent ? protoData->single_parent->host : "N/A");
     debug(17, 2, "protoDispatch:  default_parent = %s\n",
@@ -352,7 +352,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	    fd,
 	    protoDispatchDNSHandle,
 	    (void *) protoData);
-    } else if (protoData->n_edges == 0) {
+    } else if (protoData->n_peers == 0) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
 	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
@@ -448,7 +448,7 @@ protoCancelTimeout(int fd, StoreEntry * entry)
 int
 getFromDefaultSource(int fd, StoreEntry * entry)
 {
-    edge *e = NULL;
+    peer *e = NULL;
     char *url = NULL;
     request_t *request = entry->mem_obj->request;
 
@@ -499,7 +499,7 @@ getFromDefaultSource(int fd, StoreEntry * entry)
 }
 
 int
-protoStart(int fd, StoreEntry * entry, edge * e, request_t * request)
+protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 {
     char *url = entry->url;
     char *request_hdr = entry->mem_obj->mime_hdr;

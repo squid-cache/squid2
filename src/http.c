@@ -882,7 +882,7 @@ int
 proxyhttpStart(const char *url,
     request_t * orig_request,
     StoreEntry * entry,
-    edge * e)
+    peer * e)
 {
     int sock;
     HttpStateData *httpState = NULL;
@@ -959,7 +959,7 @@ httpConnectDone(int fd, int status, void *data)
     HttpStateData *httpState = data;
     request_t *request = httpState->request;
     StoreEntry *entry = httpState->entry;
-    edge *e = NULL;
+    peer *e = NULL;
     if (status != COMM_OK) {
 	if ((e = httpState->neighbor))
 	    e->last_fail_time = squid_curtime;

@@ -590,8 +590,8 @@ passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
 {
     PassStateData *passState = data;
     request_t *request = passState->request;
-    edge *e = NULL;
-    edge *g = NULL;
+    peer *e = NULL;
+    peer *g = NULL;
     int fw_ip_match = IP_ALLOW;
     if (ia && Config.firewall_ip_list)
 	fw_ip_match = ip_access_check(ia->in_addrs[ia->cur], Config.firewall_ip_list);
