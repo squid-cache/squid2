@@ -66,6 +66,7 @@ typedef struct _auth_user_request_t auth_user_request_t;
 typedef struct _auth_user_hash_pointer auth_user_hash_pointer;
 typedef struct _auth_user_ip_t auth_user_ip_t;
 typedef struct _acl_proxy_auth_match_cache acl_proxy_auth_match_cache;
+typedef struct _acl_hdr_data acl_hdr_data;
 typedef struct _authscheme_entry authscheme_entry_t;
 typedef struct _authScheme authScheme;
 typedef struct _acl_user_data acl_user_data;

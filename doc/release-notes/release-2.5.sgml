@@ -269,7 +269,7 @@ name="ChangeLog"> file for details.
 
 <P>
 <itemize>
-	<item>NTLM bugfix noticed by the Samba group
+	<item>NTLM related bugfix noticed by the Samba group
 	<item>UFS cache_dir bugfix to issue introduced in STABLE6 causing
 	no objects to get cached in some configurations.
 	<item>cache_effective_user now sets supplementary group list
@@ -280,6 +280,10 @@ name="ChangeLog"> file for details.
 	<item>request_header_max_size directive corrected. You may need to increase
 	this value after upgrading if set very low. The default have been increased
 	from 10 KB to 20 KB which should be sufficient for most uses.
+	<item>http_header_access &amp; replace now support arbitrary headers,
+	not only the well known headers known by Squid
+	<item>new acl types req_hdr and resp_hdr to match arbitrary HTTP headers,
+	useful to block certain malware/spyware etc.
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE6"
 	name="squid-2.5.STABLE6 patches"> and the <url url="ChangeLog"

@@ -36,6 +36,12 @@ Changes to squid-2.5.STABLE7 ()
 	- [Minor] Segfault in authenticateDigestHandleReply. (Bug #1031)
 	- [Minor] acl time fails to parse multiple time specifications
 	  (Bug #1060)
+	- [Minor] cachemgr config dumps mixed up Range and Request-Range 
+	  headers in http_header_access & replace directives. (Bug #1056)
+	- [Minor] Content-Disposition added as a well known header (Bug #961)
+	- [Medium] New acl types to match arbitrary HTTP headers. In addition
+	  the http_header_access & replace directivess now support arbitrary
+	  headers and not only the well known ones. (Bug #961)
 
 Changes to squid-2.5.STABLE6 (9 Jul 2004)
 

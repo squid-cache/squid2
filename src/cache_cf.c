@@ -917,12 +917,20 @@ static void
 dump_http_header_access(StoreEntry * entry, const char *name, header_mangler header[])
 {
     int i;
+    header_mangler *other;
     for (i = 0; i < HDR_ENUM_END; i++) {
-	if (header[i].access_list != NULL) {
-	    storeAppendPrintf(entry, "%s ", name);
-	    dump_acl_access(entry, httpHeaderNameById(i),
-		header[i].access_list);
-	}
+	if (header[i].access_list == NULL)
+	    continue;
+	storeAppendPrintf(entry, "%s ", name);
+	dump_acl_access(entry, httpHeaderNameById(i),
+	    header[i].access_list);
+    }
+    for (other = header[HDR_OTHER].next; other; other = other->next) {
+	if (other->access_list == NULL)
+	    continue;
+	storeAppendPrintf(entry, "%s ", name);
+	dump_acl_access(entry, other->name,
+	    other->access_list);
     }
 }
 
@@ -944,9 +952,16 @@ parse_http_header_access(header_mangler header[])
     else if (strcmp(t, "Other") == 0)
 	id = HDR_OTHER;
     else if (id == -1) {
-	debug(3, 0) ("%s line %d: %s\n",
-	    cfg_filename, config_lineno, config_input_line);
-	debug(3, 0) ("parse_http_header_access: unknown header name %s.\n", t);
+	header_mangler *hdr = header[HDR_OTHER].next;
+	while (hdr && strcasecmp(hdr->name, t) != 0)
+	    hdr = hdr->next;
+	if (!hdr) {
+	    hdr = xcalloc(1, sizeof *hdr);
+	    hdr->name = xstrdup(t);
+	    hdr->next = header[HDR_OTHER].next;
+	    header[HDR_OTHER].next = hdr;
+	}
+	parse_acl_access(&hdr->access_list);
 	return;
     }
     if (id != HDR_ENUM_END) {
@@ -968,8 +983,21 @@ static void
 free_http_header_access(header_mangler header[])
 {
     int i;
+    header_mangler **hdrp;
     for (i = 0; i < HDR_ENUM_END; i++) {
 	free_acl_access(&header[i].access_list);
+    }
+    hdrp = &header[HDR_OTHER].next;
+    while (*hdrp) {
+	header_mangler *hdr = *hdrp;
+	free_acl_access(&hdr->access_list);
+	if (!hdr->replacement) {
+	    *hdrp = hdr->next;
+	    safe_free(hdr->name);
+	    safe_free(hdr);
+	} else {
+	    hdrp = &hdr->next;
+	}
     }
 }
 
@@ -978,11 +1006,17 @@ dump_http_header_replace(StoreEntry * entry, const char *name, header_mangler
     header[])
 {
     int i;
+    header_mangler *other;
     for (i = 0; i < HDR_ENUM_END; i++) {
 	if (NULL == header[i].replacement)
 	    continue;
 	storeAppendPrintf(entry, "%s %s %s\n", name, httpHeaderNameById(i),
 	    header[i].replacement);
+    }
+    for (other = header[HDR_OTHER].next; other; other = other->next) {
+	if (other->replacement == NULL)
+	    continue;
+	storeAppendPrintf(entry, "%s %s %s\n", name, other->name, other->replacement);
     }
 }
 
@@ -1004,10 +1038,18 @@ parse_http_header_replace(header_mangler header[])
     else if (strcmp(t, "Other") == 0)
 	id = HDR_OTHER;
     else if (id == -1) {
-	debug(3, 0) ("%s line %d: %s\n",
-	    cfg_filename, config_lineno, config_input_line);
-	debug(3, 0) ("parse_http_header_replace: unknown header name %s.\n",
-	    t);
+	header_mangler *hdr = header[HDR_OTHER].next;
+	while (hdr && strcasecmp(hdr->name, t) != 0)
+	    hdr = hdr->next;
+	if (!hdr) {
+	    hdr = xcalloc(1, sizeof *hdr);
+	    hdr->name = xstrdup(t);
+	    hdr->next = header[HDR_OTHER].next;
+	    header[HDR_OTHER].next = hdr;
+	}
+	if (hdr->replacement != NULL)
+	    safe_free(hdr->replacement);
+	hdr->replacement = xstrdup(t + strlen(t) + 1);
 	return;
     }
     if (id != HDR_ENUM_END) {
@@ -1027,9 +1069,22 @@ static void
 free_http_header_replace(header_mangler header[])
 {
     int i;
+    header_mangler **hdrp;
     for (i = 0; i < HDR_ENUM_END; i++) {
 	if (header[i].replacement != NULL)
 	    safe_free(header[i].replacement);
+    }
+    hdrp = &header[HDR_OTHER].next;
+    while (*hdrp) {
+	header_mangler *hdr = *hdrp;
+	free_acl_access(&hdr->access_list);
+	if (!hdr->access_list) {
+	    *hdrp = hdr->next;
+	    safe_free(hdr->name);
+	    safe_free(hdr);
+	} else {
+	    hdrp = &hdr->next;
+	}
     }
 }
 #endif

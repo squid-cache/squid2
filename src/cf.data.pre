@@ -2028,7 +2028,7 @@ DOC_START
 	acl aclname proto    HTTP FTP ...
 	acl aclname method   GET POST ...
 	acl aclname browser  [-i] regexp ...
-	  # pattern match on User-Agent header
+	  # pattern match on User-Agent header (see also req_header below)
         acl aclname referer_regex  [-i] regexp ...
           # pattern match on Referer header
           # Referer is highly unreliable, so use with care
@@ -2087,11 +2087,16 @@ DOC_START
 	  # going through proxy farms, so a limit of 1 may cause user problems.
 
 	acl aclname req_mime_type mime-type1 ...
-	  # regex match agains the mime type of the request generated
+	  # regex match against the mime type of the request generated
 	  # by the client. Can be used to detect file upload or some
 	  # types HTTP tunelling requests.
 	  # NOTE: This does NOT match the reply. You cannot use this
 	  # to match the returned file type.
+
+	acl aclname req_header header-name [-i] any\.regex\.here
+	  # regex match against any of the known request headers.  May be
+	  # thought of as a superset of "browser", "referer" and "mime-type"
+	  # acls.
 
 	acl aclname rep_mime_type mime-type1 ...
 	  # regex match against the mime type of the reply recieved by
@@ -2100,6 +2105,12 @@ DOC_START
 	  # NOTE: This has no effect in http_access rules. It only has
 	  # effect in rules that affect the reply data stream such as
 	  # http_reply_access.
+
+	acl aclname rep_header header-name [-i] any\.regex\.here
+	  # regex match against any of the known response headers.
+	  # Example:
+	  #
+	  # acl many_spaces rep_header Content-Disposition -i [[:space:]]{3,}
 
 	acl acl_name external class_name [arguments...]
 	  # external ACL lookup via a helper class defined by the

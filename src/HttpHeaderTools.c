@@ -422,13 +422,23 @@ httpHeaderStrCmp(const char *h1, const char *h2, int len)
 static int
 httpHdrMangle(HttpHeaderEntry * e, request_t * request)
 {
-    int retval;
+    int retval = 1;
 
     /* check with anonymizer tables */
     header_mangler *hm;
     aclCheck_t *checklist;
     assert(e);
-    hm = &Config.header_access[e->id];
+    if (e->id == HDR_OTHER) {
+	for (hm = Config.header_access[HDR_OTHER].next; hm; hm = hm->next) {
+	    if (strCmp(e->name, hm->name) == 0)
+		break;
+	}
+	if (!hm)
+	    return 1;
+    } else
+	hm = &Config.header_access[e->id];
+    if (!hm->access_list)
+	return 1;
     checklist = aclChecklistCreate(hm->access_list, request, NULL);
     if (1 == aclCheckFast(hm->access_list, checklist)) {
 	/* aclCheckFast returns 1 for allow. */
@@ -442,11 +452,11 @@ httpHdrMangle(HttpHeaderEntry * e, request_t * request)
 	 * is allowed.
 	 */
 	stringReset(&e->value, hm->replacement);
-	retval = 1;
+	retval = -1;
     }
-
     aclChecklistFree(checklist);
-    return retval;
+
+    return retval != 0;
 }
 
 /* Mangles headers for a list of headers. */

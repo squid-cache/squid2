@@ -88,6 +88,13 @@ struct _acl_proxy_auth_match_cache {
     void *acl_data;
 };
 
+struct _acl_hdr_data {
+    acl_hdr_data *next;
+    relist *reglist;
+    http_hdr_type hdr_id;
+    const char *hdr_name;
+};
+
 struct _auth_user_hash_pointer {
     /* first two items must be same as hash_link */
     char *key;
@@ -214,6 +221,9 @@ struct _String {
 struct _header_mangler {
     acl_access *access_list;
     char *replacement;
+    /* What follows is only used by HDR_OTHER to build a list of named headers */
+    char *name;
+    header_mangler *next;
 };
 
 struct _body_size {
