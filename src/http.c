@@ -178,7 +178,7 @@ static void httpProcessReplyHeader(data, buf)
 	    data->reply_hdr);
 	t = strtok(headers, "\n");
 	while (t) {
-	    s = t+strlen(t);
+	    s = t + strlen(t);
 	    while (*s == '\r')
 		*s-- = '\0';
 	    if (!strncasecmp(t, "HTTP", 4)) {
