@@ -347,6 +347,7 @@ extern int httpHdrRangeIsComplex(const HttpHdrRange * range);
 extern int httpHdrRangeWillBeComplex(const HttpHdrRange * range);
 extern ssize_t httpHdrRangeFirstOffset(const HttpHdrRange * range);
 extern ssize_t httpHdrRangeLowestOffset(const HttpHdrRange * range, ssize_t);
+extern int httpHdrRangeOffsetLimit(HttpHdrRange *);
 
 
 /* Http Content Range Header Field */

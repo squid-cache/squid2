@@ -1399,7 +1399,6 @@ struct _request_flags {
 #endif
     unsigned int accelerated:1;
     unsigned int internal:1;
-    unsigned int we_dont_do_ranges:1;
 };
 
 struct _link_list {
