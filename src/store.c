@@ -258,7 +258,6 @@ static HashID in_mem_table = 0;
 /* current memory storage size */
 unsigned long store_mem_size = 0;
 
-static int MAX_SWAP_FILE = 1<<21;
 static int store_pages_max = 0;
 static int store_pages_high = 0;
 static int store_pages_low = 0;
@@ -1305,9 +1304,13 @@ storeSwapOutStart(StoreEntry * e)
     if ((x = storeGetUnusedFileno()) >= 0)
 	swapfileno = x;
     else
-	swapfileno = (swapfileno + 1) % (MAX_SWAP_FILE);
+	swapfileno++;
     /* Record the number returned */
     swapfileno = file_map_allocate(swapfileno);
+    if (swapfileno < 0) {
+	/* all swap files in use */
+	return -1;
+    }
     storeSwapFullPath(swapfileno, swapfilename);
     fd = file_open(swapfilename, NULL, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0) {
@@ -1397,7 +1400,7 @@ storeDoRebuildFromDisk(void *data)
 	    &scan3,		/* last modified */
 	    &scan4,		/* size */
 	    url);		/* url */
-	if (sfileno < 0 || sfileno >= MAX_SWAP_FILE)
+	if (sfileno < 0 || sfileno >= filemapMax())
 	    continue;
 	if (x > 0)
 	    storeSwapFullPath(sfileno, swapfile);
@@ -2358,9 +2361,9 @@ storeInitHashValues(void)
     int i;
     /* Calculate size of hash table (maximum currently 64k buckets).  */
     i = Config.Swap.maxSize / Config.Store.avgObjectSize;
-    MAX_SWAP_FILE = i * 2;	/* 200% of estimated objects */
     debug(20, 1, "Swap maxSize %d, estimated %d objects\n",
 	Config.Swap.maxSize, i);
+    file_map_create(i<<1);	/* TWICE number of estimated objects */
     i /= Config.Store.objectsPerBucket;
     debug(20, 1, "Target number of buckets: %d\n", i);
     /* ideally the full scan period should be configurable, for the
@@ -2391,7 +2394,6 @@ storeInit(void)
     wordlist *w = NULL;
     char *fname = NULL;
     storeInitHashValues();
-    file_map_create(MAX_SWAP_FILE);
     storeCreateHashTable(urlcmp);
     if (strcmp((fname = Config.Log.store), "none") == 0)
 	storelog_fd = -1;
