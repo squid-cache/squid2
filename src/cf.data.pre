@@ -1097,8 +1097,8 @@ DOC_START
 	description of Squid's refresh algorithm.  Basically a
 	cached object is: (the order is changed from 1.1.X)
 
-		STALE if age > max
 		FRESH if expires < now, else STALE
+		STALE if age > max
 		FRESH if lm-factor < percent, else STALE
 		FRESH if age < min
 		else STALE
@@ -1108,7 +1108,9 @@ DOC_START
 	match, then the default will be used.
 
 Default:
-refresh_pattern 	.	0 20% 4320
+refresh_pattern		^ftp:		1440	20%	10080
+refresh_pattern		^gopher:	1440	0%	1440
+refresh_pattern 	.		0	20%	4320
 DOC_END
 
 

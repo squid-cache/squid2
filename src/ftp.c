@@ -1019,6 +1019,7 @@ ftpStart(FwdState * fwd)
     ftpState->ctrl.fd = fd;
     ftpState->data.fd = -1;
     ftpState->size = -1;
+    ftpState->mdtm = -1;
     ftpState->flags.pasv_supported = 1;
     ftpState->flags.rest_supported = 1;
     ftpState->fwd = fwd;
