@@ -391,7 +391,7 @@ decode_addr(const char *asc, struct in_addr *addr, struct in_addr *mask)
 #define SCAN_ACL1       "%[0123456789.]-%[0123456789.]/%[0123456789.]"
 #define SCAN_ACL2       "%[0123456789.]-%[0123456789.]"
 #define SCAN_ACL3       "%[0123456789.]/%[0123456789.]"
-#define SCAN_ACL4       "%[0123456789.]"
+#define SCAN_ACL4       "%[0123456789.]%c"
 
 static acl_ip_data *
 aclParseIpData(const char *t)
@@ -404,6 +404,7 @@ aclParseIpData(const char *t)
     acl_ip_data **Q;
     struct hostent *hp;
     char **x;
+    char c;
     debug(28, 5) ("aclParseIpData: %s\n", t);
     if (!strcasecmp(t, "all")) {
 	q->addr1.s_addr = 0;
@@ -417,7 +418,7 @@ aclParseIpData(const char *t)
 	mask[0] = '\0';
     } else if (sscanf(t, SCAN_ACL3, addr1, mask) == 2) {
 	addr2[0] = '\0';
-    } else if (sscanf(t, SCAN_ACL4, addr1) == 1) {
+    } else if (sscanf(t, SCAN_ACL4, addr1, &c) == 1) {
 	addr2[0] = '\0';
 	mask[0] = '\0';
     } else if (sscanf(t, "%[^/]/%s", addr1, mask) == 2) {
