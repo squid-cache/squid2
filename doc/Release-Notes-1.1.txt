@@ -1,0 +1,70 @@
+
+$Id$
+
+Release Notes for version 1.1 of the Squid cache.
+
+TABLE OF CONTENTS:
+
+	Ident (RFC 931) lookups
+	Asynchronous Disk I/O
+	URL Redirector
+
+Ident (RFC 931) lookups
+==============================================================================
+Squid will make an RFC931/ident request for client connections if
+'ident_lookup' is enabled in the config file.  Currently, the ident
+value is only logged with the request in the access.log.  It is not
+currently (1.1.alpha4) possible to use the ident return value for
+access control purposes.
+
+Asynchronous Disk I/O
+==============================================================================
+Pete Bentley <pete@demon.net> has contributed a module for asynchronous
+disk I/O.  To enable, you must define USE_ASYNC_IO (e.g. in the Makefile,
+or include/config.h).  It does not yet compile for IRIX 5.3, so there
+are a few bugs to work out.
+
+URL Redirector
+==============================================================================
+Squid now has the ability to rewrite requested URLs.  This is implemented
+as an external process, much like the dnsservers.  Every incoming URL
+is written to a 'redirector' process which then returns a new URL, or
+a blank line to inidicate no change.
+
+The redirector program is NOT provided in the Squid package.  Currently,
+it is up to the individual users to write their own implementation.  For
+testing, this very simple Perl script can be used:
+
+    #!/usr/local/bin/perl
+    $|=1;
+    print while (<>);
+
+The redirector program must read URLs (one per line) on standard input,
+and write rewritten URLs or blank lines on standard output.  Note that
+the redirector program can not use buffered I/O.
+
+Note that when used in conjunction with the -V option (on a virtual hosted
+machine) this provides a mechanism to use a single Squid cache as a front
+end to numerous servers on different machines.  URLs written to the
+redirector will look like:
+
+    http://192.0.0.1/foo
+    http://192.0.0.2/foo
+
+The redirector program might be this Perl script:
+
+    #!/usr/local/bin/perl
+    $|=1;
+    while (<>) {
+        s@http://192\.0\.0\.1@http://www1.foo.org@;
+        s@http://192\.0\.0\.2@http://www2.foo.org@;
+        print;
+    }
+
+
+You may receive statistics on the redirector usage by requesting the
+following 'cache_object' URL:
+
+    % client cache_object://localhost/stats/redirector
+
+
