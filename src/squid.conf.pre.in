@@ -771,6 +771,19 @@ acl CONNECT method CONNECT
 # 
 # Access to the ICP port:
 #     icp_access  allow|deny [!]aclname ...
+#
+# NOTE on default values:
+#
+#	If there are no "access" lines present, the default is to allow
+#	the request.
+#
+#	If none of the "access" lines cause a match, the default is the
+#	opposite of the last line in the list.  If the last line was
+#	deny, then the default is allow.  Conversely, if the last line
+#	is allow, the default will be deny.  For these reasons, it is a
+#	good idea to have an "deny all" or "allow all" entry at the end
+#	of your access lists to avoid potential confusion.
+
 
 # Only allow access to the cache manager functions from the local host.
 http_access deny manager !localhost
