@@ -656,10 +656,7 @@ icp_access  allow  all
 #	create cache hierarchies.
 #
 #	An 'announcement' message is sent (via UDP) to the registration
-#	service by the program 'send-announce'.  This program is called
-#	in the RunCache script every time the cached process is started.
-#	You may also run the 'send-announce' program manually, or from
-#	cron if you like.  By default, the annoucement message is NOT
+#	service by Squid.  By default, the annoucement message is NOT
 #	SENT unless you enable it with 'cache_announce' below.
 #
 #	The announcement message includes your hostname, plus the
