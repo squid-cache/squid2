@@ -1294,7 +1294,6 @@ struct _request_t {
     request_flags flags;
     HttpHdrCc *cache_control;
     HttpHdrRange *range;
-    time_t max_age;
     float http_ver;
     time_t ims;
     int imslen;
