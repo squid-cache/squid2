@@ -189,6 +189,8 @@ static int ipcacheExpiredEntry _PARAMS((ipcache_entry *));
 static void ipcacheAddPending _PARAMS((ipcache_entry *, int fd, IPH, void *));
 static struct hostent *ipcacheCheckNumeric _PARAMS((char *name));
 static void ipcacheStatPrint _PARAMS((ipcache_entry *, StoreEntry *));
+static void ipcacheUnlockEntry _PARAMS((ipcache_entry *));
+static void ipcacheLockEntry _PARAMS((ipcache_entry *));
 
 static dnsserver_t **dns_child_table = NULL;
 static struct hostent *static_result = NULL;
@@ -395,11 +397,11 @@ static int ipcache_reverseLastRef(e1, e2)
 static int ipcacheExpiredEntry(i)
      ipcache_entry *i;
 {
-    if (i->lock)
-	return 0;
     if (i->status == IP_PENDING)
 	return 0;
     if (i->status == IP_DISPATCHED)
+	return 0;
+    if (i->locks != 0)
 	return 0;
     if (i->ttl + i->lastref > squid_curtime)
 	return 0;
@@ -433,7 +435,7 @@ static int ipcache_purgelru()
 	    continue;
 	if (i->status == IP_DISPATCHED)
 	    continue;
-	if (i->lock)
+	if (i->locks != 0)
 	    continue;
 	local_ip_notpending_count++;
 	LRU_list[LRU_list_count++] = i;
@@ -564,6 +566,7 @@ static void ipcache_call_pending(i)
 
     i->lastref = squid_curtime;
 
+    ipcacheLockEntry(i);
     while (i->pending_head != NULL) {
 	p = i->pending_head;
 	i->pending_head = p->next;
@@ -579,6 +582,7 @@ static void ipcache_call_pending(i)
     }
     i->pending_head = NULL;	/* nuke list */
     debug(14, 10, "ipcache_call_pending: Called %d handlers.\n", nhandler);
+    ipcacheUnlockEntry(i);
 }
 
 static void ipcache_call_pending_badname(fd, handler, data)
@@ -1239,7 +1243,7 @@ static void ipcacheStatPrint(i, sentry)
     storeAppendPrintf(sentry, " {%-32.32s %c%c %6d %6d %d",
 	i->name,
 	ipcache_status_char[i->status],
-	i->lock ? 'L' : ' ',
+	i->locks ? 'L' : ' ',
 	(int) (squid_curtime - i->lastref),
 	ttl,
 	i->addr_count);
@@ -1356,13 +1360,18 @@ static int dummy_handler(u1, u2, u3)
     return 0;
 }
 
-void ipcacheLockEntry(name)
-     char *name;
+static void ipcacheLockEntry(i)
+     ipcache_entry *i;
 {
-    ipcache_entry *i;
-    if ((i = ipcache_get(name)) == NULL)
-	return;
-    i->lock++;
+    i->locks++;
+}
+
+static void ipcacheUnlockEntry(i)
+     ipcache_entry *i;
+{
+    i->locks--;
+    if (ipcacheExpiredEntry(i))
+	ipcache_release(i);
 }
 
 static int ipcacheHasPending(i)
