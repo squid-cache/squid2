@@ -1159,11 +1159,28 @@ minimum_direct_hops 4
 #
 #client_db on
 
+#  TAG: netdb_low
+#  TAG: netdb_high
+#	The low and high water marks for the ICMP measurement
+#	database.  These are counts, not percents.  The defaults are
+#	900 and 1000.  When the high water mark is reached, database
+#	entries will be deleted until the low mark is reached.
+#
+#netdb_low 900
+#netdb_high 1000
+
+#  TAG: netdb_ping_rate
+#	The minimum period for measuring a site.  There will be at
+#	least this much delay between successive pings to the same
+#	network.  The default is five minutes.
+#
+#netdb_ping_period 5 minutes
+
 #  TAG: query_icmp
 #	If you want to ask your peers to include ICMP data in their ICP
 #	replies, enable this option.
 #
-#	If your peer has build squid with '-DUSE_ICMP=1' then that peer
+#	If your peer has built squid with '-DUSE_ICMP=1' then that peer
 #	will send ICMP pings to origin server sites of the URLs it
 #	receives.  If you enable this option then the ICP replies from
 #	that peer will include the ICMP data (if available).  Then,
