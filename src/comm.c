@@ -373,7 +373,7 @@ int comm_connect_addr(sock, address)
 	    if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
 		errno = x;
 	default:
-	    debug(5, 1, "comm_connect_addr: %s:%d: socket failure: %s.\n",
+	    debug(5, 1, "connect: %s:%d: %s.\n",
 		inet_ntoa(address->sin_addr),
 		ntohs(address->sin_port),
 		xstrerror());
