@@ -230,7 +230,7 @@ destroy_StoreEntry(StoreEntry * e)
 	destroy_MemObject(e);
     storeHashDelete(e);
     assert(e->key == NULL);
-    xfree(e);
+    memFree(MEM_STOREENTRY, e);
 }
 
 static void

@@ -203,11 +203,13 @@ storeDirValidFileno(int fn)
 {
     int dirn = fn >> SWAP_DIR_SHIFT;
     int filn = fn & SWAP_FILE_MASK;
-    SwapDir *SD;
     if (dirn > Config.cacheSwap.n_configured)
 	return 0;
-    SD = &Config.cacheSwap.swapDirs[dirn];
-    if (filn > SD->map->max_n_files)
+    if (dirn < 0)
+	return 0;
+    if (filn < 0)
+	return 0;
+    if (filn > Config.cacheSwap.swapDirs[dirn].map->max_n_files)
 	return 0;
     return 1;
 }
