@@ -37,7 +37,7 @@
 #if USE_ASYNC_IO
 #define MAX_POLL_TIME 10
 #elif USE_DISKD
-#define MAX_POLL_TIME 10
+#define MAX_POLL_TIME 100
 #else
 #define MAX_POLL_TIME 1000
 #endif
