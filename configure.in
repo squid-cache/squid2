@@ -677,6 +677,9 @@ dnl Please change your configure script.  AIX doesn't need -lbsd.
 	[*-*-solaris2.[0-4]])
 		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
 		;;
+	*-sony-newsos[56]*)
+		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
+		;;
 esac
 
 # Recommended by Balint Nagy Endre <bne@CareNet.hu>
