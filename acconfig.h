@@ -19,7 +19,7 @@
  * in the Makefiles, wich is done automatically by configure.
  *
  */
-@TOP@
+@ TOP @
 /* $Id$ */
 
 /*********************************
