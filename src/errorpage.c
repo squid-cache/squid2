@@ -499,10 +499,10 @@ errorConvert(char token, ErrorState * err)
     case 'R':
 	if (NULL != r) {
 	    Packer p;
-	    memBufPrintf(&mb, "%s %s HTTP/%3.1f\n",
+	    memBufPrintf(&mb, "%s %s HTTP/%d.%d\n",
 		RequestMethodStr[r->method],
 		strLen(r->urlpath) ? strBuf(r->urlpath) : "/",
-		(double) r->http_ver);
+		r->http_ver.major, r->http_ver.minor);
 	    packerToMemInit(&p, &mb);
 	    httpHeaderPackInto(&r->header, &p);
 	    packerClean(&p);
@@ -574,8 +574,10 @@ errorBuildReply(ErrorState * err)
 {
     HttpReply *rep = httpReplyCreate();
     MemBuf content = errorBuildContent(err);
+    http_version_t version;
     /* no LMT for error pages; error pages expire immediately */
-    httpReplySetHeaders(rep, 1.0, err->http_status, NULL, "text/html", content.size, 0, squid_curtime);
+    httpBuildVersion(&version,1,0);
+    httpReplySetHeaders(rep, version, err->http_status, NULL, "text/html", content.size, 0, squid_curtime);
     /*
      * include some information for downstream caches. Implicit
      * replaceable content. This isn't quite sufficient. xerrno is not

@@ -1017,3 +1017,9 @@ httpSendRequestEntryDone(int fd, char *bufnotused, size_t size, int errflag, voi
 	comm_write(fd, "\r\n", 2, httpSendComplete, data, NULL);
     }
 }
+
+void
+httpBuildVersion(http_version_t *version, unsigned int major,unsigned int minor) {
+    version->major=major;
+    version->minor=minor;
+}

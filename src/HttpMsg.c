@@ -89,9 +89,9 @@ httpMsgIsolateHeaders(const char **parse_start, const char **blk_start, const ch
 /* returns true if connection should be "persistent" 
  * after processing this message */
 int
-httpMsgIsPersistent(float http_ver, const HttpHeader * hdr)
+httpMsgIsPersistent(http_version_t http_ver, const HttpHeader * hdr)
 {
-    if (http_ver >= 1.1) {
+    if ((http_ver.major>=1) && (http_ver.minor >= 1)) {
 	/*
 	 * for modern versions of HTTP: persistent unless there is
 	 * a "Connection: close" header.
