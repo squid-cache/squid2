@@ -167,7 +167,7 @@ mainParseOptions(int argc, char *argv[])
     extern char *optarg;
     int c;
 
-    while ((c = getopt(argc, argv, "CDFNRVYXa:df:hk:m:su:vz?")) != -1) {
+    while ((c = getopt(argc, argv, "CDFNRSVYXa:df:hk:m:su:vz?")) != -1) {
 	switch (c) {
 	case 'C':
 	    opt_catch_signals = 0;
@@ -183,6 +183,9 @@ mainParseOptions(int argc, char *argv[])
 	    break;
 	case 'R':
 	    opt_reuseaddr = 0;
+	    break;
+	case 'S':
+	    opt_store_doublecheck = 1;
 	    break;
 	case 'V':
 	    vhost_mode = 1;

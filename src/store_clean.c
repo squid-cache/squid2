@@ -83,6 +83,7 @@ storeDirClean(void *datanotused)
     while ((de = readdir(dp)) != NULL && k < 20) {
 	if (sscanf(de->d_name, "%X", &swapfileno) != 1)
 	    continue;
+	swapfileno = storeDirProperFileno(D0, swapfileno);
 	if (storeDirValidFileno(swapfileno))
 	    if (storeDirMapBitTest(swapfileno))
 		if (storeFilenoBelongsHere(swapfileno, D0, D1, D2))
