@@ -127,7 +127,7 @@ case "$host" in
 		;;
 	*-sgi-irix*)
         	echo "Removing -lsocket for IRIX..."
-        	XTRA_LIBS=`echo $XTRA_LIBS | sed -e s/-lmalloc//`
+        	XTRA_LIBS=`echo $XTRA_LIBS | sed -e s/-lsocket//`
         	echo "Removing -lnsl for IRIX..."
         	XTRA_LIBS=`echo $XTRA_LIBS | sed -e s/-lnsl//`
 		;;
