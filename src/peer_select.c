@@ -191,6 +191,7 @@ peerSelectCallback(ps_state * psstate)
 	debug(44, 1) ("       timedout = %d\n", psstate->ping.timedout);
     }
     psstate->ping.stop = current_time;
+    psstate->request->hier.ping = psstate->ping;
     if (cbdataValid(data)) {
 	psstate->servers = NULL;
 	psstate->callback(fs, data);
