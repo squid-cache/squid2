@@ -42,7 +42,7 @@
  * hosed...
  */
 
-#if SQUID_MAXFD > 256
+#if SQUID_MAXFD > FD_SETSIZE
 #define FD_SETSIZE SQUID_MAXFD
 #endif
 
