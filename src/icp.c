@@ -1937,6 +1937,7 @@ requestTimeout(int fd, void *data)
 	err->type = ERR_LIFETIME_EXP;
 	err->http_status = HTTP_REQUEST_TIMEOUT;
 	err->callback = icpErrorComplete;
+	err->url = xstrdup("N/A");
 	errorSend(fd, err);
 	/* if we don't close() here, we still need a timeout handler! */
 	commSetTimeout(fd, 30, requestTimeout, conn);
