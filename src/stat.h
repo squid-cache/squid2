@@ -17,15 +17,15 @@
 #endif
 
 typedef enum {
-	PROTO_NONE,
-	PROTO_HTTP,
-	PROTO_FTP,
-	PROTO_GOPHER,
-	PROTO_WAIS,
-	PROTO_CACHEOBJ,
-	PROTO_MAX
+    PROTO_NONE,
+    PROTO_HTTP,
+    PROTO_FTP,
+    PROTO_GOPHER,
+    PROTO_WAIS,
+    PROTO_CACHEOBJ,
+    PROTO_MAX
 } protocol_t;
-	
+
 
 /* logfile status */
 #define LOG_ENABLE  1
@@ -105,7 +105,7 @@ struct _cacheinfo {
 
     /* protocol specific stat update method */
     /* return a proto_id for a given url */
-    protocol_t (*proto_id) _PARAMS((char *url));
+         protocol_t(*proto_id) _PARAMS((char *url));
 
     /* a new object cached. update obj count, size */
     void (*proto_newobject) _PARAMS((struct _cacheinfo * c, protocol_t proto_id, int len, int flag));
@@ -133,7 +133,7 @@ struct _cacheinfo {
     int logfile_status;
 
     /* protocol stat data */
-    proto_stat proto_stat_data[PROTO_MAX+1];
+    proto_stat proto_stat_data[PROTO_MAX + 1];
 
 };
 
