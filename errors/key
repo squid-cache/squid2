@@ -1,0 +1,7 @@
+%M	METHOD
+%U	URL
+%h	hostname
+%p	port
+%D	DNS Error Message
+%H	HTTP STATUS CODE
+%E	Squid error code
