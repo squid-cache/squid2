@@ -179,7 +179,7 @@ static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
 static void icpHandleAbort _PARAMS((int fd, StoreEntry *, void *));
-static int icpCheckUdpHit _PARAMS((StoreEntry *));
+static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t *request));
 static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
 static void icpStateFree _PARAMS((int fd, void *data));
 
@@ -776,7 +776,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	ipcacheReleaseInvalid(icpState->request->host);
 	entry = NULL;
 	icpState->log_type = LOG_TCP_CLIENT_REFRESH;
-    } else if (refreshCheck(entry, request)) {
+    } else if (refreshCheck(entry, request, 0)) {
 	/* The object is in the cache, but it needs to be validated.  Use
 	 * LOG_TCP_REFRESH_MISS for the time being, maybe change it to
 	 * _HIT later in icpHandleIMSReply() */
@@ -1095,11 +1095,13 @@ icpHitObjHandler(int errflag, void *data)
 }
 
 static int
-icpCheckUdpHit(StoreEntry * e)
+icpCheckUdpHit(StoreEntry * e, request_t *request)
 {
     if (e == NULL)
 	return 0;
     if (!storeEntryValidToSend(e))
+	return 0;
+    if (refreshCheck(entry, request, 30))
 	return 0;
     return 1;
 }
@@ -1111,7 +1113,7 @@ icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
 	return 0;
     if (len > SQUID_UDP_SO_SNDBUF)	/* too big */
 	return 0;
-    if (refreshCheck(e, r))	/* stale */
+    if (refreshCheck(e, r, 0))	/* stale */
 	return 0;
     return 1;
 }
@@ -1174,7 +1176,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
 	debug(12, 5, "icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
-	if (icpCheckUdpHit(entry)) {
+	if (icpCheckUdpHit(entry, icp_request)) {
 	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
 	    if (icpCheckUdpHitObj(entry, icp_request, &header, pkt_len)) {
 		icpHitObjState = xcalloc(1, sizeof(icpHitObjStateData));
@@ -1583,6 +1585,8 @@ parseHttpRequest(icpStateData * icpState)
     sscanf(http_ver, "HTTP/%f", &icpState->http_ver);
     debug(12, 5, "parseHttpRequest: HTTP version is '%s'\n", http_ver);
 
+    while (isspace(*t))
+	t++;
     req_hdr = t;
     req_hdr_sz = icpState->offset - (req_hdr - inbuf);
 
@@ -1597,7 +1601,7 @@ parseHttpRequest(icpStateData * icpState)
     xmemcpy(icpState->request_hdr, req_hdr, req_hdr_sz);
     *(icpState->request_hdr + req_hdr_sz) = '\0';
 
-    debug(12, 5, "parseHttpRequest: Request Header is\n---\n%s\n---\n",
+    debug(12, 5, "parseHttpRequest: Request Header is\n%s\n",
 	icpState->request_hdr);
 
 #ifdef DONT
