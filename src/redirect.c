@@ -48,6 +48,7 @@ static HLPCB redirectHandleReply;
 static void redirectStateFree(redirectStateData * r);
 static helper *redirectors = NULL;
 static OBJH redirectStats;
+static int n_bypassed = 0;
 
 static void
 redirectHandleReply(void *data, char *reply)
@@ -81,6 +82,9 @@ redirectStats(StoreEntry * sentry)
 {
     storeAppendPrintf(sentry, "Redirector Statistics:\n");
     helperStats(sentry, redirectors);
+    if (Config.onoff.redirector_bypass)
+	storeAppendPrintf(sentry, "\nNumber of requests bypassed "
+	    "because all redirectors were busy: %d\n", n_bypassed);
 }
 
 /**** PUBLIC FUNCTIONS ****/
@@ -96,6 +100,12 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
     assert(handler);
     debug(29, 5) ("redirectStart: '%s'\n", http->uri);
     if (Config.Program.redirect == NULL) {
+	handler(data, NULL);
+	return;
+    }
+    if (Config.onoff.redirector_bypass && redirectors->stats.queue_size) {
+	/* Skip redirector if there is one request queued */
+	n_bypassed++;
 	handler(data, NULL);
 	return;
     }

@@ -2906,4 +2906,20 @@ DOC_START
 	and coredump files will be left there.
 DOC_END
 
+NAME: redirector_bypass
+TYPE: onoff
+LOC: Config.onoff.redirector_bypass
+DEFAULT: off
+DOC_START
+	When this is 'on', a request will not go through the
+	redirector if all redirectors are busy.  If this is 'off'
+	and the redirector queue grows too large, Squid will exit
+	with a FATAL erorr and ask you to increase the number of
+	redirectors.  You should only enable this if the redirectors
+	are not critical to your caching system.  If you use
+	redirectors for access control, and you enable this option,
+	then users may have access to pages that they should not
+	be allowed to request.
+DOC_END
+
 EOF
