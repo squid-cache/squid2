@@ -128,7 +128,7 @@ protocol_t urlParseProtocol(s)
     if (strncasecmp(s, "gopher", 6) == 0)
 	return PROTO_GOPHER;
     if (strncasecmp(s, "wais", 4) == 0)
-        return PROTO_WAIS;
+	return PROTO_WAIS;
     if (strncasecmp(s, "cache_object", 12) == 0)
 	return PROTO_CACHEOBJ;
     if (strncasecmp(s, "file", 4) == 0)
@@ -148,7 +148,7 @@ int urlDefaultPort(p)
     case PROTO_GOPHER:
 	return 70;
     case PROTO_WAIS:
-        return 210;
+	return 210;
     case PROTO_CACHEOBJ:
 	return CACHE_HTTP_PORT;
     default:
