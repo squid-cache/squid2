@@ -757,6 +757,8 @@ storeUnregister(StoreEntry * e, void *data)
 	commSetSelect(sc->swapin_fd, COMM_SELECT_READ, NULL, NULL, 0);
 	file_close(sc->swapin_fd);
     }
+    if (sc->callback)
+	debug(20,1)("WARNING: store_client for %s has a callback\n", e->url);
     cbdataFree(sc);
     return 1;
 }

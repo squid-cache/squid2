@@ -148,7 +148,6 @@ waisTimeout(int fd, void *data)
     err->http_status = HTTP_GATEWAY_TIMEOUT;
     err->request = urlParse(METHOD_CONNECT, waisState->request);
     errorAppendEntry(entry, err);
-
     storeAbort(entry, 0);
     comm_close(fd);
 }

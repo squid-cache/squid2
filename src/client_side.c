@@ -219,6 +219,8 @@ icpHandleIMSReply(void *data, char *buf, ssize_t size)
     int unlink_request = 0;
     StoreEntry *oldentry;
     debug(33, 3) ("icpHandleIMSReply: FD %d '%s'\n", fd, entry->url);
+    put_free_4k_page(buf);
+    buf = NULL;
     /* unregister this handler */
     if (entry->store_status == STORE_ABORTED) {
 	debug(33, 3) ("icpHandleIMSReply: ABORTED '%s'\n", entry->url);

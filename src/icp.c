@@ -1838,6 +1838,7 @@ clientReadRequest(int fd, void *data)
 		err->url = xstrdup(http->url);
 		http->al.http.code = err->http_status;
 		errorSend(fd, err);
+		safe_free(headers);
 		break;
 	    }
 	    request->client_addr = conn->peer.sin_addr;

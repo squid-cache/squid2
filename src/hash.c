@@ -431,6 +431,7 @@ void
 hashFreeMemory(hash_table * hid)
 {
     safe_free(hid->buckets);
+    safe_free(hid);
 }
 
 
