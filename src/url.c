@@ -296,6 +296,7 @@ urnParse(method_t method, char *urn)
     request->method = method;
     request->protocol = PROTO_URN;
     xstrncpy(request->urlpath, &urn[4], MAX_URL);
+    rfc1738_unescape(request->urlpath);
     request->max_age = -1;
     request->max_forwards = -1;
     return request;
