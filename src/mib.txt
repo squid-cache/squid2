@@ -356,6 +356,11 @@ squid MODULE-IDENTITY
                 STATUS current
         ::= { cacheProtoAggregateStats 14 }
 
+       cacheClients OBJECT-TYPE
+                SYNTAX Counter32
+                MAX-ACCESS read-only
+                STATUS current
+        ::= { cacheProtoAggregateStats 15 }
 
 	--
 	-- cacheProtoMedianSvcStats group
@@ -436,6 +441,18 @@ squid MODULE-IDENTITY
                 MAX-ACCESS read-only
                 STATUS current
         ::= { cacheMedianSvcEntry 8 } 
+
+        cacheRequestHitRatio OBJECT-TYPE
+                SYNTAX Integer32
+                MAX-ACCESS read-only
+                STATUS current
+        ::= { cacheMedianSvcEntry 9 }
+
+        cacheRequestByteRatio OBJECT-TYPE
+                SYNTAX Integer32
+                MAX-ACCESS read-only
+                STATUS current
+        ::= { cacheMedianSvcEntry 10 }
 
 --
 -- cacheNetwork group

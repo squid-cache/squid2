@@ -76,8 +76,6 @@ static OBJH statAvg5min;
 static OBJH statAvg60min;
 static OBJH statUtilization;
 static OBJH statCountersHistograms;
-static double statRequestHitRatio(int minutes);
-static double statByteHitRatio(int minutes);
 
 #ifdef XMALLOC_STATISTICS
 static void info_get_mallstat(int, int, StoreEntry *);
@@ -1253,7 +1251,7 @@ statCPUUsage(int minutes)
 	tvSubDsec(CountHist[minutes].timestamp, CountHist[0].timestamp));
 }
 
-static double
+extern double
 statRequestHitRatio(int minutes)
 {
     assert(minutes < N_COUNT_HIST);
@@ -1263,7 +1261,7 @@ statRequestHitRatio(int minutes)
 	CountHist[minutes].client_http.requests);
 }
 
-static double
+extern double
 statByteHitRatio(int minutes)
 {
     size_t s;

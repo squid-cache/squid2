@@ -420,6 +420,9 @@ snmp_prfProtoFn(variable_list * Var, snint * ErrP)
 	case PERF_PROTOSTAT_AGGR_CURSWAP:
 	    *(Answer->val.integer) = (snint) store_swap_size;
 	    break;
+        case PERF_PROTOSTAT_AGGR_CLIENTS:
+            *(Answer->val.integer) = (snint) Counter.client_http.clients;
+            break;
 	default:
 	    *ErrP = SNMP_ERR_NOSUCHNAME;
 	    snmp_var_free(Answer);
@@ -469,6 +472,12 @@ snmp_prfProtoFn(variable_list * Var, snint * ErrP)
 	case PERF_MEDIAN_DNS:
 	    x = statHistDeltaMedian(&l->dns.svc_time, &f->dns.svc_time);
 	    break;
+        case PERF_MEDIAN_RHR:
+            x = statRequestHitRatio(minutes) * 100;
+            break;
+        case PERF_MEDIAN_BHR:
+            x = statByteHitRatio(minutes) * 100;
+            break;
 	default:
 	    *ErrP = SNMP_ERR_NOSUCHNAME;
 	    snmp_var_free(Answer);
