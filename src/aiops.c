@@ -46,9 +46,6 @@
 #include	<sched.h>
 #endif
 
-#ifndef NUMTHREADS
-#define	NUMTHREADS		16
-#endif
 #define RIDICULOUS_LENGTH	4096
 
 enum _aio_thread_status {

@@ -1377,6 +1377,7 @@ struct _storeIOState {
 	    } flags;
 	    const char *read_buf;
 	    link_list *pending_writes;
+	    link_list *pending_reads;
 	} aufs;
     } type;
 };

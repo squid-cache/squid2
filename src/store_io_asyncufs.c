@@ -7,6 +7,7 @@
 
 #define SWAP_DIR_SHIFT 24
 #define SWAP_FILE_MASK 0x00FFFFFF
+#define MAGIC1 (NUMTHREADS/Config.cacheSwap.n_configured/2)
 
 static AIOCB storeAufsReadDone;
 static AIOCB storeAufsWriteDone;
@@ -22,6 +23,14 @@ struct _queued_write {
     FREE *free_func;
 };
 
+struct _queued_read {
+    char *buf;
+    size_t size;
+    off_t offset;
+    STRCB *callback;
+    void *callback_data;
+};
+
 /* === PUBLIC =========================================================== */
 
 storeIOState *
@@ -35,6 +44,8 @@ storeAufsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
      * we should detect some 'too many files open' condition and return
      * NULL here.
      */
+    while (aioQueueSize() > MAGIC1)
+	return NULL;
     sio = memAllocate(MEM_STORE_IO);
     cbdataAdd(sio, memFree, MEM_STORE_IO);
     sio->type.aufs.fd = -1;
@@ -47,8 +58,8 @@ storeAufsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
 	mode |= (O_CREAT | O_TRUNC);
     sio->type.aufs.flags.opening = 1;
     aioOpen(path, mode, 0644, storeAufsOpenDone, sio);
-    store_open_disk_fd++;
     Opening_FD++;
+    store_open_disk_fd++;
     return sio;
 }
 
@@ -69,6 +80,21 @@ storeAufsRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB * 
 {
     assert(sio->read.callback == NULL);
     assert(sio->read.callback_data == NULL);
+    assert(!sio->type.aufs.flags.reading);
+    if (sio->type.aufs.fd < 0) {
+	struct _queued_read *q;
+	debug(78, 3) ("storeAufsRead: queueing read because FD < 0\n");
+	assert(sio->type.aufs.flags.opening);
+	assert(sio->type.aufs.pending_reads == NULL);
+	q = xcalloc(1, sizeof(*q));
+	q->buf = buf;
+	q->size = size;
+	q->offset = offset;
+	q->callback = callback;
+	q->callback_data = callback_data;
+	linklistPush(&sio->type.aufs.pending_reads, q);
+	return;
+    }
     sio->read.callback = callback;
     sio->read.callback_data = callback_data;
     sio->type.aufs.read_buf = buf;
@@ -145,6 +171,19 @@ storeAufsKickWriteQueue(storeIOState * sio)
     return 1;
 }
 
+static int
+storeAufsKickReadQueue(storeIOState * sio)
+{
+    struct _queued_read *q = linklistShift(&sio->type.aufs.pending_reads);
+    if (NULL == q)
+	return 0;
+    debug(78, 3) ("storeAufsKickReadQueue: reading queued request of %d bytes\n",
+	q->size);
+    storeAufsRead(sio, q->buf, q->size, q->offset, q->callback, q->callback_data);
+    xfree(q);
+    return 1;
+}
+
 static void
 storeAufsOpenDone(int unused, void *my_data, int fd, int errflag)
 {
@@ -153,7 +192,9 @@ storeAufsOpenDone(int unused, void *my_data, int fd, int errflag)
     Opening_FD--;
     sio->type.aufs.flags.opening = 0;
     if (errflag || fd < 0) {
-	debug(78, 0) ("storeAufsOpenDone: got failure (%d)\n", errflag);
+	errno = errflag;
+	debug(78, 0) ("storeAufsOpenDone: %s\n", xstrerror());
+	debug(78, 1) ("\t%s\n", storeUfsFullPath(sio->swap_file_number, NULL));
 	storeAufsIOCallback(sio, errflag);
 	return;
     }
@@ -162,10 +203,8 @@ storeAufsOpenDone(int unused, void *my_data, int fd, int errflag)
     fd_open(fd, FD_FILE, storeUfsFullPath(sio->swap_file_number, NULL));
     if (sio->mode == O_WRONLY)
 	storeAufsKickWriteQueue(sio);
-    /*
-     * XXX TODO
-     * We don't have queued reads yet
-     */
+    else if (sio->mode == O_RDONLY)
+	storeAufsKickReadQueue(sio);
     debug(78, 3) ("storeAufsOpenDone: exiting\n");
 }
 

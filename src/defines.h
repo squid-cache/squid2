@@ -270,3 +270,9 @@
 #ifndef _PATH_DEVNULL
 #define _PATH_DEVNULL "/dev/null"
 #endif
+
+#if USE_ASYNC_IO
+#ifndef NUMTHREADS
+#define NUMTHREADS 64
+#endif
+#endif

@@ -473,6 +473,9 @@ mainInitialize(void)
 #endif
 
     if (!configured_once) {
+#if USE_ASYNC_IO
+	aioInit();
+#endif
 	unlinkdInit();
 	urlInitialize();
 	cachemgrInit();

@@ -80,6 +80,7 @@ extern int aio_operations_pending(void);
 extern int aio_overloaded(void);
 extern int aio_sync(void);
 
+extern void aioInit(void);
 extern void aioCancel(int);
 extern void aioOpen(const char *, int, mode_t, AIOCB *, void *);
 extern void aioClose(int);
@@ -89,6 +90,7 @@ extern void aioStat(char *, struct stat *, AIOCB *, void *);
 extern void aioUnlink(const char *, AIOCB *, void *);
 extern void aioCheckCallbacks(void);
 extern void aioSync(void);
+extern int aioQueueSize(void);
 #endif
 
 /*
