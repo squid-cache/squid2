@@ -69,7 +69,6 @@
 #endif
 #include "snmp-internal.h"
 #include "parse.h"
-#include "snmp_compat.h"
 #include "snmp_debug.h"
 
 #endif /* SQUID_SNMP_H */
