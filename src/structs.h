@@ -342,6 +342,7 @@ struct _SquidConfig {
     char *debugOptions;
     char *pidFilename;
     char *mimeTablePathname;
+    char *etcHostsPath;
     char *visibleHostname;
     char *uniqueHostname;
     wordlist *hostnameAliases;

@@ -351,6 +351,7 @@ mainReconfigure(void)
     _db_init(Config.Log.log, Config.debugOptions);
     ipcache_restart();		/* clear stuck entries */
     fqdncache_restart();	/* sigh, fqdncache too */
+    parseEtcHosts();
     errorInitialize();		/* reload error pages */
 #if USE_DNSSERVERS
     dnsInit();
@@ -482,6 +483,7 @@ mainInitialize(void)
 	disk_init();		/* disk_init must go before ipcache_init() */
     ipcache_init();
     fqdncache_init();
+    parseEtcHosts();
 #if USE_DNSSERVERS
     dnsInit();
 #else
