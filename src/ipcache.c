@@ -34,6 +34,7 @@ typedef struct _ipcache_list {
 typedef struct _dnsserver_entry {
     int id;
     int alive;
+    int expect_close;
     int inpipe;
     int outpipe;
     int pending_count;		/* counter of outstanding request */
@@ -963,8 +964,9 @@ int ipcache_dnsHandleRead(fd, data)
     debug(14, 5, "ipcache_dnsHandleRead: Result from DNS ID %d.\n", data->id);
 
     if (len == 0) {
-	debug(14, 1, "ipcache_dnsHandleRead: Connection from DNSSERVER is closed.\n");
-	debug(14, 1, "                       Disabling this server ID %d.\n", data->id);
+	if (!data->expect_close)
+	    debug(14, 1, "Connection from DNSSERVER #%d is closed, disabling\n",
+		data->id + 1);
 	data->alive = 0;
 	update_dns_child_alive();
 	ipcache_cleanup_pendinglist(data);
@@ -1457,5 +1459,6 @@ void ipcacheShutdownServers()
 	    0,			/* Lock */
 	    0,			/* Handler */
 	    0);			/* Handler-data */
+	dns->expect_close = 1;
     }
 }
