@@ -698,6 +698,8 @@ httpSendComplete(int fd, char *buf, int size, int errflag, void *data)
     ErrorState *err;
     debug(11, 5) ("httpSendComplete: FD %d: size %d: errflag %d.\n",
 	fd, size, errflag);
+    if (errflag == COMM_ERR_CLOSING)
+	return;
     if (errflag) {
 	err = xcalloc(1, sizeof(ErrorState));
 	err->type = ERR_WRITE_ERROR;

@@ -818,7 +818,8 @@ icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data
     http->entry = NULL;
     http->out.size += size;
     http->al.http.code = 304;
-    comm_close(fd);
+    if (errflag != COMM_ERR_CLOSING)
+	comm_close(fd);
 }
 
 /*

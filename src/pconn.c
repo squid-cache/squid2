@@ -44,8 +44,8 @@ static PF pconnTimeout;
 static const char *pconnKey(const char *host, u_short port);
 static hash_table *table = NULL;
 static struct _pconn *pconnNew(const char *key);
-static void pconnDelete(struct _pconn * p);
-static void pconnRemoveFD(struct _pconn * p, int fd);
+static void pconnDelete(struct _pconn *p);
+static void pconnRemoveFD(struct _pconn *p, int fd);
 
 
 static const char *

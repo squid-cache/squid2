@@ -119,7 +119,7 @@ typedef struct {
     char *link;
 } ftpListParts;
 
-typedef void (FTPSM)(FtpStateData *);
+typedef void (FTPSM) (FtpStateData *);
 
 /* Local functions */
 static CNCB ftpConnectDone;

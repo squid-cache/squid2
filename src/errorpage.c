@@ -283,10 +283,12 @@ errorSendComplete(int fd, char *buf, int size, int errflag, void *data)
 {
     ErrorState *err = data;
     debug(4, 3) ("errorSendComplete: FD %d, size=%d\n", fd, size);
-    if (err->callback)
-	err->callback(fd, err->callback_data, size);
-    else
-	comm_close(fd);
+    if (errflag != COMM_ERR_CLOSING) {
+	if (err->callback)
+	    err->callback(fd, err->callback_data, size);
+	else
+	    comm_close(fd);
+    }
     cbdataUnlock(err);
     errorStateFree(err);
 }

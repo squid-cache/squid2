@@ -163,7 +163,6 @@ protoDispatchFail(peer * p, void *data)
     ErrorState *err;
     if (!storeUnlockObject(pctrl->entry))
 	return;
-    /* was assert */
     err = xcalloc(1, sizeof(ErrorState));
     err->type = ERR_CANNOT_FORWARD;
     err->http_status = HTTP_SERVICE_UNAVAILABLE;
@@ -193,7 +192,6 @@ protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr
 	return 0;
     if (entry->store_status != STORE_PENDING)
 	return 0;
-    /* was assert */
     err = xcalloc(1, sizeof(ErrorState));
     err->type = ERR_CLIENT_ABORT;
     err->http_status = HTTP_INTERNAL_SERVER_ERROR;
@@ -236,7 +234,6 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	objcacheStart(fd, entry);
     } else if (request->method == METHOD_CONNECT) {
 	debug(17, 1) ("protoStart: Cannot retrieve '%s'\n", entry->url);
-	/* was assert */
 	err = xcalloc(1, sizeof(ErrorState));
 	err->type = ERR_UNSUP_REQ;
 	err->http_status = HTTP_BAD_REQUEST;

@@ -189,7 +189,7 @@ typedef struct storeCleanList {
     struct storeCleanList *next;
 } storeCleanList;
 
-typedef void (VCB)(void *);
+typedef void (VCB) (void *);
 
 typedef struct valid_ctrl_t {
     struct stat *sb;
@@ -240,15 +240,15 @@ static mem_hdr *new_MemObjectData(void);
 static MemObject *new_MemObject(const char *);
 static StoreEntry *new_StoreEntry(int, const char *);
 static StoreEntry *storeAddDiskRestore(const char *,
-	int,
-	int,
-	time_t,
-	time_t,
-	time_t,
-	time_t,
-	u_num32,
-	u_num32,
-	int);
+    int,
+    int,
+    time_t,
+    time_t,
+    time_t,
+    time_t,
+    u_num32,
+    u_num32,
+    int);
 static unsigned int storeGetBucketNum(void);
 static void destroy_MemObject(MemObject *);
 static void destroy_MemObjectData(MemObject *);
@@ -263,7 +263,7 @@ static EVH storeCleanup;
 static VCB storeCleanupComplete;
 static void storeValidate(StoreEntry *, VCB *, void *);
 static AIOCB storeValidateComplete;
-static void storeRebuiltFromDisk(struct storeRebuildState * data);
+static void storeRebuiltFromDisk(struct storeRebuildState *data);
 static unsigned int getKeyCounter(void);
 static void storePutUnusedFileno(int fileno);
 static int storeGetUnusedFileno(void);

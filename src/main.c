@@ -107,7 +107,7 @@
 #include "squid.h"
 
 /* for error reporting from xmalloc and friends */
-extern void (*failure_notify)(const char *);
+extern void (*failure_notify) (const char *);
 
 static int opt_send_signal = -1;
 static volatile int rotate_pending = 0;		/* set by SIGUSR1 handler */
