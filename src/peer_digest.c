@@ -103,7 +103,6 @@ peerDigestCreate(peer * p)
 {
     PeerDigest *pd;
     assert(p);
-    /* cannot check cbdataValid(p) because p may not be locked yet */
 
     pd = memAllocate(MEM_PEER_DIGEST);
     cbdataAdd(pd, memFree, MEM_PEER_DIGEST);
@@ -119,7 +118,6 @@ peerDigestDestroy(PeerDigest * pd)
 {
     peer *p;
     assert(pd);
-    assert(cbdataValid(pd));
 
     p = pd->peer;
     pd->peer = NULL;
@@ -196,17 +194,19 @@ peerDigestSetCheck(PeerDigest * pd, time_t delay)
 	strBuf(pd->host), delay);
 }
 
-/* called only when cbdataValid(pd) and
- * peer is about to disappear or have already disappeared */
+/*
+ * called when peer is about to disappear or have already disappeared
+ */
 void
 peerDigestNotePeerGone(PeerDigest * pd)
 {
-    assert(cbdataValid(pd));
     if (pd->flags.requested) {
-	debug(72, 2) ("peerDigest: peer %s is gone, will destroy after fetch.\n", strBuf(pd->host));
+	debug(72, 2) ("peerDigest: peer %s gone, will destroy after fetch.\n",
+	    strBuf(pd->host));
 	/* do nothing now, the fetching chain will notice and take action */
     } else {
-	debug(72, 2) ("peerDigest: peer %s is gone, destroying now.\n", strBuf(pd->host));
+	debug(72, 2) ("peerDigest: peer %s is gone, destroying now.\n",
+	    strBuf(pd->host));
 	peerDigestDestroy(pd);
     }
 }
@@ -522,8 +522,10 @@ peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const
 	    reason = "fetch aborted?!";
 	else if (!(pd = fetch->pd))
 	    reason = "peer digest disappeared?!";
+#if DONT
 	else if (!cbdataValid(pd))
 	    reason = "invalidated peer digest?!";
+#endif
 	else
 	    host = strBuf(pd->host);
     }
