@@ -591,7 +591,7 @@ prfProtoGetFn(oid * Src, long SrcLen)
 {
     debug(49, 5) ("prfProtoGetFn: called with %d\n", SrcLen);
 
-    if (Src[LEN_SQ_PRF] == PERF_PROTOSTAT_MEDIAN && SrcLen == LEN_SQ_PRF + 5)
+    if (Src[LEN_SQ_PRF+1] == PERF_PROTOSTAT_MEDIAN && SrcLen == LEN_SQ_PRF + 5)
 	return snmp_prfProtoFn;
 
     if (SrcLen != LEN_SQ_PRF + 3 || Src[LEN_SQ_PRF] >= PERF_PROTOSTAT_END)
@@ -609,7 +609,7 @@ prfProtoGetNextFn(oid * Src, long SrcLen, oid ** Dest, long *DestLen)
     {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, PERF_PROTOSTAT_AGGR_END - 1, 0, 0, 0};
     oid_ParseFn *ret;
 
-    if (Src[LEN_SQ_PRF] <= PERF_PROTOSTAT_AGGR) {
+    if (Src[LEN_SQ_PRF + 1] <= PERF_PROTOSTAT_AGGR) {
 	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
 	    MIBRoot, MIBRootLen, LEN_SQ_PRF + 1, MIBTail, snmp_prfProtoFn,
 	    LEN_SQ_PRF + 3, LEN_SQ_PRF + 2);
