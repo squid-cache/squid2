@@ -57,6 +57,7 @@ Changes to squid-2.5 ():
 	  cache_peer option.
 	- Responses with Vary: in the header are now cached by squid.
 	  (Henrik Nordstrom).
+	- Removed unused 'siteselect_timeout' directive.
 
 Changes to Squid-2.4.STABLE7 (July 2, 2002):
 

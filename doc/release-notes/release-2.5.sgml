@@ -106,6 +106,7 @@ for Applied Network Research and members of the Web Caching community.
 <tag>vary_ignore_expire</tag>Enables a workaround for web servers that immediately expire Varied objects because they think squid is unable to handle Vary:.
 <tag>sleep_after_fork</tag>Give the OS a small amount of time to accomodate the fork+exec used to launch helpers - if squid has a lot of virtual memory allocated the OS may run out of virtual memory during helper spawning otherwise.
 <tag>reference_age</tag>This has been removed - starting with Squid-2.4 this directive have had no effect and has now been fully removed to avoid confusion.
+<tag>siteselect_timeout</tag>This has been removed - it is not referenced anywhere in the source code.
 </descrip>
 </article>
 
