@@ -228,6 +228,8 @@ storeEntryFlags(const StoreEntry * entry)
 	strcat(buf, "VALIDATED,");
     if (EBIT_TEST(flags, ENTRY_BAD_LENGTH))
 	strcat(buf, "BAD_LENGTH,");
+    if (EBIT_TEST(flags, ENTRY_ABORTED))
+	strcat(buf, "ABORTED,");
     if ((t = strrchr(buf, ',')))
 	*t = '\0';
     return buf;
