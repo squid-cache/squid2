@@ -124,7 +124,7 @@ wb_auth_SOURCES = wb_basic_auth.c wb_common.c samba_nss.h winbindd_nss.h wbntlm.
 INCLUDES = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
     -I$(top_srcdir)/src
 
-LDADD = -L$(top_builddir)/lib -lmiscutil -lntlmauth
+LDADD = -L$(top_builddir)/lib -lmiscutil -lntlmauth $(XTRA_LIBS)
 subdir = src/auth/basic/helpers/winbind
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/autoconf.h
