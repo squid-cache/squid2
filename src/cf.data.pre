@@ -2764,4 +2764,14 @@ DOC_START
 prefer_direct on
 DOC_END
 
+NAME: strip_query_terms
+TYPE: onoff
+LOC: Config.onoff.strip_query_terms
+DEFAULT: on
+DOC_START
+	By default, Squid strips query terms from requested URLs before
+	logging.  This protects your user's privacy.
+strip_query_terms on
+DOC_END
+
 EOF

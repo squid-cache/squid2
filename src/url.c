@@ -351,8 +351,9 @@ urlCanonicalClean(const request_t * request)
 	    /*
 	     * strip arguments AFTER a question-mark
 	     */
-	    if ((t = strchr(buf, '?')))
-		*(++t) = '\0';
+	    if (Config.onoff.strip_query_terms)
+	        if ((t = strchr(buf, '?')))
+		    *(++t) = '\0';
 	    break;
 	}
     }
