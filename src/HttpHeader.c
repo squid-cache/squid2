@@ -431,8 +431,11 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	    if (field_end > this_line && field_end[-1] == '\r') {
 		field_end--;	/* Ignore CR LF */
 		/* Ignore CR CR LF in relaxed mode */
-		if (Config.onoff.relaxed_header_parser && field_end > this_line + 1 && field_end[-1] == '\r')
+		if (Config.onoff.relaxed_header_parser && field_end > this_line + 1 && field_end[-1] == '\r') {
+		    debug(55, Config.onoff.relaxed_header_parser <= 0 ? 1 : 2)
+			("WARNING: Double CR characters in HTTP header {%s}\n", getStringPrefix(field_start, field_end));
 		    field_end--;
+		}
 	    }
 	    /* Barf on stray CR characters */
 	    if (memchr(this_line, '\r', field_end - this_line)) {
@@ -461,16 +464,18 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	    return httpHeaderReset(hdr);
 	}
 	if (e->id == HDR_CONTENT_LENGTH && (e2 = httpHeaderFindEntry(hdr, e->id)) != NULL) {
-	    if (strCmp(e->value, strBuf(e2->value)) != 0) {
+	    if (!Config.onoff.relaxed_header_parser || strCmp(e->value, strBuf(e2->value)) != 0) {
 		debug(55, 1) ("WARNING: found two conflicting content-length headers\n");
 		httpHeaderEntryDestroy(e);
 		return httpHeaderReset(hdr);
 	    } else {
-		debug(55, 2) ("NOTICE: found double content-length header\n");
+		debug(55, Config.onoff.relaxed_header_parser <= 0 ? 1 : 2)
+		    ("NOTICE: found double content-length header\n");
 	    }
 	}
 	if (e->id == HDR_OTHER && stringHasWhitespace(strBuf(e->name))) {
-	    debug(55, 1) ("WARNING: found whitespace in HTTP header name {%s}\n", getStringPrefix(field_start, field_end));
+	    debug(55, Config.onoff.relaxed_header_parser <= 0 ? 1 : 2)
+		("WARNING: found whitespace in HTTP header name {%s}\n", getStringPrefix(field_start, field_end));
 	    if (!Config.onoff.relaxed_header_parser) {
 		httpHeaderEntryDestroy(e);
 		return httpHeaderReset(hdr);
@@ -1103,7 +1108,8 @@ httpHeaderEntryParseCreate(const char *field_start, const char *field_end)
 	return NULL;
     }
     if (Config.onoff.relaxed_header_parser && xisspace(field_start[name_len - 1])) {
-	debug(55, 1) ("NOTICE: Whitespace after header name in '%s'\n", getStringPrefix(field_start, field_end));
+	debug(55, Config.onoff.relaxed_header_parser <= 0 ? 1 : 2)
+	    ("NOTICE: Whitespace after header name in '%s'\n", getStringPrefix(field_start, field_end));
 	while (name_len > 0 && xisspace(field_start[name_len - 1]))
 	    name_len--;
 	if (!name_len)
