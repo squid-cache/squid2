@@ -1848,6 +1848,8 @@ int ftpget_srv_mode(port)
 	FD_SET(0, &R);
 	FD_SET(sock, &R);
 	if (select(sock + 1, &R, NULL, NULL, NULL) < 0) {
+	    if (errno == EINTR)
+		continue;
 	    log_errno2(__FILE__, __LINE__, "select");
 	    continue;
 	}
