@@ -1754,8 +1754,8 @@ storeGetSwapSpace(int size)
     /* free the list */
     safe_free(LRU_list);
 
-    if ((store_swap_size + kb_size > store_swap_high)) {
-	if (++swap_help > SWAP_MAX_HELP) {
+    if (removed == 0 && (store_swap_size + kb_size > store_swap_high)) {
+	if (++swap_help > 1) {
 	    debug(20, DL) ("WARNING: Repeated failures to free up disk space!\n");
 	    DL = 1;
 	}
@@ -1763,7 +1763,7 @@ storeGetSwapSpace(int size)
 	debug(20, DL) ("--> store_swap_high = %d KB\n", store_swap_high);
 	debug(20, DL) ("--> store_swap_size = %d KB\n", store_swap_size);
 	debug(20, DL) ("--> asking for        %d KB\n", kb_size);
-	assert(swap_help < 10);
+	assert(swap_help < SWAP_MAX_HELP);
     } else {
 	swap_help = 0;
 	DL = 3;
