@@ -146,7 +146,7 @@ void rotate_logs(sig)
     neighbors_rotate_log();
     stat_rotate_log();
     _db_rotate_log();
-#if defined(_SQUID_SYSV_SIGNALS_)
+#if RESET_SIGNAL_HANDLER
     signal(sig, rotate_logs);
 #endif
 }
@@ -241,7 +241,7 @@ void sig_child(sig)
     if ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 	debug(21, 3, "sig_child: Ate pid %d\n", pid);
 
-#if defined(_SQUID_SYSV_SIGNALS_)
+#if RESET_SIGNAL_HANDLER
     signal(sig, sig_child);
 #endif
 }
@@ -451,7 +451,7 @@ void reconfigure(sig)
 	    if (fdstatGetType(i) == Socket)
 		comm_set_fd_lifetime(i, lft);
     }
-#if defined(_SQUID_SYSV_SIGNALS_)
+#if RESET_SIGNAL_HANDLER
     signal(sig, reconfigure);
 #endif
 }

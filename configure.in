@@ -137,6 +137,16 @@ foo.mxfast = 0;],
 AC_MSG_RESULT(yes)],
 AC_MSG_RESULT(no))
 
+AC_MSG_CHECKING(if signal handlers need to be reset)
+AC_TRY_RUN([void handle(s) int s; { return; }
+main(){signal(15,handle);kill(getpid(),15);kill(getpid(),15);exit(0);}],
+AC_MSG_RESULT(no),
+[AC_DEFINE(RESET_SIGNAL_HANDLER)
+AC_MSG_RESULT(yes)],
+dnl default
+[AC_DEFINE(RESET_SIGNAL_HANDLER)
+AC_MSG_RESULT(yes)],)
+
 dnl Check for typedefs
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)

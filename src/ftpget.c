@@ -447,7 +447,7 @@ void sigchld_handler(sig)
 
     if ((pid = waitpid(0, &status, WNOHANG)) > 0)
 	Debug(26, 5, ("sigchld_handler: Ate pid %d\n", pid));
-#if defined(_SQUID_SYSV_SIGNALS_)
+#if RESET_SIGNAL_HANDLER
     signal(sig, sigchld_handler);
 #endif
 }
