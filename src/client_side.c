@@ -528,7 +528,8 @@ clientConstructTraceEcho(clientHttpRequest * http)
 	NULL,			/* in_len */
 	buf + len,
 	8192 - len,
-	http->conn->fd);
+	http->conn->fd,
+	0);			/* flags */
     http->log_type = LOG_TCP_MISS;
     http->http_code = 200;
     return buf;

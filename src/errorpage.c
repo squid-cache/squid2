@@ -185,7 +185,7 @@ errorSend(int fd, ErrorState * err)
 }
 
 void
-errorAppendEntry(StoreEntry * entry, ErrorState * err)
+errorAppendEntry(const StoreEntry * entry, ErrorState * err)
 {
     char *buf;
     int len;

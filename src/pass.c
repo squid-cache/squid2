@@ -55,7 +55,7 @@ static void passWriteClient _PARAMS((int fd, void *));
 static ERCB passErrorComplete;
 static void passClose _PARAMS((PassStateData * passState));
 static void passClientClosed _PARAMS((int fd, void *));
-static void passConnectDone _PARAMS((int fd, int status, void *data));
+static CNCB passConnectDone;
 static void passStateFree _PARAMS((int fd, void *data));
 static void passPeerSelectComplete _PARAMS((peer * p, void *data));
 static void passPeerSelectFail _PARAMS((peer * p, void *data));
@@ -337,7 +337,8 @@ passConnectDone(int fd, int status, void *data)
 	&hdr_len,
 	passState->client.buf,
 	SQUID_TCP_SO_RCVBUF >> 1,
-	opt_forwarded_for ? passState->client.fd : -1);
+	opt_forwarded_for ? passState->client.fd : -1,
+	0);			/* flags */
     debug(39, 3) ("passConnectDone: Appending %d bytes of content\n",
 	passState->request->body_sz);
     xmemcpy(passState->client.buf + passState->client.len,

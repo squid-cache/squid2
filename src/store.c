@@ -909,7 +909,7 @@ storeStartDeleteBehind(StoreEntry * e)
 
 /* Append incoming data from a primary server to an entry. */
 void
-storeAppend(StoreEntry * e, const char *buf, int len)
+storeAppend(const StoreEntry * e, const char *buf, int len)
 {
     MemObject *mem = e->mem_obj;
     assert(mem != NULL);

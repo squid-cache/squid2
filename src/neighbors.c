@@ -119,7 +119,7 @@ static void peerRefreshDNS _PARAMS((void *));
 static IPH peerDNSConfigure;
 static void peerCheckConnect _PARAMS((void *));
 static IPH peerCheckConnect2;
-static void peerCheckConnectDone _PARAMS((int, int, void *));
+static CNCB peerCheckConnectDone;
 static void peerCountMcastPeersDone _PARAMS((void *data));
 static void peerCountMcastPeersStart _PARAMS((void *data));
 static void peerCountMcastPeersSchedule _PARAMS((peer * p, time_t when));

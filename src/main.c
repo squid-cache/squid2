@@ -518,6 +518,7 @@ mainInitialize(void)
 	/* after this point we want to see the mallinfo() output */
 	do_mallinfo = 1;
 	mimeInit(Config.mimeTablePathname);
+	pconnInit();
     }
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0 && (!Config2.Accel.on || Config.onoff.accel_with_proxy))

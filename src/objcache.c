@@ -117,14 +117,15 @@ typedef struct objcache_ds {
 } ObjectCacheData;
 
 struct op_table {
-	objcache_op op;
-	OBJH *handler;
+    objcache_op op;
+    OBJH *handler;
 };
 
 static ObjectCacheData *objcache_url_parser _PARAMS((const char *url));
 static int objcache_CheckPassword _PARAMS((ObjectCacheData *));
 static char *objcachePasswdGet _PARAMS((cachemgr_passwd ** a, objcache_op op));
 static OBJH objcacheUnimplemented;
+static OBJH cachemgrShutdown;
 
 static struct op_table OpTable[] =
 {
@@ -149,7 +150,7 @@ static struct op_table OpTable[] =
     {MGR_REMOVE, objcacheUnimplemented},
     {MGR_REPLY_HDRS, httpReplyHeaderStats},
     {MGR_SERVER_LIST, server_list},
-    {MGR_SHUTDOWN, objcacheUnimplemented},
+    {MGR_SHUTDOWN, cachemgrShutdown},
     {MGR_UTILIZATION, stat_utilization_get},
     {MGR_VM_OBJECTS, stat_vmobjects_get},
     {MGR_STOREDIR, storeDirStats},
@@ -267,10 +268,10 @@ objcacheStart(int fd, StoreEntry * entry)
     ErrorState *err = NULL;
     debug(16, 3) ("objectcacheStart: '%s'\n", entry->url);
     if ((data = objcache_url_parser(entry->url)) == NULL) {
-        err = xcalloc(1, sizeof(ErrorState));
-        err->type = ERR_INVALID_REQ;
-        err->http_status = HTTP_NOT_FOUND;
-        errorAppendEntry(entry, err);
+	err = xcalloc(1, sizeof(ErrorState));
+	err->type = ERR_INVALID_REQ;
+	err->http_status = HTTP_NOT_FOUND;
+	errorAppendEntry(entry, err);
 	entry->expires = squid_curtime;
 	storeAbort(entry, 0);
 	return;
@@ -285,10 +286,10 @@ objcacheStart(int fd, StoreEntry * entry)
     if (objcache_CheckPassword(data) != 0) {
 	safe_free(data);
 	debug(16, 1) ("WARNING: Incorrect Cachemgr Password!\n");
-        err = xcalloc(1, sizeof(ErrorState));
-        err->type = ERR_INVALID_REQ;
-        err->http_status = HTTP_NOT_FOUND;
-        errorAppendEntry(entry, err);
+	err = xcalloc(1, sizeof(ErrorState));
+	err->type = ERR_INVALID_REQ;
+	err->http_status = HTTP_NOT_FOUND;
+	errorAppendEntry(entry, err);
 	storeAbort(entry, 0);
 	entry->expires = squid_curtime;
 	storeComplete(entry);
@@ -310,10 +311,10 @@ objcacheStart(int fd, StoreEntry * entry)
 }
 
 static void
-cachemgrShutdown(StoreEntry *unused)
+cachemgrShutdown(StoreEntry * unused)
 {
-	debug(16, 0) ("Shutdown by command.\n");
-	shut_down(0);
+    debug(16, 0) ("Shutdown by command.\n");
+    shut_down(0);
 }
 
 void
@@ -377,9 +378,9 @@ objcachePasswdGet(cachemgr_passwd ** a, objcache_op op)
 }
 
 static void
-objcacheUnimplemented(StoreEntry *entry)
+objcacheUnimplemented(StoreEntry * entry)
 {
-	storeAppendPrintf(entry, "Unimplemented operation\n");
+    storeAppendPrintf(entry, "Unimplemented operation\n");
 }
 
 void

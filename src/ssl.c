@@ -58,7 +58,7 @@ static void sslProxyConnected _PARAMS((int fd, void *));
 static ERCB sslErrorComplete;
 static void sslClose _PARAMS((SslStateData * sslState));
 static void sslClientClosed _PARAMS((int fd, void *));
-static void sslConnectDone _PARAMS((int fd, int status, void *data));
+static CNCB sslConnectDone;
 static void sslStateFree _PARAMS((int fd, void *data));
 static void sslPeerSelectComplete _PARAMS((peer * p, void *data));
 static void sslPeerSelectFail _PARAMS((peer * p, void *data));

@@ -212,9 +212,9 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 #endif
     if (e) {
 	e->stats.fetches++;
-	proxyhttpStart(request, entry, e);
+	httpStart(request, entry, e);
     } else if (request->protocol == PROTO_HTTP) {
-	httpStart(request, entry);
+	httpStart(request, entry, NULL);
     } else if (request->protocol == PROTO_GOPHER) {
 	gopherStart(entry);
     } else if (request->protocol == PROTO_FTP) {

@@ -320,7 +320,7 @@ connStateFree(int fd, void *data)
     safe_free(connState->in.buf);
     meta_data.misc -= connState->in.size;
     pconnHistCount(0, connState->nrequests);
-    safe_free(connState);
+    cbdataFree(connState);
 }
 
 void
@@ -2026,6 +2026,7 @@ httpAccept(int sock, void *notused)
     connState->ident.fd = -1;
     connState->in.size = REQUEST_BUF_SIZE;
     connState->in.buf = xcalloc(connState->in.size, 1);
+    cbdataAdd(connState);
     meta_data.misc += connState->in.size;
     comm_add_close_handler(fd, connStateFree, connState);
     if (Config.onoff.log_fqdn)

@@ -197,10 +197,10 @@ statUtilization(cacheinfo * obj, StoreEntry * sentry, const char *desc)
 }
 
 void
-stat_utilization_get(StoreEntry *e)
+stat_utilization_get(StoreEntry * e)
 {
-	statUtilization(HTTPCacheInfo, e, "HTTP");
-	statUtilization(ICPCacheInfo, e, "ICP");
+    statUtilization(HTTPCacheInfo, e, "HTTP");
+    statUtilization(ICPCacheInfo, e, "ICP");
 }
 
 void
@@ -360,15 +360,15 @@ statObjects(StoreEntry * sentry, int vm_or_not)
 }
 
 void
-stat_objects_get(StoreEntry *e)
+stat_objects_get(StoreEntry * e)
 {
-	statObjects(e, 0);
+    statObjects(e, 0);
 }
 
 void
-stat_vmobjects_get(StoreEntry *e)
+stat_vmobjects_get(StoreEntry * e)
 {
-	statObjects(e, 1);
+    statObjects(e, 1);
 }
 
 void
@@ -887,8 +887,8 @@ stat_init(cacheinfo ** object, const char *logfilename)
 	obj->proto_stat_data[i].kb.now = 0;
     }
     *object = obj;
-	for (i=0; i<PCONN_HIST_SZ; i++)
-		client_pconn_hist[i] = 0;
+    for (i = 0; i < PCONN_HIST_SZ; i++)
+	client_pconn_hist[i] = 0;
 }
 
 void

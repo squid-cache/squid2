@@ -61,9 +61,7 @@ clientdbInit(void)
 {
     if (client_table)
 	return;
-    client_table = hash_create((int (*)_PARAMS((const char *, const char *))) strcmp,
-	229,
-	hash_string);
+    client_table = hash_create((HASHCMP *) strcmp, 229, hash_string);
     client_info_sz = sizeof(ClientInfo);
 }
 
