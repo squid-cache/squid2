@@ -86,7 +86,13 @@
 #	             neighbor machine has the UDP echo port
 #	             enabled in its /etc/inetd.conf file.
 #
-#	    options: use 'proxy-only' to specify that objects fetched
+#	    options: proxy-only
+#		     weight=n
+#		     ttl=n
+#		     no-query
+#		     default
+#
+#		     use 'proxy-only' to specify that objects fetched
 #		     from this cache should not be saved locally.
 #
 #		     use 'weight=n' to specify a weighted parent.
@@ -96,10 +102,17 @@
 #                    use 'ttl=n' to specify a IP multicast TTL to use
 #                    when sending an ICP request to this address.
 #                    Only useful when sending to a multicast group.
-#                    
 #                    multicast groups are treated like regular parents and
 #                    neighbo[u]rs, except that we don't expect to see any
 #                    replies from them.
+#
+#		     use 'no-query' to NOT send ICP queries to this
+#		     neighbor.
+#
+#		     use 'default' if this is a parent cache which can
+#		     be used as a "last-resort." You should probably
+#		     only use 'default' in situations where you cannot
+#		     use ICP with your parent cache(s).
 #
 #	NOTE: non-ICP neighbors must be specified as 'parent'.
 #
