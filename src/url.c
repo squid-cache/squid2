@@ -228,6 +228,9 @@ request_t *urlParse(method, url)
     }
     for (t = host; *t; t++)
 	*t = tolower(*t);
+    /* remove trailing dots from hostnames */
+    while ((l = strlen(host)) && host[--l] == '.')
+	host[l] = '\0';
     if (port == 0) {
 	debug(23, 0, "urlParse: Invalid port == 0\n");
 	return NULL;
