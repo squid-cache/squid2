@@ -503,6 +503,7 @@ peerDigestLookup(peer * p, request_t * request, StoreEntry * entry)
 	debug(15, 5) ("peerDigestLookup: !initialized\n");
 	if (!p->digest.flags.init_pending) {
 	    p->digest.flags.init_pending = 1;
+	    cbdataLock(p);
 	    eventAdd("peerDigestInit", peerDigestInit, p, 0.0, 1);
 	}
 	return LOOKUP_NONE;
