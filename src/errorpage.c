@@ -61,6 +61,7 @@ static const struct {
 	    "\n<br clear=\"all\">\n"
 	    "<hr noshade size=1>\n"
 	    "Generated on %T by <a href=\"http://squid.nlanr.net/\">%s</a>@%h\n"
+	    "</BODY></HTML>\n"
     }
 };
 
