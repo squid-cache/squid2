@@ -222,9 +222,19 @@ storeDigestAddable(const StoreEntry * e)
 	    StoreDigestRebuildPeriod);
 	return 0;
     }
-    /* idea: how about also skipping very fresh (thus, potentially unstable) 
-     * entries? Should be configurable through cd_refresh_pattern, of course */
-
+    /*
+     * idea: how about also skipping very fresh (thus, potentially
+     * unstable) entries? Should be configurable through
+     * cd_refresh_pattern, of course.
+     */
+    /*
+     * idea: skip objects that are going to be purged before the next
+     * update.
+     */
+#if !HEAP_REPLACEMENT
+    if ((squid_curtime + StoreDigestRebuildPeriod) - e->lastref > storeExpiredReferenceAge())
+	return 0;
+#endif
     return 1;
 }
 
