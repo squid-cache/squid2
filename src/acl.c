@@ -1287,7 +1287,7 @@ aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
 		acl->name, r->host);
 	    checklist->state[ACL_DST_ASN] = ACL_LOOKUP_NEEDED;
 	} else {
-	    return asnMatchIp(&acl->data, no_addr);
+	    return asnMatchIp(&(acl->data), no_addr);
 	}
 	return 0;
 #if USE_ARP_ACL

@@ -845,7 +845,7 @@ snmpFwd_removePending(struct sockaddr_in *fr, long reqid)
 		snmpHead = p->next;
 	    else if (p->next == NULL)
 		prev->next = NULL;
-	    debug(0, 0) ("snmpFwd_removePending: freeing %p\n", p);
+	    debug(49, 3) ("snmpFwd_removePending: freeing %p\n", p);
 	    xfree(p);
 	    return 0;
 	}
@@ -891,9 +891,9 @@ snmpUdpReply(int fd, void *data)
 		break;		/* don't de-queue */
 	}
 	snmpUdpHead = queue->next;
-	debug(0, 0) ("snmpUdpReply: freeing %p\n", queue->msg);
+	debug(49, 3) ("snmpUdpReply: freeing %p\n", queue->msg);
 	safe_free(queue->msg);
-	debug(0, 0) ("snmpUdpReply: freeing %p\n", queue);
+	debug(49, 3) ("snmpUdpReply: freeing %p\n", queue);
 	safe_free(queue);
     }
     /* Reinstate handler if needed */
