@@ -431,7 +431,7 @@ aclMatchExternal(void *data, aclCheck_t * ch)
 	}
 	ch->auth_user_request = NULL;
     }
-    if (!entry) {
+    if (!entry || entry->result == -1) {
 	debug(82, 2) ("aclMatchExternal: %s(\"%s\") = lookup needed\n", acl->def->name, key);
 	ch->state[ACL_EXTERNAL] = ACL_LOOKUP_NEEDED;
 	return 0;
