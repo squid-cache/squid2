@@ -177,8 +177,8 @@ static int icpStateFree(fd, icpState)
     int size = 0;
     int http_code = 0;
     int elapsed_msec;
-    hier_code hierarchy_code = HIER_NONE;
-    char *hierarchy_host = NULL;
+    hier_code hier_code = HIER_NONE;
+    char *hier_host = NULL;
 
     if (!icpState)
 	return 1;
@@ -191,12 +191,14 @@ static int icpStateFree(fd, icpState)
     }
     if (icpState->entry) {
 	http_code = icpState->entry->mem_obj->reply->code;
-	hierarchy_code = icpState->entry->mem_obj->hierarchy_code;
-	hierarchy_host = icpState->entry->mem_obj->hierarchy_host;
     } else {
 	http_code = icpState->http_code;
     }
     elapsed_msec = tvSubMsec(icpState->start, current_time);
+    if (icpState->request) {
+	hier_code = icpState->request->hierarchy_code;
+	hier_host = icpState->request->hierarchy_host;
+    }
     CacheInfo->log_append(CacheInfo,
 	icpState->url,
 	icpState->log_addr,
@@ -206,8 +208,8 @@ static int icpStateFree(fd, icpState)
 	http_code,
 	elapsed_msec,
 	icpState->ident,
-	hierarchy_code,
-	hierarchy_host);
+	hier_code,
+	hier_host);
     if (icpState->ident_fd)
 	comm_close(icpState->ident_fd);
     safe_free(icpState->inbuf);
