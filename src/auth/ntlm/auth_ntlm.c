@@ -1013,17 +1013,6 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	    ntlm_request->authchallenge,
 	    ntlm_request->ntlmauthenticate,
 	    ntlm_user->username);
-	/* normal case with challenge reuses disabled */
-	if (ntlmConfig->challengeuses == 0) {
-	    /* set these to now because this is either a new login from an 
-	     * existing user or a new user */
-	    auth_user->expiretime = current_time.tv_sec;
-	    return;
-	}
-	/* cache entries have authenticateauthheaderchallengestring */
-	snprintf(ntlmhash, sizeof(ntlmhash) - 1, "%s%s",
-	    ntlm_request->ntlmauthenticate,
-	    ntlm_request->authchallenge);
 	/* see if this is an existing user with a different proxy_auth 
 	 * string */
 	usernamehash = hash_lookup(proxy_auth_username_cache, ntlm_user->username);
@@ -1036,7 +1025,6 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	     * add another link from the new proxy_auth to the
 	     * auth_user structure and update the information */
 	    assert(proxy_auth_hash == NULL);
-	    authenticateProxyAuthCacheAddLink(ntlmhash, usernamehash->auth_user);
 	    /* we can't seamlessly recheck the username due to the 
 	     * challenge nature of the protocol. Just free the 
 	     * temporary auth_user */
@@ -1046,6 +1034,12 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	} else {
 	    /* store user in hash's */
 	    authenticateUserNameCacheAdd(auth_user);
+	}
+	if (ntlmConfig->challengeuses) {
+	    /* cache entries have authenticateauthheaderchallengestring */
+	    snprintf(ntlmhash, sizeof(ntlmhash) - 1, "%s%s",
+		ntlm_request->ntlmauthenticate,
+		ntlm_request->authchallenge);
 	    authenticateProxyAuthCacheAddLink(ntlmhash, auth_user);
 	}
 	/* set these to now because this is either a new login from an 
