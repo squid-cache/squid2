@@ -207,15 +207,9 @@ typedef void (*SIH) _PARAMS((int, void *));	/* swap in */
 #include "stmem.h"
 #include "store.h"
 #include "tools.h"
-#include "ttl.h"
-#include "storetoString.h"
 #include "http.h"
 #include "ftp.h"
 #include "gopher.h"
-#include "wais.h"
-#include "ssl.h"
-#include "objcache.h"
-#include "send-announce.h"
 #include "acl.h"
 #include "util.h"
 #include "background.h"
@@ -246,3 +240,17 @@ extern char version_string[];	/* main.c */
 extern char appname[];		/* main.c */
 extern struct in_addr local_addr;	/* main.c */
 extern char localhost[];
+
+
+/* Prototypes and definitions which don't really deserve a seaprate
+   include file */
+
+#define  CONNECT_PORT        443
+
+extern int objcacheStart _PARAMS((int, char *, StoreEntry *));
+extern void send_announce _PARAMS((void));
+extern int sslStart _PARAMS((int fd, char *, request_t *, char *, int *sz));
+extern char *storeToString _PARAMS((StoreEntry *));
+extern time_t ttlSet _PARAMS((StoreEntry *));
+extern void ttlAddToList _PARAMS((char *, time_t, int, time_t));
+extern int waisStart _PARAMS((int, char *, method_t, char *, StoreEntry *));
