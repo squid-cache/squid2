@@ -464,7 +464,6 @@ icpSendERROR(int fd,
     icpStateData * icpState,
     int httpCode)
 {
-    int buf_len = 0;
     char *buf = NULL;
 
     icpState->log_type = errorCode;
@@ -479,13 +478,11 @@ icpSendERROR(int fd,
 	comm_close(fd);
 	return;
     }
-    buf_len = strlen(text);
-    buf_len = buf_len > 4095 ? 4095 : buf_len;
     buf = get_free_4k_page();
     xstrncpy(buf, text, 4096);
     comm_write(fd,
 	buf,
-	buf_len,
+	strlen(buf),
 	30,
 	icpSendERRORComplete,
 	(void *) icpState,
