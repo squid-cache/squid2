@@ -1429,7 +1429,7 @@ int asciiHandleConn(sock, notused)
     }
     /* set the hardwired lifetime */
     lft = comm_set_fd_lifetime(fd, getClientLifetime());
-    nconn++;
+    ntcpconn++;
 
     debug(12, 4, "asciiHandleConn: FD %d: accepted (lifetime %d).\n", fd, lft);
     fd_note(fd, inet_ntoa(peer.sin_addr));

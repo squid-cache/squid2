@@ -168,7 +168,7 @@ void shut_down(sig)
     int i;
     int lft = getShutdownLifetime();
     FD_ENTRY *f;
-    debug(21, 1, "Preparing for shutdown after %d connections\n", nconn);
+    debug(21, 1, "Preparing for shutdown after %d connections\n", ntcpconn);
     serverConnectionsClose();
     ipcacheShutdownServers();
     for (i = fdstat_biggest_fd(); i >= 0; i--) {
