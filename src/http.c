@@ -375,7 +375,7 @@ httpMakeVaryMark(request_t * request, HttpReply * reply)
     }
     stringClean(&vary);
 #endif
-    debug(11, 0) ("httpMakeVaryMark: %d / %s\n", ok, strBuf(vstr));
+    debug(11, 3) ("httpMakeVaryMark: %d / %s\n", ok, strBuf(vstr));
     return strBuf(vstr);
 }
 
