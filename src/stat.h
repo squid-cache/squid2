@@ -126,6 +126,18 @@ struct _cacheinfo {
 
 };
 
+struct _iostats {
+	struct {
+		int reads;
+		int reads_deferred;
+		int read_hist[16];
+		int writes;
+		int write_hist[16];
+	} Http, Ftp;
+};
+
+extern struct _iostats IOStats;
+
 extern cacheinfo *CacheInfo;
 extern unsigned long ntcpconn;
 extern unsigned long nudpconn;

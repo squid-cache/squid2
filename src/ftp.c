@@ -6,8 +6,8 @@
 
 #include "squid.h"
 
-#define FTP_DELETE_GAP  (64*1024)
-#define READBUFSIZ	4096
+#define FTP_DELETE_GAP  (1<<18)
+#define READBUFSIZ	(1<<14)
 #define MAGIC_MARKER    "\004\004\004"	/* No doubt this should be more configurable */
 #define MAGIC_MARKER_SZ 3
 
@@ -258,38 +258,43 @@ int ftpReadReply(fd, data)
     int len;
     int clen;
     int off;
+    int bin;
     StoreEntry *entry = NULL;
 
     entry = data->entry;
-    if (entry->flag & DELETE_BEHIND) {
-	if (storeClientWaiting(entry)) {
-	    /* check if we want to defer reading */
-	    clen = entry->mem_obj->e_current_len;
-	    off = entry->mem_obj->e_lowest_offset;
-	    if ((clen - off) > FTP_DELETE_GAP) {
-		debug(9, 3, "ftpReadReply: Read deferred for Object: %s\n",
-		    entry->url);
-		debug(9, 3, "--> Current Gap: %d bytes\n", clen - off);
-		/* reschedule, so it will automatically be reactivated when
-		 * Gap is big enough. */
-		comm_set_select_handler(fd,
-		    COMM_SELECT_READ,
-		    (PF) ftpReadReply,
-		    (void *) data);
-		/* dont try reading again for a while */
-		comm_set_stall(fd, getStallDelay());
-		return 0;
-	    }
-	} else {
+    if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
 	    /* we can terminate connection right now */
 	    squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	    comm_close(fd);
 	    return 0;
-	}
+    }
+    /* check if we want to defer reading */
+    clen = entry->mem_obj->e_current_len;
+    off = storeGetLowestReaderOffset(entry);
+    if ((clen - off) > FTP_DELETE_GAP) {
+	IOStats.Ftp.reads_deferred++;
+        debug(11, 3, "ftpReadReply: Read deferred for Object: %s\n",
+            entry->url);
+        debug(11, 3, "                Current Gap: %d bytes\n", clen - off);
+        /* reschedule, so it will be automatically reactivated
+         * when Gap is big enough. */
+        comm_set_select_handler(fd,
+            COMM_SELECT_READ,
+            (PF) ftpReadReply,
+            (void *) data);
+	/* NOTE there is no read timeout handler to disable */
+        /* dont try reading again for a while */
+        comm_set_stall(fd, getStallDelay());
+        return 0;
     }
     errno = 0;
+    IOStats.Ftp.reads++;
     len = read(fd, buf, READBUFSIZ);
     debug(9, 5, "ftpReadReply: FD %d, Read %d bytes\n", fd, len);
+    if (len > 0) {
+        for (clen=len-1, bin=0; clen; bin++) clen>>=1;
+        IOStats.Ftp.read_hist[bin]++;
+    }   
 
     if (len < 0) {
 	debug(9, 1, "ftpReadReply: read error: %s\n", xstrerror());
@@ -317,7 +322,7 @@ int ftpReadReply(fd, data)
 	    /* If we didn't see the magic marker, assume the transfer
 	     * failed and arrange so the object gets ejected and
 	     * never gets to disk. */
-	    debug(9, 1, "ftpReadReply: Didn't see magic marker, purging <URL:%s>.\n", entry->url);
+	    debug(9, 1, "ftpReadReply: Purging '%s'\n", entry->url);
 	    entry->expires = squid_curtime + getNegativeTTL();
 	    BIT_RESET(entry->flag, CACHABLE);
 	    storeReleaseRequest(entry);

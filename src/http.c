@@ -232,6 +232,7 @@ static void httpReadReply(fd, data)
 {
     static char buf[READBUFSIZ];
     int len;
+    int bin;
     int clen;
     int off;
     StoreEntry *entry = NULL;
@@ -247,6 +248,7 @@ static void httpReadReply(fd, data)
     clen = entry->mem_obj->e_current_len;
     off = storeGetLowestReaderOffset(entry);
     if ((clen - off) > HTTP_DELETE_GAP) {
+        IOStats.Http.reads_deferred++;
 	debug(11, 3, "httpReadReply: Read deferred for Object: %s\n",
 	    entry->url);
 	debug(11, 3, "                Current Gap: %d bytes\n", clen - off);
@@ -256,7 +258,7 @@ static void httpReadReply(fd, data)
 	    COMM_SELECT_READ,
 	    (PF) httpReadReply,
 	    (void *) data);
-	/* don't install read timeout until we are below the GAP */
+	/* disable read timeout until we are below the GAP */
 	comm_set_select_handler_plus_timeout(fd,
 	    COMM_SELECT_TIMEOUT,
 	    (PF) NULL,
@@ -267,8 +269,13 @@ static void httpReadReply(fd, data)
 	return;
     }
     errno = 0;
+    IOStats.Http.reads++;
     len = read(fd, buf, READBUFSIZ);
     debug(11, 5, "httpReadReply: FD %d: len %d.\n", fd, len);
+    if (len > 0) {
+    	for (clen=len-1, bin=0; clen; bin++) clen>>=1;
+    	IOStats.Http.read_hist[bin]++;
+    }
 
     if (len < 0) {
 	debug(11, 2, "httpReadReply: FD %d: read failure: %s.\n",

@@ -31,6 +31,7 @@ typedef struct _squid_read_data_t {
 Meta_data meta_data;
 unsigned long ntcpconn = 0;
 unsigned long nudpconn = 0;
+struct _iostats IOStats;
 
 char *stat_describe();
 char *mem_describe();
@@ -105,6 +106,52 @@ void stat_utilization_get(obj, sentry)
 	    p->refcount,
 	    p->transferbyte);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
+    }
+
+    storeAppend(sentry, close_bracket, strlen(close_bracket));
+}
+
+void stat_io_get(obj, sentry)
+     cacheinfo *obj;
+     StoreEntry *sentry;
+{
+    int i;
+    static char tempbuf[MAX_LINELEN];
+
+    storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
+
+    sprintf (tempbuf, "{HTTP I/O}\n");
+    storeAppend(sentry, tempbuf, strlen(tempbuf));
+    sprintf (tempbuf, "{number of reads: %d}\n", IOStats.Http.reads);
+    storeAppend(sentry, tempbuf, strlen(tempbuf));
+    sprintf(tempbuf, "{deferred reads: %d}\n", IOStats.Http.reads_deferred);
+    storeAppend(sentry, tempbuf, strlen(tempbuf));
+    sprintf(tempbuf, "{Read Histogram:}\n");
+    storeAppend(sentry, tempbuf, strlen(tempbuf));
+    for (i=0; i<16; i++) {
+    	sprintf(tempbuf, "{%5d-%5d: %9d}\n",
+		i ? (1<<(i-1))+1 : 0,
+		1<<i,
+		IOStats.Http.read_hist[i]);
+    	storeAppend(sentry, tempbuf, strlen(tempbuf));
+    }
+
+    sprintf (tempbuf, "{}\n");
+    storeAppend(sentry, tempbuf, strlen(tempbuf));
+    sprintf (tempbuf, "{FTP I/O}\n");
+    storeAppend(sentry, tempbuf, strlen(tempbuf));
+    sprintf (tempbuf, "{number of reads: %d}\n", IOStats.Ftp.reads);
+    storeAppend(sentry, tempbuf, strlen(tempbuf));
+    sprintf(tempbuf, "{deferred reads: %d}\n", IOStats.Ftp.reads_deferred);
+    storeAppend(sentry, tempbuf, strlen(tempbuf));
+    sprintf(tempbuf, "{Read Histogram:}\n");
+    storeAppend(sentry, tempbuf, strlen(tempbuf));
+    for (i=0; i<16; i++) {
+    	sprintf(tempbuf, "{%5d-%5d: %9d}\n",
+		i ? (1<<(i-1))+1 : 0,
+		1<<i,
+		IOStats.Ftp.read_hist[i]);
+    	storeAppend(sentry, tempbuf, strlen(tempbuf));
     }
 
     storeAppend(sentry, close_bracket, strlen(close_bracket));
@@ -199,6 +246,8 @@ void stat_get(obj, req, sentry)
 	stat_general_get(obj, sentry);
     } else if (strncmp(req, "utilization", strlen("utilization")) == 0) {
 	stat_utilization_get(obj, sentry);
+    } else if (strcmp(req, "io") == 0) {
+	stat_io_get(obj, sentry);
     }
 }
 
@@ -266,8 +315,7 @@ void log_get_start(obj, sentry)
 	storeComplete(sentry);
 	return;
     }
-    data = (log_read_data_t *) xmalloc(sizeof(log_read_data_t));
-    memset(data, '\0', sizeof(log_read_data_t));
+    data = (log_read_data_t *) xcalloc(1, sizeof(log_read_data_t));
     data->sentry = sentry;
     strcpy(tmp, open_bracket);
     storeAppend(sentry, tmp, 2);
@@ -315,8 +363,7 @@ void squid_get_start(obj, sentry)
 {
     squid_read_data_t *data;
 
-    data = (squid_read_data_t *) xmalloc(sizeof(squid_read_data_t));
-    memset(data, '\0', sizeof(squid_read_data_t));
+    data = (squid_read_data_t *) xcalloc(1, sizeof(squid_read_data_t));
     data->sentry = sentry;
     data->fd = file_open((char *) ConfigFile, NULL, O_RDONLY);
     storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
@@ -982,8 +1029,7 @@ void stat_init(object, logfilename)
     cacheinfo *obj = NULL;
     int i;
 
-    obj = (cacheinfo *) xmalloc(sizeof(cacheinfo));
-    memset(obj, '\0', sizeof(cacheinfo));
+    obj = (cacheinfo *) xcalloc(1, sizeof(cacheinfo));
 
     obj->stat_get = stat_get;
     obj->info_get = info_get;
