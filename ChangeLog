@@ -1,5 +1,15 @@
 Changes to squid-2.5.STABLE9 ()
 
+	- [Minor] relaxed_header_parser extended to work around even more
+	  broken web servers (Bug #1242)
+	- [Minor] FTP gatewaying URLs cleaned up slightly, mainly to work
+	  better with Mozilla but also to improve security slightly on
+	  non-anonymous FTP.
+	- [Minor] High characters allowed un-encoded in FTP and Gopher
+	  listings to allow the user-agent to display data in non-iso8859-1
+	  charsets. (Bug #1220)
+	- [Cosmetic] format fixes to silence compiler warnings on many
+	  platforms.
 	- [Major] Assertion failures on certain odd DNS responses (Bug #1234)
 
 Changes to squid-2.5.STABLE8 (11 Feb 2005)

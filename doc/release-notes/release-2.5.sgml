@@ -339,5 +339,18 @@ name="ChangeLog"> file for details.
 	name="ChangeLog"> file for details.
 </itemize>
 
+<sect>Key changes squid-2.5.STABLE8 to 2.5.STABLE9:
+
+<p>
+<itemize>
+	<item>DNS related assertion error
+	<item>High characters allowed in FTP &amp; Gopher listings.
+	<item>Additional workarounds for broken web servers rejected by 2.5.STABLE8.
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE8"
+	name="squid-2.5.STABLE8 patches"> and the <url url="ChangeLog"
+	name="ChangeLog"> file for details.
+</itemize>
+
 </article>
 
