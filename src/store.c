@@ -196,7 +196,6 @@ static void storeDoRebuildFromDisk _PARAMS((void *data));
 static void storeRebuiltFromDisk _PARAMS((struct storeRebuild_data * data));
 static unsigned int getKeyCounter _PARAMS((void));
 static int storeOpenSwapFileWrite _PARAMS((StoreEntry *));
-static void storeCheckDoneWriting _PARAMS((StoreEntry * e));
 static void storePutUnusedFileno _PARAMS((int fileno));
 static int storeGetUnusedFileno _PARAMS((void));
 
@@ -759,7 +758,7 @@ storeExpireNow(StoreEntry * e)
     e->expires = squid_curtime;
 }
 
-static void
+void
 storeCheckDoneWriting(StoreEntry * e)
 {
     if (e->store_status == STORE_PENDING)
