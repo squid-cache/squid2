@@ -114,7 +114,7 @@ struct sentry {
     enum {
 	NO_SWAP, SWAPPING_OUT, SWAP_OK
     } swap_status:3;
-    int type_id:3;
+    int method:3;
 
     /* WARNING: Explicit assummption that fewer than 256
      * WARNING:  clients all hop onto the same object.  The code

@@ -115,16 +115,16 @@ char *the_url(e)
 	strcpy(token, e->key);
     }
 
-    if (e->type_id == METHOD_GET) {
+    if (e->method == METHOD_GET) {
 	/* key is url */
 	return token;
-    } else if ((e->type_id == METHOD_POST) &&
+    } else if ((e->method == METHOD_POST) &&
 	(!(strncmp(token, "post/", 5)) || !(strncmp(token, "/post/", 6)))) {
 	URL = strtok(token, delim);
 	URL = strtok(NULL, "~");
 	/* discard "/post/" or "post/" from the key and get url */
 	return URL;
-    } else if ((e->type_id == METHOD_HEAD) &&
+    } else if ((e->method == METHOD_HEAD) &&
 	(!(strncmp(token, "head/", 5)) || !(strncmp(token, "/head/", 6)))) {
 	URL = strtok(token, delim);
 	URL = strtok(NULL, "~");

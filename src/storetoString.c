@@ -165,25 +165,7 @@ char *storeToString(e)
     strcat(stsbuf, tmpbuf);
 
 
-    sprintf(tmpbuf, "TypeId: ");
-    switch (e->type_id) {
-
-    case METHOD_GET:
-	strcat(tmpbuf, "METHOD_GET\n");
-	break;
-
-    case METHOD_POST:
-	strcat(tmpbuf, "METHOD_POST\n");
-	break;
-
-    case METHOD_HEAD:
-	strcat(tmpbuf, "METHOD_HEAD\n");
-	break;
-
-    default:
-	strcat(tmpbuf, "UNKNOWN\n");
-	break;
-    }
+    sprintf(tmpbuf, "Method: %s", RequestMethodStr[e->method]);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "RefCount: %u\n", e->refcount);

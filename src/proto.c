@@ -188,7 +188,7 @@ int protoDispatch(fd, url, entry)
     char *request_hdr;
     int n;
 
-    method = RequestMethodStr[entry->type_id];
+    method = RequestMethodStr[entry->method];
     request_hdr = entry->mem_obj->mime_hdr;
 
     debug(17, 5, "protoDispatch: %s URL: %s\n", method, url);
@@ -221,7 +221,7 @@ int protoDispatch(fd, url, entry)
     strncpy(data->host, host, SQUIDHOSTNAMELEN);
 
     data->inside_firewall = matchInsideFirewall(host);
-    data->cachable = proto_cachable(url, entry->type_id, request_hdr);
+    data->cachable = proto_cachable(url, entry->method, request_hdr);
     data->single_parent = getSingleParent(host, &n);
     data->n_edges = n;
 
@@ -441,7 +441,7 @@ int getFromCache(fd, entry, e)
 
     debug(17, 5, "getFromCache: FD %d <URL:%s>\n", fd, entry->url);
     debug(17, 5, "getFromCache: --> type = %s\n",
-	RequestMethodStr[entry->type_id]);
+	RequestMethodStr[entry->method]);
     debug(17, 5, "getFromCache: --> getting from '%s'\n", e ? e->host : "source");
 
     /*
@@ -454,7 +454,7 @@ int getFromCache(fd, entry, e)
     if (e) {
 	return proxyhttpStart(e, url, entry);
     } else if (strncasecmp(url, "http://", 7) == 0) {
-	return httpStart(fd, url, entry->type_id, request_hdr, entry);
+	return httpStart(fd, url, entry->method, request_hdr, entry);
     } else if (strncasecmp(url, "gopher://", 9) == 0) {
 	return gopherStart(fd, url, entry);
     } else if (strncasecmp(url, "news://", 7) == 0) {
@@ -468,9 +468,9 @@ int getFromCache(fd, entry, e)
     } else if (strncasecmp(url, "ftp://", 6) == 0) {
 	return ftpStart(fd, url, entry);
     } else if (strncasecmp(url, "wais://", 7) == 0) {
-	return waisStart(fd, url, entry->type_id, request_hdr, entry);
+	return waisStart(fd, url, entry->method, request_hdr, entry);
     } else if (strncasecmp(url, "conne://", 8) == 0) {
-	return connectStart(fd, url, entry->type_id, request_hdr, entry);
+	return connectStart(fd, url, entry->method, request_hdr, entry);
     } else if (strncasecmp(url, "dht://", 6) == 0) {
 	return protoNotImplemented(fd, url, entry);
     } else {

@@ -535,7 +535,7 @@ int proxyhttpStart(e, url, entry)
     data->entry = entry;
 
     strncpy(data->request, url, sizeof(data->request) - 1);
-    data->method = entry->type_id;
+    data->method = entry->method;
     data->port = e->ascii_port;
     data->req_hdr = entry->mem_obj->mime_hdr;
     strncpy(data->host, e->host, sizeof(data->host) - 1);
