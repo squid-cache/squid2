@@ -293,7 +293,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     int room;
     size_t hdr_len;
     HttpReply *reply = entry->mem_obj->reply;
-    const Ctx ctx;
+    Ctx ctx;
     debug(11, 3) ("httpProcessReplyHeader: key '%s'\n",
 	storeKeyText(entry->key));
     if (httpState->reply_hdr == NULL)

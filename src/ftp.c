@@ -2318,7 +2318,7 @@ ftpFailedErrorMessage(FtpStateData * ftpState, err_type error)
     fwdFail(ftpState->fwd, err);
 }
 
-void
+static void
 ftpPumpClosedData(int data_fd, void *data)
 {
     FtpStateData *ftpState = data;

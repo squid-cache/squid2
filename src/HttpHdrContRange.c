@@ -81,7 +81,7 @@ httpHdrRangeRespSpecParseInit(HttpHdrRangeSpec * spec, const char *field, int fl
     p++;
     /* do we have last-pos ? */
     if (p - field < flen) {
-	size_t last_pos;
+	ssize_t last_pos;
 	if (!httpHeaderParseSize(p, &last_pos))
 	    return 0;
 	spec->length = size_diff(last_pos + 1, spec->offset);

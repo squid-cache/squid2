@@ -123,7 +123,7 @@ checkAccelOnly(clientHttpRequest * http)
 }
 
 #if USE_IDENT
-void
+static void
 clientIdentDone(const char *ident, void *data)
 {
     ConnStateData *conn = data;

@@ -102,7 +102,7 @@ httpHdrRangeSpecParseCreate(const char *field, int flen)
 	p++;
 	/* do we have last-pos ? */
 	if (p - field < flen) {
-	    size_t last_pos;
+	    ssize_t last_pos;
 	    if (!httpHeaderParseSize(p, &last_pos))
 		return NULL;
 	    spec.length = size_diff(last_pos + 1, spec.offset);

@@ -630,8 +630,8 @@ struct _HttpHdrCc {
 
 /* http byte-range-spec */
 struct _HttpHdrRangeSpec {
-    size_t offset;
-    size_t length;
+    ssize_t offset;
+    ssize_t length;
 };
 
 /* There may be more than one byte range specified in the request.
@@ -645,7 +645,7 @@ struct _HttpHdrRange {
 /* http content-range header field */
 struct _HttpHdrContRange {
     HttpHdrRangeSpec spec;
-    size_t elength;		/* entity length, not content length */
+    ssize_t elength;		/* entity length, not content length */
 };
 
 /* some fields can hold either time or etag specs (e.g. If-Range) */
