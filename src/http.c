@@ -107,7 +107,8 @@ static void
 httpMakePublic(StoreEntry * entry)
 {
     if (EBIT_TEST(entry->flags, ENTRY_CACHABLE))
-	storeSetPublicKey(entry);
+	if (!EBIT_TEST(entry->flags, RELEASE_REQUEST))	/* 2.0 branch only! */
+	    storeSetPublicKey(entry);
 }
 
 /* This object should never be cached at all */
