@@ -425,6 +425,7 @@ void addToIPACL(list, ip_str, access)
     int m1, m2, m3, m4;
     struct in_addr lmask;
     int c;
+    int inv = 0;
 
     if (!ip_str) {
 	return;
@@ -444,8 +445,11 @@ void addToIPACL(list, ip_str, access)
 	p->next = q;
     }
 
-
     /* decode ip address */
+    if (*ip_str == '!') {
+	ip_str++;
+	inv = 1;
+    }
     if (!strcasecmp(ip_str, "all")) {
 	a1 = a2 = a3 = a4 = 0;
 	lmask.s_addr = 0;
@@ -488,7 +492,7 @@ void addToIPACL(list, ip_str, access)
 	}
     }
 
-    q->access = access;
+    q->access = inv ? (q->access == IP_ALLOW ? IP_DENY : IP_ALLOW) : access;
     q->addr.s_addr = htonl(a1 * 0x1000000 + a2 * 0x10000 + a3 * 0x100 + a4);
     q->mask.s_addr = lmask.s_addr;
 }
