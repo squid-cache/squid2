@@ -19,6 +19,6 @@ Unsupported Request Method and Protocol
 
 <P>
 Squid nepodporuje v¹echny typy metod u v¹ech protokolù. Napø. není mo¾no
-pou¾it metodu POST u slu¾by GOPHER
+pou¾it metodu POST u slu¾by GOPHER.
 </P>
 
