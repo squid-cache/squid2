@@ -230,6 +230,14 @@ debugLogTime(time_t t)
     return buf;
 }
 
+void
+xassert(const char *msg, const char *file, int line)
+{   
+    debug(0, 0) ("assertion failed: %s:%d: \"%s\"\n", file, line, msg);
+    if (!shutting_down)
+        abort();
+}
+
 /*
  * Context-based Debugging
  *

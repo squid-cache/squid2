@@ -213,7 +213,7 @@ $(DNSSERVER_EXE): dnsserver.o
 $(CACHEMGR_EXE): cachemgr.o
 	$(CC) -o $@ $(LDFLAGS) cachemgr.o $(CLIENT_LIBS)
 
-$(PINGER_EXE): pinger.o
+$(PINGER_EXE): pinger.o debug.o globals.o
 	$(CC) -o $@ $(LDFLAGS) pinger.o debug.o globals.o $(PINGER_LIBS)
 
 $(UNLINKD_EXE): unlinkd-daemon.o

@@ -836,11 +836,3 @@ stringHasWhitespace(const char *s)
 {
     return (strcspn(s, w_space) != strlen(s));
 }
-
-void
-xassert(const char *msg, const char *file, int line)
-{
-    debug(0, 0) ("assertion failed: %s:%d: \"%s\"\n", file, line, msg);
-    if (!shutting_down)
-        abort();
-}
