@@ -174,7 +174,7 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
 	return;
     if (sc->flags.store_copying) {
 	sc->flags.copy_event_pending = 1;
-	debug(20, 3) ("storeClientCopy: Queueing storeClientCopyEvent()\n");
+	debug(20, 3) ("storeClientCopy2: Queueing storeClientCopyEvent()\n");
 	eventAdd("storeClientCopyEvent", storeClientCopyEvent, sc, 0.0, 0);
 	return;
     }
