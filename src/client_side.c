@@ -2101,7 +2101,6 @@ clientReadRequest(int fd, void *data)
 		break;
 	    }
 	    http->request = requestLink(request);
-	    clientAccessCheck(http);
 	    /*
 	     * break here for NON-GET because most likely there is a
 	     * reqeust body following and we don't want to parse it
@@ -2120,12 +2119,14 @@ clientReadRequest(int fd, void *data)
 			xmemmove(conn->in.buf, conn->in.buf + copy_len, conn->in.offset);
 		}
 		/*
-		 * ick; cancel the read handler for NON-GET requests
-		 * until this request is forwarded/resolved
+		 * if we didn't get the full body now, then more will
+		 * be arriving on the client socket.  Lets cancel
+		 * the read handler until this request gets forwarded.
 		 */
-		commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
-		break;
+		if (request->body_sz < cont_len)
+		    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 	    }
+	    clientAccessCheck(http);
 	    continue;		/* while offset > 0 */
 	} else if (parser_return_code == 0) {
 	    /*
