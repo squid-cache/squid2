@@ -135,18 +135,11 @@ httpHeaderPutStrf(va_alist)
 static void
 httpHeaderPutStrvf(HttpHeader * hdr, http_hdr_type id, const char *fmt, va_list vargs)
 {
-#if OLD_CODE
-    LOCAL_ARRAY(char, buf, 4096);
-    buf[0] = '\0';
-    vsnprintf(buf, 4096, fmt, vargs);
-    httpHeaderPutStr(hdr, id, buf);
-#else
     MemBuf mb;
     memBufDefInit(&mb);
     memBufVPrintf(&mb, fmt, vargs);
     httpHeaderPutStr(hdr, id, mb.buf);
     memBufClean(&mb);
-#endif
 }
 
 

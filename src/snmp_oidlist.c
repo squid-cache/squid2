@@ -331,7 +331,7 @@ sysConnGetRowFn(oid * New, oid * Oid)
     if (!Oid[0] && !Oid[1] && !Oid[2] && !Oid[3])
 	act = 1;
     else {
-	snprintf(buf, 16, "%d.%d.%d.%d", Oid[0], Oid[1], Oid[2], Oid[3]);
+	snprintf(buf, sizeof(buf), "%d.%d.%d.%d", Oid[0], Oid[1], Oid[2], Oid[3]);
 	port = Oid[4];
 	debug(49, 9) ("sysConnGetRowFn: input [%s]:%d\n", buf, port);
     }

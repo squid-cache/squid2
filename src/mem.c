@@ -183,6 +183,7 @@ memInit(void)
      * that are never used or used only once; perhaps we should simply use
      * malloc() for those? @?@
      */
+    memDataInit(MEM_2K_BUF, "2K Buffer", 2048, 10);
     memDataInit(MEM_4K_BUF, "4K Buffer", 4096, 10);
     memDataInit(MEM_8K_BUF, "8K Buffer", 8192, 10);
     memDataInit(MEM_ACCESSLOGENTRY, "AccessLogEntry",
@@ -302,6 +303,12 @@ memInUse(mem_type type)
 }
 
 /* ick */
+
+void
+memFree2K(void *p)
+{
+    memFree(MEM_2K_BUF, p);
+}
 
 void
 memFree4K(void *p)

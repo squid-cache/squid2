@@ -282,7 +282,7 @@ static char *
 menu_url(cachemgr_request * req, const char *action)
 {
     static char url[1024];
-    snprintf(url, 1024, "%s?host=%s&port=%d&user_name=%s&operation=%s&auth=%s",
+    snprintf(url, sizeof(url), "%s?host=%s&port=%d&user_name=%s&operation=%s&auth=%s",
 	script_name,
 	req->hostname,
 	req->port,

@@ -989,8 +989,7 @@ ipcacheChangeKey(ipcache_entry * i)
     }
     assert(i == (ipcache_entry *) table_entry);
     hash_remove_link(ip_table, table_entry);
-    snprintf(new_key, 256, "%d/", ++index);
-    strncat(new_key, i->name, 128);
+    snprintf(new_key, 256, "%d/%s", ++index, i->name);
     debug(14, 1) ("ipcacheChangeKey: from '%s' to '%s'\n", i->name, new_key);
     safe_free(i->name);
     i->name = xstrdup(new_key);

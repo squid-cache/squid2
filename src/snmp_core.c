@@ -640,8 +640,8 @@ snmpDebugOid(int lvl, oid * Name, snint Len)
     int x;
     objid[0] = '\0';
     for (x = 0; x < Len; x++) {
-	snprintf(mbuf, 16, ".%u", (unsigned char) Name[x]);
-	strcat(objid, mbuf);
+	snprintf(mbuf, sizeof(mbuf), ".%u", (unsigned char) Name[x]);
+	strncat(objid, mbuf, sizeof(objid));
     }
     debug(49, lvl) ("   oid = %s\n", objid);
 }
