@@ -637,7 +637,7 @@ main(int argc, char **argv)
 #if HAVE_SRANDOM
     srandom(time(NULL));
 #elif HAVE_SRAND48
-    srand48(time(NULL);
+    srand48(time(NULL));
 #else
     srand(time(NULL));
 #endif
