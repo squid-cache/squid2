@@ -1680,7 +1680,8 @@ ftpSendPasv(FtpStateData * ftpState)
     if (getsockname(ftpState->ctrl.fd, (struct sockaddr *) &addr, &addr_len)) {
 	debug(9, 0) ("ftpSendPasv: getsockname(%d,..): %s\n",
 	    ftpState->ctrl.fd, xstrerror());
-	addr.sin_addr = Config.Addrs.tcp_outgoing;
+	ftpFail(ftpState);
+	return;
     }
     /* Open data channel with the same local address as control channel */
     fd = comm_open(SOCK_STREAM,

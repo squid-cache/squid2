@@ -468,11 +468,12 @@ sslStart(int fd, const char *url, request_t * request, size_t * size_ptr, int *s
     statCounter.server.all.requests++;
     statCounter.server.other.requests++;
     /* Create socket. */
-    sock = comm_open(SOCK_STREAM,
+    sock = comm_openex(SOCK_STREAM,
 	0,
-	Config.Addrs.tcp_outgoing,
+	getOutgoingAddr(request),
 	0,
 	COMM_NONBLOCKING,
+	getOutgoingTOS(request),
 	url);
     if (sock == COMM_ERROR) {
 	debug(26, 4) ("sslStart: Failed because we're out of sockets.\n");
