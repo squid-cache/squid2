@@ -208,6 +208,10 @@
 #define LF 10
 #define CR 13
 
+#ifndef INADDR_NONE
+#define INADDR_NONE -1
+#endif
+
 typedef enum {
     INFO,
     CACHED,
