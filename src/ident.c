@@ -116,8 +116,11 @@ identConnectDone(int fd, int status, void *data)
 	if (cbdataValid(c->callback_data))
 	    break;
     }
-    if (c == NULL)		/* no clients care */
+    if (c == NULL) {
+	/* no clients care */
 	comm_close(fd);
+	return;
+    }
     memBufDefInit(&mb);
     memBufPrintf(&mb, "%d, %d\r\n",
 	ntohs(state->peer.sin_port),

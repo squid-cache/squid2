@@ -761,6 +761,7 @@ NAME: ident_lookup_access
 TYPE: acl_access
 IFDEF: USE_IDENT
 DEFAULT: none
+DEFAULT_IF_NONE: deny all
 LOC: Config.accessList.identLookup
 DOC_START
 	A list of ACL elements which, if matched, cause an ident
