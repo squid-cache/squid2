@@ -2348,7 +2348,7 @@ DEFAULT: @DEFAULT_ERROR_DIR@
 DOC_START
 	If you wish to create your own versions of the default
 	(English) error files, either to customise them to suit your
-	language or company copy the template english files to anther
+	language or company copy the template english files to another
 	directory and point this tag at them.
 DOC_END
 
@@ -2658,7 +2658,7 @@ TYPE: int
 DEFAULT: 8
 LOC: Config.comm_incoming.http_min_poll
 DOC_START
-	Heavy voodoo here.  I can't even beleve you are reading this.
+	Heavy voodoo here.  I can't even believe you are reading this.
 	Are you crazy?  Don't even think about adjusting these unless
 	you understand the algorithms in comm_select.c first!
 
@@ -2734,21 +2734,33 @@ IFDEF: MULTICAST_MISS_STREAM
 TYPE: address
 LOC: Config.mcast_miss.addr
 DEFAULT: 255.255.255.255
-DOC_NONE
+DOC_START
+	If you enable this option, every "cache miss" URL will
+	be sent out on the specified multicast address.
+
+	Do not enable this option unless you are are absolutely
+	certain you understand what you are doing.
+DOC_END
 
 NAME: mcast_miss_port
 IFDEF: MULTICAST_MISS_STREAM
 TYPE: ushort
 LOC: Config.mcast_miss.port
 DEFAULT: 3135
-DOC_NONE
+DOC_START
+	This is the port number to be used in conjuction with
+	'mcast_miss_addr'.
+DOC_END
 
 NAME: mcast_miss_encode_key
 IFDEF: MULTICAST_MISS_STREAM
 TYPE: string
 LOC: Config.mcast_miss.encode_key
 DEFAULT: XXXXXXXXXXXXXXXX
-DOC_NONE
+DOC_START
+	The URLs that are sent in the multicast miss stream are
+	encrypted.  This is the encryption key.
+DOC_END
 
 NAME: prefer_direct
 TYPE: onoff
