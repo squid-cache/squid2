@@ -301,7 +301,10 @@ clientRedirectDone(void *data, char *result)
     http->redirect_state = REDIRECT_DONE;
     if (result) {
 	http_status status = (http_status) atoi(result);
-	if (status == HTTP_MOVED_PERMANENTLY || status == HTTP_MOVED_TEMPORARILY) {
+	if (status == HTTP_MOVED_PERMANENTLY
+	    || status == HTTP_MOVED_TEMPORARILY
+	    || status == HTTP_SEE_OTHER
+	    || status == HTTP_TEMPORARY_REDIRECT) {
 	    char *t = result;
 	    if ((t = strchr(result, ':')) != NULL) {
 		http->redirect.status = status;
