@@ -756,7 +756,7 @@ helperStatefulHandleRead(int fd, void *data)
     assert(fd == srv->rfd);
     assert(cbdataReferenceValid(data));
     statCounter.syscalls.sock.reads++;
-    len = read(fd, srv->buf + srv->offset, srv->buf_sz - srv->offset);
+    len = FD_READ_METHOD(fd, srv->buf + srv->offset, srv->buf_sz - srv->offset);
     fd_bytes(fd, len, FD_READ);
     debug(29, 5) ("helperStatefulHandleRead: %d bytes from %s #%d.\n",
 	len, hlp->id_name, srv->index + 1);
