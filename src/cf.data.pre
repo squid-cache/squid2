@@ -3249,6 +3249,17 @@ DOC_START
 	takes place if Squid fails to get a satisfying response.
 DOC_END
 
+NAME: retry_on_error
+TYPE: onoff
+LOC: Config.retry.onerror
+DEFAULT: off
+DOC_START
+	If set to on Squid will automatically retry requests when
+	receiving an error response. This is mainly useful if you
+	are in a complex cache hierarchy to work around access
+	control errors.
+DOC_END
+
 NAME: snmp_port
 TYPE: ushort
 LOC: Config.Port.snmp

@@ -657,6 +657,7 @@ struct _SquidConfig {
     char *errorDirectory;
     struct {
 	int maxtries;
+	int onerror;
     } retry;
     struct {
 	size_t limit;
