@@ -264,7 +264,7 @@ Changes to squid-1.0.beta14 (June 7, 1996):
 	  already be in the IP cache.
 	- Fixed names of generated HTTP reply headers.
 
-Changes to squid-1.0.beta14 (June 9, 1996):
+Changes to squid-1.0.beta15 (June 9, 1996):
 
 	- Fixed storeSwapoutHandle coredump bug
 	- Fixed DNS lookup failure of neighbor hosts after a few hours
@@ -275,3 +275,5 @@ Changes to squid-1.0.beta14 (June 9, 1996):
 	- Added forwarding loop detection
 	- Changed all memcpy to use xmemcpy which is memmove, bcopy, or
 	  memcpy.
+	- Fixed coredump bug from partial dnsserver reads, manifest on
+	  FreeBSD and NetBSD.
