@@ -601,7 +601,8 @@ static void httpSendRequest(fd, httpState)
 		memset(ybuf, '\0', SM_PAGE_SIZE);
 		sprintf(ybuf, "%s %s %s", t, VIA_PROXY_TEXT, version_string);
 		t = ybuf;
-	    }
+	    } else if (strncasecmp(t, "Connection:", 11) == 0)
+		continue;
 	    if (len + (int) strlen(t) > buflen - 10)
 		continue;
 	    strcat(buf, t);
