@@ -300,11 +300,15 @@ void
 clientUpdateHierCounters(HierarchyLogEntry * someEntry)
 {
     ping_data *i;
-    switch (someEntry->alg) {
-    case PEER_SA_DIGEST:
+    switch (someEntry->code) {
+#if USE_CACHE_DIGESTS
+    case CD_PARENT_HIT:
+    case CD_PARENT_MISS:
 	statCounter.cd.times_used++;
 	break;
-    case PEER_SA_ICP:
+#endif
+    case SIBLING_HIT:
+    case PARENT_HIT:
 	statCounter.icp.times_used++;
 	i = &someEntry->ping;
 	if (clientPingHasFinished(i))
@@ -313,7 +317,9 @@ clientUpdateHierCounters(HierarchyLogEntry * someEntry)
 	if (i->timeout)
 	    statCounter.icp.query_timeouts++;
 	break;
-    case PEER_SA_NETDB:
+    case CLOSEST_PARENT_MISS:
+    case CLOSEST_PARENT:
+    case CLOSEST_DIRECT:
 	statCounter.netdb.times_used++;
 	break;
     default:
