@@ -116,6 +116,7 @@ for Applied Network Research and members of the Web Caching community.
 <tag>sleep_after_fork</tag>Give the OS a small amount of time to accomodate the fork+exec used to launch helpers - if squid has a lot of virtual memory allocated the OS may run out of virtual memory during helper spawning otherwise.
 <tag>reference_age</tag>This has been removed - starting with Squid-2.4 this directive have had no effect and has now been fully removed to avoid confusion.
 <tag>siteselect_timeout</tag>This has been removed - it is not referenced anywhere in the source code.
+<tag>minimum_retry_timeout</tag>This has been removed - it is not referenced anywhere in the source code.
 </descrip>
 
 <sect>Known issues and limitations
@@ -123,10 +124,17 @@ for Applied Network Research and members of the Web Caching community.
 <P>There is a few limitations and issues in this version of Squid which we hope to correct in a later release
 
 <descrip>
-<tag>deny_info</tag>deny_info only works for http_access, not for the acls listen in http_reply_access 
-<tag>Bug #616</tag>Negative cached 404 replies with VARY header never matches
+<tag>Bug #267</tag>Form POSTing troubles with NTLM authentication
+<tag>Bug #354</tag>100% CPU usage on half-closed client connections
+<tag>Bug #692</tag>tcp_outgoing_address using an ident ACL does not work
 <tag>Bug #592</tag>always/never_direct and NTLM authentication
 <tag>Bug #585</tag>cache_peer_access fails with NTLM authentication
+<tag>Bug #638</tag>assertion failure if proxy_auth used wrongly in delay_access
+<tag>deny_info</tag>deny_info only works for http_access, not for the acls listen in http_reply_access 
+
+<tag>Bug #687</tag>Redirector hook for https requires "$url\n" not just "\n"
+<tag>Bug #663</tag>Username not logged into ACCESS.LOG in case of /407
+<tag>Bug #616</tag>Negative cached 404 replies with VARY header never matches
 <tag>Bug #581</tag>acl max_user_ip and multiple authentication schemes
 <tag>Bug #513</tag>squid -F is starting server sockets to early
 <tag>Bug #518</tag>wb_auth fails on TRU64 and probably other 64 bit platforms
@@ -135,7 +143,6 @@ for Applied Network Research and members of the Web Caching community.
 <tag>Bug #426</tag>Vary: * does not work
 <tag>Bug #410</tag>unstable if runs out of disk space
 <tag>Bug #355</tag>diskd may appear slow on low loads
-<tag>Bug #267</tag>Form POSTing troubles with NTLM authentication
 </descrip>
 
 <sect>Key changes squid-2.5.STABLE1 to 2.5.STABLE2:
