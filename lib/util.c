@@ -27,7 +27,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *  
  */
- 
+
 /*
  * Copyright (c) 1994, 1995.  All rights reserved.
  *  
@@ -171,7 +171,7 @@ void malloc_statistics(func, data)
 
 
 #if XMALLOC_DEBUG
-#define DBG_ARRY_SZ (1<<12)
+#define DBG_ARRY_SZ (1<<10)
 #define DBG_ARRY_BKTS (1<<8)
 static void *malloc_ptrs[DBG_ARRY_BKTS][DBG_ARRY_SZ];
 static int malloc_size[DBG_ARRY_BKTS][DBG_ARRY_SZ];
