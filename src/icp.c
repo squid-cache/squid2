@@ -90,22 +90,22 @@ int icpHandleRead(fd, rw_state_machine)
     }
     rw_state_machine->offset += len;
 
-	/* Check for \r\n delimiting end of ascii transmission, or */
-	/* if we've read content-length bytes already */
-	if ((rw_state_machine->offset >= rw_state_machine->size)
-	    || (strstr(rw_state_machine->buf, "\r\n") != (char *) NULL)) {
-	    rw_state_machine->handler(fd,
-		rw_state_machine->buf,
-		rw_state_machine->offset,
-		COMM_OK,
-		rw_state_machine->client_data);
-	    safe_free(rw_state_machine);
-	} else {
-	    comm_set_select_handler(fd,
-		COMM_SELECT_READ,
-		(PF) icpHandleRead,
-		(caddr_t) rw_state_machine);
-	}
+    /* Check for \r\n delimiting end of ascii transmission, or */
+    /* if we've read content-length bytes already */
+    if ((rw_state_machine->offset >= rw_state_machine->size)
+	|| (strstr(rw_state_machine->buf, "\r\n") != (char *) NULL)) {
+	rw_state_machine->handler(fd,
+	    rw_state_machine->buf,
+	    rw_state_machine->offset,
+	    COMM_OK,
+	    rw_state_machine->client_data);
+	safe_free(rw_state_machine);
+    } else {
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) icpHandleRead,
+	    (caddr_t) rw_state_machine);
+    }
 
     return COMM_OK;
 }
@@ -312,7 +312,7 @@ int icpSendERROR(fd, errorCode, msg, state)
 	memset(buf, '\0', buf_len);
 	strcpy(buf, msg);
     } else {
-        fatal_dump("This should not happen!\n");
+	fatal_dump("This should not happen!\n");
     }
     icpWrite(fd, buf, buf_len, 30, icpSendERRORComplete, (caddr_t) state);
     return COMM_OK;
@@ -342,7 +342,7 @@ int icpSendMoreData(fd, state)
     /* Set maxlen to largest amount of data w/o header
      * place p pointing to beginning of data portion of message */
 
-	buf_len = 0; /* No header for ascii mode */
+    buf_len = 0;		/* No header for ascii mode */
 
     max_len = ICP_SENDMOREDATA_BUF - buf_len;
     /* Should limit max_len to something like 1.5x last successful write */
@@ -448,7 +448,7 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
     } else
 	/* We're finished case */
 	if (state->offset == state->entry->object_len &&
-		state->entry->status != STORE_PENDING) {
+	state->entry->status != STORE_PENDING) {
 	if (state->tcp_missed) {
 	    CacheInfo->log_append(CacheInfo,	/* TCP_DONE */
 		state->url,
