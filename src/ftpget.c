@@ -1736,8 +1736,8 @@ static int process_request(r)
 	    break;
 	case DONE:
 	    if (r->flags & F_HTTPIFY) {
-    		Debug(26,9,("Writing Marker to FD %d\n", r->cfd));
-    		write(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
+		Debug(26, 9, ("Writing Marker to FD %d\n", r->cfd));
+		write(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
 	    }
 	    return 0;
 	    /* NOTREACHED */
