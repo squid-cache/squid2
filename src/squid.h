@@ -171,6 +171,7 @@
 #define SA_RESETHAND 0
 #endif
 #if SA_RESETHAND == 0 && defined(SA_ONESHOT)
+#undef SA_RESETHAND
 #define SA_RESETHAND SA_ONESHOT
 #endif
 
