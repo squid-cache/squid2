@@ -124,8 +124,14 @@
 #define xmemcpy(d,s,n) memcpy((d),(s),(n))
 #elif HAVE_BCOPY
 #define xmemcpy(d,s,n) bcopy((s),(d),(n))
-#else
+#elif HAVE_MEMMOVE
 #define xmemcpy(d,s,n) memmove((d),(s),(n))
+#endif
+
+#ifdef HAVE_MEMMOVE
+#define xmemmove(d,s,n) memmove((d),(s),(n))
+#elif HAVE_BCOPY
+#define xmemmove(d,s,n) bcopy((s),(d),(n))
 #endif
 
 #if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)

@@ -45,7 +45,7 @@ almostclean: clean
 distclean: almostclean
 	rm -f config.status config.cache
 
-makefile: makefile.in configure config.status
+makefile: configure config.status makefile.in lib/Makefile.in include/config.h.in src/Makefile.in include/version.h
 	@echo "Package configuration updated. Cleaning and reconfiguring" ;\
 	./config.status --recheck;\
 	./config.status ;\

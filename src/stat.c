@@ -805,7 +805,7 @@ statAvgTick(void *notused)
     c->page_faults = rusage_pagefaults(&rusage);
     c->cputime = rusage_cputime(&rusage);
     c->timestamp = current_time;
-    memmove(p, t, (N_COUNT_HIST - 1) * sizeof(StatCounters));
+    xmemmove(p, t, (N_COUNT_HIST - 1) * sizeof(StatCounters));
     memcpy(t, c, sizeof(StatCounters));
     NCountHist++;
 }
