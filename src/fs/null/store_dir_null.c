@@ -50,6 +50,9 @@ static int null_initialised = 0;
 static void storeNullDirInit(SwapDir * sd);
 static void storeNullDirStats(SwapDir * SD, StoreEntry * sentry);
 static STCHECKOBJ storeNullDirCheckObj;
+static STFSRECONFIGURE storeNullDirReconfigure;
+static STLOGCLEANSTART storeNullDirWriteCleanStart;
+static STLOGCLEANDONE storeNullDirWriteCleanDone;
 static EVH storeNullDirRebuildComplete;
 
 int
@@ -85,6 +88,7 @@ storeNullDirCleanLogNextEntry(SwapDir * sd)
     return NULL;
 }
 
+#if UNUSED
 int
 storeNullDirValidFileno(SwapDir * SD, sfileno filn, int flag)
 {
@@ -95,12 +99,6 @@ void
 storeNullDirMaintain(SwapDir * SD)
 {
     (void) 0;
-}
-
-int
-storeNullDirCheckObj(SwapDir * SD, const StoreEntry * e)
-{
-    return -1;
 }
 
 void
@@ -133,6 +131,7 @@ storeNullDirReplRemove(StoreEntry * e)
     (void) 0;
 }
 
+#endif
 
 void
 storeNullDirReconfigure(SwapDir * sd, int index, char *path)
@@ -154,6 +153,8 @@ storeNullDirParse(SwapDir * sd, int index, char *path)
     sd->statfs = storeNullDirStats;
     sd->init = storeNullDirInit;
     sd->checkobj = storeNullDirCheckObj;
+    sd->log.clean.start = storeNullDirWriteCleanStart;
+    sd->log.clean.done = storeNullDirWriteCleanDone;
 }
 
 void
@@ -193,4 +194,22 @@ storeNullDirRebuildComplete(void *unused)
     struct _store_rebuild_data counts;
     memset(&counts, '\0', sizeof(counts));
     storeRebuildComplete(&counts);
+}
+
+static int
+storeNullDirCheckObj(SwapDir * SD, const StoreEntry * e)
+{
+    return -1;
+}
+
+static int
+storeNullDirWriteCleanStart(SwapDir * unused)
+{
+    return 0;
+}
+
+static void
+storeNullDirWriteCleanDone(SwapDir * unused)
+{
+    (void) 0;
 }
