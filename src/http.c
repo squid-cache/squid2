@@ -6,7 +6,6 @@
 
 #include "squid.h"
 
-#define HTTP_PORT         80
 #define HTTP_DELETE_GAP   (64*1024)
 #define READBUFSIZ	4096
 
@@ -69,7 +68,7 @@ static int http_url_parser(url, host, port, request)
 	strcpy(request, "/");
     }
     if (sscanf(hostbuf, "%[^:]:%d", host, port) < 2)
-	(*port) = HTTP_PORT;
+	(*port) = urlDefaultPort(PROTO_HTTP);
     return 0;
 }
 
@@ -461,6 +460,16 @@ static void httpSendRequest(fd, data)
 	    ybuf = NULL;
 	}
     }
+
+    /* Add Forwarded: header */
+    ybuf = get_free_4k_page(__FILE__,__LINE__);
+    sprintf(ybuf, "Forwarded: by http://%s:%d/\r\n",
+	getMyHostname(), getAsciiPortNum());
+    strcat(buf, ybuf);
+    len += strlen(ybuf);
+    put_free_4k_page(ybuf, __FILE__, __LINE__);
+    ybuf = NULL;
+
     strcat(buf, crlf);
     len += 2;
     if (post_buf) {
