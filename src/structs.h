@@ -75,6 +75,8 @@ struct _acl_proxy_auth_user {
     char *passwd;
     int passwd_ok;		/* 1 = passwd checked OK */
     long expiretime;
+    struct in_addr ipaddr;	/* IP addr this user authenticated from */
+    time_t ip_expiretime;
 };
 
 struct _acl_deny_info_list {
@@ -310,6 +312,7 @@ struct _SquidConfig {
     int redirectChildren;
     int authenticateChildren;
     int authenticateTTL;
+    int authenticateIpTTL;
     struct {
 	char *host;
 	u_short port;

@@ -1081,6 +1081,8 @@ aclMatchProxyAuth(wordlist * data, const char *proxy_auth, acl_proxy_auth_user *
 	    /* store validated user in hash, after filling in expiretime */
 	    xstrncpy(checklist->request->user_ident, user, USER_IDENT_SZ);
 	    auth_user->expiretime = current_time.tv_sec + Config.authenticateTTL;
+	    auth_user->ip_expiretime = squid_curtime + Config.authenticateIpTTL;
+	    auth_user->ipaddr = checklist->src_addr;
 	    hash_join(proxy_auth_cache, (hash_link *) auth_user);
 	    /* Continue checking below, as normal */
 	}
@@ -1094,12 +1096,26 @@ aclMatchProxyAuth(wordlist * data, const char *proxy_auth, acl_proxy_auth_user *
 	return -1;
     } else if ((0 == strcmp(auth_user->passwd, password)) &&
 	(auth_user->expiretime > current_time.tv_sec)) {
-	/* user already known and valid */
-	debug(28, 5) ("aclMatchProxyAuth: user '%s' previously validated\n",
-	    user);
-	/* copy username to request for logging on client-side */
-	xstrncpy(checklist->request->user_ident, user, USER_IDENT_SZ);
-	return aclMatchUser(data, user);
+	if (checklist->src_addr.s_addr == auth_user->ipaddr.s_addr
+	    || auth_user->ip_expiretime <= squid_curtime) {
+	    /* user already known and valid */
+	    debug(28, 5) ("aclMatchProxyAuth: user '%s' previously validated\n",
+		user);
+	    /* Update IP ttl */
+	    auth_user->ip_expiretime = squid_curtime + Config.authenticateIpTTL;
+	    auth_user->ipaddr = checklist->src_addr;
+	    /* copy username to request for logging on client-side */
+	    xstrncpy(checklist->request->user_ident, user, USER_IDENT_SZ);
+	    return aclMatchUser(data, user);
+	} else {
+	    /* user has switched to another IP addr */
+	    debug(28, 1) ("aclMatchProxyAuth: user '%s' has changed IP address\n", user);
+	    /* remove this user from the hash, making him unknown */
+	    hash_remove_link(proxy_auth_cache, (hash_link *) auth_user);
+	    aclFreeProxyAuthUser(auth_user);
+	    /* require the user to reauthenticate */
+	    return -2;
+	}
     } else {
 	/* password mismatch/timeout */
 	debug(28, 4) ("aclMatchProxyAuth: user '%s' password mismatch/timeout\n",
@@ -1345,7 +1361,7 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	/* NOTREACHED */
     case ACL_MAXCONN:
 	k = clientdbEstablished(checklist->src_addr, 0);
-	return ((k > ((intlist *)ae->data)->i) ? 0 : 1);
+	return ((k > ((intlist *) ae->data)->i) ? 0 : 1);
 	/* NOTREACHED */
     case ACL_URL_PORT:
 	return aclMatchIntegerRange(ae->data, r->port);

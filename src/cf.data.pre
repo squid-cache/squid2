@@ -1033,6 +1033,28 @@ DOC_START
 authenticate_ttl 3600
 DOC_END
 
+NAME: authenticate_ip_ttl
+TYPE: int
+LOC: Config.authenticateIpTTL
+DEFAULT: 0
+DOC_START
+	With this option you control how long a proxy authentication
+	will be bound to a specific IP address. If a request using
+	the same user name is received during this time then access
+	will be denied and both users are required to reauthenticate
+	them selves.  The idea behind this is to make it annoying
+	for people to share their password to their friends, but
+	yet allow a dialup user to reconnect on a different dialup
+	port.
+
+	The default is 0 to disable the check. Recommended value
+	if you have dialup users are no more than 60 (seconds). If
+	all your users are stationary then higher values may be
+	used.
+
+authenticate_ip_ttl 0
+DOC_END
+
 COMMENT_START
  OPTIONS FOR TUNING THE CACHE
  -----------------------------------------------------------------------------
