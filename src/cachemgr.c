@@ -162,7 +162,7 @@ static struct in_addr no_addr;
 /*
  * Function prototypes
  */
-#define safe_free(str) if (str) { xfree(str); (str) = NULL; }
+#define safe_free(str) { if (str) { xfree(str); (str) = NULL; } }
 static const char *safe_str(const char *str);
 static char *xstrtok(char **str, char del);
 static void print_trailer(void);
