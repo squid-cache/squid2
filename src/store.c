@@ -552,7 +552,9 @@ storeCheckCachable(StoreEntry * e)
 	debug(20, 3) ("storeCheckCachable: NO: negative cached\n");
 	store_check_cachable_hist.no.negative_cached++;
 	return 0;		/* avoid release call below */
-    } else if (e->mem_obj->inmem_hi > Config.Store.maxObjectSize) {
+    } else if ((e->mem_obj->reply->content_length > 0 &&
+		e->mem_obj->reply->content_length > Config.Store.maxObjectSize) ||
+		e->mem_obj->inmem_hi > Config.Store.maxObjectSize) {
 	debug(20, 2) ("storeCheckCachable: NO: too big\n");
 	store_check_cachable_hist.no.too_big++;
     } else if (e->mem_obj->reply->content_length > (int) Config.Store.maxObjectSize) {
