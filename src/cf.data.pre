@@ -2098,7 +2098,7 @@ http_access deny CONNECT !SSL_ports
 #
 # INSERT YOUR OWN RULE(S) HERE TO ALLOW ACCESS FROM YOUR CLIENTS
 
-# Exampe rule allowing access from your local networks. Adapt
+# Example rule allowing access from your local networks. Adapt
 # to list your (internal) IP networks from where browsing should
 # be allowed
 #acl our_networks src 192.168.1.0/24 192.168.2.0/24
