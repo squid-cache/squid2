@@ -289,9 +289,9 @@ peerDigestRequest(peer * p)
     if (old_e)
 	e->lastmod = old_e->lastmod;
     fetch->offset = 0;
-    debug(72, 3) ("peerDigestRequest: forwarding to protoDispatch...\n");
+    debug(72, 3) ("peerDigestRequest: forwarding to fwdStart...\n");
     /* push towards peer cache */
-    protoDispatch(-1, e, req);
+    fwdStart(-1, e, req);
     storeClientCopy(e, 0, 0, SM_PAGE_SIZE, memAllocate(MEM_4K_BUF),
 	peerDigestFetchReply, fetch);
 }
