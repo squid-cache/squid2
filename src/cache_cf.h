@@ -77,6 +77,7 @@ extern int getHttpMax _PARAMS((void));
 extern int getHttpTTL _PARAMS((void));
 extern int getLogfileRotateNumber _PARAMS((void));
 extern int getNegativeTTL _PARAMS((void));
+extern int getNegativeDNSTTL _PARAMS((void));
 extern int getQuickAbort _PARAMS((void));
 extern int getReadTimeout _PARAMS((void));
 extern int getSourcePing _PARAMS((void));

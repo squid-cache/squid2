@@ -532,6 +532,12 @@ manager_allow    all
 #negative_ttl 5
 
 #
+#  TAG: negative_dns_ttl (in minutes)         
+#	Time-to-Live (TTL) for negative caching of failed DNS lookups.
+#
+#negative_dns_ttl 5
+
+#
 #  TAG: cache_mem_high (in percent)
 #	The high water mark for cache memory storage.  When the amount of
 #	RAM used by the hot-object RAM cache reaches this point, the
