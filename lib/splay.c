@@ -100,7 +100,7 @@ splay_splay(const void *data, splayNode * top, SPLAYCMP * compare)
 }
 
 void
-splay_destroy(splayNode * top, SPLAYFREE *free_func)
+splay_destroy(splayNode * top, SPLAYFREE * free_func)
 {
     if (top->left)
 	splay_destroy(top->left, free_func);
@@ -111,7 +111,7 @@ splay_destroy(splayNode * top, SPLAYFREE *free_func)
 }
 
 void
-splay_walk(splayNode *top, SPLAYWALKEE *walkee, void *state)
+splay_walk(splayNode * top, SPLAYWALKEE * walkee, void *state)
 {
     if (top->left)
 	splay_walk(top->left, walkee, state);
