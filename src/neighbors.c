@@ -881,7 +881,7 @@ int
 neighborUp(edge * e)
 {
     if (e->last_fail_time)
-	if (squid_curtime - e->last_fail_time > (time_t) 60)
+	if (squid_curtime - e->last_fail_time < (time_t) 60)
 	    return 0;
     if (e->stats.ack_deficit > HIER_MAX_DEFICIT)
 	return 0;
