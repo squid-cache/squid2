@@ -2460,8 +2460,7 @@ clientReadRequest(int fd, void *data)
 	    if (request->method != METHOD_GET) {
 		int cont_len = httpHeaderGetInt(&request->header, HDR_CONTENT_LENGTH);
 		int copy_len = XMIN(cont_len, conn->in.offset);
-		assert(cont_len > -1);
-		if (conn->in.offset && copy_len > 0) {
+		if (copy_len > 0) {
 		    assert(conn->in.offset >= copy_len);
 		    request->body_sz = copy_len;
 		    request->body = xmalloc(request->body_sz);
