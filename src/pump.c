@@ -47,6 +47,8 @@ struct _PumpStateData {
     struct _PumpStateData *next;
 };
 
+#define PUMP_FLAG_CLOSING	0x01
+
 typedef struct _PumpStateData PumpStateData;
 
 static PumpStateData *pump_head = NULL;
@@ -92,7 +94,6 @@ pumpInit(int fd, request_t * r, char *uri)
 	xfree(p);
 	return;
     }
-
     EBIT_SET(flags, REQ_NOCACHE);	/* for now, don't cache */
     snprintf(new_key, MAX_URL + 5, "%s|Pump", uri);
     p->request_entry = storeCreateEntry(new_key, new_key, flags, r->method);
@@ -185,11 +186,20 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
     StoreEntry *req = p->request_entry;
     debug(61, 5) ("pumpServerCopyComplete: called with size=%d (%d,%d)\n",
 	size, p->sent + size, p->cont_len);
-    if (size <= 0 || req->store_status == STORE_ABORTED) {
-	debug(61, 5) ("pumpServerCopyComplete: aborted!\n", size);
+    if (errflag == COMM_ERR_CLOSING)
+	return;
+    if (errflag != 0) {
+	debug(61, 5) ("pumpServerCopyComplete: aborted, errflag %d\n", errflag);
+	pumpClose(p);
+    }
+    if (req->store_status == STORE_ABORTED) {
+	debug(61, 5) ("pumpServerCopyComplete: STORE_ABORTED\n");
 	pumpClose(p);
 	return;
     }
+    /* if this shows up a lot, its probably wrong; make it an assertion */
+    if (size == 0)
+	debug(61, 1) ("pumpServerCopyComplete: unexpected size == 0\n");
     p->sent += size;
     assert(p->sent <= p->cont_len);
     if (p->sent < p->cont_len) {
@@ -252,9 +262,11 @@ pumpReadFromClient(int fd, void *data)
     } else if (p->request_entry->mem_obj->inmem_hi == 0) {
 	debug(61, 2) ("pumpReadFromClient: FD %d: failed.\n", fd);
 	pumpClose(p);
+	return;
     } else if (p->rcvd < p->cont_len) {
 	debug(61, 4) ("pumpReadFromClient: FD %d, incomplete request\n", fd);
 	pumpClose(p);
+	return;
     }
     if (len > 0) {
 	storeAppend(p->request_entry, buf, len);
@@ -293,6 +305,9 @@ pumpClose(void *data)
     StoreEntry *rep = p->reply_entry;
     debug(0, 0) ("pumpClose: %p Server FD %d, Client FD %d\n",
 	p, p->s_fd, p->c_fd);
+    /* double-call detection */
+    assert(!EBIT_TEST(p->flags, PUMP_FLAG_CLOSING));
+    EBIT_SET(p->flags, PUMP_FLAG_CLOSING);
     if (req != NULL && req->store_status == STORE_PENDING) {
 	storeUnregister(req, p);
 	storeAbort(req, 0);
