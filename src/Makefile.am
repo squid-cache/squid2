@@ -179,7 +179,7 @@ cf.data: cf.data.pre Makefile
 	s%@DEFAULT_PREFIX@%$(DEFAULT_PREFIX)%g;"\
 	< $(srcdir)/cf.data.pre >$@
 
-store_modules.c: store_modules.sh
+store_modules.c: store_modules.sh Makefile
 	$(SHELL) $(srcdir)/store_modules.sh $(STORE_MODULES) >store_modules.c
 
 repl_modules.c: repl_modules.sh 
