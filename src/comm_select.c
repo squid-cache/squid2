@@ -409,7 +409,7 @@ comm_poll(int msec)
 		F->timeout_handler = NULL;
 		F->read_handler = NULL;
 		F->write_handler = NULL;
-		if (F->open != 0)
+		if (F->flags.open)
 		    fd_close(fd);
 	    }
 	}
