@@ -296,7 +296,7 @@ fqdncacheParse(rfc1035_rr * answers, int nr)
     for (k = 0; k < nr; k++) {
 	if (answers[k].type != RFC1035_TYPE_PTR)
 	    continue;
-	if (answers[k].class != RFC1035_CLASS_IN)
+	if (answers[k]._class != RFC1035_CLASS_IN)
 	    continue;
 	na++;
 	f.flags.negcached = 0;

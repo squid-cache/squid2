@@ -228,6 +228,7 @@ squid_LDADD = \
 	@SSLLIB@ \
 	-lmiscutil \
 	@XTRA_LIBS@
+squid_DEPENDENCIES = $(top_builddir)/lib/libmiscutil.a
 
 unlinkd_SOURCES = 
 unlinkd_LDADD = unlinkd-daemon.o

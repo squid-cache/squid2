@@ -325,7 +325,7 @@ ipcacheParse(rfc1035_rr * answers, int nr)
     for (j = 0, k = 0; k < nr; k++) {
 	if (answers[k].type != RFC1035_TYPE_A)
 	    continue;
-	if (answers[k].class != RFC1035_CLASS_IN)
+	if (answers[k]._class != RFC1035_CLASS_IN)
 	    continue;
 	na++;
     }
@@ -341,7 +341,7 @@ ipcacheParse(rfc1035_rr * answers, int nr)
     for (j = 0, k = 0; k < nr; k++) {
 	if (answers[k].type != RFC1035_TYPE_A)
 	    continue;
-	if (answers[k].class != RFC1035_CLASS_IN)
+	if (answers[k]._class != RFC1035_CLASS_IN)
 	    continue;
 	if (j == 0)
 	    i.expires = squid_curtime + answers[k].ttl;

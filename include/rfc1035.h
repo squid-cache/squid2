@@ -51,7 +51,7 @@ typedef struct _rfc1035_rr rfc1035_rr;
 struct _rfc1035_rr {
     char name[RFC1035_MAXHOSTNAMESZ];
     unsigned short type;
-    unsigned short class;
+    unsigned short _class;
     unsigned int ttl;
     unsigned short rdlength;
     char *rdata;

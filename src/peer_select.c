@@ -421,7 +421,7 @@ peerGetSomeDirect(ps_state * ps)
 	return;
     if (ps->request->protocol == PROTO_WAIS)
 	/* Its not really DIRECT, now is it? */
-	peerAddFwdServer(&ps->servers, Config.Wais.peer, DIRECT);
+	peerAddFwdServer(&ps->servers, Config.Wais._peer, DIRECT);
     else
 	peerAddFwdServer(&ps->servers, NULL, DIRECT);
 }
@@ -657,7 +657,7 @@ peerAddFwdServer(FwdServer ** FS, peer * p, hier_code code)
     debug(44, 5) ("peerAddFwdServer: adding %s %s\n",
 	p ? p->host : "DIRECT",
 	hier_strings[code]);
-    fs->peer = cbdataReference(p);
+    fs->_peer = cbdataReference(p);
     fs->code = code;
     while (*FS)
 	FS = &(*FS)->next;

@@ -263,7 +263,7 @@ clientAccessCheckDone(int answer, void *data)
 	 * just below.  Pedro Ribeiro <pribeiro@isel.pt>
 	 */
 	page_id = aclGetDenyInfoPage(&Config.denyInfoList, AclMatchedName);
-	http->log_type = LOG_TCP_DENIED;
+	http->logType = LOG_TCP_DENIED;
 	if (answer == ACCESS_REQ_PROXY_AUTH || aclIsProxyAuth(AclMatchedName)) {
 	    if (!http->flags.accel) {
 		/* Proxy authorisation needed */
@@ -582,14 +582,14 @@ clientProcessRequest(clientHttpRequest * http)
     debug(85, 4) ("clientProcessRequest: %s '%s'\n",
 	RequestMethodStr[r->method], http->uri);
     if (r->method == METHOD_CONNECT) {
-	http->log_type = LOG_TCP_MISS;
+	http->logType = LOG_TCP_MISS;
 	sslStart(http, &http->out.size, &http->al.http.code);
 	return;
     } else {
-	http->log_type = LOG_TAG_NONE;
+	http->logType = LOG_TAG_NONE;
     }
     debug(85, 4) ("clientProcessRequest: %s for '%s'\n",
-	log_tags[http->log_type], http->uri);
+	log_tags[http->logType], http->uri);
     /* no one should have touched this */
     assert(http->out.offset == 0);
     /* Use the Stream Luke */
