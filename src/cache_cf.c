@@ -283,7 +283,7 @@ ip_acl_destroy(ip_acl ** a)
 	n = b->next;
 	safe_free(b);
     }
-    a = NULL;
+    *a = NULL;
 }
 
 ip_access_type
