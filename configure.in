@@ -525,11 +525,12 @@ AC_ARG_ENABLE(arp-acl,
 [  if test "$enableval" = "yes" ; then
      echo "ARP ACL lists enabled (ether address)"
      case "$host" in
-	*-pc-linux-*)
+	*-linux-*)
+	    ;;
+	*-solaris-*)
 	    ;;
 	*)
-	    echo "WARNING: ARP ACL support is only currently supported on Linux"
-	    echo "         ethernet interfaces, probably won't work on $host."
+	    echo "WARNING: ARP ACL support probably won't work on $host."
 	    sleep 10
 	    ;;
      esac
