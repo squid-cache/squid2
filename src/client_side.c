@@ -2494,13 +2494,8 @@ clientReadRequest(int fd, void *data)
 	    k = conn->in.size - 1 - conn->in.offset;
 	    if (k == 0) {
 		if (conn->in.offset >= Config.maxRequestHeaderSize) {
-		    int fd = open("/tmp/error:request-too-large", O_WRONLY | O_CREAT | O_TRUNC);
-		    if (fd >= 0) {
-			write(fd, conn->in.buf, conn->in.offset);
-			close(fd);
-		    }
 		    /* The request is too large to handle */
-		    debug(33, 0) ("Request header is too large (%d bytes)\n",
+		    debug(33, 1) ("Request header is too large (%d bytes)\n",
 			(int) conn->in.offset);
 		    debug(33, 1) ("Config 'request_header_max_size'= %d bytes.\n",
 			Config.maxRequestHeaderSize);
