@@ -277,15 +277,12 @@ int protoUndispatch(fd, url, entry, request)
 	debug(17, 5, "protoUndispatch: ipcache failed to unregister '%s'\n",
 	    request->host);
 	return 0;
-    } else {
-	debug(17, 5, "protoUndispatch: the entry is stranded with a pending DNS event\n");
-	/* Have to force a storeabort() on this entry */
-	if (entry)
-	    protoDNSError(fd, entry);
-	return 1;
     }
-    /* NOTREACHED */
-    return 0;
+    /* The pending DNS lookup was cleared, now have to junk the entry */
+    debug(17, 5, "protoUndispatch: the entry is stranded with a pending DNS event\n");
+    if (entry)
+        protoDNSError(fd, entry);
+    return 1;
 }
 
 static void protoCancelTimeout(fd, entry)
