@@ -86,6 +86,18 @@ if test -z "$PRESET_CFLAGS"; then
     	    CFLAGS="$CFLAGS -Wall"
     	    ;;
         esac
+    else
+	case "$host" in
+	*mips-sgi-irix6.4*)
+	    # suggested by Rafael Seidl <rafaels@cthulhu.engr.sgi.com>
+	    CFLAGS="$CFLAGS -n32 -mips4 -O3 -OPT:Olimit=0:space=OFF \
+		-woff 1009,1014,1048,1110,1116,1185,1188,1204,1230,1233 \
+		-Wl,-woff,85,-woff,84,-woff,134 \
+		-nostdinc -I/usr/include -D_BSD_SIGNALS"
+	    ;;
+	*)
+	    ;;
+	esac
     fi
 fi
 
@@ -97,6 +109,13 @@ if test -z "$PRESET_LDFLAGS"; then
     	    # nothing
 	    ;;
         esac
+    else
+	case "$host" in
+	*mips-sgi-irix6.4*)
+	    # suggested by Rafael Seidl <rafaels@cthulhu.engr.sgi.com>
+	    LDFLAGS="-n32 -mips4 -nostdlib -L/usr/lib32"
+	    ;;
+	esac
     fi
 fi
 
