@@ -147,11 +147,12 @@ static void
 fwdConnectDone(int server_fd, int status, void *data)
 {
     FwdState *fwdState = data;
+    static FwdState *current = NULL;
     FwdServer *fs = fwdState->servers;
     ErrorState *err;
     request_t *request = fwdState->request;
-    static int loop_detect = 0;
-    assert(loop_detect++ == 0);
+    assert(current != fwdState);
+    current = fwdState;
     assert(fwdState->server_fd == server_fd);
     if (status == COMM_ERR_DNS) {
 	fwdState->flags.dont_retry = 1;
@@ -184,7 +185,7 @@ fwdConnectDone(int server_fd, int status, void *data)
 	fd_table[server_fd].uses++;
 	fwdDispatch(fwdState);
     }
-    loop_detect--;
+    current = NULL;
 }
 
 static void
