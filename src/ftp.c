@@ -1091,7 +1091,6 @@ ftpStart(FwdState * fwd)
     ftpState->data.size = SQUID_TCP_SO_RCVBUF;
     ftpState->data.freefunc = xfree;
     ftpScheduleReadControlReply(ftpState, 0);
-    commSetTimeout(fd, Config.Timeout.read, ftpTimeout, ftpState);
 }
 
 /* ====================================================================== */
@@ -1210,6 +1209,14 @@ ftpScheduleReadControlReply(FtpStateData * ftpState, int buffered_ok)
 	    ftpReadControlReply,
 	    ftpState,
 	    Config.Timeout.read);
+	/*
+	 * Cancel the timeout on the Data socket (if any) and
+	 * establish one on the control socket.
+	 */
+	if (ftpState->data.fd > -1)
+	    commSetTimeout(ftpState->data.fd, -1, NULL, NULL);
+	commSetTimeout(ftpState->ctrl.fd, Config.Timeout.read, ftpTimeout,
+	    ftpState);
     }
 }
 
