@@ -109,7 +109,6 @@
 
 #define IP_LOW_WATER       90
 #define IP_HIGH_WATER      95
-#define MAX_HOST_NAME	  256
 
 struct _ip_pending {
     int fd;
@@ -781,7 +780,7 @@ ipcache_init()
     static_result->h_length = 4;
     static_result->h_addr_list = xcalloc(2, sizeof(char *));
     *(static_result->h_addr_list + 0) = xcalloc(1, 4);
-    static_result->h_name = xcalloc(1, MAX_HOST_NAME + 1);
+    static_result->h_name = xcalloc(1, SQUIDHOSTNAMELEN + 1);
 
     ipcache_high = (long) (((float) Config.ipcache.size *
 	    (float) Config.ipcache.high) / (float) 100);
@@ -995,7 +994,7 @@ ipcacheCheckNumeric(char *name)
     if ((ip = inet_addr(name)) == INADDR_NONE)
 	return NULL;
     *((u_num32 *) (void *) static_result->h_addr_list[0]) = ip;
-    strncpy(static_result->h_name, name, MAX_HOST_NAME);
+    strncpy(static_result->h_name, name, SQUIDHOSTNAMELEN);
     return static_result;
 }
 
