@@ -1,0 +1,20 @@
+.SUFFIXES: .pkg .tar .info
+
+PRG=Squid
+
+FILENAME=${PRG}-${VERSION}
+PKGNAME=${PRG}-${VERSION}.pkg
+
+${PKGNAME}: /usr/local/squid/bin/squid Squid.pkg.README info.in post_install \
+	pre_install makepkg Makefile.real
+	./makepkg
+
+${PKGNAME}.tar.gz: ${PKGNAME}/${FILENAME}.info
+	gnutar zcvf ${PKGNAME}.tar.gz ${PKGNAME} ${PKGNAME}.README
+
+tar: ${PKGNAME}.tar.gz
+
+pkg: ${PKGNAME}
+
+clean:
+	rm -rf ${PKGNAME} ${PKGNAME}.tar.gz ${PKGNAME}.README

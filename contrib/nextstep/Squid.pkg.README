@@ -1,0 +1,30 @@
+This installer package contains the Squid internet cache for NEXTSTEP. It has
+been compiled for m68k, hppa, i486 and sparc.
+
+Note that this release differs in one small way from the official Squid-1.1.20
+release.
+
+When the privacy mode is turned to 'paranoid', the normal release does not
+pass on User-Agent and WWW-Authenticate. While that is sound from a privacy
+perspective, the behaviour breaks HTTP. Besides, WWW-Authenticate is used for
+passing on information from login panels, and as such is a consious act by a
+user and should not be blocked by the proxy. As far as User-Agent is
+concerned, a value can be overriden in de configuration file and therefore
+privacy remains unbreached.
+
+Currently, the Run* scripts in /usr/local/squid/bin do not work because they
+assume a non-standard date program. If you want them to work, compile and
+install the following program as /usr/local/squid/bin/epoch:
+
+#include <stdio.h>
+
+main()
+{
+    long t = time();
+    printf( "%ul\n", t);
+}
+
+And change the "date '+%d%H%M%S'" invocations in the Run* scripts to
+/usr/local/squid/bin/epoch
+
+Gerben Wierda

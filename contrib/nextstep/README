@@ -1,0 +1,3 @@
+First run 'make install' from directory ../.. Make sure you compile fat.
+Then run './makepkg' from this directory. This uses the just installed fat
+binaries in the package.
