@@ -891,6 +891,17 @@ icpLogIcp(icpUdpData * queue)
 {
     icp_common_t *header = (icp_common_t *) (void *) queue->msg;
     char *url = (char *) header + sizeof(icp_common_t);
+    ICPCacheInfo->proto_touchobject(ICPCacheInfo,
+	queue->proto,
+	queue->len);
+    ICPCacheInfo->proto_count(ICPCacheInfo,
+	queue->proto,
+	queue->logcode);
+    clientdbUpdate(queue->address.sin_addr,
+	queue->logcode,
+	CACHE_ICP_PORT);
+    if (!Config.Options.log_udp)
+	return;
     HTTPCacheInfo->log_append(HTTPCacheInfo,
 	url,
 	queue->address.sin_addr,
@@ -906,15 +917,6 @@ icpLogIcp(icpUdpData * queue)
 	NULL,			/* reply header */
 #endif /* LOG_FULL_HEADERS */
 	NULL);			/* content-type */
-    ICPCacheInfo->proto_touchobject(ICPCacheInfo,
-	queue->proto,
-	queue->len);
-    ICPCacheInfo->proto_count(ICPCacheInfo,
-	queue->proto,
-	queue->logcode);
-    clientdbUpdate(queue->address.sin_addr,
-	queue->logcode,
-	CACHE_ICP_PORT);
 }
 
 int
@@ -945,7 +947,7 @@ icpUdpReply(int fd, icpUdpData * queue)
 		result = COMM_ERROR;
 	}
 	UdpQueueHead = queue->next;
-	if (queue->logcode && Config.Options.log_udp)
+	if (queue->logcode)
 	    icpLogIcp(queue);
 	safe_free(queue->msg);
 	safe_free(queue);
