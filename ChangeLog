@@ -242,3 +242,4 @@ Changes to squid-1.0.beta12:
 	  truncated.
 	- Made all external processes communicate with TCP sockets.
 	- Semi-major rewrite of ipcache implementation.
+	- Fixed a couple little memory bugs found by purify
