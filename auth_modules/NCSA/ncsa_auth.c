@@ -70,16 +70,14 @@ read_passwd_file(const char *passwdfile)
     user_data *u;
     char *user;
     char *passwd;
-
     if (hash != NULL) {
 	hashFreeItems(hash, my_free);
-    } else {
-	/* initial setup */
-	hash = hash_create((HASHCMP *) strcmp, 7921, hash_string);
-	if (NULL == hash) {
-	    fprintf(stderr, "ncsa_auth: cannot create hash table\n");
-	    exit(1);
-	}
+    }
+    /* initial setup */
+    hash = hash_create((HASHCMP *) strcmp, 7921, hash_string);
+    if (NULL == hash) {
+	fprintf(stderr, "ncsa_auth: cannot create hash table\n");
+	exit(1);
     }
     f = fopen(passwdfile, "r");
     while (fgets(buf, 8192, f) != NULL) {

@@ -218,12 +218,13 @@ statHistDump(const StatHist * H, StoreEntry * sentry, StatHistBinDumper * bd)
 static double
 Log(double x)
 {
-    return log(x + 1);
+    assert((x + 1.0) >= 0.0);
+    return log(x + 1.0);
 }
 static double
 Exp(double x)
 {
-    return exp(x) - 1;
+    return exp(x) - 1.0;
 }
 void
 statHistLogInit(StatHist * H, int capacity, double min, double max)
