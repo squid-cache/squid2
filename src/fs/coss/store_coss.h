@@ -33,8 +33,8 @@ struct _coss_stats {
 
 struct _cossmembuf {
     dlink_node node;
-    size_t diskstart;		/* in blocks */
-    size_t diskend;		/* in blocks */
+    size_t diskstart;		/* in bytes */
+    size_t diskend;		/* in bytes */
     SwapDir *SD;
     int lockcount;
     char buffer[COSS_MEMBUF_SZ];
@@ -49,7 +49,7 @@ struct _cossmembuf {
 struct _cossinfo {
     dlink_list membufs;
     struct _cossmembuf *current_membuf;
-    size_t current_offset;	/* in Blocks */
+    size_t current_offset;	/* in bytes */
     int fd;
     int swaplog_fd;
     int numcollisions;
