@@ -509,6 +509,7 @@ commCallCloseHandlers(int fd)
 {
     FD_ENTRY *conn = &fd_table[fd];
     struct close_handler *ch;
+    debug(5,5,"commCallCloseHandlers: FD %d\n", fd);
     while ((ch = conn->close_handler) != NULL) {
 	conn->close_handler = ch->next;
 	ch->handler(fd, ch->data);
@@ -861,9 +862,8 @@ void
 comm_add_close_handler(int fd, PF handler, void *data)
 {
     struct close_handler *new = xmalloc(sizeof(*new));
-
-    debug(5, 5, "comm_add_close_handler: fd=%d handler=%p data=%p\n", fd, handler, data);
-
+    debug(5, 5, "comm_add_close_handler: FD %d, handler=%p, data=%p\n",
+	fd, handler, data);
     new->handler = handler;
     new->data = data;
     new->next = fd_table[fd].close_handler;
