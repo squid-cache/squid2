@@ -5,7 +5,7 @@
 #
 
 libexec_PROGRAMS = wb_group
-wb_auth_SOURCES = wb_check_group.c wb_common.c samba_nss.h winbindd_nss.h wbntlm.h winbind_nss_config.h
+wb_group_SOURCES = wb_check_group.c wb_common.c samba_nss.h winbindd_nss.h wbntlm.h winbind_nss_config.h
 INCLUDES = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
     -I$(top_srcdir)/src
-LDADD = -L$(top_builddir)/lib -lmiscutil -lntlmauth $(XTRA_LIBS)
+LDADD = -L$(top_builddir)/lib $(XTRA_LIBS)
