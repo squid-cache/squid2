@@ -273,6 +273,6 @@
 
 #if USE_ASYNC_IO
 #ifndef NUMTHREADS
-#define NUMTHREADS 64
+#define NUMTHREADS 16
 #endif
 #endif
