@@ -895,6 +895,7 @@ struct _DigestFetchState {
     int offset;
     int mask_offset;
     time_t start_time;
+    request_t *request;
 };
 
 /* statistics for cache digests and other hit "predictors" */
