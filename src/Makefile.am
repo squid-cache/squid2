@@ -70,8 +70,10 @@ EXTRA_PROGRAMS = \
 noinst_PROGRAMS = \
 	cf_gen
 
+sbin_PROGRAMS = \
+	squid
+
 bin_PROGRAMS = \
-	squid \
 	squidclient
 
 libexec_PROGRAMS = \
