@@ -119,23 +119,9 @@ int file_open(path, handler, mode)
 
     conn = &fd_table[fd];
     memset(conn, '\0', sizeof(FD_ENTRY));
-
-    /* set non-blocking mode */
-#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
-    if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0) {
-	debug(6, 0, "file_open: FD %d: Failure to set O_NONBLOCK: %s\n",
-	    fd, xstrerror());
+    if (commSetNonBlocking(fd) == COMM_ERROR)
 	return DISK_ERROR;
-    }
-#else
-    if (fcntl(fd, F_SETFL, O_NDELAY) < 0) {
-	debug(6, 0, "file_open: FD %d: Failure to set O_NDELAY: %s\n",
-	    fd, xstrerror());
-	return DISK_ERROR;
-    }
-#endif /* O_NONBLOCK */
     conn->comm_type = COMM_NONBLOCKING;
-
     return fd;
 }
 

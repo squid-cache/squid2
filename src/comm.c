@@ -143,7 +143,7 @@ int comm_open(io_type, addr, port, note)
 	if (commSetNonBlocking(new_socket) == COMM_ERROR)
 	    return COMM_ERROR;
 #ifdef TCP_NODELAY
-	commSetTcpNoDelay(new_socket);
+    commSetTcpNoDelay(new_socket);
 #endif
     conn->comm_type = io_type;
     return new_socket;
