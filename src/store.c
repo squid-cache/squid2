@@ -630,11 +630,14 @@ getKeyCounter(void)
 unsigned int
 storeReqnum(StoreEntry * entry, method_t method)
 {
+    unsigned int k;
     if (BIT_TEST(entry->flag, KEY_PRIVATE))
-	return atoi(entry->key);
+	k = atoi(entry->key);
+    else
+	k = getKeyCounter();
     if (method == METHOD_GET)
-	return getKeyCounter();
-    return (method << 24) | getKeyCounter();
+	return k;
+    return (method << 24) | k;
 }
 
 const char *
