@@ -175,6 +175,7 @@ void shut_down(sig)
 	ntcpconn + nudpconn);
     serverConnectionsClose();
     ipcacheShutdownServers();
+    ftpServerClose();
     for (i = fdstat_biggest_fd(); i >= 0; i--) {
 	f = &fd_table[i];
 	if (f->read_handler || f->write_handler || f->except_handler)
@@ -452,6 +453,7 @@ void reconfigure(sig)
     debug(21, 1, "reconfigure: SIGHUP received.\n");
     serverConnectionsClose();
     ipcacheShutdownServers();
+    ftpServerClose();
     reread_pending = 1;
     for (i = fdstat_biggest_fd(); i >= 0; i--) {
 	f = &fd_table[i];

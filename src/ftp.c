@@ -14,6 +14,7 @@
 static char ftpASCII[] = "A";
 static char ftpBinary[] = "I";
 static char localhost[] = "localhost";
+static int ftpget_server_pipe = -1;
 
 typedef struct _Ftpdata {
     StoreEntry *entry;
@@ -644,6 +645,21 @@ static void ftpServerClosed(fd, nodata)
     (void) ftpInitialize();
 }
 
+void ftpServerClose()
+{
+    if (ftpget_server_pipe < 0) 
+	return;
+
+    comm_set_select_handler(ftpget_server_pipe,
+            COMM_SELECT_EXCEPT,
+            (PF) NULL,
+            (void *) NULL);
+    fdstat_close(ftpget_server_pipe);
+    close(ftpget_server_pipe);
+    ftpget_server_pipe = -1;
+}
+    
+
 int ftpInitialize()
 {
     int pid;
@@ -670,6 +686,7 @@ int ftpInitialize()
 	    COMM_SELECT_EXCEPT,
 	    (PF) ftpServerClosed,
 	    (void *) NULL);
+	ftpget_server_pipe = p[1];
 	return 0;
     }
     /* child */
