@@ -524,6 +524,12 @@ getMyHostname(void)
     return host;
 }
 
+const char *
+uniqueHostname(void)
+{
+    return Config.uniqueHostname ? Config.uniqueHostname : getMyHostname();
+}
+
 void
 safeunlink(const char *s, int quiet)
 {

@@ -278,7 +278,7 @@ configDoConfigure(void)
     if (Config.Port.http == NULL)
 	fatal("No http_port specified!");
     snprintf(ThisCache, sizeof(ThisCache), "%s:%d (%s)",
-	getMyHostname(),
+	uniqueHostname(),
 	(int) Config.Port.http->i,
 	full_appname_string);
     if (!Config.udpMaxHitObjsz || Config.udpMaxHitObjsz > SQUID_UDP_SO_SNDBUF)
@@ -789,7 +789,7 @@ parse_peer(peer ** head)
     if (p->weight < 1)
 	p->weight = 1;
     p->icp_version = ICP_VERSION_CURRENT;
-    p->tcp_up = 1;
+    p->tcp_up = PEER_TCP_MAGIC_COUNT;
     cbdataAdd(p, MEM_NONE);
     while (*head != NULL)
 	head = &(*head)->next;
