@@ -142,7 +142,7 @@ static void destroy_MemObject(m)
     debug(20, 3, "destroy_MemObject: destroying %p\n", m);
     safe_free(m->mime_hdr);
     safe_free(m->reply);
-    if (--m->request->link_count == 0)
+    if (m->request && --m->request->link_count == 0)
 	safe_free(m->request);
     xfree(m);
     meta_data.store_in_mem_objects--;
