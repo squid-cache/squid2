@@ -792,7 +792,6 @@ parse_int(int *var)
 {
     char *token;
     int i;
-
     GetInteger(i);
     *var = i;
 }
@@ -986,6 +985,12 @@ free_time_t(time_t * var)
 static void
 dump_size_t(size_t var)
 {
+    printf("%d", (int) var);
+}
+
+static void
+dump_b_size_t(size_t var)
+{
     printf("%d bytes", (int) var);
 }
 
@@ -997,6 +1002,15 @@ dump_kb_size_t(size_t var)
 
 static void
 parse_size_t(size_t * var)
+{
+    char *token;
+    int i;
+    GetInteger(i);
+    *var = (size_t) i;
+}
+
+static void
+parse_b_size_t(size_t * var)
 {
     parseBytesLine(var, B_BYTES_STR);
 }
@@ -1013,6 +1027,7 @@ free_size_t(size_t * var)
     *var = 0;
 }
 
+#define free_b_size_t free_size_t
 #define free_kb_size_t free_size_t
 #define free_mb_size_t free_size_t
 #define free_gb_size_t free_size_t

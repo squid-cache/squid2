@@ -106,7 +106,6 @@
 
 #include "squid.h"
 
-static int default_hash_size = -1;
 static int hash_unlink _PARAMS((hash_table *, hash_link *, int));
 
 /*
@@ -304,17 +303,6 @@ hash4(const char *keyarg, unsigned int size)
 }
 
 /*
- *  hash_init - initializes the hash library -- must call first.
- *  If hash_sz == 0, then it uses the default hash sizes, otherwise
- *  uses the given hash_sz.  Best performance if hash_sz is a prime number.
- */
-void
-hash_init(int hash_sz)
-{
-    default_hash_size = hash_sz > 0 ? hash_sz : HASH_SIZE;
-}
-
-/*
  *  hash_create - creates a new hash table, uses the cmp_func
  *  to compare keys.  Returns the identification for the hash table;
  *  otherwise returns a negative number on error.
@@ -324,7 +312,7 @@ hash_create(HASHCMP * cmp_func, int hash_sz, HASHHASH * hash_func)
 {
     hash_table *hid = xcalloc(1, sizeof(hash_table));
     if (!hash_sz)
-	hid->size = (unsigned int) default_hash_size;
+	hid->size = (unsigned int) DEFAULT_HASH_SIZE;
     else
 	hid->size = (unsigned int) hash_sz;
     /* allocate and null the buckets */
