@@ -153,16 +153,16 @@ aioCancel(int fd, void *tag)
 	aioInit();
     prev = NULL;
     curr = used_list;
-    for(;;) {
-        while(curr != NULL) {
-	    if(curr->fd == fd)
+    for (;;) {
+	while (curr != NULL) {
+	    if (curr->fd == fd)
 		break;
-	    if(tag != NULL && curr->tag == tag)
+	    if (tag != NULL && curr->tag == tag)
 		break;
 	    prev = curr;
 	    curr = curr->next;
 	}
-	if(curr == NULL)
+	if (curr == NULL)
 	    break;
 
 	aio_cancel(&(curr->result));

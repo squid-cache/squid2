@@ -169,12 +169,12 @@ dnsOpenServers(void)
     for (k = 0; k < N; k++) {
 	dns_child_table[k] = xcalloc(1, sizeof(dnsserver_t));
 	cbdataAdd(dns_child_table[k], MEM_NONE);
-        x = ipcCreate(IPC_TCP_SOCKET,
-		prg,
-		args,
-		"dnsserver",
-		&rfd,
-		&wfd);
+	x = ipcCreate(IPC_TCP_SOCKET,
+	    prg,
+	    args,
+	    "dnsserver",
+	    &rfd,
+	    &wfd);
 	if (x < 0) {
 	    debug(34, 1) ("dnsOpenServers: WARNING: Failed to start 'dnsserver' #%d.\n", k + 1);
 	    EBIT_CLR(dns_child_table[k]->flags, HELPER_ALIVE);
@@ -199,7 +199,7 @@ dnsOpenServers(void)
 	    snprintf(fd_note_buf, FD_DESC_SZ, "%s #%d", s, dns_child_table[k]->id);
 	    fd_note(dns_child_table[k]->inpipe, fd_note_buf);
 	    commSetNonBlocking(dns_child_table[k]->inpipe);
-	    debug(34, 3) ("dnsOpenServers: 'dns_server' %d started\n", k+1);
+	    debug(34, 3) ("dnsOpenServers: 'dns_server' %d started\n", k + 1);
 	    NDnsServersAlloc++;
 	}
     }

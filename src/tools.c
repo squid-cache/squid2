@@ -841,9 +841,10 @@ dlinkDelete(dlink_node * m, dlink_list * list)
 	list->tail = m->prev;
 }
 
-void kb_incr(kb_t *k, size_t v)
+void 
+kb_incr(kb_t * k, size_t v)
 {
-	k->bytes += v;
-	k->kb += (k->bytes >> 10);
-	k->bytes &= 0x3FF;
+    k->bytes += v;
+    k->kb += (k->bytes >> 10);
+    k->bytes &= 0x3FF;
 }

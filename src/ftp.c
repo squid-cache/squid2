@@ -346,7 +346,7 @@ ftpListingFinish(FtpStateData * ftpState)
     storeAppendPrintf(e, "</PRE>\n");
     if (EBIT_TEST(ftpState->flags, FTP_LISTFORMAT_UNKNOWN) && !EBIT_TEST(ftpState->flags, FTP_TRIED_NLST)) {
 	storeAppendPrintf(e, "<A HREF=\"./;type=d\">[As plain directory]</A>\n");
-    } else if (ftpState->typecode=='D') {
+    } else if (ftpState->typecode == 'D') {
 	storeAppendPrintf(e, "<A HREF=\"./\">[As extended directory]</A>\n");
     }
     storeAppendPrintf(e, "<HR>\n");
@@ -416,8 +416,8 @@ ftpListParseParts(const char *buf, int flags)
     xbuf = xstrdup(buf);
     if (EBIT_TEST(flags, FTP_TRIED_NLST)) {
 	/* Machine readable format, one name per line */
-	p->name=xbuf;
-	p->type='\0'; 
+	p->name = xbuf;
+	p->type = '\0';
 	return p;
     }
     for (t = strtok(xbuf, w_space); t && n_tokens < MAX_TOKENS; t = strtok(NULL, w_space))
@@ -553,9 +553,9 @@ ftpHtmlifyListEntry(char *line, FtpStateData * ftpState)
 	return html;
     }
     if ((parts = ftpListParseParts(line, flags)) == NULL) {
-        char *p;
+	char *p;
 	snprintf(html, 8192, "%s\n", line);
-	for(p=line;*p && isspace(*p);p++);
+	for (p = line; *p && isspace(*p); p++);
 	if (*p && !isspace(*p))
 	    EBIT_SET(ftpState->flags, FTP_LISTFORMAT_UNKNOWN);
 	return html;

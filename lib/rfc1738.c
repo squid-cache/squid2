@@ -182,7 +182,7 @@ rfc1738_escape(const char *url)
 	}
 	/* Do the triplet encoding, or just copy the char */
 	/* note: we do not need snprintf here as q is appropriately
-           allocated - KA */
+	 * allocated - KA */
 
 	if (do_escape == 1) {
 	    (void) sprintf(q, "%%%02x", (unsigned char) *p);

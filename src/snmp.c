@@ -922,7 +922,7 @@ snmpAppendUdp(snmpUdpData * item)
 }
 
 u_char *
-var_perfsys_entry(struct variable * vp, oid * name, int *length, int exact, int *var_len,
+var_perfsys_entry(struct variable *vp, oid * name, int *length, int exact, int *var_len,
     SNMPWM ** write_method)
 {
     oid newname[MAX_NAME_LEN];
@@ -1345,7 +1345,7 @@ snmpConnectionClose(void)
     if (theInSnmpConnection < 0)
 	return;
     if (theInSnmpConnection != theOutSnmpConnection)
-    	comm_close(theInSnmpConnection);
+	comm_close(theInSnmpConnection);
     /*
      * Here we set 'theInSnmpConnection' to -1 even though the SNMP 'in'
      * and 'out' sockets might be just one FD.  This prevents this

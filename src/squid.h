@@ -234,6 +234,7 @@ struct rusage {
     int ru_maxrss;
     int ru_majflt;
 };
+
 #endif
 
 #if !defined(HAVE_GETPAGESIZE) && defined(_SQUID_HPUX_)
