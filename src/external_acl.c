@@ -443,8 +443,11 @@ aclMatchExternal(void *data, aclCheck_t * ch)
      * piggy backs on ident, and may fail if there is child proxies..
      * Register the username for logging purposes
      */
-    if (entry->user && cbdataValid(ch->conn) && !ch->conn->rfc931[0])
-	xstrncpy(ch->conn->rfc931, entry->user, USER_IDENT_SZ);
+    if (entry->user) {
+	xstrncpy(ch->rfc931, entry->user, USER_IDENT_SZ);
+	if (cbdataValid(ch->conn))
+	    xstrncpy(ch->conn->rfc931, entry->user, USER_IDENT_SZ);
+    }
     return result;
 }
 
