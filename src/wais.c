@@ -9,6 +9,7 @@
 #define  WAIS_DELETE_GAP  (64*1024)
 
 typedef struct {
+    int fd;
     StoreEntry *entry;
     method_t method;
     char *relayhost;
@@ -16,6 +17,15 @@ typedef struct {
     char *mime_hdr;
     char request[MAX_URL];
 } WaisStateData;
+
+static int waisStateFree _PARAMS((int, WaisStateData *));
+static void waisReadReplyTimeout _PARAMS((int, WaisStateData *));
+static void waisLifetimeExpire _PARAMS((int, WaisStateData *));
+static void waisReadReply _PARAMS((int, WaisStateData *));
+static void waisSendComplete _PARAMS((int, char *, int, int, void *));
+static void waisSendRequest _PARAMS((int, WaisStateData *));
+static void waisConnInProgress _PARAMS((int, WaisStateData *));
+static int waisConnect _PARAMS((int, struct hostent *, WaisStateData *));
 
 static int waisStateFree(fd, waisState)
      int fd;
@@ -43,7 +53,7 @@ static void waisReadReplyTimeout(fd, waisState)
 }
 
 /* This will be called when socket lifetime is expired. */
-void waisLifetimeExpire(fd, waisState)
+static void waisLifetimeExpire(fd, waisState)
      int fd;
      WaisStateData *waisState;
 {
@@ -61,7 +71,7 @@ void waisLifetimeExpire(fd, waisState)
 
 /* This will be called when data is ready to be read from fd.  Read until
  * error or connection closed. */
-void waisReadReply(fd, waisState)
+static void waisReadReply(fd, waisState)
      int fd;
      WaisStateData *waisState;
 {
@@ -161,14 +171,15 @@ void waisReadReply(fd, waisState)
 
 /* This will be called when request write is complete. Schedule read of
  * reply. */
-void waisSendComplete(fd, buf, size, errflag, waisState)
+static void waisSendComplete(fd, buf, size, errflag, data)
      int fd;
      char *buf;
      int size;
      int errflag;
-     WaisStateData *waisState;
+     void *data;
 {
     StoreEntry *entry = NULL;
+    WaisStateData *waisState = data;
     entry = waisState->entry;
     debug(24, 5, "waisSendComplete - fd: %d size: %d errflag: %d\n",
 	fd, size, errflag);
@@ -191,7 +202,7 @@ void waisSendComplete(fd, buf, size, errflag, waisState)
 }
 
 /* This will be called when connect completes. Write request. */
-void waisSendRequest(fd, waisState)
+static void waisSendRequest(fd, waisState)
      int fd;
      WaisStateData *waisState;
 {
@@ -221,7 +232,7 @@ void waisSendRequest(fd, waisState)
 	waisSendComplete,
 	(void *) waisState);
     if (BIT_TEST(waisState->entry->flag, CACHABLE))
-	storeSetPublicKey(waisState->entry);		/* Make it public */
+	storeSetPublicKey(waisState->entry);	/* Make it public */
 }
 
 static void waisConnInProgress(fd, waisState)
@@ -233,25 +244,25 @@ static void waisConnInProgress(fd, waisState)
     debug(11, 5, "waisConnInProgress: FD %d waisState=%p\n", fd, waisState);
 
     if (comm_connect(fd, waisState->relayhost, waisState->relayport) != COMM_OK) {
-        debug(11, 5, "waisConnInProgress: FD %d: %s\n", fd, xstrerror());
-        switch (errno) {
-        case EINPROGRESS:
-        case EALREADY:
-            /* schedule this handler again */
-            comm_set_select_handler(fd,
-                COMM_SELECT_WRITE,
-                (PF) waisConnInProgress,
-                (void *) waisState);
-            return;
-        default:
-            squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
-            comm_close(fd);
-            return;
-        }
+	debug(11, 5, "waisConnInProgress: FD %d: %s\n", fd, xstrerror());
+	switch (errno) {
+	case EINPROGRESS:
+	case EALREADY:
+	    /* schedule this handler again */
+	    comm_set_select_handler(fd,
+		COMM_SELECT_WRITE,
+		(PF) waisConnInProgress,
+		(void *) waisState);
+	    return;
+	default:
+	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
+	    comm_close(fd);
+	    return;
+	}
     }
     /* Call the real write handler, now that we're fully connected */
     comm_set_select_handler(fd, COMM_SELECT_WRITE,
-        (PF) waisSendRequest, (void *) waisState);
+	(PF) waisSendRequest, (void *) waisState);
 }
 
 int waisStart(unusedfd, url, method, mime_hdr, entry)
@@ -261,22 +272,18 @@ int waisStart(unusedfd, url, method, mime_hdr, entry)
      char *mime_hdr;
      StoreEntry *entry;
 {
-    /* Create state structure. */
-    int sock, status;
     WaisStateData *waisState = NULL;
+    int fd;
 
-    debug(24, 3, "waisStart: \"%s %s\"\n",
-	RequestMethodStr[method], url);
+    debug(24, 3, "waisStart: \"%s %s\"\n", RequestMethodStr[method], url);
     debug(24, 4, "            header: %s\n", mime_hdr);
-
     if (!getWaisRelayHost()) {
 	debug(24, 0, "waisStart: Failed because no relay host defined!\n");
 	squid_error_entry(entry, ERR_NO_RELAY, NULL);
 	return COMM_ERROR;
     }
-    /* Create socket. */
-    sock = comm_open(COMM_NONBLOCKING, getTcpOutgoingAddr(), 0, url);
-    if (sock == COMM_ERROR) {
+    fd = comm_open(COMM_NONBLOCKING, getTcpOutgoingAddr(), 0, url);
+    if (fd == COMM_ERROR) {
 	debug(24, 4, "waisStart: Failed because we're out of sockets.\n");
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
 	return COMM_ERROR;
@@ -287,39 +294,60 @@ int waisStart(unusedfd, url, method, mime_hdr, entry)
     waisState->relayhost = getWaisRelayHost();
     waisState->relayport = getWaisRelayPort();
     waisState->mime_hdr = mime_hdr;
+    waisState->fd = fd;
     strncpy(waisState->request, url, MAX_URL);
-    comm_add_close_handler(sock,
+    comm_add_close_handler(waisState->fd,
 	(PF) waisStateFree,
 	(void *) waisState);
+    ipcache_nbgethostbyname(waisState->relayhost,
+	waisState->fd,
+	(IPH) waisConnect,
+	waisState);
+    return COMM_OK;
+}
 
-    /* check if IP is already in cache. It must be. 
-     * It should be done before this route is called. 
-     * Otherwise, we cannot check return code for connect. */
+
+static int waisConnect(fd, hp, waisState)
+     int fd;
+     struct hostent *hp;
+     WaisStateData *waisState;
+{
+    int status;
+    char *host = waisState->relayhost;
+    u_short port = waisState->relayport;
     if (!ipcache_gethostbyname(waisState->relayhost, 0)) {
-	debug(24, 4, "waisstart: Called without IP entry in ipcache. OR lookup failed.\n");
-	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
-	comm_close(sock);
+	debug(24, 4, "waisstart: Unknown host: %s\n", waisState->relayhost);
+	squid_error_entry(waisState->entry, ERR_DNS_FAIL, dns_error_message);
+	comm_close(waisState->fd);
 	return COMM_ERROR;
     }
     /* Open connection. */
-    if ((status = comm_connect(sock, waisState->relayhost, waisState->relayport))) {
+    if ((status = comm_connect(fd, host, port))) {
 	if (status != EINPROGRESS) {
-	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
-	    comm_close(sock);
+	    squid_error_entry(waisState->entry, ERR_CONNECT_FAIL, xstrerror());
+	    comm_close(fd);
 	    return COMM_ERROR;
 	} else {
-	    debug(24, 5, "waisStart: FD %d EINPROGRESS\n", sock);
-            comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-                (PF) waisLifetimeExpire, (void *) waisState);
-            comm_set_select_handler(sock, COMM_SELECT_WRITE,
-                (PF) waisConnInProgress, (void *) waisState);
-            return COMM_OK;
+	    debug(24, 5, "waisStart: FD %d EINPROGRESS\n", fd);
+	    comm_set_select_handler(fd,
+		COMM_SELECT_LIFETIME,
+		(PF) waisLifetimeExpire,
+		(void *) waisState);
+	    comm_set_select_handler(fd,
+		COMM_SELECT_WRITE,
+		(PF) waisConnInProgress,
+		(void *) waisState);
+	    return COMM_OK;
 	}
     }
     /* Install connection complete handler. */
-    comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-	(PF) waisLifetimeExpire, (void *) waisState);
-    comm_set_select_handler(sock, COMM_SELECT_WRITE,
-	(PF) waisSendRequest, (void *) waisState);
+    comm_set_select_handler(fd,
+	COMM_SELECT_LIFETIME,
+	(PF) waisLifetimeExpire,
+	(void *) waisState);
+    comm_set_select_handler(fd,
+	COMM_SELECT_WRITE,
+	(PF) waisSendRequest,
+	(void *) waisState);
     return COMM_OK;
 }
