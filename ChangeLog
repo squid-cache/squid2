@@ -1,4 +1,4 @@
-Changes to squid-1.1.9 (March 25, 1997):
+Changes to squid-1.1.9 (March 30, 1997):
 
 	- Fixed aclIpNetworkCompare for USE_SPLAY_TREE; was applying
 	  netmask to non-local variable through pointer.  (Ansgar
