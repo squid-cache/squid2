@@ -499,6 +499,11 @@ struct _SquidConfig {
     } digest;
 #endif
     wordlist *ext_methods;
+    struct {
+	int high_rptm;
+	int high_pf;
+	int high_memory;
+    } warnings;
 };
 
 struct _SquidConfig2 {
