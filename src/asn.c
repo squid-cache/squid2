@@ -1,7 +1,8 @@
 /*
+ * $Id$
  *
  * DEBUG: section 53    AS Number handling
- * AUTHOR: Duane Wessels
+ * AUTHOR: Duane Wessels, Kostas Anagnostakis
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
  * --------------------------------------------------------
