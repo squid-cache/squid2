@@ -408,19 +408,20 @@ ftpSendComplete(int fd, char *buf, int size, int errflag, void *data)
 	buf = NULL;
     }
     if (errflag) {
-	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
-	comm_close(fd);
+	if (entry->store_status == STORE_PENDING) {
+	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
+	    comm_close(fd);
+	}
 	return;
-    } else {
-	commSetSelect(ftpState->ftp_fd,
-	    COMM_SELECT_READ,
-	    (PF) ftpReadReply,
-	    (void *) ftpState, 0);
-	commSetSelect(ftpState->ftp_fd,
-	    COMM_SELECT_TIMEOUT,
-	    (PF) ftpLifetimeExpire,
-	    (void *) ftpState, Config.readTimeout);
     }
+    commSetSelect(ftpState->ftp_fd,
+	COMM_SELECT_READ,
+	(PF) ftpReadReply,
+	(void *) ftpState, 0);
+    commSetSelect(ftpState->ftp_fd,
+	COMM_SELECT_TIMEOUT,
+	(PF) ftpLifetimeExpire,
+	(void *) ftpState, Config.readTimeout);
 }
 
 static char *
@@ -644,7 +645,7 @@ ftpConnectDone(int fd, int status, void *data)
     if (opt_no_ipcache)
 	ipcacheInvalidate(ftpData->request->host);
     if (Config.vizHackAddr.sin_port)
-        vizHackSendPkt(&ftpData->connectState.S, 2);
+	vizHackSendPkt(&ftpData->connectState.S, 2);
 }
 
 static void
