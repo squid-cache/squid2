@@ -410,7 +410,7 @@ static void
 squidaio_queue_request(squidaio_request_t * request)
 {
     static int high_start = 0;
-    debug(41, 9) ("squidaio_queue_request: %p type=%d result=%p\n",
+    debug(43, 9) ("squidaio_queue_request: %p type=%d result=%p\n",
 	request, request->request_type, request->resultp);
     /* Mark it as not executed (failing result, no error) */
     request->ret = -1;
@@ -547,7 +547,7 @@ squidaio_cancel(squidaio_result_t * resultp)
     squidaio_request_t *request = resultp->_data;
 
     if (request && request->resultp == resultp) {
-	debug(41, 9) ("squidaio_cancel: %p type=%d result=%p\n",
+	debug(43, 9) ("squidaio_cancel: %p type=%d result=%p\n",
 	    request, request->request_type, request->resultp);
 	request->cancelled = 1;
 	request->resultp = NULL;
@@ -838,7 +838,7 @@ squidaio_poll_done(void)
     if (!request) {
 	return NULL;
     }
-    debug(41, 9) ("squidaio_poll_done: %p type=%d result=%p\n",
+    debug(43, 9) ("squidaio_poll_done: %p type=%d result=%p\n",
 	request, request->request_type, request->resultp);
     done_requests.head = request->next;
     if (!done_requests.head)

@@ -1,6 +1,6 @@
 
 /*
- * DEBUG 78
+ * DEBUG 79
  */
 
 #include "squid.h"
@@ -37,7 +37,7 @@ storeAufsOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
 #if !ASYNC_OPEN
     int fd;
 #endif
-    debug(78, 3) ("storeAufsOpen: fileno %08X\n", f);
+    debug(79, 3) ("storeAufsOpen: fileno %08X\n", f);
     /*
      * we should detect some 'too many files open' condition and return
      * NULL here.
@@ -49,7 +49,7 @@ storeAufsOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
 #if !ASYNC_OPEN
     fd = file_open(path, O_RDONLY | O_BINARY);
     if (fd < 0) {
-	debug(78, 3) ("storeAufsOpen: got failure (%d)\n", errno);
+	debug(79, 3) ("storeAufsOpen: got failure (%d)\n", errno);
 	return NULL;
     }
 #endif
@@ -91,7 +91,7 @@ storeAufsCreate(SwapDir * SD, StoreEntry * e, STFNCB * file_callback, STIOCB * c
     filn = storeAufsDirMapBitAllocate(SD);
     path = storeAufsDirFullPath(SD, filn, NULL);
 
-    debug(78, 3) ("storeAufsCreate: fileno %08X\n", filn);
+    debug(79, 3) ("storeAufsCreate: fileno %08X\n", filn);
     /*
      * we should detect some 'too many files open' condition and return
      * NULL here.
@@ -103,7 +103,7 @@ storeAufsCreate(SwapDir * SD, StoreEntry * e, STFNCB * file_callback, STIOCB * c
 #if !ASYNC_CREATE
     fd = file_open(path, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
     if (fd < 0) {
-	debug(78, 3) ("storeAufsCreate: got failure (%d)\n", errno);
+	debug(79, 3) ("storeAufsCreate: got failure (%d)\n", errno);
 	return NULL;
     }
 #endif
@@ -139,7 +139,7 @@ void
 storeAufsClose(SwapDir * SD, storeIOState * sio)
 {
     squidaiostate_t *aiostate = (squidaiostate_t *) sio->fsstate;
-    debug(78, 3) ("storeAufsClose: dirno %d, fileno %08X, FD %d\n",
+    debug(79, 3) ("storeAufsClose: dirno %d, fileno %08X, FD %d\n",
 	sio->swap_dirn, sio->swap_filen, aiostate->fd);
     if (storeAufsSomethingPending(sio)) {
 	aiostate->flags.close_request = 1;
@@ -159,7 +159,7 @@ storeAufsRead(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t of
     assert(!aiostate->flags.reading);
     if (aiostate->fd < 0) {
 	struct _queued_read *q;
-	debug(78, 3) ("storeAufsRead: queueing read because FD < 0\n");
+	debug(79, 3) ("storeAufsRead: queueing read because FD < 0\n");
 	assert(aiostate->flags.opening);
 	assert(aiostate->pending_reads == NULL);
 	q = memPoolAlloc(aufs_qread_pool);
@@ -175,7 +175,7 @@ storeAufsRead(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t of
     sio->read.callback_data = callback_data;
     aiostate->read_buf = buf;
     cbdataLock(callback_data);
-    debug(78, 3) ("storeAufsRead: dirno %d, fileno %08X, FD %d\n",
+    debug(79, 3) ("storeAufsRead: dirno %d, fileno %08X, FD %d\n",
 	sio->swap_dirn, sio->swap_filen, aiostate->fd);
     sio->offset = offset;
     aiostate->flags.reading = 1;
@@ -192,7 +192,7 @@ void
 storeAufsWrite(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t offset, FREE * free_func)
 {
     squidaiostate_t *aiostate = (squidaiostate_t *) sio->fsstate;
-    debug(78, 3) ("storeAufsWrite: dirno %d, fileno %08X, FD %d\n",
+    debug(79, 3) ("storeAufsWrite: dirno %d, fileno %08X, FD %d\n",
 	sio->swap_dirn, sio->swap_filen, aiostate->fd);
     if (aiostate->fd < 0) {
 	/* disk file not opened yet */
@@ -209,7 +209,7 @@ storeAufsWrite(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t o
 #if ASYNC_WRITE
     if (aiostate->flags.writing) {
 	struct _queued_write *q;
-	debug(78, 3) ("storeAufsWrite: queuing write\n");
+	debug(79, 3) ("storeAufsWrite: queuing write\n");
 	q = memPoolAlloc(aufs_qwrite_pool);
 	q->buf = buf;
 	q->size = size;
@@ -231,7 +231,7 @@ storeAufsWrite(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t o
 void
 storeAufsUnlink(SwapDir * SD, StoreEntry * e)
 {
-    debug(78, 3) ("storeAufsUnlink: dirno %d, fileno %08X\n", SD->index, e->swap_filen);
+    debug(79, 3) ("storeAufsUnlink: dirno %d, fileno %08X\n", SD->index, e->swap_filen);
     storeAufsDirReplRemove(e);
     storeAufsDirMapBitReset(SD, e->swap_filen);
     storeAufsDirUnlinkFile(SD, e->swap_filen);
@@ -246,7 +246,7 @@ storeAufsKickWriteQueue(storeIOState * sio)
     struct _queued_write *q = linklistShift(&aiostate->pending_writes);
     if (NULL == q)
 	return 0;
-    debug(78, 3) ("storeAufsKickWriteQueue: writing queued chunk of %ld bytes\n",
+    debug(79, 3) ("storeAufsKickWriteQueue: writing queued chunk of %ld bytes\n",
 	(long int) q->size);
     storeAufsWrite(INDEXSD(sio->swap_dirn), sio, q->buf, q->size, q->offset, q->free_func);
     memPoolFree(aufs_qwrite_pool, q);
@@ -260,7 +260,7 @@ storeAufsKickReadQueue(storeIOState * sio)
     struct _queued_read *q = linklistShift(&(aiostate->pending_reads));
     if (NULL == q)
 	return 0;
-    debug(78, 3) ("storeAufsKickReadQueue: reading queued request of %ld bytes\n",
+    debug(79, 3) ("storeAufsKickReadQueue: reading queued request of %ld bytes\n",
 	(long int) q->size);
     storeAufsRead(INDEXSD(sio->swap_dirn), sio, q->buf, q->size, q->offset, q->callback, q->callback_data);
     memPoolFree(aufs_qread_pool, q);
@@ -272,13 +272,13 @@ storeAufsOpenDone(int unused, void *my_data, int fd, int errflag)
 {
     storeIOState *sio = my_data;
     squidaiostate_t *aiostate = (squidaiostate_t *) sio->fsstate;
-    debug(78, 3) ("storeAufsOpenDone: FD %d, errflag %d\n", fd, errflag);
+    debug(79, 3) ("storeAufsOpenDone: FD %d, errflag %d\n", fd, errflag);
     Opening_FD--;
     aiostate->flags.opening = 0;
     if (errflag || fd < 0) {
 	errno = errflag;
-	debug(78, 0) ("storeAufsOpenDone: %s\n", xstrerror());
-	debug(78, 1) ("\t%s\n", storeAufsDirFullPath(INDEXSD(sio->swap_dirn), sio->swap_filen, NULL));
+	debug(79, 0) ("storeAufsOpenDone: %s\n", xstrerror());
+	debug(79, 1) ("\t%s\n", storeAufsDirFullPath(INDEXSD(sio->swap_dirn), sio->swap_filen, NULL));
 	storeAufsIOCallback(sio, DISK_ERROR);
 	return;
     }
@@ -292,7 +292,7 @@ storeAufsOpenDone(int unused, void *my_data, int fd, int errflag)
 	storeAufsKickReadQueue(sio);
     if (aiostate->flags.close_request)
 	storeAufsIOCallback(sio, errflag);
-    debug(78, 3) ("storeAufsOpenDone: exiting\n");
+    debug(79, 3) ("storeAufsOpenDone: exiting\n");
 }
 
 #if ASYNC_READ
@@ -308,12 +308,12 @@ storeAufsReadDone(int fd, const char *buf, int len, int errflag, void *my_data)
     STRCB *callback = sio->read.callback;
     void *their_data = sio->read.callback_data;
     ssize_t rlen;
-    debug(78, 3) ("storeAufsReadDone: dirno %d, fileno %08X, FD %d, len %d\n",
+    debug(79, 3) ("storeAufsReadDone: dirno %d, fileno %08X, FD %d, len %d\n",
 	sio->swap_dirn, sio->swap_filen, fd, len);
     aiostate->flags.inreaddone = 1;
     aiostate->flags.reading = 0;
     if (errflag) {
-	debug(78, 3) ("storeAufsReadDone: got failure (%d)\n", errflag);
+	debug(79, 3) ("storeAufsReadDone: got failure (%d)\n", errflag);
 	rlen = -1;
     } else {
 	rlen = (ssize_t) len;
@@ -353,7 +353,7 @@ storeAufsWriteDone(int fd, int errflag, size_t len, void *my_data)
     static int loop_detect = 0;
     storeIOState *sio = my_data;
     squidaiostate_t *aiostate = (squidaiostate_t *) sio->fsstate;
-    debug(78, 3) ("storeAufsWriteDone: dirno %d, fileno %08X, FD %d, len %ld, err=%d\n",
+    debug(79, 3) ("storeAufsWriteDone: dirno %d, fileno %08X, FD %d, len %ld, err=%d\n",
 	sio->swap_dirn, sio->swap_filen, fd, (long int) len, errflag);
 #if ASYNC_WRITE
     /* Translate from errno to Squid disk error */
@@ -366,7 +366,7 @@ storeAufsWriteDone(int fd, int errflag, size_t len, void *my_data)
     assert(++loop_detect < 10);
     aiostate->flags.writing = 0;
     if (errflag) {
-	debug(78, 0) ("storeAufsWriteDone: got failure (%d)\n", errflag);
+	debug(79, 0) ("storeAufsWriteDone: got failure (%d)\n", errflag);
 	storeAufsIOCallback(sio, errflag);
 	loop_detect--;
 	return;
@@ -397,24 +397,24 @@ storeAufsIOCallback(storeIOState * sio, int errflag)
     void *their_data = sio->callback_data;
     squidaiostate_t *aiostate = (squidaiostate_t *) sio->fsstate;
     int fd = aiostate->fd;
-    debug(78, 3) ("storeAufsIOCallback: errflag=%d\n", errflag);
+    debug(79, 3) ("storeAufsIOCallback: errflag=%d\n", errflag);
     sio->callback = NULL;
     sio->callback_data = NULL;
-    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
+    debug(79, 3) ("%s:%d\n", __FILE__, __LINE__);
     if (callback)
 	if (NULL == their_data || cbdataValid(their_data))
 	    callback(their_data, errflag, sio);
-    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
+    debug(79, 3) ("%s:%d\n", __FILE__, __LINE__);
     cbdataUnlock(their_data);
     aiostate->fd = -1;
     cbdataFree(sio);
     if (fd < 0)
 	return;
-    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
+    debug(79, 3) ("%s:%d\n", __FILE__, __LINE__);
     aioClose(fd);
     fd_close(fd);
     store_open_disk_fd--;
-    debug(78, 3) ("%s:%d\n", __FILE__, __LINE__);
+    debug(79, 3) ("%s:%d\n", __FILE__, __LINE__);
 }
 
 

@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 29    Redirector
+ * DEBUG: section 61    Redirector
  * AUTHOR: Duane Wessels
  *
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
@@ -57,7 +57,7 @@ redirectHandleReply(void *data, char *reply)
     redirectStateData *r = data;
     int valid;
     char *t;
-    debug(29, 5) ("redirectHandleRead: {%s}\n", reply ? reply : "<NULL>");
+    debug(61, 5) ("redirectHandleRead: {%s}\n", reply ? reply : "<NULL>");
     if (reply) {
 	if ((t = strchr(reply, ' ')))
 	    *t = '\0';
@@ -99,7 +99,7 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
     char buf[8192];
     assert(http);
     assert(handler);
-    debug(29, 5) ("redirectStart: '%s'\n", http->uri);
+    debug(61, 5) ("redirectStart: '%s'\n", http->uri);
     if (Config.Program.redirect == NULL) {
 	handler(data, NULL);
 	return;

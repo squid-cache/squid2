@@ -519,7 +519,7 @@ storeDiskdDirCallback(SwapDir * SD)
 	if (x < 0)
 	    break;
 	else if (x != msg_snd_rcv_sz) {
-	    debug(81, 1) ("storeDiskdDirCallback: msgget returns %d\n",
+	    debug(79, 1) ("storeDiskdDirCallback: msgget returns %d\n",
 		x);
 	    break;
 	}
@@ -1561,7 +1561,7 @@ storeDiskdDirCheckObj(SwapDir * SD, const StoreEntry * e)
 void
 storeDiskdDirRefObj(SwapDir * SD, StoreEntry * e)
 {
-    debug(1, 3) ("storeDiskdDirRefObj: referencing %p %d/%d\n", e, e->swap_dirn,
+    debug(47, 3) ("storeDiskdDirRefObj: referencing %p %d/%d\n", e, e->swap_dirn,
 	e->swap_filen);
     if (SD->repl->Referenced)
 	SD->repl->Referenced(SD->repl, e, &e->repl);
@@ -1575,7 +1575,7 @@ storeDiskdDirRefObj(SwapDir * SD, StoreEntry * e)
 void
 storeDiskdDirUnrefObj(SwapDir * SD, StoreEntry * e)
 {
-    debug(1, 3) ("storeDiskdDirUnrefObj: referencing %p %d/%d\n", e,
+    debug(47, 3) ("storeDiskdDirUnrefObj: referencing %p %d/%d\n", e,
 	e->swap_dirn, e->swap_filen);
     if (SD->repl->Dereferenced)
 	SD->repl->Dereferenced(SD->repl, e, &e->repl);
@@ -1963,6 +1963,6 @@ storeFsSetup_diskd(storefs_entry_t * storefs)
     diskd_state_pool = memPoolCreate("DISKD IO State data", sizeof(diskdstate_t));
     memset(&diskd_stats, '\0', sizeof(diskd_stats));
     cachemgrRegister("diskd", "DISKD Stats", storeDiskdStats, 0, 1);
-    debug(81, 1) ("diskd started\n");
+    debug(79, 1) ("diskd started\n");
     diskd_initialised = 1;
 }
