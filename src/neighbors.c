@@ -341,7 +341,7 @@ void neighbors_open(fd)
 	    echo_hdr.shostid = our_socket_name.sin_addr.s_addr;
 
 	    sep = getservbyname("echo", "udp");
-	    echo_port = ntohs((u_short) (sep ? sep->s_port : 7));
+	    echo_port = sep ? ntohs((u_short) sep->s_port) : 7;
 	}
     }
 }
