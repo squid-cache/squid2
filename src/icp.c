@@ -489,6 +489,8 @@ static int icpGetHeadersForIMS(fd, icpState)
 	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n",
 	    entry->key ? entry->key : entry->url);
 	icpState->offset = 0;
+	put_free_8k_page(icpState->buf);
+	icpState->buf = NULL;
 	return icpProcessMISS(fd, icpState);
     }
     storeClientCopy(entry, icpState->offset, max_len, p, &len, fd);
@@ -505,13 +507,17 @@ static int icpGetHeadersForIMS(fd, icpState)
 
     if (!IMS_hdr)
 	fatal_dump("icpGetHeadersForIMS: Cant find IMS header in request\n");
+
     /* Restart the object from the beginning */
     icpState->offset = 0;
 
     /* Only objects with statuscode==200 can be "Not modified" */
     /* XXX: Should we ignore this? */
-    if (mem->reply->code != 200)
+    if (mem->reply->code != 200) {
+	put_free_8k_page(icpState->buf);
+	icpState->buf = NULL;
 	return icpProcessMISS(fd, icpState);
+    }
     p = strtok(IMS_hdr, ";");
     IMS = parse_rfc850(p);
     IMS_length = -1;
@@ -535,6 +541,9 @@ static int icpGetHeadersForIMS(fd, icpState)
 	length = mem->reply->content_length;
     else
 	length = entry->object_len - mime_headers_size(icpState->buf);
+
+    put_free_8k_page(icpState->buf);
+    icpState->buf = NULL;
 
     /* Compare with If-Modified-Since header */
     if (IMS > date || (IMS == date && (IMS_length < 0 || IMS_length == length))) {
@@ -709,14 +718,10 @@ static int icpProcessIMS(fd, icpState)
      int fd;
      icpStateData *icpState;
 {
-    int rc;
     icpState->buf = get_free_8k_page();
     memset(icpState->buf, '\0', 8192);
     /* And fetch headers */
-    rc = icpGetHeadersForIMS(fd, icpState);
-    put_free_8k_page(icpState->buf);
-    icpState->buf = NULL;
-    return rc;
+    return icpGetHeadersForIMS(fd, icpState);
 }
 
 
@@ -995,7 +1000,7 @@ static void icpHitObjHandler(errflag, data)
 	    ICP_OP_HIT_OBJ,
 	    entry,
 	    icpHitObjState->started);
-	CacheInfo->proto_hit(CacheInfo, entry->mem_obj->request->protocol);
+	CacheInfo->proto_hit(CacheInfo, urlParseProtocol(entry->url));
     } else {
 	debug(12, 3, "icpHitObjHandler: errflag=%d, aborted!\n", errflag);
     }
@@ -1676,8 +1681,10 @@ static void asciiConnLifetimeHandle(fd, icpState)
      * related storeAbort() for other attached clients.  If this
      * doesn't succeed, then the fetch has already started for this
      * URL. */
-    if (icpState->entry && icpState->url)
-	protoUndispatch(fd, icpState->url, icpState->entry, icpState->request);
+    protoUnregister(fd,
+	icpState->entry,
+	icpState->request,
+	icpState->peer.sin_addr);
     comm_close(fd);
 }
 
@@ -1816,8 +1823,7 @@ void icpDetectClientClose(fd, icpState)
 	    }
 	}
 	CheckQuickAbort(icpState);
-	if (entry && icpState->url)
-	    protoUndispatch(fd, icpState->url, entry, icpState->request);
+	protoUnregister(fd, entry, icpState->request, icpState->peer.sin_addr);
 	if (entry && entry->ping_status == PING_WAITING)
 	    storeReleaseRequest(entry);
 	comm_close(fd);
