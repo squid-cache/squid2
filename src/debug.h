@@ -120,14 +120,10 @@ extern void _db_print __P((void));
 #endif
 
 #define debug \
-	if (((_db_file = __FILE__)) && \
-	    ((_db_line = __LINE__))) \
-        _db_print
+	_db_file = __FILE__, _db_line = __LINE__, _db_print
 
 #define debug_trap \
-	if (((_db_file = __FILE__)) && \
-	    ((_db_line = __LINE__))) \
-        _debug_trap
+	_db_file = __FILE__, _db_line = __LINE__, _debug_trap
 
 #define safe_free(x)	if (x) { xxfree(x); x = NULL; }
 

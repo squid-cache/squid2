@@ -266,7 +266,7 @@ struct sentry {
 typedef int (*PIF) (int, StoreEntry *, void *);
 
 typedef struct pentry {
-    short fd;
+    int fd;
     PIF handler;
     void *data;
 } PendingEntry;
@@ -288,7 +288,6 @@ extern int storeClientWaiting __P((StoreEntry *));
 extern void storeAbort __P((StoreEntry *, char *));
 extern void storeAppend __P((StoreEntry *, char *, int));
 extern int storeGetMemSize __P((void));
-extern int storeGetMemSpace __P((int, int));
 extern int storeGetSwapSize __P((void));
 extern int storeGetSwapSpace __P((int));
 extern int storeEntryValidToSend __P((StoreEntry *));

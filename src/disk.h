@@ -184,7 +184,7 @@ extern int file_write __P((int fd,
     char *buf,
     int len,
     int access_code,
-    void (*handle) __P((void)),
+    void (*handle) __P((int, int, StoreEntry *)),
     void *handle_data,
     void (*free) __P((void *))));
 extern int file_write_unlock __P((int fd, int access_code));
