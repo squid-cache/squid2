@@ -29,9 +29,9 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-async-io[=N_THREADS]
                           Do ASYNC disk I/O using threads.
-                         N_THREADS is the number of worker threads
-                         defaults to 16. See also src/squid.h for
-                         some additional platform tuning"
+                          N_THREADS is the number of worker threads
+                          defaults to 16. See also src/squid.h for
+                          some additional platform tuning"
 ac_help="$ac_help
   --enable-icmp           Enable ICMP pinging"
 ac_help="$ac_help
@@ -607,7 +607,7 @@ fi
 
 
 
-# From configure.in Revision: 1.176.2.5 
+# From configure.in Revision: 1.176.2.6 
 ac_aux_dir=
 for ac_dir in cfgaux $srcdir/cfgaux; do
   if test -f $ac_dir/install-sh; then

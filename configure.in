@@ -248,9 +248,9 @@ AC_ARG_ENABLE(carp,
 AC_ARG_ENABLE(async_io,
 [  --enable-async-io[=N_THREADS]
                           Do ASYNC disk I/O using threads.
-                         N_THREADS is the number of worker threads
-                         defaults to 16. See also src/squid.h for
-                         some additional platform tuning],
+                          N_THREADS is the number of worker threads
+                          defaults to 16. See also src/squid.h for
+                          some additional platform tuning],
 [ case "$enableval" in
   yes)
     async_io=yes
