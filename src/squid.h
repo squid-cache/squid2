@@ -310,6 +310,7 @@ typedef void STCB _PARAMS((void *, char *, size_t));	/* store callback */
 #include "objcache.h"
 #include "refresh.h"
 #include "unlinkd.h"
+#include "multicast.h"
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"

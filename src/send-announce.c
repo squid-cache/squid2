@@ -38,12 +38,12 @@ start_announce(void *unused)
 {
     if (!Config.Announce.on)
 	return;
-    ipcache_nbgethostbyname(Config.Announce.host, 0, send_announce, NULL);
+    ipcache_nbgethostbyname(Config.Announce.host, send_announce, NULL);
     eventAdd("send_announce", start_announce, NULL, Config.Announce.rate);
 }
 
 static void
-send_announce(int fd, const ipcache_addrs * ia, void *data)
+send_announce(const ipcache_addrs * ia, void *data)
 {
     LOCAL_ARRAY(char, tbuf, 256);
     LOCAL_ARRAY(char, sndbuf, BUFSIZ);
@@ -53,6 +53,7 @@ send_announce(int fd, const ipcache_addrs * ia, void *data)
     u_short port = Config.Announce.port;
     int l;
     int n;
+    int fd;
     if (ia == NULL) {
 	debug(27, 1) ("send_announce: Unknown host '%s'\n", host);
 	return;

@@ -1263,6 +1263,7 @@ icpCreateHitObjMessage(
     u_short data_sz;
     int size;
     MemObject *m = entry->mem_obj;
+    assert(m != NULL);
     buf_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
     if (opcode == ICP_OP_QUERY)
 	buf_len += sizeof(u_num32);
@@ -1281,6 +1282,7 @@ icpCreateHitObjMessage(
     entryoffset = urloffset + strlen(url) + 1;
     xmemcpy(entryoffset, &data_sz, sizeof(u_short));
     entryoffset += sizeof(u_short);
+    assert(m->data != NULL);
     size = memCopy(m->data, 0, entryoffset, entry->object_len);
     if (size < 0 || size != entry->object_len) {
 	debug(12, 1) ("icpCreateHitObjMessage: copy failed, wanted %d got %d bytes\n",

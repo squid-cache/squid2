@@ -180,7 +180,7 @@ struct _peer {
     int rr_count;
     struct _peer *next;
     int ip_lookup_pending;
-    int ipcache_fd;
+    int test_fd;
 };
 
 /* flags for peer->mcast.flags */

@@ -101,6 +101,7 @@ OBJS	 	= \
 		ipcache.o \
 		main.o \
 		mime.o \
+		multicast.o \
 		neighbors.o \
 		net_db.o \
 		objcache.o \
