@@ -332,7 +332,7 @@ idnsRead(int fd, void *data)
     ssize_t len;
     struct sockaddr_in from;
     socklen_t from_len;
-    int max = 10;
+    int max = INCOMING_DNS_MAX;
     static char rbuf[512];
     int ns;
     while (max--) {

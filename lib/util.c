@@ -73,7 +73,11 @@
 void (*failure_notify) (const char *) = NULL;
 static char msg[128];
 
+#if !defined(__CYGWIN__)
 extern int sys_nerr;
+#else
+extern __declspec(dllimport) int sys_nerr;
+#endif
 
 #if MEM_GEN_TRACE
 

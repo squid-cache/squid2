@@ -1164,9 +1164,11 @@ AC_TRY_RUN([
 main() {
 	FILE *fp;
 	int i,j;
-#if __CYGWIN32__
-    /* getrlimit and sysconf returns bogous values on cygwin32.
+#if defined(__CYGWIN32__) || defined (__CYGWIN__)
+    /*
+     * getrlimit and sysconf returns bogous values on cygwin32.
      * Number of fds is virtually unlimited in cygwin (sys/param.h)
+     * NOTE: __CYGWIN32__ is deprecated.
      */
     i = NOFILE;
 #elif HAVE_SETRLIMIT
