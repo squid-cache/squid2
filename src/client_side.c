@@ -2187,7 +2187,10 @@ clientProcessRequest2(clientHttpRequest * http)
 {
     request_t *r = http->request;
     StoreEntry *e;
-    e = http->entry = storeGetPublicByRequest(r);
+    if (r->flags.cachable)
+	e = http->entry = storeGetPublicByRequest(r);
+    else
+	e = http->entry = NULL;
     /* Release negatively cached IP-cache entries on reload */
     if (r->flags.nocache)
 	ipcacheInvalidate(r->host);
