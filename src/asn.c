@@ -412,6 +412,8 @@ int
 mask_len(int mask)
 {
     int len = 32;
+    if (mask == 0)
+	return 0;
     while ((mask & 1) == 0) {
 	len--;
 	mask >>= 1;
