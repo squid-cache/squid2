@@ -932,13 +932,18 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	freefunc(buf);
 	return;
     } else if (entry->store_status == STORE_ABORTED) {
+	/* call clientWriteComplete so the client socket gets closed */
+	clientWriteComplete(fd, NULL, 0, COMM_OK, http);
 	freefunc(buf);
 	return;
     } else if (size < 0) {
+	/* call clientWriteComplete so the client socket gets closed */
+	clientWriteComplete(fd, NULL, 0, COMM_OK, http);
 	freefunc(buf);
 	return;
     } else if (size == 0) {
-	clientWriteComplete(fd, NULL, 0, DISK_OK, http);
+	/* call clientWriteComplete so the client socket gets closed */
+	clientWriteComplete(fd, NULL, 0, COMM_OK, http);
 	freefunc(buf);
 	return;
     }
