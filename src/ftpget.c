@@ -404,7 +404,7 @@ void fail(r)
 	fputs(html_trailer(), fp);
 	fclose(fp);
 	if (r->flags & F_HTTPIFY) {
-	    Debug(26, 9, ("Writing Marker to FD %d\n", r->cfd));
+	    Debug(26, 7, ("Writing Marker to FD %d\n", r->cfd));
 	    write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
 	}
     } else if (r->errmsg) {
@@ -474,7 +474,7 @@ static int write_with_timeout(fd, buf, sz)
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
 	x = select(fd + 1, &R, &W, NULL, &tv);
-	Debug(26, 9, ("write_with_timeout: select returned %d\n", x));
+	Debug(26, 7, ("write_with_timeout: select returned %d\n", x));
 	if (x < 0)
 	    return x;
 	if (x == 0)		/* timeout */
@@ -482,7 +482,7 @@ static int write_with_timeout(fd, buf, sz)
 	if (FD_ISSET(0, &R))
 	    exit(1);		/* XXX very ungraceful! */
 	x = write(fd, buf, sz);
-	Debug(26, 9, ("write_with_timeout: write returned %d\n", x));
+	Debug(26, 7, ("write_with_timeout: write returned %d\n", x));
 	if (x < 0) {
 	    log_errno2(__FILE__, __LINE__, "write");
 	    return x;
@@ -562,7 +562,7 @@ int readline_with_timeout(fd, buf, sz)
 
 int connect_with_timeout2(fd, S, len)
      int fd;
-     struct sockaddr *S;
+     struct sockaddr_in *S;
      int len;
 {
     int x;
@@ -570,17 +570,26 @@ int connect_with_timeout2(fd, S, len)
     fd_set W;
     fd_set R;
     struct timeval tv;
-    Debug(26, 9, ("connect_with_timeout2: starting...\n"));
-    for (;;) {
+    Debug(26, 7, ("connect_with_timeout2: starting...\n"));
 
-	y = connect(fd, S, len);
-	Debug(26, 9, ("connect returned %d\n", y));
+    for (;;) {
+	Debug(26, 5, ("Connecting FD %d to: %s, port %d, len = %d\n", fd,
+		inet_ntoa(S->sin_addr),
+		(int) ntohs(S->sin_port),
+		len));
+	y = connect(fd, (struct sockaddr *) S, len);
+	Debug(26, 7, ("connect returned %d\n", y));
 	if (y < 0)
-	    Debug(26, 9, ("connect: %s\n", xstrerror()));
+	    Debug(26, 7, ("connect: %s\n", xstrerror()));
 	if (y >= 0)
 	    return y;
 	if (errno == EISCONN)
 	    return 0;
+	if (errno == EINVAL) {
+	    len = sizeof(x);
+	    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
+		errno = x;
+	}
 	if (errno != EINPROGRESS && errno != EAGAIN)
 	    return y;
 
@@ -593,9 +602,9 @@ int connect_with_timeout2(fd, S, len)
 	FD_SET(fd, &W);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	Debug(26, 9, ("selecting on FD %d\n", fd));
+	Debug(26, 7, ("selecting on FD %d\n", fd));
 	x = select(fd + 1, &R, &W, NULL, &tv);
-	Debug(26, 9, ("select returned: %d\n", x));
+	Debug(26, 7, ("select returned: %d\n", x));
 	if (x == 0)
 	    return READ_TIMEOUT;
 	if (x < 0)
@@ -608,16 +617,18 @@ int connect_with_timeout2(fd, S, len)
 /* stupid wrapper for so we can set and clear O_NDELAY */
 int connect_with_timeout(fd, S, len)
      int fd;
-     struct sockaddr *S;
+     struct sockaddr_in *S;
      int len;
 {
     int orig_flags;
     int rc;
 
     orig_flags = fcntl(fd, F_GETFL, 0);
-    Debug(26, 9, ("orig_flags = %x\n", orig_flags));
+    Debug(26, 7, ("orig_flags = %x\n", orig_flags));
+#ifdef 0
     if (fcntl(fd, F_SETFL, O_NDELAY) < 0)
 	log_errno2(__FILE__, __LINE__, "fcntl O_NDELAY");
+#endif
     rc = connect_with_timeout2(fd, S, len);
     if (fcntl(fd, F_SETFL, orig_flags) < 0)
 	log_errno2(__FILE__, __LINE__, "fcntl orig");
@@ -626,7 +637,7 @@ int connect_with_timeout(fd, S, len)
 
 int accept_with_timeout(fd, S, len)
      int fd;
-     struct sockaddr *S;
+     struct sockaddr_in *S;
      int *len;
 {
     int x;
@@ -638,9 +649,9 @@ int accept_with_timeout(fd, S, len)
     FD_SET(fd, &R);
     FD_SET(0, &R);
     last_alarm_set = time(NULL);
-    Debug(26, 9, ("selecting on FD %d\n", fd));
+    Debug(26, 7, ("selecting on FD %d\n", fd));
     x = select(fd + 1, &R, NULL, NULL, &tv);
-    Debug(26, 9, ("select returned: %d\n", x));
+    Debug(26, 7, ("select returned: %d\n", x));
     if (x == 0)
 	return READ_TIMEOUT;
     if (x < 0)
@@ -835,7 +846,7 @@ int read_reply(fd)
 
     while (!quit) {
 	n = readline_with_timeout(fd, buf, SMALLBUFSIZ);
-	Debug(26, 1, ("read_reply: readline returned %d\n", n));
+	Debug(26, 9, ("read_reply: readline returned %d\n", n));
 	if (n < 0) {
 	    xfree(server_reply_msg);
 	    server_reply_msg = xstrdup(xstrerror());
@@ -982,7 +993,7 @@ state_t do_connect(r)
     S.sin_family = AF_INET;
     S.sin_port = htons(r->port);
 
-    x = connect_with_timeout(sock, (struct sockaddr *) &S, sizeof(S));
+    x = connect_with_timeout(sock, &S, sizeof(S));
     if (x == READ_TIMEOUT) {
 	(void) request_timeout(r);
 	return FAIL_CONNECT;
@@ -1266,9 +1277,9 @@ state_t do_pasv(r)
     }
     sprintf(junk, "%d.%d.%d.%d", h1, h2, h3, h4);
     S.sin_addr.s_addr = inet_addr(junk);
-    S.sin_port = htons((p1 << 8) + p2);
+    S.sin_port = htons(port = ((p1 << 8) + p2));
 
-    if (connect_with_timeout(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+    if (connect_with_timeout(sock, &S, sizeof(S)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s, port %d: %s", junk, port, xstrerror());
 	r->rc = 2;
@@ -1942,7 +1953,7 @@ static int process_request(r)
 	    break;
 	case DONE:
 	    if (r->flags & F_HTTPIFY) {
-		Debug(26, 9, ("Writing Marker to FD %d\n", r->cfd));
+		Debug(26, 7, ("Writing Marker to FD %d\n", r->cfd));
 		write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
 	    }
 	    return 0;
@@ -2200,7 +2211,7 @@ int main(argc, argv)
     }
 
     for (argc--, argv++; argc > 0 && **argv == '-'; argc--, argv++) {
-	Debug(26, 9, ("processing arg '%s'\n", *argv));
+	Debug(26, 7, ("processing arg '%s'\n", *argv));
 	if (!strcmp(*argv, "-"))
 	    break;
 	if (!strncmp(*argv, "-D", 2)) {
