@@ -337,6 +337,12 @@ ftpTimeout(int fd, void *data)
     FtpStateData *ftpState = data;
     StoreEntry *entry = ftpState->entry;
     debug(9, 4) ("ftpTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
+    if (SENT_PASV == ftpState->state && fd == ftpState->data.fd) {
+	/* stupid ftp.netscape.com */
+	ftpState->fwd->flags.dont_retry = 0;
+	ftpState->fwd->flags.ftp_pasv_failed = 1;
+	debug(9, 1) ("ftpTimeout: timeout in SENT_PASV state\n");
+    }
     ftpFailed(ftpState, ERR_READ_TIMEOUT);
     /* ftpFailed closes ctrl.fd and frees ftpState */
 }
@@ -1672,6 +1678,11 @@ ftpSendPasv(FtpStateData * ftpState)
     snprintf(cbuf, 1024, "PASV\r\n");
     ftpWriteCommand(cbuf, ftpState);
     ftpState->state = SENT_PASV;
+    /*
+     * ugly hack for ftp servers like ftp.netscape.com that sometimes
+     * dont acknowledge PORT commands.
+     */
+    commSetTimeout(ftpState->data.fd, 15, ftpTimeout, ftpState);
 }
 
 static void
