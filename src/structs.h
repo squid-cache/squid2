@@ -1406,6 +1406,7 @@ struct _RemovalPolicy {
     void (*Dereferenced) (RemovalPolicy * policy, const StoreEntry * entry, RemovalPolicyNode * node);
     RemovalPolicyWalker *(*WalkInit) (RemovalPolicy * policy);
     RemovalPurgeWalker *(*PurgeInit) (RemovalPolicy * policy, int max_scan);
+    void (*Stats) (RemovalPolicy * policy, StoreEntry * entry);
 };
 
 struct _RemovalPolicyWalker {
