@@ -320,8 +320,8 @@ int main(argc, argv)
 	    }
 	    if ((n = getAnnounceRate()) > 0) {
 		if (cached_curtime > last_announce + n)
-			send_announce();
-			last_announce = cached_curtime;
+		    send_announce();
+		last_announce = cached_curtime;
 	    }
 	    /* house keeping */
 	    break;

@@ -824,7 +824,7 @@ int icpUdpReply(fd, queue)
     }
     /* Reinstate handler if needed */
     if ((UdpQueueHead = UdpQueueHead->next)) {
-        comm_set_select_handler(fd,
+	comm_set_select_handler(fd,
 	    COMM_SELECT_WRITE,
 	    (PF) icpUdpReply,
 	    (void *) UdpQueueHead);
