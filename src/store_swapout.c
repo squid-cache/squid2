@@ -108,10 +108,16 @@ storeSwapOut(StoreEntry * e)
     lowest_offset = storeLowestMemReaderOffset(e);
     debug(20, 7) ("storeSwapOut: lowest_offset = %d\n",
 	(int) lowest_offset);
-    if (mem->inmem_hi - lowest_offset > DISK_PAGE_SIZE)
-        new_mem_lo = lowest_offset;
+    /*
+     * Careful.  lowest_offset can be greater than inmem_hi, such
+     * as in the case of a range request.
+     */
+    if (mem->inmem_hi < lowest_offset)
+	new_mem_lo = lowest_offset;
+    else if (mem->inmem_hi - lowest_offset > DISK_PAGE_SIZE)
+	new_mem_lo = lowest_offset;
     else
-        new_mem_lo = mem->inmem_lo;
+	new_mem_lo = mem->inmem_lo;
     assert(new_mem_lo >= mem->inmem_lo);
     if (storeSwapOutAble(e)) {
 	/*
