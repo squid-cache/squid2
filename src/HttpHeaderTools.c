@@ -154,6 +154,7 @@ httpHeaderAddContRange(HttpHeader * hdr, HttpHdrRangeSpec spec, size_t ent_len)
     httpHdrContRangeDestroy(cr);
 }
 
+
 /*
  * return true if a given directive is found in at least one of the "connection" header-fields
  * note: if HDR_PROXY_CONNECTION is present we ignore HDR_CONNECTION

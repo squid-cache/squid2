@@ -92,6 +92,7 @@ OBJS	 	= \
 		disk.o \
 		dns.o \
 		errorpage.o \
+		ETag.o \
 		event.o \
 		fd.o \
 		filemap.o \

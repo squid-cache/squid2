@@ -658,6 +658,7 @@ httpBuildRequestHeader(request_t * request,
 	    }
 	    break;
 	case HDR_RANGE:
+	case HDR_IF_RANGE:
 	    if (!filter_range)
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
 	    break;
