@@ -1424,11 +1424,11 @@ aclAuthenticated(aclCheck_t * checklist)
     case AUTH_ACL_HELPER:
 	debug(28, 4) ("aclMatchAcl: returning 0 sending credentials to helper.\n");
 	checklist->state[ACL_PROXY_AUTH] = ACL_LOOKUP_NEEDED;
-	return 0;
+	return -1;
     case AUTH_ACL_CHALLENGE:
 	debug(28, 4) ("aclMatchAcl: returning 0 sending authentication challenge.\n");
 	checklist->state[ACL_PROXY_AUTH] = ACL_PROXY_AUTH_NEEDED;
-	return 0;
+	return -1;
     default:
 	fatal("unexpected authenticateAuthenticate reply\n");
 	return -1;
@@ -1692,11 +1692,17 @@ int
 aclMatchAclList(const acl_list * list, aclCheck_t * checklist)
 {
     while (list) {
+	int answer;
 	AclMatchedName = list->acl->name;
 	debug(28, 3) ("aclMatchAclList: checking %s%s\n",
 	    list->op ? null_string : "!", list->acl->name);
-	if (aclMatchAcl(list->acl, checklist) != list->op) {
-	    debug(28, 3) ("aclMatchAclList: returning 0\n");
+	answer = aclMatchAcl(list->acl, checklist);
+	if (answer < 0) {
+	    debug(28, 3) ("aclMatchAclList: failure. returning -1\n");
+	    return -1;
+	}
+	if (answer != list->op) {
+	    debug(28, 3) ("aclMatchAclList: no match, returning 0\n");
 	    return 0;
 	}
 	list = list->next;
@@ -1719,10 +1725,14 @@ int
 aclCheckFast(const acl_access * A, aclCheck_t * checklist)
 {
     allow_t allow = ACCESS_DENIED;
+    int answer;
     debug(28, 5) ("aclCheckFast: list: %p\n", A);
     while (A) {
 	allow = A->allow;
-	if (aclMatchAclList(A->acl_list, checklist)) {
+	answer = aclMatchAclList(A->acl_list, checklist);
+	if (answer) {
+	    if (answer < 0)
+		return ACCESS_DENIED;
 	    aclCheckCleanup(checklist);
 	    return allow == ACCESS_ALLOWED;
 	}
@@ -1754,6 +1764,8 @@ aclCheck(aclCheck_t * checklist)
 	debug(28, 3) ("aclCheck: checking '%s'\n", A->cfgline);
 	allow = A->allow;
 	match = aclMatchAclList(A->acl_list, checklist);
+	if (match == -1)
+	    allow = ACCESS_DENIED;
 	if (checklist->state[ACL_DST_IP] == ACL_LOOKUP_NEEDED) {
 	    checklist->state[ACL_DST_IP] = ACL_LOOKUP_PENDING;
 	    ipcache_nbgethostbyname(checklist->request->host,
@@ -1807,7 +1819,7 @@ aclCheck(aclCheck_t * checklist)
 		debug(28, 1) ("aclCheck: Can't start ident lookup. No client connection\n");
 		cbdataUnlock(checklist->conn);
 		checklist->conn = NULL;
-		allow = 0;
+		allow = ACCESS_DENIED;
 		match = -1;
 	    }
 	}
