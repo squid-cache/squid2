@@ -112,7 +112,7 @@ fwdCheckRetry(FwdState * fwdState)
 	return 0;
     if (fwdState->flags.dont_retry)
 	return 0;
-    if (pumpMethod(fwdState->request->method))
+    if (fwdState->request->body)
 	if (0 == pumpRestart(fwdState->request))
 	    return 0;
     return 1;
@@ -361,7 +361,7 @@ fwdReforward(FwdState * fwdState)
     }
     if (fwdState->n_tries > 9)
 	return 0;
-    if (pumpMethod(fwdState->request->method))
+    if (fwdState->request->body)
 	if (0 == pumpRestart(fwdState->request))
 	    return 0;
     assert(fs);
