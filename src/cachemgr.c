@@ -221,7 +221,7 @@ print_trailer(void)
     printf("<HR>\n");
     printf("<ADDRESS>\n");
     printf("Generated %s, by %s/%s@%s\n",
-	mkrfc1123(now), progname, SQUID_VERSION, getfullhostname());
+	mkrfc1123(now), progname, VERSION, getfullhostname());
     printf("</ADDRESS></BODY></HTML>\n");
 }
 

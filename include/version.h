@@ -3,9 +3,10 @@
  *
  *  SQUID_VERSION - String for version id of this distribution
  */
-#ifndef SQUID_VERSION
-#define SQUID_VERSION	"2.5.DEVEL"
-#endif
+
+/*
+ * SQUID_VERSION is now the automake "VERSION" string.
+ */
 
 #ifndef SQUID_RELEASE_TIME
 #define SQUID_RELEASE_TIME squid_curtime
