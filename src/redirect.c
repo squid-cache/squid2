@@ -4,7 +4,7 @@
  * DEBUG: section 29    Redirector
  * AUTHOR: Duane Wessels
  *
- * SQUID Internet Object Cache  http://www.nlanr.net/Squid/
+ * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
  * --------------------------------------------------------
  *
  *  Squid is the result of efforts by numerous individuals from the
