@@ -328,7 +328,7 @@ pumpFree(int fd, void *data)
 
     requestUnlink(pumpState->req);
     s_fd=pumpState->s_fd;
-    pumpState->s_fd=NULL;
+    pumpState->s_fd = -1;
     hdl = pumpState->callback;
     pumpState->callback=NULL;
     cbdata = pumpState->cbdata;
