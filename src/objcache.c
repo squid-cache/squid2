@@ -233,15 +233,18 @@ objcache_url_parser(const char *url)
     LOCAL_ARRAY(char, host, MAX_URL);
     LOCAL_ARRAY(char, request, MAX_URL);
     LOCAL_ARRAY(char, password, MAX_URL);
+    objcache_op op = MGR_NONE;
     ObjectCacheData *obj = NULL;
     t = sscanf(url, "cache_object://%[^/]/%[^@]@%s", host, request, password);
     if (t < 2) {
 	debug(16, 0) ("Invalid Syntax: '%s', sscanf returns %d\n", url, t);
 	return NULL;
     }
+    if ((op = objcacheParseRequest(request)) == MGR_NONE)
+	return NULL;
     obj = xcalloc(1, sizeof(ObjectCacheData));
     strcpy(obj->passwd, t == 3 ? password : "nopassword");
-    obj->op = objcacheParseRequest(request);
+    obj->op = op;
     return obj;
 }
 
