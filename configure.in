@@ -429,19 +429,25 @@ AC_ARG_ENABLE(poll,
                           is broken on some platforms.  If you think you are
                           smarter than the configure script, you may enable
                           poll with this option.
-],
-[ if test "$enableval" = "yes" ; then
+  --disable-poll          Disable the use of poll().],
+[ 
+  case "$enableval" in
+  yes)
     echo "Forcing poll() to be enabled"
     ac_cv_func_poll='yes'
-  fi
+    ;;
+  no)
+    echo "Forcing poll() to be disabled"
+    ac_cv_func_poll='no'
+    ;;
+  esac
 ])
 
 dnl Disable HTTP violations
 AC_ARG_ENABLE(http-violations,
 [  --disable-http-violations
                           This allows you to remove code which is known to
-                          violate the HTTP protocol specification.
-],
+                          violate the HTTP protocol specification.],
 [ if test "$enableval" = "no" ; then
     echo "Disabling HTTP Violations"
     AC_DEFINE(HTTP_VIOLATIONS, 0)
@@ -454,8 +460,7 @@ dnl Enable IP-Filter Transparent Proxy
 AC_ARG_ENABLE(ipf-transparent,
 [  --enable-ipf-transparent
                           Enable Transparent Proxy support for systems
-                          using IP-Filter network address redirection.
-],
+                          using IP-Filter network address redirection.],
 [ if test "$enableval" = "yes" ; then
 	echo "IP-Filter Transparent Proxy enabled"
 	AC_DEFINE(IPF_TRANSPARENT)
