@@ -426,7 +426,6 @@ diskHandleRead(int fd, void *data)
     }
     len = read(fd, ctrl_dat->buf, ctrl_dat->req_len);
     F->disk.offset += len;
-    debug(0,0)("diskHandleRead: FD %d read %d bytes\n", fd, len);
     diskHandleReadComplete(ctrlp, len, errno);
 #endif
 }
@@ -496,7 +495,6 @@ file_read(int fd, char *buf, int req_len, int offset, DRCB * handler, void *clie
     ctrl_dat->end_of_file = 0;
     ctrl_dat->handler = handler;
     ctrl_dat->client_data = client_data;
-    debug(0,0)("file_read: FD %d queueing read for %d bytes at %d\n", fd, req_len, offset);
 #if USE_ASYNC_IO
     diskHandleRead(fd, ctrl_dat);
 #else
