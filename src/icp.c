@@ -598,7 +598,6 @@ void icp_hit_or_miss(fd, usm)
 {
     char *url = usm->url;
     char *pubkey = NULL;
-    char *mime_hdr = usm->mime_hdr;
     StoreEntry *entry = NULL;
     int lock = 0;
 
