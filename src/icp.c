@@ -54,7 +54,7 @@ typedef struct iwd {
     char *inbuf;
     int inbufsize;
     int method;			/* GET, POST, ... */
-    char *mime_hdr;		/* Mime header */
+    char *request_hdr;		/* Mime header */
     StoreEntry *entry;
     long offset;
     int bytes_needed;		/*  Used for content_length */
@@ -144,14 +144,14 @@ static void icpCloseAndFree(fd, icpState, line)
 	elapsed_msec);
     safe_free(icpState->inbuf);
     safe_free(icpState->url);
-    safe_free(icpState->mime_hdr);
+    safe_free(icpState->request_hdr);
     safe_free(icpState);
 }
 
 int icpCachable(icpState)
      icpStateData *icpState;
 {
-    char *request_hdr = icpState->mime_hdr;
+    char *request_hdr = icpState->request_hdr;
     char *request = icpState->url;
     int method = icpState->method;
     char *t = NULL;
@@ -662,7 +662,7 @@ static int icpProcessMISS(fd, usm, key)
      char *key;
 {
     char *url = usm->url;
-    char *request_hdr = usm->mime_hdr;
+    char *request_hdr = usm->request_hdr;
     StoreEntry *entry = NULL;
 
     debug(12, 4, "icpProcessMISS: '%s %s'\n",
@@ -724,7 +724,7 @@ void icpProcessUrl(fd, buf, size, flag, usm)
 	memcpy(&usm->query_host, buf, sizeof(u_num32));
 	usm->url = (char *) xstrdup(buf + sizeof(u_num32));
 	usm->method = METHOD_GET;
-	usm->mime_hdr = NULL;
+	usm->request_hdr = NULL;
 
 	safe_free(buf);
 
@@ -1173,16 +1173,16 @@ int parseHttpRequest(icpState)
 	while (*req_hdr == '\r' || *req_hdr == '\n')
 	    req_hdr++;
 	req_hdr_sz = icpState->offset - (req_hdr - inbuf);
-	icpState->mime_hdr = (char *) xmalloc(req_hdr_sz + 1);
-	memcpy(icpState->mime_hdr, req_hdr, req_hdr_sz);
-	*(icpState->mime_hdr + req_hdr_sz) = '\0';
+	icpState->request_hdr = (char *) xmalloc(req_hdr_sz + 1);
+	memcpy(icpState->request_hdr, req_hdr, req_hdr_sz);
+	*(icpState->request_hdr + req_hdr_sz) = '\0';
     } else if (icpState->method == METHOD_POST) {
 	debug(12, 3, "parseHttpRequest: Partial POST request\n");
 	return 0;		/* reschedule us after next read */
     }
-    if (icpState->mime_hdr)
+    if (icpState->request_hdr)
 	debug(12, 5, "parseHttpRequest: Request Header is\n---\n%s\n---\n",
-	    icpState->mime_hdr);
+	    icpState->request_hdr);
     else
 	debug(12, 5, "parseHttpRequest: No Request Header present\n");
 
