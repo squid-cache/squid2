@@ -192,7 +192,7 @@ static struct {
     wordlist *dns_testname_list;
 #ifdef USE_MULTICAST
     wordlist *mcast_group_list;
-#endif /* USE_MULTICAST */
+#endif				/* USE_MULTICAST */
 } Config;
 
 #define DefaultMemMaxSize 	(16 << 20)	/* 16 MB */
@@ -612,7 +612,7 @@ static void parseCacheHostLine()
     neighbors_cf_add(hostname, type, http_port, icp_port, options, weight);
 #else
     neighbors_cf_add(hostname, type, http_port, icp_port, options,
-        weight, mcast_ttl);
+	weight, mcast_ttl);
 #endif /* USE_MULTICAST */
 }
 

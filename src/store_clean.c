@@ -68,7 +68,7 @@ void storeDirClean()
     int n = 0;
     int k = 0;
 #ifdef _SQUID_UNIXWARE_
-	return;
+    return;
 #endif
     sprintf(p1, "%s/%02d",
 	swappath(index),

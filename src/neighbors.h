@@ -172,7 +172,7 @@ struct _edge {
     int weight;
 #ifdef USE_MULTICAST
     int mcast_ttl;
-#endif /* USE_MULTICAST */
+#endif				/* USE_MULTICAST */
     time_t last_fail_time;	/* detect down dumb caches */
     struct in_addr addresses[10];
     int n_addresses;
@@ -197,7 +197,7 @@ struct neighbor_cf {
     int weight;
 #ifdef USE_MULTICAST
     int mcast_ttl;
-#endif /* USE_MULTICAST */
+#endif				/* USE_MULTICAST */
     dom_list *domains;
     struct _acl_list *acls;
     struct neighbor_cf *next;
