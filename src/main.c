@@ -461,6 +461,7 @@ int main(argc, argv)
     int errcount = 0;
     int n;			/* # of GC'd objects */
     time_t last_maintain = 0;
+    time_t last_dirclean = 0;
     time_t last_announce = 0;
     time_t loop_delay;
 
@@ -525,6 +526,12 @@ int main(argc, argv)
 	if (squid_curtime > last_maintain) {
 	    storeMaintainSwapSpace();
 	    last_maintain = squid_curtime;
+	}
+	if (squid_curtime - last_dirclean > 600
+	    && store_rebuilding == STORE_NOT_REBUILDING) {
+	    /* clean a cache directory every 10 minutes */
+	    storeDirClean();
+	    last_dirclean = squid_curtime;
 	}
 	if (rotate_pending) {
 	    ftpServerClose();

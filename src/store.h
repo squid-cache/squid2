@@ -316,4 +316,7 @@ extern int store_rebuilding;
 #define STORE_REBUILDING_SLOW 1
 #define STORE_REBUILDING_FAST 2
 
+#define SWAP_DIRECTORIES	100
+extern int ncache_dirs;
+
 #endif

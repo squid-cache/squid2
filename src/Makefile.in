@@ -58,7 +58,7 @@ OBJS	 	= acl.o background.o cache_cf.o errorpage.o comm.o \
 		hash.o http.o icp.o ipcache.o \
 		main.o mime.o neighbors.o objcache.o \
 		proto.o send-announce.o ssl.o stack.o stat.o stmem.o \
-		store.o storetoString.o tools.o ttl.o \
+		store.o store_clean.o storetoString.o tools.o ttl.o \
 		url.o wais.o $(XTRA_OBJS)
 
 DEFAULTS        = \
