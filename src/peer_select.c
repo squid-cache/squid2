@@ -147,6 +147,9 @@ peerSelect(request_t * request,
     psstate->callback_data = callback_data;
     cbdataLock(callback_data);
     peerSelectCheckAS(psstate);
+#if SQUID_PEER_DIGEST
+    request->hier.peer_select_start = current_time;
+#endif
 }
 
 static void
