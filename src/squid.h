@@ -33,10 +33,6 @@
 
 #include "config.h"
 
-#if SQUID_FD_SETSIZE > 256
-#define FD_SETSIZE SQUID_FD_SETSIZE
-#endif
-
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
