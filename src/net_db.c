@@ -651,3 +651,15 @@ netdbUpdatePeer(request_t * r, peer * e, int irtt, int ihops)
 	(QS) sortPeerByRtt);
 #endif
 }
+
+void
+netdbDeleteHostNetwork(const char *host)
+{
+#if USE_ICMP
+    netdbEntry *n = netdbLookupHost(host);
+    if (n == NULL)
+	return;
+    debug(37,1,"netdbDeleteHostNetwork: %s = %s\n", host, n->network);
+    netdbRelease(n);
+#endif
+}

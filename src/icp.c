@@ -237,6 +237,25 @@ checkFailureRatio(log_type rcode, hier_code hcode)
     fail_ratio = 0.8;		/* reset to something less than 1.0 */
 }
 
+static void
+checkDirectFailure(log_type lcode, request_t *r)
+{
+    struct _hierarchyLogData *hierData = &r->hierarchy;
+    if (hierData == NULL)
+	return;
+    if (hierData->code != HIER_DIRECT)
+	return;
+    switch(lcode) {
+    case ERR_DNS_FAIL:
+    case ERR_CONNECT_FAIL:
+    case ERR_READ_ERROR:
+	netdbDeleteHostNetwork(r->host);
+	break;
+    default:
+	break;
+    }
+}
+
 /* This is a handler normally called by comm_close() */
 static void
 icpStateFree(int fd, void *data)
@@ -297,6 +316,7 @@ icpStateFree(int fd, void *data)
 	comm_close(icpState->ident.fd);
     checkFailureRatio(icpState->log_type,
 	hierData ? hierData->code : HIER_NONE);
+    checkDirectFailure(icpState->log_type, icpState->request);
     safe_free(icpState->inbuf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);

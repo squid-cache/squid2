@@ -69,6 +69,6 @@ extern void netdbFreeMemory _PARAMS((void));
 extern int netdbHostHops _PARAMS((const char *host));
 extern int netdbHostRtt _PARAMS((const char *host));
 extern void netdbUpdatePeer _PARAMS((request_t *, peer * e, int rtt, int hops));
-
+extern void netdbDeleteHostNetwork _PARAMS((const char *host));
 
 #endif /* NET_DB_H */
