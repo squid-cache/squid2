@@ -268,7 +268,7 @@ int comm_connect_unix(sock, path)
     to_addr.sun_family = AF_UNIX;
     strncpy(to_addr.sun_path, path, UNIX_PATH_MAX);
 
-    if (connect(sock, (struct sockaddr *) &to_addr, sizeof(to_addr)) < 0) {
+    if (connect(sock, (struct sockaddr *) &to_addr, SUN_LEN(&to_addr)) < 0) {
 	switch (errno) {
 	case EALREADY:
 	    return COMM_ERROR;
@@ -689,8 +689,10 @@ int comm_select(sec, failtime)
 	if (!fdstat_are_n_free_fd(RESERVED_FD)) {
 	    FD_CLR(theAsciiConnection, &readfds);
 	}
-	if (shutdown_pending || reread_pending)
+	if (shutdown_pending || reread_pending) {
 	    debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
+	    setSocketShutdownLifetimes();
+	}
 	if (nfds == 0)
 	    return COMM_SHUTDOWN;
 	while (1) {
