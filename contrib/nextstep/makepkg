@@ -1,0 +1,37 @@
+#!/bin/sh
+
+failed()
+{
+	# show failed message and exit
+	echo "FAILED ($*)"
+	exit 1
+}
+
+#	check if caller runs as super user:
+[ `/usr/ucb/whoami` = root ] || failed "must be super user"
+
+PRG=Squid
+REL=1.1.10
+
+TMPDIR=/tmp/${PRG}-${REL}
+rm -rf ${TMPDIR}
+rm -rf ${PRG}-{REL}.pkg
+
+for f in post_install pre_install info
+do
+	cp -p ${f} ${PRG}-${REL}.${f}
+done
+
+mkdirs ${TMPDIR}/usr/local/squid/etc ${TMPDIR}/usr/local/squid/logs
+cp -pr /usr/local/squid/bin ${TMPDIR}/usr/local/squid
+cp -pr /usr/local/squid/etc/squid.conf.default ${TMPDIR}/usr/local/squid/etc
+strip ${TMPDIR}/usr/local/squid/bin/*
+/etc/chown -R nobody.other ${TMPDIR}/usr/local/squid
+
+/NextAdmin/Installer.app/package /tmp/${PRG}-${REL} ${PRG}-${REL}.info
+cp ${PRG}-${REL}.pre_install ${PRG}-${REL}.pkg
+cp ${PRG}-${REL}.post_install ${PRG}-${REL}.pkg
+for f in post_install pre_install info
+do
+	rm ${PRG}-${REL}.${f}
+done

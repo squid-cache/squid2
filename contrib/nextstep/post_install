@@ -1,0 +1,29 @@
+#!/bin/sh
+
+PATH=
+
+USAGE='Usage: Squid-1.1.10.post_install package_path [install_path]'
+PKG="$1"
+DST="$2"
+
+trap 'echo "FAILED (interrupted by signal)"; exit 1' 1 2 3 4 15
+
+BEGINDATE=`/bin/date`
+#FDATE=`echo $BEGINDATE | /bin/awk '{print $2 "_" $3 "_" $7 "_" $4}'`
+echo Squid-1.1.10 post-installation script starts at $BEGINDATE
+
+failed()
+{
+	# show failed message and exit
+	echo "FAILED ($*)"
+	exit 1
+}
+
+echo
+
+#	check if caller runs as super user:
+[ `/usr/ucb/whoami` = root ] || failed "must be super user"
+
+
+/etc/chown -R nobody.other /usr/local/squid || failed "can't chown $1!"
+echo "(done)"

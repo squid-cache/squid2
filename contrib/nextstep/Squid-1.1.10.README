@@ -1,0 +1,15 @@
+Squid-1.1.10 Installer package (m68k, i486, hppa, sparc)
+Courtesy of Gerben_Wierda@RnA.nl
+
+This is the README file for Squid-1.1.10.pkg
+
+This package has not been checked under NEXTSTEP 4.x. Please tell me if it
+works. The software has not been checked on sparc and hppa architectures.
+Again, please tell me if it works.
+
+Note: I don't have the time to tell you how Squid works. Go to http://squid.nlanr.net for details.
+
+Yours,
+
+
+March 20, 1997
