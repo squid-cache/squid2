@@ -329,4 +329,7 @@ struct rusage {
 #include "snprintf.h"
 #endif
 
+#define XMIN(x,y) ((x)<(y)? (x) : (y))
+#define XMAX(a,b) ((a)>(b)? (a) : (b))
+
 #endif /* SQUID_H */

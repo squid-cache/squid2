@@ -58,7 +58,6 @@ const char *log_tags[] =
 };
 
 #define MAX_LINELEN (4096)
-#define max(a,b)  ((a)>(b)? (a): (b))
 
 static int LogfileStatus = LOG_DISABLE;
 static int LogfileFD = -1;

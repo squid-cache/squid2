@@ -111,9 +111,6 @@
 #include <netinet/tcp.h>
 #endif
 
-#define min(x,y) ((x)<(y)? (x) : (y))
-#define max(a,b) ((a)>(b)? (a) : (b))
-
 typedef struct {
     char *host;
     u_short port;
@@ -1230,7 +1227,7 @@ comm_init(void)
     /* Keep a few file descriptors free so that we don't run out of FD's
      * after accepting a client but before it opens a socket or a file.
      * Since Squid_MaxFD can be as high as several thousand, don't waste them */
-    RESERVED_FD = min(100, Squid_MaxFD / 4);
+    RESERVED_FD = XMIN(100, Squid_MaxFD / 4);
     /* hardwired lifetimes */
     meta_data.misc += Squid_MaxFD * sizeof(int);
     zero_tv.tv_sec = 0;
