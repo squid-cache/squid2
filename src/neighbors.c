@@ -605,7 +605,8 @@ static void
 neighborUpdateRtt(peer * p, MemObject * mem)
 {
     int rtt;
-    assert(mem);
+    if (!mem)
+	return;
     if (!mem->start_ping.tv_sec)
 	return;
     rtt = tvSubMsec(mem->start_ping, current_time);
