@@ -29,6 +29,7 @@ static void sslReadClient _PARAMS((int fd, SslStateData * sslState));
 static void sslWriteServer _PARAMS((int fd, SslStateData * sslState));
 static void sslWriteClient _PARAMS((int fd, SslStateData * sslState));
 static void sslConnected _PARAMS((int fd, SslStateData * sslState));
+static int sslConnect _PARAMS((int fd, struct hostent *, SslStateData *));
 static void sslConnInProgress _PARAMS((int fd, SslStateData * sslState));
 
 static int sslStateFree(fd, sslState)
@@ -302,6 +303,66 @@ static void sslConnInProgress(fd, sslState)
     return;
 }
 
+static int sslConnect(fd, hp, sslState)
+	int fd;
+	struct hostent *hp;
+	SslStateData *sslState;
+{
+    request_t *request = sslState->request;
+    int status;
+    if (!ipcache_gethostbyname(request->host, 0)) {
+	debug(26, 4, "sslConnect: Unknown host: %s\n", request->host);
+	squid_error_url(sslState->url,
+	    request->method,
+	    ERR_DNS_FAIL,
+	    fd_table[fd].ipaddr,
+	    500,
+	    dns_error_message);
+	comm_close(sslState->client.fd);
+	comm_close(sslState->server.fd);
+	return 0;
+    }
+    debug(26, 5, "sslConnect: client=%d server=%d\n",
+	sslState->client.fd,
+	sslState->server.fd);
+    /* Install lifetime handler */
+    comm_set_select_handler(sslState->server.fd,
+	COMM_SELECT_LIFETIME,
+	(PF) sslLifetimeExpire,
+	(void *) sslState);
+    /* NOTE this changes the lifetime handler for the client side.
+     * It used to be asciiConnLifetimeHandle, but it does funny things
+     * like looking for read handlers and assuming it was still reading
+     * the HTTP request.  sigh... */
+    comm_set_select_handler(sslState->client.fd,
+	COMM_SELECT_LIFETIME,
+	(PF) sslLifetimeExpire,
+	(void *) sslState);
+    /* Open connection. */
+    if ((status = comm_connect(fd, request->host, request->port))) {
+	if (status != EINPROGRESS) {
+	    squid_error_url(sslState->url,
+		request->method,
+		ERR_CONNECT_FAIL,
+		fd_table[fd].ipaddr,
+		500,
+		xstrerror());
+	    comm_close(sslState->client.fd);
+	    comm_close(sslState->server.fd);
+	    return COMM_ERROR;
+	} else {
+	    debug(26, 5, "sslConnect: conn %d EINPROGRESS\n", fd);
+	    /* The connection is in progress, install ssl handler */
+	    comm_set_select_handler(sslState->server.fd,
+		COMM_SELECT_WRITE,
+		(PF) sslConnInProgress,
+		(void *) sslState);
+	    return COMM_OK;
+	}
+    }
+    sslConnected(sslState->server.fd, sslState);
+    return COMM_OK;
+}
 
 int sslStart(fd, url, request, mime_hdr, size_ptr)
      int fd;
@@ -311,8 +372,8 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
      int *size_ptr;
 {
     /* Create state structure. */
-    int sock, status;
     SslStateData *sslState = NULL;
+    int sock;
 
     debug(26, 3, "sslStart: '%s %s'\n",
 	RequestMethodStr[request->method], url);
@@ -343,61 +404,9 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
 	COMM_SELECT_CLOSE,
 	(PF) sslStateFree,
 	(void *) sslState);
-
-    /* check if IP is already in cache. It must be. 
-     * It should be done before this route is called. 
-     * Otherwise, we cannot check return code for ssl. */
-    if (!ipcache_gethostbyname(request->host, 0)) {
-	debug(26, 4, "sslstart: Called without IP entry in ipcache. OR lookup failed.\n");
-	squid_error_url(url,
-	    request->method,
-	    ERR_DNS_FAIL,
-	    fd_table[fd].ipaddr,
-	    500,
-	    dns_error_message);
-	comm_close(sslState->client.fd);
-	comm_close(sslState->server.fd);
-	return COMM_ERROR;
-    }
-    debug(26, 5, "sslStart: client=%d server=%d\n",
-	sslState->client.fd,
-	sslState->server.fd);
-    /* Install lifetime handler */
-    comm_set_select_handler(sslState->server.fd,
-	COMM_SELECT_LIFETIME,
-	(PF) sslLifetimeExpire,
-	(void *) sslState);
-    /* NOTE this changes the lifetime handler for the client side.
-     * It used to be asciiConnLifetimeHandle, but it does funny things
-     * like looking for read handlers and assuming it was still reading
-     * the HTTP request.  sigh... */
-    comm_set_select_handler(sslState->client.fd,
-	COMM_SELECT_LIFETIME,
-	(PF) sslLifetimeExpire,
-	(void *) sslState);
-    /* Open connection. */
-    if ((status = comm_connect(sock, request->host, request->port))) {
-	if (status != EINPROGRESS) {
-	    squid_error_url(url,
-		request->method,
-		ERR_CONNECT_FAIL,
-		fd_table[fd].ipaddr,
-		500,
-		xstrerror());
-	    comm_close(sslState->client.fd);
-	    comm_close(sslState->server.fd);
-	    return COMM_ERROR;
-	} else {
-	    debug(26, 5, "sslStart: conn %d EINPROGRESS\n", sock);
-	    /* The connection is in progress, install ssl handler */
-	    comm_set_select_handler(sslState->server.fd,
-		COMM_SELECT_WRITE,
-		(PF) sslConnInProgress,
-		(void *) sslState);
-	    return COMM_OK;
-	}
-    }
-    /* We got immediately connected. (can this happen?) */
-    sslConnected(sslState->server.fd, sslState);
+    ipcache_nbgethostbyname(request->host,
+            sslState->server.fd,
+            (IPH) sslConnect,
+            sslState);
     return COMM_OK;
 }
