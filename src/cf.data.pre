@@ -1966,6 +1966,7 @@ DOC_START
 	    h1:m1 must be less than h2:m2
 	acl aclname url_regex [-i] ^http:// ...	# regex matching on whole URL
 	acl aclname urlpath_regex [-i] \.gif$ ...	# regex matching on URL path
+	acl aclname urllogin [-i] [^a-zA-Z0-9] ...	# regex matching on URL login field
 	acl aclname port     80 70 21 ...
 	acl aclname port     0-1024 ...		# ranges allowed
 	acl aclname myport   3128 ...		# (local socket TCP port)

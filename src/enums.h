@@ -136,6 +136,7 @@ typedef enum {
     ACL_REP_MIME_TYPE,
     ACL_MAX_USER_IP,
     ACL_EXTERNAL,
+    ACL_URLLOGIN,
     ACL_ENUM_MAX
 } squid_acl;
 

@@ -178,6 +178,8 @@ aclStrToType(const char *s)
 	return ACL_MAX_USER_IP;
     if (!strcmp(s, "external"))
 	return ACL_EXTERNAL;
+    if (!strcmp(s, "urllogin"))
+	return ACL_URLLOGIN;
     return ACL_NONE;
 }
 
@@ -252,6 +254,8 @@ aclTypeToStr(squid_acl type)
 	return "max_user_ip";
     if (type == ACL_EXTERNAL)
 	return "external";
+    if (type == ACL_URLLOGIN)
+	return "urllogin";
     return "ERROR";
 }
 
@@ -737,6 +741,7 @@ aclParseAclLine(acl ** head)
 	aclParseTimeSpec(&A->data);
 	break;
     case ACL_URL_REGEX:
+    case ACL_URLLOGIN:
     case ACL_URLPATH_REGEX:
     case ACL_BROWSER:
     case ACL_REFERER_REGEX:
@@ -1464,6 +1469,7 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     case ACL_URLPATH_REGEX:
     case ACL_URL_PORT:
     case ACL_URL_REGEX:
+    case ACL_URLLOGIN:
 	/* These ACL types require checklist->request */
 	if (NULL == r) {
 	    debug(28, 1) ("WARNING: '%s' ACL is used but there is no"
@@ -1563,6 +1569,12 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	/* NOTREACHED */
     case ACL_URL_REGEX:
 	esc_buf = xstrdup(urlCanonical(r));
+	rfc1738_unescape(esc_buf);
+	k = aclMatchRegex(ae->data, esc_buf);
+	safe_free(esc_buf);
+	return k;
+    case ACL_URLLOGIN:
+	esc_buf = xstrdup(r->login);
 	rfc1738_unescape(esc_buf);
 	k = aclMatchRegex(ae->data, esc_buf);
 	safe_free(esc_buf);
@@ -2114,6 +2126,7 @@ aclDestroyAcls(acl ** head)
 #endif
 	case ACL_PROXY_AUTH_REGEX:
 	case ACL_URL_REGEX:
+	case ACL_URLLOGIN:
 	case ACL_URLPATH_REGEX:
 	case ACL_BROWSER:
 	case ACL_REFERER_REGEX:
@@ -2529,6 +2542,7 @@ aclDumpGeneric(const acl * a)
 	return aclDumpTimeSpecList(a->data);
     case ACL_PROXY_AUTH_REGEX:
     case ACL_URL_REGEX:
+    case ACL_URLLOGIN:
     case ACL_URLPATH_REGEX:
     case ACL_BROWSER:
     case ACL_REFERER_REGEX:
