@@ -2576,7 +2576,7 @@ IFDEF: SQUID_SNMP
 DOC_START
 	Squid can now serve statistics and status information via SNMP.
 	By default it listens to port 3401 on the machine. If you don't
-	wish to use SNMP, set this to '-1'.
+	wish to use SNMP, set this to "0".
 
 	NOTE: SNMP support requires use the --enable-snmp configure
 	command line option.
