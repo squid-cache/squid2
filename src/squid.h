@@ -273,7 +273,10 @@
 
 #ifdef SQUID_SNMP
 #include "snmp.h"
+#include "snmp_impl.h"
+#include "snmp_vars.h"
 #include "snmp_config.h"
+#include "cache_snmp.h"
 #endif
 
 /* Needed for poll() on Linux at least */
