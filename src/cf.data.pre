@@ -3743,11 +3743,14 @@ DOC_END
 NAME: pipeline_prefetch
 TYPE: onoff
 LOC: Config.onoff.pipeline_prefetch
-DEFAULT: on
+DEFAULT: off
 DOC_START
 	To boost the performance of pipelined requests to closer
-	match that of a non-proxied environment Squid tries to fetch
+	match that of a non-proxied environment Squid can try to fetch
 	up to two requests in parallell from a pipeline.
+
+	Defaults to off for bandwidth management and access logging
+	reasons.
 DOC_END
 
 NAME: extension_methods
