@@ -15,7 +15,7 @@ typedef enum {
 } ip_access_type;
 
 typedef struct _ip_acl {
-#ifdef IPACL_IN_ADDR
+#ifndef IPACL_INTS
     struct in_addr addr;
     struct in_addr mask;
 #else
@@ -83,7 +83,7 @@ extern int getSourcePing _PARAMS((void));
 extern int getStallDelay _PARAMS((void));
 extern int getUdpPortNum _PARAMS((void));
 extern int getWaisRelayPort _PARAMS((void));
-#ifdef IPACL_IN_ADDR
+#ifndef IPACL_INTS
 extern int ip_acl_match _PARAMS((struct in_addr, ip_acl *));
 #else
 extern int ip_acl_match _PARAMS((int, int, int, int, int, int, int, int));
