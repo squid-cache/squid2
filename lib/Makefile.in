@@ -33,6 +33,7 @@ UTILOBJS	= rfc1123.o \
 		  snprintf.o \
 		  sha.o \
 		  md5.o \
+		  radix.o \
 		  String.o \
 		  $(LIBOBJS)
 REGEXOBJS	= GNUregex.o
