@@ -173,7 +173,7 @@ mail_warranty(void)
 }
 
 static void
-dumpMallocStats()
+dumpMallocStats(void)
 {
 #if HAVE_MSTATS && HAVE_GNUMALLOC_H
     struct mstats ms = mstats();

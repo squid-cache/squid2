@@ -47,3 +47,5 @@ install-mkdirs:
 
 clean:
 
+distclean: clean
+	-rm -f Makefile

@@ -80,3 +80,6 @@ install-mkdirs:
 
 clean:
 	$(RM) -f $(ICONS)
+
+distclean: clean
+	-rm -f Makefile

@@ -261,12 +261,12 @@ void
 hierarchyNote(HierarchyLogEntry * hl,
     hier_code code,
     icp_ping_data * icpdata,
-    const char *cache_host)
+    const char *cache_peer)
 {
     assert(hl != NULL);
     hl->code = code;
     if (icpdata)
 	hl->icp = *icpdata;
-    xstrncpy(hl->host, cache_host, SQUIDHOSTNAMELEN);
+    xstrncpy(hl->host, cache_peer, SQUIDHOSTNAMELEN);
     hl->icp.stop = current_time;
 }

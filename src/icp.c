@@ -2021,6 +2021,7 @@ httpAccept(int sock, void *notused)
 	    sock, xstrerror());
 	return;
     }
+    ntcpconn++;
     debug(12, 4) ("httpAccept: FD %d: accepted\n", fd);
     connState = xcalloc(1, sizeof(ConnStateData));
     connState->peer = peer;
