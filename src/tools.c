@@ -218,9 +218,6 @@ dumpMallocStats()
     fprintf(debug_log, "\tbytes used in maintaining the free tree:\t%d\n",
 	mp.treeoverhead);
 #endif /* HAVE_EXT_MALLINFO */
-#if PRINT_MMAP
-    mallocmap();
-#endif /* PRINT_MMAP */
 #endif /* HAVE_MALLINFO */
 }
 
