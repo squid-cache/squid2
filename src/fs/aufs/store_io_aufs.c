@@ -393,18 +393,29 @@ storeAufsWriteDone(int fd, int errflag, size_t len, void *my_data)
     }
     sio->offset += len;
 #if ASYNC_WRITE
-    if (!storeAufsKickWriteQueue(sio))
+    if (storeAufsKickWriteQueue(sio))
 	(void) 0;
     else if (aiostate->flags.close_request)
 	storeAufsIOCallback(sio, errflag);
 #else
+    /* loop around storeAufsKickWriteQueue to break recursion stack
+     * overflow when large amounts of data has been queued for write.
+     * As writes are blocking here we immediately get called again
+     * without going via the I/O event loop..
+     */
     if (!aiostate->flags.write_kicking) {
+	/* cbdataLock to protect us from the storeAufsIOCallback on error above */
+	cbdataLock(sio);
 	aiostate->flags.write_kicking = 1;
 	while (storeAufsKickWriteQueue(sio))
-	    (void) 0;
-	aiostate->flags.write_kicking = 0;
-	if (aiostate->flags.close_request)
-	    storeAufsIOCallback(sio, errflag);
+	    if (!cbdataValid(sio))
+		break;
+	if (cbdataValid(sio)) {
+	    aiostate->flags.write_kicking = 0;
+	    if (aiostate->flags.close_request)
+		storeAufsIOCallback(sio, errflag);
+	}
+	cbdataUnlock(sio);
     }
 #endif
     loop_detect--;
@@ -433,8 +444,13 @@ storeAufsIOCallback(storeIOState * sio, int errflag)
     if (fd < 0)
 	return;
     debug(79, 9) ("%s:%d\n", __FILE__, __LINE__);
+#if ASYNC_CLOSE
     aioClose(fd);
     fd_close(fd);
+#else
+    aioCancel(fd);
+    file_close(fd);
+#endif
     store_open_disk_fd--;
     statCounter.syscalls.disk.closes++;
     debug(79, 9) ("%s:%d\n", __FILE__, __LINE__);

@@ -92,7 +92,6 @@ typedef struct squidaio_request_t {
     mode_t mode;
     int fd;
     char *bufferp;
-    char *tmpbufp;
     int buflen;
     off_t offset;
     int whence;
@@ -573,7 +572,6 @@ squidaio_cleanup_request(squidaio_request_t * requestp)
     case _AIO_OP_READ:
 	break;
     case _AIO_OP_WRITE:
-	squidaio_xfree(requestp->tmpbufp, requestp->buflen);
 	break;
     default:
 	break;
@@ -671,8 +669,7 @@ squidaio_write(int fd, char *bufp, int bufs, off_t offset, int whence, squidaio_
 	squidaio_init();
     requestp = memPoolAlloc(squidaio_request_pool);
     requestp->fd = fd;
-    requestp->tmpbufp = (char *) squidaio_xmalloc(bufs);
-    xmemcpy(requestp->tmpbufp, bufp, bufs);
+    requestp->bufferp = bufp;
     requestp->buflen = bufs;
     requestp->offset = offset;
     requestp->whence = whence;
@@ -688,7 +685,7 @@ squidaio_write(int fd, char *bufp, int bufs, off_t offset, int whence, squidaio_
 static void
 squidaio_do_write(squidaio_request_t * requestp)
 {
-    requestp->ret = write(requestp->fd, requestp->tmpbufp, requestp->buflen);
+    requestp->ret = write(requestp->fd, requestp->bufferp, requestp->buflen);
     requestp->err = errno;
 }
 

@@ -874,6 +874,8 @@ extern void stmemAppend(mem_hdr *, const char *, int);
 extern ssize_t stmemCopy(const mem_hdr *, off_t, char *, size_t);
 extern void stmemFree(mem_hdr *);
 extern void stmemFreeData(mem_hdr *);
+extern void stmemNodeFree(void *);
+extern char *stmemNodeGet(mem_node *);
 
 /* ----------------------------------------------------------------- */
 

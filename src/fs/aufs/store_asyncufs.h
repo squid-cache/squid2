@@ -86,8 +86,9 @@ struct _squidaiostate_t {
 	unsigned int reading:1;
 	unsigned int writing:1;
 	unsigned int opening:1;
+#if !ASYNC_WRITE
 	unsigned int write_kicking:1;
-	unsigned int read_kicking:1;
+#endif
 	unsigned int inreaddone:1;
     } flags;
     char *read_buf;

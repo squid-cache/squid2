@@ -1431,6 +1431,7 @@ struct _iostats {
 struct _mem_node {
     char data[SM_PAGE_SIZE];
     int len;
+    int uses;
     mem_node *next;
 };
 

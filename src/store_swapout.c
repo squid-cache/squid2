@@ -256,7 +256,7 @@ storeSwapOut(StoreEntry * e)
 	debug(20, 3) ("storeSwapOut: swapping out %ld bytes from %ld\n",
 	    (long int) swap_buf_len, (long int) mem->swapout.queue_offset);
 	mem->swapout.queue_offset += swap_buf_len;
-	storeWrite(mem->swapout.sio, mem->swapout.memnode->data, swap_buf_len, -1, NULL);
+	storeWrite(mem->swapout.sio, stmemNodeGet(mem->swapout.memnode), swap_buf_len, -1, stmemNodeFree);
 	/* the storeWrite() call might generate an error */
 	if (e->swap_status != SWAPOUT_WRITING)
 	    break;

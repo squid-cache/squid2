@@ -36,6 +36,23 @@
 #include "squid.h"
 
 void
+stmemNodeFree(void *buf)
+{
+    mem_node *p = (mem_node *) buf;
+    if (!p->uses)
+	memFree(p, MEM_MEM_NODE);
+    else
+	p->uses--;
+}
+
+char *
+stmemNodeGet(mem_node * p)
+{
+    p->uses++;
+    return p->data;
+}
+
+void
 stmemFree(mem_hdr * mem)
 {
     mem_node *p;
@@ -43,7 +60,7 @@ stmemFree(mem_hdr * mem)
 	mem->head = p->next;
 	store_mem_size -= SM_PAGE_SIZE;
 	if (p) {
-	    memFree(p, MEM_MEM_NODE);
+	    stmemNodeFree(p);
 	    p = NULL;
 	}
     }
@@ -69,7 +86,7 @@ stmemFreeDataUpto(mem_hdr * mem, int target_offset)
 	    current_offset += lastp->len;
 	    store_mem_size -= SM_PAGE_SIZE;
 	    if (lastp) {
-		memFree(lastp, MEM_MEM_NODE);
+		stmemNodeFree(p);
 		lastp = NULL;
 	    }
 	}
