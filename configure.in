@@ -322,19 +322,23 @@ AC_CHECK_FUNCS(\
 
 AC_MSG_CHECKING(if GNUregex needs to be compiled)
 if test "$ac_cv_func_regcomp" = "no" ; then
-	COMPILE_GNUREGEX="yes"
+	USE_GNUREGEX="yes"
 else
-	COMPILE_GNUREGEX="no"
+	USE_GNUREGEX="no"
 fi
 case "$host" in
 	[*-sun-solaris2.[0-4]])
-	COMPILE_GNUREGEX="yes"
-	;;
+		USE_GNUREGEX="yes"
+		;;
+	[*-next-nextstep*])
+		USE_GNUREGEX="yes"
+		;;
 esac
-AC_MSG_RESULT($COMPILE_GNUREGEX)
-if test "$COMPILE_GNUREGEX" = "yes"; then
+AC_MSG_RESULT($USE_GNUREGEX)
+if test "$USE_GNUREGEX" = "yes"; then
 	REGEXLIB="-lregex"
 	LIBREGEX="libregex.a"
+	AC_DEFINE(USE_GNUREGEX)
 fi
 AC_SUBST(REGEXLIB)
 AC_SUBST(LIBREGEX)

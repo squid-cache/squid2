@@ -38,3 +38,6 @@
 
 /* Define if your compiler supports prototyping */
 #undef HAVE_ANSI_PROTOTYPES
+
+/* Define if we should use GNU regex */
+#undef USE_GNUREGEX

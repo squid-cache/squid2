@@ -105,8 +105,6 @@
 #ifndef _DEBUG_H_
 #define _DEBUG_H_
 
-extern const char *volatile _db_file;
-extern volatile int _db_line;
 extern int syslog_enable;
 extern FILE *debug_log;
 
@@ -119,12 +117,8 @@ extern void _db_print _PARAMS((int, int, const char *,...));
 extern void _db_print _PARAMS(());
 #endif
 
-#define debug \
-	_db_file = __FILE__, _db_line = __LINE__, _db_print
-
-#define debug_trap \
-	_db_file = __FILE__, _db_line = __LINE__, _debug_trap
-
+#define debug _db_print
+#define debug_trap _debug_trap
 #define safe_free(x)	if (x) { xxfree(x); x = NULL; }
 
 #endif /* _DEBUG_H_ */
