@@ -1880,7 +1880,7 @@ parseHttpRequestAbort(ConnStateData * conn, const char *uri)
     http->start = current_time;
     http->req_sz = conn->in.offset;
     http->uri = xstrdup(uri);
-    http->log_uri = xstrdup(uri);
+    http->log_uri = xstrndup(uri, MAX_URL);
     http->range_iter.boundary = StringNull;
     return http;
 }
@@ -2020,11 +2020,6 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     *(*prefix_p + prefix_sz) = '\0';
 
     debug(33, 5) ("parseHttpRequest: Request Header is\n%s\n", (*prefix_p) + *req_line_sz_p);
-    /* Assign http->uri */
-    if ((t = strchr(url, '\n')))	/* remove NL */
-	*t = '\0';
-    if ((t = strchr(url, '\r')))	/* remove CR */
-	*t = '\0';
     if ((t = strchr(url, '#')))	/* remove HTML anchors */
 	*t = '\0';
 
@@ -2108,9 +2103,9 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	http->flags.accel = 0;
     }
     if (!stringHasWhitespace(http->uri))
-	http->log_uri = xstrdup(http->uri);
+	http->log_uri = xstrndup(http->uri, MAX_URL);
     else
-	http->log_uri = xstrdup(rfc1738_escape(http->uri));
+	http->log_uri = xstrndup(rfc1738_escape(http->uri), MAX_URL);
     debug(33, 5) ("parseHttpRequest: Complete request received\n");
     if (free_request)
 	safe_free(url);

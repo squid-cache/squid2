@@ -62,6 +62,7 @@ extern const char *mkhttpdlogtime(const time_t *);
 extern const char *mkrfc1123(time_t);
 extern char *uudecode(const char *);
 extern char *xstrdup(const char *);
+extern char *xstrndup(const char *, size_t);
 extern const char *xstrerror(void);
 extern const char *xbstrerror(int);
 extern int tvSubMsec(struct timeval, struct timeval);
