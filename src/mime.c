@@ -372,4 +372,5 @@ mimeInit(char *filename)
 	*MimeTableTail = m;
 	MimeTableTail = &m->next;
     }
+    fclose(fp);
 }
