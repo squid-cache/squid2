@@ -35,4 +35,4 @@ EXTRA_DIST = \
 
 install-pinger:
 	chown root $(libexecdir)/pinger$(EXEEXT)
-	chmod 4700 $(libexecdir)/pinger$(EXEEXT)
+	chmod 4711 $(libexecdir)/pinger$(EXEEXT)
