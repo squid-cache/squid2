@@ -1,4 +1,4 @@
-Changes to squid-1.0 (June 20, 1996):
+Changes to squid-1.0 (July 1, 1996):
 
 	- Fixed beta17 "fd_lifetime" typo bug
 	- Added 'firewall_ip_list' to configuration options
