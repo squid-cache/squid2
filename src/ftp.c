@@ -1865,10 +1865,10 @@ static void
 ftpAcceptDataConnection(int fd, void *data)
 {
     FtpStateData *ftpState = data;
-    struct sockaddr_in peer, me;
+    struct sockaddr_in my_peer, me;
     debug(9, 3) ("ftpAcceptDataConnection\n");
 
-    fd = comm_accept(fd, &peer, &me);
+    fd = comm_accept(fd, &my_peer, &me);
     if (fd < 0) {
 	debug(9, 1) ("ftpHandleDataAccept: comm_accept(%d): %s", fd, xstrerror());
 	/* XXX Need to set error message */
@@ -1879,8 +1879,8 @@ ftpAcceptDataConnection(int fd, void *data)
     comm_close(ftpState->data.fd);
     debug(9, 3) ("ftpAcceptDataConnection: Connected data socket on FD %d\n", fd);
     ftpState->data.fd = fd;
-    ftpState->data.port = ntohs(peer.sin_port);
-    ftpState->data.host = xstrdup(inet_ntoa(peer.sin_addr));
+    ftpState->data.port = ntohs(my_peer.sin_port);
+    ftpState->data.host = xstrdup(inet_ntoa(my_peer.sin_addr));
     commSetTimeout(ftpState->ctrl.fd, -1, NULL, NULL);
     commSetTimeout(ftpState->data.fd, Config.Timeout.read, ftpTimeout,
 	ftpState);
