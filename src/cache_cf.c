@@ -1291,6 +1291,12 @@ parse_wordlist(wordlist ** list)
 	wordlistAdd(list, token);
 }
 
+static int
+check_null_wordlist(wordlist *w)
+{
+    return w == NULL;
+}
+
 #if SQUID_SNMP
 static void
 parse_stringlist(wordlist ** list)
