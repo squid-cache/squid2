@@ -210,13 +210,11 @@ storeDigestAddable(const StoreEntry * e)
 	debug(71, 6) ("storeDigestAddable: NO: wrong content-length\n");
 	return 0;
     }
-
     /* do not digest huge objects */
     if (e->swap_file_sz > Config.Store.maxObjectSize) {
 	debug(71, 6) ("storeDigestAddable: NO: too big\n");
 	return 0;
     }
-
     /* still here? check staleness */
     /* Note: We should use the time of the next rebuild, not (cur_time+period) */
     if (refreshCheckDigest(e, StoreDigestRebuildPeriod)) {
@@ -224,7 +222,6 @@ storeDigestAddable(const StoreEntry * e)
 	    StoreDigestRebuildPeriod);
 	return 0;
     }
-
     /* idea: how about also skipping very fresh (thus, potentially unstable) 
      * entries? Should be configurable through cd_refresh_pattern, of course */
 

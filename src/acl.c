@@ -1088,7 +1088,7 @@ aclLookupProxyAuthStart(aclCheck_t * checklist)
 	    HDR_AUTHORIZATION);
     }
     ok = aclDecodeProxyAuth(proxy_auth, &user, &password, login_buf,
-		sizeof(login_buf));
+	sizeof(login_buf));
     assert(ok);			/* We should never get here unless the above succeeds in aclMatchProxyAuth */
 
     debug(28, 4) ("aclLookupProxyAuthStart: going to ask authenticator on %s\n", user);
