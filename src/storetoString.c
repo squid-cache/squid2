@@ -118,7 +118,7 @@ storeToString(const StoreEntry * e)
 	sprintf(stsbuf, "\nStoreEntry pointer is NULL.\n");
 	return stsbuf;
     }
-    sprintf(stsbuf, "\nStoreEntry @: 0x%p\n****************\n", e);
+    sprintf(stsbuf, "\nStoreEntry @: %p\n****************\n", e);
     strcat(stsbuf, tmpbuf);
 
     sprintf(stsbuf, "Current Time: %d [%s]\n", (int) squid_curtime,
@@ -131,7 +131,7 @@ storeToString(const StoreEntry * e)
     sprintf(tmpbuf, "URL: %s\n", e->url);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "Next: 0x%p\n", e->next);
+    sprintf(tmpbuf, "Next: %p\n", e->next);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "Flags: %#x ==> ", e->flag);
@@ -202,7 +202,7 @@ storeToString(const StoreEntry * e)
 	strcat(stsbuf, tmpbuf);
 	return stsbuf;
     }
-    sprintf(tmpbuf, "MemObject: 0x%p\n****************\n", mem);
+    sprintf(tmpbuf, "MemObject: %p\n****************\n", mem);
     strcat(stsbuf, tmpbuf);
 
     if (!mem->mime_hdr) {
@@ -217,7 +217,7 @@ storeToString(const StoreEntry * e)
 	sprintf(tmpbuf, "Data: NULL.\n");
 	strcat(stsbuf, tmpbuf);
     } else {
-	sprintf(tmpbuf, "Data: 0x%p\n", mem->data);
+	sprintf(tmpbuf, "Data: %p\n", mem->data);
 	strcat(stsbuf, tmpbuf);
     }
 
@@ -227,7 +227,7 @@ storeToString(const StoreEntry * e)
     else
 	sprintf(tmpbuf, "E_swap_buf: %s\n", mem->e_swap_buf);
     strcat(stsbuf, tmpbuf);
-    sprintf(tmpbuf, "First_miss: 0x%p\n", mem->e_pings_first_miss);
+    sprintf(tmpbuf, "First_miss: %p\n", mem->e_pings_first_miss);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "E_swap_buf_len: %d\n", mem->e_swap_buf_len);
@@ -261,7 +261,7 @@ storeToString(const StoreEntry * e)
 	strcat(stsbuf, tmpbuf);
     } else {
 	int i;
-	sprintf(tmpbuf, "ClientList: 0x%p\n", mem->clients);
+	sprintf(tmpbuf, "ClientList: %p\n", mem->clients);
 	strcat(stsbuf, tmpbuf);
 
 	for (i = 0; i < mem->nclients; ++i) {
