@@ -898,7 +898,7 @@ comm_incoming(void)
 {
     int j;
     incame = 0;
-    if (theInIcpConnection > 0)
+    if (theInIcpConnection > 0) {
 	icpHandleUdp(theInIcpConnection, &incame);
         if (theInIcpConnection != theOutIcpConnection)
 	    icpHandleUdp(theOutIcpConnection, &incame);
