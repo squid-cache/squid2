@@ -157,7 +157,7 @@ AC_CHECK_LIB(44bsd, inet_aton, [HAVE_LIB44BSD="yes"])
 AC_CHECK_LIB(resolv, inet_aton, [if test "$HAVE_LIB44BSD" = "yes"; then LIBS="$LIBS -l44bsd"; fi])
 
 dnl Check for libcrypt
-dnl cached uses crypt(3) which may be in libc, or in libcrypt (eg FreeBSD)
+dnl We use crypt(3) which may be in libc, or in libcrypt (eg FreeBSD)
 AC_CHECK_LIB(crypt, crypt, [CRYPT_LIB="-lcrypt"])
 AC_SUBST(CRYPT_LIB)
 
@@ -255,5 +255,5 @@ AC_OUTPUT(\
 	./scripts/RunCache \
 	./scripts/RunAccel \
 	./src/Makefile \
-	./src/cached.conf \
+	./src/squid.conf \
 )

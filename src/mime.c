@@ -119,7 +119,7 @@ int mk_mime_hdr(result, ttl, size, lmt, type)
     if (result == NULL)
 	return 1;
 
-    t = cached_curtime;
+    t = squid_curtime;
     expiretime = t + ttl;
 
     date[0] = expire[0] = last_modified_time[0] = result[0] = '\0';

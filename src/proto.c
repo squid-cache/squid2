@@ -446,7 +446,7 @@ static int protoNotImplemented(fd, url, entry)
     else
 	sprintf(buf, "Your URL may be incorrect: '%s'\n", url);
 
-    cached_error_entry(entry, ERR_NOT_IMPLEMENTED, NULL);
+    squid_error_entry(entry, ERR_NOT_IMPLEMENTED, NULL);
     return 0;
 }
 
@@ -463,7 +463,7 @@ static int protoCantFetchObject(fd, entry, reason)
     buf[0] = '\0';
     sprintf(buf, "%s\n\nThe cache administrator may need to double-check the cache configuration.",
 	reason);
-    cached_error_entry(entry, ERR_CANNOT_FETCH, buf);
+    squid_error_entry(entry, ERR_CANNOT_FETCH, buf);
     return 0;
 }
 
@@ -473,7 +473,7 @@ static int protoDNSError(fd, entry)
 {
     debug(17, 2, "protoDNSError: FD %d <URL:%s>\n", fd, entry->url);
     protoCancelTimeout(fd, entry);
-    cached_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
+    squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
     return 0;
 }
 

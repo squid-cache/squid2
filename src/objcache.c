@@ -82,7 +82,7 @@ int objcacheStart(fd, url, entry)
     data->reply_fd = fd;
     data->entry = entry;
     /* before we generate new object */
-    data->entry->expires = cached_curtime + STAT_TTL;
+    data->entry->expires = squid_curtime + STAT_TTL;
 
     debug(16, 3, "objectcacheStart - url: %s\n", url);
 
@@ -90,8 +90,8 @@ int objcacheStart(fd, url, entry)
     password[0] = '\0';
     if (objcache_url_parser(url, data->host, data->request, password)) {
 	/* override negative TTL */
-	data->entry->expires = cached_curtime + STAT_TTL;
-	storeAbort(data->entry, "CACHED:OBJCACHE Invalid Syntax!\n");
+	data->entry->expires = squid_curtime + STAT_TTL;
+	storeAbort(data->entry, "SQUID:OBJCACHE Invalid Syntax!\n");
 	safe_free(data);
 	safe_free(buf);
 	return COMM_ERROR;
@@ -102,9 +102,9 @@ int objcacheStart(fd, url, entry)
     }
     if (ip_access_check(peer_socket_name.sin_addr, manager_ip_acl)
 	== IP_DENY) {		/* Access Deny */
-	storeAbort(data->entry, "CACHED:OBJCACHE Access Denied!\n");
+	storeAbort(data->entry, "SQUID:OBJCACHE Access Denied!\n");
 	/* override negative TTL */
-	data->entry->expires = cached_curtime + STAT_TTL;
+	data->entry->expires = squid_curtime + STAT_TTL;
 	safe_free(data);
 	safe_free(buf);
 	return COMM_ERROR;
@@ -114,10 +114,10 @@ int objcacheStart(fd, url, entry)
 	if (objcache_CheckPassword(password, username) != 0) {
 	    buf = xstrdup(BADPassword);
 	    storeAppend(data->entry, buf, strlen(buf));
-	    storeAbort(data->entry, "CACHED:OBJCACHE Incorrect Password\n");
+	    storeAbort(data->entry, "SQUID:OBJCACHE Incorrect Password\n");
 	    /* override negative TTL */
-	    data->entry->expires = cached_curtime + STAT_TTL;
-	    debug(16, 1, "Objcache: Attempt to shutdown cached with incorrect password\n");
+	    data->entry->expires = squid_curtime + STAT_TTL;
+	    debug(16, 1, "Objcache: Attempt to shutdown %s with incorrect password\n", appname);
 	} else {
 	    debug(16, 0, "Shutdown by command.\n");
 	    /* free up state datastructure */
@@ -199,7 +199,7 @@ int objcacheStart(fd, url, entry)
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
-    } else if (strncmp(data->request, "cached.conf", strlen("cached.conf")) == 0) {
+    } else if (strncmp(data->request, "squid.conf", strlen("squid.conf")) == 0) {
 	CacheInfo->cached_get_start(CacheInfo, data->entry);
 
     } else {

@@ -30,8 +30,8 @@ void send_announce()
 	getUdpPortNum());
     strcat(sndbuf, tbuf);
     sprintf(tbuf, "generated %d [%s]\n",
-	(int) cached_curtime,
-	mkhttpdlogtime(&cached_curtime));
+	(int) squid_curtime,
+	mkhttpdlogtime(&squid_curtime));
     strcat(sndbuf, tbuf);
     l = strlen(sndbuf);
 

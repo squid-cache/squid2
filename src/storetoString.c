@@ -18,8 +18,8 @@ char *storeToString(e)
     sprintf(stsbuf, "\nStoreEntry @: 0x%p\n****************\n", e);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(stsbuf, "Current Time: %d [%s]\n", (int) cached_curtime,
-	mkhttpdlogtime(&cached_curtime));
+    sprintf(stsbuf, "Current Time: %d [%s]\n", (int) squid_curtime,
+	mkhttpdlogtime(&squid_curtime));
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "Key: %s\n", e->key);

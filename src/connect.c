@@ -69,7 +69,7 @@ static void connectReadRemote(fd, data)
 	    }
 	} else {
 	    /* we can terminate connection right now */
-	    cached_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
+	    squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
 	    connectCloseAndFree(fd, data);
 	    return;
 	}
@@ -94,11 +94,11 @@ static void connectReadRemote(fd, data)
 	} else {
 	    BIT_RESET(entry->flag, CACHABLE);
 	    storeReleaseRequest(entry);
-	    cached_error_entry(entry, ERR_READ_ERROR, xstrerror());
+	    squid_error_entry(entry, ERR_READ_ERROR, xstrerror());
 	    connectCloseAndFree(fd, data);
 	}
     } else if (len == 0 && entry->mem_obj->e_current_len == 0) {
-	cached_error_entry(entry,
+	squid_error_entry(entry,
 	    ERR_ZERO_SIZE_OBJECT,
 	    errno ? xstrerror() : NULL);
 	connectCloseAndFree(fd, data);
@@ -200,7 +200,7 @@ static void connectReadTimeout(fd, data)
      int fd;
      ConnectData *data;
 {
-    cached_error_entry(data->entry, ERR_READ_TIMEOUT, NULL);
+    squid_error_entry(data->entry, ERR_READ_TIMEOUT, NULL);
     connectCloseAndFree(fd, data);
 }
 
@@ -261,7 +261,7 @@ void connectConnInProgress(fd, data)
 	     */
 	    break;
 	default:
-	    cached_error_entry(data->entry, ERR_CONNECT_FAIL, xstrerror());
+	    squid_error_entry(data->entry, ERR_CONNECT_FAIL, xstrerror());
 	    connectCloseAndFree(fd, data);
 	    return;
 	}
@@ -298,7 +298,7 @@ int connectStart(fd, url, request, mime_hdr, entry)
     sock = comm_open(COMM_NONBLOCKING, 0, 0, url);
     if (sock == COMM_ERROR) {
 	debug(26, 4, "connectStart: Failed because we're out of sockets.\n");
-	cached_error_entry(entry, ERR_NO_FDS, xstrerror());
+	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
 	safe_free(data);
 	return COMM_ERROR;
     }
@@ -312,7 +312,7 @@ int connectStart(fd, url, request, mime_hdr, entry)
      * Otherwise, we cannot check return code for connect. */
     if (!ipcache_gethostbyname(request->host)) {
 	debug(26, 4, "connectstart: Called without IP entry in ipcache. OR lookup failed.\n");
-	cached_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
+	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
 	connectCloseAndFree(sock, data);
 	return COMM_ERROR;
     }
@@ -325,7 +325,7 @@ int connectStart(fd, url, request, mime_hdr, entry)
     /* Open connection. */
     if ((status = comm_connect(sock, request->host, request->port))) {
 	if (status != EINPROGRESS) {
-	    cached_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
+	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	    connectCloseAndFree(sock, data);
 	    return COMM_ERROR;
 	} else {

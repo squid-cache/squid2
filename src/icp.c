@@ -264,7 +264,7 @@ static void icpRead(fd, bin_mode, buf, size, timeout, immed, handler, client_dat
     data->handler = handler;
     data->timeout = timeout;
     data->handle_immed = immed;
-    data->time = cached_curtime;
+    data->time = squid_curtime;
     data->client_data = client_data;
     comm_set_select_handler(fd,
 	COMM_SELECT_READ,
@@ -365,7 +365,7 @@ char *icpWrite(fd, buf, size, timeout, handler, client_data)
     data->offset = 0;
     data->handler = handler;
     data->timeout = timeout;
-    data->time = cached_curtime;
+    data->time = squid_curtime;
     data->client_data = client_data;
     comm_set_select_handler(fd,
 	COMM_SELECT_WRITE,
@@ -922,7 +922,7 @@ int icpHandleUdp(sock, not_used)
 	debug(12, 5, "icpHandleUdp: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (entry &&
 	    (entry->status == STORE_OK) &&
-	    ((entry->expires - UDP_HIT_THRESH) > cached_curtime)) {
+	    ((entry->expires - UDP_HIT_THRESH) > squid_curtime)) {
 	    /* Send "HIT" message. */
 	    CacheInfo->log_append(CacheInfo,	/* UDP_HIT */
 		entry->url,
@@ -1272,7 +1272,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
             debug(12, 5, "Invalid URL: %s\n", astm->url);
             astm->log_type = ERR_INVALID_URL;
             astm->http_code = 400;
-            astm->buf = xstrdup(cached_error_url(astm->url,
+            astm->buf = xstrdup(squid_error_url(astm->url,
                     astm->method,
                     ERR_INVALID_URL,
                     fd_table[fd].ipaddr,
@@ -1330,7 +1330,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	debug(12, 1, "asciiProcessInput: FD %d Invalid Request\n", fd);
 	astm->log_type = ERR_INVALID_REQ;
 	astm->http_code = 400;
-	astm->buf = xstrdup(cached_error_request(astm->inbuf,
+	astm->buf = xstrdup(squid_error_request(astm->inbuf,
 		ERR_INVALID_REQ,
 		fd_table[fd].ipaddr,
 		astm->http_code));

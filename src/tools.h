@@ -20,5 +20,5 @@ extern void reconfigure _PARAMS((int sig));
 extern int tvSubMsec _PARAMS((struct timeval, struct timeval));
 
 extern int do_mallinfo;
-extern time_t cached_curtime;
+extern time_t squid_curtime;
 extern struct timeval current_time;

@@ -102,7 +102,7 @@ time_t ttlSet(entry)
 	    flags |= TTL_SERVERDATE;
 	}
     }
-    now = their_date > 0 ? their_date : cached_curtime;
+    now = their_date > 0 ? their_date : squid_curtime;
 
     if (reply->expires[0]) {
 	/*

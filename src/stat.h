@@ -66,8 +66,8 @@ struct _cacheinfo {
     /* get a processed logfile status */
     void (*log_status_get) _PARAMS((struct _cacheinfo * c, StoreEntry * sentry));
 
-    /* get a processed cached.conf object */
-    void (*cached_get_start) _PARAMS((struct _cacheinfo * c, StoreEntry * sentry));
+    /* get a processed squid.conf object */
+    void (*squid_get_start) _PARAMS((struct _cacheinfo * c, StoreEntry * sentry));
 
     /* get a parameter object */
     void (*parameter_get) _PARAMS((struct _cacheinfo * c, StoreEntry * sentry));

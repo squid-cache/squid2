@@ -15,7 +15,7 @@
  * This program must be run from inetd.  First add something like this
  * to /etc/services:
  * 
- * cached_announce 3131/udp             # harvest cached announcements
+ * cached_announce 3131/udp             # harvest cache announcements
  * 
  * And then add something like this to /etc/inetd/conf:
  * 

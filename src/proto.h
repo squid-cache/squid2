@@ -27,7 +27,7 @@ typedef enum {
     ICP_OP_DATA,		/* data middle of stream (sv<-cl) */
     ICP_OP_DATAEND,		/* last data (sv<-cl) */
     ICP_OP_SECHO,		/* echo from source (sv<-os) */
-    ICP_OP_DECHO,		/* echo from dumb cached (sv<-dc) */
+    ICP_OP_DECHO,		/* echo from dumb cache (sv<-dc) */
     ICP_OP_END			/* marks end of opcodes */
 } icp_opcode;
 
