@@ -243,7 +243,10 @@ main(int argc, char *argv[])
 	strcat(msg, buf);
     }
     if (keep_alive) {
-	snprintf(buf, BUFSIZ, "Proxy-Connection: Keep-Alive\r\n");
+	if (port != 80)
+		snprintf(buf, BUFSIZ, "Proxy-Connection: Keep-Alive\r\n");
+	else
+		snprintf(buf, BUFSIZ, "Connection: Keep-Alive\r\n");
 	strcat(msg, buf);
     }
     snprintf(buf, BUFSIZ, "\r\n");
