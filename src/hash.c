@@ -108,6 +108,7 @@
 
 static int hash_unlink(hash_table *, hash_link *, int);
 
+#if UNUSED_CODE
 /*
  *  hash_url() - Returns a well-distributed hash function for URLs.
  *  The best way is to sum up the last half of the string.
@@ -125,6 +126,7 @@ hash_url(const void *data, unsigned int size)
     i = n ^ (j * 271);
     return i % size;
 }
+#endif /* UNUSED_CODE */
 
 unsigned int
 hash_string(const void *data, unsigned int size)
