@@ -231,7 +231,8 @@ objcacheStart(int fd, StoreEntry * entry)
 
     debug(16, 3) ("objectcacheStart: '%s'\n", entry->url);
     if ((data = objcache_url_parser(entry->url)) == NULL) {
-	storeAbort(entry, ERR_INVALID_REQ, "Invalid objcache syntax", 0);
+	assert(!ERR_INVALID_REQ);
+	storeAbort(entry, 0);
 	entry->expires = squid_curtime + STAT_TTL;
 	safe_free(data);
 	InvokeHandlers(entry);
@@ -246,7 +247,8 @@ objcacheStart(int fd, StoreEntry * entry)
     /* Check password */
     if (objcache_CheckPassword(data) != 0) {
 	debug(16, 1) ("WARNING: Incorrect Cachemgr Password!\n");
-	storeAbort(entry, ERR_INVALID_REQ, BADPassword, 0);
+	assert(!ERR_INVALID_REQ);
+	storeAbort(entry, 0);
 	entry->expires = squid_curtime + STAT_TTL;
 	storeComplete(entry);
 	InvokeHandlers(entry);

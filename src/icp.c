@@ -106,7 +106,7 @@
 
 #include "squid.h"
 
-char *log_tags[] =
+const char *log_tags[] =
 {
     "NONE",
     "TCP_HIT",
@@ -125,24 +125,7 @@ char *log_tags[] =
     "UDP_DENIED",
     "UDP_INVALID",
     "UDP_MISS_NOFETCH",
-    "ERR_READ_TIMEOUT",
-    "ERR_LIFETIME_EXP",
-    "ERR_NO_CLIENTS",
-    "ERR_READ_ERROR",
-    "ERR_WRITE_ERROR",
-    "ERR_CLIENT_ABORT",
-    "ERR_CONNECT_FAIL",
-    "ERR_INVALID_REQ",
-    "ERR_UNSUP_REQ",
-    "ERR_INVALID_URL",
-    "ERR_NO_FDS",
-    "ERR_DNS_FAIL",
-    "ERR_NOT_IMPLEMENTED",
-    "ERR_CANNOT_FETCH",
-    "ERR_NO_RELAY",
-    "ERR_DISK_IO",
-    "ERR_ZERO_SIZE_OBJECT",
-    "ERR_PROXY_DENIED"
+    "LOG_TYPE_MAX"
 };
 
 static icpUdpData *UdpQueueHead = NULL;
@@ -165,7 +148,6 @@ typedef struct icp_ctrl_t {
 
 /* Local functions */
 
-static CWCB clientWriteComplete;
 static CWCB icpHandleIMSComplete;
 static PF clientReadRequest;
 static PF connStateFree;
@@ -260,7 +242,7 @@ httpRequestFree(void *data)
 	}
 	protoUnregister(entry, request, conn->peer.sin_addr);
     }
-    assert(http->log_type < ERR_MAX);
+    assert(http->log_type < LOG_TYPE_MAX);
     if (entry)
 	mem = entry->mem_obj;
     if (http->out.size || http->log_type) {
@@ -473,50 +455,12 @@ icpHierarchical(clientHttpRequest * http)
 }
 
 void
-icpSendERRORComplete(int fd, char *buf, int size, int errflag, void *data)
+icpErrorComplete(int fd, void *data, int size)
 {
     clientHttpRequest *http = data;
-    debug(12, 4) ("icpSendERRORComplete: FD %d, %d bytes\n", fd, size);
     if (http)
 	http->out.size += size;
     comm_close(fd);
-}
-
-/* Send ERROR message. */
-void
-icpSendERROR(int fd,
-    log_type errorCode,
-    const char *text,
-    clientHttpRequest * http,
-    int httpCode)
-{
-    int buf_len = 0;
-    char *buf = NULL;
-    if (http) {
-	/* http may == NULL from icpSendERROR in clientReadRequest */
-	http->log_type = errorCode;
-	http->al.http.code = httpCode;
-	if (http->entry && http->entry->mem_obj) {
-	    if (http->out.size > 0) {
-		comm_close(fd);
-		return;
-	    }
-	}
-    }
-    if (text == NULL) {
-	comm_close(fd);
-	return;
-    }
-    buf_len = strlen(text);
-    buf_len = buf_len > 4095 ? 4095 : buf_len;
-    buf = get_free_4k_page();
-    xstrncpy(buf, text, 4096);
-    comm_write(fd,
-	buf,
-	buf_len,
-	icpSendERRORComplete,
-	http,
-	put_free_4k_page);
 }
 
 int
@@ -636,13 +580,6 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
 	return;
     }
     if (entry->store_status == STORE_ABORTED) {
-	debug(12, 3) ("icpSendMoreData: abort_code=%d url='%s'\n",
-	    entry->mem_obj->abort_code, entry->url);
-	icpSendERROR(fd,
-	    entry->mem_obj->abort_code,
-	    entry->mem_obj->e_abort_msg,
-	    http,
-	    400);
 	freefunc(buf);
 	return;
     }
@@ -676,8 +613,8 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
 	     * hdrlen is the length of the old headers in buf
 	     * size - hdrlen is the amount of body in buf
 	     */
-	    debug(12,3)("icpSendMoreData: Appending %d bytes after headers\n",
-		(int)(size-hdrlen));
+	    debug(12, 3) ("icpSendMoreData: Appending %d bytes after headers\n",
+		(int) (size - hdrlen));
 	    xmemcpy(newbuf + l, buf + hdrlen, size - hdrlen);
 	    /* replace buf with newbuf */
 	    freefunc(buf);
@@ -717,7 +654,7 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
     comm_write(fd, buf, writelen, clientWriteComplete, http, freefunc);
 }
 
-static void
+void
 clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 {
     clientHttpRequest *http = data;
@@ -734,7 +671,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    http->out.size);
 	comm_close(fd);
     } else if (icpCheckTransferDone(http)) {
-	debug(12,1)("clientWriteComplete: FD %d transfer is DONE\n", fd);
+	debug(12, 1) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    http->request->protocol,
@@ -742,11 +679,11 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	if (http->entry->mem_obj->reply->content_length <= 0) {
 	    comm_close(fd);
 	} else if (BIT_TEST(http->request->flags, REQ_PROXY_KEEPALIVE)) {
-	    debug(12,1)("clientWriteComplete: FD %d Keeping Alive\n", fd);
+	    debug(12, 1) ("clientWriteComplete: FD %d Keeping Alive\n", fd);
 	    conn = http->conn;
 	    httpRequestFree(http);
 	    if ((http = conn->chr)) {
-	        debug(12,1)("clientWriteComplete: FD %d Sending next request\n", fd);
+		debug(12, 1) ("clientWriteComplete: FD %d Sending next request\n", fd);
 		storeClientCopy(entry,
 		    http->out.offset,
 		    http->out.offset,
@@ -755,7 +692,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 		    icpSendMoreData,
 		    http);
 	    } else {
-	        debug(12,1)("clientWriteComplete: FD %d Setting read handler for next request\n", fd);
+		debug(12, 1) ("clientWriteComplete: FD %d Setting read handler for next request\n", fd);
 		fd_note(fd, "Reading next request");
 		commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	    }
@@ -900,7 +837,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	    comm_write(fd,
 		xstrdup(reply),
 		strlen(reply),
-		icpSendERRORComplete,
+		clientWriteComplete,
 		http,
 		xfree);
 	    return;
@@ -1103,8 +1040,7 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     StoreEntry *entry = NULL;
     aclCheck_t ch;
     int answer;
-    char *buf;
-
+    ErrorState *err = NULL;
     debug(12, 4) ("icpProcessMISS: '%s %s'\n",
 	RequestMethodStr[http->request->method], url);
     debug(12, 10) ("icpProcessMISS: request_hdr:\n%s\n", request_hdr);
@@ -1115,12 +1051,15 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     ch.request = http->request;
     answer = aclCheckFast(Config.accessList.miss, &ch);
     if (answer == 0) {
-	http->al.http.code = 400;
-	buf = access_denied_msg(http->al.http.code,
-	    http->request->method,
-	    http->url,
-	    fd_table[fd].ipaddr);
-	icpSendERROR(fd, LOG_TCP_DENIED, buf, http, http->al.http.code);
+	http->al.http.code = HTTP_FORBIDDEN;
+	err = xcalloc(1, sizeof(ErrorState));
+	err->type = ERR_CACHE_MISS_DENIED;
+	err->http_status = HTTP_FORBIDDEN;
+	err->request = requestLink(http->request);
+	err->src_addr = http->conn->peer.sin_addr;
+	err->callback = icpErrorComplete;
+	err->callback_data = http;
+	errorSend(fd, err);
 	return;
     }
     /* Get rid of any references to a StoreEntry (if any) */
@@ -1883,7 +1822,6 @@ clientReadRequest(int fd, void *data)
     int parser_return_code = 0;
     int k;
     request_t *request = NULL;
-    char *wbuf = NULL;
     char *tmp;
     int size;
     int len;
@@ -1892,6 +1830,7 @@ clientReadRequest(int fd, void *data)
     clientHttpRequest **H = NULL;
     char *headers;
     size_t headers_sz;
+    ErrorState *err = NULL;
 
     len = conn->in.size - conn->in.offset - 1;
     debug(12, 4) ("clientReadRequest: FD %d: reading request...\n", fd);
@@ -1943,33 +1882,31 @@ clientReadRequest(int fd, void *data)
 	    commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
 	    if ((request = urlParse(method, http->url)) == NULL) {
 		debug(12, 5) ("Invalid URL: %s\n", http->url);
-		wbuf = squid_error_url(http->url,
-		    method,
-		    ERR_INVALID_URL,
-		    fd_table[fd].ipaddr,
-		    400,
-		    NULL);
-		icpSendERROR(fd, ERR_INVALID_URL, wbuf, http, 400);
+		err = xcalloc(1, sizeof(ErrorState));
+		err->type = ERR_INVALID_URL;
+		err->http_status = HTTP_BAD_REQUEST;
+		err->src_addr = conn->peer.sin_addr;
+		err->callback = icpErrorComplete;
+		err->callback_data = http;
+		err->url = xstrdup(http->url);
+		http->al.http.code = err->http_status;
+		errorSend(fd, err);
 		continue;	/* while offset > 0 */
 	    }
 	    request->http_ver = http->http_ver;
 	    request->headers = headers;
 	    request->headers_sz = headers_sz;
 	    if (!urlCheckRequest(request)) {
-		http->log_type = ERR_UNSUP_REQ;
-		http->al.http.code = 501;
-		wbuf = xstrdup(squid_error_url(http->url,
-			method,
-			ERR_UNSUP_REQ,
-			fd_table[fd].ipaddr,
-			http->al.http.code,
-			NULL));
-		comm_write(fd,
-		    wbuf,
-		    strlen(wbuf),
-		    icpSendERRORComplete,
-		    http,
-		    xfree);
+		http->al.http.code = HTTP_NOT_IMPLEMENTED;
+		err = xcalloc(1, sizeof(ErrorState));
+		err->type = ERR_UNSUP_REQ;
+		err->http_status = HTTP_NOT_IMPLEMENTED;
+		err->src_addr = conn->peer.sin_addr;
+		err->callback = icpErrorComplete;
+		err->callback_data = http;
+		err->request = requestLink(request);
+		http->al.http.code = err->http_status;
+		errorSend(fd, err);
 		return;
 	    }
 	    http->request = requestLink(request);
@@ -1997,14 +1934,16 @@ clientReadRequest(int fd, void *data)
 	    if (k == 0) {
 		if (conn->in.offset >= Config.maxRequestSize) {
 		    /* The request is too large to handle */
-		    debug(12, 0) ("clientReadRequest: Request won't fit in buffer.\n");
-		    debug(12, 0) ("-->     max size = %d\n", Config.maxRequestSize);
-		    debug(12, 0) ("--> conn->in.offset = %d\n", conn->in.offset);
-		    icpSendERROR(fd,
-			ERR_INVALID_REQ,
-			"error reading request",
-			NULL,
-			400);
+		    debug(12, 0) ("Request won't fit in buffer.\n");
+		    debug(12, 0) ("Config 'request_size'= %d bytes.\n",
+			Config.maxRequestSize);
+		    debug(12, 0) ("This request = %d bytes.\n",
+			conn->in.offset);
+		    err = xcalloc(1, sizeof(ErrorState));
+		    err->type = ERR_INVALID_REQ;
+		    err->http_status = HTTP_REQUEST_ENTITY_TOO_LARGE;
+		    err->callback = icpErrorComplete;
+		    errorSend(fd, err);
 		    return;
 		}
 		/* Grow the request memory area to accomodate for a large request */
@@ -2020,8 +1959,11 @@ clientReadRequest(int fd, void *data)
 	} else {
 	    /* parser returned -1 */
 	    debug(12, 1) ("clientReadRequest: FD %d Invalid Request\n", fd);
-	    wbuf = squid_error_request(conn->in.buf, ERR_INVALID_REQ, 400);
-	    icpSendERROR(fd, ERR_INVALID_REQ, wbuf, NULL, 400);
+	    err = xcalloc(1, sizeof(ErrorState));
+	    err->type = ERR_INVALID_REQ;
+	    err->http_status = HTTP_BAD_REQUEST;
+	    err->callback = icpErrorComplete;
+	    errorSend(fd, err);
 	}
     }
 }
@@ -2032,6 +1974,7 @@ static void
 requestTimeout(int fd, void *data)
 {
     ConnStateData *conn = data;
+    ErrorState *err;
     debug(12, 2) ("requestTimeout: FD %d: lifetime is expired.\n", fd);
     /* There might be a comm_write() thread; cancel callback */
     if (fd_table[fd].rwstate) {
@@ -2041,12 +1984,12 @@ requestTimeout(int fd, void *data)
 	/* assume its a persistent connection; just close it */
 	comm_close(fd);
     } else {
-	/* Send an error message if nothing has been sent yet */
-	icpSendERROR(fd,
-	    ERR_LIFETIME_EXP,
-	    "Request Timeout.\n",
-	    NULL,
-	    504);
+	/* Generate an error */
+	err = xcalloc(1, sizeof(ErrorState));
+	err->type = ERR_LIFETIME_EXP;
+	err->http_status = HTTP_REQUEST_TIMEOUT;
+	err->callback = icpErrorComplete;
+	errorSend(fd, err);
 	/* if we don't close() here, we still need a timeout handler! */
 	commSetTimeout(fd, 30, requestTimeout, conn);
     }
@@ -2157,8 +2100,7 @@ CheckQuickAbort(clientHttpRequest * http)
     if (CheckQuickAbort2(http) == 0)
 	return;
     debug(12, 3) ("CheckQuickAbort: ABORTING %s\n", entry->url);
-    storeReleaseRequest(entry);
-    storeAbort(entry, ERR_CLIENT_ABORT, "aborted by client", 1);
+    storeAbort(entry, 1);
 }
 
 static int

@@ -52,7 +52,7 @@ static void passReadServer _PARAMS((int fd, void *));
 static void passReadClient _PARAMS((int fd, void *));
 static void passWriteServer _PARAMS((int fd, void *));
 static void passWriteClient _PARAMS((int fd, void *));
-static void passErrorComplete _PARAMS((int, char *, int, int, void *));
+static ERCB passErrorComplete;
 static void passClose _PARAMS((PassStateData * passState));
 static void passClientClosed _PARAMS((int fd, void *));
 static void passConnectDone _PARAMS((int fd, int status, void *data));
@@ -288,13 +288,9 @@ passWriteClient(int fd, void *data)
 }
 
 static void
-passErrorComplete(int fd, char *buf, int size, int errflag, void *passState)
+passErrorComplete(int fd, void *passState, int size)
 {
-    safe_free(buf);
-    if (passState == NULL) {
-	debug_trap("passErrorComplete: NULL passState\n");
-	return;
-    }
+    assert(passState != NULL);
     passClose(passState);
 }
 
@@ -303,36 +299,30 @@ passConnectDone(int fd, int status, void *data)
 {
     PassStateData *passState = data;
     request_t *request = passState->request;
-    char *buf = NULL;
     size_t hdr_len = 0;
+    ErrorState *err = NULL;
     if (status == COMM_ERR_DNS) {
 	debug(39, 4) ("passConnectDone: Unknown host: %s\n", passState->host);
-	buf = squid_error_url(passState->url,
-	    request->method,
-	    ERR_DNS_FAIL,
-	    fd_table[fd].ipaddr,
-	    500,
-	    dns_error_message);
-	comm_write(passState->client.fd,
-	    xstrdup(buf),
-	    strlen(buf),
-	    passErrorComplete,
-	    passState,
-	    xfree);
+	err = xcalloc(1, sizeof(ErrorState));
+	err->type = ERR_DNS_FAIL;
+	err->http_status = HTTP_NOT_FOUND;
+	err->request = requestLink(request);
+	err->dnsserver_msg = xstrdup(dns_error_message);
+	err->callback = passErrorComplete;
+	err->callback_data = passState;
+	errorSend(passState->client.fd, err);
 	return;
     } else if (status != COMM_OK) {
-	buf = squid_error_url(passState->url,
-	    passState->request->method,
-	    ERR_CONNECT_FAIL,
-	    fd_table[fd].ipaddr,
-	    500,
-	    xstrerror());
-	comm_write(passState->client.fd,
-	    xstrdup(buf),
-	    strlen(buf),
-	    passErrorComplete,
-	    passState,
-	    xfree);
+	err = xcalloc(1, sizeof(ErrorState));
+	err->type = ERR_CONNECT_FAIL;
+	err->http_status = HTTP_SERVICE_UNAVAILABLE;
+	err->errno = errno;
+	err->host = xstrdup(passState->host);
+	err->port = passState->port;
+	err->request = requestLink(request);
+	err->callback = passErrorComplete;
+	err->callback_data = passState;
+	errorSend(passState->client.fd, err);
 	return;
     }
     if (passState->proxying) {
@@ -366,13 +356,12 @@ passConnectDone(int fd, int status, void *data)
 }
 
 void
-passStart(int fd, const char *url, request_t * request, size_t *size_ptr)
+passStart(int fd, const char *url, request_t * request, size_t * size_ptr)
 {
     /* Create state structure. */
     PassStateData *passState = NULL;
     int sock;
-    char *msg = NULL;
-
+    ErrorState *err = NULL;
     debug(39, 3) ("passStart: '%s %s'\n",
 	RequestMethodStr[request->method], url);
 
@@ -385,18 +374,12 @@ passStart(int fd, const char *url, request_t * request, size_t *size_ptr)
 	url);
     if (sock == COMM_ERROR) {
 	debug(39, 4) ("passStart: Failed because we're out of sockets.\n");
-	msg = squid_error_url(url,
-	    request->method,
-	    ERR_NO_FDS,
-	    fd_table[fd].ipaddr,
-	    500,
-	    xstrerror());
-	comm_write(fd,
-	    xstrdup(msg),
-	    strlen(msg),
-	    NULL,
-	    NULL,
-	    xfree);
+	err = xcalloc(1, sizeof(ErrorState));
+	err->type = ERR_SOCKET_FAILURE;
+	err->http_status = HTTP_INTERNAL_SERVER_ERROR;
+	err->errno = errno;
+	err->request = requestLink(request);
+	errorSend(fd, err);
 	return;
     }
     passState = xcalloc(1, sizeof(PassStateData));
@@ -460,6 +443,11 @@ static void
 passPeerSelectFail(peer * p, void *data)
 {
     PassStateData *passState = data;
-    squid_error_request(passState->url, ERR_CANNOT_FETCH, 400);
-    passClose(passState);
+    ErrorState *err = xcalloc(1, sizeof(ErrorState));
+    err->type = ERR_CANNOT_FORWARD;
+    err->http_status = HTTP_SERVICE_UNAVAILABLE;
+    err->request = requestLink(passState->request);
+    err->callback = passErrorComplete;
+    err->callback_data = passState;
+    errorSend(passState->client.fd, err);
 }
