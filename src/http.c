@@ -197,6 +197,15 @@ httpCachableReply(HttpStateData * httpState)
      */
     if (httpHeaderHas(hdr, HDR_VARY))
 	return 0;
+    /* Pragma: no-cache in _replies_ is not documented in HTTP,
+     * but servers like "Active Imaging Webcast/2.0" sure do use it */
+    if (httpHeaderHas(hdr, HDR_PRAGMA)) {
+	String s = httpHeaderGetList(hdr, HDR_PRAGMA);
+	const int no_cache = strListIsMember(&s, "no-cache", ',');
+	stringClean(&s);
+	if (no_cache)
+	    return 0;
+    }
     /*
      * The "multipart/x-mixed-replace" content type is used for
      * continuous push replies.  These are generally dynamic and
