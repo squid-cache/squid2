@@ -383,3 +383,55 @@ pumpServerClosed(int fd, void *data)
      */
     comm_close(p->c_fd);
 }
+
+/*
+ * This function returns true for the request methods handled
+ * by this module
+ */
+int
+pumpMethod(method_t method)
+{
+    switch (method) {
+    case METHOD_POST:
+    case METHOD_PUT:
+	return 1;
+	break;
+    default:
+	return 0;
+	break;
+    }
+    /* NOTREACHED */
+}
+
+/*
+ * This function returns True if we can submit this request again.
+ * The request may have been pipelined, but the connection got
+ * closed before we got a reply.  If we still have the whole
+ * request in memory then we can send it again.  If we want to
+ * be able to restart very large requests, then we'll have to
+ * swap them out to disk.
+ */
+int
+pumpRestart(request_t * r)
+{
+    PumpStateData *p;
+    MemObject *mem;
+    for (p = pump_head; p && p->req != r; p = p->next);
+    if (p == NULL) {
+	debug(61, 1) ("pumpRestart: NO: Can't find pumpState!\n");
+	return 0;
+    }
+    mem = p->request_entry->mem_obj;
+    if (mem == NULL) {
+	debug(61, 1) ("pumpRestart: NO: request_entry->mem_obj == NULL!\n");
+	return 0;
+    }
+    if (mem->inmem_lo > 0) {
+	debug(61, 1) ("pumpRestart: NO: mem->inmem_lo == %d\n",
+	    (int) mem->inmem_lo);
+	return 0;
+    }
+    debug(61, 1) ("pumpRestart: YES!\n");
+    storeClientListAdd(p->request_entry, p);
+    return 1;
+}
