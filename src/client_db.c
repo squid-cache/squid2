@@ -282,7 +282,7 @@ clientdbGC(void *unused)
 	    cleanup_scheduled = 1;
 	    eventAdd("client_db garbage collector", clientdbScheduledGC, NULL, 6 * 3600, 0);
 	}
-	debug(49, 1) ("clientdbGC: Removed %d entries\n", cleanup_removed);
+	debug(49, 2) ("clientdbGC: Removed %d entries\n", cleanup_removed);
     }
 }
 
