@@ -418,8 +418,6 @@ storeUnlockObject(StoreEntry * e)
 	fatal_dump("storeUnlockObject: unlocked with pending clients\n");
     if (e->swap_status != SWAP_OK)
 	fatal_dump("storeUnlockObject: bad swap_status");
-    if (BIT_TEST(e->flag, IP_LOOKUP_PENDING))
-	debug_trap("storeUnlockObject: IP_LOOKUP_PENDING set");
     if (BIT_TEST(e->flag, RELEASE_REQUEST))
 	storeRelease(e);
     else if (!storeEntryValidLength(e))
@@ -1495,8 +1493,6 @@ storeRelease(StoreEntry * e)
 	storeReleaseRequest(e);
 	return 0;
     }
-    if (BIT_TEST(e->flag, IP_LOOKUP_PENDING))
-	debug_trap("storeRelease: IP_LOOKUP_PENDING set");
     if (e->key != NULL) {
 	if ((hptr = hash_lookup(store_table, e->key)) == NULL) {
 	    debug(20, 0, "storeRelease: Not Found: '%s'\n", e->key);

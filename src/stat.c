@@ -325,9 +325,9 @@ describeFlags(const StoreEntry * entry)
 #ifdef OLD_CODE
     if (BIT_TEST(flags, IP_LOOKUP_PENDING))
 	strcat(buf, "IP,");
-#endif
     if (BIT_TEST(flags, DELETE_BEHIND))
 	strcat(buf, "DB,");
+#endif
     if (BIT_TEST(flags, CLIENT_ABORT_REQUEST))
 	strcat(buf, "CA,");
     if (BIT_TEST(flags, DELAY_SENDING))
