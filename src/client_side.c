@@ -1318,7 +1318,7 @@ clientProcessMiss(clientHttpRequest * http)
     answer = aclCheckFast(Config.accessList.miss, &ch);
     if (answer == 0) {
 	http->al.http.code = HTTP_FORBIDDEN;
-	err = errorCon(ERR_CANNOT_FORWARD, HTTP_FORBIDDEN);
+	err = errorCon(ERR_FORWARDING_DENIED, HTTP_FORBIDDEN);
 	err->request = requestLink(r);
 	err->src_addr = http->conn->peer.sin_addr;
 	http->entry = clientCreateStoreEntry(http, r->method, 0);
