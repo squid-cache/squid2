@@ -91,6 +91,9 @@ error_data ErrorData[] =
     {"ERR_DISK_IO",
 	"Cache Disk I/O Failure",
 	"The system disk is out of space or failing."},
+    {"ERR_URL_BLOCKED",
+	"Access Denied",
+	"You are not allowed to access this URL."},
     {"ERR_MAX"
 	"",
 	""}

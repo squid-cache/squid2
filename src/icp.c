@@ -1434,6 +1434,22 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		astm);
 	    /* icpSendERRORComplete() will close the FD and deallocate astm */
 	    safe_free(orig_url_ptr);
+	} else if (blockCheck(astm->url)) {
+	    CacheInfo->log_append(CacheInfo,	/* TCP_BLOCK */
+		astm->url,
+		inet_ntoa(astm->peer.sin_addr),
+		0,
+		"TCP_BLOCK",
+		astm->type);
+	    astm->buf = xstrdup(cached_error_url(astm->url, ERR_URL_BLOCKED, NULL));
+	    icpWrite(fd,
+		astm->buf,
+		strlen(astm->buf),
+		30,
+		icpSendERRORComplete,
+		astm);
+	    /* icpSendERRORComplete() will close the FD and deallocate astm */
+	    safe_free(orig_url_ptr);
 	} else if (second_ip_acl_check(fd, astm) == IP_DENY) {
 	    sprintf(tmp_error_buf,
 		"ACCESS DENIED\n\nYour IP address (%s) is not authorized to access cached at %s.\n\n",

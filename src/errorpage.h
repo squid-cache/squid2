@@ -13,6 +13,7 @@ typedef enum {
     ERR_CANNOT_FETCH,
     ERR_NO_RELAY,
     ERR_DISK_IO,
+    ERR_URL_BLOCKED,
     ERR_MAX
 } error_t;
 
