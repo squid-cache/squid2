@@ -401,6 +401,8 @@ storeDirWriteCleanLogs(int reopen)
 	}
     }
 #if HEAP_REPLACEMENT
+    if (NULL == store_heap)
+	return 0;
     for (node = 0; node < heap_nodes(store_heap); node++)
 #else
     for (m = store_list.tail; m; m = m->prev)
