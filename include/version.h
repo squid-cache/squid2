@@ -3,7 +3,7 @@
  *  SQUID_VERSION - String for version id of this distribution
  */
 #ifndef SQUID_VERSION
-#define SQUID_VERSION	"1.2.beta13"
+#define SQUID_VERSION	"1.2.beta14"
 #endif
 
 #ifndef SQUID_RELEASE_TIME
