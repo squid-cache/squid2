@@ -38,6 +38,14 @@ COMMENT_START
 	to look at http://cache.is.co.za/squid/ for documentation,
 	or the Squid home page (http://squid.nlanr.net/) for the FAQ.
 
+	The default Squid config file shows what the defaults for
+	various options happen to be.  If you don't need to change the
+	default, you shouldn't uncomment the line.  Doing so may cause
+	run-time problems.  In some cases "none" refers to no default
+	setting at all, whilst in other cases it refers to a valid
+	option - the comments for that keyword indicate if this is the
+	case.
+
 COMMENT_END
 
 COMMENT_START
