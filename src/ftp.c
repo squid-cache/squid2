@@ -147,6 +147,7 @@ typedef void (FTPSM) (FtpStateData *);
 static CNCB ftpPasvCallback;
 static PF ftpDataRead;
 static PF ftpStateFree;
+static PF ftpPumpClosedData;
 static PF ftpTimeout;
 static PF ftpReadControlReply;
 static CWCB ftpWriteCommandCallback;
@@ -2265,10 +2266,33 @@ ftpFail(FtpStateData * ftpState)
     comm_close(ftpState->ctrl.fd);
 }
 
+void
+ftpPumpClosedData(int data_fd, void *data)
+{
+    FtpStateData *ftpState = data;
+    assert(data_fd == ftpState->data.fd);
+    /*
+     * Ugly pump module closed our server-side.  Deal with it.
+     * The data FD is already closed, so just set it to -1.
+     */
+    ftpState->data.fd = -1;
+    /*
+     * Currently, thats all we have to do.  Because the upload failed,
+     * storeAbort() will be called on the reply entry.  That will
+     * call fwdAbort, which closes ftpState->ctrl.fd and then
+     * ftpStateFree gets called.
+     */
+}
+
 static void
 ftpPutStart(FtpStateData * ftpState)
 {
     debug(9, 3) ("ftpPutStart\n");
+    /*
+     * sigh, we need this gross hack to detect when ugly pump module
+     * aborts and wants to close the server-side.
+     */
+    comm_add_close_handler(ftpState->data.fd, ftpPumpClosedData, ftpState);
     pumpStart(ftpState->data.fd, ftpState->fwd, ftpPutTransferDone, ftpState);
 }
 
@@ -2277,6 +2301,7 @@ ftpPutTransferDone(int fd, char *bufnotused, size_t size, int errflag, void *dat
 {
     FtpStateData *ftpState = data;
     if (ftpState->data.fd >= 0) {
+	comm_remove_close_handler(fd, ftpPumpClosedData, ftpState);
 	comm_close(ftpState->data.fd);
 	ftpState->data.fd = -1;
     }
