@@ -59,8 +59,6 @@ WIN32SOURCE =
 endif
 
 SUBDIRS		= fs repl auth
-#look into pkgsbin..
-libexecdir      = ${prefix}/libexec/squid
 
 INCLUDES        = -I. -I$(srcdir) -I$(top_builddir)/include -I$(top_srcdir)/include
 
