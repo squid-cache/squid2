@@ -242,6 +242,11 @@ struct SquidConfig {
 	char *host;
 	u_short port;
     } sslProxy;
+    struct {
+	int size;
+	int low;
+	int high;
+    } ipcache;
 };
 
 extern struct SquidConfig Config;

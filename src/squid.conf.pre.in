@@ -267,6 +267,15 @@
 #cache_mem_low 75
 #cache_mem_high 90
 
+#  TAG: ipcache_size
+#  TAG: ipcache_low
+#  TAG: ipcache_high
+#	The size, low-, and high-water marks for the IP cache.
+#
+#ipcache_size 1024
+#ipcache_low  90
+#ipcache_high 95
+
 
 # LOGFILE PATHNAMES AND CACHE DIRECTORIES
 #-----------------------------------------------------------------------------
