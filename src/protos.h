@@ -665,7 +665,6 @@ extern double median_svc_get(int, int);
 extern void pconnHistCount(int, int);
 extern int stat5minClientRequests(void);
 extern double stat5minCPUUsage(void);
-extern double statMedianSvc(int, int);
 extern const char *storeEntryFlags(const StoreEntry *);
 
 
