@@ -2589,8 +2589,10 @@ storeWriteCleanLog(void)
 	debug(50, 0, "storeWriteCleanLog: %s: %s\n", tmp_filename, xstrerror());
 	return 0;
     }
+#if HAVE_FCHMOD
     if (stat(swaplog_file, &sb) == 0)
 	fchmod(fileno(fp), sb.st_mode);
+#endif
     for (e = storeGetFirst(); e; e = storeGetNext()) {
 	if (e->swap_file_number < 0)
 	    continue;
