@@ -1131,12 +1131,11 @@ ftpReadControlReply(int fd, void *data)
 	return;
     }
     if (len == 0) {
-	debug(9, 1) ("ftpReadControlReply: FD %d Read 0 bytes\n", fd);
 	if (entry->store_status == STORE_PENDING) {
 	    storeReleaseRequest(entry);
 	    if (entry->mem_obj->inmem_hi == 0) {
-		err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
-		err->xerrno = errno;
+		err = errorCon(ERR_FTP_FAILURE, HTTP_INTERNAL_SERVER_ERROR);
+		err->xerrno = 0;
 		err->request = requestLink(ftpState->request);
 		errorAppendEntry(entry, err);
 	    }
