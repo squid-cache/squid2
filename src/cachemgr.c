@@ -12,7 +12,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
-#ifndef _SQUID_FREEBSD_		/* "Obsolete" Markus Stumpf <maex@Space.NET> */
+#if !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
+/* "Obsolete" Markus Stumpf <maex@Space.NET> */
 #include <malloc.h>
 #endif
 #include <memory.h>
@@ -30,11 +31,15 @@
 #include <sys/un.h>
 #include <sys/wait.h>
 
-#ifdef HAVE_STRING_H
+#if HAVE_LIBC_H
+#include <libc.h>
+#endif
+
+#if HAVE_STRING_H
 #include <string.h>
 #endif
 
-#ifdef HAVE_STRINGS_H
+#if HAVE_STRINGS_H
 #include <strings.h>
 #endif
 
@@ -42,7 +47,7 @@
 #include <bstring.h>
 #endif
 
-#ifdef HAVE_CRYPT_H
+#if HAVE_CRYPT_H
 #include <crypt.h>
 #endif
 
