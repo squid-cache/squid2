@@ -148,7 +148,7 @@ disk_init(void)
 
 /* Open a disk file. Return a file descriptor */
 int
-file_open(const char *path, int mode, FOCB *callback, void *callback_data)
+file_open(const char *path, int mode, FOCB * callback, void *callback_data)
 {
     int fd;
     open_ctrl_t *ctrlp;
@@ -165,8 +165,8 @@ file_open(const char *path, int mode, FOCB *callback, void *callback_data)
     /* Open file */
 #if USE_ASYNC_IO
     if (callback != NULL) {
-        aioOpen(path, mode, 0644, file_open_complete, ctrlp);
-        return DISK_OK;
+	aioOpen(path, mode, 0644, file_open_complete, ctrlp);
+	return DISK_OK;
     }
 #endif
     fd = open(path, mode, 0644);
@@ -387,7 +387,7 @@ file_write(int fd,
     int len,
     FILE_WRITE_HD handle,
     void *handle_data,
-    void (*free_func) _PARAMS((void *)))
+    FREE * free_func)
 {
     dwrite_q *wq = NULL;
     FD_ENTRY *fde;

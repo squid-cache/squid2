@@ -163,28 +163,29 @@ typedef struct icp_ctrl_t {
 } icp_ctrl_t;
 
 /* Local functions */
+
+static CWCB clientWriteComplete;
+static CWCB icpHandleIMSComplete;
+static PF clientReadRequest;
+static PF icpStateFree;
+static PIF icpHandleAbort;
+static PIF icpHandleStore;
+static PIF icpHandleStoreIMS;
 static char *icpConstruct304reply _PARAMS((struct _http_reply *));
 static int CheckQuickAbort2 _PARAMS((const icpStateData *));
-static void icpProcessMISS _PARAMS((int, icpStateData *));
-static void CheckQuickAbort _PARAMS((icpStateData *));
-static void checkFailureRatio _PARAMS((log_type, hier_code));
-static void icpHandleStore _PARAMS((int, StoreEntry *, void *));
-static void clientWriteComplete _PARAMS((int, char *, int, int, void *icpState));
-static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, void *));
-static void icpHandleIMSComplete _PARAMS((int, char *, int, int, void *icpState));
-static void icpLogIcp _PARAMS((icpUdpData *));
-static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
-static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
-static void icpHandleAbort _PARAMS((int fd, StoreEntry *, void *));
+static int icpCheckTransferDone _PARAMS((icpStateData *));
 static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
 static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
-static void icpStateFree _PARAMS((int fd, void *data));
-static int icpCheckTransferDone _PARAMS((icpStateData *));
-static void clientReadRequest _PARAMS((int fd, void *data));
 static int icpProcessRequestControl _PARAMS((void *, int));
-static void icpProcessRequestComplete _PARAMS((void *, int));
 static void *icpCreateHitObjMessage _PARAMS((icp_opcode, int, const char *, int, int, StoreEntry *));
+static void CheckQuickAbort _PARAMS((icpStateData *));
+static void checkFailureRatio _PARAMS((log_type, hier_code));
 static void icpDetectNewRequest _PARAMS((int fd));
+static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
+static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
+static void icpLogIcp _PARAMS((icpUdpData *));
+static void icpProcessMISS _PARAMS((int, icpStateData *));
+static void icpProcessRequestComplete _PARAMS((void *, int));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -285,7 +286,7 @@ icpStateFree(int fd, void *data)
 	    ntohs(icpState->me.sin_port));
     }
     if (fd_table[fd].rwstate) {
-	debug(0,0,"icpStateFree: calling commCancelWriteHandler()\n");
+	debug(0, 0, "icpStateFree: calling commCancelWriteHandler()\n");
 	commCancelWriteHandler(fd);
     }
     if (icpState->redirect_state == REDIRECT_PENDING)
@@ -293,7 +294,7 @@ icpStateFree(int fd, void *data)
     if (icpState->ident.fd > -1)
 	comm_close(icpState->ident.fd);
     if (icpState->acl_checklist) {
-	debug(0,0,"icpStateFree: calling aclChecklistFree()\n");
+	debug(0, 0, "icpStateFree: calling aclChecklistFree()\n");
 	aclChecklistFree(icpState->acl_checklist);
     }
     checkFailureRatio(icpState->log_type,
@@ -622,11 +623,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    icpState->size);
 	if (BIT_TEST(icpState->request->flags, REQ_PROXY_KEEPALIVE)) {
 	    commCallCloseHandlers(fd);
-	    commSetSelect(fd,
-		COMM_SELECT_READ,
-		NULL,
-		NULL,
-		0);
+	    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 	    icpDetectNewRequest(fd);
 	} else {
 	    comm_close(fd);
@@ -1786,6 +1783,13 @@ clientReadRequest(int fd, void *data)
 	}
 	icpState->request = requestLink(request);
 	clientAccessCheck(icpState, clientAccessCheckDone);
+	if (!BIT_TEST(request->flags, REQ_PROXY_KEEPALIVE)) {
+	    commSetSelect(fd,
+		COMM_SELECT_READ,
+		icpDetectClientClose,
+		icpState,
+		0);
+	}
     } else if (parser_return_code == 0) {
 	/*
 	 *    Partial request received; reschedule until parseAsciiUrl()
@@ -1834,7 +1838,6 @@ static void
 requestTimeout(int fd, void *data)
 {
     icpStateData *icpState = data;
-    int x;
     StoreEntry *entry = icpState->entry;
     debug(12, 2, "requestTimeout: FD %d: lifetime is expired.\n", fd);
     CheckQuickAbort(icpState);
@@ -1843,16 +1846,16 @@ requestTimeout(int fd, void *data)
     /* There might be a comm_write() thread; cancel callback */
     if (fd_table[fd].rwstate) {
 	/* Some data has been sent to the client, just cancel the
-	   callback and close the FD */
-        commCancelWriteHandler(fd);
+	 * callback and close the FD */
+	commCancelWriteHandler(fd);
 	comm_close(fd);
     } else {
 	/* Send an error message if nothing has been sent yet */
-        icpSendERROR(fd,
-		ERR_LIFETIME_EXP,
-		"Client Lifetime Expired",
-		icpState,
-		504);
+	icpSendERROR(fd,
+	    ERR_LIFETIME_EXP,
+	    "Client Lifetime Expired",
+	    icpState,
+	    504);
     }
 }
 
