@@ -373,7 +373,7 @@ netdbReloadState(void)
 	memset(&N, '\0', sizeof(netdbEntry));
 	if ((t = strtok(buf, w_space)) == NULL)
 	    continue;
-	if ((addr.s_addr = inet_addr(t)) == no_addr.s_addr)
+	if (!safe_inet_addr(t, &addr))
 	    continue;
 	if ((t = strtok(NULL, w_space)) == NULL)
 	    continue;

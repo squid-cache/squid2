@@ -516,7 +516,8 @@ ipcache_parsebuffer(const char *inbuf, dnsserver_t * dnsData)
 	    for (k = 0; k < ipcount; k++) {
 		if ((token = strtok(NULL, w_space)) == NULL)
 		    fatal_dump("Invalid IP address");
-		i.addrs.in_addrs[k].s_addr = inet_addr(token);
+		if (!safe_inet_addr(token, &i.addrs.in_addrs[k]))
+		    fatal_dump("Invalid IP address");
 	    }
 	} else if (!strcmp(token, "$aliascount")) {
 	    if ((token = strtok(NULL, w_space)) == NULL)
@@ -986,7 +987,7 @@ ipcacheCheckNumeric(const char *name)
 {
     struct in_addr ip;
     /* check if it's already a IP address in text form. */
-    if ((ip.s_addr = inet_addr(name)) == no_addr.s_addr)
+    if (!safe_inet_addr(name, &ip))
 	return NULL;
     static_addrs.count = 1;
     static_addrs.cur = 0;

@@ -791,14 +791,13 @@ fqdncache_gethostbyaddr(struct in_addr addr, int flags)
 	}
     }
     /* check if it's already a FQDN address in text form. */
-    if (inet_addr(name) == no_addr.s_addr)
+    if (!safe_inet_addr(name, &ip))
 	return name;
     FqdncacheStats.misses++;
     if (BIT_TEST(flags, FQDN_BLOCKING_LOOKUP)) {
 	if (NDnsServersAlloc)
 	    debug(14, 0, "WARNING: blocking on gethostbyaddr() for '%s'\n", name);
 	FqdncacheStats.ghba_calls++;
-	ip.s_addr = inet_addr(name);
 	hp = gethostbyaddr((char *) &ip.s_addr, 4, AF_INET);
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && fqdn_table) {
 	    if (f == NULL) {

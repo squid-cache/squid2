@@ -1192,8 +1192,7 @@ parse_request(ftp_request_t * r)
     const struct hostent *hp;
     char *host = proxy_host ? proxy_host : r->host;
     debug(38, 3, "parse_request: looking up '%s'\n", host);
-    r->host_addr.s_addr = inet_addr(host);	/* try numeric */
-    if (r->host_addr.s_addr != no_addr.s_addr)
+    if (safe_inet_addr(host, &r->host_addr))	/* try numeric */
 	return PARSE_OK;
     hp = gethostbyname(host);
     if (hp == NULL) {
@@ -1561,7 +1560,10 @@ do_pasv(ftp_request_t * r)
 	return PASV_FAIL;
     }
     sprintf(junk, "%d.%d.%d.%d", h1, h2, h3, h4);
-    S.sin_addr.s_addr = inet_addr(junk);
+    if (!safe_inet_addr(junk, &S.sin_addr)) {
+	pasv_supported = 0;
+	return PASV_FAIL;
+    }
     S.sin_port = htons(port = ((p1 << 8) + p2));
 
     if (connect_with_timeout(sock, &S, sizeof(S)) < 0) {
@@ -2584,7 +2586,7 @@ main(int argc, char *argv[])
     const struct hostent *hp = NULL;
     int c;
 
-    no_addr.s_addr = inet_addr("255.255.255.255");
+    safe_inet_addr("255.255.255.255", &no_addr);
     fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
 	progname = xstrdup(t + 1);
@@ -2690,7 +2692,7 @@ main(int argc, char *argv[])
 	    o_neg_ttl = atoi(optarg);
 	    break;
 	case 'o':
-	    if ((ip.s_addr = inet_addr(optarg)) != no_addr.s_addr)
+	    if (safe_inet_addr(optarg, &ip))
 		outgoingTcpAddr.s_addr = ip.s_addr;
 	    else if ((hp = gethostbyname(optarg)) != NULL)
 		outgoingTcpAddr = *(struct in_addr *) (void *) (hp->h_addr_list[0]);

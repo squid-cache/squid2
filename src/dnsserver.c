@@ -261,7 +261,7 @@ main(int argc, char *argv[])
     int i;
     int c;
 
-    no_addr.s_addr = inet_addr("255.255.255.255");
+    safe_inet_addr("255.255.255.255", &no_addr);
 
 #if HAVE_RES_INIT
     res_init();
@@ -323,7 +323,7 @@ main(int argc, char *argv[])
 	result = NULL;
 	start = time(NULL);
 	/* check if it's already an IP address in text form. */
-	if (inet_addr(request) != no_addr.s_addr) {
+	if (safe_inet_addr(request, &ip)) {
 #if NO_REVERSE_LOOKUP
 	    printf("$name %s\n", request);
 	    printf("$h_name %s\n", request);
@@ -335,7 +335,6 @@ main(int argc, char *argv[])
 	    fflush(stdout);
 	    continue;
 #endif
-	    ip.s_addr = inet_addr(request);
 	    for (;;) {
 		result = gethostbyaddr((char *) &ip.s_addr, 4, AF_INET);
 		if (result || h_errno != TRY_AGAIN)

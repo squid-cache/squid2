@@ -304,21 +304,14 @@ ip_acl_destroy(ip_acl ** a)
 ip_access_type
 ip_access_check(struct in_addr address, const ip_acl * list)
 {
-    static int init = 0;
-    static struct in_addr localhost;
     const ip_acl *p = NULL;
     struct in_addr naddr;	/* network byte-order IP addr */
 
     if (!list)
 	return IP_ALLOW;
 
-    if (!init) {
-	memset(&localhost, '\0', sizeof(struct in_addr));
-	localhost.s_addr = inet_addr("127.0.0.1");
-	init = 1;
-    }
     naddr.s_addr = address.s_addr;
-    if (naddr.s_addr == localhost.s_addr)
+    if (naddr.s_addr == local_addr.s_addr)
 	return IP_ALLOW;
 
     debug(3, 5, "ip_access_check: using %s\n", inet_ntoa(naddr));
@@ -801,8 +794,8 @@ parseAddressLine(struct in_addr *addr)
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    if (inet_addr(token) != no_addr.s_addr)
-	(*addr).s_addr = inet_addr(token);
+    if (safe_inet_addr(token, addr) == 1)
+	(void) 0;
     else if ((hp = gethostbyname(token)))	/* dont use ipcache */
 	*addr = inaddrFromHostent(hp);
     else
@@ -956,8 +949,8 @@ parseVizHackLine(void)
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    if (inet_addr(token) != no_addr.s_addr)
-	Config.vizHack.addr.s_addr = inet_addr(token);
+    if (safe_inet_addr(token, &Config.vizHack.addr) == 1)
+	(void) 0;
     else if ((hp = gethostbyname(token)))	/* dont use ipcache */
 	Config.vizHack.addr = inaddrFromHostent(hp);
     else

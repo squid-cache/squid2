@@ -641,11 +641,11 @@ main(int argc, char **argv)
 #endif /* HAVE_MALLOPT */
 
     memset(&local_addr, '\0', sizeof(struct in_addr));
-    local_addr.s_addr = inet_addr(localhost);
+    safe_inet_addr(localhost, &local_addr);
     memset(&any_addr, '\0', sizeof(struct in_addr));
-    any_addr.s_addr = inet_addr("0.0.0.0");
+    safe_inet_addr("0.0.0.0", &any_addr);
     memset(&no_addr, '\0', sizeof(struct in_addr));
-    no_addr.s_addr = inet_addr("255.255.255.255");
+    safe_inet_addr("255.255.255.255", &no_addr);
 
 #if HAVE_SRANDOM
     srandom(time(NULL));
