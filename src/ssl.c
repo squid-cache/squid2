@@ -326,7 +326,10 @@ sslWriteClient(int fd, void *data)
 	sslState->server.len -= len;
 	/* increment total object size */
 	if (sslState->size_ptr)
-	    *sslState->size_ptr += len;
+#if SIZEOF_SIZE_T == 4
+	    if (*sslState->size_ptr < 0x7FFF0000)
+#endif
+		*sslState->size_ptr += len;
 	if (sslState->server.len > 0) {
 	    /* we didn't write the whole thing */
 	    xmemmove(sslState->server.buf,
