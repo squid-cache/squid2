@@ -119,17 +119,6 @@ typedef struct _squid_read_data_t {
     int fd;
 } squid_read_data_t;
 
-/* GLOBALS */
-Meta_data meta_data;
-volatile unsigned long ntcpconn = 0;
-volatile unsigned long nudpconn = 0;
-struct _iostats IOStats;
-const char *const open_bracket = "{\n";
-const char *const close_bracket = "}\n";
-
-extern int unlinkd_count;
-extern int fileno_stack_count;
-
 /* LOCALS */
 static const char *describeStatuses _PARAMS((const StoreEntry *));
 static const char *describeFlags _PARAMS((const StoreEntry *));
@@ -479,7 +468,7 @@ info_get_mallstat(int size, int number, StoreEntry * sentry)
 #endif
 
 static const char *
-fdRemoteAddr(const FD_ENTRY * f)
+fdRemoteAddr(const fde * f)
 {
     LOCAL_ARRAY(char, buf, 32);
     if (f->type != FD_SOCKET)
@@ -492,7 +481,7 @@ static void
 statFiledescriptors(StoreEntry * sentry)
 {
     int i;
-    FD_ENTRY *f;
+    fde *f;
 
     storeAppendPrintf(sentry, open_bracket);
     storeAppendPrintf(sentry, "{Active file descriptors:}\n");
@@ -803,13 +792,10 @@ parameter_get(StoreEntry * sentry)
 	Config.Timeout.read);
     storeAppendPrintf(sentry, "{DeferTimeout %d\n", Config.Timeout.defer);
     storeAppendPrintf(sentry, "{ClientLifetime %d\n", Config.Timeout.lifetime);
-    storeAppendPrintf(sentry,
-	"{CleanRate %d \"# Rate for periodic object expiring\"}\n",
-	Config.cleanRate);
     /* Cachemgr.cgi expects an integer in the second field of the string */
     storeAppendPrintf(sentry,
 	"{HttpAccelMode %d \"# Is operating as an HTTP accelerator\"}\n",
-	httpd_accel_mode);
+	Config2.Accel.on);
     storeAppendPrintf(sentry, close_bracket);
 }
 

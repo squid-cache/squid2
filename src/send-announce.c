@@ -39,7 +39,7 @@ start_announce(void *unused)
     if (!Config.Announce.on)
 	return;
     ipcache_nbgethostbyname(Config.Announce.host, send_announce, NULL);
-    eventAdd("send_announce", start_announce, NULL, Config.Announce.rate);
+    eventAdd("send_announce", start_announce, NULL, Config.Announce.period);
 }
 
 static void

@@ -104,7 +104,6 @@
  */
 
 #include "squid.h"
-#include "filemap.h"
 
 /* Number of bits in a long */
 #if SIZEOF_LONG == 8

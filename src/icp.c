@@ -1084,7 +1084,7 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     memset(&ch, '\0', sizeof(aclCheck_t));
     ch.src_addr = http->conn->peer.sin_addr;
     ch.request = http->request;
-    answer = aclCheckFast(Config.accessList.MISS, &ch);
+    answer = aclCheckFast(Config.accessList.miss, &ch);
     if (answer == 0) {
 	http->al.http.code = 400;
 	buf = access_denied_msg(http->al.http.code,
@@ -1363,7 +1363,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	checklist.src_addr = from.sin_addr;
 	checklist.request = icp_request;
-	allow = aclCheckFast(Config.accessList.ICP, &checklist);
+	allow = aclCheckFast(Config.accessList.icp, &checklist);
 	if (!allow) {
 	    debug(12, 2) ("icpHandleIcpV2: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
@@ -1511,7 +1511,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	checklist.src_addr = from.sin_addr;
 	checklist.request = icp_request;
-	allow = aclCheckFast(Config.accessList.ICP, &checklist);
+	allow = aclCheckFast(Config.accessList.icp, &checklist);
 	if (!allow) {
 	    debug(12, 2) ("icpHandleIcpV3: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
@@ -1792,8 +1792,8 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     if ((t = strchr(url, '#')))	/* remove HTML anchors */
 	*t = '\0';
 
-    /* see if we running in httpd_accel_mode, if so got to convert it to URL */
-    if (httpd_accel_mode && *url == '/') {
+    /* see if we running in Config2.Accel.on, if so got to convert it to URL */
+    if (Config2.Accel.on && *url == '/') {
 	/* prepend the accel prefix */
 	if (vhost_mode) {
 	    /* Put the local socket IP address as the hostname */
@@ -1821,10 +1821,10 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    sprintf(http->url, "http://%s:%d%s",
 		t, (int) Config.Accel.port, url);
 	} else {
-	    url_sz = strlen(Config.Accel.prefix) + strlen(url) +
+	    url_sz = strlen(Config2.Accel.prefix) + strlen(url) +
 		Config.appendDomainLen + 1;
 	    http->url = xcalloc(url_sz, 1);
-	    sprintf(http->url, "%s%s", Config.Accel.prefix, url);
+	    sprintf(http->url, "%s%s", Config2.Accel.prefix, url);
 	}
 	http->accel = 1;
     } else {
@@ -2035,8 +2035,6 @@ httpAccept(int sock, void *notused)
 	    sock, xstrerror());
 	return;
     }
-    if (vizSock > -1)
-	vizHackSendPkt(&peer, 1);
     debug(12, 4) ("httpAccept: FD %d: accepted\n", fd);
     connState = xcalloc(1, sizeof(ConnStateData));
     connState->peer = peer;
@@ -2183,18 +2181,3 @@ struct viz_pkt {
     u_num32 from;
     char type;
 };
-
-void
-vizHackSendPkt(const struct sockaddr_in *from, int type)
-{
-    static struct viz_pkt v;
-
-    v.from = from->sin_addr.s_addr;
-    v.type = (char) type;
-    sendto(vizSock,
-	(char *) &v,
-	sizeof(v),
-	0,
-	(struct sockaddr *) &Config.vizHack.S,
-	sizeof(struct sockaddr_in));
-}

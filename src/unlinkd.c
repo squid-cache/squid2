@@ -74,7 +74,6 @@ main(int argc, char *argv[])
 #include "squid.h"
 
 static int unlinkd_fd = -1;
-int unlinkd_count;
 
 static int unlinkdCreate _PARAMS((void));
 

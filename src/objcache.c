@@ -121,12 +121,6 @@ typedef struct objcache_ds {
     objcache_op op;
 } ObjectCacheData;
 
-struct _cachemgr_passwd {
-    char *passwd;
-    long actions;
-    struct _cachemgr_passwd *next;
-};
-
 static ObjectCacheData *objcache_url_parser _PARAMS((const char *url));
 static int objcache_CheckPassword _PARAMS((ObjectCacheData *));
 static char *objcachePasswdGet _PARAMS((cachemgr_passwd ** a, objcache_op op));

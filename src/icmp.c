@@ -31,7 +31,6 @@
 
 
 #include "squid.h"
-#include "pinger.h"
 
 int icmp_sock = -1;
 

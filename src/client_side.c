@@ -73,7 +73,7 @@ checkAccelOnly(clientHttpRequest * http)
 {
     /* return TRUE if someone makes a proxy request to us and
      * we are in httpd-accel only mode */
-    if (!httpd_accel_mode)
+    if (!Config2.Accel.on)
 	return 0;
     if (Config.Accel.withProxy)
 	return 0;
@@ -115,7 +115,7 @@ clientAccessCheck(void *data)
 	return;
     }
     browser = mime_get_header(http->request->headers, "User-Agent");
-    http->acl_checklist = aclChecklistCreate(Config.accessList.HTTP,
+    http->acl_checklist = aclChecklistCreate(Config.accessList.http,
 	http->request,
 	conn->peer.sin_addr,
 	browser,

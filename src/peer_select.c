@@ -103,12 +103,12 @@ peerGetSomeParent(request_t * request, hier_code * code)
 {
     peer *p;
     if (request->method == METHOD_CONNECT)
-	if ((p = Config.sslProxy)) {
+	if ((p = getSslParent())) {
 	    *code = SSL_PARENT;
 	    return p;
 	}
     if (request->method != METHOD_GET)
-	if ((p = Config.passProxy)) {
+	if ((p = getPassParent())) {
 	    *code = PASS_PARENT;
 	    return p;
 	}

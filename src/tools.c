@@ -324,7 +324,7 @@ shutdownTimeoutHandler(int fd, void *data)
 void
 setSocketShutdownLifetimes(int to)
 {
-    FD_ENTRY *f = NULL;
+    fde *f = NULL;
     int i;
     for (i = Biggest_FD; i >= 0; i--) {
 	f = &fd_table[i];
