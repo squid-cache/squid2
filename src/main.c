@@ -713,7 +713,6 @@ main(int argc, char **argv)
 	    idnsShutdown();
 #endif
 	    redirectShutdown();
-	    authenticateShutdown();
 	    eventAdd("SquidShutdown", SquidShutdown, NULL, (double) (wait + 1), 1);
 	}
 	eventRun();
@@ -939,6 +938,7 @@ SquidShutdown(void *unused)
 #endif
     releaseServerSockets();
     commCloseAllSockets();
+    authenticateShutdown();
 #if USE_UNLINKD
     unlinkdClose();
 #endif

@@ -555,6 +555,8 @@ helperStatefulCreate(const char *name)
 void
 helperFree(helper * hlp)
 {
+    if (!hlp)
+	return;
     /* note, don't free hlp->name, it probably points to static memory */
     if (hlp->queue.head)
 	debug(29, 0) ("WARNING: freeing %s helper with %d requests queued\n",
@@ -565,6 +567,8 @@ helperFree(helper * hlp)
 void
 helperStatefulFree(statefulhelper * hlp)
 {
+    if (!hlp)
+	return;
     /* note, don't free hlp->name, it probably points to static memory */
     if (hlp->queue.head)
 	debug(29, 0) ("WARNING: freeing %s helper with %d requests queued\n",
