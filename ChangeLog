@@ -70,6 +70,13 @@ Changes to squid-2.5.STABLE2 ():
 	  helpers should be built for if different than the above versions.
 	- Squid MIB definition syntax correction to work better with newer
 	  (and older) SNMP tools.
+	- Fixed access.log format when logging "error:invalid-HTTP-ident" on
+	  requests where parsing the HTTP identifier (HTTP/1.0) failed.
+	- "make distclean" no longer removes the icons, this avoids the
+	  dependency on "uudecode" to rebuild Squid after "make distclean"
+	- User name returned by external acl lookups (external_acl_type)
+	  is now available as "ident" in later acl checks in addition to
+	  the logging in access.log.
 	- Incorrect behaviour of Digest authentication partly corrected - it
 	  will not handle sessions, but will always enforce password
 	  correctness.. (patch submitted by Sean Burford).
