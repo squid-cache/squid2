@@ -567,6 +567,7 @@ void storeSetPublicKey(e)
     StoreEntry *e2 = NULL;
     hash_link *table_entry = NULL;
     char *newkey = NULL;
+    int loop_detect = 0;
 
     if (e->key && !BIT_TEST(e->flag, KEY_PRIVATE))
 	return;			/* is already public */
@@ -577,6 +578,8 @@ void storeSetPublicKey(e)
 	e2 = (StoreEntry *) table_entry;
 	storeSetPrivateKey(e2);
 	storeReleaseRequest(e2);
+	if (loop_detect++ == 10)
+		fatal_dump("storeSetPublicKey() is looping!!");
     }
     if (e->key)
 	storeHashDelete(e);
