@@ -298,7 +298,8 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	storeTimestampsSet(entry);
 	/* Check if object is cacheable or not based on reply code */
 	debug(11, 3) ("httpProcessReplyHeader: HTTP CODE: %d\n", reply->sline.status);
-	httpMaybeRemovePublic(entry, reply->sline.status);
+	if (neighbors_do_private_keys)
+	    httpMaybeRemovePublic(entry, reply->sline.status);
 	switch (httpCachableReply(httpState)) {
 	case 1:
 	    httpMakePublic(entry);
