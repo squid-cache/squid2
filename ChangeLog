@@ -1,3 +1,5 @@
+	- Fixed "Somebody is putting a NULL pointer!" bug.
+
 Changes to squid-1.NOVM.21 ():
 
 	- Fixed false "8k page leak" on MemObject->e_abort_msg.
