@@ -237,7 +237,7 @@ struct sentry {
     ping_status_t ping_status:3;
     store_status_t store_status:3;
     swap_status_t swap_status:3;
-    method_t method:3;
+    method_t method:4;
 
     /* WARNING: Explicit assummption that fewer than 256
      * WARNING:  clients all hop onto the same object.  The code
