@@ -395,7 +395,6 @@ icpHandleIMSReply(void *data, char *buf, size_t size)
     int fd = http->conn->fd;
     StoreEntry *entry = http->entry;
     MemObject *mem = entry->mem_obj;
-    int len;
     int unlink_request = 0;
     StoreEntry *oldentry;
     debug(33, 3, "icpHandleIMSReply: FD %d '%s'\n", fd, entry->url);
