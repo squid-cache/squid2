@@ -824,11 +824,8 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	icpState->log_type = LOG_TCP_HIT;
     }
 
-    if (entry) {
+    if (entry)
 	icpState->swapin_fd = storeOpenSwapFileRead(entry);
-	if (entry->mem_obj->log_url == NULL)
-	    storeSetLogUrl(entry, request);
-    }
     if (entry && icpState->swapin_fd < 0) {
 	storeRelease(entry);
 	entry = NULL;
@@ -837,6 +834,8 @@ icpProcessRequest(int fd, icpStateData * icpState)
     if (entry) {
 	storeLockObject(entry);
 	storeClientListAdd(entry, fd);
+	if (entry->mem_obj->log_url == NULL)
+	    storeSetLogUrl(entry, request);
     }
     icpState->entry = entry;	/* Save a reference to the object */
     icpState->out.size = 0;
@@ -1356,6 +1355,8 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    header.opcode, inet_ntoa(from.sin_addr));
 	break;
     }
+    if (entry->mem_obj && entry->mem_obj->log_url == NULL)
+	storeSetLogUrl(entry, icp_request);
     if (icp_request)
 	put_free_request_t(icp_request);
 }

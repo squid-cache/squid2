@@ -136,10 +136,6 @@
 #define ABORT_MSG_PENDING 	(1<<4)
 #define DELAY_SENDING 		(1<<3)
 #define CLIENT_ABORT_REQUEST 	(1<<2)
-#ifdef OLD_CODE
-#define DELETE_BEHIND   	(1<<1)
-#define IP_LOOKUP_PENDING      	(1<<0)
-#endif
 
 /* keep track each client receiving data from that particular StoreEntry */
 struct _store_client {
@@ -289,6 +285,7 @@ extern int storeOpenSwapFileRead _PARAMS((StoreEntry *));
 extern time_t storeExpiredReferenceAge _PARAMS((void));
 extern void storeCheckDoneWriting _PARAMS((StoreEntry * e));
 extern void storeSetLogUrl _PARAMS((StoreEntry *, request_t *));
+extern void storeMemObjectDump _PARAMS((MemObject *));
 
 #ifdef __STDC__
 extern void storeAppendPrintf _PARAMS((StoreEntry *, const char *,...));

@@ -709,3 +709,9 @@ inaddrFromHostent(const struct hostent *hp)
     xmemcpy(&s.s_addr, hp->h_addr, sizeof(s.s_addr));
     return s;
 }
+
+char *
+checkNullString(char *p)
+{
+	return p ? p : "(NULL)";
+}
