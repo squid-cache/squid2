@@ -187,6 +187,7 @@ void
 file_open_fd(int fd, const char *name, File_Desc_Type type)
 {
     FileEntry *f = &file_table[fd];
+    FD_ENTRY *conn = &fd_table[fd];
     fdstat_open(fd, type);
     commSetCloseOnExec(fd);
     xstrncpy(f->filename, name, SQUID_MAXPATHLEN);
@@ -196,7 +197,8 @@ file_open_fd(int fd, const char *name, File_Desc_Type type)
     f->write_pending = NO_WRT_PENDING;
     f->write_daemon = NOT_PRESENT;
     f->write_q = NULL;
-    memset(&fd_table[fd], '\0', sizeof(FD_ENTRY));
+    memset(conn, '\0', sizeof(FD_ENTRY));
+    conn->openned = 1;
 }
 
 /* close a disk file. */
