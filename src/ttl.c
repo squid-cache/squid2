@@ -270,7 +270,7 @@ void ttlSet(entry)
 	match = t;
 	debug(22, 5, "ttlSet: Matched '%s %d %d%%'\n",
 	    match->pattern,
-	    match->abs_ttl > 0 ? match->abs_ttl : default_ttl,
+	    match->abs_ttl >= 0 ? match->abs_ttl : default_ttl,
 	    match->pct_age);
 	flags |= TTL_MATCHED;
     }
