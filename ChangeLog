@@ -32,6 +32,8 @@ Changes to squid-1.1.10 (April 22, 1997):
 	  cases better.
 	- Added safe_inet_addr() to protect from bogus IP addresses
 	  (Arjan de Vet).
+	- Fixed handling of ssl_proxy and passthrough_proxy when not
+	  behind a firewall.
 
 
 Changes to squid-1.1.9 (March 30, 1997):
