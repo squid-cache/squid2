@@ -264,7 +264,7 @@ install-pinger:
 	fi
 
 clean: 
-	-rm -rf *.o *pure_* core $(PROGS) $(UTILS) $(CGIPROGS)
+	-rm -rf *.o *pure_* core $(PROGS) $(UTILS) $(CGIPROGS) $(SUID_UTILS)
 
 realclean:	clean
 	-rm -f Makefile squid.conf squid.conf.pre
