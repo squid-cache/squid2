@@ -549,6 +549,8 @@ static void
 storeCossDirWriteCleanDone(SwapDir * sd)
 {
     struct _clean_state *state = sd->log.clean.state;
+    if (NULL == state)
+	return;
     if (state->fd < 0)
 	return;
     if (write(state->fd, state->outbuf, state->outbuf_offset) < 0) {
