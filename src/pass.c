@@ -458,15 +458,15 @@ passStart(int fd,
 	(void *) passState);
     if (Config.firewall_ip_list) {
 	/* must look up IP address */
-        ipcache_nbgethostbyname(passState->host,
-            passState->server.fd,
-            passConnect,
-            passState);
+	ipcache_nbgethostbyname(passState->host,
+	    passState->server.fd,
+	    passConnect,
+	    passState);
     } else {
 	/* can decide now */
 	passSelectNeighbor(passState->server.fd,
-		NULL,
-		(void *) passState);
+	    NULL,
+	    (void *) passState);
     }
     return COMM_OK;
 }
@@ -487,7 +487,7 @@ passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
     } else if ((e = getSingleParent(request, NULL))) {
 	hierarchyNote(request, HIER_SINGLE_PARENT, 0, e->host);
     } else if ((e = getFirstUpParent(request))) {
-        hierarchyNote(request, HIER_FIRSTUP_PARENT, 0, e->host);
+	hierarchyNote(request, HIER_FIRSTUP_PARENT, 0, e->host);
     }
     passState->proxying = e ? 1 : 0;
     passState->host = e ? e->host : request->host;

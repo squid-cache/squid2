@@ -202,7 +202,6 @@ file_close(int fd)
 	debug_trap("file_close: bad file number");
 	return DISK_ERROR;
     }
-
     /* we might have to flush all the write back queue before we can
      * close it */
     /* save it for later */

@@ -2826,9 +2826,9 @@ void
 storeCloseLog(void)
 {
     if (swaplog_fd >= 0)
-	    file_close(swaplog_fd);
+	file_close(swaplog_fd);
     if (storelog_fd >= 0)
-    	file_close(storelog_fd);
+	file_close(storelog_fd);
 }
 
 void
