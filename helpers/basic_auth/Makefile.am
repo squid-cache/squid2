@@ -3,5 +3,5 @@
 #  $Id$
 #
 
-DIST_SUBDIRS	= getpwnam LDAP MSNT multi-domain-NTLM NCSA PAM SMB YP
+DIST_SUBDIRS	= getpwnam LDAP MSNT multi-domain-NTLM NCSA PAM SMB YP SASL
 SUBDIRS		= @BASIC_AUTH_HELPERS@

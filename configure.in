@@ -2160,6 +2160,7 @@ AC_OUTPUT([\
 	src/auth/basic/helpers/YP/Makefile \
 	src/auth/basic/helpers/getpwnam/Makefile \
 	src/auth/basic/helpers/multi-domain-NTLM/Makefile \
+	src/auth/basic/helpers/SASL/Makefile \
 	src/auth/digest/Makefile \
 	src/auth/digest/helpers/Makefile \
 	src/auth/digest/helpers/password/Makefile \
