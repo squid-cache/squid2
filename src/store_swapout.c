@@ -60,6 +60,7 @@ storeSwapOutStart(StoreEntry * e)
     ctrlp->oldswapstatus = e->swap_status;
     e->swap_status = SWAPOUT_OPENING;
     e->mem_obj->swapout.ctrl = ctrlp;
+    store_open_disk_fd++;
     file_open(ctrlp->swapfilename,
 	O_WRONLY | O_CREAT | O_TRUNC,
 	storeSwapOutFileOpened,
@@ -272,6 +273,7 @@ storeSwapOutFileClose(StoreEntry * e)
     }
     ctrlp = mem->swapout.ctrl;
     file_close(mem->swapout.fd);
+    store_open_disk_fd--;
     mem->swapout.fd = -1;
     xfree(ctrlp->swapfilename);
     cbdataFree(ctrlp);
@@ -292,6 +294,7 @@ storeSwapOutFileOpened(void *data, int fd, int errcode)
 	xfree(ctrlp->swapfilename);
 	cbdataFree(ctrlp);
 	mem->swapout.ctrl = NULL;
+	store_open_disk_fd--;
 	return;
     }
     assert(e->swap_status == SWAPOUT_OPENING);
@@ -304,6 +307,7 @@ storeSwapOutFileOpened(void *data, int fd, int errcode)
 	xfree(ctrlp->swapfilename);
 	cbdataFree(ctrlp);
 	mem->swapout.ctrl = NULL;
+	store_open_disk_fd--;
 	return;
     }
     mem->swapout.fd = (short) fd;

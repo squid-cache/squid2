@@ -142,4 +142,4 @@ extern icpUdpData *IcpQueueHead;	/* NULL */
 extern int refresh_nocache_hack;	/* 0 */
 #endif
 extern request_flags null_request_flags;
-extern int open_disk_fd;	/* 0 */
+extern int store_open_disk_fd;	/* 0 */

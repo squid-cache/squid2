@@ -84,8 +84,6 @@ fd_close(int fd)
     F->flags.open = 0;
     fdUpdateBiggest(fd, 0);
     Number_FD--;
-    if (F->type == FD_FILE)
-	open_disk_fd--;
     commUpdateReadBits(fd, NULL);
     commUpdateWriteBits(fd, NULL);
     memset(F, '\0', sizeof(fde));
@@ -109,8 +107,6 @@ fd_open(int fd, unsigned int type, const char *desc)
     if (desc)
 	xstrncpy(F->desc, desc, FD_DESC_SZ);
     Number_FD++;
-    if (type == FD_FILE)
-	open_disk_fd++;
 }
 
 void
