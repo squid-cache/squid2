@@ -94,25 +94,14 @@ static void
 netdbHashUnlink(const char *key)
 {
     netdbEntry *n;
-    net_db_name *x;
-    net_db_name **X;
     hash_link *hptr = hash_lookup(host_table, key);
     if (hptr == NULL) {
 	debug_trap("netdbHashUnlink: key not found");
 	return;
     }
     n = (netdbEntry *) hptr->item;
-    for (X = &n->hosts; (x = *X) != NULL; X = &x->next) {
-	if (strcmp(x->name, key) == 0)
-	    break;
-    }
-    if (x == NULL)
-	fatal_dump("netdbHashUnlink: hash_lookup discrepancy");
-    *X = x->next;
-    safe_free(x->name);
-    safe_free(x);
-    hash_delete_link(host_table, hptr);
     n->link_count--;
+    hash_delete_link(host_table, hptr);
     meta_data.netdb_hosts--;
 }
 
@@ -228,26 +217,13 @@ netdbSendPing(int fdunused, const ipcache_addrs * ia, void *data)
     struct in_addr addr;
     char *hostname = data;
     netdbEntry *n;
-    netdbEntry *na;
     if (ia == NULL) {
 	xfree(hostname);
 	return;
     }
     addr = ia->in_addrs[ia->cur];
-    if ((n = netdbLookupHost(hostname)) == NULL) {
+    if ((n = netdbLookupHost(hostname)) == NULL)
 	n = netdbAdd(addr, hostname);
-    } else if ((na = netdbLookupAddr(addr)) != n) {
-	/*
-	 *hostname moved from 'network n' to 'network na'!
-	 */
-	if (na == NULL)
-	    na = netdbAdd(addr, hostname);
-	debug(37, 1, "netdbSendPing: NOTE: %s moved from %s to %s\n",
-	    hostname, n->network, na->network);
-	netdbHashUnlink(hostname);
-	netdbHashLink(na, hostname);
-	n = na;
-    }
     debug(37, 3, "netdbSendPing: pinging %s\n", hostname);
     icmpDomainPing(addr, hostname);
     n->pings_sent++;
