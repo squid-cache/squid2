@@ -244,7 +244,7 @@ authenticateAuthUserRequestMessage(auth_user_request_t * auth_user_request)
     return NULL;
 }
 
-void
+static void
 authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct in_addr ipaddr)
 {
     auth_user_ip_t *ipdata, *tempnode;
