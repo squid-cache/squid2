@@ -1399,7 +1399,7 @@ static void storeRebuiltFromDisk(data)
     sprintf(tmp_filename, "%s.new", swaplog_file);
     if (rename(tmp_filename, swaplog_file) < 0) {
 	debug(20, 0, "storeRebuiltFromDisk: %s,%s: %s\n",
-		tmp_filename, swaplog_file, xstrerror());
+	    tmp_filename, swaplog_file, xstrerror());
 	fatal_dump("storeRebuiltFromDisk: rename failed");
     }
     if (file_write_unlock(swaplog_fd, swaplog_lock) != DISK_OK)
