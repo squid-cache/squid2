@@ -99,6 +99,9 @@ cbdataInit(void)
 {
     debug(45, 3) ("cbdataInit\n");
     htable = hash_create(cbdata_cmp, 1 << 8, cbdata_hash);
+    cachemgrRegister("cbdata",
+	"Callback Data Registry Contents",
+	cbdataDump, 0);
 }
 
 void

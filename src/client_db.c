@@ -63,6 +63,10 @@ clientdbInit(void)
 	return;
     client_table = hash_create((HASHCMP *) strcmp, 229, hash_string);
     client_info_sz = sizeof(ClientInfo);
+    cachemgrRegister("client_list",
+	"Cache Client List",
+	clientdbDump,
+	0);
 }
 
 void

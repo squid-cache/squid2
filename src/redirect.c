@@ -353,6 +353,9 @@ redirectOpenServers(void)
     if (first_time == 0) {
 	first_time++;
 	memset(&RedirectStats, '\0', sizeof(RedirectStats));
+	cachemgrRegister("redirector",
+	    "URL Redirector Stats",
+	    redirectStats, 0);
     }
 }
 

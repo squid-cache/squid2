@@ -842,6 +842,9 @@ storeInit(void)
     store_list.head = store_list.tail = NULL;
     inmem_list.head = inmem_list.tail = NULL;
     storeRebuildStart();
+    cachemgrRegister("store_dir",
+	"Store Directory Stats",
+	storeDirStats, 0);
 }
 
 void

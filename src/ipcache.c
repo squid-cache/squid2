@@ -518,7 +518,7 @@ ipcache_dnsHandleRead(int fd, void *data)
     assert(i->status == IP_DISPATCHED);
     if (strstr(dnsData->ip_inbuf, "$end\n")) {
 	/* end of record found */
-        statLogHistCount(&Counter.dns.svc_time,
+	statLogHistCount(&Counter.dns.svc_time,
 	    tvSubMsec(dnsData->dispatch_time, current_time));
 	if ((x = ipcache_parsebuffer(dnsData->ip_inbuf, dnsData)) == NULL) {
 	    debug(14, 0) ("ipcache_dnsHandleRead: ipcache_parsebuffer failed?!\n");
@@ -699,6 +699,9 @@ ipcache_init(void)
 	    (float) Config.ipcache.high) / (float) 100);
     ipcache_low = (long) (((float) Config.ipcache.size *
 	    (float) Config.ipcache.low) / (float) 100);
+    cachemgrRegister("ipcache",
+	"IP Cache Stats and Contents",
+	stat_ipcache_get, 0);
 }
 
 int

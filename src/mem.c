@@ -227,6 +227,9 @@ memInit(void)
 	 */
 	assert(m->size);
     }
+    cachemgrRegister("mem",
+	"Memory Utilization",
+	memStats, 0);
 }
 
 void

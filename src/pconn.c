@@ -124,6 +124,9 @@ pconnInit(void)
 {
     assert(table == NULL);
     table = hash_create((HASHCMP *) strcmp, 229, hash_string);
+    cachemgrRegister("pconn",
+	"Persistent Connection Utilization Histograms",
+	pconnHistDump, 0);
     debug(48, 3) ("persistent connection module initialized\n");
 }
 

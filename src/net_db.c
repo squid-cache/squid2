@@ -484,6 +484,9 @@ netdbInit(void)
     host_table = hash_create((HASHCMP *) strcmp, 467, hash_string);
     eventAdd("netdbSaveState", netdbSaveState, NULL, 3617);
     netdbReloadState();
+    cachemgrRegister("netdb",
+	"Network Measurement Database",
+	netdbDump, 0);
 #endif
 }
 

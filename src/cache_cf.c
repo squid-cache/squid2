@@ -179,6 +179,10 @@ parseConfigFile(const char *file_name)
     fclose(fp);
     defaults_if_none();
     configDoConfigure();
+    cachemgrRegister("config",
+	"Current Squid Configuration",
+	dump_config,
+	1);
     return 0;
 }
 
@@ -704,10 +708,15 @@ parse_cachemgrpasswd(cachemgr_passwd ** head)
 {
     char *passwd = NULL;
     wordlist *actions = NULL;
+    cachemgr_passwd *p;
+    cachemgr_passwd **P;
     parse_string(&passwd);
     parse_wordlist(&actions);
-    objcachePasswdAdd(head, passwd, actions);
-    wordlistDestroy(&actions);
+    p = xcalloc(1, sizeof(cachemgr_passwd));
+    p->passwd = passwd;
+    p->actions = actions;
+    for (P = head; *P; P = &(*P)->next);
+    *P = p;
 }
 
 static void
@@ -717,10 +726,10 @@ free_cachemgrpasswd(cachemgr_passwd ** head)
     while ((p = *head) != NULL) {
 	*head = p->next;
 	xfree(p->passwd);
+	wordlistDestroy(&p->actions);
 	xfree(p);
     }
 }
-
 
 static void
 dump_denyinfo(StoreEntry * entry, const char *name, acl_deny_info_list * var)

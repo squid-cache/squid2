@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -388,6 +389,9 @@ neighbors_open(int fd)
 	echo_port = sep ? ntohs((u_short) sep->s_port) : 7;
     }
     first_ping = Config.peers;
+    cachemgrRegister("non_peers",
+	"List of Unknown sites sending ICP messages",
+	neighborDumpNonPeers, 0);
 }
 
 int

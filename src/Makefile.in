@@ -101,7 +101,7 @@ OBJS	 	= \
 		multicast.o \
 		neighbors.o \
 		net_db.o \
-		objcache.o \
+		cache_manager.o \
 		pass.o \
 		pconn.o \
 		peer_select.o \
