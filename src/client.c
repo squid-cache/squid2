@@ -374,12 +374,12 @@ main(int argc, char *argv[])
 	    elapsed_msec = tvSubMsec(tv1, tv2);
 	    t2s = tv2.tv_sec;
 	    tmp = localtime(&t2s);
-	    fprintf(stderr, "%d-%02d-%02d %02d:%02d:%02d [%d]: %ld.%03ld secs, %f KB/s (%lldKB)\n",
+	    fprintf(stderr, "%d-%02d-%02d %02d:%02d:%02d [%d]: %ld.%03ld secs, %f KB/s (%" PRINTF_OFF_T "KB)\n",
 		tmp->tm_year + 1900, tmp->tm_mon + 1, tmp->tm_mday,
 		tmp->tm_hour, tmp->tm_min, tmp->tm_sec, i + 1,
 		elapsed_msec / 1000, elapsed_msec % 1000,
 		elapsed_msec ? (double) fsize / elapsed_msec * 1000 / 1024 : -1.0,
-		(long long) (fsize + 1023) / 1024);
+		(fsize + 1023) / 1024);
 	    if (i == 0 || elapsed_msec < ping_min)
 		ping_min = elapsed_msec;
 	    if (i == 0 || elapsed_msec > ping_max)
