@@ -59,5 +59,8 @@ cp -p $tmpdir/COPYRIGHT		$dst/COPYRIGHT.txt
 cp -p $tmpdir/CREDITS		$dst/CREDITS.txt
 cp -p $tmpdir/ChangeLog		$dst/ChangeLog.txt
 if [ -f $tmpdir/doc/release-notes/release-$RELEASE.html ]; then
-    cp -p $tmpdir/doc/release-notes/release-$RELEASE.html $dst/RELEASENOTES.html
+    cat $tmpdir/doc/release-notes/release-$RELEASE.html | sed -e '
+	s/"ChangeLog"/"ChangeLog.txt"/g;
+    ' > $dst/RELEASENOTES.html
+    touch -r $tmpdir/doc/release-notes/release-$RELEASE.html $dst/RELEASENOTES.html
 fi
