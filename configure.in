@@ -186,12 +186,14 @@ AC_CHECK_FUNCS(\
 	regcomp \
 	regexec \
 	regfree \
+	seteuid \
+	setresuid \
 	setrlimit \
 	strdup \
 	strerror \
 	sysconf \
 	syslog \
-	timegm\
+	timegm \
 )
 
 dnl Need the debugging version of malloc if available

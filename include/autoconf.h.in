@@ -55,6 +55,12 @@
 /* Define if you have the regfree function.  */
 #undef HAVE_REGFREE
 
+/* Define if you have the seteuid function.  */
+#undef HAVE_SETEUID
+
+/* Define if you have the setresuid function.  */
+#undef HAVE_SETRESUID
+
 /* Define if you have the setrlimit function.  */
 #undef HAVE_SETRLIMIT
 

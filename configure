@@ -1970,12 +1970,14 @@ for ac_func in \
 	regcomp \
 	regexec \
 	regfree \
+	seteuid \
+	setresuid \
 	setrlimit \
 	strdup \
 	strerror \
 	sysconf \
 	syslog \
-	timegm\
+	timegm \
 
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
@@ -1983,7 +1985,7 @@ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1987 "configure"
+#line 1989 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
