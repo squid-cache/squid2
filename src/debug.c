@@ -67,12 +67,14 @@ void _db_print(va_alist)
 	    }
 	    sprintf(f, "[%s] %s:%d:\t %s", the_time, module, _db_line, format);
 
+#if HAVE_SYSLOG
 	    /* level 0 go to syslog */
 	    if ((level == 0) && syslog_enable) {
 		tmpbuf[0] = '\0';
 		vsprintf(tmpbuf, f, args);
 		syslog(LOG_ERR, tmpbuf);
 	    }
+#endif /* HAVE_SYSLOG */
 	    /* write to log file */
 	    vfprintf(debug_log, f, args);
 	    if (unbuffered_logs)
@@ -127,9 +129,11 @@ void _db_init(prefix, initial_level, logfile)
 	stderr_enable = 0;
     }
 
-    if (syslog_enable) {
+#if HAVE_SYSLOG
+    if (syslog_enable)
 	openlog("cached", LOG_PID | LOG_NDELAY | LOG_CONS, LOG_LOCAL4);
-    }
+#endif /* HAVE_SYSLOG */
+
 }
 
 /* gack!  would be nice to use _db_init() instead */

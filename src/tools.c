@@ -102,8 +102,10 @@ void shut_down(sig)
 void fatal_common(message)
      char *message;
 {
+#if HAVE_SYSLOG
     if (syslog_enable)
 	syslog(LOG_ALERT, message);
+#endif
     fprintf(stderr, "FATAL: %s\n", message);
     fprintf(stderr, "Harvest Cache (Version %s): Terminated abnormally.\n",
 	SQUID_VERSION);
