@@ -32,6 +32,7 @@
 .bcpio     application/x-bcpio              binary       1.0    binary
 .cpio      application/x-cpio               binary       1.0    binary
 .gtar      application/x-gtar               binary       1.0    binary
+.rpm       application/x-rpm                binary       1.0    binary
 .shar      application/x-shar               8bit         1.0    text
 .sv4cpio   application/x-sv4cpio            binary       1.0    binary
 .sv4crc    application/x-sv4crc             binary       1.0    binary
