@@ -385,11 +385,6 @@ commSetTimeout(int fd, int timeout, PF * handler, void *data)
 	F->timeout_data = NULL;
 	return F->timeout = 0;
     }
-    if (shutting_down) {
-	/* don't increase the timeout if something pending */
-	if (F->timeout > 0 && (int) (F->timeout - squid_curtime) < timeout)
-	    return F->timeout;
-    }
     assert(handler || F->timeout_handler);
     if (handler || data) {
 	F->timeout_handler = handler;
