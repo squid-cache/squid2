@@ -244,14 +244,37 @@ static void mainReinitialize()
 static void mainInitialize()
 {
     static int first_time = 1;
-
-
+#if HAVE_SIGACTION
+    struct sigaction sa;
+    sigemptyset(&sa.sa_mask);
+#endif
     if (catch_signals) {
+#if HAVE_SIGACTION
+	sa.sa_flags = SA_NODEFER | SA_RESETHAND;
+	sa.sa_handler = death;
+	if (sigaction(SIGSEGV, &sa, NULL) < 0)
+	    debug(1, 0, "sigaction: SIGSEGV, death: %s\n", xstrerror());
+	if (sigaction(SIGBUS, &sa, NULL) < 0)
+	    debug(1, 0, "sigaction: SIGBUS, death: %s\n", xstrerror());
+#else
 	signal(SIGSEGV, death);
 	signal(SIGBUS, death);
+#endif /* HAVE_SIGACTION */
     }
+#if HAVE_SIGACTION
+    sa.sa_handler = SIG_IGN;
+    sa.sa_flags = SA_RESTART;
+    if (sigaction(SIGPIPE, &sa, NULL) < 0)
+	debug(1, 0, "sigaction: SIGPIPE, SIG_IGN: %s\n", xstrerror());
+    sa.sa_handler = sig_child;
+    /* SA_NODEFER|SA_RESTART would theoretically eliminate the loop in
+     * sig_child */
+    if (sigaction(SIGCHLD, &sa, NULL) < 0)
+	debug(1, 0, "sigaction: SIGCHLD, sig_child: %s\n", xstrerror());
+#else
     signal(SIGPIPE, SIG_IGN);
     signal(SIGCHLD, sig_child);
+#endif
 
     if (ConfigFile == NULL)
 	ConfigFile = xstrdup(DefaultConfigFile);
@@ -308,12 +331,29 @@ static void mainInitialize()
     if (theOutIcpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
 	neighbors_open(theOutIcpConnection);
 
+#if HAVE_SIGACTION
+    sa.sa_handler = rotate_logs;
+    if (sigaction(SIGUSR1, &sa, NULL) < 0)
+	debug(1, 0, "sigaction: SIGUSR1, rotate_logs: %s\n", xstrerror());
+    sa.sa_handler = sigusr2_handle;
+    if (sigaction(SIGUSR2, &sa, NULL) < 0)
+	debug(1, 0, "sigaction: SIGUSR2, sigusr2_handle: %s\n", xstrerror());
+    sa.sa_handler = reconfigure;
+    if (sigaction(SIGHUP, &sa, NULL) < 0)
+	debug(1, 0, "sigaction: SIGHUP, reconfigure: %s\n", xstrerror());
+    sa.sa_flags = SA_NODEFER | SA_RESETHAND;
+    sa.sa_handler = shut_down;
+    if (sigaction(SIGINT, &sa, NULL) < 0)
+	debug(1, 0, "sigaction: SIGINT, shut_down: %s\n", xstrerror());
+    if (sigaction(SIGTERM, &sa, NULL) < 0)
+	debug(1, 0, "sigaction: SIGTERM, shut_down: %s\n", xstrerror());
+#else
     signal(SIGUSR1, rotate_logs);
     signal(SIGUSR2, sigusr2_handle);
     signal(SIGHUP, reconfigure);
     signal(SIGTERM, shut_down);
     signal(SIGINT, shut_down);
-
+#endif
     debug(1, 0, "Ready to serve requests.\n");
 }
 

@@ -127,9 +127,11 @@ void death(sig)
 	fprintf(debug_log, "FATAL: Received bus error...dying.\n");
     else
 	fprintf(debug_log, "FATAL: Received signal %d...dying.\n", sig);
+#if !HAVE_SIGACTION
     signal(SIGSEGV, SIG_DFL);
     signal(SIGBUS, SIG_DFL);
     signal(sig, SIG_DFL);
+#endif
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
     print_warranty();
@@ -149,7 +151,9 @@ void sigusr2_handle(sig)
 	_db_init(getCacheLogFile(), getDebugOptions());
 	state = 0;
     }
+#if !HAVE_SIGACTION
     signal(sig, sigusr2_handle);	/* reinstall */
+#endif
 }
 
 void rotate_logs(sig)
@@ -166,7 +170,9 @@ void rotate_logs(sig)
     neighbors_rotate_log();	/* hierarchy.log */
     stat_rotate_log();		/* access.log */
     (void) ftpInitialize();
+#if !HAVE_SIGACTION
     signal(sig, rotate_logs);
+#endif
 }
 
 void setSocketShutdownLifetimes()
@@ -265,8 +271,12 @@ void sig_child(sig)
 	pid = waitpid(-1, &status, WNOHANG);
 #endif
 	debug(21, 3, "sig_child: Ate pid %d\n", pid);
+#if HAVE_SIGACTION
+    } while (pid > 0);
+#else
     } while (pid > 0 || (pid < 0 && errno == EINTR));
     signal(sig, sig_child);
+#endif
 }
 
 char *getMyHostname()
@@ -454,7 +464,9 @@ void reconfigure(sig)
     ftpServerClose();
     reread_pending = 1;
     setSocketShutdownLifetimes();
+#if !HAVE_SIGACTION
     signal(sig, reconfigure);
+#endif
 }
 
 int tvSubMsec(t1, t2)
