@@ -195,12 +195,12 @@ int protoDispatch(fd, url, entry, request)
     debug(17, 5, "protoDispatch: %s URL: %s\n", method, url);
     debug(17, 10, "request_hdr: %s\n", request_hdr);
 
-    /* Start retrieval process. */
-    if (strncasecmp(url, "cache_object:", 13) == 0)
-	return objcacheStart(fd, url, entry);
+    if (request->protocol == PROTO_CACHEOBJ)
+	return getFromCache(fd, entry, NULL, request);
+    if (request->protocol == PROTO_WAIS)
+	return getFromCache(fd, entry, NULL, request);
 
     protoData = xcalloc(1, sizeof(protodispatch_data));
-
     protoData->fd = fd;
     protoData->url = url;
     protoData->entry = entry;
@@ -415,9 +415,6 @@ int getFromCache(fd, entry, e, request)
 	RequestMethodStr[entry->method]);
     debug(17, 5, "getFromCache: --> getting from '%s'\n", e ? e->host : "source");
 
-    /* We only need entry->mem_obj->request to get us through the pinging */
-    requestUnlink(entry->mem_obj->request);
-    entry->mem_obj->request = NULL;
     /*
      * If this is called from our neighbor detection, then we have to
      * reset the signal handler.  We probably need to check for a race
@@ -436,6 +433,8 @@ int getFromCache(fd, entry, e, request)
 	return ftpStart(fd, url, request, entry);
     } else if (request->protocol == PROTO_WAIS) {
 	return waisStart(fd, url, entry->method, request_hdr, entry);
+    } else if (request->protocol == PROTO_CACHEOBJ) {
+	return objcacheStart(fd, url, entry);
     } else if (entry->method == METHOD_CONNECT) {
 	fatal_dump("getFromCache() should not be handling CONNECT");
 	return 0;
