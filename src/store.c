@@ -443,6 +443,7 @@ storeSetPublicKey(StoreEntry * e)
 	    }
 #endif
 	    storeSetPublicKey(pe);
+	    storeBuffer(pe);
 	    httpReplySwapOut(pe->mem_obj->reply, pe);
 	    storeBufferFlush(pe);
 	    storeTimestampsSet(pe);
