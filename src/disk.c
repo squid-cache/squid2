@@ -230,7 +230,6 @@ diskHandleWrite(int fd, FileEntry * entry)
 {
     int rlen = 0;
     int len = 0;
-    dwrite_q *q = NULL;
     dwrite_q *r = NULL;
     if (file_table[fd].at_eof == NO)
 	lseek(fd, 0, SEEK_END);
@@ -248,11 +247,10 @@ diskHandleWrite(int fd, FileEntry * entry)
 	    entry->write_pending = NO_WRT_PENDING;
 	    /* call finish handler */
 	    do {
-		q = r;
-		entry->write_q = q->next;
-		if (q->free)
-		    (q->free) (q->buf);
-		safe_free(q);
+		entry->write_q = r->next;
+		if (r->free)
+		    (r->free) (r->buf);
+		safe_free(r);
 	    } while (entry->write_q);
 	    if (entry->wrt_handle) {
 		entry->wrt_handle(fd,
@@ -267,11 +265,10 @@ diskHandleWrite(int fd, FileEntry * entry)
 	if (r->cur_offset < r->len)
 	    continue;		/* partial write? */
 	/* complete write */
-	q = r;
-	entry->write_q = q->next;
-	if (q->free)
-	    (q->free) (q->buf);
-	safe_free(q);
+	entry->write_q = r->next;
+	if (r->free)
+	    (r->free) (r->buf);
+	safe_free(r);
     }
     if (entry->write_q == NULL) {
 	/* no more data */
