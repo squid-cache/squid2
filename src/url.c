@@ -265,7 +265,7 @@ urlCanonical(request_t * request, char *buf)
 	sprintf(buf, "%s://%s%s%s%s%s",
 	    ProtocolStr[request->protocol],
 	    request->login,
-	    *request->login ? "@" : "",
+	    *request->login ? "@" : null_string,
 	    request->host,
 	    portbuf,
 	    request->urlpath);

@@ -171,7 +171,7 @@ ftp_login_parser(char *login, FtpStateData * data)
 	*s = 0;
 	strcpy(password, s + 1);
     } else {
-	strcpy(password, "");
+	strcpy(password, null_string
     }
 
     if (!*user && !*password) {

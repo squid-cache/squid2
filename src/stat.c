@@ -666,18 +666,18 @@ statFiledescriptors(StoreEntry * sentry)
 	    break;
 	case FD_FILE:
 	    storeAppendPrintf(sentry, "%31s %s}\n",
-		"",
+		null_string,
 		(s = diskFileName(i)) ? s : "-");
 	    break;
 	case FD_PIPE:
-	    storeAppendPrintf(sentry, "%31s %s}\n", "", fd_note(i, NULL));
+	    storeAppendPrintf(sentry, "%31s %s}\n", null_string, fd_note(i, NULL));
 	    break;
 	case FD_LOG:
-	    storeAppendPrintf(sentry, "%31s %s}\n", "", fd_note(i, NULL));
+	    storeAppendPrintf(sentry, "%31s %s}\n", null_string, fd_note(i, NULL));
 	    break;
 	case FD_UNKNOWN:
 	default:
-	    storeAppendPrintf(sentry, "%31s %s}\n", "", fd_note(i, NULL));
+	    storeAppendPrintf(sentry, "%31s %s}\n", null_string, fd_note(i, NULL));
 	    break;
 	}
     }
@@ -1132,7 +1132,7 @@ log_append(cacheinfo * obj,
 		method,
 		url,
 		ident,
-		hier_timeout ? "TIMEOUT_" : "",
+		hier_timeout ? "TIMEOUT_" : null_string,
 		hier_strings[hier_code],
 		hier_host);
 #if LOG_FULL_HEADERS

@@ -1553,7 +1553,7 @@ parseHttpRequest(icpStateData * icpState)
     }
     debug(12, 5, "parseHttpRequest: Request is '%s'\n", url);
 
-    token = strtok(NULL, "");
+    token = strtok(NULL, null_string);
     for (t = token; t && *t && *t != '\n' && *t != '\r'; t++);
     if (t == NULL || *t == '\0' || t == token) {
 	debug(12, 3, "parseHttpRequest: Missing HTTP identifier\n");
