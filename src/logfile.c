@@ -176,7 +176,7 @@ logfileWriteWrapper(Logfile * lf, const void *buf, size_t len)
 {
     int s;
     s = write(lf->fd, buf, len);
-    fd_bytes(lf->fd, len, FD_WRITE);
+    fd_bytes(lf->fd, s, FD_WRITE);
     if (s == len)
 	return;
     fatalf("logfileWrite: %s: %s\n", lf->path, xstrerror());
