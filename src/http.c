@@ -529,40 +529,23 @@ httpPconnTransferDone(HttpStateData * httpState)
     HttpReply *reply = mem->reply;
     int clen;
     debug(11, 3) ("httpPconnTransferDone: FD %d\n", httpState->fd);
-    /*
-     * If we didn't send a keep-alive request header, then this
-     * can not be a persistent connection.
-     */
-    if (!httpState->flags.keepalive)
-	return 0;
-    /*
-     * What does the reply have to say about keep-alive?
-     */
-    /*
-     * XXX BUG?
-     * If the origin server (HTTP/1.0) does not send a keep-alive
-     * header, but keeps the connection open anyway, what happens?
-     * We'll return here and http.c waits for an EOF before changing
-     * store_status to STORE_OK.   Combine this with ENTRY_FWD_HDR_WAIT
-     * and an error status code, and we might have to wait until
-     * the server times out the socket.
-     */
-    if (!reply->keep_alive)
-	return 0;
     debug(11, 5) ("httpPconnTransferDone: content_length=%d\n",
 	reply->content_length);
     /* If we haven't seen the end of reply headers, we are not done */
     if (httpState->reply_hdr_state < 2)
 	return 0;
     clen = httpReplyBodySize(httpState->request->method, reply);
-    /* If there is no message body, we can be persistent */
-    if (0 == clen)
-	return 1;
     /* If the body size is unknown we must wait for EOF */
     if (clen < 0)
 	return 0;
+    /* Barf if we got more than we asked for */
+    if (mem->inmem_hi > clen + reply->hdr_sz)
+	return -1;
+    /* If there is no message body, we can be persistent */
+    if (0 == clen)
+	return 1;
     /* If the body size is known, we must wait until we've gotten all of it.  */
-    if (mem->inmem_hi < reply->content_length + reply->hdr_sz)
+    if (mem->inmem_hi < clen + reply->hdr_sz)
 	return 0;
     /* We got it all */
     return 1;
@@ -724,22 +707,44 @@ httpReadReply(int fd, void *data)
 	     * in that case, the server FD should already be closed.
 	     * there's nothing for us to do.
 	     */
-	    (void) 0;
-	} else if (httpPconnTransferDone(httpState)) {
-	    /* yes we have to clear all these! */
-	    commSetDefer(fd, NULL, NULL);
-	    commSetTimeout(fd, -1, NULL, NULL);
-	    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
+	    return;
+	}
+	switch (httpPconnTransferDone(httpState)) {
+	case 1:
+	    {
+		int keep_alive = 1;
+		/*
+		 * If we didn't send a keep-alive request header, then this
+		 * can not be a persistent connection.
+		 */
+		if (!httpState->flags.keepalive)
+		    keep_alive = 0;
+		/*
+		 * What does the reply have to say about keep-alive?
+		 */
+		if (!entry->mem_obj->reply->keep_alive)
+		    keep_alive = 0;
+		if (keep_alive) {
+		    /* yes we have to clear all these! */
+		    commSetDefer(fd, NULL, NULL);
+		    commSetTimeout(fd, -1, NULL, NULL);
+		    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 #if DELAY_POOLS
-	    delayClearNoDelay(fd);
+		    delayClearNoDelay(fd);
 #endif
-	    comm_remove_close_handler(fd, httpStateFree, httpState);
-	    fwdUnregister(fd, httpState->fwd);
-	    pconnPush(fd, request->host, request->port);
-	    fwdComplete(httpState->fwd);
-	    httpState->fd = -1;
-	    httpStateFree(fd, httpState);
-	} else {
+		    comm_remove_close_handler(fd, httpStateFree, httpState);
+		    fwdUnregister(fd, httpState->fwd);
+		    pconnPush(fd, request->host, request->port);
+		    fwdComplete(httpState->fwd);
+		    httpState->fd = -1;
+		    httpStateFree(fd, httpState);
+		} else {
+		    fwdComplete(httpState->fwd);
+		    comm_close(fd);
+		}
+	    }
+	    return;
+	case 0:
 	    /* Wait for more data or EOF condition */
 	    if (httpState->flags.keepalive_broken) {
 		commSetTimeout(fd, 10, NULL, NULL);
@@ -747,6 +752,18 @@ httpReadReply(int fd, void *data)
 		commSetTimeout(fd, Config.Timeout.read, NULL, NULL);
 	    }
 	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
+	    return;
+	case -1:
+	    /* Server is nasty on us. Shut down */
+	    debug(11, 1) ("httpReadReply: Excess data from \"%s %s\"\n",
+		RequestMethodStr[httpState->orig_request->method],
+		storeUrl(entry));
+	    fwdComplete(httpState->fwd);
+	    comm_close(fd);
+	    return;
+	default:
+	    fatal("Unexpected httpPconnTransferDone() status\n");
+	    break;
 	}
     }
 }
