@@ -259,7 +259,7 @@ extern void storeComplete _PARAMS((StoreEntry *));
 extern void storeInit _PARAMS((void));
 extern int storeReleaseEntry _PARAMS((StoreEntry *));
 extern int storeClientWaiting _PARAMS((const StoreEntry *));
-extern void storeAbort _PARAMS((StoreEntry *, const char *));
+extern void storeAbort _PARAMS((StoreEntry *, log_type, const char *, int));
 extern void storeAppend _PARAMS((StoreEntry *, const char *, int));
 extern int storeGetMemSize _PARAMS((void));
 extern int storeGetSwapSize _PARAMS((void));

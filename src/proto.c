@@ -162,7 +162,7 @@ protoDispatchFail(peer * p, void *data)
     pctrl_t *pctrl = data;
     if (!storeUnlockObject(pctrl->entry))
 	return;
-    squid_error_entry(pctrl->entry, ERR_CANNOT_FETCH, NULL);
+    storeAbort(pctrl->entry, ERR_CANNOT_FETCH, NULL, 0);
     requestUnlink(pctrl->request);
     xfree(pctrl);
 }
@@ -185,7 +185,7 @@ protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr
 	return 0;
     if (entry->store_status != STORE_PENDING)
 	return 0;
-    squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
+    storeAbort(entry, ERR_CLIENT_ABORT, NULL, 1);
     return 1;
 }
 
@@ -225,7 +225,7 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	fatal_dump("protoStart() should not be handling CONNECT");
     } else {
 	debug(17, 1) ("protoStart: Cannot retrieve '%s'\n", entry->url);
-	squid_error_entry(entry, ERR_NOT_IMPLEMENTED, NULL);
+	storeAbort(entry, ERR_NOT_IMPLEMENTED, NULL, 0);
     }
 }
 

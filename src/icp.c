@@ -2150,8 +2150,7 @@ CheckQuickAbort(clientHttpRequest * http)
 	return;
     debug(12, 3) ("CheckQuickAbort: ABORTING %s\n", entry->url);
     storeReleaseRequest(entry);
-    storeAbort(entry, "aborted by client");
-    http->log_type = ERR_CLIENT_ABORT;
+    storeAbort(entry, ERR_CLIENT_ABORT, "aborted by client", 1);
 }
 
 static int
