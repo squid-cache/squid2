@@ -134,6 +134,8 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
     int remove = 0;
     const cache_key *key;
     StoreEntry *pe;
+    if (!EBIT_TEST(e->flag, KEY_PRIVATE))
+	return;
     switch (status) {
     case HTTP_OK:
     case HTTP_NON_AUTHORITATIVE_INFORMATION:
@@ -161,6 +163,7 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
     key = storeKeyPublic(e->mem_obj->url, e->mem_obj->method);
     if ((pe = storeGet(key)) == NULL)
 	return;
+    assert(e != pe);
     storeRelease(pe);
 }
 
