@@ -220,7 +220,7 @@ extern int neighborUp _PARAMS((const peer * e));
 extern void peerDestroy _PARAMS((peer * e));
 extern void peerUpdateFudge _PARAMS((void *));
 extern char *neighborTypeStr _PARAMS((const peer * e));
-extern void peerCheckConnectDone _PARAMS((int fd, int status, void *data));
+extern void peerCheckConnectStart _PARAMS((peer *));
 
 extern const char *hier_strings[];
 

@@ -951,8 +951,8 @@ httpConnectDone(int fd, int status, void *data)
     if (status != COMM_OK) {
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	if (httpState->neighbor)
-	    peerCheckConnectDone(fd, status, httpState->neighbor);
-	/* peerCheckConnectDone calls comm_close */
+	    peerCheckConnectStart(httpState->neighbor);
+	comm_close(fd);
     } else {
 	/* Install connection complete handler. */
 	if (opt_no_ipcache)

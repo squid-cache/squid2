@@ -115,8 +115,9 @@ static void neighborCountIgnored _PARAMS((peer * e, icp_opcode op_unused));
 static neighbor_t parseNeighborType _PARAMS((const char *s));
 static void peerRefreshDNS _PARAMS((void *));
 static void peerDNSConfigure _PARAMS((int fd, const ipcache_addrs * ia, void *data));
-static void peerCheckConnect _PARAMS((void *data));
-static void peerCheckConnect2 _PARAMS((int fd, const ipcache_addrs * ia, void *data));
+static void peerCheckConnect _PARAMS((void *));
+static void peerCheckConnect2 _PARAMS((int, const ipcache_addrs *, void *));
+static void peerCheckConnectDone _PARAMS((int, int, void *));
 
 static icp_common_t echo_hdr;
 static u_short echo_port;
@@ -1049,22 +1050,28 @@ peerCheckConnect2(int fd, const ipcache_addrs * ia, void *data)
 	p);
 }
 
-void
+static void
 peerCheckConnectDone(int fd, int status, void *data)
 {
     peer *p = data;
-    if (p->tcp_up && status != COMM_OK) {
-	debug(15, 0, "TCP connection to %s/%d failed\n",
-	    p->host, p->http_port);
-	p->last_fail_time = squid_curtime;
-    }
     p->tcp_up = status == COMM_OK ? 1 : 0;
     if (p->tcp_up) {
 	debug(15, 0, "TCP connection to %s/%d succeeded\n",
 	    p->host, p->http_port);
-    } else if (!eventExists(peerCheckConnect, p)) {
+    } else {
 	eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
     }
     comm_close(fd);
     return;
+}
+
+void
+peerCheckConnectStart(peer * p)
+{
+    if (!p->tcp_up)
+	return;
+    debug(15, 0, "TCP connection to %s/%d failed\n", p->host, p->http_port);
+    p->tcp_up = 0;
+    p->last_fail_time = squid_curtime;
+    eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
 }
