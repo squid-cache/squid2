@@ -444,8 +444,8 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, data)
     icpState->size += size;
     debug(12, 5, "icpHandleStoreComplete: FD %d: sz %d: err %d: off %d: len %d: tsmp %d: lref %d.\n",
 	fd, size, errflag,
-       icpState->offset, entry->object_len,
-       entry->timestamp, entry->lastref);
+	icpState->offset, entry->object_len,
+	entry->timestamp, entry->lastref);
     if (errflag) {
 	/* if runs in quick abort mode, set flag to tell 
 	 * fetching module to abort the fetching */
@@ -763,7 +763,7 @@ static int icpProcessMISS(fd, icpState)
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
 
-    entry->refcount++;         /* MISS CASE */
+    entry->refcount++;		/* MISS CASE */
     entry->mem_obj->fd_of_first_client = fd;
     fd_table[fd].store_entry = entry;
     BIT_SET(entry->flag, IP_LOOKUP_PENDING);

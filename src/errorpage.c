@@ -366,4 +366,3 @@ char *proxy_denied_msg(code, method, url, client)
 	getMyHostname());
     return tmp_error_buf;
 }
-

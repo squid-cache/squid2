@@ -116,8 +116,8 @@ void clientAccessCheck(icpState, handler)
     }
 #if USE_PROXY_AUTH
     if (clientProxyAuthCheck == 0) {
-        char *wbuf = NULL;
-        int fd = icpState->fd;
+	char *wbuf = NULL;
+	int fd = icpState->fd;
 	debug(12, 4, "Proxy Denied: %s\n", icpState->url);
 	icpState->log_type = ERR_PROXY_DENIED;
 	icpState->http_code = 407;
