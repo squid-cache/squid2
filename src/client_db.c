@@ -182,7 +182,9 @@ clientdbDump(StoreEntry * sentry)
 static void
 clientdbFreeItem(void *data)
 {
-    memFree(MEM_CLIENT_INFO, data);
+    ClientInfo *c = data;
+    safe_free(c->key);
+    memFree(MEM_CLIENT_INFO, c);
 }
 
 void
