@@ -108,6 +108,7 @@ static char rcsid[] = "$Id$";
 #include "autoconf.h"
 #include "stat.h"
 #include "hash.h"
+#include "disk.h"
 #include "util.h"
 
 struct hostent *gethostbyname();
@@ -191,7 +192,6 @@ extern time_t cached_curtime;
 extern int getMaxFD();
 extern int getDnsChildren();
 extern void fatal_dump _PARAMS((char *));
-extern int file_write_lock _PARAMS((int));
 extern int file_update_open _PARAMS((int, char *));
 
 void update_dns_child_alive()
