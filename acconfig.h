@@ -23,3 +23,6 @@
 
 /* Host type from configure */
 #undef CONFIG_HOST_TYPE
+
+/* If UNIX domain stream sockets work */
+#undef HAVE_WORKING_UNIX_SOCKETS

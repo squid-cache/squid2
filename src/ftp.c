@@ -14,11 +14,11 @@ static char ftpASCII[] = "A";
 static char ftpBinary[] = "I";
 static int ftpget_server_read = -1;
 static int ftpget_server_write = -1;
-#ifdef USE_FTPGET_INET_SOCK
+#if HAVE_WORKING_UNIX_SOCKETS
+static char ftpget_socket_path[128];
+#else
 static char localhost[] = "127.0.0.1";
 static u_short ftpget_port = 0;
-#else
-static char ftpget_socket_path[128];
 #endif
 
 typedef struct _Ftpdata {
@@ -508,10 +508,10 @@ void ftpConnInProgress(fd, data)
 
     debug(9, 5, "ftpConnInProgress: FD %d\n", fd);
 
-#ifdef USE_FTPGET_INET_SOCK
-    if (comm_connect(fd, localhost, ftpget_port) != COMM_OK) {
-#else
+#if HAVE_WORKING_UNIX_SOCKETS
     if (comm_connect_unix(fd, ftpget_socket_path) != COMM_OK) {
+#else
+    if (comm_connect(fd, localhost, ftpget_port) != COMM_OK) {
 #endif
 	switch (errno) {
 	case EINPROGRESS:
@@ -559,10 +559,10 @@ int ftpStart(unusedfd, url, request, entry)
 	unusedfd, data->request->host, data->request->urlpath,
 	data->user, data->password);
 
-#ifdef USE_FTPGET_INET_SOCK
-    data->ftp_fd = comm_open(COMM_NONBLOCKING, 0, url);
-#else
+#if HAVE_WORKING_UNIX_SOCKETS
     data->ftp_fd = comm_open_unix(url);
+#else
+    data->ftp_fd = comm_open(COMM_NONBLOCKING, 0, url);
 #endif
     if (data->ftp_fd == COMM_ERROR) {
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
@@ -578,10 +578,10 @@ int ftpStart(unusedfd, url, request, entry)
 	(void *) data);
 
     /* Now connect ... */
-#ifdef USE_FTPGET_INET_SOCK
-    if ((status = comm_connect(data->ftp_fd, localhost, ftpget_port))) {
-#else
+#if HAVE_WORKING_UNIX_SOCKETS
     if ((status = comm_connect_unix(data->ftp_fd, ftpget_socket_path))) {
+#else
+    if ((status = comm_connect(data->ftp_fd, localhost, ftpget_port))) {
 #endif
 	if (status != EINPROGRESS) {
 	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
@@ -621,10 +621,10 @@ static void ftpServerClosed(fd, nodata)
 {
     static time_t last_restart = 0;
     comm_close(fd);
-#ifdef USE_FTPGET_INET_SOCK
-    ftpget_port++;
-#else
+#if HAVE_WORKING_UNIX_SOCKETS
     strncpy(ftpget_socket_path, tempnam(NULL, "ftpget"), 127);
+#else
+    ftpget_port++;
 #endif
     if (squid_curtime - last_restart < 2) {
 	debug(9, 0, "ftpget server failing too rapidly\n");
@@ -660,18 +660,18 @@ int ftpInitialize()
     int fd;
     int squid_to_ftpget[2];
     int ftpget_to_squid[2];
-#ifdef USE_FTPGET_INET_SOCK
-    char pbuf[128];
-#else
+#if HAVE_WORKING_UNIX_SOCKETS
     char *pbuf = NULL;
+#else
+    char pbuf[128];
 #endif
     char *ftpget = getFtpProgram();
 
-#ifdef USE_FTPGET_INET_SOCK
-    ftpget_port = CACHE_FTP_PORT + getAsciiPortNum();
-#else
+#if HAVE_WORKING_UNIX_SOCKETS
     memset(ftpget_socket_path, '\0', 128);
     strncpy(ftpget_socket_path, tempnam(NULL, "ftpget"), 127);
+#else
+    ftpget_port = CACHE_FTP_PORT + getAsciiPortNum();
 #endif
 
     if (pipe(squid_to_ftpget) < 0) {
@@ -718,10 +718,10 @@ int ftpInitialize()
     /* inherit stdin,stdout,stderr */
     for (fd = 3; fd < fdstat_biggest_fd(); fd++)
 	(void) close(fd);
-#ifdef USE_FTPGET_INET_SOCK
-    sprintf(pbuf, "%d", ftpget_port);
-#else
+#if HAVE_WORKING_UNIX_SOCKETS
     pbuf = ftpget_socket_path;
+#else
+    sprintf(pbuf, "%d", ftpget_port);
 #endif
     execlp(ftpget, ftpget, "-S", pbuf, NULL);
     debug(9, 0, "ftpInitialize: %s: %s\n", ftpget, xstrerror());

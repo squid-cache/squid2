@@ -395,6 +395,58 @@ SQUID_TCP_SO_RCVBUF=8192)
 AC_MSG_RESULT($SQUID_TCP_SO_RCVBUF)
 AC_DEFINE_UNQUOTED(SQUID_TCP_SO_RCVBUF, $SQUID_TCP_SO_RCVBUF)
 
+AC_MSG_CHECKING(if UNIX domain stream sockets work)
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+main()
+{
+    int s1, s2, n, code=1;
+    struct sockaddr_un S;
+    char buf[20];
+    unlink("conftestsock");
+    if (fork()) {		/* child */
+	S.sun_family = AF_UNIX;
+	strcpy(S.sun_path, "conftestsock");
+	if ((s1 = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
+	    perror("child socket");
+	else if (bind(s1, &S, sizeof(S)) < 0)
+	    perror("child bind");
+	else if (listen(s1, 1) < 0)
+	    perror("child listen");
+	else if ((s1 = accept(s1, 0, 0)) < 0)
+	    perror("child accept");
+	else if (read(s1, buf, 20) != 11)
+	    perror("child read");
+	else if (write(s1, buf, 11) != 11)
+	    perror("child write");
+	else
+	    code = 0;
+    } else {			/* parent */
+	sleep(1);
+	S.sun_family = AF_UNIX;
+	strcpy(S.sun_path, "conftestsock");
+	if ((s2 = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
+	    perror("parent socket");
+	else if (connect(s2, &S, sizeof(S)) < 0)
+	    perror("parent connect");
+	else if (write(s2, "hello world", 11) != 11)
+	    perror("parent write");
+	else if (read(s2, buf, 20) != 11)
+	    perror("parent read");
+	else
+	    code = 0;
+    }
+    unlink("conftestsock");
+    exit(code);
+}
+],
+[AC_DEFINE(HAVE_WORKING_UNIX_SOCKETS)
+AC_MSG_RESULT(yes)],
+AC_MSG_RESULT(no),
+AC_MSG_RESULT(no))
+
 dnl Need the debugging version of malloc if available
 XTRA_OBJS=''
 if test "$HAVE_LIBMALLOC" = "yes" ; then
