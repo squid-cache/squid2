@@ -308,7 +308,7 @@ struct _SquidConfig {
     char *effectiveUser;
     char *effectiveGroup;
     struct {
-#if USE_DNSSERVER
+#if USE_DNSSERVERS
 	char *dnsserver;
 #endif
 	wordlist *redirect;
@@ -316,7 +316,7 @@ struct _SquidConfig {
 	char *pinger;
 	char *unlinkd;
     } Program;
-#if USE_DNSSERVER
+#if USE_DNSSERVERS
     int dnsChildren;
 #endif
     int redirectChildren;
@@ -382,7 +382,7 @@ struct _SquidConfig {
     } Netdb;
     struct {
 	int log_udp;
-#if USE_DNSSERVER
+#if USE_DNSSERVERS
 	int res_defnames;
 #endif
 	int anonymizer;
