@@ -1614,7 +1614,7 @@ clientReadRequest(int fd, void *data)
 	     * data to the beginning
 	     */
 	    if (conn->in.offset > 0)
-		memmove(conn->in.buf, conn->in.buf + http->req_sz, conn->in.size);
+		memmove(conn->in.buf, conn->in.buf + http->req_sz, conn->in.offset);
 	    /* add to the client request queue */
 	    for (H = &conn->chr; *H; H = &(*H)->next);
 	    *H = http;
