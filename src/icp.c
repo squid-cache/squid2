@@ -181,6 +181,7 @@ static void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
 static void icpHandleAbort _PARAMS((int fd, StoreEntry *, void *));
 static int icpCheckUdpHit _PARAMS((StoreEntry *));
 static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
+static void icpStateFree _PARAMS((int fd, void *data));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -232,15 +233,16 @@ checkFailureRatio(log_type rcode, hier_code hcode)
 }
 
 /* This is a handler normally called by comm_close() */
-static int
-icpStateFree(int fd, icpStateData * icpState)
+static void
+icpStateFree(int fd, void *data)
 {
+    icpStateData *icpState = data;
     int http_code = 0;
     int elapsed_msec;
     struct _hierarchyLogData *hierData = NULL;
 
     if (!icpState)
-	return 1;
+	return;
     if (icpState->log_type < LOG_TAG_NONE || icpState->log_type > ERR_MAX)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
@@ -303,7 +305,7 @@ icpStateFree(int fd, icpStateData * icpState)
 	safe_free(icpState->aclChecklist);
     }
     safe_free(icpState);
-    return 0;			/* XXX gack, all comm handlers return ints */
+    return;
 }
 
 void
@@ -1523,6 +1525,7 @@ parseHttpRequest(icpStateData * icpState)
     LOCAL_ARRAY(char, http_ver, 32);
     char *token = NULL;
     char *t = NULL;
+    char *s = NULL;
     char *ad = NULL;
     int free_request = 0;
     int req_hdr_sz;
@@ -1655,6 +1658,15 @@ parseHttpRequest(icpStateData * icpState)
 	} else if ((t = mime_get_header(req_hdr, "Host"))) {
 	    /* If a Host: header was specified, use it to build the URL 
 	     * instead of the one in the Config file. */
+	    /*
+	     * XXX Use of the Host: header here opens a potential
+	     * security hole.  There are no checks that the Host: value
+	     * corresponds to one of your servers.  It might, for example,
+	     * refer to www.playboy.com.  The 'dst' and/or 'dst_domain' ACL 
+	     * types should be used to prevent httpd-accelerators 
+	     * handling requests for non-local servers */
+	    if ((s = strchr(t, ':')))
+		*s = '\0';
 	    icpState->url = xcalloc(strlen(url) + strlen(t) + 32, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		t, (int) Config.Accel.port, url);
@@ -1853,7 +1865,7 @@ asciiHandleConn(int sock, void *notused)
 	(PF) asciiConnLifetimeHandle,
 	(void *) icpState, 0);
     comm_add_close_handler(fd,
-	(PF) icpStateFree,
+	icpStateFree,
 	(void *) icpState);
     comm_read(fd,
 	icpState->inbuf,
@@ -2029,7 +2041,7 @@ icpDetectNewRequest(int fd)
     fd_note(fd, inet_ntoa(icpState->log_addr));
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
     comm_add_close_handler(fd,
-	(PF) icpStateFree,
+	icpStateFree,
 	(void *) icpState);
     comm_read(fd,
 	icpState->inbuf,
