@@ -1815,9 +1815,16 @@ parts_t *parse_entry(buf)
 		tokens[i], tokens[i + 1], tokens[i + 2]);
 	if ((t = strstr(buf, sbuf))) {
 	    p->date = xstrdup(sbuf);
+#ifdef SKIP_LEADING_WHITESPACE
 	    t += strlen(sbuf);
 	    while (strchr(WS, *t))
 		t++;
+#else
+	    /* XXX assumes a single space between date and filename
+	     * suggested by:  Nathan.Bailey@cc.monash.edu.au and
+	     * Mike Battersby <mike@starbug.bofh.asn.au> */
+	    t += strlen(sbuf) + 1;
+#endif
 	    p->name = xstrdup(t);
 	    if ((t = strstr(p->name, " -> "))) {
 		*t = '\0';
