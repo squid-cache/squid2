@@ -68,7 +68,7 @@ send_announce(const ipcache_addrs * ia, void *junk)
 	debug(27, 1) ("send_announce: Unknown host '%s'\n", host);
 	return;
     }
-    debug(27, 0) ("Sending Announcement to %s\n", host);
+    debug(27, 1) ("Sending Announcement to %s\n", host);
     sndbuf[0] = '\0';
     snprintf(tbuf, 256, "cache_version SQUID/%s\n", version_string);
     strcat(sndbuf, tbuf);
