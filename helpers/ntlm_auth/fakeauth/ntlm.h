@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * AUTHOR: Andy Doran <ad@netbsd.org>
+ * AUTHOR: Andrew Doran <ad@interlude.eu.org>
  *
  * SQUID Web Proxy Cache          http://www.squid-cache.org/
  * ----------------------------------------------------------

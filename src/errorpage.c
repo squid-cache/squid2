@@ -372,6 +372,7 @@ errorStateFree(ErrorState * err)
     safe_free(err->ftp.reply);
     if (err->auth_user_request)
 	authenticateAuthUserRequestUnlock(err->auth_user_request);
+    err->auth_user_request = NULL;
     cbdataFree(err);
 }
 

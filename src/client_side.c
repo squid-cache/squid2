@@ -856,13 +856,16 @@ connStateFree(int fd, void *data)
     clientHttpRequest *http;
     debug(33, 3) ("connStateFree: FD %d\n", fd);
     assert(connState != NULL);
-    authenticateOnCloseConnection(connState);
     clientdbEstablished(connState->peer.sin_addr, -1);	/* decrement */
     while ((http = connState->chr) != NULL) {
 	assert(http->conn == connState);
 	assert(connState->chr != connState->chr->next);
 	httpRequestFree(http);
     }
+    if (connState->auth_user_request)
+	authenticateAuthUserRequestUnlock(connState->auth_user_request);
+    connState->auth_user_request = NULL;
+    authenticateOnCloseConnection(connState);
     if (connState->in.size == CLIENT_REQ_BUF_SZ)
 	memFree(connState->in.buf, MEM_CLIENT_REQ_BUF);
     else

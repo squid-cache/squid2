@@ -204,7 +204,7 @@ ipcCreate(int type, const char *prog, char *const args[], const char *name, int 
 	    *wfd = pwfd;
 	fd_table[prfd].flags.ipc = 1;
 	fd_table[pwfd].flags.ipc = 1;
-	return pwfd;
+	return pid;
     }
     /* child */
     no_suid();			/* give up extra priviliges */
