@@ -69,7 +69,10 @@ Changes to squid-2.5.STABLE2 ():
 	  has been added to allow you to specify which Samba version the
 	  helpers should be built for if different than the above versions.
 	- Squid MIB definition syntax correction to work better with newer
-	  (and older) SNMP tools
+	  (and older) SNMP tools.
+	- Incorrect behaviour of Digest authentication partly corrected - it
+	  will not handle sessions, but will always enforce password
+	  correctness.. (patch submitted by Sean Burford).
 	  
 Changes to squid-2.5.STABLE1 (September 25, 2002):
 

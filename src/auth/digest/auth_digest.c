@@ -662,10 +662,6 @@ authenticateDigestAuthenticateUser(auth_user_request_t * auth_user_request, requ
     assert(auth_user->scheme_data != NULL);
     digest_user = auth_user->scheme_data;
 
-    /* if the check has corrupted the user, just return */
-    if (digest_user->flags.credentials_ok == 3) {
-	return;
-    }
     assert(auth_user_request->scheme_data != NULL);
     digest_request = auth_user_request->scheme_data;
 
@@ -1310,6 +1306,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
     } else {
 	debug(29, 9) ("authDigestDecodeAuth: Found user '%s' in the user cache as '%p'\n", username, auth_user);
 	digest_user = auth_user->scheme_data;
+	digest_user->flags.credentials_ok = 3;
 	xfree(username);
     }
     /*link the request and the user */
