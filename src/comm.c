@@ -914,7 +914,7 @@ comm_poll(time_t sec)
 	    Counter.select_loops++;
 	    if (num >= 0)
 		break;
-	    if (errno == EINTR)
+	    if (ignoreErrno(errno))
 		continue;
 	    debug(5, 0) ("comm_poll: poll failure: %s\n", xstrerror());
 	    assert(errno != EINVAL);
@@ -1062,7 +1062,7 @@ comm_select(time_t sec)
 	    Counter.select_loops++;
 	    if (num >= 0)
 		break;
-	    if (errno == EINTR)
+	    if (ignoreErrno(errno))
 		break;
 	    debug(50, 0) ("comm_select: select failure: %s\n",
 		xstrerror());
