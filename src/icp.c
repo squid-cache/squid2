@@ -189,7 +189,7 @@ static void icpProcessMISS _PARAMS((int, clientHttpRequest *));
 static SIH icpProcessRequestComplete;
 static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, size_t));
 size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
-static int icpSendMoreData _PARAMS((int fd, clientHttpRequest *));
+static void icpSendMoreData _PARAMS((int fd, clientHttpRequest *));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -560,8 +560,8 @@ clientBuildReplyHeader(clientHttpRequest * http,
     size_t l;
     end = mime_headers_end(hdr_in);
     if (end == NULL) {
-	debug(12, 1, "clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
-	debug(12, 1, "\n%s", hdr_in);
+	debug(12, 3, "clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
+	debug(12, 3, "\n%s", hdr_in);
 	return 0;
     }
     for (t = hdr_in; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
@@ -599,7 +599,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
     return len;
 }
 
-static int
+static void
 icpSendMoreData(int fd, clientHttpRequest * http)
 {
     StoreEntry *entry = http->entry;
@@ -632,7 +632,7 @@ icpSendMoreData(int fd, clientHttpRequest * http)
 	debug(12, 1, "storeClientCopy returned %d for '%s'\n", x, entry->key);
 	put_free_4k_page(buf);
 	comm_close(fd);
-	return COMM_ERROR;
+	return;
     }
     writelen = len;
 
@@ -660,9 +660,8 @@ icpSendMoreData(int fd, clientHttpRequest * http)
 	    freefunc = put_free_8k_page;
 	} else if (len < ICP_SENDMOREDATA_BUF && entry->store_status == STORE_PENDING) {
 	    /* wait for more to arrive */
-	    len = 0;
-	    writelen = 0;
-	    /* fallthrough to comm_write */
+	    storeRegister(entry, icpHandleStore, http, len);
+	    return;
 	}
     }
 #if LOG_FULL_HEADERS
@@ -689,7 +688,6 @@ icpSendMoreData(int fd, clientHttpRequest * http)
 	clientWriteComplete,
 	http,
 	freefunc);
-    return COMM_OK;
 }
 
 /* Called by storage manager when more data arrives from source. 
@@ -1025,7 +1023,9 @@ icpProcessRequestComplete(void *data, int status)
 	storeRelease(entry);
 	http->log_type = LOG_TCP_SWAPFAIL_MISS;
 	debug(0, 0, "icpProcessRequestComplete: status=%d\n", status);
-	debug(0, 0, "icpProcessRequestComplete: --> %s\n", entry->url);
+	debug(0, 0, "--> %s\n", entry->url);
+	debug(0, 0, "--> fileno %08X\n", entry->swap_file_number);
+	debug(0, 0, "--> path %s\n", storeSwapFullPath(entry->swap_file_number, NULL));
 	entry = NULL;
     }
     if (entry)
