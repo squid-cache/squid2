@@ -144,7 +144,7 @@ delayInitDelayData(unsigned short pools)
     if (!pools)
 	return;
     delay_data = xcalloc(pools, sizeof(*delay_data));
-    memory_used += sizeof(*delay_data);
+    memory_used += pools * sizeof(*delay_data);
     eventAdd("delayPoolsUpdate", delayPoolsUpdate, NULL, 1.0, 1);
     delay_id_ptr_hash = hash_create(delayIdPtrHashCmp, 256, delayIdPtrHash);
 }
@@ -160,10 +160,10 @@ delayIdZero(void *hlink)
 }
 
 void
-delayFreeDelayData(void)
+delayFreeDelayData(unsigned short pools)
 {
     safe_free(delay_data);
-    memory_used -= sizeof(*delay_data);
+    memory_used -= pools * sizeof(*delay_data);
     if (!delay_id_ptr_hash)
 	return;
     hashFreeItems(delay_id_ptr_hash, delayIdZero);

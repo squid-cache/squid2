@@ -754,7 +754,7 @@ free_delay_pool_count(delayConfig * cfg)
 	}
 	aclDestroyAccessList(&cfg->access[i]);
     }
-    delayFreeDelayData();
+    delayFreeDelayData(cfg->pools);
     xfree(cfg->class);
     xfree(cfg->rates);
     xfree(cfg->access);
