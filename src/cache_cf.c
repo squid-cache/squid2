@@ -1585,4 +1585,8 @@ configDoConfigure(void)
     }
     if (httpd_accel_mode && !strcmp(Config.Accel.host, "virtual"))
 	vhost_mode = 1;
+    sprintf(ThisCache, "%s:%d (Squid/%s)",
+	getMyHostname(),
+	(int) Config.Port.http,
+        SQUID_VERSION);
 }

@@ -331,7 +331,7 @@ icpParseRequestHeaders(icpStateData * icpState)
 	    BIT_SET(request->flags, REQ_PROXY_KEEPALIVE);
 #endif
     if ((t = mime_get_header(request_hdr, "Via")))
-	if (strstr(t, getMyHostname())) {
+	if (strstr(t, ThisCache)) {
 	    if (!icpState->accel) {
 		debug(12, 1, "WARNING: Forwarding loop detected for '%s'\n",
 		    icpState->url);

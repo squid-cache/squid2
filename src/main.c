@@ -137,6 +137,7 @@ struct in_addr any_addr;
 struct in_addr theOutICPAddr;
 const char *const dash_str = "-";
 const char *const null_string = "";
+char ThisCache[SQUIDHOSTNAMELEN<<1];
 
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) _PARAMS((const char *));

@@ -701,16 +701,11 @@ httpBuildRequestHeader(request_t * request,
     }
     hdr_len = t - hdr_in;
     /* Append Via: */
-    sprintf(ybuf, "%3.1f %s:%d (Squid/%s)",
-	orig_request->http_ver,
-	getMyHostname(),
-	(int) Config.Port.http,
-	SQUID_VERSION);
+    sprintf(ybuf, "%3.1f %s" orig_request->http_ver, ThisCache);
     strcat(viabuf, ybuf);
     httpAppendRequestHeader(hdr_out, viabuf, &len, out_sz);
     /* Append to X-Forwarded-For: */
-    if (cfd >= 0)
-	strcat(fwdbuf, fd_table[cfd].ipaddr);
+    strcat(fwdbuf, cfd < 0 ? "unknown" : fd_table[cfd].ipaddr);
     httpAppendRequestHeader(hdr_out, fwdbuf, &len, out_sz);
     if (!EBIT_TEST(hdr_flags, HDR_HOST)) {
 	sprintf(ybuf, "Host: %s", orig_request->host);
