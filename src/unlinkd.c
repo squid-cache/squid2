@@ -103,6 +103,7 @@ unlinkdCreate(void)
 	slp.tv_usec = 250000;
 	select(0, NULL, NULL, NULL, &slp);
 	file_open_fd(pfd, "unlinkd socket", FD_PIPE);
+	commSetNonBlocking(pfd);
 	return pfd;
     }
     /* child */
