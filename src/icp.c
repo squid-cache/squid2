@@ -472,7 +472,7 @@ int icpSendMoreData(fd, state)
 	header->opcode = ICP_OP_DATABEG;
     } else if ((entry->mem_obj->e_current_len == entry->object_len) &&
 	    ((entry->object_len - state->offset) == len) &&
-	(entry->status != STORE_PENDING)) {
+	(entry->store_status != STORE_PENDING)) {
 	/* No more data; this is the last message. */
 	header->opcode = ICP_OP_DATAEND;
     } else {
@@ -506,7 +506,7 @@ static void icpHandleStore(fd, entry, state)
     debug(12, 5, "icpHandleStore: FD %d: off %d: <URL:%s>\n",
 	fd, state->offset, entry->url);
 
-    if (entry->status == STORE_ABORTED) {
+    if (entry->store_status == STORE_ABORTED) {
 	state->log_type = entry->mem_obj->abort_code;
 	debug(12, 3, "icpHandleStore: abort_code=%d\n", entry->mem_obj->abort_code);
 	state->ptr_to_4k_page = NULL;	/* Nothing to deallocate */
@@ -555,7 +555,7 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
     } else
 	/* We're finished case */
 	if (state->offset == entry->object_len &&
-	entry->status != STORE_PENDING) {
+	entry->store_status != STORE_PENDING) {
 	CacheInfo->proto_touchobject(CacheInfo,
 	    CacheInfo->proto_id(entry->url),
 	    state->offset);
@@ -879,7 +879,7 @@ int icpHandleUdp(sock, not_used)
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
 	debug(12, 5, "icpHandleUdp: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (entry &&
-	    (entry->status == STORE_OK) &&
+	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
 	    /* Send "HIT" message. */
 	    CacheInfo->log_append(CacheInfo,	/* UDP_HIT */
@@ -1425,7 +1425,7 @@ static void CheckQuickAbort(astm)
 	return;
     if (astm->entry->lock_count != 1)
 	return;
-    if (astm->entry->status == STORE_OK)
+    if (astm->entry->store_status == STORE_OK)
 	return;
     BIT_SET(astm->entry->flag, CLIENT_ABORT_REQUEST);
     storeReleaseRequest(astm->entry);

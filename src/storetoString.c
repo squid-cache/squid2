@@ -1,93 +1,6 @@
-static char rcsid[] = "$Id$";
-/* 
- *  File:         main.c
- *  Description:  main loop for cache
- *  Author:       John Noll, USC
- *  Created:      Mon Dec 13 10:10:28 1993 (John Noll, USC) sfdif
- *  Language:     C
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
- */
-#include "config.h"
-#include <string.h>
-#include "comm.h"
-#include "store.h"
-#include "util.h"
+/* $Id$ */
 
-extern time_t cached_curtime;
+#include "squid.h"
 
 /* convert store entry content to string. Use for debugging */
 /* return pointer to static buffer containing string */
@@ -105,8 +18,8 @@ char *storeToString(e)
     sprintf(stsbuf, "\nStoreEntry @: 0x%p\n****************\n", e);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(stsbuf, "Current Time: %d [%s]\n", (int) cached_curtime,
-	mkhttpdlogtime(&cached_curtime));
+    sprintf(stsbuf, "Current Time: %d [%s]\n", (int) squid_curtime,
+	mkhttpdlogtime(&squid_curtime));
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "Key: %s\n", e->key);
@@ -118,13 +31,7 @@ char *storeToString(e)
     sprintf(tmpbuf, "Next: 0x%p\n", e->next);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "Flags: %#lx ==> ", e->flag);
-#ifdef CACHED1_5
-    if (BIT_TEST(e->flag, SAVED))
-	strncat(tmpbuf, " SAVED", sizeof(tmpbuf) - 1);
-    if (BIT_TEST(e->flag, VERIFYING_OBJ))
-	strncat(tmpbuf, " VERIFYING", sizeof(tmpbuf) - 1);
-#endif
+    sprintf(tmpbuf, "Flags: %#x ==> ", e->flag);
     if (BIT_TEST(e->flag, KEY_CHANGE))
 	strncat(tmpbuf, " KEYCHANGE", sizeof(tmpbuf) - 1);
     if (BIT_TEST(e->flag, CACHABLE))
@@ -161,18 +68,6 @@ char *storeToString(e)
 	mkhttpdlogtime(&t));
     strcat(stsbuf, tmpbuf);
 
-#ifdef CACHED1_5
-    t = (time_t) e->lastverify;
-    sprintf(tmpbuf, "Lastverify: %9d [%s]\n", (int) e->lastverify,
-	mkhttpdlogtime(&t));
-    strcat(stsbuf, tmpbuf);
-
-    t = (time_t) e->lastmodified;
-    sprintf(tmpbuf, "Lastmodified: %9d [%s]\n", (int) e->lastmodified,
-	mkhttpdlogtime(&t));
-    strcat(stsbuf, tmpbuf);
-#endif
-
     sprintf(tmpbuf, "ObjectLen: %d\n", e->object_len);
     strcat(stsbuf, tmpbuf);
 
@@ -180,7 +75,7 @@ char *storeToString(e)
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "Status: ");
-    switch (e->status) {
+    switch (e->store_status) {
 
     case STORE_OK:
 	strcat(tmpbuf, "STORE_OK\n");
@@ -270,28 +165,10 @@ char *storeToString(e)
     strcat(stsbuf, tmpbuf);
 
 
-    sprintf(tmpbuf, "TypeId: ");
-    switch (e->type_id) {
-
-    case REQ_GET:
-	strcat(tmpbuf, "REQ_GET\n");
-	break;
-
-    case REQ_POST:
-	strcat(tmpbuf, "REQ_POST\n");
-	break;
-
-    case REQ_HEAD:
-	strcat(tmpbuf, "REQ_POST\n");
-	break;
-
-    default:
-	strcat(tmpbuf, "UNKNOWN\n");
-	break;
-    }
+    sprintf(tmpbuf, "Method: %s", RequestMethodStr[e->method]);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "RefCount: %ld\n", e->refcount);
+    sprintf(tmpbuf, "RefCount: %u\n", e->refcount);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "LockCount: %d\n", e->lock_count);
@@ -351,17 +228,6 @@ char *storeToString(e)
     sprintf(tmpbuf, "LowestOffset: %d\n", e->mem_obj->e_lowest_offset);
     strcat(stsbuf, tmpbuf);
 
-#ifdef CACHED1_5
-    sprintf(tmpbuf, "FetchStall: %d\n", e->mem_obj->fetch_stall);
-    strcat(stsbuf, tmpbuf);
-
-    sprintf(tmpbuf, "FetchFd: %d\n", e->mem_obj->fetch_fd);
-    strcat(stsbuf, tmpbuf);
-
-    sprintf(tmpbuf, "FetchResumeOffset: %d\n", e->mem_obj->fetch_resume_offset);
-    strcat(stsbuf, tmpbuf);
-#endif
-
     sprintf(tmpbuf, "ClientListSize: %d\n", e->mem_obj->client_list_size);
     strcat(stsbuf, tmpbuf);
 
@@ -383,7 +249,7 @@ char *storeToString(e)
 	}
     }
 
-    sprintf(tmpbuf, "SwapOffset: %lu\n", e->mem_obj->swap_offset);
+    sprintf(tmpbuf, "SwapOffset: %u\n", e->mem_obj->swap_offset);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "SwapFd: %d\n", e->mem_obj->swap_fd);

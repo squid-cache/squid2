@@ -1047,7 +1047,7 @@ char *stat_describe(entry)
     static char state[256];
 
     state[0] = '\0';
-    switch (entry->status) {
+    switch (entry->store_status) {
     case STORE_OK:
 	strncat(state, "STORE-OK", sizeof(state));
 	break;

@@ -228,7 +228,7 @@ int storeHashDelete(hash_ptr)
 
 /*
  * maintain the in-mem hash table according to the changes of mem_status
- * This routine replaces the instruction "e->status = status;"
+ * This routine replaces the instruction "e->store_status = status;"
  */
 
 void storeSetMemStatus(e, status)
@@ -393,7 +393,7 @@ int storeLockObject(e)
 
     if ((e->mem_status == NOT_IN_MEMORY) &&	/* Not in memory */
 	(e->swap_status != SWAP_OK) &&	/* Not on disk */
-	(e->status != STORE_PENDING)	/* Not being fetched */
+	(e->store_status != STORE_PENDING)	/* Not being fetched */
 	) {
 	debug(20, 0, "storeLockObject: NOT_IN_MEMORY && !SWAP_OK && !STORE_PENDING conflict: <URL:%s>. aborting...\n", e->url);
 	/* If this sanity check fails, we should just ... */
@@ -632,7 +632,7 @@ StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
     if (BIT_TEST(flags, REQ_HTML))
 	BIT_SET(e->flag, ENTRY_HTML);
 
-    e->status = STORE_PENDING;
+    e->store_status = STORE_PENDING;
     storeSetMemStatus(e, NOT_IN_MEMORY);
     e->swap_status = NO_SWAP;
     e->swap_file_number = -1;
@@ -685,7 +685,7 @@ StoreEntry *storeAddDiskRestore(url, file_number, size, expires, timestamp)
     BIT_SET(e->flag, CACHABLE);
     BIT_RESET(e->flag, RELEASE_REQUEST);
     BIT_SET(e->flag, ENTRY_HTML);
-    e->status = STORE_OK;
+    e->store_status = STORE_OK;
     storeSetMemStatus(e, NOT_IN_MEMORY);
     e->swap_status = SWAP_OK;
     e->swap_file_number = file_number;
@@ -917,7 +917,7 @@ void storeAppend(e, data, len)
 	debug(20, 8, "storeAppend: e_current_len = %d\n",
 	    e->mem_obj->e_current_len);
     }
-    if ((e->status != STORE_ABORTED) && !(e->flag & DELAY_SENDING))
+    if ((e->store_status != STORE_ABORTED) && !(e->flag & DELAY_SENDING))
 	InvokeHandlers(e);
 }
 
@@ -1514,7 +1514,7 @@ void storeComplete(e)
     e->object_len = e->mem_obj->e_current_len;
     InvokeHandlers(e);
     e->lastref = squid_curtime;
-    e->status = STORE_OK;
+    e->store_status = STORE_OK;
     storeSetMemStatus(e, IN_MEMORY);
     e->swap_status = NO_SWAP;
     if (storeCheckSwapable(e))
@@ -1540,7 +1540,7 @@ int storeAbort(e, msg)
 
     debug(20, 6, "storeAbort: '%s'\n", e->key);
     e->expires = squid_curtime + getNegativeTTL();
-    e->status = STORE_ABORTED;
+    e->store_status = STORE_ABORTED;
     storeSetMemStatus(e, IN_MEMORY);
     /* No DISK swap for negative cached object */
     e->swap_status = NO_SWAP;
@@ -1675,7 +1675,7 @@ int removeOldEntry(e, data)
     debug(20, 6, "removeOldEntry:   *  time-to-live: %8ld\n",
 	e->expires - squid_curtime);
 
-    if ((squid_curtime > e->expires) && (e->status != STORE_PENDING)) {
+    if ((squid_curtime > e->expires) && (e->store_status != STORE_PENDING)) {
 	return (storeRelease(e) == 0 ? 1 : 0);
     }
     return 0;
@@ -1735,7 +1735,7 @@ int storeGetMemSpace(size, check_vm_number)
 
 	n_inmem++;
 
-	if (e->status == STORE_PENDING) {
+	if (e->store_status == STORE_PENDING) {
 	    if (!(e->flag & DELETE_BEHIND)) {
 		/* it's not deleting behind, we can do something about it. */
 		insert_dynamic_array(pending_entry_list, e);
@@ -1752,7 +1752,7 @@ int storeGetMemSpace(size, check_vm_number)
 	if ((e->swap_status == SWAP_OK) && (e->mem_status != SWAPPING_IN) &&
 	    (e->lock_count == 0)) {
 	    insert_dynamic_array(LRU_list, e);
-	} else if (((e->status == STORE_ABORTED) ||
+	} else if (((e->store_status == STORE_ABORTED) ||
 		    (e->swap_status == NO_SWAP)) &&
 	    (e->lock_count == 0)) {
 	    n_aborted++;
@@ -1788,7 +1788,7 @@ int storeGetMemSpace(size, check_vm_number)
 	/* look for vm slot */
 	for (i = 0; (i < LRU_list->index) && (meta_data.hot_vm > store_hotobj_low); ++i) {
 	    if ((LRU = (StoreEntry *) LRU_list->collection[i]))
-		if ((LRU->status != STORE_PENDING) && (LRU->swap_status == NO_SWAP)) {
+		if ((LRU->store_status != STORE_PENDING) && (LRU->swap_status == NO_SWAP)) {
 		    n_released++;
 		    storeRelease(LRU);
 		} else {
@@ -1800,7 +1800,7 @@ int storeGetMemSpace(size, check_vm_number)
 	/* look for space */
 	for (i = 0; (i < LRU_list->index) && ((store_mem_size + size) > store_mem_low); ++i) {
 	    if ((LRU = (StoreEntry *) LRU_list->collection[i]))
-		if ((LRU->status != STORE_PENDING) && (LRU->swap_status == NO_SWAP)) {
+		if ((LRU->store_status != STORE_PENDING) && (LRU->swap_status == NO_SWAP)) {
 		    n_released++;
 		    storeRelease(LRU);
 		} else {
@@ -1971,7 +1971,7 @@ int storeGetSwapSpace(size)
 	    e = (StoreEntry *) link_ptr;
 
 	    /* Identify objects that aren't locked, for replacement */
-	    if ((e->status != STORE_PENDING) &&		/* We're still fetching the object */
+	    if ((e->store_status != STORE_PENDING) &&		/* We're still fetching the object */
 		(e->swap_status == SWAP_OK) &&	/* Only release it if it is on disk */
 		(e->lock_count == 0) &&		/* Be overly cautious */
 		(e->mem_status != SWAPPING_IN)) {	/* Not if it's being faulted into memory */
@@ -2166,7 +2166,7 @@ int storeEntryLocked(e)
 	fatal_dump(NULL);
     }
     return ((e->lock_count) ||
-	(e->status == STORE_PENDING) ||
+	(e->store_status == STORE_PENDING) ||
 	(e->swap_status == SWAPPING_OUT) ||
 	(e->mem_status == SWAPPING_IN)
 	);
@@ -2326,7 +2326,7 @@ int storeEntryValidToSend(e)
 {
     if (squid_curtime < e->expires)
 	return 1;
-    if (e->expires == 0 && e->status == STORE_PENDING)
+    if (e->expires == 0 && e->store_status == STORE_PENDING)
 	return 1;
     return 0;
 }

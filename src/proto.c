@@ -141,7 +141,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	return 0;
     } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */
-	if ((entry->ping_status == DONE) || entry->status == STORE_OK) {
+	if ((entry->ping_status == DONE) || entry->store_status == STORE_OK) {
 	    debug(17, 0, "Starting a source ping for a valid object %s!\n",
 		storeToString(entry));
 	    fatal_dump(NULL);
