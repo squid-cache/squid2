@@ -246,6 +246,15 @@ case "$host" in
         	LIBS=`echo $LIBS | sed -e s/-lsocket//`
         	echo "Removing -lnsl for IRIX..."
         	LIBS=`echo $LIBS | sed -e s/-lnsl//`
+        	echo "Removing -lbsd for IRIX..."
+        	LIBS=`echo $LIBS | sed -e s/-lbsd//`
+		;;
+dnl From: c0032033@ws.rz.tu-bs.de (Joerg Schumacher)
+dnl Date: Thu, 17 Oct 1996 04:09:30 +0200
+dnl Please change your configure script.  AIX doesn't need -lbsd.
+	*-ibm-aix*)
+        	echo "Removing -lbsd for AIX..."
+        	LIBS=`echo $LIBS | sed -e s/-lbsd//`
 		;;
 esac
 
@@ -329,7 +338,7 @@ main() {
 #endif /* HAVE_SETRLIMIT */
 #if HAVE_SYSCONF && defined(_SC_OPEN_MAX)
         i = sysconf(_SC_OPEN_MAX);
-#elif HAVE_GETDTABLESIZE
+#elif HAVE_GETDTABLESIZE && !defined(__linux__)
         i = getdtablesize();
 #elif defined(OPEN_MAX)
         i = OPEN_MAX;
