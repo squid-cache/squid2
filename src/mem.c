@@ -224,6 +224,8 @@ memInit(void)
 	sizeof(fqdncache_entry), 0);
     memDataInit(MEM_FQDNCACHE_PENDING, "fqdn_pending",
 	sizeof(fqdn_pending), 0);
+    memDataInit(MEM_FWD_STATE, "FwdState", sizeof(FwdState), 0);
+    memDataInit(MEM_FWD_SERVER, "FwdServer", sizeof(FwdServer), 0);
     memDataInit(MEM_HASH_LINK, "hash_link", sizeof(hash_link), 0);
     memDataInit(MEM_HASH_TABLE, "hash_table", sizeof(hash_table), 0);
     memDataInit(MEM_HIERARCHYLOGENTRY, "HierarchyLogEntry",
