@@ -555,8 +555,8 @@ clientBuildReplyHeader(clientHttpRequest * http,
     char *hdr_out,
     size_t out_sz)
 {
-    char *xbuf = get_free_4k_page();
-    char *ybuf = get_free_4k_page();
+    char *xbuf;
+    char *ybuf;
     char *t = NULL;
     char *end = NULL;
     size_t len = 0;
@@ -568,6 +568,8 @@ clientBuildReplyHeader(clientHttpRequest * http,
 	debug(12, 3, "\n%s", hdr_in);
 	return 0;
     }
+    xbuf = get_free_4k_page();
+    ybuf = get_free_4k_page();
     for (t = hdr_in; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
 	hdr_len = t - hdr_in;
 	l = strcspn(t, crlf) + 1;
@@ -592,7 +594,6 @@ clientBuildReplyHeader(clientHttpRequest * http,
 	clientAppendReplyHeader(hdr_out, ybuf, &len, out_sz);
     }
     clientAppendReplyHeader(hdr_out, null_string, &len, out_sz);
-    put_free_4k_page(xbuf);
     if (in_len)
 	*in_len = hdr_len;
     if ((l = strlen(hdr_out)) != len) {
@@ -600,6 +601,8 @@ clientBuildReplyHeader(clientHttpRequest * http,
 	len = l;
     }
     debug(11, 3, "clientBuildReplyHeader: OUTPUT:\n%s\n", hdr_out);
+    put_free_4k_page(xbuf);
+    put_free_4k_page(ybuf);
     return len;
 }
 
@@ -611,7 +614,6 @@ icpSendMoreData(void *data, char *buf, size_t size)
     ConnStateData *conn = http->conn;
     int fd = conn->fd;
     char *p = NULL;
-    int x;
     size_t hdrlen;
     size_t newbuflen;
     size_t l = 0;
@@ -620,6 +622,8 @@ icpSendMoreData(void *data, char *buf, size_t size)
     FREE *freefunc = put_free_4k_page;
     assert(size >= 0);
     assert(size <= ICP_SENDMOREDATA_BUF);
+    if (size == 0)
+	debug(12,1,"icpSendMoreData: size=0, %s\n", entry->url);
     if (size < 0) {
 	debug(12, 1, "storeClientCopy returned %d for '%s'\n", size, entry->key);
 	freefunc(buf);
@@ -678,7 +682,6 @@ icpSendMoreData(void *data, char *buf, size_t size)
 	    freefunc = put_free_8k_page;
 	} else if (size < ICP_SENDMOREDATA_BUF && entry->store_status == STORE_PENDING) {
 	    /* wait for more to arrive */
-debug(0,0,"icpSendMoreData: out.offset=%d\n", http->out.offset);
 	    storeClientCopy(entry,
 		http->out.offset,
 		ICP_SENDMOREDATA_BUF,
@@ -688,10 +691,7 @@ debug(0,0,"icpSendMoreData: out.offset=%d\n", http->out.offset);
 	    return;
 	}
     }
-debug(0,0,"icpSendMoreData: out.offset=%d\n", http->out.offset);
-debug(0,0,"icpSendMoreData: size=%d\n", size);
     http->out.offset += size;
-debug(0,0,"icpSendMoreData: out.offset=%d\n", http->out.offset);
     if (http->request->method == METHOD_HEAD) {
 	if ((p = mime_headers_end(buf))) {
 	    *p = '\0';
@@ -712,7 +712,6 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
     http->out.size += size;
     debug(12, 5, "clientWriteComplete: FD %d, sz %d, err %d, off %d, len %d\n",
 	fd, size, errflag, http->out.offset, entry->object_len);
-    debug(0, 0, "clientWriteComplete: out.offset=%d\n", http->out.offset);
     if (errflag) {
 	CheckQuickAbort(http);
 	/* Log the number of bytes that we managed to read */
@@ -1981,6 +1980,7 @@ clientReadRequest(int fd, void *data)
 		k = conn->in.size - 1 - conn->in.offset;
 	    }
 	    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
+	    break;
 	} else {
 	    /* parser returned -1 */
 	    debug(12, 1, "clientReadRequest: FD %d Invalid Request\n", fd);
