@@ -908,7 +908,7 @@ statAvgTick(void *notused)
 	NCountHourHist++;
     }
     if (Config.warnings.high_rptm > 0) {
-	int i = (int) statMedianSvc(1, MEDIAN_HTTP);
+	int i = (int) statMedianSvc(5, MEDIAN_HTTP);
 	if (Config.warnings.high_rptm < i)
 	    debug(18, 0) ("WARNING: Median response time is %d milliseconds\n", i);
     }
