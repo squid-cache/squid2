@@ -222,3 +222,4 @@ beta10:
 	- SIGUSR2 now toggles between full and normal debugging
 	- Close and restart ftpget server during logfile rotation
 	- Added memory pools for request_t and MemObject data structures.
+	- Added new address binding options for more control
