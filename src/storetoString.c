@@ -200,7 +200,10 @@ char *storeToString(e)
     }
 
 
-    sprintf(tmpbuf, "E_swap_buf: %s\n", e->mem_obj->e_swap_buf);
+    if (!e->mem_obj->e_swap_buf)
+	sprintf(tmpbuf, "E_swap_buf: NOT SET\n");
+    else
+	sprintf(tmpbuf, "E_swap_buf: %s\n", e->mem_obj->e_swap_buf);
     strcat(stsbuf, tmpbuf);
     sprintf(tmpbuf, "First_miss: 0x%p\n", e->mem_obj->e_pings_first_miss);
     strcat(stsbuf, tmpbuf);
