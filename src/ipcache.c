@@ -631,6 +631,7 @@ static int ipcache_dnsHandleRead(fd, dnsData)
 	    i->entry = x->entry;
 	    i->error_message = x->error_message;
 	    i->status = x->status;
+	    i->expires = x->expires;
 	    ipcache_call_pending(i);
 	}
     }
