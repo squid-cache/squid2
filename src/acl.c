@@ -1549,7 +1549,7 @@ aclChecklistCreate(const acl_access * A,
      * pointer, so lock it.
      */
     cbdataLock(A);
-    if (checklist->request)
+    if (request != NULL)
     	checklist->request = requestLink(request);
     checklist->src_addr = src_addr;
     for (i = 0; i < ACL_ENUM_MAX; i++)
