@@ -1374,7 +1374,7 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	/* NOTREACHED */
     case ACL_MAXCONN:
 	k = clientdbEstablished(checklist->src_addr, 0);
-	return ((k > ((intlist *) ae->data)->i) ? 0 : 1);
+	return ((k > ((intlist *) ae->data)->i) ? 1 : 0);
 	/* NOTREACHED */
     case ACL_URL_PORT:
 	return aclMatchIntegerRange(ae->data, (int) r->port);
