@@ -173,7 +173,7 @@ struct _cacheinfo {
     /* add a transaction to system log */
     void (*log_append) _PARAMS((struct _cacheinfo * obj,
 	    char *url,
-	    char *id,
+	    struct in_addr,
 	    int size,
 	    char *action,
 	    char *method,

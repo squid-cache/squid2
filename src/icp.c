@@ -199,7 +199,7 @@ static int icpStateFree(fd, icpState)
     elapsed_msec = tvSubMsec(icpState->start, current_time);
     CacheInfo->log_append(CacheInfo,
 	icpState->url,
-	inet_ntoa(icpState->log_addr),
+	icpState->log_addr,
 	size,
 	log_tags[icpState->log_type],
 	RequestMethodStr[icpState->method],
@@ -773,7 +773,7 @@ static void icpLogIcp(queue)
     char *url = (char *) header + sizeof(icp_common_t);
     CacheInfo->log_append(CacheInfo,
 	url,
-	inet_ntoa(queue->address.sin_addr),
+	queue->address.sin_addr,
 	queue->len,
 	log_tags[queue->logcode],
 	IcpOpcodeStr[ICP_OP_QUERY],
@@ -1738,7 +1738,8 @@ int asciiHandleConn(sock, notused)
     if (identLookup)
 	identStart(-1, icpState);
     /* start reverse lookup */
-    fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
+    if (opt_log_fqdn)
+	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
     return 0;
 }
 
