@@ -745,7 +745,7 @@ void neighbors_init()
 	    continue;
 	}
 	debug(15, 1, "Adding a %s: %s/%d/%d\n",
-		t->type, t->host, t->http_port, t->icp_port);
+	    t->type, t->host, t->http_port, t->icp_port);
 
 	e = xcalloc(1, sizeof(edge));
 	e->http_port = t->http_port;
