@@ -8,7 +8,7 @@
 
 #define HTTP_DELETE_GAP   (1<<18)
 
-typedef struct _httpdata {
+typedef struct {
     StoreEntry *entry;
     request_t *request;
     char *req_hdr;
@@ -20,11 +20,11 @@ typedef struct _httpdata {
 				 * icpReadWriteData */
     char *reply_hdr;
     int reply_hdr_state;
-} HttpData;
+} HttpStateData;
 
 static int httpStateFree(fd, httpState)
      int fd;
-     HttpData *httpState;
+     HttpStateData *httpState;
 {
     if (httpState == NULL)
 	return 1;
@@ -66,13 +66,13 @@ int httpCachable(url, method)
 }
 
 /* This will be called when timeout on read. */
-static void httpReadReplyTimeout(fd, data)
+static void httpReadReplyTimeout(fd, httpState)
      int fd;
-     HttpData *data;
+     HttpStateData *httpState;
 {
     StoreEntry *entry = NULL;
 
-    entry = data->entry;
+    entry = httpState->entry;
     debug(11, 4, "httpReadReplyTimeout: FD %d: <URL:%s>\n", fd, entry->url);
     squid_error_entry(entry, ERR_READ_TIMEOUT, NULL);
     comm_set_select_handler(fd, COMM_SELECT_READ, 0, 0);
@@ -80,13 +80,13 @@ static void httpReadReplyTimeout(fd, data)
 }
 
 /* This will be called when socket lifetime is expired. */
-static void httpLifetimeExpire(fd, data)
+static void httpLifetimeExpire(fd, httpState)
      int fd;
-     HttpData *data;
+     HttpStateData *httpState;
 {
     StoreEntry *entry = NULL;
 
-    entry = data->entry;
+    entry = httpState->entry;
     debug(11, 4, "httpLifeTimeExpire: FD %d: <URL:%s>\n", fd, entry->url);
 
     squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
@@ -124,8 +124,8 @@ static void httpCacheNegatively(entry)
 }
 
 
-static void httpProcessReplyHeader(data, buf, size)
-     HttpData *data;
+static void httpProcessReplyHeader(httpState, buf, size)
+     HttpStateData *httpState;
      char *buf;			/* chunk just read by httpReadReply() */
      int size;
 {
@@ -133,7 +133,7 @@ static void httpProcessReplyHeader(data, buf, size)
     char *t = NULL;
     char *t1 = NULL;
     char *t2 = NULL;
-    StoreEntry *entry = data->entry;
+    StoreEntry *entry = httpState->entry;
     char *headers = NULL;
     int room;
     int hdr_len;
@@ -141,25 +141,25 @@ static void httpProcessReplyHeader(data, buf, size)
 
     debug(11, 3, "httpProcessReplyHeader: key '%s'\n", entry->key);
 
-    if (data->reply_hdr == NULL) {
-	data->reply_hdr = get_free_8k_page();
-	memset(data->reply_hdr, '\0', 8192);
+    if (httpState->reply_hdr == NULL) {
+	httpState->reply_hdr = get_free_8k_page();
+	memset(httpState->reply_hdr, '\0', 8192);
     }
-    if (data->reply_hdr_state == 0) {
-	hdr_len = strlen(data->reply_hdr);
+    if (httpState->reply_hdr_state == 0) {
+	hdr_len = strlen(httpState->reply_hdr);
 	room = 8191 - hdr_len;
-	strncat(data->reply_hdr, buf, room < size ? room : size);
+	strncat(httpState->reply_hdr, buf, room < size ? room : size);
 	hdr_len += room < size ? room : size;
-	if (hdr_len > 4 && strncmp(data->reply_hdr, "HTTP/", 5)) {
+	if (hdr_len > 4 && strncmp(httpState->reply_hdr, "HTTP/", 5)) {
 	    debug(11, 3, "httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", entry->key);
-	    data->reply_hdr_state += 2;
+	    httpState->reply_hdr_state += 2;
 	    return;
 	}
 	/* need to take the lowest, non-zero pointer to the end of the headers.
 	 * some objects have \n\n separating header and body, but \r\n\r\n in
 	 * body text. */
-	t1 = strstr(data->reply_hdr, "\r\n\r\n");
-	t2 = strstr(data->reply_hdr, "\n\n");
+	t1 = strstr(httpState->reply_hdr, "\r\n\r\n");
+	t2 = strstr(httpState->reply_hdr, "\n\n");
 	if (t1 && t2)
 	    t = t2 < t1 ? t2 : t1;
 	else
@@ -169,15 +169,15 @@ static void httpProcessReplyHeader(data, buf, size)
 	t += (t == t1 ? 4 : 2);
 	*t = '\0';
 	reply = entry->mem_obj->reply;
-	reply->hdr_sz = t - data->reply_hdr;
+	reply->hdr_sz = t - httpState->reply_hdr;
 	debug(11, 7, "httpProcessReplyHeader: hdr_sz = %d\n", reply->hdr_sz);
-	data->reply_hdr_state++;
+	httpState->reply_hdr_state++;
     }
-    if (data->reply_hdr_state == 1) {
-	headers = xstrdup(data->reply_hdr);
-	data->reply_hdr_state++;
+    if (httpState->reply_hdr_state == 1) {
+	headers = xstrdup(httpState->reply_hdr);
+	httpState->reply_hdr_state++;
 	debug(11, 9, "GOT HTTP REPLY HDR:\n---------\n%s\n----------\n",
-	    data->reply_hdr);
+	    httpState->reply_hdr);
 	t = strtok(headers, "\n");
 	while (t) {
 	    s = t + strlen(t);
@@ -271,9 +271,9 @@ static void httpProcessReplyHeader(data, buf, size)
 /* This will be called when data is ready to be read from fd.  Read until
  * error or connection closed. */
 /* XXX this function is too long! */
-static void httpReadReply(fd, data)
+static void httpReadReply(fd, httpState)
      int fd;
-     HttpData *data;
+     HttpStateData *httpState;
 {
     static char buf[SQUID_TCP_SO_RCVBUF];
     int len;
@@ -282,7 +282,7 @@ static void httpReadReply(fd, data)
     int off;
     StoreEntry *entry = NULL;
 
-    entry = data->entry;
+    entry = httpState->entry;
     if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
 	/* we can terminate connection right now */
 	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
@@ -307,7 +307,7 @@ static void httpReadReply(fd, data)
 	comm_set_select_handler(fd,
 	    COMM_SELECT_READ,
 	    (PF) httpReadReply,
-	    (void *) data);
+	    (void *) httpState);
 	/* disable read timeout until we are below the GAP */
 	comm_set_select_handler_plus_timeout(fd,
 	    COMM_SELECT_TIMEOUT,
@@ -336,9 +336,9 @@ static void httpReadReply(fd, data)
 	    /* reinstall handlers */
 	    /* XXX This may loop forever */
 	    comm_set_select_handler(fd, COMM_SELECT_READ,
-		(PF) httpReadReply, (void *) data);
+		(PF) httpReadReply, (void *) httpState);
 	    comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT,
-		(PF) httpReadReplyTimeout, (void *) data, getReadTimeout());
+		(PF) httpReadReplyTimeout, (void *) httpState, getReadTimeout());
 	} else {
 	    BIT_RESET(entry->flag, CACHABLE);
 	    storeReleaseRequest(entry);
@@ -362,11 +362,11 @@ static void httpReadReply(fd, data)
 	comm_set_select_handler(fd,
 	    COMM_SELECT_READ,
 	    (PF) httpReadReply,
-	    (void *) data);
+	    (void *) httpState);
 	comm_set_select_handler_plus_timeout(fd,
 	    COMM_SELECT_TIMEOUT,
 	    (PF) httpReadReplyTimeout,
-	    (void *) data, getReadTimeout());
+	    (void *) httpState, getReadTimeout());
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
 	/* append the last bit of info we get */
 	storeAppend(entry, buf, len);
@@ -374,32 +374,32 @@ static void httpReadReply(fd, data)
 	comm_close(fd);
     } else {
 	storeAppend(entry, buf, len);
-	if (data->reply_hdr_state < 2 && len > 0)
-	    httpProcessReplyHeader(data, buf, len);
+	if (httpState->reply_hdr_state < 2 && len > 0)
+	    httpProcessReplyHeader(httpState, buf, len);
 	comm_set_select_handler(fd,
 	    COMM_SELECT_READ,
 	    (PF) httpReadReply,
-	    (void *) data);
+	    (void *) httpState);
 	comm_set_select_handler_plus_timeout(fd,
 	    COMM_SELECT_TIMEOUT,
 	    (PF) httpReadReplyTimeout,
-	    (void *) data,
+	    (void *) httpState,
 	    getReadTimeout());
     }
 }
 
 /* This will be called when request write is complete. Schedule read of
  * reply. */
-static void httpSendComplete(fd, buf, size, errflag, data)
+static void httpSendComplete(fd, buf, size, errflag, httpState)
      int fd;
      char *buf;
      int size;
      int errflag;
-     HttpData *data;
+     HttpStateData *httpState;
 {
     StoreEntry *entry = NULL;
 
-    entry = data->entry;
+    entry = httpState->entry;
     debug(11, 5, "httpSendComplete: FD %d: size %d: errflag %d.\n",
 	fd, size, errflag);
 
@@ -407,8 +407,8 @@ static void httpSendComplete(fd, buf, size, errflag, data)
 	put_free_8k_page(buf);	/* Allocated by httpSendRequest. */
 	buf = NULL;
     }
-    data->icp_page_ptr = NULL;	/* So lifetime expire doesn't re-free */
-    data->icp_rwd_ptr = NULL;	/* Don't double free in lifetimeexpire */
+    httpState->icp_page_ptr = NULL;	/* So lifetime expire doesn't re-free */
+    httpState->icp_rwd_ptr = NULL;	/* Don't double free in lifetimeexpire */
 
     if (errflag) {
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
@@ -419,20 +419,20 @@ static void httpSendComplete(fd, buf, size, errflag, data)
 	comm_set_select_handler(fd,
 	    COMM_SELECT_READ,
 	    (PF) httpReadReply,
-	    (void *) data);
+	    (void *) httpState);
 	comm_set_select_handler_plus_timeout(fd,
 	    COMM_SELECT_TIMEOUT,
 	    (PF) httpReadReplyTimeout,
-	    (void *) data,
+	    (void *) httpState,
 	    getReadTimeout());
 	comm_set_fd_lifetime(fd, -1);	/* disable lifetime DPW */
     }
 }
 
 /* This will be called when connect completes. Write request. */
-static void httpSendRequest(fd, data)
+static void httpSendRequest(fd, httpState)
      int fd;
-     HttpData *data;
+     HttpStateData *httpState;
 {
     char *xbuf = NULL;
     char *ybuf = NULL;
@@ -444,17 +444,17 @@ static void httpSendRequest(fd, data)
     int len = 0;
     int buflen;
     int cfd = -1;
-    request_t *req = data->request;
+    request_t *req = httpState->request;
     char *Method = RequestMethodStr[req->method];
 
-    debug(11, 5, "httpSendRequest: FD %d: data %p.\n", fd, data);
+    debug(11, 5, "httpSendRequest: FD %d: httpState %p.\n", fd, httpState);
     buflen = strlen(Method) + strlen(req->urlpath);
-    if (data->req_hdr)
-	buflen += strlen(data->req_hdr);
+    if (httpState->req_hdr)
+	buflen += strlen(httpState->req_hdr);
     buflen += 512;		/* lots of extra */
 
-    if (req->method == METHOD_POST && data->req_hdr) {
-	if ((t = strstr(data->req_hdr, "\r\n\r\n"))) {
+    if (req->method == METHOD_POST && httpState->req_hdr) {
+	if ((t = strstr(httpState->req_hdr, "\r\n\r\n"))) {
 	    post_buf = xstrdup(t + 4);
 	    *(t + 4) = '\0';
 	}
@@ -462,7 +462,7 @@ static void httpSendRequest(fd, data)
     /* Since we limit the URL read to a 4K page, I doubt that the
      * mime header could be longer than an 8K page */
     buf = (char *) get_free_8k_page();
-    data->icp_page_ptr = buf;
+    httpState->icp_page_ptr = buf;
     if (buflen > DISK_PAGE_SIZE) {
 	debug(11, 0, "Mime header length %d is breaking ICP code\n", buflen);
     }
@@ -470,8 +470,8 @@ static void httpSendRequest(fd, data)
 
     sprintf(buf, "%s %s HTTP/1.0\r\n", Method, req->urlpath);
     len = strlen(buf);
-    if (data->req_hdr) {	/* we have to parse the request header */
-	xbuf = xstrdup(data->req_hdr);
+    if (httpState->req_hdr) {	/* we have to parse the request header */
+	xbuf = xstrdup(httpState->req_hdr);
 	for (t = strtok(xbuf, crlf); t; t = strtok(NULL, crlf)) {
 	    if (strncasecmp(t, "User-Agent:", 11) == 0) {
 		ybuf = (char *) get_free_4k_page();
@@ -493,8 +493,8 @@ static void httpSendRequest(fd, data)
     }
     /* Add Forwarded: header */
     ybuf = get_free_4k_page();
-    if (data->entry->mem_obj)
-	cfd = data->entry->mem_obj->fd_of_first_client;
+    if (httpState->entry->mem_obj)
+	cfd = httpState->entry->mem_obj->fd_of_first_client;
     if (cfd < 0) {
 	sprintf(ybuf, "Forwarded: by http://%s:%d/\r\n",
 	    getMyHostname(), getAsciiPortNum());
@@ -515,22 +515,22 @@ static void httpSendRequest(fd, data)
 	xfree(post_buf);
     }
     debug(11, 6, "httpSendRequest: FD %d: buf '%s'\n", fd, buf);
-    data->icp_rwd_ptr = icpWrite(fd,
+    httpState->icp_rwd_ptr = icpWrite(fd,
 	buf,
 	len,
 	30,
 	httpSendComplete,
-	(void *) data);
+	(void *) httpState);
 }
 
-static void httpConnInProgress(fd, data)
+static void httpConnInProgress(fd, httpState)
      int fd;
-     HttpData *data;
+     HttpStateData *httpState;
 {
-    StoreEntry *entry = data->entry;
-    request_t *req = data->request;
+    StoreEntry *entry = httpState->entry;
+    request_t *req = httpState->request;
 
-    debug(11, 5, "httpConnInProgress: FD %d data=%p\n", fd, data);
+    debug(11, 5, "httpConnInProgress: FD %d httpState=%p\n", fd, httpState);
 
     if (comm_connect(fd, req->host, req->port) != COMM_OK) {
 	debug(11, 5, "httpConnInProgress: FD %d: %s\n", fd, xstrerror());
@@ -541,7 +541,7 @@ static void httpConnInProgress(fd, data)
 	    comm_set_select_handler(fd,
 		COMM_SELECT_WRITE,
 		(PF) httpConnInProgress,
-		(void *) data);
+		(void *) httpState);
 	    return;
 	default:
 	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
@@ -551,7 +551,7 @@ static void httpConnInProgress(fd, data)
     }
     /* Call the real write handler, now that we're fully connected */
     comm_set_select_handler(fd, COMM_SELECT_WRITE,
-	(PF) httpSendRequest, (void *) data);
+	(PF) httpSendRequest, (void *) httpState);
 }
 
 int proxyhttpStart(e, url, entry)
@@ -561,7 +561,7 @@ int proxyhttpStart(e, url, entry)
 {
     int sock;
     int status;
-    HttpData *data = NULL;
+    HttpStateData *httpState = NULL;
     request_t *request = NULL;
 
     debug(11, 3, "proxyhttpStart: \"%s %s\"\n",
@@ -579,17 +579,17 @@ int proxyhttpStart(e, url, entry)
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
 	return COMM_ERROR;
     }
-    data = xcalloc(1, sizeof(HttpData));
-    storeLockObject(data->entry = entry, NULL, NULL);
-    data->req_hdr = entry->mem_obj->mime_hdr;
+    httpState = xcalloc(1, sizeof(HttpStateData));
+    storeLockObject(httpState->entry = entry, NULL, NULL);
+    httpState->req_hdr = entry->mem_obj->mime_hdr;
     request = xcalloc(1, sizeof(request_t));
-    data->request = request;
+    httpState->request = request;
     request->link_count++;
     /* register the handler to free HTTP state data when the FD closes */
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
 	(PF) httpStateFree,
-	(void *) data);
+	(void *) httpState);
 
     request->method = entry->method;
     strncpy(request->host, e->host, SQUIDHOSTNAMELEN);
@@ -616,18 +616,18 @@ int proxyhttpStart(e, url, entry)
 	} else {
 	    debug(11, 5, "proxyhttpStart: FD %d: EINPROGRESS.\n", sock);
 	    comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-		(PF) httpLifetimeExpire, (void *) data);
+		(PF) httpLifetimeExpire, (void *) httpState);
 	    comm_set_select_handler(sock, COMM_SELECT_WRITE,
-		(PF) httpConnInProgress, (void *) data);
+		(PF) httpConnInProgress, (void *) httpState);
 	    return COMM_OK;
 	}
     }
     /* Install connection complete handler. */
     fd_note(sock, entry->url);
     comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-	(PF) httpLifetimeExpire, (void *) data);
+	(PF) httpLifetimeExpire, (void *) httpState);
     comm_set_select_handler(sock, COMM_SELECT_WRITE,
-	(PF) httpSendRequest, (void *) data);
+	(PF) httpSendRequest, (void *) httpState);
     return COMM_OK;
 }
 
@@ -640,7 +640,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
 {
     /* Create state structure. */
     int sock, status;
-    HttpData *data = NULL;
+    HttpStateData *httpState = NULL;
 
     debug(11, 3, "httpStart: \"%s %s\"\n",
 	RequestMethodStr[request->method], url);
@@ -653,15 +653,15 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
 	return COMM_ERROR;
     }
-    data = xcalloc(1, sizeof(HttpData));
-    storeLockObject(data->entry = entry, NULL, NULL);
-    data->req_hdr = req_hdr;
-    data->request = request;
+    httpState = xcalloc(1, sizeof(HttpStateData));
+    storeLockObject(httpState->entry = entry, NULL, NULL);
+    httpState->req_hdr = req_hdr;
+    httpState->request = request;
     request->link_count++;
     comm_set_select_handler(sock,
 	COMM_SELECT_CLOSE,
 	(PF) httpStateFree,
-	(void *) data);
+	(void *) httpState);
 
     /* check if IP is already in cache. It must be. 
      * It should be done before this route is called. 
@@ -681,17 +681,17 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
 	} else {
 	    debug(11, 5, "httpStart: FD %d: EINPROGRESS.\n", sock);
 	    comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-		(PF) httpLifetimeExpire, (void *) data);
+		(PF) httpLifetimeExpire, (void *) httpState);
 	    comm_set_select_handler(sock, COMM_SELECT_WRITE,
-		(PF) httpConnInProgress, (void *) data);
+		(PF) httpConnInProgress, (void *) httpState);
 	    return COMM_OK;
 	}
     }
     /* Install connection complete handler. */
     fd_note(sock, entry->url);
     comm_set_select_handler(sock, COMM_SELECT_LIFETIME,
-	(PF) httpLifetimeExpire, (void *) data);
+	(PF) httpLifetimeExpire, (void *) httpState);
     comm_set_select_handler(sock, COMM_SELECT_WRITE,
-	(PF) httpSendRequest, (void *) data);
+	(PF) httpSendRequest, (void *) httpState);
     return COMM_OK;
 }
