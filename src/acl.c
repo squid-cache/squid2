@@ -645,7 +645,7 @@ aclParseUserList(void **current)
     debug(28, 2) ("aclParseUserList: parsing authlist\n");
     if (*current == NULL) {
 	debug(28, 3) ("aclParseUserList: current is null. Creating\n");
-	*current = memAllocate(MEM_ACL_PROXY_AUTH_DATA);	/*we rely on mA. zeroing */
+	*current = memAllocate(MEM_ACL_USER_DATA);	/*we rely on mA. zeroing */
     }
     data = *current;
     if ((t = strtokFile())) {
@@ -1953,7 +1953,7 @@ aclFreeUserData(void *data)
 {
     acl_user_data *d = data;
     splay_destroy(d->names, xfree);
-    memFree(d, MEM_ACL_PROXY_AUTH_DATA);
+    memFree(d, MEM_ACL_USER_DATA);
 }
 
 
