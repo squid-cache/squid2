@@ -225,11 +225,12 @@
  * source code cleaner, so we don't need lots of #ifdefs in other
  * places
  */
-typedef struct {
+struct rusage {
     struct timeval ru_stime;
+    struct timeval ru_utime;
     int ru_maxrss;
     int ru_majflt;
-} rusage;
+};
 #endif
 
 #if !defined(HAVE_GETPAGESIZE) && defined(_SQUID_HPUX_)
