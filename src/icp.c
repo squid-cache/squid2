@@ -823,9 +823,9 @@ static int icpProcessMISS(fd, icpState)
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, (PIF) icpHandleStore, (void *) icpState);
 #if DELAY_HACK
-	_delay_fetch = 0;
-        if (aclCheck(DelayAccessList, icpState->peer.sin_addr, icpState->request))
-	    _delay_fetch = 1;
+    _delay_fetch = 0;
+    if (aclCheck(DelayAccessList, icpState->peer.sin_addr, icpState->request))
+	_delay_fetch = 1;
 #endif
     return (protoDispatch(fd, url, icpState->entry, icpState->request));
 }
