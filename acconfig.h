@@ -35,3 +35,6 @@
 
 /* Define if struct ip has ip_hl member */
 #undef HAVE_IP_HL
+
+/* Define if your compiler supports prototyping */
+#undef HAVE_ANSI_PROTOTYPES

@@ -171,6 +171,13 @@ AC_CHECK_HEADERS( \
 
 AC_C_CONST
 
+AC_MSG_CHECKING(if ANSI prototypes work)
+AC_TRY_COMPILE([int foo(char *); int foo (char *bar) { }],
+[return 1;],
+[AC_DEFINE(HAVE_ANSI_PROTOTYPES)
+AC_MSG_RESULT(yes)],
+AC_MSG_RESULT(no))
+
 AC_MSG_CHECKING(for tm->tm_gmtoff)
 AC_TRY_COMPILE([#include <time.h>
 #include <sys/time.h>],
