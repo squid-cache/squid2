@@ -113,6 +113,7 @@ clientProxyAuthCheck(icpStateData * icpState)
     }
     proxy_user = proxyAuthenticate(icpState->request_hdr);
     xstrncpy(icpState->ident.ident, proxy_user, ICP_IDENT_SZ);
+    xstrncpy(icpState->aclChecklist->ident, proxy_user, ICP_IDENT_SZ);
     debug(33, 6, "clientProxyAuthCheck: user = %s\n", icpState->ident.ident);
 
     if (strcmp(icpState->ident.ident, dash_str) == 0)
