@@ -101,7 +101,7 @@ httpHdrRangeRespSpecPackInto(const HttpHdrRangeSpec * spec, Packer * p)
     if (!known_spec(spec->offset) || !known_spec(spec->length))
 	packerPrintf(p, "*");
     else
-	packerPrintf(p, "%d-%d",
+	packerPrintf(p, "bytes %d-%d",
 	    spec->offset, spec->offset + spec->length - 1);
 }
 
