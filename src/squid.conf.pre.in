@@ -155,6 +155,15 @@
 #local_ip 10.0.0.0
 #local_ip 172.16.0.0
 
+#  TAG: firewall_ip
+#
+#	Just like 'inside_firewall' but for IP addresses.  NOTE:
+#	firewall_ip and local_ip are mutually exclusive.  If you
+#	use firewall_ip then local_ip will be ignored.
+#
+#firewall_ip 10.0.0.0
+#firewall_ip 172.16.0.0
+
 #  TAG:	single_parent_bypass
 #	This tag specifies that it is okay to bypass the hierarchy
 #	"Pinging" when there is only a single parent for a given URL.
@@ -477,7 +486,8 @@ request_size 100
 #
 #  TAG: positive_dns_ttl (in minutes)         
 #	Time-to-Live (TTL) for positive caching of successful DNS lookups.
-#	Default is 6 hours (360 minutes).
+#	Default is 6 hours (360 minutes).  If you want to minimize the
+#	use of Squid's ipcache, set this to 1, not 0.
 #
 #positive_dns_ttl 360
 
@@ -524,11 +534,15 @@ request_size 100
 #
 #client_lifetime 200
 
-# When SIGTERM or SIGHUP is received, the cache is put into "shutdown pending"
-# mode until all active sockets are closed.  This value is the lifetime
-# to set for all open descriptors during shutdown mode.  Any active
-# clients after this many seconds will receive a 'lifetime expire' message
-shutdown_lifetime 30
+#  TAG: shutdown_lifetime (in seconds)
+#
+#	When SIGTERM or SIGHUP is received, the cache is put into
+#	"shutdown pending" mode until all active sockets are closed.
+#	This value is the lifetime to set for all open descriptors
+#	during shutdown mode.  Any active clients after this many
+#	seconds will receive a 'lifetime expire' message
+#
+#shutdown_lifetime 30
 
 #  TAG: clean_rate (in minutes)
 #	How often to force a full garbage collection.   Garbage collection
@@ -564,7 +578,8 @@ shutdown_lifetime 30
 #		F - Friday
 #		A - Saturday
 #	h1:m1 must be less than h2:m2
-# acl aclname pattern  \.gif$ ...
+# acl aclname url_regex  ^http:// ...	# regex matching on whole URL
+# acl aclname urlpath_regex  \.gif$ ...	# regex matching on URL path only
 # acl aclname port     80 70 21 ...
 # acl aclname proto    HTTP FTP ...
 # acl aclname method   GET POST ...
@@ -598,7 +613,7 @@ icp_access  allow  all
 #	Just like 'cache_host_domain' but provides more flexibility by
 #	using ACL's.
 #
-#		cache_host_domain cache-host	[!]aclname ...
+#		cache_host_acl cache-host	[!]aclname ...
 #
 #	NOTE:	* Any number of ACL's may be given for a cache-host,
 #		  either on the same or separate lines.
@@ -733,3 +748,9 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	append_domain must begin with a period.
 #
 #append_domain .yourdomain.com
+
+#  TAG: err_html_text
+#	HTML text to include in error messages.  Make this a "mailto"
+#	URL to your admin address, or maybe just a link to your 
+#	organizations Web page.
+#html_text
