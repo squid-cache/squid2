@@ -194,7 +194,7 @@ hash_create(HASHCMP * cmp_func, int hash_sz, HASHHASH * hash_func)
     hid->buckets = xcalloc(hid->size, sizeof(hash_link *));
     hid->cmp = cmp_func;
     hid->hash = hash_func;
-    hid->current_ptr = NULL;
+    hid->Current = NULL;
     hid->current_slot = 0;
     return hid;
 }
@@ -243,11 +243,12 @@ void *
 hash_first(hash_table * hid)
 {
     int i;
-
     for (i = 0; i < hid->size; i++) {
+	if (NULL == hid->buckets[i])
+	    continue;
 	hid->current_slot = i;
-	if (hid->buckets[i] != NULL)
-	    return (hid->current_ptr = hid->buckets[i]);
+	hid->Current = &hid->buckets[i];
+	return *hid->Current;
     }
     return NULL;
 }
@@ -262,17 +263,19 @@ void *
 hash_next(hash_table * hid)
 {
     int i;
-
-    if (hid->current_ptr != NULL) {
-	hid->current_ptr = hid->current_ptr->next;
-	if (hid->current_ptr != NULL)
-	    return (hid->current_ptr);	/* next item */
+    assert(hid->Current);
+    if (*hid->Current != NULL) {
+	hid->Current = &(*hid->Current)->next;
+	if (*hid->Current != NULL)
+	    return (*hid->Current);	/* next item */
     }
     /* find next bucket */
     for (i = hid->current_slot + 1; i < hid->size; i++) {
+	if (NULL == hid->buckets[i])
+		continue;
 	hid->current_slot = i;
-	if (hid->buckets[i] != NULL)
-	    return (hid->current_ptr = hid->buckets[i]);
+	hid->Current = &hid->buckets[i];
+	return *hid->Current;
     }
     return NULL;		/* end of list */
 }
@@ -288,24 +291,18 @@ hash_next(hash_table * hid)
 void
 hash_remove_link(hash_table * hid, hash_link * hl)
 {
-    hash_link *walker, *prev;
+    hash_link **P;
     int i;
     assert(hl != NULL);
     i = hid->hash(hl->key, hid->size);
-    for (prev = NULL, walker = hid->buckets[i];
-	walker != NULL; prev = walker, walker = walker->next) {
-	if (walker == hl) {
-	    if (prev == NULL) {	/* it's the head */
-		hid->buckets[i] = walker->next;
-	    } else {
-		prev->next = walker->next;	/* skip it */
-	    }
-	    /* fix walker state if needed */
-	    if (walker == hid->current_ptr)
-		hid->current_ptr = walker->next;
+    for (P = &hid->buckets[i]; *P; P = &(*P)->next) {
+	if (*P != hl)
+	    continue;
+	*P = hl->next;
+	if (hid->Current && hl == *hid->Current)
+	        hid->Current = P;	/* back up one */
 	    hid->count--;
 	    return;
-	}
     }
     fatal("hash_remove_link: could not find entry");
 }
