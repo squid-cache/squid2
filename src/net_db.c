@@ -1011,6 +1011,8 @@ netdbClosestParent(request_t * request)
 	p = peerFindByName(h->peername);
 	if (NULL == p)		/* not found */
 	    continue;
+	if (neighborType(p, request) != PEER_PARENT)
+	    continue;
 	if (!peerHTTPOkay(p, request))	/* not allowed */
 	    continue;
 	return p;
