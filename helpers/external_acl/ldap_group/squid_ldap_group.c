@@ -35,6 +35,9 @@
  *
  * History:
  *
+ * Version 2.10
+ * 2003-01-07 Jon Kinred
+ *		Fixed user search mode (-F/-u) when -g is not used
  * Version 2.9
  * 2003-01-03 Henrik Nordstrom <hno@marasystems.com>
  *		Fixed missing string termination on ldap_escape_vale,
@@ -656,6 +659,8 @@ searchLDAP(LDAP *ld, char *group, char *login, char *extension_dn)
 	char *userdn;
 	if (extension_dn && *extension_dn)
 	    snprintf(searchbase, sizeof(searchbase), "%s,%s", extension_dn, userbasedn ? userbasedn : basedn);
+	else
+	    snprintf(searchbase, sizeof(searchbase), "%s", userbasedn ? userbasedn : basedn);
 	ldap_escape_value(escaped_login, sizeof(escaped_login), login);
 	snprintf(filter, sizeof(filter), usersearchfilter, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login, escaped_login);
 	if (debug)
