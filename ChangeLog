@@ -1,6 +1,7 @@
 Changes to squid-1.novm.8 ():
 
 	- Merged squid-1.1.7 and 1.1.8 changes
+	- Fixed missing message from aborted/failed requests.
 
 Changes to squid-1.1.8 (March 3, 1997):
 
