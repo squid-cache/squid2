@@ -782,6 +782,11 @@ storeAppendDone(int fd, int err, int len, StoreEntry * e)
 	fd, err, len, e->key);
     if (err) {
 	debug(20, 0, "storeAppendDone: ERROR %d for '%s'\n", err, e->key);
+        if (err == DISK_NO_SPACE_LEFT) {
+            /* reduce the swap_size limit to the current size. */
+            Config.Swap.maxSize = store_swap_size;
+            storeConfigure();
+        }
 	return;
     }
     e->object_len += len;
@@ -2159,7 +2164,7 @@ storeExpiredReferenceAge(void)
 	return 0;
     x = (double) (store_swap_high - store_swap_size) / (store_swap_high - store_swap_low);
     x = x < 0.0 ? 0.0 : x > 1.0 ? 1.0 : x;
-    z = pow(Config.referenceAge, x);
+    z = pow((double) Config.referenceAge, x);
     age = (time_t) (z * 60.0);
     if (age < 60)
 	age = 60;
