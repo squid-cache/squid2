@@ -31,6 +31,7 @@ Changes to squid-2.5.STABLE3 ():
 	  is not known
 	- Bug #606: Basic auth looping and gets stuck at high CPU usage when
 	  multiple proxy_auth ACLs combined in one line and login fails.
+	- squid_ldap_auth updated with support for TLS and SSL
 
 Changes to squid-2.5.STABLE2 (Mars 17, 2003):
 
