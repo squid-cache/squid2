@@ -223,7 +223,6 @@ typedef int (*QS) (const void *, const void *);
 #include "comm.h"
 #include "debug.h"
 #include "disk.h"
-#include "dynamic_array.h"
 #include "fdstat.h"
 #include "filemap.h"
 #include "hash.h"
