@@ -276,6 +276,20 @@ mimeGetIcon(const char *fn)
 }
 
 char *
+mimeGetIconURL(const char *fn)
+{
+    char *icon = mimeGetIcon(fn);
+    static char iconurl[256];
+    if (icon == NULL)
+	return NULL;
+    snprintf(iconurl, 256, "http://%s:%d/squid-internal/icons/%s",
+	getMyHostname(),
+	Config.Port.http->i,
+	icon);
+    return iconurl;
+}
+
+char *
 mimeGetContentType(const char *fn)
 {
     mimeEntry *m;
@@ -407,9 +421,6 @@ mimeInit(char *filename)
      */
     for (m = MimeTable; m != NULL; m = m->next)
 	mimeLoadIconFile(m->icon);
-    mimeLoadIconFile(ICON_MENU);
-    mimeLoadIconFile(ICON_DIRUP);
-    mimeLoadIconFile(ICON_LINK);
     debug(25, 1) ("Loaded Icons.\n");
 }
 
@@ -428,7 +439,8 @@ mimeLoadIconFile(const char *icon)
     const char *type = mimeGetContentType(icon);
     if (type == NULL)
 	fatal("Unknown icon format while reading mime.conf\n");
-    snprintf(url, MAX_URL, "http://internal.squid/icons/%s", icon);
+    snprintf(url, MAX_URL, "http://%s:%d/squid-internal/icons/%s",
+	getMyHostname(), Config.Port.http->i, icon);
     key = storeKeyPublic(url, METHOD_GET);
     if (storeGet(key))
 	return;
