@@ -1969,9 +1969,8 @@ icpDetectClientClose(int fd, void *data)
 	else
 	    debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	CheckQuickAbort(icpState);
-#ifdef DONT_DO_THIS
 	protoUnregister(fd, entry, icpState->request, icpState->peer.sin_addr);
-#endif
+	entry = icpState->entry;	/* HandleIMS() might change it */
 	if (entry && entry->ping_status == PING_WAITING)
 	    storeReleaseRequest(entry);
 	comm_close(fd);
