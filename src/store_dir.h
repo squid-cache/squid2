@@ -116,6 +116,7 @@ typedef struct {
     int read_only;
     int suggest;
     fileMap *map;
+    int swaplog_fd;
 } SwapDir;
 
 extern char *storeSwapFullPath _PARAMS((int, char *));
