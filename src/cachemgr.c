@@ -1,88 +1,96 @@
-static char rcsid[] = "$Id$";
-/*
- *  cachemgr.c - CGI interface to the Cache Manager.
- *
- *  ----------------------------------------------------------------
- *
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder. 
- *          Duane Wessels of the University of Colorado at Boulder. 
- *  
- *  This copyright notice applies to all code in Harvest other than
- *  subsystems developed elsewhere, which contain other copyright notices
- *  in their source text.
- *  
- *  The Harvest software was developed by the Internet Research Task
- *  Force Research Group on Resource Discovery (IRTF-RD).  The Harvest
- *  software may be used for academic, research, government, and internal
- *  business purposes without charge.  If you wish to sell or distribute
- *  the Harvest software to commercial clients or partners, you must
- *  license the software.  See
- *  http://harvest.cs.colorado.edu/harvest/copyright,licensing.html#licensing.
- *  
- *  The Harvest software is provided ``as is'', without express or
- *  implied warranty, and with no support nor obligation to assist in its
- *  use, correction, modification or enhancement.  We assume no liability
- *  with respect to the infringement of copyrights, trade secrets, or any
- *  patents, and are not responsible for consequential damages.  Proper
- *  use of the Harvest software is entirely the responsibility of the user.
- *  
- *  For those who are using Harvest for non-commercial purposes, you may
- *  make derivative works, subject to the following constraints:
- *  
- *  - You must include the above copyright notice and these accompanying 
- *    paragraphs in all forms of derivative works, and any documentation 
- *    and other materials related to such distribution and use acknowledge 
- *    that the software was developed at the above institutions.
- *  
- *  - You must notify IRTF-RD regarding your distribution of the 
- *    derivative work.
- *  
- *  - You must clearly notify users that your are distributing a modified 
- *    version and not the original Harvest software.
- *  
- *  - Any derivative product is also subject to the restrictions of the 
- *    copyright, including distribution and use limitations.
- */
+/* $Id$ */
+
 #include "config.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include "autoconf.h"
+
 #include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <sys/types.h>
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <grp.h>
+#include <malloc.h>
+#include <memory.h>
+#include <netdb.h>
+#include <pwd.h>
+#include <signal.h>
+#include <time.h>
 #include <sys/param.h>
 #include <sys/time.h>
+#include <sys/resource.h>	/* needs sys/time.h above it */
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <time.h>
-#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/stat.h>
+#include <sys/un.h>
+#include <sys/wait.h>
+
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
+
+#if HAVE_BSTRING_H
+#include <bstring.h>
+#endif
+
+#ifdef HAVE_CRYPT_H
+#include <crypt.h>
+#endif
+
+#if HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
 
 #include "util.h"
 
-static int client_comm_connect();
-
 #define MAX_ENTRIES 10000
-#define INFO        0
-#define CACHED      1
-#define SERVER      2
-#define LOG         3
-#define STATS_G     4
-#define STATS_O     5
-#define STATS_U     6
-#define PARAM       7
-#define RESPT       8
-#define SHUTDOWN    9
-#define REFRESH     10
+
+#define FALSE 0
+#define TRUE !FALSE
+#define LF 10
+#define CR 13
+
+typedef enum {
+	INFO,
+	CACHED,
+	SERVER,
+	LOG,
+	PARAM,
+	STATS_G,
+	STATS_O,
+	STATS_VM,
+	STATS_U,
+	SHUTDOWN,
+	REFRESH,
 #ifdef REMOVE_OBJECT
-#define REMOVE      11
+	REMOVE,
 #endif
-#define FALSE       0
-#define TRUE        1
+	MAXOP
+} op_t;
+
+static char *op_cmds[] = {
+	"info",
+	"squid.conf",
+	"server_list",
+	"log",
+	"parameter",
+	"stats/general",
+	"stats/objects",
+	"stats/vm_objects",
+	"stats/utilization",
+	"shutdown",
+	"<refresh>",
+#ifdef REMOVE_OBJECT
+	"<remove>",
+#endif
+	"<maxop>"
+};
 
 typedef struct {
     char *name;
@@ -91,11 +99,10 @@ typedef struct {
 
 int hasTables = FALSE;
 
-char *script_name = "/Harvest/cgi-bin/cachemgr.cgi";
+char *script_name = "/cgi-bin/cachemgr.cgi";
 char *progname = NULL;
 
-#define LF 10
-#define CR 13
+static int client_comm_connect _PARAMS((int, char *, int));
 
 void print_trailer()
 {
@@ -109,20 +116,18 @@ void print_trailer()
     printf("<HR>\n");
     printf("<ADDRESS>\n");
     printf("Generated %s, by %s/%s@%s\n",
-	tbuf, progname, HARVEST_VERSION, getfullhostname());
+	tbuf, progname, SQUID_VERSION, getfullhostname());
     printf("</ADDRESS>\n");
 }
 
 void noargs_html()
 {
     printf("\r\n\r\n");
-    printf("<TITLE>Harvest Cache Manager Interface</TITLE>\n");
+    printf("<TITLE>Cache Manager Interface</TITLE>\n");
     printf("<H1>Cache Manager Interface</H1>\n");
     printf("<P>\n");
     printf("This is a WWW interface to the instrumentation interface ");
-    printf("for the\n");
-    printf("<A HREF=\"http://harvest.cs.colorado.edu/\">\n");
-    printf("\tHarvest object cache</A>.\n");
+    printf("for the Squid object cache.\n");
     printf("<HR>\n");
     printf("<P>\n");
     printf("<FORM METHOD=\"POST\" ACTION=\"%s\">\n", script_name);
@@ -138,11 +143,8 @@ void noargs_html()
     printf("<BR><STRONG>Operation :</STRONG>");
     printf("<SELECT NAME=\"operation\">\n");
     printf("<OPTION SELECTED VALUE=\"info\">Cache Information\n");
-    printf("<OPTION VALUE=\"cached.conf\">Cache Configuration File\n");
+    printf("<OPTION VALUE=\"squid.conf\">Cache Configuration File\n");
     printf("<OPTION VALUE=\"parameter\">Cache Parameters\n");
-#ifdef MENU_RESPONSETIME
-    printf("<OPTION VALUE=\"responsetime\">Cache Response Time Histogram\n");
-#endif
 #ifdef MENU_SHOW_LOG
     printf("<OPTION VALUE=\"log\">Cache Log\n");
 #endif
@@ -268,6 +270,9 @@ void parse_object(char *string)
 
     /* Parse out the url */
     url = strtok(tmp_line, w_space);
+
+    if (!url)
+	return;
 
 #if !ALL_OBJECTS
     if (!strncmp(url, "cache_object", 12))
@@ -411,67 +416,80 @@ int main(int argc, char *argv[])
     }
     close(0);
 
-    if (!strncmp(operation, "info", 4) ||
-	!strncmp(operation, "Cache Information", 17)) {
+    if (!strcmp(operation, "info") ||
+	!strcmp(operation, "Cache Information")) {
 	op = INFO;
-	sprintf(msg, "GET cache_object://%s/info\r\n", hostname);
-    } else if (!strncmp(operation, "cached.conf", 10) ||
-	!strncmp(operation, "Cache Configuration File", 24)) {
+    } else if (!strcmp(operation, "squid.conf") ||
+	!strcmp(operation, "Cache Configuration File")) {
 	op = CACHED;
-	sprintf(msg, "GET cache_object://%s/cached.conf\r\n", hostname);
-    } else if (!strncmp(operation, "server_list", 11) ||
-	!strncmp(operation, "Cache Server List", 17)) {
+    } else if (!strcmp(operation, "server_list") ||
+	!strcmp(operation, "Cache Server List")) {
 	op = SERVER;
-	sprintf(msg, "GET cache_object://%s/server_list\r\n", hostname);
 #ifdef MENU_SHOW_LOG
-    } else if (!strncmp(operation, "log", 3) ||
-	!strncmp(operation, "Cache Log", 9)) {
+    } else if (!strcmp(operation, "log") ||
+	!strcmp(operation, "Cache Log")) {
 	op = LOG;
-	sprintf(msg, "GET cache_object://%s/log\r\n", hostname);
 #endif
-    } else if (!strncmp(operation, "parameter", 9) ||
-	!strncmp(operation, "Cache Parameters", 16)) {
+    } else if (!strcmp(operation, "parameter") ||
+	!strcmp(operation, "Cache Parameters")) {
 	op = PARAM;
-	sprintf(msg, "GET cache_object://%s/parameter\r\n", hostname);
-#ifdef MENU_RESPONSETIME
-    } else if (!strncmp(operation, "responsetime", 11) ||
-	!strncmp(operation, "Cache Response Time Histogram", 28)) {
-	op = RESPT;
-	sprintf(msg, "GET cache_object://%s/responsetime\r\n", hostname);
-#endif
-    } else if (!strncmp(operation, "stats/general", 13) ||
-	!strncmp(operation, "General Statistics", 18)) {
+    } else if (!strcmp(operation, "stats/general") ||
+	!strcmp(operation, "General Statistics")) {
 	op = STATS_G;
-	sprintf(msg, "GET cache_object://%s/stats/general\r\n", hostname);
-    } else if (!strncmp(operation, "stats/vm_objects", 16)) {
+    } else if (!strcmp(operation, "stats/vm_objects") ||
+	!strcmp(operation, "VM_Objects")) {
+	op = STATS_VM;
+    } else if (!strcmp(operation, "stats/objects") ||
+	!strcmp(operation, "Objects")) {
 	op = STATS_O;
-	sprintf(msg, "GET cache_object://%s/stats/vm_objects\r\n", hostname);
-    } else if (!strncmp(operation, "stats/objects", 13) ||
-	!strncmp(operation, "Objects", 7)) {
-	op = STATS_O;
-	sprintf(msg, "GET cache_object://%s/stats/objects\r\n", hostname);
-    } else if (!strncmp(operation, "stats/utilization", 17) ||
-	!strncmp(operation, "Utilization", 11)) {
+    } else if (!strcmp(operation, "stats/utilization") ||
+	!strcmp(operation, "Utilization")) {
 	op = STATS_U;
-	sprintf(msg, "GET cache_object://%s/stats/utilization\r\n", hostname);
-    } else if (!strncmp(operation, "shutdown", 8)) {
+    } else if (!strcmp(operation, "shutdown")) {
 	op = SHUTDOWN;
-	sprintf(msg, "GET cache_object://%s/shutdown@%s\r\n", hostname, password);
-    } else if (!strncmp(operation, "refresh", 7)) {
+    } else if (!strcmp(operation, "refresh")) {
 	op = REFRESH;
-	sprintf(msg, "GET %s HTTP/1.0\r\nPragma: no-cache\r\nAccept: */*\r\n\r\n", url);
 #ifdef REMOVE_OBJECT
-    } else if (!strncmp(operation, "remove", 6)) {
+    } else if (!strcmp(operation, "remove")) {
 	op = REMOVE;
-	/* Peter: not sure what to do here - depends what you do at your end! */
-	sprintf(msg, "REMOVE %s HTTP/1.0\r\nPragma: no-cache\r\nAccept: */*\r\n\r\n", url);
 #endif
-
     } else {
 	printf("Unknown operation: %s\n", operation);
 	exit(0);
     }
 
+    switch (op) {
+    case INFO:
+    case CACHED:
+    case SERVER:
+    case LOG:
+    case PARAM:
+    case STATS_G:
+    case STATS_O:
+    case STATS_VM:
+    case STATS_U:
+	sprintf(msg, "GET cache_object://%s/%s HTTP/1.0\r\n\r\n",
+		hostname, op_cmds[op]);
+	break;
+    case SHUTDOWN:
+	sprintf(msg, "GET cache_object://%s/%s@%s HTTP/1.0\r\n\r\n",
+		hostname, op_cmds[op], password);
+	break;
+    case REFRESH:
+	sprintf(msg, "GET %s HTTP/1.0\r\nPragma: no-cache\r\nAccept: */*\r\n\r\n", url);
+	break;
+#ifdef REMOVE_OBJECT
+    case REMOVE:
+	printf("Remove not yet supported\n");
+	exit(0);
+	/* NOTREACHED */
+#endif
+    default:
+    case MAXOP:
+	printf("Unknown operation: %s\n", operation);
+	exit(0);
+	/* NOTREACHED */
+    }
 
     time_val = time(NULL);
     time_string = ctime(&time_val);
@@ -482,11 +500,8 @@ int main(int argc, char *argv[])
     printf("<SELECT NAME=\"operation\">\n");
     printf("<OPTION SELECTED VALUE=\"%s\">Current\n", operation);
     printf("<OPTION VALUE=\"info\">Cache Information\n");
-    printf("<OPTION VALUE=\"cached.conf\">Cache Configuration File\n");
+    printf("<OPTION VALUE=\"squid.conf\">Cache Configuration File\n");
     printf("<OPTION VALUE=\"parameter\">Cache Parameters\n");
-#ifdef MENU_RESPONSETIME
-    printf("<OPTION VALUE=\"responsetime\">Cache Response Time Histogram\n");
-#endif
 #ifdef MENU_SHOW_LOG
     printf("<OPTION VALUE=\"log\">Cache Log\n");
 #endif
@@ -534,6 +549,7 @@ int main(int argc, char *argv[])
     case LOG:
     case STATS_G:
     case STATS_O:
+    case STATS_VM:
     case SHUTDOWN:
     case REFRESH:
 	break;
@@ -543,14 +559,6 @@ int main(int argc, char *argv[])
 	    in_table = 1;
 	} else {
 	    printf("<B>\n %20s %10s %s</B><HR>\n", "Parameter", "Value", "Description");
-	}
-	break;
-    case RESPT:
-	if (hasTables) {
-	    printf("<table border=1><td><B>Time (msec)</B><td><B>Frequency</B><tr>\n");
-	    in_table = 1;
-	} else {
-	    printf("<B>\n %20s %10s </B><HR>\n", "Time (msec)", "Frequency");
 	}
 	break;
     case STATS_U:
@@ -622,16 +630,6 @@ int main(int argc, char *argv[])
 		    else
 			printf(" %20s %10d %s\n", s1, d1, s2 + 2);
 		    break;
-		case RESPT:
-		    p_state = 1;
-		    memset(s1, '\0', 255);
-		    d1 = 0;
-		    sscanf(reserve, "%s %d", s1, &d1);
-		    if (hasTables)
-			printf("<tr><td><B>%s</B><td>%d\n", s1, d1);
-		    else
-			printf(" %20s %10d\n", s1, d1);
-		    break;
 		case STATS_U:
 		    p_state = 1;
 		    sscanf(reserve, "%s %d %d %d %d %f %d %d %d",
@@ -644,6 +642,7 @@ int main(int argc, char *argv[])
 			    s1, d1, d2, d3, d4, f1, d5, d6, d7);
 		    break;
 		case STATS_O:
+		case STATS_VM:
 		    if (!in_list) {
 			in_list = 1;
 			printf("<OL>\n");
