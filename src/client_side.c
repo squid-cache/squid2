@@ -1887,11 +1887,11 @@ clientCheckTransferDone(clientHttpRequest * http)
 	return 0;		/* haven't found end of headers yet */
     else if (reply->code == HTTP_OK)
 	sending = SENDING_BODY;
-    else if (reply->content_length < 0)
-	sending = SENDING_HDRSONLY;
     else if (reply->code == HTTP_NO_CONTENT)
 	sending = SENDING_HDRSONLY;
     else if (reply->code == HTTP_NOT_MODIFIED)
+	sending = SENDING_HDRSONLY;
+    else if (reply->code < HTTP_OK)
 	sending = SENDING_HDRSONLY;
     else if (http->request->method == METHOD_HEAD)
 	sending = SENDING_HDRSONLY;
