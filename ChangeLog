@@ -16,6 +16,8 @@ Changes to squid-1.1.19 (December 15, 1997):
 	  the redirector output by prepending "301:" or "302:" to the
 	  new url.  See FAQ 4.16 for more details.
 	- Fixed errorpage.c buffer overrun.
+	- Changed storeInit() to allocate 1.5 times the estimated number
+	  of cache objects for the 'filemap' bitmap.
 
 Changes to squid-1.1.18 (October 31, 1997):
 
