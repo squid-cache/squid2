@@ -265,13 +265,23 @@ ftpStateFree(int fdnotused, void *data)
     storeUnlockObject(ftpState->entry);
     if (ftpState->reply_hdr) {
 	memFree(ftpState->reply_hdr, MEM_8K_BUF);
+	/* this seems unnecessary, but people report SEGV's
+	 * when freeing memory in this function */
 	ftpState->reply_hdr = NULL;
     }
     requestUnlink(ftpState->request);
-    if (ftpState->ctrl.buf)
+    if (ftpState->ctrl.buf) {
 	ftpState->ctrl.freefunc(ftpState->ctrl.buf);
-    if (ftpState->data.buf)
+	/* this seems unnecessary, but people report SEGV's
+	 * when freeing memory in this function */
+	ftpState->ctrl.buf = NULL;
+    }
+    if (ftpState->data.buf) {
 	ftpState->data.freefunc(ftpState->data.buf);
+	/* this seems unnecessary, but people report SEGV's
+	 * when freeing memory in this function */
+	ftpState->data.buf = NULL;
+    }
     if (ftpState->pathcomps)
 	wordlistDestroy(&ftpState->pathcomps);
     if (ftpState->ctrl.message)
