@@ -426,7 +426,7 @@ snmp_meshPtblFn(variable_list * Var, snint * ErrP)
 	Answer->val_len = sizeof(snint);
 	Answer->val.integer = xmalloc(Answer->val_len);
 	Answer->type = ASN_INTEGER;
-	*(Answer->val.integer) = (snint) p->icp_port;
+	*(Answer->val.integer) = (snint) p->icp.port;
 	break;
     case MESH_PTBL_TYPE:
 	Answer->val_len = sizeof(snint);
