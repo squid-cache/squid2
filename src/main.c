@@ -388,6 +388,9 @@ static void mainInitialize()
     }
     squid_signal(SIGPIPE, SIG_IGN, SA_RESTART);
     squid_signal(SIGCHLD, sig_child, SA_NODEFER | SA_RESTART);
+#if USE_ASYNC_IO
+    squid_signal(SIGIO, aioSigHandler, SA_RESTART);
+#endif
 
     if (ConfigFile == NULL)
 	ConfigFile = xstrdup(DefaultConfigFile);

@@ -124,6 +124,9 @@
 #if HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
+#if USE_ASYNC_IO && HAVE_AIO_H
+#include <aio.h>
+#endif
 
 #if defined(__STRICT_ANSI__)
 #include <stdarg.h>

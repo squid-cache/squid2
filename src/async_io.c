@@ -1,8 +1,40 @@
 
+/*
+ * $Id$
+ *
+ * DEBUG: section 5     Asynchronous Disk I/O
+ * AUTHOR: Pete Bentley <pete@demon.net>
+ *
+ * SQUID Internet Object Cache  http://www.nlanr.net/Squid/
+ * --------------------------------------------------------
+ *
+ *  Squid is the result of efforts by numerous individuals from the
+ *  Internet community.  Development is led by Duane Wessels of the
+ *  National Laboratory for Applied Network Research and funded by
+ *  the National Science Foundation.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  
+ */
+
 #if USE_ASYNC_IO
 
-static int file_aio_queue_write(int, int (*)(int, FileEntry *), FileEntry *);
-static int file_aio_queue_read(int, int (*)(int, dread_ctrl *), dread_ctrl *);
+#include "squid.h"
+
+static int aioFileQueueWrite _PARAMS((int, int (*)(int, FileEntry *), FileEntry *));
+static int aioFileQueueRead _PARAMS((int, int (*)(int, dread_ctrl *), dread_ctrl *));
 
 /*
  * This is a totally bogus signal handler, it only exists so that when doing
@@ -15,9 +47,10 @@ static int file_aio_queue_read(int, int (*)(int, dread_ctrl *), dread_ctrl *);
 void aioSigHandler(sig)
      int sig;
 {
-    signal(sig, sig_io);
+#if !HAVE_SIGACTION
+    signal(sig, aioSigHandler);
+#endif
 }
-
 
 int aioFileWriteComplete(fd, entry)
      int fd;
@@ -34,7 +67,7 @@ int aioFileWriteComplete(fd, entry)
     if (rc != 0) {
 	/* disk i/o failure--flushing all outstanding writes  */
 	errno = rc;
-	debug(6, 1, "file_aio_write_complete: FD %d: disk write error: %s\n",
+	debug(6, 1, "aioFileWriteComplete: FD %d: disk write error: %s\n",
 	    fd, xstrerror());
 	entry->write_daemon = NOT_PRESENT;
 	entry->write_pending = NO_WRT_PENDING;
@@ -96,11 +129,13 @@ int aioFileWriteComplete(fd, entry)
 	safe_free(q);
 	/* Schedule next write */
 	entry->write_daemon = PRESENT;
-	return file_aio_queue_write(fd, file_aio_write_complete,
+	return aioFileQueueWrite(fd,
+	    aioFileWriteComplete,
 	    &file_table[fd]);
     } else {			/* !Block_completed; block incomplete */
 	/* reschedule */
-	return file_aio_queue_write(fd, file_aio_write_complete,
+	return aioFileQueueRead(fd,
+	    aioFileWriteComplete,
 	    &file_table[fd]);
 	entry->write_daemon = PRESENT;
     }
@@ -127,7 +162,7 @@ int aioFileReadComplete(fd, ctrl_dat)
     ctrl_dat->offset += rc;
     if ((rc < ctrl_dat->req_len) && (rc != 0)) {
 	/* Incomplete read, queue more --- This shouldn't happen! */
-	file_aio_queue_read(fd, file_aio_read_complete, ctrl_dat);
+	aioFileQueueRead(fd, aioFileReadComplete, ctrl_dat);
     } else {
 	int flag = rc ? DISK_OK : DISK_EOF;
 	ctrl_dat->handler(fd, ctrl_dat->buf, ctrl_dat->cur_len, flag,

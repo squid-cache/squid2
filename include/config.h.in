@@ -41,6 +41,10 @@
 #define XFER_TIMEOUT    120     /* 2 minutes */
 #endif
 
+#ifndef USE_ASYNC_IO
+#define USE_ASYNC_IO 0
+#endif
+
 /****************************************************************************
  *--------------------------------------------------------------------------*
  * DO *NOT* MAKE ANY CHANGES below here unless you know what you're doing...*
