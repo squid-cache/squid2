@@ -423,6 +423,12 @@ idnsALookup(const char *name, IDNSCB * callback, void *data)
     idns_query *q = memAllocate(MEM_IDNS_QUERY);
     q->sz = sizeof(q->buf);
     q->id = rfc1035BuildAQuery(name, q->buf, &q->sz);
+    if (0 == q->id) {
+	/* problem with query data -- query not sent */
+	callback(data, NULL, 0);
+	memFree(q, MEM_IDNS_QUERY);
+	return;
+    }
     debug(78, 3) ("idnsALookup: buf is %d bytes for %s, id = %#hx\n",
 	(int) q->sz, name, q->id);
     q->callback = callback;
