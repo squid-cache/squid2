@@ -257,9 +257,15 @@
 
 #if STORE_KEY_SHA
 #undef STORE_KEY_URL
+#undef STORE_KEY_MD5
 #include "sha.h"
+#elif STORE_KEY_MD5
+#undef STORE_KEY_URL
+#undef STORE_KEY_SHA
+#include "md5.h"
 #else
 #undef STORE_KEY_SHA
+#undef STORE_KEY_MD5
 #define STORE_KEY_URL 1
 #define storeKeyHashCmp urlcmp
 #define storeKeyHashHash hash4

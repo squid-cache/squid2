@@ -109,10 +109,7 @@ v2md5auth_password_to_key(password, passwordlen, agentID, key)
 }
 
 void
-md5Digest(msg, length, key, digest)
-     u_char *msg;
-     int length;
-     u_char *digest;
+md5Digest(u_char *msg, int length, u_char *key, u_char *digest)
 {
     MD5_CTX MD;
 

@@ -49,8 +49,6 @@ static struct sockaddr_in local_snmpd;
 void snmpFwd_insertPending(struct sockaddr_in *, long);
 int snmpFwd_removePending(struct sockaddr_in *, long);
 extern int init_agent_auth();
-extern fqdncache_entry *fqdncache_GetFirst();
-extern fqdncache_entry *fqdncache_GetNext();
 extern int memoryAccounted();
 extern int snmp_agent_parse(char *, int, char *, int *, u_long, long *);
 extern int read_config();
@@ -1504,7 +1502,7 @@ var_fqdn_entry(struct variable * vp, oid * name, int *length, int exact, int
 
     debug(49, 5) ("snmp var_fqdn_entry: hey, here we are.\n");
 
-    fq = fqdncache_GetFirst();
+    fq = NULL;
     i = 0;
     while (fq != NULL) {
 	newname[vp->namelen] = i + 1;
@@ -1514,7 +1512,7 @@ var_fqdn_entry(struct variable * vp, oid * name, int *length, int exact, int
 	    break;
 	}
 	i++;
-	fq = fqdncache_GetNext();
+	fq = NULL;
     }
     if (fq == NULL)
 	return NULL;

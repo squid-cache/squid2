@@ -36,6 +36,7 @@ UTILOBJS	= rfc1123.o \
 		  iso3307.o \
 		  snprintf.o \
 		  sha.o \
+		  md5.o \
 		  $(LIBOBJS)
 REGEXOBJS	= GNUregex.o
 LIBS		= libmiscutil.a @LIBREGEX@

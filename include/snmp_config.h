@@ -16,7 +16,6 @@ typedef struct _viewEntry {
     int viewType;
     int viewSubtreeLen;
     oid viewSubtree[32];
-
     struct _viewEntry *next;
 } viewEntry;
 
@@ -24,7 +23,6 @@ typedef struct _communityEntry {
     char name[64];
     int readView;
     int writeView;
-
     struct _communityEntry *next;
 } communityEntry;
 
@@ -38,7 +36,6 @@ typedef struct _usecEntry {
     int noauthWriteView;
     int authReadView;
     int authWriteView;
-
     struct _usecEntry *next;
 } usecEntry;
 

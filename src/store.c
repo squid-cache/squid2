@@ -1133,6 +1133,10 @@ storeDoRebuildFromDisk(void *data)
 	size = (off_t) scan5;
 
 	key = storeKeyScan(keytext);
+	if (key == NULL) {
+	    debug(20,1)("storeDoRebuildFromDisk: bad key: '%s'\n", keytext);
+	    continue;
+	}
 	e = storeGet(key);
 	used = storeDirMapBitTest(sfileno);
 	/* If this URL already exists in the cache, does the swap log
