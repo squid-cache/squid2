@@ -98,7 +98,7 @@ leakTouchFL(void *p, const char *file, int line)
 }
 
 void *
-leakFree(void *p)
+leakFreeFL(void *p, const char *file, int line)
 {
     ptr *c = (ptr *) hash_lookup(htable, p);
     assert(p);

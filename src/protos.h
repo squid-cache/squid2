@@ -1220,7 +1220,7 @@ extern void helperFree(helper *);
 extern void leakInit(void);
 extern void *leakAddFL(void *, const char *, int);
 extern void *leakTouchFL(void *, const char *, int);
-extern void *leakFree(void *);
+extern void *leakFreeFL(void *, const char *, int);
 #endif
 
 /*
