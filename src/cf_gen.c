@@ -357,7 +357,7 @@ gen_parse(Entry * head, FILE * fp)
     Entry *entry;
 
     fprintf(fp,
-	"int\n"
+	"static int\n"
 	"parse_line(char *buff)\n"
 	"{\n"
 	"\tint\tresult = 1;\n"
@@ -400,7 +400,7 @@ gen_dump(Entry * head, FILE * fp)
 {
     Entry *entry;
     fprintf(fp,
-	"static void\n"
+	"void\n"
 	"dump_config(StoreEntry *entry)\n"
 	"{\n"
 	);
