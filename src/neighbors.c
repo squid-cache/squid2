@@ -664,8 +664,8 @@ void neighbors_cf_domain(host, domain)
 	    break;
     }
     if (t == NULL) {
-	debug(15,0,"%s, line %d: No cache_host '%s'\n",
-		cfg_filename, config_lineno, host);
+	debug(15, 0, "%s, line %d: No cache_host '%s'\n",
+	    cfg_filename, config_lineno, host);
 	return;
     }
     l = xmalloc(sizeof(dom_list));
