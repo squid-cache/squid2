@@ -1179,7 +1179,7 @@ int icpHandleUdp(sock, not_used)
 		IcpOpcodeStr[header.opcode]);
 	    break;
 	}
-	neighborsUdpAck(sock, url, &header, &from, entry, data, data_sz);
+	neighborsUdpAck(sock, url, &header, &from, entry, data, (int) data_sz);
 	break;
 
     default:

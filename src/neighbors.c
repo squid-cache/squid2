@@ -486,7 +486,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
      struct sockaddr_in *from;
      StoreEntry *entry;
      char *data;
-     u_short data_sz;
+     int data_sz;
 {
     edge *e = NULL;
     MemObject *m = entry->mem_obj;

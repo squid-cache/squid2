@@ -101,7 +101,7 @@ extern int neighborsUdpPing _PARAMS((protodispatch_data *));
 extern void neighbors_cf_domain _PARAMS((char *, char *));
 extern neighbors *neighbors_create _PARAMS(());
 extern void hierarchy_log_append _PARAMS((char *, hier_code, int, char *));
-extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *, char *, u_short));
+extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *, char *, int));
 extern void neighbors_cf_add _PARAMS((char *, char *, int, int, int, int));
 extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));
