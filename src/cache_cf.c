@@ -595,6 +595,7 @@ parse_peer(peer ** head)
     p->http_port = CACHE_HTTP_PORT;
     p->icp_port = CACHE_ICP_PORT;
     p->weight = 1;
+    p->stats.logged_state = PEER_ALIVE;
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
     p->host = xstrdup(token);
