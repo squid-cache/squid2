@@ -197,10 +197,7 @@ authenticateAuthUserRequestNew(void)
 	auth_user_request_pool = memPoolCreate("Authenticate Request Data", sizeof(auth_user_request_t));
     temp_request = memPoolAlloc(auth_user_request_pool);
     assert(temp_request != NULL);
-    temp_request->auth_user = NULL;
-    temp_request->message = NULL;
-    temp_request->scheme_data = NULL;
-    temp_request->references = 0;
+    memset(temp_request, '\0', sizeof(auth_user_request_t));
     return temp_request;
 }
 

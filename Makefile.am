@@ -3,7 +3,7 @@
 # $Id$
 #
 
-AUTOMAKE_OPTIONS = dist-bzip2 subdir-objects VERSION=1.5
+AUTOMAKE_OPTIONS = dist-bzip2 subdir-objects 1.5
 DIST_SUBDIRS	= lib snmplib scripts src icons errors contrib doc
 SUBDIRS		= lib @makesnmplib@ scripts src icons errors doc
 
