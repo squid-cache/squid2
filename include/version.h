@@ -12,5 +12,5 @@
 #endif
 
 #ifndef CURRENT_MIB_VERSION
-#define CURRENT_MIB_VERSION "Id: mib.txt,v 1.11 1998/02/26 23:16:52 kostas Exp $"
+#define CURRENT_MIB_VERSION "v 1.12 1998/03/16 kostas@nlanr.net"
 #endif
