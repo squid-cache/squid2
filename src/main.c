@@ -194,6 +194,7 @@ static void mainInitialize()
 {
     static int first_time = 1;
 
+
     if (catch_signals) {
 	signal(SIGSEGV, death);
 	signal(SIGBUS, death);
@@ -204,6 +205,7 @@ static void mainInitialize()
     if (ConfigFile == NULL)
 	ConfigFile = xstrdup(DefaultConfigFile);
     parseConfigFile(ConfigFile);
+    check_suid();
 
     if (asciiPortNumOverride > 0)
 	setAsciiPortNum(asciiPortNumOverride);
@@ -228,9 +230,6 @@ static void mainInitialize()
 #if defined(MALLOC_DBG)
     malloc_debug(0, malloc_debug_level);
 #endif
-
-    /* do suid checking */
-    check_suid();
 
     if (first_time) {
 	first_time = 0;
