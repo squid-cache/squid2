@@ -525,7 +525,7 @@ snmpDecodePacket(snmp_request_t * rq)
 	snmp_free_pdu(PDU);
     }
     if (Community)
-	free(Community);
+	xfree(Community);
 }
 
 /*
