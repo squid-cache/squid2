@@ -195,7 +195,8 @@ gopherStateFree(int fd, void *data)
 	storeUnlockObject(gopherState->entry);
     }
     put_free_4k_page(gopherState->buf);
-    xfree(gopherState);
+    gopherState->buf = NULL;
+    cbdataFree(gopherState);
 }
 
 
@@ -933,6 +934,7 @@ static GopherStateData *
 CreateGopherStateData(void)
 {
     GopherStateData *gd = xcalloc(1, sizeof(GopherStateData));
+    cbdataAdd(gd);
     gd->buf = get_free_4k_page();
     return (gd);
 }

@@ -134,7 +134,7 @@ waisStateFree(int fd, void *data)
 	return;
     storeUnregisterAbort(waisState->entry);
     storeUnlockObject(waisState->entry);
-    xfree(waisState);
+    cbdataFree(waisState);
 }
 
 /* This will be called when socket lifetime is expired. */
@@ -320,6 +320,7 @@ waisStart(request_t * request, StoreEntry * entry)
 	return;
     }
     waisState = xcalloc(1, sizeof(WaisStateData));
+    cbdataAdd(waisState);
     waisState->method = method;
     waisState->relayhost = Config.Wais.relayHost;
     waisState->relayport = Config.Wais.relayPort;

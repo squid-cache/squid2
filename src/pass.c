@@ -110,7 +110,9 @@ passStateFree(int fd, void *data)
     xfree(passState->url);
     requestUnlink(passState->request);
     requestUnlink(passState->proxy_request);
-    safe_free(passState);
+    passState->request = NULL;
+    passState->proxy_request = NULL;
+    cbdataFree(passState);
 }
 
 /* This will be called when the server lifetime is expired. */
@@ -396,6 +398,7 @@ passStart(int fd,
 	return;
     }
     passState = xcalloc(1, sizeof(PassStateData));
+    cbdataAdd(passState);
     passState->url = xstrdup(url);
     passState->request = requestLink(request);
     passState->timeout = Config.Timeout.read;

@@ -386,6 +386,8 @@ commRetryConnect(int fd, ConnectStateData * cs)
     int fd2;
     if (++cs->tries == 4)
 	return 0;
+    if (!cbdataValid(cs->data))
+	return 0;
     fd2 = socket(AF_INET, SOCK_STREAM, 0);
     if (fd2 < 0) {
 	debug(5, 0) ("commRetryConnect: socket: %s\n", xstrerror());
