@@ -45,6 +45,7 @@ helperOpenServers(helper * hlp)
     args[nargs++] = NULL;
     assert(nargs <= HELPER_MAX_ARGS);
     for (k = 0; k < hlp->n_to_start; k++) {
+	getCurrentTime();
 	rfd = wfd = -1;
 	x = ipcCreate(hlp->ipc_type,
 	    progname,
@@ -274,10 +275,11 @@ helperHandleRead(int fd, void *data)
 	    hlp->stats.replies, REDIRECT_AV_FACTOR);
 	if (srv->flags.shutdown)
 	    comm_close(srv->wfd);
+	else
+            helperKickQueue(hlp);
     } else {
 	commSetSelect(srv->rfd, COMM_SELECT_READ, helperHandleRead, srv, 0);
     }
-    helperKickQueue(hlp);
 }
 
 static void
