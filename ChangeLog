@@ -1,5 +1,7 @@
 Changes to squid-2.5.STABLE9 ()
 
+	- [Minor] Ignore invalid FQDN DNS responses (Bug #1222)
+	- [Minor] cache_peer related memory leaks on reconfigure (Bug #1246)
 	- [Minor] relaxed_header_parser extended to work around even more
 	  broken web servers (Bug #1242)
 	- [Minor] FTP gatewaying URLs cleaned up slightly, mainly to work
