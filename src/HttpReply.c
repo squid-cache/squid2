@@ -72,7 +72,7 @@ httpReplyCreate()
     return rep;
 }
 
-void
+static void
 httpReplyInit(HttpReply * rep)
 {
     assert(rep);
@@ -84,7 +84,7 @@ httpReplyInit(HttpReply * rep)
     httpStatusLineInit(&rep->sline);
 }
 
-void
+static void
 httpReplyClean(HttpReply * rep)
 {
     assert(rep);

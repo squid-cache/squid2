@@ -445,7 +445,7 @@ catch(int sig)
     fprintf(stderr, "Interrupted.\n");
 }
 
-void
+static void
 pipe_handler(int sig)
 {
     fprintf(stderr, "SIGPIPE received.\n");
