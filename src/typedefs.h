@@ -209,8 +209,8 @@ typedef void CSR(clientStreamNode *, clientHttpRequest *);
 typedef void CSD(clientStreamNode *, clientHttpRequest *);
 typedef clientStream_status_t CSS(clientStreamNode *, clientHttpRequest *);
 
-typedef void CWCB(int fd, char *, size_t size, int flag, void *data);
-typedef void CNCB(int fd, int status, void *);
+typedef void CWCB(int fd, char *, size_t size, comm_err_t flag, void *data);
+typedef void CNCB(int fd, comm_err_t status, void *);
 
 typedef void FREE(void *);
 typedef void CBDUNL(void *);

@@ -381,7 +381,7 @@ sslErrorComplete(int fdnotused, void *data, size_t sizenotused)
 
 
 static void
-sslConnectDone(int fdnotused, int status, void *data)
+sslConnectDone(int fdnotused, comm_err_t status, void *data)
 {
     SslStateData *sslState = data;
     request_t *request = sslState->request;

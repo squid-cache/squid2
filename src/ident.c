@@ -98,7 +98,7 @@ identTimeout(int fd, void *data)
 }
 
 static void
-identConnectDone(int fd, int status, void *data)
+identConnectDone(int fd, comm_err_t status, void *data)
 {
     IdentStateData *state = data;
     IdentClient *c;

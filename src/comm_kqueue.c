@@ -217,7 +217,7 @@ commSetSelect(int fd, unsigned int type, PF * handler,
  * events.
  */
 
-int
+comm_err_t
 comm_select(int msec)
 {
     int num, i;

@@ -177,7 +177,7 @@ fwdServerClosed(int fd, void *data)
 }
 
 static void
-fwdConnectDone(int server_fd, int status, void *data)
+fwdConnectDone(int server_fd, comm_err_t status, void *data)
 {
     FwdState *fwdState = data;
     static FwdState *current = NULL;

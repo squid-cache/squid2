@@ -1138,7 +1138,7 @@ peerProbeConnect2(const ipcache_addrs * ianotused, void *data)
 }
 
 static void
-peerProbeConnectDone(int fd, int status, void *data)
+peerProbeConnectDone(int fd, comm_err_t status, void *data)
 {
     peer *p = data;
     if (status == COMM_OK) {

@@ -1128,7 +1128,7 @@ ftpWriteCommand(const char *buf, FtpStateData * ftpState)
 }
 
 static void
-ftpWriteCommandCallback(int fd, char *bufnotused, size_t size, int errflag, void *data)
+ftpWriteCommandCallback(int fd, char *bufnotused, size_t size, comm_err_t errflag, void *data)
 {
     FtpStateData *ftpState = data;
     debug(9, 7) ("ftpWriteCommandCallback: wrote %d bytes\n", (int) size);

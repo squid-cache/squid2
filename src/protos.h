@@ -203,7 +203,7 @@ extern int commDeferRead(int fd);
  * comm_select.c
  */
 extern void comm_select_init(void);
-extern int comm_select(int);
+extern comm_err_t comm_select(int);
 extern void comm_quick_poll_required(void);
 
 extern void packerToStoreInit(Packer * p, StoreEntry * e);

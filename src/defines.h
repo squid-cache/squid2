@@ -56,16 +56,6 @@
 
 #define MAXHTTPPORTS			128
 
-#define COMM_OK		  (0)
-#define COMM_ERROR	 (-1)
-#define COMM_NOMESSAGE	 (-3)
-#define COMM_TIMEOUT	 (-4)
-#define COMM_SHUTDOWN	 (-5)
-#define COMM_INPROGRESS  (-6)
-#define COMM_ERR_CONNECT (-7)
-#define COMM_ERR_DNS     (-8)
-#define COMM_ERR_CLOSING (-9)
-
 /* Select types. */
 #define COMM_SELECT_READ   (0x1)
 #define COMM_SELECT_WRITE  (0x2)

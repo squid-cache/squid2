@@ -314,7 +314,7 @@ comm_select_http_incoming(void)
 
 #define DEBUG_FDBITS 0
 /* Select on all sockets; call handlers for those that are ready. */
-int
+comm_err_t
 comm_select(int msec)
 {
     fd_set readfds;

@@ -376,7 +376,7 @@ errorSend(int fd, ErrorState * err)
  *            closeing the FD, otherwise we do it ourseves.
  */
 static void
-errorSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
+errorSendComplete(int fd, char *bufnotused, size_t size, comm_err_t errflag, void *data)
 {
     ErrorState *err = data;
     debug(4, 3) ("errorSendComplete: FD %d, size=%ld\n", fd, (long int) size);
