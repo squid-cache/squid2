@@ -110,6 +110,7 @@
 const char *
 storeToString(const StoreEntry * e)
 {
+    MemObject *mem;
     LOCAL_ARRAY(char, stsbuf, 16 << 10);	/* have to make this really big */
     LOCAL_ARRAY(char, tmpbuf, 8 << 10);
 
@@ -195,114 +196,95 @@ storeToString(const StoreEntry * e)
     sprintf(tmpbuf, "LockCount: %d\n", e->lock_count);
     strcat(stsbuf, tmpbuf);
 
-    if (!e->mem_obj) {
+    mem = e->mem_obj;
+    if (mem == NULL) {
 	sprintf(tmpbuf, "MemObject: NULL.\n");
 	strcat(stsbuf, tmpbuf);
 	return stsbuf;
     }
-    sprintf(tmpbuf, "MemObject: 0x%p\n****************\n", e->mem_obj);
+    sprintf(tmpbuf, "MemObject: 0x%p\n****************\n", mem);
     strcat(stsbuf, tmpbuf);
 
-    if (!e->mem_obj->mime_hdr) {
+    if (!mem->mime_hdr) {
 	sprintf(tmpbuf, "MimeHdr: NULL.\n");
 	strcat(stsbuf, tmpbuf);
     } else {
-	sprintf(tmpbuf, "MimeHdr:\n-----------\n%s\n-----------\n", e->mem_obj->mime_hdr);
+	sprintf(tmpbuf, "MimeHdr:\n-----------\n%s\n-----------\n", mem->mime_hdr);
 	strcat(stsbuf, tmpbuf);
     }
 
-    if (!e->mem_obj->data) {
+    if (!mem->data) {
 	sprintf(tmpbuf, "Data: NULL.\n");
 	strcat(stsbuf, tmpbuf);
     } else {
-	sprintf(tmpbuf, "Data: 0x%p\n", e->mem_obj->data);
+	sprintf(tmpbuf, "Data: 0x%p\n", mem->data);
 	strcat(stsbuf, tmpbuf);
     }
 
 
-    if (!e->mem_obj->e_swap_buf)
+    if (!mem->e_swap_buf)
 	sprintf(tmpbuf, "E_swap_buf: NOT SET\n");
     else
-	sprintf(tmpbuf, "E_swap_buf: %s\n", e->mem_obj->e_swap_buf);
+	sprintf(tmpbuf, "E_swap_buf: %s\n", mem->e_swap_buf);
     strcat(stsbuf, tmpbuf);
-    sprintf(tmpbuf, "First_miss: 0x%p\n", e->mem_obj->e_pings_first_miss);
+    sprintf(tmpbuf, "First_miss: 0x%p\n", mem->e_pings_first_miss);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "E_swap_buf_len: %d\n", e->mem_obj->e_swap_buf_len);
+    sprintf(tmpbuf, "E_swap_buf_len: %d\n", mem->e_swap_buf_len);
     strcat(stsbuf, tmpbuf);
     sprintf(tmpbuf, "[pings]: npings = %d  nacks = %d\n",
-	e->mem_obj->e_pings_n_pings, e->mem_obj->e_pings_n_acks);
+	mem->e_pings_n_pings, mem->e_pings_n_acks);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "SwapAccess: %d\n", e->mem_obj->e_swap_access);
+    sprintf(tmpbuf, "SwapAccess: %d\n", mem->e_swap_access);
     strcat(stsbuf, tmpbuf);
 
-    if (!e->mem_obj->e_abort_msg) {
+    if (!mem->e_abort_msg) {
 	sprintf(tmpbuf, "AbortMsg: NULL.\n");
 	strcat(stsbuf, tmpbuf);
     } else {
-	sprintf(tmpbuf, "AbortMsg:\n-----------\n%s\n-----------\n", e->mem_obj->e_abort_msg);
+	sprintf(tmpbuf, "AbortMsg:\n-----------\n%s\n-----------\n", mem->e_abort_msg);
 	strcat(stsbuf, tmpbuf);
     }
 
-    sprintf(tmpbuf, "CurrentLen: %d\n", e->mem_obj->e_current_len);
+    sprintf(tmpbuf, "CurrentLen: %d\n", mem->e_current_len);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "LowestOffset: %d\n", e->mem_obj->e_lowest_offset);
+    sprintf(tmpbuf, "LowestOffset: %d\n", mem->e_lowest_offset);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "ClientListSize: %d\n", e->mem_obj->client_list_size);
+    sprintf(tmpbuf, "ClientListSize: %d\n", mem->nclients);
     strcat(stsbuf, tmpbuf);
 
-    if (!e->mem_obj->client_list) {
+    if (!mem->clients) {
 	sprintf(tmpbuf, "ClientList: NULL.\n");
 	strcat(stsbuf, tmpbuf);
     } else {
 	int i;
-	sprintf(tmpbuf, "ClientList: 0x%p\n", e->mem_obj->client_list);
+	sprintf(tmpbuf, "ClientList: 0x%p\n", mem->clients);
 	strcat(stsbuf, tmpbuf);
 
-	for (i = 0; i < e->mem_obj->client_list_size; ++i) {
-	    if (e->mem_obj->client_list[i])
-		sprintf(tmpbuf, "    Client[%d]: fd == %d  last_offset == %d\n", i,
-		    e->mem_obj->client_list[i]->fd, e->mem_obj->client_list[i]->last_offset);
-	    else
-		sprintf(tmpbuf, "    Client[%d]: NULL.\n", i);
+	for (i = 0; i < mem->nclients; ++i) {
+	    struct _store_client *sc = &mem->clients[i];
+	    sprintf(tmpbuf, "    Client[%d]: fd = %d\n", i, sc->fd);
+	    strcat(stsbuf, tmpbuf);
+	    sprintf(tmpbuf, "              : last_offset = %d\n", sc->last_offset);
+	    strcat(stsbuf, tmpbuf);
+	    sprintf(tmpbuf, "              : callback = %p\n", sc->callback);
+	    strcat(stsbuf, tmpbuf);
+	    sprintf(tmpbuf, "              : callback_data = %p\n", sc->callback_data);
 	    strcat(stsbuf, tmpbuf);
 	}
     }
 
-    sprintf(tmpbuf, "SwapOffset: %u\n", e->mem_obj->swap_offset);
+    sprintf(tmpbuf, "SwapOffset: %u\n", mem->swap_offset);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "SwapOutFd: %d\n", e->mem_obj->swapout_fd);
+    sprintf(tmpbuf, "SwapOutFd: %d\n", mem->swapout_fd);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "SwapInFd: %d\n", e->mem_obj->swapin_fd);
+    sprintf(tmpbuf, "SwapInFd: %d\n", mem->swapin_fd);
     strcat(stsbuf, tmpbuf);
-
-    sprintf(tmpbuf, "PendingListSize: %d\n", e->mem_obj->pending_list_size);
-    strcat(stsbuf, tmpbuf);
-
-    if (!e->mem_obj->pending) {
-	sprintf(tmpbuf, "PendingList: NULL.\n");
-	strcat(stsbuf, tmpbuf);
-    } else {
-	int i;
-	sprintf(tmpbuf, "PendingList: 0x%p\n", e->mem_obj->pending);
-	strcat(stsbuf, tmpbuf);
-
-	for (i = 0; i < (int) e->mem_obj->pending_list_size; ++i) {
-	    if (e->mem_obj->pending[i])
-		sprintf(tmpbuf, "    Pending[%d]: fd == %d  handler == 0x%p data == 0x%p\n", i,
-		    e->mem_obj->pending[i]->fd,
-		    e->mem_obj->pending[i]->handler,
-		    e->mem_obj->pending[i]->data);
-	    else
-		sprintf(tmpbuf, "    Pending[%d]: NULL.\n", i);
-	    strcat(stsbuf, tmpbuf);
-	}
-    }
 
     strcat(stsbuf, "\n");
 

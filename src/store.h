@@ -136,11 +136,15 @@
 #define IP_LOOKUP_PENDING      	(1<<0)
 
 
+typedef void (*PIF) (int, StoreEntry *, void *);
+
 /* keep track each client receiving data from that particular StoreEntry */
-typedef struct _ClientStatusEntry {
+struct _store_client {
     int fd;
     int last_offset;
-} ClientStatusEntry;
+    PIF callback;
+    void *callback_data;
+};
 
 
 /* --------------- SPLIT STORE STRUCTURE ----------------- */
@@ -175,13 +179,10 @@ struct _MemObject {
     /* The lowest offset that store keep VM copy around
      * use for "delete_behind" mechanism for a big object */
     int e_lowest_offset;
-    ClientStatusEntry **client_list;
-    int client_list_size;
+    struct _store_client *clients;
+    int nclients;
 
     u_num32 swap_offset;
-
-    /* use another field to avoid changing the existing code */
-    struct pentry **pending;
 
     short swapin_fd;
     short swapout_fd;
@@ -263,14 +264,6 @@ struct sentry {
 
 /* ----------------------------------------------------------------- */
 
-typedef int (*PIF) (int, StoreEntry *, void *);
-
-typedef struct pentry {
-    int fd;
-    PIF handler;
-    void *data;
-} PendingEntry;
-
 extern StoreEntry *storeGet _PARAMS((const char *));
 extern StoreEntry *storeCreateEntry _PARAMS((const char *, const char *, int, int, method_t));
 extern void storeSetPublicKey _PARAMS((StoreEntry *));
@@ -314,7 +307,7 @@ extern void storeConfigure _PARAMS((void));
 extern void storeNegativeCache _PARAMS((StoreEntry *));
 extern void storeFreeMemory _PARAMS((void));
 extern int expiresMoreThan _PARAMS((time_t, time_t));
-extern void storeClientListAdd _PARAMS((StoreEntry *, int, int));
+extern int storeClientListAdd _PARAMS((StoreEntry *, int, int));
 extern void InvokeHandlers _PARAMS((StoreEntry *));
 
 #ifdef __STDC__
