@@ -664,6 +664,7 @@ struct _SquidConfig {
 	size_t high_memory;
     } warnings;
     char *store_dir_select_algorithm;
+    int sleep_after_fork;	/* microseconds */
 };
 
 struct _SquidConfig2 {

@@ -204,6 +204,13 @@ ipcCreate(int type, const char *prog, char *const args[], const char *name, int 
 	    *wfd = pwfd;
 	fd_table[prfd].flags.ipc = 1;
 	fd_table[pwfd].flags.ipc = 1;
+	if (Config.sleep_after_fork) {
+	    /* XXX emulation of usleep() */
+	    struct timeval sl;
+	    sl.tv_sec = Config.sleep_after_fork / 1000000;
+	    sl.tv_usec = Config.sleep_after_fork % 1000000;
+	    select(0, NULL, NULL, NULL, &sl);
+	}
 	return pid;
     }
     /* child */
