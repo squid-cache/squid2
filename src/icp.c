@@ -161,6 +161,8 @@ static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, siz
 size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
 static clientHttpRequest *parseHttpRequest _PARAMS((ConnStateData *, method_t *, int *, char **, size_t *));
 
+static void clientCacheHit(void *data, char *buf, ssize_t size);
+
 /*
  * This function is designed to serve a fairly specific purpose.
  * Occasionally our vBNS-connected caches can talk to each other, but not
@@ -544,6 +546,19 @@ clientBuildReplyHeader(clientHttpRequest * http,
     return len;
 }
 
+static void
+clientCacheHit(void *data, char *buf, ssize_t size)
+{
+    clientHttpRequest *http = data;
+    if (size < 0) {
+	/* swap in failure */
+	http->log_type = LOG_TCP_SWAPFAIL_MISS;
+	icpProcessMISS(http->conn->fd, http);
+    } else {
+	icpSendMoreData(data, buf, size);
+    }
+}
+
 void
 icpSendMoreData(void *data, char *buf, ssize_t size)
 {
@@ -559,7 +574,7 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
     FREE *freefunc = put_free_4k_page;
     int hack = 0;
     char C = '\0';
-    assert(size <= ICP_SENDMOREDATA_BUF);
+    assert(0 <= size && size <= ICP_SENDMOREDATA_BUF);
     debug(12, 5) ("icpSendMoreData: FD %d '%s', out.offset=%d\n",
 	fd, entry->url, http->out.offset);
     if (conn->chr != http) {
@@ -574,7 +589,6 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
 	freefunc(buf);
 	return;
     }
-    assert(size >= 0);
     writelen = size;
     if (http->out.offset == 0 && http->request->protocol != PROTO_CACHEOBJ) {
 	if (Config.onoff.log_mime_hdrs) {
@@ -915,7 +929,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	    http->out.offset,
 	    ICP_SENDMOREDATA_BUF,
 	    get_free_4k_page(),
-	    icpSendMoreData,
+	    clientCacheHit,
 	    http);
 	break;
     case LOG_TCP_IMS_MISS:
