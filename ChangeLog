@@ -227,3 +227,14 @@ Changes to squid-1.0.beta10 (May 31, 1996):
 Changes to squid-1.0.beta11 (June 1, 1996):
 
 	- Fixed serious memory leak of MemObject->reply structures.
+
+Changes to squid-1.0.beta12:
+
+	- Fixed problem when using udp_outgoing_addr where no ICP
+	  packets would be recieved because they were getting sent
+	  to the "outgoing" instead of the "incoming" socket.
+	- Fixed objects hanging around in cache after a keychange.
+	- Added ability to restrict neighbor caches with ACLs.
+	  ('cache_host_acl').
+	- Fixed ssl FD mismatch bug.
+	- Fixed INADDR_NONE bug on 64bit systems.
