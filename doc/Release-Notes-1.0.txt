@@ -20,6 +20,7 @@ TABLE OF CONTENTS:
 	Converting 'cache/log' from cached-1.4.pl3
 	Notes on stoplists vs. ttl_pattern
         SIGUSR1 now rotates log files
+	``no-query'' option for cache_host lines
 
 
 Private Objects
@@ -77,9 +78,17 @@ The HTTP codes are now logged to "access.log" in the native format
 Support for If-Modified-Since GET
 ==============================================================================
 Squid supports IMS GET retrievals, but not through any neighbor caches.
-Whenever an IMS GET request is received, Squid will bypass the cache
-hierarchy and fetch the object on its own.
+Whenever an IMS GET request is received, Squid handles the requst in
+one of three ways:
 
+    * if the object is not in the cache, the request is treated as
+      a regular MISS.
+    * if the object is in the cache, and it has a more recent timestamp,
+      it is treated as a regular HIT.
+    * otherwise the cached object is assumed to be valid, and Squid
+      returns a NOT MODIFIED response.
+
+This means you should chose your TTL settings very carefully. 
 
 Improvements to the access log
 ==============================================================================
@@ -87,7 +96,7 @@ The "access.log" file has been improved in a number of ways.  There is now
 only one log entry per client request and the size is always correct. 
 The format is now
 
-   timestamp  elapsed  src-address  type/code  size  method  URL
+   timestamp  elapsed  src-address  type/code/hierarchy  size  method  URL
 
 	- timestamp:	When the request is completed with millisecond
 			resolution
@@ -98,6 +107,7 @@ The format is now
 	- code: 	The HTTP reply code when available.  For ICP
 			requests this is always "000."  If the reply code
 			was not given, it will be logged as "555."
+	- hierarchy	The code from the hierarchy.log file.
 	- size:		For TCP requests, the amount of data written
 			to the client.  For UDP requests, the size
 			of the request.  (in bytes)
@@ -120,9 +130,49 @@ Access Log Types:
 "UDP_" refers to requests on the ICP port (3130)
 
 	UDP_HIT		A valid copy of the requested object was in the cache
+	UDP_HIT_OBJ	Same as UDP_HIT, but the object data was small enough
+			to be sent in the UDP reply packet.  Saves the
+			following TCP request.
 	UDP_MISS	The requested object was not in the cache
 	UDP_DENIED	Access was denied for this request
+	UDP_INVALID	An invalid request was received.
+..............................................................................
+Hierarchy Log Types:
 
+	DEAD_NEIGHBOR		A siblink has been detected as dead after
+				failing to reply to 20 consecutive ICP
+				queries.
+	DEAD_PARENT		A parent has been detected as dead.
+	DIRECT			The object has been requested from the origin
+				server.
+	FIREWALL_IP_DIRECT	The object has been requested from the origin
+				server because the origin host IP address is
+				inside your firewall.
+	FIRST_PARENT_MISS	The object has been requested from the
+				parent cache with the fastest weighted round
+				trip time.
+	FIRST_UP_PARENT		The object has been requested from the first
+				available parent in your list.
+	LOCAL_IP_DIRECT		The object has been requested from the origin
+				server because the origin host IP address 
+				matced your 'local_ip' list.
+	NEIGHBOR_HIT		The object was requested from a sibling cache
+				which replied with a UDP_HIT.
+	NO_DIRECT_FAIL		The object could not be requested because
+				of firewall restrictions and no parent caches
+				were available.
+	NO_PARENT_DIRECT	The object was requested from the origin server
+				because no parent caches exist for the URL.
+	PARENT_HIT		The object was requested from a parent cache
+				which replied with a UDP_HIT.
+	REVIVE_NEIGHBOR		A sibling cache was detected as alive again.
+	REVIVE_PARENT		A parent cache was detected as alive again.
+	SINGLE_PARENT		The object was requested from the only
+				parent cache appropriate for this URL.
+	SOURCE_FASTEST		The object was requested from the origin server
+				because the 'source_ping' reply arrived first.
+	UDP_HIT_OBJ		The object was received in a UDP_HIT_OBJ reply
+				from a neighbor cache.
 
 Metadata reloads in the background
 ==============================================================================
@@ -132,6 +182,9 @@ new objects are added, there may be some "clashes" with old objects
 using the same swap file on disk.  In these cases you may see a message
 in the cache logfile about "Active clash."  This means the old object
 has been discarded since it was replaced by a new object.
+
+The -F option causes the old behaviour -- reload all the metadata before
+processing any requests,
 
 
 Unlinking swap files on restart and the -U option
@@ -317,16 +370,30 @@ You can use the stoplists ('http_stop', etc) in the configuration file
 to prevent objects from being cached.  Using a 'ttl_pattern' with the
 TTL to zero will also prevent objects from being saved.
 
-There is one important difference between these two methods however.
-Squid nevery makes ICP queries for objects which match the stoplists.
-Instead, the object will be fetched directly (unless on the other side
-of a firewall).  We recommend that you use the stoplist for cgi-bin
-scripts and use the ttl_pattern rules to prevent caching of normal
-objects.
+The 'http_stop' (etc) have a dual purpose: to prevent objects from
+being cached, and to prevent some requests from being queried at
+neighbor caches.  There is now a separate 'hierarchy_stoplist' which
+can be used to prevent the hierarchy queries, but still allow objects
+to be cached.  For example, if your parent cache does now allow FTP
+requests, then your hierarchy_stoplist should contain:
+
+    hierarchy_stoplist ftp://
+
 
 SIGUSR1 now rotates log files
 ==============================================================================
-In order to be more consistent with other daemon programs, SIGHUP is used
-to reconfigure the running process.  This means that we needed to change
-the signal used to rotate the log files.  We now use SIGUSR1 to rotate the logs.
+In order to be more consistent with other daemon programs, SIGHUP is
+used to reconfigure the running process.  This means that we needed to
+change the signal used to rotate the log files.  We now use SIGUSR1 to
+rotate the logs.
 
+
+``no-query'' option for cache_host lines
+==============================================================================
+Some cache configurations behind firewalls may require ICP to be used
+for caches behind the firewall, but not to caches on the other side
+(because the firwall blocks UDP traffic).  To achieve this, use the
+no-query option:
+
+     cache_host   outside.my.org   parent   3128 3130  no-query
+     cache_host   inside.my.org    neighbor 3128 3130
