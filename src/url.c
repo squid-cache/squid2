@@ -422,7 +422,6 @@ urlCheckRequest(const request_t * r)
     switch (r->protocol) {
     case PROTO_URN:
     case PROTO_HTTP:
-    case PROTO_HTTPS:
     case PROTO_CACHEOBJ:
 	rc = 1;
 	break;
@@ -437,6 +436,13 @@ urlCheckRequest(const request_t * r)
 	else if (r->method == METHOD_HEAD)
 	    rc = 1;
 	break;
+    case PROTO_HTTPS:
+	/*
+	 * Squid can't originate an SSL connection, so it should
+	 * never receive an "https:" URL.  It should always be
+	 * CONNECT instead.
+	 */
+	rc = 0;
     default:
 	break;
     }
