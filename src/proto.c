@@ -38,6 +38,9 @@ char *IcpOpcodeStr[] =
     "ICP_DATAEND",
     "ICP_SECHO",
     "ICP_DECHO",
+#ifdef UDP_HIT_WITH_OBJ
+    "ICP_HIT_OBJ",
+#endif
     "ICP_END"
 };
 
@@ -482,7 +485,7 @@ static int matchInsideFirewall(host)
      char *host;
 {
     int offset;
-    wordlist *s = getInsideFirewallList();;
+    wordlist *s = getInsideFirewallList();
     if (!s)
 	/* no domains, all hosts are "inside" the firewall */
 	return NO_FIREWALL;

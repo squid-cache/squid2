@@ -25,6 +25,9 @@ typedef enum {
     HIER_REVIVE_NEIGHBOR,
     HIER_NO_DIRECT_FAIL,
     HIER_SOURCE_FASTEST,
+#ifdef UDP_HIT_WITH_OBJ
+    HIER_UDP_HIT_OBJ,
+#endif
     HIER_MAX
 } hier_code;
 
@@ -58,8 +61,8 @@ struct _edge {
 	int rtt;
     } stats;
 
-    int udp_port;
-    int ascii_port;
+    u_short udp_port;
+    u_short ascii_port;
     icp_common_t header;
     dom_list *domains;
     int proxy_only;
@@ -99,7 +102,7 @@ extern int neighborsUdpPing _PARAMS((protodispatch_data *));
 extern void neighbors_cf_domain _PARAMS((char *, char *));
 extern neighbors *neighbors_create _PARAMS(());
 extern void hierarchy_log_append _PARAMS((char *, hier_code, int, char *));
-extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *));
+extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *, char *, u_short));
 extern void neighbors_cf_add _PARAMS((char *, char *, int, int, int, int));
 extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));

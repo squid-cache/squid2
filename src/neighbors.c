@@ -18,7 +18,7 @@ static neighbors *friends = NULL;
 static struct neighbor_cf *Neighbor_cf = NULL;
 
 static icp_common_t echo_hdr;
-static short echo_port;
+static u_short echo_port;
 FILE *cache_hierarchy_log = NULL;
 
 static char *hier_strings[] =
@@ -37,6 +37,7 @@ static char *hier_strings[] =
     "REVIVE_NEIGHBOR",
     "NO_DIRECT_FAIL",
     "SOURCE_FASTEST",
+    "UDP_HIT_OBJ",
     "INVALID CODE"
 };
 
@@ -46,7 +47,7 @@ edge *whichEdge(header, from)
      struct sockaddr_in *from;
 {
     int j;
-    int port;
+    u_short port;
     struct in_addr ip;
     edge *e = NULL;
 
@@ -447,7 +448,7 @@ int neighborsUdpPing(proto)
 		url, host, t);
 	    to_addr.sin_family = AF_INET;
 	    memcpy(&to_addr.sin_addr, hep->h_addr, hep->h_length);
-	    to_addr.sin_port = echo_port;
+	    to_addr.sin_port = htons(echo_port);
 	    echo_hdr.reqnum = squid_curtime;
 	    debug(15, 6, "neighborsUdpPing - url: %s to url-host %s \n",
 		url, inet_ntoa(to_addr.sin_addr));
@@ -467,12 +468,14 @@ int neighborsUdpPing(proto)
  * 
  * If a hit process is already started, then sobeit
  */
-void neighborsUdpAck(fd, url, header, from, entry)
+void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
      int fd;
      char *url;
      icp_common_t *header;
      struct sockaddr_in *from;
      StoreEntry *entry;
+     char *data;
+     u_short data_sz;
 {
     edge *e = NULL;
     MemObject *m = entry->mem_obj;
@@ -556,8 +559,21 @@ void neighborsUdpAck(fd, url, header, from, entry)
 	    getFromCache(0, entry, NULL, entry->mem_obj->request);
 	}
 	return;
-    }
-    if (header->opcode == ICP_OP_HIT) {
+#ifdef UDP_HIT_WITH_OBJ
+    } else if (header->opcode == ICP_OP_HIT_OBJ) {
+	if (entry->object_len != 0) {
+		debug(15,0,"NON ZERO OBJECT LEN FOR ICP_OP_HIT_OBJ?\n");
+		return;
+	}
+	storeAppend(entry, data, data_sz);
+	storeComplete(entry);
+	    hierarchy_log_append(entry->url,
+		HIER_UDP_HIT_OBJ,
+		0,
+		e->host);
+	return;
+#endif
+    } else if (header->opcode == ICP_OP_HIT) {
 	/* If an edge is not found, count it as a MISS message. */
 	if (!e) {
 	    /* count it as a MISS message */

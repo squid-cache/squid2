@@ -9,9 +9,16 @@ struct icp_common_s {
     unsigned char version;	/* version number */
     unsigned short length;	/* total length (bytes) */
     u_num32 reqnum;		/* req number (req'd for UDP) */
+#ifdef UDP_HIT_WITH_OBJ
+    u_num32 flags;
+    u_num32 pad;
+#else
     u_num32 auth[ICP_AUTH_SIZE];	/* authenticator (future) */
+#endif
     u_num32 shostid;		/* sender host id */
 };
+
+#define ICP_FLAG_HIT_OBJ 0x80000000
 
 #define ICP_COMMON_SZ (sizeof(icp_common_t))
 #define ICP_HDR_SZ (sizeof(icp_common_t)+sizeof(u_num32))
@@ -28,6 +35,9 @@ typedef enum {
     ICP_OP_DATAEND,		/* last data (sv<-cl) */
     ICP_OP_SECHO,		/* echo from source (sv<-os) */
     ICP_OP_DECHO,		/* echo from dumb cache (sv<-dc) */
+#ifdef UDP_HIT_WITH_OBJ
+    ICP_OP_HIT_OBJ,		/* hit with object data (cl<-sv) */
+#endif
     ICP_OP_END			/* marks end of opcodes */
 } icp_opcode;
 
@@ -141,9 +151,14 @@ typedef struct icp_message_s icp_message_t;
 #define ICP_MESSAGE_SZ (sizeof(icp_message_t))
 
 /* Version */
-#define ICP_VERSION_1		1	/* version 1 */
-#define ICP_VERSION_2		2	/* version 2 */
-#define ICP_VERSION_CURRENT	ICP_VERSION_2	/* current version */
+#define ICP_VERSION_1		1
+#define ICP_VERSION_2		2
+#define ICP_VERSION_3		3
+#ifdef UDP_HIT_WITH_OBJ
+#define ICP_VERSION_CURRENT	ICP_VERSION_3
+#else
+#define ICP_VERSION_CURRENT	ICP_VERSION_2
+#endif
 
 extern int icp_proto_errno;	/* operation errors */
 extern int icp_hit _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, u_num32 size));

@@ -71,6 +71,9 @@ struct storeRebuild_data {
     char line_in[4096];
 };
 
+/* Static Functions */
+static int storeSwapInStart _PARAMS((StoreEntry *, SIH, void *));
+
 /* Now, this table is inaccessible to outsider. They have to use a method
  * to access a value in internal storage data structure. */
 HashID table = 0;
@@ -382,8 +385,10 @@ void storePurgeMem(e)
 }
 
 /* lock the object for reading, start swapping in if necessary */
-int storeLockObject(e)
+int storeLockObject(e, handler, data)
      StoreEntry *e;
+     SIH handler;
+     void *data;
 {
     int swap_in_stat = 0;
     int status = 0;
@@ -405,7 +410,7 @@ int storeLockObject(e)
      * If the object is NOT_IN_MEMORY, fault it in. */
     if ((e->mem_status == NOT_IN_MEMORY) && (e->swap_status == SWAP_OK)) {
 	/* object is in disk and no swapping daemon running. Bring it in. */
-	if ((swap_in_stat = storeSwapInStart(e)) < 0) {
+	if ((swap_in_stat = storeSwapInStart(e, handler, data)) < 0) {
 	    /*
 	     * We couldn't find or couldn't open object's swapfile.
 	     * So, return a -1 here, indicating that we will treat
@@ -414,6 +419,10 @@ int storeLockObject(e)
 	    e->lock_count--;
 	}
 	status = swap_in_stat;
+    } else {
+	/* its already in memory, so call the handler */
+	if (handler )
+		(*handler)(0, data);
     }
     return status;
 }
@@ -981,62 +990,65 @@ int storeSwapInHandle(fd_notused, buf, len, flag, e, offset_notused)
      StoreEntry *e;
      int offset_notused;
 {
+    MemObject *m = e->mem_obj;
     debug(20, 2, "storeSwapInHandle: '%s'\n", e->key);
 
     if ((flag < 0) && (flag != DISK_EOF)) {
 	debug(20, 0, "storeSwapInHandle: SwapIn failure (err code = %d).\n", flag);
-	put_free_8k_page(e->mem_obj->e_swap_buf);
+	put_free_8k_page(m->e_swap_buf);
 	storeSetMemStatus(e, NOT_IN_MEMORY);
-	file_close(e->mem_obj->swap_fd);
+	file_close(m->swap_fd);
 	swapInError(-1, e);	/* Invokes storeAbort() and completes the I/O */
+	if (m->swapin_complete_handler)
+		(*m->swapin_complete_handler)(-1, m->swapin_complete_data);
 	return -1;
     }
-    debug(20, 5, "storeSwapInHandle: e->swap_offset   = %d\n",
-	e->mem_obj->swap_offset);
-    debug(20, 5, "storeSwapInHandle: len              = %d\n",
-	len);
-    debug(20, 5, "storeSwapInHandle: e->e_current_len = %d\n",
-	e->mem_obj->e_current_len);
-    debug(20, 5, "storeSwapInHandle: e->object_len    = %d\n",
-	e->object_len);
+    debug(20, 5, "storeSwapInHandle: e->swap_offset   = %d\n", m->swap_offset);
+    debug(20, 5, "storeSwapInHandle: len              = %d\n", len);
+    debug(20, 5, "storeSwapInHandle: e->e_current_len = %d\n", m->e_current_len);
+    debug(20, 5, "storeSwapInHandle: e->object_len    = %d\n", e->object_len);
 
     /* always call these, even if len == 0 */
-    e->mem_obj->swap_offset += len;
+    m->swap_offset += len;
     storeAppend(e, buf, len);
 
-    if (e->mem_obj->e_current_len < e->object_len && flag != DISK_EOF) {
+    if (m->e_current_len < e->object_len && flag != DISK_EOF) {
 	/* some more data to swap in, reschedule */
-	file_read(e->mem_obj->swap_fd,
-	    e->mem_obj->e_swap_buf,
+	file_read(m->swap_fd,
+	    m->e_swap_buf,
 	    SWAP_BUF,
-	    e->mem_obj->swap_offset,
+	    m->swap_offset,
 	    (FILE_READ_HD) storeSwapInHandle,
 	    (void *) e);
     } else {
 	/* complete swapping in */
 	storeSetMemStatus(e, IN_MEMORY);
-	put_free_8k_page(e->mem_obj->e_swap_buf);
-	file_close(e->mem_obj->swap_fd);
+	put_free_8k_page(m->e_swap_buf);
+	file_close(m->swap_fd);
 	storeLog(STORE_LOG_SWAPIN, e);
 	debug(20, 5, "storeSwapInHandle: SwapIn complete: <URL:%s> from %s.\n",
 	    e->url, storeSwapFullPath(e->swap_file_number, NULL));
-	if (e->mem_obj->e_current_len != e->object_len) {
+	if (m->e_current_len != e->object_len) {
 	    debug(20, 0, "storeSwapInHandle: WARNING! Object size mismatch.\n");
 	    debug(20, 0, "  --> <URL:%s>\n", e->url);
 	    debug(20, 0, "  --> Expecting %d bytes from file: %s\n", e->object_len,
 		storeSwapFullPath(e->swap_file_number, NULL));
 	    debug(20, 0, "  --> Only read %d bytes\n",
-		e->mem_obj->e_current_len);
+		m->e_current_len);
 	}
 	if (e->flag & RELEASE_REQUEST)
 	    storeRelease(e);
+	if (m->swapin_complete_handler)
+		(*m->swapin_complete_handler)(0, m->swapin_complete_data);
     }
     return 0;
 }
 
 /* start swapping in */
-int storeSwapInStart(e)
+static int storeSwapInStart(e, swapin_complete_handler, swapin_complete_data)
      StoreEntry *e;
+     SIH swapin_complete_handler;
+     void *swapin_complete_data;
 {
     int fd;
     char *path = NULL;
@@ -1078,6 +1090,8 @@ int storeSwapInStart(e)
 	e->mem_obj->swap_offset,
 	(FILE_READ_HD) storeSwapInHandle,
 	(void *) e);
+    e->mem_obj->swapin_complete_handler = swapin_complete_handler;
+    e->mem_obj->swapin_complete_data = swapin_complete_data;
     return 0;
 }
 
@@ -1558,7 +1572,7 @@ int storeAbort(e, msg)
      */
     BIT_SET(e->flag, ENTRY_DISPATCHED);
 
-    storeLockObject(e);
+    storeLockObject(e, NULL, NULL);
 
     /* Count bytes faulted through cache but not moved to disk */
     CacheInfo->proto_touchobject(CacheInfo, CacheInfo->proto_id(e->url),

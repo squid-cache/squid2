@@ -84,6 +84,8 @@ typedef struct _MemObject {
     int fd_of_first_client;
     struct _http_reply *reply;
     request_t *request;
+    SIH swapin_complete_handler;
+    void *swapin_complete_data;
 } MemObject;
 
 typedef enum {
@@ -176,7 +178,7 @@ extern int storeGetSwapSpace _PARAMS((int));
 extern int storeEntryValidToSend _PARAMS((StoreEntry *));
 extern int storeEntryValidLength _PARAMS((StoreEntry *));
 extern int storeEntryLocked _PARAMS((StoreEntry *));
-extern int storeLockObject _PARAMS((StoreEntry *));
+extern int storeLockObject _PARAMS((StoreEntry *, SIH, void *));
 extern int storeOriginalKey _PARAMS((StoreEntry *));
 extern int storeRelease _PARAMS((StoreEntry *));
 extern int storeUnlockObject _PARAMS((StoreEntry *));
@@ -196,7 +198,6 @@ extern char *storeSwapFullPath _PARAMS((int, char *));
 extern int storeWriteCleanLog _PARAMS((void));
 extern int storeRegister(StoreEntry *, int, PIF, void *);
 extern int urlcmp _PARAMS((char *, char *));
-extern int storeSwapInStart _PARAMS((StoreEntry *));
 extern int swapInError _PARAMS((int fd, StoreEntry *));
 extern int storeCopy _PARAMS((StoreEntry *, int, int, char *, int *));
 extern int storeMaintainSwapSpace _PARAMS((void));

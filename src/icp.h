@@ -13,6 +13,9 @@ typedef enum {
     LOG_TCP_SWAPIN_FAIL,	/* 6 */
     LOG_TCP_DENIED,		/* 7 */
     LOG_UDP_HIT,		/* 8 */
+#ifdef UDP_HIT_WITH_OBJ
+    LOG_UDP_HIT_OBJ,		/* 8 */
+#endif
     LOG_UDP_MISS,		/* 9 */
     LOG_UDP_DENIED,		/* 10 */
     LOG_UDP_INVALID,		/* 11 */
@@ -50,6 +53,8 @@ typedef struct wwd {
     char *msg;
     long len;
     struct wwd *next;
+    struct timeval start;
+    int icp_pkt;
 } icpUdpData;
 
 extern char *icpWrite _PARAMS((int, char *, int, int, void (*handler) (), void *));
