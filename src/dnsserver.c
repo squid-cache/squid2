@@ -247,11 +247,13 @@ my_h_msgs(int x)
 	return "Unknown DNS problem";
 }
 
+#define REQ_SZ 512
+
 int
 main(int argc, char *argv[])
 {
-    char request[256];
-    char msg[256];
+    char request[512];
+    char msg[1024];
     const struct hostent *result = NULL;
     FILE *logfile = NULL;
     long start;
@@ -304,13 +306,15 @@ main(int argc, char *argv[])
     for (;;) {
 	int retry_count = 0;
 	struct in_addr ip;
-	memset(request, '\0', 256);
+	memset(request, '\0', REQ_SZ);
 
 	/* read from ipcache */
-	if (fgets(request, 255, stdin) == NULL)
+	if (fgets(request, REQ_SZ, stdin) == NULL)
 	    exit(1);
-	if ((t = strrchr(request, '\n')) != NULL)
-	    *t = '\0';		/* strip NL */
+	t = strrchr(request, '\n');
+	if (t == NULL)		/* Ignore if no newline */
+	    continue;
+	*t = '\0';		/* strip NL */
 	if ((t = strrchr(request, '\r')) != NULL)
 	    *t = '\0';		/* strip CR */
 	if (strcmp(request, "$shutdown") == 0) {
