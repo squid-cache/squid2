@@ -36,8 +36,6 @@
 
 #include "squid.h"
 
-#define DEBUG_OPENFD 1
-
 typedef int STOBJFLT(const StoreEntry *);
 typedef struct {
     StoreEntry *sentry;
@@ -63,9 +61,7 @@ static double statCPUUsage(int minutes);
 static OBJH stat_io_get;
 static OBJH stat_objects_get;
 static OBJH stat_vmobjects_get;
-#if DEBUG_OPENFD
 static OBJH statOpenfdObj;
-#endif
 static EVH statObjects;
 static OBJH info_get;
 static OBJH statFiledescriptors;
@@ -374,7 +370,6 @@ stat_vmobjects_get(StoreEntry * sentry)
     statObjectsStart(sentry, statObjectsVmFilter);
 }
 
-#if DEBUG_OPENFD
 static int
 statObjectsOpenfdFilter(const StoreEntry * e)
 {
@@ -391,7 +386,35 @@ statOpenfdObj(StoreEntry * sentry)
     statObjectsStart(sentry, statObjectsOpenfdFilter);
 }
 
-#endif
+static int
+statObjectsPendingFilter(const StoreEntry * e)
+{
+    if (e->store_status != STORE_OK)
+	return 0;
+    return 1;
+}
+
+static void
+statPendingObj(StoreEntry * sentry)
+{
+    statObjectsStart(sentry, statObjectsPendingFilter);
+}
+
+static int
+statObjectsClientsFilter(const StoreEntry * e)
+{
+    if (e->mem_obj == NULL)
+	return 0;
+    if (e->mem_obj->clients.head == NULL)
+	return 0;
+    return 1;
+}
+
+static void
+statClientsObj(StoreEntry * sentry)
+{
+    statObjectsStart(sentry, statObjectsClientsFilter);
+}
 
 #ifdef XMALLOC_STATISTICS
 static void
@@ -863,11 +886,15 @@ statInit(void)
     cachemgrRegister("vm_objects",
 	"In-Memory and In-Transit Objects",
 	stat_vmobjects_get, 0, 0);
-#if DEBUG_OPENFD
     cachemgrRegister("openfd_objects",
 	"Objects with Swapout files open",
 	statOpenfdObj, 0, 0);
-#endif
+    cachemgrRegister("pending_objects",
+	"Objects being retreived from the network",
+	statPendingObj, 0, 0);
+    cachemgrRegister("client_objects",
+	"Objects being sent to clients",
+	statClientsObj, 0, 0);
     cachemgrRegister("io",
 	"Server-side network read() size histograms",
 	stat_io_get, 0, 1);
