@@ -250,7 +250,7 @@ clientRedirectDone(void *data, char *result)
 	http->uri = xcalloc(l, 1);
 	xstrncpy(http->uri, result, l);
 	new_request->http_ver = old_request->http_ver;
-	new_request->headers = old_request->headers;
+	new_request->headers = xstrdup(old_request->headers);
 	new_request->headers_sz = old_request->headers_sz;
 	requestUnlink(old_request);
 	http->request = requestLink(new_request);
