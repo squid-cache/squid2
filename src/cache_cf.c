@@ -1453,7 +1453,7 @@ configDoConfigure(void)
     else
 	Config.appendDomainLen = 0;
     if (Config.Port.n_http == 0)
-	Config.Port.http[Config.Port.n_http++] = DefaultHttpPortNum;
+	Config.Port.http[Config.Port.n_http++] = DefaultHttpPort;
 }
 
 /* Parse a time specification from the config file.  Store the
