@@ -133,8 +133,6 @@ static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
 static const char *const crlf = "\r\n";
 
-#define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
-
 #define REQUEST_BUF_SIZE 4096
 
 /* Local functions */
@@ -570,7 +568,7 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
     FREE *freefunc = put_free_4k_page;
     int hack = 0;
     char C = '\0';
-    assert(0 <= size && size <= ICP_SENDMOREDATA_BUF);
+    assert(0 <= size && size <= SM_PAGE_SIZE);
     debug(12, 5) ("icpSendMoreData: FD %d '%s', out.offset=%d\n",
 	fd, entry->url, http->out.offset);
     if (conn->chr != http) {
@@ -595,7 +593,7 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
 	    }
 	}
 	/* make sure 'buf' is null terminated somewhere */
-	if (size == ICP_SENDMOREDATA_BUF) {
+	if (size == SM_PAGE_SIZE) {
 	    hack = 1;
 	    size--;
 	    C = *(buf + size);
@@ -625,12 +623,12 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
 	} else {
 	    put_free_8k_page(newbuf);
 	    newbuf = NULL;
-	    if (size < ICP_SENDMOREDATA_BUF && entry->store_status == STORE_PENDING) {
+	    if (size < SM_PAGE_SIZE && entry->store_status == STORE_PENDING) {
 		/* wait for more to arrive */
 		storeClientCopy(entry,
 		    http->out.offset + size,
 		    http->out.offset,
-		    ICP_SENDMOREDATA_BUF,
+		    SM_PAGE_SIZE,
 		    buf,
 		    icpSendMoreData,
 		    http);
@@ -693,7 +691,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 		storeClientCopy(entry,
 		    http->out.offset,
 		    http->out.offset,
-		    ICP_SENDMOREDATA_BUF,
+		    SM_PAGE_SIZE,
 		    get_free_4k_page(),
 		    icpSendMoreData,
 		    http);
@@ -712,7 +710,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	storeClientCopy(entry,
 	    http->out.offset,
 	    http->out.offset,
-	    ICP_SENDMOREDATA_BUF,
+	    SM_PAGE_SIZE,
 	    get_free_4k_page(),
 	    icpSendMoreData,
 	    http);
@@ -728,7 +726,7 @@ icpGetHeadersForIMS(void *data, char *buf, ssize_t size)
     MemObject *mem = entry->mem_obj;
     char *reply = NULL;
     assert(size > 0);
-    assert(size <= ICP_SENDMOREDATA_BUF);
+    assert(size <= SM_PAGE_SIZE);
     if (size < 0) {
 	debug(12, 1) ("storeClientCopy returned %d for '%s'\n", size, entry->key);
 	put_free_4k_page(buf);
@@ -745,7 +743,7 @@ icpGetHeadersForIMS(void *data, char *buf, ssize_t size)
 	storeClientCopy(entry,
 	    http->out.offset + size,
 	    http->out.offset,
-	    ICP_SENDMOREDATA_BUF,
+	    SM_PAGE_SIZE,
 	    buf,
 	    icpGetHeadersForIMS,
 	    http);
@@ -781,7 +779,7 @@ icpGetHeadersForIMS(void *data, char *buf, ssize_t size)
 	storeClientCopy(entry,
 	    http->out.offset,
 	    http->out.offset,
-	    ICP_SENDMOREDATA_BUF,
+	    SM_PAGE_SIZE,
 	    buf,
 	    icpSendMoreData,
 	    http);
@@ -939,7 +937,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	storeClientCopy(entry,
 	    http->out.offset,
 	    http->out.offset,
-	    ICP_SENDMOREDATA_BUF,
+	    SM_PAGE_SIZE,
 	    get_free_4k_page(),
 	    clientCacheHit,
 	    http);
@@ -948,7 +946,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	storeClientCopy(entry,
 	    http->out.offset,
 	    http->out.offset,
-	    ICP_SENDMOREDATA_BUF,
+	    SM_PAGE_SIZE,
 	    get_free_4k_page(),
 	    icpGetHeadersForIMS,
 	    http);
@@ -1016,7 +1014,7 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     storeClientCopy(entry,
 	http->out.offset,
 	http->out.offset,
-	ICP_SENDMOREDATA_BUF,
+	SM_PAGE_SIZE,
 	get_free_4k_page(),
 	icpSendMoreData,
 	http);
