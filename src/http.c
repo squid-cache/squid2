@@ -8,6 +8,15 @@
 
 #define HTTP_DELETE_GAP   (1<<18)
 
+struct {
+	int parsed;
+	int date;
+	int lm;
+	int exp;
+	int clen;
+	int ctype;
+} ReplyHeaderStats;
+
 static int httpStateFree(fd, httpState)
      int fd;
      HttpStateData *httpState;
@@ -109,14 +118,17 @@ static void httpCacheNegatively(entry)
 }
 
 
-/* Build a reply structure from HTTP mime headers */
-void httpParseHeaders(mime, reply)
-     char *mime;
+/* Build a reply structure from HTTP reply headers */
+void httpParseHeaders(buf, reply)
+     char *buf;
      struct _http_reply *reply;
 {
-    char *headers, *t, *s;
+    char *headers = NULL;
+    char *t = NULL;
+    char *s = NULL;
 
-    headers = xstrdup(mime);
+    ReplyHeaderStats.parsed++;
+    headers = xstrdup(buf);
     t = strtok(headers, "\n");
     while (t) {
 	s = t + strlen(t);
@@ -132,26 +144,31 @@ void httpParseHeaders(mime, reply)
 	    if ((t = strchr(t, ' '))) {
 		t++;
 		strncpy(reply->content_type, t, HTTP_REPLY_FIELD_SZ - 1);
+		ReplyHeaderStats.ctype++;
 	    }
 	} else if (!strncasecmp(t, "Content-length:", 15)) {
 	    if ((t = strchr(t, ' '))) {
 		t++;
 		reply->content_length = atoi(t);
+		ReplyHeaderStats.clen++;
 	    }
 	} else if (!strncasecmp(t, "Date:", 5)) {
 	    if ((t = strchr(t, ' '))) {
 		t++;
 		strncpy(reply->date, t, HTTP_REPLY_FIELD_SZ - 1);
+		ReplyHeaderStats.date++;
 	    }
 	} else if (!strncasecmp(t, "Expires:", 8)) {
 	    if ((t = strchr(t, ' '))) {
 		t++;
 		strncpy(reply->expires, t, HTTP_REPLY_FIELD_SZ - 1);
+		ReplyHeaderStats.exp++;
 	    }
 	} else if (!strncasecmp(t, "Last-Modified:", 14)) {
 	    if ((t = strchr(t, ' '))) {
 		t++;
 		strncpy(reply->last_modified, t, HTTP_REPLY_FIELD_SZ - 1);
+		ReplyHeaderStats.lm++;
 	    }
 	}
 	t = strtok(NULL, "\n");
@@ -680,4 +697,24 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
     comm_set_select_handler(sock, COMM_SELECT_WRITE,
 	(PF) httpSendRequest, (void *) httpState);
     return COMM_OK;
+}
+
+void httpReplyHeaderStats(entry)
+	StoreEntry *entry;
+{
+    storeAppendPrintf(entry, open_bracket);
+    storeAppendPrintf(entry, "{HTTP Reply Headers}\n");
+    storeAppendPrintf(entry, "{Headers parsed: %d}\n",
+	ReplyHeaderStats.parsed);
+    storeAppendPrintf(entry, "{          Date: %d}\n",
+	ReplyHeaderStats.date);
+    storeAppendPrintf(entry, "{ Last-Modified: %d}\n",
+	ReplyHeaderStats.lm);
+    storeAppendPrintf(entry, "{       Expires: %d}\n",
+	ReplyHeaderStats.exp);
+    storeAppendPrintf(entry, "{  Content-Type: %d}\n",
+	ReplyHeaderStats.ctype);
+    storeAppendPrintf(entry, "{Content-Length: %d}\n",
+	ReplyHeaderStats.clen);
+    storeAppendPrintf(entry, close_bracket);
 }
