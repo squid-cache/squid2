@@ -1593,7 +1593,11 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	return;
     }
     http->flags.hit = 1;
-    if (checkNegativeHit(e)) {
+    if (checkNegativeHit(e)
+#if HTTP_VIOLATIONS
+	&& !r->flags.nocache_hack
+#endif
+	) {
 	http->log_type = LOG_TCP_NEGATIVE_HIT;
 	clientSendMoreData(data, buf, size);
     } else if (!Config.onoff.offline && refreshCheckHTTP(e, r) && !http->flags.internal) {
