@@ -156,9 +156,11 @@ void
 squid_error_entry(StoreEntry * entry, log_type type, const char *msg)
 {
     int error_index;
+    MemObject *mem;
 
     if (entry == NULL)
 	return;
+    mem = entry->mem_obj;
     if (entry->store_status != STORE_PENDING)
 	return;
     if (type < ERR_MIN || type > ERR_MAX)
@@ -180,12 +182,12 @@ squid_error_entry(StoreEntry * entry, log_type type, const char *msg)
 	version_string,
 	getMyHostname());
     strcat(tmp_error_buf, tbuf);
-    if (entry->mem_obj) {
-	entry->mem_obj->abort_code = type;
-	if (entry->mem_obj->reply->code == 0)
-	    entry->mem_obj->reply->code = 400;
+    if (mem) {
+	mem->abort_code = type;
+	if (mem->reply->code == 0)
+	    mem->reply->code = 400;
     }
-    storeAbort(entry);
+    storeAbort(entry, tmp_error_buf);
 }
 
 

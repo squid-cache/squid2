@@ -1209,7 +1209,7 @@ storeGetSwapSize(void)
 }
 
 void
-storeAbort(StoreEntry * e)
+storeAbort(StoreEntry * e, const char *msg)
 {
     MemObject *mem = e->mem_obj;
     if (e->store_status != STORE_PENDING) {	/* XXX remove later */
@@ -1220,6 +1220,7 @@ storeAbort(StoreEntry * e)
 	return;
     }
     e->store_status = STORE_ABORTED;
+    mem->e_abort_msg = xstrdup(msg);
     /* add to store_swap_size because storeRelease() subtracts */
     store_swap_size += (int) ((e->object_len + 1023) >> 10);
     storeReleaseRequest(e);
