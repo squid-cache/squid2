@@ -718,7 +718,7 @@ netdbExchangeUpdatePeer(struct in_addr addr, peer * e, double rtt, double hops)
 #if USE_ICMP
     netdbEntry *n;
     net_db_peer *p;
-    debug(37, 1) ("netdbExchangeUpdatePeer: '%s', %0.1f hops, %0.1f rtt\n",
+    debug(37, 5) ("netdbExchangeUpdatePeer: '%s', %0.1f hops, %0.1f rtt\n",
 	inet_ntoa(addr), hops, rtt);
     n = netdbLookupAddr(addr);
     if (n == NULL)
