@@ -55,8 +55,7 @@ static const char *const B_MBYTES_STR = "MB";
 static const char *const B_GBYTES_STR = "GB";
 
 static const char *const list_sep = ", \t\n\r";
-
-static int http_header_first = 0;
+static int http_header_first;
 
 static void configDoConfigure(void);
 static void parse_refreshpattern(refresh_t **);
@@ -188,6 +187,7 @@ parseConfigFile(const char *file_name)
 	cfg_filename = token + 1;
     memset(config_input_line, '\0', BUFSIZ);
     config_lineno = 0;
+    http_header_first = 0;
     while (fgets(config_input_line, BUFSIZ, fp)) {
 	config_lineno++;
 	if ((token = strchr(config_input_line, '\n')))
@@ -738,11 +738,12 @@ parse_http_header(HttpHeaderMask * header)
 	debug(3, 0) ("parse_http_header: expecting 'allow' or 'deny', got '%s'.\n", t);
 	return;
     }
-
     if (!http_header_first) {
 	http_header_first = 1;
 	if (allowed)
 	    httpHeaderMaskInit(header, 0xFF);
+	else
+	    httpHeaderMaskInit(header, 0);
     }
     while ((t = strtok(NULL, w_space))) {
 	if ((id = httpHeaderIdByNameDef(t, strlen(t))) == -1)
