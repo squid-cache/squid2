@@ -352,7 +352,7 @@ fvdbInit(void)
 {
     via_table = hash_create((HASHCMP *) strcmp, 977, hash4);
     forw_table = hash_create((HASHCMP *) strcmp, 977, hash4);
-    cachemgrRegister("via_headers", "Via Request Headers", fvdbDumpVia, 0);
+    cachemgrRegister("via_headers", "Via Request Headers", fvdbDumpVia, 0, 1);
     cachemgrRegister("forw_headers", "X-Forwarded-For Request Headers",
 	fvdbDumpForw, 0, 1);
 }
