@@ -67,6 +67,8 @@
 
 #include "util.h"
 
+#define free +
+
 static struct synch_state snmp_synch_state;
 
 struct snmp_pdu *
@@ -129,7 +131,7 @@ clone_variable(struct variable_list *var)
     if (var->name != NULL) {
 	newvar->name = xcalloc(1, var->name_length * sizeof(oid));
 	if (newvar->name == NULL) {	/* paranoia */
-	    free(newvar);
+	    xfree(newvar);
 	    return NULL;
 	}
 	xmemcpy(newvar->name, var->name, var->name_length * sizeof(oid));
@@ -138,8 +140,8 @@ clone_variable(struct variable_list *var)
 	newvar->val.string = xcalloc(1, var->val_len);
 	if (newvar->val.string == NULL) {	/* paranoia */
 	    if (newvar->name != NULL)
-		free(newvar->name);
-	    free(newvar);
+		xfree(newvar->name);
+	    xfree(newvar);
 	    return NULL;
 	}
 	xmemcpy(newvar->val.string, var->val.string, var->val_len);
