@@ -36,8 +36,6 @@
 
 #if USE_ASYNC_IO
 #define MAX_POLL_TIME 10
-#elif USE_DISKD
-#define MAX_POLL_TIME 10
 #else
 #define MAX_POLL_TIME 1000
 #endif
@@ -215,7 +213,7 @@ comm_check_incoming_poll_handlers(int nfds, int *fds)
 	    if ((hdl = fd_table[fd].read_handler)) {
 		fd_table[fd].read_handler = NULL;
 		hdl(fd, &incame);
-	    } else
+	    } else if (pfds[i].events & POLLRDNORM)
 		debug(5, 1) ("comm_poll_incoming: FD %d NULL read handler\n",
 		    fd);
 	}
@@ -223,7 +221,7 @@ comm_check_incoming_poll_handlers(int nfds, int *fds)
 	    if ((hdl = fd_table[fd].write_handler)) {
 		fd_table[fd].write_handler = NULL;
 		hdl(fd, &incame);
-	    } else
+	    } else if (pfds[i].events & POLLWRNORM)
 		debug(5, 1) ("comm_poll_incoming: FD %d NULL write_handler\n",
 		    fd);
 	}
@@ -306,9 +304,6 @@ comm_poll(int msec)
 #endif
 #if USE_ASYNC_IO
 	aioCheckCallbacks();
-#endif
-#if USE_DISKD
-	storeDiskdReadQueue();
 #endif
 	if (commCheckICPIncoming)
 	    comm_poll_icp_incoming();
@@ -596,9 +591,6 @@ comm_select(int msec)
 #endif
 #if USE_ASYNC_IO
 	aioCheckCallbacks();
-#endif
-#if USE_DISKD
-	storeDiskdReadQueue();
 #endif
 	if (commCheckICPIncoming)
 	    comm_select_icp_incoming();
