@@ -395,10 +395,10 @@ neighbors_open(int fd)
     first_ping = Config.peers;
     cachemgrRegister("server_list",
 	"Peer Cache Statistics",
-	neighborDumpPeers, 0);
+	neighborDumpPeers, 0, 1);
     cachemgrRegister("non_peers",
 	"List of Unknown sites sending ICP messages",
-	neighborDumpNonPeers, 0);
+	neighborDumpNonPeers, 0, 1);
 }
 
 int

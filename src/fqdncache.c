@@ -610,7 +610,7 @@ fqdncache_init(void)
     fqdn_table = hash_create(urlcmp, n, hash4);
     cachemgrRegister("fqdncache",
 	"FQDN Cache Stats and Contents",
-	fqdnStats, 0);
+	fqdnStats, 0, 1);
 }
 
 /* clean up the pending entries in dnsserver */

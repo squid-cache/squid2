@@ -288,7 +288,7 @@ memInit(void)
     }
     cachemgrRegister("mem",
 	"Memory Utilization",
-	memStats, 0);
+	memStats, 0, 1);
 }
 
 void

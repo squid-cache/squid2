@@ -198,7 +198,7 @@ parseConfigFile(const char *file_name)
     cachemgrRegister("config",
 	"Current Squid Configuration",
 	dump_config,
-	1);
+	1, 1);
     return 0;
 }
 

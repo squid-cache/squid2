@@ -678,7 +678,7 @@ ipcache_init(void)
     ip_table = hash_create(urlcmp, n, hash4);
     cachemgrRegister("ipcache",
 	"IP Cache Stats and Contents",
-	stat_ipcache_get, 0);
+	stat_ipcache_get, 0, 1);
 }
 
 int

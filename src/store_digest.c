@@ -111,7 +111,7 @@ storeDigestInit(void)
 	StoreDigestRebuildPeriod, StoreDigestRewritePeriod);
     memset(&sd_state, 0, sizeof(sd_state));
     cachemgrRegister("store_digest", "Store Digest",
-	storeDigestReport, 0);
+	storeDigestReport, 0, 1);
 #else
     store_digest = NULL;
     debug(71, 3) ("Local cache digest is 'off'\n");

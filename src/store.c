@@ -855,7 +855,7 @@ storeInit(void)
     storeRebuildStart();
     cachemgrRegister("storedir",
 	"Store Directory Stats",
-	storeDirStats, 0);
+	storeDirStats, 0, 1);
 }
 
 void

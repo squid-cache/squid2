@@ -244,7 +244,7 @@ httpHeaderInitModule()
     httpHdrCcInitModule();
     /* register with cache manager */
     cachemgrRegister("http_headers",
-	"HTTP Header Statistics", httpHeaderStoreReport, 0);
+	"HTTP Header Statistics", httpHeaderStoreReport, 0, 1);
 }
 
 void

@@ -154,7 +154,7 @@ eventInit(void)
 {
     cachemgrRegister("events",
 	"Event Queue",
-	eventDump, 0);
+	eventDump, 0, 1);
 }
 
 static void

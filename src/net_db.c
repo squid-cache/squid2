@@ -634,7 +634,7 @@ netdbInit(void)
     netdbReloadState();
     cachemgrRegister("netdb",
 	"Network Measurement Database",
-	netdbDump, 0);
+	netdbDump, 0, 1);
 #endif
 }
 

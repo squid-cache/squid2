@@ -163,7 +163,7 @@ pconnInit(void)
     }
     cachemgrRegister("pconn",
 	"Persistent Connection Utilization Histograms",
-	pconnHistDump, 0);
+	pconnHistDump, 0, 1);
     debug(48, 3) ("persistent connection module initialized\n");
 }
 

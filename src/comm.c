@@ -1214,7 +1214,7 @@ comm_init(void)
 	invert32[i] = (int) (32.0 / (double) i + 0.5);
     cachemgrRegister("comm_incoming",
 	"comm_incoming() stats",
-	commIncomingStats, 0);
+	commIncomingStats, 0, 1);
 }
 
 

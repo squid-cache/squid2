@@ -56,7 +56,7 @@ clientdbInit(void)
     cachemgrRegister("client_list",
 	"Cache Client List",
 	clientdbDump,
-	0);
+	0, 1);
 }
 
 void

@@ -359,7 +359,7 @@ redirectOpenServers(void)
 	memset(&RedirectStats, '\0', sizeof(RedirectStats));
 	cachemgrRegister("redirector",
 	    "URL Redirector Stats",
-	    redirectStats, 0);
+	    redirectStats, 0, 1);
     }
     safe_free(short_prg);
     safe_free(short_prg2);
