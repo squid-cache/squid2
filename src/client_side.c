@@ -512,7 +512,7 @@ clientUpdateCounters(clientHttpRequest * http)
 	break;
     }
     i = &http->request->hier.icp;
-    if (0 != i->stop.tv_sec)
+    if (0 != i->stop.tv_sec && 0 != i->start.tv_sec)
 	statHistCount(&Counter.icp.query_svc_time, tvSubUsec(i->start, i->stop));
 }
 
