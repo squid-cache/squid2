@@ -1214,6 +1214,7 @@ storeAbort(StoreEntry * e)
     /* add to store_swap_size because storeRelease() subtracts */
     store_swap_size += (int) ((e->object_len + 1023) >> 10);
     storeReleaseRequest(e);
+    InvokeHandlers(e);
 }
 
 /* Complete transfer into the local cache.  */
