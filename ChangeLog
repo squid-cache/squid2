@@ -1,3 +1,5 @@
+	- Require 0 <= multicast ttl <= 128.
+
 Changes to squid-1.1.9 (March 30, 1997):
 
 	- Fixed aclIpNetworkCompare for USE_SPLAY_TREE; was applying
