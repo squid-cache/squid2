@@ -1591,11 +1591,12 @@ clientReadRequest(int fd, void *data)
 	    assert(http->req_sz > 0);
 	    conn->in.offset -= http->req_sz;
 	    assert(conn->in.offset >= 0);
-	    if (conn->in.offset > 0) {
-		tmp = xstrdup(conn->in.buf + http->req_sz);
-		xstrncpy(conn->in.buf, tmp, conn->in.size);
-		safe_free(tmp);
-	    }
+	    /*
+	     * If we read past the end of this request, move the remaining
+	     * data to the beginning
+	     */
+	    if (conn->in.offset > 0)
+	        memmove(conn->in.buf, conn->in.buf + http->req_sz, conn->in.size);
 	    /* link */
 	    for (H = &conn->chr; *H; H = &(*H)->next);
 	    *H = http;
