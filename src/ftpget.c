@@ -509,7 +509,7 @@ fail(ftp_request_t * r)
 
     if ((r->flags & F_HTTPIFY)) {
 	if ((fp = fdopen(dup(r->cfd), "w")) == NULL) {
-	    debug(38, 0, "fdopen: %s\n", xstrerror());
+	    debug(38, 0) ("fdopen: %s\n", xstrerror());
 	    exit(1);
 	}
 	if (r->errmsg == NULL)
@@ -522,7 +522,7 @@ fail(ftp_request_t * r)
 	    r->errmsg,
 	    longmsg);
 	if (!(r->flags & F_HDRSENT)) {
-	    debug(38, 3, "Preparing HTML error message\n");
+	    debug(38, 3) ("Preparing HTML error message\n");
 	    expire_time = time(NULL) + o_neg_ttl;
 	    fprintf(fp, "HTTP/1.0 500 Proxy Error\r\n");
 	    fprintf(fp, "Date: %s\r\n", http_time(time(NULL)));
@@ -550,12 +550,12 @@ fail(ftp_request_t * r)
 	fputs(html_trailer(), fp);
 	fclose(fp);
 	if (r->flags & F_HTTPIFY) {
-	    debug(38, 7, "Writing Marker to FD %d\n", r->cfd);
+	    debug(38, 7) ("Writing Marker to FD %d\n", r->cfd);
 	    write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
 	}
     } else if (r->errmsg) {
-	debug(38, 0, "ftpget: %s\n", r->errmsg);
-	debug(38, 0, "ftpget: '%s'\n", r->url);
+	debug(38, 0) ("ftpget: %s\n", r->errmsg);
+	debug(38, 0) ("ftpget: '%s'\n", r->url);
     }
     xfree(r->errmsg);
 }
@@ -568,7 +568,7 @@ generic_sig_handler(int sig)
     if (socket_pathname)
 	unlink(socket_pathname);
     sprintf(buf, "Received signal %d, exiting.\n", sig);
-    debug(38, 0, "ftpget: %s", buf);
+    debug(38, 0) ("ftpget: %s", buf);
     if (MainRequest == NULL)
 	exit(1);
     MainRequest->rc = 6;
@@ -585,7 +585,7 @@ ftp_request_timeout(ftp_request_t * r)
     now = time(NULL);
     sprintf(buf, "Timeout after %d seconds.\n",
 	(int) (now - last_alarm_set));
-    debug(38, 0, "ftpget: %s", buf);
+    debug(38, 0) ("ftpget: %s", buf);
     r->errmsg = xstrdup(buf);
     r->rc = 7;
     return FAIL_TIMEOUT;
@@ -606,7 +606,7 @@ sigchld_handler(int sig)
 #else
     while ((pid = waitpid(0, &status, WNOHANG)) > 0)
 #endif
-	debug(38, 5, "sigchld_handler: Ate pid %d\n", pid);
+	debug(38, 5) ("sigchld_handler: Ate pid %d\n", pid);
     signal(sig, sigchld_handler);
 }
 
@@ -627,9 +627,9 @@ write_with_timeout(int fd, char *buf, int sz)
 	FD_SET(fd, &W);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	debug(38, 7, "write_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec);
+	debug(38, 7) ("write_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec);
 	x = select(fd + 1, &R, &W, NULL, &tv);
-	debug(38, 7, "write_with_timeout: select returned %d\n", x);
+	debug(38, 7) ("write_with_timeout: select returned %d\n", x);
 	if (x < 0) {
 	    if (errno == EWOULDBLOCK)
 		continue;
@@ -643,9 +643,9 @@ write_with_timeout(int fd, char *buf, int sz)
 	if (FD_ISSET(0, &R))
 	    exit(1);		/* XXX very ungraceful! */
 	x = write(fd, buf, sz);
-	debug(38, 7, "write_with_timeout: write returned %d\n", x);
+	debug(38, 7) ("write_with_timeout: write returned %d\n", x);
 	if (x < 0) {
-	    debug(38, 0, "write_with_timeout: %s\n", xstrerror());
+	    debug(38, 0) ("write_with_timeout: %s\n", xstrerror());
 	    return x;
 	}
 	if (x == 0)
@@ -670,7 +670,7 @@ read_with_timeout(int fd, char *buf, int sz)
 	FD_SET(fd, &R);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	debug(38, 3, "read_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec);
+	debug(38, 3) ("read_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec);
 	x = select(fd + 1, &R, NULL, NULL, &tv);
 	if (x < 0) {
 	    if (errno == EWOULDBLOCK)
@@ -719,7 +719,7 @@ readline_with_timeout(int fd, char *buf, int sz)
 	if (FD_ISSET(0, &R))
 	    exit(1);		/* XXX very ungraceful! */
 	x = read(fd, &c, 1);
-	debug(38, 9, "readline: x=%d  c='%c'\n", x, c);
+	debug(38, 9) ("readline: x=%d  c='%c'\n", x, c);
 	if (x < 0)
 	    return x;
 	if (x == 0)
@@ -741,17 +741,17 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
     fd_set R;
     struct timeval tv;
     int cerrno;
-    debug(38, 7, "connect_with_timeout2: starting...\n");
+    debug(38, 7) ("connect_with_timeout2: starting...\n");
 
     for (;;) {
-	debug(38, 5, "Connecting FD %d to: %s, port %d, len = %d\n", fd,
+	debug(38, 5) ("Connecting FD %d to: %s, port %d, len = %d\n", fd,
 	    inet_ntoa(S->sin_addr),
 	    (int) ntohs(S->sin_port),
 	    len);
 	y = connect(fd, (struct sockaddr *) S, len);
 	cerrno = errno;
 	if (y < 0)
-	    debug(38, 7, "connect: %s\n", xstrerror());
+	    debug(38, 7) ("connect: %s\n", xstrerror());
 	if (y >= 0)
 	    return y;
 	if (cerrno == EISCONN)
@@ -760,7 +760,7 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
 	    len = sizeof(x);
 	    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
 		errno = cerrno = x;
-	    debug(38, 7, "connect: %s\n", xstrerror());
+	    debug(38, 7) ("connect: %s\n", xstrerror());
 	}
 	if (cerrno != EINPROGRESS && cerrno != EAGAIN)
 	    return y;
@@ -774,10 +774,10 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
 	FD_SET(fd, &W);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	debug(38, 7, "connect_with_timeout2: selecting on FD %d\n", fd);
+	debug(38, 7) ("connect_with_timeout2: selecting on FD %d\n", fd);
 	x = select(fd + 1, &R, &W, NULL, &tv);
 	cerrno = errno;
-	debug(38, 7, "select returned: %d\n", x);
+	debug(38, 7) ("select returned: %d\n", x);
 	if (x == 0)
 	    return READ_TIMEOUT;
 	if (x < 0) {
@@ -806,16 +806,16 @@ connect_with_timeout(int fd, struct sockaddr_in *S, int len)
 	L.sin_addr = outgoingTcpAddr;
 	L.sin_port = 0;
 	if (bind(fd, (struct sockaddr *) &L, sizeof(struct sockaddr_in)) < 0) {
-	    debug(38, 0, "bind: %s\n", xstrerror());
+	    debug(38, 0) ("bind: %s\n", xstrerror());
 	}
     }
     orig_flags = fcntl(fd, F_GETFL, 0);
-    debug(38, 7, "orig_flags = %x\n", orig_flags);
+    debug(38, 7) ("orig_flags = %x\n", orig_flags);
     if (fcntl(fd, F_SETFL, orig_flags | SQUID_NONBLOCK) < 0)
-	debug(38, 0, "fcntl O_NONBLOCK: %s\n", xstrerror());
+	debug(38, 0) ("fcntl O_NONBLOCK: %s\n", xstrerror());
     rc = connect_with_timeout2(fd, S, len);
     if (fcntl(fd, F_SETFL, orig_flags) < 0)
-	debug(38, 0, "fcntl orig: %s\n", xstrerror());
+	debug(38, 0) ("fcntl orig: %s\n", xstrerror());
     return rc;
 }
 
@@ -832,9 +832,9 @@ accept_with_timeout(int fd, struct sockaddr *S, int *len)
 	FD_SET(fd, &R);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	debug(38, 7, "accept_with_timeout: selecting on FD %d\n", fd);
+	debug(38, 7) ("accept_with_timeout: selecting on FD %d\n", fd);
 	x = select(fd + 1, &R, NULL, NULL, &tv);
-	debug(38, 7, "select returned: %d\n", x);
+	debug(38, 7) ("select returned: %d\n", x);
 	if (x == 0)
 	    return READ_TIMEOUT;
 	if (x < 0) {
@@ -911,7 +911,7 @@ send_success_hdr(ftp_request_t * r)
     mime_get_type(r);
 
     if ((fp = fdopen(dup(r->cfd), "w")) == NULL) {
-	debug(38, 0, "fdopen: %s\n", xstrerror());
+	debug(38, 0) ("fdopen: %s\n", xstrerror());
 	exit(1);
     }
     setbuf(fp, NULL);
@@ -959,7 +959,7 @@ read_reply(int fd)
 
     while (!quit) {
 	n = readline_with_timeout(fd, buf, SMALLBUFSIZ);
-	debug(38, 9, "read_reply: readline returned %d\n", n);
+	debug(38, 9) ("read_reply: readline returned %d\n", n);
 	if (n < 0) {
 	    xfree(server_reply_msg);
 	    server_reply_msg = xstrdup(xstrerror());
@@ -983,7 +983,7 @@ read_reply(int fd)
 	    *t = 0;
 	if ((t = strchr(buf, '\n')))
 	    *t = 0;
-	debug(38, 3, "read_reply: %s\n", buf);
+	debug(38, 3) ("read_reply: %s\n", buf);
     }
     code = atoi(buf);
     xfree(server_reply_msg);
@@ -1007,7 +1007,7 @@ send_cmd(int fd, const char *buf)
     len = strlen(buf) + 2;
     xbuf = xmalloc(len + 1);
     sprintf(xbuf, "%s\r\n", buf);
-    debug(38, 3, "send_cmd: %s\n", buf);
+    debug(38, 3) ("send_cmd: %s\n", buf);
     x = write_with_timeout(fd, xbuf, len);
     xfree(xbuf);
     return x;
@@ -1042,7 +1042,7 @@ parse_iso3307_time(const char *buf)
     t = (time_t) 0;
 #endif
 
-    debug(38, 3, "parse_iso3307_time: %d\n", t);
+    debug(38, 3) ("parse_iso3307_time: %d\n", t);
     return t;
 }
 #undef ASCII_DIGIT
@@ -1083,13 +1083,13 @@ is_dfd_open(ftp_request_t * r)
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
 	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
-	    debug(38, 3, "Data channel already connected (FD=%d)\n", r->dfd);
+	    debug(38, 3) ("Data channel already connected (FD=%d)\n", r->dfd);
 	    return 1;
 	} else {
-	    debug(38, 2, "Data channel closed by server (%s)\n", xstrerror());
+	    debug(38, 2) ("Data channel closed by server (%s)\n", xstrerror());
 	}
     } else if (r->dfd >= 0) {
-	debug(38, 2, "Data socket not connected, closing\n");
+	debug(38, 2) ("Data socket not connected, closing\n");
     }
     close_dfd(r);
     return 0;
@@ -1109,7 +1109,7 @@ parse_request(ftp_request_t * r)
 {
     const struct hostent *hp;
     char *host = proxy_host ? proxy_host : r->host;
-    debug(38, 3, "parse_request: looking up '%s'\n", host);
+    debug(38, 3) ("parse_request: looking up '%s'\n", host);
     if (safe_inet_addr(host, &r->host_addr))	/* try numeric */
 	return PARSE_OK;
     hp = gethostbyname(host);
@@ -1140,7 +1140,7 @@ do_connect(ftp_request_t * r)
     int x;
 
     r->conn_att++;
-    debug(38, 3, "do_connect: connect attempt #%d to '%s'\n",
+    debug(38, 3) ("do_connect: connect attempt #%d to '%s'\n",
 	r->conn_att, r->host);
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	r->errmsg = xmalloc(SMALLBUFSIZ);
@@ -1171,7 +1171,7 @@ do_connect(ftp_request_t * r)
     /* what to use in the PORT command.                             */
     len = sizeof(ifc_addr);
     if (getsockname(sock, (struct sockaddr *) &ifc_addr, &len) < 0) {
-	debug(38, 0, "getsockname: %s\n", xstrerror());
+	debug(38, 0) ("getsockname: %s\n", xstrerror());
 	exit(1);
     }
     if (outgoingTcpAddr.s_addr)
@@ -1404,7 +1404,7 @@ do_port(ftp_request_t * r)
 	r->rc = 2;
 	return FAIL_SOFT;
     }
-    debug(38, 3, "listening on FD %d\n", sock);
+    debug(38, 3) ("listening on FD %d\n", sock);
     naddr = ntohl(ifc_addr.sin_addr.s_addr);
     sprintf(cbuf, "PORT %d,%d,%d,%d,%d,%d",
 	(naddr >> 24) & 0xFF,
@@ -1507,7 +1507,7 @@ do_cwd(ftp_request_t * r)
 	return CWD_OK;
     path = xstrdup(r->path);
     for (d = strtok(path, "/"); d; d = strtok(NULL, "/")) {
-	debug(38, 7, "do_cwd: %s\n", d);
+	debug(38, 7) ("do_cwd: %s\n", d);
 	sprintf(cbuf, "CWD %s", d);
 	SEND_CBUF;
 	code = read_reply(r->sfd);
@@ -2051,7 +2051,7 @@ htmlify_listing(ftp_request_t * r)
 	xfree(t);
     }
     while ((n = readline_with_timeout(r->dfd, buf, BIGBUFSIZ)) > 0) {
-	debug(38, 3, "Input: %s", buf);
+	debug(38, 3) ("Input: %s", buf);
 	if ((t = strchr(buf, '\r')))
 	    *t = '\0';
 	if ((t = strchr(buf, '\n')))
@@ -2105,7 +2105,7 @@ process_request(ftp_request_t * r)
 	return 1;
 
     for (;;) {
-	debug(38, 3, "process_request: in state %s\n",
+	debug(38, 3) ("process_request: in state %s\n",
 	    state_str[r->state]);
 	switch (r->state) {
 	case BEGIN:
@@ -2216,7 +2216,7 @@ process_request(ftp_request_t * r)
 	    break;
 	case DONE:
 	    if (r->flags & F_HTTPIFY) {
-		debug(38, 7, "Writing Marker to FD %d\n", r->cfd);
+		debug(38, 7) ("Writing Marker to FD %d\n", r->cfd);
 		write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
 	    }
 	    return 0;
@@ -2234,7 +2234,7 @@ process_request(ftp_request_t * r)
 	    return (r->rc);
 	    /* NOTREACHED */
 	default:
-	    debug(38, 0, "Nothing to do with state %s\n",
+	    debug(38, 0) ("Nothing to do with state %s\n",
 		state_str[r->state]);
 	    return (1);
 	    /* NOTREACHED */
@@ -2335,7 +2335,7 @@ ftpget_srv_mode(char *arg)
 		continue;
 	    if (errno == EINTR)
 		continue;
-	    debug(38, 0, "select: %s\n", xstrerror());
+	    debug(38, 0) ("select: %s\n", xstrerror());
 	    return 1;
 	}
 	if (FD_ISSET(0, &R)) {
@@ -2348,7 +2348,7 @@ ftpget_srv_mode(char *arg)
 	if (!FD_ISSET(sock, &R))
 	    continue;
 	if ((c = accept(sock, NULL, 0)) < 0) {
-	    debug(38, 0, "accept: %s\n", xstrerror());
+	    debug(38, 0) ("accept: %s\n", xstrerror());
 	    if (socket_pathname)
 		unlink(socket_pathname);
 	    exit(1);
@@ -2359,16 +2359,16 @@ ftpget_srv_mode(char *arg)
 	    continue;
 	}
 	if ((flags = fcntl(c, F_GETFL, 0)) < 0)
-	    debug(38, 0, "fcntl F_GETFL: %s\n", xstrerror());
+	    debug(38, 0) ("fcntl F_GETFL: %s\n", xstrerror());
 	flags &= ~SQUID_NONBLOCK;
 	if (fcntl(c, F_SETFL, flags) < 0)
-	    debug(38, 0, "fcntl F_SETFL: %s\n", xstrerror());
+	    debug(38, 0) ("fcntl F_SETFL: %s\n", xstrerror());
 	buflen = 0;
 	memset(buf, '\0', BUFSIZ);
 	do {
 	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) <= 0) {
 		if (n < 0)
-		    debug(38, 0, "read: %s\n", xstrerror());
+		    debug(38, 0) ("read: %s\n", xstrerror());
 		close(c);
 		_exit(1);
 	    }
@@ -2381,7 +2381,7 @@ ftpget_srv_mode(char *arg)
 		t = "";
 	    args[i] = xstrdup(t);
 	    /* we used to call rfc1738_escape(args[i]) here */
-	    debug(38, 5, "args[%d] = %s\n", i, args[i]);
+	    debug(38, 5) ("args[%d] = %s\n", i, args[i]);
 	    t = strtok(NULL, w_space);
 	    i++;
 	}
@@ -2390,7 +2390,7 @@ ftpget_srv_mode(char *arg)
 	dup2(c, 1);
 	close(c);
 	execvp(fullprogname, args);
-	debug(38, 0, "%s: %s\n", fullprogname, xstrerror());
+	debug(38, 0) ("%s: %s\n", fullprogname, xstrerror());
 	_exit(1);
     }
     /* NOTREACHED */
@@ -2586,7 +2586,7 @@ main(int argc, char *argv[])
 	    else if ((hp = gethostbyname(optarg)) != NULL)
 		outgoingTcpAddr = *(struct in_addr *) (void *) (hp->h_addr_list[0]);
 	    else {
-		debug(38, 0, "%s: bad outbound tcp address %s\n", progname, optarg);
+		debug(38, 0) ("%s: bad outbound tcp address %s\n", progname, optarg);
 		exit(1);
 	    }
 	    break;

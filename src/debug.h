@@ -105,20 +105,31 @@
 #ifndef _DEBUG_H_
 #define _DEBUG_H_
 
+#ifdef HAVE_SYSLOG
+extern int _db_level;		/* not volatile, ?: guarantees setting */
+#endif
 extern int syslog_enable;
 extern FILE *debug_log;
+
+#define MAX_DEBUG_SECTIONS 100
+extern int debugLevels[MAX_DEBUG_SECTIONS];
 
 extern void _db_init _PARAMS((const char *logfile, const char *options));
 extern void _db_rotate_log _PARAMS((void));
 
 #ifdef __STDC__
-extern void _db_print _PARAMS((int, int, const char *,...));
+extern void _db_print _PARAMS((const char *,...));
 #else
 extern void _db_print _PARAMS(());
 #endif
 
-#define debug _db_print
-#define debug_trap _debug_trap
+#ifdef HAVE_SYSLOG
+#define debug(SECTION, LEVEL) \
+        ((_db_level = (LEVEL)) > debugLevels[SECTION]) ? (void) 0 : _db_print
+#else
+#define debug(SECTION, LEVEL) \
+        ((LEVEL) > debugLevels[SECTION]) ? (void) 0 : _db_print
+#endif
 #define safe_free(x)	if (x) { xxfree(x); x = NULL; }
 
 #endif /* _DEBUG_H_ */

@@ -174,7 +174,7 @@ protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr
 {
     char *url = entry ? entry->url : NULL;
     protocol_t proto = request ? request->protocol : PROTO_NONE;
-    debug(17, 5, "protoUnregister '%s'\n", url ? url : "NULL");
+    debug(17, 5) ("protoUnregister '%s'\n", url ? url : "NULL");
     if (proto == PROTO_CACHEOBJ)
 	return 0;
     if (entry == NULL)
@@ -192,7 +192,7 @@ protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr
 void
 protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 {
-    debug(17, 5, "protoStart: FD %d: Fetching '%s %s' from %s\n",
+    debug(17, 5) ("protoStart: FD %d: Fetching '%s %s' from %s\n",
 	fd,
 	RequestMethodStr[request->method],
 	entry->url,
@@ -224,7 +224,7 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     } else if (request->method == METHOD_CONNECT) {
 	fatal_dump("protoStart() should not be handling CONNECT");
     } else {
-	debug(17, 1, "protoStart: Cannot retrieve '%s'\n", entry->url);
+	debug(17, 1) ("protoStart: Cannot retrieve '%s'\n", entry->url);
 	squid_error_entry(entry, ERR_NOT_IMPLEMENTED, NULL);
     }
 }
@@ -233,7 +233,7 @@ void
 protoDispatch(int fd, StoreEntry * entry, request_t * request)
 {
     pctrl_t *pctrl;
-    debug(17, 3, "protoDispatch: '%s'\n", entry->url);
+    debug(17, 3) ("protoDispatch: '%s'\n", entry->url);
     entry->mem_obj->request = requestLink(request);
     if (request->protocol == PROTO_CACHEOBJ) {
 	protoStart(fd, entry, NULL, request);
@@ -261,9 +261,9 @@ protoAbortFetch(StoreEntry * entry)
 {
 #if !DONT_USE_VM
     if (!BIT_TEST(entry->flag, DELETE_BEHIND))
-        return 0;
+	return 0;
     if (storeClientWaiting(entry))
-        return 0;
+	return 0;
 #endif
     return 1;
 }

@@ -565,7 +565,7 @@ aio_poll_done()
     aio_result_t *resultp;
 
     for (threadp = used_threads; threadp != NULL; threadp = threadp->next) {
-	debug(43, 3, "%d: %d -> %d\n",
+	debug(43, 3) ("%d: %d -> %d\n",
 	    threadp->thread,
 	    threadp->operation,
 	    threadp->status);
@@ -577,7 +577,7 @@ aio_poll_done()
     pthread_join(threadp->thread, NULL);
     resultp = threadp->resultp;
     aio_debug(threadp);
-    debug(43, 3, "DONE: %d -> %d\n",
+    debug(43, 3) ("DONE: %d -> %d\n",
 	resultp->aio_return,
 	resultp->aio_errno);
     aio_cleanup_and_free(threadp);
@@ -596,23 +596,23 @@ aio_debug(aio_thread_t * threadp)
     switch (threadp->operation) {
     case _AIO_OP_OPEN:
 	od = (aio_open_d *) threadp->aiodp;
-	debug(43, 3, "OPEN of %s to FD %d\n", od->path, threadp->resultp->aio_return);
+	debug(43, 3) ("OPEN of %s to FD %d\n", od->path, threadp->resultp->aio_return);
 	break;
     case _AIO_OP_READ:
 	rd = (aio_read_d *) threadp->aiodp;
-	debug(43, 3, "READ on fd: %d\n", rd->fd);
+	debug(43, 3) ("READ on fd: %d\n", rd->fd);
 	break;
     case _AIO_OP_WRITE:
 	wd = (aio_write_d *) threadp->aiodp;
-	debug(43, 3, "WRITE on fd: %d\n", wd->fd);
+	debug(43, 3) ("WRITE on fd: %d\n", wd->fd);
 	break;
     case _AIO_OP_CLOSE:
 	cd = (aio_close_d *) threadp->aiodp;
-	debug(43, 3, "CLOSE of fd: %d\n", cd->fd);
+	debug(43, 3) ("CLOSE of fd: %d\n", cd->fd);
 	break;
     case _AIO_OP_UNLINK:
 	ud = (aio_unlink_d *) threadp->aiodp;
-	debug(43, 3, "UNLINK of %s\n", ud->path);
+	debug(43, 3) ("UNLINK of %s\n", ud->path);
 	break;
     default:
 	break;

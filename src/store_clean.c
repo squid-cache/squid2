@@ -72,16 +72,16 @@ storeDirClean(void *unused)
     if (store_rebuilding)
 	return;
     storeSwapSubSubDir(swap_index, p1);
-    debug(36, 3, "storeDirClean: Cleaning directory %s\n", p1);
+    debug(36, 3) ("storeDirClean: Cleaning directory %s\n", p1);
     dp = opendir(p1);
     if (dp == NULL) {
 	swap_index++;
 	if (errno == ENOENT) {
-	    debug(36, 0, "storeDirClean: WARNING: Creating %s\n", p1);
+	    debug(36, 0) ("storeDirClean: WARNING: Creating %s\n", p1);
 	    if (mkdir(p1, 0777) == 0)
 		return;
 	}
-	debug(50, 0, "storeDirClean: %s: %s\n", p1, xstrerror());
+	debug(50, 0) ("storeDirClean: %s: %s\n", p1, xstrerror());
 	safeunlink(p1, 1);
 	return;
     }
@@ -100,9 +100,9 @@ storeDirClean(void *unused)
     if (k > 10)
 	k = 10;
     for (n = 0; n < k; n++) {
-	debug(36, 3, "storeDirClean: Cleaning file %d\n", files[n]);
+	debug(36, 3) ("storeDirClean: Cleaning file %d\n", files[n]);
 	sprintf(p2, "%s/%08X", p1, files[n]);
 	safeunlink(p2, 0);
     }
-    debug(36, 3, "Cleaned %d unused files from %s\n", k, p1);
+    debug(36, 3) ("Cleaned %d unused files from %s\n", k, p1);
 }

@@ -83,7 +83,7 @@ static void
 passClientClosed(int fd, void *data)
 {
     PassStateData *passState = data;
-    debug(39, 3, "passClientClosed: FD %d\n", fd);
+    debug(39, 3) ("passClientClosed: FD %d\n", fd);
     /* we have been called from comm_close for the client side, so
      * just need to clean up the server side */
     protoUnregister(NULL, passState->request, no_addr);
@@ -94,7 +94,7 @@ static void
 passStateFree(int fd, void *data)
 {
     PassStateData *passState = data;
-    debug(39, 3, "passStateFree: FD %d, passState=%p\n", fd, passState);
+    debug(39, 3) ("passStateFree: FD %d, passState=%p\n", fd, passState);
     if (passState == NULL)
 	return;
     if (fd != passState->server.fd)
@@ -118,7 +118,7 @@ static void
 passTimeout(int fd, void *data)
 {
     PassStateData *passState = data;
-    debug(39, 3, "passTimeout: FD %d\n", fd);
+    debug(39, 3) ("passTimeout: FD %d\n", fd);
     passClose(passState);
 }
 
@@ -130,9 +130,9 @@ passReadServer(int fd, void *data)
     int len;
     len = read(passState->server.fd, passState->server.buf, SQUID_TCP_SO_RCVBUF);
     fd_bytes(passState->server.fd, len, FD_READ);
-    debug(39, 5, "passReadServer FD %d, read %d bytes\n", fd, len);
+    debug(39, 5) ("passReadServer FD %d, read %d bytes\n", fd, len);
     if (len < 0) {
-	debug(50, 2, "passReadServer: FD %d: read failure: %s\n",
+	debug(50, 2) ("passReadServer: FD %d: read failure: %s\n",
 	    passState->server.fd, xstrerror());
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
 	    /* reinstall handlers */
@@ -166,10 +166,10 @@ passReadClient(int fd, void *data)
     int len;
     len = read(passState->client.fd, passState->client.buf, SQUID_TCP_SO_RCVBUF);
     fd_bytes(passState->client.fd, len, FD_READ);
-    debug(39, 5, "passReadClient FD %d, read %d bytes\n",
+    debug(39, 5) ("passReadClient FD %d, read %d bytes\n",
 	passState->client.fd, len);
     if (len < 0) {
-	debug(50, 2, "passReadClient: FD %d: read failure: %s\n",
+	debug(50, 2) ("passReadClient: FD %d: read failure: %s\n",
 	    fd, xstrerror());
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
 	    /* reinstall handlers */
@@ -204,7 +204,7 @@ passWriteServer(int fd, void *data)
 	passState->client.buf + passState->client.offset,
 	passState->client.len - passState->client.offset);
     fd_bytes(fd, len, FD_WRITE);
-    debug(39, 5, "passWriteServer FD %d, wrote %d bytes\n", fd, len);
+    debug(39, 5) ("passWriteServer FD %d, wrote %d bytes\n", fd, len);
     if (len < 0) {
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
 	    commSetSelect(passState->server.fd,
@@ -213,7 +213,7 @@ passWriteServer(int fd, void *data)
 		passState, 0);
 	    return;
 	}
-	debug(50, 2, "passWriteServer: FD %d: write failure: %s.\n",
+	debug(50, 2) ("passWriteServer: FD %d: write failure: %s.\n",
 	    passState->server.fd, xstrerror());
 	passClose(passState);
 	return;
@@ -239,7 +239,7 @@ passWriteClient(int fd, void *data)
 {
     PassStateData *passState = data;
     int len;
-    debug(39, 5, "passWriteClient FD %d len=%d offset=%d\n",
+    debug(39, 5) ("passWriteClient FD %d len=%d offset=%d\n",
 	fd,
 	passState->server.len,
 	passState->server.offset);
@@ -247,7 +247,7 @@ passWriteClient(int fd, void *data)
 	passState->server.buf + passState->server.offset,
 	passState->server.len - passState->server.offset);
     fd_bytes(fd, len, FD_WRITE);
-    debug(39, 5, "passWriteClient FD %d, wrote %d bytes\n", fd, len);
+    debug(39, 5) ("passWriteClient FD %d, wrote %d bytes\n", fd, len);
     if (len < 0) {
 	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
 	    commSetSelect(passState->client.fd,
@@ -256,7 +256,7 @@ passWriteClient(int fd, void *data)
 		passState, 0);
 	    return;
 	}
-	debug(50, 2, "passWriteClient: FD %d: write failure: %s.\n",
+	debug(50, 2) ("passWriteClient: FD %d: write failure: %s.\n",
 	    passState->client.fd, xstrerror());
 	passClose(passState);
 	return;
@@ -297,7 +297,7 @@ passConnectDone(int fd, int status, void *data)
     char *buf = NULL;
     size_t hdr_len = 0;
     if (status == COMM_ERR_DNS) {
-	debug(39, 4, "passConnectDone: Unknown host: %s\n", passState->host);
+	debug(39, 4) ("passConnectDone: Unknown host: %s\n", passState->host);
 	buf = squid_error_url(passState->url,
 	    request->method,
 	    ERR_DNS_FAIL,
@@ -341,7 +341,7 @@ passConnectDone(int fd, int status, void *data)
 	passState->client.buf,
 	SQUID_TCP_SO_RCVBUF >> 1,
 	opt_forwarded_for ? passState->client.fd : -1);
-    debug(39, 3, "passConnectDone: Appending %d bytes of content\n",
+    debug(39, 3) ("passConnectDone: Appending %d bytes of content\n",
 	request->body_sz);
     xmemcpy(passState->client.buf + passState->client.len,
 	request->body, request->body_sz);
@@ -369,7 +369,7 @@ passStart(int fd,
     int sock;
     char *msg = NULL;
 
-    debug(39, 3, "passStart: '%s %s'\n",
+    debug(39, 3) ("passStart: '%s %s'\n",
 	RequestMethodStr[request->method], url);
 
     /* Create socket. */
@@ -380,7 +380,7 @@ passStart(int fd,
 	COMM_NONBLOCKING,
 	url);
     if (sock == COMM_ERROR) {
-	debug(39, 4, "passStart: Failed because we're out of sockets.\n");
+	debug(39, 4) ("passStart: Failed because we're out of sockets.\n");
 	msg = squid_error_url(url,
 	    request->method,
 	    ERR_NO_FDS,

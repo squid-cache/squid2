@@ -205,7 +205,7 @@ objcache_url_parser(const char *url)
     ObjectCacheData *obj = NULL;
     t = sscanf(url, "cache_object://%[^/]/%[^@]@%s", host, request, password);
     if (t < 2) {
-	debug(16, 0, "Invalid Syntax: '%s', sscanf returns %d\n", url, t);
+	debug(16, 0) ("Invalid Syntax: '%s', sscanf returns %d\n", url, t);
 	return NULL;
     }
     obj = xcalloc(1, sizeof(ObjectCacheData));
@@ -236,7 +236,7 @@ objcacheStart(int fd, StoreEntry * entry)
     ObjectCacheData *data = NULL;
     int complete_flag = 1;
 
-    debug(16, 3, "objectcacheStart: '%s'\n", entry->url);
+    debug(16, 3) ("objectcacheStart: '%s'\n", entry->url);
     if ((data = objcache_url_parser(entry->url)) == NULL) {
 	storeAbort(entry, "Invalid objcache syntax.\n");
 	entry->expires = squid_curtime + STAT_TTL;
@@ -247,12 +247,12 @@ objcacheStart(int fd, StoreEntry * entry)
     data->reply_fd = fd;
     data->entry = entry;
     entry->expires = squid_curtime + STAT_TTL;
-    debug(16, 1, "CACHEMGR: %s requesting '%s'\n",
+    debug(16, 1) ("CACHEMGR: %s requesting '%s'\n",
 	fd_table[fd].ipaddr,
 	objcacheOpcodeStr[data->op]);
     /* Check password */
     if (objcache_CheckPassword(data) != 0) {
-	debug(16, 1, "WARNING: Incorrect Cachemgr Password!\n");
+	debug(16, 1) ("WARNING: Incorrect Cachemgr Password!\n");
 	storeAbort(entry, BADPassword);
 	entry->expires = squid_curtime + STAT_TTL;
 	InvokeHandlers(entry);
@@ -262,7 +262,7 @@ objcacheStart(int fd, StoreEntry * entry)
     BIT_SET(entry->flag, DELAY_SENDING);
     switch (data->op) {
     case MGR_SHUTDOWN:
-	debug(16, 0, "Shutdown by command.\n");
+	debug(16, 0) ("Shutdown by command.\n");
 	/* free up state datastructure */
 	safe_free(data);
 	shut_down(0);
@@ -336,7 +336,7 @@ objcacheStart(int fd, StoreEntry * entry)
 	HTTPCacheInfo->stat_get(HTTPCacheInfo, "storedir", entry);
 	break;
     default:
-	debug(16, 5, "Bad Object Cache URL %s ... negative cached.\n", entry->url);
+	debug(16, 5) ("Bad Object Cache URL %s ... negative cached.\n", entry->url);
 	storeAppendPrintf(entry, BADCacheURL, entry->url);
 	break;
     }
@@ -375,7 +375,7 @@ objcachePasswdAdd(cachemgr_passwd ** list, char *passwd, wordlist * actions)
 	}
 	op = objcacheParseRequest(w->key);
 	if (op <= MGR_NONE || op >= MGR_MAX) {
-	    debug(16, 0, "objcachePasswdAdd: Invalid operation: '%s'\n", w->key);
+	    debug(16, 0) ("objcachePasswdAdd: Invalid operation: '%s'\n", w->key);
 	    continue;
 	}
 	q->actions |= (1 << op);

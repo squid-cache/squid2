@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -181,7 +182,7 @@ struct _MemObject {
     void *ircb_data;
     int fd;			/* FD of client creating this entry */
     struct {
-    	STABH *callback;
+	STABH *callback;
 	void *data;
     } abort;
 };

@@ -190,7 +190,7 @@ static void icpProcessMISS _PARAMS((int, clientHttpRequest *));
 static SIH icpProcessRequestComplete;
 static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, size_t));
 size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
-static clientHttpRequest * parseHttpRequest _PARAMS((ConnStateData *, method_t *, int *, char **, size_t *));
+static clientHttpRequest *parseHttpRequest _PARAMS((ConnStateData *, method_t *, int *, char **, size_t *));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -234,8 +234,8 @@ checkFailureRatio(log_type rcode, hier_code hcode)
 	return;
     if (fail_ratio < 1.0)
 	return;
-    debug(12, 0, "Failure Ratio at %4.2f\n", fail_ratio);
-    debug(12, 0, "Going into hit-only-mode for %d minutes...\n",
+    debug(12, 0) ("Failure Ratio at %4.2f\n", fail_ratio);
+    debug(12, 0) ("Going into hit-only-mode for %d minutes...\n",
 	FAILURE_MODE_TIME / 60);
     hit_only_mode_until = squid_curtime + FAILURE_MODE_TIME;
     fail_ratio = 0.8;		/* reset to something less than 1.0 */
@@ -254,7 +254,7 @@ httpRequestFree(void *data)
     method_t method = METHOD_NONE;
     StoreEntry *entry = http->entry;
     request_t *request = http->request;
-    debug(12, 3, "httpRequestFree: %s\n", entry ? entry->url : "no store entry");
+    debug(12, 3) ("httpRequestFree: %s\n", entry ? entry->url : "no store entry");
     icpProcessRequestControl(http, ICP_OP_DEL);
     if (!icpCheckTransferDone(http)) {
 	CheckQuickAbort(http);
@@ -342,7 +342,7 @@ connStateFree(int fd, void *data)
 {
     ConnStateData *connState = data;
     clientHttpRequest *http;
-    debug(12, 3, "connStateFree: FD %d\n", fd);
+    debug(12, 3) ("connStateFree: FD %d\n", fd);
     if (connState == NULL)
 	fatal_dump("connStateFree: connState == NULL");
     while ((http = connState->chr)) {
@@ -388,9 +388,9 @@ icpParseRequestHeaders(clientHttpRequest * http)
     if ((t = mime_get_header(request_hdr, "Via")))
 	if (strstr(t, ThisCache)) {
 	    if (!http->accel) {
-		debug(12, 1, "WARNING: Forwarding loop detected for '%s'\n",
+		debug(12, 1) ("WARNING: Forwarding loop detected for '%s'\n",
 		    http->url);
-		debug(12, 1, "--> %s\n", t);
+		debug(12, 1) ("--> %s\n", t);
 	    }
 	    BIT_SET(request->flags, REQ_LOOPDETECT);
 	}
@@ -481,7 +481,7 @@ void
 icpSendERRORComplete(int fd, char *buf, int size, int errflag, void *data)
 {
     clientHttpRequest *http = data;
-    debug(12, 4, "icpSendERRORComplete: FD %d, %d bytes\n", fd, size);
+    debug(12, 4) ("icpSendERRORComplete: FD %d, %d bytes\n", fd, size);
     if (http)
 	http->out.size += size;
     comm_close(fd);
@@ -566,8 +566,8 @@ clientBuildReplyHeader(clientHttpRequest * http,
     size_t l;
     end = mime_headers_end(hdr_in);
     if (end == NULL) {
-	debug(12, 3, "clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
-	debug(12, 3, "\n%s", hdr_in);
+	debug(12, 3) ("clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
+	debug(12, 3) ("\n%s", hdr_in);
 	return 0;
     }
     xbuf = get_free_4k_page();
@@ -576,7 +576,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
 	hdr_len = t - hdr_in;
 	l = strcspn(t, crlf) + 1;
 	xstrncpy(xbuf, t, l > 4096 ? 4096 : l);
-	debug(11, 5, "clientBuildReplyHeader: %s\n", xbuf);
+	debug(11, 5) ("clientBuildReplyHeader: %s\n", xbuf);
 	if (strncasecmp(xbuf, "Proxy-Connection:", 17) == 0)
 	    continue;
 	if (strncasecmp(xbuf, "Connection:", 11) == 0)
@@ -602,7 +602,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
 	debug_trap("clientBuildReplyHeader: size mismatch");
 	len = l;
     }
-    debug(11, 3, "clientBuildReplyHeader: OUTPUT:\n%s\n", hdr_out);
+    debug(11, 3) ("clientBuildReplyHeader: OUTPUT:\n%s\n", hdr_out);
     put_free_4k_page(xbuf);
     put_free_4k_page(ybuf);
     return len;
@@ -626,23 +626,23 @@ icpSendMoreData(void *data, char *buf, size_t size)
     assert(size >= 0);
     assert(size <= ICP_SENDMOREDATA_BUF);
     if (size < 0) {
-	debug(12, 1, "storeClientCopy returned %d for '%s'\n", size, entry->key);
+	debug(12, 1) ("storeClientCopy returned %d for '%s'\n", size, entry->key);
 	freefunc(buf);
 	comm_close(fd);
 	return;
     }
-    debug(12, 5, "icpSendMoreData: FD %d '%s', out.offset=%d\n",
+    debug(12, 5) ("icpSendMoreData: FD %d '%s', out.offset=%d\n",
 	fd, entry->url, http->out.offset);
     if (conn->chr != http) {
 	/* there is another object in progress, defer this one */
-	debug(0, 0, "icpSendMoreData: Deferring delivery of\n");
-	debug(0, 0, "--> %s\n", entry->url);
-	debug(0, 0, "--> because other requests are in front\n");
+	debug(0, 0) ("icpSendMoreData: Deferring delivery of\n");
+	debug(0, 0) ("--> %s\n", entry->url);
+	debug(0, 0) ("--> because other requests are in front\n");
 	freefunc(buf);
 	return;
     }
     if (entry->store_status == STORE_ABORTED) {
-	debug(12, 3, "icpSendMoreData: abort_code=%d url='%s'\n",
+	debug(12, 3) ("icpSendMoreData: abort_code=%d url='%s'\n",
 	    entry->mem_obj->abort_code, entry->url);
 	icpSendERROR(fd,
 	    entry->mem_obj->abort_code,
@@ -727,7 +727,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
     ConnStateData *conn;
     StoreEntry *entry = http->entry;
     http->out.size += size;
-    debug(12, 5, "clientWriteComplete: FD %d, sz %d, err %d, off %d, len %d\n",
+    debug(12, 5) ("clientWriteComplete: FD %d, sz %d, err %d, off %d, len %d\n",
 	fd, size, errflag, http->out.offset, entry->object_len);
     if (errflag) {
 	CheckQuickAbort(http);
@@ -755,7 +755,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 		    icpSendMoreData,
 		    http);
 	    else
-	        commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
+		commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	} else {
 	    comm_close(fd);
 	}
@@ -783,7 +783,7 @@ icpGetHeadersForIMS(void *data, char *buf, size_t size)
     assert(size > 0);
     assert(size <= ICP_SENDMOREDATA_BUF);
     if (size < 0) {
-	debug(12, 1, "storeClientCopy returned %d for '%s'\n", size, entry->key);
+	debug(12, 1) ("storeClientCopy returned %d for '%s'\n", size, entry->key);
 	put_free_4k_page(buf);
 	comm_close(fd);
 	return;
@@ -820,7 +820,7 @@ icpGetHeadersForIMS(void *data, char *buf, size_t size)
 #ifdef CHECK_REPLY_CODE_NOTEQUAL_200
     /* Only objects with statuscode==200 can be "Not modified" */
     if (mem->reply->code != 200) {
-	debug(12, 4, "icpGetHeadersForIMS: Reply code %d!=200\n",
+	debug(12, 4) ("icpGetHeadersForIMS: Reply code %d!=200\n",
 	    mem->reply->code);
 	put_free_4k_page(buf);
 	icpProcessMISS(fd, http);
@@ -840,7 +840,7 @@ icpGetHeadersForIMS(void *data, char *buf, size_t size)
 	    http);
 	return;
     }
-    debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
+    debug(12, 4) ("icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
     reply = icpConstruct304reply(mem->reply);
     comm_write(fd,
 	xstrdup(reply),
@@ -855,7 +855,7 @@ icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data
 {
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
-    debug(12, 5, "icpHandleIMSComplete: Not Modified sent '%s'\n", entry->url);
+    debug(12, 5) ("icpHandleIMSComplete: Not Modified sent '%s'\n", entry->url);
     HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	http->request->protocol,
 	size);
@@ -881,7 +881,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
     StoreEntry *entry = NULL;
     request_t *request = http->request;
     char *reply;
-    debug(12, 4, "icpProcessRequest: %s '%s'\n",
+    debug(12, 4) ("icpProcessRequest: %s '%s'\n",
 	RequestMethodStr[http->request->method],
 	url);
     if (http->request->method == METHOD_CONNECT) {
@@ -912,11 +912,11 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	BIT_SET(request->flags, REQ_CACHABLE);
     if (icpHierarchical(http))
 	BIT_SET(request->flags, REQ_HIERARCHICAL);
-    debug(12, 5, "icpProcessRequest: REQ_NOCACHE = %s\n",
+    debug(12, 5) ("icpProcessRequest: REQ_NOCACHE = %s\n",
 	BIT_TEST(request->flags, REQ_NOCACHE) ? "SET" : "NOT SET");
-    debug(12, 5, "icpProcessRequest: REQ_CACHABLE = %s\n",
+    debug(12, 5) ("icpProcessRequest: REQ_CACHABLE = %s\n",
 	BIT_TEST(request->flags, REQ_CACHABLE) ? "SET" : "NOT SET");
-    debug(12, 5, "icpProcessRequest: REQ_HIERARCHICAL = %s\n",
+    debug(12, 5) ("icpProcessRequest: REQ_HIERARCHICAL = %s\n",
 	BIT_TEST(request->flags, REQ_HIERARCHICAL) ? "SET" : "NOT SET");
 
     /* NOTE on HEAD requests: We currently don't cache HEAD reqeusts
@@ -967,7 +967,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
     ctrlp->fd = fd;
     icpProcessRequestControl(ctrlp, ICP_OP_ADD);
 
-    debug(12, 4, "icpProcessRequest: %s for '%s'\n",
+    debug(12, 4) ("icpProcessRequest: %s for '%s'\n",
 	log_tags[http->log_type],
 	http->url);
 
@@ -1022,7 +1022,7 @@ icpProcessRequestComplete(void *data, int status)
     clientHttpRequest *http = ctrlp->http;
     StoreEntry *entry = ctrlp->entry;
     int fd = ctrlp->fd;
-    debug(12, 3, "icpProcessRequestComplete: '%s'\n", http->url);
+    debug(12, 3) ("icpProcessRequestComplete: '%s'\n", http->url);
     if (icpProcessRequestControl(http, ICP_OP_DEL) == 0) {
 	if (entry) {
 	    if (status < 0)
@@ -1043,7 +1043,7 @@ icpProcessRequestComplete(void *data, int status)
 	http->log_type = LOG_TCP_SWAPFAIL_MISS;
 	assert(store_rebuilding);
 	if (!store_rebuilding)
-	    debug(12, 1, "Swapin Failure: '%s', %s\n",
+	    debug(12, 1) ("Swapin Failure: '%s', %s\n",
 		entry->url,
 		storeSwapFullPath(entry->swap_file_number, NULL));
 	storeRelease(entry);
@@ -1095,9 +1095,9 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     int answer;
     char *buf;
 
-    debug(12, 4, "icpProcessMISS: '%s %s'\n",
+    debug(12, 4) ("icpProcessMISS: '%s %s'\n",
 	RequestMethodStr[http->request->method], url);
-    debug(12, 10, "icpProcessMISS: request_hdr:\n%s\n", request_hdr);
+    debug(12, 10) ("icpProcessMISS: request_hdr:\n%s\n", request_hdr);
 
     /* Check if this host is allowed to fetch MISSES from us */
     memset(&ch, '\0', sizeof(aclCheck_t));
@@ -1186,7 +1186,7 @@ icpUdpReply(int fd, void *data)
     /* Disable handler, in case of errors. */
     commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
     while ((queue = UdpQueueHead)) {
-	debug(12, 5, "icpUdpReply: FD %d sending %d bytes to %s port %d\n",
+	debug(12, 5) ("icpUdpReply: FD %d sending %d bytes to %s port %d\n",
 	    fd,
 	    queue->len,
 	    inet_ntoa(queue->address.sin_addr),
@@ -1283,7 +1283,7 @@ icpCreateHitObjMessage(
     entryoffset += sizeof(u_short);
     size = memCopy(m->data, 0, entryoffset, entry->object_len);
     if (size < 0 || size != entry->object_len) {
-	debug(12, 1, "icpCreateHitObjMessage: copy failed, wanted %d got %d bytes\n",
+	debug(12, 1) ("icpCreateHitObjMessage: copy failed, wanted %d got %d bytes\n",
 	    entry->object_len, size);
 	safe_free(buf);
 	return NULL;
@@ -1301,7 +1301,7 @@ icpUdpSend(int fd,
 {
     icpUdpData *data = xcalloc(1, sizeof(icpUdpData));
 
-    debug(12, 4, "icpUdpSend: Queueing %s for %s\n",
+    debug(12, 4) ("icpUdpSend: Queueing %s for %s\n",
 	IcpOpcodeStr[msg->opcode],
 	inet_ntoa(to->sin_addr));
     data->address = *to;
@@ -1393,7 +1393,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	checklist.request = icp_request;
 	allow = aclCheckFast(Config.accessList.ICP, &checklist);
 	if (!allow) {
-	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s by %s.\n",
+	    debug(12, 2) ("icpHandleIcpV2: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
 	    if (clientdbDeniedPercent(from.sin_addr) < 95) {
 		reply = icpCreateMessage(ICP_OP_DENIED, 0, url, header.reqnum, 0);
@@ -1410,7 +1410,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
-	debug(12, 5, "icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
+	debug(12, 5) ("icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (icpCheckUdpHit(entry, icp_request)) {
 	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
 	    if (icpCheckUdpHitObj(entry, icp_request, &header, pkt_len)) {
@@ -1449,9 +1449,9 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     case ICP_OP_DENIED:
     case ICP_OP_MISS_NOFETCH:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
-	    debug(12, 0, "icpHandleIcpV2: Neighbor %s returned reqnum = 0\n",
+	    debug(12, 0) ("icpHandleIcpV2: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
-	    debug(12, 0, "icpHandleIcpV2: Disabling use of private keys\n");
+	    debug(12, 0) ("icpHandleIcpV2: Disabling use of private keys\n");
 	    neighbors_do_private_keys = 0;
 	}
 	url = buf + sizeof(header);
@@ -1461,11 +1461,11 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    data += sizeof(u_short);
 	    data_sz = ntohs(u);
 	    if ((int) data_sz > (len - (data - buf))) {
-		debug(12, 0, "icpHandleIcpV2: ICP_OP_HIT_OBJ object too small\n");
+		debug(12, 0) ("icpHandleIcpV2: ICP_OP_HIT_OBJ object too small\n");
 		break;
 	    }
 	}
-	debug(12, 3, "icpHandleIcpV2: %s from %s for '%s'\n",
+	debug(12, 3) ("icpHandleIcpV2: %s from %s for '%s'\n",
 	    IcpOpcodeStr[header.opcode],
 	    inet_ntoa(from.sin_addr),
 	    url);
@@ -1474,9 +1474,9 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	} else {
 	    key = storeGeneratePublicKey(url, METHOD_GET);
 	}
-	debug(12, 3, "icpHandleIcpV2: Looking for key '%s'\n", key);
+	debug(12, 3) ("icpHandleIcpV2: Looking for key '%s'\n", key);
 	if ((entry = storeGet(key)) == NULL) {
-	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for NULL Entry.\n",
+	    debug(12, 3) ("icpHandleIcpV2: Ignoring %s for NULL Entry.\n",
 		IcpOpcodeStr[header.opcode]);
 	} else {
 	    /* call neighborsUdpAck even if ping_status != PING_WAITING */
@@ -1495,7 +1495,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	break;
 
     default:
-	debug(12, 0, "icpHandleIcpV2: UNKNOWN OPCODE: %d from %s\n",
+	debug(12, 0) ("icpHandleIcpV2: UNKNOWN OPCODE: %d from %s\n",
 	    header.opcode, inet_ntoa(from.sin_addr));
 	break;
     }
@@ -1541,7 +1541,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	checklist.request = icp_request;
 	allow = aclCheckFast(Config.accessList.ICP, &checklist);
 	if (!allow) {
-	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s by %s.\n",
+	    debug(12, 2) ("icpHandleIcpV3: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
 	    if (clientdbDeniedPercent(from.sin_addr) < 95) {
 		reply = icpCreateMessage(ICP_OP_DENIED, 0, url, header.reqnum, 0);
@@ -1551,7 +1551,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
-	debug(12, 5, "icpHandleIcpV3: OPCODE %s\n",
+	debug(12, 5) ("icpHandleIcpV3: OPCODE %s\n",
 	    IcpOpcodeStr[header.opcode]);
 	if (icpCheckUdpHit(entry, icp_request)) {
 	    reply = icpCreateMessage(ICP_OP_HIT, 0, url, header.reqnum, 0);
@@ -1579,9 +1579,9 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     case ICP_OP_DENIED:
     case ICP_OP_MISS_NOFETCH:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
-	    debug(12, 0, "icpHandleIcpV3: Neighbor %s returned reqnum = 0\n",
+	    debug(12, 0) ("icpHandleIcpV3: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
-	    debug(12, 0, "icpHandleIcpV3: Disabling use of private keys\n");
+	    debug(12, 0) ("icpHandleIcpV3: Disabling use of private keys\n");
 	    neighbors_do_private_keys = 0;
 	}
 	url = buf + sizeof(header);
@@ -1591,11 +1591,11 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    data += sizeof(u_short);
 	    data_sz = ntohs(u);
 	    if ((int) data_sz > (len - (data - buf))) {
-		debug(12, 0, "icpHandleIcpV3: ICP_OP_HIT_OBJ object too small\n");
+		debug(12, 0) ("icpHandleIcpV3: ICP_OP_HIT_OBJ object too small\n");
 		break;
 	    }
 	}
-	debug(12, 3, "icpHandleIcpV3: %s from %s for '%s'\n",
+	debug(12, 3) ("icpHandleIcpV3: %s from %s for '%s'\n",
 	    IcpOpcodeStr[header.opcode],
 	    inet_ntoa(from.sin_addr),
 	    url);
@@ -1604,9 +1604,9 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	} else {
 	    key = storeGeneratePublicKey(url, METHOD_GET);
 	}
-	debug(12, 3, "icpHandleIcpV3: Looking for key '%s'\n", key);
+	debug(12, 3) ("icpHandleIcpV3: Looking for key '%s'\n", key);
 	if ((entry = storeGet(key)) == NULL) {
-	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for NULL Entry.\n",
+	    debug(12, 3) ("icpHandleIcpV3: Ignoring %s for NULL Entry.\n",
 		IcpOpcodeStr[header.opcode]);
 	} else {
 	    /* call neighborsUdpAck even if ping_status != PING_WAITING */
@@ -1625,7 +1625,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	break;
 
     default:
-	debug(12, 0, "icpHandleIcpV3: UNKNOWN OPCODE: %d from %s\n",
+	debug(12, 0) ("icpHandleIcpV3: UNKNOWN OPCODE: %d from %s\n",
 	    header.opcode, inet_ntoa(from.sin_addr));
 	break;
     }
@@ -1639,16 +1639,16 @@ icpPktDump(icp_common_t * pkt)
 {
     struct in_addr a;
 
-    debug(12, 9, "opcode:     %3d %s\n",
+    debug(12, 9) ("opcode:     %3d %s\n",
 	(int) pkt->opcode,
 	IcpOpcodeStr[pkt->opcode]);
-    debug(12, 9, "version: %-8d\n", (int) pkt->version);
-    debug(12, 9, "length:  %-8d\n", (int) ntohs(pkt->length));
-    debug(12, 9, "reqnum:  %-8d\n", ntohl(pkt->reqnum));
-    debug(12, 9, "flags:   %-8x\n", ntohl(pkt->flags));
+    debug(12, 9) ("version: %-8d\n", (int) pkt->version);
+    debug(12, 9) ("length:  %-8d\n", (int) ntohs(pkt->length));
+    debug(12, 9) ("reqnum:  %-8d\n", ntohl(pkt->reqnum));
+    debug(12, 9) ("flags:   %-8x\n", ntohl(pkt->flags));
     a.s_addr = ntohl(pkt->shostid);
-    debug(12, 9, "shostid: %s\n", inet_ntoa(a));
-    debug(12, 9, "payload: %s\n", (char *) pkt + sizeof(icp_common_t));
+    debug(12, 9) ("shostid: %s\n", inet_ntoa(a));
+    debug(12, 9) ("payload: %s\n", (char *) pkt + sizeof(icp_common_t));
 }
 #endif
 
@@ -1679,12 +1679,12 @@ icpHandleUdp(int sock, void *not_used)
 	/* or maybe an EHOSTUNREACH "No route to host" message */
 	if (errno != ECONNREFUSED && errno != EHOSTUNREACH)
 #endif
-	    debug(50, 1, "icpHandleUdp: FD %d recvfrom: %s\n",
+	    debug(50, 1) ("icpHandleUdp: FD %d recvfrom: %s\n",
 		sock, xstrerror());
 	return;
     }
     buf[len] = '\0';
-    debug(12, 4, "icpHandleUdp: FD %d: received %d bytes from %s.\n",
+    debug(12, 4) ("icpHandleUdp: FD %d: received %d bytes from %s.\n",
 	sock,
 	len,
 	inet_ntoa(from.sin_addr));
@@ -1692,7 +1692,7 @@ icpHandleUdp(int sock, void *not_used)
     icpPktDump(buf);
 #endif
     if (len < sizeof(icp_common_t)) {
-	debug(12, 4, "icpHandleUdp: Ignoring too-small UDP packet\n");
+	debug(12, 4) ("icpHandleUdp: Ignoring too-small UDP packet\n");
 	return;
     }
     headerp = (icp_common_t *) (void *) buf;
@@ -1701,7 +1701,7 @@ icpHandleUdp(int sock, void *not_used)
     else if (icp_version == ICP_VERSION_3)
 	icpHandleIcpV3(sock, from, buf, len);
     else
-	debug(12, 0, "WARNING: Unused ICP version %d received from %s:%d\n",
+	debug(12, 0) ("WARNING: Unused ICP version %d received from %s:%d\n",
 	    icp_version,
 	    inet_ntoa(from.sin_addr),
 	    ntohs(from.sin_port));
@@ -1717,7 +1717,7 @@ icpHandleUdp(int sock, void *not_used)
  */
 static clientHttpRequest *
 parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
-	char **headers_p, size_t *headers_sz_p)
+    char **headers_p, size_t * headers_sz_p)
 {
     char *inbuf = NULL;
     char *mstr = NULL;
@@ -1738,7 +1738,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 
     /* Make sure a complete line has been received */
     if (strchr(conn->in.buf, '\n') == NULL) {
-	debug(12, 5, "Incomplete request line, waiting for more data\n");
+	debug(12, 5) ("Incomplete request line, waiting for more data\n");
 	*status = 0;
 	return NULL;
     }
@@ -1750,33 +1750,33 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 
     /* Look for request method */
     if ((mstr = strtok(inbuf, "\t ")) == NULL) {
-	debug(12, 1, "parseHttpRequest: Can't get request method\n");
+	debug(12, 1) ("parseHttpRequest: Can't get request method\n");
 	xfree(inbuf);
 	*status = -1;
 	return NULL;
     }
     method = urlParseMethod(mstr);
     if (method == METHOD_NONE) {
-	debug(12, 1, "parseHttpRequest: Unsupported method '%s'\n", mstr);
+	debug(12, 1) ("parseHttpRequest: Unsupported method '%s'\n", mstr);
 	xfree(inbuf);
 	*status = -1;
 	return NULL;
     }
-    debug(12, 5, "parseHttpRequest: Method is '%s'\n", mstr);
+    debug(12, 5) ("parseHttpRequest: Method is '%s'\n", mstr);
 
     /* look for URL */
     if ((url = strtok(NULL, "\r\n\t ")) == NULL) {
-	debug(12, 1, "parseHttpRequest: Missing URL\n");
+	debug(12, 1) ("parseHttpRequest: Missing URL\n");
 	xfree(inbuf);
 	*status = -1;
 	return NULL;
     }
-    debug(12, 5, "parseHttpRequest: Request is '%s'\n", url);
+    debug(12, 5) ("parseHttpRequest: Request is '%s'\n", url);
 
     token = strtok(NULL, null_string);
     for (t = token; t && *t && *t != '\n' && *t != '\r'; t++);
     if (t == NULL || *t == '\0' || t == token) {
-	debug(12, 3, "parseHttpRequest: Missing HTTP identifier\n");
+	debug(12, 3) ("parseHttpRequest: Missing HTTP identifier\n");
 	xfree(inbuf);
 	*status = -1;
 	return NULL;
@@ -1784,7 +1784,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     memset(http_ver_s, '\0', 32);
     xstrncpy(http_ver_s, token, 32);
     sscanf(http_ver_s, "HTTP/%f", &http_ver);
-    debug(12, 5, "parseHttpRequest: HTTP version is '%3.1f'\n", http_ver);
+    debug(12, 5) ("parseHttpRequest: HTTP version is '%3.1f'\n", http_ver);
 
     /* Check if headers are received */
     if ((end = mime_headers_end(t)) == NULL) {
@@ -1809,7 +1809,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     xmemcpy(*headers_p, req_hdr, header_sz);
     *(*headers_p + header_sz) = '\0';
 
-    debug(12, 5, "parseHttpRequest: Request Header is\n%s\n", *headers_p);
+    debug(12, 5) ("parseHttpRequest: Request Header is\n%s\n", *headers_p);
 
     /* Assign http->url */
     if ((t = strchr(url, '\n')))	/* remove NL */
@@ -1830,7 +1830,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		inet_ntoa(http->conn->me.sin_addr),
 		(int) Config.Accel.port,
 		url);
-	    debug(12, 5, "VHOST REWRITE: '%s'\n", http->url);
+	    debug(12, 5) ("VHOST REWRITE: '%s'\n", http->url);
 	} else if (opt_accel_uses_host && (t = mime_get_header(req_hdr, "Host"))) {
 	    /* If a Host: header was specified, use it to build the URL 
 	     * instead of the one in the Config file. */
@@ -1862,7 +1862,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	http->accel = 0;
     }
 
-    debug(12, 5, "parseHttpRequest: Complete request received\n");
+    debug(12, 5) ("parseHttpRequest: Complete request received\n");
     if (free_request)
 	safe_free(url);
     xfree(inbuf);
@@ -1889,13 +1889,13 @@ clientReadRequest(int fd, void *data)
     size_t headers_sz;
 
     len = conn->in.size - conn->in.offset - 1;
-    debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
+    debug(12, 4) ("clientReadRequest: FD %d: reading request...\n", fd);
     size = read(fd, conn->in.buf + conn->in.offset, len);
     fd_bytes(fd, size, FD_READ);
 
     if (size == 0) {
 	/* It might be half-closed, we can't tell */
-	debug(12, 5, "clientReadRequest: FD %d closed?\n", fd);
+	debug(12, 5) ("clientReadRequest: FD %d closed?\n", fd);
 	comm_set_stall(fd, 10);	/* check again in 10 seconds */
 	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	return;
@@ -1903,7 +1903,7 @@ clientReadRequest(int fd, void *data)
 	if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR) {
 	    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	} else {
-	    debug(50, 2, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
+	    debug(50, 2) ("clientReadRequest: FD %d: %s\n", fd, xstrerror());
 	    comm_close(fd);
 	}
 	return;
@@ -1913,10 +1913,10 @@ clientReadRequest(int fd, void *data)
 
     while (conn->in.offset > 0) {
 	http = parseHttpRequest(conn,
-		&method,
-		&parser_return_code,
-		&headers,
-		&headers_sz);
+	    &method,
+	    &parser_return_code,
+	    &headers,
+	    &headers_sz);
 	if (http) {
 	    assert(http->req_sz > 0);
 	    conn->in.offset -= http->req_sz;
@@ -1932,7 +1932,7 @@ clientReadRequest(int fd, void *data)
 	    conn->nrequests++;
 	    commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
 	    if ((request = urlParse(method, http->url)) == NULL) {
-		debug(12, 5, "Invalid URL: %s\n", http->url);
+		debug(12, 5) ("Invalid URL: %s\n", http->url);
 		wbuf = squid_error_url(http->url,
 		    method,
 		    ERR_INVALID_URL,
@@ -1965,14 +1965,14 @@ clientReadRequest(int fd, void *data)
 	    http->request = requestLink(request);
 	    clientAccessCheck(http);
 	    /* break here for NON-GET because most likely there is a
-	       reqeust body following and we don't want to parse it
-  	       as though it was new request */
+	     * reqeust body following and we don't want to parse it
+	     * as though it was new request */
 	    if (request->method != METHOD_GET) {
 		if (conn->in.offset) {
-			request->body_sz = conn->in.offset;
-			request->body = xmalloc(request->body_sz);
-			xmemcpy(request->body, conn->in.buf, request->body_sz);
-			conn->in.offset = 0;
+		    request->body_sz = conn->in.offset;
+		    request->body = xmalloc(request->body_sz);
+		    xmemcpy(request->body, conn->in.buf, request->body_sz);
+		    conn->in.offset = 0;
 		}
 		break;
 	    }
@@ -1987,9 +1987,9 @@ clientReadRequest(int fd, void *data)
 	    if (k == 0) {
 		if (conn->in.offset >= Config.maxRequestSize) {
 		    /* The request is too large to handle */
-		    debug(12, 0, "clientReadRequest: Request won't fit in buffer.\n");
-		    debug(12, 0, "-->     max size = %d\n", Config.maxRequestSize);
-		    debug(12, 0, "--> conn->in.offset = %d\n", conn->in.offset);
+		    debug(12, 0) ("clientReadRequest: Request won't fit in buffer.\n");
+		    debug(12, 0) ("-->     max size = %d\n", Config.maxRequestSize);
+		    debug(12, 0) ("--> conn->in.offset = %d\n", conn->in.offset);
 		    icpSendERROR(fd,
 			ERR_INVALID_REQ,
 			"error reading request",
@@ -2001,7 +2001,7 @@ clientReadRequest(int fd, void *data)
 		conn->in.size += REQUEST_BUF_SIZE;
 		conn->in.buf = xrealloc(conn->in.buf, conn->in.size);
 		meta_data.misc += REQUEST_BUF_SIZE;
-		debug(12, 2, "Handling a large request, offset=%d inbufsize=%d\n",
+		debug(12, 2) ("Handling a large request, offset=%d inbufsize=%d\n",
 		    conn->in.offset, conn->in.size);
 		k = conn->in.size - 1 - conn->in.offset;
 	    }
@@ -2009,7 +2009,7 @@ clientReadRequest(int fd, void *data)
 	    break;
 	} else {
 	    /* parser returned -1 */
-	    debug(12, 1, "clientReadRequest: FD %d Invalid Request\n", fd);
+	    debug(12, 1) ("clientReadRequest: FD %d Invalid Request\n", fd);
 	    wbuf = squid_error_request(conn->in.buf, ERR_INVALID_REQ, 400);
 	    icpSendERROR(fd, ERR_INVALID_REQ, wbuf, NULL, 400);
 	}
@@ -2022,7 +2022,7 @@ static void
 requestTimeout(int fd, void *data)
 {
     ConnStateData *conn = data;
-    debug(12, 2, "requestTimeout: FD %d: lifetime is expired.\n", fd);
+    debug(12, 2) ("requestTimeout: FD %d: lifetime is expired.\n", fd);
     /* There might be a comm_write() thread; cancel callback */
     if (fd_table[fd].rwstate) {
 	/* Some data has been sent to the client, just cancel the
@@ -2051,20 +2051,20 @@ httpAccept(int sock, void *notused)
     struct sockaddr_in peer;
     struct sockaddr_in me;
     if (!fdstat_are_n_free_fd(RESERVED_FD)) {
-	debug(12, 0, "WARNING: Near FD limit, delaying new connections\n");
+	debug(12, 0) ("WARNING: Near FD limit, delaying new connections\n");
 	comm_set_stall(sock, 1);
     }
     memset(&peer, '\0', sizeof(struct sockaddr_in));
     memset(&me, '\0', sizeof(struct sockaddr_in));
     commSetSelect(sock, COMM_SELECT_READ, httpAccept, NULL, 0);
     if ((fd = comm_accept(sock, &peer, &me)) < 0) {
-	debug(50, 1, "httpAccept: FD %d: accept failure: %s\n",
+	debug(50, 1) ("httpAccept: FD %d: accept failure: %s\n",
 	    sock, xstrerror());
 	return;
     }
     if (vizSock > -1)
 	vizHackSendPkt(&peer, 1);
-    debug(12, 4, "httpAccept: FD %d: accepted\n", fd);
+    debug(12, 4) ("httpAccept: FD %d: accepted\n", fd);
     connState = xcalloc(1, sizeof(ConnStateData));
     connState->peer = peer;
     connState->log_addr = peer.sin_addr;
@@ -2145,7 +2145,7 @@ CheckQuickAbort(clientHttpRequest * http)
 	return;
     if (CheckQuickAbort2(http) == 0)
 	return;
-    debug(12, 3, "CheckQuickAbort: ABORTING %s\n", http->entry->url);
+    debug(12, 3) ("CheckQuickAbort: ABORTING %s\n", http->entry->url);
     storeAbort(http->entry, "aborted by client");
     storeReleaseRequest(http->entry);
     http->log_type = ERR_CLIENT_ABORT;

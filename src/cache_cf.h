@@ -281,7 +281,7 @@ struct SquidConfig {
 	int list_wrap;
 	char *icon_prefix;
 	char *icon_suffix;
-        char *anon_user;
+	char *anon_user;
     } Ftp;
 };
 

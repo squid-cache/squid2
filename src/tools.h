@@ -128,6 +128,7 @@ extern void _debug_trap _PARAMS((const char *message));
 extern struct in_addr inaddrFromHostent _PARAMS((const struct hostent * hp));
 extern int intAverage _PARAMS((int, int, int, int));
 extern double doubleAverage _PARAMS((double, double, int, int));
+extern void debug_trap _PARAMS((const char *));
 
 extern int do_mallinfo;
 extern time_t squid_curtime;
