@@ -419,9 +419,9 @@ storeAufsIOCallback(storeIOState * sio, int errflag)
     debug(79, 9) ("%s:%d\n", __FILE__, __LINE__);
     cbdataUnlock(their_data);
     aiostate->fd = -1;
-    cbdataFree(sio);
     if (aiostate->flags.opening)
 	Opening_FD--;
+    cbdataFree(sio);
     if (fd < 0)
 	return;
     debug(79, 9) ("%s:%d\n", __FILE__, __LINE__);
