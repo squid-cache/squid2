@@ -1626,7 +1626,7 @@ parseHttpRequest(icpStateData * icpState)
 	    sprintf(icpState->url, "%s%s", Config.Accel.prefix, url);
 	} else {
 	    /* Put the local socket IP address as the hostname */
-	    icpState->url = xcalloc(strlen(url) + 24, 1);
+	    icpState->url = xcalloc(strlen(url) + 32, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		inet_ntoa(icpState->me.sin_addr),
 		Config.Accel.port,
