@@ -556,7 +556,7 @@ int ftpStart(unusedfd, url, request, entry)
 	url);
     if (data->ftp_fd == COMM_ERROR) {
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
-	safe_free(data);
+	ftpStateFree(-1, data);
 	return COMM_ERROR;
     }
     /* Pipe/socket created ok */
