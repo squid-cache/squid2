@@ -1832,7 +1832,7 @@ static void configDoConfigure()
     single_parent_bypass = Config.singleParentBypass;
     DnsPositiveTtl = Config.positiveDnsTtl;
     sprintf(ForwardedBy, "Forwarded: by http://%s:%d/",
-            getMyHostname(), getHttpPortNum());
+	getMyHostname(), getHttpPortNum());
 
 
 #if !ALLOW_HOT_CACHE
