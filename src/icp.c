@@ -832,6 +832,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     }
     entry = storeCreateEntry(url,
 	request_hdr,
+	icpState->req_hdr_sz,
 	icpState->request->flags,
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
@@ -1571,6 +1572,7 @@ parseHttpRequest(icpStateData * icpState)
 	return 0;		/* not a complete request */
     }
     /* Ok, all headers are received */
+    icpState->req_hdr_sz = req_hdr_sz;
     icpState->request_hdr = xmalloc(req_hdr_sz + 1);
     xmemcpy(icpState->request_hdr, req_hdr, req_hdr_sz);
     *(icpState->request_hdr + req_hdr_sz) = '\0';
