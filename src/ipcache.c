@@ -517,7 +517,6 @@ int ipcache_parsebuffer(buf, offset, dnsData)
     ipcache_entry *i = NULL;
 
     *dns_error_message = '\0';
-    debug(14, 0, "buf:\n%s\n", buf);
 
     pos = buf;
     while (pos < (buf + offset)) {
