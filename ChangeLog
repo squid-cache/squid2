@@ -1,3 +1,19 @@
+Changes to squid-2.5.STABLE3 ():
+
+	- Bug #573: Occational false negatives in external acl lookups
+	- Bug #577: assertion failed: cbdata.c:224: "c->y == c" when
+	  external_acl helpers crashes
+	- Bug #590: Squid may hang or behave oddly on shutdown while
+	  requests is being processed.
+	- Bug #590: external acl lookups does not deal well with queue
+	  overload
+	- cache_effective_user documentation update
+	- cache_peer documentation update for htcp and carp
+	- Bug #600: The example header_access paranoid setting is
+	  missing WWW-Authenticate
+	- Bug #605: Segmentation fault in idnsGrokReply() on certain
+	  platforms
+
 Changes to squid-2.5.STABLE2 (Mars 17, 2003):
 
 	- Contrib files added back to the distribution
