@@ -147,14 +147,6 @@ icmpHandleSourcePing(const struct sockaddr_in *from, const char *buf)
 
 #endif /* USE_ICMP */
 
-void
-icmpPing(struct in_addr to)
-{
-#if USE_ICMP
-    icmpSendEcho(to, S_ICMP_ECHO, NULL, 0);
-#endif
-}
-
 #if ALLOW_SOURCE_PING
 void
 icmpSourcePing(struct in_addr to, const icp_common_t * header, const char *url)
