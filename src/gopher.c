@@ -797,12 +797,6 @@ gopherReadReply(int fd, GopherStateData * data)
 	storeComplete(entry);
 	comm_close(fd);
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
-	/* append the last bit of info we got */
-	if (data->conversion != NORMAL) {
-	    gopherToHTML(data, buf, len);
-	} else {
-	    storeAppend(entry, buf, len);
-	}
 	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 	if (data->conversion != NORMAL)
 	    gopherEndHTML(data);

@@ -756,8 +756,10 @@ storeDoneWriting(StoreEntry * e)
 {
     if (e->store_status == STORE_PENDING)
 	return 0;
+/*
     if (e->store_status == STORE_ABORTED)
 	return 1;
+*/
     if (e->object_len < e->mem_obj->swap_length)
 	return 0;
     return 1;
@@ -1215,6 +1217,8 @@ storeAbort(StoreEntry * e)
     store_swap_size += (int) ((e->object_len + 1023) >> 10);
     storeReleaseRequest(e);
     InvokeHandlers(e);
+    if (storeDoneWriting(e))
+        storeUnlockObject(e);
 }
 
 /* Complete transfer into the local cache.  */

@@ -352,8 +352,6 @@ ftpReadReply(int fd, FtpStateData * data)
 	storeComplete(entry);
 	comm_close(fd);
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
-	/* append the last bit of info we get */
-	storeAppend(entry, buf, len);
 	squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 	comm_close(fd);
     } else {
