@@ -242,7 +242,7 @@ authNTLMInit(authScheme * scheme)
 	assert(proxy_auth_cache);
 	ntlmauthenticators->cmdline = ntlmConfig->authenticate;
 	ntlmauthenticators->n_to_start = ntlmConfig->authenticateChildren;
-	ntlmauthenticators->ipc_type = IPC_TCP_SOCKET;
+	ntlmauthenticators->ipc_type = IPC_STREAM;
 	ntlmauthenticators->datapool = ntlm_helper_state_pool;
 	ntlmauthenticators->IsAvailable = authenticateNTLMHelperServerAvailable;
 	ntlmauthenticators->OnEmptyQueue = authenticateNTLMHelperServerOnEmpty;

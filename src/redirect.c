@@ -158,7 +158,7 @@ redirectInit(void)
 	redirectors = helperCreate("redirector");
     redirectors->cmdline = Config.Program.redirect;
     redirectors->n_to_start = Config.redirectChildren;
-    redirectors->ipc_type = IPC_TCP_SOCKET;
+    redirectors->ipc_type = IPC_STREAM;
     helperOpenServers(redirectors);
     if (!init) {
 	cachemgrRegister("redirector",

@@ -1612,6 +1612,7 @@ AC_CHECK_FUNCS(\
 	setsid \
 	sigaction \
 	snprintf \
+	socketpair \
 	srand48 \
 	srandom \
 	statfs \
