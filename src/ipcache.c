@@ -406,7 +406,7 @@ ipcacheHandleReply(void *data, rfc1035_rr * answers, int na)
     cbdataFree(c);
     c = NULL;
     n = ++IpcacheStats.replies;
-    statHistCount(&Counter.dns.svc_time, tvSubMsec(i->request_time, current_time));
+    statHistCount(&statCounter.dns.svc_time, tvSubMsec(i->request_time, current_time));
 #if USE_DNSSERVERS
     x = ipcacheParse(reply);
 #else

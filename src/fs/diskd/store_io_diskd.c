@@ -297,7 +297,7 @@ static void
 storeDiskdOpenDone(diomsg * M)
 {
     storeIOState *sio = M->callback_data;
-    Counter.syscalls.disk.opens++;
+    statCounter.syscalls.disk.opens++;
     debug(81, 3) ("storeDiskdOpenDone: dirno %d, fileno %08x status %d\n",
 	sio->swap_dirn, sio->swap_filen, M->status);
     if (M->status < 0) {
@@ -309,7 +309,7 @@ static void
 storeDiskdCloseDone(diomsg * M)
 {
     storeIOState *sio = M->callback_data;
-    Counter.syscalls.disk.closes++;
+    statCounter.syscalls.disk.closes++;
     debug(81, 3) ("storeDiskdCloseDone: dirno %d, fileno %08x status %d\n",
 	sio->swap_dirn, sio->swap_filen, M->status);
     if (M->status < 0) {
@@ -332,7 +332,7 @@ storeDiskdReadDone(diomsg * M)
     char *sbuf;
     size_t len;
     int valid;
-    Counter.syscalls.disk.reads++;
+    statCounter.syscalls.disk.reads++;
     diskdstate->flags.reading = 0;
     valid = cbdataValid(sio->read.callback_data);
     cbdataUnlock(sio->read.callback_data);
@@ -359,7 +359,7 @@ storeDiskdWriteDone(diomsg * M)
 {
     storeIOState *sio = M->callback_data;
     diskdstate_t *diskdstate = sio->fsstate;
-    Counter.syscalls.disk.writes++;
+    statCounter.syscalls.disk.writes++;
     diskdstate->flags.writing = 0;
     debug(81, 3) ("storeDiskdWriteDone: dirno %d, fileno %08x status %d\n",
 	sio->swap_dirn, sio->swap_filen, M->status);
@@ -375,7 +375,7 @@ storeDiskdUnlinkDone(diomsg * M)
 {
     debug(81, 3) ("storeDiskdUnlinkDone: fileno %08x status %d\n",
 	M->id, M->status);
-    Counter.syscalls.disk.unlinks++;
+    statCounter.syscalls.disk.unlinks++;
 }
 
 void

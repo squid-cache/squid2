@@ -303,7 +303,7 @@ storeSwapOutFileClosed(void *data, int errflag, storeIOState * sio)
 	    storeLog(STORE_LOG_SWAPOUT, e);
 	    storeDirSwapLog(e, SWAP_LOG_ADD);
 	}
-	Counter.swap.outs++;
+	statCounter.swap.outs++;
     }
     debug(20, 3) ("storeSwapOutFileClosed: %s:%d\n", __FILE__, __LINE__);
     mem->swapout.sio = NULL;

@@ -139,7 +139,7 @@ unlinkdUnlink(const char *path)
 	safeunlink(path, 0);
 	return;
     }
-    Counter.unlink.requests++;
+    statCounter.unlink.requests++;
     queuelen++;
 }
 

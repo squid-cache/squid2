@@ -247,7 +247,7 @@ pumpReadFromClient(int fd, void *data)
     int bytes_to_read = XMIN(p->req->content_length - p->rcvd, SQUID_TCP_SO_RCVBUF);
     int len = 0;
     errno = 0;
-    Counter.syscalls.sock.reads++;
+    statCounter.syscalls.sock.reads++;
     len = read(fd, buf, bytes_to_read);
     fd_bytes(fd, len, FD_READ);
     debug(61, 5) ("pumpReadFromClient: FD %d: len %d.\n", fd, len);

@@ -821,7 +821,7 @@ htcpRecv(int fd, void *data)
     static struct sockaddr_in from;
     int flen = sizeof(struct sockaddr_in);
     memset(&from, '\0', flen);
-    Counter.syscalls.sock.recvfroms++;
+    statCounter.syscalls.sock.recvfroms++;
     len = recvfrom(fd, buf, 8192, 0, (struct sockaddr *) &from, &flen);
     debug(31, 3) ("htcpRecv: FD %d, %d bytes from %s:%d\n",
 	fd, len, inet_ntoa(from.sin_addr), ntohs(from.sin_port));

@@ -286,7 +286,7 @@ helperHandleRead(int fd, void *data)
     helper *hlp = srv->parent;
     assert(fd == srv->rfd);
     assert(cbdataValid(data));
-    Counter.syscalls.sock.reads++;
+    statCounter.syscalls.sock.reads++;
     len = read(fd, srv->buf + srv->offset, srv->buf_sz - srv->offset);
     fd_bytes(fd, len, FD_READ);
     debug(29, 5) ("helperHandleRead: %d bytes from %s #%d.\n",

@@ -306,7 +306,7 @@ idnsRead(int fd, void *data)
     while (max--) {
 	from_len = sizeof(from);
 	memset(&from, '\0', from_len);
-	Counter.syscalls.sock.recvfroms++;
+	statCounter.syscalls.sock.recvfroms++;
 	len = recvfrom(fd, rbuf, 512, 0, (struct sockaddr *) &from, &from_len);
 	if (len == 0)
 	    break;

@@ -693,7 +693,7 @@ main(int argc, char **argv)
 	} else if (do_shutdown) {
 	    time_t wait = do_shutdown > 0 ? (int) Config.shutdownLifetime : 0;
 	    debug(1, 1) ("Preparing for shutdown after %d requests\n",
-		Counter.client_http.requests);
+		statCounter.client_http.requests);
 	    debug(1, 1) ("Waiting %d seconds for active connections to finish\n",
 		wait);
 	    do_shutdown = 0;

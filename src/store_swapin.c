@@ -80,7 +80,7 @@ storeSwapInFileClosed(void *data, int errflag, storeIOState * sio)
 	sc->callback = NULL;
 	callback(sc->callback_data, sc->copy_buf, errflag);
     }
-    Counter.swap.ins++;
+    statCounter.swap.ins++;
 }
 
 static void

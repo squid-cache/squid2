@@ -167,7 +167,7 @@ cacheDigestAdd(CacheDigest * cd, const cache_key * key)
 	    CBIT_SET(cd->mask, hashed_keys[3]);
 	    on_xition_cnt++;
 	}
-	statHistCount(&Counter.cd.on_xition_count, on_xition_cnt);
+	statHistCount(&statCounter.cd.on_xition_count, on_xition_cnt);
     }
 #endif
     cd->count++;
