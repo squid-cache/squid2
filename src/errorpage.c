@@ -131,9 +131,16 @@ errorConvert(char token, ErrorState * err)
     case 'z':
 	p = err->dnsserver_msg;
 	break;
+    case 'e':
+	snprintf(buf, CVT_BUF_SZ, "%d", err->errno);
+	p=buf;
+	break;
+    case 'E':
+	snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->errno, xstrerror());
+	break;
 /*
- * e - errno
- * E - strerror()
+ * e - errno            			x
+ * E - strerror()				x
  * t - local time
  * T - UTC
  * c - Squid error code

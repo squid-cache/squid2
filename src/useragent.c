@@ -81,13 +81,13 @@ useragentRotateLog(void)
     /* Rotate numbers 0 through N up one */
     for (i = Config.Log.rotateNumber; i > 1;) {
 	i--;
-	sprintf(from, "%s.%d", fname, i - 1);
-	sprintf(to, "%s.%d", fname, i);
+	snprintf(from,MAXPATHLEN, "%s.%d", fname, i - 1);
+	snprintf(to,MAXPATHLEN, "%s.%d", fname, i);
 	rename(from, to);
     }
     /* Rotate the current log to .0 */
     if (Config.Log.rotateNumber > 0) {
-	sprintf(to, "%s.%d", fname, 0);
+	snprintf(to, MAXPATHLEN, "%s.%d", fname, 0);
 	rename(fname, to);
     }
     useragentOpenLog();

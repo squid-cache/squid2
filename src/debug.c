@@ -135,14 +135,14 @@ _db_print(va_alist)
 
     if (debug_log == NULL)
 	return;
-    sprintf(f, "%s| %s",
+    snprintf(f, BUFSIZ, "%s| %s",
 	accessLogTime(squid_curtime),
 	format);
 #if HAVE_SYSLOG
     /* level 0 go to syslog */
     if (_db_level == 0 && opt_syslog_enable) {
 	tmpbuf[0] = '\0';
-	vsprintf(tmpbuf, format, args);
+	vsnprintf(tmpbuf, BUFSIZ, format, args);
 	tmpbuf[1023] = '\0';
 	syslog(LOG_ERR, "%s", tmpbuf);
     }
@@ -248,13 +248,13 @@ _db_rotate_log(void)
     /* Rotate numbers 0 through N up one */
     for (i = Config.Log.rotateNumber; i > 1;) {
 	i--;
-	sprintf(from, "%s.%d", debug_log_file, i - 1);
-	sprintf(to, "%s.%d", debug_log_file, i);
+	snprintf(from, MAXPATHLEN, "%s.%d", debug_log_file, i - 1);
+	snprintf(to, MAXPATHLEN, "%s.%d", debug_log_file, i);
 	rename(from, to);
     }
     /* Rotate the current log to .0 */
     if (Config.Log.rotateNumber > 0) {
-	sprintf(to, "%s.%d", debug_log_file, 0);
+	snprintf(to, MAXPATHLEN, "%s.%d", debug_log_file, 0);
 	rename(debug_log_file, to);
     }
     /* Close and reopen the log.  It may have been renamed "manually"

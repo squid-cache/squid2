@@ -734,7 +734,7 @@ ipcache_dnsDispatch(dnsserver_t * dns, ipcache_entry * i)
     }
     assert(i->status == IP_PENDING);
     buf = xcalloc(1, 256);
-    sprintf(buf, "%1.254s\n", i->name);
+    snprintf(buf, 256, "%1.254s\n", i->name);
     dns->flags |= DNS_FLAG_BUSY;
     dns->data = i;
     i->status = IP_DISPATCHED;
@@ -1105,7 +1105,7 @@ ipcacheChangeKey(ipcache_entry * i)
 	debug_trap("ipcacheChangeKey: hash_remove_link() failed\n");
 	return;
     }
-    sprintf(new_key, "%d/", ++index);
+    snprintf(new_key,256, "%d/", ++index);
     strncat(new_key, i->name, 128);
     debug(14, 1) ("ipcacheChangeKey: from '%s' to '%s'\n", i->name, new_key);
     safe_free(i->name);

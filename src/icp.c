@@ -537,11 +537,11 @@ clientBuildReplyHeader(clientHttpRequest * http,
     }
     hdr_len = end - hdr_in;
     /* Append X-Cache: */
-    sprintf(ybuf, "X-Cache: %s", isTcpHit(http->log_type) ? "HIT" : "MISS");
+    snprintf(ybuf, 4096,  "X-Cache: %s", isTcpHit(http->log_type) ? "HIT" : "MISS");
     clientAppendReplyHeader(hdr_out, ybuf, &len, out_sz);
     /* Append Proxy-Connection: */
     if (BIT_TEST(http->request->flags, REQ_PROXY_KEEPALIVE)) {
-	sprintf(ybuf, "Proxy-Connection: Keep-Alive");
+	snprintf(ybuf, 4096, "Proxy-Connection: Keep-Alive");
 	clientAppendReplyHeader(hdr_out, ybuf, &len, out_sz);
     }
     clientAppendReplyHeader(hdr_out, null_string, &len, out_sz);
@@ -1776,7 +1776,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    /* Put the local socket IP address as the hostname */
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
 	    http->url = xcalloc(url_sz, 1);
-	    sprintf(http->url, "http://%s:%d%s",
+	    snprintf(http->url, url_sz, "http://%s:%d%s",
 		inet_ntoa(http->conn->me.sin_addr),
 		(int) Config.Accel.port,
 		url);
@@ -1794,13 +1794,13 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    strtok(t, " :/;@");
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
 	    http->url = xcalloc(url_sz, 1);
-	    sprintf(http->url, "http://%s:%d%s",
+	    snprintf(http->url, url_sz, "http://%s:%d%s",
 		t, (int) Config.Accel.port, url);
 	} else {
 	    url_sz = strlen(Config2.Accel.prefix) + strlen(url) +
 		Config.appendDomainLen + 1;
 	    http->url = xcalloc(url_sz, 1);
-	    sprintf(http->url, "%s%s", Config2.Accel.prefix, url);
+	    snprintf(http->url, url_sz, "%s%s", Config2.Accel.prefix, url);
 	}
 	http->accel = 1;
     } else {
@@ -2141,23 +2141,23 @@ icpConstruct304reply(struct _http_reply *source)
     memset(reply, '\0', 8192);
     strcpy(reply, "HTTP/1.0 304 Not Modified\r\n");
     if (source->date > -1) {
-	sprintf(line, "Date: %s\r\n", mkrfc1123(source->date));
+	snprintf(line, 256,  "Date: %s\r\n", mkrfc1123(source->date));
 	strcat(reply, line);
     }
     if ((int) strlen(source->content_type) > 0) {
-	sprintf(line, "Content-type: %s\r\n", source->content_type);
+	snprintf(line,256, "Content-type: %s\r\n", source->content_type);
 	strcat(reply, line);
     }
     if (source->content_length) {
-	sprintf(line, "Content-length: %d\r\n", source->content_length);
+	snprintf(line,256, "Content-length: %d\r\n", source->content_length);
 	strcat(reply, line);
     }
     if (source->expires > -1) {
-	sprintf(line, "Expires: %s\r\n", mkrfc1123(source->expires));
+	snprintf(line, 256, "Expires: %s\r\n", mkrfc1123(source->expires));
 	strcat(reply, line);
     }
     if (source->last_modified > -1) {
-	sprintf(line, "Last-modified: %s\r\n",
+	snprintf(line,256, "Last-modified: %s\r\n",
 	    mkrfc1123(source->last_modified));
 	strcat(reply, line);
     }

@@ -85,7 +85,7 @@ identConnectDone(int fd, int status, void *data)
 	identCallback(connState);
 	return;
     }
-    sprintf(reqbuf, "%d, %d\r\n",
+    snprintf(reqbuf,BUFSIZ, "%d, %d\r\n",
 	ntohs(connState->peer.sin_port),
 	ntohs(connState->me.sin_port));
     comm_write(fd,

@@ -323,7 +323,7 @@ netdbSaveState(void *foo)
     net_db_name *x;
     struct timeval start = current_time;
     int count = 0;
-    sprintf(path, "%s/netdb_state", storeSwapDir(0));
+    snprintf(path, SQUID_MAXPATHLEN, "%s/netdb_state", storeSwapDir(0));
     fp = fopen(path, "w");
     if (fp == NULL) {
 	debug(50, 1) ("netdbSaveState: %s: %s\n", path, xstrerror());
@@ -365,7 +365,7 @@ netdbReloadState(void)
     struct in_addr addr;
     int count = 0;
     struct timeval start = current_time;
-    sprintf(path, "%s/netdb_state", storeSwapDir(0));
+    snprintf(path, SQUID_MAXPATHLEN, "%s/netdb_state", storeSwapDir(0));
     fp = fopen(path, "r");
     if (fp == NULL)
 	return;

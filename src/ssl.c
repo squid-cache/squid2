@@ -406,7 +406,7 @@ sslProxyConnected(int fd, void *data)
 {
     SslStateData *sslState = data;
     debug(26, 3) ("sslProxyConnected: FD %d sslState=%p\n", fd, sslState);
-    sprintf(sslState->client.buf, "CONNECT %s HTTP/1.0\r\n\r\n", sslState->url);
+    snprintf(sslState->client.buf, sslState->client.len, "CONNECT %s HTTP/1.0\r\n\r\n", sslState->url);
     debug(26, 3) ("sslProxyConnected: Sending 'CONNECT %s HTTP/1.0'\n", sslState->url);
     sslState->client.len = strlen(sslState->client.buf);
     sslState->client.offset = 0;

@@ -275,8 +275,9 @@ icmpOpen(void)
 	return;
     }
     if (pid == 0) {		/* child */
-	char *x = xcalloc(strlen(Config.debugOptions) + 32, 1);
-	sprintf(x, "SQUID_DEBUG=%s", Config.debugOptions);
+	int tmp_s;
+	char *x = xcalloc((tmp_s=strlen(Config.debugOptions) + 32), 1);
+	snprintf(x,tmp_s, "SQUID_DEBUG=%s", Config.debugOptions);
 	putenv(x);
 	comm_close(icmp_sock);
 	dup2(child_sock, 0);
