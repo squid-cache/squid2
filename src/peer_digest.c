@@ -255,7 +255,6 @@ peerDigestRequest(peer * p)
 	MemBuf mb;
 	memBufDefInit(&mb);
 	memBufPrintf(&mb, "Accept: %s,text/html\r\n", StoreDigestMimeStr);
-	memBufPrintf(&mb, "Cache-control: only-if-cached\r\n");
 	httpRequestSetHeaders(req, METHOD_GET, url, mb.buf);
 	memBufClean(&mb);
     }
