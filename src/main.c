@@ -593,7 +593,6 @@ main(int argc, char **argv)
 	sendSignal();
 	/* NOTREACHED */
     }
-
     setMaxFD();
 
     if (opt_catch_signals)
