@@ -9,6 +9,16 @@
 	  cachemgr 'info' page.
 	- Fixed ACL parsing of hostnames to use all IP addresses,
 	  not just the first.
+	- Fixed how we handle ICP replies to misconfigured neighbors.
+	  Instead of cutting off at the first 100 ICP_DENIED replies, we
+	  now start sending replies again after ignoring them for 1
+	  hour.  This should cause the other cache to detect the
+	  excessive ICP_DENIED replies and disable itself.
+	- Changed sorting order for compareSize().  Apparently we were
+	  sorting in order of smallest to largest, when we really want to
+	  sort the other way when removing in-mem objects.
+	- Changed storeShouldPurgeMem() to use the high water mark
+	  instead of the low water mark.
 
 Changes to squid-1.1.20 (January 9, 1998):
 
