@@ -107,8 +107,10 @@ static const char c2x[] =
 static char *
 log_quote(const char *header)
 {
-    int c, i;
-    char *buf, *buf_cursor;
+    int c;
+    int i;
+    char *buf;
+    char *buf_cursor;
     if (header == NULL) {
 	buf = xcalloc(1, 1);
 	*buf = '\0';
