@@ -51,10 +51,11 @@ struct _class2DelayPool {
     unsigned char individual_map[IND_MAP_SZ];
     unsigned char individual_255_used;
     /* 256 entries */
-    int individual[256];
+    int individual[IND_MAP_SZ];
 };
 
 #define NET_MAP_SZ 256
+#define C3_IND_SZ (NET_MAP_SZ*IND_MAP_SZ)
 
 struct _class3DelayPool {
     int aggregate;
@@ -69,7 +70,7 @@ struct _class3DelayPool {
     /* Pack this into one bit per net */
     unsigned char individual_255_used[32];
     /* largest entry = (255<<8)+255 = 65535 */
-    int individual[65536];
+    int individual[C3_IND_SZ];
 };
 
 typedef struct _class1DelayPool class1DelayPool;
@@ -305,7 +306,7 @@ delayClient(request_t * r)
 	if (host == 255) {
 	    if (!delay_data[pool].class2->individual_255_used) {
 		delay_data[pool].class2->individual_255_used = 1;
-		delay_data[pool].class2->individual[255] =
+		delay_data[pool].class2->individual[IND_MAP_SZ - 1] =
 		    (Config.Delay.rates[pool]->individual.max_bytes *
 		    Config.Delay.initial) / 100;
 	    }
@@ -359,6 +360,7 @@ delayClient(request_t * r)
 	position |= 255;
 	if (!(delay_data[pool].class3->individual_255_used[i / 8] & (1 << (i % 8)))) {
 	    delay_data[pool].class3->individual_255_used[i / 8] |= (1 << (i % 8));
+	    assert(position < C3_IND_SZ);
 	    delay_data[pool].class3->individual[position] =
 		(Config.Delay.rates[pool]->individual.max_bytes *
 		Config.Delay.initial) / 100;
@@ -376,7 +378,7 @@ delayClient(request_t * r)
 	    assert(j < (IND_MAP_SZ - 1));
 	    delay_data[pool].class3->individual_map[i][j + 1] = 255;
 	    position |= j;
-	    assert(position < NET_MAP_SZ);
+	    assert(position < C3_IND_SZ);
 	    delay_data[pool].class3->individual[position] =
 		(Config.Delay.rates[pool]->individual.max_bytes *
 		Config.Delay.initial) / 100;
@@ -469,6 +471,7 @@ delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
 		assert(j < IND_MAP_SZ);
 		if (j != 255 && class3->individual_map[i][j] == 255)
 		    break;
+		assert(mpos < C3_IND_SZ);
 		if (class3->individual[mpos] != rates->individual.max_bytes &&
 		    (class3->individual[mpos] += individual_restore_bytes) >
 		    rates->individual.max_bytes)
