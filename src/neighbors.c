@@ -151,6 +151,10 @@ peerAllowedToUse(const peer * p, request_t * request)
     checklist.my_addr = request->my_addr;
     checklist.my_port = request->my_port;
     checklist.request = request;
+#if USE_IDENT
+    if (request->user_ident[0])
+	xstrncpy(checklist.ident, request->user_ident, USER_IDENT_SZ);
+#endif
     return aclCheckFast(p->access, &checklist);
 }
 
