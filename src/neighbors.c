@@ -304,6 +304,7 @@ void neighbors_open(fd)
     struct in_addr *ina = NULL;
     struct servent *sep = NULL;
 
+    memset(&name, '\0', sizeof(struct sockaddr_in));
     if (getsockname(fd, (struct sockaddr *) &name, &len) < 0)
 	debug(15, 1, "getsockname(%d,%p,%p) failed.\n", fd, &name, &len);
     friends->fd = fd;
