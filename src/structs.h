@@ -1676,8 +1676,12 @@ struct _StatCounters {
 	int selects;
 #endif
     } syscalls;
-    int swap_files_cleaned;
     int aborted_requests;
+    struct {
+	int files_cleaned;
+	int outs;
+	int ins;
+    } swap;
 };
 
 /* per header statistics */

@@ -1353,7 +1353,7 @@ storeDiskdDirClean(int swap_index)
 #else
 	safeunlink(p2, 0);
 #endif
-	Counter.swap_files_cleaned++;
+	Counter.swap.files_cleaned++;
     }
     debug(36, 3) ("Cleaned %d unused files from %s\n", k, p1);
     return k;
