@@ -132,6 +132,8 @@ static fileMap *fm = NULL;
 fileMap *
 file_map_create(int n)
 {
+    if (n <= 0)
+	fatal("file_map_create: invalid argument");
     fm = xcalloc(1, sizeof(fileMap));
     fm->max_n_files = n;
     fm->nwords = n >> LONG_BIT_SHIFT;
