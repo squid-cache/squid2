@@ -100,15 +100,6 @@ int objcacheStart(fd, url, entry)
 	    &sock_name_length) == -1) {
 	debug(16, 1, "getpeername failed??\n");
     }
-    if (ip_access_check(peer_socket_name.sin_addr, manager_ip_acl)
-	== IP_DENY) {		/* Access Deny */
-	storeAbort(data->entry, "SQUID:OBJCACHE Access Denied!\n");
-	/* override negative TTL */
-	data->entry->expires = squid_curtime + STAT_TTL;
-	safe_free(data);
-	safe_free(buf);
-	return COMM_ERROR;
-    }
     /* retrieve object requested */
     if (strncmp(data->request, "shutdown", strlen("shutdown")) == 0) {
 	if (objcache_CheckPassword(password, username) != 0) {
