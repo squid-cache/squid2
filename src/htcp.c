@@ -674,6 +674,7 @@ htcpHandleTstResponse(htcpDataHeader * hdr, char *buf, int sz, struct sockaddr_i
     key = queried_keys[htcpReply.msg_id % N_QUERIED_KEYS];
     debug(31, 3) ("htcpHandleTstResponse: key (%p) %s\n", key, storeKeyText(key));
     neighborsHtcpReply(key, &htcpReply, from);
+    httpHeaderClean(&htcpReply.hdr);
     if (d)
 	htcpFreeDetail(d);
 }
@@ -888,6 +889,7 @@ htcpQuery(StoreEntry * e, request_t * req, peer * p)
     packerClean(&pa);
     stuff.S.req_hdrs = mb.buf;
     pkt = htcpBuildPacket(&stuff, &pktlen);
+    memBufClean(&mb);
     if (pkt == NULL) {
 	debug(31, 0) ("htcpQuery: htcpBuildPacket() failed\n");
 	return;
