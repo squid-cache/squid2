@@ -1099,7 +1099,7 @@ aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
 	    checklist->state[ACL_SRC_DOMAIN] = ACL_LOOKUP_NEED;
 	    return 0;
 	} else {
-	    return aclMatchDomainList(acl->data, "none");
+	    return aclMatchDomainList(&acl->data, "none");
 	}
 	/* NOTREACHED */
     case ACL_TIME:
