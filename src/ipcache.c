@@ -724,6 +724,8 @@ ipcache_gethostbyname(const char *name, int flags)
 	    IpcacheStats.negative_hits++;
 	    dns_error_message = i->error_message;
 	    return NULL;
+	} else if (i->addrs.count == 0) {
+	    (void) 0;
 	} else {
 	    IpcacheStats.hits++;
 	    i->lastref = squid_curtime;
