@@ -635,7 +635,6 @@ extern void redirectStart(clientHttpRequest *, RH *, void *);
 extern void redirectOpenServers(void);
 extern void redirectShutdownServers(void *);
 extern void redirectStats(StoreEntry *);
-extern int redirectUnregister(const char *url, void *);
 extern void redirectFreeMemory(void);
 
 extern void authenticateStart(acl_proxy_auth_user *, RH *, void *);

@@ -606,8 +606,6 @@ httpRequestFree(void *data)
 	clientUpdateCounters(http);
 	clientdbUpdate(conn->peer.sin_addr, http->log_type, PROTO_HTTP, http->out.size);
     }
-    if (http->redirect_state == REDIRECT_PENDING)
-	redirectUnregister(http->uri, http);
     if (http->acl_checklist)
 	aclChecklistFree(http->acl_checklist);
     if (request)
