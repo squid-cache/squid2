@@ -654,11 +654,28 @@ authenticateInit(authConfig * config)
 	authenticateInitUserCache();
 }
 
+static void
+authenticateProxyUserCacheFree(void *usernamehash_p)
+{
+    auth_user_hash_pointer *usernamehash = usernamehash_p;
+    auth_user_t *auth_user;
+    char *username = NULL;
+    auth_user = usernamehash->auth_user;
+    username = authenticateUserUsername(auth_user);
+    if ((authenticateAuthUserInuse(auth_user) - 1))
+	debug(29, 1) ("authenticateProxyUserCacheFree: entry in use\n");
+    authenticateAuthUserUnlock(auth_user);
+}
+
 void
 authenticateShutdown(void)
 {
     int i;
     debug(29, 2) ("authenticateShutdown: shutting down auth schemes\n");
+    /* free the cache if we are shutting down */
+    if (shutting_down)
+	hashFreeItems(proxy_auth_username_cache, authenticateProxyUserCacheFree);
+
     /* find the currently known authscheme types */
     for (i = 0; authscheme_list && authscheme_list[i].typestr; i++) {
 	if (authscheme_list[i].donefunc != NULL)
