@@ -422,7 +422,7 @@ setEffectiveUser(void)
 static void
 mainSetCwd(void)
 {
-    char *p;
+    char pathbuf[MAXPATHLEN];
     if (Config.coredump_dir) {
 	if (0 == strcmp("none", Config.coredump_dir)) {
 	    (void) 0;
@@ -434,9 +434,11 @@ mainSetCwd(void)
 	}
     }
     /* If we don't have coredump_dir or couldn't cd there, report current dir */
-    p = getcwd(NULL, 0);
-    debug(0, 1) ("Current Directory is %s\n", p);
-    xfree(p);
+    if (getcwd(pathbuf, MAXPATHLEN)) {
+	debug(0, 1) ("Current Directory is %s\n", pathbuf);
+    } else {
+	debug(50, 0) ("WARNING: Can't find current directory, getcwd: %s\n", xstrerror());
+    }
 }
 
 static void
