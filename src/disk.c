@@ -433,7 +433,8 @@ diskHandleRead(int fd, void *data)
 	F->disk.offset = ctrl_dat->offset;
     }
     len = read(fd, ctrl_dat->buf, ctrl_dat->req_len);
-    F->disk.offset += len;
+    if (len > 0)
+        F->disk.offset += len;
     diskHandleReadComplete(ctrlp, len, errno);
 #endif
 }
