@@ -1588,16 +1588,16 @@ parseHttpRequest(icpStateData * icpState)
     sscanf(http_ver, "HTTP/%f", &icpState->http_ver);
     debug(12, 5, "parseHttpRequest: HTTP version is '%s'\n", http_ver);
 
+    /* Check if headers are received */
+    if (!mime_headers_end(t)) {
+	xfree(inbuf);
+	return 0;		/* not a complete request */
+    }
     while (isspace(*t))
 	t++;
     req_hdr = t;
     req_hdr_sz = icpState->offset - (req_hdr - inbuf);
 
-    /* Check if headers are received */
-    if (!mime_headers_end(req_hdr)) {
-	xfree(inbuf);
-	return 0;		/* not a complete request */
-    }
     /* Ok, all headers are received */
     icpState->req_hdr_sz = req_hdr_sz;
     icpState->request_hdr = xmalloc(req_hdr_sz + 1);

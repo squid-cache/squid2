@@ -198,6 +198,9 @@ edgeWouldBePinged(const edge * e, request_t * request)
     if (BIT_TEST(request->flags, REQ_NOCACHE))
 	if (neighborType(e, request) == EDGE_SIBLING)
 	    return 0;
+    if (BIT_TEST(request->flags, REQ_REFRESH))
+	if (neighborType(e, request) == EDGE_SIBLING)
+	    return 0;
     if (e->pinglist == NULL && e->acls == NULL)
 	return do_ping;
     do_ping = 0;

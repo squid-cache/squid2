@@ -156,6 +156,7 @@ typedef enum {
 #define 	REQ_UNUSED	0x20
 #define 	REQ_HIERARCHICAL 0x40
 #define 	REQ_LOOPDETECT  0x80
+#define		REQ_REFRESH	0x100
 
 typedef struct wwd {
     struct sockaddr_in address;

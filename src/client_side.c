@@ -382,6 +382,7 @@ icpProcessExpired(int fd, void *data)
 
     debug(33, 3, "icpProcessExpired: FD %d '%s'\n", fd, icpState->url);
 
+    BIT_SET(icpState->request->flags, REQ_REFRESH);
     icpState->old_entry = icpState->entry;
     entry = storeCreateEntry(url,
 	request_hdr,
