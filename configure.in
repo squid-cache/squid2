@@ -983,6 +983,7 @@ AC_CHECK_FUNCS(\
 	res_init \
 	rint \
 	seteuid \
+	setgroups \
 	setpgrp \
 	setrlimit \
 	getrlimit \

@@ -482,6 +482,7 @@ leave_suid(void)
 {
     struct passwd *pwd = NULL;
     struct group *grp = NULL;
+    gid_t gid;
     debug(21, 3) ("leave_suid: PID %d called\n", getpid());
     if (geteuid() != 0)
 	return;
@@ -491,12 +492,15 @@ leave_suid(void)
     if ((pwd = getpwnam(Config.effectiveUser)) == NULL)
 	return;
     if (Config.effectiveGroup && (grp = getgrnam(Config.effectiveGroup))) {
-	if (setgid(grp->gr_gid) < 0)
-	    debug(50, 1) ("leave_suid: setgid: %s\n", xstrerror());
+	gid = grp->gr_gid;
     } else {
-	if (setgid(pwd->pw_gid) < 0)
-	    debug(50, 1) ("leave_suid: setgid: %s\n", xstrerror());
+	gid = pwd->pw_gid;
     }
+#if HAVE_SETGROUPS
+    setgroups(1, &gid);
+#endif
+    if (setgid(gid) < 0)
+	debug(50, 1) ("leave_suid: setgid: %s\n", xstrerror());
     debug(21, 3) ("leave_suid: PID %d giving up root, becoming '%s'\n",
 	getpid(), pwd->pw_name);
 #if HAVE_SETRESUID

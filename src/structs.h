@@ -476,6 +476,7 @@ struct _SquidConfig {
 #endif
     HttpHeaderMask anonymize_headers;
     char *coredump_dir;
+    char *chroot_dir;
 #if USE_CACHE_DIGESTS
     struct {
 	int bits_per_entry;

@@ -3150,5 +3150,15 @@ DOC_START
 digest_rebuild_chunk_percentage 10
 DOC_END
 
+NAME: chroot
+TYPE: string
+LOC: Config.chroot_dir
+DEFAULT: none
+DOC_START
+	Use this to have Squid do a chroot() while initializing. This also
+	causes Squid to fully drop root privilegies after initializing
+	(with the side effect that HTTP connections using low port numbers
+	can't be reopened after a reconfigure)
+DOC_END
 EOF
 

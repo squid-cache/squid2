@@ -429,6 +429,10 @@ mainSetCwd(void)
 static void
 mainInitialize(void)
 {
+    /* chroot if configured to run inside chroot */
+    if (Config.chroot_dir && chroot(Config.chroot_dir)) {
+	fatal("failed to chroot");
+    }
     if (opt_catch_signals) {
 	squid_signal(SIGSEGV, death, SA_NODEFER | SA_RESETHAND);
 	squid_signal(SIGBUS, death, SA_NODEFER | SA_RESETHAND);
@@ -509,6 +513,8 @@ mainInitialize(void)
 	else
 	    debug(1, 1) ("ICP port disabled in httpd_accelerator mode\n");
     }
+    if (Config.chroot_dir)
+	no_suid();
     if (!configured_once)
 	writePidFile();		/* write PID file */
 
@@ -619,10 +625,18 @@ main(int argc, char **argv)
 
     /* send signal to running copy and exit */
     if (opt_send_signal != -1) {
+	/* chroot if configured to run inside chroot */
+	if (Config.chroot_dir && chroot(Config.chroot_dir)) {
+	    fatal("failed to chroot");
+	}
 	sendSignal();
 	/* NOTREACHED */
     }
     if (opt_create_swap_dirs) {
+	/* chroot if configured to run inside chroot */
+	if (Config.chroot_dir && chroot(Config.chroot_dir)) {
+	    fatal("failed to chroot");
+	}
 	setEffectiveUser();
 	debug(0, 0) ("Creating Swap Directories\n");
 	storeCreateSwapDirectories();
