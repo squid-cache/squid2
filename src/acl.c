@@ -1745,6 +1745,7 @@ aclCheck(aclCheck_t * checklist)
 	 */
 	if (!cbdataValid(A)) {
 	    cbdataUnlock(A);
+	    checklist->access_list = NULL;
 	    break;
 	}
 	debug(28, 3) ("aclCheck: checking '%s'\n", A->cfgline);
@@ -1818,9 +1819,10 @@ aclCheck(aclCheck_t * checklist)
 	 * is allowed, denied, requires authentication, or we move on to
 	 * the next entry.
 	 */
-	cbdataUnlock(A);
 	if (match) {
 	    debug(28, 3) ("aclCheck: match found, returning %d\n", allow);
+	    cbdataUnlock(A);
+	    checklist->access_list = NULL;
 	    aclCheckCallback(checklist, allow);
 	    return;
 	}
@@ -1830,6 +1832,7 @@ aclCheck(aclCheck_t * checklist)
 	 */
 	if (A->next)
 	    cbdataLock(A->next);
+	cbdataUnlock(A);
     }
     debug(28, 3) ("aclCheck: NO match found, returning %d\n", allow != ACCESS_DENIED ? ACCESS_DENIED : ACCESS_ALLOWED);
     aclCheckCallback(checklist, allow != ACCESS_DENIED ? ACCESS_DENIED : ACCESS_ALLOWED);
