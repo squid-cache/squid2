@@ -668,6 +668,8 @@ netdbHandlePingReply(const struct sockaddr_in *from, int hops, int rtt)
     N = ++n->pings_recv;
     if (N > 5)
 	N = 5;
+    if (rtt < 1.0)
+	rtt = 1.0;
     n->hops = ((n->hops * (N - 1)) + hops) / N;
     n->rtt = ((n->rtt * (N - 1)) + rtt) / N;
     debug(38, 3) ("netdbHandlePingReply: %s; rtt=%5.1f  hops=%4.1f\n",
