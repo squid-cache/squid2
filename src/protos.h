@@ -62,6 +62,7 @@ extern int aclMatchRegex(relist * data, const char *word);
 extern void aclParseRegexList(void *curlist);
 extern const char *aclTypeToStr(squid_acl);
 extern wordlist *aclDumpGeneric(const acl *);
+extern int aclPurgeMethodInUse(acl_access *);
 
 #if USE_ASYNC_IO
 extern int aio_cancel(aio_result_t *);

@@ -382,7 +382,6 @@ struct _SquidConfig {
     } Netdb;
     struct {
 	int log_udp;
-	int enable_purge;
 #if USE_DNSSERVER
 	int res_defnames;
 #endif
@@ -501,6 +500,9 @@ struct _SquidConfig2 {
 	char *prefix;
 	int on;
     } Accel;
+    struct {
+	int enable_purge;
+    } onoff;
 };
 
 struct _close_handler {
