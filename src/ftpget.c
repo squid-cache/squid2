@@ -2620,7 +2620,7 @@ main(int argc, char *argv[])
 	}
     }
 
-    strcpy(visible_hostname, getfullhostname());
+    xstrcpy(visible_hostname, getfullhostname(), SMALLBUFSIZ);
 
     while ((c = getopt(argc, argv, "AC:D:G:H:P:RS:Wab:c:hl:n:o:p:r:s:t:vw:")) != -1) {
 	switch (c) {
@@ -2642,8 +2642,7 @@ main(int argc, char *argv[])
 	    proxy_host = xstrdup(optarg);
 	    break;
 	case 'H':
-	    strncpy(visible_hostname, optarg, BUFSIZ);
-	    visible_hostname[BUFSIZ] = '\0';
+	    xstrncpy(visible_hostname, optarg, SMALLBUFSIZ);
 	    break;
 	case 'P':
 	    port = atoi(optarg);
