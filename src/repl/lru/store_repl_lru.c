@@ -100,6 +100,13 @@ lru_remove(RemovalPolicy * policy, StoreEntry * entry, RemovalPolicyNode * node)
     LruNode *lru_node = node->data;
     if (!lru_node)
 	return;
+    /*
+     * It seems to be possible for an entry to exist in the hash
+     * but not be in the LRU list, so check for that case rather
+     * than suffer a NULL pointer access.
+     */
+    if (NULL == lru_node->node.data)
+	return;
     assert(lru_node->node.data == entry);
     node->data = NULL;
     dlinkDelete(&lru_node->node, &lru->list);
@@ -286,73 +293,3 @@ createRemovalPolicy_lru(wordlist *args)
     return policy;
 }
 
-
-#if OLD_UNUSED_CODE
-/*
- * storeUfsDirCheckExpired
- *
- * Check whether the given object is expired or not
- * It breaks layering a little by calling the upper layers to find
- * out whether the object is locked or not, but we can't help this
- * right now.
- */
-static int
-storeUfsDirCheckExpired(SwapDir * SD, StoreEntry * e)
-{
-    if (storeEntryLocked(e))
-	return 0;
-    if (EBIT_TEST(e->flags, RELEASE_REQUEST))
-	return 1;
-    if (EBIT_TEST(e->flags, ENTRY_NEGCACHED) && squid_curtime >= e->expires)
-	return 1;
-
-#if HEAP_REPLACEMENT
-    /*
-     * with HEAP_REPLACEMENT we are not using the LRU reference age, the heap
-     * controls the replacement of objects.
-     */
-    return 1;
-#else
-    if (squid_curtime - e->lastref > storeUfsDirExpiredReferenceAge(SD))
-	return 1;
-    return 0;
-#endif
-}
-
-/*
- * storeUfsDirExpiredReferenceAge
- *
- * The LRU age is scaled exponentially between 1 minute and
- * Config.referenceAge , when store_swap_low < store_swap_size <
- * store_swap_high.  This keeps store_swap_size within the low and high
- * water marks.  If the cache is very busy then store_swap_size stays
- * closer to the low water mark, if it is not busy, then it will stay
- * near the high water mark.  The LRU age value can be examined on the
- * cachemgr 'info' page.
- */
-static time_t
-storeUfsDirExpiredReferenceAge(SwapDir * SD)
-{
-    double x;
-    double z;
-    time_t age;
-    long store_high, store_low;
-
-    store_high = (long) (((float) SD->max_size *
-	    (float) Config.Swap.highWaterMark) / (float) 100);
-    store_low = (long) (((float) SD->max_size *
-	    (float) Config.Swap.lowWaterMark) / (float) 100);
-    debug(81, 4) ("storeUfsDirExpiredReferenceAge: Dir %s, hi=%d, lo=%d, cur=%d\n", SD->path, store_high,
-	store_low, SD->cur_size);
-
-    x = (double) (store_high - SD->cur_size) / (store_high - store_low);
-    x = x < 0.0 ? 0.0 : x > 1.0 ? 1.0 : x;
-    z = pow((double) (Config.referenceAge / 60), x);
-    age = (time_t) (z * 60.0);
-    if (age < 60)
-	age = 60;
-    else if (age > Config.referenceAge)
-	age = Config.referenceAge;
-    return age;
-}
-#endif /* OLD_UNUSED_CODE */
