@@ -116,6 +116,7 @@ mime_get_header(const char *mime, const char *name)
     char *q = NULL;
     char got = 0;
     int namelen = strlen(name);
+    int l;
 
     if (!mime || !name)
 	return NULL;
@@ -131,7 +132,10 @@ mime_get_header(const char *mime, const char *name)
 	    continue;
 	if (!isspace(p[namelen]) && p[namelen] != ':')
 	    continue;
-	xstrncpy(header, p, strcspn(p, "\n\r") + 1);
+	l = strcspn(p, "\n\r") + 1;
+	if (l > GET_HDR_SZ)
+		l = GET_HDR_SZ;
+	xstrncpy(header, p, l);
 	debug(25, 5, "mime_get_header: checking '%s'\n", header);
 	q = header;
 	q += namelen;
