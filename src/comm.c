@@ -856,7 +856,7 @@ commHandleWrite(int fd, void *data)
 
 
 /* Select for Writing on FD, until SIZE bytes are sent.  Call
- * * HANDLER when complete. */
+ * *HANDLER when complete. */
 void
 comm_write(int fd, char *buf, int size, CWCB * handler, void *handler_data, FREE * free_func)
 {

@@ -762,9 +762,7 @@ format_converter(register buffy * odp, const char *fmt,
 		    precision = FLOAT_DIGITS;
 		else if (precision == 0)
 		    precision = 1;
-		/*
-		 * * We use &num_buf[ 1 ], so that we have room for the sign
-		 */
+		/* We use &num_buf[ 1 ], so that we have room for the sign */
 		s = ap_gcvt(va_arg(ap, double), precision, &num_buf[1]);
 		if (*s == '-')
 		    prefix_char = *s++;

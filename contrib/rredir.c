@@ -80,7 +80,7 @@ main()
 	s++;
 
 	/* security: do not redirect to hidden files, the current
-	 * ** directory or the parent directory */
+	 * directory or the parent directory */
 	if (*s == '.' || *s == '\0')
 	    goto dont_redirect;
 

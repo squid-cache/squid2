@@ -1784,8 +1784,8 @@ ftpOpenListenSocket(FtpStateData * ftpState, int fallback)
     int on = 1;
     u_short port = 0;
     /*
-     * * Tear down any old data connection if any. We are about to
-     * * establish a new one.
+     * Tear down any old data connection if any. We are about to
+     * establish a new one.
      */
     if (ftpState->data.fd > 0) {
 	comm_close(ftpState->data.fd);

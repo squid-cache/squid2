@@ -47,7 +47,7 @@ extern void mdfour(unsigned char *, unsigned char *, int);
  * This implements the X/Open SMB password encryption
  * It takes a password, a 8 byte "crypt key" and puts 24 bytes of 
  * encrypted password into p24 */
-void 
+void
 SMBencrypt(uchar * passwd, uchar * c8, uchar * p24)
 {
     uchar p14[15], p21[21];
@@ -62,7 +62,7 @@ SMBencrypt(uchar * passwd, uchar * c8, uchar * p24)
 }
 
 /* Routines for Windows NT MD4 Hash functions. */
-static int 
+static int
 _my_wcslen(int16 * str)
 {
     int len = 0;
@@ -78,7 +78,7 @@ _my_wcslen(int16 * str)
  * format.
  */
 
-static int 
+static int
 _my_mbstowcs(int16 * dst, uchar * src, int len)
 {
     int i;
@@ -99,7 +99,7 @@ _my_mbstowcs(int16 * dst, uchar * src, int len)
  * Creates the MD4 Hash of the users password in NT UNICODE.
  */
 
-void 
+void
 E_md4hash(uchar * passwd, uchar * p16)
 {
     int len;
@@ -120,7 +120,7 @@ E_md4hash(uchar * passwd, uchar * p16)
 
 /* Does the NT MD4 hash then des encryption. */
 
-void 
+void
 SMBNTencrypt(uchar * passwd, uchar * c8, uchar * p24)
 {
     uchar p21[21];
@@ -133,7 +133,7 @@ SMBNTencrypt(uchar * passwd, uchar * c8, uchar * p24)
 
 /* Does both the NT and LM owfs of a user's password */
 
-void 
+void
 nt_lm_owf_gen(char *pwd, char *nt_p16, char *p16)
 {
     char passwd[130];
@@ -174,34 +174,28 @@ StrnCpy(char *dest, char *src, int n)
     return (dest);
 }
 
-void 
+void
 strupper(char *s)
 {
     while (*s) {
-	/*
-	 * #if !defined(KANJI_WIN95_COMPATIBILITY)
-	 * if(lp_client_code_page() == KANJI_CODEPAGE)
-	 * {
-	 * 
-	 * if (is_shift_jis (*s))
-	 * {
-	 * if (is_sj_lower (s[0], s[1]))
-	 * s[1] = sj_toupper2 (s[1]);
-	 * s += 2;
-	 * }
-	 * else if (is_kana (*s))
-	 * {
-	 * s++;
-	 * }
-	 * else
-	 * {
-	 * if (islower(*s))                           
-	 * *s = toupper(*s);
-	 * s++;
-	 * }
-	 * }
-	 * else
-	 * #endif *//* KANJI_WIN95_COMPATIBILITY */
+#if UNUSED_CODE
+#if !defined(KANJI_WIN95_COMPATIBILITY)
+	if (lp_client_code_page() == KANJI_CODEPAGE) {
+
+	    if (is_shift_jis(*s)) {
+		if (is_sj_lower(s[0], s[1]))
+		    s[1] = sj_toupper2(s[1]);
+		s += 2;
+	    } else if (is_kana(*s)) {
+		s++;
+	    } else {
+		if (islower(*s))
+		    *s = toupper(*s);
+		s++;
+	    }
+	} else
+#endif /* KANJI_WIN95_COMPATIBILITY */
+#endif /* UNUSED_CODE */
 	{
 	    if (islower(*s))
 		*s = toupper(*s);
