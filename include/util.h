@@ -84,6 +84,9 @@ extern char *rfc1738_escape_unescaped(const char *);
 extern char *rfc1738_escape_part(const char *);
 extern void rfc1738_unescape(char *);
 
+/* html.c */
+extern char *html_quote(const char *);
+
 #if XMALLOC_STATISTICS
 extern void malloc_statistics(void (*)(int, int, int, void *), void *);
 #endif
