@@ -1856,7 +1856,6 @@ storeCopy(const StoreEntry * e, off_t stateoffset, size_t maxSize, char *buf, si
 int
 storeClientWaiting(const StoreEntry * e)
 {
-    int i;
     MemObject *mem = e->mem_obj;
     store_client *sc;
     for (sc = mem->clients; sc; sc = sc->next) {
@@ -1881,11 +1880,9 @@ storeClientListSearch(const MemObject * mem, void *data)
 void
 storeClientListAdd(StoreEntry * e, void *data)
 {
-    int i;
     MemObject *mem = e->mem_obj;
     store_client **T;
     store_client *sc;
-    int oldsize;
     if (mem == NULL)
 	mem = e->mem_obj = new_MemObject(urlClean(e->url));
     if (storeClientListSearch(mem, data) != NULL)
@@ -2339,7 +2336,6 @@ storePendingNClients(const StoreEntry * e)
     MemObject *mem = e->mem_obj;
     store_client *sc;
     store_client *nx = NULL;
-    int i;
     if (mem == NULL)
 	return 0;
     for (sc = mem->clients; sc; sc = nx) {
