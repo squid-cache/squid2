@@ -41,6 +41,8 @@ typedef struct _squidaio_result_t squidaio_result_t;
 
 typedef void AIOCB(int fd, void *cbdata, const char *buf, int aio_return, int aio_errno);
 
+void squidaio_init(void);
+void squidaio_shutdown(void);
 int squidaio_cancel(squidaio_result_t *);
 int squidaio_open(const char *, int, mode_t, squidaio_result_t *);
 int squidaio_read(int, char *, int, off_t, int, squidaio_result_t *);

@@ -364,6 +364,7 @@ storeAufsDirInit(SwapDir * sd)
     storeAufsDirInitBitmap(sd);
     if (storeAufsDirVerifyCacheDirs(sd) < 0)
 	fatal(errmsg);
+    squidaio_init();
     storeAufsDirOpenSwapLog(sd);
     storeAufsDirRebuild(sd);
     if (!started_clean_event) {

@@ -120,7 +120,6 @@ struct squidaio_thread_t {
     unsigned long requests;
 };
 
-static void squidaio_init(void);
 static void squidaio_queue_request(squidaio_request_t *);
 static void squidaio_cleanup_request(squidaio_request_t *);
 static void *squidaio_thread_loop(void *);
@@ -255,7 +254,7 @@ squidaio_fdhandler(int fd, void *data)
     commSetSelect(fd, COMM_SELECT_READ, squidaio_fdhandler, NULL, 0);
 }
 
-static void
+void
 squidaio_init(void)
 {
     int i;
@@ -307,8 +306,8 @@ squidaio_init(void)
     pipe(done_pipe);
     done_fd = done_pipe[1];
     done_fd_read = done_pipe[0];
-    fd_open(done_pipe[0], FD_PIPE, "async-io completetion event: main");
-    fd_open(done_pipe[1], FD_PIPE, "async-io completetion event: threads");
+    fd_open(done_fd_read, FD_PIPE, "async-io completion event: main");
+    fd_open(done_fd, FD_PIPE, "async-io completion event: threads");
     commSetNonBlocking(done_pipe[0]);
     commSetNonBlocking(done_pipe[1]);
     commSetSelect(done_pipe[0], COMM_SELECT_READ, squidaio_fdhandler, NULL, 0);
@@ -349,6 +348,23 @@ squidaio_init(void)
     squidaio_micro_bufs = memPoolCreate("squidaio_micro_bufs", AIO_MICRO_BUFS);
 
     squidaio_initialised = 1;
+}
+
+void
+squidaio_shutdown(void)
+{
+    if (!squidaio_initialised)
+	return;
+
+    /* This is the same as in squidaio_sync */
+    do {
+	squidaio_poll_queues();
+    } while (request_queue_len > 0);
+
+    close(done_fd);
+    close(done_fd_read);
+    fd_close(done_fd);
+    fd_close(done_fd_read);
 }
 
 
@@ -606,8 +622,6 @@ squidaio_open(const char *path, int oflag, mode_t mode, squidaio_result_t * resu
 {
     squidaio_request_t *requestp;
 
-    if (!squidaio_initialised)
-	squidaio_init();
     requestp = memPoolAlloc(squidaio_request_pool);
     requestp->path = (char *) squidaio_xstrdup(path);
     requestp->oflag = oflag;
@@ -634,8 +648,6 @@ squidaio_read(int fd, char *bufp, int bufs, off_t offset, int whence, squidaio_r
 {
     squidaio_request_t *requestp;
 
-    if (!squidaio_initialised)
-	squidaio_init();
     requestp = memPoolAlloc(squidaio_request_pool);
     requestp->fd = fd;
     requestp->bufferp = bufp;
@@ -665,8 +677,6 @@ squidaio_write(int fd, char *bufp, int bufs, off_t offset, int whence, squidaio_
 {
     squidaio_request_t *requestp;
 
-    if (!squidaio_initialised)
-	squidaio_init();
     requestp = memPoolAlloc(squidaio_request_pool);
     requestp->fd = fd;
     requestp->bufferp = bufp;
@@ -695,8 +705,6 @@ squidaio_close(int fd, squidaio_result_t * resultp)
 {
     squidaio_request_t *requestp;
 
-    if (!squidaio_initialised)
-	squidaio_init();
     requestp = memPoolAlloc(squidaio_request_pool);
     requestp->fd = fd;
     requestp->resultp = resultp;
@@ -721,8 +729,6 @@ squidaio_stat(const char *path, struct stat *sb, squidaio_result_t * resultp)
 {
     squidaio_request_t *requestp;
 
-    if (!squidaio_initialised)
-	squidaio_init();
     requestp = memPoolAlloc(squidaio_request_pool);
     requestp->path = (char *) squidaio_xstrdup(path);
     requestp->statp = sb;
@@ -749,8 +755,6 @@ squidaio_unlink(const char *path, squidaio_result_t * resultp)
 {
     squidaio_request_t *requestp;
 
-    if (!squidaio_initialised)
-	squidaio_init();
     requestp = memPoolAlloc(squidaio_request_pool);
     requestp->path = squidaio_xstrdup(path);
     requestp->resultp = resultp;
@@ -774,8 +778,6 @@ squidaio_truncate(const char *path, off_t length, squidaio_result_t * resultp)
 {
     squidaio_request_t *requestp;
 
-    if (!squidaio_initialised)
-	squidaio_init();
     requestp = memPoolAlloc(squidaio_request_pool);
     requestp->path = (char *) squidaio_xstrdup(path);
     requestp->offset = length;
@@ -805,8 +807,6 @@ squidaio_opendir(const char *path, squidaio_result_t * resultp)
     squidaio_request_t *requestp;
     int len;
 
-    if (!squidaio_initialised)
-	squidaio_init();
     requestp = memPoolAlloc(squidaio_request_pool);
     return -1;
 }

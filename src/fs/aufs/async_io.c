@@ -103,6 +103,7 @@ aioInit(void)
 void
 aioDone(void)
 {
+    squidaio_shutdown();
     memPoolDestroy(squidaio_ctrl_pool);
     initialised = 0;
 }
