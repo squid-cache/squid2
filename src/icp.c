@@ -143,6 +143,7 @@ char *log_tags[] =
     "ERR_NO_RELAY",
     "ERR_DISK_IO",
     "ERR_ZERO_SIZE_OBJECT",
+    "ERR_FTP_DISABLED",
     "ERR_PROXY_DENIED"
 };
 

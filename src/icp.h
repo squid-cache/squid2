@@ -139,7 +139,8 @@ typedef enum {
     ERR_NO_RELAY,		/* 30 */
     ERR_DISK_IO,		/* 31 */
     ERR_ZERO_SIZE_OBJECT,	/* 32 */
-    ERR_PROXY_DENIED		/* 33 */
+    ERR_FTP_DISABLED,		/* 33 */
+    ERR_PROXY_DENIED		/* 34 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT

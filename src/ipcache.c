@@ -175,6 +175,10 @@ static char ipcache_status_char[] =
 static long ipcache_low = 180;
 static long ipcache_high = 200;
 
+#if LIBRESOLV_DNS_TTL_HACK
+extern int _dns_ttl_;
+#endif
+
 static void
 ipcacheEnqueue(ipcache_entry * i)
 {
@@ -811,6 +815,10 @@ ipcache_gethostbyname(char *name, int flags)
 	    i = ipcache_get(name);
 	    i->lastref = squid_curtime;
 	    i->expires = squid_curtime + Config.positiveDnsTtl;
+#if LIBRESOLV_DNS_TTL_HACK
+	    if (_dns_ttl_ > -1)
+	        i->expires = squid_curtime + _dns_ttl_;
+#endif /* LIBRESOLV_DNS_TTL_HACK */
 	    return &i->addrs;
 	}
 	/* bad address, negative cached */

@@ -417,20 +417,24 @@ debug_options ALL,1
 # OPTIONS FOR EXTERNAL SUPPORT PROGRAMS
 #-----------------------------------------------------------------------------
 
-#  TAG: cache_ftp_program 
+#  TAG: ftpget_program 
 #	Where to find the 'ftpget' program that retrieves FTP data (HTTP
 #	and Gopher protocol support are built into the cache).  
 #
-#cache_ftp_program @DEFAULT_FTPGET@
+#	To disable ftpget and the ability to retrieve FTP objects, set
+#	this to "none".  Note that ftpget is automatically disabled for
+#	http_accel mode.
+#
+#ftpget_program @DEFAULT_FTPGET@
 
-#  TAG: cache_ftp_options
+#  TAG: ftpget_options
 #	Options for the 'ftpget' program.  Please run 'ftpget' without
 #	any arguments to see a list of options.  The default is
 #	no options.  An example is
 #	
-#	cache_ftp_options -n 60 -R -W
+#	ftpget_options -n 60 -R -W
 #
-#cache_ftp_options
+#ftpget_options
 
 # If you want the anonymous login password to be more informative
 # (and enable the use of picky ftp servers), set this to something
@@ -454,6 +458,10 @@ debug_options ALL,1
 #	For heavily loaded caches on large servers, you should 
 #	probably increase this value to at least 10.  The maximum
 #	is 32.  The default is 5.
+#
+#	To disable dnsservers, set this to 0.  NOTE, this is very
+#	strongly discouraged.  If you disable dnsservers your Squid
+#	process will BLOCK on DNS lookups!
 #
 #dns_children 5
 

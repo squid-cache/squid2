@@ -335,6 +335,7 @@ neighbors_open(int fd)
     E = &friends->edges_head;
     next = friends->edges_head;
     while ((e = next)) {
+	getCurrentTime();
 	next = e->next;
 	debug(15, 2, "Finding IP addresses for '%s'\n", e->host);
 	if ((ia = ipcache_gethostbyname(e->host, IP_BLOCKING_LOOKUP)) == NULL) {
