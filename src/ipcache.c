@@ -848,18 +848,17 @@ ipcache_gethostbyname(const char *name, int flags)
 	IpcacheStats.ghbn_calls++;
 	hp = gethostbyname(name);
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && ip_table) {
-	    /* only dnsHandleRead() can change from DISPATCHED to CACHED */
-	    if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
+	    /* good address, cached */
+	    if (i == NULL) {
+		i = ipcacheAddNew(name, hp, IP_CACHED);
+	    } else if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
+	        /* only dnsHandleRead() can change from DISPATCHED to CACHED */
 		static_addrs.count = 1;
 		static_addrs.cur = 0;
 		memcpy(&static_addrs.in_addrs[0].s_addr,
 		    *(hp->h_addr_list),
 		    hp->h_length);
 		return &static_addrs;
-	    }
-	    /* good address, cached */
-	    if (i == NULL) {
-		i = ipcacheAddNew(name, hp, IP_CACHED);
 	    } else {
 		ipcacheAddHostent(i, hp);
 	    }
