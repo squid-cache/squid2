@@ -164,7 +164,7 @@ httpHdrCcPackInto(const HttpHdrCc * cc, Packer * p)
     int pcount = 0;
     assert(cc && p);
     if (cc->max_age >= 0) {
-	packerPrintf(p, "max-age=%d", (int)cc->max_age);
+	packerPrintf(p, "max-age=%d", (int) cc->max_age);
 	pcount++;
     }
     for (flag = 0; flag < CC_ENUM_END; flag++) {
