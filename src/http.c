@@ -216,6 +216,7 @@ static void httpProcessReplyHeader(data, buf, size)
 	    }
 	    t = strtok(NULL, "\n");
 	}
+	safe_free(headers);
 	if (reply->code)
 	    debug(11, 3, "httpProcessReplyHeader: HTTP CODE: %d\n", reply->code);
 	switch (reply->code) {
