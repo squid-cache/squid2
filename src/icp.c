@@ -1330,7 +1330,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    header.opcode, inet_ntoa(from.sin_addr));
 	break;
     }
-    if (entry & entry->mem_obj && entry->mem_obj->log_url == NULL)
+    if (entry && entry->mem_obj && entry->mem_obj->log_url == NULL)
 	storeSetLogUrl(entry, icp_request);
     if (icp_request)
 	put_free_request_t(icp_request);
