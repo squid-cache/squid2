@@ -85,7 +85,7 @@ void
 storeUfsUnlink(sfileno f)
 {
     debug(78, 3) ("storeUfsUnlink: fileno %08X\n", f);
-    unlinkdUnlink(storeSwapFullPath(f, NULL));
+    unlinkdUnlink(storeUfsFullPath(f, NULL));
 }
 
 /*  === STATIC =========================================================== */

@@ -211,11 +211,18 @@ typedef void HLPCB(void *, char *buf);
 typedef void HLPCMDOPTS(int *argc, char **argv);
 typedef void IDNSCB(void *, rfc1035_rr *, int);
 
-typedef storeIOState *STOPEN(sfileno, mode_t, STIOCB *, void *);
-typedef void STCLOSE(storeIOState *);
-typedef void STREAD(storeIOState *, char *, size_t, off_t, STRCB *, void *);
-typedef void STWRITE(storeIOState *, char *, size_t, off_t, FREE *);
-typedef void STUNLINK(sfileno);
+typedef void STINIT(SwapDir *);
+typedef void STNEWFS(SwapDir *);
+typedef storeIOState *STOBJOPEN(sfileno, mode_t, STIOCB *, void *);
+typedef void STOBJCLOSE(storeIOState *);
+typedef void STOBJREAD(storeIOState *, char *, size_t, off_t, STRCB *, void *);
+typedef void STOBJWRITE(storeIOState *, char *, size_t, off_t, FREE *);
+typedef void STOBJUNLINK(sfileno);
+typedef void STOBJLOG(const StoreEntry *, int);
+typedef void STLOGOPEN(SwapDir *);
+typedef void STLOGCLOSE(SwapDir *);
+typedef int STLOGCLEANOPEN(SwapDir *);
+typedef void STLOGCLEANWRITE(const StoreEntry *, SwapDir *);
 
 typedef double hbase_f(double);
 typedef void StatHistBinDumper(StoreEntry *, int idx, double val, double size, int count);
