@@ -409,4 +409,6 @@ waisConnectDone(int fd, int status, void *data)
 	COMM_SELECT_WRITE,
 	(PF) waisSendRequest,
 	(void *) waisState, 0);
+    if (Config.vizHackAddr.sin_port)
+        vizHackSendPkt(&waisState->connectState.S, 2);
 }

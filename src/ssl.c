@@ -384,6 +384,8 @@ sslConnectDone(int fd, int status, void *data)
 	sslProxyConnected(sslState->server.fd, sslState);
     else
 	sslConnected(sslState->server.fd, sslState);
+    if (Config.vizHackAddr.sin_port)
+        vizHackSendPkt(&sslState->connectState.S, 2);
 }
 
 int

@@ -643,6 +643,8 @@ ftpConnectDone(int fd, int status, void *data)
 	(void *) ftpData, 0);
     if (opt_no_ipcache)
 	ipcacheInvalidate(ftpData->request->host);
+    if (Config.vizHackAddr.sin_port)
+        vizHackSendPkt(&ftpData->connectState.S, 2);
 }
 
 static void

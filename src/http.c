@@ -749,6 +749,8 @@ httpConnectDone(int fd, int status, void *data)
 	    httpLifetimeExpire, (void *) httpState, 0);
 	commSetSelect(fd, COMM_SELECT_WRITE,
 	    httpSendRequest, (void *) httpState, 0);
+    if (Config.vizHackAddr.sin_port)
+        vizHackSendPkt(&httpState->connectState.S, 2);
     }
 }
 
