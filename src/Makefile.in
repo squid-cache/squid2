@@ -60,6 +60,7 @@ SQUID_LIBS	= -L../lib $(CRYPTLIB) $(REGEXLIB) @SQUID_PTHREAD_LIB@ \
 CLIENT_LIBS	= -L../lib -lmiscutil $(XTRA_LIBS)
 DNSSERVER_LIBS	= -L../lib -lmiscutil $(XTRA_LIBS)
 PINGER_LIBS	= -L../lib -lmiscutil $(XTRA_LIBS)
+CACHE_DIFF_LIBS = -L../lib -lmiscutil $(XTRA_LIBS)
 
 PROGS           = squid client
 UTILS           = dnsserver unlinkd
@@ -197,6 +198,9 @@ unlinkd: unlinkd-daemon.o
 
 unlinkd-daemon.o: unlinkd.c
 	$(CC) -c $(CFLAGS) -DUNLINK_DAEMON $(srcdir)/unlinkd.c -o $@
+
+cache_diff: cache_diff.o
+	$(CC) -o $@ $(LDFLAGS) $@.o debug.o globals.o hash.o store_key_md5.o $(CACHE_DIFF_LIBS)
 
 cache_cf.o: cf_parser.c
 
