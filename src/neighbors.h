@@ -219,6 +219,7 @@ extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));
 extern void neighborsDestroy _PARAMS((void));
 extern edge *neighborFindByName _PARAMS((char *));
+extern void neighborAlive _PARAMS((edge *, MemObject *, icp_common_t *));
 
 extern char *hier_strings[];
 

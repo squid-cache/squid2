@@ -150,7 +150,7 @@ typedef struct _ClientStatusEntry {
  */
 
 /* This structure can be freed while object is purged out from memory */
-typedef struct _MemObject {
+struct _MemObject {
     char *mime_hdr;		/* Mime header info */
     mem_ptr data;
 
@@ -192,7 +192,7 @@ typedef struct _MemObject {
     SIH swapin_complete_handler;
     void *swapin_complete_data;
     int mime_hdr_sz;
-} MemObject;
+};
 
 enum {
     NOT_IN_MEMORY,

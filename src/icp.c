@@ -1230,9 +1230,6 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	if ((entry = storeGet(key)) == NULL) {
 	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for NULL Entry.\n",
 		IcpOpcodeStr[header.opcode]);
-	} else if (entry->lock_count == 0) {
-	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for Entry without locks.\n",
-		IcpOpcodeStr[header.opcode]);
 	} else {
 	    /* call neighborsUdpAck even if ping_status != PING_WAITING */
 	    neighborsUdpAck(fd,
@@ -1362,9 +1359,6 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	debug(12, 3, "icpHandleIcpV3: Looking for key '%s'\n", key);
 	if ((entry = storeGet(key)) == NULL) {
 	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for NULL Entry.\n",
-		IcpOpcodeStr[header.opcode]);
-	} else if (entry->lock_count == 0) {
-	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for Entry without locks.\n",
 		IcpOpcodeStr[header.opcode]);
 	} else {
 	    /* call neighborsUdpAck even if ping_status != PING_WAITING */

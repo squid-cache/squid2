@@ -193,6 +193,7 @@ typedef struct icp_common_s icp_common_t;
 typedef struct _cacheinfo cacheinfo;
 typedef struct _aclCheck_t aclCheck_t;
 typedef struct _request request_t;
+typedef struct _MemObject MemObject;
 
 /* 32 bit integer compatability hack */
 #if SIZEOF_INT == 4
