@@ -42,8 +42,8 @@ static netdbEntry *netdbGetFirst _PARAMS((HashID table));
 static netdbEntry *netdbGetNext _PARAMS((HashID table));
 static void netdbHashInsert _PARAMS((netdbEntry * n, struct in_addr addr));
 static void netdbHashDelete _PARAMS((const char *key));
-static void netdbHashLink _PARAMS((netdbEntry * n, const char *hostname));
-static void netdbHashUnlink _PARAMS((const char *key));
+static void netdbHostInsert _PARAMS((netdbEntry * n, const char *hostname));
+static void netdbHostDelete _PARAMS((const net_db_name *));
 static void netdbPurgeLRU _PARAMS((void));
 static net_db_peer *netdbPeerByName _PARAMS((const netdbEntry * n, const char *));
 static net_db_peer *netdbPeerAdd _PARAMS((netdbEntry * n, peer * e));
@@ -79,37 +79,50 @@ netdbHashDelete(const char *key)
 }
 
 static void
-netdbHashLink(netdbEntry * n, const char *hostname)
+netdbHostInsert(netdbEntry * n, const char *hostname)
 {
     net_db_name *x = xcalloc(1, sizeof(net_db_name));
     x->name = xstrdup(hostname);
     x->next = n->hosts;
     n->hosts = x;
-    hash_insert(host_table, x->name, n);
+    x->net_db_entry = n;
+    if (hash_lookup(host_table, hostname))
+	fatal_dump("netdbHostInsert: double insertion");
+    hash_join(host_table, (hash_link *) x);
     n->link_count++;
     meta_data.netdb_hosts++;
 }
 
 static void
-netdbHashUnlink(const char *key)
+netdbHostDelete(const net_db_name *x)
 {
+    net_db_name **X;
     netdbEntry *n;
-    hash_link *hptr = hash_lookup(host_table, key);
-    if (hptr == NULL) {
-	debug_trap("netdbHashUnlink: key not found");
+    if (x == NULL) {
+	debug_trap("netdbHostDelete: NULL parameter");
 	return;
     }
-    n = (netdbEntry *) hptr->item;
+    if (x->net_db_entry == NULL)
+	fatal_dump("netdbHostDelete: NULL net_db_entry");
+    n = x->net_db_entry;
     n->link_count--;
-    hash_delete_link(host_table, hptr);
+    for (X = &n->hosts; *X; X = &(*X)->next) {
+	if (*X == x) {
+	    *X = x->next;
+	    break;
+	}
+    }
+    hash_remove_link(host_table, (hash_link *) x);
     meta_data.netdb_hosts--;
+    xfree(x->name);
+    xfree((void *)x);
 }
 
 static netdbEntry *
 netdbLookupHost(const char *key)
 {
-    hash_link *hptr = hash_lookup(host_table, key);
-    return hptr ? (netdbEntry *) hptr->item : NULL;
+    net_db_name *x = (net_db_name *) hash_lookup(host_table, key);
+    return x ? x->net_db_entry : NULL;
 }
 
 static netdbEntry *
@@ -131,9 +144,7 @@ netdbRelease(netdbEntry * n)
     net_db_name *next;
     for (x = n->hosts; x; x = next) {
 	next = x->next;
-	netdbHashUnlink(x->name);
-	safe_free(x->name);
-	safe_free(x);
+	netdbHostDelete(x);
     }
     n->hosts = NULL;
     safe_free(n->peers);
@@ -207,7 +218,6 @@ netdbAdd(struct in_addr addr, const char *hostname)
 	n = xcalloc(1, sizeof(netdbEntry));
 	netdbHashInsert(n, addr);
     }
-    netdbHashLink(n, hostname);
     return n;
 }
 
@@ -217,13 +227,50 @@ netdbSendPing(int fdunused, const ipcache_addrs * ia, void *data)
     struct in_addr addr;
     char *hostname = data;
     netdbEntry *n;
+    netdbEntry *na;
+    net_db_name *x;
+    net_db_name **X;
+    int i;
     if (ia == NULL) {
 	xfree(hostname);
 	return;
     }
     addr = ia->in_addrs[ia->cur];
-    if ((n = netdbLookupHost(hostname)) == NULL)
+    if ((n = netdbLookupHost(hostname)) == NULL) {
 	n = netdbAdd(addr, hostname);
+        netdbHostInsert(n, hostname);
+    } else if ((na = netdbLookupAddr(addr)) != n) {
+	/*
+	 * hostname moved from 'network n' to 'network na'!
+	 */
+	if (na == NULL)
+	    na = netdbAdd(addr, hostname);
+	debug(37, 1, "netdbSendPing: NOTE: %s moved from %s to %s\n",
+	    hostname, n->network, na->network);
+	x = (net_db_name *) hash_lookup(host_table, hostname);
+	if (x == NULL)
+	    fatal_dump("netdbSendPing: net_db_name list bug");
+	/* remove net_db_name from 'network n' linked list */
+debug(0,0,"net_db_name is for %s\n", x->name);
+i = 0;
+        for (X = &n->hosts; *X; X = &(*X)->next) {
+    	    if (*X == x) {
+debug(0,0,"assigning *(%p) = %p\n", X, x->next);
+    	        *X = x->next;
+		break;
+	    }
+	    i++;
+if (i > n->link_count) fatal_dump("i > n->link_count");
+        }
+	n->link_count--;
+	/* assign 'network na' */
+	x->net_db_entry = na;
+	/* link net_db_name to 'network na' */
+	x->next = na->hosts;
+	na->hosts = x;
+	na->link_count++;
+	n = na;
+    }
     debug(37, 3, "netdbSendPing: pinging %s\n", hostname);
     icmpDomainPing(addr, hostname);
     n->pings_sent++;
@@ -407,7 +454,7 @@ netdbReloadState(void)
 	memcpy(n, &N, sizeof(netdbEntry));
 	netdbHashInsert(n, addr);
 	while ((t = strtok(NULL, w_space)) != NULL)
-	    netdbHashLink(n, t);
+	    netdbHostInsert(n, t);
 	count++;
     }
     put_free_4k_page(buf);
