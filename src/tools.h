@@ -14,5 +14,8 @@ extern void check_suid _PARAMS((void));
 extern int daemonize _PARAMS((void));
 extern void writePidFile _PARAMS((void));
 extern void setMaxFD _PARAMS((void));
+extern time_t getCurrentTime _PARAMS((void));
 
 extern int do_mallinfo;
+extern time_t cached_curtime;
+extern struct timeval current_time;

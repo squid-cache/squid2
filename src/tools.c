@@ -8,6 +8,8 @@
 #include "squid.h"
 
 int do_mallinfo = 0;		/* don't do mallinfo() unless this gets set */
+time_t cached_curtime;
+struct timeval current_time;
 
 #define DEAD_MSG "\
 The Harvest Cache (version %s) died.\n\
@@ -380,4 +382,10 @@ void setMaxFD()
 #else /* HAVE_SETRLIMIT */
     debug(21, 1, "setMaxFD: Cannot increase: setrlimit() not supported on this system");
 #endif
+}
+
+time_t getCurrentTime()
+{
+	gettimeofday(&current_time, NULL);
+	return cached_curtime = current_time.tv_sec;
 }
