@@ -334,8 +334,8 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	ctx_exit(ctx);
 	if (reply->date > -1 && !httpState->peer) {
 	    int skew = abs(reply->date - squid_curtime);
-	    if (skew > 7200)
-		debug(11, 1) ("%s's clock is skewed by %d seconds!\n",
+	    if (skew > 86400)
+		debug(11, 3) ("%s's clock is skewed by %d seconds!\n",
 			httpState->request->host, skew);
 	}
     }
