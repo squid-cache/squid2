@@ -71,6 +71,7 @@ typedef struct _intlist intlist;
 typedef struct _intrange intrange;
 typedef struct _ushortlist ushortlist;
 typedef struct _relist relist;
+typedef struct _sockaddr_in_list sockaddr_in_list;
 typedef struct _SquidConfig SquidConfig;
 typedef struct _SquidConfig2 SquidConfig2;
 typedef struct _close_handler close_handler;

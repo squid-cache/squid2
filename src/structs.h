@@ -191,6 +191,11 @@ struct _relist {
     relist *next;
 };
 
+struct _sockaddr_in_list {
+    struct sockaddr_in s;
+    sockaddr_in_list *next;
+};
+
 #if DELAY_POOLS
 struct _delaySpec {
     int restore_bps;
@@ -266,7 +271,6 @@ struct _SquidConfig {
     size_t maxRequestBodySize;
     size_t maxReplyBodySize;
     struct {
-	ushortlist *http;
 	u_short icp;
 #if USE_HTCP
 	u_short htcp;
@@ -275,6 +279,9 @@ struct _SquidConfig {
 	u_short snmp;
 #endif
     } Port;
+    struct {
+	sockaddr_in_list *http;
+    } Sockaddr;
 #if SQUID_SNMP
     struct {
 	char *configFile;
@@ -332,7 +339,6 @@ struct _SquidConfig {
 	u_short port;
     } Announce;
     struct {
-	struct in_addr tcp_incoming;
 	struct in_addr tcp_outgoing;
 	struct in_addr udp_incoming;
 	struct in_addr udp_outgoing;

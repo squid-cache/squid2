@@ -117,7 +117,8 @@ internalRemoteUri(const char *host, u_short port, const char *dir, const char *n
 char *
 internalLocalUri(const char *dir, const char *name)
 {
-    return internalRemoteUri(getMyHostname(), Config.Port.http->i, dir, name);
+    return internalRemoteUri(getMyHostname(),
+	ntohs(Config.Sockaddr.http->s.sin_port), dir, name);
 }
 
 const char *

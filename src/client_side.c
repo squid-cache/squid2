@@ -2426,11 +2426,11 @@ clientReadRequest(int fd, void *data)
 	    if (!http->flags.internal) {
 		if (internalCheck(strBuf(request->urlpath))) {
 		    if (internalHostnameIs(request->host) &&
-			request->port == Config.Port.http->i) {
+			request->port == ntohs(Config.Sockaddr.http->s.sin_port)) {
 			http->flags.internal = 1;
 		    } else if (internalStaticCheck(strBuf(request->urlpath))) {
 			xstrncpy(request->host, internalHostname(), SQUIDHOSTNAMELEN);
-			request->port = Config.Port.http->i;
+			request->port = ntohs(Config.Sockaddr.http->s.sin_port);
 			http->flags.internal = 1;
 		    }
 		}
@@ -2778,14 +2778,14 @@ checkFailureRatio(err_type etype, hier_code hcode)
 void
 clientHttpConnectionsOpen(void)
 {
-    ushortlist *u;
+    sockaddr_in_list *s;
     int fd;
-    for (u = Config.Port.http; u; u = u->next) {
+    for (s = Config.Sockaddr.http; s; s = s->next) {
 	enter_suid();
 	fd = comm_open(SOCK_STREAM,
 	    0,
-	    Config.Addrs.tcp_incoming,
-	    u->i,
+	    s->s.sin_addr,
+	    ntohs(s->s.sin_port),
 	    COMM_NONBLOCKING,
 	    "HTTP Socket");
 	leave_suid();
@@ -2794,8 +2794,10 @@ clientHttpConnectionsOpen(void)
 	comm_listen(fd);
 	commSetSelect(fd, COMM_SELECT_READ, httpAccept, NULL, 0);
 	/*commSetDefer(fd, httpAcceptDefer, NULL); */
-	debug(1, 1) ("Accepting HTTP connections on port %d, FD %d.\n",
-	    (int) u->i, fd);
+	debug(1, 1) ("Accepting HTTP connections on port %s:%d, FD %d.\n",
+	    inet_ntoa(s->s.sin_addr),
+	    (int) ntohs(s->s.sin_port),
+	    fd);
 	HttpSockets[NHttpSockets++] = fd;
     }
     if (NHttpSockets < 1)

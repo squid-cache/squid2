@@ -437,9 +437,9 @@ mainInitialize(void)
     squid_signal(SIGCHLD, sig_child, SA_NODEFER | SA_RESTART);
 
     setEffectiveUser();
-    assert(Config.Port.http);
+    assert(Config.Sockaddr.http);
     if (httpPortNumOverride != 1)
-	Config.Port.http->i = (u_short) httpPortNumOverride;
+	Config.Sockaddr.http->s.sin_port = htons(httpPortNumOverride);
     if (icpPortNumOverride != 1)
 	Config.Port.icp = (u_short) icpPortNumOverride;
 
