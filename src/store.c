@@ -635,6 +635,7 @@ StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
     if (meta_data.hot_vm > store_hotobj_high)
 	storeGetMemSpace(0, 1);
     e = new_StoreEntry(WITH_MEMOBJ);
+    e->lock_count = 1;		/* Note lock here w/o calling storeLock() */
     m = e->mem_obj;
     e->url = xstrdup(url);
     meta_data.url_strings += strlen(url);
@@ -665,7 +666,6 @@ StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
     storeSetMemStatus(e, NOT_IN_MEMORY);
     e->swap_status = NO_SWAP;
     e->swap_file_number = -1;
-    e->lock_count = 0;
     m->data = new_MemObjectData();
     e->refcount = 0;
     e->lastref = squid_curtime;

@@ -524,12 +524,12 @@ static int icpProcessMISS(fd, icpState)
 	request_hdr,
 	icpState->flags,
 	icpState->method);
+    /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
 
     entry->refcount++;		/* MISS CASE */
     entry->mem_obj->fd_of_first_client = fd;
     fd_table[fd].store_entry = entry;
     BIT_SET(entry->flag, IP_LOOKUP_PENDING);
-    storeLockObject(entry, NULL, NULL);
 
     /* Reset header fields for  reply. */
     memset(&icpState->header, 0, sizeof(icp_common_t));
