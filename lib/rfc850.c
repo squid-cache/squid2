@@ -160,7 +160,7 @@ time_t parse_rfc850(str)
     time_t t;
 
     if (!str)
-	return 0;
+	return -1;
 
     if ((s = strchr(str, ','))) {	/* Thursday, 10-Jun-93 01:29:59 GMT */
 	s++;			/* or: Thu, 10 Jan 1993 01:29:59 GMT */
@@ -168,7 +168,7 @@ time_t parse_rfc850(str)
 	    s++;
 	if (strchr(s, '-')) {	/* First format */
 	    if ((int) strlen(s) < 18)
-		return 0;
+		return -1;
 	    tm.tm_mday = make_num(s);
 	    tm.tm_mon = make_month(s + 3);
 	    tm.tm_year = make_num(s + 7);
@@ -177,7 +177,7 @@ time_t parse_rfc850(str)
 	    tm.tm_sec = make_num(s + 16);
 	} else {		/* Second format */
 	    if ((int) strlen(s) < 20)
-		return 0;
+		return -1;
 	    tm.tm_mday = make_num(s);
 	    tm.tm_mon = make_month(s + 3);
 	    tm.tm_year = (100 * make_num(s + 7) - 1900) + make_num(s + 9);
@@ -191,7 +191,7 @@ time_t parse_rfc850(str)
 	while (*s && *s == ' ')
 	    s++;
 	if ((int) strlen(s) < 24)
-	    return 0;
+	    return -1;
 	tm.tm_mday = make_num(s + 8);
 	tm.tm_mon = make_month(s + 4);
 	tm.tm_year = make_num(s + 22);
@@ -205,7 +205,7 @@ time_t parse_rfc850(str)
 	tm.tm_mday < 1 || tm.tm_mday > 31 ||
 	tm.tm_mon < 0 || tm.tm_mon > 11 ||
 	tm.tm_year < 70 || tm.tm_year > 120) {
-	return 0;
+	return -1;
     }
     tm.tm_isdst = -1;
 
