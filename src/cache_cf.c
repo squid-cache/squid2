@@ -107,7 +107,7 @@ static struct {
 #define DefaultPositiveDnsTtl	(360 * 60)	/* 6 hours */
 #define DefaultReadTimeout	(15 * 60)	/* 15 min */
 #define DefaultLifetimeDefault	(200 * 60)	/* 3+ hours */
-#define DefaultLifetimeShutdown	30		/* 30 seconds */
+#define DefaultLifetimeShutdown	30	/* 30 seconds */
 #define DefaultConnectTimeout	(2 * 60)	/* 2 min */
 #define DefaultDefaultAgeMax	(3600 * 24 * 30)	/* 30 days */
 #define DefaultCleanRate	-1	/* disabled */

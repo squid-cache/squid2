@@ -1,254 +1,66 @@
-static char rcsid[] = "$Id$";
-/* 
- *  File:         main.c
- *  Description:  main loop for cache
- *  Author:       John Noll, USC
- *  Created:      Mon Dec 13 10:10:28 1993 (John Noll, USC) sfdif
- *  Language:     C
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
- */
-#include "config.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <malloc.h>
-#include <time.h>
-#include <sys/time.h>
-#include <sys/wait.h>
-#include <sys/param.h>
-#include <sys/resource.h>
-#include <signal.h>
-#include <string.h>
-#include <memory.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+/* $Id$ */
 
-#include "ansihelp.h"
-#include "cache_cf.h"
-#include "debug.h"
-#include "comm.h"
-#include "icp.h"
-#include "stat.h"
-#include "stack.h"
-#include "fdstat.h"
-#include "ipcache.h"
-#include "util.h"
+/* DEBUG: Section 1             main: startup and main loop */
 
-/* WRITE_PID_FILE - tries to write a cached.pid file on startup */
-#ifndef WRITE_PID_FILE
-#define WRITE_PID_FILE
-#endif
+#include "squid.h"
 
-time_t cached_starttime = (time_t) 0;
-time_t next_cleaning = (time_t) 0;
+time_t squid_starttime = 0;
+time_t next_cleaning = 0;
 int theAsciiConnection = -1;
-int theBinaryConnection = -1;
 int theUdpConnection = -1;
 int do_reuse = 1;
-int debug_level = 0;
+int opt_unlink_on_reload = 0;
 int catch_signals = 1;
 int do_dns_test = 1;
-char *tmp_error_buf = NULL;
-char *config_file = NULL;
 int vhost_mode = 0;
-int unbuffered_logs = 0;	/* debug and hierarhcy buffered by default */
+int unbuffered_logs = 1;	/* debug and hierarhcy unbuffered by default */
+int shutdown_pending = 0;	/* set by SIGTERM handler (shut_down()) */
+int reread_pending = 0;		/* set by SIGHUP handler */
+char *version_string = SQUID_VERSION;
+char *appname = "squid";
 
-extern time_t cached_curtime;
 extern void (*failure_notify) ();	/* for error reporting from xmalloc */
-extern int do_mallinfo;
-extern void hash_init _PARAMS((int));
-extern int disk_init();
-extern void stmemInit();
-extern int storeMaintainSwapSpace();
-extern void fatal_dump _PARAMS((char *));
-extern void fatal _PARAMS((char *));
-extern void kill_zombie();
 
 static int asciiPortNumOverride = 0;
-static int binaryPortNumOverride = 0;
 static int udpPortNumOverride = 0;
+static int malloc_debug_level = 0;
 
-void raise_debug_lvl(), reset_debug_lvl();
-void death(), deathb(), shut_down(), rotate_logs();
-void sig_child();
-
-int main(argc, argv)
-     int argc;
-     char **argv;
+static void usage()
 {
-    int c;
-    int malloc_debug_level = 0;
-    int debug_level_overwrite = 0;
+    fprintf(stderr, "\
+Usage: %s [-Rsehvz] [-f config-file] [-[apu] port]\n\
+       -h        Print help message.\n\
+       -s        Enable logging to syslog.\n\
+       -v        Print version.\n\
+       -z        Zap disk storage -- deletes all objects in disk cache.\n\
+       -C        Do not catch fatal signals.\n\
+       -D        Disable initial DNS tests.\n\
+       -R        Do not set REUSEADDR on port.\n\
+       -U        Unlink expired objects on reload.\n\
+       -f file   Use given config-file instead of\n\
+                 %s\n\
+       -a port	 Specify ASCII port number (default: %d).\n\
+       -u port	 Specify UDP port number (default: %d).\n",
+	appname, DEFAULT_CONFIG_FILE, CACHE_HTTP_PORT, CACHE_ICP_PORT);
+    exit(1);
+}
+
+static void mainParseOptions(argc, argv)
+     int argc;
+     char *argv[];
+{
     extern char *optarg;
-    int errcount = 0;
-    static int neighbors = 0;
-    char *s = NULL;
-    int n;			/* # of GC'd objects */
-    time_t last_maintain = 0;
+    int c;
 
-#ifdef WRITE_PID_FILE
-    FILE *pid_fp = NULL;
-    static char pidfn[MAXPATHLEN];
-#endif
-
-    cached_starttime = cached_curtime = time((time_t *) NULL);
-    failure_notify = fatal_dump;
-
-    /* try to use as many file descriptors as possible */
-    /* System V uses RLIMIT_NOFILE and BSD uses RLIMIT_OFILE */
-#if defined(HAVE_SETRLIMIT)
-    {
-	struct rlimit rl;
-
-#if defined(RLIMIT_NOFILE)
-	if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
-	    perror("getrlimit: RLIMIT_NOFILE");
-	} else {
-	    rl.rlim_cur = rl.rlim_max;	/* set it to the max */
-	    if (setrlimit(RLIMIT_NOFILE, &rl) < 0) {
-		perror("setrlimit: RLIMIT_NOFILE");
-	    }
-	}
-#elif defined(RLIMIT_OFILE)
-	if (getrlimit(RLIMIT_OFILE, &rl) < 0) {
-	    perror("getrlimit: RLIMIT_OFILE");
-	} else {
-	    rl.rlim_cur = rl.rlim_max;	/* set it to the max */
-	    if (setrlimit(RLIMIT_OFILE, &rl) < 0) {
-		perror("setrlimit: RLIMIT_OFILE");
-	    }
-	}
-#endif
-    }
-#endif
-
-#if USE_MALLOPT
-    /* set malloc option */
-    /* use small block algorithm for faster allocation */
-    /* grain of small block */
-    mallopt(M_GRAIN, 16);
-    /* biggest size that is considered a small block */
-    mallopt(M_MXFAST, 4096);
-    /* number of holding small block */
-    mallopt(M_NLBLKS, 100);
-#endif
-
-    /* allocate storage for error messages */
-    tmp_error_buf = (char *) xcalloc(1, 8192);
-/*init comm module */
-    comm_init();
-
-#ifdef DAEMON
-    if (daemonize()) {
-	fprintf(stderr, "Error: couldn't create daemon process\n");
-	exit(0);
-    }
-    /*  signal( SIGHUP, restart ); *//* restart if/when proc dies */
-#endif /* DAEMON */
-
-    /* we have to init fdstat here. */
-    fdstat_init(PREOPEN_FD);
-    fdstat_open(0, LOG);
-    fdstat_open(1, LOG);
-    fdstat_open(2, LOG);
-    fd_note(0, "STDIN");
-    fd_note(1, "STDOUT");
-    fd_note(2, "STDERR");
-
-    if ((s = getenv("HARVEST_HOME")) != NULL) {
-	config_file = (char *) xcalloc(1, strlen(s) + 64);
-	sprintf(config_file, "%s/lib/cached.conf", s);
-    } else {
-	config_file = xstrdup("/usr/local/harvest/lib/cached.conf");
-    }
-
-    /* enable syslog by default */
-    syslog_enable = 1;
-    /* disable stderr debug printout by default */
-    stderr_enable = 0;
-    /* preinit for debug module */
-    debug_log = stderr;
-    hash_init(0);
-
-    while ((c = getopt(argc, argv, "vCDRVseif:a:p:u:d:m:zh?")) != -1)
+    while ((c = getopt(argc, argv, "vCDRVUbsif:a:p:u:m:zh?")) != -1) {
 	switch (c) {
 	case 'v':
-	    printf("Harvest Cache: Version %s\n", HARVEST_VERSION);
+	    printf("Squid Cache: Version %s\n", version_string);
 	    exit(0);
 	    /* NOTREACHED */
+	case 'b':
+	    unbuffered_logs = 0;
+	    break;
 	case 'V':
 	    vhost_mode = 1;
 	    break;
@@ -261,30 +73,22 @@ int main(argc, argv)
 	case 's':
 	    syslog_enable = 0;
 	    break;
-	case 'e':
-	    stderr_enable = 1;
 	    break;
 	case 'R':
 	    do_reuse = 0;
 	    break;
+	case 'U':
+	    opt_unlink_on_reload = 1;
+	    break;
 	case 'f':
-	    xfree(config_file);
-	    config_file = xstrdup(optarg);
+	    xfree(ConfigFile);
+	    ConfigFile = xstrdup(optarg);
 	    break;
 	case 'a':
 	    asciiPortNumOverride = atoi(optarg);
 	    break;
-	case 'p':
-	    binaryPortNumOverride = atoi(optarg);
-	    break;
 	case 'u':
 	    udpPortNumOverride = atoi(optarg);
-	    break;
-	case 'd':
-	    stderr_enable = 1;
-	    debug_level_overwrite = 1;
-	    debug_level = atoi(optarg);
-	    unbuffered_logs = 1;
 	    break;
 	case 'm':
 	    malloc_debug_level = atoi(optarg);
@@ -295,228 +99,271 @@ int main(argc, argv)
 	case '?':
 	case 'h':
 	default:
-	    printf("\
-Usage: cached [-Rsehvz] [-f config-file] [-d debug-level] [-[apu] port]\n\
-       -e        Print messages to stderr.\n\
-       -h        Print help message.\n\
-       -s        Disable syslog output.\n\
-       -v        Print version.\n\
-       -z        Zap disk storage -- deletes all objects in disk cache.\n\
-       -C        Do not catch fatal signals.\n\
-       -D        Disable initial DNS tests.\n\
-       -R        Do not set REUSEADDR on port.\n\
-       -f file   Use given config-file instead of\n\
-                 $HARVEST_HOME/lib/cached.conf.\n\
-       -d level  Use given debug-level, prints messages to stderr.\n\
-       -a port	 Specify ASCII port number (default: %d).\n\
-       -u port	 Specify UDP port number (default: %d).\n",
-		CACHE_HTTP_PORT, CACHE_ICP_PORT);
-
-	    exit(1);
+	    usage();
 	    break;
 	}
-
-    if (catch_signals) {
-	signal(SIGSEGV, death);
-	signal(SIGBUS, deathb);
     }
-    signal(SIGPIPE, SIG_IGN);
-    signal(SIGCHLD, sig_child);
-    signal(SIGHUP, rotate_logs);
-    signal(SIGTERM, shut_down);
-    signal(SIGINT, shut_down);
+}
 
-    parseConfigFile(config_file);
-
-    if (!neighbors) {
-	neighbors_create();
-	++neighbors;
-    };
-
-    if (asciiPortNumOverride > 0)
-	setAsciiPortNum(asciiPortNumOverride);
-    if (binaryPortNumOverride > 0)
-	setBinaryPortNum(binaryPortNumOverride);
-    if (udpPortNumOverride > 0)
-	setUdpPortNum(udpPortNumOverride);
-
-    if (!debug_level_overwrite) {
-	debug_level = getDebugLevel();
-    }
-    /* to toggle debugging */
-#ifdef SIGUSR1
-    signal(SIGUSR1, raise_debug_lvl);
-#endif
-#ifdef SIGUSR2
-    signal(SIGUSR2, reset_debug_lvl);
-#endif
-
-#ifdef NO_LOGGING
-    _db_init("cached", 0, getCacheLogFile());
-#else
-    _db_init("cached", debug_level, getCacheLogFile());
-#endif
-    fdstat_open(fileno(debug_log), LOG);
-    fd_note(fileno(debug_log), getCacheLogFile());
-
-    debug(0, "Starting Harvest Cache (version %s)...\n", HARVEST_VERSION);
-
-    /* init ipcache */
-    ipcache_init();
-
-    /* init neighbors */
-    neighbors_init();
-
-
-#if defined(MALLOC_DBG)
-    malloc_debug(malloc_debug_level);
-#endif
-
+void serverConnectionsOpen()
+{
     theAsciiConnection = comm_open(COMM_NONBLOCKING,
 	getAsciiPortNum(),
 	0,
 	"Ascii Port");
     if (theAsciiConnection < 0) {
-	fatal("Cannot open ascii Port\n");
+	fatal("Cannot open ascii Port");
     }
-    fdstat_open(theAsciiConnection, Socket);
     fd_note(theAsciiConnection, "HTTP (Ascii) socket");
     comm_listen(theAsciiConnection);
     comm_set_select_handler(theAsciiConnection,
 	COMM_SELECT_READ,
 	asciiHandleConn,
 	0);
-    debug(1, "Accepting HTTP (ASCII) connections on FD %d.\n",
+    debug(1, 1, "Accepting HTTP (ASCII) connections on FD %d.\n",
 	theAsciiConnection);
 
     if (!httpd_accel_mode || getAccelWithProxy()) {
-#ifdef KEEP_BINARY_CONN
-	theBinaryConnection = comm_open(COMM_NONBLOCKING,
-	    binaryPortNum,
-	    0,
-	    "Binary Port");
-
-	if (theBinaryConnection < 0) {
-	    fatal("Cannot open Binary Port\n");
-	}
-	comm_listen(theBinaryConnection);
-	comm_set_select_handler(theBinaryConnection,
-	    COMM_SELECT_READ,
-	    icpHandleTcp,
-	    0);
-	debug(1, "Binary connection opened on fd %d\n", theBinaryConnection);
-#endif
 	if (getUdpPortNum() > -1) {
 	    theUdpConnection = comm_open(COMM_NONBLOCKING | COMM_DGRAM,
 		getUdpPortNum(),
 		0,
 		"Ping Port");
 	    if (theUdpConnection < 0)
-		fatal("Cannot open UDP Port\n");
-	    fdstat_open(theUdpConnection, Socket);
+		fatal("Cannot open UDP Port");
 	    fd_note(theUdpConnection, "ICP (UDP) socket");
 	    comm_set_select_handler(theUdpConnection,
 		COMM_SELECT_READ,
 		icpHandleUdp,
 		0);
-	    debug(1, "Accepting ICP (UDP) connections on FD %d.\n",
+	    debug(1, 1, "Accepting ICP (UDP) connections on FD %d.\n",
 		theUdpConnection);
 	}
     }
-    if (theUdpConnection > 0) {
-	/* Now that the fd's are open, initialize neighbor connections */
-	if (!httpd_accel_mode || getAccelWithProxy()) {
-	    neighbors_open(theUdpConnection);
-	}
+}
+
+void serverConnectionsClose()
+{
+    if (theAsciiConnection >= 0) {
+	debug(21, 1, "FD %d Closing Ascii connection\n",
+	    theAsciiConnection);
+	comm_close(theAsciiConnection);
+	comm_set_select_handler(theAsciiConnection,
+	    COMM_SELECT_READ,
+	    NULL,
+	    0);
+	theAsciiConnection = -1;
     }
+    if (theUdpConnection >= 0) {
+	debug(21, 1, "FD %d Closing Udp connection\n",
+	    theUdpConnection);
+	/* Dont actually close it, just disable the read handler */
+	/* so we can still transmit while shutdown pending */
+	/* comm_close(theUdpConnection); */
+	comm_set_select_handler(theUdpConnection,
+	    COMM_SELECT_READ,
+	    NULL,
+	    0);
+	/* theUdpConnection = -1; */
+    }
+}
+
+static void mainReinitialize()
+{
+    debug(1, 0, "Restarting Squid Cache (version %s)...\n", version_string);
+    /* Already called serverConnectionsClose and ipcacheShutdownServers() */
+    neighborsDestroy();
+
+    parseConfigFile(ConfigFile);
+    _db_init(getCacheLogFile());
+    neighbors_init();
+    ipcacheOpenServers();
+    serverConnectionsOpen();
+    if (theUdpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
+	neighbors_open(theUdpConnection);
+    debug(1, 0, "Ready to serve requests.\n");
+}
+
+static void mainInitialize()
+{
+    static int first_time = 1;
+
+    if (catch_signals) {
+	signal(SIGSEGV, death);
+	signal(SIGBUS, death);
+    }
+    signal(SIGPIPE, SIG_IGN);
+    signal(SIGCHLD, sig_child);
+
+    if (ConfigFile == NULL)
+	ConfigFile = xstrdup(DefaultConfigFile);
+    parseConfigFile(ConfigFile);
+
+    if (asciiPortNumOverride > 0)
+	setAsciiPortNum(asciiPortNumOverride);
+    if (udpPortNumOverride > 0)
+	setUdpPortNum(udpPortNumOverride);
+
+    _db_init(getCacheLogFile());
+    fdstat_open(fileno(debug_log), LOG);
+    fd_note(fileno(debug_log), getCacheLogFile());
+
+    debug(1, 0, "Starting Squid Cache (version %s)...\n", version_string);
+
+    if (first_time) {
+	disk_init();		/* disk_init must go before ipcache_init() */
+    }
+    ipcache_init();
+    neighbors_init();
+    ftpInitialize();
+
+#if defined(MALLOC_DBG)
+    malloc_debug(0, malloc_debug_level);
+#endif
+
     /* do suid checking here */
     check_suid();
 
-    /* module initialization */
-    disk_init();
-    stat_init(&CacheInfo, getAccessLogFile());
-    storeInit();
-    stmemInit();
+    if (first_time) {
+	first_time = 0;
+	/* module initialization */
+	urlInitialize();
+	stat_init(&CacheInfo, getAccessLogFile());
+	storeInit();
+	stmemInit();
+	writePidFile();
 
-#ifdef WRITE_PID_FILE
-    /* Try to write the pid to cached.pid in the same directory as
-     * cached.conf */
-    memset(pidfn, '\0', MAXPATHLEN);
-    strcpy(pidfn, config_file);
-    if ((s = strrchr(pidfn, '/')) != NULL)
-	strcpy(s, "/cached.pid");
-    else
-	strcpy(pidfn, "/usr/local/harvest/lib/cached.pid");
-    pid_fp = fopen(pidfn, "w");
-    if (pid_fp != NULL) {
-	fprintf(pid_fp, "%d\n", (int) getpid());
-	fclose(pid_fp);
+	/* after this point we want to see the mallinfo() output */
+	do_mallinfo = 1;
     }
+    serverConnectionsOpen();
+    if (theUdpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
+	neighbors_open(theUdpConnection);
+
+    signal(SIGUSR1, rotate_logs);
+    signal(SIGHUP, reconfigure);
+    signal(SIGTERM, shut_down);
+    signal(SIGINT, shut_down);
+
+    debug(1, 0, "Ready to serve requests.\n");
+}
+
+
+int main(argc, argv)
+     int argc;
+     char **argv;
+{
+    int errcount = 0;
+    int n;			/* # of GC'd objects */
+    time_t last_maintain = 0;
+    time_t last_announce = 0;
+    time_t loop_delay;
+
+    errorInitialize();
+
+    squid_starttime = getCurrentTime();
+    failure_notify = fatal_dump;
+
+    mainParseOptions(argc, argv);
+
+    setMaxFD();
+
+    for (n = getMaxFD(); n > 2; n--)
+	close(n);
+
+#if HAVE_MALLOPT
+    /* set malloc option */
+    /* use small block algorithm for faster allocation */
+    /* grain of small block */
+    mallopt(M_GRAIN, 16);
+    /* biggest size that is considered a small block */
+    mallopt(M_MXFAST, 4096);
+    /* number of holding small block */
+    mallopt(M_NLBLKS, 100);
 #endif
 
-    /* after this point we want to see the mallinfo() output */
-    do_mallinfo = 1;
-    debug(0, "Ready to serve requests.\n");
+    /*init comm module */
+    comm_init();
+
+    /* we have to init fdstat here. */
+    fdstat_init(PREOPEN_FD);
+    fdstat_open(0, LOG);
+    fdstat_open(1, LOG);
+    fdstat_open(2, LOG);
+    fd_note(0, "STDIN");
+    fd_note(1, "STDOUT");
+    fd_note(2, "STDERR");
+
+    /* enable syslog by default */
+    syslog_enable = 0;
+
+    /* preinit for debug module */
+    debug_log = stderr;
+    hash_init(0);
+
+    mainInitialize();
 
     /* main loop */
     if (getCleanRate() > 0)
-	next_cleaning = time(0L) + getCleanRate();
+	next_cleaning = time(NULL) + getCleanRate();
     while (1) {
+	loop_delay = (time_t) 60;
 	/* maintain cache storage */
-	if (cached_curtime > last_maintain) {
+	if (squid_curtime > last_maintain) {
 	    storeMaintainSwapSpace();
-	    last_maintain = cached_curtime;
+	    last_maintain = squid_curtime;
 	}
-	switch (comm_select((long) 60, (long) 0, next_cleaning)) {
+	/* do background processing */
+	if (doBackgroundProcessing())
+	    loop_delay = (time_t) 0;
+	switch (comm_select(loop_delay, next_cleaning)) {
 	case COMM_OK:
 	    /* do nothing */
 	    break;
 	case COMM_ERROR:
 	    errcount++;
-	    debug(0, "Select loop Error. Retry. %d\n", errcount);
+	    debug(1, 0, "Select loop Error. Retry. %d\n", errcount);
 	    if (errcount == 10)
-		fatal_dump("Select Loop failed.!\n");
+		fatal_dump("Select Loop failed!");
 	    break;
 	case COMM_TIMEOUT:
 	    /* this happens after 1 minute of idle time, or
 	     * when next_cleaning has arrived */
 	    /* garbage collection */
-	    if (getCleanRate() > 0 && cached_curtime >= next_cleaning) {
-		debug(1, "Performing a garbage collection...\n");
+	    if (getCleanRate() > 0 && squid_curtime >= next_cleaning) {
+		debug(1, 1, "Performing a garbage collection...\n");
 		n = storePurgeOld();
-		debug(1, "Garbage collection done, %d objects removed\n", n);
-		next_cleaning = cached_curtime + getCleanRate();
+		debug(1, 1, "Garbage collection done, %d objects removed\n", n);
+		next_cleaning = squid_curtime + getCleanRate();
+	    }
+	    if ((n = getAnnounceRate()) > 0) {
+		if (squid_curtime > last_announce + n)
+		    send_announce();
+		last_announce = squid_curtime;
 	    }
 	    /* house keeping */
-#ifdef THIS_BREAKS_FTP
-	    kill_zombie();
-#endif
+	    break;
+	case COMM_SHUTDOWN:
+	    /* delayed close so we can transmit while shutdown pending */
+	    if (theUdpConnection > 0) {
+		comm_close(theUdpConnection);
+		theUdpConnection = -1;
+	    }
+	    if (shutdown_pending) {
+		normal_shutdown();
+		exit(0);
+	    } else if (reread_pending) {
+		mainReinitialize();
+		reread_pending = 0;	/* reset */
+	    } else {
+		fatal_dump("MAIN: SHUTDOWN from comm_select, but nothing pending.");
+	    }
 	    break;
 	default:
-	    debug(0, "MAIN: Internal error -- this should never happen.\n");
+	    fatal_dump("MAIN: Internal error -- this should never happen.");
 	    break;
 	}
     }
     /* NOTREACHED */
     exit(0);
-}
-
-void raise_debug_lvl()
-{
-    extern int _db_level;
-    _db_level = 10;
-
-#if defined(_HARVEST_SYSV_SIGNALS_) && defined(SIGUSR1)
-    signal(SIGUSR1, raise_debug_lvl);
-#endif
-}
-
-void reset_debug_lvl()
-{
-    extern int _db_level;
-    _db_level = debug_level;
-
-#if defined(_HARVEST_SYSV_SIGNALS_) && defined(SIGUSR2)
-    signal(SIGUSR2, reset_debug_lvl);
-#endif
 }
