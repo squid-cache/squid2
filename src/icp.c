@@ -894,7 +894,7 @@ icpLogIcp(icpUdpData * queue)
 	queue->logcode);
     clientdbUpdate(queue->address.sin_addr,
 	queue->logcode,
-	Config.Port.Icp);
+	Config.Port.icp);
     if (!Config.Options.log_udp)
 	return;
     HTTPCacheInfo->log_append(HTTPCacheInfo,
