@@ -34,25 +34,23 @@ typedef struct _ip_acl {
 
 
 /* Global Variables */
-extern int httpd_accel_mode;
-extern int emulate_httpd_log;
-extern int zap_disk_store;
-extern int unbuffered_logs;
-extern wordlist *http_stoplist;
-extern wordlist *gopher_stoplist;
-extern wordlist *ftp_stoplist;
-extern wordlist *bind_addr_list;
-extern ip_acl *proxy_ip_acl;
-extern ip_acl *accel_ip_acl;
-extern ip_acl *manager_ip_acl;
-extern char config_input_line[];
-extern int config_lineno;
-extern int DnsPositiveTtl;
-extern char w_space[];
-extern intlist *connect_port_list;
 extern char *ConfigFile;	/* the whole thing */
-extern char *cfg_filename;	/* Only the tail component of the path */
+extern char *DefaultConfigFile;
 extern char *DefaultSwapDir;	/* argh */
+extern char *cfg_filename;	/* Only the tail component of the path */
+extern char config_input_line[];
+extern char w_space[];
+extern int DnsPositiveTtl;
+extern int config_lineno;
+extern int emulate_httpd_log;
+extern int httpd_accel_mode;
+extern int unbuffered_logs;
+extern int zap_disk_store;
+extern intlist *connect_port_list;
+extern wordlist *bind_addr_list;
+extern wordlist *ftp_stoplist;
+extern wordlist *gopher_stoplist;
+extern wordlist *http_stoplist;
 
 
 /* Global Functions */

@@ -172,7 +172,7 @@ int single_parent_bypass = 0;
 int DnsPositiveTtl = DefaultPositiveDnsTtl;
 char *DefaultSwapDir = DEFAULT_SWAP_DIR;
 char *DefaultConfigFile = DEFAULT_CONFIG_FILE;
-char *ConfigFile = NULL		/* the whole thing */
+char *ConfigFile = NULL;	/* the whole thing */
 char *cfg_filename = NULL;	/* just the last part */
 
 char w_space[] = " \t\n";
@@ -1356,7 +1356,6 @@ int parseConfigFile(file_name)
 	printf("         For this run, however, %s will use %d minutes for clean_rate.\n", appname, (int) (getCleanRate() / 60));
 	fflush(stdout);		/* print message */
     }
-
     if (getDnsChildren() < 1) {
 	printf("WARNING: dns_children was set to a bad value: %d\n",
 	    getDnsChildren());
