@@ -408,7 +408,7 @@ commConnectHandle(int fd, void *data)
 	    commConnectHandle(fd, connectState);
 	} else {
 	    ipcacheRemoveBadAddr(connectState->host, connectState->S.sin_addr);
-	    connectState->callback(fd, COMM_ERR_CONNECT, connectState->data);
+	    connectState->callback(fd, COMM_ERROR, connectState->data);
 	}
 	break;
     }
