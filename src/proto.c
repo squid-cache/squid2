@@ -459,7 +459,6 @@ int getFromDefaultSource(fd, entry)
 	}
 	return 0;
     }
-    BIT_SET(entry->flag, ENTRY_DISPATCHED);
 
     if ((e = entry->mem_obj->e_pings_first_miss)) {
 	hierarchy_log_append(entry, HIER_FIRST_PARENT_MISS, fd, e->host);
@@ -509,6 +508,9 @@ int getFromCache(fd, entry, e, request)
      * here on a previous close of the client connection.
      */
     protoCancelTimeout(fd, entry);
+    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
+	fatal_dump("getFromCache: object already dispatched");
+    BIT_SET(entry->flag, ENTRY_DISPATCHED);
 
     if (e) {
 	e->stats.fetches++;

@@ -673,7 +673,6 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 		HIER_SOURCE_FASTEST,
 		0,
 		inet_ntoa(from->sin_addr));
-	    BIT_SET(entry->flag, ENTRY_DISPATCHED);
 	    entry->ping_status = PING_DONE;
 	    getFromCache(0, entry, NULL, entry->mem_obj->request);
 	    return;
@@ -707,7 +706,6 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 		e->type == EDGE_SIBLING ? HIER_NEIGHBOR_HIT : HIER_PARENT_HIT,
 		0,
 		e->host);
-	    BIT_SET(entry->flag, ENTRY_DISPATCHED);
 	    entry->ping_status = PING_DONE;
 	    getFromCache(0, entry, e, entry->mem_obj->request);
 	    return;
@@ -755,7 +753,6 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    IcpOpcodeStr[header->opcode]);
     }
     if (mem->e_pings_n_acks == mem->e_pings_n_pings) {
-	BIT_SET(entry->flag, ENTRY_DISPATCHED);
 	entry->ping_status = PING_DONE;
 	debug(15, 6, "neighborsUdpAck: All replies received.\n");
 	/* pass in fd=0 here so getFromCache() looks up the real FD
