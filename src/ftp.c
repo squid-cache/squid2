@@ -2171,6 +2171,8 @@ ftpReadTransferDone(FtpStateData * ftpState)
 	/* Connection closed; retrieval done. */
 	if (ftpState->flags.html_header_sent)
 	    ftpListingFinish(ftpState);
+	fwdUnregister(ftpState->ctrl.fd, ftpState->fwd);
+	fwdComplete(ftpState->fwd);
 	ftpSendQuit(ftpState);
     } else {			/* != 226 */
 	debug(9, 1) ("ftpReadTransferDone: Got code %d after reading data\n",
