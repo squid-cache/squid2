@@ -290,12 +290,15 @@ main(int argc, char *argv[])
 		opt_s = 1;
 	    }
 #if HAVE_RES_NSADDR_LIST
+	    _res.nsaddr_list[_res.nscount]=_res.nsaddr_list[0];
 	    safe_inet_addr(optarg, &_res.nsaddr_list[_res.nscount++].sin_addr);
 #elif HAVE_RES_NS_LIST
+	    _res.ns_list[_res.nscount]=_res.ns_list[0];
 	    safe_inet_addr(optarg, &_res.ns_list[_res.nscount++].addr.sin_addr);
-#endif
+#else /* Unknown NS list format */
 	    fprintf(stderr, "-s is not supported on this resolver\n");
-#else
+#endif
+#else /* !HAVE_RES_INIT */
 	    fprintf(stderr, "-s is not supported on this resolver\n");
 #endif /* HAVE_RES_INIT */
 	    break;
