@@ -715,10 +715,12 @@ httpSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
     if (errflag == COMM_ERR_CLOSING)
 	return;
     if (errflag) {
-	err = errorCon(ERR_WRITE_ERROR, HTTP_INTERNAL_SERVER_ERROR);
-	err->xerrno = errno;
-	err->request = requestLink(httpState->orig_request);
-	errorAppendEntry(entry, err);
+	if (entry->mem_obj->inmem_hi == 0) {
+	    err = errorCon(ERR_WRITE_ERROR, HTTP_INTERNAL_SERVER_ERROR);
+	    err->xerrno = errno;
+	    err->request = requestLink(httpState->orig_request);
+	    errorAppendEntry(entry, err);
+	}
 	comm_close(fd);
 	return;
     } else {
@@ -1110,6 +1112,15 @@ httpSendRequestEntryDone(int fd, void *data)
 }
 
 static void
+httpRequestBodyHandler2(void *data)
+{
+    HttpStateData *httpState = (HttpStateData *) data;
+    char *buf = httpState->body_buf;
+    httpState->body_buf = NULL;
+    comm_write(httpState->fd, buf, httpState->body_buf_sz, httpSendRequestEntry, data, memFree8K);
+}
+
+static void
 httpRequestBodyHandler(char *buf, ssize_t size, void *data)
 {
     HttpStateData *httpState = (HttpStateData *) data;
@@ -1125,6 +1136,12 @@ httpRequestBodyHandler(char *buf, ssize_t size, void *data)
 		comm_close(httpState->fd);
 		return;
 	    }
+	    httpState->body_buf = buf;
+	    httpState->body_buf_sz = size;
+	    /* Give response some time to propagate before sending rest
+	     * of request in case of error */
+	    eventAdd("POST delay on response", httpRequestBodyHandler2, httpState, 2.0, 1);
+	    return;
 	}
 	comm_write(httpState->fd, buf, size, httpSendRequestEntry, data, memFree8K);
     } else if (size == 0) {
@@ -1154,10 +1171,12 @@ httpSendRequestEntry(int fd, char *bufnotused, size_t size, int errflag, void *d
     if (errflag == COMM_ERR_CLOSING)
 	return;
     if (errflag) {
-	err = errorCon(ERR_WRITE_ERROR, HTTP_INTERNAL_SERVER_ERROR);
-	err->xerrno = errno;
-	err->request = requestLink(httpState->orig_request);
-	errorAppendEntry(entry, err);
+	if (entry->mem_obj->inmem_hi == 0) {
+	    err = errorCon(ERR_WRITE_ERROR, HTTP_INTERNAL_SERVER_ERROR);
+	    err->xerrno = errno;
+	    err->request = requestLink(httpState->orig_request);
+	    errorAppendEntry(entry, err);
+	}
 	comm_close(fd);
 	return;
     }

@@ -986,6 +986,7 @@ struct _HttpStateData {
     http_state_flags flags;
     FwdState *fwd;
     char *body_buf;
+    int body_buf_sz;
 };
 
 struct _icpUdpData {
