@@ -96,8 +96,7 @@ static struct hostent *static_result = NULL;
 static int NDnsServersAlloc = 0;
 static struct dnsQueueData *dnsQueueHead = NULL;
 static struct dnsQueueData **dnsQueueTailP = &dnsQueueHead;
-
-HashID ip_table = 0;
+static HashID ip_table = 0;
 char *dns_error_message = NULL;	/* possible error message */
 long ipcache_low = 180;
 long ipcache_high = 200;
@@ -299,10 +298,14 @@ static int ipcache_purgelru()
 	    LRU_list = xrealloc((char *) LRU_list,
 		LRU_cur_size * sizeof(ipcache_entry *));
 	}
-	if ((i->status != IP_PENDING) && (i->pending_head == NULL)) {
-	    local_ip_notpending_count++;
-	    LRU_list[LRU_list_count++] = i;
-	}
+	if (i->status == IP_PENDING)
+	    continue;
+	if (i->pending_head != NULL)
+	    continue;
+	if (i->lock)
+	    continue;
+	local_ip_notpending_count++;
+	LRU_list[LRU_list_count++] = i;
     }
 
     debug(14, 3, "ipcache_purgelru: ipcache_count: %5d\n", meta_data.ipcache_count);
@@ -743,9 +746,20 @@ static int ipcache_dnsHandleRead(fd, dnsData)
 	    dnsData);
 	if (char_scanned > 0) {
 	    /* update buffer */
+#if HAVE_MEMMOVE
+	    memmove(dnsData->ip_inbuf,
+		dnsData->ip_inbuf + char_scanned,
+		dnsData->offset - char_scanned);
+#elif HAVE_BCOPY
+	    bcopy(dnsData->ip_inbuf + char_scanned,
+		dnsData->ip_inbuf,
+		dnsData->offset - char_scanned);
+#else
+	    /* pray memcpy handles overlaps */
 	    memcpy(dnsData->ip_inbuf,
 		dnsData->ip_inbuf + char_scanned,
 		dnsData->offset - char_scanned);
+#endif
 	    dnsData->offset -= char_scanned;
 	    dnsData->ip_inbuf[dnsData->offset] = '\0';
 	}
@@ -1073,14 +1087,15 @@ struct hostent *ipcache_gethostbyname(name, flags)
     if (flags & IP_BLOCKING_LOOKUP) {
 	IpcacheStats.ghbn_calls++;
 	hp = gethostbyname(name);
-	if (hp && hp->h_name && (hp->h_name[0] != '\0')) {
+	if (hp && hp->h_name && (hp->h_name[0] != '\0') && ip_table) {
 	    /* good address, cached */
 	    ipcache_add(name, ipcache_create(), hp, 1);
 	    result = ipcache_get(name);
 	    return &result->entry;
 	}
 	/* bad address, negative cached */
-	ipcache_add(name, ipcache_create(), hp, 0);
+	if (ip_table)
+	    ipcache_add(name, ipcache_create(), hp, 0);
 	return NULL;
     }
     if (flags & IP_LOOKUP_IF_MISS)
@@ -1209,4 +1224,13 @@ static int dummy_handler(u1, u2, u3)
      void *u3;
 {
     return 0;
+}
+
+void ipcacheLockEntry(name)
+     char *name;
+{
+    ipcache_entry *i;
+    if ((i = ipcache_get(name)) == NULL)
+	return;
+    i->lock = (u_char) 1;
 }
