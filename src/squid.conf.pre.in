@@ -957,9 +957,14 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	deny_info URL acl1 acl2 ...
 
 #  TAG: udp_hit_obj on|off
-#	If set, Squid will request UDP_HIT_OBJ replies from its neighbors.
+#	If set, Squid will request UDP_HIT_OBJ replies from its
+#	neighbors.  UDP_HIT_OBJ is nice because it saves bandwidth, but
+#	it can cause some other problems.  For one it complicates
+#	calculating hit rates.  Also, problems arise because the ICP
+#	query does not contain any HTTP request headers which may
+#	affect the reply.
 #
-#udp_hit_obj on
+#udp_hit_obj off
 
 #  TAG: memory_pools on|off
 #	If set, Squid will keep pools of allocated (but unused) memory
