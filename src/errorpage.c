@@ -470,6 +470,7 @@ errorConvert(char token, ErrorState * err)
     case 'L':
 	if (Config.errHtmlText) {
 	    memBufPrintf(&mb, "%s", Config.errHtmlText);
+	    do_quote = 0;
 	} else
 	    p = "[not available]";
 	break;
