@@ -816,7 +816,8 @@ httpRequestFree(void *data)
 	    http->al.headers.request = xstrdup(mb.buf);
 	    http->al.hier = request->hier;
 	    if (request->auth_user_request) {
-		http->al.cache.authuser = xstrdup(authenticateUserRequestUsername(request->auth_user_request));
+		if (authenticateUserRequestUsername(request->auth_user_request))
+		    http->al.cache.authuser = xstrdup(authenticateUserRequestUsername(request->auth_user_request));
 		authenticateAuthUserRequestUnlock(request->auth_user_request);
 		request->auth_user_request = NULL;
 	    }
