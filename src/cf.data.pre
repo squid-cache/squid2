@@ -2904,10 +2904,22 @@ DEFAULT: 4
 LOC: Config.comm_incoming.http_average
 DOC_NONE
 
+NAME: incoming_dns_average
+TYPE: int
+DEFAULT: 4
+LOC: Config.comm_incoming.dns_average
+DOC_NONE
+
 NAME: min_icp_poll_cnt
 TYPE: int
 DEFAULT: 8
 LOC: Config.comm_incoming.icp_min_poll
+DOC_NONE
+
+NAME: min_dns_poll_cnt
+TYPE: int
+DEFAULT: 8
+LOC: Config.comm_incoming.dns_min_poll
 DOC_NONE
 
 NAME: min_http_poll_cnt
