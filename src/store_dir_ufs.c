@@ -1090,7 +1090,8 @@ storeUfsDirCleanEvent(void *unused)
 	n = storeUfsDirClean(swap_index);
 	swap_index++;
     }
-    eventAdd("storeDirClean", storeUfsDirCleanEvent, NULL, 15.0, 1);
+    eventAdd("storeDirClean", storeUfsDirCleanEvent, NULL,
+	15.0 * exp(-0.25 * n), 1);
 }
 
 static int
