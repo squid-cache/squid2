@@ -230,9 +230,11 @@ storeDigestAddable(const StoreEntry * e)
      * idea: skip objects that are going to be purged before the next
      * update.
      */
+#if 0 /* This code isn't applicable anymore, we can't fix it atm either :( */
 #if !HEAP_REPLACEMENT
     if ((squid_curtime + Config.digest.rebuild_period) - e->lastref > storeExpiredReferenceAge())
 	return 0;
+#endif
 #endif
     return 1;
 }
