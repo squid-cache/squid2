@@ -128,3 +128,5 @@ Changes to squid-1.0.beta6:
 	- Fixed ftpget server bug with missing trailing slash.
 	- Removed 'connect_ports' from config, use general ACLs instead.
 	- Changed requested listen queue length to 1/4 of getMaxFD().
+	- Rewrote SSL/CONNECT handlers.  Now doesn't use a StoreEntry.
+	- Fixed some aborted objects getting stuck in VM bug.
