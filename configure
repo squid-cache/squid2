@@ -967,7 +967,7 @@ fi
 
 # Define the identity of the package.
 PACKAGE=squid
-VERSION=2.5.PRE2-CVS
+VERSION=2.5.PRE3-CVS
 cat >> confdefs.h <<EOF
 #define PACKAGE "$PACKAGE"
 EOF
@@ -1018,7 +1018,7 @@ INSTALL_STRIP_PROGRAM="\${SHELL} \$(install_sh) -c -s"
 
   
 
-# From configure.in Revision: 1.251.2.7 
+# From configure.in Revision: 1.251.2.8 
 echo $ac_n "checking whether to enable maintainer-specific portions of Makefiles""... $ac_c" 1>&6
 echo "configure:1024: checking whether to enable maintainer-specific portions of Makefiles" >&5
     # Check whether --enable-maintainer-mode or --disable-maintainer-mode was given.
