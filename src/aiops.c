@@ -168,7 +168,7 @@ aio_init(void)
 #endif
 
     /* Create threads and get them to sit in their wait loop */
-    threads = xcalloc( NUMTHREADS, sizeof(aio_thread_t));
+    threads = xcalloc(NUMTHREADS, sizeof(aio_thread_t));
 
     for (i = 0; i < NUMTHREADS; i++) {
 	threadp = &threads[i];
@@ -344,10 +344,10 @@ aio_queue_request(aio_request_t * requestp)
 	if (request_queue_len < queue_low)
 	    queue_low = request_queue_len;
 	if (squid_curtime >= (last_warn + 15) &&
-		squid_curtime >= (high_start + 1)) {
+	    squid_curtime >= (high_start + 1)) {
 	    debug(43, 1) ("aio_queue_request: WARNING - Running out of I/O theads\n");
 	    debug(43, 2) ("aio_queue_request: Queue Length: current=%d, high=%d, low=%d, duration=%d\n",
-		    request_queue_len, queue_high, queue_low, squid_curtime - high_start);
+		request_queue_len, queue_high, queue_low, squid_curtime - high_start);
 	    debug(43, 1) ("aio_queue_request: Perhaps you should increase NUMTHREADS\n");
 	    debug(43, 1) ("aio_queue_request: Or install more disks to share the load\n");
 	    debug(43, 3) ("aio_queue_request: First %d items on request queue\n", NUMTHREADS);
