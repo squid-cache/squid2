@@ -77,6 +77,10 @@ memConfigure(void)
 {
     size_t new_pool_limit = mem_idle_limit;
     /* set to configured value first */
+#if PURIFY
+    debug(63,1)("Disabling Memory pools under purify\n");
+    Config.onoff.mem_pools = 0;
+#endif
     if (!Config.onoff.mem_pools)
 	new_pool_limit = 0;
     else if (Config.MemPools.limit > 0)
