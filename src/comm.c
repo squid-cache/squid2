@@ -509,7 +509,7 @@ commCallCloseHandlers(int fd)
 {
     FD_ENTRY *conn = &fd_table[fd];
     struct close_handler *ch;
-    debug(5,5,"commCallCloseHandlers: FD %d\n", fd);
+    debug(5, 5, "commCallCloseHandlers: FD %d\n", fd);
     while ((ch = conn->close_handler) != NULL) {
 	conn->close_handler = ch->next;
 	ch->handler(fd, ch->data);

@@ -1932,7 +1932,7 @@ CheckQuickAbort(icpStateData * icpState)
 }
 
 static int
-icpCheckTransferDone(icpStateData *icpState)
+icpCheckTransferDone(icpStateData * icpState)
 {
     StoreEntry *entry = icpState->entry;
     MemObject *mem = NULL;

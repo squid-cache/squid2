@@ -125,9 +125,9 @@ struct _http_reply {
 #define BUF_TYPE_MALLOC 2
 
 typedef enum {
-	HDR_IMS,
-	HDR_HOST,
-	HDR_MAXAGE
+    HDR_IMS,
+    HDR_HOST,
+    HDR_MAXAGE
 } http_hdr_flag_t;
 
 typedef struct {
