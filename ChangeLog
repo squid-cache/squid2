@@ -46,7 +46,7 @@ Changes to squid-2.5.STABLE4 (not yet released):
 	- Bug #721: User name field in access.log sometimes blank
 	- Bug #94: assertion failed: http.c: "-1 == cfd ||
 	  FD_SOCKET == fd_table[cfd].type"
-	- Bug #716: Bug #716: assertion failed: client_side.c:1478: "size > 0"
+	- Bug #716: assertion failed: client_side.c:1478: "size > 0"
 	- Bug #732: aufs calculates number of threads and limits wrongly
 	- Bug #663: Username not logged into access.log in case of /407
 	- Bug #267: Form POSTing troubles with NTLM authentication
@@ -54,7 +54,7 @@ Changes to squid-2.5.STABLE4 (not yet released):
 	- Bug #736: ICP dynamic timeout algorithm ignores multicast.
 	- Bug #733: No explicit error message when ncsa_auth can't access
 	  passwd file
-	- Bug #757: POST with NTLM stops after persistent connection
+	- Bug #267, #757: POST with NTLM stops after persistent connection
 	  timeout
 	- Bug #742: Wrong status code on access denials if delay_access
 	  is used. Most notably 407 instead of 403 could be returned.
