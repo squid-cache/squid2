@@ -785,6 +785,7 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	    no_cache++;
 	stringClean(&s);
     }
+    request->cache_control = httpHeaderGetCc(req_hdr);
     if (request->cache_control)
 	if (EBIT_TEST(request->cache_control->mask, CC_NO_CACHE))
 	    no_cache++;
@@ -836,7 +837,6 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	stringClean(&s);
     }
 #endif
-    request->cache_control = httpHeaderGetCc(req_hdr);
     if (request->method == METHOD_TRACE) {
 	request->max_forwards = httpHeaderGetInt(req_hdr, HDR_MAX_FORWARDS);
     }
