@@ -742,8 +742,6 @@ DOC_START
 	
 	cache_dir Type Directory-Name Fs-specific-data [options]
 
-	cache_dir diskd Maxobjsize Directory-Name MB L1 L2 Q1 Q2
-
 	You can specify multiple cache_dir lines to spread the
 	cache among different disk partitions.
 
