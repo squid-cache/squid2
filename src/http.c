@@ -671,7 +671,7 @@ httpReadReply(int fd, void *data)
 	} else if (entry->mem_obj->reply->sline.status == HTTP_INVALID_HEADER && !(entry->mem_obj->reply->sline.version.major == 0 && entry->mem_obj->reply->sline.version.minor == 9)) {
 	    ErrorState *err;
 	    storeEntryReset(entry);
-	    err = errorCon(ERR_INVALID_REQ, HTTP_BAD_GATEWAY);
+	    err = errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY);
 	    err->request = requestLink((request_t *) request);
 	    fwdFail(httpState->fwd, err);
 	    httpState->fwd->flags.dont_retry = 1;

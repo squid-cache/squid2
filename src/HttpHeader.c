@@ -422,14 +422,25 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	const char *field_start = field_ptr;
 	const char *field_end;
 	do {
+	    const char *this_line = field_ptr;
 	    field_ptr = memchr(field_ptr, '\n', header_end - field_ptr);
 	    if (!field_ptr)
 		return httpHeaderReset(hdr);	/* missing <LF> */
+	    field_end = field_ptr;
 	    field_ptr++;	/* Move to next line */
+	    if (field_end > this_line && field_end[-1] == '\r') {
+		field_end--;	/* Ignore CR LF */
+		/* Ignore CR CR LF in relaxed mode */
+		if (Config.onoff.relaxed_header_parser && field_end > this_line && field_end[-1] == '\r')
+		    field_end--;
+	    }
+	    /* Barf on stray CR characters */
+	    if (memchr(this_line, '\r', field_end - this_line)) {
+		debug(55, 1) ("WARNING: suspicious CR characters in HTTP header near '%s'\n",
+		    getStringPrefix(field_start, header_end));
+		return httpHeaderReset(hdr);
+	    }
 	} while (field_ptr < header_end && (*field_ptr == ' ' || *field_ptr == '\t'));
-	field_end = field_ptr;
-	if (field_end > field_start && field_end[-1] == '\r')
-	    field_end--;
 	if (field_start == field_end) {
 	    if (field_ptr < header_end) {
 		debug(55, 1) ("WARNING: unparseable HTTP header field near '%s'\n",
@@ -445,7 +456,7 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	    return httpHeaderReset(hdr);
 	} else if (e->id == HDR_CONTENT_LENGTH && (e2 = httpHeaderFindEntry(hdr, e->id)) != NULL) {
 	    if (strCmp(e->value, strBuf(e2->value)) != 0) {
-		debug(55, 1) ("WARNING: found two content-length headers\n");
+		debug(55, 1) ("WARNING: found two conflicting content-length headers\n");
 		httpHeaderEntryDestroy(e);
 		return httpHeaderReset(hdr);
 	    } else {

@@ -93,6 +93,7 @@ typedef enum {
     ERR_ONLY_IF_CACHED_MISS,	/* failure to satisfy only-if-cached request */
     ERR_TOO_BIG,
     TCP_RESET,
+    ERR_INVALID_RESP,
     ERR_MAX
 } err_type;
 
