@@ -53,6 +53,8 @@ int main(argc, argv)
     int n;			/* # of GC'd objects */
     time_t last_maintain = 0;
 
+    errorInitialize();
+
     cached_starttime = getCurrentTime();
     failure_notify = fatal_dump;
 
