@@ -275,7 +275,7 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
 	} else if (!sc->flags.disk_io_pending) {
 	    sc->flags.disk_io_pending = 1;
 	    sc->swapin_sio = storeSwapInStart(e);
-    	    storeClientFileRead(sc);
+	    storeClientFileRead(sc);
 	} else {
 	    debug(20, 2) ("storeClientCopy2: Averted multiple fd operation\n");
 	}

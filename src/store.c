@@ -637,7 +637,7 @@ storeAbort(StoreEntry * e)
 	if (mem->swapout.fd >= 0)
 	    aioCancel(mem->swapout.fd, NULL);
 #endif
-	    storeSwapOutFileClose(e);
+	storeSwapOutFileClose(e);
     }
     storeUnlockObject(e);	/* unlock */
 }

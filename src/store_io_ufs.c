@@ -41,7 +41,7 @@ storeUfsClose(storeIOState * sio)
     debug(78, 3) ("storeUfsClose: fileno %08X, FD %d\n",
 	sio->swap_file_number, sio->fd);
     if (sio->type.ufs.flags.reading || sio->type.ufs.flags.writing) {
-        sio->type.ufs.flags.close_request = 1;
+	sio->type.ufs.flags.close_request = 1;
 	return;
     }
     storeUfsIOCallback(sio, 0);
@@ -132,7 +132,7 @@ storeUfsReadDone(int fd, const char *buf, int len, int errflag, void *my_data)
     assert(their_data);
     sio->read.callback = sio->read.callback_data = NULL;
     if (cbdataValid(their_data))
-        callback(their_data, buf, (size_t) len, errflag);
+	callback(their_data, buf, (size_t) len, errflag);
     cbdataUnlock(their_data);
 }
 
@@ -149,7 +149,7 @@ storeUfsWriteDone(int fd, int errflag, size_t len, void *my_data)
     }
     sio->offset += len;
     if (sio->type.ufs.flags.close_request)
-        storeUfsIOCallback(sio, errflag);
+	storeUfsIOCallback(sio, errflag);
 }
 
 char *
@@ -177,8 +177,8 @@ storeUfsIOCallback(storeIOState * sio, int errflag)
 {
     debug(78, 3) ("storeUfsIOCallback: errflag=%d\n", errflag);
     if (sio->fd > -1) {
-        file_close(sio->fd);
-        store_open_disk_fd--;
+	file_close(sio->fd);
+	store_open_disk_fd--;
     }
     sio->callback(sio->callback_data, errflag, sio);
     cbdataFree(sio);

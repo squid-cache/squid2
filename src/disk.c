@@ -49,7 +49,7 @@ static PF diskHandleWrite;
 void
 disk_init(void)
 {
-	(void) 0;
+    (void) 0;
 }
 
 /* Open a disk file. Return a file descriptor */
