@@ -785,8 +785,6 @@ dnl during compile.
 		echo "disabling snprintf/vsnprintf for $host"
 		ac_cv_func_snprintf=no
 		ac_cv_func_vsnprintf=no
-		echo "disabling seteuid for $host"
-		ac_cv_func_seteuid=no
 		;;
 	*m88k*)
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"
