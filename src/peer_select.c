@@ -210,6 +210,8 @@ peerCheckNetdbDirect(ps_state * psstate)
     int myhops;
     if (p == NULL)
 	return 0;
+    if (psstate->direct == DIRECT_NO)
+	return 0;
     myrtt = netdbHostRtt(psstate->request->host);
     debug(44, 3) ("peerCheckNetdbDirect: MY RTT = %d msec\n", myrtt);
     debug(44, 3) ("peerCheckNetdbDirect: closest_parent_miss RTT = %d msec\n",
