@@ -823,7 +823,7 @@ because no authentication schemes are fully configured.\n", A->cfgline);
 	break;
 #endif
     case ACL_REQ_MIME_TYPE:
-	aclParseWordList(&A->data);
+	aclParseRegexList(&A->data);
 	break;
     case ACL_NONE:
     default:
