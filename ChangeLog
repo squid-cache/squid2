@@ -1,5 +1,21 @@
+Changes to squid-1.1.11 (June XX, 1997):
+
+	- Clean up NeXTStep compiler warnings (Karsten Heinze, Ed Knowles).
+	- Don't forward 'Proxy-Authorization' headers (Chris Pascoe).
+	- Fixed up Host: header parsing (Henrik Nordstrom).
+	- Changed DefaultObjectsPerBucket to 20 in cache_cf.c.
+	- Fixed parsePathname() bug for magic word "none".
+	- Fixed ipcache_release to rename entries which get stuck with locks.
+	- Fixed "eventDelete(peerCheckConnect, e);" bug when the DNS lookup
+	  is pending.
+	- Add sys/types.h to lib/safe_inet_addr.c for NeXTSTEP (Timo
+	  Hennerich).
 	- Fixed cur_len decrement bug in diskHandleRead()
 	  (Michael O'Reilly).
+	- Added contrib/rredir.pl from Peter Eisenhauer.
+	- Always forward requests with 'Request-Range' headers (Ron Gomes).
+	- Fixed StoreEntry client offset bug which could trigger a
+	  fatal_dump().
 
 Changes to squid-1.1.10 (April 24, 1997):
 
