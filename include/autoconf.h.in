@@ -88,6 +88,9 @@
 /* Define if you have the regfree function.  */
 #undef HAVE_REGFREE
 
+/* Define if you have the res_init function.  */
+#undef HAVE_RES_INIT
+
 /* Define if you have the seteuid function.  */
 #undef HAVE_SETEUID
 
@@ -129,6 +132,9 @@
 
 /* Define if you have the <arpa/inet.h> header file.  */
 #undef HAVE_ARPA_INET_H
+
+/* Define if you have the <arpa/nameser.h> header file.  */
+#undef HAVE_ARPA_NAMESER_H
 
 /* Define if you have the <bstring.h> header file.  */
 #undef HAVE_BSTRING_H
@@ -177,6 +183,9 @@
 
 /* Define if you have the <regex.h> header file.  */
 #undef HAVE_REGEX_H
+
+/* Define if you have the <resolv.h> header file.  */
+#undef HAVE_RESOLV_H
 
 /* Define if you have the <signal.h> header file.  */
 #undef HAVE_SIGNAL_H
