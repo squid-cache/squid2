@@ -122,8 +122,8 @@ static int decode_addr(asc, addr, mask)
     struct hostent *hp;
     long a;
 
-    if ((a = inet_addr(asc)) != -1 || strcmp(asc, "255.255.255.255") == 0) {
-	addr->s_addr = htonl(a);
+    if ((a = inet_addr(asc)) != INADDR_NONE || !strcmp(asc, "255.255.255.255")) {
+	addr->s_addr = a; /* inet_addr() outputs in network byte order */
     } else if ((hp = gethostbyname(asc)) != NULL) {
 	/* We got a host name */
 	memcpy(addr, hp->h_addr, hp->h_length);
