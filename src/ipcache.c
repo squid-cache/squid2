@@ -828,6 +828,8 @@ void
 ipcacheReleaseInvalid(const char *name)
 {
     ipcache_entry *i;
+    assert(NULL != name);
+    assert(0 < strlen(name));
     if ((i = ipcache_get(name)) == NULL)
 	return;
     if (i->status != IP_NEGATIVE_CACHED)
