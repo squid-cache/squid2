@@ -132,6 +132,7 @@ struct SquidConfig Config;
 #define DefaultDnsChildren	5	/* 5 processes */
 #define DefaultOptionsResDefnames 0	/* default off */
 #define DefaultOptionsAnonymizer  0	/* default off */
+#define DefaultOptionsIcpHitStale 0	/* default off */
 #define DefaultRedirectChildren	5	/* 5 processes */
 #define DefaultMaxRequestSize	(100 << 10)	/* 100Kb */
 
@@ -1375,6 +1376,8 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&Config.Options.log_udp);
 	else if (!strcmp(token, "http_anonymizer"))
 	    parseHttpAnonymizer(&Config.Options.anonymizer);
+	else if (!strcmp(token, "icp_hit_stale"))
+	    parseHttpAnonymizer(&Config.Options.icp_hit_stale);
 	else if (!strcmp(token, "client_db"))
 	    parseOnOff(&Config.Options.client_db);
 	else if (!strcmp(token, "query_icmp"))
@@ -1618,6 +1621,7 @@ configSetFactoryDefaults(void)
     Config.Options.log_udp = DefaultOptionsLogUdp;
     Config.Options.res_defnames = DefaultOptionsResDefnames;
     Config.Options.anonymizer = DefaultOptionsAnonymizer;
+    Config.Options.icp_hit_stale = DefaultOptionsIcpHitStale;
     Config.Options.enable_purge = DefaultOptionsEnablePurge;
     Config.Options.client_db = DefaultOptionsClientDb;
     Config.Options.query_icmp = DefaultOptionsQueryIcmp;

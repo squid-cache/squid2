@@ -1204,3 +1204,11 @@ minimum_direct_hops 4
 #
 #query_icmp off
 
+#  TAG: icp_hit_stale
+#	If you want to return ICP_HIT for stale cache objects, set this
+#	option to 'on'.  If you have sibling relationships with caches
+#	in other administrative domains, this should be 'off'.  If you only
+#	have sibling relationships with caches under your control, then
+#	it is probably okay to set this to 'on'.
+#
+#icp_hit_stale off

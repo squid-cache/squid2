@@ -1141,6 +1141,8 @@ icpCheckUdpHit(StoreEntry * e, request_t * request)
 	return 0;
     if (!storeEntryValidToSend(e))
 	return 0;
+    if (Config.Options.icp_hit_stale)
+	return 1;
     if (refreshCheck(e, request, 30))
 	return 0;
     return 1;

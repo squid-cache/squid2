@@ -21,6 +21,7 @@ Changes to squid-1.1.11 (June XX, 1997):
 	- Modified storeDirClean() to remove swap files where the
 	  number is being used, but the file is in the wrong directory.
 	- Allow PURGE method on all protocols.
+	- Added 'icp_hit_stale' option.
 
 Changes to squid-1.1.10 (April 24, 1997):
 
