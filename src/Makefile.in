@@ -169,6 +169,7 @@ OBJS	 	= \
 		urn.o \
 		useragent.o \
 		wais.o \
+		@WCCP_OBJS@ \
 		whois.o \
 		$(XTRA_OBJS)
 
@@ -186,6 +187,9 @@ ASYNC_OBJS	= \
 
 LEAKFINDER_OBJS	= \
 		leakfinder.o
+
+WCCP_OBJS	= \
+		wccp.o
 
 DEFAULTS        = \
 	-DDEFAULT_CONFIG_FILE=\"$(DEFAULT_CONFIG_FILE)\"

@@ -269,6 +269,11 @@ struct _SquidConfig {
 	u_short localPort;
     } Snmp;
 #endif
+#if WCCP
+    struct {
+	struct in_addr router;
+    } Wccp;
+#endif
     char *as_whois_server;
     struct {
 	char *log;
@@ -318,6 +323,10 @@ struct _SquidConfig {
 #if SQUID_SNMP
 	struct in_addr snmp_incoming;
 	struct in_addr snmp_outgoing;
+#endif
+#if WCCP
+        struct in_addr wccp_incoming;
+        struct in_addr wccp_outgoing;
 #endif
 	struct in_addr client_netmask;
     } Addrs;
