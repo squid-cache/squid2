@@ -95,6 +95,7 @@ peerSelectStateFree(ps_state * psstate)
     requestUnlink(psstate->request);
     psstate->request = NULL;
     if (psstate->entry) {
+	assert(psstate->entry->ping_status != PING_WAITING);
 	storeUnlockObject(psstate->entry);
 	psstate->entry = NULL;
     }
@@ -215,6 +216,8 @@ peerSelectCallbackFail(ps_state * psstate)
     request_t *request = psstate->request;
     void *data = psstate->callback_data;
     const char *url = psstate->entry ? storeUrl(psstate->entry) : urlCanonical(request);
+    if (psstate->entry)
+	psstate->entry->ping_status = PING_DONE;
     debug(44, 1) ("Failed to select source for '%s'\n", url);
     debug(44, 1) ("  always_direct = %d\n", psstate->always_direct);
     debug(44, 1) ("   never_direct = %d\n", psstate->never_direct);
@@ -223,7 +226,6 @@ peerSelectCallbackFail(ps_state * psstate)
 	psstate->fail_callback(NULL, data);
     cbdataUnlock(data);
     peerSelectStateFree(psstate);
-    /* XXX When this happens, the client request just hangs */
 }
 
 static int
