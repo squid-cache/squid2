@@ -1196,6 +1196,7 @@ AC_CHECK_FUNCS(\
 	memcpy \
 	memmove \
 	memset \
+	mkstemp \
 	mktime \
 	mstats \
 	poll \
