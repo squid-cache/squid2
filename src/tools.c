@@ -153,7 +153,7 @@ void shut_down(sig)
 {
     debug(21, 1, "Shutting down...\n");
     if (getPidFilename())
-        safeunlink(getPidFilename(), 0);
+	safeunlink(getPidFilename(), 0);
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
     debug(21, 0, "Harvest Cache (Version %s): Exiting due to signal %d.\n",
