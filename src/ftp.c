@@ -975,7 +975,6 @@ ftpCheckUrlpath(FtpStateData * ftpState)
     ftpState->flags.use_base = 1;
     /* check for null path */
     if (!l) {
-	stringReset(&request->urlpath, "/");
 	ftpState->flags.isdir = 1;
 	ftpState->flags.root_dir = 1;
     } else if (!strCmp(request->urlpath, "/%2f/")) {
