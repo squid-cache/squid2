@@ -42,5 +42,5 @@ extern char *sys_errlist[];
 char *
 strerror(int ern)
 {
-	return sys_errlist[ern];
+    return sys_errlist[ern];
 }
