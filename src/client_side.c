@@ -288,6 +288,9 @@ clientRedirectDone(void *data, char *result)
 	http->request = requestLink(new_request);
     }
     clientInterpretRequestHeaders(http);
+#if HEADERS_LOG
+    headersLog(0, 1, request->method, request);
+#endif
     fd_note(http->conn->fd, http->uri);
     clientProcessRequest(http);
 }
@@ -2514,9 +2517,6 @@ clientReadRequest(int fd, void *data)
 		    break;
 		}
 	    }
-#if HEADERS_LOG
-	    headersLog(0, 1, request->method, request);
-#endif
 	    clientAccessCheck(http);
 	    continue;		/* while offset > 0 */
 	} else if (parser_return_code == 0) {
