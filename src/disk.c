@@ -330,14 +330,14 @@ file_write(int fd,
 	file_table[fd].write_q_tail = wq;
     }
 
-    if (file_table[fd].write_daemon == PRESENT)
-	return DISK_OK;
-    commSetSelect(fd,
-	COMM_SELECT_WRITE,
-	(PF) diskHandleWrite,
-	(void *) &file_table[fd],
-	0);
-    file_table[fd].write_daemon = PRESENT;
+    if (file_table[fd].write_daemon != PRESENT) {
+        commSetSelect(fd,
+	    COMM_SELECT_WRITE,
+	    (PF) diskHandleWrite,
+	    (void *) &file_table[fd],
+	    0);
+        file_table[fd].write_daemon = PRESENT;
+    }
     return DISK_OK;
 }
 
