@@ -656,7 +656,7 @@ void storeSetPrivateKey(e)
 	fatal_dump("Private key already exists.");
     }
     if (e->key)
-	storeHashDelete(e);
+	storeHashDelete((hash_link *) e);
     if (e->key && !BIT_TEST(e->flag, KEY_URL))
 	safe_free(e->key);
     e->key = xstrdup(newkey);
@@ -688,7 +688,7 @@ void storeSetPublicKey(e)
 	newkey = storeGeneratePublicKey(e->url, e->method);
     }
     if (e->key)
-	storeHashDelete(e);
+	storeHashDelete((hash_link *) e);
     if (e->key && !BIT_TEST(e->flag, KEY_URL))
 	safe_free(e->key);
     if (e->method == METHOD_GET) {
@@ -1908,23 +1908,11 @@ int storeGetMemSpace(size, check_vm_number)
 	    storeRelease(e);
 	    continue;
 	}
-	if ((e->swap_status == SWAP_OK) && (e->mem_status != SWAPPING_IN) &&
-	    (e->lock_count == 0)) {
-	    insert_dynamic_array(LRU_list, e);
-	} else if (((e->store_status == STORE_ABORTED) ||
-		    (e->swap_status == NO_SWAP)) &&
-	    (e->lock_count == 0)) {
-	    n_aborted++;
+	if (!storeEntryLocked(e)) {
 	    insert_dynamic_array(LRU_list, e);
 	} else {
 	    n_cantpurge++;
 	    mem_cantpurge += e->mem_obj->e_current_len;
-	    debug(20, 5, "storeGetMemSpace: Can't purge %7d bytes: %s\n",
-		e->mem_obj->e_current_len, e->url);
-	    if (e->swap_status != SWAP_OK)
-		debug(20, 5, "storeGetMemSpace: --> e->swap_status != SWAP_OK\n");
-	    if (e->lock_count)
-		debug(20, 5, "storeGetMemSpace: --> e->lock_count %d\n", e->lock_count);
 	}
     }
     debug(20, 5, "storeGetMemSpace: Current size:     %7d bytes\n", store_mem_size);
@@ -2130,10 +2118,7 @@ int storeGetSwapSpace(size)
 	    e = (StoreEntry *) link_ptr;
 
 	    /* Identify objects that aren't locked, for replacement */
-	    if ((e->store_status != STORE_PENDING) &&	/* We're still fetching the object */
-		(e->swap_status == SWAP_OK) &&	/* Only release it if it is on disk */
-		(e->lock_count == 0) &&		/* Be overly cautious */
-		(e->mem_status != SWAPPING_IN)) {	/* Not if it's being faulted into memory */
+	    if (!storeEntryLocked(e)) {
 		if (squid_curtime > e->expires) {
 		    debug(20, 2, "storeGetSwapSpace: Expired: <URL:%s>\n", e->url);
 		    /* just call release. don't have to check for lock status.
@@ -2147,14 +2132,6 @@ int storeGetSwapSpace(size)
 		    ++scan_in_objs;
 		}
 	    } else {
-		debug(20, 2, "storeGetSwapSpace: Can't purge %7d bytes: <URL:%s>\n",
-		    e->object_len, e->url);
-		if (e->lock_count) {
-		    debug(20, 2, "\t\te->lock_count %d\n", e->lock_count);
-		}
-		if (e->swap_status == SWAPPING_OUT) {
-		    debug(20, 2, "\t\te->swap_status == SWAPPING_OUT\n");
-		}
 		locked++;
 		locked_size += e->mem_obj->e_current_len;
 	    }
@@ -2350,6 +2327,8 @@ int storeEntryLocked(e)
     if (e->swap_status == SWAPPING_OUT)
 	return 1;
     if (e->mem_status == SWAPPING_IN)
+	return 1;
+    if (e->store_status == STORE_PENDING)
 	return 1;
     return 0;
 }
@@ -2936,6 +2915,8 @@ static int storeCheckPurgeMem(e)
     if (storeEntryLocked(e))
 	return 0;
     if (e->store_status != STORE_OK)
+	return 0;
+    if (e->swap_status != SWAP_OK)
 	return 0;
     if (store_hotobj_high)
 	return 0;
