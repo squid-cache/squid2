@@ -944,6 +944,7 @@ extern void storeSwapTLVFree(tlv * n);
  */
 extern void storeRebuildStart(void);
 extern void storeRebuildComplete(struct _store_rebuild_data *);
+extern void storeRebuildProgress(int index, int total, int sofar);
 
 /*
  * store_swapin.c

@@ -589,9 +589,12 @@ storeAufsDirRebuildFromSwapLog(void *data)
 	    rb->counts.invalid++;
 	    continue;
 	}
-	if ((++rb->counts.scancount & 0xFFFF) == 0)
-	    debug(20, 3) ("  %7d %s Entries read so far.\n",
-		rb->counts.scancount, rb->sd->path);
+	if ((++rb->counts.scancount & 0xFFF) == 0) {
+	    struct stat sb;
+	    if (0 == fstat(fileno(rb->log), &sb))
+		storeRebuildProgress(SD->index,
+		    (int) sb.st_size / ss, rb->n_read);
+	}
 	if (!storeAufsDirValidFileno(SD, s.swap_filen, 0)) {
 	    rb->counts.invalid++;
 	    continue;
@@ -1711,9 +1714,9 @@ storeFsSetup_aufs(storefs_entry_t * storefs)
     storefs->donefunc = storeAufsDirDone;
     aio_state_pool = memPoolCreate("AUFS IO State data", sizeof(aiostate_t));
     aio_qread_pool = memPoolCreate("AUFS Queued read data",
-        sizeof(queued_read));
+	sizeof(queued_read));
     aio_qwrite_pool = memPoolCreate("AUFS Queued write data",
-        sizeof(queued_write));
+	sizeof(queued_write));
 
     asyncufs_initialised = 1;
     aioInit();

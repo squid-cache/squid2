@@ -780,9 +780,12 @@ storeDiskdDirRebuildFromSwapLog(void *data)
 	    rb->counts.invalid++;
 	    continue;
 	}
-	if ((++rb->counts.scancount & 0xFFFF) == 0)
-	    debug(20, 3) ("  %7d %s Entries read so far.\n",
-		rb->counts.scancount, rb->sd->path);
+	if ((++rb->counts.scancount & 0xFFF) == 0) {
+	    struct stat sb;
+	    if (0 == fstat(fileno(rb->log), &sb))
+		storeRebuildProgress(SD->index,
+		    (int) sb.st_size / ss, rb->n_read);
+	}
 	if (!storeDiskdDirValidFileno(SD, s.swap_filen, 0)) {
 	    rb->counts.invalid++;
 	    continue;
