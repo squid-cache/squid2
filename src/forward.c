@@ -404,8 +404,7 @@ fwdServersFree(FwdServer ** FS)
 }
 
 void
-fwdStart(int fd, StoreEntry * e, request_t * r, struct in_addr client_addr,
-    struct in_addr my_addr)
+fwdStart(int fd, StoreEntry * e, request_t * r)
 {
     FwdState *fwdState;
     aclCheck_t ch;
@@ -416,19 +415,20 @@ fwdStart(int fd, StoreEntry * e, request_t * r, struct in_addr client_addr,
      * from peer_digest.c, asn.c, netdb.c, etc and should always
      * be allowed.  yuck, I know.
      */
-    if (client_addr.s_addr != no_addr.s_addr) {
+    if (r->client_addr.s_addr != no_addr.s_addr) {
 	/*      
 	 * Check if this host is allowed to fetch MISSES from us (miss_access)
 	 */
 	memset(&ch, '\0', sizeof(aclCheck_t));
-	ch.src_addr = client_addr;
-	ch.my_addr = my_addr;
+	ch.src_addr = r->client_addr;
+	ch.my_addr = r->my_addr;
+	ch.my_port = r->my_port;
 	ch.request = r;
 	answer = aclCheckFast(Config.accessList.miss, &ch);
 	if (answer == 0) {
 	    err = errorCon(ERR_FORWARDING_DENIED, HTTP_FORBIDDEN);
 	    err->request = requestLink(r);
-	    err->src_addr = client_addr;
+	    err->src_addr = r->client_addr;
 	    errorAppendEntry(e, err);
 	    return;
 	}

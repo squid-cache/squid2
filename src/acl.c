@@ -175,6 +175,8 @@ aclStrToType(const char *s)
 	return ACL_URL_REGEX;
     if (!strcmp(s, "port"))
 	return ACL_URL_PORT;
+    if (!strcmp(s, "myport"))
+	return ACL_MY_PORT;
     if (!strcmp(s, "maxconn"))
 	return ACL_MAXCONN;
 #if USE_IDENT
@@ -231,6 +233,8 @@ aclTypeToStr(squid_acl type)
 	return "url_regex";
     if (type == ACL_URL_PORT)
 	return "port";
+    if (type == ACL_MY_PORT)
+	return "myport";
     if (type == ACL_MAXCONN)
 	return "maxconn";
 #if USE_IDENT
@@ -709,6 +713,7 @@ aclParseAclLine(acl ** head)
 	aclParseIntlist(&A->data);
 	break;
     case ACL_URL_PORT:
+    case ACL_MY_PORT:
 	aclParseIntRange(&A->data);
 	break;
 #if USE_IDENT
@@ -1366,7 +1371,10 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	return ((k > ((intlist *) ae->data)->i) ? 0 : 1);
 	/* NOTREACHED */
     case ACL_URL_PORT:
-	return aclMatchIntegerRange(ae->data, r->port);
+	return aclMatchIntegerRange(ae->data, (int) r->port);
+	/* NOTREACHED */
+    case ACL_MY_PORT:
+	return aclMatchIntegerRange(ae->data, (int) checklist->my_port);
 	/* NOTREACHED */
 #if USE_IDENT
     case ACL_IDENT:
@@ -1711,8 +1719,6 @@ aclLookupProxyAuthDone(void *data, char *result)
 aclCheck_t *
 aclChecklistCreate(const acl_access * A,
     request_t * request,
-    struct in_addr src_addr,
-    struct in_addr my_addr,
     const char *user_agent,
     const char *ident)
 {
@@ -1725,10 +1731,12 @@ aclChecklistCreate(const acl_access * A,
      * pointer, so lock it.
      */
     cbdataLock(A);
-    if (request != NULL)
+    if (request != NULL) {
 	checklist->request = requestLink(request);
-    checklist->src_addr = src_addr;
-    checklist->my_addr = my_addr;
+	checklist->src_addr = request->client_addr;
+	checklist->my_addr = request->my_addr;
+	checklist->my_port = request->my_port;
+    }
     for (i = 0; i < ACL_ENUM_MAX; i++)
 	checklist->state[i] = ACL_LOOKUP_NONE;
     if (user_agent)
@@ -1844,6 +1852,7 @@ aclDestroyAcls(acl ** head)
 	    intlistDestroy((intlist **) & a->data);
 	    break;
 	case ACL_URL_PORT:
+	case ACL_MY_PORT:
 	    aclDestroyIntRange(a->data);
 	    break;
 	case ACL_NONE:
@@ -2172,6 +2181,7 @@ aclDumpGeneric(const acl * a)
 	return aclDumpIntlistList(a->data);
 	break;
     case ACL_URL_PORT:
+    case ACL_MY_PORT:
 	return aclDumpIntRangeList(a->data);
 	break;
     case ACL_PROTO:

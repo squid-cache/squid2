@@ -144,6 +144,7 @@ struct _aclCheck_t {
     struct in_addr src_addr;
     struct in_addr dst_addr;
     struct in_addr my_addr;
+    unsigned short my_port;
     request_t *request;
 #if USE_IDENT
     ConnStateData *conn;	/* hack for ident */
@@ -1409,8 +1410,10 @@ struct _request_t {
     time_t ims;
     int imslen;
     int max_forwards;
+    /* these in_addr's could probably be sockaddr_in's */
     struct in_addr client_addr;
     struct in_addr my_addr;
+    unsigned short my_port;
     HttpHeader header;
     char *body;
     size_t body_sz;

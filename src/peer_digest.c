@@ -318,7 +318,7 @@ peerDigestRequest(PeerDigest * pd)
 
     /* push towards peer cache */
     debug(72, 3) ("peerDigestRequest: forwarding to fwdStart...\n");
-    fwdStart(-1, e, req, no_addr, no_addr);
+    fwdStart(-1, e, req);
     cbdataLock(fetch);
     cbdataLock(fetch->pd);
     storeClientCopy(e, 0, 0, 4096, memAllocate(MEM_4K_BUF),

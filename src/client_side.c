@@ -147,8 +147,6 @@ clientAccessCheck(void *data)
     browser = httpHeaderGetStr(&http->request->header, HDR_USER_AGENT);
     http->acl_checklist = aclChecklistCreate(Config.accessList.http,
 	http->request,
-	conn->peer.sin_addr,
-	conn->me.sin_addr,
 	browser,
 	conn->ident);
 #if USE_IDENT
@@ -280,6 +278,7 @@ clientRedirectDone(void *data, char *result)
 	httpHeaderAppend(&new_request->header, &old_request->header);
 	new_request->client_addr = old_request->client_addr;
 	new_request->my_addr = old_request->my_addr;
+	new_request->my_port = old_request->my_port;
 	new_request->flags.redirected = 1;
 	if (old_request->body) {
 	    new_request->body = xmalloc(old_request->body_sz);
@@ -337,8 +336,7 @@ clientProcessExpired(void *data)
 #endif
     http->entry = entry;
     http->out.offset = 0;
-    fwdStart(http->conn->fd, http->entry, http->request,
-	http->conn->peer.sin_addr, http->conn->me.sin_addr);
+    fwdStart(http->conn->fd, http->entry, http->request);
     /* Register with storage manager to receive updates when data comes in. */
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED))
 	debug(33, 0) ("clientProcessExpired: found ENTRY_ABORTED object\n");
@@ -909,6 +907,7 @@ clientCachable(clientHttpRequest * http)
      */
     ch.src_addr = http->conn->peer.sin_addr;
     ch.my_addr = http->conn->me.sin_addr;
+    ch.my_port = ntohs(http->conn->me.sin_port);
     ch.request = http->request;
     /*
      * aclCheckFast returns 1 for ALLOW and 0 for DENY.  The default
@@ -2038,8 +2037,7 @@ clientProcessMiss(clientHttpRequest * http)
     }
     if (http->flags.internal)
 	r->protocol = PROTO_INTERNAL;
-    fwdStart(http->conn->fd, http->entry, r,
-	http->conn->peer.sin_addr, http->conn->me.sin_addr);
+    fwdStart(http->conn->fd, http->entry, r);
 }
 
 static clientHttpRequest *
@@ -2446,6 +2444,7 @@ clientReadRequest(int fd, void *data)
 	    http->log_uri = xstrdup(urlCanonicalClean(request));
 	    request->client_addr = conn->peer.sin_addr;
 	    request->my_addr = conn->me.sin_addr;
+	    request->my_port = ntohs(conn->me.sin_port);
 	    request->http_ver = http->http_ver;
 	    if (!urlCheckRequest(request)) {
 		err = errorCon(ERR_UNSUP_REQ, HTTP_NOT_IMPLEMENTED);
@@ -2641,6 +2640,7 @@ httpAccept(int sock, void *data)
 #if USE_IDENT
 	identChecklist.src_addr = peer.sin_addr;
 	identChecklist.my_addr = me.sin_addr;
+	identChecklist.my_port = ntohs(me.sin_port);
 	if (aclCheckFast(Config.accessList.identLookup, &identChecklist))
 	    identStart(&me, &peer, clientIdentDone, connState);
 #endif

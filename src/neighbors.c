@@ -148,6 +148,7 @@ peerAllowedToUse(const peer * p, request_t * request)
 	return do_ping;
     checklist.src_addr = request->client_addr;
     checklist.my_addr = request->my_addr;
+    checklist.my_port = request->my_port;
     checklist.request = request;
     return aclCheckFast(p->access, &checklist);
 }
