@@ -307,8 +307,10 @@ struct _SquidConfig {
 	struct in_addr tcp_outgoing;
 	struct in_addr udp_incoming;
 	struct in_addr udp_outgoing;
+#if SQUID_SNMP
 	struct in_addr snmp_incoming;
 	struct in_addr snmp_outgoing;
+#endif
 	struct in_addr client_netmask;
     } Addrs;
     size_t tcpRcvBufsz;
