@@ -845,6 +845,7 @@ struct _clientHttpRequest {
     ConnStateData *conn;
     request_t *request;		/* Parsed URL ... */
     store_client *sc;		/* The store_client we're using */
+    store_client *old_sc;	/* ... for entry to be validated */
     char *uri;
     char *log_uri;
     struct {
