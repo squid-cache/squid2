@@ -848,8 +848,12 @@ storeEntryLocked(const StoreEntry * e)
 	return 1;
     if (e->store_status == STORE_PENDING)
 	return 1;
+    /*
+     * SPECIAL, PUBLIC entries should be "locked"
+     */
     if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
-	return 1;
+	if (!EBIT_TEST(e->flags, KEY_PRIVATE))
+	    return 1;
     return 0;
 }
 
