@@ -1,3 +1,6 @@
+Changes to squid-2.5.STABLE4 (not yet released):
+	- Lithuanian error messages added to the distribution
+
 Changes to squid-2.5.STABLE3 (25 May 2003):
 
 	- Bug #573: Occational false negatives in external acl lookups
