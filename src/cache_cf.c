@@ -925,9 +925,9 @@ static void parseLocalDomainLine()
     struct stat sb;
     while ((token = strtok(NULL, w_space))) {
 	if (stat(token, &sb) < 0) {
-		wordlistAdd(&Config.local_domain_list, token);
+	    wordlistAdd(&Config.local_domain_list, token);
 	} else {
-		parseLocalDomainFile(token);
+	    parseLocalDomainFile(token);
 	}
     }
 }
