@@ -1,14 +1,14 @@
 #define ACL_NAME_SZ 32
 
 typedef enum {
-	ACL_NONE,
-	ACL_SRC_IP,
-	ACL_DST_DOMAIN,
-	ACL_TIME,
-	ACL_URL_REGEX,
-	ACL_URL_PORT,
-	ACL_USER,
-	ACL_PROTO
+    ACL_NONE,
+    ACL_SRC_IP,
+    ACL_DST_DOMAIN,
+    ACL_TIME,
+    ACL_URL_REGEX,
+    ACL_URL_PORT,
+    ACL_USER,
+    ACL_PROTO
 } acl_t;
 
 #define ACL_SUNDAY	0x01
@@ -21,18 +21,18 @@ typedef enum {
 #define ACL_ALLWEEK	0x4F
 
 struct _acl_ip_data {
-	struct in_addr addr1;	/* if addr2 non-zero then its a range */
-	struct in_addr mask1;
-	struct in_addr addr2;
-	struct in_addr mask2;
-	struct _acl_ip_data *next;
+    struct in_addr addr1;	/* if addr2 non-zero then its a range */
+    struct in_addr mask1;
+    struct in_addr addr2;
+    struct in_addr mask2;
+    struct _acl_ip_data *next;
 };
 
 struct _acl_time_data {
-	int 	weekbits;
-	int	start;
-	int 	stop;
-	struct _acl_time_data *next;
+    int weekbits;
+    int start;
+    int stop;
+    struct _acl_time_data *next;
 };
 
 /* domain data is just a wordlist */
@@ -42,23 +42,26 @@ struct _acl_time_data {
 /* url_regex data is just a relist */
 
 struct _acl {
-	char name[ACL_NAME_SZ+1];
-	acl_t type;
-	void *data;
-	struct _acl *next;
+    char name[ACL_NAME_SZ + 1];
+    acl_t type;
+    void *data;
+    char *cfgline;
+    struct _acl *next;
 };
 
 struct _acl_list {
-	int op;
-	struct _acl *acl;
-	struct _acl_list *next;
+    int op;
+    struct _acl *acl;
+    struct _acl_list *next;
 };
 
 struct _acl_access {
-	int allow;
-	struct _acl_list *acl_list;
-	struct _acl_access *next;
+    int allow;
+    struct _acl_list *acl_list;
+    char *cfgline;
+    struct _acl_access *next;
 };
 
-extern void aclParseAclLine _PARAMS((void));
-extern void aclParseAccessLine _PARAMS((void));
+extern void aclParseAclLine _PARAMS((char *));
+extern void aclParseAccessLine _PARAMS((char *));
+extern int aclCheck _PARAMS((struct in_addr, protocol_t, char *, int, char *));

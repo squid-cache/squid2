@@ -138,7 +138,7 @@ void gopherMimeCreate(data)
     sprintf(tempMIME, "\
 HTTP/1.0 200 OK Gatewaying\r\n\
 Server: HarvestCache/%s\r\n\
-MIME-version: 1.0\r\n", SQUID_VERSION);
+MIME-version: 1.0\r\n", version_string);
 
     switch (data->type_id) {
 

@@ -22,7 +22,7 @@ void send_announce()
 
     sndbuf[0] = '\0';
 
-    sprintf(tbuf, "cache_version HARVEST/%s\n", SQUID_VERSION);
+    sprintf(tbuf, "cache_version HARVEST/%s\n", version_string);
     strcat(sndbuf, tbuf);
     sprintf(tbuf, "Running on %s %d %d\n",
 	getMyHostname(),

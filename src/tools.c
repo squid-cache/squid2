@@ -26,7 +26,7 @@ Thanks!\n"
 static char *dead_msg()
 {
     static char msg[1024];
-    sprintf(msg, DEAD_MSG, SQUID_VERSION, SQUID_VERSION);
+    sprintf(msg, DEAD_MSG, version_string, version_string);
     return msg;
 }
 
@@ -158,7 +158,7 @@ void normal_shutdown()
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
     debug(21, 0, "Harvest Cache (Version %s): Exiting normally.\n",
-	SQUID_VERSION);
+	version_string);
     exit(0);
 }
 void shut_down(sig)
@@ -180,7 +180,7 @@ void fatal_common(message)
 #endif
     fprintf(debug_log, "FATAL: %s\n", message);
     fprintf(debug_log, "Harvest Cache (Version %s): Terminated abnormally.\n",
-	SQUID_VERSION);
+	version_string);
     fflush(debug_log);
     PrintRusage(NULL, debug_log);
 }

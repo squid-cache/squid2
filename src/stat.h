@@ -3,6 +3,7 @@
 #ifndef STAT_H
 #define STAT_H
 
+#ifdef OLD_CODE
 /* protocol id */
 #define PROTOCOL_SUPPORTED 3
 #define PROTOCOL_EXTRA     4	/* included total, cacheobj, abort, notimplemented */
@@ -13,6 +14,18 @@
 #define CACHEOBJ_ID  PROTOCOL_SUPPORTED + 1
 #define ABORT_ID     PROTOCOL_SUPPORTED + 2
 #define NOTIMPLE_ID  PROTOCOL_SUPPORTED + 3	/* for robustness */
+#endif
+
+typedef enum {
+	PROTO_NONE,
+	PROTO_HTTP,
+	PROTO_FTP,
+	PROTO_GOPHER,
+	PROTO_WAIS,
+	PROTO_CACHEOBJ,
+	PROTO_MAX
+} protocol_t;
+	
 
 /* logfile status */
 #define LOG_ENABLE  1
@@ -92,22 +105,22 @@ struct _cacheinfo {
 
     /* protocol specific stat update method */
     /* return a proto_id for a given url */
-    int (*proto_id) _PARAMS((char *url));
+    protocol_t (*proto_id) _PARAMS((char *url));
 
     /* a new object cached. update obj count, size */
-    void (*proto_newobject) _PARAMS((struct _cacheinfo * c, int proto_id, int len, int flag));
+    void (*proto_newobject) _PARAMS((struct _cacheinfo * c, protocol_t proto_id, int len, int flag));
 
     /* an object purged */
-    void (*proto_purgeobject) _PARAMS((struct _cacheinfo * c, int proto_id, int len));
+    void (*proto_purgeobject) _PARAMS((struct _cacheinfo * c, protocol_t proto_id, int len));
 
     /* an object is referred to. */
-    void (*proto_touchobject) _PARAMS((struct _cacheinfo * c, int proto_id, int len));
+    void (*proto_touchobject) _PARAMS((struct _cacheinfo * c, protocol_t proto_id, int len));
 
     /* a hit. update hit count, transfer byted. refcount */
-    void (*proto_hit) _PARAMS((struct _cacheinfo * obj, int proto_id));
+    void (*proto_hit) _PARAMS((struct _cacheinfo * obj, protocol_t proto_id));
 
     /* a miss. update miss count. refcount */
-    void (*proto_miss) _PARAMS((struct _cacheinfo * obj, int proto_id));
+    void (*proto_miss) _PARAMS((struct _cacheinfo * obj, protocol_t proto_id));
 
     /* dummy Notimplemented object handler */
     void (*NotImplement) _PARAMS((struct _cacheinfo * c, StoreEntry * sentry));
@@ -120,14 +133,15 @@ struct _cacheinfo {
     int logfile_status;
 
     /* protocol stat data */
-    proto_stat proto_stat_data[PROTOCOL_SUPPORTED + PROTOCOL_EXTRA];
+    proto_stat proto_stat_data[PROTO_MAX+1];
 
 };
 
 extern cacheinfo *CacheInfo;
 
 extern void stat_init _PARAMS((cacheinfo **, char *));
-extern proto_url_to_id _PARAMS((char *url));
+extern protocol_t proto_url_to_id _PARAMS((char *url));
+extern int proto_default_port _PARAMS((protocol_t));
 extern void stat_rotate_log _PARAMS((void));
 
 

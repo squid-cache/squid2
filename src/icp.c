@@ -8,9 +8,7 @@
 
 #include "squid.h"
 
-extern int errno;
 extern unsigned long nconn;
-extern int vhost_mode;
 
 static struct in_addr tmp_in_addr;
 int neighbors_do_private_keys = 1;
@@ -512,10 +510,6 @@ static void icpHandleStore(fd, entry, state)
 	fd, state->offset, entry->url);
 
     if (entry->status == STORE_ABORTED) {
-#ifdef CAN_WE_GET_AWAY_WITHOUT_THIS
-	storeUnlockObject(entry);
-	state->entry = NULL;	/* Don't use a subsequently freed storeEntry */
-#endif
 	state->log_type = entry->mem_obj->abort_code;
 	debug(12, 3, "icpHandleStore: abort_code=%d\n", entry->mem_obj->abort_code);
 	state->ptr_to_4k_page = NULL;	/* Nothing to deallocate */
@@ -1253,151 +1247,6 @@ int parseHttpRequest(icpState)
     return 1;
 }
 
-#ifdef OLD_CODE
-/*
- *  parseAsciiUrl()
- * 
- *  Called by
- *    asciiProcessInput() after the request has been read
- *  Calls
- *    mime_process()
- *    do_append_domain()
- *  Returns
- *    0 on error
- *    1 on success
- */
-int parseAsciiUrl(input, astm)
-     char *input;
-     icpStateData *astm;
-{
-    char *cmd = NULL;
-    char *url = NULL;
-    char *token = NULL;
-    char *t = NULL;
-    char *mime_end = NULL;
-    char *xbuf = NULL;
-    int free_url = 0;
-    int content_length = 0;
-    int xtra_bytes = 0;
-    char *ad = NULL;
-
-    /* do a non-destructive test first */
-    if (strstr(input, "HTTP/1.0\r\n")) {
-	/* HTTP/1.0 Request */
-	mime_end = strstr(input, "\r\n\r\n");
-	if (mime_end == NULL) {
-	    debug(12, 3, "parseAsciiUrl: Got partial HTTP request.\n");
-	    return 0;		/* request is not complete yet. */
-	}
-	mime_end += 4;
-
-	/* Check content-length for POST requests */
-	xbuf = xstrdup(input);
-	for (t = strtok(xbuf, crlf); t; t = strtok(NULL, crlf)) {
-	    if (strncasecmp(t, "Content-Length:", 15) == 0) {
-		content_length = atoi(t + 16);
-		break;
-	    }
-	}
-	xfree(xbuf);
-	if (content_length > 0) {
-	    xtra_bytes = strlen(mime_end);
-	    debug(12, 3, "parseAsciiUrl: Content-Length=%d\n", content_length);
-	    debug(12, 3, "parseAsciiUrl: xtra_bytes=%d\n", xtra_bytes);
-	    if (xtra_bytes < content_length) {
-		astm->bytes_needed = content_length - xtra_bytes;
-		return 0;	/* request is not complete yet. */
-	    } else {
-		astm->bytes_needed = 0;
-	    }
-	}
-    }
-    cmd = (char *) strtok(input, "\t ");
-    if (cmd == NULL || isascii(cmd[0]) == 0) {
-	debug(12, 5, "parseAsciiUrl: Failed for '%s'\n", input);
-	return 0;
-    }
-    if (strcasecmp(cmd, "GET") == 0) {
-	if (strcmp(cmd, "GET") == 0)
-	    astm->html_request = 1;
-	else
-	    astm->html_request = 0;
-	url = (char *) strtok(NULL, "\n\r\t ");
-	astm->method = METHOD_GET;
-	if ((token = (char *) strtok(NULL, "")))
-	    astm->mime_hdr = xstrdup(token);
-	else
-	    astm->mime_hdr = xstrdup(" ");
-    } else if (strcasecmp(cmd, "POST") == 0) {
-	astm->html_request = 1;
-	url = (char *) strtok(NULL, "\n\r\t ");
-	astm->method = METHOD_POST;
-	if ((token = (char *) strtok(NULL, "")))
-	    astm->mime_hdr = xstrdup(token);
-	else
-	    astm->mime_hdr = xstrdup(" ");
-    } else if (strcasecmp(cmd, "HEAD") == 0) {
-	astm->html_request = 1;
-	url = (char *) strtok(NULL, "\n\r\t ");
-	astm->method = METHOD_HEAD;
-	if ((token = (char *) strtok(NULL, "")))
-	    astm->mime_hdr = xstrdup(token);
-	else
-	    astm->mime_hdr = xstrdup(" ");
-    } else {
-	astm->method = METHOD_GET;
-	astm->html_request = 0;
-	astm->mime_hdr = xstrdup(" ");
-    }
-
-    if (url == NULL) {
-	debug(12, 5, "parseAsciiUrl: NULL URL: %s\n", input);
-	return 0;
-    }
-    if ((ad = getAppendDomain())) {
-	if ((t = do_append_domain(url, ad))) {
-	    url = t;
-	    free_url = 1;
-	    /* NOTE: We don't have to free the old url pointer
-	     * because it points to inside xbuf. But
-	     * do_append_domain() allocates memory so set a flag
-	     * if the url should be freed later. */
-	}
-    }
-    if ((t = strchr(url, '\r')))	/* remove CR */
-	*t = '\0';
-    if ((t = strchr(url, '\n')))	/* remove NL */
-	*t = '\0';
-    if ((t = strchr(url, '#')))	/* remove HTML anchors */
-	*t = '\0';
-
-    /* see if we running in httpd_accel_mode, if so got to convert it to URL */
-    if (httpd_accel_mode && url[0] == '/') {
-	if (!vhost_mode) {
-	    /* prepend the accel prefix */
-	    astm->url = xcalloc(strlen(getAccelPrefix()) +
-		strlen(url) +
-		1, 1);
-	    sprintf(astm->url, "%s%s", getAccelPrefix(), url);
-	} else {
-	    /* Put the local socket IP address as the hostname */
-	    astm->url = xcalloc(strlen(url) + 24, 1);
-	    sprintf(astm->url, "http://%s%s",
-		inet_ntoa(astm->me.sin_addr), url);
-	}
-	astm->accel_request = 1;
-    } else {
-	astm->url = xstrdup(url);
-	astm->accel_request = 0;
-    }
-    debug(12, 5, "parseAsciiUrl: %s: <URL:%s>: mime_hdr '%s'.\n",
-	RequestMethodStr[astm->method], astm->url, astm->mime_hdr);
-    if (free_url)
-	safe_free(url);
-    return 1;
-}
-#endif
-
 ip_access_type second_ip_acl_check(fd_unused, astm)
      int fd_unused;
      icpStateData *astm;
@@ -1417,22 +1266,26 @@ static int check_valid_url(fd, astm)
     static char host[MAX_URL];
     static char urlpath[MAX_URL];
     char *t = NULL;
+    protocol_t protocol;
+    int port;
     if (sscanf(astm->url, "%[^:]://%[^/]%s", proto, host, urlpath) != 3)
-	return 0;
+	return ERR_INVALID_URL;
     for (t = host; *t; t++)
 	*t = tolower(*t);
+    protocol = proto_url_to_id(proto);
+    port = proto_default_port(protocol);
     if ((t = strchr(host, ':'))) {
-	switch (atoi(t + 1)) {
+	switch (port = atoi(t + 1)) {
 	case 80:
-	    if (!strcmp(proto, "http"))
+	    if (protocol == PROTO_HTTP)
 		*t = '\0';
 	    break;
 	case 21:
-	    if (!strcmp(proto, "ftp"))
+	    if (protocol == PROTO_FTP)
 		*t = '\0';
 	    break;
 	case 70:
-	    if (!strcmp(proto, "gopher"))
+	    if (protocol == PROTO_GOPHER)
 		*t = '\0';
 	    break;
 	default:
@@ -1440,7 +1293,9 @@ static int check_valid_url(fd, astm)
 	}
     }
     sprintf(astm->url, "%s://%s%s", proto, host, urlpath);
-    return 1;
+    if (!aclCheck(astm->peer.sin_addr, protocol, host, port, urlpath))
+	return LOG_TCP_DENIED;
+    return 0;
 }
 
 
@@ -1504,7 +1359,8 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 
     parser_return_code = parseHttpRequest(astm);
     if (parser_return_code == 1) {
-	if (check_valid_url(fd, astm) == 0) {
+	switch (check_valid_url(fd, astm)) {
+	case ERR_INVALID_URL:
 	    debug(12, 5, "Invalid URL: %s\n", astm->url);
 	    astm->log_type = ERR_INVALID_URL;
 	    astm->http_code = 400;
@@ -1521,27 +1377,15 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		30,
 		icpSendERRORComplete,
 		(void *) astm);
-	} else if (blockCheck(astm->url)) {
-	    astm->log_type = LOG_TCP_BLOCK;
-	    astm->http_code = 403;
-	    astm->buf = xstrdup(cached_error_url(astm->url,
+	    break;
+	case LOG_TCP_DENIED:
+	    debug(12, 5, "Access Denied: %s\n", astm->url);
+	    astm->log_type = LOG_TCP_DENIED;
+	    astm->http_code = 400;
+	    astm->buf = xstrdup(access_denied_msg(astm->http_code,
 		    astm->method,
-		    ERR_URL_BLOCKED,
-		    fd_table[fd].ipaddr,
-		    astm->http_code,
-		    NULL));
-	    icpWrite(fd,
-		astm->buf,
-		strlen(astm->buf),
-		30,
-		icpSendERRORComplete,
-		(void *) astm);
-	} else if (second_ip_acl_check(fd, astm) == IP_DENY) {
-	    sprintf(tmp_error_buf,
-		"ACCESS DENIED\n\nYour IP address (%s) is not authorized to access cached at %s.\n\n",
-		inet_ntoa(astm->peer.sin_addr),
-		getMyHostname());
-	    astm->buf = xstrdup(tmp_error_buf);
+		    astm->url,
+		    fd_table[fd].ipaddr));
 	    astm->ptr_to_4k_page = NULL;
 	    icpWrite(fd,
 		astm->buf,
@@ -1550,7 +1394,8 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		icpSendERRORComplete,
 		(void *) astm);
 	    astm->log_type = LOG_TCP_DENIED;
-	} else {
+	    break;
+	default:
 	    /* The request is good, let's go... */
 	    sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
 		fd_note(fd, 0),
@@ -1558,6 +1403,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		astm->url);
 	    fd_note(fd, client_msg);
 	    icp_hit_or_miss(fd, astm);
+	    break;
 	}
     } else if (parser_return_code == 0) {
 	/*
