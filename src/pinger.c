@@ -36,9 +36,11 @@
 int opt_syslog_enable = 0;
 volatile int unbuffered_logs = 1;
 const char *const appname = "pinger";
+const char *const w_space = " \r\n\t";
 struct timeval current_time;
 time_t squid_curtime;
 struct SquidConfig Config;
+int opt_debug_stderr = 0;
 
 #if USE_ICMP
 
