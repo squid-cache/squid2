@@ -24,7 +24,7 @@ static int httpStateFree(fd, httpState)
 	httpState->icp_page_ptr = NULL;
     }
     if (--httpState->request->link_count == 0)
-	safe_free(httpState->request);
+	put_free_request_t(httpState->request);
     xfree(httpState);
     return 0;
 }
@@ -566,7 +566,7 @@ int proxyhttpStart(e, url, entry)
     httpState = xcalloc(1, sizeof(HttpStateData));
     storeLockObject(httpState->entry = entry, NULL, NULL);
     httpState->req_hdr = entry->mem_obj->mime_hdr;
-    request = xcalloc(1, sizeof(request_t));
+    request = get_free_request_t();
     httpState->request = request;
     request->link_count++;
     /* register the handler to free HTTP state data when the FD closes */

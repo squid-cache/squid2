@@ -115,12 +115,11 @@ int ncache_dirs = 0;
 
 static MemObject *new_MemObject()
 {
-    MemObject *m = NULL;
-    m = xcalloc(1, sizeof(MemObject));
-    m->reply = xcalloc(1, sizeof(struct _http_reply));
+    MemObject *mem_obj = get_free_mem_obj();
+    mem_obj->reply = xcalloc(1, sizeof(struct _http_reply));
     meta_data.store_in_mem_objects++;
-    debug(20, 3, "new_MemObject: returning %p\n", m);
-    return m;
+    debug(20, 3, "new_MemObject: returning %p\n", mem_obj);
+    return mem_obj;
 }
 
 static StoreEntry *new_StoreEntry(mem_obj_flag)
@@ -136,15 +135,15 @@ static StoreEntry *new_StoreEntry(mem_obj_flag)
     return e;
 }
 
-static void destroy_MemObject(m)
-     MemObject *m;
+static void destroy_MemObject(mem_obj)
+     MemObject *mem_obj;
 {
-    debug(20, 3, "destroy_MemObject: destroying %p\n", m);
-    safe_free(m->mime_hdr);
-    safe_free(m->reply);
-    if (m->request && --m->request->link_count == 0)
-	safe_free(m->request);
-    xfree(m);
+    debug(20, 3, "destroy_MemObject: destroying %p\n", mem_obj);
+    safe_free(mem_obj->mime_hdr);
+    safe_free(mem_obj->reply);
+    if (mem_obj->request && --mem_obj->request->link_count == 0)
+	put_free_request_t(mem_obj->request);
+    put_free_mem_obj(mem_obj);
     meta_data.store_in_mem_objects--;
 }
 
@@ -382,7 +381,7 @@ void storePurgeMem(e)
 	}
 	safe_free(e->mem_obj->client_list);
     }
-    destroy_MemObject(e->mem_obj);
+    put_free_mem_obj(e->mem_obj);
     e->mem_obj = NULL;
 }
 

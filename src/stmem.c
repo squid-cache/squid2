@@ -8,6 +8,8 @@
 
 stmem_stats sm_stats;
 stmem_stats disk_stats;
+stmem_stats request_pool;
+stmem_stats mem_obj_pool;
 
 #define min(x,y) ((x)<(y)? (x) : (y))
 
@@ -260,17 +262,80 @@ int memCopy(mem, offset, buf, size)
 mem_ptr memInit()
 {
     mem_ptr new = xcalloc(1, sizeof(Mem_Hdr));
-
     new->tail = new->head = NULL;
-
     new->mem_free = memFree;
     new->mem_free_data = memFreeData;
     new->mem_free_data_upto = memFreeDataUpto;
     new->mem_append = memAppend;
     new->mem_copy = memCopy;
     new->mem_grep = memGrep;
-
     return new;
+}
+
+void *get_free_request_t()
+{
+    void *req = NULL;
+    if (!empty_stack(&request_pool.free_page_stack)) {
+        req = pop(&request_pool.free_page_stack);
+    } else {
+        req = xmalloc(sizeof(request_t));
+        request_pool.total_pages_allocated++;
+    }
+    request_pool.n_pages_in_use++;
+    if (req == NULL)
+        fatal_dump("get_free_request_t: Null pointer?");
+    memset(req, '\0', sizeof(request_t));
+    return (req);
+}
+
+void put_free_request_t(req)
+     void *req;
+{
+    static int stack_overflow_warning_toggle = 0;
+    if (full_stack(&request_pool.free_page_stack)) {
+	request_pool.total_pages_allocated--;
+	if (!stack_overflow_warning_toggle) {
+	    debug(19, 0, "Stack of request structures overflowed.  Resize it?\n");
+	    stack_overflow_warning_toggle++;
+	}
+    }
+    request_pool.n_pages_in_use--;
+    /* Call push regardless if it's full, cause it's just going to release the
+     * page if stack is full */
+    push(&request_pool.free_page_stack, req);
+}
+
+void *get_free_mem_obj()
+{
+    void *mem = NULL;
+    if (!empty_stack(&mem_obj_pool.free_page_stack)) {
+        mem = pop(&mem_obj_pool.free_page_stack);
+    } else {
+        mem = xmalloc(sizeof(MemObject));
+        mem_obj_pool.total_pages_allocated++;
+    }
+    mem_obj_pool.n_pages_in_use++;
+    if (mem == NULL)
+        fatal_dump("get_free_mem_obj: Null pointer?");
+    memset(mem, '\0', sizeof(MemObject));
+    return (mem);
+}
+
+void put_free_mem_obj(mem)
+     void *mem;
+{
+    static int stack_overflow_warning_toggle = 0;
+    if (full_stack(&mem_obj_pool.free_page_stack)) {
+	mem_obj_pool.total_pages_allocated--;
+	if (!stack_overflow_warning_toggle) {
+	    debug(19, 0, "Stack of mem_obj structures overflowed.  Resize it?\n");
+	    stack_overflow_warning_toggle++;
+	}
+    }
+    mem_obj_pool.n_pages_in_use--;
+    /* Call push regardless if it's full, cause it's just going to release the
+     * page if stack is full */
+    push(&mem_obj_pool.free_page_stack, mem);
 }
 
 
@@ -279,7 +344,6 @@ mem_ptr memInit()
 char *get_free_4k_page()
 {
     char *page = NULL;
-
     if (!empty_stack(&sm_stats.free_page_stack)) {
 	page = pop(&sm_stats.free_page_stack);
     } else {
@@ -301,8 +365,7 @@ char *get_free_4k_page()
 void put_free_4k_page(page)
      char *page;
 {
-    static stack_overflow_warning_toggle;
-
+    static int stack_overflow_warning_toggle = 0;
 #if USE_MEMALIGN
     if ((int) page % SM_PAGE_SIZE)
 	fatal_dump("Someone tossed a string into the 4k page pool");
@@ -310,7 +373,7 @@ void put_free_4k_page(page)
     if (full_stack(&sm_stats.free_page_stack)) {
 	sm_stats.total_pages_allocated--;
 	if (!stack_overflow_warning_toggle) {
-	    debug(19, 0, "Stack of free stmem pages overflowed.  Resize it?\n");
+	    debug(19, 0, "Stack of 4k pages overflowed.  Resize it?\n");
 	    stack_overflow_warning_toggle++;
 	}
     }
@@ -323,7 +386,6 @@ void put_free_4k_page(page)
 char *get_free_8k_page()
 {
     char *page = NULL;
-
     if (!empty_stack(&disk_stats.free_page_stack)) {
 	page = pop(&disk_stats.free_page_stack);
     } else {
@@ -345,13 +407,11 @@ char *get_free_8k_page()
 void put_free_8k_page(page)
      char *page;
 {
-    static stack_overflow_warning_toggle;
-
+    static int stack_overflow_warning_toggle = 0;
 #if USE_MEMALIGN
     if ((int) page % DISK_PAGE_SIZE)
 	fatal_dump("Someone tossed a string into the 8k page pool");
 #endif
-
     if (full_stack(&disk_stats.free_page_stack)) {
 	disk_stats.total_pages_allocated--;
 	if (!stack_overflow_warning_toggle) {
@@ -377,23 +437,29 @@ void stmemInit()
     disk_stats.n_pages_free = 0;
     disk_stats.n_pages_in_use = 0;
 
+    request_pool.page_size = sizeof(request_t);
+    request_pool.total_pages_allocated = 0;
+    request_pool.n_pages_free = 0;
+    request_pool.n_pages_in_use = 0;
+
+    mem_obj_pool.page_size = sizeof(MemObject);
+    mem_obj_pool.total_pages_allocated = 0;
+    mem_obj_pool.n_pages_free = 0;
+    mem_obj_pool.n_pages_in_use = 0;
+
 /* use -DPURIFY=1 on the compile line to enable Purify checks */
 
 #if !PURIFY
-#ifdef LITTLESTACK
-    init_stack(&sm_stats.free_page_stack, (getCacheMemMax() / SM_PAGE_SIZE) >> 2);
+    init_stack(&sm_stats.free_page_stack, (getCacheMemMax() / SM_PAGE_SIZE) >> 1);
     init_stack(&disk_stats.free_page_stack, 1000);
-#else /* LITTLESTACK */
-    /* CacheMemMax in pages */
-    init_stack(&sm_stats.free_page_stack, getCacheMemMax() / SM_PAGE_SIZE);
-    /* 8096 * 1000 pages = 8MB */
-    init_stack(&disk_stats.free_page_stack, 1000);
-#endif /* LITTLESTACK */
+    init_stack(&request_pool.free_page_stack, FD_SETSIZE>>3);
+    init_stack(&mem_obj_pool.free_page_stack, FD_SETSIZE>>3);
 #else /* !PURIFY */
     /* Declare a zero size page stack so that purify checks for 
-     * FMRs/UMRs etc.
-     */
+     * FMRs/UMRs etc.  */
     init_stack(&sm_stats.free_page_stack, 0);
     init_stack(&disk_stats.free_page_stack, 0);
+    init_stack(&request_pool.free_page_stack, 0);
+    init_stack(&mem_obj_pool.free_page_stack, 0);
 #endif /* !PURIFY */
 }

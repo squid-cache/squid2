@@ -144,7 +144,7 @@ static int icpStateFree(fd, icpState)
 	icpState->entry = NULL;
     }
     if (icpState->request && --icpState->request->link_count == 0)
-	safe_free(icpState->request);
+	put_free_request_t(icpState->request);
     icpFreeBufOrPage(icpState);
     safe_free(icpState);
     return 0;			/* XXX gack, all comm handlers return ints */
@@ -862,7 +862,7 @@ int icpHandleUdp(sock, not_used)
 	    icp_request->host,
 	    icp_request->port,
 	    icp_request->urlpath);
-	safe_free(icp_request);
+	put_free_request_t(icp_request);
 	if (!allow) {
 	    debug(12, 2, "icpHandleUdp: Access Denied for %s.\n",
 		inet_ntoa(from.sin_addr));

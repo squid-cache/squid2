@@ -64,7 +64,7 @@ static void protoDataFree(protoData)
      protodispatch_data *protoData;
 {
     if (--protoData->request->link_count == 0)
-	safe_free(protoData->request);
+	put_free_request_t(protoData->request);
     safe_free(protoData);
 }
 
@@ -387,7 +387,7 @@ int getFromCache(fd, entry, e, request)
     /* We only need entry->mem_obj->request to get us through the pinging */
     if (entry->mem_obj->request) {
 	if (--entry->mem_obj->request->link_count == 0)
-	    safe_free(entry->mem_obj->request);
+	    put_free_request_t(entry->mem_obj->request);
 	entry->mem_obj->request = NULL;
     }
     /*

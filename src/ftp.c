@@ -66,7 +66,7 @@ static int ftpStateFree(fd, ftpState)
 	ftpState->icp_page_ptr = NULL;
     }
     if (--ftpState->request->link_count == 0)
-	safe_free(ftpState->request);
+	put_free_request_t(ftpState->request);
     xfree(ftpState);
     return 0;
 }
