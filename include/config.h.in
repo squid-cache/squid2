@@ -75,7 +75,7 @@
 #elif defined(__hpux)                           /* HP-UX - SysV-like? */
 #define _SQUID_HPUX_
 #define _SQUID_SYSV_
-#ifdef __STDC__
+#if defined(__STDC__) && !defined(__STRICT_ANSI__)
 #define __STRICT_ANSI__
 #endif
 
@@ -94,9 +94,14 @@
 #elif defined(__FreeBSD__)			/* FreeBSD */
 #define _SQUID_FREEBSD_
 
-#elif defined(__sgi__)	|| defined(sgi)		/* SGI */
+#elif defined(__sgi__)	|| defined(sgi) || defined(__sgi) /* SGI */
 #define _SQUID_SGI_
+#if !defined(__STRICT_ANSI__)
 #define __STRICT_ANSI__
+#endif
+#if !defined(_SVR4_SOURCE)
+#define _SVR4_SOURCE		/* for tempnam(3) */
+#endif
 #if USE_ASYNC_IO
 #define _ABI_SOURCE
 #endif /* USE_ASYNC_IO */

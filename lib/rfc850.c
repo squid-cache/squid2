@@ -236,7 +236,8 @@ parse_rfc850(char *str)
     /* some systems do not have tm_gmtoff so we fake it */
     t = mktime(&tm);
     {
-	int dst = 0;
+	time_t dst = 0;
+	extern time_t timezone;
 	/*
 	 * The following assumes a fixed DST offset of 1 hour,
 	 * which is probably wrong.

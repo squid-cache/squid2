@@ -193,30 +193,35 @@ typedef struct _MemObject {
     void *swapin_complete_data;
 } MemObject;
 
-typedef enum {
+enum {
     NOT_IN_MEMORY,
     SWAPPING_IN,
     IN_MEMORY
-} mem_status_t;
+};
 
-typedef enum {
+enum {
     PING_WAITING,
     PING_TIMEOUT,
     PING_DONE,
     PING_NONE
-} ping_status_t;
+};
 
-typedef enum {
+enum {
     STORE_OK,
     STORE_PENDING,
     STORE_ABORTED
-} store_status_t;
+};
 
-typedef enum {
+enum {
     NO_SWAP,
     SWAPPING_OUT,
     SWAP_OK
-} swap_status_t;
+};
+
+typedef unsigned int store_status_t;
+typedef unsigned int mem_status_t;
+typedef unsigned int ping_status_t;
+typedef unsigned int swap_status_t;
 
 extern char *memStatusStr[];
 extern char *pingStatusStr[];

@@ -107,12 +107,13 @@
 
 typedef int (*IPH) (int, struct hostent *, void *);
 
-typedef enum {
+enum {
     IP_CACHED,
     IP_NEGATIVE_CACHED,
     IP_PENDING,			/* waiting to be dispatched */
     IP_DISPATCHED		/* waiting for reply from dnsserver */
-} ipcache_status_t;
+};
+typedef unsigned int ipcache_status_t;
 
 #define IP_BLOCKING_LOOKUP	0x01
 #define IP_LOOKUP_IF_MISS	0x02

@@ -33,14 +33,15 @@
 #define MAX_URL  4096
 #define MAX_LOGIN_SZ  128
 
-typedef enum {
+enum {
     METHOD_NONE,		/* 000 */
     METHOD_GET,			/* 001 */
     METHOD_POST,		/* 010 */
     METHOD_PUT,			/* 011 */
     METHOD_HEAD,		/* 100 */
     METHOD_CONNECT		/* 101 */
-} method_t;
+};
+typedef unsigned int method_t;
 
 extern char *RequestMethodStr[];
 
