@@ -178,7 +178,9 @@ rusage_cputime(struct rusage *r)
 int
 rusage_maxrss(struct rusage *r)
 {
-#if defined(_SQUID_SGI_)
+#if defined(_SQUID_SGI_) && _ABIAPI
+    return r->ru_pad[0];
+#elif defined(_SQUID_SGI_)
     return r->ru_maxrss;
 #elif defined(_SQUID_OSF_)
     return r->ru_maxrss;
@@ -196,7 +198,11 @@ rusage_maxrss(struct rusage *r)
 int
 rusage_pagefaults(struct rusage *r)
 {
+#if defined(_SQUID_SGI_) && _ABIAPI
+    return r->ru_pad[5];
+#else
     return r->ru_majflt;
+#endif
 }
 
 
