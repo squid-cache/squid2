@@ -1976,11 +1976,7 @@ icpDetectClientClose(int fd, void *data)
 	    COMM_SELECT_READ,
 	    (PF) icpDetectClientClose,
 	    (void *) icpState, 0);
-#if PURIFY
-    } else if (n <= 0) {
-#else
     } else if (n < 0) {
-#endif
 	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
 	debug(12, 5, "--> URL '%s'\n", icpState->url);
 	if (errno == ECONNRESET)
