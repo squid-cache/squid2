@@ -157,7 +157,7 @@ basicGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     {SYSMIB};
     int mibRootLen = LEN_SYSMIB;
     oid mibTail[LEN_SYSMIB + 1] =
-    {SYSMIB, SYS_END - 1};
+    {SYSMIB, SYSMIB_END - 1};
 
     retFn = genericGetNextFn(Src, SrcLen, Dest, DestLen,
 	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_basicFn,
