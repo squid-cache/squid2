@@ -922,6 +922,10 @@ httpSendRequestEntry(int fd, char *bufnotused, size_t size, int errflag, void *d
 	comm_close(fd);
 	return;
     }
+    if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+	comm_close(fd);
+	return;
+    }
     pumpStart(fd, httpState->fwd, httpSendRequestEntryDone, httpState);
 }
 
