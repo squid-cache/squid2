@@ -833,7 +833,7 @@ parseIPLine(ip_acl ** list)
 }
 
 static void
-parseWordlist(wordlist **list)
+parseWordlist(wordlist ** list)
 {
     char *token;
     while ((token = strtok(NULL, w_space)))

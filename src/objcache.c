@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -137,7 +138,7 @@ objcache_url_parser(char *url, char *host, char *request, char *password)
     host[0] = request[0] = password[0] = '\0';
     t = sscanf(url, "cache_object://%[^/]/%[^@]@%s", host, request, password);
     if (t < 2) {
-	debug(16,0,"Invalid Syntax: '%s', sscanf returns %d\n", url, t);
+	debug(16, 0, "Invalid Syntax: '%s', sscanf returns %d\n", url, t);
 	return -1;
     } else if (t == 2) {
 	strcpy(password, "nopassword");

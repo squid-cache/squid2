@@ -409,7 +409,7 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	return 0;
     }
     if (mem->reply->code == 0) {
-	debug(33,0,"icpHandleIMSReply: Incomplete headers for '%s'\n",
+	debug(33, 0, "icpHandleIMSReply: Incomplete headers for '%s'\n",
 	    entry->url);
 	storeRegister(entry,
 	    fd,
