@@ -157,6 +157,9 @@ debugOpenLog(const char *logfile)
 	fflush(stderr);
 	debug_log = stderr;
     }
+#if defined(_SQUID_CYGWIN_)
+    setmode(fileno(debug_log), O_TEXT);
+#endif
 }
 
 void

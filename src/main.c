@@ -844,7 +844,7 @@ watch_child(char *argv[])
 	syslog(LOG_ALERT, "setsid failed: %s", xstrerror());
     closelog();
 #ifdef TIOCNOTTY
-    if ((i = open("/dev/tty", O_RDWR)) >= 0) {
+    if ((i = open("/dev/tty", O_RDWR | O_TEXT)) >= 0) {
 	ioctl(i, TIOCNOTTY, NULL);
 	close(i);
     }
@@ -857,7 +857,7 @@ watch_child(char *argv[])
      * 1.1.3.  execvp had a bit overflow error in a loop..
      */
     /* Connect stdio to /dev/null in daemon mode */
-    nullfd = open("/dev/null", O_RDWR);
+    nullfd = open("/dev/null", O_RDWR | O_TEXT);
     dup2(nullfd, 0);
     if (opt_debug_stderr < 0) {
 	dup2(nullfd, 1);

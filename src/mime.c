@@ -294,6 +294,9 @@ mimeInit(char *filename)
     }
     if (MimeTableTail == NULL)
 	MimeTableTail = &MimeTable;
+#if defined (_SQUID_CYGWIN_)
+    setmode(fileno(fp), O_TEXT);
+#endif
     while (fgets(buf, BUFSIZ, fp)) {
 	if ((t = strchr(buf, '#')))
 	    *t = '\0';
@@ -402,7 +405,7 @@ mimeLoadIconFile(const char *icon)
     if (storeGetPublic(url, METHOD_GET))
 	return;
     snprintf(path, MAXPATHLEN, "%s/%s", Config.icons.directory, icon);
-    fd = file_open(path, O_RDONLY);
+    fd = file_open(path, O_RDONLY | O_BINARY);
     if (fd < 0) {
 	debug(25, 0) ("mimeLoadIconFile: %s: %s\n", path, xstrerror());
 	return;

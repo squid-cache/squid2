@@ -148,6 +148,9 @@ idnsParseResolvConf(void)
 	debug(78, 1) ("%s: %s\n", _PATH_RESOLV_CONF, xstrerror());
 	return;
     }
+#if defined(_SQUID_CYGWIN_)
+    setmode(fileno(fp), O_TEXT);
+#endif
     while (fgets(buf, 512, fp)) {
 	t = strtok(buf, w_space);
 	if (NULL == t)
