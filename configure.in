@@ -100,6 +100,7 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PROG_LN_S
+AC_PATH_PROG(SH, sh, /bin/sh)
 AC_PATH_PROG(FALSE, false, /usr/bin/false)
 AC_PATH_PROG(TRUE, true, /usr/bin/true)
 AC_PATH_PROG(RM, rm, $FALSE)
@@ -593,4 +594,5 @@ AC_OUTPUT(\
 	./scripts/RunAccel \
 	./src/Makefile \
 	./contrib/Makefile \
+	./icons/Makefile \
 )
