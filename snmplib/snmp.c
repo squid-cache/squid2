@@ -23,36 +23,33 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 ******************************************************************/
-#include <stdio.h>
+#include "config.h"
 
-#ifdef KINETICS
-#include "gw.h"
-#include "ab.h"
-#include "inet.h"
-#include "fp4/cmdmacro.h"
-#include "fp4/pbuf.h"
-#include "glob.h"
+#if HAVE_STDIO_H
+#include <stdio.h>
 #endif
-
-#ifdef linux
-#include <stdio.h>
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#if HAVE_STRING_H
 #include <string.h>
+#endif
+#if HAVE_CTYPE_H
 #include <ctype.h>
+#endif
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#if HAVE_GNUMALLOC_H
+#include <gnumalloc.h>
+#elif HAVE_MALLOC_H && !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
 #include <malloc.h>
 #endif
-
-#if (defined(unix) && !defined(KINETICS))
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#if HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#ifndef NULL
-#define NULL 0
-#endif
-#endif
-
-#ifdef vms
-#include <in.h>
 #endif
 
 #include "asn1.h"

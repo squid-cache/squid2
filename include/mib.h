@@ -27,17 +27,7 @@ SOFTWARE.
 #ifndef MIB_H
 #define MIB_H
 
-
-#undef _ANSI_ARGS_
-#if (defined(__STDC__) && ! defined(NO_PROTOTYPE)) || defined(USE_PROTOTYPE)
-#define _ANSI_ARGS_(x) x
-#else
-#define _ANSI_ARGS_(x) ()
-#endif
-
-
 #include "snmp_api.h"
-
 
 struct mib_system {
     char sysDescr[32];		/* textual description */
@@ -270,7 +260,7 @@ struct mib_egpNeighEntry {
 #define MIB_EGPNEIGHSTATE_CEASE		5
 
 
-extern void init_mib(void);
+extern void init_mib(const char *);
 extern void print_variable(oid *, int, struct variable_list *);
 extern char *snmp_new_prefix(char *prefix);
 #endif

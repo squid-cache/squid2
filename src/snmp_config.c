@@ -291,7 +291,7 @@ read_config()
 	/* comes from snmpd.c: */
 	extern char *snmp_configfile;
 
-	init_mib();
+	init_mib(Config.Snmp.mibPath);
 
 	if (snmp_configfile==NULL)
 		fatal("snmp.c : read_config() with a NULL snmp_configfile!\n");

@@ -19,10 +19,6 @@
 #include "snmp_api.h"
 #include "snmp_client.h"
 
-#ifndef NULL
-#define NULL 0
-#endif
-
 #include "md5.h"
 
 u_long snmpStats[SNMP_LAST_STAT + 1] =

@@ -45,9 +45,6 @@ SOFTWARE.
 #if (defined(unix) && !defined(KINETICS))
 #include <sys/types.h>
 #include <netinet/in.h>
-#ifndef NULL
-#define NULL 0
-#endif
 #endif
 
 #include "asn1.h"

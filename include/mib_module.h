@@ -54,26 +54,24 @@
  * Standard MIB modules:
  */
 
-extern void snmp_vars_init _ANSI_ARGS_((void));
-
-
+extern void snmp_vars_init (void);
 
 /*
  * Function to register a module. Called from the modules
  * specific initialization routine.
  */
 
-extern void mib_register _ANSI_ARGS_((oid * oid_base,
+extern void mib_register (oid * oid_base,
 	int oid_base_len,
 	struct variable * mib_variables,
 	int mib_variables_len,
-	int mib_variables_width));
+	int mib_variables_width);
 
 /*
  * The initialization function which calls the module specific
  * initialization functions during agent startup.
  */
 
-extern void init_modules _ANSI_ARGS_((void));
+extern void init_modules (void);
 
 #endif /* MIB_MODULE_H */

@@ -41,24 +41,6 @@
 #include "snmp_api.h"
 #include "snmp_client.h"
 
-#ifndef BSD4_3
-#define BSD4_2
-#endif
-
-#if !defined(BSD4_3) && !defined(linux) && !defined(sun)
-
-typedef long fd_mask;
-#define NFDBITS	(sizeof(fd_mask) * NBBY)	/* bits per mask */
-
-#define	FD_SET(n, p)	((p)->fds_bits[(n)/NFDBITS] |= (1 << ((n) % NFDBITS)))
-#define	FD_CLR(n, p)	((p)->fds_bits[(n)/NFDBITS] &= ~(1 << ((n) % NFDBITS)))
-#define	FD_ISSET(n, p)	((p)->fds_bits[(n)/NFDBITS] & (1 << ((n) % NFDBITS)))
-#define FD_ZERO(p)	bzero((char *)(p), sizeof(*(p)))
-#endif
-
-
-extern int errno;
-
 static struct synch_state snmp_synch_state;
 
 struct snmp_pdu *
@@ -83,6 +65,7 @@ snmp_pdu_create(command)
  * Add a null variable with the requested name to the end of the list of
  * variables for this pdu.
  */
+
 void
 snmp_add_null_var(struct snmp_pdu *pdu, oid * name, int name_length)
 {
