@@ -226,6 +226,14 @@ wccpHandleUdp(int sock, void *not_used)
 	0,
 	(struct sockaddr *) &from,
 	&from_len);
+    debug(80, 3) ("wccpHandleUdp: %d bytes WCCP pkt from %s: type=%u, version=%u, change=%u, id=%u, number=%u\n",
+	len,
+	inet_ntoa(from.sin_addr),
+	(unsigned) ntohl(wccp_i_see_you.type),
+	(unsigned) ntohl(wccp_i_see_you.version),
+	(unsigned) ntohl(wccp_i_see_you.change),
+	(unsigned) ntohl(wccp_i_see_you.id),
+	(unsigned) ntohl(wccp_i_see_you.number));
     if (len < 0)
 	return;
     if (Config.Wccp.router.s_addr != from.sin_addr.s_addr)
