@@ -422,7 +422,7 @@ delayMostBytesWanted(const MemObject * mem, int max)
 	if (sc->type != STORE_MEM_CLIENT)
 	    continue;
 	i = delayBytesWanted(sc->delay_id, i, max);
-        found = 1;
+	found = 1;
     }
     return found ? i : max;
 }

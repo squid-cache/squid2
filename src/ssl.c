@@ -150,11 +150,11 @@ sslSetSelect(SslStateData * sslState)
 	}
 #if DELAY_POOLS
 	/* If this was allowed to return 0, there would be a possibility
-         * of the socket becoming "hung" with data accumulating but no
-         * write handler (server.len==0) and no read handler (!(0<0)) and
-         * no data flowing in the other direction.  Hence the argument of
-         * 1 as min.
-         */
+	 * of the socket becoming "hung" with data accumulating but no
+	 * write handler (server.len==0) and no read handler (!(0<0)) and
+	 * no data flowing in the other direction.  Hence the argument of
+	 * 1 as min.
+	 */
 	read_sz = delayBytesWanted(sslState->request->delay_id, 1, read_sz);
 #endif
 	if (sslState->server.len < read_sz) {

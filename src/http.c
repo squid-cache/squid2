@@ -479,7 +479,7 @@ httpReadReply(int fd, void *data)
 	    httpProcessReplyHeader(httpState, buf, len);
 #ifdef PPNR_WIP
 	    if (httpState->reply_hdr_state == 2)
-	        storePPNR(entry);
+		storePPNR(entry);
 	}
 #endif /* PPNR_WIP */
 	storeAppend(entry, buf, len);

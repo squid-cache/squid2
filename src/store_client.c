@@ -288,7 +288,7 @@ storeClientFileRead(store_client * sc)
 	    storeClientReadHeader,
 	    sc);
 #ifndef OPTIMISTIC_IO
-    else {
+	else {
 #else
     } else {
 #endif

@@ -84,7 +84,7 @@ _db_print(va_alist)
     if (_db_level <= 1 && opt_syslog_enable) {
 	tmpbuf[0] = '\0';
 	vsnprintf(tmpbuf, BUFSIZ, format, args);
-	tmpbuf[BUFSIZ-1] = '\0';
+	tmpbuf[BUFSIZ - 1] = '\0';
 	syslog(_db_level == 0 ? LOG_WARNING : LOG_NOTICE, "%s", tmpbuf);
     }
 #endif /* HAVE_SYSLOG */

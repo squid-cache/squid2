@@ -449,7 +449,7 @@ enum {
     ENTRY_UNUSED_08,
 #else
     ENTRY_FWD_HDR_WAIT,
-#endif /* PPNR_WIP */
+#endif				/* PPNR_WIP */
     ENTRY_NEGCACHED,
     ENTRY_VALIDATED,
     ENTRY_BAD_LENGTH
