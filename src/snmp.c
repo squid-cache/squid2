@@ -186,7 +186,7 @@ snmpHandleUdp(int sock, void *not_used)
 	inet_ntoa(from.sin_addr));
 
     snmp_rq = xcalloc(1, sizeof(snmp_request_t));
-    snmp_rq->buf = buf;
+    snmp_rq->buf = (u_char *) buf;
     snmp_rq->len = len;
     snmp_rq->sock = sock;
     snmp_rq->outbuf = xmalloc(snmp_rq->outlen = SNMP_REQUEST_SIZE);
