@@ -38,9 +38,18 @@ char *IcpOpcodeStr[] =
     "ICP_DATAEND",
     "ICP_SECHO",
     "ICP_DECHO",
-#ifdef UDP_HIT_WITH_OBJ
+    "ICP_OP_UNUSED0",
+    "ICP_OP_UNUSED1",
+    "ICP_OP_UNUSED2",
+    "ICP_OP_UNUSED3",
+    "ICP_OP_UNUSED4",
+    "ICP_OP_UNUSED5",
+    "ICP_OP_UNUSED6",
+    "ICP_OP_UNUSED7",
+    "ICP_OP_UNUSED8",
+    "ICP_OP_UNUSED9",
+    "ICP_DENIED",
     "ICP_HIT_OBJ",
-#endif
     "ICP_END"
 };
 
@@ -138,7 +147,11 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	safe_free(protoData);
 	return 0;
     }
-    if (!protoData->query_neighbors && (e = getFirstParent(req->host))) {
+#ifdef SOMEONE_CONFIRM_THIS_WORKS
+    if (!neighbors_do_private_keys && !protoData->query_neighbors && (e = getFirstUpParent(req->host))) {
+#else
+    if (!protoData->query_neighbors && (e = getFirstUpParent(req->host))) {
+#endif
 	/* for private objects we should not ping the hierarchy (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
 	getFromCache(protoData->fd, entry, e, req);

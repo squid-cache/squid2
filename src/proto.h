@@ -35,9 +35,18 @@ typedef enum {
     ICP_OP_DATAEND,		/* last data (sv<-cl) */
     ICP_OP_SECHO,		/* echo from source (sv<-os) */
     ICP_OP_DECHO,		/* echo from dumb cache (sv<-dc) */
-#ifdef UDP_HIT_WITH_OBJ
+    ICP_OP_UNUSED0,
+    ICP_OP_UNUSED1,
+    ICP_OP_UNUSED2,
+    ICP_OP_UNUSED3,
+    ICP_OP_UNUSED4,
+    ICP_OP_UNUSED5,
+    ICP_OP_UNUSED6,
+    ICP_OP_UNUSED7,
+    ICP_OP_UNUSED8,
+    ICP_OP_UNUSED9,
+    ICP_OP_DENIED,		/* access denied (cl<-sv) */
     ICP_OP_HIT_OBJ,		/* hit with object data (cl<-sv) */
-#endif
     ICP_OP_END			/* marks end of opcodes */
 } icp_opcode;
 
