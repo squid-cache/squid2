@@ -18,7 +18,7 @@ static struct {
 	int maxObjSize;
 	int defaultTtl;
 	char *relayHost;
-	int relayPort;
+	u_short relayPort;
     } Wais;
     int negativeTtl;
     int negativeDnsTtl;
@@ -33,8 +33,8 @@ static struct {
     int maxRequestSize;
     double hotVmFactor;
     struct {
-	int ascii;
-	int udp;
+	u_short ascii;
+	u_short udp;
     } Port;
     struct {
 	char *log;
@@ -100,7 +100,7 @@ static struct {
 #define DefaultWaisDefaultTtl	(7 * 24 * 60 * 60)	/* 1 week */
 #define DefaultWaisMaxObjSize	(4 << 20)	/* 4 MB */
 #define DefaultWaisRelayHost	(char *)NULL
-#define DefaultWaisRelayPort	-1
+#define DefaultWaisRelayPort	0
 
 #define DefaultNegativeTtl	(5 * 60)	/* 5 min */
 #define DefaultNegativeDnsTtl	(2 * 60)	/* 2 min */
@@ -833,7 +833,7 @@ static void parseWAISRelayLine()
     safe_free(Config.Wais.relayHost);
     Config.Wais.relayHost = xstrdup(token);
     GetInteger(i);
-    Config.Wais.relayPort = i;
+    Config.Wais.relayPort = (u_short) i;
     GetInteger(i);
     Config.Wais.maxObjSize = i << 20;
 }
@@ -956,7 +956,9 @@ static void parseAsciiPortLine()
     char *token;
     int i;
     GetInteger(i);
-    Config.Port.ascii = i;
+    if (i< 0)
+	i = 0;
+    Config.Port.ascii = (u_short) i;
 }
 
 static void parseUdpPortLine()
@@ -964,7 +966,9 @@ static void parseUdpPortLine()
     char *token;
     int i;
     GetInteger(i);
-    Config.Port.udp = i;
+    if (i< 0)
+	i = 0;
+    Config.Port.udp = (u_short) i;
 }
 
 static void parseNeighborTimeout()
@@ -1410,7 +1414,7 @@ char *getWaisRelayHost()
 {
     return Config.Wais.relayHost;
 }
-int getWaisRelayPort()
+u_short getWaisRelayPort()
 {
     return Config.Wais.relayPort;
 }
@@ -1637,15 +1641,15 @@ wordlist *getBindAddrList()
     return Config.bind_addr_list;
 }
 
-int setAsciiPortNum(p)
-     int p;
+u_short setAsciiPortNum(port)
+     u_short port;
 {
-    return (Config.Port.ascii = p);
+    return (Config.Port.ascii = port);
 }
-int setUdpPortNum(p)
-     int p;
+u_short setUdpPortNum(port)
+     u_short port;
 {
-    return (Config.Port.udp = p);
+    return (Config.Port.udp = port);
 }
 
 

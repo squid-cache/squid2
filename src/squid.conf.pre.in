@@ -11,7 +11,7 @@
 
 #  TAG: udp_port
 #	The port number where cached will listen for ICP requests from
-#	neighbor caches.  Default is 3130.  To disable use "-1".
+#	neighbor caches.  Default is 3130.  To disable use "0".
 #	May be overridden with -u on the command line.
 #udp_port @CACHE_ICP_PORT@
 
