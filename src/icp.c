@@ -672,6 +672,11 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    urlParseProtocol(entry->url),
 	    http->out.size);
 	comm_close(fd);
+    } else if (entry->store_status == STORE_ABORTED) {
+	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
+	    urlParseProtocol(entry->url),
+	    http->out.size);
+	comm_close(fd);
     } else if (icpCheckTransferDone(http)) {
 	debug(12, 5) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
