@@ -130,9 +130,9 @@
 #		* There is also a 'cache_host_acl' tag in the ACL
 #		  section.
 
-#  TAG: neighbor_domain_type
+#  TAG: neighbor_type_domain
 #
-#	usage: neighbor_domain_type parent|sibling domain domain ...
+#	usage: neighbor_type_domain parent|sibling domain domain ...
 #
 #	Modifying the neighbor type for specific domains is now
 #	possible.  You can treat some domains differently than the the
@@ -143,8 +143,8 @@
 #
 #EXAMPLE:
 #	cache_host  parent cache.foo.org 3128 3130
-#	neighbor_domain_type cache.foo.org sibling .com .net
-#	neighbor_domain_type cache.foo.org sibling .au .de
+#	neighbor_type_domain cache.foo.org sibling .com .net
+#	neighbor_type_domain cache.foo.org sibling .au .de
 
 #  TAG:	inside_firewall
 #	This tag specifies a list of domains inside your Internet
