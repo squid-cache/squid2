@@ -10,8 +10,12 @@ Pøi pokusu o pøístup k:
 <A HREF="%U">%U</A>
 <P>
 se objevila následující chyba:
-<UL>
 <P>
+<UL>
+<LI>
+<STRONG>
 Tento cache server je právì restartován a nemù¾e obslou¾it Vá¹ po¾adavek.
 Zkuste to za chvíli znova.
+</STRONG>
+</UL>
 </P>

@@ -14,7 +14,7 @@ se objevila následující chyba:
 <LI>
 <STRONG>
 Po¾adovaný dokument se nenachází v cachi, pøièem¾ byla specifikována direktiva
-<code>only-if-cached</code>.
+<code><u>only-if-cached</u></code>.
 </STRONG>
 </UL>
 
