@@ -156,6 +156,7 @@ typedef enum {
 
 typedef struct _request {
     char *host;
+    int port;
     char *path;
     char *type;
     char *user;
@@ -771,7 +772,7 @@ state_t parse_request(r)
 
 /*
  *  do_connect()
- *  Connect to the FTP server r->host on port 21.
+ *  Connect to the FTP server r->host on r->port.
  * 
  *  Returns states:
  *    CONNECTED
@@ -797,12 +798,12 @@ state_t do_connect(r)
     h = get_host(r->host);
     memcpy(&(S.sin_addr.s_addr), h->ipaddr, h->addrlen);
     S.sin_family = AF_INET;
-    S.sin_port = htons(FTP_PORT);
+    S.sin_port = htons(r->port);
 
     if (connect(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s (port %d): %s",
-	    r->host, FTP_PORT, xstrerror());
+	    r->host, r->port, xstrerror());
 	r->rc = 3;
 	return FAIL_CONNECT;
     }
@@ -1935,6 +1936,7 @@ void usage()
     fprintf(stderr, "\t-w chars        Filename width in directory listing\n");
     fprintf(stderr, "\t-W              Wrap long filenames\n");
     fprintf(stderr, "\t-Ddbg           Debug options\n");
+    fprintf(stderr, "\t-P port         FTP Port number\n");
     fprintf(stderr, "\t-v              Version\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "usage: %s -S port\n", progname);
@@ -1953,6 +1955,7 @@ int main(argc, argv)
     int i;
     int len;
     int j, k;
+    int port = FTP_PORT;
 
     fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
@@ -2086,15 +2089,23 @@ int main(argc, argv)
 	    o_readme = 0;
 	} else if (!strcmp(*argv, "-W")) {
 	    o_list_wrap = 1;
+	} else if (!strcmp(*argv, "-P")) {
+	    if (--argc < 1)
+		usage();
+	    argv++;
+	    j = atoi(*argv);
+	    if (j > 0)
+		port = j;
+	    continue;
 	} else if (!strcmp(*argv, "-v")) {
 	    printf("%s version %s\n", progname, SQUID_VERSION);
 	    exit(0);
 	} else {
 	    usage();
 	    exit(1);
-	}
-    }
-
+	}           
+    }               
+                    
     if (argc != 6) {
 	fprintf(stderr, "Too many arguments left (%d)\n", argc);
 	usage();
@@ -2113,6 +2124,7 @@ int main(argc, argv)
     r->type = xstrdup(argv[3]);
     r->user = xstrdup(argv[4]);
     r->pass = xstrdup(argv[5]);
+    r->port = port;
     r->sfd = -1;
     r->dfd = -1;
     r->size = -1;
