@@ -46,11 +46,6 @@ void *users, *communities;
 
 static struct sockaddr_in local_snmpd;
 
-#ifdef __STDC__
-extern void (*snmplib_debug_hook) (int,char *,...);
-#else
-extern void (*snmplib_debug_hook) (va_alist);
-#endif
 
 void snmpFwd_insertPending(struct sockaddr_in *, long);
 int snmpFwd_removePending(struct sockaddr_in *, long);
@@ -59,13 +54,8 @@ extern void snmp_agent_parse(snmp_request_t *);
 
 extern int default_auth();
 extern void init_modules();
-
-#ifdef __STDC__
-void snmpSnmplibDebug(int lvl, char *fmt,...);
-#else
-void snmpSnmplibDebug(va_alist);
-#endif
-
+extern void (*snmplib_debug_hook) (int,char *);
+static void snmpSnmplibDebug(int lvl, char *buf);
 
 struct snmpUdpData {
     struct sockaddr_in address;
@@ -101,43 +91,10 @@ void snmpUdpSend(int, const struct sockaddr_in *, void *, int);
 #include "cache_snmp.h"
 
 
-#ifdef __STDC__
 void
-snmpSnmplibDebug(int lvl, char *fmt,...)
+snmpSnmplibDebug(int lvl, char *buf)
 {
-#if defined(__QNX__)
-    va_list eargs;
-#endif
-    va_list args;
-#else
-void
-snmpSnmplibDebug(va_alist)
-     va_dcl
-{
-    va_list args;
-    int lvl = 0;
-    char *fmt = NULL;
-#endif
-
-#ifdef __STDC__
-    va_start(args, fmt);
-#if defined(__QNX__)
-    va_start(eargs, fmt);
-#endif
-#else
-    va_start(args);
-    lvl = va_arg(args, int);
-    fmt = va_arg(args, char *);
-#endif
-#if defined(__QNX__)
-    debug(49, lvl) (fmt, eargs);
-#else
-    debug(49, lvl) (fmt, args);
-#endif
-#if defined(__QNX__)
-    va_end(eargs);
-#endif
-    va_end(args);
+    debug(49, lvl) ("%s", buf);
 }
 
 void
@@ -261,28 +218,54 @@ snmp_agent_parse_done(int errstat, snmp_request_t * snmp_rq)
 void
 snmpInit(void)
 {
+    wordlist *w;
+    char *buf;
+    char *tokens[10];
     snmp_intoobigs = 0;
     snmp_inbadcommunitynames = 0;
     snmp_inasnparseerrors = 0;
     snmp_inbadvalues = 0;
 
     init_agent_auth();
-    assert(Config.Snmp.mibPath);
+    assert(NULL != Config.Snmp.mibPath);
     snmplib_debug_hook = snmpSnmplibDebug;
 
     if (Mib == NULL) {
-	debug(49, 5) ("init_mib: calling with %s\n", Config.Snmp.mibPath);
+	debug(49, 3) ("init_mib: calling with %s\n", Config.Snmp.mibPath);
 	init_mib(Config.Snmp.mibPath);
     }
+    if (Mib == NULL) {
+	debug(49,0)("WARNING: Failed to open MIB '%s'\n",
+	    Config.Snmp.mibPath);
+	return;
+    }
+    /*
+     * Process 'snmp_agent_conf' lines
+     */
+    for (w = Config.Snmp.snmpconf; w != NULL; w = w->next) {
+	buf = xstrdup(w->key);
+	tokenize(buf, tokens, 10);
+	if (0 == strcmp("view", tokens[0])) {
+	    if (create_view(tokens) < 0)
+		debug(49, 1) ("snmpInit: error parsing '%s'\n", w->key);
+	} else if (0 == strcmp("user", tokens[0])) {
+	    if (create_user(tokens) < 0)
+		debug(49, 1) ("snmpInit: error parsing '%s'\n", w->key);
+	} else if (0 == strcmp("community", tokens[0])) {
+	    if (create_community(tokens) < 0)
+		debug(49, 1) ("snmpInit: error parsing '%s'\n", w->key);
+	} else {
+	    debug(49, 1) ("snmpInit: error parsing '%s'\n", w->key);
+	}
+	safe_free(buf);
+    }
     if (!Config.Snmp.communities)
-	debug(49, 2) ("snmpInit: WARNING:communities not defined yet!\n");
+	debug(49, 2) ("snmpInit: WARNING: communities not defined yet!\n");
     else
 	debug(49, 5) ("snmpInit: communities defined.\n");
-    if (default_auth() < 0)
-	exit(2);
-
-    return;
+    assert(0 <= default_auth());
 }
+
 void
 snmpConnectionOpen(void)
 {
