@@ -409,6 +409,8 @@ icpHierarchical(icpStateData * icpState)
 	return 0;
     if (BIT_TEST(request->flags, REQ_AUTH))
 	return 0;
+    if (method == METHOD_TRACE)
+	return 1;
     if (method != METHOD_GET)
 	return 0;
     /* scan hierarchy_stoplist */
@@ -459,7 +461,7 @@ icpSendERROR(int fd,
     buf_len = strlen(text);
     buf_len = buf_len > 4095 ? 4095 : buf_len;
     buf = get_free_4k_page();
-    xstrncpy(buf, text, buf_len);
+    xstrncpy(buf, text, 4096);
     comm_write(fd,
 	buf,
 	buf_len,
@@ -719,7 +721,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
 		xstrdup(reply),
 		strlen(reply),
 		30,
-		icpHandleIMSComplete,
+		icpSendERRORComplete,
 		icpState,
 		xfree);
 	    return;

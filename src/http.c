@@ -888,7 +888,7 @@ proxyhttpStart(const char *url,
     request_t *request = NULL;
 
     debug(11, 3, "proxyhttpStart: \"%s %s\"\n",
-	RequestMethodStr[entry->method], url);
+	RequestMethodStr[orig_request->method], url);
     debug(11, 10, "proxyhttpStart: HTTP request header:\n%s\n",
 	entry->mem_obj->mime_hdr);
 
@@ -919,7 +919,7 @@ proxyhttpStart(const char *url,
     comm_add_close_handler(sock,
 	httpStateFree,
 	(void *) httpState);
-    request->method = entry->method;
+    request->method = orig_request->method;
     xstrncpy(request->host, e->host, SQUIDHOSTNAMELEN);
     request->port = e->http_port;
     xstrncpy(request->urlpath, url, MAX_URL);

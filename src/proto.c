@@ -499,7 +499,7 @@ protoStart(int fd, StoreEntry * entry, edge * e, request_t * request)
     int request_hdr_sz = entry->mem_obj->mime_hdr_sz;
     debug(17, 5, "protoStart: FD %d: Fetching '%s %s' from %s\n",
 	fd,
-	RequestMethodStr[entry->method],
+	RequestMethodStr[request->method],
 	entry->url,
 	e ? e->host : "source");
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
@@ -517,10 +517,10 @@ protoStart(int fd, StoreEntry * entry, edge * e, request_t * request)
     } else if (request->protocol == PROTO_FTP) {
 	return ftpStart(fd, url, request, entry);
     } else if (request->protocol == PROTO_WAIS) {
-	return waisStart(fd, url, entry->method, request_hdr, entry);
+	return waisStart(fd, url, request->method, request_hdr, entry);
     } else if (request->protocol == PROTO_CACHEOBJ) {
 	return objcacheStart(fd, url, entry);
-    } else if (entry->method == METHOD_CONNECT) {
+    } else if (request->method == METHOD_CONNECT) {
 	fatal_dump("protoStart() should not be handling CONNECT");
 	return 0;
     } else {
