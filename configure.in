@@ -73,10 +73,14 @@ dnl Set Default CFLAGS
 if test -z "$PRESET_CFLAGS"; then
     if test "$GCC" = "yes"; then
         case "$host" in
-        *-sun-sunos*|*m88k*)
+	*-sun-sunos*)
     	    # sunos has too many warnings for this to be useful
 	    # motorola too
     	    ;;
+	*m88k*)
+	    # Motorola cc/ld does not like -02 but is ok on -O
+	    CFLAGS=`echo $CFLAGS | sed -e 's/-O[0-9]/-O/'`
+	    ;;
         *)
     	    CFLAGS="$CFLAGS -Wall"
     	    ;;
