@@ -256,7 +256,7 @@ hash_remove_link(hash_table * hid, hash_link * hl)
 	hid->count--;
 	return;
     }
-    fatal("hash_remove_link: could not find entry");
+    assert(0);
 }
 
 /*
