@@ -1,6 +1,5 @@
 
 /*
- *
  * $Id$
  *
  * DEBUG: section 52    URN Parsing

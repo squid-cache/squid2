@@ -1,7 +1,8 @@
+
 /*
  * $Id$
  *
- * DEBUG: none
+ * DEBUG: none          Generate squid.conf and cf_parser.c
  * AUTHOR: Max Okumoto
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
