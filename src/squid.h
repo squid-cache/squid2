@@ -327,8 +327,11 @@ struct rusage {
  * request; if disabled we still can request digests from other caches
  */
 #define SQUID_MAINTAIN_CACHE_DIGEST 0
-/* must be set before using structs.h */
-/* ask peers about their digests and use them */
+
+/*
+ * ask peers about their digests and use them
+ * must be set before including structs.h
+ */
 #define SQUID_PEER_DIGEST 0
 
 #include "defines.h"
