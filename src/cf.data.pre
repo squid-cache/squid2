@@ -1016,7 +1016,10 @@ TYPE: refreshpattern
 LOC: Config.Refresh
 DEFAULT: none
 DOC_START
-	usage: refresh_pattern regex min percent max [options]
+	usage: refresh_pattern [-i] regex min percent max [options]
+
+	By default, regular expressions are CASE-SENSITIVE.  To make
+	them case-insensitive, use the -i option.
 
 	min and max are specified in MINUTES.
 	percent is an integer number.
