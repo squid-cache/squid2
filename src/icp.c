@@ -424,18 +424,12 @@ static int icpSendERROR(fd, errorCode, msg, icpState)
     port = comm_local_port(fd);
     debug(12, 4, "icpSendERROR: code %d: port %hd: msg: '%s'\n",
 	errorCode, port, msg);
-
     if (port == 0) {
 	/* This file descriptor isn't bound to a socket anymore.
 	 * It probably timed out. */
 	debug(12, 2, "icpSendERROR: COMM_ERROR msg: %80.80s\n", msg);
 	icpSendERRORComplete(fd, (char *) NULL, 0, 1, icpState);
 	return COMM_ERROR;
-    }
-    if (port != getHttpPortNum()) {
-	sprintf(tmp_error_buf, "icpSendERROR: FD %d unexpected port %hd.",
-	    fd, port);
-	fatal_dump(tmp_error_buf);
     }
     if (icpState->entry && icpState->entry->mem_obj) {
 	if (icpState->size > 0) {
@@ -1275,9 +1269,6 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	if ((entry = storeGet(key)) == NULL) {
 	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for NULL Entry.\n",
 		IcpOpcodeStr[header.opcode]);
-	} else if (entry->lock_count == 0) {
-	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for Entry without locks.\n",
-		IcpOpcodeStr[header.opcode]);
 	} else {
 	    neighborsUdpAck(fd,
 		url,
@@ -1422,9 +1413,6 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	debug(12, 3, "icpHandleIcpV3: Looking for key '%s'\n", key);
 	if ((entry = storeGet(key)) == NULL) {
 	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for NULL Entry.\n",
-		IcpOpcodeStr[header.opcode]);
-	} else if (entry->lock_count == 0) {
-	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for Entry without locks.\n",
 		IcpOpcodeStr[header.opcode]);
 	} else {
 	    neighborsUdpAck(fd,
@@ -2001,11 +1989,10 @@ static void icpDetectClientClose(fd, icpState)
 	else
 	    debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	CheckQuickAbort(icpState);
-	if (entry && icpState->url)
-	    protoUndispatch(fd, icpState->url, entry, icpState->request);
-	entry = icpState->entry;
 	if (entry && entry->ping_status == PING_WAITING)
 	    storeReleaseRequest(entry);
+	if (entry && icpState->url)
+	    protoUndispatch(fd, icpState->url, entry, icpState->request);
 	comm_close(fd);
     } else if (entry != NULL && icpState->offset == entry->object_len &&
 	entry->store_status != STORE_PENDING) {
