@@ -47,17 +47,17 @@
 
 oid_ParseFn *
 genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen,
-    oid * mibRoot, int mibRootLen, oid_GetRowFn * getRowFn, int mibRowLen, oid * mibTail,
-    oid_ParseFn * mygetFn, int mibTailLen, int mibActionIndex)
+    oid * mibRoot, int mibRootLen, oid_GetRowFn * getRowFn, int mibRowLen,
+    oid * mibTail, oid_ParseFn * mygetFn, int mibTailLen, int mibActionIndex)
 {
-    int ret;
+    int ret, i = 0;
     oid *Ptr;
-    int i = 0;
     oid nullOid[] =
     {0, 0, 0, 0, 0};
 
     debug(49, 8) ("genericGetNextFn: Called with root=%d, tail=%d index=%d, mibRowLen=%d:\n",
 	mibRootLen, mibTailLen, mibActionIndex, mibRowLen);
+
     snmpDebugOid(8, mibRoot, mibRootLen);
 
     ret = oidcmp(Src, SrcLen, mibRoot, mibRootLen);
@@ -171,43 +171,17 @@ genericGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen,
     return (mygetFn);
 }
 
-oid_ParseFn *
-basicGetFn(oid * Src, snint SrcLen)
-{
-    debug(49, 5) ("basicGetFn: called for %d\n", Src[7]);
-    if (((SrcLen == (LEN_SYSMIB + 1)) ||
-	    ((SrcLen == (LEN_SYSMIB + 2)) && (Src[LEN_SYSMIB + 1] == 0))) &&
-	(Src[LEN_SYSMIB] > 0) &&
-	(Src[LEN_SYSMIB] < SYSMIB_END))
-	return (snmp_basicFn);
-
-    return NULL;
-}
-oid_ParseFn *
-basicGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
-{
-    oid_ParseFn *retFn = NULL;
-    oid mibRoot[] =
-    {SYSMIB};
-    int mibRootLen = LEN_SYSMIB;
-    oid mibTail[LEN_SYSMIB + 1] =
-    {SYSMIB, SYSMIB_END - 1};
-
-    retFn = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_basicFn,
-	LEN_SYSMIB + 1, LEN_SYSMIB);
-
-    return retFn;
-}
-
-
+/*
+ * 
+ * The get and get next functions for the SQUID System Group 
+ * 
+ * squid.1
+ * 
+ */
 oid_ParseFn *
 sysGetFn(oid * Src, snint SrcLen)
 {
     debug(49, 5) ("sysGetFn: here! with Src[8]=%d\n", Src[8]);
-    if ((SrcLen == LEN_SQ_SYS + 4 && Src[LEN_SQ_SYS] == SYSFDTBL) ||
-	(SrcLen == LEN_SQ_SYS + 8 && Src[LEN_SQ_SYS] == SYSCONNTBL))
-	return snmp_sysFn;
     if (SrcLen != LEN_SQ_SYS + 1)
 	return NULL;
     if (Src[LEN_SQ_SYS] > 0 && Src[LEN_SQ_SYS] < 3)
@@ -223,8 +197,10 @@ sysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     {SQ_SYS};
     int mibRootLen = LEN_SQ_SYS;
     oid mibTail[LEN_SQ_SYS + 1] =
-    {SQ_SYS, 2};
+    {SQ_SYS, 3};
     oid_ParseFn *ret;
+
+    debug(49, 5) ("sysGetNextFn: Called\n");
 
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
 	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_sysFn,
@@ -232,78 +208,13 @@ sysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     return ret;
 }
 
-oid_ParseFn *
-sysFdGetFn(oid * Src, snint SrcLen)
-{
-    debug(49, 5) ("sysGetFn: here, requested: %d\n", Src[8]);
-    if (SrcLen == LEN_SQ_SYS + 4 && Src[LEN_SQ_SYS] == SYSFDTBL)
-	return snmp_sysFn;
-
-    return NULL;
-}
-
-oid_ParseFn *
-sysConnGetFn(oid * Src, snint SrcLen)
-{
-    debug(49, 5) ("sysGetFn: here, requested: %d\n", Src[8]);
-    if (SrcLen == LEN_SQ_SYS + 8 && Src[LEN_SQ_SYS] == SYSCONNTBL)
-	return snmp_sysFn;
-
-    return NULL;
-}
-
-oid_ParseFn *
-sysConnGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
-{
-    oid mibRoot[] =
-    {SQ_SYS, SYSCONNTBL};
-    int mibRootLen = LEN_SQ_SYS + 1;
-    oid mibTail[LEN_SQ_SYS + 8] =
-    {SQ_SYS, SYSCONNTBL, 1, SYS_CONN_END - 1, 0, 0, 0, 0, 0};
-    oid_ParseFn *ret;
-
-    addr2oid(*gen_getMax(), &mibTail[LEN_SQ_MESH + 3]);
-    mibTail[LEN_SQ_SYS + 7] = 0;
-
-    ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	mibRoot, mibRootLen, sysConnGetRowFn, 5, mibTail, snmp_sysFn,
-	LEN_SQ_SYS + 8, LEN_SQ_SYS + 2);
-    return ret;
-}
-
-oid_ParseFn *
-sysFdGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
-{
-    oid mibRoot[] =
-    {SQ_SYS, SYSFDTBL};
-    int mibRootLen = LEN_SQ_SYS + 1;
-    oid mibTail[LEN_SQ_SYS + 4] =
-    {SQ_SYS, SYSFDTBL, 1, SYS_FD_END - 1, 0};
-    oid_ParseFn *ret;
-
-    mibTail[LEN_SQ_SYS + 3] = fd_getMax();
-
-    ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_sysFn,
-	LEN_SQ_SYS + 4, LEN_SQ_SYS + 2);
-    return ret;
-}
-
-oid_ParseFn *
-meshGetFn(oid * Src, snint SrcLen)
-{
-    debug(49, 5) ("meshGetFn: here! with Src[8]=%d and %d\n", Src[8], SrcLen);
-
-    if (SrcLen != LEN_SQ_MESH + 7)
-	return NULL;
-    switch (Src[LEN_SQ_MESH]) {
-    case MESH_PTBL:
-	return snmp_meshPtblFn;
-    case MESH_CTBL:
-	return snmp_meshCtblFn;
-    }
-    return NULL;
-}
+/*
+ * 
+ * The get and get next functions for the SQUID Config Group
+ * 
+ * squid.2
+ * 
+ */
 
 oid_ParseFn *
 confGetFn(oid * Src, snint SrcLen)
@@ -321,6 +232,7 @@ confGetFn(oid * Src, snint SrcLen)
     }
     return snmp_confFn;
 }
+
 oid_ParseFn *
 confGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 {
@@ -353,43 +265,210 @@ confStGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     return ret;
 }
 
-int
-sysConnGetRowFn(oid * New, oid * Oid)
-{
-    int cnt = 0, act = 0;
-    int port = 0;
-    static char buf[16];
-    static fde *f = NULL;
-    static fde *ff = NULL;
+/*
+ * 
+ * The get and get next functions for the SQUID Performance Group
+ * 
+ * squid.3
+ * 
+ */
 
-    if (!Oid[0] && !Oid[1] && !Oid[2] && !Oid[3])
-	act = 1;
-    else {
-	snprintf(buf, sizeof(buf), "%d.%d.%d.%d", Oid[0], Oid[1], Oid[2], Oid[3]);
-	port = Oid[4];
-	debug(49, 9) ("sysConnGetRowFn: input [%s]:%d\n", buf, port);
+oid_ParseFn *
+prfSysGetFn(oid * Src, snint SrcLen)
+{
+    debug(49, 5) ("prfSysGetFn: called.\n");
+
+    if (SrcLen != LEN_SQ_PRF + 2 || Src[LEN_SQ_PRF + 1] >= PERF_SYS_END)
+	return NULL;
+    return snmp_prfSysFn;
+}
+
+oid_ParseFn *
+prfSysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
+{
+    oid mibRoot[] =
+    {SQ_PRF, PERF_SYS};
+    int mibRootLen = LEN_SQ_PRF + 1;
+    oid mibTail[LEN_SQ_PRF + 2] =
+    {SQ_PRF, PERF_SYS, PERF_SYS_END - 1};
+
+    debug(49, 5) ("prfSysGetNextFn: called.\n");
+
+    return genericGetNextFn(Src, SrcLen, Dest, DestLen,
+	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_prfSysFn,
+	LEN_SQ_PRF + 2, LEN_SQ_PRF + 1);
+
+}
+
+oid_ParseFn *
+prfProtoGetFn(oid * Src, snint SrcLen)
+{
+    debug(49, 5) ("prfProtoGetFn: called with %d\n", SrcLen);
+
+    if (Src[LEN_SQ_PRF + 1] == PERF_PROTOSTAT_MEDIAN && SrcLen == LEN_SQ_PRF + 5)
+	return snmp_prfProtoFn;
+
+    if (SrcLen != LEN_SQ_PRF + 3 || Src[LEN_SQ_PRF] >= PERF_PROTOSTAT_END)
+	return NULL;
+    return snmp_prfProtoFn;
+}
+
+oid_ParseFn *
+prfProtoGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
+{
+    oid mibRoot[] =
+    {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, 1, 0, 0};
+    int mibRootLen = LEN_SQ_PRF + 2;
+    oid mibTail[] =
+    {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, PERF_PROTOSTAT_AGGR_END - 1, 0, 0, 0};
+    oid_ParseFn *ret;
+
+    debug(49, 7) ("prfProtoGetNextFn: Called with %d %d %d %d: \n", Src[LEN_SQ_PRF + 1], PERF_PROTOSTAT_AGGR, SrcLen, LEN_SQ_PRF);
+    snmpDebugOid(7, Src, SrcLen);
+
+    if ((Src[LEN_SQ_PRF + 1] <= PERF_PROTOSTAT_AGGR)||(Src[LEN_SQ_PRF] == 1)||((SrcLen == 9)&&(Src[LEN_SQ_PRF]==2))) {
+	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
+	    mibRoot, mibRootLen, NULL, 1, mibTail, snmp_prfProtoFn,
+	    LEN_SQ_PRF + 3, LEN_SQ_PRF + 2);
+	if (ret)
+	    return ret;
     }
-    while (cnt < Squid_MaxFD) {
-	f = &fd_table[cnt++];
-	if (!f->open)
-	    continue;
-	if (f->type == FD_SOCKET && f->remote_port != 0) {
-	    debug(49, 9) ("sysConnGetRowFn: now [%s]:%d\n", f->ipaddr, f->remote_port);
-	    if (ff)
-		debug(49, 9) ("sysConnGetRowFn: prev [%s]:%d\n", ff->ipaddr, ff->remote_port);
-	    if (act || (ff && !strcmp(ff->ipaddr, buf) && (port == ff->remote_port)))
-		break;
-	    ff = f;
-	}
+    mibRoot[LEN_SQ_PRF + 1] = PERF_PROTOSTAT_MEDIAN;
+    mibRoot[LEN_SQ_PRF + 2] = 1;
+    mibRoot[LEN_SQ_PRF + 3] = 1;
+    mibRootLen += 1;
+    mibTail[LEN_SQ_PRF + 1] = PERF_PROTOSTAT_MEDIAN;
+    mibTail[LEN_SQ_PRF + 2] = 1;
+    mibTail[LEN_SQ_PRF + 3] = PERF_MEDIAN_END - 1;
+    mibTail[LEN_SQ_PRF + 4] = N_COUNT_HIST - 1;
+
+    ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
+	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_prfProtoFn,
+	LEN_SQ_PRF + 5, LEN_SQ_PRF + 3);
+
+    return ret;
+}
+
+/*
+ * 
+ * The get and get next functions for the SQUID Network Group 
+ * 
+ * squid.4
+ * 
+ */
+
+oid_ParseFn *
+netIpGetFn(oid * Src, snint SrcLen)
+{
+    debug(49, 5) ("netIpGetFn: here! with Src[8]=%d\n", Src[8]);
+    if (SrcLen != LEN_SQ_NET + 2)
+        return NULL;
+    if (Src[LEN_SQ_NET] == 1)
+        return snmp_netIpFn;
+
+    return NULL;
+}
+
+oid_ParseFn *
+netFqdnGetFn(oid * Src, snint SrcLen)
+{
+    debug(49, 5) ("netFqdnGetFn: here! with Src[8]=%d\n", Src[8]);
+    if (SrcLen != LEN_SQ_NET + 2)
+        return NULL;
+    if (Src[LEN_SQ_NET] == 2)                      
+        return snmp_netFqdnFn;
+    
+    return NULL;
+}
+
+oid_ParseFn *
+netDnsGetFn(oid * Src, snint SrcLen)
+{  
+    debug(49, 5) ("netDnsGetFn: here! with Src[8]=%d\n", Src[8]);
+    if (SrcLen != LEN_SQ_NET + 2)
+        return NULL;
+    if (Src[LEN_SQ_NET] == 3)                      
+        return snmp_netDnsFn;
+    
+    return NULL;
+}
+
+oid_ParseFn *
+netIpGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
+{
+    oid mibRoot[] = 
+    {SQ_NET, 1};
+    int mibRootLen = LEN_SQ_NET + 1;
+    oid mibTail[LEN_SQ_NET + 2] =
+    {SQ_NET, 1, 9};
+    oid_ParseFn *ret;
+
+    debug(49, 5) ("netIpGetNextFn: Called\n");
+         
+    ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
+        mibRoot, mibRootLen, NULL, 1, mibTail, snmp_netIpFn,
+        LEN_SQ_NET + 2, LEN_SQ_NET + 1);
+    return ret;
+}
+
+oid_ParseFn *
+netFqdnGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
+{
+    oid mibRoot[] =
+    {SQ_NET, 2};
+    int mibRootLen = LEN_SQ_NET + 1;
+    oid mibTail[LEN_SQ_NET + 2] =
+    {SQ_NET, 2, 8};
+    oid_ParseFn *ret;
+   
+    debug(49, 5) ("netFqdnGetNextFn: Called\n");
+   
+    ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
+        mibRoot, mibRootLen, NULL, 1, mibTail, snmp_netFqdnFn,
+        LEN_SQ_NET + 2, LEN_SQ_NET + 1);  
+    return ret;
+}
+
+oid_ParseFn *
+netDnsGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
+{
+    oid mibRoot[] =
+    {SQ_NET, 3};
+    int mibRootLen = LEN_SQ_NET + 1;
+    oid mibTail[LEN_SQ_NET + 2] =
+    {SQ_NET, 3, 3};
+    oid_ParseFn *ret;
+   
+    debug(49, 5) ("netDnsGetNextFn: Called\n");
+   
+    ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
+        mibRoot, mibRootLen, NULL, 1, mibTail, snmp_netDnsFn,
+        LEN_SQ_NET + 2, LEN_SQ_NET + 1);  
+    return ret;
+}
+
+/*
+ * 
+ * The get and get next functions for the SQUID Mesh Group 
+ * 
+ * squid.5
+ * 
+ */
+
+oid_ParseFn *
+meshGetFn(oid * Src, snint SrcLen)
+{
+    debug(49, 5) ("meshGetFn: here! with Src[8]=%d and %d\n", Src[8], SrcLen);
+
+    if (SrcLen != LEN_SQ_MESH + 7)
+	return NULL;
+    switch (Src[LEN_SQ_MESH]) {
+    case MESH_PTBL:
+	return snmp_meshPtblFn;
+    case MESH_CTBL:
+	return snmp_meshCtblFn;
     }
-    if (!f || f->type != FD_SOCKET || !f->ipaddr) {
-	debug(49, 9) ("sysConnGetRowFn: returning 0\n", buf);
-	return 0;
-    }
-    debug(49, 9) ("sysConnGetRowFn: returning [%s]:%d\n", f->ipaddr, f->remote_port);
-    sscanf(f->ipaddr, "%d.%d.%d.%d", &New[0], &New[1], &New[2], &New[3]);
-    New[4] = f->remote_port;
-    return 1;
+    return NULL;
 }
 
 int
@@ -445,7 +524,8 @@ meshPtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 	    LEN_SQ_MESH + 7, LEN_SQ_MESH + 2);
     } else {
 	ret = NULL;
-    }
+    } 
+
     return ret;
 }
 
@@ -465,160 +545,5 @@ meshCtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
 	mibRoot, mibRootLen, meshCtblGetRowFn, 4, mibTail, snmp_meshCtblFn,
 	LEN_SQ_MESH + 7, LEN_SQ_MESH + 2);
-    return ret;
-}
-
-oid_ParseFn *
-prfSysGetFn(oid * Src, snint SrcLen)
-{
-    debug(49, 5) ("prfSysGetFn: called.\n");
-
-    if (SrcLen != LEN_SQ_PRF + 2 || Src[LEN_SQ_PRF + 1] >= PERF_SYS_END)
-	return NULL;
-    return snmp_prfSysFn;
-}
-
-oid_ParseFn *
-prfSysGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
-{
-    oid mibRoot[] =
-    {SQ_PRF, PERF_SYS};
-    int mibRootLen = LEN_SQ_PRF + 1;
-    oid mibTail[LEN_SQ_PRF + 2] =
-    {SQ_PRF, PERF_SYS, PERF_SYS_END - 1};
-
-    debug(49, 5) ("prfSysGetNextFn: called.\n");
-
-    return genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_prfSysFn,
-	LEN_SQ_PRF + 2, LEN_SQ_PRF + 1);
-
-}
-
-oid_ParseFn *
-prfProtoGetFn(oid * Src, snint SrcLen)
-{
-    debug(49, 5) ("prfProtoGetFn: called with %d\n", SrcLen);
-
-    if (Src[LEN_SQ_PRF + 1] == PERF_PROTOSTAT_MEDIAN && SrcLen == LEN_SQ_PRF + 5)
-	return snmp_prfProtoFn;
-
-    if (SrcLen != LEN_SQ_PRF + 3 || Src[LEN_SQ_PRF] >= PERF_PROTOSTAT_END)
-	return NULL;
-    return snmp_prfProtoFn;
-}
-
-oid_ParseFn *
-prfProtoGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
-{
-    oid mibRoot[] =
-    {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, 1, 0, 0};
-    int mibRootLen = LEN_SQ_PRF + 2;
-    oid mibTail[] =
-    {SQ_PRF, PERF_PROTO, PERF_PROTOSTAT_AGGR, PERF_PROTOSTAT_AGGR_END - 1, 0, 0, 0};
-    oid_ParseFn *ret;
-
-    if (Src[LEN_SQ_PRF + 1] <= PERF_PROTOSTAT_AGGR) {
-	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	    mibRoot, mibRootLen, NULL, 1, mibTail, snmp_prfProtoFn,
-	    LEN_SQ_PRF + 3, LEN_SQ_PRF + 2);
-	if (ret)
-	    return ret;
-    }
-    mibRoot[LEN_SQ_PRF + 1] = PERF_PROTOSTAT_MEDIAN;
-    mibRoot[LEN_SQ_PRF + 2] = 1;
-    mibRoot[LEN_SQ_PRF + 3] = 1;
-    mibRootLen += 1;
-    mibTail[LEN_SQ_PRF + 1] = PERF_PROTOSTAT_MEDIAN;
-    mibTail[LEN_SQ_PRF + 2] = 1;
-    mibTail[LEN_SQ_PRF + 3] = PERF_MEDIAN_END - 1;
-    mibTail[LEN_SQ_PRF + 4] = N_COUNT_HIST - 1;
-
-    ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_prfProtoFn,
-	LEN_SQ_PRF + 5, LEN_SQ_PRF + 3);
-
-    return ret;
-}
-
-
-oid_ParseFn *
-netdbGetFn(oid * Src, snint SrcLen)
-{
-    debug(49, 5) ("netdbGetFn: called with %d %p\n", SrcLen, Src);
-    if (SrcLen != LEN_SQ_PRF + 7)
-	return NULL;
-
-    return snmp_netdbFn;
-}
-
-oid_ParseFn *
-netdbGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
-{
-    oid mibRoot[] =
-    {SQ_NET, NET_NETDBTBL, 1};
-    int mibRootLen = LEN_SQ_NET + 2;
-    oid mibTail[LEN_SQ_SYS + 7] =
-    {SQ_NET, NET_NETDBTBL, 1, NETDB_END - 1, 0, 0, 0, 0};
-    oid_ParseFn *ret;
-
-    debug(49, 6) ("netdbGetNextFn: called\n", SrcLen);
-    addr2oid(*gen_getMax(), &mibTail[LEN_SQ_MESH + 3]);
-
-    ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	mibRoot, mibRootLen, netdbGetRowFn, 4, mibTail, snmp_netdbFn,
-	LEN_SQ_NET + 7, LEN_SQ_NET + 2);
-    return ret;
-}
-
-oid_ParseFn *
-dnsGetFn(oid * Src, snint SrcLen)
-{
-    debug(49, 6) ("dnsGetFn: called\n");
-    if (SrcLen != LEN_SQ_NET + 5)
-	return NULL;
-
-    return snmp_dnsFn;
-}
-
-oid_ParseFn *
-dnsGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
-{
-    oid mibRoot[] =
-    {SQ_NET, NET_DNS, NET_DNS_IPCACHE, 1, 1};
-    int mibRootLen = LEN_SQ_NET + 3;
-    oid mibTail[LEN_SQ_NET + 5] =
-    {SQ_NET, NET_DNS, NET_DNS_IPCACHE, 1, NET_IPC_END - 1, 0};
-    oid_ParseFn *ret;
-    int max;
-
-    debug(49, 6) ("dnsGetNextFn: called\n");
-    if (Src[LEN_SQ_NET + 1] <= NET_DNS_IPCACHE) {
-	/* number of ip cache entries */
-	max = ipcache_getMax();
-	if (!max)
-	    return NULL;
-
-	mibTail[LEN_SQ_NET + 4] = max;
-	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	    mibRoot, mibRootLen, NULL, 1, mibTail, snmp_dnsFn,
-	    LEN_SQ_NET + 5, LEN_SQ_NET + 3);
-	if (ret)
-	    return ret;
-    }
-    max = fqdn_getMax();
-    if (!max)
-	return NULL;
-
-    mibRoot[LEN_SQ_NET + 1] = NET_DNS_FQDNCACHE;
-    mibTail[LEN_SQ_NET + 4] = max;
-    mibTail[LEN_SQ_NET + 3] = NET_FQDN_END - 1;
-    mibTail[LEN_SQ_NET + 1] = NET_DNS_FQDNCACHE;
-
-    /* number of fqdn cache entries */
-    mibTail[LEN_SQ_NET + 4] = fqdn_getMax();
-    ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	mibRoot, mibRootLen, NULL, 1, mibTail, snmp_dnsFn,
-	LEN_SQ_NET + 5, LEN_SQ_NET + 3);
     return ret;
 }
