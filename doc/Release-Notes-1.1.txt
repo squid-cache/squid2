@@ -10,6 +10,7 @@ TABLE OF CONTENTS:
 	URL Redirector
 	Reverse IP Lookups, client hostname ACLs.
 	Cache directory structure changes
+        Getting true DNS TTL info into Squid's IP cache
 
 Ident (RFC 931) lookups
 ==============================================================================
@@ -134,3 +135,42 @@ two level structure with 16 first-level directories, and 256 second
 level directories.  In addition, directory and file names are in
 hexadecimal, and fixed length.  These changes mean that Squid-1.1 will
 fail to reload metadata from a Squid-1.0 swap log.
+
+
+Getting true DNS TTL info into Squid's IP cache
+==============================================================================
+If you have source for BIND, you can modify it as indicated in the diff
+below.  It causes the global variable _dns_ttl_ to be set with the TTL
+of the most recent lookup.  Then, when you compile Squid, the configure
+script will look for the _dns_ttl_ symbol in libresolv.a.  If found, 
+dnsserver will return the TTL value for every lookup.
+
+This hack was contributed by Endre Balint Nagy <bne@CareNet.hu>
+
+--- /usr/src/bind-4.9.4-p1/res/gethnamaddr.c    Mon Aug  5 10:31:35 1996
++++ gethnamaddr.c       Sun Aug 25 07:48:39 1996
+@@ -133,7 +133,7 @@
+ } align;
+ 
+ extern int h_errno;
+-
++int _dns_ttl_;
+ #ifdef DEBUG
+ static void
+ dprintf(msg, num)
+@@ -232,8 +232,12 @@
+                cp += n;                        /* name */
+                type = _getshort(cp);
+                cp += INT16SZ;                  /* type */
+-               class = _getshort(cp);
+-               cp += INT16SZ + INT32SZ;        /* class, TTL */
++               class = _getshort(cp);  
++               cp += INT16SZ;                  /* class */
++               if (qtype == T_A  && type == T_A) {
++                       _dns_ttl_ = _getlong(cp);
++               }
++               cp += INT32SZ;                  /* TTL */
+                n = _getshort(cp);
+                cp += INT16SZ;                  /* len */
+                if (class != C_IN) {
+
