@@ -2714,7 +2714,7 @@ main(int argc, char *argv[])
 	case 'v':
 	    printf("%s version %s\n", progname, SQUID_VERSION);
 	    exit(0);
-           /* NOTREACHED */
+	    /* NOTREACHED */
 	case 'w':
 	    o_list_width = atoi(optarg);
 	    break;

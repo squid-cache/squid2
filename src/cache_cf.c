@@ -129,15 +129,15 @@ struct SquidConfig Config;
 #define DefaultConnectTimeout	(2 * 60)	/* 2 min */
 #define DefaultCleanRate	-1	/* disabled */
 #define DefaultDnsChildren	5	/* 5 processes */
-#define DefaultOptionsResDefnames 0    /* default off */
-#define DefaultOptionsAnonymizer  0    /* default off */
+#define DefaultOptionsResDefnames 0	/* default off */
+#define DefaultOptionsAnonymizer  0	/* default off */
 #define DefaultRedirectChildren	5	/* 5 processes */
 #define DefaultMaxRequestSize	(100 << 10)	/* 100Kb */
 
 #define DefaultHttpPortNum	CACHE_HTTP_PORT
 #define DefaultIcpPortNum	CACHE_ICP_PORT
 
-#define DefaultLogLogFqdn      0       /* default off */
+#define DefaultLogLogFqdn      0	/* default off */
 #define DefaultCacheLogFile	DEFAULT_CACHE_LOG
 #define DefaultAccessLogFile	DEFAULT_ACCESS_LOG
 #define DefaultUseragentLogFile	(char *)NULL	/* default NONE */
@@ -202,7 +202,7 @@ struct SquidConfig Config;
 #define DefaultLevelOneDirs	16
 #define DefaultLevelTwoDirs	256
 #define DefaultOptionsLogUdp	1	/* on */
-#define DefaultOptionsEnablePurge 0    /* default off */
+#define DefaultOptionsEnablePurge 0	/* default off */
 
 int httpd_accel_mode = 0;	/* for fast access */
 const char *DefaultSwapDir = DEFAULT_SWAP_DIR;
