@@ -344,7 +344,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	/* Have to look up the url address so we can compare it */
 	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
-        protoData->ip_lookup_pending = 1;
+	protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -360,7 +360,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     } else if (matchLocalDomain(request->host) || !protoData->hierarchical) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
-        protoData->ip_lookup_pending = 1;
+	protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -368,7 +368,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     } else if (protoData->n_peers == 0) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
-        protoData->ip_lookup_pending = 1;
+	protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -377,7 +377,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	/* Have to look up the url address so we can compare it */
 	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
-        protoData->ip_lookup_pending = 1;
+	protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -393,7 +393,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	/* will use ping resolution */
 	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
-        protoData->ip_lookup_pending = 1;
+	protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,

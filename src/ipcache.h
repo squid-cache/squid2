@@ -135,7 +135,7 @@ typedef struct _ipcache_entry {
     char *error_message;
 #ifdef _SQUID_LINUX_
     /* empirical tweaking seems to indicate this fixes problems
-       on some linuxes */
+     * on some linuxes */
     int locks;
     ipcache_status_t status;
 #else
