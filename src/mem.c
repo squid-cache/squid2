@@ -244,7 +244,6 @@ memInit(void)
     memDataInit(MEM_IPCACHE_ENTRY, "ipcache_entry", sizeof(ipcache_entry), 0);
     memDataInit(MEM_MEMOBJECT, "MemObject", sizeof(MemObject),
 	Squid_MaxFD >> 3);
-    memDataInit(MEM_MEM_HDR, "mem_hdr", sizeof(mem_hdr), 0);
     memDataInit(MEM_MEM_NODE, "mem_node", sizeof(mem_node), 0);
     memDataInit(MEM_NETDBENTRY, "netdbEntry", sizeof(netdbEntry), 0);
     memDataInit(MEM_NET_DB_NAME, "net_db_name", sizeof(net_db_name), 0);
