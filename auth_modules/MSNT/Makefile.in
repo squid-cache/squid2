@@ -50,11 +50,15 @@ CFLAGS 		= $(AC_CFLAGS) $(INCLUDE) $(DEFINES)
 AUTH_LIBS	= $(XTRA_LIBS)
 
 LIBPROGS        = $(AUTH_EXE)
-OBJS            = md4.o rfcnb-io.o rfcnb-util.o session.o msntauth.o \
-		  smbdes.o smbencrypt.o smblib-util.o smblib.o \
-		  valid.o denyusers.o allowusers.o confload.o
+OBJS            = allowusers.o md4.o rfcnb-util.o smbencrypt.o \
+		 usersfile.o confload.o msntauth.o session.o \
+		smblib.o valid.o denyusers.o rfcnb-io.o smbdes.o \
+		smblib-util.o
 
 all:    $(AUTH_EXE)
+
+confload.o: $(srcdir)/confload.c
+	$(CC) -c $(CFLAGS) -DSYSCONFDIR=\"$(sysconfdir)\" $(srcdir)/confload.c -o confload.o
 
 $(AUTH_EXE): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(AUTH_LIBS)
