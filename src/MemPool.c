@@ -251,7 +251,7 @@ void
 memPoolDescribe(const MemPool * pool)
 {
     assert(pool);
-    debug(63, 0) ("%-20s: %6d x %4d bytes = %5d KB\n",
+    debug(63, 1) ("%-20s: %6d x %4d bytes = %5d KB\n",
 	pool->label, memPoolInUseCount(pool), pool->obj_size,
 	toKB(memPoolInUseSize(pool)));
 }
