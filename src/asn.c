@@ -186,6 +186,8 @@ asnCacheStart(int as)
     k = storeKeyPublic(asres, METHOD_GET);
     asState->as_number = as;
     asState->request = urlParse(METHOD_GET, asres);
+    asState->request->headers = xstrdup("\r\n");
+    asState->request->headers_sz = strlen(asState->request->headers);
     if ((e = storeGet(k)) == NULL) {
 	e = storeCreateEntry(asres, asres, 0, METHOD_GET);
 	storeClientListAdd(e, asState);
