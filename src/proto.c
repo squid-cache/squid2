@@ -464,6 +464,10 @@ getFromDefaultSource(int fd, StoreEntry * entry)
 	hierarchyNote(request, HIER_DIRECT, fd, request->host);
 	return protoStart(fd, entry, NULL, request);
     }
+    if ((e = getDefaultParent(request))) {
+	hierarchyNote(request, HIER_DEFAULT_PARENT, fd, e->host);
+        return protoStart(fd, entry, e, request);
+    }
     if ((e = getSingleParent(request, NULL))) {
 	/* last chance effort; maybe there was a single_parent and a ICP
 	 * packet got lost */

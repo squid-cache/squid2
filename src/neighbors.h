@@ -113,6 +113,7 @@ typedef enum {
     HIER_DIRECT,
     HIER_SIBLING_HIT,
     HIER_PARENT_HIT,
+    HIER_DEFAULT_PARENT,
     HIER_SINGLE_PARENT,
     HIER_FIRSTUP_PARENT,
     HIER_NO_PARENT_DIRECT,
@@ -151,6 +152,7 @@ struct _domain_type {
 /* bitfields for edge->options */
 #define NEIGHBOR_PROXY_ONLY 0x01
 #define NEIGHBOR_NO_QUERY   0x02
+#define NEIGHBOR_DEFAULT_PARENT   0x04
 
 #define EDGE_MAX_ADDRESSES 10
 #define RTT_AV_FACTOR      1000
@@ -158,7 +160,6 @@ struct _edge {
     char *host;
     neighbor_t type;
     struct sockaddr_in in_addr;
-    int neighbor_up;		/* 0 if no, 1 if yes */
     struct {
 	int pings_sent;
 	int pings_acked;
@@ -204,6 +205,8 @@ extern void neighbors_open _PARAMS((int));
 extern void neighborsDestroy _PARAMS((void));
 extern edge *neighborFindByName _PARAMS((const char *));
 extern void neighbors_init _PARAMS((void));
+extern edge * getDefaultParent _PARAMS((request_t * request));
+extern int neighborUp _PARAMS((edge *e));
 extern void edgeDestroy _PARAMS((edge *e));
 
 extern const char *hier_strings[];

@@ -494,6 +494,8 @@ parseCacheHostLine(void)
 	    weight = atoi(token + 7);
 	} else if (!strncasecmp(token, "ttl=", 4)) {
 	    mcast_ttl = atoi(token + 4);
+	} else if (!strncasecmp(token, "default", 7)) {
+	    options |= NEIGHBOR_DEFAULT_PARENT;
 	} else {
 	    debug(3, 0, "parseCacheHostLine: token='%s'\n", token);
 	    self_destruct();

@@ -568,7 +568,7 @@ server_list(const cacheinfo * obj, StoreEntry * sentry)
 	    e->http_port,
 	    e->icp_port);
 	storeAppendPrintf(sentry, "{Status     : %s}\n",
-	    e->neighbor_up ? "Up" : "Down");
+	    neighborUp(e) ? "Up" : "Down");
 	storeAppendPrintf(sentry, "{AVG RTT    : %d msec}\n", e->stats.rtt);
 	storeAppendPrintf(sentry, "{ACK DEFICIT: %8d}\n", e->stats.ack_deficit);
 	storeAppendPrintf(sentry, "{PINGS SENT : %8d}\n", e->stats.pings_sent);

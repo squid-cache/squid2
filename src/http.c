@@ -819,10 +819,8 @@ httpConnectDone(int fd, int status, void *data)
     StoreEntry *entry = httpState->entry;
     edge *e = NULL;
     if (status != COMM_OK) {
-	if ((e = httpState->neighbor)) {
+	if ((e = httpState->neighbor))
 	    e->last_fail_time = squid_curtime;
-	    e->neighbor_up = 0;
-	}
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	comm_close(fd);
     } else {
