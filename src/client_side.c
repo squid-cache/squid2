@@ -1503,7 +1503,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
     int done;
     http->out.size += size;
     debug(33, 5) ("clientWriteComplete: FD %d, sz %d, err %d, off %d, len %d\n",
-	fd, size, errflag, (int) http->out.offset, objectLen(entry));
+	fd, size, errflag, (int) http->out.offset, entry ? objectLen(entry) : 0);
     if (size > 0) {
 	kb_incr(&Counter.client_http.kbytes_out, size);
 	if (isTcpHit(http->log_type))

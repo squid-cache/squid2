@@ -995,7 +995,7 @@ struct _peer {
 	int n_times_counted;
 	int n_replies_expected;
 	int ttl;
-	u_num32 reqnum;
+	int id;
 	int flags;
     } mcast;
     PeerDigest digest;
@@ -1167,7 +1167,7 @@ struct _MemObject {
     } abort;
     char *log_url;
     dlink_node lru;
-    u_num32 reqnum;
+    int id;
     ssize_t object_sz;
     size_t swap_hdr_sz;
 };

@@ -92,21 +92,17 @@ storeKeyHashHash(const void *key, unsigned int n)
 }
 
 const cache_key *
-storeKeyPrivate(const char *url, method_t method, int num)
+storeKeyPrivate(const char *url, method_t method, int id)
 {
     static cache_key digest[MD5_DIGEST_CHARS];
     MD5_CTX M;
-    int n;
-    char key_buf[MAX_URL + 100];
-    assert(num > 0);
+    assert(id > 0);
     debug(20, 3) ("storeKeyPrivate: %s %s\n",
 	RequestMethodStr[method], url);
-    n = snprintf(key_buf, sizeof(key_buf), "%d %s %s",
-	num,
-	RequestMethodStr[method],
-	url);
     MD5Init(&M);
-    MD5Update(&M, (unsigned char *) key_buf, n);
+    MD5Update(&M, (unsigned char *) &id, sizeof(id));
+    MD5Update(&M, (unsigned char *) &method, sizeof(method));
+    MD5Update(&M, (unsigned char *) url, strlen(url));
     MD5Final(digest, &M);
     return digest;
 }
@@ -116,13 +112,9 @@ storeKeyPublic(const char *url, method_t method)
 {
     static cache_key digest[MD5_DIGEST_CHARS];
     MD5_CTX M;
-    int n;
-    char key_buf[MAX_URL + 100];
-    n = snprintf(key_buf, sizeof(key_buf), "%s %s",
-	RequestMethodStr[method],
-	url);
     MD5Init(&M);
-    MD5Update(&M, (unsigned char *) key_buf, n);
+    MD5Update(&M, (unsigned char *) &method, sizeof(method));
+    MD5Update(&M, (unsigned char *) url, strlen(url));
     MD5Final(digest, &M);
     return digest;
 }
