@@ -546,11 +546,9 @@ snmpHandleUdp(int sock, void *not_used)
 	    debug(49, 5) ("snmp: sent %d bytes to %s\n", (int) outlen,
 		inet_ntoa(from.sin_addr));
 	    for (count = 0; count < outlen; count++) {
-		debug(49, 7) ("%02X ", outbuf[count]);
-		if ((count % 16) == 15)
-		    debug(49, 7) ("\n");
+		debug(49, 7) ("%02X\n", outbuf[count]);
 	    }
-	    debug(49, 5) ("\n\n");
+	    debug(49, 5) ("DONE\n");
 	}
 #ifdef SNMP_DIRECT
 	x = comm_udp_sendto(sock,
@@ -897,14 +895,10 @@ read_main_config_file()
 	    else if (!strcmp(val, "disabled"))
 		conf_authentraps = 2;
 	    else
-		debug(49, 1) (
-		    "warning: reading config: unknown val for %s\n", key);
-
-	    debug(49, 4)
-		("added from config: snmpEnableAuthenTraps set to %s\n", val);
+		debug(49, 1) ("warning: reading config: unknown val for %s\n", key);
+	    debug(49, 4)("added from config: snmpEnableAuthenTraps set to %s\n", val);
 	} else {
-	    debug(49, 2) (
-		"warning: reading config: unknown key `%s'\n", key);
+	    debug(49, 2) ("warning: reading config: unknown key `%s'\n", key);
 	}
     }
     fclose(in);
