@@ -290,6 +290,22 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
     }
 }
 
+#ifdef HIER_EXPERIMENT
+int HierMethodHist[HIER_METHODS];
+int
+getRandomHierMethod(void)
+{
+    int i;
+    int min_meth = 0;
+    for (i=0; i<HIER_METHODS; i++) {
+	if (HierMethodHist[i] >= HierMethodHist[min_meth])
+		continue;
+	min_meth = i;
+    }
+    return min_meth;
+}
+#endif
+
 int
 protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 {
@@ -338,20 +354,25 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	protoData->default_parent ? protoData->default_parent->host : "N/A");
 
 #ifdef HIER_EXPERIMENT
-    request->hierarchy.hier_method = (int) squid_random() % HIER_METHODS;
+    request->hierarchy.hier_method = getRandomHierMethod();
+    if (protoData->n_peers == 0)
+	request->hierarchy.hier_method = HIER_METH_DIRECT;
+    if (request->hierarchy.hier_method == HIER_METH_RAND) {
+	protoData->default_parent = getRandomParent(request);
+	if (protoData->default_parent) {
+	    protoData->direct_fetch = DIRECT_NO;
+	    protoData->n_peers = 0;
+	    protoDispatchDNSHandle(fd, NULL, protoData);
+	} else {
+	    request->hierarchy.hier_method = HIER_METH_DIRECT;
+	}
+    }
     if (request->hierarchy.hier_method == HIER_METH_DIRECT) {
 	protoData->direct_fetch = DIRECT_YES;
 	protoData->n_peers = 0;
 	protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host, fd,
 	    protoDispatchDNSHandle, protoData);
-    } else if (request->hierarchy.hier_method == HIER_METH_RAND) {
-	protoData->default_parent = getRandomParent(request);
-	if (protoData->default_parent) {
-	    protoData->direct_fetch = DIRECT_NO;
-	    protoData->n_peers = 0;
-	    protoDispatchDNSHandle(fd, NULL, protoData);
-	}
     } else
 #endif
     if (Config.firewall_ip_list) {

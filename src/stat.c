@@ -1203,6 +1203,7 @@ log_append(const cacheinfo * obj,
 }
 
 #ifdef HIER_EXPERIMENT
+extern int HierMethodHist[HIER_METHODS];
 void
 log_hier_expt(struct timeval s, struct _hierarchyLogData *h)
 {
@@ -1219,6 +1220,7 @@ log_hier_expt(struct timeval s, struct _hierarchyLogData *h)
 	h->n_recv,
 	h->delay,
 	hier_strings[h->code]);
+    HierMethodHist[h->hier_method]++;
 }
 
 #endif
