@@ -1,13 +1,4 @@
 #include "squid.h"
-#include <sys/time.h>
-static unsigned long uptime_stamp;
-
-#ifndef NULL
-#define NULL 0
-#endif
-#ifndef  MIN
-#define  MIN(a,b)                     (((a) < (b)) ? (a) : (b)) 
-#endif
 
 #include "mib_module.h"
 #include "snmp_config.h"
@@ -169,34 +160,34 @@ struct variable2 {
     u_char          magic;          /* passed to function as a hint */
     char            type;           /* type of variable */
     u_short         acl;            /* access control list for variable */
-    u_char          *(*findVar)();  /* function that finds variable */
+    SNMPFV	    *findVar;       /* function that finds variable */
     u_char          namelen;        /* length of name below */
-    oid             name[2];       /* object identifier of variable */
+    oid             name[2];        /* object identifier of variable */
 };
 
 struct variable4 {
     u_char          magic;          /* passed to function as a hint */
     char            type;           /* type of variable */
     u_short         acl;            /* access control list for variable */
-    u_char          *(*findVar)();  /* function that finds variable */
+    SNMPFV	    *findVar;       /* function that finds variable */
     u_char          namelen;        /* length of name below */
-    oid             name[4];       /* object identifier of variable */
+    oid             name[4];        /* object identifier of variable */
 };
 
 struct variable7 {
     u_char          magic;          /* passed to function as a hint */
     char            type;           /* type of variable */
     u_short         acl;            /* access control list for variable */
-    u_char          *(*findVar)();  /* function that finds variable */
+    SNMPFV	    *findVar;       /* function that finds variable */
     u_char          namelen;        /* length of name below */
-    oid             name[7];       /* object identifier of variable */
+    oid             name[7];        /* object identifier of variable */
 };
 
 struct variable13 {
     u_char          magic;          /* passed to function as a hint */
     char            type;           /* type of variable */
     u_short         acl;            /* access control list for variable */
-    u_char          *(*findVar)();  /* function that finds variable */
+    SNMPFV	    *findVar;	    /* function that finds variable */
     u_char          namelen;        /* length of name below */
     oid             name[13];       /* object identifier of variable */
 };
@@ -371,10 +362,6 @@ mib_register (oid_base, oid_base_len, mib_variables,
   new_subtree->next = *sptr;
   *sptr = new_subtree;
 }
-  
-
-static long setSerialNo = 0;
-static int  v2EnableAuthTraps = 1;
 
 int
 in_view(name, namelen, viewIndex)
@@ -421,7 +408,7 @@ getStatPtr(oid 	  *name,
 	   u_char *type, 
 	   int    *len, 
 	   u_short *acl, int exact, 
-		int (**write_method)(),
+		SNMPWM **write_method,
 		int snmpversion,
 		int *noSuchObject,
 		int view)
@@ -432,7 +419,7 @@ getStatPtr(oid 	  *name,
     int		*len;	    /* OUT - length of matched variable */
     u_short	*acl;	    /* OUT - access control list */
     int		exact;	    /* IN - TRUE if exact match wanted */
-    int	       (**write_method)(); /* OUT - pointer to function called to set variable, otherwise 0 */
+    SNMPWM	**write_method; /* OUT - pointer to function called to set variable, otherwise 0 */
     int		 snmpversion;
     int		*noSuchObject;
     int		 view;*/

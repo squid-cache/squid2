@@ -270,13 +270,7 @@ struct mib_egpNeighEntry {
 #define MIB_EGPNEIGHSTATE_CEASE		5
 
 
-#ifndef SQUID_SNMP
 extern void init_mib(void);
-
-extern void print_variable(oid * objid,
-    int objidlen,
-    struct variable_list *variable);
-
+extern void print_variable(oid *, int, struct variable_list *);
 extern char *snmp_new_prefix(char *prefix);
-#endif
 #endif

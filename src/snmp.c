@@ -31,10 +31,9 @@
 
 #include "squid.h"
 #include "mib_module.h"		/*
-				 * * * * * * * * * * #include "snmp_config.h"
+				 * * * * * * * * * * * #include "snmp_config.h"
 				 */
 #ifdef SQUID_SNMP
-extern void sprint_objid();
 #define SNMP_REQUEST_SIZE 4096
 #define MAX_PROTOSTAT 5
 int snmp_intoobigs, snmp_inbadcommunitynames;
@@ -51,17 +50,18 @@ void snmpFwd_insertPending(struct sockaddr_in *, long);
 int snmpFwd_removePending(struct sockaddr_in *, long);
 extern int init_agent_auth();
 extern int snmp_agent_parse(char *, int, char *, int *, u_long, long *);
-/* from snmp_config.c: */
 extern int read_config();
-/* from snmp_agent.c: */
-/* from snmp.c: */
 extern void read_main_config_file();
 char *snmp_configfile;
 extern void init_modules();
+static SNMPFV var_cnf;
+#ifdef WORK_IN_PROGRESS
+static SNMPFV var_htio;
+static SNMPFV var_htst;
+#endif
+void snmpHandleUdp(int, void *);
 
 static int snmp_dump_packet;
-
-void snmpHandleUdp(int, void *);
 
 int main_config_read = 0;
 
@@ -279,15 +279,15 @@ enum {
 #define PERF_PEERSTAT_KEEPAL_S	7
 #define PERF_PEERSTAT_KEEPAL_R	8
 
-u_char *var_perfsys_entry();
-u_char *var_protostat_entry();
-u_char *var_peerstat_entry();
-u_char *var_conf_entry();
-u_char *var_netdb_entry();
-u_char *var_ipcache_entry();
-u_char *var_fqdn_entry();
-u_char *var_conf_entry();
-u_char *var_net_vars();
+SNMPFV var_perfsys_entry;
+SNMPFV var_protostat_entry;
+SNMPFV var_peerstat_entry;
+SNMPFV var_conf_entry;
+SNMPFV var_netdb_entry;
+SNMPFV var_ipcache_entry;
+SNMPFV var_fqdn_entry;
+SNMPFV var_conf_entry;
+SNMPFV var_net_vars;
 
 struct variable4 perfsys_vars[] =
 {
@@ -410,9 +410,6 @@ struct variable4 network_vars[] =
 };
 
 
-u_char *var_cnf();
-u_char *var_htio();
-u_char *var_htst();
 struct variable config_variables[] =
 {
     {CONF_ADMIN, STRING, RONLY, var_cnf, 1,
@@ -470,12 +467,11 @@ snmpHandleUdp(int sock, void *not_used)
     LOCAL_ARRAY(char, buf, SNMP_REQUEST_SIZE);
     LOCAL_ARRAY(char, outbuf, SNMP_REQUEST_SIZE);
     LOCAL_ARRAY(char, deb_line, 4096);
-    int len
+    int len;
     int outlen;
-    int x;
     snmp_dump_packet = 1;
     debug(49, 5) ("snmpHandleUdp: Initialized.\n");
-    commSetSelect(sock, COMM_SELECT_READ, (PF *) snmpHandleUdp, NULL, 0);
+    commSetSelect(sock, COMM_SELECT_READ, snmpHandleUdp, NULL, 0);
     debug(49, 5) ("snmpHandleUdp: got past select\n");
     from_len = sizeof(from);
     memset(&from, '\0', from_len);
@@ -640,14 +636,14 @@ init_snmp()
 
 u_char *
 var_cnf(struct variable * vp, oid * name, int *length,
-    int exact, int *var_len, int (**write_method) ())
+    int exact, int *var_len, SNMPWM ** write_method)
 {
     void *cp;
-    static int cnt, current;
+    peer *p = NULL;
+    static int cnt = 0;
+    static int current;
     static long long_return;
-    peer *p;
     static char snbuf[256];
-    cnt = 0;
     debug(49, 3) ("snmp: var_cnf called with magic=%d\n", vp->magic);
     debug(49, 3) ("snmp: var_cnf with (%d,%d)\n", *length, *var_len);
     sprint_objid(snbuf, name, *length);
@@ -732,91 +728,77 @@ var_cnf(struct variable * vp, oid * name, int *length,
     default:
 	return (u_char *) NULL;
     }
-
-/*
- * switch (vp->magic) {
- * case CONF_ADMIN:
- * cp = Config.adminEmail;
- * *var_len = strlen(cp);
- * return (u_char *) cp;
- * case CONF_WAISADDR:
- * case CONF_WAISPORT:
- * default:
- * return NULL;
- * } */
-
-
-
 }
 
+#ifdef WORK_IN_PROGRESS
 u_char *
 var_htst(struct variable * vp, oid * name, int *length,
-    int exact, int *var_len, int (**write_method) ())
+    int exact, int *var_len, SNMPWM ** write_method)
 {
     static proto_stat *q;
     static int cnt;
-/*
- * debug(49,3)( "var_htst: here with: (magic=%d)\n", vp->magic);
- * 
- * q = &HTTPCacheInfo->proto_stat_data[PROTO_HTTP];
- * 
- * switch (vp->magic) {
- * case 1:
- * cnt = q->kb.max;
- * *var_len = sizeof(cnt);
- * return (u_char *) & cnt;
- * case 2:
- * cnt = q->kb.min;
- * *var_len = sizeof(cnt);
- * return (u_char *) & cnt;
- * case 3:
- * cnt = q->kb.avg;
- * *var_len = sizeof(cnt);
- * return (u_char *) & cnt;
- * case 4:
- * cnt = q->kb.now;
- * *var_len = sizeof(cnt);
- * return (u_char *) & cnt;
- * case 5:
- * cnt = q->hit;
- * *var_len = sizeof(cnt);
- * return (u_char *) & cnt;
- * case 6:
- * cnt = q->miss;
- * *var_len = sizeof(cnt);
- * return (u_char *) & cnt;
- * case 7:
- * cnt = q->refcount;
- * *var_len = sizeof(cnt);
- * return (u_char *) & cnt;
- * case 8:
- * cnt = q->transferbyte;
- * *var_len = sizeof(cnt);
- * return (u_char *) & cnt;
- * default:
- * return NULL;
- * } */
+    debug(49, 3) ("var_htst: here with: (magic=%d)\n", vp->magic);
+    q = &HTTPCacheInfo->proto_stat_data[PROTO_HTTP];
+    switch (vp->magic) {
+    case 1:
+	cnt = q->kb.max;
+	*var_len = sizeof(cnt);
+	return (u_char *) & cnt;
+    case 2:
+	cnt = q->kb.min;
+	*var_len = sizeof(cnt);
+	return (u_char *) & cnt;
+    case 3:
+	cnt = q->kb.avg;
+	*var_len = sizeof(cnt);
+	return (u_char *) & cnt;
+    case 4:
+	cnt = q->kb.now;
+	*var_len = sizeof(cnt);
+	return (u_char *) & cnt;
+    case 5:
+	cnt = q->hit;
+	*var_len = sizeof(cnt);
+	return (u_char *) & cnt;
+    case 6:
+	cnt = q->miss;
+	*var_len = sizeof(cnt);
+	return (u_char *) & cnt;
+    case 7:
+	cnt = q->refcount;
+	*var_len = sizeof(cnt);
+	return (u_char *) & cnt;
+    case 8:
+	cnt = q->transferbyte;
+	*var_len = sizeof(cnt);
+	return (u_char *) & cnt;
+    default:
+	return NULL;
+    }
 }
+#endif
 
+#ifdef WORK_IN_PROGRESS
 u_char *
-var_htio(struct variable *vp, oid * name, int *length,
-    int exact, int *var_len, int (**write_method) ())
+var_htio(struct variable * vp, oid * name, int *length,
+    int exact, int *var_len, SNMPWM ** write_method)
 {
     static int cnt;
-/*
- * switch (vp->magic) {
- * case 1:
- * cnt = IOStats.Http.reads_deferred;
- * *var_len = sizeof(cnt);
- * return (u_char *) (&cnt);
- * case 2:
- * cnt = IOStats.Http.reads;
- * *var_len = sizeof(int);
- * return (u_char *) (&cnt);
- * default:
- * return NULL;
- * } */
+    switch (vp->magic) {
+    case 1:
+	cnt = IOStats.Http.reads_deferred;
+	*var_len = sizeof(cnt);
+	return (u_char *) (&cnt);
+    case 2:
+	cnt = IOStats.Http.reads;
+	*var_len = sizeof(int);
+	return (u_char *) (&cnt);
+    default:
+	return NULL;
+    }
+    /* NOTREACHED */
 }
+#endif
 
 /* port read from the configfile: */
 int conf_snmp_port = -1;
@@ -950,7 +932,7 @@ initSquidSnmp()
 	leave_suid();
 	if (theInSnmpConnection < 0)
 	    fatal("Cannot open snmp Port");
-	commSetSelect(theInSnmpConnection, COMM_SELECT_READ, (PF *) snmpHandleUdp, NULL, 0);
+	commSetSelect(theInSnmpConnection, COMM_SELECT_READ, snmpHandleUdp, NULL, 0);
 	debug(1, 1) ("Accepting SNMP connections on port %d, FD %d.\n",
 	    (int) port, theInSnmpConnection);
 	if ((addr = Config.Addrs.udp_outgoing).s_addr != no_addr.s_addr) {
@@ -966,7 +948,7 @@ initSquidSnmp()
 		fatal("Cannot open Outgoing SNMP Port");
 	    commSetSelect(theOutSnmpConnection,
 		COMM_SELECT_READ,
-		(PF *) snmpHandleUdp,
+		snmpHandleUdp,
 		NULL, 0);
 	    debug(1, 1) ("Accepting SNMP connections on port %d, FD %d.\n",
 		(int) port, theOutSnmpConnection);
@@ -999,7 +981,7 @@ snmpFwd_insertPending(struct sockaddr_in *ad, long reqid)
     struct snmpFwdQueue *new;
 
     new = (struct snmpFwdQueue *) xcalloc(1, sizeof(struct snmpFwdQueue));
-    memcpy(&new->addr, ad, sizeof(struct sockaddr_in));
+    xmemcpy(&new->addr, ad, sizeof(struct sockaddr_in));
     new->req_id = reqid;
     new->req_time = squid_curtime;
     if (snmpHead == NULL) {
@@ -1017,7 +999,7 @@ snmpFwd_removePending(struct sockaddr_in *fr, long reqid)
 
     for (p = snmpHead; p != NULL; p = p->next, prev = p)
 	if (reqid == p->req_id) {
-	    memcpy(fr, &p->addr, sizeof(struct sockaddr_in));
+	    xmemcpy(fr, &p->addr, sizeof(struct sockaddr_in));
 	    if (p == snmpHead)
 		snmpHead = p->next;
 	    else if (p->next == NULL)
@@ -1096,17 +1078,16 @@ snmpAppendUdp(snmpUdpData * item)
 
 u_char *
 var_protostat_entry(struct variable *vp, oid * name, int *length, int exact, int *var_len,
-    int (**write_method) ())
+    SNMPWM ** write_method)
 {
     oid newname[MAX_NAME_LEN];
-    int result, count, i;
+    int result;
     static char Name[16];
     static int current;
-    char *cp;
     proto_stat *p = NULL;
 
     debug(50, 5) ("HERE I AM!\n");
-    bcopy((char *) vp->name, (char *) newname, (int) vp->namelen * sizeof(oid));
+    xmemcpy(newname, vp->name, (int) vp->namelen * sizeof(oid));
 
     /* find "next" entry */
     sprint_objid(Name, name, *length);
@@ -1125,9 +1106,9 @@ var_protostat_entry(struct variable *vp, oid * name, int *length, int exact, int
     if (current > MAX_PROTOSTAT)
 	return NULL;
     debug(50, 5) ("Here with %d and magic \n", current, vp->magic);
-    bcopy((char *) newname, (char *) name, ((int) vp->namelen + 1) * sizeof(oid));
+    xmemcpy(name, newname, ((int) vp->namelen + 1) * sizeof(oid));
     *length = vp->namelen + 1;
-    *write_method = 0;
+    *write_method = NULL;
     *var_len = sizeof(long);
     p = &HTTPCacheInfo->proto_stat_data[current];
 
@@ -1168,16 +1149,15 @@ var_protostat_entry(struct variable *vp, oid * name, int *length, int exact, int
 }
 u_char *
 var_peerstat_entry(struct variable * vp, oid * name, int *length, int exact, int *var_len,
-    int (**write_method) ())
+    SNMPWM ** write_method)
 {
     oid newname[MAX_NAME_LEN];
-    int result, count, i;
+    int result, i;
     static char Name[16];
     static int current;
-    char *cp;
     peer *p = Config.peers;
 
-    bcopy((char *) vp->name, (char *) newname, (int) vp->namelen * sizeof(oid));
+    xmemcpy(newname, vp->name, (int) vp->namelen * sizeof(oid));
 
     /* find "next" entry */
     sprint_objid(Name, name, *length);
@@ -1199,9 +1179,9 @@ var_peerstat_entry(struct variable * vp, oid * name, int *length, int exact, int
     if (p == NULL)
 	return NULL;
     debug(50, 5) ("Here with %d and magic \n", current, vp->magic);
-    bcopy((char *) newname, (char *) name, ((int) vp->namelen + 1) * sizeof(oid));
+    xmemcpy(name, newname, (int) (vp->namelen + 1) * sizeof(oid));
     *length = vp->namelen + 1;
-    *write_method = 0;
+    *write_method = NULL;
     *var_len = sizeof(long_return);
 
     vp->magic = newname[11];
@@ -1213,16 +1193,15 @@ var_peerstat_entry(struct variable * vp, oid * name, int *length, int exact, int
 
 u_char *
 var_perfsys_entry(struct variable * vp, oid * name, int *length, int exact, int *var_len,
-    int (**write_method) ())
+    SNMPWM ** write_method)
 {
     oid newname[MAX_NAME_LEN];
-    int result, count, i;
+    int result;
     static char Name[16];
     static int current;
-    char *cp;
     peer *p = Config.peers;
     peer *e;
-    bcopy((char *) vp->name, (char *) newname, (int) vp->namelen * sizeof(oid));
+    xmemcpy(newname, vp->name, (int) vp->namelen * sizeof(oid));
 
     /* find "next" entry */
     sprint_objid(Name, name, *length);
@@ -1276,44 +1255,26 @@ var_perfsys_entry(struct variable * vp, oid * name, int *length, int exact, int 
 
 u_char *
 var_ipcache_entry(struct variable * vp, oid * name, int *length, int exact, int *var_len,
-    int (**write_method) ())
+    SNMPWM ** write_method)
 {
-    oid newname[MAX_NAME_LEN];
-    int result, count, i;
-    static char Name[16];
-    static int current;
-    char *cp;
-
-
+    return NULL;
 }
 
 u_char *
-var_fqdn_entry(struct variable *vp, oid * name, int *length, int exact, int
+var_fqdn_entry(struct variable * vp, oid * name, int *length, int exact, int
     *var_len,
-    int (**write_method) ())
+    SNMPWM ** write_method)
 {
-    oid newname[MAX_NAME_LEN];
-    int result, count, i;
-    static char Name[16];
-    static int current;
-    char *cp;
-
-
+    return NULL;
 }
 
 u_char *
-var_net_vars(struct variable *vp, oid * name, int *length, int exact, int
+var_net_vars(struct variable * vp, oid * name, int *length, int exact, int
     *var_len,
-    int (**write_method) ())
+    SNMPWM ** write_method)
 {
-    oid newname[MAX_NAME_LEN];
-    int result, count, i;
-    static char Name[16];
-    static int current;
-    char *cp;
     static long long_return;
     *var_len = sizeof(long_return);
-
     switch (vp->magic) {
     case NET_TCPCONNS:
 	return (u_char *) long_return;
@@ -1324,39 +1285,31 @@ var_net_vars(struct variable *vp, oid * name, int *length, int exact, int
     case NET_OUTHRPUT:
 	return (u_char *) long_return;
     default:
+	return NULL;
     }
-
+    /* NOTREACHED */
 }
 
 u_char *
-var_netdb_entry(struct variable *vp, oid * name, int *length, int exact, int *var_len,
-    int (**write_method) ())
+var_netdb_entry(struct variable * vp, oid * name, int *length, int exact, int *var_len,
+    SNMPWM ** write_method)
 {
     oid newname[MAX_NAME_LEN];
-    int result, count, i;
     static char Name[16];
-    static int current;
-    char *cp;
-    peer *p;
     static netdbEntry *n;
     static long long_return;
-
 #ifdef USE_ICMP
     for (n = netdbGetFirst(addr_table), current = 0; n != NULL && current < name[10];
 	n = n->next, current++);
 #endif
     if (n == NULL)
 	return NULL;
-
     /* find "next" entry */
     sprint_objid(Name, name, *length);
     debug(49, 6) ("With oid=%s \n", Name);
-
-
     *length = vp->namelen + 1;
-    *write_method = 0;
+    *write_method = NULL;
     *var_len = sizeof(long);
-    p = &HTTPCacheInfo->proto_stat_data[current];
     vp->magic = newname[11];
     switch (vp->magic) {
     case NETDB_NET:
@@ -1368,19 +1321,15 @@ var_netdb_entry(struct variable *vp, oid * name, int *length, int exact, int *va
     case NETDB_PING_R:
 	long_return = (long) n->pings_recv;
 	return (u_char *) & long_return;
-
     case NETDB_HOPS:
 	long_return = (long) n->hops;
 	return (u_char *) & long_return;
-
     case NETDB_RTT:
 	long_return = (long) n->rtt;
 	return (u_char *) & long_return;
-
     case NETDB_PINGTIME:
 	long_return = (long) n->next_ping_time;
 	return (u_char *) & long_return;
-
     case NETDB_LASTUSE:
 	long_return = (long) n->last_use_time;
 	return (u_char *) & long_return;

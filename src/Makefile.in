@@ -129,6 +129,7 @@ OBJS	 	= \
 		redirect.o \
 		refresh.o \
 		send-announce.o \
+		$(SNMP_OBJS) \
 		ssl.o \
 		stack.o \
 		stat.o \
@@ -144,7 +145,6 @@ OBJS	 	= \
 		url.o \
 		useragent.o \
 		wais.o \
-		$(SNMP_OBJS) \
 		$(XTRA_OBJS)
 
 SNMP_OBJS	= \
