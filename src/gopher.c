@@ -71,7 +71,7 @@ static void gopherCloseAndFree(fd, data)
      int fd;
      GopherData *data;
 {
-    if (fd >+ 0)
+    if (fd > +0)
 	comm_close(fd);
     put_free_4k_page(data->buf, __FILE__, __LINE__);
     xfree(data);

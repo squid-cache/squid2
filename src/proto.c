@@ -472,7 +472,7 @@ int getFromCache(fd, entry, e)
     } else if (strncasecmp(url, "wais://", 7) == 0) {
 	return waisStart(fd, url, type, request_hdr, entry);
     } else if (strncasecmp(url, "conne://", 8) == 0) {
-      return connectStart(fd, url, type, request_hdr, entry);
+	return connectStart(fd, url, type, request_hdr, entry);
     } else if (strncasecmp(url, "dht://", 6) == 0) {
 	return protoNotImplemented(fd, url, entry);
     } else {
