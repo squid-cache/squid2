@@ -129,6 +129,7 @@ DOC_START
 DOC_END
 
 NAME: ssl_unclean_shutdown
+IFDEF: USE_SSL
 TYPE: onoff
 DEFAULT: off
 LOC: Config.SSL.unclean_shutdown
