@@ -30,4 +30,5 @@ EXTRA_DIST = \
 	INSTALL \
 	QUICKSTART \
 	README \
-	SPONSORS
+	SPONSORS \
+	bootstrap.sh
