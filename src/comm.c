@@ -1320,7 +1320,7 @@ commSetTcpNoDelay(int fd)
 }
 #endif
 
-int
+void
 comm_init(void)
 {
     fd_table = xcalloc(Squid_MaxFD, sizeof(fde));
@@ -1331,7 +1331,6 @@ comm_init(void)
     RESERVED_FD = XMIN(100, Squid_MaxFD / 4);
     zero_tv.tv_sec = 0;
     zero_tv.tv_usec = 0;
-    return 0;
 }
 
 
