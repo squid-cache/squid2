@@ -113,7 +113,7 @@ log_quote(const char *header)
 static int
 accessLogSquid(AccessLogEntry * al)
 {
-    const char *client = dash_str;
+    const char *client = NULL;
     if (Config.onoff.log_fqdn)
 	client = fqdncache_gethostbyaddr(al->cache.caddr, 0);
     if (client == NULL)
