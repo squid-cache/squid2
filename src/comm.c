@@ -1208,8 +1208,7 @@ commHandleRead(int fd, RWStateData * state)
 	} else {
 	    /* Len == 0 means connection closed; otherwise would not have been
 	     * called by comm_select(). */
-	    debug(50, len == 0 ? 2 : 1,
-		"commHandleRead: FD %d: read failure: %s\n",
+	    debug(50, 2, "commHandleRead: FD %d: read failure: %s\n",
 		fd,
 		len == 0 ? "connection closed" : xstrerror());
 	    RWStateCallbackAndFree(fd, COMM_ERROR);

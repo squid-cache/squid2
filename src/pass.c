@@ -141,7 +141,7 @@ passReadServer(int fd, void *data)
     len = read(passState->server.fd, passState->server.buf, SQUID_TCP_SO_RCVBUF);
     debug(39, 5, "passReadServer FD %d, read %d bytes\n", fd, len);
     if (len < 0) {
-	debug(50, 1, "passReadServer: FD %d: read failure: %s\n",
+	debug(50, 2, "passReadServer: FD %d: read failure: %s\n",
 	    passState->server.fd, xstrerror());
 	if (errno == EAGAIN || errno == EWOULDBLOCK) {
 	    /* reinstall handlers */
@@ -181,7 +181,7 @@ passReadClient(int fd, void *data)
     debug(39, 5, "passReadClient FD %d, read %d bytes\n",
 	passState->client.fd, len);
     if (len < 0) {
-	debug(50, 1, "passReadClient: FD %d: read failure: %s\n",
+	debug(50, 2, "passReadClient: FD %d: read failure: %s\n",
 	    fd, xstrerror());
 	if (errno == EAGAIN || errno == EWOULDBLOCK) {
 	    /* reinstall handlers */

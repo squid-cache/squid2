@@ -602,12 +602,12 @@ neighborsUdpAck(int fd, const char *url, icp_common_t * header, const struct soc
 	return;
     }
     if (mem == NULL) {
-	debug(15, 1, "Ignoring %s for missing mem_obj: %s\n", opcode_d, url);
+	debug(15, 2, "Ignoring %s for missing mem_obj: %s\n", opcode_d, url);
 	neighborCountIgnored(e, opcode);
 	return;
     }
     if (entry->ping_status != PING_WAITING) {
-	debug(15, 1, "neighborsUdpAck: Unexpected %s for %s\n", opcode_d, url);
+	debug(15, 2, "neighborsUdpAck: Unexpected %s for %s\n", opcode_d, url);
 	neighborCountIgnored(e, opcode);
 	return;
     }

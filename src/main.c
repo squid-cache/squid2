@@ -562,7 +562,7 @@ main(int argc, char **argv)
     time_t loop_delay;
 
     /* call mallopt() before anything else */
-#if 0 && HAVE_MALLOPT
+#if HAVE_MALLOPT
 #ifdef M_GRAIN
     /* Round up all sizes to a multiple of this */
     mallopt(M_GRAIN, 16);
