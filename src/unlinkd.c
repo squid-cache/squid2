@@ -139,6 +139,8 @@ unlinkdInit(void)
     commSetNonBlocking(unlinkd_wfd);
     commSetNonBlocking(unlinkd_rfd);
     debug(12, 1) ("Unlinkd pipe opened on FD %d\n", unlinkd_wfd);
+#else
+    debug(12, 1) ("Unlinkd is disabled\n");
 #endif
 }
 
