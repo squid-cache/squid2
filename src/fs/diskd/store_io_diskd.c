@@ -468,7 +468,7 @@ storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
      * then we can have a lot of messages in the queue (probably
      * up to 2*magic1) and we can run out of shared memory buffers.
      */
-    if (diskdinfo->away > diskdinfo->magic2)
+    while (diskdinfo->away > diskdinfo->magic2)
 	storeDiskdDirCallback(sd);
     return x;
 }
