@@ -68,6 +68,11 @@
 #define FD_SETSIZE SQUID_MAXFD
 #endif
 
+#if PURIFY
+/* disable assert() under purify */
+#define NODEBUG
+#endif
+
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -283,8 +288,6 @@ struct rusage {
 #endif
 
 #if PURIFY
-/* disable assert() under purify */
-#define NODEBUG
 #define LOCAL_ARRAY(type,name,size) \
         static type *local_##name=NULL; \
         type *name = local_##name ? local_##name : \
