@@ -2392,7 +2392,7 @@ aclDumpArpListWalkee(void *node, void *state)
     static char buf[24];
     while (*W != NULL)
 	W = &(*W)->next;
-    snprintf(buf, sizeof(buf), "%02x:%02x:02x:02x:02x:02x",
+    snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",
 	arp->eth[0], arp->eth[1], arp->eth[2], arp->eth[3],
 	arp->eth[4], arp->eth[5]);
     wordlistAdd(state, buf);
