@@ -703,3 +703,16 @@ http_access allow  all
 
 icp_access  allow  all
 
+
+# The DNS tests exit as soon as the first site is successfully looked up
+#
+# If you want to disable DNS tests, do not comment out or delete this
+# list.  Instead use the -D command line option
+#
+dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
+
+# When SIGTERM or SIGHUP is received, the cache is put into "shutdown pending"
+# mode until all active sockets are closed.  This value is the lifetime
+# to set for all open descriptors during shutdown mode.  Any active
+# clients after this many seconds will receive a 'lifetime expire' message
+shutdown_lifetime 30
