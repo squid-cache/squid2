@@ -109,7 +109,6 @@ eventRun(void)
     event->func = NULL;
     event->arg = NULL;
     tasks = event->next;
-    safe_free(event);
     if (NULL != arg) {
         int valid = cbdataValid(arg);
         cbdataUnlock(arg);
@@ -118,6 +117,7 @@ eventRun(void)
     }
     debug(41, 7) ("eventRun: Running '%s'\n", event->name);
     func(arg);
+    safe_free(event);
 }
 
 time_t
