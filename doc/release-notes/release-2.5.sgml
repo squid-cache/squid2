@@ -173,7 +173,7 @@ management of timeouts while connecting to origin servers or peers
 	<item>now possible to specify acl values with spaces in them
 	via the "include file" technique
 	<item>winbind helpers updated to match Samba-2.2.7a and should
-	work with Samba-2.2.6 or later (required). For compability with
+	work with Samba-2.2.6 or later (required). For compatibility with
 	older Samba versions A new configure option --with-samba-sources=...
 	has been added to allow you to specify which Samba version the
 	helpers should be built for if different than the above versions.
@@ -249,7 +249,7 @@ name="ChangeLog"> file for details.
 	matches to the "login" component of Internet style URLs
 	(protocol://user:password@host/path/to/file).
 	<item>Squid now respects the Telnet protocol on connections to FTP
-	servers. The ftp_telnet_protocol directice can be used to revert back
+	servers. The ftp_telnet_protocol directive can be used to revert back
 	to the old incorrect implementation.
 	<item>Several NTLM related bugfixes and improvements fixing the problem
 	of random auth popups and account lockouts. Support for the NEGOTIATE
@@ -352,7 +352,7 @@ name="ChangeLog"> file for details.
 	<item>Additional workarounds for broken web servers rejected by 2.5.STABLE8.
 	<item>No longer automatically retries requests on 403 Access Denied or
 	many other server errors. New squid.conf directive retry_on_error to revert
-	back to the old behaviour if needed.
+	back to the old behavior if needed.
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE8"
 	name="squid-2.5.STABLE8 patches"> and the <url url="ChangeLog"
