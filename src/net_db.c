@@ -266,10 +266,13 @@ netdbSendPing(const ipcache_addrs * ia, void *data)
 	na->link_count++;
 	n = na;
     }
-    debug(38, 3) ("netdbSendPing: pinging %s\n", hostname);
-    icmpDomainPing(addr, hostname);
-    n->pings_sent++;
-    n->last_use_time = squid_curtime;
+    if (n->next_ping_time <= squid_curtime) {
+	debug(38, 3) ("netdbSendPing: pinging %s\n", hostname);
+	icmpDomainPing(addr, hostname);
+	n->pings_sent++;
+	n->next_ping_time = squid_curtime + Config.Netdb.period;
+	n->last_use_time = squid_curtime;
+    }
     cbdataFree(hostname);
 }
 
@@ -649,7 +652,6 @@ netdbPingSite(const char *hostname)
     h = xstrdup(hostname);
     cbdataAdd(h, MEM_NONE);
     cbdataLock(h);
-    n->next_ping_time = squid_curtime + Config.Netdb.period;
     ipcache_nbgethostbyname(hostname, netdbSendPing, h);
 #endif
 }
