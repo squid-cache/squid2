@@ -160,7 +160,7 @@ cbdataInternalAlloc(cbdata_type type, CBDUNL * free_func)
     assert(type > 0 && type < cbdata_types);
     p = memPoolAlloc(cbdata_memory_pool[type]);
     p->type = type;
-    p->free_func = unlock_func;
+    p->free_func = free_func;
     p->valid = 1;
     p->locks = 0;
 #if CBDATA_DEBUG
