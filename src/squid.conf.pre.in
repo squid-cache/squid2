@@ -904,5 +904,17 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	which are no more than this many hops away.
 minimum_direct_hops 4
 
+#  TAG: cachemgr_passwd
+#       Specify the password for cachemgr actions.
+#       WARNING: by default there are _NO_ any passwords.
+#
+#       Usage: cachemgr_passwd password action1 action2 action3
+#
+#       So password followed by the list of actions that password will
+#       let you do.
+#
+#cachemgr_passwd secret shutdown restart
+#cachemgr_passwd lesssssssecret info stats/objects
+
 store_objects_per_bucket 50
 store_avg_object_size 20

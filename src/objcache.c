@@ -105,50 +105,126 @@
  */
 
 #include "squid.h"
+#include "objcache_opcodes.h"
 
 #define STAT_TTL 2
-
-extern void shut_down _PARAMS((int));
+#define OBJCACHE_MAX_REQUEST_SZ 128
+#define OBJCACHE_MAX_PASSWD_SZ 128
 
 cacheinfo *HTTPCacheInfo = NULL;
 cacheinfo *ICPCacheInfo = NULL;
 
 typedef struct objcache_ds {
     StoreEntry *entry;
-    char host[SQUIDHOSTNAMELEN + 1];
-    char request[1024];
+    char passwd[OBJCACHE_MAX_PASSWD_SZ + 1];
     int reply_fd;
+    objcache_op op;
 } ObjectCacheData;
 
-/* user name for shutdown password in /etc/passwd */
-static const char *username = "cache";
+struct _cachemgr_passwd {
+    char *passwd;
+    long actions;
+    struct _cachemgr_passwd *next;
+};
 
-static int objcache_url_parser _PARAMS((const char *url,
-	char *host,
-	char *request,
-	char *password));
+static ObjectCacheData *objcache_url_parser _PARAMS((char *url));
+static int objcache_CheckPassword _PARAMS((ObjectCacheData *));
+static char *objcachePasswdGet _PARAMS((cachemgr_passwd ** a, objcache_op op));
 
-static int objcache_CheckPassword _PARAMS((const char *, const char *));
+/* These operations will not be preformed without a valid password */
+static long PASSWD_REQUIRED = 
+	(1<<MGR_LOG_CLEAR) | 
+	(1<<MGR_LOG_DISABLE) | 
+	(1<<MGR_LOG_ENABLE) | 
+	(1<<MGR_LOG_STATUS) | 
+	(1<<MGR_LOG_VIEW) | 
+	(1<<MGR_SHUTDOWN);
 
-/* Parse a object_cache url into components.  By Anawat. */
-static int
-objcache_url_parser(const char *url, char *host, char *request, char *password)
+static objcache_op
+objcacheParseRequest(char *buf)
+{
+    if (!strcmp(buf, "shutdown"))
+	return MGR_SHUTDOWN;
+    else if (!strcmp(buf, "info"))
+	return MGR_INFO;
+    else if (!strcmp(buf, "stats/objects"))
+	return MGR_OBJECTS;
+    else if (!strcmp(buf, "stats/vm_objects"))
+	return MGR_VM_OBJECTS;
+    else if (!strcmp(buf, "stats/utilization"))
+	return MGR_UTILIZATION;
+    else if (!strcmp(buf, "stats/ipcache"))
+	return MGR_IPCACHE;
+    else if (!strcmp(buf, "stats/fqdncache"))
+	return MGR_FQDNCACHE;
+    else if (!strcmp(buf, "stats/dns"))
+	return MGR_DNSSERVERS;
+    else if (!strcmp(buf, "stats/redirector"))
+	return MGR_REDIRECTORS;
+    else if (!strcmp(buf, "stats/io"))
+	return MGR_IO;
+    else if (!strcmp(buf, "stats/reply_headers"))
+	return MGR_REPLY_HDRS;
+    else if (!strcmp(buf, "stats/filedescriptors"))
+	return MGR_FILEDESCRIPTORS;
+    else if (!strcmp(buf, "stats/netdb"))
+	return MGR_NETDB;
+    else if (!strcmp(buf, "log/status"))
+	return MGR_LOG_STATUS;
+    else if (!strcmp(buf, "log/enable"))
+	return MGR_LOG_ENABLE;
+    else if (!strcmp(buf, "log/disable"))
+	return MGR_LOG_DISABLE;
+    else if (!strcmp(buf, "log/clear"))
+	return MGR_LOG_CLEAR;
+    else if (!strcmp(buf, "log"))
+	return MGR_LOG_VIEW;
+    else if (!strcmp(buf, "parameter"))
+	return MGR_CONFIG;
+    else if (!strcmp(buf, "server_list"))
+	return MGR_SERVER_LIST;
+    else if (!strcmp(buf, "client_list"))
+	return MGR_CLIENT_LIST;
+    else if (!strcmp(buf, "squid.conf"))
+	return MGR_CONFIG_FILE;
+    return MGR_NONE;
+}
+
+
+static ObjectCacheData *
+objcache_url_parser(char *url)
 {
     int t;
-
-    host[0] = request[0] = password[0] = '\0';
+    LOCAL_ARRAY(char, host, MAX_URL);
+    LOCAL_ARRAY(char, request, MAX_URL);
+    LOCAL_ARRAY(char, password, MAX_URL);
+    ObjectCacheData *obj = NULL;
     t = sscanf(url, "cache_object://%[^/]/%[^@]@%s", host, request, password);
     if (t < 2) {
 	debug(16, 0, "Invalid Syntax: '%s', sscanf returns %d\n", url, t);
-	return -1;
-    } else if (t == 2) {
-	strcpy(password, "nopassword");
+	return NULL;
     }
-    return 0;
+    obj = xcalloc(1, sizeof(ObjectCacheData));
+    strcpy(obj->passwd, t == 3 ? password : "nopassword");
+    obj->op = objcacheParseRequest(request);
+    return obj;
 }
 
 static int
-objcache_CheckPassword(const char *password, const char *user)
+objcache_CheckPassword(ObjectCacheData *obj)
+{
+    char *pwd = objcachePasswdGet(&Config.passwd_list, obj->op);
+    if (pwd)
+	return strcmp(pwd, obj->passwd);
+    else if (obj->op & PASSWD_REQUIRED)
+	return 1;
+    else
+	return 0;
+}
+
+#ifdef OLD_CODE
+static int
+objcache_CheckPassword(char *password, char *user)
 {
     char *s;
     struct passwd *pwd = NULL;
@@ -189,203 +265,172 @@ objcache_CheckPassword(const char *password, const char *user)
 	return 0;
     return -1;
 }
+#endif
 
 int
 objcacheStart(int fd, const char *url, StoreEntry *entry)
 {
-    const char *const BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";
-    const char *const BADPassword = "Incorrect password, sorry.\n";
-    LOCAL_ARRAY(char, password, 64);
-    struct sockaddr_in peer_socket_name;
-    int sock_name_length = sizeof(peer_socket_name);
-
-    /* Create state structure. */
-    ObjectCacheData *data = xcalloc(1, sizeof(ObjectCacheData));
-    data->reply_fd = fd;
-    data->entry = entry;
-    /* before we generate new object */
-    data->entry->expires = squid_curtime + STAT_TTL;
+    char *BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";
+    char *BADPassword = "Incorrect password, sorry.\n";
+    ObjectCacheData *data = NULL;
+    int complete_flag = 1;
 
     debug(16, 3, "objectcacheStart: '%s'\n", url);
-
-    /* Parse url. */
-    password[0] = '\0';
-    if (objcache_url_parser(url, data->host, data->request, password)) {
-	/* override negative TTL */
-	data->entry->expires = squid_curtime + STAT_TTL;
-	storeAbort(data->entry, "SQUID:OBJCACHE Invalid Syntax!\n");
+    if ((data = objcache_url_parser(url)) == NULL) {
+	entry->expires = squid_curtime + STAT_TTL;
+	storeAbort(entry, "Invalid objcache syntax.\n");
 	safe_free(data);
 	return COMM_ERROR;
     }
-    if (getpeername(fd, (struct sockaddr *) &peer_socket_name,
-	    &sock_name_length) == -1) {
-	debug(16, 1, "getpeername failed??\n");
+    data->reply_fd = fd;
+    data->entry = entry;
+    entry->expires = squid_curtime + STAT_TTL;
+    /* Check password */
+    if (objcache_CheckPassword(data) != 0) {
+	storeAppendPrintf(entry, BADPassword);
+	storeAbort(entry, "Incorrect Password\n");
+	entry->expires = squid_curtime + STAT_TTL;
+      debug(16, 1, "WARNING: Incorrect Cachemgr Password!\n");
+	debug(16, 1, "  --> Connection from: %s\n", fd_table[fd].ipaddr);
+	debug(16, 1, "  --> Request: %s\n", objcacheOpcodeStr[data->op]);
+	return COMM_ERROR;
     }
     /* retrieve object requested */
-    if (strcmp(data->request, "shutdown") == 0) {
-	if (objcache_CheckPassword(password, username) != 0) {
-	    storeAppendPrintf(data->entry, "%s", BADPassword);
-	    storeAbort(data->entry, "SQUID:OBJCACHE Incorrect Password\n");
-	    /* override negative TTL */
-	    data->entry->expires = squid_curtime + STAT_TTL;
-	    debug(16, 1, "Objcache: Attempt to shutdown %s with incorrect password\n", appname);
-	} else {
-	    debug(16, 0, "Shutdown by command.\n");
-	    /* free up state datastructure */
-	    safe_free(data);
-	    shut_down(0);
-	}
-    } else if (strcmp(data->request, "info") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->info_get(HTTPCacheInfo, data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/objects") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "objects", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/vm_objects") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "vm_objects", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/utilization") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "utilization", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/ipcache") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "ipcache", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/fqdncache") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "fqdncache", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/dns") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "dns", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/redirector") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "redirector", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/io") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "io", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/reply_headers") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "reply_headers", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/filedescriptors") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "filedescriptors", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "stats/netdb") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->stat_get(HTTPCacheInfo, "netdb", data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "log/status") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->log_status_get(HTTPCacheInfo, data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "log/enable") == 0) {
-	if (objcache_CheckPassword(password, username) != 0) {
-	    storeAppendPrintf(data->entry, "%s", BADPassword);
-	    storeAbort(data->entry, "SQUID:OBJCACHE Incorrect Password\n");
-	    /* override negative TTL */
-	    data->entry->expires = squid_curtime + STAT_TTL;
-	    debug(16, 1, "Attempt to log/enable with incorrect password\n");
-	} else {
-	    BIT_SET(data->entry->flag, DELAY_SENDING);
-	    HTTPCacheInfo->log_enable(HTTPCacheInfo, data->entry);
-	    BIT_RESET(data->entry->flag, DELAY_SENDING);
-	    storeComplete(data->entry);
-	}
-    } else if (strcmp(data->request, "log/disable") == 0) {
-	if (objcache_CheckPassword(password, username) != 0) {
-	    storeAppendPrintf(data->entry, "%s", BADPassword);
-	    storeAbort(data->entry, "SQUID:OBJCACHE Incorrect Password\n");
-	    /* override negative TTL */
-	    data->entry->expires = squid_curtime + STAT_TTL;
-	    debug(16, 1, "Attempt to log/disable with incorrect password\n");
-	} else {
-	    BIT_SET(data->entry->flag, DELAY_SENDING);
-	    HTTPCacheInfo->log_disable(HTTPCacheInfo, data->entry);
-	    BIT_RESET(data->entry->flag, DELAY_SENDING);
-	    storeComplete(data->entry);
-	}
-    } else if (strcmp(data->request, "log/clear") == 0) {
-	if (objcache_CheckPassword(password, username) != 0) {
-	    storeAppendPrintf(data->entry, "%s", BADPassword);
-	    storeAbort(data->entry, "SQUID:OBJCACHE Incorrect Password\n");
-	    /* override negative TTL */
-	    data->entry->expires = squid_curtime + STAT_TTL;
-	    debug(16, 1, "Attempt to log/clear with incorrect password\n");
-	} else {
-	    BIT_SET(data->entry->flag, DELAY_SENDING);
-	    HTTPCacheInfo->log_clear(HTTPCacheInfo, data->entry);
-	    BIT_RESET(data->entry->flag, DELAY_SENDING);
-	    storeComplete(data->entry);
-	}
-#ifdef MENU_SHOW_LOG
-    } else if (strcmp(data->request, "log") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->log_get_start(HTTPCacheInfo, data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-#endif
-
-    } else if (strcmp(data->request, "parameter") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->parameter_get(HTTPCacheInfo, data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "server_list") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	HTTPCacheInfo->server_list(HTTPCacheInfo, data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "client_list") == 0) {
-	BIT_SET(data->entry->flag, DELAY_SENDING);
-	clientdbDump(data->entry);
-	BIT_RESET(data->entry->flag, DELAY_SENDING);
-	storeComplete(data->entry);
-
-    } else if (strcmp(data->request, "squid.conf") == 0) {
-	HTTPCacheInfo->squid_get_start(HTTPCacheInfo, data->entry);
-
-    } else {
+    BIT_SET(entry->flag, DELAY_SENDING);
+    switch(data->op) {
+    case MGR_SHUTDOWN:
+	debug(16, 0, "Shutdown by command.\n");
+	/* free up state datastructure */
+	safe_free(data);
+	shut_down(0);
+	break;
+    case MGR_INFO:
+	HTTPCacheInfo->info_get(HTTPCacheInfo, entry);
+	break;
+    case MGR_OBJECTS:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "objects", entry);
+	break;
+    case MGR_VM_OBJECTS:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "vm_objects", entry);
+	break;
+    case MGR_UTILIZATION:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "utilization", entry);
+	break;
+    case MGR_IPCACHE:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "ipcache", entry);
+	break;
+    case MGR_FQDNCACHE:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "fqdncache", entry);
+	break;
+    case MGR_DNSSERVERS:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "dns", entry);
+	break;
+    case MGR_REDIRECTORS:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "redirector", entry);
+	break;
+    case MGR_IO:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "io", entry);
+	break;
+    case MGR_REPLY_HDRS:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "reply_headers", entry);
+	break;
+    case MGR_FILEDESCRIPTORS:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "filedescriptors", entry);
+	break;
+    case MGR_NETDB:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "netdb", entry);
+	break;
+    case MGR_LOG_STATUS:
+	HTTPCacheInfo->log_status_get(HTTPCacheInfo, entry);
+	break;
+    case MGR_LOG_ENABLE:
+	HTTPCacheInfo->log_enable(HTTPCacheInfo, entry);
+	break;
+    case MGR_LOG_DISABLE:
+	HTTPCacheInfo->log_disable(HTTPCacheInfo, entry);
+	break;
+    case MGR_LOG_CLEAR:
+	HTTPCacheInfo->log_clear(HTTPCacheInfo, entry);
+	break;
+    case MGR_LOG_VIEW:
+	HTTPCacheInfo->log_get_start(HTTPCacheInfo, entry);
+        complete_flag = 0;
+	break;
+    case MGR_CONFIG:
+	HTTPCacheInfo->parameter_get(HTTPCacheInfo, entry);
+	break;
+    case MGR_SERVER_LIST:
+	HTTPCacheInfo->server_list(HTTPCacheInfo, entry);
+	break;
+    case MGR_CLIENT_LIST:
+	clientdbDump(entry);
+	break;
+    case MGR_CONFIG_FILE:
+	HTTPCacheInfo->squid_get_start(HTTPCacheInfo, entry);
+	break;
+    default:
 	debug(16, 5, "Bad Object Cache URL %s ... negative cached.\n", url);
 	storeAppendPrintf(entry, BADCacheURL, url);
-	storeComplete(entry);
+	break;
     }
-
+    BIT_RESET(entry->flag, DELAY_SENDING);
+    if (complete_flag)
+        storeComplete(entry);
     safe_free(data);
     return COMM_OK;
+}
+
+void
+objcachePasswdAdd(cachemgr_passwd ** list, char *passwd, wordlist * actions)
+{
+    cachemgr_passwd *p, *q;
+    wordlist *w;
+    objcache_op op;
+    if (!(*list)) {
+	/* empty list */
+	*list = xcalloc(1, sizeof(cachemgr_passwd));
+	(*list)->next = NULL;
+	q = *list;
+    } else {
+	/* find end of list */
+	p = *list;
+	while (p->next)
+	    p = p->next;
+	q = xcalloc(1, sizeof(cachemgr_passwd));
+	q->next = NULL;
+	p->next = q;
+    }
+    q->passwd = passwd;
+    q->actions = 0;
+    for (w = actions; w; w=w->next) {
+	op = objcacheParseRequest(w->key);
+        if (op <= MGR_NONE || op >= MGR_MAX) {
+		debug(16,0,"Invalid objcache operation: '%s'\n", w->key);
+		continue;
+	}
+	q->actions |= op;
+    }
+}
+
+void
+objcachePasswdDestroy(cachemgr_passwd ** a)
+{
+    cachemgr_passwd *b;
+    cachemgr_passwd *n;
+    for (b = *a; b; b = n) {
+	n = b->next;
+	safe_free(b->passwd);
+	safe_free(b);
+    }
+    *a = NULL;
+}
+
+static char *
+objcachePasswdGet(cachemgr_passwd ** a, objcache_op op)
+{
+    cachemgr_passwd *b;
+    for (b = *a; b; b = b->next)
+	if (b->actions & op)
+	    return b->passwd;
+    return NULL;
 }
