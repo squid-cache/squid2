@@ -333,7 +333,7 @@ httpRequestFree(void *data)
     assert(*H != NULL);
     *H = http->next;
     http->next = NULL;
-    safe_free(http);
+    cbdataFree(http);
 }
 
 /* This is a handler normally called by comm_close() */
@@ -1802,6 +1802,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 
     /* Ok, all headers are received */
     http = xcalloc(1, sizeof(clientHttpRequest));
+    cbdataAdd(http);
     http->http_ver = http_ver;
     http->conn = conn;
     http->start = current_time;
@@ -2151,8 +2152,8 @@ CheckQuickAbort(clientHttpRequest * http)
     if (CheckQuickAbort2(http) == 0)
 	return;
     debug(12, 3) ("CheckQuickAbort: ABORTING %s\n", entry->url);
-    storeAbort(entry, "aborted by client");
     storeReleaseRequest(entry);
+    storeAbort(entry, "aborted by client");
     http->log_type = ERR_CLIENT_ABORT;
 }
 

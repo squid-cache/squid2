@@ -273,7 +273,6 @@ typedef void STCB _PARAMS((void *, char *, size_t));	/* store callback */
 
 #include "cache_cf.h"
 #include "fd.h"
-#include "callback.h"
 #include "comm.h"
 #include "disk.h"
 #include "debug.h"
@@ -312,6 +311,7 @@ typedef void STCB _PARAMS((void *, char *, size_t));	/* store callback */
 #include "refresh.h"
 #include "unlinkd.h"
 #include "multicast.h"
+#include "cbdata.h"
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"

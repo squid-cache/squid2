@@ -390,7 +390,7 @@ serverConnectionsOpen(void)
 		icpHandleUdp,
 		NULL, 0);
 	    for (s = Config.mcast_group_list; s; s = s->next)
-		ipcache_nbgethostbyname(s->key, mcastJoinGroups, NULL, NULL);
+		ipcache_nbgethostbyname(s->key, mcastJoinGroups, NULL);
 	    debug(1, 1) ("Accepting ICP connections on port %d, FD %d.\n",
 		(int) port, theInIcpConnection);
 
@@ -513,6 +513,8 @@ mainInitialize(void)
     squid_signal(SIGPIPE, SIG_IGN, SA_RESTART);
     squid_signal(SIGCHLD, sig_child, SA_NODEFER | SA_RESTART);
 
+    if (!configured_once)
+	cbdataInit();
     if (ConfigFile == NULL)
 	ConfigFile = xstrdup(DefaultConfigFile);
     parseConfigFile(ConfigFile);

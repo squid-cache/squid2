@@ -173,6 +173,8 @@ objcacheParseRequest(const char *buf)
 	op = MGR_NETDB;
     else if (!strcmp(buf, "stats/storedir"))
 	op = MGR_STOREDIR;
+    else if (!strcmp(buf, "cbdata"))
+	op = MGR_CBDATA;
     else if (!strcmp(buf, "log/status"))
 	op = MGR_LOG_STATUS;
     else if (!strcmp(buf, "log/enable"))
@@ -334,6 +336,9 @@ objcacheStart(int fd, StoreEntry * entry)
 	break;
     case MGR_STOREDIR:
 	HTTPCacheInfo->stat_get(HTTPCacheInfo, "storedir", entry);
+	break;
+    case MGR_CBDATA:
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "cbdata", entry);
 	break;
     default:
 	debug(16, 5) ("Bad Object Cache URL %s ... negative cached.\n", entry->url);

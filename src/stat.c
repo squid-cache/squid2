@@ -441,6 +441,8 @@ stat_get(const cacheinfo * obj, const char *req, StoreEntry * sentry)
 	netdbDump(sentry);
     } else if (strcmp(req, "storedir") == 0) {
 	storeDirStats(sentry);
+    } else if (strcmp(req, "cbdata") == 0) {
+	cbdataDump(sentry);
     }
 }
 
