@@ -830,3 +830,9 @@ debugObj(int section, int level, const char *label, void *obj, ObjPackMethod pm)
     packerClean(&p);
     memBufClean(&mb);
 }
+
+int
+stringHasWhitespace(const char *s)
+{
+    return (strcspn(s, w_space) != strlen(s));
+}

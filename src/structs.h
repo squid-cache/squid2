@@ -438,6 +438,7 @@ struct _SquidConfig {
 	int http_min_poll;
     } comm_incoming;
     int max_open_disk_fds;
+    int uri_whitespace;
 };
 
 struct _SquidConfig2 {

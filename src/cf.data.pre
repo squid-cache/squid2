@@ -2657,4 +2657,28 @@ DOC_START
 	objects.
 DOC_END
 
+NAME: uri_whitespace
+TYPE: uri_whitespace
+LOC: Config.uri_whitespace
+DEFAULT: deny
+DOC_START
+	What to do with requests that have whitespace characters in the
+	URI.  Options:
+
+	deny:   The request is denied.  The user receives an "Invalid
+		Request" message.
+	allow:  The request is allowed and the URI is not changed.  The
+		whitespace characters remain in the URI.  Note the
+		whitespace is passed to redirector processes if they
+		are in use.
+	encode:	The request is allowed and the whitespace characters are
+		encoded according to RFC1738.  This could be considered
+		a violation of the HTTP/1.1
+		RFC because proxies are not allowed to rewrite URI's.
+	chop:	The request is allowed and the URI is chopped at the
+		first whitespace.  This might also be considered a
+		violation.
+uri_whitespace deny
+DOC_END
+
 EOF

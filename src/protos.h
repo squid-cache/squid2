@@ -992,6 +992,8 @@ extern void pconnInit(void);
 extern int asnMatchIp(void *, struct in_addr);
 extern void asnInit(void);
 extern void asnFreeMemory(void);
+
+/* tools.c */
 extern void dlinkAdd(void *data, dlink_node *, dlink_list *);
 extern void dlinkAddTail(void *data, dlink_node *, dlink_list *);
 extern void dlinkDelete(dlink_node * m, dlink_list * list);
@@ -999,6 +1001,7 @@ extern void kb_incr(kb_t *, size_t);
 extern double gb_to_double(const gb_t *);
 extern const char *gb_to_str(const gb_t *);
 extern void gb_flush(gb_t *);	/* internal, do not use this */
+extern int stringHasWhitespace(const char *);
 
 #if USE_HTCP
 extern void htcpInit(void);
