@@ -60,7 +60,7 @@ int
 file_open(const char *path, int mode)
 {
     int fd;
-    if (mode & O_WRONLY)
+    if (FILE_MODE(mode) == O_WRONLY)
 	mode |= O_APPEND;
     mode |= SQUID_NONBLOCK;
     errno = 0;

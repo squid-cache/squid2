@@ -144,7 +144,7 @@ storeCossCreate(SwapDir * SD, StoreEntry * e, STFNCB * file_callback, STIOCB * c
     cstate = memPoolAlloc(coss_state_pool);
     sio->fsstate = cstate;
     sio->offset = 0;
-    sio->mode = O_WRONLY;
+    sio->mode = O_WRONLY | O_BINARY;
 
     /*
      * If we get handed an object with a size of -1,
@@ -199,7 +199,7 @@ storeCossOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
     sio->swap_filen = f;
     sio->swap_dirn = SD->index;
     sio->offset = 0;
-    sio->mode = O_RDONLY;
+    sio->mode = O_RDONLY | O_BINARY;
     sio->callback = callback;
     sio->file_callback = file_callback;
     sio->callback_data = callback_data;
@@ -266,7 +266,7 @@ void
 storeCossClose(SwapDir * SD, storeIOState * sio)
 {
     debug(79, 3) ("storeCossClose: offset %d\n", sio->swap_filen);
-    if (sio->mode & O_WRONLY)
+    if (FILE_MODE(sio->mode) == O_WRONLY)
 	storeCossMemBufUnlock(SD, sio);
     storeCossIOCallback(sio, 0);
 }

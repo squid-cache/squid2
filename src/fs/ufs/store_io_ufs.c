@@ -68,7 +68,7 @@ storeUfsOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
 
     sio->swap_filen = f;
     sio->swap_dirn = SD->index;
-    sio->mode = O_RDONLY;
+    sio->mode = O_RDONLY | O_BINARY;
     sio->callback = callback;
     sio->callback_data = callback_data;
     cbdataLock(callback_data);
