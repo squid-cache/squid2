@@ -408,7 +408,6 @@ int neighborsUdpPing(proto)
 	}
 
 	e->stats.ack_deficit++;
-	e->stats.num_pings++;
 	e->stats.pings_sent++;
 
 	if (e->stats.ack_deficit < HIER_MAX_DEFICIT) {
@@ -479,6 +478,7 @@ void neighborsUdpAck(fd, url, header, from, entry)
     MemObject *m = entry->mem_obj;
     int w_rtt;
     int rtt;
+    int n;
 
     debug(15, 6, "neighborsUdpAck: url=%s (%d chars), header=0x%x, from=0x%x, ent=0x%x\n",
 	url, strlen(url), header, from, entry);
@@ -507,12 +507,14 @@ void neighborsUdpAck(fd, url, header, from, entry)
 	}
 	e->neighbor_up = 1;
 	e->stats.ack_deficit = 0;
-	e->stats.pings_acked++;
+	n = ++e->stats.pings_acked;
 	header->opcode == ICP_OP_HIT ? e->stats.hits++ : e->stats.misses++;
 
 	if (m) {
+	    if (n > RTT_AV_FACTOR)
+			n = RTT_AV_FACTOR;
 	    rtt = tvSubMsec(m->start_ping, current_time);
-	    e->stats.rtt = (e->stats.rtt * (RTT_AV_FACTOR - 1) + rtt) / RTT_AV_FACTOR;
+	    e->stats.rtt = (e->stats.rtt * (n - 1) + rtt) / n;
 	}
     }
     /* check if someone is already fetching it */

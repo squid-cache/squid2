@@ -39,7 +39,7 @@ typedef struct _dom_list {
 } dom_list;
 
 #define EDGE_MAX_ADDRESSES 10
-#define RTT_AV_FACTOR      20
+#define RTT_AV_FACTOR      1000
 struct _edge {
     char *host;
     struct sockaddr_in in_addr;
@@ -49,7 +49,6 @@ struct _edge {
     } type;			/* 0 if neighbor, 1 if parent */
     int neighbor_up;		/* 0 if no, 1 if yes */
     struct {
-	int num_pings;
 	int pings_sent;
 	int pings_acked;
 	int ack_deficit;

@@ -44,6 +44,9 @@ char *diskFileName();
 static char *open_bracket = "{\n";
 static char *close_bracket = "}\n";
 
+static int percent _PARAMS((int, int));
+
+
 /* process utilization information */
 void stat_utilization_get(obj, sentry)
      cacheinfo *obj;
@@ -424,11 +427,11 @@ void server_list(obj, sentry)
 
 	sprintf(tempbuf, "{ACK DEFICIT: %8d}\n", e->stats.ack_deficit);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
-	sprintf(tempbuf, "{PINGS SENT : %8d}\n", e->stats.num_pings);
+	sprintf(tempbuf, "{PINGS SENT : %8d}\n", e->stats.pings_sent);
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
 	sprintf(tempbuf, "{PINGS ACKED: %8d %3d%%}\n",
 	    e->stats.pings_acked,
-	    percent(e->stats.pings_acked, e->stats.num_pings));
+	    percent(e->stats.pings_acked, e->stats.pings_sent));
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
 	sprintf(tempbuf, "{MISSES     : %8d %3d%%}\n",
 	    e->stats.misses,
