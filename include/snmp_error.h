@@ -59,7 +59,7 @@
 extern "C" {
 #endif
 
-    char *snmp_errstring(int);
+    const char *snmp_errstring(int);
 
 #ifdef __cplusplus
 }

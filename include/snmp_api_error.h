@@ -57,10 +57,10 @@ extern "C" {
 
 /* extern int snmp_errno */
 
-    char *snmp_api_error(int);
+    const char *snmp_api_error(int);
     int snmp_api_errno(void);
 
-    char *api_errstring(int);	/* Backwards compatibility */
+    const char *api_errstring(int);	/* Backwards compatibility */
     void snmp_set_api_error(int);
 
 #ifdef __cplusplus

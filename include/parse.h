@@ -50,7 +50,7 @@ struct snmp_mib_tree {
     u_int subid;		/* This node's integer subidentifier */
     int type;			/* This node's object type */
     struct enum_list *enums;	/* (optional) list of enumerated integers (otherwise NULL) */
-    void (*printer) ();		/* Value printing function */
+    void (*printer) (char *buf, variable_list *var, void *foo, int quiet);		/* Value printing function */
 };
 
 /* non-aggregate types for tree end nodes */
