@@ -217,3 +217,8 @@
  * If _res structure has ns_list member
  */
 #undef HAVE_RES_NS_LIST
+
+/*
+ * Compile in support for Ident (RFC 931) lookups?  Enabled by default.
+ */
+#define USE_IDENT 1
