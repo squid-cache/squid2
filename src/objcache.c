@@ -250,6 +250,12 @@ int objcacheStart(fd, url, entry)
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
+    } else if (strcmp(data->request, "stats/dns") == 0) {
+	BIT_SET(data->entry->flag, DELAY_SENDING);
+	CacheInfo->stat_get(CacheInfo, "dns", data->entry);
+	BIT_RESET(data->entry->flag, DELAY_SENDING);
+	storeComplete(data->entry);
+
     } else if (strcmp(data->request, "stats/redirector") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
 	CacheInfo->stat_get(CacheInfo, "redirector", data->entry);

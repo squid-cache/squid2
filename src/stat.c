@@ -316,6 +316,8 @@ void stat_get(obj, req, sentry)
 	stat_ipcache_get(sentry);
     } else if (strcmp(req, "fqdncache") == 0) {
 	fqdnStats(sentry);
+    } else if (strcmp(req, "dns") == 0) {
+	dnsStats(sentry);
     } else if (strcmp(req, "redirector") == 0) {
 	redirectStats(sentry);
     } else if (strcmp(req, "utilization") == 0) {
