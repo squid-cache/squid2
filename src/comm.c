@@ -328,6 +328,7 @@ commConnectDnsHandle(const ipcache_addrs * ia, void *data)
     cs->locks--;
     if (ia == NULL) {
 	debug(5, 3) ("commConnectDnsHandle: Unknown host: %s\n", cs->host);
+	assert(dns_error_message != NULL);
 	commConnectCallback(cs, COMM_ERR_DNS);
 	return;
     }
