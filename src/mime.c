@@ -426,6 +426,7 @@ mimeLoadIconFile(const char *icon)
 	flags,
 	METHOD_GET);
     assert(e != NULL);
+    EBIT_SET(e->flags, ENTRY_SPECIAL);
     storeSetPublicKey(e);
     storeBuffer(e);
     e->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
@@ -443,7 +444,6 @@ mimeLoadIconFile(const char *icon)
     while ((n = FD_READ_METHOD(fd, buf, 4096)) > 0)
 	storeAppend(e, buf, n);
     file_close(fd);
-    EBIT_SET(e->flags, ENTRY_SPECIAL);
     storeBufferFlush(e);
     storeComplete(e);
     storeTimestampsSet(e);
