@@ -233,6 +233,12 @@ by URL-encoding the login name before sent to redirectors. Note:
 Existing redirectors or their configuration may need to be slightly
 modified in how they process the ident column to support the new
 username format (only applies to redirectors looking into the username)</LI>
+<LI>new forward_timeout option to complement connect_timeout in
+management of timeouts while connecting to origin servers or peers</LI>
+<LI>various timeouts adjusted: connect_timeout 1 minute (was 2 minutes
+which is now forward_timeout), negative_dns_ttl 1 minute (was 5 minutes)
+and is now also used as minimum positive dns ttl, dns_timeout 2 minutes
+(was 5 minutes)</LI>
 <LI>a large number of minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4">squid-2.5.STABLE4 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>

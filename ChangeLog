@@ -26,6 +26,10 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	  attack if the contacted server is refusing connections
 	- errorpage README files included in the distribution again showing
 	  who contributed which translation
+	- Bug #848: connect_timeout connect_timeout ends up twice the length.
+	  forward_timeout option added to address this.
+	- Bug #849: DNS log error messages should report the failed query
+	- Bug #851: DNS retransmits too often
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 
