@@ -746,7 +746,7 @@ gopherReadReply(int fd, GopherStateData * data)
 	commSetSelect(fd,
 	    COMM_SELECT_TIMEOUT,
 	    NULL,
-	     NULL,
+	    NULL,
 	    0);
 	if (!BIT_TEST(entry->flag, READ_DEFERRED)) {
 	    comm_set_fd_lifetime(fd, 3600);	/* limit during deferring */

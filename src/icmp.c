@@ -116,7 +116,7 @@ icmpOpen(void)
 	(PF) icmpRecv,
 	(void *) -1, 0);
     comm_set_fd_lifetime(icmp_sock, -1);
-    debug(29,0,"Pinger socket opened on FD %d\n", icmp_sock);
+    debug(29, 0, "Pinger socket opened on FD %d\n", icmp_sock);
 }
 
 void

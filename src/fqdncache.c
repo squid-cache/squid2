@@ -532,7 +532,7 @@ fqdncache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	    COMM_SELECT_WRITE,
 	    NULL,
 	    NULL,
-	0);
+	    0);
 	comm_close(fd);
 	return 0;
     }
