@@ -273,11 +273,11 @@ clientRedirectDone(void *data, char *result)
     if (new_request) {
 	safe_free(icpState->url);
 	/* need to malloc because the URL returned by the redirector might
-	   not be big enough to append the local domain
-	   -- David Lamkin drl@net-tel.co.uk */
+	 * not be big enough to append the local domain
+	 * -- David Lamkin drl@net-tel.co.uk */
 	l = strlen(result) + Config.appendDomainLen + 5;
-        icpState->url = xcalloc(l, 1);
-        xstrncpy(icpState->url, result, l);
+	icpState->url = xcalloc(l, 1);
+	xstrncpy(icpState->url, result, l);
 	new_request->http_ver = old_request->http_ver;
 	requestUnlink(old_request);
 	icpState->request = requestLink(new_request);
