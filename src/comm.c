@@ -551,6 +551,12 @@ int comm_select(sec, failtime)
 	FD_ZERO(&writefds);
 	FD_ZERO(&exceptfds);
 
+	if (shutdown_pending || reread_pending) {
+	    serverConnectionsClose();
+	    ftpServerClose();
+	    ipcacheShutdownServers();
+	    setSocketShutdownLifetimes();
+	}
 	nfds = 0;
 	maxfd = fdstat_biggest_fd() + 1;
 	for (i = 0; i < maxfd; i++) {
@@ -571,13 +577,9 @@ int comm_select(sec, failtime)
 	if (!fdstat_are_n_free_fd(RESERVED_FD)) {
 	    FD_CLR(theHttpConnection, &readfds);
 	}
-	if (shutdown_pending || reread_pending) {
-	    debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
-	    ipcacheShutdownServers();
-	    setSocketShutdownLifetimes();
-	}
 	if (nfds == 0)
 	    return COMM_SHUTDOWN;
+	debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
 	while (1) {
 	    poll_time.tv_sec = sec > 1 ? 1 : 0;
 	    poll_time.tv_usec = 0;
@@ -585,17 +587,12 @@ int comm_select(sec, failtime)
 	    if (num >= 0)
 		break;
 	    /* break on interrupt so outer loop will reset FD_SET's */
-	    if (errno == EINTR)
-		break;
 	    debug(5, 0, "comm_select: select failure: %s\n",
 		xstrerror());
 	    examine_select(&readfds, &writefds, &exceptfds);
 	    return COMM_ERROR;
 	    /* NOTREACHED */
 	}
-	if (num < 0)
-	    continue;
-
 	debug(5, num ? 5 : 8, "comm_select: %d sockets ready at %d\n",
 	    num, (int) squid_curtime);
 

@@ -134,11 +134,6 @@
 #define BUFSIZ  4096		/* make reasonable guess */
 #endif
 
-#if !defined(SUN_LEN)
-#define SUN_LEN(su) \
-        (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
-#endif
-
 typedef struct sentry StoreEntry;
 typedef struct mem_hdr *mem_ptr;
 typedef struct _edge edge;
@@ -199,6 +194,8 @@ typedef void (*SIH) _PARAMS((int, void *));	/* swap in */
 #if !HAVE_TEMPNAM
 #include "tempnam.h"
 #endif
+
+extern void serverConnectionsClose _PARAMS((void));
 
 extern time_t squid_starttime;	/* main.c */
 extern time_t next_cleaning;	/* main.c */

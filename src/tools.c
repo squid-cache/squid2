@@ -11,8 +11,6 @@ int do_mallinfo = 0;		/* don't do mallinfo() unless this gets set */
 time_t squid_curtime;
 struct timeval current_time;
 
-extern void serverConnectionsClose _PARAMS((void));
-
 #define DEAD_MSG "\
 The Squid Cache (version %s) died.\n\
 \n\
@@ -213,10 +211,6 @@ void shut_down(sig)
 {
     debug(21, 1, "Preparing for shutdown after %d connections\n",
 	ntcpconn + nudpconn);
-    serverConnectionsClose();
-    ipcacheShutdownServers();
-    ftpServerClose();
-    setSocketShutdownLifetimes();
     shutdown_pending = 1;
     /* reinstall signal handler? */
 }
@@ -459,11 +453,7 @@ void reconfigure(sig)
      int sig;
 {
     debug(21, 1, "reconfigure: SIGHUP received.\n");
-    serverConnectionsClose();
-    ipcacheShutdownServers();
-    ftpServerClose();
     reread_pending = 1;
-    setSocketShutdownLifetimes();
 #if !HAVE_SIGACTION
     signal(sig, reconfigure);
 #endif
