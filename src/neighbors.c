@@ -895,8 +895,11 @@ peerDestroy(void *data, int unused)
     }
     safe_free(p->host);
 #if USE_CACHE_DIGESTS
-    /* it should be set NULL in free_peer() */
-    assert(p->digest == NULL);
+    if (p->digest) {
+	PeerDigest *pd = p->digest;
+	p->digest = NULL;
+	cbdataUnlock(pd);
+    }
 #endif
     xfree(p);
 }
