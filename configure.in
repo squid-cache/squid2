@@ -35,10 +35,6 @@ CRYPT_LIB=''
 
 SOCKET_PH_TYPE='default'
 
-echo '--------------------------------'
-echo "Installing Squid in $myprefix"
-echo '--------------------------------'
-
 dnl Subsitutions
 AC_SUBST(INSTALL_TOPDIR)
 AC_SUBST(INSTALL_LIBDIR)
@@ -94,10 +90,21 @@ dnl Check for typedefs
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long)
 
+dnl Check for special functions
+AC_FUNC_ALLOCA
 
 dnl Check for library functions
-AC_CHECK_FUNCS(getdtablesize sysconf strerror setrlimit strdup \
-               regcomp regexec regfree timegm)
+AC_CHECK_FUNCS(\
+	getdtablesize \
+	regcomp \
+	regexec \
+	regfree \
+	setrlimit \
+	strdup \
+	strerror \
+	sysconf \
+	timegm\
+)
 
 dnl Check for needed libraries
 AC_CHECK_LIB(socket, main, [XTRA_LIBS="$XTRA_LIBS -lsocket"])
