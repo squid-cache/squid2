@@ -100,7 +100,7 @@ wordlistDestroy(wordlist ** list)
     *list = NULL;
 }
 
-wordlist *
+const char *
 wordlistAdd(wordlist ** list, const char *key)
 {
     while (*list)
@@ -108,7 +108,28 @@ wordlistAdd(wordlist ** list, const char *key)
     *list = memAllocate(MEM_WORDLIST);
     (*list)->key = xstrdup(key);
     (*list)->next = NULL;
-    return *list;
+    return (*list)->key;
+}
+
+void
+wordlistJoin(wordlist ** list, wordlist **wl)
+{
+    while (*list)
+	list = &(*list)->next;
+    *list = *wl;
+    *wl = NULL;
+}
+
+void
+wordlistAddWl(wordlist ** list, wordlist *wl)
+{
+    while (*list)
+	list = &(*list)->next;
+    for(;wl;wl=wl->next, list = &(*list)->next) {
+	*list = memAllocate(MEM_WORDLIST);
+	(*list)->key = xstrdup(wl->key);
+    (*list)->next = NULL;
+    }
 }
 
 void
