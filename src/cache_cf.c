@@ -207,7 +207,6 @@ char *cfg_filename = NULL;	/* just the last part */
 char ForwardedBy[256];
 
 char w_space[] = " \t\n";
-static char null_string[] = "";
 char config_input_line[BUFSIZ];
 int config_lineno = 0;
 

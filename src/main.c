@@ -130,7 +130,8 @@ char version_string[] = SQUID_VERSION;
 char appname[] = "squid";
 char localhost[] = "127.0.0.1";
 struct in_addr local_addr;
-char *dash_str = "-";
+char dash_str[] = "-";
+char null_string[] = "";
 
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) _PARAMS((char *));
