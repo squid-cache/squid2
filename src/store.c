@@ -1840,16 +1840,16 @@ storeGetMemSpace(int size)
 	    n_expired++;
 	    storeRelease(e);
 	} else if (storeCheckPurgeMem(e)) {
+	    debug(20, 3, "storeGetMemSpace: Adding '%s'\n", e->url);
 	    *(list + list_count) = e;
 	    list_count++;
 	} else if (!storeEntryLocked(e)) {
+	    debug(20, 3, "storeGetMemSpace: Adding '%s'\n", e->url);
 	    *(list + list_count) = e;
 	    list_count++;
 	} else {
 	    n_locked++;
-	    continue;
 	}
-	debug(20, 3, "storeGetMemSpace: Adding '%s'\n", e->url);
     }
     debug(20, 5, "storeGetMemSpace: Sorting LRU_list: %7d items\n", list_count);
     qsort((char *) list,
