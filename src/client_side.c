@@ -2001,6 +2001,11 @@ clientProcessRequest2(clientHttpRequest * http)
 	http->entry = e;
 	return LOG_TCP_HIT;
     }
+    if (http->redirect.status) {
+	/* force this to be a miss */
+	http->entry = NULL;
+	return LOG_TCP_MISS;
+    }
     if (!storeEntryValidToSend(e)) {
 	debug(33, 3) ("clientProcessRequest2: !storeEntryValidToSend MISS\n");
 	http->entry = NULL;
