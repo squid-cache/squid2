@@ -194,6 +194,8 @@ void serverConnectionsOpen()
 
 void serverConnectionsClose()
 {
+    /* NOTE, this function will be called repeatedly while shutdown
+     * is pending */
     if (theHttpConnection >= 0) {
 	debug(21, 1, "FD %d Closing HTTP connection\n",
 	    theHttpConnection);
@@ -333,6 +335,7 @@ static void mainInitialize()
 
 #if HAVE_SIGACTION
     sa.sa_handler = rotate_logs;
+    sa.sa_flags = SA_RESTART;
     if (sigaction(SIGUSR1, &sa, NULL) < 0)
 	debug(1, 0, "sigaction: SIGUSR1, rotate_logs: %s\n", xstrerror());
     sa.sa_handler = sigusr2_handle;
@@ -386,18 +389,16 @@ int main(argc, argv)
 
 #if HAVE_MALLOPT
 #ifdef M_GRAIN
-    /* set malloc option */
-    /* use small block algorithm for faster allocation */
-    /* grain of small block */
-    mallopt(M_GRAIN, 64);
+    /* Round up all sizes to a multiple of this */
+    mallopt(M_GRAIN, 16);
 #endif
 #ifdef M_MXFAST
     /* biggest size that is considered a small block */
     mallopt(M_MXFAST, 256);
 #endif
 #ifdef M_NBLKS
-    /* number of block in each chunk */
-    mallopt(M_NLBLKS, 64);
+    /* allocate this many small blocks at once */
+    mallopt(M_NLBLKS, 32);
 #endif
 #endif /* HAVE_MALLOPT */
 
