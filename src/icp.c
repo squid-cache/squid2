@@ -133,7 +133,7 @@ int icpStateFree(fdunused, icpState)
     safe_free(icpState->request_hdr);
     safe_free(icpState->request);
     safe_free(icpState);
-    return 0;  /* XXX gack, all comm handlers return ints */
+    return 0;			/* XXX gack, all comm handlers return ints */
 }
 
 int icpCachable(icpState)
@@ -1362,9 +1362,7 @@ void asciiConnLifetimeHandle(fd, data)
     PF handler;
     void *client_data;
     icpReadWriteData *rw_state = NULL;
-    StoreEntry *entry = NULL;
-
-    entry = astm->entry;
+    StoreEntry *entry = astm->entry;
 
     debug(12, 2, "asciiConnLifetimeHandle: Socket: %d lifetime is expired. Free up data structure.\n", fd);
 
@@ -1395,25 +1393,19 @@ void asciiConnLifetimeHandle(fd, data)
 	(void **) &client_data);
     if ((handler != NULL) && (client_data != NULL)) {
 	rw_state = (icpReadWriteData *) client_data;
-	/*
-	 * the correct pointer for free is astm->url, NOT rw_state->buf
-	 */
+	/* the correct pointer for free is astm->url, NOT rw_state->buf */
 	safe_free(rw_state);
     }
+    CheckQuickAbort(astm);
+    if (entry && astm->url)
+	/* Unregister us from the dnsserver pending list and cause a DNS
+	 * related storeAbort() for other attached clients.  If this
+	 * doesn't succeed, then the fetch has already started for this
+	 * URL. */
+	protoUndispatch(fd, astm->url, entry, astm->request);
     comm_close(fd);
     if (entry) {
-	/* NOTE, this section used to be between free write & read */
-	CheckQuickAbort(astm);
 	storeUnregister(entry, fd);
-	/* We are now detached from the store entry but not the
-	 * DNS handler for it */
-	if (astm->url) {
-	    /* Unregister us from the dnsserver pending list and cause a DNS
-	     * related storeAbort() for other attached clients.  If this
-	     * doesn't succeed, then the fetch has already started for this
-	     * URL. */
-	    protoUndispatch(fd, astm->url, entry, astm->request);
-	}
 	storeUnlockObject(entry);
     }
 }
