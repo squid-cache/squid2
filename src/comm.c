@@ -261,7 +261,7 @@ comm_open(int sock_type,
 	commSetCloseOnExec(new_socket);
     if (port > (u_short) 0) {
 	commSetNoLinger(new_socket);
-	if (do_reuse)
+	if (opt_reuseaddr)
 	    commSetReuseAddr(new_socket);
     }
     if (addr.s_addr != no_addr.s_addr) {

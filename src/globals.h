@@ -48,7 +48,7 @@ extern int config_lineno;	/* 0 */
 extern int configured_once;	/* 0 */
 extern int debugLevels[MAX_DEBUG_SECTIONS];
 extern int do_mallinfo;		/* 0 */
-extern int do_reuse;		/* 1 */
+extern int opt_reuseaddr;	/* 1 */
 extern int hash_links_allocated;
 extern int icmp_sock;		/* -1 */
 extern int neighbors_do_private_keys;	/* 1 */

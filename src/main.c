@@ -182,7 +182,7 @@ mainParseOptions(int argc, char *argv[])
 	    opt_no_daemon = 1;
 	    break;
 	case 'R':
-	    do_reuse = 0;
+	    opt_reuseaddr = 0;
 	    break;
 	case 'V':
 	    vhost_mode = 1;
