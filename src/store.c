@@ -861,6 +861,7 @@ storeCheckSwapOut(StoreEntry * e)
 
     new_mem_lo = lowest_offset;
     if (!EBIT_TEST(e->flag, ENTRY_CACHABLE)) {
+	assert(EBIT_TEST(e->flag, ENTRY_PRIVATE));
 	memFreeDataUpto(mem->data, new_mem_lo);
 	mem->inmem_lo = new_mem_lo;
 	return;

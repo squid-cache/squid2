@@ -392,6 +392,7 @@ mimeLoadIconFile(const char *icon)
     int fd;
     int n;
     int l;
+    int flags;
     struct stat sb;
     StoreEntry *e;
     LOCAL_ARRAY(char, path, MAXPATHLEN);
@@ -412,9 +413,11 @@ mimeLoadIconFile(const char *icon)
 	debug(50, 0) ("mimeLoadIconFile: FD %d: fstat: %s\n", fd, xstrerror());
 	return;
     }
+    flags = 0;
+    EBIT_SET(flags, REQ_CACHABLE);
     e = storeCreateEntry(url,
 	url,
-	REQ_CACHABLE,
+	flags,
 	METHOD_GET);
     assert(e != NULL);
     e->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
