@@ -203,7 +203,7 @@ aio_init(void)
 }
 
 
-static void *
+static void
 aio_thread_loop(void *ptr)
 {
     aio_thread_t *threadp = (aio_thread_t *) ptr;
