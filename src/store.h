@@ -186,5 +186,6 @@ extern int storeSwapInStart _PARAMS((StoreEntry *));
 extern int swapInError _PARAMS((int fd, StoreEntry *));
 extern int storeCopy _PARAMS((StoreEntry *, int, int, char *, int *));
 extern int storeMaintainSwapSpace _PARAMS((void));
+extern void storeExpireNow _PARAMS((StoreEntry *));
 
 #endif
