@@ -178,7 +178,7 @@ accessLogSquid(AccessLogEntry * al, MemBuf * mb)
 	al->private.method_str,
 	al->url,
 	al->cache.ident,
-	al->hier.icp.timeout ? "TIMEOUT_" : "",
+	al->hier.icp.timedout ? "TIMEOUT_" : "",
 	hier_strings[al->hier.code],
 	al->hier.host,
 	al->http.content_type);
