@@ -49,10 +49,8 @@ void
 requestDestroy(request_t * req)
 {
     assert(req);
-#if OLD_CODE
-    safe_free(req->prefix);
-#endif
     safe_free(req->body);
+    safe_free(req->canonical);
     stringClean(&req->urlpath);
     httpHeaderClean(&req->header);
     if (req->cache_control)
