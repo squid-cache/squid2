@@ -1469,30 +1469,8 @@ void asciiProcessInput(fd, buf, size, flag, icpState)
 	comm_close(fd);
 	return;
     }
-    if (icpState->offset + size >= icpState->inbufsize) {
-	if (icpState->offset + size >= getMaxRequestSize()) {
-	    /* The request is to large to handle */
-	    debug(12, 0, "asciiProcessInput: Request won't fit in buffer.\n");
-	    debug(12, 0, "-->     max size = %d\n", getMaxRequestSize());
-	    debug(12, 0, "--> icpState->offset = %d\n", icpState->offset);
-	    debug(12, 0, "-->         size = %d\n", size);
-	    icpState->buf = NULL;
-	    icpState->ptr_to_4k_page = NULL;
-	    icpSendERROR(fd, ICP_ERROR_INTERNAL, "error reading request", icpState);
-	    return;
-	} else {
-	    /* Grow the request memory area to accomodate for a large request */
-	    char *inbuf;
-	    inbuf = xmalloc(icpState->inbufsize + ASCII_INBUF_BLOCKSIZE);
-	    memcpy(inbuf, icpState->inbuf, icpState->inbufsize);
-	    safe_free(icpState->inbuf);
-	    icpState->inbuf = inbuf;
-	    icpState->inbufsize += ASCII_INBUF_BLOCKSIZE;
-	    debug(12, 2, "Handling a large request, inbufsize=%d\n",
-		icpState->inbufsize);
-	}
-    }
     icpState->offset += size;
+    icpState->inbuf[icpState->offset] = '\0';	/* Terminate the string */
 
     parser_return_code = parseHttpRequest(icpState);
     if (parser_return_code == 1) {
@@ -1553,6 +1531,24 @@ void asciiProcessInput(fd, buf, size, flag, icpState)
 	 *    is happy with the input
 	 */
 	k = icpState->inbufsize - 1 - icpState->offset;
+	if (k == 0) {
+	    if (icpState->offset >= getMaxRequestSize()) {
+		/* The request is too large to handle */
+		debug(12, 0, "asciiProcessInput: Request won't fit in buffer.\n");
+		debug(12, 0, "-->     max size = %d\n", getMaxRequestSize());
+		debug(12, 0, "--> icpState->offset = %d\n", icpState->offset);
+		icpState->buf = NULL;
+		icpState->ptr_to_4k_page = NULL;
+		icpSendERROR(fd, ICP_ERROR_INTERNAL, "error reading request", icpState);
+		return;
+	    }
+	    /* Grow the request memory area to accomodate for a large request */
+	    icpState->inbufsize += ASCII_INBUF_BLOCKSIZE;
+	    icpState->inbuf = xrealloc(icpState->inbuf, icpState->inbufsize);
+	    debug(12, 2, "Handling a large request, offset=%d inbufsize=%d\n",
+		icpState->offset, icpState->inbufsize);
+	    k = icpState->inbufsize - 1 - icpState->offset;
+	}
 	icpRead(fd,
 	    FALSE,
 	    icpState->inbuf + icpState->offset,
