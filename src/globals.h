@@ -8,8 +8,6 @@ extern FILE *cache_useragent_log;	/* NULL */
 extern Meta_data meta_data;
 extern SquidConfig Config;
 extern SquidConfig2 Config2;
-extern cacheinfo *HTTPCacheInfo;
-extern cacheinfo *ICPCacheInfo;
 extern char *ConfigFile;	/* NULL */
 extern char *IcpOpcodeStr[];
 extern char *dns_error_message;	/* NULL */

@@ -753,7 +753,7 @@ percent(int a, int b)
     return b ? ((int) (100.0 * a / b + 0.5)) : 0;
 }
 
-int
+double
 dpercent(double a, double b)
 {
     return b ? (100.0 * a / b) : 0.0;
@@ -837,4 +837,11 @@ dlinkDelete(dlink_node * m, dlink_list * list)
 	list->head = m->next;
     if (m == list->tail)
 	list->tail = m->prev;
+}
+
+void kb_incr(kb_t *k, size_t v)
+{
+	k->bytes += v;
+	k->kb += (k->bytes >> 10);
+	k->bytes &= 0x3FF;
 }

@@ -96,7 +96,9 @@ void snmpUdpSend(int, const struct sockaddr_in *, void *, int);
 
 SNMPFV var_cachesys_entry;
 SNMPFV var_perfsys_entry;
+#if OLD_CODE
 SNMPFV var_protostat_entry;
+#endif
 SNMPFV var_conf_entry;
 SNMPFV var_netdb_entry;
 SNMPFV var_ipcache_entry;
@@ -174,6 +176,7 @@ struct variable4 cacheperf_vars[] =
 	{1, 12}},
     {PERF_SYS_CURRESERVED_FD, INTEGER, RONLY, var_perfsys_entry, 2,
 	{1, 13}},
+#if OLD_CODE
     {PERF_PROTOSTAT_ID, INTEGER, RONLY, var_protostat_entry, 4,
 	{2, 1, 1, 1}},
     {PERF_PROTOSTAT_KBMAX, INTEGER, RONLY, var_protostat_entry, 4,
@@ -192,6 +195,7 @@ struct variable4 cacheperf_vars[] =
 	{2, 1, 1, 8}},
     {PERF_PROTOSTAT_TRNFRB, COUNTER, RONLY, var_protostat_entry, 4,
 	{2, 1, 1, 9}},
+#endif
     {PERF_PROTOSTAT_AGGR_CLHTTP, COUNTER, RONLY, var_aggreg_entry, 3,
 	{2, 2, 1}},
     {PERF_PROTOSTAT_AGGR_ICP_S, COUNTER, RONLY, var_aggreg_entry, 3,
@@ -916,87 +920,6 @@ snmpAppendUdp(snmpUdpData * item)
     }
 
 }
-
-u_char *
-var_protostat_entry(struct variable *vp, oid * name, int *length, int exact, int *var_len,
-    SNMPWM ** write_method)
-{
-    oid newname[MAX_NAME_LEN];
-    int result;
-    static char snbuf[256];
-    static char snbuf2[256];
-    static int current;
-    proto_stat *p = NULL;
-
-    debug(49, 3) ("snmp: var_protostat called with magic=%d \n", vp->magic);
-    debug(49, 3) ("snmp: var_protostat with (%d,%d)\n", *length, *var_len);
-    sprint_objid(snbuf, name, *length);
-    debug(49, 3) ("snmp: var_protostat oid: %s\n", snbuf);
-
-    memcpy((char *) newname, (char *) vp->name, (int) vp->namelen * sizeof(oid));
-    newname[vp->namelen] = (oid) 1;
-
-    debug(49, 5) ("snmp var_protostat: hey, here we are.\n");
-
-    current = 0;
-    while (current < MAX_PROTOSTAT) {
-	newname[vp->namelen] = current + 1;
-	sprint_objid(snbuf, name, *length);
-	sprint_objid(snbuf2, newname, (int) vp->namelen + 1);
-/*      debug(49,3)("snmp: var_protostat comparing \n       %s \n with  %s\n",snbuf,snbuf2); */
-	result = compare(name, *length, newname, (int) vp->namelen + 1);
-	if ((exact && (result == 0)) || (!exact && (result < 0))) {
-	    debug(49, 5) ("snmp var_protostat: yup, a match.\n");
-	    break;
-	}
-	current++;
-    }
-    if (current == MAX_PROTOSTAT)
-	return NULL;
-
-    debug(49, 5) ("hey, matched.\n");
-    memcpy((char *) name, (char *) newname, ((int) vp->namelen + 1) * sizeof(oid));
-    *length = vp->namelen + 1;
-    *write_method = 0;
-    *var_len = sizeof(long);	/* default length */
-    sprint_objid(snbuf, newname, *length);
-    debug(49, 5) ("snmp var_protostat  request for %s (%d)\n", snbuf, current);
-
-    p = &HTTPCacheInfo->proto_stat_data[current];
-
-    switch (vp->magic) {
-    case PERF_PROTOSTAT_ID:
-	long_return = current + 1;
-	return (u_char *) & long_return;
-    case PERF_PROTOSTAT_KBMAX:
-	long_return = p->kb.max;
-	return (u_char *) & long_return;
-    case PERF_PROTOSTAT_KBMIN:
-	long_return = p->kb.min;
-	return (u_char *) & long_return;
-    case PERF_PROTOSTAT_KBAVG:
-	long_return = p->kb.avg;
-	return (u_char *) & long_return;
-    case PERF_PROTOSTAT_KBNOW:
-	long_return = p->kb.now;
-	return (u_char *) & long_return;
-    case PERF_PROTOSTAT_HIT:
-	long_return = p->hit;
-	return (u_char *) & long_return;
-    case PERF_PROTOSTAT_MISS:
-	long_return = p->miss;
-	return (u_char *) & long_return;
-    case PERF_PROTOSTAT_REFCOUNT:
-	long_return = p->refcount;
-	return (u_char *) & long_return;
-    case PERF_PROTOSTAT_TRNFRB:
-	long_return = p->transferbyte;
-	return (u_char *) & long_return;
-    default:
-	return NULL;
-    }
-}
-
 
 u_char *
 var_perfsys_entry(struct variable * vp, oid * name, int *length, int exact, int *var_len,

@@ -448,9 +448,8 @@ mainInitialize(void)
 	unlinkdInit();
 	/* module initialization */
 	urlInitialize();
-	stat_init(&HTTPCacheInfo, Config.Log.access);
-	stat_init(&ICPCacheInfo, NULL);
 	objcacheInit();
+	statInit();
 	storeInit();
 	asnAclInitialize(Config.aclList);
 	if (Config.effectiveUser) {
@@ -492,7 +491,6 @@ mainInitialize(void)
 	if (Config.onoff.announce)
 	    eventAdd("start_announce", start_announce, NULL, 3600);
 	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10);
-	statAvgInit();
     }
     configured_once = 1;
 #ifdef SQUID_SNMP

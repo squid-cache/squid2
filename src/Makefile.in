@@ -93,6 +93,7 @@ OBJS	 	= \
 		icp_v2.o \
 		icp_v3.o \
 		ident.o \
+		ipc.o \
 		ipcache.o \
 		main.o \
 		mem.o \

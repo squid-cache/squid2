@@ -70,6 +70,7 @@ fd_open(int fd, unsigned int type, const char *desc)
     fde *F = &fd_table[fd];
     assert(fd >= 0);
     assert(F->open == 0);
+    debug(51, 3) ("fd_open FD %d %s\n", fd, desc);
     F->type = type;
     fdUpdateBiggest(fd, F->open = FD_OPEN);
     if (desc)
