@@ -782,11 +782,11 @@ storeAppendDone(int fd, int err, int len, StoreEntry * e)
 	fd, err, len, e->key);
     if (err) {
 	debug(20, 0, "storeAppendDone: ERROR %d for '%s'\n", err, e->key);
-        if (err == DISK_NO_SPACE_LEFT) {
-            /* reduce the swap_size limit to the current size. */
-            Config.Swap.maxSize = store_swap_size;
-            storeConfigure();
-        }
+	if (err == DISK_NO_SPACE_LEFT) {
+	    /* reduce the swap_size limit to the current size. */
+	    Config.Swap.maxSize = store_swap_size;
+	    storeConfigure();
+	}
 	return;
     }
     e->object_len += len;
