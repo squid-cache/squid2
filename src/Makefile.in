@@ -147,7 +147,7 @@ globals.o: globals.c Makefile
 	$(CC) -c $< $(CFLAGS) $(DEFAULTS)
 
 globals.c: globals.h mk-globals-c.pl
-	perl mk-globals-c.pl < globals.h > $@
+	$(PERL) mk-globals-c.pl < globals.h > $@
 
 client:	client.o
 	$(CC) -o $@ $(LDFLAGS) $@.o $(CLIENT_LIBS)
