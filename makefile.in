@@ -37,7 +37,7 @@ install-pinger:
 almostclean: clean
 	rm -f config.log makefile
 	rm -f include/paths.h include/autoconf.h include/config.h
-	rm -f auth_modules/NCSA/Makefile
+	rm -f auth_modules/NCSA/Makefile auth_modules/dummy
 	@for dir in $(SUBDIRS) contrib; do \
 		echo Making distclean in $$dir; \
 		(cd $$dir; $(MAKE) $(MFLAGS) prefix="$(prefix)" distclean); \
