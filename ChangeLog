@@ -1,4 +1,4 @@
-Changes to squid-2.5.STABLE4 (not yet released):
+Changes to squid-2.5.STABLE4 (15 Sep 2003):
 	- Lithuanian error messages added to the distribution
 	- Bug #660: segfauld if more than one custom deny_info line
 	- cache_dir disd documentation cleanup
