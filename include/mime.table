@@ -14,6 +14,7 @@
 .dvi       application/x-dvi                binary       1.0    binary
 .hdf       application/x-hdf                binary       1.0    binary
 .latex     application/x-latex              8bit         1.0    text
+.lsm	   text/plain			    7bit	 1.0    text
 .nc        application/x-netcdf             binary       1.0    binary
 .cdf       application/x-netcdf             binary       1.0    binary
 .sh        application/x-sh                 7bit         0.5    text
