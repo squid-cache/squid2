@@ -346,6 +346,14 @@ AC_CHECK_FUNCS(\
 	timegm \
 )
 
+case "$host" in
+	[alpha-dec-osf3.*])
+		# John Kay (jkay@nlanr.net) 19970818
+		echo "Disabling poll() for $host..."
+		ac_cv_func_poll="no"
+		;;
+esac
+
 AC_MSG_CHECKING(if GNUregex needs to be compiled)
 if test "$ac_cv_func_regcomp" = "no" ; then
 	USE_GNUREGEX="yes"
