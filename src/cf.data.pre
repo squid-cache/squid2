@@ -2579,4 +2579,10 @@ min_icp_poll_cnt 8
 min_http_poll_cnt 8
 DOC_END
 
+NAME: max_open_disk_fds
+TYPE: int
+LOC: Config.max_open_disk_fds
+DEFAULT: 0
+DOC_NONE
+
 EOF
