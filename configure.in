@@ -311,6 +311,7 @@ AC_ARG_ENABLE(snmp,
     AC_DEFINE(SQUID_SNMP)
     SNMPLIB='-L../snmplib -lsnmp'
     SNMP_OBJS='$(SNMP_OBJS)'
+    SNMP_MAKEFILE=./snmplib/Makefile
     makesnmplib=snmplib
   fi
 ])
@@ -1052,7 +1053,7 @@ AC_OUTPUT(\
 	./scripts/RunAccel \
 	./src/Makefile \
 	./contrib/Makefile \
-	./snmplib/Makefile \
+	$SNMP_MAKEFILE \
 	./icons/Makefile \
 	./errors/Makefile \
 )
