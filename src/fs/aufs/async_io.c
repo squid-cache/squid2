@@ -79,15 +79,6 @@ static dlink_list used_list;
 static int initialised = 0;
 static OBJH aioStats;
 static MemPool *squidaio_ctrl_pool;
-static void aioFDWasClosed(int fd);
-
-static void
-aioFDWasClosed(int fd)
-{
-    if (fd_table[fd].flags.closing)
-	fd_close(fd);
-}
-
 
 void
 aioInit(void)
@@ -337,8 +328,6 @@ aioCheckCallbacks(SwapDir * SD)
 	/* free temporary read buffer */
 	if (ctrlp->operation == _AIO_READ)
 	    squidaio_xfree(ctrlp->bufp, ctrlp->len);
-	if (ctrlp->operation == _AIO_CLOSE)
-	    aioFDWasClosed(ctrlp->fd);
 	memPoolFree(squidaio_ctrl_pool, ctrlp);
     }
     return retval;
