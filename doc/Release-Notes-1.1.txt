@@ -48,7 +48,16 @@ testing, this very simple Perl script can be used:
 
 The redirector program must read URLs (one per line) on standard input,
 and write rewritten URLs or blank lines on standard output.  Note that
-the redirector program can not use buffered I/O.
+the redirector program can not use buffered I/O.  Additional information
+is written after the URL which a redirector can use to make a decision.
+The input line consists of four fields:
+
+    URL ip-address/fqdn ident method
+
+The ip-address is always written, the fqdn will be provided if
+available (otherwise it will be "-").  Similarly, the user ident will
+be provided if available (i.e. 'ident_lookup on' in config file).  The
+method is GET, POST, etc..
 
 Note that when used in conjunction with the -V option (on a virtual hosted
 machine) this provides a mechanism to use a single Squid cache as a front
