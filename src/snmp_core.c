@@ -73,7 +73,6 @@ static oid_ParseFn *snmpTreeNext(oid * Current, snint CurrentLen, oid ** Next, s
 static oid_ParseFn *snmpTreeGet(oid * Current, snint CurrentLen);
 static mib_tree_entry *snmpTreeEntry(oid entry, snint len, mib_tree_entry * current);
 static mib_tree_entry *snmpTreeSiblingEntry(oid entry, snint len, mib_tree_entry * current);
-static oid *snmpOidDup(oid * A, snint ALen);
 static void snmpSnmplibDebug(int lvl, char *buf);
 
 
@@ -958,7 +957,7 @@ snmpAddNode(va_alist)
 
     va_start(args, children);
     entry = xmalloc(sizeof(mib_tree_entry));
-    entry->name = snmpOidDup(name, len);
+    entry->name = name;
     entry->len = len;
     entry->parsefunction = parsefunction;
     entry->instancefunction = instancefunction;
@@ -1009,6 +1008,7 @@ snmpCreateOid(va_alist)
     return (new_oid);
 }
 
+#if UNUSED_CODE
 /*
  * Allocate space for, and copy, an OID.  Returns new oid.
  */
@@ -1019,6 +1019,7 @@ snmpOidDup(oid * A, snint ALen)
     xmemcpy(Ans, A, (sizeof(oid) * ALen));
     return Ans;
 }
+#endif
 
 /*
  * Debug calls, prints out the OID for debugging purposes.
