@@ -4612,6 +4612,106 @@ rm -f conftest*
 echo "$ac_t""$ac_cv_func_statvfs" 1>&6
 fi
 
+echo $ac_n "checking for _res.nsaddr_list""... $ac_c" 1>&6
+echo "configure:4617: checking for _res.nsaddr_list" >&5
+if eval "test \"`echo '$''{'ac_cv_have_res_nsaddr_list'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 4622 "configure"
+#include "confdefs.h"
+
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#if HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#if HAVE_ARPA_NAMESER_H
+#include <arpa/nameser.h>
+#endif
+#if HAVE_RESOLV_H
+#include <resolv.h>
+#endif
+
+int main() {
+_res.nsaddr_list[0];
+; return 0; }
+EOF
+if { (eval echo configure:4645: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  ac_cv_have_res_nsaddr_list="yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  ac_cv_have_res_nsaddr_list="no"
+fi
+rm -f conftest*
+fi
+
+echo "$ac_t""$ac_cv_have_res_nsaddr_list" 1>&6
+if test $ac_cv_have_res_nsaddr_list = "yes" ; then
+  cat >> confdefs.h <<\EOF
+#define HAVE_RES_NSADDR_LIST 1
+EOF
+
+fi
+
+if test $ac_cv_have_res_nsaddr_list = "no" ; then
+echo $ac_n "checking for _res.ns_list""... $ac_c" 1>&6
+echo "configure:4667: checking for _res.ns_list" >&5
+if eval "test \"`echo '$''{'ac_cv_have_res_ns_list'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 4672 "configure"
+#include "confdefs.h"
+
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#if HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#if HAVE_ARPA_NAMESER_H
+#include <arpa/nameser.h>
+#endif
+#if HAVE_RESOLV_H
+#include <resolv.h>
+#endif
+
+int main() {
+_res.ns_list[0].addr;
+; return 0; }
+EOF
+if { (eval echo configure:4695: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  ac_cv_have_res_ns_list="yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  ac_cv_have_res_ns_list="no"
+fi
+rm -f conftest*
+fi
+
+echo "$ac_t""$ac_cv_have_res_ns_list" 1>&6
+if test $ac_cv_have_res_ns_list = "yes" ; then
+  cat >> confdefs.h <<\EOF
+#define HAVE_RES_NS_LIST 1
+EOF
+
+fi
+fi
+
 XTRA_OBJS=''
 if test "$ac_cv_lib_malloc_main" = "yes" ; then
 	if test -r /usr/lib/debug/malloc.o ; then
