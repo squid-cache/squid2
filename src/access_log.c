@@ -53,7 +53,6 @@ const char *log_tags[] =
     "UDP_DENIED",
     "UDP_INVALID",
     "UDP_MISS_NOFETCH",
-    "LOG_METER_EXPIRES",
     "LOG_TYPE_MAX"
 };
 
