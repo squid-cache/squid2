@@ -23,7 +23,7 @@ void _db_print();
 	    (_db_line = __LINE__)) \
         _db_print
 
-#define safe_free(x)	if (x) { free(x); x = NULL; }
+#define safe_free(x)	if (x) { xfree(x); x = NULL; }
 
 extern void _db_rotate_log _PARAMS((void));
 

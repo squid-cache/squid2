@@ -40,7 +40,7 @@ void push(stack, data)
      generic_ptr data;
 {
     if (current_stacksize(stack) == stack->stack_size) {
-	free(data);
+	safe_free(data);
 	return;
     }
     *stack->top = data;

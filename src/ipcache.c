@@ -1203,26 +1203,26 @@ int ipcache_unregister(name, fd)
 	if (p->next) {
 	    /* there is something along the line */
 	    e->pending_head = p->next;
-	    free(p->data);
-	    free(p);
+	    safe_free(p->data);
+	    safe_free(p);
 	} else {
 	    /* it is the only entry */
 	    e->pending_head = e->pending_tail = NULL;
-	    free(p->data);
-	    free(p);
+	    safe_free(p->data);
+	    safe_free(p);
 	}
     } else if (p == e->pending_tail) {
 	/* it's at the tail */
 	e->pending_tail = q;
 	q->next = NULL;
-	free(p->data);
-	free(p);
+	safe_free(p->data);
+	safe_free(p);
     } else {
 	/* it's in the middle */
 	/* skip it in the list */
 	q->next = p->next;
-	free(p->data);
-	free(p);
+	safe_free(p->data);
+	safe_free(p);
     }
     return 1;
 }

@@ -110,7 +110,7 @@ static void debugOpenLog(logfile)
 	return;
     }
     if (debug_log_file)
-	free(debug_log_file);
+	xfree(debug_log_file);
     debug_log_file = xstrdup(logfile);	/* keep a static copy */
     debug_log = fopen(logfile, "a+");
     if (!debug_log) {
