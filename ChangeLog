@@ -40,6 +40,12 @@ Changes to Squid-2.0 (October 2, 1998):
 	  ENTRY_BAD_LENGTH set.  We should release the
 	  bad entry to prevent secondary clients jumping on.
 	- Changed MIB to prevent parse warnings at startup.
+	- Fixed a forwarding loop bug.  Even though we were detecting
+	  a loop, it was not being broken.
+	- Try to prevent sibling forwarding loops by NOT forwarding a
+	  request to a sibling if we have a stale copy of the object.
+	  Validation requests should only be sent to parents (or
+	  direct).
 
 Changes to squid-1.2.beta25 (September 21, 1998):
 
