@@ -1314,7 +1314,9 @@ storeSwapOutStart(StoreEntry * e)
     LOCAL_ARRAY(char, swapfilename, SQUID_MAXPATHLEN);
     MemObject *mem = e->mem_obj;
     /* Suggest a new swap file number */
-    if ((swapfileno = storeGetUnusedFileno()) < 0)
+    if ((x = storeGetUnusedFileno()) < 0)
+	swapfileno = x;
+    else
 	swapfileno = (swapfileno + 1) % (MAX_SWAP_FILE);
     /* Record the number returned */
     swapfileno = file_map_allocate(swapfileno);
