@@ -123,8 +123,7 @@ char *username = "cache";
 
 
 /* Parse a object_cache url into components.  By Anawat. */
-int 
-objcache_url_parser(url, host, request, password)
+int objcache_url_parser(url, host, request, password)
      char *host;
      char *url;
      char *request;
@@ -142,8 +141,7 @@ objcache_url_parser(url, host, request, password)
     return 0;
 }
 
-int 
-objcache_CheckPassword(password, user)
+int objcache_CheckPassword(password, user)
      char *password;
      char *user;
 {
@@ -175,8 +173,7 @@ objcache_CheckPassword(password, user)
     return -1;
 }
 
-int 
-objcacheStart(fd, url, entry)
+int objcacheStart(fd, url, entry)
      int fd;
      char *url;
      StoreEntry *entry;

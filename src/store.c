@@ -531,7 +531,7 @@ int storeUnlockObject(e)
     debug(20, 3, "storeUnlockObject: key '%s' count=%d\n",
 	e->key, e->lock_count);
     if (e->lock_count)
-        return (int) e->lock_count;
+	return (int) e->lock_count;
     if (e->store_status == STORE_PENDING)
 	e->store_status = STORE_ABORTED;
     if (e->flag & RELEASE_REQUEST) {
@@ -1712,7 +1712,7 @@ int storeAbort(e, msg)
 	    "text/html");
 	strcat(abort_msg, mime_hdr);
 	strcat(abort_msg, "\r\n\r\n");
-	strncat(abort_msg, msg, 8191-strlen(abort_msg));
+	strncat(abort_msg, msg, 8191 - strlen(abort_msg));
 	storeAppend(e, abort_msg, strlen(abort_msg));
 	e->mem_obj->e_abort_msg = xstrdup(abort_msg);
 	/* Set up object for negative caching */

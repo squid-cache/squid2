@@ -738,16 +738,16 @@ int proxyhttpStart(e, url, entry)
     request->port = e->http_port;
     strncpy(request->urlpath, url, MAX_URL);
     ipcache_nbgethostbyname(request->host,
-        sock,
-        httpConnect,
-        httpState);
+	sock,
+	httpConnect,
+	httpState);
     return COMM_OK;
 }
 
 static int httpConnect(fd, hp, data)
-	int fd;
-	struct hostent *hp;
-	void *data;
+     int fd;
+     struct hostent *hp;
+     void *data;
 {
     HttpStateData *httpState = data;
     request_t *request = httpState->request;
@@ -755,10 +755,10 @@ static int httpConnect(fd, hp, data)
     edge *e = NULL;
     int status;
     if (hp == NULL) {
-        debug(11, 4, "httpConnect: Unknown host: %s\n", request->host);
-        squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
-        comm_close(fd);
-        return COMM_ERROR;
+	debug(11, 4, "httpConnect: Unknown host: %s\n", request->host);
+	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
+	comm_close(fd);
+	return COMM_ERROR;
     }
     /* Open connection. */
     if ((status = comm_connect(fd, request->host, request->port))) {
@@ -766,9 +766,9 @@ static int httpConnect(fd, hp, data)
 	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	    comm_close(fd);
 	    if ((e = httpState->neighbor)) {
-                e->last_fail_time = squid_curtime;
-                e->neighbor_up = 0;
-            }
+		e->last_fail_time = squid_curtime;
+		e->neighbor_up = 0;
+	    }
 	    return COMM_ERROR;
 	} else {
 	    debug(11, 5, "proxyhttpStart: FD %d: EINPROGRESS.\n", fd);
@@ -818,9 +818,9 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
 	(PF) httpStateFree,
 	(void *) httpState);
     ipcache_nbgethostbyname(request->host,
-        sock,
-        httpConnect,
-        httpState);
+	sock,
+	httpConnect,
+	httpState);
     return COMM_OK;
 }
 

@@ -929,8 +929,8 @@ void gopherSendRequest(fd, data)
 	sscanf(data->request, "?%s", query);
 	sprintf(buf, "query %s\r\nquit\r\n", query);
     } else if (data->type_id == GOPHER_INDEX) {
-        if ((t = strchr(data->request, '?')))
-            *t = '\t';
+	if ((t = strchr(data->request, '?')))
+	    *t = '\t';
 	sprintf(buf, "%s\r\n", data->request);
     } else {
 	sprintf(buf, "%s\r\n", data->request);
