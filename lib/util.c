@@ -439,12 +439,14 @@ char *
 xstrerror(void)
 {
     static char xstrerror_buf[BUFSIZ];
-
     if (errno < 0 || errno >= sys_nerr)
 	return ("Unknown");
+#if HAVE_STRERROR
+    sprintf(xstrerror_buf, "(%d) %s", errno, strerror(errno));
+#else
     sprintf(xstrerror_buf, "(%d) %s", errno, sys_errlist[errno]);
+#endif /* HAVE_STRERROR */
     return xstrerror_buf;
-    /* return (sys_errlist[errno]); */
 }
 
 #if !HAVE_STRDUP
