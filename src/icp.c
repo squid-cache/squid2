@@ -1693,7 +1693,7 @@ clientReadRequest(int fd, void *data)
     size = read(fd, icpState->inbuf + icpState->offset, len);
 
     if (len < 0) {
-	debug(50,2, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
+	debug(50, 2, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
 	comm_close(fd);
 	return;
     }
@@ -1762,10 +1762,10 @@ clientReadRequest(int fd, void *data)
 	    k = icpState->inbufsize - 1 - icpState->offset;
 	}
 	commSetSelect(fd,
-		COMM_SELECT_READ,
-		clientReadRequest,
-		(void *) icpState,
-		0);
+	    COMM_SELECT_READ,
+	    clientReadRequest,
+	    (void *) icpState,
+	    0);
     } else {
 	/* parser returned -1 */
 	debug(12, 1, "clientReadRequest: FD %d Invalid Request\n", fd);
@@ -1849,11 +1849,11 @@ asciiHandleConn(int sock, void *notused)
     comm_add_close_handler(fd,
 	icpStateFree,
 	(void *) icpState);
-	commSetSelect(fd,
-		COMM_SELECT_READ,
-		clientReadRequest,
-		(void *) icpState,
-		0);
+    commSetSelect(fd,
+	COMM_SELECT_READ,
+	clientReadRequest,
+	(void *) icpState,
+	0);
     /* start reverse lookup */
     if (Config.Log.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
@@ -2047,11 +2047,11 @@ icpDetectNewRequest(int fd)
     comm_add_close_handler(fd,
 	icpStateFree,
 	(void *) icpState);
-	commSetSelect(fd,
-		COMM_SELECT_READ,
-		clientReadRequest,
-		(void *) icpState,
-		0);
+    commSetSelect(fd,
+	COMM_SELECT_READ,
+	clientReadRequest,
+	(void *) icpState,
+	0);
     /* start reverse lookup */
     if (Config.Log.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);
