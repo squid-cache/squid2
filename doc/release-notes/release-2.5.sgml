@@ -117,10 +117,14 @@ for Applied Network Research and members of the Web Caching community.
 <tag>reference_age</tag>This has been removed - starting with Squid-2.4 this directive have had no effect and has now been fully removed to avoid confusion.
 <tag>siteselect_timeout</tag>This has been removed - it is not referenced anywhere in the source code.
 <tag>minimum_retry_timeout</tag>This has been removed - it is not referenced anywhere in the source code.
-<tag>short_icon_urls</tag>New directive to enable an alternative way of referring to icons in FTP directory listings etc.
-<tag>acl urllogin</tag>New acl type to match the login component of Internet style URLs (protocol://user:password@host/path/to/file)
-<tag>balance_on_multiple_ip</tag>New directive to make it possible to disable the automatic round-robin load balancing on multiple IP addresses normally done by Squid.
-<tag>reply_header_max_size</tag>New directive limiting the size of HTTP reply headers, similar to request_header_max_size but in the reply direction (from servers to clients). Default is 20KB.
+<tag>forward_timeout</tag>New directive in 2.5.STABLE5 complement connect_timeout in
+management of timeouts while connecting to origin servers or peers
+<tag>short_icon_urls</tag>New directive in 2.5.STABLE5 to enable an alternative way of referring to icons in FTP directory listings etc.
+<tag>acl urllogin</tag>New acl type in 2.5.STABLE5 to match the login component of Internet style URLs (protocol://user:password@host/path/to/file)
+<tag>balance_on_multiple_ip</tag>New directive in 2.5.STABLE7 to make it possible to disable the automatic round-robin load balancing on multiple IP addresses normally done by Squid.
+<tag>reply_header_max_size</tag>New directive in 2.5.STABLE7 limiting the size of HTTP reply headers, similar to request_header_max_size but in the reply direction (from servers to clients). Default is 20KB.
+<tag>acl req_hdr/resp_hdr</tag>New acl types in 2.5.STABLE7 to match arbitrary HTTP headers, useful to block certain malware/spyware etc.
+<tag>relaxed_http_parser</tag>New directive in 2.5.STABLE8 to control how strict the HTTP parser should be.
 </descrip>
 
 <sect>Known issues and limitations
@@ -129,7 +133,17 @@ for Applied Network Research and members of the Web Caching community.
 
 <descrip>
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=761" name="#761"></tag>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1193" name="#1193"></tag>Interception fails if intercepting multiple ports and Squid is not listening on the same ports
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1094" name="#1094"></tag>cachemgr.cgi should have a built-in access control layer to prevent malicious use
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=649" name="#649"></tag>Problems refreshing pages stored with 'vary' information
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=779" name="#779"></tag>users going above their allowed IP count no longer logged in cache.log
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1204" name="#1204"></tag>FTP listings uses "BASE HREF" much more than it needs to
+</descrip>
+
+
+<P>In addition there is a set of limitations in this version of Squid which we hope to correct later
+
+<descrip>
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059" name="#1059"></tag>mime.conf and referenced icons must be within chroot
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1033" name="#1033"></tag>CARP ignores cache_peer_access and cache_peer_domain
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=692" name="#692"></tag>tcp_outgoing_address using an ident ACL does not work
@@ -303,12 +317,24 @@ name="ChangeLog"> file for details.
 	versions have for increased security closed any open filedescriptors left
 	open by the process starting Squid, but this is not really our business
 	and causes problems for certain libraries opening internal filedescriptors
-	in some conditions (some SSL libraries, syslog, DNS resolver etc). (Bug #1177)
+	in some conditions (some SSL libraries, syslog, DNS resolver etc).
 	<item>Configuration parser made more strict and consistent. Previously empty acl
 	declarations were ignored in http_access causing some unexpected results.
 	Now empty acl declarations are allowed (matching nothing) and http_access
-	requires all listed acls to be defined. (Bug #1166)
+	requires all listed acls to be defined.
 	<item>A minor information leak in error messages due to malformed host
-	names corrected (Bug #1143)
+	names corrected
+	<item>Several HTTP security fixes to prevent cache pollution attacks or theft
+	of user confidential information. New relaxed_http_parser directive to control
+	how strict the HTTP parser should be.
+	<item>Buffer overflow fix in gopherToHTML.
+	<item>Corrected a Segmentation fault on malformed WCCP packets.
+	<item>squid_ldap_auth now sanity checks usernames
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE7"
+	name="squid-2.5.STABLE7 patches"> and the <url url="ChangeLog"
+	name="ChangeLog"> file for details.
+</itemize>
+
 </article>
 
