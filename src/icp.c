@@ -108,7 +108,6 @@
 
 int neighbors_do_private_keys = 1;
 
-static char NotModified[] = "HTTP/1.0 304 Not Modified\r\n\r\n";
 static char *log_tags[] =
 {
     "LOG_NONE",
@@ -170,6 +169,7 @@ static void icpHitObjHandler _PARAMS((int, void *));
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
+static char *icpConstruct304reply _PARAMS((struct _http_reply *));
 
 
 /* This is a handler normally called by comm_close() */
@@ -488,6 +488,7 @@ static int icpGetHeadersForIMS(fd, icpState)
     int IMS_length;
     time_t date;
     int length;
+    char *reply = NULL;
 
     if (max_len <= 0) {
 	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n",
@@ -555,13 +556,14 @@ static int icpGetHeadersForIMS(fd, icpState)
     if (IMS > date || (IMS == date && (IMS_length < 0 || IMS_length == length))) {
 	/* The object is not modified */
 	debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
+	reply = icpConstruct304reply(mem->reply);
 	comm_write(fd,
-	    NotModified,
-	    strlen(NotModified),
+	    xstrdup(reply),
+	    strlen(reply),
 	    30,
 	    icpHandleIMSComplete,
 	    icpState,
-	    NULL);
+	    xfree);
 	return COMM_OK;
     } else {
 	debug(12, 4, "icpGetHeadersForIMS: We have newer '%s'\n", entry->url);
@@ -578,9 +580,9 @@ static void icpHandleStoreIMS(fd, entry, icpState)
     icpGetHeadersForIMS(fd, icpState);
 }
 
-static void icpHandleIMSComplete(fd, buf, size, errflag, data)
+static void icpHandleIMSComplete(fd, buf_unused, size, errflag, data)
      int fd;
-     char *buf;
+     char *buf_unused;	/* should be NULL */
      int size;
      int errflag;
      void *data;
@@ -590,7 +592,7 @@ static void icpHandleIMSComplete(fd, buf, size, errflag, data)
     debug(12, 5, "icpHandleIMSComplete: Not Modified sent '%s'\n", entry->url);
     CacheInfo->proto_touchobject(CacheInfo,
 	icpState->request->protocol,
-	strlen(buf));
+	size);
     /* Set up everything for the logging */
     storeUnlockObject(entry);
     icpState->entry = NULL;
@@ -1893,4 +1895,36 @@ void icpDetectClientClose(fd, icpState)
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
 	comm_set_stall(fd, 60);	/* check again in a minute */
     }
+}
+
+static char *icpConstruct304reply(source)
+     struct _http_reply *source;
+{
+    LOCAL_ARRAY(char, line, 256);
+    LOCAL_ARRAY(char, reply, 8192);
+    memset(reply, '\0', 8192);
+    strcpy(reply, "HTTP/1.0 304 Not Modified\r\n");
+    if (strlen(source->date) > 0) {
+	sprintf(line, "Date: %s\n", source->date);
+	strcat(reply, line);
+    }
+    if (strlen(source->content_type) > 0) {
+	sprintf(line, "Content-type: %s\n", source->content_type);
+	strcat(reply, line);
+    }
+    if (source->content_length) {
+	sprintf(line, "Content-length: %d\n", source->content_length);
+	strcat(reply, line);
+    }
+    if (strlen(source->expires) > 0) {
+	sprintf(line, "Expires: %s\n", source->expires);
+	strcat(reply, line);
+    }
+    if (strlen(source->last_modified) > 0) {
+	sprintf(line, "Last-modified: %s\n", source->last_modified);
+	strcat(reply, line);
+    }
+    sprintf(line, "\r\n");
+    strcat(reply, line);
+    return reply;
 }
