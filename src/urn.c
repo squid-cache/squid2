@@ -273,7 +273,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
 	full_appname_string, getMyHostname());
     rep = e->mem_obj->reply;
     httpReplyReset(rep);
-    httpBuildVersion(&version,1,0);
+    httpBuildVersion(&version, 1, 0);
     httpReplySetHeaders(rep, version, HTTP_MOVED_TEMPORARILY, NULL,
 	"text/html", mb.size, 0, squid_curtime);
     if (urnState->flags.force_menu) {

@@ -606,7 +606,7 @@ clientPurgeRequest(clientHttpRequest * http)
      */
     http->entry = clientCreateStoreEntry(http, http->request->method, null_request_flags);
     httpReplyReset(r = http->entry->mem_obj->reply);
-    httpBuildVersion(&version,1,0);
+    httpBuildVersion(&version, 1, 0);
     httpReplySetHeaders(r, version, status, NULL, NULL, 0, 0, -1);
     httpReplySwapOut(r, http->entry);
     storeComplete(http->entry);
@@ -847,22 +847,21 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
      * Now knows about IE 5.5 fix (is actually only fixed in SP1, 
      * but we can't tell whether we are talking to SP1 or not so 
      * all 5.5 versions are treated 'normally').
-    */
+     */
     if (Config.onoff.ie_refresh) {
-        if (http->flags.accel && request->flags.ims) {
-           if ( (str = httpHeaderGetStr(req_hdr, HDR_USER_AGENT)) ) {
-               if (strstr(str, "MSIE 5.01") != NULL)
-                   no_cache++;
-               else if (strstr(str, "MSIE 5.0") != NULL)
-                   no_cache++;
-               else if (strstr(str, "MSIE 4.") != NULL)
-                   no_cache++;
-               else if (strstr(str, "MSIE 3.") != NULL)
-                   no_cache++;
-            }
-        }
+	if (http->flags.accel && request->flags.ims) {
+	    if ((str = httpHeaderGetStr(req_hdr, HDR_USER_AGENT))) {
+		if (strstr(str, "MSIE 5.01") != NULL)
+		    no_cache++;
+		else if (strstr(str, "MSIE 5.0") != NULL)
+		    no_cache++;
+		else if (strstr(str, "MSIE 4.") != NULL)
+		    no_cache++;
+		else if (strstr(str, "MSIE 3.") != NULL)
+		    no_cache++;
+	    }
+	}
     }
-
     if (no_cache) {
 #if HTTP_VIOLATIONS
 	if (Config.onoff.reload_into_ims)
@@ -1302,7 +1301,7 @@ clientBuildReply(clientHttpRequest * http, const char *buf, size_t size)
     size_t k = headersEnd(buf, size);
     if (k && httpReplyParse(rep, buf, k)) {
 	/* enforce 1.0 reply version */
-	httpBuildVersion(&rep->sline.version,1,0);
+	httpBuildVersion(&rep->sline.version, 1, 0);
 	/* do header conversions */
 	clientBuildReplyHeader(http, rep);
 	/* if we do ranges, change status to "Partial Content" */
@@ -2117,7 +2116,7 @@ clientProcessRequest(clientHttpRequest * http)
 	    storeReleaseRequest(http->entry);
 	    storeBuffer(http->entry);
 	    rep = httpReplyCreate();
-            httpBuildVersion(&version,1,0);
+	    httpBuildVersion(&version, 1, 0);
 	    httpReplySetHeaders(rep, version, HTTP_OK, NULL, "text/plain",
 		httpRequestPrefixLen(r), 0, squid_curtime);
 	    httpReplySwapOut(rep, http->entry);
@@ -2334,16 +2333,16 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     if (token == NULL) {
 	debug(33, 3) ("parseHttpRequest: Missing HTTP identifier\n");
 #if RELAXED_HTTP_PARSER
-	httpBuildVersion(&http_ver,0,9);	/* wild guess */
+	httpBuildVersion(&http_ver, 0, 9);	/* wild guess */
 #else
 	return parseHttpRequestAbort(conn, "error:missing-http-ident");
 #endif
     } else {
-        if (sscanf(token+5, "%d.%d", &http_ver.major, &http_ver.minor)!=2){
-            debug(33, 3) ("parseHttpRequest: Invalid HTTP identifier.\n");
-            return parseHttpRequestAbort(conn, "error: invalid HTTP-ident");
-        }
-        debug(33, 6) ("parseHttpRequest: Client HTTP version %d.%d.\n",http_ver.major, http_ver.minor);
+	if (sscanf(token + 5, "%d.%d", &http_ver.major, &http_ver.minor) != 2) {
+	    debug(33, 3) ("parseHttpRequest: Invalid HTTP identifier.\n");
+	    return parseHttpRequestAbort(conn, "error: invalid HTTP-ident");
+	}
+	debug(33, 6) ("parseHttpRequest: Client HTTP version %d.%d.\n", http_ver.major, http_ver.minor);
     }
 
     /*
@@ -2467,9 +2466,9 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		    vport, url);
 #else
 #if LINUX_NETFILTER
-	  /* If the call fails the address structure will be unchanged */
-	  getsockopt(conn->fd, SOL_IP, SO_ORIGINAL_DST, &conn->me, &sock_sz );
-	    debug(33, 5) ("parseHttpRequest: addr = %s", inet_ntoa(conn->me.sin_addr) );
+	    /* If the call fails the address structure will be unchanged */
+	    getsockopt(conn->fd, SOL_IP, SO_ORIGINAL_DST, &conn->me, &sock_sz);
+	    debug(33, 5) ("parseHttpRequest: addr = %s", inet_ntoa(conn->me.sin_addr));
 #endif
 	    snprintf(http->uri, url_sz, "http://%s:%d%s",
 		inet_ntoa(http->conn->me.sin_addr),

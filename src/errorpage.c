@@ -576,7 +576,7 @@ errorBuildReply(ErrorState * err)
     MemBuf content = errorBuildContent(err);
     http_version_t version;
     /* no LMT for error pages; error pages expire immediately */
-    httpBuildVersion(&version,1,0);
+    httpBuildVersion(&version, 1, 0);
     httpReplySetHeaders(rep, version, err->http_status, NULL, "text/html", content.size, 0, squid_curtime);
     /*
      * include some information for downstream caches. Implicit

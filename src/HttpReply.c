@@ -261,7 +261,7 @@ httpRedirectReply(HttpReply * reply, http_status status, const char *loc)
     HttpHeader *hdr;
     http_version_t ver;
     assert(reply);
-    httpBuildVersion(&ver,1,0);
+    httpBuildVersion(&ver, 1, 0);
     httpStatusLineSet(&reply->sline, ver, status, httpStatusString(status));
     hdr = &reply->header;
     httpHeaderPutStr(hdr, HDR_SERVER, full_appname_string);

@@ -847,7 +847,7 @@ struct _AccessLogEntry {
 	method_t method;
 	int code;
 	const char *content_type;
-        http_version_t version;
+	http_version_t version;
     } http;
     struct {
 	icp_opcode opcode;

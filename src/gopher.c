@@ -473,7 +473,7 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
 			if ((gtype == GOPHER_TELNET) || (gtype == GOPHER_3270)) {
 			    if (strlen(escaped_selector) != 0)
 				snprintf(tmpbuf, TEMP_BUF_SIZE, "<IMG BORDER=0 SRC=\"%s\"> <A HREF=\"telnet://%s@%s%s%s/\">%s</A>\n",
-				    icon_url, escaped_selector, rfc1738_escape_part(host), 
+				    icon_url, escaped_selector, rfc1738_escape_part(host),
 				    *port ? ":" : "", port, html_quote(name));
 			    else
 				snprintf(tmpbuf, TEMP_BUF_SIZE, "<IMG BORDER=0 SRC=\"%s\"> <A HREF=\"telnet://%s%s%s/\">%s</A>\n",

@@ -253,11 +253,11 @@ cachemgrStart(int fd, request_t * request, StoreEntry * entry)
     if (a->flags.atomic)
 	storeBuffer(entry);
     {
-        http_version_t version;
+	http_version_t version;
 	HttpReply *rep = entry->mem_obj->reply;
 	/* prove there are no previous reply headers around */
 	assert(0 == rep->sline.status);
-        httpBuildVersion(&version,1,0);
+	httpBuildVersion(&version, 1, 0);
 	httpReplySetHeaders(rep,
 	    version,
 	    HTTP_OK,

@@ -55,7 +55,7 @@ internalStart(request_t * request, StoreEntry * entry)
 #else
 	const char *msgbuf = "This cache does not suport Cache Digests.\n";
 #endif
-        httpBuildVersion(&version,1,0);
+	httpBuildVersion(&version, 1, 0);
 	httpReplySetHeaders(entry->mem_obj->reply,
 	    version,
 	    HTTP_NOT_FOUND,
