@@ -193,6 +193,7 @@ storeCheckSwapOut(StoreEntry * e)
 		e->swap_file_number = -1;
 	    }
 	    e->swap_status = SWAPOUT_NONE;
+	    storeReleaseRequest(e);
 	    storeSwapOutFileClose(e);
 	}
 	return;
@@ -235,6 +236,7 @@ storeCheckSwapOut(StoreEntry * e)
 	e->swap_file_number = -1;
 	e->swap_status = SWAPOUT_NONE;
 	memFree(MEM_DISK_BUF, swap_buf);
+	storeReleaseRequest(e);
 	storeSwapOutFileClose(e);
 	return;
     }
