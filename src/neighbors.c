@@ -1306,7 +1306,7 @@ neighborsHtcpReply(const cache_key * key, htcpReplyData * htcp, const struct soc
 	neighborCountIgnored(p);
 	return;
     }
-    debug(15, 1) ("neighborsHtcpReply: e = %p\n", e);
+    debug(15, 3) ("neighborsHtcpReply: e = %p\n", e);
     mem->ping_reply_callback(p, ntype, PROTO_HTCP, htcp, mem->ircb_data);
 }
 #endif
