@@ -31,6 +31,14 @@ Changes to squid-1.1.21 (March 17, 1998):
 	  coredump?) for POST and SSL requests.
 	- Give the Host: header a higher precedence that the socket
 	  IP address for transparent proxying (Henrik Nordstrom).
+	- Don't call ntohl() conversion on ICP message 'shostid'
+	  field.
+	- Changed netdb structure so its easier to move hosts from one
+	  network to another.
+	- Fixed incorrect comparison order for store.c::compareSize()
+	  (Li Fan).
+	- Changed storeShouldPurgeMem() to check the in-memory
+	  high water mark instead of the low (Li Fan).
 
 Changes to squid-1.1.20 (January 9, 1998):
 
