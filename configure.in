@@ -261,6 +261,14 @@ case "$host" in
 		;;
 esac
 
+dnl Unixware doesn't like storeDirClean()
+dnl
+case "$host" in
+	i386-univel-sysv4*)
+		CFLAGS="$CFLAGS -D_SQUID_UNIXWARE_"
+		;;
+esac
+
 dnl Check for library functions
 AC_CHECK_FUNCS(\
 	bcopy \

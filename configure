@@ -517,7 +517,7 @@ fi
 
 
 
-# From configure.in Revision: 1.18.2.37 
+# From configure.in Revision: 1.18.2.38 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2087,6 +2087,12 @@ EOF
 		;;
 esac
 
+case "$host" in
+	i386-univel-sysv4*)
+		CFLAGS="$CFLAGS -D_SQUID_UNIXWARE_"
+		;;
+esac
+
 for ac_func in \
 	bcopy \
 	getdtablesize \
@@ -2119,7 +2125,7 @@ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2123 "configure"
+#line 2129 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -2169,7 +2175,7 @@ if test "$cross_compiling" = yes; then
   SQUID_FD_SETSIZE=256
 else
 cat > conftest.$ac_ext <<EOF
-#line 2173 "configure"
+#line 2179 "configure"
 #include "confdefs.h"
 
 #include <unistd.h>
@@ -2239,7 +2245,7 @@ if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_SNDBUF=16384
 else
 cat > conftest.$ac_ext <<EOF
-#line 2243 "configure"
+#line 2249 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2275,7 +2281,7 @@ if test "$cross_compiling" = yes; then
   SQUID_UDP_SO_RCVBUF=16384
 else
 cat > conftest.$ac_ext <<EOF
-#line 2279 "configure"
+#line 2285 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2311,7 +2317,7 @@ if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_SNDBUF=16384
 else
 cat > conftest.$ac_ext <<EOF
-#line 2315 "configure"
+#line 2321 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2347,7 +2353,7 @@ if test "$cross_compiling" = yes; then
   SQUID_TCP_SO_RCVBUF=16384
 else
 cat > conftest.$ac_ext <<EOF
-#line 2351 "configure"
+#line 2357 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -2380,7 +2386,7 @@ EOF
 
 echo $ac_n "checking if sys_errlist is already defined""... $ac_c" 1>&6
 cat > conftest.$ac_ext <<EOF
-#line 2384 "configure"
+#line 2390 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 int main() { return 0; }
