@@ -337,6 +337,7 @@ void neighborRemove(target)
     }
     if (e) {
 	*E = e->next;
+	safe_free(e->host);
 	safe_free(e);
 	friends->n--;
     }
@@ -352,7 +353,6 @@ void neighborsDestroy()
     for (e = friends->edges_head; e; e = next) {
 	next = e->next;
 	safe_free(e->host);
-	/* XXX I think we need to free e->domains too -DW */
 	safe_free(e);
     }
     safe_free(friends);
