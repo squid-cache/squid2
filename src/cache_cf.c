@@ -56,6 +56,7 @@ static const char *const B_GBYTES_STR = "GB";
 
 static const char *const list_sep = ", \t\n\r";
 static int http_header_first;
+static int http_header_allowed = 0;
 
 static void configDoConfigure(void);
 static void parse_refreshpattern(refresh_t **);
@@ -713,7 +714,13 @@ parse_delay_pool_access(delayConfig * cfg)
 static void
 dump_http_header(StoreEntry * entry, const char *name, HttpHeaderMask header)
 {
-    storeAppendPrintf(entry, "%s\n", name);
+    int i;
+    for (i = 0; i < HDR_OTHER; i++) {
+	if (http_header_allowed && !CBIT_TEST(header, i))
+	    storeAppendPrintf(entry, "%s allow %s\n", name, httpHeaderNameById(i));
+	else if (!http_header_allowed && CBIT_TEST(header, i))
+	    storeAppendPrintf(entry, "%s deny %s\n", name, httpHeaderNameById(i));
+    }
 }
 
 static void
@@ -721,7 +728,6 @@ parse_http_header(HttpHeaderMask * header)
 {
     int allowed, id;
     char *t = NULL;
-
     if ((t = strtok(NULL, w_space)) == NULL) {
 	debug(3, 0) ("%s line %d: %s\n",
 	    cfg_filename, config_lineno, config_input_line);
@@ -740,10 +746,13 @@ parse_http_header(HttpHeaderMask * header)
     }
     if (!http_header_first) {
 	http_header_first = 1;
-	if (allowed)
+	if (allowed) {
+	    http_header_allowed = 1;
 	    httpHeaderMaskInit(header, 0xFF);
-	else
+	} else {
+	    http_header_allowed = 0;
 	    httpHeaderMaskInit(header, 0);
+	}
     }
     while ((t = strtok(NULL, w_space))) {
 	if ((id = httpHeaderIdByNameDef(t, strlen(t))) == -1)

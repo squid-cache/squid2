@@ -1094,3 +1094,12 @@ httpHeaderIdByNameDef(const char *name, int name_len)
 	Headers = httpHeaderBuildFieldsInfo(HeadersAttrs, HDR_ENUM_END);
     return httpHeaderIdByName(name, name_len, Headers, HDR_ENUM_END);
 }
+
+const char *
+httpHeaderNameById(int id)
+{
+    if (!Headers)
+	Headers = httpHeaderBuildFieldsInfo(HeadersAttrs, HDR_ENUM_END);
+    assert(id >= 0 && id < HDR_ENUM_END);
+    return HeadersAttrs[id].name;
+}
