@@ -189,6 +189,7 @@ int
 cbdataValid(const void *p)
 {
     cbdata *c;
+    /* Maybe NULL should be considered valid? */
     if (p == NULL)
 	return 0;
     c = (cbdata *) hash_lookup(htable, p);
