@@ -161,6 +161,7 @@ static struct {
 #define DefaultUdpOutgoingAddr	INADDR_NONE
 
 ip_acl *local_ip_list = NULL;
+ip_acl *firewall_ip_list = NULL;
 
 int zap_disk_store = 0;		/* off, try to rebuild from disk */
 int httpd_accel_mode = 0;	/* for fast access */
@@ -857,11 +858,12 @@ static void parseWAISRelayLine()
     Config.Wais.maxObjSize = i << 20;
 }
 
-static void parseLocalIPLine()
+static void parseIPLine(list)
+     ip_acl *list;
 {
     char *token;
     while ((token = strtok(NULL, w_space))) {
-	addToIPACL(&local_ip_list, token, IP_DENY);
+	addToIPACL(list, token, IP_DENY);
     }
 }
 
@@ -1323,9 +1325,11 @@ int parseConfigFile(file_name)
 	else if (!strcmp(token, "wais_relay"))
 	    parseWAISRelayLine();
 
-	/* Parse a local_ip line */
 	else if (!strcmp(token, "local_ip"))
-	    parseLocalIPLine();
+	    parseIPLine(&local_ip_list);
+
+	else if (!strcmp(token, "firewall_ip"))
+	    parseIPLine(&firewall_ip_list);
 
 	/* Parse a local_domain line */
 	else if (!strcmp(token, "local_domain"))

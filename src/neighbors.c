@@ -27,6 +27,7 @@ char *hier_strings[] =
     "NO_PARENT_DIRECT",
     "FIRST_PARENT_MISS",
     "LOCAL_IP_DIRECT",
+    "FIREWALL_IP_DIRECT",
     "DEAD_PARENT",
     "DEAD_NEIGHBOR",
     "REVIVE_PARENT",

@@ -57,6 +57,7 @@ char *IcpOpcodeStr[] =
 
 extern int httpd_accel_mode;
 extern ip_acl *local_ip_list;
+extern ip_acl *firewall_ip_list;
 extern time_t neighbor_timeout;
 extern single_parent_bypass;
 extern char *dns_error_message;
@@ -92,19 +93,27 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     if (protoData->direct_fetch == DIRECT_YES) {
 	if (ipcache_gethostbyname(req->host, 0) == NULL) {
 	    protoDNSError(protoData->fd, entry);
-	    /* protoDataFree(protoData); */
 	    return 0;
 	}
 	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, req->host);
 	mem->hierarchy_code = HIER_DIRECT;
 	getFromCache(protoData->fd, entry, NULL, req);
-	/* protoDataFree(protoData); */
 	return 0;
     }
-    if (protoData->direct_fetch == DIRECT_MAYBE && local_ip_list) {
+    if (protoData->direct_fetch == DIRECT_MAYBE && (local_ip_list || firewall_ip_list)) {
 	if ((hp = ipcache_gethostbyname(req->host, 0)) == NULL) {
 	    debug(17, 1, "Unknown host: %s\n", req->host);
-	} else {
+	} else if (firewall_ip_list) {
+	    xmemcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);
+	    if (ip_access_check(srv_addr, firewall_ip_list) == IP_DENY) {
+		hierarchy_log_append(protoData->url,
+		    HIER_LOCAL_IP_DIRECT, 0,
+		    req->host);
+		mem->hierarchy_code = HIER_FIREWALL_IP_DIRECT;
+		getFromCache(protoData->fd, entry, NULL, req);
+		return 0;
+	    }
+	} else if (local_ip_list) {
 	    xmemcpy(&srv_addr, hp->h_addr_list[0], hp->h_length);
 	    if (ip_access_check(srv_addr, local_ip_list) == IP_DENY) {
 		hierarchy_log_append(protoData->url,
@@ -112,7 +121,6 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 		    req->host);
 		mem->hierarchy_code = HIER_LOCAL_IP_DIRECT;
 		getFromCache(protoData->fd, entry, NULL, req);
-		/* protoDataFree(protoData); */
 		return 0;
 	    }
 	}
@@ -123,7 +131,6 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	hierarchy_log_append(protoData->url, HIER_SINGLE_PARENT, 0, e->host);
 	mem->hierarchy_code = HIER_SINGLE_PARENT;
 	getFromCache(protoData->fd, entry, e, req);
-	/* protoDataFree(protoData); */
 	return 0;
     }
     if (protoData->n_edges == 0 && protoData->direct_fetch == DIRECT_NO) {
@@ -131,7 +138,6 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	mem->hierarchy_code = HIER_NO_DIRECT_FAIL;
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents to query and the host is beyond your firewall.");
-	/* protoDataFree(protoData); */
 	return 0;
     }
     if (!neighbors_do_private_keys && !protoData->query_neighbors && (e = getFirstUpParent(req))) {
@@ -140,7 +146,6 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	hierarchy_log_append(protoData->url, HIER_FIRSTUP_PARENT, 0, e->host);
 	mem->hierarchy_code = HIER_FIRSTUP_PARENT;
 	getFromCache(protoData->fd, entry, e, req);
-	/* protoDataFree(protoData); */
 	return 0;
     } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */
@@ -155,7 +160,6 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	    (PF) getFromDefaultSource,
 	    (void *) entry,
 	    neighbor_timeout);
-	/* protoDataFree(protoData); */
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_NO) {
@@ -166,14 +170,12 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     } else {
 	if (ipcache_gethostbyname(req->host, 0) == NULL) {
 	    protoDNSError(protoData->fd, entry);
-	    /* protoDataFree(protoData); */
 	    return 0;
 	}
 	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, req->host);
 	mem->hierarchy_code = HIER_DIRECT;
 	getFromCache(protoData->fd, entry, NULL, req);
     }
-    /* protoDataFree(protoData); */
     return 0;
 }
 
@@ -229,6 +231,14 @@ int protoDispatch(fd, url, entry, request)
 	protoData->source_ping = 0;
 	protoData->direct_fetch = DIRECT_NO;
 	protoDispatchDNSHandle(fd, (struct hostent *) NULL, protoData);
+    } else if (firewall_ip_list) {
+	/* Have to look up the url address so we can compare it */
+	protoData->source_ping = getSourcePing();
+	protoData->direct_fetch = DIRECT_MAYBE;
+	ipcache_nbgethostbyname(request->host,
+	    fd,
+	    protoDispatchDNSHandle,
+	    (void *) protoData);
     } else if (matchLocalDomain(request->host) || !protoData->query_neighbors) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
