@@ -191,6 +191,7 @@
 #	firewall.
 #
 #	Usage: inside_firewall my.domain  [ my.other.domain ...]
+#	       !out.my.domain my.domain
 #
 #	The use of this tag affects the server selection algorithm in
 #	two ways.  Objects which do not match any of the listed domains
@@ -201,6 +202,8 @@
 #
 #	As a special case you may specify the domain as 'none' to force
 #	all requests to be fetched from neghbors and parents.
+#	Prefixing a domain name with '!' means the domain is NOT inside
+#	your firewall.
 #
 #inside_firewall topsecret.com
 
