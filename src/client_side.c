@@ -367,17 +367,23 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
 {
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
-    MemObject *mem = entry->mem_obj;
+    MemObject *mem;
     const char *url = storeUrl(entry);
     int unlink_request = 0;
     StoreEntry *oldentry;
     int recopy = 1;
-    const http_status status = mem->reply->sline.status;
+    http_status status;
     debug(33, 3) ("clientHandleIMSReply: %s, %d bytes\n", url, (int) size);
+    if (entry == NULL) {
+	memFree(buf, MEM_CLIENT_SOCK_BUF);
+	return;
+    }
     if (size < 0 && !EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
 	return;
     }
+    mem = entry->mem_obj;
+    status = mem->reply->sline.status;
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	debug(33, 3) ("clientHandleIMSReply: ABORTED '%s'\n", url);
 	/* We have an existing entry, but failed to validate it */
