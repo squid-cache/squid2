@@ -1,3 +1,17 @@
+Changes to squid-1.NOVM.15 ()
+
+	- Fixed unlinkd socket being incorrectly closed by
+	  lifetime handlers.
+	- Fixed IMS_HIT's.  An IMS_HIT would never happen because
+	  icpGetHeadersForIMS would be called before anything was
+	  read from disk.  Now icpGetHeadersForIMS() is a file_read()
+	  callback.  Found by Bryan Mawhinney.
+	- Changed store.log logging.  We were seeing SWAPOUT for cache
+	  hits.  Now we'll see SWAPOUT properly, but maybe immediately
+	  followed by a RELEASE.
+	- In icpDetectClientClose() changed the stall delay from
+	  10 seconds to 1 second (Ron Gomes).
+
 Changes to squid-1.NOVM.14 (July 11, 1997):
 
 	- Merged squid-1.1.14 changes.
