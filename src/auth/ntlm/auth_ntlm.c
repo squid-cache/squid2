@@ -965,6 +965,12 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	    fatal("Incorrect scheme in auth header\n");
 	    /* TODO: more fault tolerance.. reset the auth scheme here */
 	}
+	/* normal case with challenge reuses disabled */
+	if (ntlmConfig->challengeuses == 0) {
+	    /* verify with the ntlm helper */
+	    ntlm_request->auth_state = AUTHENTICATE_STATE_RESPONSE;
+	    return;
+	}
 	/* cache entries have authenticateauthheaderchallengestring */
 	snprintf(ntlmhash, sizeof(ntlmhash) - 1, "%s%s",
 	    ntlm_request->ntlmauthenticate,
@@ -1007,6 +1013,13 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	    ntlm_request->authchallenge,
 	    ntlm_request->ntlmauthenticate,
 	    ntlm_user->username);
+	/* normal case with challenge reuses disabled */
+	if (ntlmConfig->challengeuses == 0) {
+	    /* set these to now because this is either a new login from an 
+	     * existing user or a new user */
+	    auth_user->expiretime = current_time.tv_sec;
+	    return;
+	}
 	/* cache entries have authenticateauthheaderchallengestring */
 	snprintf(ntlmhash, sizeof(ntlmhash) - 1, "%s%s",
 	    ntlm_request->ntlmauthenticate,
