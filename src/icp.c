@@ -12,7 +12,7 @@ int neighbors_do_private_keys = 1;
 
 static char *log_tags[] =
 {
-    "LOG_TAG_MIN",
+    "LOG_NONE",
     "TCP_HIT",
     "TCP_MISS",
     "TCP_EXPIRED",
@@ -130,7 +130,7 @@ int icpStateFree(fdunused, icpState)
 
     if (!icpState)
 	return 1;
-    if (icpState->log_type < LOG_TAG_MIN || icpState->log_type > ERR_ZERO_SIZE_OBJECT)
+    if (icpState->log_type < LOG_TAG_NONE || icpState->log_type > ERR_ZERO_SIZE_OBJECT)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
 	size = icpState->entry->mem_obj->e_current_len;
@@ -426,7 +426,6 @@ void icpSendERRORComplete(fd, buf, size, errflag, icpState)
     entry = icpState->entry;
     icpFreeBufOrPage(icpState);
     comm_close(fd);
-
     /* If storeAbort() has been called, then we don't execute this.
      * If we timed out on the client side, then we need to
      * unregister/unlock */
@@ -455,7 +454,6 @@ int icpSendERROR(fd, errorCode, msg, icpState)
 	/* This file descriptor isn't bound to a socket anymore.
 	 * It probably timed out. */
 	debug(12, 2, "icpSendERROR: COMM_ERROR msg: %80.80s\n", msg);
-	/* comm_close(fd); */
 	icpSendERRORComplete(fd, (char *) NULL, 0, 1, icpState);
 	return COMM_ERROR;
     }
@@ -792,7 +790,7 @@ static void icpLogIcp(queue)
 	url,
 	inet_ntoa(queue->address.sin_addr),
 	queue->len,
-	IcpOpcodeStr[header->opcode],
+	log_tags[queue->logcode],
 	IcpOpcodeStr[ICP_OP_QUERY],
 	0,
 	tvSubMsec(queue->start, current_time));
@@ -828,7 +826,7 @@ int icpUdpReply(fd, queue)
 		result = COMM_ERROR;
 	}
 	UdpQueueHead = queue->next;
-	if (queue->icp_pkt)
+	if (queue->logcode)
 	    icpLogIcp(queue);
 	safe_free(queue->msg);
 	safe_free(queue);
@@ -843,12 +841,13 @@ int icpUdpReply(fd, queue)
     return result;
 }
 
-int icpUdpSend(fd, url, reqheaderp, to, opcode)
+int icpUdpSend(fd, url, reqheaderp, to, opcode, logcode)
      int fd;
      char *url;
      icp_common_t *reqheaderp;
      struct sockaddr_in *to;
      icp_opcode opcode;
+     log_type logcode;
 {
     char *buf = NULL;
     int buf_len = sizeof(icp_common_t) + strlen(url) + 1;
@@ -877,13 +876,18 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
     if (opcode == ICP_OP_QUERY)
 	buf_len += sizeof(u_num32);
     buf = xcalloc(buf_len, 1);
-
     headerp = (icp_common_t *) (void *) buf;
     headerp->opcode = opcode;
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
     headerp->reqnum = htonl(reqheaderp->reqnum);
+#ifdef UDP_HIT_WITH_OBJ
+    if (opcode == ICP_OP_QUERY)
+        headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
+    headerp->pad = 0;
+#else
 /*  memcpy(headerp->auth, , ICP_AUTH_SIZE); */
+#endif
     headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
     debug(12, 5, "icpUdpSend: headerp->reqnum = %d\n", headerp->reqnum);
 
@@ -896,7 +900,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
     data->msg = buf;
     data->len = buf_len;
     data->start = current_time;
-    data->icp_pkt = opcode == ICP_OP_QUERY ? 0 : 1;
+    data->logcode = logcode;
 
     debug(12, 4, "icpUdpSend: Queueing for %s: \"%s %s\"\n",
 	inet_ntoa(to->sin_addr),
@@ -931,7 +935,6 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
     MemObject *m = entry->mem_obj;
     u_short data_sz;
     int size;
-    u_num32 flags = 0;
 
     debug(12, 3, "icpUdpSendEntry: fd = %d\n", fd);
     debug(12, 3, "icpUdpSendEntry: url = '%s'\n", url);
@@ -960,8 +963,7 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
     headerp->reqnum = htonl(reqheaderp->reqnum);
-    flags |= ICP_FLAG_HIT_OBJ;
-    headerp->flags = htonl(flags);
+    headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
     urloffset = buf + sizeof(icp_common_t);
     memcpy(urloffset, url, strlen(url));
@@ -981,7 +983,7 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
     data->msg = buf;
     data->len = buf_len;
     data->start = start_time;
-    data->icp_pkt = 1;
+    data->logcode = LOG_UDP_HIT_OBJ;
     debug(12, 4, "icpUdpSendEntry: Queueing for %s: \"%s %s\"\n",
 	inet_ntoa(to->sin_addr),
 	IcpOpcodeStr[opcode],
@@ -1074,24 +1076,19 @@ int icpHandleUdp(sock, not_used)
     header.version = headerp->version;
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
+#ifdef UDP_HIT_WITH_OBJ
+    header.flags = ntohl(headerp->flags);
+#else
     /*  memcpy(headerp->auth, , ICP_AUTH_SIZE); */
+#endif
     header.shostid = ntohl(headerp->shostid);
-    debug(12, 5, "icpHandleUdp: header.reqnum = %d\n", header.reqnum);
 
     switch (header.opcode) {
     case ICP_OP_QUERY:
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
-	    debug(12, 2, "icpHandleUdp: Invalid URL '%s'.\n", url);
-	    CacheInfo->log_append(CacheInfo,	/* UDP_INVALID */
-		url,
-		inet_ntoa(from.sin_addr),
-		len,
-		log_tags[LOG_UDP_INVALID],
-		IcpOpcodeStr[header.opcode],
-		0,
-		0);
+	    icpUdpSend(sock, url, &header, &from, ICP_OP_INVALID, LOG_UDP_INVALID);
 	    break;
 	}
 	allow = aclCheck(ICPAccessList,
@@ -1105,14 +1102,7 @@ int icpHandleUdp(sock, not_used)
 	if (!allow) {
 	    debug(12, 2, "icpHandleUdp: Access Denied for %s.\n",
 		inet_ntoa(from.sin_addr));
-	    CacheInfo->log_append(CacheInfo,	/* UDP_DENIED */
-		url,
-		inet_ntoa(from.sin_addr),
-		len,
-		log_tags[LOG_UDP_DENIED],
-		IcpOpcodeStr[header.opcode],
-		0,
-		0);
+	    icpUdpSend(sock, url, &header, &from, ICP_OP_DENIED, LOG_UDP_DENIED);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
@@ -1136,38 +1126,16 @@ int icpHandleUdp(sock, not_used)
 		safe_free(icpHitObjState);
 	    }
 #endif
-
-#ifdef OLD_CODE
-	    /* Send "HIT" message. */
-	    CacheInfo->log_append(CacheInfo,	/* UDP_HIT */
-		entry->url,
-		inet_ntoa(from.sin_addr),
-		len,		/* entry->object_len, */
-		log_tags[LOG_UDP_HIT],
-		IcpOpcodeStr[header.opcode],
-		0,
-		0);
-#endif
 	    CacheInfo->proto_hit(CacheInfo,
 		CacheInfo->proto_id(entry->url));
-	    icpUdpSend(sock, url, &header, &from, ICP_OP_HIT);
+	    icpUdpSend(sock, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
 	    break;
 	}
-#ifdef OLD_CODE
-	/* Send "MISS" message. */
-	CacheInfo->log_append(CacheInfo,	/* UDP_MISS */
-	    url,
-	    inet_ntoa(from.sin_addr),
-	    len,
-	    log_tags[LOG_UDP_MISS],
-	    IcpOpcodeStr[header.opcode],
-	    0,
-	    0);
-#endif
 	CacheInfo->proto_miss(CacheInfo,
 	    CacheInfo->proto_id(url));
-	icpUdpSend(sock, url, &header, &from, ICP_OP_MISS);
+	icpUdpSend(sock, url, &header, &from, ICP_OP_MISS, LOG_UDP_MISS);
 	break;
+
 
 #ifdef UDP_HIT_WITH_OBJ
     case ICP_OP_HIT_OBJ:
@@ -1176,6 +1144,7 @@ int icpHandleUdp(sock, not_used)
     case ICP_OP_SECHO:
     case ICP_OP_DECHO:
     case ICP_OP_MISS:
+    case ICP_OP_DENIED:
 
 	if (neighbors_do_private_keys && header.reqnum == 0) {
 	    debug(12, 0, "icpHandleUdp: Neighbor %s returned reqnum = 0\n",
@@ -1415,6 +1384,7 @@ int parseHttpRequest(icpState)
 		inet_ntoa(icpState->me.sin_addr),
 		getAccelPort(),
 		request);
+	    debug(12, 0, "VHOST REWRITE: '%s'\n", icpState->url);
 	}
 	BIT_SET(icpState->flags, REQ_ACCEL);
     } else {

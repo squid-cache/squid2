@@ -4,7 +4,7 @@
 #define ICP_H
 
 typedef enum {
-    LOG_TAG_MIN,		/* 0 */
+    LOG_TAG_NONE,		/* 0 */
     LOG_TCP_HIT,		/* 1 */
     LOG_TCP_MISS,		/* 2 */
     LOG_TCP_EXPIRED,		/* 3 */
@@ -54,11 +54,11 @@ typedef struct wwd {
     long len;
     struct wwd *next;
     struct timeval start;
-    int icp_pkt;
+    log_type logcode;
 } icpUdpData;
 
 extern char *icpWrite _PARAMS((int, char *, int, int, void (*handler) (), void *));
-extern int icpUdpSend _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, icp_opcode));
+extern int icpUdpSend _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, icp_opcode, log_type));
 
 extern int icpHandleUdp _PARAMS((int sock, void *data));
 extern int asciiHandleConn _PARAMS((int sock, void *data));
