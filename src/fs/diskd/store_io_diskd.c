@@ -35,11 +35,12 @@
 
 #include "config.h"
 #include "squid.h"
-#include "store_diskd.h"
 
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/shm.h>
+
+#include "store_diskd.h"
 
 static int storeDiskdSend(int, SwapDir *, int, storeIOState *, int, int, int);
 static void storeDiskdIOCallback(storeIOState * sio, int errflag);

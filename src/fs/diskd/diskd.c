@@ -35,12 +35,11 @@
 #include "config.h"
 #include "squid.h"
 
-
-#include "store_diskd.h"
-
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/shm.h>
+
+#include "store_diskd.h"
 
 #undef assert
 #include <assert.h>
