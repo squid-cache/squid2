@@ -515,6 +515,10 @@ authenticateBasicDecodeAuth(auth_user_request_t * auth_user_request, const char 
 	    basic_auth->passwd = local_basic.passwd;
 	} else
 	    xfree(local_basic.passwd);
+	if (auth_user->flags.credentials_ok == 3) {
+	    debug(29, 4) ("authBasicDecodeAuth: last attempt to authenticate this user failed, resetting auth state to unchecked\n");
+	    auth_user->flags.credentials_ok = 0;
+	}
     }
     /* link the request to the user */
     auth_user_request->auth_user = auth_user;
