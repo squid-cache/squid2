@@ -1152,5 +1152,5 @@ ipcache_restart(void)
 int
 ipcacheAvgSvcTime(void)
 {
-	return IpcacheStats.avg_svc_time;
+    return IpcacheStats.avg_svc_time;
 }

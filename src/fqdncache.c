@@ -1025,5 +1025,5 @@ fqdncache_restart(void)
 int
 fqdncacheAvgSvcTime(void)
 {
-        return FqdncacheStats.avg_svc_time;
+    return FqdncacheStats.avg_svc_time;
 }

@@ -207,7 +207,7 @@ file_map_allocate(int suggestion)
     }
     if (squid_curtime - warn_time > 3600) {
 	warn_time = squid_curtime;
-        debug(8, 0, "WARNING: All %d swap files are in use.\n", fm->max_n_files);
+	debug(8, 0, "WARNING: All %d swap files are in use.\n", fm->max_n_files);
 	debug(8, 0, "         You should probably use a lower value for\n");
 	debug(8, 0, "         'store_avg_object_size' in squid.conf\n");
     }
@@ -224,7 +224,7 @@ filemapFreeMemory(void)
 int
 filemapMax(void)
 {
-	return fm->max_n_files;
+    return fm->max_n_files;
 }
 
 #ifdef TEST
