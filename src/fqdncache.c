@@ -276,7 +276,6 @@ fqdncacheParse(rfc1035_rr * answers, int nr)
 {
     static fqdncache_entry f;
     int k;
-    int j;
     int na = 0;
     memset(&f, '\0', sizeof(f));
     f.expires = squid_curtime;
@@ -295,7 +294,7 @@ fqdncacheParse(rfc1035_rr * answers, int nr)
     }
     debug(35, 3) ("fqdncacheParse: %d answers\n", nr);
     assert(answers);
-    for (j = 0, k = 0; k < nr; k++) {
+    for (k = 0; k < nr; k++) {
 	if (answers[k].type != RFC1035_TYPE_PTR)
 	    continue;
 	if (answers[k].class != RFC1035_CLASS_IN)

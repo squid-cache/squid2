@@ -95,7 +95,7 @@ httpStatusLineParse(HttpStatusLine * sline, const char *start, const char *end)
     }
     if (!(start = strchr(start, ' ')))
 	return 0;
-    sline->status = atoi(++start);
+    sline->status = (http_status)atoi(++start);
     /* we ignore 'reason-phrase' */
     return 1;			/* success */
 }

@@ -97,12 +97,11 @@ unlinkdUnlink(const char *path)
     if (queuelen >= UNLINKD_QUEUE_LIMIT) {
 	struct timeval to;
 	fd_set R;
-	int x;
 	FD_ZERO(&R);
 	FD_SET(unlinkd_rfd, &R);
 	to.tv_sec = 0;
 	to.tv_usec = 100000;
-	x = select(unlinkd_rfd + 1, &R, NULL, NULL, &to);
+	select(unlinkd_rfd + 1, &R, NULL, NULL, &to);
     }
     /*
      * If there is at least one outstanding unlink request, then

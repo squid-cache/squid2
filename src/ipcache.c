@@ -364,13 +364,12 @@ ipcacheHandleReply(void *data, char *reply)
 ipcacheHandleReply(void *data, rfc1035_rr * answers, int na)
 #endif
 {
-    int n;
     generic_cbdata *c = data;
     ipcache_entry *i = c->data;
     ipcache_entry *x = NULL;
     cbdataFree(c);
     c = NULL;
-    n = ++IpcacheStats.replies;
+    IpcacheStats.replies++;
     statHistCount(&statCounter.dns.svc_time,
 	tvSubMsec(i->request_time, current_time));
 #if USE_DNSSERVERS

@@ -42,7 +42,7 @@ typedef struct {
     request_t *request;
     request_t *urlres_r;
     struct {
-	int force_menu:1;
+	unsigned int force_menu:1;
     } flags;
 } UrnState;
 

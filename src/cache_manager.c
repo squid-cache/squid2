@@ -49,8 +49,8 @@ typedef struct _action_table {
     char *desc;
     OBJH *handler;
     struct {
-	int pw_req:1;
-	int atomic:1;
+	unsigned int pw_req:1;
+	unsigned int atomic:1;
     } flags;
     struct _action_table *next;
 } action_table;

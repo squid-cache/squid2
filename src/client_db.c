@@ -290,7 +290,7 @@ snmp_meshCtblFn(variable_list * Var, snint * ErrP)
 	break;
     case MESH_CTBL_HTHITS:
 	aggr = 0;
-	for (l = 0; l < LOG_TYPE_MAX; l++) {
+	for (l = LOG_TAG_NONE; l < LOG_TYPE_MAX; l++) {
 	    if (isTcpHit(l))
 		aggr += c->Http.result_hist[l];
 	}
