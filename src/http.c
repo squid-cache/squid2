@@ -585,7 +585,7 @@ httpPconnTransferDone(HttpStateData * httpState)
     /*
      * If there is no content-length, then we probably can't be persistent
      */
-    if (reply->content_length == 0)
+    if (reply->content_length < 0)
 	return 0;
     /*
      * If there is a content_length, see if we've got all of it.  If so,

@@ -353,7 +353,7 @@ commConnectCallback(ConnectStateData * cs, int status)
     commConnectFree(fd, cs);
     if (cbdataValid(data))
 	callback(fd, status, data);
-    cbdataUnlock(cs->data);
+    cbdataUnlock(data);
 }
 
 static void

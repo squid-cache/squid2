@@ -266,7 +266,7 @@ protoAbortFetch(StoreEntry * entry)
 	return 0;
     mem = entry->mem_obj;
     reply = mem->reply;
-    if (reply->content_length == 0)
+    if (reply->content_length < 0)
 	return 1;
     if (mem->inmem_hi < reply->content_length + reply->hdr_sz)
 	return 1;
