@@ -371,6 +371,8 @@ storeSwapOutObjectBytesOnDisk(const MemObject * mem)
 static int
 storeSwapOutAble(const StoreEntry * e)
 {
+    if (e->swap_status == SWAPOUT_OPENING)
+	return 1;
     if (e->mem_obj->swapout.fd > -1)
 	return 1;
     if (e->mem_obj->inmem_lo > 0)
