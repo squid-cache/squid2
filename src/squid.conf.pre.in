@@ -584,8 +584,9 @@ debug_options ALL,1
 #	If set, objects which have not been referenced for this amount
 #	of time will be purged from the cache.  This is the only
 #	parameter for removing cache objects except when the disk space
-#	reaches the high water mark.  By default reference_age is 
-#	disabled.
+#	reaches the high water mark.  By default reference_age is
+#	computed dynamically so that the store swap size stays within
+#	the low and high water mark limits.
 #reference_age 0
 
 #  TAG: quick_abort
