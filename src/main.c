@@ -335,8 +335,9 @@ int main(argc, argv)
 
     setMaxFD();
 
-    for (n = FD_SETSIZE; n > 2; n--)
-	close(n);
+    if (catch_signals)
+	for (n = FD_SETSIZE; n > 2; n--)
+	    close(n);
 
 #if HAVE_MALLOPT
 #ifdef M_GRAIN
