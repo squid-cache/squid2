@@ -276,6 +276,7 @@ httpRequestFree(void *data)
     }
     requestUnlink(http->request);
     assert(http != http->next);
+    assert(http->conn->chr != NULL);
     H = &http->conn->chr;
     while (*H) {
 	if (*H == http)
@@ -295,9 +296,9 @@ connStateFree(int fd, void *data)
     ConnStateData *connState = data;
     clientHttpRequest *http;
     debug(12, 3) ("connStateFree: FD %d\n", fd);
-    if (connState == NULL)
-	fatal_dump("connStateFree: connState == NULL");
+    assert(connState != NULL);
     while ((http = connState->chr)) {
+	assert(http->conn == connState);
 	assert(connState->chr != connState->chr->next);
 	httpRequestFree(http);
     }
@@ -578,17 +579,18 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
 	debug(0, 0) ("--> because other requests are in front\n");
 	freefunc(buf);
 	return;
-    }
-    if (entry->store_status == STORE_ABORTED) {
+    } else if (entry->store_status == STORE_ABORTED) {
 	freefunc(buf);
 	return;
-    }
-    writelen = size;
-    if (writelen == 0) {
+    } else if (size < 0) {
+	freefunc(buf);
+	return;
+    } else if (size == 0) {
 	clientWriteComplete(fd, NULL, 0, DISK_OK, http);
 	freefunc(buf);
 	return;
     }
+    writelen = size;
     if (http->out.offset == 0 && http->request->protocol != PROTO_CACHEOBJ) {
 	if (Config.onoff.log_mime_hdrs) {
 	    if ((p = mime_headers_end(buf))) {
