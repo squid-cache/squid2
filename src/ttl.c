@@ -156,23 +156,26 @@ void ttlFreeList()
     TTL_tail = TTL_tbl = TTL_tail_force = TTL_tbl_force = 0;
 }
 
-void ttlAddToList(pattern, abs_ttl, pct_age, age_max)
+void ttlAddToList(pattern, icase, force, abs_ttl, pct_age, age_max)
      char *pattern;
+     int icase;
+     int force;
      time_t abs_ttl;
      int pct_age;
      time_t age_max;
 {
     ttl_t *t;
     regex_t comp;
-
-    if (regcomp(&comp, pattern, REG_EXTENDED) != REG_NOERROR) {
+    int flags = REG_EXTENDED;
+    if (icase)
+	flags |= REG_ICASE;
+    if (regcomp(&comp, pattern, flags) != REG_NOERROR) {
 	debug(22, 0, "ttlAddToList: Invalid regular expression: %s\n",
 	    pattern);
 	return;
     }
     pct_age = pct_age < 0 ? 0 : pct_age;
     age_max = age_max < 0 ? 0 : age_max;
-
     t = xcalloc(1, sizeof(ttl_t));
     t->pattern = (char *) xstrdup(pattern);
     t->compiled_pattern = comp;
@@ -180,44 +183,20 @@ void ttlAddToList(pattern, abs_ttl, pct_age, age_max)
     t->pct_age = pct_age;
     t->age_max = age_max;
     t->next = NULL;
-
-    if (!TTL_tbl)
-	TTL_tbl = t;
-    if (TTL_tail)
-	TTL_tail->next = t;
-    TTL_tail = t;
-}
-
-void ttlAddToForceList(pattern, abs_ttl, age_max)
-     char *pattern;
-     time_t abs_ttl;
-     time_t age_max;
-{
-    ttl_t *t;
-    regex_t comp;
-
-    if (regcomp(&comp, pattern, REG_EXTENDED) != REG_NOERROR) {
-	debug(22, 0, "ttlAddToList: Invalid regular expression: %s\n",
-	    pattern);
-	return;
+    if (!force) {
+	if (!TTL_tbl)
+	    TTL_tbl = t;
+	if (TTL_tail)
+	    TTL_tail->next = t;
+	TTL_tail = t;
+    } else {
+	if (!TTL_tbl_force)
+	    TTL_tbl_force = t;
+	if (TTL_tail_force)
+	    TTL_tail_force->next = t;
+	TTL_tail_force = t;
     }
-    age_max = age_max < 0 ? 0 : age_max;
-
-    t = xcalloc(1, sizeof(ttl_t));
-    t->pattern = (char *) xstrdup(pattern);
-    t->compiled_pattern = comp;
-    t->abs_ttl = abs_ttl;
-    t->age_max = age_max;
-    t->next = NULL;
-
-    if (!TTL_tbl_force)
-	TTL_tbl_force = t;
-    if (TTL_tail_force)
-	TTL_tail_force->next = t;
-    TTL_tail_force = t;
 }
-
-
 
 void ttlSet(entry)
      StoreEntry *entry;

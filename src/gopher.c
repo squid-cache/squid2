@@ -755,7 +755,7 @@ int gopherReadReply(fd, data)
 	    comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT,
 		(PF) gopherReadReplyTimeout, (void *) data, Config.readTimeout);
 	} else {
-	    BIT_RESET(entry->flag, CACHABLE);
+	    BIT_RESET(entry->flag, ENTRY_CACHABLE);
 	    storeReleaseRequest(entry);
 	    squid_error_entry(entry, ERR_READ_ERROR, xstrerror());
 	    comm_close(fd);
@@ -933,7 +933,7 @@ void gopherSendRequest(fd, data)
 	gopherSendComplete,
 	(void *) data,
 	put_free_4k_page);
-    if (BIT_TEST(data->entry->flag, CACHABLE))
+    if (BIT_TEST(data->entry->flag, ENTRY_CACHABLE))
 	storeSetPublicKey(data->entry);		/* Make it public */
 }
 

@@ -137,7 +137,7 @@ char *storeToString(e)
     sprintf(tmpbuf, "Flags: %#x ==> ", e->flag);
     if (BIT_TEST(e->flag, KEY_CHANGE))
 	strncat(tmpbuf, " KEYCHANGE", sizeof(tmpbuf) - 1);
-    if (BIT_TEST(e->flag, CACHABLE))
+    if (BIT_TEST(e->flag, ENTRY_CACHABLE))
 	strncat(tmpbuf, " CACHABLE", sizeof(tmpbuf) - 1);
     if (BIT_TEST(e->flag, REFRESH_REQUEST))
 	strncat(tmpbuf, " REFRESH_REQ", sizeof(tmpbuf) - 1);

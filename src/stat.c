@@ -1225,7 +1225,7 @@ char *flags_describe(entry)
     strcpy(FLAGS, "F:");
     if (BIT_TEST(entry->flag, KEY_CHANGE))
 	strncat(FLAGS, "K", sizeof(FLAGS) - 1);
-    if (BIT_TEST(~entry->flag, CACHABLE))
+    if (BIT_TEST(entry->flag, ENTRY_CACHABLE))
 	strncat(FLAGS, "C", sizeof(FLAGS) - 1);
     if (BIT_TEST(entry->flag, REFRESH_REQUEST))
 	strncat(FLAGS, "R", sizeof(FLAGS) - 1);
