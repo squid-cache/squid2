@@ -736,6 +736,7 @@ make_auth_header(const cachemgr_request * req)
 
     str64 = base64_encode(buf);
     l += snprintf(buf, sizeof(buf), "Authorization: Basic %s\r\n", str64);
+    assert(l < sizeof(buf));
     l += snprintf(&buf[l], sizeof(buf) - l,
 	"Proxy-Authorization: Basic %s\r\n", str64);
     return buf;
