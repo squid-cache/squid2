@@ -605,12 +605,11 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     int max_len = 8191 - icpState->offset;
     char *p = icpState->buf + icpState->offset;
     char *IMS_hdr = NULL;
-    time_t IMS;
-    int IMS_length;
-    time_t lmt;
-    int length;
+    time_t client_IMS;
+    int client_length = -1;
+    int object_length;
     char *reply = NULL;
-
+    int modified = 0;
     if (max_len <= 0) {
 	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n",
 	    entry->key ? entry->key : entry->url);
@@ -620,7 +619,7 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	return icpProcessMISS(fd, icpState);
     }
     storeClientCopy(entry, icpState->offset, max_len, p, &len, fd);
-
+    /* XXX replace this with: if (mem->reply->code == 0) */
     if (!mime_headers_end(icpState->buf)) {
 	/* All headers are not yet available, wait for more data */
 	storeRegister(entry, fd, icpHandleStoreIMS, (void *) icpState);
@@ -628,14 +627,10 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
     }
     /* All headers are available, check if object is modified or not */
     IMS_hdr = mime_get_header(icpState->request_hdr, "If-Modified-Since");
-    httpParseReplyHeaders(icpState->buf, mem->reply);
-
     if (!IMS_hdr)
 	fatal_dump("icpGetHeadersForIMS: Cant find IMS header in request\n");
-
     /* Restart the object from the beginning */
     icpState->offset = 0;
-
     /* Only objects with statuscode==200 can be "Not modified" */
     /* XXX: Should we ignore this? */
     if (mem->reply->code != 200) {
@@ -646,48 +641,53 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	return icpProcessMISS(fd, icpState);
     }
     p = strtok(IMS_hdr, ";");
-    IMS = parse_rfc1123(p);
-    IMS_length = -1;
+    client_IMS = parse_rfc1123(p);
     while ((p = strtok(NULL, ";"))) {
 	while (isspace(*p))
 	    p++;
 	if (strncasecmp(p, "length=", 7) == 0)
-	    IMS_length = atoi(strchr(p, '=') + 1);
+	    client_length = atoi(strchr(p, '=') + 1);
     }
-
-    lmt = mem->reply->last_modified;
-    if (lmt < 0)
-	debug(12, 0, "WARNING: '%s' has LMTIME=%s\n", entry->url, mkrfc1123(lmt));
-
+    if (entry->lastmod < 0)
+	debug(12, 0, "WARNING: '%s' has LMTIME=%s\n", entry->url, mkrfc1123(entry->lastmod));
     /* Find size of the object */
     if (mem->reply->content_length)
-	length = mem->reply->content_length;
+	object_length = mem->reply->content_length;
     else
-	length = entry->object_len - mime_headers_size(icpState->buf);
-
+	object_length = entry->object_len - mem->reply->hdr_sz;
     put_free_8k_page(icpState->buf);
     icpState->buf = NULL;
     icpState->log_type = LOG_TCP_IMS_HIT;
-
     entry->refcount++;
-    /* Compare with If-Modified-Since header */
-    if (IMS > lmt || (IMS == lmt && (IMS_length < 0 || IMS_length == length))) {
-	/* The object is not modified */
-	debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
-	reply = icpConstruct304reply(mem->reply);
-	comm_write(fd,
-	    xstrdup(reply),
-	    strlen(reply),
-	    30,
-	    icpHandleIMSComplete,
-	    icpState,
-	    xfree);
-	return COMM_OK;
+    debug(12, 3, "icpGetHeadersForIMS: '%s'\n", entry->url);
+    if (entry->lastmod > client_IMS) {
+	debug(12, 3, "--> YES: entry newer than client\n");
+	modified = 1;
+    } else if (entry->lastmod < client_IMS) {
+	debug(12, 3, "-->  NO: entry older than client\n");
+	modified = 0;
+    } else if (client_length < 0) {
+	debug(12, 3, "-->  NO: same LMT, no client length\n");
+	modified = 0;
+    } else if (client_length == object_length) {
+	debug(12, 3, "-->  NO: same LMT, same length\n");
+	modified = 0;
     } else {
-	debug(12, 4, "icpGetHeadersForIMS: We have newer '%s'\n", entry->url);
-	/* We have a newer object */
-	return icpSendMoreData(fd, icpState);
+	debug(12, 3, "--> YES: same LMT, different length\n");
+	modified = 1;
     }
+    if (modified)
+	return icpSendMoreData(fd, icpState);
+    debug(12, 4, "icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
+    reply = icpConstruct304reply(mem->reply);
+    comm_write(fd,
+	xstrdup(reply),
+	strlen(reply),
+	30,
+	icpHandleIMSComplete,
+	icpState,
+	xfree);
+    return COMM_OK;
 }
 
 static void
