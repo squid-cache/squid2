@@ -45,7 +45,6 @@ typedef struct {
 	int offset;
 	char *buf;
     } client, server;
-    time_t timeout;
     int *size_ptr;		/* pointer to size for logging */
     int proxying;
     int ip_lookup_pending;
@@ -155,7 +154,7 @@ passReadServer(int fd, void *data)
 		COMM_SELECT_TIMEOUT,
 		passReadTimeout,
 		(void *) passState,
-		passState->timeout);
+		Config.readTimeout);
 	} else {
 	    passClose(passState);
 	}
@@ -233,7 +232,7 @@ passWriteServer(int fd, void *data)
 	    COMM_SELECT_TIMEOUT,
 	    passReadTimeout,
 	    (void *) passState,
-	    passState->timeout);
+	    Config.readTimeout);
     } else {
 	/* still have more to write */
 	commSetSelect(passState->server.fd,
@@ -271,6 +270,11 @@ passWriteClient(int fd, void *data)
 	    COMM_SELECT_READ,
 	    passReadServer,
 	    (void *) passState, 0);
+	commSetSelect(passState->server.fd,
+	    COMM_SELECT_TIMEOUT,
+	    passReadTimeout,
+	    (void *) passState,
+	    Config.readTimeout);
     } else {
 	/* still have more to write */
 	commSetSelect(passState->client.fd,
@@ -325,6 +329,11 @@ passConnected(int fd, void *data)
 	COMM_SELECT_READ,
 	passReadServer,
 	(void *) passState, 0);
+    commSetSelect(passState->server.fd,
+	COMM_SELECT_TIMEOUT,
+	passReadTimeout,
+	(void *) passState,
+	Config.readTimeout);
 }
 
 static void
@@ -456,7 +465,6 @@ passStart(int fd,
     passState->request = requestLink(request);
     passState->buf = buf;
     passState->buflen = buflen;
-    passState->timeout = Config.readTimeout;
     passState->host = request->host;
     passState->port = request->port;
     passState->size_ptr = size_ptr;
