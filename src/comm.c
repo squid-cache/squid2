@@ -20,15 +20,18 @@ int RESERVED_FD = 64;
 FD_ENTRY *fd_table = NULL;	/* also used in disk.c */
 
 /* STATIC */
-static int *fd_lifetime = NULL;
 static void checkTimeouts _PARAMS((void));
 static void checkLifetimes _PARAMS((void));
 static void Reserve_More_FDs _PARAMS((void));
 static int commSetReuseAddr _PARAMS((int));
 static int examine_select _PARAMS((fd_set *, fd_set *, fd_set *));
 static int commSetNoLinger _PARAMS((int));
-static struct timeval zero_tv;
 static void comm_select_incoming _PARAMS((void));
+static int commTryBind _PARAMS((int fd, u_short port));
+
+static int *fd_lifetime = NULL;
+static struct timeval zero_tv;
+static struct in_addr wildcard_addr;
 
 /* Return the local port associated with fd. */
 u_short comm_local_port(fd)
@@ -54,30 +57,22 @@ u_short comm_local_port(fd)
     return fd_table[fd].local_port;
 }
 
-static int do_bind(s, host, port)
+static int commBind(s, in_addr, port)
      int s;
-     char *host;
+     struct in_addr in_addr;
      u_short port;
 {
     struct sockaddr_in S;
-    struct in_addr *addr = NULL;
 
-    addr = getAddress(host);
-    if (addr == NULL) {
-	debug(5, 0, "do_bind: Unknown host: %s\n", host);
-	return COMM_ERROR;
-    }
     memset(&S, '\0', sizeof(S));
     S.sin_family = AF_INET;
     S.sin_port = htons(port);
-    S.sin_addr = *addr;
-
+    S.sin_addr = in_addr;
     if (bind(s, (struct sockaddr *) &S, sizeof(S)) == 0)
 	return COMM_OK;
-
-    debug(5, 0, "do_bind: Cannot bind socket FD %d to %s:%d: %s\n",
+    debug(5, 0, "commBind: Cannot bind socket FD %d to %s:%d: %s\n",
 	s,
-	S.sin_addr.s_addr == htonl(INADDR_ANY) ? "*" : inet_ntoa(S.sin_addr),
+	S.sin_addr.s_addr == INADDR_ANY ? "*" : inet_ntoa(S.sin_addr),
 	port, xstrerror());
     return COMM_ERROR;
 }
@@ -132,6 +127,24 @@ int comm_open_unix(note)
     return new_socket;
 }
 
+static int commTryBind(fd, port)
+     int fd;
+     u_short port;
+{
+    struct in_addr in_addr;
+    if (port == 0) {
+	in_addr = getOutboundAddr();
+	if (in_addr.s_addr != INADDR_NONE)
+	    return commBind(fd, in_addr, port);
+    }
+    in_addr = getBindAddr();
+    if (in_addr.s_addr != INADDR_NONE)
+	return commBind(fd, in_addr, port);
+    if (port == 0)
+	return COMM_OK;
+    return commBind(fd, wildcard_addr, port);
+}
+
 /* Create a socket. Default is blocking, stream (TCP) socket.  IO_TYPE
  * is OR of flags specified in comm.h. */
 int comm_open(io_type, port, note)
@@ -142,7 +155,6 @@ int comm_open(io_type, port, note)
     int new_socket;
     FD_ENTRY *conn = NULL;
     int sock_type = io_type & COMM_DGRAM ? SOCK_DGRAM : SOCK_STREAM;
-    wordlist *p = NULL;
 
     /* Create socket for accepting new connections. */
     if ((new_socket = socket(AF_INET, sock_type, 0)) < 0) {
@@ -181,23 +193,8 @@ int comm_open(io_type, port, note)
 	    commSetReuseAddr(new_socket);
 	}
     }
-    if (port) {
-	/* An inbound socket */
-	for (p = getBindAddrList(); p; p = p->next) {
-	    if (do_bind(new_socket, p->key, port) == COMM_OK)
-		break;
-	    if (p->next == NULL)
-		return COMM_ERROR;
-	}
-    } else {
-	/* An outbound socket */
-	for (p = getOutboundAddrList(); p; p = p->next) {
-	    if (do_bind(new_socket, p->key, 0) == COMM_OK)
-		break;
-	    if (p->next == NULL)
-		return COMM_ERROR;
-	}
-    }
+    if (commTryBind(new_socket, port) != COMM_OK)
+	return COMM_ERROR;
     conn->local_port = port;
 
     if (io_type & COMM_NONBLOCKING) {
@@ -994,6 +991,7 @@ int comm_init()
 	comm_set_fd_lifetime(i, -1);	/* denotes invalid */
     zero_tv.tv_sec = 0;
     zero_tv.tv_usec = 0;
+    wildcard_addr.s_addr = INADDR_ANY;
     return 0;
 }
 

@@ -117,15 +117,15 @@ extern u_short setAsciiPortNum _PARAMS((int));
 extern u_short setUdpPortNum _PARAMS((int));
 extern void intlistDestroy _PARAMS((intlist **));
 extern void wordlistDestroy _PARAMS((wordlist **));
-wordlist *getBindAddrList _PARAMS((void));
-wordlist *getOutboundAddrList _PARAMS((void));
-wordlist *getCacheDirs _PARAMS((void));
-wordlist *getDnsTestnameList _PARAMS((void));
-wordlist *getFtpStoplist _PARAMS((void));
-wordlist *getGopherStoplist _PARAMS((void));
-wordlist *getHttpStoplist _PARAMS((void));
-wordlist *getInsideFirewallList _PARAMS((void));
-wordlist *getLocalDomainList _PARAMS((void));
+extern struct in_addr getBindAddr _PARAMS((void));
+extern struct in_addr getOutboundAddr _PARAMS((void));
+extern wordlist *getCacheDirs _PARAMS((void));
+extern wordlist *getDnsTestnameList _PARAMS((void));
+extern wordlist *getFtpStoplist _PARAMS((void));
+extern wordlist *getGopherStoplist _PARAMS((void));
+extern wordlist *getHttpStoplist _PARAMS((void));
+extern wordlist *getInsideFirewallList _PARAMS((void));
+extern wordlist *getLocalDomainList _PARAMS((void));
 
 
 #endif /* ndef  _CACHE_CONFIG_H_ */

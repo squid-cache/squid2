@@ -74,12 +74,12 @@ static struct {
 	char *file;
 	int rate;
     } Announce;
+    struct in_addr bind_addr;
+    struct in_addr outbound_addr;
     wordlist *cache_dirs;
     wordlist *http_stoplist;
     wordlist *gopher_stoplist;
     wordlist *ftp_stoplist;
-    wordlist *bind_addr_list;
-    wordlist *outbound_addr_list;
     wordlist *local_domain_list;
     wordlist *inside_firewall_list;
     wordlist *dns_testname_list;
@@ -151,6 +151,8 @@ static struct {
 #define DefaultAnnouncePort	3131
 #define DefaultAnnounceFile	(char *)NULL	/* default NONE */
 #define DefaultAnnounceRate	0	/* Default off */
+#define DefaultBindAddr		INADDR_NONE
+#define DefaultOutboundAddr	INADDR_NONE
 
 ip_acl *local_ip_list = NULL;
 
@@ -891,8 +893,10 @@ static void parseBindAddressLine()
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    debug(3, 1, "parseBindAddressLine: adding %s\n", token);
-    wordlistAdd(&Config.bind_addr_list, token);
+    debug(3, 1, "parseBindAddressLine: %s\n", token);
+    Config.bind_addr.s_addr = inet_addr(token);
+    if (Config.bind_addr.s_addr == INADDR_NONE)
+	self_destruct();
 }
 
 static void parseOutboundAddressLine()
@@ -901,8 +905,10 @@ static void parseOutboundAddressLine()
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    debug(3, 1, "parseOutboundAddressLine: adding %s\n", token);
-    wordlistAdd(&Config.outbound_addr_list, token);
+    debug(3, 1, "parseOutboundAddressLine: %s\n", token);
+    Config.outbound_addr.s_addr = inet_addr(token);
+    if (Config.outbound_addr.s_addr == INADDR_NONE)
+	self_destruct();
 }
 
 static void parseLocalDomainFile(fname)
@@ -1359,9 +1365,6 @@ int parseConfigFile(file_name)
 	}
     }
 
-    /* Add INADDR_ANY to end of bind_addr_list as last chance */
-    wordlistAdd(&Config.bind_addr_list, "0.0.0.0");
-
     /* Sanity checks */
     if (getClientLifetime() < getReadTimeout()) {
 	printf("WARNING: client_lifetime (%d seconds) is less than read_timeout (%d seconds).\n",
@@ -1651,13 +1654,13 @@ wordlist *getDnsTestnameList()
 {
     return Config.dns_testname_list;
 }
-wordlist *getBindAddrList()
+struct in_addr getBindAddr()
 {
-    return Config.bind_addr_list;
+    return Config.bind_addr;
 }
-wordlist *getOutboundAddrList()
+struct in_addr getOutboundAddr()
 {
-    return Config.outbound_addr_list;
+    return Config.outbound_addr;
 }
 
 u_short setAsciiPortNum(port)
@@ -1704,8 +1707,6 @@ static void configFreeMemory()
     wordlistDestroy(&Config.http_stoplist);
     wordlistDestroy(&Config.gopher_stoplist);
     wordlistDestroy(&Config.ftp_stoplist);
-    wordlistDestroy(&Config.bind_addr_list);
-    wordlistDestroy(&Config.outbound_addr_list);
     wordlistDestroy(&Config.local_domain_list);
     wordlistDestroy(&Config.inside_firewall_list);
     wordlistDestroy(&Config.dns_testname_list);
@@ -1777,6 +1778,8 @@ static void configSetFactoryDefaults()
     Config.Announce.port = DefaultAnnouncePort;
     Config.Announce.file = safe_xstrdup(DefaultAnnounceFile);
     Config.Announce.rate = DefaultAnnounceRate;
+    Config.bind_addr.s_addr = DefaultBindAddr;
+    Config.outbound_addr.s_addr = DefaultOutboundAddr;
 }
 
 static void configDoConfigure()
