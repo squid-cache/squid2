@@ -167,7 +167,7 @@ netdbPurgeLRU(void)
     int removed = 0;
     list = xcalloc(meta_data.netdb_addrs, sizeof(netdbEntry *));
     for (n = netdbGetFirst(addr_table); n; n = netdbGetNext(addr_table)) {
-	if (n->rtt = 0 && n->next_ping_time < squid_curtime) {
+	if (n->rtt == 0 && n->next_ping_time < squid_curtime) {
 	    netdbRelease(n);
 	    removed++;
 	    continue;
