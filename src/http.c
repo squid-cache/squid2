@@ -427,6 +427,9 @@ httpCachableReply(HttpStateData * httpState)
 	return 0;
     if (EBIT_TEST(reply->cache_control, SCC_NOCACHE))
 	return 0;
+    if (BIT_TEST(httpState->request->flags, REQ_AUTH))
+	if (!EBIT_TEST(reply->cache_control, SCC_PROXYREVALIDATE))
+	    return 0;
     /*
      * Dealing with cookies is quite a bit more complicated
      * than this.  Ideally we should strip the cookie
