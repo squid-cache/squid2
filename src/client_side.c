@@ -973,14 +973,13 @@ clientCheckContentLength(request_t * r)
 static int
 clientCachable(clientHttpRequest * http)
 {
-    const char *url = http->uri;
     request_t *req = http->request;
     method_t method = req->method;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(method);
     /* FTP is always cachable */
     if (req->protocol == PROTO_GOPHER)
-	return gopherCachable(url);
+	return gopherCachable(req);
     if (req->protocol == PROTO_WAIS)
 	return 0;
     if (method == METHOD_CONNECT)
@@ -1020,7 +1019,7 @@ clientHierarchical(clientHttpRequest * http)
     if (request->protocol == PROTO_HTTP)
 	return httpCachable(method);
     if (request->protocol == PROTO_GOPHER)
-	return gopherCachable(url);
+	return gopherCachable(request);
     if (request->protocol == PROTO_WAIS)
 	return 0;
     if (request->protocol == PROTO_CACHEOBJ)

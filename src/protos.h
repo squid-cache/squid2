@@ -264,7 +264,7 @@ extern void ftpStart(FwdState *);
 extern char *ftpUrlWith2f(const request_t *);
 
 extern void gopherStart(FwdState *);
-extern int gopherCachable(const char *);
+extern int gopherCachable(const request_t *);
 
 
 extern void whoisStart(FwdState *);
