@@ -183,6 +183,7 @@ cbdataInternalFree(void *p)
     debug(45, 3) ("cbdataFree: %p\n", p);
     c = (cbdata *) (((char *) p) - OFFSET_OF(cbdata, data));
     assert(c->y == c);
+    assert(c->valid);
     c->valid = 0;
     if (c->locks) {
 	debug(45, 3) ("cbdataFree: %p has %d locks, not freeing\n",
