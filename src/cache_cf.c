@@ -1588,5 +1588,5 @@ configDoConfigure(void)
     sprintf(ThisCache, "%s:%d (Squid/%s)",
 	getMyHostname(),
 	(int) Config.Port.http,
-        SQUID_VERSION);
+	SQUID_VERSION);
 }
