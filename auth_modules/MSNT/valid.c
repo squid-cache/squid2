@@ -1,8 +1,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <syslog.h>
+#include "smblib-priv.h"
 #include "smblib.h"
 #include "valid.h"
+
+extern int SMB_Init(void);
+extern int SMB_Logon_Server(SMB_Handle_Type, char *, char *);
+
 
 int Valid_User(char *USERNAME,char *PASSWORD,char *SERVER,char *BACKUP, char *DOMAIN)
 {

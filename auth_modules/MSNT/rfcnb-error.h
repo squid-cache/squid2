@@ -23,6 +23,9 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+#ifndef _RFCNB_ERROR_H_
+#define _RFCNB_ERROR_H_
+
 /* Error responses */
 
 #define RFCNBE_Bad -1          /* Bad response */
@@ -49,27 +52,6 @@
 
 /* Text strings for the error responses                                 */
 
-static char *RFCNB_Error_Strings[] = {
+extern char *RFCNB_Error_Strings[];
 
-  "RFCNBE_OK: Routine completed successfully.",
-  "RFCNBE_NoSpace: No space available for a malloc call.",
-  "RFCNBE_BadName: NetBIOS name could not be translated to IP address.",
-  "RFCNBE_BadRead: Read system call returned an error. Check errno.",
-  "RFCNBE_BadWrite: Write system call returned an error. Check errno.",
-  "RFCNBE_ProtErr: A protocol error has occurred.",
-  "RFCNBE_ConGone: Connection dropped during a read or write system call.",
-  "RFCNBE_BadHandle: Bad connection handle passed.",
-  "RFCNBE_BadSocket: Problems creating socket.",
-  "RFCNBE_ConnectFailed: Connection failed. See errno.",
-  "RFCNBE_CallRejNLOCN: Call rejected. Not listening on called name.",
-  "RFCNBE_CallRejNLFCN: Call rejected. Not listening for called name.",
-  "RFCNBE_CallRejCNNP: Call rejected. Called name not present.",
-  "RFCNBE_CallRejInfRes: Call rejected. Name present, but insufficient resources.",
-  "RFCNBE_CallRejUnSpec: Call rejected. Unspecified error.",
-  "RFCNBE_BadParam: Bad parameters passed to a routine.",
-  "RFCNBE_Timeout: IO Operation timed out ..."
-
-};
-
-
-
+#endif /* _RFCNB_ERROR_H_ */

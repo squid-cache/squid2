@@ -21,11 +21,14 @@
 */
 
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <dirent.h>
 #include <string.h>
+#include <ctype.h>
 /* Antonino #include <sys/vfs.h> */
-#include <netinet/in.h>
 
 #include "smblib-priv.h"
 #define uchar unsigned char
@@ -35,6 +38,10 @@ extern int DEBUGLEVEL;
 
 char *StrnCpy(char *dest,char *src,int n);
 void strupper(char *s);
+extern void E_P16(unsigned char *,unsigned char *);
+extern void E_P24(unsigned char *, unsigned char *, unsigned char *);
+extern void mdfour(unsigned char *, unsigned char *, int);
+
 
 /*
    This implements the X/Open SMB password encryption

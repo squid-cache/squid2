@@ -28,12 +28,21 @@ int SMBlib_SMB_Error;
 #define SMBLIB_ERRNO
 #define uchar unsigned char
 #include "smblib-priv.h"
-
+#include "smblib.h"
+#include "rfcnb-priv.h"
 #include "rfcnb.h"
+#include "rfcnb-util.h"
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <ctype.h>
 
 #include <signal.h>
 
 SMB_State_Types SMBlib_State;
+
+extern int RFCNB_Set_Sock_NoDelay(RFCNB_Con *, BOOL);
+extern void SMB_Get_My_Name(char *, int);
 
 /* Initialize the SMBlib package     */
 
@@ -73,7 +82,7 @@ int SMB_Term()
 /* SMB_Create: Create a connection structure and return for later use */
 /* We have other helper routines to set variables                     */
 
-SMB_Handle_Type SMB_Create_Con_Handle()
+SMB_Handle_Type SMB_Create_Con_Handle(void)
 
 {
 
@@ -107,7 +116,7 @@ SMB_Handle_Type SMB_Connect_Server(SMB_Handle_Type Con_Handle,
 				   char *server, char *NTdomain)
 
 { SMB_Handle_Type con;
-  char temp[80], called[80], calling[80], *address;
+  char called[80], calling[80], *address;
   int i;
 
   /* Get a connection structure if one does not exist */
@@ -317,7 +326,7 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName,
 		     char *PassWord)
 
 { struct RFCNB_Pkt *pkt;
-  int param_len, i, pkt_len, pass_len,a;
+  int param_len, pkt_len, pass_len;
   char *p, pword[128];
 
   /* First we need a packet etc ... but we need to know what protocol has  */

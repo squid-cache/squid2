@@ -37,6 +37,10 @@
 #include "sitedef.h"
 
 extern void Checkforchange();       /* For signal() to find the function */
+extern int Read_denyusers(void);
+extern int Check_user(char *);
+extern int Valid_User(char *,char *,char *,char *, char *);
+
 
 /* Main program for simple authentication.
    Reads the denied user file. Sets alarm timer.

@@ -23,13 +23,13 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+#ifndef _SMBLIB_PRIV_H_
+#define _SMBLIB_PRIV_H_
+
 #include "std-defines.h"
 #include "smblib-common.h"
 #include <sys/types.h>
 #include <unistd.h>
-
-typedef unsigned short uint16;
-typedef unsigned int   uint32;
 
 #include "byteorder.h"     /* Hmmm ... hot good */
 
@@ -493,33 +493,8 @@ typedef enum {SMB_State_NoState, SMB_State_Stopped, SMB_State_Started} SMB_State
 /* We must make it possible for callers to specify these ... */
 
 
-static char *SMB_Prots[] = {"PC NETWORK PROGRAM 1.0", 
-			    "MICROSOFT NETWORKS 1.03",
-			    "MICROSOFT NETWORKS 3.0",
-			    "DOS LANMAN1.0",
-			    "LANMAN1.0",
-			    "DOS LM1.2X002",
-			    "LM1.2X002",
-			    "DOS LANMAN2.1",
-			    "LANMAN2.1",
-			    "Samba",
-			    "NT LM 0.12",
-			    "NT LANMAN 1.0",
-			    NULL};
-
-static int SMB_Types[] = {SMB_P_Core,
-                          SMB_P_CorePlus,
-			  SMB_P_DOSLanMan1,
-			  SMB_P_DOSLanMan1,
-	                  SMB_P_LanMan1,
-			  SMB_P_DOSLanMan2,
-		          SMB_P_LanMan2,
-	 	          SMB_P_LanMan2_1,
-		          SMB_P_LanMan2_1,
-		          SMB_P_NT1,
-		          SMB_P_NT1,
-		          SMB_P_NT1,
-		          -1};
+extern char *SMB_Prots[];
+extern int SMB_Types[];
 
 typedef struct SMB_Status {
 
@@ -620,5 +595,4 @@ extern int SMBlib_errno;
 extern int SMBlib_SMB_Error;          /* last Error             */
 #endif
 
-SMB_Tree_Handle SMB_TreeConnect(SMB_Handle_Type con, SMB_Tree_Handle tree,
-				char *path, char *password, char *dev);
+#endif /* _SMBLIB_PRIV_H_ */

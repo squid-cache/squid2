@@ -27,6 +27,9 @@
 /* Because we just grab 4bytes from the SMB header, we have to re-order */
 /* here, but it makes the NtStatus part easier in future                */
 
+#ifndef _SMBLIB_COMMON_H_
+#define _SMBLIB_COMMON_H_
+
 #define SMBlib_Error_Class(p) (p & 0x000000FF)
 
 /* To get the error code, we want the bottom 16 bits */
@@ -182,3 +185,5 @@ typedef struct {                       /* A structure for a Dirent */
   char filename[13];                   /* The name of the file      */
 
 } SMB_CP_dirent;
+
+#endif /* _SMBLIB_COMMON_H_ */

@@ -19,6 +19,9 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+#ifndef _BYTEORDER_H_
+#define _BYTEORDER_H_
+
 /*
    This file implements macros for machine independent short and 
    int manipulation
@@ -40,6 +43,8 @@
 #define PVAL(buf,pos) ((unsigned)CVAL(buf,pos))
 #define SCVAL(buf,pos,val) (CVAL(buf,pos) = (val))
 
+typedef unsigned short uint16;
+typedef unsigned int   uint32;
 
 #if CAREFUL_ALIGNMENT
 #define SVAL(buf,pos) (PVAL(buf,pos)|PVAL(buf,(pos)+1)<<8)
@@ -78,3 +83,5 @@
 #define RIVAL(buf,pos) IREV(IVAL(buf,pos))
 #define RSSVAL(buf,pos,val) SSVAL(buf,pos,SREV(val))
 #define RSIVAL(buf,pos,val) SIVAL(buf,pos,IREV(val))
+
+#endif /* _BYTEORDER_H_ */

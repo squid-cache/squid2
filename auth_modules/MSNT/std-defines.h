@@ -4,7 +4,7 @@
    SMBlib Standard Includes
 
    Copyright (C) 1996, Richard Sharpe
-
+*/
 /* One day we will conditionalize these on OS types ... */
 
 /*
@@ -23,6 +23,9 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+#ifndef _STD_DEFINES_H_
+#define _STD_DEFINES_H_
+
 #define BOOL int
 typedef short int16;
 
@@ -38,3 +41,5 @@ typedef short int16;
 
 #define TRUE 1
 #define FALSE 0
+
+#endif _STD_DEFINES_H_

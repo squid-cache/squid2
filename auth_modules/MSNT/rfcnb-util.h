@@ -41,10 +41,11 @@ int RFCNB_Close(int socket);
 
 int RFCNB_IP_Connect(struct in_addr Dest_IP, int port);
 
-int RFCNB_Session_Req(struct RFCNB_Con *con, 
+int RFCNB_Session_Req(RFCNB_Con *con, 
 		      char *Called_Name, 
 		      char *Calling_Name,
 		      BOOL *redirect,
 		      struct in_addr *Dest_IP,
 		      int * port);
 
+void RFCNB_Free_Pkt(struct RFCNB_Pkt *pkt);

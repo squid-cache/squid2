@@ -28,6 +28,36 @@
 #include "rfcnb-util.h"
 #include "rfcnb-io.h"
 
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <string.h>
+
+char *RFCNB_Error_Strings[] = {
+
+  "RFCNBE_OK: Routine completed successfully.",
+  "RFCNBE_NoSpace: No space available for a malloc call.",
+  "RFCNBE_BadName: NetBIOS name could not be translated to IP address.",
+  "RFCNBE_BadRead: Read system call returned an error. Check errno.",
+  "RFCNBE_BadWrite: Write system call returned an error. Check errno.",
+  "RFCNBE_ProtErr: A protocol error has occurred.",
+  "RFCNBE_ConGone: Connection dropped during a read or write system call.",
+  "RFCNBE_BadHandle: Bad connection handle passed.",
+  "RFCNBE_BadSocket: Problems creating socket.",
+  "RFCNBE_ConnectFailed: Connection failed. See errno.",
+  "RFCNBE_CallRejNLOCN: Call rejected. Not listening on called name.",
+  "RFCNBE_CallRejNLFCN: Call rejected. Not listening for called name.",
+  "RFCNBE_CallRejCNNP: Call rejected. Called name not present.",
+  "RFCNBE_CallRejInfRes: Call rejected. Name present, but insufficient resources.",
+  "RFCNBE_CallRejUnSpec: Call rejected. Unspecified error.",
+  "RFCNBE_BadParam: Bad parameters passed to a routine.",
+  "RFCNBE_Timeout: IO Operation timed out ..."
+
+};
+
 extern void (*Prot_Print_Routine)(); /* Pointer to protocol print routine */
 
 /* Convert name and pad to 16 chars as needed */
@@ -201,7 +231,7 @@ struct RFCNB_Pkt *RFCNB_Alloc_Pkt(int n)
 
 /* Free up a packet */
 
-int RFCNB_Free_Pkt(struct RFCNB_Pkt *pkt)
+void RFCNB_Free_Pkt(struct RFCNB_Pkt *pkt)
 
 { struct RFCNB_Pkt *pkt_next; char *data_ptr;
 
@@ -412,7 +442,7 @@ int RFCNB_Session_Req(struct RFCNB_Con *con,
 
   /* Response packet should be no more than 9 bytes, make 16 jic */
 
-  char ln1[16], ln2[16], n1[32], n2[32], resp[16];
+  char resp[16];
   int len;
   struct RFCNB_Pkt *pkt, res_pkt;
 
@@ -429,7 +459,7 @@ int RFCNB_Session_Req(struct RFCNB_Con *con,
   sess_pkt = pkt -> data;    /* Get pointer to packet proper */
 
   sess_pkt[RFCNB_Pkt_Type_Offset]  = RFCNB_SESSION_REQUEST;
-  RFCNB_Put_Pkt_Len(sess_pkt, RFCNB_Pkt_Sess_Len-RFCNB_Pkt_Hdr_Len);
+  RFCNB_Put_Pkt_Len(sess_pkt, (RFCNB_Pkt_Sess_Len-RFCNB_Pkt_Hdr_Len));
   sess_pkt[RFCNB_Pkt_N1Len_Offset] = 32;
   sess_pkt[RFCNB_Pkt_N2Len_Offset] = 32;
 

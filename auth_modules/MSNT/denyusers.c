@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <ctype.h>
 #include "sitedef.h"
 
 #define NAMELEN     50		/* Maximum username length */
