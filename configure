@@ -520,7 +520,7 @@ fi
 
 
 
-# From configure.in Revision: 1.62.2.2 
+# From configure.in Revision: 1.62.2.3 
 ac_aux_dir=
 for ac_dir in aux $srcdir/aux; do
   if test -f $ac_dir/install-sh; then
@@ -2718,7 +2718,7 @@ fi
 
 
 case "$host" in
-	i386-*-solaris2.?)
+	i386-*-solaris2.*)
     		if test "$GCC" = "yes"; then
 			echo "Removing -O for gcc on $host"
 			CFLAGS="`echo $CFLAGS | sed -e 's/-O[0-9]*//'`"
