@@ -1052,10 +1052,6 @@ netdbExchangeStart(void *data)
     }
     requestLink(ex->r);
     assert(NULL != ex->r);
-#if OLD_CODE
-    ex->r->headers = xstrdup("\r\n");
-    ex->r->headers_sz = strlen(ex->r->headers);
-#endif
     ex->r->http_ver = 1.0;
     ex->e = storeCreateEntry(uri, uri, 0, METHOD_GET);
     ex->buf_sz = 4096;;

@@ -249,21 +249,9 @@ peerDigestRequest(peer * p)
     requestLink(req);
     assert(req);
     /* add custom headers */
-#if OLD_CODE
-    /* rewrite this when requests get rid of "prefix" */
-    assert(!req->prefix);
-    {
-	MemBuf mb;
-	memBufDefInit(&mb);
-	memBufPrintf(&mb, "Accept: %s,text/html\r\n", StoreDigestMimeStr);
-	httpRequestSetHeaders(req, METHOD_GET, url, mb.buf);
-	memBufClean(&mb);
-    }
-#else
     assert(!req->header.len);
     httpHeaderPutStr(&req->header, HDR_ACCEPT, StoreDigestMimeStr);
     httpHeaderPutStr(&req->header, HDR_ACCEPT, "text/html");
-#endif
     /* create fetch state structure */
     fetch = memAllocate(MEM_DIGEST_FETCH_STATE);
     cbdataAdd(fetch, MEM_DIGEST_FETCH_STATE);

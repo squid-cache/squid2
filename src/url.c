@@ -333,35 +333,6 @@ urlCanonicalClean(const request_t * request)
     return buf;
 }
 
-#if OLD_CODE			/* moved to HttpRequest.c */
-request_t *
-requestLink(request_t * request)
-{
-    request->link_count++;
-    return request;
-}
-
-void
-requestUnlink(request_t * request)
-{
-    if (request == NULL)
-	return;
-    request->link_count--;
-    if (request->link_count)
-	return;
-#if OLD_CODE
-    safe_free(request->headers);
-#else
-    httpHeaderClean(&request->header);
-    safe_free(request->prefix);
-#endif
-    safe_free(request->body);
-    stringClean(&request->urlpath);
-    safe_free(request->canonical);
-    memFree(MEM_REQUEST_T, request);
-}
-#endif
-
 int
 matchDomainName(const char *domain, const char *host)
 {

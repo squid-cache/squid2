@@ -121,21 +121,8 @@ httpRequestPack(const request_t * req, Packer *p)
 void
 httpRequestSetHeaders(request_t * req, method_t method, const char *uri, const char *header_str)
 {
-#if OLD_CODE
-    MemBuf mb;
-    assert(req && uri && header_str);
-    assert(!req->prefix);
-
-    memBufDefInit(&mb);
-    memBufPrintf(&mb, "%s %s HTTP/%3.1f\r\n%s\r\n",
-	RequestMethodStr[method], uri, req->http_ver, header_str);
-    req->prefix = xstrdup(mb.buf);
-    req->prefix_sz = mb.size;
-    memBufClean(&mb);
-#else
     assert(req && uri && header_str);
     assert(!req->header.len);
-#endif
     httpHeaderParse(&req->header, header_str, header_str + strlen(header_str));
 }
 

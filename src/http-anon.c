@@ -62,14 +62,6 @@
 
 #include "squid.h"
 
-#if OLD_CODE
-struct http_anon_struct_header {
-    const char *name;
-    size_t len;
-};
-
-#endif
-
 /* Allowed Headers
  *
  * If 'http_anonymizer' is set to 'paranoid' then only these headers
@@ -110,35 +102,6 @@ httpAnonInitModule()
     httpHeaderMaskInit(&HttpDeniedHeadersMask);
     httpHeaderCalcMask(&HttpDeniedHeadersMask, (const int *) HttpDeniedHeadersArr, countof(HttpDeniedHeadersArr));
 }
-
-#if OLD_CODE
-/* Return 1 if 'line' is found in the 'header_field' list */
-static int
-httpAnonSearchHeaderField(const struct http_anon_struct_header *header_field,
-    const char *line)
-{
-    const struct http_anon_struct_header *ppc;
-    for (ppc = header_field; ppc->len; ppc++)
-	if (strncasecmp(line, ppc->name, ppc->len) == 0)
-	    return 1;
-    return 0;
-}
-int
-httpAnonAllowed(const char *line)
-{
-    if (*line == '\0')		/* the terminating empty line */
-	return 1;
-    return httpAnonSearchHeaderField(http_anon_allowed_header, line);
-}
-
-int
-httpAnonDenied(const char *line)
-{
-    if (*line == '\0')		/* the terminating empty line */
-	return 0;
-    return httpAnonSearchHeaderField(http_anon_denied_header, line);
-}
-#endif
 
 int
 httpAnonHdrAllowed(http_hdr_type hdr_id)

@@ -217,29 +217,6 @@ storeCreateSwapSubDirs(int j)
     }
 }
 
-#if OLD_CODE
-static int
-storeMostFreeSwapDir(void)
-{
-    double least_used = 1.0;
-    double this_used;
-    int dirn = 0;
-    int i;
-    SwapDir *SD;
-    for (i = 0; i < Config.cacheSwap.n_configured; i++) {
-	SD = &Config.cacheSwap.swapDirs[i];
-	this_used = (double) SD->cur_size / SD->max_size;
-	if (this_used > least_used)
-	    continue;
-	if (SD->read_only)
-	    continue;
-	least_used = this_used;
-	dirn = i;
-    }
-    return dirn;
-}
-#endif
-
 /*
  *Spread load across least 3/4 of the store directories
  */
