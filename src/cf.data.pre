@@ -979,9 +979,9 @@ TYPE: onoff
 DEFAULT: on
 LOC: Config.onoff.redir_rewrites_host
 DOC_START
-	By default Squid rewrites any Host: header in redirected requests.
-	If you are running a accelerator then this may not be a wanted effect
-	of a redirector.
+	By default Squid rewrites any Host: header in redirected
+	requests.  If you are running a accelerator then this may
+	not be a wanted effect of a redirector.
 redirect_rewrites_host_header on
 DOC_END
 
