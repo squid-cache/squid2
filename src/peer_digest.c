@@ -651,7 +651,7 @@ peerDigestSetCBlock(peer * peer, const char *buf)
 	peer->digest.cd = NULL;
     }
     if (!peer->digest.cd) {
-	debug(72, 2) ("cloning %s digest; size: %d (%+d) bytes\n",
+	debug(72, 2) ("creating %s digest; size: %d (%+d) bytes\n",
 	    peer->host, cblock.mask_size, (int) (cblock.mask_size - freed_size));
 	peer->digest.cd = cacheDigestCreate(cblock.capacity, cblock.bits_per_entry);
 	if (cblock.mask_size >= freed_size)
