@@ -123,15 +123,6 @@
 #define USE_WCCP 1
 
 /*
- * Squid frequently calls gettimeofday() for accurate timestamping.
- * If you are concerned that gettimeofday() is called too often, and
- * could be causing performance degradation, then you can define
- * ALARM_UPDATES_TIME and cause Squid's clock to be updated at regular
- * intervals (one second) with ALARM signals.
- */
-#undef ALARM_UPDATES_TIME
-
-/*
  * Define this to include code which lets you specify access control
  * elements based on ethernet hardware addresses.  This code uses
  * functions found in 4.4 BSD derviations (e.g. FreeBSD, ?).
