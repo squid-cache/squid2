@@ -1,3 +1,12 @@
+Changes to squid-1.0.4 (July 24, 1996):
+
+	- Fixed ftpget logic/precedence bug
+	- Fixed ttlSet() to choose TTL as offset from when the object
+	  was originally served, not the current time.
+	- Fixed configure bug with setting GETTIMEOFDAY_NO_TZP.
+	- Removed unnecessary call to ipcache_gethostbyname() in
+	  sslConnect().
+
 Changes to squid-1.0.3 (July 18, 1996):
 
 	- Fixed FTP to send 'Ascii' or 'Binary' based on MIME encoding,
