@@ -623,7 +623,7 @@ void
 fwdUnregister(int fd, FwdState * fwdState)
 {
     debug(17, 3) ("fwdUnregister: %s\n", storeUrl(fwdState->entry));
-    assert(fd = fwdState->server_fd);
+    assert(fd == fwdState->server_fd);
     assert(fd > -1);
     comm_remove_close_handler(fd, fwdServerClosed, fwdState);
     fwdState->server_fd = -1;
