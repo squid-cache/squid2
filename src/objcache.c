@@ -308,7 +308,7 @@ objcacheStart(int fd, StoreEntry * entry)
     assert(handler != NULL);
     BIT_SET(entry->flag, DELAY_SENDING);
     handler(entry);
-    BIT_RESET(entry->flag, DELAY_SENDING);
+    BIT_CLR(entry->flag, DELAY_SENDING);
     storeComplete(entry);
     safe_free(data);
 }

@@ -760,13 +760,13 @@ ftpCleanupUrlpath(FtpStateData * ftpState)
 	    /* remove any trailing slashes from path */
 	    *(request->urlpath + l - 1) = '\0';
 	    EBIT_SET(ftpState->flags, FTP_ISDIR);
-	    EBIT_RESET(ftpState->flags, FTP_USE_BASE);
+	    EBIT_CLR(ftpState->flags, FTP_USE_BASE);
 	    again = 1;
 	} else if ((l >= 2) && (!strcmp(request->urlpath + l - 2, "/."))) {
 	    /* remove trailing /. */
 	    *(request->urlpath + l - 2) = '\0';
 	    EBIT_SET(ftpState->flags, FTP_ISDIR);
-	    EBIT_RESET(ftpState->flags, FTP_USE_BASE);
+	    EBIT_CLR(ftpState->flags, FTP_USE_BASE);
 	    again = 1;
 	} else if (*request->urlpath == '/') {
 	    /* remove any leading slashes from path */
@@ -1375,7 +1375,7 @@ static void
 ftpSendPort(FtpStateData * ftpState)
 {
     debug(9, 3) ("This is ftpSendPort\n");
-    EBIT_RESET(ftpState->flags, FTP_PASV_SUPPORTED);
+    EBIT_CLR(ftpState->flags, FTP_PASV_SUPPORTED);
 }
 
 static void
@@ -1417,7 +1417,7 @@ ftpReadRest(FtpStateData * ftpState)
 	ftpState->state = SENT_RETR;
     } else if (code > 0) {
 	debug(9, 3) ("ftpReadRest: REST not supported\n");
-	EBIT_RESET(ftpState->flags, FTP_REST_SUPPORTED);
+	EBIT_CLR(ftpState->flags, FTP_REST_SUPPORTED);
     } else {
 	ftpFail(ftpState);
     }

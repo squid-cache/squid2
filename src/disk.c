@@ -315,8 +315,8 @@ diskHandleWriteComplete(void *data, int len, int errcode)
     if (fdd->write_q == NULL) {
 	/* no more data */
 	fdd->write_q_tail = NULL;
-	BIT_RESET(F->flags, FD_WRITE_PENDING);
-	BIT_RESET(F->flags, FD_WRITE_DAEMON);
+	BIT_CLR(F->flags, FD_WRITE_PENDING);
+	BIT_CLR(F->flags, FD_WRITE_DAEMON);
     } else {
 	/* another block is queued */
 	commSetSelect(fd, COMM_SELECT_WRITE, diskHandleWrite, NULL, 0);

@@ -275,7 +275,7 @@ static void
 httpMakePrivate(StoreEntry * entry)
 {
     storeExpireNow(entry);
-    BIT_RESET(entry->flag, ENTRY_CACHABLE);
+    BIT_CLR(entry->flag, ENTRY_CACHABLE);
     storeReleaseRequest(entry);	/* delete object when not used */
 }
 

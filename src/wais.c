@@ -199,7 +199,7 @@ waisReadReply(int fd, void *data)
 		waisReadReply, waisState, 0);
 	} else {
 	    ErrorState *err;
-	    BIT_RESET(entry->flag, ENTRY_CACHABLE);
+	    BIT_CLR(entry->flag, ENTRY_CACHABLE);
 	    storeReleaseRequest(entry);
 	    err = xcalloc(1, sizeof(ErrorState));
 	    err->type = ERR_READ_ERROR;
