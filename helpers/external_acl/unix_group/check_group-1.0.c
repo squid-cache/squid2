@@ -29,9 +29,6 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
  *
  * Change Log:
- * $Log$
- * Revision 1.1  2002/06/23 14:31:09  hno
- * UNIX group membership external acl helper by Rodrigo Campos
  *
  * Revision 1.4  2002/04/17 01:58:48  camposr
  * minor corrections in the getopt
