@@ -466,6 +466,7 @@ commSetTimeout(int fd, int timeout, PF * handler, void *data)
     assert(fd >= 0);
     assert(fd < Squid_MaxFD);
     F = &fd_table[fd];
+    assert(F->open);
     if (timeout < 0) {
 	F->timeout_handler = NULL;
 	F->timeout_data = NULL;
