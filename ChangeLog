@@ -1,10 +1,13 @@
-Changes from version Harvest cached-1.4.pl3
+Changes to squid-1.0.beta1 (Apr 19, 1996) from Harvest cached-1.4.pl3:
 
 	- Added a "server mode" to ftpget.  Now the (much smaller)
 	  ftpget process forks for each FTP request.
 	- Added support for If-Modified-Since GET requests.
-	- Added urlParse() which strips off default ports and 
-	  makes hostnames all lowercase.
+	- Added support for SSL and https objects.
+	- Added background processing for rebuilding the disk store
+	  while serving requests.  Cache can now serve requests immediately.
+	- Added a 'reconfigure' feature activated by SIGHUP.  The config
+	  file is re-read and most changes will take effect.
 	- Added an internal flag for using private keys with ICP queries
 	  to neighbors.  If any neighbor returns a reqnum field of zero,
 	  then disable using private keys.  But still use private
@@ -15,10 +18,7 @@ Changes from version Harvest cached-1.4.pl3
 	- Added clean shutdown mode.  On SIGTERM the incoming HTTP socket
 	  is closed.  Active clients are given a lifetime of 30 seconds
 	  (configurable).  Process exits when all sockets are closed.
-	- Added support for SSL and https objects.
 	- Added support for large POST objects.
-	- Added a 'reconfigure' feature activated by SIGHUP.  The config
-	  file is re-read and most changes will take effect.
 	- Added "store.log" which logs RELEASE/SWAPIN/SWAPOUT events.
 	- Added announce feature to squid; no longer external program.
 	  If enabled, a running cache will announce itself every 24 hrs.
@@ -26,8 +26,8 @@ Changes from version Harvest cached-1.4.pl3
 	- Added new Access Control List scheme.
 	- Added Forwarded: header to proxy HTTP requests (HTTP/1.1 feature).
 	- Added weights neighbors.
-	- Added background processing for rebuilding the disk store
-	  while serving requests.  Cache can now serve requests immediately.
+	- Added urlParse() which strips off default ports and 
+	  makes hostnames all lowercase.
 	- Added (section,level) debugging and 'debug_options' config line.
 	- Added 'pid_filename' to configuration file.
 	- Added 'visible_hostname' to configuration file.
@@ -35,12 +35,9 @@ Changes from version Harvest cached-1.4.pl3
 	- added 'dns_positive_ttl' to configuration file.
 	- added 'dns_negative_ttl' to configuration file.
 	- Added 'shutdown_lifetime' to configuration file.
-
-	- Fixed discrepancy with setting "fd_note" for dnsservers.
 	- Fixed bug where cache process would "spin" on large objects
 	  being deferred.
 	- Fixed byte order conversion bug on setting echo port.
-
 	- Changed meaning of command line -b (buffered logs) option.
 	  Now the default behaviour is unbuffered logs, use -b to make
 	  them buffered.
@@ -66,7 +63,6 @@ Changes from version Harvest cached-1.4.pl3
 	  now exits immediately if stdin goes away.
 	- Changed handling of '-z' option.  Now only execute 'rm -rf ...' if
 	  -U option also given.
-
 	- Removed the command line -d (debug) option.  Use 'debug_options'
 	  in config file.
 	- Removed all code and references to binary port.
