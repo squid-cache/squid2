@@ -505,6 +505,8 @@ struct _SquidConfig2 {
     struct {
 	int enable_purge;
     } onoff;
+    uid_t effectiveUserID;
+    gid_t effectiveGroupID;
 };
 
 struct _close_handler {

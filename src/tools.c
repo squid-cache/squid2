@@ -456,7 +456,7 @@ getMyHostname(void)
 	return host;
     }
     fatal("Could not determine fully qualified hostname.  Please set 'visible_hostname'\n");
-    return NULL;	/* keep compiler happy */
+    return NULL;		/* keep compiler happy */
 }
 
 const char *
@@ -481,38 +481,28 @@ safeunlink(const char *s, int quiet)
 void
 leave_suid(void)
 {
-    struct passwd *pwd = NULL;
-    struct group *grp = NULL;
-    gid_t gid;
     debug(21, 3) ("leave_suid: PID %d called\n", getpid());
     if (geteuid() != 0)
 	return;
     /* Started as a root, check suid option */
     if (Config.effectiveUser == NULL)
 	return;
-    if ((pwd = getpwnam(Config.effectiveUser)) == NULL)
-	return;
-    if (Config.effectiveGroup && (grp = getgrnam(Config.effectiveGroup))) {
-	gid = grp->gr_gid;
-    } else {
-	gid = pwd->pw_gid;
-    }
 #if HAVE_SETGROUPS
-    setgroups(1, &gid);
+    setgroups(1, &Config2.effectiveGroupID);
 #endif
-    if (setgid(gid) < 0)
-	debug(50, 1) ("leave_suid: setgid: %s\n", xstrerror());
+    if (setgid(Config2.effectiveGroupID) < 0)
+	debug(50, 0) ("ALERT: setgid: %s\n", xstrerror());
     debug(21, 3) ("leave_suid: PID %d giving up root, becoming '%s'\n",
-	getpid(), pwd->pw_name);
+	getpid(), Config.effectiveUser);
 #if HAVE_SETRESUID
-    if (setresuid(pwd->pw_uid, pwd->pw_uid, 0) < 0)
-	debug(50, 1) ("leave_suid: setresuid: %s\n", xstrerror());
+    if (setresuid(Config2.effectiveUserID, Config2.effectiveUserID, 0) < 0)
+	debug(50, 0) ("ALERT: setresuid: %s\n", xstrerror());
 #elif HAVE_SETEUID
-    if (seteuid(pwd->pw_uid) < 0)
-	debug(50, 1) ("leave_suid: seteuid: %s\n", xstrerror());
+    if (seteuid(Config2.effectiveUserID) < 0)
+	debug(50, 0) ("ALERT: seteuid: %s\n", xstrerror());
 #else
-    if (setuid(pwd->pw_uid) < 0)
-	debug(50, 1) ("leave_suid: setuid: %s\n", xstrerror());
+    if (setuid(Config2.effectiveUserID) < 0)
+	debug(50, 0) ("ALERT: setuid: %s\n", xstrerror());
 #endif
 }
 
