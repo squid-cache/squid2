@@ -78,12 +78,13 @@ libexec_PROGRAMS = \
 	@OPT_PINGER@ \
 	$(DNSSERVER) \
 	$(UNLINKD) \
-	cachemgr
+	cachemgr$(CGIEXT)
 
 cf_gen_SOURCES = cf_gen.c defines.h
 nodist_cf_gen_HEADER = cf_gen_defines.h
 cf_gen.$(OBJEXT): cf_gen_defines.h
 squidclient_SOURCES = client.c
+cachemgr__CGIEXT__SOURCES = cachemgr.c
 
 EXTRA_squid_SOURCES = \
 	delay_pools.c \
