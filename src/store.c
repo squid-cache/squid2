@@ -566,8 +566,8 @@ storeComplete(StoreEntry * e)
 	 * if we're not STORE_PENDING, then probably we got aborted
 	 * and there should be NO clients on this entry
 	 */
-	assert(EBIT_TEST(entry->flags, ENTRY_ABORTED));
-	assert(entry->mem_obj->nclients == 0);
+	assert(EBIT_TEST(e->flags, ENTRY_ABORTED));
+	assert(e->mem_obj->nclients == 0);
 	return;
     }
     e->mem_obj->object_sz = e->mem_obj->inmem_hi;
