@@ -141,7 +141,7 @@ clientAccessCheck(void *data)
     clientHttpRequest *http = data;
     ConnStateData *conn = http->conn;
     if (checkAccelOnly(http)) {
-	clientAccessCheckDone(0, http);
+	clientAccessCheckDone(ACCESS_ALLOWED, http);
 	return;
     }
     http->acl_checklist = aclChecklistCreate(Config.accessList.http,
