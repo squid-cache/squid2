@@ -16,6 +16,7 @@ Changes to squid-1.1.11 (June XX, 1997):
 	- Always forward requests with 'Request-Range' headers (Ron Gomes).
 	- Fixed StoreEntry client offset bug which could trigger a
 	  fatal_dump().
+	- Fixed noticing that dnsservers have shut down during restart.
 
 Changes to squid-1.1.10 (April 24, 1997):
 
