@@ -203,7 +203,7 @@ Changes to squid-1.0.beta9 (May 23, 1996):
 	- Fixed ftpget listing parsing coredump bug.
 	- Fixed neighborsUdpAck() coredump for late-arriving ICP replies.
 
-beta10:
+Changes to squid-1.0.beta10 (May 31, 1996):
 
 	- Fixed bug when request arrives in fragmented IP packets.
 	- Fixed ACL bug which denied cache manager access while in
@@ -216,10 +216,14 @@ beta10:
 	- Changed domain ACL's to match only the end of the hostname, not
 	  just anywhere in the string.
 	- Fixed setuid bugs when pid_filename was not defined
-	- Possible bug fix of zero-sized object getting stuck in VM.
+	- Fixed zero-sized object getting stuck in VM.
 	- Configure checks for working UNIX domain stream sockets
 	- Rotate cache.log before the others
 	- SIGUSR2 now toggles between full and normal debugging
 	- Close and restart ftpget server during logfile rotation
 	- Added memory pools for request_t and MemObject data structures.
 	- Added new address binding options for more control
+
+Changes to squid-1.0.beta11 (June 1, 1996):
+
+	- Fixed serious memory leak of MemObject->reply structures.
