@@ -729,14 +729,13 @@ icpGetHeadersForIMS(void *data, char *buf, ssize_t size)
     StoreEntry *entry = http->entry;
     MemObject *mem = entry->mem_obj;
     char *reply = NULL;
-    assert(size > 0);
     assert(size <= SM_PAGE_SIZE);
     if (size < 0) {
-	debug(12, 1) ("storeClientCopy returned %d for '%s'\n",
-	    size,
+	debug(12, 1) ("icpGetHeadersForIMS: storeClientCopy failed for '%s'\n",
 	    storeKeyText(entry->key));
 	put_free_4k_page(buf);
 	comm_close(fd);
+	icpProcessMISS(fd, http);
 	return;
     }
     if (mem->reply->code == 0) {
@@ -931,6 +930,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	http->url);
     if (entry) {
 	storeLockObject(entry);
+	storeCreateMemObject(entry, http->url, http->log_url);
 	storeClientListAdd(entry, http);
     }
     http->entry = entry;	/* Save a reference to the object */

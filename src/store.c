@@ -1846,7 +1846,7 @@ storeInitHashValues(void)
     /* ideally the full scan period should be configurable, for the
      * moment it remains at approximately 24 hours.  */
     store_hash_buckets = storeKeyHashBuckets(i);
-    store_maintain_rate = store_hash_buckets / 86400;
+    store_maintain_rate = 86400 / store_hash_buckets;
     assert(store_maintain_rate > 0);
     debug(20, 1) ("Using %d Store buckets, maintain %d bucket%s every %d second%s\n",
 	store_hash_buckets,
@@ -2347,9 +2347,17 @@ const char *
 storeUrl(const StoreEntry * e)
 {
     if (e == NULL)
-	return "[null entry]";
+	return "[null_entry]";
     else if (e->mem_obj == NULL)
-	return "[null mem_obj]";
+	return "[null_mem_obj]";
     else
 	return e->mem_obj->url;
+}
+
+void
+storeCreateMemObject(StoreEntry * e, const char *url, const char *log_url)
+{
+    if (e->mem_obj)
+	return;
+    e->mem_obj = new_MemObject(url, log_url);
 }

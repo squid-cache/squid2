@@ -29,7 +29,7 @@ storeKeyScan(const char *buf)
 }
 
 int
-shaHashCmp(const void *a, const void *b)
+storeKeyHashCmp(const void *a, const void *b)
 {
     const int *A = a;
     const int *B = b;
@@ -44,8 +44,9 @@ shaHashCmp(const void *a, const void *b)
 }
 
 unsigned int
-shaHashHash(const void *key, unsigned int n)
+storeKeyHashHash(const void *key, unsigned int n)
 {
+    /* note, n must be a power of 2! */
     const int *digest = key;
     return (digest[0] & (--n));
 }
