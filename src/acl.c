@@ -49,7 +49,7 @@ static acl_t aclType(s)
 	return ACL_URL_PORT;
     if (!strcmp(s, "user"))
 	return ACL_USER;
-    if (!strcmp(s, "proto"))
+    if (!strncmp(s, "proto", 5))
 	return ACL_PROTO;
     if (!strcmp(s, "method"))
 	return ACL_METHOD;
@@ -120,12 +120,10 @@ static int decode_addr(asc, addr, mask)
      struct in_addr *addr, *mask;
 {
     struct hostent *hp = NULL;
-    long a;
-    int a1;
-    int c;
+    u_num32 a;
+    int a1, a2, a3, a4;
 
-    c = sscanf(asc, "%d.%*d.%*d.%*d", &a1);
-    switch (c) {
+    switch (sscanf(asc, "%d.%d.%d.%d", &a1, &a2, &a3, &a4)) {
     case 4:			/* a dotted quad */
 	if ((a = inet_addr(asc)) != SQUID_INADDR_NONE ||
 	    !strcmp(asc, "255.255.255.255")) {
@@ -205,7 +203,7 @@ static struct _acl_ip_data *aclParseIpList()
 	    if (!decode_addr(addr1, &q->addr1, &q->mask)) {
 		debug(28, 0, "%s line %d: %s\n",
 		    cfg_filename, config_lineno, config_input_line);
-		debug(28, 0, "aclParseIpList: Ignoring invalid IP acl entry '%s', unknown first address '%s'\n", addr1);
+		debug(28, 0, "aclParseIpList: Ignoring invalid IP acl entry: unknown first address '%s'\n", addr1);
 		safe_free(q);
 		continue;
 	    }
@@ -213,7 +211,7 @@ static struct _acl_ip_data *aclParseIpList()
 	    if (*addr2 && !decode_addr(addr2, &q->addr2, &q->mask)) {
 		debug(28, 0, "%s line %d: %s\n",
 		    cfg_filename, config_lineno, config_input_line);
-		debug(28, 0, "aclParseIpList: Ignoring invalid IP acl entry '%s', unknown second address '%s'\n", addr1);
+		debug(28, 0, "aclParseIpList: Ignoring invalid IP acl entry: unknown second address '%s'\n", addr1);
 		safe_free(q);
 		continue;
 	    }
@@ -221,7 +219,7 @@ static struct _acl_ip_data *aclParseIpList()
 	    if (*mask && !decode_addr(mask, &q->mask, NULL)) {
 		debug(28, 0, "%s line %d: %s\n",
 		    cfg_filename, config_lineno, config_input_line);
-		debug(28, 0, "aclParseIpList: Ignoring invalid IP acl entry '%s', unknown netmask '%s'\n", mask);
+		debug(28, 0, "aclParseIpList: Ignoring invalid IP acl entry: unknown netmask '%s'\n", mask);
 		safe_free(q);
 		continue;
 	    }
