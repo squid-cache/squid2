@@ -209,7 +209,14 @@ PrintRusage(void (*f) (void), FILE * lf)
 {
 #if HAVE_GETRUSAGE && defined(RUSAGE_SELF)
     struct rusage rusage;
+#ifdef _SQUID_SOLARIS_
+    /* Solaris 2.5 has getrusage() permission bug -- Arjan de Vet */
+    enter_suid();
+#endif
     getrusage(RUSAGE_SELF, &rusage);
+#ifdef _SQUID_SOLARIS_
+    leave_suid();
+#endif
     fprintf(lf, "CPU Usage: user %d sys %d\n",
 	(int) rusage.ru_utime.tv_sec, (int) rusage.ru_stime.tv_sec);
 #if defined(_SQUID_SGI_) || defined(_SQUID_OSF_) || defined(BSD4_4)
