@@ -426,6 +426,8 @@ int aclMatchWord(data, word)
      wordlist *data;
      char *word;
 {
+    if (word == NULL)
+	return 0;
     debug(28, 3, "aclMatchWord: checking '%s'\n", word);
     while (data) {
 	debug(28, 3, "aclMatchWord: looking for '%s'\n", data->key);
@@ -439,6 +441,8 @@ int aclMatchRegex(data, word)
      relist *data;
      char *word;
 {
+    if (word == NULL)
+	return 0;
     debug(28, 3, "aclMatchRegex: checking '%s'\n", word);
     while (data) {
 	debug(28, 3, "aclMatchRegex: looking for '%s'\n", data->pattern);
