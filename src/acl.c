@@ -477,13 +477,21 @@ aclParseIpList(void **curtree)
     tree **Tree;
     char *t = NULL;
     acl_ip_data *q;
+    acl_ip_data *x;
     Tree = xmalloc(sizeof(tree *));
     *curtree = Tree;
     tree_init(Tree);
     while ((t = strtokFile())) {
 	q = aclParseIpData(t);
 	while (q != NULL) {
-	    tree_add(Tree, bintreeNetworkCompare, q, NULL);
+	    x = tree_srch(Tree, bintreeIpNetworkCompare, &q->addr1);
+	    if (NULL != x) {
+		debug(0, 0) ("aclParseIpList: Ignoring duplicate/clashing entry\n");
+		debug(0, 0) ("--> %s already exists\n", inet_ntoa(x->addr1));
+		debug(0, 0) ("--> %s is ignored\n", inet_ntoa(q->addr1));
+	    } else {
+		tree_add(Tree, bintreeNetworkCompare, q, NULL);
+	    }
 	    q = q->next;
 	}
     }
