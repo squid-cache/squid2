@@ -281,7 +281,9 @@ storeUnlockObject(StoreEntry * e)
     if (e->store_status == STORE_PENDING)
 	EBIT_SET(e->flags, RELEASE_REQUEST);
     assert(storePendingNClients(e) == 0);
+#if HEAP_REPLACEMENT
     storeHeapPositionUpdate(e);
+#endif
     if (EBIT_TEST(e->flags, RELEASE_REQUEST))
 	storeRelease(e);
     else if (storeKeepInMemory(e)) {
@@ -864,12 +866,12 @@ storeMaintainSwapSpace(void *datanotused)
 	    linklistPush(&locked_entries, e);
 	    continue;
 	}
-        if (store_swap_size < store_swap_low)
+	if (store_swap_size < store_swap_low)
 	    break;
 	else if (expired >= max_remove)
 	    break;
-        else if (scanned >= max_scan)
-            break;
+	else if (scanned >= max_scan)
+	    break;
     }
     /*
      * Bump the heap age factor.
