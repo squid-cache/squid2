@@ -124,9 +124,8 @@ typedef struct _fqdncache_entry {
     /* first two items must be equivalent to hash_link in hash.h */
     char *name;
     struct _fqdncache_entry *next;
-    time_t timestamp;
     time_t lastref;
-    time_t ttl;
+    time_t expires;
     unsigned char name_count;
     char *names[FQDN_MAX_NAMES + 1];
     struct _fqdn_pending *pending_head;
