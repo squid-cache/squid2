@@ -930,13 +930,16 @@ storeAppend(StoreEntry * e, const char *buf, int len)
     assert(mem != NULL);
     assert(len >= 0);
     if (len) {
-	debug(20, 5) ("storeAppend: appending %d bytes for '%s'\n", len, storeKeyText(e->key));
+	debug(20, 5) ("storeAppend: appending %d bytes for '%s'\n",
+	    len,
+	    storeKeyText(e->key));
 	storeGetMemSpace(len);
 	memAppend(mem->data, buf, len);
 	mem->inmem_hi += len;
     }
-    if (e->store_status != STORE_ABORTED && !EBIT_TEST(e->flag, DELAY_SENDING))
-	InvokeHandlers(e);
+    if (EBIT_TEST(e->flag, DELAY_SENDING))
+	return;
+    InvokeHandlers(e);
     storeCheckSwapOut(e);
 }
 
