@@ -537,7 +537,7 @@ AC_ARG_ENABLE(arp-acl,
 	    ;;
 	*-solaris-*)
 	    ;;
-	*-freebsd-*)
+	*-freebsd*)
 	    ;;
 	*)
 	    echo "WARNING: ARP ACL support probably won't work on $host."
