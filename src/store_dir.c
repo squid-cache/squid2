@@ -535,7 +535,13 @@ storeDirWriteCleanLogs(int reopen)
     if (store_rebuilding) {
 	debug(20, 1) ("Not currently OK to rewrite swap log.\n");
 	debug(20, 1) ("storeDirWriteCleanLogs: Operation aborted.\n");
+#if DONT
+	/*
+	 * why did we want to close the current swap logs here?
+	 * DW/1.2.beta19
+	 */
 	storeDirCloseSwapLogs();
+#endif
 	return 0;
     }
     debug(20, 1) ("storeDirWriteCleanLogs: Starting...\n");
