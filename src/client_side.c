@@ -595,7 +595,8 @@ httpRequestFree(void *data)
 	mem = entry->mem_obj;
     if (http->out.size || http->log_type) {
 	http->al.icp.opcode = 0;
-	http->al.url = http->uri;
+	http->al.url = http->log_uri;
+	debug(33, 9) ("httpRequestFree: al.url='%s'\n", http->al.url);
 	if (mem) {
 	    http->al.http.code = mem->reply->sline.status;
 	    http->al.http.content_type = httpReplyContentType(mem->reply);

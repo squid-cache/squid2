@@ -369,19 +369,6 @@ urlCanonicalClean(const request_t * request)
     return buf;
 }
 
-char *
-urlClean(char *dirty)
-{
-    char *clean;
-    request_t *r = urlParse(METHOD_GET, dirty);
-    if (r == NULL)
-	return dirty;
-    clean = urlCanonicalClean(r);
-    memFree(MEM_REQUEST_T, r);
-    return clean;
-}
-
-
 request_t *
 requestLink(request_t * request)
 {
