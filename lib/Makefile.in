@@ -35,6 +35,7 @@ UTILOBJS	= rfc1123.o \
 		  md5.o \
 		  radix.o \
 		  stub_memaccount.o \
+		  Array.o \
 		  Stack.o \
 		  $(LIBOBJS)
 REGEXOBJS	= GNUregex.o
