@@ -13,7 +13,7 @@
 
 static char ftpASCII[] = "A";
 static char ftpBinary[] = "I";
-static char localhost[] = "localhost";
+static char localhost[] = "127.0.0.1";
 static int ftpget_server_pipe = -1;
 
 typedef struct _Ftpdata {
