@@ -691,6 +691,10 @@ int ftpInitialize()
 	    COMM_SELECT_EXCEPT,
 	    (PF) ftpServerClosed,
 	    (void *) NULL);
+	comm_set_select_handler(p[1],
+	    COMM_SELECT_READ,
+	    (PF) ftpServerClosed,
+	    (void *) NULL);
 	ftpget_server_pipe = p[1];
 	return 0;
     }
