@@ -1367,9 +1367,12 @@ aclMatchTime(acl_time_data * data, time_t when)
     debug(28, 3) ("aclMatchTime: checking %d in %d-%d, weekbits=%x\n",
 	(int) t, (int) data->start, (int) data->stop, data->weekbits);
 
-    if (t < data->start || t > data->stop)
-	return 0;
-    return data->weekbits & (1 << tm.tm_wday) ? 1 : 0;
+    while (data) {
+	if (t >= data->start && t <= data->stop && (data->weekbits & (1 << tm.tm_wday)))
+	    return 1;
+	data = data->next;
+    }
+    return 0;
 }
 
 #if SQUID_SNMP
