@@ -98,7 +98,7 @@ memConfigure()
 	    toMB(TheMeter.idle.level), toMB(new_pool_limit), toMB(mem_idle_limit));
 	new_pool_limit = TheMeter.idle.level;
     }
-    assert(mem_idle_limit <= new_pool_limit);
+    assert(TheMeter.idle.level <= new_pool_limit);
     mem_idle_limit = new_pool_limit;
 }
 
