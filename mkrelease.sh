@@ -68,5 +68,6 @@ if [ -f $tmpdir/doc/release-notes/release-$RELEASE.html ]; then
 	s/"ChangeLog"/"ChangeLog.txt"/g;
     ' > $tmpdir/RELEASENOTES.html
     touch -r $tmpdir/doc/release-notes/release-$RELEASE.html $tmpdir/RELEASENOTES.html
-    inst $tmpdir/RELEASENOTES.html $dst/RELEASENOTES.html
+    inst $tmpdir/RELEASENOTES.html $dst/${name}-RELEASENOTES.html
+    ln -sf ${name}-RELEASENOTES.html $dst/RELEASENOTES.html
 fi
