@@ -275,8 +275,7 @@ parse_externalAclHelper(external_acl ** list)
     wordlistAdd(&a->cmdline, token);
 
     /* arguments */
-    while ((token = strtok(NULL, w_space)) != NULL)
-	wordlistAdd(&a->cmdline, token);
+    parse_wordlist(&a->cmdline);
 
     while (*list)
 	list = &(*list)->next;
