@@ -830,6 +830,14 @@ static void
 ftpReadComplete(FtpStateData * ftpState)
 {
     debug(9, 3) ("ftpReadComplete\n");
+    if (ftpState->data.fd > -1) {
+	/*
+	 * close data socket so it does not occupy resources while
+	 * we wait
+	 */
+	comm_close(ftpState->data.fd);
+	ftpState->data.fd = -1;
+    }
     /* Connection closed; retrieval done. */
     if (ftpState->flags.html_header_sent)
 	ftpListingFinish(ftpState);
