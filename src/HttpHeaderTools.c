@@ -154,7 +154,6 @@ httpHeaderAddContRange(HttpHeader * hdr, HttpHdrRangeSpec spec, ssize_t ent_len)
 int
 httpHeaderHasConnDir(const HttpHeader * hdr, const char *directive)
 {
-    const char *str;
     String list;
     http_hdr_type ht;
     int res;
@@ -165,18 +164,7 @@ httpHeaderHasConnDir(const HttpHeader * hdr, const char *directive)
 	ht = HDR_CONNECTION;
     else
 	return 0;
-    /*
-     * optimization: check if we are lucky and there is only one
-     * connection directive token
-     */
-    if ((str = httpHeaderGetStr(hdr, ht)) && !strcasecmp(str, directive))
-	return 1;
-    /*
-     * note: we do not know how many connection tokens a header has
-     * so we must fall through even when we do not have a match and
-     * there are no commas in str 
-     */
-    /* we may have a list, do expensive search */
+
     list = httpHeaderGetList(hdr, ht);
     res = strListIsMember(&list, directive, ',');
     stringClean(&list);
