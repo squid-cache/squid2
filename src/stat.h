@@ -174,7 +174,7 @@ struct _cacheinfo {
 
 #if LOG_FULL_HEADERS
     /* add a transaction to system log */
-    void (*log_append) _PARAMS((struct _cacheinfo * obj,
+    void (*log_append) (struct _cacheinfo * obj,
 	    char *url,
 	    struct in_addr,
 	    int size,
@@ -185,10 +185,10 @@ struct _cacheinfo {
 	    char *ident,
 	    struct _hierarchyLogData * hierData,
 	    char *request_hdrs,
-	    char *reply_hdrs));
+	    char *reply_hdrs);
 #else
     /* add a transaction to system log */
-    void (*log_append) _PARAMS((struct _cacheinfo * obj,
+    void (*log_append) (struct _cacheinfo * obj,
 	    char *url,
 	    struct in_addr,
 	    int size,
@@ -197,7 +197,7 @@ struct _cacheinfo {
 	    int http_code,
 	    int msec,
 	    char *ident,
-	    struct _hierarchyLogData * hierData));
+	    struct _hierarchyLogData * hierData);
 #endif				/* LOG_FULL_HEADERS */
 
     /* clear logfile */
@@ -223,8 +223,8 @@ struct _cacheinfo {
     void (*proto_touchobject) (struct _cacheinfo * c, protocol_t proto_id, int len);
 
     /* a hit. update hit count, transfer byted. refcount */
-    void (*proto_count) _PARAMS((struct _cacheinfo * obj, protocol_t proto_id,
-	    log_type));
+    void (*proto_count) (struct _cacheinfo * obj, protocol_t proto_id,
+	    log_type);
 
     /* dummy Notimplemented object handler */
     void (*NotImplement) (struct _cacheinfo * c, StoreEntry * sentry);

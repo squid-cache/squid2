@@ -53,7 +53,10 @@ static struct bg_entry *last_called = NULL;
  * when func returns true, done is called.
  */
 void
-runInBackground(char *name, int (*func) _PARAMS((void *arg)), void *arg, void (*done) _PARAMS((void *arg)))
+runInBackground(char *name,
+	int (*func) (void *arg),
+	void *arg,
+	void (*done) (void *arg))
 {
     struct bg_entry *entry = NULL;
 

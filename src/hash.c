@@ -174,7 +174,9 @@ hash_init(int hash_sz)
  *  otherwise returns a negative number on error.
  */
 HashID
-hash_create(int (*cmp_func) _PARAMS((char *, char *)), int hash_sz, int (*hash_func) _PARAMS((char *, HashID)))
+hash_create(int (*cmp_func) (char *, char *),
+	int hash_sz,
+	int (*hash_func) (char *, HashID))
 {
     int hid;
 

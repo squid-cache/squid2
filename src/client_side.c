@@ -103,7 +103,9 @@ clientProxyAuthCheck(icpStateData * icpState)
 #endif /* USE_PROXY_AUTH */
 
 void
-clientAccessCheck(icpStateData * icpState, void (*handler) _PARAMS((icpStateData *, int)))
+clientAccessCheck(icpStateData * icpState,
+	void (*handler) (icpStateData *,
+	int))
 {
     int answer = 1;
     request_t *r = icpState->request;

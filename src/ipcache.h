@@ -133,10 +133,10 @@ typedef struct _ipcache_entry {
     ipcache_status_t status:3;
 } ipcache_entry;
 
-extern void ipcache_nbgethostbyname _PARAMS((char *name,
+extern void ipcache_nbgethostbyname (char *name,
 	int fd,
 	IPH handler,
-	void *handlerData));
+	void *handlerData);
 extern int ipcache_purgelru(void);
 extern int ipcache_unregister(char *, int);
 extern struct hostent *ipcache_gethostbyname(char *, int flags);
