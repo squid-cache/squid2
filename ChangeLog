@@ -65,6 +65,7 @@ Changes to squid-2.5.STABLE5 (1 Mar 2004):
 	  auth. There is still problems if challenge reuse is enabled.
 	- ftp://anonymous@host/ now accepted without requiring a password
 	- Bug #594: several mime type updates (ftp:// related)
+	- url_regex enhanced to allow matching of %00
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 
