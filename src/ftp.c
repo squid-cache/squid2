@@ -77,7 +77,6 @@ struct _ftp_flags {
     unsigned int put:1;
     unsigned int put_mkdir:1;
     unsigned int listformat_unknown:1;
-    unsigned int datachannel_hack:1;
 };
 
 typedef struct _Ftpdata {
@@ -928,8 +927,10 @@ ftpDataRead(int fd, void *data)
 	    j >>= 1;
 	IOStats.Ftp.read_hist[bin]++;
     }
-    if (ftpState->flags.isdir && !ftpState->flags.html_header_sent && len >= 0) {
-	ftpListingStart(ftpState);
+    if (!ftpState->flags.http_header_sent && len >= 0) {
+	ftpAppendSuccessHeader(ftpState);
+	if (ftpState->flags.isdir)
+	    ftpListingStart(ftpState);
     }
     if (len < 0) {
 	debug(50, ignoreErrno(errno) ? 3 : 1) ("ftpDataRead: read error: %s\n", xstrerror());
@@ -940,6 +941,10 @@ ftpDataRead(int fd, void *data)
 		data,
 		Config.Timeout.read);
 	} else {
+	    if (!ftpState->flags.http_header_sent && !ftpState->fwd->flags.ftp_pasv_failed && ftpState->flags.pasv_supported) {
+		ftpState->fwd->flags.dont_retry = 0;	/* this is a retryable error */
+		ftpState->fwd->flags.ftp_pasv_failed = 1;
+	    }
 	    ftpFailed(ftpState, ERR_READ_ERROR);
 	    /* ftpFailed closes ctrl.fd and frees ftpState */
 	    return;
@@ -1083,11 +1088,7 @@ ftpStart(FwdState * fwd)
     ftpState->data.fd = -1;
     ftpState->size = -1;
     ftpState->mdtm = -1;
-    if (!Config.Ftp.passive)
-	ftpState->flags.rest_supported = 0;
-    else if (fwd->flags.ftp_pasv_failed)
-	ftpState->flags.pasv_supported = 0;
-    else
+    if (Config.Ftp.passive && !fwd->flags.ftp_pasv_failed)
 	ftpState->flags.pasv_supported = 1;
     ftpState->flags.rest_supported = 1;
     ftpState->fwd = fwd;
@@ -1728,15 +1729,9 @@ ftpSendPasv(FtpStateData * ftpState)
 	return;
     }
     if (ftpState->data.fd >= 0) {
-	if (!ftpState->flags.datachannel_hack) {
-	    /* We are already connected, reuse this connection. */
-	    ftpRestOrList(ftpState);
-	    return;
-	} else {
-	    /* Close old connection */
-	    comm_close(ftpState->data.fd);
-	    ftpState->data.fd = -1;
-	}
+	/* Close old connection */
+	comm_close(ftpState->data.fd);
+	ftpState->data.fd = -1;
     }
     if (!ftpState->flags.pasv_supported) {
 	ftpSendPort(ftpState);
@@ -2164,7 +2159,6 @@ ftpReadList(FtpStateData * ftpState)
     debug(9, 3) ("This is ftpReadList\n");
     if (code == 125 || (code == 150 && ftpState->data.host)) {
 	/* Begin data transfer */
-	ftpAppendSuccessHeader(ftpState);
 	commSetSelect(ftpState->data.fd,
 	    COMM_SELECT_READ,
 	    ftpDataRead,
@@ -2218,7 +2212,6 @@ ftpReadRetr(FtpStateData * ftpState)
     if (code == 125 || (code == 150 && ftpState->data.host)) {
 	/* Begin data transfer */
 	debug(9, 3) ("ftpReadRetr: reading data channel\n");
-	ftpAppendSuccessHeader(ftpState);
 	commSetSelect(ftpState->data.fd,
 	    COMM_SELECT_READ,
 	    ftpDataRead,
@@ -2372,27 +2365,6 @@ ftpTrySlashHack(FtpStateData * ftpState)
     ftpGetFile(ftpState);
 }
 
-static void
-ftpTryDatachannelHack(FtpStateData * ftpState)
-{
-    ftpState->flags.datachannel_hack = 1;
-    /* we have to undo some of the slash hack... */
-    if (ftpState->old_filepath != NULL) {
-	ftpState->flags.try_slash_hack = 0;
-	safe_free(ftpState->filepath);
-	ftpState->filepath = ftpState->old_filepath;
-	ftpState->old_filepath = NULL;
-    }
-    ftpState->flags.tried_nlst = 0;
-    /* And off we go */
-    if (ftpState->flags.isdir) {
-	ftpListDir(ftpState);
-    } else {
-	ftpGetFile(ftpState);
-    }
-    return;
-}
-
 /* Forget hack status. Next error is shown to the user */
 static void
 ftpUnhack(FtpStateData * ftpState)
@@ -2436,20 +2408,6 @@ ftpFail(FtpStateData * ftpState)
 	case SENT_RETR:
 	    /* Try the / hack */
 	    ftpHackShortcut(ftpState, ftpTrySlashHack);
-	    return;
-	default:
-	    break;
-	}
-    }
-    /* Try to reopen datachannel */
-    if (!ftpState->flags.datachannel_hack &&
-	ftpState->pathcomps == NULL) {
-	switch (ftpState->state) {
-	case SENT_RETR:
-	case SENT_LIST:
-	case SENT_NLST:
-	    /* Try to reopen datachannel */
-	    ftpHackShortcut(ftpState, ftpTryDatachannelHack);
 	    return;
 	default:
 	    break;
