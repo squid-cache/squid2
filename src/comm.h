@@ -143,6 +143,9 @@ typedef struct {
     struct sockaddr_in S;
     CCH callback;
     void *data;
+#if RETRY_CONNECT
+    int tries;
+#endif
 } ConnectStateData;
 
 typedef struct fde {

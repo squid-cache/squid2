@@ -1,4 +1,3 @@
-
 /*
  * $Id$
  *
@@ -340,6 +339,30 @@ commConnectFree(int fd, void *data)
     xfree(cs);
 }
 
+static int
+commRetryConnect(int fd, ConnectStateData * connectState)
+{
+#if RETRY_CONNECT
+    int fd2;
+    if (++connectState->tries == 10)
+	return 0;
+    fd2 = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd2 < 0) {
+	debug(5, 0, "commRetryConnect: socket: %s\n", xstrerror());
+	return 0;
+    }
+    if (dup2(fd2, fd) < 0) {
+	debug(5, 0, "commRetryConnect: dup2: %s\n", xstrerror());
+	return 0;
+    }
+    close(fd2);
+    return 1;
+#else
+  debug(5, 2, "commRetryConnect not supported\n"):
+    return 0;
+#endif
+}
+
 /* Connect SOCK to specified DEST_PORT at DEST_HOST. */
 static void
 commConnectHandle(int fd, void *data)
@@ -377,8 +400,15 @@ commConnectHandle(int fd, void *data)
 	connectState->callback(fd, COMM_OK, connectState->data);
 	break;
     default:
-	ipcacheRemoveBadAddr(connectState->host, connectState->S.sin_addr);
-	connectState->callback(fd, COMM_ERROR, connectState->data);
+	if (commRetryConnect(fd, connectState)) {
+	    debug(5, 1, "Retrying connection to %s\n", connectState->host);
+	    connectState->S.sin_addr.s_addr = 0;
+	    ipcacheCycleAddr(connectState->host);
+	    commConnectHandle(fd, connectState);
+	} else {
+	    ipcacheRemoveBadAddr(connectState->host, connectState->S.sin_addr);
+	    connectState->callback(fd, COMM_ERROR, connectState->data);
+	}
 	break;
     }
 }
