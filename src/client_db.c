@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * DEBUG: section       Client Database
+ * DEBUG: section 0     Client Database
  * AUTHOR: Duane Wessels
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/

@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * DEBUG: Section 41    Event Processing
+ * DEBUG: section 41    Event Processing
  * AUTHOR: Henrik Nordstrom
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/

@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * DEBUG: Section 0     CGI Cache Manager
+ * DEBUG: section 0     CGI Cache Manager
  * AUTHOR: Harvest Derived
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
