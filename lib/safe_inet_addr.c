@@ -23,16 +23,16 @@ safe_inet_addr(const char *buf, struct in_addr *addr)
     int a1 = 0, a2 = 0, a3 = 0, a4 = 0;
     struct in_addr A;
     if (sscanf(buf, "%d.%d.%d.%d", &a1, &a2, &a3, &a4) != 4)
-        return 0;
+	return 0;
     if (a1 < 0 || a1 > 255)
-        return 0;
+	return 0;
     if (a2 < 0 || a2 > 255)
-        return 0;
+	return 0;
     if (a3 < 0 || a3 > 255)
-        return 0;
+	return 0;
     if (a4 < 0 || a4 > 255)
-        return 0;
-    sprintf(addrbuf, "%d.%d.%d.%d", a1,a2,a3,a4);
+	return 0;
+    sprintf(addrbuf, "%d.%d.%d.%d", a1, a2, a3, a4);
     A.s_addr = inet_addr(addrbuf);
     if (addr)
 	addr->s_addr = A.s_addr;
