@@ -821,8 +821,8 @@ int connect_with_timeout(fd, S, len)
 	sock.sin_family = AF_INET;
 	sock.sin_addr = outgoingTcpAddr;
 	sock.sin_port = 0;
-	if (bind (fd, (struct sockaddr *)&sock, sizeof(struct sockaddr_in)) < 0)
-	    log_errno2(__FILE__, __LINE__, "bind");
+	if (bind(fd, (struct sockaddr *) &sock, sizeof(struct sockaddr_in)) < 0)
+	                log_errno2(__FILE__, __LINE__, "bind");
     }
     orig_flags = fcntl(fd, F_GETFL, 0);
     Debug(26, 7, ("orig_flags = %x\n", orig_flags));
@@ -2701,10 +2701,10 @@ int main(argc, argv)
 	    if ((ip = inet_addr(*argv)) != INADDR_NONE)
 		outgoingTcpAddr.s_addr = ip;
 	    else if ((hp = gethostbyname(*argv)) != NULL)
-		outgoingTcpAddr = *(struct in_addr *)(hp->h_addr_list[0]);
+		outgoingTcpAddr = *(struct in_addr *) (hp->h_addr_list[0]);
 	    else {
 		fprintf(stderr, "%s: bad outbound tcp address %s\n",
-		 progname, *argv);
+		    progname, *argv);
 		exit(1);
 	    }
 	} else {

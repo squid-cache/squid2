@@ -257,7 +257,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	    neighbor_timeout);
 #ifdef DELAY_HACK
 	if (aclCheck(&delay_list, XXX, req) && entry->mem_obj)
-		entry->mem_obj->e_pings_n_pings++;
+	    entry->mem_obj->e_pings_n_pings++;
 #endif
 	return 0;
     }

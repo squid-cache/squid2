@@ -534,7 +534,7 @@ void ftpSendRequest(fd, data)
 	strcat(buf, tbuf);
     }
     outgoingTcpAddr = getTcpOutgoingAddr();
-    if(outgoingTcpAddr.s_addr != INADDR_NONE) {
+    if (outgoingTcpAddr.s_addr != INADDR_NONE) {
 	sprintf(tbuf, "-o %s ", inet_ntoa(outgoingTcpAddr));
 	strcat(buf, tbuf);
     }

@@ -1195,11 +1195,11 @@ static void parseOnOff(var)
     char *token;
     token = strtok(NULL, w_space);
     if (token == NULL)
-        self_destruct();
+	self_destruct();
     if (!strcasecmp(token, "on") || !strcasecmp(token, "enable"))
-        *var = 1;
+	*var = 1;
     else
-        *var = 0;
+	*var = 0;
 }
 
 int parseConfigFile(file_name)
@@ -1502,11 +1502,11 @@ int parseConfigFile(file_name)
 	    parseErrHtmlLine();
 
 	else if (!strcmp(token, "memory_pools"))
-		parseOnOff(&opt_mem_pools);
+	    parseOnOff(&opt_mem_pools);
 	else if (!strcmp(token, "udp_hit_obj"))
-		parseOnOff(&opt_udp_hit_obj);
+	    parseOnOff(&opt_udp_hit_obj);
 	else if (!strcmp(token, "forwarded_for"))
-		parseOnOff(&opt_forwarded_for);
+	    parseOnOff(&opt_forwarded_for);
 
 	/* If unknown, treat as a comment line */
 	else {
@@ -1975,4 +1975,3 @@ static void configDoConfigure()
     }
 #endif /* !ALLOW_HOT_CACHE */
 }
-
