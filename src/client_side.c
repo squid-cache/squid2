@@ -216,7 +216,7 @@ clientCreateStoreEntry(clientHttpRequest * h, method_t m, request_flags flags)
     e = storeCreateEntry(h->uri, h->log_uri, flags, m);
     h->sc = storeClientListAdd(e, h);
 #if DELAY_POOLS
-    delaySetStoreClient(h->sc, delayClient(h));
+    delaySetStoreClient(h->sc, delayClient(h->request));
 #endif
     storeClientCopy(h->sc, e, 0, 0, CLIENT_SOCK_SZ,
 	memAllocate(MEM_CLIENT_SOCK_BUF), clientSendMoreData, h);
@@ -397,7 +397,7 @@ clientProcessExpired(void *data)
     http->sc = storeClientListAdd(entry, http);
 #if DELAY_POOLS
     /* delay_id is already set on original store client */
-    delaySetStoreClient(http->sc, delayClient(http));
+    delaySetStoreClient(http->sc, delayClient(http->request));
 #endif
     http->request->lastmod = http->old_entry->lastmod;
     debug(33, 5) ("clientProcessExpired: lastmod %ld\n", (long int) entry->lastmod);
@@ -2346,7 +2346,7 @@ clientProcessRequest(clientHttpRequest * http)
 	http->entry->mem_obj->method = r->method;
 	http->sc = storeClientListAdd(http->entry, http);
 #if DELAY_POOLS
-	delaySetStoreClient(http->sc, delayClient(http));
+	delaySetStoreClient(http->sc, delayClient(r));
 #endif
 	storeClientCopy(http->sc, http->entry,
 	    http->out.offset,
