@@ -99,6 +99,14 @@ storeClientType(StoreEntry * e)
     else if (mem->nclients == 1)
 	return STORE_MEM_CLIENT;
     /*
+     * If there is no disk file to open yet, we must make this a
+     * mem client.  If we can't open the swapin file before writing
+     * to the client, there is no guarantee that we will be able
+     * to open it later.
+     */
+    else if (e->swap_status == SWAPOUT_NONE)
+	return STORE_MEM_CLIENT;
+    /*
      * otherwise, make subsequent clients read from disk so they
      * can not delay the first, and vice-versa.
      */
