@@ -168,6 +168,7 @@ refreshCheck(const StoreEntry * entry, request_t * request, time_t delta)
 	refreshCounts.conf_min_age_fresh++;
 	return 0;
     }
+    debug(22, 3) ("refreshCheck: YES: default stale\n");
     refreshCounts.default_stale++;
     return 1;
 }
