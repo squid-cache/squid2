@@ -659,6 +659,7 @@ AC_CHECK_FUNCS(\
 	mallopt \
 	memcpy \
 	memmove \
+	memset \
 	mktime \
 	mstats \
 	random \
