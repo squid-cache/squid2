@@ -725,6 +725,16 @@ httpReadReply(int fd, void *data)
 		if (!httpState->flags.keepalive)
 		    keep_alive = 0;
 		/*
+		 * If we haven't sent the whole request then this can not be a persistent
+		 * connection.
+		 */
+		if (!httpState->flags.request_sent) {
+		    debug(11, 1) ("httpReadReply: Request not yet fully sent \"%s %s\"\n",
+			RequestMethodStr[httpState->orig_request->method],
+			storeUrl(entry));
+		    keep_alive = 0;
+		}
+		/*
 		 * What does the reply have to say about keep-alive?
 		 */
 		if (!entry->mem_obj->reply->keep_alive)
@@ -830,6 +840,7 @@ httpSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 	commSetTimeout(fd, Config.Timeout.read, httpTimeout, httpState);
 	commSetDefer(fd, fwdCheckDeferRead, entry);
     }
+    httpState->flags.request_sent = 1;
 }
 
 /*

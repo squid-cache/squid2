@@ -985,6 +985,7 @@ struct _http_state_flags {
     unsigned int only_if_cached:1;
     unsigned int keepalive_broken:1;
     unsigned int abuse_detected:1;
+    unsigned int request_sent:1;
 };
 
 struct _HttpStateData {
