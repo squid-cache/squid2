@@ -36,7 +36,6 @@
 /* Junk so we can link with debug.o */
 int opt_syslog_enable = 0;
 volatile int unbuffered_logs = 1;
-const char *const w_space = " \t\n\r";
 const char *const appname = "pinger";
 struct timeval current_time;
 time_t squid_curtime;

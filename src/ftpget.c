@@ -2390,7 +2390,6 @@ ftpget_srv_mode(char *arg)
     char *t = NULL;
     int i;
     int n;
-    const char *const w_space = " \t\n\r";
     static char buf[BUFSIZ];
     int buflen;
     int flags;

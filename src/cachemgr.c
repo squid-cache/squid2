@@ -299,7 +299,7 @@ static const char *const op_cmds_descr[] =
 static int hasTables = FALSE;
 
 static const char *script_name = "/cgi-bin/cachemgr.cgi";
-static const char *const w_space = " \t\n";
+static const char *const w_space = " \t\n\r";
 static const char *progname = NULL;
 static time_t now;
 

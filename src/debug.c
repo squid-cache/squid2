@@ -110,6 +110,7 @@ volatile int _db_line = 0;
 
 FILE *debug_log = NULL;
 static char *debug_log_file = NULL;
+static const char *const w_space = " \t\n\r";
 
 #define MAX_DEBUG_SECTIONS 100
 static int debugLevels[MAX_DEBUG_SECTIONS];

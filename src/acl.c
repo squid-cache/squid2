@@ -48,6 +48,7 @@ struct _acl_access *DelayAccessList = NULL;
 
 static struct _acl *AclList = NULL;
 static struct _acl **AclListTail = &AclList;
+static const char *const w_space = " \t\n\r";	/* Jasper sez so */
 
 static void aclDestroyAclList _PARAMS((struct _acl_list * list));
 static void aclDestroyIpList _PARAMS((struct _acl_ip_data * data));

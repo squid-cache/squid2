@@ -113,6 +113,7 @@
 static int ftpget_server_read = -1;
 static int ftpget_server_write = -1;
 static u_short ftpget_port = 0;
+static const char *const w_space = " \t\n\r";
 
 typedef struct _Ftpdata {
     StoreEntry *entry;

@@ -268,7 +268,6 @@ extern const char *DefaultConfigFile;
 extern const char *DefaultSwapDir;	/* argh */
 extern const char *cfg_filename;	/* Only the tail component of the path */
 extern char config_input_line[];
-extern const char *const w_space;
 extern int config_lineno;
 extern volatile int unbuffered_logs;
 extern char ForwardedBy[];
