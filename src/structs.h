@@ -1294,6 +1294,7 @@ struct _StatCounters {
 	kb_t hit_kbytes_out;
 	StatHist miss_svc_time;
 	StatHist nm_svc_time;
+	StatHist nh_svc_time;
 	StatHist hit_svc_time;
 	StatHist all_svc_time;
     } client_http;

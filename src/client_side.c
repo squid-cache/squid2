@@ -522,6 +522,9 @@ clientUpdateCounters(clientHttpRequest * http)
      * (we *tried* to validate it, but failed).
      */
     switch (http->log_type) {
+    case LOG_TCP_REFRESH_HIT:
+	statHistCount(&Counter.client_http.nh_svc_time, svc_time);
+	break;
     case LOG_TCP_IMS_HIT:
 	statHistCount(&Counter.client_http.nm_svc_time, svc_time);
 	break;

@@ -644,6 +644,7 @@ enum {
     MEDIAN_HIT,
     MEDIAN_MISS,
     MEDIAN_NM,
+    MEDIAN_NH,
     MEDIAN_ICP_REPLY
 };
 
