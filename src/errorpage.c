@@ -378,6 +378,9 @@ errorStateFree(ErrorState * err)
     safe_free(err->host);
     safe_free(err->dnsserver_msg);
     safe_free(err->request_hdrs);
+    wordlistDestroy(&err->ftp.server_msg);
+    safe_free(err->ftp.request);
+    safe_free(err->ftp.reply);
     if (err->flags.flag_cbdata)
 	cbdataFree(err);
     else
@@ -451,7 +454,7 @@ errorConvert(char token, ErrorState * err)
 	break;
     case 'g':
 	/* FTP SERVER MESSAGE */
-	wordlistCat(err->ftp_server_msg, &mb);
+	wordlistCat(err->ftp.server_msg, &mb);
 	break;
     case 'h':
 	memBufPrintf(&mb, "%s", getMyHostname());

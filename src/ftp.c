@@ -85,6 +85,7 @@ typedef struct _Ftpdata {
     request_t *request;
     char user[MAX_URL];
     char password[MAX_URL];
+    int password_url;
     char *reply_hdr;
     int reply_hdr_state;
     char *title_url;
@@ -163,6 +164,8 @@ static void ftpUnhack(FtpStateData * ftpState);
 static void ftpScheduleReadControlReply(FtpStateData *, int);
 static void ftpHandleControlReply(FtpStateData *);
 static char *ftpHtmlifyListEntry(char *line, FtpStateData * ftpState);
+static void ftpFailed(FtpStateData *, err_type /* ERR_NONE if unknown */ );
+static void ftpFailedErrorMessage(FtpStateData *, err_type /* ERR_NONE if unknown */ );
 
 /* State machine functions
  * send == state transition
@@ -234,24 +237,24 @@ Quit			-
 
 FTPSM *FTP_SM_FUNCS[] =
 {
-    ftpReadWelcome,
-    ftpReadUser,
-    ftpReadPass,
-    ftpReadType,
-    ftpReadMdtm,
-    ftpReadSize,
-    ftpReadPort,
-    ftpReadPasv,
-    ftpReadCwd,
+    ftpReadWelcome,		/* BEGIN */
+    ftpReadUser,		/* SENT_USER */
+    ftpReadPass,		/* SENT_PASS */
+    ftpReadType,		/* SENT_TYPE */
+    ftpReadMdtm,		/* SENT_MDTM */
+    ftpReadSize,		/* SENT_SIZE */
+    ftpReadPort,		/* SENT_PORT */
+    ftpReadPasv,		/* SENT_PASV */
+    ftpReadCwd,			/* SENT_CWD */
     ftpReadList,		/* SENT_LIST */
     ftpReadList,		/* SENT_NLST */
-    ftpReadRest,
-    ftpReadRetr,
-    ftpReadStor,
-    ftpReadQuit,
-    ftpReadTransferDone,
-    ftpSendReply,
-    ftpReadMkdir
+    ftpReadRest,		/* SENT_REST */
+    ftpReadRetr,		/* SENT_RETR */
+    ftpReadStor,		/* SENT_STOR */
+    ftpReadQuit,		/* SENT_QUIT */
+    ftpReadTransferDone,	/* READING_DATA (RETR,LIST,NLST) */
+    ftpSendReply,		/* WRITING_DATA (STOR) */
+    ftpReadMkdir		/* SENT_MKDIR */
 };
 
 static void
@@ -313,6 +316,7 @@ ftpLoginParser(const char *login, FtpStateData * ftpState, int escaped)
 	xstrncpy(ftpState->password, s + 1, MAX_URL);
 	if (escaped)
 	    rfc1738_unescape(ftpState->password);
+	ftpState->password_url = 1;
     } else {
 	xstrncpy(ftpState->password, null_string, MAX_URL);
     }
@@ -330,16 +334,7 @@ ftpTimeout(int fd, void *data)
     FtpStateData *ftpState = data;
     StoreEntry *entry = ftpState->entry;
     debug(9, 4) ("ftpTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
-    if (entry->store_status == STORE_PENDING) {
-	if (entry->mem_obj->inmem_hi == 0) {
-	    fwdFail(ftpState->fwd,
-		errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
-	}
-    }
-    if (ftpState->data.fd > -1) {
-	comm_close(ftpState->data.fd);
-	ftpState->data.fd = -1;
-    }
+    ftpFailed(ftpState, ERR_READ_TIMEOUT);
     comm_close(ftpState->ctrl.fd);
     /* don't modify ftpState here, it has been freed */
 }
@@ -839,12 +834,6 @@ ftpReadComplete(FtpStateData * ftpState)
 	comm_close(ftpState->data.fd);
 	ftpState->data.fd = -1;
     }
-    if (ftpState->flags.html_header_sent)
-	ftpListingFinish(ftpState);
-    if (!ftpState->flags.put) {
-	storeTimestampsSet(ftpState->entry);
-	fwdComplete(ftpState->fwd);
-    }
     /* expect the "transfer complete" message on the control socket */
     ftpScheduleReadControlReply(ftpState, 1);
 }
@@ -903,8 +892,8 @@ ftpDataRead(int fd, void *data)
 		data,
 		Config.Timeout.read);
 	} else {
-	    assert(mem->inmem_hi > 0);
-	    ftpDataTransferDone(ftpState);
+	    ftpFailed(ftpState, ERR_READ_ERROR);
+	    return;
 	}
     } else if (len == 0) {
 	ftpReadComplete(ftpState);
@@ -938,12 +927,10 @@ ftpCheckAuth(FtpStateData * ftpState, const HttpHeader * req_hdr)
     char *orig_user;
     const char *auth;
     ftpLoginParser(ftpState->request->login, ftpState, FTP_LOGIN_ESCAPED);
-    if (ftpState->user[0] && ftpState->password[0])
-	return 1;		/* name and passwd both in URL */
-    if (!ftpState->user[0] && !ftpState->password[0])
-	return 1;		/* no name or passwd */
-    if (ftpState->password[0])
-	return 1;		/* passwd with no name? */
+    if (!ftpState->user[0])
+	return 1;		/* no name */
+    if (ftpState->password_url || ftpState->password[0])
+	return 1;		/* passwd provided in URL */
     /* URL has name, but no passwd */
     if (!(auth = httpHeaderGetAuth(req_hdr, HDR_AUTHORIZATION, "Basic")))
 	return 0;		/* need auth header */
@@ -1090,6 +1077,7 @@ ftpWriteCommand(const char *buf, FtpStateData * ftpState)
 {
     debug(9, 5) ("ftpWriteCommand: %s\n", buf);
     safe_free(ftpState->ctrl.last_command);
+    safe_free(ftpState->ctrl.last_reply);
     ftpState->ctrl.last_command = xstrdup(buf);
     comm_write(ftpState->ctrl.fd,
 	xstrdup(buf),
@@ -1104,8 +1092,6 @@ static void
 ftpWriteCommandCallback(int fd, char *bufnotused, size_t size, int errflag, void *data)
 {
     FtpStateData *ftpState = data;
-    StoreEntry *entry = ftpState->entry;
-    ErrorState *err;
     debug(9, 7) ("ftpWriteCommandCallback: wrote %d bytes\n", size);
     if (size > 0) {
 	fd_bytes(fd, size, FD_WRITE);
@@ -1116,13 +1102,8 @@ ftpWriteCommandCallback(int fd, char *bufnotused, size_t size, int errflag, void
 	return;
     if (errflag) {
 	debug(50, 1) ("ftpWriteCommandCallback: FD %d: %s\n", fd, xstrerror());
-	if (entry->mem_obj->inmem_hi == 0) {
-	    err = errorCon(ERR_WRITE_ERROR, HTTP_SERVICE_UNAVAILABLE);
-	    err->xerrno = errno;
-	    err->request = requestLink(ftpState->request);
-	    errorAppendEntry(entry, err);
-	}
-	comm_close(ftpState->ctrl.fd);
+	ftpFailed(ftpState, ERR_WRITE_ERROR);
+	return;
     }
 }
 
@@ -1213,7 +1194,6 @@ ftpReadControlReply(int fd, void *data)
     FtpStateData *ftpState = data;
     StoreEntry *entry = ftpState->entry;
     int len;
-    ErrorState *err;
     debug(9, 5) ("ftpReadControlReply\n");
     assert(ftpState->ctrl.offset < ftpState->ctrl.size);
     Counter.syscalls.sock.reads++;
@@ -1231,26 +1211,15 @@ ftpReadControlReply(int fd, void *data)
 	if (ignoreErrno(errno)) {
 	    ftpScheduleReadControlReply(ftpState, 0);
 	} else {
-	    if (entry->mem_obj->inmem_hi == 0) {
-		err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
-		err->xerrno = errno;
-		err->request = requestLink(ftpState->request);
-		errorAppendEntry(entry, err);
-	    }
-	    comm_close(ftpState->ctrl.fd);
+	    ftpFailed(ftpState, ERR_READ_ERROR);
+	    return;
 	}
 	return;
     }
     if (len == 0) {
 	if (entry->store_status == STORE_PENDING) {
-	    storeReleaseRequest(entry);
-	    if (entry->mem_obj->inmem_hi == 0) {
-		err = errorCon(ERR_FTP_FAILURE, HTTP_INTERNAL_SERVER_ERROR);
-		err->xerrno = 0;
-		err->request = requestLink(ftpState->request);
-		err->ftp_server_msg = ftpState->ctrl.message;
-		errorAppendEntry(entry, err);
-	    }
+	    ftpFailed(ftpState, ERR_FTP_FAILURE);
+	    return;
 	}
 	comm_close(ftpState->ctrl.fd);
 	return;
@@ -1311,6 +1280,8 @@ ftpReadWelcome(FtpStateData * ftpState)
     debug(9, 3) ("ftpReadWelcome\n");
     if (ftpState->flags.pasv_only)
 	ftpState->login_att++;
+    /* Dont retry if the FTP server accepted the connection */
+    ftpState->fwd->flags.dont_retry = 1;
     if (code == 220) {
 	if (ftpState->ctrl.message) {
 	    if (strstr(ftpState->ctrl.message->key, "NetWare"))
@@ -1728,6 +1699,9 @@ ftpReadPasv(FtpStateData * ftpState)
     debug(9, 5) ("ftpReadPasv: connecting to %s, port %d\n", junk, port);
     ftpState->data.port = port;
     ftpState->data.host = xstrdup(junk);
+    safe_free(ftpState->ctrl.last_command);
+    safe_free(ftpState->ctrl.last_reply);
+    ftpState->ctrl.last_command = xstrdup("Connect to server data port");
     commConnectStart(fd, junk, port, ftpPasvCallback, ftpState);
 }
 
@@ -1735,17 +1709,9 @@ static void
 ftpPasvCallback(int fd, int status, void *data)
 {
     FtpStateData *ftpState = data;
-    request_t *request = ftpState->request;
-    ErrorState *err;
     debug(9, 3) ("ftpPasvCallback\n");
     if (status != COMM_OK) {
-	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
-	err->xerrno = errno;
-	err->host = xstrdup(ftpState->data.host);
-	err->port = ftpState->data.port;
-	err->request = requestLink(request);
-	errorAppendEntry(ftpState->entry, err);
-	comm_close(ftpState->ctrl.fd);
+	ftpFailed(ftpState, ERR_NONE);
 	return;
     }
     ftpRestOrList(ftpState);
@@ -2115,13 +2081,21 @@ ftpReadTransferDone(FtpStateData * ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debug(9, 3) ("This is ftpReadTransferDone\n");
-    if (code != 226) {
+    if (code == 226) {
+	/* Connection closed; retrieval done. */
+	if (ftpState->flags.html_header_sent)
+	    ftpListingFinish(ftpState);
+	if (!ftpState->flags.put) {
+	    storeTimestampsSet(ftpState->entry);
+	    fwdComplete(ftpState->fwd);
+	}
+	ftpDataTransferDone(ftpState);
+    } else {			/* != 226 */
 	debug(9, 1) ("ftpReadTransferDone: Got code %d after reading data\n",
 	    code);
-	debug(9, 1) ("--> releasing '%s'\n", storeUrl(ftpState->entry));
-	storeReleaseRequest(ftpState->entry);
+	ftpFailed(ftpState, ERR_FTP_FAILURE);
+	return;
     }
-    ftpDataTransferDone(ftpState);
 }
 
 static void
@@ -2220,7 +2194,6 @@ ftpHackShortcut(FtpStateData * ftpState, FTPSM * nextState)
 static void
 ftpFail(FtpStateData * ftpState)
 {
-    ErrorState *err;
     debug(9, 3) ("ftpFail\n");
     /* Try the / hack to support "Netscape" FTP URL's for retreiving files */
     if (!ftpState->flags.isdir &&	/* Not a directory */
@@ -2251,42 +2224,74 @@ ftpFail(FtpStateData * ftpState)
 	    break;
 	}
     }
+    ftpFailed(ftpState, ERR_NONE);
+    return;
+}
+
+static void
+ftpFailed(FtpStateData * ftpState, err_type error)
+{
+    StoreEntry *entry = ftpState->entry;
+    if (entry->mem_obj->inmem_hi == 0) {
+	ftpFailedErrorMessage(ftpState, error);
+    }
+    comm_close(ftpState->ctrl.fd);
+}
+
+static void
+ftpFailedErrorMessage(FtpStateData * ftpState, err_type error)
+{
+    ErrorState *err;
+    char *command, *reply;
     /* Translate FTP errors into HTTP errors */
     err = NULL;
-    switch (ftpState->state) {
-    case SENT_USER:
-    case SENT_PASS:
-	if (ftpState->ctrl.replycode > 500)
-	    err = errorCon(ERR_FTP_FORBIDDEN, HTTP_FORBIDDEN);
-	else if (ftpState->ctrl.replycode == 421)
-	    err = errorCon(ERR_FTP_UNAVAILABLE, HTTP_SERVICE_UNAVAILABLE);
+    switch (error) {
+    case ERR_NONE:
+	switch (ftpState->state) {
+	case SENT_USER:
+	case SENT_PASS:
+	    if (ftpState->ctrl.replycode > 500)
+		err = errorCon(ERR_FTP_FORBIDDEN, HTTP_FORBIDDEN);
+	    else if (ftpState->ctrl.replycode == 421)
+		err = errorCon(ERR_FTP_UNAVAILABLE, HTTP_SERVICE_UNAVAILABLE);
+	    break;
+	case SENT_CWD:
+	case SENT_RETR:
+	    if (ftpState->ctrl.replycode == 550)
+		err = errorCon(ERR_FTP_NOT_FOUND, HTTP_NOT_FOUND);
+	    break;
+	default:
+	    break;
+	}
 	break;
-    case SENT_CWD:
-    case SENT_RETR:
-	if (ftpState->ctrl.replycode == 550)
-	    err = errorCon(ERR_FTP_NOT_FOUND, HTTP_NOT_FOUND);
+    case ERR_READ_TIMEOUT:
+	err = errorCon(error, HTTP_GATEWAY_TIMEOUT);
 	break;
     default:
+	err = errorCon(error, HTTP_BAD_GATEWAY);
 	break;
     }
     if (err == NULL)
 	err = errorCon(ERR_FTP_FAILURE, HTTP_BAD_GATEWAY);
+    err->xerrno = errno;
     err->request = requestLink(ftpState->request);
-    err->ftp_server_msg = ftpState->ctrl.message;
+    err->ftp.server_msg = ftpState->ctrl.message;
+    ftpState->ctrl.message = NULL;
     if (ftpState->old_request)
-	err->ftp.request = ftpState->old_request;
+	command = ftpState->old_request;
     else
-	err->ftp.request = ftpState->ctrl.last_command;
-    if (err->ftp.request) {
-	if (!strncmp(err->ftp.request, "PASS", 4))
-	    err->ftp.request = "PASS <yourpassword>";
-    }
+	command = ftpState->ctrl.last_command;
+    if (command && strncmp(command, "PASS", 4) == 0)
+	command = "PASS <yourpassword>";
     if (ftpState->old_reply)
-	err->ftp.reply = ftpState->old_reply;
+	reply = ftpState->old_reply;
     else
-	err->ftp.reply = ftpState->ctrl.last_reply;
-    errorAppendEntry(ftpState->entry, err);
-    comm_close(ftpState->ctrl.fd);
+	reply = ftpState->ctrl.last_reply;
+    if (command)
+	err->ftp.request = xstrdup(command);
+    if (reply)
+	err->ftp.reply = xstrdup(reply);
+    fwdFail(ftpState->fwd, err);
 }
 
 void
@@ -2355,13 +2360,13 @@ ftpSendReply(FtpStateData * ftpState)
     err = errorCon(err_code, http_code);
     err->request = requestLink(ftpState->request);
     if (ftpState->old_request)
-	err->ftp.request = ftpState->old_request;
+	err->ftp.request = xstrdup(ftpState->old_request);
     else
-	err->ftp.request = ftpState->ctrl.last_command;
+	err->ftp.request = xstrdup(ftpState->ctrl.last_command);
     if (ftpState->old_reply)
-	err->ftp.reply = ftpState->old_reply;
+	err->ftp.reply = xstrdup(ftpState->old_reply);
     else
-	err->ftp.reply = ftpState->ctrl.last_reply;
+	err->ftp.reply = xstrdup(ftpState->ctrl.last_reply);
     errorAppendEntry(ftpState->entry, err);
     storeBufferFlush(ftpState->entry);
     comm_close(ftpState->ctrl.fd);

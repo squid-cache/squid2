@@ -1468,11 +1468,11 @@ struct _ErrorState {
 	unsigned int flag_cbdata:1;
     } flags;
     struct {
+	wordlist *server_msg;
 	char *request;
 	char *reply;
     } ftp;
     char *request_hdrs;
-    wordlist *ftp_server_msg;
 };
 
 /*
