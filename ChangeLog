@@ -2,6 +2,10 @@ Changes to squid-1.0.7 ():
 
 	- Added "store_clean" routines to periodically remove orphaned
 	  swap files.
+	- Increased StoreEntry->method_t from 3 to 4 bits, probably fixes
+	  storeGenerate*Key() coredumps.
+	- Added debugging to examine_select().
+	- Added peer address to debugging for Ignored ICP packets.
 
 Changes to squid-1.0.6 (August 12, 1996):
 
