@@ -53,6 +53,8 @@ typedef struct _MemObject {
 /* These items are mutually exclusive */
     char *e_swap_buf;
     edge *e_pings_first_miss;
+    int  w_rtt; 	/* weighted RTT in msec */
+    struct timeval start_ping;
 
 /* These items are also mutually exclusive */
     int e_swap_buf_len;

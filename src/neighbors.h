@@ -61,6 +61,7 @@ struct _edge {
     icp_common_t header;
     dom_list *domains;
     int proxy_only;
+    int weight;
     time_t last_fail_time;	/* detect down dumb caches */
     struct in_addr addresses[10];
     int n_addresses;
@@ -83,6 +84,7 @@ struct neighbor_cf {
     int ascii_port;
     int udp_port;
     int proxy_only;
+    int weight;
     dom_list *domains;
     struct neighbor_cf *next;
 };
@@ -96,7 +98,7 @@ extern int neighbors_cf_domain _PARAMS((char *, char *));
 extern neighbors *neighbors_create _PARAMS(());
 extern void hierarchy_log_append _PARAMS((char *, hier_code, int, char *));
 extern void neighborsUdpAck _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, StoreEntry *));
-extern void neighbors_cf_add _PARAMS((char *, char *, int, int, int));
+extern void neighbors_cf_add _PARAMS((char *, char *, int, int, int, int));
 extern void neighbors_init _PARAMS((void));
 extern void neighbors_open _PARAMS((int));
 extern void neighbors_rotate_log _PARAMS((void));

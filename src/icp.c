@@ -130,8 +130,7 @@ static void icpCloseAndFree(fd, icpState, line)
     } else {
 	http_code = icpState->http_code;
     }
-    elapsed_msec = (current_time.tv_sec - icpState->start.tv_sec) * 1000 +
-	(current_time.tv_usec - icpState->start.tv_usec) / 1000;
+    elapsed_msec = tvSubMsec(icpState->start, current_time);
     CacheInfo->log_append(CacheInfo,
 	icpState->url,
 	inet_ntoa(icpState->peer.sin_addr),

@@ -88,6 +88,10 @@
 #	    options: use 'proxy-only' to specify that objects fetched
 #		     from this cache should not be saved locally.
 #
+#		     use 'weight=n' to specify a weighted neighbor.
+#		     The weight must be an integer.  The default weight
+#		     is 1, larger weights are favored more.
+#
 #	NOTE: when using a non-Harvest neighbor/parent, there is no
 #	      difference between a neighbor and a parent.
 #
