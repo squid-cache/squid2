@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 80     WCCP Support
+ * DEBUG: section 80	WCCP Support
  * AUTHOR: Glenn Chisholm
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
