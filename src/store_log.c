@@ -102,5 +102,5 @@ storeLogOpen(void)
 	debug(20, 1) ("Store logging disabled\n");
 	return;
     }
-    logfileOpen(Config.Log.store, 0);
+    storelog = logfileOpen(Config.Log.store, 0);
 }
