@@ -513,9 +513,6 @@ main(int argc, char **argv)
     int errcount = 0;
     int n;			/* # of GC'd objects */
     time_t loop_delay;
-#if MEM_GEN_TRACE
-    log_trace_init("/tmp/squid.alloc");
-#endif
 
     debug_log = stderr;
     if (FD_SETSIZE < Squid_MaxFD)

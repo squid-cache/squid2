@@ -122,6 +122,10 @@ static void shutdownTimeoutHandler(int fd, void *data);
 #if USE_ASYNC_IO
 static void safeunlinkComplete(void *data, int retcode, int errcode);
 #endif
+#if MEM_GEN_TRACE
+extern void log_trace_done(); 
+extern void log_trace_init(char *);
+#endif 
 
 void
 releaseServerSockets(void)
@@ -338,9 +342,15 @@ sigusr2_handle(int sig)
     if (state == 0) {
 	_db_init(Config.Log.log, "ALL,10");
 	state = 1;
+#if MEM_GEN_TRACE
+	log_trace_done();
+#endif
     } else {
 	_db_init(Config.Log.log, Config.debugOptions);
 	state = 0;
+#if MEM_GEN_TRACE
+	log_trace_init("/tmp/squid.alloc");
+#endif
     }
 #if !HAVE_SIGACTION
     signal(sig, sigusr2_handle);	/* reinstall */
