@@ -460,6 +460,8 @@ icpSendERROR(int fd,
 	    return;
 	}
     }
+    if (text == NULL)
+	return;
     buf_len = strlen(text);
     buf_len = buf_len > 4095 ? 4095 : buf_len;
     buf = get_free_4k_page();
@@ -1002,7 +1004,6 @@ icpCreateHitObjMessage(
     int pad,
     StoreEntry * entry)
 {
-
     char *buf = NULL;
     char *entryoffset = NULL;
     char *urloffset = NULL;
