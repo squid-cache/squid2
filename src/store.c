@@ -729,6 +729,7 @@ storeRelease(StoreEntry * e)
     storeLog(STORE_LOG_RELEASE, e);
     if (e->swap_file_number > -1) {
 	storeUnlinkFileno(e->swap_file_number);
+	storeDirMapBitReset(e->swap_file_number);
 	if (e->swap_status == SWAPOUT_DONE)
 	    if (EBIT_TEST(e->flag, ENTRY_VALIDATED))
 		storeDirUpdateSwapSize(e->swap_file_number, e->swap_file_sz, -1);
