@@ -585,7 +585,7 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
     }
     assert(size >= 0);
     writelen = size;
-    if (http->out.offset == 0) {
+    if (http->out.offset == 0 && http->request->protocol != PROTO_CACHEOBJ) {
 	if (Config.onoff.log_mime_hdrs) {
 	    if ((p = mime_headers_end(buf))) {
 		safe_free(http->al.headers.reply);
