@@ -165,6 +165,7 @@ int file_open(path, handler, mode)
     }
     /* update fdstat */
     fdstat_open(fd, FD_FILE);
+    commSetCloseOnExec(fd);
 
     /* init table */
     strncpy(file_table[fd].filename, path, MAX_FILE_NAME_LEN);
