@@ -743,11 +743,15 @@ clientUpdateCounters(clientHttpRequest * http)
 	break;
     }
     H = &http->request->hier;
-    switch (H->alg) {
-    case PEER_SA_DIGEST:
+    switch (H->code) {
+#if USE_CACHE_DIGESTS
+    case CD_PARENT_HIT:
+    case CD_PARENT_MISS:
 	statCounter.cd.times_used++;
 	break;
-    case PEER_SA_ICP:
+#endif
+    case SIBLING_HIT:
+    case PARENT_HIT:
 	statCounter.icp.times_used++;
 	i = &H->ping;
 	if (0 != i->stop.tv_sec && 0 != i->start.tv_sec)
@@ -756,7 +760,9 @@ clientUpdateCounters(clientHttpRequest * http)
 	if (i->timeout)
 	    statCounter.icp.query_timeouts++;
 	break;
-    case PEER_SA_NETDB:
+    case CLOSEST_PARENT_MISS:
+    case CLOSEST_PARENT:
+    case CLOSEST_DIRECT:
 	statCounter.netdb.times_used++;
 	break;
     default:

@@ -169,13 +169,6 @@ typedef enum {
 } peer_t;
 
 typedef enum {
-    PEER_SA_NONE,
-    PEER_SA_DIGEST,
-    PEER_SA_ICP,
-    PEER_SA_NETDB
-} peer_select_alg_t;
-
-typedef enum {
     LOOKUP_NONE,
     LOOKUP_HIT,
     LOOKUP_MISS
