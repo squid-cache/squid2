@@ -27,6 +27,7 @@ LANGUAGES	= \
 		Italian \
 		Japanese \
 		Korean \
+		Lithuanian \
 		Polish \
 		Portuguese \
 		Romanian \
