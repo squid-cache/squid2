@@ -1529,5 +1529,5 @@ statGraphDump(StoreEntry * e)
 int
 statMemoryAccounted(void)
 {
-    memTotalAllocated();
+    return memTotalAllocated();
 }
