@@ -412,7 +412,7 @@ int getFromCache(fd, entry, e, request)
     } else if (request->protocol == PROTO_GOPHER) {
 	return gopherStart(fd, url, entry);
     } else if (request->protocol == PROTO_FTP) {
-	return ftpStart(fd, url, entry);
+	return ftpStart(fd, url, request, entry);
     } else if (request->protocol == PROTO_WAIS) {
 	return waisStart(fd, url, entry->method, request_hdr, entry);
     } else if (entry->method == METHOD_CONNECT) {
