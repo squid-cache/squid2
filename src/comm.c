@@ -584,7 +584,7 @@ comm_close(int fd)
     fde = &fd_table[fd];
     if (!fde->open)
 	return;
-    assert(fd_table[fd].type =! FD_FILE);
+    assert(fde->type != FD_FILE);
     fde->open = 0;
     CommWriteStateCallbackAndFree(fd, COMM_ERROR);
     commCallCloseHandlers(fd);

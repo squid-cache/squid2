@@ -225,7 +225,8 @@ ftpTimeout(int fd, void *data)
 {
     FtpStateData *ftpState = data;
     StoreEntry *entry = ftpState->entry;
-    debug(9, 4) ("ftpLifeTimeExpire: FD %d: '%s'\n", fd, entry->url);
+    assert(cbdataValid(ftpState));
+    debug(9, 4) ("ftpTimeout: FD %d: '%s'\n", fd, entry->url);
     storeAbort(entry, ERR_READ_TIMEOUT, NULL, 0);
     if (ftpState->data.fd >= 0)
 	comm_close(ftpState->data.fd);
