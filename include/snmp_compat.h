@@ -31,11 +31,12 @@
  ***************************************************************************/
 
 /* SMI Types */
+#ifndef INTEGER
 #define INTEGER     ASN_INTEGER
 #define STRING      ASN_OCTET_STR
 #define OBJID       ASN_OBJECT_ID
 #define NULLOBJ     ASN_NULL
-
+#endif
 /* PDU Types */
 
 #define GET_REQ_MSG	    (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x0)

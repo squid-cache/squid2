@@ -10,7 +10,3 @@
 #ifndef SQUID_RELEASE_TIME
 #define SQUID_RELEASE_TIME squid_curtime
 #endif
-
-#ifndef CURRENT_MIB_VERSION
-#define CURRENT_MIB_VERSION "v 1.12 1998/03/16 kostas@nlanr.net"
-#endif
