@@ -849,13 +849,6 @@ extern void storeFsInit(void);
 extern void storeFsDone(void);
 extern void storeFsAdd(char *, STSETUP *);
 
-/* store_heap_replacement.c */
-#ifdef HEAP_REPLACEMENT
-extern heap_key HeapKeyGen_StoreEntry_LFUDA(void *, double);
-extern heap_key HeapKeyGen_StoreEntry_GDSF(void *, double);
-extern heap_key HeapKeyGen_StoreEntry_LRU(void *, double);
-#endif
-
 /* store_modules.c */
 extern void storeFsSetup(void);
 
@@ -1184,6 +1177,10 @@ extern void logfilePrintf(Logfile * lf, const char *fmt,...);
 #else
 extern void logfilePrintf(va_alist);
 #endif
+
+/* Removal Policies */
+RemovalPolicy *
+createRemovalPolicy(RemovalPolicySettings *settings);
 
 /*
  * prototypes for system functions missing from system includes

@@ -66,12 +66,13 @@ storeLog(int tag, const StoreEntry * e)
      * Because if we print it before the swap file number, it'll break
      * the existing log format.
      */
-    logfilePrintf(storelog, "%9d.%03d %-7s %02d %08X %4d %9d %9d %9d %s %d/%d %s %s\n",
+    logfilePrintf(storelog, "%9d.%03d %-7s %02d %08X %s %4d %9d %9d %9d %s %d/%d %s %s\n",
 	(int) current_time.tv_sec,
 	(int) current_time.tv_usec / 1000,
 	storeLogTags[tag],
 	e->swap_dirn,
 	e->swap_filen,
+	storeKeyText(e->key),
 	reply->sline.status,
 	(int) reply->date,
 	(int) reply->last_modified,
@@ -83,7 +84,7 @@ storeLog(int tag, const StoreEntry * e)
 	mem->log_url);
     } else {
 	/* no mem object. Most RELEASE cases */
-	logfilePrintf(storelog, "%9d.%03d %-7s %02d %08X    ?         ?         ?         ? ?/? ?/? ? %s\n",
+	logfilePrintf(storelog, "%9d.%03d %-7s %02d %08X %s   ?         ?         ?         ? ?/? ?/? ? ?\n",
 	    (int) current_time.tv_sec,
 	    (int) current_time.tv_usec / 1000,
 	    storeLogTags[tag],

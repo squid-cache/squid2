@@ -42,8 +42,7 @@
  */
 
 #include "squid.h"
-
-#if HEAP_REPLACEMENT
+#include "heap.h"
 
 /*
  * Key generation function to implement the LFU-DA policy (Least
@@ -57,11 +56,18 @@
  * This version implements a tie-breaker based upon recency
  * (e->lastref): for objects that have the same reference count
  * the most recent object wins (gets a higher key value).
+ *
+ * Note: this does not properly handle when the aging factor
+ * gets so huge that the added value is outside of the
+ * precision of double. However, Squid has to stay up
+ * for quite a extended period of time (number of requests)
+ * for this to become a problem. (estimation is 10^8 cache
+ * turnarounds)
  */
-heap_key
-HeapKeyGen_StoreEntry_LFUDA(void *entry, double age)
+heap_key HeapKeyGen_StoreEntry_LFUDA(void *entry, double age)
 {
     StoreEntry *e = entry;
+    heap_key key;
     double tie;
     if (e->lastref <= 0)
 	tie = 0.0;
@@ -69,7 +75,13 @@ HeapKeyGen_StoreEntry_LFUDA(void *entry, double age)
 	tie = 0.0;
     else
 	tie = 1.0 - exp((double) (e->lastref - squid_curtime) / 86400.0);
-    return age + (double) e->refcount - tie;
+    key = age + (double) e->refcount - tie;
+    debug(81, 3) ("HeapKeyGen_StoreEntry_LFUDA: %s refcnt=%ld lastref=%ld age=%f tie=%f -> %f\n",
+	    storeKeyText(e->key), e->refcount, e->lastref, age, tie, key);
+    if (e->mem_obj && e->mem_obj->url)
+	debug(81, 3) ("HeapKeyGen_StoreEntry_LFUDA: url=%s\n",
+	    e->mem_obj->url);
+    return (double)key;
 }
 
 
@@ -84,14 +96,27 @@ HeapKeyGen_StoreEntry_LFUDA(void *entry, double age)
  * This version implements a tie-breaker based upon recency
  * (e->lastref): for objects that have the same reference count
  * the most recent object wins (gets a higher key value).
+ *
+ * Note: this does not properly handle when the aging factor
+ * gets so huge that the added value is outside of the
+ * precision of double. However, Squid has to stay up
+ * for quite a extended period of time (number of requests)
+ * for this to become a problem. (estimation is 10^8 cache
+ * turnarounds)
  */
-heap_key
-HeapKeyGen_StoreEntry_GDSF(void *entry, double age)
+heap_key HeapKeyGen_StoreEntry_GDSF(void *entry, double age)
 {
     StoreEntry *e = entry;
+    heap_key key;
     double size = e->swap_file_sz ? (double) e->swap_file_sz : 1.0;
     double tie = (e->lastref > 1) ? (1.0 / e->lastref) : 1.0;
-    return age + ((double) e->refcount / size) - tie;
+    key = age + ((double) e->refcount / size) - tie;
+    debug(81, 3) ("HeapKeyGen_StoreEntry_GDSF: %s size=%f refcnt=%ld lastref=%ld age=%f tie=%f -> %f\n",
+	    storeKeyText(e->key), size, e->refcount, e->lastref, age, tie, key);
+    if (e->mem_obj && e->mem_obj->url)
+	debug(81, 3) ("HeapKeyGen_StoreEntry_GDSF: url=%s\n",
+	    e->mem_obj->url);
+    return key;
 }
 
 /* 
@@ -101,11 +126,13 @@ HeapKeyGen_StoreEntry_GDSF(void *entry, double age)
  * Don't use it unless you are trying to compare performance among
  * heap-based replacement policies...
  */
-heap_key
-HeapKeyGen_StoreEntry_LRU(void *entry, double age)
+heap_key HeapKeyGen_StoreEntry_LRU(void *entry, double age)
 {
     StoreEntry *e = entry;
+    debug(81, 3) ("HeapKeyGen_StoreEntry_LRU: %s age=%f lastref=%f\n",
+	    storeKeyText(e->key), age, (double)e->lastref);
+    if (e->mem_obj && e->mem_obj->url)
+	debug(81, 3) ("HeapKeyGen_StoreEntry_LRU: url=%s\n",
+	    e->mem_obj->url);
     return (heap_key) e->lastref;
 }
-
-#endif
