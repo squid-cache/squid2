@@ -15,7 +15,6 @@
 #	"0".  May be overridden with -u on the command line.
 #icp_port @CACHE_ICP_PORT@
 
-#ifdef USE_MULTICAST
 #  TAG: mcast_groups
 #       This tag specifies a list of multicast groups which your
 #       server should join to receive multicasted ICP requests.
@@ -23,10 +22,10 @@
 #       Usage:  mcast_groups 239.128.16.128 224.0.1.20
 #
 #       By default, squid doesn't listen on any multicast groups.
+#	You must #define USE_MULTICAST when compiling to enable this feature
 #
 #mcast_groups 239.128.16.128
 
-#endif /* USE_MULTICAST */
 #  TAG: tcp_incoming_address
 #  TAG: tcp_outgoing_address
 #  TAG: udp_incoming_address
@@ -72,27 +71,26 @@
 #	#          hostname             type     port   port  options
 #	#          -------------------- -------- ----- -----  -----------
 #	cache_host bigserver.usc.edu    parent    3128  3130  [proxy-only]
-#	cache_host littleguy1.usc.edu   neighbor  3128  3130  [proxy-only]
-#	cache_host littleguy1.usc.edu   neighbor  3128  3130  [proxy-only]
+#	cache_host littleguy1.usc.edu   sibling   3128  3130  [proxy-only]
+#	cache_host littleguy1.usc.edu   sibling   3128  3130  [proxy-only]
 #
-#	      type:  either 'parent' or 'neighbor'.
+#	      type:  either 'parent' or 'sibling'.
 #
 #	proxy_port:  The port number where the cache listens for proxy
 #	             requests.
 #
-#	  icp_port:  Used for querying neighbor/parent caches about
-#	             objects.  To have a non-ICP neighbor/parent
+#	  icp_port:  Used for querying neighbor caches about
+#	             objects.  To have a non-ICP parent
 #	             specify '7' for the ICP port and make sure the
-#	             neighbor/parent machine has the UDP echo port
+#	             parent machine has the UDP echo port
 #	             enabled in its /etc/inetd.conf file.
 #
 #	    options: use 'proxy-only' to specify that objects fetched
 #		     from this cache should not be saved locally.
 #
-#		     use 'weight=n' to specify a weighted neighbor.
+#		     use 'weight=n' to specify a weighted parent.
 #		     The weight must be an integer.  The default weight
 #		     is 1, larger weights are favored more.
-#ifdef USE_MULTICAST
 #
 #                    use 'ttl=n' to specify a IP multicast TTL to use
 #                    when sending an ICP request to this address.
@@ -101,15 +99,11 @@
 #                    multicast groups are treated like regular parents and
 #                    neighbo[u]rs, except that we don't expect to see any
 #                    replies from them.
-#endif /* USE_MULTICAST */
-#
-#	NOTE: when using a non-ICP neighbor/parent, there is no
-#	      difference between a neighbor and a parent.
 #
 #cache_host hostname type 3128 3130
 
 #  TAG: cache_host_domain
-#	Use to limit the domains for which a neighbor/parent cache
+#	Use to limit the domains for which a neighbor cache
 #	will be queried.  Usage:
 #
 #		cache_host_domain cache-host	domain [domain ...]
@@ -146,7 +140,7 @@
 #	will be considered "beyond the firewall."  For these:"
 #		- There will be no DNS lookups for the URL-host.
 #		- The object will always be fetched from one of
-#		  the parent or neighbor caches.
+#		  the parent or sibling caches.
 #
 #	As a special case you may specify the domain as 'none' to force
 #	all requests to be fetched from neghbors and parents.
@@ -160,7 +154,7 @@
 #
 #	For URLs which are in one of the local domains, the object
 #	is always fetched directly from the source and never from a
-#	neighbor or parent.
+#	sibling or parent.
 #
 #local_domain bigbucks.com
 
@@ -195,10 +189,10 @@
 #
 #	Usage: single_parent_bypass on|off
 #
-#	Before actually sending ICP "ping" packets to parents and 
-#	neighbors, we figure out which hosts would be pinged based
-#	on the cache_host_domain rules, etc.  Often it may be the
-#	case that only a single parent cache would be pinged.
+#	Before actually sending ICP "ping" packets to neighbors, we
+#	figure out which hosts would be pinged based on the
+#	cache_host_domain rules, etc.  Often it may be the case that
+#	only a single parent cache would be pinged.
 #
 #	Since there is only a single parent, there is a very good
 #	chance that we will end up fetching the object from that
