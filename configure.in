@@ -39,8 +39,10 @@ AC_OBJEXT
 if test -z "$EXEEXT"; then
 	CGIEXT=".cgi"
 else
-	CGIEXT="$EXEEXT"
+	# automake automatically adds .exe when installing binaries
+	CGIEXT=""
 fi
+AC_SUBST(CGIEXT)
 
 dnl this should be expanded to a list of platform sensible support requirements.
 dnl (adding an option like --enable-cygwin-support doesn't make sense :]) - R Collins 2001
