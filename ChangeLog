@@ -11,6 +11,17 @@ Changes to squid-1.NOVM.15 ()
 	  followed by a RELEASE.
 	- In icpDetectClientClose() changed the stall delay from
 	  10 seconds to 1 second (Ron Gomes).
+	- icpReadDataDone() doesn't recognize disk read errors.
+	  (Michael O'Reilly).
+	- Changed diskHandleRead() to make a callback for every
+	  successful read() instead of trying to fill up the read
+	  buffer.  If we get a short read, it most likely means EOF
+	  anyway.
+	- Added missing commSetSelect(COMM_SELECT_TIMEOUT) calls.  There
+	  was no timeout handler until the connection was established.
+	  Client aborts would cause StoreEntries to remain locked and
+	  swapout FDs to remain open.  (Thanks to John Line for debugging
+	  help).
 
 Changes to squid-1.NOVM.14 (July 11, 1997):
 
