@@ -72,6 +72,7 @@ static void parseBytesLine(size_t * bptr, const char *units);
 static size_t parseBytesUnits(const char *unit);
 static void free_all(void);
 static void requirePathnameExists(const char *name, const char *path);
+static OBJH dump_config;
 
 static void
 self_destruct(void)
