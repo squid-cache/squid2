@@ -1,3 +1,12 @@
+	- Fixed virtual-host coredump bug (Aaron Hopkins).
+	- Disabled storeDirClean() for Unixware.
+	- Protected objcache log/enable, log/disable with password.
+	- Fixed protoDispatch() to check firewall_ip_list before
+	  'inside_firewall'.
+	- Added '!' condition feature for the 'firewall_ip' list
+	  (Hiroyuki Inoue).
+	- Fixed BASE tag in ftpget output (broken since v1.0.10).
+
 Changes to squid-1.0.18 (October 7, 1996):
 
 	- Added INADDR_NONE to cachemgr.c for Solaris.
