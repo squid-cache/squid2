@@ -25,6 +25,13 @@ Changes to squid-1.1.15 ():
 	  'squid -z' to create the swap directories, or to manually fix
 	  the problem.   This means that you must manually run 'squid -z'
 	  when setting up Squid for the first time.
+	- Fixed IP cache bug with popular hostnames which lose all
+	  their addresses to ipcacheRemoveBadAddr().  In 1.1.12 we
+	  required that IP cache entries could only be released if not
+	  referenced for one minute.  However, some names are so
+	  popular that they would never get released.  Now we also
+	  require that i->addrs.count > 0 if we're NOT going to release
+	  the expired entry (Joe Ramey).
 
 Changes to squid-1.1.14 (July 11, 1997):
 
