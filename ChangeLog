@@ -1,5 +1,6 @@
 Changes to squid-2.5.STABLE9 ()
 
+	- [Medium] Don't retry requests on 403 errors (Bug #1210)
 	- [Minor] Ignore invalid FQDN DNS responses (Bug #1222)
 	- [Minor] cache_peer related memory leaks on reconfigure (Bug #1246)
 	- [Minor] relaxed_header_parser extended to work around even more

@@ -138,6 +138,7 @@ management of timeouts while connecting to origin servers or peers</P>
 <DT><B>reply_header_max_size</B><DD><P>New directive in 2.5.STABLE7 limiting the size of HTTP reply headers, similar to request_header_max_size but in the reply direction (from servers to clients). Default is 20KB.</P>
 <DT><B>acl req_hdr/resp_hdr</B><DD><P>New acl types in 2.5.STABLE7 to match arbitrary HTTP headers, useful to block certain malware/spyware etc.</P>
 <DT><B>relaxed_http_parser</B><DD><P>New directive in 2.5.STABLE8 to control how strict the HTTP parser should be.</P>
+<DT><B>retry_on_error</B><DD><P>New directive in 2.5.STABLE9 to aggressive retry requests on errors (was the default in earlier versions)</P>
 </DL>
 </P>
 
@@ -379,6 +380,9 @@ requests.</LI>
 <LI>DNS related assertion error</LI>
 <LI>High characters allowed in FTP &amp; Gopher listings.</LI>
 <LI>Additional workarounds for broken web servers rejected by 2.5.STABLE8.</LI>
+<LI>No longer automatically retries requests on 403 Access Denied or
+many other server errors. New squid.conf directive retry_on_error to revert
+back to the old behaviour if needed.</LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE8">squid-2.5.STABLE8 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
