@@ -766,8 +766,10 @@ neighborUp(const peer * p)
 {
     if (!p->tcp_up)
 	return 0;
-    if (squid_curtime - p->stats.last_query > Config.Timeout.deadPeer)
+    if (squid_curtime - p->stats.last_query > Config.Timeout.deadPeer) {
+	p->stats.last_reply = squid_curtime;	/* fake! */
 	return 1;
+    }
     if (p->stats.last_query - p->stats.last_reply >= Config.Timeout.deadPeer)
 	return 0;
     return 1;
