@@ -4,9 +4,6 @@
 #ifndef NEIGHBORS_H
 #define NEIGHBORS_H
 
-#define isNeighbor( X ) (((X).type==is_a_neighbor))
-#define isParent( X )   ((X).type==is_a_parent)
-
 /* Labels for hierachical log file */
 /* put them all here for easier reference when writing a logfile analyzer */
 
