@@ -74,6 +74,7 @@ clientLookupIdentDone(void *data)
 }
 
 #if USE_PROXY_AUTH
+/* ProxyAuth code by Jon Thackray <jrmt@uk.gdscorp.com> */
 /* return 1 if allowed, 0 if denied */
 static int
 clientProxyAuthCheck(icpStateData * icpState)

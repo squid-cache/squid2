@@ -117,7 +117,6 @@ AC_HEADER_STDC
 
 AC_CHECK_HEADERS( \
 	alloca.h \
-	aio.h \
 	arpa/inet.h \
 	arpa/nameser.h \
 	bstring.h \
@@ -242,24 +241,6 @@ AC_SUBST(CRYPTLIB)
 dnl Check for libshadow which is needed by the shadow password suite
 AC_CHECK_LIB(shadow, main)
 
-dnl Check for libs needed for aio_read()/aio_write()
-AIO_LIBS=""
-AC_CHECK_LIB(abi, main, [HAVE_LIBABI="yes"])
-AC_CHECK_LIB(posix4, main, [HAVE_LIBPOSIX4="yes"])
-case "$host" in
-	*-sgi-irix*)
-		if test "$HAVE_LIBABI" = "yes"; then
-			AIO_LIBS="-labi"
-		fi
-		;;
-	*-*-solaris*)
-		if test "$HAVE_LIBPOSIX4" = "yes"; then
-			AIO_LIBS="-lposix4"
-		fi
-		;;
-esac
-AC_SUBST(AIO_LIBS)
-
 dnl System-specific library modifications
 dnl
 case "$host" in
@@ -295,7 +276,6 @@ esac
 
 dnl Check for library functions
 AC_CHECK_FUNCS(\
-	aio_init \
 	bcopy \
 	getdtablesize \
 	getrusage \

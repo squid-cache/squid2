@@ -526,14 +526,6 @@ mainInitialize(void)
 
     leave_suid();		/* Run as non privilegied user */
 
-#if USE_ASYNC_IO
-#if HAVE_AIO_INIT
-    if (first_time)
-	aio_init();
-#endif
-    squid_signal(SIGIO, aioSigHandler, SA_RESTART);
-#endif
-
     if (httpPortNumOverride != 1)
 	Config.Port.http = (u_short) httpPortNumOverride;
     if (icpPortNumOverride != 1)

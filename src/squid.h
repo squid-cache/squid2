@@ -157,9 +157,6 @@
 #if HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
-#if USE_ASYNC_IO && HAVE_AIO_H
-#include <aio.h>
-#endif
 #if HAVE_GETOPT_H
 #include <getopt.h>
 #endif
