@@ -117,8 +117,7 @@ snmp_add_null_var(struct snmp_pdu *pdu, oid * name, int name_length)
  * Clone a variable, returns NULL in case of failure
  */
 static struct variable_list *
-clone_variable(var)
-     struct variable_list *var;
+clone_variable(struct variable_list *var)
 {
     struct variable_list *newvar;
     if (!var)
@@ -150,12 +149,12 @@ clone_variable(var)
 }
 
 int
-snmp_synch_input(op, session, reqid, pdu, magic)
-     int op;
-     struct snmp_session *session;
-     int reqid;
-     struct snmp_pdu *pdu;
-     void *magic;
+snmp_synch_input(
+    int op,
+    struct snmp_session *session,
+    int reqid,
+    struct snmp_pdu *pdu,
+    void *magic)
 {
     struct synch_state *state = (struct synch_state *) magic;
     struct snmp_pdu *newpdu;
@@ -201,9 +200,7 @@ snmp_synch_input(op, session, reqid, pdu, magic)
  * be returned.
  */
 struct snmp_pdu *
-snmp_fix_pdu(pdu, command)
-     struct snmp_pdu *pdu;
-     int command;
+snmp_fix_pdu(struct snmp_pdu *pdu, int command)
 {
     struct variable_list *var, *newvar;
     struct snmp_pdu *newpdu;
@@ -267,10 +264,10 @@ snmp_fix_pdu(pdu, command)
 
 
 int
-snmp_synch_response(ss, pdu, response)
-     struct snmp_session *ss;
-     struct snmp_pdu *pdu;
-     struct snmp_pdu **response;
+snmp_synch_response(
+    struct snmp_session *ss,
+    struct snmp_pdu *pdu,
+    struct snmp_pdu **response)
 {
     static struct synch_state *state = &snmp_synch_state;
     int numfds, count;
@@ -346,8 +343,7 @@ char *error_string[6] =
 };
 
 char *
-snmp_errstring(errstat)
-     int errstat;
+snmp_errstring(int errstat)
 {
     if (errstat <= SNMP_ERR_GENERR && errstat >= SNMP_ERR_NOERROR) {
 	return error_string[errstat];

@@ -59,10 +59,7 @@ SOFTWARE.
 #include "mib.h"
 
 void
-shift_array(begin, length, shift_amount)
-     u_char *begin;
-     int length;
-     int shift_amount;
+shift_array(unsigned char *begin, int length, int shift_amount)
 {
     u_char *old, *new;
 
@@ -83,10 +80,7 @@ shift_array(begin, length, shift_amount)
 
 
 void
-xdump(cp, length, prefix)
-     u_char *cp;
-     int length;
-     char *prefix;
+xdump(unsigned char *cp, int length, char *prefix)
 {
     int col, count;
 
@@ -119,15 +113,15 @@ xdump(cp, length, prefix)
 
 
 u_char *
-snmp_parse_var_op(data, var_name, var_name_len, var_val_type, var_val_len, var_val, listlength)
-     u_char *data;		/* IN - pointer to the start of object */
-     oid *var_name;		/* OUT - object id of variable */
-     int *var_name_len;		/* IN/OUT - length of variable name */
-     u_char *var_val_type;	/* OUT - type of variable (int or octet string) (one byte) */
-     int *var_val_len;		/* OUT - length of variable */
-     u_char **var_val;		/* OUT - pointer to ASN1 encoded value of variable */
-     int *listlength;		/* IN/OUT - number of valid bytes left in var_op_list */
-{
+snmp_parse_var_op(
+    u_char * data,		/* IN - pointer to the start of object */
+    oid * var_name,		/* OUT - object id of variable */
+    int *var_name_len,		/* IN/OUT - length of variable name */
+    u_char * var_val_type,	/* OUT - type of variable (int or octet string) (one byte) */
+    int *var_val_len,		/* OUT - length of variable */
+    u_char ** var_val,		/* OUT - pointer to ASN1 encoded value of variable */
+    int *listlength)
+{				/* IN/OUT - number of valid bytes left in var_op_list */
     u_char var_op_type;
     int var_op_len = *listlength;
     u_char *var_op_start = data;
@@ -160,17 +154,16 @@ snmp_parse_var_op(data, var_name, var_name_len, var_val_type, var_val_len, var_v
 }
 
 u_char *
-snmp_build_var_op(data, var_name, var_name_len, var_val_type, var_val_len,
-    var_val, listlength)
-     u_char *data;		/* IN - pointer to the beginning of the output buffer */
-     oid *var_name;		/* IN - object id of variable */
-     int *var_name_len;		/* IN - length of object id */
-     u_char var_val_type;	/* IN - type of variable */
-     int var_val_len;		/* IN - length of variable */
-     u_char *var_val;		/* IN - value of variable */
-     int *listlength;		/* IN/OUT - number of valid bytes left in
-				 * output buffer */
-{
+snmp_build_var_op(
+    u_char * data,		/* IN - pointer to the beginning of the output buffer */
+    oid * var_name,		/* IN - object id of variable */
+    int *var_name_len,		/* IN - length of object id */
+    u_char var_val_type,	/* IN - type of variable */
+    int var_val_len,		/* IN - length of variable */
+    u_char * var_val,		/* IN - value of variable */
+    int *listlength)
+{				/* IN/OUT - number of valid bytes left in
+				 * * output buffer */
     int dummyLen, headerLen;
     u_char *dataPtr;
 

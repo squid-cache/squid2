@@ -32,10 +32,7 @@ u_long snmpStats[SNMP_LAST_STAT + 1] =
 {0};
 
 void
-hex_dump(hdr, msg, len)
-     char *hdr;
-     short len;
-     unsigned char *msg;
+hex_dump(char *hdr, short len, unsigned char *msg)
 {
     int i = 0;
     unsigned char ch;
@@ -65,13 +62,13 @@ hex_dump(hdr, msg, len)
 }
 
 void
-v2md5auth_password_to_key(password, passwordlen, agentID, key)
-     u_char *password;		/* IN */
-     u_int passwordlen;		/* IN */
-     u_char *agentID;		/* IN - pointer to 12 octet long agentID */
-     u_char *key;		/* OUT - caller supplies pointer to 16
-				 * octet buffer */
-{
+v2md5auth_password_to_key(
+    u_char * password,		/* IN */
+    u_int passwordlen,		/* IN */
+    u_char * agentID,		/* IN - pointer to 12 octet long agentID */
+    u_char * key)
+{				/* OUT - caller supplies pointer to 16
+				 * * octet buffer */
     MD5_CTX MD;
     u_char *cp, password_buf[64];
     u_long password_index = 0;
@@ -124,8 +121,7 @@ md5Digest(u_char * msg, int length, u_char * key, u_char * digest)
  * a command line option to an application (management entity) program
  */
 int
-parse_app_community_string(session)
-     struct snmp_session *session;
+parse_app_community_string(struct snmp_session *session)
 {
     u_char *cp = session->community;
     u_char *start;
@@ -202,7 +198,7 @@ parse_app_community_string(session)
 	    }
 	    session->qoS |= USEC_QOS_PRIV;
 	} else if (cp - start > 0) {
-	    v2md5auth_password_to_key(start, cp - start, session->privKey);
+	    v2md5auth_password_to_key(start, cp - start, session->agentID, session->privKey);
 	    session->qoS |= USEC_QOS_PRIV;
 	}
 	/* look for contextSelector */
@@ -220,19 +216,18 @@ parse_app_community_string(session)
 }
 
 void
-increment_stat(stat)
-     int stat;
+increment_stat(int stat)
 {
     snmpStats[stat]++;
 }
 
 void
-create_report(session, out_data, out_length, stat, reqid)
-     struct snmp_session *session;
-     u_char *out_data;
-     int *out_length;
-     int stat;
-     int reqid;
+create_report(
+    struct snmp_session *session,
+    u_char * out_data,
+    int *out_length,
+    int stat,
+    int reqid)
 {
     struct snmp_pdu *report;
     static oid name[] =
@@ -310,10 +305,7 @@ create_report(session, out_data, out_length, stat, reqid)
 }
 
 int
-parse_parameters(pp, plen, params)
-     u_char *pp;
-     int plen;
-     Parameters *params;
+parse_parameters(u_char * pp, int plen, Parameters * params)
 {
     /* 25 octets -- <model><qoS><agentID><agentBoots><agentTime><mms><userLen> */
     if (plen < 25)
@@ -370,13 +362,13 @@ parse_parameters(pp, plen, params)
 }
 
 int
-check_received_pkt(pkt, pktlen, comm, commlen, session, pdu)
-     u_char *pkt;
-     int pktlen;
-     u_char *comm;
-     int commlen;
-     struct snmp_session *session;
-     struct snmp_pdu *pdu;
+check_received_pkt(
+    u_char * pkt,
+    int pktlen,
+    u_char * comm,
+    int commlen,
+    struct snmp_session *session,
+    struct snmp_pdu *pdu)
 {
     Parameters *params;
 

@@ -67,12 +67,12 @@ SOFTWARE.
 #include "snmp_api.h"
 
 u_char *
-snmp_auth_parse(data, length, sid, slen, version)
-     u_char *data;
-     int *length;
-     u_char *sid;
-     int *slen;
-     long *version;
+snmp_auth_parse(
+    u_char * data,
+    int *length,
+    u_char * sid,
+    int *slen,
+    long *version)
 {
     u_char type;
 
@@ -101,12 +101,12 @@ snmp_auth_parse(data, length, sid, slen, version)
 }
 
 u_char *
-snmp_auth_build(data, length, session, is_agent, messagelen)
-     u_char *data;
-     int *length;
-     struct snmp_session *session;
-     int is_agent;
-     int messagelen;
+snmp_auth_build(
+    u_char * data,
+    int *length,
+    struct snmp_session * session,
+    int is_agent,
+    int messagelen)
 {
     u_char *params;
     int plen;
