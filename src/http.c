@@ -8,20 +8,6 @@
 
 #define HTTP_DELETE_GAP   (1<<18)
 
-typedef struct {
-    StoreEntry *entry;
-    request_t *request;
-    char *req_hdr;
-    char *icp_page_ptr;		/* Used to send proxy-http request: 
-				 * put_free_8k_page(me) if the lifetime
-				 * expires */
-    char *icp_rwd_ptr;		/* When a lifetime expires during the
-				 * middle of an icpwrite, don't lose the
-				 * icpReadWriteData */
-    char *reply_hdr;
-    int reply_hdr_state;
-} HttpStateData;
-
 static int httpStateFree(fd, httpState)
      int fd;
      HttpStateData *httpState;
@@ -124,7 +110,7 @@ static void httpCacheNegatively(entry)
 }
 
 
-static void httpProcessReplyHeader(httpState, buf, size)
+void httpProcessReplyHeader(httpState, buf, size)
      HttpStateData *httpState;
      char *buf;			/* chunk just read by httpReadReply() */
      int size;
