@@ -371,7 +371,7 @@ static int sslConnect(fd, hp, sslState)
 	    30,
 	    sslErrorComplete,
 	    (void *) sslState);
-	return 0;
+	return COMM_ERROR;
     }
     debug(26, 5, "sslConnect: client=%d server=%d\n",
 	sslState->client.fd,
