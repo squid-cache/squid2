@@ -131,9 +131,8 @@ static void
 usage(void)
 {
     fprintf(stderr,
-	"Usage: %s [-hsvzCDFRUVY] [-f config-file] [-[au] port] [-k signal]\n"
+	"Usage: %s [-svzCDFRUVY] [-f config-file] [-[au] port] [-k signal]\n"
 	"       -a port   Specify ASCII port number (default: %d).\n"
-	"       -b        Buffer log output (default is unbuffered).\n"
 	"       -d        Write debugging to stderr also.\n"
 	"       -f file   Use given config-file instead of\n"
 	"                 %s\n"
@@ -187,9 +186,6 @@ mainParseOptions(int argc, char *argv[])
 	    break;
 	case 'a':
 	    httpPortNumOverride = atoi(optarg);
-	    break;
-	case 'b':
-	    unbuffered_logs = 0;
 	    break;
 	case 'd':
 	    opt_debug_stderr = 1;

@@ -572,6 +572,12 @@ clientBuildReplyHeader(clientHttpRequest * http,
 	l = strcspn(t, crlf) + 1;
 	xstrncpy(xbuf, t, l > 4096 ? 4096 : l);
 	debug(12, 5) ("clientBuildReplyHeader: %s\n", xbuf);
+#if 0
+	if (strncasecmp(xbuf, "Accept-Ranges:", 14) == 0)
+	    continue;
+	if (strncasecmp(xbuf, "Etag:", 5) == 0)
+	    continue;
+#endif
 	if (strncasecmp(xbuf, "Proxy-Connection:", 17) == 0)
 	    continue;
 	if (strncasecmp(xbuf, "Connection:", 11) == 0)
@@ -670,6 +676,8 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
 	     * hdrlen is the length of the old headers in buf
 	     * size - hdrlen is the amount of body in buf
 	     */
+	    debug(12,3)("icpSendMoreData: Appending %d bytes after headers\n",
+		(int)(size-hdrlen));
 	    xmemcpy(newbuf + l, buf + hdrlen, size - hdrlen);
 	    /* replace buf with newbuf */
 	    freefunc(buf);
@@ -726,6 +734,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    http->out.size);
 	comm_close(fd);
     } else if (icpCheckTransferDone(http)) {
+	debug(12,1)("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    http->request->protocol,
@@ -733,9 +742,11 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	if (http->entry->mem_obj->reply->content_length <= 0) {
 	    comm_close(fd);
 	} else if (BIT_TEST(http->request->flags, REQ_PROXY_KEEPALIVE)) {
+	    debug(12,1)("clientWriteComplete: FD %d Keeping Alive\n", fd);
 	    conn = http->conn;
 	    httpRequestFree(http);
-	    if ((http = conn->chr))
+	    if ((http = conn->chr)) {
+	        debug(12,1)("clientWriteComplete: FD %d Sending next request\n", fd);
 		storeClientCopy(entry,
 		    http->out.offset,
 		    http->out.offset,
@@ -743,8 +754,11 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 		    get_free_4k_page(),
 		    icpSendMoreData,
 		    http);
-	    else
+	    } else {
+	        debug(12,1)("clientWriteComplete: FD %d Setting read handler for next request\n", fd);
+		fd_note(fd, "Reading next request");
 		commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
+	    }
 	} else {
 	    comm_close(fd);
 	}
@@ -1885,9 +1899,14 @@ clientReadRequest(int fd, void *data)
     fd_bytes(fd, size, FD_READ);
 
     if (size == 0) {
+	if (conn->chr == NULL) {
+	    /* no current or pending requests */
+	    comm_close(fd);
+	    return;
+	}
 	/* It might be half-closed, we can't tell */
 	debug(12, 5) ("clientReadRequest: FD %d closed?\n", fd);
-	comm_set_stall(fd, 10);	/* check again in 10 seconds */
+	comm_set_stall(fd, 1);	/* check again in 1 seconds */
 	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	return;
     } else if (size < 0) {

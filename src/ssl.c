@@ -360,7 +360,7 @@ sslConnectDone(int fd, int status, void *data)
 }
 
 void
-sslStart(int fd, const char *url, request_t * request, int *size_ptr)
+sslStart(int fd, const char *url, request_t * request, size_t *size_ptr)
 {
     /* Create state structure. */
     SslStateData *sslState = NULL;

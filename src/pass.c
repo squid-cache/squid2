@@ -43,7 +43,7 @@ typedef struct {
 	int offset;
 	char *buf;
     } client, server;
-    int *size_ptr;		/* pointer to size for logging */
+    size_t *size_ptr;		/* pointer to size for logging */
     int proxying;
 } PassStateData;
 
@@ -366,10 +366,7 @@ passConnectDone(int fd, int status, void *data)
 }
 
 void
-passStart(int fd,
-    const char *url,
-    request_t * request,
-    int *size_ptr)
+passStart(int fd, const char *url, request_t * request, size_t *size_ptr)
 {
     /* Create state structure. */
     PassStateData *passState = NULL;

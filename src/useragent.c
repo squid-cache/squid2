@@ -112,7 +112,7 @@ logUserAgent(const char *client, const char *agent)
 	client,
 	time_str,
 	agent);
-    if (unbuffered_logs)
+    if (!Config.Options.buffered_logs)
 	fflush(cache_useragent_log);
 #endif
 }
