@@ -280,7 +280,7 @@ int ftpReadReply(fd, data)
     clen = entry->mem_obj->e_current_len;
     off = storeGetLowestReaderOffset(entry);
     if ((clen - off) > FTP_DELETE_GAP) {
-        if (entry->flag & CLIENT_ABORT_REQUEST) {
+	if (entry->flag & CLIENT_ABORT_REQUEST) {
 	    squid_error_entry(entry, ERR_CLIENT_ABORT, NULL);
 	    comm_close(fd);
 	}

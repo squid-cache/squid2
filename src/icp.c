@@ -1723,7 +1723,7 @@ static void icpDetectClientClose(fd, icpState)
 	    (void *) icpState);
 	return;
     }
-	debug(12, 1, "icpDetectClientClose: FD %d: %s\n", fd, xstrerror());
+    debug(12, 1, "icpDetectClientClose: FD %d: %s\n", fd, xstrerror());
     /* Clean up client side statemachine */
     entry = icpState->entry;
     icpFreeBufOrPage(icpState);
@@ -1736,4 +1736,3 @@ static void icpDetectClientClose(fd, icpState)
 	storeUnlockObject(entry);
     }
 }
-
