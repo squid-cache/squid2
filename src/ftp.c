@@ -1518,7 +1518,8 @@ ftpReadType(FtpStateData * ftpState)
 	    if (*p)
 		*p++ = '\0';
 	    rfc1738_unescape(d);
-	    wordlistAdd(&ftpState->pathcomps, d);
+	    if (*d)
+		wordlistAdd(&ftpState->pathcomps, d);
 	}
 	xfree(path);
 	if (ftpState->pathcomps)
@@ -1569,10 +1570,7 @@ ftpSendCwd(FtpStateData * ftpState)
     } else {
 	ftpState->flags.no_dotdot = 0;
     }
-    if (*path)
-	snprintf(cbuf, 1024, "CWD %s\r\n", path);
-    else
-	snprintf(cbuf, 1024, "CWD\r\n");
+    snprintf(cbuf, 1024, "CWD %s\r\n", path);
     ftpWriteCommand(cbuf, ftpState);
     ftpState->state = SENT_CWD;
 }
