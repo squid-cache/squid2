@@ -98,8 +98,15 @@ internalRemoteUri(const char *host, u_short port, const char *dir, const char *n
     static char lc_host[SQUIDHOSTNAMELEN];
     assert(host && port && name);
     /* convert host name to lower case */
-    xstrncpy(lc_host, host, sizeof(lc_host));
+    xstrncpy(lc_host, host, SQUIDHOSTNAMELEN - 1);
     Tolower(lc_host);
+    /*
+     * append the domain in order to mirror the requests with appended
+     * domains
+     */
+    if (Config.appendDomain && !strchr(lc_host, '.'))
+        strncat(lc_host, Config.appendDomain, SQUIDHOSTNAMELEN - 
+        strlen(lc_host) - 1);
     /* build uri in mb */
     memBufReset(&mb);
     memBufPrintf(&mb, "http://%s", lc_host);
