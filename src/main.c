@@ -379,7 +379,9 @@ serverConnectionsOpen()
 	    }
 	}
     }
+#if USE_ICMP
     icmpOpen();
+#endif
 }
 
 void
@@ -415,7 +417,9 @@ serverConnectionsClose()
 		0);
 	theInIcpConnection = -1;
     }
+#if USE_ICMP
     icmpClose();
+#endif
 }
 
 static void

@@ -122,16 +122,22 @@ typedef struct objcache_ds {
 /* user name for shutdown password in /etc/passwd */
 char *username = "cache";
 
+static int objcache_url_parser __P((char *url,
+	char *host,
+	char *request,
+	char *password));
+
 
 /* Parse a object_cache url into components.  By Anawat. */
 int
-objcache_url_parser(char *host, char *url, char *request, char *password)
+objcache_url_parser(char *url, char *host, char *request, char *password)
 {
     int t;
 
     host[0] = request[0] = password[0] = '\0';
     t = sscanf(url, "cache_object://%[^/]/%[^@]@%s", host, request, password);
     if (t < 2) {
+	debug(16,0,"Invalid Syntax: '%s', sscanf returns %d\n", url, t);
 	return -1;
     } else if (t == 2) {
 	strcpy(password, "nopassword");
