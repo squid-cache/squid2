@@ -32,7 +32,7 @@ ICON2 	=	anthony-bomb.gif \
 icondir = $(sysconfdir)/icons
 icon_DATA = $(ICON1) $(ICON2)
 EXTRA_DIST = $(ICON1) $(ICON2) icons.shar
-DISTCLEANFILES = $(EXTRA_DIST)
+DISTCLEANFILES = $(ICON1) $(ICON2)
 
 # The magic with ICON1,2 is to have a single dependency
 # for all of the icons.
