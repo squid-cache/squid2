@@ -222,6 +222,7 @@ httpStateFree(int fdnotused, void *data)
     if (httpState == NULL)
 	return;
     storeUnregisterAbort(httpState->entry);
+    assert(httpState->entry->store_status != STORE_PENDING);
     storeUnlockObject(httpState->entry);
     if (httpState->reply_hdr) {
 	put_free_8k_page(httpState->reply_hdr);
