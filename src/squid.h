@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -260,7 +261,7 @@ extern struct in_addr any_addr;	/* comm.c */
 
 
 /* Prototypes and definitions which don't really deserve a seaprate
-   include file */
+ * include file */
 
 #define  CONNECT_PORT        443
 

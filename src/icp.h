@@ -190,7 +190,7 @@ typedef struct iwd {
     struct timeval start;
     int flags;
     int size;			/* hack for CONNECT which doesnt use sentry */
-    char ident[ICP_IDENT_SZ+1];
+    char ident[ICP_IDENT_SZ + 1];
     int ident_fd;
 } icpStateData;
 

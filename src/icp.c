@@ -808,7 +808,7 @@ static void icpLogIcp(queue)
 	IcpOpcodeStr[ICP_OP_QUERY],
 	0,
 	tvSubMsec(queue->start, current_time),
-	NULL,	/* ident */
+	NULL,			/* ident */
 	HIER_NONE);
 }
 

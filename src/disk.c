@@ -443,7 +443,7 @@ int file_write(fd, ptr_to_buf, len, access_code, handle, handle_data)
     comm_set_select_handler(fd,
 	COMM_SELECT_WRITE,
 	(PF) diskHandleWrite,
-        (void *) &file_table[fd]);
+	(void *) &file_table[fd]);
     return DISK_OK;
 #endif
 }

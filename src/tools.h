@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -26,7 +27,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *  
  */
- 
+
 /*
  * Copyright (c) 1994, 1995.  All rights reserved.
  *  
