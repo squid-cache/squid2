@@ -281,7 +281,7 @@ authenticateAuthUserRequestSetIp(auth_user_request_t * auth_user_request, struct
 	ipdata = tempnode;
     }
 
-    if (!found)
+    if (found)
 	return;
 
     /* This ip is not in the seen list */
