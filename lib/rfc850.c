@@ -103,7 +103,14 @@ time_t parse_rfc850(str)
 
 #ifdef HAVE_TIMEGM
     t = timegm(&tm);
-#elif defined(_SQUID_SYSV_) || defined(_SQUID_LINUX_) || defined(_SQUID_HPUX_) || defined(_SQUID_AIX_)
+#elif HAVE_TM_GMTOFF
+    t = mktime(&tm);
+    {
+	time_t cur_t = time(NULL);
+	struct tm *local = localtime(&cur_t);
+	t += local->tm_gmtoff;
+    }
+#else
     /* some systems do not have tm_gmtoff so we fake it */
     t = mktime(&tm);
     {
@@ -116,17 +123,9 @@ time_t parse_rfc850(str)
 	    dst = -3600;
 	t -= (timezone + dst);
     }
-#else
-    t = mktime(&tm);
-    {				/* the default method */
-	time_t cur_t = time(NULL);
-	struct tm *local = localtime(&cur_t);
-	t += local->tm_gmtoff;
-    }
 #endif
     return t;
 }
-
 
 char *mkrfc850(t)
      time_t *t;
