@@ -1907,14 +1907,12 @@ aclDomainCompare(const void *data, splayNode * n)
 	d2++;
     l1 = strlen(d1);
     l2 = strlen(d2);
-    while (d1[l1] == d2[l2]) {
+    while (d1[--l1] == d2[--l2]) {
 	if ((l1 == 0) && (l2 == 0))
 	    return 0;		/* d1 == d2 */
-	l1--;
-	l2--;
 	if (0 == l1) {
 	    if ('.' == d2[l2 - 1]) {
-		debug(28, 0) ("WARNING: %s is a subdomain of %s\n", d1, d2);
+		debug(28, 0) ("WARNING: %s is a subdomain of %s\n", d2, d1);
 		debug(28, 0) ("WARNING: This may break Splay tree searching\n");
 		debug(28, 0) ("WARNING: You should remove '%s' from the ACL named '%s'\n", d2, AclMatchedName);
 	    }
@@ -1922,7 +1920,7 @@ aclDomainCompare(const void *data, splayNode * n)
 	}
 	if (0 == l2) {
 	    if ('.' == d1[l1 - 1]) {
-		debug(28, 0) ("WARNING: %s is a subdomain of %s\n", d2, d1);
+		debug(28, 0) ("WARNING: %s is a subdomain of %s\n", d1, d2);
 		debug(28, 0) ("WARNING: This may break Splay tree searching\n");
 		debug(28, 0) ("WARNING: You should remove '%s' from the ACL named '%s'\n", d1, AclMatchedName);
 	    }
