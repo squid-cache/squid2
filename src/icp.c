@@ -994,14 +994,14 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	    icp_request->urlpath);
 	put_free_request_t(icp_request);
 	if (!allow) {
-	    debug(12, 2, "icpHandleUdp: Access Denied for %s.\n",
+	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s.\n",
 		inet_ntoa(from.sin_addr));
 	    icpUdpSend(fd, url, &header, &from, ICP_OP_DENIED, LOG_UDP_DENIED);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
-	debug(12, 5, "icpHandleUdp: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
+	debug(12, 5, "icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
@@ -1043,9 +1043,9 @@ static void icpHandleIcpV2(fd, from, buf, len)
     case ICP_OP_MISS:
     case ICP_OP_DENIED:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
-	    debug(12, 0, "icpHandleUdp: Neighbor %s returned reqnum = 0\n",
+	    debug(12, 0, "icpHandleIcpV2: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
-	    debug(12, 0, "icpHandleUdp: Disabling use of private keys\n");
+	    debug(12, 0, "icpHandleIcpV2: Disabling use of private keys\n");
 	    neighbors_do_private_keys = 0;
 	}
 	url = buf + sizeof(header);
@@ -1055,11 +1055,11 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	    data += sizeof(u_short);
 	    data_sz = ntohs(u);
 	    if (data_sz > (len - (data - buf))) {
-		debug(12, 0, "icpHandleUdp: ICP_OP_HIT_OBJ object too small\n");
+		debug(12, 0, "icpHandleIcpV2: ICP_OP_HIT_OBJ object too small\n");
 		break;
 	    }
 	}
-	debug(12, 3, "icpHandleUdp: %s from %s for '%s'\n",
+	debug(12, 3, "icpHandleIcpV2: %s from %s for '%s'\n",
 	    IcpOpcodeStr[header.opcode],
 	    inet_ntoa(from.sin_addr),
 	    url);
@@ -1068,12 +1068,12 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	} else {
 	    key = storeGeneratePublicKey(url, METHOD_GET);
 	}
-	debug(12, 3, "icpHandleUdp: Looking for key '%s'\n", key);
+	debug(12, 3, "icpHandleIcpV2: Looking for key '%s'\n", key);
 	if ((entry = storeGet(key)) == NULL) {
-	    debug(12, 3, "icpHandleUdp: Ignoring %s for NULL Entry.\n",
+	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for NULL Entry.\n",
 		IcpOpcodeStr[header.opcode]);
 	} else if (entry->lock_count == 0) {
-	    debug(12, 3, "icpHandleUdp: Ignoring %s for Entry without locks.\n",
+	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for Entry without locks.\n",
 		IcpOpcodeStr[header.opcode]);
 	} else {
 	    neighborsUdpAck(fd,
@@ -1086,8 +1086,12 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	}
 	break;
 
+    case ICP_OP_INVALID:
+	break;
+
     default:
-	debug(12, 0, "icpHandleUdp: UNKNOWN OPCODE: %d\n", header.opcode);
+	debug(12, 0, "icpHandleIcpV2: UNKNOWN OPCODE: %d from %s\n",
+	    header.opcode, inet_ntoa(from.sin_addr));
 	break;
     }
 }
@@ -1141,14 +1145,14 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	    icp_request->urlpath);
 	put_free_request_t(icp_request);
 	if (!allow) {
-	    debug(12, 2, "icpHandleUdp: Access Denied for %s.\n",
+	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s.\n",
 		inet_ntoa(from.sin_addr));
 	    icpUdpSend(fd, url, &header, &from, ICP_OP_DENIED, LOG_UDP_DENIED);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
-	debug(12, 5, "icpHandleUdp: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
+	debug(12, 5, "icpHandleIcpV3: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
@@ -1177,9 +1181,9 @@ static void icpHandleIcpV3(fd, from, buf, len)
     case ICP_OP_MISS:
     case ICP_OP_DENIED:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
-	    debug(12, 0, "icpHandleUdp: Neighbor %s returned reqnum = 0\n",
+	    debug(12, 0, "icpHandleIcpV3: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
-	    debug(12, 0, "icpHandleUdp: Disabling use of private keys\n");
+	    debug(12, 0, "icpHandleIcpV3: Disabling use of private keys\n");
 	    neighbors_do_private_keys = 0;
 	}
 	url = buf + sizeof(header);
@@ -1189,11 +1193,11 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	    data += sizeof(u_short);
 	    data_sz = ntohs(u);
 	    if (data_sz > (len - (data - buf))) {
-		debug(12, 0, "icpHandleUdp: ICP_OP_HIT_OBJ object too small\n");
+		debug(12, 0, "icpHandleIcpV3: ICP_OP_HIT_OBJ object too small\n");
 		break;
 	    }
 	}
-	debug(12, 3, "icpHandleUdp: %s from %s for '%s'\n",
+	debug(12, 3, "icpHandleIcpV3: %s from %s for '%s'\n",
 	    IcpOpcodeStr[header.opcode],
 	    inet_ntoa(from.sin_addr),
 	    url);
@@ -1202,12 +1206,12 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	} else {
 	    key = storeGeneratePublicKey(url, METHOD_GET);
 	}
-	debug(12, 3, "icpHandleUdp: Looking for key '%s'\n", key);
+	debug(12, 3, "icpHandleIcpV3: Looking for key '%s'\n", key);
 	if ((entry = storeGet(key)) == NULL) {
-	    debug(12, 3, "icpHandleUdp: Ignoring %s for NULL Entry.\n",
+	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for NULL Entry.\n",
 		IcpOpcodeStr[header.opcode]);
 	} else if (entry->lock_count == 0) {
-	    debug(12, 3, "icpHandleUdp: Ignoring %s for Entry without locks.\n",
+	    debug(12, 3, "icpHandleIcpV3: Ignoring %s for Entry without locks.\n",
 		IcpOpcodeStr[header.opcode]);
 	} else {
 	    neighborsUdpAck(fd,
@@ -1220,8 +1224,12 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	}
 	break;
 
+    case ICP_OP_INVALID:
+	break;
+
     default:
-	debug(12, 0, "icpHandleUdp: UNKNOWN OPCODE: %d\n", header.opcode);
+	debug(12, 0, "icpHandleIcpV3: UNKNOWN OPCODE: %d from %s\n",
+	    header.opcode, inet_ntoa(from.sin_addr));
 	break;
     }
 }
