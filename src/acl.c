@@ -130,6 +130,9 @@ strtokFile(void)
 	/* skip leading and trailing white space */
 	t += strspn(buf, w_space);
 	t[strcspn(t, w_space)] = '\0';
+	/* skip blank lines */
+	if (!*t)
+	    goto strtok_again;
 	return t;
     }
 }
