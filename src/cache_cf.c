@@ -786,6 +786,7 @@ free_peer(peer ** P)
     while ((p = *P) != NULL) {
 	*P = p->next;
 	cbdataUnlock(p);
+	cbdataFree(p);
     }
     Config.npeers = 0;
 }
