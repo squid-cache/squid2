@@ -896,7 +896,7 @@ int icpHandleUdp(sock, not_used)
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
-	if (opt_reload_hit_only && store_is_rebuilding) {
+	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
 	    icpUdpSend(sock,
 		url,
 		&header,

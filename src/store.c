@@ -67,13 +67,12 @@ struct storeRebuild_data {
     int clashcount;		/* # swapfile clashes avoided */
     int dupcount;		/* # duplicates purged */
     time_t start, stop;
-    int fast_mode;
     int speed;			/* # Objects per run */
     char line_in[4096];
 };
 
 /* initializtion flag */
-int store_is_rebuilding = 1;
+int store_rebuilding = STORE_REBUILDING_SLOW;
 
 /* Static Functions */
 static int storeSwapInStart _PARAMS((StoreEntry *, SIH, void *));
@@ -1327,7 +1326,7 @@ static int storeDoRebuildFromDisk(data)
 	 * another cache_dir is added.
 	 */
 
-	if (!data->fast_mode) {
+	if (store_rebuilding != STORE_REBUILDING_FAST) {
 	    if (stat(swapfile, &sb) < 0) {
 		if (expires < squid_curtime) {
 		    debug(20, 3, "storeRebuildFromDisk: Expired: <URL:%s>\n", url);
@@ -1446,7 +1445,7 @@ static void storeRebuiltFromDisk(data)
 	r > 0 ? r : 0, (double) data->objcount / (r > 0 ? r : 1));
     debug(20, 1, "  store_swap_size = %dk\n", store_swap_size);
 
-    store_is_rebuilding = 0;
+    store_rebuilding = STORE_NOT_REBUILDING;
 
     fclose(data->log);
     safe_free(data);
@@ -1473,7 +1472,7 @@ void storeStartRebuildFromDisk()
 
     if (stat(swaplog_file, &sb) < 0) {
 	debug(20, 1, "storeRebuildFromDisk: No log file\n");
-	store_is_rebuilding = 0;
+	store_rebuilding = STORE_NOT_REBUILDING;
 	return;
     }
     data = xcalloc(1, sizeof(*data));
@@ -1487,7 +1486,8 @@ void storeStartRebuildFromDisk()
     if (stat(tmp_filename, &sb) >= 0) {
 	last_clean = sb.st_mtime;
 	if (stat(swaplog_file, &sb) >= 0)
-	    data->fast_mode = (sb.st_mtime <= last_clean) ? 1 : 0;
+	    store_rebuilding = (sb.st_mtime <= last_clean) ?
+		STORE_REBUILDING_FAST : STORE_REBUILDING_SLOW;
     }
     /* close the existing write-only swaplog, and open a temporary
      * write-only swaplog  */
@@ -1511,11 +1511,11 @@ void storeStartRebuildFromDisk()
 	fatal(tmp_error_buf);
     }
     debug(20, 3, "data->log %d is now '%s'\n", fileno(data->log), swaplog_file);
-    if (data->fast_mode)
+    if (store_rebuilding == STORE_REBUILDING_FAST)
 	debug(20, 1, "Rebuilding in FAST MODE.\n");
 
     memset(data->line_in, '\0', 4096);
-    data->speed = data->fast_mode ? 50 : 5;
+    data->speed = store_rebuilding == STORE_REBUILDING_FAST ? 50 : 5;
 
     /* Start reading the log file */
     runInBackground("storeRebuild",
@@ -2179,7 +2179,7 @@ int storeRelease(e)
 	    }
 	}
     }
-    if (store_is_rebuilding) {
+    if (store_rebuilding == STORE_REBUILDING_FAST) {
 	debug(20, 2, "storeRelease: Delaying release until store is rebuilt: '%s'\n",
 	    e->key ? e->key : e->url ? e->url : "NO URL");
 	storeExpireNow(e);
@@ -2527,12 +2527,10 @@ int storeInit()
     }
     swaplog_lock = file_write_lock(swaplog_fd);
 
-    if (!zap_disk_store) {
-	store_is_rebuilding = 1;
+    if (!zap_disk_store)
 	storeStartRebuildFromDisk();
-    } else {
-	store_is_rebuilding = 0;
-    }
+    else
+	store_rebuilding = STORE_NOT_REBUILDING;
 
     if (dir_created || zap_disk_store)
 	storeCreateSwapSubDirs();
@@ -2615,7 +2613,7 @@ int storeMaintainSwapSpace()
     int rm_obj = 0;
 
     /* We can't delete objects while rebuilding swap */
-    if (store_is_rebuilding)
+    if (store_rebuilding == STORE_REBUILDING_FAST)
 	return -1;
 
     /* Scan row of hash table each second and free storage if we're
@@ -2661,7 +2659,7 @@ int storeWriteCleanLog()
     int n = 0;
     time_t start, stop, r;
 
-    if (store_is_rebuilding) {
+    if (store_rebuilding) {
 	debug(20, 1, "storeWriteCleanLog: Not currently OK to rewrite swap log.\n");
 	debug(20, 1, "storeWriteCleanLog: Operation aborted.\n");
 	return 0;

@@ -210,6 +210,9 @@ extern void storeAppendPrintf _PARAMS((StoreEntry *, char *,...));
 extern void storeAppendPrintf();
 #endif
 
-extern int store_is_rebuilding;
+extern int store_rebuilding;
+#define STORE_NOT_REBUILDING 0
+#define STORE_REBUILDING_SLOW 1
+#define STORE_REBUILDING_FAST 2
 
 #endif
