@@ -883,7 +883,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode, logcode)
     headerp->reqnum = htonl(reqheaderp->reqnum);
 #ifdef UDP_HIT_WITH_OBJ
     if (opcode == ICP_OP_QUERY)
-        headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
+	headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->pad = 0;
 #else
 /*  memcpy(headerp->auth, , ICP_AUTH_SIZE); */

@@ -90,7 +90,7 @@
 #include <arpa/inet.h>
 #include <sys/un.h>
 
-if HAVE_LIBC_H
+#if HAVE_LIBC_H
 #include <libc.h>
 #endif
 
