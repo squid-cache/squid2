@@ -105,7 +105,7 @@
 #ifndef GOPHER_H
 #define GOPHER_H
 
-extern int gopherStart _PARAMS((StoreEntry *));
+extern void gopherStart _PARAMS((StoreEntry *));
 extern int gopherCachable _PARAMS((const char *));
 
 #endif /* GOPHER_H */

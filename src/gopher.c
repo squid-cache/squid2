@@ -175,7 +175,6 @@ static void gopherSendComplete(int fd,
     int size,
     int errflag,
     void *data);
-static void gopherStartComplete _PARAMS((void *datap, int status));
 static PF gopherSendRequest;
 static GopherStateData *CreateGopherStateData _PARAMS((void));
 static CNCB gopherConnectDone;
@@ -859,21 +858,13 @@ gopherSendRequest(int fd, void *data)
 	storeSetPublicKey(gopherState->entry);	/* Make it public */
 }
 
-int
+void
 gopherStart(StoreEntry * entry)
 {
-    storeLockObject(entry, gopherStartComplete, entry);
-    return COMM_OK;
-}
-
-
-static void
-gopherStartComplete(void *datap, int status)
-{
-    StoreEntry *entry = datap;
     char *url = entry->url;
     GopherStateData *gopherState = CreateGopherStateData();
     int fd;
+    storeLockObject(entry);
     gopherState->entry = entry;
     debug(10, 3, "gopherStart: url: %s\n", url);
     /* Parse url. */
