@@ -930,7 +930,7 @@ snmpAddNode(oid * name, int len, oid_ParseFn * parsefunction, int children,...)
 #else
 snmpAddNode(va_alist)
      va_dcl
-#else
+#endif
 {
 #if STDC_HEADERS
     va_list args;
