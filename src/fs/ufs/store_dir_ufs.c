@@ -1407,7 +1407,13 @@ storeUfsDirUnlinkFile(SwapDir * SD, sfileno f)
 {
     debug(79, 3) ("storeUfsDirUnlinkFile: unlinking fileno %08X\n", f);
     /* storeUfsDirMapBitReset(SD, f); */
+#if USE_UNLINKD
     unlinkdUnlink(storeUfsDirFullPath(SD, f, NULL));
+#elif USE_TRUNCATE
+    truncate(storeUfsDirFullPath(SD, f, NULL), 0);
+#else
+    unlink(storeUfsDirFullPath(SD, f, NULL));
+#endif
 }
 
 /*
