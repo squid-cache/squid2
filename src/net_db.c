@@ -863,9 +863,6 @@ variable_list *
 snmp_netdbFn(variable_list * Var, snint * ErrP)
 {
     variable_list *Answer;
-#if 0
-    int cnt;
-#endif
     static char key[15];
 
     static netdbEntry *n = NULL;

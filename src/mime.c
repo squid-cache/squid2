@@ -184,27 +184,6 @@ mime_get_header_field(const char *mime, const char *name, const char *prefix)
     return NULL;
 }
 
-#if OLD_CODE
-/* need to take the lowest, non-zero pointer to the end of the headers.
- * The headers end at the first empty line */
-char *
-mime_headers_end(const char *mime)
-{
-    const char *p1, *p2;
-    const char *end = NULL;
-    p1 = strstr(mime, "\n\r\n");
-    p2 = strstr(mime, "\n\n");
-    if (p1 && p2)
-	end = p1 < p2 ? p1 : p2;
-    else
-	end = p1 ? p1 : p2;
-    if (end)
-	end += (end == p1 ? 3 : 2);
-    return (char *) end;
-}
-
-#endif
-
 size_t
 headersEnd(const char *mime, size_t l)
 {

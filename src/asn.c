@@ -292,15 +292,11 @@ asnAddNet(char *as_string, int as_number)
     *t = '\0';
     addr = inet_addr(as_string);
     bitl = atoi(t + 1);
-#if 0
-    mask = (1 << bitl) - 1;
-#else
     if (bitl < 0)
 	bitl = 0;
     if (bitl > 32)
 	bitl = 32;
     mask = bitl ? 0xfffffffful << (32 - bitl) : 0;
-#endif
 
     in_a.s_addr = addr;
     in_m.s_addr = mask;

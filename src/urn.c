@@ -113,14 +113,8 @@ urnStart(request_t * r, StoreEntry * e)
     if (strncasecmp(strBuf(r->urlpath), "menu.", 5) == 0) {
 	char *new_path = xstrdup(strBuf(r->urlpath) + 5);
 	EBIT_SET(urnState->flags, URN_FORCE_MENU);
-#if OLD_CODE
-	t = xstrdup(strBuf(r->urlpath) + 5);
-	xstrncpy(r->urlpath, t, MAX_URL);
-	xfree(t);
-#else
 	stringReset(&r->urlpath, new_path);
 	xfree(new_path);
-#endif
     }
     if ((t = strChr(r->urlpath, ':')) != NULL) {
 	strSet(r->urlpath, t, '\0');

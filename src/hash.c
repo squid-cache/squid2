@@ -106,26 +106,6 @@
 
 #include "squid.h"
 
-#if UNUSED_CODE
-/*
- *  hash_url() - Returns a well-distributed hash function for URLs.
- *  The best way is to sum up the last half of the string.
- *  Adapted from code written by Mic Bowman.  -Darren
- *  Generates a standard deviation = 15.73
- */
-unsigned int
-hash_url(const void *data, unsigned int size)
-{
-    const char *s = data;
-    unsigned int i, j, n;
-    j = strlen(s);
-    for (i = j / 2, n = 0; i < j; i++)
-	n ^= 271 * (unsigned) s[i];
-    i = n ^ (j * 271);
-    return i % size;
-}
-#endif /* UNUSED_CODE */
-
 unsigned int
 hash_string(const void *data, unsigned int size)
 {

@@ -242,12 +242,10 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
 {
     HttpReply *rep;
     MemObject *mem = entry->mem_obj;
-#if 0
     /*
      *  Kostas sez PUT "success" replies might not be STORE_PENDING?
      */
-    assert(entry->store_status == STORE_PENDING);
-#endif
+    /* assert(entry->store_status == STORE_PENDING); */
     assert(mem != NULL);
     assert(mem->inmem_hi == 0);
     storeBuffer(entry);
