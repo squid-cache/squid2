@@ -350,5 +350,4 @@ struct rusage {
 #define calloc +
 #define sprintf +
 #define strdup +
-
 #endif /* SQUID_H */

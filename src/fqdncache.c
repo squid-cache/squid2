@@ -973,9 +973,6 @@ snmp_fqdncacheFn(variable_list * Var, long *ErrP)
     default:
 	*ErrP = SNMP_ERR_NOSUCHNAME;
 	snmp_var_free(Answer);
-#if 0
-	xfree(Answer->val.integer);
-#endif
 	return (NULL);
     }
     return Answer;

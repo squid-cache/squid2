@@ -1112,7 +1112,6 @@ snmp_ipcacheFn(variable_list * Var, long *ErrP)
     default:
 	*ErrP = SNMP_ERR_NOSUCHNAME;
 	snmp_var_free(Answer);
-	xfree(Answer->val.integer);
 	return (NULL);
     }
     return Answer;

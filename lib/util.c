@@ -28,6 +28,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *  
  */
+#define _etext etext
 
 /*
  * Copyright (c) 1994, 1995.  All rights reserved.
@@ -410,6 +411,7 @@ xmalloc_find_leaks(void)
 {
     int B, I;
     int leak_sum = 0;
+
     extern void _etext;
     fprintf(stderr, "----- Memory map ----\n");
     xmalloc_scan_region(&_etext, (void *) sbrk(0) - (void *) &_etext, 0);

@@ -214,6 +214,8 @@ snmp_agent_parse_done(int errstat, snmp_request_t * snmp_rq)
 	if (snmpFwd_removePending(&snmp_rq->from, this_reqid)) {	/* failed */
 	    debug(49, 2) ("snmp: bogus response from %s.\n",
 		inet_ntoa(snmp_rq->from.sin_addr));
+		if (snmp_rq->community)
+			xfree(snmp_rq->community);
 	    xfree(snmp_rq->outbuf);
 	    xfree(snmp_rq);
 	    return;

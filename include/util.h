@@ -127,6 +127,10 @@
 #endif
 #endif
 
+#if defined(_SQUID_FREEBSD_)
+#define _etext etext
+#endif
+
 extern const char *getfullhostname(void);
 extern const char *mkhttpdlogtime(const time_t *);
 extern const char *mkrfc1123(time_t);
