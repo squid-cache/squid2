@@ -2103,9 +2103,9 @@ int main(argc, argv)
 	} else {
 	    usage();
 	    exit(1);
-	}           
-    }               
-                    
+	}
+    }
+
     if (argc != 6) {
 	fprintf(stderr, "Too many arguments left (%d)\n", argc);
 	usage();

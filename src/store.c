@@ -435,7 +435,7 @@ void storeReleaseRequest(e, file, line)
 	return;
     debug(20, 1, "storeReleaseRequest: FROM %s:%d FOR '%s'\n",
 	file, line, e->key ? e->key : e->url);
-    e->flag |=  RELEASE_REQUEST;
+    e->flag |= RELEASE_REQUEST;
 }
 
 /* unlock object, return -1 if object get released after unlock
