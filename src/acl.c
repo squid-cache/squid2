@@ -1393,9 +1393,7 @@ aclCheck(aclCheck_t * checklist)
 		aclLookupDstFQDNDone,
 		checklist);
 	    return;
-	}
-	/* extra case for proxy_auth */
-	if (checklist->state[ACL_PROXY_AUTH] == ACL_PROXY_AUTH_CHECK) {
+	} else if (checklist->state[ACL_PROXY_AUTH] == ACL_PROXY_AUTH_CHECK) {
 	    debug(28, 3) ("aclCheck: checking password via authenticator\n");
 	    authenticateStart(checklist->auth_user, aclProxyAuthDone,
 		checklist);
@@ -1493,7 +1491,7 @@ aclProxyAuthDone(void *data, char *result)
 {
     aclCheck_t *checklist = data;
     checklist->state[ACL_PROXY_AUTH] = ACL_LOOKUP_DONE;
-    debug(28, 4) ("aclProxyAuthDone: result = %s\n", result);
+    debug(28, 4) ("aclProxyAuthDone: result = %s\n", result ? result : "NULL");
     if (result && (strncasecmp(result, "OK", 2) == 0))
 	checklist->auth_user->passwd_ok = 1;
     else
