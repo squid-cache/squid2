@@ -324,7 +324,7 @@ extern void storeNegativeCache __P((StoreEntry *));
 #if defined(__STRICT_ANSI__)
 extern void storeAppendPrintf __P((StoreEntry *, char *,...));
 #else
-extern void storeAppendPrintf __P((void));
+extern void storeAppendPrintf __P(());
 #endif
 
 extern int store_rebuilding;
