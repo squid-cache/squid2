@@ -5,7 +5,7 @@
  *
  * Copyright (c) 1997
  *
- * Erik Schoenfelder		TU Braunschweig, Germany
+ * Erik Schoenfelder            TU Braunschweig, Germany
  *
  * 
  * Permission to use, copy, modify, and distribute this software and its 
@@ -63,11 +63,11 @@ extern void snmp_vars_init _ANSI_ARGS_((void));
  * specific initialization routine.
  */
 
-extern void mib_register _ANSI_ARGS_((oid *oid_base,
-				      int oid_base_len,
-				      struct variable *mib_variables,
-				      int mib_variables_len, 
-				      int mib_variables_width));
+extern void mib_register _ANSI_ARGS_((oid * oid_base,
+	int oid_base_len,
+	struct variable * mib_variables,
+	int mib_variables_len,
+	int mib_variables_width));
 
 /*
  * The initialization function which calls the module specific

@@ -184,7 +184,7 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	    if (request->method == METHOD_CONNECT) {
 		ErrorState *err;
 		debug(17, 1) ("protoStart: Cannot retrieve '%s'\n",
-			storeUrl(entry));
+		    storeUrl(entry));
 		err = errorCon(ERR_UNSUP_REQ, HTTP_BAD_REQUEST);
 		err->request = requestLink(request);
 		errorAppendEntry(entry, err);

@@ -31,7 +31,7 @@
 
 #include "squid.h"
 #include "mib_module.h"		/*
-				 * * * * #include "snmp_config.h"
+				 * * * * * #include "snmp_config.h"
 				 */
 #ifdef SQUID_SNMP
 extern void sprint_objid();
@@ -187,54 +187,54 @@ struct variable13 {
 /* cacheConfig group */
 
 enum {
-CONF_ADMIN,
-CONF_UPTIME, 
-CONF_ST_MMAXSZ, 
-CONF_ST_MHIWM, 
-CONF_ST_MLOWM, 
-CONF_ST_SWMAXSZ, 
-CONF_ST_SWHIWM,
-CONF_ST_SWLOWM, 
-CONF_WAIS_RHOST, 
-CONF_WAIS_RPORT, 
-CONF_TIO_RD, 
-CONF_TIO_CON, 
-CONF_TIO_REQ, 
-CONF_LOG_LVL,
-CONF_PTBL_ID,
-CONF_PTBL_NAME,
-CONF_PTBL_IP,
-CONF_PTBL_HTTP,
-CONF_PTBL_ICP,
-CONF_PTBL_TYPE,
-CONF_PTBL_STATE
+    CONF_ADMIN,
+    CONF_UPTIME,
+    CONF_ST_MMAXSZ,
+    CONF_ST_MHIWM,
+    CONF_ST_MLOWM,
+    CONF_ST_SWMAXSZ,
+    CONF_ST_SWHIWM,
+    CONF_ST_SWLOWM,
+    CONF_WAIS_RHOST,
+    CONF_WAIS_RPORT,
+    CONF_TIO_RD,
+    CONF_TIO_CON,
+    CONF_TIO_REQ,
+    CONF_LOG_LVL,
+    CONF_PTBL_ID,
+    CONF_PTBL_NAME,
+    CONF_PTBL_IP,
+    CONF_PTBL_HTTP,
+    CONF_PTBL_ICP,
+    CONF_PTBL_TYPE,
+    CONF_PTBL_STATE
 };
 
 
 enum {
-NETDB_ID,
-NETDB_NET,
-NETDB_PING_S,
-NETDB_PING_R,
-NETDB_HOPS,
-NETDB_RTT,
-NETDB_PINGTIME,
-NETDB_LASTUSE,
-NETDB_LINKCOUNT,
-NET_IPC_ID,
-NET_IPC_NAME,
-NET_IPC_IP,
-NET_IPC_STATE,
-NET_FQDN_ID,
-NET_FQDN_NAME,
-NET_FQDN_IP,
-NET_FQDN_LASTREF,
-NET_FQDN_EXPIRES,
-NET_FQDN_STATE,
-NET_TCPCONNS,
-NET_UDPCONNS,
-NET_INTHRPUT,
-NET_OUTHRPUT
+    NETDB_ID,
+    NETDB_NET,
+    NETDB_PING_S,
+    NETDB_PING_R,
+    NETDB_HOPS,
+    NETDB_RTT,
+    NETDB_PINGTIME,
+    NETDB_LASTUSE,
+    NETDB_LINKCOUNT,
+    NET_IPC_ID,
+    NET_IPC_NAME,
+    NET_IPC_IP,
+    NET_IPC_STATE,
+    NET_FQDN_ID,
+    NET_FQDN_NAME,
+    NET_FQDN_IP,
+    NET_FQDN_LASTREF,
+    NET_FQDN_EXPIRES,
+    NET_FQDN_STATE,
+    NET_TCPCONNS,
+    NET_UDPCONNS,
+    NET_INTHRPUT,
+    NET_OUTHRPUT
 };
 
 /* cacheNetwork group */
@@ -363,28 +363,50 @@ struct variable4 protostat_vars[] =
 
 struct variable4 network_vars[] =
 {
-{NETDB_ID, INTEGER, RONLY, var_netdb_entry, 2 , {1,1 }},
-{NETDB_NET, IPADDRESS, RONLY, var_netdb_entry, 2 , {1,2}},
-{NETDB_PING_S, INTEGER , RONLY, var_netdb_entry, 2 , {1,3}},
-{NETDB_PING_R, INTEGER , RONLY, var_netdb_entry, 2 , {1,4}},
-{NETDB_HOPS, INTEGER , RONLY, var_netdb_entry, 2 , {1,5}},
-{NETDB_RTT, TIMETICKS, RONLY, var_netdb_entry, 2 , {1,6}},
-{NETDB_PINGTIME, TIMETICKS, RONLY, var_netdb_entry, 2 , {1,7}},
-{NETDB_LASTUSE, TIMETICKS, RONLY, var_netdb_entry, 2 , {1,8}},
-{NET_IPC_ID, INTEGER, RONLY, var_ipcache_entry, 2, { 2, 1 }},
-{NET_IPC_NAME, STRING, RONLY, var_ipcache_entry, 2 , { 2, 2 }},
-{NET_IPC_IP, IPADDRESS, RONLY, var_ipcache_entry, 2 , { 2, 3}},
-{NET_IPC_STATE, INTEGER, RONLY, var_ipcache_entry, 2 , { 2, 4}},
-{NET_FQDN_ID, INTEGER, RONLY, var_fqdn_entry , 2, {3,1 }},
-{NET_FQDN_NAME, STRING, RONLY, var_fqdn_entry, 2, {3, 2}},
-{NET_FQDN_IP, IPADDRESS, RONLY, var_fqdn_entry, 2, {3, 3}},
-{NET_FQDN_LASTREF,TIMETICKS, RONLY, var_fqdn_entry, 2, {3, 4}},
-{NET_FQDN_EXPIRES,TIMETICKS, RONLY, var_fqdn_entry, 2, {3, 5}},
-{NET_FQDN_STATE,INTEGER, RONLY, var_fqdn_entry , 2, {3,6}},
-{NET_TCPCONNS, INTEGER, RONLY, var_net_vars , 1, {4}},
-{NET_UDPCONNS, INTEGER, RONLY, var_net_vars , 1, {5}},
-{NET_INTHRPUT, INTEGER, RONLY, var_net_vars , 1, {6}},
-{NET_OUTHRPUT, INTEGER, RONLY, var_net_vars , 1, {7}}
+    {NETDB_ID, INTEGER, RONLY, var_netdb_entry, 2,
+	{1, 1}},
+    {NETDB_NET, IPADDRESS, RONLY, var_netdb_entry, 2,
+	{1, 2}},
+    {NETDB_PING_S, INTEGER, RONLY, var_netdb_entry, 2,
+	{1, 3}},
+    {NETDB_PING_R, INTEGER, RONLY, var_netdb_entry, 2,
+	{1, 4}},
+    {NETDB_HOPS, INTEGER, RONLY, var_netdb_entry, 2,
+	{1, 5}},
+    {NETDB_RTT, TIMETICKS, RONLY, var_netdb_entry, 2,
+	{1, 6}},
+    {NETDB_PINGTIME, TIMETICKS, RONLY, var_netdb_entry, 2,
+	{1, 7}},
+    {NETDB_LASTUSE, TIMETICKS, RONLY, var_netdb_entry, 2,
+	{1, 8}},
+    {NET_IPC_ID, INTEGER, RONLY, var_ipcache_entry, 2,
+	{2, 1}},
+    {NET_IPC_NAME, STRING, RONLY, var_ipcache_entry, 2,
+	{2, 2}},
+    {NET_IPC_IP, IPADDRESS, RONLY, var_ipcache_entry, 2,
+	{2, 3}},
+    {NET_IPC_STATE, INTEGER, RONLY, var_ipcache_entry, 2,
+	{2, 4}},
+    {NET_FQDN_ID, INTEGER, RONLY, var_fqdn_entry, 2,
+	{3, 1}},
+    {NET_FQDN_NAME, STRING, RONLY, var_fqdn_entry, 2,
+	{3, 2}},
+    {NET_FQDN_IP, IPADDRESS, RONLY, var_fqdn_entry, 2,
+	{3, 3}},
+    {NET_FQDN_LASTREF, TIMETICKS, RONLY, var_fqdn_entry, 2,
+	{3, 4}},
+    {NET_FQDN_EXPIRES, TIMETICKS, RONLY, var_fqdn_entry, 2,
+	{3, 5}},
+    {NET_FQDN_STATE, INTEGER, RONLY, var_fqdn_entry, 2,
+	{3, 6}},
+    {NET_TCPCONNS, INTEGER, RONLY, var_net_vars, 1,
+	{4}},
+    {NET_UDPCONNS, INTEGER, RONLY, var_net_vars, 1,
+	{5}},
+    {NET_INTHRPUT, INTEGER, RONLY, var_net_vars, 1,
+	{6}},
+    {NET_OUTHRPUT, INTEGER, RONLY, var_net_vars, 1,
+	{7}}
 };
 
 
@@ -393,27 +415,48 @@ u_char *var_htio();
 u_char *var_htst();
 struct variable config_variables[] =
 {
-{CONF_ADMIN,STRING, RONLY, var_cnf, 1, { 1 } },
-{CONF_UPTIME,TIMETICKS, RONLY, var_cnf, 1,{2}},
-{CONF_ST_MMAXSZ,INTEGER, RONLY, var_cnf, 2,{3, 1}},
-{CONF_ST_MHIWM,INTEGER, RONLY, var_cnf, 2,{3, 2}},
-{CONF_ST_MLOWM,INTEGER, RONLY, var_cnf, 2, {3,3}},
-{CONF_ST_SWMAXSZ,INTEGER, RONLY, var_cnf, 2, {3,4}},
-{CONF_ST_SWHIWM,INTEGER, RONLY, var_cnf, 2, {3,5}},
-{CONF_ST_SWLOWM,INTEGER, RONLY, var_cnf, 2, {3,6}},
-{CONF_WAIS_RHOST,STRING, RONLY, var_cnf, 1, { 4 }},
-{CONF_WAIS_RPORT,INTEGER, RONLY, var_cnf, 1 , { 5 }},
-{CONF_TIO_RD,INTEGER, RONLY, var_cnf, 2, { 6, 1 }},
-{CONF_TIO_CON,INTEGER, RONLY, var_cnf, 2, {6 , 2 }},
-{CONF_TIO_REQ,INTEGER, RONLY, var_cnf, 2, { 6, 3 }},
-{CONF_LOG_LVL,INTEGER, RONLY, var_cnf, 1, { 7 }},
-{CONF_PTBL_ID,INTEGER, RONLY, var_cnf, 2, { 8, 1 }},
-{CONF_PTBL_NAME,STRING, RONLY, var_cnf, 2, { 8, 2 }},
-{CONF_PTBL_IP, IPADDRESS, RONLY, var_cnf, 2, { 8, 3 }},
-{CONF_PTBL_HTTP, INTEGER, RONLY, var_cnf, 2, { 8, 4 }},
-{CONF_PTBL_ICP,INTEGER, RONLY, var_cnf, 2, { 8, 5 }},
-{CONF_PTBL_TYPE,INTEGER, RONLY, var_cnf, 2, { 8, 6 }},
-{CONF_PTBL_STATE,INTEGER, RONLY, var_cnf, 2, { 8, 7 }}
+    {CONF_ADMIN, STRING, RONLY, var_cnf, 1,
+	{1}},
+    {CONF_UPTIME, TIMETICKS, RONLY, var_cnf, 1,
+	{2}},
+    {CONF_ST_MMAXSZ, INTEGER, RONLY, var_cnf, 2,
+	{3, 1}},
+    {CONF_ST_MHIWM, INTEGER, RONLY, var_cnf, 2,
+	{3, 2}},
+    {CONF_ST_MLOWM, INTEGER, RONLY, var_cnf, 2,
+	{3, 3}},
+    {CONF_ST_SWMAXSZ, INTEGER, RONLY, var_cnf, 2,
+	{3, 4}},
+    {CONF_ST_SWHIWM, INTEGER, RONLY, var_cnf, 2,
+	{3, 5}},
+    {CONF_ST_SWLOWM, INTEGER, RONLY, var_cnf, 2,
+	{3, 6}},
+    {CONF_WAIS_RHOST, STRING, RONLY, var_cnf, 1,
+	{4}},
+    {CONF_WAIS_RPORT, INTEGER, RONLY, var_cnf, 1,
+	{5}},
+    {CONF_TIO_RD, INTEGER, RONLY, var_cnf, 2,
+	{6, 1}},
+    {CONF_TIO_CON, INTEGER, RONLY, var_cnf, 2,
+	{6, 2}},
+    {CONF_TIO_REQ, INTEGER, RONLY, var_cnf, 2,
+	{6, 3}},
+    {CONF_LOG_LVL, INTEGER, RONLY, var_cnf, 1,
+	{7}},
+    {CONF_PTBL_ID, INTEGER, RONLY, var_cnf, 2,
+	{8, 1}},
+    {CONF_PTBL_NAME, STRING, RONLY, var_cnf, 2,
+	{8, 2}},
+    {CONF_PTBL_IP, IPADDRESS, RONLY, var_cnf, 2,
+	{8, 3}},
+    {CONF_PTBL_HTTP, INTEGER, RONLY, var_cnf, 2,
+	{8, 4}},
+    {CONF_PTBL_ICP, INTEGER, RONLY, var_cnf, 2,
+	{8, 5}},
+    {CONF_PTBL_TYPE, INTEGER, RONLY, var_cnf, 2,
+	{8, 6}},
+    {CONF_PTBL_STATE, INTEGER, RONLY, var_cnf, 2,
+	{8, 7}}
 };
 
 
@@ -520,7 +563,7 @@ snmpHandleUdp(int sock, void *not_used)
 	    }
 	    debug(49, 5) ("\n\n");
 	}			/* do queueing stuff */
-#ifdef SNMP_DIRECT
+#pifdef SNMP_DIRECT
 	if (comm_udp_sendto(sock, &from,
 		sizeof(struct sockaddr_in),
 		outbuf, outlen) < 0)
@@ -560,10 +603,10 @@ init_snmp()
     }
     {
 	static oid base[] =
-	{ SQ_CONF };
-	mib_register(base,8,config_variables,
-	sizeof(config_variables) / sizeof(*config_variables),
-            sizeof(*config_variables));
+	{SQ_CONF};
+	mib_register(base, 8, config_variables,
+	    sizeof(config_variables) / sizeof(*config_variables),
+	    sizeof(*config_variables));
     }
 
     {
@@ -605,96 +648,95 @@ var_cnf(struct variable * vp, oid * name, int *length,
     int exact, int *var_len, int (**write_method) ())
 {
     void *cp;
-    static int cnt,current;
+    static int cnt, current;
     static long long_return;
     peer *p;
     static char snbuf[256];
-	cnt=0;
-	debug(49,3)("snmp: var_cnf called with magic=%d\n",vp->magic);
-	debug(49,3)("snmp: var_cnf with (%d,%d)\n",*length, *var_len);
-	sprint_objid(snbuf,name, *length);
-	debug(49,3)("snmp: var_cnf oid: %s\n",snbuf);	
+    cnt = 0;
+    debug(49, 3) ("snmp: var_cnf called with magic=%d\n", vp->magic);
+    debug(49, 3) ("snmp: var_cnf with (%d,%d)\n", *length, *var_len);
+    sprint_objid(snbuf, name, *length);
+    debug(49, 3) ("snmp: var_cnf oid: %s\n", snbuf);
 
-	if (*length==10 && name[8]==8) /* peer table */
-	{
-		p=Config.peers;
-		while (cnt++<(int)name[10] && p!=NULL)
-			p=p->next;
-	}
-	if (p==NULL)
-		return NULL;
+    if (*length == 10 && name[8] == 8) {	/* peer table */
+	p = Config.peers;
+	while (cnt++ < (int) name[10] && p != NULL)
+	    p = p->next;
+    }
+    if (p == NULL)
+	return NULL;
 
-	*var_len=sizeof(long_return);
+    *var_len = sizeof(long_return);
 
-	switch(vp->magic) {
-	case CONF_ADMIN:
-		cp=Config.adminEmail;
-		*var_len=strlen(cp);
-		return (u_char *)cp;
-	case CONF_UPTIME:
-		long_return=tvSubDsec(squid_start,current_time);
-		return (u_char *)&long_return;
-	case CONF_ST_MMAXSZ:
-		long_return=(long)Config.Mem.maxSize;		
-                return (u_char *)&long_return;
-	case CONF_ST_MHIWM:
-                long_return=(long)Config.Mem.highWaterMark;
-                return (u_char *)&long_return;
-	case CONF_ST_MLOWM:
-                long_return=(long)Config.Mem.lowWaterMark;
-                return (u_char *)&long_return;
-	case CONF_ST_SWMAXSZ:
-                long_return=(long)Config.Swap.maxSize;
-                return (u_char *)&long_return;
-	case CONF_ST_SWHIWM:
-                long_return=(long)Config.Swap.highWaterMark;
-                return (u_char *)&long_return;
-	case CONF_ST_SWLOWM:
-                long_return=(long)Config.Swap.lowWaterMark;
-                return (u_char *)&long_return;
-	case CONF_WAIS_RHOST:
-                cp=Config.Wais.relayHost;
-		*var_len=strlen(cp);
-		return (u_char *)cp;
-	case CONF_WAIS_RPORT:
-                long_return=(long)Config.Wais.relayPort;
-                return (u_char *)&long_return;
-	case CONF_TIO_RD:
-		long_return=(long)Config.Timeout.read;
-                return (u_char *)&long_return;
-	case CONF_TIO_CON:
-                long_return=(long)Config.Timeout.connect;
-                return (u_char *)&long_return;
-	case CONF_TIO_REQ:
-                long_return=(long)Config.Timeout.request;
-                return (u_char *)&long_return;
-	case CONF_LOG_LVL:
-		return NULL;
-	case CONF_PTBL_ID:
-	        long_return = current;
-       	 	return (u_char *) & long_return;
-	case CONF_PTBL_NAME:
-	        cp = p->host;
-       	 	*var_len = strlen(cp);
-	        return (u_char *) cp;
-	case CONF_PTBL_IP:
-	        long_return = (long) (p->in_addr.sin_addr.s_addr);
-        	return (u_char *) & long_return;
-	case CONF_PTBL_HTTP:
-	        long_return = p->http_port;
-        	return (u_char *) & long_return;
-	case CONF_PTBL_ICP:
-       	 	long_return = p->icp_port;
-	        return (u_char *) & long_return;
-	case CONF_PTBL_TYPE:
-	        long_return = p->type;
-        	return (u_char *) & long_return;
-	case CONF_PTBL_STATE:
-	        long_return = neighborUp(p);
-        	return (u_char *) & long_return;
-	default:
-		return (u_char *)NULL;
-	}
+    switch (vp->magic) {
+    case CONF_ADMIN:
+	cp = Config.adminEmail;
+	*var_len = strlen(cp);
+	return (u_char *) cp;
+    case CONF_UPTIME:
+	long_return = tvSubDsec(squid_start, current_time);
+	return (u_char *) & long_return;
+    case CONF_ST_MMAXSZ:
+	long_return = (long) Config.Mem.maxSize;
+	return (u_char *) & long_return;
+    case CONF_ST_MHIWM:
+	long_return = (long) Config.Mem.highWaterMark;
+	return (u_char *) & long_return;
+    case CONF_ST_MLOWM:
+	long_return = (long) Config.Mem.lowWaterMark;
+	return (u_char *) & long_return;
+    case CONF_ST_SWMAXSZ:
+	long_return = (long) Config.Swap.maxSize;
+	return (u_char *) & long_return;
+    case CONF_ST_SWHIWM:
+	long_return = (long) Config.Swap.highWaterMark;
+	return (u_char *) & long_return;
+    case CONF_ST_SWLOWM:
+	long_return = (long) Config.Swap.lowWaterMark;
+	return (u_char *) & long_return;
+    case CONF_WAIS_RHOST:
+	cp = Config.Wais.relayHost;
+	*var_len = strlen(cp);
+	return (u_char *) cp;
+    case CONF_WAIS_RPORT:
+	long_return = (long) Config.Wais.relayPort;
+	return (u_char *) & long_return;
+    case CONF_TIO_RD:
+	long_return = (long) Config.Timeout.read;
+	return (u_char *) & long_return;
+    case CONF_TIO_CON:
+	long_return = (long) Config.Timeout.connect;
+	return (u_char *) & long_return;
+    case CONF_TIO_REQ:
+	long_return = (long) Config.Timeout.request;
+	return (u_char *) & long_return;
+    case CONF_LOG_LVL:
+	return NULL;
+    case CONF_PTBL_ID:
+	long_return = current;
+	return (u_char *) & long_return;
+    case CONF_PTBL_NAME:
+	cp = p->host;
+	*var_len = strlen(cp);
+	return (u_char *) cp;
+    case CONF_PTBL_IP:
+	long_return = (long) (p->in_addr.sin_addr.s_addr);
+	return (u_char *) & long_return;
+    case CONF_PTBL_HTTP:
+	long_return = p->http_port;
+	return (u_char *) & long_return;
+    case CONF_PTBL_ICP:
+	long_return = p->icp_port;
+	return (u_char *) & long_return;
+    case CONF_PTBL_TYPE:
+	long_return = p->type;
+	return (u_char *) & long_return;
+    case CONF_PTBL_STATE:
+	long_return = neighborUp(p);
+	return (u_char *) & long_return;
+    default:
+	return (u_char *) NULL;
+    }
 
 /*
  * switch (vp->magic) {
@@ -713,7 +755,7 @@ var_cnf(struct variable * vp, oid * name, int *length,
 }
 
 u_char *
-var_htst(struct variable *vp, oid * name, int *length,
+var_htst(struct variable * vp, oid * name, int *length,
     int exact, int *var_len, int (**write_method) ())
 {
     static proto_stat *q;
@@ -1184,7 +1226,7 @@ var_perfsys_entry(struct variable * vp, oid * name, int *length, int exact, int 
     static int current;
     char *cp;
     peer *p = Config.peers;
-   	peer *e; 
+    peer *e;
     bcopy((char *) vp->name, (char *) newname, (int) vp->namelen * sizeof(oid));
 
     /* find "next" entry */
@@ -1204,7 +1246,7 @@ var_perfsys_entry(struct variable * vp, oid * name, int *length, int exact, int 
     }
     if (p == NULL)
 	return NULL;
-	e=p;
+    e = p;
 
     vp->magic = newname[11];
     switch (vp->magic) {
@@ -1251,8 +1293,8 @@ var_ipcache_entry(struct variable * vp, oid * name, int *length, int exact, int 
 }
 
 u_char *
-var_fqdn_entry(struct variable * vp, oid * name, int *length, int exact, int
-*var_len,
+var_fqdn_entry(struct variable *vp, oid * name, int *length, int exact, int
+    *var_len,
     int (**write_method) ())
 {
     oid newname[MAX_NAME_LEN];
@@ -1263,9 +1305,10 @@ var_fqdn_entry(struct variable * vp, oid * name, int *length, int exact, int
 
 
 }
+
 u_char *
-var_net_vars(struct variable * vp, oid * name, int *length, int exact, int
-*var_len,
+var_net_vars(struct variable *vp, oid * name, int *length, int exact, int
+    *var_len,
     int (**write_method) ())
 {
     oid newname[MAX_NAME_LEN];
@@ -1274,25 +1317,24 @@ var_net_vars(struct variable * vp, oid * name, int *length, int exact, int
     static int current;
     char *cp;
     static long long_return;
-    *var_len=sizeof(long_return);
+    *var_len = sizeof(long_return);
 
-	switch(vp->magic)
-	{
-	case NET_TCPCONNS:
-                return (u_char *)long_return;
-	case NET_UDPCONNS:
-                return (u_char *)long_return;
-	case NET_INTHRPUT:
-                return (u_char *)long_return;
-	case NET_OUTHRPUT:
-		return (u_char *)long_return;
-	default:
-	}
+    switch (vp->magic) {
+    case NET_TCPCONNS:
+	return (u_char *) long_return;
+    case NET_UDPCONNS:
+	return (u_char *) long_return;
+    case NET_INTHRPUT:
+	return (u_char *) long_return;
+    case NET_OUTHRPUT:
+	return (u_char *) long_return;
+    default:
+    }
 
 }
 
 u_char *
-var_netdb_entry(struct variable * vp, oid * name, int *length, int exact, int *var_len,
+var_netdb_entry(struct variable *vp, oid * name, int *length, int exact, int *var_len,
     int (**write_method) ())
 {
     oid newname[MAX_NAME_LEN];
@@ -1302,20 +1344,20 @@ var_netdb_entry(struct variable * vp, oid * name, int *length, int exact, int *v
     char *cp;
     peer *p;
     static netdbEntry *n;
-    static long long_return ;
+    static long long_return;
 
 #ifdef USE_ICMP
-	for ( n=netdbGetFirst(addr_table),current=0;n!=NULL&& current<name[10];
-			n=n->next,current++);
+    for (n = netdbGetFirst(addr_table), current = 0; n != NULL && current < name[10];
+	n = n->next, current++);
 #endif
-	if (n==NULL)
-		return NULL;
+    if (n == NULL)
+	return NULL;
 
     /* find "next" entry */
     sprint_objid(Name, name, *length);
-    debug(49,6) ("With oid=%s \n",Name);
+    debug(49, 6) ("With oid=%s \n", Name);
 
-	
+
     *length = vp->namelen + 1;
     *write_method = 0;
     *var_len = sizeof(long);
@@ -1323,30 +1365,30 @@ var_netdb_entry(struct variable * vp, oid * name, int *length, int exact, int *v
     vp->magic = newname[11];
     switch (vp->magic) {
     case NETDB_NET:
-	long_return=(long) n->network;
-	return (u_char *)&long_return;
+	long_return = (long) n->network;
+	return (u_char *) & long_return;
     case NETDB_PING_S:
-	long_return=(long) n->pings_sent;
-        return (u_char *)&long_return;
+	long_return = (long) n->pings_sent;
+	return (u_char *) & long_return;
     case NETDB_PING_R:
-	long_return=(long) n->pings_recv;
-        return (u_char *)&long_return;
+	long_return = (long) n->pings_recv;
+	return (u_char *) & long_return;
 
     case NETDB_HOPS:
-	long_return=(long) n->hops;
-        return (u_char *)&long_return;
+	long_return = (long) n->hops;
+	return (u_char *) & long_return;
 
     case NETDB_RTT:
-	long_return=(long) n->rtt;
-        return (u_char *)&long_return;
+	long_return = (long) n->rtt;
+	return (u_char *) & long_return;
 
     case NETDB_PINGTIME:
-	long_return=(long) n->next_ping_time;
-        return (u_char *)&long_return;
+	long_return = (long) n->next_ping_time;
+	return (u_char *) & long_return;
 
     case NETDB_LASTUSE:
-	long_return=(long) n->last_use_time;
-        return (u_char *)&long_return;
+	long_return = (long) n->last_use_time;
+	return (u_char *) & long_return;
     default:
 	return NULL;
     }

@@ -5,4 +5,3 @@
  */
 
 int snmp_dump_packet = 0;
-

@@ -404,7 +404,7 @@ serverConnectionsOpen(void)
 	}
     }
 #ifdef SQUID_SNMP
-        initSquidSnmp();
+    initSquidSnmp();
 #endif
 
     clientdbInit();
@@ -572,7 +572,7 @@ mainInitialize(void)
     configured_once = 1;
 
 #ifdef SQUID_SNMP
-	init_snmp();
+    init_snmp();
 #endif
 }
 

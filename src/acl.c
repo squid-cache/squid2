@@ -1073,7 +1073,7 @@ aclMatchProxyAuth(struct _acl_proxy_auth *p, aclCheck_t * checklist)
     if ((passwd = strchr(sent_user, ':')) != NULL)
 	*passwd++ = '\0';
     if (passwd == NULL) {
-        debug(28, 3) ("aclMatchProxyAuth: No passwd in auth blob\n");
+	debug(28, 3) ("aclMatchProxyAuth: No passwd in auth blob\n");
 	return 0;
     }
     debug(28, 5) ("aclMatchProxyAuth: checking user %s\n", sent_user);
