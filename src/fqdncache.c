@@ -1036,3 +1036,15 @@ char *fqdnFromAddr(addr)
     strncpy(buf, inet_ntoa(addr), 31);
     return buf;
 }
+
+int fqdncacheQueueDrain()
+{
+    fqdncache_entry *i;
+    dnsserver_t *dnsData;
+    if (!fqdncacheQueueHead)
+        return 0;
+    while ((dnsData = dnsGetFirstAvailable()) && (i = fqdncacheDequeue()))
+        fqdncache_dnsDispatch(dnsData, i);
+    return 1;
+}
+
