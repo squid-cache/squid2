@@ -1882,6 +1882,7 @@ aclDumpTimeSpecList(acl_time_data * t)
 	    t->stop / 60,
 	    t->stop % 60);
 	wordlistAdd(&W, buf);
+	t = t->next;
     }
     return W;
 }
@@ -1951,6 +1952,7 @@ aclDumpMethodList(intlist * data)
 wordlist *
 aclDumpGeneric(const acl * a)
 {
+    debug(28, 3) ("aclDumpGeneric: %s type %d\n", a->name, a->type);
     switch (a->type) {
     case ACL_SRC_IP:
     case ACL_DST_IP:
