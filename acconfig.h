@@ -354,6 +354,7 @@
 /* Support for poll/select/etc stuff */
 #undef USE_POLL
 #undef USE_SELECT
+#undef USE_KQUEUE
 
 @BOTTOM@
 

@@ -1612,14 +1612,16 @@ if test "$ac_cv_func_poll" = "yes" ; then
 elif test "$ac_cv_func_select" = "yes" ; then
         SELECT_TYPE="select"
         AC_DEFINE(USE_SELECT)
+elif test "$ac_cv_func_kqueue" = "yes" ; then
+	SELECT_TYPE="kqueue"
+	AC_DEFINE(USE_KQUEUE)
 else
-        echo "Eep!  Can't find poll or select!"
+        echo "Eep!  Can't find poll, kqueue or select!"
         echo "I'll try select and hope for the best."
         SELECT_TYPE="select"
         AC_DEFINE(USE_SELECT)
 fi
 echo "Using ${SELECT_TYPE} for select loop."
-AC_DEFINE_UNQUOTED(SELECT_TYPE, "$SELECT_TYPE")
 
 
 dnl Yay!  Another Linux brokenness.  Its not good enough
