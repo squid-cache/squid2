@@ -245,7 +245,7 @@ storeSwapOutFileClosed(void *data, int errflag, storeIOState * sio)
 	if (errno == EPERM)
 	    storeDirMapBitSet(bad);
 	if (errflag == DISK_NO_SPACE_LEFT) {
-	    storeDirDiskFull(e->swap_file_number);
+	    storeDirDiskFull(bad);
 	    storeDirConfigure();
 	    storeConfigure();
 	}
