@@ -290,7 +290,7 @@
 #	request will be satisfied from the default source.  The default
 #	timeout is two seconds.
 #
-#neighbor_timeout 2
+#neighbor_timeout 2 seconds
 
 #  TAG: hierarchy_stoplist
 #	A list of words which, if found in a URL, cause the object to
@@ -664,7 +664,7 @@ debug_options ALL,1
 #	minutes.  Note that this is different from negative caching of
 #	DNS lookups.
 #
-#negative_ttl 5
+#negative_ttl 5 minutes
 
 #
 #  TAG: positive_dns_ttl (in minutes)         
@@ -672,12 +672,12 @@ debug_options ALL,1
 #	Default is 6 hours (360 minutes).  If you want to minimize the
 #	use of Squid's ipcache, set this to 1, not 0.
 #
-#positive_dns_ttl 360
+#positive_dns_ttl 360 minutes
 
 #  TAG: negative_dns_ttl (in minutes)         
 #	Time-to-Live (TTL) for negative caching of failed DNS lookups.
 #
-#negative_dns_ttl 5
+#negative_dns_ttl 5 minutes
 
 
 # TIMEOUTS
@@ -690,7 +690,7 @@ debug_options ALL,1
 #	specifies how long to wait for the connect to complete.  The
 #	default is two minutes (120 seconds).
 #
-#connect_timeout 120
+#connect_timeout 120 seconds
 
 #  TAG: read_timeout (in minutes)         
 #	An active connection will be aborted after read_timeout minutes
@@ -698,7 +698,7 @@ debug_options ALL,1
 #	or network connection died after the connection was established).
 #	The default is 15 minutes.
 #
-#read_timeout 15
+#read_timeout 15 minutes
 
 #  TAG: client_lifetime (in minutes)         
 #	The maximum amount of time that a client (browser) is allowed to
@@ -715,7 +715,7 @@ debug_options ALL,1
 #	connectivity, or occasionally run out of file descriptors,
 #	we suggest you lower this value appropriately.
 #
-#client_lifetime 200
+#client_lifetime 200 minutes
 
 #  TAG: shutdown_lifetime (in seconds)
 #
@@ -725,7 +725,7 @@ debug_options ALL,1
 #	during shutdown mode.  Any active clients after this many
 #	seconds will receive a 'lifetime expire' message
 #
-#shutdown_lifetime 30
+#shutdown_lifetime 30 seconds
 
 # ACCESS CONTROLS
 #-----------------------------------------------------------------------------
