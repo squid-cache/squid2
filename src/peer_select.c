@@ -111,7 +111,9 @@ peer *
 peerGetSomeParent(request_t * request, hier_code * code)
 {
     peer *p;
-    debug(44, 3) ("peerGetSomeParent: called.\n");
+    debug(44, 3) ("peerGetSomeParent: %s %s\n",
+	RequestMethodStr[request->method],
+	request->host);
     if ((p = getDefaultParent(request))) {
 	*code = DEFAULT_PARENT;
 	return p;
