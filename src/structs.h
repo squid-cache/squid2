@@ -1951,7 +1951,7 @@ struct _FwdServer {
 };
 
 struct _FwdState {
-    int client_fd;
+    int client_fd;		/* XXX unnecessary */
     StoreEntry *entry;
     request_t *request;
     FwdServer *servers;
