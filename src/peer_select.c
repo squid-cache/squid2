@@ -168,7 +168,7 @@ peerSelectFoo(ps_state * psstate)
     debug(44, 3, "peerSelect: '%s %s'\n",
 	RequestMethodStr[request->method],
 	request->host);
-    if (psstate->never_direct == 0) {
+    if (psstate->never_direct == 0 && Config.accessList.NeverDirect) {
 	aclNBCheck(Config.accessList.NeverDirect,
 	    request,
 	    request->client_addr,
@@ -179,7 +179,7 @@ peerSelectFoo(ps_state * psstate)
 	return;
     } else if (psstate->never_direct > 0) {
 	direct = DIRECT_NO;
-    } else if (psstate->always_direct == 0) {
+    } else if (psstate->always_direct == 0 && Config.accessList.AlwaysDirect) {
 	aclNBCheck(Config.accessList.AlwaysDirect,
 	    request,
 	    request->client_addr,
