@@ -1472,6 +1472,7 @@ struct _StatCounters {
 #endif
     } syscalls;
     int store_files_cleaned;
+    int aborted_requests;
 };
 
 /* per header statistics */
