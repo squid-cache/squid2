@@ -796,7 +796,6 @@ storeMaintainSwapSpace(void *datanotused)
     heap_key age;
     heap_key min_age = 0.0;
     link_list *locked_entries = NULL;
-    static time_t last_report = 0;
 #if HEAP_REPLACEMENT_DEBUG
     if (!verify_heap_property(store_heap)) {
 	debug(20, 1) ("Heap property violated!\n");
@@ -825,10 +824,6 @@ storeMaintainSwapSpace(void *datanotused)
 	if (scanned >= max_scan)
 	    break;
 	age = heap_peepminkey(store_heap);
-	if (squid_curtime - last_report > 1) {
-	    debug(0, 1) ("storeMaintainSwapSpace: age=%f, threshold=%f\n", age, storeReplacementThreshold());
-	    last_report = squid_curtime;
-	}
 	if (age > storeReplacementThreshold())
 	    break;
 	e = heap_extractmin(store_heap);
