@@ -1075,7 +1075,13 @@ storeDoRebuildFromDisk(void *data)
 	}
 	e = storeGet(url);
 	used = file_map_bit_test(sfileno);
-	newer = e ? timestamp > e->timestamp ? 1 : 0 : 1;
+	/* If this URL already exists in the cache, does the swap log
+	 * appear to have a newer entry?  Compare 'timestamp' from the
+	 * swap log to e->lastref.  Note, we can't compare e->timestamp
+	 * because it is the Date: header from the HTTP reply and
+	 * doesn't really tell us when the object was added to the
+	 * cache. */
+	newer = e ? timestamp > e->lastref ? 1 : 0 : 1;
 	if (!newer) {
 	    /* log entry is old, ignore it */
 	    rebuildData->clashcount++;
@@ -1108,6 +1114,7 @@ storeDoRebuildFromDisk(void *data)
 	} else {
 	    /* URL doesnt exist, swapfile not in use */
 	    /* load new */
+	    (void) 0;
 	}
 	/* update store_swap_size */
 	store_swap_size += (int) ((size + 1023) >> 10);
