@@ -53,13 +53,19 @@ AC_PROG_CC
 
 dnl Warn if not using GNU cc
 XXXCC=`echo $CC | awk '{print $1}'`
-if test "`basename $XXXCC`" != "gcc"; then
+if test "`basename $XXXCC`" = "gcc"; then
+	:
+elif test "`basename $XXXCC`" = "shlicc"; then
+	:
+elif test "`basename $XXXCC`" = "shlicc2"; then
+	:
+else
         echo '**************************************************************';
         echo '**************************************************************';
         echo '**';
         echo '**   WARNING:  Squid is only guaranteed to compile with GNU cc.';
         echo "**   Currently, you're using $CC";
-        echo '**   ';
+        echo '**';
         echo '**************************************************************';
         echo '**************************************************************';
 	sleep 5
