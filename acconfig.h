@@ -175,3 +175,10 @@
 
 /* Define if you have struct rusage */
 #undef HAVE_STRUCT_RUSAGE
+
+/*
+ * This makes warnings go away.  If you have socklen_t defined in your
+ * /usr/include files, then this should remain undef'd.  Otherwise it
+ * should be defined to int.
+ */
+#undef socklen_t
