@@ -444,6 +444,7 @@ xstrerror(void)
     return xstrerror_buf;
 }
 
+#if NOT_NEEDED
 /*
  * xbstrerror with argument for late notification */
 
@@ -456,6 +457,7 @@ xbstrerror(int err)
     sprintf(xbstrerror_buf, "(%d) %s", err, strerror(err));
     return xbstrerror_buf;
 }
+#endif
 
 void
 Tolower(char *q)
