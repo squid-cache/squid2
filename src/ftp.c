@@ -1013,7 +1013,8 @@ ftpConnectDone(int fd, int status, void *data)
 	ftpState->data.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
 	ftpState->data.size = SQUID_TCP_SO_RCVBUF;
 	ftpState->data.freefunc = xfree;
-	commSetSelect(fd, COMM_SELECT_READ, ftpReadControlReply, ftpState, Config.Timeout.read);
+	commSetSelect(fd, COMM_SELECT_READ, ftpReadControlReply, ftpState, 0);
+        commSetTimeout(fd, Config.Timeout.read, ftpTimeout, ftpState);
     }
 }
 

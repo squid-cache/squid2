@@ -948,6 +948,7 @@ httpConnectDone(int fd, int status, void *data)
 	fd_note(fd, storeUrl(entry));
 	fd_table[fd].uses++;
 	commSetSelect(fd, COMM_SELECT_WRITE, httpSendRequest, httpState, 0);
+	commSetTimeout(fd, Config.Timeout.read, httpTimeout, httpState);
     }
 }
 

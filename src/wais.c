@@ -359,6 +359,7 @@ waisConnectDone(int fd, int status, void *data)
 	comm_close(fd);
     } else {
 	commSetSelect(fd, COMM_SELECT_WRITE, waisSendRequest, waisState, 0);
+        commSetTimeout(fd, Config.Timeout.read, waisTimeout, waisState);
     }
 }
 

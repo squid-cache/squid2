@@ -926,6 +926,7 @@ gopherConnectDone(int fd, int status, void *data)
 	comm_close(fd);
     } else {
 	commSetSelect(fd, COMM_SELECT_WRITE, gopherSendRequest, gopherState, 0);
+	commSetTimeout(fd, Config.Timeout.read, gopherTimeout, gopherState);
     }
 }
 

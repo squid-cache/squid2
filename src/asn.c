@@ -83,6 +83,7 @@ typedef struct _rtentry rtentry;
 static int asnAddNet(char *, int);
 static void asnCacheStart(int as);
 static PF whoisClose;
+static PF whoisTimeout;
 static CNCB whoisConnectDone;
 static PF whoisReadReply;
 static STCB asHandleReply;
@@ -377,7 +378,16 @@ whoisConnectDone(int fd, int status, void *data)
     snprintf(buf, 128, "%s\r\n", strBuf(p->request->urlpath) + 1);
     debug(53, 3) ("whoisConnectDone: FD %d, '%s'\n", fd, strBuf(p->request->urlpath) + 1);
     comm_write(fd, xstrdup(buf), strlen(buf), NULL, p, xfree);
-    commSetSelect(fd, COMM_SELECT_READ, whoisReadReply, p, Config.Timeout.read);
+    commSetSelect(fd, COMM_SELECT_READ, whoisReadReply, p, 0);
+    commSetTimeout(fd, Config.Timeout.read, whoisTimeout, p);
+}
+
+static void
+whoisTimeout(int fd, void *data)
+{
+    whoisState *p = data;
+    debug(53, 1) ("whoisTimeout: %s\n", storeUrl(p->entry));
+    whoisClose(fd, p);
 }
 
 static void
