@@ -615,11 +615,11 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    httpState->entry = entry;
 	    httpProcessReplyHeader(httpState, data, data_sz);
 	    storeAppend(entry, data, data_sz);
-	    storeComplete(entry);
 	    hierarchyNote(entry->mem_obj->request,
 		e->type == EDGE_PARENT ? HIER_PARENT_UDP_HIT_OBJ : HIER_SIBLING_UDP_HIT_OBJ,
 		0,
 		e->host);
+	    storeComplete(entry);	/* This might release entry! */
 	    if (httpState->reply_hdr)
 		put_free_8k_page(httpState->reply_hdr);
 	    safe_free(httpState);
