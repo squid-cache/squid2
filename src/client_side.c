@@ -179,6 +179,7 @@ clientAccessCheckDone(int answer, void *data)
 	httpReplySwapOut(rep, http->entry);
 	/* do not need it anymore */
 	httpReplyDestroy(rep);
+	storeComplete(http->entry);
     } else {
 	debug(33, 5) ("Access Denied: %s\n", http->uri);
 	debug(33, 5) ("AclMatchedName = %s\n",
