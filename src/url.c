@@ -238,6 +238,10 @@ urlParse(method_t method, char *url)
 	debug(23, 0, "urlParse: Invalid port == 0\n");
 	return NULL;
     }
+    /* remove trailing slashes from FTP URLs */
+    t = urlpath + strlen(urlpath);
+    while (*(--t) == '/')
+	*t = '\0';
     request = get_free_request_t();
     request->method = method;
     request->protocol = protocol;
