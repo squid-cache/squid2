@@ -1661,6 +1661,7 @@ var_cachesys_entry(struct variable * vp, oid * name, int *length, int exact,
 
     debug(49, 3) ("snmp: var_cachesys_entry called with magic=%d, *length=%d, *var_len=%d\n",
 	vp->magic, *length, *var_len);
+
     sprint_objid(snbuf, name, *length);
     debug(49, 3) ("snmp: var_cachesys_entry oid: %s\n", snbuf);
 
