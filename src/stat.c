@@ -126,6 +126,7 @@ static OBJH statFiledescriptors;
 static OBJH statCounters;
 static OBJH statAvg5min;
 static OBJH statAvg60min;
+static OBJH statUtilization;
 
 #ifdef XMALLOC_STATISTICS
 static void info_get_mallstat(int, int, StoreEntry *);
@@ -137,7 +138,7 @@ static StatCounters CountHourHist[N_COUNT_HOUR_HIST];
 static int NCountHourHist = 0;
 
 void
-stat_utilization_get(StoreEntry * e)
+statUtilization(StoreEntry * e)
 {
     storeAppendPrintf(e, "Cache Utilisation:\n");
     storeAppendPrintf(e, "\n");
@@ -776,6 +777,9 @@ statInit(void)
     cachemgrRegister("60min",
 	"60 Minute Average of Counters",
 	statAvg60min, 0);
+    cachemgrRegister("utilization",
+	"Cache Utilization",
+	statUtilization, 0);
 }
 
 static void
