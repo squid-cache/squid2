@@ -32,6 +32,11 @@ Changes to squid-2.5.STABLE3 ():
 	- Bug #606: Basic auth looping and gets stuck at high CPU usage when
 	  multiple proxy_auth ACLs combined in one line and login fails.
 	- squid_ldap_auth updated with support for TLS and SSL
+	- Bug #623: segfault if using negated external acls in certain
+	  configurations involving other acls later on the same http_access
+	  line.
+	- Bug #622: wb_group helper update to version 1.2 to ass support for
+	  Domain-Qualified groups refering to groups in a specific domain
 
 Changes to squid-2.5.STABLE2 (Mars 17, 2003):
 
