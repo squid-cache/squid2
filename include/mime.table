@@ -94,3 +94,4 @@
 .lzh	   application/x-lha-compressed     binary	 1.0	binary
 .lha	   application/x-lha-compressed	    binary	 1.0	binary
 .jar       application/java-archive         binary       1.0    binary
+.readme    text/plain                       7bit         0.5    text
