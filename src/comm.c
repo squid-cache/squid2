@@ -260,6 +260,8 @@ comm_open(int sock_type,
     F = &fd_table[new_socket];
     if (!(flags & COMM_NOCLOEXEC))
 	commSetCloseOnExec(new_socket);
+    if ((flags & COMM_REUSEADDR))
+	commSetReuseAddr(new_socket);
     if (port > (u_short) 0) {
 	commSetNoLinger(new_socket);
 	if (opt_reuseaddr)
