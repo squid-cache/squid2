@@ -131,11 +131,11 @@ unlinkdCreate(void)
 	    close(wfd1);
 	    return -1;
 	}
-	comm_set_fd_lifetime(wfd1, -1);
 	slp.tv_sec = 0;
 	slp.tv_usec = 250000;
 	select(0, NULL, NULL, NULL, &slp);
 	file_open_fd(wfd1, "unlinkd socket", FD_PIPE);
+	comm_set_fd_lifetime(wfd1, -1);
 	commSetNonBlocking(wfd1);
 	return wfd1;
     }
