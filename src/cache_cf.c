@@ -1248,6 +1248,12 @@ parseConfigFile(const char *file_name)
 	else if (!strcmp(token, "redirect_children"))
 	    parseIntegerValue(&Config.redirectChildren);
 
+	else if (!strcmp(token, "pinger_program"))
+	    parsePathname(&Config.Program.pinger, 1);
+
+	else if (!strcmp(token, "unlinkd_program"))
+	    parsePathname(&Config.Program.unlinkd, 1);
+
 #if USE_PROXY_AUTH
 	else if (!strcmp(token, "proxy_auth"))
 	    parseProxyAuthLine();
