@@ -199,7 +199,8 @@ struct _SquidConfig {
 	size_t maxSize;
 	int highWaterMark;
 	int lowWaterMark;
-    } Mem , Swap;
+    } Swap;
+    size_t memMaxSize;
     struct {
 	char *relayHost;
 	u_short relayPort;

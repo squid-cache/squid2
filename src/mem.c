@@ -278,7 +278,7 @@ memInit(void)
     memDataInit(MEM_SQUIDCONFIG2, "SquidConfig2", sizeof(SquidConfig2), 0);
     memDataInit(MEM_STATCOUNTERS, "StatCounters", sizeof(StatCounters), 0);
     memDataInit(MEM_STMEM_BUF, "Store Mem Buffer", SM_PAGE_SIZE,
-	Config.Mem.maxSize / SM_PAGE_SIZE);
+	Config.memMaxSize / SM_PAGE_SIZE);
     memDataInit(MEM_STOREENTRY, "StoreEntry", sizeof(StoreEntry), 0);
     memDataInit(MEM_STORE_CLIENT, "store_client", sizeof(store_client), 0);
     memDataInit(MEM_SWAPDIR, "SwapDir", sizeof(SwapDir), 0);

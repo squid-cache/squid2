@@ -204,7 +204,7 @@ configDoConfigure(void)
 	fatal("No cache_dir's specified in config file");
     /* calculate Config.Swap.maxSize */
     storeDirConfigure();
-    if (Config.Swap.maxSize < (Config.Mem.maxSize >> 10))
+    if (Config.Swap.maxSize < (Config.memMaxSize >> 10))
 	fatal("cache_swap is lower than cache_mem");
     if (Config.Announce.period > 0) {
 	Config.onoff.announce = 1;

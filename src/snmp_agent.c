@@ -117,19 +117,19 @@ snmp_confFn(variable_list * Var, snint * ErrP)
 	    Answer->val_len = sizeof(snint);
 	    Answer->val.integer = xmalloc(Answer->val_len);
 	    Answer->type = ASN_INTEGER;
-	    *(Answer->val.integer) = (snint) Config.Mem.maxSize;
+	    *(Answer->val.integer) = (snint) Config.MemMaxSize;
 	    break;
-	case CONF_ST_MHIWM:
+	case CONF_ST_MHIWM:	/* DELETE ME */
 	    Answer->val_len = sizeof(snint);
 	    Answer->val.integer = xmalloc(Answer->val_len);
 	    Answer->type = ASN_INTEGER;
-	    *(Answer->val.integer) = (snint) Config.Mem.highWaterMark;
+	    *(Answer->val.integer) = (snint) 0;
 	    break;
-	case CONF_ST_MLOWM:
+	case CONF_ST_MLOWM:	/* DELETE ME */
 	    Answer->val_len = sizeof(snint);
 	    Answer->val.integer = xmalloc(Answer->val_len);
 	    Answer->type = ASN_INTEGER;
-	    *(Answer->val.integer) = (snint) Config.Mem.lowWaterMark;
+	    *(Answer->val.integer) = (snint) 0;
 	    break;
 	case CONF_ST_SWMAXSZ:
 	    Answer->val_len = sizeof(snint);
