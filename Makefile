@@ -23,4 +23,4 @@ dosquid:
 makefile: makefile.in Makefile
 	@echo Running configure script to generate makefile
 	@echo
-	@sh configure --prefix=${prefix} --exec_prefix=${exec_prefix}
+	./configure --prefix=${prefix} --exec_prefix=${exec_prefix}
