@@ -299,7 +299,7 @@ shut_down(int sig)
     {
 	pid_t ppid = getppid();
 	if (ppid > 1) {
-	    debug(1, 1, "Killing RunCache, pid %d\n", ppid);
+	    debug(1, 1) ("Killing RunCache, pid %d\n", ppid);
 	    kill(ppid, sig);
 	}
     }
