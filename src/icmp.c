@@ -316,6 +316,8 @@ icmpClose(void)
 {
 #if USE_ICMP
     icmpQueueData *queue;
+    if (icmp_sock < 0)
+	return;
     debug(29, 0, "Closing ICMP socket on FD %d\n", icmp_sock);
     comm_close(icmp_sock);
     commSetSelect(icmp_sock, COMM_SELECT_READ, NULL, NULL, 0);
