@@ -113,7 +113,8 @@ icmpSend(pingerEchoData * pkt, int len)
     int x;
     if (icmp_sock < 0)
 	return;
-    debug(37, 2) ("icmpSend: to %s, opcode %d, len %d\n", inet_ntoa(pkt->to), (int) pkt->opcode, pkt->len);
+    debug(37, 2) ("icmpSend: to %s, opcode %d, len %d\n",
+	inet_ntoa(pkt->to), (int) pkt->opcode, pkt->psize);
     x = send(icmp_sock, (char *) pkt, len, 0);
     if (x < 0) {
 	debug(50, 1) ("icmpSend: send: %s\n", xstrerror());
