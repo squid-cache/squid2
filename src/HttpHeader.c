@@ -1083,7 +1083,7 @@ httpHeaderEntryParseCreate(const char *field_start, const char *field_end)
 	debug(55, 1) ("WARNING: ignoring header name of %d bytes\n", name_len);
 	return NULL;
     }
-    if (Config.onoff.ignore_header_whitespace && xisspace(field_start[name_len - 1])) {
+    if (Config.onoff.relaxed_header_parser && xisspace(field_start[name_len - 1])) {
 	debug(55, 2) ("WARNING: Whitespace in header name '%s'\n", getStringPrefix(field_start, field_end));
 	while (name_len > 0 && xisspace(field_start[name_len - 1]))
 	    name_len--;

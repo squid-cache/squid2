@@ -4017,10 +4017,10 @@ DOC_START
 	until all the child processes have been started.
 DOC_END
 
-NAME: ignore_header_whitespace
+NAME: relaxed_header_parser
 COMMENT: on|off
 TYPE: onoff
-LOC: Config.onoff.ignore_header_whitespace
+LOC: Config.onoff.relaxed_header_parser
 DEFAULT: off
 DOC_START
 	By default Squid parses the HTTP protocol strictly and

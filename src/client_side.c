@@ -2688,7 +2688,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     end = req_hdr + header_sz;
     debug(33, 3) ("parseHttpRequest: end = {%s}\n", end);
 
-    if (strstr(req_hdr, "\r\r\n")) {
+    if (!Config.onoff.relaxed_header_parser && strstr(req_hdr, "\r\r\n")) {
 	debug(33, 1) ("WARNING: suspicious HTTP request contains double CR\n");
 	*status = 0;
 	xfree(inbuf);
