@@ -95,8 +95,8 @@ eventRun(void)
 	if (event == NULL)
 	    fatal_dump("LOST storeMaintain event!");
 #endif
+	return;
     }
-    return;
     debug(41, 3, "eventRun: Running '%s'\n", event->name);
     func = event->func;
     arg = event->arg;
