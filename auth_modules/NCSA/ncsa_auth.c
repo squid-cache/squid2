@@ -53,10 +53,10 @@ typedef struct _user_data {
 static void
 my_free(void *p)
 {
-	user_data *u = p;
-	xfree(u->user);
-	xfree(u->passwd);
-	xfree(u);
+    user_data *u = p;
+    xfree(u->user);
+    xfree(u->passwd);
+    xfree(u);
 }
 
 static void
@@ -73,8 +73,8 @@ read_passwd_file(const char *passwdfile)
 	hashFreeItems(hash, my_free);
     } else {
 	/* initial setup */
-	hash = hash_create((HASHCMP *)strcmp, 7921, hash_string);
-	if (NULL ==hash) {
+	hash = hash_create((HASHCMP *) strcmp, 7921, hash_string);
+	if (NULL == hash) {
 	    fprintf(stderr, "ncsa_auth: cannot create hash table\n");
 	    exit(1);
 	}
@@ -113,7 +113,6 @@ main(int argc, char **argv)
 	fprintf(stderr, "cannot stat %s\n", argv[1]);
 	exit(1);
     }
-
     while (fgets(buf, 256, stdin) != NULL) {
 	if (stat(argv[1], &sb) == 0) {
 	    if (sb.st_mtime != change_time) {
@@ -129,7 +128,7 @@ main(int argc, char **argv)
 	}
 	*passwd++ = '\0';
 	if ((p = strchr(passwd, '\n')) != NULL)
-	    *p = '\0';	    /* strip \n */
+	    *p = '\0';		/* strip \n */
 	u = hash_lookup(hash, user);
 	if (u &&
 	    strcmp(u->passwd, (char *) crypt(passwd, u->passwd)) == 0) {
@@ -139,6 +138,6 @@ main(int argc, char **argv)
 	}
 	fflush(stdout);
     }
-    
+
     exit(0);
 }

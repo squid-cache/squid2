@@ -307,19 +307,19 @@ configDoConfigure(void)
     requirePathnameExists("Error Directory", Config.errorDirectory);
 #if HTTP_VIOLATIONS
     {
-    const refresh_t *R;
-    for (R = Config.Refresh; R; R = R->next) {
-	if (!R->flags.override_expire)
-	    continue;
-	debug(22, 1) ("WARNING: use of 'override-expire' in 'refresh_pattern' violates HTTP\n");
-	break;
-    }
-    for (R = Config.Refresh; R; R = R->next) {
-	if (!R->flags.override_lastmod)
-	    continue;
-	debug(22, 1) ("WARNING: use of 'override-lastmod' in 'refresh_pattern' violates HTTP\n");
-	break;
-    }
+	const refresh_t *R;
+	for (R = Config.Refresh; R; R = R->next) {
+	    if (!R->flags.override_expire)
+		continue;
+	    debug(22, 1) ("WARNING: use of 'override-expire' in 'refresh_pattern' violates HTTP\n");
+	    break;
+	}
+	for (R = Config.Refresh; R; R = R->next) {
+	    if (!R->flags.override_lastmod)
+		continue;
+	    debug(22, 1) ("WARNING: use of 'override-lastmod' in 'refresh_pattern' violates HTTP\n");
+	    break;
+	}
     }
 #endif
 }

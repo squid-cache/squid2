@@ -269,7 +269,7 @@ statStoreEntry(StoreEntry * s, StoreEntry * e)
 	    (int) mem->swapout.done_offset,
 	    (int) mem->swapout.queue_offset,
 	    mem->swapout.fd);
-	for (i=0, sc = &mem->clients[i]; sc != NULL; sc = sc->next, i++) {
+	for (i = 0, sc = &mem->clients[i]; sc != NULL; sc = sc->next, i++) {
 	    if (sc->callback_data == NULL)
 		continue;
 	    storeAppendPrintf(s, "\tClient #%d\n", i);
