@@ -13,7 +13,8 @@
 
 static char ftpASCII[] = "A";
 static char ftpBinary[] = "I";
-static int ftpget_server_pipe = -1;
+static int ftpget_server_read = -1;
+static int ftpget_server_write = -1;
 #ifdef USE_FTPGET_INET_SOCK
 static char localhost[] = "127.0.0.1";
 static u_short ftpget_port = 0;
@@ -641,16 +642,19 @@ static void ftpServerClosed(fd, nodata)
 
 void ftpServerClose()
 {
-    if (ftpget_server_pipe < 0)
+    if (ftpget_server_read < 0)
 	return;
 
-    comm_set_select_handler(ftpget_server_pipe,
+    comm_set_select_handler(ftpget_server_read,
 	COMM_SELECT_EXCEPT,
 	(PF) NULL,
 	(void *) NULL);
-    fdstat_close(ftpget_server_pipe);
-    close(ftpget_server_pipe);
-    ftpget_server_pipe = -1;
+    fdstat_close(ftpget_server_read);
+    close(ftpget_server_read);
+    fdstat_close(ftpget_server_write);
+    close(ftpget_server_write);
+    ftpget_server_read = -1;
+    ftpget_server_write = -1;
 }
 
 
@@ -658,7 +662,8 @@ int ftpInitialize()
 {
     int pid;
     int fd;
-    int p[2];
+    int squid_to_ftpget[2];
+    int ftpget_to_squid[2];
 #ifdef USE_FTPGET_INET_SOCK
     char pbuf[128];
 #else
@@ -673,7 +678,11 @@ int ftpInitialize()
     strncpy(ftpget_socket_path, tempnam(NULL, "ftpget"), 127);
 #endif
 
-    if (pipe(p) < 0) {
+    if (pipe(squid_to_ftpget) < 0) {
+	debug(9, 0, "ftpInitialize: pipe: %s\n", xstrerror());
+	return -1;
+    }
+    if (pipe(ftpget_to_squid) < 0) {
 	debug(9, 0, "ftpInitialize: pipe: %s\n", xstrerror());
 	return -1;
     }
@@ -682,30 +691,34 @@ int ftpInitialize()
 	return -1;
     }
     if (pid != 0) {		/* parent */
-	close(p[0]);
-	fdstat_open(p[1], Pipe);
-	fd_note(p[1], "ftpget -S");
-	fcntl(p[1], F_SETFD, 1);	/* set close-on-exec */
+	close(squid_to_ftpget[0]);
+	close(ftpget_to_squid[1]);
+	fdstat_open(squid_to_ftpget[1], Pipe);
+	fdstat_open(ftpget_to_squid[0], Pipe);
+	fd_note(squid_to_ftpget[1], "ftpget -S");
+	fd_note(ftpget_to_squid[0], "ftpget -S");
+	fcntl(squid_to_ftpget[1], F_SETFD, 1);	/* set close-on-exec */
+	fcntl(ftpget_to_squid[0], F_SETFD, 1);	/* set close-on-exec */
 	/* if ftpget -S goes away, this handler should get called */
-	comm_set_select_handler(p[1],
-	    COMM_SELECT_EXCEPT,
-	    (PF) ftpServerClosed,
-	    (void *) NULL);
-	comm_set_select_handler(p[1],
+	comm_set_select_handler(ftpget_to_squid[0],
 	    COMM_SELECT_READ,
 	    (PF) ftpServerClosed,
 	    (void *) NULL);
-	ftpget_server_pipe = p[1];
+	ftpget_server_write = squid_to_ftpget[1];
+	ftpget_server_read = ftpget_to_squid[0];
 	return 0;
     }
     /* child */
     /* give up all extra priviligies */
     no_suid();
     /* set up stdin,stdout */
-    dup2(p[0], 0);
+    dup2(squid_to_ftpget[0], 0);
+    dup2(ftpget_to_squid[1], 1);
     dup2(fileno(debug_log), 2);
-    close(p[0]);
-    close(p[1]);
+    close(squid_to_ftpget[0]);
+    close(squid_to_ftpget[1]);
+    close(ftpget_to_squid[0]);
+    close(ftpget_to_squid[1]);
     /* inherit stdin,stdout,stderr */
     for (fd = 3; fd < fdstat_biggest_fd(); fd++)
 	(void) close(fd);
