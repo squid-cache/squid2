@@ -477,6 +477,7 @@ storeDirGetBlkSize(const char *path, int *blksize)
     struct statvfs sfs;
     if (statvfs(path, &sfs)) {
 	debug(50, 1) ("%s: %s\n", path, xstrerror());
+	*blksize = 2048;
 	return 1;
     }
     *blksize = (int) sfs.f_frsize;
@@ -484,10 +485,16 @@ storeDirGetBlkSize(const char *path, int *blksize)
     struct statfs sfs;
     if (statfs(path, &sfs)) {
 	debug(50, 1) ("%s: %s\n", path, xstrerror());
+	*blksize = 2048;
 	return 1;
     }
     *blksize = (int) sfs.f_bsize;
 #endif
+    /*
+     * Sanity check; make sure we have a meaningful value.
+     */
+    if (*blksize > 512)
+	*blksize = 2048;
     return 0;
 }
 
