@@ -1357,6 +1357,22 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	    httpHeaderPutInt(hdr, HDR_AGE,
 		squid_curtime - http->entry->timestamp);
     }
+    /* Filter unproxyable authentication types */
+    if (httpHeaderHas(hdr, HDR_WWW_AUTHENTICATE) || httpHeaderHas(hdr, HDR_PROXY_AUTHENTICATE)) {
+	HttpHeaderPos pos = HttpHeaderInitPos;
+	HttpHeaderEntry *e;
+	while ((e = httpHeaderGetEntry(hdr, &pos))) {
+	    if (e->id == HDR_WWW_AUTHENTICATE || e->id == HDR_PROXY_AUTHENTICATE) {
+		const char *value = strBuf(e->value);
+		if ((strncasecmp(value, "NTLM", 4) == 0 &&
+			(value[4] == '\0' || value[4] == ' '))
+		    ||
+		    (strncasecmp(value, "Negotiate", 9) == 0 &&
+			(value[9] == '\0' || value[9] == ' ')))
+		    httpHeaderDelAt(hdr, pos);
+	    }
+	}
+    }
     /* Handle authentication headers */
     if (request->auth_user_request)
 	authenticateFixHeader(rep, request->auth_user_request, request, http->flags.accel, 0);
