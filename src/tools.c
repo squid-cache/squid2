@@ -256,7 +256,7 @@ void sig_child(sig)
     int pid;
     ftpget_thread *t = NULL;
 
-    if ((pid = waitpid(0, &status, WNOHANG)) > 0) {
+    if ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
 	debug(3, "sig_child: Ate pid %d\n", pid);
 	for (t = FtpgetThread; t; t = t->next) {
 	    debug(5, "sig_child: checking pid=%d  state=%d\n",
