@@ -390,7 +390,7 @@ static int icpSendMoreData(fd, icpState)
     if (icpState->request->method == METHOD_HEAD && (p = mime_headers_end(buf))) {
 	*p = '\0';
 	len = p - buf;
-	icpState->offset = entry->mem_obj->e_current_len; /* force end */
+	icpState->offset = entry->mem_obj->e_current_len;	/* force end */
     }
     comm_write(fd,
 	buf,
@@ -639,7 +639,7 @@ void icp_hit_or_miss(fd, icpState)
     if (icpState->method == METHOD_HEAD) {
 	pubkey = storeGeneratePublicKey(icpState->url, METHOD_GET);
     } else
-        pubkey = storeGeneratePublicKey(icpState->url, icpState->method);
+	pubkey = storeGeneratePublicKey(icpState->url, icpState->method);
 
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* This object isn't in the cache.  We do not hold a lock yet */
@@ -1577,7 +1577,7 @@ static int parseHttpRequest(icpState)
 		inet_ntoa(icpState->me.sin_addr),
 		Config.Accel.port,
 		request);
-	    debug(12, 0, "VHOST REWRITE: '%s'\n", icpState->url);
+	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
 	}
 	BIT_SET(icpState->flags, REQ_ACCEL);
     } else {
@@ -1593,7 +1593,6 @@ static int parseHttpRequest(icpState)
     xfree(inbuf);
     return 1;
 }
-
 
 #define ASCII_INBUF_BLOCKSIZE 4096
 /*
