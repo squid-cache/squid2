@@ -288,7 +288,7 @@ setSocketShutdownLifetimes(int lft)
     int i;
     for (i = fdstat_biggest_fd(); i >= 0; i--) {
 	f = &fd_table[i];
-	if (!f->read_handler && !f->write_handler && !f->except_handler)
+	if (!f->read_handler && !f->write_handler)
 	    continue;
 	if (fdstatGetType(i) != FD_SOCKET)
 	    continue;
