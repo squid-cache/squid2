@@ -1259,7 +1259,7 @@ struct _SwapDir {
     int swaplog_fd;
     struct {
 	unsigned int selected:1;
-        unsigned int read_only:1;
+	unsigned int read_only:1;
     } flags;
 };
 

@@ -936,31 +936,31 @@ snmpAddNode(va_alist)
     va_list args;
     int loop;
     mib_tree_entry *entry = NULL;
-                   va_start(args, children);
+    va_start(args, children);
 #else
     va_list args;
     oid *name = NULL;
     int len = 0, children = 0, loop;
     oid_ParseFn *parsefunction = NULL;
     mib_tree_entry *entry = NULL;
-                   va_start(args);
-                   name = va_arg(args, oid *);
-                   len = va_arg(args, int);
-        parsefunction = va_arg(args, oid_ParseFn *);
-        children = va_arg(args, int);
+    va_start(args);
+    name = va_arg(args, oid *);
+    len = va_arg(args, int);
+    parsefunction = va_arg(args, oid_ParseFn *);
+    children = va_arg(args, int);
 #endif
 
-        debug(49, 6) ("snmpAddNode: Children : %d, Oid : \n", children);
-        snmpDebugOid(6, name, len);
+    debug(49, 6) ("snmpAddNode: Children : %d, Oid : \n", children);
+    snmpDebugOid(6, name, len);
 
-        va_start(args, children);
-        entry = xmalloc(sizeof(mib_tree_entry));
-        entry->name = snmpOidDup(name, len);
-        entry->len = len;
-        entry->parsefunction = parsefunction;
-        entry->children = children;
+    va_start(args, children);
+    entry = xmalloc(sizeof(mib_tree_entry));
+    entry->name = snmpOidDup(name, len);
+    entry->len = len;
+    entry->parsefunction = parsefunction;
+    entry->children = children;
 
-    if  (children > 0) {
+    if (children > 0) {
 	entry->leaves = xmalloc(sizeof(mib_tree_entry *) * children);
 	for (loop = 0; loop < children; loop++) {
 	    entry->leaves[loop] = va_arg(args, mib_tree_entry *);

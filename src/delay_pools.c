@@ -189,7 +189,7 @@ delayId(unsigned short pool, unsigned short position)
 }
 
 delay_id
-delayClient(request_t *r)
+delayClient(request_t * r)
 {
     aclCheck_t ch;
     int i;
