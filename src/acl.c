@@ -648,8 +648,8 @@ int aclMatchAcl(acl, c, m, pr, h, po, r)
 		acl->name, h);
 	    return 0;		/* cant check, return no match */
 	}
-	for (k = 0; hp->h_addr_list[k]; k++) {
-	    xmemcpy(&dst.s_addr, hp->h_addr_list[k], hp->h_length);
+	for (k = 0; *(hp->h_addr_list + k); k++) {
+	    xmemcpy(&dst.s_addr, *(hp->h_addr_list + k), hp->h_length);
 	    if (aclMatchIp(acl->data, dst))
 		return 1;
 	}
