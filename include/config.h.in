@@ -75,9 +75,6 @@
 #elif defined(__hpux)                           /* HP-UX - SysV-like? */
 #define _SQUID_HPUX_
 #define _SQUID_SYSV_
-#if defined(__STDC__) && !defined(__STRICT_ANSI__)
-#define __STRICT_ANSI__
-#endif
 
 #elif defined(__osf__)                          /* OSF/1 */
 #define _SQUID_OSF_
@@ -96,9 +93,6 @@
 
 #elif defined(__sgi__)	|| defined(sgi) || defined(__sgi) /* SGI */
 #define _SQUID_SGI_
-#if !defined(__STRICT_ANSI__)
-#define __STRICT_ANSI__
-#endif
 #if !defined(_SVR4_SOURCE)
 #define _SVR4_SOURCE		/* for tempnam(3) */
 #endif
@@ -140,6 +134,9 @@
 #define SQUID_UDP_SO_RCVBUF 16384
 #endif
 
+#if defined(__STDC__) && !defined(__STRICT_ANSI__)
+#define __STRICT_ANSI__
+#endif
 
 /* functions available in proto library */
 #ifndef __P
