@@ -26,6 +26,8 @@ Changes to squid-1.1.10 (April 22, 1997):
 	- Added -m option to ftpget for defining default MIME type.
 	  (Neil Murray).
 	- Optimized comm_select() functions (Mark Treacy).
+	- Fixed ipcache_release() to not release locked entries;
+	  instead expire them immediately.
 	- Fixed up rebuild code to handle swapfile/URL clash
 	  cases better.
 
