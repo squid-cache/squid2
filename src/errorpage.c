@@ -177,7 +177,8 @@ errorTryLoadText(const char *page_name, const char *dir)
 	text = NULL;
     }
     file_close(fd);
-    strcat(text, "%S");		/* add signature */
+    if (strstr(text, "%s") == NULL)
+	strcat(text, "%S");	/* add signature */
     return text;
 }
 
