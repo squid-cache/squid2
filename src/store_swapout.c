@@ -144,7 +144,7 @@ storeSwapOut(StoreEntry * e)
      */
     if (mem->inmem_hi < lowest_offset)
 	new_mem_lo = lowest_offset;
-    else if (mem->inmem_hi - lowest_offset > Config.Store.maxInMemObjSize)
+    else if (mem->inmem_hi - mem->inmem_lo > Config.Store.maxInMemObjSize)
 	new_mem_lo = lowest_offset;
     else
 	new_mem_lo = mem->inmem_lo;
