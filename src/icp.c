@@ -1943,6 +1943,8 @@ clientReadRequest(int fd, void *data)
 		continue;	/* while offset > 0 */
 	    }
 	    request->http_ver = http->http_ver;
+	    request->headers = headers;
+	    request->headers_sz = headers_sz;
 	    if (!urlCheckRequest(request)) {
 		http->log_type = ERR_UNSUP_REQ;
 		http->http_code = 501;
@@ -1961,14 +1963,19 @@ clientReadRequest(int fd, void *data)
 		return;
 	    }
 	    http->request = requestLink(request);
-	    request->headers = headers;
-	    request->headers_sz = headers_sz;
 	    clientAccessCheck(http);
 	    /* break here for NON-GET because most likely there is a
 	       reqeust body following and we don't want to parse it
   	       as though it was new request */
-	    if (request->method != METHOD_GET)
+	    if (request->method != METHOD_GET) {
+		if (conn->in.offset) {
+			request->body_sz = conn->in.offset;
+			request->body = xmalloc(request->body_sz);
+			xmemcpy(request->body, conn->in.buf, request->body_sz);
+			conn->in.offset = 0;
+		}
 		break;
+	    }
 	    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	    continue;		/* while offset > 0 */
 	} else if (parser_return_code == 0) {
