@@ -220,6 +220,12 @@ httpCachableReply(HttpStateData * httpState)
     case HTTP_MULTIPLE_CHOICES:
     case HTTP_MOVED_PERMANENTLY:
     case HTTP_GONE:
+	/*
+	 * Don't cache objects that need to be refreshed on next request,
+	 * unless we know how to refresh it.
+	 */
+	if (!refreshIsCachable(httpState->entry))
+	    return 0;
 	/* don't cache objects from peers w/o LMT, Date, or Expires */
 	/* check that is it enough to check headers @?@ */
 	if (rep->date > -1)

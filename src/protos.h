@@ -663,6 +663,7 @@ extern void authenticateInit(void);
 extern void authenticateShutdown(void);
 
 extern void refreshAddToList(const char *, int, time_t, int, time_t);
+extern int refreshIsCachable(const StoreEntry *);
 extern int refreshCheckHTTP(const StoreEntry *, request_t *);
 extern int refreshCheckICP(const StoreEntry *, request_t *);
 extern int refreshCheckDigest(const StoreEntry *, time_t delta);
