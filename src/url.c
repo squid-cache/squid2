@@ -235,6 +235,14 @@ urlParse(method_t method, char *url)
     }
     for (t = host; *t; t++)
 	*t = tolower(*t);
+    l = strspn(host,
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	"abcdefghijklmnopqrstuvwxyz"
+	"0123456789-.");
+    if (l != strlen(host)) {
+	debug(23, 0, "urlParse: Illegal character in hostname '%s'\n", host);
+	return NULL;
+    }
     /* remove trailing dots from hostnames */
     while ((l = strlen(host)) && host[--l] == '.')
 	host[l] = '\0';

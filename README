@@ -25,9 +25,15 @@ Squid is derived from the ``cached'' software from the ARPA-funded
 Harvest research project.  The Harvest home page is
 http://harvest.cs.colorado.edu/.
 
-Please use our mailing lists for questions, feedback and bug fixes
+Please use our mailing lists for questions, feedback and bug fixes.
 
         squid-users@nlanr.net	# general questions, pubilc forum
         squid-bugs@nlanr.net	# bugs and fixes
         squid@nlanr.net		# other feedback
+
+To subscribe, write to the addresses below with 'Subscribe' in the
+message subject or body
+
+        squid-users-request@nlanr.net
+        squid-users-digest-request@nlanr.net	# daily digest
 

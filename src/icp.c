@@ -356,8 +356,14 @@ icpParseRequestHeaders(icpStateData * icpState)
 	}
     }
     if ((t = mime_get_header(request_hdr, "Pragma"))) {
-	if (!strcasecmp(t, "no-cache"))
-	    BIT_SET(request->flags, REQ_NOCACHE);
+	if (!strcasecmp(t, "no-cache")) {
+#ifdef RELOAD_INTO_IMS
+	    if (Config.Options.reload_into_ims)
+		BIT_SET(request->flags, REQ_NOCACHE_SPECIAL);
+	    else
+#endif
+		BIT_SET(request->flags, REQ_NOCACHE);
+	}
     }
     if (mime_get_header(request_hdr, "Range")) {
 	BIT_SET(request->flags, REQ_NOCACHE);
@@ -744,7 +750,11 @@ icpProcessRequest(int fd, icpStateData * icpState)
     debug(12, 4, "icpProcessRequest: %s '%s'\n",
 	RequestMethodStr[icpState->method],
 	url);
-    if (icpState->method == METHOD_CONNECT) {
+    if (icpState->method == METHOD_GET) {
+	(void) 0;		/* fall through */
+    } else if (icpState->method == METHOD_HEAD) {
+	(void) 0;		/* fall through */
+    } else if (icpState->method == METHOD_CONNECT) {
 	icpState->log_type = LOG_TCP_MISS;
 	sslStart(fd,
 	    url,
@@ -768,7 +778,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	    return;
 	}
 	/* yes, continue */
-    } else if (icpState->method != METHOD_GET) {
+    } else {
 	icpState->log_type = LOG_TCP_MISS;
 	passStart(fd,
 	    url,
@@ -807,6 +817,15 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	icpState->log_type = LOG_TCP_MISS;
 	storeRelease(entry);
 	entry = NULL;
+#ifdef RELOAD_INTO_IMS
+    } else if (BIT_TEST(request->flags, REQ_NOCACHE_SPECIAL)) {
+	if (BIT_TEST(request->flags, REQ_IMS))
+	    icpState->log_type = LOG_TCP_IMS_MISS;
+	else if (request->protocol == PROTO_HTTP)
+	    icpState->log_type = LOG_TCP_REFRESH_MISS;
+	else
+	    icpState->log_type = LOG_TCP_MISS;	/* XXX zoinks */
+#endif /* RELOAD_INTO_IMS */
     } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
 	/* NOCACHE should always eject a negative cached object */
 	if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
@@ -833,6 +852,13 @@ icpProcessRequest(int fd, icpStateData * icpState)
     } else if (BIT_TEST(request->flags, REQ_IMS)) {
 	/* User-initiated IMS request for something we think is valid */
 	icpState->log_type = LOG_TCP_IMS_MISS;
+#ifdef RELOAD_INTO_IMS
+    } else if (BIT_TEST(request->flags, REQ_NOCACHE_SPECIAL)) {
+	if (request->protocol == PROTO_HTTP)
+	    icpState->log_type = LOG_TCP_REFRESH_MISS;
+	else
+	    icpState->log_type = LOG_TCP_MISS;	/* XXX zoinks */
+#endif /* RELOAD_INTO_IMS */
     } else {
 	icpState->log_type = LOG_TCP_HIT;
     }
@@ -932,7 +958,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
 	fatal_dump("icpProcessMISS: swapin_fd != -1");
     icpState->swapin_fd = storeOpenSwapFileRead(entry);
     if (icpState->swapin_fd < 0)
-	fatal_dump("Swapfile open failed");
+	debug(0,0,"Swapfile open failed\n");
 
     entry->refcount++;		/* MISS CASE */
     icpState->entry = entry;

@@ -181,7 +181,7 @@ struct SquidConfig Config;
 #define DefaultPidFilename      DEFAULT_PID_FILE
 #define DefaultVisibleHostname  (char *)NULL	/* default NONE */
 #define DefaultFtpUser		"squid@"	/* Default without domain */
-#define DefaultAnnounceHost	"sd.cache.nlanr.net"
+#define DefaultAnnounceHost	"tracker.ircache.net"
 #define DefaultAnnouncePort	3131
 #define DefaultAnnounceFile	(char *)NULL	/* default NONE */
 #define DefaultAnnounceRate	0	/* Default off */
@@ -1362,6 +1362,10 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&Config.Options.client_db);
 	else if (!strcmp(token, "query_icmp"))
 	    parseOnOff(&Config.Options.query_icmp);
+#ifdef RELOAD_INTO_IMS
+	else if (!strcmp(token, "reload_into_ims"))
+	    parseOnOff(&Config.Options.reload_into_ims);
+#endif /* RELOAD_INTO_IMS */
 
 	else if (!strcmp(token, "minimum_direct_hops"))
 	    parseIntegerValue(&Config.minDirectHops);
@@ -1605,6 +1609,9 @@ configSetFactoryDefaults(void)
     Config.Options.enable_purge = DefaultOptionsEnablePurge;
     Config.Options.client_db = DefaultOptionsClientDb;
     Config.Options.query_icmp = DefaultOptionsQueryIcmp;
+#ifdef RELOAD_INTO_IMS
+    Config.Options.reload_into_ims = 0;
+#endif /* RELOAD_INTO_IMS */
 }
 
 static void

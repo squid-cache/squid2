@@ -23,6 +23,34 @@ Changes to squid-1.NOVM.15 ()
 	  swapout FDs to remain open.  (Thanks to John Line for debugging
 	  help).
 
+Changes to squid-1.1.15 ():
+
+	- Fixed bug in diskHandleWrite().  'break' should be 'continue'
+	  (Michael O'Reilly).
+	- Fixed a storeDoRebuildFromDisk() bug; needed to check for
+	  swapfile < 0 earlier.
+	- HEAD requests should not be given to passStart() (Taketo Kabe).
+	- Generate an 'INVALID URL' error if a hostname contains
+	  illegal characters.
+	- Added keyword 'all' for inside_firewall option (Javier Achirica).
+	- Fixed logging of wrong URL for requests changed by a
+	  redirector.
+	- Added first-cut RELOAD_INTO_IMS feature.  #ifdef'd to
+	  protect the innocent.
+	- Fixed comm_select() to only check stall_delay for read
+	  handlers (Peter Wemm).
+	- IMPORTANT change to the -z option: Numerous people have lost
+	  their cache contents because Squid would automatically wipe
+	  out the cache if one of the cache directories did not exist.
+	  Squid will no longer do this.  Now, Squid tests all the
+	  'cache_dir' directories and all of the first-level swap
+	  directories underneath then.  If one of those directories
+	  does not exist, Squid exits and writes a message to stderr
+	  and to cache.log.  The message tells the administrator to run
+	  'squid -z' to create the swap directories, or to manually fix
+	  the problem.   This means that you must manually run 'squid -z'
+	  when setting up Squid for the first time.
+
 Changes to squid-1.NOVM.14 (July 11, 1997):
 
 	- Merged squid-1.1.14 changes.

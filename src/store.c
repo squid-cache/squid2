@@ -1114,6 +1114,8 @@ storeDoRebuildFromDisk(void *data)
 	    &scan3,		/* last modified */
 	    &scan4,		/* size */
 	    url);		/* url */
+	if (sfileno < 0 || sfileno >= MAX_SWAP_FILE)
+	    continue;
 	if (x > 0)
 	    storeSwapFullPath(sfileno, swapfile);
 	if (x != 6) {
@@ -1121,8 +1123,6 @@ storeDoRebuildFromDisk(void *data)
 		storePutUnusedFileno(sfileno);
 	    continue;
 	}
-	if (sfileno < 0 || sfileno >= MAX_SWAP_FILE)
-	    continue;
 	timestamp = (time_t) scan1;
 	expires = (time_t) scan2;
 	lastmod = (time_t) scan3;
@@ -1690,77 +1690,39 @@ storeEntryValidLength(const StoreEntry * e)
     return 1;
 }
 
-static int
-storeVerifySwapDirs(int clean)
+static void
+storeCreateDirectory(const char *path, int lvl)
 {
-    int inx;
-    const char *path = NULL;
-    struct stat sb;
-    int directory_created = 0;
-    char *cmdbuf = NULL;
-
-    for (inx = 0; inx < ncache_dirs; inx++) {
-	path = swappath(inx);
-	debug(20, 9, "storeVerifySwapDirs: Creating swap space in %s\n", path);
-	if (stat(path, &sb) < 0) {
-	    /* we need to create a directory for swap file here. */
-	    if (mkdir(path, 0777) < 0) {
-		if (errno != EEXIST) {
-		    sprintf(tmp_error_buf, "Failed to create swap directory %s: %s",
-			path,
-			xstrerror());
-		    fatal(tmp_error_buf);
-		}
-	    }
-	    if (stat(path, &sb) < 0) {
-		sprintf(tmp_error_buf,
-		    "Failed to verify swap directory %s: %s",
-		    path, xstrerror());
-		fatal(tmp_error_buf);
-	    }
-	    debug(20, 1, "storeVerifySwapDirs: Created swap directory %s\n", path);
-	    directory_created = 1;
-	}
-	if (clean && opt_unlink_on_reload) {
-	    debug(20, 1, "storeVerifySwapDirs: Zapping all objects on disk storage.\n");
-	    cmdbuf = xcalloc(1, BUFSIZ);
-	    sprintf(cmdbuf, "cd %s; /bin/rm -rf %s [0-9A-F][0-9A-F]",
-		path, swaplog_file);
-	    debug(20, 1, "storeVerifySwapDirs: Running '%s'\n", cmdbuf);
-	    system(cmdbuf);	/* XXX should avoid system(3) */
-	    xfree(cmdbuf);
-	}
+    if (mkdir(path, 0755) == 0) {
+	debug(20, lvl, "%s created\n", path);
+    } else if (errno == EEXIST) {
+	debug(20, lvl, "%s exists\n", path);
+    } else {
+	sprintf(tmp_error_buf, "Failed to make swap directory %s: %s",
+	    path, xstrerror());
+	fatal(tmp_error_buf);
     }
-    return directory_created;
 }
 
-static void
-storeCreateSwapSubDirs(void)
+void
+storeCreateSwapDirectories(void)
 {
     int i, j, k;
+    wordlist *w;
     LOCAL_ARRAY(char, name, MAXPATHLEN);
+    for (w = Config.cache_dirs; w; w = w->next)
+	storeAddSwapDisk(w->key);
+    if (ncache_dirs < 1)
+	storeAddSwapDisk(DefaultSwapDir);
     for (j = 0; j < ncache_dirs; j++) {
+	xstrncpy(name, swappath(j), MAXPATHLEN);
+	storeCreateDirectory(name, 0);
 	for (i = 0; i < Config.levelOneDirs; i++) {
 	    sprintf(name, "%s/%02X", swappath(j), i);
-	    debug(20, 1, "Making directories in %s\n", name);
-	    if (mkdir(name, 0755) < 0) {
-		if (errno != EEXIST) {
-		    sprintf(tmp_error_buf,
-			"Failed to make swap directory %s: %s",
-			name, xstrerror());
-		    fatal(tmp_error_buf);
-		}
-	    }
+	    storeCreateDirectory(name, 0);
 	    for (k = 0; k < Config.levelTwoDirs; k++) {
 		sprintf(name, "%s/%02X/%02X", swappath(j), i, k);
-		if (mkdir(name, 0755) < 0) {
-		    if (errno != EEXIST) {
-			sprintf(tmp_error_buf,
-			    "Failed to make swap directory %s: %s",
-			    name, xstrerror());
-			fatal(tmp_error_buf);
-		    }
-		}
+		storeCreateDirectory(name, 2);
 	    }
 	}
     }
@@ -1819,7 +1781,6 @@ storeInitHashValues(void)
 void
 storeInit(void)
 {
-    int dir_created = 0;
     wordlist *w = NULL;
     char *fname = NULL;
     file_map_create(MAX_SWAP_FILE);
@@ -1834,7 +1795,6 @@ storeInit(void)
     for (w = Config.cache_dirs; w; w = w->next)
 	storeAddSwapDisk(w->key);
     storeSanityCheck();
-    dir_created = storeVerifySwapDirs(opt_zap_disk_store);
     if (Config.Log.swap)
 	xstrncpy(swaplog_file, Config.Log.swap, SQUID_MAXPATHLEN);
     else
@@ -1845,12 +1805,7 @@ storeInit(void)
 	sprintf(tmp_error_buf, "Cannot open swap logfile: %s", swaplog_file);
 	fatal(tmp_error_buf);
     }
-    if (!opt_zap_disk_store)
-	storeStartRebuildFromDisk();
-    else
-	store_rebuilding = STORE_NOT_REBUILDING;
-    if (dir_created || opt_zap_disk_store)
-	storeCreateSwapSubDirs();
+    storeStartRebuildFromDisk();
 }
 
 void
@@ -1873,36 +1828,56 @@ storeConfigure(void)
     store_pages_low = store_mem_low / SM_PAGE_SIZE;
 }
 
+static int
+storeVerifyDirectory(const char *path)
+{
+    struct stat sb;
+    if (stat(path, &sb) < 0) {
+	debug(20, 0, "%s: %s\n", path, xstrerror());
+	return -1;
+    }
+    if (S_ISDIR(sb.st_mode) == 0) {
+	debug(20, 0, "%s is not a directory\n", path);
+	return -1;
+    }
+    return 0;
+}
+
+static int
+storeVerifyCacheDirs(void)
+{
+    int i;
+    int j;
+    LOCAL_ARRAY(char, name, MAXPATHLEN);
+    for (i = 0; i < ncache_dirs; i++) {
+	xstrncpy(name, swappath(i), MAXPATHLEN);
+	if (storeVerifyDirectory(name) < 0)
+	    return -1;
+	for (j = 0; j < Config.levelOneDirs; j++) {
+	    sprintf(name, "%s/%02X", swappath(i), j);
+	    if (storeVerifyDirectory(name) < 0)
+		return -1;
+	}
+    }
+    return 0;
+}
+
 /* 
- *  storeSanityCheck - verify that all swap storage areas exist, and
- *  are writable; otherwise, force -z.
+ *  storeSanityCheck - verify that all cache_dir directories exist,
+ *  and that all the first-level directories exist also.
  */
 static void
 storeSanityCheck(void)
 {
-    LOCAL_ARRAY(char, name, 4096);
-    int i;
-
     if (ncache_dirs < 1)
 	storeAddSwapDisk(DefaultSwapDir);
-
-    for (i = 0; i < Config.levelOneDirs; i++) {
-	sprintf(name, "%s/%02X", swappath(i), i);
-	errno = 0;
-	if (access(name, W_OK)) {
-	    /* A very annoying problem occurs when access() fails because
-	     * the system file table is full.  To prevent squid from
-	     * deleting your entire disk cache on a whim, insist that the
-	     * errno indicates that the directory doesn't exist */
-	    if (errno != ENOENT)
-		continue;
-	    debug(20, 0, "WARNING: Cannot write to swap directory '%s'\n",
-		name);
-	    debug(20, 0, "Forcing a *full restart* (e.g., %s -z)...\n",
-		appname);
-	    opt_zap_disk_store = 1;
-	    return;
-	}
+    if (storeVerifyCacheDirs() < 0) {
+	xstrncpy(tmp_error_buf,
+	    "\tFailed to verify one of the swap directories, Check cache.log\n"
+	    "\tfor details.  Run 'squid -z' to create swap directories\n"
+	    "\tif needed, or if running Squid for the first time.",
+	    512);
+	fatal(tmp_error_buf);
     }
 }
 

@@ -67,17 +67,24 @@ visible_hostname
 
 ==============================================================================
 
-After editing squid.conf to your liking, run Squid from the command line:
+After editing squid.conf to your liking, run Squid with the -z option
+to create the swap directories:
 
-    % /usr/local/squid/bin/squid
+    % cd /usr/local/squid
+    % bin/squid -z
 
-Check in the cache.log (/usr/local/squid/logs/cache.log) that
-everything is all right.  Note that "WARNING: Cannot write to swap
-directory" is normal the first time you run Squid.
+This procedure may take a few minutes.  Watch your screen and check
+logs/cache.log to make sure the directories were created successfully.
 
-Once Squid created all its files (it can take several minutes on some
-systems), test it with echoping or a regular Web client. By default,
-your Squid will run on port 3128. See the Squid FAQ for more details.
+After the directories have been created, run Squid from the command line
+to make sure its working.
+
+    % bin/squid
+
+You should NOT get the shell prompt back; squid does not go into the
+background by default.   You can test squid with echoping or a regular
+Web browser. By default, your Squid will run on port 3128. See the
+Squid FAQ for more details.
 
 Once you have Squid working from the command line, tell your Unix to
 start Squid at startup (it depends heavily on the Unix you use, you'll

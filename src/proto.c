@@ -656,6 +656,9 @@ matchInsideFirewall(const char *host)
 	if (!strcasecmp(key, "none"))
 	    /* no domains are inside the firewall, all domains are outside */
 	    return OUTSIDE_FIREWALL;
+	if (!strcasecmp(key, "all"))
+	    /* all domains are inside the firewall, no domains are outside */
+	    return INSIDE_FIREWALL;
 	if (*key == '!') {
 	    key++;
 	    result = OUTSIDE_FIREWALL;

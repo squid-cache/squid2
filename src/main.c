@@ -116,10 +116,10 @@ int opt_reload_hit_only = 0;	/* only UDP_HIT during store relaod */
 int opt_catch_signals = 1;
 int opt_dns_tests = 1;
 int opt_foreground_rebuild = 0;
-int opt_zap_disk_store = 0;
 int opt_syslog_enable = 0;	/* disabled by default */
 int opt_no_ipcache = 0;		/* use ipcache by default */
 static int opt_send_signal = -1;	/* no signal to send */
+static int opt_create_swap_dirs = 0;
 int opt_udp_hit_obj = 0;	/* ask for HIT_OBJ's */
 int opt_mem_pools = 0;
 int opt_forwarded_for = 1;
@@ -281,7 +281,7 @@ mainParseOptions(int argc, char *argv[])
 	    exit(0);
 	    /* NOTREACHED */
 	case 'z':
-	    opt_zap_disk_store = 1;
+	    opt_create_swap_dirs = 1;
 	    break;
 	case '?':
 	default:
@@ -659,6 +659,14 @@ main(int argc, char **argv)
     if (opt_send_signal != -1) {
 	sendSignal();
 	/* NOTREACHED */
+    }
+    if (opt_create_swap_dirs) {
+	if (ConfigFile == NULL)
+	    ConfigFile = xstrdup(DefaultConfigFile);
+	parseConfigFile(ConfigFile);
+	debug(0, 0, "Creating Swap Directories\n");
+	storeCreateSwapDirectories();
+	return 0;
     }
     setMaxFD();
 

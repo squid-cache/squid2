@@ -1006,11 +1006,11 @@ comm_select(time_t sec)
 	maxfd = Biggest_FD + 1;
 	for (i = 0; i < maxfd; i++) {
 	    /* Check each open socket for a handler. */
-	    if (fd_table[i].stall_until > squid_curtime)
-		continue;
 	    if (fd_table[i].read_handler) {
-		nfds++;
-		FD_SET(i, &readfds);
+		if (fd_table[i].stall_until <= squid_curtime) {
+		    nfds++;
+		    FD_SET(i, &readfds);
+	        }
 	    }
 	    if (fd_table[i].write_handler) {
 		nfds++;

@@ -153,6 +153,7 @@ typedef enum {
     HDR_RETRY_AFTER,
     HDR_SET_COOKIE,
     HDR_UPGRADE,
+    HDR_VARY,
     HDR_WARNING,
     HDR_MISC_END
 } http_hdr_misc_t;
@@ -188,6 +189,7 @@ static char *HttpHdrMiscStr[] =
     "Retry-After",
     "Set-Cookie",
     "Upgrade",
+    "Vary",
     "Warning",
     "NONE"
 };
@@ -376,6 +378,8 @@ httpParseReplyHeaders(const char *buf, struct _http_reply *reply)
 	    ReplyHeaderStats.misc[HDR_RETRY_AFTER]++;
 	} else if (!strncasecmp(t, "Upgrade:", 8)) {
 	    ReplyHeaderStats.misc[HDR_UPGRADE]++;
+	} else if (!strncasecmp(t, "Vary:", 5)) {
+	    ReplyHeaderStats.misc[HDR_VARY]++;
 	} else if (!strncasecmp(t, "Warning:", 8)) {
 	    ReplyHeaderStats.misc[HDR_WARNING]++;
 	} else if (!strncasecmp(t, "Cache-Control:", 14)) {
