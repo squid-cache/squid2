@@ -31,8 +31,6 @@
 #ifndef SQUID_H
 #define SQUID_H
 
-/* @?@ @?@ tmp hack until coredumps are gone */
-#define OLD_POST_CODE 1
 
 #include "config.h"
 
