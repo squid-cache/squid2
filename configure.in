@@ -275,6 +275,15 @@ AC_ARG_ENABLE(async_io,
     ASYNC_OBJS='$(ASYNC_OBJS)'
     SQUID_PTHREAD_LIB='$(PTHREADLIB)'
     CFLAGS="$CFLAGS -D_REENTRANT"
+    case "$host" in
+    i386-unknown-freebsd*)
+    	if test "$GCC" = "yes" ; then
+	    if test -z "$PRESET_LDFLAGS"; then
+		LDFLAGS="$LDFLAGS -pthread"
+	    fi
+	fi
+	;;
+    esac
   fi
 ])
 AC_SUBST(ASYNC_OBJS)
@@ -554,6 +563,7 @@ AC_CHECK_HEADERS( \
 	pwd.h \
 	regex.h \
 	resolv.h \
+	sched.h \
 	signal.h \
 	stdarg.h \
 	stddef.h \
@@ -1189,6 +1199,7 @@ else
 	sleep 10
 fi
 
+if test "$ac_cv_func_statvfs" = "yes" ; then
 AC_MSG_CHECKING(for working statvfs() interface)
 AC_TRY_COMPILE([
 #include <stdlib.h>
@@ -1202,9 +1213,10 @@ sfs.f_blocks = sfs.f_bfree = sfs.f_frsize =
 sfs.f_files = sfs.f_ffree = 0;
 statvfs("/tmp", &sfs);
 ],
-  ac_cv_func_statvfs=no,
-  ac_cv_func_statvfs=yes)
+  ac_cv_func_statvfs=yes,
+  ac_cv_func_statvfs=no)
 AC_MSG_RESULT($ac_cv_func_statvfs)
+fi
 
 dnl Need the debugging version of malloc if available
 XTRA_OBJS=''
