@@ -1708,7 +1708,7 @@ clientReadRequest(int fd, void *data)
 		icpState->method,
 		ERR_INVALID_URL,
 		fd_table[fd].ipaddr,
-		icpState->http_code,
+		400,
 		NULL);
 	    icpSendERROR(fd, ERR_INVALID_URL, wbuf, icpState, 400);
 	    return;
