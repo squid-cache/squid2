@@ -775,7 +775,10 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	/* The object is in the cache, but it needs to be validated.  Use
 	 * LOG_TCP_REFRESH_MISS for the time being, maybe change it to
 	 * _HIT later in icpHandleIMSReply() */
-	icpState->log_type = LOG_TCP_REFRESH_MISS;
+	if (request->protocol == PROTO_HTTP)
+	    icpState->log_type = LOG_TCP_REFRESH_MISS;
+	else
+	    icpState->log_type = LOG_TCP_MISS;	/* XXX zoinks */
     } else if (BIT_TEST(request->flags, REQ_IMS)) {
 	/* User-initiated IMS request for something we think is valid */
 	icpState->log_type = LOG_TCP_IMS_MISS;
