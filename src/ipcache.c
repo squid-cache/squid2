@@ -1229,7 +1229,7 @@ void ipcacheOpenServers()
 
 	    /* update fd_stat */
 
-	    sprintf(fd_note_buf, "%s #%d", prg, dns_child_table[i]->id+1);
+	    sprintf(fd_note_buf, "%s #%d", prg, dns_child_table[i]->id + 1);
 	    fd_note(dns_child_table[i]->inpipe, fd_note_buf);
 	    commSetNonBlocking(dns_child_table[i]->inpipe);
 
