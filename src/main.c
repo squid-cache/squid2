@@ -271,6 +271,7 @@ time_tick(int sig)
     signal(sig, time_tick);
 #endif
 }
+
 #endif
 
 static void

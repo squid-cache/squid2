@@ -378,7 +378,7 @@ storeDirStats(StoreEntry * sentry)
     storeAppendPrintf(sentry, "Current Store Swap Size: %8d KB\n", store_swap_size);
     storeAppendPrintf(sentry, "Current Capacity       : %d%% used, %d%% free\n",
 	percent((int) store_swap_size, (int) Config.Swap.maxSize),
-	percent((int) (Config.Swap.maxSize- store_swap_size), (int) Config.Swap.maxSize));
+	percent((int) (Config.Swap.maxSize - store_swap_size), (int) Config.Swap.maxSize));
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
 	SD = &Config.cacheSwap.swapDirs[i];
 	storeAppendPrintf(sentry, "\n");
