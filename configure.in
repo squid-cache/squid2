@@ -194,12 +194,13 @@ AC_ARG_ENABLE(xmalloc_debug,
   fi
 ])
 
-AC_ARG_ENABLE(xmalloc_debug_count,
-[  --enable-xmalloc-debug-count
+AC_ARG_ENABLE(xmalloc_debug_trace,
+[  --enable-xmalloc-debug-trace
                           Detailed trace of memory allocations],
 [ if test "$enableval" = "yes" ; then
-    echo "Malloc tracing enabled"
-    AC_DEFINE(XMALLOC_COUNT)
+    echo "Malloc debug trace enabled"
+    AC_DEFINE(XMALLOC_TRACE)
+    AC_DEFINE(XMALLOC_DEBUG)
   fi
 ])
 

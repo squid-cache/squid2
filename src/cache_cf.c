@@ -1079,8 +1079,7 @@ parse_string(char **var)
 static void
 free_string(char **var)
 {
-    xfree(*var);
-    *var = NULL;
+    safe_free(*var);
 }
 
 static void
