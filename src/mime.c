@@ -325,6 +325,10 @@ mimeInit(char *filename)
     while (fgets(buf, BUFSIZ, fp)) {
 	if ((t = strchr(buf, '#')))
 	    *t = '\0';
+	if ((t = strchr(buf, '\r')))
+	    *t = '\0';
+	if ((t = strchr(buf, '\n')))
+	    *t = '\0';
 	if (buf[0] == '\0')
 	    continue;
 	xstrncpy(chopbuf, buf, BUFSIZ);

@@ -1574,7 +1574,7 @@ storeRebuiltFromDisk(struct storeRebuildState *data)
     debug(20, 1) ("  Took %d seconds (%6.1lf objects/sec).\n",
 	r > 0 ? r : 0, (double) data->objcount / (r > 0 ? r : 1));
     debug(20, 1) ("  store_swap_size = %dk\n", store_swap_size);
-    if (data->need_to_validate) {
+    if (data->need_to_validate && data->linecount) {
 	debug(20, 1) ("Beginning Validation Procedure\n");
 	eventAdd("storeCleanup", storeCleanup, NULL, 0);
     } else {
