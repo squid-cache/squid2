@@ -324,7 +324,7 @@ passConnectDone(int fdnotused, int status, void *data)
 	return;
     }
     if (passState->proxying) {
-	request = get_free_request_t();
+	request = memAllocate(MEM_REQUEST_T, 1);
 	passState->proxy_request = requestLink(request);
 	request->method = passState->request->method;
 	xstrncpy(request->urlpath, passState->url, MAX_URL);
@@ -379,7 +379,7 @@ passStart(int fd, const char *url, request_t * request, size_t * size_ptr)
 	return;
     }
     passState = xcalloc(1, sizeof(PassStateData));
-    cbdataAdd(passState);
+    cbdataAdd(passState, MEM_NONE);
     passState->url = xstrdup(url);
     passState->request = requestLink(request);
     passState->host = request->host;

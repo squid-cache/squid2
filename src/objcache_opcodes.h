@@ -59,5 +59,6 @@ static char *objcacheOpcodeStr[] =
     "cbdata",
     "pconn",
     "5min",
+    "mem",
     "MAX"
 };

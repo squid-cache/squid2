@@ -368,7 +368,7 @@ sslStart(int fd, const char *url, request_t * request, size_t * size_ptr)
 	return;
     }
     sslState = xcalloc(1, sizeof(SslStateData));
-    cbdataAdd(sslState);
+    cbdataAdd(sslState, MEM_NONE);
     sslState->url = xstrdup(url);
     sslState->request = requestLink(request);
     sslState->size_ptr = size_ptr;

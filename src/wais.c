@@ -306,7 +306,7 @@ waisStart(request_t * request, StoreEntry * entry)
 	return;
     }
     waisState = xcalloc(1, sizeof(WaisStateData));
-    cbdataAdd(waisState);
+    cbdataAdd(waisState, MEM_NONE);
     waisState->method = method;
     waisState->relayhost = Config.Wais.relayHost;
     waisState->relayport = Config.Wais.relayPort;

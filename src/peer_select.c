@@ -146,7 +146,7 @@ peerSelect(request_t * request,
 	debug(44, 3) ("peerSelect: %s\n", storeUrl(entry));
     else
 	debug(44, 3) ("peerSelect: %s\n", RequestMethodStr[request->method]);
-    cbdataAdd(psstate);
+    cbdataAdd(psstate, MEM_NONE);
     psstate->request = requestLink(request);
     psstate->entry = entry;
     psstate->callback = callback;

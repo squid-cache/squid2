@@ -429,7 +429,7 @@ mainInitialize(void)
     debug(1, 1) ("With %d file descriptors available\n", Squid_MaxFD);
 
     if (!configured_once) {
-	stmemInit();		/* stmem must go before at least redirect */
+	memInit();		/* memInit must go before at least redirect */
 	disk_init();		/* disk_init must go before ipcache_init() */
     }
     ipcache_init();

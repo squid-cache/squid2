@@ -421,7 +421,7 @@ mimeLoadIconFile(const char *icon)
 	METHOD_GET);
     assert(e != NULL);
     e->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
-    buf = get_free_4k_page();
+    buf = memAllocate(MEM_4K_BUF, 1);
     l = 0;
     l += snprintf(buf + l, SM_PAGE_SIZE - l, "HTTP/1.0 200 OK\r\n");
     l += snprintf(buf + l, SM_PAGE_SIZE - l, "Date: %s\r\n", mkrfc1123(squid_curtime));
@@ -442,5 +442,5 @@ mimeLoadIconFile(const char *icon)
     EBIT_SET(e->flag, ENTRY_SPECIAL);
     debug(25, 3) ("Loaded icon %s\n", url);
     storeUnlockObject(e);
-    put_free_4k_page(buf);
+    memFree(MEM_4K_BUF, buf);
 }

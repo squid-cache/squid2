@@ -889,7 +889,7 @@ aclParseAccessLine(struct _acl_access **head)
     for (B = *head, T = head; B; T = &B->next, B = B->next);
     *T = A;
     /* We lock _acl_access structures in aclCheck() */
-    cbdataAdd(A);
+    cbdataAdd(A, MEM_NONE);
 }
 
 /**************/
@@ -1485,7 +1485,7 @@ aclChecklistCreate(const struct _acl_access *A,
 {
     int i;
     aclCheck_t *checklist = xcalloc(1, sizeof(aclCheck_t));;
-    cbdataAdd(checklist);
+    cbdataAdd(checklist, MEM_NONE);
     checklist->access_list = A;
     /*
      * aclCheck() makes sure checklist->access_list is a valid

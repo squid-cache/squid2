@@ -645,7 +645,7 @@ parse_peer(peer ** head)
 	p->weight = 1;
     p->icp_version = ICP_VERSION_CURRENT;
     p->tcp_up = 1;
-    cbdataAdd(p);
+    cbdataAdd(p, MEM_NONE);
     while (*head != NULL)
 	head = &(*head)->next;
     *head = p;

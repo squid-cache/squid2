@@ -259,7 +259,7 @@ dnsOpenServers(void)
     NDnsServersAlloc = 0;
     for (k = 0; k < N; k++) {
 	dns_child_table[k] = xcalloc(1, sizeof(dnsserver_t));
-	cbdataAdd(dns_child_table[k]);
+	cbdataAdd(dns_child_table[k], MEM_NONE);
 	if ((dnssocket = dnsOpenServer(prg)) < 0) {
 	    debug(34, 1) ("dnsOpenServers: WARNING: Failed to start 'dnsserver' #%d.\n", k + 1);
 	    EBIT_CLR(dns_child_table[k]->flags, HELPER_ALIVE);

@@ -237,7 +237,7 @@ protoDispatch(int fd, StoreEntry * entry, request_t * request)
 	return;
     }
     pctrl = xcalloc(1, sizeof(pctrl_t));
-    cbdataAdd(pctrl);
+    cbdataAdd(pctrl, MEM_NONE);
     pctrl->entry = entry;
     pctrl->fd = fd;
     pctrl->request = requestLink(request);
