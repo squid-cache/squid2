@@ -1774,7 +1774,7 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
     } else if ((done = clientCheckTransferDone(http)) != 0 || size == 0) {
 	debug(33, 5) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
-	if (http->entry->mem_obj->reply->content_length < 0) {
+	if (httpReplyBodySize(http->request->method, entry->mem_obj->reply) < 0) {
 	    debug(33, 5) ("clientWriteComplete: closing, content_length < 0\n");
 	    comm_close(fd);
 	} else if (!done) {
@@ -2706,7 +2706,7 @@ clientCheckTransferDone(clientHttpRequest * http)
 static int
 clientGotNotEnough(clientHttpRequest * http)
 {
-    int cl = http->entry->mem_obj->reply->content_length;
+    int cl = httpReplyBodySize(http->request->method, http->entry->mem_obj->reply);
     int hs = http->entry->mem_obj->reply->hdr_sz;
     assert(cl >= 0);
     if (http->out.offset < cl + hs)
