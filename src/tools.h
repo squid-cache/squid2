@@ -114,7 +114,7 @@ extern void leave_suid _PARAMS((void));
 extern void enter_suid _PARAMS((void));
 extern void no_suid _PARAMS((void));
 extern void writePidFile _PARAMS((void));
-extern void setSocketShutdownLifetimes _PARAMS((void));
+extern void setSocketShutdownLifetimes _PARAMS((int));
 extern void setMaxFD _PARAMS((void));
 extern time_t getCurrentTime _PARAMS((void));
 extern void normal_shutdown _PARAMS((void));

@@ -670,7 +670,10 @@ comm_select(time_t sec)
 	    ftpServerClose();
 	    dnsShutdownServers();
 	    redirectShutdownServers();
-	    setSocketShutdownLifetimes();
+	    if (shutdown_pending > 0)
+	    	setSocketShutdownLifetimes(Config.lifetimeShutdown);
+	    else
+		setSocketShutdownLifetimes(0);
 	}
 	nfds = 0;
 	maxfd = fdstat_biggest_fd() + 1;

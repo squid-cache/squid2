@@ -564,7 +564,7 @@ matchInsideFirewall(char *host)
 {
     wordlist *s = Config.inside_firewall_list;
     char *key = NULL;
-    int result;
+    int result = NO_FIREWALL;
     if (!s)
 	/* no domains, all hosts are "inside" the firewall */
 	return NO_FIREWALL;

@@ -263,10 +263,9 @@ sigusr2_handle(int sig)
 }
 
 void
-setSocketShutdownLifetimes(void)
+setSocketShutdownLifetimes(int lft)
 {
     FD_ENTRY *f = NULL;
-    int lft = Config.lifetimeShutdown;
     int cur;
     int i;
     for (i = fdstat_biggest_fd(); i >= 0; i--) {
