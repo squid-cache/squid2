@@ -329,7 +329,7 @@ aclParseIpList(void)
     struct _acl_ip_data *q = NULL;
     while ((t = strtokFile())) {
 	if ((q = aclParseIpData(t)) == NULL)
-		continue;
+	    continue;
 	*(Tail) = q;
 	Tail = &q->next;
     }

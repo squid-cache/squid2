@@ -181,7 +181,7 @@ struct SquidConfig Config;
 #define DefaultAnnounceFile	(char *)NULL	/* default NONE */
 #define DefaultAnnounceRate	0	/* Default off */
 #define DefaultTcpRcvBufsz	0	/* use system default */
-#define DefaultUdpMaxHitObjsz	SQUID_UDP_SO_SNDBUF     /* from configure */
+#define DefaultUdpMaxHitObjsz	SQUID_UDP_SO_SNDBUF	/* from configure */
 #define DefaultTcpIncomingAddr	INADDR_ANY
 #define DefaultTcpOutgoingAddr	inaddr_none
 #define DefaultUdpIncomingAddr	INADDR_ANY
@@ -1349,8 +1349,8 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&opt_mem_pools);
 	else if (!strcmp(token, "udp_hit_obj"))
 	    parseOnOff(&opt_udp_hit_obj);
-        else if (!strcmp(token, "udp_hit_obj_size"))
-            parseIntegerValue(&Config.udpMaxHitObjsz);
+	else if (!strcmp(token, "udp_hit_obj_size"))
+	    parseIntegerValue(&Config.udpMaxHitObjsz);
 	else if (!strcmp(token, "forwarded_for"))
 	    parseOnOff(&opt_forwarded_for);
 	else if (!strcmp(token, "log_icp_queries"))
@@ -1605,5 +1605,5 @@ configDoConfigure(void)
 	(int) Config.Port.http,
 	SQUID_VERSION);
     if (!Config.udpMaxHitObjsz || Config.udpMaxHitObjsz > SQUID_UDP_SO_SNDBUF)
-    	Config.udpMaxHitObjsz = SQUID_UDP_SO_SNDBUF;
+	Config.udpMaxHitObjsz = SQUID_UDP_SO_SNDBUF;
 }
