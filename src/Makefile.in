@@ -126,6 +126,8 @@ OBJS	 	= \
 		store.o \
 		store_clean.o \
 		store_dir.o \
+		store_key_sha.o \
+		store_key_url.o \
 		tools.o \
 		unlinkd.o \
 		url.o \

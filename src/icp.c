@@ -218,7 +218,7 @@ httpRequestFree(void *data)
     StoreEntry *entry = http->entry;
     request_t *request = http->request;
     MemObject *mem = NULL;
-    debug(12, 3) ("httpRequestFree: %s\n", entry ? entry->url : "no store entry");
+    debug(12, 3) ("httpRequestFree: %s\n", storeUrl(entry));
     if (!icpCheckTransferDone(http)) {
 	if (entry)
 	    storeUnregister(entry, http);	/* unregister BEFORE abort */
@@ -573,11 +573,11 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
     char C = '\0';
     assert(size <= SM_PAGE_SIZE);
     debug(12, 5) ("icpSendMoreData: FD %d '%s', out.offset=%d\n",
-	fd, entry->url, http->out.offset);
+	fd, storeUrl(entry), http->out.offset);
     if (conn->chr != http) {
 	/* there is another object in progress, defer this one */
 	debug(0, 0) ("icpSendMoreData: Deferring delivery of\n");
-	debug(0, 0) ("--> %s\n", entry->url);
+	debug(0, 0) ("--> %s\n", storeUrl(entry));
 	debug(0, 0) ("--> because other requests are in front\n");
 	freefunc(buf);
 	return;
@@ -670,12 +670,12 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	CheckQuickAbort(http);
 	/* Log the number of bytes that we managed to read */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
-	    urlParseProtocol(entry->url),
+	    urlParseProtocol(storeUrl(entry)),
 	    http->out.size);
 	comm_close(fd);
     } else if (entry->store_status == STORE_ABORTED) {
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
-	    urlParseProtocol(entry->url),
+	    urlParseProtocol(storeUrl(entry)),
 	    http->out.size);
 	comm_close(fd);
     } else if (icpCheckTransferDone(http) || size == 0) {
@@ -732,7 +732,9 @@ icpGetHeadersForIMS(void *data, char *buf, ssize_t size)
     assert(size > 0);
     assert(size <= SM_PAGE_SIZE);
     if (size < 0) {
-	debug(12, 1) ("storeClientCopy returned %d for '%s'\n", size, entry->key);
+	debug(12, 1) ("storeClientCopy returned %d for '%s'\n",
+	    size,
+	    storeKeyText(entry->key));
 	put_free_4k_page(buf);
 	comm_close(fd);
 	return;
@@ -789,7 +791,7 @@ icpGetHeadersForIMS(void *data, char *buf, ssize_t size)
 	    http);
 	return;
     }
-    debug(12, 4) ("icpGetHeadersForIMS: Not modified '%s'\n", entry->url);
+    debug(12, 4) ("icpGetHeadersForIMS: Not modified '%s'\n", storeUrl(entry));
     reply = icpConstruct304reply(mem->reply);
     comm_write(fd,
 	xstrdup(reply),
@@ -804,7 +806,7 @@ icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data
 {
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
-    debug(12, 5) ("icpHandleIMSComplete: Not Modified sent '%s'\n", entry->url);
+    debug(12, 5) ("icpHandleIMSComplete: Not Modified sent '%s'\n", storeUrl(entry));
     HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	http->request->protocol,
 	size);
@@ -826,7 +828,7 @@ void
 icpProcessRequest(int fd, clientHttpRequest * http)
 {
     char *url = http->url;
-    const char *pubkey = NULL;
+    const cache_key *pubkey;
     StoreEntry *entry = NULL;
     request_t *request = http->request;
     char *reply;
@@ -873,10 +875,10 @@ icpProcessRequest(int fd, clientHttpRequest * http)
      * directly. The only way to get a TCP_HIT on a HEAD reqeust is
      * if someone already did a GET.  Maybe we should turn HEAD
      * misses into full GET's?  */
-    if (http->request->method == METHOD_HEAD) {
-	pubkey = storeGeneratePublicKey(http->url, METHOD_GET);
-    } else
-	pubkey = storeGeneratePublicKey(http->url, http->request->method);
+    if (http->request->method == METHOD_HEAD)
+	pubkey = storeKeyPublic(http->url, METHOD_GET);
+    else
+	pubkey = storeKeyPublic(http->url, http->request->method);
 
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* this object isn't in the cache */
@@ -1097,6 +1099,7 @@ icpCreateMessage(
     char *urloffset = NULL;
     int buf_len;
     buf_len = sizeof(icp_common_t) + strlen(url) + 1;
+    assert(reqnum);
     if (opcode == ICP_OP_QUERY)
 	buf_len += sizeof(u_num32);
     buf = xcalloc(buf_len, 1);
@@ -1232,7 +1235,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     icp_common_t *headerp = (icp_common_t *) (void *) buf;
     StoreEntry *entry = NULL;
     char *url = NULL;
-    const char *key = NULL;
+    const cache_key *key;
     request_t *icp_request = NULL;
     int allow = 0;
     char *data = NULL;
@@ -1281,7 +1284,8 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 		flags |= ICP_FLAG_SRC_RTT;
 	}
 	/* The peer is allowed to use this cache */
-	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
+	key = storeKeyPublic(url, METHOD_GET);
+	entry = storeGet(key);
 	debug(12, 5) ("icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (icpCheckUdpHit(entry, icp_request)) {
 	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
@@ -1345,12 +1349,12 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    IcpOpcodeStr[header.opcode],
 	    inet_ntoa(from.sin_addr),
 	    url);
-	if (neighbors_do_private_keys && header.reqnum) {
-	    key = storeGeneratePrivateKey(url, METHOD_GET, header.reqnum);
-	} else {
-	    key = storeGeneratePublicKey(url, METHOD_GET);
-	}
-	debug(12, 3) ("icpHandleIcpV2: Looking for key '%s'\n", key);
+	if (neighbors_do_private_keys && header.reqnum)
+	    key = storeKeyPrivate(url, METHOD_GET, header.reqnum);
+	else
+	    key = storeKeyPublic(url, METHOD_GET);
+	debug(12, 3) ("icpHandleIcpV2: Looking for key '%s'\n",
+	    storeKeyText(key));
 	if ((entry = storeGet(key)) == NULL) {
 	    debug(12, 3) ("icpHandleIcpV2: Ignoring %s for NULL Entry.\n",
 		IcpOpcodeStr[header.opcode]);
@@ -1388,7 +1392,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     icp_common_t *headerp = (icp_common_t *) (void *) buf;
     StoreEntry *entry = NULL;
     char *url = NULL;
-    const char *key = NULL;
+    const cache_key *key;
     request_t *icp_request = NULL;
     int allow = 0;
     char *data = NULL;
@@ -1426,7 +1430,8 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    break;
 	}
 	/* The peer is allowed to use this cache */
-	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
+	key = storeKeyPublic(url, METHOD_GET);
+	storeGet(key);
 	debug(12, 5) ("icpHandleIcpV3: OPCODE %s\n",
 	    IcpOpcodeStr[header.opcode]);
 	if (icpCheckUdpHit(entry, icp_request)) {
@@ -1475,12 +1480,12 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    IcpOpcodeStr[header.opcode],
 	    inet_ntoa(from.sin_addr),
 	    url);
-	if (neighbors_do_private_keys && header.reqnum) {
-	    key = storeGeneratePrivateKey(url, METHOD_GET, header.reqnum);
-	} else {
-	    key = storeGeneratePublicKey(url, METHOD_GET);
-	}
-	debug(12, 3) ("icpHandleIcpV3: Looking for key '%s'\n", key);
+	if (neighbors_do_private_keys && header.reqnum)
+	    key = storeKeyPrivate(url, METHOD_GET, header.reqnum);
+	else
+	    key = storeKeyPublic(url, METHOD_GET);
+	debug(12, 3) ("icpHandleIcpV3: Looking for key '%s'\n",
+	    storeKeyText(key));
 	if ((entry = storeGet(key)) == NULL) {
 	    debug(12, 3) ("icpHandleIcpV3: Ignoring %s for NULL Entry.\n",
 		IcpOpcodeStr[header.opcode]);
@@ -1587,9 +1592,8 @@ icpHandleUdp(int sock, void *not_used)
  *  parseHttpRequest()
  * 
  *  Returns
- *   -1 on error
- *    0 on incomplete request
- *    1 on success
+ *   NULL on error or incomplete request
+ *    a clientHttpRequest structure on success
  */
 static clientHttpRequest *
 parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
@@ -1833,6 +1837,8 @@ clientReadRequest(int fd, void *data)
 		safe_free(headers);
 		break;
 	    }
+	    safe_free(http->log_url);
+	    http->log_url = xstrdup(urlCanonicalClean(request));
 	    request->client_addr = conn->peer.sin_addr;
 	    request->http_ver = http->http_ver;
 	    request->headers = headers;
@@ -2038,7 +2044,7 @@ CheckQuickAbort(clientHttpRequest * http)
 	return;
     if (CheckQuickAbort2(http) == 0)
 	return;
-    debug(12, 3) ("CheckQuickAbort: ABORTING %s\n", entry->url);
+    debug(12, 3) ("CheckQuickAbort: ABORTING %s\n", storeUrl(entry));
     storeAbort(entry, 1);
 }
 

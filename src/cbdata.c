@@ -75,13 +75,13 @@ static HASHCMP cbdata_cmp;
 static HASHHASH cbdata_hash;
 
 static int
-cbdata_cmp(const char *p1, const char *p2)
+cbdata_cmp(const void *p1, const void *p2)
 {
-    return p1 - p2;
+    return (char *) p1 - (char *) p2;
 }
 
 static unsigned int
-cbdata_hash(const char *p, unsigned int mod)
+cbdata_hash(const void *p, unsigned int mod)
 {
     return ((unsigned long) p >> 8) % mod;
 }

@@ -226,7 +226,7 @@ storeDirSwapLog(const StoreEntry * e)
 	e->object_len,
 	e->refcount,
 	e->flag,
-	e->url);
+	storeKeyText(e->key));
     file_write(Config.cacheSwap.swapDirs[dirn].swaplog_fd,
 	xstrdup(logmsg),
 	strlen(logmsg),

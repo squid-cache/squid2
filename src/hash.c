@@ -115,8 +115,9 @@ static int hash_unlink(hash_table *, hash_link *, int);
  *  Generates a standard deviation = 15.73
  */
 unsigned int
-hash_url(const char *s, unsigned int size)
+hash_url(const void *data, unsigned int size)
 {
+    const char *s = data;
     unsigned int i, j, n;
     j = strlen(s);
     for (i = j / 2, n = 0; i < j; i++)
@@ -126,8 +127,9 @@ hash_url(const char *s, unsigned int size)
 }
 
 unsigned int
-hash_string(const char *s, unsigned int size)
+hash_string(const void *data, unsigned int size)
 {
+    const char *s = data;
     unsigned int n = 0;
     unsigned int j = 0;
     unsigned int i = 0;
@@ -156,9 +158,9 @@ hash_string(const char *s, unsigned int size)
 
 /* Hash function from Chris Torek. */
 unsigned int
-hash4(const char *keyarg, unsigned int size)
+hash4(const void *data, unsigned int size)
 {
-    const char *key;
+    const char *key = data;
     size_t loop;
     unsigned int h;
     size_t len;
@@ -168,8 +170,7 @@ hash4(const char *keyarg, unsigned int size)
 #define HASH4 HASH4b
 
     h = 0;
-    key = keyarg;
-    len = strlen(keyarg);
+    len = strlen(key);
     if (len > 0) {
 	loop = (len + 8 - 1) >> 3;
 
@@ -272,46 +273,16 @@ hash_join(hash_table * hid, hash_link * lnk)
  *  returns NULL.
  */
 hash_link *
-hash_lookup(hash_table * hid, const char *k)
+hash_lookup(hash_table * hid, const void *k)
 {
     hash_link *walker;
     int b;
-
-    if (k == NULL)
-	return NULL;
+    assert(k != NULL);
     b = hid->hash(k, hid->size);
     for (walker = hid->buckets[b]; walker != NULL; walker = walker->next) {
 	if ((hid->cmp) (k, walker->key) == 0)
 	    return (walker);
-	/* XXX this should never happen */
-	if (walker == walker->next)
-	    break;
-    }
-    return NULL;
-}
-
-hash_link *
-hash_lookup_and_move(hash_table * hid, const char *k)
-{
-    hash_link **walker, *match;
-    int b;
-
-    if (k == NULL)
-	return NULL;
-    b = hid->hash(k, hid->size);
-    walker = &hid->buckets[b];
-    while ((match = *walker)) {
-	if ((hid->cmp) (k, match->key) == 0) {
-	    /* found, move to front of list */
-	    *walker = match->next;
-	    match->next = hid->buckets[b];
-	    hid->buckets[b] = match;
-	    return (match);
-	}
-	/* XXX this should not happen */
-	if (match == match->next)
-	    break;
-	walker = &match->next;
+	assert(walker != walker->next);
     }
     return NULL;
 }

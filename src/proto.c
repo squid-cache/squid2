@@ -176,7 +176,7 @@ protoDispatchFail(peer * p, void *data)
 int
 protoUnregister(StoreEntry * entry, request_t * request, struct in_addr src_addr)
 {
-    char *url = entry ? entry->url : NULL;
+    const char *url = entry ? storeUrl(entry) : NULL;
     protocol_t proto = request ? request->protocol : PROTO_NONE;
     ErrorState *err;
     debug(17, 5) ("protoUnregister '%s'\n", url ? url : "NULL");
@@ -204,7 +204,7 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     debug(17, 5) ("protoStart: FD %d: Fetching '%s %s' from %s\n",
 	fd,
 	RequestMethodStr[request->method],
-	entry->url,
+	storeUrl(entry),
 	e ? e->host : "source");
     assert(!BIT_TEST(entry->flag, ENTRY_DISPATCHED));
     assert(entry->ping_status != PING_WAITING);
@@ -229,7 +229,7 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     } else if (request->protocol == PROTO_CACHEOBJ) {
 	objcacheStart(fd, entry);
     } else if (request->method == METHOD_CONNECT) {
-	debug(17, 1) ("protoStart: Cannot retrieve '%s'\n", entry->url);
+	debug(17, 1) ("protoStart: Cannot retrieve '%s'\n", storeUrl(entry));
 	err = errorCon(ERR_UNSUP_REQ, HTTP_BAD_REQUEST);
 	err->request = requestLink(request);
 	errorAppendEntry(entry, err);
@@ -241,7 +241,7 @@ void
 protoDispatch(int fd, StoreEntry * entry, request_t * request)
 {
     pctrl_t *pctrl;
-    debug(17, 3) ("protoDispatch: '%s'\n", entry->url);
+    debug(17, 3) ("protoDispatch: '%s'\n", storeUrl(entry));
     entry->mem_obj->request = requestLink(request);
     if (request->protocol == PROTO_CACHEOBJ) {
 	protoStart(fd, entry, NULL, request);

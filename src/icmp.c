@@ -169,9 +169,9 @@ icmpHandleSourcePing(const struct sockaddr_in *from, const char *buf)
     xmemcpy(&header, buf, sizeof(icp_common_t));
     url = buf + sizeof(icp_common_t);
     if (neighbors_do_private_keys && header.reqnum) {
-	key = storeGeneratePrivateKey(url, METHOD_GET, header.reqnum);
+	key = storeKeyPrivate(url, METHOD_GET, header.reqnum);
     } else {
-	key = storeGeneratePublicKey(url, METHOD_GET);
+	key = storeKeyPublic(url, METHOD_GET);
     }
     debug(37, 3) ("icmpHandleSourcePing: from %s, key=%s\n",
 	inet_ntoa(from->sin_addr),
