@@ -129,30 +129,20 @@ static char *dead_msg()
 void mail_warranty()
 {
     FILE *fp = NULL;
-    static char filename[256];
+    char *filename;
     static char command[256];
-
-    sprintf(filename, "/tmp/mailin%d", (int) getpid());
-    fp = fopen(filename, "w");
-    if (fp != NULL) {
-	fprintf(fp, "From: %s\n", appname);
-	fprintf(fp, "To: %s\n", getAdminEmail());
-	fprintf(fp, "Subject: %s\n", dead_msg());
-	fclose(fp);
-	sprintf(command, "mail %s < %s", getAdminEmail(), filename);
-	system(command);	/* XXX should avoid system(3) */
-	unlink(filename);
-    }
+    if ((filename = tempnam(NULL, progname)) == NULL)
+	return;
+    if ((fp = fopen(filename, "w")) == NULL)
+	return;
+    fprintf(fp, "From: %s\n", appname);
+    fprintf(fp, "To: %s\n", getAdminEmail());
+    fprintf(fp, "Subject: %s\n", dead_msg());
+    fclose(fp);
+    sprintf(command, "mail %s < %s", getAdminEmail(), filename);
+    system(command);		/* XXX should avoid system(3) */
+    unlink(filename);
 }
-
-void print_warranty()
-{
-    if (getAdminEmail())
-	mail_warranty();
-    else
-	puts(dead_msg());
-}
-
 
 static void dumpMallocStats(f)
      FILE *f;
@@ -242,7 +232,13 @@ void death(sig)
 #endif
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
-    print_warranty();
+    if (squid_curtime - SQUID_RELEASE_TIME < 864000) {
+	/* skip if more than 10 days old */
+	if (getAdminEmail())
+	    mail_warranty();
+	else
+	    puts(dead_msg());
+    }
     abort();
 }
 
