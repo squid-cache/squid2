@@ -218,8 +218,8 @@ static void ipcache_release(i)
 	debug(14, 5, "ipcache_release: Released IP cached record for '%s'.\n",
 	    result->name);
     } else {
-	debug(14,0,"ipcache_release: HELP, '%s' status = %d\n",
-		result->name, result->status);
+	debug(14, 0, "ipcache_release: HELP, '%s' status = %d\n",
+	    result->name, result->status);
     }
     safe_free(result->name);
     memset(result, '\0', sizeof(ipcache_entry));
@@ -406,10 +406,9 @@ void ipcache_add(name, i, hp, cached)
 	cached ? "cached" : "not cached");
 
     if (ipcache_get(name)) {
-	debug(14,0,"WHOA: '%s' is already in the IP cache!\n", name);
+	debug(14, 0, "WHOA: '%s' is already in the IP cache!\n", name);
 	fatal_dump("ipcache_add: somebody adding a duplicate!");
     }
-
     i->name = xstrdup(name);
     if (cached) {
 	/* count for IPs */
@@ -962,9 +961,9 @@ void ipcacheOpenServers()
 	    dns_child_table[k]->flags &= ~DNS_FLAG_ALIVE;
 	} else {
 	    debug(14, 4, "ipcacheOpenServers: FD %d connected to %s #%d.\n",
-	       dnssocket, prg, k+1);
+		dnssocket, prg, k + 1);
 	    dns_child_table[k]->flags |= DNS_FLAG_ALIVE;
-	    dns_child_table[k]->id = k+1;
+	    dns_child_table[k]->id = k + 1;
 	    dns_child_table[k]->inpipe = dnssocket;
 	    dns_child_table[k]->outpipe = dnssocket;
 	    dns_child_table[k]->lastcall = squid_curtime;
@@ -1082,11 +1081,11 @@ struct hostent *ipcache_gethostbyname(name, flags)
 	} else if (result->status == IP_NEGATIVE_CACHED) {
 	    IpcacheStats.negative_hits++;
 	    return NULL;
-        } else {
+	} else {
 	    IpcacheStats.hits++;
 	    result->lastref = squid_curtime;
 	    return &result->entry;
-        }
+	}
     }
     IpcacheStats.misses++;
     /* check if it's already a IP address in text form. */
@@ -1096,17 +1095,17 @@ struct hostent *ipcache_gethostbyname(name, flags)
 	return static_result;
     }
     if (flags & IP_BLOCKING_LOOKUP) {
-        IpcacheStats.ghbn_calls++;
-        hp = gethostbyname(name);
-        if (hp && hp->h_name && (hp->h_name[0] != '\0')) {
-            /* good address, cached */
-            ipcache_add(name, ipcache_create(), hp, 1);
-            result = ipcache_get(name);
-            return &result->entry;
-        }
-        /* bad address, negative cached */
-        ipcache_add(name, ipcache_create(), hp, 0);
-        return NULL;
+	IpcacheStats.ghbn_calls++;
+	hp = gethostbyname(name);
+	if (hp && hp->h_name && (hp->h_name[0] != '\0')) {
+	    /* good address, cached */
+	    ipcache_add(name, ipcache_create(), hp, 1);
+	    result = ipcache_get(name);
+	    return &result->entry;
+	}
+	/* bad address, negative cached */
+	ipcache_add(name, ipcache_create(), hp, 0);
+	return NULL;
     }
     if (flags & IP_LOOKUP_IF_MISS)
 	ipcache_nbgethostbyname(name, -1, dummy_handler, NULL);
