@@ -892,41 +892,12 @@ httpStart(FwdState * fwd)
     comm_add_close_handler(fd, httpStateFree, httpState);
     Counter.server.all.requests++;
     Counter.server.http.requests++;
-    httpConnectDone(fd, COMM_OK, httpState);
-}
-
-static void
-httpConnectDone(int fd, int status, void *data)
-{
-    HttpStateData *httpState = data;
-    request_t *request = httpState->request;
-    StoreEntry *entry = httpState->entry;
-    ErrorState *err;
-    if (status == COMM_ERR_DNS) {
-	debug(11, 4) ("httpConnectDone: Unknown host: %s\n", request->host);
-	err = errorCon(ERR_DNS_FAIL, HTTP_SERVICE_UNAVAILABLE);
-	err->dnsserver_msg = xstrdup(dns_error_message);
-	err->request = requestLink(httpState->orig_request);
-	errorAppendEntry(entry, err);
-	comm_close(fd);
-    } else if (status != COMM_OK) {
-	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
-	err->xerrno = errno;
-	err->host = xstrdup(request->host);
-	err->port = request->port;
-	err->request = requestLink(httpState->orig_request);
-	errorAppendEntry(entry, err);
-	if (httpState->peer)
-	    peerCheckConnectStart(httpState->peer);
-	comm_close(fd);
-    } else {
-	commSetSelect(fd, COMM_SELECT_WRITE, httpSendRequest, httpState, 0);
-	/*
-	 * We used to set the read timeout here, but not any more.
-	 * Now its set in httpSendComplete() after the full request,
-	 * including request body, has been written to the server.
-	 */
-    }
+    httpSendRequest(fd, httpState);
+    /*
+     * We used to set the read timeout here, but not any more.
+     * Now its set in httpSendComplete() after the full request,
+     * including request body, has been written to the server.
+     */
 }
 
 static void
