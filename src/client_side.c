@@ -1966,33 +1966,34 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	    http->range_iter.prefix_size = rep->hdr_sz;
 	    debug(33, 3) ("clientSendMoreData: Appending %d bytes after %d bytes of headers\n",
 		(int) body_size, rep->hdr_sz);
-	    ch = clientAclChecklistCreate(Config.accessList.reply, http);
-	    ch->reply = rep;
-	    rv = aclCheckFast(Config.accessList.reply, ch);
-	    aclChecklistFree(ch);
-	    ch = NULL;
-	    debug(33, 2) ("The reply for %s %s is %s, because it matched '%s'\n",
-		RequestMethodStr[http->request->method], http->uri,
-		rv ? "ALLOWED" : "DENIED",
-		AclMatchedName ? AclMatchedName : "NO ACL's");
-	    if (!rv && http->log_type != LOG_TCP_DENIED
-		&& !clientAlwaysAllowResponse(rep->sline.status)) {
-		ErrorState *err;
-		err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN);
-		err->request = requestLink(http->request);
-		storeUnregister(http->sc, http->entry, http);
-		http->sc = NULL;
-		storeUnlockObject(http->entry);
-		http->entry = clientCreateStoreEntry(http, http->request->method,
-		    null_request_flags);
-		errorAppendEntry(http->entry, err);
-		httpReplyDestroy(rep);
-		/*
-		 * log with TCP_DENIED, the same as for http_access checks
-		 */
-		http->log_type = LOG_TCP_DENIED;
-		memFree(buf, MEM_CLIENT_SOCK_BUF);
-		return;
+	    if (http->log_type != LOG_TCP_DENIED && !clientAlwaysAllowResponse(rep->sline.status)) {
+		ch = clientAclChecklistCreate(Config.accessList.reply, http);
+		ch->reply = rep;
+		rv = aclCheckFast(Config.accessList.reply, ch);
+		aclChecklistFree(ch);
+		ch = NULL;
+		debug(33, 2) ("The reply for %s %s is %s, because it matched '%s'\n",
+		    RequestMethodStr[http->request->method], http->uri,
+		    rv ? "ALLOWED" : "DENIED",
+		    AclMatchedName ? AclMatchedName : "NO ACL's");
+		if (!rv) {
+		    ErrorState *err;
+		    err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN);
+		    err->request = requestLink(http->request);
+		    storeUnregister(http->sc, http->entry, http);
+		    http->sc = NULL;
+		    storeUnlockObject(http->entry);
+		    http->entry = clientCreateStoreEntry(http, http->request->method,
+			null_request_flags);
+		    errorAppendEntry(http->entry, err);
+		    httpReplyDestroy(rep);
+		    /*
+		     * log with TCP_DENIED, the same as for http_access checks
+		     */
+		    http->log_type = LOG_TCP_DENIED;
+		    memFree(buf, MEM_CLIENT_SOCK_BUF);
+		    return;
+		}
 	    }
 	} else if (size < CLIENT_SOCK_SZ && entry->store_status == STORE_PENDING) {
 	    /* wait for more to arrive */
