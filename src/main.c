@@ -462,6 +462,7 @@ mainReconfigure(void)
 {
     debug(1, 0) ("Restarting Squid Cache (version %s)...\n", version_string);
     /* Already called serverConnectionsClose and ipcacheShutdownServers() */
+    storeDirCloseSwapLogs();
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
     ipcache_restart();		/* clear stuck entries */
@@ -471,6 +472,7 @@ mainReconfigure(void)
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0 && (!Config2.Accel.on || Config.onoff.accel_with_proxy))
 	neighbors_open(theOutIcpConnection);
+    storeDirOpenSwapLogs();
     debug(1, 0) ("Ready to serve requests.\n");
 }
 

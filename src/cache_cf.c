@@ -476,7 +476,6 @@ parse_cachedir(struct _cacheSwap *swap)
 	xfree(swap->swapDirs);
 	swap->swapDirs = tmp;
     }
-    debug(20, 1) ("Creating Swap Dir #%d in %s\n", swap->n_configured + 1, path);
     tmp = swap->swapDirs + swap->n_configured;
     tmp->path = xstrdup(path);
     tmp->max_size = size;
