@@ -182,7 +182,7 @@ static void httpProcessReplyHeader(data, buf, size)
 	strncat(data->reply_hdr, buf, room < size ? room : size);
 	hdr_len += room < size ? room : size;
 	if (hdr_len > 4 && strncmp(data->reply_hdr, "HTTP/", 5)) {
-	    debug(11, 1, "httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", entry->key);
+	    debug(11, 3, "httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", entry->key);
 	    data->reply_hdr_state += 2;
 	    return;
 	}
