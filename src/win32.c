@@ -57,6 +57,10 @@ GetOSVersion()
 	    WIN32_OS_string = xstrdup("Windows XP");
 	    return _WIN_OS_WINXP;
 	}
+	if ((osvi.dwMajorVersion == 5) && (osvi.dwMinorVersion == 2)) {
+	    WIN32_OS_string = xstrdup("Windows .NET");
+	    return _WIN_OS_WINNET;
+	}
 	break;
     case VER_PLATFORM_WIN32_WINDOWS:
 	if ((osvi.dwMajorVersion == 4) && (osvi.dwMinorVersion == 0)) {

@@ -744,7 +744,8 @@ enum {
     _WIN_OS_WINME,
     _WIN_OS_WINNT,
     _WIN_OS_WIN2K,
-    _WIN_OS_WINXP
+    _WIN_OS_WINXP,
+    _WIN_OS_WINNET
 };
 
 #endif
