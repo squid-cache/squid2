@@ -183,6 +183,7 @@ AC_CHECK_HEADERS( \
 )
 
 AC_C_CONST
+AC_C_BIGENDIAN
 
 AC_MSG_CHECKING(if ANSI prototypes work)
 AC_TRY_COMPILE([int foo(char *); int foo (char *bar) {return 1;}],

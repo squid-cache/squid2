@@ -194,10 +194,9 @@ pingerRecv(void)
 #if HAVE_IP_HL
     iphdrlen = ip->ip_hl << 2;
 #else /* HAVE_IP_HL */
-#if BYTE_ORDER == BIG_ENDIAN
+#if WORDS_BIGENDIAN
     iphdrlen = (ip->ip_vhl >> 4) << 2;
-#endif
-#if BYTE_ORDER == LITTLE_ENDIAN
+#else
     iphdrlen = (ip->ip_vhl & 0xF) << 2;
 #endif
 #endif /* HAVE_IP_HL */
