@@ -73,7 +73,7 @@ static int RangeParsedCount = 0;
  */
 
 static HttpHdrRangeSpec *
-httpHdrRangeSpecCreate()
+httpHdrRangeSpecCreate(void)
 {
     return memAllocate(MEM_HTTP_HDR_RANGE_SPEC);
 }
@@ -209,7 +209,7 @@ httpHdrRangeSpecMergeWith(HttpHdrRangeSpec * recep, const HttpHdrRangeSpec * don
  */
 
 HttpHdrRange *
-httpHdrRangeCreate()
+httpHdrRangeCreate(void)
 {
     HttpHdrRange *r = memAllocate(MEM_HTTP_HDR_RANGE);
     stackInit(&r->specs);

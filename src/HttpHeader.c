@@ -227,7 +227,7 @@ static void httpHeaderStatDump(const HttpHeaderStat * hs, StoreEntry * e);
  */
 
 void
-httpHeaderInitModule()
+httpHeaderInitModule(void)
 {
     int i;
     /* check that we have enough space for masks */
@@ -264,7 +264,7 @@ httpHeaderInitModule()
 }
 
 void
-httpHeaderCleanModule()
+httpHeaderCleanModule(void)
 {
     httpHeaderDestroyFieldsInfo(Headers, HDR_ENUM_END);
     Headers = NULL;

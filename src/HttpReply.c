@@ -60,7 +60,7 @@ static int httpReplyIsolateStart(const char **parse_start, const char **blk_star
 
 /* module initialization */
 void
-httpReplyInitModule()
+httpReplyInitModule(void)
 {
     httpHeaderMaskInit(&Denied304HeadersMask, 0);
     httpHeaderCalcMask(&Denied304HeadersMask, (const int *) Denied304HeadersArr, countof(Denied304HeadersArr));
@@ -68,7 +68,7 @@ httpReplyInitModule()
 
 
 HttpReply *
-httpReplyCreate()
+httpReplyCreate(void)
 {
     HttpReply *rep = memAllocate(MEM_HTTP_REPLY);
     debug(58, 7) ("creating rep: %p\n", rep);

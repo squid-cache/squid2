@@ -288,7 +288,7 @@ extern mb_size_t httpBuildRequestPrefix(request_t * request,
     MemBuf * mb,
     int cfd,
     http_state_flags);
-extern void httpAnonInitModule();
+extern void httpAnonInitModule(void);
 extern int httpAnonHdrAllowed(http_hdr_type hdr_id);
 extern int httpAnonHdrDenied(http_hdr_type hdr_id);
 extern void httpBuildRequestHeader(request_t *, request_t *, StoreEntry *, HttpHeader *, int, http_state_flags);
@@ -326,9 +326,9 @@ extern void httpBodySet(HttpBody * body, MemBuf * mb);
 extern void httpBodyPackInto(const HttpBody * body, Packer * p);
 
 /* Http Cache Control Header Field */
-extern void httpHdrCcInitModule();
-extern void httpHdrCcCleanModule();
-extern HttpHdrCc *httpHdrCcCreate();
+extern void httpHdrCcInitModule(void);
+extern void httpHdrCcCleanModule(void);
+extern HttpHdrCc *httpHdrCcCreate(void);
 extern HttpHdrCc *httpHdrCcParseCreate(const String * str);
 extern void httpHdrCcDestroy(HttpHdrCc * cc);
 extern HttpHdrCc *httpHdrCcDup(const HttpHdrCc * cc);
@@ -358,7 +358,7 @@ extern ssize_t httpHdrRangeLowestOffset(const HttpHdrRange * range, ssize_t);
 
 
 /* Http Content Range Header Field */
-extern HttpHdrContRange *httpHdrContRangeCreate();
+extern HttpHdrContRange *httpHdrContRangeCreate(void);
 extern HttpHdrContRange *httpHdrContRangeParseCreate(const char *crange_spec);
 /* returns true if range is valid; inits HttpHdrContRange */
 extern int httpHdrContRangeParseInit(HttpHdrContRange * crange, const char *crange_spec);
@@ -388,14 +388,13 @@ extern int httpHeaderReset(HttpHeader * hdr);
 #if STDC_HEADERS
 extern void httpHeaderPutStrf(HttpHeader * hdr, http_hdr_type id, const char *fmt,...);
 #else
-extern void
-     httpHeaderPutStrf();
+extern void httpHeaderPutStrf();
 #endif
 
 
 /* Http Header */
-extern void httpHeaderInitModule();
-extern void httpHeaderCleanModule();
+extern void httpHeaderInitModule(void);
+extern void httpHeaderCleanModule(void);
 /* init/clean */
 extern void httpHeaderInit(HttpHeader * hdr, http_hdr_owner_type owner);
 extern void httpHeaderClean(HttpHeader * hdr);
@@ -443,9 +442,9 @@ extern int httpMsgIsPersistent(float http_ver, const HttpHeader * hdr);
 extern int httpMsgIsolateHeaders(const char **parse_start, const char **blk_start, const char **blk_end);
 
 /* Http Reply */
-extern void httpReplyInitModule();
+extern void httpReplyInitModule(void);
 /* create/destroy */
-extern HttpReply *httpReplyCreate();
+extern HttpReply *httpReplyCreate(void);
 extern void httpReplyDestroy(HttpReply * rep);
 /* reset: clean, then init */
 extern void httpReplyReset(HttpReply * rep);

@@ -411,7 +411,7 @@ pipe_handler(int sig)
 }
 
 static void
-set_our_signal()
+set_our_signal(void)
 {
 #if HAVE_SIGACTION
     struct sigaction sa;

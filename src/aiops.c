@@ -402,7 +402,7 @@ aio_queue_request(aio_request_t * requestp)
 
 
 static void
-aio_process_request_queue()
+aio_process_request_queue(void)
 {
     aio_thread_t *threadp;
     aio_request_t *requestp;
@@ -818,7 +818,7 @@ aio_poll_threads(void)
 }				/* aio_poll_threads */
 
 aio_result_t *
-aio_poll_done()
+aio_poll_done(void)
 {
     aio_request_t *requestp;
     aio_result_t *resultp;

@@ -58,13 +58,13 @@ static int httpHdrCcParseInit(HttpHdrCc * cc, const String * str);
 /* module initialization */
 
 void
-httpHdrCcInitModule()
+httpHdrCcInitModule(void)
 {
     CcFieldsInfo = httpHeaderBuildFieldsInfo(CcAttrs, CC_ENUM_END);
 }
 
 void
-httpHdrCcCleanModule()
+httpHdrCcCleanModule(void)
 {
     httpHeaderDestroyFieldsInfo(CcFieldsInfo, CC_ENUM_END);
     CcFieldsInfo = NULL;
@@ -73,7 +73,7 @@ httpHdrCcCleanModule()
 /* implementation */
 
 HttpHdrCc *
-httpHdrCcCreate()
+httpHdrCcCreate(void)
 {
     HttpHdrCc *cc = memAllocate(MEM_HTTP_HDR_CC);
     cc->max_age = -1;

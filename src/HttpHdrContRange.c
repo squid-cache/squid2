@@ -110,7 +110,7 @@ httpHdrRangeRespSpecPackInto(const HttpHdrRangeSpec * spec, Packer * p)
  */
 
 HttpHdrContRange *
-httpHdrContRangeCreate()
+httpHdrContRangeCreate(void)
 {
     HttpHdrContRange *r = memAllocate(MEM_HTTP_HDR_CONTENT_RANGE);
     r->spec.offset = r->spec.length = range_spec_unknown;

@@ -149,7 +149,7 @@ delayIdZero(void *hlink)
 }
 
 void
-delayFreeDelayData()
+delayFreeDelayData(void)
 {
     safe_free(delay_data);
     if (!delay_id_ptr_hash)

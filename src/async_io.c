@@ -85,7 +85,7 @@ aioFDWasClosed(int fd)
 }
 
 void
-aioInit()
+aioInit(void)
 {
     if (initialised)
 	return;
@@ -339,7 +339,7 @@ aioUnlink(const char *pathname, AIOCB * callback, void *callback_data)
 
 
 void
-aioCheckCallbacks()
+aioCheckCallbacks(void)
 {
     aio_result_t *resultp;
     aio_ctrl_t *ctrlp;
