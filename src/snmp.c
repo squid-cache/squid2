@@ -169,13 +169,13 @@ snmpHandleUdp(int sock, void *not_used)
 	/* or maybe an EHOSTUNREACH "No route to host" message */
 	if (errno != ECONNREFUSED && errno != EHOSTUNREACH)
 #endif
-	    debug(51, 1) ("snmpHandleUdp: FD %d recvfrom: %s\n",
+	    debug(49, 1) ("snmpHandleUdp: FD %d recvfrom: %s\n",
 		sock, xstrerror());
 	return;
     }
     if (snmp_dump_packet) {
 	int count;
-	debug(49, 5) ("received %d bytes from %s:\n", (int) len,
+	debug(49, 6) ("received %d bytes from %s:\n", (int) len,
 	    inet_ntoa(from.sin_addr));
 	for (count = 0; count < len; count++) {
 	    snprintf(deb_line, 4096, "%s %02X ", deb_line, (u_char) buf[count]);
@@ -186,7 +186,7 @@ snmpHandleUdp(int sock, void *not_used)
 	}
     }
     buf[len] = '\0';
-    debug(49, 4) ("snmpHandleUdp: FD %d: received %d bytes from %s.\n",
+    debug(49, 3) ("snmpHandleUdp: FD %d: received %d bytes from %s.\n",
 	sock,
 	len,
 	inet_ntoa(from.sin_addr));
@@ -212,7 +212,8 @@ snmp_agent_parse_done(int errstat, snmp_request_t *snmp_rq)
     if (memcmp(&snmp_rq->from, &local_snmpd, sizeof(struct sockaddr_in)) == 0) {
 	/* look it up */
 	if (snmpFwd_removePending(&snmp_rq->from, this_reqid)) {		/* failed */
-	    debug(49, 5) ("snmp: bogus response\n");
+	    debug(49, 2) ("snmp: bogus response from %s.\n",
+			inet_ntoa(snmp_rq->from.sin_addr));
 	    xfree(snmp_rq->outbuf);
 	    xfree(snmp_rq);
 	    return;
@@ -268,11 +269,11 @@ snmpInit(void)
     init_agent_auth();
 
     snmplib_debug_hook = snmpSnmplibDebug;
-
+#if 0
     debug(49, 5) ("init_mib: calling with %s\n", Config.Snmp.mibPath);
 
     init_mib(Config.Snmp.mibPath);
-
+#endif
     if (!Config.Snmp.communities)
 	debug(49, 5) ("snmpInit: communities not defined yet !\n");
     else

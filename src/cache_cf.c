@@ -384,6 +384,7 @@ parse_snmp_conf(snmpconf ** s)
 {
     static char buff[256];
     static char *tokens[10], *p;
+
     if (Mib == NULL) {
 	if (Config.Snmp.mibPath)
 	    init_mib(Config.Snmp.mibPath);

@@ -748,12 +748,12 @@ snmp_netdbFn(variable_list * Var, long *ErrP)
 	return (NULL);
     }
 #if USE_ICMP
-    Answer->val.integer = xmalloc(Answer->val_len);
     Answer->val_len = sizeof(long);
+    Answer->val.integer = xmalloc(Answer->val_len);
     switch (Var->name[10]) {
     case NETDB_ID:
 	Answer->type = SMI_INTEGER;
-	*(Answer->val.integer) = (long) cnt - 1;
+	*(Answer->val.integer) = (long) Var->name[11];
 	break;
     case NETDB_NET:
 	Answer->type = SMI_IPADDRESS;
@@ -778,11 +778,11 @@ snmp_netdbFn(variable_list * Var, long *ErrP)
 	break;
     case NETDB_PINGTIME:
 	Answer->type = SMI_TIMETICKS;
-	*(Answer->val.integer) = (long) n->next_ping_time;
+	*(Answer->val.integer) = (long) n->next_ping_time-squid_curtime;
 	break;
     case NETDB_LASTUSE:
 	Answer->type = SMI_TIMETICKS;
-	*(Answer->val.integer) = (long) n->last_use_time;
+	*(Answer->val.integer) = (long) squid_curtime-n->last_use_time;
 	break;
     default:
 	*ErrP = SNMP_ERR_NOSUCHNAME;

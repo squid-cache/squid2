@@ -134,7 +134,9 @@ static void info_get_mallstat(int, int, StoreEntry *);
 /*
  * An hour's worth, plus the 'current' counter
  */
+#if 0 /* moved to defines.h to get from snmp_oidlist.c */
 #define N_COUNT_HIST 61
+#endif 
 StatCounters CountHist[N_COUNT_HIST];
 static int NCountHist = 0;
 
@@ -890,4 +892,10 @@ get_median_svc(int interval, int which)
 	x = 0;
     }
     return (int) x;
+}
+
+StatCounters *
+snmpStatGet(int minutes)
+{
+  return &CountHist[minutes];
 }
