@@ -14,6 +14,7 @@ int opt_unlink_on_reload = 0;
 int opt_reload_hit_only = 0;	/* only UDP_HIT during store relaod */
 int catch_signals = 1;
 int opt_dns_tests = 1;
+int opt_foreground_rebuild = 0;
 int vhost_mode = 0;
 int unbuffered_logs = 1;	/* debug and hierarhcy unbuffered by default */
 int shutdown_pending = 0;	/* set by SIGTERM handler (shut_down()) */
@@ -35,7 +36,7 @@ static int malloc_debug_level = 0;
 static void usage()
 {
     fprintf(stderr, "\
-Usage: %s [-hsvzCDRUVY] [-f config-file] [-[au] port]\n\
+Usage: %s [-hsvzCDFRUVY] [-f config-file] [-[au] port]\n\
        -a port   Specify ASCII port number (default: %d).\n\
        -f file   Use given config-file instead of\n\
                  %s\n\
@@ -46,6 +47,7 @@ Usage: %s [-hsvzCDRUVY] [-f config-file] [-[au] port]\n\
        -z        Zap disk storage -- deletes all objects in disk cache.\n\
        -C        Do not catch fatal signals.\n\
        -D        Disable initial DNS tests.\n\
+       -F        Foreground fast store rebuild.\n\
        -R        Do not set REUSEADDR on port.\n\
        -U        Unlink expired objects on reload.\n\
        -V        Virtual host httpd-accelerator.\n\
@@ -61,13 +63,16 @@ static void mainParseOptions(argc, argv)
     extern char *optarg;
     int c;
 
-    while ((c = getopt(argc, argv, "CDRUVYa:bf:hm:su:vz?")) != -1) {
+    while ((c = getopt(argc, argv, "CDFRUVYa:bf:hm:su:vz?")) != -1) {
 	switch (c) {
 	case 'C':
 	    catch_signals = 0;
 	    break;
 	case 'D':
 	    opt_dns_tests = 0;
+	    break;
+	case 'F':
+	    opt_foreground_rebuild = 1;
 	    break;
 	case 'R':
 	    do_reuse = 0;
@@ -381,7 +386,7 @@ int main(argc, argv)
     if (getCleanRate() > 0)
 	next_cleaning = time(NULL) + getCleanRate();
     for (;;) {
-	loop_delay = (time_t) 60;
+	loop_delay = (time_t) 10;
 	/* maintain cache storage */
 	if (squid_curtime > last_maintain) {
 	    storeMaintainSwapSpace();
