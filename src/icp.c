@@ -997,7 +997,7 @@ icpCreateHitObjMessage(
     const char *url,
     int reqnum,
     int pad,
-    StoreEntry *entry)
+    StoreEntry * entry)
 {
 
     char *buf = NULL;
@@ -1051,7 +1051,7 @@ icpUdpSend(int fd,
     data->address = *to;
     data->msg = msg;
     data->len = (int) ntohs(msg->length);
-    data->start = current_time;		/* wrong for HIT_OBJ */
+    data->start = current_time;	/* wrong for HIT_OBJ */
     data->logcode = logcode;
     data->proto = proto;
     AppendUdp(data);
@@ -1106,9 +1106,9 @@ icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
 {
     if (!BIT_TEST(h->flags, ICP_FLAG_HIT_OBJ))	/* not requested */
 	return 0;
-    if (len > SQUID_UDP_SO_SNDBUF)		/* too big */
+    if (len > SQUID_UDP_SO_SNDBUF)	/* too big */
 	return 0;
-    if (refreshCheck(e, r))			/* stale */
+    if (refreshCheck(e, r))	/* stale */
 	return 0;
     return 1;
 }
@@ -1163,10 +1163,10 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    break;
 	}
 	if (header.flags & ICP_FLAG_NETDB_GUNK) {
-		int rtt, hops;
-		rtt = netdbHostRtt(icp_request->host);
-		hops = netdbHostHops(icp_request->host);
-		netdb_gunk = htonl(((hops & 0xFFFF) << 16) | (rtt & 0xFFFF));
+	    int rtt, hops;
+	    rtt = netdbHostRtt(icp_request->host);
+	    hops = netdbHostHops(icp_request->host);
+	    netdb_gunk = htonl(((hops & 0xFFFF) << 16) | (rtt & 0xFFFF));
 	}
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
