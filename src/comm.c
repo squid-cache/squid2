@@ -358,7 +358,7 @@ commRetryConnect(int fd, ConnectStateData * connectState)
     close(fd2);
     return 1;
 #else
-  debug(5, 2, "commRetryConnect not supported\n"):
+  debug(5, 2, "commRetryConnect not supported\n");
     return 0;
 #endif
 }
