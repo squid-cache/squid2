@@ -276,7 +276,8 @@ icpStateFree(int fd, icpStateData * icpState)
 	icpState->log_type);
     if (icpState->ident_fd)
 	comm_close(icpState->ident_fd);
-    checkFailureRatio(icpState->log_type, hierData->code);
+    checkFailureRatio(icpState->log_type,
+	hierData ? hierData->code : HIER_NONE);
     safe_free(icpState->inbuf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
