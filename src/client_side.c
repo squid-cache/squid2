@@ -303,6 +303,7 @@ clientUpdateHierCounters(HierarchyLogEntry * someEntry)
     switch (someEntry->code) {
 #if USE_CACHE_DIGESTS
     case CD_PARENT_HIT:
+    case CD_SIBLING_HIT:
 	statCounter.cd.times_used++;
 	break;
 #endif
