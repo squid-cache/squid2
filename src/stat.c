@@ -933,6 +933,7 @@ statAvgTick(void *notused)
     NCountHist++;
 }
 
+#define XAVG(X) (double) (f->X - l->X) / dt
 void
 statAvgDump(StoreEntry * sentry)
 {
@@ -944,9 +945,6 @@ statAvgDump(StoreEntry * sentry)
     statAvgTick(NULL);
     dt = tvSubDsec(l->timestamp, f->timestamp);
     ct = f->cputime - l->cputime;
-debug(0,0)("statAvgDump: dt=%f\n", dt);
-debug(0,0)("statAvgDump: ct=%f\n", ct);
-#define XAVG(X) (double) (f->X - l->X) / dt
     storeBuffer(sentry);
     storeAppendPrintf(sentry, "client_http.requests = %f/sec\n",
 	XAVG(client_http.requests));
