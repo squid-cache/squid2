@@ -502,6 +502,10 @@ parseBytesLine(size_t * bptr, const char *units)
 	self_destruct();
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
+    if (strcmp(token, "none") == 0 || strcmp(token, "-1") == 0) {
+	*bptr = (size_t) - 1;
+	return;
+    }
     d = atof(token);
     m = u;			/* default to 'units' if none specified */
     if (0.0 == d)
