@@ -209,10 +209,6 @@ file_close(int fd)
 	EBIT_SET(F->flags, FD_CLOSE_REQUEST);
 	return;
     }
-    if (EBIT_TEST(F->flags, FD_WRITE_PENDING)) {
-	EBIT_SET(F->flags, FD_CLOSE_REQUEST);
-	return;
-    }
 #if USE_ASYNC_IO
     aioClose(fd);
 #else
@@ -338,7 +334,6 @@ diskHandleWriteComplete(void *data, int len, int errcode)
     if (fdd->write_q == NULL) {
 	/* no more data */
 	fdd->write_q_tail = NULL;
-	EBIT_CLR(F->flags, FD_WRITE_PENDING);
 	EBIT_CLR(F->flags, FD_WRITE_DAEMON);
     } else {
 	/* another block is queued */
@@ -379,7 +374,6 @@ file_write(int fd,
     F->disk.wrt_handle = handle;
     F->disk.wrt_handle_data = handle_data;
     /* add to queue */
-    EBIT_SET(F->flags, FD_WRITE_PENDING);
     if (F->disk.write_q == NULL) {
 	/* empty queue */
 	F->disk.write_q = F->disk.write_q_tail = wq;
