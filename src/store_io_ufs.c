@@ -8,7 +8,6 @@
 #define SWAP_DIR_SHIFT 24
 #define SWAP_FILE_MASK 0x00FFFFFF
 
-static FOCB storeUfsOpenDone;
 static DRCB storeUfsReadDone;
 static DWCB storeUfsWriteDone;
 static void storeUfsIOCallback(storeIOState * sio, int errflag);
@@ -20,6 +19,8 @@ storeUfsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
 {
     char *path = storeUfsFullPath(f, NULL);
     storeIOState *sio;
+    struct stat sb;
+    int fd;
     debug(78, 3) ("storeUfsOpen: fileno %08X, mode %d\n", f, mode);
     assert(mode == O_RDONLY || mode == O_WRONLY);
     sio = memAllocate(MEM_STORE_IO);
@@ -31,7 +32,18 @@ storeUfsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     sio->callback_data = callback_data;
     if (mode == O_WRONLY)
 	mode |= (O_CREAT | O_TRUNC);
-    file_open(path, mode, storeUfsOpenDone, sio, NULL);
+    fd = file_open(path, mode);
+    debug(78, 3) ("storeUfsOpen: opened FD %d\n", fd);
+    sio->type.ufs.flags.writing = 0;
+    if (fd < 0) {
+	debug(78, 3) ("storeUfsOpenDone: got failure (%d)\n", errno);
+	storeUfsIOCallback(sio, errno);
+	return NULL;
+    }
+    sio->type.ufs.fd = fd;
+    if (sio->mode == O_RDONLY)
+	if (fstat(fd, &sb) == 0)
+	    sio->st_size = sb.st_size;
     store_open_disk_fd++;
     return sio;
 }
@@ -90,25 +102,6 @@ storeUfsUnlink(sfileno f)
 }
 
 /*  === STATIC =========================================================== */
-
-static void
-storeUfsOpenDone(void *my_data, int fd, int errflag)
-{
-    storeIOState *sio = my_data;
-    struct stat sb;
-    debug(78, 3) ("storeUfsOpenDone: fileno %08X, FD %d\n",
-	sio->swap_file_number, fd);
-    sio->type.ufs.flags.writing = 0;
-    if (errflag) {
-	debug(78, 3) ("storeUfsOpenDone: got failure (%d)\n", errflag);
-	storeUfsIOCallback(sio, errflag);
-	return;
-    }
-    sio->type.ufs.fd = fd;
-    if (sio->mode == O_RDONLY)
-	if (fstat(fd, &sb) == 0)
-	    sio->st_size = sb.st_size;
-}
 
 static void
 storeUfsReadDone(int fd, const char *buf, int len, int errflag, void *my_data)

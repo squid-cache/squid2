@@ -217,7 +217,7 @@ storeUfsDirOpenSwapLog(SwapDir * sd)
     char *path;
     int fd;
     path = storeUfsDirSwapLogFile(sd, NULL);
-    fd = file_open(path, O_WRONLY | O_CREAT, NULL, NULL, NULL);
+    fd = file_open(path, O_WRONLY | O_CREAT);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", path, xstrerror());
 	fatal("storeUfsDirOpenSwapLog: Failed to open swap log.");
@@ -622,7 +622,7 @@ storeGetNextFile(RebuildState * rb, int *sfileno, int *size)
 	    snprintf(rb->fullfilename, SQUID_MAXPATHLEN, "%s/%s",
 		rb->fullpath, rb->entry->d_name);
 	    debug(20, 3) ("storeGetNextFile: Opening %s\n", rb->fullfilename);
-	    fd = file_open(rb->fullfilename, O_RDONLY, NULL, NULL, NULL);
+	    fd = file_open(rb->fullfilename, O_RDONLY);
 	    if (fd < 0)
 		debug(50, 1) ("storeGetNextFile: %s: %s\n", rb->fullfilename, xstrerror());
 	    continue;
@@ -735,7 +735,7 @@ storeUfsDirCloseTmpSwapLog(SwapDir * sd)
 	debug(50, 0) ("%s,%s: %s\n", new_path, swaplog_path, xstrerror());
 	fatal("storeUfsDirCloseTmpSwapLog: rename failed");
     }
-    fd = file_open(swaplog_path, O_WRONLY | O_CREAT, NULL, NULL, NULL);
+    fd = file_open(swaplog_path, O_WRONLY | O_CREAT);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", swaplog_path, xstrerror());
 	fatal("storeUfsDirCloseTmpSwapLog: Failed to open swap log.");
@@ -768,7 +768,7 @@ storeUfsDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
     if (sd->u.ufs.swaplog_fd >= 0)
 	file_close(sd->u.ufs.swaplog_fd);
     /* open a write-only FD for the new log */
-    fd = file_open(new_path, O_WRONLY | O_CREAT | O_TRUNC, NULL, NULL, NULL);
+    fd = file_open(new_path, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", new_path, xstrerror());
 	fatal("storeDirOpenTmpSwapLog: Failed to open swap log.");
@@ -823,8 +823,7 @@ storeUfsDirWriteCleanOpen(SwapDir * sd)
     state->outbuf_offset = 0;
     unlink(state->new);
     unlink(state->cln);
-    state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC,
-	NULL, NULL, NULL);
+    state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC);
     if (state->fd < 0)
 	return -1;
     debug(20, 3) ("storeDirWriteCleanLogs: opened %s, FD %d\n",
@@ -923,8 +922,7 @@ storeUfsDirWriteCleanClose(SwapDir * sd)
     else if (state->fd < 0)
 	(void) 0;
     else
-	file_close(file_open(state->cln, O_WRONLY | O_CREAT | O_TRUNC,
-		NULL, NULL, NULL));
+	file_close(file_open(state->cln, O_WRONLY | O_CREAT | O_TRUNC));
     /* close */
     safe_free(state->cur);
     safe_free(state->new);

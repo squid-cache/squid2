@@ -171,7 +171,7 @@ errorTryLoadText(const char *page_name, const char *dir)
     char *text;
 
     snprintf(path, sizeof(path), "%s/%s", dir, page_name);
-    fd = file_open(path, O_RDONLY, NULL, NULL, NULL);
+    fd = file_open(path, O_RDONLY);
     if (fd < 0 || fstat(fd, &sb) < 0) {
 	debug(4, 0) ("errorTryLoadText: '%s': %s\n", path, xstrerror());
 	if (fd >= 0)

@@ -548,7 +548,7 @@ writePidFile(void)
 	return;
     enter_suid();
     old_umask = umask(022);
-    fd = file_open(f, O_WRONLY | O_CREAT | O_TRUNC, NULL, NULL, NULL);
+    fd = file_open(f, O_WRONLY | O_CREAT | O_TRUNC);
     umask(old_umask);
     leave_suid();
     if (fd < 0) {

@@ -209,13 +209,12 @@ extern void xassert(const char *, const char *, int);
 extern void debugObj(int section, int level, const char *label, void *obj, ObjPackMethod pm);
 
 
-extern int file_open(const char *path, int mode, FOCB *, void *callback_data, void *tag);
+extern int file_open(const char *path, int mode);
 extern void file_close(int fd);
 extern void file_write(int, off_t, void *, int len, DWCB *, void *, FREE *);
 extern void file_write_mbuf(int fd, off_t, MemBuf mb, DWCB * handler, void *handler_data);
 extern void file_read(int, char *, int, off_t, DRCB *, void *);
 extern void disk_init(void);
-extern int diskWriteIsComplete(int);
 
 extern void dnsShutdown(void);
 extern void dnsInit(void);
