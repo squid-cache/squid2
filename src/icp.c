@@ -481,7 +481,7 @@ icpSendERROR(int fd,
 	buf_len,
 	30,
 	icpSendERRORComplete,
-	(void *) icpState,
+	icpState,
 	put_free_4k_page);
 }
 
@@ -560,7 +560,7 @@ icpSendMoreData(int fd, icpStateData * icpState)
 	len,
 	30,
 	clientWriteComplete,
-	(void *) icpState,
+	icpState,
 	put_free_4k_page);
     return COMM_OK;
 }
@@ -630,7 +630,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
     } else {
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
-	storeRegister(icpState->entry, fd, icpHandleStore, (void *) icpState);
+	storeRegister(icpState->entry, fd, icpHandleStore, icpState);
     }
 }
 
@@ -647,7 +647,7 @@ icpGetHeadersForIMS(int fd, icpStateData * icpState)
 	    return COMM_OK;
 	}
 	/* All headers are not yet available, wait for more data */
-	storeRegister(entry, fd, icpHandleStoreIMS, (void *) icpState);
+	storeRegister(entry, fd, icpHandleStoreIMS, icpState);
 	return COMM_OK;
     }
     /* All headers are available, check if object is modified or not */
@@ -969,7 +969,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     icpState->entry = entry;
     icpState->out_offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
-    storeRegister(entry, fd, icpHandleStore, (void *) icpState);
+    storeRegister(entry, fd, icpHandleStore, icpState);
     protoDispatch(fd, icpState->entry, icpState->request);
     return;
 }
@@ -1051,8 +1051,8 @@ icpUdpReply(int fd, icpUdpData * queue)
     if (UdpQueueHead) {
 	commSetSelect(fd,
 	    COMM_SELECT_WRITE,
-	    (PF) icpUdpReply,
-	    (void *) UdpQueueHead, 0);
+	    icpUdpReply,
+	    UdpQueueHead, 0);
     }
     return result;
 }
@@ -1158,8 +1158,8 @@ icpUdpSend(int fd,
     AppendUdp(data);
     commSetSelect(fd,
 	COMM_SELECT_WRITE,
-	(PF) icpUdpReply,
-	(void *) UdpQueueHead, 0);
+	icpUdpReply,
+	UdpQueueHead, 0);
 }
 
 static int
@@ -1741,7 +1741,7 @@ clientReadRequest(int fd, void *data)
 	    commSetSelect(fd,
 		COMM_SELECT_READ,
 		clientReadRequest,
-		(void *) icpState,
+		icpState,
 		0);
 	} else {
 	    debug(50, 2, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
@@ -1780,7 +1780,7 @@ clientReadRequest(int fd, void *data)
 		strlen(wbuf),
 		30,
 		icpSendERRORComplete,
-		(void *) icpState,
+		icpState,
 		xfree);
 	    return;
 	}
@@ -1816,7 +1816,7 @@ clientReadRequest(int fd, void *data)
 	commSetSelect(fd,
 	    COMM_SELECT_READ,
 	    clientReadRequest,
-	    (void *) icpState,
+	    icpState,
 	    0);
     } else {
 	/* parser returned -1 */
@@ -1840,7 +1840,7 @@ asciiConnLifetimeHandle(int fd, icpStateData * icpState)
     CheckQuickAbort(icpState);
     if (entry) {
 	storeUnregister(entry, fd);
-	storeRegister(entry, fd, icpHandleAbort, (void *) icpState);
+	storeRegister(entry, fd, icpHandleAbort, icpState);
     }
     x = protoUnregister(fd,
 	entry,
@@ -1897,15 +1897,15 @@ asciiHandleConn(int sock, void *notused)
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
     commSetSelect(fd,
 	COMM_SELECT_LIFETIME,
-	(PF) asciiConnLifetimeHandle,
-	(void *) icpState, 0);
+	asciiConnLifetimeHandle,
+	icpState, 0);
     comm_add_close_handler(fd,
 	icpStateFree,
-	(void *) icpState);
+	icpState);
     commSetSelect(fd,
 	COMM_SELECT_READ,
 	clientReadRequest,
-	(void *) icpState,
+	icpState,
 	0);
     /* start reverse lookup */
     if (Config.Log.log_fqdn)
@@ -2024,13 +2024,13 @@ icpDetectClientClose(int fd, void *data)
 	commSetSelect(fd,
 	    COMM_SELECT_READ,
 	    icpDetectClientClose,
-	    (void *) icpState,
+	    icpState,
 	    0);
     } else if (n < 0 && (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)) {
 	commSetSelect(fd,
 	    COMM_SELECT_READ,
 	    icpDetectClientClose,
-	    (void *) icpState,
+	    icpState,
 	    0);
     } else if (n < 0) {
 	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
@@ -2047,7 +2047,7 @@ icpDetectClientClose(int fd, void *data)
 	    if (entry->ping_status == PING_WAITING)
 		storeReleaseRequest(entry);
 	    storeUnregister(entry, fd);
-	    storeRegister(entry, fd, icpHandleAbort, (void *) icpState);
+	    storeRegister(entry, fd, icpHandleAbort, icpState);
 	}
 	protoUnregister(fd,
 	    entry,
@@ -2108,11 +2108,11 @@ icpDetectNewRequest(int fd)
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
     comm_add_close_handler(fd,
 	icpStateFree,
-	(void *) icpState);
+	icpState);
     commSetSelect(fd,
 	COMM_SELECT_READ,
 	clientReadRequest,
-	(void *) icpState,
+	icpState,
 	0);
     /* start reverse lookup */
     if (Config.Log.log_fqdn)

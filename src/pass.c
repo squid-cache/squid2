@@ -74,7 +74,7 @@ passClose(PassStateData * passState)
 	/* remove the "unexpected" client close handler */
 	comm_remove_close_handler(passState->client.fd,
 	    passClientClosed,
-	    (void *) passState);
+	    passState);
 	comm_close(passState->client.fd);
 	passState->client.fd = -1;
     }
@@ -151,11 +151,11 @@ passReadServer(int fd, void *data)
 	    commSetSelect(passState->server.fd,
 		COMM_SELECT_READ,
 		passReadServer,
-		(void *) passState, 0);
+		passState, 0);
 	    commSetSelect(passState->server.fd,
 		COMM_SELECT_TIMEOUT,
 		passReadTimeout,
-		(void *) passState,
+		passState,
 		passState->timeout);
 	} else {
 	    passClose(passState);
@@ -169,7 +169,7 @@ passReadServer(int fd, void *data)
 	commSetSelect(passState->client.fd,
 	    COMM_SELECT_WRITE,
 	    passWriteClient,
-	    (void *) passState, 0);
+	    passState, 0);
     }
 }
 
@@ -191,7 +191,7 @@ passReadClient(int fd, void *data)
 	    commSetSelect(passState->client.fd,
 		COMM_SELECT_READ,
 		passReadClient,
-		(void *) passState, 0);
+		passState, 0);
 	} else {
 	    passClose(passState);
 	}
@@ -204,7 +204,7 @@ passReadClient(int fd, void *data)
 	commSetSelect(passState->server.fd,
 	    COMM_SELECT_WRITE,
 	    passWriteServer,
-	    (void *) passState, 0);
+	    passState, 0);
     }
 }
 
@@ -223,7 +223,7 @@ passWriteServer(int fd, void *data)
 	    commSetSelect(passState->server.fd,
 		COMM_SELECT_WRITE,
 		passWriteServer,
-		(void *) passState, 0);
+		passState, 0);
 	    return;
 	}
 	debug(50, 2, "passWriteServer: FD %d: write failure: %s.\n",
@@ -236,18 +236,18 @@ passWriteServer(int fd, void *data)
 	commSetSelect(passState->client.fd,
 	    COMM_SELECT_READ,
 	    passReadClient,
-	    (void *) passState, 0);
+	    passState, 0);
 	commSetSelect(passState->server.fd,
 	    COMM_SELECT_TIMEOUT,
 	    passReadTimeout,
-	    (void *) passState,
+	    passState,
 	    passState->timeout);
     } else {
 	/* still have more to write */
 	commSetSelect(passState->server.fd,
 	    COMM_SELECT_WRITE,
 	    passWriteServer,
-	    (void *) passState, 0);
+	    passState, 0);
     }
 }
 
@@ -270,7 +270,7 @@ passWriteClient(int fd, void *data)
 	    commSetSelect(passState->client.fd,
 		COMM_SELECT_WRITE,
 		passWriteClient,
-		(void *) passState, 0);
+		passState, 0);
 	    return;
 	}
 	debug(50, 2, "passWriteClient: FD %d: write failure: %s.\n",
@@ -285,13 +285,13 @@ passWriteClient(int fd, void *data)
 	commSetSelect(passState->server.fd,
 	    COMM_SELECT_READ,
 	    passReadServer,
-	    (void *) passState, 0);
+	    passState, 0);
     } else {
 	/* still have more to write */
 	commSetSelect(passState->client.fd,
 	    COMM_SELECT_WRITE,
 	    passWriteClient,
-	    (void *) passState, 0);
+	    passState, 0);
     }
 }
 
@@ -334,12 +334,12 @@ passConnected(int fd, void *data)
     commSetSelect(passState->server.fd,
 	COMM_SELECT_WRITE,
 	passWriteServer,
-	(void *) passState, 0);
+	passState, 0);
     comm_set_fd_lifetime(fd, 86400);	/* extend lifetime */
     commSetSelect(passState->server.fd,
 	COMM_SELECT_READ,
 	passReadServer,
-	(void *) passState, 0);
+	passState, 0);
 }
 
 static void
@@ -373,7 +373,7 @@ passConnect(int fd, const ipcache_addrs * ia, void *data)
 	    strlen(buf),
 	    30,
 	    passErrorComplete,
-	    (void *) passState,
+	    passState,
 	    xfree);
 	return;
     }
@@ -384,7 +384,7 @@ passConnect(int fd, const ipcache_addrs * ia, void *data)
     commSetSelect(passState->server.fd,
 	COMM_SELECT_LIFETIME,
 	passLifetimeExpire,
-	(void *) passState, 0);
+	passState, 0);
     /* NOTE this changes the lifetime handler for the client side.
      * It used to be asciiConnLifetimeHandle, but it does funny things
      * like looking for read handlers and assuming it was still reading
@@ -392,7 +392,7 @@ passConnect(int fd, const ipcache_addrs * ia, void *data)
     commSetSelect(passState->client.fd,
 	COMM_SELECT_LIFETIME,
 	passLifetimeExpire,
-	(void *) passState, 0);
+	passState, 0);
     commConnectStart(fd,
 	passState->host,
 	passState->port,
@@ -417,7 +417,7 @@ passConnectDone(int fd, int status, void *data)
 	    strlen(buf),
 	    30,
 	    passErrorComplete,
-	    (void *) passState,
+	    passState,
 	    xfree);
 	return;
     }
@@ -481,10 +481,10 @@ passStart(int fd,
     passState->client.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
     comm_add_close_handler(passState->server.fd,
 	passStateFree,
-	(void *) passState);
+	passState);
     comm_add_close_handler(passState->client.fd,
 	passClientClosed,
-	(void *) passState);
+	passState);
     /* disable icpDetectClientClose */
     commSetSelect(passState->client.fd,
 	COMM_SELECT_READ,

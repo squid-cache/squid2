@@ -95,6 +95,6 @@ send_announce(int fd, const ipcache_addrs * ia, void *data)
     AppendUdp(qdata);
     commSetSelect(theOutIcpConnection,
 	COMM_SELECT_WRITE,
-	(PF) icpUdpReply,
-	(void *) qdata, 0);
+	icpUdpReply,
+	qdata, 0);
 }

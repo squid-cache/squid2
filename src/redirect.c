@@ -195,7 +195,7 @@ redirectHandleRead(int fd, redirector_t * redirector)
     /* reschedule */
     commSetSelect(redirector->fd,
 	COMM_SELECT_READ,
-	(PF) redirectHandleRead,
+	redirectHandleRead,
 	redirector, 0);
     if ((t = strchr(redirector->inbuf, '\n'))) {
 	/* end of record found */
@@ -404,8 +404,8 @@ redirectOpenServers(void)
 	    /* set handler for incoming result */
 	    commSetSelect(redirect_child_table[k]->fd,
 		COMM_SELECT_READ,
-		(PF) redirectHandleRead,
-		(void *) redirect_child_table[k], 0);
+		redirectHandleRead,
+		redirect_child_table[k], 0);
 	    debug(29, 3, "redirectOpenServers: 'redirect_server' %d started\n",
 		k);
 	}

@@ -1099,8 +1099,8 @@ storeSwapInHandle(int fd_notused, const char *buf, int len, int flag, StoreEntry
 	    mem->e_swap_buf,
 	    SWAP_BUF,
 	    mem->swap_offset,
-	    (FILE_READ_HD) storeSwapInHandle,
-	    (void *) e);
+	    storeSwapInHandle,
+	    e);
 	return 0;
     }
     /* complete swapping in */
@@ -1211,8 +1211,8 @@ storeSwapInStartComplete(void *data, int fd)
 	mem->e_swap_buf,
 	SWAP_BUF,
 	mem->swap_offset,
-	(FILE_READ_HD) storeSwapInHandle,
-	(void *) e);
+	storeSwapInHandle,
+	e);
     (ctrlp->callback) (ctrlp->callback_data, 0);
     xfree(ctrlp->path);
     xfree(ctrlp);
