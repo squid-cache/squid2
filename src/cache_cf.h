@@ -235,6 +235,7 @@ struct SquidConfig {
     wordlist *cache_stoplist;
     wordlist *hierarchy_stoplist;
     wordlist *local_domain_list;
+    wordlist *mcast_group_list;
     wordlist *inside_firewall_list;
     wordlist *dns_testname_list;
     ip_acl *local_ip_list;

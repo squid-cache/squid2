@@ -363,6 +363,7 @@ serverConnectionsOpen(void)
 		COMM_SELECT_READ,
 		icpHandleUdp,
 		0);
+	    comm_join_mcast_groups(theInIcpConnection);
 	    debug(1, 1, "Accepting ICP connections on FD %d.\n",
 		theInIcpConnection);
 

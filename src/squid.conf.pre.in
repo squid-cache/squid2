@@ -15,6 +15,16 @@
 #	"0".  May be overridden with -u on the command line.
 #icp_port @CACHE_ICP_PORT@
 
+#  TAG: mcast_groups
+#       This tag specifies a list of multicast groups which your
+#       server should join to receive multicasted ICP requests.
+#
+#       Usage:  mcast_groups 239.128.16.128 224.0.1.20
+#
+#       By default, squid doesn't listen on any multicast groups.
+#
+#mcast_groups 239.128.16.128
+
 #  TAG: tcp_incoming_address
 #  TAG: tcp_outgoing_address
 #  TAG: udp_incoming_address
@@ -80,6 +90,14 @@
 #		     use 'weight=n' to specify a weighted parent.
 #		     The weight must be an integer.  The default weight
 #		     is 1, larger weights are favored more.
+#
+#                    use 'ttl=n' to specify a IP multicast TTL to use
+#                    when sending an ICP request to this address.
+#                    Only useful when sending to a multicast group.
+#                    
+#                    multicast groups are treated like regular parents and
+#                    neighbo[u]rs, except that we don't expect to see any
+#                    replies from them.
 #
 #	NOTE: non-ICP neighbors must be specified as 'parent'.
 #
