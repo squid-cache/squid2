@@ -366,7 +366,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	if (EBIT_TEST(httpState->flags, HTTP_KEEPALIVE))
 	    if (httpState->peer)
 		httpState->peer->stats.n_keepalives_sent++;
-	if (reply->proxy_keep_alive)
+	if (reply->keep_alive)
 	    if (httpState->peer)
 		httpState->peer->stats.n_keepalives_recv++;
 	ctx_exit(ctx);
@@ -385,6 +385,11 @@ httpPconnTransferDone(HttpStateData * httpState)
      * can not be a persistent connection.
      */
     if (!EBIT_TEST(httpState->flags, HTTP_KEEPALIVE))
+	return 0;
+    /*
+     * What does the reply have to say about keep-alive?
+     */
+    if (!reply->keep_alive)
 	return 0;
     debug(11, 5) ("httpPconnTransferDone: content_length=%d\n",
 	reply->content_length);
@@ -524,6 +529,7 @@ httpReadReply(int fd, void *data)
 	    httpState->fd = -1;
 	    httpStateFree(-1, httpState);
 	} else {
+	    /* Wait for EOF condition */
 	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 	}
     }
