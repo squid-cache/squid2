@@ -465,7 +465,8 @@ int neighborsUdpPing(proto)
 		&e->in_addr,
 		entry->flag,
 		ICP_OP_DECHO,
-		LOG_TAG_NONE);
+		LOG_TAG_NONE,
+		PROTO_NONE);
 	} else {
 	    e->header.reqnum = reqnum;
 	    icpUdpSend(theOutIcpConnection,
@@ -474,7 +475,8 @@ int neighborsUdpPing(proto)
 		&e->in_addr,
 		entry->flag,
 		ICP_OP_QUERY,
-		LOG_TAG_NONE);
+		LOG_TAG_NONE,
+		PROTO_NONE);
 	}
 
 	e->stats.ack_deficit++;
@@ -517,7 +519,8 @@ int neighborsUdpPing(proto)
 		&to_addr,
 		entry->flag,
 		ICP_OP_SECHO,
-		LOG_TAG_NONE);
+		LOG_TAG_NONE,
+		PROTO_NONE);
 	} else {
 	    debug(15, 6, "neighborsUdpPing: Source Ping: unknown host: %s\n",
 		host);

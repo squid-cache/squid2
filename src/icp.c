@@ -116,7 +116,8 @@ static char *log_tags[] =
     "TCP_EXPIRED_HIT",
     "TCP_EXPIRED_MISS",
     "TCP_REFRESH",
-    "TCP_IFMODSINCE",
+    "TCP_IMS_HIT",
+    "TCP_IMS_MISS",
     "TCP_SWAPFAIL",
     "TCP_DENIED",
     "UDP_HIT",
@@ -169,6 +170,13 @@ static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static char *icpConstruct304reply _PARAMS((struct _http_reply *));
+static void icpUdpSendEntry _PARAMS((int fd,
+	char *url,
+	icp_common_t * reqheaderp,
+	struct sockaddr_in * to,
+	icp_opcode opcode,
+	StoreEntry * entry,
+	struct timeval start_time));
 
 
 /* This is a handler normally called by comm_close() */
@@ -193,7 +201,7 @@ static int icpStateFree(fd, icpState)
     elapsed_msec = tvSubMsec(icpState->start, current_time);
     if (icpState->request)
 	hierData = &icpState->request->hierarchy;
-    CacheInfo->log_append(CacheInfo,
+    HTTPCacheInfo->log_append(HTTPCacheInfo,
 	icpState->url,
 	icpState->log_addr,
 	icpState->size,
@@ -209,6 +217,9 @@ static int icpStateFree(fd, icpState)
 	icpState->request_hdr,
 	icpState->reply_hdr);
 #endif /* LOG_FULL_HEADERS */
+    HTTPCacheInfo->proto_count(HTTPCacheInfo,
+	icpState->request ? icpState->request->protocol : PROTO_NONE,
+	icpState->log_type);
     if (icpState->ident_fd)
 	comm_close(icpState->ident_fd);
     safe_free(icpState->inbuf);
@@ -491,7 +502,7 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, data)
 	 * fetching module to abort the fetching */
 	CheckQuickAbort(icpState);
 	/* Log the number of bytes that we managed to read */
-	CacheInfo->proto_touchobject(CacheInfo,
+	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    urlParseProtocol(entry->url),
 	    icpState->offset);
 	/* Now we release the entry and DON'T touch it from here on out */
@@ -502,7 +513,7 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, data)
     } else if (icpState->offset == entry->object_len &&
 	entry->store_status != STORE_PENDING) {
 	/* We're finished case */
-	CacheInfo->proto_touchobject(CacheInfo,
+	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    icpState->request->protocol,
 	    icpState->offset);
 	comm_close(fd);
@@ -591,6 +602,7 @@ static int icpGetHeadersForIMS(fd, icpState)
 
     put_free_8k_page(icpState->buf);
     icpState->buf = NULL;
+    icpState->log_type = LOG_TCP_IMS_HIT;
 
     /* Compare with If-Modified-Since header */
     if (IMS > date || (IMS == date && (IMS_length < 0 || IMS_length == length))) {
@@ -630,7 +642,7 @@ static void icpHandleIMSComplete(fd, buf_unused, size, errflag, data)
     icpStateData *icpState = data;
     StoreEntry *entry = icpState->entry;
     debug(12, 5, "icpHandleIMSComplete: Not Modified sent '%s'\n", entry->url);
-    CacheInfo->proto_touchobject(CacheInfo,
+    HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	icpState->request->protocol,
 	size);
     /* Set up everything for the logging */
@@ -699,7 +711,7 @@ void icpProcessRequest(fd, icpState)
 	icpState->log_type = LOG_TCP_USER_REFRESH;
     } else if (BIT_TEST(icpState->flags, REQ_IMS)) {
 	/* A cached IMS request */
-	icpState->log_type = LOG_TCP_IFMODSINCE;
+	icpState->log_type = LOG_TCP_IMS_MISS;
     } else if (!storeEntryValidToSend(entry)) {
 	/* The object is in the cache, but is not valid */
 	/* use LOG_TCP_EXPIRED_MISS for the time being, maybe change
@@ -726,7 +738,7 @@ void icpProcessRequest(fd, icpState)
     case LOG_TCP_HIT:
 	icpSendMoreData(fd, icpState);
 	break;
-    case LOG_TCP_IFMODSINCE:
+    case LOG_TCP_IMS_MISS:
 	icpState->buf = get_free_8k_page();
 	memset(icpState->buf, '\0', 8192);
 	icpGetHeadersForIMS(fd, icpState);
@@ -782,7 +794,7 @@ static void icpLogIcp(queue)
 {
     icp_common_t *header = (icp_common_t *) (void *) queue->msg;
     char *url = (char *) header + sizeof(icp_common_t);
-    CacheInfo->log_append(CacheInfo,
+    HTTPCacheInfo->log_append(HTTPCacheInfo,
 	url,
 	queue->address.sin_addr,
 	queue->len,
@@ -798,6 +810,12 @@ static void icpLogIcp(queue)
 	NULL,			/* request header */
 	NULL);			/* reply header */
 #endif /* LOG_FULL_HEADERS */
+    ICPCacheInfo->proto_touchobject(ICPCacheInfo,
+	queue->proto,
+	queue->len);
+    ICPCacheInfo->proto_count(ICPCacheInfo,
+	queue->proto,
+	queue->logcode);
 }
 
 int icpUdpReply(fd, queue)
@@ -844,7 +862,7 @@ int icpUdpReply(fd, queue)
     return result;
 }
 
-int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode)
+int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode, proto)
      int fd;
      char *url;
      icp_common_t *reqheaderp;
@@ -852,6 +870,7 @@ int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode)
      int flags;			/* StoreEntry->flags */
      icp_opcode opcode;
      log_type logcode;
+     protocol_t proto;
 {
     char *buf = NULL;
     int buf_len = sizeof(icp_common_t) + strlen(url) + 1;
@@ -901,6 +920,7 @@ int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode)
     data->len = buf_len;
     data->start = current_time;
     data->logcode = logcode;
+    data->proto = proto;
 
     debug(12, 4, "icpUdpSend: Queueing for %s: \"%s %s\"\n",
 	inet_ntoa(to->sin_addr),
@@ -983,6 +1003,7 @@ static void icpUdpSendEntry(fd, url, reqheaderp, to, opcode, entry, start_time)
     data->len = buf_len;
     data->start = start_time;
     data->logcode = LOG_UDP_HIT_OBJ;
+    data->proto = urlParseProtocol(entry->url);
     debug(12, 4, "icpUdpSendEntry: Queueing for %s: \"%s %s\"\n",
 	inet_ntoa(to->sin_addr),
 	IcpOpcodeStr[opcode],
@@ -1012,7 +1033,6 @@ static void icpHitObjHandler(errflag, data)
 	    ICP_OP_HIT_OBJ,
 	    entry,
 	    icpHitObjState->started);
-	CacheInfo->proto_hit(CacheInfo, urlParseProtocol(entry->url));
     } else {
 	debug(12, 3, "icpHitObjHandler: errflag=%d, aborted!\n", errflag);
     }
@@ -1061,7 +1081,8 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		&from,
 		0,
 		ICP_OP_ERR,
-		LOG_UDP_INVALID);
+		LOG_UDP_INVALID,
+		PROTO_NONE);
 	    break;
 	}
 	p = icp_request->protocol;
@@ -1078,7 +1099,8 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		&from,
 		0,
 		ICP_OP_DENIED,
-		LOG_UDP_DENIED);
+		LOG_UDP_DENIED,
+		p);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
@@ -1100,8 +1122,14 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		/* else, problems */
 		safe_free(icpHitObjState);
 	    }
-	    CacheInfo->proto_hit(CacheInfo, p);
-	    icpUdpSend(fd, url, &header, &from, 0, ICP_OP_HIT, LOG_UDP_HIT);
+	    icpUdpSend(fd,
+		url,
+		&header,
+		&from,
+		0,
+		ICP_OP_HIT,
+		LOG_UDP_HIT,
+		p);
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
@@ -1112,11 +1140,18 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		&from,
 		0,
 		ICP_OP_RELOADING,
-		LOG_UDP_RELOADING);
+		LOG_UDP_RELOADING,
+		p);
 	    break;
 	}
-	CacheInfo->proto_miss(CacheInfo, p);
-	icpUdpSend(fd, url, &header, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
+	icpUdpSend(fd,
+	    url,
+	    &header,
+	    &from,
+	    0,
+	    ICP_OP_MISS,
+	    LOG_UDP_MISS,
+	    p);
 	break;
 
     case ICP_OP_HIT_OBJ:
@@ -1221,7 +1256,8 @@ static void icpHandleIcpV3(fd, from, buf, len)
 		&from,
 		0,
 		ICP_OP_INVALID,
-		LOG_UDP_INVALID);
+		LOG_UDP_INVALID,
+		PROTO_NONE);
 	    break;
 	}
 	p = icp_request->protocol;
@@ -1238,7 +1274,8 @@ static void icpHandleIcpV3(fd, from, buf, len)
 		&from,
 		0,
 		ICP_OP_DENIED,
-		LOG_UDP_DENIED);
+		LOG_UDP_DENIED,
+		p);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
@@ -1248,8 +1285,14 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + Config.negativeTtl))) {
-	    CacheInfo->proto_hit(CacheInfo, p);
-	    icpUdpSend(fd, url, &header, &from, 0, ICP_OP_HIT, LOG_UDP_HIT);
+	    icpUdpSend(fd,
+		url,
+		&header,
+		&from,
+		0,
+		ICP_OP_HIT,
+		LOG_UDP_HIT,
+		p);
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
@@ -1260,11 +1303,18 @@ static void icpHandleIcpV3(fd, from, buf, len)
 		&from,
 		0,
 		ICP_OP_DENIED,
-		LOG_UDP_DENIED);
+		LOG_UDP_DENIED,
+		p);
 	    break;
 	}
-	CacheInfo->proto_miss(CacheInfo, p);
-	icpUdpSend(fd, url, &header, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
+	icpUdpSend(fd,
+	    url,
+	    &header,
+	    &from,
+	    0,
+	    ICP_OP_MISS,
+	    LOG_UDP_MISS,
+	    p);
 	break;
 
     case ICP_OP_HIT_OBJ:
@@ -1904,8 +1954,8 @@ void icpDetectClientClose(fd, icpState)
 	entry->store_status != STORE_PENDING) {
 	/* All data has been delivered */
 	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
-	CacheInfo->proto_touchobject(CacheInfo,
-	    CacheInfo->proto_id(entry->url),
+	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
+	    HTTPCacheInfo->proto_id(entry->url),
 	    icpState->offset);
 	comm_close(fd);
     } else {

@@ -481,7 +481,8 @@ static void mainInitialize()
     if (first_time) {
 	/* module initialization */
 	urlInitialize();
-	stat_init(&CacheInfo, Config.Log.access);
+	stat_init(&HTTPCacheInfo, Config.Log.access);
+	stat_init(&ICPCacheInfo, NULL);
 	storeInit();
 
 	if (Config.effectiveUser) {

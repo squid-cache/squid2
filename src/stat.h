@@ -223,16 +223,14 @@ struct _cacheinfo {
     void (*proto_touchobject) _PARAMS((struct _cacheinfo * c, protocol_t proto_id, int len));
 
     /* a hit. update hit count, transfer byted. refcount */
-    void (*proto_hit) _PARAMS((struct _cacheinfo * obj, protocol_t proto_id));
-
-    /* a miss. update miss count. refcount */
-    void (*proto_miss) _PARAMS((struct _cacheinfo * obj, protocol_t proto_id));
+    void (*proto_count) _PARAMS((struct _cacheinfo * obj, protocol_t proto_id,
+	    log_type));
 
     /* dummy Notimplemented object handler */
     void (*NotImplement) _PARAMS((struct _cacheinfo * c, StoreEntry * sentry));
 
     /* stat table and data */
-    char logfilename[256];	/* logfile name */
+    char logfilename[MAX_FILE_NAME_LEN];	/* logfile name */
     int logfile_fd;		/* logfile fd */
     int logfile_access;		/* logfile access code */
     /* logfile status {enable, disable} */
@@ -255,7 +253,8 @@ struct _iostats {
 
 extern struct _iostats IOStats;
 
-extern cacheinfo *CacheInfo;
+extern cacheinfo *HTTPCacheInfo;
+extern cacheinfo *ICPCacheInfo;
 extern unsigned long ntcpconn;
 extern unsigned long nudpconn;
 extern char *open_bracket;
@@ -263,8 +262,6 @@ extern char *close_bracket;
 
 extern void stat_init _PARAMS((cacheinfo **, char *));
 extern void stat_rotate_log _PARAMS((void));
-extern int memoryAccounted _PARAMS((void));
-extern int mallinfoTotal _PARAMS((void));
 extern void statCloseLog _PARAMS((void));
 
 #endif /*STAT_H */

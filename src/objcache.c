@@ -109,7 +109,8 @@
 
 extern void shut_down _PARAMS((int));
 
-cacheinfo *CacheInfo = NULL;
+cacheinfo *HTTPCacheInfo = NULL;
+cacheinfo *ICPCacheInfo = NULL;
 
 typedef struct objcache_ds {
     StoreEntry *entry;
@@ -226,115 +227,115 @@ int objcacheStart(fd, url, entry)
 
     } else if (strcmp(data->request, "info") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->info_get(CacheInfo, data->entry);
+	HTTPCacheInfo->info_get(HTTPCacheInfo, data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "stats/objects") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "objects", data->entry);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "objects", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "stats/vm_objects") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "vm_objects", data->entry);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "vm_objects", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "stats/utilization") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "utilization", data->entry);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "utilization", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "stats/ipcache") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "ipcache", data->entry);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "ipcache", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "stats/fqdncache") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "fqdncache", data->entry);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "fqdncache", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "stats/dns") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "dns", data->entry);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "dns", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "stats/redirector") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "redirector", data->entry);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "redirector", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "stats/io") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "io", data->entry);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "io", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "stats/reply_headers") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "reply_headers", data->entry);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "reply_headers", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "stats/filedescriptors") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->stat_get(CacheInfo, "filedescriptors", data->entry);
+	HTTPCacheInfo->stat_get(HTTPCacheInfo, "filedescriptors", data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "log/status") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->log_status_get(CacheInfo, data->entry);
+	HTTPCacheInfo->log_status_get(HTTPCacheInfo, data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "log/enable") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->log_enable(CacheInfo, data->entry);
+	HTTPCacheInfo->log_enable(HTTPCacheInfo, data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "log/disable") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->log_disable(CacheInfo, data->entry);
+	HTTPCacheInfo->log_disable(HTTPCacheInfo, data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "log/clear") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->log_clear(CacheInfo, data->entry);
+	HTTPCacheInfo->log_clear(HTTPCacheInfo, data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
 #ifdef MENU_SHOW_LOG
     } else if (strcmp(data->request, "log") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->log_get_start(CacheInfo, data->entry);
+	HTTPCacheInfo->log_get_start(HTTPCacheInfo, data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 #endif
 
     } else if (strcmp(data->request, "parameter") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->parameter_get(CacheInfo, data->entry);
+	HTTPCacheInfo->parameter_get(HTTPCacheInfo, data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "server_list") == 0) {
 	BIT_SET(data->entry->flag, DELAY_SENDING);
-	CacheInfo->server_list(CacheInfo, data->entry);
+	HTTPCacheInfo->server_list(HTTPCacheInfo, data->entry);
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
     } else if (strcmp(data->request, "squid.conf") == 0) {
-	CacheInfo->squid_get_start(CacheInfo, data->entry);
+	HTTPCacheInfo->squid_get_start(HTTPCacheInfo, data->entry);
 
     } else {
 	debug(16, 5, "Bad Object Cache URL %s ... negative cached.\n", url);

@@ -112,32 +112,33 @@ typedef enum {
     LOG_TCP_EXPIRED_HIT,	/* 3 */
     LOG_TCP_EXPIRED_MISS,	/* 5 */
     LOG_TCP_USER_REFRESH,	/* 6 */
-    LOG_TCP_IFMODSINCE,		/* 6 */
-    LOG_TCP_SWAPIN_FAIL,	/* 7 */
-    LOG_TCP_DENIED,		/* 8 */
-    LOG_UDP_HIT,		/* 9 */
-    LOG_UDP_HIT_OBJ,		/* 10 */
-    LOG_UDP_MISS,		/* 11 */
-    LOG_UDP_DENIED,		/* 12 */
-    LOG_UDP_INVALID,		/* 13 */
-    LOG_UDP_RELOADING,		/* 14 */
-    ERR_READ_TIMEOUT,		/* 15 */
-    ERR_LIFETIME_EXP,		/* 16 */
-    ERR_NO_CLIENTS_BIG_OBJ,	/* 17 */
-    ERR_READ_ERROR,		/* 18 */
-    ERR_CLIENT_ABORT,		/* 19 */
-    ERR_CONNECT_FAIL,		/* 20 */
-    ERR_INVALID_REQ,		/* 21 */
-    ERR_UNSUP_REQ,		/* 22 */
-    ERR_INVALID_URL,		/* 23 */
-    ERR_NO_FDS,			/* 24 */
-    ERR_DNS_FAIL,		/* 25 */
-    ERR_NOT_IMPLEMENTED,	/* 26 */
-    ERR_CANNOT_FETCH,		/* 27 */
-    ERR_NO_RELAY,		/* 28 */
-    ERR_DISK_IO,		/* 29 */
-    ERR_ZERO_SIZE_OBJECT,	/* 30 */
-    ERR_PROXY_DENIED		/* 31 */
+    LOG_TCP_IMS_HIT,		/* 6 */
+    LOG_TCP_IMS_MISS,		/* 7 */
+    LOG_TCP_SWAPIN_FAIL,	/* 8 */
+    LOG_TCP_DENIED,		/* 9 */
+    LOG_UDP_HIT,		/* 10 */
+    LOG_UDP_HIT_OBJ,		/* 11 */
+    LOG_UDP_MISS,		/* 12 */
+    LOG_UDP_DENIED,		/* 13 */
+    LOG_UDP_INVALID,		/* 14 */
+    LOG_UDP_RELOADING,		/* 15 */
+    ERR_READ_TIMEOUT,		/* 16 */
+    ERR_LIFETIME_EXP,		/* 17 */
+    ERR_NO_CLIENTS_BIG_OBJ,	/* 18 */
+    ERR_READ_ERROR,		/* 19 */
+    ERR_CLIENT_ABORT,		/* 20 */
+    ERR_CONNECT_FAIL,		/* 21 */
+    ERR_INVALID_REQ,		/* 22 */
+    ERR_UNSUP_REQ,		/* 23 */
+    ERR_INVALID_URL,		/* 24 */
+    ERR_NO_FDS,			/* 25 */
+    ERR_DNS_FAIL,		/* 26 */
+    ERR_NOT_IMPLEMENTED,	/* 27 */
+    ERR_CANNOT_FETCH,		/* 28 */
+    ERR_NO_RELAY,		/* 29 */
+    ERR_DISK_IO,		/* 30 */
+    ERR_ZERO_SIZE_OBJECT,	/* 31 */
+    ERR_PROXY_DENIED		/* 32 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT
@@ -160,6 +161,7 @@ typedef struct wwd {
     struct wwd *next;
     struct timeval start;
     log_type logcode;
+    protocol_t proto;
 } icpUdpData;
 
 #define ICP_IDENT_SZ 63
@@ -200,7 +202,8 @@ extern int icpUdpSend _PARAMS((int,
 	struct sockaddr_in *,
 	int flags,
 	icp_opcode,
-	log_type));
+	log_type,
+	protocol_t));
 extern int icpHandleUdp _PARAMS((int sock, void *data));
 extern int asciiHandleConn _PARAMS((int sock, void *data));
 extern int icpSendERROR _PARAMS((int fd,
