@@ -215,7 +215,11 @@ pingerRecv(void)
 	0,
 	(struct sockaddr *) &from,
 	&fromlen);
+#if GETTIMEOFDAY_NO_TZP
+    gettimeofday(&now);
+#else
     gettimeofday(&now, NULL);
+#endif
     debug(42, 9) ("pingerRecv: %d bytes from %s\n", n, inet_ntoa(from.sin_addr));
     ip = (struct iphdr *) (void *) pkt;
 #if HAVE_IP_HL
