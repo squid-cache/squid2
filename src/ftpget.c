@@ -1844,6 +1844,10 @@ int ftpget_srv_mode(port)
 	log_errno2(__FILE__, __LINE__, "socket");
 	exit(1);
     }
+    if (fcntl(sock, F_SETFD, 1) < 0) {
+	Debug(26, 0, ("ftpget_srv_mode: FD %d: failed to set close-on-exec flag: %s\n",
+	    sock, xstrerror()));
+    }
     i = 1;
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &i, sizeof(int));
     memset((char *) &S, '\0', sizeof(S));
