@@ -45,6 +45,7 @@ Changes to Squid-2.3.STABLE3 (May 15, 2000):
 	  compared to ".foo.com" and confused splay tree ordering.
 	- Added a check for whitespace in hostnames and optionally
 	  strip whitespace if 'uri_whitespace' setting allows.
+	- Added status code and checking to ASN/whois queries.
 
 Changes to Squid-2.3.STABLE2 (Mar 2, 2000):
 
