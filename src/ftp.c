@@ -692,6 +692,7 @@ static void
 ftpParseListing(FtpStateData * ftpState, int len)
 {
     char *buf = ftpState->data.buf;
+    char *sbuf;		/* NULL-terminated copy of buf */
     char *end;
     char *line;
     char *s;
@@ -710,10 +711,11 @@ ftpParseListing(FtpStateData * ftpState, int len)
     }
     line = memAllocate(MEM_4K_BUF);
     end++;
-    /* XXX there is an ABR bug here.   We need to make sure buf is
-     * NULL terminated */
+    /* XXX, buf needs to be NULL terminated, copying is gross */
+    sbuf = xmalloc(len+1);
+    xstrncpy(sbuf, buf, len+1);
     storeBuffer(e);
-    for (s = buf; s < end; s += strcspn(s, crlf), s += strspn(s, crlf)) {
+    for (s = sbuf; s < end; s += strcspn(s, crlf), s += strspn(s, crlf)) {
 	linelen = strcspn(s, crlf) + 1;
 	if (linelen > 4096)
 	    linelen = 4096;
@@ -737,6 +739,7 @@ ftpParseListing(FtpStateData * ftpState, int len)
 	ftpState->data.offset = strlen(ftpState->data.buf);
     }
     memFree(MEM_4K_BUF, line);
+    xfree(sbuf);
 }
 
 static void
