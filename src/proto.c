@@ -273,7 +273,7 @@ int protoUndispatch(fd, url, entry, request)
     debug(17, 5, "protoUndispatch FD %d <URL:%s>\n", fd, url);
 
     /* Cache objects don't need to be unregistered  */
-    if (strncasecmp(url, "cache_object:", 13) == 0)
+    if (request->protocol == PROTO_CACHEOBJ)
 	return 0;
 
     /* clean up DNS pending list for this name/fd look up here */
