@@ -433,13 +433,23 @@ void server_list(obj, sentry)
 	    e->stats.pings_acked,
 	    percent(e->stats.pings_acked, e->stats.pings_sent));
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
-	sprintf(tempbuf, "{MISSES     : %8d %3d%%}\n",
-	    e->stats.misses,
-	    percent(e->stats.misses, e->stats.pings_acked));
-	storeAppend(sentry, tempbuf, strlen(tempbuf));
 	sprintf(tempbuf, "{HITS       : %8d %3d%%}\n",
-	    e->stats.hits,
-	    percent(e->stats.hits, e->stats.pings_acked));
+	    e->stats.counts[ICP_OP_HIT],
+	    percent(e->stats.counts[ICP_OP_HIT], e->stats.pings_acked));
+	storeAppend(sentry, tempbuf, strlen(tempbuf));
+#ifdef UDP_HIT_WITH_OBJ
+	sprintf(tempbuf, "{HIT_OBJ    : %8d %3d%%}\n",
+	    e->stats.counts[ICP_OP_HIT_OBJ],
+	    percent(e->stats.counts[ICP_OP_HIT_OBJ], e->stats.pings_acked));
+	storeAppend(sentry, tempbuf, strlen(tempbuf));
+#endif
+	sprintf(tempbuf, "{MISSES     : %8d %3d%%}\n",
+	    e->stats.counts[ICP_OP_MISS],
+	    percent(e->stats.counts[ICP_OP_MISS], e->stats.pings_acked));
+	storeAppend(sentry, tempbuf, strlen(tempbuf));
+	sprintf(tempbuf, "{DENIED     : %8d %3d%%}\n",
+	    e->stats.counts[ICP_OP_DENIED],
+	    percent(e->stats.counts[ICP_OP_DENIED], e->stats.pings_acked));
 	storeAppend(sentry, tempbuf, strlen(tempbuf));
 	sprintf(tempbuf, "{FETCHES    : %8d %3d%%}\n",
 	    e->stats.fetches,
