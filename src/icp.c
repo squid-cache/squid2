@@ -160,7 +160,7 @@ typedef struct {
     struct sockaddr_in to;
     StoreEntry *entry;
     icp_common_t header;
-    struct timeval started;
+    int pad;
 } icpHitObjStateData;
 
 /* Local functions */
@@ -178,9 +178,9 @@ static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
-static void icpUdpSendEntry _PARAMS((int, char *, int,
-	struct sockaddr_in *, icp_opcode, StoreEntry *, struct timeval));
 static void icpHandleAbort _PARAMS((int fd, StoreEntry *, void *));
+static int icpCheckUdpHit _PARAMS((StoreEntry *));
+static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -990,6 +990,53 @@ icpCreateMessage(
     return buf;
 }
 
+void *
+icpCreateHitObjMessage(
+    icp_opcode opcode,
+    int flags,
+    const char *url,
+    int reqnum,
+    int pad,
+    StoreEntry *entry)
+{
+
+    char *buf = NULL;
+    char *entryoffset = NULL;
+    char *urloffset = NULL;
+    icp_common_t *headerp = NULL;
+    int buf_len;
+    u_short data_sz;
+    int size;
+    MemObject *m = entry->mem_obj;
+
+    buf_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
+    if (opcode == ICP_OP_QUERY)
+	buf_len += sizeof(u_num32);
+    buf = xcalloc(buf_len, 1);
+    headerp = (icp_common_t *) (void *) buf;
+    headerp->opcode = opcode;
+    headerp->version = ICP_VERSION_CURRENT;
+    headerp->length = htons(buf_len);
+    headerp->reqnum = htonl(reqnum);
+    headerp->flags = htonl(flags);
+    headerp->pad = pad;
+    headerp->shostid = htonl(theOutICPAddr.s_addr);
+    urloffset = buf + sizeof(icp_common_t);
+    xmemcpy(urloffset, url, strlen(url));
+    data_sz = htons((u_short) entry->object_len);
+    entryoffset = urloffset + strlen(url) + 1;
+    xmemcpy(entryoffset, &data_sz, sizeof(u_short));
+    entryoffset += sizeof(u_short);
+    size = m->data->mem_copy(m->data, 0, entryoffset, entry->object_len);
+    if (size != entry->object_len) {
+	debug(12, 1, "icpCreateHitObjMessage: copy failed, wanted %d got %d bytes\n",
+	    entry->object_len, size);
+	safe_free(buf);
+	return NULL;
+    }
+    return buf;
+}
+
 void
 icpUdpSend(int fd,
     const struct sockaddr_in *to,
@@ -1004,90 +1051,9 @@ icpUdpSend(int fd,
     data->address = *to;
     data->msg = msg;
     data->len = (int) ntohs(msg->length);
-    data->start = current_time;
+    data->start = current_time;		/* wrong for HIT_OBJ */
     data->logcode = logcode;
     data->proto = proto;
-    AppendUdp(data);
-    commSetSelect(fd,
-	COMM_SELECT_WRITE,
-	(PF) icpUdpReply,
-	(void *) UdpQueueHead, 0);
-}
-
-static void
-icpUdpSendEntry(int fd,
-    char *url,
-    int reqnum,
-    struct sockaddr_in *to,
-    icp_opcode opcode,
-    StoreEntry * entry,
-    struct timeval start_time)
-{
-    char *buf = NULL;
-    int buf_len;
-    icp_common_t *headerp = NULL;
-    icpUdpData *data = NULL;
-    struct sockaddr_in our_socket_name;
-    int sock_name_length = sizeof(our_socket_name);
-    char *urloffset = NULL;
-    char *entryoffset = NULL;
-    MemObject *m = entry->mem_obj;
-    u_short data_sz;
-    int size;
-
-    debug(12, 3, "icpUdpSendEntry: fd = %d\n", fd);
-    debug(12, 3, "icpUdpSendEntry: url = '%s'\n", url);
-    debug(12, 3, "icpUdpSendEntry: to = %s:%d\n", inet_ntoa(to->sin_addr), ntohs(to->sin_port));
-    debug(12, 3, "icpUdpSendEntry: opcode = %d %s\n", opcode, IcpOpcodeStr[opcode]);
-    debug(12, 3, "icpUdpSendEntry: entry = %p\n", entry);
-
-    buf_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
-
-#ifdef CHECK_BAD_ADDRS
-    if (to->sin_addr.s_addr == 0xFFFFFFFF) {
-	debug(12, 0, "icpUdpSendEntry: URL '%s'\n", url);
-	fatal_dump("icpUdpSend: BAD ADDRESS: 255.255.255.255");
-    }
-#endif
-
-    if (getsockname(fd, (struct sockaddr *) &our_socket_name,
-	    &sock_name_length) == -1) {
-	debug(50, 1, "icpUdpSendEntry: FD %d: getsockname failure: %s\n",
-	    fd, xstrerror());
-	return;
-    }
-    buf = xcalloc(buf_len, 1);
-    headerp = (icp_common_t *) (void *) buf;
-    headerp->opcode = opcode;
-    headerp->version = ICP_VERSION_CURRENT;
-    headerp->length = htons(buf_len);
-    headerp->reqnum = htonl(reqnum);
-    headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
-    headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
-    urloffset = buf + sizeof(icp_common_t);
-    xmemcpy(urloffset, url, strlen(url));
-    data_sz = htons((u_short) entry->object_len);
-    entryoffset = urloffset + strlen(url) + 1;
-    xmemcpy(entryoffset, &data_sz, sizeof(u_short));
-    entryoffset += sizeof(u_short);
-    size = m->data->mem_copy(m->data, 0, entryoffset, entry->object_len);
-    if (size != entry->object_len) {
-	debug(12, 1, "icpUdpSendEntry: copy failed, wanted %d got %d bytes\n",
-	    entry->object_len, size);
-	safe_free(buf);
-	return;
-    }
-    data = xcalloc(1, sizeof(icpUdpData));
-    data->address = *to;
-    data->msg = buf;
-    data->len = buf_len;
-    data->start = start_time;
-    data->logcode = LOG_UDP_HIT_OBJ;
-    data->proto = urlParseProtocol(entry->url);
-    debug(12, 4, "icpUdpSendEntry: Queueing for %s: \"%s %s\"\n",
-	inet_ntoa(to->sin_addr),
-	IcpOpcodeStr[opcode],
-	url);
     AppendUdp(data);
     commSetSelect(fd,
 	COMM_SELECT_WRITE,
@@ -1100,23 +1066,51 @@ icpHitObjHandler(int errflag, void *data)
 {
     icpHitObjStateData *icpHitObjState = data;
     StoreEntry *entry = NULL;
+    icp_common_t *reply;
     if (data == NULL)
 	return;
     entry = icpHitObjState->entry;
     debug(12, 3, "icpHitObjHandler: '%s'\n", entry->url);
-    if (!errflag) {
-	icpUdpSendEntry(icpHitObjState->fd,
+    if (errflag) {
+	debug(12, 3, "icpHitObjHandler: errflag=%d, aborted!\n", errflag);
+    } else {
+	reply = icpCreateHitObjMessage(ICP_OP_HIT_OBJ,
+	    ICP_FLAG_HIT_OBJ,
 	    entry->url,
 	    icpHitObjState->header.reqnum,
-	    &icpHitObjState->to,
-	    ICP_OP_HIT_OBJ,
-	    entry,
-	    icpHitObjState->started);
-    } else {
-	debug(12, 3, "icpHitObjHandler: errflag=%d, aborted!\n", errflag);
+	    icpHitObjState->pad,
+	    entry);
+	if (reply)
+	    icpUdpSend(icpHitObjState->fd,
+		&icpHitObjState->to,
+		reply,
+		LOG_UDP_HIT_OBJ,
+		urlParseProtocol(entry->url));
     }
     storeUnlockObject(entry);
     safe_free(icpHitObjState);
+}
+
+static int
+icpCheckUdpHit(StoreEntry * e)
+{
+    if (e == NULL)
+	return 0;
+    if (!storeEntryValidToSend(e))
+	return 0;
+    return 1;
+}
+
+static int
+icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
+{
+    if (!BIT_TEST(h->flags, ICP_FLAG_HIT_OBJ))	/* not requested */
+	return 0;
+    if (len > SQUID_UDP_SO_SNDBUF)		/* too big */
+	return 0;
+    if (refreshCheck(e, r))			/* stale */
+	return 0;
+    return 1;
 }
 
 static void
@@ -1134,10 +1128,9 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     u_short u;
     icpHitObjStateData *icpHitObjState = NULL;
     int pkt_len;
-    protocol_t p;
     aclCheck_t checklist;
     icp_common_t *reply;
-    int miss_gunk = 0;
+    int netdb_gunk = 0;
 
     header.opcode = headerp->opcode;
     header.version = headerp->version;
@@ -1157,62 +1150,57 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    icpUdpSend(fd, &from, reply, LOG_UDP_INVALID, PROTO_NONE);
 	    break;
 	}
-	p = icp_request->protocol;
 	checklist.src_addr = from.sin_addr;
 	checklist.request = icp_request;
 	allow = aclCheck(ICPAccessList, &checklist);
-	if (header.flags & ICP_FLAG_MISS_GUNK) {
-	    int rtt, hops;
-	    rtt = netdbHostRtt(icp_request->host);
-	    hops = netdbHostHops(icp_request->host);
-	    miss_gunk = htonl(((hops & 0xFFFF) << 16) | (rtt & 0xFFFF));
-	}
-	put_free_request_t(icp_request);
-	icp_request = NULL;
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
 	    if (clientdbDeniedPercent(from.sin_addr) < 95) {
 		reply = icpCreateMessage(ICP_OP_DENIED, 0, url, header.reqnum, 0);
-		icpUdpSend(fd, &from, reply, LOG_UDP_DENIED, p);
+		icpUdpSend(fd, &from, reply, LOG_UDP_DENIED, icp_request->protocol);
 	    }
 	    break;
+	}
+	if (header.flags & ICP_FLAG_NETDB_GUNK) {
+		int rtt, hops;
+		rtt = netdbHostRtt(icp_request->host);
+		hops = netdbHostHops(icp_request->host);
+		netdb_gunk = htonl(((hops & 0xFFFF) << 16) | (rtt & 0xFFFF));
 	}
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
 	debug(12, 5, "icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
-	if (entry &&
-	    (entry->store_status == STORE_OK) &&
-	    expiresMoreThan(entry->expires, Config.negativeTtl)) {
+	if (icpCheckUdpHit(entry)) {
 	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
-	    if (header.flags & ICP_FLAG_HIT_OBJ && pkt_len < SQUID_UDP_SO_SNDBUF) {
+	    if (icpCheckUdpHitObj(entry, icp_request, &header, pkt_len)) {
 		icpHitObjState = xcalloc(1, sizeof(icpHitObjStateData));
 		icpHitObjState->entry = entry;
 		icpHitObjState->fd = fd;
 		icpHitObjState->to = from;
 		icpHitObjState->header = header;
-		icpHitObjState->started = current_time;
+		icpHitObjState->pad = netdb_gunk;
 		if (!storeLockObject(entry, icpHitObjHandler, icpHitObjState))
 		    break;
 		/* else, problems */
 		storeRelease(entry);
 		safe_free(icpHitObjState);
 	    } else {
-		reply = icpCreateMessage(ICP_OP_HIT, 0, url, header.reqnum, 0);
-		icpUdpSend(fd, &from, reply, LOG_UDP_HIT, p);
+		reply = icpCreateMessage(ICP_OP_HIT, 0, url, header.reqnum, netdb_gunk);
+		icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
 		break;
 	    }
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
-	    reply = icpCreateMessage(ICP_OP_RELOADING, 0, url, header.reqnum, 0);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, p);
+	    reply = icpCreateMessage(ICP_OP_RELOADING, 0, url, header.reqnum, netdb_gunk);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
-	    reply = icpCreateMessage(ICP_OP_RELOADING, 0, url, header.reqnum, 0);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, p);
+	    reply = icpCreateMessage(ICP_OP_RELOADING, 0, url, header.reqnum, netdb_gunk);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, icp_request->protocol);
 	} else {
-	    reply = icpCreateMessage(ICP_OP_MISS, 0, url, header.reqnum, miss_gunk);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS, p);
+	    reply = icpCreateMessage(ICP_OP_MISS, 0, url, header.reqnum, netdb_gunk);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS, icp_request->protocol);
 	}
 	break;
 
@@ -1273,6 +1261,8 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    header.opcode, inet_ntoa(from.sin_addr));
 	break;
     }
+    if (icp_request)
+	put_free_request_t(icp_request);
 }
 
 /* Currently Harvest cached-2.x uses ICP_VERSION_3 */
@@ -1290,7 +1280,6 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     char *data = NULL;
     u_short data_sz = 0;
     u_short u;
-    protocol_t p;
     aclCheck_t checklist;
 
     header.opcode = headerp->opcode;
@@ -1311,18 +1300,15 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    icpUdpSend(fd, &from, reply, LOG_UDP_INVALID, PROTO_NONE);
 	    break;
 	}
-	p = icp_request->protocol;
 	checklist.src_addr = from.sin_addr;
 	checklist.request = icp_request;
 	allow = aclCheck(ICPAccessList, &checklist);
-	put_free_request_t(icp_request);
-	icp_request = NULL;
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
 	    if (clientdbDeniedPercent(from.sin_addr) < 95) {
 		reply = icpCreateMessage(ICP_OP_DENIED, 0, url, header.reqnum, 0);
-		icpUdpSend(fd, &from, reply, LOG_UDP_DENIED, p);
+		icpUdpSend(fd, &from, reply, LOG_UDP_DENIED, icp_request->protocol);
 	    }
 	    break;
 	}
@@ -1330,23 +1316,21 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
 	debug(12, 5, "icpHandleIcpV3: OPCODE %s\n",
 	    IcpOpcodeStr[header.opcode]);
-	if (entry &&
-	    (entry->store_status == STORE_OK) &&
-	    expiresMoreThan(entry->expires, Config.negativeTtl)) {
+	if (icpCheckUdpHit(entry)) {
 	    reply = icpCreateMessage(ICP_OP_HIT, 0, url, header.reqnum, 0);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_HIT, p);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
 	    reply = icpCreateMessage(ICP_OP_RELOADING, 0, url, header.reqnum, 0);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, p);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
 	    reply = icpCreateMessage(ICP_OP_RELOADING, 0, url, header.reqnum, 0);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, p);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, icp_request->protocol);
 	} else {
 	    reply = icpCreateMessage(ICP_OP_MISS, 0, url, header.reqnum, 0);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS, p);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS, icp_request->protocol);
 	}
 	break;
 
@@ -1407,6 +1391,8 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    header.opcode, inet_ntoa(from.sin_addr));
 	break;
     }
+    if (icp_request)
+	put_free_request_t(icp_request);
 }
 
 #ifdef ICP_PKT_DUMP
@@ -1589,7 +1575,7 @@ parseHttpRequest(icpStateData * icpState)
     }
     len = (int) (t - token);
     memset(http_ver, '\0', 32);
-    xstrncpy(http_ver, token, 32);
+    strncpy(http_ver, token, len < 31 ? len : 31);
     sscanf(http_ver, "%f", &icpState->http_ver);
     debug(12, 5, "parseHttpRequest: HTTP version is '%s'\n", http_ver);
 
