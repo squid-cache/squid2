@@ -468,7 +468,7 @@ pumpRestart(request_t * r)
 	    (int) mem->inmem_lo);
 	return 0;
     }
-    debug(61, 1) ("pumpRestart: YES!\n");
+    debug(61, 3) ("pumpRestart: YES!\n");
     storeClientListAdd(p->request_entry, p);
     return 1;
 }
