@@ -54,7 +54,7 @@
 #define ACL_ALLWEEK	0x7F
 #define ACL_WEEKDAYS	0x3E
 
-#define MAXHTTPPORTS			12
+#define MAXHTTPPORTS			128
 
 #define COMM_OK		  (0)
 #define COMM_ERROR	 (-1)
