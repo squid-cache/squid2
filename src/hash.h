@@ -126,41 +126,43 @@
 
 #define  HASH_SIZE 7951		/* prime number < 8192 */
 
-#undef  uhash
-#define uhash(x,hid)	((x) % htbl[(hid)].size)	/* for unsigned */
-#undef  hash
-#define hash(x,hid)	(((x) < 0 ? -(x) : (x)) % htbl[(hid)].size)
-
 typedef struct HASH_LINK {
     char *key;
     struct HASH_LINK *next;
     void *item;
 } hash_link;
 
-typedef int HashID;
+typedef int HASHCMP _PARAMS((const char *, const char *));
+typedef unsigned int HASHHASH _PARAMS((const char *, unsigned int));
+
+typedef struct _hash_table {
+    int valid;
+    hash_link **buckets;
+    HASHCMP *cmp;
+    HASHHASH *hash;
+    unsigned int size;
+    unsigned int current_slot;
+    hash_link *current_ptr;
+} hash_table;
 
 /* init */
 extern void hash_init _PARAMS((int));
-extern HashID hash_create _PARAMS((int (*)_PARAMS((const char *, const char *)),
-	int,
-	unsigned int (*)_PARAMS((const char *, HashID))));
-
-/* insert/delete */
-extern int hash_insert _PARAMS((HashID, const char *, void *));
-extern int hash_delete _PARAMS((HashID, const char *));
-extern int hash_delete_link _PARAMS((HashID, hash_link *));
-extern int hash_join _PARAMS((HashID, hash_link *));
-extern int hash_remove_link _PARAMS((HashID, hash_link *));
+extern hash_table * hash_create _PARAMS((HASHCMP *, int, HASHHASH *));
+extern int hash_insert _PARAMS((hash_table *, const char *, void *));
+extern int hash_delete _PARAMS((hash_table *, const char *));
+extern int hash_delete_link _PARAMS((hash_table *, hash_link *));
+extern int hash_join _PARAMS((hash_table *, hash_link *));
+extern int hash_remove_link _PARAMS((hash_table *, hash_link *));
 
 /* searching, accessing */
-extern hash_link *hash_lookup _PARAMS((HashID, const char *));
-extern hash_link *hash_first _PARAMS((HashID));
-extern hash_link *hash_next _PARAMS((HashID));
-extern hash_link *hash_get_bucket _PARAMS((HashID, unsigned int));
-extern void hashFreeMemory _PARAMS((HashID));
-extern unsigned int hash_string _PARAMS((const char *, HashID));
-extern unsigned int hash_url _PARAMS((const char *, HashID));
-extern unsigned int hash4 _PARAMS((const char *, HashID));
+extern hash_link *hash_lookup _PARAMS((hash_table *, const char *));
+extern hash_link *hash_first _PARAMS((hash_table *));
+extern hash_link *hash_next _PARAMS((hash_table *));
+extern hash_link *hash_get_bucket _PARAMS((hash_table *, unsigned int));
+extern void hashFreeMemory _PARAMS((hash_table *));
+extern HASHHASH hash_string;
+extern HASHHASH hash_url;
+extern HASHHASH hash4;
 
 extern int hash_links_allocated;
 

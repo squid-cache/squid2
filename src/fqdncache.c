@@ -158,7 +158,7 @@ static void fqdncacheChangeKey _PARAMS((fqdncache_entry * i));
 static void fqdncacheLockEntry _PARAMS((fqdncache_entry * f));
 static void fqdncacheUnlockEntry _PARAMS((fqdncache_entry * f));
 
-static HashID fqdn_table = 0;
+static hash_table * fqdn_table = NULL;
 static struct fqdncacheQueueData *fqdncacheQueueHead = NULL;
 static struct fqdncacheQueueData **fqdncacheQueueTailP = &fqdncacheQueueHead;
 

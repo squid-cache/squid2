@@ -43,8 +43,7 @@ typedef struct _client_info {
 
 int client_info_sz;
 
-static HashID client_table = 0;
-
+static hash_table * client_table = NULL;
 static ClientInfo *clientdbAdd _PARAMS((struct in_addr addr));
 
 static ClientInfo *

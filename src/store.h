@@ -284,7 +284,7 @@ extern int storeWriteCleanLogs _PARAMS((void));
 #if OLD_CODE
 extern void storeRegister _PARAMS((StoreEntry *, STCB *, void *, off_t));
 #endif
-extern int urlcmp _PARAMS((const char *, const char *));
+extern HASHCMP urlcmp;
 extern EVH storeMaintainSwapSpace;
 extern void storeExpireNow _PARAMS((StoreEntry *));
 extern void storeReleaseRequest _PARAMS((StoreEntry *));

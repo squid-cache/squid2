@@ -159,7 +159,7 @@ static void ipcacheChangeKey _PARAMS((ipcache_entry * i));
 static UNREG ipcacheUnregister;
 
 static ipcache_addrs static_addrs;
-static HashID ip_table = 0;
+static hash_table * ip_table = NULL;
 static struct ipcacheQueueData *ipcacheQueueHead = NULL;
 static struct ipcacheQueueData **ipcacheQueueTailP = &ipcacheQueueHead;
 static int queue_length = 0;
