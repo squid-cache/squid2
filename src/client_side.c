@@ -127,6 +127,7 @@ static log_type clientProcessRequest2(clientHttpRequest * http);
 static int clientReplyBodyTooLarge(clientHttpRequest *, ssize_t clen);
 static int clientRequestBodyTooLarge(int clen);
 static void clientProcessBody(ConnStateData * conn);
+static void clientEatRequestBody(ConnStateData * conn);
 
 static int
 checkAccelOnly(clientHttpRequest * http)
@@ -783,7 +784,7 @@ httpRequestFree(void *data)
     debug(33, 3) ("httpRequestFree: %s\n", storeUrl(http->entry));
     if (!clientCheckTransferDone(http)) {
 	if (request && request->body_connection)
-	    clientAbortBody(request);	/* abort body transter */
+	    clientAbortBody(request);	/* abort request body transter */
 	/* HN: This looks a bit odd.. why should client_side care about
 	 * the ICP selection status?
 	 */
@@ -2189,7 +2190,16 @@ clientWriteComplete(int fd, char *bufnotused, size_t size, int errflag, void *da
     } else if ((done = clientCheckTransferDone(http)) != 0 || size == 0) {
 	debug(33, 5) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
-	if (httpReplyBodySize(http->request->method, entry->mem_obj->reply) < 0) {
+	if (http->conn->body.size_left > 0) {
+	    debug(33, 5) ("clientWriteComplete: closing, but first we need to read the rest of the request\n");
+	    /* XXX We assumes the reply does fit in the TCP transmit window.
+	     * If not the connection may stall while sending the reply
+	     * (before reaching here) if the client does not try to read the
+	     * response while sending the request body. As of yet we have
+	     * not received any complaints indicating this may be an issue.
+	     */
+	    clientEatRequestBody(http->conn);
+	} else if (httpReplyBodySize(http->request->method, entry->mem_obj->reply) < 0) {
 	    debug(33, 5) ("clientWriteComplete: closing, content_length < 0\n");
 	    comm_close(fd);
 	} else if (!done) {
@@ -3141,6 +3151,33 @@ clientReadBody(request_t * request, char *buf, size_t size, CBCB * callback, voi
     clientProcessBody(conn);
 }
 
+static void
+clientEatRequestBodyHandler(char *buf, ssize_t size, void *data)
+{
+    ConnStateData *conn = data;
+    if (conn->body.size_left > 0) {
+	conn->body.callback = clientEatRequestBodyHandler;
+	conn->body.cbdata = conn;
+	cbdataLock(conn->body.cbdata);
+	conn->body.buf = NULL;
+	conn->body.bufsize = SQUID_TCP_SO_RCVBUF;
+	clientProcessBody(conn);
+    } else {
+	comm_close(conn->fd);
+    }
+}
+
+static void
+clientEatRequestBody(ConnStateData * conn)
+{
+    cbdataLock(conn);
+    if (conn->body.request)
+	clientAbortBody(conn->body.request);
+    if (cbdataValid(conn))
+	clientEatRequestBodyHandler(NULL, -1, conn);
+    cbdataUnlock(conn);
+}
+
 /* Called by clientReadRequest to process body content */
 static void
 clientProcessBody(ConnStateData * conn)
@@ -3150,22 +3187,27 @@ clientProcessBody(ConnStateData * conn)
     void *cbdata = conn->body.cbdata;
     CBCB *callback = conn->body.callback;
     request_t *request = conn->body.request;
-    int valid;
     /* Note: request is null while eating "aborted" transfers */
     debug(33, 2) ("clientProcessBody: start fd=%d body_size=%lu in.offset=%ld cb=%p req=%p\n", conn->fd, (unsigned long int) conn->body.size_left, (long int) conn->in.offset, callback, request);
     if (conn->in.offset) {
+	int valid = cbdataValid(conn->body.cbdata);
+	if (!valid) {
+	    comm_close(conn->fd);
+	    return;
+	}
 	/* Some sanity checks... */
 	assert(conn->body.size_left > 0);
 	assert(conn->in.offset > 0);
 	assert(callback != NULL);
-	assert(buf != NULL);
+	assert(buf != NULL || !conn->body.request);
 	/* How much do we have to process? */
 	size = conn->in.offset;
 	if (size > conn->body.size_left)	/* only process the body part */
 	    size = conn->body.size_left;
 	if (size > conn->body.bufsize)	/* don't copy more than requested */
 	    size = conn->body.bufsize;
-	xmemcpy(buf, conn->in.buf, size);
+	if (valid && buf)
+	    xmemcpy(buf, conn->in.buf, size);
 	conn->body.size_left -= size;
 	/* Move any remaining data */
 	conn->in.offset -= size;
@@ -3176,7 +3218,6 @@ clientProcessBody(ConnStateData * conn)
 	if (conn->body.size_left <= 0 && request != NULL)
 	    request->body_connection = NULL;
 	/* Remove clientReadBody arguments (the call is completed) */
-	valid = cbdataValid(conn->body.cbdata);
 	conn->body.request = NULL;
 	conn->body.callback = NULL;
 	cbdataUnlock(conn->body.cbdata);
@@ -3195,25 +3236,8 @@ clientProcessBody(ConnStateData * conn)
     }
 }
 
-/* A dummy handler that throws away a request-body */
-static char bodyAbortBuf[SQUID_TCP_SO_RCVBUF];
-static void
-clientReadBodyAbortHandler(char *buf, ssize_t size, void *data)
-{
-    ConnStateData *conn = (ConnStateData *) data;
-    debug(33, 2) ("clientReadBodyAbortHandler: fd=%d body_size=%lu in.offset=%ld\n", conn->fd, (unsigned long int) conn->body.size_left, (long int) conn->in.offset);
-    if (size != 0 && conn->body.size_left != 0) {
-	debug(33, 3) ("clientReadBodyAbortHandler: fd=%d shedule next read\n", conn->fd);
-	conn->body.callback = clientReadBodyAbortHandler;
-	conn->body.buf = bodyAbortBuf;
-	conn->body.bufsize = sizeof(bodyAbortBuf);
-	conn->body.cbdata = data;
-	cbdataLock(conn->body.cbdata);
-    }
-}
-
 /* Abort a body request */
-int
+void
 clientAbortBody(request_t * request)
 {
     ConnStateData *conn = request->body_connection;
@@ -3222,26 +3246,23 @@ clientAbortBody(request_t * request)
     void *cbdata;
     int valid;
     request->body_connection = NULL;
-    if (!conn || conn->body.size_left <= 0)
-	return 0;		/* No body to abort */
-    if (conn->body.callback != NULL) {
-	buf = conn->body.buf;
-	callback = conn->body.callback;
-	cbdata = conn->body.cbdata;
-	valid = cbdataValid(cbdata);
-	assert(request == conn->body.request);
-	conn->body.buf = NULL;
-	conn->body.callback = NULL;
-	cbdataUnlock(conn->body.cbdata);
-	conn->body.cbdata = NULL;
-	conn->body.request = NULL;
-	if (valid)
-	    callback(buf, -1, cbdata);	/* Signal abort to clientReadBody caller */
-	requestUnlink(request);
-    }
-    clientReadBodyAbortHandler(NULL, -1, conn);		/* Install abort handler */
-    /* clientProcessBody() */
-    return 1;			/* Aborted */
+    if (!conn->body.callback || !conn->body.request)
+	return;
+    buf = conn->body.buf;
+    callback = conn->body.callback;
+    cbdata = conn->body.cbdata;
+    valid = cbdataValid(cbdata);
+    assert(request == conn->body.request);
+    conn->body.buf = NULL;
+    conn->body.callback = NULL;
+    cbdataUnlock(conn->body.cbdata);
+    conn->body.cbdata = NULL;
+    conn->body.request = NULL;
+    if (valid)
+	callback(buf, -1, cbdata);	/* Signal abort to clientReadBody caller to allow them to clean up */
+    else
+	debug(33, 1) ("NOTICE: A request body was aborted with cancelled callback: %p, possible memory leak\n", callback);
+    requestUnlink(request);	/* Linked in clientReadBody */
 }
 
 /* general lifetime handler for HTTP requests */

@@ -142,7 +142,7 @@ extern void clientHttpConnectionsClose(void);
 extern StoreEntry *clientCreateStoreEntry(clientHttpRequest *, method_t, request_flags);
 extern int isTcpHit(log_type);
 extern void clientReadBody(request_t * req, char *buf, size_t size, CBCB * callback, void *data);
-extern int clientAbortBody(request_t * req);
+extern void clientAbortBody(request_t * req);
 
 extern int commSetNonBlocking(int fd);
 extern int commUnsetNonBlocking(int fd);
