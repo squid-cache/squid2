@@ -650,7 +650,7 @@ extern void fwdFail(FwdState *, int, http_status, int);
 extern STABH fwdAbort;
 extern void fwdUnregister(int fd, FwdState *);
 extern void fwdComplete(FwdState * fwdState);
-
+extern void fwdInit(void);
 
 extern void urnStart(request_t *, StoreEntry *);
 
@@ -910,8 +910,6 @@ extern void storeSwapInFileOpened(void *data, int fd, int errcode);
 /*
  * store_swapout.c
  */
-extern void storeSwapOutStart(StoreEntry * e);
-extern void storeSwapOutHandle(int fdnotused, int flag, size_t len, void *data);
 extern void storeCheckSwapOut(StoreEntry * e);
 extern void storeSwapOutFileClose(StoreEntry * e);
 extern int storeSwapOutWriteQueued(MemObject * mem);

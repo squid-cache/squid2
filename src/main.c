@@ -441,6 +441,7 @@ mainInitialize(void)
 #if DELAY_POOLS
 	delayPoolsInit();
 #endif
+	fwdInit();
     }
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0) {
