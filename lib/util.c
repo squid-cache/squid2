@@ -134,9 +134,6 @@ void (*failure_notify) _PARAMS((const char *)) = NULL;
 static char msg[128];
 
 extern int sys_nerr;
-#if NEED_SYS_ERRLIST && !defined(_SQUID_NETBSD_)
-extern char *sys_errlist[];
-#endif
 
 #if XMALLOC_STATISTICS
 #define DBG_MAXSIZE   (1024*1024)
@@ -433,7 +430,7 @@ xstrdup(const char *s)
 }
 
 /*
- * xstrerror() - return sys_errlist[errno];
+ * xstrerror() - strerror() wrapper
  */
 const char *
 xstrerror(void)
@@ -441,11 +438,7 @@ xstrerror(void)
     static char xstrerror_buf[BUFSIZ];
     if (errno < 0 || errno >= sys_nerr)
 	return ("Unknown");
-#if HAVE_STRERROR
     sprintf(xstrerror_buf, "(%d) %s", errno, strerror(errno));
-#else
-    sprintf(xstrerror_buf, "(%d) %s", errno, sys_errlist[errno]);
-#endif /* HAVE_STRERROR */
     return xstrerror_buf;
 }
 

@@ -349,6 +349,7 @@ AC_SUBST(LIBREGEX)
 
 AC_REPLACE_FUNCS(\
 	tempnam \
+	strerror \
 )
 
 AC_MSG_CHECKING(Maximum number of filedescriptors we can open)
