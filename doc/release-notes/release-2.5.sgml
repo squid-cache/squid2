@@ -170,5 +170,12 @@ url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE2"
 name="squid-2.5.STABLE2 patches"> and the <url url="ChangeLog"
 name="ChangeLog"> file for details on corrected issues.
 
+<sect>Key changes squid-2.5.STABLE3 to 2.5.STABLE4:
+
+<P>Bug #585: requests denied due to http_reply_access are now
+logged with TCP_DENIED, instead of TCP_MISS, etc.  We can still
+identify http_reply_access denied requests because the next-hop
+field will be non-null (neighbor or origin server).
+
 </article>
 

@@ -1,5 +1,7 @@
 Changes to squid-2.5.STABLE4 (not yet released):
 	- Lithuanian error messages added to the distribution
+	- Bug #686: requests denied due to http_reply_access are now
+	  logged with TCP_DENIED (instead of TCP_MISS, etc).
 
 Changes to squid-2.5.STABLE3 (25 May 2003):
 
