@@ -628,7 +628,7 @@ aclParseUserList(void **current)
     debug(28, 2) ("aclParseUserList: parsing user list\n");
     t = strtokFile();
     if (!t) {
-	debug(28, 5) ("aclParseUserList: No data defined\n");
+	debug(28, 2) ("aclParseUserList: No data defined\n");
 	return;
     }
     debug(28, 5) ("aclParseUserList: First token is %s\n", t);
