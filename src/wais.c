@@ -114,7 +114,7 @@ typedef struct {
     char *relayhost;
     int relayport;
     char *mime_hdr;
-    char request[MAX_URL];
+    char request[MAX_URL+1];
 } WaisStateData;
 
 static int waisStateFree _PARAMS((int, WaisStateData *));
