@@ -919,32 +919,27 @@ void gopherSendRequest(fd, data)
      int fd;
      GopherData *data;
 {
-    int len;
     static char query[MAX_URL];
     char *buf = get_free_4k_page();
+    char *t;
 
     data->icp_page_ptr = buf;
 
     if (data->type_id == GOPHER_CSO) {
 	sscanf(data->request, "?%s", query);
-	len = strlen(query) + 15;
 	sprintf(buf, "query %s\r\nquit\r\n", query);
     } else if (data->type_id == GOPHER_INDEX) {
-	char *c_ptr = strchr(data->request, '?');
-	if (c_ptr) {
-	    *c_ptr = '\t';
-	}
-	len = strlen(data->request) + 3;
+        if ((t = strchr(data->request, '?')))
+            *t = '\t';
 	sprintf(buf, "%s\r\n", data->request);
     } else {
-	len = strlen(data->request) + 3;
 	sprintf(buf, "%s\r\n", data->request);
     }
 
     debug(10, 5, "gopherSendRequest: FD %d\n", fd);
     comm_write(fd,
 	buf,
-	len,
+	strlen(buf),
 	30,
 	gopherSendComplete,
 	(void *) data);
