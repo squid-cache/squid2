@@ -1010,3 +1010,28 @@ ipcacheRemoveBadAddr(char *name, struct in_addr addr)
     if (ia->cur >= ia->count)
 	ia->cur = 0;
 }
+
+void
+ipcacheFreeMemory(void)
+{
+    ipcache_entry *i;
+    ipcache_entry **list;
+    int k = 0;
+    int j;
+    list = xcalloc(meta_data.ipcache_count, sizeof(ipcache_entry *));
+    i = (ipcache_entry *) hash_first(ip_table);
+    while (i && k < meta_data.ipcache_count) {
+        *(list + k) = i;
+        k++;
+        i = (ipcache_entry *) hash_next(ip_table);
+    }
+    for (j = 0; j < k; j++) {
+	i = *(list + j);
+        safe_free(i->addrs.in_addrs);
+        safe_free(i->name);
+        safe_free(i->error_message);
+        safe_free(i);
+    }
+    xfree(list);
+    hashFreeMemory(ip_table);
+}

@@ -144,6 +144,7 @@ extern void fqdncacheOpenServers _PARAMS((void));
 extern void fqdncacheReleaseInvalid _PARAMS((char *));
 extern char *fqdnFromAddr _PARAMS((struct in_addr));
 extern int fqdncacheQueueDrain _PARAMS((void));
+extern void fqdncacheFreeMemory _PARAMS((void));
 
 extern char *dns_error_message;
 

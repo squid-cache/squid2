@@ -309,6 +309,8 @@ normal_shutdown(void)
     errorpageFreeMemory();
     stmemFreeMemory();
     netdbFreeMemory();
+    ipcacheFreeMemory();
+    fqdncacheFreeMemory();
     debug(21, 0, "Squid Cache (Version %s): Exiting normally.\n",
 	version_string);
     exit(0);

@@ -155,7 +155,7 @@ extern int ipcacheQueueDrain _PARAMS((void));
 extern void ipcacheOpenServers _PARAMS((void));
 extern void ipcacheCycleAddr _PARAMS((char *name));
 extern void ipcacheRemoveBadAddr _PARAMS((char *name, struct in_addr));
-
+extern void ipcacheFreeMemory _PARAMS((void));
 
 extern char *dns_error_message;
 

@@ -2875,7 +2875,7 @@ storeFreeMemory(void)
     StoreEntry **list;
     int i = 0;
     int j;
-    list = xcalloc(meta_data.store_entries, sizeof(StoreEntry));
+    list = xcalloc(meta_data.store_entries, sizeof(StoreEntry *));
     e = (StoreEntry *) hash_first(store_table);
     while (e && i < meta_data.store_entries) {
 	*(list + i) = e;

@@ -872,3 +872,30 @@ fqdncacheQueueDrain(void)
 	fqdncache_dnsDispatch(dnsData, i);
     return 1;
 }
+
+void
+fqdncacheFreeMemory(void)
+{
+    fqdncache_entry *f;
+    fqdncache_entry **list;
+    int k = 0;
+    int j;
+    list = xcalloc(meta_data.fqdncache_count, sizeof(fqdncache_entry *));
+    f = (fqdncache_entry *) hash_first(fqdn_table);
+    while (f && k < meta_data.fqdncache_count) {
+        *(list + k) = f;
+        k++;
+        f = (fqdncache_entry *) hash_next(fqdn_table);
+    }
+    for (j = 0; j < k; j++) {
+        f = *(list + j);
+        for (k = 0; k < (int) f->name_count; k++)
+            safe_free(f->names[k]);
+        safe_free(f->name);
+        safe_free(f->error_message);
+        safe_free(f);
+    }
+    xfree(list);
+    hashFreeMemory(fqdn_table);
+}
+
