@@ -642,7 +642,7 @@ AC_ARG_ENABLE(err-languages,
 ],[
     ERR_LANGUAGES=
     for l in $srcdir/errors/*; do
-        if test -f $l/generic; then
+        if test -f $l/ERR_ACCESS_DENIED; then
             ERR_LANGUAGES="$ERR_LANGUAGES `basename $l`"
 	fi
     done
