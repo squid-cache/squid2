@@ -272,8 +272,7 @@ get_free_thing(stmem_stats * thing)
     void *p = NULL;
     if (!empty_stack(&thing->free_page_stack)) {
 	p = pop(&thing->free_page_stack);
-	if (p == NULL)
-	    fatal_dump("get_free_thing: NULL pointer?");
+	assert(p != NULL);
     } else {
 	p = xmalloc(thing->page_size);
 	thing->total_pages_allocated++;
@@ -310,8 +309,7 @@ get_free_8k_page(void)
 static void
 put_free_thing(stmem_stats * thing, void *p)
 {
-    if (p == NULL)
-	fatal_dump("Somebody is putting a NULL pointer!");
+    assert(p != NULL);
     thing->n_pages_in_use--;
     if (thing->total_pages_allocated > thing->max_pages) {
 	xfree(p);

@@ -191,7 +191,7 @@ file_map_allocate(fileMap * fm, int suggestion)
 	    return file_map_bit_set(fm, suggestion);
 	}
     }
-    fatal_dump("file_map_allocate: Exceeded filemap limit");
+    fatal("file_map_allocate: Exceeded filemap limit");
     return 0;			/* NOTREACHED */
 }
 
@@ -213,8 +213,7 @@ main(argc, argv)
 
     for (i = 0; i < TEST_SIZE; ++i) {
 	file_map_bit_set(i);
-	if (!file_map_bit_test(i))
-	    fatal_dump(NULL);
+	assert(file_map_bit_test(i));
 	file_map_bit_reset(i);
     }
 }
