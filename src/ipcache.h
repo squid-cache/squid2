@@ -38,4 +38,6 @@ extern void ipcacheOpenServers _PARAMS((void));
 
 extern char *dns_error_message;
 
+#define IPCACHE_AV_FACTOR 1000
+
 #endif
