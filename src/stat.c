@@ -487,7 +487,7 @@ void info_get(obj, sentry)
 #if HAVE_MALLINFO
     mp = mallinfo();
     storeAppendPrintf(sentry, "{Memory usage for %s via mallinfo():}\n", appname);
-    storeAppendPrintf(sentry, "{\ttotal space in arena:  %6d KB}\n",
+    storeAppendPrintf(sentry, "{\tTotal space in arena:  %6d KB}\n",
 	mp.arena >> 10);
     storeAppendPrintf(sentry, "{\tOrdinary blocks:       %6d KB %6d blks}\n",
 	mp.uordblks >> 10, mp.ordblks);
@@ -524,12 +524,13 @@ void info_get(obj, sentry)
 #endif /* HAVE_MALLINFO */
 
     storeAppendPrintf(sentry, "{File descriptor usage for %s:}\n", appname);
-    storeAppendPrintf(sentry, "{\tMax number of file desc available:\t%d}\n", FD_SETSIZE);
-    storeAppendPrintf(sentry, "{\tLargest file desc currently in use:\t%d}\n",
+    storeAppendPrintf(sentry, "{\tMax number of file desc available:    %4d}\n",
+	FD_SETSIZE);
+    storeAppendPrintf(sentry, "{\tLargest file desc currently in use:   %4d}\n",
 	fdstat_biggest_fd());
-    storeAppendPrintf(sentry, "{\tAvailable number of file descriptors :\t%d}\n",
+    storeAppendPrintf(sentry, "{\tAvailable number of file descriptors: %4d}\n",
 	fdstat_are_n_free_fd(0));
-    storeAppendPrintf(sentry, "{\tReserved number of file descriptors :\t%d}\n",
+    storeAppendPrintf(sentry, "{\tReserved number of file descriptors:  %4d}\n",
 	RESERVED_FD);
 
     {
