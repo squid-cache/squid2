@@ -121,6 +121,7 @@ extern void normal_shutdown _PARAMS((void));
 extern int tvSubMsec _PARAMS((struct timeval, struct timeval));
 extern int percent _PARAMS((int, int));
 extern void squid_signal _PARAMS((int sig, void (*func) (), int flags));
+extern char *accessLogTime _PARAMS((time_t));
 
 extern int do_mallinfo;
 extern time_t squid_curtime;
