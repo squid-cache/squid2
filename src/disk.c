@@ -112,7 +112,7 @@ typedef struct _dwalk_ctrl {
     off_t offset;
     char *buf;			/* line buffer */
     int cur_len;		/* line len */
-    int (*handler) (int fd, int errflag, void *data);
+    FILE_WALK_HD handler;
     void *client_data;
     int (*line_handler) (int fd, char *buf, int size, void *line_data);
     void *line_data;
@@ -343,7 +343,7 @@ file_write(int fd,
     char *ptr_to_buf,
     int len,
     int access_code,
-    void (*handle) _PARAMS((int, int, StoreEntry *)),
+    FILE_WRITE_HD handle,
     void *handle_data,
     void (*free_func) _PARAMS((void *)))
 {
