@@ -1435,7 +1435,7 @@ struct _RemovalPolicyNode {
 };
 
 struct _RemovalPolicy {
-    char *_type;
+    const char *_type;
     void *_data;
     void (*Free) (RemovalPolicy * policy);
     void (*Add) (RemovalPolicy * policy, StoreEntry * entry, RemovalPolicyNode * node);
@@ -2153,7 +2153,7 @@ struct _Logfile {
 };
 
 struct cache_dir_option {
-    char *name;
+    const char *name;
     void (*parse) (SwapDir * sd, const char *option, const char *value, int reconfiguring);
     void (*dump) (StoreEntry * e, const char *option, SwapDir * sd);
 };

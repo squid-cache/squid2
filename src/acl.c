@@ -348,10 +348,12 @@ aclParseProtoList(void *curlist)
     intlist **Tail;
     intlist *q = NULL;
     char *t = NULL;
+    protocol_t protocol;
     for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
     while ((t = strtokFile())) {
+	protocol = urlParseProtocol(t);
 	q = memAllocate(MEM_INTLIST);
-	q->i = (int) urlParseProtocol(t);
+	q->i = (int) protocol;
 	*(Tail) = q;
 	Tail = &q->next;
     }

@@ -95,7 +95,7 @@ int cbdata_types = 0;
 #define OFFSET_OF(type, member) ((int)(char *)&((type *)0L)->member)
 
 void
-cbdataInitType(cbdata_type type, char *name, int size, FREE * free_func)
+cbdataInitType(cbdata_type type, const char *name, int size, FREE * free_func)
 {
     char *label;
     if (type >= cbdata_types) {
@@ -114,7 +114,7 @@ cbdataInitType(cbdata_type type, char *name, int size, FREE * free_func)
 }
 
 cbdata_type
-cbdataAddType(cbdata_type type, char *name, int size, FREE * free_func)
+cbdataAddType(cbdata_type type, const char *name, int size, FREE * free_func)
 {
     if (type)
 	return type;

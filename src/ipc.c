@@ -56,7 +56,7 @@ ipcCloseAllFD(int prfd, int pwfd, int crfd, int cwfd)
 }
 
 int
-ipcCreate(int type, const char *prog, char *const args[], const char *name, int *rfd, int *wfd)
+ipcCreate(int type, const char *prog, const char *const args[], const char *name, int *rfd, int *wfd)
 {
     pid_t pid;
     struct sockaddr_in CS;

@@ -2136,7 +2136,7 @@ parse_uri_whitespace(int *var)
 static void
 dump_uri_whitespace(StoreEntry * entry, const char *name, int var)
 {
-    char *s;
+    const char *s;
     if (var == URI_WHITESPACE_ALLOW)
 	s = "allow";
     else if (var == URI_WHITESPACE_ENCODE)

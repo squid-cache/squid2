@@ -118,8 +118,8 @@ extern void cbdataUnlock(const void *p);
 /* Note: Allocations is done using the cbdataAlloc macro */
 extern void *cbdataInternalFree(void *p);
 extern int cbdataValid(const void *p);
-extern void cbdataInitType(cbdata_type type, char *label, int size, FREE * free_func);
-extern cbdata_type cbdataAddType(cbdata_type type, char *label, int size, FREE * free_func);
+extern void cbdataInitType(cbdata_type type, const char *label, int size, FREE * free_func);
+extern cbdata_type cbdataAddType(cbdata_type type, const char *label, int size, FREE * free_func);
 extern int cbdataLocked(const void *p);
 
 extern void clientdbInit(void);
@@ -1192,7 +1192,7 @@ extern void stringAppend(String * s, const char *buf, int len);
  */
 extern int ipcCreate(int type,
     const char *prog,
-    char *const args[],
+    const char *const args[],
     const char *name,
     int *rfd,
     int *wfd);

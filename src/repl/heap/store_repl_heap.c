@@ -255,7 +255,7 @@ createRemovalPolicy_heap(wordlist * args)
 {
     RemovalPolicy *policy;
     HeapPolicyData *heap_data;
-    char *keytype;
+    const char *keytype;
     /* Allocate the needed structures */
     policy = cbdataAlloc(RemovalPolicy);
     heap_data = xcalloc(1, sizeof(*heap_data));

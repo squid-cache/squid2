@@ -361,7 +361,7 @@ authenticateBasicUsername(auth_user_t * auth_user)
 }
 
 static basic_data *
-authBasicDataNew()
+authBasicDataNew(void)
 {
     basic_data *temp;
     temp = memPoolAlloc(basic_data_pool);

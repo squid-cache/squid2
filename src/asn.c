@@ -148,11 +148,12 @@ asnAclInitialize(acl * acls)
 
 /* initialize the radix tree structure */
 
+extern int max_keylen;		/* yuck.. this is in lib/radix.c */
+
 CBDATA_TYPE(ASState);
 void
 asnInit(void)
 {
-    extern int max_keylen;
     static int inited = 0;
     max_keylen = 40;
     CBDATA_INIT_TYPE(ASState);
