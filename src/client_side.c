@@ -1965,7 +1965,6 @@ clientProcessRequest(clientHttpRequest * http)
 	    http);
     } else {
 	/* MISS CASE */
-	http->log_type = LOG_TCP_MISS;
 	clientProcessMiss(http);
     }
 }
