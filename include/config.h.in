@@ -89,7 +89,7 @@
 #endif
 
 #if !defined(DEFAULT_CONFIG_FILE)
-#define DEFAULT_CONFIG_FILE "@prefix@/etc/cached.conf"
+#define DEFAULT_CONFIG_FILE "@prefix@/etc/squid.conf"
 #endif
 
 #if !defined(DEFAULT_CACHE_LOG)
