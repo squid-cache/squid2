@@ -407,6 +407,7 @@ struct _SquidConfig {
 	int offline;
 	int redir_rewrites_host;
 	int prefer_direct;
+	int nonhierarchical_direct;
 	int strip_query_terms;
 	int redirector_bypass;
 	int ignore_unknown_nameservers;
