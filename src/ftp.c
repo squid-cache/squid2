@@ -433,7 +433,8 @@ ftpListingFinish(FtpStateData * ftpState)
     if (ftpState->flags.listformat_unknown && !ftpState->flags.tried_nlst) {
 	storeAppendPrintf(e, "<A HREF=\"./;type=d\">[As plain directory]</A>\n");
     } else if (ftpState->typecode == 'D') {
-	storeAppendPrintf(e, "<A HREF=\"./\">[As extended directory]</A>\n");
+	const char *path = ftpState->filepath ? ftpState->filepath : ".";
+	storeAppendPrintf(e, "<A HREF=\"%s/\">[As extended directory]</A>\n", html_quote(path));
     }
     storeAppendPrintf(e, "<HR noshade size=\"1px\">\n");
     storeAppendPrintf(e, "<ADDRESS>\n");
@@ -1011,20 +1012,18 @@ ftpCheckUrlpath(FtpStateData * ftpState)
 	}
     }
     l = strLen(request->urlpath);
-    ftpState->flags.use_base = 1;
     /* check for null path */
     if (!l) {
 	ftpState->flags.isdir = 1;
 	ftpState->flags.root_dir = 1;
+	ftpState->flags.use_base = 1;	/* Work around broken browsers */
     } else if (!strCmp(request->urlpath, "/%2f/")) {
 	/* UNIX root directory */
-	ftpState->flags.use_base = 0;
 	ftpState->flags.isdir = 1;
 	ftpState->flags.root_dir = 1;
     } else if ((l >= 1) && (*(strBuf(request->urlpath) + l - 1) == '/')) {
 	/* Directory URL, ending in / */
 	ftpState->flags.isdir = 1;
-	ftpState->flags.use_base = 0;
 	if (l == 1)
 	    ftpState->flags.root_dir = 1;
     }
@@ -1643,7 +1642,6 @@ ftpListDir(FtpStateData * ftpState)
 	debug(9, 3) ("Directory path did not end in /\n");
 	strCat(ftpState->title_url, "/");
 	ftpState->flags.isdir = 1;
-	ftpState->flags.use_base = 1;
     }
     ftpSendPasv(ftpState);
 }
@@ -2008,7 +2006,6 @@ ftpRestOrList(FtpStateData * ftpState)
     debug(9, 3) ("This is ftpRestOrList\n");
     if (ftpState->typecode == 'D') {
 	ftpState->flags.isdir = 1;
-	ftpState->flags.use_base = 1;
 	if (ftpState->flags.put) {
 	    ftpSendMkdir(ftpState);	/* PUT name;type=d */
 	} else {
@@ -2142,7 +2139,6 @@ ftpSendNlst(FtpStateData * ftpState)
 {
     ftpState->flags.tried_nlst = 1;
     if (ftpState->filepath) {
-	ftpState->flags.use_base = 1;
 	snprintf(cbuf, 1024, "NLST %s\r\n", ftpState->filepath);
     } else {
 	snprintf(cbuf, 1024, "NLST\r\n");
