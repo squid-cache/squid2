@@ -418,7 +418,7 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
     }
     /* common format headers are "<name>:[ws]<value>" lines delimited by <CRLF>.
      * continuation lines start with a (single) space or tab */
-    while (field_start < header_end) {
+    while (field_ptr < header_end) {
 	const char *field_start = field_ptr;
 	const char *field_end;
 	do {
