@@ -109,6 +109,7 @@ clientAccessCheck(icpStateData * icpState, void (*handler) (icpStateData *, int)
     char *browser = NULL;
 
     if (Config.identLookup && icpState->ident.state == IDENT_NONE) {
+        icpState->aclHandler = handler;
         identStart(-1, icpState, clientLookupIdentDone);
 	return;
     }
