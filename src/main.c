@@ -460,6 +460,7 @@ mainInitialize(void)
 	unlinkdInit();
 	urlInitialize();
 	cachemgrInit();
+	eventInit();	/* eventInit() before statInit() */
 	statInit();
 	storeInit();
 	mainSetCwd();
@@ -467,7 +468,6 @@ mainInitialize(void)
 	do_mallinfo = 1;
 	mimeInit(Config.mimeTablePathname);
 	pconnInit();
-	eventInit();
 	refreshInit();
 #if DELAY_POOLS
 	delayPoolsInit();
