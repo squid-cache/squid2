@@ -393,6 +393,10 @@ fwdCheckDeferRead(int fdnotused, void *data)
     MemObject *mem = e->mem_obj;
     if (mem == NULL)
 	return 0;
+#if DELAY_POOLS
+    if (delayMostBytesWanted(mem, 1) == 0)
+	return 1;
+#endif
     if (mem->inmem_hi - storeLowestMemReaderOffset(e) < READ_AHEAD_GAP)
 	return 0;
     return 1;

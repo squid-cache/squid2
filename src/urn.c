@@ -138,10 +138,6 @@ urnStart(request_t * r, StoreEntry * e)
 	errorAppendEntry(e, err);
 	return;
     }
-#if DELAY_POOLS
-    urlres_r->delay.class = r->delay.class;
-    urlres_r->delay.position = r->delay.position;
-#endif
     httpHeaderPutStr(&urlres_r->header, HDR_ACCEPT, "text/plain");
     if ((urlres_e = storeGet(k)) == NULL) {
 	urlres_e = storeCreateEntry(urlres, urlres, 0, METHOD_GET);
@@ -151,6 +147,10 @@ urnStart(request_t * r, StoreEntry * e)
 	storeLockObject(urlres_e);
 	storeClientListAdd(urlres_e, urnState);
     }
+#if DELAY_POOLS
+    urlres_r->delay_id = r->delay_id;
+    delaySetStoreClient(urlres_e, urnState, r->delay_id);
+#endif
     urnState->urlres_e = urlres_e;
     urnState->urlres_r = requestLink(urlres_r);
     storeClientCopy(urlres_e,

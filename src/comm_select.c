@@ -278,7 +278,7 @@ comm_poll(int msec)
 	    comm_poll_http_incoming();
 #if DELAY_POOLS
 	if (squid_curtime > delay_pools_last_update) {
-	    delayPoolsUpdate(delay_pools_last_update - squid_curtime);
+	    delayPoolsUpdate(squid_curtime - delay_pools_last_update);
 	    delay_pools_last_update = squid_curtime;
 	}
 #endif
@@ -537,7 +537,7 @@ comm_select(int msec)
 	    comm_select_http_incoming();
 #if DELAY_POOLS
 	if (squid_curtime > delay_pools_last_update) {
-	    delayPoolsUpdate(delay_pools_last_update - squid_curtime);
+	    delayPoolsUpdate(squid_curtime - delay_pools_last_update);
 	    delay_pools_last_update = squid_curtime;
 	}
 #endif

@@ -46,7 +46,7 @@ requestCreate(method_t method, protocol_t protocol, const char *urlpath)
     req->max_age = -1;
     req->max_forwards = -1;
 #if DELAY_POOLS
-    req->delay.class = 0;
+    req->delay_id = 0;
 #endif
     httpHeaderInit(&req->header, hoRequest);
     return req;

@@ -1112,6 +1112,9 @@ struct _store_client {
 	int copy_event_pending:1;
     } flags;
     store_client *next;
+#if DELAY_POOLS
+    delay_id delay_id;
+#endif
 };
 
 
@@ -1205,10 +1208,7 @@ struct _request_t {
     HierarchyLogEntry hier;
     err_type err_type;
 #if DELAY_POOLS
-    struct {
-	int position;
-	char class;
-    } delay;
+    delay_id delay_id;
 #endif
 };
 
