@@ -389,7 +389,7 @@ clientGetsOldEntry(StoreEntry * new_entry, StoreEntry * old_entry, request_t * r
 
 
 static void
-icpHandleIMSReply(void *data, char *buf, size_t size)
+icpHandleIMSReply(void *data, char *buf, ssize_t size)
 {
     clientHttpRequest *http = data;
     int fd = http->conn->fd;

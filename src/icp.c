@@ -608,7 +608,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
 }
 
 void
-icpSendMoreData(void *data, char *buf, size_t size)
+icpSendMoreData(void *data, char *buf, ssize_t size)
 {
     clientHttpRequest *http = data;
     StoreEntry *entry = http->entry;
@@ -622,14 +622,7 @@ icpSendMoreData(void *data, char *buf, size_t size)
     FREE *freefunc = put_free_4k_page;
     int hack = 0;
     char C = '\0';
-    assert(size >= 0);
     assert(size <= ICP_SENDMOREDATA_BUF);
-    if (size < 0) {
-	debug(12, 1) ("storeClientCopy returned %d for '%s'\n", size, entry->key);
-	freefunc(buf);
-	comm_close(fd);
-	return;
-    }
     debug(12, 5) ("icpSendMoreData: FD %d '%s', out.offset=%d\n",
 	fd, entry->url, http->out.offset);
     if (conn->chr != http) {
@@ -651,6 +644,7 @@ icpSendMoreData(void *data, char *buf, size_t size)
 	freefunc(buf);
 	return;
     }
+    assert(size >= 0);
     writelen = size;
     if (http->out.offset == 0) {
 #if LOG_FULL_HEADERS
@@ -772,7 +766,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 }
 
 static void
-icpGetHeadersForIMS(void *data, char *buf, size_t size)
+icpGetHeadersForIMS(void *data, char *buf, ssize_t size)
 {
     clientHttpRequest *http = data;
     int fd = http->conn->fd;

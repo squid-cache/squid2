@@ -155,7 +155,7 @@ extern void stmemFreeMemory _PARAMS((void));
 
 extern int memFreeDataUpto _PARAMS((mem_ptr, int));
 extern void memAppend _PARAMS((mem_ptr, const char *, int));
-extern size_t memCopy _PARAMS((const mem_ptr, off_t, char *, size_t));
+extern ssize_t memCopy _PARAMS((const mem_ptr, off_t, char *, size_t));
 extern void memFree _PARAMS((mem_ptr));
 extern void memFreeData _PARAMS((mem_ptr));
 

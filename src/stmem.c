@@ -246,7 +246,7 @@ memAppend(mem_ptr mem, const char *data, int len)
     }
 }
 
-size_t
+ssize_t
 memCopy(const mem_ptr mem, off_t offset, char *buf, size_t size)
 {
     mem_node p = mem->head;
