@@ -830,6 +830,7 @@ AC_CHECK_FUNCS(\
 	mktime \
 	mstats \
 	poll \
+	putenv \
 	random \
 	regcomp \
 	regexec \
