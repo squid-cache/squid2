@@ -186,8 +186,6 @@ struct SquidConfig {
     char *effectiveUser;
     char *effectiveGroup;
     struct {
-	char *ftpget;
-	char *ftpget_opts;
 	char *dnsserver;
 	char *redirect;
 	char *pinger;
@@ -216,7 +214,6 @@ struct SquidConfig {
     char *pidFilename;
     char *mimeTablePathname;
     char *visibleHostname;
-    char *ftpUser;
     char *errHtmlText;
     struct {
 	char *host;
@@ -284,6 +281,7 @@ struct SquidConfig {
 	int list_wrap;
 	char *icon_prefix;
 	char *icon_suffix;
+        char *anon_user;
     } Ftp;
 };
 

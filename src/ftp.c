@@ -217,7 +217,7 @@ ftpLoginParser(const char *login, FtpStateData * ftpState)
     if (ftpState->user[0] || ftpState->password[0])
 	return;
     xstrncpy(ftpState->user, "anonymous", MAX_URL);
-    xstrncpy(ftpState->password, Config.ftpUser, MAX_URL);
+    xstrncpy(ftpState->password, Config.Ftp.anon_user, MAX_URL);
 }
 
 static void
