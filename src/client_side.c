@@ -1978,8 +1978,17 @@ clientProcessRequest(clientHttpRequest * http)
     http->out.offset = 0;
     if (NULL != http->entry) {
 	storeLockObject(http->entry);
-	storeCreateMemObject(http->entry, http->uri, http->log_uri);
-	http->entry->mem_obj->method = r->method;
+	if (NULL == http->entry->mem_obj) {
+	    /*
+	     * This if-block exists because we don't want to clobber
+	     * a preexiting mem_obj->method value if the mem_obj
+	     * already exists.  For example, when a HEAD request
+	     * is a cache hit for a GET response, we want to keep
+	     * the method as GET.
+	     */
+	    storeCreateMemObject(http->entry, http->uri, http->log_uri);
+	    http->entry->mem_obj->method = r->method;
+	}
 	http->sc = storeClientListAdd(http->entry, http);
 #if DELAY_POOLS
 	delaySetStoreClient(http->sc, delayClient(http));
