@@ -241,6 +241,11 @@
  */
 #define USE_IDENT 1
 
+/*
+ * If your system has statvfs(), and if it actually works!
+ */
+#undef HAVE_STATVFS
+
 /* The number of bytes in a int.  */
 #undef SIZEOF_INT
 
@@ -360,9 +365,6 @@
 
 /* Define if you have the srandom function.  */
 #undef HAVE_SRANDOM
-
-/* Define if you have the statvfs function.  */
-#undef HAVE_STATVFS
 
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR
