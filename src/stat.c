@@ -894,7 +894,9 @@ get_median_svc(int interval, int which)
     StatCounters *f;
     StatCounters *l;
     double x;
-
+    assert(interval > 0);
+    if (interval > N_COUNT_HIST - 1)
+	interval = N_COUNT_HIST - 1;
     f = &CountHist[0];
     l = &CountHist[interval];
     assert(f);
