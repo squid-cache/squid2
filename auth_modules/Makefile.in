@@ -6,9 +6,11 @@
 SUBDIRS		= @AUTH_MODULES@
 
 all:
-	@test -z "$(SUBDIRS)" || for dir in "$(SUBDIRS)"; do \
-	   sh -c "cd $$dir && $(MAKE) all" || exit 1; \
-	done
+	@if test "$(SUBDIRS)" ; then \
+	    for dir in $(SUBDIRS); do \
+		sh -c "cd $$dir && $(MAKE) all" || exit 1; \
+	    done; \
+	fi
 
 clean:
 	-for dir in *; do \
@@ -26,6 +28,8 @@ distclean:
 	done
 
 .DEFAULT:
-	@test -z "$(SUBDIRS)" || for dir in "$(SUBDIRS)"; do \
-	   sh -c "cd $$dir && $(MAKE) $@" || exit 1; \
-	done
+	@if test "$(SUBDIRS)" ; then \
+	    for dir in $(SUBDIRS); do \
+		sh -c "cd $$dir && $(MAKE) $@" || exit 1; \
+	    done; \
+	fi
