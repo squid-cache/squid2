@@ -2667,7 +2667,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 			vport, url);
 	    } else {
 		if (vport_mode)
-		    vport = natLookup.nl_realport;
+		    vport = ntohs(natLookup.nl_realport);
 		snprintf(http->uri, url_sz, "http://%s:%d%s",
 		    inet_ntoa(natLookup.nl_realip),
 		    vport, url);
