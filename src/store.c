@@ -203,7 +203,7 @@ static void storeGetSwapSpace _PARAMS((void));
  * to access a value in internal storage data structure. */
 static HashID store_table = 0;
 
-static int MAX_SWAP_FILE = 1<<21;
+static int MAX_SWAP_FILE = 1 << 21;
 static int store_pages_max = 0;
 static int store_pages_high = 0;
 static int store_pages_low = 0;
@@ -1330,7 +1330,19 @@ storeAbort(StoreEntry * e, const char *msg)
 	return;
     }
     e->store_status = STORE_ABORTED;
-    mem->e_abort_msg = msg ? xstrdup(msg) : NULL;
+    if (msg) {
+	mem->e_abort_msg = get_free_8k_page();
+	strcpy(mem->e_abort_msg, "HTTP/1.0 400 Cache Detected Error\r\n");
+	mk_mime_hdr(mem->e_abort_msg + strlen(mem->e_abort_msg),
+	    "text/html",
+	    strlen(msg),
+	    (time_t) Config.negativeTtl,
+	    squid_curtime);
+	strcat(mem->e_abort_msg, "\r\n");
+	strncat(mem->e_abort_msg, msg, 8191 - strlen(mem->e_abort_msg));
+    } else {
+	mem->e_abort_msg = NULL;
+    }
     storeReleaseRequest(e);
     InvokeHandlers(e);
     storeCheckDoneWriting(e);
