@@ -801,11 +801,29 @@ icpProcessMISS(int fd, icpStateData * icpState)
     char *url = icpState->url;
     char *request_hdr = icpState->request_hdr;
     StoreEntry *entry = NULL;
+    aclCheck_t ch;
+    int answer;
+    char *buf;
 
     debug(12, 4, "icpProcessMISS: '%s %s'\n",
 	RequestMethodStr[icpState->method], url);
     debug(12, 10, "icpProcessMISS: request_hdr:\n%s\n", request_hdr);
 
+    /* Check if this host is allowed to fetch MISSES from us */
+    memset((char *) &ch, '\0', sizeof(aclCheck_t));
+    ch.src_addr = icpState->peer.sin_addr;
+    ch.request = requestLink(icpState->request);
+    answer = aclCheck(MISSAccessList, &ch);
+    requestUnlink(ch.request);
+    if (answer == 0) {
+	icpState->http_code = 400;
+	buf = access_denied_msg(icpState->http_code,
+	    icpState->method,
+	    icpState->url,
+	    fd_table[fd].ipaddr);
+	icpSendERROR(fd, LOG_TCP_DENIED, buf, icpState, icpState->http_code);
+	return 0;
+    }
     /* Get rid of any references to a StoreEntry (if any) */
     if (icpState->entry) {
 	storeUnregister(icpState->entry, fd);

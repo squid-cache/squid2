@@ -137,6 +137,7 @@ extern void aclDestroyDenyInfoList _PARAMS((struct _acl_deny_info_list **));
 
 
 extern struct _acl_access *HTTPAccessList;
+extern struct _acl_access *MISSAccessList;
 extern struct _acl_access *ICPAccessList;
 extern struct _acl_deny_info_list *DenyInfoList;
 extern char *AclMatchedName;

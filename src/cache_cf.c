@@ -1072,6 +1072,7 @@ parseConfigFile(char *file_name)
     aclDestroyAcls();
     aclDestroyDenyInfoList(&DenyInfoList);
     aclDestroyAccessList(&HTTPAccessList);
+    aclDestroyAccessList(&MISSAccessList);
     aclDestroyAccessList(&ICPAccessList);
 #if DELAY_HACK
     aclDestroyAccessList(&DelayAccessList);
@@ -1166,6 +1167,9 @@ parseConfigFile(char *file_name)
 
 	else if (!strcmp(token, "http_access"))
 	    aclParseAccessLine(&HTTPAccessList);
+
+	else if (!strcmp(token, "miss_access"))
+	    aclParseAccessLine(&MISSAccessList);
 
 	else if (!strcmp(token, "icp_access"))
 	    aclParseAccessLine(&ICPAccessList);

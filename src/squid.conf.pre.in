@@ -694,6 +694,9 @@ http_access allow  all
 # Reply to all ICP queries we receive
 icp_access  allow  all
 
+# Allow anyone who passed the http_access rules to fetch MISSES from us
+miss_access allow  all
+
 #  TAG: cache_host_acl
 #	Just like 'cache_host_domain' but provides more flexibility by
 #	using ACL's.
