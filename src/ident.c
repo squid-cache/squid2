@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 31    Ident (RFC 931)
+ * DEBUG: section 30	Ident (RFC 931)
  * AUTHOR: Duane Wessels
  *
  * SQUID Internet Object Cache  http://www.nlanr.net/Squid/
