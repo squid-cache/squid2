@@ -119,20 +119,39 @@ static int decode_addr(asc, addr, mask)
      char *asc;
      struct in_addr *addr, *mask;
 {
-    struct hostent *hp;
+    struct hostent *hp = NULL;
     long a;
+    int a1;
+    int c;
 
-    if ((a = inet_addr(asc)) != SQUID_INADDR_NONE || !strcmp(asc, "255.255.255.255")) {
-	addr->s_addr = a;	/* inet_addr() outputs in network byte order */
-    } else if ((hp = gethostbyname(asc)) != NULL) {
-	/* We got a host name */
-	memcpy(addr, hp->h_addr, hp->h_length);
-    } else {
-	/* XXX: Here we could use getnetbyname */
-	return 0;		/* This is not valid address */
+    c = sscanf(asc, "%d.%*d.%*d.%*d", &a1);
+    switch (c) {
+    case 4:			/* a dotted quad */
+	if ((a = inet_addr(asc)) != SQUID_INADDR_NONE ||
+	    !strcmp(asc, "255.255.255.255")) {
+	    addr->s_addr = a;
+	    /* inet_addr() outputs in network byte order */
+	}
+	break;
+    case 1:			/* a significant bits value for a mask */
+	if (a1 >= 0 && a1 < 33) {
+	    addr->s_addr = htonl(0xffffffff << (32 - a1));
+	    break;
+	}
+    default:
+	if ((hp = gethostbyname(asc)) != NULL) {
+	    /* We got a host name */
+	    memcpy(addr, hp->h_addr, hp->h_length);
+	} else {
+	    /* XXX: Here we could use getnetbyname */
+	    debug(28, 0, "decode_addr: Invalid IP address or hostname  '%s'\n", asc);
+	    return 0;		/* This is not valid address */
+	}
+	break;
     }
 
-    if (mask != NULL) {
+    if (mask != NULL) {		/* mask == NULL if called to decode a netmask */
+
 	/* Guess netmask */
 	a = ntohl(addr->s_addr);
 	if (!a & 0xFFFFFFFF)
