@@ -166,11 +166,12 @@ errorBuildBuf(ErrorState * err, int *len)
     int clen;
     int tlen;
     char *m;
+    char *mx;
     char *p;
     char *t;
     assert(err != NULL);
     assert(err->type > ERR_NONE && err->type < ERR_MAX);
-    m = xstrdup(error_text[err->type]);
+    mx = m = xstrdup(error_text[err->type]);
     clen = 0;
     while ((p = strchr(m, '%'))) {
 	*p = '\0';		/* terminate */
@@ -204,7 +205,7 @@ errorBuildBuf(ErrorState * err, int *len)
     tlen = snprintf(buf, ERROR_BUF_SZ, "%s\r\n%s", hdr, content);
     if (len)
 	*len = tlen;
-    xfree(m);
+    xfree(mx);
     return buf;
 }
 
