@@ -84,6 +84,7 @@ static int theOutWccpConnection = -1;
 static struct wccp_here_i_am_t wccp_here_i_am;
 static struct wccp_i_see_you_t wccp_i_see_you;
 static int change;
+static int last_assign_buckets_change;
 static int number_caches;
 static struct in_addr local_ip;
 
@@ -109,6 +110,7 @@ wccpInit(void)
     wccp_here_i_am.version = htonl(Config.Wccp.version);
     wccp_here_i_am.revision = htonl(WCCP_REVISION);
     change = 0;
+    last_assign_buckets_change = 0;
     if (Config.Wccp.router.s_addr != any_addr.s_addr)
 	if (!eventFind(wccpHereIam, NULL))
 	    eventAdd("wccpHereIam", wccpHereIam, NULL, 5.0, 1);
@@ -243,14 +245,28 @@ wccpHandleUdp(int sock, void *not_used)
 	return;
     if (ntohl(wccp_i_see_you.type) != WCCP_I_SEE_YOU)
 	return;
-    if ((!change) && (number_caches == ntohl(wccp_i_see_you.number))) {
-	change = wccp_i_see_you.change;
-	return;
+    if ((0 == change) && (number_caches == ntohl(wccp_i_see_you.number))) {
+	if (last_assign_buckets_change == wccp_i_see_you.change) {
+	    /*
+	     * After a WCCP_ASSIGN_BUCKET message, the router should
+	     * update the change value.  If not, maybe the route didn't
+	     * receive our WCCP_ASSIGN_BUCKET message, so send it again.
+	     *
+	     * Don't update change here.  Instead, fall through to
+	     * the next block to call wccpAssignBuckets() again.
+	     */
+	    (void) 0;
+	} else {
+	    change = wccp_i_see_you.change;
+	    return;
+	}
     }
     if (change != wccp_i_see_you.change) {
 	change = wccp_i_see_you.change;
-	if (wccpLowestIP() && wccp_i_see_you.number)
+	if (wccpLowestIP() && wccp_i_see_you.number) {
+	    last_assign_buckets_change = change;
 	    wccpAssignBuckets();
+	}
     }
 }
 
