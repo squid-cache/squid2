@@ -582,7 +582,7 @@ static void icpHandleStoreIMS(fd, entry, icpState)
 
 static void icpHandleIMSComplete(fd, buf_unused, size, errflag, data)
      int fd;
-     char *buf_unused;	/* should be NULL */
+     char *buf_unused;		/* should be NULL */
      int size;
      int errflag;
      void *data;

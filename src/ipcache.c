@@ -337,7 +337,6 @@ int ipcache_purgelru()
 	    removed++;
 	    continue;
 	}
-
 	if (LRU_list_count == meta_data.ipcache_count)
 	    break;
 	if (i->status == IP_PENDING)

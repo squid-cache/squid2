@@ -1354,7 +1354,7 @@ int parseConfigFile(file_name)
 	fflush(stdout);		/* print message */
     }
     if (Config.cleanRate < 1)
-	Config.cleanRate = 86400 * 365;	/* one year */
+	Config.cleanRate = 86400 * 365;		/* one year */
     if (Config.Announce.rate < 1)
 	Config.Announce.rate = 86400 * 365;	/* one year */
     if (Config.dnsChildren < 1) {

@@ -503,8 +503,8 @@ static time_t mainMaintenance()
     time_t next;
     int n;
     if (squid_curtime >= next_maintain) {
-        storeMaintainSwapSpace();
-        next_maintain = squid_curtime + 1;
+	storeMaintainSwapSpace();
+	next_maintain = squid_curtime + 1;
     }
     if (store_rebuilding != STORE_NOT_REBUILDING)
 	goto maintenance_done;
