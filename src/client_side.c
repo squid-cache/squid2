@@ -2636,6 +2636,7 @@ requestTimeout(int fd, void *data)
     ConnStateData *conn = data;
     ErrorState *err;
     debug(33, 3) ("requestTimeout: FD %d: lifetime is expired.\n", fd);
+#if THIS_CONFUSES_PERSISTENT_CONNECTION_AWARE_BROWSERS_AND_USERS
     if (fd_table[fd].rwstate) {
 	/*
 	 * Some data has been sent to the client, just close the FD
@@ -2669,6 +2670,17 @@ requestTimeout(int fd, void *data)
 	 */
 	commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
     }
+#else
+    /*
+     * Just close the connection to not confuse browsers
+     * using persistent connections. Some browsers opens
+     * an connection and then does not use it until much
+     * later (presumeably because the request triggering
+     * the open has already been completed on another
+     * connection)
+     */
+    comm_close(fd);
+#endif
 }
 
 static int
