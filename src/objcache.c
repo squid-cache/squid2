@@ -127,72 +127,73 @@ struct _cachemgr_passwd {
     struct _cachemgr_passwd *next;
 };
 
-static ObjectCacheData *objcache_url_parser _PARAMS((char *url));
+static ObjectCacheData *objcache_url_parser _PARAMS((const char *url));
 static int objcache_CheckPassword _PARAMS((ObjectCacheData *));
 static char *objcachePasswdGet _PARAMS((cachemgr_passwd ** a, objcache_op op));
 
 /* These operations will not be preformed without a valid password */
-static long PASSWD_REQUIRED = 
-	(1<<MGR_LOG_CLEAR) | 
-	(1<<MGR_LOG_DISABLE) | 
-	(1<<MGR_LOG_ENABLE) | 
-	(1<<MGR_LOG_STATUS) | 
-	(1<<MGR_LOG_VIEW) | 
-	(1<<MGR_SHUTDOWN);
+static long PASSWD_REQUIRED =
+(1 << MGR_LOG_CLEAR) |
+(1 << MGR_LOG_DISABLE) |
+(1 << MGR_LOG_ENABLE) |
+(1 << MGR_LOG_STATUS) |
+(1 << MGR_LOG_VIEW) |
+(1 << MGR_SHUTDOWN);
 
 static objcache_op
 objcacheParseRequest(char *buf)
 {
+    objcache_op op = MGR_NONE;
     if (!strcmp(buf, "shutdown"))
-	return MGR_SHUTDOWN;
+	op = MGR_SHUTDOWN;
     else if (!strcmp(buf, "info"))
-	return MGR_INFO;
+	op = MGR_INFO;
     else if (!strcmp(buf, "stats/objects"))
-	return MGR_OBJECTS;
+	op = MGR_OBJECTS;
     else if (!strcmp(buf, "stats/vm_objects"))
-	return MGR_VM_OBJECTS;
+	op = MGR_VM_OBJECTS;
     else if (!strcmp(buf, "stats/utilization"))
-	return MGR_UTILIZATION;
+	op = MGR_UTILIZATION;
     else if (!strcmp(buf, "stats/ipcache"))
-	return MGR_IPCACHE;
+	op = MGR_IPCACHE;
     else if (!strcmp(buf, "stats/fqdncache"))
-	return MGR_FQDNCACHE;
+	op = MGR_FQDNCACHE;
     else if (!strcmp(buf, "stats/dns"))
-	return MGR_DNSSERVERS;
+	op = MGR_DNSSERVERS;
     else if (!strcmp(buf, "stats/redirector"))
-	return MGR_REDIRECTORS;
+	op = MGR_REDIRECTORS;
     else if (!strcmp(buf, "stats/io"))
-	return MGR_IO;
+	op = MGR_IO;
     else if (!strcmp(buf, "stats/reply_headers"))
-	return MGR_REPLY_HDRS;
+	op = MGR_REPLY_HDRS;
     else if (!strcmp(buf, "stats/filedescriptors"))
-	return MGR_FILEDESCRIPTORS;
+	op = MGR_FILEDESCRIPTORS;
     else if (!strcmp(buf, "stats/netdb"))
-	return MGR_NETDB;
+	op = MGR_NETDB;
     else if (!strcmp(buf, "log/status"))
-	return MGR_LOG_STATUS;
+	op = MGR_LOG_STATUS;
     else if (!strcmp(buf, "log/enable"))
-	return MGR_LOG_ENABLE;
+	op = MGR_LOG_ENABLE;
     else if (!strcmp(buf, "log/disable"))
-	return MGR_LOG_DISABLE;
+	op = MGR_LOG_DISABLE;
     else if (!strcmp(buf, "log/clear"))
-	return MGR_LOG_CLEAR;
+	op = MGR_LOG_CLEAR;
     else if (!strcmp(buf, "log"))
-	return MGR_LOG_VIEW;
+	op = MGR_LOG_VIEW;
     else if (!strcmp(buf, "parameter"))
-	return MGR_CONFIG;
+	op = MGR_CONFIG;
     else if (!strcmp(buf, "server_list"))
-	return MGR_SERVER_LIST;
+	op = MGR_SERVER_LIST;
     else if (!strcmp(buf, "client_list"))
-	return MGR_CLIENT_LIST;
+	op = MGR_CLIENT_LIST;
     else if (!strcmp(buf, "squid.conf"))
-	return MGR_CONFIG_FILE;
-    return MGR_NONE;
+	op = MGR_CONFIG_FILE;
+    return op;
 }
 
 
 static ObjectCacheData *
-objcache_url_parser(char *url)
+objcache_url_parser(const char *url)
 {
     int t;
     LOCAL_ARRAY(char, host, MAX_URL);
@@ -211,12 +212,12 @@ objcache_url_parser(char *url)
 }
 
 static int
-objcache_CheckPassword(ObjectCacheData *obj)
+objcache_CheckPassword(ObjectCacheData * obj)
 {
     char *pwd = objcachePasswdGet(&Config.passwd_list, obj->op);
     if (pwd)
 	return strcmp(pwd, obj->passwd);
-    else if ((1<<obj->op) & PASSWD_REQUIRED)
+    else if ((1 << obj->op) & PASSWD_REQUIRED)
 	return 1;
     else
 	return 0;
@@ -252,7 +253,7 @@ objcache_CheckPassword(char *password, char *user)
 	    s = encrypt(password, spwd->sp_pwdp);
 #endif /* HAVE_PW_ENCRYPT */
 	    if (!strcmp(spwd->sp_pwdp, s))
-	        return 0;
+		return 0;
 	}
     }
 #endif /* SHADOW */
@@ -268,36 +269,38 @@ objcache_CheckPassword(char *password, char *user)
 #endif
 
 int
-objcacheStart(int fd, const char *url, StoreEntry *entry)
+objcacheStart(int fd, const char *url, StoreEntry * entry)
 {
-    char *BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";
-    char *BADPassword = "Incorrect password, sorry.\n";
+    static char *BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";
+    static char *BADPassword = "Incorrect password, sorry.\n";
     ObjectCacheData *data = NULL;
     int complete_flag = 1;
 
     debug(16, 3, "objectcacheStart: '%s'\n", url);
     if ((data = objcache_url_parser(url)) == NULL) {
-	entry->expires = squid_curtime + STAT_TTL;
 	storeAbort(entry, "Invalid objcache syntax.\n");
+	entry->expires = squid_curtime + STAT_TTL;
 	safe_free(data);
+	InvokeHandlers(entry);
 	return COMM_ERROR;
     }
     data->reply_fd = fd;
     data->entry = entry;
     entry->expires = squid_curtime + STAT_TTL;
+    debug(16, 1, "CACHEMGR: %s requesting '%s'\n",
+	fd_table[fd].ipaddr,
+	objcacheOpcodeStr[data->op]);
     /* Check password */
     if (objcache_CheckPassword(data) != 0) {
-	storeAppendPrintf(entry, BADPassword);
-	storeAbort(entry, "Incorrect Password\n");
+	debug(16, 1, "WARNING: Incorrect Cachemgr Password!\n");
+	storeAbort(entry, BADPassword);
 	entry->expires = squid_curtime + STAT_TTL;
-      debug(16, 1, "WARNING: Incorrect Cachemgr Password!\n");
-	debug(16, 1, "  --> Connection from: %s\n", fd_table[fd].ipaddr);
-	debug(16, 1, "  --> Request: %s\n", objcacheOpcodeStr[data->op]);
+	InvokeHandlers(entry);
 	return COMM_ERROR;
     }
     /* retrieve object requested */
     BIT_SET(entry->flag, DELAY_SENDING);
-    switch(data->op) {
+    switch (data->op) {
     case MGR_SHUTDOWN:
 	debug(16, 0, "Shutdown by command.\n");
 	/* free up state datastructure */
@@ -354,7 +357,7 @@ objcacheStart(int fd, const char *url, StoreEntry *entry)
 	break;
     case MGR_LOG_VIEW:
 	HTTPCacheInfo->log_get_start(HTTPCacheInfo, entry);
-        complete_flag = 0;
+	complete_flag = 0;
 	break;
     case MGR_CONFIG:
 	HTTPCacheInfo->parameter_get(HTTPCacheInfo, entry);
@@ -375,7 +378,7 @@ objcacheStart(int fd, const char *url, StoreEntry *entry)
     }
     BIT_RESET(entry->flag, DELAY_SENDING);
     if (complete_flag)
-        storeComplete(entry);
+	storeComplete(entry);
     safe_free(data);
     return COMM_OK;
 }
@@ -402,13 +405,13 @@ objcachePasswdAdd(cachemgr_passwd ** list, char *passwd, wordlist * actions)
     }
     q->passwd = passwd;
     q->actions = 0;
-    for (w = actions; w; w=w->next) {
+    for (w = actions; w; w = w->next) {
 	op = objcacheParseRequest(w->key);
-        if (op <= MGR_NONE || op >= MGR_MAX) {
-		debug(16,0,"Invalid objcache operation: '%s'\n", w->key);
-		continue;
+	if (op <= MGR_NONE || op >= MGR_MAX) {
+	    debug(16, 0, "Invalid objcache operation: '%s'\n", w->key);
+	    continue;
 	}
-	q->actions |= op;
+	q->actions |= (1 << op);
     }
 }
 
@@ -429,8 +432,9 @@ static char *
 objcachePasswdGet(cachemgr_passwd ** a, objcache_op op)
 {
     cachemgr_passwd *b;
-    for (b = *a; b; b = b->next)
+    for (b = *a; b; b = b->next) {
 	if (b->actions & op)
 	    return b->passwd;
+    }
     return NULL;
 }

@@ -31,7 +31,7 @@ typedef enum {
 } objcache_op;
 
 static char *objcacheOpcodeStr[] = {
-    "NONE"
+    "NONE",
     "client_list",
     "config",
     "config_file",
