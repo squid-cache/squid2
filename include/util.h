@@ -183,7 +183,7 @@ extern int Harvest_debug_levels[];
 void debug_flag _PARAMS((char *));
 
 char *mkhttpdlogtime _PARAMS((time_t *));
-extern char *mkrfc850 _PARAMS((time_t *));
+extern char *mkrfc850 _PARAMS((time_t));
 extern time_t parse_rfc850 _PARAMS((char *str));
 extern void init_log3 _PARAMS((char *pn, FILE * a, FILE * b));
 extern void debug_init();
