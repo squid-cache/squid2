@@ -472,7 +472,7 @@ dist-hook:
 	    || exit 1; \
 	    cp -p $(srcdir)/$$subdir/*.h  $(distdir)/$$subdir \
 	      || exit 1; \
-	    rm $(distdir)/$$subdir/autoconf.h; \
+	    rm -f $(distdir)/$$subdir/autoconf.h; \
 	  fi; \
 	done
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
