@@ -31,6 +31,10 @@ storeAufsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     storeIOState *sio;
     debug(78, 3) ("storeAufsOpen: fileno %08X, mode %d\n", f, mode);
     assert(mode == O_RDONLY || mode == O_WRONLY);
+    /*
+     * we should detect some 'too many files open' condition and return
+     * NULL here.
+     */
     sio = memAllocate(MEM_STORE_IO);
     cbdataAdd(sio, memFree, MEM_STORE_IO);
     sio->type.aufs.fd = -1;
