@@ -4,13 +4,15 @@
 
 
 
-Network Working Group                                         D. Wessels
-Internet-Draft                                   National Laboratory for
-                                                Applied Network Research
-                                                           November 1996
+ICP Working Group                                             D. Wessels
+Internet-Draft                           National Laboratory for Applied
+                                                   Network Research/UCSD
+                                                        18 December 1996
+                                                    Expire in six months
 
 
                 Internet Cache Protocol (ICP), version 2
+                     <draft-wessels-icp-v2-01.txt>
 
 
 Status of this Memo
@@ -50,16 +52,16 @@ Introduction
    ICP is a message format used for communicating between WWW caches.
    ICP is primarily used in a cache mesh to locate specific WWW objects
    in neighbor caches.  One cache will send an ICP query to its
-   neighbors.  The neighbors will send back ICP replies indicating a
-   ``HIT'' or a ``MISS.''  ICP can also be used to multiplex
 
 
 
 Wessels                                                         [Page 1]
 
-Internet-Draft                                             November 1996
+Internet-Draft                                          18 December 1996
 
 
+   neighbors.  The neighbors will send back ICP replies indicating a
+   ``HIT'' or a ``MISS.''  ICP can also be used to multiplex
    transmission of multiple object streams over a single TCP connection.
 
    In current practice, ICP is implemented on top of UDP, but there is
@@ -107,15 +109,21 @@ ICP Message Format
    Message Length
       The total length of the ICP message.
 
-   Request Number
-
 
 
 Wessels                                                         [Page 2]
 
-Internet-Draft                                             November 1996
+Internet-Draft                                          18 December 1996
 
 
+        /* We should probably place some upper limit on the size of
+         * an ICP message.  8, 12, or 16 kbytes?  If the whole packet
+         * wont fit into a UDP receive buffer some IP stacks will
+         * deliver truncated packets, some will deliver the packet
+         * over multiple read() calls.  A limit on the ICP message
+         * size enforces a limit on the maximum URL length.  -DW */
+
+   Request Number
       An opaque identifier.  When responding to a query, this value must
       be copied into the reply message.
 
@@ -156,6 +164,14 @@ ICP Opcodes
       10    ICP_OP_SECHO
       11    ICP_OP_DECHO
    12-20    UNUSED
+
+
+
+Wessels                                                         [Page 3]
+
+Internet-Draft                                          18 December 1996
+
+
       21    ICP_OP_RELOADING
       22    ICP_OP_DENIED
       23    ICP_OP_HIT_OBJ
@@ -165,17 +181,12 @@ ICP Opcodes
       ICP_OP_INVALID must never be (intentionally) sent in a message.
       ICP_OP_ERR should be used instead.
 
-
-
-Wessels                                                         [Page 3]
-
-Internet-Draft                                             November 1996
-
-
    ICP_OP_QUERY
       A query message.  NOTE this opcode has a different payload format
       than most of the others.  First is the requestor's IPv4 address,
-      followed by a URL.  The requestor address is often zero filled.
+      followed by a URL.  The Requestor Host Address is not that of the
+      peer cache, but the address of the peer's client which originated
+      the request.  The Requestor Host Address is often zero filled.
 
       Payload Format:
 
@@ -209,6 +220,14 @@ Internet-Draft                                             November 1996
    ICP_OP_DECHO
       Similar to ICP_OP_QUERY, but for use in simulating a query to an
       cache which does not use ICP.  When ICP is used to choose the
+
+
+
+Wessels                                                         [Page 4]
+
+Internet-Draft                                          18 December 1996
+
+
       closest neighbor, a non-ICP cache can be included in the algorithm
       by bouncing an ICP_OP_DECHO message off it's echo port.  The
       payload is simply the null-terminated URL.
@@ -220,14 +239,6 @@ Internet-Draft                                             November 1996
 
    One of the following six ICP opcodes are sent in response to an
    ICP_OP_QUERY message.  For each one the payload must be the null-
-
-
-
-Wessels                                                         [Page 4]
-
-Internet-Draft                                             November 1996
-
-
    terminated URL string.  Both the URL string and the Request Number
    field must be exactly the same as from the ICP_OP_QUERY message.
 
@@ -237,7 +248,8 @@ Internet-Draft                                             November 1996
 
    ICP_OP_MISS
       Sending an ICP_OP_MISS response indicates that the requested URL
-      does not exist in this cache.
+      does not exist in this cache.  The querying cache may still choose
+      to fetch the URL from the replying cache.
 
    ICP_OP_ERR
       Sending an ICP_OP_ERR indicates some kind of error in parsing or
@@ -250,6 +262,12 @@ Internet-Draft                                             November 1996
       misses.  ICP_OP_RELOADING essentially means ``I am up and running,
       but please don't fetch this URL from me now.''
 
+      Note, ICP_OP_RELOADING has a different meaning than ICP_OP_MISS.
+      The ICP_OP_MISS is an invitation to fetch the URL from the
+      replying cache (in a parent-child relationship), but
+      ICP_OP_RELOADING is a request to NOT fetch the URL from the
+      replying cache.
+
    ICP_OP_DENIED
       Sending an ICP_OP_DENIED response indicates that the querying site
       is not allowed to retrieve the named object from this cache.
@@ -257,12 +275,31 @@ Internet-Draft                                             November 1996
       reply can only be interpreted to mean ``you are not allowed to
       request this particular URL from me at this particular time.''
 
+      Caches which receive a high percentage of ICP_OP_DENIED replies
+
+
+
+Wessels                                                         [Page 5]
+
+Internet-Draft                                          18 December 1996
+
+
+      are probably misconfigured.  Caches should track the ICP_OP_DENIED
+      percentage and disable a peer which exceeds a certain threshold
+      (e.g. 95%).
+
    ICP_OP_HIT_OBJ
       Just like an ICP_OP_HIT response, but the actual object data has
       been included in this reply message.   Many requested objects are
       small enough that it makes sense to include them in the query
       response and avoid the need to make a subsequent HTTP request for
       the object.
+
+      ICP_OP_HIT_OBJ has some negative side effects which make its use
+      undesirable.  It transfers object data without HTTP and therefore
+      bypasses the standard HTTP processing, including authorization and
+      age validation.  For these reasons, use of ICP_OP_HIT_OBJ is NOT
+      recommended.
 
       An ICP_OP_HIT_OBJ reply will be sent only if the ICP_FLAG_HIT_OBJ
       flag is set in the query message Options field.
@@ -276,14 +313,6 @@ Internet-Draft                                             November 1996
       /                       Null-Terminated URL                   /
       /                                                             /
       |                                                             |
-
-
-
-Wessels                                                         [Page 5]
-
-Internet-Draft                                             November 1996
-
-
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |         Object Size           |                             |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                             |
@@ -303,6 +332,14 @@ Internet-Draft                                             November 1996
       should treat the ICP_OP_HIT_OBJ reply as though it were a normal
       ICP_OP_HIT.
 
+
+
+
+Wessels                                                         [Page 6]
+
+Internet-Draft                                          18 December 1996
+
+
       NOTE: the Object Size field does not necessarily begin on a 32-bit
       boundary as shown in the diagram above.  It begins immediately
       following the NULL byte of the URL string.
@@ -316,28 +353,27 @@ Internet-Draft                                             November 1996
    to redefine these.
 
    ICP_OP_SEND
-      Request for object data (non authoritative).
+      Request for object data (non authoritative).  TO BE REMOVED:
+      UNIMPLEMENTED, SUPERCEEDED BY HTTP/1.1
 
    ICP_OP_SENDA
-      Request for object data (authoritative).
+      Request for object data (authoritative).  TO BE REMOVED:
+      UNIMPLEMENTED, SUPERCEEDED BY HTTP/1.1
 
    ICP_OP_DATABEG
-      Beginning of data transmission.
+      Beginning of data transmission.  TO BE REMOVED: UNIMPLEMENTED,
+      SUPERCEEDED BY HTTP/1.1
 
    ICP_OP_DATA
-      Middle of data transmission.
+      Middle of data transmission.  TO BE REMOVED: UNIMPLEMENTED,
+      SUPERCEEDED BY HTTP/1.1
 
    ICP_OP_DATAEND
-      End of data transmission.
+      End of data transmission.  TO BE REMOVED: UNIMPLEMENTED,
+      SUPERCEEDED BY HTTP/1.1
 
 
 
-
-
-
-Wessels                                                         [Page 6]
-
-Internet-Draft                                             November 1996
 
 
 ICP Options
@@ -352,6 +388,14 @@ ICP Options
 Missing Features
 
    Note the lack of an HTTP method in the ICP query.  The current
+
+
+
+Wessels                                                         [Page 7]
+
+Internet-Draft                                          18 December 1996
+
+
    version can only be used for GET requests.
 
 
@@ -391,5 +435,17 @@ Author's  Address:
 
 
 
-Wessels                                                         [Page 7]
+
+
+
+
+
+
+
+
+
+
+
+
+Wessels                                                         [Page 8]
 

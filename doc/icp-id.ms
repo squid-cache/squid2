@@ -8,17 +8,19 @@
 .ds RF FORMFEED[Page %]
 .ds CF
 .ds LH Internet-Draft
-.ds RH November 1996
+.ds RH 18 December 1996
 .ds CH
 .hy 0
 .ad l
-Network Working Group                                         D. Wessels
-Internet-Draft                                   National Laboratory for
-                                                Applied Network Research
-                                                           November 1996
+ICP Working Group                                             D. Wessels
+Internet-Draft                           National Laboratory for Applied
+                                                   Network Research/UCSD
+                                                        18 December 1996
+                                                    Expire in six months
 .sp 2
-.ce
+.ce 2
 Internet Cache Protocol (ICP), version 2
+<draft-wessels-icp-v2-01.txt>
 .sp 2
 .fi
 .ne 4
@@ -127,6 +129,15 @@ Message Length
 .in 6
 The total length of the ICP message.
 
+.nf
+  /* We should probably place some upper limit on the size of
+   * an ICP message.  8, 12, or 16 kbytes?  If the whole packet
+   * wont fit into a UDP receive buffer some IP stacks will
+   * deliver truncated packets, some will deliver the packet
+   * over multiple read() calls.  A limit on the ICP message
+   * size enforces a limit on the maximum URL length.  -DW */
+.fi
+
 .in 3
 Request Number
 .in 6
@@ -198,7 +209,9 @@ ICP_OP_QUERY
 .in 6
 A query message.  NOTE this opcode has a different payload format than
 most of the others.  First is the requestor's IPv4 address, followed by
-a URL.  The requestor address is often zero filled.
+a URL.  The Requestor Host Address is not that of the peer cache, but
+the address of the peer's client which originated the request.  The
+Requestor Host Address is often zero filled.
 
 .nf
 Payload Format:
@@ -264,7 +277,8 @@ ICP_OP_MISS
 .in 6
 Sending an ICP_OP_MISS
 response indicates that the requested URL does not exist in this
-cache.
+cache.  The querying cache may still choose to fetch the URL from
+the replying cache.
 
 .in 3
 ICP_OP_ERR
@@ -281,6 +295,11 @@ A cache in startup mode may wish to return ICP_OP_HIT for cache hits,
 but not ICP_OP_MISS for misses.  ICP_OP_RELOADING essentially means
 ``I am up and running, but please don't fetch this URL from me now.''
 
+Note, ICP_OP_RELOADING has a different meaning than ICP_OP_MISS.  The
+ICP_OP_MISS is an invitation to fetch the URL from the replying cache
+(in a parent-child relationship), but ICP_OP_RELOADING is a request to
+NOT fetch the URL from the replying cache.
+
 .in 3
 ICP_OP_DENIED
 .in 6
@@ -291,6 +310,11 @@ and proxies may implement complex access controls.  This reply
 can only be interpreted to mean ``you are not allowed to request
 this particular URL from me at this particular time.''
 
+Caches which receive a high percentage of ICP_OP_DENIED replies
+are probably misconfigured.  Caches should track the ICP_OP_DENIED
+percentage and disable a peer which exceeds a certain threshold
+(e.g. 95%).
+
 .in 3
 ICP_OP_HIT_OBJ
 .in 6
@@ -299,6 +323,12 @@ been included in this reply message.   Many requested objects are
 small enough that it makes sense to include them in the query
 response and avoid the need to make a subsequent HTTP request
 for the object.
+
+ICP_OP_HIT_OBJ has some negative side effects which make its use
+undesirable.  It transfers object data without HTTP and therefore
+bypasses the standard HTTP processing, including authorization and age
+validation.  For these reasons, use of ICP_OP_HIT_OBJ is 
+NOT recommended.
 
 An ICP_OP_HIT_OBJ reply will be sent only if the ICP_FLAG_HIT_OBJ
 flag is set in the query message Options field.
@@ -348,27 +378,31 @@ of cache-cache multiplexing will likely need to redefine these.
 ICP_OP_SEND
 .in 6
 Request for object data (non authoritative).
+TO BE REMOVED: UNIMPLEMENTED, SUPERCEEDED BY HTTP/1.1
 
 .in 3
 ICP_OP_SENDA
 .in 6
 Request for object data (authoritative).
+TO BE REMOVED: UNIMPLEMENTED, SUPERCEEDED BY HTTP/1.1
 
 .in 3
 ICP_OP_DATABEG
 .in 6
 Beginning of data transmission.
+TO BE REMOVED: UNIMPLEMENTED, SUPERCEEDED BY HTTP/1.1
 
 .in 3
 ICP_OP_DATA
 .in 6
 Middle of data transmission.
+TO BE REMOVED: UNIMPLEMENTED, SUPERCEEDED BY HTTP/1.1
 
 .in 3
 ICP_OP_DATAEND
 .in 6
 End of data transmission.
-
+TO BE REMOVED: UNIMPLEMENTED, SUPERCEEDED BY HTTP/1.1
 
 
 
