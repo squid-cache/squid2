@@ -45,10 +45,6 @@
 #include <crypt.h>
 #endif
 
-#ifdef HAVE_SYSLOG_H
-#include <syslog.h>
-#endif
-
 #if HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
@@ -57,6 +53,11 @@
 #include <stdarg.h>
 #else
 #include <varargs.h>
+#endif
+
+/* Make sure syslog goes after stdarg/varargs */
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
 #endif
 
 #if !defined(MAXHOSTNAMELEN) || (MAXHOSTNAMELEN < 128)
