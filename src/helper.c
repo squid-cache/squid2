@@ -433,7 +433,7 @@ helperStats(StoreEntry * sentry, helper * hlp)
 	storeAppendPrintf(sentry, "%7d\t%7d\t%7d\t%11d\t%c%c%c%c\t%7.3f\t%7d\t%s\n",
 	    srv->index + 1,
 	    srv->rfd,
-	    src->pid,
+	    srv->pid,
 	    srv->stats.uses,
 	    srv->flags.alive ? 'A' : ' ',
 	    srv->flags.busy ? 'B' : ' ',
