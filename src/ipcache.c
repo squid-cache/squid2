@@ -1149,10 +1149,10 @@ void ipcacheInvalidate(name)
     ipcache_entry *i;
     if ((i = ipcache_get(name)) == NULL)
 	return;
-    if (i->status != IP_CACHED)
-	i->expires = squid_curtime;
-    else
-	ipcache_release(i);
+    i->expires = squid_curtime;
+    /* NOTE, don't call ipcache_release here becuase we might be here due
+     * to a thread started from ipcache_call_pending() which will cause a
+     * FMR */
 }
 
 static struct hostent *ipcacheCheckNumeric(name)
