@@ -1453,7 +1453,9 @@ ignoreErrno(int ierrno)
 #endif
     case EALREADY:
     case EINTR:
-    case ERESTART:		/* Solaris only? */
+#ifdef ERESTART
+    case ERESTART:
+#endif
 	return 1;
     default:
 	return 0;
