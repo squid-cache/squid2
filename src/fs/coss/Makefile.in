@@ -23,7 +23,8 @@ OUT		= ../$(FS).a
 
 OBJS	 	= \
 		store_dir_coss.o \
-		store_io_coss.o
+		store_io_coss.o \
+		async_io.o
 
 
 all: $(OUT)
