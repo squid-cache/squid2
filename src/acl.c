@@ -37,6 +37,9 @@ char *AclMatchedName = NULL;
 struct _acl_deny_info_list *DenyInfoList = NULL;
 struct _acl_access *HTTPAccessList = NULL;
 struct _acl_access *ICPAccessList = NULL;
+#if DELAY_HACK
+struct _acl_access *DelayAccessList = NULL;
+#endif
 
 static struct _acl *AclList = NULL;
 static struct _acl **AclListTail = &AclList;

@@ -66,6 +66,7 @@ struct _request {
     char urlpath[MAX_URL + 1];
     int link_count;		/* free when zero */
     struct _hierarchyLogData hierarchy;
+    int flags;
 };
 
 extern char *url_convert_hex __P((char *org_url, int allocate));
@@ -80,5 +81,15 @@ extern request_t *requestLink __P((request_t *));
 extern void requestUnlink __P((request_t *));
 extern int matchDomainName __P((char *d, char *h));
 extern int urlCheckRequest __P((request_t *));
+
+/* bitfields for the flags member */
+#define		REQ_UNUSED1	0x01
+#define		REQ_NOCACHE	0x02
+#define		REQ_IMS		0x04
+#define		REQ_AUTH	0x08
+#define		REQ_CACHABLE	0x10
+#define 	REQ_UNUSED2	0x20
+#define 	REQ_HIERARCHICAL 0x40
+#define 	REQ_LOOPDETECT  0x80
 
 #endif /* _URL_HEADER_ */

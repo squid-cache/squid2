@@ -283,6 +283,9 @@ typedef struct _protodispatch_data {
     int query_neighbors;
     int n_edges;
     struct _edge *single_parent;
+#if DELAY_HACK
+    int delay_fetch;
+#endif
 } protodispatch_data;
 
 extern int proto_cachable __P((char *url, int method));

@@ -860,3 +860,22 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 
 #  TAG: deny_info
 #	deny_info URL acl1 acl2 ...
+
+#  TAG: udp_hit_obj on|off
+#	If set, Squid will request UDP_HIT_OBJ replies from its neighbors.
+#udp_hit_obj on
+
+#  TAG: memory_pools on|off
+#	If set, Squid will keep pools of allocated (but unused) memory
+#	available for future use.  If memory is a premium on your
+#	system, disable this.
+#memory_pools on
+
+#  TAG: forwarded_for on|off
+#	If set, Squid will include your system's IP address or name
+#	in the HTTP requests it forwards.  By default it looks like
+#	this:
+#		Forwarded: by http://foo.org:3128/ for 192.1.2.3
+#	If you disable this, it will appear as
+#		Forwarded: by http://foo.org:3128/
+#forwarded_for on

@@ -401,6 +401,7 @@ struct sockaddr_in ifc_addr;
 static time_t last_alarm_set = 0;
 request_t *MainRequest = NULL;
 char visible_hostname[SMALLBUFSIZ];
+struct in_addr outgoingTcpAddr;
 
 /* This linked list holds the "continuation" lines before the final
  * reply code line is sent for a FTP command */
@@ -813,6 +814,15 @@ connect_with_timeout(int fd, struct sockaddr_in *S, int len)
     int orig_flags;
     int rc;
 
+    if (outgoingTcpAddr.s_addr) {
+	struct sockaddr_in sock;
+
+	sock.sin_family = AF_INET;
+	sock.sin_addr = outgoingTcpAddr;
+	sock.sin_port = 0;
+	if (bind(fd, (struct sockaddr *) &sock, sizeof(struct sockaddr_in)) < 0)
+	                log_errno2(__FILE__, __LINE__, "bind");
+    }
     orig_flags = fcntl(fd, F_GETFL, 0);
     Debug(26, 7, ("orig_flags = %x\n", orig_flags));
     if (fcntl(fd, F_SETFL, O_NDELAY) < 0)
@@ -1255,6 +1265,8 @@ do_connect(request_t * r)
 	log_errno2(__FILE__, __LINE__, "getsockname");
 	exit(1);
     }
+    if (outgoingTcpAddr.s_addr)
+	ifc_addr.sin_addr = outgoingTcpAddr;
     return CONNECTED;
 }
 
@@ -1538,7 +1550,7 @@ do_pasv(request_t * r)
 	return PASV_FAIL;
     }
     /*  227 Entering Passive Mode (h1,h2,h3,h4,p1,p2).  */
-    n = sscanf(server_reply_msg + 3, "%[^0-9]%d,%d,%d,%d,%d,%d",
+    n = sscanf(server_reply_msg, "%[^0-9]%d,%d,%d,%d,%d,%d",
 	junk, &h1, &h2, &h3, &h4, &p1, &p2);
     if (n != 7 || p1 < 0 || p2 < 0) {
 	/* note RISC/os sends negative numbers in PASV reply */
@@ -2725,6 +2737,22 @@ main(int argc, char *argv[])
 	} else if (!strcmp(*argv, "-v")) {
 	    printf("%s version %s\n", progname, SQUID_VERSION);
 	    exit(0);
+	} else if (!strcmp(*argv, "-o")) {
+	    unsigned long ip;
+	    struct hostent *hp = NULL;
+
+	    if (--argc < 1)
+		usage(argc);
+	    argv++;
+	    if ((ip = inet_addr(*argv)) != INADDR_NONE)
+		outgoingTcpAddr.s_addr = ip;
+	    else if ((hp = gethostbyname(*argv)) != NULL)
+		outgoingTcpAddr = *(struct in_addr *) (hp->h_addr_list[0]);
+	    else {
+		fprintf(stderr, "%s: bad outbound tcp address %s\n",
+		    progname, *argv);
+		exit(1);
+	    }
 	} else {
 	    usage(argc);
 	    exit(1);

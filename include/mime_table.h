@@ -1,3 +1,4 @@
+
 #define EXT_TABLE_LEN 91
 static ext_table_entry ext_mime_table[] =
 {

@@ -7,4 +7,3 @@
 #define __P(ARGS) ()
 #endif /* __STDC__ */
 #endif /* __P */
-

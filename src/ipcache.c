@@ -148,7 +148,7 @@ static void ipcache_call_pending __P((ipcache_entry *));
 static void ipcache_add __P((char *, ipcache_entry *, struct hostent *, int));
 static int ipcacheHasPending __P((ipcache_entry *));
 static ipcache_entry *ipcache_get __P((char *));
-static int dummy_handler __P((int, struct hostent * hp, void *));
+static void dummy_handler __P((int, struct hostent * hp, void *));
 static int ipcacheExpiredEntry __P((ipcache_entry *));
 static void ipcacheAddPending __P((ipcache_entry *, int fd, IPH, void *));
 static void ipcacheEnqueue __P((ipcache_entry *));
@@ -941,10 +941,10 @@ stat_ipcache_get(StoreEntry * sentry)
     storeAppendPrintf(sentry, close_bracket);
 }
 
-static int
+static void
 dummy_handler(int u1, struct hostent *u2, void *u3)
 {
-    return 0;
+    return;
 }
 
 static int

@@ -508,6 +508,10 @@ ftpSendRequest(int fd, FtpData * data)
     if (data->authenticated) {
 	strcat(buf, "-a ");
     }
+    if (Config.Addrs.tcp_outgoing.s_addr != INADDR_NONE) {
+	sprintf(tbuf, "-o %s ", inet_ntoa(Config.Addrs.tcp_outgoing));
+	strcat(buf, tbuf);
+    }
     strcat(buf, "-h ");		/* httpify */
     strcat(buf, "- ");		/* stdout */
     strcat(buf, data->request->host);

@@ -145,6 +145,10 @@ static char *log_tags[] =
     "ERR_PROXY_DENIED"
 };
 
+#if DELAY_HACK
+int _delay_fetch;
+#endif
+
 static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
@@ -177,7 +181,58 @@ static void icpUdpSendEntry(int fd,
     icp_opcode opcode,
     StoreEntry * entry,
     struct timeval start_time);
+static void checkFailureRatio __P((log_type, hier_code));
 
+/*
+ * This function is designed to serve a fairly specific purpose.
+ * Occasionally our vBNS-connected caches can talk to each other, but not
+ * the rest of the world.  Here we try to detect frequent failures which
+ * make the cache unusable (e.g. DNS lookup and connect() failures).  If
+ * the failure:success ratio goes above 1.0 then we go into "hit only"
+ * mode where we only return UDP_HIT or UDP_RELOADING.  (UDP_RELOADING
+ * isn't quite the appropriate term but it gets the job done).  Neighbors
+ * will only fetch HITs from us if they are using the ICP protocol.  We
+ * stay in this mode for 5 minutes.
+ * 
+ * Duane W., Sept 16, 1996
+ */
+
+#define FAILURE_MODE_TIME 300
+static time_t hit_only_mode_until = 0;
+
+static void
+checkFailureRatio(rcode, hcode)
+     log_type rcode;
+     hier_code hcode;
+{
+    static double fail_ratio = 0.0;
+    static double magic_factor = 100;
+    double n_good;
+    double n_bad;
+    if (hcode == HIER_NONE)
+	return;
+    n_good = magic_factor / (1.0 + fail_ratio);
+    n_bad = magic_factor - n_good;
+    switch (rcode) {
+    case ERR_DNS_FAIL:
+    case ERR_CONNECT_FAIL:
+    case ERR_READ_ERROR:
+	n_bad++;
+	break;
+    default:
+	n_good++;
+    }
+    fail_ratio = n_bad / n_good;
+    if (hit_only_mode_until > squid_curtime)
+	return;
+    if (fail_ratio < 1.0)
+	return;
+    debug(12, 0, "Failure Ratio at %4.2f\n", fail_ratio);
+    debug(12, 0, "Going into hit-only-mode for %d minutes...\n",
+	FAILURE_MODE_TIME / 60);
+    hit_only_mode_until = squid_curtime + FAILURE_MODE_TIME;
+    fail_ratio = 0.8;		/* reset to something less than 1.0 */
+}
 
 /* This is a handler normally called by comm_close() */
 static int
@@ -221,6 +276,7 @@ icpStateFree(int fd, icpStateData * icpState)
 	icpState->log_type);
     if (icpState->ident_fd)
 	comm_close(icpState->ident_fd);
+    checkFailureRatio(icpState->log_type, hierData->code);
     safe_free(icpState->inbuf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
@@ -248,16 +304,17 @@ icpParseRequestHeaders(icpStateData * icpState)
 {
     char *request_hdr = icpState->request_hdr;
     char *t = NULL;
+    request_t *request = icpState->request;
     if (mime_get_header(request_hdr, "If-Modified-Since"))
-	BIT_SET(icpState->flags, REQ_IMS);
+	BIT_SET(request->flags, REQ_IMS);
     if ((t = mime_get_header(request_hdr, "Pragma"))) {
 	if (!strcasecmp(t, "no-cache"))
-	    BIT_SET(icpState->flags, REQ_NOCACHE);
+	    BIT_SET(request->flags, REQ_NOCACHE);
     }
     if (mime_get_header(request_hdr, "Authorization"))
-	BIT_SET(icpState->flags, REQ_AUTH);
+	BIT_SET(request->flags, REQ_AUTH);
     if (strstr(request_hdr, ForwardedBy))
-	BIT_SET(icpState->flags, REQ_LOOPDETECT);
+	BIT_SET(request->flags, REQ_LOOPDETECT);
 }
 
 static int
@@ -267,7 +324,7 @@ icpCachable(icpStateData * icpState)
     request_t *req = icpState->request;
     method_t method = req->method;
     wordlist *p;
-    if (BIT_TEST(icpState->flags, REQ_AUTH))
+    if (BIT_TEST(icpState->request->flags, REQ_AUTH))
 	return 0;
     for (p = Config.cache_stoplist; p; p = p->next) {
 	if (strstr(request, p->key))
@@ -291,31 +348,31 @@ icpCachable(icpStateData * icpState)
 static int
 icpHierarchical(icpStateData * icpState)
 {
-    char *request = icpState->url;
-    request_t *req = icpState->request;
-    method_t method = req->method;
+    char *url = icpState->url;
+    request_t *request = icpState->request;
+    method_t method = request->method;
     wordlist *p = NULL;
     /* IMS needs a private key, so we can use the hierarchy for IMS only
      * if our neighbors support private keys */
-    if (BIT_TEST(icpState->flags, REQ_IMS) && !neighbors_do_private_keys)
+    if (BIT_TEST(request->flags, REQ_IMS) && !neighbors_do_private_keys)
 	return 0;
-    if (BIT_TEST(icpState->flags, REQ_AUTH))
+    if (BIT_TEST(request->flags, REQ_AUTH))
 	return 0;
     if (method != METHOD_GET)
 	return 0;
     /* scan hierarchy_stoplist */
     for (p = Config.hierarchy_stoplist; p; p = p->next)
-	if (strstr(request, p->key))
+	if (strstr(url, p->key))
 	    return 0;
-    if (BIT_TEST(icpState->flags, REQ_LOOPDETECT))
+    if (BIT_TEST(request->flags, REQ_LOOPDETECT))
 	return 0;
-    if (req->protocol == PROTO_HTTP)
-	return httpCachable(request, method);
-    if (req->protocol == PROTO_GOPHER)
-	return gopherCachable(request);
-    if (req->protocol == PROTO_WAIS)
+    if (request->protocol == PROTO_HTTP)
+	return httpCachable(url, method);
+    if (request->protocol == PROTO_GOPHER)
+	return gopherCachable(url);
+    if (request->protocol == PROTO_WAIS)
 	return 0;
-    if (req->protocol == PROTO_CACHEOBJ)
+    if (request->protocol == PROTO_CACHEOBJ)
 	return 0;
     return 1;
 }
@@ -646,6 +703,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
     char *url = icpState->url;
     char *pubkey = NULL;
     StoreEntry *entry = NULL;
+    request_t *request = icpState->request;
 
     debug(12, 4, "icpProcessRequest: %s <URL:%s>\n",
 	RequestMethodStr[icpState->method],
@@ -660,16 +718,16 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	return;
     }
     if (icpCachable(icpState))
-	BIT_SET(icpState->flags, REQ_CACHABLE);
+	BIT_SET(request->flags, REQ_CACHABLE);
     if (icpHierarchical(icpState))
-	BIT_SET(icpState->flags, REQ_HIERARCHICAL);
+	BIT_SET(request->flags, REQ_HIERARCHICAL);
 
     debug(12, 5, "icpProcessRequest: REQ_NOCACHE = %s\n",
-	BIT_TEST(icpState->flags, REQ_NOCACHE) ? "SET" : "NOT SET");
+	BIT_TEST(request->flags, REQ_NOCACHE) ? "SET" : "NOT SET");
     debug(12, 5, "icpProcessRequest: REQ_CACHABLE = %s\n",
-	BIT_TEST(icpState->flags, REQ_CACHABLE) ? "SET" : "NOT SET");
+	BIT_TEST(request->flags, REQ_CACHABLE) ? "SET" : "NOT SET");
     debug(12, 5, "icpProcessRequest: REQ_HIERARCHICAL = %s\n",
-	BIT_TEST(icpState->flags, REQ_HIERARCHICAL) ? "SET" : "NOT SET");
+	BIT_TEST(request->flags, REQ_HIERARCHICAL) ? "SET" : "NOT SET");
 
     /* NOTE on HEAD requests: We currently don't cache HEAD reqeusts
      * at all, so look for the corresponding GET object, or just go
@@ -684,9 +742,9 @@ icpProcessRequest(int fd, icpStateData * icpState)
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* This object isn't in the cache.  We do not hold a lock yet */
 	icpState->log_type = LOG_TCP_MISS;
-    } else if (BIT_TEST(icpState->flags, REQ_NOCACHE)) {
+    } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
 	/* IMS+NOCACHE should not eject valid object */
-	if (!BIT_TEST(icpState->flags, REQ_IMS))
+	if (!BIT_TEST(request->flags, REQ_IMS))
 	    storeRelease(entry);
 	ipcacheReleaseInvalid(icpState->request->host);
 	entry = NULL;
@@ -696,7 +754,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	 * LOG_TCP_EXPIRED_MISS for the time being, maybe change it to
 	 * _HIT later in icpHandleIMSReply() */
 	icpState->log_type = LOG_TCP_EXPIRED_MISS;
-    } else if (BIT_TEST(icpState->flags, REQ_IMS)) {
+    } else if (BIT_TEST(request->flags, REQ_IMS)) {
 	/* A cached IMS request */
 	icpState->log_type = LOG_TCP_IMS_MISS;
     } else {
@@ -757,7 +815,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     }
     entry = storeCreateEntry(url,
 	request_hdr,
-	icpState->flags,
+	icpState->request->flags,
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
 
@@ -767,6 +825,11 @@ icpProcessMISS(int fd, icpStateData * icpState)
     icpState->offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, (PIF) icpHandleStore, (void *) icpState);
+#if DELAY_HACK
+    _delay_fetch = 0;
+    if (aclCheck(DelayAccessList, icpState->peer.sin_addr, icpState->request))
+	_delay_fetch = 1;
+#endif
     return (protoDispatch(fd, url, icpState->entry, icpState->request));
 }
 
@@ -843,8 +906,14 @@ icpUdpReply(int fd, icpUdpData * queue)
 }
 
 int
-icpUdpSend(int fd, char *url, icp_common_t * reqheaderp, struct sockaddr_in *to, int flags
-    ,icp_opcode opcode, log_type logcode, protocol_t proto)
+icpUdpSend(int fd,
+    char *url,
+    icp_common_t * reqheaderp,
+    struct sockaddr_in *to,
+    int flags,
+    icp_opcode opcode,
+    log_type logcode,
+    protocol_t proto)
 {
     char *buf = NULL;
     int buf_len = sizeof(icp_common_t) + strlen(url) + 1;
@@ -878,7 +947,8 @@ icpUdpSend(int fd, char *url, icp_common_t * reqheaderp, struct sockaddr_in *to,
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
     headerp->reqnum = htonl(reqheaderp->reqnum);
-    if (opcode == ICP_OP_QUERY && !BIT_TEST(flags, REFRESH_REQUEST))
+    if (opcode == ICP_OP_QUERY && !BIT_TEST(flags, REQ_NOCACHE)
+	&& opt_udp_hit_obj)
 	headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->pad = 0;
     /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
@@ -1039,14 +1109,8 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
-	    icpUdpSend(fd,
-		url,
-		&header,
-		&from,
-		0,
-		ICP_OP_ERR,
-		LOG_UDP_INVALID,
-		PROTO_NONE);
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_ERR, LOG_UDP_INVALID, PROTO_NONE);
 	    break;
 	}
 	p = icp_request->protocol;
@@ -1057,14 +1121,8 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
-	    icpUdpSend(fd,
-		url,
-		&header,
-		&from,
-		0,
-		ICP_OP_DENIED,
-		LOG_UDP_DENIED,
-		p);
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_DENIED, LOG_UDP_DENIED, p);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
@@ -1087,37 +1145,22 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 		storeRelease(entry);
 		safe_free(icpHitObjState);
 	    } else {
-		icpUdpSend(fd,
-		    url,
-		    &header,
-		    &from,
-		    0,
-		    ICP_OP_HIT,
-		    LOG_UDP_HIT,
-		    p);
+		icpUdpSend(fd, url, &header, &from, 0,
+		    ICP_OP_HIT, LOG_UDP_HIT, p);
 		break;
 	    }
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
-	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
-	    icpUdpSend(fd,
-		url,
-		&header,
-		&from,
-		0,
-		ICP_OP_RELOADING,
-		LOG_UDP_RELOADING,
-		p);
-	    break;
+	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_RELOADING, LOG_UDP_RELOADING, p);
+	} else if (hit_only_mode_until > squid_curtime) {
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_RELOADING, LOG_UDP_RELOADING, p);
+	} else {
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_MISS, LOG_UDP_MISS, p);
 	}
-	icpUdpSend(fd,
-	    url,
-	    &header,
-	    &from,
-	    0,
-	    ICP_OP_MISS,
-	    LOG_UDP_MISS,
-	    p);
 	break;
 
     case ICP_OP_HIT_OBJ:
@@ -1213,14 +1256,8 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
-	    icpUdpSend(fd,
-		url,
-		&header,
-		&from,
-		0,
-		ICP_OP_ERR,
-		LOG_UDP_INVALID,
-		PROTO_NONE);
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_ERR, LOG_UDP_INVALID, PROTO_NONE);
 	    break;
 	}
 	p = icp_request->protocol;
@@ -1231,14 +1268,8 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
-	    icpUdpSend(fd,
-		url,
-		&header,
-		&from,
-		0,
-		ICP_OP_DENIED,
-		LOG_UDP_DENIED,
-		p);
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_DENIED, LOG_UDP_DENIED, p);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
@@ -1248,36 +1279,21 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + Config.negativeTtl))) {
-	    icpUdpSend(fd,
-		url,
-		&header,
-		&from,
-		0,
-		ICP_OP_HIT,
-		LOG_UDP_HIT,
-		p);
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_HIT, LOG_UDP_HIT, p);
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
-	    icpUdpSend(fd,
-		url,
-		&header,
-		&from,
-		0,
-		ICP_OP_DENIED,
-		LOG_UDP_DENIED,
-		p);
-	    break;
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_DENIED, LOG_UDP_DENIED, p);
+	} else if (hit_only_mode_until > squid_curtime) {
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_RELOADING, LOG_UDP_RELOADING, p);
+	} else {
+	    icpUdpSend(fd, url, &header, &from, 0,
+		ICP_OP_MISS, LOG_UDP_MISS, p);
 	}
-	icpUdpSend(fd,
-	    url,
-	    &header,
-	    &from,
-	    0,
-	    ICP_OP_MISS,
-	    LOG_UDP_MISS,
-	    p);
 	break;
 
     case ICP_OP_HIT_OBJ:
@@ -1463,7 +1479,7 @@ parseHttpRequest(icpStateData * icpState)
 {
     char *inbuf = NULL;
     char *method = NULL;
-    char *request = NULL;
+    char *url = NULL;
     char *req_hdr = NULL;
     LOCAL_ARRAY(char, http_ver, 32);
     char *token = NULL;
@@ -1500,15 +1516,14 @@ parseHttpRequest(icpStateData * icpState)
 	return -1;
     }
     debug(12, 5, "parseHttpRequest: Method is '%s'\n", method);
-    BIT_SET(icpState->flags, REQ_HTML);
 
     /* look for URL */
-    if ((request = strtok(NULL, "\r\n\t ")) == NULL) {
+    if ((url = strtok(NULL, "\r\n\t ")) == NULL) {
 	debug(12, 1, "parseHttpRequest: Missing URL\n");
 	xfree(inbuf);
 	return -1;
     }
-    debug(12, 5, "parseHttpRequest: Request is '%s'\n", request);
+    debug(12, 5, "parseHttpRequest: Request is '%s'\n", url);
 
     token = strtok(NULL, "");
     for (t = token; t && *t && *t != '\n' && *t != '\r'; t++);
@@ -1563,18 +1578,18 @@ parseHttpRequest(icpStateData * icpState)
 	}
     }
     /* Assign icpState->url */
-    if ((t = strchr(request, '\n')))	/* remove NL */
+    if ((t = strchr(url, '\n')))	/* remove NL */
 	*t = '\0';
-    if ((t = strchr(request, '\r')))	/* remove CR */
+    if ((t = strchr(url, '\r')))	/* remove CR */
 	*t = '\0';
-    if ((t = strchr(request, '#')))	/* remove HTML anchors */
+    if ((t = strchr(url, '#')))	/* remove HTML anchors */
 	*t = '\0';
 
     if ((ad = Config.appendDomain)) {
-	if ((t = do_append_domain(request, ad))) {
+	if ((t = do_append_domain(url, ad))) {
 	    if (free_request)
-		safe_free(request);
-	    request = t;
+		safe_free(url);
+	    url = t;
 	    free_request = 1;
 	    /* NOTE: We don't have to free the old request pointer
 	     * because it points to inside inbuf. But
@@ -1583,33 +1598,32 @@ parseHttpRequest(icpStateData * icpState)
 	}
     }
     /* see if we running in httpd_accel_mode, if so got to convert it to URL */
-    if (httpd_accel_mode && *request == '/') {
+    if (httpd_accel_mode && *url == '/') {
 	if (!vhost_mode) {
 	    /* prepend the accel prefix */
 	    icpState->url = xcalloc(strlen(Config.Accel.prefix) +
-		strlen(request) +
-		1, 1);
-	    sprintf(icpState->url, "%s%s", Config.Accel.prefix, request);
+		strlen(url) + 1, 1);
+	    sprintf(icpState->url, "%s%s", Config.Accel.prefix, url);
 	} else {
 	    /* Put the local socket IP address as the hostname */
-	    icpState->url = xcalloc(strlen(request) + 24, 1);
+	    icpState->url = xcalloc(strlen(url) + 24, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		inet_ntoa(icpState->me.sin_addr),
 		Config.Accel.port,
-		request);
+		url);
 	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
 	}
-	BIT_SET(icpState->flags, REQ_ACCEL);
+	icpState->accel = 1;
     } else {
 	/* URL may be rewritten later, so make extra room */
-	icpState->url = xcalloc(strlen(request) + 5, 1);
-	strcpy(icpState->url, request);
-	BIT_RESET(icpState->flags, REQ_ACCEL);
+	icpState->url = xcalloc(strlen(url) + 5, 1);
+	strcpy(icpState->url, url);
+	icpState->accel = 0;
     }
 
     debug(12, 5, "parseHttpRequest: Complete request received\n");
     if (free_request)
-	safe_free(request);
+	safe_free(url);
     xfree(inbuf);
     return 1;
 }
@@ -1833,7 +1847,7 @@ CheckQuickAbort2(icpStateData * icpState)
     long curlen;
     long minlen;
     long expectlen;
-    if (!BIT_TEST(icpState->flags, REQ_CACHABLE))
+    if (!BIT_TEST(icpState->request->flags, REQ_CACHABLE))
 	return 1;
     if (BIT_TEST(icpState->entry->flag, KEY_PRIVATE))
 	return 1;
