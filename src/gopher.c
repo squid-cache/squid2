@@ -342,6 +342,11 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
 	if (gopherState->len != 0) {
 	    /* there is something left from last tx. */
 	    xstrncpy(line, gopherState->buf, gopherState->len + 1);
+	    if (gopherState->len + len > TEMP_BUF_SIZE) {
+		debug(10, 1) ("GopherHTML: Buffer overflow. Lost some data on URL: %s\n",
+		    storeUrl(entry));
+		len = TEMP_BUF_SIZE - gopherState->len;
+	    }
 	    lpos = (char *) memccpy(line + gopherState->len, inbuf, '\n', len);
 	    if (lpos)
 		*lpos = '\0';
