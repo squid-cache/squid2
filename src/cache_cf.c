@@ -879,7 +879,7 @@ static void parseHierarchyStoplistLine()
 {
     char *token;
     while ((token = strtok(NULL, w_space)))
-        wordlistAdd(&Config.hierarchy_stoplist, token);
+	wordlistAdd(&Config.hierarchy_stoplist, token);
 }
 
 static void parseAppendDomainLine()

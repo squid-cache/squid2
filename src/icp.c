@@ -225,8 +225,8 @@ int icpHierarchical(icpState)
 	return 0;
     /* scan hierarchy_stoplist */
     for (p = getHierarchyStoplist(); p; p = p->next)
-        if (strstr(request, p->key))
-            return 0;
+	if (strstr(request, p->key))
+	    return 0;
     return 1;
 }
 
