@@ -356,7 +356,7 @@ normal_shutdown(void)
     PrintRusage();
     dumpMallocStats();
     storeCloseLog();
-    statCloseLog();
+    accessLogClose();
 #if PURIFY
     configFreeMemory();
     storeFreeMemory();

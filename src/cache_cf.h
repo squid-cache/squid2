@@ -126,11 +126,6 @@ typedef struct _relist {
     struct _relist *next;
 } relist;
 
-typedef enum {
-    IP_ALLOW,
-    IP_DENY
-} ip_access_type;
-
 struct SquidConfig {
     struct {
 	int maxSize;
@@ -195,9 +190,7 @@ struct SquidConfig {
     int redirectChildren;
     int sourcePing;
     int commonLogFormat;
-#if LOG_FULL_HEADERS
     int logMimeHdrs;
-#endif				/* LOG_FULL_HEADERS */
     int identLookup;
     int neighborTimeout;
     int stallDelay;

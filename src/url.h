@@ -33,30 +33,7 @@
 #define MAX_URL  4096
 #define MAX_LOGIN_SZ  128
 
-enum {
-    METHOD_NONE,		/* 000 */
-    METHOD_GET,			/* 001 */
-    METHOD_POST,		/* 010 */
-    METHOD_PUT,			/* 011 */
-    METHOD_HEAD,		/* 100 */
-    METHOD_CONNECT,		/* 101 */
-    METHOD_TRACE,		/* 110 */
-    METHOD_PURGE		/* 111 */
-};
-typedef unsigned int method_t;
-
 extern const char *RequestMethodStr[];
-
-typedef enum {
-    PROTO_NONE,
-    PROTO_HTTP,
-    PROTO_FTP,
-    PROTO_GOPHER,
-    PROTO_WAIS,
-    PROTO_CACHEOBJ,
-    PROTO_ICP,
-    PROTO_MAX
-} protocol_t;
 
 struct _request {
     method_t method;
@@ -66,7 +43,6 @@ struct _request {
     u_short port;
     char urlpath[MAX_URL];
     int link_count;		/* free when zero */
-    struct _hierarchyLogData hierarchy;
     int flags;
     time_t max_age;
     float http_ver;
@@ -78,6 +54,7 @@ struct _request {
     size_t headers_sz;
     char *body;
     size_t body_sz;
+    HierarchyLogEntry hier;
 };
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));

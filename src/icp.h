@@ -106,45 +106,6 @@
 #ifndef ICP_H
 #define ICP_H
 
-typedef enum {
-    LOG_TAG_NONE,		/* 0 */
-    LOG_TCP_HIT,		/* 1 */
-    LOG_TCP_MISS,		/* 2 */
-    LOG_TCP_REFRESH_HIT,	/* 3 */
-    LOG_TCP_REFRESH_FAIL_HIT,	/* 4 */
-    LOG_TCP_REFRESH_MISS,	/* 5 */
-    LOG_TCP_CLIENT_REFRESH,	/* 6 */
-    LOG_TCP_IMS_HIT,		/* 7 */
-    LOG_TCP_IMS_MISS,		/* 8 */
-    LOG_TCP_SWAPFAIL_MISS,	/* 9 */
-    LOG_TCP_DENIED,		/* 10 */
-    LOG_UDP_HIT,		/* 11 */
-    LOG_UDP_HIT_OBJ,		/* 12 */
-    LOG_UDP_MISS,		/* 13 */
-    LOG_UDP_DENIED,		/* 14 */
-    LOG_UDP_INVALID,		/* 15 */
-    LOG_UDP_MISS_NOFETCH,	/* 16 */
-    ERR_READ_TIMEOUT,		/* 17 */
-    ERR_LIFETIME_EXP,		/* 18 */
-    ERR_NO_CLIENTS_BIG_OBJ,	/* 19 */
-    ERR_READ_ERROR,		/* 20 */
-    ERR_WRITE_ERROR,		/* 21 */
-    ERR_CLIENT_ABORT,		/* 22 */
-    ERR_CONNECT_FAIL,		/* 23 */
-    ERR_INVALID_REQ,		/* 24 */
-    ERR_UNSUP_REQ,		/* 25 */
-    ERR_INVALID_URL,		/* 26 */
-    ERR_NO_FDS,			/* 27 */
-    ERR_DNS_FAIL,		/* 28 */
-    ERR_NOT_IMPLEMENTED,	/* 29 */
-    ERR_CANNOT_FETCH,		/* 30 */
-    ERR_NO_RELAY,		/* 31 */
-    ERR_DISK_IO,		/* 32 */
-    ERR_ZERO_SIZE_OBJECT,	/* 33 */
-    ERR_FTP_DISABLED,		/* 34 */
-    ERR_PROXY_DENIED		/* 35 */
-} log_type;
-
 #define ERR_MIN ERR_READ_TIMEOUT
 #define ERR_MAX ERR_PROXY_DENIED
 
@@ -189,9 +150,7 @@ typedef struct _clientHttpRequest {
     int redirect_state;
     aclCheck_t *acl_checklist;	/* need ptr back so we can unreg if needed */
     struct _clientHttpRequest *next;
-#if LOG_FULL_HEADERS
-    char *reply_hdr;		/* HTTP reply header */
-#endif
+    AccessLogEntry al;
 } clientHttpRequest;
 
 struct _ConnStateData {

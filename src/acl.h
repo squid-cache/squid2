@@ -30,23 +30,6 @@
 #define ACL_NAME_SZ 32
 #define BROWSERNAMELEN 128
 
-typedef enum {
-    ACL_NONE,
-    ACL_SRC_IP,
-    ACL_DST_IP,
-    ACL_SRC_DOMAIN,
-    ACL_DST_DOMAIN,
-    ACL_TIME,
-    ACL_URLPATH_REGEX,
-    ACL_URL_REGEX,
-    ACL_URL_PORT,
-    ACL_USER,
-    ACL_PROTO,
-    ACL_METHOD,
-    ACL_BROWSER,
-    ACL_ENUM_MAX
-} squid_acl;
-
 #define ACL_SUNDAY	0x01
 #define ACL_MONDAY	0x02
 #define ACL_TUESDAY	0x04
@@ -111,13 +94,6 @@ struct _acl_access {
     char *cfgline;
     struct _acl_access *next;
 };
-
-typedef enum {
-    ACL_LOOKUP_NONE,
-    ACL_LOOKUP_NEEDED,
-    ACL_LOOKUP_PENDING,
-    ACL_LOOKUP_DONE
-} acl_lookup_state;
 
 struct _aclCheck_t {
     const struct _acl_access *access_list;

@@ -74,6 +74,7 @@ UTILS           = dnsserver unlinkd
 SUID_UTILS	= pinger
 CGIPROGS	= cachemgr.cgi
 OBJS	 	= \
+		access_log.o \
 		acl.o \
 		aiops.o \
 		async_io.o \

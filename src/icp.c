@@ -247,13 +247,9 @@ httpRequestFree(void *data)
     clientHttpRequest *http = data;
     clientHttpRequest **H;
     ConnStateData *conn = http->conn;
-    int http_code = 0;
-    int elapsed_msec;
-    struct _hierarchyLogData *hierData = NULL;
-    const char *content_type = NULL;
-    method_t method = METHOD_NONE;
     StoreEntry *entry = http->entry;
     request_t *request = http->request;
+    MemObject *mem = NULL;
     debug(12, 3) ("httpRequestFree: %s\n", entry ? entry->url : "no store entry");
     icpProcessRequestControl(http, ICP_OP_DEL);
     if (!icpCheckTransferDone(http)) {
@@ -267,35 +263,26 @@ httpRequestFree(void *data)
 	protoUnregister(entry, request, conn->peer.sin_addr);
     }
     assert(http->log_type < ERR_MAX);
-    if (entry) {
-	if (entry->mem_obj) {
-	    http_code = entry->mem_obj->reply->code;
-	    content_type = entry->mem_obj->reply->content_type;
-	}
-    } else {
-	http_code = http->http_code;
-    }
-    elapsed_msec = tvSubMsec(http->start, current_time);
-    if (request) {
-	hierData = &request->hierarchy;
-	method = request->method;
-    }
+    if (entry)
+	mem = entry->mem_obj;
     if (http->out.size || http->log_type) {
-	HTTPCacheInfo->log_append(HTTPCacheInfo,
-	    http->url,
-	    conn->log_addr,
-	    http->out.size,
-	    log_tags[http->log_type],
-	    RequestMethodStr[method],
-	    http_code,
-	    elapsed_msec,
-	    conn->ident.ident,
-	    hierData,
-#if LOG_FULL_HEADERS
-	    request->headers,
-	    http->reply_hdr,
-#endif /* LOG_FULL_HEADERS */
-	    content_type);
+	http->al.icp.opcode = 0;
+	http->al.url = http->url;
+	if (mem) {
+	http->al.http.code = mem->reply->code;
+	http->al.http.content_type = mem->reply->content_type;
+	}
+	http->al.cache.caddr = conn->log_addr;
+	http->al.cache.size = http->out.size;
+	http->al.cache.code = http->log_type;
+	http->al.cache.msec = tvSubMsec(http->start, current_time);
+	http->al.cache.ident = conn->ident.ident;
+	if (request) {
+	http->al.http.method = request->method;
+	http->al.headers.request = request->headers;
+	http->al.hier = request->hier;
+	}
+	accessLogLog(&http->al);
 	HTTPCacheInfo->proto_count(HTTPCacheInfo,
 	    request ? request->protocol : PROTO_NONE,
 	    http->log_type);
@@ -305,12 +292,9 @@ httpRequestFree(void *data)
 	redirectUnregister(http->url, http);
     if (http->acl_checklist)
 	aclChecklistFree(http->acl_checklist);
-    checkFailureRatio(http->log_type,
-	hierData ? hierData->code : HIER_NONE);
+    checkFailureRatio(http->log_type, http->al.hier.code);
     safe_free(http->url);
-#if LOG_FULL_HEADERS
-    safe_free(http->reply_hdr);
-#endif /* LOG_FULL_HEADERS */
+    safe_free(http->al.headers.reply);
     if (entry) {
 	storeUnregister(entry, http);
 	storeUnlockObject(entry);
@@ -499,7 +483,7 @@ icpSendERROR(int fd,
     if (http) {
 	/* http may == NULL from icpSendERROR in clientReadRequest */
 	http->log_type = errorCode;
-	http->http_code = httpCode;
+	http->al.http.code = httpCode;
 	if (http->entry && http->entry->mem_obj) {
 	    if (http->out.size > 0) {
 		comm_close(fd);
@@ -647,13 +631,13 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
     assert(size >= 0);
     writelen = size;
     if (http->out.offset == 0) {
-#if LOG_FULL_HEADERS
-	if ((p = mime_headers_end(buf))) {
-	    safe_free(http->reply_hdr);
-	    http->reply_hdr = xcalloc(1 + p - buf, 1);
-	    xstrncpy(http->reply_hdr, buf, p - buf);
+        if (Config.logMimeHdrs) {
+	    if ((p = mime_headers_end(buf))) {
+	        safe_free(http->al.headers.reply);
+	        http->al.headers.reply = xcalloc(1 + p - buf, 1);
+	        xstrncpy(http->al.headers.reply, buf, p - buf);
+	    }
 	}
-#endif
 	/* make sure 'buf' is null terminated somewhere */
 	if (size == ICP_SENDMOREDATA_BUF) {
 	    hack = 1;
@@ -857,7 +841,7 @@ icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data
     storeUnlockObject(entry);
     http->entry = NULL;
     http->out.size += size;
-    http->http_code = 304;
+    http->al.http.code = 304;
     comm_close(fd);
 }
 
@@ -1098,12 +1082,12 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     ch.request = http->request;
     answer = aclCheckFast(Config.accessList.MISS, &ch);
     if (answer == 0) {
-	http->http_code = 400;
-	buf = access_denied_msg(http->http_code,
+	http->al.http.code = 400;
+	buf = access_denied_msg(http->al.http.code,
 	    http->request->method,
 	    http->url,
 	    fd_table[fd].ipaddr);
-	icpSendERROR(fd, LOG_TCP_DENIED, buf, http, http->http_code);
+	icpSendERROR(fd, LOG_TCP_DENIED, buf, http, http->al.http.code);
 	return;
     }
     /* Get rid of any references to a StoreEntry (if any) */
@@ -1139,7 +1123,7 @@ icpLogIcp(icpUdpData * queue)
 {
     icp_common_t *header = (icp_common_t *) (void *) queue->msg;
     char *url = (char *) header + sizeof(icp_common_t);
-
+    AccessLogEntry al;
     ICPCacheInfo->proto_touchobject(ICPCacheInfo,
 	queue->proto,
 	queue->len);
@@ -1149,25 +1133,14 @@ icpLogIcp(icpUdpData * queue)
     clientdbUpdate(queue->address.sin_addr, queue->logcode, PROTO_ICP);
     if (!Config.Options.log_udp)
 	return;
-    HTTPCacheInfo->log_append(HTTPCacheInfo,
-	url,
-	queue->address.sin_addr,
-	queue->len,
-	log_tags[queue->logcode],
-	IcpOpcodeStr[ICP_OP_QUERY],
-	0,
-#ifndef LESS_TIMING
-	tvSubMsec(queue->start, current_time),
-#else
-	0,
-#endif
-	NULL,			/* ident */
-	NULL,			/* hierarchy data */
-#if LOG_FULL_HEADERS
-	NULL,			/* request header */
-	NULL,			/* reply header */
-#endif /* LOG_FULL_HEADERS */
-	NULL);			/* content-type */
+    memset(&al, '\0', sizeof(AccessLogEntry));
+    al.icp.opcode = ICP_OP_QUERY;
+    al.url = url;
+    al.cache.caddr = queue->address.sin_addr;
+    al.cache.size = queue->len;
+    al.cache.code = queue->logcode;
+    al.cache.msec = tvSubMsec(queue->start, current_time);
+    accessLogLog(&al);
 }
 
 void
@@ -1943,12 +1916,12 @@ clientReadRequest(int fd, void *data)
 	    request->headers_sz = headers_sz;
 	    if (!urlCheckRequest(request)) {
 		http->log_type = ERR_UNSUP_REQ;
-		http->http_code = 501;
+		http->al.http.code = 501;
 		wbuf = xstrdup(squid_error_url(http->url,
 			method,
 			ERR_UNSUP_REQ,
 			fd_table[fd].ipaddr,
-			http->http_code,
+			http->al.http.code,
 			NULL));
 		comm_write(fd,
 		    wbuf,

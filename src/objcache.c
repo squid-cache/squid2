@@ -305,22 +305,6 @@ objcacheStart(int fd, StoreEntry * entry)
     case MGR_NETDB:
 	stat_get("netdb", entry);
 	break;
-    case MGR_LOG_STATUS:
-	log_status_get(entry);
-	break;
-    case MGR_LOG_ENABLE:
-	log_enable(entry);
-	break;
-    case MGR_LOG_DISABLE:
-	log_disable(entry);
-	break;
-    case MGR_LOG_CLEAR:
-	log_clear(entry);
-	break;
-    case MGR_LOG_VIEW:
-	log_get_start(entry);
-	complete_flag = 0;
-	break;
     case MGR_CONFIG:
 	parameter_get(entry);
 	break;
@@ -329,10 +313,6 @@ objcacheStart(int fd, StoreEntry * entry)
 	break;
     case MGR_CLIENT_LIST:
 	clientdbDump(entry);
-	break;
-    case MGR_CONFIG_FILE:
-	squid_get_start(entry);
-	complete_flag = 0;
 	break;
     case MGR_STOREDIR:
 	stat_get("storedir", entry);

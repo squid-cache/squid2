@@ -111,13 +111,6 @@
 /* Labels for hierachical log file */
 /* put them all here for easier reference when writing a logfile analyzer */
 
-typedef enum {
-    PEER_NONE,
-    PEER_SIBLING,
-    PEER_PARENT,
-    PEER_MULTICAST
-} peer_t;
-
 typedef void IRCB _PARAMS((peer *, peer_t, icp_opcode, void *data));
 
 /* Mark a neighbor cache as dead if it doesn't answer this many pings */
@@ -187,19 +180,6 @@ struct _peer {
 #define PEER_COUNT_EVENT_PENDING 1
 #define PEER_COUNTING		 2
 
-struct _hierarchyLogData {
-    hier_code code;
-    char *host;
-    icp_ping_data icp;
-    int timeout;
-#ifdef LOG_ICP_NUMBERS
-    int n_sent;
-    int n_expect;
-    int n_recv;
-    int delay;
-#endif
-};
-
 extern peer *getFirstPeer _PARAMS((void));
 extern peer *getFirstUpParent _PARAMS((request_t *));
 extern peer *getNextPeer _PARAMS((peer *));
@@ -213,10 +193,6 @@ extern int neighborsUdpPing _PARAMS((request_t *,
 extern void neighborAddDomainPing _PARAMS((const char *, const char *));
 extern void neighborAddDomainType _PARAMS((const char *, const char *, const char *));
 extern void neighborAddAcl _PARAMS((const char *, const char *));
-extern void hierarchyNote _PARAMS((request_t *,
-	hier_code,
-	icp_ping_data *,
-	const char *));
 extern void neighborsUdpAck _PARAMS((int, const char *, icp_common_t *, const struct sockaddr_in *, StoreEntry *, char *, int));
 extern void neighborAdd _PARAMS((const char *, const char *, int, int, int, int, int));
 extern void neighbors_open _PARAMS((int));

@@ -106,14 +106,6 @@
 #ifndef _IPCACHE_H_
 #define _IPCACHE_H_
 
-enum {
-    IP_CACHED,
-    IP_NEGATIVE_CACHED,
-    IP_PENDING,			/* waiting to be dispatched */
-    IP_DISPATCHED		/* waiting for reply from dnsserver */
-};
-typedef unsigned int ipcache_status_t;
-
 #define IP_BLOCKING_LOOKUP	0x01
 #define IP_LOOKUP_IF_MISS	0x02
 #define IP_LOCK_ENTRY		0x04

@@ -187,31 +187,6 @@ struct _MemObject {
     } abort;
 };
 
-enum {
-    NOT_IN_MEMORY,
-    SWAPPING_IN,
-    IN_MEMORY
-};
-
-enum {
-    PING_NONE,
-    PING_WAITING,
-    PING_TIMEOUT,
-    PING_DONE
-};
-
-enum {
-    STORE_OK,
-    STORE_PENDING,
-    STORE_ABORTED
-};
-
-enum {
-    NO_SWAP,
-    SWAPPING_OUT,
-    SWAP_OK
-};
-
 typedef unsigned int store_status_t;
 typedef unsigned int mem_status_t;
 typedef unsigned int ping_status_t;

@@ -682,7 +682,7 @@ main(int argc, char **argv)
 	    _db_rotate_log();	/* cache.log */
 	    storeWriteCleanLogs();
 	    storeRotateLog();	/* store.log */
-	    stat_rotate_log();	/* access.log */
+	    accessLogRotate();	/* access.log */
 	    useragentRotateLog();	/* useragent.log */
 	    icmpOpen();
 	    rotate_pending = 0;

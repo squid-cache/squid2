@@ -110,14 +110,6 @@
 
 typedef void FQDNH _PARAMS((const char *, void *));
 
-enum {
-    FQDN_CACHED,
-    FQDN_NEGATIVE_CACHED,
-    FQDN_PENDING,		/* waiting to be dispatched */
-    FQDN_DISPATCHED		/* waiting for reply from dnsserver */
-};
-typedef unsigned int fqdncache_status_t;
-
 #define FQDN_BLOCKING_LOOKUP	0x01
 #define FQDN_LOOKUP_IF_MISS	0x02
 #define FQDN_LOCK_ENTRY		0x04

@@ -31,28 +31,6 @@
 #ifndef PEER_SELECT_H
 #define PEER_SELECT_H
 
-typedef enum {
-    HIER_NONE,
-    DIRECT,
-    SIBLING_HIT,
-    PARENT_HIT,
-    DEFAULT_PARENT,
-    SINGLE_PARENT,
-    FIRSTUP_PARENT,
-    NO_PARENT_DIRECT,
-    FIRST_PARENT_MISS,
-    CLOSEST_PARENT_MISS,
-    CLOSEST_DIRECT,
-    NO_DIRECT_FAIL,
-    SOURCE_FASTEST,
-    SIBLING_UDP_HIT_OBJ,
-    PARENT_UDP_HIT_OBJ,
-    PASS_PARENT,
-    SSL_PARENT,
-    ROUNDROBIN_PARENT,
-    HIER_MAX
-} hier_code;
-
 typedef void PSC _PARAMS((peer *, void *));
 
 typedef struct {

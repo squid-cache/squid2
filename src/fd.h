@@ -2,25 +2,6 @@
 
 
 
-enum {
-    FD_NONE,
-    FD_LOG,
-    FD_FILE,
-    FD_SOCKET,
-    FD_PIPE,
-    FD_UNKNOWN
-};
-
-enum {
-    FD_READ,
-    FD_WRITE
-};
-
-enum {
-    FD_CLOSE,
-    FD_OPEN
-};
-
 #define FD_CLOSE_REQUEST	0x02
 #define FD_WRITE_DAEMON		0x04
 #define FD_WRITE_PENDING	0x08
