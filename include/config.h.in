@@ -150,14 +150,6 @@
 #define _SQUID_SGI_
 #endif
 
-#if !defined(USE_MALLINFO) && !defined(__linux__) && !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__ultrix)
-#define USE_MALLINFO 1
-#endif
-
-#if !defined(USE_MALLOPT) && defined(sun)
-#define USE_MALLOPT 1
-#endif
-
 #if !defined(CACHE_HTTP_PORT)
 #define CACHE_HTTP_PORT 3128
 #endif
