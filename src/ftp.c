@@ -1059,7 +1059,7 @@ ftpParseControlReply(char *buf, size_t len, int *codep, int *used)
     debug(9, 3) ("ftpParseControlReply: usable = %d\n", usable);
     if (usable == 0) {
 	debug(9, 3) ("ftpParseControlReply: didn't find end of line\n");
-	xfree(sbuf);
+	safe_free(sbuf);
 	return NULL;
     }
     debug(9, 3) ("ftpParseControlReply: %d bytes to play with\n", len);
@@ -1088,6 +1088,7 @@ ftpParseControlReply(char *buf, size_t len, int *codep, int *used)
 	*tail = list;
 	tail = &list->next;
     }
+    safe_free(sbuf);
     *used = (int) (s - sbuf);
     if (!complete)
 	wordlistDestroy(&head);
