@@ -53,7 +53,7 @@ int main(argc, argv)
     int n;			/* # of GC'd objects */
     time_t last_maintain = 0;
 
-    cached_starttime = cached_curtime = time((time_t *) NULL);
+    cached_starttime = getCurrentTime();
     failure_notify = fatal_dump;
 
     for (n = getMaxFD(); n > 2; n--)
