@@ -134,7 +134,7 @@ mime_get_header(const char *mime, const char *name)
 	    continue;
 	l = strcspn(p, "\n\r") + 1;
 	if (l > GET_HDR_SZ)
-		l = GET_HDR_SZ;
+	    l = GET_HDR_SZ;
 	xstrncpy(header, p, l);
 	debug(25, 5, "mime_get_header: checking '%s'\n", header);
 	q = header;
