@@ -1750,7 +1750,6 @@ storeDiskdDirReconfigure(SwapDir * sd, int index, char *path)
     int size;
     int l1;
     int l2;
-    diskdinfo_t *diskdinfo;
 
     i = GetInteger();
     size = i << 10;		/* Mbytes to kbytes */
@@ -1773,7 +1772,6 @@ storeDiskdDirReconfigure(SwapDir * sd, int index, char *path)
 	debug(3, 1) ("Cache dir '%s' size changed to %d KB\n",
 	    path, size);
     sd->max_size = size;
-    diskdinfo = sd->fsdata;
     parse_cachedir_options(sd, options, 1);
 }
 
