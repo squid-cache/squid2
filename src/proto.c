@@ -235,7 +235,7 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	}
 	return;
     }
-    if (!neighbors_do_private_keys && !protoData->query_neighbors &&
+    if (!neighbors_do_private_keys && !protoData->hierarchical &&
 	(e = getFirstUpParent(req))) {
 	/* for private objects we should just fetch directly (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
@@ -314,7 +314,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	(void *) protoData);
 
     protoData->inside_firewall = matchInsideFirewall(request->host);
-    protoData->query_neighbors = BIT_TEST(entry->flag, HIERARCHICAL);
+    protoData->hierarchical = BIT_TEST(entry->flag, HIERARCHICAL) ? 1 : 0;
     protoData->single_parent = getSingleParent(request);
     protoData->default_parent = getDefaultParent(request);
     protoData->n_peers = neighborsCount(request);
@@ -325,7 +325,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     debug(17, 2, "protoDispatch: inside_firewall = %d (%s)\n",
 	protoData->inside_firewall,
 	firewall_desc_str[protoData->inside_firewall]);
-    debug(17, 2, "protoDispatch: query_neighbors = %d\n", protoData->query_neighbors);
+    debug(17, 2, "protoDispatch:    hierarchical = %d\n", protoData->hierarchical);
     debug(17, 2, "protoDispatch:         n_peers = %d\n", protoData->n_peers);
     debug(17, 2, "protoDispatch:   single_parent = %s\n",
 	protoData->single_parent ? protoData->single_parent->host : "N/A");
@@ -349,7 +349,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	protoDispatchDNSHandle(fd,
 	    NULL,
 	    (void *) protoData);
-    } else if (matchLocalDomain(request->host) || !protoData->query_neighbors) {
+    } else if (matchLocalDomain(request->host) || !protoData->hierarchical) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
 	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
