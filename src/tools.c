@@ -167,7 +167,7 @@ void shut_down(sig)
 {
     int i;
     FD_ENTRY *f;
-    debug(21, 1, "Preparing for shutdown...\n");
+    debug(21, 1, "Preparing for shutdown after %d connections\n", nconn);
     serverConnectionsClose();
     ipcacheShutdownServers();
     for (i = fdstat_biggest_fd(); i >= 0; i--) {
