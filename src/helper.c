@@ -104,6 +104,7 @@ helperOpenServers(helper * hlp)
 	}
 	hlp->n_running++;
 	srv = cbdataAlloc(helper_server);
+	srv->pid = x;
 	srv->flags.alive = 1;
 	srv->index = k;
 	srv->rfd = rfd;

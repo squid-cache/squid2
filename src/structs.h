@@ -2035,6 +2035,7 @@ struct _helper_stateful {
 
 struct _helper_server {
     int index;
+    int pid;
     int rfd;
     int wfd;
     char *buf;
