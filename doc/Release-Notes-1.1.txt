@@ -12,6 +12,7 @@ TABLE OF CONTENTS:
         Getting true DNS TTL info into Squid's IP cache
 	Using a neighbor as both a parent and a sibling
 	Forcing your neighbors to use you as a sibling
+	Refresh Rules
 
 Ident (RFC 931) lookups
 ==============================================================================
@@ -245,3 +246,41 @@ you can use any of the access control types.
 
 If you are restricting your neighbors, be sure to allow miss_access
 to your local clients (e.g. users at browsers)!
+
+Refresh Rules
+==============================================================================
+As of version 1.1.beta10, Squid switched from a Time-To-Live based
+expiration model to a Refresh-Rate model.  Instead of assinging TTL's
+when the object enters the cache, we now check freshness requirements
+when objects are requested.  If an object is "fresh" it is given
+directly to the client.  If it is "stale" then we make an
+If-Modified-Since request for it.
+
+When checking the object freshness, we calculate these values:
+
+    AGE is how much the object has aged *since* it was retrieved:
+                
+	AGE = NOW - OBJECT_DATE
+
+    LM_AGE is how old the object was *when* it was retrieved:
+
+	LM_AGE = OBJECT_DATE - LAST_MODIFIED_TIME
+
+    LM_FACTOR is the ratio of AGE to LM_AGE:
+
+	LM_FACTOR = AGE / LM_AGE
+
+These values are compared with the parameters of the 'refresh_pattern'
+rules.  The refresh parameters are:
+
+	URL regular expression
+	MIN_AGE
+	PERCENT
+	MAX_AGE
+
+An object is considered "fresh" if it meets these requirements:
+
+    1) AGE <= MIN_AGE, or
+    2) NOW < EXPIRES, and
+       AGE <= AGE_MAX, and
+       LM_FACTOR <= PERCENT
