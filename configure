@@ -52,7 +52,7 @@ ac_help="$ac_help
                           for details on how to build your custom store module"
 ac_help="$ac_help
   --enable-heap-replacement
-                          Backwards compability option. Please use the
+                          Backwards compatibility option. Please use the
 			  new --enable-removal-policies directive instead."
 ac_help="$ac_help
   --enable-removal-policies=\"list of policies\"
@@ -175,7 +175,7 @@ ac_help="$ac_help
                           module"
 ac_help="$ac_help
   --enable-auth-modules=\"list of helpers\"
-                          Backwards compability alias for
+                          Backwards compatibility alias for
                           --enable-basic-auth-helpers"
 ac_help="$ac_help
   --enable-basic-auth-helpers=\"list of helpers\"
@@ -1051,7 +1051,7 @@ INSTALL_STRIP_PROGRAM="\${SHELL} \$(install_sh) -c -s"
 
   
 
-# From configure.in Revision: 1.251.2.53 
+# From configure.in Revision: 1.251.2.54 
 echo $ac_n "checking whether to enable maintainer-specific portions of Makefiles""... $ac_c" 1>&6
 echo "configure:1057: checking whether to enable maintainer-specific portions of Makefiles" >&5
     # Check whether --enable-maintainer-mode or --disable-maintainer-mode was given.
