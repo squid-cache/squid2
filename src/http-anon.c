@@ -77,6 +77,7 @@ static struct http_anon_struct_header http_anon_allowed_header[] =
     {"GET ", 4},
     {"POST ", 5},
     {"HEAD ", 5},
+    {"TRACE ", 6},
     {"Allow:", 6},
     {"Authorization:", 14},
     {"Cache-control:", 14},
