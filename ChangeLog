@@ -4,6 +4,15 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	  claiming Squid restarted when it just reread the configuration.
 	- Bug #787: digest auth never detects password changes
 	- Bug #789: login with space confuses redirector helpers
+	- Bug #791: FQDNcache discards negative responses when using
+	  internal DNS
+	- pam_auth fails on Solaris when using pam_authtok_get. Persistent
+	  PAM connections are unsafe and now disabled by default.
+	- Bug #795: German ERR_DNS_FAIL correction
+	- Bug #803: Lithuantian error messages update
+	- Bug #806: Segfault if failing to load error page
+	- Bug #812: Mozilla/Netscape plugins mime type defined (.xpi)
+	- Bug #817: maximum_object_size too large causes squid not to cache
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 

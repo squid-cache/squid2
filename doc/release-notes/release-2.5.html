@@ -220,5 +220,21 @@ from the trouble when upgrading to Squid-3 later.</LI>
 </UL>
 </P>
 
+<H2><A NAME="s7">7. Key changes squid-2.5.STABLE4 to 2.5.STABLE5:</A></H2>
+
+<P>
+<UL>
+<LI>redirector interface modified to try to deal with login names
+containing spaces or other odd characters. This is accomplished
+by URL-encoding the login name before sent to redirectors. Note:
+Existing redirectors or their configuration may need to be slightly
+modified in how they process the ident column to support the new
+username format (only applies to redirectors looking into the username)</LI>
+<LI>a large number of minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4">squid-2.5.STABLE4 patches</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
 </BODY>
 </HTML>

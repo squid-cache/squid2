@@ -215,6 +215,10 @@ name="ChangeLog"> file for details.
        	Existing redirectors or their configuration may need to be slightly
        	modified in how they process the ident column to support the new
 	username format (only applies to redirectors looking into the username)
+	<item>a large number of minor and cosmetic bugfixes. See the list of <url
+	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4"
+	name="squid-2.5.STABLE4 patches"> and the <url url="ChangeLog"
+	name="ChangeLog"> file for details.
 </itemize>
 
 </article>
