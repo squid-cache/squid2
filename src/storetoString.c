@@ -149,8 +149,6 @@ storeToString(const StoreEntry * e)
 	strncat(tmpbuf, " ABORT_MSG_PENDING", sizeof(tmpbuf) - 1);
     if (BIT_TEST(e->flag, DELAY_SENDING))
 	strncat(tmpbuf, " DELAY_SENDING", sizeof(tmpbuf) - 1);
-    if (BIT_TEST(e->flag, DELETE_BEHIND))
-	strncat(tmpbuf, " DELETE_BEHIND", sizeof(tmpbuf) - 1);
     if (e->lock_count)
 	strncat(tmpbuf, "L", sizeof(tmpbuf) - 1);
     strcat(tmpbuf, "\n");
@@ -178,13 +176,7 @@ storeToString(const StoreEntry * e)
     sprintf(tmpbuf, "StoreStatus: %s\n", storeStatusStr[e->store_status]);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "MemStatus: %s\n", memStatusStr[e->mem_status]);
-    strcat(stsbuf, tmpbuf);
-
     sprintf(tmpbuf, "PingStatus: %s\n", pingStatusStr[e->ping_status]);
-    strcat(stsbuf, tmpbuf);
-
-    sprintf(tmpbuf, "SwapStatus: %s\n", swapStatusStr[e->swap_status]);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "Method: %s\n", RequestMethodStr[e->method]);
@@ -213,25 +205,9 @@ storeToString(const StoreEntry * e)
 	strcat(stsbuf, tmpbuf);
     }
 
-    if (!mem->data) {
-	sprintf(tmpbuf, "Data: NULL.\n");
-	strcat(stsbuf, tmpbuf);
-    } else {
-	sprintf(tmpbuf, "Data: %p\n", mem->data);
-	strcat(stsbuf, tmpbuf);
-    }
-
-
-    if (!mem->e_swap_buf)
-	sprintf(tmpbuf, "E_swap_buf: NOT SET\n");
-    else
-	sprintf(tmpbuf, "E_swap_buf: %s\n", mem->e_swap_buf);
-    strcat(stsbuf, tmpbuf);
     sprintf(tmpbuf, "First_miss: %p\n", mem->e_pings_first_miss);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "E_swap_buf_len: %d\n", mem->e_swap_buf_len);
-    strcat(stsbuf, tmpbuf);
     sprintf(tmpbuf, "[pings]: npings = %d  nacks = %d\n",
 	mem->e_pings_n_pings, mem->e_pings_n_acks);
     strcat(stsbuf, tmpbuf);
@@ -246,12 +222,6 @@ storeToString(const StoreEntry * e)
 	sprintf(tmpbuf, "AbortMsg:\n-----------\n%s\n-----------\n", mem->e_abort_msg);
 	strcat(stsbuf, tmpbuf);
     }
-
-    sprintf(tmpbuf, "CurrentLen: %d\n", mem->e_current_len);
-    strcat(stsbuf, tmpbuf);
-
-    sprintf(tmpbuf, "LowestOffset: %d\n", mem->e_lowest_offset);
-    strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "ClientListSize: %d\n", mem->nclients);
     strcat(stsbuf, tmpbuf);
@@ -268,7 +238,7 @@ storeToString(const StoreEntry * e)
 	    struct _store_client *sc = &mem->clients[i];
 	    sprintf(tmpbuf, "    Client[%d]: fd = %d\n", i, sc->fd);
 	    strcat(stsbuf, tmpbuf);
-	    sprintf(tmpbuf, "              : last_offset = %d\n", sc->last_offset);
+	    sprintf(tmpbuf, "              : offset = %d\n", (int) sc->offset);
 	    strcat(stsbuf, tmpbuf);
 	    sprintf(tmpbuf, "              : callback = %p\n", sc->callback);
 	    strcat(stsbuf, tmpbuf);
@@ -277,13 +247,10 @@ storeToString(const StoreEntry * e)
 	}
     }
 
-    sprintf(tmpbuf, "SwapOffset: %u\n", mem->swap_offset);
+    sprintf(tmpbuf, "SwapOffset: %u\n", mem->swap_length);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "SwapOutFd: %d\n", mem->swapout_fd);
-    strcat(stsbuf, tmpbuf);
-
-    sprintf(tmpbuf, "SwapInFd: %d\n", mem->swapin_fd);
     strcat(stsbuf, tmpbuf);
 
     strcat(stsbuf, "\n");

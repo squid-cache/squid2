@@ -134,7 +134,6 @@ typedef struct _meta_data_stat {
     int hot_vm;
     int store_entries;
     int mem_obj_count;
-    int mem_data_count;
     int ipcache_count;
     int fqdncache_count;
     int netdb_addrs;
@@ -223,7 +222,6 @@ struct _cacheinfo {
     /* stat table and data */
     char logfilename[SQUID_MAXPATHLEN];		/* logfile name */
     int logfile_fd;		/* logfile fd */
-    int logfile_access;		/* logfile access code */
     /* logfile status {enable, disable} */
     int logfile_status;
 

@@ -311,9 +311,8 @@ static const char *
 describeStatuses(const StoreEntry * entry)
 {
     LOCAL_ARRAY(char, buf, 256);
-    sprintf(buf, "%-13s %-13s %-12s %-12s",
+    sprintf(buf, "%-13s %-12s %-12s",
 	storeStatusStr[entry->store_status],
-	memStatusStr[entry->mem_status],
 	swapStatusStr[entry->swap_status],
 	pingStatusStr[entry->ping_status]);
     return buf;
@@ -328,8 +327,6 @@ describeFlags(const StoreEntry * entry)
     buf[0] = '\0';
     if (BIT_TEST(flags, IP_LOOKUP_PENDING))
 	strcat(buf, "IP,");
-    if (BIT_TEST(flags, DELETE_BEHIND))
-	strcat(buf, "DB,");
     if (BIT_TEST(flags, CLIENT_ABORT_REQUEST))
 	strcat(buf, "CA,");
     if (BIT_TEST(flags, DELAY_SENDING))
@@ -382,8 +379,11 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
     StoreEntry *entry = NULL;
     MemObject *mem;
     int N = 0;
+    FILE *fp;
+    size_t l = 0;
 
-    storeAppendPrintf(sentry, open_bracket);
+    fp = fdopen(sentry->mem_obj->swapout_fd, "w");
+    l += fprintf(fp, open_bracket);
 
     for (entry = storeGetFirst(); entry != NULL; entry = storeGetNext()) {
 	mem = entry->mem_obj;
@@ -393,17 +393,19 @@ stat_objects_get(const cacheinfo * obj, StoreEntry * sentry, int vm_or_not)
 	    getCurrentTime();
 	    debug(18, 3, "stat_objects_get:  Processed %d objects...\n", N);
 	}
-	storeAppendPrintf(sentry, "{%s %dL %-25s %s %3d %2d %8d %s}\n",
+	l += fprintf(fp, "{%s %dL %-25s %s %3d %2d %8d %s}\n",
 	    describeStatuses(entry),
 	    (int) entry->lock_count,
 	    describeFlags(entry),
 	    describeTimestamps(entry),
 	    (int) entry->refcount,
 	    storePendingNClients(entry),
-	    mem ? mem->e_current_len : entry->object_len,
+	    entry->object_len,
 	    entry->url);
     }
-    storeAppendPrintf(sentry, close_bracket);
+    l += fprintf(fp, close_bracket);
+    fflush(fp);
+    sentry->object_len = l;
 }
 
 
@@ -643,7 +645,7 @@ statFiledescriptors(StoreEntry * sentry)
 	"Remote Address",
 	"Description");
     storeAppendPrintf(sentry, "{---- ------ ---- ---- --------------------- ------------------------------}\n");
-    for (i = 0; i < Squid_MaxFD; i++) {
+    for (i = 0; i < SQUID_MAXFD; i++) {
 	if (!fdstat_isopen(i))
 	    continue;
 	j = fdstatGetType(i);
@@ -669,7 +671,8 @@ statFiledescriptors(StoreEntry * sentry)
 	    break;
 	case FD_FILE:
 	    storeAppendPrintf(sentry, "%31s %s}\n",
-		null_string,
+		file_table[i].file_mode == FILE_WRITE ?
+		"Writing" : "Reading",
 		(s = diskFileName(i)) ? s : "-");
 	    break;
 	case FD_PIPE:
@@ -759,8 +762,6 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	appname);
     storeAppendPrintf(sentry, "{\tStorage Swap size:\t%d MB}\n",
 	storeGetSwapSize() >> 10);
-    storeAppendPrintf(sentry, "{\tStorage Mem size:\t%d KB}\n",
-	store_mem_size >> 10);
 
 #if HAVE_GETRUSAGE && defined(RUSAGE_SELF)
     storeAppendPrintf(sentry, "{Resource usage for %s:}\n", appname);
@@ -821,7 +822,7 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 
     storeAppendPrintf(sentry, "{File descriptor usage for %s:}\n", appname);
     storeAppendPrintf(sentry, "{\tMax number of file desc available:    %4d}\n",
-	Squid_MaxFD);
+	SQUID_MAXFD);
     storeAppendPrintf(sentry, "{\tLargest file desc currently in use:   %4d}\n",
 	fdstat_biggest_fd());
     storeAppendPrintf(sentry, "{\tAvailable number of file descriptors: %4d}\n",
@@ -834,8 +835,6 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	meta_data.store_entries);
     storeAppendPrintf(sentry, "{\t%6d StoreEntries with MemObjects}\n",
 	meta_data.mem_obj_count);
-    storeAppendPrintf(sentry, "{\t%6d StoreEntries with MemObject Data}\n",
-	meta_data.mem_data_count);
     storeAppendPrintf(sentry, "{\t%6d Hot Object Cache Items}\n",
 	meta_data.hot_vm);
 
@@ -941,13 +940,13 @@ parameter_get(const cacheinfo * obj, StoreEntry * sentry)
 	"{VM-High %d \"# High water mark hot-vm cache (%%)\"}\n",
 	Config.Mem.highWaterMark);
     storeAppendPrintf(sentry,
-	"{VM-Low %d \"# Low water mark hot-vm cache (%%)\"}\n",
+	"{VM-Low %d \"# Low water-mark hot-vm cache (%%)\"}\n",
 	Config.Mem.lowWaterMark);
     storeAppendPrintf(sentry,
 	"{Swap-Max %d \"# Maximum disk cache (MB)\"}\n",
 	Config.Swap.maxSize / (1 << 10));
     storeAppendPrintf(sentry,
-	"{Swap-High %d \"# High water mark disk cache (%%)\"}\n",
+	"{Swap-High %d \"# High Water mark disk cache (%%)\"}\n",
 	Config.Swap.highWaterMark);
     storeAppendPrintf(sentry,
 	"{Swap-Low %d \"# Low water mark disk cache (%%)\"}\n",
@@ -1139,7 +1138,6 @@ log_append(const cacheinfo * obj,
     x = file_write(obj->logfile_fd,
 	xstrdup(tmp),
 	strlen(tmp),
-	obj->logfile_access,
 	NULL,
 	NULL,
 	xfree);
@@ -1159,8 +1157,6 @@ log_enable(cacheinfo * obj, StoreEntry * sentry)
 	    debug(18, 0, "Cannot open logfile: %s\n", obj->logfilename);
 	    obj->logfile_status = LOG_DISABLE;
 	}
-	obj->logfile_access = file_write_lock(obj->logfile_fd);
-
     }
     /* at the moment, store one char to make a storage manager happy */
     storeAppendPrintf(sentry, " ");
@@ -1287,7 +1283,6 @@ stat_init(cacheinfo ** object, const char *logfilename)
 	    debug(50, 0, "%s: %s\n", obj->logfilename, xstrerror());
 	    fatal("Cannot open logfile.");
 	}
-	obj->logfile_access = file_write_lock(obj->logfile_fd);
     }
     obj->proto_id = urlParseProtocol;
     obj->proto_newobject = proto_newobject;
@@ -1369,7 +1364,6 @@ stat_rotate_log(void)
 	HTTPCacheInfo->logfile_status = LOG_DISABLE;
 	fatal("Cannot open logfile.");
     }
-    HTTPCacheInfo->logfile_access = file_write_lock(HTTPCacheInfo->logfile_fd);
 }
 
 void

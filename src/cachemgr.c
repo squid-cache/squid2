@@ -520,7 +520,6 @@ parse_object(char *string)
 {
     char *tbuf = NULL;
     char *store_status = NULL;
-    char *mem_status = NULL;
     char *swap_status = NULL;
     char *ping_status = NULL;
     char *lock_count = NULL;
@@ -537,8 +536,6 @@ parse_object(char *string)
     tbuf = xstrdup(string);
 
     if ((store_status = strtok(tbuf, w_space)) == NULL)
-	goto parse_obj_done;
-    if ((mem_status = strtok(NULL, w_space)) == NULL)
 	goto parse_obj_done;
     if ((swap_status = strtok(NULL, w_space)) == NULL)
 	goto parse_obj_done;
@@ -582,9 +579,8 @@ parse_object(char *string)
 	atoi(size),
 	atoi(refcount),
 	atoi(clients));
-    printf("%s, %s, %s, %s,<BR>",
+    printf("%s, %s, %s,<BR>",
 	store_status,
-	mem_status,
 	swap_status,
 	ping_status);
     printf("%d Locks, Flags: %s\n",
@@ -848,7 +844,7 @@ main(int argc, char *argv[])
 	break;
     case STATS_U:
 	if (hasTables) {
-	    printf("<table border=1><tr><td><STRONG>Protocol</STRONG><td><STRONG>Object Count</STRONG><td><STRONG>Max KB</STRONG><td><STRONG>Current KB</STRONG><td><STRONG>Min KB</STRONG><td><STRONG>Hit Ratio</STRONG><td><STRONG>Transfer KB/sec</STRONG><td><STRONG>Transfer Count</STRONG><td><STRONG>Transfered KB</STRONG></td>\n");
+	    printf("<table border=1><tr><td><STRONG>Protocol</STRONG><td><STRONG>Object Count</STRONG><td><STRONG>Max KB</STRONG><td><STRONG>Current KB</STRONG><td><STRONG>Min KB</STRONG><td><STRONG>Hit Ratio</STRONG><td><STRONG>Transfer KB/sec</STRONG><td><STRONG>Transfer Count</STRONG><td><STRONG>Transfered KB</STRONG>\n");
 	    in_table = 1;
 	} else {
 	    printf("Protocol  Object  Maximum   Current   Minimum  Hit  Trans   Transfer Transfered\n");

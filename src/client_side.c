@@ -32,7 +32,7 @@
 #include "squid.h"
 
 static void clientRedirectDone _PARAMS((void *data, char *result));
-static void icpHandleIMSReply _PARAMS((int fd, StoreEntry * entry, void *data));
+static void icpHandleIMSReply _PARAMS((int fd, void *data));
 static void clientLookupDstIPDone _PARAMS((int fd, const ipcache_addrs *, void *data));
 static void clientLookupSrcFQDNDone _PARAMS((int fd, const char *fqdn, void *data));
 static void clientLookupDstFQDNDone _PARAMS((int fd, const char *fqdn, void *data));
@@ -440,9 +440,9 @@ icpProcessExpired(int fd, void *data)
 
     entry->refcount++;		/* EXPIRED CASE */
     icpState->entry = entry;
-    icpState->offset = 0;
+    icpState->out.offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
-    storeRegister(entry, fd, icpHandleIMSReply, (void *) icpState);
+    storeRegister(entry, fd, icpHandleIMSReply, (void *) icpState, icpState->out.offset);
     protoDispatch(fd, url, icpState->entry, icpState->request);
 }
 
@@ -474,15 +474,14 @@ clientGetsOldEntry(StoreEntry * new_entry, StoreEntry * old_entry, request_t * r
 
 
 static void
-icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
+icpHandleIMSReply(int fd, void *data)
 {
     icpStateData *icpState = data;
+    StoreEntry *entry = icpState->entry;
     MemObject *mem = entry->mem_obj;
-    char *hbuf;
-    int len;
     int unlink_request = 0;
     StoreEntry *oldentry;
-    debug(33, 3, "icpHandleIMSReply: FD %d '%s'\n", fd, entry->url);
+    debug(33, 3, "icpHandleIMSReply: FD %d '%s'\n", fd, entry->key);
     /* unregister this handler */
     if (entry->store_status == STORE_ABORTED) {
 	debug(33, 3, "icpHandleIMSReply: ABORTED/%s '%s'\n",
@@ -500,42 +499,24 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	storeRegister(entry,
 	    fd,
 	    icpHandleIMSReply,
-	    (void *) icpState);
+	    (void *) icpState,
+	    icpState->out.offset);
 	return;
-#if OLD
-    } else if (mem->reply->code == 304 && !BIT_TEST(icpState->request->flags, REQ_IMS)) {
-#endif
     } else if (clientGetsOldEntry(entry, icpState->old_entry, icpState->request)) {
 	/* We initiated the IMS request, the client is not expecting
-	 * 304, so put the good one back.  First, make sure the old entry
-	 * headers have been loaded from disk. */
+	 * 304, so put the good one back. */
 	oldentry = icpState->old_entry;
-	if (oldentry->mem_obj->e_current_len == 0) {
-	    storeRegister(entry,
-		fd,
-		icpHandleIMSReply,
-		(void *) icpState);
-	    return;
-	}
 	icpState->log_type = LOG_TCP_REFRESH_HIT;
-	hbuf = get_free_8k_page();
-	storeClientCopy(oldentry, 0, 8191, hbuf, &len, fd);
 	if (oldentry->mem_obj->request == NULL) {
 	    oldentry->mem_obj->request = requestLink(mem->request);
 	    unlink_request = 1;
 	}
+	memcpy(oldentry->mem_obj->reply, entry->mem_obj->reply, sizeof(struct _http_reply));
+	storeTimestampsSet(oldentry);
 	storeUnregister(entry, fd);
 	storeUnlockObject(entry);
 	entry = icpState->entry = oldentry;
-	if (mime_headers_end(hbuf)) {
-	    httpParseReplyHeaders(hbuf, entry->mem_obj->reply);
-	    storeTimestampsSet(entry);
-	} else {
-	    debug(33, 1, "icpHandleIMSReply: No end-of-headers, len=%d\n", len);
-	    debug(33, 1, "  --> '%s'\n", entry->url);
-	}
 	entry->timestamp = squid_curtime;
-	put_free_8k_page(hbuf);
 	if (unlink_request) {
 	    requestUnlink(entry->mem_obj->request);
 	    entry->mem_obj->request = NULL;
@@ -550,6 +531,8 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	}
 	storeUnregister(icpState->old_entry, fd);
 	storeUnlockObject(icpState->old_entry);
+	file_close(icpState->swapin_fd);
+	icpState->swapin_fd = storeOpenSwapFileRead(entry);
     }
     icpState->old_entry = NULL;	/* done with old_entry */
     icpSendMoreData(fd, icpState);	/* give data to the client */
@@ -558,16 +541,16 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 int
 modifiedSince(StoreEntry * entry, request_t * request)
 {
-    int object_length;
+    int object_len;
     MemObject *mem = entry->mem_obj;
-    debug(33, 3, "modifiedSince: '%s'\n", entry->url);
+    debug(33, 3, "modifiedSince: '%s'\n", entry->key);
     if (entry->lastmod < 0)
 	return 1;
     /* Find size of the object */
     if (mem->reply->content_length)
-	object_length = mem->reply->content_length;
+	object_len = mem->reply->content_length;
     else
-	object_length = entry->object_len - mem->reply->hdr_sz;
+	object_len = entry->object_len - mem->reply->hdr_sz;
     if (entry->lastmod > request->ims) {
 	debug(33, 3, "--> YES: entry newer than client\n");
 	return 1;
@@ -577,7 +560,7 @@ modifiedSince(StoreEntry * entry, request_t * request)
     } else if (request->imslen < 0) {
 	debug(33, 3, "-->  NO: same LMT, no client length\n");
 	return 0;
-    } else if (request->imslen == object_length) {
+    } else if (request->imslen == object_len) {
 	debug(33, 3, "-->  NO: same LMT, same length\n");
 	return 0;
     } else {

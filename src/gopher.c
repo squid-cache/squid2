@@ -717,14 +717,8 @@ gopherReadReply(int fd, GopherStateData * data)
     int bin;
 
     entry = data->entry;
-    if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
-	/* we can terminate connection right now */
-	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
-	comm_close(fd);
-	return;
-    }
     /* check if we want to defer reading */
-    clen = entry->mem_obj->e_current_len;
+    clen = entry->object_len;
     off = storeGetLowestReaderOffset(entry);
     if ((clen - off) > GOPHER_DELETE_GAP) {
 	if (entry->flag & CLIENT_ABORT_REQUEST) {
@@ -789,7 +783,7 @@ gopherReadReply(int fd, GopherStateData * data)
 	    squid_error_entry(entry, ERR_READ_ERROR, xstrerror());
 	    comm_close(fd);
 	}
-    } else if (len == 0 && entry->mem_obj->e_current_len == 0) {
+    } else if (len == 0 && entry->mem_obj->swap_length == 0) {
 	squid_error_entry(entry,
 	    ERR_ZERO_SIZE_OBJECT,
 	    errno ? xstrerror() : NULL);
@@ -799,8 +793,6 @@ gopherReadReply(int fd, GopherStateData * data)
 	/* flush the rest of data in temp buf if there is one. */
 	if (data->conversion != NORMAL)
 	    gopherEndHTML(data);
-	if (!(entry->flag & DELETE_BEHIND))
-	    storeTimestampsSet(entry);
 	BIT_RESET(entry->flag, DELAY_SENDING);
 	storeComplete(entry);
 	comm_close(fd);
@@ -942,7 +934,7 @@ gopherStart(int unusedfd, const char *url, StoreEntry * entry)
     int sock;
     GopherStateData *data = CreateGopherStateData();
 
-    storeLockObject(data->entry = entry, NULL, NULL);
+    storeLockObject(data->entry = entry);
 
     debug(10, 3, "gopherStart: url: %s\n", url);
 

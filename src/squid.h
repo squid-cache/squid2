@@ -245,14 +245,26 @@ typedef unsigned long u_num32;
 
 #include "ansiproto.h"
 
-#ifdef USE_GNUREGEX
-#include "GNUregex.h"
-#elif HAVE_REGEX_H
+#if HAVE_REGEX_H
 #include <regex.h>
+#else /* HAVE_REGEX_H */
+#include "GNUregex.h"
+#endif /* HAVE_REGEX_H */
+
+/*
+ * So if FD_SETSIZE is less than SQUID_MAXFD we'd probably better
+ * shrink SQUID_MAXFD so that select(2) doesn't puke even though
+ * we might really be able to open more than FD_SETSIZE descriptors.
+ * happy happy happy joy joy joy.
+ */
+#if FD_SETSIZE < SQUID_MAXFD
+#undef SQUID_MAXFD
+#define SQUID_MAXFD FD_SETSIZE
 #endif
 
 typedef void (*SIH) (int, void *);	/* swap in */
 typedef int (*QS) (const void *, const void *);
+typedef void (*PIF) (int, void *);	/* store callback */
 
 #include "cache_cf.h"
 #include "comm.h"
@@ -316,7 +328,6 @@ extern int opt_syslog_enable;	/* main.c */
 extern int opt_catch_signals;	/* main.c */
 extern int opt_no_ipcache;	/* main.c */
 extern int vhost_mode;		/* main.c */
-extern int Squid_MaxFD;		/* main.c */
 extern const char *const version_string;	/* main.c */
 extern const char *const appname;	/* main.c */
 extern struct in_addr local_addr;	/* main.c */

@@ -185,7 +185,7 @@ squid_error_entry(StoreEntry * entry, log_type type, const char *msg)
 	if (entry->mem_obj->reply->code == 0)
 	    entry->mem_obj->reply->code = 400;
     }
-    storeAbort(entry, tmp_error_buf);
+    storeAbort(entry);
 }
 
 

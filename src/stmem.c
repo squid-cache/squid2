@@ -117,211 +117,9 @@ stmem_stats mem_obj_pool;
 #define USE_MEMALIGN 0
 #endif
 
-static int memFreeDataUpto _PARAMS((mem_ptr, int));
-static int memAppend _PARAMS((mem_ptr, const char *, int));
-static int memCopy _PARAMS((const mem_ptr, int, char *, int));
 static void *get_free_thing _PARAMS((stmem_stats *));
 static void put_free_thing _PARAMS((stmem_stats *, void *));
 static void stmemFreeThingMemory _PARAMS((stmem_stats *));
-static void memFree _PARAMS((mem_ptr));
-static void memFreeData _PARAMS((mem_ptr));
-
-static void
-memFree(mem_ptr mem)
-{
-    mem_node lastp, p = mem->head;
-
-    if (p) {
-	while (p && (p != mem->tail)) {
-	    lastp = p;
-	    p = p->next;
-	    if (lastp) {
-		put_free_4k_page(lastp->data);
-		safe_free(lastp);
-	    }
-	}
-
-	if (p) {
-	    put_free_4k_page(p->data);
-	    safe_free(p);
-	}
-    }
-    memset(mem, '\0', sizeof(mem_ptr));		/* nuke in case ref'ed again */
-    safe_free(mem);
-}
-
-static void
-memFreeData(mem_ptr mem)
-{
-    mem_node lastp, p = mem->head;
-
-    while (p != mem->tail) {
-	lastp = p;
-	p = p->next;
-	put_free_4k_page(lastp->data);
-	safe_free(lastp);
-    }
-
-    if (p != NULL) {
-	put_free_4k_page(p->data);
-	safe_free(p);
-	p = NULL;
-    }
-    mem->head = mem->tail = NULL;	/* detach in case ref'd */
-    mem->origin_offset = 0;
-}
-
-static int
-memFreeDataUpto(mem_ptr mem, int target_offset)
-{
-    int current_offset = mem->origin_offset;
-    mem_node lastp, p = mem->head;
-
-    while (p && ((current_offset + p->len) <= target_offset)) {
-	if (p == mem->tail) {
-	    /* keep the last one to avoid change to other part of code */
-	    mem->head = mem->tail;
-	    mem->origin_offset = current_offset;
-	    return current_offset;
-	} else {
-	    lastp = p;
-	    p = p->next;
-	    current_offset += lastp->len;
-	    put_free_4k_page(lastp->data);
-	    safe_free(lastp);
-	}
-    }
-
-    mem->head = p;
-    mem->origin_offset = current_offset;
-    if (current_offset < target_offset) {
-	/* there are still some data left. */
-	return current_offset;
-    }
-    if (current_offset != target_offset) {
-	debug(19, 1, "memFreeDataUpto: This shouldn't happen. Some odd condition.\n");
-	debug(19, 1, "   Current offset: %d  Target offset: %d  p: %p\n",
-	    current_offset, target_offset, p);
-    }
-    return current_offset;
-}
-
-
-/* Append incoming data. */
-static int
-memAppend(mem_ptr mem, const char *data, int len)
-{
-    mem_node p;
-    int avail_len;
-    int len_to_copy;
-
-    debug(19, 6, "memAppend: len %d\n", len);
-
-    /* Does the last block still contain empty space? 
-     * If so, fill out the block before dropping into the
-     * allocation loop */
-
-    if (mem->head && mem->tail && (mem->tail->len < SM_PAGE_SIZE)) {
-	avail_len = SM_PAGE_SIZE - (mem->tail->len);
-	len_to_copy = min(avail_len, len);
-	xmemcpy((mem->tail->data + mem->tail->len), data, len_to_copy);
-	/* Adjust the ptr and len according to what was deposited in the page */
-	data += len_to_copy;
-	len -= len_to_copy;
-	mem->tail->len += len_to_copy;
-    }
-    while (len > 0) {
-	len_to_copy = min(len, SM_PAGE_SIZE);
-	p = xcalloc(1, sizeof(Mem_Node));
-	p->next = NULL;
-	p->len = len_to_copy;
-	p->data = get_free_4k_page();
-	xmemcpy(p->data, data, len_to_copy);
-
-	if (!mem->head) {
-	    /* The chain is empty */
-	    mem->head = mem->tail = p;
-	} else {
-	    /* Append it to existing chain */
-	    mem->tail->next = p;
-	    mem->tail = p;
-	}
-	len -= len_to_copy;
-	data += len_to_copy;
-    }
-    return len;
-}
-
-static int
-memCopy(const mem_ptr mem, int offset, char *buf, int size)
-{
-    mem_node p = mem->head;
-    int t_off = mem->origin_offset;
-    int bytes_to_go = size;
-    char *ptr_to_buf = NULL;
-    int bytes_from_this_packet = 0;
-    int bytes_into_this_packet = 0;
-
-    debug(19, 6, "memCopy: offset %d: size %d\n", offset, size);
-
-    if (p == NULL)
-	fatal_dump("memCopy: NULL mem_node");
-
-    if (size <= 0)
-	return size;
-
-    /* Seek our way into store */
-    while ((t_off + p->len) < offset) {
-	t_off += p->len;
-	if (p->next)
-	    p = p->next;
-	else {
-	    debug(19, 1, "memCopy: Offset: %d is off limit of current object of %d\n", t_off, offset);
-	    return 0;
-	}
-    }
-
-    /* Start copying begining with this block until
-     * we're satiated */
-
-    bytes_into_this_packet = offset - t_off;
-    bytes_from_this_packet = min(bytes_to_go,
-	p->len - bytes_into_this_packet);
-
-    xmemcpy(buf, p->data + bytes_into_this_packet, bytes_from_this_packet);
-    bytes_to_go -= bytes_from_this_packet;
-    ptr_to_buf = buf + bytes_from_this_packet;
-    p = p->next;
-
-    while (p && bytes_to_go > 0) {
-	if (bytes_to_go > p->len) {
-	    xmemcpy(ptr_to_buf, p->data, p->len);
-	    ptr_to_buf += p->len;
-	    bytes_to_go -= p->len;
-	} else {
-	    xmemcpy(ptr_to_buf, p->data, bytes_to_go);
-	    bytes_to_go -= bytes_to_go;
-	}
-	p = p->next;
-    }
-
-    return size;
-}
-
-
-/* Do whatever is necessary to begin storage of new object */
-mem_ptr
-memInit(void)
-{
-    mem_ptr new = xcalloc(1, sizeof(Mem_Hdr));
-    new->tail = new->head = NULL;
-    new->mem_free = memFree;
-    new->mem_free_data = memFreeData;
-    new->mem_free_data_upto = memFreeDataUpto;
-    new->mem_append = memAppend;
-    new->mem_copy = memCopy;
-    return new;
-}
 
 static void *
 get_free_thing(stmem_stats * thing)
@@ -421,12 +219,12 @@ stmemInit(void)
     request_pool.page_size = sizeof(request_t);
     request_pool.total_pages_allocated = 0;
     request_pool.n_pages_in_use = 0;
-    request_pool.max_pages = Squid_MaxFD >> 3;
+    request_pool.max_pages = SQUID_MAXFD >> 3;
 
     mem_obj_pool.page_size = sizeof(MemObject);
     mem_obj_pool.total_pages_allocated = 0;
     mem_obj_pool.n_pages_in_use = 0;
-    mem_obj_pool.max_pages = Squid_MaxFD >> 3;
+    mem_obj_pool.max_pages = SQUID_MAXFD >> 3;
 
 #if PURIFY
     debug(19, 0, "Disabling stacks under purify\n");

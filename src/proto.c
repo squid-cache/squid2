@@ -248,8 +248,6 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	    fatal_dump("protoDispatchDNSHandle: bad ping_status");
 	if (entry->store_status != STORE_PENDING)
 	    fatal_dump("protoDispatchDNSHandle: bad store_status");
-	if (entry->swap_status != NO_SWAP)
-	    fatal_dump("protoDispatchDNSHandle: bad swap_status");
 	entry->ping_status = PING_WAITING;
 	commSetSelect(protoData->fd,
 	    COMM_SELECT_TIMEOUT,
@@ -404,8 +402,6 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
     if (entry == NULL)
 	return 0;
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
-	return 0;
-    if (entry->mem_status != NOT_IN_MEMORY)
 	return 0;
     if (entry->store_status != STORE_PENDING)
 	return 0;

@@ -166,13 +166,17 @@ file_map_bit_set(int file_number)
     return (file_number);
 }
 
+static int available[100];
+static int avail_count = 0;
+
 void
 file_map_bit_reset(int file_number)
 {
     unsigned long bitmask = (1L << (file_number & LONG_BIT_MASK));
-
     fm->file_map[file_number >> LONG_BIT_SHIFT] &= ~bitmask;
     fm->n_files_in_map--;
+    if (avail_count < 100)
+	available[avail_count++] = file_number;
 }
 
 int
@@ -189,6 +193,14 @@ file_map_allocate(int suggestion)
     int word;
     int bit;
     int count;
+
+    while (avail_count > 0) {
+	avail_count--;
+	if (file_map_bit_test(available[avail_count]))
+	    continue;
+	fm->last_file_number_allocated = available[avail_count];
+	return file_map_bit_set(available[avail_count]);
+    }
 
     if (!file_map_bit_test(suggestion)) {
 	fm->last_file_number_allocated = suggestion;
