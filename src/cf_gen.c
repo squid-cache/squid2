@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 1     Startup and Main Loop
+ * DEBUG: none
  * AUTHOR: Max Okumoto
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/

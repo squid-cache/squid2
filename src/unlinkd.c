@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 43    Unlink Daemon
+ * DEBUG: section 12    Unlink Daemon
  * AUTHOR: Duane Wessels
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
@@ -111,7 +111,7 @@ unlinkdClose(void)
 	debug_trap("unlinkdClose: unlinkd_wfd < 0");
 	return;
     }
-    debug(43, 1) ("Closing unlinkd pipe on FD %d\n", unlinkd_wfd);
+    debug(12, 1) ("Closing unlinkd pipe on FD %d\n", unlinkd_wfd);
     file_close(unlinkd_wfd);
     file_close(unlinkd_rfd);
     unlinkd_wfd = -1;
@@ -145,7 +145,7 @@ unlinkdInit(void)
     commSetTimeout(unlinkd_wfd, -1, NULL, NULL);
     commSetNonBlocking(unlinkd_wfd);
     commSetNonBlocking(unlinkd_rfd);
-    debug(43, 0) ("Unlinkd pipe opened on FD %d\n", unlinkd_wfd);
+    debug(12, 0) ("Unlinkd pipe opened on FD %d\n", unlinkd_wfd);
 #endif
 }
 

@@ -2,7 +2,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 19    Memory Primitives
+ * DEBUG: section 13    Memory Pool Management
  * AUTHOR: Harvest Derived
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
