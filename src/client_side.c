@@ -1461,7 +1461,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
 	debug(33, 3) ("clientCacheHit: request aborted\n");
 	return;
-    } else if (size < 0) {
+    } else if (size <= 0) {
 	/* swap in failure */
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
 	debug(33, 3) ("clientCacheHit: swapin failure for %s\n", http->uri);
