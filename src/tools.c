@@ -526,11 +526,14 @@ writePidFile(void)
 {
     FILE *pid_fp = NULL;
     const char *f = NULL;
+    mode_t old_umask;
 
     if ((f = Config.pidFilename) == NULL || !strcmp(Config.pidFilename, "none"))
 	return;
     enter_suid();
+    old_umask = umask(022);
     pid_fp = fopen(f, "w");
+    umask(old_umask);
     leave_suid();
     if (pid_fp != NULL) {
 	fprintf(pid_fp, "%d\n", (int) getpid());
