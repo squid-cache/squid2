@@ -338,6 +338,7 @@ AC_CHECK_FUNCS(\
 	setrlimit \
 	setsid \
 	sigaction \
+	snprintf \
 	srand48 \
 	srandom \
 	sysconf \
@@ -381,7 +382,6 @@ AC_SUBST(LIBREGEX)
 AC_REPLACE_FUNCS(\
 	tempnam \
 	strerror \
-	snprintf \
 )
 
 AC_MSG_CHECKING(Default FD_SETSIZE value)
