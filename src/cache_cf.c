@@ -428,9 +428,9 @@ static void parseCacheHostLine()
 	if (!strcasecmp(token, "proxy-only")) {
 	    proxy_only = 1;
 	} else if (!strcasecmp(token, "weight=")) {
-		weight = atoi(token+7);
+	    weight = atoi(token + 7);
 	} else {
-		self_destruct();
+	    self_destruct();
 	}
     }
     neighbors_cf_add(hostname, type, ascii_port, udp_port, proxy_only, weight);

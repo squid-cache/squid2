@@ -170,10 +170,10 @@ void shut_down(sig)
     debug(21, 1, "Preparing for shutdown...\n");
     serverConnectionsClose();
     ipcacheShutdownServers();
-    for(i=fdstat_biggest_fd(); i >= 0; i--) {
+    for (i = fdstat_biggest_fd(); i >= 0; i--) {
 	f = &fd_table[i];
 	if (f->read_handler || f->write_handler || f->except_handler)
-		comm_set_fd_lifetime(i, 30);
+	    comm_set_fd_lifetime(i, 30);
     }
     shutdown_pending = 1;
     /* reinstall signal handler? */
@@ -419,10 +419,10 @@ void reconfigure(sig)
 #endif
 }
 
-int tvSubMsec (t1, t2)
-	struct timeval t1;
-	struct timeval t2;
+int tvSubMsec(t1, t2)
+     struct timeval t1;
+     struct timeval t2;
 {
     return (t2.tv_sec - t1.tv_sec) * 1000 +
-        (t2.tv_usec - t1.tv_usec) / 1000;
+	(t2.tv_usec - t1.tv_usec) / 1000;
 }

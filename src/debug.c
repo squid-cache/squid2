@@ -113,7 +113,7 @@ static void debugOpenLog(logfile)
 	xfree(debug_log_file);
     debug_log_file = xstrdup(logfile);	/* keep a static copy */
     if (debug_log)
-    	fclose(debug_log);
+	fclose(debug_log);
     debug_log = fopen(logfile, "a+");
     if (!debug_log) {
 	fprintf(stderr, "WARNING: Cannot write log file: %s\n", logfile);
