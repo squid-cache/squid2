@@ -271,6 +271,13 @@ case "$host" in
 		echo "Removing -lbsd for IRIX..."
 		LIBS=`echo $LIBS | sed -e s/-lbsd//`
 		;;
+dnl From: c0032033@ws.rz.tu-bs.de (Joerg Schumacher)
+dnl Date: Thu, 17 Oct 1996 04:09:30 +0200
+dnl Please change your configure script.  AIX doesn't need -lbsd.
+	*-ibm-aix*)
+		echo "Removing -lbsd for AIX..."
+		LIBS=`echo $LIBS | sed -e s/-lbsd//`
+		;;
 	*m88k*)
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"
 		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
