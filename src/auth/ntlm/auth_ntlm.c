@@ -246,9 +246,11 @@ authNTLMInit(authScheme * scheme)
 	authntlm_initialised = 1;
 	if (ntlmauthenticators == NULL)
 	    ntlmauthenticators = helperStatefulCreate("ntlmauthenticator");
-	if (!proxy_auth_cache)
-	    proxy_auth_cache = hash_create((HASHCMP *) strcmp, 7921, hash_string);
-	assert(proxy_auth_cache);
+	if (ntlmConfig->challengeuses) {
+	    if (!proxy_auth_cache)
+		proxy_auth_cache = hash_create((HASHCMP *) strcmp, 7921, hash_string);
+	    assert(proxy_auth_cache);
+	}
 	ntlmauthenticators->cmdline = ntlmConfig->authenticate;
 	ntlmauthenticators->n_to_start = ntlmConfig->authenticateChildren;
 	ntlmauthenticators->ipc_type = IPC_TCP_SOCKET;
