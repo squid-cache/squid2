@@ -11,7 +11,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
+#ifndef _SQUID_FREEBSD_		/* "Obsolete" Markus Stumpf <maex@Space.NET> */
 #include <malloc.h>
+#endif
 #include <memory.h>
 #include <netdb.h>
 #include <pwd.h>
