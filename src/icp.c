@@ -437,6 +437,12 @@ static int icpSendERROR(fd, errorCode, msg, icpState)
 	    fd, port);
 	fatal_dump(tmp_error_buf);
     }
+    if (icpState->entry && icpState->entry->mem_obj) {
+	if (icpState->entry->mem_obj->e_current_len > 0) {
+	    comm_close(fd);
+	    return COMM_OK;
+	}
+    }
     /* Error message for the ascii port */
     buf_len = strlen(msg);
     buf_len = buf_len > 4095 ? 4095 : buf_len;
@@ -1594,9 +1600,9 @@ static int parseHttpRequest(icpState)
     token = strtok(NULL, "");
     for (t = token; t && *t && *t != '\n' && *t != '\r'; t++);
     if (t && *t && t != token) {
-        len = (int) (t - token);
-        memset(http_ver, '\0', 32);
-        strncpy(http_ver, token, len < 31 ? len : 31);
+	len = (int) (t - token);
+	memset(http_ver, '\0', 32);
+	strncpy(http_ver, token, len < 31 ? len : 31);
     } else {
 	strcpy(http_ver, "HTTP/0.9");
     }
@@ -1892,6 +1898,8 @@ int asciiHandleConn(sock, notused)
     struct sockaddr_in peer;
     struct sockaddr_in me;
 
+    memset((char *) &peer, '\0', sizeof(struct sockaddr_in));
+    memset((char *) &me, '\0', sizeof(struct sockaddr_in));
     if ((fd = comm_accept(sock, &peer, &me)) < 0) {
 	debug(12, 1, "asciiHandleConn: FD %d: accept failure: %s\n",
 	    sock, xstrerror());
