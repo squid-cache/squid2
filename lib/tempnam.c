@@ -93,13 +93,13 @@ _tmpnam(void)
 
 	/* Check that the file doesn't exist. */
 	if (access(s, 0) != 0)
-		break;
+	    break;
 
 	/* It exists; retry unless we tried them all. */
 	if (count == lastcount) {
 	    s = NULL;
 	    break;
-    }
+	}
     }
 
     lastcount = count;

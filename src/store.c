@@ -1313,7 +1313,7 @@ storeSwapOutStart(StoreEntry * e)
     MemObject *mem = e->mem_obj;
     /* Suggest a new swap file number */
     if ((swapfileno = storeGetUnusedFileno()) < 0)
-        swapfileno = (swapfileno + 1) % (MAX_SWAP_FILE);
+	swapfileno = (swapfileno + 1) % (MAX_SWAP_FILE);
     /* Record the number returned */
     swapfileno = file_map_allocate(swapfileno);
     storeSwapFullPath(swapfileno, swapfilename);
@@ -1407,7 +1407,7 @@ storeDoRebuildFromDisk(void *data)
 	    storeSwapFullPath(sfileno, swapfile);
 	if (x != 6) {
 	    if (opt_unlink_on_reload && swapfile[0])
-	        storePutUnusedFileno(sfileno);
+		storePutUnusedFileno(sfileno);
 	    continue;
 	}
 	if (sfileno < 0 || sfileno >= MAX_SWAP_FILE)
@@ -2927,7 +2927,7 @@ static void
 storePutUnusedFileno(int fileno)
 {
     if (fileno_stack_count < FILENO_STACK_SIZE)
-        fileno_stack[fileno_stack_count++] = fileno;
+	fileno_stack[fileno_stack_count++] = fileno;
     else
 	unlinkdUnlink(storeSwapFullPath(fileno, NULL));
 }

@@ -60,12 +60,12 @@ main(int argc, char *argv[])
     setbuf(stderr, NULL);
     while (fgets(buf, UNLINK_BUF_LEN, stdin)) {
 	if ((t = strchr(buf, '\n')))
-		*t = '\0';
-fprintf (stderr, "unlinkd: %s\n", buf);
+	    *t = '\0';
+	fprintf(stderr, "unlinkd: %s\n", buf);
 	if (unlink(buf) < 0)
-		perror(buf);
+	    perror(buf);
     }
-fprintf (stderr, "unlinkd exiting\n");
+    fprintf(stderr, "unlinkd exiting\n");
     exit(0);
 }
 
@@ -85,7 +85,8 @@ unlinkdCreate(void)
     pid_t pid;
     int cfd;
     int pfd;
-    int squid_to_unlinkd[2] = {-1,-1};
+    int squid_to_unlinkd[2] =
+    {-1, -1};
     struct timeval slp;
     if (pipe(squid_to_unlinkd) < 0) {
 	debug(50, 0, "unlinkdCreate: pipe: %s\n", xstrerror());
@@ -105,7 +106,7 @@ unlinkdCreate(void)
 	slp.tv_sec = 0;
 	slp.tv_usec = 250000;
 	select(0, NULL, NULL, NULL, &slp);
-        file_open_fd(pfd, "unlinkd socket", FD_PIPE);
+	file_open_fd(pfd, "unlinkd socket", FD_PIPE);
 	return pfd;
     }
     /* child */

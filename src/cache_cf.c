@@ -1651,7 +1651,7 @@ configDoConfigure(void)
 }
 
 /* Parse a time specification from the config file.  Store the
-   result in 'iptr', after converting it to 'units' */
+ * result in 'iptr', after converting it to 'units' */
 static void
 parseTimeLine(int *iptr, const char *units)
 {
@@ -1664,9 +1664,9 @@ parseTimeLine(int *iptr, const char *units)
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
     d = atof(token);
-    m = u;	/* default to 'units' if none specified */
+    m = u;			/* default to 'units' if none specified */
     if ((token = strtok(NULL, w_space)) == NULL) {
-        if ((m = parseTimeUnits(token)) == 0)
+	if ((m = parseTimeUnits(token)) == 0)
 	    self_destruct();
     }
     *iptr = m * d / u;
