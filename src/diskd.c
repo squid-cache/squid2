@@ -58,7 +58,7 @@ do_open(diomsg * r, int len, const char *buf)
      */
     fd = open(buf, r->offset, 0600);
     if (fd < 0) {
-	fprintf(stderr, "%d %p: ", mypid, buf);
+	fprintf(stderr, "%d %s: ", (int) mypid, buf);
 	perror("open");
 	return -errno;
     }
@@ -120,7 +120,7 @@ do_read(diomsg * r, int len, char *buf)
 	fprintf(stderr, "seeking to %d\n", r->offset);
 #endif
 	if (lseek(fs->fd, r->offset, SEEK_SET) < 0) {
-	    fprintf(stderr, "%d FD %d, offset %d: ", mypid, fs->fd, r->offset);
+	    fprintf(stderr, "%d FD %d, offset %d: ", (int) mypid, fs->fd, r->offset);
 	    perror("lseek");
 	}
     }
@@ -130,7 +130,7 @@ do_read(diomsg * r, int len, char *buf)
 	fs->fd, readlen, r->offset, x);
 #endif
     if (x < 0) {
-	fprintf(stderr, "%d FD %d: ", mypid, fs->fd);
+	fprintf(stderr, "%d FD %d: ", (int) mypid, fs->fd);
 	perror("read");
 	return -errno;
     }
@@ -153,7 +153,7 @@ do_write(diomsg * r, int len, const char *buf)
     }
     if (r->offset > -1 && r->offset != fs->offset) {
 	if (lseek(fs->fd, r->offset, SEEK_SET) < 0) {
-	    fprintf(stderr, "%d FD %d, offset %d: ", mypid, fs->fd, r->offset);
+	    fprintf(stderr, "%d FD %d, offset %d: ", (int) mypid, fs->fd, r->offset);
 	    perror("lseek");
 	}
     }
@@ -163,7 +163,7 @@ do_write(diomsg * r, int len, const char *buf)
 #endif
     x = write(fs->fd, buf, wrtlen);
     if (x < 0) {
-	fprintf(stderr, "%d FD %d: ", mypid, fs->fd);
+	fprintf(stderr, "%d FD %d: ", (int) mypid, fs->fd);
 	perror("write");
 	return -errno;
     }
@@ -175,7 +175,7 @@ static int
 do_unlink(diomsg * r, int len, const char *buf)
 {
     if (unlink(buf) < 0) {
-	fprintf(stderr, "%d UNLNK id %d: ", (int) mypid, r->id);
+	fprintf(stderr, "%d UNLNK id %d %s: ", (int) mypid, r->id, buf);
 	perror("unlink");
 	return -errno;
     }
