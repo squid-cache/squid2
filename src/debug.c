@@ -60,12 +60,18 @@ _db_print(va_alist)
 #if STDC_HEADERS
     va_list args2;
     va_list args3;
+#else
+#define args2 args1
+#define args3 args1
+#endif
+    /* give a chance to context-based debugging to print current context */
+    if (!Ctx_Lock)
+	ctx_print();
+#if STDC_HEADERS
     va_start(args1, format);
     va_start(args2, format);
     va_start(args3, format);
 #else
-#define args2 args1
-#define args3 args1
     format = va_arg(args1, const char *);
 #endif
     snprintf(f, BUFSIZ, "%s| %s",
