@@ -918,6 +918,11 @@ proxyhttpStart(const char *url,
     comm_add_close_handler(httpState->fd,
 	httpStateFree,
 	(void *) httpState);
+    commSetSelect(httpState->fd,
+	COMM_SELECT_TIMEOUT,
+	httpReadReplyTimeout,
+	(void *) httpState,
+	Config.connectTimeout);
     request->method = orig_request->method;
     xstrncpy(request->host, e->host, SQUIDHOSTNAMELEN);
     request->port = e->http_port;
@@ -1011,6 +1016,11 @@ httpStart(char *url,
     comm_add_close_handler(httpState->fd,
 	httpStateFree,
 	(void *) httpState);
+    commSetSelect(httpState->fd,
+	COMM_SELECT_TIMEOUT,
+	httpReadReplyTimeout,
+	(void *) httpState,
+	Config.connectTimeout);
     httpState->ip_lookup_pending = 1;
     ipcache_nbgethostbyname(request->host,
 	httpState->fd,
