@@ -388,7 +388,7 @@ comm_poll(int msec)
 	    statCounter.syscalls.polls++;
 	    num = poll(pfds, nfds, msec);
 	    statCounter.select_loops++;
-	    if (num >= 0 || npending >= 0)
+	    if (num >= 0 || npending > 0)
 		break;
 	    if (ignoreErrno(errno))
 		continue;
