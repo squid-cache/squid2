@@ -692,7 +692,7 @@ main(int argc, char **argv)
 	    ftpServerClose();
 	    icmpClose();
 	    _db_rotate_log();	/* cache.log */
-	    storeWriteCleanLog();
+	    storeWriteCleanLogs();
 	    storeRotateLog();	/* store.log */
 	    stat_rotate_log();	/* access.log */
 	    useragentRotateLog();	/* useragent.log */
