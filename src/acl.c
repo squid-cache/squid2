@@ -2247,7 +2247,9 @@ aclDumpGeneric(const acl * a)
 #endif
 #include <net/route.h>
 #include <net/if.h>
+#if HAVE_NETINET_IF_ETHER_H
 #include <netinet/if_ether.h>
+#endif
 
 /*
  * Decode an ascii representation (asc) of an ethernet adress, and place

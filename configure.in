@@ -633,6 +633,7 @@ AC_CHECK_HEADERS( \
 	mount.h \
 	net/if.h \
 	netdb.h \
+	netinet/if_ether.h \
 	netinet/in.h \
 	netinet/tcp.h \
 	netinet/ip_compat.h \
