@@ -286,6 +286,8 @@ icpStateFree(int fd, void *data)
     checkFailureRatio(icpState->log_type,
 	hierData ? hierData->code : HIER_NONE);
     safe_free(icpState->inbuf);
+    if (icpState->buf)
+	put_free_8k_page(icpState->buf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
     safe_free(icpState->request_hdr);
@@ -1704,15 +1706,15 @@ asciiProcessInput(int fd, char *buf, int size, int flag, void *data)
 	if (!urlCheckRequest(request)) {
 	    icpState->log_type = ERR_UNSUP_REQ;
 	    icpState->http_code = 501;
-	    icpState->buf = xstrdup(squid_error_url(icpState->url,
+	    wbuf = xstrdup(squid_error_url(icpState->url,
 		    icpState->method,
 		    ERR_UNSUP_REQ,
 		    fd_table[fd].ipaddr,
 		    icpState->http_code,
 		    NULL));
 	    comm_write(fd,
-		icpState->buf,
-		strlen(icpState->buf),
+		wbuf,
+		strlen(wbuf),
 		30,
 		icpSendERRORComplete,
 		(void *) icpState,
