@@ -540,6 +540,7 @@ helperStatefulShutdown(statefulhelper * hlp)
 {
     dlink_node *link = hlp->servers.head;
     helper_stateful_server *srv;
+    int wfd;
     while (link) {
 	srv = link->data;
 	link = link->next;
@@ -570,8 +571,9 @@ helperStatefulShutdown(statefulhelper * hlp)
 	    continue;
 	}
 	srv->flags.closing = 1;
-	comm_close(srv->wfd);
+	wfd = srv->wfd;
 	srv->wfd = -1;
+	comm_close(wfd);
     }
 }
 
@@ -1049,8 +1051,9 @@ helperStatefulDispatch(helper_stateful_server * srv, helper_stateful_request * r
 	    if (srv->flags.shutdown
 		&& srv->flags.reserved == S_HELPER_FREE
 		&& !srv->deferred_requests) {
-		comm_close(srv->wfd);
+		int wfd = srv->wfd;
 		srv->wfd = -1;
+		comm_close(wfd);
 	    } else {
 		if (srv->queue.head)
 		    helperStatefulServerKickQueue(srv);
