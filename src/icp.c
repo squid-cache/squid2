@@ -1713,7 +1713,7 @@ static void icpDetectClientClose(fd, icpState)
 {
     static char buf[256];
     int n;
-    StoreEntry *entry = NULL;
+    StoreEntry *entry = icpState->entry;
     n = read(fd, buf, 256);
     if (n > 0) {
 	debug(12, 0, "icpDetectClientClose: FD %d, %d unexpected bytes\n",
@@ -1724,18 +1724,37 @@ static void icpDetectClientClose(fd, icpState)
 	    (void *) icpState);
 	return;
     }
-    debug(12, 1, "icpDetectClientClose: FD %d\n", fd);
-    debug(12, 1, "--> URL '%s'\n", icpState->url);
-    if (n < 0)
-	debug(12, 1, "--> ERROR %s\n", xstrerror());
-    CheckQuickAbort(icpState);
-    entry = icpState->entry;
-    if (entry && icpState->url)
-	protoUndispatch(fd, icpState->url, entry, icpState->request);
-    icpFreeBufOrPage(icpState);
-    comm_close(fd);
-    if (entry) {
+    if (n == 0 && entry != NULL && icpState->offset == entry->object_len &&
+	entry->store_status != STORE_PENDING) {
+	/* All data has been delivered */
+	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
+	CacheInfo->proto_touchobject(CacheInfo,
+	    CacheInfo->proto_id(entry->url),
+	    icpState->offset);
+	comm_close(fd);
 	storeUnregister(entry, fd);
-	storeUnlockObject(entry);
+	storeUnlockObject(entry);	/* unlock after comm_close().. */
+    } else {
+	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
+	debug(12, 5, "--> URL '%s'\n", icpState->url);
+	if (n < 0) {
+	    switch (errno) {
+	    case ECONNRESET:
+		debug(12, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
+		break;
+	    default:
+		debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
+		break;
+	    }
+	}
+	CheckQuickAbort(icpState);
+	if (entry && icpState->url)
+	    protoUndispatch(fd, icpState->url, entry, icpState->request);
+	icpFreeBufOrPage(icpState);
+	comm_close(fd);
+	if (entry) {
+	    storeUnregister(entry, fd);
+	    storeUnlockObject(entry);
+	}
     }
 }
