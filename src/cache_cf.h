@@ -83,6 +83,7 @@ extern int setAsciiPortNum _PARAMS((int));
 extern int setCacheSwapMax _PARAMS((int size));
 extern int setUdpPortNum _PARAMS((int));
 extern ip_access_type ip_access_check _PARAMS((struct in_addr, ip_acl *));
+extern int getWAISMax _PARAMS((void));
 
 extern char w_space[];
 
