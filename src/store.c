@@ -584,8 +584,6 @@ storeComplete(StoreEntry * e)
 #endif
     InvokeHandlers(e);
     storeSwapOut(e);
-    if (e->mem_obj->swapout.sio)
-	storeClose(e->mem_obj->swapout.sio);
 }
 
 /*
