@@ -155,6 +155,12 @@ Changes to Squid-2.2 (April 19, 1999):
 	- Fixed configure bug for statvfs() checks.  Configure reports
 	  "test: =: unary operator expected" or similar because an
 	  unquoted variable is not defined.
+	- Fixed aclDestroyAcls() assertion because some ACL types
+	  are not listed in the switch statement.  Occurs for
+	  srcdom_regex and dstdom_regex ACL types during reconfigure.
+	- Typo "applicatoin" in src/mime.conf
+	- The unlinkd daemon never saw the USE_TRUNCATE_NOT_UNLINK
+	  #define because it didn't include squid.h.
 
 Changes to Squid-2.1 (November 16, 1998):
 
