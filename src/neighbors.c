@@ -411,6 +411,7 @@ neighbors_open(int fd)
 	sep = getservbyname("echo", "udp");
 	echo_port = sep ? ntohs((u_short) sep->s_port) : 7;
     }
+    first_ping = Config.peers;
 }
 
 int

@@ -671,7 +671,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    http->out.size);
 	comm_close(fd);
     } else if (icpCheckTransferDone(http)) {
-	debug(12, 1) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
+	debug(12, 5) ("clientWriteComplete: FD %d transfer is DONE\n", fd);
 	/* We're finished case */
 	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
 	    http->request->protocol,
@@ -679,7 +679,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	if (http->entry->mem_obj->reply->content_length <= 0) {
 	    comm_close(fd);
 	} else if (BIT_TEST(http->request->flags, REQ_PROXY_KEEPALIVE)) {
-	    debug(12, 1) ("clientWriteComplete: FD %d Keeping Alive\n", fd);
+	    debug(12, 5) ("clientWriteComplete: FD %d Keeping Alive\n", fd);
 	    conn = http->conn;
 	    httpRequestFree(http);
 	    if ((http = conn->chr)) {
@@ -692,7 +692,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 		    icpSendMoreData,
 		    http);
 	    } else {
-		debug(12, 1) ("clientWriteComplete: FD %d Setting read handler for next request\n", fd);
+		debug(12, 5) ("clientWriteComplete: FD %d Setting read handler for next request\n", fd);
 		fd_note(fd, "Reading next request");
 		commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	    }
