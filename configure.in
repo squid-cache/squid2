@@ -15,7 +15,6 @@ AC_CONFIG_AUX_DIR(aux)
 
 AC_CANONICAL_HOST
 
-XTRA_CFLAGS=''
 CRYPT_LIB=''
 
 dnl use directory structure of cached as default (hack)
@@ -36,10 +35,16 @@ if test -z "$CACHE_FTP_PORT"; then
 fi
 
 dnl Subsitutions
-AC_SUBST(XTRA_CFLAGS)
 AC_SUBST(CACHE_HTTP_PORT)
 AC_SUBST(CACHE_ICP_PORT)
 AC_SUBST(CACHE_FTP_PORT)
+
+dnl Set default LDFLAGS
+if test -z "$LDFLAGS"; then
+	LDFLAGS="-g"
+fi
+
+PREST_CFLAGS="$CFLAGS"
 
 dnl Check for GNU cc
 AC_PROG_CC
@@ -58,6 +63,36 @@ if test "`basename $XXXCC`" != "gcc"; then
 	sleep 5
 fi
 
+dnl Set Default CFLAGS
+if test -z "$PRESET_CFLAGS"; then
+    if test "$GCC" = "yes"; then
+        case "$host" in
+        *-sun-sunos*)
+    	    # sunos has too many warnings for this to be useful
+    	    ;;
+        *)
+    	    CFLAGS="$CFLAGS -Wall"
+    	    ;;
+        esac
+    fi
+
+    dnl Check if ANSI compile options are needed
+    dnl
+    case "$host" in
+	*-sgi-irix*)
+		echo "Adding ANSI compile flags for IRIX..."
+    		if test "$GCC" = "yes"; then
+			[CFLAGS="$CFLAGS -ansi"]
+		else
+			[CFLAGS="$CFLAGS -D__STRICT_ANSI__"]
+		fi
+		;;
+	*-hp-hpux*)
+		echo "Disabling 'ranlib' for HP-UX..."
+		RANLIB=":"
+		;;
+    esac
+fi
 
 dnl Check for programs
 AC_PROG_CPP
@@ -252,47 +287,6 @@ AC_SUBST(XTRA_OBJS)
 XTRA_LIBS="$LIBS"
 LIBS=''
 AC_SUBST(XTRA_LIBS)
-
-dnl Set STD_CFLAGS
-if test -z "$STD_CFLAGS"; then
-    STD_CFLAGS="-g"
-    XXXCC=`echo $CC | awk '{print $1}'`
-    if test "`basename $XXXCC`" = "gcc"; then
-	case "$host" in
-	*-sun-sunos*)
-		# sunos has too many warnings for this to be useful
-		;;
-	*)
-		STD_CFLAGS="$STD_CFLAGS -Wall"
-		;;
-	esac
-    fi
-fi
-AC_SUBST(STD_CFLAGS)
-
-dnl Set STD_LDFLAGS
-if test -z "$STD_LDFLAGS"; then
-    STD_LDFLAGS="-g"
-fi
-AC_SUBST(STD_LDFLAGS)
-
-dnl Last minute system specific modifications
-dnl
-case "$host" in
-	*-sgi-irix*)
-		echo "Adding ANSI compile flags for IRIX..."
-		XXXCC=`echo $CC | awk '{print $1}'`
-		if test "`basename $XXXCC`" = "gcc"; then
-			[XTRA_CFLAGS="$XTRA_CFLAGS -ansi"]
-		else
-			[XTRA_CFLAGS="$XTRA_CFLAGS -D__STRICT_ANSI__"]
-		fi
-		;;
-	*-hp-hpux*)
-		echo "Disabling 'ranlib' for HP-UX..."
-		RANLIB=":"
-		;;
-esac
 
 
 dnl Clean up after OSF/1 core dump bug

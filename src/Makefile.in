@@ -35,17 +35,15 @@ RANLIB		= @RANLIB@
 LN_S		= @LN_S@
 PERL            = @PERL@
 CRYPT_LIB	= @CRYPT_LIB@
-STD_CFLAGS	= @STD_CFLAGS@
-STD_LDFLAGS	= @STD_LDFLAGS@
-XTRA_CFLAGS	= @XTRA_CFLAGS@
+AC_CFLAGS	= @CFLAGS@
+LDFLAGS		= @LDFLAGS@
 XTRA_LIBS	= @XTRA_LIBS@
 XTRA_OBJS 	= @XTRA_OBJS@
 SHELL		= /bin/sh
 
 
 INCLUDE		= -I. -I../include -I$(srcdir)/../include
-CFLAGS 		= $(STD_CFLAGS) $(XTRA_CFLAGS) $(INCLUDE) $(DEFINES)
-LDFLAGS         = $(STD_LDFLAGS)
+CFLAGS 		= $(AC_CFLAGS) $(INCLUDE) $(DEFINES)
 LIBS		= -L../lib -lregex -lmiscutil $(XTRA_LIBS)
 CLIENT_LIBS	= -L../lib -lmiscutil $(XTRA_LIBS)
 
