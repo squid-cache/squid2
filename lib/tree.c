@@ -160,7 +160,7 @@ sprout(tree ** ppr, void *p_data, int *pi_balance, BTREE_CMP * pfi_compare, BTRE
 		    t->left = p1->right;
 		    p1->right = t;
 		    t->bal = 0;
-		    t = p1;
+		    *ppr = t = p1;
 		} else {	/* double LR */
 		    p2 = p1->right;
 		    p1->right = p2->left;
@@ -175,7 +175,7 @@ sprout(tree ** ppr, void *p_data, int *pi_balance, BTREE_CMP * pfi_compare, BTRE
 			p1->bal = -1;
 		    else
 			p1->bal = 0;
-		    t = p2;
+		    *ppr = t = p2;
 		}		/*else */
 		t->bal = 0;
 		*pi_balance = FALSE;
@@ -203,7 +203,7 @@ sprout(tree ** ppr, void *p_data, int *pi_balance, BTREE_CMP * pfi_compare, BTRE
 		    t->right = p1->left;
 		    p1->left = t;
 		    t->bal = 0;
-		    t = p1;
+		    *ppr = t = p1;
 		} else {	/* double RL */
 		    p2 = p1->left;
 		    p1->left = p2->right;
@@ -218,7 +218,7 @@ sprout(tree ** ppr, void *p_data, int *pi_balance, BTREE_CMP * pfi_compare, BTRE
 			p1->bal = 1;
 		    else
 			p1->bal = 0;
-		    t = p2;
+		    *ppr = t = p2;
 		}		/*else */
 		t->bal = 0;
 		*pi_balance = FALSE;
