@@ -183,6 +183,10 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
      * we might still ping the hierarchy */
 
     protoData->ip_lookup_pending = 0;
+    if (entry->store_status == STORE_ABORTED)
+	return;
+    if (entry->store_status != STORE_PENDING)
+	fatal_dump("protoDispatchDNSHandle: bad store_status");
     if (protoData->direct_fetch == DIRECT_YES) {
 	if (ia == NULL) {
 	    protoDNSError(protoData->fd, entry);
@@ -259,10 +263,7 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	/* call neighborUdpPing and start timeout routine */
 	if (entry->ping_status != PING_NONE)
 	    fatal_dump("protoDispatchDNSHandle: bad ping_status");
-	if (entry->store_status != STORE_PENDING)
-	    fatal_dump("protoDispatchDNSHandle: bad store_status");
-	if (entry->swap_status != NO_SWAP)
-	    fatal_dump("protoDispatchDNSHandle: bad swap_status");
+
 	entry->ping_status = PING_WAITING;
 	commSetSelect(protoData->fd,
 	    COMM_SELECT_TIMEOUT,
@@ -632,7 +633,7 @@ matchInsideFirewall(const char *host)
     }
     /* Check for dotted-quads */
     if (Config.firewall_ip_list) {
-	if ((addr.s_addr = inet_addr(host)) != no_addr.s_addr) {
+	if (safe_inet_addr(host, &addr)) {
 	    if (ip_access_check(addr, Config.firewall_ip_list) == IP_DENY)
 		return INSIDE_FIREWALL;
 	}
