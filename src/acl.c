@@ -942,7 +942,7 @@ void aclDestroyAcls()
     AclListTail = &AclList;
 }
 
-void aclDestroyAclList(list)
+static void aclDestroyAclList(list)
      struct _acl_list *list;
 {
     struct _acl_list *next = NULL;

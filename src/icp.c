@@ -740,7 +740,7 @@ static int icpProcessMISS(fd, icpState)
 static void icpLogIcp(queue)
      icpUdpData *queue;
 {
-    icp_common_t *header = (icp_common_t *) queue->msg;
+    icp_common_t *header = (icp_common_t *) (void *) queue->msg;
     char *url = (char *) header + sizeof(icp_common_t);
     CacheInfo->log_append(CacheInfo,
 	url,
@@ -981,7 +981,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
      int len;
 {
     icp_common_t header;
-    icp_common_t *headerp = (icp_common_t *) buf;
+    icp_common_t *headerp = (icp_common_t *) (void *) buf;
     StoreEntry *entry = NULL;
     char *url = NULL;
     char *key = NULL;
@@ -1143,7 +1143,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
      int len;
 {
     icp_common_t header;
-    icp_common_t *headerp = (icp_common_t *) buf;
+    icp_common_t *headerp = (icp_common_t *) (void *) buf;
     StoreEntry *entry = NULL;
     char *url = NULL;
     char *key = NULL;

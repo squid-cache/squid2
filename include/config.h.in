@@ -74,6 +74,9 @@
 #elif defined(__hpux)                           /* HP-UX - SysV-like? */
 #define _SQUID_HPUX_
 #define _SQUID_SYSV_
+#ifdef __STDC__
+#define __STRICT_ANSI__
+#endif
 #elif defined(__osf__)                          /* OSF/1 */
 #define _SQUID_OSF_
 #elif defined(__ultrix)				/* Ultrix */

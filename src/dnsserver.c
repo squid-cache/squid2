@@ -424,4 +424,5 @@ int main(argc, argv)
 	}
     }
     /* NOTREACHED */
+    return 0;
 }

@@ -286,7 +286,6 @@ AC_CHECK_FUNCS(\
 	setrlimit \
 	setsid \
 	sigaction \
-	socketpair \
 	srand48 \
 	strdup \
 	sysconf \

@@ -369,9 +369,9 @@ debug_options ALL,1
 # resonable for your domain, like wwwuser@somewhere.net
 #
 # The reason why this is domainless by default is that the
-# request can be made on the behalf of a user in any domain.
+# request can be made on the behalf of a user in any domain,
 # depending on how the cache is used.
-# Some ftp server also validate that the email adress is valid
+# Some ftp server also validate that the email address is valid
 # (for example perl.com).
 #
 #ftp_user squid@

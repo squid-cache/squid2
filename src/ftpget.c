@@ -1492,7 +1492,7 @@ state_t do_port(r)
 	(naddr >> 16) & 0xFF,
 	(naddr >> 8) & 0xFF,
 	naddr & 0xFF,
-	(port >> 8) & 0xFF,
+	((int) port >> 8) & 0xFF,
 	port & 0xFF);
     SEND_CBUF;
 

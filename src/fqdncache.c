@@ -559,7 +559,7 @@ static int fqdncache_dnsHandleRead(fd, dnsData)
 	    dnsData->ip_inbuf[0] = '\0';
 	    f = dnsData->data;
 	    f->name_count = x->name_count;
-	    for (n = 0; n < f->name_count; n++)
+	    for (n = 0; n < (int) f->name_count; n++)
 		f->names[n] = x->names[n];
 	    f->error_message = x->error_message;
 	    f->status = x->status;

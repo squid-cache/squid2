@@ -264,7 +264,7 @@ edge *getFirstEdge()
     return friends->edges_head;
 }
 
-void neighborRemove(target)
+static void neighborRemove(target)
      edge *target;
 {
     edge *e = NULL;

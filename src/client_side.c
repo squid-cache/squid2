@@ -394,7 +394,7 @@ int icpProcessExpired(fd, icpState)
 }
 
 
-int icpHandleIMSReply(fd, entry, data)
+static int icpHandleIMSReply(fd, entry, data)
      int fd;
      StoreEntry *entry;
      void *data;

@@ -18,6 +18,7 @@ RANLIB		= @RANLIB@
 AC_CFLAGS	= @CFLAGS@
 LDFLAGS		= @LDFLAGS@
 XTRA_LIBS	= @XTRA_LIBS@
+RM		= @RM@
 
 INCLUDE		= -I../include -I$(srcdir)/../include
 UTILOBJS	= rfc850.o \
@@ -37,6 +38,7 @@ CFLAGS		= $(AC_CFLAGS) $(INCLUDE)
 all: $(LIBS)
 
 libmiscutil.a: $(UTILOBJS)
+	$(RM) -f $@
 	ar r $@ $(UTILOBJS)
 	$(RANLIB) $@
 
