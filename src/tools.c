@@ -1021,3 +1021,16 @@ parseEtcHosts(void)
 	wordlistDestroy(&hosts);
     }
 }
+
+int
+getMyPort(void)
+{
+#if USE_SSL
+    if (Config.Sockaddr.http)
+	return Config.Sockaddr.http->s.sin_port;
+    else
+	return Config.Sockaddr.https->s.sin_port;
+#else
+    return Config.Sockaddr.http->s.sin_port;
+#endif
+}
