@@ -1,3 +1,8 @@
+Changes to squid-1.0.15 (September 13, 1996):
+
+	- Fixed stupid bugs from moving icpState->flags to
+	  request->flags.
+
 Changes to squid-1.0.14 (September 13, 1996):
 
 	- Added '#if DELAY_HACK' code for Mike Groeneweg
