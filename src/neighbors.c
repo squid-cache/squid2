@@ -830,7 +830,7 @@ neighborUp(const peer * p)
 	return 0;
     if (squid_curtime - p->stats.last_query > Config.Timeout.deadPeer)
 	return 1;
-    if (p->stats.last_query - p->stats.last_reply >= Config.Timeout.deadPeer)
+    if (p->stats.last_query - p->stats.last_reply > Config.Timeout.deadPeer)
 	return 0;
     return 1;
 }
