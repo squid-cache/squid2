@@ -31,7 +31,7 @@
 
 typedef void (*RH) _PARAMS((void *data, char *result));
 
-extern void redirectStart _PARAMS((char *url, int fd, RH, void *data));
+extern void redirectStart _PARAMS((int cfd, icpStateData *, RH, void *));
 extern void redirectOpenServers _PARAMS((void));
 extern void redirectShutdownServers _PARAMS((void));
 extern void redirectStats _PARAMS((StoreEntry *));
