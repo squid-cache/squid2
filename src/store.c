@@ -425,10 +425,6 @@ storeCreateEntry(const char *url, const char *log_url, int flags, method_t metho
 	EBIT_CLR(e->flag, ENTRY_CACHABLE);
 	storeReleaseRequest(e);
     }
-    if (EBIT_TEST(flags, REQ_HIERARCHICAL))
-	EBIT_SET(e->flag, HIERARCHICAL);
-    else
-	EBIT_CLR(e->flag, HIERARCHICAL);
     e->store_status = STORE_PENDING;
     storeSetMemStatus(e, NOT_IN_MEMORY);
     e->swap_status = SWAPOUT_NONE;

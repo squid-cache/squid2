@@ -96,7 +96,7 @@ peerSelectIcpPing(request_t * request, int direct, StoreEntry * entry)
     if (entry->ping_status != PING_NONE)
 	return 0;
     assert(direct != DIRECT_YES);
-    if (!EBIT_TEST(entry->flag, HIERARCHICAL) && direct != DIRECT_NO)
+    if (!EBIT_TEST(request->flags, REQ_HIERARCHICAL) && direct != DIRECT_NO)
 	return 0;
     if (EBIT_TEST(entry->flag, KEY_PRIVATE) && !neighbors_do_private_keys)
 	if (direct != DIRECT_NO)
