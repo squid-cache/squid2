@@ -1902,7 +1902,7 @@ parse_refreshpattern(refresh_t ** head)
 static int
 check_null_refreshpattern(refresh_t * data)
 {
-    return data != NULL;
+    return data == NULL;
 }
 
 static void
