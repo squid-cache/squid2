@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.16">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.20">
  <TITLE>Squid 2.5 release notes</TITLE>
 </HEAD>
 <BODY>
@@ -132,12 +132,24 @@ exacly where you want to have them in your system.</LI>
 </DL>
 </P>
 
-<H2><A NAME="s3">3. Known limitations</A></H2>
+<H2><A NAME="s3">3. Known issues and limitations</A></H2>
 
-<P>There is a few limitations to this version of Squid that we hope to correct in a later release</P>
+<P>There is a few limitations and issues in this version of Squid which we hope to correct in a later release</P>
 <P>
 <DL>
 <DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access </P>
+<DT><B>Bug #616</B><DD><P>Negative cached 404 replies with VARY header never matches</P>
+<DT><B>Bug #592</B><DD><P>always/never_direct and NTLM authentication</P>
+<DT><B>Bug #585</B><DD><P>cache_peer_access fails with NTLM authentication</P>
+<DT><B>Bug #581</B><DD><P>acl max_user_ip and multiple authentication schemes</P>
+<DT><B>Bug #513</B><DD><P>squid -F is starting server sockets to early</P>
+<DT><B>Bug #518</B><DD><P>wb_auth fails on TRU64 and probably other 64 bit platforms</P>
+<DT><B>Bug #500</B><DD><P>delay_pools stops working on -k reconfigure</P>
+<DT><B>Bug #457</B><DD><P>does not handle swap.state corruption properly</P>
+<DT><B>Bug #426</B><DD><P>Vary: * does not work</P>
+<DT><B>Bug #410</B><DD><P>unstable if runs out of disk space</P>
+<DT><B>Bug #355</B><DD><P>diskd may appear slow on low loads</P>
+<DT><B>Bug #267</B><DD><P>Form POSTing troubles with NTLM authentication</P>
 </DL>
 </P>
 
@@ -168,10 +180,9 @@ helpers should be built for if different than the above versions.</LI>
 
 <H2><A NAME="s5">5. Key changes squid-2.5.STABLE2 to 2.5.STABLE3:</A></H2>
 
-<P>Squid-2.5.STABLE3 is a bugfix release. No changes to configuration
-or usage. See the list of 
+<P>Squid-2.5.STABLE3 is a bugfix release. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE2">squid-2.5.STABLE2 patches</A> and the 
-<A HREF="ChangeLog">ChangeLog</A> file for details.</P>
+<A HREF="ChangeLog">ChangeLog</A> file for details on corrected issues.</P>
 
 </BODY>
 </HTML>
