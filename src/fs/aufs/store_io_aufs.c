@@ -363,7 +363,7 @@ storeAufsReadDone(int fd, const char *buf, int len, int errflag, void *my_data)
 
 #if ASYNC_WRITE
 static void
-storeAufsWriteDone(int fd, void *my_data, int len, int errflag)
+storeAufsWriteDone(int fd, void *my_data, const char *buf, int aio_return, int aio_errno)
 #else
 static void
 storeAufsWriteDone(int fd, int errflag, size_t len, void *my_data)
@@ -372,16 +372,17 @@ storeAufsWriteDone(int fd, int errflag, size_t len, void *my_data)
     static int loop_detect = 0;
     storeIOState *sio = my_data;
     squidaiostate_t *aiostate = (squidaiostate_t *) sio->fsstate;
-    debug(79, 3) ("storeAufsWriteDone: dirno %d, fileno %08X, FD %d, len %ld, err=%d\n",
-	sio->swap_dirn, sio->swap_filen, fd, (long int) len, errflag);
 #if ASYNC_WRITE
+    int errflag;
+    int len = aio_return;
     /* Translate from errno to Squid disk error */
-    errno = errflag;
-    if (errflag)
-	errflag = errno == ENOSPC ? DISK_NO_SPACE_LEFT : DISK_ERROR;
+    if (aio_errno)
+	errflag = aio_errno == ENOSPC ? DISK_NO_SPACE_LEFT : DISK_ERROR;
     else
 	errflag = DISK_OK;
 #endif
+    debug(79, 3) ("storeAufsWriteDone: dirno %d, fileno %08X, FD %d, len %ld, err=%d\n",
+	sio->swap_dirn, sio->swap_filen, fd, (long int) len, errflag);
     assert(++loop_detect < 10);
     aiostate->flags.writing = 0;
     if (errflag) {
@@ -393,7 +394,7 @@ storeAufsWriteDone(int fd, int errflag, size_t len, void *my_data)
     sio->offset += len;
 #if ASYNC_WRITE
     if (!storeAufsKickWriteQueue(sio))
-	0;
+	(void) 0;
     else if (aiostate->flags.close_request)
 	storeAufsIOCallback(sio, errflag);
 #else
