@@ -37,7 +37,6 @@ static int binaryPortNumOverride = 0;
 static int udpPortNumOverride = 0;
 
 void raise_debug_lvl(), reset_debug_lvl();
-void death(), deathb(), shut_down(), rotate_logs();
 void sig_child();
 
 int main(argc, argv)
@@ -214,7 +213,7 @@ Usage: cached [-Rsehvz] [-f config-file] [-d debug-level] [-[apu] port]\n\
 
     if (catch_signals) {
 	signal(SIGSEGV, death);
-	signal(SIGBUS, deathb);
+	signal(SIGBUS, death);
     }
     signal(SIGPIPE, SIG_IGN);
     signal(SIGCHLD, sig_child);
