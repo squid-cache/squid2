@@ -28,3 +28,14 @@ all:
 		echo "Making $@ in $$dir..."; \
 		(cd $$dir ; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@); \
 	done
+
+clean:
+
+
+realclean: clean
+	rm -f config.status config.cache config.log
+	@for dir in $(SUBDIRS); do \
+		echo Making $@ in $$dir; \
+		(cd $$dir; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@); \
+	done
+
