@@ -154,7 +154,7 @@ typedef struct _FileEntry {
     enum {
 	NO_WRT_PENDING, WRT_PENDING
     } write_pending;
-    void (*wrt_handle) ();
+    FILE_WRITE_HD wrt_handle;
     void *wrt_handle_data;
     dwrite_q *write_q;
     dwrite_q *write_q_tail;
