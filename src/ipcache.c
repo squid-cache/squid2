@@ -657,7 +657,7 @@ int ipcache_parsebuffer(buf, offset, dnsData)
 		    if (ipcount == 0) {
 			i->entry.h_addr_list = NULL;
 		    } else {
-			i->entry.h_addr_list = xcalloc(ipcount+1, sizeof(char *));
+			i->entry.h_addr_list = xcalloc(ipcount + 1, sizeof(char *));
 		    }
 
 		    /* get ip addresses */

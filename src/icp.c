@@ -428,7 +428,7 @@ static int icpGetHeadersForIMS(fd, icpState)
 
     if (max_len <= 0) {
 	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n",
-		entry->key ? entry->key : entry->url);
+	    entry->key ? entry->key : entry->url);
 	icpFreeBufOrPage(icpState);
 	icpState->offset = 0;
 	return icpProcessMISS(fd, icpState);
