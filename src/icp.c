@@ -1523,10 +1523,12 @@ void asciiProcessInput(fd, buf, size, flag, icpState)
 	    RequestMethodStr[icpState->method],
 	    icpState->url);
 	fd_note(fd, client_msg);
+#ifdef DETECT_CLIENT_CLOSE
 	comm_set_select_handler(fd,
 	    COMM_SELECT_READ,
 	    (PF) icpDetectClientClose,
 	    (void *) icpState);
+#endif
 	icp_hit_or_miss(fd, icpState);
     } else if (parser_return_code == 0) {
 	/*
@@ -1723,14 +1725,12 @@ static void icpDetectClientClose(fd, icpState)
 	    (void *) icpState);
 	return;
     }
-    debug(12, 1, "icpDetectClientClose: FD %d: %s\n", fd, xstrerror());
+    if (n < 0)
+        debug(12, 1, "icpDetectClientClose: FD %d: %s\n", fd, xstrerror());
     /* Clean up client side statemachine */
     entry = icpState->entry;
     icpFreeBufOrPage(icpState);
     comm_close(fd);
-    /* If storeAbort() has been called, then we don't execute this.
-     * If we timed out on the client side, then we need to
-     * unregister/unlock */
     if (entry) {
 	storeUnregister(entry, fd);
 	storeUnlockObject(entry);
