@@ -37,7 +37,6 @@ storeUfsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     sio->type.ufs.flags.writing = 0;
     if (fd < 0) {
 	debug(78, 3) ("storeUfsOpenDone: got failure (%d)\n", errno);
-	storeUfsIOCallback(sio, errno);
 	return NULL;
     }
     sio->type.ufs.fd = fd;

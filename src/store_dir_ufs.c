@@ -321,7 +321,7 @@ storeRebuildFromDirectory(void *data)
 	store_open_disk_fd--;
 	fd = -1;
 	swap_hdr_len = 0;
-#if USE_TRUNCATE_NOT_UNLINK
+#if USE_TRUNCATE
 	if (sb.st_size == 0)
 	    continue;
 #endif
@@ -986,7 +986,7 @@ storeUfsDirClean(int swap_index)
     struct dirent *de = NULL;
     LOCAL_ARRAY(char, p1, MAXPATHLEN + 1);
     LOCAL_ARRAY(char, p2, MAXPATHLEN + 1);
-#if USE_TRUNCATE_NOT_UNLINK
+#if USE_TRUNCATE
     struct stat sb;
 #endif
     int files[20];
@@ -1024,7 +1024,7 @@ storeUfsDirClean(int swap_index)
 	    if (storeDirMapBitTest(fn))
 		if (storeUfsFilenoBelongsHere(fn, D0, D1, D2))
 		    continue;
-#if USE_TRUNCATE_NOT_UNLINK
+#if USE_TRUNCATE
 	if (!stat(de->d_name, &sb))
 	    if (sb.st_size == 0)
 		continue;
@@ -1040,7 +1040,7 @@ storeUfsDirClean(int swap_index)
     for (n = 0; n < k; n++) {
 	debug(36, 3) ("storeDirClean: Cleaning file %08X\n", files[n]);
 	snprintf(p2, MAXPATHLEN + 1, "%s/%08X", p1, files[n]);
-#if USE_TRUNCATE_NOT_UNLINK
+#if USE_TRUNCATE
 	truncate(p2, 0);
 #else
 	safeunlink(p2, 0);

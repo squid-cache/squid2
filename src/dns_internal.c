@@ -35,6 +35,8 @@
 
 #include "squid.h"
 
+#if !USE_DNSSERVERS
+
 #ifndef _PATH_RESOLV_CONF
 #define _PATH_RESOLV_CONF "/etc/resolv.conf"
 #endif
@@ -412,3 +414,5 @@ idnsPTRLookup(const struct in_addr addr, IDNSCB * callback, void *data)
     q->start_t = current_time;
     idnsSendQuery(q);
 }
+
+#endif /* !USE_DNSSERVERS */

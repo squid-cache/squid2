@@ -117,9 +117,16 @@ storeSwapOut(StoreEntry * e)
      * will be a chunk of the data which is not in memory and is
      * not yet on disk.
      */
-    if (storeSwapOutAble(e))
+    if (storeSwapOutAble(e)) {
 	if ((on_disk = storeSwapOutObjectBytesOnDisk(mem)) < new_mem_lo)
 	    new_mem_lo = on_disk;
+    }
+    /*
+     * Else its not swap-able, and if we're freeing its data then
+     * we must make it private
+     */
+    else if (new_mem_lo > 0)
+	storeReleaseRequest(e);
     stmemFreeDataUpto(&mem->data_hdr, new_mem_lo);
     mem->inmem_lo = new_mem_lo;
     if (e->swap_status == SWAPOUT_WRITING)

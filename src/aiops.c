@@ -349,7 +349,7 @@ aio_queue_request(aio_request_t * requestp)
 	    queue_low = request_queue_len;
 	if (squid_curtime >= (last_warn + 15) &&
 	    squid_curtime >= (high_start + 1)) {
-	    debug(43, 1) ("aio_queue_request: WARNING - Running out of I/O theads\n");
+	    debug(43, 1) ("aio_queue_request: WARNING - Running out of I/O threads\n");
 	    debug(43, 2) ("aio_queue_request: Queue Length: current=%d, high=%d, low=%d, duration=%d\n",
 		request_queue_len, queue_high, queue_low, squid_curtime - high_start);
 	    debug(43, 1) ("aio_queue_request: Perhaps you should increase NUMTHREADS\n");
