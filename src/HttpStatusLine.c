@@ -43,15 +43,15 @@ void
 httpStatusLineInit(HttpStatusLine * sline)
 {
     http_version_t version;
-    httpBuildVersion(&version,0,0);
-    httpStatusLineSet(sline, version , HTTP_STATUS_NONE, NULL);
+    httpBuildVersion(&version, 0, 0);
+    httpStatusLineSet(sline, version, HTTP_STATUS_NONE, NULL);
 }
 
 void
 httpStatusLineClean(HttpStatusLine * sline)
 {
     http_version_t version;
-    httpBuildVersion(&version,0,0);
+    httpBuildVersion(&version, 0, 0);
     httpStatusLineSet(sline, version, HTTP_INTERNAL_SERVER_ERROR, NULL);
 }
 
@@ -72,11 +72,11 @@ httpStatusLinePackInto(const HttpStatusLine * sline, Packer * p)
 {
     assert(sline && p);
     debug(57, 9) ("packing sline %p using %p:\n", sline, p);
-    debug(57, 9) (HttpStatusLineFormat, sline->version.major, 
-        sline->version.minor, sline->status,
+    debug(57, 9) (HttpStatusLineFormat, sline->version.major,
+	sline->version.minor, sline->status,
 	sline->reason ? sline->reason : httpStatusString(sline->status));
-    packerPrintf(p, HttpStatusLineFormat, sline->version.major, 
-         sline->version.minor, sline->status, httpStatusLineReason(sline));
+    packerPrintf(p, HttpStatusLineFormat, sline->version.major,
+	sline->version.minor, sline->status, httpStatusLineReason(sline));
 }
 
 /* pack fields using Packer */
@@ -90,8 +90,8 @@ httpStatusLineParse(HttpStatusLine * sline, const char *start, const char *end)
     start += 5;
     if (!xisdigit(*start))
 	return 0;
-    if (sscanf(start, "%d.%d", &sline->version.major, &sline->version.minor)!=2){
-        debug(57, 7) ("httpStatusLineParse: Invalid HTTP identifier.\n");
+    if (sscanf(start, "%d.%d", &sline->version.major, &sline->version.minor) != 2) {
+	debug(57, 7) ("httpStatusLineParse: Invalid HTTP identifier.\n");
     }
     if (!(start = strchr(start, ' ')))
 	return 0;

@@ -55,7 +55,7 @@ internalStart(request_t * request, StoreEntry * entry)
 #else
 	const char *msgbuf = "This cache does not suport Cache Digests.\n";
 #endif
-        httpBuildVersion(&version,1,0);
+	httpBuildVersion(&version, 1, 0);
 	httpReplySetHeaders(entry->mem_obj->reply,
 	    version,
 	    HTTP_NOT_FOUND,
@@ -105,8 +105,8 @@ internalRemoteUri(const char *host, u_short port, const char *dir, const char *n
      * domains
      */
     if (Config.appendDomain && !strchr(lc_host, '.'))
-        strncat(lc_host, Config.appendDomain, SQUIDHOSTNAMELEN - 
-        strlen(lc_host) - 1);
+	strncat(lc_host, Config.appendDomain, SQUIDHOSTNAMELEN -
+	    strlen(lc_host) - 1);
     /* build uri in mb */
     memBufReset(&mb);
     memBufPrintf(&mb, "http://%s", lc_host);

@@ -422,7 +422,7 @@ mimeLoadIconFile(const char *icon)
     storeBuffer(e);
     e->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
     httpReplyReset(reply = e->mem_obj->reply);
-    httpBuildVersion(&version,1,0);
+    httpBuildVersion(&version, 1, 0);
     httpReplySetHeaders(reply, version, HTTP_OK, NULL,
 	type, (int) sb.st_size, sb.st_mtime, -1);
     reply->cache_control = httpHdrCcCreate();
