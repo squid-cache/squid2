@@ -204,6 +204,7 @@ flexible scheme.  First you must define a set of access control lists.
 There are N types of lists:
 
 	'src'		client IP address
+	'dst'		server IP address**
 	'method'	method of the request (eg, GET, POST)
 	'proto'		protocol of the request (eg HTTP, WAIS)
 	'domain'	domain of the URL request (eg .foo.org)
@@ -245,6 +246,13 @@ matches any following lines are not considered at all.
 port.  However, it is not yet fully implemented.  It is only able to check
 'src' and 'method' ACLs.
 
+**Note, the 'dst' ACL type has been added for version 1.0.beta12.  In
+that version it is implemented in a "lazy" manner.  If the URL hostname
+is not already in the IP cache, the ACL checks will not match it, but
+they will start a DNS lookup so that it will likely be present for
+future ACL checks.  This means some users may occasionally get oddball
+results.  For example, a page may fail the first time, but succeed on
+the second try, or vice-versa.
 
 Changes to cache shutdown
 ==============================================================================
