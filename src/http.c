@@ -94,6 +94,35 @@ static void httpLifetimeExpire(fd, data)
     comm_close(fd);
 }
 
+/* This object can be cached for a long time */
+static void httpMakePublic(entry)
+     StoreEntry *entry;
+{
+    entry->expires = squid_curtime + ttlSet(entry);
+    if (BIT_TEST(entry->flag, CACHABLE))
+	storeSetPublicKey(entry);
+}
+
+/* This object should never be cached at all */
+static void httpMakePrivate(entry)
+     StoreEntry *entry;
+{
+    storeSetPrivateKey(entry);
+    storeExpireNow(entry);
+    BIT_RESET(entry->flag, CACHABLE);
+    storeReleaseRequest(entry); /* delete object when not used */
+}
+    
+/* This object may be negatively cached */
+static void httpCacheNegatively(entry)
+     StoreEntry *entry;
+{
+    entry->expires = squid_curtime + getNegativeTTL();
+    if (BIT_TEST(entry->flag, CACHABLE))
+	storeSetPublicKey(entry);
+    /* XXX: mark object "not to store on disk"? */
+}
+
 
 static void httpProcessReplyHeader(data, buf, size)
      HttpData *data;
@@ -192,50 +221,47 @@ static void httpProcessReplyHeader(data, buf, size)
 	if (reply->code)
 	    debug(11, 3, "httpProcessReplyHeader: HTTP CODE: %d\n", reply->code);
 	switch (reply->code) {
-	case 200:		/* OK */
-	case 203:		/* Non-Authoritative Information */
-	case 300:		/* Multiple Choices */
-	case 301:		/* Moved Permanently */
-	case 410:		/* Gone */
-	    /* These can be cached for a long time, make the key public */
-	    entry->expires = squid_curtime + ttlSet(entry);
-	    if (BIT_TEST(entry->flag, CACHABLE))
-		storeSetPublicKey(entry);
+	/* Responses that are cacheable */
+	case 200:	/* OK */
+	case 203:	/* Non-Authoritative Information */
+	case 300:	/* Multiple Choices */
+	case 301:	/* Moved Permanently */
+	case 410:	/* Gone */
+	    /* These can be cached for a long time */
+	    httpMakePublic(entry);
 	    break;
-	case 302:		/* Moved Temporarily */
-/* 
- * From:    carson@lehman.com
- * To:      squid@nlanr.net
- * Subject: Incorrect caching behavior (again!)
- * Date:    Sat, 18 May 1996 16:21:16 EDT
- * ==============================================================================
- * 
- * 
- * Squid is caching 302 temporary redirects (albeit for a short time). This is
- * FORBIDDEN. It breaks cookie authentication and is in violation of the HTTP
- * 1.1 draft.
- * 
- * <sigh> Duane - how many times do I have to explain this to you?
- * 
- * --
- * Carson Gaspar -- carson@cs.columbia.edu carson@lehman.com
- * http://www.cs.columbia.edu/~carson/home.html
- * <This is the boring business .sig - no outre sayings here>
- */
-	case 304:		/* Not Modified */
-	case 401:		/* Unauthorized */
-	case 407:		/* Proxy Authentication Required */
-	    /* These should never be cached at all */
-	    storeSetPrivateKey(entry);
-	    storeExpireNow(entry);
-	    BIT_RESET(entry->flag, CACHABLE);
-	    storeReleaseRequest(entry);
+	/* Responses that only are cacheable if the server says so */
+	case 302:	/* Moved temporarily */
+	    if(*reply->expires)
+		httpMakePublic(entry);
+	    else
+	    	httpMakePrivate(entry);
 	    break;
-	default:
-	    /* These can be negative cached, make key public */
-	    entry->expires = squid_curtime + getNegativeTTL();
-	    if (BIT_TEST(entry->flag, CACHABLE))
-		storeSetPublicKey(entry);
+	/* Errors can be negatively cached */
+	case 204:	/* No Content */
+	case 305:	/* Use Proxy (proxy redirect) */
+	case 400:	/* Bad Request */
+	case 403:	/* Forbidden */
+	case 404:	/* Not Found */
+	case 405:	/* Method Now Allowed */
+	case 414:	/* Request-URI Too Long */
+	case 500:	/* Internal Server Error */
+	case 501:	/* Not Implemented */
+	case 502:	/* Bad Gateway */
+	case 503:	/* Service Unavailable */
+	case 504:	/* Gateway Timeout */
+	    if(*reply->expires)
+		httpMakePublic(entry);
+	    else
+	    	httpCacheNegatively(entry);
+	    break;
+	/* Some responses can never be cached */
+	case 303:	/* See Other */
+	case 304:	/* Not Modified */
+	case 401:	/* Unauthorized */
+	case 407:	/* Proxy Authentication Required */
+	default:	/* Unknown status code */
+	    httpMakePrivate(entry);
 	    break;
 	}
     }
