@@ -304,6 +304,12 @@ peerSelectFoo(ps_state * psstate)
 	psstate->single_parent = p->in_addr;
 	debug(44, 3) ("peerSelect: found single parent, skipping ICP query\n");
     }
+    if (!request->flags.hierarchical && direct != DIRECT_NO) {
+	debug(44, 3) ("peerSelectFoo: DIRECT for non-hierarchical request\n");
+	hierarchyNote(&request->hier, DIRECT, &psstate->ping, request->host);
+	peerSelectCallback(psstate, NULL);
+	return;
+    }
 #if USE_CACHE_DIGESTS
     else if ((p = neighborsDigestSelect(request, entry))) {
 	debug(44, 2) ("peerSelect: Using Cache Digest\n");
