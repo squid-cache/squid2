@@ -867,5 +867,8 @@
 /* Version number of package */
 #undef VERSION
 
+/* Enable hostname sanity checks */
+#undef CHECK_HOSTNAMES
+
 
 #endif /* __CONFIGURE_H__ */
