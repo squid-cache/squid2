@@ -735,8 +735,6 @@ logsFlush(void)
 {
     if (debug_log)
 	fflush(debug_log);
-    if (cache_useragent_log)
-	fflush(cache_useragent_log);
 }
 
 char *

@@ -32,7 +32,6 @@
  */
 
 extern FILE *debug_log;		/* NULL */
-extern FILE *cache_useragent_log;	/* NULL */
 extern SquidConfig Config;
 extern SquidConfig2 Config2;
 extern char *ConfigFile;	/* NULL */
