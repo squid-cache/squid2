@@ -59,6 +59,7 @@ void stat_utilization_get(obj, sentry)
 
     storeAppend(sentry, open_bracket, (int) strlen(open_bracket));
 
+    strcpy(p->protoname,"TOTAL");
     p->object_count = 0;
     p->kb.max = 0;
     p->kb.min = 0;
@@ -1008,6 +1009,9 @@ void stat_init(object, logfilename)
 	case PROTO_FTP:
 	    strcpy(obj->proto_stat_data[i].protoname, "FTP");
 	    break;
+        case PROTO_WAIS:
+            strcpy(obj->proto_stat_data[i].protoname, "WAIS");
+            break;
 	case PROTO_CACHEOBJ:
 	    strcpy(obj->proto_stat_data[i].protoname, "CACHE_OBJ");
 	    break;
