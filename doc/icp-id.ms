@@ -63,8 +63,8 @@ Introduction
 .sp
 .in 3
 
-ICP is a packet format used for communicating between WWW caches.
-ICP is primarily used in a cache hierarchy to locate specific 
+ICP is a message format used for communicating between WWW caches.
+ICP is primarily used in a cache mesh to locate specific 
 WWW objects in neighbor caches.  One cache will send an ICP query
 to its neighbors.  The neighbors will send back ICP replies indicating
 a ``HIT'' or a ``MISS.''  ICP can also be used to multiplex transmission
@@ -74,7 +74,7 @@ In current practice, ICP is implemented on top of UDP, but there
 is no requirement that it be limited to UDP.  There are some functions
 which work best over UDP, and others which work best over TCP.
 
-In addition to it use as an object location protocol, the packets ICP
+In addition to it use as an object location protocol, the messages ICP
 are often used for ``cache selection.''  Failure to receive a reply
 from a cache may inidicate a network or system failure.  The order in
 which the replies arrive may be used to select the ``closest''
@@ -83,14 +83,14 @@ neighbor.
 .sp
 .in 0
 .ne 4
-ICP Packet Format
+ICP Message Format
 .sp
 .in 3
 .nf
  0                   1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|     Opcode    |    Version    |        Packet Length        |
+|     Opcode    |    Version    |        Message Length       |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                         Request Number                      |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -109,7 +109,7 @@ ICP Packet Format
 .fi
 
 .in 3
-NOTE: All fields must be converted to network byte order before transmission.
+NOTE: All fields must be represented in network byte order.
 
 .in 3
 Opcode
@@ -123,15 +123,15 @@ The ICP protocol version number.  At the time of this writing, both
 versions two and three are in use.
 
 .in 3
-Packet Length
+Message Length
 .in 6
-The total length of the ICP packet.
+The total length of the ICP message.
 
 .in 3
 Request Number
 .in 6
-An opaque identifier.  When set in a query packet, the reply packets
-must contain the same value.
+An opaque identifier.  When responding to a query, this value
+must be copied into the reply message.
 
 .in 3
 Options
@@ -146,9 +146,10 @@ Four bytes of padding; a legacy from previous versions.
 .in 3
 Sender Host Address
 .in 6
-The IPv4 address of the host sending the ICP packet.  This field should
+The IPv4 address of the host sending the ICP message.  This field should
 probably not be trusted over what is  provided by getpeername(), accept(),
-and recvfrom().
+and recvfrom().  There is some abmiguity over the original purpose of
+this field.  In practice it is not used.
 
 .in 3
 Payload
@@ -188,14 +189,16 @@ Value    Name
 .in 3
 ICP_OP_INVALID
 .in 6
-Used to detect invalid packets.
+A placeholder to detect zero-filled or malformed messages.  ICP_OP_INVALID
+must never be (intentionally) sent in a message.  ICP_OP_ERR should be
+used instead.
 
 .in 3
 ICP_OP_QUERY
 .in 6
-A query packet.  NOTE this opcode has a different payload format than
+A query message.  NOTE this opcode has a different payload format than
 most of the others.  First is the requestor's IPv4 address, followed by
-a URL.  The requestor address is often left null.
+a URL.  The requestor address is often zero filled.
 
 .nf
 Payload Format:
@@ -222,8 +225,12 @@ ICP_OP_SECHO
 Similar to ICP_OP_QUERY, but for use in simulating a query to 
 an origin server.  When ICP is used to choose the closest neighbor,
 the origin server can be included in the algorithm by bouncing
-an ICP_OP_SECHO packet off it's echo port.  The payload is 
+an ICP_OP_SECHO message off it's echo port.  The payload is 
 simply the null-terminated URL.
+
+NOTE: the echo server won't interpret the data (i.e. we could send it
+anything).  This opcode is used to tell the difference between a
+legitimate query or response, random garbage, and an echo response.
 
 .in 3
 ICP_OP_DECHO
@@ -231,7 +238,7 @@ ICP_OP_DECHO
 Similar to ICP_OP_QUERY, but for use in simulating a query to an cache
 which does not use ICP.  When ICP is used to choose the closest
 neighbor, a non-ICP cache can be included in the algorithm by bouncing
-an ICP_OP_DECHO packet off it's echo port.  The payload is 
+an ICP_OP_DECHO message off it's echo port.  The payload is 
 simply the null-terminated URL.
 
 NOTE: one problem with this approach is that while a system's
@@ -240,10 +247,11 @@ not be running at all.
 
 .sp
 .in 3
-The following six ICP opcodes are sent in response to an ICP_OP_QUERY packet.
-For each one the payload must be the null-terminated URL string.  Both
+One of the following six ICP opcodes are sent in response to an
+ICP_OP_QUERY message.  For each one the payload must be the
+null-terminated URL string.  Both
 the URL string and the Request Number field must be exactly the same
-as from the ICP_OP_QUERY packet.
+as from the ICP_OP_QUERY message.
 
 .in 3
 ICP_OP_HIT
@@ -262,7 +270,7 @@ cache.
 ICP_OP_ERR
 .in 6
 Sending an ICP_OP_ERR indicates some kind of
-error in parsing or handling the query packet.
+error in parsing or handling the query message.
 
 .in 3
 ICP_OP_RELOADING
@@ -287,13 +295,13 @@ this particular URL from me at this particular time.''
 ICP_OP_HIT_OBJ
 .in 6
 Just like an ICP_OP_HIT response, but the actual object data has
-been included in this reply packet.   Many requested objects are 
+been included in this reply message.   Many requested objects are 
 small enough that it makes sense to include them in the query
 response and avoid the need to make a subsequent HTTP request
 for the object.
 
 An ICP_OP_HIT_OBJ reply will be sent only if the ICP_FLAG_HIT_OBJ
-flag is set in the query packet Options field.
+flag is set in the query message Options field.
 
 .nf
 Payload Format:
@@ -317,7 +325,7 @@ Payload Format:
 
 The protocol does not impose any limits on the maximum size of 
 the Object Data.  Software that the author is familiar with will
-use ICP_OP_HIT_OBJ over ICP_OP_HIT if the entire packet is less than
+use ICP_OP_HIT_OBJ over ICP_OP_HIT if the entire message is less than
 the system's maximum UDP transmission size.
 
 The receiving application should check to make sure it actually 
@@ -329,8 +337,12 @@ NOTE: the Object Size field does not necessarily begin on a
 following the NULL byte of the URL string.
 
 .in 3
-The following six opcodes are used for multiplexing object transmission
-over a TCP connection.  These are not in use at the time of this writing.
+The following six opcodes have historically been used for experimenting
+with multiplexing object transmission over a TCP connection.  At the
+time of this writing, there are no functional proxy/cache
+implementations using these opcodes.  They are only mentioned here
+because they still exist in some source code.  Any future implementations
+of cache-cache multiplexing will likely need to redefine these.
 
 .in 3
 ICP_OP_SEND
@@ -369,8 +381,8 @@ ICP Options
 
 .in 3
 0x80000000  ICP_FLAG_HIT_OBJ
-This flag is set in an ICP_OP_QUERY packet indicating that it is
-okay to respond with an ICP_OP_HIT_OBJ packet if the object data
+This flag is set in an ICP_OP_QUERY message indicating that it is
+okay to respond with an ICP_OP_HIT_OBJ message if the object data
 will fit.
 
 
@@ -388,11 +400,11 @@ Security Considerations
 .sp
 .in 3
 Security is an issue with ICP over UDP because of its connectionless
-nature.  A proxy/cache must only process ICP packets received
-from its known neighbors.  Packets from unknown addresses must be
+nature.  A proxy/cache must only process ICP messages received
+from its known neighbors.  Messages from unknown addresses must be
 discarded. 
 
-The ICP_OP_HIT_OBJ packet is especially senstive to security issues since
+The ICP_OP_HIT_OBJ message is especially senstive to security issues since
 it contains actual object data in the response.  In combination with 
 IP spoofing it is most likely possible to pollute the cache with
 invalid objects.
