@@ -184,3 +184,4 @@ beta8:
 	- Changed icp.c to select on client socket to detect aborts.
 	- Better compliance with HTTP/1.1 *DRAFT* regarding which reply
 	  codes can be cached.
+	- Added 'hierarchy_stoplist' configuration option.
