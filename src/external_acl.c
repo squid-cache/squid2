@@ -89,6 +89,10 @@ struct _external_acl {
     int cache_entries;
     dlink_list queue;
     int require_auth;
+    enum {
+	QUOTE_METHOD_SHELL = 1,
+	QUOTE_METHOD_URL
+    } quote;
 };
 
 struct _external_acl_format {
@@ -169,6 +173,7 @@ parse_externalAclHelper(external_acl ** list)
     if (!token)
 	self_destruct();
     a->name = xstrdup(token);
+    a->quote = QUOTE_METHOD_SHELL;
 
     token = strtok(NULL, w_space);
     /* Parse options */
@@ -183,6 +188,14 @@ parse_externalAclHelper(external_acl ** list)
 	    a->children = atoi(token + 12);
 	} else if (strncmp(token, "cache=", 6) == 0) {
 	    a->cache_size = atoi(token + 6);
+	} else if (strcmp(token, "protocol=2.5") == 0) {
+	    a->quote = QUOTE_METHOD_SHELL;
+	} else if (strcmp(token, "protocol=3.0") == 0) {
+	    a->quote = QUOTE_METHOD_URL;
+	} else if (strcmp(token, "quote=url") == 0) {
+	    a->quote = QUOTE_METHOD_URL;
+	} else if (strcmp(token, "quote=shell") == 0) {
+	    a->quote = QUOTE_METHOD_SHELL;
 	} else {
 	    break;
 	}
@@ -558,14 +571,24 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	    str = "-";
 	if (!first)
 	    memBufAppend(&mb, " ", 1);
-	strwordquote(&mb, str);
+	if (acl_data->def->quote == QUOTE_METHOD_URL) {
+	    const char *quoted = rfc1738_escape(str);
+	    memBufAppend(&mb, quoted, strlen(quoted));
+	} else {
+	    strwordquote(&mb, str);
+	}
 	stringClean(&sb);
 	first = 0;
     }
     for (arg = acl_data->arguments; arg; arg = arg->next) {
 	if (!first)
 	    memBufAppend(&mb, " ", 1);
-	strwordquote(&mb, arg->key);
+	if (acl_data->def->quote == QUOTE_METHOD_URL) {
+	    const char *quoted = rfc1738_escape(arg->key);
+	    memBufAppend(&mb, quoted, strlen(quoted));
+	} else {
+	    strwordquote(&mb, arg->key);
+	}
 	first = 0;
     }
     return mb.buf;
@@ -708,6 +731,8 @@ externalAclHandleReply(void *data, char *reply)
 	    value = strchr(token, '=');
 	    if (value) {
 		*value++ = '\0';	/* terminate the token, and move up to the value */
+		if (state->def->quote == QUOTE_METHOD_URL)
+		    rfc1738_unescape(value);
 		if (strcmp(token, "user") == 0)
 		    user = value;
 		else if (strcmp(token, "error") == 0)

@@ -1549,6 +1549,7 @@ DOC_START
 			to service external acl lookups of this type.
 			Note: see compatibility note below
 	  cache=n	result cache size, 0 is unbounded (default)
+	  protocol=3.0	Use URL-escaped strings instead of quoting
 
 	FORMAT specifications
 
@@ -1587,6 +1588,9 @@ DOC_START
 	Keyword values need to be enclosed in quotes if they may contain
 	whitespace, or the whitespace escaped using \. Any quotes or \
 	characters within the keyword value must be \ escaped.
+
+	If protocol=3.0 then URL escaping of the strings is used instead
+	of the above described quoting format.
 
 	Compatibility Note: The children= option was named concurrency= in
 	Squid-2.5.STABLE3 and earlier and such syntax is still accepted to
