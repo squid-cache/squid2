@@ -1794,21 +1794,13 @@ for repl in $REPL_POLICIES none; do
 	fi
 done
 
+dnl This could actually be used to find all the Makefiles..
 AUTH_MAKEFILES=""
-for auth in $srcdir/src/auth/* none; do
+for auth in `find $srcdir/src/auth -type d -print`; do
 	if test -f $auth/Makefile.in; then
-	    scheme=`basename $auth`
-            AUTH_MAKEFILES="$AUTH_MAKEFILES ./src/auth/$scheme/Makefile"
-	    if test -f $auth/helpers/Makefile.in; then
-		AUTH_MAKEFILES="$AUTH_MAKEFILES ./src/auth/$scheme/helpers/Makefile"
-		for helper in $auth/helpers/*; do
-		    if test -f $helper/Makefile.in; then
-			AUTH_MAKEFILES="$AUTH_MAKEFILES ./src/auth/$scheme/helpers/`basename $helper`/Makefile"
-		    fi
-		done
-	    fi
-
-        fi
+	    dir=`echo $auth | sed -e "s|^$srcdir/||"`
+            AUTH_MAKEFILES="$AUTH_MAKEFILES ./$dir/Makefile"
+	fi
 done
 
 AC_OUTPUT(\
