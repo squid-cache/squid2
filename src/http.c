@@ -442,35 +442,36 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     debug(11, 3) ("httpProcessReplyHeader: HTTP CODE: %d\n", reply->sline.status);
     if (neighbors_do_private_keys)
 	httpMaybeRemovePublic(entry, reply->sline.status);
+    if (httpHeaderHas(&reply->header, HDR_VARY)
+#if X_ACCELERATOR_VARY
+	|| httpHeaderHas(&reply->header, HDR_X_ACCELERATOR_VARY)
+#endif
+	) {
+	const char *vary = httpMakeVaryMark(httpState->orig_request, reply);
+	if (!vary) {
+	    httpMakePrivate(entry);
+	    goto no_cache;
+	}
+	entry->mem_obj->vary_headers = xstrdup(vary);
+    }
     switch (httpCachableReply(httpState)) {
     case 1:
-	if (httpHeaderHas(&reply->header, HDR_VARY)
-#if X_ACCELERATOR_VARY
-	    || httpHeaderHas(&reply->header, HDR_X_ACCELERATOR_VARY)
-#endif
-	    ) {
-	    const char *vary = httpMakeVaryMark(httpState->orig_request, reply);
-	    if (vary) {
-		entry->mem_obj->vary_headers = xstrdup(vary);
-		/* Kill the old base object if a change in variance is detected */
-		httpMakePublic(entry);
-	    } else {
-		httpMakePrivate(entry);
-	    }
-	} else {
-	    httpMakePublic(entry);
-	}
+	httpMakePublic(entry);
 	break;
     case 0:
 	httpMakePrivate(entry);
 	break;
     case -1:
-	httpCacheNegatively(entry);
+	if (Config.negativeTtl > 0)
+	    httpCacheNegatively(entry);
+	else
+	    httpMakePrivate(entry);
 	break;
     default:
 	assert(0);
 	break;
     }
+  no_cache:
     if (reply->cache_control) {
 	if (EBIT_TEST(reply->cache_control->mask, CC_PROXY_REVALIDATE))
 	    EBIT_SET(entry->flags, ENTRY_REVALIDATE);
