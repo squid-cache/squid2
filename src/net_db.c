@@ -227,7 +227,7 @@ netdbSendPing(const ipcache_addrs * ia, void *data)
 	 */
 	if (na == NULL)
 	    na = netdbAdd(addr);
-	debug(37, 1) ("netdbSendPing: NOTE: %s moved from %s to %s\n",
+	debug(37, 3) ("netdbSendPing: %s moved from %s to %s\n",
 	    hostname, n->network, na->network);
 	x = (net_db_name *) hash_lookup(host_table, hostname);
 	if (x == NULL) {
