@@ -663,6 +663,7 @@ int comm_select(sec, failtime)
 	    serverConnectionsClose();
 	    ftpServerClose();
 	    ipcacheShutdownServers();
+	    redirectShutdownServers();
 	    setSocketShutdownLifetimes();
 	}
 	nfds = 0;

@@ -372,6 +372,7 @@ static void mainReinitialize()
     _db_init(getCacheLogFile(), getDebugOptions());
     neighbors_init();
     ipcacheOpenServers();
+    redirectOpenServers();
     serverConnectionsOpen();
     (void) ftpInitialize();
     if (theOutIcpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
@@ -417,6 +418,7 @@ static void mainInitialize()
 	writePidFile();		/* write PID file */
     }
     ipcache_init();
+    redirectOpenServers();
     neighbors_init();
     (void) ftpInitialize();
 

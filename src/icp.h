@@ -173,6 +173,7 @@ extern int icpUdpReply _PARAMS((int fd, icpUdpData * queue));
 #define ICP_IDENT_SZ 63
 typedef struct iwd {
     icp_common_t header;	/* Allows access to previous header */
+    int fd;
     char *url;
     char *inbuf;
     int inbufsize;

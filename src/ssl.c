@@ -216,11 +216,11 @@ static void sslWriteServer(fd, sslState)
 	    COMM_SELECT_READ,
 	    (PF) sslReadClient,
 	    (void *) sslState);
-       comm_set_select_handler_plus_timeout(sslState->server.fd,
-           COMM_SELECT_TIMEOUT,
-           (PF) sslReadTimeout,
-           (void *) sslState,
-           sslState->timeout);
+	comm_set_select_handler_plus_timeout(sslState->server.fd,
+	    COMM_SELECT_TIMEOUT,
+	    (PF) sslReadTimeout,
+	    (void *) sslState,
+	    sslState->timeout);
     } else {
 	/* still have more to write */
 	comm_set_select_handler(sslState->server.fd,

@@ -127,13 +127,14 @@ File_Desc_Type fdstatGetType(fd)
     return fd_stat_tab[fd].type;
 }
 
-char *fdstatTypeStr[] = {
-	"None",
-	"Log",
-	"File",
-	"Socket",
-	"Pipe",
-	"Unknown"
+char *fdstatTypeStr[] =
+{
+    "None",
+    "Log",
+    "File",
+    "Socket",
+    "Pipe",
+    "Unknown"
 };
 
 /* init fd stat module */

@@ -167,6 +167,9 @@ static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpDetectClientClose _PARAMS((int, icpStateData *));
 static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
+static void icpAccessCheck _PARAMS((icpStateData *, void (*)_PARAMS((icpStateData *, int))));
+static void icpRedirectDone _PARAMS((void *, char *result));
+
 
 static void icpFreeBufOrPage(icpState)
      icpStateData *icpState;
@@ -490,7 +493,7 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, data)
 	entry->store_status != STORE_PENDING) {
 	/* We're finished case */
 	CacheInfo->proto_touchobject(CacheInfo,
-	    CacheInfo->proto_id(entry->url),
+	    icpState->request->protocol,
 	    icpState->offset);
 	comm_close(fd);
     } else {
@@ -608,7 +611,7 @@ static void icpHandleIMSComplete(fd, buf, size, errflag, data)
     StoreEntry *entry = icpState->entry;
     debug(12, 5, "icpHandleIMSComplete: Not Modified sent '%s'\n", entry->url);
     CacheInfo->proto_touchobject(CacheInfo,
-	CacheInfo->proto_id(entry->url),
+	icpState->request->protocol,
 	strlen(buf));
     /* Set up everything for the logging */
     storeUnlockObject(entry);
@@ -701,10 +704,10 @@ static void icp_hit_or_miss(fd, icpState)
 	icpState->url);
 
     if (entry != NULL) {
-	CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
+	CacheInfo->proto_hit(CacheInfo, icpState->request->protocol);
 	entry->refcount++;
     } else {
-	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
+	CacheInfo->proto_miss(CacheInfo, icpState->request->protocol);
     }
 
     switch (icpState->log_type) {
@@ -1016,16 +1019,16 @@ static void icpHitObjHandler(errflag, data)
     if (data == NULL)
 	return;
     entry = icpHitObjState->entry;
-    debug(12, 3, "icpHitObjHandler: '%s'\n", icpHitObjState->entry->url);
+    debug(12, 3, "icpHitObjHandler: '%s'\n", entry->url);
     if (!errflag) {
 	icpUdpSendEntry(icpHitObjState->fd,
 	    entry->url,
 	    &icpHitObjState->header,
 	    &icpHitObjState->to,
 	    ICP_OP_HIT_OBJ,
-	    icpHitObjState->entry,
+	    entry,
 	    icpHitObjState->started);
-	CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
+	CacheInfo->proto_hit(CacheInfo, entry->mem_obj->request->protocol);
     } else {
 	debug(12, 3, "icpHitObjHandler: errflag=%d, aborted!\n", errflag);
     }
@@ -1051,6 +1054,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
     u_short u;
     icpHitObjStateData *icpHitObjState = NULL;
     int pkt_len;
+    protocol_t p;
 
     header.opcode = headerp->opcode;
     header.version = headerp->version;
@@ -1069,6 +1073,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	    icpUdpSend(fd, url, &header, &from, ICP_OP_INVALID, LOG_UDP_INVALID);
 	    break;
 	}
+	p = icp_request->protocol;
 	allow = aclCheck(ICPAccessList,
 	    from.sin_addr,
 	    icp_request->method,
@@ -1102,7 +1107,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		/* else, problems */
 		safe_free(icpHitObjState);
 	    }
-	    CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
+	    CacheInfo->proto_hit(CacheInfo, p);
 	    icpUdpSend(fd, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
 	    break;
 	}
@@ -1116,7 +1121,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		LOG_UDP_DENIED);
 	    break;
 	}
-	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
+	CacheInfo->proto_miss(CacheInfo, p);
 	icpUdpSend(fd, url, &header, &from, ICP_OP_MISS, LOG_UDP_MISS);
 	break;
 
@@ -1197,6 +1202,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
     char *data = NULL;
     u_short data_sz = 0;
     u_short u;
+    protocol_t p;
 
     header.opcode = headerp->opcode;
     header.version = headerp->version;
@@ -1220,6 +1226,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
 		LOG_UDP_INVALID);
 	    break;
 	}
+	p = icp_request->protocol;
 	allow = aclCheck(ICPAccessList,
 	    from.sin_addr,
 	    icp_request->method,
@@ -1236,11 +1243,12 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	}
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
-	debug(12, 5, "icpHandleIcpV3: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
+	debug(12, 5, "icpHandleIcpV3: OPCODE %s\n",
+	    IcpOpcodeStr[header.opcode]);
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + getNegativeTTL()))) {
-	    CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
+	    CacheInfo->proto_hit(CacheInfo, p);
 	    icpUdpSend(fd, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
 	    break;
 	}
@@ -1254,7 +1262,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
 		LOG_UDP_DENIED);
 	    break;
 	}
-	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
+	CacheInfo->proto_miss(CacheInfo, p);
 	icpUdpSend(fd, url, &header, &from, ICP_OP_MISS, LOG_UDP_MISS);
 	break;
 
@@ -1571,23 +1579,77 @@ static int parseHttpRequest(icpState)
     return 1;
 }
 
-static int icpAccessCheck(icpState)
+static void icpAccessCheck(icpState, handler)
      icpStateData *icpState;
+     void (*handler) _PARAMS((icpStateData *, int));
 {
+    int answer = 1;
     request_t *r = icpState->request;
     if (httpd_accel_mode && !getAccelWithProxy() && r->protocol != PROTO_CACHEOBJ) {
 	/* this cache is an httpd accelerator ONLY */
 	if (!BIT_TEST(icpState->flags, REQ_ACCEL))
-	    return 0;
+	    answer = 0;
+    } else {
+	answer = aclCheck(HTTPAccessList,
+	    icpState->peer.sin_addr,
+	    r->method,
+	    r->protocol,
+	    r->host,
+	    r->port,
+	    r->urlpath);
     }
-    return aclCheck(HTTPAccessList,
-	icpState->peer.sin_addr,
-	r->method,
-	r->protocol,
-	r->host,
-	r->port,
-	r->urlpath);
+    (*handler) (icpState, answer);
 }
+
+static void icpAccessCheckDone(icpState, answer)
+     icpStateData *icpState;
+     int answer;
+{
+    int fd = icpState->fd;
+    debug(12, 5, "icpAccessCheckDone: '%s' answer=%d\n", icpState->url, answer);
+    if (answer) {
+	urlCanonical(icpState->request, icpState->url);
+	redirectStart(icpState->url, fd, icpRedirectDone, icpState);
+    } else {
+	debug(12, 5, "Access Denied: %s\n", icpState->url);
+	icpState->log_type = LOG_TCP_DENIED;
+	icpState->http_code = 403;
+	icpState->buf = xstrdup(access_denied_msg(icpState->http_code,
+		icpState->method,
+		icpState->url,
+		fd_table[fd].ipaddr));
+	icpState->ptr_to_4k_page = NULL;
+	comm_write(fd,
+	    icpState->buf,
+	    strlen(tmp_error_buf),
+	    30,
+	    icpSendERRORComplete,
+	    (void *) icpState);
+	icpState->log_type = LOG_TCP_DENIED;
+    }
+}
+
+static void icpRedirectDone(data, result)
+     void *data;
+     char *result;
+{
+    icpStateData *icpState = data;
+    int fd = icpState->fd;
+    debug(12, 5, "icpRedirectDone: '%s' result=%s\n", icpState->url, result);
+    if (result) {
+	safe_free(icpState->url);
+	icpState->url = xstrdup(result);
+	urlCanonical(icpState->request, icpState->url);
+    }
+    icpParseRequestHeaders(icpState);
+    fd_note(fd, icpState->url);
+    comm_set_select_handler(fd,
+	COMM_SELECT_READ,
+	(PF) icpDetectClientClose,
+	(void *) icpState);
+    icp_hit_or_miss(fd, icpState);
+}
+
 
 #define ASCII_INBUF_BLOCKSIZE 4096
 /*
@@ -1628,15 +1690,23 @@ static void asciiProcessInput(fd, buf, size, flag, data)
     parser_return_code = parseHttpRequest(icpState);
     if (parser_return_code == 1) {
 	if ((request = urlParse(icpState->method, icpState->url)) == NULL) {
-	    debug(12, 5, "Invalid URL: %s\n", icpState->url);
-	    icpState->log_type = ERR_INVALID_URL;
-	    icpState->http_code = 400;
-	    icpState->buf = xstrdup(squid_error_url(icpState->url,
-		    icpState->method,
-		    ERR_INVALID_URL,
-		    fd_table[fd].ipaddr,
-		    icpState->http_code,
-		    NULL));
+	    if (strstr(icpState->url, "/echo")) {
+		debug(12, 0, "ECHO request from %s\n",
+		    inet_ntoa(icpState->peer.sin_addr));
+		icpState->log_type = LOG_TCP_MISS;
+		icpState->http_code = 200;
+		icpState->buf = xstrdup(icpState->request_hdr);
+	    } else {
+		debug(12, 5, "Invalid URL: %s\n", icpState->url);
+		icpState->log_type = ERR_INVALID_URL;
+		icpState->http_code = 400;
+		icpState->buf = xstrdup(squid_error_url(icpState->url,
+			icpState->method,
+			ERR_INVALID_URL,
+			fd_table[fd].ipaddr,
+			icpState->http_code,
+			NULL));
+	    }
 	    icpState->ptr_to_4k_page = NULL;
 	    comm_write(fd,
 		icpState->buf,
@@ -1647,33 +1717,8 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 	    return;
 	}
 	icpState->request = requestLink(request);
-	if (!icpAccessCheck(icpState)) {
-	    debug(12, 5, "Access Denied: %s\n", icpState->url);
-	    icpState->log_type = LOG_TCP_DENIED;
-	    icpState->http_code = 403;
-	    icpState->buf = xstrdup(access_denied_msg(icpState->http_code,
-		    icpState->method,
-		    icpState->url,
-		    fd_table[fd].ipaddr));
-	    icpState->ptr_to_4k_page = NULL;
-	    comm_write(fd,
-		icpState->buf,
-		strlen(tmp_error_buf),
-		30,
-		icpSendERRORComplete,
-		(void *) icpState);
-	    icpState->log_type = LOG_TCP_DENIED;
-	    return;
-	}
-	/* The request is good, let's go... */
-	urlCanonical(icpState->request, icpState->url);
-	icpParseRequestHeaders(icpState);
-	fd_note(fd, icpState->url);
-	comm_set_select_handler(fd,
-	    COMM_SELECT_READ,
-	    (PF) icpDetectClientClose,
-	    (void *) icpState);
-	icp_hit_or_miss(fd, icpState);
+	icpAccessCheck(icpState, icpAccessCheckDone);
+
     } else if (parser_return_code == 0) {
 	/*
 	 *    Partial request received; reschedule until parseAsciiUrl()
@@ -1773,6 +1818,7 @@ int asciiHandleConn(sock, notused)
     icpState->peer = peer;
     icpState->me = me;
     icpState->entry = NULL;
+    icpState->fd = fd;
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
     comm_set_select_handler(fd,
 	COMM_SELECT_LIFETIME,
@@ -1852,7 +1898,7 @@ static void icpDetectClientClose(fd, icpState)
 	/* All data has been delivered */
 	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
 	CacheInfo->proto_touchobject(CacheInfo,
-	    CacheInfo->proto_id(entry->url),
+	    icpState->request->protocol,
 	    icpState->offset);
 	comm_close(fd);
     } else {

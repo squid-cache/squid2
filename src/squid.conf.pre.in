@@ -373,6 +373,16 @@ debug_options ALL,1
 #
 #dns_children 5
 
+#  TAG: redirect_program 
+#	Specify the location of the executable for the URL redirector.
+#
+#redirect_program /bin/false
+
+#  TAG: redirect_children
+#	The number of redirector processes to spawn.
+#
+#redirect_children 5
+
 
 # OPTIONS FOR TUNING THE CACHE
 #-----------------------------------------------------------------------------
