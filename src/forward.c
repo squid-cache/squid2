@@ -128,6 +128,8 @@ fwdStateFree(FwdState * fwdState)
 static int
 fwdCheckRetry(FwdState * fwdState)
 {
+    if (shutting_down)
+	return 0;
     if (fwdState->entry->store_status != STORE_PENDING)
 	return 0;
     if (fwdState->entry->mem_obj->inmem_hi > 0)
@@ -172,9 +174,13 @@ fwdServerClosed(int fd, void *data)
 	}
 	/* use eventAdd to break potential call sequence loops */
 	eventAdd("fwdConnectStart", fwdConnectStart, fwdState, 0.0, 0);
-    } else {
-	fwdStateFree(fwdState);
+	return;
     }
+    if (!fwdState->err && shutting_down) {
+	fwdState->err = errorCon(ERR_SHUTTING_DOWN, HTTP_SERVICE_UNAVAILABLE);
+	fwdState->err->request = requestLink(fwdState->request);
+    }
+    fwdStateFree(fwdState);
 }
 
 static void
