@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 #ifndef _HAVE_PARSE_H_
 #define _HAVE_PARSE_H_
 

@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 #ifdef SQUID_SNMP
 #ifndef CACHE_SNMP_H
 #define CACHE_SNMP_H

@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 #ifndef _SQUID_SNMP_OID_LIST_H_
 #define _SQUID_SNMP_OID_LIST_H_
 

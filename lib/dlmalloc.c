@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 /* ---------- To make a malloc.h, start cutting here ------------ */
 
 /* 

@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 typedef void HASHFREE(void *);
 typedef int HASHCMP(const void *, const void *);
 typedef unsigned int HASHHASH(const void *, unsigned int);

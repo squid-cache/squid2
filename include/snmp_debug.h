@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 #ifndef SNMP_DEBUG_H
 #define SNMP_DEBUG_H
 

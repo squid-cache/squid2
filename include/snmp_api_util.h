@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 #ifndef _SNMP_API_UTIL_H_
 #define _SNMP_API_UTIL_H_
 

@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 
 typedef struct _splay_node {
     void *data;

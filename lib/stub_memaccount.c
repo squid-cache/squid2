@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 /* Stub function for programs not implementing statMemoryAccounted */
 #include <config.h>
 int 

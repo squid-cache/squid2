@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 /* include/autoconf.h.in.  Generated automatically from configure.in by autoheader.  */
 /* 
  * All configurable options are enabled by using --enable-....

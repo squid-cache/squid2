@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 struct MIBListEntry squidMIBList[] =
 {
     {

@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 /* Definitions for data structures and routines for the regular
  * expression library, version 0.12.
  * 

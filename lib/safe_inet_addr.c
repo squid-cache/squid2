@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 #include "config.h"
 
 #if HAVE_STDIO_H

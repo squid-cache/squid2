@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 
 /* Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
  * This file is part of the GNU C Library.

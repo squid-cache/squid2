@@ -1,3 +1,7 @@
+/*
+ * $Id$
+ */
+
 #ifndef _SNMP_CLIENT_H_
 #define _SNMP_CLIENT_H_
 

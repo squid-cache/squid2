@@ -1,3 +1,6 @@
+/*
+ * $Id$
+ */
 
 /* A reasonably functional tmpnam. */
 
