@@ -128,9 +128,7 @@ struct _http_reply {
 typedef struct {
     StoreEntry *entry;
     request_t *request;
-    char *req_hdr;
     char *reply_hdr;
-    int req_hdr_sz;
     int reply_hdr_state;
     peer *neighbor;		/* neighbor request made to */
     int eof;			/* reached end-of-object? */

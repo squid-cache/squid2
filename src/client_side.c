@@ -328,7 +328,6 @@ icpProcessExpired(int fd, void *data)
 {
     clientHttpRequest *http = data;
     char *url = http->url;
-    char *request_hdr = http->request_hdr;
     StoreEntry *entry = NULL;
 
     debug(33, 3, "icpProcessExpired: FD %d '%s'\n", fd, http->url);
@@ -336,8 +335,6 @@ icpProcessExpired(int fd, void *data)
     BIT_SET(http->request->flags, REQ_REFRESH);
     http->old_entry = http->entry;
     entry = storeCreateEntry(url,
-	request_hdr,
-	http->req_hdr_sz,
 	http->request->flags,
 	http->request->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */

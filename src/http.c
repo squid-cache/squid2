@@ -790,8 +790,8 @@ httpSendRequest(int fd, void *data)
 
     debug(11, 5, "httpSendRequest: FD %d: httpState %p.\n", fd, httpState);
     buflen = strlen(req->urlpath);
-    if (httpState->req_hdr)
-	buflen += httpState->req_hdr_sz + 1;
+    if (req->headers)
+	buflen += req->headers_sz + 1;
     buflen += 512;		/* lots of extra */
 
     if ((req->method == METHOD_POST || req->method == METHOD_PUT)) {
@@ -815,7 +815,7 @@ httpSendRequest(int fd, void *data)
     len = httpBuildRequestHeader(req,
 	httpState->orig_request ? httpState->orig_request : req,
 	entry,
-	httpState->req_hdr,
+	req->headers,
 	NULL,
 	buf,
 	buflen,
@@ -841,8 +841,6 @@ proxyhttpStart(request_t * orig_request,
     int fd;
     debug(11, 3, "proxyhttpStart: \"%s %s\"\n",
 	RequestMethodStr[orig_request->method], entry->url);
-    debug(11, 10, "proxyhttpStart: HTTP request header:\n%s\n",
-	entry->mem_obj->request_hdr);
     if (e->options & NEIGHBOR_PROXY_ONLY)
 #if DONT_USE_VM
 	storeReleaseRequest(entry);
@@ -864,8 +862,6 @@ proxyhttpStart(request_t * orig_request,
     storeLockObject(entry);
     httpState = xcalloc(1, sizeof(HttpStateData));
     httpState->entry = entry;
-    httpState->req_hdr = entry->mem_obj->request_hdr;
-    httpState->req_hdr_sz = entry->mem_obj->request_hdr_sz;
     request = get_free_request_t();
     httpState->request = requestLink(request);
     httpState->neighbor = e;
@@ -953,8 +949,6 @@ httpStart(request_t * request, StoreEntry * entry)
     storeLockObject(entry);
     httpState = xcalloc(1, sizeof(HttpStateData));
     httpState->entry = entry;
-    httpState->req_hdr = entry->mem_obj->request_hdr;
-    httpState->req_hdr_sz = entry->mem_obj->request_hdr_sz;
     httpState->request = requestLink(request);
     httpState->fd = fd;
     comm_add_close_handler(httpState->fd,

@@ -912,7 +912,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	    url,
 	    http->request,
 	    http->request_hdr,
-	    http->req_hdr_sz,
+	    http->header_sz,
 	    &http->out.size);
 	return;
     }
@@ -1127,8 +1127,6 @@ icpProcessMISS(int fd, clientHttpRequest * http)
 	http->entry = NULL;
     }
     entry = storeCreateEntry(url,
-	request_hdr,
-	http->req_hdr_sz,
 	http->request->flags,
 	http->request->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
@@ -1738,7 +1736,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status)
     char *s = NULL;
     char *end = NULL;
     int free_request = 0;
-    size_t req_hdr_sz;		/* size of headers, not including first line */
+    size_t header_sz;		/* size of headers, not including first line */
     size_t req_sz;		/* size of whole request */
     size_t url_sz;
     method_t method;
@@ -1803,7 +1801,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status)
     while (isspace(*t))
 	t++;
     req_hdr = t;
-    req_hdr_sz = end - req_hdr;
+    header_sz = end - req_hdr;
     req_sz = end - inbuf;
 
     /* Ok, all headers are received */
@@ -1812,10 +1810,10 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status)
     http->conn = conn;
     http->start = current_time;
     http->req_sz = req_sz;
-    http->req_hdr_sz = req_hdr_sz;
-    http->request_hdr = xmalloc(req_hdr_sz + 1);
-    xmemcpy(http->request_hdr, req_hdr, req_hdr_sz);
-    *(http->request_hdr + req_hdr_sz) = '\0';
+    http->header_sz = header_sz;
+    http->request_hdr = xmalloc(header_sz + 1);
+    xmemcpy(http->request_hdr, req_hdr, header_sz);
+    *(http->request_hdr + header_sz) = '\0';
 
     debug(12, 5, "parseHttpRequest: Request Header is\n%s\n",
 	http->request_hdr);
