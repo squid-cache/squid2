@@ -74,6 +74,31 @@ Internet-Draft                                          18 December 1996
    order in which the replies arrive may be used to select the
    ``closest'' neighbor.
 
+              ___________________________________________
+             (                                           )
+             (          T H E   I N T E R N E T          )
+             (___________________________________________)
+                 /                |                \
+                /                 |                 \
+               /                  |                  \
+              /                   |                   \
+             /                    |                    \
+          SLOW                   SLOW                  SLOW
+           /                      |                       \
+          /                       |                        \
+     -----------              -----------              -----------
+    |           |            |           |            |           |
+    |   ISP 1   | <--FAST--> |   ISP 2   | <--FAST--> |   ISP 3   |
+    |           |            |           |            |           |
+     -----------              -----------              -----------
+       |  |  |                  |  |  |                  |  |  |
+       |  |  |                  |  |  |                  |  |  |
+       |  |  |                  |  |  |                  |  |  |
+        USERS                    USERS                    USERS
+
+
+
+
 
 ICP Message Format
 
@@ -83,6 +108,14 @@ ICP Message Format
    |     Opcode    |    Version    |        Message Length       |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                         Request Number                      |
+
+
+
+Wessels                                                         [Page 2]
+
+Internet-Draft                                          18 December 1996
+
+
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                            Options                          |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -109,13 +142,6 @@ ICP Message Format
    Message Length
       The total length of the ICP message.
 
-
-
-Wessels                                                         [Page 2]
-
-Internet-Draft                                          18 December 1996
-
-
         /* We should probably place some upper limit on the size of
          * an ICP message.  8, 12, or 16 kbytes?  If the whole packet
          * wont fit into a UDP receive buffer some IP stacks will
@@ -138,6 +164,14 @@ Internet-Draft                                          18 December 1996
       should probably not be trusted over what is  provided by
       getpeername(), accept(), and recvfrom().  There is some abmiguity
       over the original purpose of this field.  In practice it is not
+
+
+
+Wessels                                                         [Page 3]
+
+Internet-Draft                                          18 December 1996
+
+
       used.
 
    Payload
@@ -164,14 +198,6 @@ ICP Opcodes
       10    ICP_OP_SECHO
       11    ICP_OP_DECHO
    12-20    UNUSED
-
-
-
-Wessels                                                         [Page 3]
-
-Internet-Draft                                          18 December 1996
-
-
       21    ICP_OP_RELOADING
       22    ICP_OP_DENIED
       23    ICP_OP_HIT_OBJ
@@ -194,6 +220,14 @@ Internet-Draft                                          18 December 1996
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |                     Requestor Host Address                  |
+
+
+
+Wessels                                                         [Page 4]
+
+Internet-Draft                                          18 December 1996
+
+
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |                                                             |
       /                       Null-Terminated URL                   /
@@ -220,14 +254,6 @@ Internet-Draft                                          18 December 1996
    ICP_OP_DECHO
       Similar to ICP_OP_QUERY, but for use in simulating a query to an
       cache which does not use ICP.  When ICP is used to choose the
-
-
-
-Wessels                                                         [Page 4]
-
-Internet-Draft                                          18 December 1996
-
-
       closest neighbor, a non-ICP cache can be included in the algorithm
       by bouncing an ICP_OP_DECHO message off it's echo port.  The
       payload is simply the null-terminated URL.
@@ -250,6 +276,13 @@ Internet-Draft                                          18 December 1996
       Sending an ICP_OP_MISS response indicates that the requested URL
       does not exist in this cache.  The querying cache may still choose
       to fetch the URL from the replying cache.
+
+
+
+Wessels                                                         [Page 5]
+
+Internet-Draft                                          18 December 1996
+
 
    ICP_OP_ERR
       Sending an ICP_OP_ERR indicates some kind of error in parsing or
@@ -276,14 +309,6 @@ Internet-Draft                                          18 December 1996
       request this particular URL from me at this particular time.''
 
       Caches which receive a high percentage of ICP_OP_DENIED replies
-
-
-
-Wessels                                                         [Page 5]
-
-Internet-Draft                                          18 December 1996
-
-
       are probably misconfigured.  Caches should track the ICP_OP_DENIED
       percentage and disable a peer which exceeds a certain threshold
       (e.g. 95%).
@@ -307,6 +332,14 @@ Internet-Draft                                          18 December 1996
       Payload Format:
 
        0                   1                   2                   3
+
+
+
+Wessels                                                         [Page 6]
+
+Internet-Draft                                          18 December 1996
+
+
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |                                                             |
@@ -332,14 +365,6 @@ Internet-Draft                                          18 December 1996
       should treat the ICP_OP_HIT_OBJ reply as though it were a normal
       ICP_OP_HIT.
 
-
-
-
-Wessels                                                         [Page 6]
-
-Internet-Draft                                          18 December 1996
-
-
       NOTE: the Object Size field does not necessarily begin on a 32-bit
       boundary as shown in the diagram above.  It begins immediately
       following the NULL byte of the URL string.
@@ -363,6 +388,13 @@ Internet-Draft                                          18 December 1996
    ICP_OP_DATABEG
       Beginning of data transmission.  TO BE REMOVED: UNIMPLEMENTED,
       SUPERCEEDED BY HTTP/1.1
+
+
+
+Wessels                                                         [Page 7]
+
+Internet-Draft                                          18 December 1996
+
 
    ICP_OP_DATA
       Middle of data transmission.  TO BE REMOVED: UNIMPLEMENTED,
@@ -388,14 +420,6 @@ ICP Options
 Missing Features
 
    Note the lack of an HTTP method in the ICP query.  The current
-
-
-
-Wessels                                                         [Page 7]
-
-Internet-Draft                                          18 December 1996
-
-
    version can only be used for GET requests.
 
 
@@ -423,29 +447,61 @@ Author's  Address:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Wessels                                                         [Page 8]
+
+Internet-Draft                                          18 December 1996
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Wessels                                                         [Page 9]
 

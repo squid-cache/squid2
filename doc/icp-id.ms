@@ -82,6 +82,33 @@ from a cache may inidicate a network or system failure.  The order in
 which the replies arrive may be used to select the ``closest''
 neighbor.
 
+.nf
+           ___________________________________________
+          (                                           )
+          (          T H E   I N T E R N E T          )
+          (___________________________________________)
+              /                |                \\
+             /                 |                 \\
+            /                  |                  \\
+           /                   |                   \\
+          /                    |                    \\
+       SLOW                   SLOW                  SLOW
+        /                      |                       \\
+       /                       |                        \\
+  -----------              -----------              -----------
+ |           |            |           |            |           |
+ |   ISP 1   | <--FAST--> |   ISP 2   | <--FAST--> |   ISP 3   |
+ |           |            |           |            |           |
+  -----------              -----------              -----------
+    |  |  |                  |  |  |                  |  |  |
+    |  |  |                  |  |  |                  |  |  |
+    |  |  |                  |  |  |                  |  |  |
+     USERS                    USERS                    USERS
+.fi
+
+
+
+
 .sp
 .in 0
 .ne 4
