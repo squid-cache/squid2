@@ -92,9 +92,7 @@ sslClientClosed(int fd, void *data)
     debug(26, 3) ("sslClientClosed: FD %d\n", fd);
     assert(fd == sslState->client.fd);
     sslState->client.fd = -1;
-    if (sslState->server.fd != -1)
-	comm_close(sslState->server.fd);
-    else
+    if (sslState->server.fd == -1)
 	sslStateFree(sslState);
 }
 
@@ -152,7 +150,7 @@ sslSetSelect(SslStateData * sslState)
 		sslState,
 		Config.Timeout.read);
 	}
-    } else if (sslState->client.len == 0) {
+    } else if (sslState->client.len == 0 && sslState->server.fd > -1) {
 	comm_close(sslState->server.fd);
     }
     if (!sslState->connected) {
@@ -183,9 +181,7 @@ sslSetSelect(SslStateData * sslState)
 		sslState,
 		Config.Timeout.read);
 	}
-    } else if (sslState->client.fd == -1) {
-	/* client already closed, nothing more to do */
-    } else if (sslState->server.len == 0) {
+    } else if (sslState->server.len == 0 && sslState->client.fd > -1) {
 	comm_close(sslState->client.fd);
     }
 }
@@ -302,8 +298,11 @@ sslWriteServer(int fd, void *data)
     if (len < 0) {
 	debug(50, ignoreErrno(errno) ? 3 : 1)
 	    ("sslWriteServer: FD %d: write failure: %s.\n", fd, xstrerror());
-	if (!ignoreErrno(errno))
+	if (!ignoreErrno(errno)) {
 	    comm_close(fd);
+	    if (sslState->client.fd > -1)
+		comm_close(sslState->client.fd);
+	}
     }
     if (cbdataValid(sslState))
 	sslSetSelect(sslState);
@@ -346,8 +345,11 @@ sslWriteClient(int fd, void *data)
     if (len < 0) {
 	debug(50, ignoreErrno(errno) ? 3 : 1)
 	    ("sslWriteClient: FD %d: write failure: %s.\n", fd, xstrerror());
-	if (!ignoreErrno(errno))
+	if (!ignoreErrno(errno)) {
 	    comm_close(fd);
+	    if (sslState->server.fd > -1)
+		comm_close(sslState->server.fd);
+	}
     }
     if (cbdataValid(sslState))
 	sslSetSelect(sslState);
