@@ -2256,8 +2256,11 @@ static void
 ftpFailed(FtpStateData * ftpState, err_type error)
 {
     StoreEntry *entry = ftpState->entry;
-    if (entry->mem_obj->inmem_hi == 0) {
+    if (entry->mem_obj->inmem_hi == 0)
 	ftpFailedErrorMessage(ftpState, error);
+    if (ftpState->data.fd > -1) {
+	comm_close(ftpState->data.fd);
+	ftpState->data.fd = -1;
     }
     comm_close(ftpState->ctrl.fd);
 }
