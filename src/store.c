@@ -829,6 +829,8 @@ storeCheckExpired(const StoreEntry * e)
 {
     if (storeEntryLocked(e))
 	return 0;
+    if (EBIT_TEST(e->flag, RELEASE_REQUEST))
+	return 1;
     if (EBIT_TEST(e->flag, ENTRY_NEGCACHED) && squid_curtime >= e->expires)
 	return 1;
     if (squid_curtime - e->lastref > storeExpiredReferenceAge())
