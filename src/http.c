@@ -552,6 +552,9 @@ httpReadReply(int fd, void *data)
 	    commSetDefer(fd, NULL, NULL);
 	    commSetTimeout(fd, -1, NULL, NULL);
 	    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
+#if DELAY_POOLS
+	    delayClearNoDelay(fd);
+#endif
 	    comm_remove_close_handler(fd, httpStateFree, httpState);
 	    fwdUnregister(fd, httpState->fwd);
 	    pconnPush(fd, request->host, request->port);
