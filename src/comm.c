@@ -650,7 +650,7 @@ comm_close(int fd)
      * network sockets never blocks.
      */
     close(fd);
-#elsif USE_ASYNC_IO
+#elif USE_ASYNC_IO
     aioClose(fd);
 #else
     close(fd);
