@@ -9,6 +9,8 @@ Changes to squid-1.novm.9 ():
 	- Removed hunks of UNUSED and OLD code.
 	- merged squid-1.1.9 changes.
 	- removed icpHandleAbort(); just close the socket already.
+	- Fixed up rebuild code to handle swapfile/URL clash
+	  cases better.
 
 Changes to squid-1.1.9 (March 30, 1997):
 
