@@ -301,8 +301,8 @@ hash_remove_link(hash_table * hid, hash_link * hl)
 	*P = hl->next;
 	if (hid->Current && hl == *hid->Current)
 	        hid->Current = P;	/* back up one */
-	    hid->count--;
-	    return;
+	hid->count--;
+	return;
     }
     fatal("hash_remove_link: could not find entry");
 }
