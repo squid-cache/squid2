@@ -73,8 +73,7 @@ line TWICE:
     % /usr/local/squid/sbin/squid 
 
 Check in the cache.log (/usr/local/squid/var/logs/cache.log) that
-everything is all right.  Note that "WARNING: Cannot write to swap
-directory" is normal the first time you run Squid.
+everything is all right.
 
 Once Squid created all its files (it can take several minutes on some
 systems), test it with echoping or a regular Web client. By default,
