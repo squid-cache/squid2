@@ -573,7 +573,7 @@ main(int argc, char **argv)
 	Squid_MaxFD = FD_SETSIZE;
 
 #if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
-    if (WIN32_init_err = WIN32_Subsystem_Init())
+    if ((WIN32_init_err = WIN32_Subsystem_Init()))
 	return WIN32_init_err;
 #endif
 
