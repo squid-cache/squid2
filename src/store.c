@@ -2209,7 +2209,7 @@ int storeInit()
 	    tmpbuf[0] = '\0';
 	    sprintf(tmpbuf, "cd %s; rm -rf log [0-9][0-9]", path);
 	    debug(0, 1, "storeInit: Running '%s'\n", tmpbuf);
-	    system(tmpbuf);
+	    system(tmpbuf);	/* XXX should avoid system(3) */
 	}
     }
     sprintf(swaplog_file, "%s/log", swappath(0));
