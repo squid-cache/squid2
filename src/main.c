@@ -322,8 +322,13 @@ shut_down(int sig)
     debug(1, 1, "Waiting %d seconds for active connections to finish\n",
 	shutdown_pending > 0 ? Config.lifetimeShutdown : 0);
 #ifdef KILL_PARENT_OPT
-    debug(1, 1, "Killing RunCache, pid %d\n", getppid());
-    kill(getppid(), sig);
+    {
+	pid_t ppid = getppid();
+	if (ppid > 1) {
+	    debug(1, 1, "Killing RunCache, pid %d\n", ppid);
+	    kill(ppid, sig);
+	}
+    }
 #endif
 #if SA_RESETHAND == 0
     signal(SIGTERM, SIG_DFL);
