@@ -126,6 +126,7 @@ storeClientListAdd(StoreEntry * e, void *data)
     mem->nclients++;
     sc = memAllocate(MEM_STORE_CLIENT);
     cbdataAdd(sc, memFree, MEM_STORE_CLIENT);	/* sc is callback_data for file_read */
+    cbdataLock(data);		/* locked while we point to it */
     sc->callback_data = data;
     sc->seen_offset = 0;
     sc->copy_offset = 0;
@@ -370,7 +371,7 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 	switch (t->type) {
 	case STORE_META_KEY:
 	    assert(t->length == MD5_DIGEST_CHARS);
-	    if (!memcmp(t->value, e->key, MD5_DIGEST_CHARS))
+	    if (memcmp(t->value, e->key, MD5_DIGEST_CHARS))
 		debug(20, 1) ("WARNING: swapin MD5 mismatch\n");
 	    break;
 	case STORE_META_URL:
@@ -384,6 +385,8 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 		swap_object_ok = 0;
 		break;
 	    }
+	    break;
+	case STORE_META_STD:
 	    break;
 	default:
 	    debug(20, 1) ("WARNING: got unused STORE_META type %d\n", t->type);
@@ -474,11 +477,13 @@ storeUnregister(StoreEntry * e, void *data)
 	debug(20, 3) ("storeUnregister: store_client for %s has a callback\n",
 	    mem->url);
 	sc->callback = NULL;
-	callback(sc->callback_data, sc->copy_buf, -1);
+	if (cbdataValid(sc->callback_data))
+	    callback(sc->callback_data, sc->copy_buf, -1);
     }
 #if DELAY_POOLS
     delayUnregisterDelayIdPtr(&sc->delay_id);
 #endif
+    cbdataUnlock(sc->callback_data);	/* we're done with it now */
     cbdataFree(sc);
     assert(e->lock_count > 0);
     if (mem->nclients == 0)
