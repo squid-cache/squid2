@@ -866,3 +866,20 @@ linklistShift(link_list ** L)
     xfree(l);
     return p;
 }
+
+
+/*
+ * Same as rename(2) but complains if something goes wrong;
+ * the caller is responsible for handing and explaining the 
+ * consequences of errors.
+ */
+int
+xrename(const char *from, const char *to)
+{
+    debug(21, 2) ("xrename: renaming %s to %s\n", from, to);
+    if (0 == rename(from, to))
+	return 0;
+    debug(21, errno == ENOENT ? 2 : 1) ("xrename: Cannot rename %s to %s: %s\n",
+	from, to, xstrerror());
+    return -1;
+}

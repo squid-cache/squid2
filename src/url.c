@@ -45,6 +45,7 @@ const char *RequestMethodStr[] =
     "CONNECT",
     "TRACE",
     "PURGE",
+    "OPTIONS",
 #ifndef RFC_2518
     "PROPFIND",
     "PROPPATCH",
@@ -141,6 +142,8 @@ urlParseMethod(const char *s)
 	return METHOD_TRACE;
     } else if (strcasecmp(s, "PURGE") == 0) {
 	return METHOD_PURGE;
+    } else if (strcasecmp(s, "OPTIONS") == 0) {
+	return METHOD_OPTIONS;
 #ifndef RFC_2518
     } else if (strcasecmp(s, "PROPFIND") == 0) {
 	return METHOD_PROPFIND;

@@ -527,6 +527,12 @@ sslPeerSelectComplete(FwdServer * fs, void *data)
     } else {
 	sslState->port = CACHE_HTTP_PORT;
     }
+    if (fs->peer) {
+	sslState->request->peer_login = fs->peer->login;
+	sslState->request->flags.proxying = 1;
+    } else {
+	sslState->request->flags.proxying = 0;
+    }
 #if DELAY_POOLS
     /* no point using the delayIsNoDelay stuff since ssl is nice and simple */
     if (g && g->options.no_delay && sslState->delay_id) {

@@ -736,8 +736,7 @@ storeUfsDirCloseTmpSwapLog(SwapDir * sd)
 	fatal("storeUfsDirCloseTmpSwapLog: unlink failed");
     }
 #endif
-    if (rename(new_path, swaplog_path) < 0) {
-	debug(50, 0) ("%s,%s: %s\n", new_path, swaplog_path, xstrerror());
+    if (xrename(new_path, swaplog_path) < 0) {
 	fatal("storeUfsDirCloseTmpSwapLog: rename failed");
     }
     fd = file_open(swaplog_path, O_WRONLY | O_CREAT);
@@ -915,11 +914,7 @@ storeUfsDirWriteCleanClose(SwapDir * sd)
 	    debug(50, 0) ("storeDirWriteCleanLogs: unlinkd failed: %s, %s\n",
 		xstrerror(), cur);
 #endif
-	if (rename(state->new, state->cur) < 0) {
-	    debug(50, 0) ("storeDirWriteCleanLogs: rename failed: "
-		"%s, %s -> %s\n",
-		xstrerror(), state->new, state->cur);
-	}
+	xrename(state->new, state->cur);
     }
     /* touch a timestamp file if we're not still validating */
     if (store_dirs_rebuilding)
@@ -1089,7 +1084,8 @@ storeUfsDirCleanEvent(void *unused)
 	n = storeUfsDirClean(swap_index);
 	swap_index++;
     }
-    eventAdd("storeDirClean", storeUfsDirCleanEvent, NULL, 15.0, 1);
+    eventAdd("storeDirClean", storeUfsDirCleanEvent, NULL,
+	15.0 * exp(-0.25 * n), 1);
 }
 
 static int

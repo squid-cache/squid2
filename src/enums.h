@@ -364,6 +364,7 @@ enum {
     METHOD_CONNECT,		/* 101 */
     METHOD_TRACE,		/* 110 */
     METHOD_PURGE,		/* 111 */
+    METHOD_OPTIONS,
 #ifndef RFC_2518
     METHOD_PROPFIND,
     METHOD_PROPPATCH,

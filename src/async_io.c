@@ -78,6 +78,13 @@ static MemPool *aio_ctrl_pool;
 static void aioFDWasClosed(int fd);
 
 static void
+aioFDWasClosed(int fd)
+{
+    if (fd_table[fd].flags.closing)
+	fd_close(fd);
+}
+
+void
 aioInit()
 {
     if (initialised)
@@ -88,21 +95,13 @@ aioInit()
     initialised = 1;
 }
 
-static void
-aioFDWasClosed(int fd)
-{
-    if (fd_table[fd].flags.closing)
-	fd_close(fd);
-}
-
 void
 aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
     int ret;
 
-    if (!initialised)
-	aioInit();
+    assert(initialised);
     aio_counts.open++;
     ctrlp = memPoolAlloc(aio_ctrl_pool);
     ctrlp->fd = -2;
@@ -128,8 +127,7 @@ aioClose(int fd)
 {
     aio_ctrl_t *ctrlp;
 
-    if (!initialised)
-	aioInit();
+    assert(initialised);
     aio_counts.close++;
     aioCancel(fd);
     ctrlp = memPoolAlloc(aio_ctrl_pool);
@@ -157,8 +155,7 @@ aioCancel(int fd)
     AIOCB *done_handler;
     void *their_data;
 
-    if (!initialised)
-	aioInit();
+    assert(initialised);
     aio_counts.cancel++;
     prev = NULL;
     curr = used_list;
@@ -204,8 +201,7 @@ aioWrite(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callba
     aio_ctrl_t *ctrlp;
     int seekmode;
 
-    if (!initialised)
-	aioInit();
+    assert(initialised);
     aio_counts.write++;
     for (ctrlp = used_list; ctrlp != NULL; ctrlp = ctrlp->next)
 	if (ctrlp->fd == fd)
@@ -250,8 +246,7 @@ aioRead(int fd, int offset, char *bufp, int len, AIOCB * callback, void *callbac
     aio_ctrl_t *ctrlp;
     int seekmode;
 
-    if (!initialised)
-	aioInit();
+    assert(initialised);
     aio_counts.read++;
     for (ctrlp = used_list; ctrlp != NULL; ctrlp = ctrlp->next)
 	if (ctrlp->fd == fd)
@@ -293,8 +288,7 @@ aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
 
-    if (!initialised)
-	aioInit();
+    assert(initialised);
     aio_counts.stat++;
     ctrlp = memPoolAlloc(aio_ctrl_pool);
     ctrlp->fd = -2;
@@ -321,8 +315,7 @@ aioUnlink(const char *pathname, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
     char *path;
-    if (!initialised)
-	aioInit();
+    assert(initialised);
     aio_counts.unlink++;
     ctrlp = memPoolAlloc(aio_ctrl_pool);
     ctrlp->fd = -2;
@@ -354,8 +347,7 @@ aioCheckCallbacks()
     AIOCB *done_handler;
     void *their_data;
 
-    if (!initialised)
-	aioInit();
+    assert(initialised);
     aio_counts.check_callback++;
     for (;;) {
 	if ((resultp = aio_poll_done()) == NULL)
@@ -397,6 +389,7 @@ aioStats(StoreEntry * sentry)
     storeAppendPrintf(sentry, "stat\t%d\n", aio_counts.stat);
     storeAppendPrintf(sentry, "unlink\t%d\n", aio_counts.unlink);
     storeAppendPrintf(sentry, "check_callback\t%d\n", aio_counts.check_callback);
+    storeAppendPrintf(sentry, "queue\t%d\n", aio_get_queue_len());
 }
 
 /* Flush all pending I/O */
@@ -411,6 +404,12 @@ aioSync(void)
 	aioCheckCallbacks();
     } while (aio_sync());
     debug(32, 1) ("aioSync: done\n");
+}
+
+int
+aioQueueSize(void)
+{
+    return memPoolInUseCount(aio_ctrl_pool);
 }
 
 #endif /* USE_ASYNC_IO */

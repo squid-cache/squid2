@@ -727,9 +727,9 @@ httpBuildRequestHeader(request_t * request,
     }
     /* append Proxy-Authorization if configured for peer, and proxying */
     if (!httpHeaderHas(hdr_out, HDR_PROXY_AUTHORIZATION)) {
-	if (request->flags.proxying && request->peer_login) {
+	if (request->flags.proxying && orig_request->peer_login) {
 	    httpHeaderPutStrf(hdr_out, HDR_PROXY_AUTHORIZATION, "Basic %s",
-		base64_encode(request->peer_login));
+		base64_encode(orig_request->peer_login));
 	}
     }
     /* append Cache-Control, add max-age if not there already */
@@ -800,7 +800,7 @@ httpSendRequest(HttpStateData * httpState)
 
     debug(11, 5) ("httpSendRequest: FD %d: httpState %p.\n", httpState->fd, httpState);
 
-    if (httpState->orig_request->body)
+    if (httpState->orig_request->content_length > 0)
 	sendHeaderDone = httpSendRequestEntry;
     else
 	sendHeaderDone = httpSendComplete;
@@ -860,7 +860,6 @@ httpStart(FwdState * fwd)
 	xstrncpy(proxy_req->host, httpState->peer->host, SQUIDHOSTNAMELEN);
 	proxy_req->port = httpState->peer->http_port;
 	proxy_req->flags = orig_req->flags;
-	proxy_req->peer_login = httpState->peer->login;
 	httpState->request = requestLink(proxy_req);
 	httpState->orig_request = requestLink(orig_req);
 	proxy_req->flags.proxying = 1;
