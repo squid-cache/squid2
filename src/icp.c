@@ -770,6 +770,9 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	/* IMS+NOCACHE should not eject valid object */
 	if (!BIT_TEST(request->flags, REQ_IMS))
 	    storeRelease(entry);
+	/* NOCACHE should always eject negative cached object */
+	else if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
+	    storeRelease(entry);
 	ipcacheReleaseInvalid(icpState->request->host);
 	entry = NULL;
 	icpState->log_type = LOG_TCP_CLIENT_REFRESH;
