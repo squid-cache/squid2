@@ -1078,7 +1078,12 @@ main() {
     }
 #endif /* RLIMIT_NOFILE */
 #endif /* HAVE_SETRLIMIT */
-#if HAVE_SYSCONF && defined(_SC_OPEN_MAX)
+#if HAVE_GETRLIMIT && defined(RLIMIT_NOFILE)
+	if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
+		perror("getrlimit: RLIMIT_NOFILE");
+	}
+	i = rl.rlim_cur;
+#elif HAVE_SYSCONF && defined(_SC_OPEN_MAX)
         i = sysconf(_SC_OPEN_MAX);
 #elif HAVE_GETDTABLESIZE && !defined(__linux__)
         i = getdtablesize();
