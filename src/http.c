@@ -661,8 +661,7 @@ httpBuildRequestHeader(request_t * request,
 	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz);
 	EBIT_SET(hdr_flags, HDR_IMS);
     }
-    if ((end = mime_headers_end(hdr_in)) == NULL)
-	return 0;
+    end = mime_headers_end(hdr_in);
     in_sz = strlen(hdr_in);
     for (t = hdr_in; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
 	hdr_len = t - hdr_in;
