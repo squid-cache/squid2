@@ -350,10 +350,14 @@ comm_nbconnect(int fd, void *data)
     case COMM_OK:
 	connectState->handler(fd, COMM_OK, connectState->data);
 	ipcacheCycleAddr(connectState->host);
+	if (connectState->free_func)
+	    connectState->free_func(connectState);
 	break;
     default:
 	ipcacheRemoveBadAddr(connectState->host, connectState->S.sin_addr);
 	connectState->handler(fd, COMM_ERROR, connectState->data);
+	if (connectState->free_func)
+	    connectState->free_func(connectState);
 	break;
     }
 }

@@ -143,6 +143,7 @@ typedef struct {
     struct sockaddr_in S;
     void (*handler) _PARAMS((int fd, int status, void *data));
     void *data;
+    void (*free_func) _PARAMS((void *));
 } ConnectStateData;
 
 typedef struct fde {

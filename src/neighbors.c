@@ -115,6 +115,8 @@ static void neighborCountIgnored _PARAMS((peer * e, icp_opcode op_unused));
 static neighbor_t parseNeighborType _PARAMS((const char *s));
 static void peerRefreshDNS _PARAMS((void *));
 static void peerDNSConfigure _PARAMS((int fd, const ipcache_addrs * ia, void *data));
+static void peerCheckConnect _PARAMS((void *data));
+static void peerCheckConnect2 _PARAMS((int fd, const ipcache_addrs * ia, void *data));
 
 static icp_common_t echo_hdr;
 static u_short echo_port;
@@ -319,10 +321,10 @@ getFirstUpParent(request_t * request)
 	    continue;
 	if (!peerHTTPOkay(e, request))
 	    continue;
-	debug(15, 3, "getRoundRobinParent: returning %s\n", e ? e->host : "NULL");
-	return e;
+	break;
     }
-    return NULL;
+    debug(15, 3, "getFirstUpParent: returning %s\n", e ? e->host : "NULL");
+    return e;
 }
 
 peer *
@@ -802,6 +804,7 @@ neighborAdd(const char *host,
     e->acls = NULL;
     e->icp_version = ICP_VERSION_CURRENT;
     e->type = parseNeighborType(type);
+    e->tcp_up = 1;
 
     /* Append peer */
     if (!Peers.peers_head)
@@ -929,13 +932,8 @@ parseNeighborType(const char *s)
 int
 neighborUp(const peer * e)
 {
-    debug(15, 3, "neighborUp: peer %s, ack_deficit=%d, last_fail_time=%d sec ago\n",
-	e->host,
-	e->stats.ack_deficit,
-	squid_curtime - e->last_fail_time);
-    if (e->last_fail_time)
-	if (squid_curtime - e->last_fail_time < (time_t) 60)
-	    return 0;
+    if (!e->tcp_up)
+	return 0;
     if (e->stats.ack_deficit >= HIER_MAX_DEFICIT)
 	return 0;
     return 1;
@@ -1024,4 +1022,47 @@ peerRefreshDNS(void *junk)
     }
     /* Reconfigure the peers every hour */
     eventAdd("peerRefreshDNS", peerRefreshDNS, NULL, 3600);
+}
+
+static void
+peerCheckConnect(void *data)
+{
+    peer *p = data;
+    int fd;
+    fd = comm_open(SOCK_STREAM, 0, Config.Addrs.tcp_outgoing,
+	0, COMM_NONBLOCKING, p->host);
+    if (fd < 0)
+	return;
+    ipcache_nbgethostbyname(p->host, fd, peerCheckConnect2, p);
+}
+
+static void
+peerCheckConnect2(int fd, const ipcache_addrs * ia, void *data)
+{
+    peer *p = data;
+    ConnectStateData *cs = xcalloc(1, sizeof(ConnectStateData));
+    cs->fd = fd;
+    cs->host = p->host;
+    cs->port = p->http_port;
+    cs->handler = peerCheckConnectDone;
+    cs->data = p;
+    cs->free_func = xfree;
+    comm_nbconnect(fd, cs);
+}
+
+void
+peerCheckConnectDone(int fd, int status, void *data)
+{
+    peer *p = data;
+    if (p->tcp_up && status != COMM_OK)
+	debug(15, 0, "TCP connection to %s/%d failed\n",
+	    p->host, p->http_port);
+    p->tcp_up = status == COMM_OK ? 1 : 0;
+    if (p->tcp_up)
+	debug(15, 0, "TCP connection to %s/%d succeeded\n",
+	    p->host, p->http_port);
+    else
+	eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
+    comm_close(fd);
+    return;
 }
