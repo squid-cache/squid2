@@ -264,6 +264,13 @@ static void
 ftpStateFree(int fdnotused, void *data)
 {
     FtpStateData *ftpState = data;
+    cbdataFree(ftpState);
+}
+
+static void
+ftpStateFreed(void *data)
+{
+    FtpStateData *ftpState = data;
     if (ftpState == NULL)
 	return;
     debug(9, 3) ("ftpStateFree: %s\n", storeUrl(ftpState->entry));
@@ -301,7 +308,6 @@ ftpStateFree(int fdnotused, void *data)
 	comm_close(ftpState->data.fd);
 	ftpState->data.fd = -1;
     }
-    cbdataFree(ftpState);
 }
 
 static void
@@ -1055,7 +1061,7 @@ ftpStart(FwdState * fwd)
     FtpStateData *ftpState;
     HttpReply *reply;
 
-    CBDATA_INIT_TYPE(FtpStateData);
+    CBDATA_INIT_TYPE_FREECB(FtpStateData, ftpStateFreed);
     ftpState = cbdataAlloc(FtpStateData);
     debug(9, 3) ("ftpStart: '%s'\n", url);
     statCounter.server.all.requests++;
@@ -1701,6 +1707,9 @@ ftpSendPasv(FtpStateData * ftpState)
      * to delete the close handler which did NOT get called
      * to prevent ftpStateFree() getting called twice.
      * Instead we'll always call comm_close() on the ctrl FD.
+     *
+     * XXX this should not actually matter if the ftpState is cbdata
+     * managed correctly and comm close handlers are cbdata fenced
      */
     ftpState->data.fd = fd;
     snprintf(cbuf, 1024, "PASV\r\n");
