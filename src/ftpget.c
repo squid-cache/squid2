@@ -1854,7 +1854,7 @@ parse_entry(const char *buf)
 	break;
     }
 
-    /* try it as a DOS listing */
+    /* try it as a DOS/Windows listing */
     if (n_tokens > 3 && p->name == NULL &&
 	sscanf(tokens[0], "%[0-9]-%[0-9]-%[0-9]", sbuf, sbuf, sbuf) == 3 &&
     /* 04-05-70 */
@@ -1868,7 +1868,17 @@ parse_entry(const char *buf)
 	}
 	sprintf(sbuf, "%s %s", tokens[0], tokens[1]);
 	p->date = xstrdup(sbuf);
-	p->name = xstrdup(tokens[3]);
+	/*
+	 * If ftpget sees a DOS-format file listing and an entry contains
+	 * more than 4 tokens, it assumes the filename must contain
+	 * whitespace and uses the exact (unparsed) string as the name.
+	 * --R. Scott Bailey" <sbailey@dsddi.eds.com>
+	 */
+	if (n_tokens == 4) {	/* Name in a single token */
+	    p->name = xstrdup(tokens[3]);
+	} else {		/* Name apparently contains whitespace */
+	    p->name = xstrdup(buf + 39);	/* Evil assumption */
+	}
     }
     /* Try EPLF format; carson@lehman.com */
     if (p->name == NULL && buf[0] == '+') {
@@ -2129,12 +2139,12 @@ htmlify_listing(ftp_request_t * r)
 	fprintf(wfp, "<HR>\n");
     } else if (r->readme_fp && r->flags & F_BASEDIR) {
 	fprintf(wfp, "<H4>README file from %s</H4>\n", r->title_url);
-	fprintf(wfp, "<PRE>\n");
+	fprintf(wfp, "<XMP>\n");
 	while (fgets(buf, SMALLBUFSIZ, r->readme_fp))
 	    fputs(buf, wfp);
 	fclose(r->readme_fp);
 	r->readme_fp = NULL;
-	fprintf(wfp, "</PRE>\n");
+	fprintf(wfp, "</XMP>\n");
 	fprintf(wfp, "<HR>\n");
     }
     fprintf(wfp, "<H2>\n");
