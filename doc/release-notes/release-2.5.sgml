@@ -74,6 +74,8 @@ for Applied Network Research and members of the Web Caching community.
         <item>Responses with Vary: in the header are now cached by squid.
           (Henrik Nordstrom).
 	<item>Support for openBSD pf interface in interception mode.
+	<item>It is now possible to send complex arguments to helpers
+	by quoting the arguments by " and/or \ 
 </itemize>
 
 <sect>Changes to squid.conf
