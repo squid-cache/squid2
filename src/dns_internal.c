@@ -109,12 +109,14 @@ idnsAddNameserver(const char *buf)
     nns++;
 }
 
+#if UNUSED_CODE
 static void
 idnsFreeNameservers(void)
 {
     safe_free(nameservers);
     nns = nns_alloc = 0;
 }
+#endif
 
 static void
 idnsParseNameservers(void)

@@ -275,3 +275,10 @@
 #define NUMTHREADS 16
 #endif
 #endif
+
+#if USE_ASYNC_IO
+#undef USE_UNLINKD
+#else
+#define USE_UNLINKD 1
+#endif
+

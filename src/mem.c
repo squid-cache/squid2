@@ -264,10 +264,12 @@ memInit(void)
     memDataInit(MEM_PEER_DIGEST, "PeerDigest", sizeof(PeerDigest), 0);
     memDataInit(MEM_DIGEST_FETCH_STATE, "DigestFetchState", sizeof(DigestFetchState), 0);
 #endif
+#if USE_ICMP
     memDataInit(MEM_PINGERECHODATA, "pingerEchoData",
 	sizeof(pingerEchoData), 0);
     memDataInit(MEM_PINGERREPLYDATA, "pingerReplyData",
 	sizeof(pingerReplyData), 0);
+#endif
     memDataInit(MEM_PS_STATE, "ps_state", sizeof(ps_state), 0);
     memDataInit(MEM_REFRESH_T, "refresh_t", sizeof(refresh_t), 0);
     memDataInit(MEM_RELIST, "relist", sizeof(relist), 0);

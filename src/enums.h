@@ -570,8 +570,10 @@ typedef enum {
 #if USE_CACHE_DIGESTS
     MEM_PEER_DIGEST,
 #endif
+#if USE_ICMP
     MEM_PINGERECHODATA,
     MEM_PINGERREPLYDATA,
+#endif
     MEM_PS_STATE,
     MEM_REFRESH_T,
     MEM_RELIST,
