@@ -18,8 +18,10 @@ int vhost_mode = 0;
 int unbuffered_logs = 1;	/* debug and hierarhcy unbuffered by default */
 int shutdown_pending = 0;	/* set by SIGTERM handler (shut_down()) */
 int reread_pending = 0;		/* set by SIGHUP handler */
-char *version_string = SQUID_VERSION;
-char *appname = "squid";
+char version_string[] = SQUID_VERSION;
+char appname[] = "squid";
+char localhost[] = "127.0.0.1";
+struct in_addr local_addr;
 
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) _PARAMS((char *));
@@ -320,6 +322,9 @@ int main(argc, argv)
     time_t last_maintain = 0;
     time_t last_announce = 0;
     time_t loop_delay;
+
+    memset(&local_addr, '\0', sizeof(struct in_addr));
+    local_addr.s_addr = inet_addr(localhost);
 
     errorInitialize();
 

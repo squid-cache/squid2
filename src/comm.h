@@ -11,10 +11,9 @@
 #define COMM_TIMEOUT	 (-4)
 #define COMM_SHUTDOWN	 (-5)
 
-#define COMM_BLOCKING	  (0x0)
 #define COMM_NONBLOCKING  (0x1)
-#define COMM_INTERRUPT    (0x2)
 #define COMM_DGRAM        (0x4)
+#define COMM_NOCLOEXEC	  (0x8)
 
 /* Select types. */
 #define COMM_SELECT_READ   (0x1)

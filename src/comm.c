@@ -87,6 +87,7 @@ static int commBind(s, in_addr, port)
     return COMM_ERROR;
 }
 
+#ifdef OLD_CODE
 /* Create a socket. Default is blocking, stream (TCP) socket.  IO_TYPE
  * is OR of flags specified in comm.h. */
 int comm_open_unix(note)
@@ -136,6 +137,7 @@ int comm_open_unix(note)
 #endif /* O_NONBLOCK */
     return new_socket;
 }
+#endif
 
 /* Create a socket. Default is blocking, stream (TCP) socket.  IO_TYPE
  * is OR of flags specified in comm.h. */
@@ -170,12 +172,15 @@ int comm_open(io_type, addr, port, note)
 
     conn = &fd_table[new_socket];
     memset(conn, '\0', sizeof(FD_ENTRY));
-    fd_note(new_socket, note);
+    if (note)
+	fd_note(new_socket, note);
     conn->openned = 1;
 
-    if (fcntl(new_socket, F_SETFD, 1) < 0) {
-	debug(5, 0, "comm_open: FD %d: failed to set close-on-exec flag: %s\n",
-	    new_socket, xstrerror());
+    if (!(io_type & COMM_NOCLOEXEC)) {
+	if (fcntl(new_socket, F_SETFD, 1) < 0) {
+	    debug(5, 0, "comm_open: FD %d: set close-on-exec failed: %s\n",
+		new_socket, xstrerror());
+	}
     }
     if (port > 0) {
 	if (commSetNoLinger(new_socket) < 0) {
@@ -309,6 +314,7 @@ int comm_set_fd_lifetime(fd, lifetime)
      int fd;
      int lifetime;
 {
+    debug(5, 3, "comm_set_fd_lifetime: FD %d lft %d\n", fd, lifetime);
     if (fd < 0 || fd > FD_SETSIZE)
 	return 0;
     if (shutdown_pending || reread_pending) {
@@ -1280,11 +1286,12 @@ static void commHandleWrite(fd, state)
 	    debug(5, 2, "commHandleWrite: FD %d: write failure: connection closed with %d bytes remaining.\n", fd, nleft);
 	fd_table[fd].wstate = NULL;	/* The handler may call comm_write again */
 	/* Notify caller */
-	state->handler(fd,
-	    state->buf,
-	    state->offset,
-	    nleft == 0 ? COMM_OK : COMM_ERROR,
-	    state->handler_data);
+	if (state->handler)
+	    state->handler(fd,
+		state->buf,
+		state->offset,
+		nleft == 0 ? COMM_OK : COMM_ERROR,
+		state->handler_data);
 	safe_free(state);
 	return;
     }
@@ -1307,11 +1314,12 @@ static void commHandleWrite(fd, state)
 	    fd, xstrerror());
 	fd_table[fd].wstate = NULL;	/* The handler may call comm_write again */
 	/* Notify caller that we failed */
-	state->handler(fd,
-	    state->buf,
-	    state->offset,
-	    COMM_ERROR,
-	    state->handler_data);
+	if (state->handler)
+	    state->handler(fd,
+		state->buf,
+		state->offset,
+		COMM_ERROR,
+		state->handler_data);
 	safe_free(state);
 	return;
     }
@@ -1327,11 +1335,12 @@ static void commHandleWrite(fd, state)
     }
     fd_table[fd].wstate = NULL;	/* The handler may call comm_write again */
     /* Notify caller that the write is complete */
-    state->handler(fd,
-	state->buf,
-	state->offset,
-	COMM_OK,
-	state->handler_data);
+    if (state->handler)
+	state->handler(fd,
+	    state->buf,
+	    state->offset,
+	    COMM_OK,
+	    state->handler_data);
     safe_free(state);
 }
 

@@ -108,7 +108,7 @@ int ipcache_testname()
 /*
  * open a UNIX domain socket for rendevouing with dnsservers
  */
-#if HAVE_WORKING_UNIX_SOCKETS
+#if 0 && UNIX_SOCKET_VERSION
 int ipcache_create_dnsserver(command)
      char *command;
 {
@@ -116,9 +116,9 @@ int ipcache_create_dnsserver(command)
     struct sockaddr_un addr;
     static int n_dnsserver = 0;
     char *socketname = NULL;
-    int cfd;			/* socket for child (dnsserver) */
-    int sfd;			/* socket for server (squid) */
-    int fd;
+    int cfd = -1;		/* socket for child (dnsserver) */
+    int sfd = -1;		/* socket for server (squid) */
+    int fd = -1;
 
     if ((cfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
 	debug(14, 0, "ipcache_create_dnsserver: socket: %s\n", xstrerror());
@@ -139,7 +139,6 @@ int ipcache_create_dnsserver(command)
 	free(socketname);	/* not xfree() 'cause it came from tempnam() */
 	return -1;
     }
-    debug(14, 4, "ipcache_create_dnsserver: bind to local host.\n");
     listen(cfd, 1);
 
     if ((pid = fork()) < 0) {
@@ -187,7 +186,9 @@ int ipcache_create_dnsserver(command)
     _exit(1);
     return (0);
 }
-#elif HAVE_SOCKETPAIR
+#endif /* UNIX_SOCKET_VERSION */
+
+#if 0 && SOCKETPAIR_VERSION
 int ipcache_create_dnsserver(command)
      char *command;
 {
@@ -222,16 +223,17 @@ int ipcache_create_dnsserver(command)
     /* setup filedescriptors */
     dup2(scfd[1], 0);
     dup2(scfd[1], 1);
-    for (fd = FD_SETSIZE; fd > 2; fd--) {
+    for (fd = FD_SETSIZE; fd > 2; fd--)
 	close(fd);
-    }
 
     execlp(command, "(dnsserver)", NULL);
     debug(14, 0, "ipcache_create_dnsserver: %s: %s\n", command, xstrerror());
     _exit(1);
     return (0);
 }
-#else
+#endif /* SOCKETPAIR_VERSION */
+
+/* TCP SOCKET VERSION */
 int ipcache_create_dnsserver(command)
      char *command;
 {
@@ -244,25 +246,19 @@ int ipcache_create_dnsserver(command)
     int len;
     int fd;
 
-    if ((cfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-	debug(14, 0, "ipcache_create_dnsserver: socket: %s\n", xstrerror());
-	return -1;
-    }
-    fdstat_open(cfd, Socket);
-    fd_note(cfd, "socket to dnsserver");
-    memset(&S, '\0', sizeof(S));
-    S.sin_family = AF_INET;
-    S.sin_addr.s_addr = htonl(inet_addr("127.0.0.1"));
-    if (bind(cfd, (struct sockaddr *) &S, sizeof(S)) < 0) {
-	close(cfd);
-	debug(14, 0, "ipcache_create_dnsserver: bind: %s\n", xstrerror());
+    cfd = comm_open(COMM_NOCLOEXEC,
+	local_addr,
+	0,
+	"socket to dnsserver");
+    if (cfd == COMM_ERROR) {
+	debug(14, 0, "ipcache_create_dnsserver: Failed to create dnsserver\n");
 	return -1;
     }
     len = sizeof(S);
     memset(&S, '\0', len);
     if (getsockname(cfd, &S, &len) < 0) {
-	close(cfd);
 	debug(14, 0, "ipcache_create_dnsserver: getsockname: %s\n", xstrerror());
+	comm_close(cfd);
 	return -1;
     }
     port = ntohs(S.sin_port);
@@ -270,24 +266,17 @@ int ipcache_create_dnsserver(command)
     listen(cfd, 1);
     if ((pid = fork()) < 0) {
 	debug(14, 0, "ipcache_create_dnsserver: fork: %s\n", xstrerror());
-	close(cfd);
+	comm_close(cfd);
 	return -1;
     }
     if (pid > 0) {		/* parent */
-	close(cfd);		/* close shared socket with child */
+	comm_close(cfd);	/* close shared socket with child */
 	/* open new socket for parent process */
-	if ((sfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-	    debug(14, 0, "ipcache_create_dnsserver: socket: %s\n", xstrerror());
+	sfd = comm_open(0, local_addr, 0, NULL);	/* blocking! */
+	if (sfd == COMM_ERROR)
 	    return -1;
-	}
-	fcntl(sfd, F_SETFD, 1);	/* set close-on-exec */
-	memset(&S, '\0', sizeof(S));
-	S.sin_family = AF_INET;
-	S.sin_addr.s_addr = htonl(inet_addr("127.0.0.1"));
-	S.sin_port = htons(port);
-	if (connect(sfd, (struct sockaddr *) &S, sizeof(S)) < 0) {
+	if (comm_connect(sfd, localhost, port) == COMM_ERROR) {
 	    close(sfd);
-	    debug(14, 0, "ipcache_create_dnsserver: connect: %s\n", xstrerror());
 	    return -1;
 	}
 	debug(14, 4, "ipcache_create_dnsserver: FD %d connected to %s #%d.\n",
@@ -296,21 +285,15 @@ int ipcache_create_dnsserver(command)
     }
     /* child */
 
-    /* give up extra priviliges */
-    no_suid();
-
-    /* setup filedescriptors */
+    no_suid(); /* give up extra priviliges */
     dup2(cfd, 3);
-    for (fd = FD_SETSIZE; fd > 3; fd--) {
+    for (fd = FD_SETSIZE; fd > 3; fd--)
 	close(fd);
-    }
-
     execlp(command, "(dnsserver)", "-t", NULL);
     debug(14, 0, "ipcache_create_dnsserver: %s: %s\n", command, xstrerror());
     _exit(1);
     return 0;
 }
-#endif
 
 /* removes the given ipcache entry */
 int ipcache_release(e)
@@ -1037,8 +1020,8 @@ int ipcache_dnsHandleRead(fd, data)
 
     if (len == 0) {
 	if (!data->expect_close)
-	    debug(14, 1, "Connection from DNSSERVER #%d is closed, disabling\n",
-		data->id + 1);
+	    debug(14, 1, "FD %d: Connection from DNSSERVER #%d is closed, disabling\n",
+		fd, data->id + 1);
 	data->alive = 0;
 	update_dns_child_alive();
 	ipcache_cleanup_pendinglist(data);
@@ -1186,12 +1169,12 @@ int ipcache_nbgethostbyname(name, fd, handler, data)
 	strncpy(buf, name, 254);
 	strcat(buf, "\n");
 	dns->pending_count++;
-	file_write(dns->outpipe,
+	comm_write(dns->outpipe,
 	    buf,
 	    strlen(buf),
-	    0,			/* Lock */
-	    0,			/* Handler */
-	    0);			/* Handler-data */
+	    0,			/* timeout */
+	    NULL,		/* Handler */
+	    NULL);		/* Handler-data */
 
 	debug(14, 5, "ipcache_nbgethostbyname: Request sent DNS server ID %d.\n", last_dns_dispatched);
 	dns->dispatch_time = current_time;
@@ -1247,10 +1230,12 @@ void ipcacheOpenServers()
 
 	    /* update fd_stat */
 
+	    /*
 	    sprintf(fd_note_buf, "%s #%d",
 		prg,
 		dns_child_table[i]->id);
 	    file_update_open(dns_child_table[i]->inpipe, fd_note_buf);
+	    */
 
 	    debug(14, 5, "Calling fd_note() with FD %d and buf '%s'\n",
 		dns_child_table[i]->inpipe, fd_note_buf);
@@ -1524,12 +1509,12 @@ void ipcacheShutdownServers()
 	dns = *(dns_child_table + i);
 	debug(14, 3, "ipcacheShutdownServers: sending '$shutdown' to dnsserver #%d\n", i);
 	debug(14, 3, "ipcacheShutdownServers: --> FD %d\n", dns->outpipe);
-	file_write(dns->outpipe,
+	comm_write(dns->outpipe,
 	    xstrdup(shutdown),
 	    strlen(shutdown),
-	    0,			/* Lock */
-	    0,			/* Handler */
-	    0);			/* Handler-data */
+	    0,			/* timeout */
+	    NULL,		/* Handler */
+	    NULL);		/* Handler-data */
 	dns->expect_close = 1;
     }
 }

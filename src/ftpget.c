@@ -2231,11 +2231,8 @@ int ftpget_srv_mode(arg)
 {
     /* Accept connections on localhost:port.  For each request,
      * parse into args and exec ftpget. */
-    u_short port;
     int sock;
     int c;
-    struct sockaddr_in S;
-    struct sockaddr_un S2;
     fd_set R;
     char *args[MAX_ARGS];
     char *t = NULL;
@@ -2244,61 +2241,14 @@ int ftpget_srv_mode(arg)
     static char *w_space = " \t\n\r";
     static char buf[BUFSIZ];
     int buflen;
+    int flags;
 
 #if HAVE_SETSID
     setsid();			/* become session leader */
 #elif HAVE_SETPGRP
     setpgrp(getpid(), 0);
 #endif
-    port = (u_short) atoi(arg);
-    if (port > 0) {
-	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-	    log_errno2(__FILE__, __LINE__, "socket");
-	    exit(1);
-	}
-    } else {
-	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-	    log_errno2(__FILE__, __LINE__, "socket");
-	    exit(1);
-	}
-    }
-    if (fcntl(sock, F_SETFD, 1) < 0) {
-	Debug(26, 0, ("ftpget_srv_mode: FD %d: failed to set close-on-exec flag: %s\n",
-		sock, xstrerror()));
-    }
-    i = 1;
-    (void) setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &i, sizeof(int));
-    if (port > 0) {
-	memset((char *) &S, '\0', sizeof(S));
-	S.sin_addr.s_addr = inet_addr("127.0.0.1");
-	S.sin_port = htons(port);
-	S.sin_family = AF_INET;
-	Debug(26, 1, ("Binding to %s, port %d\n",
-		inet_ntoa(S.sin_addr),
-		ntohs(S.sin_port)));
-	if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
-	    log_errno2(__FILE__, __LINE__, "bind");
-	    sleep(5);		/* sleep here so the cache will restart us */
-	    exit(1);
-	}
-	socket_pathname = xstrdup(arg);
-    } else {
-	memset(&S2, '\0', sizeof(S2));
-	S2.sun_family = AF_UNIX;
-	strcpy(S2.sun_path, arg);
-	Debug(26, 1, ("Binding to UNIX socket '%s'\n", S2.sun_path));
-	if (bind(sock, (struct sockaddr *) &S2, SUN_LEN(&S2)) < 0) {
-	    log_errno2(__FILE__, __LINE__, "bind");
-	    sleep(5);		/* sleep here so the cache will restart us */
-	    exit(1);
-	}
-    }
-    if (listen(sock, 50) < 0) {
-	log_errno2(__FILE__, __LINE__, "listen");
-	if (socket_pathname)
-	    unlink(socket_pathname);
-	exit(1);
-    }
+    sock = 3;
     for (;;) {
 	FD_ZERO(&R);
 	FD_SET(0, &R);
@@ -2311,7 +2261,7 @@ int ftpget_srv_mode(arg)
 	    if (errno == EINTR)
 		continue;
 	    log_errno2(__FILE__, __LINE__, "select");
-	    continue;
+	    return 1;
 	}
 	if (FD_ISSET(0, &R)) {
 	    /* exit server mode if any activity on stdin */
@@ -2335,6 +2285,16 @@ int ftpget_srv_mode(arg)
 	}
 	buflen = 0;
 	memset(buf, '\0', BUFSIZ);
+	if ((flags = fcntl(c, F_GETFL, 0)) < 0)
+		log_errno2(__FILE__,__LINE__,"fcntl F_GETFL");
+#ifdef O_NONBLOCK
+	flags &= ~ O_NONBLOCK;
+#else
+ifdef O_NDELAY
+	flags &= ~ O_NDELAY;
+#endif
+	if (fcntl(c, F_SETFL, flags) < 0)
+		log_errno2(__FILE__,__LINE__,"fcntl F_SETFL");
 	do {
 	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) < 0) {
 		log_errno2(__FILE__, __LINE__, "read");
@@ -2389,7 +2349,7 @@ void usage(argcount)
     fprintf(stderr, "\t-P port         FTP Port number\n");
     fprintf(stderr, "\t-v              Version\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "usage: %s -S port\n", progname);
+    fprintf(stderr, "usage: %s -S\n", progname);
     exit(1);
 }
 
