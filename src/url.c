@@ -191,8 +191,6 @@ request_t *urlParse(method, url)
 	    if (*t != '\0')
 		port = atoi(t);
 	}
-	if (urlpath[0] == '\0')
-	    strcpy(urlpath, "/");
     }
     for (t = host; *t; t++)
 	*t = tolower(*t);

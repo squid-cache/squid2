@@ -458,7 +458,9 @@ static void httpSendRequest(fd, httpState)
     }
     buf = httpState->reqbuf;
 
-    sprintf(buf, "%s %s HTTP/1.0\r\n", Method, req->urlpath);
+    sprintf(buf, "%s %s HTTP/1.0\r\n",
+	Method,
+	*req->urlpath ? req->urlpath : "/");
     len = strlen(buf);
     if (httpState->req_hdr) {	/* we have to parse the request header */
 	xbuf = xstrdup(httpState->req_hdr);
@@ -573,8 +575,7 @@ int proxyhttpStart(e, url, entry)
     request = get_free_request_t();
     httpState->request = requestLink(request);
     /* register the handler to free HTTP state data when the FD closes */
-    comm_set_select_handler(sock,
-	COMM_SELECT_CLOSE,
+    comm_add_close_handler(sock,
 	(PF) httpStateFree,
 	(void *) httpState);
 
@@ -644,8 +645,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
     storeLockObject(httpState->entry = entry, NULL, NULL);
     httpState->req_hdr = req_hdr;
     httpState->request = requestLink(request);
-    comm_set_select_handler(sock,
-	COMM_SELECT_CLOSE,
+    comm_add_close_handler(sock,
 	(PF) httpStateFree,
 	(void *) httpState);
 
