@@ -149,6 +149,7 @@ char *log_tags[] =
 
 static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
+static const char *const crlf = "\r\n";
 
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
@@ -186,6 +187,8 @@ static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpProcessMISS _PARAMS((int, clientHttpRequest *));
 static void icpProcessRequestComplete _PARAMS((void *, int));
+static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, size_t));
+size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -544,8 +547,88 @@ icp_maybe_remember_reply_hdr(clientHttpRequest * http)
 }
 
 #endif /* LOG_FULL_HEADERS */
-/* Send available data from an object in the cache.  This is called either
- * on select for  write or directly by icpHandleStore. */
+
+int
+isTcpHit(log_type code)
+{
+	/* this should be a bitmap for better optimization */
+	if (code == LOG_TCP_HIT)
+		return 1;
+	if (code == LOG_TCP_IMS_HIT)
+		return 1;
+	if (code == LOG_TCP_REFRESH_FAIL_HIT)
+		return 1;
+	if (code == LOG_TCP_REFRESH_HIT)
+		return 1;
+	return 0;
+}
+
+static void
+clientAppendReplyHeader(char *hdr, const char *line, size_t * sz, size_t max)
+{
+    size_t n = *sz + strlen(line) + 2;
+    if (n >= max)
+        return;
+    strcpy(hdr + (*sz), line);
+    strcat(hdr + (*sz), crlf);
+    *sz = n;
+}
+
+size_t
+clientBuildReplyHeader(clientHttpRequest * http,
+    char *hdr_in,
+    size_t *in_len,
+    char *hdr_out,
+    size_t out_sz)
+{
+    char *xbuf = get_free_4k_page();
+    char *ybuf = get_free_4k_page();
+    char *t = NULL;
+    char *end = NULL;
+    size_t len = 0;
+    size_t hdr_len = 0;
+    size_t l;
+    debug(0, 0, "clientBuildReplyHeader: INPUT:\n%s\n", hdr_in);
+    end = mime_headers_end(hdr_in);
+    if (end == NULL) {
+        debug(0, 0, "clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
+	return 0;
+    }
+    for (t = hdr_in; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
+        hdr_len = t - hdr_in;
+        l = strcspn(t, crlf) + 1;
+        xstrncpy(xbuf, t, l > 4096 ? 4096 : l);
+        debug(11, 5, "clientBuildReplyHeader: %s\n", xbuf);
+        if (strncasecmp(xbuf, "Proxy-Connection:", 17) == 0)
+            continue;
+        if (strncasecmp(xbuf, "Connection:", 11) == 0)
+            continue;
+	if (strncasecmp(xbuf, "Set-Cookie:", 11) == 0)
+		if (isTcpHit(http->log_type))
+			continue;
+        httpAppendRequestHeader(hdr_out, xbuf, &len, out_sz - 512);
+    }
+    hdr_len = t - hdr_in;
+    /* Append X-Cache: */
+    sprintf(ybuf, "X-Cache: %s", isTcpHit(http->log_type) ? "HIT" : "MISS");
+    httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz);
+    /* Append Proxy-Connection: */
+    if (BIT_TEST(http->request->flags, REQ_PROXY_KEEPALIVE)) {
+        sprintf(ybuf, "Proxy-Connection: Keep-Alive");
+        httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz);
+    }
+    httpAppendRequestHeader(hdr_out, null_string, &len, out_sz);
+    put_free_4k_page(xbuf);
+    if (in_len)
+        *in_len = hdr_len;
+    if ((l = strlen(hdr_out)) != len) {
+        debug_trap("clientBuildReplyHeader: size mismatch");
+        len = l;
+    }
+    debug(11, 3, "clientBuildReplyHeader: OUTPUT:\n%s\n", hdr_out);
+    return len;
+}
+
 
 int
 icpSendMoreData(int fd, clientHttpRequest * http)
@@ -555,6 +638,10 @@ icpSendMoreData(int fd, clientHttpRequest * http)
     char *buf = NULL;
     char *p = NULL;
     int x;
+    size_t hdrlen;
+    size_t newbuflen;
+    size_t l;
+    char *newbuf;
 
     debug(12, 5, "icpSendMoreData: '%s' sz %d: len %d: off %d.\n",
 	entry->url,
@@ -573,6 +660,18 @@ icpSendMoreData(int fd, clientHttpRequest * http)
 	put_free_4k_page(buf);
 	comm_close(fd);
 	return COMM_ERROR;
+    }
+    if (http->out.offset == 0 && len > 0) {
+	newbuf = get_free_8k_page();
+	newbuflen = 8192;
+	hdrlen = 0;
+	l = clientBuildReplyHeader(http, buf, &hdrlen, newbuf, newbuflen);
+	if (l == 0) {
+		put_free_8k_page(newbuf);
+		len = 0; /* fake out comm_write */
+	}
+	XXX argh, just realized that http->out.offset will be incorrect
+        if the output header is different size than the input header.
     }
 #if LOG_FULL_HEADERS
     if (http->out.offset == 0 && len > 0)
