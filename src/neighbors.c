@@ -216,6 +216,7 @@ neighborsCount(request_t * request)
     return count;
 }
 
+#if UNUSED_CODE
 peer *
 getSingleParent(request_t * request)
 {
@@ -235,6 +236,7 @@ getSingleParent(request_t * request)
     debug(15, 3) ("getSingleParent: returning %s\n", p ? p->host : "NULL");
     return p;
 }
+#endif
 
 peer *
 getFirstUpParent(request_t * request)
