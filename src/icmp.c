@@ -96,7 +96,7 @@ icmpOpen(void)
 	return;
     }
     if (pid == 0) {		/* child */
-	char *x = xcalloc(strlen(Config.debugOptions)+32, 1);
+	char *x = xcalloc(strlen(Config.debugOptions) + 32, 1);
 	sprintf(x, "SQUID_DEBUG=%s\n", Config.debugOptions);
 	putenv(x);
 	comm_close(icmp_sock);
@@ -154,10 +154,10 @@ icmpRecv(int unused1, void *unused2)
 	sizeof(pingerReplyData),
 	0);
     if (n < 0) {
-	debug(37,0,"icmpRecv: recv: %s\n", xstrerror());
+	debug(37, 0, "icmpRecv: recv: %s\n", xstrerror());
 	return;
     }
-    if (n == 0)		/* test probe from pinger */
+    if (n == 0)			/* test probe from pinger */
 	return;
     F.sin_family = AF_INET;
     F.sin_addr = preply.from;

@@ -307,7 +307,7 @@ pingerSendtoSquid(pingerReplyData * preply)
 {
     int len = sizeof(pingerReplyData) - 8192 + preply->psize;
     if (send(1, preply, len, 0) < 0) {
-	debug(37,0,"send: %s\n", xstrerror());
+	debug(37, 0, "send: %s\n", xstrerror());
 	exit(1);
     }
 }

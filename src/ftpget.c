@@ -2747,7 +2747,7 @@ main(int argc, char *argv[])
 	    if ((ip = inet_addr(*argv)) != INADDR_NONE)
 		outgoingTcpAddr.s_addr = ip;
 	    else if ((hp = gethostbyname(*argv)) != NULL)
-		outgoingTcpAddr = *(struct in_addr *) (void*) (hp->h_addr_list[0]);
+		outgoingTcpAddr = *(struct in_addr *) (void *) (hp->h_addr_list[0]);
 	    else {
 		fprintf(stderr, "%s: bad outbound tcp address %s\n",
 		    progname, *argv);

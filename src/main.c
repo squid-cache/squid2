@@ -240,8 +240,8 @@ mainParseOptions(int argc, char *argv[])
 		opt_send_signal = SIGUSR2;
 	    else if (!strncmp(optarg, "shutdown", strlen(optarg)))
 		opt_send_signal = SIGTERM;
-            else if (!strncmp(optarg, "interrupt", strlen(optarg)))
-                opt_send_signal = SIGINT;
+	    else if (!strncmp(optarg, "interrupt", strlen(optarg)))
+		opt_send_signal = SIGINT;
 	    else if (!strncmp(optarg, "kill", strlen(optarg)))
 		opt_send_signal = SIGKILL;
 	    else if (!strncmp(optarg, "check", strlen(optarg)))

@@ -646,7 +646,7 @@ memoryAccounted(void)
 #if USE_ICMP
 	meta_data.netdb * sizeof(netdbEntry) +
 #endif
-               meta_data.misc;
+	meta_data.misc;
 }
 
 #ifdef UNUSED_CODE

@@ -187,8 +187,8 @@ dnsOpenServer(char *command)
     /* child */
     no_suid();			/* give up extra priviliges */
     if ((fd = accept(cfd, NULL, NULL)) < 0) {
-        debug(34, 0, "dnsOpenServer: FD %d accept: %s\n", cfd, xstrerror());
-        _exit(1);
+	debug(34, 0, "dnsOpenServer: FD %d accept: %s\n", cfd, xstrerror());
+	_exit(1);
     }
     dup2(fd, 0);
     dup2(fd, 1);

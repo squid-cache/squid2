@@ -671,7 +671,7 @@ comm_select(time_t sec)
 	    dnsShutdownServers();
 	    redirectShutdownServers();
 	    if (shutdown_pending > 0)
-	    	setSocketShutdownLifetimes(Config.lifetimeShutdown);
+		setSocketShutdownLifetimes(Config.lifetimeShutdown);
 	    else
 		setSocketShutdownLifetimes(0);
 	}
