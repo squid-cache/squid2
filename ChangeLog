@@ -116,3 +116,7 @@ Changes to squid-1.0.beta4:
 	  end of all requests.  Symptoms were "connection reset"
 	  messages.
 
+Changes to squid-1.0.beta5:
+
+	- Fixed cachemgr to send 'HTTP/1.0' on request so it works
+	  with beta4 fixes to icp.c.
