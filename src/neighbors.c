@@ -1062,11 +1062,12 @@ peerCheckConnectDone(int fd, int status, void *data)
 	p->last_fail_time = squid_curtime;
     }
     p->tcp_up = status == COMM_OK ? 1 : 0;
-    if (p->tcp_up)
+    if (p->tcp_up) {
 	debug(15, 0, "TCP connection to %s/%d succeeded\n",
 	    p->host, p->http_port);
-    else
+    } else {
 	eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
+    }
     comm_close(fd);
     return;
 }
