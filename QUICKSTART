@@ -31,7 +31,7 @@ cache_mem
     Warning: Squid uses much more than this value.  Rule of thumb: if
     you have N megabytes free for Squid, put N/3 here.
 
-cache_dir /usr/local/squid/cache 100 16 256
+cache_dir /usr/local/squid/var/cache 100 16 256
 
     Add here (first number, here 100) the amount of hard disk space 
     (in megabytes) to devote to caching.
@@ -80,7 +80,7 @@ line TWICE:
     % /usr/local/squid/sbin/squid -z
     % /usr/local/squid/sbin/squid 
 
-Check in the cache.log (/usr/local/squid/logs/cache.log) that
+Check in the cache.log (/usr/local/squid/var/logs/cache.log) that
 everything is all right.  Note that "WARNING: Cannot write to swap
 directory" is normal the first time you run Squid.
 
