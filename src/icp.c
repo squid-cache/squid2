@@ -1415,12 +1415,12 @@ icpHandleUdp(int sock, void *not_used)
     icp_common_t *headerp = NULL;
     int icp_version;
 
+    commSetSelect(sock, COMM_SELECT_READ, icpHandleUdp, NULL, 0);
     from_len = sizeof(from);
     memset(&from, 0, from_len);
     len = comm_udp_recv(sock, buf, SQUID_UDP_SO_RCVBUF - 1, &from, &from_len);
     if (len < 0) {
 	debug(12, 1, "icpHandleUdp: FD %d: error receiving.\n", sock);
-	commSetSelect(sock, COMM_SELECT_READ, icpHandleUdp, NULL, 0);
 	return;
     }
     buf[len] = '\0';
@@ -1432,9 +1432,7 @@ icpHandleUdp(int sock, void *not_used)
     icpPktDump(buf);
 #endif
     if (len < sizeof(icp_common_t)) {
-	debug(12, 4, "icpHandleUdp: Bad sized UDP packet ignored. %d < %d\n",
-	    len, sizeof(icp_common_t));
-	commSetSelect(sock, COMM_SELECT_READ, icpHandleUdp, NULL, 0);
+	debug(12, 4, "icpHandleUdp: Ignoring too-small UDP packet\n");
 	return;
     }
     headerp = (icp_common_t *) (void *) buf;
@@ -1447,10 +1445,6 @@ icpHandleUdp(int sock, void *not_used)
 	    icp_version,
 	    inet_ntoa(from.sin_addr),
 	    ntohs(from.sin_port));
-    commSetSelect(sock,
-	COMM_SELECT_READ,
-	icpHandleUdp,
-	NULL, 0);
 }
 
 static char *
@@ -1800,10 +1794,10 @@ asciiHandleConn(int sock, void *notused)
     struct sockaddr_in peer;
     struct sockaddr_in me;
 
+    commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
     if ((fd = comm_accept(sock, &peer, &me)) < 0) {
 	debug(12, 1, "asciiHandleConn: FD %d: accept failure: %s\n",
 	    sock, xstrerror());
-	commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
 	return;
     }
     /* set the hardwired lifetime */
@@ -1835,17 +1829,12 @@ asciiHandleConn(int sock, void *notused)
     comm_read(fd,
 	icpState->inbuf,
 	icpState->inbufsize - 1,	/* size */
-	30,			/* timeout */
-	1,			/* handle immed */
+	30,				/* timeout */
+	1,				/* handle immed */
 	asciiProcessInput,
 	(void *) icpState);
-    commSetSelect(sock,
-	COMM_SELECT_READ,
-	asciiHandleConn,
-	NULL, 0);
-    if (Config.identLookup) {
+    if (Config.identLookup)
 	identStart(-1, icpState);
-    }
     /* start reverse lookup */
     if (Config.Log.log_fqdn)
 	fqdncache_gethostbyaddr(peer.sin_addr, FQDN_LOOKUP_IF_MISS);

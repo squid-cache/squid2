@@ -164,7 +164,7 @@ pingerSendEcho(struct in_addr to, int opcode, char *payload, int len)
     if (payload) {
 	if (len > MAX_PAYLOAD)
 	    len = MAX_PAYLOAD;
-	memcpy(echo->payload, payload, len);
+	xmemcpy(echo->payload, payload, len);
 	icmp_pktsize += len;
     }
     icmp->icmp_cksum = in_cksum((u_short *) icmp, icmp_pktsize);

@@ -835,7 +835,7 @@ storeAddDiskRestore(char *url, int file_number, int size, time_t expires, time_t
     e->lock_count = 0;
     BIT_RESET(e->flag, CLIENT_ABORT_REQUEST);
     e->refcount = 0;
-    e->lastref = squid_curtime;
+    e->lastref = timestamp;
     e->timestamp = timestamp;
     e->expires = expires;
     e->lastmod = lastmod;

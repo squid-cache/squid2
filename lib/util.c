@@ -449,27 +449,6 @@ xstrerror(void)
     return xstrerror_buf;
 }
 
-#if !HAVE_STRDUP
-/* define for systems that don't have strdup */
-char *
-strdup(char *s)
-{
-    return (xstrdup(s));
-}
-#endif
-
-void
-xmemcpy(void *from, void *to, int len)
-{
-#if HAVE_MEMMOVE
-    (void) memmove(from, to, len);
-#elif HAVE_BCOPY
-    bcopy(to, from, len);
-#else
-    (void) memcpy(from, to, len);
-#endif
-}
-
 void
 Tolower(char *q)
 {

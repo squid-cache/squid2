@@ -19,15 +19,16 @@ AC_CFLAGS	= @CFLAGS@
 LDFLAGS		= @LDFLAGS@
 XTRA_LIBS	= @XTRA_LIBS@
 RM		= @RM@
+LIBOBJS		= @LIBOBJS@
 
 INCLUDE		= -I../include -I$(srcdir)/../include
 UTILOBJS	= rfc850.o \
 		  rfc1738.o \
 		  util.o \
 		  getfullhostname.o \
-		  tempnam.o \
 		  base64.o \
-		  uudecode.o
+		  uudecode.o \
+		  $(LIBOBJS)
 REGEXOBJS	= GNUregex.o
 LIBS		= libmiscutil.a libregex.a
 
