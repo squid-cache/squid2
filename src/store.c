@@ -372,7 +372,7 @@ void
 storeLockObject(StoreEntry * e)
 {
     e->lock_count++;
-    debug(20, 0, "storeLockObject: key '%s' count=%d\n",
+    debug(20, 3, "storeLockObject: key '%s' count=%d\n",
 	e->key, (int) e->lock_count);
     e->lastref = squid_curtime;
 }
@@ -754,7 +754,6 @@ storeExpireNow(StoreEntry * e)
 static int
 storeDoneWriting(StoreEntry * e)
 {
-    debug(0, 0, "storeDoneWriting: store_status=%s\n", storeStatusStr[e->store_status]);
     if (e->store_status == STORE_PENDING)
 	return 0;
     if (e->store_status == STORE_ABORTED)
