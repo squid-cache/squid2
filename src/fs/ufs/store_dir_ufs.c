@@ -1355,8 +1355,8 @@ storeUfsDirMaintain(SwapDir * SD)
 int
 storeUfsDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
-    /* Return 999 (99.9%) constant load */
-    return 999;
+    ufsinfo_t *ufsinfo = SD->fsdata;
+    return 500 + ufsinfo->open_files / 2;
 }
 
 /*
