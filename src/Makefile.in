@@ -34,6 +34,7 @@ STD_LDFLAGS	= @STD_LDFLAGS@
 XTRA_CFLAGS	= @XTRA_CFLAGS@
 XTRA_LIBS	= @XTRA_LIBS@
 XTRA_OBJS 	= @XTRA_OBJS@
+SHELL		= /bin/sh
 
 
 ## AIX users might need to use these values
