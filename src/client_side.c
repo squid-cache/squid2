@@ -1903,7 +1903,6 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     header_sz = headersEnd(req_hdr, conn->in.offset - (req_hdr - inbuf));
     if (0 == header_sz) {
 	debug(33, 3) ("parseHttpRequest: header_sz == 0\n");
-	xfree(inbuf);
 	*status = 0;
 	return NULL;
     }
