@@ -602,16 +602,18 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	    ipcache_call_pending(i);
 	}
 	ipcacheUnlockEntry(i);	/* unlock from IP_DISPATCHED */
+    } else {
+	debug(14, 5, "ipcache_dnsHandleRead: Incomplete reply\n");
+	commSetSelect(fd,
+	    COMM_SELECT_READ,
+	    ipcache_dnsHandleRead,
+	    dnsData,
+	    0);
     }
     if (dnsData->offset == 0) {
 	dnsData->data = NULL;
 	dnsData->flags &= ~DNS_FLAG_BUSY;
     }
-    /* reschedule */
-    commSetSelect(dnsData->inpipe,
-	COMM_SELECT_READ,
-	(PF) ipcache_dnsHandleRead,
-	dnsData, 0);
     ipcacheNudgeQueue();
 }
 
