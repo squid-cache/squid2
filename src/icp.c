@@ -1896,7 +1896,7 @@ clientReadRequest(int fd, void *data)
 		err->url = xstrdup(http->url);
 		http->al.http.code = err->http_status;
 		errorSend(fd, err);
-		continue;	/* while offset > 0 */
+		break;
 	    }
 	    request->client_addr = conn->peer.sin_addr;
 	    request->http_ver = http->http_ver;
