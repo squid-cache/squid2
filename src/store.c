@@ -435,13 +435,14 @@ int storeUnlockObject(e)
 {
     int e_lock_count;
 
-    debug(20, 3, "storeUnlockObject: key '%s' count=%d\n", e->key, e->lock_count);
 
     if ((int) e->lock_count > 0)
 	e->lock_count--;
     else if (e->lock_count == 0) {
 	debug(20, 0, "Entry lock count %d is out-of-whack\n", e->lock_count);
     }
+    debug(20, 3, "storeUnlockObject: key '%s' count=%d\n", e->key, e->lock_count);
+
     /* Prevent UMR if we end up freeing the entry */
     e_lock_count = (int) e->lock_count;
 
