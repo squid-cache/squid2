@@ -266,6 +266,12 @@ static void
 ftpStateFree(int fdnotused, void *data)
 {
     FtpStateData *ftpState = data;
+    ftpState->ctrl.fd = -1;
+    if (ftpState->data.fd > -1) {
+	int fd = ftpState->data.fd;
+	ftpState->data.fd = -1;
+	comm_close(fd);
+    }
     cbdataFree(ftpState);
 }
 
@@ -312,10 +318,6 @@ ftpStateFreed(void *data)
     stringClean(&ftpState->base_href);
     safe_free(ftpState->filepath);
     safe_free(ftpState->data.host);
-    if (ftpState->data.fd > -1) {
-	comm_close(ftpState->data.fd);
-	ftpState->data.fd = -1;
-    }
 }
 
 static void
@@ -1734,7 +1736,7 @@ ftpSendPasv(FtpStateData * ftpState)
     ftpState->state = SENT_PASV;
     /*
      * ugly hack for ftp servers like ftp.netscape.com that sometimes
-     * dont acknowledge PORT commands.
+     * dont acknowledge PASV commands.
      */
     commSetTimeout(ftpState->data.fd, 15, ftpTimeout, ftpState);
 }
