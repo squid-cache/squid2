@@ -479,6 +479,7 @@ static int write_with_timeout(fd, buf, sz)
 	FD_SET(fd, &W);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
+	Debug(26, 7, ("write_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec));
 	x = select(fd + 1, &R, &W, NULL, &tv);
 	Debug(26, 7, ("write_with_timeout: select returned %d\n", x));
 	if (x < 0)
@@ -516,6 +517,7 @@ int read_with_timeout(fd, buf, sz)
     FD_SET(fd, &R);
     FD_SET(0, &R);
     last_alarm_set = time(NULL);
+    Debug(26, 3, ("read_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec));
     x = select(fd + 1, &R, NULL, NULL, &tv);
     if (x < 0)
 	return x;
@@ -608,7 +610,7 @@ int connect_with_timeout2(fd, S, len)
 	FD_SET(fd, &W);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
-	Debug(26, 7, ("selecting on FD %d\n", fd));
+	Debug(26, 7, ("connect_with_timeout2: selecting on FD %d\n", fd));
 	x = select(fd + 1, &R, &W, NULL, &tv);
 	Debug(26, 7, ("select returned: %d\n", x));
 	if (x == 0)
@@ -655,7 +657,7 @@ int accept_with_timeout(fd, S, len)
     FD_SET(fd, &R);
     FD_SET(0, &R);
     last_alarm_set = time(NULL);
-    Debug(26, 7, ("selecting on FD %d\n", fd));
+    Debug(26, 7, ("accept_with_timeout: selecting on FD %d\n", fd));
     x = select(fd + 1, &R, NULL, NULL, &tv);
     Debug(26, 7, ("select returned: %d\n", x));
     if (x == 0)
@@ -1230,6 +1232,7 @@ state_t do_port(r)
 	r->rc = 2;
 	return FAIL_SOFT;
     }
+    Debug(26, 3, ("listening on FD %d\n", sock));
     naddr = ntohl(ifc_addr.sin_addr.s_addr);
     sprintf(cbuf, "PORT %d,%d,%d,%d,%d,%d",
 	(naddr >> 24) & 0xFF,
@@ -1307,7 +1310,7 @@ state_t do_pasv(r)
 	return PASV_FAIL;
     }
     /*  227 Entering Passive Mode (h1,h2,h3,h4,p1,p2).  */
-    n = sscanf(server_reply_msg, "%[^(](%d,%d,%d,%d,%d,%d)",
+    n = sscanf(server_reply_msg + 3, "%[^0-9]%d,%d,%d,%d,%d,%d",
 	junk, &h1, &h2, &h3, &h4, &p1, &p2);
     if (n != 7) {
 	r->errmsg = xstrdup(server_reply_msg);
