@@ -325,7 +325,7 @@ icpParseRequestHeaders(icpStateData * icpState)
 	while ((t = strchr(t, ';'))) {
 	    for (t++; isspace(*t); t++);
 	    if (strncasecmp(t, "length=", 7) == 0)
-		request->imslen = atoi(t+7);
+		request->imslen = atoi(t + 7);
 	}
     }
     if ((t = mime_get_header(request_hdr, "Pragma"))) {
