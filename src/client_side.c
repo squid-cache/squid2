@@ -1581,7 +1581,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	    }
 	}
 	rep = clientBuildReply(http, buf, size);
-	if (clientReplyBodyTooLarge(rep->content_length)) {
+	if (rep && clientReplyBodyTooLarge(rep->content_length)) {
 	    ErrorState *err = errorCon(ERR_TOO_BIG, HTTP_FORBIDDEN);
 	    err->request = requestLink(http->request);
 	    storeUnregister(http->entry, http);
