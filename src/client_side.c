@@ -573,7 +573,7 @@ clientUpdateCounters(clientHttpRequest * http)
     if (H->alg == PEER_SA_DIGEST) {
 	statHistCount(&Counter.cd.client_svc_time, svc_time);
 	if (sst)
-	    statHistCount(&Counter.cd.server_svc_time, svc_time);
+	    statHistCount(&Counter.cd.server_svc_time, sst);
 	Counter.cd.times_used++;
     } else {
 	assert(H->alg == PEER_SA_NONE);
