@@ -256,7 +256,7 @@ diskHandleWrite(int fd, FileEntry * entry)
 		if (r->free)
 		    (r->free) (r->buf);
 		safe_free(r);
-	    } while (entry->write_q);
+	    } while ((r = entry->write_q));
 	    if (entry->wrt_handle) {
 		entry->wrt_handle(fd,
 		    errno == ENOSPC ? DISK_NO_SPACE_LEFT : DISK_ERROR,
