@@ -7,6 +7,9 @@ Changes to squid-1.0.9 (August 19, 1996):
 	- Added temporary hack to httpProcessReplyHeaders() to allow
 	  caching of non-HTTP objects fetched from neighbors when
 	  the header does not have Date, Expires, or Last-Modified.
+	- Added a check for a valid ICP socket before sending ICP
+	  queries.
+	- Fixed SSL code to unregister DNS lookups if client aborts.
 
 Changes to squid-1.0.8 (August 19, 1996):
 
