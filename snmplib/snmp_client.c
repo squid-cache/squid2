@@ -41,16 +41,16 @@
 #include "snmp_api.h"
 #include "snmp_client.h"
 
+#include "util.h"
+
 static struct synch_state snmp_synch_state;
 
 struct snmp_pdu *
-snmp_pdu_create(command)
-     int command;
+snmp_pdu_create(int command)
 {
     struct snmp_pdu *pdu;
 
-    pdu = (struct snmp_pdu *) calloc(1, sizeof(struct snmp_pdu));
-    bzero((char *) pdu, sizeof(struct snmp_pdu));
+    pdu = xcalloc(1, sizeof(struct snmp_pdu));
     pdu->command = command;
     pdu->errstat = SNMP_DEFAULT_ERRSTAT;
     pdu->errindex = SNMP_DEFAULT_ERRINDEX;
@@ -72,16 +72,16 @@ snmp_add_null_var(struct snmp_pdu *pdu, oid * name, int name_length)
     struct variable_list *vars;
 
     if (pdu->variables == NULL) {
-	pdu->variables = vars = (struct variable_list *) calloc(1, sizeof(struct variable_list));
+	pdu->variables = vars = xcalloc(1, sizeof(struct variable_list));
     } else {
 	for (vars = pdu->variables; vars->next_variable; vars = vars->next_variable);
-	vars->next_variable = (struct variable_list *) calloc(1, sizeof(struct variable_list));
+	vars->next_variable = xcalloc(1, sizeof(struct variable_list));
 	vars = vars->next_variable;
     }
 
     vars->next_variable = NULL;
-    vars->name = (oid *) calloc(1, name_length * sizeof(oid));
-    bcopy((char *) name, (char *) vars->name, name_length * sizeof(oid));
+    vars->name = xcalloc(1, name_length * sizeof(oid));
+    xmemcpy(vars->name, name, name_length * sizeof(oid));
     vars->name_length = name_length;
     vars->type = ASN_NULL;
     vars->val.string = NULL;
@@ -99,27 +99,27 @@ clone_variable(var)
     struct variable_list *newvar;
     if (!var)
 	return NULL;
-    newvar = (struct variable_list *) calloc(1, sizeof(struct variable_list));
+    newvar = xcalloc(1, sizeof(struct variable_list));
     if (!newvar)
 	return NULL;
-    bcopy((char *) var, (char *) newvar, sizeof(struct variable_list));
+    xmemcpy(newvar, var, sizeof(struct variable_list));
     if (var->name != NULL) {
-	newvar->name = (oid *) calloc(1, var->name_length * sizeof(oid));
+	newvar->name = xcalloc(1, var->name_length * sizeof(oid));
 	if (newvar->name == NULL) {	/* paranoia */
 	    free(newvar);
 	    return NULL;
 	}
-	bcopy((char *) var->name, (char *) newvar->name, var->name_length * sizeof(oid));
+	xmemcpy(newvar->name, var->name, var->name_length * sizeof(oid));
     }
     if (var->val.string != NULL) {
-	newvar->val.string = (u_char *) calloc(1, var->val_len);
+	newvar->val.string = xcalloc(1, var->val_len);
 	if (newvar->val.string == NULL) {	/* paranoia */
 	    if (newvar->name != NULL)
 		free(newvar->name);
 	    free(newvar);
 	    return NULL;
 	}
-	bcopy((char *) var->val.string, (char *) newvar->val.string, var->val_len);
+	xmemcpy(newvar->val.string, var->val.string, var->val_len);
     }
     newvar->next_variable = NULL;
     return newvar;
@@ -140,8 +140,8 @@ snmp_synch_input(op, session, reqid, pdu, magic)
     state->waiting = 0;
     if (op == RECEIVED_MESSAGE && (pdu->command == GET_RSP_MSG || pdu->command == REPORT_MSG)) {
 	/* clone the pdu */
-	state->pdu = newpdu = (struct snmp_pdu *) calloc(1, sizeof(struct snmp_pdu));
-	bcopy((char *) pdu, (char *) newpdu, sizeof(struct snmp_pdu));
+	state->pdu = newpdu = xcalloc(1, sizeof(struct snmp_pdu));
+	xmemcpy(newpdu, pdu, sizeof(struct snmp_pdu));
 	newpdu->variables = NULL;
 	/* clone the variables */
 	if (pdu->variables != NULL) {
@@ -188,8 +188,8 @@ snmp_fix_pdu(pdu, command)
     if (pdu->command != GET_RSP_MSG || pdu->errstat == SNMP_ERR_NOERROR || pdu->errindex <= 0)
 	return NULL;
     /* clone the pdu */
-    newpdu = (struct snmp_pdu *) calloc(1, sizeof(struct snmp_pdu));
-    bcopy((char *) pdu, (char *) newpdu, sizeof(struct snmp_pdu));
+    newpdu = xcalloc(1, sizeof(struct snmp_pdu));
+    xmemcpy(newpdu, pdu, sizeof(struct snmp_pdu));
     newpdu->variables = 0;
     newpdu->command = command;
     newpdu->reqid = SNMP_DEFAULT_REQID;
@@ -202,15 +202,15 @@ snmp_fix_pdu(pdu, command)
 	index++;
     }
     if (var != NULL) {
-	newpdu->variables = newvar = (struct variable_list *) calloc(1, sizeof(struct variable_list));
-	bcopy((char *) var, (char *) newvar, sizeof(struct variable_list));
+	newpdu->variables = newvar = xcalloc(1, sizeof(struct variable_list));
+	xmemcpy(newvar, var, sizeof(struct variable_list));
 	if (var->name != NULL) {
-	    newvar->name = (oid *) calloc(1, var->name_length * sizeof(oid));
-	    bcopy((char *) var->name, (char *) newvar->name, var->name_length * sizeof(oid));
+	    newvar->name = xcalloc(1, var->name_length * sizeof(oid));
+	    xmemcpy(newvar->name, var->name, var->name_length * sizeof(oid));
 	}
 	if (var->val.string != NULL) {
-	    newvar->val.string = (u_char *) calloc(1, var->val_len);
-	    bcopy((char *) var->val.string, (char *) newvar->val.string, var->val_len);
+	    newvar->val.string = xcalloc(1, var->val_len);
+	    xmemcpy(newvar->val.string, var->val.string, var->val_len);
 	}
 	newvar->next_variable = 0;
 	copied++;
@@ -219,16 +219,16 @@ snmp_fix_pdu(pdu, command)
 	    var = var->next_variable;
 	    if (++index == pdu->errindex)
 		continue;
-	    newvar->next_variable = (struct variable_list *) calloc(1, sizeof(struct variable_list));
+	    newvar->next_variable = xcalloc(1, sizeof(struct variable_list));
 	    newvar = newvar->next_variable;
-	    bcopy((char *) var, (char *) newvar, sizeof(struct variable_list));
+	    xmemcpy(newvar, var, sizeof(struct variable_list));
 	    if (var->name != NULL) {
-		newvar->name = (oid *) calloc(1, var->name_length * sizeof(oid));
-		bcopy((char *) var->name, (char *) newvar->name, var->name_length * sizeof(oid));
+		newvar->name = xcalloc(1, var->name_length * sizeof(oid));
+		xmemcpy(newvar->name, var->name, var->name_length * sizeof(oid));
 	    }
 	    if (var->val.string != NULL) {
-		newvar->val.string = (u_char *) calloc(1, var->val_len);
-		bcopy((char *) var->val.string, (char *) newvar->val.string, var->val_len);
+		newvar->val.string = xcalloc(1, var->val_len);
+		xmemcpy(newvar->val.string, var->val.string, var->val_len);
 	    }
 	    newvar->next_variable = 0;
 	    copied++;
@@ -307,7 +307,7 @@ void
 snmp_synch_setup(struct snmp_session *session)
 {
     session->callback = snmp_synch_input;
-    bzero((char *) &snmp_synch_state, sizeof(snmp_synch_state));
+    memset(&snmp_synch_state, '\0', sizeof(snmp_synch_state));
     session->callback_magic = (void *) &snmp_synch_state;
 }
 
