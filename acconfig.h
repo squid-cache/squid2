@@ -190,3 +190,11 @@
  * such code.
  */
 #define HTTP_VIOLATIONS 1
+
+/*
+ * Enable support for Transparent Proxy on systems using IP-Filter
+ * address redirection. This provides "masquerading" support for non
+ *  Linux system.
+ */
+#undef IPF_TRANSPARENT
+
