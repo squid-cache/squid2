@@ -289,10 +289,8 @@ pingerReadRequest(void)
     int guess_size;
     memset(&pecho, '\0', sizeof(pecho));
     n = recv(0, (char *) &pecho, sizeof(pecho), 0);
-    if (n < 0) {
-	perror("recv");
+    if (n < 0)
 	return n;
-    }
     guess_size = n - (sizeof(pingerEchoData) - MAX_PKT_SZ);
     if (guess_size != pecho.psize)
 	fprintf(stderr, "size mismatch, guess=%d psize=%d\n",
@@ -353,8 +351,10 @@ main(int argc, char *argv[])
 	if (x < 0)
 	    return 1;
 	if (FD_ISSET(0, &R))
-	    if (pingerReadRequest() < 0)
+	    if (pingerReadRequest() < 0) {
+	        debug(42, 0, "Pinger exiting.\n"):
 		return 1;
+	}
 	if (FD_ISSET(icmp_sock, &R))
 	    pingerRecv();
 	if (10 + last_check_time < squid_curtime) {
