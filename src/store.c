@@ -1119,7 +1119,7 @@ storeSwapInFileOpened(void *data, int fd)
     StoreEntry *e = ctrlp->e;
     assert(e->mem_obj != NULL);
     assert(e->mem_status == NOT_IN_MEMORY);
-    assert(e->swap_status == SWAPOUT_DONE);
+    assert(e->swap_status == SWAPOUT_WRITING || e->swap_status == SWAPOUT_DONE);
     if (fd < 0) {
 	debug(20, 0) ("storeSwapInStartComplete: Failed for '%s'\n", e->url);
 	/* Invoke a store abort that should free the memory object */
