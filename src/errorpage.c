@@ -224,10 +224,13 @@ void
 errorAppendEntry(StoreEntry * entry, ErrorState * err)
 {
     char *buf;
+    MemObject *mem = entry->mem_obj;
     int len;
     assert(entry->store_status == STORE_PENDING);
     buf = errorBuildBuf(err, &len);
     storeAppend(entry, buf, len);
+    if (mem)
+	mem->reply->code = err->http_status;
 }
 
 static void
