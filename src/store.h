@@ -280,7 +280,7 @@ extern void storeComplete _PARAMS((StoreEntry *));
 extern void storeInit _PARAMS(());
 extern int storeReleaseEntry _PARAMS((StoreEntry *));
 extern int storeClientWaiting _PARAMS((StoreEntry *));
-extern int storeAbort _PARAMS((StoreEntry *, char *));
+extern void storeAbort _PARAMS((StoreEntry *, char *));
 extern void storeAppend _PARAMS((StoreEntry *, char *, int));
 extern int storeGetMemSize _PARAMS((void));
 extern int storeGetMemSpace _PARAMS((int, int));
