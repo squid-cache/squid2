@@ -85,8 +85,6 @@ typedef struct _dwrite_q dwrite_q;
 typedef struct _ETag ETag;
 typedef struct _fde fde;
 typedef struct _fileMap fileMap;
-typedef struct _fqdncache_entry fqdncache_entry;
-typedef struct _fqdn_pending fqdn_pending;
 typedef struct _HttpReply http_reply;
 typedef struct _HttpStatusLine HttpStatusLine;
 typedef struct _HttpHeaderFieldAttrs HttpHeaderFieldAttrs;

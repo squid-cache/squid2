@@ -148,14 +148,6 @@ enum {
 };
 
 enum {
-    FQDN_CACHED,
-    FQDN_NEGATIVE_CACHED,
-    FQDN_PENDING,		/* waiting to be dispatched */
-    FQDN_DISPATCHED		/* waiting for reply from dnsserver */
-};
-typedef unsigned int fqdncache_status_t;
-
-enum {
     IP_CACHED,
     IP_NEGATIVE_CACHED,
     IP_PENDING,			/* waiting to be dispatched */
@@ -557,7 +549,6 @@ typedef enum {
     MEM_ERRORSTATE,
     MEM_FILEMAP,
     MEM_FQDNCACHE_ENTRY,
-    MEM_FQDNCACHE_PENDING,
     MEM_FWD_SERVER,
     MEM_FWD_STATE,
     MEM_HASH_LINK,

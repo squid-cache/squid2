@@ -250,7 +250,6 @@ extern void filemapFreeMemory(fileMap *);
 
 
 extern void fqdncache_nbgethostbyaddr(struct in_addr, FQDNH *, void *);
-extern int fqdncacheUnregister(struct in_addr, void *);
 extern const char *fqdncache_gethostbyaddr(struct in_addr, int flags);
 extern void fqdncache_init(void);
 extern void fqdnStats(StoreEntry *);
