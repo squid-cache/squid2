@@ -3175,6 +3175,11 @@ clientHttpsConnectionsOpen(void)
     https_port_data *https_port;
     int fd;
     for (s = Config.Sockaddr.https; s; s = s->next) {
+	if (MAXHTTPPORTS == NHttpSockets) {
+	    debug(1, 1) ("WARNING: You have too many 'https_port' lines.\n");
+	    debug(1, 1) ("         The limit is %d\n", MAXHTTPPORTS);
+	    continue;
+	}
 	enter_suid();
 	fd = comm_open(SOCK_STREAM,
 	    0,
