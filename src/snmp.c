@@ -489,7 +489,7 @@ snmpHandleUdp(int sock, void *not_used)
 	/* or maybe an EHOSTUNREACH "No route to host" message */
 	if (errno != ECONNREFUSED && errno != EHOSTUNREACH)
 #endif
-	    debug(50, 1) ("snmpHandleUdp: FD %d recvfrom: %s\n",
+	    debug(51, 1) ("snmpHandleUdp: FD %d recvfrom: %s\n",
 		sock, xstrerror());
 	return;
     }
@@ -506,7 +506,7 @@ snmpHandleUdp(int sock, void *not_used)
 	}
     }
     buf[len] = '\0';
-    debug(12, 4) ("snmpHandleUdp: FD %d: received %d bytes from %s.\n",
+    debug(49, 4) ("snmpHandleUdp: FD %d: received %d bytes from %s.\n",
 	sock,
 	len,
 	inet_ntoa(from.sin_addr));
@@ -957,7 +957,7 @@ initSquidSnmp()
 	x = getsockname(theOutSnmpConnection,
 	    (struct sockaddr *) &xaddr, &len);
 	if (x < 0)
-	    debug(50, 1) ("theOutSnmpConnection FD %d: getsockname: %s\n",
+	    debug(51, 1) ("theOutSnmpConnection FD %d: getsockname: %s\n",
 		theOutSnmpConnection, xstrerror());
 	else {
 	    theOutSNMPAddr = xaddr.sin_addr;
@@ -1029,7 +1029,7 @@ snmpUdpReply(int fd, void *data)
     /* Disable handler, in case of errors. */
     commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
     while ((queue = snmpUdpHead)) {
-	debug(12, 5) ("snmpUdpReply: FD %d sending %d bytes to %s port %d\n",
+	debug(49, 5) ("snmpUdpReply: FD %d sending %d bytes to %s port %d\n",
 	    fd,
 	    queue->len,
 	    inet_ntoa(queue->address.sin_addr),
@@ -1080,26 +1080,26 @@ var_protostat_entry(struct variable *vp, oid * name, int *length, int exact, int
     static int current;
     proto_stat *p = NULL;
 
-    debug(50, 5) ("HERE I AM!\n");
+    debug(51, 5) ("HERE I AM!\n");
     xmemcpy(newname, vp->name, (int) vp->namelen * sizeof(oid));
 
     /* find "next" entry */
     sprint_objid(Name, name, *length);
-    debug(50, 5) ("With oid=%s and %d %d %d %d %d %d %d %d \n", Name, name[12], name[11], newname[10], newname[9], newname[8], newname[7],
+    debug(51, 5) ("With oid=%s and %d %d %d %d %d %d %d %d \n", Name, name[12], name[11], newname[10], newname[9], newname[8], newname[7],
 	newname[6], newname[5]);
     for (current = 1; current <= MAX_PROTOSTAT; current++) {
 	newname[11] = name[11];
 	newname[12] = (oid) current;
-	debug(50, 5) ("Comparing up to %d (%d), magic=%d\n", (int) vp->namelen + 1, *length, vp->magic);
+	debug(51, 5) ("Comparing up to %d (%d), magic=%d\n", (int) vp->namelen + 1, *length, vp->magic);
 /*      for ( i=0;i< *length ; i++)
- * debug(50,5)("%d - %d \n",name[i],newname[i]); */
+ * debug(51,5)("%d - %d \n",name[i],newname[i]); */
 	result = compare(name, *length, newname, *length);
 	if ((exact && (result == 0)) || (!exact && (result < 0)))
 	    break;
     }
     if (current > MAX_PROTOSTAT)
 	return NULL;
-    debug(50, 5) ("Here with %d and magic \n", current, vp->magic);
+    debug(51, 5) ("Here with %d and magic \n", current, vp->magic);
     xmemcpy(name, newname, ((int) vp->namelen + 1) * sizeof(oid));
     *length = vp->namelen + 1;
     *write_method = NULL;
@@ -1109,11 +1109,11 @@ var_protostat_entry(struct variable *vp, oid * name, int *length, int exact, int
     vp->magic = newname[11];
     switch (vp->magic) {
     case PERF_PROTOSTAT_ID:
-	debug(50, 5) ("Ha, 1\n");
+	debug(51, 5) ("Ha, 1\n");
 	long_return = current;
 	return (u_char *) & long_return;
     case PERF_PROTOSTAT_KBMAX:
-	debug(50, 5) ("Ha, 2\n");
+	debug(51, 5) ("Ha, 2\n");
 	long_return = p->kb.max;
 	return (u_char *) & long_return;
     case PERF_PROTOSTAT_KBMIN:
@@ -1155,7 +1155,7 @@ var_peerstat_entry(struct variable * vp, oid * name, int *length, int exact, int
 
     /* find "next" entry */
     sprint_objid(Name, name, *length);
-    debug(50, 5) ("With oid=%s and %d %d %d %d %d %d %d %d \n", Name, name[12], name[11], newname[10], newname[9], newname[8], newname[7],
+    debug(51, 5) ("With oid=%s and %d %d %d %d %d %d %d %d \n", Name, name[12], name[11], newname[10], newname[9], newname[8], newname[7],
 	newname[6], newname[5]);
     if (p == NULL)
 	return NULL;
@@ -1163,16 +1163,16 @@ var_peerstat_entry(struct variable * vp, oid * name, int *length, int exact, int
     for (current = 1; p != NULL; current++, p = p->next) {
 	newname[11] = name[11];
 	newname[12] = (oid) current;
-	debug(50, 5) ("Comparing up to %d (%d), magic=%d\n", (int) vp->namelen + 1, *length, vp->magic);
+	debug(51, 5) ("Comparing up to %d (%d), magic=%d\n", (int) vp->namelen + 1, *length, vp->magic);
 	for (i = 0; i < *length; i++)
-	    debug(50, 5) ("%d - %d \n", name[i], newname[i]);
+	    debug(51, 5) ("%d - %d \n", name[i], newname[i]);
 	result = compare(name, *length, newname, *length);
 	if ((exact && (result == 0)) || (!exact && (result < 0)))
 	    break;
     }
     if (p == NULL)
 	return NULL;
-    debug(50, 5) ("Here with %d and magic \n", current, vp->magic);
+    debug(51, 5) ("Here with %d and magic \n", current, vp->magic);
     xmemcpy(name, newname, (int) (vp->namelen + 1) * sizeof(oid));
     *length = vp->namelen + 1;
     *write_method = NULL;
@@ -1199,15 +1199,18 @@ var_perfsys_entry(struct variable * vp, oid * name, int *length, int exact, int 
 
     /* find "next" entry */
     sprint_objid(Name, name, *length);
-    debug(50, 5) ("With oid=%s and %d %d %d %d %d %d %d %d \n", Name, name[12], name[11], newname[10], newname[9], newname[8], newname[7],
+    debug(51, 5) ("With oid=%s and %d %d %d %d %d %d %d %d \n", Name, name[12], name[11], newname[10], newname[9], newname[8], newname[7],
 	newname[6], newname[5]);
 
     for (current = 1; p != NULL; current++, p = p->next) {
 	newname[11] = name[11];
 	newname[12] = (oid) current;
-	debug(50, 5) ("Comparing up to %d (%d), magic=%d\n", (int) vp->namelen + 1, *length, vp->magic);
-/*        for ( i=0;i< *length ; i++)
- * debug(50,5)("%d - %d \n",name[i],newname[i]); */
+	debug(51, 5) ("Comparing up to %d (%d), magic=%d\n",
+		(int) vp->namelen + 1, *length, vp->magic);
+#if UNUSED
+	for (i=0; i<*length; i++)
+		debug(51,5)("%d - %d \n",name[i],newname[i]);
+#endif
 	result = compare(name, *length, newname, *length);
 	if ((exact && (result == 0)) || (!exact && (result < 0)))
 	    break;

@@ -280,7 +280,7 @@ install: all install-mkdirs
 			$(RM) -f $(libexecdir)/-$$f; \
 		fi; \
 	done
-	$(INSTALL_FILE) mib.txt $(sysconfdir)/mib.txt
+	$(INSTALL_FILE) mib.txt $(DEFAULT_MIB_PATH)
 	$(INSTALL_FILE) squid.conf $(sysconfdir)/squid.conf.default
 	@if test -f $(sysconfdir)/squid.conf ; then \
 		echo "$@ will not overwrite existing $(sysconfdir)/squid.conf" ; \
