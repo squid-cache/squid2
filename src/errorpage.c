@@ -130,11 +130,11 @@ errorConvert(char token, ErrorState * err)
 	    p = "UNKNOWN\n";
 	break;
     case 'e':
-	snprintf(buf, CVT_BUF_SZ, "%d", err->errno);
+	snprintf(buf, CVT_BUF_SZ, "%d", err->xerrno);
 	p = buf;
 	break;
     case 'E':
-	snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->errno, strerror(err->errno));
+	snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->xerrno, strerror(err->xerrno));
 	p = buf;
 	break;
     case 'w':

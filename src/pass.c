@@ -316,7 +316,7 @@ passConnectDone(int fd, int status, void *data)
 	err = xcalloc(1, sizeof(ErrorState));
 	err->type = ERR_CONNECT_FAIL;
 	err->http_status = HTTP_SERVICE_UNAVAILABLE;
-	err->errno = errno;
+	err->xerrno = errno;
 	err->host = xstrdup(passState->host);
 	err->port = passState->port;
 	err->request = requestLink(request);
@@ -378,7 +378,7 @@ passStart(int fd, const char *url, request_t * request, size_t * size_ptr)
 	err = xcalloc(1, sizeof(ErrorState));
 	err->type = ERR_SOCKET_FAILURE;
 	err->http_status = HTTP_INTERNAL_SERVER_ERROR;
-	err->errno = errno;
+	err->xerrno = errno;
 	err->request = requestLink(request);
 	errorSend(fd, err);
 	return;
