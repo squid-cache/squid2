@@ -826,7 +826,7 @@ storeLateRelease(void *unused)
 	e = stackPop(&LateReleaseStack);
 	if (e == NULL) {
 	    /* done! */
-	    debug(20, 0) ("storeLateRelease: released %d objects\n", n);
+	    debug(20, 1) ("storeLateRelease: released %d objects\n", n);
 	    return;
 	}
 	storeUnlockObject(e);
