@@ -88,6 +88,7 @@ static int ipcacheHasPending _PARAMS((ipcache_entry *));
 static ipcache_entry *ipcache_get _PARAMS((char *));
 static int dummy_handler _PARAMS((int, struct hostent * hp, void *));
 static int ipcacheExpiredEntry _PARAMS((ipcache_entry *));
+static void ipcacheAddPending _PARAMS((ipcache_entry *, int fd, IPH, void *));
 #ifdef UNUSED_CODE
 static int ipcache_hash_entry_count _PARAMS((void));
 #endif
@@ -277,7 +278,7 @@ static int ipcacheExpiredEntry(i)
 {
     if (i->lock)
 	return 0;
-    if (i->status == IP_PENDING)
+    if (i->status == IP_PENDING && ipcacheHasPending(i))
 	return 0;
     if (i->ttl + i->lastref < squid_curtime)
 	return 0;
@@ -301,6 +302,7 @@ static int ipcache_purgelru()
     for (i = ipcache_GetFirst(); i; i = ipcache_GetNext()) {
 	if (ipcacheExpiredEntry(i)) {
 	    ipcache_release(i);
+	    removed++;
 	    continue;
 	}
 	local_ip_count++;
@@ -313,9 +315,7 @@ static int ipcache_purgelru()
 	    LRU_list = xrealloc((char *) LRU_list,
 		LRU_cur_size * sizeof(ipcache_entry *));
 	}
-	if (i->status == IP_PENDING)
-	    continue;
-	if (i->pending_head != NULL)
+	if (i->status == IP_PENDING && ipcacheHasPending(i))
 	    continue;
 	if (i->lock)
 	    continue;
@@ -325,10 +325,10 @@ static int ipcache_purgelru()
 
     debug(14, 3, "ipcache_purgelru: ipcache_count: %5d\n", meta_data.ipcache_count);
     debug(14, 3, "                  actual count : %5d\n", local_ip_count);
-    debug(14, 3, "                  high W mark  : %5d\n", ipcache_high);
-    debug(14, 3, "                  low  W mark  : %5d\n", ipcache_low);
-    debug(14, 3, "                  not pending  : %5d\n", local_ip_notpending_count);
-    debug(14, 3, "              LRU candidates   : %5d\n", LRU_list_count);
+    debug(14, 3, "                   high W mark : %5d\n", ipcache_high);
+    debug(14, 3, "                   low  W mark : %5d\n", ipcache_low);
+    debug(14, 3, "                   not pending : %5d\n", local_ip_notpending_count);
+    debug(14, 3, "                LRU candidates : %5d\n", LRU_list_count);
 
     /* sort LRU candidate list */
     qsort((char *) LRU_list,
@@ -342,7 +342,7 @@ static int ipcache_purgelru()
 	removed++;
     }
 
-    debug(14, 3, "                   removed      : %5d\n", removed);
+    debug(14, 3, "                       removed : %5d\n", removed);
     safe_free(LRU_list);
     return (removed > 0) ? 0 : -1;
 }
@@ -770,6 +770,23 @@ static int ipcache_dnsHandleRead(fd, dnsData)
     return 0;
 }
 
+static void ipcacheAddPending(i, fd, handler, handlerData)
+     ipcache_entry *i;
+     int fd;
+     IPH handler;
+     void *handlerData;
+{
+    struct _ip_pending *pending = xcalloc(1, sizeof(struct _ip_pending));
+    struct _ip_pending **I = NULL;
+
+    pending->fd = fd;
+    pending->handler = handler;
+    pending->handlerData = handlerData;
+
+    for (I = &(i->pending_head); *I; I = &((*I)->next));
+    *I = pending;
+}
+
 int ipcache_nbgethostbyname(name, fd, handler, handlerData)
      char *name;
      int fd;
@@ -777,8 +794,6 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
      void *handlerData;
 {
     ipcache_entry *i = NULL;
-    struct _ip_pending *pending = NULL;
-    struct _ip_pending **I = NULL;
     dnsserver_t *dnsData = NULL;
 
     if (!handler)
@@ -802,14 +817,10 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 	/* MISS: No entry, create the new one */
 	debug(14, 5, "ipcache_nbgethostbyname: MISS for '%s'\n", name);
 	IpcacheStats.misses++;
-	pending = xcalloc(1, sizeof(struct _ip_pending));
-	pending->fd = fd;
-	pending->handler = handler;
-	pending->handlerData = handlerData;
 	i = ipcache_create();
 	i->name = xstrdup(name);
 	i->status = IP_PENDING;
-	i->pending_head = pending;
+	ipcacheAddPending(i, fd, handler, handlerData);
 	ipcache_add_to_hash(i);
     } else if (i->status == IP_CACHED || i->status == IP_NEGATIVE_CACHED) {
 	/* HIT */
@@ -818,23 +829,13 @@ int ipcache_nbgethostbyname(name, fd, handler, handlerData)
 	    IpcacheStats.negative_hits++;
 	else
 	    IpcacheStats.hits++;
-	pending = xcalloc(1, sizeof(struct _ip_pending));
-	pending->fd = fd;
-	pending->handler = handler;
-	pending->handlerData = handlerData;
-	for (I = &(i->pending_head); *I; I = &((*I)->next));
-	*I = pending;
+	ipcacheAddPending(i, fd, handler, handlerData);
 	ipcache_call_pending(i);
 	return 0;
     } else if (i->status == IP_PENDING) {
 	debug(14, 4, "ipcache_nbgethostbyname: PENDING for '%s'\n", name);
 	IpcacheStats.pending_hits++;
-	pending = xcalloc(1, sizeof(struct _ip_pending));
-	pending->fd = fd;
-	pending->handler = handler;
-	pending->handlerData = handlerData;
-	for (I = &(i->pending_head); *I; I = &((*I)->next));
-	*I = pending;
+	ipcacheAddPending(i, fd, handler, handlerData);
 	return 0;
     } else {
 	fatal_dump("ipcache_nbgethostbyname: BAD ipcache_entry status");
@@ -1032,25 +1033,23 @@ int ipcache_unregister(name, fd)
 {
     ipcache_entry *i = NULL;
     struct _ip_pending *p = NULL;
+    int n = 0;
 
+    debug(14, 3, "ipcache_unregister: FD %d, name '%s'\n", fd, name);
     if ((i = ipcache_get(name)) == NULL)
 	return 0;
     if (i->status != IP_PENDING)
 	return 0;
     /* look for matched fd */
     for (p = i->pending_head; p; p = p->next) {
-	if (p->fd == fd) {
+	if (p->fd == fd && p->handler != NULL) {
 	    p->handler = NULL;
-	    safe_free(p->handlerData);
-	    /* let ipcache_call_pending() remove from the linked list */
-	    return 1;
+	    p->fd = -1;
+	    n++;
 	}
     }
-
-    /* Can not find this ipcache_entry, weird */
-    debug(14, 3, "ipcache_unregister: Failed to unregister FD %d from name: %s, can't find this FD.\n",
-	fd, name);
-    return 0;
+    debug(14, 3, "ipcache_unregister: unregistered %d handlers\n", n);
+    return n;
 }
 
 struct hostent *ipcache_gethostbyname(name, flags)
