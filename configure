@@ -620,7 +620,7 @@ fi
 
 
 
-# From configure.in Revision: 1.176.2.15 
+# From configure.in Revision: 1.176.2.16 
 ac_aux_dir=
 for ac_dir in cfgaux $srcdir/cfgaux; do
   if test -f $ac_dir/install-sh; then
@@ -3504,7 +3504,7 @@ fi
 		ac_cv_func_mallopt=no
   else
 		case "$host" in
-			*-sun-solaris2.[0-7])
+			*-sun-solaris*)
 			  echo "skipping libmalloc check for $host"
 				;;
 			i386-*-freebsd*)
