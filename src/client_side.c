@@ -409,7 +409,7 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
     /* unregister this handler */
     storeUnregister(entry, fd);
     if (entry->store_status == STORE_ABORTED) {
-	debug(33, 3, "icpHandleIMSReply: ABORTED/%s '%s'\n",
+	debug(33, 1, "icpHandleIMSReply: ABORTED/%s '%s'\n",
 	    log_tags[entry->mem_obj->abort_code], entry->url);
 	/* We have an existing entry, but failed to validate it,
 	 * so send the old one anyway */
@@ -417,7 +417,7 @@ icpHandleIMSReply(int fd, StoreEntry * entry, void *data)
 	storeUnlockObject(entry);
 	icpState->entry = icpState->old_entry;
     } else if (mem->reply->code == 0) {
-	debug(33, 3, "icpHandleIMSReply: Incomplete headers for '%s'\n",
+	debug(33, 1, "icpHandleIMSReply: Incomplete headers for '%s'\n",
 	    entry->url);
 	storeRegister(entry,
 	    fd,
