@@ -921,7 +921,7 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	Usage: ssl_proxy cache_host
 #	       ssl_proxy host:port
 #
-#ssl_proxy none
+#ssl_proxy
 
 #  TAG: passthrough_proxy
 #	Specify the name of a 'cache_host' listed above, or a hostname
@@ -931,7 +931,7 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	Usage: passthrough_proxy cache_host
 #	       passthrough_proxy host:port
 #
-#passthrough_proxy none
+#passthrough_proxy
 
 #  TAG: proxy_auth
 #	Usage: proxy_auth passwd_file [ ignore-domain ]
