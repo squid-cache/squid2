@@ -1031,7 +1031,7 @@ struct _peer {
 	struct {
 		int count_event_pending:1;
 		int counting:1;
-	}
+	} flags;
     } mcast;
     PeerDigest digest;
     int tcp_up;			/* 0 if a connect() fails */
