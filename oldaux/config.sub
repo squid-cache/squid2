@@ -378,6 +378,9 @@ case $basic_machine in
 	m88k-omron*)
 		basic_machine=m88k-omron
 		;;
+	mab-next)
+		os=-nextstep3
+		;;
 	magnum | m3230)
 		basic_machine=mips-mips
 		os=-sysv

@@ -18,12 +18,14 @@ SUBDIRS		= lib scripts src
 
 noargs: all
 
-all install clean: 
+all install clean:
 	@for dir in $(SUBDIRS); do \
 		echo "Making $@ in $$dir..."; \
-		(cd $$dir ; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@); \
+		(cd $$dir ; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@) || exit 1; \
 	done
 
+install-pinger:
+	(cd src; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@)
 
 realclean: clean
 	rm -f config.status config.cache config.log makefile
