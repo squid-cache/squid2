@@ -45,10 +45,24 @@
  */
 #define CHANGE_FD_SETSIZE 1
 
-/* Cannot increase FD_SETSIZE on Linux */
+/*
+ * Cannot increase FD_SETSIZE on Linux, but we can increase __FD_SETSIZE
+ * with glibc 2.2 (or later? remains to be seen). We do this by including
+ * bits/types.h which defines __FD_SETSIZE first, then we redefine
+ * __FD_SETSIZE. Ofcourse a user program may NEVER include bits/whatever.h
+ * directly, so this is a dirty hack!
+ */
 #if defined(_SQUID_LINUX_)
 #undef CHANGE_FD_SETSIZE
 #define CHANGE_FD_SETSIZE 0
+#include <features.h>
+#if (__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 2)
+#if SQUID_MAXFD > DEFAULT_FD_SETSIZE
+#include <bits/types.h>
+#undef __FD_SETSIZE
+#define __FD_SETSIZE SQUID_MAXFD
+#endif
+#endif
 #endif
 
 /*
@@ -184,9 +198,6 @@
 #endif
 #if HAVE_BSTRING_H
 #include <bstring.h>
-#endif
-#ifdef HAVE_CRYPT_H
-#include <crypt.h>
 #endif
 #if HAVE_SYS_SELECT_H
 #include <sys/select.h>

@@ -144,7 +144,7 @@ delayInitDelayData(unsigned short pools)
     if (!pools)
 	return;
     delay_data = xcalloc(pools, sizeof(*delay_data));
-    memory_used += sizeof(*delay_data);
+    memory_used += pools * sizeof(*delay_data);
     eventAdd("delayPoolsUpdate", delayPoolsUpdate, NULL, 1.0, 1);
     delay_id_ptr_hash = hash_create(delayIdPtrHashCmp, 256, delayIdPtrHash);
 }
@@ -160,10 +160,10 @@ delayIdZero(void *hlink)
 }
 
 void
-delayFreeDelayData(void)
+delayFreeDelayData(unsigned short pools)
 {
     safe_free(delay_data);
-    memory_used -= sizeof(*delay_data);
+    memory_used -= pools * sizeof(*delay_data);
     if (!delay_id_ptr_hash)
 	return;
     hashFreeItems(delay_id_ptr_hash, delayIdZero);
@@ -305,19 +305,23 @@ delayId(unsigned short pool, unsigned short position)
 }
 
 delay_id
-delayClient(request_t * r)
+delayClient(clientHttpRequest * http)
 {
+    request_t *r;
     aclCheck_t ch;
     int i;
     int j;
     unsigned int host;
     unsigned short pool, position;
     unsigned char class, net;
+    assert(http);
+    r = http->request;
 
     memset(&ch, '\0', sizeof(ch));
     ch.src_addr = r->client_addr;
     ch.my_addr = r->my_addr;
     ch.my_port = r->my_port;
+    ch.conn = http->conn;
     ch.request = r;
     if (r->client_addr.s_addr == INADDR_BROADCAST) {
 	debug(77, 2) ("delayClient: WARNING: Called with 'allones' address, ignoring\n");
