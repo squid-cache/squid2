@@ -609,8 +609,8 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	    i->expires = x->expires;
 	    ipcache_call_pending(i);
 	}
+	ipcacheUnlockEntry(i);	/* unlock from IP_DISPATCHED */
     }
-    ipcacheUnlockEntry(i);	/* unlock from IP_DISPATCHED */
     if (dnsData->offset == 0) {
 	dnsData->data = NULL;
 	dnsData->flags &= ~DNS_FLAG_BUSY;
