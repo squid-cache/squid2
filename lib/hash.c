@@ -237,7 +237,7 @@ hash_next(hash_table * hid)
  *
  */
 void
-hash_next(hash_table * hid)
+hash_last(hash_table * hid)
 {
     assert(hid);
     hid->next = NULL;
