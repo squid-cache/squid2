@@ -173,6 +173,8 @@
 #include "squid.h"
 #include "mime_table.h"
 
+char *proxy_host = NULL;
+
 #ifndef HAVE_GETOPT_H
 extern int optind;
 #endif
@@ -1180,15 +1182,15 @@ static state_t
 parse_request(ftp_request_t * r)
 {
     const struct hostent *hp;
-    debug(38, 3, "parse_request: looking up '%s'\n", r->host);
-
-    r->host_addr.s_addr = inet_addr(r->host);	/* try numeric */
+    char *host = proxy_host ? proxy_host : r->host;
+    debug(38, 3, "parse_request: looking up '%s'\n", host);
+    r->host_addr.s_addr = inet_addr(host);	/* try numeric */
     if (r->host_addr.s_addr != INADDR_NONE)
 	return PARSE_OK;
-    hp = gethostbyname(r->host);
+    hp = gethostbyname(host);
     if (hp == NULL) {
 	r->errmsg = xmalloc(SMALLBUFSIZ);
-	sprintf(r->errmsg, "Unknown host: %s", r->host);
+	sprintf(r->errmsg, "Unknown host: %s", host);
 	r->rc = 10;
 	return FAIL_HARD;
     }
@@ -1297,9 +1299,13 @@ do_user(ftp_request_t * r)
     r->login_att++;
 #endif /* PASVONLY */
 
-    sprintf(cbuf, "USER %s", r->user);
-    SEND_CBUF;
-
+    if (proxy_host != NULL) {
+	sprintf(cbuf, "USER %s@%s", r->user, r->host);
+	SEND_CBUF;
+    } else {
+	sprintf(cbuf, "USER %s", r->user);
+	SEND_CBUF;
+    }
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code == 230)
 	    return LOGGED_IN;
@@ -2601,7 +2607,7 @@ main(int argc, char *argv[])
 
     strcpy(visible_hostname, getfullhostname());
 
-    while ((c = getopt(argc, argv, "AC:D:H:P:RS:Wab:c:hl:n:o:p:r:s:t:vw:")) != -1) {
+    while ((c = getopt(argc, argv, "AC:D:G:H:P:RS:Wab:c:hl:n:o:p:r:s:t:vw:")) != -1) {
 	switch (c) {
 	case 'A':
 	    o_showlogin = 0;
@@ -2616,6 +2622,9 @@ main(int argc, char *argv[])
 	    break;
 	case 'D':
 	    _db_init(NULL, optarg);
+	    break;
+	case 'G':
+	    proxy_host = xstrdup(optarg);
 	    break;
 	case 'H':
 	    strcpy(visible_hostname, optarg);
