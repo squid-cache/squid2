@@ -123,6 +123,12 @@ Thanks!\n"
 static void fatal_common _PARAMS((char *));
 static void mail_warranty _PARAMS((void));
 
+#ifdef _SQUID_SOLARIS_
+int getrusage _PARAMS((int, struct rusage *));
+int getpagesize _PARAMS((void));
+int gethostname _PARAMS((char *, int));
+#endif
+
 static char *
 dead_msg(void)
 {
@@ -239,6 +245,11 @@ death(int sig)
     signal(SIGBUS, SIG_DFL);
     signal(sig, SIG_DFL);
 #endif
+    /* Release the main ports as early as possible */
+    if (theHttpConnection >= 0)
+	(void) close(theHttpConnection);
+    if (theInIcpConnection >= 0)
+	(void) close(theInIcpConnection);
     storeWriteCleanLog();
     PrintRusage(NULL, debug_log);
     if (squid_curtime - SQUID_RELEASE_TIME < 864000) {
