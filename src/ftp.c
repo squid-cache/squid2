@@ -1653,7 +1653,13 @@ ftpSendPasv(FtpStateData * ftpState)
 	/* Terminate here for HEAD requests */
 	ftpAppendSuccessHeader(ftpState);
 	storeTimestampsSet(ftpState->entry);
-	fwdComplete(ftpState->fwd);
+	/*
+	 * On rare occasions I'm seeing the entry get aborted after
+	 * ftpReadControlReply() and before here, probably when
+	 * trying to write to the client.
+	 */
+	if (!EBIT_TEST(ftpState->entry->flags, ENTRY_ABORTED))
+	    fwdComplete(ftpState->fwd);
 	ftpSendQuit(ftpState);
 	return;
     }
