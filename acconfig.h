@@ -325,7 +325,10 @@
 
 #undef u_int64_t
 
-
+/*
+ * Enable support for the X-Accelerator-Vary HTTP header
+ */
+#undef X_ACCELERATOR_VARY
 
 @BOTTOM@
 
