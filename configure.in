@@ -350,10 +350,12 @@ STORE_MODULE_SUBDIRS=
 for fs in $STORE_MODULES none; do
     if test "$fs" = "diskd"; then
         STORE_MODULE_SUBDIRS="$STORE_MODULE_SUBDIRS $fs"
+	OPT_DISKD_EXE='diskd$(EXEEXT)'
     fi
 done
 AC_SUBST(STORE_MODULES)
 AC_SUBST(STORE_MODULE_SUBDIRS)
+AC_SUBST(OPT_DISKD_EXE)
 
 
 dnl --enable-heap-replacement compability option
@@ -723,14 +725,12 @@ AC_ARG_ENABLE(internal-dns,
 ])
 if test "$use_dnsserver" = "yes"; then
     AC_DEFINE(USE_DNSSERVERS)
-    OPT_DNSSERVER_EXE='$(OPT_DNSSERVER_EXE)'
+    OPT_DNSSERVER_EXE='dnsserver$(EXEEXT)'
     AM_CONDITIONAL(USE_DNSSERVER, true)
 else
     OPT_DNSSERVER_EXE=''
 fi
 AC_SUBST(OPT_DNSSERVER_EXE)
-dnl AC_SUBST(DNSSOURCE)
-
 
 AC_ARG_ENABLE(truncate,
 [  --enable-truncate       This uses truncate() instead of unlink() when
