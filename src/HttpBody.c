@@ -56,6 +56,7 @@ httpBodyClean(HttpBody *body)
     body->size = 0;
 }
 
+/* set body, if freefunc is NULL the content will be copied, otherwise not */
 void
 httpBodySet(HttpBody *body, const char *buf, int size, FREE *freefunc)
 {

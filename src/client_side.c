@@ -864,6 +864,7 @@ clientAppendReplyHeader(char *hdr, const char *line, size_t * sz, size_t max)
     *sz = n;
 }
 
+/* this entire function has to be rewriten using new interfaces @?@ @?@ */
 size_t
 clientBuildReplyHeader(clientHttpRequest * http,
     char *hdr_in,
