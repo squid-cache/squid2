@@ -605,20 +605,20 @@ storeCleanup(void *datanotused)
 	    struct stat sb;
 	    if (stat(storeSwapFullPath(e->swap_file_number, NULL), &sb) < 0) {
 		store_errors++;
-		debug(0, 0) ("storeCleanup: MISSING SWAP FILE\n");
-		debug(0, 0) ("storeCleanup: FILENO %08X\n", e->swap_file_number);
-		debug(0, 0) ("storeCleanup: PATH %s\n",
+		debug(20, 0) ("storeCleanup: MISSING SWAP FILE\n");
+		debug(20, 0) ("storeCleanup: FILENO %08X\n", e->swap_file_number);
+		debug(20, 0) ("storeCleanup: PATH %s\n",
 		    storeSwapFullPath(e->swap_file_number, NULL));
 		storeEntryDump(e, 0);
 		continue;
 	    }
 	    if (e->swap_file_sz != sb.st_size) {
 		store_errors++;
-		debug(0, 0) ("storeCleanup: SIZE MISMATCH\n");
-		debug(0, 0) ("storeCleanup: FILENO %08X\n", e->swap_file_number);
-		debug(0, 0) ("storeCleanup: PATH %s\n",
+		debug(20, 0) ("storeCleanup: SIZE MISMATCH\n");
+		debug(20, 0) ("storeCleanup: FILENO %08X\n", e->swap_file_number);
+		debug(20, 0) ("storeCleanup: PATH %s\n",
 		    storeSwapFullPath(e->swap_file_number, NULL));
-		debug(0, 0) ("storeCleanup: ENTRY SIZE: %d, FILE SIZE: %d\n",
+		debug(20, 0) ("storeCleanup: ENTRY SIZE: %d, FILE SIZE: %d\n",
 		    e->swap_file_sz, (int) sb.st_size);
 		storeEntryDump(e, 0);
 		continue;
