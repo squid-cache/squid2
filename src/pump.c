@@ -38,7 +38,7 @@ struct _PumpStateData {
     int s_fd;			/* server end */
     int rcvd;			/* bytes received from client */
     int sent;			/* bytes sent to server */
-    int body_sz;		/* should equal content-length + 2 */
+    int cont_len;		/* Content-Length header */
     StoreEntry *request_entry;	/* the request entry */
     StoreEntry *reply_entry;	/* the reply entry */
     CWCB *callback;		/* what to do when we finish sending */
@@ -97,7 +97,7 @@ pumpInit(int fd, request_t * r, char *uri)
 
     pumpState->c_fd = fd;
     pumpState->s_fd = -1;
-    pumpState->body_sz = clen + 2;
+    pumpState->cont_len = clen;
     pumpState->request_entry = e;
     pumpState->req = requestLink(r);
     pumpState->callback = NULL;
@@ -137,13 +137,12 @@ pumpStart(int s_fd, StoreEntry * reply_entry, request_t * r, CWCB * callback, vo
 
     /* see if part of the body is in the request */
     if (r->body_sz > 0) {
+	size_t copy_sz = XMIN(r->body_sz, p->cont_len);
 	assert(r->body);
-	debug(61, 0) ("pumpStart: Appending %d bytes from r->body.\n",
-	    r->body_sz);
-	storeAppend(p->request_entry, r->body, r->body_sz);
-	p->rcvd = r->body_sz;
+	debug(61, 3) ("pumpStart: Appending %d bytes from r->body\n", copy_sz);
+	storeAppend(p->request_entry, r->body, copy_sz);
+	p->rcvd = copy_sz;
     }
-
     /* setup data pump */
     assert(p->c_fd > -1);
     commSetSelect(p->c_fd, COMM_SELECT_READ, pumpReadFromClient, p, 0);
@@ -164,7 +163,6 @@ pumpServerCopy(void *data, char *buf, ssize_t size)
     if (size < 0) {
 	debug(61, 5) ("pumpServerCopy: freeing and returning\n");
 	memFree(MEM_4K_BUF, buf);
-	pumpClose(p);
 	return;
     }
     if (size == 0) {
@@ -184,19 +182,18 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
     PumpStateData *p = data;
     StoreEntry *e = p->request_entry;
     debug(61, 5) ("pumpServerCopyComplete: called with size=%d (%d,%d)\n",
-	size, p->sent + size, p->body_sz);
+	size, p->sent + size, p->cont_len);
 
     if (size <= 0 || e->store_status == STORE_ABORTED) {
 	debug(61, 5) ("pumpServerCopyComplete: aborted!\n", size);
-	assert(p->reply_entry != NULL);
-	storeAbort(p->reply_entry, 0);	/* ? --DW */
 	pumpClose(p);
 	return;
     }
     p->sent += size;
-    assert(p->sent <= p->body_sz);
-    if (p->sent == p->body_sz) {
+    assert(p->sent <= p->cont_len);
+    if (p->sent == p->cont_len) {
 	debug(61, 5) ("pumpServerCopyComplete: Done!\n", size);
+	storeUnregister(p->request_entry, p);
 	storeComplete(p->request_entry);
 	if (cbdataValid(p->cbdata))
 	    p->callback(p->s_fd, NULL, p->sent, 0, p->cbdata);
@@ -241,22 +238,22 @@ pumpReadFromClient(int fd, void *data)
 		Config.Timeout.read);
 	} else {
 	    debug(61, 2) ("pumpReadFromClient: aborted.\n");
-	    storeAbort(p->request_entry, 0);
+	    pumpClose(p);
 	}
     } else if (len == 0 && p->request_entry->mem_obj->inmem_hi == 0) {
 	debug(61, 2) ("pumpReadFromClient: FD %d: failed.\n", fd);
-	storeAbort(p->request_entry, 0);
+	pumpClose(p);
     } else if (len == 0) {
 	/* connection closed, call close handler */
-	if (p->rcvd >= p->body_sz) {
-	    if (p->rcvd > p->body_sz)
-		debug(61, 1) ("pumpReadFromClient: Warning: rcvd=%d, body_sz=%d\n", p->rcvd, p->body_sz);
+	if (p->rcvd >= p->cont_len) {
+	    if (p->rcvd > p->cont_len)
+		debug(61, 1) ("pumpReadFromClient: Warning: rcvd=%d, cont_len=%d\n", p->rcvd, p->cont_len);
 	    debug(61, 2) ("pumpReadFromClient: finished!\n");
 	    commSetSelect(p->c_fd, COMM_SELECT_READ, NULL, NULL, 0);
 	    storeComplete(p->request_entry);
 	} else {
 	    debug(61, 4) ("pumpReadFromClient: incomplete request or connection broken.\n");
-	    storeAbort(p->request_entry, 0);
+	    pumpClose(p);
 	}
     } else {
 	/* ok, go ahead */
@@ -289,6 +286,15 @@ pumpClose(void *data)
 {
     PumpStateData *p = data;
     debug(0, 0) ("pumpClose: %p Server FD %d, Client FD %d\n", p, p->s_fd, p->c_fd);
+    assert(p->request_entry != NULL);
+    if (p->request_entry->store_status == STORE_PENDING) {
+	storeUnregister(p->request_entry, p);
+	storeAbort(p->request_entry, 0);
+    }
+    if (p->reply_entry != NULL && p->reply_entry->store_status == STORE_PENDING) {
+	storeUnregister(p->reply_entry, p);
+	storeAbort(p->reply_entry, 0);
+    }
     if (p->s_fd > -1) {
 	comm_remove_close_handler(p->s_fd, pumpServerClosed, p);
 	comm_close(p->s_fd);
@@ -315,12 +321,12 @@ pumpFree(int fd, void *data)
     else
 	pump_head = p->next;
     assert(fd == p->c_fd);
-    if (p->request_entry->store_status == STORE_PENDING)
-	storeAbort(p->reply_entry, 0);	/* ? --DW */
-    storeUnregister(p->request_entry, p);
+    assert(p->request_entry->store_status != STORE_PENDING);
     storeUnlockObject(p->request_entry);
-    if (p->reply_entry != NULL)
+    if (p->reply_entry != NULL) {
+	assert(p->reply_entry->store_status != STORE_PENDING);
 	storeUnlockObject(p->reply_entry);
+    }
     requestUnlink(p->req);
     cbdataFree(p);
 }
