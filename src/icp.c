@@ -878,8 +878,8 @@ icpProcessMISS(int fd, icpStateData * icpState)
 	storeUnregister(icpState->entry, fd);
 	storeUnlockObject(icpState->entry);
 	icpState->entry = NULL;
-        if (icpState->swapin_fd > -1)
-    	    file_close(icpState->swapin_fd);
+	if (icpState->swapin_fd > -1)
+	    file_close(icpState->swapin_fd);
 	icpState->swapin_fd = -1;
     }
     entry = storeCreateEntry(url,

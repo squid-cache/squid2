@@ -450,7 +450,7 @@ sslStart(int fd, const char *url, request_t * request, char *mime_hdr, size_t * 
     if (Config.sslProxy) {
 	sslState->host = request->host;
 	/* set sslState->host = request->host so that we can
-	   cancel it later if needed */
+	 * cancel it later if needed */
 	sslState->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(sslState->host,
 	    sslState->server.fd,
