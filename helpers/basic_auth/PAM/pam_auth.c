@@ -64,6 +64,8 @@
 
 #include <security/pam_appl.h>
 
+#include "util.h"
+
 #define BUFSIZE 8192
 
 
