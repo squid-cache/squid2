@@ -80,6 +80,8 @@ typedef struct _MemObject {
 
     unsigned short swap_fd;
     int fd_of_first_client;
+    int content_length;
+    int hdr_sz;
 
 } MemObject;
 
