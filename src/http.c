@@ -42,13 +42,12 @@
 
 static const char *const crlf = "\r\n";
 
-static CNCB httpConnectDone;
 static CWCB httpSendComplete;
 static CWCB httpSendRequestEntry;
 static CWCB httpSendRequestEntryDone;
 
 static PF httpReadReply;
-static PF httpSendRequest;
+static void httpSendRequest(HttpStateData *);
 static PF httpStateFree;
 static PF httpTimeout;
 static void httpCacheNegatively(StoreEntry *);
@@ -795,9 +794,8 @@ httpBuildRequestPrefix(request_t * request,
 }
 /* This will be called when connect completes. Write request. */
 static void
-httpSendRequest(int fd, void *data)
+httpSendRequest(HttpStateData * httpState)
 {
-    HttpStateData *httpState = data;
     MemBuf mb;
     request_t *req = httpState->request;
     StoreEntry *entry = httpState->entry;
@@ -805,7 +803,7 @@ httpSendRequest(int fd, void *data)
     peer *p = httpState->peer;
     CWCB *sendHeaderDone;
 
-    debug(11, 5) ("httpSendRequest: FD %d: httpState %p.\n", fd, httpState);
+    debug(11, 5) ("httpSendRequest: FD %d: httpState %p.\n", httpState->fd, httpState);
 
     if (pumpMethod(req->method))
 	sendHeaderDone = httpSendRequestEntry;
@@ -840,9 +838,10 @@ httpSendRequest(int fd, void *data)
 	&mb,
 	cfd,
 	httpState->flags);
-    debug(11, 6) ("httpSendRequest: FD %d:\n%s\n", fd, mb.buf);
-    comm_write_mbuf(fd, mb, sendHeaderDone, httpState);
+    debug(11, 6) ("httpSendRequest: FD %d:\n%s\n", httpState->fd, mb.buf);
+    comm_write_mbuf(httpState->fd, mb, sendHeaderDone, httpState);
 }
+
 void
 httpStart(FwdState * fwd)
 {
@@ -892,7 +891,7 @@ httpStart(FwdState * fwd)
     comm_add_close_handler(fd, httpStateFree, httpState);
     Counter.server.all.requests++;
     Counter.server.http.requests++;
-    httpSendRequest(fd, httpState);
+    httpSendRequest(httpState);
     /*
      * We used to set the read timeout here, but not any more.
      * Now its set in httpSendComplete() after the full request,
