@@ -565,6 +565,10 @@ main(int argc, char **argv)
     int WIN32_init_err;
 #endif
 
+#if HAVE_SBRK
+    sbrk_start = sbrk(0);
+#endif
+
     debug_log = stderr;
     if (FD_SETSIZE < Squid_MaxFD)
 	Squid_MaxFD = FD_SETSIZE;
