@@ -48,7 +48,7 @@ storeKeyText(const unsigned char *key)
     return mb.buf;
 }
 
-const unsigned char *
+const cache_key *
 storeKeyScan(const char *buf)
 {
     static unsigned char digest[MD5_DIGEST_CHARS];
