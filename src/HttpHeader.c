@@ -327,7 +327,7 @@ void
 httpHeaderInitModule()
 {
     /* paranoid check if smbd put a big object into field_store */
-    assert(sizeof(field_store) == 4);
+    assert(sizeof(field_store) == sizeof(char*));
     /* have to force removal of const here */
     httpHeaderInitAttrTable((field_attrs_t *)Headers, countof(Headers));
     httpHeaderInitAttrTable((field_attrs_t *)SccAttrs, countof(SccAttrs));
