@@ -1,5 +1,5 @@
 #
-#  Makefile for the Squid Object Cache server
+#  Makefile for the Squid PAM authentication helper
 #
 #  $Id$
 #
