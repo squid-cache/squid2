@@ -763,7 +763,7 @@ gopherSendRequest(int fd, void *data)
 	gopherSendComplete,
 	data,
 	memFree4K);
-    if (EBIT_TEST(gopherState->entry->flag, ENTRY_CACHABLE))
+    if (gopherState->entry->flags.entry_cachable)
 	storeSetPublicKey(gopherState->entry);	/* Make it public */
 }
 

@@ -173,7 +173,7 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
     if (sc->flags.copy_event_pending)
 	return;
 #ifdef PPNR_WIP
-    if (EBIT_TEST(e->flag, ENTRY_FWD_HDR_WAIT))
+    if (e->flags.entry_fwd_hdr_wait)
 	return;
 #endif /* PPNR_WIP */
     if (sc->flags.store_copying) {

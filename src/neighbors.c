@@ -724,7 +724,7 @@ neighborsUdpAck(const cache_key * key, icp_common_t * header, const struct socka
 	return;
     }
     /* check if someone is already fetching it */
-    if (EBIT_TEST(entry->flag, ENTRY_DISPATCHED)) {
+    if (entry->flags.entry_dispatched) {
 	debug(15, 3) ("neighborsUdpAck: '%s' already being fetched.\n",
 	    storeKeyText(key));
 	neighborCountIgnored(p);
@@ -1197,7 +1197,7 @@ neighborsHtcpReply(const cache_key * key, htcpReplyData * htcp, const struct soc
 	return;
     }
     /* check if someone is already fetching it */
-    if (EBIT_TEST(e->flag, ENTRY_DISPATCHED)) {
+    if (e->flags.entry_dispatched) {
 	debug(15, 3) ("neighborsUdpAck: '%s' already being fetched.\n",
 	    storeKeyText(key));
 	neighborCountIgnored(p);

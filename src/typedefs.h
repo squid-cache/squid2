@@ -131,6 +131,7 @@ typedef struct _MemObject MemObject;
 typedef struct _StoreEntry StoreEntry;
 typedef struct _SwapDir SwapDir;
 typedef struct _request_flags request_flags;
+typedef struct _store_flags store_flags;
 typedef struct _request_t request_t;
 typedef struct _AccessLogEntry AccessLogEntry;
 typedef struct _cachemgr_passwd cachemgr_passwd;

@@ -274,7 +274,7 @@ peerDigestRequest(peer * p)
     }
     e = fetch->entry = storeCreateEntry(url, url, req->flags, req->method);
     debug(72, 5) ("peerDigestRequest: new entry is private: %d\n",
-	(int) EBIT_TEST(e->flag, KEY_PRIVATE));
+	(int) e->flags.key_private);
     storeClientListAdd(e, fetch);
     /* set lastmod to trigger IMS request if possible */
     if (old_e)

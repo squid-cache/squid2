@@ -106,7 +106,7 @@ httpTimeout(int fd, void *data)
 static void
 httpMakePublic(StoreEntry * entry)
 {
-    if (EBIT_TEST(entry->flag, ENTRY_CACHABLE))
+    if (entry->flags.entry_cachable)
 	storeSetPublicKey(entry);
 }
 
@@ -124,7 +124,7 @@ static void
 httpCacheNegatively(StoreEntry * entry)
 {
     storeNegativeCache(entry);
-    if (EBIT_TEST(entry->flag, ENTRY_CACHABLE))
+    if (entry->flags.entry_cachable)
 	storeSetPublicKey(entry);
 }
 
@@ -134,7 +134,7 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
     int remove = 0;
     const cache_key *key;
     StoreEntry *pe;
-    if (!EBIT_TEST(e->flag, KEY_PRIVATE))
+    if (!e->flags.key_private)
 	return;
     switch (status) {
     case HTTP_OK:
@@ -319,9 +319,9 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	}
 	if (reply->cache_control) {
 	    if (EBIT_TEST(reply->cache_control->mask, CC_PROXY_REVALIDATE))
-		EBIT_SET(entry->flag, ENTRY_REVALIDATE);
+		entry->flags.entry_revalidate = 1;
 	    else if (EBIT_TEST(reply->cache_control->mask, CC_MUST_REVALIDATE))
-		EBIT_SET(entry->flag, ENTRY_REVALIDATE);
+		entry->flags.entry_revalidate = 1;
 	}
 	if (EBIT_TEST(httpState->flags, HTTP_KEEPALIVE))
 	    if (httpState->peer)

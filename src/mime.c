@@ -415,7 +415,7 @@ mimeLoadIconFile(const char *icon)
     storeSetPublicKey(e);
     storeComplete(e);
     storeTimestampsSet(e);
-    EBIT_SET(e->flag, ENTRY_SPECIAL);
+    e->flags.entry_special = 1;
     debug(25, 3) ("Loaded icon %s\n", url);
     storeUnlockObject(e);
     memFree(MEM_4K_BUF, buf);

@@ -113,7 +113,7 @@ peerSelectIcpPing(request_t * request, int direct, StoreEntry * entry)
     assert(direct != DIRECT_YES);
     if (!request->flags.hierarchical && direct != DIRECT_NO)
 	return 0;
-    if (EBIT_TEST(entry->flag, KEY_PRIVATE) && !neighbors_do_private_keys)
+    if (entry->flags.key_private && !neighbors_do_private_keys)
 	if (direct != DIRECT_NO)
 	    return 0;
     n = neighborsCount(request);
