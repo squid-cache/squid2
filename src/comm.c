@@ -460,6 +460,7 @@ int comm_close(fd)
      int fd;
 {
     FD_ENTRY *conn = NULL;
+    struct close_handler *close_handler;
 
     if (fd < 0)
 	return -1;
@@ -477,8 +478,13 @@ int comm_close(fd)
     debug(5, 5, "comm_close: FD %d\n", fd);
     /* update fdstat */
     fdstat_close(fd);
-    if (conn->close_handler)
-	conn->close_handler(fd, conn->close_data);
+    /* Call close handlers */
+    for (close_handler = conn->close_handler; close_handler; close_handler = conn->close_handler) {
+	debug(5, 7, "comm_close: calling handler %p\n", close_handler->handler);
+	conn->close_handler = close_handler->next;
+	close_handler->handler(fd, close_handler->data);
+	safe_free(close_handler);
+    }
     memset(conn, '\0', sizeof(FD_ENTRY));
     return close(fd);
 }
@@ -818,10 +824,6 @@ void comm_set_select_handler_plus_timeout(fd, type, handler, client_data, timeou
 	fd_table[fd].lifetime_handler = handler;
 	fd_table[fd].lifetime_data = client_data;
     }
-    if (type & COMM_SELECT_CLOSE) {
-	fd_table[fd].close_handler = handler;
-	fd_table[fd].close_data = client_data;
-    }
 }
 
 int comm_get_select_handler(fd, type, handler_ptr, client_data_ptr)
@@ -853,6 +855,42 @@ int comm_get_select_handler(fd, type, handler_ptr, client_data_ptr)
     return 0;			/* XXX What is meaningful? */
 }
 
+void comm_add_close_handler(fd, handler, data)
+     int fd;
+     int (*handler) ();
+     void *data;
+{
+    struct close_handler *new = xmalloc(sizeof(*new));
+
+    debug(5, 5, "comm_add_close_handler: fd=%d handler=0x%p data=0x%p\n", fd, handler, data);
+
+    new->handler = handler;
+    new->data = data;
+    new->next = fd_table[fd].close_handler;
+    fd_table[fd].close_handler = new;
+}
+
+void comm_remove_close_handler(fd, handler, data)
+     int fd;
+     int (*handler) ();
+     void *data;
+{
+    struct close_handler *p, *last = NULL;
+
+    /* Find handler in list */
+    for (p = fd_table[fd].close_handler; p != NULL; last = p, p = p->next)
+	if (p->handler == handler && p->data == data)
+	    break;		/* This is our handler */
+    if (!p)
+	fatal_dump("comm_remove_close_handler: Handler not found!\n");
+
+    /* Remove list entry */
+    if (last)
+	last->next = p->next;
+    else
+	fd_table[fd].close_handler = p->next;
+    safe_free(p);
+}
 
 static int commSetNoLinger(fd)
      int fd;
@@ -979,6 +1017,7 @@ static int examine_select(readfds, writefds, exceptfds)
     fd_set except_x;
     int num;
     struct timeval tv;
+    struct close_handler *close_handler, *next;
     FD_ENTRY *f = NULL;
 
     debug(5, 0, "examine_select: Examining open file descriptors...\n");
@@ -995,15 +1034,22 @@ static int examine_select(readfds, writefds, exceptfds)
 	    if (num < 0) {
 		f = &fd_table[fd];
 		debug(5, 0, "WARNING: FD %d has handlers, but it's invalid.\n", fd);
-		debug(5, 0, "lifetm:%p tmout:%p read:%p write:%p expt:%p\n",
+		debug(5, 0, "lifetm:%p tmout:%p read:%p write:%p expt:%p",
 		    f->lifetime_handler,
 		    f->timeout_handler,
 		    f->read_handler,
 		    f->write_handler,
 		    f->except_handler);
+		for (close_handler = f->close_handler; close_handler; close_handler = close_handler->next)
+		    debug(5, 0, " close:%p", close_handler->handler);
+		debug(5, 0, "\n");
 		if (f->close_handler) {
-		    debug(5, 0, "examine_select: Calling Close Handler\n");
-		    f->close_handler(fd, f->close_data);
+		    for (close_handler = f->close_handler; close_handler; close_handler = close_handler->next) {
+			next = close_handler->next;
+			debug(5, 0, "examine_select: Calling Close Handler %p\n", close_handler->handler);
+			close_handler->handler(fd, close_handler->data);
+			safe_free(close_handler);
+		    }
 		} else if (f->lifetime_handler) {
 		    debug(5, 0, "examine_select: Calling Lifetime Handler\n");
 		    f->lifetime_handler(fd, f->lifetime_data);

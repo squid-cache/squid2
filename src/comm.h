@@ -21,7 +21,6 @@
 #define COMM_SELECT_EXCEPT (0x4)
 #define COMM_SELECT_TIMEOUT (0x8)
 #define COMM_SELECT_LIFETIME (0x10)
-#define COMM_SELECT_CLOSE   (0x20)
 
 typedef int (*PF) _PARAMS((int, void *));
 
@@ -29,6 +28,12 @@ typedef void rw_complete_handler _PARAMS((int fd, char *buf, int size, int errfl
 typedef struct _RWStateData RWStateData;
 
 #define FD_ASCII_NOTE_SZ 64
+
+struct close_handler {
+    PF handler;
+    void *data;
+    struct close_handler *next;
+};
 
 typedef struct fde {
     int openned;		/* Set if we did a comm_connect.  Ignored for ftp_pipes. */
@@ -40,20 +45,19 @@ typedef struct fde {
 
     /* Select handlers. */
     void *client_data;		/* App. data to associate w/ handled conn. */
-    int (*read_handler) ();	/* Read  select handler. */
+    PF read_handler;		/* Read  select handler. */
     void *read_data;		/* App. data to associate w/ handled conn. */
-    int (*write_handler) ();	/* Write select handler. */
+    PF write_handler;		/* Write select handler. */
     void *write_data;		/* App. data to associate w/ handled conn. */
-    int (*except_handler) ();	/* Except select handler. */
+    PF except_handler;		/* Except select handler. */
     void *except_data;		/* App. data to associate w/ handled conn. */
-    int (*timeout_handler) ();	/* Timeout handler. */
+    PF timeout_handler;		/* Timeout handler. */
     time_t timeout_time;	/* Allow 1-second granularity timeouts */
     time_t timeout_delta;	/* The delta requested */
     void *timeout_data;		/* App. data to associate w/ handled conn. */
-    int (*lifetime_handler) ();	/* Lifetime expire handler. */
+    PF lifetime_handler;	/* Lifetime expire handler. */
     void *lifetime_data;	/* App. data to associate w/ handled conn. */
-    int (*close_handler) ();
-    void *close_data;
+    struct close_handler *close_handler;	/* Linked list of close handlers */
     char ascii_note[FD_ASCII_NOTE_SZ];
     unsigned int comm_type;
     time_t stall_until;		/* don't select for read until this time reached */
@@ -82,6 +86,8 @@ extern int comm_select _PARAMS((time_t sec, time_t));
 extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
 extern void comm_set_select_handler _PARAMS((int fd, unsigned int type, PF, void *));
 extern void comm_set_select_handler_plus_timeout _PARAMS((int, unsigned int, PF, void *, time_t));
+extern void comm_add_close_handler _PARAMS((int fd, PF, void *));
+extern void comm_remove_close_handler _PARAMS((int fd, PF, void *));
 extern int comm_udp_recv _PARAMS((int, char *, int, struct sockaddr_in *, int *));
 extern int comm_udp_send _PARAMS((int fd, char *host, u_short port, char *buf, int len));
 extern int comm_udp_sendto _PARAMS((int fd, struct sockaddr_in *, int size, char *buf, int len));
