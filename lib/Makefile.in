@@ -1,8 +1,4 @@
 #
-#  Makefile for simple liburl
-#
-#  Darren Hardy, hardy@cs.colorado.edu, April 1994
-#
 #  $Id$
 #
 prefix		= @prefix@
