@@ -606,7 +606,7 @@ extern void netdbBinaryExchange(StoreEntry *);
 extern EVH netdbExchangeStart;
 extern void netdbExchangeUpdatePeer(struct in_addr, peer *, double, double);
 extern peer *netdbClosestParent(request_t *);
-void netdbHostData(const char *host, int *samp, int *rtt, int *hops);
+extern void netdbHostData(const char *host, int *samp, int *rtt, int *hops);
 
 extern void cachemgrStart(int fd, request_t * request, StoreEntry * entry);
 extern void cachemgrRegister(const char *, const char *, OBJH *, int, int);
@@ -665,7 +665,7 @@ extern double median_svc_get(int, int);
 extern void pconnHistCount(int, int);
 extern int stat5minClientRequests(void);
 extern double stat5minCPUUsage(void);
-
+extern double statMedianSvc(int, int);
 
 
 /* StatHist */

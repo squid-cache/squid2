@@ -1386,6 +1386,8 @@ struct _StatCounters {
     } netdb;
     int page_faults;
     int select_loops;
+    int select_fds;
+    double select_time;
     double cputime;
     struct timeval timestamp;
     StatHist comm_icp_incoming;
