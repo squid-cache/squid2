@@ -124,6 +124,7 @@ static char *log_tags[] =
     "UDP_MISS",
     "UDP_DENIED",
     "UDP_INVALID",
+    "UDP_RELOADING",
     "ERR_READ_TIMEOUT",
     "ERR_LIFETIME_EXP",
     "ERR_NO_CLIENTS_BIG_OBJ",
@@ -278,7 +279,9 @@ static int icpHierarchical(icpState)
     request_t *req = icpState->request;
     method_t method = req->method;
     wordlist *p = NULL;
-    if (BIT_TEST(icpState->flags, REQ_IMS))
+    /* IMS needs a private key, so we can use the hierarchy for IMS only
+     * if our neighbors support private keys */
+    if (BIT_TEST(icpState->flags, REQ_IMS) && !neighbors_do_private_keys)
 	return 0;
     if (BIT_TEST(icpState->flags, REQ_AUTH))
 	return 0;
@@ -832,11 +835,12 @@ int icpUdpReply(fd, queue)
     return result;
 }
 
-int icpUdpSend(fd, url, reqheaderp, to, opcode, logcode)
+int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode)
      int fd;
      char *url;
      icp_common_t *reqheaderp;
      struct sockaddr_in *to;
+     int flags;			/* StoreEntry->flags */
      icp_opcode opcode;
      log_type logcode;
 {
@@ -872,7 +876,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode, logcode)
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
     headerp->reqnum = htonl(reqheaderp->reqnum);
-    if (opcode == ICP_OP_QUERY)
+    if (opcode == ICP_OP_QUERY && !BIT_TEST(flags, REFRESH_REQUEST))
 	headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->pad = 0;
     /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
@@ -1042,7 +1046,13 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
-	    icpUdpSend(fd, url, &header, &from, ICP_OP_INVALID, LOG_UDP_INVALID);
+	    icpUdpSend(fd,
+		url,
+		&header,
+		&from,
+		0,
+		ICP_OP_INVALID,
+		LOG_UDP_INVALID);
 	    break;
 	}
 	p = icp_request->protocol;
@@ -1053,7 +1063,13 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s.\n",
 		inet_ntoa(from.sin_addr));
-	    icpUdpSend(fd, url, &header, &from, ICP_OP_DENIED, LOG_UDP_DENIED);
+	    icpUdpSend(fd,
+		url,
+		&header,
+		&from,
+		0,
+		ICP_OP_DENIED,
+		LOG_UDP_DENIED);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
@@ -1076,7 +1092,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		safe_free(icpHitObjState);
 	    }
 	    CacheInfo->proto_hit(CacheInfo, p);
-	    icpUdpSend(fd, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
+	    icpUdpSend(fd, url, &header, &from, 0, ICP_OP_HIT, LOG_UDP_HIT);
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
@@ -1085,12 +1101,13 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		url,
 		&header,
 		&from,
-		ICP_OP_DENIED,
-		LOG_UDP_DENIED);
+		0,
+		ICP_OP_RELOADING,
+		LOG_UDP_RELOADING);
 	    break;
 	}
 	CacheInfo->proto_miss(CacheInfo, p);
-	icpUdpSend(fd, url, &header, &from, ICP_OP_MISS, LOG_UDP_MISS);
+	icpUdpSend(fd, url, &header, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
 	break;
 
     case ICP_OP_HIT_OBJ:
@@ -1099,6 +1116,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
     case ICP_OP_DECHO:
     case ICP_OP_MISS:
     case ICP_OP_DENIED:
+    case ICP_OP_RELOADING:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
 	    debug(12, 0, "icpHandleIcpV2: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
@@ -1191,6 +1209,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
 		url,
 		&header,
 		&from,
+		0,
 		ICP_OP_INVALID,
 		LOG_UDP_INVALID);
 	    break;
@@ -1203,7 +1222,13 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s.\n",
 		inet_ntoa(from.sin_addr));
-	    icpUdpSend(fd, url, &header, &from, ICP_OP_DENIED, LOG_UDP_DENIED);
+	    icpUdpSend(fd,
+		url,
+		&header,
+		&from,
+		0,
+		ICP_OP_DENIED,
+		LOG_UDP_DENIED);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
@@ -1214,7 +1239,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + Config.negativeTtl))) {
 	    CacheInfo->proto_hit(CacheInfo, p);
-	    icpUdpSend(fd, url, &header, &from, ICP_OP_HIT, LOG_UDP_HIT);
+	    icpUdpSend(fd, url, &header, &from, 0, ICP_OP_HIT, LOG_UDP_HIT);
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
@@ -1223,12 +1248,13 @@ static void icpHandleIcpV3(fd, from, buf, len)
 		url,
 		&header,
 		&from,
+		0,
 		ICP_OP_DENIED,
 		LOG_UDP_DENIED);
 	    break;
 	}
 	CacheInfo->proto_miss(CacheInfo, p);
-	icpUdpSend(fd, url, &header, &from, ICP_OP_MISS, LOG_UDP_MISS);
+	icpUdpSend(fd, url, &header, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
 	break;
 
     case ICP_OP_HIT_OBJ:

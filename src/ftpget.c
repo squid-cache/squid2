@@ -2185,7 +2185,7 @@ static int process_request(r)
 #endif
 	    break;
 	case CWD_OK:
-	    if (!r->flags & F_ISDIR)
+	    if (!(r->flags & F_ISDIR))
 		r->flags |= F_USEBASE;
 	    r->flags |= F_ISDIR;
 	    if (!(r->flags & F_BASEDIR)) {

@@ -143,7 +143,7 @@ typedef enum {
     ICP_OP_UNUSED6,		/* 18 */
     ICP_OP_UNUSED7,		/* 19 */
     ICP_OP_UNUSED8,		/* 20 */
-    ICP_OP_UNUSED9,		/* 21 */
+    ICP_OP_RELOADING,		/* 21 access denied while reloading */
     ICP_OP_DENIED,		/* 22 access denied (cl<-sv) */
     ICP_OP_HIT_OBJ,		/* 23 hit with object data (cl<-sv) */
     ICP_OP_END			/* 24 marks end of opcodes */

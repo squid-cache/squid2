@@ -148,7 +148,7 @@ char *IcpOpcodeStr[] =
     "ICP_OP_UNUSED6",
     "ICP_OP_UNUSED7",
     "ICP_OP_UNUSED8",
-    "ICP_OP_UNUSED9",
+    "ICP_RELOADING",		/* access denied while store is reloading */
     "ICP_DENIED",
     "ICP_HIT_OBJ",
     "ICP_END"

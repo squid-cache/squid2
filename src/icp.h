@@ -119,21 +119,22 @@ typedef enum {
     LOG_UDP_MISS,		/* 10 */
     LOG_UDP_DENIED,		/* 11 */
     LOG_UDP_INVALID,		/* 12 */
-    ERR_READ_TIMEOUT,		/* 13 */
-    ERR_LIFETIME_EXP,		/* 14 */
-    ERR_NO_CLIENTS_BIG_OBJ,	/* 15 */
-    ERR_READ_ERROR,		/* 16 */
-    ERR_CLIENT_ABORT,		/* 17 */
-    ERR_CONNECT_FAIL,		/* 18 */
-    ERR_INVALID_REQ,		/* 19 */
-    ERR_INVALID_URL,		/* 20 */
-    ERR_NO_FDS,			/* 21 */
-    ERR_DNS_FAIL,		/* 22 */
-    ERR_NOT_IMPLEMENTED,	/* 23 */
-    ERR_CANNOT_FETCH,		/* 24 */
-    ERR_NO_RELAY,		/* 25 */
-    ERR_DISK_IO,		/* 26 */
-    ERR_ZERO_SIZE_OBJECT	/* 27 */
+    LOG_UDP_RELOADING,		/* 13 */
+    ERR_READ_TIMEOUT,		/* 14 */
+    ERR_LIFETIME_EXP,		/* 15 */
+    ERR_NO_CLIENTS_BIG_OBJ,	/* 16 */
+    ERR_READ_ERROR,		/* 17 */
+    ERR_CLIENT_ABORT,		/* 18 */
+    ERR_CONNECT_FAIL,		/* 19 */
+    ERR_INVALID_REQ,		/* 20 */
+    ERR_INVALID_URL,		/* 21 */
+    ERR_NO_FDS,			/* 22 */
+    ERR_DNS_FAIL,		/* 23 */
+    ERR_NOT_IMPLEMENTED,	/* 24 */
+    ERR_CANNOT_FETCH,		/* 25 */
+    ERR_NO_RELAY,		/* 26 */
+    ERR_DISK_IO,		/* 27 */
+    ERR_ZERO_SIZE_OBJECT	/* 28 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT
@@ -157,7 +158,6 @@ typedef struct wwd {
     struct timeval start;
     log_type logcode;
 } icpUdpData;
-
 
 #define ICP_IDENT_SZ 63
 typedef struct iwd {
@@ -190,6 +190,7 @@ extern int icpUdpSend _PARAMS((int,
 	char *,
 	icp_common_t *,
 	struct sockaddr_in *,
+	int flags,
 	icp_opcode,
 	log_type));
 extern int icpHandleUdp _PARAMS((int sock, void *data));

@@ -288,6 +288,7 @@ static void destroy_MemObject(mem)
     safe_free(mem->e_abort_msg);
     requestUnlink(mem->request);
     mem->request = NULL;
+    memset(mem, '\0', sizeof(MemObject));
     put_free_mem_obj(mem);
     meta_data.store_in_mem_objects--;
     meta_data.misc -= sizeof(struct _http_reply);
@@ -311,6 +312,7 @@ static void destroy_StoreEntry(e)
 	e->key = NULL;
     else
 	safe_free(e->key);
+    memset(e, '\0', sizeof(StoreEntry));
     xfree(e);
     meta_data.store_entries--;
 }

@@ -156,7 +156,7 @@ Usage: %s [-hsvzCDFRUVY] [-f config-file] [-[au] port]\n\
        -R        Do not set REUSEADDR on port.\n\
        -U        Unlink expired objects on reload.\n\
        -V        Virtual host httpd-accelerator.\n\
-       -Y        Only return UDP_HIT or UDP_DENIED during fast store reload.\n",
+       -Y        Only return UDP_HIT or UDP_RELOADING during fast reload.\n",
 	appname, CACHE_HTTP_PORT, DefaultConfigFile, CACHE_ICP_PORT);
     exit(1);
 }
