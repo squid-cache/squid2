@@ -227,7 +227,7 @@ rfc1035HeaderUnpack(const char *buf, size_t sz, rfc1035_header * h)
     h->qr = (t >> 15) & 0x01;
     h->opcode = (t >> 11) & 0x0F;
     h->aa = (t >> 10) & 0x01;
-    h->tc = (t >> 8) & 0x01;
+    h->tc = (t >> 9) & 0x01;
     h->rd = (t >> 8) & 0x01;
     h->ra = (t >> 7) & 0x01;
     h->rcode = t & 0x0F;
