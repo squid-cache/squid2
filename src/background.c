@@ -75,7 +75,7 @@ runInBackground(char *name,
  * returns true if there is more background processing to do
  */
 extern int
-doBackgroundProcessing()
+doBackgroundProcessing(void)
 {
     struct bg_entry *this = NULL;
 

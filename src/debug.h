@@ -116,7 +116,7 @@ extern void _db_rotate_log __P((void));
 #if defined(__STRICT_ANSI__)
 extern void _db_print __P((int, int, char *,...));
 #else
-extern void _db_print __P((void));
+extern void _db_print __P(());
 #endif
 
 #define debug \

@@ -135,7 +135,7 @@ static char *tbuf = NULL;
 static char *auth_msg = NULL;
 
 void
-errorInitialize()
+errorInitialize(void)
 {
 #ifndef USE_PROXY_AUTH
     tmp_error_buf = xmalloc(MAX_URL * 4);

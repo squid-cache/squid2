@@ -141,7 +141,7 @@ extern void xmemcpy __P((void *from, void *to, int len));
  */
 
 void
-sig_handle()
+sig_handle(void)
 {
     fflush(stdout);
     close(2);

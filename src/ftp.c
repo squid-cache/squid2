@@ -685,7 +685,7 @@ ftpServerClosed(int fd, void *nodata)
 }
 
 void
-ftpServerClose()
+ftpServerClose(void)
 {
     /* NOTE: this function will be called repeatedly while shutdown is
      * pending */
@@ -705,7 +705,7 @@ ftpServerClose()
 
 
 int
-ftpInitialize()
+ftpInitialize(void)
 {
     int pid;
     int cfd;

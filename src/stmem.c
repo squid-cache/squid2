@@ -306,7 +306,7 @@ memCopy(mem_ptr mem, int offset, char *buf, int size)
 
 /* Do whatever is necessary to begin storage of new object */
 mem_ptr
-memInit()
+memInit(void)
 {
     mem_ptr new = xcalloc(1, sizeof(Mem_Hdr));
     new->tail = new->head = NULL;
@@ -336,25 +336,25 @@ get_free_thing(stmem_stats * thing)
 }
 
 void *
-get_free_request_t()
+get_free_request_t(void)
 {
     return get_free_thing(&request_pool);
 }
 
 void *
-get_free_mem_obj()
+get_free_mem_obj(void)
 {
     return get_free_thing(&mem_obj_pool);
 }
 
 char *
-get_free_4k_page()
+get_free_4k_page(void)
 {
     return (char *) get_free_thing(&sm_stats);
 }
 
 char *
-get_free_8k_page()
+get_free_8k_page(void)
 {
     return (char *) get_free_thing(&disk_stats);
 }
@@ -401,7 +401,7 @@ put_free_8k_page(void *page)
 }
 
 void
-stmemInit()
+stmemInit(void)
 {
     sm_stats.page_size = SM_PAGE_SIZE;
     sm_stats.total_pages_allocated = 0;

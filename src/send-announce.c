@@ -32,7 +32,7 @@
 #include "squid.h"
 
 void
-send_announce()
+send_announce(void)
 {
     LOCAL_ARRAY(char, tbuf, 256);
     LOCAL_ARRAY(char, sndbuf, BUFSIZ);

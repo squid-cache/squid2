@@ -150,7 +150,7 @@ ttlFreeListgeneric(ttl_t * t)
 }
 
 void
-ttlFreeList()
+ttlFreeList(void)
 {
     ttlFreeListgeneric(TTL_tbl);
     ttlFreeListgeneric(TTL_tbl_force);

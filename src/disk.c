@@ -123,7 +123,7 @@ FileEntry *file_table;
 
 /* initialize table */
 int
-disk_init()
+disk_init(void)
 {
     int fd;
 

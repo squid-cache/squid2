@@ -628,7 +628,7 @@ statFiledescriptors(StoreEntry * sentry)
 }
 
 static int
-memoryAccounted()
+memoryAccounted(void)
 {
     return (int)
 	meta_data.store_entries * sizeof(StoreEntry) +
@@ -645,7 +645,7 @@ memoryAccounted()
 
 #ifdef UNUSED_CODE
 static int
-mallinfoTotal()
+mallinfoTotal(void)
 {
     int total = 0;
 #if HAVE_MALLINFO
@@ -1373,7 +1373,7 @@ flags_describe(StoreEntry * entry)
 }
 
 void
-stat_rotate_log()
+stat_rotate_log(void)
 {
     int i;
     LOCAL_ARRAY(char, from, MAXPATHLEN);
@@ -1410,7 +1410,7 @@ stat_rotate_log()
 }
 
 void
-statCloseLog()
+statCloseLog(void)
 {
     file_close(HTTPCacheInfo->logfile_fd);
 }

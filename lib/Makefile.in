@@ -47,7 +47,7 @@ libregex.a: $(REGEXOBJS)
 	$(RANLIB) $@
 
 clean:
-	-rm -f $(UTILOBJS) $(REGEXOBJS) $(LIBS) core
+	-rm -f *.o $(LIBS) core
 
 realclean: clean
 	-rm -f libregex.a

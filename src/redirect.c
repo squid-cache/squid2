@@ -233,7 +233,7 @@ Enqueue(redirectStateData * r)
 }
 
 static redirectStateData *
-Dequeue()
+Dequeue(void)
 {
     struct redirectQueueData *old = NULL;
     redirectStateData *r = NULL;
@@ -250,7 +250,7 @@ Dequeue()
 }
 
 static redirector_t *
-GetFirstAvailable()
+GetFirstAvailable(void)
 {
     int k;
     redirector_t *redirect = NULL;
@@ -337,7 +337,7 @@ redirectStart(int cfd, icpStateData * icpState, RH handler, void *data)
 }
 
 void
-redirectOpenServers()
+redirectOpenServers(void)
 {
     char *prg = Config.Program.redirect;
     int k;
@@ -390,7 +390,7 @@ redirectOpenServers()
 }
 
 void
-redirectShutdownServers()
+redirectShutdownServers(void)
 {
     redirector_t *redirect = NULL;
     redirectStateData *r = NULL;

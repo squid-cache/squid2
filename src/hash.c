@@ -421,7 +421,7 @@ hash_get_bucket(HashID hid, unsigned int bucket)
  *  and prints the table again...
  */
 int
-main()
+main(void)
 {
     int hid;
     int i;

@@ -144,7 +144,7 @@
  *  to the gethost*() functions.
  */
 char *
-getfullhostname()
+getfullhostname(void)
 {
     struct hostent *hp = NULL;
     static char buf[SQUIDHOSTNAMELEN + 1];

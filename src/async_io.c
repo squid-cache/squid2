@@ -232,7 +232,7 @@ aioFileQueueRead(int fd, int (*handler) (int, dread_ctrl *), dread_ctrl * ctrl_d
 }
 
 void
-aioExamine()
+aioExamine(void)
 {
     int fd;
     int rc;

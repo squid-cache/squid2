@@ -146,7 +146,7 @@ static int malloc_sizes[DBG_MAXINDEX + 1];
 static int dbg_stat_init = 0;
 
 static void
-stat_init()
+stat_init(void)
 {
     int i;
     for (i = 0; i <= DBG_MAXINDEX; i++)
@@ -185,7 +185,7 @@ static void *P;
 static void *Q;
 
 static void
-check_init()
+check_init(void)
 {
     for (B = 0; B < DBG_ARRY_BKTS; B++) {
 	for (I = 0; I < DBG_ARRY_SZ; I++) {
@@ -435,7 +435,7 @@ xstrdup(char *s)
  * xstrerror() - return sys_errlist[errno];
  */
 char *
-xstrerror()
+xstrerror(void)
 {
     static char xstrerror_buf[BUFSIZ];
 

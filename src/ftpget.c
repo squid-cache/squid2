@@ -475,7 +475,7 @@ The following FTP error was encountered:\n\
 \n"
 
 char *
-html_trailer()
+html_trailer(void)
 {
     static char buf[SMALLBUFSIZ];
 

@@ -57,7 +57,7 @@ rev_int_sort(int *i1, int *i2)
 }
 
 void
-storeDirClean()
+storeDirClean(void)
 {
     static int index = 0;
     DIR *dp = NULL;

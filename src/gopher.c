@@ -1049,7 +1049,7 @@ gopherStart(int unusedfd, char *url, StoreEntry * entry)
 
 
 static GopherStateData *
-CreateGopherStateData()
+CreateGopherStateData(void)
 {
     GopherStateData *gd = xcalloc(1, sizeof(GopherStateData));
     gd->buf = get_free_4k_page();

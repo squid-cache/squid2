@@ -185,8 +185,8 @@ extern void log_errno2 __P((char *, int, char *));
 extern void Log __P((char *,...));
 extern void errorlog __P((char *,...));
 #else
-extern void Log __P((void));
-extern void errorlog __P((void));
+extern void Log __P(());
+extern void errorlog __P(());
 #endif /* __STRICT_ANSI__ */
 
 extern void Tolower __P((char *));

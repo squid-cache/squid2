@@ -248,7 +248,7 @@ _db_init(char *logfile, char *options)
 }
 
 void
-_db_rotate_log()
+_db_rotate_log(void)
 {
     int i;
     LOCAL_ARRAY(char, from, MAXPATHLEN);

@@ -297,7 +297,7 @@ log_errno2(char *file, int line, char *s)
  *  standard_msg() - Prints the standard pid and timestamp
  */
 static char *
-standard_msg()
+standard_msg(void)
 {
     time_t t;
     static char buf[BUFSIZ];

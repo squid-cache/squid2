@@ -228,7 +228,7 @@ fdstat_close(int fd)
 
 /* return the biggest fd */
 int
-fdstat_biggest_fd()
+fdstat_biggest_fd(void)
 {
     return Biggest_FD;
 }

@@ -125,7 +125,7 @@ int Harvest_do_debug = 0;
  *  debug_reset() - Reset debugging routines.
  */
 void
-debug_reset()
+debug_reset(void)
 {
     int i;
 
@@ -205,7 +205,7 @@ debug_flag(char *flag)
  *
  */
 void
-debug_init()
+debug_init(void)
 {
     char *s, *t, *u;
 

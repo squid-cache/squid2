@@ -282,7 +282,7 @@ neighborRemove(edge * target)
 }
 
 void
-neighborsDestroy()
+neighborsDestroy(void)
 {
     edge *e = NULL;
     edge *next = NULL;
@@ -789,7 +789,7 @@ neighbors_cf_acl(char *host, char *aclname)
 }
 
 void
-neighbors_init()
+neighbors_init(void)
 {
     struct neighbor_cf *t = NULL;
     struct neighbor_cf *next = NULL;

@@ -90,7 +90,7 @@ url_convert_hex(char *org_url, int allocate)
 /* INIT Acceptable table. 
  * Borrow from libwww2 with Mosaic2.4 Distribution   */
 void
-urlInitialize()
+urlInitialize(void)
 {
     unsigned int i;
     char *good =
