@@ -164,16 +164,20 @@ refreshCheck(const StoreEntry * entry, const request_t * request, time_t delta)
 	return 1;
     }
     if (entry->timestamp <= entry->lastmod) {
+	if (request->protocol != PROTO_HTTP) {
+	    debug(22, 3, "refreshCheck: NO: non-HTTP request\n");
+	    return 0;
+	}
 	debug(22, 3, "refreshCheck: YES: lastvalid <= lastmod\n");
 	return 1;
     }
     factor = 100 * age / (entry->timestamp - entry->lastmod);
     debug(22, 3, "refreshCheck: factor = %d\n", factor);
-    if (factor > pct) {
-	debug(22, 3, "refreshCheck: YES: factor > pct\n");
-	return 1;
+    if (factor < pct) {
+	debug(22, 3, "refreshCheck: NO: factor < pct\n");
+	return 0;
     }
-    return 0;
+    return 1;
 }
 
 time_t
