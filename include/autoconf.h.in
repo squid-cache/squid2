@@ -52,15 +52,6 @@
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef pid_t
 
-/* Define to the type of arg1 for select(). */
-#undef SELECT_TYPE_ARG1
-
-/* Define to the type of args 2, 3 and 4 for select(). */
-#undef SELECT_TYPE_ARG234
-
-/* Define to the type of arg5 for select(). */
-#undef SELECT_TYPE_ARG5
-
 /* Define to `unsigned' if <sys/types.h> doesn't define.  */
 #undef size_t
 
@@ -108,17 +99,8 @@
 #undef CACHE_ICP_PORT
 #endif
 
-/* Define to do simple malloc debugging */
-#undef XMALLOC_DEBUG
-
-/* Define for log file trace of mem alloc/free */
-#undef MEM_GEN_TRACE
-
 /* Define to have malloc statistics */
 #undef XMALLOC_STATISTICS
-
-/* Define to have a detailed trace of memory allocations */
-#undef XMALLOC_TRACE
 
 #undef FORW_VIA_DB
 
@@ -170,15 +152,6 @@
  * Define to enable WCCP
  */
 #define USE_WCCP 1
-
-/*
- * Squid frequently calls gettimeofday() for accurate timestamping.
- * If you are concerned that gettimeofday() is called too often, and
- * could be causing performance degradation, then you can define
- * ALARM_UPDATES_TIME and cause Squid's clock to be updated at regular
- * intervals (one second) with ALARM signals.
- */
-#undef ALARM_UPDATES_TIME
 
 /*
  * Define this to include code which lets you specify access control
@@ -392,10 +365,6 @@
  * Enable support for the X-Accelerator-Vary HTTP header
  */
 #undef X_ACCELERATOR_VARY
-
-/* Support for poll/select/etc stuff */
-#undef USE_POLL
-#undef USE_SELECT
 
 /* The number of bytes in a __int64.  */
 #undef SIZEOF___INT64
