@@ -31,7 +31,7 @@
 u_long snmpStats[SNMP_LAST_STAT + 1] =
 {0};
 
-void 
+void
 hex_dump(hdr, msg, len)
      char *hdr;
      short len;
@@ -64,7 +64,7 @@ hex_dump(hdr, msg, len)
     }
 }
 
-void 
+void
 v2md5auth_password_to_key(password, passwordlen, agentID, key)
      u_char *password;		/* IN */
      u_int passwordlen;		/* IN */
@@ -108,7 +108,7 @@ v2md5auth_password_to_key(password, passwordlen, agentID, key)
     MD5Final(key, &MD);
 }
 
-void 
+void
 md5Digest(msg, length, key, digest)
      u_char *msg;
      int length;
@@ -126,7 +126,7 @@ md5Digest(msg, length, key, digest)
  * this routine is used to parse a community string that is passed as
  * a command line option to an application (management entity) program
  */
-int 
+int
 parse_app_community_string(session)
      struct snmp_session *session;
 {
@@ -312,7 +312,7 @@ create_report(session, out_data, out_length, stat, reqid)
 /** snmp_free_pdu( report ); **/
 }
 
-int 
+int
 parse_parameters(pp, plen, params)
      u_char *pp;
      int plen;
@@ -372,7 +372,7 @@ parse_parameters(pp, plen, params)
     return 0;
 }
 
-int 
+int
 check_received_pkt(pkt, pktlen, comm, commlen, session, pdu)
      u_char *pkt;
      int pktlen;

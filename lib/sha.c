@@ -41,7 +41,7 @@
 
 /* do SHA transformation */
 
-static void 
+static void
 sha_transform(SHA_INFO * sha_info)
 {
     int i;
@@ -174,7 +174,7 @@ sha_transform(SHA_INFO * sha_info)
 
 /* change endianness of data */
 
-static void 
+static void
 maybe_byte_reverse(int *buffer, int count)
 {
     int i;
@@ -199,7 +199,7 @@ maybe_byte_reverse(int *buffer, int count)
 
 /* initialize the SHA digest */
 
-void 
+void
 sha_init(SHA_INFO * sha_info)
 {
     sha_info->digest[0] = 0x67452301L;
@@ -214,7 +214,7 @@ sha_init(SHA_INFO * sha_info)
 
 /* update the SHA digest */
 
-void 
+void
 sha_update(SHA_INFO * sha_info, char *buffer, int count)
 {
     int i;
@@ -253,7 +253,7 @@ sha_update(SHA_INFO * sha_info, char *buffer, int count)
 
 /* finish computing the SHA digest */
 
-void 
+void
 sha_final(SHA_INFO * sha_info)
 {
     int count;

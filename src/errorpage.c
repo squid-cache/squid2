@@ -188,7 +188,7 @@ errorStateFree(ErrorState * err)
 #define CVT_BUF_SZ 512
 
 /*
- * B - URL with FTP %2f hack			x
+ * B - URL with FTP %2f hack                  x
  * c - Squid error code
  * d - seconds elapsed since request received
  * e - errno                                    x

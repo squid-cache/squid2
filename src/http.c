@@ -580,7 +580,7 @@ httpPconnTransferDone(HttpStateData * httpState)
     if (reply->code != 200)
 	if (reply->content_length < 0)
 	    if (httpState->reply_hdr_state > 1)
-	        return 1;
+		return 1;
     /*
      * If there is no content-length, then we probably can't be persistent
      */

@@ -6,14 +6,14 @@
 #include "snmp_config.h"
 
 /* fwd: */
-static int compare_tree ();
+static int compare_tree();
 
 int snmp_enableauthentraps;
 #define TALLOC(T)	((T *) xmalloc (sizeof(T)))
 
 
 /*
- *	Each variable name is placed in the variable table, without the
+ *    Each variable name is placed in the variable table, without the
  * terminating substring that determines the instance of the variable.  When
  * a string is found that is lexicographicly preceded by the input string,
  * the function for that entry is called to find the method of access of the
@@ -25,11 +25,11 @@ int snmp_enableauthentraps;
  *
  * u_char *
  * findVar(name, length, exact, var_len, write_method)
- * oid	    *name;	    IN/OUT - input name requested, output name found
- * int	    length;	    IN/OUT - number of sub-ids in the in and out oid's
- * int	    exact;	    IN - TRUE if an exact match was requested.
- * int	    len;	    OUT - length of variable or 0 if function returned.
- * int	    write_method;   OUT - pointer to function to set variable,
+ * oid      *name;          IN/OUT - input name requested, output name found
+ * int      length;         IN/OUT - number of sub-ids in the in and out oid's
+ * int      exact;          IN - TRUE if an exact match was requested.
+ * int      len;            OUT - length of variable or 0 if function returned.
+ * int      write_method;   OUT - pointer to function to set variable,
  *                                otherwise 0
  *
  *     The writeVar function is returned to handle row addition or complex
@@ -53,16 +53,16 @@ int snmp_enableauthentraps;
  * is thus provided to free those resources reserved in the first two passes.
  * 
  * writeVar(action, var_val, var_val_type, var_val_len, statP, name, name_len)
- * int	    action;	    IN - RESERVE1, RESERVE2, COMMIT, or FREE
- * u_char   *var_val;	    IN - input or output buffer space
+ * int      action;         IN - RESERVE1, RESERVE2, COMMIT, or FREE
+ * u_char   *var_val;       IN - input or output buffer space
  * u_char   var_val_type;   IN - type of input buffer
- * int	    var_val_len;    IN - input and output buffer len
- * u_char   *statP;	    IN - pointer to local statistic
+ * int      var_val_len;    IN - input and output buffer len
+ * u_char   *statP;         IN - pointer to local statistic
  * oid      *name           IN - pointer to name requested
  * int      name_len        IN - number of sub-ids in the name
  */
 
-long		long_return;
+long long_return;
 
 /* various OIDs that are needed throughout the agent */
 
@@ -74,11 +74,11 @@ long		long_return;
  * 1.2.0
  */
 struct subtree {
-    oid			name[16];	/* objid prefix of subtree */
-    u_char 		namelen;	/* number of subid's in name above */
-    struct variable	*variables;   /* pointer to variables array */
-    int			variables_len;	/* number of entries in above array */
-    int			variables_width; /* sizeof each variable entry */
+    oid name[16];		/* objid prefix of subtree */
+    u_char namelen;		/* number of subid's in name above */
+    struct variable *variables;	/* pointer to variables array */
+    int variables_len;		/* number of entries in above array */
+    int variables_width;	/* sizeof each variable entry */
     struct subtree *next;
 };
 
@@ -97,39 +97,39 @@ struct subtree {
  * application.  The first 5 elements of the structure must remain constant.
  */
 struct variable2 {
-    u_char          magic;          /* passed to function as a hint */
-    char            type;           /* type of variable */
-    u_short         acl;            /* access control list for variable */
-    SNMPFV	    *findVar;       /* function that finds variable */
-    u_char          namelen;        /* length of name below */
-    oid             name[2];        /* object identifier of variable */
+    u_char magic;		/* passed to function as a hint */
+    char type;			/* type of variable */
+    u_short acl;		/* access control list for variable */
+    SNMPFV *findVar;		/* function that finds variable */
+    u_char namelen;		/* length of name below */
+    oid name[2];		/* object identifier of variable */
 };
 
 struct variable4 {
-    u_char          magic;          /* passed to function as a hint */
-    char            type;           /* type of variable */
-    u_short         acl;            /* access control list for variable */
-    SNMPFV	    *findVar;       /* function that finds variable */
-    u_char          namelen;        /* length of name below */
-    oid             name[4];        /* object identifier of variable */
+    u_char magic;		/* passed to function as a hint */
+    char type;			/* type of variable */
+    u_short acl;		/* access control list for variable */
+    SNMPFV *findVar;		/* function that finds variable */
+    u_char namelen;		/* length of name below */
+    oid name[4];		/* object identifier of variable */
 };
 
 struct variable7 {
-    u_char          magic;          /* passed to function as a hint */
-    char            type;           /* type of variable */
-    u_short         acl;            /* access control list for variable */
-    SNMPFV	    *findVar;       /* function that finds variable */
-    u_char          namelen;        /* length of name below */
-    oid             name[7];        /* object identifier of variable */
+    u_char magic;		/* passed to function as a hint */
+    char type;			/* type of variable */
+    u_short acl;		/* access control list for variable */
+    SNMPFV *findVar;		/* function that finds variable */
+    u_char namelen;		/* length of name below */
+    oid name[7];		/* object identifier of variable */
 };
 
 struct variable13 {
-    u_char          magic;          /* passed to function as a hint */
-    char            type;           /* type of variable */
-    u_short         acl;            /* access control list for variable */
-    SNMPFV	    *findVar;	    /* function that finds variable */
-    u_char          namelen;        /* length of name below */
-    oid             name[13];       /* object identifier of variable */
+    u_char magic;		/* passed to function as a hint */
+    char type;			/* type of variable */
+    u_short acl;		/* access control list for variable */
+    SNMPFV *findVar;		/* function that finds variable */
+    u_char namelen;		/* length of name below */
+    oid name[13];		/* object identifier of variable */
 };
 
 #endif
@@ -163,7 +163,7 @@ struct variable13 {
  * none slip through.
  */
 /* No access for community SNMP, RW possible for Secure SNMP */
-#define PRIVRW   0x0003  
+#define PRIVRW   0x0003
 /* No access for community SNMP, RO possible for Secure SNMP */
 #define PRIVRO   0x0002
 
@@ -175,50 +175,50 @@ static struct subtree *subtrees = 0;
  */
 
 void
-mib_register (oid *oid_base, int oid_base_len, struct variable *mib_variables, 
-	      int mib_variables_len, int mib_variables_width)
+mib_register(oid * oid_base, int oid_base_len, struct variable *mib_variables,
+    int mib_variables_len, int mib_variables_width)
 {
-  struct subtree **sptr;
-  struct subtree *new_subtree = TALLOC(struct subtree);
-	debug(49,5)("snmp: registering new subtree\n");
-  if (! new_subtree) 
-    fatal("error: registering mib: out of memory...aborting.\n");
+    struct subtree **sptr;
+    struct subtree *new_subtree = TALLOC(struct subtree);
+    debug(49, 5) ("snmp: registering new subtree\n");
+    if (!new_subtree)
+	fatal("error: registering mib: out of memory...aborting.\n");
 
-  /*
-   * fill in new subtree element:
-   */
-  xmemcpy (new_subtree->name, oid_base, oid_base_len * sizeof(oid));
-  new_subtree->namelen = oid_base_len;
-  new_subtree->variables = mib_variables;
-  new_subtree->variables_len = mib_variables_len;
-  new_subtree->variables_width = mib_variables_width;
+    /*
+     * fill in new subtree element:
+     */
+    xmemcpy(new_subtree->name, oid_base, oid_base_len * sizeof(oid));
+    new_subtree->namelen = oid_base_len;
+    new_subtree->variables = mib_variables;
+    new_subtree->variables_len = mib_variables_len;
+    new_subtree->variables_width = mib_variables_width;
 
-  /* 
-   * now hop along the subtrees and chain in: 
-   */
-  for (sptr = &subtrees; *sptr; sptr = &(*sptr)->next) {
-    if (compare ((*sptr)->name, (*sptr)->namelen,
-		 new_subtree->name, new_subtree->namelen) > 0) {
-      break;
+    /* 
+     * now hop along the subtrees and chain in: 
+     */
+    for (sptr = &subtrees; *sptr; sptr = &(*sptr)->next) {
+	if (compare((*sptr)->name, (*sptr)->namelen,
+		new_subtree->name, new_subtree->namelen) > 0) {
+	    break;
+	}
     }
-  }
-  new_subtree->next = *sptr;
-  *sptr = new_subtree;
+    new_subtree->next = *sptr;
+    *sptr = new_subtree;
 }
 
 int
-in_view(oid *name, int namelen, int viewIndex)
+in_view(oid * name, int namelen, int viewIndex)
 {
     viewEntry *vwp, *savedvwp = NULL;
 
-    for( vwp = Config.Snmp.views; vwp; vwp = vwp->next ) {
-	if (vwp->viewIndex != viewIndex )
+    for (vwp = Config.Snmp.views; vwp; vwp = vwp->next) {
+	if (vwp->viewIndex != viewIndex)
 	    continue;
 	if (vwp->viewSubtreeLen > namelen
 	    || bcmp(vwp->viewSubtree, name, vwp->viewSubtreeLen * sizeof(oid)))
 	    continue;
 	/* no wildcards here yet */
-	if (!savedvwp){
+	if (!savedvwp) {
 	    savedvwp = vwp;
 	} else {
 	    if (vwp->viewSubtreeLen > savedvwp->viewSubtreeLen)
@@ -241,112 +241,111 @@ in_view(oid *name, int namelen, int viewIndex)
  * requested one is returned.
  *
  * If no appropriate variable can be found, NULL is returned.
+ 
+ IN - name of var, OUT - name matched 
+ IN -number of sub-ids in name, OUT - subid-is in matched name 
+ OUT - type of matched variable 
+ OUT - length of matched variable 
+ OUT - access control list 
+ TRUE if exact match wanted 
+ OUT - pointer to function called to set variable, otherwise 0 */
 
-   IN - name of var, OUT - name matched 
-   IN -number of sub-ids in name, OUT - subid-is in matched name 
-   OUT - type of matched variable 
-   OUT - length of matched variable 
-   OUT - access control list 
-   TRUE if exact match wanted 
-   OUT - pointer to function called to set variable, otherwise 0 */
-
-u_char	*
-getStatPtr(oid 	  *name, 
-	   int 	  *namelen, 
-	   u_char *type, 
-	   int    *len, 
-	   u_short *acl, int exact, 
-		SNMPWM **write_method,
-		int snmpversion,
-		int *noSuchObject,
-		int view)
+u_char *
+getStatPtr(oid * name,
+    int *namelen,
+    u_char * type,
+    int *len,
+    u_short * acl, int exact,
+    SNMPWM ** write_method,
+    int snmpversion,
+    int *noSuchObject,
+    int view)
 {
-    struct subtree	*tp;
+    struct subtree *tp;
     struct variable *vp = 0;
-    struct variable	compat_var, *cvp = &compat_var;
-    int	x;
-    u_char	*access = NULL;
-    int			result, treeresult;
-    oid 		*suffix;
-    int			suffixlen;
-    int 		found = FALSE;
-    oid			save[MAX_NAME_LEN];
-    int			savelen = 0;
+    struct variable compat_var, *cvp = &compat_var;
+    int x;
+    u_char *access = NULL;
+    int result, treeresult;
+    oid *suffix;
+    int suffixlen;
+    int found = FALSE;
+    oid save[MAX_NAME_LEN];
+    int savelen = 0;
 
-    if( view == 0 ) 
-	{
-	debug(13,5)("snmp, No view found\n");
+    if (view == 0) {
+	debug(13, 5) ("snmp, No view found\n");
 	return NULL;
-	}
-    if (!exact){
+    }
+    if (!exact) {
 	memcpy(save, name, *namelen * sizeof(oid));
 	savelen = *namelen;
     }
     *write_method = NULL;
     for (tp = subtrees; tp; tp = tp->next) {
-	treeresult = compare_tree(name, *namelen, tp->name, (int)tp->namelen);
+	treeresult = compare_tree(name, *namelen, tp->name, (int) tp->namelen);
 	/* if exact and treerresult == 0
-	   if next  and treeresult <= 0 */
-	if (treeresult == 0 || (!exact && treeresult < 0)){
+	 * if next  and treeresult <= 0 */
+	if (treeresult == 0 || (!exact && treeresult < 0)) {
 	    result = treeresult;
 	    suffixlen = *namelen - tp->namelen;
 	    suffix = name + tp->namelen;
 	    /* the following is part of the setup for the compatability
-	       structure below that has been moved out of the main loop.
+	     * structure below that has been moved out of the main loop.
 	     */
-	    memcpy((char *)cvp->name, (char *)tp->name,
-		  tp->namelen * sizeof(oid));
+	    memcpy((char *) cvp->name, (char *) tp->name,
+		tp->namelen * sizeof(oid));
 
-	    for(x = 0, vp = tp->variables; x < tp->variables_len;
-		vp =(struct variable *)((char *)vp +tp->variables_width), x++){
+	    for (x = 0, vp = tp->variables; x < tp->variables_len;
+		vp = (struct variable *) ((char *) vp + tp->variables_width), x++) {
 		/* if exact and ALWAYS
-		   if next  and result >= 0 */
-		if (exact || result >= 0){
+		 * if next  and result >= 0 */
+		if (exact || result >= 0) {
 		    result = compare_tree(suffix, suffixlen, vp->name,
-				     (int)vp->namelen);
+			(int) vp->namelen);
 		}
 		/* if exact and result == 0
-		   if next  and result <= 0 */
-		if ((!exact && (result <= 0)) || (exact && (result == 0))){
+		 * if next  and result <= 0 */
+		if ((!exact && (result <= 0)) || (exact && (result == 0))) {
 		    /* builds an old (long) style variable structure to retain
-		       compatability with var_* functions written previously.
+		     * compatability with var_* functions written previously.
 		     */
-		    memcpy( (char *)(cvp->name + tp->namelen),
-			(char *)vp->name,
-			  vp->namelen * sizeof(oid));
+		    memcpy((char *) (cvp->name + tp->namelen),
+			(char *) vp->name,
+			vp->namelen * sizeof(oid));
 		    cvp->namelen = tp->namelen + vp->namelen;
 		    cvp->type = vp->type;
 		    cvp->magic = vp->magic;
 		    cvp->acl = vp->acl;
 		    cvp->findVar = vp->findVar;
-		    access = (*(vp->findVar))(cvp, name, namelen, exact,
-						  len, write_method);
+		    access = (*(vp->findVar)) (cvp, name, namelen, exact,
+			len, write_method);
 		    if (write_method)
 			*acl = vp->acl;
-		    if (access /*&& (snmpversion == SNMP_VERSION_2)*/
-			&& !in_view(name, *namelen, view) ) {
+		    if (access	/*&& (snmpversion == SNMP_VERSION_2) */
+			&& !in_view(name, *namelen, view)) {
 			access = NULL;
 			*write_method = NULL;
-		    } else if (exact){
+		    } else if (exact) {
 			found = TRUE;
 		    }
 		    /* this code is incorrect if there is
-		       a view configuration that exludes a particular
-		       instance of a variable.  It would return noSuchObject,
-		       which would be an error */
+		     * a view configuration that exludes a particular
+		     * instance of a variable.  It would return noSuchObject,
+		     * which would be an error */
 		    if (access != NULL)
 			break;
 		}
 		/* if exact and result <= 0 */
-		if (exact && (result  <= 0)){
-	            *type = vp->type;
+		if (exact && (result <= 0)) {
+		    *type = vp->type;
 		    *acl = vp->acl;
 		    if (found)
 			*noSuchObject = FALSE;
 		    else
 			*noSuchObject = TRUE;
-			debug(13,5)("snmp: 523 return 0, nosuch=%d\n",
-				*noSuchObject);
+		    debug(13, 5) ("snmp: 523 return 0, nosuch=%d\n",
+			*noSuchObject);
 		    return NULL;
 		}
 	    }
@@ -354,41 +353,42 @@ getStatPtr(oid 	  *name,
 		break;
 	}
     }
-    if (! tp /* y == sizeof(subtrees)/sizeof(struct subtree) */ ){
-	if (!access && !exact){
-	    memcpy( name,save,  savelen * sizeof(oid));
+    if (!tp /* y == sizeof(subtrees)/sizeof(struct subtree) */ ) {
+	if (!access && !exact) {
+	    memcpy(name, save, savelen * sizeof(oid));
 	    *namelen = savelen;
 	}
 	if (found)
 	    *noSuchObject = FALSE;
 	else
 	    *noSuchObject = TRUE;
-                        debug(13,5)("snmp: 541 return 0, nosuch=%d\n",
-                                *noSuchObject);
+	debug(13, 5) ("snmp: 541 return 0, nosuch=%d\n",
+	    *noSuchObject);
 
-        return NULL;
+	return NULL;
     }
     /* vp now points to the approprate struct */
     *type = vp->type;
     *acl = vp->acl;
-	debug(13,5)("snmp: returning non null\n");
+    debug(13, 5) ("snmp: returning non null\n");
     return access;
 }
 
 
 int
-compare(oid *name1, int len1, oid *name2, int len2)
+compare(oid * name1, int len1, oid * name2, int len2)
 {
-    int    len;
+    int len;
 
 #define cmpprintf	if(0) printf
-    { int i;
-      cmpprintf ("comparing ");
-      for (i = 0; i < len1; i++)
-	cmpprintf ("%ld%s", name1[i], i < len1 - 1 ? "." : "");
-      cmpprintf (" with ");
-      for (i = 0; i < len2; i++)
-	cmpprintf ("%ld%s", name2[i], i < len2 - 1 ? "." : "");
+    {
+	int i;
+	cmpprintf("comparing ");
+	for (i = 0; i < len1; i++)
+	    cmpprintf("%ld%s", name1[i], i < len1 - 1 ? "." : "");
+	cmpprintf(" with ");
+	for (i = 0; i < len2; i++)
+	    cmpprintf("%ld%s", name2[i], i < len2 - 1 ? "." : "");
     }
 
     /* len = minimum of len1 and len2 */
@@ -397,35 +397,34 @@ compare(oid *name1, int len1, oid *name2, int len2)
     else
 	len = len2;
     /* find first non-matching byte */
-    while(len-- > 0){
+    while (len-- > 0) {
 	if (*name1 < *name2) {
-	    cmpprintf (" giving -1\n");
+	    cmpprintf(" giving -1\n");
 	    return -1;
 	}
 	if (*name2++ < *name1++) {
-	    cmpprintf (" giving 1\n");
+	    cmpprintf(" giving 1\n");
 	    return 1;
 	}
     }
     /* bytes match up to length of shorter string */
     if (len1 < len2) {
-	cmpprintf (" giving -1\n");
-	return -1;  /* name1 shorter, so it is "less" */
+	cmpprintf(" giving -1\n");
+	return -1;		/* name1 shorter, so it is "less" */
     }
     if (len2 < len1) {
-	cmpprintf (" giving 1\n");
+	cmpprintf(" giving 1\n");
 	return 1;
     }
+    cmpprintf(" giving 0\n");
 
-    cmpprintf (" giving 0\n");
-
-    return 0;	/* both strings are equal */
+    return 0;			/* both strings are equal */
 }
 
 static int
-compare_tree(oid *name1, int len1, oid *name2, int len2)
+compare_tree(oid * name1, int len1, oid * name2, int len2)
 {
-    int    len;
+    int len;
 
     /* len = minimum of len1 and len2 */
     if (len1 < len2)
@@ -433,7 +432,7 @@ compare_tree(oid *name1, int len1, oid *name2, int len2)
     else
 	len = len2;
     /* find first non-matching byte */
-    while(len-- > 0){
+    while (len-- > 0) {
 	if (*name1 < *name2)
 	    return -1;
 	if (*name2++ < *name1++)
@@ -441,7 +440,7 @@ compare_tree(oid *name1, int len1, oid *name2, int len2)
     }
     /* bytes match up to length of shorter string */
     if (len1 < len2)
-	return -1;  /* name1 shorter, so it is "less" */
+	return -1;		/* name1 shorter, so it is "less" */
     /* name1 matches name2 for length of name2, or they are equal */
     return 0;
 }

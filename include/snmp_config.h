@@ -5,10 +5,10 @@
 #define VIEWINCLUDED    1
 #define VIEWEXCLUDED    2
 
-int create_view ( char **);
-int create_user ( char **);
-int create_community (char **);
-void tokenize ( char *, char **, int );
+int create_view(char **);
+int create_user(char **);
+int create_community(char **);
+void tokenize(char *, char **, int);
 
 typedef struct _viewEntry {
     char viewName[32];
@@ -41,4 +41,5 @@ typedef struct _usecEntry {
 
     struct _usecEntry *next;
 } usecEntry;
+
 #endif

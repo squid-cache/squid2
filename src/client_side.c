@@ -1781,7 +1781,7 @@ icpCheckTransferDone(clientHttpRequest * http)
 	 * or wait for EOF on the socket.
 	 */
 	if (mem->reply->code == 200)
-		return 0;
+	    return 0;
 	/*
 	 * reply->hdr_sz will be set by httpParseReplyHeaders()
 	 * if we find the end of the headers.  If we find the end,

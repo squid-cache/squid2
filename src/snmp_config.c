@@ -1,3 +1,4 @@
+
 #if SQUID_SNMP
 
 #include "squid.h"
@@ -67,7 +68,7 @@ tokenize(char *line, char **tokens, int max_tokens)
 	tokens[i] = "";
 }
 
-int 
+int
 create_view(tokens)
      char *tokens[];
 {
@@ -125,7 +126,7 @@ find_view(name)
     return -1;
 }
 
-int 
+int
 create_user(tokens)
      char *tokens[];
 {

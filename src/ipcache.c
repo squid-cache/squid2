@@ -130,7 +130,7 @@ static struct {
     int release_locked;
 } IpcacheStats;
 
- dlink_list lru_list;
+dlink_list lru_list;
 
 static int ipcache_testname(void);
 #if OLD_CODE
