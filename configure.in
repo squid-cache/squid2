@@ -133,6 +133,7 @@ AC_CHECK_HEADERS( \
 	ctype.h \
 	errno.h \
 	fcntl.h \
+	getopt.h \
 	grp.h \
 	libc.h \
 	malloc.h \
@@ -296,6 +297,7 @@ AC_CHECK_FUNCS(\
 	bcopy \
 	getdtablesize \
 	getrusage \
+	getspnam \
 	lrand48 \
 	mallinfo \
 	mallocblksize \
