@@ -154,17 +154,35 @@ httpHeaderAddContRange(HttpHeader * hdr, HttpHdrRangeSpec spec, ssize_t ent_len)
 int
 httpHeaderHasConnDir(const HttpHeader * hdr, const char *directive)
 {
-    if (httpHeaderHas(hdr, HDR_PROXY_CONNECTION)) {
-	const char *str = httpHeaderGetStr(hdr, HDR_PROXY_CONNECTION);
-	return str && !strcasecmp(str, directive);
-    }
-    if (httpHeaderHas(hdr, HDR_CONNECTION)) {
-	String str = httpHeaderGetList(hdr, HDR_CONNECTION);
-	const int res = strListIsMember(&str, directive, ',');
-	stringClean(&str);
-	return res;
-    }
-    return 0;
+    const char *str;
+    String list;
+    http_hdr_type ht;
+    int res;
+
+    /* what type of header do we have? */
+    if (httpHeaderHas(hdr, HDR_PROXY_CONNECTION))
+	ht = HDR_PROXY_CONNECTION;
+    else
+    if (httpHeaderHas(hdr, HDR_CONNECTION))
+	ht = HDR_CONNECTION;
+    else
+	return 0;
+
+    /* optimization: check if we are lucky and there is only one
+     * connection directive token */
+    if ((str = httpHeaderGetStr(hdr, ht)) && !strcasecmp(str, directive))
+        return 1;
+
+    /* note: we do not know how many connection tokens a header has
+     * so we must fall through even when we do not have a match and
+     * there are no commas in str 
+     */
+
+    /* we may have a list, do expensive search */
+    list = httpHeaderGetList(hdr, HDR_CONNECTION);
+    res = strListIsMember(&list, directive, ',');
+    stringClean(&list);
+    return res;
 }
 
 /* returns true iff "m" is a member of the list */
