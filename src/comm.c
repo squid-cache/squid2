@@ -990,7 +990,7 @@ comm_select(time_t sec)
 	    if (shutdown_pending > 0 || reconfigure_pending > 0)
 		setSocketShutdownLifetimes(Config.shutdownLifetime);
 	    else
-		setSocketShutdownLifetimes(0);
+		setSocketShutdownLifetimes(1);
 	}
 	nfds = 0;
 	maxfd = Biggest_FD + 1;
