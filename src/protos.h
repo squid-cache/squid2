@@ -1159,7 +1159,7 @@ extern int isPowTen(int);
 extern void parseEtcHosts(void);
 extern int getMyPort(void);
 
-static void strwordquote(MemBuf * mb, const char *str);
+char *strwordtok(char *buf, char **t);
 void strwordquote(MemBuf * mb, const char *str);
 
 #if USE_HTCP
