@@ -65,7 +65,7 @@ uninstall-local:
 #
 addlang: all
 	-@if test -d $(srcdir)/$(ADDLANG); then \
-	if test -d $(DEFAULT_ERROR_DIR)/$(DESTLANG); then
+	if test -d $(DEFAULT_ERROR_DIR)/$(DESTLANG); then \
 	cd $(srcdir)/$(ADDLANG)/ ; \
 	for f in ERR_*; do \
 		if test -f $(DEFAULT_ERROR_DIR)/$(DESTLANG)/$$f ; then \
