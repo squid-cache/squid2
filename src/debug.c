@@ -85,7 +85,7 @@ _db_print(va_alist)
 	tmpbuf[0] = '\0';
 	vsnprintf(tmpbuf, BUFSIZ, format, args);
 	tmpbuf[1023] = '\0';
-	syslog(_db_level == 0 ? LOG_WARNING : LOG_ERR, "%s", tmpbuf);
+	syslog(_db_level == 0 ? LOG_WARNING : LOG_NOTICE, "%s", tmpbuf);
     }
 #endif /* HAVE_SYSLOG */
     /* write to log file */
