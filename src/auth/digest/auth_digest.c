@@ -174,7 +174,7 @@ authenticateDigestNonceNew(void)
     newnonce->flags.valid = 1;
     newnonce->noncedata.self = newnonce;
     newnonce->noncedata.creationtime = current_time.tv_sec;
-    newnonce->noncedata.randomdata = random();
+    newnonce->noncedata.randomdata = squid_random();
 
     authDigestNonceEncode(newnonce);
     /*
@@ -183,7 +183,7 @@ authenticateDigestNonceNew(void)
      */
     while ((temp = authenticateDigestNonceFindNonce(newnonce->hash.key))) {
 	/* create a new nonce */
-	newnonce->noncedata.randomdata = random();
+	newnonce->noncedata.randomdata = squid_random();
 	authDigestNonceEncode(newnonce);
     }
     hash_join(digest_nonce_cache, &newnonce->hash);
