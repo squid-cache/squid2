@@ -184,7 +184,7 @@ protoUnregister(StoreEntry * entry, request_t * request)
 	return 0;
     if (entry == NULL)
 	return 0;
-    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
+    if (EBIT_TEST(entry->flag, ENTRY_DISPATCHED))
 	return 0;
     if (entry->mem_status != NOT_IN_MEMORY)
 	return 0;
@@ -206,9 +206,9 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	RequestMethodStr[request->method],
 	storeUrl(entry),
 	e ? e->host : "source");
-    assert(!BIT_TEST(entry->flag, ENTRY_DISPATCHED));
+    assert(!EBIT_TEST(entry->flag, ENTRY_DISPATCHED));
     assert(entry->ping_status != PING_WAITING);
-    BIT_SET(entry->flag, ENTRY_DISPATCHED);
+    EBIT_SET(entry->flag, ENTRY_DISPATCHED);
     netdbPingSite(request->host);
 #if defined(LOG_ICP_NUMBERS)
     request->hierarchy.n_recv = entry->mem_obj->e_pings_n_acks;

@@ -61,7 +61,7 @@ refreshCheck(const StoreEntry * entry, const request_t * request, time_t delta)
     int factor;
     time_t check_time = squid_curtime + delta;
     debug(22, 3) ("refreshCheck: '%s'\n", storeUrl(entry));
-    if (BIT_TEST(entry->flag, ENTRY_REVALIDATE)) {
+    if (EBIT_TEST(entry->flag, ENTRY_REVALIDATE)) {
 	debug(22, 3) ("refreshCheck: YES: Required Authorization\n");
 	return 1;
     }

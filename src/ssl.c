@@ -306,7 +306,7 @@ sslConnected(int fd, void *data)
 }
 
 static void
-sslErrorComplete(int fdnotused, void *sslState, int sizenotused)
+sslErrorComplete(int fdnotused, void *sslState, size_t sizenotused)
 {
     assert(sslState != NULL);
     sslClose(sslState);

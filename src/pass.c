@@ -288,7 +288,7 @@ passWriteClient(int fd, void *data)
 }
 
 static void
-passErrorComplete(int fdnotused, void *passState, int sizenotused)
+passErrorComplete(int fdnotused, void *passState, size_t sizenotused)
 {
     assert(passState != NULL);
     passClose(passState);

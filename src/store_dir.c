@@ -215,7 +215,7 @@ storeDirSwapLog(const StoreEntry * e)
     assert(e->swap_file_number >= 0);
     dirn = e->swap_file_number >> SWAP_DIR_SHIFT;
     assert(dirn < Config.cacheSwap.n_configured);
-    assert(!BIT_TEST(e->flag, KEY_PRIVATE));
+    assert(!EBIT_TEST(e->flag, KEY_PRIVATE));
     /* Note this printf format appears in storeWriteCleanLog() too */
     snprintf(logmsg, MAX_URL << 1, "%08x %08x %08x %08x %08x %9d %6d %08x %s\n",
 	(int) e->swap_file_number,

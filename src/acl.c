@@ -1229,7 +1229,7 @@ aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
 	} else {
 	    /* register that we used the proxy authentication header */
 	    checklist->state[ACL_PROXY_AUTH] = ACL_LOOKUP_DONE;
-	    BIT_SET(r->flags, REQ_USED_PROXY_AUTH);
+	    EBIT_SET(r->flags, REQ_USED_PROXY_AUTH);
 	    return 1;
 	}
 	/* NOTREACHED */
