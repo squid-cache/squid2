@@ -10,7 +10,7 @@
 libexec_PROGRAMS = msnt_auth
 
 msnt_auth_SOURCES = md4.c rfcnb-io.c rfcnb-util.c session.c msntauth.c \
-		smbdes.c smbencrypt.c smblib-util.c smblib.c \
+		msntauth.h smbdes.c smbencrypt.c smblib-util.c smblib.c \
 		valid.c denyusers.c allowusers.c confload.c \
 		byteorder.h rfcnb-common.h rfcnb-error.h rfcnb.h \
 		rfcnb-io.h rfcnb-priv.h rfcnb-util.h smblib-common.h \
