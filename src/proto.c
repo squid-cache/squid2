@@ -410,8 +410,6 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
     debug(17, 5, "protoUnregister FD %d '%s'\n", fd, url ? url : "NULL");
     if (proto == PROTO_CACHEOBJ)
 	return 0;
-    if (url)
-	redirectUnregister(url, fd);
     if (src_addr.s_addr != no_addr.s_addr)
 	fqdncacheUnregister(src_addr, fd);
     if (entry == NULL)

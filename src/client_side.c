@@ -230,7 +230,10 @@ clientAccessCheckDone(icpStateData * icpState, int answer)
     debug(33, 5, "clientAccessCheckDone: '%s' answer=%d\n", icpState->url, answer);
     if (answer) {
 	urlCanonical(icpState->request, icpState->url);
+	if (icpState->redirect_state != REDIRECT_NONE)
+	    fatal_dump("clientAccessCheckDone: wrong redirect_state");
 	redirectStart(fd, icpState, clientRedirectDone, icpState);
+	icpState->redirect_state = REDIRECT_PENDING;
     } else {
 	debug(33, 5, "Access Denied: %s\n", icpState->url);
 	redirectUrl = aclGetDenyInfoUrl(&DenyInfoList, AclMatchedName);
@@ -261,6 +264,9 @@ clientRedirectDone(void *data, char *result)
     request_t *old_request = icpState->request;
     debug(33, 5, "clientRedirectDone: '%s' result=%s\n", icpState->url,
 	result ? result : "NULL");
+    if (icpState->redirect_state != REDIRECT_PENDING)
+	fatal_dump("clientAccessCheckDone: wrong redirect_state");
+    icpState->redirect_state = REDIRECT_DONE;
     if (result)
 	new_request = urlParse(old_request->method, result);
     if (new_request) {

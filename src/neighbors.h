@@ -192,7 +192,7 @@ struct _peer {
 	int n_replies_expected;
 	int ttl;
 	int reqnum;
-	int count_event_pending;
+	int flags;
     } mcast;
     int tcp_up;			/* 0 if a connect() fails */
     time_t last_fail_time;
@@ -203,6 +203,10 @@ struct _peer {
     int ip_lookup_pending;
     int ipcache_fd;
 };
+
+/* flags for peer->mcast.flags */
+#define PEER_COUNT_EVENT_PENDING 1
+#define PEER_COUNTING		 2
 
 struct _hierarchyLogData {
     hier_code code;

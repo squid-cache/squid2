@@ -285,6 +285,8 @@ icpStateFree(int fd, void *data)
 	    icpState->log_type,
 	    ntohs(icpState->me.sin_port));
     }
+    if (icpState->redirect_state == REDIRECT_PENDING)
+	redirectUnregister(icpState->url, fd);
     if (icpState->ident.fd > -1)
 	comm_close(icpState->ident.fd);
     checkFailureRatio(icpState->log_type,

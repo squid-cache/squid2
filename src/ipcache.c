@@ -106,9 +106,6 @@
 
 #include "squid.h"
 
-#define IP_LOW_WATER       90
-#define IP_HIGH_WATER      95
-
 struct _ip_pending {
     int fd;
     IPH handler;
@@ -136,7 +133,7 @@ static struct {
 static int ipcache_testname _PARAMS((void));
 static int ipcache_compareLastRef _PARAMS((ipcache_entry **, ipcache_entry **));
 static int ipcache_reverseLastRef _PARAMS((ipcache_entry **, ipcache_entry **));
-static int ipcache_dnsHandleRead _PARAMS((int, dnsserver_t *));
+static void ipcache_dnsHandleRead _PARAMS((int, dnsserver_t *));
 static ipcache_entry *ipcache_parsebuffer _PARAMS((const char *buf, dnsserver_t *));
 static void ipcache_release _PARAMS((ipcache_entry *));
 static ipcache_entry *ipcache_GetFirst _PARAMS((void));
@@ -203,6 +200,8 @@ ipcacheDequeue(void)
 	    ipcacheQueueTailP = &ipcacheQueueHead;
 	safe_free(old);
     }
+    if (i && i->status != IP_PENDING)
+	debug_trap("ipcacheDequeue: status != IP_PENDING");
     return i;
 }
 
@@ -422,7 +421,6 @@ ipcacheAddHostent(ipcache_entry * i, const struct hostent *hp)
 	xmemcpy(&i->addrs.in_addrs[k].s_addr,
 	    *(hp->h_addr_list + k),
 	    hp->h_length);
-    i->status = IP_CACHED;
 }
 
 static ipcache_entry *
@@ -552,7 +550,7 @@ ipcacheNudgeQueue(void)
 	ipcache_dnsDispatch(dnsData, i);
 }
 
-static int
+static void
 ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 {
     int len;
@@ -576,7 +574,7 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	    NULL,
 	    NULL, 0);
 	comm_close(fd);
-	return 0;
+	return;
     }
     n = ++IpcacheStats.replies;
     DnsStats.replies++;
@@ -597,7 +595,6 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	} else {
 	    dnsData->offset = 0;
 	    dnsData->ip_inbuf[0] = '\0';
-	    i = dnsData->data;
 	    i->addrs = x->addrs;
 	    i->error_message = x->error_message;
 	    i->status = x->status;
@@ -616,7 +613,6 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	(PF) ipcache_dnsHandleRead,
 	dnsData, 0);
     ipcacheNudgeQueue();
-    return 0;
 }
 
 static void
@@ -698,16 +694,10 @@ ipcache_nbgethostbyname(const char *name, int fd, IPH handler, void *handlerData
 	ipcache_dnsDispatch(dnsData, i);
 	return;
     }
-    if (addrs != NULL)		/* TEMPORARY */
-	debug_trap("ipcache_nbgethostbyname: Stack Trashed");
     if (NDnsServersAlloc > 0) {
 	ipcacheEnqueue(i);
 	return;
     }
-    if (addrs != NULL)		/* TEMPORARY */
-	debug_trap("ipcache_nbgethostbyname: Stack Trashed");
-    if (NDnsServersAlloc)
-	debug(14, 0, "WARNING: blocking on gethostbyname() for '%s'\n", name);
     ipcache_gethostbyname(name, IP_BLOCKING_LOOKUP);
     ipcache_call_pending(i);
 }
@@ -841,6 +831,8 @@ ipcache_gethostbyname(const char *name, int flags)
 	return addrs;
     IpcacheStats.misses++;
     if (BIT_TEST(flags, IP_BLOCKING_LOOKUP)) {
+	if (NDnsServersAlloc)
+	    debug(14, 0, "WARNING: blocking on gethostbyname() for '%s'\n", name);
 	IpcacheStats.ghbn_calls++;
 	hp = gethostbyname(name);
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && ip_table) {
@@ -857,6 +849,7 @@ ipcache_gethostbyname(const char *name, int flags)
 		return &static_addrs;
 	    } else {
 		ipcacheAddHostent(i, hp);
+		i->status = IP_CACHED;
 	    }
 	    i->expires = squid_curtime + Config.positiveDnsTtl;
 #if LIBRESOLV_DNS_TTL_HACK
@@ -1122,6 +1115,7 @@ ipcache_restart(void)
     ipcache_entry *next;
     if (ip_table == 0)
 	fatal_dump("ipcache_restart: ip_table == 0\n");
+    while (ipcacheDequeue());
     next = (ipcache_entry *) hash_first(ip_table);
     while ((this = next)) {
 	next = (ipcache_entry *) hash_next(ip_table);

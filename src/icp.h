@@ -197,6 +197,7 @@ typedef struct iwd {
 	int state;
     } ident;
     int ip_lookup_pending;
+    int redirect_state;
 } icpStateData;
 
 extern void *icpCreateMessage _PARAMS((icp_opcode opcode,
