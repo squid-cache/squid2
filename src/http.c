@@ -748,7 +748,7 @@ httpBuildRequestHeader(request_t * request,
 #if USE_PROXY_AUTH
 	if (strncasecmp(xbuf, "Proxy-authorization:", 20) == 0)
 	    if (Config.proxyAuth.File)
-	        continue;
+		continue;
 #endif
 	if (strncasecmp(xbuf, "Connection:", 11) == 0)
 	    continue;
