@@ -1213,6 +1213,10 @@ ftpReadControlReply(int fd, void *data)
     StoreEntry *entry = ftpState->entry;
     int len;
     debug(9, 5) ("ftpReadControlReply\n");
+    if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+	comm_close(ftpState->ctrl.fd);
+	return;
+    }
     assert(ftpState->ctrl.offset < ftpState->ctrl.size);
     Counter.syscalls.sock.reads++;
     len = read(fd,
