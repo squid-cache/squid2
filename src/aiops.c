@@ -365,7 +365,7 @@ aio_queue_request(aio_request_t * requestp)
     /* Warn if out of threads */
     if (request_queue_len > (NUMTHREADS << 1)) {
 	if (squid_curtime > (last_warn + 15)) {
-	    debug(43, 1) ("aio_queue_request: WARNING - Request queue growing\n."
+	    debug(43, 1) ("aio_queue_request: WARNING - Request queue growing\n"
 		"\tQueue Length = %d\n", request_queue_len);
 	    debug(43, 1) ("aio_queue_request: Perhaps you should increase NUMTHREADS in aiops.c\n");
 	    debug(43, 1) ("aio_queue_request: First %d items on request queue\n", NUMTHREADS);
