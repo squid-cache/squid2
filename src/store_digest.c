@@ -63,7 +63,7 @@ typedef struct {
  */
 
 /* #bits per entry in store digest */
-static const int StoreDigestBitsPerEntry = 6;
+static const int StoreDigestBitsPerEntry = 5;
 /* how often we want to rebuild the digest, in seconds */
 static const time_t StoreDigestRebuildPeriod = 60 * 60;
 /* how often we want to rewrite the digest after rebuild, in seconds */
