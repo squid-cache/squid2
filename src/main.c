@@ -283,8 +283,6 @@ mainParseOptions(int argc, char *argv[])
 	    break;
 	}
     }
-    argc -= optind;
-    argv += optind;
 }
 
 static void
