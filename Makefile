@@ -20,6 +20,8 @@ dosquid:
 	@if test \! -f makefile; then ${MAKE} makefile; fi
 	@${MAKE} -f makefile $@
 
+install: all
+
 makefile: makefile.in Makefile
 	@echo Running configure script to generate makefile
 	./configure --prefix=${prefix} --exec_prefix=${exec_prefix}
