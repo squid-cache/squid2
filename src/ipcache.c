@@ -1003,12 +1003,10 @@ void
 ipcache_restart(void)
 {
     ipcache_entry *this;
-    ipcache_entry *next;
     assert(ip_table != NULL);
     while (ipcacheDequeue());
-    next = (ipcache_entry *) hash_first(ip_table);
-    while ((this = next) != NULL) {
-	next = (ipcache_entry *) hash_next(ip_table);
+    hash_first(ip_table);
+    while ((this = (ipcache_entry *) hash_next(ip_table))) {
 	if (this->status == IP_CACHED)
 	    continue;
 	if (this->status == IP_NEGATIVE_CACHED)

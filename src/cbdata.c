@@ -211,7 +211,8 @@ cbdataDump(StoreEntry * sentry)
     hash_link *hptr;
     cbdata *c;
     storeAppendPrintf(sentry, "%d cbdata entries\n", cbdataCount);
-    for (hptr = hash_first(htable); hptr; hptr = hash_next(htable)) {
+    hash_first(htable);
+    while ((hptr = hash_next(htable))) {
 	c = (cbdata *) hptr;
 #if CBDATA_DEBUG
 	storeAppendPrintf(sentry, "%20p %10s %d locks %s:%d\n",

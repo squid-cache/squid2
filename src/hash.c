@@ -194,7 +194,7 @@ hash_create(HASHCMP * cmp_func, int hash_sz, HASHHASH * hash_func)
     hid->buckets = xcalloc(hid->size, sizeof(hash_link *));
     hid->cmp = cmp_func;
     hid->hash = hash_func;
-    hid->Current = NULL;
+    hid->next = NULL;
     hid->current_slot = 0;
     return hid;
 }
@@ -239,18 +239,24 @@ hash_lookup(hash_table * hid, const void *k)
  *  hash_first - returns the first item in the hash table 'hid'.
  *  Otherwise, returns NULL on error.
  */
-void *
+void
 hash_first(hash_table * hid)
 {
     int i;
+    assert(NULL == hid->next);
+    /*
+     * Find the first non-empty bucket
+     */
     for (i = 0; i < hid->size; i++) {
 	if (NULL == hid->buckets[i])
 	    continue;
 	hid->current_slot = i;
-	hid->Current = &hid->buckets[i];
-	return *hid->Current;
+	hid->next = hid->buckets[i];
     }
-    return NULL;
+    /*
+     * its okay to reach here without setting hid->next to something,
+     * it just means the table is empty
+     */
 }
 
 /*
@@ -262,22 +268,23 @@ hash_first(hash_table * hid)
 void *
 hash_next(hash_table * hid)
 {
-    int i;
-    assert(hid->Current);
-    if (*hid->Current != NULL) {
-	hid->Current = &(*hid->Current)->next;
-	if (*hid->Current != NULL)
-	    return (*hid->Current);	/* next item */
+    hash_link *this = hid->next;	/* we'll return this one */
+    if (NULL == this)
+	return NULL;			/* last one */
+    hid->next = this->next;
+    if (NULL == hid->next) {
+	/*
+	 * we're at the end of a bucket, find next non-empty bucket
+	 */
+        int i;
+        for (i = hid->current_slot + 1; i < hid->size; i++) {
+	    if (NULL == hid->buckets[i])
+	        continue;
+	    hid->current_slot = i;
+	    hid->next = hid->buckets[i];
+	}
     }
-    /* find next bucket */
-    for (i = hid->current_slot + 1; i < hid->size; i++) {
-	if (NULL == hid->buckets[i])
-	    continue;
-	hid->current_slot = i;
-	hid->Current = &hid->buckets[i];
-	return *hid->Current;
-    }
-    return NULL;		/* end of list */
+    return this;
 }
 
 /*
@@ -299,8 +306,8 @@ hash_remove_link(hash_table * hid, hash_link * hl)
 	if (*P != hl)
 	    continue;
 	*P = hl->next;
-	if (hid->Current && hl == *hid->Current)
-	    hid->Current = P;	/* back up one */
+	if (hid->next == hl)
+	    hid->next = hl->next;
 	hid->count--;
 	return;
     }
@@ -327,11 +334,10 @@ hashFreeItems(hash_table * hid, FREE * free_func)
     int i = 0;
     int j;
     list = xcalloc(hid->count, sizeof(hash_link *));
-    l = hash_first(hid);
-    while (l && i < hid->count) {
+    hash_first(hid);
+    while ((l = hash_next(hid)) && i < hid->count) {
 	*(list + i) = l;
 	i++;
-	l = hash_next(hid);
     }
     for (j = 0; j < i; j++)
 	free_func(*(list + j));

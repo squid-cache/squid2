@@ -248,7 +248,8 @@ cacheDestroy(Cache * cache)
     assert(cache);
     hash = cache->hash;
     /* destroy hash table contents */
-    for (e = hash_first(hash); e; e = hash_next(hash)) {
+    hash_first(hash);
+    while (e = hash_next(hash)) {
 	hash_remove_link(hash, (hash_link *) e);
 	cacheEntryDestroy(e);
     }
@@ -276,7 +277,8 @@ cacheResetDigest(Cache * cache)
     if (!cache->count)
 	return;
     gettimeofday(&t_start, NULL);
-    for (e = hash_first(hash); e; e = hash_next(hash)) {
+    hash_first(hash);
+    while (e = hash_next(hash)) {
 	cacheDigestAdd(cache->digest, e->key);
     }
     gettimeofday(&t_end, NULL);
