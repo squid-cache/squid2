@@ -727,10 +727,10 @@ StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
     if (BIT_TEST(flags, REQ_NOCACHE))
 	BIT_SET(e->flag, REFRESH_REQUEST);
     if (BIT_TEST(flags, REQ_CACHABLE)) {
-	BIT_SET(e->flag, CACHABLE);
+	BIT_SET(e->flag, ENTRY_CACHABLE);
 	BIT_RESET(e->flag, RELEASE_REQUEST);
     } else {
-	BIT_RESET(e->flag, CACHABLE);
+	BIT_RESET(e->flag, ENTRY_CACHABLE);
 	storeReleaseRequest(e);
     }
     if (BIT_TEST(flags, REQ_HIERARCHICAL))
@@ -790,7 +790,7 @@ StoreEntry *storeAddDiskRestore(url, file_number, size, expires, timestamp)
     e->url = xstrdup(url);
     e->method = METHOD_GET;
     storeSetPublicKey(e);
-    BIT_SET(e->flag, CACHABLE);
+    BIT_SET(e->flag, ENTRY_CACHABLE);
     BIT_RESET(e->flag, RELEASE_REQUEST);
     BIT_SET(e->flag, ENTRY_HTML);
     e->store_status = STORE_OK;
@@ -986,7 +986,7 @@ void storeStartDeleteBehind(e)
     storeSetPrivateKey(e);
     BIT_SET(e->flag, DELETE_BEHIND);
     storeReleaseRequest(e);
-    BIT_RESET(e->flag, CACHABLE);
+    BIT_RESET(e->flag, ENTRY_CACHABLE);
     storeExpireNow(e);
 }
 
@@ -1645,7 +1645,7 @@ static int storeCheckSwapable(e)
 	debug(20, 2, "storeCheckSwapable: NO: already expired\n");
     } else if (e->method != METHOD_GET) {
 	debug(20, 2, "storeCheckSwapable: NO: non-GET method\n");
-    } else if (!BIT_TEST(e->flag, CACHABLE)) {
+    } else if (!BIT_TEST(e->flag, ENTRY_CACHABLE)) {
 	debug(20, 2, "storeCheckSwapable: NO: not cachable\n");
     } else if (BIT_TEST(e->flag, RELEASE_REQUEST)) {
 	debug(20, 2, "storeCheckSwapable: NO: release requested\n");
@@ -1655,7 +1655,7 @@ static int storeCheckSwapable(e)
 	return 1;
 
     storeReleaseRequest(e);
-    BIT_RESET(e->flag, CACHABLE);
+    BIT_RESET(e->flag, ENTRY_CACHABLE);
     return 0;
 }
 
@@ -2490,22 +2490,15 @@ int storeClientCopy(e, stateoffset, maxSize, buf, size, fd)
 int storeEntryValidToSend(e)
      StoreEntry *e;
 {
-    /* XXX I think this is not needed since storeCheckPurgeMem() has
-     * been added.  If we never see output from this, lets delete it
-     * in a future version -DW */
-    if ((e->mem_status == NOT_IN_MEMORY) &&	/* Not in memory */
-	(e->swap_status != SWAP_OK) &&	/* Not on disk */
-	(e->store_status != STORE_PENDING)	/* Not being fetched */
-	) {
-	debug(20, 0, "storeEntryValidToSend: Invalid object detected!\n");
-	debug(20, 0, "storeEntryValidToSend: Entry Dump:\n%s\n", storeToString(e));
-	return 0;
-    }
     if (squid_curtime < e->expires)
 	return 1;
-    if (e->expires == 0 && e->store_status == STORE_PENDING && e->mem_status != NOT_IN_MEMORY)
-	return 1;
-    return 0;
+    if (e->expires != 0)
+	return 0;		/* Expired! */
+    if (e->store_status != STORE_PENDING)
+	return 0;
+    if (e->mem_status != IN_MEMORY)
+	return 0;
+    return 1;			/* STORE_PENDING, IN_MEMORY, exp=0 */
 }
 
 int storeEntryValidLength(e)

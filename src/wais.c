@@ -225,7 +225,7 @@ static void waisReadReply(fd, waisState)
 	    comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT,
 		(PF) waisReadReplyTimeout, (void *) waisState, getReadTimeout());
 	} else {
-	    BIT_RESET(entry->flag, CACHABLE);
+	    BIT_RESET(entry->flag, ENTRY_CACHABLE);
 	    storeReleaseRequest(entry);
 	    squid_error_entry(entry, ERR_READ_ERROR, xstrerror());
 	    comm_close(fd);
@@ -330,7 +330,7 @@ static void waisSendRequest(fd, waisState)
 	30,
 	waisSendComplete,
 	(void *) waisState);
-    if (BIT_TEST(waisState->entry->flag, CACHABLE))
+    if (BIT_TEST(waisState->entry->flag, ENTRY_CACHABLE))
 	storeSetPublicKey(waisState->entry);	/* Make it public */
 }
 

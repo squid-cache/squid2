@@ -124,7 +124,7 @@
 #define ENTRY_HTML 		(1<<10)
 #define KEY_CHANGE 		(1<<9)
 #define KEY_URL    		(1<<8)
-#define CACHABLE   		(1<<7)
+#define ENTRY_CACHABLE   	(1<<7)
 #define REFRESH_REQUEST   	(1<<6)
 #define RELEASE_REQUEST 	(1<<5)
 #define ABORT_MSG_PENDING 	(1<<4)
