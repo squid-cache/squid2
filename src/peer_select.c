@@ -276,8 +276,8 @@ peerSelectFoo(ps_state * ps)
     if (Config.onoff.prefer_direct)
 	peerGetSomeDirect(ps);
     peerGetSomeParent(ps);
-    if (!Config.onoff.prefer_direct)
-	peerGetSomeDirect(ps);
+    /* Have direct as a last resort if possible.. */
+    peerGetSomeDirect(ps);
     peerSelectCallback(ps);
 }
 

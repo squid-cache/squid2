@@ -1014,6 +1014,7 @@ parse_peer(peer ** head)
 	p->weight = 1;
     p->icp.version = ICP_VERSION_CURRENT;
     p->tcp_up = PEER_TCP_MAGIC_COUNT;
+    p->test_fd = -1;
 #if USE_CARP
     if (p->carp.load_factor) {
 	/* calculate this peers hash for use in CARP */
