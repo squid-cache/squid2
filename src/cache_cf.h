@@ -123,5 +123,6 @@ extern void intlistDestroy _PARAMS((intlist **));
 
 extern char w_space[];
 extern intlist *connect_port_list;
+extern char *cfg_filename;	/* Only the tail component of the path */
 
 #endif /* ndef  _CACHE_CONFIG_H_ */

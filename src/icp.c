@@ -1303,7 +1303,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
             astm->log_type = LOG_TCP_DENIED;
 	} else {
             /* The request is good, let's go... */
-	    urlCanonical(request, astm->url);
+	    urlCanonical(astm->request, astm->url);
             sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
                 fd_note(fd, 0),
                 RequestMethodStr[astm->method],
