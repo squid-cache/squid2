@@ -222,7 +222,7 @@ static void mainInitialize()
     }
     ipcache_init();
     neighbors_init();
-    ftpInitialize();
+    (void) ftpInitialize();
 
 #if defined(MALLOC_DBG)
     malloc_debug(0, malloc_debug_level);
