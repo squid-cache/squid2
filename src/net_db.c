@@ -569,6 +569,10 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
 		o += sizeof(int);
 		hops = (double) ntohl(j) / 1000.0;
 		break;
+	    default:
+		debug(38, 1) ("netdbExchangeHandleReply: corrupt data, aborting\n");
+		netdbExchangeDone(ex);
+		return;
 	    }
 	}
 	if (addr.s_addr != any_addr.s_addr && rtt > 0)
