@@ -87,9 +87,10 @@ static int authntlm_initialised = 0;
 static MemPool *ntlm_helper_state_pool = NULL;
 static MemPool *ntlm_user_pool = NULL;
 static MemPool *ntlm_request_pool = NULL;
+static MemPool *ntlm_challenge_pool = NULL;
 static auth_ntlm_config *ntlmConfig = NULL;
 
-static hash_table *proxy_auth_cache = NULL;
+static hash_table *ntlm_challenge_cache = NULL;
 
 /*
  *
@@ -249,9 +250,10 @@ authNTLMInit(authScheme * scheme)
 	if (ntlmauthenticators == NULL)
 	    ntlmauthenticators = helperStatefulCreate("ntlmauthenticator");
 	if (ntlmConfig->challengeuses) {
-	    if (!proxy_auth_cache)
-		proxy_auth_cache = hash_create((HASHCMP *) strcmp, 7921, hash_string);
-	    assert(proxy_auth_cache);
+	    if (!ntlm_challenge_cache)
+		ntlm_challenge_cache = hash_create((HASHCMP *) strcmp, 7921, hash_string);
+	    if (!ntlm_challenge_pool)
+		ntlm_challenge_pool = memPoolCreate("NTLM Challenge Cache", sizeof(ntlm_challenge_hash_pointer));
 	}
 	ntlmauthenticators->cmdline = ntlmConfig->authenticate;
 	ntlmauthenticators->n_to_start = ntlmConfig->authenticateChildren;
@@ -393,28 +395,19 @@ authNTLMAURequestFree(auth_user_request_t * auth_user_request)
     auth_user_request->scheme_data = NULL;
 }
 
+static void authenticateNTLMChallengeCacheRemoveLink(ntlm_challenge_hash_pointer * challenge_hash);
+
 static void
 authenticateNTLMFreeUser(auth_user_t * auth_user)
 {
-    dlink_node *link, *tmplink;
     ntlm_user_t *ntlm_user = auth_user->scheme_data;
-    auth_user_hash_pointer *proxy_auth_hash;
 
     debug(29, 5) ("authenticateNTLMFreeUser: Clearing NTLM scheme data\n");
     if (ntlm_user->username)
 	xfree(ntlm_user->username);
     /* were they linked in by one or more proxy-authenticate headers */
-    link = ntlm_user->proxy_auth_list.head;
-    while (link) {
-	debug(29, 9) ("authenticateFreeProxyAuthUser: removing proxy_auth hash entry '%p'\n", link->data);
-	proxy_auth_hash = link->data;
-	tmplink = link;
-	link = link->next;
-	dlinkDelete(tmplink, &ntlm_user->proxy_auth_list);
-	hash_remove_link(proxy_auth_cache, (hash_link *) proxy_auth_hash);
-	/* free the key (usually the proxy_auth header) */
-	xfree(proxy_auth_hash->key);
-	memFree(proxy_auth_hash, MEM_AUTH_USER_HASH);
+    while (ntlm_user->challenge_list.head) {
+	authenticateNTLMChallengeCacheRemoveLink(ntlm_user->challenge_list.head->data);
     }
     memPoolFree(ntlm_user_pool, ntlm_user);
     auth_user->scheme_data = NULL;
@@ -522,8 +515,6 @@ authenticateNTLMHandleReply(void *data, void *srv, char *reply)
 	/* we only expect OK when finishing the handshake */
 	assert(ntlm_request->auth_state == AUTHENTICATE_STATE_RESPONSE);
 	ntlm_user->username = xstrdup(reply);
-	ntlm_request->authserver = NULL;
-	helperStatefulReleaseServer(srv);
 #ifdef NTLM_FAIL_OPEN
     } else if (strncasecmp(reply, "LD ", 3) == 0) {
 	/* This is a variant of BH, which rather than deny access
@@ -792,6 +783,9 @@ authenticateNTLMHelperServerReset(void *data)
 	statedata->renewed = 0;
 	xfree(statedata->challenge);
 	statedata->challenge = NULL;
+	while (statedata->user_list.head) {
+	    authenticateNTLMChallengeCacheRemoveLink(statedata->user_list.head->data);
+	}
     }
 }
 
@@ -880,24 +874,34 @@ authenticateNTLMcmpUsername(ntlm_user_t * u1, ntlm_user_t * u2)
  * Check for this and if found ignore the new link 
  */
 static void
-authenticateProxyAuthCacheAddLink(const char *key, auth_user_t * auth_user)
+authenticateNTLMChallengeCacheAddLink(const char *key, auth_user_t * auth_user, helper_stateful_server * auth_server)
 {
-    auth_user_hash_pointer *proxy_auth_hash;
-    dlink_node *node;
+    ntlm_challenge_hash_pointer *challenge_hash;
     ntlm_user_t *ntlm_user;
+    ntlm_helper_state_t *helperstate = helperStatefulServerGetData(auth_server);
     ntlm_user = auth_user->scheme_data;
-    node = ntlm_user->proxy_auth_list.head;
     /* prevent duplicates */
-    while (node) {
-	if (!strcmp(key, ((auth_user_hash_pointer *) node->data)->key))
-	    return;
-	node = node->next;
-    }
-    proxy_auth_hash = memAllocate(MEM_AUTH_USER_HASH);
-    proxy_auth_hash->key = xstrdup(key);
-    proxy_auth_hash->auth_user = auth_user;
-    dlinkAddTail(proxy_auth_hash, &proxy_auth_hash->link, &ntlm_user->proxy_auth_list);
-    hash_join(proxy_auth_cache, (hash_link *) proxy_auth_hash);
+    if (hash_lookup(ntlm_challenge_cache, key))
+	return;
+    challenge_hash = memPoolAlloc(ntlm_challenge_pool);
+    challenge_hash->key = xstrdup(key);
+    challenge_hash->user.auth_user = auth_user;
+    dlinkAddTail(challenge_hash, &challenge_hash->user.link, &ntlm_user->challenge_list);
+    challenge_hash->challenge.authserver = auth_server;
+    dlinkAddTail(challenge_hash, &challenge_hash->challenge.link, &helperstate->user_list);
+    hash_join(ntlm_challenge_cache, (hash_link *) challenge_hash);
+}
+
+static void
+authenticateNTLMChallengeCacheRemoveLink(ntlm_challenge_hash_pointer * challenge_hash)
+{
+    ntlm_user_t *ntlm_user = challenge_hash->user.auth_user->scheme_data;
+    ntlm_helper_state_t *helperstate = helperStatefulServerGetData(challenge_hash->challenge.authserver);
+    hash_remove_link(ntlm_challenge_cache, (hash_link *) challenge_hash);
+    dlinkDelete(&challenge_hash->user.link, &ntlm_user->challenge_list);
+    dlinkDelete(&challenge_hash->challenge.link, &helperstate->user_list);
+    xfree(challenge_hash->key);
+    memPoolFree(ntlm_challenge_pool, challenge_hash);
 }
 
 
@@ -915,10 +919,12 @@ static void
 authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, request_t * request, ConnStateData * conn, http_hdr_type type)
 {
     const char *proxy_auth;
-    auth_user_hash_pointer *usernamehash, *proxy_auth_hash = NULL;
+    auth_user_hash_pointer *usernamehash;
+    ntlm_challenge_hash_pointer *challenge_hash = NULL;
     auth_user_t *auth_user;
     ntlm_request_t *ntlm_request;
     ntlm_user_t *ntlm_user;
+    void *srv;
     LOCAL_ARRAY(char, ntlmhash, NTLM_CHALLENGE_SZ * 2);
     /* get header */
     proxy_auth = httpHeaderGetStr(&request->header, type);
@@ -982,9 +988,9 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	    ntlm_request->authchallenge);
 	/* see if we already know this user's authenticate */
 	debug(29, 9) ("aclMatchProxyAuth: cache lookup with key '%s'\n", ntlmhash);
-	assert(proxy_auth_cache != NULL);
-	proxy_auth_hash = hash_lookup(proxy_auth_cache, ntlmhash);
-	if (!proxy_auth_hash) {	/* not in the hash table */
+	assert(ntlm_challenge_cache != NULL);
+	challenge_hash = hash_lookup(ntlm_challenge_cache, ntlmhash);
+	if (!challenge_hash) {	/* not in the hash table */
 	    debug(29, 4) ("authenticateNTLMAuthenticateUser: proxy-auth cache miss.\n");
 	    ntlm_request->auth_state = AUTHENTICATE_STATE_RESPONSE;
 	    /* verify with the ntlm helper */
@@ -993,8 +999,8 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	    /* throw away the temporary entry */
 	    ntlm_request->authserver_deferred = 0;
 	    authenticateNTLMReleaseServer(ntlm_request);
-	    authenticateAuthUserMerge(auth_user, proxy_auth_hash->auth_user);
-	    auth_user = proxy_auth_hash->auth_user;
+	    authenticateAuthUserMerge(auth_user, challenge_hash->user.auth_user);
+	    auth_user = challenge_hash->user.auth_user;
 	    auth_user_request->auth_user = auth_user;
 	    ntlm_request->auth_state = AUTHENTICATE_STATE_DONE;
 	    /* we found one */
@@ -1026,10 +1032,6 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 		usernamehash = usernamehash->next;
 	}
 	if (usernamehash) {
-	    /*
-	     * add another link from the new proxy_auth to the
-	     * auth_user structure and update the information */
-	    assert(proxy_auth_hash == NULL);
 	    /* we can't seamlessly recheck the username due to the 
 	     * challenge nature of the protocol. Just free the 
 	     * temporary auth_user */
@@ -1045,13 +1047,15 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	    snprintf(ntlmhash, sizeof(ntlmhash) - 1, "%s%s",
 		ntlm_request->ntlmauthenticate,
 		ntlm_request->authchallenge);
-	    authenticateProxyAuthCacheAddLink(ntlmhash, auth_user);
+	    authenticateNTLMChallengeCacheAddLink(ntlmhash, auth_user, ntlm_request->authserver);
 	}
 	/* set these to now because this is either a new login from an 
 	 * existing user or a new user */
 	auth_user->expiretime = current_time.tv_sec;
+	srv = ntlm_request->authserver;
+	ntlm_request->authserver = NULL;
+	helperStatefulReleaseServer(srv);
 	return;
-	break;
     case AUTHENTICATE_STATE_DONE:
 	fatal("authenticateNTLMAuthenticateUser: unexpect auth state DONE! Report a bug to the squid developers.\n");
 	break;
