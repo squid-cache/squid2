@@ -418,6 +418,7 @@ mimeLoadIconFile(const char *icon)
 	METHOD_GET);
     assert(e != NULL);
     storeSetPublicKey(e);
+    storeBuffer(e);
     e->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
     httpReplyReset(reply = e->mem_obj->reply);
     httpReplySetHeaders(reply, 1.0, HTTP_OK, NULL,
@@ -431,9 +432,10 @@ mimeLoadIconFile(const char *icon)
     while ((n = read(fd, buf, 4096)) > 0)
 	storeAppend(e, buf, n);
     file_close(fd);
+    EBIT_SET(e->flags, ENTRY_SPECIAL);
+    storeBufferFlush(e);
     storeComplete(e);
     storeTimestampsSet(e);
-    EBIT_SET(e->flags, ENTRY_SPECIAL);
     debug(25, 3) ("Loaded icon %s\n", url);
     storeUnlockObject(e);
     memFree(buf, MEM_4K_BUF);
