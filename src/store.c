@@ -627,8 +627,8 @@ storeGetMemSpace(int size)
 	prev = m->prev;
 	e = m->data;
 	if (storeEntryLocked(e)) {
-            dlinkDelete(m, &inmem_list);
-            dlinkAdd(e, m, &inmem_list);
+	    dlinkDelete(m, &inmem_list);
+	    dlinkAdd(e, m, &inmem_list);
 	    continue;
 	}
 	released++;

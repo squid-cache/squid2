@@ -272,7 +272,7 @@ hash_next(hash_table * hid)
     /* find next bucket */
     for (i = hid->current_slot + 1; i < hid->size; i++) {
 	if (NULL == hid->buckets[i])
-		continue;
+	    continue;
 	hid->current_slot = i;
 	hid->Current = &hid->buckets[i];
 	return *hid->Current;
@@ -300,7 +300,7 @@ hash_remove_link(hash_table * hid, hash_link * hl)
 	    continue;
 	*P = hl->next;
 	if (hid->Current && hl == *hid->Current)
-	        hid->Current = P;	/* back up one */
+	    hid->Current = P;	/* back up one */
 	hid->count--;
 	return;
     }

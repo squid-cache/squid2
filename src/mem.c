@@ -273,7 +273,7 @@ memInit(void)
     /* test that all entries are initialized */
     for (t = MEM_NONE + 1; t < MEM_MAX; t++) {
 	if (MEM_DONTFREE == t)
-		continue;
+	    continue;
 	/*
 	 * If you hit this assertion, then you forgot to add a
 	 * memDataInit() line for type 't' above.

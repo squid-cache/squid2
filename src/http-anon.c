@@ -67,6 +67,7 @@ struct http_anon_struct_header {
     const char *name;
     size_t len;
 };
+
 #endif
 
 /* Allowed Headers
@@ -79,14 +80,14 @@ static http_hdr_type HttpAllowedHeadersArr[] =
 {
     HDR_ALLOW, HDR_AUTHORIZATION, HDR_CACHE_CONTROL, HDR_CONTENT_ENCODING,
     HDR_CONTENT_LENGTH, HDR_CONTENT_TYPE, HDR_DATE, HDR_EXPIRES, HDR_HOST,
-    HDR_IF_MODIFIED_SINCE, HDR_LAST_MODIFIED, HDR_LOCATION, 
+    HDR_IF_MODIFIED_SINCE, HDR_LAST_MODIFIED, HDR_LOCATION,
     HDR_PRAGMA,
     HDR_ACCEPT, HDR_ACCEPT_CHARSET, HDR_ACCEPT_ENCODING, HDR_ACCEPT_LANGUAGE,
     HDR_CONTENT_LANGUAGE, HDR_MIME_VERSION, HDR_RETRY_AFTER, HDR_TITLE,
     HDR_CONNECTION, HDR_PROXY_CONNECTION
 };
 /* Note: HDR_URI is deprecated in RFC 2068 */
-    
+
 /* Denied Headers
  *
  * If 'http_anonymizer' is set to 'standard' then these headers
@@ -96,8 +97,8 @@ static HttpHeaderMask HttpDeniedHeadersMask;
 static http_hdr_type HttpDeniedHeadersArr[] =
 {
     HDR_FROM, HDR_REFERER, HDR_SERVER,
-    HDR_USER_AGENT,       /* filtering violates HTTP */
-    HDR_WWW_AUTHENTICATE, /* filtering violates HTTP */
+    HDR_USER_AGENT,		/* filtering violates HTTP */
+    HDR_WWW_AUTHENTICATE,	/* filtering violates HTTP */
     HDR_LINK
 };
 

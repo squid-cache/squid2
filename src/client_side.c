@@ -1992,9 +1992,9 @@ clientReadRequest(int fd, void *data)
 			if (request->port == Config.Port.http->i)
 			    http->flags.internal = 1;
 		    } else if (internalStaticCheck(strBuf(request->urlpath))) {
-			    xstrncpy(request->host, getMyHostname(), SQUIDHOSTNAMELEN);
-			    request->port = Config.Port.http->i;
-			    http->flags.internal = 1;
+			xstrncpy(request->host, getMyHostname(), SQUIDHOSTNAMELEN);
+			request->port = Config.Port.http->i;
+			http->flags.internal = 1;
 		    }
 		}
 	    }

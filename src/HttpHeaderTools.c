@@ -110,7 +110,7 @@ httpHeaderIdByName(const char *name, int name_len, const HttpHeaderFieldInfo * i
  * note: if HDR_PROXY_CONNECTION is present we ignore HDR_CONNECTION
  */
 int
-httpHeaderHasConnDir(const HttpHeader *hdr, const char *directive)
+httpHeaderHasConnDir(const HttpHeader * hdr, const char *directive)
 {
     if (httpHeaderHas(hdr, HDR_PROXY_CONNECTION)) {
 	const char *str = httpHeaderGetStr(hdr, HDR_PROXY_CONNECTION);
@@ -127,7 +127,7 @@ httpHeaderHasConnDir(const HttpHeader *hdr, const char *directive)
 
 /* returns true iff "m" is a member of the list */
 int
-strListIsMember(const String *list, const char *m, char del)
+strListIsMember(const String * list, const char *m, char del)
 {
     const char *pos = NULL;
     const char *item;
@@ -141,7 +141,7 @@ strListIsMember(const String *list, const char *m, char del)
 
 /* returns true iff "s" is a substring of a member of the list */
 int
-strListIsSubstr(const String *list, const char *s, char del)
+strListIsSubstr(const String * list, const char *s, char del)
 {
     const char *pos = NULL;
     const char *item;
@@ -155,7 +155,7 @@ strListIsSubstr(const String *list, const char *s, char del)
 
 /* appends an item to the list */
 void
-strListAdd(String *str, const char *item, char del)
+strListAdd(String * str, const char *item, char del)
 {
     assert(str && item);
     if (strLen(*str))
@@ -172,7 +172,7 @@ strListAdd(String *str, const char *item, char del)
  * init pos with NULL to start iteration.
  */
 int
-strListGetItem(const String *str, char del, const char **item, int *ilen, const char **pos)
+strListGetItem(const String * str, char del, const char **item, int *ilen, const char **pos)
 {
     size_t len;
     assert(str && item && pos);
