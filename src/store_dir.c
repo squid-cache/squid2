@@ -224,6 +224,8 @@ storeDirSelectSwapDirLeastLoad(const StoreEntry * e)
 	most_free = cur_free;
 	dirn = i;
     }
+    if (dirn >= 0)
+        Config.cacheSwap.swapDirs[dirn].flags.selected = 1;
     return dirn;
 }
 
