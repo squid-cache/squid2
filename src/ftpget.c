@@ -662,7 +662,7 @@ int accept_with_timeout(fd, S, len)
 	return x;
     if (FD_ISSET(0, &R))
 	exit(1);
-    return accept(fd, S, len);
+    return accept(fd, (struct sockaddr *) S, len);
 }
 
 
