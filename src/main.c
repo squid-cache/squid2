@@ -324,7 +324,7 @@ serverConnectionsOpen(void)
     clientdbInit();
     icmpOpen();
     netdbInit();
-    asndbInit();
+    asnInit();
     peerSelectInit();
 }
 
