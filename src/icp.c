@@ -179,7 +179,6 @@ static void icpHitObjHandler _PARAMS((int, void *));
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
-static void icpSendERRORComplete _PARAMS((int, char *, int, int, void *));
 static void icpHandleAbort _PARAMS((int fd, StoreEntry *, void *));
 static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
 static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
@@ -437,7 +436,7 @@ icpHierarchical(icpStateData * icpState)
     return 1;
 }
 
-static void
+void
 icpSendERRORComplete(int fd, char *buf, int size, int errflag, void *data)
 {
     icpStateData *icpState = data;
@@ -711,6 +710,9 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	    icpState->request,
 	    icpState->request_hdr,
 	    &icpState->size);
+	return;
+    } else if (request->method == METHOD_PURGE) {
+	clientPurgeRequest(icpState);
 	return;
     } else if (request->method == METHOD_TRACE) {
 	if (request->max_forwards == 0) {

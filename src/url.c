@@ -39,7 +39,8 @@ const char *RequestMethodStr[] =
     "PUT",
     "HEAD",
     "CONNECT",
-    "TRACE"
+    "TRACE",
+    "PURGE"
 };
 
 static char *ProtocolStr[] =
@@ -143,6 +144,8 @@ urlParseMethod(const char *s)
 	return METHOD_CONNECT;
     } else if (strcasecmp(s, "TRACE") == 0) {
 	return METHOD_TRACE;
+    } else if (strcasecmp(s, "PURGE") == 0) {
+	return METHOD_PURGE;
     }
     return METHOD_NONE;
 }

@@ -268,6 +268,7 @@ struct SquidConfig {
     } Netdb;
     struct {
 	int log_udp;
+	int enable_purge;
     } Options;
 };
 

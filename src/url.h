@@ -40,7 +40,8 @@ enum {
     METHOD_PUT,			/* 011 */
     METHOD_HEAD,		/* 100 */
     METHOD_CONNECT,		/* 101 */
-    METHOD_TRACE		/* 110 */
+    METHOD_TRACE,		/* 110 */
+    METHOD_PURGE		/* 111 */
 };
 typedef unsigned int method_t;
 
