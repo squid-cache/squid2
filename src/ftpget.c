@@ -100,7 +100,8 @@
 #include "util.h"
 
 
-char *rfc1738_escape();
+char *rfc1738_escape _PARAMS((char *));
+void rfc1738_unescape _PARAMS((char *));
 char *http_time();
 
 typedef struct _ext_table_entry {
@@ -2108,6 +2109,7 @@ int ftpget_srv_mode(port)
 	    if (strcmp(t, "\"\"") == 0)
 		t = "";
 	    args[i] = xstrdup(t);
+	    rfc1738_unescape(args[i]);
 	    Debug(26, 5, ("args[%d] = %s\n", i, args[i]));
 	    t = strtok(NULL, w_space);
 	    i++;
