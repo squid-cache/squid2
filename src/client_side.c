@@ -2585,7 +2585,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	if (sscanf(token + 5, "%d.%d", &http_ver.major, &http_ver.minor) != 2) {
 	    debug(33, 3) ("parseHttpRequest: Invalid HTTP identifier.\n");
 	    xfree(inbuf);
-	    return parseHttpRequestAbort(conn, "error: invalid HTTP-ident");
+	    return parseHttpRequestAbort(conn, "error:invalid-http-ident");
 	}
 	debug(33, 6) ("parseHttpRequest: Client HTTP version %d.%d.\n", http_ver.major, http_ver.minor);
     }
