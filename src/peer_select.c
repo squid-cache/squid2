@@ -446,7 +446,7 @@ peerPingTimeout(void *data)
 	debug(44, 3) ("peerPingTimeout: '%s'\n", storeUrl(entry));
     if (!cbdataValid(psstate->callback_data)) {
 	/* request aborted */
-        entry->ping_status = PING_DONE;
+	entry->ping_status = PING_DONE;
 	cbdataUnlock(psstate->callback_data);
 	peerSelectStateFree(psstate);
 	return;
