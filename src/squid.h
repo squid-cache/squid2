@@ -114,6 +114,16 @@
 
 #define SQUID_INADDR_NONE -1
 
+#if !defined(HAVE_RUSAGE) && defined(_SQUID_HPUX_)
+#define HAVE_RUSAGE
+#define getrusage(a, b)  syscall(SYS_GETRUSAGE, a, b)
+#endif
+
+#if !defined(HAVE_GETPAGESIZE) && defined(_SQUID_HPUX_)
+#define HAVE_GETPAGESIZE
+#define getpagesize( )   sysconf(_SC_PAGE_SIZE)
+#endif
+
 #ifndef BUFSIZ
 #define BUFSIZ  4096		/* make reasonable guess */
 #endif
