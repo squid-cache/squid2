@@ -72,7 +72,7 @@ storeAufsClose(storeIOState * sio)
 	sio->type.aufs.flags.close_request = 1;
 	return;
     }
-    storeAufsIOCallback(sio, 0);
+    storeAufsIOCallback(sio, DISK_OK);
 }
 
 void
@@ -259,7 +259,7 @@ storeAufsWriteDone(int fd, void *my_data, int len, int errflag)
     if (storeAufsKickWriteQueue(sio))
 	(void) 0;
     else if (sio->type.aufs.flags.close_request)
-	storeAufsIOCallback(sio, DISK_ERROR);
+	storeAufsIOCallback(sio, DISK_OK);
     loop_detect--;
 }
 
