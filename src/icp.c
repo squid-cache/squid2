@@ -550,60 +550,48 @@ void icp_hit_or_miss(fd, usm)
 	key = storeGenerateKey(usm->url, usm->type_id);
     }
 
-    entry = storeGet(key);
-
-    if (entry) {
-	if (storeEntryValidToSend(entry) &&
-	    (mime_hdr && !mime_refresh_request(mime_hdr)) &&
-	    ((lock = storeLockObject(entry)) == 0)) {
-	    debug(12, 4, "icp_hit_or_miss: sending from store.\n");
-
-	    /* We HOLD a lock on object "entry" */
-	    tmp_in_addr.s_addr = htonl(usm->header.shostid);
-	    usm->log_type = LOG_TCP_HIT;
-	    CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
-
-	    /* Reset header for reply. */
-	    memset(&usm->header, 0, sizeof(icp_common_t));
-	    usm->header.version = ICP_VERSION_CURRENT;
-	    usm->header.reqnum = 0;
-	    usm->header.shostid = 0;
-	    usm->entry = entry;
-	    usm->offset = 0;
-
-	    /* Send object to requestor */
-	    entry->refcount++;	/* HIT CASE */
-
-#ifdef HANDLE_IMS		/* work in progress */
-	    /* Handle IMS */
-	    if (mime_get_header(mime_hdr, "if-modified-since")) {
-		icpSendIMS(fd, usm);
-		return;
-	    }
-#endif /* HANDLE_IMS */
-
-	    icpSendMoreData(fd, usm);
-	    return;
-	}
-	/* We do NOT hold a lock on the existing "entry" because we're
-	 * about to eject it */
-#ifdef REDUNDANT_CODE
-	if (lock < 0)
-	    debug(12, 0, "icp_hit_or_miss: swap file open failed\n");
-#endif
+    if ((entry = storeGet(key)) == NULL) {
+	/* This object isn't in the cache.  We do not hold a lock yet */
 	tmp_in_addr.s_addr = htonl(usm->header.shostid);
-	usm->log_type = LOG_TCP_EXPIRED;
+	usm->log_type = LOG_TCP_MISS;
 	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
 	icpProcessMISS(fd, usm);
 	return;
-
     }
-    /* This object isn't in the cache.  We do not hold a lock yet */
+    if (storeEntryValidToSend(entry) &&
+	!mime_refresh_request(mime_hdr) &&
+	((lock = storeLockObject(entry)) == 0)) {
+	debug(12, 4, "icp_hit_or_miss: sending from store.\n");
+
+	/* We HOLD a lock on object "entry" */
+	tmp_in_addr.s_addr = htonl(usm->header.shostid);
+	usm->log_type = LOG_TCP_HIT;
+	CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
+
+	/* Reset header for reply. */
+	memset(&usm->header, 0, sizeof(icp_common_t));
+	usm->header.version = ICP_VERSION_CURRENT;
+	usm->header.reqnum = 0;
+	usm->header.shostid = 0;
+	usm->entry = entry;
+	usm->offset = 0;
+
+	/* Send object to requestor */
+	entry->refcount++;	/* HIT CASE */
+
+	icpSendMoreData(fd, usm);
+	return;
+    }
+    /* We do NOT hold a lock on the existing "entry" because we're
+     * about to eject it */
+#ifdef REDUNDANT_CODE
+    if (lock < 0)
+	debug(12, 0, "icp_hit_or_miss: swap file open failed\n");
+#endif
     tmp_in_addr.s_addr = htonl(usm->header.shostid);
-    usm->log_type = LOG_TCP_MISS;
+    usm->log_type = LOG_TCP_EXPIRED;
     CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
     icpProcessMISS(fd, usm);
-    return;
 }
 
 /*
