@@ -259,6 +259,7 @@ int o_list_width = 32;		/* size of filenames in directory list */
 int o_list_wrap = 0;		/* wrap long directory names ? */
 u_short o_conn_min = 0x4000;	/* min. port number to use */
 u_short o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
+char *socket_pathname = NULL;
 
 #define SMALLBUFSIZ 1024
 #define MIDBUFSIZ 2048
@@ -454,6 +455,8 @@ void generic_sig_handler(sig)
 {
     static char buf[SMALLBUFSIZ];
 
+    if (socket_pathname)
+        unlink(socket_pathname);
     sprintf(buf, "Received signal %d, exiting.\n", sig);
     errorlog(buf);
     if (MainRequest == NULL)
@@ -2245,6 +2248,7 @@ int ftpget_srv_mode(arg)
 	    sleep(5);		/* sleep here so that the cache will restart us */
 	    exit(1);
 	}
+	socket_pathname = xstrdup(arg);
     } else {
 	memset(&S2, '\0', sizeof(S2));
 	S2.sun_family = AF_UNIX;
@@ -2259,6 +2263,8 @@ int ftpget_srv_mode(arg)
     }
     if (listen(sock, 50) < 0) {
 	log_errno2(__FILE__, __LINE__, "listen");
+    if (socket_pathname)
+        unlink(socket_pathname);
 	exit(1);
     }
     for (;;) {
@@ -2278,12 +2284,16 @@ int ftpget_srv_mode(arg)
 	if (FD_ISSET(0, &R)) {
 	    /* exit server mode if any activity on stdin */
 	    close(sock);
+	    if (socket_pathname)
+	        unlink(socket_pathname);
 	    return 0;
 	}
 	if (!FD_ISSET(sock, &R))
 	    continue;
 	if ((c = accept(sock, NULL, 0)) < 0) {
 	    log_errno2(__FILE__, __LINE__, "accept");
+	    if (socket_pathname)
+	        unlink(socket_pathname);
 	    exit(1);
 	}
 	if (fork()) {
