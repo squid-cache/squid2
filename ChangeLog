@@ -1,3 +1,48 @@
+Changes to squid-1.NOVM.12 (July 5, 1997):
+
+	- Merged squid-1.1.12 changes.
+
+Changes to squid-1.1.12 (July 5, 1997):
+
+	- Fixed dnsserver buffer overflow bug and other problems related
+	  to long, bogus domain names.
+	- Fixed occasional incorrect ERR_DNS_FAIL errors caused when
+	  an IP cache entry gets released about the same time an
+	  ICP query timeout occurs.
+	- Fixed setrlimit() bugs seen on DUNIX 4.0; rl.rlim_max == 0.
+	- Only strip 'Proxy-authorization' header when USE_PROXY_AUTH
+	  is defined and proxy_auth is configured (Ron Gomes).
+	- Added missing calls to reset socket timeouts for SSL
+	  and passthrough requests.
+	- Fixed "Available number of file descriptors" value in
+	  cachemgr info output.
+	- Fixed coredump in proxyAuthenticate() if password file
+	  has an entry with only a user name (Jordan Hrycaj).
+	- Security patch for usernames and passwords in URLs.
+	  + ftpget would insert a BASE URL including the username and
+	    password for directory listings IF the original request did
+	    NOT include the the trailing slash.  This could be disabled
+	    with a command line option, but is enabled by default.  Now
+	    its #ifdefd out.
+	  + Usernames and passwords could be logged to access.log and
+	    store.log.  Now a new element,
+	    StoreEntry->MemObject->log_url, holds a copy of the requested
+	    URL without the name and password.  This isn't 100% fixed yet
+	    because log_url gets generated when the StoreEntry gets
+	    created.  If the StoreEntry never gets created, then the URL
+	    with name and password will get logged.  Also, the name and
+	    password are not stripped from ICP requests.  Also, this
+	    changes store.log.  Previously we logged StoreEntry->key
+	    which would look different than the URL for private entries,
+	    but now we'll always log the URL.
+	  + Finally, we now set REQ_AUTH for any request that includes a
+	    name or password.  This prevents the request from being
+	    cached (!) and prevents it from being sent to neighbor
+	    caches.  In other words, its treated just as if an
+	    Authorization request header were present.
+	- Fixed Byte-Range handling so that valid, whole objects
+	  are not released.
+
 Changes to squid-1.NOVM.11 (June 20, 1997):
 
 	- Not obeying 'maximum_object_size'.  All objects were cached.
@@ -37,7 +82,7 @@ Changes to squid-1.1.11 (June 14, 1997):
 	- Fixed cur_len decrement bug in diskHandleRead()
 	  (Michael O'Reilly).
 	- Added contrib/rredir.pl from Peter Eisenhauer.
-	- Always forward requests with 'Request-Range' headers (Ron Gomes).
+	- Always forward requests with 'Byte-Range' headers (Ron Gomes).
 	- Fixed StoreEntry client offset bug which could trigger a
 	  fatal_dump().
 	- Fixed noticing that dnsservers have shut down during restart.

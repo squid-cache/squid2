@@ -248,6 +248,8 @@ icpStateFree(int fd, void *data)
     int elapsed_msec;
     struct _hierarchyLogData *hierData = NULL;
     const char *content_type = NULL;
+    StoreEntry *entry = NULL;
+    MemObject *mem = NULL;
 
     if (!icpState)
 	return;
@@ -255,10 +257,10 @@ icpStateFree(int fd, void *data)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->swapin_fd > -1)
 	file_close(icpState->swapin_fd);
-    if (icpState->entry) {
-	if (icpState->entry->mem_obj) {
-	    http_code = icpState->entry->mem_obj->reply->code;
-	    content_type = icpState->entry->mem_obj->reply->content_type;
+    if ((entry = icpState->entry)) {
+	if ((mem = entry->mem_obj)) {
+	    http_code = mem->reply->code;
+	    content_type = mem->reply->content_type;
 	}
     } else {
 	http_code = icpState->http_code;
@@ -268,7 +270,7 @@ icpStateFree(int fd, void *data)
 	hierData = &icpState->request->hierarchy;
     if (icpState->out.size || icpState->log_type) {
 	HTTPCacheInfo->log_append(HTTPCacheInfo,
-	    icpState->url,
+	    mem ? mem->log_url : icpState->url,
 	    icpState->log_addr,
 	    icpState->out.size,
 	    log_tags[icpState->log_type],
@@ -307,9 +309,9 @@ icpStateFree(int fd, void *data)
 #if LOG_FULL_HEADERS
     safe_free(icpState->reply_hdr);
 #endif /* LOG_FULL_HEADERS */
-    if (icpState->entry) {
-	storeUnregister(icpState->entry, fd);
-	storeUnlockObject(icpState->entry);
+    if ((entry = icpState->entry)) {
+	storeUnregister(entry, fd);
+	storeUnlockObject(entry);
 	icpState->entry = NULL;
     }
     /* old_entry might still be set if we didn't yet get the reply
@@ -353,11 +355,16 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (!strcasecmp(t, "no-cache"))
 	    BIT_SET(request->flags, REQ_NOCACHE);
     }
-    if (mime_get_header(request_hdr, "Range"))
+    if (mime_get_header(request_hdr, "Range")) {
 	BIT_SET(request->flags, REQ_NOCACHE);
-    else if (mime_get_header(request_hdr, "Request-Range"))
+	BIT_SET(request->flags, REQ_RANGE);
+    } else if (mime_get_header(request_hdr, "Request-Range")) {
 	BIT_SET(request->flags, REQ_NOCACHE);
+	BIT_SET(request->flags, REQ_RANGE);
+    }
     if (mime_get_header(request_hdr, "Authorization"))
+	BIT_SET(request->flags, REQ_AUTH);
+    if (request->login[0] != '\0')
 	BIT_SET(request->flags, REQ_AUTH);
 #if TRY_KEEPALIVE_SUPPORT
     if ((t = mime_get_header(request_hdr, "Proxy-Connection")))
@@ -786,11 +793,16 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	storeRelease(entry);
 	entry = NULL;
     } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
-	/* IMS+NOCACHE should not eject valid object */
-	if (!BIT_TEST(request->flags, REQ_IMS))
+	/* NOCACHE should always eject a negative cached object */
+	if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
 	    storeRelease(entry);
-	/* NOCACHE should always eject negative cached object */
-	else if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
+	/* NOCACHE+IMS should not eject a valid object */
+	else if (BIT_TEST(request->flags, REQ_IMS))
+	    (void) 0;
+	/* Request-Range should not eject a valid object */
+	else if (BIT_TEST(request->flags, REQ_RANGE))
+	    (void) 0;
+	else
 	    storeRelease(entry);
 	ipcacheReleaseInvalid(icpState->request->host);
 	entry = NULL;
@@ -893,6 +905,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
 	icpState->req_hdr_sz,
 	icpState->request->flags,
 	icpState->method);
+    storeSetLogUrl(entry, icpState->request);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     storeClientListAdd(entry, fd);
     if (icpState->swapin_fd != -1)

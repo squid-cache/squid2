@@ -2788,10 +2788,12 @@ main(int argc, char *argv[])
     if (strcmp(r->user, "anonymous")) {
 	if (o_showlogin) {
 	    strcat(r->url, r->user);
+#ifdef NEVER_INCLUDE_PASSWORD
 	    if (o_showpass) {
 		strcat(r->url, ":");
 		strcat(r->url, r->pass);
 	    }
+#endif
 	}
 	strcat(r->url, "@");
     }

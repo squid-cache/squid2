@@ -82,13 +82,14 @@ extern method_t urlParseMethod _PARAMS((const char *));
 extern void urlInitialize _PARAMS((void));
 extern request_t *urlParse _PARAMS((method_t, char *));
 extern char *urlCanonical _PARAMS((const request_t *, char *));
+extern char *urlNoLogin _PARAMS((const request_t *, char *));
 extern request_t *requestLink _PARAMS((request_t *));
 extern void requestUnlink _PARAMS((request_t *));
 extern int matchDomainName _PARAMS((const char *d, const char *h));
 extern int urlCheckRequest _PARAMS((const request_t *));
 
 /* bitfields for the flags member */
-#define REQ_UNUSED1		0x01
+#define REQ_RANGE		0x01
 #define REQ_NOCACHE		0x02
 #define REQ_IMS			0x04
 #define REQ_AUTH		0x08

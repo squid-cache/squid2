@@ -276,6 +276,7 @@ destroy_MemObject(MemObject * mem)
     safe_free(mem->mime_hdr);
     safe_free(mem->reply);
     safe_free(mem->e_abort_msg);
+    safe_free(mem->log_url);
     requestUnlink(mem->request);
     mem->request = NULL;
     put_free_mem_obj(mem);
@@ -359,7 +360,7 @@ storeLog(int tag, const StoreEntry * e)
 	reply->content_length,
 	e->object_len - mem->reply->hdr_sz,
 	RequestMethodStr[e->method],
-	e->key);
+	mem->log_url);
     file_write(storelog_fd,
 	xstrdup(logmsg),
 	strlen(logmsg),
@@ -449,7 +450,7 @@ storeGet(const char *url)
     return (StoreEntry *) hash_lookup(store_table, url);
 }
 
-unsigned int
+static unsigned int
 getKeyCounter(void)
 {
     static unsigned int key_counter = 0;
@@ -774,6 +775,7 @@ storeCheckDoneWriting(StoreEntry * e)
 {
     MemObject *mem = e->mem_obj;
     protocol_t proto = mem->request ? mem->request->protocol : PROTO_NONE;
+    debug(0, 0, "storeCheckDoneWriting: mem->request = %p\n", mem->request);
     if (e->store_status == STORE_PENDING)
 	return;
     if (e->object_len < mem->swap_length)
@@ -2168,14 +2170,6 @@ storeFreeMemory(void)
 }
 
 int
-expiresMoreThan(time_t expires, time_t when)
-{
-    if (expires < 0)		/* No Expires given */
-	return 1;
-    return (expires > (squid_curtime + when));
-}
-
-int
 storeEntryValidToSend(StoreEntry * e)
 {
     if (BIT_TEST(e->flag, RELEASE_REQUEST))
@@ -2232,4 +2226,16 @@ storePutUnusedFileno(int fileno)
 	fileno_stack[fileno_stack_count++] = fileno;
     else
 	unlinkdUnlink(storeSwapFullPath(fileno, NULL));
+}
+
+void
+storeSetLogUrl(StoreEntry * entry, request_t * request)
+{
+    MemObject *mem = entry->mem_obj;
+    if (mem == NULL)
+	fatal_dump("NULL entry->mem_obj");
+    if (request->login[0] == '\0')
+	mem->log_url = xstrdup(entry->url);
+    else
+	mem->log_url = xstrdup(urlNoLogin(request, NULL));
 }

@@ -299,6 +299,31 @@ urlCanonical(const request_t * request, char *buf)
     return buf;
 }
 
+char *
+urlNoLogin(const request_t * request, char *buf)
+{
+    LOCAL_ARRAY(char, urlbuf, MAX_URL);
+    LOCAL_ARRAY(char, portbuf, 32);
+    if (buf == NULL)
+	buf = urlbuf;
+    switch (request->method) {
+    case METHOD_CONNECT:
+	sprintf(buf, "%s:%d", request->host, request->port);
+	break;
+    default:
+	portbuf[0] = '\0';
+	if (request->port != urlDefaultPort(request->protocol))
+	    sprintf(portbuf, ":%d", request->port);
+	sprintf(buf, "%s://%s%s%s",
+	    ProtocolStr[request->protocol],
+	    request->host,
+	    portbuf,
+	    request->urlpath);
+	break;
+    }
+    return buf;
+}
+
 request_t *
 requestLink(request_t * request)
 {

@@ -322,8 +322,13 @@ shut_down(int sig)
     debug(1, 1, "Waiting %d seconds for active connections to finish\n",
 	shutdown_pending > 0 ? Config.lifetimeShutdown : 0);
 #ifdef KILL_PARENT_OPT
-    debug(1, 1, "Killing RunCache, pid %d\n", getppid());
-    kill(getppid(), sig);
+    {
+	pid_t ppid = getppid();
+	if (ppid > 1) {
+	    debug(1, 1, "Killing RunCache, pid %d\n", ppid);
+	    kill(ppid, sig);
+	}
+    }
 #endif
 #if SA_RESETHAND == 0
     signal(SIGTERM, SIG_DFL);
@@ -623,6 +628,7 @@ main(int argc, char **argv)
     int n;			/* # of GC'd objects */
     time_t loop_delay;
 
+    debug_log = stderr;
     if (FD_SETSIZE < Squid_MaxFD)
 	Squid_MaxFD = FD_SETSIZE;
 
@@ -679,8 +685,6 @@ main(int argc, char **argv)
     fd_note(1, "STDOUT");
     fd_note(2, "STDERR");
 
-    /* preinit for debug module */
-    debug_log = stderr;
     hash_init(0);
 
     mainInitialize();

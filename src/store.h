@@ -177,6 +177,7 @@ struct _MemObject {
     struct _http_reply *reply;
     request_t *request;
     size_t mime_hdr_sz;
+    char *log_url;
 };
 
 enum {
@@ -278,7 +279,6 @@ extern void storeCloseLog _PARAMS((void));
 extern void storeConfigure _PARAMS((void));
 extern void storeNegativeCache _PARAMS((StoreEntry *));
 extern void storeFreeMemory _PARAMS((void));
-extern int expiresMoreThan _PARAMS((time_t, time_t));
 extern int storeClientListAdd _PARAMS((StoreEntry *, int));
 extern void InvokeHandlers _PARAMS((StoreEntry *));
 extern int storeEntryValidToSend _PARAMS((StoreEntry *));
@@ -288,6 +288,7 @@ extern unsigned int storeReqnum _PARAMS((StoreEntry * entry, method_t));
 extern int storeOpenSwapFileRead _PARAMS((StoreEntry *));
 extern time_t storeExpiredReferenceAge _PARAMS((void));
 extern void storeCheckDoneWriting _PARAMS((StoreEntry * e));
+extern void storeSetLogUrl _PARAMS((StoreEntry *, request_t *));
 
 #ifdef __STDC__
 extern void storeAppendPrintf _PARAMS((StoreEntry *, const char *,...));

@@ -853,16 +853,14 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 #endif /* HAVE_MALLINFO */
 
     storeAppendPrintf(sentry, "{File descriptor usage for %s:}\n", appname);
-    storeAppendPrintf(sentry, "{\tMax number of file desc available:    %4d}\n",
+    storeAppendPrintf(sentry, "{\tMaximum number of file descriptors:   %4d}\n",
 	Squid_MaxFD);
     storeAppendPrintf(sentry, "{\tNumber of file descriptors in use:    %4d}\n",
 	Number_FD);
     storeAppendPrintf(sentry, "{\tLargest file desc currently in use:   %4d}\n",
 	Biggest_FD);
-    storeAppendPrintf(sentry, "{\tNumber of file desc currently in use: %4d}\n",
-	Number_FD);
     storeAppendPrintf(sentry, "{\tAvailable number of file descriptors: %4d}\n",
-	fdstat_are_n_free_fd(0));
+	Squid_MaxFD - Number_FD);
     storeAppendPrintf(sentry, "{\tReserved number of file descriptors:  %4d}\n",
 	RESERVED_FD);
 
@@ -1284,7 +1282,7 @@ static void
 proto_newobject(cacheinfo * obj, protocol_t proto_id, int size, int restart)
 {
     proto_stat *p = &obj->proto_stat_data[proto_id];
-
+    debug(0, 0, "proto_newobject: %d, %d\n", proto_id, size);
     p->object_count++;
 
     /* Account for 1KB granularity */
@@ -1301,7 +1299,7 @@ static void
 proto_purgeobject(cacheinfo * obj, protocol_t proto_id, int size)
 {
     proto_stat *p = &obj->proto_stat_data[proto_id];
-
+    debug(0, 0, "proto_purgeobject: %d, %d\n", proto_id, size);
     p->object_count--;
 
     /* Scale down to KB */

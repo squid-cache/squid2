@@ -43,7 +43,6 @@ typedef struct {
 	int offset;
 	char *buf;
     } client, server;
-    time_t timeout;
     size_t *size_ptr;		/* pointer to size in an icpStateData for logging */
     int proxying;
     int ip_lookup_pending;
@@ -155,7 +154,7 @@ sslReadServer(int fd, void *data)
 		COMM_SELECT_TIMEOUT,
 		sslReadTimeout,
 		(void *) sslState,
-		sslState->timeout);
+		Config.readTimeout);
 	} else {
 	    sslClose(sslState);
 	}
@@ -233,7 +232,7 @@ sslWriteServer(int fd, void *data)
 	    COMM_SELECT_TIMEOUT,
 	    sslReadTimeout,
 	    (void *) sslState,
-	    sslState->timeout);
+	    Config.readTimeout);
     } else {
 	/* still have more to write */
 	commSetSelect(sslState->server.fd,
@@ -271,6 +270,11 @@ sslWriteClient(int fd, void *data)
 	    COMM_SELECT_READ,
 	    sslReadServer,
 	    (void *) sslState, 0);
+	commSetSelect(sslState->server.fd,
+	    COMM_SELECT_TIMEOUT,
+	    sslReadTimeout,
+	    (void *) sslState,
+	    Config.readTimeout);
     } else {
 	/* still have more to write */
 	commSetSelect(sslState->client.fd,
@@ -434,7 +438,6 @@ sslStart(int fd, const char *url, request_t * request, char *mime_hdr, size_t * 
     sslState->url = xstrdup(url);
     sslState->request = requestLink(request);
     sslState->mime_hdr = mime_hdr;
-    sslState->timeout = Config.readTimeout;
     sslState->size_ptr = size_ptr;
     sslState->client.fd = fd;
     sslState->server.fd = sock;
@@ -486,6 +489,11 @@ sslProxyConnected(int fd, void *data)
 	COMM_SELECT_READ,
 	sslReadServer,
 	(void *) sslState, 0);
+    commSetSelect(sslState->server.fd,
+	COMM_SELECT_TIMEOUT,
+	sslReadTimeout,
+	(void *) sslState,
+	Config.readTimeout);
 }
 
 static void

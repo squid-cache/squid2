@@ -375,7 +375,7 @@ proxyAuthenticate(const char *headers)
 
 		debug(33, 5, "proxyAuthenticate: adding new passwords to hash table\n");
 		while (user != NULL) {
-		    if (strlen(user) > 1 && strlen(passwd) > 1) {
+		    if (strlen(user) > 1 && passwd && strlen(passwd) > 1) {
 			debug(33, 6, "proxyAuthenticate: adding %s, %s to hash table\n", user, passwd);
 			hash_insert(validated, xstrdup(user), (void *) xstrdup(passwd));
 		    }
@@ -442,6 +442,7 @@ icpProcessExpired(int fd, void *data)
 	icpState->req_hdr_sz,
 	icpState->request->flags,
 	icpState->method);
+    storeSetLogUrl(entry, icpState->request);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     /* Tell store we're interested in both objects.  Otherwise they might
      * go into delete-behind mode */
