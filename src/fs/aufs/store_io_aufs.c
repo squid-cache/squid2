@@ -432,10 +432,11 @@ storeAufsNeedCompletetion(storeIOState * sio)
 	return 1;
     if (aiostate->flags.opening && FILE_MODE(sio->mode) == O_WRONLY)
 	return 1;
+    if (aiostate->flags.reading)
+	return 1;
     if (aiostate->flags.inreaddone)
 	return 1;
 
-    /* Note: Pending read operations are silently cancelled on close */
     return 0;
 }
 
