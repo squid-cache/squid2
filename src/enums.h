@@ -108,11 +108,13 @@ typedef enum {
     ACL_MY_PORT,
 #if USE_IDENT
     ACL_IDENT,
+    ACL_IDENT_REGEX,
 #endif
     ACL_PROTO,
     ACL_METHOD,
     ACL_BROWSER,
     ACL_PROXY_AUTH,
+    ACL_PROXY_AUTH_REGEX,
     ACL_SRC_ASN,
     ACL_DST_ASN,
     ACL_SRC_ARP,
