@@ -191,6 +191,8 @@ extern time_t cached_curtime;
 extern int getMaxFD();
 extern int getDnsChildren();
 extern void fatal_dump _PARAMS((char *));
+extern int file_write_lock _PARAMS((int));
+extern int file_update_open _PARAMS((int, char *));
 
 void update_dns_child_alive()
 {
@@ -336,7 +338,7 @@ int ipcache_create_dnsserver(command)
     execlp(command, "(dnsserver)", "-p", socketname, NULL);
     perror(command);
     _exit(1);
-    /* NOTREACHED */
+    return (0); /* NOTREACHED */
 }
 
 #endif /* else USE_DNS_PIPE */
