@@ -2272,7 +2272,7 @@ DOC_START
 	partial responses and give them out as hits.  You should NOT
 	use this option if you have downstream caches.
 
-	WARNING: A maximum size larger than the size of squid's error messages
+	WARNING: A maximum size smaller than the size of squid's error messages
 	will cause an infinite loop and crash squid. Ensure that the smallest
 	non-zero value you use is greater that the maximum header size plus
 	the size of your largest error page.
