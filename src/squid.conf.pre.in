@@ -267,9 +267,9 @@
 #cache_mem_low 75
 #cache_mem_high 90
 
-#  TAG: ipcache_size
-#  TAG: ipcache_low
-#  TAG: ipcache_high
+#  TAG: ipcache_size (number of entries)
+#  TAG: ipcache_low  (percent)
+#  TAG: ipcache_high (percent)
 #	The size, low-, and high-water marks for the IP cache.
 #
 #ipcache_size 1024
