@@ -408,8 +408,8 @@ icpHandleIMSReply(void *data, char *buf, size_t size)
 	http->log_type = LOG_TCP_REFRESH_FAIL_HIT;
 	storeUnregister(entry, http);
 	storeUnlockObject(entry);
-	http->entry = http->old_entry;
-	http->entry->refcount++;
+	entry = http->entry = http->old_entry;
+	entry->refcount++;
     } else if (mem->reply->code == 0) {
 	debug(33, 3, "icpHandleIMSReply: Incomplete headers for '%s'\n",
 	    entry->url);
