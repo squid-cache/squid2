@@ -2,9 +2,6 @@
 #include "squid.h"
 
 #if STORE_KEY_URL
-#if STORE_KEY_MD5
-#error foo
-#endif
 
 static char key_temp_buffer[MAX_URL + 100];
 
