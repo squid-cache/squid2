@@ -2437,7 +2437,7 @@ storeInit(void)
     storeSanityCheck();
     dir_created = storeVerifySwapDirs(opt_zap_disk_store);
     if (Config.Log.swap)
-	strncpy(swaplog_file, Config.Log.swap, SQUID_MAXPATHLEN);
+	xstrncpy(swaplog_file, Config.Log.swap, SQUID_MAXPATHLEN);
     else
 	sprintf(swaplog_file, "%s/log", swappath(0));
     swaplog_fd = file_open(swaplog_file, NULL, O_WRONLY | O_CREAT);

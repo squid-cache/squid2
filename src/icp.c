@@ -432,7 +432,7 @@ icpSendERROR(int fd,
     buf_len = strlen(text);
     buf_len = buf_len > 4095 ? 4095 : buf_len;
     buf = get_free_4k_page();
-    strncpy(buf, text, buf_len);
+    xstrncpy(buf, text, buf_len);
     *(buf + buf_len) = '\0';
     comm_write(fd,
 	buf,
@@ -461,7 +461,7 @@ icp_maybe_remember_reply_hdr(icpStateData * icpState)
 	int mime_len = end - mime;
 	char *buf = xcalloc(mime_len + 1, 1);
 
-	strncpy(buf, mime, mime_len);
+	xstrncpy(buf, mime, mime_len);
 	buf[mime_len] = 0;
 	icpState->reply_hdr = buf;
 	debug(12, 5, "icp_maybe_remember_reply_hdr: ->\n%s<-\n", buf);
@@ -877,8 +877,10 @@ icpProcessMISS(int fd, icpStateData * icpState)
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, icpHandleStore, (void *) icpState);
 #if DELAY_HACK
+    ch.src_addr = icpState->peer.sin_addr;
+    ch.request = icpState->request;
     _delay_fetch = 0;
-    if (aclCheck(DelayAccessList, icpState->peer.sin_addr, icpState->request))
+    if (aclCheck(DelayAccessList, &ch))
 	_delay_fetch = 1;
 #endif
     return (protoDispatch(fd, url, icpState->entry, icpState->request));
@@ -975,7 +977,7 @@ icpCreateMessage(
     if (opcode == ICP_OP_QUERY)
 	buf_len += sizeof(u_num32);
     buf = xcalloc(buf_len, 1);
-    headerp = (icp_common_t *) buf;
+    headerp = (icp_common_t *) (void *) buf;
     headerp->opcode = opcode;
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
@@ -1506,11 +1508,11 @@ do_append_domain(const char *url, const char *ad)
     lo = strlen(url);
     ln = lo + (adlen = strlen(ad));
     u = xcalloc(ln + 1, 1);
-    strncpy(u, url, (e - url));	/* copy first part */
+    xstrncpy(u, url, (e - url));	/* copy first part */
     b = u + (e - url);
     p = b + adlen;
-    strncpy(b, ad, adlen);	/* copy middle part */
-    strncpy(p, e, lo - (e - url));	/* copy last part */
+    xstrncpy(b, ad, adlen);	/* copy middle part */
+    xstrncpy(p, e, lo - (e - url));	/* copy last part */
     return (u);
 }
 
@@ -1589,7 +1591,7 @@ parseHttpRequest(icpStateData * icpState)
     }
     len = (int) (t - token);
     memset(http_ver, '\0', 32);
-    strncpy(http_ver, token, len < 31 ? len : 31);
+    xstrncpy(http_ver, token, len < 31 ? len : 31);
     sscanf(http_ver, "%f", &icpState->http_ver);
     debug(12, 5, "parseHttpRequest: HTTP version is '%s'\n", http_ver);
 

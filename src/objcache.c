@@ -142,7 +142,7 @@ static long PASSWD_REQUIRED =
 (1 << MGR_CONFIG_FILE);
 
 static objcache_op
-objcacheParseRequest(char *buf)
+objcacheParseRequest(const char *buf)
 {
     objcache_op op = MGR_NONE;
     if (!strcmp(buf, "shutdown"))
@@ -272,8 +272,8 @@ objcache_CheckPassword(char *password, char *user)
 int
 objcacheStart(int fd, const char *url, StoreEntry * entry)
 {
-    static char *BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";
-    static char *BADPassword = "Incorrect password, sorry.\n";
+    static const char *const BADCacheURL = "Bad Object Cache URL %s ... negative cached.\n";
+    static const char *const BADPassword = "Incorrect password, sorry.\n";
     ObjectCacheData *data = NULL;
     int complete_flag = 1;
 

@@ -444,7 +444,7 @@ gopherToHTML(GopherStateData * data, char *inbuf, int len)
 
 	if (data->len != 0) {
 	    /* there is something left from last tx. */
-	    strncpy(line, data->buf, data->len);
+	    xstrncpy(line, data->buf, data->len);
 	    lpos = (char *) memccpy(line + data->len, inbuf, '\n', len);
 	    if (lpos)
 		*lpos = '\0';

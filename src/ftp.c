@@ -471,7 +471,7 @@ ftpSendRequest(int fd, FtpStateData * data)
     strcat(buf, Config.Program.ftpget);
     strcat(buf, space);
 
-    strncpy(opts, Config.Program.ftpget_opts, BUFSIZ);
+    xstrncpy(opts, Config.Program.ftpget_opts, BUFSIZ);
     for (s = strtok(opts, w_space); s; s = strtok(NULL, w_space)) {
 	strcat(buf, s);
 	strcat(buf, space);

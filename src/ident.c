@@ -124,7 +124,7 @@ identReadReply(int fd, icpStateData * icpState)
 	if (strstr(buf, "USERID")) {
 	    if ((t = strrchr(buf, ':'))) {
 		while (isspace(*++t));
-		strncpy(icpState->ident.ident, t, ICP_IDENT_SZ);
+		xstrncpy(icpState->ident.ident, t, ICP_IDENT_SZ);
 	    }
 	}
     }

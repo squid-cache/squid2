@@ -74,7 +74,8 @@ eventRun(void)
     debug(41, 3, "eventRun: Running '%s'\n", event->name);
     func = event->func;
     arg = event->arg;
-    event->func = event->arg = NULL;
+    event->func = NULL;
+    event->arg = NULL;
     tasks = event->next;
     safe_free(event);
     func(arg);

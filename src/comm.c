@@ -1103,7 +1103,7 @@ fd_note(int fd, const char *s)
 {
     if (s == NULL)
 	return (fd_table[fd].ascii_note);
-    strncpy(fd_table[fd].ascii_note, s, FD_ASCII_NOTE_SZ - 1);
+    xstrncpy(fd_table[fd].ascii_note, s, FD_ASCII_NOTE_SZ - 1);
     return (NULL);
 }
 

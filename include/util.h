@@ -134,6 +134,7 @@ extern char *uudecode _PARAMS((const char *));
 extern char *xstrdup _PARAMS((const char *));
 extern const char *xstrerror _PARAMS((void));
 extern int tvSubMsec _PARAMS((struct timeval, struct timeval));
+extern char *xstrncpy _PARAMS((char *, const char *, size_t));
 extern time_t parse_rfc1123 _PARAMS((const char *str));
 extern void *xcalloc _PARAMS((int, size_t));
 extern void *xmalloc _PARAMS((size_t));

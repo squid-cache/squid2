@@ -28,7 +28,7 @@ all install clean:
 realclean: clean
 	rm -f config.status config.cache config.log makefile
 	rm -f include/paths.h include/autoconf.h include/config.h
-	@for dir in $(SUBDIRS); do \
+	@for dir in $(SUBDIRS) contrib; do \
 		echo Making $@ in $$dir; \
 		(cd $$dir; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@); \
 	done

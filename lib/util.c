@@ -465,3 +465,19 @@ tvSubMsec(struct timeval t1, struct timeval t2)
     return (t2.tv_sec - t1.tv_sec) * 1000 +
 	(t2.tv_usec - t1.tv_usec) / 1000;
 }
+
+/*
+ *  xstrncpy() - similar to strncpy(3) but terminates string
+ *  always with '\0' if n != 0, and doesn't do padding
+ */
+char *
+xstrncpy(char *dst, const char *src, size_t n)
+{
+    if (n != 0) {
+	if (src != NULL)
+	    while (--n != 0 && *src != '\0')
+		*dst++ = *src++;
+	*dst = '\0';
+    }
+    return dst;
+}

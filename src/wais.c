@@ -360,7 +360,7 @@ waisStart(int unusedfd, const char *url, method_t method, char *mime_hdr, StoreE
     waisState->relayport = Config.Wais.relayPort;
     waisState->mime_hdr = mime_hdr;
     waisState->fd = fd;
-    strncpy(waisState->request, url, MAX_URL);
+    xstrncpy(waisState->request, url, MAX_URL);
     comm_add_close_handler(waisState->fd,
 	(PF) waisStateFree,
 	(void *) waisState);

@@ -242,7 +242,9 @@ parse_rfc1123(const char *str)
     t = mktime(&tm);
     {
 	time_t dst = 0;
+#ifndef _TIMEZONE
 	extern time_t timezone;
+#endif /* _TIMEZONE */
 	/*
 	 * The following assumes a fixed DST offset of 1 hour,
 	 * which is probably wrong.
