@@ -391,6 +391,7 @@ netdbReloadState(void)
 	    netdbHashLink(n, t);
 	count++;
     }
+    put_free_4k_page(buf);
     fclose(fp);
     getCurrentTime();
     debug(37, 0, "%d NETDB entries reloaded\n", count);
