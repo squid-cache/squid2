@@ -54,6 +54,8 @@ typedef struct _idns_query idns_query;
 typedef struct _ns ns;
 
 struct _idns_query {
+    hash_link hash;
+    char query[RFC1035_MAXHOSTNAMESZ + 1];
     char buf[512];
     size_t sz;
     unsigned short id;
@@ -66,6 +68,7 @@ struct _idns_query {
     int attempt;
     const char *error;
     int rcode;
+    idns_query *queue;
 };
 
 struct _ns {
@@ -80,6 +83,7 @@ static int nns = 0;
 static int nns_alloc = 0;
 static dlink_list lru_list;
 static int event_queued = 0;
+static hash_table *idns_lookup_hash = NULL;
 
 static OBJH idnsStats;
 static void idnsAddNameserver(const char *buf);
@@ -440,10 +444,32 @@ idnsFindQuery(unsigned short id)
 }
 
 static void
+idnsCallback(idns_query * q, rfc1035_rr * answers, int n, const char *error)
+{
+    int valid;
+    valid = cbdataValid(q->callback_data);
+    cbdataUnlock(q->callback_data);
+    if (valid)
+	q->callback(q->callback_data, answers, n, q->error);
+    while (q->queue) {
+	idns_query *q2 = q->queue;
+	q->queue = q2->queue;
+	valid = cbdataValid(q2->callback_data);
+	cbdataUnlock(q2->callback_data);
+	if (valid)
+	    q2->callback(q2->callback_data, answers, n, q->error);
+	memFree(q2, MEM_IDNS_QUERY);
+    }
+    if (q->hash.key) {
+	hash_remove_link(idns_lookup_hash, &q->hash);
+	q->hash.key = NULL;
+    }
+}
+
+static void
 idnsGrokReply(const char *buf, size_t sz)
 {
     int n;
-    int valid;
     rfc1035_rr *answers = NULL;
     unsigned short rid = 0xFFFF;
     idns_query *q;
@@ -483,10 +509,7 @@ idnsGrokReply(const char *buf, size_t sz)
 	    return;
 	}
     }
-    valid = cbdataValid(q->callback_data);
-    cbdataUnlock(q->callback_data);
-    if (valid)
-	q->callback(q->callback_data, answers, n, q->error);
+    idnsCallback(q, answers, n, q->error);
     rfc1035RRDestroy(answers, n);
     memFree(q, MEM_IDNS_QUERY);
 }
@@ -585,17 +608,13 @@ idnsCheckQueue(void *unused)
 	if (tvSubDsec(q->start_t, current_time) < Config.Timeout.idns_query) {
 	    idnsSendQuery(q);
 	} else {
-	    int v = cbdataValid(q->callback_data);
 	    debug(78, 2) ("idnsCheckQueue: ID %x: giving up after %d tries and %5.1f seconds\n",
 		(int) q->id, q->nsends,
 		tvSubDsec(q->start_t, current_time));
-	    cbdataUnlock(q->callback_data);
-	    if (v) {
-		if (q->rcode != 0)
-		    q->callback(q->callback_data, NULL, -q->rcode, q->error);
-		else
-		    q->callback(q->callback_data, NULL, -16, "Timeout");
-	    }
+	    if (q->rcode != 0)
+		idnsCallback(q, NULL, -q->rcode, q->error);
+	    else
+		idnsCallback(q, NULL, -16, "Timeout");
 	    memFree(q, MEM_IDNS_QUERY);
 	}
     }
@@ -672,6 +691,7 @@ idnsInit(void)
 	    "Internal DNS Statistics",
 	    idnsStats, 0, 1);
 	memset(RcodeMatrix, '\0', sizeof(RcodeMatrix));
+	idns_lookup_hash = hash_create((HASHCMP *) strcmp, 103, hash_string);
 	init++;
     }
 }
@@ -686,10 +706,37 @@ idnsShutdown(void)
     idnsFreeNameservers();
 }
 
+static int
+idnsCachedLookup(const char *key, IDNSCB * callback, void *data)
+{
+    idns_query *q;
+    idns_query *old = hash_lookup(idns_lookup_hash, key);
+    if (!old)
+	return 0;
+    q = memAllocate(MEM_IDNS_QUERY);
+    q->callback = callback;
+    q->callback_data = data;
+    cbdataLock(q->callback_data);
+    q->queue = old->queue;
+    old->queue = q;
+    return 1;
+}
+
+static void
+idnsCacheQuery(idns_query * q, const char *key)
+{
+    xstrncpy(q->query, key, sizeof(q->query));
+    q->hash.key = q->query;
+    hash_join(idns_lookup_hash, &q->hash);
+}
+
 void
 idnsALookup(const char *name, IDNSCB * callback, void *data)
 {
-    idns_query *q = memAllocate(MEM_IDNS_QUERY);
+    idns_query *q;
+    if (idnsCachedLookup(name, callback, data))
+	return;
+    q = memAllocate(MEM_IDNS_QUERY);
     q->sz = sizeof(q->buf);
     q->id = rfc1035BuildAQuery(name, q->buf, &q->sz);
     if (0 == q->id) {
@@ -704,21 +751,27 @@ idnsALookup(const char *name, IDNSCB * callback, void *data)
     q->callback_data = data;
     cbdataLock(q->callback_data);
     q->start_t = current_time;
+    idnsCacheQuery(q, name);
     idnsSendQuery(q);
 }
 
 void
 idnsPTRLookup(const struct in_addr addr, IDNSCB * callback, void *data)
 {
-    idns_query *q = memAllocate(MEM_IDNS_QUERY);
+    idns_query *q;
+    const char *ip = inet_ntoa(addr);
+    if (idnsCachedLookup(ip, callback, data))
+	return;
+    q = memAllocate(MEM_IDNS_QUERY);
     q->sz = sizeof(q->buf);
     q->id = rfc1035BuildPTRQuery(addr, q->buf, &q->sz);
     debug(78, 3) ("idnsPTRLookup: buf is %d bytes for %s, id = %#hx\n",
-	(int) q->sz, inet_ntoa(addr), q->id);
+	(int) q->sz, ip, q->id);
     q->callback = callback;
     q->callback_data = data;
     cbdataLock(q->callback_data);
     q->start_t = current_time;
+    idnsCacheQuery(q, ip);
     idnsSendQuery(q);
 }
 
