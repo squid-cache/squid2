@@ -413,6 +413,7 @@ configDoConfigure(void)
 		xstrerror());
 	Config2.effectiveGroupID = grp->gr_gid;
     }
+    urlExtMethodConfigure();
 }
 
 /* Parse a time specification from the config file.  Store the

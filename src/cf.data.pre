@@ -3185,5 +3185,14 @@ DOC_START
 	disable persistent connections with clients and/or servers.
 DOC_END
 
+NAME: extension_methods
+TYPE: wordlist
+LOC: Config.ext_methods
+DEFAULT: none
+DOC_START
+	Squid only knows about standardized HTTP request methods.
+	You can add up to 20 additional "extension" methods here.
+DOC_END
+
 EOF
 

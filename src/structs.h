@@ -498,6 +498,7 @@ struct _SquidConfig {
 	int rebuild_chunk_percentage;
     } digest;
 #endif
+    wordlist *ext_methods;
 };
 
 struct _SquidConfig2 {
