@@ -36,6 +36,9 @@
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+#if HAVE_CRYPT_H
+#include <crypt.h>
+#endif
 
 #include "util.h"
 #include "hash.h"
@@ -63,7 +66,6 @@ static void
 read_passwd_file(const char *passwdfile)
 {
     FILE *f;
-    hash_link *hashr;
     char buf[8192];
     user_data *u;
     char *user;
@@ -104,7 +106,7 @@ main(int argc, char **argv)
     char buf[256];
     char *user, *passwd, *p;
     user_data *u;
-
+    setbuf(stdout, NULL);
     if (argc != 2) {
 	fprintf(stderr, "Usage: ncsa_auth <passwordfile>\n");
 	exit(1);
@@ -114,30 +116,34 @@ main(int argc, char **argv)
 	exit(1);
     }
     while (fgets(buf, 256, stdin) != NULL) {
+	if ((p = strchr(buf, '\n')) != NULL)
+	    *p = '\0';		/* strip \n */
 	if (stat(argv[1], &sb) == 0) {
 	    if (sb.st_mtime != change_time) {
 		read_passwd_file(argv[1]);
 		change_time = sb.st_mtime;
 	    }
 	}
-	user = buf;
-	if ((passwd = strchr(buf, ' ')) == NULL) {
-	    printf("ERR\n");
-	    fflush(stdout);
-	    continue;
+	if ((user = strtok(buf, " ")) == NULL) {
+		printf("ERR\n");
+		continue;
 	}
-	*passwd++ = '\0';
-	if ((p = strchr(passwd, '\n')) != NULL)
-	    *p = '\0';		/* strip \n */
+	if ((passwd = strtok(NULL, " ")) == NULL) {
+		printf("ERR\n");
+		continue;
+	}
+	if (strtok(NULL, " ") != NULL) {
+		printf("ERR\n");
+		continue;
+	}
 	u = hash_lookup(hash, user);
-	if (u &&
-	    strcmp(u->passwd, (char *) crypt(passwd, u->passwd)) == 0) {
-	    printf("OK\n");
-	} else {
+	if (u == NULL) {
 	    printf("ERR\n");
+	} else if (strcmp(u->passwd, (char *) crypt(passwd, u->passwd))) {
+	    printf("ERR\n");
+	} else {
+	    printf("OK\n");
 	}
-	fflush(stdout);
     }
-
     exit(0);
 }
