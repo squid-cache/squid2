@@ -744,7 +744,7 @@ httpBuildRequestHeader(request_t * request,
 	}
 	httpAppendRequestHeader(hdr_out, xbuf, &len, out_sz - 512);
     }
-    hdr_len = t - hdr_in;
+    hdr_len = end - hdr_in;
     /* Append Via: */
     sprintf(ybuf, "%3.1f %s", orig_request->http_ver, ThisCache);
     strcat(viabuf, ybuf);

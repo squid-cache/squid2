@@ -582,7 +582,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
 		continue;
 	clientAppendReplyHeader(hdr_out, xbuf, &len, out_sz - 512);
     }
-    hdr_len = t - hdr_in;
+    hdr_len = end - hdr_in;
     /* Append X-Cache: */
     sprintf(ybuf, "X-Cache: %s", isTcpHit(http->log_type) ? "HIT" : "MISS");
     clientAppendReplyHeader(hdr_out, ybuf, &len, out_sz);
