@@ -1648,6 +1648,7 @@ ftpListDir(FtpStateData * ftpState)
 	debug(9, 3) ("Directory path did not end in /\n");
 	strCat(ftpState->title_url, "/");
 	ftpState->flags.isdir = 1;
+	ftpState->flags.use_base = 1;
     }
     ftpSendPasv(ftpState);
 }
@@ -2123,7 +2124,6 @@ static void
 ftpSendList(FtpStateData * ftpState)
 {
     if (ftpState->filepath) {
-	ftpState->flags.use_base = 1;
 	snprintf(cbuf, 1024, "LIST %s\r\n", ftpState->filepath);
     } else {
 	snprintf(cbuf, 1024, "LIST\r\n");
