@@ -1,3 +1,53 @@
+Changes to Squid-2.3.STABLE2 (Mar 2, 2000):
+
+	- Changed Copyright text.
+	- Changed configure so that some IRIX-6.4 hacks apply to
+	  all IRIX-6.* versions.
+	- Cleaned up HTML bugs in error pages.
+	- Told configure to check for netinet/if_ether.h, which
+	  is used in ARP ACL code, but might not be required.
+	- Added "Cookie" to known HTTP headers so it can be
+	  used in anonymizer configuration.
+	- Added optional TCP_REDIRECT log code for logging
+	  of 301/302 responses returned by Squid.
+	- Added a check for a currently running Squid process.
+	  If the pid file exists, and the pid is running,
+	  Squid complains and refuses to start another instance.
+	- Changed async I/O scope to PTHREAD_SCOPE_PROCESS for
+	  IRIX.
+	- Fixed a bug with the PURGE method.  The purge enable
+	  flag was not getting cleared during reconfigure.
+	  Also required PURGE method to be used in http_access
+	  list before enabling.
+	- Fixed async I/O assertions for file open errors.
+	- Fixed internal DNS assertion when unpacking truncated
+	  messages.
+	- Fixed anonymize_headers bug that caused all headers
+	  to be allowed after a reconfigure.
+	- Fixed an access denied bug for accelerator-only installations.
+	- Fixed internal DNS initialization so that it uses
+	  'dns_nameservers' settings in squid.conf if set.
+	- Fixed 'maxconn' ACL bug that caused it to work backwards
+	  (Pedro Ribeiro).
+	- Fixed syslog bug for daemon mode on Linux.
+	- Fixed 'http_port' parsing bugs.
+	- Fixed internal DNS byte ordering bugs for PTR queries.
+	- Fixed internal DNS queue getting stuck during periods
+	  of low activity (Henrik).
+	- Fixed byte ordering bugs for parsing EPLF FTP listings
+	  on 64-bit systems.
+	- Fixed 'request_body_max_size' bug that caused all
+	  POST, PUT requests to be denied if max size is set
+	  to zero.
+	- Fixed 'redirector_access' bug when using 'myport' ACLs.
+	- Fixed CARP neighbor selection bugs for down peers.
+	- Added 'client_persistent_connections' and
+	  'server_persistent_connections' flags to disable persistent
+	  connections for clients and servers.
+	- Fixed access logging bug that caused many requests to be
+	  logged as TCP_MISS.
+	- Added some bounds checking to delay pools code.
+
 Changes to Squid-2.3.STABLE1 (Jan 9, 2000):
 
 	- Updated PAM authentication module from Henrik Nordstrom.
