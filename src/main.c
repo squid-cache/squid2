@@ -416,6 +416,7 @@ mainInitialize(void)
 #ifdef SQUID_SNMP
     snmpInit();
 #endif
+ 
 
 #if MALLOC_DBG
     malloc_debug(0, malloc_debug_level);

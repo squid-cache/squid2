@@ -1950,6 +1950,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	return parseHttpRequestAbort(conn, "error:missing-http-ident");
 #endif
     } else {
+debug(0, 0) ("parseHttpRequest: VER is {%s}\n", token);
 	http_ver = (float) atof(token + 5);
     }
 

@@ -65,10 +65,6 @@
 #include <assert.h>
 #endif
 
-#if SQUID_SNMP
-#include "snmp.h"
-#endif
-
 #define MAX_LINE	1024	/* longest configuration line */
 #define _PATH_PARSER		"cf_parser.c"
 #define _PATH_SQUID_CONF	"squid.conf"

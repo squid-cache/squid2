@@ -163,10 +163,8 @@ typedef struct _helper_request helper_request;
 typedef struct _generic_cbdata generic_cbdata;
 
 #if SQUID_SNMP
+typedef variable_list *(oid_ParseFn) (variable_list *, snint *);
 typedef struct _snmp_request_t snmp_request_t;
-typedef struct _viewEntry viewEntry;
-typedef struct _communityEntry communityEntry;
-typedef struct _usecEntry usecEntry;
 #endif
 
 /* define AIOCB even without USE_ASYNC_IO */
