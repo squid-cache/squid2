@@ -312,9 +312,7 @@ struct _SquidConfig {
 #if USE_ICMP
 	char *pinger;
 #endif
-#if USE_UNLINKD
 	char *unlinkd;
-#endif
     } Program;
 #if USE_DNSSERVERS
     int dnsChildren;

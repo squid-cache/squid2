@@ -494,9 +494,7 @@ mainInitialize(void)
 #endif
 
     if (!configured_once) {
-#if USE_UNLINKD
 	unlinkdInit();
-#endif
 	urlInitialize();
 	cachemgrInit();
 	statInit();
@@ -907,9 +905,7 @@ SquidShutdown(void *unused)
 #endif
     releaseServerSockets();
     commCloseAllSockets();
-#if USE_UNLINKD
     unlinkdClose();
-#endif
     storeDirSync();		/* Flush pending object writes/unlinks */
     storeDirWriteCleanLogs(0);
     PrintRusage();

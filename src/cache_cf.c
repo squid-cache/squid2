@@ -360,9 +360,7 @@ configDoConfigure(void)
 #if USE_DNSSERVERS
     requirePathnameExists("cache_dns_program", Config.Program.dnsserver);
 #endif
-#if USE_UNLINKD
     requirePathnameExists("unlinkd_program", Config.Program.unlinkd);
-#endif
     if (Config.Program.redirect)
 	requirePathnameExists("redirect_program", Config.Program.redirect->key);
     if (Config.Program.authenticate)
