@@ -1069,7 +1069,7 @@ extern peer *carpSelectParent(request_t *);
 #if DELAY_POOLS
 extern int delayClient(clientHttpRequest *);
 extern void delayPoolsInit(void);
-extern void delayPoolsUpdate(int);
+extern EVH delayPoolsUpdate;
 extern int delayMostBytesWanted(const MemObject * mem, int max);
 extern int delayMostBytesAllowed(const MemObject * mem);
 extern void delayBytesIn(delay_id, int qty);

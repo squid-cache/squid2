@@ -280,12 +280,6 @@ comm_poll(int msec)
 	    comm_poll_icp_incoming();
 	if (commCheckHTTPIncoming)
 	    comm_poll_http_incoming();
-#if DELAY_POOLS
-	if (squid_curtime > delay_pools_last_update) {
-	    delayPoolsUpdate(squid_curtime - delay_pools_last_update);
-	    delay_pools_last_update = squid_curtime;
-	}
-#endif
 	callicp = callhttp = 0;
 	nfds = 0;
 	maxfd = Biggest_FD + 1;
@@ -548,12 +542,6 @@ comm_select(int msec)
 	    comm_select_icp_incoming();
 	if (commCheckHTTPIncoming)
 	    comm_select_http_incoming();
-#if DELAY_POOLS
-	if (squid_curtime > delay_pools_last_update) {
-	    delayPoolsUpdate(squid_curtime - delay_pools_last_update);
-	    delay_pools_last_update = squid_curtime;
-	}
-#endif
 	callicp = callhttp = 0;
 	nfds = 0;
 	maxfd = Biggest_FD + 1;
