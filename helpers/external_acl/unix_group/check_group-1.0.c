@@ -51,6 +51,7 @@
 #include <grp.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <ctype.h>
 
 
 #define BUFSIZE 8192		/* the stdin buffer size */
