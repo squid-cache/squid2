@@ -337,17 +337,6 @@ cache_stoplist cgi-bin ?
 #
 #cache_mem  8
 
-#  TAG: cache_swap (in megabytes)
-#	Maximum about of disk space used by the cache.  The default is
-#	100 megabytes.  When the disk usage gets to this size, the cache
-#	uses LRU replacement to evict objects as new objects are cached.
-#	Note that cache_swap is set to: 
-#	        max(cache_mem, cache_swap_specified) 
-#	to guard against users' accidentally specifying a smaller
-#	cache_swap than cache_mem size.
-#	
-#cache_swap 100
-
 #  TAG: cache_swap_low  (percent, 0-100)
 #  TAG: cache_swap_high (percent, 0-100)
 #	The low- and high-water marks for cache LRU replacement.

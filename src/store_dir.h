@@ -141,6 +141,7 @@ extern void storeDirCloseSwapLogs _PARAMS((void));
 extern char *storeDirSwapLogFile _PARAMS((int, const char *));
 extern void storeDirSwapLog _PARAMS((const StoreEntry *));
 extern int storeDirNumber _PARAMS((int fileno));
+extern void storeDirUpdateSwapSize _PARAMS((int fn, size_t size));
 
 extern int ncache_dirs;
 

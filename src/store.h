@@ -290,6 +290,7 @@ extern void storeAppendPrintf _PARAMS(());
 #endif
 
 extern int store_rebuilding;
+extern int store_swap_size;
 #define STORE_NOT_REBUILDING 0
 #define STORE_REBUILDING_CLEAN 1
 #define STORE_REBUILDING_DIRTY 2
