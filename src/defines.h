@@ -268,3 +268,5 @@
 #ifndef _PATH_DEVNULL
 #define _PATH_DEVNULL "/dev/null"
 #endif
+
+#define USE_TRUNCATE_NOT_UNLINK 1
