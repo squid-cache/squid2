@@ -251,16 +251,20 @@ parse_rfc1123(const char *str)
     t = mktime(&tm);
     {
 	time_t dst = 0;
-#ifndef _TIMEZONE
+#if !defined _TIMEZONE && !defined _timezone
 	extern time_t timezone;
-#endif /* _TIMEZONE */
+#endif
 	/*
 	 * The following assumes a fixed DST offset of 1 hour,
 	 * which is probably wrong.
 	 */
 	if (tm.tm_isdst > 0)
 	    dst = -3600;
+#ifdef _timezone
+	t -= (_timezone + dst);
+#else
 	t -= (timezone + dst);
+#endif
     }
 #endif
     return t;
