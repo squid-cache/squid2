@@ -306,11 +306,11 @@ objcacheStart(int fd, StoreEntry * entry)
     assert(handler != NULL);
     storeBuffer(entry);
     hdr = httpReplyHeader((double) 1.0,
-        HTTP_OK,
-        "text/plain",
-        -1,			/* Content-Length */
-        squid_curtime,		/* LMT */
-        squid_curtime);
+	HTTP_OK,
+	"text/plain",
+	-1,			/* Content-Length */
+	squid_curtime,		/* LMT */
+	squid_curtime);
     storeAppend(entry, hdr, strlen(hdr));
     storeAppend(entry, "\r\n", 2);
     handler(entry);
