@@ -1114,7 +1114,7 @@ icpCheckUdpHitObj(StoreEntry * e, request_t * r, icp_common_t * h, int len)
 {
     if (!BIT_TEST(h->flags, ICP_FLAG_HIT_OBJ))	/* not requested */
 	return 0;
-    if (len > SQUID_UDP_SO_SNDBUF)	/* too big */
+    if (len > Config.udpMaxHitObjsz)	/* too big */
 	return 0;
     if (refreshCheck(e, r, 0))	/* stale */
 	return 0;
@@ -1143,6 +1143,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     aclCheck_t checklist;
     icp_common_t *reply;
     int netdb_gunk = 0;
+    u_num32 flags = 0;
 
     header.opcode = headerp->opcode;
     header.version = headerp->version;
@@ -1175,10 +1176,10 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    break;
 	}
 	if (header.flags & ICP_FLAG_NETDB_GUNK) {
-	    int rtt, hops;
-	    rtt = netdbHostRtt(icp_request->host);
-	    hops = netdbHostHops(icp_request->host);
+	    int rtt = netdbHostRtt(icp_request->host);
+	    int hops = netdbHostHops(icp_request->host);
 	    netdb_gunk = htonl(((hops & 0xFFFF) << 16) | (rtt & 0xFFFF));
+	    flags |= ICP_FLAG_NETDB_GUNK;
 	}
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
@@ -1198,20 +1199,20 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 		storeRelease(entry);
 		safe_free(icpHitObjState);
 	    } else {
-		reply = icpCreateMessage(ICP_OP_HIT, 0, url, header.reqnum, netdb_gunk);
+		reply = icpCreateMessage(ICP_OP_HIT, flags, url, header.reqnum, netdb_gunk);
 		icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
 		break;
 	    }
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
-	    reply = icpCreateMessage(ICP_OP_RELOADING, 0, url, header.reqnum, netdb_gunk);
+	    reply = icpCreateMessage(ICP_OP_RELOADING, flags, url, header.reqnum, netdb_gunk);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
-	    reply = icpCreateMessage(ICP_OP_RELOADING, 0, url, header.reqnum, netdb_gunk);
+	    reply = icpCreateMessage(ICP_OP_RELOADING, flags, url, header.reqnum, netdb_gunk);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, icp_request->protocol);
 	} else {
-	    reply = icpCreateMessage(ICP_OP_MISS, 0, url, header.reqnum, netdb_gunk);
+	    reply = icpCreateMessage(ICP_OP_MISS, flags, url, header.reqnum, netdb_gunk);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS, icp_request->protocol);
 	}
 	break;
@@ -1835,6 +1836,7 @@ asciiHandleConn(int sock, void *notused)
     icpState->me = me;
     icpState->entry = NULL;
     icpState->fd = fd;
+    icpState->ident.fd = -1;
     fd_note(fd, inet_ntoa(icpState->log_addr));
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
     commSetSelect(fd,

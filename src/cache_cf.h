@@ -229,6 +229,7 @@ struct SquidConfig {
 	struct in_addr client_netmask;
     } Addrs;
     int tcpRcvBufsz;
+    int udpMaxHitObjsz;
     wordlist *cache_dirs;
     wordlist *cache_stoplist;
     wordlist *hierarchy_stoplist;

@@ -974,6 +974,14 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #
 #udp_hit_obj off
 
+#  TAG: udp_hit_obj_size
+#
+#     If set, Squid will limit UDP_HIT_OBJ size to be less than
+#     this value.  Setting this value to more than SQUID_UDP_SO_SNDBUF
+#     will not work as expected.  Set to zero to select the size
+#     permited by the socket.
+#udp_hit_obj_size     0
+
 #  TAG: memory_pools on|off
 #	If set, Squid will keep pools of allocated (but unused) memory
 #	available for future use.  If memory is a premium on your

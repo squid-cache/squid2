@@ -497,6 +497,8 @@ describeTimeSince(time_t then)
 	delta = (-delta);
 	fmt = "in %s";
     }
+    if (then < 0)
+	return "NEVER";
     if (delta < ONE_MINUTE)
 	sprintf(buf, "%ds", (int) (delta / ONE_SECOND));
     else if (delta < ONE_HOUR)
