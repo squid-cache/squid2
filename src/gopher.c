@@ -72,6 +72,8 @@ static int gopherStateFree(fd, gopherState)
 {
     if (gopherState == NULL)
 	return 1;
+    if (gopherState->entry)
+        storeUnlockObject(gopherState->entry);
     put_free_4k_page(gopherState->buf);
     xfree(gopherState);
     return 0;
@@ -853,7 +855,7 @@ int gopherStart(unusedfd, url, entry)
     int sock, status;
     GopherData *data = CreateGopherData();
 
-    data->entry = entry;
+    storeLockObject(data->entry = entry, NULL, NULL);
 
     debug(10, 3, "gopherStart: url: %s\n", url);
 

@@ -28,6 +28,7 @@ static int httpStateFree(fd, httpState)
 {
     if (httpState == NULL)
 	return 1;
+    storeUnlockObject(httpState->entry);
     if (httpState->reply_hdr) {
 	put_free_8k_page(httpState->reply_hdr);
 	httpState->reply_hdr = NULL;
@@ -553,7 +554,7 @@ int proxyhttpStart(e, url, entry)
 	return COMM_ERROR;
     }
     data = xcalloc(1, sizeof(HttpData));
-    data->entry = entry;
+    storeLockObject(data->entry = entry, NULL, NULL);
     data->req_hdr = entry->mem_obj->mime_hdr;
     request = xcalloc(1, sizeof(request_t));
     data->request = request;
@@ -627,7 +628,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
 	return COMM_ERROR;
     }
     data = xcalloc(1, sizeof(HttpData));
-    data->entry = entry;
+    storeLockObject(data->entry = entry, NULL, NULL);
     data->req_hdr = req_hdr;
     data->request = request;
     request->link_count++;

@@ -59,6 +59,7 @@ static int ftpStateFree(fd, ftpState)
 {
     if (ftpState == NULL)
 	return 1;
+    storeUnlockObject(ftpState->entry);
     if (ftpState->reply_hdr) {
 	put_free_8k_page(ftpState->reply_hdr);
 	ftpState->reply_hdr = NULL;
@@ -563,7 +564,7 @@ int ftpStart(unusedfd, url, request, entry)
     debug(9, 3, "FtpStart: FD %d <URL:%s>\n", unusedfd, url);
 
     data = xcalloc(1, sizeof(FtpData));
-    data->entry = entry;
+    storeLockObject(data->entry = entry, NULL, NULL);
     data->request = request;
     request->link_count++;
 

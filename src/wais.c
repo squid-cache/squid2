@@ -23,6 +23,7 @@ static int waisStateFree(fd, waisState)
 {
     if (waisState == NULL)
 	return 1;
+    storeUnlockObject(waisState->entry);
     xfree(waisState);
     return 0;
 }
@@ -251,7 +252,7 @@ int waisStart(unusedfd, url, method, mime_hdr, entry)
 	return COMM_ERROR;
     }
     data = xcalloc(1, sizeof(WAISData));
-    data->entry = entry;
+    storeLockObject(data->entry = entry, NULL, NULL);
     data->method = method;
     data->relayhost = getWaisRelayHost();
     data->relayport = getWaisRelayPort();
