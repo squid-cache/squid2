@@ -132,7 +132,8 @@ EXTRA_DIST = \
 	INSTALL \
 	QUICKSTART \
 	README \
-	SPONSORS
+	SPONSORS \
+	bootstrap.sh
 
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4

@@ -218,6 +218,7 @@ squid_SOURCES = \
 	errorpage.c \
 	ETag.c \
 	event.c \
+	external_acl.c \
 	fd.c \
 	filemap.c \
 	forward.c \
@@ -453,10 +454,11 @@ am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	client_db.$(OBJEXT) client_side.$(OBJEXT) comm.$(OBJEXT) \
 	comm_select.$(OBJEXT) debug.$(OBJEXT) $(am__objects_3) \
 	disk.$(OBJEXT) $(am__objects_4) errorpage.$(OBJEXT) \
-	ETag.$(OBJEXT) event.$(OBJEXT) fd.$(OBJEXT) filemap.$(OBJEXT) \
-	forward.$(OBJEXT) fqdncache.$(OBJEXT) ftp.$(OBJEXT) \
-	gopher.$(OBJEXT) helper.$(OBJEXT) $(am__objects_5) \
-	http.$(OBJEXT) HttpStatusLine.$(OBJEXT) HttpHdrCc.$(OBJEXT) \
+	ETag.$(OBJEXT) event.$(OBJEXT) external_acl.$(OBJEXT) \
+	fd.$(OBJEXT) filemap.$(OBJEXT) forward.$(OBJEXT) \
+	fqdncache.$(OBJEXT) ftp.$(OBJEXT) gopher.$(OBJEXT) \
+	helper.$(OBJEXT) $(am__objects_5) http.$(OBJEXT) \
+	HttpStatusLine.$(OBJEXT) HttpHdrCc.$(OBJEXT) \
 	HttpHdrRange.$(OBJEXT) HttpHdrContRange.$(OBJEXT) \
 	HttpHeader.$(OBJEXT) HttpHeaderTools.$(OBJEXT) \
 	HttpBody.$(OBJEXT) HttpMsg.$(OBJEXT) HttpReply.$(OBJEXT) \
@@ -520,23 +522,23 @@ depcomp = $(SHELL) $(top_srcdir)/cfgaux/depcomp
 @AMDEP_TRUE@	$(DEPDIR)/disk.Po $(DEPDIR)/dns.Po \
 @AMDEP_TRUE@	$(DEPDIR)/dns_internal.Po $(DEPDIR)/dnsserver.Po \
 @AMDEP_TRUE@	$(DEPDIR)/errorpage.Po $(DEPDIR)/event.Po \
-@AMDEP_TRUE@	$(DEPDIR)/fd.Po $(DEPDIR)/filemap.Po \
-@AMDEP_TRUE@	$(DEPDIR)/forward.Po $(DEPDIR)/fqdncache.Po \
-@AMDEP_TRUE@	$(DEPDIR)/ftp.Po $(DEPDIR)/globals.Po \
-@AMDEP_TRUE@	$(DEPDIR)/gopher.Po $(DEPDIR)/helper.Po \
-@AMDEP_TRUE@	$(DEPDIR)/htcp.Po $(DEPDIR)/http.Po \
-@AMDEP_TRUE@	$(DEPDIR)/icmp.Po $(DEPDIR)/icp_v2.Po \
-@AMDEP_TRUE@	$(DEPDIR)/icp_v3.Po $(DEPDIR)/ident.Po \
-@AMDEP_TRUE@	$(DEPDIR)/internal.Po $(DEPDIR)/ipc.Po \
-@AMDEP_TRUE@	$(DEPDIR)/ipcache.Po $(DEPDIR)/leakfinder.Po \
-@AMDEP_TRUE@	$(DEPDIR)/logfile.Po $(DEPDIR)/main.Po \
-@AMDEP_TRUE@	$(DEPDIR)/mem.Po $(DEPDIR)/mime.Po \
-@AMDEP_TRUE@	$(DEPDIR)/multicast.Po $(DEPDIR)/neighbors.Po \
-@AMDEP_TRUE@	$(DEPDIR)/net_db.Po $(DEPDIR)/pconn.Po \
-@AMDEP_TRUE@	$(DEPDIR)/peer_digest.Po $(DEPDIR)/peer_select.Po \
-@AMDEP_TRUE@	$(DEPDIR)/pinger.Po $(DEPDIR)/redirect.Po \
-@AMDEP_TRUE@	$(DEPDIR)/referer.Po $(DEPDIR)/refresh.Po \
-@AMDEP_TRUE@	$(DEPDIR)/repl_modules.Po \
+@AMDEP_TRUE@	$(DEPDIR)/external_acl.Po $(DEPDIR)/fd.Po \
+@AMDEP_TRUE@	$(DEPDIR)/filemap.Po $(DEPDIR)/forward.Po \
+@AMDEP_TRUE@	$(DEPDIR)/fqdncache.Po $(DEPDIR)/ftp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/globals.Po $(DEPDIR)/gopher.Po \
+@AMDEP_TRUE@	$(DEPDIR)/helper.Po $(DEPDIR)/htcp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/http.Po $(DEPDIR)/icmp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/icp_v2.Po $(DEPDIR)/icp_v3.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ident.Po $(DEPDIR)/internal.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ipc.Po $(DEPDIR)/ipcache.Po \
+@AMDEP_TRUE@	$(DEPDIR)/leakfinder.Po $(DEPDIR)/logfile.Po \
+@AMDEP_TRUE@	$(DEPDIR)/main.Po $(DEPDIR)/mem.Po \
+@AMDEP_TRUE@	$(DEPDIR)/mime.Po $(DEPDIR)/multicast.Po \
+@AMDEP_TRUE@	$(DEPDIR)/neighbors.Po $(DEPDIR)/net_db.Po \
+@AMDEP_TRUE@	$(DEPDIR)/pconn.Po $(DEPDIR)/peer_digest.Po \
+@AMDEP_TRUE@	$(DEPDIR)/peer_select.Po $(DEPDIR)/pinger.Po \
+@AMDEP_TRUE@	$(DEPDIR)/redirect.Po $(DEPDIR)/referer.Po \
+@AMDEP_TRUE@	$(DEPDIR)/refresh.Po $(DEPDIR)/repl_modules.Po \
 @AMDEP_TRUE@	$(DEPDIR)/send-announce.Po $(DEPDIR)/snmp_agent.Po \
 @AMDEP_TRUE@	$(DEPDIR)/snmp_core.Po $(DEPDIR)/ssl.Po \
 @AMDEP_TRUE@	$(DEPDIR)/ssl_support.Po $(DEPDIR)/stat.Po \
@@ -703,6 +705,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dnsserver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/errorpage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/event.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/external_acl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/fd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/filemap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/forward.Po@am__quote@
