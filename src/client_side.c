@@ -933,9 +933,10 @@ connStateFree(int fd, void *data)
 	authenticateAuthUserRequestUnlock(connState->auth_user_request);
     connState->auth_user_request = NULL;
     authenticateOnCloseConnection(connState);
-    if (connState->in.size == CLIENT_REQ_BUF_SZ)
+    if (connState->in.size == CLIENT_REQ_BUF_SZ) {
 	memFree(connState->in.buf, MEM_CLIENT_REQ_BUF);
-    else
+	connState->in.buf = NULL;
+    } else
 	safe_free(connState->in.buf);
     /* XXX account connState->in.buf */
     pconnHistCount(0, connState->nrequests);
@@ -3003,9 +3004,15 @@ clientReadRequest(int fd, void *data)
 	}
 	/* Continue to process previously read data */
     }
+    cbdataLock(conn);		/* clientProcessBody might pull the connection under our feets */
     /* Process request body if any */
-    if (conn->in.offset > 0 && conn->body.callback != NULL)
+    if (conn->in.offset > 0 && conn->body.callback != NULL) {
 	clientProcessBody(conn);
+	if (!cbdataValid(conn)) {
+	    cbdataUnlock(conn);
+	    return;
+	}
+    }
     /* Process next request */
     while (conn->in.offset > 0 && conn->body.size_left == 0) {
 	int nrequests;
@@ -3175,7 +3182,6 @@ clientReadRequest(int fd, void *data)
 		break;
 	    } else {
 		clientAccessCheck(http);
-		continue;	/* while offset > 0 && body.size_left == 0 */
 	    }
 	} else if (parser_return_code == 0) {
 	    /*
@@ -3195,11 +3201,15 @@ clientReadRequest(int fd, void *data)
 		*H = http;
 		http->entry = clientCreateStoreEntry(http, METHOD_NONE, null_request_flags);
 		errorAppendEntry(http->entry, err);
-		return;
 	    }
 	    break;
 	}
+	if (!cbdataValid(conn)) {
+	    cbdataUnlock(conn);
+	    return;
+	}
     }				/* while offset > 0 && conn->body.size_left == 0 */
+    cbdataUnlock(conn);
     /* Check if a half-closed connection was aborted in the middle */
     if (F->flags.socket_eof) {
 	if (conn->in.offset != conn->body.size_left) {	/* != 0 when no request body */
