@@ -443,7 +443,6 @@ storeDirWriteCleanLogs(int reopen)
     double dt;
     SwapDir *sd;
     int dirn;
-    int N = Config.cacheSwap.n_configured;
 #if HEAP_REPLACEMENT
     int node;
 #else
