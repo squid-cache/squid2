@@ -245,7 +245,6 @@ static void storeSetPrivateKey _PARAMS((StoreEntry *));
 static void storeDoRebuildFromDisk _PARAMS((void *data));
 static void storeRebuiltFromDisk _PARAMS((struct storeRebuild_data * data));
 static unsigned int getKeyCounter _PARAMS((void));
-static time_t storeExpiredReferenceAge _PARAMS((void));
 
 /* Now, this table is inaccessible to outsider. They have to use a method
  * to access a value in internal storage data structure. */
@@ -2779,7 +2778,7 @@ storeCheckExpired(const StoreEntry * e)
 }
 
 /* gnuplot> plot 724**((x)+1)*60  */
-static time_t
+time_t
 storeExpiredReferenceAge(void)
 {
     int half;

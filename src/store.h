@@ -316,7 +316,7 @@ extern int storeEntryValidToSend _PARAMS((StoreEntry *));
 extern int storeFirstClientFD _PARAMS((MemObject * mem));
 extern void storeTimestampsSet _PARAMS((StoreEntry *));
 extern unsigned int storeReqnum _PARAMS((StoreEntry * entry, method_t));
-
+extern time_t storeExpiredReferenceAge _PARAMS((void));
 
 #ifdef __STDC__
 extern void storeAppendPrintf _PARAMS((StoreEntry *, const char *,...));
