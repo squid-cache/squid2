@@ -278,7 +278,7 @@ fqdncacheParse(rfc1035_rr * answers, int nr)
     int k;
     int na = 0;
     memset(&f, '\0', sizeof(f));
-    f.expires = squid_curtime;
+    f.expires = squid_curtime + Config.negativeDnsTtl;
     f.flags.negcached = 1;
     if (nr < 0) {
 	debug(35, 3) ("fqdncacheParse: Lookup failed (error %d)\n",
