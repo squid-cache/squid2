@@ -65,6 +65,8 @@ static void passConnectDone _PARAMS((int fd, int status, void *data));
 static void passStateFree _PARAMS((int fd, void *data));
 static void passSelectNeighbor _PARAMS((int, const ipcache_addrs *, void *));
 
+static char crlf[] = "\r\n";
+
 static void
 passClose(PassStateData * passState)
 {
@@ -287,24 +289,97 @@ static void
 passConnected(int fd, void *data)
 {
     PassStateData *passState = data;
+    char *ybuf = NULL;
+    char *xbuf = NULL;
+    char *viabuf = NULL;
+    char *t = NULL;
+    char *s = NULL;
+    int l;
+    int hdr_len;
+    int saw_host = 0;
+    int content_length = 0;
+    int buflen = SQUID_TCP_SO_RCVBUF >> 1;
     debug(39, 3, "passConnected: FD %d passState=%p\n", fd, passState);
     if (passState->proxying) {
-	sprintf(passState->client.buf, "%s %s HTTP/1.0",
+	sprintf(passState->client.buf, "%s %s HTTP/1.0\r\n",
 	    RequestMethodStr[passState->request->method],
 	    passState->url);
     } else {
-	sprintf(passState->client.buf, "%s %s HTTP/1.0",
+	sprintf(passState->client.buf, "%s %s HTTP/1.0\r\n",
 	    RequestMethodStr[passState->request->method],
 	    passState->request->urlpath);
     }
     passState->client.len = strlen(passState->client.buf);
-    /* Careful here, assume passState->buf passed in from icp is
-     * no larger than 4k and that client.buf is at least 16k */
-    /* sigh, not filtering any headers here */
+    /* passState->buf is the request header; parse it */
+    xbuf = get_free_4k_page();
+    for (t = passState->buf; *t; t += strcspn(t, "\n\r")) {
+	if (strncmp(t, "\r\n\r\n", 4) == 0 || strncmp(t, "\n\n", 2) == 0)
+	    break;
+	while (isspace(*t))
+	    t++;
+	hdr_len = t - passState->buf;
+	if (passState->buflen - hdr_len <= content_length)
+	    break;
+	if (strncasecmp(t, "Proxy-Connection:", 17) == 0)
+	    continue;
+	if (strncasecmp(t, "Connection:", 11) == 0)
+	    continue;
+	if (strncasecmp(t, "Host:", 5) == 0)
+	    saw_host = 1;
+	if (strncasecmp(t, "Content-length:", 15) == 0) {
+	    for (s = t + 15; *s && isspace(*s); s++);
+	    content_length = atoi(s);
+	}
+	if (strncasecmp(t, "Via:", 4) == 0) {
+	    viabuf = get_free_4k_page();
+	    xstrncpy(viabuf, t, 4096);
+	    strcat(viabuf, ", ");
+	    continue;
+	}
+	/* just ignore any If-Modified-Since headers */
+	l = strcspn(t, "\n\r") + 1;
+	if (l > 4096)
+	    l = 4096;
+	xstrncpy(xbuf, t, l);
+	l = strlen(xbuf);
+	if (passState->client.len + l > buflen)
+	    break;		/* out of room */
+	debug(39, 3, "passConnected: Appending Header: '%s'\n", xbuf);
+	strcat(passState->client.buf + passState->client.len, xbuf);
+	strcat(passState->client.buf + passState->client.len, crlf);
+	passState->client.len += (l + 2);
+    }
+
+    /* Add Via: header */
+    if (viabuf == NULL) {
+	viabuf = get_free_4k_page();
+	strcpy(viabuf, "Via: ");
+    }
+    ybuf = get_free_4k_page();
+    sprintf(ybuf, "%3.1f %s:%d (Squid/%s)\r\n",
+	passState->request->http_ver,
+	getMyHostname(),
+	(int) Config.Port.http,
+	SQUID_VERSION);
+    strcat(viabuf, ybuf);
+    strcat(passState->client.buf + passState->client.len, viabuf);
+    passState->client.len += strlen(viabuf);
+    put_free_4k_page(viabuf);
+    put_free_4k_page(ybuf);
+    viabuf = ybuf = NULL;
+    if (!saw_host) {
+	ybuf = get_free_4k_page();
+	sprintf(ybuf, "Host: %s\r\n", passState->request->host);
+	strcat(passState->client.buf + passState->client.len, ybuf);
+	passState->client.len += strlen(ybuf);
+	put_free_4k_page(ybuf);
+    }
+    debug(0, 0, "pass: request header:\n%s\n", passState->client.buf);
+
     memcpy(passState->client.buf + passState->client.len,
-	passState->buf,
-	passState->buflen);
-    passState->client.len += passState->buflen;
+	passState->buf + hdr_len,
+	passState->buflen - hdr_len);
+    passState->client.len += passState->buflen - hdr_len;
     passState->client.offset = 0;
     commSetSelect(passState->server.fd,
 	COMM_SELECT_WRITE,
@@ -498,7 +573,6 @@ passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
     } else if ((e = getFirstUpParent(request))) {
 	hierarchyNote(request, HIER_FIRSTUP_PARENT, 0, e->host);
     }
-
     passState->proxying = e ? 1 : 0;
     passState->host = e ? e->host : request->host;
     passState->port = e ? e->http_port : request->port;
