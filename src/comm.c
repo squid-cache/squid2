@@ -227,7 +227,8 @@ commBind(int s, struct in_addr in_addr, u_short port)
     debug(50, 0, "commBind: Cannot bind socket FD %d to %s:%d: %s\n",
 	s,
 	S.sin_addr.s_addr == INADDR_ANY ? "*" : inet_ntoa(S.sin_addr),
-	port, xstrerror());
+	(int) port,
+	xstrerror());
     return COMM_ERROR;
 }
 
