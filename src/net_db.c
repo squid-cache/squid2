@@ -1064,7 +1064,8 @@ netdbExchangeStart(void *data)
     storeClientListAdd(ex->e, ex);
     storeClientCopy(ex->e, ex->seen, ex->used, ex->buf_sz,
 	ex->buf, netdbExchangeHandleReply, ex);
-    httpStart(ex->r, ex->e, NULL);
+    EBIT_SET(ex->r->flags, REQ_LOOPDETECT);	/* cheat! -- force direct */
+    fwdStart(-1, ex->e, ex->r);
 #endif
 }
 
