@@ -436,7 +436,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    || httpHeaderHas(&reply->header, HDR_X_ACCELERATOR_VARY)
 #endif
 	    ) {
-	    const char *vary = httpMakeVaryMark(httpState->request, reply);
+	    const char *vary = httpMakeVaryMark(httpState->orig_request, reply);
 	    if (vary) {
 		entry->mem_obj->vary_headers = xstrdup(vary);
 		/* Kill the old base object if a change in variance is detected */
