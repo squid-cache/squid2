@@ -280,7 +280,16 @@ AC_ARG_WITH(aufs-threads,
 [  --with-aufs-threads=N_THREADS
                           Tune the number of worker threads for the aufs object
                           store.],
-[ aufs_io_threads=$withval ])
+[ case $withval in
+  [[0-9]]*)
+    aufs_io_threads=$withval
+    ;;
+  *)
+    echo "ERROR: Invalid --with-aufs-threads argument"
+    exit 1
+    ;;
+  esac
+])
 if test "$aufs_io_threads"; then
     echo "With $aufs_io_threads aufs threads"
     AC_DEFINE_UNQUOTED(AUFS_IO_THREADS,$aufs_io_threads)
