@@ -96,9 +96,7 @@ error_data ErrorData[] =
 char *tmp_error_buf;
 
 /* LOCAL */
-static char *tbuf;
-
-int log_errors = 1;
+static char *tbuf = NULL;
 
 void errorInitialize()
 {
@@ -106,7 +104,6 @@ void errorInitialize()
     tbuf = xmalloc(MAX_URL * 3);
     meta_data.misc += MAX_URL * 7;
 }
-
 
 void squid_error_entry(entry, type, msg)
      StoreEntry *entry;
@@ -168,8 +165,7 @@ char *squid_error_url(url, method, type, address, code, msg)
 	appname,
 	version_string,
 	getMyHostname());
-    if (!log_errors)
-	return tmp_error_buf;
+    strcat(tmp_error_buf, tbuf);
     return tmp_error_buf;
 }
 
@@ -195,7 +191,7 @@ char *squid_error_request(request, type, address, code)
 {
     *tmp_error_buf = '\0';
     if (type < ERR_MIN || type > ERR_MAX)
-	fatal_dump("squid_error_url: type out of range.");
+	fatal_dump("squid_error_request: type out of range.");
 
     sprintf(tmp_error_buf, "HTTP/1.0 %d Cache Detected Error\r\nContent-type: text/html\r\n\r\n", code);
     sprintf(tbuf, SQUID_REQUEST_ERROR_MSG,
@@ -204,8 +200,6 @@ char *squid_error_request(request, type, address, code)
 	version_string,
 	getMyHostname());
     strcat(tmp_error_buf, tbuf);
-    if (!log_errors)
-	return tmp_error_buf;
     return tmp_error_buf;
 }
 
