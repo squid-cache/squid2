@@ -456,21 +456,22 @@ httpReadReply(int fd, void *data)
 	IOStats.Http.read_hist[bin]++;
     }
     if (len < 0) {
-	if (ignoreErrno(errno)) {
-	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
-	} else {
-	    if (clen == 0) {
-		err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
-		err->xerrno = errno;
-		err->request = requestLink(httpState->orig_request);
-		errorAppendEntry(entry, err);
-	    } else {
-		storeAbort(entry, 0);
-	    }
-	    comm_close(fd);
-	}
 	debug(50, 2) ("httpReadReply: FD %d: read failure: %s.\n",
 	    fd, xstrerror());
+	if (ignoreErrno(errno)) {
+	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
+	} else if (entry->mem_obj->inmem_hi == 0 && httpTryRestart(httpState)) {
+	    httpRestart(httpState);
+	} else if (clen == 0) {
+	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
+	    err->xerrno = errno;
+	    err->request = requestLink(httpState->orig_request);
+	    errorAppendEntry(entry, err);
+	   comm_close(fd);
+	} else {
+	    storeAbort(entry, 0);
+	    comm_close(fd);
+	}
     } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {
 	if (httpTryRestart(httpState)) {
 	    httpRestart(httpState);
