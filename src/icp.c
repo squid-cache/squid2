@@ -110,7 +110,7 @@ int neighbors_do_private_keys = 1;
 
 char *log_tags[] =
 {
-    "LOG_NONE",
+    "NONE",
     "TCP_HIT",
     "TCP_MISS",
     "TCP_EXPIRED_HIT",
