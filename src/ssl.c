@@ -240,7 +240,7 @@ sslReadClient(int fd, void *data)
     }
     cbdataLock(sslState);
     if (len < 0) {
-	debug(50, 1) ("sslReadClient: FD %d: read failure: %s\n",
+	debug(50, ECONNRESET == errno ? 3 : 1) ("sslReadClient: FD %d: read failure: %s\n",
 	    fd, xstrerror());
 	if (!ignoreErrno(errno))
 	    comm_close(fd);
