@@ -919,7 +919,6 @@ parseAnnounceToLine(void)
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    Config.Announce.on = 1;
     safe_free(Config.Announce.host);
     Config.Announce.host = xstrdup(token);
     if ((token = strchr(Config.Announce.host, ':'))) {
