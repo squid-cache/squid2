@@ -2624,7 +2624,7 @@ NAME: wccp_router
 TYPE: address
 LOC: Config.Wccp.router
 DEFAULT: 0.0.0.0
-IFDEF: WCCP
+IFDEF: USE_WCCP
 DOC_START
 	Specifies the router that will manage WCCP for this
 	cache.
@@ -2634,15 +2634,15 @@ DOC_END
 
 NAME: wccp_incoming_address
 TYPE: address
-LOC: Config.Addrs.wccp_outgoing
+LOC: Config.Wccp.incoming
 DEFAULT: 0.0.0.0
-IFDEF: WCCP
+IFDEF: USE_WCCP
 DOC_NONE
 NAME: wccp_outgoing_address
 TYPE: address
-LOC: Config.Addrs.wccp_outgoing
+LOC: Config.Wccp.outgoing
 DEFAULT: 255.255.255.255
-IFDEF: WCCP
+IFDEF: USE_WCCP
 DOC_START
         Just like 'udp_incoming_address' above, but for the WCCP port.
 

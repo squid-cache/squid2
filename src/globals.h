@@ -98,10 +98,6 @@ extern int theInSnmpConnection;	/* -1 */
 extern int theOutSnmpConnection;	/* -1 */
 extern char *snmp_agentinfo;
 #endif
-#ifdef WCCP
-extern int theInWccpConnection;	/* -1 */
-extern int theOutWccpConnection;	/* -1 */
-#endif
 extern int vhost_mode;		/* 0 */
 extern int n_disk_objects;	/* 0 */
 extern iostats IOStats;
