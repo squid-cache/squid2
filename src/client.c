@@ -203,6 +203,9 @@ main(int argc, char *argv[])
 		xstrerror());
 	    exit(-1);
 	}
+#if defined(_SQUID_CYGWIN_)
+	setmode(put_fd, O_BINARY);
+#endif
 	fstat(put_fd, &sb);
     }
     snprintf(msg, BUFSIZ, "%s %s HTTP/1.0\r\n", method, url);
