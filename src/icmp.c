@@ -84,6 +84,10 @@ icmpRecv(int unused1, void *unused2)
 	    icmpClose();
 	return;
     }
+    if (n == 0) {
+	debug(37, 1) ("icmpRecv: pinger process disappeared?\n");
+	icmpClose();
+    }
     fail_count = 0;
     if (n == 0)			/* test probe from pinger */
 	return;
@@ -118,7 +122,7 @@ icmpSend(pingerEchoData * pkt, int len)
     x = send(icmp_sock, (char *) pkt, len, 0);
     if (x < 0) {
 	debug(50, 1) ("icmpSend: send: %s\n", xstrerror());
-	if (errno == ECONNREFUSED) {
+	if (errno == ECONNREFUSED || errno == EPIPE) {
 	    icmpClose();
 	    return;
 	}
