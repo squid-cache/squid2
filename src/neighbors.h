@@ -185,6 +185,7 @@ struct _peer {
     int weight;
     int mcast_ttl;
     int tcp_up;			/* 0 if a connect() fails */
+    time_t last_fail_time;
     struct in_addr addresses[10];
     int n_addresses;
     struct _peer *next;

@@ -946,6 +946,8 @@ peerDestroy(peer * e)
     struct _domain_ping *nl = NULL;
     if (e == NULL)
 	return;
+    if (!e->tcp_up)
+	eventDelete(peerCheckConnect, e);
     for (l = e->pinglist; l; l = nl) {
 	nl = l->next;
 	safe_free(l->domain);
@@ -1054,9 +1056,11 @@ void
 peerCheckConnectDone(int fd, int status, void *data)
 {
     peer *p = data;
-    if (p->tcp_up && status != COMM_OK)
+    if (p->tcp_up && status != COMM_OK) {
 	debug(15, 0, "TCP connection to %s/%d failed\n",
 	    p->host, p->http_port);
+	p->last_fail_time = squid_curtime;
+    }
     p->tcp_up = status == COMM_OK ? 1 : 0;
     if (p->tcp_up)
 	debug(15, 0, "TCP connection to %s/%d succeeded\n",
