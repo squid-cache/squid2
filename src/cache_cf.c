@@ -236,6 +236,7 @@ configDoConfigure(void)
 	Config.Announce.period = 86400 * 365;	/* one year */
 	Config.onoff.announce = 0;
     }
+#if USE_DNSSERVER
     if (Config.dnsChildren < 1)
 	fatal("No dnsservers allocated");
     if (Config.dnsChildren > DefaultDnsChildrenMax) {
@@ -245,6 +246,7 @@ configDoConfigure(void)
 	    DefaultDnsChildrenMax);
 	Config.dnsChildren = DefaultDnsChildrenMax;
     }
+#endif
     if (Config.Program.redirect) {
 	if (Config.redirectChildren < 1) {
 	    Config.redirectChildren = 0;
@@ -319,7 +321,9 @@ configDoConfigure(void)
     }
 #endif
     requirePathnameExists("MIME Config Table", Config.mimeTablePathname);
+#if USE_DNSSERVER
     requirePathnameExists("cache_dns_program", Config.Program.dnsserver);
+#endif
     requirePathnameExists("unlinkd_program", Config.Program.unlinkd);
     if (Config.Program.redirect)
 	requirePathnameExists("redirect_program", Config.Program.redirect->key);

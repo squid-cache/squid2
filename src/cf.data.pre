@@ -870,6 +870,7 @@ DOC_END
 
 NAME: cache_dns_program
 TYPE: string
+IFDEF: USE_DNSSERVER
 DEFAULT: @DEFAULT_DNSSERVER@
 LOC: Config.Program.dnsserver
 DOC_START
@@ -880,6 +881,7 @@ DOC_END
 
 NAME: dns_children
 TYPE: int
+IFDEF: USE_DNSSERVER
 DEFAULT: 5
 LOC: Config.dnsChildren
 DOC_START
@@ -888,9 +890,7 @@ DOC_START
 	probably increase this value to at least 10.  The maximum
 	is 32.  The default is 5.
 
-	To disable dnsservers, set this to 0.  NOTE, this is very
-	strongly discouraged.  If you disable dnsservers your Squid
-	process will BLOCK on DNS lookups!
+	You must have at least one dnsserver process.
 
 dns_children 5
 DOC_END
@@ -898,6 +898,7 @@ DOC_END
 
 NAME: dns_defnames
 COMMENT: on|off
+IFDEF: USE_DNSSERVER
 TYPE: onoff
 DEFAULT: off
 LOC: Config.onoff.res_defnames

@@ -308,13 +308,17 @@ struct _SquidConfig {
     char *effectiveUser;
     char *effectiveGroup;
     struct {
+#if USE_DNSSERVER
 	char *dnsserver;
+#endif
 	wordlist *redirect;
 	wordlist *authenticate;
 	char *pinger;
 	char *unlinkd;
     } Program;
+#if USE_DNSSERVER
     int dnsChildren;
+#endif
     int redirectChildren;
     int authenticateChildren;
     int authenticateTTL;
@@ -379,7 +383,9 @@ struct _SquidConfig {
     struct {
 	int log_udp;
 	int enable_purge;
+#if USE_DNSSERVER
 	int res_defnames;
+#endif
 	int anonymizer;
 	int client_db;
 	int query_icmp;
