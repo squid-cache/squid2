@@ -1,7 +1,35 @@
 /* include/autoconf.h.in.  Generated automatically from configure.in by autoheader.  */
 
+/* Define if using alloca.c.  */
+#undef C_ALLOCA
+
+/* Define to one of _getb67, GETB67, getb67 for Cray-2 and Cray-YMP systems.
+   This function is required for alloca.c support on those systems.  */
+#undef CRAY_STACKSEG_END
+
+/* Define if you have alloca, as a function or macro.  */
+#undef HAVE_ALLOCA
+
+/* Define if you have <alloca.h> and it should be used (not on Ultrix).  */
+#undef HAVE_ALLOCA_H
+
+/* If using the C implementation of alloca, define if you know the
+   direction of stack growth for your system; otherwise it will be
+   automatically deduced at run-time.
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown
+ */
+#undef STACK_DIRECTION
+
 /* Define if you have the ANSI C header files.  */
 #undef STDC_HEADERS
+
+/* Define struct tm has tm_gmtoff member */
+#undef HAVE_TM_GMTOFF
+
+/* Define struct mallinfo has mxfast member */
+#undef HAVE_EXT_MALLINFO
 
 /* The number of bytes in a int.  */
 #undef SIZEOF_INT
@@ -11,6 +39,12 @@
 
 /* Define if you have the getdtablesize function.  */
 #undef HAVE_GETDTABLESIZE
+
+/* Define if you have the mallinfo function.  */
+#undef HAVE_MALLINFO
+
+/* Define if you have the mallopt function.  */
+#undef HAVE_MALLOPT
 
 /* Define if you have the regcomp function.  */
 #undef HAVE_REGCOMP
@@ -33,6 +67,9 @@
 /* Define if you have the sysconf function.  */
 #undef HAVE_SYSCONF
 
+/* Define if you have the syslog function.  */
+#undef HAVE_SYSLOG
+
 /* Define if you have the timegm function.  */
 #undef HAVE_TIMEGM
 
@@ -41,6 +78,9 @@
 
 /* Define if you have the <arpa/inet.h> header file.  */
 #undef HAVE_ARPA_INET_H
+
+/* Define if you have the <bstring.h> header file.  */
+#undef HAVE_BSTRING_H
 
 /* Define if you have the <config.h> header file.  */
 #undef HAVE_CONFIG_H
@@ -72,6 +112,9 @@
 /* Define if you have the <string.h> header file.  */
 #undef HAVE_STRING_H
 
+/* Define if you have the <strings.h> header file.  */
+#undef HAVE_STRINGS_H
+
 /* Define if you have the <sys/dir.h> header file.  */
 #undef HAVE_SYS_DIR_H
 
@@ -81,8 +124,11 @@
 /* Define if you have the <sys/ndir.h> header file.  */
 #undef HAVE_SYS_NDIR_H
 
-/* Define if you have the <sys/syslog.h> header file.  */
-#undef HAVE_SYS_SYSLOG_H
+/* Define if you have the <sys/select.h> header file.  */
+#undef HAVE_SYS_SELECT_H
+
+/* Define if you have the <sys/syscall.h> header file.  */
+#undef HAVE_SYS_SYSCALL_H
 
 /* Define if you have the <sys/time.h> header file.  */
 #undef HAVE_SYS_TIME_H
@@ -95,3 +141,15 @@
 
 /* Define if you have the <unistd.h> header file.  */
 #undef HAVE_UNISTD_H
+
+/* Define if you have the bsd library (-lbsd).  */
+#undef HAVE_LIBBSD
+
+/* Define if you have the nsl library (-lnsl).  */
+#undef HAVE_LIBNSL
+
+/* Define if you have the resolv library (-lresolv).  */
+#undef HAVE_LIBRESOLV
+
+/* Define if you have the socket library (-lsocket).  */
+#undef HAVE_LIBSOCKET
