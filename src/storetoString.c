@@ -177,85 +177,16 @@ char *storeToString(e)
     sprintf(tmpbuf, "SwapFileNumber: %d\n", e->swap_file_number);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "Status: ");
-    switch (e->store_status) {
-
-    case STORE_OK:
-	strcat(tmpbuf, "STORE_OK\n");
-	break;
-
-    case STORE_PENDING:
-	strcat(tmpbuf, "STORE_PENDING\n");
-	break;
-
-    case STORE_ABORTED:
-	strcat(tmpbuf, "STORE_ABORTED\n");
-	break;
-
-    default:
-	strcat(tmpbuf, "UNKNOWN\n");
-	break;
-    }
+    sprintf(tmpbuf, "StoreStatus: %s", storeStatusStr[e->store_status]);
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "MemStatus: ");
-    switch (e->mem_status) {
-
-    case NOT_IN_MEMORY:
-	strcat(tmpbuf, "NOT_IN_MEMORY\n");
-	break;
-
-    case SWAPPING_IN:
-	strcat(tmpbuf, "SWAPPING_IN\n");
-	break;
-
-    case IN_MEMORY:
-	strcat(tmpbuf, "IN_MEMORY\n");
-	break;
-
-    default:
-	strcat(tmpbuf, "UNKNOWN\n");
-	break;
-    }
+    sprintf(tmpbuf, "MemStatus: %s", memStatusStr[e->mem_status]);
     strcat(stsbuf, tmpbuf);
 
-
-    sprintf(tmpbuf, "PingStatus: ");
-    switch (e->ping_status) {
-    case PING_WAITING:
-	strcat(tmpbuf, "WAITING\n");
-	break;
-    case PING_TIMEOUT:
-	strcat(tmpbuf, "TIMEOUT\n");
-	break;
-    case PING_DONE:
-	strcat(tmpbuf, "DONE\n");
-	break;
-    case PING_NONE:
-	strcat(tmpbuf, "NOPING\n");
-	break;
-    default:
-	strcat(tmpbuf, "UNKNOWN\n");
-	break;
-    }
+    sprintf(tmpbuf, "PingStatus: %s", pingStatusStr[e->ping_status]);
     strcat(stsbuf, tmpbuf);
 
-
-    sprintf(tmpbuf, "SwapStatus: ");
-    switch (e->swap_status) {
-    case NO_SWAP:
-	strcat(tmpbuf, "NO_SWAP\n");
-	break;
-    case SWAPPING_OUT:
-	strcat(tmpbuf, "SWAPPING_OUT\n");
-	break;
-    case SWAP_OK:
-	strcat(tmpbuf, "SWAP_OK\n");
-	break;
-    default:
-	strcat(tmpbuf, "UNKNOWN\n");
-	break;
-    }
+    sprintf(tmpbuf, "SwapStatus: %s", swapStatusStr[e->swap_status]);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "Method: %s", RequestMethodStr[e->method]);

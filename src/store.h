@@ -188,9 +188,8 @@ typedef struct _MemObject {
     request_t *request;
     SIH swapin_complete_handler;
     void *swapin_complete_data;
-    hier_code hierarchy_code;
-    char *hierarchy_host;
 } MemObject;
+
 typedef enum {
     NOT_IN_MEMORY,
     SWAPPING_IN,
@@ -215,6 +214,11 @@ typedef enum {
     SWAPPING_OUT,
     SWAP_OK
 } swap_status_t;
+
+extern char *memStatusStr[];
+extern char *pingStatusStr[];
+extern char *storeStatusStr[];
+extern char *swapStatusStr[];
 
 /* A cut down structure for store manager */
 struct sentry {
