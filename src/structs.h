@@ -1371,14 +1371,14 @@ struct _storeIOState {
 	} ufs;
 	struct {
 	    int fd;
-	    const char *read_buf;
-	    link_list *pending_writes;
 	    struct {
 		unsigned int close_request:1;
 		unsigned int reading:1;
 		unsigned int writing:1;
 		unsigned int opening:1;
 	    } flags;
+	    const char *read_buf;
+	    link_list *pending_writes;
 	} aufs;
     } type;
 };
