@@ -80,7 +80,7 @@ requestUnlink(request_t * request)
 {
     if (!request)
 	return;
-    assert(link_count > 0);
+    assert(request->link_count > 0);
     if (--request->link_count > 0)
 	return;
     requestDestroy(request);
