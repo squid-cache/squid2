@@ -203,7 +203,7 @@ static void httpLifetimeExpire(fd, httpState)
 static void httpMakePublic(entry)
      StoreEntry *entry;
 {
-    entry->expires = squid_curtime + ttlSet(entry);
+    ttlSet(entry);
     if (BIT_TEST(entry->flag, CACHABLE))
 	storeSetPublicKey(entry);
 }

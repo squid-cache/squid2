@@ -167,7 +167,7 @@ void ttlAddToList(pattern, abs_ttl, pct_age, age_max)
 
 
 
-time_t ttlSet(entry)
+void ttlSet(entry)
      StoreEntry *entry;
 {
     time_t last_modified = -1;
@@ -233,11 +233,11 @@ time_t ttlSet(entry)
 	    flags & TTL_ABSOLUTE ? 'A' : '.',
 	    flags & TTL_DEFAULT ? 'D' : '.',
 	    (double) ttl / 86400, entry->url);
-	return ttl;
+        entry->expires = squid_curtime + ttl;
+        entry->lastmod = last_modified > 0 ? last_modified : squid_curtime;
+	return;
     }
-    /*
-     * ** Calculate default TTL for later use
-     */
+    /*  Calculate default TTL for later use */
     if (request->protocol == PROTO_HTTP)
 	default_ttl = getHttpTTL();
     else if (request->protocol == PROTO_FTP)
@@ -296,5 +296,6 @@ time_t ttlSet(entry)
 	flags & TTL_DEFAULT ? 'D' : '.',
 	(double) ttl / 86400, entry->url);
 
-    return ttl;
+    entry->expires = squid_curtime + ttl;
+    entry->lastmod = last_modified > 0 ? last_modified : squid_curtime;
 }
