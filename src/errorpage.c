@@ -114,14 +114,14 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
     MemObject *mem = entry->mem_obj;
     int len;
     assert(entry->store_status == STORE_PENDING);
-#if WE_SHOULD_PROBABLY_REQUIRE_THIS
+    assert(mem != NULL);
     assert(mem->inmem_hi == 0);
-#endif
     buf = errorBuildBuf(err, &len);
     storeAppend(entry, buf, len);
-    if (mem)
-	mem->reply->code = err->http_status;
+    mem->reply->code = err->http_status;
     storeComplete(entry);
+    storeNegativeCache(entry);
+    storeReleaseRequest(entry);
     errorStateFree(err);
 }
 
