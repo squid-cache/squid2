@@ -382,7 +382,9 @@ hash_insert(HashID hid, const char *k, void *item)
     hash_link *new;
 
     if (!htbl[hid].valid)
-	return -1;
+	fatal_dump("hash_insert: invalid HashID");
+    if (k == NULL)
+	fatal_dump("hash_insert: NULL key");
 
     /* Add to the given hash table 'hid' */
     new = xcalloc(1, sizeof(hash_link));
@@ -539,8 +541,10 @@ hash_unlink(HashID hid, hash_link * hl, int FreeLink)
     hash_link *walker, *prev;
     int i;
 
-    if (!htbl[hid].valid || hl == NULL)
-	return 1;
+    if (!htbl[hid].valid)
+	fatal_dump("hash_unlink: Invalid HashID");
+    if (hl == NULL)
+	return -1;
 
     i = (htbl[hid].hash) (hl->key, hid);
     for (prev = NULL, walker = htbl[hid].buckets[i];
