@@ -31,6 +31,18 @@
 #ifndef NET_DB_H
 #define NET_DB_H
 
+typedef struct _net_db_name {
+    char *name;
+    struct _net_db_name *next;
+} net_db_name;
+
+typedef struct _net_db_peer {
+    char *peername;
+    double hops;
+    double rtt;
+    time_t expires;
+} net_db_peer;
+
 typedef struct _net_db {
     char *key;
     struct _net_db *next;
@@ -42,16 +54,8 @@ typedef struct _net_db {
     time_t next_ping_time;
     time_t last_use_time;
     int link_count;
-    struct _net_db_name {
-	char *name;
-	struct _net_db_name *next;
-    }           *hosts;
-    struct _net_db_peer {
-	char *peername;
-	double hops;
-	double rtt;
-	time_t expires;
-    }           *peers;
+    net_db_name *hosts;
+    net_db_peer *peers;
     int n_peers_alloc;
     int n_peers;
 } netdbEntry;

@@ -45,8 +45,8 @@ static void netdbHashDelete _PARAMS((const char *key));
 static void netdbHashLink _PARAMS((netdbEntry * n, const char *hostname));
 static void netdbHashUnlink _PARAMS((const char *key));
 static void netdbPurgeLRU _PARAMS((void));
-static struct _net_db_peer *netdbPeerByName _PARAMS((const netdbEntry * n, const char *));
-static struct _net_db_peer *netdbPeerAdd _PARAMS((netdbEntry * n, peer * e));
+static net_db_peer *netdbPeerByName _PARAMS((const netdbEntry * n, const char *));
+static net_db_peer *netdbPeerAdd _PARAMS((netdbEntry * n, peer * e));
 static char *netdbPeerName _PARAMS((const char *name));
 
 /* We have to keep a local list of peer names.  The Peers structure
@@ -81,7 +81,7 @@ netdbHashDelete(const char *key)
 static void
 netdbHashLink(netdbEntry * n, const char *hostname)
 {
-    struct _net_db_name *x = xcalloc(1, sizeof(struct _net_db_name));
+    net_db_name *x = xcalloc(1, sizeof(net_db_name));
     x->name = xstrdup(hostname);
     x->next = n->hosts;
     n->hosts = x;
@@ -127,8 +127,8 @@ netdbGetNext(HashID table)
 static void
 netdbRelease(netdbEntry * n)
 {
-    struct _net_db_name *x;
-    struct _net_db_name *next;
+    net_db_name *x;
+    net_db_name *next;
     for (x = n->hosts; x; x = next) {
 	next = x->next;
 	netdbHashUnlink(x->name);
@@ -232,12 +232,17 @@ networkFromInaddr(struct in_addr a)
 {
     struct in_addr b;
     b.s_addr = ntohl(a.s_addr);
+#if USE_CLASSFUL
     if (IN_CLASSC(b.s_addr))
 	b.s_addr &= IN_CLASSC_NET;
     else if (IN_CLASSB(b.s_addr))
 	b.s_addr &= IN_CLASSB_NET;
     else if (IN_CLASSA(b.s_addr))
 	b.s_addr &= IN_CLASSA_NET;
+#else
+    /* use /24 for everything */
+    b.s_addr &= IN_CLASSC_NET;
+#endif
     b.s_addr = htonl(b.s_addr);
     return b;
 }
@@ -253,11 +258,11 @@ sortByHops(netdbEntry ** n1, netdbEntry ** n2)
 	return 0;
 }
 
-static struct _net_db_peer *
+static net_db_peer *
 netdbPeerByName(const netdbEntry * n, const char *peername)
 {
     int i;
-    struct _net_db_peer *p = n->peers;
+    net_db_peer *p = n->peers;
     for (i = 0; i < n->n_peers; i++, p++) {
 	if (!strcmp(p->peername, peername))
 	    return p;
@@ -265,11 +270,11 @@ netdbPeerByName(const netdbEntry * n, const char *peername)
     return NULL;
 }
 
-static struct _net_db_peer *
+static net_db_peer *
 netdbPeerAdd(netdbEntry * n, peer * e)
 {
-    struct _net_db_peer *p;
-    struct _net_db_peer *o;
+    net_db_peer *p;
+    net_db_peer *o;
     int osize;
     int i;
     if (n->n_peers == n->n_peers_alloc) {
@@ -281,7 +286,7 @@ netdbPeerAdd(netdbEntry * n, peer * e)
 	    n->n_peers_alloc <<= 1;
 	debug(37, 3, "netdbPeerAdd: Growing peer list for '%s' to %d\n",
 	    n->network, n->n_peers_alloc);
-	n->peers = xcalloc(n->n_peers_alloc, sizeof(struct _net_db_peer));
+	n->peers = xcalloc(n->n_peers_alloc, sizeof(net_db_peer));
 	meta_data.netdb_peers += n->n_peers_alloc;
 	for (i = 0; i < osize; i++)
 	    *(n->peers + i) = *(o + i);
@@ -297,11 +302,11 @@ netdbPeerAdd(netdbEntry * n, peer * e)
 }
 
 static int
-sortPeerByHops(struct _net_db_peer *p1, struct _net_db_peer *p2)
+sortPeerByRtt(net_db_peer *p1, net_db_peer *p2)
 {
-    if (p1->hops > p2->hops)
+    if (p1->rtt > p2->rtt)
 	return 1;
-    else if (p1->hops < p2->hops)
+    else if (p1->rtt < p2->rtt)
 	return -1;
     else
 	return 0;
@@ -313,7 +318,7 @@ netdbSaveState(void *foo)
     LOCAL_ARRAY(char, path, SQUID_MAXPATHLEN);
     FILE *fp;
     netdbEntry *n;
-    struct _net_db_name *x;
+    net_db_name *x;
     sprintf(path, "%s/netdb_state", swappath(0));
     fp = fopen(path, "w");
     if (fp == NULL) {
@@ -469,7 +474,7 @@ netdbFreeMemory(void)
     netdbEntry **L1;
     hash_link *h;
     hash_link **L2;
-    struct _net_db_name *x;
+    net_db_name *x;
     int i = 0;
     int j;
     L1 = xcalloc(meta_data.netdb_addrs, sizeof(netdbEntry *));
@@ -530,11 +535,11 @@ netdbDump(StoreEntry * sentry)
 #if USE_ICMP
     netdbEntry *n;
     netdbEntry **list;
-    struct _net_db_name *x;
+    net_db_name *x;
     int k;
     int i;
     int j;
-    struct _net_db_peer *p;
+    net_db_peer *p;
     storeAppendPrintf(sentry, "{Network DB Statistics:\n");	/* } */
     storeAppendPrintf(sentry, "{%-16.16s %9s %7s %5s %s}\n",
 	"Network",
@@ -552,7 +557,7 @@ netdbDump(StoreEntry * sentry)
     qsort((char *) list,
 	i,
 	sizeof(netdbEntry *),
-	(QS) sortByHops);
+	(QS) sortByRtt);
     for (k = 0; k < i; k++) {
 	n = *(list + k);
 	storeAppendPrintf(sentry, "{%-16.16s %4d/%4d %7.1f %5.1f",	/* } */
@@ -606,7 +611,7 @@ netdbUpdatePeer(request_t * r, peer * e, int irtt, int ihops)
     netdbEntry *n;
     double rtt = (double) irtt;
     double hops = (double) ihops;
-    struct _net_db_peer *p;
+    net_db_peer *p;
     debug(37, 3, "netdbUpdatePeer: '%s', %d hops, %d rtt\n", r->host, ihops, irtt);
     n = netdbLookupHost(r->host);
     if (n == NULL) {
@@ -622,7 +627,7 @@ netdbUpdatePeer(request_t * r, peer * e, int irtt, int ihops)
 	return;
     qsort((char *) n->peers,
 	n->n_peers,
-	sizeof(struct _net_db_peer),
-	             (QS) sortPeerByHops);
+	sizeof(net_db_peer),
+	(QS) sortPeerByRtt);
 #endif
 }
