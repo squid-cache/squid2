@@ -183,7 +183,9 @@ static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
+#ifdef UNUSED_CODE
 static void icpHandleAbort _PARAMS((int fd, void *));
+#endif
 static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
 static void icpStateFree _PARAMS((int fd, void *data));
 static int icpCheckTransferDone _PARAMS((icpStateData *));
@@ -1914,14 +1916,10 @@ icpDetectClientClose(int fd, void *data)
 		fd_table[fd].ipaddr, xstrerror());
 	commCancelRWHandler(fd);
 	CheckQuickAbort(icpState);
-	if (entry) {
 	    if (entry->ping_status == PING_WAITING)
 		storeReleaseRequest(entry);
-	    storeUnregister(entry, fd);
-	    storeRegister(entry, fd, icpHandleAbort, (void *) icpState,
-		icpState->out.offset);
-	} else
-	    comm_close(fd);
+	storeUnregister(entry, fd);
+	comm_close(fd);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
 	comm_set_stall(fd, 10);	/* check again in 10 seconds */
@@ -2041,6 +2039,7 @@ vizHackSendPkt(const struct sockaddr_in *from, int type)
 	sizeof(struct sockaddr_in));
 }
 
+#ifdef UNUSED_CODE
 /* 
  * icpHandleAbort()
  * Call for objects which might have been aborted.  If the entry
@@ -2048,7 +2047,7 @@ vizHackSendPkt(const struct sockaddr_in *from, int type)
  * Queue the error page via icpSendERROR().  Otherwise just
  * close the socket.
  */
-void
+static void
 icpHandleAbort(int fd, void *data)
 {
     icpStateData *icpState = data;
@@ -2075,3 +2074,4 @@ icpHandleAbort(int fd, void *data)
 	icpState,
 	400);
 }
+#endif
