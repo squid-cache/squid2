@@ -175,6 +175,8 @@ aclStrToType(const char *s)
 	return ACL_URL_REGEX;
     if (!strcmp(s, "port"))
 	return ACL_URL_PORT;
+    if (!strcmp(s, "maxconn"))
+	return ACL_MAXCONN;
 #if USE_IDENT
     if (!strcmp(s, "ident"))
 	return ACL_IDENT;
@@ -229,6 +231,8 @@ aclTypeToStr(squid_acl type)
 	return "url_regex";
     if (type == ACL_URL_PORT)
 	return "port";
+    if (type == ACL_MAXCONN)
+	return "maxconn";
 #if USE_IDENT
     if (type == ACL_IDENT)
 	return "ident";
@@ -699,6 +703,7 @@ aclParseAclLine(acl ** head)
 	aclParseRegexList(&A->data);
 	break;
     case ACL_SRC_ASN:
+    case ACL_MAXCONN:
     case ACL_DST_ASN:
     case ACL_NETDB_SRC_RTT:
 	aclParseIntlist(&A->data);
@@ -1338,6 +1343,10 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	safe_free(esc_buf);
 	return k;
 	/* NOTREACHED */
+    case ACL_MAXCONN:
+	k = clientdbEstablished(checklist->src_addr, 0);
+	return ((k > ((intlist *)ae->data)->i) ? 0 : 1);
+	/* NOTREACHED */
     case ACL_URL_PORT:
 	return aclMatchIntegerRange(ae->data, r->port);
 	/* NOTREACHED */
@@ -1813,6 +1822,7 @@ aclDestroyAcls(acl ** head)
 	case ACL_SRC_ASN:
 	case ACL_DST_ASN:
 	case ACL_NETDB_SRC_RTT:
+	case ACL_MAXCONN:
 	    intlistDestroy((intlist **) & a->data);
 	    break;
 	case ACL_URL_PORT:
@@ -2159,6 +2169,7 @@ aclDumpGeneric(const acl * a)
 	return aclDumpRegexList(a->data);
 	break;
     case ACL_SRC_ASN:
+    case ACL_MAXCONN:
     case ACL_DST_ASN:
 	return aclDumpIntlistList(a->data);
 	break;

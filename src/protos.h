@@ -127,6 +127,7 @@ extern void clientdbUpdate(struct in_addr, log_type, protocol_t, size_t);
 extern int clientdbCutoffDenied(struct in_addr);
 extern void clientdbDump(StoreEntry *);
 extern void clientdbFreeMemory(void);
+extern int clientdbEstablished(struct in_addr, int);
 
 extern void clientAccessCheck(void *);
 extern void clientAccessCheckDone(int, void *);

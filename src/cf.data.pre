@@ -1591,6 +1591,10 @@ DOC_START
 	  # 
 	  #	acl snmppublic snmp_community public
 
+	acl aclname maxconn number
+	  # This will be matched when the client's IP address has
+	  # more than <number> HTTP connections established.
+
 
 Examples:
 acl myexample dst_as 1241

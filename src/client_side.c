@@ -747,6 +747,7 @@ connStateFree(int fd, void *data)
     clientHttpRequest *http;
     debug(33, 3) ("connStateFree: FD %d\n", fd);
     assert(connState != NULL);
+    clientdbEstablished(connState->peer.sin_addr, -1);	/* decrement */
     while ((http = connState->chr) != NULL) {
 	assert(http->conn == connState);
 	assert(connState->chr != connState->chr->next);
@@ -2630,6 +2631,7 @@ httpAccept(int sock, void *data)
 #endif
 	commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, connState, 0);
 	commSetDefer(fd, clientReadDefer, connState);
+	clientdbEstablished(peer.sin_addr, 1);
 	(*N)++;
     }
 }
