@@ -455,7 +455,6 @@ sslStart(int fd, const char *url, request_t * request, size_t * size_ptr, int *s
 	answer = aclCheckFast(Config.accessList.miss, &ch);
 	if (answer == 0) {
 	    err = errorCon(ERR_FORWARDING_DENIED, HTTP_FORBIDDEN);
-	    *sslState->status_ptr = HTTP_FORBIDDEN;
 	    err->request = requestLink(request);
 	    err->src_addr = request->client_addr;
 	    errorSend(fd, err);
