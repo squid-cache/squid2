@@ -308,6 +308,7 @@ static u_short o_conn_min = 0x4000;	/* min. port number to use */
 static u_short o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
 static const char *socket_pathname = NULL;
 static int o_max_bps = 0;	/* max bytes/sec */
+static int o_skip_whitespace = 0;	/* skip whitespace in listings */
 static struct timeval starttime;
 static struct timeval currenttime;
 unsigned int inaddr_none;
@@ -1266,14 +1267,18 @@ static state_t
 read_welcome(ftp_request_t * r)
 {
     int code;
-
+    char *p = NULL;
 #ifdef PASVONLY
     r->login_att++;
 #endif /* PASVONLY */
-
     if ((code = read_reply(r->sfd)) > 0) {
-	if (code == 220)
+	if (code == 220) {
+	    p = cmd_msg ? cmd_msg->ptr : server_reply_msg;
+	    if (p)
+		if (strstr(p, "NetWare"))
+		    o_skip_whitespace = 1;
 	    return SERVICE_READY;
+	}
     }
     close(r->sfd);
     r->sfd = -1;
@@ -1819,16 +1824,16 @@ parse_entry(const char *buf)
 		tokens[i], tokens[i + 1], tokens[i + 2]);
 	if ((t = strstr(buf, sbuf))) {
 	    p->date = xstrdup(sbuf);
-#ifdef SKIP_LEADING_WHITESPACE
-	    t += strlen(sbuf);
-	    while (strchr(WS, *t))
-		t++;
-#else
-	    /* XXX assumes a single space between date and filename
-	     * suggested by:  Nathan.Bailey@cc.monash.edu.au and
-	     * Mike Battersby <mike@starbug.bofh.asn.au> */
-	    t += strlen(sbuf) + 1;
-#endif
+	    if (o_skip_whitespace) {
+		t += strlen(sbuf);
+		while (strchr(WS, *t))
+		    t++;
+	    } else {
+		/* XXX assumes a single space between date and filename
+		 * suggested by:  Nathan.Bailey@cc.monash.edu.au and
+		 * Mike Battersby <mike@starbug.bofh.asn.au> */
+		t += strlen(sbuf) + 1;
+	    }
 	    p->name = xstrdup(t);
 	    if ((t = strstr(p->name, " -> "))) {
 		*t = '\0';
