@@ -1871,6 +1871,7 @@ int ftpget_srv_mode(port)
 	}
 	buf[0] = '\0';
 	/* XXX Assume we get the whole request in one read! */
+	/* Probably okay since it should be coming on the loopback */
 	if ((n = read(c, buf, BUFSIZ)) <= 0) {
 	    log_errno2(__FILE__, __LINE__, "read");
 	    close(c);
