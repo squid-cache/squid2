@@ -458,7 +458,11 @@ fwdCheckDeferRead(int fd, void *data)
     if (mem == NULL)
 	return 0;
 #if DELAY_POOLS
-    if (!delayIsNoDelay(fd) && delayMostBytesWanted(mem, 1) == 0)
+    if (fd < 0)
+	(void) 0;
+    else if (delayIsNoDelay(fd))
+	(void) 0;
+    else if (delayMostBytesWanted(mem, 1) == 0)
 	return 1;
 #endif
     if (EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT))
