@@ -216,8 +216,8 @@ peerCheckNetdbDirect(ps_state * psstate)
     if (p == NULL)
 	return 0;
     myrtt = netdbHostRtt(psstate->request->host);
-    debug(44, 3) ("peerCheckNetdbDirect: MY RTT = %d\n", myrtt);
-    debug(44, 3) ("peerCheckNetdbDirect: closest_parent_miss RTT = %d\n",
+    debug(44, 3) ("peerCheckNetdbDirect: MY RTT = %d msec\n", myrtt);
+    debug(44, 3) ("peerCheckNetdbDirect: closest_parent_miss RTT = %d msec\n",
 	psstate->icp.p_rtt);
     if (myrtt && myrtt < psstate->icp.p_rtt)
 	return 1;
@@ -311,7 +311,7 @@ peerSelectFoo(ps_state * psstate)
 	    &expected_rtt);
 	if (psstate->icp.n_sent == 0)
 	    debug(44, 0) ("WARNING: neighborsUdpPing returned 0\n");
-	debug(44, 3) ("peerSelectFoo: %d ICP replies expected, RTT %f\n",
+	debug(44, 3) ("peerSelectFoo: %d ICP replies expected, RTT %f msec\n",
 	    psstate->icp.n_replies_expected, expected_rtt);
 	if (psstate->icp.n_replies_expected > 0) {
 	    entry->ping_status = PING_WAITING;
