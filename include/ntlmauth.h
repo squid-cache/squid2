@@ -133,7 +133,7 @@ typedef struct _lstring {
  * among the different signature types. */
 typedef struct _ntlmhdr {
     char signature[8];		/* "NTLMSSP" */
-    int32_t type;		/* LSWAP(0x1) */
+    int32_t type;		/* One of the NTLM_* types above. */
 } ntlmhdr;
 
 /* Negotiation request sent by client */

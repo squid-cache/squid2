@@ -812,6 +812,16 @@ if test -n "$DIGEST_AUTH_HELPERS"; then
 fi
 AC_SUBST(DIGEST_AUTH_HELPERS)
 
+dnl Enable "NTLM fail open"
+AC_ARG_ENABLE(ntlm-fail-open,
+[  --enable-ntlm-fail-open Enable NTLM fail open, where a helper that fails one of the
+                           Authentication steps can allow squid to still authenticate
+			   the user.],
+[ if test "$enableval" = "yes" ; then
+    AC_DEFINE(NTLM_FAIL_OPEN)
+  fi
+])
+
 dnl Disable "unlinkd" code
 AC_ARG_ENABLE(unlinkd,
 [  --disable-unlinkd       Do not use unlinkd],

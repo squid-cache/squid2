@@ -132,6 +132,9 @@
  */
 #undef USE_CARP
 
+/* Define if NTLM is allowed to fail gracefully when a helper has problems */
+#undef NTLM_FAIL_OPEN
+
 /********************************
  *  END OF CONFIGURABLE OPTIONS *
  ********************************/
