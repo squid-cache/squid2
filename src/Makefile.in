@@ -199,7 +199,7 @@ unlinkd: unlinkd-daemon.o
 unlinkd-daemon.o: unlinkd.c
 	$(CC) -c $(CFLAGS) -DUNLINK_DAEMON $(srcdir)/unlinkd.c -o $@
 
-cache_diff: cache_diff.o
+cache_diff: cache_diff.o debug.o globals.o hash.o store_key_md5.o
 	$(CC) -o $@ $(LDFLAGS) $@.o debug.o globals.o hash.o store_key_md5.o $(CACHE_DIFF_LIBS)
 
 cache_cf.o: cf_parser.c
