@@ -661,6 +661,15 @@ clientPurgeRequest(clientHttpRequest * http)
 	if (!entry)
 	    entry = storeGetPublicByRequestMethod(http->request, METHOD_HEAD);
 	if (entry) {
+	    if (EBIT_TEST(entry->flags, ENTRY_SPECIAL)) {
+		http->log_type = LOG_TCP_DENIED;
+		err = errorCon(ERR_ACCESS_DENIED, HTTP_FORBIDDEN);
+		err->request = requestLink(http->request);
+		err->src_addr = http->conn->peer.sin_addr;
+		http->entry = clientCreateStoreEntry(http, http->request->method, null_request_flags);
+		errorAppendEntry(http->entry, err);
+		return;
+	    }
 	    /* Swap in the metadata */
 	    http->entry = entry;
 	    storeLockObject(http->entry);
