@@ -2049,7 +2049,7 @@ clientProcessRequest2(clientHttpRequest * http)
 	r->flags.we_dont_do_ranges = 1;
 	return LOG_TCP_MISS;
     } else if (clientCheckRangeOffsetLimit(e, r->range)) {
-	debug(33, 1) ("clientProcessRequest2: forcing miss due to range_offset_limit\n");
+	debug(33, 3) ("clientProcessRequest2: forcing miss due to range_offset_limit\n");
 	http->entry = NULL;
 	r->flags.we_dont_do_ranges = 1;
 	return LOG_TCP_MISS;
