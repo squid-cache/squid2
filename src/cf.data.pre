@@ -488,13 +488,6 @@ DOC_START
 	reached.  Thereafter, blocks will be used to store hot
 	objects.
 
-	The values of cache_mem_low and cache_mem_high (below) can be
-	used to tune the use of the memory pool.  When the high mark is
-	reached, in-transit and hot objects will be released to clear
-	space.  When an object transfer is completed, it will remain in
-	memory only if the current memory usage is below the low water
-	mark.
-
 	The default is 8 Megabytes.
 
 cache_mem  8 MB
