@@ -246,8 +246,26 @@ AC_ARG_ENABLE(carp,
 ])
 
 AC_ARG_ENABLE(async_io,
-[  --enable-async-io       Do ASYNC disk I/O using threads],
-[ if test "$enableval" = "yes" ; then
+[  --enable-async-io[=N_THREADS]
+                          Do ASYNC disk I/O using threads.
+                         N_THREADS is the number of worker threads
+                         defaults to 16. See also src/squid.h for
+                         some additional platform tuning],
+[ case "$enableval" in
+  yes)
+    async_io=yes
+    ;;
+  no)
+    async_io=''
+    ;;
+  *)
+    async_io=yes
+    AC_DEFINE_UNQUOTED(NUMTHREADS, $enableval)
+    ;;
+  esac
+])
+
+if test -n "$async_io" ; then
     echo "Async I/O enabled"
     async_io=yes
     AC_DEFINE(USE_ASYNC_IO)
@@ -263,8 +281,7 @@ AC_ARG_ENABLE(async_io,
 	fi
 	;;
     esac
-  fi
-])
+fi
 AC_SUBST(ASYNC_OBJS)
 AC_SUBST(SQUID_PTHREAD_LIB)
 

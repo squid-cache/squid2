@@ -48,6 +48,9 @@
 /* Define to use async disk I/O operations */
 #undef USE_ASYNC_IO
 
+/* Defines how many threads to use for async I/O */
+#undef NUMTHREADS
+
 /*
  * If you want to use Squid's ICMP features (highly recommended!) then
  * define this.  When USE_ICMP is defined, Squid will send ICMP pings
