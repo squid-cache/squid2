@@ -245,9 +245,12 @@ pumpReadFromClient(int fd, void *data)
     PumpStateData *p = data;
     StoreEntry *req = p->request_entry;
     LOCAL_ARRAY(char, buf, SQUID_TCP_SO_RCVBUF);
+    int bytes_to_read = SQUID_TCP_SO_RCVBUF;
     int len = 0;
     errno = 0;
-    len = read(fd, buf, SQUID_TCP_SO_RCVBUF);
+    if (p->cont_len - p->rcvd < bytes_to_read)
+	bytes_to_read = p->cont_len - p->rcvd;
+    len = read(fd, buf, bytes_to_read);
     fd_bytes(fd, len, FD_READ);
     debug(61, 5) ("pumpReadFromClient: FD %d: len %d.\n", fd, len);
     if (len > 0) {
