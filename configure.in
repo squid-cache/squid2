@@ -151,15 +151,17 @@ foo.mxfast = 0;],
 AC_MSG_RESULT(yes)],
 AC_MSG_RESULT(no))
 
-AC_MSG_CHECKING(if signal handlers need to be reset)
-AC_TRY_RUN([void handle(s) int s; { return; }
-main(){signal(15,handle);kill(getpid(),15);kill(getpid(),15);exit(0);}],
-AC_MSG_RESULT(no),
-[AC_DEFINE(RESET_SIGNAL_HANDLER)
-AC_MSG_RESULT(yes)],
-dnl default
-[AC_DEFINE(RESET_SIGNAL_HANDLER)
-AC_MSG_RESULT(yes)],)
+dnl Dont do this anymore, just always reset the sig handler
+dnl
+dnl AC_MSG_CHECKING(if signal handlers need to be reset)
+dnl AC_TRY_RUN([void handle(s) int s; { return; }
+dnl main(){signal(15,handle);kill(getpid(),15);kill(getpid(),15);exit(0);}],
+dnl AC_MSG_RESULT(no),
+dnl [AC_DEFINE(RESET_SIGNAL_HANDLER)
+dnl AC_MSG_RESULT(yes)],
+dnl dnl default
+dnl [AC_DEFINE(RESET_SIGNAL_HANDLER)
+dnl AC_MSG_RESULT(yes)],)
 
 dnl Check for typedefs
 AC_CHECK_SIZEOF(int)
