@@ -2257,7 +2257,7 @@ int storeInit()
     }
     sprintf(swaplog_file, "%s/log", swappath(0));
 
-    swaplog_fd = file_open(swaplog_file, NULL, O_RDWR | O_CREAT | O_APPEND);
+    swaplog_fd = file_open(swaplog_file, NULL, O_RDWR | O_CREAT |O_APPEND);
     if (swaplog_fd < 0) {
 	sprintf(tmpbuf, "Cannot open swap logfile: %s\n", swaplog_file);
 	fatal(tmpbuf);
@@ -2272,7 +2272,7 @@ int storeInit()
 
     sprintf(swaplog_tmp_file, "%s/log_tmp", swappath(0));
 
-    swaplog_tmp_fd = file_open(swaplog_tmp_file, NULL, O_RDWR | O_TRUNC | O_CREAT | O_APPEND);
+    swaplog_tmp_fd = file_open(swaplog_tmp_file, NULL, O_RDWR | O_TRUNC | O_CREAT |O_APPEND);
     if (swaplog_tmp_fd < 0) {
 	sprintf(tmpbuf, "Cannot open swap tmp logfile: %s\n", swaplog_tmp_file);
 	fatal(tmpbuf);
@@ -2525,7 +2525,7 @@ int storeWriteCleanLog()
 	return 0;
     }
     file_close(swaplog_fd);
-    swaplog_fd = file_open(swaplog_file, NULL, O_RDWR | O_CREAT | O_APPEND);
+    swaplog_fd = file_open(swaplog_file, NULL, O_RDWR | O_CREAT| O_APPEND);
     if (swaplog_fd < 0) {
 	sprintf(tmpbuf, "Cannot open swap logfile: %s\n", swaplog_file);
 	fatal(tmpbuf);
