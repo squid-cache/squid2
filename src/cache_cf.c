@@ -1759,6 +1759,7 @@ dump_removalpolicy(StoreEntry * entry, const char *name, RemovalPolicySettings *
 	storeAppendPrintf(entry, " %s", args->key);
 	args = args->next;
     }
+    storeAppendPrintf(entry, "\n");
 }
 
 
