@@ -90,6 +90,7 @@ pumpInit(int fd, request_t * r, char *uri)
     snprintf(new_key, MAX_URL + 5, "%s|Pump", uri);
     p->request_entry = storeCreateEntry(new_key, new_key, flags, r->method);
     storeClientListAdd(p->request_entry, p);
+    EBIT_SET(p->request_entry->flags, ENTRY_DONT_LOG);
 #if DELAY_POOLS
     delaySetStoreClient(p->request_entry, p, delayClient(r));
 #endif

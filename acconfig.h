@@ -48,6 +48,9 @@
 /* Define to use async disk I/O operations */
 #undef USE_ASYNC_IO
 
+/* Defines how many threads to use for async I/O */
+#undef NUMTHREADS
+
 /*
  * If you want to use Squid's ICMP features (highly recommended!) then
  * define this.  When USE_ICMP is defined, Squid will send ICMP pings
@@ -248,3 +251,8 @@
  * Do we want to use truncate(2) or unlink(2)?
  */
 #undef USE_TRUNCATE
+
+/*
+ * Allow underscores in host names
+ */
+#undef ALLOW_HOSTNAME_UNDERSCORES

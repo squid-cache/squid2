@@ -246,7 +246,7 @@ typedef unsigned char cache_key;
 typedef int Ctx;
 
 /* in case we want to change it later */
-typedef size_t mb_size_t;
+typedef ssize_t mb_size_t;
 
 /* iteration for HttpHdrRange */
 typedef int HttpHdrRangePos;

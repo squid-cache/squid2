@@ -525,7 +525,7 @@ fwdFail(FwdState * fwdState, ErrorState * errorState)
 /*
  * Called when someone else calls StoreAbort() on this entry
  */
-void
+static void
 fwdAbort(void *data)
 {
     FwdState *fwdState = data;

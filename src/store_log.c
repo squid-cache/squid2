@@ -55,6 +55,8 @@ storeLog(int tag, const StoreEntry * e)
 	return;
     if (mem == NULL)
 	return;
+    if (EBIT_TEST(e->flags, ENTRY_DONT_LOG))
+	return;
     if (mem->log_url == NULL) {
 	debug(20, 1) ("storeLog: NULL log_url for %s\n", mem->url);
 	storeMemObjectDump(mem);
@@ -71,7 +73,7 @@ storeLog(int tag, const StoreEntry * e)
 	(int) reply->date,
 	(int) reply->last_modified,
 	(int) reply->expires,
-	strBuf(reply->content_type) ? strBuf(reply->content_type) : "unknown",
+	strLen(reply->content_type) ? strBuf(reply->content_type) : "unknown",
 	reply->content_length,
 	(int) (mem->inmem_hi - mem->reply->hdr_sz),
 	RequestMethodStr[mem->method],

@@ -9,8 +9,8 @@ typedef struct _splay_node {
     struct _splay_node *right;
 } splayNode;
 
-typedef int SPLAYCMP(const void *, splayNode *);
-typedef void SPLAYWALKEE(void *, void *);
+typedef int SPLAYCMP(const void *a, const void *b);
+typedef void SPLAYWALKEE(void *nodedata, void *state);
 typedef void SPLAYFREE(void *);
 
 extern int splayLastResult;

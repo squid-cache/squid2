@@ -80,6 +80,8 @@ extern void xxfree(void *);
 
 /* rfc1738.c */
 extern char *rfc1738_escape(const char *);
+extern char *rfc1738_escape_unescaped(const char *);
+extern char *rfc1738_escape_part(const char *);
 extern void rfc1738_unescape(char *);
 
 #if XMALLOC_STATISTICS

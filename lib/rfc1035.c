@@ -414,7 +414,7 @@ rfc1035AnswersUnpack(const char *buf,
     /* skip question */
     while (i--) {
 	do {
-	    l = (int) *(buf + off);
+	    l = (int) (unsigned char) *(buf + off);
 	    off++;
 	    if (l > RFC1035_MAXLABELSZ) {	/* compression */
 		off++;
@@ -422,9 +422,16 @@ rfc1035AnswersUnpack(const char *buf,
 	    } else {
 		off += l;
 	    }
-	} while (l > 0);
+	} while (l > 0);	/* a zero-length label terminates */
 	off += 4;		/* qtype, qclass */
-	assert(off <= sz);
+	if (off > sz) {
+	    /*
+	     * This used be an assertion and it triggered once, but the
+	     * core file was useless for debugging.   Sigh, I guess we
+	     * need a debug_hook.
+	     */
+	    return 0;
+	}
     }
     i = (int) hdr.ancount;
     if (i == 0)

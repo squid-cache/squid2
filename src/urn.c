@@ -217,7 +217,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
     }
     s = buf + k;
     assert(urlres_e->mem_obj->reply);
-    httpReplyParse(urlres_e->mem_obj->reply, buf);
+    httpReplyParse(urlres_e->mem_obj->reply, buf, k);
     debug(52, 3) ("mem->reply exists, code=%d.\n",
 	urlres_e->mem_obj->reply->sline.status);
     if (urlres_e->mem_obj->reply->sline.status != HTTP_OK) {

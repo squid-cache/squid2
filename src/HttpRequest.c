@@ -44,6 +44,7 @@ requestCreate(method_t method, protocol_t protocol, const char *urlpath)
     if (urlpath)
 	stringReset(&req->urlpath, urlpath);
     req->max_forwards = -1;
+    req->lastmod = -1;
     httpHeaderInit(&req->header, hoRequest);
     return req;
 }

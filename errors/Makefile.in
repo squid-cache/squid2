@@ -45,6 +45,25 @@ install-mkdirs:
 		mkdir $(DEFAULT_ERROR_DIR); \
 	fi
 
+# undocumented hack.  You can use this target to create multi-lingual
+# error pages.  For example:
+#
+#	make ADDLANG=English addlang
+#
+# by Andres Kroonmaa <andre@mail.lbi.ee>
+#
+addlang: all
+	-@if test -d $(srcdir)/$(ADDLANG); then \
+	cd $(srcdir)/$(ADDLANG)/ ; \
+	for f in ERR_*; do \
+		if test -f $(DEFAULT_ERROR_DIR)/$$f ; then \
+			echo "appending $(ADDLANG)/$$f"; \
+			echo "<HR>" >> $(DEFAULT_ERROR_DIR)/$$f ; \
+			cat $$f >> $(DEFAULT_ERROR_DIR)/$$f; \
+		fi; \
+	done; \
+	fi
+
 clean:
 
 distclean: clean

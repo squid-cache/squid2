@@ -72,6 +72,10 @@ extern void log_trace_init(char *);
 static EVH SquidShutdown;
 static void mainSetCwd(void);
 
+#if TEST_ACCESS
+#include "test_access.c"
+#endif
+
 static void
 usage(void)
 {
@@ -482,7 +486,6 @@ mainInitialize(void)
 	unlinkdInit();
 	urlInitialize();
 	cachemgrInit();
-	eventInit();		/* eventInit() before statInit() */
 	statInit();
 	storeInit();
 	mainSetCwd();
@@ -588,11 +591,20 @@ main(int argc, char **argv)
 	leakInit();
 #endif
 	memInit();		/* memInit is required for config parsing */
+	eventInit();		/* eventInit() is required for config parsing */
 	parse_err = parseConfigFile(ConfigFile);
 
 	if (opt_parse_cfg_only)
 	    return parse_err;
     }
+
+#if TEST_ACCESS
+    comm_init();
+    comm_select_init();
+    mainInitialize();
+    test_access();
+    return 0;
+#endif
 
     /* send signal to running copy and exit */
     if (opt_send_signal != -1) {

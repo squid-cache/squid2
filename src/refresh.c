@@ -386,7 +386,7 @@ refreshStats(StoreEntry * sentry)
 }
 
 void
-refreshInit()
+refreshInit(void)
 {
     memset(refreshCounts, 0, sizeof(refreshCounts));
     refreshCounts[rcHTTP].proto = "HTTP";

@@ -370,7 +370,7 @@ ctx_exit(Ctx ctx)
  * info for deducing the current execution stack
  */
 static void
-ctx_print()
+ctx_print(void)
 {
     /* lock so _db_print will not call us recursively */
     Ctx_Lock++;
