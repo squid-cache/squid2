@@ -930,6 +930,8 @@ mime_get_type(ftp_request_t * r)
     *t = '\0';
     if (enc == NULL)
 	goto mime_get_type_done;
+    else if ((t = strrchr(filename, '.')) == NULL)
+    	goto mime_get_type_done;
     else if (!strcmp(enc, "x-gzip"))
 	(void) 0;
     else if (!strcmp(enc, "x-compress"))
