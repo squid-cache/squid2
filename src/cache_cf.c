@@ -1512,4 +1512,6 @@ configDoConfigure(void)
 	safe_free(Config.Program.ftpget);
 	Config.Program.ftpget = xstrdup("none");
     }
+    if (httpd_accel_mode && !strcmp(Config.Accel.host, "virtual"))
+	vhost_mode = 1;
 }

@@ -803,7 +803,10 @@ miss_access allow  all
 #  TAG: httpd_accel 
 #	If you want to run squid as an httpd accelerator, define the
 #	host name and port number where the real HTTP server is.
-#httpd_accel your.real.httpd.host your.real.httpd.port
+#
+#	If you want virtual host support then specify the hostname
+#	as "virtual".
+#httpd_accel real_httpd_host real_httpd_port
 
 #  TAG: httpd_accel_with_proxy
 #	If you want to use squid as both a local httpd accelerator
