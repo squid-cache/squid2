@@ -28,10 +28,10 @@
  *  
  */
 
-extern void aioExamine _PARAMS((void));
-extern void aioSigHandler _PARAMS((int sig));
-extern int aioFileWriteComplete _PARAMS((int ed, FileEntry * entry));
-extern int aioFileReadComplete _PARAMS((int fd, dread_ctrl * ctrl_dat));
+extern void aioExamine(void);
+extern void aioSigHandler(int sig);
+extern int aioFileWriteComplete(int ed, FileEntry * entry);
+extern int aioFileReadComplete(int fd, dread_ctrl * ctrl_dat);
 extern int aioFileQueueWrite _PARAMS((int,
 	int               (*)_PARAMS((int, FileEntry *)),
 	FileEntry *));

@@ -41,17 +41,16 @@
  * select() loop if disk IO completes while all the sockets are idle (lower
  * latency, but higher CPU cost --- perhaps it should be configurable)
  */
-void aioSigHandler(sig)
-     int sig;
+void
+aioSigHandler(int sig)
 {
 #if !HAVE_SIGACTION
     signal(sig, aioSigHandler);
 #endif
 }
 
-int aioFileWriteComplete(fd, entry)
-     int fd;
-     FileEntry *entry;
+int
+aioFileWriteComplete(int fd, FileEntry * entry)
 {
     int rc;
     struct aiocb *aio = &entry->aio_cb;
@@ -139,9 +138,8 @@ int aioFileWriteComplete(fd, entry)
     return DISK_OK;
 }
 
-int aioFileReadComplete(fd, ctrl_dat)
-     int fd;
-     dread_ctrl *ctrl_dat;
+int
+aioFileReadComplete(int fd, dread_ctrl * ctrl_dat)
 {
     int rc;
     FileEntry *entry = &file_table[fd];
@@ -170,10 +168,8 @@ int aioFileReadComplete(fd, ctrl_dat)
     return DISK_OK;
 }
 
-int aioFileQueueWrite(fd, handler, entry)
-     int fd;
-     int (*handler) (int, FileEntry *);
-     FileEntry *entry;
+int
+aioFileQueueWrite(int fd, int (*handler) (int, FileEntry *), FileEntry * entry)
 {
     off_t offset;
     struct aiocb *aio;
@@ -207,10 +203,8 @@ int aioFileQueueWrite(fd, handler, entry)
     return DISK_OK;
 }
 
-int aioFileQueueRead(fd, handler, ctrl_dat)
-     int fd;
-     int (*handler) (int, dread_ctrl *);
-     dread_ctrl *ctrl_dat;
+int
+aioFileQueueRead(int fd, int (*handler) (int, dread_ctrl *), dread_ctrl * ctrl_dat)
 {
     struct aiocb *aio;
 
@@ -237,7 +231,8 @@ int aioFileQueueRead(fd, handler, ctrl_dat)
     return DISK_OK;
 }
 
-void aioExamine()
+void
+aioExamine()
 {
     int fd;
     int rc;

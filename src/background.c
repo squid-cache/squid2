@@ -33,8 +33,8 @@
 
 /* The list of background processes */
 struct bg_entry {
-    int (*func) _PARAMS((void *arg));
-    void (*done) _PARAMS((void *arg));
+    int (*func) (void *arg);
+    void (*done) (void *arg);
     void *arg;
     char *name;
     struct bg_entry *next;
@@ -52,11 +52,8 @@ static struct bg_entry *last_called = NULL;
  * doBackgroundProcessing calls func until func returns true
  * when func returns true, done is called.
  */
-void runInBackground(name, func, arg, done)
-     char *name;
-     int (*func) _PARAMS((void *arg));
-     void *arg;
-     void (*done) _PARAMS((void *arg));
+void
+runInBackground(char *name, int (*func) _PARAMS((void *arg)), void *arg, void (*done) _PARAMS((void *arg)))
 {
     struct bg_entry *entry = NULL;
 
@@ -74,7 +71,8 @@ void runInBackground(name, func, arg, done)
  * Call one background processing function
  * returns true if there is more background processing to do
  */
-extern int doBackgroundProcessing()
+extern int
+doBackgroundProcessing()
 {
     struct bg_entry *this = NULL;
 
