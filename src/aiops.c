@@ -748,7 +748,7 @@ aio_poll_threads(void)
 	while (threadp) {
 	    debug(43, 3) ("%d: %d -> %d\n",
 		threadp->thread,
-		threadp->req->request_type,
+		threadp->processed_req->request_type,
 		threadp->status);
 #if AIO_PROPER_MUTEX
 	    if (threadp->req == NULL)
