@@ -180,7 +180,7 @@ request_t *urlParse(method, url)
 	    return NULL;
 	protocol = urlParseProtocol(proto);
 	port = urlDefaultPort(protocol);
-	if ((t = strchr(host, ':')) && *(t + 1) != '\0') {
+	if ((t = strrchr(host, ':')) && *(t + 1) != '\0') {
 	    *t = '\0';
 	    port = atoi(t + 1);
 	}
