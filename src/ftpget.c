@@ -90,6 +90,10 @@
 #include <arpa/inet.h>
 #include <sys/un.h>
 
+if HAVE_LIBC_H
+#include <libc.h>
+#endif
+
 #if HAVE_BSTRING_H
 #include <bstring.h>
 #endif
@@ -99,6 +103,9 @@
 #endif
 
 #include "util.h"
+#if !HAVE_TEMPNAM
+#include "tempnam.h"
+#endif
 
 #ifndef BUFSIZ
 #define BUFSIZ 4096
@@ -450,10 +457,18 @@ state_t request_timeout(r)
 void sigchld_handler(sig)
      int sig;
 {
+#if defined(_SQUID_NEXT_) && !defined(_POSIX_SOURCE)
+    union wait status;
+#else
     int status;
+#endif
     int pid;
 
+#if defined(_SQUID_NEXT_) && !defined(_POSIX_SOURCE)
+    if ((pid = wait4(0, &status, WNOHANG, NULL)) > 0)
+#else
     if ((pid = waitpid(0, &status, WNOHANG)) > 0)
+#endif
 	Debug(26, 5, ("sigchld_handler: Ate pid %d\n", pid));
     signal(sig, sigchld_handler);
 }
@@ -2170,7 +2185,11 @@ int ftpget_srv_mode(arg)
     static char buf[BUFSIZ];
     int buflen;
 
+#if HAVE_SETSID
     setsid();			/* become session leader */
+#elsif HAVE_SETPGRP
+    setpgrp(getpid(), 0);
+#endif
     port = (u_short) atoi(arg);
     if (port > 0) {
 	if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {

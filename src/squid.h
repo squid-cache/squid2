@@ -36,6 +36,10 @@
 #include <sys/un.h>
 #include <sys/wait.h>
 
+#if HAVE_LIBC_H
+#include <libc.h>
+#endif
+
 #ifdef HAVE_SYS_SYSCALL_H
 #include <sys/syscall.h>
 #endif
@@ -137,6 +141,10 @@ typedef void (*SIH) _PARAMS((int, void *));	/* swap in */
 #include "acl.h"
 #include "util.h"
 #include "background.h"
+
+#if !HAVE_TEMPNAM
+#include "tempnam.h"
+#endif
 
 extern time_t squid_starttime;	/* main.c */
 extern time_t next_cleaning;	/* main.c */
