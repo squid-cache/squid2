@@ -408,6 +408,8 @@ commConnectHandle(int fd, void *data)
 	    commConnectHandle(fd, connectState);
 	} else {
 	    ipcacheRemoveBadAddr(connectState->host, connectState->S.sin_addr);
+	    if (Config.Options.test_reachability)
+		netdbDeleteAddrNetwork(connectState->S.sin_addr);
 	    connectState->callback(fd, COMM_ERROR, connectState->data);
 	}
 	break;
@@ -440,6 +442,7 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
     int len;
     int x;
     int lft;
+    int cerrno;
 
     /* sanity check */
     if (ntohs(address->sin_port) == 0) {
@@ -450,7 +453,8 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
     }
     /* Establish connection. */
     if (connect(sock, (struct sockaddr *) address, sizeof(struct sockaddr_in)) < 0) {
-	switch (errno) {
+	cerrno = errno;
+	switch (cerrno) {
 	case EALREADY:
 	    return COMM_ERROR;
 	    /* NOTREACHED */
@@ -467,8 +471,9 @@ comm_connect_addr(int sock, const struct sockaddr_in *address)
 	case EINVAL:
 	    len = sizeof(x);
 	    if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
-		errno = x;
+		cerrno = x;
 	default:
+	    errno = cerrno;
 	    debug(50, 2, "connect: %s:%d: %s.\n",
 		fqdnFromAddr(address->sin_addr),
 		ntohs(address->sin_port),
