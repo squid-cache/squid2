@@ -1524,10 +1524,10 @@ statGraphDump(StoreEntry * e)
     GENGRAPH(cputime, "cputime", "CPU utilisation");
 }
 
+#endif /* STAT_GRAPHS */
+
 int
 statMemoryAccounted(void)
 {
     memTotalAllocated();
 }
-
-#endif /* STAT_GRAPHS */
