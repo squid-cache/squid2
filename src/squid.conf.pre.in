@@ -905,16 +905,53 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 minimum_direct_hops 4
 
 #  TAG: cachemgr_passwd
-#       Specify the password for cachemgr actions.
-#       WARNING: by default there are _NO_ any passwords.
+#       Specify passwords for cachemgr operations.
 #
-#       Usage: cachemgr_passwd password action1 action2 action3
+#Usage: cachemgr_passwd password action action ...
 #
-#       So password followed by the list of actions that password will
-#       let you do.
+#	valid actions are:
+#		shutdown *
+#		info
+#		stats/objects
+#		stats/vm_objects
+#		stats/utilization
+#		stats/ipcache
+#		stats/fqdncache
+#		stats/dns
+#		stats/redirector
+#		stats/io
+#		stats/reply_headers
+#		stats/filedescriptors
+#		stats/netdb
+#		log/status *
+#		log/enable *
+#		log/disable *
+#		log/clear *
+#		log *
+#		parameter
+#		server_list
+#		client_list
+#		squid.conf
 #
-#cachemgr_passwd secret shutdown restart
-#cachemgr_passwd lesssssssecret info stats/objects
+#	* Indicates actions which will not be performed without a
+#	  valid password, others can be performed if not listed here.
+#
+#Examples:
+#
+#	cachemgr_passwd secret shutdown
+#	cachemgr_passwd lesssssssecret info stats/objects
+#
+#Defaults: none
+
+#  TAG: swap_level1_dirs
+#	Number of first-level directories to create for storing cached
+#	objects.  Minimum 1, maximum 256, default 16.
+#swap_level1_dirs 16
+
+#  TAG: swap_level2_dirs
+#       Number of sub-directories to create under each first-level
+#	directory.  Minimum 1, maximum 256, default 256.
+#swap_level2_dirs 256
 
 store_objects_per_bucket 50
 store_avg_object_size 20
