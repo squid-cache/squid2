@@ -143,7 +143,7 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
 	r->orig_url,
 	inet_ntoa(r->client_addr),
 	fqdn,
-	r->client_ident,
+	r->client_ident[0] ? rfc1738_escape(r->client_ident) : dash_str,
 	r->method_s);
     helperSubmit(redirectors, buf, redirectHandleReply, r);
 }
