@@ -567,7 +567,7 @@ clientUpdateCounters(clientHttpRequest * http)
     if (H->alg == PEER_SA_ICP) {
 	statHistCount(&Counter.icp.client_svc_time, svc_time);
 	if (sst)
-	    statHistCount(&Counter.icp.server_svc_time, svc_time);
+	    statHistCount(&Counter.icp.server_svc_time, sst);
 	Counter.icp.times_used++;
     } else
     if (H->alg == PEER_SA_DIGEST) {
