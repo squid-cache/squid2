@@ -131,6 +131,7 @@ typedef struct _ext_table_entry {
 #define F_TRYDIR	0x10
 #define F_NEEDACCEPT	0x20
 #define F_USEBASE	0x40
+#define F_BASEDIR	0x80
 
 typedef enum {
     BEGIN,
@@ -474,6 +475,7 @@ static int write_with_timeout(fd, buf, sz)
 	tv.tv_sec = o_timeout;
 	tv.tv_usec = 0;
 	FD_ZERO(&R);
+	FD_ZERO(&W);
 	FD_SET(fd, &W);
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
@@ -1310,7 +1312,7 @@ state_t do_cwd(r)
 
     Debug(26, 10, ("do_cwd: \"%s\"\n", r->path));
 
-    if (!strcmp(r->path, "."))
+    if (r->flags & F_BASEDIR)
 	return CWD_OK;
 
     sprintf(cbuf, "CWD %s", r->path);
@@ -1320,7 +1322,7 @@ state_t do_cwd(r)
 	if (code >= 200 && code < 300)
 	    return CWD_OK;
 #ifdef TRY_CWD_FIRST
-	    return CWD_FAIL;
+	return CWD_FAIL;
 #else
 	r->errmsg = xstrdup(server_reply_msg);
 	r->rc = 10;
@@ -1806,12 +1808,13 @@ state_t htmlify_listing(r)
 	    write_with_timeout(r->cfd, l->ptr, strlen(l->ptr));
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
-    } else if (r->readme_fp) {
+    } else if (r->readme_fp && r->flags & F_BASEDIR) {
 	fprintf(wfp, "<H4>README file from %s</H4>\n", r->title_url);
 	fprintf(wfp, "<PRE>\n");
 	while (fgets(buf, SMALLBUFSIZ, r->readme_fp))
 	    fputs(buf, wfp);
 	fclose(r->readme_fp);
+	r->readme_fp = NULL;
 	fprintf(wfp, "</PRE>\n");
 	fprintf(wfp, "<HR>\n");
     }
@@ -1819,7 +1822,7 @@ state_t htmlify_listing(r)
     fprintf(wfp, "FTP Directory: %s\n", r->title_url);
     fprintf(wfp, "</H2>\n");
     fprintf(wfp, "<PRE>\n");
-    if (strcmp(r->path, ".")) {
+    if (!(r->flags & F_BASEDIR)) {
 	if ((t = htmlize_list_entry("..", r))) {
 	    fputs(t, wfp);
 	    xfree(t);
@@ -1852,6 +1855,15 @@ state_t htmlify_listing(r)
     }
     fprintf(wfp, "</PRE>\n");
     fprintf(wfp, "<HR>\n");
+    if (r->readme_fp) {
+	fprintf(wfp, "<H4>README file from %s</H4>\n", r->title_url);
+	fprintf(wfp, "<PRE>\n");
+	while (fgets(buf, SMALLBUFSIZ, r->readme_fp))
+	    fputs(buf, wfp);
+	fclose(r->readme_fp);
+	fprintf(wfp, "</PRE>\n");
+	fprintf(wfp, "<HR>\n");
+    }
     fprintf(wfp, "<ADDRESS>\n");
     fprintf(wfp, "Generated %s, by %s/%s@%s\n",
 	http_time(stamp), progname, SQUID_VERSION, getfullhostname());
@@ -1885,6 +1897,11 @@ static int process_request(r)
 	    break;
 	case CONNECTED:
 	    r->state = read_welcome(r);
+	    if ((r->flags & F_HTTPIFY) && (r->flags & F_BASEDIR) && cmd_msg) {
+		list_t *t = r->cmd_msg;
+		r->cmd_msg = cmd_msg;
+		cmd_msg = t;
+	    }
 	    break;
 	case FAIL_CONNECT:
 	    r->state = FAIL_SOFT;
@@ -1900,6 +1917,11 @@ static int process_request(r)
 	    r->state = do_passwd(r);
 	    break;
 	case LOGGED_IN:
+	    if ((r->flags & F_HTTPIFY) && (r->flags & F_BASEDIR) && cmd_msg) {
+		list_t *t = r->cmd_msg;
+		r->cmd_msg = cmd_msg;
+		cmd_msg = t;
+	    }
 	    r->state = do_type(r);
 	    break;
 	case FAIL_LOGIN:
@@ -1926,20 +1948,20 @@ static int process_request(r)
 	    if (!r->flags & F_ISDIR)
 		r->flags |= F_USEBASE;
 	    r->flags |= F_ISDIR;
-	    if (strcmp(r->path, ".")) {
+	    if (!(r->flags & F_BASEDIR)) {
 		/* tack on the trailing slash now that we know its a dir */
 		strcat(r->url, "/");
 		strcat(r->title_url, "/");
 		strcat(r->url_escaped, "/");
 	    }
 	    if (r->flags & F_HTTPIFY) {
-		if (cmd_msg) {
+		if (!(r->flags & F_BASEDIR) || cmd_msg) {
+		    list_t *t = r->cmd_msg;
 		    r->cmd_msg = cmd_msg;
-		    cmd_msg = NULL;
-		} else {
-		    if (o_readme)
-			try_readme(r);
+		    cmd_msg = t;
 		}
+		if (o_readme)
+		    try_readme(r);
 	    }
 	    r->state = do_pasv(r);
 	    break;
@@ -2026,6 +2048,7 @@ void cleanup_path(r)
 	if (*r->path == '\0') {
 	    t = r->path;
 	    r->path = xstrdup(".");
+	    r->flags |= F_BASEDIR;
 	    xfree(t);
 	    again = 1;
 	} else if ((l >= 1) && (*(r->path + l - 1) == '/')) {
@@ -2416,7 +2439,7 @@ int main(argc, argv)
     }
     strcat(r->url, r->host);
     strcat(r->url, "/");
-    if (strcmp(r->path, "."))
+    if (!(r->flags & F_BASEDIR))
 	strcat(r->url, r->path);
 
     *r->title_url = '\0';
@@ -2427,7 +2450,7 @@ int main(argc, argv)
     }
     strcat(r->title_url, r->host);
     strcat(r->title_url, "/");
-    if (strcmp(r->path, "."))
+    if (!(r->flags & F_BASEDIR))
 	strcat(r->title_url, r->path);
 
     /* Make a copy of the escaped URL with some room to grow at the end */
