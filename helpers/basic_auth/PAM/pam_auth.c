@@ -191,6 +191,8 @@ start:
 	    goto error;
 	}
 	*password++ = '\0';
+	rfc1738_unescape(user);
+	rfc1738_unescape(password);
 	conv.appdata_ptr = (char *) password;	/* from buf above. not allocated */
 
 	if (ttl == 0) {

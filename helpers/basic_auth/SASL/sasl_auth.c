@@ -79,6 +79,9 @@ main()
 		}
 		*password++ = '\0';
 
+		rfc1738_unescape(username);
+		rfc1738_unescape(password);
+
 		rc = sasl_checkpass(conn, username, strlen(username), password, strlen(password), &errstr);
 
 		if ( rc != SASL_OK ) {

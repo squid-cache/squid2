@@ -38,13 +38,16 @@ use Authen::Smb;
 
 $|=1;
 while (<>) {
-	if (! m;([^\\]+)(\\|/)(\S+)\s(.*); ) { #parse the line
+	if (! m;([^\\]+)(\\|/|%2f|%5c)(\S+)\s(.*); ) { #parse the line
 		print "ERR\n";
 		next;
 	}
 	$domain=$1;
 	$user=$3;
 	$pass=$4;
+	$domain =~ s/%([0-9a-f][0-9a-f])/pack("H2",$1)/gie;
+        $user =~ s/%([0-9a-f][0-9a-f])/pack("H2",$1)/gie;
+        $pass =~ s/%([0-9a-f][0-9a-f])/pack("H2",$1)/gie;
 	print STDERR "domain: $domain, user: $user, pass=$pass\n" 
 		if (defined ($debug));
 	# check out that we know the PDC address
