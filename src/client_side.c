@@ -145,7 +145,8 @@ clientAccessCheck(void *data)
     clientHttpRequest *http = data;
     ConnStateData *conn = http->conn;
     if (checkAccelOnly(http)) {
-	clientAccessCheckDone(ACCESS_ALLOWED, http);
+	/* deny proxy requests in accel_only mode */
+	clientAccessCheckDone(ACCESS_DENIED, http);
 	return;
     }
     http->acl_checklist = aclChecklistCreate(Config.accessList.http,
