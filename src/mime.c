@@ -376,6 +376,9 @@ mimeInit(char *filename)
 	MimeTableTail = &m->next;
     }
     fclose(fp);
+    mimeLoadIconFile(ICON_MENU);
+    mimeLoadIconFile(ICON_DIRUP);
+    mimeLoadIconFile(ICON_LINK);
 }
 
 static void
