@@ -1211,7 +1211,7 @@ storeFreeMemory(void)
     hashFreeItems(store_table, destroy_StoreEntry);
     hashFreeMemory(store_table);
     store_table = NULL;
-#if USE_CACHE_DIGEST
+#if USE_CACHE_DIGESTS
     if (store_digest)
 	cacheDigestDestroy(store_digest);
 #endif
