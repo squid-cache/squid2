@@ -645,6 +645,7 @@ struct _HttpHdrExtField {
 struct _HttpHdrCc {
     int mask;
     int max_age;
+    int s_maxage;
 };
 
 /* http byte-range-spec */

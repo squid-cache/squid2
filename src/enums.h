@@ -248,6 +248,7 @@ typedef enum {
     CC_MUST_REVALIDATE,
     CC_PROXY_REVALIDATE,
     CC_MAX_AGE,
+    CC_S_MAXAGE,
     CC_ONLY_IF_CACHED,
     CC_OTHER,
     CC_ENUM_END
