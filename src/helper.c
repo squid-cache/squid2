@@ -417,9 +417,10 @@ helperStats(StoreEntry * sentry, helper * hlp)
     storeAppendPrintf(sentry, "avg service time: %.2f msec\n",
 	(double) hlp->stats.avg_svc_time / 1000.0);
     storeAppendPrintf(sentry, "\n");
-    storeAppendPrintf(sentry, "%7s\t%7s\t%11s\t%s\t%7s\t%7s\t%7s\n",
+    storeAppendPrintf(sentry, "%7s\t%7s\t%7s\t%11s\t%s\t%7s\t%7s\t%7s\n",
 	"#",
 	"FD",
+	"PID"
 	"# Requests",
 	"Flags",
 	"Time",
@@ -429,9 +430,10 @@ helperStats(StoreEntry * sentry, helper * hlp)
 	srv = link->data;
 	tt = 0.001 * tvSubMsec(srv->dispatch_time,
 	    srv->flags.busy ? current_time : srv->answer_time);
-	storeAppendPrintf(sentry, "%7d\t%7d\t%11d\t%c%c%c%c\t%7.3f\t%7d\t%s\n",
+	storeAppendPrintf(sentry, "%7d\t%7d\t%7d\t%11d\t%c%c%c%c\t%7.3f\t%7d\t%s\n",
 	    srv->index + 1,
 	    srv->rfd,
+	    src->pid,
 	    srv->stats.uses,
 	    srv->flags.alive ? 'A' : ' ',
 	    srv->flags.busy ? 'B' : ' ',
