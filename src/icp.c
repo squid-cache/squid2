@@ -338,6 +338,9 @@ icpCachable(icpStateData * icpState)
 	if (strstr(request, p->key))
 	    return 0;
     }
+    if (Config.cache_stop_relist)
+	if (aclMatchRegex(Config.cache_stop_relist, request))
+	     return 0;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(request, method);
     /* FTP is always cachable */
@@ -1817,6 +1820,8 @@ asciiConnLifetimeHandle(int fd, icpStateData * icpState)
 	icpState->entry,
 	icpState->request,
 	icpState->peer.sin_addr);
+    if (icpState->entry->store_status == STORE_PENDING)
+	squid_error_entry(icpState->entry, ERR_LIFETIME_EXP, NULL);
     comm_close(fd);
 }
 
