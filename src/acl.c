@@ -1222,7 +1222,7 @@ aclMatchAcl(acl * acl, aclCheck_t * checklist)
 	} else if (k == 1) {
 	    /* register that we used the proxy authentication header */
 	    checklist->state[ACL_PROXY_AUTH] = ACL_PROXY_AUTH_USED;
-	    EBIT_SET(r->flags, REQ_USED_PROXY_AUTH);
+	    r->flags.used_proxy_auth = 1;
 	    return 1;
 	} else if (k == -1) {
 	    /* register that we need to check the password */

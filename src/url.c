@@ -109,6 +109,7 @@ urlInitialize(void)
 {
     debug(23, 5) ("urlInitialize: Initializing...\n");
     assert(sizeof(ProtocolStr) == (PROTO_MAX + 1) * sizeof(char *));
+    memset(&null_request_flags, '\0', sizeof(null_request_flags));
 }
 
 method_t

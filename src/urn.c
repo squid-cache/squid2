@@ -140,7 +140,7 @@ urnStart(request_t * r, StoreEntry * e)
     }
     httpHeaderPutStr(&urlres_r->header, HDR_ACCEPT, "text/plain");
     if ((urlres_e = storeGet(k)) == NULL) {
-	urlres_e = storeCreateEntry(urlres, urlres, 0, METHOD_GET);
+	urlres_e = storeCreateEntry(urlres, urlres, null_request_flags, METHOD_GET);
 	storeClientListAdd(urlres_e, urnState);
 	fwdStart(-1, urlres_e, urlres_r, any_addr);
     } else {

@@ -464,25 +464,6 @@ enum {
     ERR_FLAG_CBDATA
 };
 
-/*
- * These are request_t->flags
- */
-enum {
-    REQ_RANGE,
-    REQ_NOCACHE,
-    REQ_IMS,
-    REQ_AUTH,
-    REQ_CACHABLE,
-    REQ_HIERARCHICAL,
-    REQ_LOOPDETECT,
-    REQ_PROXY_KEEPALIVE,
-    REQ_PROXYING,
-    REQ_REFRESH,
-    REQ_USED_PROXY_AUTH,
-    REQ_REDIRECTED,
-    REQ_NOCACHE_HACK		/* for changing/ignoring no-cache requests */
-};
-
 enum {
     HELPER_ALIVE,
     HELPER_BUSY,

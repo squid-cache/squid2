@@ -139,3 +139,4 @@ extern icpUdpData *IcpQueueHead;	/* NULL */
 extern time_t delay_pools_last_update;	/* 0 */
 #endif
 extern int refresh_nocache_hack;	/* 0 */
+extern request_flags null_request_flags;

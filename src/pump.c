@@ -69,7 +69,7 @@ static void pumpClose(void *data);
 void
 pumpInit(int fd, request_t * r, char *uri)
 {
-    int flags = 0;
+    request_flags flags;
     LOCAL_ARRAY(char, new_key, MAX_URL + 8);
     int clen = 0;
     PumpStateData *p = xcalloc(1, sizeof(PumpStateData));
@@ -85,7 +85,8 @@ pumpInit(int fd, request_t * r, char *uri)
     /* we shouldn't have gotten this far if content-length is invalid */
     assert(clen >= 0);
     debug(61, 4) ("pumpInit: Content-Length=%d.\n", clen);
-    EBIT_SET(flags, REQ_NOCACHE);
+    flags = null_request_flags;
+    flags.nocache = 1;
     snprintf(new_key, MAX_URL + 5, "%s|Pump", uri);
     p->request_entry = storeCreateEntry(new_key, new_key, flags, r->method);
     storeClientListAdd(p->request_entry, p);
