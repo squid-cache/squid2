@@ -1088,8 +1088,8 @@ ftpParseControlReply(char *buf, size_t len, int *codep, int *used)
 	*tail = list;
 	tail = &list->next;
     }
-    safe_free(sbuf);
     *used = (int) (s - sbuf);
+    safe_free(sbuf);
     if (!complete)
 	wordlistDestroy(&head);
     if (codep)
