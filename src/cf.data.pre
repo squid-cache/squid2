@@ -1266,7 +1266,7 @@ DOC_START
 	The 'reference_age' parameter defines the maximum LRU age.  For
 	example, setting reference_age to '1 week' will cause objects
 	to be removed if they have not been accessed for a week or
-	more.  The default value is one month.
+	more.  The default value is one year.
 
 	Specify a number here, followed by units of time.  For example:
 		1 week
