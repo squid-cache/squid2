@@ -881,6 +881,8 @@ commCloseAllSockets(void)
 	    continue;
 	if (F->type != FD_SOCKET)
 	    continue;
+	if (F->flags.ipc)	/* don't close inter-process sockets */
+	    continue;
 	if (F->timeout_handler) {
 	    debug(5, 5) ("commCloseAllSockets: FD %d: Calling timeout handler\n",
 		fd);

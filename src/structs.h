@@ -490,6 +490,7 @@ struct _fde {
 	int socket_eof:1;
 	int nolinger:1;
 	int nonblocking:1;
+	int ipc:1;
     } flags;
     int bytes_read;
     int bytes_written;
