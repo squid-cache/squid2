@@ -133,7 +133,7 @@ asnAclInitialize(acl * acls)
 {
     acl *a;
     intlist *i;
-    debug(53, 1) ("asnAclInitialize: STARTING\n");
+    debug(53, 3) ("asnAclInitialize\n");
     for (a = acls; a; a = a->next) {
 	if (a->type != ACL_DST_ASN && a->type != ACL_SRC_ASN)
 	    continue;
