@@ -31,9 +31,9 @@ typedef int (*PF) _PARAMS((int, void *));
 typedef struct fde {
     int openned;		/* Set if we did a comm_connect.  Ignored for ftp_pipes. */
     int sender;			/* Set if this fd is connected to a client */
-    u_short port;		/* Our tcp port # */
+    u_short local_port;		/* Our TCP port # */
+    u_short remote_port;	/* Remote TCP port # */
     char ipaddr[16];		/* dotted decimal address of peer */
-    int (*handler) ();		/* Interrupt handler */
     StoreEntry *store_entry;
 
     /* Select handlers. */
@@ -65,16 +65,18 @@ extern int commSetNonBlocking _PARAMS((int fd));
 extern int comm_accept _PARAMS((int fd, struct sockaddr_in *, struct sockaddr_in *));
 extern int comm_close _PARAMS((int fd));
 extern int comm_connect _PARAMS((int sock, char *hst, int prt));
+extern int comm_connect_unix _PARAMS((int sock, char *path));
 extern int comm_connect_addr _PARAMS((int sock, struct sockaddr_in *));
 extern int comm_get_fd_lifetime _PARAMS((int fd));
 extern int comm_get_select_handler _PARAMS((int fd, unsigned int type, PF *, void **));
 extern int comm_init _PARAMS((void));
 extern int comm_listen _PARAMS((int sock));
-extern int comm_open _PARAMS((unsigned int io_type, u_short port, PF, char *note));
+extern int comm_open _PARAMS((unsigned int io_type, u_short port, char *note));
+extern int comm_open_unix _PARAMS((char *note));
 #ifdef UNUSED_CODE
 extern int comm_pending _PARAMS((int fd, long sec, long usec));
 #endif
-extern u_short comm_port _PARAMS((int fd));
+extern u_short comm_local_port _PARAMS((int fd));
 extern int comm_read _PARAMS((int fd, char *buf, int size));
 extern int comm_select _PARAMS((time_t sec, time_t));
 extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));

@@ -31,29 +31,27 @@ static struct timeval zero_tv;
 static void comm_select_incoming _PARAMS((void));
 
 /* Return the local port associated with fd. */
-u_short comm_port(fd)
+u_short comm_local_port(fd)
      int fd;
 {
     struct sockaddr_in addr;
     int addr_len = 0;
 
-    if (fd_table[fd].port)
-	return fd_table[fd].port;
-
     /* If the fd is closed already, just return */
     if (!fd_table[fd].openned) {
-	debug(5, 0, "comm_port: FD %d has been closed.\n", fd);
-	return (COMM_ERROR);
+	debug(5, 0, "comm_local_port: FD %d has been closed.\n", fd);
+	return 0;
     }
+    if (fd_table[fd].local_port)
+	return fd_table[fd].local_port;
     addr_len = sizeof(addr);
     if (getsockname(fd, (struct sockaddr *) &addr, &addr_len)) {
-	debug(5, 1, "comm_port: Failed to retrieve TCP/UDP port number for socket: FD %d: %s\n", fd, xstrerror());
-	return (COMM_ERROR);
+	debug(5, 1, "comm_local_port: Failed to retrieve TCP/UDP port number for socket: FD %d: %s\n", fd, xstrerror());
+	return 0;
     }
-    debug(5, 6, "comm_port: FD %d: sockaddr %u.\n", fd, addr.sin_addr.s_addr);
-    fd_table[fd].port = ntohs(addr.sin_port);
-
-    return fd_table[fd].port;
+    debug(5, 6, "comm_local_port: FD %d: sockaddr %u.\n", fd, addr.sin_addr.s_addr);
+    fd_table[fd].local_port = ntohs(addr.sin_port);
+    return fd_table[fd].local_port;
 }
 
 static int do_bind(s, host, port)
@@ -86,10 +84,60 @@ static int do_bind(s, host, port)
 
 /* Create a socket. Default is blocking, stream (TCP) socket.  IO_TYPE
  * is OR of flags specified in comm.h. */
-int comm_open(io_type, port, handler, note)
+int comm_open_unix(note)
+     char *note;
+{
+    int new_socket;
+    FD_ENTRY *conn = NULL;
+
+    if ((new_socket = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+	/* Increase the number of reserved fd's if calls to socket()
+	 * are failing because the open file table is full.  This
+	 * limits the number of simultaneous clients */
+	switch (errno) {
+	case ENFILE:
+	case EMFILE:
+	    debug(5, 1, "comm_open: socket failure: %s\n", xstrerror());
+	    Reserve_More_FDs();
+	    break;
+	default:
+	    debug(5, 0, "comm_open: socket failure: %s\n", xstrerror());
+	}
+	return (COMM_ERROR);
+    }
+    /* update fdstat */
+    fdstat_open(new_socket, Socket);
+    conn = &fd_table[new_socket];
+    memset(conn, '\0', sizeof(FD_ENTRY));
+    fd_note(new_socket, note);
+    conn->openned = 1;
+
+    if (fcntl(new_socket, F_SETFD, 1) < 0) {
+	debug(5, 0, "comm_open: FD %d: failed to set close-on-exec flag: %s\n",
+	    new_socket, xstrerror());
+    }
+
+#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
+	if (fcntl(new_socket, F_SETFL, O_NONBLOCK)) {
+	    debug(5, 0, "comm_open: FD %d: Failure to set O_NONBLOCK: %s\n",
+		new_socket, xstrerror());
+	    return (COMM_ERROR);
+	}
+#else
+	if (fcntl(new_socket, F_SETFL, O_NDELAY)) {
+	    debug(5, 0, "comm_open: FD %d: Failure to set O_NDELAY: %s\n",
+		new_socket, xstrerror());
+	    return (COMM_ERROR);
+	}
+#endif /* O_NONBLOCK */
+    return new_socket;
+}
+
+/* Create a socket. Default is blocking, stream (TCP) socket.  IO_TYPE
+ * is OR of flags specified in comm.h. */
+int comm_open(io_type, port, note)
      unsigned int io_type;
      u_short port;
-     int (*handler) ();		/* Interrupt handler. */
      char *note;
 {
     int new_socket;
@@ -142,7 +190,7 @@ int comm_open(io_type, port, handler, note)
 		return COMM_ERROR;
 	}
     }
-    conn->port = port;
+    conn->local_port = port;
 
     if (io_type & COMM_NONBLOCKING) {
 	/*
@@ -187,6 +235,56 @@ int comm_listen(sock)
     return sock;
 }
 
+#ifndef UNIX_PATH_MAX
+#define UNIX_PATH_MAX 100
+#endif
+
+int comm_connect_unix(sock, path)
+     int sock;
+     char *path;
+{
+    static struct sockaddr_un to_addr;
+    int len;
+    int x;
+    int status = COMM_OK;
+    FD_ENTRY *conn = &fd_table[sock];
+
+    memset(&to_addr, '\0', sizeof(to_addr));
+    to_addr.sun_family = AF_UNIX;
+    strncpy(to_addr.sun_path, path, UNIX_PATH_MAX);
+
+    if (connect(sock, (struct sockaddr *) &to_addr, sizeof(to_addr)) < 0) {
+	switch (errno) {
+	case EALREADY:
+	    return COMM_ERROR;
+	    /* NOTREACHED */
+	case EINPROGRESS:
+	    status = EINPROGRESS;
+	    break;
+	case EISCONN:
+	    status = COMM_OK;
+	    break;
+	case EINVAL:
+	    len = sizeof(x);
+	    if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
+		errno = x;
+	default:
+	    debug(5, 1, "comm_connect_unix: %s: socket failure: %s.\n",
+		path,
+		xstrerror());
+	    return COMM_ERROR;
+	}
+    }
+    /* set the lifetime for this client */
+    if (status == COMM_OK) {
+	(void) comm_set_fd_lifetime(sock, getClientLifetime());
+    } else if (status == EINPROGRESS) {
+	(void) comm_set_fd_lifetime(sock, getConnectTimeout());
+    }
+    /* Add new socket to list of open sockets. */
+    conn->sender = 1;
+    return status;
+}
 
 /* Connect SOCK to specified DEST_PORT at DEST_HOST. */
 int comm_connect(sock, dest_host, dest_port)
@@ -280,9 +378,9 @@ int comm_connect_addr(sock, address)
     if (status == COMM_OK) {
 	lft = comm_set_fd_lifetime(sock, getClientLifetime());
 	strcpy(conn->ipaddr, inet_ntoa(address->sin_addr));
-	conn->port = ntohs(address->sin_port);
+	conn->remote_port = ntohs(address->sin_port);
 	debug(5, 10, "comm_connect_addr: FD %d (lifetime %d): connected to %s:%d.\n",
-	    sock, lft, conn->ipaddr, conn->port);
+	    sock, lft, conn->ipaddr, conn->remote_port);
     } else if (status == EINPROGRESS) {
 	lft = comm_set_fd_lifetime(sock, getConnectTimeout());
 	debug(5, 10, "comm_connect_addr: FD %d connection pending, lifetime %d\n",
@@ -344,9 +442,9 @@ int comm_accept(fd, peer, me)
     conn->sender = 0;		/* This is an accept, therefore receiver. */
     conn->comm_type = listener->comm_type;
     strcpy(conn->ipaddr, inet_ntoa(P.sin_addr));
-
+    conn->remote_port = htons(P.sin_port);
+    conn->local_port = htons(M.sin_port);
     commSetNonBlocking(sock);
-
     return sock;
 }
 
