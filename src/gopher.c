@@ -652,7 +652,7 @@ gopherTimeout(int fd, void *data)
 	err->url = xstrdup(gopherState->request);
 	errorAppendEntry(entry, err);
     } else {
-        storeAbort(entry, 0);
+	storeAbort(entry, 0);
     }
     comm_close(fd);
 }
@@ -692,13 +692,15 @@ gopherReadReply(int fd, void *data)
 	debug(50, 1) ("gopherReadReply: error reading: %s\n", xstrerror());
 	if (ignoreErrno(errno)) {
 	    commSetSelect(fd, COMM_SELECT_READ, gopherReadReply, data, 0);
-	} else {
-	    /* was  assert */
+	} else if (entry->mem_obj->inmem_hi == 0) {
 	    ErrorState *err;
 	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
 	    err->xerrno = errno;
 	    err->url = xstrdup(storeUrl(entry));
 	    errorAppendEntry(entry, err);
+	    comm_close(fd);
+	} else {
+	    storeAbort(entry, 0);
 	    comm_close(fd);
 	}
     } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {
