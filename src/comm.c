@@ -338,7 +338,7 @@ commConnectDnsHandle(int fd, const ipcache_addrs * ia, void *data)
     ConnectStateData *cs = data;
     if (ia == NULL) {
 	debug(5, 3, "commConnectDnsHandle: Unknown host: %s\n", cs->host);
-	cs->callback(fd, COMM_ERROR, cs->data);
+	cs->callback(fd, COMM_ERR_DNS, cs->data);
 	return;
     }
     cs->in_addr = ia->in_addrs[ia->cur];
@@ -414,7 +414,7 @@ commConnectHandle(int fd, void *data)
 		connectState);
 	} else {
 	    ipcacheRemoveBadAddr(connectState->host, connectState->S.sin_addr);
-	    connectState->callback(fd, COMM_ERROR, connectState->data);
+	    connectState->callback(fd, COMM_ERR_CONNECT, connectState->data);
 	}
 	break;
     }
