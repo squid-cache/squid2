@@ -1,5 +1,6 @@
 
 
+
 /* $Id$ */
 
 /*
@@ -1723,10 +1724,10 @@ static void icpDetectClientClose(fd, icpState)
 	    (void *) icpState);
 	return;
     }
-    debug(12,1,"icpDetectClientClose: FD %d\n", fd);
-    debug(12,1,"--> URL '%s'\n", icpState->url);
+    debug(12, 1, "icpDetectClientClose: FD %d\n", fd);
+    debug(12, 1, "--> URL '%s'\n", icpState->url);
     if (n < 0)
-        debug(12, 1, "--> ERROR %s\n", xstrerror());
+	debug(12, 1, "--> ERROR %s\n", xstrerror());
     CheckQuickAbort(icpState);
     entry = icpState->entry;
     if (entry && icpState->url)

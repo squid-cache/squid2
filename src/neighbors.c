@@ -580,7 +580,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    return;
 	}
 	/* ACK, how to parse headers? */
-	httpState = xcalloc (1, sizeof(HttpStateData));
+	httpState = xcalloc(1, sizeof(HttpStateData));
 	httpState->entry = entry;
 	httpProcessReplyHeader(httpState, data, data_sz);
 	storeAppend(entry, data, data_sz);
@@ -590,7 +590,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    0,
 	    e->host);
 	if (httpState->reply_hdr)
-		put_free_8k_page(httpState->reply_hdr);
+	    put_free_8k_page(httpState->reply_hdr);
 	safe_free(httpState);
 	return;
 #endif

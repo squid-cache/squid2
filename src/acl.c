@@ -123,7 +123,7 @@ static int decode_addr(asc, addr, mask)
     long a;
 
     if ((a = inet_addr(asc)) != INADDR_NONE || !strcmp(asc, "255.255.255.255")) {
-	addr->s_addr = a; /* inet_addr() outputs in network byte order */
+	addr->s_addr = a;	/* inet_addr() outputs in network byte order */
     } else if ((hp = gethostbyname(asc)) != NULL) {
 	/* We got a host name */
 	memcpy(addr, hp->h_addr, hp->h_length);

@@ -388,10 +388,10 @@ void storePurgeMem(e)
 
 /* lock the object for reading, start swapping in if necessary */
 /* Called by:
-	icp_hit_or_miss()
-	storeAbort()
-	{http,ftp,gopher,wais}Start()
-*/
+ * icp_hit_or_miss()
+ * storeAbort()
+ * {http,ftp,gopher,wais}Start()
+ */
 int storeLockObject(e, handler, data)
      StoreEntry *e;
      SIH handler;
@@ -413,7 +413,7 @@ int storeLockObject(e, handler, data)
     }
     e->lastref = squid_curtime;
 
-     /* If the object is NOT_IN_MEMORY, fault it in. */
+    /* If the object is NOT_IN_MEMORY, fault it in. */
     if ((e->mem_status == NOT_IN_MEMORY) && (e->swap_status == SWAP_OK)) {
 	/* object is in disk and no swapping daemon running. Bring it in. */
 	if ((swap_in_stat = storeSwapInStart(e, handler, data)) < 0) {
@@ -429,9 +429,9 @@ int storeLockObject(e, handler, data)
 	/* its already in memory, so call the handler */
 	(*handler) (0, data);
     } else if (handler) {
-	debug(20,0,"storeLockObject: handler loses for '%s'\n", e->url);
-	debug(20,0,"storeLockObject: --> mem_status = %d\n",
-		(int) e->mem_status);
+	debug(20, 0, "storeLockObject: handler loses for '%s'\n", e->url);
+	debug(20, 0, "storeLockObject: --> mem_status = %d\n",
+	    (int) e->mem_status);
     }
     return status;
 }

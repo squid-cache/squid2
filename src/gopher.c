@@ -73,7 +73,7 @@ static int gopherStateFree(fd, gopherState)
     if (gopherState == NULL)
 	return 1;
     if (gopherState->entry)
-        storeUnlockObject(gopherState->entry);
+	storeUnlockObject(gopherState->entry);
     put_free_4k_page(gopherState->buf);
     xfree(gopherState);
     return 0;

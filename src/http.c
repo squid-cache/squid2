@@ -96,9 +96,9 @@ static void httpMakePrivate(entry)
     storeSetPrivateKey(entry);
     storeExpireNow(entry);
     BIT_RESET(entry->flag, CACHABLE);
-    storeReleaseRequest(entry); /* delete object when not used */
+    storeReleaseRequest(entry);	/* delete object when not used */
 }
-    
+
 /* This object may be negatively cached */
 static void httpCacheNegatively(entry)
      StoreEntry *entry;
@@ -207,46 +207,46 @@ void httpProcessReplyHeader(httpState, buf, size)
 	if (reply->code)
 	    debug(11, 3, "httpProcessReplyHeader: HTTP CODE: %d\n", reply->code);
 	switch (reply->code) {
-	/* Responses that are cacheable */
-	case 200:	/* OK */
-	case 203:	/* Non-Authoritative Information */
-	case 300:	/* Multiple Choices */
-	case 301:	/* Moved Permanently */
-	case 410:	/* Gone */
+	    /* Responses that are cacheable */
+	case 200:		/* OK */
+	case 203:		/* Non-Authoritative Information */
+	case 300:		/* Multiple Choices */
+	case 301:		/* Moved Permanently */
+	case 410:		/* Gone */
 	    /* These can be cached for a long time */
 	    httpMakePublic(entry);
 	    break;
-	/* Responses that only are cacheable if the server says so */
-	case 302:	/* Moved temporarily */
-	    if(*reply->expires)
+	    /* Responses that only are cacheable if the server says so */
+	case 302:		/* Moved temporarily */
+	    if (*reply->expires)
 		httpMakePublic(entry);
 	    else
-	    	httpMakePrivate(entry);
+		httpMakePrivate(entry);
 	    break;
-	/* Errors can be negatively cached */
-	case 204:	/* No Content */
-	case 305:	/* Use Proxy (proxy redirect) */
-	case 400:	/* Bad Request */
-	case 403:	/* Forbidden */
-	case 404:	/* Not Found */
-	case 405:	/* Method Now Allowed */
-	case 414:	/* Request-URI Too Long */
-	case 500:	/* Internal Server Error */
-	case 501:	/* Not Implemented */
-	case 502:	/* Bad Gateway */
-	case 503:	/* Service Unavailable */
-	case 504:	/* Gateway Timeout */
-	    if(*reply->expires)
+	    /* Errors can be negatively cached */
+	case 204:		/* No Content */
+	case 305:		/* Use Proxy (proxy redirect) */
+	case 400:		/* Bad Request */
+	case 403:		/* Forbidden */
+	case 404:		/* Not Found */
+	case 405:		/* Method Now Allowed */
+	case 414:		/* Request-URI Too Long */
+	case 500:		/* Internal Server Error */
+	case 501:		/* Not Implemented */
+	case 502:		/* Bad Gateway */
+	case 503:		/* Service Unavailable */
+	case 504:		/* Gateway Timeout */
+	    if (*reply->expires)
 		httpMakePublic(entry);
 	    else
-	    	httpCacheNegatively(entry);
+		httpCacheNegatively(entry);
 	    break;
-	/* Some responses can never be cached */
-	case 303:	/* See Other */
-	case 304:	/* Not Modified */
-	case 401:	/* Unauthorized */
-	case 407:	/* Proxy Authentication Required */
-	default:	/* Unknown status code */
+	    /* Some responses can never be cached */
+	case 303:		/* See Other */
+	case 304:		/* Not Modified */
+	case 401:		/* Unauthorized */
+	case 407:		/* Proxy Authentication Required */
+	default:		/* Unknown status code */
 	    httpMakePrivate(entry);
 	    break;
 	}
