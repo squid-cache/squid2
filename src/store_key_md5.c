@@ -136,6 +136,13 @@ storeKeyDup(const cache_key * key)
     return dup;
 }
 
+cache_key *
+storeKeyCopy(cache_key * dst, const cache_key *src)
+{
+    xmemcpy(dst, src, MD5_DIGEST_CHARS);
+    return dst;
+}
+
 void
 storeKeyFree(const cache_key * key)
 {
