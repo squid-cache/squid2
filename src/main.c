@@ -130,10 +130,6 @@ static void mainParseOptions(int, char **);
 static void sendSignal(void);
 static void serverConnectionsOpen(void);
 static void watch_child(char **);
-#ifdef SQUID_SNMP
-extern void init_snmp();
-extern void initSquidSnmp();
-#endif
 static void
 usage(void)
 {
@@ -404,7 +400,7 @@ serverConnectionsOpen(void)
 	}
     }
 #ifdef SQUID_SNMP
-    initSquidSnmp();
+    snmpConnectionOpen();
 #endif
 
     clientdbInit();
@@ -570,9 +566,8 @@ mainInitialize(void)
 	statAvgInit();
     }
     configured_once = 1;
-
 #ifdef SQUID_SNMP
-    init_snmp();
+    snmpInit();
 #endif
 }
 

@@ -30,9 +30,8 @@
 
 
 #include "squid.h"
-#include "mib_module.h"		/*
-				 * * * * * * * * * * * #include "snmp_config.h"
-				 */
+#include "mib_module.h"
+
 #ifdef SQUID_SNMP
 #define SNMP_REQUEST_SIZE 4096
 #define MAX_PROTOSTAT 5
@@ -45,7 +44,6 @@ void *users, *communities;
 
 static struct sockaddr_in local_snmpd;
 
-void initSquidSnmp();
 void snmpFwd_insertPending(struct sockaddr_in *, long);
 int snmpFwd_removePending(struct sockaddr_in *, long);
 extern int init_agent_auth();
@@ -59,7 +57,6 @@ static SNMPFV var_cnf;
 static SNMPFV var_htio;
 static SNMPFV var_htst;
 #endif
-void snmpHandleUdp(int, void *);
 
 static int snmp_dump_packet;
 
@@ -456,7 +453,6 @@ struct variable config_variables[] =
 	{8, 7}}
 };
 
-
 void
 snmpHandleUdp(int sock, void *not_used)
 {
@@ -468,7 +464,7 @@ snmpHandleUdp(int sock, void *not_used)
     LOCAL_ARRAY(char, outbuf, SNMP_REQUEST_SIZE);
     LOCAL_ARRAY(char, deb_line, 4096);
     int len;
-    int outlen;
+    int outlen = SNMP_REQUEST_SIZE;
     snmp_dump_packet = 1;
     debug(49, 5) ("snmpHandleUdp: Initialized.\n");
     commSetSelect(sock, COMM_SELECT_READ, snmpHandleUdp, NULL, 0);
@@ -498,8 +494,8 @@ snmpHandleUdp(int sock, void *not_used)
 	debug(49, 5) ("received %d bytes from %s:\n", (int) len,
 	    inet_ntoa(from.sin_addr));
 	for (count = 0; count < len; count++) {
-	    snprintf(deb_line, 4096, "%s %02X ", deb_line, buf[count]);
-	    if ((count % 16) == 15) {
+	    snprintf(deb_line, 4096, "%s %02X ", deb_line, (u_char) buf[count]);
+	    if ((count % 16) == 15 || count == (len - 1)) {
 		debug(49, 7) ("snmp in: %s\n", deb_line);
 		deb_line[0] = '\0';
 	    }
@@ -546,7 +542,7 @@ snmpHandleUdp(int sock, void *not_used)
 	    debug(49, 5) ("snmp: sent %d bytes to %s\n", (int) outlen,
 		inet_ntoa(from.sin_addr));
 	    for (count = 0; count < outlen; count++) {
-		debug(49, 7) ("%02X\n", outbuf[count]);
+		debug(49, 7) ("%02X\n", (u_char) outbuf[count]);
 	    }
 	    debug(49, 5) ("DONE\n");
 	}
@@ -570,7 +566,7 @@ snmpHandleUdp(int sock, void *not_used)
 }
 
 void
-init_snmp()
+snmpInit(void)
 {
     snmp_intoobigs = 0;
     snmp_inbadcommunitynames = 0;
@@ -588,7 +584,6 @@ init_snmp()
 	mib_register(base, 9, protostat_vars,
 	    sizeof(protostat_vars) / sizeof(*protostat_vars),
 	    sizeof(*protostat_vars));
-
     }
     {
 	static oid base[] =
@@ -597,14 +592,12 @@ init_snmp()
 	    sizeof(config_variables) / sizeof(*config_variables),
 	    sizeof(*config_variables));
     }
-
     {
 	static oid base[] =
 	{SQ_PRF, PERF_PEERSTATS};
 	mib_register(base, 9, peerstat_vars,
 	    sizeof(peerstat_vars) / sizeof(*peerstat_vars),
 	    sizeof(*peerstat_vars));
-
     }
     /*{
      * static oid base[] =
@@ -907,7 +900,7 @@ read_main_config_file()
 
 
 void
-initSquidSnmp()
+snmpConnectionOpen(void)
 {
     u_short port;
     struct in_addr addr;
@@ -990,7 +983,6 @@ int
 snmpFwd_removePending(struct sockaddr_in *fr, long reqid)
 {
     struct snmpFwdQueue *p, *prev = NULL;
-
     for (p = snmpHead; p != NULL; p = p->next, prev = p)
 	if (reqid == p->req_id) {
 	    xmemcpy(fr, &p->addr, sizeof(struct sockaddr_in));
@@ -998,7 +990,7 @@ snmpFwd_removePending(struct sockaddr_in *fr, long reqid)
 		snmpHead = p->next;
 	    else if (p->next == NULL)
 		prev->next = NULL;
-
+debug(0,0)("snmpFwd_removePending: freeing %p\n", p);
 	    xfree(p);
 	    return 0;
 	}
@@ -1044,7 +1036,9 @@ snmpUdpReply(int fd, void *data)
 		break;		/* don't de-queue */
 	}
 	snmpUdpHead = queue->next;
+debug(0,0)("snmpUdpReply: freeing %p\n", queue->msg);
 	safe_free(queue->msg);
+debug(0,0)("snmpUdpReply: freeing %p\n", queue);
 	safe_free(queue);
     }
     /* Reinstate handler if needed */
