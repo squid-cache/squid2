@@ -2840,6 +2840,7 @@ DOC_START
 		netdb
 		non_peers
 		objects
+		offline_toggle *
 		pconn
 		peer_select
 		redirector
