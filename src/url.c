@@ -130,8 +130,8 @@ url_convert_hex(char *org_url, int allocate)
     url = allocate ? (char *) xstrdup(org_url) : org_url;
     if ((int) strlen(url) < 3 || !strchr(url, '%'))
 	return url;
-    for (s = t = url; *(s + 2); s++) {
-	if (*s == '%') {
+    for (s = t = url; *s; s++) {
+	if (*s == '%' && *(s + 1) && *(s + 2)) {
 	    code[0] = *(++s);
 	    code[1] = *(++s);
 	    *t++ = (char) strtol(code, NULL, 16);
