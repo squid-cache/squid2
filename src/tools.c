@@ -134,11 +134,11 @@ releaseServerSockets(void)
 {
     /* Release the main ports as early as possible */
     if (theHttpConnection >= 0)
-       (void) close(theHttpConnection);
+	(void) close(theHttpConnection);
     if (theInIcpConnection >= 0)
-       (void) close(theInIcpConnection);
+	(void) close(theInIcpConnection);
     if (theOutIcpConnection >= 0 && theOutIcpConnection != theInIcpConnection)
-       (void) close(theOutIcpConnection);
+	(void) close(theOutIcpConnection);
 }
 
 static char *
@@ -497,23 +497,23 @@ leave_suid(void)
     if ((pwd = getpwnam(Config.effectiveUser)) == NULL)
 	return;
     if (Config.effectiveGroup && (grp = getgrnam(Config.effectiveGroup))) {
-       if (setgid(grp->gr_gid) < 0)
-           debug(50, 1, "leave_suid: setgid: %s\n", xstrerror());
+	if (setgid(grp->gr_gid) < 0)
+	    debug(50, 1, "leave_suid: setgid: %s\n", xstrerror());
     } else {
-       if (setgid(pwd->pw_gid) < 0)
-           debug(50, 1, "leave_suid: setgid: %s\n", xstrerror());
+	if (setgid(pwd->pw_gid) < 0)
+	    debug(50, 1, "leave_suid: setgid: %s\n", xstrerror());
     }
     debug(21, 3, "leave_suid: PID %d giving up root, becoming '%s'\n",
 	getpid(), pwd->pw_name);
 #if HAVE_SETRESUID
     if (setresuid(pwd->pw_uid, pwd->pw_uid, 0) < 0)
-       debug(50, 1, "leave_suid: setresuid: %s\n", xstrerror());
+	debug(50, 1, "leave_suid: setresuid: %s\n", xstrerror());
 #elif HAVE_SETEUID
     if (seteuid(pwd->pw_uid) < 0)
-       debug(50, 1, "leave_suid: seteuid: %s\n", xstrerror());
+	debug(50, 1, "leave_suid: seteuid: %s\n", xstrerror());
 #else
     if (setuid(pwd->pw_uid) < 0)
-       debug(50, 1, "leave_suid: setuid: %s\n", xstrerror());
+	debug(50, 1, "leave_suid: setuid: %s\n", xstrerror());
 #endif
 }
 
@@ -541,11 +541,11 @@ no_suid(void)
     debug(21, 3, "leave_suid: PID %d giving up root priveleges forever\n", getpid());
 #if HAVE_SETRESUID
     if (setresuid(uid, uid, uid) < 0)
-       debug(50, 1, "no_suid: setresuid: %s\n", xstrerror());
+	debug(50, 1, "no_suid: setresuid: %s\n", xstrerror());
 #else
     setuid(0);
     if (setuid(uid) < 0)
-       debug(50, 1, "no_suid: setuid: %s\n", xstrerror());
+	debug(50, 1, "no_suid: setuid: %s\n", xstrerror());
 #endif
 }
 

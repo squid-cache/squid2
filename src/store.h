@@ -167,8 +167,8 @@ struct _MemObject {
     char *e_swap_buf;
     peer *e_pings_first_miss;
     int w_rtt;			/* weighted RTT in msec */
-    peer *e_pings_closest_parent;      /* parent with best RTT to source */
-    int p_rtt;                 /* parent's RTT to source */
+    peer *e_pings_closest_parent;	/* parent with best RTT to source */
+    int p_rtt;			/* parent's RTT to source */
     struct timeval start_ping;
 
 /* These items are also mutually exclusive */

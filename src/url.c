@@ -248,8 +248,8 @@ urlParse(method_t method, char *url)
     /* These ports are filtered in the default squid.conf, but
      * maybe someone wants them hardcoded... */
     if (port == 7 || port == 9 || port = 19) {
-       debug(23, 0, "urlParse: Deny access to port %d\n", port);
-       return NULL;
+	debug(23, 0, "urlParse: Deny access to port %d\n", port);
+	return NULL;
     }
 #endif
 #ifdef REMOVE_FTP_TRAILING_SLASHES

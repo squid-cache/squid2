@@ -703,9 +703,9 @@ memoryAccounted(void)
 	meta_data.url_strings +
 	meta_data.netdb_addrs * sizeof(netdbEntry) +
 	meta_data.netdb_hosts * sizeof(struct _net_db_name) +
-        meta_data.netdb_peers * sizeof(struct _net_db_peer) +
-        meta_data.client_info * client_info_sz +
-        meta_data.misc;
+                 meta_data.netdb_peers * sizeof(struct _net_db_peer) +
+                 meta_data.client_info * client_info_sz +
+                 meta_data.misc;
 }
 
 #ifdef UNUSED_CODE
@@ -917,13 +917,13 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
 	"NetDB Host Entries",
 	meta_data.netdb_hosts,
 	(int) sizeof(struct _net_db_name),
-	(int) (meta_data.netdb_hosts * sizeof(struct _net_db_name) >> 10));
+	             (int) (meta_data.netdb_hosts * sizeof(struct _net_db_name) >> 10));
 
-     storeAppendPrintf(sentry, "{\t%-25.25s %7d x %4d bytes = %6d KB}\n",
-       "NetDB Peer Entries",
-       meta_data.netdb_peers,
-       (int) sizeof(struct _net_db_peer),
-       (int) (meta_data.netdb_peers * sizeof(struct _net_db_peer) >> 10));
+    storeAppendPrintf(sentry, "{\t%-25.25s %7d x %4d bytes = %6d KB}\n",
+	"NetDB Peer Entries",
+	meta_data.netdb_peers,
+	(int) sizeof(struct _net_db_peer),
+	             (int) (meta_data.netdb_peers * sizeof(struct _net_db_peer) >> 10));
 
     storeAppendPrintf(sentry, "{\t%-25.25s %7d x %4d bytes = %6d KB}\n",
 	"ClientDB Entries",
@@ -1118,10 +1118,10 @@ log_append(const cacheinfo * obj,
 	hier_host = hierData->host ? hierData->host : dash_str;
 	hier_timeout = hierData->timeout;
 #ifdef LOG_ICP_NUMBERS
-       tt = hierData->delay;
-       ns = hierData->n_sent;
-       ne = hierData->n_expect;
-       nr = hierData->n_recv;
+	tt = hierData->delay;
+	ns = hierData->n_sent;
+	ne = hierData->n_expect;
+	nr = hierData->n_recv;
 #endif
     }
     if (Config.commonLogFormat)
@@ -1155,7 +1155,7 @@ log_append(const cacheinfo * obj,
 	    hier_strings[hier_code],
 	    hier_host,
 #ifdef LOG_ICP_NUMBERS
-           ns, ne, nr, tt,
+	    ns, ne, nr, tt,
 #endif
 	    content_type);
 #if LOG_FULL_HEADERS

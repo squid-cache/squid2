@@ -331,12 +331,12 @@ file_write(int fd,
     }
 
     if (file_table[fd].write_daemon != PRESENT) {
-        commSetSelect(fd,
+	commSetSelect(fd,
 	    COMM_SELECT_WRITE,
 	    (PF) diskHandleWrite,
 	    (void *) &file_table[fd],
 	    0);
-        file_table[fd].write_daemon = PRESENT;
+	file_table[fd].write_daemon = PRESENT;
     }
     return DISK_OK;
 }
