@@ -477,6 +477,7 @@ fwdCheckDeferRead(int fd, void *data)
 {
     StoreEntry *e = data;
     MemObject *mem = e->mem_obj;
+    int rc = 0;
     if (mem == NULL)
 	return 0;
 #if DELAY_POOLS
@@ -484,13 +485,21 @@ fwdCheckDeferRead(int fd, void *data)
 	(void) 0;
     else if (delayIsNoDelay(fd))
 	(void) 0;
-    else if (delayMostBytesWanted(mem, 1) == 0)
-	return 1;
+    else {
+	int i = delayMostBytesWanted(mem, INT_MAX);
+	if (0 == i)
+	    return 1;
+	/* was: rc = -(rc != INT_MAX); */
+	else if (INT_MAX == i)
+	    rc = 0;
+	else
+	    rc = -1;
+    }
 #endif
     if (EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT))
-	return 0;
+	return rc;
     if (mem->inmem_hi - storeLowestMemReaderOffset(e) < READ_AHEAD_GAP)
-	return 0;
+	return rc;
     return 1;
 }
 

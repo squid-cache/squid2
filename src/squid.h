@@ -186,6 +186,9 @@
 #if HAVE_GETOPT_H
 #include <getopt.h>
 #endif
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif
 
 #if HAVE_DIRENT_H
 #include <dirent.h>
