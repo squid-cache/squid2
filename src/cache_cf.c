@@ -1665,7 +1665,7 @@ parseTimeLine(int *iptr, const char *units)
 	self_destruct();
     d = atof(token);
     m = u;			/* default to 'units' if none specified */
-    if ((token = strtok(NULL, w_space)) == NULL) {
+    if ((token = strtok(NULL, w_space)) != NULL) {
 	if ((m = parseTimeUnits(token)) == 0)
 	    self_destruct();
     }
