@@ -55,6 +55,8 @@
 /* Define to have a detailed trace of memory allocations */
 #undef XMALLOC_TRACE
 
+#undef FORW_VIA_DB
+
 /* Define to use async disk I/O operations */
 #undef USE_ASYNC_IO
 
