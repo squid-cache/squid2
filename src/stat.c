@@ -759,7 +759,7 @@ void parameter_get(obj, sentry)
 }
 
 
-void log_append(obj, url, id, size, action, method, http_code, msec)
+void log_append(obj, url, id, size, action, method, http_code, msec, hier)
      cacheinfo *obj;
      char *url;
      char *id;
@@ -768,6 +768,7 @@ void log_append(obj, url, id, size, action, method, http_code, msec)
      char *method;
      int http_code;
      int msec;
+     hier_code hier;
 {
     static char tmp[6000];	/* MAX_URL is 4096 */
     char *buf = NULL;
@@ -800,6 +801,19 @@ void log_append(obj, url, id, size, action, method, http_code, msec)
 	    sprintf(tmp, "%s - - [%s] \"%s %s\" %s %d\n",
 		id, mkhttpdlogtime(&squid_curtime), method, url, action, size);
 	else
+#ifdef LOG_HIERARCHY_CODES
+	    sprintf(tmp, "%9d.%03d %6d %s %s/%03d/%s %d %s %s\n",
+		(int) current_time.tv_sec,
+		(int) current_time.tv_usec / 1000,
+		msec,
+		id,
+		action,
+		http_code,
+		hier_strings[hier],
+		size,
+		method,
+		url);
+#else
 	    sprintf(tmp, "%9d.%03d %6d %s %s/%03d %d %s %s\n",
 		(int) current_time.tv_sec,
 		(int) current_time.tv_usec / 1000,
@@ -810,6 +824,7 @@ void log_append(obj, url, id, size, action, method, http_code, msec)
 		size,
 		method,
 		url);
+#endif
 
 
 	if (file_write(obj->logfile_fd, buf = xstrdup(tmp), strlen(tmp),

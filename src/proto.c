@@ -80,6 +80,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     protodispatch_data *protoData = (protodispatch_data *) data;
     StoreEntry *entry = protoData->entry;
     request_t *req = protoData->request;
+    MemObject *mem = entry->mem_obj;
 
     /* NOTE: We get here after a DNS lookup, whether or not the
      * lookup was successful.  Even if the URL hostname is bad,
@@ -94,6 +95,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	    return 0;
 	}
 	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, req->host);
+	mem->hierarchy_code = HIER_DIRECT;
 	getFromCache(protoData->fd, entry, NULL, req);
 	protoDataFree(protoData);
 	return 0;
@@ -108,6 +110,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 		hierarchy_log_append(protoData->url,
 		    HIER_LOCAL_IP_DIRECT, 0,
 		    req->host);
+		mem->hierarchy_code = HIER_LOCAL_IP_DIRECT;
 		getFromCache(protoData->fd, entry, NULL, req);
 		protoDataFree(protoData);
 		return 0;
@@ -118,12 +121,14 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	(single_parent_bypass || protoData->direct_fetch == DIRECT_NO)) {
 	/* Only one parent for this host, and okay to skip pinging stuff */
 	hierarchy_log_append(protoData->url, HIER_SINGLE_PARENT, 0, e->host);
+	mem->hierarchy_code = HIER_SINGLE_PARENT;
 	getFromCache(protoData->fd, entry, e, req);
 	protoDataFree(protoData);
 	return 0;
     }
     if (protoData->n_edges == 0 && protoData->direct_fetch == DIRECT_NO) {
 	hierarchy_log_append(protoData->url, HIER_NO_DIRECT_FAIL, 0, req->host);
+	mem->hierarchy_code = HIER_NO_DIRECT_FAIL;
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents to query and the host is beyond your firewall.");
 	protoDataFree(protoData);
@@ -153,6 +158,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
     }
     if (protoData->direct_fetch == DIRECT_NO) {
 	hierarchy_log_append(protoData->url, HIER_NO_DIRECT_FAIL, 0, req->host);
+	mem->hierarchy_code = HIER_NO_DIRECT_FAIL;
 	protoCantFetchObject(protoData->fd, entry,
 	    "No neighbors or parents were queried and the host is beyond your firewall.");
     } else {
@@ -162,6 +168,7 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	    return 0;
 	}
 	hierarchy_log_append(protoData->url, HIER_DIRECT, 0, req->host);
+	mem->hierarchy_code = HIER_DIRECT;
 	getFromCache(protoData->fd, entry, NULL, req);
     }
     protoDataFree(protoData);
@@ -321,7 +328,8 @@ int getFromDefaultSource(fd, entry)
 {
     edge *e = NULL;
     char *url = NULL;
-    request_t *request = entry->mem_obj->request;
+    MemObject *mem = entry->mem_obj;
+    request_t *request = mem->request;
 
     url = entry->url;
 
@@ -348,6 +356,7 @@ int getFromDefaultSource(fd, entry)
 
     if ((e = entry->mem_obj->e_pings_first_miss)) {
 	hierarchy_log_append(url, HIER_FIRST_PARENT_MISS, fd, e->host);
+	mem->hierarchy_code = HIER_FIRST_PARENT_MISS;
 	return getFromCache(fd, entry, e, request);
     }
     if (matchInsideFirewall(request->host)) {
@@ -355,15 +364,18 @@ int getFromDefaultSource(fd, entry)
 	    return protoDNSError(fd, entry);
 	}
 	hierarchy_log_append(url, HIER_DIRECT, fd, request->host);
+	mem->hierarchy_code = HIER_DIRECT;
 	return getFromCache(fd, entry, NULL, request);
     }
     if ((e = getSingleParent(request, NULL))) {
 	/* last chance effort; maybe there was a single_parent and a ICP
 	 * packet got lost */
 	hierarchy_log_append(url, HIER_SINGLE_PARENT, fd, e->host);
+	mem->hierarchy_code = HIER_SINGLE_PARENT;
 	return getFromCache(fd, entry, e, request);
     }
     hierarchy_log_append(url, HIER_NO_DIRECT_FAIL, fd, request->host);
+    mem->hierarchy_code = HIER_NO_DIRECT_FAIL;
     protoCancelTimeout(fd, entry);
     protoCantFetchObject(fd, entry,
 	"No ICP replies received and the host is beyond the firewall.");

@@ -86,6 +86,7 @@ typedef struct _MemObject {
     request_t *request;
     SIH swapin_complete_handler;
     void *swapin_complete_data;
+    hier_code hierarchy_code;
 } MemObject;
 
 typedef enum {

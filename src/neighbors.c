@@ -16,7 +16,7 @@ static struct in_addr any_addr;
 
 FILE *cache_hierarchy_log = NULL;
 
-static char *hier_strings[] =
+char *hier_strings[] =
 {
     "NONE",
     "DIRECT",
@@ -380,13 +380,13 @@ int neighborsUdpPing(proto)
     struct sockaddr_in to_addr;
     edge *e = NULL;
     int i;
-    MemObject *m = entry->mem_obj;
+    MemObject *mem = entry->mem_obj;
 
-    m->e_pings_n_pings = 0;
-    m->e_pings_n_acks = 0;
-    m->e_pings_first_miss = NULL;
-    m->w_rtt = 0;
-    m->start_ping = current_time;
+    mem->e_pings_n_pings = 0;
+    mem->e_pings_n_acks = 0;
+    mem->e_pings_first_miss = NULL;
+    mem->w_rtt = 0;
+    mem->start_ping = current_time;
 
     if (friends->edges_head == (edge *) NULL)
 	return 0;
@@ -432,7 +432,7 @@ int neighborsUdpPing(proto)
 	if (e->stats.ack_deficit < HIER_MAX_DEFICIT) {
 	    /* consider it's alive. count it */
 	    e->neighbor_up = 1;
-	    m->e_pings_n_pings++;
+	    mem->e_pings_n_pings++;
 	} else {
 	    /* consider it's dead. send a ping but don't count it. */
 	    e->neighbor_up = 0;
@@ -476,7 +476,7 @@ int neighborsUdpPing(proto)
 	    debug(15, 6, "neighborsUdpPing: Source Ping is disabled.\n");
 	}
     }
-    return (m->e_pings_n_pings);
+    return (mem->e_pings_n_pings);
 }
 
 
@@ -496,7 +496,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
      int data_sz;
 {
     edge *e = NULL;
-    MemObject *m = entry->mem_obj;
+    MemObject *mem = entry->mem_obj;
     int w_rtt;
     int rtt;
     int n;
@@ -534,10 +534,10 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	n = ++e->stats.pings_acked;
 	if (header->opcode < ICP_OP_END)
 	    e->stats.counts[header->opcode]++;
-	if (m) {
+	if (mem) {
 	    if (n > RTT_AV_FACTOR)
 		n = RTT_AV_FACTOR;
-	    rtt = tvSubMsec(m->start_ping, current_time);
+	    rtt = tvSubMsec(mem->start_ping, current_time);
 	    e->stats.rtt = (e->stats.rtt * (n - 1) + rtt) / n;
 	}
     }
@@ -575,6 +575,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 		HIER_SOURCE_FASTEST,
 		0,
 		inet_ntoa(from->sin_addr));
+	    if (mem)
+		mem->hierarchy_code = HIER_SOURCE_FASTEST;
 	    BIT_SET(entry->flag, ENTRY_DISPATCHED);
 	    entry->ping_status = DONE;
 	    getFromCache(0, entry, NULL, entry->mem_obj->request);
@@ -596,6 +598,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	    HIER_UDP_HIT_OBJ,
 	    0,
 	    e->host);
+	    if (mem)
+		mem->hierarchy_code = HIER_UDP_HIT_OBJ;
 	if (httpState->reply_hdr)
 	    put_free_8k_page(httpState->reply_hdr);
 	safe_free(httpState);
@@ -605,15 +609,19 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	/* If an edge is not found, count it as a MISS message. */
 	if (!e) {
 	    /* count it as a MISS message */
-	    m->e_pings_n_acks++;
+	    mem->e_pings_n_acks++;
 	    return;
 	}
 	/* GOT a HIT here */
 	debug(15, 6, "HIT: Getting %s from host: %s\n", entry->url, e->host);
 	if (e->type == EDGE_SIBLING) {
 	    hierarchy_log_append(entry->url, HIER_NEIGHBOR_HIT, 0, e->host);
+	    if (mem)
+		mem->hierarchy_code = HIER_NEIGHBOR_HIT;
 	} else {
 	    hierarchy_log_append(entry->url, HIER_PARENT_HIT, 0, e->host);
+	    if (mem)
+		mem->hierarchy_code = HIER_PARENT_HIT;
 	}
 	BIT_SET(entry->flag, ENTRY_DISPATCHED);
 	entry->ping_status = DONE;
@@ -621,7 +629,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	return;
     } else if ((header->opcode == ICP_OP_MISS) || (header->opcode == ICP_OP_DECHO)) {
 	/* everytime we get here, count it as a miss */
-	m->e_pings_n_acks++;
+	mem->e_pings_n_acks++;
 
 	if (header->opcode == ICP_OP_DECHO) {
 	    /* receive ping back from non-ICP cache */
@@ -631,11 +639,11 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 		    inet_ntoa(e->in_addr.sin_addr));
 
 		if (e->type == EDGE_PARENT) {
-		    w_rtt = tvSubMsec(m->start_ping, current_time) / e->weight;
-		    if (m->w_rtt == 0 || w_rtt < m->w_rtt) {
+		    w_rtt = tvSubMsec(mem->start_ping, current_time) / e->weight;
+		    if (mem->w_rtt == 0 || w_rtt < mem->w_rtt) {
 			debug(15, 6, "Dumb-cache has minimum weighted RTT = %d\n", w_rtt);
-			m->e_pings_first_miss = e;
-			m->w_rtt = w_rtt;
+			mem->e_pings_first_miss = e;
+			mem->w_rtt = w_rtt;
 		    }
 		} else {
 		    debug(15, 6, "Dumb Cached as a neighbor does not make sense.\n");
@@ -649,13 +657,13 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 
 	} else if (e && e->type == EDGE_PARENT) {
 	    /* ICP_OP_MISS from a cache */
-	    w_rtt = tvSubMsec(m->start_ping, current_time) / e->weight;
-	    if (m->w_rtt == 0 || w_rtt < m->w_rtt) {
-		m->e_pings_first_miss = e;
-		m->w_rtt = w_rtt;
+	    w_rtt = tvSubMsec(mem->start_ping, current_time) / e->weight;
+	    if (mem->w_rtt == 0 || w_rtt < mem->w_rtt) {
+		mem->e_pings_first_miss = e;
+		mem->w_rtt = w_rtt;
 	    }
 	}
-	if (m->e_pings_n_acks == m->e_pings_n_pings) {
+	if (mem->e_pings_n_acks == mem->e_pings_n_pings) {
 	    BIT_SET(entry->flag, ENTRY_DISPATCHED);
 	    entry->ping_status = DONE;
 	    debug(15, 6, "Receive MISSes from all neighbors and parents\n");

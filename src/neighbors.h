@@ -109,4 +109,6 @@ extern void neighbors_open _PARAMS((int));
 extern void neighbors_rotate_log _PARAMS((void));
 extern void neighborsDestroy _PARAMS((void));
 
+extern char *hier_strings[];
+
 #endif
