@@ -147,10 +147,10 @@ log_quote(const char *header)
 #endif
 	    if (c <= 0x1F
 		|| c >= 0x7F
+		|| c == '%'
 #if OLD_LOG_MIME
 		|| c == '"'
 		|| c == '#'
-		|| c == '%'
 		|| c == ';'
 		|| c == '<'
 		|| c == '>'
@@ -210,6 +210,7 @@ username_quote(const char *header)
 	    *buf_cursor++ = 'n';
 	} else if (c <= 0x1F
 		|| c >= 0x7F
+		|| c == '%'
 	    || c == ' ') {
 	    *buf_cursor++ = '%';
 	    i = c * 2;
