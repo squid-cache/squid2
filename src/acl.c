@@ -55,6 +55,7 @@ static struct _relist *aclParseRegexList _PARAMS((void));
 static struct _acl_time_data *aclParseTimeSpec _PARAMS((void));
 static wordlist *aclParseWordList _PARAMS((void));
 static squid_acl aclType _PARAMS((char *s));
+static int decode_addr _PARAMS((char *, struct in_addr *, struct in_addr *));
 
 static squid_acl aclType(s)
      char *s;
@@ -190,6 +191,8 @@ static int decode_addr(asc, addr, mask)
 	    mask->s_addr = htonl(0xFFFFFF00);
 	else
 	    mask->s_addr = htonl(0xFFFFFFFF);
+	addr->s_addr &= mask->s_addr;
+	/* 1.2.3.4/255.255.255.0  --> 1.2.3.0 */
     }
     return 1;
 }
