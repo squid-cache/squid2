@@ -80,6 +80,7 @@ static struct {
     wordlist *http_stoplist;
     wordlist *gopher_stoplist;
     wordlist *ftp_stoplist;
+    wordlist *hierarchy_stoplist;
     wordlist *local_domain_list;
     wordlist *inside_firewall_list;
     wordlist *dns_testname_list;
@@ -874,6 +875,12 @@ static void parseFtpStopLine()
 	return;
     wordlistAdd(&Config.ftp_stoplist, token);
 }
+static void parseHierarchyStoplistLine()
+{
+    char *token;
+    while ((token = strtok(NULL, w_space)))
+        wordlistAdd(&Config.hierarchy_stoplist, token);
+}
 
 static void parseAppendDomainLine()
 {
@@ -1218,18 +1225,19 @@ int parseConfigFile(file_name)
 	else if (!strcmp(token, "ftp_stop"))
 	    parseFtpStopLine();
 
+	/* Parse a hierarchy_stoplist line */
+	else if (!strcmp(token, "hierarchy_stoplist"))
+	    parseHierarchyStoplistLine();
+
 	/* Parse a gopher protocol line */
-	/* XXX: Must go after any gopher* token */
 	else if (!strcmp(token, "gopher"))
 	    parseGopherLine();
 
 	/* Parse a http protocol line */
-	/* XXX: Must go after any http* token */
 	else if (!strcmp(token, "http"))
 	    parseHttpLine();
 
 	/* Parse a ftp protocol line */
-	/* XXX: Must go after any ftp* token */
 	else if (!strcmp(token, "ftp"))
 	    parseFtpLine();
 
@@ -1634,6 +1642,10 @@ wordlist *getFtpStoplist()
 {
     return Config.ftp_stoplist;
 }
+wordlist *getHierarchyStoplist()
+{
+    return Config.hierarchy_stoplist;
+}
 wordlist *getGopherStoplist()
 {
     return Config.gopher_stoplist;
@@ -1707,6 +1719,7 @@ static void configFreeMemory()
     wordlistDestroy(&Config.http_stoplist);
     wordlistDestroy(&Config.gopher_stoplist);
     wordlistDestroy(&Config.ftp_stoplist);
+    wordlistDestroy(&Config.hierarchy_stoplist);
     wordlistDestroy(&Config.local_domain_list);
     wordlistDestroy(&Config.inside_firewall_list);
     wordlistDestroy(&Config.dns_testname_list);

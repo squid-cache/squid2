@@ -124,6 +124,7 @@ extern wordlist *getDnsTestnameList _PARAMS((void));
 extern wordlist *getFtpStoplist _PARAMS((void));
 extern wordlist *getGopherStoplist _PARAMS((void));
 extern wordlist *getHttpStoplist _PARAMS((void));
+extern wordlist *getHierarchyStoplist _PARAMS((void));
 extern wordlist *getInsideFirewallList _PARAMS((void));
 extern wordlist *getLocalDomainList _PARAMS((void));
 

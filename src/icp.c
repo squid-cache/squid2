@@ -206,6 +206,7 @@ int icpHierarchical(icpState)
     char *request = icpState->url;
     request_t *req = icpState->request;
     method_t method = req->method;
+    wordlist *p = NULL;
     if (BIT_TEST(icpState->flags, REQ_IMS))
 	return 0;
     if (BIT_TEST(icpState->flags, REQ_AUTH))
@@ -222,6 +223,10 @@ int icpHierarchical(icpState)
 	return 0;
     if (req->protocol == PROTO_CACHEOBJ)
 	return 0;
+    /* scan hierarchy_stoplist */
+    for (p = getHierarchyStoplist(); p; p = p->next)
+        if (strstr(request, p->key))
+            return 0;
     return 1;
 }
 
