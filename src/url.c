@@ -322,7 +322,6 @@ urlCanonicalClean(const request_t * request)
 	    *t = '\0';
 	break;
     }
-    debug(0, 0, "CLEAN: %s\n", buf);
     return buf;
 }
 
