@@ -105,7 +105,7 @@ static void icpFreeBufOrPage(icpState)
 	/* XXX should this be fatal? -DW */
 	debug(12, 0, "Shouldn't have both a 4k ptr and a string\n");
     if (icpState->ptr_to_4k_page)
-	put_free_4k_page(icpState->ptr_to_4k_page);
+	put_free_4k_page(icpState->ptr_to_4k_page, __FILE__, __LINE__);
     else
 	safe_free(icpState->buf);
     icpState->ptr_to_4k_page = icpState->buf = NULL;
@@ -420,7 +420,7 @@ int icpSendERROR(fd, errorCode, msg, state)
     } else if (port == getAsciiPortNum()) {
 	/* Error message for the ascii port */
 	buf_len = strlen(msg) + 1;	/* XXX: buf_len includes \0? */
-	buf = state->ptr_to_4k_page = get_free_4k_page();
+	buf = state->ptr_to_4k_page = get_free_4k_page(__FILE__, __LINE__);
 	state->buf = NULL;
 	memset(buf, '\0', buf_len);
 	strcpy(buf, msg);
@@ -453,7 +453,7 @@ int icpSendMoreData(fd, state)
 	entry->url, entry->object_len,
 	has_mem_obj(entry) ? entry->mem_obj->e_current_len : 0, state->offset);
 
-    p = state->ptr_to_4k_page = buf = get_free_4k_page();
+    p = state->ptr_to_4k_page = buf = get_free_4k_page(__FILE__, __LINE__);
     state->buf = NULL;
 
     /* Set maxlen to largest amount of data w/o header
@@ -1621,7 +1621,7 @@ void asciiConnLifetimeHandle(fd, data)
     if ((handler != NULL) && (client_data != NULL)) {
 	rw_state = (icpReadWriteData *) client_data;
 	if (rw_state->buf)
-	    put_free_4k_page(rw_state->buf);
+	    put_free_4k_page(rw_state->buf, __FILE__, __LINE__);
 	safe_free(rw_state);
     }
     /* If we have a read handler, we were reading in the get/post URL 

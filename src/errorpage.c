@@ -130,7 +130,7 @@ void cached_error_entry(entry, type, msg)
     strcat(tmp_error_buf, tbuf);
     entry->mem_obj->abort_code = type;
     if (entry->mem_obj->http_code == 0)
-        entry->mem_obj->http_code = 400;
+	entry->mem_obj->http_code = 400;
     storeAbort(entry, tmp_error_buf);
 }
 

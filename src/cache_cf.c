@@ -177,7 +177,8 @@ ip_access_type ip_access_check(address, list)
      struct in_addr address;
      ip_acl *list;
 {
-    static struct in_addr localhost = {0};
+    static struct in_addr localhost =
+    {0};
     ip_acl *p = NULL;
     struct in_addr naddr;	/* network byte-order IP addr */
     static char buf[100];

@@ -43,11 +43,11 @@ typedef struct _stmem_stats {
 stmem_stats sm_stats;
 stmem_stats disk_stats;
 
-extern char *get_free_4k_page _PARAMS((void));
-extern char *get_free_8k_page _PARAMS((void));
+extern char *get_free_4k_page _PARAMS((char *, int));
+extern char *get_free_8k_page _PARAMS((char *, int));
 extern mem_ptr memInit _PARAMS((void));
-extern void put_free_4k_page _PARAMS((char *));
-extern void put_free_8k_page _PARAMS((char *));
+extern void put_free_4k_page _PARAMS((char *, char *, int));
+extern void put_free_8k_page _PARAMS((char *, char *, int));
 extern void stmemInit _PARAMS((void));
 
 #endif
