@@ -255,6 +255,7 @@ errorAppendEntry(StoreEntry * entry, ErrorState * err)
     httpReplySwapOut(rep, entry);
     httpReplyDestroy(rep);
     mem->reply->sline.status = err->http_status;
+    mem->reply->content_length = -1;
     storeBufferFlush(entry);
     storeComplete(entry);
     storeNegativeCache(entry);
