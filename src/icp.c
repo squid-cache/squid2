@@ -161,8 +161,6 @@ static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, siz
 size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
 static clientHttpRequest *parseHttpRequest _PARAMS((ConnStateData *, method_t *, int *, char **, size_t *));
 
-static void clientCacheHit(void *data, char *buf, ssize_t size);
-
 /*
  * This function is designed to serve a fairly specific purpose.
  * Occasionally our vBNS-connected caches can talk to each other, but not
@@ -546,7 +544,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
     return len;
 }
 
-static void
+void
 clientCacheHit(void *data, char *buf, ssize_t size)
 {
     clientHttpRequest *http = data;
