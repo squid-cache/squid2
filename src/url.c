@@ -46,7 +46,7 @@ const char *RequestMethodStr[] =
     "TRACE",
     "PURGE",
     "OPTIONS",
-#ifndef RFC_2518
+    "DELETE",
     "PROPFIND",
     "PROPPATCH",
     "MKCOL",
@@ -54,7 +54,6 @@ const char *RequestMethodStr[] =
     "MOVE",
     "LOCK",
     "UNLOCK",
-#endif
     "ERROR"
 };
 
@@ -147,38 +146,10 @@ urlInitialize(void)
 method_t
 urlParseMethod(const char *s)
 {
-    if (strcasecmp(s, "GET") == 0) {
-	return METHOD_GET;
-    } else if (strcasecmp(s, "POST") == 0) {
-	return METHOD_POST;
-    } else if (strcasecmp(s, "PUT") == 0) {
-	return METHOD_PUT;
-    } else if (strcasecmp(s, "HEAD") == 0) {
-	return METHOD_HEAD;
-    } else if (strcasecmp(s, "CONNECT") == 0) {
-	return METHOD_CONNECT;
-    } else if (strcasecmp(s, "TRACE") == 0) {
-	return METHOD_TRACE;
-    } else if (strcasecmp(s, "PURGE") == 0) {
-	return METHOD_PURGE;
-    } else if (strcasecmp(s, "OPTIONS") == 0) {
-	return METHOD_OPTIONS;
-#ifndef RFC_2518
-    } else if (strcasecmp(s, "PROPFIND") == 0) {
-	return METHOD_PROPFIND;
-    } else if (strcasecmp(s, "PROPPATCH") == 0) {
-	return METHOD_PROPPATCH;
-    } else if (strcasecmp(s, "MKCOL") == 0) {
-	return METHOD_MKCOL;
-    } else if (strcasecmp(s, "COPY") == 0) {
-	return METHOD_COPY;
-    } else if (strcasecmp(s, "MOVE") == 0) {
-	return METHOD_MOVE;
-    } else if (strcasecmp(s, "LOCK") == 0) {
-	return METHOD_LOCK;
-    } else if (strcasecmp(s, "UNLOCK") == 0) {
-	return METHOD_UNLOCK;
-#endif
+    method_t method = METHOD_NONE;
+    for (method++; method < METHOD_ENUM_END; method++) {
+	if (0 == strcasecmp(s, RequestMethodStr[method]))
+	    return method;
     }
     return METHOD_NONE;
 }

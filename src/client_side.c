@@ -285,6 +285,7 @@ clientRedirectDone(void *data, char *result)
 	    xmemcpy(new_request->body, old_request->body, old_request->body_sz);
 	    new_request->body_sz = old_request->body_sz;
 	}
+	new_request->content_length = old_request->content_length;
 	requestUnlink(old_request);
 	http->request = requestLink(new_request);
     }

@@ -132,6 +132,7 @@ static void
 httpMaybeRemovePublic(StoreEntry * e, http_status status)
 {
     int remove = 0;
+    int forbidden = 0;
     StoreEntry *pe;
     if (!EBIT_TEST(e->flags, KEY_PRIVATE))
 	return;
@@ -141,34 +142,61 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
     case HTTP_MULTIPLE_CHOICES:
     case HTTP_MOVED_PERMANENTLY:
     case HTTP_MOVED_TEMPORARILY:
-    case HTTP_FORBIDDEN:
-    case HTTP_NOT_FOUND:
-    case HTTP_METHOD_NOT_ALLOWED:
     case HTTP_GONE:
+    case HTTP_NOT_FOUND:
 	remove = 1;
+	break;
+    case HTTP_FORBIDDEN:
+    case HTTP_METHOD_NOT_ALLOWED:
+	forbidden = 1;
 	break;
 #if WORK_IN_PROGRESS
     case HTTP_UNAUTHORIZED:
-	remove = 1;
+	forbidden = 1;
 	break;
 #endif
     default:
-	remove = 0;
+#if QUESTIONABLE
+	/*
+	 * Any 2xx response should eject previously cached entities...
+	 */
+	if (status >= 200 && status < 300)
+	    remove = 1;
+#endif
 	break;
     }
-    if (!remove)
+    if (!remove && !forbidden)
 	return;
     assert(e->mem_obj);
     if ((pe = storeGetPublic(e->mem_obj->url, e->mem_obj->method)) != NULL) {
 	assert(e != pe);
 	storeRelease(pe);
     }
-    if (e->mem_obj->method == METHOD_GET) {
-	/* A fresh GET should eject old HEAD objects */
-	if ((pe = storeGetPublic(e->mem_obj->url, METHOD_HEAD)) != NULL) {
+    /*
+     * Also remove any cached HEAD response in case the object has
+     * changed.
+     */
+    if ((pe = storeGetPublic(e->mem_obj->url, METHOD_HEAD)) != NULL) {
+	assert(e != pe);
+	storeRelease(pe);
+    }
+    if (forbidden)
+	return;
+    switch (e->mem_obj->method) {
+    case METHOD_PUT:
+    case METHOD_DELETE:
+    case METHOD_PROPPATCH:
+    case METHOD_MKCOL:
+    case METHOD_MOVE:
+	/*
+	 * Remove any cached GET object if it is beleived that the
+	 * object may have changed as a result of other methods
+	 */
+	if ((pe = storeGetPublic(e->mem_obj->url, METHOD_GET)) != NULL) {
 	    assert(e != pe);
 	    storeRelease(pe);
 	}
+	break;
     }
 }
 
