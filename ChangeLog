@@ -1,5 +1,9 @@
 Changes to squid-1.NOVM.13 (July 9, 1997):
 
+	- Changed handling of swapin_fd for IMS requests.  Now we
+	  always open the swapin_fd when the StoreEntry is created.
+	  Thus, for IMS requests we'll have both an old entry, and an
+	  old swapin_fd.  These are now both in icpState->old.
 	- Merged squid-1.1.13 changes.
 
 Changes to squid-1.1.13 (July 9, 1997):
