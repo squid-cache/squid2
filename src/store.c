@@ -2257,7 +2257,7 @@ storeClientCopy(StoreEntry * e,
     }
     sz = (available_to_write >= maxSize) ? maxSize : available_to_write;
     /* update the lowest requested offset */
-    mem->clients[ci].last_offset = stateoffset + sz;
+    mem->clients[ci].last_offset = stateoffset;
     if (sz > 0)
 	(void) mem->data->mem_copy(mem->data, stateoffset, buf, sz);
     /* see if we can get rid of some data if we are in "delete behind" mode . */
