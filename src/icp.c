@@ -829,7 +829,7 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
 
 #ifdef CHECK_BAD_ADDRS
     if (to->sin_addr.s_addr == 0xFFFFFFFF) {
-	debug(12,0,"icpUdpSend: URL '%s'\n", url);
+	debug(12, 0, "icpUdpSend: URL '%s'\n", url);
 	fatal_dump("icpUdpSend: BAD ADDRESS: 255.255.255.255");
     }
 #endif
