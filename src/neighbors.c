@@ -129,6 +129,8 @@ peerAllowedToUse(const peer * p, request_t * request)
 	    return 0;
 	if (request->flags.loopdetect)
 	    return 0;
+	if (request->flags.need_validation)
+	    return 0;
     }
     if (p->pinglist == NULL && p->access == NULL)
 	return do_ping;
@@ -495,8 +497,8 @@ peerDigestLookup(peer * p, request_t * request, StoreEntry * entry)
     if (p->digest.flags.disabled) {
 	debug(15, 5) ("peerDigestLookup: Disabled!\n");
 	return LOOKUP_NONE;
-    } else if (!peerAllowedToUse(p, request)) {
-	debug(15, 5) ("peerDigestLookup: !peerAllowedToUse()\n");
+    } else if (!peerHTTPOkay(p, request)) {
+	debug(15, 5) ("peerDigestLookup: !peerHTTPOkay()\n");
 	return LOOKUP_NONE;
     } else if (p->digest.flags.usable) {
 	debug(15, 5) ("peerDigestLookup: Usable!\n");

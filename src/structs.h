@@ -1265,6 +1265,7 @@ struct _request_flags {
     unsigned int refresh:1;
     unsigned int used_proxy_auth:1;
     unsigned int redirected:1;
+    unsigned int need_validation:1;
 #if HTTP_VIOLATIONS
     unsigned int nocache_hack:1;	/* for changing/ignoring no-cache requests */
 #endif

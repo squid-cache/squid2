@@ -1154,6 +1154,14 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	/*
 	 * We hold a stale copy; it needs to be validated
 	 */
+	/*
+	 * The 'need_validation' flag is used to prevent forwarding
+	 * loops between siblings.  If our copy of the object is stale,
+	 * then we should probably only use parents for the validation
+	 * request.  Otherwise two siblings could generate a loop if
+	 * both have a stale version of the object.
+	 */
+	r->flags.need_validation = 1;
 	if (e->lastmod < 0) {
 	    /*
 	     * Previous reply didn't have a Last-Modified header,
