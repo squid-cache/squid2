@@ -124,12 +124,8 @@ clientOnlyIfCached(clientHttpRequest * http)
 {
     const request_t *r = http->request;
     assert(r);
-    if (EBIT_TEST(r->flags, REQ_CC_ONLY_IF_CACHED)) {
-	/* future interface: 
-	 * if (r->cache_control && EBIT_TEST(r->cache_control->mask, CC_ONLY_IF_CACHED)) { */
-	return 1;
-    } else
-	return 0;
+    return  r->cache_control && 
+	EBIT_TEST(r->cache_control->mask, CC_ONLY_IF_CACHED);
 }
 
 static HttpReply *
