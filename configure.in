@@ -767,6 +767,15 @@ dnl Please change your configure script.  AIX doesn't need -lbsd.
 	*-ibm-aix*)
 		echo "Removing -lbsd for AIX..."
 		LIBS=`echo $LIBS | sed -e s/-lbsd//`
+dnl From: mlaster@metavillage.com (Mike Laster)
+dnl AIX 4.1.4.x does not have header files for snprintf/vsnprintf
+dnl So using the internal versions generates a load of warnings
+dnl during compile.
+		echo "disabling snprintf/vsnprintf for $host"
+		ac_cv_func_snprintf=no
+		ac_cv_func_vsnprintf=no
+		echo "disabling seteuid for $host"
+		ac_cv_func_seteuid=no
 		;;
 	*m88k*)
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"
@@ -809,6 +818,11 @@ if test -z "$ac_cv_func_poll"; then
 			# Henrik Nordstrom (hno@hem.passagen.se) 19980817
 			# poll is problematic on Linux.  We disable it
 			# by default until Linux gets it right.
+			echo "disabling poll for $host..."
+			ac_cv_func_poll='no'
+			;;
+		[powerpc-ibm-aix4.1.*])
+			# Mike Laster (mlaster@metavillage.com) 19981021
 			echo "disabling poll for $host..."
 			ac_cv_func_poll='no'
 			;;

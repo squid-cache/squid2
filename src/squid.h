@@ -222,6 +222,9 @@
 
 /* Make sure syslog goes after stdarg/varargs */
 #ifdef HAVE_SYSLOG_H
+#ifdef _SQUID_AIX_
+#define _XOPEN_EXTENDED_SOURCE
+#endif
 #include <syslog.h>
 #endif
 
