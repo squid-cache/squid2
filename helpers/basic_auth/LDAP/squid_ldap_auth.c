@@ -34,6 +34,8 @@
  *	       - corrected building of search filters to escape
  *		 unsafe input
  *	       - -d option for "debug" like squid_ldap_group
+ * 2004-01-05: Henrik Nordstrom <hno@squid-cache.org>
+ *	       - Corrected TLS mode
  * 2003-03-01: David J N Begley
  * 	       - Support for Netscape API method of ldap over SSL
  * 	         connections
@@ -454,7 +456,7 @@ main(int argc, char **argv)
                 exit(1);
 	    }
 
-	    if ( use_tls && ( version == LDAP_VERSION3 ) && ( ldap_start_tls_s( ld, NULL, NULL ) == LDAP_SUCCESS )) {
+	    if ( use_tls && ( version == LDAP_VERSION3 ) && ( ldap_start_tls_s( ld, NULL, NULL ) != LDAP_SUCCESS )) {
                 fprintf( stderr, "Could not Activate TLS connection\n");
                 exit(1);
 	    }
