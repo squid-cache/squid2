@@ -106,3 +106,4 @@ extern const char *StoreDigestUrlPath;	/* "store_digest" */
 extern const char *StoreDigestMimeStr;	/* "application/cache-digest" */
 extern const Version CacheDigestVer;	/* { 3, 3 } */
 extern const char *MultipartMsgBoundaryStr; /* "Unique-Squid-Separator" */
+extern icpUdpData *IcpQueueHead; /* NULL */

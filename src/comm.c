@@ -777,6 +777,8 @@ comm_incoming(void)
 	icpHandleUdp(theInIcpConnection, &incame);
 	if (theInIcpConnection != theOutIcpConnection)
 	    icpHandleUdp(theOutIcpConnection, &incame);
+	if (IcpQueueHead)
+	    icpUdpSendQueue(theOutIcpConnection, NULL);
     }
     for (j = 0; j < NHttpSockets; j++) {
 	if (HttpSockets[j] < 0)
