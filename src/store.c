@@ -672,8 +672,10 @@ storeCheckCachableStats(StoreEntry * sentry)
 {
     storeAppendPrintf(sentry, "Category\t Count\n");
 
+#if CACHE_ALL_METHODS
     storeAppendPrintf(sentry, "no.non_get\t%d\n",
 	store_check_cachable_hist.no.non_get);
+#endif
     storeAppendPrintf(sentry, "no.not_entry_cachable\t%d\n",
 	store_check_cachable_hist.no.not_entry_cachable);
     storeAppendPrintf(sentry, "no.release_request\t%d\n",
