@@ -451,8 +451,7 @@ aclParseTimeSpec(void *curlist)
 	    if (sscanf(t, "%d:%d-%d:%d", &h1, &m1, &h2, &m2) < 4) {
 		debug(28, 0, "%s line %d: %s\n",
 		    cfg_filename, config_lineno, config_input_line);
-		debug(28, 0, "aclParseTimeSpec: Bad time range '%s'\n",
-		    t);
+		debug(28, 0, "aclParseTimeSpec: IGNORING Bad time range\n");
 		xfree(q);
 		return;
 	    }
@@ -461,8 +460,7 @@ aclParseTimeSpec(void *curlist)
 	    if (q->start > q->stop) {
 		debug(28, 0, "%s line %d: %s\n",
 		    cfg_filename, config_lineno, config_input_line);
-		debug(28, 0, "aclParseTimeSpec: Reversed time range '%s'\n",
-		    t);
+		debug(28, 0, "aclParseTimeSpec: IGNORING Reversed time range\n");
 		xfree(q);
 		return;
 	    }
@@ -582,6 +580,7 @@ aclParseAclLine(void)
     struct _acl *A = NULL;
     LOCAL_ARRAY(char, aclname, ACL_NAME_SZ);
     squid_acl acltype;
+    int new_acl = 0;
 
     /* snarf the ACL name */
     if ((t = strtok(NULL, w_space)) == NULL) {
@@ -610,14 +609,14 @@ aclParseAclLine(void)
 	xstrncpy(A->name, aclname, ACL_NAME_SZ);
 	A->type = acltype;
 	A->cfgline = xstrdup(config_input_line);
-	*AclListTail = A;
-	AclListTail = &A->next;
+	new_acl = 1;
     } else {
 	if (acltype != A->type) {
 	    debug(28, 0, "aclParseAclLine: ACL '%s' already exists with different type, skipping.\n", A->name);
 	    return;
 	}
 	debug(28, 3, "aclParseAclLine: Appending to '%s'\n", aclname);
+	new_acl = 0;
     }
     switch (A->type) {
     case ACL_SRC_IP:
@@ -656,6 +655,14 @@ aclParseAclLine(void)
 	debug_trap("Bad ACL type");
 	break;
     }
+    if (new_acl && A->data == NULL) {
+	debug(28, 0, "aclParseAclLine: IGNORING invalid ACL: %s\n",
+	    A->cfgline);
+	xfree(A);
+	return;
+    }
+    *AclListTail = A;
+    AclListTail = &A->next;
 }
 
 /* maex@space.net (06.09.96)
@@ -1018,7 +1025,8 @@ aclMatchTime(struct _acl_time_data *data, time_t when)
     static time_t last_when = 0;
     static struct tm tm;
     time_t t;
-
+    if (data == NULL)
+	fatal_dump("aclMatchTime: NULL data");
     if (when != last_when) {
 	last_when = when;
 	xmemcpy(&tm, localtime(&when), sizeof(struct tm));
