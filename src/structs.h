@@ -324,6 +324,7 @@ struct _SquidConfig {
     int authenticateTTL;
     int authenticateIpTTL;
     struct {
+	int single_host;
 	char *host;
 	u_short port;
     } Accel;
