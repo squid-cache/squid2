@@ -439,6 +439,11 @@ neighborsUdpPing(protodispatch_data * proto)
 	    continue;		/* next edge */
 	if (e->options & NEIGHBOR_NO_QUERY)
 	    continue;
+	/* the case below seems strange, but can happen if the
+	 * URL host is on the other side of a firewall */
+	if (e->type == EDGE_SIBLING)
+	    if (!BIT_TEST(proto->request->flags, REQ_HIERARCHICAL))
+		continue;
 
 	debug(15, 4, "neighborsUdpPing: pinging cache %s for '%s'\n",
 	    e->host, url);
