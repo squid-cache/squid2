@@ -255,6 +255,10 @@ int protoDispatchDNSHandle(unused1, unused2, data)
 	    (PF) getFromDefaultSource,
 	    (void *) entry,
 	    neighbor_timeout);
+#ifdef DELAY_HACK
+	if (aclCheck(&delay_list, XXX, req) && entry->mem_obj)
+		entry->mem_obj->e_pings_n_pings++;
+#endif
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_NO) {
