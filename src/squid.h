@@ -89,7 +89,6 @@ typedef unsigned long u_num32;
 #include "ansihelp.h"
 #include "blocklist.h"
 #include "cache_cf.h"
-#include "cached_error.h"
 #include "comm.h"
 #include "debug.h"
 #include "disk.h"
@@ -99,7 +98,7 @@ typedef unsigned long u_num32;
 #include "hash.h"
 #include "proto.h"
 #include "icp.h"
-#include "icp_lib.h"
+#include "cached_error.h"	/* must go after icp.h */
 #include "ipcache.h"
 #include "mime.h"
 #include "neighbors.h"

@@ -13,6 +13,33 @@ extern int vhost_mode;
 static struct in_addr tmp_in_addr;
 static char *crlf = "\r\n";
 
+static char *log_tags[] =
+{
+    "LOG_TAG_MIN",
+    "TCP_HIT",
+    "TCP_MISS",
+    "TCP_EXP",
+    "TCP_BLOCK",
+    "TCP_DENIED",
+    "UDP_HIT",
+    "UDP_MISS",
+    "UDP_DENIED",
+    "ERR_READ_TIMEOUT",
+    "ERR_LIFETIME_EXP",
+    "ERR_NO_CLIENTS_BIG_OBJ",
+    "ERR_READ_ERROR",
+    "ERR_CLIENT_ABORT",
+    "ERR_CONNECT_FAIL",
+    "ERR_INVALID_URL",
+    "ERR_NO_FDS",
+    "ERR_DNS_FAIL",
+    "ERR_NOT_IMPLEMENTED",
+    "ERR_CANNOT_FETCH",
+    "ERR_NO_RELAY",
+    "ERR_DISK_IO",
+    "ERR_URL_BLOCKED"
+};
+
 typedef struct iwd {
     icp_common_t header;	/* Allows access to previous header */
     u_num32 query_host;
@@ -24,7 +51,7 @@ typedef struct iwd {
     StoreEntry *entry;
     long offset;
     int bytes_needed;		/*  Used for content_length */
-    int tcp_missed;
+    int log_type;
     struct sockaddr_in peer;
     struct sockaddr_in me;
     int accel_request;
@@ -78,14 +105,27 @@ static void icpCloseAndFree(fd, icpState, line)
      icpStateData *icpState;
      int line;			/* __LINE__ number of caller */
 {
+    int size = 0;
     if (fd > 0)
 	comm_close(fd);
-    if (icpState) {
-	safe_free(icpState->url);
-	safe_free(icpState->type);
-	safe_free(icpState->mime_hdr);
-	safe_free(icpState);
+    if (!icpState) {
+	sprintf(tmp_error_buf, "icpCloseAndFree: Called with NULL icpState from %s line %d", __FILE__, line);
+	fatal_dump(tmp_error_buf);
     }
+    debug(12, 0, "icpCloseAndFree: entry=%p\n", icpState->entry);
+    if (icpState->entry)
+	size = icpState->entry->mem_obj->e_current_len;
+    debug(12, 0, "icpCloseAndFree: size=%d\n", size);
+    CacheInfo->log_append(CacheInfo,
+	icpState->url,
+	inet_ntoa(icpState->peer.sin_addr),
+	size,
+	log_tags[icpState->log_type],
+	icpState->type);
+    safe_free(icpState->url);
+    safe_free(icpState->type);
+    safe_free(icpState->mime_hdr);
+    safe_free(icpState);
 }
 
 /* Read from FD. */
@@ -279,20 +319,23 @@ void icpSendERRORComplete(fd, buf, size, errflag, state)
      int errflag;
      icpStateData *state;
 {
-
+    StoreEntry *entry = NULL;
     debug(12, 4, "icpSendERRORComplete: FD %d: sz %d: err %d.\n",
 	fd, size, errflag);
 
-    /* If storeabort() has been called, then we don't execute this.
-     * If we timed out on the client side, then we need to
-     * unregister/unlock */
-    if (state && state->entry) {
-	storeUnregister(state->entry, fd);
-	storeUnlockObject(state->entry);
-    }
     /* Clean up client side statemachine */
+    entry = state->entry;
+    debug(12, 0, "icpSendERRORComplete: entry=%p\n", entry);
     icpFreeBufOrPage(state);
     icpCloseAndFree(fd, state, __LINE__);
+
+    /* If storeAbort() has been called, then we don't execute this.
+     * If we timed out on the client side, then we need to
+     * unregister/unlock */
+    if (entry) {
+	storeUnregister(entry, fd);
+	storeUnlockObject(entry);
+    }
 }
 
 /* Send ERROR message. */
@@ -303,11 +346,14 @@ int icpSendERROR(fd, errorCode, msg, state)
      icpStateData *state;
 {
     char *buf = NULL;
-    int buf_len = 0, port = 0;
+    int buf_len = 0;
+    int port = 0;
 
     port = comm_port(fd);
-    debug(12, 4, "icpSendERROR: code %d: port %d: msg: %1.80\n",
+    debug(12, 4, "icpSendERROR: code %d: port %d: msg: '%s'\n",
 	errorCode, port, msg);
+
+    debug(12, 0, "icpSendERROR: state=%p  state->entry=%p\n", state, state->entry);
 
     if (port == COMM_ERROR) {
 	/* This file descriptor isn't bound to a socket anymore.
@@ -407,9 +453,14 @@ static void icpHandleStore(fd, entry, state)
     debug(12, 5, "icpHandleStore: FD %d: off %d: <URL:%s>\n",
 	fd, state->offset, entry->url);
 
+    debug(12, 5, "icpHandleStore: entry=%p, state=%p\n", entry, state);
     if (entry->status == STORE_ABORTED) {
+#ifdef CAN_WE_GET_AWAY_WITHOUT_THIS
 	storeUnlockObject(entry);
 	state->entry = NULL;	/* Don't use a subsequently freed storeEntry */
+#endif
+	state->log_type = entry->mem_obj->abort_code;
+	debug(12, 0, "icpHandleStore: abort_code=%d\n", entry->mem_obj->abort_code);
 	state->ptr_to_4k_page = NULL;	/* Nothing to deallocate */
 	state->buf = NULL;	/* Nothing to deallocate */
 	icpSendERROR(fd,
@@ -454,14 +505,6 @@ void icpHandleStoreComplete(fd, buf, size, errflag, state)
 	/* We're finished case */
 	if (state->offset == state->entry->object_len &&
 	state->entry->status != STORE_PENDING) {
-	if (state->tcp_missed) {
-	    CacheInfo->log_append(CacheInfo,	/* TCP_DONE */
-		state->url,
-		inet_ntoa(state->peer.sin_addr),
-		state->entry->mem_obj->e_current_len,
-		"TCP_DONE",
-		state->type);
-	}
 	storeUnregister(state->entry, fd);
 	CacheInfo->proto_touchobject(CacheInfo,
 	    CacheInfo->proto_id(state->entry->url),
@@ -517,12 +560,7 @@ void icp_hit_or_miss(fd, usm)
 
 	    /* We HOLD a lock on object "entry" */
 	    tmp_in_addr.s_addr = htonl(usm->header.shostid);
-	    CacheInfo->log_append(CacheInfo,	/* TCP_HIT */
-		entry->url,
-		inet_ntoa(tmp_in_addr),
-		entry->object_len,
-		"TCP_HIT",
-		usm->type);
+	    usm->log_type = LOG_TCP_HIT;
 	    CacheInfo->proto_hit(CacheInfo, CacheInfo->proto_id(entry->url));
 
 	    /* Reset header for reply. */
@@ -541,37 +579,18 @@ void icp_hit_or_miss(fd, usm)
 	/* We do NOT hold a lock on the existing "entry" because we're
 	 * about to eject it */
 	tmp_in_addr.s_addr = htonl(usm->header.shostid);
-	if (!lock) {
-	    CacheInfo->log_append(CacheInfo,	/* TCP_MISS_TTL */
-		url,
-		inet_ntoa(tmp_in_addr),
-		0,
-		"TCP_MISS_TTL",
-		usm->type);
-	} else {
-	    CacheInfo->log_append(CacheInfo,	/* TCP_MISS_SWAP_FILE_OPEN_FAILED */
-		url,
-		inet_ntoa(tmp_in_addr),
-		0,
-		"TCP_MISS_SWAP_FILE_OPEN_FAILED",
-		usm->type);
-	}
+	if (!lock)
+	    debug(12, 0, "icp_hit_or_miss: swap file open failed\n");
+	usm->log_type = LOG_TCP_EXP;
 	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
-	usm->tcp_missed = 1;
 	icpProcessMISS(fd, usm);
 	return;
 
     }
     /* This object isn't in the cache.  We do not hold a lock yet */
     tmp_in_addr.s_addr = htonl(usm->header.shostid);
-    CacheInfo->log_append(CacheInfo,	/* TCP_MISS */
-	url,
-	inet_ntoa(tmp_in_addr),
-	0,
-	"TCP_MISS",
-	usm->type);
+    usm->log_type = LOG_TCP_MISS;
     CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
-    usm->tcp_missed = 1;
     icpProcessMISS(fd, usm);
     return;
 }
@@ -924,10 +943,10 @@ int icpHandleUdp(sock, not_used)
 		debug(12, 2, "icpHandleUdp: Access Denied for %s.\n",
 		    inet_ntoa(from.sin_addr));
 		CacheInfo->log_append(CacheInfo,	/* UDP_DENIED */
-		    "ACCESS_DENIED",
+		    url,
 		    inet_ntoa(from.sin_addr),
 		    0,
-		    "UDP_DENIED",
+		    log_tags[LOG_UDP_DENIED],
 		    "ICP_OP_QUERY");
 		break;
 	    }
@@ -941,10 +960,10 @@ int icpHandleUdp(sock, not_used)
 		/* STAT */
 		CacheInfo->log_append(CacheInfo,	/* UDP_HIT */
 		    entry->url,
-		    inet_ntoa(from.sin_addr),
+		    0,		/* inet_ntoa(from.sin_addr), */
 		    entry->object_len,
-		    "UDP_HIT",
-		    "GET");
+		    log_tags[LOG_UDP_HIT],
+		    "ICP_OP_QUERY");
 		CacheInfo->proto_hit(CacheInfo,
 		    CacheInfo->proto_id(entry->url));
 		icpUdpSend(sock, url, &header, &from, ICP_OP_HIT);
@@ -956,8 +975,8 @@ int icpHandleUdp(sock, not_used)
 		url,
 		inet_ntoa(from.sin_addr),
 		0,
-		"UDP_MISS",
-		"GET");
+		log_tags[LOG_UDP_MISS],
+		"ICP_OP_QUERY");
 	    CacheInfo->proto_miss(CacheInfo,
 		CacheInfo->proto_id(url));
 
@@ -1310,12 +1329,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		(caddr_t) astm);
 	    safe_free(orig_url_ptr);
 	} else if (blockCheck(astm->url)) {
-	    CacheInfo->log_append(CacheInfo,	/* TCP_BLOCK */
-		astm->url,
-		inet_ntoa(astm->peer.sin_addr),
-		0,
-		"TCP_BLOCK",
-		astm->type);
+	    astm->log_type = LOG_TCP_BLOCK;
 	    astm->buf = xstrdup(cached_error_url(astm->url, ERR_URL_BLOCKED, NULL));
 	    icpWrite(fd,
 		astm->buf,
@@ -1337,14 +1351,7 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		30,
 		icpSendERRORComplete,
 		(caddr_t) astm);
-#ifdef LOG_ERRORS
-	    CacheInfo->log_append(CacheInfo,	/* TCP_DENIED */
-		astm->url,
-		inet_ntoa(astm->peer.sin_addr),
-		0,
-		"TCP_DENIED",
-		astm->type);
-#endif
+	    astm->log_type = LOG_TCP_DENIED;
 	    safe_free(orig_url_ptr);
 	} else {
 	    sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
@@ -1475,12 +1482,7 @@ int asciiHandleConn(sock, notused)
 	astm = (icpStateData *) xcalloc(1, sizeof(icpStateData));
 	debug(12, 2, "asciiHandleConn: %s: Access denied.\n",
 	    inet_ntoa(peer.sin_addr));
-	CacheInfo->log_append(CacheInfo,	/* TCP_DENIED */
-	    "ACCESS_DENIED",
-	    inet_ntoa(peer.sin_addr),
-	    0,
-	    "TCP_DENIED",
-	    "GET");
+	astm->log_type = LOG_TCP_DENIED;
 	sprintf(tmp_error_buf,
 	    "ACCESS DENIED\n\nYour IP address (%s) is not authorized to access cached at %s.\n\n",
 	    inet_ntoa(peer.sin_addr),
@@ -1545,11 +1547,6 @@ static void CheckQuickAbort(astm)
 	&& (astm->entry->status != STORE_OK)) {
 	BIT_SET(astm->entry->flag, CLIENT_ABORT_REQUEST);
 	BIT_SET(astm->entry->flag, RELEASE_REQUEST);
-	CacheInfo->log_append(CacheInfo,	/* CLIENT_ABORT */
-	    astm->url,
-	    inet_ntoa(astm->peer.sin_addr),
-	    astm->entry->mem_obj->e_current_len,
-	    "CLIENT_ABORT",
-	    astm->type);
+	astm->log_type = ERR_CLIENT_ABORT;
     }
 }

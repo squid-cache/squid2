@@ -450,7 +450,10 @@ void httpConnInProgress(fd, data)
 {
     StoreEntry *entry = data->entry;
 
-    if (comm_connect(fd, data->host, data->port) != COMM_OK)
+    debug(11, 5, "httpConnInProgress: FD %d data=%p\n", fd, data);
+
+    if (comm_connect(fd, data->host, data->port) != COMM_OK) {
+	debug(11, 5, "httpConnInProgress: FD %d errno=%d\n", fd, errno);
 	switch (errno) {
 	case EINPROGRESS:
 	case EALREADY:
@@ -467,6 +470,7 @@ void httpConnInProgress(fd, data)
 	    httpCloseAndFree(fd, data);
 	    return;
 	}
+    }
     /* Call the real write handler, now that we're fully connected */
     comm_set_select_handler(fd, COMM_SELECT_WRITE,
 	(PF) httpSendRequest, (caddr_t) data);
