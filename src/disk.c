@@ -368,7 +368,6 @@ static int
 diskHandleRead(int fd, dread_ctrl * ctrl_dat)
 {
     int len;
-
     debug(6, 3, "diskHandleRead: FD %d\n", fd);
     /* go to requested position. */
     lseek(fd, ctrl_dat->offset, SEEK_SET);
@@ -377,7 +376,6 @@ diskHandleRead(int fd, dread_ctrl * ctrl_dat)
 	ctrl_dat->buf + ctrl_dat->cur_len,
 	ctrl_dat->req_len - ctrl_dat->cur_len);
     debug(6, 3, "diskHandleRead: FD %d, %d bytes, errno=%d\n", fd, len, errno);
-
     if (len < 0)
 	switch (errno) {
 #if EAGAIN != EWOULDBLOCK
@@ -405,7 +403,7 @@ diskHandleRead(int fd, dread_ctrl * ctrl_dat)
     if (len > 0)
 	ctrl_dat->cur_len += len;
     ctrl_dat->offset = lseek(fd, 0L, SEEK_CUR);
-
+#if DONT_RESCHEDULE
     /* reschedule if need more data. */
     if (ctrl_dat->cur_len < ctrl_dat->req_len) {
 	commSetSelect(fd,
@@ -414,17 +412,17 @@ diskHandleRead(int fd, dread_ctrl * ctrl_dat)
 	    (void *) ctrl_dat,
 	    0);
 	return DISK_OK;
-    } else {
-	/* all data we need is here. */
-	/* call handler */
-	ctrl_dat->handler(fd,
-	    ctrl_dat->buf,
-	    ctrl_dat->cur_len,
-	    DISK_OK,
-	    ctrl_dat->client_data);
-	safe_free(ctrl_dat);
-	return DISK_OK;
     }
+#endif
+    /* all data we need is here. */
+    /* call handler */
+    ctrl_dat->handler(fd,
+	ctrl_dat->buf,
+	ctrl_dat->cur_len,
+	DISK_OK,
+	ctrl_dat->client_data);
+    safe_free(ctrl_dat);
+    return DISK_OK;
 }
 
 
@@ -436,6 +434,7 @@ int
 file_read(int fd, char *buf, int req_len, int offset, FILE_READ_HD handler, void *client_data)
 {
     dread_ctrl *ctrl_dat;
+    debug(6, 3, "file_read: FD %d, req=%d, offset=%d\n", fd, req_len, offset);
     if (fd < 0)
 	fatal_dump("file_read: bad FD");
     ctrl_dat = xcalloc(1, sizeof(dread_ctrl));
