@@ -340,7 +340,7 @@ clientConstructTraceEcho(clientHttpRequest * http)
 	http->conn->fd,
 	0);			/* flags */
     http->log_type = LOG_TCP_MISS;
-    http->http_code = 200;
+    http->http_code = HTTP_OK;
     return buf;
 }
 
