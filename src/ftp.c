@@ -568,6 +568,8 @@ ftpListParseParts(const char *buf, struct _ftp_flags flags)
 	ct = buf + 1;
 	p->type = 0;
 	while (ct && *ct) {
+	    long lt;
+	    time_t t;
 	    switch (*ct) {
 	    case '\t':
 		sscanf(ct + 1, "%[^,]", sbuf);
@@ -577,8 +579,10 @@ ftpListParseParts(const char *buf, struct _ftp_flags flags)
 		sscanf(ct + 1, "%d", &(p->size));
 		break;
 	    case 'm':
-		sscanf(ct + 1, "%d", &i);
-		p->date = xstrdup(ctime((time_t *) & i));
+		if (1 != sscanf(ct + 1, "%ld", &lt))
+		    break;
+		t = lt;
+		p->date = xstrdup(ctime(&t));
 		*(strstr(p->date, "\n")) = '\0';
 		break;
 	    case '/':
