@@ -24,7 +24,16 @@ Changes to Squid-2.0 (September 25, 1998):
 	  send a "200" response instead of "206" (because we cannot
 	  handle complex ranges, even for hits) Note: Support for
 	  complex ranges requires storage of partial objects.
-	- Changed lots of SNMP stuff.
+	- Removed SNMP mib-2.system group from squid.
+        - Removed SNMP ability to iterate through ipcache and friends.
+        - Added SNMP ipcache/fqdncache basic statistics.
+        - Converted SQUID-MIB to SMIv2 (RFC 1902).
+        - Moved SQUID-MIB to enterprises section of the tree in preparation
+          of the split into PROXY-MIB & SQUID-MIB.
+        - Corrected minor errors in SQUID-MIB.
+        - Moved uptime into cacheSystem from cacheConfig.
+        - Corrected a number of get-next-request bugs, snmpwalk should now
+          return all objects and not skip some.
 	- Fixed netdbClosestParent() so it won't return sibling
 	  peers.
 
