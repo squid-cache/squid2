@@ -1374,10 +1374,8 @@ storeAufsDirCheckObj(SwapDir * SD, const StoreEntry * e)
     ql = aioQueueSize();
     if (ql == 0)
 	loadav = 0;
-    else if (ql >= MAGIC1)	/* Queue is too long, don't even consider it */
-	loadav = -1;
-    else
-	loadav = MAGIC1 * 1000 / ql;
+    loadav = ql * 1000 / MAGIC1;
+    debug(41, 9) ("storeAufsDirCheckObj: load=%d\n", loadav);
     return loadav;
 }
 

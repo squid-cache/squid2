@@ -36,6 +36,7 @@ $(OUT): $(OBJS)
 	$(RANLIB) $(OUT)
 
 $(OBJS): $(top_srcdir)/include/version.h ../../../include/autoconf.h
+$(OBJS): store_asyncufs.h
 
 .c.o:
 	@rm -f ../stamp
