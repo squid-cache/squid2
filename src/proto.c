@@ -186,7 +186,7 @@ int protoDispatchDNSHandle(unused1, hp, data)
 	    return 0;
 	}
 	hierarchyNote(req, HIER_DIRECT, 0, req->host);
-	getFromCache(protoData->fd, entry, NULL, req);
+	protoStart(protoData->fd, entry, NULL, req);
 	return 0;
     }
     if (protoData->direct_fetch == DIRECT_MAYBE && (Config.local_ip_list || Config.firewall_ip_list)) {
@@ -196,7 +196,7 @@ int protoDispatchDNSHandle(unused1, hp, data)
 	    xmemcpy(&srv_addr, *(hp->h_addr_list + 0), hp->h_length);
 	    if (ip_access_check(srv_addr, Config.firewall_ip_list) == IP_DENY) {
 		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
-		getFromCache(protoData->fd, entry, NULL, req);
+		protoStart(protoData->fd, entry, NULL, req);
 		return 0;
 	    } else {
 		protoData->direct_fetch = DIRECT_NO;
@@ -205,7 +205,7 @@ int protoDispatchDNSHandle(unused1, hp, data)
 	    xmemcpy(&srv_addr, *(hp->h_addr_list + 0), hp->h_length);
 	    if (ip_access_check(srv_addr, Config.local_ip_list) == IP_DENY) {
 		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
-		getFromCache(protoData->fd, entry, NULL, req);
+		protoStart(protoData->fd, entry, NULL, req);
 		return 0;
 	    }
 	}
@@ -214,7 +214,7 @@ int protoDispatchDNSHandle(unused1, hp, data)
 	(Config.singleParentBypass || protoData->direct_fetch == DIRECT_NO)) {
 	/* Only one parent for this host, and okay to skip pinging stuff */
 	hierarchyNote(req, HIER_SINGLE_PARENT, 0, e->host);
-	getFromCache(protoData->fd, entry, e, req);
+	protoStart(protoData->fd, entry, e, req);
 	return 0;
     }
     if (protoData->n_edges == 0 && protoData->direct_fetch == DIRECT_NO) {
@@ -227,7 +227,7 @@ int protoDispatchDNSHandle(unused1, hp, data)
 	/* for private objects we should just fetch directly (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
 	hierarchyNote(req, HIER_FIRSTUP_PARENT, 0, e->host);
-	getFromCache(protoData->fd, entry, e, req);
+	protoStart(protoData->fd, entry, e, req);
 	return 0;
     } else if (neighborsUdpPing(protoData)) {
 	/* call neighborUdpPing and start timeout routine */
@@ -255,7 +255,7 @@ int protoDispatchDNSHandle(unused1, hp, data)
 	    return 0;
 	}
 	hierarchyNote(req, HIER_DIRECT, 0, req->host);
-	getFromCache(protoData->fd, entry, NULL, req);
+	protoStart(protoData->fd, entry, NULL, req);
     }
     return 0;
 }
@@ -278,9 +278,9 @@ int protoDispatch(fd, url, entry, request)
     debug(17, 10, "request_hdr: %s\n", request_hdr);
 
     if (request->protocol == PROTO_CACHEOBJ)
-	return getFromCache(fd, entry, NULL, request);
+	return protoStart(fd, entry, NULL, request);
     if (request->protocol == PROTO_WAIS)
-	return getFromCache(fd, entry, NULL, request);
+	return protoStart(fd, entry, NULL, request);
 
     protoData = xcalloc(1, sizeof(protodispatch_data));
     protoData->fd = fd;
@@ -436,38 +436,29 @@ int getFromDefaultSource(fd, entry)
 	    url);
     }
     /* Check if someone forgot to disable the read timer */
-    if (fd && BIT_TEST(entry->flag, ENTRY_DISPATCHED)) {
-	if (entry->ping_status == PING_TIMEOUT) {
-	    debug(17, 0, "FD %d Someone forgot to disable the read timer.\n", fd);
-	    debug(17, 0, "--> <URL:%s>\n", entry->url);
-	} else {
-	    debug(17, 0, "FD %d Someone is refetching this object.\n", fd);
-	    debug(17, 0, "--> <URL:%s>\n", entry->url);
-	}
-	return 0;
-    }
-    BIT_SET(entry->flag, ENTRY_DISPATCHED);
+    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
+	fatal_dump("getFromDefaultSource: object already being fetched");
 
     if ((e = entry->mem_obj->e_pings_first_miss)) {
 	hierarchyNote(request, HIER_FIRST_PARENT_MISS, fd, e->host);
-	return getFromCache(fd, entry, e, request);
+	return protoStart(fd, entry, e, request);
     }
     if (matchInsideFirewall(request->host)) {
 	if (ipcache_gethostbyname(request->host, 0) == NULL) {
 	    return protoDNSError(fd, entry);
 	}
 	hierarchyNote(request, HIER_DIRECT, fd, request->host);
-	return getFromCache(fd, entry, NULL, request);
+	return protoStart(fd, entry, NULL, request);
     }
     if ((e = getSingleParent(request, NULL))) {
 	/* last chance effort; maybe there was a single_parent and a ICP
 	 * packet got lost */
 	hierarchyNote(request, HIER_SINGLE_PARENT, fd, e->host);
-	return getFromCache(fd, entry, e, request);
+	return protoStart(fd, entry, e, request);
     }
     if ((e = getFirstUpParent(request))) {
 	hierarchyNote(request, HIER_FIRSTUP_PARENT, fd, e->host);
-	return getFromCache(fd, entry, e, request);
+	return protoStart(fd, entry, e, request);
     }
     hierarchyNote(request, HIER_NO_DIRECT_FAIL, fd, request->host);
     protoCancelTimeout(fd, entry);
@@ -476,7 +467,7 @@ int getFromDefaultSource(fd, entry)
     return 0;
 }
 
-int getFromCache(fd, entry, e, request)
+int protoStart(fd, entry, e, request)
      int fd;
      StoreEntry *entry;
      edge *e;
@@ -485,10 +476,15 @@ int getFromCache(fd, entry, e, request)
     char *url = entry->url;
     char *request_hdr = entry->mem_obj->mime_hdr;
 
-    debug(17, 5, "getFromCache: FD %d <URL:%s>\n", fd, entry->url);
-    debug(17, 5, "getFromCache: --> type = %s\n",
+    debug(17, 5, "protoStart: FD %d <URL:%s>\n", fd, entry->url);
+    debug(17, 5, "protoStart: --> type = %s\n",
 	RequestMethodStr[entry->method]);
-    debug(17, 5, "getFromCache: --> getting from '%s'\n", e ? e->host : "source");
+    debug(17, 5, "protoStart: --> getting from '%s'\n",
+	e ? e->host : "source");
+
+    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
+	fatal_dump("protoStart: object already being fetched");
+    BIT_SET(entry->flag, ENTRY_DISPATCHED);
 
     /*
      * If this is called from our neighbor detection, then we have to
@@ -511,7 +507,7 @@ int getFromCache(fd, entry, e, request)
     } else if (request->protocol == PROTO_CACHEOBJ) {
 	return objcacheStart(fd, url, entry);
     } else if (entry->method == METHOD_CONNECT) {
-	fatal_dump("getFromCache() should not be handling CONNECT");
+	fatal_dump("protoStart() should not be handling CONNECT");
 	return 0;
     } else {
 	return protoNotImplemented(fd, url, entry);

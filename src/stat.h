@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -247,6 +248,6 @@ extern void stat_init _PARAMS((cacheinfo **, char *));
 extern void stat_rotate_log _PARAMS((void));
 extern int memoryAccounted _PARAMS((void));
 extern int mallinfoTotal _PARAMS((void));
-
+extern void statCloseLog _PARAMS((void));
 
 #endif /*STAT_H */

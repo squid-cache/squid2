@@ -1,3 +1,4 @@
+
 /*
  * $Id$
  *
@@ -311,6 +312,7 @@ extern void storeReleaseRequest _PARAMS((StoreEntry *));
 extern void storeRotateLog _PARAMS((void));
 extern unsigned int getKeyCounter _PARAMS((void));
 extern int storeGetLowestReaderOffset _PARAMS((StoreEntry *));
+extern void storeCloseLog _PARAMS((void));
 
 #if defined(__STRICT_ANSI__)
 extern void storeAppendPrintf _PARAMS((StoreEntry *, char *,...));

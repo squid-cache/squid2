@@ -2915,3 +2915,9 @@ static char *storeDescribeStatus(e)
 	e->url);
     return buf;
 }
+
+void storeCloseLog()
+{
+    file_close(swaplog_fd);
+    file_close(storelog_fd);
+}

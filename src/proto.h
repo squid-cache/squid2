@@ -292,7 +292,7 @@ extern void protoUnregister _PARAMS((int fd,
 	request_t *,
 	struct in_addr));
 extern int getFromDefaultSource _PARAMS((int, StoreEntry *));
-extern int getFromCache _PARAMS((int, StoreEntry *, edge *, request_t *));
+extern int protoStart _PARAMS((int, StoreEntry *, edge *, request_t *));
 extern void protoCancelTimeout _PARAMS((int fd, StoreEntry *));
 
 #define DIRECT_NO    0

@@ -1281,3 +1281,8 @@ void stat_rotate_log()
     }
     CacheInfo->logfile_access = file_write_lock(CacheInfo->logfile_fd);
 }
+
+void statCloseLog()
+{
+    file_close(CacheInfo->logfile_fd);
+}

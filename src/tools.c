@@ -292,6 +292,9 @@ void normal_shutdown()
     PrintRusage(NULL, debug_log);
     debug(21, 0, "Squid Cache (Version %s): Exiting normally.\n",
 	version_string);
+    storeCloseLog();
+    statCloseLog();
+    fclose(debug_log);
     exit(0);
 }
 
