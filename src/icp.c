@@ -1423,7 +1423,7 @@ static int icpAccessCheck(icpState)
      icpStateData *icpState;
 {
     request_t *r = icpState->request;
-    if (httpd_accel_mode && !getAccelWithProxy()) {
+    if (httpd_accel_mode && !getAccelWithProxy() && r->protocol != PROTO_CACHEOBJ) {
 	/* this cache is an httpd accelerator ONLY */
 	if (!BIT_TEST(icpState->flags, REQ_ACCEL))
 	    return 0;
