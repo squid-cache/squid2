@@ -39,7 +39,7 @@ typedef unsigned int mem_status_t;
 typedef unsigned int ping_status_t;
 typedef unsigned int swap_status_t;
 typedef int sfileno;
-typedef int sdirno;
+typedef char sdirno;
 
 typedef struct {
     size_t bytes;
