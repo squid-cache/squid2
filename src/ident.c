@@ -53,7 +53,7 @@ identStart(int fd, icpStateData * icpState, void (*callback) _PARAMS((void *)))
     if (fd < 0) {
 	fd = comm_open(SOCK_STREAM,
 	    0,
-	    Config.Addrs.tcp_outgoing,
+	    icpState->me.sin_addr,
 	    0,
 	    COMM_NONBLOCKING,
 	    "ident");
