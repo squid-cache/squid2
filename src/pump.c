@@ -234,7 +234,6 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
     if (cbdataValid(p->cbdata))
 	p->callback(sfd, NULL, p->sent, 0, p->cbdata);
     cbdataUnlock(p->cbdata);
-    storeUnregister(p->request_entry, p);
     storeUnlockObject(p->reply_entry);
     p->reply_entry = NULL;
 }
@@ -473,6 +472,5 @@ pumpRestart(request_t * r)
 	return 0;
     }
     debug(61, 3) ("pumpRestart: YES!\n");
-    storeClientListAdd(p->request_entry, p);
     return 1;
 }

@@ -97,6 +97,9 @@ fwdCheckRetry(FwdState * fwdState)
 	return 0;
     if (squid_curtime - fwdState->start > 120)
 	return 0;
+    if (pumpMethod(fwdState->request->method))
+	if (0 == pumpRestart(fwdState->request))
+	    return 0;
     return 1;
 }
 
