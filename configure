@@ -86,7 +86,7 @@ ac_help="$ac_help
   --enable-forw-via-db    Enable Forw/Via database"
 ac_help="$ac_help
   --enable-cache-digests  Use Cache Digests
-                          see http://squid.nlanr.net/Squid/FAQ/FAQ-16.html"
+                          see http://www.squid-cache.org/FAQ/FAQ-16.html"
 ac_help="$ac_help
   --enable-err-language=lang
                           Select language for Error pages (see errors dir) "
@@ -658,7 +658,7 @@ fi
 
 
 
-# From configure.in Revision: 1.205.2.5 
+# From configure.in Revision: 1.205.2.7 
 ac_aux_dir=
 for ac_dir in cfgaux $srcdir/cfgaux; do
   if test -f $ac_dir/install-sh; then
@@ -5021,7 +5021,7 @@ EOF
 if test "$SQUID_MAXFD" -lt 512 ; then
     echo "WARNING: $SQUID_MAXFD may not be enough filedescriptors if your"
     echo "         cache will be very busy.  Please see the FAQ page"
-    echo "         http://squid.nlanr.net/Squid/FAQ/FAQ-11.html#filedescriptors"
+    echo "         http://www.squid-cache.org/FAQ/FAQ-11.html#filedescriptors"
     echo "         on how to increase your filedescriptor limit"
     sleep 10
 fi
