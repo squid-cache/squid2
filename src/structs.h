@@ -387,7 +387,6 @@ struct _SquidConfig {
     } quickAbort;
     RemovalPolicySettings *replPolicy;
     RemovalPolicySettings *memPolicy;
-    time_t referenceAge;
     time_t negativeTtl;
     time_t negativeDnsTtl;
     time_t positiveDnsTtl;
