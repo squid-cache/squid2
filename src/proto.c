@@ -320,6 +320,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     debug(17, 5, "protoDispatch: %s URL: %s\n", method, url);
     debug(17, 10, "request_hdr: %s\n", request_hdr);
 
+    entry->mem_obj->request = requestLink(request);
     if (request->protocol == PROTO_CACHEOBJ)
 	return protoStart(fd, entry, NULL, request);
     if (request->protocol == PROTO_WAIS)
@@ -330,7 +331,6 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     protoData->url = url;
     protoData->entry = entry;
     protoData->request = requestLink(request);
-    entry->mem_obj->request = requestLink(request);
     comm_add_close_handler(fd,
 	(PF) protoDataFree,
 	(void *) protoData);
