@@ -216,7 +216,7 @@ objcache_CheckPassword(ObjectCacheData *obj)
     char *pwd = objcachePasswdGet(&Config.passwd_list, obj->op);
     if (pwd)
 	return strcmp(pwd, obj->passwd);
-    else if (obj->op & PASSWD_REQUIRED)
+    else if ((1<<obj->op) & PASSWD_REQUIRED)
 	return 1;
     else
 	return 0;

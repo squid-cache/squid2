@@ -1439,7 +1439,6 @@ configFreeMemory(void)
     ip_acl_destroy(&Config.local_ip_list);
     ip_acl_destroy(&Config.firewall_ip_list);
     objcachePasswdDestroy(&Config.passwd_list);
-    ttlFreeList();
     refreshFreeMemory();
 }
 
