@@ -1194,9 +1194,9 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	if (header.flags & ICP_FLAG_SRC_RTT) {
 	    int rtt = netdbHostRtt(icp_request->host);
 	    int hops = netdbHostHops(icp_request->host);
-
 	    src_rtt = ((hops & 0xFFFF) << 16) | (rtt & 0xFFFF);
-	    flags |= ICP_FLAG_SRC_RTT;
+	    if (rtt)
+		flags |= ICP_FLAG_SRC_RTT;
 	}
 	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));

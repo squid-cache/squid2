@@ -778,7 +778,8 @@ neighborsUdpAck(int fd, const char *url, icp_common_t * header, const struct soc
 		mem->e_pings_closest_parent = e;
 		mem->p_rtt = rtt;
 	    }
-	} else {
+	}
+	if (mem->e_pings_closest_parent == NULL) {
 	    w_rtt = tvSubMsec(mem->start_ping, current_time) / e->weight;
 	    if (mem->w_rtt == 0 || w_rtt < mem->w_rtt) {
 		mem->e_pings_first_miss = e;
