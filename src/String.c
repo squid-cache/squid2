@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * DEBUG: section 61    String
+ * DEBUG: section 67    String
  * AUTHOR: Duane Wessels
  *
  * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
