@@ -496,6 +496,18 @@ AC_ARG_ENABLE(ident-lookups,
   fi
 ])
 
+AC_ARG_ENABLE(internal-dns,
+[  --disable-internal-dns This prevents Squid from directly sending and
+                          receiving DNS messages, and instead enables the
+                          old external 'dnsserver' processes.],
+[ if test "$enableval" = "no" ; then
+    echo "Disabling Internal DNS queries"
+    AC_DEFINE(USE_DNSSERVERS, 1)
+  else
+    AC_DEFINE(USE_DNSSERVERS, 0)
+  fi
+])
+
 # Force some compilers to use ANSI features
 #
 case "$host" in

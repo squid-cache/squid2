@@ -231,3 +231,9 @@
  */
 #undef HAVE_STATVFS
 
+/*
+ * If --disable-internal-dns was given to configure, then we'll use
+ * the dnsserver processes instead.
+ */
+#undef USE_DNSSERVERS
+
