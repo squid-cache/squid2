@@ -174,14 +174,14 @@ static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static char *icpConstruct304reply _PARAMS((struct _http_reply *));
-static void icpUdpSendEntry(int fd,
-    char *url,
-    icp_common_t * reqheaderp,
-    struct sockaddr_in *to,
-    icp_opcode opcode,
-    StoreEntry * entry,
-    struct timeval start_time);
 static void checkFailureRatio _PARAMS((log_type, hier_code));
+static void icpUdpSendEntry _PARAMS((int fd,
+	char *url,
+	int reqnum,
+	struct sockaddr_in * to,
+	icp_opcode opcode,
+	StoreEntry * entry,
+	struct timeval start_time));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -925,7 +925,7 @@ icpUdpReply(int fd, icpUdpData * queue)
 int
 icpUdpSend(int fd,
     char *url,
-    icp_common_t * reqheaderp,
+    int reqnum,
     struct sockaddr_in *to,
     int flags,
     icp_opcode opcode,
@@ -963,10 +963,11 @@ icpUdpSend(int fd,
     headerp->opcode = opcode;
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
-    headerp->reqnum = htonl(reqheaderp->reqnum);
+    headerp->reqnum = htonl(reqnum);
     if (opcode == ICP_OP_QUERY && !BIT_TEST(flags, REQ_NOCACHE)
 	&& opt_udp_hit_obj)
 	headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
+    headerp->flags = htonl(flags);
     headerp->pad = 0;
     /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
     headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
@@ -996,7 +997,13 @@ icpUdpSend(int fd,
 }
 
 static void
-icpUdpSendEntry(int fd, char *url, icp_common_t * reqheaderp, struct sockaddr_in *to, icp_opcode opcode, StoreEntry * entry, struct timeval start_time)
+icpUdpSendEntry(int fd,
+	char *url,
+	int reqnum,
+	struct sockaddr_in *to,
+	icp_opcode opcode,
+	StoreEntry * entry,
+	struct timeval start_time)
 {
     char *buf = NULL;
     int buf_len;
@@ -1036,7 +1043,7 @@ icpUdpSendEntry(int fd, char *url, icp_common_t * reqheaderp, struct sockaddr_in
     headerp->opcode = opcode;
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
-    headerp->reqnum = htonl(reqheaderp->reqnum);
+    headerp->reqnum = htonl(reqnum);
     headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
     urloffset = buf + sizeof(icp_common_t);
@@ -1082,7 +1089,7 @@ icpHitObjHandler(int errflag, void *data)
     if (!errflag) {
 	icpUdpSendEntry(icpHitObjState->fd,
 	    entry->url,
-	    &icpHitObjState->header,
+	    icpHitObjState->header.reqnum,
 	    &icpHitObjState->to,
 	    ICP_OP_HIT_OBJ,
 	    entry,
@@ -1126,7 +1133,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_ERR, LOG_UDP_INVALID, PROTO_NONE);
 	    break;
 	}
@@ -1138,7 +1145,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_DENIED, LOG_UDP_DENIED, p);
 	    break;
 	}
@@ -1162,20 +1169,20 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 		storeRelease(entry);
 		safe_free(icpHitObjState);
 	    } else {
-		icpUdpSend(fd, url, &header, &from, 0,
+		icpUdpSend(fd, url, header.reqnum, &from, 0,
 		    ICP_OP_HIT, LOG_UDP_HIT, p);
 		break;
 	    }
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_RELOADING, LOG_UDP_RELOADING, p);
 	} else if (hit_only_mode_until > squid_curtime) {
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_RELOADING, LOG_UDP_RELOADING, p);
 	} else {
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_MISS, LOG_UDP_MISS, p);
 	}
 	break;
@@ -1273,7 +1280,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	/* We have a valid packet */
 	url = buf + sizeof(header) + sizeof(u_num32);
 	if ((icp_request = urlParse(METHOD_GET, url)) == NULL) {
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_ERR, LOG_UDP_INVALID, PROTO_NONE);
 	    break;
 	}
@@ -1285,7 +1292,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_DENIED, LOG_UDP_DENIED, p);
 	    break;
 	}
@@ -1296,19 +1303,19 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	if (entry &&
 	    (entry->store_status == STORE_OK) &&
 	    (entry->expires > (squid_curtime + Config.negativeTtl))) {
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_HIT, LOG_UDP_HIT, p);
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_DENIED, LOG_UDP_DENIED, p);
 	} else if (hit_only_mode_until > squid_curtime) {
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_RELOADING, LOG_UDP_RELOADING, p);
 	} else {
-	    icpUdpSend(fd, url, &header, &from, 0,
+	    icpUdpSend(fd, url, header.reqnum, &from, 0,
 		ICP_OP_MISS, LOG_UDP_MISS, p);
 	}
 	break;

@@ -198,7 +198,7 @@ typedef struct iwd {
 
 extern int icpUdpSend _PARAMS((int,
 	char *,
-	icp_common_t *,
+	int reqnum,
 	struct sockaddr_in *,
 	int flags,
 	icp_opcode,
