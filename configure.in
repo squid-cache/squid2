@@ -667,6 +667,7 @@ AC_CHECK_FUNCS(\
 	regexec \
 	regfree \
 	res_init \
+	rint \
 	seteuid \
 	setpgrp \
 	setrlimit \
