@@ -33,6 +33,12 @@
  *
  */
 
+/*
+ * KNOWN BUGS:
+ * 
+ * UDP replies with TC set should be retried via TCP
+ */
+
 #include "config.h"
 
 #if HAVE_STDIO_H
@@ -321,6 +327,14 @@ rfc1035RRUnpack(const char *buf, size_t sz, off_t off, rfc1035_rr * RR)
     RR->ttl = ntohl(i);
     memcpy(&s, buf + off, sizeof(s));
     off += sizeof(s);
+    if (off + ntohs(s) > sz) {
+	/*
+	 * We got a truncated packet.  'dnscache' truncates UDP
+	 * replies at 512 octets, as per RFC 1035.  Returning sz+1
+	 * should cause no further processing for this reply.
+	 */
+	return sz + 1;
+    }
     switch (RR->type) {
     case RFC1035_TYPE_PTR:
 	RR->rdata = malloc(RFC1035_MAXHOSTNAMESZ);
@@ -432,7 +446,8 @@ rfc1035AnswersUnpack(const char *buf,
     recs = calloc(i, sizeof(*recs));
     while (i--) {
 	off = rfc1035RRUnpack(buf, sz, off, &recs[i]);
-	assert(off <= sz);
+	if (off > sz)		/* truncated packet */
+	    break;
 	nr++;
     }
     *records = recs;
