@@ -148,7 +148,7 @@ icmpSend(int fd, icmpQueueData * queue)
 	    queue->len,
 	    0);
 	if (x < 0) {
-	    if (errno == EWOULDBLOCK || errno == EAGAIN)
+	    if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)
 		break;		/* don't de-queue */
 	    debug(50, 0, "icmpSend: send: %s\n", xstrerror());
 	    if (errno == ECONNREFUSED) {

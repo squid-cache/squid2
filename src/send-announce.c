@@ -72,7 +72,7 @@ send_announce(void *unused)
     l = strlen(sndbuf);
 
     if ((file = Config.Announce.file)) {
-	fd = file_open(file, NULL, O_RDONLY);
+	fd = file_open(file, NULL, O_RDONLY, NULL, NULL);
 	if (fd > -1 && (n = read(fd, sndbuf + l, BUFSIZ - l - 1)) > 0) {
 	    l += n;
 	    sndbuf[l] = '\0';

@@ -48,7 +48,7 @@ useragentOpenLog(void)
 	cache_useragent_log = NULL;
     }
     if (fname && strcmp(fname, "none") != 0) {
-	log_fd = file_open(fname, NULL, O_WRONLY | O_CREAT | O_APPEND);
+	log_fd = file_open(fname, NULL, O_WRONLY | O_CREAT | O_APPEND, NULL, NULL);
 	if (log_fd < 0) {
 	    debug(50, 0, "useragentOpenLog: %s: %s\n", fname, xstrerror());
 	} else if ((cache_useragent_log = fdopen(log_fd, "a")) == NULL) {

@@ -107,7 +107,7 @@
 #define TOOLS_H
 
 extern const char *getMyHostname _PARAMS((void));
-extern int safeunlink _PARAMS((const char *path, int quiet));
+extern void safeunlink _PARAMS((const char *path, int quiet));
 extern void death _PARAMS((int sig));
 extern void fatal _PARAMS((const char *message));
 extern void fatal_dump _PARAMS((const char *message));

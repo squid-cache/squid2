@@ -157,13 +157,15 @@ static icpUdpData *UdpQueueTail = NULL;
 
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
-typedef struct {
-    int fd;
-    struct sockaddr_in to;
+#define ICP_OP_ADD    0
+#define ICP_OP_DEL    1
+
+typedef struct icp_ctrl_t {
+    icpStateData *icpState;
     StoreEntry *entry;
-    icp_common_t header;
-    int pad;
-} icpHitObjStateData;
+    int fd;
+    struct icp_ctrl_t *next;
+} icp_ctrl_t;
 
 /* Local functions */
 static char *icpConstruct304reply _PARAMS((struct _http_reply *));
@@ -175,7 +177,6 @@ static void icpHandleStore _PARAMS((int, StoreEntry *, void *));
 static void clientWriteComplete _PARAMS((int, char *, int, int, void *icpState));
 static void icpHandleStoreIMS _PARAMS((int, StoreEntry *, void *));
 static void icpHandleIMSComplete _PARAMS((int, char *, int, int, void *icpState));
-static void icpHitObjHandler _PARAMS((int, void *));
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
@@ -185,6 +186,8 @@ static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_
 static void icpStateFree _PARAMS((int fd, void *data));
 static int icpCheckTransferDone _PARAMS((icpStateData *));
 static void clientReadRequest _PARAMS((int fd, void *data));
+static int icpProcessRequestControl _PARAMS((void *, int));
+static void icpProcessRequestComplete _PARAMS((void *, int));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -248,6 +251,7 @@ icpStateFree(int fd, void *data)
 
     if (!icpState)
 	return;
+    icpProcessRequestControl(icpState, ICP_OP_DEL);
     if (icpState->log_type < LOG_TAG_NONE || icpState->log_type > ERR_MAX)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
@@ -520,6 +524,7 @@ icpSendMoreData(int fd, icpStateData * icpState)
     int len;
     char *buf = NULL;
     char *p = NULL;
+    int x;
 
     debug(12, 5, "icpSendMoreData: '%s' sz %d: len %d: off %d.\n",
 	entry->url,
@@ -527,12 +532,18 @@ icpSendMoreData(int fd, icpStateData * icpState)
 	entry->mem_obj ? entry->mem_obj->e_current_len : 0,
 	icpState->out_offset);
     buf = get_free_4k_page();
-    storeClientCopy(icpState->entry,
+    x = storeClientCopy(icpState->entry,
 	icpState->out_offset,
 	ICP_SENDMOREDATA_BUF,
 	buf,
 	&len,
 	fd);
+    if (x < 0) {
+	debug(12, 1, "storeClientCopy returned %d for '%s'\n", x, entry->key);
+	put_free_4k_page(buf);
+	comm_close(fd);
+	return COMM_ERROR;
+    }
 #if LOG_FULL_HEADERS
     if (icpState->out_offset == 0 && len > 0)
 	icp_maybe_remember_reply_hdr(icpState);
@@ -697,12 +708,12 @@ icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data
 void
 icpProcessRequest(int fd, icpStateData * icpState)
 {
+    icp_ctrl_t *ctrlp;
     char *url = icpState->url;
     const char *pubkey = NULL;
     StoreEntry *entry = NULL;
     request_t *request = icpState->request;
     char *reply;
-
     debug(12, 4, "icpProcessRequest: %s '%s'\n",
 	RequestMethodStr[icpState->method],
 	url);
@@ -744,7 +755,6 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	BIT_SET(request->flags, REQ_CACHABLE);
     if (icpHierarchical(icpState))
 	BIT_SET(request->flags, REQ_HIERARCHICAL);
-
     debug(12, 5, "icpProcessRequest: REQ_NOCACHE = %s\n",
 	BIT_TEST(request->flags, REQ_NOCACHE) ? "SET" : "NOT SET");
     debug(12, 5, "icpProcessRequest: REQ_CACHABLE = %s\n",
@@ -791,8 +801,84 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	icpState->log_type = LOG_TCP_HIT;
     }
 
-    /* Lock the object */
-    if (entry && storeLockObject(entry, NULL, NULL) < 0) {
+    ctrlp = xmalloc(sizeof(icp_ctrl_t));
+    ctrlp->icpState = icpState;
+    ctrlp->entry = entry;
+    ctrlp->fd = fd;
+    icpProcessRequestControl(ctrlp, ICP_OP_ADD);
+
+    debug(12, 4, "icpProcessRequest: %s for '%s'\n",
+	log_tags[icpState->log_type],
+	icpState->url);
+
+    if (entry)
+	storeLockObject(entry, icpProcessRequestComplete, ctrlp);
+    else
+	icpProcessRequestComplete(ctrlp, 0);
+}
+
+
+/* We have to maintain a state of what's outstanding because a race condition */
+/* occurs when a request comes to open a file and the abort request comes in */
+/* before the file is openned.  In this case, the icpState will be freed.  */
+/* That is not wholly bad, what is bad is when another bit of code grabs the */
+/* space malloc'ed for the icpState and scribbles in it, then we're in */
+/* trouble! */
+
+static int
+icpProcessRequestControl(void *data, int operation)
+{
+    static icp_ctrl_t *list = NULL;
+    icp_ctrl_t *curr, *prev;
+    icp_ctrl_t *ctrlp;
+    if (operation == ICP_OP_ADD) {
+	ctrlp = (icp_ctrl_t *) data;
+	ctrlp->next = list;
+	list = ctrlp;
+	return 1;
+    } else if (operation == ICP_OP_DEL) {
+	prev = NULL;
+	for (curr = list; curr != NULL; prev = curr, curr = curr->next)
+	    if (curr->icpState == (icpStateData *) data)
+		break;
+	if (curr == NULL)
+	    return 0;
+	if (prev == NULL)
+	    list = curr->next;
+	else
+	    prev->next = curr->next;
+	return 1;
+    }
+    fatal_dump("icpProcessRequestControl: bad operation");
+    return 0;
+}
+
+
+static void
+icpProcessRequestComplete(void *data, int status)
+{
+    icp_ctrl_t *ctrlp = data;
+    icpStateData *icpState = ctrlp->icpState;
+    StoreEntry *entry = ctrlp->entry;
+    int fd = ctrlp->fd;
+    debug(12, 3, "icpProcessRequestComplete: '%s'\n", icpState->url);
+    if (icpProcessRequestControl(icpState, ICP_OP_DEL) == 0) {
+	if (entry) {
+	    if (status < 0)
+		entry->lock_count++;
+	    else
+		file_close(entry->mem_obj->swapin_fd);
+	}
+	safe_free(ctrlp);
+	return;
+    }
+    safe_free(ctrlp);
+    /* The following status < 0 check grabs an UGLY race condition.  If
+     * an operation aborts while the open is not complete AND file_open
+     * failed then storeLockObjectComplete would have decremented the
+     * lock count when it shouldn't have.  It will have already been
+     * done by icpStateFree. */
+    if (entry && status < 0) {
 	storeRelease(entry);
 	entry = NULL;
 	icpState->log_type = LOG_TCP_SWAPIN_FAIL;
@@ -801,11 +887,6 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	storeClientListAdd(entry, fd, 0);
     icpState->entry = entry;	/* Save a reference to the object */
     icpState->out_offset = 0;
-
-    debug(12, 4, "icpProcessRequest: %s for '%s'\n",
-	log_tags[icpState->log_type],
-	icpState->url);
-
     switch (icpState->log_type) {
     case LOG_TCP_HIT:
 	entry->refcount++;	/* HIT CASE */
@@ -874,13 +955,6 @@ icpProcessMISS(int fd, icpStateData * icpState)
     icpState->out_offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, icpHandleStore, (void *) icpState);
-#if DELAY_HACK
-    ch.src_addr = icpState->peer.sin_addr;
-    ch.request = icpState->request;
-    _delay_fetch = 0;
-    if (aclCheck(DelayAccessList, &ch))
-	_delay_fetch = 1;
-#endif
     protoDispatch(fd, url, icpState->entry, icpState->request);
     return;
 }
@@ -943,7 +1017,7 @@ icpUdpReply(int fd, icpUdpData * queue)
 	    queue->len);
 
 	if (x < 0) {
-	    if (errno == EWOULDBLOCK || errno == EAGAIN)
+	    if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)
 		break;		/* don't de-queue */
 	    else
 		result = COMM_ERROR;
@@ -1033,7 +1107,7 @@ icpCreateHitObjMessage(
     xmemcpy(entryoffset, &data_sz, sizeof(u_short));
     entryoffset += sizeof(u_short);
     size = m->data->mem_copy(m->data, 0, entryoffset, entry->object_len);
-    if (size != entry->object_len) {
+    if (size < 0 || size != entry->object_len) {
 	debug(12, 1, "icpCreateHitObjMessage: copy failed, wanted %d got %d bytes\n",
 	    entry->object_len, size);
 	safe_free(buf);
@@ -1067,37 +1141,6 @@ icpUdpSend(int fd,
 	(void *) UdpQueueHead, 0);
 }
 
-static void
-icpHitObjHandler(int errflag, void *data)
-{
-    icpHitObjStateData *icpHitObjState = data;
-    StoreEntry *entry = NULL;
-    icp_common_t *reply;
-
-    if (data == NULL)
-	return;
-    entry = icpHitObjState->entry;
-    debug(12, 3, "icpHitObjHandler: '%s'\n", entry->url);
-    if (errflag) {
-	debug(12, 3, "icpHitObjHandler: errflag=%d, aborted!\n", errflag);
-    } else {
-	reply = icpCreateHitObjMessage(ICP_OP_HIT_OBJ,
-	    ICP_FLAG_HIT_OBJ,
-	    entry->url,
-	    icpHitObjState->header.reqnum,
-	    icpHitObjState->pad,
-	    entry);
-	if (reply)
-	    icpUdpSend(icpHitObjState->fd,
-		&icpHitObjState->to,
-		reply,
-		LOG_UDP_HIT_OBJ,
-		urlParseProtocol(entry->url));
-    }
-    storeUnlockObject(entry);
-    safe_free(icpHitObjState);
-}
-
 static int
 icpCheckUdpHit(StoreEntry * e, request_t * request)
 {
@@ -1107,6 +1150,12 @@ icpCheckUdpHit(StoreEntry * e, request_t * request)
 	return 0;
     if (refreshCheck(e, request, 30))
 	return 0;
+    /* MUST NOT do UDP_HIT_OBJ if object is not in memory with async_io. The */
+    /* icpHandleV2 code has not been written to support it - squid will die! */
+#if USE_ASYNC_IO || defined(MEM_UDP_HIT_OBJ)
+    if (e->mem_status != IN_MEMORY)
+	return 0;
+#endif
     return 1;
 }
 
@@ -1139,7 +1188,6 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     char *data = NULL;
     u_short data_sz = 0;
     u_short u;
-    icpHitObjStateData *icpHitObjState = NULL;
     int pkt_len;
     aclCheck_t checklist;
     icp_common_t *reply;
@@ -1189,17 +1237,14 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	if (icpCheckUdpHit(entry, icp_request)) {
 	    pkt_len = sizeof(icp_common_t) + strlen(url) + 1 + 2 + entry->object_len;
 	    if (icpCheckUdpHitObj(entry, icp_request, &header, pkt_len)) {
-		icpHitObjState = xcalloc(1, sizeof(icpHitObjStateData));
-		icpHitObjState->entry = entry;
-		icpHitObjState->fd = fd;
-		icpHitObjState->to = from;
-		icpHitObjState->header = header;
-		icpHitObjState->pad = netdb_gunk;
-		if (!storeLockObject(entry, icpHitObjHandler, icpHitObjState))
-		    break;
-		/* else, problems */
-		storeRelease(entry);
-		safe_free(icpHitObjState);
+		reply = icpCreateHitObjMessage(ICP_OP_HIT_OBJ,
+		    flags,
+		    url,
+		    header.reqnum,
+		    netdb_gunk,
+		    entry);
+		icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
+		break;
 	    } else {
 		reply = icpCreateMessage(ICP_OP_HIT, flags, url, header.reqnum, netdb_gunk);
 		icpUdpSend(fd, &from, reply, LOG_UDP_HIT, icp_request->protocol);
@@ -1978,9 +2023,7 @@ icpDetectClientClose(int fd, void *data)
     int n;
     int x;
     StoreEntry *entry = icpState->entry;
-
     errno = 0;
-
     if (icpCheckTransferDone(icpState)) {
 	/* All data has been delivered */
 	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
@@ -1994,6 +2037,12 @@ icpDetectClientClose(int fd, void *data)
 	    fd, n);
 	debug(12, 1, "--> from: %s\n", fd_table[fd].ipaddr);
 	debug(12, 1, "--> data: %s\n", rfc1738_escape(buf));
+	commSetSelect(fd,
+	    COMM_SELECT_READ,
+	    icpDetectClientClose,
+	    (void *) icpState,
+	    0);
+    } else if (n < 0 && (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)) {
 	commSetSelect(fd,
 	    COMM_SELECT_READ,
 	    icpDetectClientClose,

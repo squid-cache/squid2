@@ -176,17 +176,24 @@ void
 protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 {
     protodispatch_data *protoData = NULL;
-    if (request->protocol == PROTO_CACHEOBJ)
+    debug(17, 3, "protoDispatch: '%s'\n", url);
+    entry->mem_obj->request = requestLink(request);
+    if (request->protocol == PROTO_CACHEOBJ) {
 	protoStart(fd, entry, NULL, request);
-    if (request->protocol == PROTO_WAIS)
+	return;
+    }
+    if (request->protocol == PROTO_WAIS) {
 	protoStart(fd, entry, NULL, request);
-    if (!Config.firewall_ip_list && !Config.local_ip_list)
+	return;
+    }
+    if (!Config.firewall_ip_list && !Config.local_ip_list) {
 	peerSelect(fd, request, entry);
+	return;
+    }
     protoData = xcalloc(1, sizeof(protodispatch_data));
     protoData->fd = fd;
     protoData->entry = entry;
     protoData->request = requestLink(request);
-    entry->mem_obj->request = requestLink(request);
     comm_add_close_handler(fd,
 	protoDataFree,
 	(void *) protoData);

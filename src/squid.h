@@ -261,7 +261,7 @@ typedef unsigned long u_num32;
 #include <regex.h>
 #endif
 
-typedef void (*SIH) (int, void *);	/* swap in */
+typedef void (*SIH) (void *, int);	/* swap in */
 typedef int (*QS) (const void *, const void *);
 
 #include "cache_cf.h"
