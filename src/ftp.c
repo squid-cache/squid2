@@ -2543,7 +2543,7 @@ ftpAppendSuccessHeader(FtpStateData * ftpState)
 static void
 ftpAuthRequired(HttpReply * old_reply, request_t * request, const char *realm)
 {
-    ErrorState *err = errorCon(ERR_ACCESS_DENIED, HTTP_UNAUTHORIZED);
+    ErrorState *err = errorCon(ERR_CACHE_ACCESS_DENIED, HTTP_UNAUTHORIZED);
     HttpReply *rep;
     err->request = requestLink(request);
     rep = errorBuildReply(err);
