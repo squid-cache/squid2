@@ -62,6 +62,7 @@ typedef struct _acl_time_data acl_time_data;
 typedef struct _acl_name_list acl_name_list;
 typedef struct _acl_deny_info_list acl_deny_info_list;
 typedef struct _acl_proxy_auth acl_proxy_auth;
+typedef struct _acl_proxy_auth_data acl_proxy_auth_data;
 typedef struct _acl_proxy_auth_user acl_proxy_auth_user;
 typedef struct _acl_arp_data acl_arp_data;
 typedef struct _acl acl;
