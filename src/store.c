@@ -1033,7 +1033,7 @@ storeTimestampsSet(StoreEntry * entry)
      * squid_curtime because it results in a negative served_date.
      */
     if (age > squid_curtime - served_date)
-	if (squid_curtime < age)
+	if (squid_curtime > age)
 	    served_date = squid_curtime - age;
     entry->expires = reply->expires;
     entry->lastmod = reply->last_modified;
