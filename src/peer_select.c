@@ -166,7 +166,7 @@ peerCheckAlwaysDirectDone(int answer, void *data)
     ps_state *psstate = data;
     psstate->acl_checklist = NULL;
     debug(44, 3) ("peerCheckAlwaysDirectDone: %d\n", answer);
-    psstate->always_direct = answer ? 1 : -1;
+    psstate->always_direct = answer ? -1 : 1;
     peerSelectFoo(psstate);
 }
 

@@ -418,6 +418,7 @@ parse_cachedir(struct _cacheSwap *swap)
     tmp->read_only = readonly;
     tmp->map = file_map_create(MAX_FILES_PER_DIR);
     tmp->swaplog_fd = -1;
+    swap->n_configured++;
 }
 
 static void

@@ -107,7 +107,6 @@
 
 static char *debug_log_file = NULL;
 static char *accessLogTime _PARAMS((time_t));
-extern int opt_debug_stderr;
 
 #ifdef __STDC__
 void
