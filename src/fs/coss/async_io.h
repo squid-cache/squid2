@@ -48,8 +48,8 @@ struct _async_queue {
 
 /* Functions */
 extern void a_file_read(async_queue_t * q, int fd, void *buf, int req_len,
-    squid_off_t offset, DRCB * callback, void *data);
-extern void a_file_write(async_queue_t * q, int fd, squid_off_t offset, void *buf,
+    off_t offset, DRCB * callback, void *data);
+extern void a_file_write(async_queue_t * q, int fd, off_t offset, void *buf,
     int len, DWCB * callback, void *data, FREE * freefunc);
 extern int a_file_callback(async_queue_t * q);
 extern void a_file_setupqueue(async_queue_t * q);

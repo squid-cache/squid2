@@ -479,7 +479,7 @@ struct _clean_state {
     char *new;
     char *cln;
     char *outbuf;
-    squid_off_t outbuf_offset;
+    off_t outbuf_offset;
     int fd;
     dlink_node *current;
 };
@@ -753,7 +753,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     unsigned int i;
     unsigned int size;
     CossInfo *cs;
-    squid_off_t max_offset;
+    off_t max_offset;
 
     i = GetInteger();
     size = i << 10;		/* Mbytes to Kbytes */
@@ -822,7 +822,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
      * largest possible sfileno, assuming sfileno is a 25-bit
      * signed integer, as defined in structs.h.
      */
-    max_offset = (squid_off_t) 0xFFFFFF << cs->blksz_bits;
+    max_offset = (off_t) 0xFFFFFF << cs->blksz_bits;
     if (sd->max_size > (unsigned long) (max_offset >> 10)) {
 	debug(47, 0) ("COSS block-size = %d bytes\n", 1 << cs->blksz_bits);
 	debug(47, 0) ("COSS largest file offset = %lu KB\n", (unsigned long) max_offset >> 10);

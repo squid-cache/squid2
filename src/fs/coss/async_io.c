@@ -54,7 +54,7 @@ a_file_findslot(async_queue_t * q)
 /* Exported routines */
 
 void
-a_file_read(async_queue_t * q, int fd, void *buf, int req_len, squid_off_t offset,
+a_file_read(async_queue_t * q, int fd, void *buf, int req_len, off_t offset,
     DRCB * callback, void *data)
 {
     int slot;
@@ -102,7 +102,7 @@ a_file_read(async_queue_t * q, int fd, void *buf, int req_len, squid_off_t offse
 
 
 void
-a_file_write(async_queue_t * q, int fd, squid_off_t offset, void *buf, int len,
+a_file_write(async_queue_t * q, int fd, off_t offset, void *buf, int len,
     DWCB * callback, void *data, FREE * freefunc)
 {
     int slot;
