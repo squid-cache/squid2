@@ -15,21 +15,22 @@ typedef enum {
     LOG_UDP_HIT,		/* 8 */
     LOG_UDP_MISS,		/* 9 */
     LOG_UDP_DENIED,		/* 10 */
-    ERR_READ_TIMEOUT,		/* 11 */
-    ERR_LIFETIME_EXP,		/* 12 */
-    ERR_NO_CLIENTS_BIG_OBJ,	/* 13 */
-    ERR_READ_ERROR,		/* 14 */
-    ERR_CLIENT_ABORT,		/* 15 */
-    ERR_CONNECT_FAIL,		/* 16 */
-    ERR_INVALID_REQ,		/* 17 */
-    ERR_INVALID_URL,		/* 18 */
-    ERR_NO_FDS,			/* 19 */
-    ERR_DNS_FAIL,		/* 20 */
-    ERR_NOT_IMPLEMENTED,	/* 21 */
-    ERR_CANNOT_FETCH,		/* 22 */
-    ERR_NO_RELAY,		/* 23 */
-    ERR_DISK_IO,		/* 24 */
-    ERR_ZERO_SIZE_OBJECT	/* 25 */
+    LOG_UDP_INVALID,		/* 11 */
+    ERR_READ_TIMEOUT,		/* 12 */
+    ERR_LIFETIME_EXP,		/* 13 */
+    ERR_NO_CLIENTS_BIG_OBJ,	/* 14 */
+    ERR_READ_ERROR,		/* 15 */
+    ERR_CLIENT_ABORT,		/* 16 */
+    ERR_CONNECT_FAIL,		/* 17 */
+    ERR_INVALID_REQ,		/* 18 */
+    ERR_INVALID_URL,		/* 19 */
+    ERR_NO_FDS,			/* 20 */
+    ERR_DNS_FAIL,		/* 21 */
+    ERR_NOT_IMPLEMENTED,	/* 22 */
+    ERR_CANNOT_FETCH,		/* 23 */
+    ERR_NO_RELAY,		/* 24 */
+    ERR_DISK_IO,		/* 25 */
+    ERR_ZERO_SIZE_OBJECT	/* 26 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT
