@@ -537,7 +537,7 @@ fqdncache_dnsHandleRead(int fd, void *data)
     debug(35, 5) ("fqdncache_dnsHandleRead: Result from DNS ID %d (%d bytes)\n",
 	dnsData->id, len);
     if (len <= 0) {
-	if (len < 0 && (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
+	if (len < 0 && ignoreErrno(errno)) {
 	    commSetSelect(fd,
 		COMM_SELECT_READ,
 		fqdncache_dnsHandleRead,

@@ -131,7 +131,7 @@ passReadServer(int fd, void *data)
     if (len < 0) {
 	debug(50, 2) ("passReadServer: FD %d: read failure: %s\n",
 	    passState->server.fd, xstrerror());
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+	if (ignoreErrno(errno)) {
 	    /* reinstall handlers */
 	    /* XXX This may loop forever */
 	    commSetSelect(passState->server.fd,
@@ -172,7 +172,7 @@ passReadClient(int fd, void *data)
     if (len < 0) {
 	debug(50, 2) ("passReadClient: FD %d: read failure: %s\n",
 	    fd, xstrerror());
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+	if (ignoreErrno(errno)) {
 	    /* reinstall handlers */
 	    /* XXX This may loop forever */
 	    commSetSelect(passState->client.fd,
@@ -207,7 +207,7 @@ passWriteServer(int fd, void *data)
     fd_bytes(fd, len, FD_WRITE);
     debug(39, 5) ("passWriteServer FD %d, wrote %d bytes\n", fd, len);
     if (len < 0) {
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+	if (ignoreErrno(errno)) {
 	    commSetSelect(passState->server.fd,
 		COMM_SELECT_WRITE,
 		passWriteServer,
@@ -254,7 +254,7 @@ passWriteClient(int fd, void *data)
     fd_bytes(fd, len, FD_WRITE);
     debug(39, 5) ("passWriteClient FD %d, wrote %d bytes\n", fd, len);
     if (len < 0) {
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+	if (ignoreErrno(errno)) {
 	    commSetSelect(passState->client.fd,
 		COMM_SELECT_WRITE,
 		passWriteClient,

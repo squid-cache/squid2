@@ -158,7 +158,6 @@ static int fdIsHttpOrIcp(int fd);
 static IPH commConnectDnsHandle;
 static void commConnectCallback(ConnectStateData * cs, int status);
 static int commDeferRead(int fd);
-static int ignoreErrno(int);
 static void commSetConnectTimeout(int fd, time_t timeout);
 static int commResetFD(ConnectStateData * cs);
 static int commRetryConnect(ConnectStateData * cs);
@@ -1391,7 +1390,7 @@ comm_write(int fd, char *buf, int size, CWCB * handler, void *handler_data, FREE
 	0);
 }
 
-static int
+int
 ignoreErrno(int ierrno)
 {
     if (ierrno == EWOULDBLOCK)

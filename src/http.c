@@ -627,7 +627,7 @@ httpReadReply(int fd, void *data)
 	IOStats.Http.read_hist[bin]++;
     }
     if (len < 0) {
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+	if (ignoreErrno(errno)) {
 	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 	} else {
 	    if (clen == 0) {

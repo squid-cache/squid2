@@ -686,7 +686,7 @@ ftpReadData(int fd, void *data)
     }
     if (len < 0) {
 	debug(50, 1) ("ftpReadData: read error: %s\n", xstrerror());
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+	if (ignoreErrno(errno)) {
 	    commSetSelect(fd, COMM_SELECT_READ, ftpReadData, data, Config.Timeout.read);
 	} else {
 	    if (mem->inmem_hi == 0) {
@@ -1022,7 +1022,7 @@ ftpReadControlReply(int fd, void *data)
     debug(9, 5) ("ftpReadControlReply: FD %d, Read %d bytes\n", fd, len);
     if (len < 0) {
 	debug(50, 1) ("ftpReadControlReply: read error: %s\n", xstrerror());
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+	if (ignoreErrno(errno)) {
 	    commSetSelect(fd,
 		COMM_SELECT_READ,
 		ftpReadControlReply,

@@ -186,7 +186,7 @@ waisReadReply(int fd, void *data)
     }
     if (len < 0) {
 	debug(50, 1) ("waisReadReply: FD %d: read failure: %s.\n", xstrerror());
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+	if (ignoreErrno(errno)) {
 	    /* reinstall handlers */
 	    /* XXX This may loop forever */
 	    commSetSelect(fd, COMM_SELECT_READ,

@@ -120,7 +120,7 @@ sslReadServer(int fd, void *data)
     if (len < 0) {
 	debug(50, 1) ("sslReadServer: FD %d: read failure: %s\n",
 	    sslState->server.fd, xstrerror());
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+	if (ignoreErrno(errno)) {
 	    /* reinstall handlers */
 	    /* XXX This may loop forever */
 	    commSetSelect(sslState->server.fd,
@@ -162,7 +162,7 @@ sslReadClient(int fd, void *data)
     if (len < 0) {
 	debug(50, 1) ("sslReadClient: FD %d: read failure: %s\n",
 	    fd, xstrerror());
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
+	if (ignoreErrno(errno)) {
 	    /* reinstall handlers */
 	    /* XXX This may loop forever */
 	    commSetSelect(sslState->client.fd,
@@ -197,7 +197,7 @@ sslWriteServer(int fd, void *data)
     fd_bytes(fd, len, FD_WRITE);
     debug(26, 5) ("sslWriteServer FD %d, wrote %d bytes\n", fd, len);
     if (len < 0) {
-	if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK) {
+	if (ignoreErrno(errno)) {
 	    commSetSelect(sslState->server.fd,
 		COMM_SELECT_WRITE,
 		sslWriteServer,
@@ -244,7 +244,7 @@ sslWriteClient(int fd, void *data)
     fd_bytes(fd, len, FD_WRITE);
     debug(26, 5) ("sslWriteClient FD %d, wrote %d bytes\n", fd, len);
     if (len < 0) {
-	if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK) {
+	if (ignoreErrno(errno)) {
 	    commSetSelect(sslState->client.fd,
 		COMM_SELECT_WRITE,
 		sslWriteClient,

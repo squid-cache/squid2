@@ -689,13 +689,8 @@ gopherReadReply(int fd, void *data)
     }
     if (len < 0) {
 	debug(50, 1) ("gopherReadReply: error reading: %s\n", xstrerror());
-	if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
-	    /* reinstall handlers */
-	    /* XXX This may loop forever */
-	    commSetSelect(fd,
-		COMM_SELECT_READ,
-		gopherReadReply,
-		data, 0);
+	if (ignoreErrno(errno)) {
+	    commSetSelect(fd, COMM_SELECT_READ, gopherReadReply, data, 0);
 	} else {
 	    /* was  assert */
 	    ErrorState *err;
