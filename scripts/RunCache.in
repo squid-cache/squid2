@@ -5,7 +5,7 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 logdir=@localstatedir@
-PATH=@bindir@:/bin:/usr/bin
+PATH=@sbindir@:/bin:/usr/bin
 export PATH
 
 conf=""
