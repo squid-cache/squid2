@@ -907,8 +907,10 @@ void log_append(obj, url, caddr, size, action, method, http_code, msec, ident, h
     LOCAL_ARRAY(char, tmp, 6000);	/* MAX_URL is 4096 */
     int x;
     static char *dash = "-";
-    char *client = fqdncache_gethostbyaddr(caddr, 0);
+    char *client = NULL;
 
+    if (opt_log_fqdn)
+	client = fqdncache_gethostbyaddr(caddr, 0);
     if (client == NULL)
 	client = inet_ntoa(caddr);
 
