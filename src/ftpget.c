@@ -337,6 +337,7 @@ typedef struct _request {
     int rest_offset;
     int rest_att;
     int rest_implemented;
+    struct in_addr host_addr;
 } request_t;
 
 typedef struct _parts {
@@ -1188,13 +1189,20 @@ int is_dfd_open(r)
 state_t parse_request(r)
      request_t *r;
 {
+    struct hostent *hp;
     Debug(26, 1, ("parse_request: looking up '%s'\n", r->host));
-    if (get_host(r->host) == NULL) {
+
+    r->host_addr.s_addr = inet_addr(r->host);	/* try numeric */
+    if (r->host_addr.s_addr != INADDR_NONE)
+	return PARSE_OK;
+    hp = gethostbyname(r->host);
+    if (hp == NULL) {
 	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "Unknown host: %s", r->host);
 	r->rc = 10;
 	return FAIL_HARD;
     }
+    xmemcpy(&r->host_addr.s_addr, *hp->h_addr_list, 4);
     return PARSE_OK;
 }
 
@@ -1209,7 +1217,6 @@ state_t parse_request(r)
 state_t do_connect(r)
      request_t *r;
 {
-    Host *h = NULL;
     int sock;
     struct sockaddr_in S;
     int len;
@@ -1224,8 +1231,7 @@ state_t do_connect(r)
 	r->rc = 2;
 	return FAIL_CONNECT;
     }
-    h = get_host(r->host);
-    xmemcpy(&(S.sin_addr.s_addr), h->ipaddr, h->addrlen);
+    S.sin_addr = r->host_addr;
     S.sin_family = AF_INET;
     S.sin_port = htons(r->port);
 
