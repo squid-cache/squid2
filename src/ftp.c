@@ -717,7 +717,6 @@ ftpReadData(int fd, void *data)
     } else {
 	if (EBIT_TEST(ftpState->flags, FTP_ISDIR)) {
 	    ftpParseListing(ftpState, len);
-	    InvokeHandlers(entry);
 	} else {
 	    assert(ftpState->data.offset == 0);
 	    storeAppend(entry, ftpState->data.buf, len);
