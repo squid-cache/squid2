@@ -118,7 +118,9 @@ squid_SOURCES = \
 	client_side.c \
 	client_side_reply.c \
 	client_side_request.c \
+	client_side_request.h \
 	clientStream.c \
+	clientStream.h \
 	comm.c \
 	comm_select.c \
 	comm_poll.c \
@@ -190,7 +192,9 @@ squid_SOURCES = \
 	stmem.c \
 	store.c \
 	store_io.c \
+	StoreIOBuffer.h \
 	store_client.c \
+	StoreClient.h \
 	store_digest.c \
 	store_dir.c \
 	store_key_md5.c \
