@@ -282,6 +282,11 @@
 #define _PATH_DEVNULL "/dev/null"
 #endif
 
+/* cbdata macros */
+#define CBDATA_ALLOC(type, unl) ((type *)cbdataInternalAlloc(CBDATA_##type, unl))
+#define CBDATA_TYPE(type)	static cbdata_type CBDATA_##type = 0
+#define CBDATA_INIT_TYPE(type)	(CBDATA_##type = cbdataAddType(CBDATA_##type, #type, sizeof(type)))
+
 #ifndef O_TEXT
 #define O_TEXT 0
 #endif

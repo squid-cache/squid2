@@ -2234,8 +2234,8 @@ clientProcessMiss(clientHttpRequest * http)
 static clientHttpRequest *
 parseHttpRequestAbort(ConnStateData * conn, const char *uri)
 {
-    clientHttpRequest *http = memAllocate(MEM_CLIENTHTTPREQUEST);
-    cbdataAdd(http, memFree, MEM_CLIENTHTTPREQUEST);
+    clientHttpRequest *http;
+    http = CBDATA_ALLOC(clientHttpRequest, NULL);
     http->conn = conn;
     http->start = current_time;
     http->req_sz = conn->in.offset;
@@ -2374,8 +2374,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     assert(prefix_sz <= conn->in.offset);
 
     /* Ok, all headers are received */
-    http = memAllocate(MEM_CLIENTHTTPREQUEST);
-    cbdataAdd(http, memFree, MEM_CLIENTHTTPREQUEST);
+    http = CBDATA_ALLOC(clientHttpRequest, NULL);
     http->http_ver = http_ver;
     http->conn = conn;
     http->start = current_time;
@@ -2883,8 +2882,7 @@ httpAccept(int sock, void *data)
 	    break;
 	}
 	debug(33, 4) ("httpAccept: FD %d: accepted\n", fd);
-	connState = memAllocate(MEM_CONNSTATEDATA);
-	cbdataAdd(connState, memFree, MEM_CONNSTATEDATA);
+	connState = CBDATA_ALLOC(ConnStateData, NULL);
 	connState->peer = peer;
 	connState->log_addr = peer.sin_addr;
 	connState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;

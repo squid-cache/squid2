@@ -93,8 +93,7 @@ helperOpenServers(helper * hlp)
 	    continue;
 	}
 	hlp->n_running++;
-	srv = memAllocate(MEM_HELPER_SERVER);
-	cbdataAdd(srv, memFree, MEM_HELPER_SERVER);
+	srv = CBDATA_ALLOC(helper_server, NULL);
 	srv->flags.alive = 1;
 	srv->index = k;
 	srv->rfd = rfd;
@@ -224,8 +223,8 @@ helperShutdown(helper * hlp)
 helper *
 helperCreate(const char *name)
 {
-    helper *hlp = memAllocate(MEM_HELPER);
-    cbdataAdd(hlp, memFree, MEM_HELPER);
+    helper *hlp;
+    hlp = CBDATA_ALLOC(helper, NULL);
     hlp->id_name = name;
     return hlp;
 }

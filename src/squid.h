@@ -318,7 +318,7 @@ struct rusage {
 #endif
 
 #if CBDATA_DEBUG
-#define cbdataAdd(a,b,c)	cbdataAddDbg(a,b,c,__FILE__,__LINE__)
+#define cbdataAlloc(a,b)	cbdataAllocDbg(a,b,__FILE__,__LINE__)
 #define cbdataLock(a)		cbdataLockDbg(a,__FILE__,__LINE__)
 #define cbdataUnlock(a)		cbdataUnlockDbg(a,__FILE__,__LINE__)
 #endif
@@ -432,3 +432,4 @@ struct rusage {
 #define INDEXSD(i)   (&Config.cacheSwap.swapDirs[(i)])
 
 #endif /* SQUID_H */
+#define CREATE_CBDATA(type) cbdataInitType(CBDATA_##type, #type, sizeof(type))

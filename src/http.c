@@ -899,13 +899,13 @@ void
 httpStart(FwdState * fwd)
 {
     int fd = fwd->server_fd;
-    HttpStateData *httpState = memAllocate(MEM_HTTP_STATE_DATA);
+    HttpStateData *httpState;
     request_t *proxy_req;
     request_t *orig_req = fwd->request;
     debug(11, 3) ("httpStart: \"%s %s\"\n",
 	RequestMethodStr[orig_req->method],
 	storeUrl(fwd->entry));
-    cbdataAdd(httpState, memFree, MEM_HTTP_STATE_DATA);
+    httpState = CBDATA_ALLOC(HttpStateData, NULL);
     storeLockObject(fwd->entry);
     httpState->fwd = fwd;
     httpState->entry = fwd->entry;

@@ -545,8 +545,7 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
     default:
 	break;
     }
-    fwdState = memAllocate(MEM_FWD_STATE);
-    cbdataAdd(fwdState, memFree, MEM_FWD_STATE);
+    fwdState = CBDATA_ALLOC(FwdState, NULL);
     fwdState->entry = e;
     fwdState->client_fd = fd;
     fwdState->server_fd = -1;

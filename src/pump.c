@@ -50,12 +50,13 @@ static PF pumpServerClosed;
 static DEFER pumpReadDefer;
 static void pumpClose(void *data);
 
+CBDATA_TYPE(PumpStateData);
 void
 pumpInit(int fd, request_t * r, char *uri)
 {
     request_flags flags;
-    PumpStateData *p = memAllocate(MEM_PUMP_STATE_DATA);
     LOCAL_ARRAY(char, new_key, MAX_URL + 8);
+    PumpStateData *p;
     debug(61, 3) ("pumpInit: FD %d, uri=%s\n", fd, uri);
     /*
      * create a StoreEntry which will buffer the data 
@@ -70,7 +71,8 @@ pumpInit(int fd, request_t * r, char *uri)
     flags = null_request_flags;
     flags.nocache = 1;
     snprintf(new_key, MAX_URL + 5, "%s|Pump", uri);
-    cbdataAdd(p, memFree, MEM_PUMP_STATE_DATA);
+    CBDATA_INIT_TYPE(PumpStateData);
+    p = CBDATA_ALLOC(PumpStateData, NULL);
     p->request_entry = storeCreateEntry(new_key, new_key, flags, r->method);
     p->sc = storeClientListAdd(p->request_entry, p);
     EBIT_SET(p->request_entry->flags, ENTRY_DONT_LOG);

@@ -78,6 +78,8 @@ authenticateStats(StoreEntry * sentry)
     helperStats(sentry, authenticators);
 }
 
+CBDATA_TYPE(authenticateStateData);
+
 /**** PUBLIC FUNCTIONS ****/
 
 
@@ -94,8 +96,7 @@ authenticateStart(acl_proxy_auth_user * auth_user, RH * handler, void *data)
 	handler(data, NULL);
 	return;
     }
-    r = xcalloc(1, sizeof(authenticateStateData));
-    cbdataAdd(r, cbdataXfree, 0);
+    r = CBDATA_ALLOC(authenticateStateData, NULL);
     r->handler = handler;
     cbdataLock(data);
     r->data = data;
@@ -123,6 +124,7 @@ authenticateInit(void)
 	    authenticateStats, 0, 1);
 	init++;
     }
+    CBDATA_INIT_TYPE(authenticateStateData);
 }
 
 void

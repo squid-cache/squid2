@@ -1011,14 +1011,18 @@ storeDiskdDirAddDiskRestore(SwapDir * SD, const cache_key * key,
     return e;
 }
 
+CBDATA_TYPE(RebuildState);
+
 static void
 storeDiskdDirRebuild(SwapDir * sd)
 {
-    RebuildState *rb = xcalloc(1, sizeof(*rb));
+    RebuildState *rb;
     int clean = 0;
     int zero = 0;
     FILE *fp;
     EVH *func = NULL;
+    CBDATA_INIT_TYPE(RebuildState);
+    rb = CBDATA_ALLOC(RebuildState, NULL);
     rb->sd = sd;
     rb->speed = opt_foreground_rebuild ? 1 << 30 : 50;
     /*
@@ -1042,7 +1046,6 @@ storeDiskdDirRebuild(SwapDir * sd)
     debug(20, 1) ("Rebuilding storage in %s (%s)\n",
 	sd->path, clean ? "CLEAN" : "DIRTY");
     store_dirs_rebuilding++;
-    cbdataAdd(rb, cbdataXfree, 0);
     eventAdd("storeRebuild", func, rb, 0.0, 1);
 }
 

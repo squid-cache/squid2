@@ -133,8 +133,7 @@ storeClientListAdd(StoreEntry * e, void *data)
 #endif
     e->refcount++;
     mem->nclients++;
-    sc = memAllocate(MEM_STORE_CLIENT);
-    cbdataAdd(sc, memFree, MEM_STORE_CLIENT);	/* sc is callback_data for file_read */
+    sc = CBDATA_ALLOC(store_client, NULL);
     cbdataLock(data);		/* locked while we point to it */
     sc->callback_data = data;
     sc->seen_offset = 0;
