@@ -2243,9 +2243,9 @@ clientReadRequest(int fd, void *data)
 	    request->flags.accelerated = http->flags.accel;
 	    if (!http->flags.internal) {
 		if (internalCheck(strBuf(request->urlpath))) {
-		    if (0 == strcasecmp(request->host, internalHostname())) {
-			if (request->port == Config.Port.http->i)
-			    http->flags.internal = 1;
+		    if (0 == strcasecmp(request->host, internalHostname()) &&
+			request->port == Config.Port.http->i) {
+			http->flags.internal = 1;
 		    } else if (internalStaticCheck(strBuf(request->urlpath))) {
 			xstrncpy(request->host, internalHostname(), SQUIDHOSTNAMELEN);
 			request->port = Config.Port.http->i;
