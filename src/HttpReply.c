@@ -280,7 +280,7 @@ int
 httpReplyContentLen(const HttpReply * rep)
 {
     assert(rep);
-    return httpHeaderGet(&rep->hdr, HDR_CONTENT_LENGTH).v_int;
+    return httpHeaderGetInt(&rep->hdr, HDR_CONTENT_LENGTH);
 }
 
 /* should we return "" or NULL if no content-type? Return NULL for now @?@ */
