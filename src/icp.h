@@ -64,3 +64,27 @@ extern char *IcpOpcodeStr[];
 extern int icpUdpReply _PARAMS((int fd, icpUdpData * queue));
 
 #endif
+
+#define ICP_IDENT_SZ 63
+
+typedef struct {
+    icp_common_t header;	/* Allows access to previous header */
+    char *url;
+    char *inbuf;
+    int inbufsize;
+    int method;			/* GET, POST, ... */
+    request_t *request;		/* Parsed URL ... */
+    char *request_hdr;		/* Mime header */
+    StoreEntry *entry;
+    long offset;
+    int log_type;
+    int http_code;
+    struct sockaddr_in peer;
+    struct sockaddr_in me;
+    char *ptr_to_4k_page;
+    char *buf;
+    struct timeval start;
+    int flags;
+    char ident[ICP_IDENT_SZ + 1];
+    int ident_fd;
+} icpStateData;

@@ -41,26 +41,6 @@ static char *log_tags[] =
     "ERR_ZERO_SIZE_OBJECT"
 };
 
-typedef struct iwd {
-    icp_common_t header;	/* Allows access to previous header */
-    char *url;
-    char *inbuf;
-    int inbufsize;
-    int method;			/* GET, POST, ... */
-    request_t *request;		/* Parsed URL ... */
-    char *request_hdr;		/* Mime header */
-    StoreEntry *entry;
-    long offset;
-    int log_type;
-    int http_code;
-    struct sockaddr_in peer;
-    struct sockaddr_in me;
-    char *ptr_to_4k_page;
-    char *buf;
-    struct timeval start;
-    int flags;
-} icpStateData;
-
 static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
 #define ICP_MAX_UDP_SIZE 4096
@@ -85,6 +65,8 @@ static void icpHandleStoreComplete _PARAMS((int, char *, int, int, icpStateData 
 static int icpProcessMISS _PARAMS((int, icpStateData *));
 static void CheckQuickAbort _PARAMS((icpStateData *));
 static void icpRead _PARAMS((int, int, char *, int, int, int, complete_handler, void *));
+
+extern void identStart _PARAMS((int, icpStateData *));
 
 static void icpFreeBufOrPage(icpState)
      icpStateData *icpState;
@@ -127,7 +109,10 @@ int icpStateFree(fdunused, icpState)
 	log_tags[icpState->log_type],
 	RequestMethodStr[icpState->method],
 	http_code,
-	elapsed_msec);
+	elapsed_msec,
+	icpState->ident);
+    if (icpState->ident_fd)
+	comm_close(icpState->ident_fd);
     safe_free(icpState->inbuf);
     safe_free(icpState->url);
     safe_free(icpState->request_hdr);
@@ -921,7 +906,8 @@ int icpHandleUdp(sock, not_used)
 		log_tags[LOG_UDP_INVALID],
 		IcpOpcodeStr[header.opcode],
 		0,
-		0);
+		0,
+		NULL);
 	    break;
 	}
 	allow = aclCheck(ICPAccessList,
@@ -942,7 +928,8 @@ int icpHandleUdp(sock, not_used)
 		log_tags[LOG_UDP_DENIED],
 		IcpOpcodeStr[header.opcode],
 		0,
-		0);
+		0,
+		NULL);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
@@ -959,7 +946,8 @@ int icpHandleUdp(sock, not_used)
 		log_tags[LOG_UDP_HIT],
 		IcpOpcodeStr[header.opcode],
 		0,
-		0);
+		0,
+		NULL);
 	    CacheInfo->proto_hit(CacheInfo,
 		CacheInfo->proto_id(entry->url));
 	    icpUdpSend(sock, url, &header, &from, ICP_OP_HIT);
@@ -973,7 +961,8 @@ int icpHandleUdp(sock, not_used)
 	    log_tags[LOG_UDP_MISS],
 	    IcpOpcodeStr[header.opcode],
 	    0,
-	    0);
+	    0,
+	    NULL);
 	CacheInfo->proto_miss(CacheInfo,
 	    CacheInfo->proto_id(url));
 	icpUdpSend(sock, url, &header, &from, ICP_OP_MISS);
@@ -1472,6 +1461,7 @@ int asciiHandleConn(sock, notused)
 	COMM_SELECT_READ,
 	asciiHandleConn,
 	0);
+    identStart(-1, astm);
     return 0;
 }
 
