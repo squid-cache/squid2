@@ -1978,7 +1978,7 @@ clientReadRequest(int fd, void *data)
     conn->in.buf[conn->in.offset] = '\0';	/* Terminate the string */
     while (conn->in.offset > 0) {
 	int nrequests;
-	int req_line_sz;
+	size_t req_line_sz;
 	/* Limit the number of concurrent requests to 2 */
 	for (H = &conn->chr, nrequests = 0; *H; H = &(*H)->next, nrequests++);
 	if (nrequests >= 2) {
