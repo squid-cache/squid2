@@ -428,7 +428,6 @@ int comm_accept(fd, peer, me)
 	}
     }
 
-    P.sin_addr.s_addr &= getClientNetmask().s_addr;
     if (peer)
 	*peer = P;
 

@@ -214,7 +214,7 @@ static int icpStateFree(fd, icpState)
     elapsed_msec = tvSubMsec(icpState->start, current_time);
     CacheInfo->log_append(CacheInfo,
 	icpState->url,
-	inet_ntoa(icpState->peer.sin_addr),
+	inet_ntoa(icpState->log_addr),
 	size,
 	log_tags[icpState->log_type],
 	RequestMethodStr[icpState->method],
@@ -467,7 +467,7 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, data)
      int errflag;
      void *data;
 {
-    icpStateData *icpState = (icpStateData *) data;
+e   icpStateData *icpState = (icpStateData *) data;
     StoreEntry *entry = NULL;
 
     entry = icpState->entry;
@@ -1144,7 +1144,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	    xmemcpy((char *) &u, data, sizeof(u_short));
 	    data += sizeof(u_short);
 	    data_sz = ntohs(u);
-	    if (data_sz > (len - (data - buf))) {
+	    if ((int) data_sz > (len - (data - buf))) {
 		debug(12, 0, "icpHandleIcpV2: ICP_OP_HIT_OBJ object too small\n");
 		break;
 	    }
@@ -1285,7 +1285,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	    xmemcpy((char *) &u, data, sizeof(u_short));
 	    data += sizeof(u_short);
 	    data_sz = ntohs(u);
-	    if (data_sz > (len - (data - buf))) {
+	    if ((int) data_sz > (len - (data - buf))) {
 		debug(12, 0, "icpHandleIcpV3: ICP_OP_HIT_OBJ object too small\n");
 		break;
 	    }
@@ -1828,8 +1828,7 @@ int asciiHandleConn(sock, notused)
     lft = comm_set_fd_lifetime(fd, getClientLifetime());
     ntcpconn++;
 
-    debug(12, 4, "asciiHandleConn: FD %d: accepted (lifetime %d).\n", fd, lft);
-    fd_note(fd, inet_ntoa(peer.sin_addr));
+    debug(12, 4, "asciiHandleConn: FD %d: accepted, lifetime %d\n", fd, lft);
 
     icpState = xcalloc(1, sizeof(icpStateData));
     icpState->start = current_time;
@@ -1837,9 +1836,12 @@ int asciiHandleConn(sock, notused)
     icpState->inbuf = xcalloc(icpState->inbufsize, 1);
     icpState->header.shostid = htonl(peer.sin_addr.s_addr);
     icpState->peer = peer;
+    icpState->log_addr = peer.sin_addr;
+    icpState->log_addr.s_addr &= getClientNetmask().s_addr;
     icpState->me = me;
     icpState->entry = NULL;
     icpState->fd = fd;
+    fd_note(fd, inet_ntoa(icpState->log_addr));
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
     comm_set_select_handler(fd,
 	COMM_SELECT_LIFETIME,
