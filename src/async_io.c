@@ -47,7 +47,7 @@ typedef struct aio_ctrl_t {
     struct aio_ctrl_t *next;
     int fd;
     int operation;
-    void (*done_handler) ();
+    AIOCB *done_handler;
     void *done_handler_data;
     aio_result_t result;
 } aio_ctrl_t;
@@ -80,7 +80,7 @@ aioInit()
 
 
 void
-aioOpen(const char *path, int oflag, mode_t mode, void (*callback) (), void *callback_data)
+aioOpen(const char *path, int oflag, mode_t mode, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
     int ret;
@@ -172,7 +172,7 @@ aioCancel(int fd)
 
 
 void
-aioWrite(int fd, char *bufp, int len, void (*callback) (), void *callback_data)
+aioWrite(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
 
@@ -213,7 +213,7 @@ aioWrite(int fd, char *bufp, int len, void (*callback) (), void *callback_data)
 
 
 void
-aioRead(int fd, char *bufp, int len, void (*callback) (), void *callback_data)
+aioRead(int fd, char *bufp, int len, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
 
@@ -254,7 +254,7 @@ aioRead(int fd, char *bufp, int len, void (*callback) (), void *callback_data)
 
 
 void
-aioStat(char *path, struct stat *sb, void (*callback) (), void *callback_data)
+aioStat(char *path, struct stat *sb, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
 
@@ -286,7 +286,7 @@ aioStat(char *path, struct stat *sb, void (*callback) (), void *callback_data)
 
 
 void
-aioUnlink(const char *path, void (*callback) (), void *callback_data)
+aioUnlink(const char *path, AIOCB * callback, void *callback_data)
 {
     aio_ctrl_t *ctrlp;
     static aio_unlinkq_t *uq = NULL;
