@@ -53,7 +53,7 @@
 /* Peter Wemm <peter@spinner.DIALix.COM> */
 #if defined(_SQUID_FREEBSD_)
 #include <osreldate.h>
-#if __FreeBSD_version__ < 220000
+#if __FreeBSD_version < 220000
 #undef CHANGE_FD_SETSIZE
 #define CHANGE_FD_SETSIZE 0
 #endif
