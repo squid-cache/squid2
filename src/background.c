@@ -54,9 +54,9 @@ static struct bg_entry *last_called = NULL;
  */
 void
 runInBackground(char *name,
-	int (*func) (void *arg),
-	void *arg,
-	void (*done) (void *arg))
+    int (*func) (void *arg),
+    void *arg,
+    void (*done) (void *arg))
 {
     struct bg_entry *entry = NULL;
 

@@ -32,5 +32,5 @@ extern void aioExamine(void);
 extern void aioSigHandler(int sig);
 extern int aioFileWriteComplete(int ed, FileEntry * entry);
 extern int aioFileReadComplete(int fd, dread_ctrl * ctrl_dat);
-extern int aioFileQueueWrite (int, int (*)(int, FileEntry *), FileEntry *);
-extern int aioFileQueueRead (int, int (*)(int, dread_ctrl *), dread_ctrl *);
+extern int aioFileQueueWrite(int, int (*)(int, FileEntry *), FileEntry *);
+extern int aioFileQueueRead(int, int (*)(int, dread_ctrl *), dread_ctrl *);

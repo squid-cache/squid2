@@ -175,8 +175,8 @@ hash_init(int hash_sz)
  */
 HashID
 hash_create(int (*cmp_func) (char *, char *),
-	int hash_sz,
-	int (*hash_func) (char *, HashID))
+    int hash_sz,
+    int (*hash_func) (char *, HashID))
 {
     int hid;
 

@@ -162,7 +162,7 @@ protoDataFree(int fdunused, protodispatch_data * protoData)
 }
 
 /* called when DNS lookup is done by ipcache. */
-int 
+int
 protoDispatchDNSHandle(int unused1
     ,struct hostent *hp, void *data)
 {

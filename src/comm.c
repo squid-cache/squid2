@@ -302,7 +302,7 @@ comm_listen(int sock)
 }
 
 /* Connect SOCK to specified DEST_PORT at DEST_HOST. */
-int 
+int
 comm_connect(int sock, char *dest_host, u_short dest_port)
 {
     struct hostent *hp = NULL;

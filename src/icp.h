@@ -196,21 +196,21 @@ typedef struct iwd {
     float http_ver;
 } icpStateData;
 
-extern int icpUdpSend (int,
-	char *,
-	icp_common_t *,
-	struct sockaddr_in *,
-	int flags,
-	icp_opcode,
-	log_type,
-	protocol_t);
+extern int icpUdpSend(int,
+    char *,
+    icp_common_t *,
+    struct sockaddr_in *,
+    int flags,
+    icp_opcode,
+    log_type,
+    protocol_t);
 extern int icpHandleUdp(int sock, void *data);
 extern int asciiHandleConn(int sock, void *data);
-extern int icpSendERROR (int fd,
-	log_type errorCode,
-	char *text,
-	icpStateData *,
-	int httpCode);
+extern int icpSendERROR(int fd,
+    log_type errorCode,
+    char *text,
+    icpStateData *,
+    int httpCode);
 extern void AppendUdp(icpUdpData *);
 extern void icpParseRequestHeaders(icpStateData *);
 extern void icpDetectClientClose(int fd, icpStateData *);

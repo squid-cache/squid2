@@ -144,7 +144,7 @@ disk_init()
 }
 
 /* Open a disk file. Return a file descriptor */
-int 
+int
 file_open(char *path, int (*handler) (), int mode)
 {
     FD_ENTRY *conn;
@@ -187,7 +187,7 @@ file_open(char *path, int (*handler) (), int mode)
 
 
 /* close a disk file. */
-int 
+int
 file_close(int fd)
 {
     FD_ENTRY *conn = NULL;
@@ -333,12 +333,12 @@ diskHandleWrite(int fd, FileEntry * entry)
 /* call a handle when writing is complete. */
 int
 file_write(int fd,
-	char *ptr_to_buf,
-	int len,
-	int access_code,
-	void (*handle) (),
-	void *handle_data,
-	void (*free) (void *))
+    char *ptr_to_buf,
+    int len,
+    int access_code,
+    void (*handle) (),
+    void *handle_data,
+    void (*free) (void *))
 {
     dwrite_q *wq = NULL;
 

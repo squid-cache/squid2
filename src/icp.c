@@ -170,13 +170,13 @@ static void icpLogIcp(icpUdpData *);
 static void icpHandleIcpV2(int fd, struct sockaddr_in, char *, int len);
 static void icpHandleIcpV3(int fd, struct sockaddr_in, char *, int len);
 static char *icpConstruct304reply(struct _http_reply *);
-static void icpUdpSendEntry (int fd,
-	char *url,
-	icp_common_t * reqheaderp,
-	struct sockaddr_in * to,
-	icp_opcode opcode,
-	StoreEntry * entry,
-	struct timeval start_time);
+static void icpUdpSendEntry(int fd,
+    char *url,
+    icp_common_t * reqheaderp,
+    struct sockaddr_in *to,
+    icp_opcode opcode,
+    StoreEntry * entry,
+    struct timeval start_time);
 
 
 /* This is a handler normally called by comm_close() */
@@ -613,7 +613,7 @@ icpHandleStoreIMS(int fd, StoreEntry * entry, icpStateData * icpState)
     icpGetHeadersForIMS(fd, icpState);
 }
 
-static void 
+static void
 icpHandleIMSComplete(int fd, char *buf_unused
     ,int size, int errflag, void *data)
 {
@@ -837,7 +837,7 @@ icpUdpReply(int fd, icpUdpData * queue)
     return result;
 }
 
-int 
+int
 icpUdpSend(int fd, char *url, icp_common_t * reqheaderp, struct sockaddr_in *to, int flags
     ,icp_opcode opcode, log_type logcode, protocol_t proto)
 {

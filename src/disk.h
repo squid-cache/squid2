@@ -116,7 +116,7 @@
 #define MAX_FILE_NAME_LEN 256
 
 typedef int (*FILE_READ_HD) (int fd, char *buf, int size, int errflag,
-	void *data, int offset);
+    void *data, int offset);
 
 typedef int (*FILE_WALK_HD) (int fd, int errflag, void *data);
 
@@ -140,7 +140,7 @@ typedef struct _dread_ctrl {
     int cur_len;
     int end_of_file;
     int (*handler) (int fd, char *buf, int size, int errflag, void *data,
-	    int offset);
+	int offset);
     void *client_data;
 } dread_ctrl;
 
@@ -180,24 +180,24 @@ extern FileEntry *file_table;
 
 extern int file_open(char *path, int (*handler) (), int mode);
 extern int file_close(int fd);
-extern int file_write (int fd,
-	char *buf,
-	int len,
-	int access_code,
-	void       (*handle) (),
-	void *handle_data,
-	void       (*free) (void *));
+extern int file_write(int fd,
+    char *buf,
+    int len,
+    int access_code,
+    void (*handle) (),
+    void *handle_data,
+    void (*free) (void *));
 extern int file_write_unlock(int fd, int access_code);
-extern int file_read (int fd, char *buf, int req_len, int offset,
-	int       (*handler) (int fd, char *buf, int size,
-	    int errflag, void *data, int offset),
-	void *client_data);
-extern int file_walk (int fd,
-	int       (*handler) (int fd, int errflag, void *data),
-	void *client_data,
-	int       (*line_handler)
-	          (int fd, char *buf, int size, void *line_data),
-	void *line_data);
+extern int file_read(int fd, char *buf, int req_len, int offset,
+    int (*handler) (int fd, char *buf, int size,
+	int errflag, void *data, int offset),
+    void *client_data);
+extern int file_walk(int fd,
+    int (*handler) (int fd, int errflag, void *data),
+    void *client_data,
+    int (*line_handler)
+        (int fd, char *buf, int size, void *line_data),
+    void *line_data);
 extern int file_write_lock(int fd);
 extern int disk_init(void);
 extern int diskWriteIsComplete(int);

@@ -104,7 +104,7 @@ clientProxyAuthCheck(icpStateData * icpState)
 
 void
 clientAccessCheck(icpStateData * icpState,
-	void (*handler) (icpStateData *,
+    void (*handler) (icpStateData *,
 	int))
 {
     int answer = 1;
