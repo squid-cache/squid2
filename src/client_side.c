@@ -1732,7 +1732,7 @@ clientGetHeadersForIMS(void *data, char *buf, ssize_t size)
 	 * cancelled the request, then http->entry will be NULL.
 	 */
 	if (entry != NULL) {
-	    debug(33, 1) ("clientGetHeadersForIMS: storeClientCopy failed for '%s'\n",
+	    debug(33, 3) ("clientGetHeadersForIMS: storeClientCopy failed for '%s'\n",
 		storeKeyText(entry->key));
 	    clientProcessMiss(http);
 	}
