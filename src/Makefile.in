@@ -131,6 +131,7 @@ OBJS	 	= \
 		ipc.o \
 		ipcache.o \
 		@LEAKFINDER_OBJS@ \
+		logfile.o \
 		main.o \
 		mem.o \
 		MemPool.o \
