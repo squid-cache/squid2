@@ -1474,6 +1474,7 @@ configFreeMemory(void)
     safe_free(Config.Program.ftpget_opts);
     safe_free(Config.Program.dnsserver);
     safe_free(Config.Program.redirect);
+    safe_free(Config.Program.pinger);
     safe_free(Config.Accel.host);
     safe_free(Config.Accel.prefix);
     safe_free(Config.appendDomain);
