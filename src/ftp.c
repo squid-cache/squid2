@@ -441,6 +441,7 @@ void ftpSendRequest(fd, data)
 	    mode = ftpBinary;
     }
 
+#ifdef NO_NEED_TO_DO_THIS
     /* Remove leading slash from FTP url-path so that we can
      *  handle ftp://user:pw@host/path objects where path and /path
      *  are quite different.         -DW */
@@ -448,6 +449,7 @@ void ftpSendRequest(fd, data)
 	*path = '.';
     if (*path == '/')
 	path++;
+#endif
 
     /* Start building the buffer ... */
 

@@ -1172,6 +1172,10 @@ state_t do_port(r)
     int port = 0;
     static int init = 0;
 
+    if (r->dfd >= 0) {
+	Debug(26, 3, ("Already connected, fd=%d\n", r->dfd));
+	return PORT_OK;
+    }
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
@@ -1247,10 +1251,16 @@ state_t do_pasv(r)
     static char junk[SMALLBUFSIZ];
     static int pasv_supported = 1;
 
+    if (r->dfd >= 0) {
+	Debug(26, 3, ("Already connected, fd=%d\n", r->dfd));
+	return PORT_OK;
+    }
     /* if PASV previously failed, don't even try it again.  Just return
      * PASV_FAIL and let the state machine fall back to using PORT */
     if (!pasv_supported)
 	return PASV_FAIL;
+
+    r->flags &= ~F_NEEDACCEPT;
 
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
@@ -1298,6 +1308,8 @@ state_t do_cwd(r)
 {
     int code;
 
+    Debug(26, 10, ("do_cwd: \"%s\"\n", r->path));
+
     if (!strcmp(r->path, "."))
 	return CWD_OK;
 
@@ -1308,7 +1320,7 @@ state_t do_cwd(r)
 	if (code >= 200 && code < 300)
 	    return CWD_OK;
 #ifdef TRY_CWD_FIRST
-	return CWD_FAIL;
+	    return CWD_FAIL;
 #else
 	r->errmsg = xstrdup(server_reply_msg);
 	r->rc = 10;
@@ -1362,8 +1374,6 @@ state_t do_retr(r)
 	    return FAIL_HARD;
 	}
 #else
-	if (r->dfd > 0)
-	    close(r->dfd);
 	if (r->flags & F_TRYDIR)
 	    return RETR_FAIL;
 	r->errmsg = xstrdup(server_reply_msg);
@@ -1432,7 +1442,9 @@ state_t do_accept(r)
 	r->rc = 3;
 	return FAIL_SOFT;
     }
-    close(r->dfd);
+    r->flags &= ~F_NEEDACCEPT;
+    if (r->dfd >= 0)
+	close(r->dfd);
     r->dfd = sock;
     return DATA_TRANSFER;
 }
@@ -1449,11 +1461,19 @@ state_t read_data(r)
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
     } else if (n < 0) {
+	if (r->dfd >= 0) {
+	    close(r->dfd);
+	    r->dfd = -1;
+	}
 	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
     } else if (n == 0) {
+	if (r->dfd >= 0) {
+	    close(r->dfd);
+	    r->dfd = -1;
+	}
 	if ((code = read_reply(r->sfd)) > 0) {
 	    if (code == 226)
 		return TRANSFER_DONE;
@@ -1728,11 +1748,17 @@ void try_readme(r)
     readme->flags = F_NOERRS;
 
     process_request(readme);
-    if (readme->cfd > 0)
+    if (readme->cfd >= 0) {
 	close(readme->cfd);
-    if (readme->dfd > 0)
-	close(readme->dfd);
-
+	readme->cfd = -1;
+    }
+    if (readme->dfd >= 0) {
+	if (r->dfd == -1)
+	    r->dfd = readme->dfd;
+	else
+	    close(readme->dfd);
+	readme->dfd = -1;
+    }
     fp = fopen(tfname, "r");
     unlink(tfname);
 
@@ -1811,6 +1837,10 @@ state_t htmlify_listing(r)
 	    fputs(t, wfp);
 	    xfree(t);
 	}
+    }
+    if (r->dfd >= 0) {
+	close(r->dfd);
+	r->dfd = -1;
     }
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
@@ -1893,17 +1923,14 @@ static int process_request(r)
 #endif
 	    break;
 	case CWD_OK:
+	    if (!r->flags & F_ISDIR)
+		r->flags |= F_USEBASE;
 	    r->flags |= F_ISDIR;
 	    if (strcmp(r->path, ".")) {
 		/* tack on the trailing slash now that we know its a dir */
 		strcat(r->url, "/");
 		strcat(r->title_url, "/");
 		strcat(r->url_escaped, "/");
-		if (*(r->path + strlen(r->path) - 1) != '/')
-		    r->flags |= F_USEBASE;
-	    } else {
-		/* We must do this only because Netscape's browser is broken */
-		r->flags |= F_USEBASE;
 	    }
 	    if (r->flags & F_HTTPIFY) {
 		if (cmd_msg) {
@@ -1918,12 +1945,10 @@ static int process_request(r)
 	    break;
 #ifdef TRY_CWD_FIRST
 	case CWD_FAIL:
-	    r->flags &= ~F_ISDIR;
 	    r->state = do_pasv(r);
 	    break;
 #else
 	case RETR_FAIL:
-	    r->flags |= F_ISDIR;
 	    r->state = do_cwd(r);
 	    break;
 #endif
@@ -1969,8 +1994,11 @@ static int process_request(r)
 		r->state = PARSE_OK;
 	    }
 	    break;
-	case FAIL_HARD:
 	case FAIL_SOFT:
+	    fail(r);
+	    return (r->rc);
+	    /* NOTREACHED */
+	case FAIL_HARD:
 	    fail(r);
 	    return (r->rc);
 	    /* NOTREACHED */
@@ -2000,6 +2028,18 @@ void cleanup_path(r)
 	    r->path = xstrdup(".");
 	    xfree(t);
 	    again = 1;
+	} else if ((l >= 1) && (*(r->path + l - 1) == '/')) {
+	    /* remove any trailing slashes from path */
+	    *(r->path + l - 1) = '\0';
+	    r->flags |= F_ISDIR;
+	    r->flags &= ~F_USEBASE;
+	    again = 1;
+	} else if ((l >= 2) && (!strcmp(r->path + l - 2, "/."))) {
+	    /* remove trailing /. */
+	    *(r->path + l - 2) = '\0';
+	    r->flags |= F_ISDIR;
+	    r->flags &= ~F_USEBASE;
+	    again = 1;
 	} else if (*r->path == '/') {
 	    /* remove any leading slashes from path */
 	    t = r->path;
@@ -2011,14 +2051,6 @@ void cleanup_path(r)
 	    t = r->path;
 	    r->path = xstrdup(t + 2);
 	    xfree(t);
-	    again = 1;
-	} else if (*(r->path + l - 1) == '/') {
-	    /* remove any trailing slashes from path */
-	    *(r->path + l - 1) = '\0';
-	    again = 1;
-	} else if (!strcmp(r->path + l - 2, "/.")) {
-	    /* remove trailing /. */
-	    *(r->path + l - 2) = '\0';
 	    again = 1;
 	} else if ((t = strstr(r->path, "/./"))) {
 	    /* remove /./ */
@@ -2360,6 +2392,7 @@ int main(argc, argv)
     r->state = BEGIN;
     r->flags |= o_httpify ? F_HTTPIFY : 0;
     r->flags |= F_TRYDIR;
+    r->flags |= F_USEBASE;
     r->rest_implemented = 1;
 
     if (*(r->type) != 'A' && *(r->type) != 'I') {
@@ -2403,13 +2436,13 @@ int main(argc, argv)
     strcpy(r->url_escaped, t);
 
     rc = process_request(MainRequest = r);
-    if (r->sfd > 0)
+    if (r->sfd >= 0)
 	send_cmd(r->sfd, "QUIT");
-    if (r->sfd > 0)
+    if (r->sfd >= 0)
 	close(r->sfd);
-    if (r->cfd > 0)
+    if (r->cfd >= 0)
 	close(r->cfd);
-    if (r->dfd > 0)
+    if (r->dfd >= 0)
 	close(r->dfd);
     close(0);
     close(1);
