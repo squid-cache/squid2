@@ -56,6 +56,7 @@ static struct {
     int dnsserver_replies;
     int errors;
     int avg_svc_time;
+    int dnsserver_hist[DefaultDnsChildrenMax];
 } IpcacheStats;
 
 typedef struct _line_entry {
@@ -130,7 +131,7 @@ int ipcache_create_dnsserver(command)
     strcpy(addr.sun_path, socketname);
     debug(14, 4, "ipcache_create_dnsserver: path is %s\n", addr.sun_path);
 
-    if (bind(cfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+    if (bind(cfd, (struct sockaddr *) &addr, SUN_LEN(&addr)) < 0) {
 	close(cfd);
 	debug(14, 0, "ipcache_create_dnsserver: bind: %s\n", xstrerror());
 	free(socketname);	/* not xfree() 'cause it came from tempnam() */
@@ -1010,19 +1011,20 @@ int ipcache_nbgethostbyname(name, fd, handler, data)
     }
 
     if (dns_child_alive) {
-	int i, j, min_dns = 0, min_count = 255, alive = 0;
+	int i, min_dns = 0, min_count = 65535, alive = 0;
+	int N = getDnsChildren();
 
-	j = last_dns_dispatched;
-	/* select DNS server with the lowest number of pending */
-	for (i = 0; i < getDnsChildren(); ++i) {
-	    j += 1;
-	    j %= getDnsChildren();
-	    if ((dns_child_table[j]->alive) &&
-		(dns_child_table[j]->pending_count < min_count)) {
-		min_dns = j;
-		min_count = dns_child_table[j]->pending_count;
-	    }
-	    alive = dns_child_table[j]->alive | alive;
+	/* select DNS server with the lowest number of pending, or zero */
+	for (i = 0; i < N; ++i) {
+	    if (!dns_child_table[i]->alive)
+		continue;
+	    alive = 1;
+	    if (dns_child_table[i]->pending_count >= min_count)
+		continue;
+	    min_dns = i;
+	    min_count = dns_child_table[i]->pending_count;
+	    if (min_count == 0)
+		break;
 	}
 
 	if (alive == 0) {
@@ -1068,6 +1070,7 @@ int ipcache_nbgethostbyname(name, fd, handler, data)
 	debug(14, 5, "ipcache_nbgethostbyname: Request sent DNS server ID %d.\n", last_dns_dispatched);
 	dns->dispatch_time = current_time;
 	IpcacheStats.dnsserver_requests++;
+	IpcacheStats.dnsserver_hist[last_dns_dispatched]++;
     } else {
 	/* do a blocking mode */
 	debug(14, 4, "ipcache_nbgethostbyname: Fall back to blocking mode.  Server's dead...\n");
@@ -1158,6 +1161,8 @@ void ipcache_init()
     last_dns_dispatched = getDnsChildren() - 1;
     if (!dns_error_message)
 	dns_error_message = xcalloc(1, 256);
+
+    memset(&IpcacheStats, '\0', sizeof(IpcacheStats));
 
     /* test naming lookup */
     if (!do_dns_test) {
@@ -1326,6 +1331,18 @@ void stat_ipcache_get(sentry, obj)
     sprintf(buffer, "{number of dnsservers: %d}\n",
 	getDnsChildren());
     storeAppend(sentry, buffer, strlen(buffer));
+
+    sprintf(buffer, "{dnsservers use histogram:}\n{\n");
+    storeAppend(sentry, buffer, strlen(buffer));
+    for (i=0; i<getDnsChildren(); i++) {
+        sprintf(buffer, "{dnsserver #%d: %d}\n",
+		i+1,
+		IpcacheStats.dnsserver_hist[i]);
+        storeAppend(sentry, buffer, strlen(buffer));
+    }
+    sprintf(buffer, "}\n");
+    storeAppend(sentry, buffer, strlen(buffer));
+
     sprintf(buffer, "}\n\n");
     storeAppend(sentry, buffer, strlen(buffer));
 
