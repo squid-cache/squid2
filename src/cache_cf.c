@@ -916,7 +916,6 @@ static void parseAddressLine(addr)
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    debug(3, 1, "parseAddressLine: %s\n", token);
     if (inet_addr(token) != INADDR_NONE)
 	(*addr).s_addr = inet_addr(token);
     else if ((hp = gethostbyname(token)))
