@@ -207,7 +207,6 @@ snmp_agent_parse_done(int errstat, snmp_request_t *snmp_rq)
     LOCAL_ARRAY(char, deb_line, 4096);
     int sock=snmp_rq->sock;
     long this_reqid=snmp_rq->reqid;
-
     debug(49,2)("snmp_agent_parse_done: errstat=%d, reqid=%d _t=%x\n",
 		errstat, this_reqid, snmp_rq);
 
@@ -225,8 +224,7 @@ snmp_agent_parse_done(int errstat, snmp_request_t *snmp_rq)
 	if (Config.Snmp.localPort != 0) {
 	    snmpFwd_insertPending(&snmp_rq->from, this_reqid);
 	    snmpUdpSend(sock, &local_snmpd, snmp_rq->outbuf, snmp_rq->outlen);
-	    xfree(snmp_rq);
-	    return;
+	    break;
 	}
 	debug(49, 4) ("snmp: can't forward.\n");
 	break;
@@ -246,14 +244,16 @@ snmp_agent_parse_done(int errstat, snmp_request_t *snmp_rq)
 	    }
 	}
 	snmpUdpSend(snmp_rq->sock, &snmp_rq->from, snmp_rq->outbuf, snmp_rq->outlen);
-	xfree(snmp_rq);
 	break;
     case 0:
 	debug(49, 5) ("snmpagentparsedone failed\n");
-	xfree(snmp_rq->outbuf);
-	xfree(snmp_rq);
+	if (snmp_rq->outbuf)
+		xfree(snmp_rq->outbuf);
 	break;
-    }
+    } 
+    if (snmp_rq->community)
+	xfree(snmp_rq->community);
+    cbdataFree(snmp_rq);
     return;
 }
 
