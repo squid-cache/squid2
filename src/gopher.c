@@ -932,7 +932,7 @@ int gopherStart(unusedfd, url, entry)
 
 GopherData *CreateGopherData()
 {
-    GopherData *gd = (GopherData *) xcalloc(1, sizeof(GopherData));
+    GopherData *gd = xcalloc(1, sizeof(GopherData));
     gd->buf = get_free_4k_page();
     return (gd);
 }

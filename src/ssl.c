@@ -331,7 +331,7 @@ int sslStart(fd, url, request, mime_hdr, size_ptr)
 	    xstrerror());
 	return COMM_ERROR;
     }
-    sslState = (SslStateData *) xcalloc(1, sizeof(SslStateData));
+    sslState = xcalloc(1, sizeof(SslStateData));
     sslState->url = xstrdup(url);
     sslState->request = request;
     sslState->mime_hdr = mime_hdr;

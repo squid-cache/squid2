@@ -54,7 +54,7 @@ void send_announce()
 	    debug(27, 1, "send_announce: %s: %s\n", file, xstrerror());
 	}
     }
-    qdata = (icpUdpData *) xcalloc(1, sizeof(icpUdpData));
+    qdata = xcalloc(1, sizeof(icpUdpData));
     qdata->msg = xstrdup(sndbuf);
     qdata->len = strlen(sndbuf) + 1;
     qdata->address.sin_family = AF_INET;

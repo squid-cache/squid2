@@ -205,7 +205,7 @@ void waisSendRequest(fd, data)
     if (data->mime_hdr)
 	len += strlen(data->mime_hdr);
 
-    buf = (char *) xcalloc(1, len + 1);
+    buf = xcalloc(1, len + 1);
 
     if (data->mime_hdr)
 	sprintf(buf, "%s %s %s\r\n", Method, data->request,
@@ -250,7 +250,7 @@ int waisStart(unusedfd, url, method, mime_hdr, entry)
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
 	return COMM_ERROR;
     }
-    data = (WAISData *) xcalloc(1, sizeof(WAISData));
+    data = xcalloc(1, sizeof(WAISData));
     data->entry = entry;
     data->method = method;
     data->relayhost = getWaisRelayHost();

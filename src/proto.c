@@ -203,7 +203,7 @@ int protoDispatch(fd, url, entry, request)
 	return protoNotImplemented(fd, url, entry);
 #endif
 
-    data = (protodispatch_data *) xcalloc(1, sizeof(protodispatch_data));
+    data = xcalloc(1, sizeof(protodispatch_data));
 
     data->fd = fd;
     data->url = url;

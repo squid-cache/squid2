@@ -313,7 +313,7 @@ int ipcache_purgelru()
 	    LRU_cur_size += 16;
 	    debug(14, 3, "ipcache_purgelru: Have to grow LRU_list to %d. This shouldn't happen.\n",
 		LRU_cur_size);
-	    LRU_list = (ipcache_entry **) xrealloc((char *) LRU_list,
+	    LRU_list = xrealloc((char *) LRU_list,
 		LRU_cur_size * sizeof(ipcache_entry *));
 	}
 	if ((e->status != PENDING) && (e->pending_head == NULL)) {

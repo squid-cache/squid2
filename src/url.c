@@ -198,7 +198,7 @@ request_t *urlParse(method, url)
 	debug(23, 0, "urlParse: Invalid port == 0\n");
 	return NULL;
     }
-    request = (request_t *) xcalloc(1, sizeof(request_t));
+    request = xcalloc(1, sizeof(request_t));
     request->method = method;
     request->protocol = protocol;
     strncpy(request->host, host, SQUIDHOSTNAMELEN);

@@ -78,7 +78,7 @@ int objcacheStart(fd, url, entry)
     int sock_name_length = sizeof(peer_socket_name);
 
     /* Create state structure. */
-    ObjectCacheData *data = (ObjectCacheData *) xcalloc(1, sizeof(ObjectCacheData));
+    ObjectCacheData *data = xcalloc(1, sizeof(ObjectCacheData));
     data->reply_fd = fd;
     data->entry = entry;
     /* before we generate new object */
@@ -201,7 +201,7 @@ int objcacheStart(fd, url, entry)
 
     } else {
 	debug(16, 5, "Bad Object Cache URL %s ... negative cached.\n", url);
-	badentry = (char *) xcalloc(1, strlen(BADCacheURL) + strlen(url));
+	badentry = xcalloc(1, strlen(BADCacheURL) + strlen(url));
 	sprintf(badentry, BADCacheURL, url);
 	storeAppend(entry, badentry, strlen(badentry));
 	safe_free(badentry);

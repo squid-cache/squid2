@@ -276,7 +276,7 @@ static void icpRead(fd, bin_mode, buf, size, timeout, immed, handler, client_dat
      void *client_data;
 {
     icpReadWriteData *data = NULL;
-    data = (icpReadWriteData *) xcalloc(1, sizeof(icpReadWriteData));
+    data = xcalloc(1, sizeof(icpReadWriteData));
     data->fd = fd;
     data->buf = buf;
     data->size = size;
@@ -378,7 +378,7 @@ char *icpWrite(fd, buf, size, timeout, handler, client_data)
     debug(12, 5, "icpWrite: FD %d: sz %d: tout %d: hndl %p: data %p.\n",
 	fd, size, timeout, handler, client_data);
 
-    data = (icpReadWriteData *) xcalloc(1, sizeof(icpReadWriteData));
+    data = xcalloc(1, sizeof(icpReadWriteData));
     data->fd = fd;
     data->buf = buf;
     data->size = size;
@@ -1476,10 +1476,10 @@ int asciiHandleConn(sock, notused)
     debug(12, 4, "asciiHandleConn: FD %d: accepted (lifetime %d).\n", fd, lft);
     fd_note(fd, inet_ntoa(peer.sin_addr));
 
-    astm = (icpStateData *) xcalloc(1, sizeof(icpStateData));
+    astm = xcalloc(1, sizeof(icpStateData));
     astm->start = current_time;
     astm->inbufsize = ASCII_INBUF_BLOCKSIZE;
-    astm->inbuf = (char *) xcalloc(astm->inbufsize, 1);
+    astm->inbuf = xcalloc(astm->inbufsize, 1);
     astm->header.shostid = htonl(peer.sin_addr.s_addr);
     astm->peer = peer;
     astm->me = me;

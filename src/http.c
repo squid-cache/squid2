@@ -527,10 +527,10 @@ int proxyhttpStart(e, url, entry)
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
 	return COMM_ERROR;
     }
-    data = (HttpData *) xcalloc(1, sizeof(HttpData));
+    data = xcalloc(1, sizeof(HttpData));
     data->entry = entry;
     data->req_hdr = entry->mem_obj->mime_hdr;
-    request = (request_t *) xcalloc(1, sizeof(request_t));
+    request = xcalloc(1, sizeof(request_t));
     data->free_request = 1;
     data->request = request;
     /* register the handler to free HTTP state data when the FD closes */
@@ -601,7 +601,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
 	return COMM_ERROR;
     }
-    data = (HttpData *) xcalloc(1, sizeof(HttpData));
+    data = xcalloc(1, sizeof(HttpData));
     data->entry = entry;
     data->req_hdr = req_hdr;
     data->request = request;

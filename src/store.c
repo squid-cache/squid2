@@ -113,8 +113,8 @@ int ncache_dirs = 0;
 static MemObject *new_MemObject()
 {
     MemObject *m = NULL;
-    m = (MemObject *) xcalloc(1, sizeof(MemObject));
-    m->reply = (struct _http_reply *) xcalloc(1, sizeof(struct _http_reply));
+    m = xcalloc(1, sizeof(MemObject));
+    m->reply = xcalloc(1, sizeof(struct _http_reply));
     meta_data.store_in_mem_objects++;
     debug(20, 3, "new_MemObject: returning %p\n", m);
     return m;
@@ -125,7 +125,7 @@ static StoreEntry *new_StoreEntry(mem_obj_flag)
 {
     StoreEntry *e = NULL;
 
-    e = (StoreEntry *) xcalloc(1, sizeof(StoreEntry));
+    e = xcalloc(1, sizeof(StoreEntry));
     meta_data.store_entries++;
     if (mem_obj_flag)
 	e->mem_obj = new_MemObject();
@@ -725,7 +725,7 @@ int storeRegister(e, fd, handler, data)
 
     debug(20, 3, "storeRegister: FD %d '%s'\n", fd, e->key);
 
-    pe = (PendingEntry *) xcalloc(1, sizeof(PendingEntry));
+    pe = xcalloc(1, sizeof(PendingEntry));
     pe->fd = fd;
     pe->handler = handler;
     pe->data = data;
@@ -752,7 +752,7 @@ int storeRegister(e, fd, handler, data)
 	e->mem_obj->pending_list_size += MIN_PENDING;
 
 	/* allocate, and copy old pending list over to the new one */
-	tmp = (struct pentry **) xcalloc(e->mem_obj->pending_list_size,
+	tmp = xcalloc(e->mem_obj->pending_list_size,
 	    sizeof(struct pentry *));
 	for (j = 0; j < old_size; j++)
 	    tmp[j] = e->mem_obj->pending[j];
@@ -2266,15 +2266,15 @@ void storeClientListAdd(e, fd, last_offset)
 	if (i == e->mem_obj->client_list_size) {
 	    /* have to expand client_list */
 	    e->mem_obj->client_list_size += MIN_CLIENT;
-	    e->mem_obj->client_list = (ClientStatusEntry **) xrealloc(e->mem_obj->client_list, e->mem_obj->client_list_size * sizeof(ClientStatusEntry *));
+	    e->mem_obj->client_list = xrealloc(e->mem_obj->client_list, e->mem_obj->client_list_size * sizeof(ClientStatusEntry *));
 	}
     } else {
 	e->mem_obj->client_list_size += MIN_CLIENT;
-	e->mem_obj->client_list = (ClientStatusEntry **) xcalloc(e->mem_obj->client_list_size, sizeof(ClientStatusEntry *));
+	e->mem_obj->client_list = xcalloc(e->mem_obj->client_list_size, sizeof(ClientStatusEntry *));
 	i = 0;
     }
 
-    e->mem_obj->client_list[i] = (ClientStatusEntry *) xcalloc(1, sizeof(ClientStatusEntry));
+    e->mem_obj->client_list[i] = xcalloc(1, sizeof(ClientStatusEntry));
     e->mem_obj->client_list[i]->fd = fd;
     e->mem_obj->client_list[i]->last_offset = last_offset;
 }

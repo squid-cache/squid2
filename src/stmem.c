@@ -125,7 +125,7 @@ int memAppend(mem, data, len)
     }
     while (len > 0) {
 	len_to_copy = min(len, SM_PAGE_SIZE);
-	p = (mem_node) xcalloc(1, sizeof(Mem_Node));
+	p = xcalloc(1, sizeof(Mem_Node));
 	p->next = NULL;
 	p->len = len_to_copy;
 	p->data = get_free_4k_page();
@@ -256,7 +256,7 @@ int memCopy(mem, offset, buf, size)
 /* Do whatever is necessary to begin storage of new object */
 mem_ptr memInit()
 {
-    mem_ptr new = (mem_ptr) xcalloc(1, sizeof(Mem_Hdr));
+    mem_ptr new = xcalloc(1, sizeof(Mem_Hdr));
 
     new->tail = new->head = NULL;
 

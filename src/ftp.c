@@ -546,7 +546,7 @@ int ftpStart(unusedfd, url, request, entry)
 
     debug(9, 3, "FtpStart: FD %d <URL:%s>\n", unusedfd, url);
 
-    data = (FtpData *) xcalloc(1, sizeof(FtpData));
+    data = xcalloc(1, sizeof(FtpData));
     data->entry = entry;
     data->request = request;
 
