@@ -16,7 +16,8 @@ AC_CONFIG_AUX_DIR(aux)
 AC_CANONICAL_HOST
 
 CRYPTLIB=''
-REGEXLIB=''
+REGEXLIB=''	# -lregex
+LIBREGEX=''	# libregex.a
 
 dnl use directory structure of cached as default (hack)
 if test "$libexecdir" = '${exec_prefix}/libexec'; then
@@ -336,15 +337,23 @@ AC_CHECK_FUNCS(\
 )
 
 AC_MSG_CHECKING(if GNUregex needs to be compiled)
-if test "$ac_cv_func_regcomp" = no; then
-	AC_MSG_RESULT(yes)
+if test "$ac_cv_func_regcomp" = "no" ; then
+	COMPILE_GNUREGEX="yes"
+else
+	COMPILE_GNUREGEX="no"
+fi
+case "$host" in
+	*-sun-solaris2.[0-4])
+	COMPILE_GNUREGEX="yes"
+	;;
+esac
+AC_MSG_RESULT($COMPILE_GNUREGEX)
+if test "$COMPILE_GNUREGEX" = "yes"; then
 	REGEXLIB="-lregex"
 	LIBREGEX="libregex.a"
-	AC_SUBST(LIBREGEX)
-else
-	AC_MSG_RESULT(no)
 fi
 AC_SUBST(REGEXLIB)
+AC_SUBST(LIBREGEX)
 
 AC_REPLACE_FUNCS(\
 	tempnam \
