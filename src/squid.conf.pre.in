@@ -274,6 +274,13 @@ hierarchy_stoplist cgi-bin ?
 #
 cache_stoplist cgi-bin ?
 
+#  TAG: cache_stoplist_pattern		# case sensitive
+#  TAG: cache_stoplist_pattern/i	# case insensitive
+#
+#	Just like 'cache_stoplist' but you can use regular expressions
+#	instead of simple string matching.  There is no default.
+#
+#cache_stoplist_pattern
 
 # OPTIONS WHICH AFFECT THE CACHE SIZE
 #-----------------------------------------------------------------------------
