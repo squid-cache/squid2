@@ -327,14 +327,7 @@ int protoDispatch(fd, url, entry, request)
     debug(17, 2, "protoDispatch:   single_parent = %s\n",
 	protoData->single_parent ? protoData->single_parent->host : "N/A");
 
-    if (!protoData->inside_firewall) {
-	/* There are firewall restrictsions, and this host is outside. */
-	/* No DNS lookups, call protoDispatchDNSHandle() directly */
-	BIT_RESET(protoData->entry->flag, IP_LOOKUP_PENDING);
-	protoData->source_ping = 0;
-	protoData->direct_fetch = DIRECT_NO;
-	protoDispatchDNSHandle(fd, (struct hostent *) NULL, protoData);
-    } else if (firewall_ip_list) {
+    if (firewall_ip_list) {
 	/* Have to look up the url address so we can compare it */
 	protoData->source_ping = getSourcePing();
 	protoData->direct_fetch = DIRECT_MAYBE;
@@ -342,6 +335,13 @@ int protoDispatch(fd, url, entry, request)
 	    fd,
 	    protoDispatchDNSHandle,
 	    (void *) protoData);
+    } else if (!protoData->inside_firewall) {
+	/* There are firewall restrictsions, and this host is outside. */
+	/* No DNS lookups, call protoDispatchDNSHandle() directly */
+	BIT_RESET(protoData->entry->flag, IP_LOOKUP_PENDING);
+	protoData->source_ping = 0;
+	protoData->direct_fetch = DIRECT_NO;
+	protoDispatchDNSHandle(fd, (struct hostent *) NULL, protoData);
     } else if (matchLocalDomain(request->host) || !protoData->query_neighbors) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
