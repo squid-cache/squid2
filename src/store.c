@@ -699,8 +699,8 @@ storeGetMemSpace(int size)
     dlink_node *m;
     dlink_node *prev = NULL;
 #else
-    heap *heap = inmem_heap;
-    heap_key age, min_age = 0.0;
+    heap_key age;
+    heap_key min_age = 0.0;
     link_list *locked_entries = NULL;
 #endif
     if (squid_curtime == last_check)
@@ -713,9 +713,9 @@ storeGetMemSpace(int size)
 	return;
     debug(20, 2) ("storeGetMemSpace: Starting, need %d pages\n", pages_needed);
 #if HEAP_REPLACEMENT
-    while (heap_nodes(heap) > 0) {
-	age = heap_peepminkey(heap);
-	e = heap_extractmin(heap);
+    while (heap_nodes(inmem_heap) > 0) {
+	age = heap_peepminkey(inmem_heap);
+	e = heap_extractmin(inmem_heap);
 	e->mem_obj->node = NULL;	/* no longer in the heap */
 	if (storeEntryLocked(e)) {
 	    locked++;
@@ -736,7 +736,7 @@ storeGetMemSpace(int size)
      * Increase the heap age factor.
      */
     if (min_age > 0)
-	heap->age = min_age;
+	inmem_heap->age = min_age;
     /*
      * Reinsert all bumped locked entries back into heap...
      */
@@ -794,8 +794,8 @@ storeMaintainSwapSpace(void *datanotused)
     dlink_node *m;
     dlink_node *prev = NULL;
 #else
-    heap *heap = store_heap;
-    heap_key age, min_age = 0.0;
+    heap_key age;
+    heap_key min_age = 0.0;
     link_list *locked_entries = NULL;
 #if HEAP_REPLACEMENT_DEBUG
     if (!verify_heap_property(store_heap)) {
@@ -817,15 +817,15 @@ storeMaintainSwapSpace(void *datanotused)
     debug(20, 3) ("storeMaintainSwapSpace: f=%f, max_scan=%d, max_remove=%d\n",
 	f, max_scan, max_remove);
 #if HEAP_REPLACEMENT
-    while (heap_nodes(heap) > 0) {
+    while (heap_nodes(store_heap) > 0) {
 	if (store_swap_size < store_swap_low)
 	    break;
 	if (expired >= max_remove)
 	    break;
 	if (scanned >= max_scan)
 	    break;
-	age = heap_peepminkey(heap);
-	e = heap_extractmin(heap);
+	age = heap_peepminkey(store_heap);
+	e = heap_extractmin(store_heap);
 	e->node = NULL;		/* no longer in the heap */
 	scanned++;
 	if (storeEntryLocked(e)) {
@@ -869,7 +869,7 @@ storeMaintainSwapSpace(void *datanotused)
      * Bump the heap age factor.
      */
     if (min_age > 0)
-	heap->age = min_age;
+	store_heap->age = min_age;
     /*
      * Reinsert all bumped locked entries back into heap...
      */
