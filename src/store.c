@@ -179,10 +179,7 @@ storeHashInsert(StoreEntry * e, const cache_key * key)
 	e, storeKeyText(key));
     e->key = storeKeyDup(key);
     hash_join(store_table, (hash_link *) e);
-    if (EBIT_TEST(e->flag, KEY_PRIVATE))
-	dlinkAddTail(e, &e->lru, &store_list);
-    else
-	dlinkAdd(e, &e->lru, &store_list);
+    dlinkAdd(e, &e->lru, &store_list);
 }
 
 static void
@@ -262,8 +259,13 @@ storeUnlockObject(StoreEntry * e)
 	storeSetMemStatus(e, IN_MEMORY);
 	requestUnlink(e->mem_obj->request);
 	e->mem_obj->request = NULL;
-    } else
+    } else {
 	storePurgeMem(e);
+	if (EBIT_TEST(e->flag, KEY_PRIVATE)) {
+	    dlinkDelete(&e->lru, &store_list);
+	    dlinkAddTail(e, &e->lru, &store_list);
+	}
+    }
     return 0;
 }
 
