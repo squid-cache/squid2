@@ -632,7 +632,7 @@ comm_select_incoming(void)
 {
     int fd = 0;
     int fds[4];
-    struct pollfd pfds[3];
+    struct pollfd pfds[4];
     unsigned long N = 0;
     unsigned long i = 0;
     int dopoll = 0;
