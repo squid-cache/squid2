@@ -270,7 +270,7 @@ icpStateFree(int fd, void *data)
 	hierData = &icpState->request->hierarchy;
     if (icpState->out.size || icpState->log_type) {
 	HTTPCacheInfo->log_append(HTTPCacheInfo,
-	    mem ? mem->log_url : icpState->url,
+	    icpState->log_url,
 	    icpState->log_addr,
 	    icpState->out.size,
 	    log_tags[icpState->log_type],
@@ -305,6 +305,7 @@ icpStateFree(int fd, void *data)
     safe_free(icpState->in.buf);
     meta_data.misc -= icpState->in.size;
     safe_free(icpState->url);
+    safe_free(icpState->log_url);
     safe_free(icpState->request_hdr);
 #if LOG_FULL_HEADERS
     safe_free(icpState->reply_hdr);
@@ -377,7 +378,7 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (strstr(t, ThisCache)) {
 	    if (!icpState->accel) {
 		debug(12, 1, "WARNING: Forwarding loop detected for '%s'\n",
-		    icpState->url);
+		    icpState->log_url);
 		debug(12, 1, "--> %s\n", t);
 	    }
 	    BIT_SET(request->flags, REQ_LOOPDETECT);
@@ -834,8 +835,6 @@ icpProcessRequest(int fd, icpStateData * icpState)
     if (entry) {
 	storeLockObject(entry);
 	storeClientListAdd(entry, fd);
-	if (entry->mem_obj->log_url == NULL)
-	    storeSetLogUrl(entry, request);
     }
     icpState->entry = entry;	/* Save a reference to the object */
     icpState->out.size = 0;
@@ -905,11 +904,11 @@ icpProcessMISS(int fd, icpStateData * icpState)
 	icpState->swapin_fd = -1;
     }
     entry = storeCreateEntry(url,
+	icpState->log_url,
 	request_hdr,
 	icpState->req_hdr_sz,
 	icpState->request->flags,
 	icpState->method);
-    storeSetLogUrl(entry, icpState->request);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     storeClientListAdd(entry, fd);
     if (icpState->swapin_fd != -1)
@@ -951,7 +950,7 @@ icpLogIcp(icpUdpData * queue)
     if (!Config.Options.log_udp)
 	return;
     HTTPCacheInfo->log_append(HTTPCacheInfo,
-	url,
+	urlClean(url),
 	queue->address.sin_addr,
 	queue->len,
 	log_tags[queue->logcode],
@@ -1355,8 +1354,6 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	    header.opcode, inet_ntoa(from.sin_addr));
 	break;
     }
-    if (entry->mem_obj && entry->mem_obj->log_url == NULL)
-	storeSetLogUrl(entry, icp_request);
     if (icp_request)
 	put_free_request_t(icp_request);
 }
@@ -1574,6 +1571,7 @@ parseHttpRequest(icpStateData * icpState)
 	strcpy(icpState->url, url);
 	icpState->accel = 0;
     }
+    icpState->log_url = xstrdup(icpState->url);
 
     debug(12, 5, "parseHttpRequest: Complete request received\n");
     if (free_request)
@@ -1633,6 +1631,8 @@ clientReadRequest(int fd, void *data)
 	    icpSendERROR(fd, ERR_INVALID_URL, wbuf, icpState, 400);
 	    return;
 	}
+	safe_free(icpState->log_url);
+	icpState->log_url = xstrdup(urlCanonicalClean(request));
 	request->http_ver = icpState->http_ver;
 	if (!urlCheckRequest(request)) {
 	    icpState->log_type = ERR_UNSUP_REQ;

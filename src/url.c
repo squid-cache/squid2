@@ -300,12 +300,11 @@ urlCanonical(const request_t * request, char *buf)
 }
 
 char *
-urlNoLogin(const request_t * request, char *buf)
+urlCanonicalClean(const request_t * request)
 {
-    LOCAL_ARRAY(char, urlbuf, MAX_URL);
+    LOCAL_ARRAY(char, buf, MAX_URL);
     LOCAL_ARRAY(char, portbuf, 32);
-    if (buf == NULL)
-	buf = urlbuf;
+    char *t;
     switch (request->method) {
     case METHOD_CONNECT:
 	sprintf(buf, "%s:%d", request->host, request->port);
@@ -319,10 +318,25 @@ urlNoLogin(const request_t * request, char *buf)
 	    request->host,
 	    portbuf,
 	    request->urlpath);
+	if ((t = strchr(buf, '?')))
+	    *t = '\0';
 	break;
     }
     return buf;
 }
+
+char *
+urlClean(char *dirty)
+{
+    char *clean;
+    request_t *r = urlParse(METHOD_GET, dirty);
+    if (r == NULL)
+	return dirty;
+    clean = urlCanonicalClean(r);
+    put_free_request_t(r);
+    return clean;
+}
+
 
 request_t *
 requestLink(request_t * request)

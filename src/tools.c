@@ -713,5 +713,5 @@ inaddrFromHostent(const struct hostent *hp)
 char *
 checkNullString(char *p)
 {
-	return p ? p : "(NULL)";
+    return p ? p : "(NULL)";
 }

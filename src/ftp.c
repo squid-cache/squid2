@@ -632,9 +632,8 @@ ftpConnectDone(int fd, int status, void *data)
 	return;
     }
     commSetNonBlocking(fd);
-    fd_note(fd, ftpData->entry->url);
+    fd_note(fd, ftpData->entry->mem_obj->log_url);
     /* Install connection complete handler. */
-    fd_note(fd, ftpData->entry->url);
     commSetSelect(fd,
 	COMM_SELECT_WRITE,
 	(PF) ftpSendRequest,

@@ -1,3 +1,16 @@
+Changes to squid-1.NOVM.14 (July 11, 1997):
+
+	- Merged squid-1.1.14 changes.
+
+Changes to squid-1.1.14 (July 11, 1997):
+
+	- Another try at log_url crap.  Added icpState->log_url
+	  member.  Set mem_obj->log_url in new_MemObject() which
+	  means passing more args to storeCreateEntry().  Also added
+	  urlClean() which calls urlParse(); needed for ICP logging.
+	- Clean URLs will be truncated at '?' if present.
+	- Give fd_note() the clean URL.
+
 Changes to squid-1.NOVM.13 (July 9, 1997):
 
 	- Changed handling of swapin_fd for IMS requests.  Now we

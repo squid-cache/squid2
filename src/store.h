@@ -239,7 +239,7 @@ struct sentry {
 /* ----------------------------------------------------------------- */
 
 extern StoreEntry *storeGet _PARAMS((const char *));
-extern StoreEntry *storeCreateEntry _PARAMS((const char *, const char *, int, int, method_t));
+extern StoreEntry *storeCreateEntry _PARAMS((const char *, const char *, const char *, int, int, method_t));
 extern void storeSetPublicKey _PARAMS((StoreEntry *));
 extern StoreEntry *storeGetFirst _PARAMS((void));
 extern StoreEntry *storeGetNext _PARAMS((void));
@@ -284,7 +284,6 @@ extern unsigned int storeReqnum _PARAMS((StoreEntry * entry, method_t));
 extern int storeOpenSwapFileRead _PARAMS((StoreEntry *));
 extern time_t storeExpiredReferenceAge _PARAMS((void));
 extern void storeCheckDoneWriting _PARAMS((StoreEntry * e));
-extern void storeSetLogUrl _PARAMS((StoreEntry *, request_t *));
 extern void storeMemObjectDump _PARAMS((MemObject *));
 
 #ifdef __STDC__

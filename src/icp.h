@@ -168,6 +168,7 @@ typedef struct iwd {
     icp_common_t header;	/* for UDP_HIT_OBJ's */
     int fd;
     char *url;
+    char *log_url;
     struct {
 	char *buf;
 	size_t size;

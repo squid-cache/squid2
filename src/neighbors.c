@@ -1175,13 +1175,12 @@ peerCountMcastPeersStart(void *data)
 	fatal_dump("peerCountMcastPeersStart: non-multicast peer");
     p->mcast.flags &= ~PEER_COUNT_EVENT_PENDING;
     sprintf(url, "http://%s/", inet_ntoa(p->in_addr.sin_addr));
-    fake = storeCreateEntry(url, NULL, 0, 0, METHOD_GET);
+    fake = storeCreateEntry(url, url, NULL, 0, 0, METHOD_GET);
     mem = fake->mem_obj;
     mem->request = requestLink(urlParse(METHOD_GET, url));
     mem->e_pings_n_pings = 0;
     mem->e_pings_n_acks = 0;
     mem->start_ping = current_time;
-    mem->log_url = xstrdup(url);
     comm_set_mcast_ttl(theOutIcpConnection, p->mcast.ttl);
     p->mcast.reqnum = storeReqnum(fake, METHOD_GET);
     query = icpCreateMessage(ICP_OP_QUERY, 0, url, p->mcast.reqnum, 0);
