@@ -1,3 +1,5 @@
+#if SQUID_SNMP
+
 #include "squid.h"
 
 #include "mib_module.h"
@@ -642,3 +644,5 @@ char sysName[256] = "Unknown";
 
 
 oid version_id[] = {1, 3, 6, 1, 4, 1, 3, 1, 1};
+
+#endif
