@@ -65,6 +65,7 @@ static void passConnectDone _PARAMS((int fd, int status, void *data));
 static void passStateFree _PARAMS((int fd, void *data));
 static void passSelectNeighbor _PARAMS((int, const ipcache_addrs *, void *));
 static int passParseHeaders _PARAMS((PassStateData * passState));
+static void passAppendHeader _PARAMS((const char *buf, PassStateData * passState));
 
 static char crlf[] = "\r\n";
 
@@ -286,6 +287,15 @@ passReadTimeout(int fd, void *data)
     passClose(passState);
 }
 
+static void
+passAppendHeader(const char *buf, PassStateData * passState)
+{
+	debug(39, 3, "passAppendHeader: '%s'\n", buf);
+	strcat(passState->client.buf + passState->client.len, buf);
+	strcat(passState->client.buf + passState->client.len, crlf);
+	passState->client.len += strlen(buf) + 2;
+}
+
 static int
 passParseHeaders(PassStateData * passState)
 {
@@ -330,10 +340,7 @@ passParseHeaders(PassStateData * passState)
 	l = strlen(xbuf);
 	if (passState->client.len + l > buflen)
 	    break;		/* out of room */
-	debug(39, 3, "passConnected: Appending Header: '%s'\n", xbuf);
-	strcat(passState->client.buf + passState->client.len, xbuf);
-	strcat(passState->client.buf + passState->client.len, crlf);
-	passState->client.len += (l + 2);
+	passAppendHeader(xbuf, passState);
     }
     hdr_len = t - passState->buf;
     /* Add Via: header */
@@ -342,26 +349,23 @@ passParseHeaders(PassStateData * passState)
 	strcpy(viabuf, "Via: ");
     }
     ybuf = get_free_4k_page();
-    sprintf(ybuf, "%3.1f %s:%d (Squid/%s)\r\n",
+    sprintf(ybuf, "%3.1f %s:%d (Squid/%s)",
 	passState->request->http_ver,
 	getMyHostname(),
 	(int) Config.Port.http,
 	SQUID_VERSION);
     strcat(viabuf, ybuf);
-    strcat(passState->client.buf + passState->client.len, viabuf);
-    passState->client.len += strlen(viabuf);
+    passAppendHeader(viabuf, passState);
     put_free_4k_page(viabuf);
     put_free_4k_page(ybuf);
     viabuf = ybuf = NULL;
     if (!saw_host) {
 	ybuf = get_free_4k_page();
-	sprintf(ybuf, "Host: %s\r\n", passState->request->host);
-	strcat(passState->client.buf + passState->client.len, ybuf);
-	passState->client.len += strlen(ybuf);
+	sprintf(ybuf, "Host: %s", passState->request->host);
+        passAppendHeader(ybuf, passState);
 	put_free_4k_page(ybuf);
     }
-    strcat(passState->client.buf + passState->client.len, crlf);
-    passState->client.len += 2;
+    passAppendHeader(null_string, passState);
     return hdr_len;
 }
 
@@ -382,6 +386,7 @@ passConnected(int fd, void *data)
     }
     passState->client.len = strlen(passState->client.buf);
     hdr_len = passParseHeaders(passState);
+    debug(39,3,"Appending %d bytes of content\n", passState->buflen - hdr_len);
     memcpy(passState->client.buf + passState->client.len,
 	passState->buf + hdr_len,
 	passState->buflen - hdr_len);
