@@ -276,6 +276,4 @@
 #include "snprintf.h"
 #endif
 
-#define OR(A,B) (A ? A : B)
-
 #endif /* SQUID_H */
