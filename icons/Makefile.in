@@ -61,7 +61,7 @@ install: install-mkdirs anthony-xpm.gif
 		else \
 			echo "$(INSTALL_FILE) $$f $(DEFAULT_ICON_DIR)"; \
 			$(INSTALL_FILE) $$f $(DEFAULT_ICON_DIR); \
-		fi \
+		fi; \
 	done
 
 install-mkdirs:
