@@ -391,9 +391,9 @@ matchDomainName(const char *domain, const char *host)
 	return 0;		/* no match at all */
     if (*domain == '.')
 	return 1;
-    if (*(host + offset - 1) == '.')
-	return 1;
     if (offset == 0)
+	return 1;
+    if (*(host + offset - 1) == '.')
 	return 1;
     return 0;
 }
