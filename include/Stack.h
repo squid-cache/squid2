@@ -33,16 +33,16 @@
 /* see Stack.c for more documentation */
 
 struct _Stack {
-	/* public, read only */
-	size_t capacity;
-	int is_full;         /* true if the stack is full */
+    /* public, read only */
+    size_t capacity;
+    int is_full;         /* true if the stack is full */
 
-	u_num32 push_count;  /* always grows, might overflow, use for stats only */
-	u_num32 pop_count;   /* always grows, might overflow, use for stats only */
+    u_num32 push_count;  /* always grows, might overflow, use for stats only */
+    u_num32 pop_count;   /* always grows, might overflow, use for stats only */
 
-	/* protected, do not use these, use interface functions instead */
-	size_t count;
-	void **buf;
+    /* protected, do not use these, use interface functions instead */
+    size_t count;
+    void **buf;
 };
 
 typedef struct _Stack Stack;
