@@ -5,6 +5,8 @@
 	  transmit an ICP reply.
 	- Fixed bug causing 'ipcache_purgelru()' to be added to
 	  the event queue multiple times.
+	- Added ipcache and fqdncache average service times to
+	  cachemgr 'info' page.
 
 Changes to squid-1.1.20 (January 9, 1998):
 
