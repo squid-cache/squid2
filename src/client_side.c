@@ -1284,6 +1284,7 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    debug(33, 4) ("clientCacheHit: Reply code %d != 200\n",
 		mem->reply->sline.status);
 	    memFree(buf, MEM_CLIENT_SOCK_BUF);
+	    http->log_type = LOG_TCP_MISS;
 	    clientProcessMiss(http);
 	} else if (modifiedSince(e, http->request)) {
 	    http->log_type = LOG_TCP_IMS_HIT;
