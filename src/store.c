@@ -690,15 +690,15 @@ storeGetMemSpace(int size)
     int released = 0;
     static time_t last_check = 0;
     int pages_needed;
-    dlink_node *m;
-    dlink_node *prev = NULL;
     int locked = 0;
 #if !HEAP_REPLACEMENT
     dlink_node *head;
+    dlink_node *m;
+    dlink_node *prev = NULL;
 #else
     heap *heap = inmem_heap;
     heap_key age, min_age = 0.0;
-    linklist *locked_entries = NULL;
+    link_list *locked_entries = NULL;
 #endif
     if (squid_curtime == last_check)
 	return;
@@ -718,7 +718,7 @@ storeGetMemSpace(int size)
 	    locked++;
 	    debug(20, 5) ("storeGetMemSpace: locked key %s\n",
 		storeKeyText(e->key));
-	    linklistPush(e, &locked_entries);
+	    linklistPush(&locked_entries, e);
 	    continue;
 	}
 	released++;
@@ -737,7 +737,7 @@ storeGetMemSpace(int size)
     /*
      * Reinsert all bumped locked entries back into heap...
      */
-    while ((e = linklistPop(&locked_entries)))
+    while ((e = linklistShift(&locked_entries)))
 	e->mem_obj->node = heap_insert(inmem_heap, e);
 #else
     head = inmem_list.head;
@@ -779,8 +779,6 @@ storeGetMemSpace(int size)
 void
 storeMaintainSwapSpace(void *datanotused)
 {
-    dlink_node *m;
-    dlink_node *prev = NULL;
     StoreEntry *e = NULL;
     int scanned = 0;
     int locked = 0;
@@ -789,10 +787,13 @@ storeMaintainSwapSpace(void *datanotused)
     int max_remove;
     double f;
     static time_t last_warn_time = 0;
-#if HEAP_REPLACEMENT
+#if !HEAP_REPLACEMENT
+    dlink_node *m;
+    dlink_node *prev = NULL;
+#else
     heap *heap = store_heap;
     heap_key age, min_age = 0.0;
-    linklist *locked_entries = NULL;
+    link_list *locked_entries = NULL;
 #if HEAP_REPLACEMENT_DEBUG
     if (!verify_heap_property(store_heap)) {
 	debug(20, 1) ("Heap property violated!\n");
@@ -814,6 +815,12 @@ storeMaintainSwapSpace(void *datanotused)
 	f, max_scan, max_remove);
 #if HEAP_REPLACEMENT
     while (heap_nodes(heap) > 0) {
+	if (store_swap_size < store_swap_low)
+	    break;
+	if (expired >= max_remove)
+	    break;
+	if (scanned >= max_scan)
+	    break;
 	age = heap_peepminkey(heap);
 	e = heap_extractmin(heap);
 	e->node = NULL;		/* no longer in the heap */
@@ -829,7 +836,7 @@ storeMaintainSwapSpace(void *datanotused)
 		 */
 		debug(20, 4) ("storeMaintainSwapSpace: locked url %s\n",
 		    (e->mem_obj && e->mem_obj->url) ? e->mem_obj->url : storeKeyText(e->key));
-		linklistPush(e, &locked_entries);
+		linklistPush(&locked_entries, e);
 	    }
 	    locked++;
 	    continue;
@@ -851,13 +858,9 @@ storeMaintainSwapSpace(void *datanotused)
 	     */
 	    debug(20, 5) ("storeMaintainSwapSpace: non-expired %s\n",
 		storeKeyText(e->key));
-	    linklistAdd(e, &locked_entries);
+	    linklistPush(&locked_entries, e);
 	    continue;
 	}
-	if ((store_swap_size < store_swap_low)
-	    || (expired >= max_remove)
-	    || (scanned >= max_scan))
-	    break;
     }
     /*
      * Bump the heap age factor.
@@ -867,7 +870,7 @@ storeMaintainSwapSpace(void *datanotused)
     /*
      * Reinsert all bumped locked entries back into heap...
      */
-    while ((e = linklistPop(&locked_entries)))
+    while ((e = linklistShift(&locked_entries)))
 	e->node = heap_insert(store_heap, e);
 #else
     for (m = store_list.tail; m; m = prev) {
