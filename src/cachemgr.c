@@ -618,7 +618,7 @@ main(int argc, char *argv[])
 
 	plustospace(s);
 	unescape_url(s);
-	if (v = strchr(s, '='))
+	if ((v = strchr(s, '=')) != NULL)
 	    *v++ = '\0';
 	else
 	    v = s;
