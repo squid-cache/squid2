@@ -569,7 +569,7 @@ int comm_select(sec, failtime)
 	    FD_CLR(theAsciiConnection, &readfds);
 	}
 	if (shutdown_pending || reread_pending)
-		debug(5,1,"comm_select: Still waiting on %d FDs\n", nfds);
+	    debug(5, 1, "comm_select: Still waiting on %d FDs\n", nfds);
 	if (nfds == 0)
 	    return COMM_SHUTDOWN;
 	while (1) {
@@ -1039,7 +1039,7 @@ static void checkLifetimes()
 		     *  deallocates the structure.
 		     */
 		    (void) close(fd);
-		    debug(5,0,"checkLifetimes: Forcing close on FD %d\n", fd);
+		    debug(5, 0, "checkLifetimes: Forcing close on FD %d\n", fd);
 		    tmp_local(fd, use_read ? fd_table[fd].read_data :
 			fd_table[fd].write_data);
 		}

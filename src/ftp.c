@@ -647,18 +647,18 @@ static void ftpServerClosed(fd, nodata)
 
 void ftpServerClose()
 {
-    if (ftpget_server_pipe < 0) 
+    if (ftpget_server_pipe < 0)
 	return;
 
     comm_set_select_handler(ftpget_server_pipe,
-            COMM_SELECT_EXCEPT,
-            (PF) NULL,
-            (void *) NULL);
+	COMM_SELECT_EXCEPT,
+	(PF) NULL,
+	(void *) NULL);
     fdstat_close(ftpget_server_pipe);
     close(ftpget_server_pipe);
     ftpget_server_pipe = -1;
 }
-    
+
 
 int ftpInitialize()
 {
