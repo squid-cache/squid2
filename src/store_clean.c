@@ -76,7 +76,7 @@ storeDirClean(void *datanotused)
 	    continue;
 	if (storeDirValidFileno(swapfileno))
 	    if (storeDirMapBitTest(swapfileno))
-	        continue;
+		continue;
 	files[k++] = swapfileno;
     }
     closedir(dp);
