@@ -166,7 +166,7 @@ aioCancel(int fd)
 	    their_data = curr->done_handler_data;
 	    curr->done_handler = NULL;
 	    curr->done_handler_data = NULL;
-	    debug(0, 0) ("this be aioCancel\n");
+	    debug(32, 2) ("this be aioCancel\n");
 	    if (cbdataValid(their_data))
 		done_handler(fd, their_data, -2, -2);
 	    cbdataUnlock(their_data);
