@@ -512,6 +512,7 @@ typedef enum {
     MEM_2K_BUF,
     MEM_4K_BUF,
     MEM_8K_BUF,
+    MEM_CLIENT_SOCK_BUF,
     MEM_ACL_IP_DATA,
     MEM_ACL_TIME_DATA,
     MEM_ACL_NAME_LIST,

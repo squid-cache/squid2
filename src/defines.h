@@ -260,3 +260,5 @@
  * peer as DEAD
  */
 #define PEER_TCP_MAGIC_COUNT 10
+
+#define CLIENT_SOCK_SZ 4096
