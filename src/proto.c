@@ -202,12 +202,15 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 		protoStart(protoData->fd, entry, NULL, req);
 		return;
 	    } else {
+#ifdef NOT_SURE
 		/* Even though the address is NOT in firewall_ip_list,
 		 * we might still be able to go direct, depending on if
 		 * there are any peers to query, etc.  If this is set to
 		 * DIRECT_NO then requests will fail if the host matches
 		 * inside_firewall but not firewall_ip_list. */
 		protoData->direct_fetch = DIRECT_MAYBE;
+#endif
+		protoData->direct_fetch = DIRECT_NO;
 	    }
 	} else if (Config.local_ip_list) {
 	    srv_addr = ia->in_addrs[ia->cur];
