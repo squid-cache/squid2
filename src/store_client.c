@@ -529,7 +529,7 @@ CheckQuickAbort2(StoreEntry * entry)
     MemObject *mem = entry->mem_obj;
     assert(mem);
     debug(20, 3) ("CheckQuickAbort2: entry=%p, mem=%p\n", entry, mem);
-    if (!mem->request->flags.cachable) {
+    if (mem->request && !mem->request->flags.cachable) {
 	debug(20, 3) ("CheckQuickAbort2: YES !mem->request->flags.cachable\n");
 	return 1;
     }
