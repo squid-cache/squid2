@@ -32,8 +32,6 @@
 
 #include "squid.h"
 
-int icmp_sock = -1;
-
 #if USE_ICMP
 
 #define S_ICMP_ECHO	1

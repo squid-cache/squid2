@@ -106,10 +106,6 @@
 
 #include "squid.h"
 
-int do_mallinfo = 0;		/* don't do mallinfo() unless this gets set */
-time_t squid_curtime;
-struct timeval current_time;
-
 #define DEAD_MSG "\
 The Squid Cache (version %s) died.\n\
 \n\

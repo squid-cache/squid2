@@ -133,9 +133,6 @@ static error_data ErrorData[] =
 	"You must authenticate yourself before accessing this cache."}
 };
 
-/* GLOBAL */
-char *tmp_error_buf;
-
 /* LOCAL */
 static char *tbuf = NULL;
 static char *auth_msg = NULL;

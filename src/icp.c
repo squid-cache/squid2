@@ -106,8 +106,6 @@
 
 #include "squid.h"
 
-int neighbors_do_private_keys = 1;
-
 char *log_tags[] =
 {
     "NONE",

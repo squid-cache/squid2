@@ -105,8 +105,6 @@
 
 #include "squid.h"
 
-int hash_links_allocated;
-
 static int default_hash_size = -1;
 static int hash_unlink _PARAMS((hash_table *, hash_link *, int));
 

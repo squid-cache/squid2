@@ -105,15 +105,9 @@
 
 #include "squid.h"
 
-FILE *debug_log = NULL;
 static char *debug_log_file = NULL;
-int debugLevels[MAX_DEBUG_SECTIONS];
 static char *accessLogTime _PARAMS((time_t));
 extern int opt_debug_stderr;
-
-#ifdef HAVE_SYSLOG
-int _db_level = 0;
-#endif
 
 #ifdef __STDC__
 void

@@ -38,9 +38,6 @@
 #include "splay.h"
 #endif
 
-/* Global */
-const char *AclMatchedName = NULL;
-
 static int aclFromFile = 0;
 static FILE *aclFile;
 

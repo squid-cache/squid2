@@ -111,9 +111,6 @@
 #define OBJCACHE_MAX_REQUEST_SZ 128
 #define OBJCACHE_MAX_PASSWD_SZ 128
 
-cacheinfo *HTTPCacheInfo = NULL;
-cacheinfo *ICPCacheInfo = NULL;
-
 typedef struct objcache_ds {
     StoreEntry *entry;
     char passwd[OBJCACHE_MAX_PASSWD_SZ + 1];
