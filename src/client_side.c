@@ -187,7 +187,10 @@ clientAccessCheckDone(int answer, void *data)
     int page_id = -1;
     http_status status;
     ErrorState *err = NULL;
-    debug(33, 5) ("clientAccessCheckDone: '%s' answer=%d\n", http->uri, answer);
+    debug(33, 2) ("The request %s %s is %s, because it matched '%s'\n",
+	RequestMethodStr[http->request->method], http->uri,
+	answer ? "ALLOWED" : "DENIED",
+	AclMatchedName ? AclMatchedName : "NO ACL's");
     http->acl_checklist = NULL;
     if (answer == ACCESS_ALLOWED) {
 	safe_free(http->uri);
