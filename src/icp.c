@@ -118,7 +118,7 @@ static void icpFreeBufOrPage(icpState)
 
 
 /* This is a handler normally called by comm_close() */
-int icpStateFree(fd, icpState)
+static int icpStateFree(fd, icpState)
      int fd;
      icpStateData *icpState;
 {
@@ -159,6 +159,7 @@ int icpStateFree(fd, icpState)
     }
     if (icpState->request && --icpState->request->link_count == 0)
 	safe_free(icpState->request);
+    icpFreeBufOrPage(icpState);
     safe_free(icpState);
     return 0;			/* XXX gack, all comm handlers return ints */
 }
@@ -178,7 +179,7 @@ static void icpParseRequestHeaders(icpState)
 	BIT_SET(icpState->flags, REQ_AUTH);
 }
 
-int icpCachable(icpState)
+static int icpCachable(icpState)
      icpStateData *icpState;
 {
     char *request = icpState->url;
@@ -202,7 +203,7 @@ int icpCachable(icpState)
 }
 
 /* Return true if we can query our neighbors for this object */
-int icpHierarchical(icpState)
+static int icpHierarchical(icpState)
      icpStateData *icpState;
 {
     char *request = icpState->url;
@@ -233,7 +234,7 @@ int icpHierarchical(icpState)
 }
 
 /* Read from FD. */
-int icpHandleRead(fd, icpRWState)
+static int icpHandleRead(fd, icpRWState)
      int fd;
      icpRWStateData *icpRWState;
 {
@@ -319,7 +320,7 @@ static void icpRead(fd, bin_mode, buf, size, timeout, immed, handler, client_dat
 }
 
 /* Write to FD. */
-void icpHandleWrite(fd, icpRWState)
+static void icpHandleWrite(fd, icpRWState)
      int fd;
      icpRWStateData *icpRWState;
 {
@@ -420,25 +421,20 @@ char *icpWrite(fd, buf, size, timeout, handler, client_data)
     return ((char *) data);
 }
 
-void icpSendERRORComplete(fd, buf, size, errflag, icpState)
+static void icpSendERRORComplete(fd, buf, size, errflag, icpState)
      int fd;
      char *buf;
      int size;
      int errflag;
      icpStateData *icpState;
 {
-    StoreEntry *entry = NULL;
     debug(12, 4, "icpSendERRORComplete: FD %d: sz %d: err %d.\n",
 	fd, size, errflag);
-
-    /* Clean up client side statemachine */
-    entry = icpState->entry;
-    icpFreeBufOrPage(icpState);
     comm_close(fd);
 }
 
 /* Send ERROR message. */
-int icpSendERROR(fd, errorCode, msg, icpState)
+static int icpSendERROR(fd, errorCode, msg, icpState)
      int fd;
      int errorCode;
      char *msg;
@@ -478,7 +474,7 @@ int icpSendERROR(fd, errorCode, msg, icpState)
 /* Send available data from an object in the cache.  This is called either
  * on select for  write or directly by icpHandleStore. */
 
-int icpSendMoreData(fd, icpState)
+static int icpSendMoreData(fd, icpState)
      int fd;
      icpStateData *icpState;
 {
@@ -620,7 +616,7 @@ static void icpHandleStoreComplete(fd, buf, size, errflag, icpState)
  * Below, we check whether the object is a hit or a miss.  If it's a hit,
  * we check whether the object is still valid or whether it is a MISS_TTL.
  */
-void icp_hit_or_miss(fd, icpState)
+static void icp_hit_or_miss(fd, icpState)
      int fd;
      icpStateData *icpState;
 {
@@ -1225,7 +1221,7 @@ static char *do_append_domain(url, ad)
  *    0 on incomplete request
  *    1 on success
  */
-int parseHttpRequest(icpState)
+static int parseHttpRequest(icpState)
      icpStateData *icpState;
 {
     char *inbuf = NULL;
@@ -1412,7 +1408,7 @@ static int icpAccessCheck(icpState)
  *   icp_hit_or_miss()
  *   icpSendERROR()
  */
-void asciiProcessInput(fd, buf, size, flag, icpState)
+static void asciiProcessInput(fd, buf, size, flag, icpState)
      int fd;
      char *buf;
      int size;
@@ -1540,47 +1536,36 @@ void asciiProcessInput(fd, buf, size, flag, icpState)
 
 
 /* general lifetime handler for ascii connection */
-void asciiConnLifetimeHandle(fd, data)
+static void asciiConnLifetimeHandle(fd, data)
      int fd;
      void *data;
 {
     icpStateData *icpState = (icpStateData *) data;
     PF handler;
     void *client_data;
-    icpRWStateData *icpRWState = NULL;
     StoreEntry *entry = icpState->entry;
 
     debug(12, 2, "asciiConnLifetimeHandle: Socket: %d lifetime is expired. Free up data structure.\n", fd);
-
-    /* If a write handler was installed, we were in the middle of an
-     * icpWrite and we're going to need to deallocate the icpReadWrite
-     * buffer.  These come from icpSendMoreData and from icpSendERROR, both
-     * of which allocate 4k buffers. */
-
+    /* If we were in the middle of an icpWrite we're going to need
+     * to deallocate the icpReadWrite state data. */
     handler = NULL;
     client_data = NULL;
     comm_get_select_handler(fd,
 	COMM_SELECT_WRITE,
 	&handler,
 	(void **) &client_data);
-    if ((handler != NULL) && (client_data != NULL)) {
-	icpRWState = (icpRWStateData *) client_data;
-	if (icpRWState->buf)
-	    put_free_4k_page(icpRWState->buf);
-	safe_free(icpRWState);
-    }
-    /* If we have a read handler, we were reading in the get/post URL 
-     * and don't have to deallocate the icpreadWrite buffer */
+    if (handler == (PF) icpHandleWrite && client_data != NULL)
+	safe_free((icpRWStateData *) client_data);
+    /* If we were in the middle of an icpRead we're going to need
+     * to deallocate the icpReadWrite state data. */
     handler = NULL;
     client_data = NULL;
     comm_get_select_handler(fd,
 	COMM_SELECT_READ,
 	&handler,
 	(void **) &client_data);
-    if (handler == icpHandleRead && client_data != NULL) {
-	icpRWState = (icpRWStateData *) client_data;
-	safe_free(icpRWState);
-    }
+    if (handler == icpHandleRead && client_data != NULL)
+	safe_free((icpRWStateData *) client_data);
     CheckQuickAbort(icpState);
     if (entry && icpState->url)
 	/* Unregister us from the dnsserver pending list and cause a DNS
@@ -1720,7 +1705,6 @@ static void icpDetectClientClose(fd, icpState)
 	CheckQuickAbort(icpState);
 	if (entry && icpState->url)
 	    protoUndispatch(fd, icpState->url, entry, icpState->request);
-	icpFreeBufOrPage(icpState);
 	comm_close(fd);
     }
 }
