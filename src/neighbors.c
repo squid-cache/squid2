@@ -378,7 +378,10 @@ int neighborsUdpPing(proto)
 	    e->host, url);
 
 	/* e->header.reqnum++; */
-	e->header.reqnum = atoi(entry->key);
+        if (BIT_TEST(entry->flag, KEY_PRIVATE))
+		e->header.reqnum = atoi(entry->key);
+	else
+		e->header.reqnum = getKeyCounter();
 	debug(15, 3, "neighborsUdpPing: key = '%s'\n", entry->key);
 	debug(15, 3, "neighborsUdpPing: reqnum = %d\n", e->header.reqnum);
 
