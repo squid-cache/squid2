@@ -47,9 +47,10 @@
 
 #ifdef _SQUID_LINUX_
 	/* Cannot increase FD_SETSIZE on Linux */
-#elsif _SQUID_FREEBSD_
-	/* Cannot increase FD_SETSIZE on FreeBSD */
+#elsif _SQUID_FREEBSD_ && __FreeBSD_version__ < 220000
+	/* Cannot increase FD_SETSIZE on FreeBSD before 2.2.0 */
 	/* Marian Durkovic <marian@svf.stuba.sk> */
+	/* Peter Wemm <peter@spinner.DIALix.COM> */
 #else
 	/* Increase FD_SETSIZE if SQUID_MAXFD is bigger */
 #if SQUID_MAXFD > FD_SETSIZE
