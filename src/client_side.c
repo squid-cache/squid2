@@ -1163,20 +1163,29 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     if (request->range)
 	clientBuildRangeHeader(http, rep);
     /*
-     * Add Age header, not that our header must replace Age headers
-     * from other caches if any
+     * Add a estimated Age header on cache hits.
      */
-    if (http->entry->timestamp > 0) {
+    if (is_hit) {
+	/*
+	 * Remove any existing Age header sent by upstream caches
+	 * (note that the existing header is passed along unmodified
+	 * on cache misses)
+	 */
 	httpHeaderDelById(hdr, HDR_AGE);
 	/*
-	 * we do not follow HTTP/1.1 precisely here becuase we rely
-	 * on Date header when computing entry->timestamp; we should
-	 * be using _request_ time if Date header is not available
-	 * or if it is out of sync
+	 * This adds the calculated object age. Note that the details of the
+	 * age calculation is performed by adjusting the timestamp in
+	 * storeTimestampsSet(), not here.
+	 *
+	 * BROWSER WORKAROUND: IE sometimes hangs when receiving a 0 Age
+	 * header, so don't use it unless there is a age to report. Please
+	 * note that Age is only used to make a conservative estimation of
+	 * the objects age, so a Age: 0 header does not add any useful
+	 * information to the reply in any case.
 	 */
-	httpHeaderPutInt(hdr, HDR_AGE,
-	    http->entry->timestamp <= squid_curtime ?
-	    squid_curtime - http->entry->timestamp : 0);
+	if (http->entry->timestamp < squid_curtime)
+	    httpHeaderPutInt(hdr, HDR_AGE,
+		squid_curtime - http->entry->timestamp);
     }
     /* Append X-Cache */
     httpHeaderPutStrf(hdr, HDR_X_CACHE, "%s from %s",

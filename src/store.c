@@ -1250,9 +1250,24 @@ storeTimestampsSet(StoreEntry * entry)
 {
     const HttpReply *reply = entry->mem_obj->reply;
     time_t served_date = reply->date;
+    int age = httpHeaderGetInt(&reply->header, HDR_AGE);
+    /*
+     * The timestamp calculations below tries to mimic the properties
+     * of the age calculation in RFC2616 section 13.2.3. The implementaion
+     * isn't complete, and the most notable exception from the RFC is that
+     * this does not account for response_delay, but it probably does
+     * not matter much as this is calculated immediately when the headers
+     * are received, not when the whole response has been received.
+     */
     /* make sure that 0 <= served_date <= squid_curtime */
     if (served_date < 0 || served_date > squid_curtime)
 	served_date = squid_curtime;
+    /*
+     * Compensate with Age header if origin server clock is ahead of us
+     * and there is a cache in between us and the origin server
+     */
+    if (age > squid_curtime - served_date)
+	served_date = squid_curtime - age;
     entry->expires = reply->expires;
     entry->lastmod = reply->last_modified;
     entry->timestamp = served_date;
