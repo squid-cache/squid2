@@ -184,9 +184,9 @@ memPoolSetIdleLimit(size_t new_idle_limit)
 static int
 memCompChunks(MemChunk * chunkA, MemChunk * chunkB)
 {
-    if (chunkA > chunkB)
+    if (chunkA->objCache > chunkB->objCache)
 	return 1;
-    else if (chunkA < chunkB)
+    else if (chunkA->objCache < chunkB->objCache)
 	return -1;
     else
 	return 0;
