@@ -902,6 +902,12 @@ neighborUp(const peer * p)
     if (p->stats.probe_start != 0 &&
 	squid_curtime - p->stats.probe_start > Config.Timeout.deadPeer)
 	return 0;
+    /*
+     * The peer can not be UP if we don't have any IP addresses
+     * for it.
+     */
+    if (0 == p->n_addresses)
+	return 0;
     return 1;
 }
 
