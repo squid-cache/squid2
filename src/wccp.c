@@ -285,7 +285,7 @@ wccpAssignBuckets(void)
     int bucket = 0;
     int *caches;
     int cache_len;
-    void *buf;
+    char *buf;
 
     debug(80, 6) ("wccpAssignBuckets: Called\n");
     number_caches = ntohl(wccp_i_see_you.number);
@@ -298,8 +298,8 @@ wccpAssignBuckets(void)
 	WCCP_BUCKETS +
 	cache_len);
     wccp_assign_bucket = (struct wccp_assign_bucket_t *) buf;
-    caches = (int *) ((void *) buf + wab_len);
-    buckets = (char *) ((void *) buf + wab_len + cache_len);
+    caches = (int *) (buf + wab_len);
+    buckets = buf + wab_len + cache_len;
 
     memset(wccp_assign_bucket, '\0', sizeof(wccp_assign_bucket));
     memset(buckets, 0xFF, WCCP_BUCKETS);

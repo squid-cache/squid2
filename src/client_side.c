@@ -1200,7 +1200,7 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     /* Append X-Cache-Lookup: -- temporary hack, to be removed @?@ @?@ */
     httpHeaderPutStrf(hdr, HDR_X_CACHE_LOOKUP, "%s from %s:%d",
 	http->lookup_type ? http->lookup_type : "NONE",
-	getMyHostname(), Config.Port.http->i);
+	getMyHostname(), ntohs(Config.Sockaddr.http->s.sin_port));
 #endif
     if (httpReplyBodySize(request->method, rep) < 0) {
 	debug(33, 3) ("clientBuildReplyHeader: can't keep-alive, unknown body size\n");
@@ -2272,7 +2272,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	strcpy(http->uri, url);
 	http->flags.accel = 0;
     }
-    if (!stringHasCntl((unsigned char *) http->uri))
+    if (!stringHasCntl(http->uri))
 	http->log_uri = xstrndup(http->uri, MAX_URL);
     else
 	http->log_uri = xstrndup(rfc1738_escape_unescaped(http->uri), MAX_URL);
