@@ -604,6 +604,7 @@ fqdncache_init(void)
 	return;
     debug(35, 3) ("Initializing FQDN Cache...\n");
     memset(&FqdncacheStats, '\0', sizeof(FqdncacheStats));
+    memset(&lru_list, '\0', sizeof(lru_list));
     fqdncache_high = (long) (((float) MAX_FQDN *
 	    (float) FQDN_HIGH_WATER) / (float) 100);
     fqdncache_low = (long) (((float) MAX_FQDN *

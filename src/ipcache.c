@@ -659,6 +659,7 @@ ipcache_init(void)
     debug(14, 3) ("Initializing IP Cache...\n");
 
     memset(&IpcacheStats, '\0', sizeof(IpcacheStats));
+    memset(&lru_list, '\0', sizeof(lru_list));
 
     /* test naming lookup */
     if (!opt_dns_tests) {
