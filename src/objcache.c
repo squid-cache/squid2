@@ -224,51 +224,6 @@ objcache_CheckPassword(ObjectCacheData * obj)
 	return 0;
 }
 
-#ifdef OLD_CODE
-static int
-objcache_CheckPassword(char *password, char *user)
-{
-    char *s;
-    struct passwd *pwd = NULL;
-#if HAVE_GETSPNAM && defined(SHADOW)
-    struct spwd *spwd = NULL;
-#endif
-    if (!password || !user)
-	return -1;
-    /* get password record from /etc/passwd */
-    enter_suid();
-    pwd = getpwnam(user);
-    leave_suid();
-    if (pwd == NULL)
-	return -1;
-#if HAVE_GETSPNAM && defined(SHADOW)
-    /* get shadow password record if /etc/shadow exists */
-    if (access(SHADOW, F_OK) == 0) {
-	enter_suid();
-	spwd = getspnam(pwd->pw_name);
-	leave_suid();
-	if (spwd != NULL) {
-#if HAVE_PW_ENCRYPT
-	    s = pw_encrypt(password, spwd->sp_pwdp);
-#else
-	    s = encrypt(password, spwd->sp_pwdp);
-#endif /* HAVE_PW_ENCRYPT */
-	    if (!strcmp(spwd->sp_pwdp, s))
-		return 0;
-	}
-    }
-#endif /* SHADOW */
-#if HAVE_PW_ENCRYPT
-    s = pw_encrypt(password, pwd->pw_passwd);
-#else
-    s = crypt(password, pwd->pw_passwd);
-#endif
-    if (!strcmp(pwd->pw_passwd, s))
-	return 0;
-    return -1;
-}
-#endif
-
 int
 objcacheStart(int fd, const char *url, StoreEntry * entry)
 {
