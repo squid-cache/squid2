@@ -608,8 +608,8 @@ gen_conf(Entry * head, FILE * fp)
 		line = def;
 		def = line->next;
 		fprintf(fp, "# %s\n", line->data);
-		free(line->data);
-		free(line);
+		xfree(line->data);
+		xfree(line);
 	    }
 	    blank = 1;
 	}
