@@ -993,7 +993,7 @@ peerDestroy(peer * e)
     struct _domain_ping *nl = NULL;
     if (e == NULL)
 	return;
-    if (e->tcp_up == 0 && e->ip_lookup_pending == 0)
+    if (e->ck_conn_event_pend)
 	eventDelete(peerCheckConnect, e);
     if (e->type == PEER_MULTICAST) {
 	if (e->mcast.flags & PEER_COUNT_EVENT_PENDING)
@@ -1069,6 +1069,9 @@ peerCheckConnect(void *data)
 {
     peer *p = data;
     int fd;
+    if (p->ck_conn_event_pend != 1)
+	debug_trap("bad ck_conn_event_pend counter");
+    p->ck_conn_event_pend--;
     fd = comm_open(SOCK_STREAM, 0, Config.Addrs.tcp_outgoing,
 	0, COMM_NONBLOCKING, p->host);
     if (fd < 0)
@@ -1099,6 +1102,7 @@ peerCheckConnectDone(int fd, int status, void *data)
 	debug(15, 0, "TCP connection to %s/%d succeeded\n",
 	    p->host, p->http_port);
     } else {
+	p->ck_conn_event_pend++;
 	eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
     }
     comm_close(fd);
@@ -1113,6 +1117,7 @@ peerCheckConnectStart(peer * p)
     debug(15, 0, "TCP connection to %s/%d failed\n", p->host, p->http_port);
     p->tcp_up = 0;
     p->last_fail_time = squid_curtime;
+    p->ck_conn_event_pend++;
     eventAdd("peerCheckConnect", peerCheckConnect, p, 80);
 }
 
