@@ -615,7 +615,7 @@ DOC_START
 	Type specifies the kind of storage system to use.  Most
 	everyone will want to use "ufs" as the type.  If you are using
 	Async I/O (--enable async-io) on Linux or Solaris, then you may
-	want to try "asyncufs" as the type.  Async IO support may be
+	want to try "aufs" as the type.  Async IO support may be
 	buggy, however, so beware.
 
 	Maxobjsize refers to the max object size this storedir supports.
