@@ -2,7 +2,7 @@
 
 extern int httpCachable _PARAMS((char *, int, char *));
 extern int proxyhttpStart _PARAMS((edge *, char *, StoreEntry *));
-extern int httpStart _PARAMS((int, char *, char *, char *, StoreEntry *));
+extern int httpStart _PARAMS((int, char *, int, char *, StoreEntry *));
 
 typedef enum {
     METHOD_NONE,

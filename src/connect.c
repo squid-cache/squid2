@@ -14,9 +14,8 @@ typedef struct {
     StoreEntry *entry;
     char host[SQUIDHOSTNAMELEN + 1];
     int port;
-    char *type;
+    int method;
     char *mime_hdr;
-    char type_id;
     int len;
     int offset;
     char buf[CONNECT_BUFSIZE];
@@ -282,10 +281,10 @@ static void connectCloseAndFree(fd, data)
     safe_free(data);
 }
 
-int connectStart(fd, url, type, mime_hdr, entry)
+int connectStart(fd, url, method, mime_hdr, entry)
      int fd;
      char *url;
-     char *type;
+     int method;
      char *mime_hdr;
      StoreEntry *entry;
 {
@@ -295,10 +294,10 @@ int connectStart(fd, url, type, mime_hdr, entry)
 
     data->entry = entry;
 
-    debug(26, 3, "connectStart: url:%s, type:%s\n", url, type);
+    debug(26, 3, "connectStart: '%s %s'\n", RequestMethodStr[method], url);
     debug(26, 4, "            header: %s\n", mime_hdr);
 
-    data->type = type;
+    data->method = method;
     data->mime_hdr = mime_hdr;
     data->client = fd;
     data->timeout = getReadTimeout();

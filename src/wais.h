@@ -1,2 +1,2 @@
 
-extern int waisStart _PARAMS((int, char *, char *, char *, StoreEntry *));
+extern int waisStart _PARAMS((int, char *, int, char *, StoreEntry *));

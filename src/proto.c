@@ -443,7 +443,8 @@ int getFromCache(fd, entry, e)
     char *request_hdr = entry->mem_obj->mime_hdr;
 
     debug(17, 5, "getFromCache: FD %d <URL:%s>\n", fd, entry->url);
-    debug(17, 5, "getFromCache: --> type = %s\n", type);
+    debug(17, 5, "getFromCache: --> type = %s\n",
+	RequestMethodStr[entry->type_id]);
     debug(17, 5, "getFromCache: --> getting from '%s'\n", e ? e->host : "source");
 
     /*
@@ -456,7 +457,7 @@ int getFromCache(fd, entry, e)
     if (e) {
 	return proxyhttpStart(e, url, entry);
     } else if (strncasecmp(url, "http://", 7) == 0) {
-	return httpStart(fd, url, type, request_hdr, entry);
+	return httpStart(fd, url, entry->type_id, request_hdr, entry);
     } else if (strncasecmp(url, "gopher://", 9) == 0) {
 	return gopherStart(fd, url, entry);
     } else if (strncasecmp(url, "news://", 7) == 0) {
@@ -470,9 +471,9 @@ int getFromCache(fd, entry, e)
     } else if (strncasecmp(url, "ftp://", 6) == 0) {
 	return ftpStart(fd, url, entry);
     } else if (strncasecmp(url, "wais://", 7) == 0) {
-	return waisStart(fd, url, type, request_hdr, entry);
+	return waisStart(fd, url, entry->type_id, request_hdr, entry);
     } else if (strncasecmp(url, "conne://", 8) == 0) {
-	return connectStart(fd, url, type, request_hdr, entry);
+	return connectStart(fd, url, entry->type_id, request_hdr, entry);
     } else if (strncasecmp(url, "dht://", 6) == 0) {
 	return protoNotImplemented(fd, url, entry);
     } else {
