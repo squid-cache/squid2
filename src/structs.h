@@ -118,8 +118,7 @@ struct _auth_user_t {
     int auth_module;
     /* we only have one username associated with a given auth_user struct */
     auth_user_hash_pointer *usernamehash;
-    /* we may have many proxy-authenticate strings that decode to the same user */
-    dlink_list proxy_auth_list;
+    /* cache of acl lookups on this username */
     dlink_list proxy_match_cache;
     /* what ip addresses has this user been seen at?, plus a list length cache */
     dlink_list ip_list;
