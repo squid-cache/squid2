@@ -593,7 +593,7 @@ ftpParseListing(FtpStateData * ftpState, int len)
     assert(usable <= len);
     if (usable < len) {
 	/* must copy partial line to beginning of buf */
-	linelen = len - usable + 1;
+	linelen = len - usable;
 	assert(linelen > 0);
 	if (linelen > 4096)
 	    linelen = 4096;
