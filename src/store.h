@@ -239,8 +239,8 @@ struct sentry {
     /* to stru which can be freed while object is purged out from memory */
     MemObject *mem_obj;
 
-    u_short flag;
-    u_short refcount;
+    u_num32 flag;
+    u_num32 refcount;
     time_t timestamp;
     time_t lastref;
     time_t expires;
