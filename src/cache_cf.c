@@ -883,14 +883,14 @@ static void
 parseAddressLine(struct in_addr *addr)
 {
     char *token;
-    ipcache_addrs *ia = NULL;
+    struct hostent *hp;
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
     if (inet_addr(token) != INADDR_NONE)
 	(*addr).s_addr = inet_addr(token);
-    else if ((ia = ipcache_gethostbyname(token, IP_BLOCKING_LOOKUP)))
-	*addr = ia->in_addrs[0];
+    else if ((hp = gethostbyname(token))) 	/* dont use ipcache */
+	*addr = inaddrFromHostent(hp);
     else
 	self_destruct();
 }
@@ -1041,6 +1041,7 @@ parseAnnounceToLine(void)
 	return;
     safe_free(Config.Announce.file);
     Config.Announce.file = xstrdup(token);
+    Config.Announce.on = 1;
 }
 
 static void
@@ -1579,6 +1580,7 @@ configSetFactoryDefaults(void)
     Config.Announce.port = DefaultAnnouncePort;
     Config.Announce.file = safe_xstrdup(DefaultAnnounceFile);
     Config.Announce.rate = DefaultAnnounceRate;
+    Config.Announce.on = 0;
     Config.tcpRcvBufsz = DefaultTcpRcvBufsz;
     Config.Addrs.tcp_outgoing.s_addr = DefaultTcpOutgoingAddr;
     Config.Addrs.tcp_incoming.s_addr = DefaultTcpIncomingAddr;

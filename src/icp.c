@@ -535,7 +535,7 @@ icpHandleStore(int fd, StoreEntry * entry, icpStateData * icpState)
 static void
 icpHandleStoreComplete(int fd, char *buf, int size, int errflag, void *data)
 {
-    icpStateData *icpState = (icpStateData *) data;
+    icpStateData *icpState = data;
     StoreEntry *entry = NULL;
 
     entry = icpState->entry;
@@ -1673,7 +1673,7 @@ parseHttpRequest(icpStateData * icpState)
 static void
 asciiProcessInput(int fd, char *buf, int size, int flag, void *data)
 {
-    icpStateData *icpState = (icpStateData *) data;
+    icpStateData *icpState = data;
     int parser_return_code = 0;
     int k;
     request_t *request = NULL;

@@ -219,9 +219,10 @@ struct SquidConfig {
     char *errHtmlText;
     struct {
 	char *host;
-	u_short port;
 	char *file;
 	int rate;
+	int on;
+	u_short port;
     } Announce;
     struct {
 	struct in_addr tcp_incoming;

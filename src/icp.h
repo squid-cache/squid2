@@ -152,7 +152,7 @@ typedef enum {
 #define		REQ_IMS		0x04
 #define		REQ_AUTH	0x08
 #define		REQ_CACHABLE	0x10
-#define 	REQ_ACCEL	0x20
+#define 	REQ_UNUSED	0x20
 #define 	REQ_HIERARCHICAL 0x40
 #define 	REQ_LOOPDETECT  0x80
 

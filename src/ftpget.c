@@ -175,6 +175,7 @@
 
 /* Junk so we can link with debug.o */
 int opt_syslog_enable = 0;
+int opt_read_only = 0;
 volatile int unbuffered_logs = 1;
 char w_space[] = " \t\n\r";
 char appname[] = "pinger";
