@@ -419,7 +419,7 @@ storeDiskdDirInit(SwapDir * sd)
 #else
     x = ipcCreate(IPC_FIFO,
 #endif
-	SQUID_PREFIX "/libexec/squid/diskd",
+	Config.Program.diskd,
 	args,
 	"diskd",
 	&rfd,
