@@ -138,9 +138,14 @@ refreshCheck(StoreEntry * entry, request_t * request_unused)
 	debug(22, 3, "refreshCheck: NO: age < min\n");
 	return 0;
     }
-    if (-1 < entry->expires && entry->expires <= squid_curtime) {
-	debug(22, 3, "refreshCheck: YES: expires <= curtime\n");
-	return 1;
+    if (-1 < entry->expires) {
+	if (entry->expires <= squid_curtime) {
+	    debug(22, 3, "refreshCheck: YES: expires <= curtime\n");
+	    return 1;
+	} else {
+	    debug(22, 3, "refreshCheck: NO: expires > curtime\n");
+	    return 0;
+	}
     }
     if (age > max) {
 	debug(22, 3, "refreshCheck: YES: age > max\n");
