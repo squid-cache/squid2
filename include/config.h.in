@@ -29,13 +29,6 @@
 #endif
 #endif
 
-#ifndef BUFSIZ
-#include <stdio.h>		/* try to find it... */
-#ifndef BUFSIZ
-#define BUFSIZ  4096		/* make reasonable guess */
-#endif
-#endif
-
 #if defined(SYSTYPE_SYSV) || defined(__svr4__) || defined(SYSTYPE_SVR4) || defined(__SYSTYPE_SVR4__)
 #define _SQUID_SYSV_
 #else

@@ -54,8 +54,13 @@
 
 #define MAX_ENTRIES 10000
 
+#ifndef FALSE
 #define FALSE 0
+#endif
+#ifndef TRUE
 #define TRUE !FALSE
+#endif
+
 #define LF 10
 #define CR 13
 
