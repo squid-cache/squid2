@@ -394,6 +394,10 @@ sslStart(int fd, const char *url, request_t * request, size_t * size_ptr)
 	Config.Timeout.lifetime,
 	sslTimeout,
 	sslState);
+    commSetTimeout(sslState->server.fd,
+	Config.Timeout.connect,
+	sslTimeout,
+	sslState);
     peerSelect(request,
 	NULL,
 	sslPeerSelectComplete,
