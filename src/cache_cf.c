@@ -497,6 +497,8 @@ parseCacheHostLine(void)
 	    mcast_ttl = atoi(token + 4);
 	} else if (!strncasecmp(token, "default", 7)) {
 	    options |= NEIGHBOR_DEFAULT_PARENT;
+	} else if (!strncasecmp(token, "round-robin", 11)) {
+	    options |= NEIGHBOR_ROUNDROBIN;
 	} else {
 	    debug(3, 0, "parseCacheHostLine: token='%s'\n", token);
 	    self_destruct();

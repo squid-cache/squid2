@@ -126,6 +126,7 @@ typedef enum {
     HIER_PARENT_UDP_HIT_OBJ,
     HIER_PASS_PARENT,
     HIER_SSL_PARENT,
+    HIER_ROUNDROBIN_PARENT,
     HIER_MAX
 } hier_code;
 
@@ -154,6 +155,7 @@ struct _domain_type {
 #define NEIGHBOR_PROXY_ONLY 0x01
 #define NEIGHBOR_NO_QUERY   0x02
 #define NEIGHBOR_DEFAULT_PARENT   0x04
+#define NEIGHBOR_ROUNDROBIN   0x08
 
 #define EDGE_MAX_ADDRESSES 10
 #define RTT_AV_FACTOR      1000
@@ -183,6 +185,7 @@ struct _edge {
     struct in_addr addresses[10];
     int n_addresses;
     struct _edge *next;
+    int rr_count;
 };
 
 struct _hierarchyLogData {
@@ -208,6 +211,7 @@ extern void neighborsDestroy _PARAMS((void));
 extern edge *neighborFindByName _PARAMS((const char *));
 extern void neighbors_init _PARAMS((void));
 extern edge *getDefaultParent _PARAMS((request_t * request));
+extern edge *getRoundRobinParent _PARAMS((request_t * request));
 extern int neighborUp _PARAMS((edge * e));
 extern void edgeDestroy _PARAMS((edge * e));
 
