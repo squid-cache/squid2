@@ -1267,7 +1267,6 @@ struct _StoreEntry {
     sfileno swap_file_number;
 #if HEAP_REPLACEMENT
     heap_node *node;
-    dlink_node lock_list;
 #else
     dlink_node lru;
 #endif
