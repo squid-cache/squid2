@@ -56,6 +56,7 @@ const char *log_tags[] =
     "TCP_NEGATIVE_HIT",
     "TCP_MEM_HIT",
     "TCP_DENIED",
+    "TCP_OFFLINE_HIT",
     "UDP_HIT",
     "UDP_MISS",
     "UDP_DENIED",

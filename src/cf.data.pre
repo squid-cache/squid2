@@ -2617,4 +2617,13 @@ LOC: Config.max_open_disk_fds
 DEFAULT: 0
 DOC_NONE
 
+NAME: offline_mode
+TYPE: onoff
+LOC: Config.onoff.offline
+DEFAULT: off
+DOC_START
+	Enable this option and Squid will never try to validate cached
+	objects.
+DOC_END
+
 EOF

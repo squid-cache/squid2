@@ -377,6 +377,7 @@ struct _SquidConfig {
 #if HTTP_VIOLATIONS
 	int reload_into_ims;
 #endif
+	int offline;
     } onoff;
     acl *aclList;
     struct {
