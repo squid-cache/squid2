@@ -843,7 +843,10 @@ dump_cachedir(StoreEntry * entry, const char *name, cacheSwap swap)
     int i;
     for (i = 0; i < swap.n_configured; i++) {
 	s = swap.swapDirs + i;
-	s->dump(entry, name, s);
+	if (s->dump)
+	    s->dump(entry, name, s);
+	else
+	    debug(3, 1) ("WARNING: no config dump function for cache_dir %s\n", s->path);
     }
 }
 
