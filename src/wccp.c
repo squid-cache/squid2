@@ -283,7 +283,7 @@ wccpAssignBuckets(void *voidnotused)
     int *caches;
     int offset;
     char buckets[WCCP_BUCKETS];
-    void *buf;
+    char *buf;
 
     debug(80, 6) ("wccpAssignBuckets: Called\n");
     memset(&wccp_assign_bucket, '\0', sizeof(wccp_assign_bucket));
