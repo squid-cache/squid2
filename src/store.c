@@ -1056,12 +1056,14 @@ storeDoRebuildFromDisk(void *data)
 		debug(50, 3, "storeRebuildFromDisk: Swap file missing: '%s': %s: %s.\n", url, swapfile, xstrerror());
 		if (opt_unlink_on_reload)
 		    safeunlink(swapfile, 1);
+		/* XXX probably a bad idea to unlink during reload for NOVM */
 		continue;
 	    }
 	    /* Empty swap file? */
 	    if (sb.st_size == 0) {
 		if (opt_unlink_on_reload)
 		    safeunlink(swapfile, 1);
+		/* XXX probably a bad idea to unlink during reload for NOVM */
 		continue;
 	    }
 	    /* Wrong size? */
@@ -1081,8 +1083,8 @@ storeDoRebuildFromDisk(void *data)
 	 * because it is the Date: header from the HTTP reply and
 	 * doesn't really tell us when the object was added to the
 	 * cache. */
-	newer = e ? timestamp > e->lastref ? 1 : 0 : 1;
-	if (!newer) {
+	newer = e ? (timestamp > e->lastref ? 1 : 0) : 0;
+	if (used && !newer) {
 	    /* log entry is old, ignore it */
 	    rebuildData->clashcount++;
 	    continue;
@@ -1098,12 +1100,15 @@ storeDoRebuildFromDisk(void *data)
 	    /* This is sorta bad: the log entry should NOT be newer at this
 	     * point.  If the log is dirty, the filesize check should have
 	     * caught this.  If the log is clean, there should never be a
-	     * newer entry */
+	     * newer entry. */
 	    debug(20, 1, "WARNING: newer swaplog entry for fileno %08X\n",
 		sfileno);
-	    /* ignore log entry and remove the swapfile to be safe */
-	    /* expect SWAPFAIL errors from this */
-	    safeunlink(swapfile, 1);
+	    /* I'm tempted to remove the swapfile here just to be safe,
+	     * but there is a bad race condition in the NOVM version if
+	     * the swapfile has recently been opened for writing, but
+	     * not yet opened for reading.  Because we can't map
+	     * swapfiles back to StoreEntrys, we don't know the state
+	     * of the entry using that file.  */
 	    rebuildData->clashcount++;
 	    continue;
 	} else if (e) {
