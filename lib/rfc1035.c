@@ -424,7 +424,14 @@ rfc1035AnswersUnpack(const char *buf,
 	    }
 	} while (l > 0);
 	off += 4;		/* qtype, qclass */
-	assert(off <= sz);
+	if (off > sz) {
+	    /*
+	     * This used be an assertion and it triggered once, but the
+	     * core file was useless for debugging.   Sigh, I guess we
+	     * need a debug_hook.
+	     */
+	    return 0;
+	}
     }
     i = (int) hdr.ancount;
     if (i == 0)
