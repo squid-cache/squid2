@@ -279,6 +279,8 @@ accessLogLog(AccessLogEntry * al)
 	size_t isize;
 	xstrncpy((char *) ibuf, al->url, 364 * sizeof(int));
 	isize = ((strlen(al->url) + 8) / 8) * 2;
+	if (isize > 364)
+	    isize = 364;
 	mcast_encode((unsigned int *) ibuf, isize,
 	    (const unsigned int *) Config.mcast_miss.encode_key);
 	comm_udp_sendto(mcast_miss_fd,
