@@ -691,7 +691,7 @@ fqdncache_dnsDispatch(dnsserver_t * dns, fqdncache_entry * f)
     if (f->status != FQDN_PENDING)
 	debug_trap("fqdncache_dnsDispatch: status != FQDN_PENDING");
     buf = xcalloc(1, 256);
-    snprintf(buf, 256, "s\n", f->name);
+    snprintf(buf, 256, "%s\n", f->name);
     dns->flags |= DNS_FLAG_BUSY;
     dns->data = f;
     f->status = FQDN_DISPATCHED;
