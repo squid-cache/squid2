@@ -78,8 +78,10 @@ main(int argc, char *argv[])
 
 #include "squid.h"
 
+#if USE_UNLINKD
 static int unlinkd_wfd = -1;
 static int unlinkd_rfd = -1;
+#endif
 
 void
 unlinkdUnlink(const char *path)
