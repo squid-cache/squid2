@@ -776,6 +776,20 @@ squidaio_poll_queues(void)
 	request_queue2.head = NULL;
 	request_queue2.tailp = &request_queue2.head;
     }
+#if HAVE_SCHED_H
+    /* Give up the CPU to allow the threads to do their work */
+    /*
+     * For Andres thoughts about yield(), see
+     * http://www.squid-cache.org/mail-archive/squid-dev/200012/0001.html
+     */
+    if (!done_queue.head && request_queue_len) {
+#ifndef _SQUID_SOLARIS_
+	sched_yield();
+#else
+	yield();
+#endif
+    }
+#endif
     /* poll done queue */
     if (done_queue.head && pthread_mutex_trylock(&done_queue.mutex) == 0) {
 	struct squidaio_request_t *requests = done_queue.head;
@@ -790,19 +804,6 @@ squidaio_poll_queues(void)
 	}
 	done_requests.tailp = &requests->next;
     }
-#if HAVE_SCHED_H
-    /* Give up the CPU to allow the threads to do their work */
-    /*
-     * For Andres thoughts about yield(), see
-     * http://www.squid-cache.org/mail-archive/squid-dev/200012/0001.html
-     */
-    if (done_queue.head || request_queue.head)
-#ifndef _SQUID_SOLARIS_
-	sched_yield();
-#else
-	yield();
-#endif
-#endif
 }
 
 squidaio_result_t *
