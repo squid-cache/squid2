@@ -246,7 +246,6 @@ fwdStartFail(peer * peernotused, void *data)
     err = errorCon(ERR_CANNOT_FORWARD, HTTP_SERVICE_UNAVAILABLE);
     err->request = requestLink(fwdState->request);
     errorAppendEntry(fwdState->entry, err);
-    requestUnlink(fwdState->request);
     fwdStateFree(fwdState);
 }
 
