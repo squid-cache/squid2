@@ -169,13 +169,13 @@ memBufReset(MemBuf * mb)
     }
 }
 
-/* unfirtunate hack to test if the buffer has been Init()ialized */
+/* unfortunate hack to test if the buffer has been Init()ialized */
 int
 memBufIsNull(MemBuf * mb)
 {
     assert(mb);
     if (!mb->buf && !mb->max_capacity && !mb->capacity && !mb->size)
-	return 1;		/* null, not initialized */
+	return 1;		/* is null (not initialized) */
     assert(mb->buf && mb->max_capacity && mb->capacity);	/* paranoid */
     return 0;
 }
