@@ -9,7 +9,7 @@ dnl
 dnl
 AC_INIT(src/main.c)
 AC_CONFIG_AUX_DIR(cfgaux)
-AM_INIT_AUTOMAKE(squid, 2.6-DEVEL)
+AM_INIT_AUTOMAKE(Squid, 2.6-DEVEL)
 AM_CONFIG_HEADER(include/autoconf.h)
 AC_REVISION($Revision$)dnl
 AC_PREFIX_DEFAULT(/usr/local/squid)
@@ -2254,6 +2254,7 @@ AC_OUTPUT([\
 	src/auth/ntlm/helpers/no_check/Makefile \
 	src/auth/ntlm/helpers/SMB/Makefile \
 	src/auth/ntlm/helpers/SMB/smbval/Makefile \
+	src/auth/ntlm/helpers/winbind/Makefile \
 	contrib/Makefile \
 	snmplib/Makefile \
 	icons/Makefile \
