@@ -54,15 +54,23 @@ Changes to squid-2.5.STABLE4 (not yet released):
 	- Bug #736: ICP dynamic timeout algorithm ignores multicast.
 	- Bug #733: No explicit error message when ncsa_auth can't access
 	  passwd file
+	- Bug #757: POST with NTLM stops after persistent connection
+	  timeout
 	- Bug #742: Wrong status code on access denials if delay_access
 	  is used. Most notably 407 instead of 403 could be returned.
 	- Bug #763: segfault if using ntlm in http_reply_access
 	- Bug #638: assertion error if using proxy_auth in delay_access
 	- Bug #756: segmentation fault if using ntlm proxy_auth in delay_access
-	- external_acl_type concurrency= option replaced by children= to
+	- The issue of reply_body_max_size limiting the size of error
+	  messages no longer applies.
+	- external_acl_type concurrency= option renamed to children= to
 	  prepare for Squid-3 upgrades. Old syntax still accepted for the
 	  duration of the Squid-2.5 release.
+	- number of filedescriptors rounded down to an even multiple of 64
+	  to work around issues in certain libc implementations.
 	- winbind helpers less noisy in cache.log on restarts/shutdown.
+	- Squid now automatically restarts helpers if too many of them
+	  have crashed.
 
 Changes to squid-2.5.STABLE3 (25 May 2003):
 
