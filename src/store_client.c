@@ -290,7 +290,7 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
     }
     assert(STORE_DISK_CLIENT == sc->type);
     if (sc->flags.disk_io_pending) {
-	debug(20, 1) ("storeClientCopy3: Averted multiple fd operation?\n");
+	debug(20, 3) ("storeClientCopy3: Averted multiple fd operation?\n");
 	return;
     }
     debug(20, 3) ("storeClientCopy3: reading from STORE\n");
