@@ -1905,7 +1905,7 @@ aclHostDomainCompare(const void *data, splayNode * n)
     l1 = strlen(h);
     l2 = strlen(d);
     /* h != d */
-    while (h[l1] == d[l2]) {
+    while (tolower(h[l1]) == tolower(d[l2])) {
 	if (l1 == 0)
 	    break;
 	if (l2 == 0)
@@ -1918,7 +1918,7 @@ aclHostDomainCompare(const void *data, splayNode * n)
 	return -1;		/* domain(h) < d */
     if ((d[l2] == '.') || (l2 == 0))
 	return 1;		/* domain(h) > d */
-    return (h[l1] - d[l2]);
+    return (tolower(h[l1]) - tolower(d[l2]));
 }
 
 /* compare two network specs
