@@ -50,7 +50,7 @@ CLIENT_LIBS	= -L../lib -lutil $(XTRA_LIBS)
 PROGS		= cached 
 UTILS		= client dnsserver ftpget
 CGIPROGS	= cachemgr.cgi
-OBJS	 	= acl.o cache_cf.o cached_error.o comm.o \
+OBJS	 	= acl.o background.o cache_cf.o cached_error.o comm.o \
 		connect.o debug.o disk.o dynamic_array.o \
 		fdstat.o filemap.o ftp.o gopher.o \
 		hash.o http.o icp.o ipcache.o \

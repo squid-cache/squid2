@@ -250,6 +250,7 @@ int main(argc, argv)
     int n;			/* # of GC'd objects */
     time_t last_maintain = 0;
     time_t last_announce = 0;
+    time_t loop_delay;
 
     errorInitialize();
 
@@ -302,12 +303,16 @@ int main(argc, argv)
     if (getCleanRate() > 0)
 	next_cleaning = time(0L) + getCleanRate();
     while (1) {
+	loop_delay = (time_t) 60;
 	/* maintain cache storage */
 	if (cached_curtime > last_maintain) {
 	    storeMaintainSwapSpace();
 	    last_maintain = cached_curtime;
 	}
-	switch (comm_select((time_t) 60, next_cleaning)) {
+	/* do background processing */
+	if (doBackgroundProcessing())
+	    loop_delay = (time_t) 0;
+	switch (comm_select(loop_delay, next_cleaning)) {
 	case COMM_OK:
 	    /* do nothing */
 	    break;

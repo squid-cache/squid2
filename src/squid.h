@@ -119,6 +119,7 @@ typedef unsigned long u_num32;
 #include "send-announce.h"
 #include "acl.h"
 #include "util.h"
+#include "background.h"
 
 extern time_t cached_starttime;	/* main.c */
 extern time_t next_cleaning;	/* main.c */
