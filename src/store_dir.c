@@ -265,9 +265,6 @@ storeDirUpdateSwapSize(int fn, size_t size, int sign)
 void
 storeDirStats(StoreEntry * sentry)
 {
-#if HAVE_STATVFS
-    struct statvfs sfs;
-#endif
     storeAppendPrintf(sentry, "Store Directory Statistics:\n");
     storeAppendPrintf(sentry, "Store Entries          : %d\n",
 	memInUse(MEM_STOREENTRY));
