@@ -136,6 +136,7 @@ cbdataInit(void)
     CREATE_CBDATA(aclCheck_t);
     CREATE_CBDATA(clientHttpRequest);
     CREATE_CBDATA(ConnStateData);
+    CREATE_CBDATA(DigestFetchState);
     CREATE_CBDATA(ErrorState);
     CREATE_CBDATA(FwdState);
     CREATE_CBDATA(generic_cbdata);
