@@ -1959,6 +1959,7 @@ struct _FwdState {
     ErrorState *err;
     time_t start;
     int n_tries;
+    int origin_tries;
 #if WIP_FWD_LOG
     http_status last_status;
 #endif

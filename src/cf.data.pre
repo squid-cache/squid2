@@ -3115,15 +3115,18 @@ DOC_END
 NAME: maximum_single_addr_tries
 TYPE: int
 LOC: Config.retry.maxtries
-DEFAULT: 3
+DEFAULT: 1
 DOC_START
 	This sets the maximum number of connection attempts for a
 	host that only has one address (for multiple-address hosts,
 	each address is tried once).
 
-	The default value is three tries, the (not recommended)
+	The default value is one attempt, the (not recommended)
 	maximum is 255 tries.  A warning message will be generated
 	if it is set to a value greater than ten.
+
+	Note: This is in addition to the request reforwarding which
+	takes place if Squid fails to get a satisfying response.
 DOC_END
 
 NAME: snmp_port
@@ -3585,6 +3588,10 @@ DOC_START
 	By combining nonhierarchical_direct off and prefer_direct on you
 	can set up Squid to use a parent as a backup path if going direct
 	fails.
+
+	Note: If you want Squid to use parents for all requests then see
+	the never_direct directive. prefer_direct only modifies how Squid
+	acts on cachable requests.
 DOC_END
 
 NAME: strip_query_terms
