@@ -314,7 +314,7 @@ storeUnlockObject(StoreEntry * e)
     } else {
 	storePurgeMem(e);
 	if (EBIT_TEST(e->flags, KEY_PRIVATE))
-	    debug(0, 0) ("WARNING: %s:%d: found KEY_PRIVATE\n", __FILE__, __LINE__);
+	    debug(20, 1) ("WARNING: %s:%d: found KEY_PRIVATE\n", __FILE__, __LINE__);
     }
     return 0;
 }
