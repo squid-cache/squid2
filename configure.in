@@ -15,7 +15,8 @@ AC_CONFIG_AUX_DIR(aux)
 
 AC_CANONICAL_HOST
 
-CRYPT_LIB=''
+CRYPTLIB=''
+REGEXLIB=''
 
 dnl use directory structure of cached as default (hack)
 if test "$libexecdir" = '${exec_prefix}/libexec'; then
@@ -224,6 +225,7 @@ AC_CHECK_LIB(socket, main)
 AC_CHECK_LIB(malloc, main, [HAVE_LIBMALLOC="yes"; LIBS="$LIBS -lmalloc"])
 AC_CHECK_LIB(resolv, main)
 AC_CHECK_LIB(bsd, main)
+AC_CHECK_LIB(regex, main, [REGEXLIB="-lregex"]);
 
 dnl We found a version of libresolv on SunOS 4.x which requires -l44bsd
 dnl We have to first check to see if -l44bsd is present and has the
@@ -336,11 +338,13 @@ AC_CHECK_FUNCS(\
 AC_MSG_CHECKING(if GNUregex needs to be compiled)
 if test "$ac_cv_func_regcomp" = no; then
 	AC_MSG_RESULT(yes)
+	REGEXLIB="-lregex"
 	LIBREGEX="libregex.a"
 	AC_SUBST(LIBREGEX)
 else
 	AC_MSG_RESULT(no)
 fi
+AC_SUBST(REGEXLIB)
 
 AC_REPLACE_FUNCS(\
 	tempnam \
