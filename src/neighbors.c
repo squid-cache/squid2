@@ -461,7 +461,7 @@ neighborsUdpPing(request_t * request,
 	    icpUdpSend(theOutIcpConnection,
 		&p->in_addr,
 		query,
-		LOG_TAG_NONE,
+		LOG_ICP_QUERY,
 		0);
 	} else {
 	    flags = 0;
@@ -472,7 +472,7 @@ neighborsUdpPing(request_t * request,
 	    icpUdpSend(theOutIcpConnection,
 		&p->in_addr,
 		query,
-		LOG_TAG_NONE,
+		LOG_ICP_QUERY,
 		0);
 	}
 	queries_sent++;
@@ -531,7 +531,7 @@ neighborsUdpPing(request_t * request,
 		icpUdpSend(theOutIcpConnection,
 		    &to_addr,
 		    query,
-		    LOG_TAG_NONE,
+		    LOG_ICP_QUERY,
 		    0);
 	    }
 	} else {
@@ -1050,7 +1050,7 @@ peerCountMcastPeersStart(void *data)
     icpUdpSend(theOutIcpConnection,
 	&p->in_addr,
 	query,
-	LOG_TAG_NONE,
+	LOG_ICP_QUERY,
 	0);
     fake->ping_status = PING_WAITING;
     eventAdd("peerCountMcastPeersDone",
