@@ -66,32 +66,13 @@ Proper parsing of HTTP reply codes
 
 Squid parses HTTP replies to extract the reply code.  The codes are used
 to determine which objects should be cached, which should be ejected,
-and which should be negative-cached.  Currently, the following are
-hard-coded:
+and which should be negative-cached. 
 
-    These could be cached for a long time:
-	200 OK
-	203 Non-Authoritative Information
-	300 Multiple Choices
-	301 Moved Permanently
-	410 Gone
-
-    These are ejected immediately:
-	304 Not Modified
-	401 Unauthorized
-	407 Proxy Authentication Required
-
-    All others are negative-cached (for whatever is configured, default
-    five minutes).  They include:
-	302 Moved Temporarily
-	400 Bad Request
-	403 Forbidden
-	404 Not Found
-	500 Internal Server Error
+See HTTP-codes.txt for a list of HTTP response codes, and how they are
+cached.
 
 The HTTP codes are now logged to "access.log" in the native format 
 (ie with 'emulate_httpd_log off').
-
 
 Support for If-Modified-Since GET
 ==============================================================================
