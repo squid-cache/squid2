@@ -13,7 +13,9 @@
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#if HAVE_STDIO_H
 #include <stdio.h>
+#endif
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -29,8 +31,7 @@
 #if HAVE_GRP_H
 #include <grp.h>
 #endif
-#if !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
-/* "Obsolete" Markus Stumpf <maex@Space.NET> */
+#if HAVE_MALLOC_H && !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
 #include <malloc.h>
 #endif
 #if HAVE_MEMORY_H
@@ -58,7 +59,9 @@
 #if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>	/* needs sys/time.h above it */
 #endif
+#if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
 #if HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -127,6 +130,11 @@
 
 #ifndef BUFSIZ
 #define BUFSIZ  4096		/* make reasonable guess */
+#endif
+
+#if !defined(SUN_LEN)
+#define SUN_LEN(su) \
+        (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif
 
 typedef struct sentry StoreEntry;
