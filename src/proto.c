@@ -570,6 +570,7 @@ matchInsideFirewall(const char *host)
     const wordlist *s = Config.inside_firewall_list;
     const char *key = NULL;
     int result = NO_FIREWALL;
+    struct in_addr addr;
     if (!s)
 	/* no domains, all hosts are "inside" the firewall */
 	return NO_FIREWALL;
@@ -586,6 +587,13 @@ matchInsideFirewall(const char *host)
 	}
 	if (matchDomainName(key, host))
 	    return result;
+    }
+    /* Check for dotted-quads */
+    if (Config.firewall_ip_list) {
+	if ((addr.s_addr = inet_addr(host)) != INADDR_NONE) {
+	    if (ip_access_check(addr, Config.firewall_ip_list) == IP_DENY)
+		return INSIDE_FIREWALL;
+	}
     }
     /* all through the list and no domains matched, this host must
      * not be inside the firewall, it must be outside */
