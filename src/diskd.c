@@ -585,7 +585,7 @@ storeDiskdReadQueue(void)
 	record_away = sent_count - recv_count;
 	record_shmbuf = shmbuf_count;
     }
-    if (squid_curtime - last_report > 10) {
+    if (squid_curtime - last_report > 60) {
 	if (record_away)
 	    debug(81, 1) ("DISKD: %d msgs away, %d shmbufs in use\n",
 		record_away, record_shmbuf);
@@ -742,6 +742,7 @@ static int
 storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, int offset, int shm_offset)
 {
     int x;
+    int i;
     diomsg M;
     static int send_errors = 0;
     M.mtype = mtype;
@@ -753,15 +754,20 @@ storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
     M.id = id;
     if (M.callback_data)
 	cbdataLock(M.callback_data);
-    x = msgsnd(sd->u.diskd.smsgid, &M, msg_snd_rcv_sz, IPC_NOWAIT);
-    if (0 == x) {
-	sent_count++;
-	sd->u.diskd.away++;
-    } else {
-	debug(50, 1) ("storeDiskdSend: msgsnd: %s\n", xstrerror());
-	if (M.callback_data)
-	    cbdataUnlock(M.callback_data);
-	assert(++send_errors < 100);
+    for (i = 0; i < 2; i++) {
+	x = msgsnd(sd->u.diskd.smsgid, &M, msg_snd_rcv_sz, i ? 0 : IPC_NOWAIT);
+	if (0 == x) {
+	    sent_count++;
+	    sd->u.diskd.away++;
+	    break;
+	} else if (EWOULDBLOCK == errno && 0 == i) {
+	    debug(50, 3) ("storeDiskdSend: retrying.\n");
+	} else {
+	    debug(50, 1) ("storeDiskdSend: msgsnd: %s\n", xstrerror());
+	    if (M.callback_data)
+		cbdataUnlock(M.callback_data);
+	    assert(++send_errors < 100);
+	}
     }
     if (sd->u.diskd.away > MAGIC2) {
 	debug(81, 3) ("%d msgs away!  Trying to read queue...\n", sd->u.diskd.away);
