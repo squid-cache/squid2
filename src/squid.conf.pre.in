@@ -299,9 +299,9 @@
 #	The Cache can emulate the log file format which many 'httpd'
 #	programs use.  To disable/enable this emulation, set 
 #	emulate_httpd_log to 'off' or 'on'.  The default 
-#	is to enable this emulation.
+#	is to use the native log format.
 #
-#emulate_httpd_log on
+#emulate_httpd_log off
 
 #  TAG: pid_filename
 #	A pathname to write the process-id to.  There is no default.
