@@ -808,7 +808,7 @@ extern void statHistCount(StatHist * H, double val);
 extern void statHistCopy(StatHist * Dest, const StatHist * Orig);
 extern void statHistSafeCopy(StatHist * Dest, const StatHist * Orig);
 extern double statHistDeltaMedian(const StatHist * A, const StatHist * B);
-extern void statHistDump(const StatHist * H, StoreEntry * sentry, StatHistBinDumper bd);
+extern void statHistDump(const StatHist * H, StoreEntry * sentry, StatHistBinDumper * bd);
 extern void statHistLogInit(StatHist * H, int capacity, double min, double max);
 extern void statHistEnumInit(StatHist * H, int last_enum);
 extern void statHistIntInit(StatHist * H, int n);
