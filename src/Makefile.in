@@ -158,6 +158,7 @@ OBJS	 	= \
 		store_client.o \
 		store_digest.o \
 		store_dir.o \
+		store_dir_ufs.o \
 		store_key_md5.o \
 		store_log.o \
 		store_rebuild.o \

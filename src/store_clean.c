@@ -94,7 +94,7 @@ storeDirClean(void *datanotused)
 	fn = storeDirProperFileno(D0, swapfileno);
 	if (storeDirValidFileno(fn))
 	    if (storeDirMapBitTest(fn))
-		if (storeFilenoBelongsHere(fn, D0, D1, D2))
+		if (storeUfsFilenoBelongsHere(fn, D0, D1, D2))
 		    continue;
 #if USE_TRUNCATE_NOT_UNLINK
 	if (!stat(de->d_name, &sb))

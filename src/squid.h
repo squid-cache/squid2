@@ -397,4 +397,7 @@ struct rusage {
 #define SQUID_NONBLOCK O_NDELAY
 #endif
 
+#define SWAP_DIR_SHIFT 24
+#define SWAP_FILE_MASK 0x00FFFFFF
+
 #endif /* SQUID_H */
