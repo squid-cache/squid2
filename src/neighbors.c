@@ -97,7 +97,7 @@ whichPeer(const struct sockaddr_in * from)
     return NULL;
 }
 
-static peer_t
+peer_t
 neighborType(const peer * p, const request_t * request)
 {
     const struct _domain_type *d = NULL;

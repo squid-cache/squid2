@@ -94,7 +94,7 @@ static void
 fileOpenComplete(int unused, void *data, int fd, int errcode)
 {
     open_ctrl_t *ctrlp = (open_ctrl_t *) data;
-    debug(6, 5) ("fileOpenComplete: fd %d, data %p, errcode %d\n",
+    debug(6, 5) ("fileOpenComplete: FD %d, data %p, errcode %d\n",
 	fd, data, errcode);
     Counter.syscalls.disk.opens++;
     if (fd == -2 && errcode == -2) {	/* Cancelled - clean up */
