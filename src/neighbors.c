@@ -663,12 +663,6 @@ neighborsUdpAck(int fd, const char *url, icp_common_t * header, const struct soc
 	neighborCountIgnored(e, opcode);
 	return;
     }
-    if (e && BIT_TEST(e->options, NEIGHBOR_MCAST_RESPONDER)) {
-	if (!peerHTTPOkay(e, mem->request)) {
-	    neighborCountIgnored(e, opcode);
-	    return;
-	}
-    }
     debug(15, 3, "neighborsUdpAck: %s for '%s' from %s \n",
 	opcode_d, url, e ? e->host : "source");
     if (e)
