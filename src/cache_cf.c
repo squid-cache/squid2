@@ -241,7 +241,6 @@ static void parseDebugOptionsLine _PARAMS((void));
 static void parseEffectiveUserLine _PARAMS((void));
 static void parseErrHtmlLine _PARAMS((void));
 static void parseFtpOptionsLine _PARAMS((void));
-static void parseFtpProgramLine _PARAMS((void));
 static void parseFtpUserLine _PARAMS((void));
 static void parseWordlist _PARAMS((wordlist **));
 static void parseHostAclLine _PARAMS((void));
@@ -264,7 +263,7 @@ static void parseWAISRelayLine _PARAMS((void));
 static void parseMinutesLine _PARAMS((int *));
 static void ip_acl_destroy _PARAMS((ip_acl **));
 static void parseCachemgrPasswd _PARAMS((void));
-static void parsePathname _PARAMS((char **));
+static void parsePathname _PARAMS((char **, int fatal));
 static void parseProxyLine _PARAMS((peer **));
 static void parseHttpAnonymizer _PARAMS((int *));
 static int parseTimeUnits _PARAMS((const char *unit));
@@ -711,25 +710,19 @@ parseEffectiveUserLine(void)
 }
 
 static void
-parsePathname(char **path)
+parsePathname(char **path, int fatal)
 {
     char *token;
+    struct stat sb;
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
     safe_free(*path);
     *path = xstrdup(token);
-}
-
-static void
-parseFtpProgramLine(void)
-{
-    char *token;
-    token = strtok(NULL, w_space);
-    if (token == NULL)
+    if (fatal && stat(token, &sb) < 0) {
+	debug(50, 1, "parsePathname: %s: %s\n", token, xstrerror());
 	self_destruct();
-    safe_free(Config.Program.ftpget);
-    Config.Program.ftpget = xstrdup(token);
+    }
 }
 
 static void
@@ -1117,20 +1110,20 @@ parseConfigFile(const char *file_name)
 	    parseWordlist(&Config.cache_dirs);
 
 	else if (!strcmp(token, "cache_log"))
-	    parsePathname(&Config.Log.log);
+	    parsePathname(&Config.Log.log, 0);
 
 	else if (!strcmp(token, "cache_access_log"))
-	    parsePathname(&Config.Log.access);
+	    parsePathname(&Config.Log.access, 0);
 
 	else if (!strcmp(token, "cache_store_log"))
-	    parsePathname(&Config.Log.store);
+	    parsePathname(&Config.Log.store, 0);
 
 	else if (!strcmp(token, "cache_swap_log"))
-	    parsePathname(&Config.Log.swap);
+	    parsePathname(&Config.Log.swap, 0);
 
 #if USE_USERAGENT_LOG
 	else if (!strcmp(token, "useragent_log"))
-	    parsePathname(&Config.Log.useragent);
+	    parsePathname(&Config.Log.useragent, 0);
 #endif
 
 	else if (!strcmp(token, "logfile_rotate"))
@@ -1232,9 +1225,9 @@ parseConfigFile(const char *file_name)
 	    parseIntegerValue(&Config.connectTimeout);
 
 	else if (!strcmp(token, "cache_ftp_program"))
-	    parseFtpProgramLine();
+	    parsePathname(&Config.Program.ftpget, 1);
 	else if (!strcmp(token, "ftpget_program"))
-	    parseFtpProgramLine();
+	    parsePathname(&Config.Program.ftpget, 1);
 
 	else if (!strcmp(token, "cache_ftp_options"))
 	    parseFtpOptionsLine();
@@ -1242,7 +1235,7 @@ parseConfigFile(const char *file_name)
 	    parseFtpOptionsLine();
 
 	else if (!strcmp(token, "cache_dns_program"))
-	    parsePathname(&Config.Program.dnsserver);
+	    parsePathname(&Config.Program.dnsserver, 1);
 
 	else if (!strcmp(token, "dns_children"))
 	    parseIntegerValue(&Config.dnsChildren);
@@ -1250,7 +1243,7 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&Config.Options.res_defnames);
 
 	else if (!strcmp(token, "redirect_program"))
-	    parsePathname(&Config.Program.redirect);
+	    parsePathname(&Config.Program.redirect, 1);
 
 	else if (!strcmp(token, "redirect_children"))
 	    parseIntegerValue(&Config.redirectChildren);
@@ -1340,7 +1333,7 @@ parseConfigFile(const char *file_name)
 	    parseDebugOptionsLine();
 
 	else if (!strcmp(token, "pid_filename"))
-	    parsePathname(&Config.pidFilename);
+	    parsePathname(&Config.pidFilename, 0);
 
 	else if (!strcmp(token, "visible_hostname"))
 	    parseVisibleHostnameLine();
