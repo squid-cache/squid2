@@ -36,7 +36,7 @@ static IPH send_announce;
 void
 start_announce(void *datanotused)
 {
-    if (!Config.onoff.announce)
+    if (0 == Config.onoff.announce)
 	return;
     ipcache_nbgethostbyname(Config.Announce.host, send_announce, NULL);
     eventAdd("send_announce", start_announce, NULL, Config.Announce.period);
