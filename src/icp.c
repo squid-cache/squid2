@@ -753,50 +753,6 @@ int icpUdpReply(fd, queue)
     return result;
 }
 
-int icpUdpMiss(fd, url, reqheaderp, from)
-     int fd;
-     char *url;
-     icp_common_t *reqheaderp;
-     struct sockaddr_in *from;
-{
-    char *buf = NULL;
-    int buf_len = sizeof(icp_common_t) + strlen(url) + 1;
-    icp_common_t *headerp = NULL;
-    icpUdpData *data = (icpUdpData *) xmalloc(sizeof(icpUdpData));
-    struct sockaddr_in our_socket_name;
-    int sock_name_length = sizeof(our_socket_name);
-
-    if (getsockname(fd, (struct sockaddr *) &our_socket_name,
-	    &sock_name_length) == -1) {
-	debug(12, 1, "icpUdpMiss: FD %d: getsockname failure: %s\n",
-	    fd, xstrerror());
-    }
-    debug(12, 5, "icpUdpMiss: FD %d: %s: <URL:%s>\n", fd,
-	inet_ntoa(our_socket_name.sin_addr), url);
-
-    memset(data, '\0', sizeof(icpUdpData));
-    memcpy(&data->address, from, sizeof(struct sockaddr_in));
-
-    buf = xcalloc(buf_len, 1);
-    headerp = (icp_common_t *) buf;
-    headerp->opcode = ICP_OP_MISS;
-    headerp->version = ICP_VERSION_CURRENT;
-    headerp->length = htons(buf_len);
-    headerp->reqnum = htonl(reqheaderp->reqnum);
-/*  memcpy(headerp->auth, , ICP_AUTH_SIZE); */
-    headerp->shostid = htonl(our_socket_name.sin_addr.s_addr);
-
-    memcpy(buf + sizeof(icp_common_t), url, strlen(url) + 1);
-    data->msg = buf;
-    data->len = buf_len;
-    AppendUdp(data);
-    comm_set_select_handler(fd,
-	COMM_SELECT_WRITE,
-	(PF) icpUdpReply,
-	(void *) data);
-    return COMM_OK;
-}
-
 int icpUdpSend(fd, url, reqheaderp, to, opcode)
      int fd;
      char *url;
@@ -843,15 +799,15 @@ int icpUdpSend(fd, url, reqheaderp, to, opcode)
     data->msg = buf;
     data->len = buf_len;
 
-    AppendUdp(data);
     debug(12, 4, "icpUdpSend: Queueing for %s: \"%s %s\"\n",
 	inet_ntoa(to->sin_addr),
 	IcpOpcodeStr[opcode],
 	url);
+    AppendUdp(data);
     comm_set_select_handler(fd,
 	COMM_SELECT_WRITE,
 	(PF) icpUdpReply,
-	(void *) data);
+	(void *) UdpQueueHead);
     return COMM_OK;
 }
 
@@ -957,7 +913,7 @@ int icpHandleUdp(sock, not_used)
 	    0);
 	CacheInfo->proto_miss(CacheInfo,
 	    CacheInfo->proto_id(url));
-	icpUdpMiss(sock, url, &header, &from);
+	icpUdpSend(sock, url, &header, &from, ICP_OP_MISS);
 	break;
 
     case ICP_OP_HIT:
