@@ -58,6 +58,24 @@ Changes to Squid-2.1 ():
 	- Added Client HTTP Hit byte counters to 'counters' output
 	  (Douglas Swarin).
 	- Got Squid to compile with --enable-async-io on FreeBSD.
+	- Fixed infinite loop bug for cachemgr 'config' option.
+	- Fixed cachability bugs for replies with Pragma: no-cache.
+	- Made content-type multipart/x-mixed-replace uncachable.
+	- Y2K fix for parsing dates in "Wed Jun  9 01:29:59 1993 GMT"
+	  format (Richard Kettlewell).
+	- Fixed passing -s option to dnsserver processes (Alvaro Jose
+	  Fernandez Lago).
+	- Changed proxy_auth to work on internal objects and when in
+	  accelerator mode. (Henrik Nordstrom)
+	- Added login=user:password option to cache_peer directive to
+	  be used from a dial-up cache where the parent requires proxy
+	  authentication. (Henrik Nordstrom)
+	- If you want to "auto-login", then use a URL on the form
+	  http://username:password@server/.... Squid now picks this up
+	  when going direct, and turns it into basic WWW
+	  authentication.  It is also possible to do automatic login to
+	  certain servers by using a redirector to add the needed
+	  authentication information.  (Henrik Nordstrom)
 
 Changes to Squid-2.0 (October 2, 1998):
 
