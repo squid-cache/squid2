@@ -72,10 +72,10 @@ send_announce(const ipcache_addrs * ia, void *junk)
     sndbuf[0] = '\0';
     snprintf(tbuf, 256, "cache_version SQUID/%s\n", version_string);
     strcat(sndbuf, tbuf);
-    assert(Config.Port.http);
+    assert(Config.Sockaddr.http);
     snprintf(tbuf, 256, "Running on %s %d %d\n",
 	getMyHostname(),
-	(int) Config.Port.http->i,
+	(int) ntohs(Config.Sockaddr.http->s.sin_port),
 	(int) Config.Port.icp);
     strcat(sndbuf, tbuf);
     if (Config.adminEmail) {

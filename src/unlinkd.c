@@ -188,11 +188,15 @@ unlinkdInit(void)
     commSetTimeout(unlinkd_rfd, -1, NULL, NULL);
     commSetTimeout(unlinkd_wfd, -1, NULL, NULL);
     /*
-     * We leave unlinkd_wfd blocking, because we never want to lose an
-     * unlink request, and we don't have code to retry if we get
-     * EWOULDBLOCK.
+     * unlinkd_rfd should already be non-blocking because of
+     * ipcCreate.  We change unlinkd_wfd to blocking mode because
+     * we never want to lose an unlink request, and we don't have
+     * code to retry if we get EWOULDBLOCK.  Unfortunately, we can
+     * do this only for the IPC_FIFO case.
      */
-    commSetNonBlocking(unlinkd_rfd);
+    assert(fd_table[unlinkd_rfd].flags.nonblocking);
+    if (FD_PIPE == fd_table[unlinkd_wfd].type)
+	commUnsetNonBlocking(unlinkd_wfd);
     debug(12, 1) ("Unlinkd pipe opened on FD %d\n", unlinkd_wfd);
 #else
     debug(12, 1) ("Unlinkd is disabled\n");

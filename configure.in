@@ -124,15 +124,6 @@ if test -z "$PRESET_LDFLAGS"; then
     fi
 fi
 
-if test "x$ac_cv_enabled_dlmalloc" = "x"; then
-    case "$host" in
-	i386-*-solaris2.*)
-		echo "Enabling dlmalloc for $host"
-		ac_cv_enabled_dlmalloc="yes"
-		;;
-    esac
-fi
-
 dnl Enable optional modules
 AC_ARG_ENABLE(dlmalloc,
 [  --enable-dlmalloc[=LIB] Compile & use the malloc package by Doug Lea],
@@ -513,7 +504,7 @@ AC_ARG_ENABLE(ident-lookups,
 ])
 
 AC_ARG_ENABLE(internal-dns,
-[  --disable-internal-dns This prevents Squid from directly sending and
+[  --disable-internal-dns  This prevents Squid from directly sending and
                           receiving DNS messages, and instead enables the
                           old external 'dnsserver' processes.],
 [ if test "$enableval" = "no" ; then
@@ -525,7 +516,7 @@ AC_ARG_ENABLE(internal-dns,
 ])
 
 AC_ARG_ENABLE(truncate,
-[  --enable-truncate      This uses truncate() instead of unlink() when
+[  --enable-truncate       This uses truncate() instead of unlink() when
                           removing cache files.  Truncate gives a little
                           performance improvement, but may cause problems
                           when used with async I/O.  Truncate uses more
@@ -550,12 +541,25 @@ AC_ARG_ENABLE(underscores,
   fi
 ])
 
+dnl Enable HEAP_REPLACEMENT
+AC_ARG_ENABLE(heap-replacement,
+[  --enable-heap-replacement
+                          This option allows you to use various cache
+                          replacement algorithms, instead of the standard
+                          LRU algorithm.
+                          ],
+[ if test "$enableval" = "yes" ; then
+    echo "Enabling HEAP_REPLACEMENT"
+    AC_DEFINE(HEAP_REPLACEMENT, 1)
+  fi
+])
+
 dnl Enable "diskd" code
 AC_ARG_ENABLE(diskd,
 [  --enable-diskd          Uses shared memory, message queues, and external
                           processes for disk I/O.],
 [ if test "$enableval" = "yes" ; then
-    echo "Enabling DISKD"
+    echo "DISKD enabled"
     AC_DEFINE(USE_DISKD, 1)
     OPT_DISKD_EXE='$(DISKD_EXE)'
     AC_SUBST(OPT_DISKD_EXE)

@@ -17,15 +17,24 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-read SAMBAPREFIX
 read DOMAINNAME
+read PASSTHROUGH
 read NMBADDR
 read NMBCAST
+read AUTHSHARE
+read AUTHFILE
 read SMBUSER
 read SMBPASS
 
 # Find domain controller
 echo "Domain name: $DOMAINNAME"
+if [ -n "$PASSTHROUGH" ]
+then
+  echo "Pass-through authentication: yes: $PASSTHROUGH"
+else
+  echo "Pass-through authentication: no"
+  PASSTHROUGH="$DOMAINNAME"
+fi
 if [ -n "$NMBADDR" ]
 then
   if [ "$NMBCAST" = "1" ]
@@ -38,7 +47,7 @@ else
   addropt=""
 fi
 echo "Query address options: $addropt"
-dcip=`$SAMBAPREFIX/bin/nmblookup $addropt "$DOMAINNAME#1b" | awk '/^[0-9.]+ / { print $1 ; exit }'`
+dcip=`$SAMBAPREFIX/bin/nmblookup $addropt "$PASSTHROUGH#1c" | awk '/^[0-9.]+ / { print $1 ; exit }'`
 echo "Domain controller IP address: $dcip"
 [ -n "$dcip" ] || exit 1
 
@@ -52,8 +61,11 @@ echo "Domain controller NETBIOS name: $dcname"
 USER="$SMBUSER%$SMBPASS"
 export USER
 
-# Read the contents of the file "proxyauth" on the NETLOGON share
-proxyauth=`$SAMBAPREFIX/bin/smbclient //$dcname/NETLOGON -I $dcip -E -W "$DOMAINNAME" -c "get proxyauth -" 2>/dev/null`
-echo "Contents of //$dcname/NETLOGON/proxyauth: $proxyauth"
-[ "$proxyauth" = "allow" ] || exit 1
+# Read the contents of the file $AUTHFILE on the $AUTHSHARE share
+authfilebs=`echo "$AUTHFILE" | tr / '\\\\'`
+authinfo=`$SAMBAPREFIX/bin/smbclient "//$dcname/$AUTHSHARE" -I $dcip -d 0 -E -W "$DOMAINNAME" -c "get $authfilebs -" 2>/dev/null`
+echo "Contents of //$dcname/$AUTHSHARE/$AUTHFILE: $authinfo"
+
+# Allow for both \n and \r\n end-of-line termination
+[ "$authinfo" = "allow" -o "$authinfo" = "allow" ] || exit 1
 exit 0

@@ -252,7 +252,8 @@ ipcCreate(int type, const char *prog, char *const args[], const char *name, int 
      */
     do {
 	x = open(_PATH_DEVNULL, 0, 0444);
-	commSetCloseOnExec(x);
+	if (x > -1)
+	    commSetCloseOnExec(x);
     } while (x < 3);
     t1 = dup(crfd);
     t2 = dup(cwfd);

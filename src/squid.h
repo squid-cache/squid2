@@ -186,6 +186,9 @@
 #if HAVE_GETOPT_H
 #include <getopt.h>
 #endif
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif
 
 #if HAVE_DIRENT_H
 #include <dirent.h>
@@ -233,6 +236,7 @@
 #ifdef HAVE_SYSLOG_H
 #ifdef _SQUID_AIX_
 #define _XOPEN_EXTENDED_SOURCE
+#define _XOPEN_SOURCE_EXTENDED 1
 #endif
 #include <syslog.h>
 #endif
@@ -374,7 +378,7 @@ struct rusage {
 /*
  * Mac OS X Server already has radix.h as a standard header, so
  * this causes conflicts.
-*/
+ */
 #ifndef _SQUID_APPLE_
 #include "radix.h"
 #endif

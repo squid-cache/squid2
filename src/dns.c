@@ -72,8 +72,8 @@ dnsInit(void)
 	cachemgrRegister("dns",
 	    "Dnsserver Statistics",
 	    dnsStats, 0, 1);
+	init = 1;
     }
-    init++;
 #endif
 }
 

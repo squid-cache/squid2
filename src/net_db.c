@@ -975,7 +975,7 @@ netdbExchangeStart(void *data)
     ex->r->flags.loopdetect = 1;	/* cheat! -- force direct */
     if (p->login)
 	xstrncpy(ex->r->login, p->login, MAX_LOGIN_SZ);
-    fwdStart(-1, ex->e, ex->r, no_addr, no_addr);
+    fwdStart(-1, ex->e, ex->r);
 #endif
 }
 

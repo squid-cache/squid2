@@ -45,6 +45,8 @@ requestCreate(method_t method, protocol_t protocol, const char *urlpath)
 	stringReset(&req->urlpath, urlpath);
     req->max_forwards = -1;
     req->lastmod = -1;
+    req->client_addr = no_addr;
+    req->my_addr = no_addr;
     httpHeaderInit(&req->header, hoRequest);
     return req;
 }
@@ -149,6 +151,16 @@ httpRequestHdrAllowed(const HttpHeaderEntry * e, String * strConn)
 	return 0;
     /* check connection header */
     if (strConn && strListIsMember(strConn, strBuf(e->name), ','))
+	return 0;
+    return 1;
+}
+
+/* returns true if header is allowed to be passed on */
+int
+httpRequestHdrAllowedByName(http_hdr_type id)
+{
+    /* check with anonymizer tables */
+    if (CBIT_TEST(Config.anonymize_headers, id))
 	return 0;
     return 1;
 }

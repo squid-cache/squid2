@@ -1,8 +1,24 @@
-
 /*
  * $Id$
  *
- * PAM authenticator for Squid.
+ * PAM authenticator module for Squid.
+ * Copyright (C) 1999 Henrik Nordstrom <hno@hem.passagen.se>
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ *
+ * Install instructions:
  *
  * This program authenticates users against a PAM configured authentication
  * service "squid". This allows you to authenticate Squid users to any
@@ -18,23 +34,10 @@
  * Note that some PAM modules (for example shadow password authentication)
  * requires the program to be installed suid root, or PAM will not allow
  * it to authenticate other users than it runs as (this is a security
- * limitation of PAM, to avoid probing of passwords).
+ * limitation of PAM to avoid automated probing of passwords).
  *
- * (C)1999 Henrik Nordstrom <hno@hem.passagen.se>
+ * Compile this program with: gcc -o pam_auth pam_auth.c -lpam -ldl
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
  */
 
 #include <stdio.h>
@@ -46,16 +49,20 @@
 
 #include <security/pam_appl.h>
 
-#define BUFSIZE 256
+#define BUFSIZE 8192
 
 
 /* The default PAM service name */
-#define DEFAULT_SERVICE_NAME "squid"
+#ifndef SQUID_PAM_SERVICE
+#define SQUID_PAM_SERVICE "squid"
+#endif
 
 /* How often to reinitialize PAM, in seconds. Undefined = never, 0=always */
 /* #define PAM_CONNECTION_TTL 60 */
 
 static int reset_pam = 1;	/* Set to one if it is time to reset PAM processing */
+
+static char *password = NULL;	/* Workaround for Solaris 2.6 brokenness */
 
 /*
  * A simple "conversation" function returning the supplied password.
@@ -66,12 +73,18 @@ static int reset_pam = 1;	/* Set to one if it is time to reset PAM processing */
 static int
 password_conversation(int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr)
 {
-    if (!appdata_ptr) {
-	fprintf(stderr, "ERROR: No password available to password_converstation!\n");
-	return PAM_CONV_ERR;
-    }
     if (num_msg != 1 || msg[0]->msg_style != PAM_PROMPT_ECHO_OFF) {
 	fprintf(stderr, "ERROR: Unexpected PAM converstaion '%d/%s'\n", msg[0]->msg_style, msg[0]->msg);
+	return PAM_CONV_ERR;
+    }
+    if (!appdata_ptr) {
+	/* Workaround for Solaris 2.6 where the PAM library is broken
+	 * and does not pass appdata_ptr to the conversation routine
+	 */
+	appdata_ptr = password;
+    }
+    if (!appdata_ptr) {
+	fprintf(stderr, "ERROR: No password available to password_converstation!\n");
 	return PAM_CONV_ERR;
     }
     *resp = calloc(num_msg, sizeof(struct pam_response));
@@ -104,7 +117,7 @@ main(int argc, char *argv[])
     pam_handle_t *pamh = NULL;
     int retval;
     char *user;
-    char *password;
+    /* char *password; */
     char buf[BUFSIZE];
     time_t pamh_created = 0;
 
@@ -144,7 +157,7 @@ main(int argc, char *argv[])
 	}
 	if (!pamh) {
 	    /* Initialize PAM connection */
-	    retval = pam_start("squid", "squid@", &conv, &pamh);
+	    retval = pam_start(SQUID_PAM_SERVICE, "squid@", &conv, &pamh);
 	    if (retval != PAM_SUCCESS) {
 		fprintf(stderr, "ERROR: failed to create PAM authenticator\n");
 	    }

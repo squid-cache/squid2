@@ -138,7 +138,7 @@ urnStart(request_t * r, StoreEntry * e)
     if ((urlres_e = storeGetPublic(urlres, METHOD_GET)) == NULL) {
 	urlres_e = storeCreateEntry(urlres, urlres, null_request_flags, METHOD_GET);
 	storeClientListAdd(urlres_e, urnState);
-	fwdStart(-1, urlres_e, urlres_r, no_addr, no_addr);
+	fwdStart(-1, urlres_e, urlres_r);
     } else {
 	storeLockObject(urlres_e);
 	storeClientListAdd(urlres_e, urnState);

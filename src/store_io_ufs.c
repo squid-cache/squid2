@@ -57,7 +57,7 @@ storeUfsOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
 	mode |= (O_CREAT | O_TRUNC);
     fd = file_open(path, mode);
     if (fd < 0) {
-	debug(78, 3) ("storeUfsOpenDone: got failure (%d)\n", errno);
+	debug(79, 3) ("storeUfsOpenDone: got failure (%d)\n", errno);
 	return NULL;
     }
     debug(79, 3) ("storeUfsOpen: opened FD %d\n", fd);

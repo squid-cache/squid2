@@ -27,15 +27,51 @@
 
 struct SMBDOMAIN
 {
-	char				*name;		/* domain name */
-	char				*sname;		/* match this with user input */
-	char				*nmbaddr;	/* name service address */
-	int					nmbcast;	/* broadcast or unicast */
-	struct SMBDOMAIN	*next;		/* linked list */
+	char				*name;			/* domain name */
+	char				*sname;			/* match this with user input */
+	char				*passthrough;	/* pass-through authentication */
+	char				*nmbaddr;		/* name service address */
+	int					nmbcast;		/* broadcast or unicast */
+	char				*authshare;		/* share name of auth file */
+	char				*authfile;		/* pathname of auth file */
+	struct SMBDOMAIN	*next;			/* linked list */
 };
 
 struct SMBDOMAIN *firstdom = NULL;
 struct SMBDOMAIN *lastdom = NULL;
+
+/*
+ * escape the backslash character, since it has a special meaning
+ * to the read command of the bourne shell.
+ */
+
+void print_esc(FILE *p, char *s)
+{
+	char	buf[256];
+	char	*t;
+	int		i = 0;
+
+	for (t = s; *t != '\0'; t++)
+	{
+		if (i > 250)
+		{
+			buf[i] = '\0';
+			(void) fputs(buf, p);
+			i = 0;
+		}
+
+		if (*t == '\\')
+			buf[i++] = '\\';
+
+		buf[i++] = *t;
+	}
+
+	if (i > 0)
+	{
+		buf[i] = '\0';
+		(void) fputs(buf, p);
+	}
+}
 
 void main(int argc, char *argv[])
 {
@@ -47,6 +83,8 @@ void main(int argc, char *argv[])
 	char				*pass;
 	char				*domname;
 	FILE				*p;
+	int					debug = 0;
+	char				*shcmd;
 
 	/* make standard output line buffered */
 	if (setvbuf(stdout, NULL, _IOLBF, 0) != 0)
@@ -55,6 +93,12 @@ void main(int argc, char *argv[])
 	/* parse command line arguments */
 	for (i = 1; i < argc; i++)
 	{
+		if (strcmp(argv[i], "-d") == 0)
+		{
+			debug = 1;
+			continue;
+		}
+
 		/* the next options require an argument */
 		if (i + 1 == argc)
 			break;
@@ -65,8 +109,11 @@ void main(int argc, char *argv[])
 				return;
 
 			dom->name = dom->sname = argv[++i];
+			dom->passthrough = "";
 			dom->nmbaddr = "";
 			dom->nmbcast = NMB_BROADCAST;
+			dom->authshare = "NETLOGON";
+			dom->authfile = "proxyauth";
 			dom->next = NULL;
 
 			/* append to linked list */
@@ -83,6 +130,13 @@ void main(int argc, char *argv[])
 		{
 			if (lastdom != NULL)
 				lastdom->sname = argv[++i];
+			continue;
+		}
+
+		if (strcmp(argv[i], "-P") == 0)
+		{
+			if (lastdom != NULL)
+				lastdom->passthrough = argv[++i];
 			continue;
 		}
 
@@ -105,7 +159,38 @@ void main(int argc, char *argv[])
 			}
 			continue;
 		}
+
+		if (strcmp(argv[i], "-S") == 0)
+		{
+			if (lastdom != NULL)
+			{
+				if ((lastdom->authshare = strdup(argv[++i])) == NULL)
+					return;
+
+				/* convert backslashes to forward slashes */
+				for (s = lastdom->authshare; *s != '\0'; s++)
+					if (*s == '\\')
+						*s = '/';
+
+				/* strip leading forward slash from share name */
+				if (*lastdom->authshare == '/')
+					lastdom->authshare++;
+
+				if ((s = strchr(lastdom->authshare, '/')) != NULL)
+  				{
+  					*s = '\0';
+  					lastdom->authfile = s + 1;
+  				}
+			}
+			continue;
+		}
 	}
+
+	shcmd = debug ? HELPERSCRIPT : HELPERSCRIPT " > /dev/null 2>&1";
+
+	/* pass to helper script */
+    if (putenv("SAMBAPREFIX=" SAMBAPREFIX) != 0)
+    	return;
 
 	while (1)
 	{
@@ -149,18 +234,22 @@ void main(int argc, char *argv[])
 			continue;
 		}
 
-		if ((p = popen(HELPERSCRIPT " > /dev/null 2>&1", "w")) == NULL)
+		if ((p = popen(shcmd, "w")) == NULL)
 		{
 			(void) printf("ERR\n");
 			continue;
 		}
 
-		(void) fprintf(p, "%s\n", SAMBAPREFIX);
 		(void) fprintf(p, "%s\n", dom->name);
+		(void) fprintf(p, "%s\n", dom->passthrough);
 		(void) fprintf(p, "%s\n", dom->nmbaddr);
 		(void) fprintf(p, "%d\n", dom->nmbcast);
+		(void) fprintf(p, "%s\n", dom->authshare);
+		(void) fprintf(p, "%s\n", dom->authfile);
 		(void) fprintf(p, "%s\n", user);
-		(void) fprintf(p, "%s\n", pass);
+		/* the password can contain special characters */
+		print_esc(p, pass);
+		(void) fputc('\n', p);
 		(void) fflush(p);
 
 		if (pclose(p) == 0)

@@ -311,8 +311,10 @@ httpReplyHdrCacheInit(HttpReply * rep)
     rep->content_range = httpHeaderGetContRange(hdr);
     rep->keep_alive = httpMsgIsPersistent(rep->sline.version, &rep->header);
     /* final adjustments */
-    /* The max-age directive takes priority over Expires, check it first */
-    if (rep->cache_control && rep->cache_control->max_age >= 0)
+    /* The s-maxage and max-age directive takes priority over Expires */
+    if (rep->cache_control && rep->cache_control->s_maxage >= 0)
+	rep->expires = squid_curtime + rep->cache_control->s_maxage;
+    else if (rep->cache_control && rep->cache_control->max_age >= 0)
 	rep->expires = squid_curtime + rep->cache_control->max_age;
     else
 	/*

@@ -275,7 +275,12 @@ peerDigestRequest(PeerDigest * pd)
     pd->flags.requested = 1;
 
     /* compute future request components */
-    url = internalRemoteUri(p->host, p->http_port, "/squid-internal-periodic/", StoreDigestFileName);
+    if (p->digest_url)
+	url = xstrdup(p->digest_url);
+    else
+	url = internalRemoteUri(p->host, p->http_port,
+	    "/squid-internal-periodic/", StoreDigestFileName);
+
     key = storeKeyPublic(url, METHOD_GET);
     debug(72, 2) ("peerDigestRequest: %s key: %s\n", url, storeKeyText(key));
     req = urlParse(METHOD_GET, url);
@@ -318,7 +323,7 @@ peerDigestRequest(PeerDigest * pd)
 
     /* push towards peer cache */
     debug(72, 3) ("peerDigestRequest: forwarding to fwdStart...\n");
-    fwdStart(-1, e, req, no_addr, no_addr);
+    fwdStart(-1, e, req);
     cbdataLock(fetch);
     cbdataLock(fetch->pd);
     storeClientCopy(e, 0, 0, 4096, memAllocate(MEM_4K_BUF),

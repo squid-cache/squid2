@@ -427,7 +427,8 @@ icpConnectionsOpen(void)
 	0);
     for (s = Config.mcast_group_list; s; s = s->next)
 	ipcache_nbgethostbyname(s->key, mcastJoinGroups, NULL);
-    debug(12, 1) ("Accepting ICP messages on port %d, FD %d.\n",
+    debug(12, 1) ("Accepting ICP messages at %s, port %d, FD %d.\n",
+	inet_ntoa(Config.Addrs.udp_incoming),
 	(int) port, theInIcpConnection);
     if ((addr = Config.Addrs.udp_outgoing).s_addr != no_addr.s_addr) {
 	enter_suid();

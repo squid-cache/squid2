@@ -424,14 +424,7 @@ rfc1035AnswersUnpack(const char *buf,
 	    }
 	} while (l > 0);	/* a zero-length label terminates */
 	off += 4;		/* qtype, qclass */
-	if (off > sz) {
-	    /*
-	     * This used be an assertion and it triggered once, but the
-	     * core file was useless for debugging.   Sigh, I guess we
-	     * need a debug_hook.
-	     */
-	    return 0;
-	}
+	assert (off <= sz);
     }
     i = (int) hdr.ancount;
     if (i == 0)

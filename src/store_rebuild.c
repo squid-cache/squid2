@@ -173,10 +173,9 @@ storeRebuildStart(void)
     memset(&counts, '\0', sizeof(counts));
     rebuild_start = current_time;
     /*
-     * Normally store_dirs_rebuilding is incremented once for each
-     * cache_dir.  We increment it here as well for the disk storage
-     * system as a whole.  The corresponding decrement occurs in
-     * storeCleanup(), when it is finished.
+     * Note: store_dirs_rebuilding is initialized to 1 in globals.c.
+     * This prevents us from trying to write clean logs until we
+     * finished rebuilding for sure.  The corresponding decrement
+     * occurs in storeCleanup(), when it is finished.
      */
-    store_dirs_rebuilding++;
 }

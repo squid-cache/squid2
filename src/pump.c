@@ -88,6 +88,7 @@ pumpInit(int fd, request_t * r, char *uri)
     flags = null_request_flags;
     flags.nocache = 1;
     snprintf(new_key, MAX_URL + 5, "%s|Pump", uri);
+    cbdataAdd(p, cbdataXfree, 0);
     p->request_entry = storeCreateEntry(new_key, new_key, flags, r->method);
     storeClientListAdd(p->request_entry, p);
     EBIT_SET(p->request_entry->flags, ENTRY_DONT_LOG);
@@ -104,7 +105,6 @@ pumpInit(int fd, request_t * r, char *uri)
     p->cbdata = NULL;
     p->next = pump_head;
     pump_head = p;
-    cbdataAdd(p, cbdataXfree, 0);
     comm_add_close_handler(p->c_fd, pumpFree, p);
     commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
     debug(61, 4) ("pumpInit: FD %d, Created %p\n", fd, p);

@@ -283,6 +283,7 @@ delayClient(request_t * r)
     memset(&ch, '\0', sizeof(ch));
     ch.src_addr = r->client_addr;
     ch.my_addr = r->my_addr;
+    ch.my_port = r->my_port;
     ch.request = r;
     for (pool = 0; pool < Config.Delay.pools; pool++) {
 	if (aclCheckFast(Config.Delay.access[pool], &ch))
