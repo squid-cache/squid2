@@ -634,6 +634,14 @@ main(int argc, char **argv)
     no_addr.s_addr = inet_addr("255.255.255.255");
     inaddr_none = inet_addr("255.255.255.255");
 
+#if HAVE_SRANDOM
+    srandom(time(NULL));
+#elif HAVE_SRAND48
+    srand48(time(NULL);
+#else
+    srand(time(NULL));
+#endif
+
     errorInitialize();
 
     squid_starttime = getCurrentTime();
