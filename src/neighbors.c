@@ -558,6 +558,15 @@ neighborsUdpAck(int fd, char *url, icp_common_t * header, struct sockaddr_in *fr
 	debug(15, 1, "Ignoring ICP reply for missing mem_obj: %s\n", url);
 	return;
     }
+    /* check if someone is already fetching it */
+    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED)) {
+	debug(15, 5, "neighborsUdpAck: '%s' already being fetched.\n", url);
+	return;
+    }
+    if (entry->ping_status != PING_WAITING) {
+	debug(15, 5, "neighborsUdpAck: '%s' unexpected ICP reply.\n", url);
+	return;
+    }
     if ((e = whichEdge(header, from))) {
 	ntype = neighborType(e, entry->mem_obj->request);
 	/* Neighbor is alive, reset the ack deficit */
@@ -575,15 +584,6 @@ neighborsUdpAck(int fd, char *url, icp_common_t * header, struct sockaddr_in *fr
 	rtt = tvSubMsec(mem->start_ping, current_time);
 	e->stats.rtt = (e->stats.rtt * (n - 1) + rtt) / n;
 	e->icp_version = (int) header->version;
-    }
-    /* check if someone is already fetching it */
-    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED)) {
-	debug(15, 5, "neighborsUdpAck: '%s' already being fetched.\n", url);
-	return;
-    }
-    if (entry->ping_status != PING_WAITING) {
-	debug(15, 5, "neighborsUdpAck: '%s' unexpected ICP reply.\n", url);
-	return;
     }
     debug(15, 3, "neighborsUdpAck: %s for '%s' from %s \n",
 	IcpOpcodeStr[header->opcode], url, e ? e->host : "source");
