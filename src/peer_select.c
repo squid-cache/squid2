@@ -291,7 +291,7 @@ peerSelectFoo(ps_state * psstate)
 	peerSelectCallback(psstate, p);
 	return;
 #endif
-    } else if ((p = netdbClosestParent(request->host))) {
+    } else if ((p = netdbClosestParent(request))) {
 	request->hier.alg = PEER_SA_NETDB;
 	code = CLOSEST_PARENT;
 	debug(44, 2) ("peerSelect: %s/%s\n", hier_strings[code], p->host);
