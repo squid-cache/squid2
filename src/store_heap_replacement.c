@@ -38,7 +38,7 @@
  * 
  *
  * For a description of these cache replacement policies see --
- *  http://www.hpl.hp.com/personal/John_Dilley/caching/wcw.html
+ *  http://www.hpl.hp.com/techreports/1999/HPL-1999-69.html
  */
 
 /*
