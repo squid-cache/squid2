@@ -200,7 +200,6 @@ storeClientCopy(store_client * sc,
 #endif
     assert(sc->callback == NULL);
     assert(sc->entry == e);
-    sc->copy_offset = copy_offset;
     sc->seen_offset = seen_offset;
     sc->callback = callback;
     sc->copy_buf = buf;
