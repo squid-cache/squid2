@@ -112,16 +112,14 @@ static void icpCloseAndFree(fd, icpState, line)
 	sprintf(tmp_error_buf, "icpCloseAndFree: Called with NULL icpState from %s line %d", __FILE__, line);
 	fatal_dump(tmp_error_buf);
     }
-    debug(12, 1, "icpCloseAndFree: entry=%p\n", icpState->entry);
     if (icpState->entry)
 	size = icpState->entry->mem_obj->e_current_len;
-    debug(12, 1, "icpCloseAndFree: size=%d\n", size);
     CacheInfo->log_append(CacheInfo,
 	icpState->url,
 	inet_ntoa(icpState->peer.sin_addr),
 	size,
 	log_tags[icpState->log_type],
-	icpState->type ? icpState->type : "UNKNOWN");
+	icpState->type);
     safe_free(icpState->url);
     safe_free(icpState->type);
     safe_free(icpState->mime_hdr);
@@ -325,7 +323,6 @@ void icpSendERRORComplete(fd, buf, size, errflag, state)
 
     /* Clean up client side statemachine */
     entry = state->entry;
-    debug(12, 1, "icpSendERRORComplete: entry=%p\n", entry);
     icpFreeBufOrPage(state);
     icpCloseAndFree(fd, state, __LINE__);
 
@@ -352,8 +349,6 @@ int icpSendERROR(fd, errorCode, msg, state)
     port = comm_port(fd);
     debug(12, 4, "icpSendERROR: code %d: port %d: msg: '%s'\n",
 	errorCode, port, msg);
-
-    debug(12, 1, "icpSendERROR: state=%p  state->entry=%p\n", state, state->entry);
 
     if (port == COMM_ERROR) {
 	/* This file descriptor isn't bound to a socket anymore.
@@ -453,7 +448,6 @@ static void icpHandleStore(fd, entry, state)
     debug(12, 5, "icpHandleStore: FD %d: off %d: <URL:%s>\n",
 	fd, state->offset, entry->url);
 
-    debug(12, 5, "icpHandleStore: entry=%p, state=%p\n", entry, state);
     if (entry->status == STORE_ABORTED) {
 #ifdef CAN_WE_GET_AWAY_WITHOUT_THIS
 	storeUnlockObject(entry);
