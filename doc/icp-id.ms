@@ -15,7 +15,7 @@
 Network Working Group                                         D. Wessels
 Internet-Draft                                   National Laboratory for
                                                 Applied Network Research
-                                                             August 1996
+                                                           November 1996
 .sp 2
 .ce
 Internet Cache Protocol (ICP), version 2
@@ -74,7 +74,7 @@ In current practice, ICP is implemented on top of UDP, but there
 is no requirement that it be limited to UDP.  There are some functions
 which work best over UDP, and others which work best over TCP.
 
-In addition to it use as an object location protocol, the messages ICP
+In addition to its use as an object location protocol, the ICP messages
 are often used for ``cache selection.''  Failure to receive a reply
 from a cache may inidicate a network or system failure.  The order in
 which the replies arrive may be used to select the ``closest''
