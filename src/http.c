@@ -856,7 +856,7 @@ httpBuildRequestHeader(request_t * request,
     /* append X-Forwarded-For */
     strFwd = httpHeaderGetList(hdr_in, HDR_X_FORWARDED_FOR);
     strListAdd(&strFwd,
-	(orig_request->client_addr.s_addr != no_addr.s_addr ?
+	(((orig_request->client_addr.s_addr != no_addr.s_addr) && opt_forwarded_for) ?
 	    inet_ntoa(orig_request->client_addr) : "unknown"), ',');
     httpHeaderPutStr(hdr_out, HDR_X_FORWARDED_FOR, strBuf(strFwd));
     stringClean(&strFwd);
