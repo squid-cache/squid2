@@ -48,5 +48,6 @@ extern char *get_free_8k_page _PARAMS((void));
 extern mem_ptr memInit _PARAMS((void));
 extern void put_free_4k_page _PARAMS((char *));
 extern void put_free_8k_page _PARAMS((char *));
+extern void stmemInit _PARAMS((void));
 
 #endif

@@ -178,5 +178,6 @@ extern int urlcmp _PARAMS((char *, char *));
 extern int storeSwapInStart _PARAMS((StoreEntry *));
 extern int swapInError _PARAMS((int fd, StoreEntry *));
 extern int storeCopy _PARAMS((StoreEntry *, int, int, char *, int *));
+extern void storeMaintainSwapSpace _PARAMS((void));
 
 #endif
