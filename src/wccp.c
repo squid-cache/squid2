@@ -181,6 +181,7 @@ wccpConnectionShutdown(void)
     if (theInWccpConnection != theOutWccpConnection) {
 	debug(80, 1) ("FD %d Closing WCCP socket\n", theInWccpConnection);
 	comm_close(theInWccpConnection);
+	theInWccpConnection = -1;
     }
     assert(theOutWccpConnection > -1);
     commSetSelect(theOutWccpConnection, COMM_SELECT_READ, NULL, NULL, 0);
