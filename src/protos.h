@@ -1079,10 +1079,13 @@ extern void delaySetStoreClient(StoreEntry * e, void *data, delay_id delay_id);
 extern int delayBytesWanted(delay_id d, int min, int max);
 #endif
 
+/* helper.c */
 extern void helperOpenServers(helper * hlp);
 extern void helperSubmit(helper * hlp, const char *buf, HLPCB * callback, void *data);
 extern void helperStats(StoreEntry * sentry, helper * hlp);
 extern void helperShutdown(helper * hlp);
+extern helper *helperCreate(const char *);
+extern void helperFree(helper *);
 
 /*
  * prototypes for system functions missing from system includes

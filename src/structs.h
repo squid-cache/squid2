@@ -1622,7 +1622,7 @@ struct _helper {
     wordlist *cmdline;
     dlink_list servers;
     dlink_list queue;
-    char *id_name;
+    const char *id_name;
     int n_to_start;
     int n_running;
     int ipc_type;
