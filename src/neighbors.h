@@ -216,6 +216,8 @@ extern peer *getDefaultParent _PARAMS((request_t * request));
 extern peer *getRoundRobinParent _PARAMS((request_t * request));
 extern int neighborUp _PARAMS((peer * e));
 extern void peerDestroy _PARAMS((peer * e));
+extern void peerUpdateFudge _PARAMS((void *));
+extern char *neighborTypeStr _PARAMS((peer * e));
 
 extern const char *hier_strings[];
 
