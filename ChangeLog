@@ -206,6 +206,7 @@ Changes to Squid-2.2 (April 19, 1999):
 
 	2.2.STABLE4:
 
+	- Fixed a dread_ctrl leak caused in store_client.c
 	- Fixed a memory leak in eventRun().
 	- Fixed a memory leak of ErrorState structures due to
 	  a bug in forward.c.
