@@ -671,7 +671,7 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
 	fatal("Invalid authenticate state for NTLMStart");
     }
 
-    while (!xisspace(*sent_string))	/*trim NTLM */
+    while (xisgraph(*sent_string))	/*trim NTLM */
 	sent_string++;
 
     while (xisspace(*sent_string))	/*trim leading spaces */

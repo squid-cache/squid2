@@ -764,7 +764,8 @@ static int
 authenticateDigestDirection(auth_user_request_t * auth_user_request)
 {
     digest_request_h *digest_request = auth_user_request->scheme_data;
-    /* null auth_user is checked for by authenticateDirection */
+    if (!digest_request)
+	return -2;
     switch (digest_request->flags.credentials_ok) {
     case 0:			/* not checked */
 	return -1;
@@ -790,6 +791,8 @@ authDigestAddHeader(auth_user_request_t * auth_user_request, HttpReply * rep, in
     if (!auth_user_request)
 	return;
     digest_request = auth_user_request->scheme_data;
+    if (!digest_request)
+	return;
     /* don't add to authentication error pages */
     if ((!accel && rep->sline.status == HTTP_PROXY_AUTHENTICATION_REQUIRED)
 	|| (accel && rep->sline.status == HTTP_UNAUTHORIZED))
@@ -1136,7 +1139,7 @@ authenticateDigestDecodeAuth(auth_user_request_t * auth_user_request, const char
     digest_request = authDigestRequestNew();
 
     /* trim DIGEST from string */
-    while (!xisspace(*proxy_auth))
+    while (xisgraph(*proxy_auth))
 	proxy_auth++;
 
     /* Trim leading whitespace before decoding */

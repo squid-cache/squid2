@@ -421,7 +421,7 @@ authenticateBasicDecodeAuth(auth_user_request_t * auth_user_request, const char 
 
     /* decode the username */
     /* trim BASIC from string */
-    while (!xisspace(*proxy_auth))
+    while (xisgraph(*proxy_auth))
 	proxy_auth++;
 
     local_basic.passwd = NULL;
