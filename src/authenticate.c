@@ -489,7 +489,7 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
     }
     /* we have a proxy auth header and as far as we know this connection has
      * not had bungled connection oriented authentication happen on it. */
-    debug(28, 9) ("authenticateAuthenticate: header %s.\n", proxy_auth);
+    debug(28, 9) ("authenticateAuthenticate: header %s.\n", proxy_auth ? proxy_auth : NULL);
     if (*auth_user_request == NULL) {
 	debug(28, 9) ("authenticateAuthenticate: This is a new checklist test on FD:%d\n",
 	    conn ? conn->fd : -1);
