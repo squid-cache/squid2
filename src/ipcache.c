@@ -1105,7 +1105,8 @@ ipcacheChangeKey(ipcache_entry * i)
 	debug_trap("ipcacheChangeKey: hash_remove_link() failed\n");
 	return;
     }
-    sprintf(new_key, "%d/%-128.128s", ++index, i->name);
+    sprintf(new_key, "%d/", ++index);
+    strncat(new_key, i->name, 128);
     debug(14, 1, "ipcacheChangeKey: from '%s' to '%s'\n", i->name, new_key);
     safe_free(i->name);
     i->name = xstrdup(new_key);
