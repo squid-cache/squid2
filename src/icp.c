@@ -347,8 +347,14 @@ icpParseRequestHeaders(icpStateData * icpState)
 	}
     }
     if ((t = mime_get_header(request_hdr, "Pragma"))) {
-	if (!strcasecmp(t, "no-cache"))
-	    BIT_SET(request->flags, REQ_NOCACHE);
+	if (!strcasecmp(t, "no-cache")) {
+#ifdef RELOAD_INTO_IMS
+	    if (Config.Options.reload_into_ims)
+		BIT_SET(request->flags, REQ_NOCACHE_SPECIAL);
+	    else
+#endif
+		BIT_SET(request->flags, REQ_NOCACHE);
+	}
     }
     if (mime_get_header(request_hdr, "Range")) {
 	BIT_SET(request->flags, REQ_NOCACHE);
@@ -808,6 +814,15 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	icpState->log_type = LOG_TCP_MISS;
 	storeRelease(entry);
 	entry = NULL;
+#ifdef RELOAD_INTO_IMS
+    } else if (BIT_TEST(request->flags, REQ_NOCACHE_SPECIAL)) {
+	if (BIT_TEST(request->flags, REQ_IMS))
+	    icpState->log_type = LOG_TCP_IMS_MISS;
+	else if (request->protocol == PROTO_HTTP)
+	    icpState->log_type = LOG_TCP_REFRESH_MISS;
+	else
+	    icpState->log_type = LOG_TCP_MISS;	/* XXX zoinks */
+#endif /* RELOAD_INTO_IMS */
     } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
 	/* NOCACHE should always eject a negative cached object */
 	if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
