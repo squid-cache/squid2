@@ -658,6 +658,8 @@ request_size 100
 #       (SSL).  The defaults are 443 (https) and 563 (snews).
 #connect_ports 443 563
 
+#cache_store_log @prefix@/logs/store.log 
+
 
 ## acl aclname src|domain|time|pattern|port|proto|method string1 ...
 ## 
@@ -691,3 +693,4 @@ http_access deny manager !localhost
 http_access allow  all
 
 icp_access  allow  all
+

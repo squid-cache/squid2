@@ -104,6 +104,10 @@
 #define DEFAULT_HIERARCHY_LOG "@prefix@/logs/hierarchy.log"
 #endif
 
+#if !defined(DEFAULT_STORE_LOG)
+#define DEFAULT_STORE_LOG "@prefix@/logs/store.log"
+#endif
+
 #if !defined(DEFAULT_FTPGET_PATH)
 #define DEFAULT_FTPGET_PATH "@prefix@/bin/ftpget"
 #endif

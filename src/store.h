@@ -182,5 +182,6 @@ extern int storeCopy _PARAMS((StoreEntry *, int, int, char *, int *));
 extern int storeMaintainSwapSpace _PARAMS((void));
 extern void storeExpireNow _PARAMS((StoreEntry *));
 extern void storeReleaseRequest _PARAMS((StoreEntry *, char *file, int line));
+extern void storeRotateLog _PARAMS((void));
 
 #endif

@@ -142,6 +142,7 @@ void rotate_logs(sig)
     debug(21, 1, "rotate_logs: SIGUSR1 received.\n");
 
     storeWriteCleanLog();
+    storeRotateLog();
     neighbors_rotate_log();
     stat_rotate_log();
     _db_rotate_log();

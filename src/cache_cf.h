@@ -61,6 +61,7 @@ extern char *getEffectiveUser _PARAMS((void));
 extern char *getFtpOptions _PARAMS((void));
 extern char *getFtpProgram _PARAMS((void));
 extern char *getHierarchyLogFile _PARAMS((void));
+extern char *getStoreLogFile _PARAMS((void));
 extern char *getWaisRelayHost _PARAMS((void));
 extern char *getPidFilename _PARAMS((void));
 extern char *getVisibleHostname _PARAMS((void));
