@@ -167,7 +167,13 @@ fwdConnectDone(int server_fd, int status, void *data)
     current = fwdState;
     assert(fwdState->server_fd == server_fd);
     if (status == COMM_ERR_DNS) {
-	fwdState->flags.dont_retry = 1;
+	/*
+	 * Only set the dont_retry flag if the DNS lookup fails on
+	 * a direct connection.  If DNS lookup fails when trying
+	 * a neighbor cache, we may want to retry another option.
+	 */
+	if (NULL == fs->peer)
+	    fwdState->flags.dont_retry = 1;
 	debug(17, 4) ("fwdConnectDone: Unknown host: %s\n",
 	    request->host);
 	err = errorCon(ERR_DNS_FAIL, HTTP_SERVICE_UNAVAILABLE);
