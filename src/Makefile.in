@@ -156,3 +156,7 @@ clean:
 
 realclean:	clean
 	-rm -f Makefile squid.conf squid.conf.pre
+
+tags:
+	ctags *.[ch] ../include/*.h ../lib/*.[ch]
+
