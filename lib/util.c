@@ -129,7 +129,7 @@
 
 #include "util.h"
 
-void (*failure_notify) (char *) = NULL;
+void (*failure_notify) __P((char *)) = NULL;
 static char msg[128];
 
 extern int sys_nerr;
