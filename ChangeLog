@@ -7,6 +7,8 @@
 	  the event queue multiple times.
 	- Added ipcache and fqdncache average service times to
 	  cachemgr 'info' page.
+	- Fixed ACL parsing of hostnames to use all IP addresses,
+	  not just the first.
 
 Changes to squid-1.1.20 (January 9, 1998):
 
