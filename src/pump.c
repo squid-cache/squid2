@@ -266,7 +266,7 @@ pumpReadFromClient(int fd, void *data)
     }
     if (len > 0) {
 	int delta = p->rcvd + len - p->cont_len;
-	if (0 != delta) {
+	if (delta > 0) {
 	    debug(61, delta == 2 ? 3 : 1) ("pumpReadFromClient: Warning: read %d bytes past content-length, truncating\n", delta);
 	    len = p->cont_len - p->rcvd;
 	}
