@@ -525,8 +525,8 @@ extern variable_list *snmp_meshCtblFn(variable_list *, snint *);
 
 #if USE_WCCP
 extern PF wccpHandleUdp;
-extern PF wccpHandleGre;
 extern EVH wccpHereIam;
+extern EVH wccpAssignBuckets;
 extern void wccpInit(void);
 extern void wccpConnectionOpen(void);
 extern void wccpConnectionShutdown(void);

@@ -60,7 +60,7 @@ struct wccp_here_i_am_t {
 struct wccp_cache_entry_t {
     int ip_addr;
     int revision;
-    int hash[WCCP_HASH_SIZE];
+    char hash[WCCP_HASH_SIZE];
     int reserved;
 };
 
@@ -77,20 +77,16 @@ struct wccp_assign_bucket_t {
     int type;
     int id;
     int number;
-    int ip_addr[WCCP_ACTIVE_CACHES];
-    char bucket[WCCP_BUCKETS];
 };
 
 static int theInWccpConnection = -1;
 static int theOutWccpConnection = -1;
 static struct wccp_here_i_am_t wccp_here_i_am;
-static struct sockaddr_in router;
-static int router_len;
-static int last_change;
-static int last_assign;
-static int change;
+static struct wccp_i_see_you_t wccp_i_see_you;
+static int change, local_ip;
 
-static void wccpAssignBuckets(struct wccp_i_see_you_t *wccp_i_see_you);
+static int wccpLowestIP();
+
 /*
  * The functions used during startup:
  * wccpInit
@@ -104,51 +100,42 @@ wccpInit(void)
 {
     debug(80, 5) ("wccpInit: Called\n");
 
-    router_len = sizeof(router);
-    memset(&router, '\0', router_len);
-    router.sin_family = AF_INET;
-    router.sin_port = htons(2048);
-    router.sin_addr = Config.Wccp.router;
-
     memset(&wccp_here_i_am, '\0', sizeof(wccp_here_i_am));
     wccp_here_i_am.type = htonl(WCCP_HERE_I_AM);
     wccp_here_i_am.version = htonl(WCCP_VERSION);
     wccp_here_i_am.revision = htonl(WCCP_REVISION);
 
-    change = 0;
-    last_change = 0;
-    last_assign = 0;
+    change = 1;
+
 }
 
 void
 wccpConnectionOpen(void)
 {
     u_short port = WCCP_PORT;
+    struct sockaddr_in router, local;
+    int local_len, router_len;
 
     debug(80, 5) ("wccpConnectionOpen: Called\n");
     if (Config.Wccp.router.s_addr != inet_addr("0.0.0.0")) {
-	enter_suid();
 	theInWccpConnection = comm_open(SOCK_DGRAM,
 	    0,
 	    Config.Wccp.incoming,
 	    port,
 	    COMM_NONBLOCKING,
 	    "WCCP Port");
-	leave_suid();
 	if (theInWccpConnection < 0)
 	    fatal("Cannot open WCCP Port");
 	commSetSelect(theInWccpConnection, COMM_SELECT_READ, wccpHandleUdp, NULL, 0);
-	debug(1, 1) ("Accepting WCCP UDP messages on port %d, FD %d.\n",
+	debug(1, 1) ("Accepting WCCP messages on port %d, FD %d.\n",
 	    (int) port, theInWccpConnection);
 	if (Config.Wccp.outgoing.s_addr != no_addr.s_addr) {
-	    enter_suid();
 	    theOutWccpConnection = comm_open(SOCK_DGRAM,
 		0,
 		Config.Wccp.outgoing,
 		port,
 		COMM_NONBLOCKING,
 		"WCCP Port");
-	    leave_suid();
 	    if (theOutWccpConnection < 0)
 		fatal("Cannot open Outgoing WCCP Port");
 	    commSetSelect(theOutWccpConnection,
@@ -165,6 +152,20 @@ wccpConnectionOpen(void)
     } else {
 	debug(1, 1) ("WCCP Disabled.\n");
     }
+
+    router_len = sizeof(router);
+    memset(&router, '\0', router_len);
+    router.sin_family = AF_INET;
+    router.sin_port = htons(2048);
+    router.sin_addr = Config.Wccp.router;
+    if (connect(theOutWccpConnection, (struct sockaddr *) &router, router_len))
+	fatal("Unable to connect WCCP out socket");
+
+    local_len = sizeof(local);
+    memset(&local, '\0', local_len);
+    if (getsockname(theOutWccpConnection, (struct sockaddr *) &local, &local_len))
+	fatal("Unable to getsockname on WCCP out socket");
+    local_ip = local.sin_addr.s_addr;
 }
 
 void
@@ -200,7 +201,6 @@ wccpConnectionClose(void)
 void
 wccpHandleUdp(int sock, void *not_used)
 {
-    struct wccp_i_see_you_t wccp_i_see_you;
     struct sockaddr_in from;
     socklen_t from_len;
     int len;
@@ -210,6 +210,7 @@ wccpHandleUdp(int sock, void *not_used)
     commSetSelect(sock, COMM_SELECT_READ, wccpHandleUdp, NULL, 0);
     from_len = sizeof(struct sockaddr_in);
     memset(&from, '\0', from_len);
+    memset(&wccp_i_see_you, '\0', sizeof(wccp_i_see_you));
 
     Counter.syscalls.sock.recvfroms++;
 
@@ -219,37 +220,35 @@ wccpHandleUdp(int sock, void *not_used)
 	0,
 	(struct sockaddr *) &from,
 	&from_len);
-
-    if (len > 0) {
-	debug(80, 5) ("wccpHandleUdp: FD %d: received %d bytes from %s.\n",
-	    sock,
-	    len,
-	    inet_ntoa(from.sin_addr));
-	if (Config.Wccp.router.s_addr != ntohl(from.sin_addr.s_addr)) {
-	    if ((ntohl(wccp_i_see_you.version) == WCCP_VERSION) && (ntohl(wccp_i_see_you.type) == WCCP_I_SEE_YOU)) {
-		debug(80, 5) ("wccpHandleUdp: Valid WCCP packet recieved.\n");
-		wccp_here_i_am.id = wccp_i_see_you.id;
-		if (change != wccp_i_see_you.change) {
-		    change = wccp_i_see_you.change;
-		    if (last_assign)
-			last_assign = 0;
-		    else
-			last_change = 4;
-		}
-		if (last_change) {
-		    last_change--;
-		    if (!last_change) {
-			wccpAssignBuckets(&wccp_i_see_you);
-			last_assign = 1;
-		    }
-		}
-	    } else {
-		debug(80, 5) ("wccpHandleUdp: Invalid WCCP packet recieved.\n");
-	    }
-	} else {
-	    debug(80, 5) ("wccpHandleUdp: WCCP packet recieved from invalid address.\n");
-	}
+    if (len < 0)
+	return;
+    if (Config.Wccp.router.s_addr != from.sin_addr.s_addr)
+	return;
+    if (ntohl(wccp_i_see_you.version) != WCCP_VERSION)
+	return;
+    if (ntohl(wccp_i_see_you.type) != WCCP_I_SEE_YOU)
+	return;
+    if (!change) {
+	change = wccp_i_see_you.change;
+	return;
     }
+    if (change != wccp_i_see_you.change) {
+	change = wccp_i_see_you.change;
+	if (wccpLowestIP(wccp_i_see_you))
+	    if (!eventFind(wccpAssignBuckets, NULL))
+		eventAdd("wccpAssignBuckets", wccpAssignBuckets, NULL, 30.0, 1);
+    }
+}
+
+int
+wccpLowestIP()
+{
+    int loop;
+    for (loop = 0; loop < ntohl(wccp_i_see_you.number); loop++) {
+	if (wccp_i_see_you.wccp_cache_entry[loop].ip_addr < local_ip)
+	    return (0);
+    }
+    return (1);
 }
 
 void
@@ -257,47 +256,58 @@ wccpHereIam(void *voidnotused)
 {
     debug(80, 6) ("wccpHereIam: Called\n");
 
-    sendto(theOutWccpConnection,
+    wccp_here_i_am.id = wccp_i_see_you.id;
+    send(theOutWccpConnection,
 	&wccp_here_i_am,
 	sizeof(wccp_here_i_am),
-	0,
-	(struct sockaddr *) &router,
-	router_len);
+	0);
 
     eventAdd("wccpHereIam", wccpHereIam, NULL, 10.0, 1);
 }
 
 void
-wccpAssignBuckets(struct wccp_i_see_you_t *wccp_i_see_you)
+wccpAssignBuckets(void *voidnotused)
 {
     struct wccp_assign_bucket_t wccp_assign_bucket;
-    int number_buckets, loop_buckets, loop, bucket, number_caches;
+    int number_buckets, loop_buckets, loop, number_caches, \
+        bucket = 0, *caches, offset;
+    char buckets[WCCP_BUCKETS];
+    void *buf;
 
     debug(80, 6) ("wccpAssignBuckets: Called\n");
     memset(&wccp_assign_bucket, '\0', sizeof(wccp_assign_bucket));
-    memset(&wccp_assign_bucket.bucket, 0, sizeof(wccp_assign_bucket.bucket));
+    memset(buckets, 0xFF, WCCP_BUCKETS);
 
-    number_caches = ntohl(wccp_i_see_you->number);
+    number_caches = ntohl(wccp_i_see_you.number);
     if (number_caches > WCCP_ACTIVE_CACHES)
 	number_caches = WCCP_ACTIVE_CACHES;
+    caches = xmalloc(sizeof(int) * number_caches);
 
     number_buckets = WCCP_BUCKETS / number_caches;
-    bucket = 0;
     for (loop = 0; loop < number_caches; loop++) {
-	wccp_assign_bucket.ip_addr[loop] = wccp_i_see_you->wccp_cache_entry[loop].ip_addr;
+	caches[loop] = wccp_i_see_you.wccp_cache_entry[loop].ip_addr;
 	for (loop_buckets = 0; loop_buckets < number_buckets; loop_buckets++) {
-	    wccp_assign_bucket.bucket[bucket++] = loop;
+	    buckets[bucket++] = loop;
 	}
     }
-    wccp_assign_bucket.type = ntohl(WCCP_ASSIGN_BUCKET);
-    wccp_assign_bucket.id = wccp_i_see_you->id;
-    wccp_assign_bucket.number = ntohl(number_caches);
-    sendto(theOutWccpConnection,
-	&wccp_assign_bucket,
-	sizeof(wccp_assign_bucket),
-	0,
-	(struct sockaddr *) &router,
-	router_len);
+    offset = sizeof(wccp_assign_bucket);
+    buf = xmalloc(offset + WCCP_BUCKETS + (sizeof(*caches) * number_caches));
+    wccp_assign_bucket.type = htonl(WCCP_ASSIGN_BUCKET);
+    wccp_assign_bucket.id = wccp_i_see_you.id;
+    wccp_assign_bucket.number = wccp_i_see_you.number;
+
+    memcpy(buf, &wccp_assign_bucket, offset);
+    memcpy(buf + offset, caches, (sizeof(*caches) * number_caches));
+    offset += (sizeof(*caches) * number_caches);
+    memcpy(buf + offset, buckets, WCCP_BUCKETS);
+    offset += WCCP_BUCKETS;
+    send(theOutWccpConnection,
+	buf,
+	offset,
+	0);
+    change = 0;
+    xfree(caches);
+    xfree(buf);
 }
 
 #endif /* USE_WCCP */
