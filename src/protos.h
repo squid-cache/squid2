@@ -213,6 +213,7 @@ extern void eventRun(void);
 extern time_t eventNextTime(void);
 extern void eventDelete(EVH * func, void *arg);
 extern void eventInit(void);
+extern int eventFind(EVH *, void *);
 
 extern void fd_close(int fd);
 extern void fd_open(int fd, unsigned int type, const char *);

@@ -174,3 +174,14 @@ eventDump(StoreEntry * sentry)
 	e = e->next;
     }
 }
+
+int
+eventFind(EVH * func, void *arg)
+{
+    struct ev_entry *event;
+    for (event = tasks; event != NULL; event = event->next) {
+	if (event->func == func && event->arg == arg)
+	    return 1;
+    }
+    return 0;
+}
