@@ -298,7 +298,7 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
 	    storeClientCallback(sc, -1);
 	    return;
 	} else if (!sc->flags.disk_io_pending) {
-	    sc->flags.disk_io_pending = 1;
+	    /* Don't set store_io_pending here */
 	    storeSwapInStart(sc);
 	    if (NULL == sc->swapin_sio) {
 		storeClientCallback(sc, -1);
