@@ -606,6 +606,7 @@ struct _SquidConfig {
 	int request_entities;
 	int detect_broken_server_pconns;
 	int balance_on_multiple_ip;
+	int ignore_header_whitespace;
     } onoff;
     acl *aclList;
     struct {

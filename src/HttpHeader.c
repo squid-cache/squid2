@@ -1064,7 +1064,7 @@ httpHeaderEntryParseCreate(const char *field_start, const char *field_end)
     int id;
     /* note: name_start == field_start */
     const char *name_end = strchr(field_start, ':');
-    const int name_len = name_end ? name_end - field_start : 0;
+    int name_len = name_end ? name_end - field_start : 0;
     const char *value_start = field_start + name_len + 1;	/* skip ':' */
     /* note: value_end == field_end */
 
@@ -1077,6 +1077,13 @@ httpHeaderEntryParseCreate(const char *field_start, const char *field_end)
 	/* String has a 64K limit */
 	debug(55, 1) ("WARNING: ignoring header name of %d bytes\n", name_len);
 	return NULL;
+    }
+    if (Config.onoff.ignore_header_whitespace && xisspace(field_start[name_len - 1])) {
+	debug(55, 2) ("WARNING: Whitespace in header name '%s'\n", getStringPrefix(field_start, field_end));
+	while (name_len > 0 && xisspace(field_start[name_len - 1]))
+	    name_len--;
+	if (!name_len)
+	    return NULL;
     }
     /* now we know we can parse it */
     e = memAllocate(MEM_HTTP_HDR_ENTRY);

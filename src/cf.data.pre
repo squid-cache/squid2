@@ -4017,4 +4017,21 @@ DOC_START
 	until all the child processes have been started.
 DOC_END
 
+NAME: ignore_header_whitespace
+COMMENT: on|off
+TYPE: onoff
+LOC: Config.onoff.ignore_header_whitespace
+DEFAULT: off
+DOC_START
+	By default Squid parses the HTTP protocol strictly and
+	rejecting requests or responses having malformed headers.
+	This is a security precaution to prevent certain forms
+	of cache pollution or attempts to bypass access controls.
+	However, it is known there is buggy applications around
+	which sends such invalid headers with whitespace after
+	the header name and if you need to support such broken
+	applications then turn this option on. Use with caution
+	as this may cause problems if you are in a proxy hierarchy
+	with parent/child proxies.
+DOC_END
 EOF
