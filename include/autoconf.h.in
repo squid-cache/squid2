@@ -307,6 +307,14 @@
 #undef HAVE_STRUCT_MALLINFO
 
 /*
+ * Some systems dont have va_copy */
+#undef HAVE_VA_COPY
+
+/*
+ * Some systems support __va_copy */
+#undef HAVE___VA_COPY
+
+/*
  * Do we want to use truncate(2) or unlink(2)?
  */
 #undef USE_TRUNCATE
