@@ -520,7 +520,8 @@ neighborsUdpPing(protodispatch_data * proto)
 		    if (e->icp_version == ICP_VERSION_2)
 			flags |= ICP_FLAG_HIT_OBJ;
 	    if (Config.Options.query_icmp)
-		flags |= ICP_FLAG_SRC_RTT;
+		if (e->icp_version == ICP_VERSION_2)
+		    flags |= ICP_FLAG_SRC_RTT;
 	    query = icpCreateMessage(ICP_OP_QUERY, flags, url, reqnum, 0);
 	    icpUdpSend(theOutIcpConnection,
 		&e->in_addr,
@@ -1129,11 +1130,9 @@ peerCountMcastPeersStart(void *data)
 	fatal_dump("peerCountMcastPeersStart: non-multicast peer");
     p->mcast.count_event_pending = 0;
     sprintf(url, "http://%s/", inet_ntoa(p->in_addr.sin_addr));
-    if ((fake = storeGet(url)) == NULL) {
-	fake = storeCreateEntry(url, NULL, 0, 0, METHOD_GET);
-	fake->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
-    }
+    fake = storeCreateEntry(url, NULL, 0, 0, METHOD_GET);
     mem = fake->mem_obj;
+    mem->request = requestLink(urlParse(METHOD_GET, url));
     mem->e_pings_n_pings = 0;
     mem->e_pings_n_acks = 0;
     mem->start_ping = current_time;
