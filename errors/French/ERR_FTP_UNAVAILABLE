@@ -5,8 +5,7 @@
 <H2>The requested URL could not be retrieved</H2>
 <HR>
 <P>
-An FTP protocol error occurred
-while trying to retrieve the URL:
+The FTP server was too busy while trying to retrieve the URL:
 <A HREF="%U">%U</A>
 <P>
 Squid sent the following FTP command:

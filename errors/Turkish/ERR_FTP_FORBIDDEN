@@ -5,7 +5,7 @@
 <H2>The requested URL could not be retrieved</H2>
 <HR>
 <P>
-An FTP protocol error occurred
+An FTP authentication failure occurred
 while trying to retrieve the URL:
 <A HREF="%U">%U</A>
 <P>

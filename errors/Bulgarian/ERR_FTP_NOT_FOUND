@@ -5,8 +5,7 @@
 <H2>The requested URL could not be retrieved</H2>
 <HR>
 <P>
-An FTP protocol error occurred
-while trying to retrieve the URL:
+The following URL could not be retrieved:
 <A HREF="%U">%U</A>
 <P>
 Squid sent the following FTP command:
@@ -14,5 +13,9 @@ Squid sent the following FTP command:
 and then received this reply
 <blockquote><strong><pre>%F</pre></strong></blockquote>
 <blockquote><strong><pre>%g</pre></strong></blockquote>
+<P>
+This might be caused by an FTP URL with an absolute path (which does
+not comply with RFC 1738).  If this is the cause, then the file
+can be found at <A HREF="%B">%B</A>.
 </P>
 
