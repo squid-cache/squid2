@@ -199,7 +199,7 @@ struct SquidConfig Config;
 #define DefaultMinDirectHops	4
 #define DefaultMaxObjectSize	(4<<20)		/* 4Mb */
 #define DefaultAvgObjectSize	20	/* 20k */
-#define DefaultObjectsPerBucket	50
+#define DefaultObjectsPerBucket	20
 
 #define DefaultLevelOneDirs	16
 #define DefaultLevelTwoDirs	256
@@ -712,6 +712,8 @@ parsePathname(char **path, int fatal)
 	self_destruct();
     safe_free(*path);
     *path = xstrdup(token);
+    if (!strcmp(token, "none"))
+	return;
     if (fatal && stat(token, &sb) < 0) {
 	debug(50, 1, "parsePathname: %s: %s\n", token, xstrerror());
 	self_destruct();
