@@ -135,28 +135,44 @@ log_quote(const char *header)
      * more readable.
      */
     while ((c = *(const unsigned char *) header++) != '\0') {
-	if (c <= 0x1F
-	    || c >= 0x7F
-	    || c == '"'
-	    || c == '#'
-	    || c == '%'
-	    || c == ';'
-	    || c == '<'
-	    || c == '>'
-	    || c == '?'
-	    || c == '{'
-	    || c == '}'
-	    || c == '|'
-	    || c == '\\'
-	    || c == '^'
-	    || c == '~'
-	    || c == '`'
-	    || c == '['
+#if !OLD_LOG_MIME
+	if (c == '\r') {
+	    *buf_cursor++ = '\\';
+	    *buf_cursor++ = 'r';
+	} else if (c == '\n') {
+	    *buf_cursor++ = '\\';
+	    *buf_cursor++ = 'n';
+	} else
+#endif
+	    if (c <= 0x1F
+		|| c >= 0x7F
+#if OLD_LOG_MIME
+		|| c == '"'
+		|| c == '#'
+		|| c == '%'
+		|| c == ';'
+		|| c == '<'
+		|| c == '>'
+		|| c == '?'
+		|| c == '{'
+		|| c == '}'
+		|| c == '|'
+		|| c == '\\'
+		|| c == '^'
+		|| c == '~'
+		|| c == '`'
+#endif
+		|| c == '['
 	    || c == ']') {
 	    *buf_cursor++ = '%';
 	    i = c * 2;
 	    *buf_cursor++ = c2x[i];
 	    *buf_cursor++ = c2x[i + 1];
+#if !OLD_LOG_MIME
+	} else if (c == '\\') {
+	    *buf_cursor++ = '\\';
+	    *buf_cursor++ = '\\';
+#endif
 	} else {
 	    *buf_cursor++ = (char) c;
 	}
