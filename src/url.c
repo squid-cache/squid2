@@ -304,7 +304,7 @@ urlParse(method_t method, char *url)
 	    *q = '\0';
 	}
     }
-    if (strspn(host, valid_hostname_chars) != strlen(host)) {
+    if (Config.onoff.check_hostnames && strspn(host, valid_hostname_chars) != strlen(host)) {
 	debug(23, 1) ("urlParse: Illegal character in hostname '%s'\n", host);
 	return NULL;
     }

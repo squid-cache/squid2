@@ -589,6 +589,7 @@ struct _SquidConfig {
 	int ie_refresh;
 	int vary_ignore_expire;
 	int pipeline_prefetch;
+	int check_hostnames;
     } onoff;
     acl *aclList;
     struct {

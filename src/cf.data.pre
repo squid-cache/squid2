@@ -1092,6 +1092,16 @@ DOC_START
 	connection then turn this off.
 DOC_END
 
+NAME: check_hostnames
+TYPE: onoff
+DEFAULT: on
+LOC: Config.onoff.check_hostnames
+DOC_START
+	For security and stability reasons Squid by default checks
+	hostnames for Internet standard RFC compliance. If you do not want
+	Squid to perform these checks then turn this directive off.
+DOC_END
+
 NAME: cache_dns_program
 TYPE: string
 IFDEF: USE_DNSSERVERS
@@ -3809,12 +3819,11 @@ LOC: Config.onoff.pipeline_prefetch
 DEFAULT: off
 DOC_START
 	To boost the performance of pipelined requests to closer
-	match that of a non-proxied environment Squid tries to fetch
+	match that of a non-proxied environment Squid can try to fetch
 	up to two requests in parallell from a pipeline.
 
-	Note: This is known to be broken in Squid-DEVEL due to changes
-	in the internal store_client_copy() interface. Do not enable
-	for now.
+	Defaults to off for bandwidth management and access logging
+	reasons.
 DOC_END
 
 NAME: extension_methods
