@@ -146,14 +146,11 @@ int
 httpRequestHdrAllowed(const HttpHeaderEntry * e, String * strConn)
 {
     assert(e);
-    /* check connection header first */
+    /* check with anonymizer tables */
+    if (CBIT_TEST(Config.http_header, e->id))
+	return 0;
+    /* check connection header */
     if (strConn && strListIsMember(strConn, strBuf(e->name), ','))
 	return 0;
-    /* check with anonymizer tables */
-    if (Config.onoff.anonymizer == ANONYMIZER_PARANOID) {
-	return httpAnonHdrAllowed(e->id);
-    } else if (Config.onoff.anonymizer == ANONYMIZER_STANDARD) {
-	return !httpAnonHdrDenied(e->id);
-    }
     return 1;
 }

@@ -62,7 +62,7 @@ static int httpReplyIsolateStart(const char **parse_start, const char **blk_star
 void
 httpReplyInitModule()
 {
-    httpHeaderMaskInit(&Denied304HeadersMask);
+    httpHeaderMaskInit(&Denied304HeadersMask, 0);
     httpHeaderCalcMask(&Denied304HeadersMask, (const int *) Denied304HeadersArr, countof(Denied304HeadersArr));
 }
 

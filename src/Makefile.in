@@ -110,7 +110,6 @@ OBJS	 	= \
 		helper.o \
 		@HTCP_OBJS@ \
 		http.o \
-		http-anon.o \
 		HttpStatusLine.o \
 		HttpHdrCc.o \
 		HttpHdrRange.o \

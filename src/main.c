@@ -410,7 +410,6 @@ mainInitialize(void)
     authenticateInit();
     useragentOpenLog();
     httpHeaderInitModule();	/* must go before any header processing (e.g. the one in errorInitialize) */
-    httpAnonInitModule();	/* must go before accepting requests */
     httpReplyInitModule();	/* must go before accepting replies */
     errorInitialize();
     accessLogInit();
