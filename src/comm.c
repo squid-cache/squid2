@@ -730,7 +730,7 @@ int comm_select(sec)
 	    poll_time.tv_sec = 0;
 	    poll_time.tv_usec = 250000;
 #else
-	    poll_time.tv_sec = sec > 1 ? 1 : 0;
+	    poll_time.tv_sec = sec > 0 ? 1 : 0;
 	    poll_time.tv_usec = 0;
 #endif
 	    num = select(maxfd, &readfds, &writefds, &exceptfds, &poll_time);
