@@ -631,7 +631,7 @@ idnsInit(void)
 	 * statement. Doing so messes up the internal _db_level
 	 */
 	port = comm_local_port(DnsSocket);
-	debug(78, 1) ("DNS Socket created at %s, port %d, FD %d\n", 
+	debug(78, 1) ("DNS Socket created at %s, port %d, FD %d\n",
 	    inet_ntoa(addr),
 	    port, DnsSocket);
     }
