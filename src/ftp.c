@@ -1875,7 +1875,6 @@ ftpAcceptDataConnection(int fd, void *data)
 static void
 ftpRestOrList(FtpStateData * ftpState)
 {
-
     debug(9, 3) ("This is ftpRestOrList\n");
     if (ftpState->flags.put) {
 	debug(9, 3) ("ftpRestOrList: Sending STOR request...\n");
@@ -1896,10 +1895,20 @@ ftpRestOrList(FtpStateData * ftpState)
 static void
 ftpSendStor(FtpStateData * ftpState)
 {
-    assert(ftpState->filepath != NULL);
-    snprintf(cbuf, 1024, "STOR %s\r\n", ftpState->filepath);
-    ftpWriteCommand(cbuf, ftpState);
-    ftpState->state = SENT_STOR;
+    if (ftpState->filepath != NULL) {
+	/* Plain file upload */
+	snprintf(cbuf, 1024, "STOR %s\r\n", ftpState->filepath);
+	ftpWriteCommand(cbuf, ftpState);
+	ftpState->state = SENT_STOR;
+    } else if (httpHeaderGetInt(&ftpState->request->header, HDR_CONTENT_LENGTH) > 0) {
+	/* File upload without a filename. use STOU to generate one */
+	snprintf(cbuf, 1024, "STOU\r\n");
+	ftpWriteCommand(cbuf, ftpState);
+	ftpState->state = SENT_STOR;
+    } else {
+	/* No file to transfer. Only create directories if needed */
+	ftpSendReply(ftpState);
+    }
 }
 
 static void
@@ -2336,6 +2345,9 @@ ftpSendReply(FtpStateData * ftpState)
     if (code == 226) {
 	err_code = (ftpState->mdtm > 0) ? ERR_FTP_PUT_MODIFIED : ERR_FTP_PUT_CREATED;
 	http_code = (ftpState->mdtm > 0) ? HTTP_ACCEPTED : HTTP_CREATED;
+    } else if (code == 227) {
+	err_code = ERR_FTP_PUT_CREATED;
+	http_code = HTTP_CREATED;
     } else {
 	err_code = ERR_FTP_PUT_ERROR;
 	http_code = HTTP_INTERNAL_SERVER_ERROR;
