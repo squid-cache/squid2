@@ -112,6 +112,7 @@ extern FILE *debug_log;
 
 extern void _db_init _PARAMS((char *logfile, char *options));
 extern void _db_rotate_log _PARAMS((void));
+extern char *accessLogTime _PARAMS((time_t));
 
 #if __STDC__
 extern void _db_print _PARAMS((int, int, char *,...));

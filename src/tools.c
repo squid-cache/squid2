@@ -581,13 +581,6 @@ getCurrentTime(void)
 }
 
 int
-tvSubMsec(struct timeval t1, struct timeval t2)
-{
-    return (t2.tv_sec - t1.tv_sec) * 1000 +
-	(t2.tv_usec - t1.tv_usec) / 1000;
-}
-
-int
 percent(int a, int b)
 {
     return b ? ((int) (100.0 * a / b + 0.5)) : 0;
@@ -606,20 +599,6 @@ squid_signal(int sig, void (*func) _PARAMS((int)), int flags)
 #else
     (void) signal(sig, func);
 #endif
-}
-
-char *
-accessLogTime(time_t t)
-{
-    struct tm *tm;
-    static char buf[128];
-    static time_t last_t = 0;
-    if (t != last_t) {
-	tm = localtime(&t);
-	strftime(buf, 127, "%y/%m/%d %T", tm);
-	last_t = t;
-    }
-    return buf;
 }
 
 struct in_addr

@@ -274,3 +274,17 @@ _db_rotate_log(void)
     if (debug_log != stderr)
 	debugOpenLog(Config.Log.log);
 }
+
+char *
+accessLogTime(time_t t)
+{
+    struct tm *tm;
+    static char buf[128];
+    static time_t last_t = 0;
+    if (t != last_t) {
+	tm = localtime(&t);
+	strftime(buf, 127, "%y/%m/%d %T", tm);
+	last_t = t;
+    }
+    return buf;
+}
