@@ -51,7 +51,7 @@ Changes to Squid-2.3.DEVEL2 ():
 	  as an ACL type.
 	- Fixed proxy authentication username/password parsing to
 	  be more robust (Henrik).
-	- Fixed ACL domain/host and domain/domain comparision
+	- Fixed ACL domain/host and domain/domain comparison
 	  functions yet again.  Eliminated duplicate code so that
 	  only src/url.c::matchDomainName() contains this mysterious
 	  code.
