@@ -47,7 +47,7 @@
 
 #ifdef _SQUID_LINUX_
 	/* Cannot increase FD_SETSIZE on Linux */
-#elif _SQUID_FREEBSD_
+#elsif _SQUID_FREEBSD_
 	/* Cannot increase FD_SETSIZE on FreeBSD */
 	/* Marian Durkovic <marian@svf.stuba.sk> */
 #else
