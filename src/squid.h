@@ -154,6 +154,8 @@
 #define SQUIDHOSTNAMELEN MAXHOSTNAMELEN
 #endif
 
+#define SQUID_MAXPATHLEN 256
+
 #ifndef INADDR_NONE
 #define INADDR_NONE ((unsigned long) -1)
 #endif

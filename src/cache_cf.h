@@ -169,8 +169,8 @@ struct SquidConfig {
     struct {
 	char *log;
 	char *access;
-	char *hierarchy;
 	char *store;
+	char *swap;
 	int rotateNumber;
 	int log_fqdn;
     } Log;

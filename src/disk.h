@@ -114,8 +114,6 @@
 #define DISK_FILE_NOT_FOUND      (-5)
 #define DISK_NO_SPACE_LEFT       (-6)
 
-#define MAX_FILE_NAME_LEN 256
-
 typedef int (*FILE_READ_HD) (int fd, char *buf, int size, int errflag,
     void *data, int offset);
 
@@ -146,7 +144,7 @@ typedef struct _dread_ctrl {
 } dread_ctrl;
 
 typedef struct _FileEntry {
-    char filename[MAX_FILE_NAME_LEN];
+    char filename[SQUID_MAXPATHLEN];
     enum {
 	NO, YES
     } at_eof;

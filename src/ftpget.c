@@ -632,7 +632,7 @@ write_with_timeout(int fd, char *buf, int sz)
 	x = write(fd, buf, sz);
 	debug(38, 7, "write_with_timeout: write returned %d\n", x);
 	if (x < 0) {
-	    debug(38, 0, "ftpget: write: %s\n", xstrerror());
+	    debug(38, 0, "write_with_timeout: %s\n", xstrerror());
 	    return x;
 	}
 	if (x == 0)
@@ -1726,7 +1726,7 @@ read_data(ftp_request_t * r)
 	return ftp_request_timeout(r);
     if (x < 0) {
 	r->errmsg = xmalloc(SMALLBUFSIZ);
-	sprintf(r->errmsg, "write: %s", xstrerror());
+	sprintf(r->errmsg, "write cfd: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
     }

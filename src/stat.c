@@ -1279,8 +1279,8 @@ stat_init(cacheinfo ** object, char *logfilename)
     obj->parameter_get = parameter_get;
     obj->server_list = server_list;
     if (logfilename) {
-	memset(obj->logfilename, '0', MAX_FILE_NAME_LEN);
-	strncpy(obj->logfilename, logfilename, MAX_FILE_NAME_LEN - 1);
+	memset(obj->logfilename, '0', SQUID_MAXPATHLEN);
+	strncpy(obj->logfilename, logfilename, SQUID_MAXPATHLEN - 1);
 	obj->logfile_fd = file_open(obj->logfilename, NULL, O_WRONLY | O_CREAT);
 	if (obj->logfile_fd == DISK_ERROR) {
 	    debug(18, 0, "%s: %s\n", obj->logfilename, xstrerror());

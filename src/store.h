@@ -106,7 +106,6 @@
 #ifndef _STORE_H_
 #define _STORE_H_
 
-#define MAX_FILE_NAME_LEN 	256
 #define MIN_PENDING 		1
 #define MIN_CLIENT 		1
 
