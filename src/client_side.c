@@ -1673,7 +1673,9 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	/*
 	 * plain ol' cache hit
 	 */
-	if (e->mem_status == IN_MEMORY)
+	if (e->store_status != STORE_OK)
+	    http->log_type = LOG_TCP_MISS;
+	else if (e->mem_status == IN_MEMORY)
 	    http->log_type = LOG_TCP_MEM_HIT;
 	else if (Config.onoff.offline)
 	    http->log_type = LOG_TCP_OFFLINE_HIT;
