@@ -166,6 +166,7 @@
 
 #define PEER_MAX_ADDRESSES 10
 #define RTT_AV_FACTOR      50
+#define RTT_BACKGROUND_AV_FACTOR      25	/* Background pings need a smaller factor since they are sent less frequently */
 
 #define PEER_DEAD 0
 #define PEER_ALIVE 1
