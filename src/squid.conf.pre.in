@@ -37,6 +37,9 @@
 #
 #	The defaults behaviour is to not bind to any specific address.
 #
+#	NOTE, udp_incoming_address and udp_outgoing_address can not have
+#	the same value since they both use port @CACHE_ICP_PORT@.
+#
 #tcp_incoming_address 0.0.0.0
 #tcp_outgoing_address 0.0.0.0
 #udp_incoming_address 0.0.0.0
