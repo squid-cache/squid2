@@ -135,38 +135,38 @@ install-mkdirs:
 install: all install-mkdirs
 	@for f in $(PROGS); do \
 		if test -f $(bindir)/$$f; then \
-			echo $(MV) $(bindir)/$$f $(bindir)/$$f.old; \
-			$(MV) $(bindir)/$$f $(bindir)/$$f.old; \
+			echo $(MV) $(bindir)/$$f $(bindir)/-$$f; \
+			$(MV) $(bindir)/$$f $(bindir)/-$$f; \
 		fi; \
 		echo $(INSTALL_BIN) $$f $(bindir); \
 		$(INSTALL_BIN) $$f $(bindir); \
-		if test -f $(bindir)/$$f.old; then \
-			echo $(RM) -f $(bindir)/$$f.old; \
-			$(RM) $(bindir)/$$f.old; \
+		if test -f $(bindir)/-$$f; then \
+			echo $(RM) -f $(bindir)/-$$f; \
+			$(RM) $(bindir)/-$$f; \
 		fi; \
 	done
 	@for f in $(UTILS); do \
 		if test -f $(libexecdir)/$$f; then \
-			echo $(MV) $(libexecdir)/$$f $(libexecdir)/$$f.old; \
-			$(MV) $(libexecdir)/$$f $(libexecdir)/$$f.old; \
+			echo $(MV) $(libexecdir)/$$f $(libexecdir)/-$$f; \
+			$(MV) $(libexecdir)/$$f $(libexecdir)/-$$f; \
 		fi; \
 		echo $(INSTALL_BIN) $$f $(libexecdir); \
 		$(INSTALL_BIN) $$f $(libexecdir); \
-		if test -f $(libexecdir)/$$f.old; then \
-			echo $(RM) -f $(libexecdir)/$$f.old; \
-			$(RM) $(libexecdir)/$$f.old; \
+		if test -f $(libexecdir)/-$$f; then \
+			echo $(RM) -f $(libexecdir)/-$$f; \
+			$(RM) $(libexecdir)/-$$f; \
 		fi; \
 	done
 	@for f in $(CGIPROGS); do \
 		if test -f $(libexecdir)/$$f; then \
-			echo $(MV) $(libexecdir)/$$f $(libexecdir)/$$f.old; \
-			$(MV) $(libexecdir)/$$f $(libexecdir)/$$f.old; \
+			echo $(MV) $(libexecdir)/$$f $(libexecdir)/-$$f; \
+			$(MV) $(libexecdir)/$$f $(libexecdir)/-$$f; \
 		fi; \
 		echo $(INSTALL_BIN) $$f $(libexecdir); \
 		$(INSTALL_BIN) $$f $(libexecdir); \
-		if test -f $(libexecdir)/$$f.old; then \
-			echo $(RM) -f $(libexecdir)/$$f.old; \
-			$(RM) $(libexecdir)/$$f.old; \
+		if test -f $(libexecdir)/-$$f; then \
+			echo $(RM) -f $(libexecdir)/-$$f; \
+			$(RM) $(libexecdir)/-$$f; \
 		fi; \
 	done
 	$(INSTALL_FILE) squid.conf $(sysconfdir)/squid.conf.default
