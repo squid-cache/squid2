@@ -2139,17 +2139,20 @@ CheckQuickAbort2(const clientHttpRequest * http)
 static void
 CheckQuickAbort(clientHttpRequest * http)
 {
-    if (http->entry == NULL)
+    StoreEntry *entry = http->entry;
+    /* Note, set entry here because http->entry might get changed (for IMS
+       requests) during the storeAbort() call */
+    if (entry == NULL)
 	return;
-    if (storePendingNClients(http->entry) > 1)
+    if (storePendingNClients(entry) > 1)
 	return;
-    if (http->entry->store_status != STORE_PENDING)
+    if (entry->store_status != STORE_PENDING)
 	return;
     if (CheckQuickAbort2(http) == 0)
 	return;
-    debug(12, 3) ("CheckQuickAbort: ABORTING %s\n", http->entry->url);
-    storeAbort(http->entry, "aborted by client");
-    storeReleaseRequest(http->entry);
+    debug(12, 3) ("CheckQuickAbort: ABORTING %s\n", entry->url);
+    storeAbort(entry, "aborted by client");
+    storeReleaseRequest(entry);
     http->log_type = ERR_CLIENT_ABORT;
 }
 
