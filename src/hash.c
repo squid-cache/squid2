@@ -105,7 +105,7 @@
 
 #include "squid.h"
 
-#define MAX_HTABLE 10
+#define MAX_HTABLE 20
 
 int hash_links_allocated;
 

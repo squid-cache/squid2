@@ -141,6 +141,7 @@ typedef struct _meta_data_stat {
     int netdb_hosts;
     int url_strings;
     int misc;
+    int client_info;
 } Meta_data;
 
 extern Meta_data meta_data;

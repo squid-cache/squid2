@@ -360,6 +360,12 @@ objcacheStart(int fd, char *url, StoreEntry * entry)
 	BIT_RESET(data->entry->flag, DELAY_SENDING);
 	storeComplete(data->entry);
 
+    } else if (strcmp(data->request, "client_list") == 0) {
+	BIT_SET(data->entry->flag, DELAY_SENDING);
+	clientdbDump(data->entry);
+	BIT_RESET(data->entry->flag, DELAY_SENDING);
+	storeComplete(data->entry);
+
     } else if (strcmp(data->request, "squid.conf") == 0) {
 	HTTPCacheInfo->squid_get_start(HTTPCacheInfo, data->entry);
 

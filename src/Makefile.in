@@ -59,7 +59,8 @@ CLIENT_LIBS	= -L../lib -lmiscutil $(XTRA_LIBS)
 PROGS           = squid client
 UTILS           = dnsserver ftpget pinger
 CGIPROGS	= cachemgr.cgi
-OBJS	 	= acl.o async_io.o background.o cache_cf.o errorpage.o \
+OBJS	 	= acl.o async_io.o background.o cache_cf.o \
+		client_db.o errorpage.o \
 		client_side.o comm.o debug.o disk.o dns.o \
 		fdstat.o filemap.o ftp.o fqdncache.o gopher.o \
 		hash.o http.o icmp.o icp.o ident.o ipcache.o \

@@ -108,7 +108,7 @@
 
 int neighbors_do_private_keys = 1;
 
-static char *log_tags[] =
+char *log_tags[] =
 {
     "LOG_NONE",
     "TCP_HIT",
@@ -269,6 +269,9 @@ icpStateFree(int fd, icpStateData * icpState)
     HTTPCacheInfo->proto_count(HTTPCacheInfo,
 	icpState->request ? icpState->request->protocol : PROTO_NONE,
 	icpState->log_type);
+    clientdbUpdate(icpState->peer.sin_addr,
+	icpState->log_type, 
+	ntohs(icpState->me.sin_port));
     if (icpState->ident_fd)
 	comm_close(icpState->ident_fd);
     checkFailureRatio(icpState->log_type,
@@ -872,6 +875,9 @@ icpLogIcp(icpUdpData * queue)
     ICPCacheInfo->proto_count(ICPCacheInfo,
 	queue->proto,
 	queue->logcode);
+    clientdbUpdate(queue->address.sin_addr,
+        queue->logcode,
+        CACHE_ICP_PORT);
 }
 
 int
@@ -1140,8 +1146,9 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
-	    icpUdpSend(fd, url, header.reqnum, &from, 0,
-		ICP_OP_DENIED, LOG_UDP_DENIED, p);
+	    if (clientdbDeniedPercent(from.sin_addr) < 95)
+	        icpUdpSend(fd, url, header.reqnum, &from, 0,
+		    ICP_OP_DENIED, LOG_UDP_DENIED, p);
 	    break;
 	}
 	/* The peer is allowed to use this cache */
@@ -1287,8 +1294,9 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
-	    icpUdpSend(fd, url, header.reqnum, &from, 0,
-		ICP_OP_DENIED, LOG_UDP_DENIED, p);
+	    if (clientdbDeniedPercent(from.sin_addr) < 95)
+	        icpUdpSend(fd, url, header.reqnum, &from, 0,
+	    	    ICP_OP_DENIED, LOG_UDP_DENIED, p);
 	    break;
 	}
 	/* The peer is allowed to use this cache */

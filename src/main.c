@@ -391,6 +391,7 @@ serverConnectionsOpen(void)
 	    }
 	}
     }
+    clientdbInit();
 #if USE_ICMP
     icmpOpen();
     netdbInit();

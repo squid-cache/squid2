@@ -254,6 +254,7 @@ typedef int (*QS) (const void *, const void *);
 #include "client_side.h"
 #include "icmp.h"
 #include "net_db.h"
+#include "client_db.h"
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"
