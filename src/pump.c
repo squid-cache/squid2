@@ -332,7 +332,6 @@ pumpClose(void *data)
     if (rep != NULL && rep->store_status == STORE_PENDING) {
 	ErrorState *err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
 	fwdFail(p->fwd, err);
-	debug(0, 0) ("XXX did the server-side FD (%d) get closed?\n", p->s_fd);
     }
     if (p->s_fd > -1) {
 	comm_close(p->s_fd);
