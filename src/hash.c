@@ -285,7 +285,7 @@ hash_next(hash_table * hid)
  *  On success, it returns 0 and deletes the link; otherwise, 
  *  returns non-zero on error.
  */
-int
+void
 hash_remove_link(hash_table * hid, hash_link * hl)
 {
     hash_link *walker, *prev;
@@ -304,10 +304,10 @@ hash_remove_link(hash_table * hid, hash_link * hl)
 	    if (walker == hid->current_ptr)
 		hid->current_ptr = walker->next;
 	    hid->count--;
-	    return 0;
+	    return;
 	}
     }
-    return 1;
+    fatal("hash_remove_link: could not find entry");
 }
 
 /*
