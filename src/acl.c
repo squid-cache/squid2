@@ -1080,7 +1080,7 @@ aclMatchUser(void *proxyauth_acl, char *user)
     debug(28, 8) ("Top is %p, Top->data is %s\n", Top,
 	(char *) (Top != NULL ? (Top)->data : "Unavailable"));
 
-    if (user == NULL)
+    if (user == NULL || strcmp(user, "-") == 0)
 	return 0;
 
     if (data->flags.required) {
