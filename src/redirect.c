@@ -381,9 +381,15 @@ void redirectOpenServers()
 void redirectShutdownServers()
 {
     redirector_t *redirect = NULL;
+    redirectStateData *r = NULL;
     int k;
     if (Config.Program.redirect == NULL)
 	return;
+    if (redirectQueueHead) {
+        while ((redirect = GetFirstAvailable()) && (r = Dequeue()))
+	    redirectDispatch(redirect, r);
+	return;
+    }
     for (k = 0; k < NRedirectors; k++) {
 	redirect = *(redirect_child_table + k);
 	if (!(redirect->flags & REDIRECT_FLAG_ALIVE))
