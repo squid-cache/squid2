@@ -265,8 +265,9 @@ pumpReadFromClient(int fd, void *data)
 	return;
     }
     if (len > 0) {
-	if (p->rcvd + len > p->cont_len) {
-	    debug(61, 1) ("pumpReadFromClient: Warning: read %d bytes past content-length, truncating\n", p->rcvd + len - p->cont_len);
+	int delta = p->rcvd + len - p->cont_len;
+	if (0 != delta) {
+	    debug(61, delta == 2 ? 3 : 1) ("pumpReadFromClient: Warning: read %d bytes past content-length, truncating\n", delta);
 	    len = p->cont_len - p->rcvd;
 	}
 	storeAppend(req, buf, len);
