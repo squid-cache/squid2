@@ -21,3 +21,5 @@
 /* TCP receive buffer size */
 #undef SQUID_TCP_SO_RCVBUF
 
+/* Host type from configure */
+#undef CONFIG_HOST_TYPE
