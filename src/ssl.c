@@ -75,6 +75,18 @@ static DEFER sslDeferServerRead;
 #endif
 
 static void
+sslAbort(SslStateData * sslState)
+{
+    debug(26, 3) ("sslAbort: FD %d/%d\n", sslState->client.fd, sslState->server.fd);
+    cbdataLock(sslState);
+    if (sslState->client.fd > -1)
+	comm_close(sslState->client.fd);
+    if (sslState->server.fd > -1)
+	comm_close(sslState->server.fd);
+    cbdataUnlock(sslState);
+}
+
+static void
 sslServerClosed(int fd, void *data)
 {
     SslStateData *sslState = data;
@@ -258,7 +270,7 @@ sslReadClient(int fd, void *data)
 	debug(50, level) ("sslReadClient: FD %d: read failure: %s\n",
 	    fd, xstrerror());
 	if (!ignoreErrno(errno))
-	    comm_close(fd);
+	    sslAbort(sslState);
     } else if (len == 0) {
 	comm_close(fd);
     }
@@ -298,11 +310,8 @@ sslWriteServer(int fd, void *data)
     if (len < 0) {
 	debug(50, ignoreErrno(errno) ? 3 : 1)
 	    ("sslWriteServer: FD %d: write failure: %s.\n", fd, xstrerror());
-	if (!ignoreErrno(errno)) {
-	    comm_close(fd);
-	    if (sslState->client.fd > -1)
-		comm_close(sslState->client.fd);
-	}
+	if (!ignoreErrno(errno))
+	    sslAbort(sslState);
     }
     if (cbdataValid(sslState))
 	sslSetSelect(sslState);
@@ -345,11 +354,8 @@ sslWriteClient(int fd, void *data)
     if (len < 0) {
 	debug(50, ignoreErrno(errno) ? 3 : 1)
 	    ("sslWriteClient: FD %d: write failure: %s.\n", fd, xstrerror());
-	if (!ignoreErrno(errno)) {
-	    comm_close(fd);
-	    if (sslState->server.fd > -1)
-		comm_close(sslState->server.fd);
-	}
+	if (!ignoreErrno(errno))
+	    sslAbort(sslState);
     }
     if (cbdataValid(sslState))
 	sslSetSelect(sslState);
@@ -361,7 +367,7 @@ sslTimeout(int fd, void *data)
 {
     SslStateData *sslState = data;
     debug(26, 3) ("sslTimeout: FD %d\n", fd);
-    comm_close(sslState->client.fd);
+    sslAbort(sslState);
 }
 
 static void
@@ -385,7 +391,7 @@ sslErrorComplete(int fdnotused, void *data, size_t sizenotused)
 
 
 static void
-sslConnectDone(int fdnotused, int status, void *data)
+sslConnectDone(int fd, int status, void *data)
 {
     SslStateData *sslState = data;
     request_t *request = sslState->request;
@@ -401,6 +407,7 @@ sslConnectDone(int fdnotused, int status, void *data)
 	    sslState->host);
     if (status == COMM_ERR_DNS) {
 	debug(26, 4) ("sslConnect: Unknown host: %s\n", sslState->host);
+	comm_close(fd);
 	err = errorCon(ERR_DNS_FAIL, HTTP_NOT_FOUND);
 	*sslState->status_ptr = HTTP_NOT_FOUND;
 	err->request = requestLink(request);
@@ -409,6 +416,7 @@ sslConnectDone(int fdnotused, int status, void *data)
 	err->callback_data = sslState;
 	errorSend(sslState->client.fd, err);
     } else if (status != COMM_OK) {
+	comm_close(fd);
 	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
 	*sslState->status_ptr = HTTP_SERVICE_UNAVAILABLE;
 	err->xerrno = errno;
