@@ -88,7 +88,6 @@ extern int getCacheSwapMax _PARAMS((void));
 extern int getCleanRate _PARAMS((void));
 extern int getClientLifetime _PARAMS((void));
 extern int getConnectTimeout _PARAMS((void));
-extern int getDnSChildren _PARAMS((void));
 extern int getDnsChildren _PARAMS((void));
 extern int getFtpMax _PARAMS((void));
 extern int getFtpTTL _PARAMS((void));
@@ -131,6 +130,10 @@ extern wordlist *getHttpStoplist _PARAMS((void));
 extern wordlist *getHierarchyStoplist _PARAMS((void));
 extern wordlist *getInsideFirewallList _PARAMS((void));
 extern wordlist *getLocalDomainList _PARAMS((void));
+#if REDIRECT_IN_PROGRESS
+extern int getRedirectChildren _PARAMS((void));
+extern char *getRedirectProgram _PARAMS((void));
+#endif
 
 
 #endif /* ndef  _CACHE_CONFIG_H_ */
