@@ -116,14 +116,14 @@ void debug_flag(flag)
 }
 
 /*
- *  debug_init() - Initializes debugging from $HARVEST_DEBUG variable
+ *  debug_init() - Initializes debugging from $SQUID_DEBUG variable
  *
  */
 void debug_init()
 {
     char *s, *t, *u;
 
-    s = getenv("HARVEST_DEBUG");
+    s = getenv("SQUID_DEBUG");
     if (s == (char *) 0)
 	return;
 
@@ -132,6 +132,6 @@ void debug_init()
     u = strtok(t, " \t\n");
     do {
 	debug_flag(u);
-    } while (u = strtok((char *) 0, " \t\n"));
+    } while ((u = strtok((char *) 0, " \t\n")) != (char *) NULL);
     xfree(t);
 }

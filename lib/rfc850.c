@@ -103,7 +103,7 @@ time_t parse_rfc850(str)
 
 #ifdef HAVE_TIMEGM
     t = timegm(&tm);
-#elif defined(_HARVEST_SYSV_) || defined(_HARVEST_LINUX_) || defined(_HARVEST_HPUX_) || defined(_HARVEST_AIX_)
+#elif defined(_SQUID_SYSV_) || defined(_SQUID_LINUX_) || defined(_SQUID_HPUX_) || defined(_SQUID_AIX_)
     /* some systems do not have tm_gmtoff so we fake it */
     t = mktime(&tm);
     {
