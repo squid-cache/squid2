@@ -43,9 +43,11 @@ typedef struct swapout_ctrl_t {
 
 static FOCB storeSwapOutFileOpened;
 static off_t storeSwapOutObjectBytesOnDisk(const MemObject *);
+static void storeSwapOutStart(StoreEntry * e);
+static DWCB storeSwapOutHandle;
 
 /* start swapping object to disk */
-void
+static void
 storeSwapOutStart(StoreEntry * e)
 {
     swapout_ctrl_t *ctrlp = xmalloc(sizeof(swapout_ctrl_t));
@@ -65,7 +67,7 @@ storeSwapOutStart(StoreEntry * e)
 	e);
 }
 
-void
+static void
 storeSwapOutHandle(int fdnotused, int flag, size_t len, void *data)
 {
     swapout_ctrl_t *ctrlp = data;
