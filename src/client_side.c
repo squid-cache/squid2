@@ -1885,6 +1885,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     size_t header_sz;		/* size of headers, not including first line */
     size_t prefix_sz;		/* size of whole request (req-line + headers) */
     size_t url_sz;
+    size_t req_sz;
     method_t method;
     clientHttpRequest *http = NULL;
 #if IPF_TRANSPARENT
@@ -1892,17 +1893,14 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     static int natfd = -1;
 #endif
 
-    /* Make sure a complete line has been received */
-    if ((t = strchr(conn->in.buf, '\n')) == NULL) {
-	debug(33, 5) ("Incomplete request line, waiting for more data\n");
+    if ((req_sz = headersEnd(conn->in.buf, conn->in.offset)) == 0) {
+	debug(33, 5) ("Incomplete request, waiting for end of headers\n");
 	*status = 0;
 	*prefix_p = NULL;
 	*method_p = METHOD_NONE;
 	return NULL;
     }
-    *req_line_sz_p = t - conn->in.buf;
-    /* Use xmalloc/xmemcpy instead of xstrdup because inbuf might
-     * contain NULL bytes; especially for POST data  */
+    /* Use memcpy, not strdup! */
     inbuf = xmalloc(conn->in.offset + 1);
     xmemcpy(inbuf, conn->in.buf, conn->in.offset);
     *(inbuf + conn->in.offset) = '\0';
@@ -1930,6 +1928,8 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	debug(33, 1) ("parseHttpRequest: Missing URL\n");
 	return parseHttpRequestAbort(conn, "error:missing-url");
     }
+    while (isspace(*url))
+	url++;
     t = url + strlen(url);
     assert(*t == '\0');
     token = NULL;
@@ -1954,9 +1954,11 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	http_ver = (float) atof(token + 5);
     }
 
-    /* Check if headers are received */
-    req_hdr = t;
-    header_sz = headersEnd(req_hdr, conn->in.offset - (req_hdr - inbuf));
+    /*
+     * Process headers after request line
+     */
+    req_hdr = strtok(NULL, null_string);
+    header_sz = req_sz - (req_hdr - inbuf);
     if (0 == header_sz) {
 	debug(33, 3) ("parseHttpRequest: header_sz == 0\n");
 	*status = 0;
