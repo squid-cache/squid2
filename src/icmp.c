@@ -162,7 +162,7 @@ icmpSend(int fd, void *data)
 static void
 icmpHandleSourcePing(const struct sockaddr_in *from, const char *buf)
 {
-    const char *key;
+    const cache_key *key;
     StoreEntry *entry;
     icp_common_t header;
     const char *url;
