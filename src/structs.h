@@ -299,22 +299,28 @@ struct _SquidConfig {
 	char *access;
 	char *store;
 	char *swap;
+#if USE_USERAGENT_LOG
 	char *useragent;
+#endif
 	int rotateNumber;
     } Log;
     char *adminEmail;
     char *effectiveUser;
     char *effectiveGroup;
     struct {
-#if USE_DNSSERVER
+#if USE_DNSSERVERS
 	char *dnsserver;
 #endif
 	wordlist *redirect;
 	wordlist *authenticate;
+#if USE_ICMP
 	char *pinger;
+#endif
+#if USE_UNLINKD
 	char *unlinkd;
+#endif
     } Program;
-#if USE_DNSSERVER
+#if USE_DNSSERVERS
     int dnsChildren;
 #endif
     int redirectChildren;
@@ -381,7 +387,7 @@ struct _SquidConfig {
     } Netdb;
     struct {
 	int log_udp;
-#if USE_DNSSERVER
+#if USE_DNSSERVERS
 	int res_defnames;
 #endif
 	int anonymizer;
