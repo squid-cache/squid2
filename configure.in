@@ -2157,8 +2157,8 @@ AC_OUTPUT([\
 	src/auth/ntlm/helpers/Makefile \
 	src/auth/ntlm/helpers/fakeauth/Makefile \
 	src/auth/ntlm/helpers/no_check/Makefile \
-	src/auth/ntlm/helpers/NTLMSSP/Makefile \
-	src/auth/ntlm/helpers/NTLMSSP/smbval/Makefile \
+	src/auth/ntlm/helpers/SMB/Makefile \
+	src/auth/ntlm/helpers/SMB/smbval/Makefile \
 	contrib/Makefile \
 	snmplib/Makefile \
 	icons/Makefile \
