@@ -257,6 +257,7 @@ extern void eventRun(void);
 extern int eventNextTime(void);
 extern void eventDelete(EVH * func, void *arg);
 extern void eventInit(void);
+extern void eventCleanup(void);
 extern void eventFreeMemory(void);
 extern int eventFind(EVH *, void *);
 

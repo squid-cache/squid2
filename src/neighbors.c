@@ -961,6 +961,7 @@ peerDestroy(void *data)
 	safe_free(l->domain);
 	safe_free(l);
     }
+    aclDestroyAccessList(&p->access);
     safe_free(p->host);
 #if USE_CACHE_DIGESTS
     if (p->digest) {

@@ -390,6 +390,7 @@ mainReconfigure(void)
     }
     storeDirOpenSwapLogs();
     mimeInit(Config.mimeTablePathname);
+    eventCleanup();
     writePidFile();		/* write PID file */
     debug(1, 1) ("Ready to serve requests.\n");
     reconfiguring = 0;

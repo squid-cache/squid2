@@ -1573,9 +1573,12 @@ free_peer(peer ** P)
     while ((p = *P) != NULL) {
 	*P = p->next;
 #if USE_CACHE_DIGESTS
-	if (p->digest)
-	    cbdataUnlock(p->digest);
-	p->digest = NULL;
+	if (p->digest) {
+	    PeerDigest *pd = p->digest;
+	    p->digest = NULL;
+	    peerDigestNotePeerGone(pd);
+	    cbdataUnlock(pd);
+	}
 #endif
 	cbdataFree(p);
     }
