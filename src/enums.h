@@ -675,12 +675,3 @@ enum {
     NETDB_EX_RTT,
     NETDB_EX_HOPS
 };
-
-/*
- * These are used for the store double-check code
- */
-typedef enum {
-    DBLCHECK_NONE,
-    DBLCHECK_REPORTONLY,
-    DBLCHECK_FORCE
-} dblcheck_t;
