@@ -138,6 +138,9 @@ typedef struct {
 
 typedef void (FTPSM) (FtpStateData *);
 
+#define FTP_LOGIN_ESCAPED 1
+#define FTP_LOGIN_NOT_ESCAPED 0
+
 /* Local functions */
 static CNCB ftpPasvCallback;
 static PF ftpDataRead;
@@ -145,7 +148,7 @@ static PF ftpStateFree;
 static PF ftpTimeout;
 static PF ftpReadControlReply;
 static CWCB ftpWriteCommandCallback;
-static void ftpLoginParser(const char *, FtpStateData *);
+static void ftpLoginParser(const char *, FtpStateData *, int escaped);
 static wordlist *ftpParseControlReply(char *, size_t, int *, int *);
 static void ftpAppendSuccessHeader(FtpStateData * ftpState);
 static void ftpAuthRequired(HttpReply * reply, request_t * request, const char *realm);
@@ -287,18 +290,20 @@ ftpStateFree(int fdnotused, void *data)
 }
 
 static void
-ftpLoginParser(const char *login, FtpStateData * ftpState)
+ftpLoginParser(const char *login, FtpStateData * ftpState, int escaped)
 {
     char *s = NULL;
     xstrncpy(ftpState->user, login, MAX_URL);
     if ((s = strchr(ftpState->user, ':'))) {
 	*s = 0;
 	xstrncpy(ftpState->password, s + 1, MAX_URL);
-	rfc1738_unescape(ftpState->password);
+	if (escaped)
+	    rfc1738_unescape(ftpState->password);
     } else {
 	xstrncpy(ftpState->password, null_string, MAX_URL);
     }
-    rfc1738_unescape(ftpState->user);
+    if (escaped)
+	rfc1738_unescape(ftpState->user);
     if (ftpState->user[0] || ftpState->password[0])
 	return;
     xstrncpy(ftpState->user, "anonymous", MAX_URL);
@@ -869,7 +874,7 @@ ftpCheckAuth(FtpStateData * ftpState, const HttpHeader * req_hdr)
 {
     char *orig_user;
     const char *auth;
-    ftpLoginParser(ftpState->request->login, ftpState);
+    ftpLoginParser(ftpState->request->login, ftpState, FTP_LOGIN_ESCAPED);
     if (ftpState->user[0] && ftpState->password[0])
 	return 1;		/* name and passwd both in URL */
     if (!ftpState->user[0] && !ftpState->password[0])
@@ -879,8 +884,9 @@ ftpCheckAuth(FtpStateData * ftpState, const HttpHeader * req_hdr)
     /* URL has name, but no passwd */
     if (!(auth = httpHeaderGetAuth(req_hdr, HDR_AUTHORIZATION, "Basic")))
 	return 0;		/* need auth header */
+    ftpState->flags.authenticated = 1;
     orig_user = xstrdup(ftpState->user);
-    ftpLoginParser(auth, ftpState);
+    ftpLoginParser(auth, ftpState, FTP_LOGIN_NOT_ESCAPED);
     if (!strcmp(orig_user, ftpState->user)) {
 	xfree(orig_user);
 	return 1;		/* same username */
@@ -953,6 +959,8 @@ ftpStart(request_t * request, StoreEntry * entry, int fd)
     const char *url = storeUrl(entry);
     FtpStateData *ftpState = xcalloc(1, sizeof(FtpStateData));
     HttpReply *reply;
+    StoreEntry *pe = NULL;
+    const cache_key *key = NULL;
     cbdataAdd(ftpState, MEM_NONE);
     debug(9, 3) ("FtpStart: '%s'\n", url);
     Counter.server.all.requests++;
@@ -975,6 +983,10 @@ ftpStart(request_t * request, StoreEntry * entry, int fd)
 	    snprintf(realm, 8192, "ftp %s port %d",
 		ftpState->user, request->port);
 	}
+	/* eject any old cached object */
+	key = storeKeyPublic(entry->mem_obj->url, entry->mem_obj->method);
+	if ((pe = storeGet(key)) != NULL)
+	    storeRelease(pe);
 	/* create reply */
 	reply = entry->mem_obj->reply;
 	assert(reply != NULL);
@@ -2189,6 +2201,7 @@ ftpAppendSuccessHeader(FtpStateData * ftpState)
     const char *filename = NULL;
     const char *t = NULL;
     StoreEntry *e = ftpState->entry;
+    StoreEntry *pe = NULL;
     http_reply *reply = e->mem_obj->reply;
     if (ftpState->flags.http_header_sent)
 	return;
@@ -2224,8 +2237,20 @@ ftpAppendSuccessHeader(FtpStateData * ftpState)
     storeBufferFlush(e);
     reply->hdr_sz = e->mem_obj->inmem_hi;
     storeTimestampsSet(e);
-    if (EBIT_TEST(e->flags, ENTRY_CACHABLE))
+    if (ftpState->flags.authenticated) {
+	/*
+	 * Authenticated requests can't be cached. Eject any old cached
+	 * object
+	 */
+	pe = storeGetPublic(e->mem_obj->url, e->mem_obj->method);
+	if (pe)
+	    storeRelease(pe);
+	storeRelease(e);
+    } else if (EBIT_TEST(e->flags, ENTRY_CACHABLE)) {
 	storeSetPublicKey(e);
+    } else {
+	storeRelease(e);
+    }
 }
 
 static void
