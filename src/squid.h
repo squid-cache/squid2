@@ -300,6 +300,10 @@ struct rusage {
 #define cbdataAdd(a,b)	cbdataAddDbg(a,b,__FILE__,__LINE__)
 #endif
 
+#if defined(_SQUID_NEXT_) && !defined(S_ISDIR)
+#define S_ISDIR(mode) (((mode) & (_S_IFMT)) == (_S_IFDIR))
+#endif
+
 #ifdef USE_GNUREGEX
 #include "GNUregex.h"
 #elif HAVE_REGEX_H
