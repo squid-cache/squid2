@@ -131,13 +131,14 @@ main(int argc, char **argv)
 	case 'R':
 	    break;
 	default:
-	    if (strlen(argv[1]) > 2 || argc <= 2) {
+	    if (strlen(argv[1]) > 2) {
 		value = argv[1] + 2;
-	    } else {
+	    } else if (argc > 2) {
 		value = argv[2];
 		argv++;
 		argc--;
-	    }
+	    } else
+		value = "";
 	    break;
 	}
 	argv++;
@@ -210,7 +211,7 @@ main(int argc, char **argv)
 	}
     }
 
-    while (argc > 1 && argv[1][0] == '-') {
+    while (argc > 1) {
 	char *value = argv[1];
 	if (ldapServer) {
 	    int len = strlen(ldapServer) + 1 + strlen(value) + 1;
