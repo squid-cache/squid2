@@ -217,7 +217,7 @@ clientProcessExpired(clientReplyContext * context)
      * it is not, then the beginning of the object data might get
      * freed from memory before we need to access it.
      */
-    assert(http->sc->owner == context);
+    assert(context->sc->owner == context);
 #endif
     /* Prepare to make a new temporary request */
     clientReplyContextSaveState(context, http);
@@ -1324,7 +1324,7 @@ clientGetMoreData(clientStreamNode * this, clientHttpRequest * http)
 	}
 	context->sc = storeClientListAdd(context->http->entry, context);
 #if DELAY_POOLS
-	delaySetStoreClient(context->http->sc, delayClient(context->http));
+	delaySetStoreClient(context->sc, delayClient(context->http));
 #endif
 	assert(context->http->logType == LOG_TCP_HIT);
 	context->reqofs = 0;
