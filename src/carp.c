@@ -60,7 +60,7 @@ carpInit(void)
      * sum of carp-load-factor's for all cache_peer's in squid.conf
      * must equal 1.0
      */
-    assert(a == 1.0);
+    assert(1000 == (int) (1000.0 * a));
     k = 1;
     P_last = 0;
     p = Config.peers;
