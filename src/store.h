@@ -144,7 +144,8 @@
 
 /* keep track each client receiving data from that particular StoreEntry */
 struct _store_client {
-    off_t offset;
+    off_t copy_offset;
+    off_t seen_offset;
     size_t copy_size;
     char *copy_buf;
     STCB *callback;
@@ -266,11 +267,12 @@ extern const char *storeGeneratePublicKey _PARAMS((const char *, method_t));
 extern const char *storeGeneratePrivateKey _PARAMS((const char *, method_t, int));
 extern void storeStartDeleteBehind _PARAMS((StoreEntry *));
 extern void storeClientCopy _PARAMS((StoreEntry * e,
-    off_t offset,
-    size_t size,
-    char *buf,
-    STCB *callback,
-    void *data));
+	off_t seen_offset,
+	off_t copy_offset,
+	size_t size,
+	char *buf,
+	STCB * callback,
+	void *data));
 extern int storePendingNClients _PARAMS((const StoreEntry *));
 extern int storeWriteCleanLogs _PARAMS((void));
 #if OLD_CODE
@@ -287,7 +289,7 @@ extern void storeConfigure _PARAMS((void));
 extern void storeNegativeCache _PARAMS((StoreEntry *));
 extern void storeFreeMemory _PARAMS((void));
 extern int expiresMoreThan _PARAMS((time_t, time_t));
-extern int storeClientListAdd _PARAMS((StoreEntry *, void *, int));
+extern int storeClientListAdd _PARAMS((StoreEntry *, void *));
 extern void InvokeHandlers _PARAMS((StoreEntry *));
 extern int storeEntryValidToSend _PARAMS((StoreEntry *));
 extern void storeTimestampsSet _PARAMS((StoreEntry *));

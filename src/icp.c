@@ -623,7 +623,7 @@ icpSendMoreData(void *data, char *buf, size_t size)
     assert(size >= 0);
     assert(size <= ICP_SENDMOREDATA_BUF);
     if (size == 0)
-	debug(12,1,"icpSendMoreData: size=0, %s\n", entry->url);
+	debug(12, 1, "icpSendMoreData: size=0, %s\n", entry->url);
     if (size < 0) {
 	debug(12, 1, "storeClientCopy returned %d for '%s'\n", size, entry->key);
 	freefunc(buf);
@@ -683,6 +683,7 @@ icpSendMoreData(void *data, char *buf, size_t size)
 	} else if (size < ICP_SENDMOREDATA_BUF && entry->store_status == STORE_PENDING) {
 	    /* wait for more to arrive */
 	    storeClientCopy(entry,
+		http->out.offset + size,
 		http->out.offset,
 		ICP_SENDMOREDATA_BUF,
 		buf,
@@ -732,6 +733,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    if ((http = conn->chr))
 		storeClientCopy(entry,
 		    http->out.offset,
+		    http->out.offset,
 		    ICP_SENDMOREDATA_BUF,
 		    get_free_4k_page(),
 		    icpSendMoreData,
@@ -743,6 +745,7 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	/* More data will be coming from primary server; register with 
 	 * storage manager. */
 	storeClientCopy(entry,
+	    http->out.offset,
 	    http->out.offset,
 	    ICP_SENDMOREDATA_BUF,
 	    get_free_4k_page(),
@@ -775,6 +778,7 @@ icpGetHeadersForIMS(void *data, char *buf, size_t size)
 	}
 	/* All headers are not yet available, wait for more data */
 	storeClientCopy(entry,
+	    http->out.offset + size,
 	    http->out.offset,
 	    ICP_SENDMOREDATA_BUF,
 	    buf,
@@ -810,6 +814,7 @@ icpGetHeadersForIMS(void *data, char *buf, size_t size)
     entry->refcount++;
     if (modifiedSince(entry, http->request)) {
 	storeClientCopy(entry,
+	    http->out.offset,
 	    http->out.offset,
 	    ICP_SENDMOREDATA_BUF,
 	    buf,
@@ -1035,13 +1040,14 @@ icpProcessRequestComplete(void *data, int status)
 	entry = NULL;
     }
     if (entry)
-	storeClientListAdd(entry, http, 0);
+	storeClientListAdd(entry, http);
     http->entry = entry;	/* Save a reference to the object */
     http->out.offset = 0;
     switch (http->log_type) {
     case LOG_TCP_HIT:
 	entry->refcount++;	/* HIT CASE */
 	storeClientCopy(entry,
+	    http->out.offset,
 	    http->out.offset,
 	    ICP_SENDMOREDATA_BUF,
 	    get_free_4k_page(),
@@ -1050,6 +1056,7 @@ icpProcessRequestComplete(void *data, int status)
 	break;
     case LOG_TCP_IMS_MISS:
 	storeClientCopy(entry,
+	    http->out.offset,
 	    http->out.offset,
 	    ICP_SENDMOREDATA_BUF,
 	    get_free_4k_page(),
@@ -1108,7 +1115,7 @@ icpProcessMISS(int fd, clientHttpRequest * http)
 	http->request->flags,
 	http->request->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
-    storeClientListAdd(entry, http, 0);
+    storeClientListAdd(entry, http);
     entry->mem_obj->fd = fd;
 
     entry->refcount++;		/* MISS CASE */
@@ -1117,6 +1124,7 @@ icpProcessMISS(int fd, clientHttpRequest * http)
     protoDispatch(fd, http->entry, http->request);
     /* Register with storage manager to receive updates when data comes in. */
     storeClientCopy(entry,
+	http->out.offset,
 	http->out.offset,
 	ICP_SENDMOREDATA_BUF,
 	get_free_4k_page(),
