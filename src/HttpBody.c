@@ -71,6 +71,8 @@ httpBodySet(HttpBody * body, const char *buf, int size, FREE * freefunc)
 	body->buf = xmalloc(size);
 	xmemcpy(body->buf, buf, size);
 	freefunc = &xfree;
+    } else {
+	body->buf = buf;
     }
     body->freefunc = freefunc;
     body->size = size;
