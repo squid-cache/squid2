@@ -717,6 +717,13 @@ connStateFree(int fd, void *data)
     /* XXX account connState->in.buf */
     pconnHistCount(0, connState->nrequests);
     cbdataFree(connState);
+#ifdef _SQUID_LINUX_
+    /* prevent those nasty RST packets */
+    {
+	char buf[SQUID_TCP_SO_RCVBUF];
+    	while (read(fd, buf, SQUID_TCP_SO_RCVBUF) > 0);
+    }
+#endif
 }
 
 static void
