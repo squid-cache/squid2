@@ -396,8 +396,8 @@ icpParseRequestHeaders(icpStateData * icpState)
 	}
     }
 #if FORW_VIA_LOG
-        if (forw_via_log)
-	    fprintf(forw_via_log, "%s", t ? t : null_string);
+    if (forw_via_log)
+	fprintf(forw_via_log, "%s", t ? t : null_string);
 #endif
 #if USE_USERAGENT_LOG
     if ((t = mime_get_header(request_hdr, "User-Agent")))
@@ -405,7 +405,7 @@ icpParseRequestHeaders(icpStateData * icpState)
 #endif
 #if FORW_VIA_LOG
     if (forw_via_log) {
-        t = mime_get_header(request_hdr, "X-Forwarded-For");
+	t = mime_get_header(request_hdr, "X-Forwarded-For");
 	fprintf(forw_via_log, "|%s%s%s\n",
 	    t ? t : null_string,
 	    t ? ", " : null_string,
@@ -1100,7 +1100,7 @@ icpCreateMessage(
     headerp->reqnum = htonl(reqnum);
     headerp->flags = htonl(flags);
     headerp->pad = htonl(pad);
-    headerp->shostid = htonl(theOutICPAddr.s_addr);
+    headerp->shostid = theOutICPAddr.s_addr;
     urloffset = buf + sizeof(icp_common_t);
     if (opcode == ICP_OP_QUERY)
 	urloffset += sizeof(u_num32);
@@ -1175,7 +1175,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
     header.flags = ntohl(headerp->flags);
-    header.shostid = ntohl(headerp->shostid);
+    header.shostid = headerp->shostid;
     header.pad = ntohl(headerp->pad);
 
     switch (header.opcode) {
@@ -1194,7 +1194,13 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
-	    if (clientdbDeniedPercent(from.sin_addr) < 95) {
+	    if (clientdbCutoffDenied(from.sin_addr)) {
+		/*
+		 * count this DENIED query in the clientdb, even though
+		 * we're not sending an ICP reply...
+		 */
+		clientdbUpdate(from.sin_addr, LOG_UDP_DENIED, Config.Port.icp);
+	    } else {
 		reply = icpCreateMessage(ICP_OP_DENIED, 0, url, header.reqnum, 0);
 		icpUdpSend(fd, &from, reply, LOG_UDP_DENIED, icp_request->protocol);
 	    }
@@ -1322,7 +1328,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
     header.flags = ntohl(headerp->flags);
-    header.shostid = ntohl(headerp->shostid);
+    header.shostid = headerp->shostid;
 
     switch (header.opcode) {
     case ICP_OP_QUERY:
@@ -1340,7 +1346,13 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
-	    if (clientdbDeniedPercent(from.sin_addr) < 95) {
+	    if (clientdbCutoffDenied(from.sin_addr)) {
+		/*
+		 * count this DENIED query in the clientdb, even though
+		 * we're not sending an ICP reply...
+		 */
+		clientdbUpdate(from.sin_addr, LOG_UDP_DENIED, Config.Port.icp);
+	    } else {
 		reply = icpCreateMessage(ICP_OP_DENIED, 0, url, header.reqnum, 0);
 		icpUdpSend(fd, &from, reply, LOG_UDP_DENIED, icp_request->protocol);
 	    }
@@ -1443,7 +1455,7 @@ icpPktDump(icp_common_t * pkt)
     debug(12, 9, "length:  %-8d\n", (int) ntohs(pkt->length));
     debug(12, 9, "reqnum:  %-8d\n", ntohl(pkt->reqnum));
     debug(12, 9, "flags:   %-8x\n", ntohl(pkt->flags));
-    a.s_addr = ntohl(pkt->shostid);
+    a.s_addr = pkt->shostid;
     debug(12, 9, "shostid: %s\n", inet_ntoa(a));
     debug(12, 9, "payload: %s\n", (char *) pkt + sizeof(icp_common_t));
 }
@@ -1605,16 +1617,7 @@ parseHttpRequest(icpStateData * icpState)
     /* see if we running in httpd_accel_mode, if so got to convert it to URL */
     if (httpd_accel_mode && *url == '/') {
 	/* prepend the accel prefix */
-	if (vhost_mode) {
-	    /* Put the local socket IP address as the hostname */
-	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
-	    icpState->url = xcalloc(url_sz, 1);
-	    sprintf(icpState->url, "http://%s:%d%s",
-		inet_ntoa(icpState->me.sin_addr),
-		(int) Config.Accel.port,
-		url);
-	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
-	} else if (opt_accel_uses_host && (t = mime_get_header(req_hdr, "Host"))) {
+	if (opt_accel_uses_host && (t = mime_get_header(req_hdr, "Host"))) {
 	    /* If a Host: header was specified, use it to build the URL 
 	     * instead of the one in the Config file. */
 	    /*
@@ -1629,6 +1632,15 @@ parseHttpRequest(icpStateData * icpState)
 	    icpState->url = xcalloc(url_sz, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		t, (int) Config.Accel.port, url);
+	} else if (vhost_mode) {
+	    /* Put the local socket IP address as the hostname */
+	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
+	    icpState->url = xcalloc(url_sz, 1);
+	    sprintf(icpState->url, "http://%s:%d%s",
+		inet_ntoa(icpState->me.sin_addr),
+		(int) Config.Accel.port,
+		url);
+	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
 	} else {
 	    url_sz = strlen(Config.Accel.prefix) + strlen(url) +
 		Config.appendDomainLen + 1;
@@ -1841,7 +1853,7 @@ asciiHandleConn(int sock, void *notused)
 	icpState->in.size = ASCII_INBUF_BLOCKSIZE;
 	icpState->in.buf = xcalloc(icpState->in.size, 1);
 	icpState->out.buf = get_free_8k_page();
-	icpState->header.shostid = htonl(peer.sin_addr.s_addr);
+	icpState->header.shostid = peer.sin_addr.s_addr;
 	icpState->peer = peer;
 	icpState->log_addr = peer.sin_addr;
 	icpState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
@@ -2047,8 +2059,8 @@ icpDetectNewRequest(int fd)
     icpState = xcalloc(1, sizeof(icpStateData));
     icpState->start = current_time;
     icpState->in.size = ASCII_INBUF_BLOCKSIZE;
-    icpState->in.buf = xcalloc(icpState->in.size, 1);
-    icpState->header.shostid = htonl(peer.sin_addr.s_addr);
+    icpState->in.buf = xcalloc(icpState->inbufsize, 1);
+    icpState->header.shostid = peer.sin_addr.s_addr;
     icpState->peer = peer;
     icpState->log_addr = peer.sin_addr;
     icpState->log_addr.s_addr &= Config.Addrs.client_netmask.s_addr;
@@ -2131,13 +2143,13 @@ icpInit(int op)
     int i;
     LOCAL_ARRAY(char, from, MAXPATHLEN);
     LOCAL_ARRAY(char, to, MAXPATHLEN);
-debug(0,0,"icpInit: op=%d\n", op);
+    debug(0, 0, "icpInit: op=%d\n", op);
     if (op == 0) {
 	if (forw_via_log != NULL)
-		fclose(forw_via_log);
+	    fclose(forw_via_log);
 	forw_via_log = fopen(FV_PATH, "a+");
 	if (forw_via_log == NULL)
-		perror(FV_PATH);
+	    perror(FV_PATH);
     } else if (op == 1 && forw_via_log != NULL) {
 	for (i = Config.Log.rotateNumber; i > 1;) {
 	    i--;
@@ -2152,6 +2164,6 @@ debug(0,0,"icpInit: op=%d\n", op);
 	icpInit(0);
 	return;
     }
-debug(0,0,"icpInit: %s is FD %d\n", FV_PATH, fileno(forw_via_log));
+    debug(0, 0, "icpInit: %s is FD %d\n", FV_PATH, fileno(forw_via_log));
 }
 #endif

@@ -231,15 +231,16 @@ aclParseMethodList(void *curlist)
     }
 }
 
-/* Decode a ascii representation (asc) of a IP adress, and place
+/*
+ * Decode a ascii representation (asc) of a IP adress, and place
  * adress and netmask information in addr and mask.
+ * This function should NOT be called if 'asc' is a hostname!
  */
 static int
 decode_addr(const char *asc, struct in_addr *addr, struct in_addr *mask)
 {
     u_num32 a;
     int a1 = 0, a2 = 0, a3 = 0, a4 = 0;
-    struct hostent *hp = NULL;
 
     switch (sscanf(asc, "%d.%d.%d.%d", &a1, &a2, &a3, &a4)) {
     case 4:			/* a dotted quad */
@@ -254,15 +255,8 @@ decode_addr(const char *asc, struct in_addr *addr, struct in_addr *mask)
 	    break;
 	}
     default:
-	/* Note, must use plain gethostbyname() here because at startup
-	 * ipcache hasn't been initialized */
-	if ((hp = gethostbyname(asc)) != NULL) {
-	    *addr = inaddrFromHostent(hp);
-	} else {
-	    /* XXX: Here we could use getnetbyname */
-	    debug(28, 0, "decode_addr: Invalid IP address or hostname '%s'\n", asc);
-	    return 0;		/* This is not valid address */
-	}
+	debug(28, 0, "decode_addr: Invalid IP address '%s'\n", asc);
+	return 0;		/* This is not valid address */
 	break;
     }
 
@@ -291,6 +285,10 @@ aclParseIpData(const char *t)
     LOCAL_ARRAY(char, addr2, 256);
     LOCAL_ARRAY(char, mask, 256);
     struct _acl_ip_data *q = xcalloc(1, sizeof(struct _acl_ip_data));
+    struct _acl_ip_data *r;
+    struct _acl_ip_data **Q;
+    struct hostent *hp = NULL;
+    char **x;
     debug(28, 5, "aclParseIpData: %s\n", t);
     if (!strcasecmp(t, "all")) {
 	q->addr1.s_addr = 0;
@@ -310,8 +308,26 @@ aclParseIpData(const char *t)
     } else if (sscanf(t, "%[^/]/%s", addr1, mask) == 2) {
 	addr2[0] = '\0';
     } else if (sscanf(t, "%s", addr1) == 1) {
-	addr2[0] = '\0';
-	mask[0] = '\0';
+	/*
+	 * Note, must use plain gethostbyname() here because at startup
+	 * ipcache hasn't been initialized
+	 */
+	if ((hp = gethostbyname(addr1)) == NULL) {
+	    debug(28, 0, "aclParseIpData: Bad host/IP: '%s'\n", t);
+	    safe_free(q);
+	    return NULL;
+	}
+	Q = &q;
+	for (x = hp->h_addr_list; x != NULL && *x != NULL; x++) {
+	    if ((r = *Q) == NULL)
+		r = *Q = xcalloc(1, sizeof(struct _acl_ip_data));
+	    xmemcpy(&r->addr1.s_addr, *x, sizeof(r->addr1.s_addr));
+	    r->addr2.s_addr = 0;
+	    r->mask.s_addr = no_addr.s_addr;	/* 255.255.255.255 */
+	    Q = &r->next;
+	    debug(28, 3, "%s --> %s\n", addr1, inet_ntoa(r->addr1));
+	}
+	return q;
     } else {
 	debug(28, 0, "aclParseIpData: Bad host/IP: '%s'\n", t);
 	safe_free(q);
@@ -359,9 +375,11 @@ aclParseIpList(void *curlist)
     splayNode **Top = curlist;
     struct _acl_ip_data *q = NULL;
     while ((t = strtokFile())) {
-	if ((q = aclParseIpData(t)) == NULL)
-	    continue;
-	*Top = splay_insert(q, *Top, aclIpNetworkCompare);
+	q = aclParseIpData(t);
+	while (q != NULL) {
+	    *Top = splay_insert(q, *Top, aclIpNetworkCompare);
+	    q = q->next;
+	}
     }
 }
 
@@ -376,9 +394,11 @@ aclParseIpList(void **curtree)
     *curtree = Tree;
     tree_init(Tree);
     while ((t = strtokFile())) {
-	if ((q = aclParseIpData(t)) == NULL)
-	    continue;
-	tree_add(Tree, bintreeNetworkCompare, q, NULL);
+	q = aclParseIpData(t);
+	while (q != NULL) {
+	    tree_add(Tree, bintreeNetworkCompare, q, NULL);
+	    q = q->next;
+	}
     }
 }
 
@@ -391,10 +411,12 @@ aclParseIpList(void *curlist)
     struct _acl_ip_data *q = NULL;
     for (Tail = curlist; *Tail; Tail = &((*Tail)->next));
     while ((t = strtokFile())) {
-	if ((q = aclParseIpData(t)) == NULL)
-	    continue;
+	q = aclParseIpData(t);
 	*(Tail) = q;
-	Tail = &q->next;
+	while (q != NULL) {
+	    Tail = &q->next;
+	    q = q->next;
+	}
     }
 }
 
@@ -1048,6 +1070,7 @@ aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
     const request_t *r = checklist->request;
     const ipcache_addrs *ia = NULL;
     const char *fqdn = NULL;
+    char *esc_buf;
     int k;
     if (!acl)
 	return 0;
@@ -1105,10 +1128,18 @@ aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
 	return aclMatchTime(acl->data, squid_curtime);
 	/* NOTREACHED */
     case ACL_URLPATH_REGEX:
-	return aclMatchRegex(acl->data, r->urlpath);
+	esc_buf = xstrdup(r->urlpath);
+	rfc1738_unescape(esc_buf);
+	k = aclMatchRegex(acl->data, esc_buf);
+	safe_free(esc_buf);
+	return k;
 	/* NOTREACHED */
     case ACL_URL_REGEX:
-	return aclMatchRegex(acl->data, urlCanonical(r, NULL));
+	esc_buf = xstrdup(urlCanonical(r, NULL));
+	rfc1738_unescape(esc_buf);
+	k = aclMatchRegex(acl->data, esc_buf);
+	safe_free(esc_buf);
+	return k;
 	/* NOTREACHED */
     case ACL_URL_PORT:
 	return aclMatchInteger(acl->data, r->port);

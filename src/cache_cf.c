@@ -1643,6 +1643,12 @@ configDoConfigure(void)
 	Config.appendDomainLen = strlen(Config.appendDomain);
     else
 	Config.appendDomainLen = 0;
+    if (Config.levelOneDirs < 1)
+	fatal("Bad swap_level1_dirs config value");
+    if (Config.levelTwoDirs < 1)
+	fatal("Bad swap_level2_dirs config value");
+    if (Config.Swap.maxSize <= 0)
+	fatal("Bad cache_swap value");
 }
 
 /* Parse a time specification from the config file.  Store the

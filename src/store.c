@@ -1773,7 +1773,7 @@ storeInitHashValues(void)
     i = Config.Swap.maxSize / Config.Store.avgObjectSize;
     debug(20, 1, "Swap maxSize %d, estimated %d objects\n",
 	Config.Swap.maxSize, i);
-    file_map_create(i<<1);	/* TWICE number of estimated objects */
+    file_map_create(i << 1);	/* TWICE number of estimated objects */
     i /= Config.Store.objectsPerBucket;
     debug(20, 1, "Target number of buckets: %d\n", i);
     /* ideally the full scan period should be configurable, for the

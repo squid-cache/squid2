@@ -643,14 +643,16 @@ main(int argc, char *argv[])
 	if (*s && !strchr(s, '=') && !strchr(s, '&')) {
 	    char *p;
 	    buffer = xmalloc(strlen(s) + sizeof "host=&port=");
-	    if ((p = strchr(s, ':')))
+	    if ((p = strchr(s, ':'))) {
 		if (p != s) {
 		    *p = '\0';
 		    sprintf(buffer, "host=%s&port=%s", s, p + 1);
 		} else {
 		    sprintf(buffer, "port=%s", p + 1);
-	    } else
+		}
+	    } else {
 		sprintf(buffer, "host=%s", s);
+	    }
 	} else {
 	    buffer = xstrdup(s);
 	}
@@ -862,26 +864,30 @@ main(int argc, char *argv[])
 	n_loops++;
 	/* Simple state machine for parsing a {{ } { } ...} style list */
 	for (indx = 0; indx < len; indx++) {
-	    if (buf[indx] == '{')
+	    if (buf[indx] == '{') {
 		p_state++;
-	    else if (buf[indx] == '}')
+	    } else if (buf[indx] == '}') {
 		if (p_state == 2) {	/* Have an element of the list */
 		    single = FALSE;
 		    p_state++;
 		    reserve[cpy_ind] = '\0';
 		    cpy_ind = 0;
-		} else if (p_state == 1 && single)	/* Check for single element list */
+		} else if (p_state == 1 && single) {
+		    /* Check for single element list */
 		    p_state = 3;
-		else		/* End of list */
+		} else {	/* End of list */
 		    p_state = 0;
-	    else if ((indx == 0) && (n_loops == 1)) {
-		if (op != REFRESH)
-		    printf("ERROR:%s\n", buf);	/* Must be an error message, pass it on */
-		else
+		}
+	    } else if ((indx == 0) && (n_loops == 1)) {
+		if (op != REFRESH) {
+		    /* Must be an error message, pass it on */
+		    printf("ERROR:%s\n", buf);
+		} else {
 		    printf("Refreshed URL: %s\n", url);
-	    } else
+		}
+	    } else {
 		reserve[cpy_ind++] = buf[indx];
-
+	    }
 
 	    /* Have an element of the list, so parse reserve[] accordingly */
 	    if (p_state == 3) {
@@ -889,7 +895,7 @@ main(int argc, char *argv[])
 		switch (op) {
 		case CACHED:
 		    p_state = 1;
-		    for (s = reserve; *s; s++)
+		    for (s = reserve; *s; s++) {
 			switch (*s) {
 			case '<':
 			    printf("&lt;");
@@ -901,6 +907,7 @@ main(int argc, char *argv[])
 			    putchar(*s);
 			    break;
 			}
+		    }
 		    break;
 		case INFO:
 		case SERVER:

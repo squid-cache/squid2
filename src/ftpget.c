@@ -459,7 +459,7 @@ html_trailer(void)
 {
     static char buf[SMALLBUFSIZ];
 
-    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n</BODY></HTML>\n", mkrfc1123((time_t) NULL), SQUID_VERSION, visible_hostname);
+    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n</BODY></HTML>\n", mkrfc1123(time(NULL)), SQUID_VERSION, visible_hostname);
     return buf;
 }
 
@@ -930,7 +930,7 @@ mime_get_type(ftp_request_t * r)
     if (enc == NULL)
 	goto mime_get_type_done;
     else if ((t = strrchr(filename, '.')) == NULL)
-    	goto mime_get_type_done;
+	goto mime_get_type_done;
     else if (!strcmp(enc, "x-gzip"))
 	(void) 0;
     else if (!strcmp(enc, "x-compress"))

@@ -48,6 +48,7 @@ typedef struct {
     size_t *size_ptr;		/* pointer to size for logging */
     int proxying;
     int ip_lookup_pending;
+    int closing;
 } PassStateData;
 
 static void passLifetimeExpire _PARAMS((int fd, void *));
@@ -68,6 +69,9 @@ static void passSelectNeighbor _PARAMS((int, const ipcache_addrs *, void *));
 static void
 passClose(PassStateData * passState)
 {
+    if (passState->closing)
+	return;
+    passState->closing = 1;
     if (passState->client.fd > -1) {
 	/* remove the "unexpected" client close handler */
 	comm_remove_close_handler(passState->client.fd,

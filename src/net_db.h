@@ -33,7 +33,9 @@
 
 typedef struct _net_db_name {
     char *name;
+    struct _net_db_name *htbl_next;
     struct _net_db_name *next;
+    struct _net_db *net_db_entry;
 } net_db_name;
 
 typedef struct _net_db_peer {

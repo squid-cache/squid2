@@ -570,6 +570,7 @@ server_list(const cacheinfo * obj, StoreEntry * sentry)
     peer *e = NULL;
     struct _domain_ping *d = NULL;
     icp_opcode op;
+    int i;
 
     storeAppendPrintf(sentry, open_bracket);
 
@@ -583,6 +584,10 @@ server_list(const cacheinfo * obj, StoreEntry * sentry)
 	    e->host,
 	    e->http_port,
 	    e->icp_port);
+	for (i = 0; i < e->n_addresses; i++) {
+	    storeAppendPrintf(sentry, "{Address[%d] : %s}\n", i,
+		inet_ntoa(e->addresses[i]));
+	}
 	storeAppendPrintf(sentry, "{Status     : %s}\n",
 	    neighborUp(e) ? "Up" : "Down");
 	storeAppendPrintf(sentry, "{AVG RTT    : %d msec}\n", e->stats.rtt);
@@ -959,6 +964,12 @@ info_get(const cacheinfo * obj, StoreEntry * sentry)
     storeAppendPrintf(sentry, "{Memory allocation statistics}\n");
     malloc_statistics(info_get_mallstat, sentry);
 #endif
+
+    storeAppendPrintf(sentry, "{Miscellaneous:}\n");
+    storeAppendPrintf(sentry, "{\tAverage Name-to-address lookup time:\t%f seconds}\n",
+	ipcacheAvgSvcTime() / 1000.0);
+    storeAppendPrintf(sentry, "{\tAverage Address-to-name lookup time:\t%f seconds}\n",
+	fqdncacheAvgSvcTime() / 1000.0);
 
     storeAppendPrintf(sentry, close_bracket);
 }

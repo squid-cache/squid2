@@ -1,3 +1,4 @@
+#define XTRA_DEBUG 1
 /*
  * $Id$
  *
@@ -130,6 +131,8 @@ static fileMap *fm = NULL;
 fileMap *
 file_map_create(int n)
 {
+    if (n <= 0)
+	fatal("file_map_create: invalid argument");
     fm = xcalloc(1, sizeof(fileMap));
     fm->max_n_files = n;
     fm->nwords = n >> LONG_BIT_SHIFT;
@@ -145,13 +148,10 @@ int
 file_map_bit_set(int file_number)
 {
     unsigned long bitmask = (1L << (file_number & LONG_BIT_MASK));
-
 #ifdef XTRA_DEBUG
     if (fm->file_map[file_number >> LONG_BIT_SHIFT] & bitmask)
-	debug(8, 0, "file_map_bit_set: WARNING: file number %d is already set!\n",
-	    file_number);
+	debug_trap("file_map_bit_set: WARNING: file number already used");
 #endif
-
     fm->file_map[file_number >> LONG_BIT_SHIFT] |= bitmask;
     fm->n_files_in_map++;
     if (fm->n_files_in_map > fm->max_n_files)
@@ -217,7 +217,7 @@ file_map_allocate(int suggestion)
     }
     if (squid_curtime - warn_time > 3600) {
 	warn_time = squid_curtime;
-        debug(8, 0, "WARNING: All %d swap files are in use.\n", fm->max_n_files);
+	debug(8, 0, "WARNING: All %d swap files are in use.\n", fm->max_n_files);
 	debug(8, 0, "         You should probably use a lower value for\n");
 	debug(8, 0, "         'store_avg_object_size' in squid.conf\n");
     }
@@ -234,7 +234,7 @@ filemapFreeMemory(void)
 int
 filemapMax(void)
 {
-	return fm->max_n_files;
+    return fm->max_n_files;
 }
 
 #ifdef TEST

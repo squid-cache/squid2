@@ -244,7 +244,7 @@ squid_error_request(char *request, int len, int type, const char *address, int c
     int error_index;
 
     if (len > 1024)
-	*(request+1024) = '\0';
+	*(request + 1024) = '\0';
     *tmp_error_buf = '\0';
     if (type < ERR_MIN || type > ERR_MAX)
 	fatal_dump("squid_error_request: type out of range.");
@@ -301,6 +301,16 @@ access_denied_msg(int code, int method, const char *url, const char *client)
 char *
 access_denied_redirect(int code, int method, const char *url, const char *client, const char *redirect)
 {
+    char *newredirect = NULL;
+    if (strstr(redirect, "cgi") != NULL) {
+	newredirect = get_free_8k_page();
+	sprintf(newredirect, "%s?ip=%s&cache=%s&url=%s",
+	    redirect,
+	    client,
+	    getMyHostname(),
+	    rfc1738_escape(url));
+	redirect = newredirect;
+    }
     sprintf(tmp_error_buf,
 	"HTTP/1.0 %d Cache Access Deny Redirect\r\n"
 	"Location: %s\r\n"
@@ -336,6 +346,8 @@ access_denied_redirect(int code, int method, const char *url, const char *client
 	appname,
 	version_string,
 	getMyHostname());
+    if (newredirect != NULL)
+	put_free_8k_page(newredirect);
     return tmp_error_buf;
 }
 

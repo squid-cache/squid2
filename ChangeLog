@@ -3,6 +3,48 @@ Changes to squid-1.NOVM.21 ():
 	- Fixed false "8k page leak" on MemObject->e_abort_msg.
 	  (Kazuyoshi Komine).
 
+Changes to squid-1.1.21 (March 17, 1998):
+
+	- Fixed ftpget's "Generated" timestamp trailer on error
+	  messages (Oskar Pearson).
+	- Count (in the client_list database) DENIED ICP queries
+	  occuring after the 95% threshold, even though we don't
+	  transmit an ICP reply.
+	- Fixed bug causing 'ipcache_purgelru()' to be added to
+	  the event queue multiple times.
+	- Added ipcache and fqdncache average service times to
+	  cachemgr 'info' page.
+	- Fixed ACL parsing of hostnames to use all IP addresses,
+	  not just the first.
+	- Fixed how we handle ICP replies to misconfigured neighbors.
+	  Instead of cutting off at the first 100 ICP_DENIED replies, we
+	  now start sending replies again after ignoring them for 1
+	  hour.  This should cause the other cache to detect the
+	  excessive ICP_DENIED replies and disable itself.
+	- Changed sorting order for compareSize().  Apparently we were
+	  sorting in order of smallest to largest, when we really want to
+	  sort the other way when removing in-mem objects.
+	- Changed storeShouldPurgeMem() to use the high water mark
+	  instead of the low water mark.
+	- If a deny_info URL has 'cgi' in it, then append CGI args for
+	  client's IP address, requested URL, and the denying cache.
+	- Added configure check for broken setresuid().
+	- Updated contrib/nextstep directory (Gerben Wierda).
+	- Changed acl.c to check "unescaped" versions of URLs so
+	  that URL-escaping does not bypass access controls.
+	- Fixed double-call bug (and comm_remove_close_handler
+	  coredump?) for POST and SSL requests.
+	- Give the Host: header a higher precedence that the socket
+	  IP address for transparent proxying (Henrik Nordstrom).
+	- Don't call ntohl() conversion on ICP message 'shostid'
+	  field.
+	- Changed netdb structure so its easier to move hosts from one
+	  network to another.
+	- Fixed incorrect comparison order for store.c::compareSize()
+	  (Li Fan).
+	- Changed storeShouldPurgeMem() to check the in-memory
+	  high water mark instead of the low (Li Fan).
+
 Changes to squid-1.NOVM.20 (January 9, 1998):
 
 	- Fixed bug related to parsing Not Modified reply headers which
