@@ -141,9 +141,9 @@ typedef int HashID;
 
 /* init */
 extern void hash_init __P((int));
-extern HashID hash_create(int (*)(char *, char *),
+extern HashID hash_create __P((int (*) __P((char *, char *)),
     int,
-    int (*)(char *, HashID));
+    int (*) __P((char *, HashID))));
 
 /* insert/delete */
 extern int hash_insert __P((HashID, char *, void *));

@@ -287,10 +287,10 @@ typedef struct _protodispatch_data {
 
 extern int proto_cachable __P((char *url, int method));
 extern int protoDispatch __P((int, char *, StoreEntry *, request_t *));
-extern void protoUnregister(int fd,
+extern void protoUnregister __P((int fd,
     StoreEntry *,
     request_t *,
-    struct in_addr);
+    struct in_addr));
 extern int getFromDefaultSource __P((int, StoreEntry *));
 extern int protoStart __P((int, StoreEntry *, edge *, request_t *));
 extern void protoCancelTimeout __P((int fd, StoreEntry *));
