@@ -493,7 +493,7 @@ storeDirGetBlkSize(const char *path, int *blksize)
     /*
      * Sanity check; make sure we have a meaningful value.
      */
-    if (*blksize > 512)
+    if (*blksize < 512)
 	*blksize = 2048;
     return 0;
 }
