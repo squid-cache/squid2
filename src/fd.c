@@ -93,8 +93,9 @@ fd_close(int fd)
 void
 fd_open(int fd, unsigned int type, const char *desc)
 {
-    fde *F = &fd_table[fd];
+    fde *F;
     assert(fd >= 0);
+    F = &fd_table[fd];
     if (F->flags.open) {
 	debug(51, 1) ("WARNING: Closing open FD %4d\n", fd);
 	fd_close(fd);
