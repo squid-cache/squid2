@@ -5,7 +5,6 @@
 #include "autoconf.h"
 
 #if SQUID_FD_SETSIZE > 256
-#undef FD_SETSIZE
 #define FD_SETSIZE SQUID_FD_SETSIZE
 #endif
 
