@@ -192,6 +192,7 @@ struct SquidConfig {
 	char *ftpget_opts;
 	char *dnsserver;
 	char *redirect;
+	char *pinger;
     } Program;
     int dnsChildren;
     int redirectChildren;

@@ -154,6 +154,7 @@ struct SquidConfig Config;
 #define DefaultFtpgetProgram	DEFAULT_FTPGET
 #define DefaultFtpgetOptions	""
 #define DefaultDnsserverProgram DEFAULT_DNSSERVER
+#define DefaultPingerProgram    DEFAULT_PINGER
 #define DefaultRedirectProgram  (char *)NULL	/* default NONE */
 #define DefaultEffectiveUser	(char *)NULL	/* default NONE */
 #define DefaultEffectiveGroup	(char *)NULL	/* default NONE */
@@ -1511,6 +1512,7 @@ configSetFactoryDefaults(void)
     Config.Program.ftpget_opts = safe_xstrdup(DefaultFtpgetOptions);
     Config.Program.dnsserver = safe_xstrdup(DefaultDnsserverProgram);
     Config.Program.redirect = safe_xstrdup(DefaultRedirectProgram);
+    Config.Program.pinger = safe_xstrdup(DefaultPingerProgram);
     Config.Accel.host = safe_xstrdup(DefaultAccelHost);
     Config.Accel.prefix = safe_xstrdup(DefaultAccelPrefix);
     Config.Accel.port = DefaultAccelPort;
