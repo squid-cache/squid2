@@ -739,8 +739,7 @@ StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
 	storeSetPrivateKey(e);
     else
 	storeSetPublicKey(e);
-    if (BIT_TEST(flags, REQ_HTML))
-	BIT_SET(e->flag, ENTRY_HTML);
+    BIT_SET(e->flag, ENTRY_HTML);
 
     e->store_status = STORE_PENDING;
     storeSetMemStatus(e, NOT_IN_MEMORY);
@@ -1688,7 +1687,7 @@ int storeAbort(e, msg)
      char *msg;
 {
     static char mime_hdr[300];
-    static char abort_msg[2000];
+    static char *abort_msg = NULL;
 
     debug(20, 6, "storeAbort: '%s'\n", e->key);
     e->expires = squid_curtime + getNegativeTTL();
@@ -1711,22 +1710,22 @@ int storeAbort(e, msg)
     CacheInfo->proto_touchobject(CacheInfo, CacheInfo->proto_id("abort:"),
 	e->mem_obj->e_current_len);
 
-    mk_mime_hdr(mime_hdr,
-	(time_t) getNegativeTTL(),
-	6 + strlen(msg),
-	squid_curtime,
-	"text/html");
     if (msg) {
-	/* This can run off the end here. Be careful */
-	if ((int) (strlen(msg) + strlen(mime_hdr) + 50) < 2000) {
-	    sprintf(abort_msg, "HTTP/1.0 400 Cache Detected Error\r\n%s\r\n\r\n%s", mime_hdr, msg);
-	} else {
-	    debug(20, 0, "storeAbort: WARNING: Must increase msg length!\n");
-	}
+	abort_msg = get_free_8k_page();
+	strcpy(abort_msg, "HTTP/1.0 400 Cache Detected Error\r\n");
+	mk_mime_hdr(mime_hdr,
+	    (time_t) getNegativeTTL(),
+	    6 + strlen(msg),
+	    squid_curtime,
+	    "text/html");
+	strcat(abort_msg, mime_hdr);
+	strcat(abort_msg, "\r\n\r\n");
+	strncat(abort_msg, msg, 8191-strlen(abort_msg));
 	storeAppend(e, abort_msg, strlen(abort_msg));
 	e->mem_obj->e_abort_msg = xstrdup(abort_msg);
 	/* Set up object for negative caching */
 	BIT_SET(e->flag, ABORT_MSG_PENDING);
+	put_free_8k_page(abort_msg);
     }
     /* We assign an object length here--The only other place we assign the
      * object length is in storeComplete() */

@@ -69,12 +69,12 @@ struct _request {
 };
 
 /* bitfields for the flags member */
-#define		REQ_HTML	0x01
+#define		REQ_UNUSED1	0x01
 #define		REQ_NOCACHE	0x02
 #define		REQ_IMS		0x04
 #define		REQ_AUTH	0x08
 #define		REQ_CACHABLE	0x10
-#define 	REQ_ACCEL	0x20
+#define 	REQ_UNUSED2	0x20
 #define 	REQ_HIERARCHICAL 0x40
 #define 	REQ_LOOPDETECT  0x80
 

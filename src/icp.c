@@ -160,7 +160,7 @@ typedef struct iwd {
     char *ptr_to_4k_page;
     char *buf;
     struct timeval start;
-    int flags;
+    int accel;
     int size;			/* hack for CONNECT which doesnt use sentry */
 } icpStateData;
 
@@ -1479,7 +1479,6 @@ static int parseHttpRequest(icpState)
     int req_hdr_sz;
     int post_sz;
     int len;
-    request_t *request = icpState->request;
 
     /* Make sure a complete line has been received */
     if (strchr(icpState->inbuf, '\n') == NULL) {
@@ -1505,7 +1504,6 @@ static int parseHttpRequest(icpState)
 	return -1;
     }
     debug(12, 5, "parseHttpRequest: Method is '%s'\n", method);
-    BIT_SET(request->flags, REQ_HTML);
 
     /* look for URL */
     if ((url = strtok(NULL, "\r\n\t ")) == NULL) {
@@ -1603,12 +1601,12 @@ static int parseHttpRequest(icpState)
 		url);
 	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
 	}
-	BIT_SET(request->flags, REQ_ACCEL);
+	icpState->accel = 1;
     } else {
 	/* URL may be rewritten later, so make extra room */
 	icpState->url = xcalloc(strlen(url) + 5, 1);
 	strcpy(icpState->url, url);
-	BIT_RESET(request->flags, REQ_ACCEL);
+	icpState->accel = 0;
     }
 
     debug(12, 5, "parseHttpRequest: Complete request received\n");
@@ -1624,7 +1622,7 @@ static int icpAccessCheck(icpState)
     request_t *r = icpState->request;
     if (httpd_accel_mode && !getAccelWithProxy() && r->protocol != PROTO_CACHEOBJ) {
 	/* this cache is an httpd accelerator ONLY */
-	if (!BIT_TEST(icpState->request->flags, REQ_ACCEL))
+	if (icpState->accel == 0)
 	    return 0;
     }
     return aclCheck(HTTPAccessList, icpState->peer.sin_addr, r);
