@@ -499,6 +499,7 @@ mainInitialize(void)
 	mimeInit(Config.mimeTablePathname);
 	pconnInit();
 	eventInit();
+	refreshInit();
     }
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0 && (!Config2.Accel.on || Config.onoff.accel_with_proxy))
