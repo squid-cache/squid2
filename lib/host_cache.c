@@ -159,7 +159,6 @@ static int hash_index(buf)
 Host *get_host _PARAMS((char *hostname));
 static void host_cache_init _PARAMS((void));
 static Host *new_host _PARAMS((char *hostname));
-static void Tolower _PARAMS((char *));
 void dump_host_cache _PARAMS((int, int));
 static int cache_inited = 0;
 
@@ -294,15 +293,3 @@ void dump_host_cache(d_sec, d_lvl)
 }
 #endif /* UNUSED_CODE */
 
-
-/* ========== MISC UTIL FUNCS ============================================== */
-
-static void Tolower(q)
-     char *q;
-{
-    char *s = q;
-    while (*s) {
-	*s = tolower((unsigned char) *s);
-	s++;
-    }
-}

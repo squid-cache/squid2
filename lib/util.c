@@ -114,6 +114,9 @@
 #if HAVE_STRING_H
 #include <string.h>
 #endif
+#if HAVE_CTYPE_H
+#include <ctype.h>
+#endif
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -465,4 +468,14 @@ void xmemcpy(from, to, len)
 #else
     (void) memcpy(from, to, len);
 #endif
+}
+
+void Tolower(q)
+     char *q;
+{
+    char *s = q;
+    while (*s) {
+        *s = tolower((unsigned char) *s);
+        s++;
+    }
 }
