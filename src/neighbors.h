@@ -182,15 +182,6 @@ struct _edge {
     struct _edge *next;
 };
 
-typedef struct {
-    int n;
-    int n_parent;
-    int n_sibling;
-    edge *edges_head;
-    edge *edges_tail;
-    edge *first_ping;
-} neighbors;
-
 struct _hierarchyLogData {
     hier_code code;
     char *host;
@@ -205,13 +196,13 @@ extern int neighborsUdpPing _PARAMS((protodispatch_data *));
 extern void neighborAddDomainPing _PARAMS((const char *, const char *));
 extern void neighborAddDomainType _PARAMS((const char *, const char *, const char *));
 extern void neighborAddAcl _PARAMS((const char *, const char *));
-extern neighbors *neighbors_create _PARAMS((void));
 extern void hierarchyNote _PARAMS((request_t *, hier_code, int, const char *));
 extern void neighborsUdpAck _PARAMS((int, const char *, icp_common_t *, const struct sockaddr_in *, StoreEntry *, char *, int));
 extern void neighborAdd _PARAMS((const char *, const char *, int, int, int, int, int));
 extern void neighbors_open _PARAMS((int));
 extern void neighborsDestroy _PARAMS((void));
 extern edge *neighborFindByName _PARAMS((const char *));
+extern void neighbors_init _PARAMS((void));
 
 extern const char *hier_strings[];
 

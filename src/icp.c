@@ -964,11 +964,11 @@ void *
 icpCreateMessage(
     icp_opcode opcode,
     int flags,
-    char *url,
+    const char *url,
     int reqnum,
     int pad)
 {
-    void *buf = NULL;
+    char *buf = NULL;
     icp_common_t *headerp = NULL;
     char *urloffset = NULL;
     int buf_len;
@@ -993,7 +993,7 @@ icpCreateMessage(
 
 void
 icpUdpSend(int fd,
-    struct sockaddr_in *to,
+    const struct sockaddr_in *to,
     icp_common_t * msg,
     log_type logcode,
     protocol_t proto)

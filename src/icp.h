@@ -211,11 +211,11 @@ typedef struct iwd {
 
 extern void *icpCreateMessage _PARAMS((icp_opcode opcode,
 	int flags,
-	char *url,
+	const char *url,
 	int reqnum,
 	int pad));
 extern void icpUdpSend _PARAMS((int fd,
-	struct sockaddr_in *,
+	const struct sockaddr_in *,
 	icp_common_t * msg,
 	log_type,
 	protocol_t));

@@ -919,6 +919,10 @@ InvokeHandlers(StoreEntry * e)
     PIF handler = NULL;
     void *data = NULL;
     struct _store_client *sc;
+    if (mem->clients == NULL) {
+	debug_trap("InvokeHandlers: NULL mem->clients");
+	return;
+    }
     /* walk the entire list looking for valid handlers */
     for (i = 0; i < mem->nclients; i++) {
 	sc = &mem->clients[i];
