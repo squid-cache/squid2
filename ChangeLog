@@ -1,3 +1,9 @@
+	- Fixed hash4() for SCO cc (Vlado Potisk).
+	- Fixed aclParseIpList() for SPLAY trees.
+	- Fixed comm_poll() to deal with ERESTART errors.
+	- Fixed icpSendMoreData() buffer overrun bug
+	  for HEAD requests.
+
 Changes to squid-1.1.21 (March 17, 1998):
 
 	- Fixed ftpget's "Generated" timestamp trailer on error
