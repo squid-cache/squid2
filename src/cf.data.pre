@@ -2455,7 +2455,7 @@ DOC_START
 	snmp_access allow|deny [!]aclname ...
 
 Example:
-snmp_access allow public localhost
+snmp_access allow snmpppublic localhost
 snmp_access deny all
 DOC_END
 
