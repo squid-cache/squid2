@@ -417,6 +417,10 @@ aclMatchExternal(void *data, aclCheck_t * ch)
 	}
     }
     key = makeExternalAclKey(ch, acl);
+    if (!key) {
+	/* Not sufficient data to process */
+	return -1;
+    }
     ch->auth_user_request = NULL;
     if (entry) {
 	if (entry->def != acl->def || strcmp(entry->hash.key, key) != 0) {
@@ -507,7 +511,7 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 #if USE_IDENT
 	case EXT_ACL_IDENT:
 	    str = ch->rfc931;
-	    if (!str) {
+	    if (!str || !*str) {
 		ch->state[ACL_IDENT] = ACL_LOOKUP_NEEDED;
 		return NULL;
 	    }
