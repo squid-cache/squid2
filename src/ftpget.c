@@ -825,7 +825,7 @@ connect_with_timeout(int fd, struct sockaddr_in *S, int len)
     }
     orig_flags = fcntl(fd, F_GETFL, 0);
     Debug(26, 7, ("orig_flags = %x\n", orig_flags));
-    if (fcntl(fd, F_SETFL, O_NDELAY) < 0)
+    if (fcntl(fd, F_SETFL, orig_flags | O_NDELAY) < 0)
 	log_errno2(__FILE__, __LINE__, "fcntl O_NDELAY");
     rc = connect_with_timeout2(fd, S, len);
     if (fcntl(fd, F_SETFL, orig_flags) < 0)
