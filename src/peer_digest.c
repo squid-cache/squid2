@@ -659,6 +659,7 @@ peerDigestPDFinish(DigestFetchState * fetch, int pcb_valid, int err)
 	else
 	    debug(72, 2) ("received valid digest from %s\n", host);
     }
+    fetch->pd = NULL;
     cbdataUnlock(pd);
 }
 
@@ -688,6 +689,7 @@ peerDigestFetchFinish(DigestFetchState * fetch, int err)
     requestUnlink(fetch->request);
     fetch->entry = NULL;
     fetch->request = NULL;
+    assert(fetch->pd == NULL);
     cbdataUnlock(fetch);
     cbdataFree(fetch);
 }
