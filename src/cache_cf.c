@@ -956,7 +956,7 @@ static void parseAsciiPortLine()
     char *token;
     int i;
     GetInteger(i);
-    if (i< 0)
+    if (i < 0)
 	i = 0;
     Config.Port.ascii = (u_short) i;
 }
@@ -966,7 +966,7 @@ static void parseUdpPortLine()
     char *token;
     int i;
     GetInteger(i);
-    if (i< 0)
+    if (i < 0)
 	i = 0;
     Config.Port.udp = (u_short) i;
 }

@@ -31,7 +31,7 @@ typedef int (*PF) _PARAMS((int, void *));
 typedef struct fde {
     int openned;		/* Set if we did a comm_connect.  Ignored for ftp_pipes. */
     int sender;			/* Set if this fd is connected to a client */
-    u_short port;			/* Our tcp port # */
+    u_short port;		/* Our tcp port # */
     char ipaddr[16];		/* dotted decimal address of peer */
     int (*handler) ();		/* Interrupt handler */
     StoreEntry *store_entry;
