@@ -81,10 +81,10 @@ create_view(tokens)
 	    break;
     }
 
-    new = (viewEntry *) calloc(1, sizeof(viewEntry));
-    memset(new, 0, sizeof(viewEntry));
+    new = (viewEntry *) xcalloc(1, sizeof(viewEntry));
+    memset(new, '\0', sizeof(viewEntry));
 
-    strcpy(new->viewName, tokens[1]);
+    xstrncpy(new->viewName, tokens[1], 32);
     new->viewIndex = vp ? vp->viewIndex : nextview++;
     new->viewType = strcmp(tokens[3], "included") ? VIEWEXCLUDED : VIEWINCLUDED;
 
@@ -144,7 +144,7 @@ create_user(tokens)
 	debug(49, 0) ("create_user: user '%s' already defined\n", tokens[1]);
 	return -1;
     }
-    new = (usecEntry *) calloc(1, sizeof(usecEntry));
+    new = (usecEntry *) xcalloc(1, sizeof(usecEntry));
     if (Config.Snmp.users) {
 	prev->next = new;
     } else {
@@ -254,9 +254,9 @@ create_community(char **tokens)
 	return -1;
     }
     debug(49, 5) ("Adding %s\n", tokens[1]);
-    new = (communityEntry *) calloc(1, sizeof(communityEntry));
+    new = (communityEntry *) xcalloc(1, sizeof(communityEntry));
     memset(new, 0, sizeof(communityEntry));
-    strcpy(new->name, tokens[1]);
+    xstrncpy(new->name, tokens[1], 32);
     new->readView = find_view(tokens[2]);
     new->writeView = find_view(tokens[3]);
     if (new->readView < 0 || new->writeView < 0) {
