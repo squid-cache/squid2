@@ -767,7 +767,7 @@ httpBuildRequestPrefix(request_t * request,
 	packerClean(&p);
     }
     /* append header terminator */
-    memBufAppend(mb, "\r\n", 2);
+    memBufAppend(mb, crlf, 2);
     return mb->size - offset;
 }
 /* This will be called when connect completes. Write request. */

@@ -66,7 +66,6 @@ const char *ProtocolStr[] =
     "TOTAL"
 };
 
-static const char *const hex = "0123456789abcdef";
 static request_t *urnParse(method_t method, char *urn);
 static const char *const valid_hostname_chars =
 #if ALLOW_HOSTNAME_UNDERSCORES

@@ -196,11 +196,11 @@ fdAdjustReserved(void)
 void
 fdTouchFL(int fd, const char *file, int line)
 {
-	fde *F;
-	if (fd < 0)
-		return;
-	F = &fd_table[fd];
-	assert(F->flags.open);
-	F->last.file = file;
-	F->last.line = line;
+    fde *F;
+    if (fd < 0)
+	return;
+    F = &fd_table[fd];
+    assert(F->flags.open);
+    F->last.file = file;
+    F->last.line = line;
 }

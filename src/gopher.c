@@ -601,8 +601,8 @@ gopherReadReply(int fd, void *data)
     delay_id delay_id = delayMostBytesAllowed(entry->mem_obj);
 #endif
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
-        comm_close(fd);
-        return;
+	comm_close(fd);
+	return;
     }
     errno = 0;
     buf = memAllocate(MEM_4K_BUF);

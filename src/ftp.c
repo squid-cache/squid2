@@ -837,8 +837,8 @@ ftpDataRead(int fd, void *data)
 #endif
     assert(fd == ftpState->data.fd);
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
-        comm_close(fd);
-        return;
+	comm_close(fd);
+	return;
     }
     errno = 0;
     read_sz = ftpState->data.size - ftpState->data.offset;

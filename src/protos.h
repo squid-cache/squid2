@@ -834,6 +834,7 @@ extern void storeKeyFree(const cache_key *);
 extern const cache_key *storeKeyScan(const char *);
 extern const char *storeKeyText(const cache_key *);
 extern const cache_key *storeKeyPublic(const char *, const method_t);
+extern const cache_key *storeKeyPublicOld(const char *, const method_t);
 extern const cache_key *storeKeyPrivate(const char *, method_t, int);
 extern int storeKeyHashBuckets(int);
 extern int storeKeyNull(const cache_key *);

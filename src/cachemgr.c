@@ -154,7 +154,6 @@ typedef struct {
  */
 static const time_t passwd_ttl = 60 * 60 * 3;	/* in sec */
 static const char *script_name = "/cgi-bin/cachemgr.cgi";
-static const char *const w_space = " \t\n\r";
 static const char *progname = NULL;
 static time_t now;
 static struct in_addr no_addr;

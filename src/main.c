@@ -340,7 +340,7 @@ mainReconfigure(void)
 	    debug(1, 1) ("ICP port disabled in httpd_accelerator mode\n");
     }
     storeDirOpenSwapLogs();
-    writePidFile();         /* write PID file */
+    writePidFile();		/* write PID file */
     debug(1, 1) ("Ready to serve requests.\n");
     reconfiguring = 0;
 }
