@@ -838,8 +838,8 @@ comm_poll(time_t sec)
 		setSocketShutdownLifetimes(Config.shutdownLifetime);
 	    else
 		setSocketShutdownLifetimes(1);
-#endif
 	}
+#endif
 	nfds = 0;
 	maxfd = Biggest_FD + 1;
 	for (i = 0; i < maxfd; i++) {
