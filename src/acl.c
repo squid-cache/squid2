@@ -207,6 +207,9 @@ static struct _acl_time_data *aclParseTimeSpec()
 		case 'A':
 		    data->weekbits |= ACL_SATURDAY;
 		    break;
+		case 'D':
+		    data->weekbits |= ACL_WEEKDAYS;
+		    break;
 		default:
 		    debug(28, 0, "%s line %d: %s\n",
 			cfg_filename, config_lineno, config_input_line);
