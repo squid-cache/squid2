@@ -402,10 +402,12 @@ authenticateAuthenticateUser(auth_user_request_t * auth_user_request, request_t 
 }
 
 static auth_user_request_t *
-authTryGetUser(auth_user_request_t ** auth_user_request, ConnStateData * conn)
+authTryGetUser(auth_user_request_t ** auth_user_request, ConnStateData * conn, request_t * request)
 {
     if (*auth_user_request)
 	return *auth_user_request;
+    else if (request && request->auth_user_request)
+	return request->auth_user_request;
     else if (conn)
 	return conn->auth_user_request;
     else
@@ -445,7 +447,7 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
      * authenticated connection so we test for an authenticated
      * connection when we recieve no authentication header.
      */
-    if (((proxy_auth == NULL) && (!authenticateUserAuthenticated(authTryGetUser(auth_user_request, conn))))
+    if (((proxy_auth == NULL) && (!authenticateUserAuthenticated(authTryGetUser(auth_user_request, conn, request))))
 	|| (conn && conn->auth_type == AUTH_BROKEN)) {
 	/* no header or authentication failed/got corrupted - restart */
 	if (conn)
@@ -590,7 +592,7 @@ auth_acl_t
 authenticateTryToAuthenticateAndSetAuthUser(auth_user_request_t ** auth_user_request, http_hdr_type headertype, request_t * request, ConnStateData * conn, struct in_addr src_addr)
 {
     /* If we have already been called, return the cached value */
-    auth_user_request_t *t = authTryGetUser(auth_user_request, conn);
+    auth_user_request_t *t = authTryGetUser(auth_user_request, conn, request);
     auth_acl_t result;
     if (t && t->lastReply != AUTH_ACL_CANNOT_AUTHENTICATE
 	&& t->lastReply != AUTH_ACL_HELPER) {
@@ -600,7 +602,7 @@ authenticateTryToAuthenticateAndSetAuthUser(auth_user_request_t ** auth_user_req
     }
     /* ok, call the actual authenticator routine. */
     result = authenticateAuthenticate(auth_user_request, headertype, request, conn, src_addr);
-    t = authTryGetUser(auth_user_request, conn);
+    t = authTryGetUser(auth_user_request, conn, request);
     if (t && result != AUTH_ACL_CANNOT_AUTHENTICATE &&
 	result != AUTH_ACL_HELPER)
 	t->lastReply = result;
