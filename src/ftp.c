@@ -932,6 +932,7 @@ ftpStart(request_t * request, StoreEntry * entry)
     ftpState->request = requestLink(request);
     ftpState->ctrl.fd = -1;
     ftpState->data.fd = -1;
+    ftpState->size = -1;
     EBIT_SET(ftpState->flags, FTP_PASV_SUPPORTED);
     EBIT_SET(ftpState->flags, FTP_REST_SUPPORTED);
     if (ftpState->request->method == METHOD_PUT)
