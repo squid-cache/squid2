@@ -333,6 +333,7 @@ void neighborRemove(target)
     }
     if (e) {
 	*E = e->next;
+	safe_free(e->host);
 	safe_free(e);
 	friends->n--;
     }
