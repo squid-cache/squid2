@@ -61,8 +61,8 @@ die "socket: $!\n" unless
 
 while (<>) {
 	chop;
-	$request_template = 'CCnx4x8x4a4a' . length;
-	$request = pack($request_template, 1, 1, 24 + length, $myip, $_);
+	$request_template = 'CCnx4Nx4x4a4a' . length;
+	$request = pack($request_template, 1, 1, 24 + length, ~0, $myip, $_);
 	die "send: $!\n" unless
 		send(SOCK, $request, 0, $them);
 	die "recv: $!\n" unless
