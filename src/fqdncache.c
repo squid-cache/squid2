@@ -870,10 +870,11 @@ void fqdncache_init()
 
 /* clean up the pending entries in dnsserver */
 /* return 1 if we found the host, 0 otherwise */
-int fqdncache_unregister(name, fd)
-     char *name;
+int fqdncacheUnregister(addr, fd)
+     struct in_addr addr;
      int fd;
 {
+    char *name = inet_ntoa(addr);
     fqdncache_entry *f = NULL;
     struct _fqdn_pending *p = NULL;
     int n = 0;
