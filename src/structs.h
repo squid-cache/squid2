@@ -2015,6 +2015,7 @@ struct _helper {
 	int queue_size;
 	int avg_svc_time;
     } stats;
+    time_t last_restart;
 };
 
 struct _helper_stateful {
@@ -2035,6 +2036,7 @@ struct _helper_stateful {
 	int queue_size;
 	int avg_svc_time;
     } stats;
+    time_t last_restart;
 };
 
 struct _helper_server {

@@ -129,6 +129,7 @@ helperOpenServers(helper * hlp)
 	    commSetNonBlocking(wfd);
 	comm_add_close_handler(rfd, helperServerFree, srv);
     }
+    hlp->last_restart = squid_curtime;
     safe_free(shortname);
     safe_free(procname);
     helperKickQueue(hlp);
@@ -214,6 +215,7 @@ helperStatefulOpenServers(statefulhelper * hlp)
 	    commSetNonBlocking(wfd);
 	comm_add_close_handler(rfd, helperStatefulServerFree, srv);
     }
+    hlp->last_restart = squid_curtime;
     safe_free(shortname);
     safe_free(procname);
     helperStatefulKickQueue(hlp);
@@ -659,8 +661,13 @@ helperServerFree(int fd, void *data)
     if (!srv->flags.shutdown) {
 	debug(84, 0) ("WARNING: %s #%d (FD %d) exited\n",
 	    hlp->id_name, srv->index + 1, fd);
-	if (hlp->n_running < hlp->n_to_start / 2)
-	    fatalf("Too few %s processes are running", hlp->id_name);
+	if (hlp->n_running <= hlp->n_to_start / 2) {
+	    debug(80, 0) ("Too few %s processes are running", hlp->id_name);
+	    if (hlp->last_restart > squid_curtime - 30)
+		fatalf("The %s helpers are crashing too rapidly, need help!\n", hlp->id_name);
+	    debug(80, 0) ("Starting new helpers\n");
+	    helperOpenServers(hlp);
+	}
     }
     cbdataUnlock(srv->parent);
     cbdataFree(srv);
@@ -692,8 +699,13 @@ helperStatefulServerFree(int fd, void *data)
     if (!srv->flags.shutdown) {
 	debug(84, 0) ("WARNING: %s #%d (FD %d) exited\n",
 	    hlp->id_name, srv->index + 1, fd);
-	if (hlp->n_running < hlp->n_to_start / 2)
-	    fatalf("Too few %s processes are running", hlp->id_name);
+	if (hlp->n_running <= hlp->n_to_start / 2) {
+	    debug(80, 0) ("Too few %s processes are running", hlp->id_name);
+	    if (hlp->last_restart > squid_curtime - 30)
+		fatalf("The %s helpers are crashing too rapidly, need help!\n", hlp->id_name);
+	    debug(80, 0) ("Starting new helpers\n");
+	    helperStatefulOpenServers(hlp);
+	}
     }
     if (srv->data != NULL)
 	memPoolFree(hlp->datapool, srv->data);
