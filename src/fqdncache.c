@@ -229,7 +229,7 @@ fqdncacheParse(const char *inbuf)
     static fqdncache_entry f;
     int ttl;
     xstrncpy(buf, inbuf, DNS_INBUF_SZ);
-    debug(35, 5) ("fqdncacheParse: parsing:\n%s", buf);
+    debug(35, 5) ("fqdncacheParse: parsing: {%s}\n", buf);
     memset(&f, '\0', sizeof(f));
     f.expires = squid_curtime;
     f.status = FQDN_NEGATIVE_CACHED;

@@ -273,7 +273,7 @@ ipcacheParse(const char *inbuf)
 	return &i;
     }
     xstrncpy(buf, inbuf, DNS_INBUF_SZ);
-    debug(14, 5) ("ipcacheParse: parsing:%s\n", buf);
+    debug(14, 5) ("ipcacheParse: parsing: {%s}\n", buf);
     token = strtok(buf, w_space);
     if (NULL == token) {
 	debug(14, 1) ("ipcacheParse: Got <NULL>, expecting '$addr'\n");
