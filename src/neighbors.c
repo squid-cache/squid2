@@ -520,7 +520,7 @@ neighborAlive(peer * p, const MemObject * mem, const icp_common_t * header)
 {
     int rtt;
     int n;
-    if (p->stats.logged_state == PEER_DEAD) {
+    if (p->stats.logged_state == PEER_DEAD && p->tcp_up) {
 	debug(15, 0) ("Detected REVIVED %s: %s/%d/%d\n",
 	    neighborTypeStr(p),
 	    p->host, p->http_port, p->icp_port);
