@@ -17,6 +17,12 @@ AC_REVISION($Revision$)dnl
 AC_PREFIX_DEFAULT(/usr/local/squid)
 AM_MAINTAINER_MODE
 
+echo
+echo WARNING: This version of Squid is no longer developed.
+echo Current developments can be found in the squid3 tree.
+echo
+sleep 10
+
 dnl Set default LDFLAGS
 if test -z "$LDFLAGS"; then
         LDFLAGS="-g"
