@@ -1661,6 +1661,7 @@ static void configFreeMemory()
     safe_free(Config.Log.log);
     safe_free(Config.Log.access);
     safe_free(Config.Log.hierarchy);
+    safe_free(Config.Log.store);
     safe_free(Config.adminEmail);
     safe_free(Config.effectiveUser);
     safe_free(Config.effectiveGroup);
