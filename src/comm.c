@@ -1251,13 +1251,11 @@ int
 comm_init(void)
 {
     fd_table = xcalloc(Squid_MaxFD, sizeof(fde));
-    meta_data.misc += Squid_MaxFD * sizeof(fde);
+    /* XXX account fd_table */
     /* Keep a few file descriptors free so that we don't run out of FD's
      * after accepting a client but before it opens a socket or a file.
      * Since Squid_MaxFD can be as high as several thousand, don't waste them */
     RESERVED_FD = XMIN(100, Squid_MaxFD / 4);
-    /* hardwired lifetimes */
-    meta_data.misc += Squid_MaxFD * sizeof(int);
     zero_tv.tv_sec = 0;
     zero_tv.tv_usec = 0;
     return 0;

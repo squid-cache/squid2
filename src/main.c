@@ -502,6 +502,7 @@ mainInitialize(void)
 	if (Config.onoff.announce)
 	    eventAdd("start_announce", start_announce, NULL, 3600);
 	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10);
+	eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 15);
     }
     configured_once = 1;
 #ifdef SQUID_SNMP
