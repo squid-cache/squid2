@@ -638,5 +638,8 @@ enum {
 typedef enum {
     SWAPDIR_UFS,
     SWAPDIR_ASYNCUFS,
+#if USE_DISKD
+    SWAPDIR_DISKD,
+#endif
     SWAPDIR_MAX
 } swapdir_t;
