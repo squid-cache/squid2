@@ -2322,11 +2322,8 @@ storeVerifySwapDirs(int clean)
 	}
 	if (clean && opt_unlink_on_reload) {
 	    debug(20, 1, "storeVerifySwapDirs: Zapping all objects on disk storage.\n");
-	    /* This could be dangerous, second copy of cache can destroy
-	     * the existing swap files of the previous cache. We may
-	     * use rc file do it. */
 	    cmdbuf = xcalloc(1, BUFSIZ);
-	    sprintf(cmdbuf, "cd %s; /bin/rm -rf log [0-9][0-9]", path);
+	    sprintf(cmdbuf, "cd %s; /bin/rm -rf log 0[0-9A-F]", path);
 	    debug(20, 1, "storeVerifySwapDirs: Running '%s'\n", cmdbuf);
 	    system(cmdbuf);	/* XXX should avoid system(3) */
 	    xfree(cmdbuf);
