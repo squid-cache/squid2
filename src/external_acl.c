@@ -417,6 +417,7 @@ aclMatchExternal(void *data, aclCheck_t * ch)
 	}
     }
     key = makeExternalAclKey(ch, acl);
+    ch->auth_user_request = NULL;
     if (entry) {
 	if (entry->def != acl->def || strcmp(entry->hash.key, key) != 0) {
 	    /* Not ours.. get rid of it */
@@ -432,7 +433,6 @@ aclMatchExternal(void *data, aclCheck_t * ch)
 	    debug(82, 2) ("external_acl_cache_lookup: '%s' = expired\n", key);
 	    entry = NULL;
 	}
-	ch->auth_user_request = NULL;
     }
     if (!entry || entry->result == -1) {
 	debug(82, 2) ("aclMatchExternal: %s(\"%s\") = lookup needed\n", acl->def->name, key);
