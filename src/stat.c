@@ -1086,9 +1086,9 @@ log_append(const cacheinfo * obj,
 	method = dash_str;
     if (!url)
 	url = dash_str;
-    if (!content_type)
+    if (!content_type || *content_type == '\0')
 	content_type = dash_str;
-    if (!ident || ident[0] == '\0')
+    if (!ident || *ident == '\0')
 	ident = dash_str;
     if (hierData) {
 	hier_code = hierData->code;
