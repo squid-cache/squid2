@@ -48,6 +48,13 @@
 
 #define RIDICULOUS_LENGTH	4096
 
+#if defined(_SQUID_LINUX_)
+/* Linux requires proper use of mutexes or it will segfault deep in the
+ * thread libraries. Observed on Alpha SMP Linux 2.2.10-ac12.
+ */
+#define USE_PROPER_MUTEX 1
+#endif
+
 enum _aio_thread_status {
     _THREAD_STARTING = 0,
     _THREAD_WAITING,
