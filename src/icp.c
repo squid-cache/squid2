@@ -1505,10 +1505,12 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	if (check_valid_url(fd, astm) == 0) {
 	    debug(12, 5, "Invalid URL: %s\n", astm->url);
 	    astm->log_type = ERR_INVALID_URL;
+	    astm->http_code = 400;
 	    astm->buf = xstrdup(cached_error_url(astm->url,
 		    astm->method,
 		    ERR_INVALID_URL,
 		    fd_table[fd].ipaddr,
+		    astm->http_code,
 		    NULL));
 	    astm->ptr_to_4k_page = NULL;
 	    icpWrite(fd,
@@ -1519,10 +1521,12 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 		(caddr_t) astm);
 	} else if (blockCheck(astm->url)) {
 	    astm->log_type = LOG_TCP_BLOCK;
+	    astm->http_code = 403;
 	    astm->buf = xstrdup(cached_error_url(astm->url,
 		    astm->method,
 		    ERR_URL_BLOCKED,
 		    fd_table[fd].ipaddr,
+		    astm->http_code,
 		    NULL));
 	    icpWrite(fd,
 		astm->buf,
@@ -1572,9 +1576,11 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 	/* parser returned -1 */
 	debug(12, 1, "asciiProcessInput: FD %d Invalid Request\n", fd);
 	astm->log_type = ERR_INVALID_REQ;
+	astm->http_code = 400;
 	astm->buf = xstrdup(cached_error_request(astm->inbuf,
 		ERR_INVALID_REQ,
-		fd_table[fd].ipaddr));
+		fd_table[fd].ipaddr,
+		astm->http_code));
 	icpWrite(fd,
 	    astm->buf,
 	    strlen(astm->buf),
