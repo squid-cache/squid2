@@ -233,12 +233,15 @@ static ipcache_entry *ipcache_get(name)
     if (result == NULL)
 	return NULL;
 
-    if (((result->timestamp + result->ttl) < squid_curtime) &&
-	(result->status != IP_PENDING)) {	/* expired? */
-	ipcache_release(result);
-	return NULL;
-    }
-    return result;
+    if ((result->timestamp + result->ttl) > squid_curtime)
+	return result;
+    if (result->status != IP_PENDING)
+	return result;
+    if (result->lock)
+	return result;
+    /* else its expired */
+    ipcache_release(result);
+    return NULL;
 }
 
 /* get the first ip entry in the storage */
@@ -336,23 +339,11 @@ static int ipcache_purgelru()
 /* create blank ipcache_entry */
 static ipcache_entry *ipcache_create()
 {
-    static ipcache_entry *ipe;
     static ipcache_entry *new;
 
     if (meta_data.ipcache_count > ipcache_high) {
-	if (ipcache_purgelru() < 0) {
-	    debug(14, 1, "ipcache_create: Cannot release needed IP entry via LRU: %d > %d, removing first entry...\n", meta_data.ipcache_count, MAX_IP);
-	    ipe = ipcache_GetFirst();
-	    if (!ipe) {
-		debug(14, 1, "ipcache_create: First entry is a null pointer ???\n");
-		/* have to let it grow beyond limit here */
-	    } else if (ipe && ipe->status != IP_PENDING) {
-		ipcache_release(ipe);
-	    } else {
-		debug(14, 1, "ipcache_create: First entry is also PENDING entry.\n");
-		/* have to let it grow beyond limit here */
-	    }
-	}
+	if (ipcache_purgelru() < 0)
+	    debug(14, 0, "HELP!! IP Cache is overflowing!\n");
     }
     meta_data.ipcache_count++;
     new = xcalloc(1, sizeof(ipcache_entry));
