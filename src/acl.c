@@ -529,22 +529,6 @@ static int aclMatchWord(data, word)
     }
     return 0;
 }
-
-static int aclMatchRegex(data, word)
-     relist *data;
-     char *word;
-{
-    if (word == NULL)
-	return 0;
-    debug(28, 3, "aclMatchRegex: checking '%s'\n", word);
-    while (data) {
-	debug(28, 3, "aclMatchRegex: looking for '%s'\n", data->pattern);
-	if (regexec(&data->regex, word, 0, 0, 0) == 0)
-	    return 1;
-	data = data->next;
-    }
-    return 0;
-}
 #endif
 
 static int aclMatchEndOfWord(data, word)
@@ -565,6 +549,21 @@ static int aclMatchEndOfWord(data, word)
     return 0;
 }
 
+static int aclMatchRegex(data, word)
+     relist *data;
+     char *word;
+{
+    if (word == NULL)
+	return 0;
+    debug(28, 3, "aclMatchRegex: checking '%s'\n", word);
+    while (data) {
+	debug(28, 3, "aclMatchRegex: looking for '%s'\n", data->pattern);
+	if (regexec(&data->regex, word, 0, 0, 0) == 0)
+	    return 1;
+	data = data->next;
+    }
+    return 0;
+}
 
 static int aclMatchInteger(data, i)
      intlist *data;
