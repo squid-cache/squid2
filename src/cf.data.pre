@@ -1504,6 +1504,10 @@ DOC_START
 	to denial-of-service by having many ident requests going at
 	once.
 
+	Only src type ACL checks are fully supported.  A src_domain
+	ACL might work at times, but it will not always provide
+	the correct result.
+
 	This option may be disabled by using --disable-ident with
 	the configure script.
 ident_timeout 10 seconds
