@@ -645,6 +645,13 @@ extern void redirectStats(StoreEntry *);
 extern int redirectUnregister(const char *url, void *);
 extern void redirectFreeMemory(void);
 
+extern void authenticateStart(acl_proxy_auth_user *, RH *, void *);
+extern void authenticateOpenServers(void);
+extern void authenticateShutdownServers(void *);
+extern void authenticateStats(StoreEntry *);
+extern int authenticateUnregister(const char *url, void *);
+extern void authenticateFreeMemory(void);
+
 extern void refreshAddToList(const char *, int, time_t, int, time_t);
 extern int refreshCheck(const StoreEntry *, request_t *, time_t delta);
 extern time_t refreshWhen(const StoreEntry * entry);

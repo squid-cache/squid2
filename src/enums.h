@@ -113,7 +113,10 @@ typedef enum {
     ACL_LOOKUP_NONE,
     ACL_LOOKUP_NEEDED,
     ACL_LOOKUP_PENDING,
-    ACL_LOOKUP_DONE
+    ACL_LOOKUP_DONE,
+    ACL_PROXY_AUTH_NEEDED,
+    ACL_PROXY_AUTH_USED,
+    ACL_PROXY_AUTH_CHECK
 } acl_lookup_state;
 
 enum {
