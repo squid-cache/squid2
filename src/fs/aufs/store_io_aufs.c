@@ -66,6 +66,7 @@ storeAufsOpen(SwapDir * SD, StoreEntry * e, STFNCB * file_callback,
     sio->e = e;
     cbdataLock(callback_data);
     Opening_FD++;
+    statCounter.syscalls.disk.opens++;
 #if ASYNC_OPEN
     aioOpen(path, O_RDONLY | O_BINARY, 0644, storeAufsOpenDone, sio);
 #else
@@ -120,6 +121,7 @@ storeAufsCreate(SwapDir * SD, StoreEntry * e, STFNCB * file_callback, STIOCB * c
     sio->e = (StoreEntry *) e;
     cbdataLock(callback_data);
     Opening_FD++;
+    statCounter.syscalls.disk.opens++;
 #if ASYNC_CREATE
     aioOpen(path, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644, storeAufsOpenDone, sio);
 #else
@@ -182,8 +184,10 @@ storeAufsRead(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t of
     aiostate->flags.reading = 1;
 #if ASYNC_READ
     aioRead(aiostate->fd, offset, size, storeAufsReadDone, sio);
+    statCounter.syscalls.disk.reads++;
 #else
     file_read(aiostate->fd, buf, size, offset, storeAufsReadDone, sio);
+    /* file_read() increments syscalls.disk.reads */
 #endif
 }
 
@@ -222,9 +226,11 @@ storeAufsWrite(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t o
     aiostate->flags.writing = 1;
     aioWrite(aiostate->fd, offset, buf, size, storeAufsWriteDone, sio,
 	free_func);
+    statCounter.syscalls.disk.writes++;
 #else
     file_write(aiostate->fd, offset, buf, size, storeAufsWriteDone, sio,
 	free_func);
+    /* file_write() increments syscalls.disk.writes */
 #endif
 }
 
@@ -236,6 +242,7 @@ storeAufsUnlink(SwapDir * SD, StoreEntry * e)
     storeAufsDirReplRemove(e);
     storeAufsDirMapBitReset(SD, e->swap_filen);
     storeAufsDirUnlinkFile(SD, e->swap_filen);
+    statCounter.syscalls.disk.unlinks++;
 }
 
 /*  === STATIC =========================================================== */
@@ -428,6 +435,7 @@ storeAufsIOCallback(storeIOState * sio, int errflag)
     aioClose(fd);
     fd_close(fd);
     store_open_disk_fd--;
+    statCounter.syscalls.disk.closes++;
     debug(79, 9) ("%s:%d\n", __FILE__, __LINE__);
 }
 
