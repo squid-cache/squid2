@@ -1,17 +1,31 @@
 /*
  * $Id$
  *
- * DEBUG: section 11	Hypertext Transfer Protocol (HTTP)
+ * DEBUG: section 11    Hypertext Transfer Protocol (HTTP)
  * AUTHOR: Harvest Derived
  *
  * SQUID Internet Object Cache  http://www.nlanr.net/Squid/
  * --------------------------------------------------------
  *
- *   Squid is the result of efforts by numerous individuals from the
- *   Internet community.  Development is led by Duane Wessels of the
- *   National Laboratory for Applied Network Research and funded by
- *   the National Science Foundation.
- * 
+ *  Squid is the result of efforts by numerous individuals from the
+ *  Internet community.  Development is led by Duane Wessels of the
+ *  National Laboratory for Applied Network Research and funded by
+ *  the National Science Foundation.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  
  */
 
 /*
@@ -319,13 +333,13 @@ void httpProcessReplyHeader(httpState, buf, size)
 	case 410:		/* Gone */
 	    /* don't cache objects from neighbors w/o LMT, Date, or Expires */
 	    if (*reply->date)
-	        httpMakePublic(entry);
+		httpMakePublic(entry);
 	    else if (*reply->last_modified)
-	        httpMakePublic(entry);
+		httpMakePublic(entry);
 	    else if (!httpState->neighbor)
-	        httpMakePublic(entry);
+		httpMakePublic(entry);
 	    else if (*reply->expires)
-	        httpMakePublic(entry);
+		httpMakePublic(entry);
 	    else
 		httpMakePrivate(entry);
 	    break;
