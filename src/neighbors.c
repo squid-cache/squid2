@@ -429,7 +429,7 @@ neighborsUdpPing(protodispatch_data * proto)
 	if (e->options & NEIGHBOR_NO_QUERY)
 	    continue;
 
-	debug(15, 4, "neighborsUdpPing: pinging cache %s for <URL:%s>\n",
+	debug(15, 4, "neighborsUdpPing: pinging cache %s for '%s'\n",
 	    e->host, url);
 
 	if (BIT_TEST(entry->flag, KEY_PRIVATE))
