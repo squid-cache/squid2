@@ -1459,7 +1459,7 @@ parse_peer(peer ** head)
 #endif
 	} else if (!strcasecmp(token, "allow-miss")) {
 	    p->options.allow_miss = 1;
-	} else if (!strcasecmp(token, "max-conn=")) {
+	} else if (!strncasecmp(token, "max-conn=", 9)) {
 	    p->max_conn = atoi(token + 9);
 	} else {
 	    debug(3, 0) ("parse_peer: token='%s'\n", token);
