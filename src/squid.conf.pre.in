@@ -364,10 +364,6 @@ gopher_stop   ?
 #  TAG: wais_relay
 #	Relay WAIS request to host (1st arg) at port (2 arg).  
 #	Third argument is max object size.
-#
-#	wais_relay is not supported by default.  To use this feature
-#	add -DUSE_WAIS_RELAY to the DEFINES in src/server/Makefile
-#
 #wais_relay localhost 8000 4
 
 #  TAG: request_size
