@@ -44,7 +44,6 @@ extern void fvdbCountForw(const char *key);
 
 extern aclCheck_t *aclChecklistCreate(const struct _acl_access *,
     request_t *,
-    const char *user_agent,
     const char *ident);
 extern void aclNBCheck(aclCheck_t *, PF *, void *);
 extern int aclCheckFast(const struct _acl_access *A, aclCheck_t *);

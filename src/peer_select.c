@@ -237,7 +237,6 @@ peerSelectFoo(ps_state * ps)
 	    ps->acl_checklist = aclChecklistCreate(
 		Config.accessList.AlwaysDirect,
 		request,
-		NULL,		/* user agent */
 		NULL);		/* ident */
 	    aclNBCheck(ps->acl_checklist,
 		peerCheckAlwaysDirectDone,
@@ -249,7 +248,6 @@ peerSelectFoo(ps_state * ps)
 	    ps->acl_checklist = aclChecklistCreate(
 		Config.accessList.NeverDirect,
 		request,
-		NULL,		/* user agent */
 		NULL);		/* ident */
 	    aclNBCheck(ps->acl_checklist,
 		peerCheckNeverDirectDone,
