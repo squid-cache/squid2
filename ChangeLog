@@ -1,4 +1,73 @@
-Changes to squid-2.5 ():
+Changes to squid-2.5.STABLE2 ():
+
+	- Contrib files added back to the distribution
+	- Several compiler warnings fixed when using --disable-ident or
+	  --disable-http-violations
+	- authentication can now be used in most access controls, but
+	  must in most cases first be enforced in http_access to force
+	  the user to authenticate.
+	- cleanups in the developer bootstrap.sh process when preparing
+	  the sources.
+	- several squid.conf.default documentation updated to correctly
+	  refer to the current names when refering to other directives
+	- authenticate_ip_ttl documentation updates
+	- several assertion faults and segmentation violations corrected
+	- the RunCache/RunAccel and squid.rc scripts updated to refer to
+	  the squid binary in sbin rather than the old bin location.
+	- squid_ldap_auth command line processing fixes when specifying
+	  the LDAP server last on the line instead of -h option
+	- aufs data corruption bugfix
+	- aufs performance improvement for low traffic systems
+	- aufs stability improvements
+	- external_acl corrected to properly deal with quoted strings
+	- WCCPv1 bugfix to make sure the router accepts the hash assignments
+	- "Total accounted memory" now correctly reported in cachemgr
+	- several small memory leaks (mostly reconfigure related)
+	- new squid.conf option to allow GET/HEAD requests with a request
+	  entity
+	- "make uninstall" no longer removes squid.conf
+	- cachemgr.cgi now uses POST to avoid having the cachemgr password
+	  logged in the web server logs
+	- authentication schemes which are known to not be proxyable are now
+	  filtered out from forwarded server replies to avoid that the clients
+	  tries to use such schemes when we know for a fact it won't work
+	- spelling corrections in various error messages
+	- now possible to define acl values with spaces in them
+	  by using the "include file" feature
+	- squid_ldap_group updated to 2.10 to fix compilation issues with
+	  recent (and older) OpenLDAP libraries and to make the helper deal
+	  correctly with true LDAP groups by first looking up the user DN.
+	- Some internal code cleanups
+	- now verifies that programs etc exists iside the chroot directory
+	  when using chroot_dir. No longer neccesary to set up a split view
+	  environment where the same paths works both inside the chroot and
+	  outside just to convince Squid that the files is actually there..
+	- improved memory usage reporting
+	- --disable-hostname-checks configure option
+	- no longer ignores double dots in host names. Any hostname with
+	  double dots is now rejected as invalid.
+	- log_mime_hdrs no longer logs garbage if very long headers
+	  are seen.
+	- 'select_fds_hist' object added to cachemgr 'histogram' output
+	- pid file now unlinked when squid has really shut down, not
+	  immediately when the shutdown request is received. This allows
+	  the pid file to be monitored to determine when Squid has shut down
+	  properly
+	- correct authentication scheme setups on some platforms or compilers
+	- several squid.conf.default documentation updates to remove references
+	  to renamed or replaced directives by changing them to their current
+	  names.
+	- the SSL reverse proxy support updated to allow building with
+	  OpenSSL 0.9.7 and and later.
+	- Corrected a minor performance problem while processing HEAD replies
+	  from various broken web servers not sending a correct HTTP reply
+	- time acls can now specify multiple times in the same acl name, like
+	  most other acl types.
+	- winbind helpers updated to work with Samba-2.2.6 and later, and a
+	  new configure option --with-samba-sources=... added to manually
+	  specify which Samba version the helpers should be built for
+	  
+Changes to squid-2.5.STABLE1 (September 25, 2002):
 
 	- Major rewrite of proxy authentication to support other schemes
 	  than basic. First in the line is NTLM support but others can
