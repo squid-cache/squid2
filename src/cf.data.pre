@@ -210,6 +210,7 @@ DOC_START
 		     round-robin
 		     multicast-responder
 		     closest-only
+		     no-digest
 		     no-netdb-exchange
 		     no-delay
 
@@ -247,6 +248,9 @@ DOC_START
 		     'closest-only' indicates that, for ICP_OP_MISS
 		     replies, we'll only forward CLOSEST_PARENT_MISSes
 		     and never FIRST_PARENT_MISSes.
+
+		     use 'no-digest' to NOT request cache digests from
+		     this neighbor.
 
 		     'no-netdb-exchange' disables requesting ICMP
 		     RTT database (NetDB) from the neighbor.
