@@ -1094,7 +1094,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		&header,
 		&from,
 		0,
-		ICP_OP_INVALID,
+		ICP_OP_ERR,
 		LOG_UDP_INVALID);
 	    break;
 	}
@@ -1342,6 +1342,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	break;
 
     case ICP_OP_INVALID:
+    case ICP_OP_ERR:
 	break;
 
     default:
