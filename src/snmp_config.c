@@ -325,7 +325,7 @@ read_config()
     maintenanceView = create_view(tokens);
     xfree(t);
     t = xstrdup("view $$INTERNAL$$ .1.3.6.1.6.3.1.1.1 included");
-    tokenize(t ,tokens, 10);
+    tokenize(t, tokens, 10);
     create_view(tokens);
     xfree(t);
 #ifdef READ_OLD_STYLE_CONFIG
