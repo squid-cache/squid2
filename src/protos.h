@@ -662,6 +662,8 @@ extern void statInit(void);
 extern double median_svc_get(int, int);
 extern void pconnHistCount(int, int);
 extern int stat5minClientRequests(void);
+extern double stat5minCPUUsage(void);
+
 
 
 /* StatHist */
