@@ -965,6 +965,13 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
     assert(auth_user_request->scheme_data != NULL);
     ntlm_user = auth_user->scheme_data;
     ntlm_request = auth_user_request->scheme_data;
+    /* Check that we are in the client side, where we can generate
+     * auth challenges */
+    if (!conn) {
+	ntlm_request->auth_state = AUTHENTICATE_STATE_FAILED;
+	debug(29, 1) ("authenticateNTLMAuthenticateUser: attempt to perform authentication without a connection!\n");
+	return;
+    }
     switch (ntlm_request->auth_state) {
     case AUTHENTICATE_STATE_NONE:
 	/* we've recieved a negotiate request. pass to a helper */
