@@ -120,6 +120,7 @@ char *tmp_error_buf;
 
 /* LOCAL */
 static char *tbuf = NULL;
+static char *auth_msg = NULL;
 
 void errorInitialize()
 {
