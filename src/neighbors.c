@@ -565,7 +565,8 @@ neighborsDigestSelect(request_t * request, StoreEntry * entry)
     peer *p;
     int p_rtt;
     int i;
-
+    if (!request->flags.hierarchical)
+	return NULL;
     key = storeKeyPublic(storeUrl(entry), request->method);
     for (i = 0, p = first_ping; i++ < Config.npeers; p = p->next) {
 	lookup_t lookup;
