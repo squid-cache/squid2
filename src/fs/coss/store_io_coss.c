@@ -417,7 +417,7 @@ storeCossSync(SwapDir * SD)
     int end;
     if (!cs->membufs)
 	return;
-    for (t=cs->membufs; t; t = t->next) {
+    for (t = cs->membufs; t; t = t->next) {
 	if (t->flags.writing)
 	    sleep(5);
 	lseek(cs->fd, t->diskstart, SEEK_SET);
@@ -517,7 +517,7 @@ storeCossCreateMemBuf(SwapDir * SD, size_t start,
  * Creates the initial membuf after rebuild
  */
 void
-storeCossStartMembuf(SwapDir *sd)
+storeCossStartMembuf(SwapDir * sd)
 {
     CossInfo *cs = (CossInfo *) sd->fsdata;
     CossMemBuf *newmb = storeCossCreateMemBuf(sd, cs->current_offset, -1, NULL);

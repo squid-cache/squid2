@@ -364,14 +364,14 @@ storeDiskdReadDone(diomsg * M)
     sio->read.callback = NULL;
     sio->read.callback_data = NULL;
     if (valid) {
-        assert(!diskdstate->flags.close_request);
-        /*
-         * Only copy the data if the callback is still valid,
-         * if it isn't valid then the request should have been
-         * aborted.
-         *   -- adrian
-         */
-        xmemcpy(their_buf, sbuf, len);	/* yucky copy */
+	assert(!diskdstate->flags.close_request);
+	/*
+	 * Only copy the data if the callback is still valid,
+	 * if it isn't valid then the request should have been
+	 * aborted.
+	 *   -- adrian
+	 */
+	xmemcpy(their_buf, sbuf, len);	/* yucky copy */
 	callback(their_data, their_buf, len);
     }
 }
