@@ -1,0 +1,26 @@
+9 December 1998, version 0.02
+
+- smb_auth now uses Samba instead of pam_smb. This simplifies the
+  installation of smb_auth and increases platform support.
+
+- Access control by user and group: smb_auth now tries to read
+  the file \netlogon\proxyauth. By restricting read access on
+  this file access to the proxy can be controlled.
+
+- Easier configuration:
+
+  - smb_auth is now fully configurable with command-line options
+    (i.e. in squid.conf). No more hacking in the source code.
+
+  - In most cases it is sufficient to specify just the domain name.
+    smb_auth searches for a working domain controller on each
+    authentication request (note that Squid caches valid requests).
+
+- Easier installation: Makefile added. Simply typing "make install"
+  will work for most people.
+
+- In a multi-domain situation, users must now enter domain\user
+  instead of user\domain. This conforms to NT notation. Thanks to
+  Jason Haar <Jason.Haar@trimble.co.NZ> for pointing this out.
+
+31 July 1998, version 0.01
