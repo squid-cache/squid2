@@ -22,7 +22,7 @@ $tmpdir = $opt_t || $ENV{TMPDIR} || "/var/tmp";
 chdir($tmpdir);
 
 # snarf filenames from Harvest log & sort em
-system("cut -f2 -d' ' $logfile >pl$$");
+system("cut -f1 -d' ' $logfile >pl$$");
 system("sort -T $tmpdir pl$$ >spl$$; rm pl$$");
 
 # get list of files in cache & sort em
