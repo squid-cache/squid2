@@ -504,6 +504,16 @@ sslStart(clientHttpRequest * http, size_t * size_ptr, int *status_ptr)
     sslState->server.fd = sock;
     sslState->server.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
     sslState->client.buf = xmalloc(SQUID_TCP_SO_RCVBUF);
+    /* Copy any pending data from the client connection */
+    sslState->client.len = http->conn->in.offset;
+    if (sslState->client.len > 0) {
+	if (sslState->client.len > SQUID_TCP_SO_RCVBUF) {
+	    safe_free(sslState->client.buf);
+	    sslState->client.buf = xmalloc(sslState->client.len);
+	}
+	memcpy(sslState->client.buf, http->conn->in.buf, sslState->client.len);
+	http->conn->in.offset = 0;
+    }
     comm_add_close_handler(sslState->server.fd,
 	sslServerClosed,
 	sslState);

@@ -3045,8 +3045,15 @@ clientReadRequest(int fd, void *data)
 		    break;
 		}
 	    }
-	    clientAccessCheck(http);
-	    continue;		/* while offset > 0 && body.size_left == 0 */
+	    if (request->method == METHOD_CONNECT) {
+		/* Stop reading requests... */
+		commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
+		clientAccessCheck(http);
+		break;
+	    } else {
+		clientAccessCheck(http);
+		continue;	/* while offset > 0 && body.size_left == 0 */
+	    }
 	} else if (parser_return_code == 0) {
 	    /*
 	     *    Partial request received; reschedule until parseHttpRequest()
