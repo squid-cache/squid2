@@ -56,10 +56,10 @@ int main(argc, argv)
     cached_starttime = getCurrentTime();
     failure_notify = fatal_dump;
 
+    setMaxFD();
+
     for (n = getMaxFD(); n > 2; n--)
 	close(n);
-
-    setMaxFD();
 
 #if HAVE_MALLOPT
     /* set malloc option */
