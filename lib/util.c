@@ -171,8 +171,8 @@ void malloc_statistics(func, data)
 
 
 #if XMALLOC_DEBUG
-#define DBG_ARRY_SZ (2<<8)
-#define DBG_ARRY_BKTS (2<<8)
+#define DBG_ARRY_SZ (1<<12)
+#define DBG_ARRY_BKTS (1<<8)
 static void *malloc_ptrs[DBG_ARRY_BKTS][DBG_ARRY_SZ];
 static int malloc_size[DBG_ARRY_BKTS][DBG_ARRY_SZ];
 static int dbg_initd = 0;
@@ -183,7 +183,7 @@ static void *Q;
 
 static void check_init()
 {
-    for (B = 0; B < DBG_ARRY_SZ; B++) {
+    for (B = 0; B < DBG_ARRY_BKTS; B++) {
 	for (I = 0; I < DBG_ARRY_SZ; I++) {
 	    malloc_ptrs[B][I] = NULL;
 	    malloc_size[B][I] = 0;
