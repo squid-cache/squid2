@@ -126,7 +126,6 @@ for Applied Network Research and members of the Web Caching community.
 <descrip>
 <tag>Bug #592</tag>always/never_direct and NTLM authentication
 <tag>Bug #585</tag>cache_peer_access fails with NTLM authentication
-<tag>Bug #638</tag>assertion failure if proxy_auth used wrongly in delay_access
 <tag>deny_info</tag>deny_info only works for http_access, not for the acls listen in http_reply_access 
 
 <tag>Bug #692</tag>tcp_outgoing_address using an ident ACL does not work
@@ -193,6 +192,9 @@ name="ChangeLog"> file for details.
 	<item>Updates to allow Squid to be compiled with GCC-3.3
 	<item>POST now works well with NTLM and Digest authentication
 	<item>http_header_access now works in combination with cache_peer
+	<item>Most Squid generated errors are now logged as TCP_DENIED/XXX
+	rather than TCP_MISS/XXX or NONE/XXX. This to work around issues
+	relating to access controls.
 	<item>a large number of minor bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE3"
 	name="squid-2.5.STABLE1 patches"> and the <url url="ChangeLog"

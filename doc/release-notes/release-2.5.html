@@ -140,7 +140,6 @@ exacly where you want to have them in your system.</LI>
 <DL>
 <DT><B>Bug #592</B><DD><P>always/never_direct and NTLM authentication</P>
 <DT><B>Bug #585</B><DD><P>cache_peer_access fails with NTLM authentication</P>
-<DT><B>Bug #638</B><DD><P>assertion failure if proxy_auth used wrongly in delay_access</P>
 <DT><B>deny_info</B><DD><P>deny_info only works for http_access, not for the acls listen in http_reply_access </P>
 
 <DT><B>Bug #692</B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
@@ -208,6 +207,9 @@ need to remove the line. </LI>
 <LI>Updates to allow Squid to be compiled with GCC-3.3</LI>
 <LI>POST now works well with NTLM and Digest authentication</LI>
 <LI>http_header_access now works in combination with cache_peer</LI>
+<LI>Most Squid generated errors are now logged as TCP_DENIED/XXX
+rather than TCP_MISS/XXX or NONE/XXX. This to work around issues
+relating to access controls.</LI>
 <LI>a large number of minor bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE3">squid-2.5.STABLE1 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
