@@ -800,7 +800,7 @@ httpSendRequest(HttpStateData * httpState)
 
     debug(11, 5) ("httpSendRequest: FD %d: httpState %p.\n", httpState->fd, httpState);
 
-    if (httpHeaderGetInt(&httpState->orig_request->header, HDR_CONTENT_LENGTH) > 0)
+    if (httpState->orig_request->content_length > 0)
 	sendHeaderDone = httpSendRequestEntry;
     else
 	sendHeaderDone = httpSendComplete;

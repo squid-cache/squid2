@@ -1402,6 +1402,7 @@ struct _request_t {
     HttpHeader header;
     char *body;
     size_t body_sz;
+    int content_length;
     HierarchyLogEntry hier;
     err_type err_type;
     char *peer_login;		/* Configured peer login:password */

@@ -43,7 +43,6 @@ struct _PumpStateData {
     int s_fd;			/* server end */
     int rcvd;			/* bytes received from client */
     int sent;			/* bytes sent to server */
-    int cont_len;		/* Content-Length header */
     StoreEntry *request_entry;	/* the request entry */
     StoreEntry *reply_entry;	/* the reply entry */
     CWCB *callback;		/* what to do when we finish sending */
@@ -74,7 +73,6 @@ pumpInit(int fd, request_t * r, char *uri)
 {
     request_flags flags;
     LOCAL_ARRAY(char, new_key, MAX_URL + 8);
-    int clen = 0;
     PumpStateData *p = xcalloc(1, sizeof(PumpStateData));
     debug(61, 3) ("pumpInit: FD %d, uri=%s\n", fd, uri);
     /*
@@ -84,10 +82,9 @@ pumpInit(int fd, request_t * r, char *uri)
     assert(fd > -1);
     assert(uri != NULL);
     assert(r != NULL);
-    clen = httpHeaderGetInt(&r->header, HDR_CONTENT_LENGTH);
     /* we shouldn't have gotten this far if content-length is invalid */
-    assert(clen >= 0);
-    debug(61, 4) ("pumpInit: Content-Length=%d.\n", clen);
+    assert(r->content_length >= 0);
+    debug(61, 4) ("pumpInit: Content-Length=%d.\n", r->content_length);
     flags = null_request_flags;
     flags.nocache = 1;
     snprintf(new_key, MAX_URL + 5, "%s|Pump", uri);
@@ -101,7 +98,6 @@ pumpInit(int fd, request_t * r, char *uri)
      */
     p->c_fd = fd;
     p->s_fd = -1;
-    p->cont_len = clen;
     p->req = requestLink(r);
     p->callback = NULL;
     p->cbdata = NULL;
@@ -143,11 +139,11 @@ pumpStart(int s_fd, FwdState * fwd, CWCB * callback, void *cbdata)
     /*
      * see if part of the body is in the request
      */
-    if (p->rcvd < p->cont_len && r->body_sz > 0) {
+    if (p->rcvd < p->req->content_length && r->body_sz > 0) {
 	assert(p->request_entry->store_status == STORE_PENDING);
 	assert(r->body != NULL);
-	assert(r->body_sz <= p->cont_len);
-	copy_sz = XMIN(r->body_sz, p->cont_len);
+	assert(r->body_sz <= p->req->content_length);
+	copy_sz = XMIN(r->body_sz, p->req->content_length);
 	debug(61, 3) ("pumpStart: Appending %d bytes from r->body\n", copy_sz);
 	storeAppend(p->request_entry, r->body, copy_sz);
 	p->rcvd = copy_sz;
@@ -155,14 +151,14 @@ pumpStart(int s_fd, FwdState * fwd, CWCB * callback, void *cbdata)
     /*
      * Do we need to read more data from the client?
      */
-    if (p->rcvd < p->cont_len) {
+    if (p->rcvd < p->req->content_length) {
 	assert(p->request_entry->store_status == STORE_PENDING);
 	commSetSelect(p->c_fd, COMM_SELECT_READ, pumpReadFromClient, p, 0);
 	commSetTimeout(p->c_fd, Config.Timeout.read, pumpTimeout, p);
 	commSetDefer(p->c_fd, pumpReadDefer, p);
     }
     p->sent = 0;
-    if (p->sent == p->cont_len) {
+    if (p->sent == p->req->content_length) {
 	pumpServerCopyComplete(p->s_fd, NULL, 0, DISK_OK, p);
     } else {
 	storeClientCopy(p->request_entry, p->sent, p->sent, 4096,
@@ -197,7 +193,7 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
     PumpStateData *p = data;
     int sfd;
     debug(61, 5) ("pumpServerCopyComplete: called with size=%d (%d,%d)\n",
-	size, p->sent + size, p->cont_len);
+	size, p->sent + size, p->req->content_length);
     if (errflag == COMM_ERR_CLOSING)
 	return;
     if (errflag != 0) {
@@ -211,8 +207,8 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
 	return;
     }
     p->sent += size;
-    assert(p->sent <= p->cont_len);
-    if (p->sent < p->cont_len) {
+    assert(p->sent <= p->req->content_length);
+    if (p->sent < p->req->content_length) {
 	storeClientCopy(p->request_entry, p->sent, p->sent, 4096,
 	    memAllocate(MEM_4K_BUF),
 	    pumpServerCopy, p);
@@ -239,7 +235,7 @@ pumpReadFromClient(int fd, void *data)
     PumpStateData *p = data;
     StoreEntry *req = p->request_entry;
     LOCAL_ARRAY(char, buf, SQUID_TCP_SO_RCVBUF);
-    int bytes_to_read = XMIN(p->cont_len - p->rcvd, SQUID_TCP_SO_RCVBUF);
+    int bytes_to_read = XMIN(p->req->content_length - p->rcvd, SQUID_TCP_SO_RCVBUF);
     int len = 0;
     errno = 0;
     Counter.syscalls.sock.reads++;
@@ -268,21 +264,21 @@ pumpReadFromClient(int fd, void *data)
 	debug(61, 2) ("pumpReadFromClient: FD %d: failed.\n", fd);
 	pumpClose(p);
 	return;
-    } else if (p->rcvd < p->cont_len) {
+    } else if (p->rcvd < p->req->content_length) {
 	debug(61, 4) ("pumpReadFromClient: FD %d, incomplete request\n", fd);
 	pumpClose(p);
 	return;
     }
     if (len > 0) {
-	int delta = p->rcvd + len - p->cont_len;
+	int delta = p->rcvd + len - p->req->content_length;
 	if (delta > 0 && p->req->flags.proxy_keepalive) {
 	    debug(61, delta == 2 ? 3 : 1) ("pumpReadFromClient: Warning: read %d bytes past content-length, truncating\n", delta);
-	    len = p->cont_len - p->rcvd;
+	    len = p->req->content_length - p->rcvd;
 	}
 	storeAppend(req, buf, len);
 	p->rcvd += len;
     }
-    if (p->rcvd < p->cont_len) {
+    if (p->rcvd < p->req->content_length) {
 	/* We need more data */
 	commSetSelect(fd, COMM_SELECT_READ, pumpReadFromClient,
 	    p, Config.Timeout.read);
@@ -290,7 +286,7 @@ pumpReadFromClient(int fd, void *data)
     }
     /* all done! */
     if (p->req->flags.proxy_keepalive)
-	assert(p->rcvd == p->cont_len);
+	assert(p->rcvd == p->req->content_length);
     debug(61, 2) ("pumpReadFromClient: finished!\n");
     storeComplete(req);
     commSetDefer(p->c_fd, NULL, NULL);
