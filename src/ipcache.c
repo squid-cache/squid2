@@ -60,7 +60,6 @@ static struct {
     int hits;
     int misses;
     int negative_hits;
-    int errors;
 } IpcacheStats;
 
 static dlink_list lru_list;
