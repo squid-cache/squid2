@@ -177,6 +177,7 @@ mainParseOptions(int argc, char *argv[])
 	    break;
 	case 'N':
 	    opt_no_daemon = 1;
+	    break;
 	case 'R':
 	    do_reuse = 0;
 	    break;
