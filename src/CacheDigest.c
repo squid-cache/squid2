@@ -60,6 +60,16 @@ cacheDigestDestroy(CacheDigest * cd)
     xfree(cd);
 }
 
+CacheDigest *
+cacheDigestClone(const CacheDigest * cd)
+{
+    CacheDigest *clone;
+    assert(cd);
+    clone = cacheDigestCreate(cd->capacity);
+    xmemcpy(clone->mask, cd->mask, cd->mask_size);
+    return clone;
+}
+
 void
 cacheDigestAdd(CacheDigest * cd, const cache_key * key)
 {
