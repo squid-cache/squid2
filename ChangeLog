@@ -47,7 +47,6 @@ Changes to squid-2.5.STABLE7 ()
 	- [Medium] New acl types to match arbitrary HTTP headers. In addition
 	  the http_header_access & replace directivess now support arbitrary
 	  headers and not only the well known ones. (Bug #961)
-	[2.5.STABLE7-RC1]
 	- [Cosmetic] ncsa_auth now accepts Window formatted password files
 	  (Bug #1078)
 	- [Cosmetic] Support the --program-prefix/suffix options or other
@@ -56,6 +55,8 @@ Changes to squid-2.5.STABLE7 ()
 	  CONNECT requests in a more graceful manner. (Bug #859)
 	- [Minor] New balance_on_multiple_ip directive to work around certain
 	  broken load balancers and optimized ipcache on reload requests
+	  (Bug #1058)
+	[2.5.STABLE7-RC2]
 
 
 Changes to squid-2.5.STABLE6 (9 Jul 2004)
