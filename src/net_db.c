@@ -898,10 +898,14 @@ netdbBinaryExchange(StoreEntry * s)
 	j = htonl((int) (n->hops * 1000));
 	xmemcpy(&buf[i], &j, sizeof(int));
 	i += sizeof(int);
-	if (i + rec_sz > 4096 || next == NULL) {
+	if (i + rec_sz > 4096) {
 	    storeAppend(s, buf, i);
 	    i = 0;
 	}
+    }
+    if (i > 0) {
+	storeAppend(s, buf, i);
+	i = 0;
     }
     assert(0 == i);
     storeBufferFlush(s);
