@@ -293,6 +293,7 @@ struct _SquidConfig {
 	struct in_addr router;
 	struct in_addr incoming;
 	struct in_addr outgoing;
+	int version;
     } Wccp;
 #endif
     char *as_whois_server;

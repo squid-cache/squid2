@@ -2702,6 +2702,18 @@ DOC_START
 wccp_router 0.0.0.0
 DOC_END
 
+NAME: wccp_version
+TYPE: int
+LOC: Config.Wccp.version
+DEFAULT: 4
+IFDEF: USE_WCCP
+DOC_START
+	According to some users, Cisco IOS 11.2 only supports WCCP
+	version 3.  If you're using that version of IOS, change
+	this value to 3.
+wccp_version 4
+DOC_END
+
 NAME: wccp_incoming_address
 TYPE: address
 LOC: Config.Wccp.incoming
