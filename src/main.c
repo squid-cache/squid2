@@ -874,6 +874,7 @@ SquidShutdown(void *unused)
 #endif
     debug(1, 1) ("Squid Cache (Version %s): Exiting normally.\n",
 	version_string);
-    fclose(debug_log);
+    if (debug_log)
+	fclose(debug_log);
     exit(0);
 }
