@@ -526,7 +526,6 @@ int comm_select(sec, failtime)
 	if (!fdstat_are_n_free_fd(RESERVED_FD)) {
 	    FD_CLR(theAsciiConnection, &readfds);
 	}
-	debug(5, 5, "comm_select: nfds = %d\n", nfds);
 	if (nfds == 0)
 	    return COMM_SHUTDOWN;
 	while (1) {
