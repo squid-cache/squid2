@@ -1541,6 +1541,11 @@ if test "$ac_cv_func_setresuid" = "yes" ; then
   AC_DEFINE(HAVE_SETRESUID)
 fi
 
+AM_CONDITIONAL(NEED_OWN_SNPRINTF, false)
+if test "$ac_cv_func_snprintf" = "no" || test "$ac_cv_func_vsnprintf" = "no" ; then
+  AM_CONDITIONAL(NEED_OWN_SNPRINTF, true)
+fi
+  
 dnl IP-Filter support requires ipf header files. These aren't
 dnl installed by default, so we need to check for them
 if test "$IPF_TRANSPARENT" ; then
