@@ -966,9 +966,7 @@ parseEtcHosts(void)
     char buf2[512];
     char *nt = buf;
     char *lt = buf;
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
-    char *systemroot = NULL;
-#endif
+
     if (NULL == Config.etcHostsPath)
 	return;
     if (0 == strcmp(Config.etcHostsPath, "none"))
