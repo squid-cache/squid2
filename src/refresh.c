@@ -41,7 +41,7 @@
 #include "squid.h"
 
 typedef enum {
-    rcHTTP, rcICP, rcCDigest, rcStore, rcCount
+    rcHTTP, rcICP, rcHTCP, rcCDigest, rcStore, rcCount
 } refreshCountsEnum;
 
 static struct RefreshCounts {
@@ -299,6 +299,12 @@ refreshCheckICP(const StoreEntry * entry, request_t * request)
 }
 
 int
+refreshCheckHTCP(const StoreEntry * entry, request_t * request)
+{
+    return refreshCheck(entry, request, 10, &refreshCounts[rcHTCP]);
+}
+
+int
 refreshCheckDigest(const StoreEntry * entry, time_t delta)
 {
     return refreshCheck(entry,
@@ -385,6 +391,7 @@ refreshInit()
     memset(refreshCounts, 0, sizeof(refreshCounts));
     refreshCounts[rcHTTP].proto = "HTTP";
     refreshCounts[rcICP].proto = "ICP";
+    refreshCounts[rcHTCP].proto = "HTCP";
     refreshCounts[rcStore].proto = "On Store";
     refreshCounts[rcCDigest].proto = "Cache Digests";
 
