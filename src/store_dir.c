@@ -39,6 +39,10 @@
 #if HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
 #endif
+/* Windows uses sys/vfs.h */
+#if HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif
 #endif
 
 static int storeDirValidSwapDirSize(int, ssize_t);
