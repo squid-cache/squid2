@@ -84,6 +84,7 @@ static int theOutWccpConnection = -1;
 static struct wccp_here_i_am_t wccp_here_i_am;
 static struct wccp_i_see_you_t wccp_i_see_you;
 static int change;
+static int number_caches;
 static struct in_addr local_ip;
 
 static PF wccpHandleUdp;
@@ -242,7 +243,7 @@ wccpHandleUdp(int sock, void *not_used)
 	return;
     if (ntohl(wccp_i_see_you.type) != WCCP_I_SEE_YOU)
 	return;
-    if (!change) {
+    if ((!change) && (number_caches == ntohl(wccp_i_see_you.number)) ) {
 	change = wccp_i_see_you.change;
 	return;
     }
@@ -287,7 +288,6 @@ wccpAssignBuckets(void)
     char *buckets;
     int buckets_per_cache;
     int loop;
-    int number_caches;
     int bucket = 0;
     int *caches;
     int cache_len;
@@ -320,6 +320,9 @@ wccpAssignBuckets(void)
 	    assert(bucket < WCCP_BUCKETS);
 	    buckets[bucket++] = loop;
 	}
+    }
+    while (bucket < WCCP_BUCKETS) {
+        buckets[bucket++] = number_caches - 1;
     }
     wccp_assign_bucket->type = htonl(WCCP_ASSIGN_BUCKET);
     wccp_assign_bucket->id = wccp_i_see_you.id;
