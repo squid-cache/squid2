@@ -250,7 +250,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
     memBufDefInit(&mb);
     memBufPrintf(&mb,
 	"<TITLE>Select URL for %s</TITLE>\n"
-	"<STYLE type=\"text/css\"><!--BODY{background-color:#ffffff;font-family:verdana,sans-serif}PRE{font-family:sans-serif}--></STYLE>\n"
+	"<STYLE type=\"text/css\"><!--BODY{background-color:#ffffff;font-family:verdana,sans-serif}--></STYLE>\n"
 	"<H2>Select URL for %s</H2>\n"
 	"<TABLE BORDER=\"0\" WIDTH=\"100%%\">\n", storeUrl(e), storeUrl(e));
     for (i = 0; i < urlcnt; i++) {
