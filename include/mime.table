@@ -28,7 +28,7 @@
 .me        application/x-troff-me           7bit         0.5    text
 .ms        application/x-troff-ms           7bit         0.5    text
 .src       application/x-wais-source        7bit         1.0    text
-.zip       application/zip                  zip          1.0    binary
+.zip       application/x-zip-compressed     zip          1.0    binary
 .bcpio     application/x-bcpio              binary       1.0    binary
 .cpio      application/x-cpio               binary       1.0    binary
 .gtar      application/x-gtar               binary       1.0    binary

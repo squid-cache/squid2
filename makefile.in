@@ -33,3 +33,4 @@ realclean: clean
 		(cd $$dir; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@); \
 	done
 
+depend:
