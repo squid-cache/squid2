@@ -1061,7 +1061,7 @@ storeSwapInStart(StoreEntry * e, SIH * callback, void *callback_data)
 	return;
     }
     if (!BIT_TEST(e->flag, ENTRY_VALIDATED)) {
-        if (storeDirMapBitTest(e->swap_file_number)) {
+	if (storeDirMapBitTest(e->swap_file_number)) {
 	    /* someone took our file while we weren't looking */
 	    callback(callback_data, -1);
 	    return;

@@ -270,7 +270,7 @@ extern void protoDispatch _PARAMS((int, StoreEntry *, request_t *));
 extern int protoUnregister _PARAMS((StoreEntry *, request_t *, struct in_addr));
 extern void protoStart _PARAMS((int, StoreEntry *, peer *, request_t *));
 extern void protoCancelTimeout _PARAMS((int fd, StoreEntry *));
-extern int protoAbortFetch _PARAMS((StoreEntry *entry));
+extern int protoAbortFetch _PARAMS((StoreEntry * entry));
 
 #define DIRECT_NO    0
 #define DIRECT_MAYBE 1

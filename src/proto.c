@@ -257,13 +257,13 @@ protoDispatch(int fd, StoreEntry * entry, request_t * request)
 }
 
 int
-protoAbortFetch(StoreEntry *entry)
+protoAbortFetch(StoreEntry * entry)
 {
 #if !DONT_USE_VM
-	if (!BIT_TEST(entry->flag, DELETE_BEHIND))
-		return 0;
-	if (storeClientWaiting(entry))
-		return 0;
+    if (!BIT_TEST(entry->flag, DELETE_BEHIND))
+	return 0;
+    if (storeClientWaiting(entry))
+	return 0;
 #endif
-	return 1;
+    return 1;
 }
