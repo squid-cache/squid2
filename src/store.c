@@ -659,8 +659,14 @@ storeComplete(StoreEntry * e)
     if (e->mem_obj->request)
 	e->mem_obj->request->hier.store_complete_stop = current_time;
 #endif
-    InvokeHandlers(e);
+    /*
+     * We used to call InvokeHandlers, then storeSwapOut.  However,
+     * Madhukar Reddy <myreddy@persistence.com> reported that
+     * responses without content length would sometimes get released
+     * in client_side, thinking that the response is incomplete.
+     */
     storeSwapOut(e);
+    InvokeHandlers(e);
 }
 
 /*
