@@ -20,4 +20,13 @@ dist-hook:
 	  fi; \
 	done
 
-##&&  cp -p $(srcdir)/$$subdir/*.in  $(distdir)/$$subdir
+EXTRA_DIST = \
+	ChangeLog \
+	CONTRIBUTORS \
+	COPYING \
+	COPYRIGHT \
+	CREDITS \
+	INSTALL \
+	QUICKSTART \
+	README \
+	SPONSORS
