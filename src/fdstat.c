@@ -79,7 +79,7 @@ void fdstat_update(fd, status)
     }
     if ((fd > Biggest_FD) && (status == OPEN)) {
 	/* just update the biggest one */
-	Biggest_FD = fd; /* % getMaxFD(); */
+	Biggest_FD = fd;	/* % getMaxFD(); */
 	return;
     }
     if ((fd == Biggest_FD) && (status == CLOSE)) {

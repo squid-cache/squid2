@@ -125,7 +125,7 @@ int ftpCachable(url)
     wordlist *p = NULL;
 
     /* scan stop list */
-    for (p = getFtpStoplist(); p; p=p->next) {
+    for (p = getFtpStoplist(); p; p = p->next) {
 	if (strstr(url, p->key))
 	    return 0;
     }

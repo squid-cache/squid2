@@ -538,7 +538,7 @@ static int matchInsideFirewall(host)
     if (!s)
 	/* no domains, all hosts are "inside" the firewall */
 	return NO_FIREWALL;
-    for ( ; s; s = s->next) {
+    for (; s; s = s->next) {
 	if (!strcasecmp(s->key, "none"))
 	    /* no domains are inside the firewall, all domains are outside */
 	    return OUTSIDE_FIREWALL;

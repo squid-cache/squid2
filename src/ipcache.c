@@ -1139,7 +1139,7 @@ void ipcache_init()
 
     last_dns_dispatched = getDnsChildren() - 1;
     if (!dns_error_message)
-        dns_error_message = xcalloc(1, 256);
+	dns_error_message = xcalloc(1, 256);
 
     /* test naming lookup */
     if (!do_dns_test) {
