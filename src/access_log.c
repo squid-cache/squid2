@@ -201,7 +201,6 @@ accessLogOpen(const char *fname)
 void
 accessLogLog(AccessLogEntry * al)
 {
-    int x;
     int l;
     char *t;
     char *xbuf = NULL;
@@ -243,15 +242,13 @@ accessLogLog(AccessLogEntry * al)
 	safe_free(ereq);
 	safe_free(erep);
     }
-    x = file_write(LogfileFD,
+    file_write(LogfileFD,
 	-1,
 	xstrdup(log_buf),
 	l,
 	NULL,
 	NULL,
 	xfree);
-    if (x != DISK_OK)
-	debug(46, 1) ("log_append: File write failed.\n");
     safe_free(xbuf);
 }
 

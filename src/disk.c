@@ -355,7 +355,7 @@ diskHandleWriteComplete(void *data, int len, int errcode)
 /* write block to a file */
 /* write back queue. Only one writer at a time. */
 /* call a handle when writing is complete. */
-int
+void
 file_write(int fd,
     off_t file_offset,
     char *ptr_to_buf,
@@ -395,7 +395,6 @@ file_write(int fd,
 #endif
 	EBIT_SET(F->flags, FD_WRITE_DAEMON);
     }
-    return DISK_OK;
 }
 
 

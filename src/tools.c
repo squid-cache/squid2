@@ -316,7 +316,7 @@ death(int sig)
     signal(sig, SIG_DFL);
 #endif
     releaseServerSockets();
-    storeWriteCleanLogs(0);
+    storeDirWriteCleanLogs(0);
     PrintRusage();
     dumpMallocStats();
     if (squid_curtime - SQUID_RELEASE_TIME < 864000) {
@@ -387,10 +387,10 @@ normal_shutdown(void)
 #if !USE_ASYNC_IO
     unlinkdClose();
 #endif
-    storeWriteCleanLogs(0);
+    storeDirWriteCleanLogs(0);
     PrintRusage();
     dumpMallocStats();
-    storeCloseLog();
+    storeLogClose();
     accessLogClose();
 #if PURIFY
     configFreeMemory();
@@ -440,7 +440,7 @@ fatal(const char *message)
      * used in early initialization phases, long before we ever
      * get to the store log. */
     if (!store_rebuilding)
-	storeWriteCleanLogs(0);
+	storeDirWriteCleanLogs(0);
     fatal_common(message);
     exit(1);
 }
@@ -453,7 +453,7 @@ fatal_dump(const char *message)
     if (message)
 	fatal_common(message);
     if (opt_catch_signals)
-	storeWriteCleanLogs(0);
+	storeDirWriteCleanLogs(0);
     abort();
 }
 

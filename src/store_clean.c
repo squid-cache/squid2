@@ -74,8 +74,9 @@ storeDirClean(void *datanotused)
     while ((de = readdir(dp)) != NULL && k < 20) {
 	if (sscanf(de->d_name, "%X", &swapfileno) != 1)
 	    continue;
-	if (storeDirMapBitTest(swapfileno))
-	    continue;
+	if (storeDirValidFileno(swapfileno))
+	    if (storeDirMapBitTest(swapfileno))
+	        continue;
 	files[k++] = swapfileno;
     }
     closedir(dp);
