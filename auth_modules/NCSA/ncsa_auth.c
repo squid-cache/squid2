@@ -128,11 +128,7 @@ main(int argc, char **argv)
 		printf("ERR\n");
 		continue;
 	}
-	if ((passwd = strtok(NULL, " ")) == NULL) {
-		printf("ERR\n");
-		continue;
-	}
-	if (strtok(NULL, " ") != NULL) {
+	if ((passwd = strtok(NULL, "")) == NULL) {
 		printf("ERR\n");
 		continue;
 	}
