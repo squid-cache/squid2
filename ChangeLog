@@ -1,4 +1,4 @@
-Changes to Squid-2.4.STABLE4 (Feb 19, 2001):
+Changes to Squid-2.4.STABLE4 (Feb 19, 2002):
 
 	- htcp_port 0 now properly disables htcp
         - Fixed problem with certain non-anonymous ftp:// style URL's
