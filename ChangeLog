@@ -46,6 +46,13 @@ Changes to squid-2.5.STABLE3 ():
           domain names or other odd characters
 	- Bug #643: external_acl fails with ttl=0 due to a change introduced
 	  by the patch for Bug #553 in 2.5.STABLE2.
+	- Bug #630: minor issues in digest authantication causing random
+	  authentication failures and incompability with many mainstream
+	  browser digest implementations due to browser qop bugs. To deal
+	  with those broken browser nonce_stricness now defaults to off,
+	  and two new digest options have been added (check_nonce_count
+	  and post_workaround) to allow workarounds to other quite bad
+	  browser bugs if needed.
 
 Changes to squid-2.5.STABLE2 (Mars 17, 2003):
 
