@@ -290,7 +290,6 @@ typedef enum {
     ROUNDROBIN_PARENT,
 #if USE_CACHE_DIGESTS
     CACHE_DIGEST_HIT,
-    NO_CACHE_DIGEST_DIRECT,
 #endif
 #if USE_CARP
     CARP,
