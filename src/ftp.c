@@ -1158,6 +1158,7 @@ ftpReadType(FtpStateData * ftpState)
 	    path = xstrdup(ftpState->request->urlpath);
 	    T = &ftpState->pathcomps;
 	    for (d = strtok(path, "/"); d; d = strtok(NULL, "/")) {
+		rfc1738_unescape(d);
 		w = xcalloc(1, sizeof(wordlist));
 		w->key = xstrdup(d);
 		*T = w;
