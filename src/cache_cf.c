@@ -859,7 +859,7 @@ static void parseWAISRelayLine()
 }
 
 static void parseIPLine(list)
-     ip_acl *list;
+     ip_acl **list;
 {
     char *token;
     while ((token = strtok(NULL, w_space))) {
