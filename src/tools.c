@@ -582,7 +582,7 @@ setMaxFD(void)
     if (getrlimit(RLIMIT_NOFILE, &rl) < 0) {
 	debug(50, 0, "setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
     } else {
-	rl.rlim_cur = FD_SETSIZE;
+	rl.rlim_cur = SQUID_MAXFD;
 	if (rl.rlim_cur > rl.rlim_max)
 	    rl.rlim_cur = rl.rlim_max;
 	if (setrlimit(RLIMIT_NOFILE, &rl) < 0) {
@@ -594,7 +594,7 @@ setMaxFD(void)
     if (getrlimit(RLIMIT_OFILE, &rl) < 0) {
 	debug(50, 0, "setrlimit: RLIMIT_NOFILE: %s\n", xstrerror());
     } else {
-	rl.rlim_cur = FD_SETSIZE;
+	rl.rlim_cur = SQUID_MAXFD;
 	if (rl.rlim_cur > rl.rlim_max)
 	    rl.rlim_cur = rl.rlim_max;
 	if (setrlimit(RLIMIT_OFILE, &rl) < 0) {

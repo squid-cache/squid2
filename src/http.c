@@ -734,6 +734,10 @@ httpBuildRequestHeader(request_t * request,
     put_free_4k_page(fwdbuf);
     if (in_len)
 	*in_len = hdr_len;
+    if ((l = strlen(hdr_out)) != len) {
+	debug_trap("httpBuildRequestHeader: size mismatch");
+	len = l;
+    }
     debug(11, 3, "httpBuildRequestHeader: OUTPUT:\n%s\n", hdr_out);
     return len;
 }
