@@ -2549,6 +2549,10 @@ main(int argc, char *argv[])
     int j, k;
     u_short port = FTP_PORT;
     char *debug_args = "ALL,1";
+    extern char *optarg;
+    unsigned long ip;
+    struct hostent *hp = NULL;
+    int c;
 
     fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
@@ -2589,153 +2593,99 @@ main(int argc, char *argv[])
 
     strcpy(visible_hostname, getfullhostname());
 
-    for (argc--, argv++; argc > 0 && **argv == '-'; argc--, argv++) {
-	debug(38, 7, "processing arg '%s'\n", *argv);
-	if (!strcmp(*argv, "-"))
-	    break;
-	if (!strncmp(*argv, "-D", 2)) {
-	    _db_init(NULL, (*argv) + 2);
-	    continue;
-	} else if (!strcmp(*argv, "-htmlify") || !strcmp(*argv, "-httpify") ||
-	    !strcmp(*argv, "-h")) {
-	    o_httpify = 1;
-	    continue;
-	} else if (!strcmp(*argv, "-a")) {
-	    o_showpass = 0;
-	} else if (!strcmp(*argv, "-b")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    j = atoi(*argv);
-	    if (j > 0)
-		o_max_bps = j;
-	    continue;
-	} else if (!strcmp(*argv, "-A")) {
+    while ((c = getopt(argc, argv, "AC:D:H:P:RS:Wab:c:hl:n:o:p:r:s:t:vw:")) != -1) {
+	switch (c) {
+	case 'A':
 	    o_showlogin = 0;
-	} else if (!strcmp(*argv, "-S")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    return (ftpget_srv_mode(*argv));
-	    /* NOTREACHED */
-	} else if (!strcmp(*argv, "-t")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    j = atoi(*argv);
-	    if (j > 0)
-		o_timeout = j;
-	    continue;
-	} else if (!strcmp(*argv, "-w")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    j = atoi(*argv);
-	    if (j > 0)
-		o_list_width = j;
-	    continue;
-	} else if (!strcmp(*argv, "-n")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    j = atoi(*argv);
-	    if (j > 0)
-		o_neg_ttl = j;
-	    continue;
-	} else if (!strcmp(*argv, "-p")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    o_iconprefix = xstrdup(*argv);
-	    continue;
-	} else if (!strcmp(*argv, "-H")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    strcpy(visible_hostname, *argv);
-	    continue;
-	} else if (!strcmp(*argv, "-s")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    o_iconsuffix = xstrdup(*argv);
-	    continue;
-	} else if (!strcmp(*argv, "-c")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
+	    break;
+	case 'C':
 	    j = k = 0;
-	    sscanf(*argv, "%d:%d", &j, &k);
-	    if (j)
-		o_conn_ret = j;
-	    if (k)
-		o_conn_del = k;
-	    continue;
-	} else if (!strcmp(*argv, "-l")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    j = k = 0;
-	    sscanf(*argv, "%d:%d", &j, &k);
-	    if (j)
-		o_login_ret = j;
-	    if (k)
-		o_login_del = k;
-	    continue;
-	} else if (!strcmp(*argv, "-r")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    j = k = 0;
-	    sscanf(*argv, "%d:%d", &j, &k);
-	    if (j)
-		o_rest_ret = j;
-	    if (k)
-		o_rest_del = k;
-	    continue;
-	} else if (!strcmp(*argv, "-C")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    j = k = 0;
-	    sscanf(*argv, "%d:%d", &j, &k);
+	    sscanf(optarg, "%d:%d", &j, &k);
 	    if (j)
 		o_conn_min = j;
 	    if (k)
 		o_conn_max = k;
-	    continue;
-	} else if (!strcmp(*argv, "-R")) {
+	    break;
+	case 'D':
+	    _db_init(NULL, optarg);
+	    break;
+	case 'H':
+	    strcpy(visible_hostname, optarg);
+	    break;
+	case 'P':
+	    port = atoi(optarg);
+	    break;
+	case 'R':
 	    o_readme = 0;
-	} else if (!strcmp(*argv, "-W")) {
+	    break;
+	case 'S':
+	    return (ftpget_srv_mode(optarg));
+	    /* NOTREACHED */
+	case 'W':
 	    o_list_wrap = 1;
-	} else if (!strcmp(*argv, "-P")) {
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    j = atoi(*argv);
-	    if (j > 0)
-		port = j;
-	    continue;
-	} else if (!strcmp(*argv, "-v")) {
-	    printf("%s version %s\n", progname, SQUID_VERSION);
-	    exit(0);
-	} else if (!strcmp(*argv, "-o")) {
-	    unsigned long ip;
-	    struct hostent *hp = NULL;
-
-	    if (--argc < 1)
-		usage(argc);
-	    argv++;
-	    if ((ip = inet_addr(*argv)) != INADDR_NONE)
+	    break;
+	case 'a':
+	    o_showpass = 0;
+	    break;
+	case 'b':
+	    o_max_bps = atoi(optarg);
+	    break;
+	case 'c':
+	    j = k = 0;
+	    sscanf(optarg, "%d:%d", &j, &k);
+	    if (j)
+		o_conn_ret = j;
+	    if (k)
+		o_conn_del = k;
+	    break;
+	case 'h':
+	    o_httpify = 1;
+	    break;
+	case 'l':
+	    j = k = 0;
+	    sscanf(optarg, "%d:%d", &j, &k);
+	    if (j)
+		o_login_ret = j;
+	    if (k)
+		o_login_del = k;
+	    break;
+	case 'n':
+	    o_neg_ttl = atoi(optarg);
+	    break;
+	case 'o':
+	    if ((ip = inet_addr(optarg)) != INADDR_NONE)
 		outgoingTcpAddr.s_addr = ip;
-	    else if ((hp = gethostbyname(*argv)) != NULL)
+	    else if ((hp = gethostbyname(optarg)) != NULL)
 		outgoingTcpAddr = *(struct in_addr *) (void *) (hp->h_addr_list[0]);
 	    else {
-		fprintf(stderr, "%s: bad outbound tcp address %s\n",
-		    progname, *argv);
+		debug(38, 0, "%s: bad outbound tcp address %s\n", progname, optarg);
 		exit(1);
 	    }
-	} else {
+	    break;
+	case 'p':
+	    o_iconprefix = xstrdup(optarg);
+	    break;
+	case 's':
+	    o_iconsuffix = xstrdup(optarg);
+	    break;
+	case 't':
+	    o_timeout = atoi(optarg);
+	    break;
+	case 'r':
+	    j = k = 0;
+	    sscanf(optarg, "%d:%d", &j, &k);
+	    if (j)
+		o_rest_ret = j;
+	    if (k)
+		o_rest_del = k;
+	    break;
+	case 'v':
+	    printf("%s version %s\n", progname, SQUID_VERSION);
+	    exit(0);
+	case 'w':
+	    o_list_width = atoi(optarg);
+	    break;
+	default:
 	    usage(argc);
 	    exit(1);
 	}
