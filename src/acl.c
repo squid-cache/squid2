@@ -823,9 +823,6 @@ because no authentication schemes are fully configured.\n", A->cfgline);
 	aclParseArpList(&A->data);
 	break;
 #endif
-    case ACL_REQ_MIME_TYPE:
-	aclParseRegexList(&A->data);
-	break;
     case ACL_NONE:
     default:
 	fatal("Bad ACL type");
