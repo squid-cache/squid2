@@ -504,6 +504,7 @@ mainInitialize(void)
 	urlInitialize();
 	stat_init(&HTTPCacheInfo, Config.Log.access);
 	stat_init(&ICPCacheInfo, NULL);
+	objcacheInit();
 	storeInit();
 
 	if (Config.effectiveUser) {

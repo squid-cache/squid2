@@ -319,6 +319,7 @@ connStateFree(int fd, void *data)
 	comm_close(connState->ident.fd);
     safe_free(connState->in.buf);
     meta_data.misc -= connState->in.size;
+    pconnHistCount(0, connState->nrequests);
     safe_free(connState);
 }
 

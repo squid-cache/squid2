@@ -40,11 +40,11 @@ static char *objcacheOpcodeStr[] =
     "info",
     "io",
     "ipcache",
-    "log/clear",
-    "log/disable",
-    "log/enable",
-    "log/status",
-    "log/view",
+    "log_clear",
+    "log_disable",
+    "log_enable",
+    "log_status",
+    "log_view",
     "netdb",
     "objects",
     "redirectors",
@@ -57,5 +57,6 @@ static char *objcacheOpcodeStr[] =
     "vm_objects",
     "storedir",
     "cbdata",
+    "pconn",
     "MAX"
 };

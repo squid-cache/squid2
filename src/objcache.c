@@ -154,6 +154,7 @@ static struct op_table OpTable[] =
     {MGR_VM_OBJECTS, stat_vmobjects_get},
     {MGR_STOREDIR, storeDirStats},
     {MGR_CBDATA, cbdataDump},
+    {MGR_PCONN, pconnHistDump},
     {MGR_MAX, NULL}		/* terminate list with NULL */
 };
 
@@ -219,6 +220,8 @@ objcacheParseRequest(const char *buf)
 	op = MGR_CLIENT_LIST;
     else if (!strcmp(buf, "squid.conf"))
 	op = MGR_CONFIG_FILE;
+    else if (!strcmp(buf, "pconn"))
+	op = MGR_PCONN;
     return op;
 }
 
@@ -377,4 +380,10 @@ static void
 objcacheUnimplemented(StoreEntry *entry)
 {
 	storeAppendPrintf(entry, "Unimplemented operation\n");
+}
+
+void
+objcacheInit(void)
+{
+    assert(sizeof(objcacheOpcodeStr) == (MGR_MAX + 1) * 4);
 }
