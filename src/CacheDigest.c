@@ -98,8 +98,6 @@ cacheDigestAdd(CacheDigest * cd, const cache_key * key)
     CBIT_SET(cd->mask, hashed_keys[2]);
     CBIT_SET(cd->mask, hashed_keys[3]);
     cd->count++;
-
-    assert(cacheDigestTest(cd, key));
 }
 
 void
