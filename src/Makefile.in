@@ -249,7 +249,7 @@ test_cache_digest: test_cache_digest.o CacheDigest.o debug.o globals.o store_key
 cache_cf.o: cf_parser.c
 
 squid.conf: cf_parser.c
-	@sh -c "test -f squid.conf || ./cg_gen cf.data"
+	@sh -c "test -f squid.conf || ./cf_gen cf.data"
 
 cf_parser.c: cf.data cf_gen
 	./cf_gen cf.data
