@@ -207,7 +207,7 @@ extern unsigned int getKeyCounter _PARAMS((void));
 extern int storeGetLowestReaderOffset _PARAMS((StoreEntry *));
 
 #if defined(__STRICT_ANSI__)
-extern void storeAppendPrintf _PARAMS((StoreEntry *, char *, ...));
+extern void storeAppendPrintf _PARAMS((StoreEntry *, char *,...));
 #else
 extern void storeAppendPrintf();
 #endif
