@@ -433,7 +433,6 @@ struct rusage {
  * properly detecting EOF on FIFOs.  So now we assume that if 
  * its defined, it works correctly on all operating systems.
  */
-#if defined(O_NONBLOCK)
 #define SQUID_NONBLOCK O_NONBLOCK
 /*
  * O_NDELAY is our fallback.
