@@ -2100,7 +2100,10 @@ clientProcessRequest(clientHttpRequest * http)
 	}
 	/* yes, continue */
 	http->log_type = LOG_TCP_MISS;
-    } else if (r->content_length > 0) {
+    } else if (r->content_length >= 0) {
+	/*
+	 * Need to initialize pump even if content-length: 0
+	 */
 	http->log_type = LOG_TCP_MISS;
 	/* XXX oof, POST can be cached! */
 	pumpInit(fd, r, http->uri);
