@@ -297,7 +297,6 @@ normal_shutdown(void)
     PrintRusage(NULL, debug_log);
     storeCloseLog();
     statCloseLog();
-    fclose(debug_log);
     configFreeMemory();
     diskFreeMemory();
     storeFreeMemory();
@@ -313,6 +312,7 @@ normal_shutdown(void)
     fqdncacheFreeMemory();
     debug(21, 0, "Squid Cache (Version %s): Exiting normally.\n",
 	version_string);
+    fclose(debug_log);
     exit(0);
 }
 

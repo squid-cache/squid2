@@ -431,7 +431,8 @@ serverConnectionsClose(void)
 	theInIcpConnection = -1;
     }
 #if USE_ICMP
-    icmpClose();
+    if (icmp_sock > -1)
+        icmpClose();
 #endif
 }
 
