@@ -61,7 +61,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AIOLIB = @AIOLIB@
 AMTAR = @AMTAR@
 AR = @AR@
 AR_R = @AR_R@
@@ -75,7 +74,6 @@ CPP = @CPP@
 CRYPTLIB = @CRYPTLIB@
 DEPDIR = @DEPDIR@
 DIGEST_AUTH_HELPERS = @DIGEST_AUTH_HELPERS@
-DLLIB = @DLLIB@
 ERR_DEFAULT_LANGUAGE = @ERR_DEFAULT_LANGUAGE@
 ERR_LANGUAGES = @ERR_LANGUAGES@
 EXEEXT = @EXEEXT@
@@ -97,7 +95,6 @@ OPT_PINGER = @OPT_PINGER@
 OPT_PINGER_EXE = @OPT_PINGER_EXE@
 PACKAGE = @PACKAGE@
 PERL = @PERL@
-PTHREADLIB = @PTHREADLIB@
 RANLIB = @RANLIB@
 REGEXLIB = @REGEXLIB@
 REPL_LIBS = @REPL_LIBS@
@@ -106,8 +103,6 @@ REPL_POLICIES = @REPL_POLICIES@
 RM = @RM@
 SH = @SH@
 SNMPLIB = @SNMPLIB@
-SQUID_AIO_LIB = @SQUID_AIO_LIB@
-SQUID_PTHREAD_LIB = @SQUID_PTHREAD_LIB@
 SSLLIB = @SSLLIB@
 STORE_LIBS = @STORE_LIBS@
 STORE_MODULES = @STORE_MODULES@
@@ -152,9 +147,10 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = README ./include/autoconf.h.in ./include/stamp-h.in \
 	COPYING ChangeLog INSTALL Makefile.am Makefile.in TODO \
-	acconfig.h aclocal.m4 cfgaux/compile cfgaux/config.guess \
-	cfgaux/config.sub cfgaux/depcomp cfgaux/install-sh \
-	cfgaux/missing cfgaux/mkinstalldirs configure configure.in
+	acconfig.h acinclude.m4 aclocal.m4 cfgaux/compile \
+	cfgaux/config.guess cfgaux/config.sub cfgaux/depcomp \
+	cfgaux/install-sh cfgaux/missing cfgaux/mkinstalldirs configure \
+	configure.in
 all: all-recursive
 
 .SUFFIXES:
@@ -171,7 +167,7 @@ $(top_builddir)/config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 $(srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && $(AUTOCONF)
 
-$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ configure.in 
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ configure.in acinclude.m4
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 include/autoconf.h: include/stamp-h
 	@if test ! -f $@; then \
