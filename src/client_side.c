@@ -2026,6 +2026,9 @@ clientProcessMiss(clientHttpRequest * http)
     http->entry = clientCreateStoreEntry(http, r->method, r->flags);
     if (http->redirect.status) {
 	HttpReply *rep = httpReplyCreate();
+#if LOG_TCP_REDIRECTS
+	http->log_type = LOG_TCP_REDIRECT;
+#endif
 	storeReleaseRequest(http->entry);
 	httpRedirectReply(rep, http->redirect.status, http->redirect.location);
 	httpReplySwapOut(rep, http->entry);

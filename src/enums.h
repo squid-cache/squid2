@@ -45,6 +45,9 @@ typedef enum {
     LOG_TCP_MEM_HIT,
     LOG_TCP_DENIED,
     LOG_TCP_OFFLINE_HIT,
+#if LOG_TCP_REDIRECTS
+    LOG_TCP_REDIRECT,
+#endif
     LOG_UDP_HIT,
     LOG_UDP_MISS,
     LOG_UDP_DENIED,

@@ -63,6 +63,9 @@ const char *log_tags[] =
     "TCP_MEM_HIT",
     "TCP_DENIED",
     "TCP_OFFLINE_HIT",
+#if LOG_TCP_REDIRECTS
+    "TCP_REDIRECT",
+#endif
     "UDP_HIT",
     "UDP_MISS",
     "UDP_DENIED",
