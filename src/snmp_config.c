@@ -1,6 +1,3 @@
-
-#if SQUID_SNMP
-
 #include "squid.h"
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -10,7 +7,6 @@
 #include <string.h>
 #include <stdlib.h>
 #endif
-
 
 #include "mib.h"
 #include "snmp.h"
@@ -333,5 +329,3 @@ read_config()
 #endif
     return 0;
 }
-
-#endif

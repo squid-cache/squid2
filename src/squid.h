@@ -32,7 +32,6 @@
 #define SQUID_H
 
 #include "config.h"
-#include "options.h"
 
 /*
  * On some systems, FD_SETSIZE is set to something lower than the

@@ -112,7 +112,7 @@ tree_mung(tree ** ppr_tree, BTREE_UAR * pfv_uar)
 	tree_mung(&(**ppr_tree).right, pfv_uar);
 	if (pfv_uar)
 	    (*pfv_uar) ((**ppr_tree).data);
-	free(*ppr_tree);
+	xfree(*ppr_tree);
 	*ppr_tree = NULL;
     }
     return;
@@ -270,7 +270,7 @@ delete(tree ** ppr_p, BTREE_CMP * pfi_compare, void *p_user, BTREE_UAR * pfv_uar
 	}
 	if (!*pi_uar_called && pfv_uar)
 	    (*pfv_uar) (pr_q->data);
-	free(pr_q);		/* thanks to wuth@castrov.cuc.ab.ca */
+	xfree(pr_q);		/* thanks to wuth@castrov.cuc.ab.ca */
 	i_ret = TRUE;
     }
     return i_ret;

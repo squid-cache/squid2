@@ -1,5 +1,3 @@
-#ifdef SQUID_SNMP
-
 #include "squid.h"
 
 #include "mib_module.h"
@@ -447,7 +445,3 @@ compare_tree(oid * name1, int len1, oid * name2, int len2)
     /* name1 matches name2 for length of name2, or they are equal */
     return 0;
 }
-
-
-
-#endif

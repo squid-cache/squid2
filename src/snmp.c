@@ -1,4 +1,3 @@
-
 /*
  * $Id$
  *
@@ -29,9 +28,8 @@
  *  
  */
 
-#ifdef SQUID_SNMP
-
 #include "squid.h"
+
 #include "mib_module.h"
 #include "cache_snmp.h"
 
@@ -1434,5 +1432,3 @@ snmpConnectionClose(void)
     if (theOutSnmpConnection > -1)
         commSetSelect(theOutSnmpConnection, COMM_SELECT_READ, NULL, NULL, 0);
 }
-
-#endif

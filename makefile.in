@@ -14,25 +14,41 @@ SHELL		= /bin/sh
 prefix		= @prefix@
 exec_prefix	= @exec_prefix@
 
-SUBDIRS		= lib snmplib scripts src icons errors 
+SUBDIRS		= lib @makesnmplib@ scripts src icons errors 
 
 noargs: all
 
-all install clean:
+all install: makefile
 	@for dir in $(SUBDIRS); do \
 		echo "Making $@ in $$dir..."; \
 		(cd $$dir ; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@) || exit 1; \
 	done
 
+clean:
+	@for dir in $(SUBDIRS); do \
+		echo "Making $@ in $$dir..."; \
+		(cd $$dir ; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@) \
+	done
+
+
 install-pinger:
 	(cd src; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@)
 
-distclean: clean
-	rm -f config.status config.cache config.log makefile
+almostclean: clean
+	rm -f config.log makefile
 	rm -f include/paths.h include/autoconf.h include/config.h
 	@for dir in $(SUBDIRS) contrib; do \
-		echo Making $@ in $$dir; \
-		(cd $$dir; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@); \
+		echo Making distclean in $$dir; \
+		(cd $$dir; $(MAKE) $(MFLAGS) prefix="$(prefix)" distclean); \
 	done
+
+distclean: almostclean
+	rm -f config.status config.cache
+
+makefile: makefile.in configure config.status
+	@echo "Package configuration updated. Cleaning and reconfiguring" ;\
+	./config.status --recheck;\
+	./config.status ;\
+	$(MAKE) $(MFLAGS) clean
 
 depend:

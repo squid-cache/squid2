@@ -31,8 +31,6 @@
 
 #include "squid.h"
 
-#if USE_ASYNC_IO
-
 #include	<stdio.h>
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -119,7 +117,7 @@ int aio_unlink(const char *, aio_result_t *);
 int aio_opendir(const char *, aio_result_t *);
 aio_result_t *aio_poll_done();
 
-static int aio_init();
+static void aio_init(void);
 static aio_thread_t *aio_alloc_thread(aio_result_t *);
 static void aio_free_thread(aio_thread_t *);
 static void aio_cleanup_and_free(aio_thread_t *);
@@ -129,7 +127,9 @@ static void *aio_thread_write(void *);
 static void *aio_thread_close(void *);
 static void *aio_thread_stat(void *);
 static void *aio_thread_unlink(void *);
+#if 0
 static void *aio_thread_opendir(void *);
+#endif
 static void aio_debug(aio_thread_t *);
 
 static aio_thread_t thread[MAXTHREADS];
@@ -139,10 +139,9 @@ static aio_thread_t *free_threads = NULL;
 static aio_thread_t *used_threads = NULL;
 static aio_thread_t *tail_threads = NULL;
 
-static int
-aio_init()
+static void
+aio_init(void)
 {
-    static int init = 0;
     int i;
 
     if (aio_initialised)
@@ -222,24 +221,24 @@ aio_cleanup_and_free(aio_thread_t * threadp)
     switch (threadp->operation) {
     case _AIO_OP_OPEN:
 	od = (aio_open_d *) threadp->aiodp;
-	free(od->path);
+	xfree(od->path);
 	break;
     case _AIO_OP_UNLINK:
 	ud = (aio_unlink_d *) threadp->aiodp;
-	free(ud->path);
+	xfree(ud->path);
 	break;
     case _AIO_OP_STAT:
 	sd = (aio_stat_d *) threadp->aiodp;
-	free(sd->path);
+	xfree(sd->path);
 	break;
     case _AIO_OP_OPENDIR:
 	odd = (aio_opendir_d *) threadp->aiodp;
-	free(odd->path);
+	xfree(odd->path);
 	break;
     default:
 	break;
     }
-    free(threadp->aiodp);
+    xfree(threadp->aiodp);
     aio_free_thread(threadp);
 }
 
@@ -272,15 +271,15 @@ aio_open(const char *path, int oflag, mode_t mode, aio_result_t * resultp)
 	aio_init();
     if ((threadp = aio_alloc_thread(resultp)) == NULL)
 	return -1;
-    if ((aiodp = (aio_open_d *) malloc(sizeof(aio_open_d))) == NULL) {
+    if ((aiodp = (aio_open_d *) xmalloc(sizeof(aio_open_d))) == NULL) {
 	aio_free_thread(threadp);
 	errno = ENOMEM;
 	return -1;
     }
     len = strlen(path) + 1;
-    if ((aiodp->path = (char *) malloc(len)) == NULL) {
+    if ((aiodp->path = (char *) xmalloc(len)) == NULL) {
 	aio_free_thread(threadp);
-	free(aiodp);
+	xfree(aiodp);
 	errno = ENOMEM;
 	return -1;
     }
@@ -291,8 +290,8 @@ aio_open(const char *path, int oflag, mode_t mode, aio_result_t * resultp)
     threadp->resultp = resultp;
     threadp->operation = _AIO_OP_OPEN;
     if (pthread_create(&(threadp->thread), NULL, aio_thread_open, threadp) < 0) {
-	free(aiodp->path);
-	free(aiodp);
+	xfree(aiodp->path);
+	xfree(aiodp);
 	aio_free_thread(threadp);
 	return -1;
     }
@@ -310,6 +309,7 @@ aio_thread_open(void *ptr)
     threadp->resultp->aio_return = open(aiodp->path, aiodp->oflag, aiodp->mode);
     threadp->resultp->aio_errno = errno;
     threadp->status = _THREAD_DONE;
+    return threadp;
 }
 
 
@@ -323,7 +323,7 @@ aio_read(int fd, char *bufp, int bufs, off_t offset, int whence, aio_result_t * 
 	aio_init();
     if ((threadp = aio_alloc_thread(resultp)) == NULL)
 	return -1;
-    if ((aiodp = (aio_read_d *) malloc(sizeof(aio_read_d))) == NULL) {
+    if ((aiodp = (aio_read_d *) xmalloc(sizeof(aio_read_d))) == NULL) {
 	aio_free_thread(threadp);
 	errno = ENOMEM;
 	return -1;
@@ -337,7 +337,7 @@ aio_read(int fd, char *bufp, int bufs, off_t offset, int whence, aio_result_t * 
     threadp->resultp = resultp;
     threadp->operation = _AIO_OP_READ;
     if (pthread_create(&(threadp->thread), NULL, aio_thread_read, threadp) < 0) {
-	free(aiodp);
+	xfree(aiodp);
 	aio_free_thread(threadp);
 	return -1;
     }
@@ -356,6 +356,7 @@ aio_thread_read(void *ptr)
     threadp->resultp->aio_return = read(aiodp->fd, aiodp->bufp, aiodp->bufs);
     threadp->resultp->aio_errno = errno;
     threadp->status = _THREAD_DONE;
+    return threadp;
 }
 
 
@@ -369,7 +370,7 @@ aio_write(int fd, char *bufp, int bufs, off_t offset, int whence, aio_result_t *
 	aio_init();
     if ((threadp = aio_alloc_thread(resultp)) == NULL)
 	return -1;
-    if ((aiodp = (aio_write_d *) malloc(sizeof(aio_write_d))) == NULL) {
+    if ((aiodp = (aio_write_d *) xmalloc(sizeof(aio_write_d))) == NULL) {
 	aio_free_thread(threadp);
 	errno = ENOMEM;
 	return -1;
@@ -383,7 +384,7 @@ aio_write(int fd, char *bufp, int bufs, off_t offset, int whence, aio_result_t *
     threadp->resultp = resultp;
     threadp->operation = _AIO_OP_WRITE;
     if (pthread_create(&(threadp->thread), NULL, aio_thread_write, threadp) < 0) {
-	free(aiodp);
+	xfree(aiodp);
 	aio_free_thread(threadp);
 	return -1;
     }
@@ -401,6 +402,7 @@ aio_thread_write(void *ptr)
     threadp->resultp->aio_return = write(aiodp->fd, aiodp->bufp, aiodp->bufs);
     threadp->resultp->aio_errno = errno;
     threadp->status = _THREAD_DONE;
+    return threadp;
 }
 
 
@@ -414,7 +416,7 @@ aio_close(int fd, aio_result_t * resultp)
 	aio_init();
     if ((threadp = aio_alloc_thread(resultp)) == NULL)
 	return -1;
-    if ((aiodp = (aio_close_d *) malloc(sizeof(aio_close_d))) == NULL) {
+    if ((aiodp = (aio_close_d *) xmalloc(sizeof(aio_close_d))) == NULL) {
 	aio_free_thread(threadp);
 	errno = ENOMEM;
 	return -1;
@@ -424,7 +426,7 @@ aio_close(int fd, aio_result_t * resultp)
     threadp->resultp = resultp;
     threadp->operation = _AIO_OP_CLOSE;
     if (pthread_create(&(threadp->thread), NULL, aio_thread_close, threadp) < 0) {
-	free(aiodp);
+	xfree(aiodp);
 	aio_free_thread(threadp);
 	return -1;
     }
@@ -442,6 +444,7 @@ aio_thread_close(void *ptr)
     threadp->resultp->aio_return = close(aiodp->fd);
     threadp->resultp->aio_errno = errno;
     threadp->status = _THREAD_DONE;
+    return threadp;
 }
 
 
@@ -456,15 +459,15 @@ aio_stat(const char *path, struct stat *sb, aio_result_t * resultp)
 	aio_init();
     if ((threadp = aio_alloc_thread(resultp)) == NULL)
 	return -1;
-    if ((aiodp = (aio_stat_d *) malloc(sizeof(aio_stat_d))) == NULL) {
+    if ((aiodp = (aio_stat_d *) xmalloc(sizeof(aio_stat_d))) == NULL) {
 	aio_free_thread(threadp);
 	errno = ENOMEM;
 	return -1;
     }
     len = strlen(path) + 1;
-    if ((aiodp->path = (char *) malloc(len)) == NULL) {
+    if ((aiodp->path = (char *) xmalloc(len)) == NULL) {
 	aio_free_thread(threadp);
-	free(aiodp);
+	xfree(aiodp);
 	errno = ENOMEM;
 	return -1;
     }
@@ -474,8 +477,8 @@ aio_stat(const char *path, struct stat *sb, aio_result_t * resultp)
     threadp->resultp = resultp;
     threadp->operation = _AIO_OP_STAT;
     if (pthread_create(&(threadp->thread), NULL, aio_thread_stat, threadp) < 0) {
-	free(aiodp->path);
-	free(aiodp);
+	xfree(aiodp->path);
+	xfree(aiodp);
 	aio_free_thread(threadp);
 	return -1;
     }
@@ -493,6 +496,7 @@ aio_thread_stat(void *ptr)
     threadp->resultp->aio_return = stat(aiodp->path, aiodp->sb);
     threadp->resultp->aio_errno = errno;
     threadp->status = _THREAD_DONE;
+    return threadp;
 }
 
 
@@ -507,15 +511,15 @@ aio_unlink(const char *path, aio_result_t * resultp)
 	aio_init();
     if ((threadp = aio_alloc_thread(resultp)) == NULL)
 	return -1;
-    if ((aiodp = (aio_unlink_d *) malloc(sizeof(aio_unlink_d))) == NULL) {
+    if ((aiodp = (aio_unlink_d *) xmalloc(sizeof(aio_unlink_d))) == NULL) {
 	aio_free_thread(threadp);
 	errno = ENOMEM;
 	return -1;
     }
     len = strlen(path) + 1;
-    if ((aiodp->path = (char *) malloc(len)) == NULL) {
+    if ((aiodp->path = (char *) xmalloc(len)) == NULL) {
 	aio_free_thread(threadp);
-	free(aiodp);
+	xfree(aiodp);
 	errno = ENOMEM;
 	return -1;
     }
@@ -524,8 +528,8 @@ aio_unlink(const char *path, aio_result_t * resultp)
     threadp->resultp = resultp;
     threadp->operation = _AIO_OP_UNLINK;
     if (pthread_create(&(threadp->thread), NULL, aio_thread_unlink, threadp) < 0) {
-	free(aiodp->path);
-	free(aiodp);
+	xfree(aiodp->path);
+	xfree(aiodp);
 	aio_free_thread(threadp);
 	return -1;
     }
@@ -543,20 +547,26 @@ aio_thread_unlink(void *ptr)
     threadp->resultp->aio_return = unlink(aiodp->path);
     threadp->resultp->aio_errno = errno;
     threadp->status = _THREAD_DONE;
+    return threadp;
 }
 
+
+#if 0
+/* XXX aio_opendir NOT implemented? */
 
 int
 aio_opendir(const char *path, aio_result_t * resultp)
 {
+    return -1;
 }
-
 
 static void *
 aio_thread_opendir(void *ptr)
 {
     aio_thread_t *threadp = (aio_thread_t *) ptr;
+    return threadp;
 }
+#endif
 
 
 aio_result_t *
@@ -619,5 +629,3 @@ aio_debug(aio_thread_t * threadp)
 	break;
     }
 }
-
-#endif /* USE_ASYNC_IO */
