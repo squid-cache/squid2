@@ -1036,11 +1036,14 @@ parse_peer(peer ** head)
     p->icp.version = ICP_VERSION_CURRENT;
     p->tcp_up = PEER_TCP_MAGIC_COUNT;
 #if USE_CARP
+#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> ((sizeof(u_long)*8)-(n))))
     if (p->carp.load_factor) {
 	/* calculate this peers hash for use in CARP */
 	p->carp.hash = 0;
 	for (token = p->host; *token != 0; token++)
-	    p->carp.hash += (p->carp.hash << 19) + *token;
+	    p->carp.hash += ROTATE_LEFT(p->carp.hash, 19) + *token;
+	p->carp.hash += p->carp.hash * 0x62531965;
+	p->carp.hash += ROTATE_LEFT(p->carp.hash, 21);
     }
 #endif
     /* This must preceed peerDigestCreate */
