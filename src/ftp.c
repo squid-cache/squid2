@@ -533,7 +533,7 @@ void ftpConnInProgress(fd, data)
 
     debug(9, 5, "ftpConnInProgress: FD %d\n", fd);
 
-    if (comm_connect(fd, localhost, CACHE_FTP_PORT) != COMM_OK)
+    if (comm_connect(fd, localhost, CACHE_FTP_PORT) != COMM_OK) {
 	switch (errno) {
 	case EINPROGRESS:
 	case EALREADY:
@@ -543,14 +543,12 @@ void ftpConnInProgress(fd, data)
 		(PF) ftpConnInProgress,
 		(void *) data);
 	    return;
-	case EISCONN:
-	    debug(9, 5, "ftpConnInProgress: FD %d is now connected.", fd);
-	    break;		/* cool, we're connected */
 	default:
 	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	    comm_close(fd);
 	    return;
 	}
+    }
     /* Call the real write handler, now that we're fully connected */
     comm_set_select_handler(fd,
 	COMM_SELECT_WRITE,

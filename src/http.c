@@ -474,7 +474,7 @@ static void httpConnInProgress(fd, data)
     debug(11, 5, "httpConnInProgress: FD %d data=%p\n", fd, data);
 
     if (comm_connect(fd, req->host, req->port) != COMM_OK) {
-	debug(11, 5, "httpConnInProgress: FD %d errno=%d\n", fd, errno);
+	debug(11, 5, "httpConnInProgress: FD %d: %s\n", fd, xstrerror());
 	switch (errno) {
 	case EINPROGRESS:
 	case EALREADY:
@@ -484,8 +484,6 @@ static void httpConnInProgress(fd, data)
 		(PF) httpConnInProgress,
 		(void *) data);
 	    return;
-	case EISCONN:
-	    break;		/* cool, we're connected */
 	default:
 	    squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
 	    comm_close(fd);
