@@ -412,7 +412,7 @@ errorStateFree(ErrorState * err)
  * t - local time                               x
  * T - UTC                                      x
  * U - URL without password                     x
- * u - URL without password, %2f added to path  x
+ * u - URL with password                        x
  * w - cachemgr email address                   x
  * z - dns server error message                 x
  */
@@ -541,6 +541,9 @@ errorConvert(char token, ErrorState * err)
 	break;
     case 'U':
 	p = r ? urlCanonicalClean(r) : err->url ? err->url : "[no URL]";
+	break;
+    case 'u':
+	p = r ? urlCanonical(r) : err->url ? err->url : "[no URL]";
 	break;
     case 'w':
 	if (Config.adminEmail)
