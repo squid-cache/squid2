@@ -832,6 +832,10 @@ checkRunningPid(void)
 {
     pid_t pid;
     debug_log = stderr;
+    if (strcmp(Config.pidFilename, "none") == 0) {
+	debug(0, 1) ("No pid_filename specified. Trusting you know what you are doing.\n");
+	return 0;
+    }
     pid = readPidFile();
     if (pid < 2)
 	return 0;

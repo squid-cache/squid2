@@ -40,6 +40,7 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	- Bug #860: redirector_access does not handle "slow" acls such as
 	  "dst" or "external" requiring a external lookup.
 	- Bug #867: cache_peer max-conn=.. option does not work
+	- Buf #867: refuses to start if pid_filename none is specified
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 
