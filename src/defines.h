@@ -313,5 +313,14 @@
 #define O_BINARY 0
 #endif
 
+/*
+ * Macro to find file access mode
+ */
+#ifdef O_ACCMODE
+#define FILE_MODE(x) ((x)&O_ACCMODE)
+#else
+#define FILE_MODE(x) ((x)&(O_RDONLY|O_WRONLY|O_RDWR))
+#endif
+
 #define	HTTP_REQBUF_SZ	4096
 #endif /* SQUID_DEFINES_H */
