@@ -807,7 +807,7 @@ storeAppend(StoreEntry * e, const char *data, int len)
 	fatal_dump("storeAppend: len < 0");
     if (len == 0) {
 	storeAppendDone(mem->swapout_fd, 0, len, e);
-        return;
+	return;
     }
     debug(20, 3, "storeAppend: FD %d appending %d bytes for '%s'\n",
 	mem->swapout_fd, len, e->key);

@@ -165,6 +165,7 @@ typedef struct {
     icp_common_t header;
     int pad;
 } icpHitObjStateData;
+
 #endif
 
 /* Local functions */

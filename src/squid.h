@@ -351,7 +351,7 @@ extern char ThisCache[];	/* main.c */
 
 extern int objcacheStart _PARAMS((int, const char *, StoreEntry *));
 extern void start_announce _PARAMS((void *unused));
-extern int sslStart _PARAMS((int fd, const char *, request_t *, char *, size_t *sz));
+extern int sslStart _PARAMS((int fd, const char *, request_t *, char *, size_t * sz));
 extern const char *storeToString _PARAMS((const StoreEntry *));
 extern int waisStart _PARAMS((int, const char *, method_t, char *, StoreEntry *));
 extern void storeDirClean _PARAMS((void *unused));

@@ -255,7 +255,7 @@ diskHandleWrite(int fd, FileEntry * entry)
 	    if (entry->wrt_handle) {
 		entry->wrt_handle(fd,
 		    errno == ENOSPC ? DISK_NO_SPACE_LEFT : DISK_ERROR,
-		    0,	/* length */
+		    0,		/* length */
 		    entry->wrt_handle_data);
 	    }
 	    return DISK_ERROR;
