@@ -292,15 +292,21 @@ int main(argc, argv)
 	close(n);
 
 #if HAVE_MALLOPT
+#ifdef M_GRAIN
     /* set malloc option */
     /* use small block algorithm for faster allocation */
     /* grain of small block */
     mallopt(M_GRAIN, 16);
+#endif
+#ifdef M_MXFAST
     /* biggest size that is considered a small block */
     mallopt(M_MXFAST, 4096);
+#endif
+#ifdef M_NBLKS
     /* number of holding small block */
     mallopt(M_NLBLKS, 100);
 #endif
+#endif /* HAVE_MALLOPT */
 
     /*init comm module */
     comm_init();
