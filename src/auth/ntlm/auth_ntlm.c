@@ -675,10 +675,10 @@ authenticateNTLMStart(auth_user_request_t * auth_user_request, RH * handler, voi
     debug(29, 9) ("authenticateNTLMStart: auth state '%d'\n", ntlm_request->auth_state);
     switch (ntlm_request->auth_state) {
     case AUTHENTICATE_STATE_NEGOTIATE:
-	sent_string = xstrdup(ntlm_request->ntlmnegotiate);
+	sent_string = ntlm_request->ntlmnegotiate;
 	break;
     case AUTHENTICATE_STATE_RESPONSE:
-	sent_string = xstrdup(ntlm_request->ntlmauthenticate);
+	sent_string = ntlm_request->ntlmauthenticate;
 	assert(ntlm_request->authserver);
 	debug(29, 9) ("authenticateNTLMStart: Asking NTLMauthenticator '%p'.\n", ntlm_request->authserver);
 	break;
