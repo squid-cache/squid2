@@ -95,7 +95,11 @@ extern int urlCheckRequest _PARAMS((const request_t *));
 #define REQ_IMS			0x04
 #define REQ_AUTH		0x08
 #define REQ_CACHABLE		0x10
+#ifndef RELOAD_INTO_IMS
 #define REQ_UNUSED2		0x20
+#else
+#define REQ_NOCACHE_SPECIAL	0x20
+#endif /* RELOAD_INTO_IMS */
 #define REQ_HIERARCHICAL	0x40
 #define REQ_LOOPDETECT		0x80
 #define REQ_PROXY_KEEPALIVE	0x100
