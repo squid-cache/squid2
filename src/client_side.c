@@ -1857,8 +1857,8 @@ clientReadRequest(int fd, void *data)
 		break;
 	    }
 	    if (0 == http->internal)
-		if (0 == strncmp(request->urlpath, "/squid-internal/", 16))
-		    if (0 == strcasecmp(request->host, getMyHostname())
+		if (0 == strNCmp(request->urlpath, "/squid-internal/", 16))
+		    if (0 == strcasecmp(request->host, getMyHostname()))
 		        if (request->port == Config.Port.http->i)
 	                    http->internal = 1;
 	    safe_free(http->log_uri);
