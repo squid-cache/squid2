@@ -773,7 +773,6 @@ comm_poll(time_t sec)
 	    fatal_dump(NULL);
 	if (shutdown_pending || reconfigure_pending) {
 	    serverConnectionsClose();
-	    ftpServerClose();
 	    dnsShutdownServers();
 	    redirectShutdownServers();
 	    /* shutdown_pending will be set to
@@ -926,7 +925,6 @@ comm_select(time_t sec)
 
 	if (shutdown_pending || reconfigure_pending) {
 	    serverConnectionsClose();
-	    ftpServerClose();
 	    dnsShutdownServers();
 	    redirectShutdownServers();
 	    /* shutdown_pending will be set to

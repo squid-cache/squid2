@@ -128,20 +128,21 @@ typedef enum {
     ERR_LIFETIME_EXP,		/* 18 */
     ERR_NO_CLIENTS_BIG_OBJ,	/* 19 */
     ERR_READ_ERROR,		/* 20 */
-    ERR_CLIENT_ABORT,		/* 21 */
-    ERR_CONNECT_FAIL,		/* 22 */
-    ERR_INVALID_REQ,		/* 23 */
-    ERR_UNSUP_REQ,		/* 24 */
-    ERR_INVALID_URL,		/* 25 */
-    ERR_NO_FDS,			/* 26 */
-    ERR_DNS_FAIL,		/* 27 */
-    ERR_NOT_IMPLEMENTED,	/* 28 */
-    ERR_CANNOT_FETCH,		/* 29 */
-    ERR_NO_RELAY,		/* 30 */
-    ERR_DISK_IO,		/* 31 */
-    ERR_ZERO_SIZE_OBJECT,	/* 32 */
-    ERR_FTP_DISABLED,		/* 33 */
-    ERR_PROXY_DENIED		/* 34 */
+    ERR_WRITE_ERROR,		/* 21 */
+    ERR_CLIENT_ABORT,		/* 22 */
+    ERR_CONNECT_FAIL,		/* 23 */
+    ERR_INVALID_REQ,		/* 24 */
+    ERR_UNSUP_REQ,		/* 25 */
+    ERR_INVALID_URL,		/* 26 */
+    ERR_NO_FDS,			/* 27 */
+    ERR_DNS_FAIL,		/* 28 */
+    ERR_NOT_IMPLEMENTED,	/* 29 */
+    ERR_CANNOT_FETCH,		/* 30 */
+    ERR_NO_RELAY,		/* 31 */
+    ERR_DISK_IO,		/* 32 */
+    ERR_ZERO_SIZE_OBJECT,	/* 33 */
+    ERR_FTP_DISABLED,		/* 34 */
+    ERR_PROXY_DENIED		/* 35 */
 } log_type;
 
 #define ERR_MIN ERR_READ_TIMEOUT

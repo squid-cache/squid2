@@ -87,6 +87,7 @@ extern request_t *requestLink _PARAMS((request_t *));
 extern void requestUnlink _PARAMS((request_t *));
 extern int matchDomainName _PARAMS((const char *d, const char *h));
 extern int urlCheckRequest _PARAMS((const request_t *));
+extern int urlDefaultPort _PARAMS((protocol_t p));
 
 /* bitfields for the flags member */
 #define REQ_UNUSED1		0x01

@@ -56,7 +56,6 @@ static char *ProtocolStr[] =
 
 static int url_acceptable[256];
 static const char *const hex = "0123456789abcdef";
-static int urlDefaultPort _PARAMS((protocol_t p));
 
 /* convert %xx in url string to a character 
  * Allocate a new string and return a pointer to converted string */
@@ -172,7 +171,7 @@ urlParseProtocol(const char *s)
 }
 
 
-static int
+int
 urlDefaultPort(protocol_t p)
 {
     switch (p) {

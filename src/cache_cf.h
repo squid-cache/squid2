@@ -279,6 +279,12 @@ struct SquidConfig {
 	struct _acl_access *AlwaysDirect;
     } accessList;
     struct _acl_deny_info_list *denyInfoList;
+    struct {
+	size_t list_width;
+	int list_wrap;
+	char *icon_prefix;
+	char *icon_suffix;
+    } Ftp;
 };
 
 extern struct SquidConfig Config;
