@@ -55,6 +55,7 @@
 #if __FreeBSD_version__ < 220000
 #define CHANGE_FD_SETSIZE 0
 #endif
+#endif
 
 /* Increase FD_SETSIZE if SQUID_MAXFD is bigger */
 #if CHANGE_FD_SETSIZE && SQUID_MAXFD > FD_SETSIZE
