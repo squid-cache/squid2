@@ -591,7 +591,7 @@ fi
 
 
 
-# From configure.in Revision: 1.167.2.2 
+# From configure.in Revision: 1.167.2.3 
 ac_aux_dir=
 for ac_dir in cfgaux $srcdir/cfgaux; do
   if test -f $ac_dir/install-sh; then
@@ -4695,7 +4695,7 @@ if test "$INET_NTOA_RESULT" = "1.2.3.4" ; then
 else
 	echo "$ac_t"""no"" 1>&6
 	echo "Will use our own inet_ntoa()."
-	LIBOBJS="$LIBOBJS net_ntoa.o"
+	LIBOBJS="$LIBOBJS inet_ntoa.o"
 #	echo "WARNING: This looks bad, and probably prevents Squid from working."
 #	echo "         If you're on IRIX and using GCC 2.8, you probably need"
 #	echo "         to use the IRIX C compiler instead."
