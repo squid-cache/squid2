@@ -1384,7 +1384,9 @@ stat_rotate_log(void)
     LOCAL_ARRAY(char, from, MAXPATHLEN);
     LOCAL_ARRAY(char, to, MAXPATHLEN);
     char *fname = NULL;
+#ifdef S_ISREG
     struct stat sb;
+#endif
 
     if ((fname = HTTPCacheInfo->logfilename) == NULL)
 	return;

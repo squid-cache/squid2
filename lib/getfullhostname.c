@@ -107,6 +107,9 @@
 
 #include "config.h"
 
+#if HAVE_LIBC_H
+#include <libc.h>
+#endif
 #if HAVE_STDIO_H
 #include <stdio.h>
 #endif
