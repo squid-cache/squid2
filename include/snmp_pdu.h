@@ -64,7 +64,6 @@ void snmp_pdu_free(struct snmp_pdu *);
 
 u_char *snmp_pdu_encode(u_char *, int *, struct snmp_pdu *);
 u_char *snmp_pdu_decode(u_char *, int *, struct snmp_pdu *);
-const char *snmp_pdu_type(struct snmp_pdu *);
 
     /* Add a NULL Variable to a PDU */
 void snmp_add_null_var(struct snmp_pdu *, oid *, int);
@@ -78,12 +77,14 @@ void snmp_add_null_var(struct snmp_pdu *, oid *, int);
 #define SNMP_PDU_GET	    (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x0)
 #define SNMP_PDU_GETNEXT    (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x1)
 #define SNMP_PDU_RESPONSE   (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x2)
+#ifdef UNUSED_CODE
 #define SNMP_PDU_SET        (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x3)
 #define TRP_REQ_MSG	    (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x4)	/*Obsolete */
 #define SNMP_PDU_GETBULK    (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x5)
 #define SNMP_PDU_INFORM     (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x6)
 #define SNMP_PDU_V2TRAP     (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x7)
 #define SNMP_PDU_REPORT     (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x8)
+#endif
 #define MAX_BINDINGS 2147483647	/* PDU Defaults */
 #define SNMP_DEFAULT_ERRSTAT	    -1
 #define SNMP_DEFAULT_ERRINDEX	    -1
