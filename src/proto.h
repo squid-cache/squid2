@@ -162,12 +162,7 @@ typedef struct icp_message_s icp_message_t;
 /* Version */
 #define ICP_VERSION_1		1
 #define ICP_VERSION_2		2
-#define ICP_VERSION_3		3
-#ifdef UDP_HIT_WITH_OBJ
-#define ICP_VERSION_CURRENT	ICP_VERSION_3
-#else
 #define ICP_VERSION_CURRENT	ICP_VERSION_2
-#endif
 
 extern int icp_proto_errno;	/* operation errors */
 extern int icp_hit _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, u_num32 size));
