@@ -311,15 +311,15 @@ httpHeaderClean(HttpHeader * hdr)
     HttpHeaderStats[hdr->owner].destroyedCount++;
     HttpHeaderStats[hdr->owner].busyDestroyedCount += hdr->entries.count > 0;
     while ((e = httpHeaderGetEntry(hdr, &pos))) {
-	statHistCount(&HttpHeaderStats[hdr->owner].fieldTypeDistr, e->id);
-	/* tmp hack to avoid coredumps */
-	if (e->id < 0 || e->id >= HDR_ENUM_END)
+	/* tmp hack to try to avoid coredumps */
+	if (e->id < 0 || e->id >= HDR_ENUM_END) {
 	    debug(55, 0) ("httpHeaderClean BUG: entry[%d] is invalid (%d). Ignored.\n",
 		pos, e->id);
-	else
-	    /* end of hack */
+	} else {
+	    statHistCount(&HttpHeaderStats[hdr->owner].fieldTypeDistr, e->id);
 	    /* yes, this destroy() leaves us in an incosistent state */
 	    httpHeaderEntryDestroy(e);
+	}
     }
     arrayClean(&hdr->entries);
 }
