@@ -4,6 +4,8 @@
 #ifndef _CACHE_CONFIG_H_
 #define _CACHE_CONFIG_H_
 
+#define DefaultDnsChildrenMax	32	/* 32 processes */
+
 typedef struct _wordlist {
     char *key;
     struct _wordlist *next;
