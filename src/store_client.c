@@ -191,7 +191,7 @@ storeClientCopy(store_client * sc,
     assert(!EBIT_TEST(e->flags, ENTRY_ABORTED));
     debug(20, 3) ("storeClientCopy: %s, from %lu, for length %d, cb %p, cbdata %p\n",
 	storeKeyText(e->hash.key),
-	copyInto.offset,
+	(unsigned long) copyInto.offset,
 	copyInto.length,
 	callback,
 	data);
@@ -275,7 +275,7 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
     MemObject *mem = e->mem_obj;
     size_t sz;
 
-    debug(33, 5) ("co: %lu, hi: %ld\n", sc->copyInto.offset, (long int) mem->inmem_hi);
+    debug(33, 5) ("co: %lu, hi: %ld\n", (unsigned long) sc->copyInto.offset, (long int) mem->inmem_hi);
 
     if (storeClientNoMoreToSend(e, sc)) {
 	/* There is no more to send! */
@@ -695,7 +695,7 @@ storeClientDumpStats(store_client * thisClient, StoreEntry * output, int clientN
 	return;
     storeAppendPrintf(output, "\tClient #%d, %p\n", clientNumber, thisClient->callback_data);
     storeAppendPrintf(output, "\t\tcopy_offset: %lu\n",
-	thisClient->copyInto.offset);
+	(unsigned long) thisClient->copyInto.offset);
     storeAppendPrintf(output, "\t\tcopy_size: %d\n",
 	(int) thisClient->copyInto.length);
     storeAppendPrintf(output, "\t\tflags:");
