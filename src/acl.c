@@ -50,7 +50,7 @@ static void aclParseProtoList(void *curlist);
 static void aclParseMethodList(void *curlist);
 static void aclParseTimeSpec(void *curlist);
 static void aclParseIntRange(void *curlist);
-static char *strtokFile(void);
+extern char *strtokFile(void);
 static void aclDestroyTimeList(acl_time_data * data);
 static void aclDestroyIntRange(intrange *);
 static void aclLookupProxyAuthStart(aclCheck_t * checklist);
@@ -107,7 +107,7 @@ static SPLAYWALKEE aclDumpArpListWalkee;
 #endif
 static int aclCacheMatchAcl(dlink_list * cache, squid_acl acltype, void *data, char *MatchParam);
 
-static char *
+char *
 strtokFile(void)
 {
     char *t, *fn;

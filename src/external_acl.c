@@ -57,6 +57,8 @@ static void external_acl_cache_delete(external_acl * def, external_acl_entry * e
 static int external_acl_entry_expired(external_acl * def, external_acl_entry * entry);
 static void external_acl_cache_touch(external_acl * def, external_acl_entry * entry);
 
+extern char *strtokFile(void);
+
 /*******************************************************************
  * external_acl cache entry
  * Used opaqueue in the interface
@@ -384,7 +386,7 @@ aclParseExternal(void *dataptr)
     data->def = cbdataReference(find_externalAclHelper(token));
     if (!data->def)
 	self_destruct();
-    while ((token = strtok(NULL, w_space))) {
+    while ((token = strtokFile())) {
 	wordlistAdd(&data->arguments, token);
     }
     *datap = data;
