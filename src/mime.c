@@ -377,10 +377,14 @@ mimeInit(char *filename)
 	    m->transfer_mode = 'I';
 	*MimeTableTail = m;
 	MimeTableTail = &m->next;
-	mimeLoadIconFile(m->icon);
 	debug(25, 5) ("mimeInit: added '%s'\n", buf);
     }
     fclose(fp);
+    /*
+     * Create Icon StoreEntry's
+     */
+    for (m = MimeTable; m != NULL; m = m->next)
+	mimeLoadIconFile(m->icon);
     mimeLoadIconFile(ICON_MENU);
     mimeLoadIconFile(ICON_DIRUP);
     mimeLoadIconFile(ICON_LINK);
