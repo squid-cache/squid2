@@ -51,7 +51,7 @@ void
 storeKeyFree(const cache_key * key)
 {
     meta_data.store_keys -= strlen(key);
-    free((void *) key);
+    xfree((void *) key);
 }
 
 int
