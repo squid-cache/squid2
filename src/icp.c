@@ -444,6 +444,7 @@ int icpSendMoreData(fd, state)
     int result = COMM_ERROR;
     int tcode = 555;
     double http_ver;
+    static char scanbuf[20];
 
     debug(12, 5, "icpSendMoreData: <URL:%s> sz %d: len %d: off %d.\n",
 	entry->url, entry->object_len,
@@ -466,7 +467,9 @@ int icpSendMoreData(fd, state)
     buf_len += len;
 
     if (state->offset == 0 && entry->mem_obj->reply->code == 0 && len > 0) {
-	sscanf(buf, "HTTP/%lf %d", &http_ver, &tcode);
+	memset(scanbuf, '\0', 20);
+	memcpy(scanbuf, buf, 20);
+	sscanf(scanbuf, "HTTP/%lf %d", &http_ver, &tcode);
 	entry->mem_obj->reply->code = tcode;
     }
     if ((state->offset == 0) && (header->opcode != ICP_OP_DATABEG)) {
@@ -1146,11 +1149,13 @@ int parseHttpRequest(icpState)
 
     if ((method = strtok(inbuf, "\t ")) == NULL) {
 	debug(12, 1, "parseHttpRequest: Can't get request method\n");
+	xfree(inbuf);
 	return -1;
     }
     icpState->method = urlParseMethod(method);
     if (icpState->method == METHOD_NONE) {
 	debug(12, 1, "parseHttpRequest: Unsupported method '%s'\n", method);
+	xfree(inbuf);
 	return -1;
     }
     debug(12, 5, "parseHttpRequest: Method is '%s'\n", method);
@@ -1159,6 +1164,7 @@ int parseHttpRequest(icpState)
 
     if ((request = strtok(NULL, "\n\r\t ")) == NULL) {
 	debug(12, 1, "parseHttpRequest: Missing URL\n");
+	xfree(inbuf);
 	return -1;
     }
     debug(12, 5, "parseHttpRequest: Request is '%s'\n", request);
@@ -1177,6 +1183,7 @@ int parseHttpRequest(icpState)
 	*(icpState->request_hdr + req_hdr_sz) = '\0';
     } else if (icpState->method == METHOD_POST) {
 	debug(12, 3, "parseHttpRequest: Partial POST request\n");
+	xfree(inbuf);
 	return 0;		/* reschedule us after next read */
     }
     if (icpState->request_hdr)
@@ -1187,8 +1194,10 @@ int parseHttpRequest(icpState)
 
     if (icpState->method == METHOD_POST) {
 	/* Expect Content-Length: and POST data after the headers */
-	if ((t = mime_get_header(req_hdr, "Content-Length")) == NULL)
+	if ((t = mime_get_header(req_hdr, "Content-Length")) == NULL) {
+	    xfree(inbuf);
 	    return 0;		/* not a complete request */
+	}
 	content_length = atoi(t);
 	debug(12, 3, "parseHttpRequest: Expecting POST Content-Length of %d\n",
 	    content_length);
@@ -1197,15 +1206,25 @@ int parseHttpRequest(icpState)
 	} else if ((t = strstr(req_hdr, "\n\n"))) {
 	    post_data = t + 2;
 	} else {
+	    xfree(inbuf);
 	    return 0;		/* not a complete request */
 	}
 	post_sz = icpState->offset - (post_data - inbuf);
 	debug(12, 3, "parseHttpRequest: Found POST Content-Length of %d\n",
 	    post_sz);
-	if (post_sz < content_length)
+	if (post_sz < content_length) {
+	    xfree(inbuf);
 	    return 0;
+	}
     }
     /* Assign icpState->url */
+
+    if ((t = strchr(request, '\n')))	/* remove NL */
+	*t = '\0';
+    if ((t = strchr(request, '\r')))	/* remove CR */
+	*t = '\0';
+    if ((t = strchr(request, '#')))	/* remove HTML anchors */
+	*t = '\0';
 
     if ((ad = getAppendDomain())) {
 	if ((t = do_append_domain(request, ad))) {
@@ -1236,12 +1255,6 @@ int parseHttpRequest(icpState)
 	icpState->url = xstrdup(request);
 	BIT_RESET(icpState->flags, REQ_ACCEL);
     }
-    if ((t = strchr(request, '\r')))	/* remove CR */
-	*t = '\0';
-    if ((t = strchr(request, '\n')))	/* remove NL */
-	*t = '\0';
-    if ((t = strchr(request, '#')))	/* remove HTML anchors */
-	*t = '\0';
 
     if (icpCachable(icpState))
 	BIT_SET(icpState->flags, REQ_PUBLIC);
@@ -1249,6 +1262,7 @@ int parseHttpRequest(icpState)
     debug(12, 5, "parseHttpRequest: Complete request received\n");
     if (free_request)
 	safe_free(request);
+    xfree(inbuf);
     return 1;
 }
 
@@ -1276,6 +1290,7 @@ static int check_valid_url(fd, astm)
     char *t = NULL;
     protocol_t protocol;
     int port;
+    proto[0] = host[0] = urlpath[0] = '\0';
     if (sscanf(astm->url, "%[^:]://%[^/]%s", proto, host, urlpath) != 3)
 	return ERR_INVALID_URL;
     for (t = host; *t; t++)
@@ -1290,7 +1305,6 @@ static int check_valid_url(fd, astm)
     if (port != urlDefaultPort(protocol))
 	sprintf(portbuf, ":%d", port);
 
-    sprintf(astm->url, "%s://%s%s%s", proto, host, portbuf, urlpath);
     if (!aclCheck(HTTPAccessList,
 	    astm->peer.sin_addr,
 	    astm->method,
@@ -1299,6 +1313,7 @@ static int check_valid_url(fd, astm)
 	    port,
 	    urlpath))
 	return LOG_TCP_DENIED;
+    sprintf(astm->url, "%s://%s%s%s", proto, host, portbuf, urlpath);
     return 0;
 }
 
