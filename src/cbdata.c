@@ -111,7 +111,7 @@ cbdataInit(void)
 
 void
 #if CBDATA_DEBUG
-cbdataAddDbg(const void *p, mem_type mem_type, const char *file, int line)
+cbdataAddDbg(const void *p, mem_type mtype, const char *file, int line)
 #else
 cbdataAdd(const void *p, mem_type mtype)
 #endif
