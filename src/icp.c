@@ -753,6 +753,8 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 		    get_free_4k_page(),
 		    icpSendMoreData,
 		    http);
+	    else
+	        commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	} else {
 	    comm_close(fd);
 	}
@@ -1191,10 +1193,7 @@ icpUdpReply(int fd, void *data)
     int x;
 
     /* Disable handler, in case of errors. */
-    commSetSelect(fd,
-	COMM_SELECT_WRITE,
-	NULL,
-	NULL, 0);
+    commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
     while ((queue = UdpQueueHead)) {
 	debug(12, 5, "icpUdpReply: FD %d sending %d bytes to %s port %d\n",
 	    fd,
@@ -1219,10 +1218,7 @@ icpUdpReply(int fd, void *data)
     }
     /* Reinstate handler if needed */
     if (UdpQueueHead) {
-	commSetSelect(fd,
-	    COMM_SELECT_WRITE,
-	    icpUdpReply,
-	    UdpQueueHead, 0);
+	commSetSelect(fd, COMM_SELECT_WRITE, icpUdpReply, UdpQueueHead, 0);
     }
 }
 
@@ -1326,10 +1322,7 @@ icpUdpSend(int fd,
     data->logcode = logcode;
     data->proto = proto;
     AppendUdp(data);
-    commSetSelect(fd,
-	COMM_SELECT_WRITE,
-	icpUdpReply,
-	UdpQueueHead, 0);
+    commSetSelect(fd, COMM_SELECT_WRITE, icpUdpReply, UdpQueueHead, 0);
 }
 
 static int
@@ -1904,7 +1897,6 @@ clientReadRequest(int fd, void *data)
 
     len = conn->in.size - conn->in.offset - 1;
     debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
-    debug(12, 4, "clientReadRequest: len = %d\n", len);
     size = read(fd, conn->in.buf + conn->in.offset, len);
     fd_bytes(fd, size, FD_READ);
 
@@ -1973,6 +1965,11 @@ clientReadRequest(int fd, void *data)
 	    }
 	    http->request = requestLink(request);
 	    clientAccessCheck(http);
+	    /* break here for NON-GET because most likely there is a
+	       reqeust body following and we don't want to parse it
+  	       as though it was new request */
+	    if (request->method != METHOD_GET)
+		break;
 	    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
 	    continue;		/* while offset > 0 */
 	} else if (parser_return_code == 0) {
