@@ -124,7 +124,7 @@ identReadReply(int fd, void *data)
 	if (strstr(buf, "USERID")) {
 	    if ((t = strrchr(buf, ':'))) {
 		while (isspace(*++t));
-		xstrncpy(connState->ident.ident, t, ICP_IDENT_SZ);
+		xstrncpy(connState->ident.ident, t, USER_IDENT_SZ);
 	    }
 	}
     }
