@@ -452,7 +452,9 @@ httpReplyIsolateStart(const char **parse_start, const char **blk_start, const ch
 int
 httpReplyBodySize(method_t method, HttpReply * reply)
 {
-    if (METHOD_HEAD == method)
+    if (reply->sline.version.major < 1)
+	return -1;
+    else if (METHOD_HEAD == method)
 	return 0;
     else if (reply->sline.status == HTTP_OK)
 	(void) 0;		/* common case, continue */
