@@ -51,16 +51,29 @@ static struct {
     unsigned char code;
     char *quote;
 } htmlstandardentities[] =
+
 {
     /* NOTE: The quoted form MUST not be larger than 6 character.
      * see close to the MemPool commend below
      */
-    { '<', "&lt;" },
-    { '>', "&gt;" },
-    { '"', "&quot;" },
-    { '&', "&amp;" },
-    { '\'', "&#39;" },
-    { 0, NULL }
+    {
+	'<', "&lt;"
+    },
+    {
+	'>', "&gt;"
+    },
+    {
+	'"', "&quot;"
+    },
+    {
+	'&', "&amp;"
+    },
+    {
+	'\'', "&#39;"
+    },
+    {
+	0, NULL
+    }
 };
 
 /*
@@ -101,12 +114,11 @@ html_quote(const char *string)
 	 * sure all 8-bit characters are encoded to protect from buggy
 	 * clients
 	 */
-	if ( !escape && (ch <= 0x1F || ch >= 0x7f) && ch != '\n' && ch != '\r' && ch != '\t' ) {
+	if (!escape && (ch <= 0x1F || ch >= 0x7f) && ch != '\n' && ch != '\r' && ch != '\t') {
 	    static char dec_encoded[7];
 	    snprintf(dec_encoded, sizeof dec_encoded, "&#%3d;", (int) ch);
 	    escape = dec_encoded;
 	}
-
 	if (escape) {
 	    /* Ok, An escaped form was found above. Use it */
 	    strncpy(dst, escape, 6);
