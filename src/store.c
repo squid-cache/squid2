@@ -628,7 +628,7 @@ storeGet(const char *url)
     return (StoreEntry *) hash_lookup(store_table, url);
 }
 
-unsigned int
+static unsigned int
 getKeyCounter(void)
 {
     static unsigned int key_counter = 0;
@@ -2872,14 +2872,6 @@ storeFreeMemory(void)
     xfree(list);
     hashFreeMemory(store_table);
     safe_free(MaintBucketsOrder);
-}
-
-int
-expiresMoreThan(time_t expires, time_t when)
-{
-    if (expires < 0)		/* No Expires given */
-	return 1;
-    return (expires > (squid_curtime + when));
 }
 
 int
