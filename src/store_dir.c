@@ -127,6 +127,7 @@ storeCreateDirectory(const char *path, int should_exist)
 {
     int created = 0;
     struct stat st;
+    getCurrentTime();
     if (0 == stat(path, &st)) {
 	if (S_ISDIR(st.st_mode)) {
 	    debug(20, should_exist ? 3 : 1) ("%s exists\n", path);
