@@ -430,6 +430,7 @@ icpProcessExpired(int fd, void *data)
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     storeClientListAdd(entry, fd, 0);
+    storeClientListAdd(icpState->old_entry, fd, 0);
 
     entry->lastmod = icpState->old_entry->lastmod;
     debug(33, 5, "icpProcessExpired: setting lmt = %d\n",
