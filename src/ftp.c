@@ -1045,6 +1045,12 @@ ftpBuildTitleUrl(FtpStateData * ftpState)
 	strCat(ftpState->title_url, xitoa(request->port));
     }
     strCat(ftpState->title_url, strBuf(request->urlpath));
+    {
+	char *t = xstrdup(strBuf(ftpState->title_url));
+	rfc1738_unescape(t);
+	stringReset(&ftpState->title_url, t);
+	xfree(t);
+    }
 
     stringReset(&ftpState->base_href, "ftp://");
     if (strcmp(ftpState->user, "anonymous")) {
