@@ -371,6 +371,15 @@ struct rusage {
 
 #if USE_SSL
 #include "ssl_support.h"
+/* This is an ugly hack, but necessary.
+ *
+ * Squid's md5 conflicts with OpenSSL's md5, but they're more or less
+ * interchangable.
+ * Free is defined in include/radix.h and also in OpenSSL, but we don't need
+ * OpenSSL's, so it can be undef'd and then appear from radix.h later.
+ * It's dangerous and ugly, but I can't see any other way to get around it.
+ */
+#undef Free
 #endif
 
 #include "Stack.h"
@@ -400,6 +409,14 @@ struct rusage {
 #include "globals.h"
 
 #include "util.h"
+
+/*
+ * Mac OS X Server already has radix.h as a standard header, so
+ * this causes conflicts.
+ */
+#ifndef _SQUID_APPLE_
+#include "radix.h"
+#endif
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"
