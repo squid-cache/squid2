@@ -86,7 +86,9 @@ extern int opt_dns_tests;	/* 1 */
 extern int opt_foreground_rebuild;	/* 0 */
 extern int opt_forwarded_for;	/* 1 */
 extern int opt_reload_hit_only;	/* 0 */
+#if HAVE_SYSLOG
 extern int opt_syslog_enable;	/* 0 */
+#endif
 extern int opt_udp_hit_obj;	/* 0 */
 extern int opt_create_swap_dirs;	/* 0 */
 extern int opt_store_doublecheck;	/* 0 */
@@ -159,7 +161,7 @@ extern hash_table *proxy_auth_username_cache;	/* NULL */
 extern int incoming_sockets_accepted;
 #if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
 extern unsigned int WIN32_OS_version;	/* 0 */
-extern char *WIN32_OS_string;		/* NULL */
+extern char *WIN32_OS_string;	/* NULL */
 #endif
 
 #endif /* SQUID_GLOBALS_H */
