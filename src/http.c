@@ -369,6 +369,7 @@ httpMakeVaryMark(request_t * request, HttpReply * reply)
     }
     stringClean(&vary);
 #if X_ACCELERATOR_VARY
+    pos = NULL;
     vary = httpHeaderGetList(&reply->header, HDR_X_ACCELERATOR_VARY);
     while (strListGetItem(&vary, ',', &item, &ilen, &pos)) {
 	char *name = xmalloc(ilen + 1);
