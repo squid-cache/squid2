@@ -4123,7 +4123,6 @@ if test "${with_pthreads+set}" = set; then
 fi;
 if test "$with_pthreads" = "yes"; then
     echo "With pthreads"
-    CFLAGS="$CFLAGS -D_REENTRANT"
     case "$host" in
     i386-unknown-freebsd*)
         if test "$GCC" = "yes" ; then
@@ -4213,7 +4212,9 @@ done
 
 
 
-
+if test "$with_pthreads"; then
+    CFLAGS="$CFLAGS -D_REENTRANT"
+fi
 # Check whether --enable-heap-replacement or --disable-heap-replacement was given.
 if test "${enable_heap_replacement+set}" = set; then
   enableval="$enable_heap_replacement"
