@@ -242,6 +242,9 @@
 #define BUFSIZ 4096
 #endif
 
+#ifndef INADDR_NONE
+#define INADDR_NONE -1
+#endif
 
 char *rfc1738_escape _PARAMS((char *));
 void rfc1738_unescape _PARAMS((char *));
@@ -337,6 +340,7 @@ typedef struct _request {
     int rest_offset;
     int rest_att;
     int rest_implemented;
+    struct in_addr host_addr;
 } request_t;
 
 typedef struct _parts {
@@ -531,7 +535,8 @@ void fail(r)
 	    Debug(26, 1, ("Preparing HTML error message\n"));
 	    expire_time = time(NULL) + o_neg_ttl;
 	    fprintf(fp, "HTTP/1.0 500 Proxy Error\r\n");
-	    fprintf(fp, "Expires: %s\r\n", mkrfc850(&expire_time));
+	    fprintf(fp, "Date: %s\r\n", http_time(time(NULL)));
+	    fprintf(fp, "Expires: %s\r\n", http_time(expire_time));
 	    fprintf(fp, "MIME-Version: 1.0\r\n");
 	    fprintf(fp, "Server: Squid %s\r\n", SQUID_VERSION);
 	    fprintf(fp, "Content-Type: text/html\r\n");
@@ -1000,6 +1005,7 @@ void send_success_hdr(r)
     }
     setbuf(fp, NULL);
     fprintf(fp, "HTTP/1.0 200 Gatewaying\r\n");
+    fprintf(fp, "Date: %s\r\n", http_time(time(NULL)));
     fprintf(fp, "MIME-Version: 1.0\r\n");
     fprintf(fp, "Server: Squid %s\r\n", SQUID_VERSION);
     if (r->mime_type)
@@ -1188,13 +1194,20 @@ int is_dfd_open(r)
 state_t parse_request(r)
      request_t *r;
 {
+    struct hostent *hp;
     Debug(26, 1, ("parse_request: looking up '%s'\n", r->host));
-    if (get_host(r->host) == NULL) {
+
+    r->host_addr.s_addr = inet_addr(r->host);	/* try numeric */
+    if (r->host_addr.s_addr != INADDR_NONE)
+	return PARSE_OK;
+    hp = gethostbyname(r->host);
+    if (hp == NULL) {
 	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "Unknown host: %s", r->host);
 	r->rc = 10;
 	return FAIL_HARD;
     }
+    xmemcpy(&r->host_addr.s_addr, *hp->h_addr_list, 4);
     return PARSE_OK;
 }
 
@@ -1209,7 +1222,6 @@ state_t parse_request(r)
 state_t do_connect(r)
      request_t *r;
 {
-    Host *h = NULL;
     int sock;
     struct sockaddr_in S;
     int len;
@@ -1224,8 +1236,7 @@ state_t do_connect(r)
 	r->rc = 2;
 	return FAIL_CONNECT;
     }
-    h = get_host(r->host);
-    xmemcpy(&(S.sin_addr.s_addr), h->ipaddr, h->addrlen);
+    S.sin_addr = r->host_addr;
     S.sin_family = AF_INET;
     S.sin_port = htons(r->port);
 

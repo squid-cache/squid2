@@ -374,7 +374,8 @@ void protoUnregister(fd, entry, request, src_addr)
 	return;
     if (url)
 	(void) redirectUnregister(url, fd);
-    (void) fqdncacheUnregister(src_addr, fd);
+    if (src_addr.s_addr != INADDR_NONE)
+	(void) fqdncacheUnregister(src_addr, fd);
     if (host)
 	(void) ipcache_unregister(host, fd);
 #ifdef DONT_DO_THIS

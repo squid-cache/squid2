@@ -4,15 +4,15 @@
 #
 
 #  TAG: http_port
-#	The port number where cached will listen for HTTP client
+#	The port number where squid will listen for HTTP client
 #	requests.  Default is 3128, for httpd-accel mode use port 80.
 #	May be overridden with -a on the command line.
 #http_port @CACHE_HTTP_PORT@
 
 #  TAG: icp_port
-#	The port number where cached will listen for ICP requests from
-#	neighbor caches.  Default is 3130.  To disable use "0".
-#	May be overridden with -u on the command line.
+#	The port number where squid send and receive ICP requests to
+#	and from neighbor caches.  Default is 3130.  To disable use
+#	"0".  May be overridden with -u on the command line.
 #icp_port @CACHE_ICP_PORT@
 
 #  TAG: tcp_incoming_address
@@ -192,7 +192,7 @@
 #single_parent_bypass off
 
 #  TAG: source_ping
-#	If source_ping is enabled, then cached will include the source
+#	If source_ping is enabled, then squid will include the source
 #	provider site in its selection algorithm.  This is accomplished
 #	by sending ICP "HIT" packets to the UDP echo port of the source
 #	host.  Note that using source_ping may send a fair amount of UDP
@@ -485,9 +485,11 @@ request_size 100
 #quick_abort    off
 
 #  TAG: negative_ttl (in minutes)         
-#	Time-to-Live (TTL) for negative caching of retrieved objects.
-#	The default is 5 minutes.  Note that this is different from
-#	negative caching of DNS lookups.
+#	Time-to-Live (TTL) for failed requests.  Certain types of
+#	failures (such as "connection refused" and "404 Not Found") are
+#	negatively-cached for a small amount of time.  The default is 5
+#	minutes.  Note that this is different from negative caching of
+#	DNS lookups.
 #
 #negative_ttl 5
 
@@ -510,7 +512,7 @@ request_size 100
 
 #  TAG: connect_timeout (in seconds)
 #	Some systems (notably Linux) can not be relied upon to properly
-#	time out connect(2) requests.  Therefore the cached process
+#	time out connect(2) requests.  Therefore the squid process
 #	enforces its own timeout on server connections.  This parameter
 #	specifies how long to wait for the connect to complete.  The
 #	default is two minutes (120 seconds).
@@ -556,14 +558,10 @@ request_size 100
 #	How often to force a full garbage collection.   Garbage collection
 #	involves checking the expire time of every object in the cache.
 #
-#	The cache will remove expired objects as space is needed for
-#	new ones, so it should not be necessary to run full garbage
-#	collections.  For very large caches, garbage collection 
-#	may take a significant amount of time, during which it will
-#	not process client requests.  By default garbage collection
-#	is disabled.  If you want to force regular garbage collection
-#	(perhaps to reclaim disk space) set this to a positive
-#	value such as 30 minutes.
+#	NOTE: this option is provided only for backwards compatibility.
+#	We recommend that you leave it disabled (i.e. set to -1).  Expired
+#	objects are removed from the cache little by little as a part of
+#	its normal operations.
 #
 #clean_rate -1
 
@@ -669,10 +667,7 @@ icp_access  allow  all
 #	create cache hierarchies.
 #
 #	An 'announcement' message is sent (via UDP) to the registration
-#	service by the program 'send-announce'.  This program is called
-#	in the RunCache script every time the cached process is started.
-#	You may also run the 'send-announce' program manually, or from
-#	cron if you like.  By default, the annoucement message is NOT
+#	service by Squid.  By default, the annoucement message is NOT
 #	SENT unless you enable it with 'cache_announce' below.
 #
 #	The announcement message includes your hostname, plus the
@@ -712,12 +707,12 @@ icp_access  allow  all
 #-----------------------------------------------------------------------------
 
 #  TAG: httpd_accel 
-#	If you want to run cached as an httpd accelerator, define the
+#	If you want to run squid as an httpd accelerator, define the
 #	host name and port number where the real HTTP server is.
 #httpd_accel your.real.httpd.host your.real.httpd.port
 
 #  TAG: httpd_accel_with_proxy
-#	If you want to use cached as both a local httpd accelerator
+#	If you want to use squid as both a local httpd accelerator
 #	and as a proxy, change this to 'on'.
 #httpd_accel_with_proxy off
 
@@ -752,7 +747,7 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	extensions 0 through 9.  Setting logfile_rotate to 0 will
 #	disable the rotation, but the logfiles are still closed and
 #	re-opened.  This will enable you to rename the logfiles yourself
-#	just before sending a USR1 signal to the cached process.
+#	just before sending a USR1 signal to the squid process.
 #
 #logfile_rotate 10
 
@@ -775,4 +770,4 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	HTML text to include in error messages.  Make this a "mailto"
 #	URL to your admin address, or maybe just a link to your 
 #	organizations Web page.
-#html_text
+#err_html_text
