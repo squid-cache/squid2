@@ -195,6 +195,56 @@ static void icpDetectClientClose _PARAMS((int, icpStateData *));
 static void icpHandleIcpV2 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 static void icpHandleIcpV3 _PARAMS((int fd, struct sockaddr_in, char *, int len));
 
+/*
+ * This function is designed to serve a fairly specific purpose.
+ * Occasionally our vBNS-connected caches can talk to each other, but not
+ * the rest of the world.  Here we try to detect frequent failures which
+ * make the cache unusable (e.g. DNS lookup and connect() failures).  If
+ * the failure:success ratio goes above 1.0 then we go into "hit only"
+ * mode where we only return UDP_HIT or UDP_RELOADING.  (UDP_RELOADING
+ * isn't quite the appropriate term but it gets the job done).  Neighbors
+ * will only fetch HITs from us if they are using the ICP protocol.  We
+ * stay in this mode for 5 minutes.
+ * 
+ * Duane W., Sept 16, 1996
+ */
+
+#define FAILURE_MODE_TIME 300
+static time_t hit_only_mode_until = 0;
+
+static void checkFailureRatio(rcode, hcode)
+     log_type rcode;
+     hier_code hcode;
+{
+    static double fail_ratio = 0.0;
+    static double magic_factor = 100;
+    double n_good;
+    double n_bad;
+    if (hcode == HIER_NONE)
+	return;
+    n_good = magic_factor / (1.0 + fail_ratio);
+    n_bad = magic_factor - n_good;
+    switch (rcode) {
+    case ERR_DNS_FAIL:
+    case ERR_CONNECT_FAIL:
+    case ERR_READ_ERROR:
+	n_bad++;
+	break;
+    default:
+	n_good++;
+    }
+    fail_ratio = n_bad / n_good;
+    if (hit_only_mode_until > squid_curtime)
+	return;
+    if (fail_ratio < 1.0)
+	return;
+    debug(12, 0, "Failure Ratio at %4.2f\n", fail_ratio);
+    debug(12, 0, "Going into hit-only-mode for %d minutes...\n",
+	FAILURE_MODE_TIME / 60);
+    hit_only_mode_until = squid_curtime + FAILURE_MODE_TIME;
+    fail_ratio = 0.8;		/* reset to something less than 1.0 */
+}
+
 static void icpFreeBufOrPage(icpState)
      icpStateData *icpState;
 {
@@ -247,6 +297,7 @@ static int icpStateFree(fd, icpState)
 	http_code,
 	elapsed_msec,
 	hier_code);
+    checkFailureRatio(icpState->log_type);
     safe_free(icpState->inbuf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
@@ -1148,7 +1199,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
-	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
+	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
 	    icpUdpSend(fd,
 		url,
 		&header,
@@ -1156,10 +1207,18 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		0,
 		ICP_OP_RELOADING,
 		LOG_UDP_RELOADING);
-	    break;
+	} else if (hit_only_mode_until > squid_curtime) {
+	    icpUdpSend(fd,
+		url,
+		&header,
+		&from,
+		0,
+		ICP_OP_RELOADING,
+		LOG_UDP_RELOADING);
+	} else {
+	    CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
+	    icpUdpSend(fd, url, &header, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
 	}
-	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
-	icpUdpSend(fd, url, &header, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
 	break;
 
     case ICP_OP_HIT_OBJ:
@@ -1289,18 +1348,26 @@ static void icpHandleIcpV3(fd, from, buf, len)
 	    break;
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
-	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
+	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
 	    icpUdpSend(fd,
 		url,
 		&header,
 		&from,
 		0,
-		ICP_OP_DENIED,
-		LOG_UDP_DENIED);
-	    break;
+		ICP_OP_RELOADING,
+		LOG_UDP_RELOADING);
+	} else if (hit_only_mode_until > squid_curtime) {
+	    icpUdpSend(fd,
+		url,
+		&header,
+		&from,
+		0,
+		ICP_OP_RELOADING,
+		LOG_UDP_RELOADING);
+	} else {
+	    CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
+	    icpUdpSend(fd, url, &header, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
 	}
-	CacheInfo->proto_miss(CacheInfo, CacheInfo->proto_id(url));
-	icpUdpSend(fd, url, &header, &from, 0, ICP_OP_MISS, LOG_UDP_MISS);
 	break;
 
     case ICP_OP_HIT_OBJ:
