@@ -18,6 +18,14 @@
 	  udp_{incoming,outgoing}_address  (Mark Treacy).
 	- Fixed some SIGHUP related memory problems with redirectors,
 	  ipcache, and fqdncache, and peerCountMcastPeers*().
+	- Make the unlinkd and pinger programs configurable (Ron Gomes,
+	  Neil Murray).
+	- Add handshake to unlinkd program (Ron Gomes).
+	- Exit if a configured program doesn't exist (Neil Murray).
+	- Abort if unlinkd fails to start (Ron Gomes).
+	- Added -m option to ftpget for defining default MIME type.
+	  (Neil Murray).
+	- Optimized comm_select() functions (Mark Treacy).
 
 
 Changes to squid-1.1.9 (March 30, 1997):
