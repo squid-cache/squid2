@@ -105,8 +105,8 @@
 
 #include "squid.h"
 
-char *_db_file = __FILE__;
-int _db_line = 0;
+char *volatile _db_file = __FILE__;
+volatile int _db_line = 0;
 
 FILE *debug_log = NULL;
 static char *debug_log_file = NULL;

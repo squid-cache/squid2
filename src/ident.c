@@ -47,12 +47,10 @@ void
 identStart(int sock, icpStateData * icpState)
 {
     char *host;
-    u_short port;
     LOCAL_ARRAY(char, reqbuf, BUFSIZ);
     int status;
 
     host = inet_ntoa(icpState->peer.sin_addr);
-    port = ntohs(icpState->peer.sin_port);
 
     if (sock < 0) {
 	sock = comm_open(SOCK_STREAM,

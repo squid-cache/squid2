@@ -59,19 +59,19 @@ rev_int_sort(int *i1, int *i2)
 void
 storeDirClean(void)
 {
-    static int index = 0;
+    static int swap_index = 0;
     DIR *dp = NULL;
     struct dirent *de = NULL;
     LOCAL_ARRAY(char, p1, MAXPATHLEN + 1);
     LOCAL_ARRAY(char, p2, MAXPATHLEN + 1);
     int files[20];
-    int fileno;
+    int swapfileno;
     int n = 0;
     int k = 0;
     sprintf(p1, "%s/%02X/%02X",
-	swappath(index),
-	(index / ncache_dirs) % SWAP_DIRECTORIES_L1,
-	(index / ncache_dirs) / SWAP_DIRECTORIES_L1 % SWAP_DIRECTORIES_L2);
+	swappath(swap_index),
+	(swap_index / ncache_dirs) % SWAP_DIRECTORIES_L1,
+	(swap_index / ncache_dirs) / SWAP_DIRECTORIES_L1 % SWAP_DIRECTORIES_L2);
     debug(36, 3, "storeDirClean: Cleaning directory %s\n", p1);
     dp = opendir(p1);
     if (dp == NULL) {
@@ -80,14 +80,14 @@ storeDirClean(void)
 	return;
     }
     while ((de = readdir(dp)) && k < 20) {
-	if (sscanf(de->d_name, "%X", &fileno) != 1)
+	if (sscanf(de->d_name, "%X", &swapfileno) != 1)
 	    continue;
-	if (file_map_bit_test(fileno))
+	if (file_map_bit_test(swapfileno))
 	    continue;
-	files[k++] = fileno;
+	files[k++] = swapfileno;
     }
     closedir(dp);
-    index++;
+    swap_index++;
     if (k == 0)
 	return;
     qsort(files, k, sizeof(int), (QS) rev_int_sort);

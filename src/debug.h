@@ -105,8 +105,8 @@
 #ifndef _DEBUG_H_
 #define _DEBUG_H_
 
-extern char *_db_file;
-extern int _db_line;
+extern char *volatile _db_file;
+extern volatile int _db_line;
 extern int syslog_enable;
 extern FILE *debug_log;
 

@@ -120,8 +120,8 @@ typedef struct _squid_read_data_t {
 
 /* GLOBALS */
 Meta_data meta_data;
-unsigned long ntcpconn = 0;
-unsigned long nudpconn = 0;
+volatile unsigned long ntcpconn = 0;
+volatile unsigned long nudpconn = 0;
 struct _iostats IOStats;
 
 char *stat_describe();

@@ -117,7 +117,7 @@ struct icp_common_s {
     u_num32 shostid;		/* sender host id */
 };
 
-#define ICP_FLAG_HIT_OBJ 0x80000000
+#define ICP_FLAG_HIT_OBJ 0x80000000ul
 
 #define ICP_COMMON_SZ (sizeof(icp_common_t))
 #define ICP_HDR_SZ (sizeof(icp_common_t)+sizeof(u_num32))

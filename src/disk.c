@@ -338,7 +338,7 @@ file_write(int fd,
     int access_code,
     void (*handle) (),
     void *handle_data,
-    void (*free) (void *))
+    void (*free_func) (void *))
 {
     dwrite_q *wq = NULL;
 
@@ -355,7 +355,7 @@ file_write(int fd,
     wq->len = len;
     wq->cur_offset = 0;
     wq->next = NULL;
-    wq->free = free;
+    wq->free = free_func;
     file_table[fd].wrt_handle = handle;
     file_table[fd].wrt_handle_data = handle_data;
 

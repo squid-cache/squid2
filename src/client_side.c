@@ -225,7 +225,7 @@ clientRedirectDone(void *data, char *result)
 #define CHECK_PROXY_FILE_TIME 300
 
 char *
-proxyAuthenticate(void)
+proxyAuthenticate(char *headers)
 {
     /* Keep the time measurements and the hash
      * table of users and passwords handy */

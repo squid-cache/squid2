@@ -613,7 +613,7 @@ accessLogTime(time_t t)
 {
     struct tm *tm;
     static char buf[128];
-    static char last_t = 0;
+    static time_t last_t = 0;
     if (t != last_t) {
 	tm = localtime(&t);
 	strftime(buf, 127, "%y/%m/%d %T", tm);

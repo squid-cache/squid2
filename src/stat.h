@@ -255,8 +255,8 @@ extern struct _iostats IOStats;
 
 extern cacheinfo *HTTPCacheInfo;
 extern cacheinfo *ICPCacheInfo;
-extern unsigned long ntcpconn;
-extern unsigned long nudpconn;
+extern volatile unsigned long ntcpconn;
+extern volatile unsigned long nudpconn;
 extern char *open_bracket;
 extern char *close_bracket;
 
