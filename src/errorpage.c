@@ -295,8 +295,7 @@ errorConvert(char token, ErrorState * err)
 	p = "%UNKNOWN%";
 	break;
     }
-    if (p == NULL)
-	p = "<NULL>";
+    assert(p != NULL);
     debug(4, 3) ("errorConvert: %%%c --> '%s'\n", token, p);
     return p;
 }
