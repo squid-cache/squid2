@@ -666,7 +666,7 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
     if (header->opcode == ICP_OP_SECHO) {
 	/* Received source-ping reply */
 	if (e) {
-	    debug(15, 1, "neighborsUdpAck: Ignoring SECHO from %s\n", e->host);
+	    debug(15, 1, "Ignoring SECHO from neighbor %s\n", e->host);
 	} else {
 	    /* if we reach here, source-ping reply is the first 'parent',
 	     * so fetch directly from the source */
@@ -702,7 +702,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	}
     } else if (header->opcode == ICP_OP_HIT) {
 	if (e == NULL) {
-	    debug(15, 1, "neighborsUdpAck: Ignoring HIT from non-neighbor\n");
+	    debug(15, 1, "Ignoring HIT from non-neighbor %s\n",
+		inet_ntoa(from->sin_addr));
 	} else {
 	    hierarchy_log_append(entry,
 		e->type == EDGE_SIBLING ? HIER_NEIGHBOR_HIT : HIER_PARENT_HIT,
@@ -715,7 +716,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	}
     } else if (header->opcode == ICP_OP_DECHO) {
 	if (e == NULL) {
-	    debug(15, 1, "neighborsUdpAck: Ignoring DECHO from non-neighbor\n");
+	    debug(15, 1, "Ignoring DECHO from non-neighbor %s\n",
+		inet_ntoa(from->sin_addr));
 	} else if (e->type == EDGE_SIBLING) {
 	    fatal_dump("neighborsUdpAck: Found non-ICP cache as SIBLING\n");
 	} else {
@@ -727,7 +729,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	}
     } else if (header->opcode == ICP_OP_MISS) {
 	if (e == NULL) {
-	    debug(15, 1, "neighborsUdpAck: Ignoring MISS from non-neighbor\n");
+	    debug(15, 1, "Ignoring MISS from non-neighbor %s\n",
+		inet_ntoa(from->sin_addr));
 	} else if (e->type == EDGE_PARENT) {
 	    w_rtt = tvSubMsec(mem->start_ping, current_time) / e->weight;
 	    if (mem->w_rtt == 0 || w_rtt < mem->w_rtt) {
@@ -737,7 +740,8 @@ void neighborsUdpAck(fd, url, header, from, entry, data, data_sz)
 	}
     } else if (header->opcode == ICP_OP_DENIED) {
 	if (e == NULL) {
-	    debug(15, 1, "neighborsUdpAck: Ignoring DENIED from non-neighbor\n");
+	    debug(15, 1, "Ignoring DENIED from non-neighbor %s\n",
+		inet_ntoa(from->sin_addr));
 	} else if (e->stats.pings_acked > 100) {
 	    if (100 * e->stats.counts[ICP_OP_DENIED] / e->stats.pings_acked > 95) {
 		debug(15, 0, "95%% of replies from '%s' are UDP_DENIED\n", e->host);
