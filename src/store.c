@@ -229,9 +229,9 @@ int ncache_dirs = 0;
 
 /* expiration parameters and stats */
 static int store_buckets;
-int store_maintain_rate;
+static int store_maintain_rate;
 static int store_maintain_buckets;
-int scan_revolutions;
+static int scan_revolutions;
 static struct _bucketOrder *MaintBucketsOrder = NULL;
 
 static MemObject *
@@ -272,7 +272,6 @@ destroy_MemObject(MemObject * mem)
     safe_free(mem->e_abort_msg);
     requestUnlink(mem->request);
     mem->request = NULL;
-    memset(mem, '\0', sizeof(MemObject));
     put_free_mem_obj(mem);
     meta_data.mem_obj_count--;
     meta_data.misc -= sizeof(struct _http_reply);
@@ -292,13 +291,12 @@ destroy_StoreEntry(StoreEntry * e)
 	meta_data.url_strings -= strlen(e->url);
 	safe_free(e->url);
     } else {
-	debug(20, 3, "destroy_StoreEntry: WARNING!  Entry without URL string!\n");
+	debug(20, 3, "destroy_StoreEntry: WARNING: Entry without URL string!\n");
     }
     if (BIT_TEST(e->flag, KEY_URL))
 	e->key = NULL;
     else
 	safe_free(e->key);
-    memset(e, '\0', sizeof(StoreEntry));
     xfree(e);
     meta_data.store_entries--;
 }
@@ -413,6 +411,7 @@ storeUnlockObject(StoreEntry * e)
 	return (int) e->lock_count;
     if (e->store_status == STORE_PENDING) {
 	debug_trap("storeUnlockObject: Someone unlocked STORE_PENDING object");
+	debug(20, 1, "   --> Key '%s'\n", e->key);
 	e->store_status = STORE_ABORTED;
     }
     e->swap_status = SWAP_OK;
@@ -1437,7 +1436,7 @@ storeGetSwapSpace(int size)
     if ((store_swap_size + kb_size > store_swap_high)) {
 	i = 2;
 	if (++swap_help > SWAP_MAX_HELP) {
-	    debug(20, 0, "WARNING! Repeated failures to free up disk space!\n");
+	    debug(20, 0, "WARNING: Repeated failures to free up disk space!\n");
 	    i = 0;
 	}
 	debug(20, i, "storeGetSwapSpace: Disk usage is over high water mark\n");

@@ -45,7 +45,6 @@ typedef struct {
     } client, server;
     time_t timeout;
     size_t *size_ptr;		/* pointer to size in an icpStateData for logging */
-    ConnectStateData connectState;
     int proxying;
 } SslStateData;
 
@@ -108,15 +107,16 @@ sslStateFree(int fd, void *data)
 	return;
     if (fd != sslState->server.fd)
 	fatal_dump("sslStateFree: FD mismatch!\n");
-    commSetSelect(sslState->client.fd,
-	COMM_SELECT_READ,
-	NULL,
-	NULL, 0);
+    if (sslState->client.fd > -1) {
+	commSetSelect(sslState->client.fd,
+	    COMM_SELECT_READ,
+	    NULL,
+	    NULL, 0);
+    }
     safe_free(sslState->server.buf);
     safe_free(sslState->client.buf);
     xfree(sslState->url);
     requestUnlink(sslState->request);
-    memset(sslState, '\0', sizeof(SslStateData));
     safe_free(sslState);
 }
 
@@ -355,12 +355,11 @@ sslConnect(int fd, const ipcache_addrs * ia, void *data)
 	COMM_SELECT_LIFETIME,
 	sslLifetimeExpire,
 	(void *) sslState, 0);
-    sslState->connectState.fd = fd;
-    sslState->connectState.host = sslState->host;
-    sslState->connectState.port = sslState->port;
-    sslState->connectState.handler = sslConnectDone;
-    sslState->connectState.data = sslState;
-    comm_nbconnect(fd, &sslState->connectState);
+    commConnectStart(fd,
+	sslState->host,
+	sslState->port,
+	sslConnectDone,
+	sslState);
 }
 
 static void
@@ -390,8 +389,6 @@ sslConnectDone(int fd, int status, void *data)
 	sslProxyConnected(sslState->server.fd, sslState);
     else
 	sslConnected(sslState->server.fd, sslState);
-    if (vizSock > -1)
-	vizHackSendPkt(&sslState->connectState.S, 2);
 }
 
 int
@@ -506,6 +503,8 @@ sslSelectNeighbor(int fd, const ipcache_addrs * ia, void *data)
 	hierarchyNote(request, HIER_ROUNDROBIN_PARENT, 0, e->host);
     } else if ((e = getFirstUpParent(request))) {
 	hierarchyNote(request, HIER_FIRSTUP_PARENT, 0, e->host);
+    } else {
+	hierarchyNote(request, HIER_DIRECT, 0, request->host);
     }
     sslState->proxying = e ? 1 : 0;
     sslState->host = e ? e->host : request->host;

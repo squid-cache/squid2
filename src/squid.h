@@ -39,17 +39,30 @@
  * NetBSD is another.  So here we increase FD_SETSIZE to our
  * configure-discovered maximum *before* any system includes.
  */
+#define CHANGE_FD_SETSIZE 1
 
-/*
- * Linux (2.x only?) always defines FD_SETSIZE in <linux/time.h> so
- * we get in trouble if we try to increase it.  barf.
- */
+/* Cannot increase FD_SETSIZE on Linux */
+#if defined(_SQUID_LINUX_)
+#undef CHANGE_FD_SETSIZE
+#define CHANGE_FD_SETSIZE 0
+#endif
 
-#ifndef _SQUID_LINUX_
-#if SQUID_MAXFD > FD_SETSIZE
+/* Cannot increase FD_SETSIZE on FreeBSD before 2.2.0, causes select(2)
+ * to return EINVAL. */
+/* Marian Durkovic <marian@svf.stuba.sk> */
+/* Peter Wemm <peter@spinner.DIALix.COM> */
+#if defined(_SQUID_FREEBSD_)
+#include <osreldate.h>
+#if __FreeBSD_version < 220000
+#undef CHANGE_FD_SETSIZE
+#define CHANGE_FD_SETSIZE 0
+#endif
+#endif
+
+/* Increase FD_SETSIZE if SQUID_MAXFD is bigger */
+#if CHANGE_FD_SETSIZE && SQUID_MAXFD > DEFAULT_FD_SETSIZE
 #define FD_SETSIZE SQUID_MAXFD
 #endif
-#endif /* _SQUID_LINUX_ */
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -166,10 +179,6 @@
 /* Make sure syslog goes after stdarg/varargs */
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
-#endif
-
-#if HAVE_SHADOW_H
-#include <shadow.h>
 #endif
 
 #if HAVE_MATH_H
@@ -328,7 +337,6 @@ extern struct in_addr local_addr;	/* main.c */
 extern struct in_addr theOutICPAddr;	/* main.c */
 extern const char *const localhost;
 extern unsigned int inaddr_none;
-extern struct in_addr any_addr;	/* comm.c */
 extern struct in_addr no_addr;	/* comm.c */
 extern int opt_udp_hit_obj;	/* main.c */
 extern int opt_mem_pools;	/* main.c */
@@ -342,8 +350,8 @@ extern char ThisCache[];	/* main.c */
 #define  CONNECT_PORT        443
 
 extern int objcacheStart _PARAMS((int, const char *, StoreEntry *));
-extern void send_announce _PARAMS((void *unused));
-extern int sslStart _PARAMS((int fd, const char *, request_t *, char *, size_t * sz));
+extern void start_announce _PARAMS((void *unused));
+extern int sslStart _PARAMS((int fd, const char *, request_t *, char *, size_t *sz));
 extern const char *storeToString _PARAMS((const StoreEntry *));
 extern int waisStart _PARAMS((int, const char *, method_t, char *, StoreEntry *));
 extern void storeDirClean _PARAMS((void *unused));
@@ -355,6 +363,8 @@ extern int passStart _PARAMS((int fd,
 	size_t * size_ptr));
 extern void identStart _PARAMS((int, icpStateData *,
 	void       (*callback) _PARAMS((void *))));
+extern int httpAnonAllowed _PARAMS((const char *line));
+extern int httpAnonDenied _PARAMS((const char *line));
 
 extern const char *const dash_str;
 extern const char *const null_string;

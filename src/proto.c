@@ -198,10 +198,18 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	} else if (Config.firewall_ip_list) {
 	    srv_addr = ia->in_addrs[ia->cur];
 	    if (ip_access_check(srv_addr, Config.firewall_ip_list) == IP_DENY) {
-		hierarchyNote(req, HIER_LOCAL_IP_DIRECT, 0, req->host);
+		hierarchyNote(req, HIER_FIREWALL_IP_DIRECT, 0, req->host);
 		protoStart(protoData->fd, entry, NULL, req);
 		return;
 	    } else {
+#ifdef NOT_SURE
+		/* Even though the address is NOT in firewall_ip_list,
+		 * we might still be able to go direct, depending on if
+		 * there are any peers to query, etc.  If this is set to
+		 * DIRECT_NO then requests will fail if the host matches
+		 * inside_firewall but not firewall_ip_list. */
+		protoData->direct_fetch = DIRECT_MAYBE;
+#endif
 		protoData->direct_fetch = DIRECT_NO;
 	    }
 	} else if (Config.local_ip_list) {
@@ -224,13 +232,16 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
 	if ((e = protoData->default_parent)) {
 	    hierarchyNote(req, HIER_DEFAULT_PARENT, 0, e->host);
 	    protoStart(protoData->fd, entry, e, req);
+	} else if ((e = getFirstUpParent(protoData->request))) {
+	    hierarchyNote(req, HIER_FIRSTUP_PARENT, 0, e->host);
+	    protoStart(protoData->fd, entry, e, req);
 	} else {
 	    hierarchyNote(req, HIER_NO_DIRECT_FAIL, 0, req->host);
-	    protoCantFetchObject(protoData->fd, entry, "No neighbors or parents to query and the host is beyond your firewall.");
+	    protoCantFetchObject(protoData->fd, entry, "No peers to query and the host is beyond your firewall.");
 	}
 	return;
     }
-    if (!neighbors_do_private_keys && !protoData->query_neighbors &&
+    if (!neighbors_do_private_keys && !protoData->hierarchical &&
 	(e = getFirstUpParent(req))) {
 	/* for private objects we should just fetch directly (because
 	 * icpHandleUdp() won't properly deal with the ICP replies). */
@@ -307,7 +318,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	(void *) protoData);
 
     protoData->inside_firewall = matchInsideFirewall(request->host);
-    protoData->query_neighbors = BIT_TEST(entry->flag, HIERARCHICAL);
+    protoData->hierarchical = BIT_TEST(entry->flag, HIERARCHICAL) ? 1 : 0;
     protoData->single_parent = getSingleParent(request);
     protoData->default_parent = getDefaultParent(request);
     protoData->n_peers = neighborsCount(request);
@@ -318,7 +329,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     debug(17, 2, "protoDispatch: inside_firewall = %d (%s)\n",
 	protoData->inside_firewall,
 	firewall_desc_str[protoData->inside_firewall]);
-    debug(17, 2, "protoDispatch: query_neighbors = %d\n", protoData->query_neighbors);
+    debug(17, 2, "protoDispatch:    hierarchical = %d\n", protoData->hierarchical);
     debug(17, 2, "protoDispatch:         n_peers = %d\n", protoData->n_peers);
     debug(17, 2, "protoDispatch:   single_parent = %s\n",
 	protoData->single_parent ? protoData->single_parent->host : "N/A");
@@ -335,14 +346,14 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	    protoDispatchDNSHandle,
 	    (void *) protoData);
     } else if (!protoData->inside_firewall) {
-	/* There are firewall restrictsions, and this host is outside. */
+	/* There are firewall restrictions, and this host is outside. */
 	/* No DNS lookups, call protoDispatchDNSHandle() directly */
 	protoData->source_ping = 0;
 	protoData->direct_fetch = DIRECT_NO;
 	protoDispatchDNSHandle(fd,
 	    NULL,
 	    (void *) protoData);
-    } else if (matchLocalDomain(request->host) || !protoData->query_neighbors) {
+    } else if (matchLocalDomain(request->host) || !protoData->hierarchical) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
 	BIT_SET(entry->flag, IP_LOOKUP_PENDING);

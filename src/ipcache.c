@@ -255,7 +255,6 @@ ipcache_release(ipcache_entry * i)
     }
     safe_free(i->name);
     safe_free(i->error_message);
-    memset(i, '\0', sizeof(ipcache_entry));
     safe_free(i);
     --meta_data.ipcache_count;
     return;
@@ -433,8 +432,8 @@ ipcacheAddNew(const char *name, const struct hostent *hp, ipcache_status_t statu
 {
     ipcache_entry *i;
     if (ipcache_get(name))
-	fatal_dump("ipcache_add: somebody adding a duplicate!");
-    debug(14, 10, "ipcache_add: Adding '%s', status=%c\n",
+	fatal_dump("ipcacheAddNew: somebody adding a duplicate!");
+    debug(14, 10, "ipcacheAddNew: Adding '%s', status=%c\n",
 	name,
 	ipcache_status_char[status]);
     i = ipcache_create(name);
@@ -465,7 +464,6 @@ ipcache_call_pending(ipcache_entry * i)
 		i->status == IP_CACHED ? &i->addrs : NULL,
 		p->handlerData);
 	}
-	memset(p, '\0', sizeof(struct _ip_pending));
 	safe_free(p);
     }
     i->pending_head = NULL;	/* nuke list */
@@ -609,8 +607,8 @@ ipcache_dnsHandleRead(int fd, dnsserver_t * dnsData)
 	    i->expires = x->expires;
 	    ipcache_call_pending(i);
 	}
+	ipcacheUnlockEntry(i);	/* unlock from IP_DISPATCHED */
     }
-    ipcacheUnlockEntry(i);	/* unlock from IP_DISPATCHED */
     if (dnsData->offset == 0) {
 	dnsData->data = NULL;
 	dnsData->flags &= ~DNS_FLAG_BUSY;
@@ -644,7 +642,7 @@ ipcache_nbgethostbyname(const char *name, int fd, IPH handler, void *handlerData
 {
     ipcache_entry *i = NULL;
     dnsserver_t *dnsData = NULL;
-    ipcache_addrs *addrs;
+    ipcache_addrs *addrs = NULL;
 
     if (!handler)
 	fatal_dump("ipcache_nbgethostbyname: NULL handler");
@@ -701,12 +699,20 @@ ipcache_nbgethostbyname(const char *name, int fd, IPH handler, void *handlerData
 
     if ((dnsData = dnsGetFirstAvailable())) {
 	ipcache_dnsDispatch(dnsData, i);
-    } else if (NDnsServersAlloc > 0) {
-	ipcacheEnqueue(i);
-    } else {
-	ipcache_gethostbyname(name, IP_BLOCKING_LOOKUP);
-	ipcache_call_pending(i);
+	return;
     }
+    if (addrs != NULL)		/* TEMPORARY */
+	debug_trap("ipcache_nbgethostbyname: Stack Trashed");
+    if (NDnsServersAlloc > 0) {
+	ipcacheEnqueue(i);
+	return;
+    }
+    if (addrs != NULL)		/* TEMPORARY */
+	debug_trap("ipcache_nbgethostbyname: Stack Trashed");
+    if (NDnsServersAlloc)
+	debug(14, 0, "WARNING: blocking on gethostbyname() for '%s'\n", name);
+    ipcache_gethostbyname(name, IP_BLOCKING_LOOKUP);
+    ipcache_call_pending(i);
 }
 
 static void
@@ -726,6 +732,7 @@ ipcache_dnsDispatch(dnsserver_t * dns, ipcache_entry * i)
     sprintf(buf, "%1.254s\n", i->name);
     dns->flags |= DNS_FLAG_BUSY;
     dns->data = i;
+    dns->lastcall = squid_curtime;
     i->status = IP_DISPATCHED;
     comm_write(dns->outpipe,
 	buf,
@@ -837,12 +844,19 @@ ipcache_gethostbyname(const char *name, int flags)
     IpcacheStats.misses++;
     if (BIT_TEST(flags, IP_BLOCKING_LOOKUP)) {
 	IpcacheStats.ghbn_calls++;
-	debug(14, 3, "ipcache_gethostbyname: blocking on gethostbyname() for '%s'\n", name);
 	hp = gethostbyname(name);
 	if (hp && hp->h_name && (hp->h_name[0] != '\0') && ip_table) {
 	    /* good address, cached */
 	    if (i == NULL) {
 		i = ipcacheAddNew(name, hp, IP_CACHED);
+	    } else if (i->status == IP_PENDING || i->status == IP_DISPATCHED) {
+		/* only dnsHandleRead() can change from DISPATCHED to CACHED */
+		static_addrs.count = 1;
+		static_addrs.cur = 0;
+		xmemcpy(&static_addrs.in_addrs[0].s_addr,
+		    *(hp->h_addr_list),
+		    hp->h_length);
+		return &static_addrs;
 	    } else {
 		ipcacheAddHostent(i, hp);
 	    }
@@ -854,7 +868,7 @@ ipcache_gethostbyname(const char *name, int flags)
 	    return &i->addrs;
 	}
 	/* bad address, negative cached */
-	if (ip_table) {
+	if (ip_table && i == NULL) {
 	    i = ipcacheAddNew(name, hp, IP_NEGATIVE_CACHED);
 	    i->expires = squid_curtime + Config.negativeDnsTtl;
 	    return NULL;
@@ -1007,6 +1021,10 @@ ipcacheLockEntry(ipcache_entry * i)
 static void
 ipcacheUnlockEntry(ipcache_entry * i)
 {
+    if (i->locks == 0) {
+	debug_trap("ipcacheUnlockEntry: Entry has no locks");
+	return;
+    }
     i->locks--;
     if (ipcacheExpiredEntry(i))
 	ipcache_release(i);

@@ -286,7 +286,7 @@ pingerReadRequest(void)
     static pingerEchoData pecho;
     int n;
     int guess_size;
-    memset((char *) &pecho, '\0', sizeof(pecho));
+    memset(&pecho, '\0', sizeof(pecho));
     n = recv(0, (char *) &pecho, sizeof(pecho), 0);
     if (n < 0) {
 	perror("recv");

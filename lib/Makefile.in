@@ -29,6 +29,8 @@ UTILOBJS	= rfc1123.o \
 		  getfullhostname.o \
 		  base64.o \
 		  uudecode.o \
+		  tree.o \
+		  splay.o \
 		  $(LIBOBJS)
 REGEXOBJS	= GNUregex.o
 LIBS		= libmiscutil.a @LIBREGEX@

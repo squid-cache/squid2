@@ -188,6 +188,8 @@ static void icpStateFree _PARAMS((int fd, void *data));
 static int icpCheckTransferDone _PARAMS((icpStateData *));
 static int icpReadDataDone _PARAMS((int fd, char *buf, int len, int err, void *data));
 static void clientReadRequest _PARAMS((int fd, void *data));
+static void *icpCreateHitObjMessage _PARAMS((icp_opcode, int, const char *, int, int, StoreEntry *));
+static void icpDetectNewRequest _PARAMS((int fd));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -763,6 +765,9 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	/* IMS+NOCACHE should not eject valid object */
 	if (!BIT_TEST(request->flags, REQ_IMS))
 	    storeRelease(entry);
+	/* NOCACHE should always eject negative cached object */
+	else if (BIT_TEST(entry->flag, ENTRY_NEGCACHED))
+	    storeRelease(entry);
 	ipcacheReleaseInvalid(icpState->request->host);
 	entry = NULL;
 	icpState->log_type = LOG_TCP_CLIENT_REFRESH;
@@ -836,7 +841,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     debug(12, 10, "icpProcessMISS: request_hdr:\n%s\n", request_hdr);
 
     /* Check if this host is allowed to fetch MISSES from us */
-    memset((char *) &ch, '\0', sizeof(aclCheck_t));
+    memset(&ch, '\0', sizeof(aclCheck_t));
     ch.src_addr = icpState->peer.sin_addr;
     ch.request = requestLink(icpState->request);
     answer = aclCheck(MISSAccessList, &ch);
@@ -989,11 +994,11 @@ icpCreateMessage(
     urloffset = buf + sizeof(icp_common_t);
     if (opcode == ICP_OP_QUERY)
 	urloffset += sizeof(u_num32);
-    memcpy(urloffset, url, strlen(url));
+    xmemcpy(urloffset, url, strlen(url));
     return buf;
 }
 
-void *
+static void *
 icpCreateHitObjMessage(
     icp_opcode opcode,
     int flags,
@@ -1155,7 +1160,6 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
     header.flags = ntohl(headerp->flags);
-    /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
     header.shostid = ntohl(headerp->shostid);
 
     switch (header.opcode) {
@@ -1292,7 +1296,6 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     header.length = ntohs(headerp->length);
     header.reqnum = ntohl(headerp->reqnum);
     header.flags = ntohl(headerp->flags);
-    /* xmemcpy(headerp->auth, , ICP_AUTH_SIZE); */
     header.shostid = ntohl(headerp->shostid);
 
     switch (header.opcode) {
@@ -1473,6 +1476,7 @@ icpHandleUdp(int sock, void *not_used)
 	    ntohs(from.sin_port));
 }
 
+#ifdef OLD_CODE
 static char *
 do_append_domain(const char *url, const char *ad)
 {
@@ -1505,7 +1509,7 @@ do_append_domain(const char *url, const char *ad)
     strncpy(p, e, lo - (e - url));	/* copy last part */
     return (u);
 }
-
+#endif
 
 /*
  *  parseHttpRequest()
@@ -1530,10 +1534,10 @@ parseHttpRequest(icpStateData * icpState)
     char *token = NULL;
     char *t = NULL;
     char *s = NULL;
-    char *ad = NULL;
     int free_request = 0;
     int req_hdr_sz;
     int len;
+    int url_sz;
 
     /* Make sure a complete line has been received */
     if (strchr(icpState->in.buf, '\n') == NULL) {
@@ -1543,7 +1547,8 @@ parseHttpRequest(icpStateData * icpState)
     /* Use xmalloc/xmemcpy instead of xstrdup because inbuf might
      * contain NULL bytes; especially for POST data  */
     inbuf = xmalloc(icpState->in.offset + 1);
-    xstrncpy(inbuf, icpState->in.buf, icpState->in.offset + 1);
+    xmemcpy(inbuf, icpState->in.buf, icpState->in.offset);
+    *(inbuf + icpState->in.offset) = '\0';
 
     /* Look for request method */
     if ((method = strtok(inbuf, "\t ")) == NULL) {
@@ -1607,8 +1612,9 @@ parseHttpRequest(icpStateData * icpState)
     if ((t = strchr(url, '#')))	/* remove HTML anchors */
 	*t = '\0';
 
-    if ((ad = Config.appendDomain)) {
-	if ((t = do_append_domain(url, ad))) {
+#ifdef OLD_CODE
+    if (Config.appendDomain) {
+	if ((t = do_append_domain(url, Config.appendDomain))) {
 	    if (free_request)
 		safe_free(url);
 	    url = t;
@@ -1619,12 +1625,14 @@ parseHttpRequest(icpStateData * icpState)
 	     * if the request should be freed later. */
 	}
     }
+#endif
     /* see if we running in httpd_accel_mode, if so got to convert it to URL */
     if (httpd_accel_mode && *url == '/') {
 	/* prepend the accel prefix */
 	if (vhost_mode) {
 	    /* Put the local socket IP address as the hostname */
-	    icpState->url = xcalloc(strlen(url) + 32, 1);
+	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
+	    icpState->url = xcalloc(url_sz, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		inet_ntoa(icpState->me.sin_addr),
 		(int) Config.Accel.port,
@@ -1642,18 +1650,21 @@ parseHttpRequest(icpStateData * icpState)
 	     * handling requests for non-local servers */
 	    if ((s = strchr(t, ':')))
 		*s = '\0';
-	    icpState->url = xcalloc(strlen(url) + strlen(t) + 32, 1);
+	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
+	    icpState->url = xcalloc(url_sz, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		t, (int) Config.Accel.port, url);
 	} else {
-	    icpState->url = xcalloc(strlen(Config.Accel.prefix) +
-		strlen(url) + 1, 1);
+	    url_sz = strlen(Config.Accel.prefix) + strlen(url) +
+		Config.appendDomainLen + 1;
+	    icpState->url = xcalloc(url_sz, 1);
 	    sprintf(icpState->url, "%s%s", Config.Accel.prefix, url);
 	}
 	icpState->accel = 1;
     } else {
 	/* URL may be rewritten later, so make extra room */
-	icpState->url = xcalloc(strlen(url) + 5, 1);
+	url_sz = strlen(url) + Config.appendDomainLen + 5;
+	icpState->url = xcalloc(url_sz, 1);
 	strcpy(icpState->url, url);
 	icpState->accel = 0;
     }
@@ -1775,7 +1786,7 @@ clientReadRequest(int fd, void *data)
 	wbuf = squid_error_request(icpState->in.buf,
 	    ERR_INVALID_REQ,
 	    fd_table[fd].ipaddr,
-	    icpState->http_code);
+	    400);
 	icpSendERROR(fd, ERR_INVALID_REQ, wbuf, icpState, 400);
     }
 }
@@ -1816,8 +1827,8 @@ asciiHandleConn(int sock, void *notused)
     struct sockaddr_in peer;
     struct sockaddr_in me;
 
-    memset((char *) &peer, '\0', sizeof(struct sockaddr_in));
-    memset((char *) &me, '\0', sizeof(struct sockaddr_in));
+    memset(&peer, '\0', sizeof(struct sockaddr_in));
+    memset(&me, '\0', sizeof(struct sockaddr_in));
 
     commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
     if ((fd = comm_accept(sock, &peer, &me)) < 0) {
@@ -2007,7 +2018,7 @@ icpDetectClientClose(int fd, void *data)
     }
 }
 
-void
+static void
 icpDetectNewRequest(int fd)
 {
 #if TRY_KEEPALIVE_SUPPORT
@@ -2021,8 +2032,8 @@ icpDetectNewRequest(int fd)
     lft = comm_set_fd_lifetime(fd, Config.lifetimeDefault);
     len = sizeof(struct sockaddr_in);
 
-    memset((char *) &me, '\0', len);
-    memset((char *) &peer, '\0', len);
+    memset(&me, '\0', len);
+    memset(&peer, '\0', len);
     if (getsockname(fd, (struct sockaddr *) &me, &len) < -1) {
 	debug(50, 1, "icpDetectNewRequest: FD %d: getsockname failure: %s\n",
 	    fd, xstrerror());

@@ -184,7 +184,8 @@ struct _peer {
     int options;
     int weight;
     int mcast_ttl;
-    time_t last_fail_time;	/* detect down dumb caches */
+    int tcp_up;			/* 0 if a connect() fails */
+    time_t last_fail_time;
     struct in_addr addresses[10];
     int n_addresses;
     struct _peer *next;
@@ -215,10 +216,11 @@ extern peer *neighborFindByName _PARAMS((const char *));
 extern void neighbors_init _PARAMS((void));
 extern peer *getDefaultParent _PARAMS((request_t * request));
 extern peer *getRoundRobinParent _PARAMS((request_t * request));
-extern int neighborUp _PARAMS((peer * e));
+extern int neighborUp _PARAMS((const peer * e));
 extern void peerDestroy _PARAMS((peer * e));
 extern void peerUpdateFudge _PARAMS((void *));
-extern char *neighborTypeStr _PARAMS((peer * e));
+extern char *neighborTypeStr _PARAMS((const peer * e));
+extern void peerCheckConnectStart _PARAMS((peer *));
 
 extern const char *hier_strings[];
 

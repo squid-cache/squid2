@@ -136,7 +136,6 @@ typedef struct {
     int req_hdr_sz;
     int reply_hdr_state;
     peer *neighbor;		/* neighbor request made to */
-    ConnectStateData connectState;
     int eof;			/* reached end-of-object? */
     request_t *orig_request;
 } HttpStateData;
@@ -155,5 +154,9 @@ extern size_t httpBuildRequestHeader _PARAMS((request_t * request,
 	char *hdr_out,
 	size_t out_sz,
 	int cfd));
+
+#define ANONYMIZER_NONE		0
+#define ANONYMIZER_STANDARD	1
+#define ANONYMIZER_PARANOID	2
 
 #endif /* HTTP_H */

@@ -72,6 +72,7 @@ struct _request {
     time_t ims;
     int imslen;
     int max_forwards;
+    struct in_addr client_addr;
 };
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));

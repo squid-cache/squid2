@@ -173,7 +173,7 @@
 #include "squid.h"
 #include "mime_table.h"
 
-char *proxy_host = NULL;
+static char *proxy_host = NULL;
 
 #ifndef HAVE_GETOPT_H
 extern int optind;
@@ -182,7 +182,7 @@ extern int optind;
 /* Junk so we can link with debug.o */
 int opt_syslog_enable = 0;
 volatile int unbuffered_logs = 1;
-const char *const w_space = " \t\n\r";
+static const char *const w_space = " \t\n\r";
 const char *const appname = "ftpget";
 struct timeval current_time;
 time_t squid_curtime;
@@ -598,9 +598,9 @@ sigchld_handler(int sig)
     pid_t pid;
 
 #if defined(_SQUID_NEXT_) && !defined(_POSIX_SOURCE)
-    if ((pid = wait4(0, &status, WNOHANG, NULL)) > 0)
+    while ((pid = wait4(0, &status, WNOHANG, NULL)) > 0)
 #else
-    if ((pid = waitpid(0, &status, WNOHANG)) > 0)
+    while ((pid = waitpid(0, &status, WNOHANG)) > 0)
 #endif
 	debug(38, 5, "sigchld_handler: Ate pid %d\n", pid);
     signal(sig, sigchld_handler);
@@ -755,7 +755,8 @@ connect_with_timeout2(int fd, struct sockaddr_in *S, int len)
 	if (cerrno == EINVAL) {
 	    len = sizeof(x);
 	    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
-		cerrno = x;
+		errno = cerrno = x;
+	    debug(38, 7, "connect: %s\n", xstrerror());
 	}
 	if (cerrno != EINPROGRESS && cerrno != EAGAIN)
 	    return y;
@@ -1566,6 +1567,7 @@ do_pasv(ftp_request_t * r)
 	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s, port %d: %s", junk, port, xstrerror());
 	r->rc = 2;
+	pasv_supported = 0;
 	return FAIL_SOFT;
     }
     r->dfd = sock;
@@ -2594,9 +2596,9 @@ main(int argc, char *argv[])
 
 
 #ifdef NSIG
-    for (i = 0; i < NSIG; i++) {
+    for (i = 1; i < NSIG; i++) {
 #else
-    for (i = 0; i < _sys_nsig; i++) {
+    for (i = 1; i < _sys_nsig; i++) {
 #endif
 	switch (i) {
 	case SIGALRM:
@@ -2640,7 +2642,8 @@ main(int argc, char *argv[])
 	    proxy_host = xstrdup(optarg);
 	    break;
 	case 'H':
-	    strcpy(visible_hostname, optarg);
+	    strncpy(visible_hostname, optarg, BUFSIZ);
+	    visible_hostname[BUFSIZ]='\0';
 	    break;
 	case 'P':
 	    port = atoi(optarg);
@@ -2712,6 +2715,7 @@ main(int argc, char *argv[])
 	case 'v':
 	    printf("%s version %s\n", progname, SQUID_VERSION);
 	    exit(0);
+	    /* NOTREACHED */
 	case 'w':
 	    o_list_width = atoi(optarg);
 	    break;
@@ -2778,6 +2782,8 @@ main(int argc, char *argv[])
 	strcat(r->url, "@");
     }
     strcat(r->url, r->host);
+    if (r->port != FTP_PORT)
+	sprintf(&r->url[strlen(r->url)], ":%d", r->port);
     strcat(r->url, "/");
     if (!(r->flags & F_BASEDIR))
 	strcat(r->url, r->path);
@@ -2789,6 +2795,8 @@ main(int argc, char *argv[])
 	strcat(r->title_url, "@");
     }
     strcat(r->title_url, r->host);
+    if (r->port != FTP_PORT)
+	sprintf(&r->title_url[strlen(r->title_url)], ":%d", r->port);
     strcat(r->title_url, "/");
     if (!(r->flags & F_BASEDIR))
 	strcat(r->title_url, r->path);

@@ -129,6 +129,7 @@ AC_CHECK_HEADERS( \
 	grp.h \
 	libc.h \
 	malloc.h \
+	math.h \
 	memory.h \
 	netdb.h \
 	netinet/in.h \
@@ -137,7 +138,6 @@ AC_CHECK_HEADERS( \
 	pwd.h \
 	regex.h \
 	resolv.h \
-	shadow.h \
 	signal.h \
 	stdarg.h \
 	stddef.h \
@@ -233,14 +233,12 @@ AC_CHECK_LIB(bsd, main)
 AC_CHECK_LIB(regex, main, [REGEXLIB="-lregex"])
 AC_CHECK_LIB(resolv, inet_aton, AC_CHECK_LIB(44bsd, inet_aton))
 AC_CHECK_LIB(resolv, main)
+AC_CHECK_LIB(m, main)
 
 dnl Check for libcrypt
 dnl We use crypt(3) which may be in libc, or in libcrypt (eg FreeBSD)
 AC_CHECK_LIB(crypt, crypt, [CRYPTLIB="-lcrypt"])
 AC_SUBST(CRYPTLIB)
-
-dnl Check for libshadow which is needed by the shadow password suite
-AC_CHECK_LIB(shadow, main)
 
 dnl System-specific library modifications
 dnl
@@ -248,7 +246,7 @@ case "$host" in
 	i386-*-solaris2.?)
     		if test "$GCC" = "yes"; then
 			echo "Removing -O for gcc on $host"
-			CFLAGS="`echo $CFLAGS | sed -e s/-O//`"
+			CFLAGS="`echo $CFLAGS | sed -e 's/-O[[0-9]]*//'`"
 		fi
 		;;
 	*-sgi-irix*)
@@ -301,7 +299,7 @@ AC_CHECK_FUNCS(\
 	memmove \
 	mktime \
 	poll \
-	pw_encrypt \
+	random \
 	regcomp \
 	regexec \
 	regfree \
@@ -313,7 +311,7 @@ AC_CHECK_FUNCS(\
 	setsid \
 	sigaction \
 	srand48 \
-	strerror \
+	srandom \
 	sysconf \
 	syslog \
 	tempnam \
@@ -345,7 +343,36 @@ AC_SUBST(LIBREGEX)
 
 AC_REPLACE_FUNCS(\
 	tempnam \
+	strerror \
 )
+
+AC_MSG_CHECKING(Default FD_SETSIZE value)
+AC_TRY_RUN([
+#if HAVE_STDIO_H
+#include <stdio.h>
+#endif
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#if HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#if HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+main() {
+	fprintf (fopen("conftestval", "w"), "%d\n", FD_SETSIZE);
+	exit(0);
+}
+],
+DEFAULT_FD_SETSIZE=`cat conftestval`,
+DEFAULT_FD_SETSIZE=256,
+DEFAULT_FD_SETSIZE=256)
+AC_MSG_RESULT($DEFAULT_FD_SETSIZE)
+AC_DEFINE_UNQUOTED(DEFAULT_FD_SETSIZE, $DEFAULT_FD_SETSIZE)
 
 AC_MSG_CHECKING(Maximum number of filedescriptors we can open)
 AC_TRY_RUN([

@@ -156,7 +156,6 @@ typedef struct gopher_ds {
     int cso_recno;
     int len;
     char *buf;			/* pts to a 4k page */
-    ConnectStateData connectState;
 } GopherStateData;
 
 static int gopherStateFree _PARAMS((int fd, GopherStateData *));
@@ -986,12 +985,11 @@ gopherStart(int unusedfd, const char *url, StoreEntry * entry)
 	comm_close(sock);
 	return COMM_OK;
     }
-    data->connectState.fd = sock;
-    data->connectState.host = data->host;
-    data->connectState.port = data->port;
-    data->connectState.handler = gopherConnectDone;
-    data->connectState.data = data;
-    comm_nbconnect(sock, &data->connectState);
+    commConnectStart(sock,
+	data->host,
+	data->port,
+	gopherConnectDone,
+	data);
     return COMM_OK;
 }
 
@@ -1015,8 +1013,6 @@ gopherConnectDone(int fd, int status, void *data)
 	COMM_SELECT_WRITE,
 	(PF) gopherSendRequest,
 	(void *) gopherState, 0);
-    if (vizSock > -1)
-	vizHackSendPkt(&gopherState->connectState.S, 2);
 }
 
 

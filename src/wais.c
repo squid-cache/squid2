@@ -116,7 +116,6 @@ typedef struct {
     int relayport;
     char *mime_hdr;
     char request[MAX_URL];
-    ConnectStateData connectState;
 } WaisStateData;
 
 static int waisStateFree _PARAMS((int, WaisStateData *));
@@ -375,12 +374,11 @@ waisConnect(int fd, const ipcache_addrs * ia, void *data)
 	comm_close(waisState->fd);
 	return;
     }
-    waisState->connectState.fd = fd;
-    waisState->connectState.host = waisState->relayhost;
-    waisState->connectState.port = waisState->relayport;
-    waisState->connectState.handler = waisConnectDone;
-    waisState->connectState.data = waisState;
-    comm_nbconnect(fd, &waisState->connectState);
+    commConnectStart(fd,
+	waisState->relayhost,
+	waisState->relayport,
+	waisConnectDone,
+	waisState);
 }
 
 static void
@@ -403,6 +401,4 @@ waisConnectDone(int fd, int status, void *data)
 	COMM_SELECT_WRITE,
 	(PF) waisSendRequest,
 	(void *) waisState, 0);
-    if (vizSock > -1)
-	vizHackSendPkt(&waisState->connectState.S, 2);
 }

@@ -48,7 +48,6 @@ typedef struct {
     time_t timeout;
     size_t *size_ptr;		/* pointer to size for logging */
     int proxying;
-    ConnectStateData connectState;
 } PassStateData;
 
 static void passLifetimeExpire _PARAMS((int fd, void *));
@@ -107,16 +106,17 @@ passStateFree(int fd, void *data)
 	return;
     if (fd != passState->server.fd)
 	fatal_dump("passStateFree: FD mismatch!\n");
-    commSetSelect(passState->client.fd,
-	COMM_SELECT_READ,
-	NULL,
-	NULL, 0);
+    if (passState->client.fd > -1) {
+	commSetSelect(passState->client.fd,
+	    COMM_SELECT_READ,
+	    NULL,
+	    NULL, 0);
+    }
     safe_free(passState->server.buf);
     safe_free(passState->client.buf);
     xfree(passState->url);
     requestUnlink(passState->request);
     requestUnlink(passState->proxy_request);
-    memset(passState, '\0', sizeof(PassStateData));
     safe_free(passState);
 }
 
@@ -285,102 +285,6 @@ passReadTimeout(int fd, void *data)
     passClose(passState);
 }
 
-#ifdef OLD_CODE
-static int
-passParseHeaders(PassStateData * passState)
-{
-    char *ybuf = NULL;
-    char *xbuf = NULL;
-    char *viabuf = NULL;
-    char *fwdbuf = NULL;
-    char *t = NULL;
-    char *s = NULL;
-    char *end;
-    int l;
-    int hdr_len = 0;
-    int saw_host = 0;
-    int content_length = 0;
-    int buflen = SQUID_TCP_SO_RCVBUF >> 1;
-    if ((end = mime_headers_end(passState->buf)) == NULL)
-	return 0;
-    xbuf = get_free_4k_page();
-    for (t = passState->buf; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
-	hdr_len = t - passState->buf;
-	if (passState->buflen - hdr_len <= content_length)
-	    break;
-	if (strncasecmp(t, "Proxy-Connection:", 17) == 0)
-	    continue;
-	if (strncasecmp(t, "Connection:", 11) == 0)
-	    continue;
-	if (strncasecmp(t, "Host:", 5) == 0)
-	    saw_host = 1;
-	if (strncasecmp(t, "Content-length:", 15) == 0) {
-	    for (s = t + 15; *s && isspace(*s); s++);
-	    content_length = atoi(s);
-	}
-	if (strncasecmp(t, "Via:", 4) == 0) {
-	    viabuf = get_free_4k_page();
-	    xstrncpy(viabuf, t, 4096);
-	    strcat(viabuf, ", ");
-	    continue;
-	}
-	if (strncasecmp(t, "X-Forwarded-For:", 16) == 0) {
-	    fwdbuf = get_free_4k_page();
-	    xstrncpy(fwdbuf, t, 4096);
-	    strcat(fwdbuf, ", ");
-	    continue;
-	}
-	l = strcspn(t, crlf) + 1;
-	if (l > 4096)
-	    l = 4096;
-	xstrncpy(xbuf, t, l);
-	l = strlen(xbuf);
-	if (passState->client.len + l > buflen)
-	    break;		/* out of room */
-	passAppendHeader(xbuf, passState);
-    }
-    hdr_len = t - passState->buf;
-    /* Add Via: header */
-    if (viabuf == NULL) {
-	viabuf = get_free_4k_page();
-	strcpy(viabuf, "Via: ");
-    }
-    ybuf = get_free_4k_page();
-    sprintf(ybuf, "%3.1f %s:%d (Squid/%s)",
-	passState->request->http_ver,
-	getMyHostname(),
-	(int) Config.Port.http,
-	SQUID_VERSION);
-    strcat(viabuf, ybuf);
-    passAppendHeader(viabuf, passState);
-    put_free_4k_page(viabuf);
-    put_free_4k_page(ybuf);
-    viabuf = ybuf = NULL;
-    /* Append to X-Forwarded-For: */
-    if (fwdbuf == NULL) {
-	fwdbuf = get_free_4k_page();
-	strcpy(fwdbuf, "X-Forwarded-For: ");
-    }
-    ybuf = get_free_4k_page();
-    if (!opt_forwarded_for)
-	strcat(fwdbuf, "unknown");
-    else
-	strcat(fwdbuf, fd_table[passState->client.fd].ipaddr);
-    passAppendHeader(fwdbuf, passState);
-    put_free_4k_page(fwdbuf);
-    put_free_4k_page(ybuf);
-    fwdbuf = ybuf = NULL;
-    if (!saw_host) {
-	ybuf = get_free_4k_page();
-	sprintf(ybuf, "Host: %s", passState->request->host);
-	passAppendHeader(ybuf, passState);
-	put_free_4k_page(ybuf);
-    }
-    passAppendHeader(null_string, passState);
-    return hdr_len;
-}
-#endif
-
 static void
 passConnected(int fd, void *data)
 {
@@ -404,7 +308,7 @@ passConnected(int fd, void *data)
 	opt_forwarded_for ? passState->client.fd : -1);
     debug(39, 3, "passConnected: Appending %d bytes of content\n",
 	passState->buflen - hdr_len);
-    memcpy(passState->client.buf + passState->client.len,
+    xmemcpy(passState->client.buf + passState->client.len,
 	passState->buf + hdr_len,
 	passState->buflen - hdr_len);
     passState->client.len += passState->buflen - hdr_len;
@@ -470,12 +374,11 @@ passConnect(int fd, const ipcache_addrs * ia, void *data)
 	COMM_SELECT_LIFETIME,
 	passLifetimeExpire,
 	(void *) passState, 0);
-    passState->connectState.fd = fd;
-    passState->connectState.host = passState->host;
-    passState->connectState.port = passState->port;
-    passState->connectState.handler = passConnectDone;
-    passState->connectState.data = passState;
-    comm_nbconnect(fd, &passState->connectState);
+    commConnectStart(fd,
+	passState->host,
+	passState->port,
+	passConnectDone,
+	passState);
 }
 
 static void
@@ -502,8 +405,6 @@ passConnectDone(int fd, int status, void *data)
     if (opt_no_ipcache)
 	ipcacheInvalidate(passState->host);
     passConnected(passState->server.fd, passState);
-    if (vizSock > -1)
-	vizHackSendPkt(&passState->connectState.S, 2);
 }
 
 int
@@ -609,6 +510,8 @@ passSelectNeighbor(int u1, const ipcache_addrs * ia, void *data)
 	hierarchyNote(request, HIER_ROUNDROBIN_PARENT, 0, e->host);
     } else if ((e = getFirstUpParent(request))) {
 	hierarchyNote(request, HIER_FIRSTUP_PARENT, 0, e->host);
+    } else {
+	hierarchyNote(request, HIER_DIRECT, 0, request->host);
     }
     passState->proxying = e ? 1 : 0;
     passState->host = e ? e->host : request->host;

@@ -125,7 +125,6 @@ typedef struct _Ftpdata {
     int got_marker;		/* denotes end of successful request */
     int reply_hdr_state;
     int authenticated;		/* This ftp request is authenticated */
-    ConnectStateData connectState;
 } FtpStateData;
 
 /* Local functions */
@@ -206,10 +205,8 @@ ftpProcessReplyHeader(FtpStateData * data, const char *buf, int size)
 
     debug(11, 3, "ftpProcessReplyHeader: key '%s'\n", entry->key);
 
-    if (data->reply_hdr == NULL) {
+    if (data->reply_hdr == NULL)
 	data->reply_hdr = get_free_8k_page();
-	memset(data->reply_hdr, '\0', 8192);
-    }
     if (data->reply_hdr_state == 0) {
 	hdr_len = strlen(data->reply_hdr);
 	room = 8191 - hdr_len;
@@ -451,8 +448,7 @@ ftpSendRequest(int fd, FtpStateData * data)
     debug(9, 5, "ftpSendRequest: FD %d\n", fd);
 
     buflen = strlen(data->request->urlpath) + 256;
-    buf = (char *) get_free_8k_page();
-    memset(buf, '\0', buflen);
+    buf = get_free_8k_page();
 
     path = data->request->urlpath;
     mode = ftpTransferMode(path);
@@ -599,12 +595,11 @@ ftpStart(int unusedfd, const char *url, request_t * request, StoreEntry * entry)
 	(void *) ftpData);
 
     /* Now connect ... */
-    ftpData->connectState.fd = ftpData->ftp_fd;
-    ftpData->connectState.host = localhost;
-    ftpData->connectState.port = ftpget_port;
-    ftpData->connectState.handler = ftpConnectDone;
-    ftpData->connectState.data = ftpData;
-    comm_nbconnect(ftpData->ftp_fd, &ftpData->connectState);
+    commConnectStart(ftpData->ftp_fd,
+	localhost,
+	ftpget_port,
+	ftpConnectDone,
+	ftpData);
     return COMM_OK;
 }
 
@@ -634,8 +629,6 @@ ftpConnectDone(int fd, int status, void *data)
 	(void *) ftpData, 0);
     if (opt_no_ipcache)
 	ipcacheInvalidate(ftpData->request->host);
-    if (vizSock > -1)
-	vizHackSendPkt(&ftpData->connectState.S, 2);
 }
 
 static void

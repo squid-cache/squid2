@@ -31,10 +31,20 @@
 /*
  * References:
  *    http://www.fitug.de/archiv/dokus/allgemeines/anonymizer.html
+ *    http://www.iks-jena.de/mitarb/lutz/anon/web.en.html
  *
  * This file contains an field of all header strings of HTTP which
  * should pass the proxy. Any other field is removed from the redirected
  * request to keep the sender anonymous.
+ * 
+ * 20.2.1997 wessels
+ *  - removed #ifdefs, code is always compiled in and controlled with
+ *    'http_anonymizer' in the config file.
+ * 
+ * v0.2 - 6.2.1997:
+ *  - Authorization: is moved from 'bad' to 'good' meaning to enable passwords
+ *  - ANONYMIZER_PARANOIC switch added to select a paranoic/normal filtering
+ *
  *
  * v0.1 - 5.12.1996:
  *  - made static and following naming conventions of 1.1beta28
@@ -49,13 +59,19 @@
  *  - examining Content of special headers
  */
 
+#include "squid.h"
+
 struct http_anon_struct_header {
     const char *name;
     size_t len;
 };
 
-/* list of allowed headers */
-const struct http_anon_struct_header http_anon_allowed_header[] =
+/* Allowed Headers
+ *
+ * If 'http_anonymizer' is set to 'paranoid' then only the request
+ * lines in this file will be passed, all others will be removed
+ */
+static struct http_anon_struct_header http_anon_allowed_header[] =
 {
     {"GET ", 4},
     {"POST ", 5},
@@ -85,8 +101,12 @@ const struct http_anon_struct_header http_anon_allowed_header[] =
     {NULL, 0}
 };
 
-/* list of headers known to definitly compromise privacy */
-const struct http_anon_struct_header http_anon_denied_header[] =
+/* Denied Headers
+ *
+ * If 'http_anonymizer' is set to 'standard' then these headers
+ * will be removed, all others will be passed.
+ */
+static struct http_anon_struct_header http_anon_denied_header[] =
 {
     {"From:", 5},
     {"Referer:", 8},
@@ -97,23 +117,29 @@ const struct http_anon_struct_header http_anon_denied_header[] =
     {NULL, 0}
 };
 
-/* any other header is undefined by HTTP 1.0 and droped */
-static const char *
+/* Return 1 if 'line' is found in the 'header_field' list */
+static int
 httpAnonSearchHeaderField(const struct http_anon_struct_header *header_field,
     const char *line)
 {
     const struct http_anon_struct_header *ppc;
-    if (*line == '\0')
-	return line;
-    for (ppc = header_field; ppc->len; ppc++) {
+    for (ppc = header_field; ppc->len; ppc++)
 	if (strncasecmp(line, ppc->name, ppc->len) == 0)
-#ifdef USE_PARANOID_ANONYMIZER
-	    return ppc->name;
-    }
-    return NULL;
-#else
-	    return NULL;
-    }
-    return line;
-#endif
+	    return 1;
+    return 0;
+}
+int
+httpAnonAllowed(const char *line)
+{
+    if (*line == '\0')		/* the terminating empty line */
+	return 1;
+    return httpAnonSearchHeaderField(http_anon_allowed_header, line);
+}
+
+int
+httpAnonDenied(const char *line)
+{
+    if (*line == '\0')		/* the terminating empty line */
+	return 0;
+    return httpAnonSearchHeaderField(http_anon_denied_header, line);
 }

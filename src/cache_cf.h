@@ -178,8 +178,10 @@ struct SquidConfig {
 	int log_fqdn;
     } Log;
 #if USE_PROXY_AUTH
-    char *proxyAuthFile;
-    char *proxyAuthIgnoreDomain;
+    struct {
+	char *File;
+	relist *IgnoreDomains;
+    } proxyAuth;
 #endif				/* USE_PROXY_AUTH */
     char *adminEmail;
     char *effectiveUser;
@@ -209,6 +211,7 @@ struct SquidConfig {
 	int withProxy;
     } Accel;
     char *appendDomain;
+    size_t appendDomainLen;
     char *volatile debugOptions;
     char *pidFilename;
     char *visibleHostname;
@@ -270,6 +273,7 @@ struct SquidConfig {
 	int log_udp;
 	int enable_purge;
 	int res_defnames;
+	int anonymizer;
     } Options;
 };
 

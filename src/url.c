@@ -207,7 +207,7 @@ urlParse(method_t method, char *url)
     int l;
     proto[0] = host[0] = urlpath[0] = login[0] = '\0';
 
-    if ((l = strlen(url)) > (MAX_URL - 1)) {
+    if ((l = strlen(url)) + Config.appendDomainLen > (MAX_URL - 1)) {
 	/* terminate so it doesn't overflow other buffers */
 	*(url + (MAX_URL >> 1)) = '\0';
 	debug(23, 0, "urlParse: URL too large (%d bytes)\n", l);
@@ -240,16 +240,20 @@ urlParse(method_t method, char *url)
     /* remove trailing dots from hostnames */
     while ((l = strlen(host)) && host[--l] == '.')
 	host[l] = '\0';
+    if (Config.appendDomain && !strchr(host, '.'))
+	strncat(host, Config.appendDomain, SQUIDHOSTNAMELEN);
     if (port == 0) {
 	debug(23, 0, "urlParse: Invalid port == 0\n");
 	return NULL;
     }
+#ifdef REMOVE_FTP_TRAILING_SLASHES
     /* remove trailing slashes from FTP URLs */
     if (protocol == PROTO_FTP) {
 	t = urlpath + strlen(urlpath);
 	while (t > urlpath && *(--t) == '/')
 	    *t = '\0';
     }
+#endif
     request = get_free_request_t();
     request->method = method;
     request->protocol = protocol;

@@ -1,5 +1,160 @@
+Changes to squid-1.novm.8 ():
+
+	- Merged squid-1.1.7 and 1.1.8 changes
+
+Changes to squid-1.1.8 (March 3, 1997):
+
+	- Fixed neighborsUdpAck() coredump bug for source-ping and
+	  non-peer ICP replies.
+	- Prevent ipcache_gethostbyname from changing an IP_DISPATCHED
+	  entry to IP_CACHED; fqdncache too.
+	- Made send_announce non-blocking.
+	- Force release of negative-cached objects upon receipt of
+	  no-cache request.
+	- Ignore ACLs which fail to parse.
+	- Added 'proxy_auth_ignore' regular expression list (Andreas
+	  Lamprecht).
+	- Changed how failed TCP connections affects peer up/down
+	  status.  Now retry TCP connections at regular intervals in the
+	  background and don't mark the peer as 'up' until a connection
+	  succeeds.
+	- Okay to increase FD_SETSIZE on FreeBSD 2.2.x (Peter Wemm).
+	- Fixed HTTP anonymizer bug in 'standard' mode.
+	- Fixed aclMatchDomainList() coredump for unresolvable addresses.
+	- Changed default disk low/high water marks to 90/95%.
+	- Prevent ftpget buffer overflow (Riku Saikkonen).
+
+Changes to squid-1.1.7 (February 25, 1997):
+
+	- Fixed urlParse to leave trailing slashes on FTP URLs.  Although
+	  stripping the slashes offers a slight hit rate increase, it
+	  breaks some proxies which return HTTP redirects.
+	- Initialize struct tm in parse_rfc1123() (Henrik Hempelmann).
+	- Fixed parseHttpRequest() to use memcpy instead of strncpy;
+	  caused POST's with NULL bytes to fail (Joe Ramey).
+	- Fixed another HTTP reply code 0 bug (Neil Murray).
+	- Changed code structure in ipcache_nbgethostbyname() to
+	  maybe get around some trashed-stack problems.
+	- Added WARNING if blocking gethostbyname() gets called.
+	- Fixed calling commSetSelect() with FD < 0 bug in ssl.c and
+	  pass.c.
+	- Moved 'append_domain' operation to urlParse().
+	- Fixed too many arguments bug in diskHandleWrite, caused
+	  coredumps when write fails (due to full disk).
+	- Fixed extra unlocking on partial reads from dnsservers.
+	- Fixes for 'Splay' trees in acl.c (Ed Knowles)
+	- Support for balanced binary trees in acl.c (Arjan de Vet).
+	- Made HTTP anonymizing a standard feature and settable in
+	  squid.conf (disabled by default).
+	- Ignore ICP_MISS replies from multicast-responding parents
+	  which would violate the domain restrictions.
+	- Fixed another diskHandleWrite coredump bug when freeing
+	  list of pending blocks.
+	- Added support for 'src' ACLs in cache_host_acl lines.
+	- Fixed ftpget bug when PASV connect times out.
+	- Fixed adding duplicate IP cache entry for failed BLOCKING lookups.
+	- Changed peer IP addresses (for ICP) to be refreshed every hour.
+	- Accomodated Solaris bug requiring suid privs for getrusage()
+	  (Arjan de Vet).
+
+Changes to squid-1.novm.6 (February 7, 1997):
+
+	- Merged squid-1.1.6 changes.
+
+Changes to squid-1.1.6 (February 7, 1997):
+
+	- Fix redirector to make sure the redirector child process is 
+	  is alive and not busy before using it (Brent Foster).
+	- Fixed ACL joining bug.
+	- Fixed up support for multicast; see Release Notes for 
+	  details.
+	- Fixed ftpget to properly handle multi-line replies that
+	  don't begin with "NNN-".
+	- Changed store maintenance to randomize bucket order
+	  each time after completion.
+	- Set RLIMIT_VMEM to the maximum.
+	- Syntax change: "edge" to "peer" everywhere.
+	- Change redirector stats to also show number of rewritten
+	  requests (Andrew Humphrey).
+	- Changed HTTP anonmyizing to remove 'denied' headers
+	  by default.  Define USE_PARANOID_ANONYMIZER to only pass
+	  'allowed' headers instead (Bernd Ernesti).
+	- Added 'Splay' trees (in #ifdefs) for fast IP access checking
+	  (Ed Knowles).
+	- Fixed 'COMM_INPROGRESS' typo bug (Balint Nagy Endre).
+	- Added support for PURGE method to remove cached objects.
+	- Upgraded scripts/check_cache.pl for v1.1 (Bertold Kolics).
+	- Fixed announcement file descriptor leak (Balint Nagy Endre).
+	- Fixed [^0-9] sscanf bug for some compilers (Jim Carroll).
+	- Upgrade to autoconf-2.12
+	- Added 'dns_defnames' option to allow dnsserver to interpret
+	  single-component hostnames.
+	- Refuse to run as root without defining 'cache_effective_user'.
+
+Changes to squid-1.novm.5 (February 6, 1997):
+
+	- Fixed stuck objects (and FD leak) due to not unlocking
+	  objects in storeAbort().
+	- Merged squid-1.1.5 changes.
+
+Changes to squid-1.1.5 (January 22, 1997):
+
+	- Fixed ACL parsing to join ACL entries with the same name
+	  (Markus Stumpf).
+	- Fixed BIT_SET/BIT_TEST typo in getDefaultParent() (Ed Knowles).
+	- Removed comm_read() and commHandleRead().
+	- Fixed rotating special files (Kolics Bertold).
+	- Fixed sending HTTP reply code 0 in error messages.
+	- Fixed ftpget to recognize 'NetWare' servers and skip whitespace
+	  before filenames.
+	- Changed ftpget default Content-Type to application/octet-stream.
+	- Added .rpm MIME type (Nigel Metheringham).
+	- Changed storeDirClean() to create missing directories.
+	- Removed icpState->buf and storeCopy() call in icpGetHeadersfForIMS().
+	- Fixed *_ip_list parsing bug (Hiroyuki Inoue).
+	- Fixed bad comm_write() calls in passStart() and sslStart()
+	  (Martin Boening).
+	- Changed storeMaintainSwapSpace() to scan hash table buckets in
+	  random order.
+	- Added dynamic LRU Age expiration feature.  Expiration age is
+	  calculated as a function of store_swap_size so that object
+	  deletion rate matches the addition rate and we avoid emergency
+	  object purge mode.
+
+Changes to squid-1.novm.4 (January XX, 1997):
+
+	- Fixed storeRegister loop in icpHandleIMSReply().
+	- Merged squid-1.1.4 changes.
+
+Changes to squid-1.1.4 (January 13, 1997):
+
 	- Created USE_GNUREGEX define to fix forcing GNU regex on 
 	  Solaris and NeXTStep.
+	- Changed SQUID_MAXFD to be a C variable.
+	- Added QUICKSTART file.
+	- Fixed ident so the identd request comes from the same IP
+	  address as the original connection was made to (Russell
+	  Street).
+	- Added '!' condition feature for the 'firewall_ip' list
+	  (Hiroyuki Inoue).
+	- Added 'udp_hit_obj_size' option (Mark Treacy).
+	- Fixed cachemgr.cgi to print 'NEVER' instead of '27Y ago'.
+	- Fixed finding FTP end-of-transfer marker in the middle
+	  of the file.
+	- More ipcache fixes for long-pending requests which get preempted.
+	- Fixed cachemgr.cgi to parse password from URL (Peter Wemm).
+	- Fixed cachemgr.cgi to keep password in HTML form field (Peter
+	  Wemm).
+	- Fixed reporting Maximum Resident Size (Peter Wemm).
+	- Handle unexpected data from a redirector (Brent Foster).
+
+Changes to squid-1.novm.3 (January 7, 1996):
+
+	- Merged squid-1.1.3 changes.
+
+Changes to squid-1.novm.2 (January 7, 1996):
+
+	- Mega changes to make Squid not store objects in VM.
 
 Changes to squid-1.1.3 (January 7, 1997):
 

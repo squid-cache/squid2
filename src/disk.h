@@ -156,7 +156,7 @@ typedef struct _FileEntry {
     enum {
 	FILE_READ, FILE_WRITE
     } file_mode;
-    void (*wrt_handle) ();
+    FILE_WRITE_HD wrt_handle;
     void *wrt_handle_data;
     dwrite_q *write_q;
     dwrite_q *write_q_tail;

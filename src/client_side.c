@@ -99,13 +99,17 @@ clientProxyAuthCheck(icpStateData * icpState)
     /* Check that the user is allowed to access via this proxy-cache
      * don't restrict if they're accessing a local domain or
      * an object of type cacheobj:// */
-    if (Config.proxyAuthFile == NULL)
+    if (Config.proxyAuth.File == NULL)
 	return 1;
     if (urlParseProtocol(icpState->url) == PROTO_CACHEOBJ)
 	return 1;
-    if (Config.proxyAuthIgnoreDomain != NULL)
-	if (matchDomainName(Config.proxyAuthIgnoreDomain, icpState->request->host))
+
+    if (Config.proxyAuth.IgnoreDomains) {
+	if (aclMatchRegex(Config.proxyAuth.IgnoreDomains, icpState->request->host)) {
+	    debug(33, 2, "clientProxyAuthCheck: host \"%s\" matched proxyAuthIgnoreDomains\n", icpState->request->host);
 	    return 1;
+	}
+    }
     proxy_user = proxyAuthenticate(icpState->request_hdr);
     xstrncpy(icpState->ident.ident, proxy_user, ICP_IDENT_SZ);
     debug(33, 6, "clientProxyAuthCheck: user = %s\n", icpState->ident.ident);
@@ -159,6 +163,8 @@ clientAccessCheck(icpStateData * icpState, void (*handler) (icpStateData *, int)
 	    icpState->ident.ident,
 	    ICP_IDENT_SZ);
     }
+    /* This so we can have SRC ACLs for cache_host_acl. */
+    icpState->request->client_addr = icpState->peer.sin_addr;
 #if USE_PROXY_AUTH
     if (clientProxyAuthCheck(icpState) == 0) {
 	char *wbuf = NULL;
@@ -326,11 +332,11 @@ proxyAuthenticate(const char *headers)
      */
 
     if ((squid_curtime - last_time) > CHECK_PROXY_FILE_TIME) {
-	debug(33, 5, "proxyAuthenticate: checking password file %s hasn't changed\n", Config.proxyAuthFile);
+	debug(33, 5, "proxyAuthenticate: checking password file %s hasn't changed\n", Config.proxyAuth.File);
 
-	if (stat(Config.proxyAuthFile, &buf) == 0) {
+	if (stat(Config.proxyAuth.File, &buf) == 0) {
 	    if (buf.st_mtime != change_time) {
-		debug(33, 0, "proxyAuthenticate: reloading changed proxy authentication password file %s \n", Config.proxyAuthFile);
+		debug(33, 0, "proxyAuthenticate: reloading changed proxy authentication password file %s \n", Config.proxyAuth.File);
 		change_time = buf.st_mtime;
 
 		if (validated != 0) {
@@ -343,14 +349,14 @@ proxyAuthenticate(const char *headers)
 		    /* First time around, 7921 should be big enough */
 		    if ((validated = hash_create(urlcmp, 7921, hash_string)) < 0) {
 			debug(33, 1, "ERK: can't create hash table. Turning auth off");
-			xfree(Config.proxyAuthFile);
-			Config.proxyAuthFile = NULL;
+			xfree(Config.proxyAuth.File);
+			Config.proxyAuth.File = NULL;
 			return (dash_str);
 		    }
 		}
 
 		passwords = xmalloc((size_t) buf.st_size + 2);
-		f = fopen(Config.proxyAuthFile, "r");
+		f = fopen(Config.proxyAuth.File, "r");
 		fread(passwords, (size_t) buf.st_size, 1, f);
 		*(passwords + buf.st_size) = '\0';
 		strcat(passwords, "\n");
@@ -372,9 +378,9 @@ proxyAuthenticate(const char *headers)
 		xfree(passwords);
 	    }
 	} else {
-	    debug(33, 1, "ERK: can't access proxy_auth file %s. Turning authentication off", Config.proxyAuthFile);
-	    xfree(Config.proxyAuthFile);
-	    Config.proxyAuthFile = NULL;
+	    debug(33, 1, "ERK: can't access proxy_auth file %s. Turning authentication off", Config.proxyAuth.File);
+	    xfree(Config.proxyAuth.File);
+	    Config.proxyAuth.File = NULL;
 	    return (dash_str);
 	}
     }
@@ -430,6 +436,7 @@ icpProcessExpired(int fd, void *data)
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     storeClientListAdd(entry, fd, 0);
+    storeClientListAdd(icpState->old_entry, fd, 0);
 
     entry->lastmod = icpState->old_entry->lastmod;
     debug(33, 5, "icpProcessExpired: setting lmt = %d\n",

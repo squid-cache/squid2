@@ -110,3 +110,4 @@ extern void eventAdd _PARAMS((const char *name,
 	time_t when));
 extern void eventRun _PARAMS((void));
 extern time_t eventNextTime _PARAMS((void));
+extern void eventDelete _PARAMS((EVH func, void *arg));

@@ -112,7 +112,6 @@
 
 #define HTTP_DELETE_GAP   (1<<18)
 
-static const char *const w_space = " \t\n\r";
 static const char *const crlf = "\r\n";
 
 typedef enum {
@@ -158,7 +157,7 @@ typedef enum {
     HDR_MISC_END
 } http_hdr_misc_t;
 
-char *HttpServerCCStr[] =
+static char *HttpServerCCStr[] =
 {
     "public",
     "private",
@@ -429,10 +428,8 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 
     debug(11, 3, "httpProcessReplyHeader: key '%s'\n", entry->key);
 
-    if (httpState->reply_hdr == NULL) {
+    if (httpState->reply_hdr == NULL)
 	httpState->reply_hdr = get_free_8k_page();
-	memset(httpState->reply_hdr, '\0', 8192);
-    }
     if (httpState->reply_hdr_state == 0) {
 	hdr_len = strlen(httpState->reply_hdr);
 	room = 8191 - hdr_len;
@@ -674,27 +671,19 @@ httpSendComplete(int fd, char *buf, int size, int errflag, void *data)
     }
 }
 
-#ifdef USE_ANONYMIZER
-#include "http-anon.c"
-#endif
-
 static void
 httpAppendRequestHeader(char *hdr, const char *line, size_t * sz, size_t max)
 {
     size_t n = *sz + strlen(line) + 2;
     if (n >= max)
 	return;
-#ifdef USE_ANONYMIZER
-#ifdef USE_PARANOID_ANONYMIZER
-    if (httpAnonSearchHeaderField(http_anon_allowed_header, line) == NULL) {
-#else
-    if (httpAnonSearchHeaderField(http_anon_denied_header, line) == NULL) {
-#endif
-	debug(11, 5, "httpAppendRequestHeader: removed for anonymity: <%s>\n",
-	    line);
-	return;
+    if (Config.Options.anonymizer == ANONYMIZER_PARANOID) {
+	if (!httpAnonAllowed(line))
+	    return;
+    } else if (Config.Options.anonymizer == ANONYMIZER_STANDARD) {
+	if (httpAnonDenied(line))
+	    return;
     }
-#endif
     /* allowed header, explicitly known to be not dangerous */
     debug(11, 5, "httpAppendRequestHeader: %s\n", line);
     strcpy(hdr + (*sz), line);
@@ -721,7 +710,6 @@ httpBuildRequestHeader(request_t * request,
     char *end = NULL;
     size_t len = 0;
     size_t hdr_len = 0;
-    size_t in_sz;
     size_t l;
     int hdr_flags = 0;
     int cc_flags = 0;
@@ -742,7 +730,6 @@ httpBuildRequestHeader(request_t * request,
 	EBIT_SET(hdr_flags, HDR_IMS);
     }
     end = mime_headers_end(hdr_in);
-    in_sz = strlen(hdr_in);
     for (t = hdr_in; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
 	hdr_len = t - hdr_in;
 	l = strcspn(t, crlf) + 1;
@@ -841,7 +828,6 @@ httpSendRequest(int fd, void *data)
     }
     if (buflen < DISK_PAGE_SIZE) {
 	buf = get_free_8k_page();
-	memset(buf, '\0', buflen);
 	buftype = BUF_TYPE_8K;
 	buflen = DISK_PAGE_SIZE;
     } else {
@@ -941,12 +927,11 @@ httpConnect(int fd, const ipcache_addrs * ia, void *data)
 	return;
     }
     /* Open connection. */
-    httpState->connectState.fd = fd;
-    httpState->connectState.host = request->host;
-    httpState->connectState.port = request->port;
-    httpState->connectState.handler = httpConnectDone;
-    httpState->connectState.data = httpState;
-    comm_nbconnect(fd, &httpState->connectState);
+    commConnectStart(fd,
+	request->host,
+	request->port,
+	httpConnectDone,
+	httpState);
 }
 
 static void
@@ -955,11 +940,10 @@ httpConnectDone(int fd, int status, void *data)
     HttpStateData *httpState = data;
     request_t *request = httpState->request;
     StoreEntry *entry = httpState->entry;
-    peer *e = NULL;
     if (status != COMM_OK) {
-	if ((e = httpState->neighbor))
-	    e->last_fail_time = squid_curtime;
 	squid_error_entry(entry, ERR_CONNECT_FAIL, xstrerror());
+	if (httpState->neighbor)
+	    peerCheckConnectStart(httpState->neighbor);
 	comm_close(fd);
     } else {
 	/* Install connection complete handler. */
@@ -970,8 +954,6 @@ httpConnectDone(int fd, int status, void *data)
 	    httpLifetimeExpire, (void *) httpState, 0);
 	commSetSelect(fd, COMM_SELECT_WRITE,
 	    httpSendRequest, (void *) httpState, 0);
-	if (vizSock > -1)
-	    vizHackSendPkt(&httpState->connectState.S, 2);
     }
 }
 

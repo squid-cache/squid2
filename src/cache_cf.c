@@ -111,8 +111,8 @@ struct SquidConfig Config;
 #define DefaultMemHighWaterMark 90	/* 90% */
 #define DefaultMemLowWaterMark  75	/* 75% */
 #define DefaultSwapMaxSize	(100 << 10)	/* 100 MB (100*1024 kbytes) */
-#define DefaultSwapHighWaterMark 90	/* 90% */
-#define DefaultSwapLowWaterMark  75	/* 75% */
+#define DefaultSwapHighWaterMark 95	/* 95% */
+#define DefaultSwapLowWaterMark  90	/* 90% */
 #define DefaultNetdbHigh	1000	/* counts, not percents */
 #define DefaultNetdbLow		 900
 
@@ -129,12 +129,15 @@ struct SquidConfig Config;
 #define DefaultConnectTimeout	(2 * 60)	/* 2 min */
 #define DefaultCleanRate	-1	/* disabled */
 #define DefaultDnsChildren	5	/* 5 processes */
+#define DefaultOptionsResDefnames 0	/* default off */
+#define DefaultOptionsAnonymizer  0	/* default off */
 #define DefaultRedirectChildren	5	/* 5 processes */
 #define DefaultMaxRequestSize	(100 << 10)	/* 100Kb */
 
 #define DefaultHttpPortNum	CACHE_HTTP_PORT
 #define DefaultIcpPortNum	CACHE_ICP_PORT
 
+#define DefaultLogLogFqdn      0	/* default off */
 #define DefaultCacheLogFile	DEFAULT_CACHE_LOG
 #define DefaultAccessLogFile	DEFAULT_ACCESS_LOG
 #define DefaultUseragentLogFile	(char *)NULL	/* default NONE */
@@ -142,7 +145,6 @@ struct SquidConfig Config;
 #define DefaultSwapLogFile	(char *)NULL	/* default swappath(0) */
 #if USE_PROXY_AUTH
 #define DefaultProxyAuthFile    (char *)NULL	/* default NONE */
-#define DefaultProxyAuthIgnoreDomain (char *)NULL	/* default NONE */
 #endif /* USE_PROXY_AUTH */
 #define DefaultLogRotateNumber  10
 #define DefaultAdminEmail	"webmaster"
@@ -187,8 +189,8 @@ struct SquidConfig Config;
 #define DefaultUdpIncomingAddr	INADDR_ANY
 #define DefaultUdpOutgoingAddr	inaddr_none
 #define DefaultClientNetmask    0xFFFFFFFFul
-#define DefaultSslProxyPort	0
-#define DefaultSslProxyHost	(char *)NULL
+#define DefaultPassProxy	NULL
+#define DefaultSslProxy		NULL
 #define DefaultIpcacheSize	1024
 #define DefaultIpcacheLow	90
 #define DefaultIpcacheHigh	95
@@ -200,6 +202,7 @@ struct SquidConfig Config;
 #define DefaultLevelOneDirs	16
 #define DefaultLevelTwoDirs	256
 #define DefaultOptionsLogUdp	1	/* on */
+#define DefaultOptionsEnablePurge 0	/* default off */
 
 int httpd_accel_mode = 0;	/* for fast access */
 const char *DefaultSwapDir = DEFAULT_SWAP_DIR;
@@ -258,6 +261,7 @@ static void ip_acl_destroy _PARAMS((ip_acl **));
 static void parseCachemgrPasswd _PARAMS((void));
 static void parsePathname _PARAMS((char **));
 static void parseProxyLine _PARAMS((peer **));
+static void parseHttpAnonymizer _PARAMS((int *));
 
 static void
 self_destruct(void)
@@ -303,7 +307,7 @@ ip_access_check(struct in_addr address, const ip_acl * list)
 	return IP_ALLOW;
 
     if (!init) {
-	memset((char *) &localhost, '\0', sizeof(struct in_addr));
+	memset(&localhost, '\0', sizeof(struct in_addr));
 	localhost.s_addr = inet_addr("127.0.0.1");
 	init = 1;
     }
@@ -652,11 +656,11 @@ parseProxyAuthLine(void)
     token = strtok(NULL, w_space);
     if (token == NULL)
 	self_destruct();
-    safe_free(Config.proxyAuthFile);
-    safe_free(Config.proxyAuthIgnoreDomain);
-    Config.proxyAuthFile = xstrdup(token);
-    if ((token = strtok(NULL, w_space)))
-	Config.proxyAuthIgnoreDomain = xstrdup(token);
+    safe_free(Config.proxyAuth.File);
+    aclDestroyRegexList(Config.proxyAuth.IgnoreDomains);
+    Config.proxyAuth.IgnoreDomains = NULL;
+    Config.proxyAuth.File = xstrdup(token);
+    aclParseRegexList(&Config.proxyAuth.IgnoreDomains, 1);
 }
 #endif /* USE_PROXY_AUTH */
 
@@ -1025,6 +1029,21 @@ parseCachemgrPasswd(void)
     wordlistDestroy(&actions);
 }
 
+static void
+parseHttpAnonymizer(int *iptr)
+{
+    char *token;
+    token = strtok(NULL, w_space);
+    if (token == NULL)
+	self_destruct();
+    if (!strcasecmp(token, "off"))
+	*iptr = ANONYMIZER_NONE;
+    else if (!strcasecmp(token, "paranoid"))
+	*iptr = ANONYMIZER_PARANOID;
+    else
+	*iptr = ANONYMIZER_STANDARD;
+}
+
 int
 parseConfigFile(const char *file_name)
 {
@@ -1228,6 +1247,8 @@ parseConfigFile(const char *file_name)
 #if USE_PROXY_AUTH
 	else if (!strcmp(token, "proxy_auth"))
 	    parseProxyAuthLine();
+	else if (!strcmp(token, "proxy_auth_ignore"))
+	    aclParseRegexList(&Config.proxyAuth.IgnoreDomains, 1);
 #endif /* USE_PROXY_AUTH */
 
 	else if (!strcmp(token, "source_ping"))
@@ -1347,6 +1368,8 @@ parseConfigFile(const char *file_name)
 	    parseOnOff(&opt_forwarded_for);
 	else if (!strcmp(token, "log_icp_queries"))
 	    parseOnOff(&Config.Options.log_udp);
+	else if (!strcmp(token, "http_anonymizer"))
+	    parseHttpAnonymizer(&Config.Options.anonymizer);
 
 	else if (!strcmp(token, "minimum_direct_hops"))
 	    parseIntegerValue(&Config.minDirectHops);
@@ -1461,8 +1484,9 @@ configFreeMemory(void)
     safe_free(Config.visibleHostname);
     safe_free(Config.ftpUser);
 #if USE_PROXY_AUTH
-    safe_free(Config.proxyAuthFile);
-    safe_free(Config.proxyAuthIgnoreDomain);
+    safe_free(Config.proxyAuth.File);
+    aclDestroyRegexList(Config.proxyAuth.IgnoreDomains);
+    Config.proxyAuth.IgnoreDomains = NULL;
 #endif /* USE_PROXY_AUTH */
     safe_free(Config.Announce.host);
     safe_free(Config.Announce.file);
@@ -1486,7 +1510,7 @@ configFreeMemory(void)
 static void
 configSetFactoryDefaults(void)
 {
-    memset((char *) &Config, '\0', sizeof(Config));
+    memset(&Config, '\0', sizeof(Config));
     Config.Mem.maxSize = DefaultMemMaxSize;
     Config.Mem.highWaterMark = DefaultMemHighWaterMark;
     Config.Mem.lowWaterMark = DefaultMemLowWaterMark;
@@ -1519,6 +1543,7 @@ configSetFactoryDefaults(void)
 #if LOG_FULL_HEADERS
     Config.logMimeHdrs = DefaultLogMimeHdrs;
 #endif /* LOG_FULL_HEADERS */
+    Config.identLookup = DefaultIdentLookup;
     Config.debugOptions = safe_xstrdup(DefaultDebugOptions);
     Config.neighborTimeout = DefaultNeighborTimeout;
     Config.stallDelay = DefaultStallDelay;
@@ -1528,9 +1553,9 @@ configSetFactoryDefaults(void)
     Config.effectiveGroup = safe_xstrdup(DefaultEffectiveGroup);
     Config.appendDomain = safe_xstrdup(DefaultAppendDomain);
     Config.errHtmlText = safe_xstrdup(DefaultErrHtmlText);
-
     Config.Port.http = DefaultHttpPortNum;
     Config.Port.icp = DefaultIcpPortNum;
+    Config.Log.log_fqdn = DefaultLogLogFqdn;
     Config.Log.log = safe_xstrdup(DefaultCacheLogFile);
     Config.Log.access = safe_xstrdup(DefaultAccessLogFile);
     Config.Log.store = safe_xstrdup(DefaultStoreLogFile);
@@ -1551,8 +1576,8 @@ configSetFactoryDefaults(void)
     Config.pidFilename = safe_xstrdup(DefaultPidFilename);
     Config.visibleHostname = safe_xstrdup(DefaultVisibleHostname);
 #if USE_PROXY_AUTH
-    Config.proxyAuthFile = safe_xstrdup(DefaultProxyAuthFile);
-    Config.proxyAuthIgnoreDomain = safe_xstrdup(DefaultProxyAuthIgnoreDomain);
+    Config.proxyAuth.File = safe_xstrdup(DefaultProxyAuthFile);
+/*    Config.proxyAuth.IgnoreDomains = safe_xstrdup(DefaultproxyAuthIgnoreDomains); */
 #endif /* USE_PROXY_AUTH */
     Config.ftpUser = safe_xstrdup(DefaultFtpUser);
     Config.Announce.host = safe_xstrdup(DefaultAnnounceHost);
@@ -1567,6 +1592,8 @@ configSetFactoryDefaults(void)
     Config.Addrs.udp_outgoing.s_addr = DefaultUdpOutgoingAddr;
     Config.Addrs.udp_incoming.s_addr = DefaultUdpIncomingAddr;
     Config.Addrs.client_netmask.s_addr = DefaultClientNetmask;
+    Config.passProxy = DefaultPassProxy;
+    Config.sslProxy = DefaultSslProxy;
     Config.ipcache.size = DefaultIpcacheSize;
     Config.ipcache.low = DefaultIpcacheLow;
     Config.ipcache.high = DefaultIpcacheHigh;
@@ -1577,6 +1604,9 @@ configSetFactoryDefaults(void)
     Config.levelOneDirs = DefaultLevelOneDirs;
     Config.levelTwoDirs = DefaultLevelTwoDirs;
     Config.Options.log_udp = DefaultOptionsLogUdp;
+    Config.Options.res_defnames = DefaultOptionsResDefnames;
+    Config.Options.anonymizer = DefaultOptionsAnonymizer;
+    Config.Options.enable_purge = DefaultOptionsEnablePurge;
 }
 
 static void
@@ -1598,4 +1628,8 @@ configDoConfigure(void)
 	SQUID_VERSION);
     if (!Config.udpMaxHitObjsz || Config.udpMaxHitObjsz > SQUID_UDP_SO_SNDBUF)
 	Config.udpMaxHitObjsz = SQUID_UDP_SO_SNDBUF;
+    if (Config.appendDomain)
+	Config.appendDomainLen = strlen(Config.appendDomain);
+    else
+	Config.appendDomainLen = 0;
 }

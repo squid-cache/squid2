@@ -66,12 +66,11 @@ identStart(int fd, icpStateData * icpState, void (*callback) _PARAMS((void *)))
     comm_add_close_handler(fd,
 	(PF) identClose,
 	(void *) icpState);
-    icpState->identConnectState.fd = fd;
-    icpState->identConnectState.host = inet_ntoa(icpState->peer.sin_addr);
-    icpState->identConnectState.port = IDENT_PORT;
-    icpState->identConnectState.handler = identConnectDone;
-    icpState->identConnectState.data = icpState;
-    comm_nbconnect(fd, &icpState->identConnectState);
+    commConnectStart(fd,
+	inet_ntoa(icpState->peer.sin_addr),
+	IDENT_PORT,
+	identConnectDone,
+	icpState);
 }
 
 static void

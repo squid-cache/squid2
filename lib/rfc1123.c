@@ -181,6 +181,7 @@ parse_rfc1123(const char *str)
     if (!str)
 	return -1;
 
+    memset(&tm, '\0', sizeof(struct tm));
     if ((s = strchr(str, ','))) {	/* Thursday, 10-Jun-93 01:29:59 GMT */
 	s++;			/* or: Thu, 10 Jan 1993 01:29:59 GMT */
 	while (*s && *s == ' ')
