@@ -131,10 +131,6 @@
 
 #include "squid.h"		/* goes first */
 
-#if HAVE_MATH_H
-#include <math.h>
-#endif
-
 #define REBUILD_TIMESTAMP_DELTA_MAX 2
 #define MAX_SWAP_FILE		(1<<21)
 #define SWAP_BUF		DISK_PAGE_SIZE

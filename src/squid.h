@@ -172,6 +172,10 @@
 #include <shadow.h>
 #endif
 
+#if HAVE_MATH_H
+#include <math.h>
+#endif
+
 #if !defined(MAXHOSTNAMELEN) || (MAXHOSTNAMELEN < 128)
 #define SQUIDHOSTNAMELEN 128
 #else
