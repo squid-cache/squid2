@@ -171,14 +171,14 @@ static void destroy_StoreEntry(e)
     debug(20, 3, "destroy_StoreEntry: destroying %p\n", e);
     if (!e)
 	fatal_dump("destroy_StoreEntry: NULL Entry");
+    if (e->mem_obj)
+	destroy_MemObject(e->mem_obj);
     meta_data.url_strings -= strlen(e->url);
     safe_free(e->url);
     if (BIT_TEST(e->flag, KEY_URL))
 	e->key = NULL;
     else
 	safe_free(e->key);
-    if (e->mem_obj)
-	destroy_MemObject(e->mem_obj);
     xfree(e);
     meta_data.store_entries--;
 }
