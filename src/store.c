@@ -976,6 +976,7 @@ storeRelease(StoreEntry * e)
 	} else {
 	    destroy_StoreEntry(e);
 	}
+    }
     storeLog(STORE_LOG_RELEASE, e);
     if (e->swap_file_number > -1) {
 	storeUnlink(e->swap_file_number);
