@@ -328,7 +328,6 @@ icpParseRequestHeaders(icpStateData * icpState)
     char *request_hdr = icpState->request_hdr;
     char *t = NULL;
     request_t *request = icpState->request;
-
     request->ims = -2;
     request->imslen = -1;
     if ((t = mime_get_header(request_hdr, "If-Modified-Since"))) {
@@ -344,6 +343,10 @@ icpParseRequestHeaders(icpStateData * icpState)
 	if (!strcasecmp(t, "no-cache"))
 	    BIT_SET(request->flags, REQ_NOCACHE);
     }
+    if (mime_get_header(request_hdr, "Range"))
+	BIT_SET(request->flags, REQ_NOCACHE);
+    else if (mime_get_header(request_hdr, "Request-Range"))
+	BIT_SET(request->flags, REQ_NOCACHE);
     if (mime_get_header(request_hdr, "Authorization"))
 	BIT_SET(request->flags, REQ_AUTH);
 #if TRY_KEEPALIVE_SUPPORT
@@ -1536,7 +1539,6 @@ parseHttpRequest(icpStateData * icpState)
     LOCAL_ARRAY(char, http_ver, 32);
     char *token = NULL;
     char *t = NULL;
-    char *s = NULL;
     int free_request = 0;
     int req_hdr_sz;
     int url_sz;
