@@ -209,7 +209,7 @@ protoCancelTimeout(int fd, StoreEntry * entry)
 	return;
     }
     debug(17, 2, "protoCancelTimeout: FD %d '%s'\n", fd, entry->url);
-    if (fdstatGetType(fd) != FD_SOCKET) {
+    if (fd_table[fd].type != FD_SOCKET) {
 	debug_trap("protoCancelTimeout: called on non-socket");
 	return;
     }

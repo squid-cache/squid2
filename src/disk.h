@@ -136,34 +136,9 @@ typedef struct _dread_ctrl {
     void *client_data;
 } dread_ctrl;
 
-typedef struct _FileEntry {
-    char filename[SQUID_MAXPATHLEN];
-    enum {
-	NO, YES
-    } at_eof;
-    enum {
-	FILE_NOT_OPEN, FILE_OPEN
-    } open_stat;
-    enum {
-	NOT_REQUEST, REQUEST
-    } close_request;
-    enum {
-	NOT_PRESENT, PRESENT
-    } write_daemon;
-    enum {
-	NO_WRT_PENDING, WRT_PENDING
-    } write_pending;
-    FILE_WRITE_HD *wrt_handle;
-    void *wrt_handle_data;
-    dwrite_q *write_q;
-    dwrite_q *write_q_tail;
-} FileEntry;
-
-extern FileEntry *file_table;
-
 extern int file_open _PARAMS((const char *path, int (*handler) _PARAMS((void)), int mode, void (*callback) (), void *callback_data));
-extern int file_must_close _PARAMS((int fd));
-extern int file_close _PARAMS((int fd));
+extern void file_must_close _PARAMS((int fd));
+extern void file_close _PARAMS((int fd));
 extern int file_write _PARAMS((int fd,
 	char *buf,
 	int len,
@@ -179,9 +154,6 @@ extern int file_read _PARAMS((int fd,
 extern int file_walk _PARAMS((int fd, FILE_WALK_HD *, void *, FILE_WALK_LHD *, void *));
 extern int disk_init _PARAMS((void));
 extern int diskWriteIsComplete _PARAMS((int));
-extern void diskFreeMemory _PARAMS((void));
-extern void file_open_fd _PARAMS((int fd, const char *name, File_Desc_Type type));
-extern char *diskFileName _PARAMS((int fd));
-
+extern void file_open_fd _PARAMS((int fd, const char *name, unsigned int type));
 
 #endif /* DISK_H */

@@ -145,34 +145,6 @@ typedef struct {
     void *data;
 } ConnectStateData;
 
-typedef struct fde {
-    int openned;		/* Set if we did a comm_connect.  Ignored for ftp_pipes. */
-    int sender;			/* Set if this fd is connected to a client */
-    u_short local_port;		/* Our TCP port # */
-    u_short remote_port;	/* Remote TCP port # */
-    char ipaddr[16];		/* dotted decimal address of peer */
-
-    /* Select handlers. */
-    PF *read_handler;		/* Read  select handler. */
-    void *read_data;		/* App. data to associate w/ handled conn. */
-    PF *write_handler;		/* Write select handler. */
-    void *write_data;		/* App. data to associate w/ handled conn. */
-    PF *timeout_handler;	/* Timeout handler. */
-    time_t timeout_time;	/* Allow 1-second granularity timeouts */
-    time_t timeout_delta;	/* The delta requested */
-    void *timeout_data;		/* App. data to associate w/ handled conn. */
-    int lifetime;
-    PF *lifetime_handler;	/* Lifetime expire handler. */
-    void *lifetime_data;	/* App. data to associate w/ handled conn. */
-    struct close_handler *close_handler;	/* Linked list of close handlers */
-    char ascii_note[FD_ASCII_NOTE_SZ];
-    unsigned int comm_type;
-    time_t stall_until;		/* don't select for read until this time reached */
-    RWStateData *rwstate;	/* State data for comm_write */
-} FD_ENTRY;
-
-extern FD_ENTRY *fd_table;
-
 extern char *fd_note _PARAMS((int fd, const char *));
 extern int commSetNonBlocking _PARAMS((int fd));
 extern void commSetCloseOnExec _PARAMS((int fd));
