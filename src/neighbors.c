@@ -243,13 +243,7 @@ static int edgeWouldBePinged(e, request)
 	do_ping = !d->do_ping;
     }
     for (a = e->acls; a; a = a->next) {
-	if (aclMatchAcl(a->acl,
-		any_addr,	/* bogus */
-		request->method,
-		request->protocol,
-		request->host,
-		request->port,
-		request->urlpath))
+	if (aclMatchAcl(a->acl, any_addr, request))
 	    return a->op;
 	do_ping = !a->op;
     }

@@ -35,6 +35,7 @@ typedef enum {
     ACL_DST_IP,
     ACL_DST_DOMAIN,
     ACL_TIME,
+    ACL_URLPATH_REGEX,
     ACL_URL_REGEX,
     ACL_URL_PORT,
     ACL_USER,
@@ -94,15 +95,8 @@ struct _acl_access {
     struct _acl_access *next;
 };
 
-extern int aclCheck _PARAMS((struct _acl_access *, struct in_addr, method_t, protocol_t, char *, int, char *));
-extern int aclMatchAcl _PARAMS((
-	struct _acl * acl,
-	struct in_addr c,
-	method_t m,
-	protocol_t pr,
-	char *h,
-	int po,
-	char *r));
+extern int aclCheck _PARAMS((struct _acl_access *, struct in_addr, request_t *));
+extern int aclMatchAcl _PARAMS(( struct _acl * acl, struct in_addr c, request_t *));
 extern void aclDestroyAccessList _PARAMS((struct _acl_access ** list));
 extern void aclDestroyAcls _PARAMS((void));
 extern void aclParseAccessLine _PARAMS((struct _acl_access **));

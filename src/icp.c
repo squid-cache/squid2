@@ -1098,13 +1098,7 @@ static void icpHandleIcpV2(fd, from, buf, len)
 		LOG_UDP_INVALID);
 	    break;
 	}
-	allow = aclCheck(ICPAccessList,
-	    from.sin_addr,
-	    icp_request->method,
-	    icp_request->protocol,
-	    icp_request->host,
-	    icp_request->port,
-	    icp_request->urlpath);
+	allow = aclCheck(ICPAccessList, from.sin_addr, icp_request);
 	put_free_request_t(icp_request);
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s.\n",
@@ -1258,13 +1252,7 @@ static void icpHandleIcpV3(fd, from, buf, len)
 		LOG_UDP_INVALID);
 	    break;
 	}
-	allow = aclCheck(ICPAccessList,
-	    from.sin_addr,
-	    icp_request->method,
-	    icp_request->protocol,
-	    icp_request->host,
-	    icp_request->port,
-	    icp_request->urlpath);
+	allow = aclCheck(ICPAccessList, from.sin_addr, icp_request);
 	put_free_request_t(icp_request);
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s.\n",
@@ -1625,13 +1613,7 @@ static int icpAccessCheck(icpState)
 	if (!BIT_TEST(icpState->flags, REQ_ACCEL))
 	    return 0;
     }
-    return aclCheck(HTTPAccessList,
-	icpState->peer.sin_addr,
-	r->method,
-	r->protocol,
-	r->host,
-	r->port,
-	r->urlpath);
+    return aclCheck(HTTPAccessList, icpState->peer.sin_addr, r);
 }
 
 #define ASCII_INBUF_BLOCKSIZE 4096
