@@ -593,6 +593,7 @@ struct _SquidConfig {
 	int ie_refresh;
 	int vary_ignore_expire;
 	int pipeline_prefetch;
+	int request_entities;
 	int check_hostnames;
 	int via;
 	int emailErrData;
