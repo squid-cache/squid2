@@ -309,12 +309,11 @@ extern mb_size_t httpBuildRequestPrefix(request_t * request,
     request_t * orig_request,
     StoreEntry * entry,
     MemBuf * mb,
-    int cfd,
     http_state_flags);
 extern void httpAnonInitModule(void);
 extern int httpAnonHdrAllowed(http_hdr_type hdr_id);
 extern int httpAnonHdrDenied(http_hdr_type hdr_id);
-extern void httpBuildRequestHeader(request_t *, request_t *, StoreEntry *, HttpHeader *, int, http_state_flags);
+extern void httpBuildRequestHeader(request_t *, request_t *, StoreEntry *, HttpHeader *, http_state_flags);
 extern void httpBuildVersion(http_version_t * version, unsigned int major, unsigned int minor);
 extern const char *httpMakeVaryMark(request_t * request, HttpReply * reply);
 

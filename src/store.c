@@ -121,7 +121,6 @@ new_MemObject(const char *url, const char *log_url)
 #endif
     mem->log_url = xstrdup(log_url);
     mem->object_sz = -1;
-    mem->fd = -1;
     /* XXX account log_url */
     debug(20, 3) ("new_MemObject: returning %p\n", mem);
     return mem;
@@ -155,11 +154,13 @@ destroy_MemObject(StoreEntry * e)
 	assert(mem->swapout.sio == NULL);
     stmemFree(&mem->data_hdr);
     mem->inmem_hi = 0;
+#if 0
     /*
      * There is no way to abort FD-less clients, so they might
-     * still have mem->clients set if mem->fd == -1
+     * still have mem->clients set.
      */
-    assert(mem->fd == -1 || mem->clients.head == NULL);
+    assert(mem->clients.head == NULL);
+#endif
     httpReplyDestroy(mem->reply);
     requestUnlink(mem->request);
     mem->request = NULL;

@@ -612,7 +612,6 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
     }
     debug(17, 3) ("fwdStart: '%s'\n", storeUrl(e));
     e->mem_obj->request = requestLink(r);
-    e->mem_obj->fd = fd;
 #if URL_CHECKSUM_DEBUG
     assert(e->mem_obj->chksum == url_checksum(e->mem_obj->url));
 #endif

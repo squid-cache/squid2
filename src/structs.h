@@ -1492,7 +1492,6 @@ struct _MemObject {
     struct timeval start_ping;
     IRCB *ping_reply_callback;
     void *ircb_data;
-    int fd;			/* FD of client creating this entry */
     struct {
 	STABH *callback;
 	void *data;

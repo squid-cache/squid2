@@ -556,7 +556,6 @@ sslProxyConnected(int fd, void *data)
 	sslState->request,
 	NULL,			/* StoreEntry */
 	&hdr_out,
-	sslState->client.fd,
 	flags);			/* flags */
     packerToMemInit(&p, &mb);
     httpHeaderPackInto(&hdr_out, &p);

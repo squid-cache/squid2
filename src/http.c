@@ -721,7 +721,6 @@ httpBuildRequestHeader(request_t * request,
     request_t * orig_request,
     StoreEntry * entry,
     HttpHeader * hdr_out,
-    int cfd,
     http_state_flags flags)
 {
     /* building buffer for complex strings */
@@ -856,7 +855,9 @@ httpBuildRequestHeader(request_t * request,
 
     /* append X-Forwarded-For */
     strFwd = httpHeaderGetList(hdr_in, HDR_X_FORWARDED_FOR);
-    strListAdd(&strFwd, (cfd < 0 ? "unknown" : fd_table[cfd].ipaddr), ',');
+    strListAdd(&strFwd,
+	(orig_request->client_addr.s_addr != no_addr.s_addr ?
+	    inet_ntoa(orig_request->client_addr) : "unknown"), ',');
     httpHeaderPutStr(hdr_out, HDR_X_FORWARDED_FOR, strBuf(strFwd));
     stringClean(&strFwd);
 
@@ -935,7 +936,6 @@ httpBuildRequestPrefix(request_t * request,
     request_t * orig_request,
     StoreEntry * entry,
     MemBuf * mb,
-    int cfd,
     http_state_flags flags)
 {
     const int offset = mb->size;
@@ -946,7 +946,7 @@ httpBuildRequestPrefix(request_t * request,
     {
 	HttpHeader hdr;
 	Packer p;
-	httpBuildRequestHeader(request, orig_request, entry, &hdr, cfd, flags);
+	httpBuildRequestHeader(request, orig_request, entry, &hdr, flags);
 	packerToMemInit(&p, mb);
 	httpHeaderPackInto(&hdr, &p);
 	httpHeaderClean(&hdr);
@@ -963,7 +963,6 @@ httpSendRequest(HttpStateData * httpState)
     MemBuf mb;
     request_t *req = httpState->request;
     StoreEntry *entry = httpState->entry;
-    int cfd;
     peer *p = httpState->peer;
     CWCB *sendHeaderDone;
 
@@ -974,13 +973,6 @@ httpSendRequest(HttpStateData * httpState)
     else
 	sendHeaderDone = httpSendComplete;
 
-    if (!opt_forwarded_for)
-	cfd = -1;
-    else if (entry->mem_obj == NULL)
-	cfd = -1;
-    else
-	cfd = entry->mem_obj->fd;
-    assert(-1 == cfd || FD_SOCKET == fd_table[cfd].type);
     if (p != NULL)
 	httpState->flags.proxying = 1;
     else
@@ -1005,7 +997,6 @@ httpSendRequest(HttpStateData * httpState)
 	httpState->orig_request,
 	entry,
 	&mb,
-	cfd,
 	httpState->flags);
     debug(11, 6) ("httpSendRequest: FD %d:\n%s\n", httpState->fd, mb.buf);
     comm_write_mbuf(httpState->fd, mb, sendHeaderDone, httpState);
