@@ -1775,8 +1775,17 @@ icpCheckTransferDone(clientHttpRequest * http)
 	    return 1;
     if ((mem = entry->mem_obj) == NULL)
 	return 0;
-    if (mem->reply->content_length < 0)
-	return 0;
+    if (mem->reply->content_length < 0) {
+	/*
+	 * reply->hdr_sz will be set by httpParseReplyHeaders()
+	 * if we find the end of the headers.  If we find the end,
+	 * and there is no content length, stick a fork in us. 
+	 */
+	if (mem->reply->hdr_sz > 0)
+	    return 1;
+	else
+	    return 0;
+    }
     if (http->out.offset >= mem->reply->content_length + mem->reply->hdr_sz)
 	return 1;
     return 0;
