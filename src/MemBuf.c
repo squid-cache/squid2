@@ -190,11 +190,12 @@ memBufAppend(MemBuf * mb, const char *buf, mb_size_t sz)
     assert(!mb->stolen);	/* not frozen */
 
     if (sz > 0) {
-	if (mb->size + sz > mb->capacity)
-	    memBufGrow(mb, mb->size + sz);
+	if (mb->size + sz + 1 > mb->capacity)
+	    memBufGrow(mb, mb->size + sz + 1);
 	assert(mb->size + sz <= mb->capacity);	/* paranoid */
 	xmemcpy(mb->buf + mb->size, buf, sz);
 	mb->size += sz;
+	mb->buf[mb->size] = '\0';	/* \0 terminate in case we are used as a string. Not counted in the size */
     }
 }
 
