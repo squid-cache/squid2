@@ -298,13 +298,32 @@ gopher_stop   ?
 #	IP-based access control for proxy requests.  Allow or deny
 #	clients based on IP number matching.  The order of the rules is
 #	important, they are read and checked sequentially.  For example,
-#	to allow only hosts on the Class C subnet 128.125.51 and the
-#	Class B subnet 128.126.0 to access cached and deny all other
+#	to allow only hosts on the Class C network 208.125.51.0 and the
+#	Class B subnet 128.126.3.0 to access cached and deny all other
 #	hosts, specify:
 #	
-#	proxy_allow    128.125.51.0
-#	proxy_allow    128.126.0.0
+#	proxy_allow    208.125.51.0/24
+#	proxy_allow    128.126.3.0/24
 #	proxy_deny     all
+#
+#	Permit syntax variations are:
+#	proxy_verb	hostaddr
+#	proxy_verb	network/nbits
+#	proxy_verb	network/mask
+#	proxy_verb	network 	(not recommended)
+#	proxy_verb	all		(equivalent to 0.0.0.0/0.0.0.0)
+#
+#	where:
+#		hostaddr=IP address in dotted quad notation
+#		network =network number in dotted quad notation
+#		nbits   =number of significant bits in network number
+#		mask	=netmask in dotted quad notation.
+#
+#	Note: CIDR notation does not include trailing 0 parts in a network
+#	specification, but proxy_verb syntax *requires* all four parts of
+#	a dotted quad specification.
+#	To specify the host 172.16.5.0, one must use 172.16.5.0/32
+#	or the backwards compatibility will assume 172.16.5.0/24
 #
 proxy_allow    all
 
