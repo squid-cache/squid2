@@ -116,7 +116,7 @@ static void aio_init(void);
 static void aio_queue_request(aio_request_t *);
 static void aio_process_request_queue(void);
 static void aio_cleanup_request(aio_request_t *);
-static void* aio_thread_loop(void *);
+static void *aio_thread_loop(void *);
 static void aio_do_open(aio_request_t *);
 static void aio_do_read(aio_request_t *);
 static void aio_do_write(aio_request_t *);
@@ -203,7 +203,7 @@ aio_init(void)
 }
 
 
-static void*
+static void *
 aio_thread_loop(void *ptr)
 {
     aio_thread_t *threadp = (aio_thread_t *) ptr;

@@ -120,7 +120,8 @@ storeUfsReadDone(int fd, const char *buf, int len, int errflag, void *my_data)
     sio->offset += len;
     assert(callback);
     assert(their_data);
-    sio->read.callback = sio->read.callback_data = NULL;
+    sio->read.callback = NULL;
+    sio->read.callback_data = NULL;
     if (cbdataValid(their_data))
 	callback(their_data, buf, (size_t) len);
     cbdataUnlock(their_data);

@@ -838,3 +838,28 @@ stringHasWhitespace(const char *s)
 {
     return (strcspn(s, w_space) != strlen(s));
 }
+
+void
+linklistPush(link_list ** L, void *p)
+{
+    link_list *l = xmalloc(sizeof(*l));
+    l->next = NULL;
+    l->ptr = p;
+    while (*L)
+	L = &(*L)->next;
+    *L = l;
+}
+
+void *
+linklistShift(link_list ** L)
+{
+    void *p;
+    link_list *l;
+    if (NULL == *L)
+	return NULL;
+    l = *L;
+    p = l->ptr;
+    *L = (*L)->next;
+    xfree(l);
+    return p;
+}

@@ -1320,6 +1320,11 @@ struct _request_flags {
     unsigned int internal:1;
 };
 
+struct _link_list {
+    void *ptr;
+    struct _link_list *next;
+};
+
 struct _storeIOState {
     sfileno swap_file_number;
     mode_t mode;
@@ -1346,10 +1351,12 @@ struct _storeIOState {
 	struct {
 	    int fd;
 	    const char *read_buf;
+	    link_list *pending_writes;
 	    struct {
 		unsigned int close_request:1;
 		unsigned int reading:1;
 		unsigned int writing:1;
+		unsigned int opening:1;
 	    } flags;
 	} aufs;
     } type;
