@@ -1000,6 +1000,7 @@ ftpReadControlReply(int fd, void *data)
     }
     if (len == 0) {
 	debug(9, 1) ("Read 0 bytes from FTP control socket?\n");
+	assert(len);
 	BIT_RESET(entry->flag, ENTRY_CACHABLE);
 	storeReleaseRequest(entry);
 	storeAbort(entry, ERR_READ_ERROR, xstrerror(), 0);

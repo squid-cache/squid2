@@ -2274,6 +2274,8 @@ storeInitHashValues(void)
 	store_maintain_buckets == 1 ? null_string : "s",
 	store_maintain_rate,
 	store_maintain_rate == 1 ? null_string : "s");
+    debug(20,1)("Max Mem  size: %d KB\n", Config.Mem.maxSize>>10);
+    debug(20,1)("Max Swap size: %d KB\n", Config.Swap.maxSize);
 }
 
 void
