@@ -1,3 +1,49 @@
+Changes to squid-2.5.STABLE6 ()
+
+	- Bug #937: NTLM assertion error "srv->flags.reserved"
+	- Bug #935: squid_ldap_auth can be confused by the use of reserved
+	  characters
+	- Helper queue warnings inprecice on the number of helpers required
+	- Bug #940, #305: pkg-config support for finding correct OpenSSL
+	  compile flags
+	- Bug #426: "Vary: *" is ignored
+	- 100% CPU usage on Linux-2.2
+	- Version number should not include -CVS if autoconf is run
+	- Bug #947: deny_info redirection with requested URL escaped wrongly
+	- Bug #495: CONNECT timeout should produce a 504 or 503
+	- Bug #956: cache_swap_log documentation referred to swap.state by
+	  it's old swap.log name
+	- ntlm/auth_ntlm.c(683): warning #187: use of "=" where "==" may
+	  have been intended
+	- Bug #962: rfc1035NameUnpack: Assertion (*off) < sz failed
+	- Bug #954: Segment violation when using a blank user name in digest
+	  authentication
+	- Bug #943: assertion failed: errorpage.c:292: "mem->inmem_hi == 0"
+	- Spelling corrections in configure and squid.conf.default
+	- The meaning of ERR in digest helper protocol clarified in the
+	  squid.conf documentation
+	- Bug #950: Spelling error in Turkish ERR_DNS_FAIL
+	- Bug #616: Negative cached 404 replies with VARY header never matched
+	- Bug #968: range_offset_limit -1 KB rejected as invalid syntax
+	  due to a shortcoming in the fix to bug #817
+	- Bug #570: Very large cache_mem values reported wrongly in cache.log
+	- Bug #676: store_dir_select_algorithm least-load doesn't work for
+	  ufs cache_dir type
+	- Bug #946: cacheCurrentUnlinkRequests should be a counter, not gauge
+	- Bug #948: Show client ip in cache.log debug output
+	- Bug #960: compilation issue on OpenBSD/m88k
+	- Bug #969: FTP directory listing HTML DOCTYPE misread by some tools
+	- Bug #991: dns_servers should default to localhost if no resolv.conf
+	- Bug #717: msnt_auth documentation update
+	- Bug #753: Segfault in memBufVPrintf on certain architectures
+	  requiring va_copy
+	- Bug #941: Negative size in access.log on long running CONNECT
+	  requests
+	- Bug #972: Segmentation fault after "Likely proxy abuse detected"
+	- Bug #981: sasl_auth updated to work with SALS2
+	- Overflow bug in Squid's ntlm_auth helper used for transparent NTLM
+	  authentication to a NT domain without using Samba.
+
 Changes to squid-2.5.STABLE5 (1 Mar 2004):
 
 	- cache.log message on "squid -k reconfigure" was slightly confusing,
