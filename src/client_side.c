@@ -2370,16 +2370,6 @@ clientProcessRequest2(clientHttpRequest * http)
 	http->entry = e;
 	return LOG_TCP_HIT;
     }
-#if HTTP_VIOLATIONS
-    if (e->store_status == STORE_PENDING) {
-	if (r->flags.nocache || r->flags.nocache_hack) {
-	    debug(33, 3) ("Clearing no-cache for STORE_PENDING request\n\t%s\n",
-		storeUrl(e));
-	    r->flags.nocache = 0;
-	    r->flags.nocache_hack = 0;
-	}
-    }
-#endif
     if (r->flags.nocache) {
 	debug(33, 3) ("clientProcessRequest2: no-cache REFRESH MISS\n");
 	http->entry = NULL;
