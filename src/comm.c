@@ -1,202 +1,34 @@
-static char rcsid[] = "$Id$";
-/* 
- * File:         comm.c
- * Description:  socket-based communication facility.  Adapted from DHT
- *               authenticating message library.
- * Author:       John Noll, USC
- * Created:      Tue Apr 26 14:24:37 1994
- * Language:     C
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
- */
 
-#include "config.h"
+/* $Id$ */
 
-#include <signal.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#if !defined(_HARVEST_LINUX_)
-#include <sys/uio.h>
-#endif
-#include <sys/socket.h>
-#include <sys/errno.h>
-#include <fcntl.h>
-#include <unistd.h>
+/* DEBUG: Section 5             comm: socket level functions */
 
-#ifdef _HARVEST_AIX_
-#include <sys/select.h>
-#endif
+#include "squid.h"
 
-#ifdef _HARVEST_SGI_
-#include <bstring.h>
-#endif
-
-#include "debug.h"
-#include "comm.h"
-#include "ipcache.h"
-#include "cache_cf.h"
-#include "fdstat.h"
-#include "util.h"
 
 /* Block processing new client requests (accepts on ascii port) when we start
  * running shy of free file descriptors.  For example, under SunOS, we'll keep
  * 64 file descriptors free for disk-i/o and connections to remote servers */
 
-int RESERVED_FD;
-
+int RESERVED_FD = 64;
 
 #define min(x,y) ((x)<(y)? (x) : (y))
 #define max(a,b) ((a)>(b)? (a) : (b))
 
 
 /* GLOBAL */
-time_t cached_curtime = 0L;	/* global time var set by select loop */
 FD_ENTRY *fd_table = NULL;	/* also used in disk.c */
 
 /* STATIC */
 static int *fd_lifetime = NULL;
-static fd_set send_sockets;
-static fd_set receive_sockets;
-static int (*app_handler) ();
-static void checkTimeouts();
-static void checkLifetimes();
+static void checkTimeouts _PARAMS((void));
+static void checkLifetimes _PARAMS((void));
 static void Reserve_More_FDs _PARAMS((void));
 static int commSetReuseAddr _PARAMS((int));
 static int examine_select _PARAMS((fd_set *, fd_set *, fd_set *));
 static int commSetNoLinger _PARAMS((int));
-
-/* EXTERN */
-extern int errno;
-extern int do_reuse;
-extern int getMaxFD();
-extern int theAsciiConnection;
-extern int theUdpConnection;
-extern int getConnectTimeout();
-extern int fdstat_are_n_free_fd _PARAMS((int));
-extern void fatal_dump _PARAMS((char *));
-extern int fd_of_first_client _PARAMS((StoreEntry *));
-char *fd_note();
-
-void comm_handler()
-{
-    /* Call application installed handler. */
-    debug(5, "comm_handler:\n");
-    app_handler();
-}
-
-char *comm_hostname()
-{
-    static char host[HARVESTHOSTNAMELEN + 1];
-    static int present = 0;
-    struct hostent *h = NULL;
-
-    /* Get the host name and store it in host to return */
-    if (!present) {
-	host[0] = '\0';
-	if (gethostname(host, HARVESTHOSTNAMELEN) == -1) {
-	    debug(1, "comm_hostname: gethostname failed: %s\n",
-		xstrerror());
-	    return NULL;
-	} else {
-	    if ((h = ipcache_gethostbyname(host)) != NULL) {
-		/* DNS lookup successful */
-		/* use the official name from DNS lookup */
-		strcpy(host, h->h_name);
-	    }
-	    present = 1;
-	}
-    }
-    return host;
-}
-
-char *comm_hostname_direct()
-{
-    static char temp_host[HARVESTHOSTNAMELEN + 1];
-
-    temp_host[0] = '\0';
-    if (gethostname(temp_host, HARVESTHOSTNAMELEN) == -1) {
-	debug(1, "comm_hostname_direct: gethostname failed: %s\n",
-	    xstrerror());
-	return NULL;
-    } else {
-	return temp_host;
-    }
-}
+static struct timeval zero_tv;
+static void comm_select_incoming _PARAMS((void));
 
 /* Return the local port associated with fd. */
 int comm_port(fd)
@@ -210,15 +42,15 @@ int comm_port(fd)
 
     /* If the fd is closed already, just return */
     if (!fd_table[fd].openned) {
-	debug(0, "comm_port: FD %d has been closed.\n", fd);
+	debug(5, 0, "comm_port: FD %d has been closed.\n", fd);
 	return (COMM_ERROR);
     }
     addr_len = sizeof(addr);
     if (getsockname(fd, (struct sockaddr *) &addr, &addr_len)) {
-	debug(1, "comm_port: Failed to retrieve TCP/UDP port number for socket: FD %d: %s\n", fd, xstrerror());
+	debug(5, 1, "comm_port: Failed to retrieve TCP/UDP port number for socket: FD %d: %s\n", fd, xstrerror());
 	return (COMM_ERROR);
     }
-    debug(6, "comm_port: FD %d: sockaddr %u.\n", fd, addr.sin_addr.s_addr);
+    debug(5, 6, "comm_port: FD %d: sockaddr %u.\n", fd, addr.sin_addr.s_addr);
     fd_table[fd].port = ntohs(addr.sin_port);
 
     return fd_table[fd].port;
@@ -234,7 +66,7 @@ static int do_bind(s, host, port)
 
     addr = getAddress(host);
     if (addr == (struct in_addr *) NULL) {
-	debug(0, "do_bind: Unknown host: %s\n", host);
+	debug(5, 0, "do_bind: Unknown host: %s\n", host);
 	return COMM_ERROR;
     }
     memset(&S, '\0', sizeof(S));
@@ -245,7 +77,7 @@ static int do_bind(s, host, port)
     if (bind(s, (struct sockaddr *) &S, sizeof(S)) == 0)
 	return COMM_OK;
 
-    debug(0, "do_bind: Cannot bind socket FD %d to %s:%d: %s\n",
+    debug(5, 0, "do_bind: Cannot bind socket FD %d to %s:%d: %s\n",
 	s,
 	S.sin_addr.s_addr == htonl(INADDR_ANY) ? "*" : inet_ntoa(S.sin_addr),
 	port, xstrerror());
@@ -263,7 +95,7 @@ int comm_open(io_type, port, handler, note)
     int new_socket;
     FD_ENTRY *conn = NULL;
     int sock_type = io_type & COMM_DGRAM ? SOCK_DGRAM : SOCK_STREAM;
-    stoplist *p = NULL;
+    wordlist *p = NULL;
 
     /* Create socket for accepting new connections. */
     if ((new_socket = socket(AF_INET, sock_type, 0)) < 0) {
@@ -273,11 +105,11 @@ int comm_open(io_type, port, handler, note)
 	switch (errno) {
 	case ENFILE:
 	case EMFILE:
-	    debug(1, "comm_open: socket failure: %s\n", xstrerror());
+	    debug(5, 1, "comm_open: socket failure: %s\n", xstrerror());
 	    Reserve_More_FDs();
 	    break;
 	default:
-	    debug(0, "comm_open: socket failure: %s\n", xstrerror());
+	    debug(5, 0, "comm_open: socket failure: %s\n", xstrerror());
 	}
 	return (COMM_ERROR);
     }
@@ -290,12 +122,12 @@ int comm_open(io_type, port, handler, note)
     conn->openned = 1;
 
     if (fcntl(new_socket, F_SETFD, 1) < 0) {
-	debug(0, "comm_open: FD %d: failed to set close-on-exec flag: %s\n",
+	debug(5, 0, "comm_open: FD %d: failed to set close-on-exec flag: %s\n",
 	    new_socket, xstrerror());
     }
     if (port > 0) {
 	if (commSetNoLinger(new_socket) < 0) {
-	    debug(0, "comm_open: failed to turn off SO_LINGER: %s\n",
+	    debug(5, 0, "comm_open: failed to turn off SO_LINGER: %s\n",
 		xstrerror());
 	}
 	if (do_reuse) {
@@ -303,80 +135,29 @@ int comm_open(io_type, port, handler, note)
 	}
     }
     if (port) {
-	for (p = bind_addr_list; p; p = p->next) {
+	for (p = getBindAddrList(); p; p = p->next) {
 	    if (do_bind(new_socket, p->key, port) == COMM_OK)
 		break;
-	    if (p->next == (stoplist *) NULL)
+	    if (p->next == (wordlist *) NULL)
 		return COMM_ERROR;
 	}
     }
     conn->port = port;
 
-#ifdef OLD_CODE
-    if (io_type & COMM_INTERRUPT) {
-#ifdef _HARVEST_HPUX_
-	pid_t my_pid = getpid();
-	int non_zero = 1;
-
-	/* Install interrupt handler. */
-	if ((app_handler = conn->handler = handler) == NULL)
-	    return (COMM_NO_HANDLER);
-
-	/* Set up the environment for handling signals. */
-	signal(SIGIO, comm_handler);
-
-	/* Set the process receiving SIGIO/SIGURG signals to us. */
-	if (ioctl(new_socket, SIOCSPGRP, &my_pid) < 0) {
-	    debug(0, "comm_open: Failure to set SIOCSPGRP: %s\n",
-		xstrerror());
-	    return (COMM_ERROR);
-	}
-	/*
-	 * Set status flags to allow receipt of asychronous I/O signals.
-	 */
-
-	if (ioctl(new_socket, FIOASYNC, &non_zero)) {
-	    debug(0, "comm_open: Failure to set FIOASYNC: %s\n",
-		xstrerror());
-	    return COMM_ERROR;
-	}
-#else
-	/* Install interrupt handler. */
-	if ((app_handler = conn->handler = handler) == NULL)
-	    return (COMM_NO_HANDLER);
-
-	/* Set up the environment for handling signals. */
-	signal(SIGIO, comm_handler);
-
-	/* Set the process receiving SIGIO/SIGURG signals to us. */
-	if (fcntl(new_socket, F_SETOWN, getpid()) < 0) {
-	    debug(0, "comm_open: Failure to set F_SETOWN: %s\n",
-		xstrerror());
-	    return (COMM_ERROR);
-	}
-	/* Set status flags to allow receipt of asychronous I/O signals.  */
-	if (fcntl(new_socket, F_SETFL, FASYNC)) {
-	    debug(0, "comm_open: Failure to set FASYNC: %s\n",
-		xstrerror());
-	    return COMM_ERROR;
-	}
-#endif /* _HARVEST_HPUX_ */
-    }
-#endif /* OLD_CODE */
     if (io_type & COMM_NONBLOCKING) {
 	/*
 	 * Set up the flag NOT to have the socket to wait for message from
 	 * network forever, but to return -1 when no message is coming in.
 	 */
-#if defined(O_NONBLOCK) && !defined(_HARVEST_SUNOS_) && !defined(_HARVEST_SOLARIS_)
+#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
 	if (fcntl(new_socket, F_SETFL, O_NONBLOCK)) {
-	    debug(0, "comm_open: FD %d: Failure to set O_NONBLOCK: %s\n",
+	    debug(5, 0, "comm_open: FD %d: Failure to set O_NONBLOCK: %s\n",
 		new_socket, xstrerror());
 	    return (COMM_ERROR);
 	}
 #else
-	if (fcntl(new_socket, F_SETFL, FNDELAY)) {
-	    debug(0, "comm_open: FD %d: Failure to set FNDELAY: %s\n",
+	if (fcntl(new_socket, F_SETFL, O_NDELAY)) {
+	    debug(5, 0, "comm_open: FD %d: Failure to set O_NDELAY: %s\n",
 		new_socket, xstrerror());
 	    return (COMM_ERROR);
 	}
@@ -397,9 +178,8 @@ int comm_listen(sock)
      int sock;
 {
     int x;
-    FD_SET(sock, &receive_sockets);
     if ((x = listen(sock, 50)) < 0) {
-	debug(0, "comm_listen: listen(%d, 50): %s\n",
+	debug(5, 0, "comm_listen: listen(%d, 50): %s\n",
 	    sock, xstrerror());
 	return x;
     }
@@ -420,7 +200,7 @@ int comm_connect(sock, dest_host, dest_port)
     to_addr.sin_family = AF_INET;
 
     if ((hp = ipcache_gethostbyname(dest_host)) == 0) {
-	debug(1, "comm_connect: Failure to lookup host: %s.\n", dest_host);
+	debug(5, 1, "comm_connect: Failure to lookup host: %s.\n", dest_host);
 	return (COMM_ERROR);
     }
     memcpy(&to_addr.sin_addr, hp->h_addr, hp->h_length);
@@ -432,11 +212,11 @@ int comm_set_fd_lifetime(fd, lifetime)
      int fd;
      int lifetime;
 {
-    if (fd < 0)
+    if (fd < 0 || fd > getMaxFD())
 	return 0;
     if (lifetime < 0)
 	return fd_lifetime[fd] = -1;
-    return fd_lifetime[fd] = (int) cached_curtime + lifetime;
+    return fd_lifetime[fd] = (int) squid_curtime + lifetime;
 }
 
 int comm_get_fd_lifetime(fd)
@@ -467,7 +247,7 @@ int comm_connect_addr(sock, address)
 
     /* sanity check */
     if (ntohs(address->sin_port) == 0) {
-	debug(10, "comm_connect_addr: %s:%d: URL uses port 0?\n",
+	debug(5, 10, "comm_connect_addr: %s:%d: URL uses port 0?\n",
 	    inet_ntoa(address->sin_addr), ntohs(address->sin_port));
 	errno = 0;
 	return COMM_ERROR;
@@ -489,7 +269,7 @@ int comm_connect_addr(sock, address)
 	    if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
 		errno = x;
 	default:
-	    debug(1, "comm_connect_addr: %s:%d: socket failure: %s.\n",
+	    debug(5, 1, "comm_connect_addr: %s:%d: socket failure: %s.\n",
 		inet_ntoa(address->sin_addr),
 		ntohs(address->sin_port),
 		xstrerror());
@@ -498,18 +278,17 @@ int comm_connect_addr(sock, address)
     /* set the lifetime for this client */
     if (status == COMM_OK) {
 	lft = comm_set_fd_lifetime(sock, getClientLifetime());
-	debug(10, "comm_connect_addr: FD %d (lifetime %d): connected to %s:%d.\n",
-	    sock, lft, inet_ntoa(address->sin_addr),
-	    ntohs(address->sin_port));
+	strcpy(conn->ipaddr, inet_ntoa(address->sin_addr));
+	conn->port = ntohs(address->sin_port);
+	debug(5, 10, "comm_connect_addr: FD %d (lifetime %d): connected to %s:%d.\n",
+	    sock, lft, conn->ipaddr, conn->port);
     } else if (status == EINPROGRESS) {
 	lft = comm_set_fd_lifetime(sock, getConnectTimeout());
-	debug(10, "comm_connect_addr: FD %d connection pending, lifetime %d\n",
+	debug(5, 10, "comm_connect_addr: FD %d connection pending, lifetime %d\n",
 	    sock, lft);
     }
     /* Add new socket to list of open sockets. */
-    FD_SET(sock, &send_sockets);
     conn->sender = 1;
-
     return status;
 }
 
@@ -521,13 +300,14 @@ int comm_accept(fd, peer, me)
      struct sockaddr_in *me;
 {
     int sock;
-    struct sockaddr_in S;
+    struct sockaddr_in P;
+    struct sockaddr_in M;
     int Slen;
-    FD_ENTRY *conn;
+    FD_ENTRY *conn = NULL;
     FD_ENTRY *listener = &fd_table[fd];
 
-    Slen = sizeof(S);
-    while ((sock = accept(fd, (struct sockaddr *) &S, &Slen)) < 0) {
+    Slen = sizeof(P);
+    while ((sock = accept(fd, (struct sockaddr *) &P, &Slen)) < 0) {
 	switch (errno) {
 #if EAGAIN != EWOULDBLOCK
 	case EAGAIN:
@@ -541,20 +321,20 @@ int comm_accept(fd, peer, me)
 	    Reserve_More_FDs();
 	    return COMM_ERROR;
 	default:
-	    debug(1, "comm_accept: FD %d: accept failure: %s\n",
+	    debug(5, 1, "comm_accept: FD %d: accept failure: %s\n",
 		fd, xstrerror());
 	    return COMM_ERROR;
 	}
     }
 
     if (peer)
-	*peer = S;
+	*peer = P;
 
     if (me) {
-	Slen = sizeof(S);
-	memset(&S, '\0', Slen);
-	getsockname(sock, (struct sockaddr *) &S, &Slen);
-	*me = S;
+	Slen = sizeof(M);
+	memset(&M, '\0', Slen);
+	getsockname(sock, (struct sockaddr *) &M, &Slen);
+	*me = M;
     }
     /* fdstat update */
     fdstat_open(sock, Socket);
@@ -562,8 +342,8 @@ int comm_accept(fd, peer, me)
     conn->openned = 1;
     conn->sender = 0;		/* This is an accept, therefore receiver. */
     conn->comm_type = listener->comm_type;
+    strcpy(conn->ipaddr, inet_ntoa(P.sin_addr));
 
-    FD_SET(sock, &receive_sockets);
     commSetNonBlocking(sock);
 
     return sock;
@@ -578,18 +358,17 @@ int comm_close(fd)
 	return -1;
 
     if (fdstat_type(fd) == File) {
-	debug(0, "FD %d: Someone called comm_close() on a File\n", fd);
+	debug(5, 0, "FD %d: Someone called comm_close() on a File\n", fd);
 	fatal_dump(NULL);
     }
     conn = &fd_table[fd];
 
-    FD_CLR(fd, &receive_sockets);
-    FD_CLR(fd, &send_sockets);
-
     comm_set_fd_lifetime(fd, -1);	/* invalidate the lifetime */
-    debug(10, "comm_close: FD %d\n", fd);
+    debug(5, 10, "comm_close: FD %d\n", fd);
     /* update fdstat */
     fdstat_close(fd);
+    if (conn->close_handler)
+	conn->close_handler(fd, conn->close_data);
     memset(conn, '\0', sizeof(FD_ENTRY));
     return close(fd);
 }
@@ -622,7 +401,7 @@ int comm_udp_send(fd, host, port, buf, len)
     to_addr.sin_family = AF_INET;
 
     if ((hp = ipcache_gethostbyname(host)) == 0) {
-	debug(1, "comm_udp_send: gethostbyname failure: %s: %s\n",
+	debug(5, 1, "comm_udp_send: gethostbyname failure: %s: %s\n",
 	    host, xstrerror());
 	return (COMM_ERROR);
     }
@@ -630,7 +409,7 @@ int comm_udp_send(fd, host, port, buf, len)
     to_addr.sin_port = htons(port);
     if ((bytes_sent = sendto(fd, buf, len, 0, (struct sockaddr *) &to_addr,
 		sizeof(to_addr))) < 0) {
-	debug(1, "comm_udp_send: sendto failure: FD %d: %s\n",
+	debug(5, 1, "comm_udp_send: sendto failure: FD %d: %s\n",
 	    fd, xstrerror());
 	return COMM_ERROR;
     }
@@ -648,10 +427,10 @@ int comm_udp_sendto(fd, to_addr, addr_len, buf, len)
     int bytes_sent;
 
     if ((bytes_sent = sendto(fd, buf, len, 0, (struct sockaddr *) to_addr, addr_len)) < 0) {
-	debug(1, "comm_udp_sendto: sendto failure: FD %d: %s\n", fd, xstrerror());
-	debug(1, "comm_udp_sendto: --> sin_family = %d\n", to_addr->sin_family);
-	debug(1, "comm_udp_sendto: --> sin_port   = %d\n", htons(to_addr->sin_port));
-	debug(1, "comm_udp_sendto: --> sin_addr   = %s\n", inet_ntoa(to_addr->sin_addr));
+	debug(5, 1, "comm_udp_sendto: sendto failure: FD %d: %s\n", fd, xstrerror());
+	debug(5, 1, "comm_udp_sendto: --> sin_family = %d\n", to_addr->sin_family);
+	debug(5, 1, "comm_udp_sendto: --> sin_port   = %d\n", htons(to_addr->sin_port));
+	debug(5, 1, "comm_udp_sendto: --> sin_addr   = %s\n", inet_ntoa(to_addr->sin_addr));
 	return COMM_ERROR;
     }
     return bytes_sent;
@@ -667,182 +446,219 @@ int comm_udp_recv(fd, buf, size, from_addr, from_size)
     int len = recvfrom(fd, buf, size, 0, (struct sockaddr *) from_addr,
 	from_size);
     if (len < 0) {
-	debug(1, "comm_udp_recv: recvfrom failure: FD %d: %s\n", fd,
+	debug(5, 1, "comm_udp_recv: recvfrom failure: FD %d: %s\n", fd,
 	    xstrerror());
 	return COMM_ERROR;
     }
     return len;
 }
 
+void comm_set_stall(fd, delta)
+     int fd;
+     int delta;
+{
+    if (fd < 0)
+	return;
+    fd_table[fd].stall_until = squid_curtime + delta;
+}
+
+static void comm_select_incoming()
+{
+    fd_set read_mask;
+    fd_set write_mask;
+    int maxfd = 0;
+    int fd = 0;
+    int fds[3];
+    int N = 0;
+    int i = 0;
+    int (*tmp) () = NULL;
+
+    FD_ZERO(&read_mask);
+    FD_ZERO(&write_mask);
+
+    if (theAsciiConnection >= 0 && fdstat_are_n_free_fd(RESERVED_FD))
+	fds[N++] = theAsciiConnection;
+    if (theUdpConnection >= 0)
+	fds[N++] = theUdpConnection;
+    fds[N++] = 0;
+
+    for (i = 0; i < N; i++) {
+	fd = fds[i];
+	if (fd_table[fd].read_handler) {
+	    FD_SET(fd, &read_mask);
+	    if (fd > maxfd)
+		maxfd = fd;
+	}
+	if (fd_table[fd].write_handler) {
+	    FD_SET(fd, &write_mask);
+	    if (fd > maxfd)
+		maxfd = fd;
+	}
+    }
+
+    if (maxfd++ == 0)
+	return;
+    if (select(maxfd, &read_mask, &write_mask, NULL, &zero_tv) > 0) {
+	for (i = 0; i < N; i++) {
+	    fd = fds[i];
+	    if (FD_ISSET(fd, &read_mask)) {
+		tmp = fd_table[fd].read_handler;
+		fd_table[fd].read_handler = 0;
+		tmp(fd, fd_table[fd].read_data);
+	    }
+	    if (FD_ISSET(fd, &write_mask)) {
+		tmp = fd_table[fd].write_handler;
+		fd_table[fd].write_handler = 0;
+		tmp(fd, fd_table[fd].write_data);
+	    }
+	}
+    }
+}
 
 
 /* Select on all sockets; call handlers for those that are ready. */
-int comm_select(sec, usec, failtime)
-     long sec, usec;
+int comm_select(sec, failtime)
+     time_t sec;
      time_t failtime;
 {
-    int fd;
-    int i;
+    fd_set exceptfds;
     fd_set readfds;
     fd_set writefds;
-    fd_set exceptfds;
+    int (*tmp) () = NULL;
+    int fd;
+    int i;
+    int maxfd;
+    int nfds;
     int num;
-    time_t timeout;
     static time_t last_timeout = 0;
     struct timeval poll_time;
-    struct timeval zero_tv;
-    int sel_fd_width;
+    time_t timeout;
 
     /* assume all process are very fast (less than 1 second). Call
      * time() only once */
-    cached_curtime = time(0L);
+    getCurrentTime();
     /* use only 1 second granularity */
-    zero_tv.tv_sec = 0;
-    zero_tv.tv_usec = 0;
-    timeout = cached_curtime + sec;
+    timeout = squid_curtime + sec;
 
-
-    while (timeout > (cached_curtime = time(0L))) {
-	if (0 < failtime && failtime < cached_curtime)
+    do {
+	if (0 < failtime && failtime < squid_curtime)
 	    break;
 
 	FD_ZERO(&readfds);
 	FD_ZERO(&writefds);
 	FD_ZERO(&exceptfds);
 
-	for (i = 0; i < fdstat_biggest_fd() + 1; i++) {
+	nfds = 0;
+	maxfd = fdstat_biggest_fd() + 1;
+	for (i = 0; i < maxfd; i++) {
 	    /* Check each open socket for a handler. */
-	    if (fd_table[i].read_handler)
+	    if (fd_table[i].read_handler && fd_table[i].stall_until <= squid_curtime) {
+		nfds++;
 		FD_SET(i, &readfds);
-	    if (fd_table[i].write_handler)
+	    }
+	    if (fd_table[i].write_handler) {
+		nfds++;
 		FD_SET(i, &writefds);
-	    if (fd_table[i].except_handler)
+	    }
+	    if (fd_table[i].except_handler) {
+		nfds++;
 		FD_SET(i, &exceptfds);
+	    }
 	}
 	if (!fdstat_are_n_free_fd(RESERVED_FD)) {
 	    FD_CLR(theAsciiConnection, &readfds);
 	}
+	if (shutdown_pending || reread_pending)
+		debug(5,1,"comm_select: Still waiting on %d FDs\n", nfds);
+	if (nfds == 0)
+	    return COMM_SHUTDOWN;
 	while (1) {
 	    poll_time.tv_sec = 1;
 	    poll_time.tv_usec = 0;
-	    num = select(fdstat_biggest_fd() + 1,
-		&readfds, &writefds, &exceptfds, &poll_time);
+	    num = select(maxfd, &readfds, &writefds, &exceptfds, &poll_time);
 	    if (num >= 0)
 		break;
-
-	    if (errno != EINTR) {
-		debug(0, "comm_select: select failure: %s (errno %d).\n",
-		    xstrerror(), errno);
-		examine_select(&readfds, &writefds, &exceptfds);
-		return COMM_ERROR;
-	    }
-	    /* if select interrupted, try again */
+	    /* break on interrupt so outer loop will reset FD_SET's */
+	    if (errno == EINTR)
+		break;
+	    debug(5, 0, "comm_select: select failure: %s (errno %d).\n",
+		xstrerror(), errno);
+	    examine_select(&readfds, &writefds, &exceptfds);
+	    return COMM_ERROR;
 	}
+	if (num < 0)
+	    continue;
 
-	debug(num ? 5 : 8, "comm_select: %d sockets ready at %d\n",
-	    num, cached_curtime);
+	debug(5, num ? 5 : 8, "comm_select: %d sockets ready at %d\n",
+	    num, squid_curtime);
 
 	/* Check lifetime and timeout handlers ONCE each second.
 	 * Replaces brain-dead check every time through the loop! */
-	if (cached_curtime > last_timeout) {
-	    last_timeout = cached_curtime;
+	if (squid_curtime > last_timeout) {
+	    last_timeout = squid_curtime;
 	    checkTimeouts();
 	    checkLifetimes();
 	}
+	if (num == 0)
+	    continue;
+
 	/* scan each socket but the accept socket. Poll this 
 	 * more frequently to minimiize losses due to the 5 connect 
 	 * limit in SunOS */
 
-	if (num) {
-	    for (fd = 0; (fd < (fdstat_biggest_fd() + 1)) && (num > 0); fd++) {
+	maxfd = fdstat_biggest_fd() + 1;
+	for (fd = 0; fd < maxfd && num > 0; fd++) {
 
-		if (!(FD_ISSET(fd, &readfds) || FD_ISSET(fd, &writefds) ||
-			FD_ISSET(fd, &exceptfds)))
-		    continue;
-		else
-		    --num;
+	    if (!(FD_ISSET(fd, &readfds) || FD_ISSET(fd, &writefds) ||
+		    FD_ISSET(fd, &exceptfds)))
+		continue;
+	    else
+		--num;
 
-		/*
-		 * Admit more connections quickly until we hit the hard limit.
-		 * Don't forget to keep the UDP acks coming and going.
-		 */
-		{
-		    fd_set read_mask, write_mask;
-		    int (*tmp) () = NULL;
+	    /*
+	     * Admit more connections quickly until we hit the hard limit.
+	     * Don't forget to keep the UDP acks coming and going.
+	     */
+	    comm_select_incoming();
 
-		    FD_ZERO(&read_mask);
-		    FD_ZERO(&write_mask);
+	    if ((fd == theUdpConnection) || (fd == theAsciiConnection))
+		continue;
 
-		    if ((fdstat_are_n_free_fd(RESERVED_FD)) && (fd_table[theAsciiConnection].read_handler))
-			FD_SET(theAsciiConnection, &read_mask);
-		    else
-			FD_CLR(theAsciiConnection, &read_mask);
-		    if (theUdpConnection >= 0) {
-			if (fd_table[theUdpConnection].read_handler)
-			    FD_SET(theUdpConnection, &read_mask);
-			if (fd_table[theUdpConnection].write_handler)
-			    FD_SET(theUdpConnection, &write_mask);
-		    }
-		    sel_fd_width = max(theAsciiConnection, theUdpConnection) + 1;
-		    if (select(sel_fd_width, &read_mask, &write_mask, NULL, &zero_tv) > 0) {
-			if (FD_ISSET(theAsciiConnection, &read_mask)) {
-			    tmp = fd_table[theAsciiConnection].read_handler;
-			    fd_table[theAsciiConnection].read_handler = 0;
-			    tmp(theAsciiConnection, fd_table[theAsciiConnection].read_data);
-			}
-			if ((theUdpConnection >= 0)) {
-			    if (FD_ISSET(theUdpConnection, &read_mask)) {
-				tmp = fd_table[theUdpConnection].read_handler;
-				fd_table[theUdpConnection].read_handler = 0;
-				tmp(theUdpConnection, fd_table[theUdpConnection].read_data);
-			    }
-			    if (FD_ISSET(theUdpConnection, &write_mask)) {
-				tmp = fd_table[theUdpConnection].write_handler;
-				fd_table[theUdpConnection].write_handler = 0;
-				tmp(theUdpConnection, fd_table[theUdpConnection].write_data);
-			    }
-			}
-		    }
-		}
-		if ((fd == theUdpConnection) || (fd == theAsciiConnection))
-		    continue;
-
-		if (FD_ISSET(fd, &readfds)) {
-		    debug(6, "comm_select: FD %d ready for reading\n", fd);
-		    if (fd_table[fd].read_handler) {
-			int (*tmp) () = fd_table[fd].read_handler;
-			fd_table[fd].read_handler = 0;
-			debug(10, "calling read handler %p(%d,%p)\n",
-			    tmp, fd, fd_table[fd].read_data);
-			tmp(fd, fd_table[fd].read_data);
-		    }
-		}
-		if (FD_ISSET(fd, &writefds)) {
-		    debug(5, "comm_select: FD %d ready for writing\n", fd);
-		    if (fd_table[fd].write_handler) {
-			int (*tmp) () = fd_table[fd].write_handler;
-			fd_table[fd].write_handler = 0;
-			debug(10, "calling write handler %p(%d,%p)\n",
-			    tmp, fd, fd_table[fd].write_data);
-			tmp(fd, fd_table[fd].write_data);
-		    }
-		}
-		if (FD_ISSET(fd, &exceptfds)) {
-		    debug(5, "comm_select: FD %d has an exception\n", fd);
-		    if (fd_table[fd].except_handler) {
-			int (*tmp) () = fd_table[fd].except_handler;
-			fd_table[fd].except_handler = 0;
-			debug(10, "calling except handler %p(%d,%p)\n",
-			    tmp, fd, fd_table[fd].except_data);
-			tmp(fd, fd_table[fd].except_data);
-		    }
+	    if (FD_ISSET(fd, &readfds)) {
+		debug(5, 6, "comm_select: FD %d ready for reading\n", fd);
+		if (fd_table[fd].read_handler) {
+		    tmp = fd_table[fd].read_handler;
+		    fd_table[fd].read_handler = 0;
+		    debug(5, 10, "calling read handler %p(%d,%p)\n",
+			tmp, fd, fd_table[fd].read_data);
+		    tmp(fd, fd_table[fd].read_data);
 		}
 	    }
-	    return COMM_OK;
+	    if (FD_ISSET(fd, &writefds)) {
+		debug(5, 5, "comm_select: FD %d ready for writing\n", fd);
+		if (fd_table[fd].write_handler) {
+		    tmp = fd_table[fd].write_handler;
+		    fd_table[fd].write_handler = 0;
+		    debug(5, 10, "calling write handler %p(%d,%p)\n",
+			tmp, fd, fd_table[fd].write_data);
+		    tmp(fd, fd_table[fd].write_data);
+		}
+	    }
+	    if (FD_ISSET(fd, &exceptfds)) {
+		debug(5, 5, "comm_select: FD %d has an exception\n", fd);
+		if (fd_table[fd].except_handler) {
+		    tmp = fd_table[fd].except_handler;
+		    fd_table[fd].except_handler = 0;
+		    debug(5, 10, "calling except handler %p(%d,%p)\n",
+			tmp, fd, fd_table[fd].except_data);
+		    tmp(fd, fd_table[fd].except_data);
+		}
+	    }
 	}
-    }
+	return COMM_OK;
+    } while (timeout > getCurrentTime());
 
-    debug(8, "comm_select: time out: %d.\n", cached_curtime);
+    debug(5, 8, "comm_select: time out: %d.\n", squid_curtime);
     return COMM_TIMEOUT;
 }
 
@@ -875,12 +691,12 @@ int comm_pending(fd, sec, usec)
 	case EINTR:
 	    break;		/* if select interrupted, try again */
 	default:
-	    debug(1, "comm_pending: select failure: %s\n", xstrerror());
+	    debug(5, 1, "comm_pending: select failure: %s\n", xstrerror());
 	    return COMM_ERROR;
 	}
     }
 
-    debug(5, "comm_pending: %d sockets ready for reading\n", num);
+    debug(5, 5, "comm_pending: %d sockets ready for reading\n", num);
 
     if (num && FD_ISSET(fd, &readfds)) {
 	return COMM_OK;
@@ -888,33 +704,30 @@ int comm_pending(fd, sec, usec)
     return COMM_TIMEOUT;
 }
 
-int comm_set_select_handler(fd, type, handler, client_data)
+void comm_set_select_handler(fd, type, handler, client_data)
      int fd;
      unsigned int type;
-/* 01 - read; 10 - write; 100 - except; 1000 - timeout ; 10000 - lifetime */
      int (*handler) ();
-     caddr_t client_data;
+     void *client_data;
 {
 
-    return (comm_set_select_handler_plus_timeout(fd, type, handler, client_data, 0));
+    comm_set_select_handler_plus_timeout(fd, type, handler, client_data, 0);
 }
 
-/* Should use var args here PBD */
-int comm_set_select_handler_plus_timeout(fd, type, handler, client_data, timeout)
+void comm_set_select_handler_plus_timeout(fd, type, handler, client_data, timeout)
      int fd;
      unsigned int type;
-/* 01 - read; 10 - write; 100 - except; 1000 - timeout ; 10000 - lifetime */
      int (*handler) ();
-     caddr_t client_data;
+     void *client_data;
      time_t timeout;
 {
     if (type & COMM_SELECT_TIMEOUT) {
-	fd_table[fd].timeout_time = (time(0L) + timeout);
+	fd_table[fd].timeout_time = (getCurrentTime() + timeout);
 	fd_table[fd].timeout_delta = timeout;
 	fd_table[fd].timeout_handler = handler;
 	fd_table[fd].timeout_data = client_data;
 	if ((timeout <= 0) && handler) {
-	    debug(2, "comm_set_select_handler_plus_timeout: Zero timeout doesn't make sense\n");
+	    debug(5, 2, "comm_set_select_handler_plus_timeout: Zero timeout doesn't make sense\n");
 	}
     }
     if (type & COMM_SELECT_READ) {
@@ -933,14 +746,17 @@ int comm_set_select_handler_plus_timeout(fd, type, handler, client_data, timeout
 	fd_table[fd].lifetime_handler = handler;
 	fd_table[fd].lifetime_data = client_data;
     }
-    return 0;			/* XXX What is meaningful? */
+    if (type & COMM_SELECT_CLOSE) {
+	fd_table[fd].close_handler = handler;
+	fd_table[fd].close_data = client_data;
+    }
 }
 
 int comm_get_select_handler(fd, type, handler_ptr, client_data_ptr)
      int fd;
      unsigned int type;
      int (**handler_ptr) ();
-     caddr_t *client_data_ptr;
+     void **client_data_ptr;
 {
     if (type & COMM_SELECT_TIMEOUT) {
 	*handler_ptr = fd_table[fd].timeout_handler;
@@ -974,7 +790,7 @@ static int commSetNoLinger(fd)
     L.l_onoff = 0;		/* off */
     L.l_linger = 0;
 
-    debug(10, "commSetNoLinger: turning off SO_LINGER on FD %d\n", fd);
+    debug(5, 10, "commSetNoLinger: turning off SO_LINGER on FD %d\n", fd);
     return setsockopt(fd, SOL_SOCKET, SO_LINGER, (char *) &L, sizeof(L));
 }
 
@@ -984,32 +800,32 @@ static int commSetReuseAddr(fd)
     int on = 1;
     int rc;
 
-    debug(10, "commSetReuseAddr: turning on SO_REUSEADDR on FD %d\n", fd);
+    debug(5, 10, "commSetReuseAddr: turning on SO_REUSEADDR on FD %d\n", fd);
     rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
     if (rc < 0)
-	debug(1, "commSetReuseAddr: FD=%d: %s\n", fd, xstrerror());
+	debug(5, 1, "commSetReuseAddr: FD=%d: %s\n", fd, xstrerror());
     return rc;
 }
 
 int commSetNonBlocking(fd)
      int fd;
 {
-    debug(10, "commSetNonBlocking: setting FD %d to non-blocking i/o.\n",
+    debug(5, 10, "commSetNonBlocking: setting FD %d to non-blocking i/o.\n",
 	fd);
     /*
      * Set up the flag NOT to have the socket to wait for message from
      * network forever, but to return -1 when no message is coming in.
      */
 
-#if defined(O_NONBLOCK) && !defined(_HARVEST_SUNOS_) && !defined(_HARVEST_SOLARIS_)
+#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
     if (fcntl(fd, F_SETFL, O_NONBLOCK)) {
-	debug(0, "comm_open: FD %d: error setting O_NONBLOCK: %s\n",
+	debug(5, 0, "comm_open: FD %d: error setting O_NONBLOCK: %s\n",
 	    fd, xstrerror());
 	return (COMM_ERROR);
     }
 #else
-    if (fcntl(fd, F_SETFL, FNDELAY)) {
-	debug(0, "comm_open: FD %d: error setting FNDELAY: %s\n",
+    if (fcntl(fd, F_SETFL, O_NDELAY)) {
+	debug(5, 0, "comm_open: FD %d: error setting O_NDELAY: %s\n",
 	    fd, xstrerror());
 	return (COMM_ERROR);
     }
@@ -1025,7 +841,7 @@ char **getAddressList(name)
 	return NULL;
     if ((hp = ipcache_gethostbyname(name)))
 	return hp->h_addr_list;
-    debug(0, "getAddress: gethostbyname failure: %s: %s\n",
+    debug(5, 0, "getAddress: gethostbyname failure: %s: %s\n",
 	name, xstrerror());
     return NULL;
 }
@@ -1041,7 +857,7 @@ struct in_addr *getAddress(name)
 	memcpy(&first.s_addr, *list, 4);
 	return (&first);
     }
-    debug(0, "getAddress: gethostbyname failure: %s: %s\n",
+    debug(5, 0, "getAddress: gethostbyname failure: %s: %s\n",
 	name, xstrerror());
     return NULL;
 }
@@ -1049,25 +865,25 @@ struct in_addr *getAddress(name)
 /*
  *  the fd_lifetime is used as a hardlimit to timeout dead sockets.
  *  The basic problem is that many WWW clients are abusive and
- *  it results in cached having lots of CLOSE_WAIT states.  Until
+ *  it results in squid having lots of CLOSE_WAIT states.  Until
  *  we can find a better solution, we give all asciiPort or
- *  cached initiated clients a maximum lifetime.
+ *  squid initiated clients a maximum lifetime.
  */
 int comm_init()
 {
     int i, max_fd = getMaxFD();
 
-    fd_table = (FD_ENTRY *) xmalloc(sizeof(FD_ENTRY) * max_fd);
-    memset(fd_table, '\0', sizeof(FD_ENTRY) * max_fd);	/* clear fd_table */
+    fd_table = (FD_ENTRY *) xcalloc(max_fd, sizeof(FD_ENTRY));
     /* Keep a few file descriptors free so that we don't run out of FD's
      * after accepting a client but before it opens a socket or a file.
      * Since getMaxFD can be as high as several thousand, don't waste them */
     RESERVED_FD = min(100, getMaxFD() / 4);
     /* hardwired lifetimes */
     fd_lifetime = (int *) xmalloc(sizeof(int) * max_fd);
-    for (i = 0; i < max_fd; i++) {
+    for (i = 0; i < max_fd; i++)
 	comm_set_fd_lifetime(i, -1);	/* denotes invalid */
-    }
+    zero_tv.tv_sec = 0;
+    zero_tv.tv_usec = 0;
     return 0;
 }
 
@@ -1086,12 +902,16 @@ static int examine_select(readfds, writefds, exceptfds)
      fd_set *readfds, *writefds, *exceptfds;
 {
     int fd = 0;
-    fd_set read_x, write_x, except_x;
+    fd_set read_x;
+    fd_set write_x;
+    fd_set except_x;
     int num;
+    int maxfd = getMaxFD();
     struct timeval tv;
+    FD_ENTRY *f = NULL;
 
-    debug(0, "examine_select: Examining open file descriptors...\n");
-    for (fd = 0; fd < getMaxFD(); ++fd) {
+    debug(5, 0, "examine_select: Examining open file descriptors...\n");
+    for (fd = 0; fd < maxfd; fd++) {
 	FD_ZERO(&read_x);
 	FD_ZERO(&write_x);
 	FD_ZERO(&except_x);
@@ -1102,23 +922,37 @@ static int examine_select(readfds, writefds, exceptfds)
 	    FD_SET(fd, &read_x);
 	    num = select(FD_SETSIZE, &read_x, &read_x, &read_x, &tv);
 	    if (num < 0) {
-		debug(0, "WARNING: FD %d has handlers, but it's invalid.\n", fd);
-		debug(0, "Timeout handler:%x read:%x write:%x except:%x\n",
-		    fd_table[fd].timeout_handler,
-		    fd_table[fd].read_handler,
-		    fd_table[fd].write_handler,
-		    fd_table[fd].except_handler);
-		fd_table[fd].timeout_handler = 0;
-		fd_table[fd].read_handler = 0;
-		fd_table[fd].write_handler = 0;
-		fd_table[fd].except_handler = 0;
+		f = &fd_table[fd];
+		debug(5, 0, "WARNING: FD %d has handlers, but it's invalid.\n", fd);
+		debug(5, 0, "lifetm:%p tmout:%p read:%p write:%p expt:%p\n",
+		    f->lifetime_handler,
+		    f->timeout_handler,
+		    f->read_handler,
+		    f->write_handler,
+		    f->except_handler);
+		if (f->close_handler) {
+		    debug(5, 0, "examine_select: Calling Close Handler\n");
+		    f->close_handler(fd, f->close_data);
+		} else if (f->lifetime_handler) {
+		    debug(5, 0, "examine_select: Calling Lifetime Handler\n");
+		    f->lifetime_handler(fd, f->lifetime_data);
+		} else if (f->timeout_handler) {
+		    debug(5, 0, "examine_select: Calling Timeout Handler\n");
+		    f->timeout_handler(fd, f->timeout_data);
+		}
+		f->close_handler = 0;
+		f->lifetime_handler = 0;
+		f->timeout_handler = 0;
+		f->read_handler = 0;
+		f->write_handler = 0;
+		f->except_handler = 0;
 		FD_CLR(fd, readfds);
 		FD_CLR(fd, writefds);
 		FD_CLR(fd, exceptfds);
 	    }
 	}
     }
-    debug(0, "examine_select: Finished examining open file descriptors.\n");
+    debug(5, 0, "examine_select: Finished examining open file descriptors.\n");
     return 0;
 }
 
@@ -1135,15 +969,20 @@ char *fd_note(fd, s)
 static void checkTimeouts()
 {
     int fd;
+    int (*tmp) () = NULL;
+    FD_ENTRY *f = NULL;
+    int maxfd = fdstat_biggest_fd() + 1;
+
     /* scan for timeout */
-    for (fd = 0; fd < (fdstat_biggest_fd() + 1); ++fd) {
-	if ((fd_table[fd].timeout_handler) &&
-	    (fd_table[fd].timeout_time <= cached_curtime)) {
-	    int (*tmp) () = fd_table[fd].timeout_handler;
-	    debug(5, "comm_select: timeout on socket %d at %d\n",
-		fd, cached_curtime);
-	    fd_table[fd].timeout_handler = 0;
-	    tmp(fd, fd_table[fd].timeout_data);
+    for (fd = 0; fd < maxfd; ++fd) {
+	f = &fd_table[fd];
+	if ((f->timeout_handler) &&
+	    (f->timeout_time <= squid_curtime)) {
+	    tmp = f->timeout_handler;
+	    debug(5, 5, "comm_select: timeout on socket %d at %d\n",
+		fd, squid_curtime);
+	    f->timeout_handler = 0;
+	    tmp(fd, f->timeout_data);
 	}
     }
 }
@@ -1153,15 +992,14 @@ static void checkLifetimes()
     int fd;
     int max_fd = getMaxFD();
     time_t lft;
+    int (*tmp_local) () = NULL;
+    int use_lifetime_handler = 0;
+    int use_read = 0;
 
     /* scan for hardwired lifetime expires, do the timeouts first though */
     for (fd = 0; fd < max_fd; fd++) {
 	lft = comm_get_fd_lifetime(fd);
-	if ((lft != -1) && (lft < cached_curtime)) {
-	    int use_lifetime_handler = 0;
-	    int use_read = 0;
-	    int (*tmp_local) () = NULL;
-
+	if ((lft != -1) && (lft < squid_curtime)) {
 	    if (fd_table[fd].lifetime_handler != NULL) {
 		use_lifetime_handler = 1;
 		tmp_local = fd_table[fd].lifetime_handler;
@@ -1180,16 +1018,16 @@ static void checkLifetimes()
 	    }
 	    if (tmp_local) {
 		if (use_lifetime_handler) {
-		    debug(2, "comm_select: FD %d lifetime expire: %d < %d (Lifetime handler %p)\n",
-			fd, lft, cached_curtime, tmp_local);
+		    debug(5, 2, "checkLifetimes: FD %d lifetime expire: %d < %d (Lifetime handler %p)\n",
+			fd, lft, squid_curtime, tmp_local);
 		} else {
-		    debug(2, "comm_select: FD %d lifetime expire: %d < %d (%s handler %p)\n",
-			fd, lft, cached_curtime,
+		    debug(5, 2, "checkLifetimes: FD %d lifetime expire: %d < %d (%s handler %p)\n",
+			fd, lft, squid_curtime,
 			use_read ? "read" : "write", tmp_local);
 		}
 	    } else {
-		debug(1, "comm_select: FD %d lifetime expire: %d < %d (handler not available.)\n",
-		    fd, lft, cached_curtime);
+		debug(5, 1, "checkLifetimes: FD %d lifetime expire: %d < %d (handler not available.)\n",
+		    fd, lft, squid_curtime);
 	    }
 
 	    if (tmp_local != NULL) {
@@ -1201,26 +1039,27 @@ static void checkLifetimes()
 		     *  deallocates the structure.
 		     */
 		    (void) close(fd);
+		    debug(5,0,"checkLifetimes: Forcing close on FD %d\n", fd);
 		    tmp_local(fd, use_read ? fd_table[fd].read_data :
 			fd_table[fd].write_data);
 		}
 		if (fd_table[fd].openned) {
 		    /* hmm.. still openned. do full comm_close */
-		    debug(5, "comm_select: FD %d lifetime expire: %d < %d : Handler did not close the socket.\n comm_select will do.\n",
-			fd, lft, cached_curtime);
+		    debug(5, 5, "checkLifetimes: FD %d lifetime expire: %d < %d : Handler did not close the socket.\n comm_select will do.\n",
+			fd, lft, squid_curtime);
 		    comm_close(fd);
 		} else {
 		    /* seems like handle closed it. 
 		     * clean up fd_table just to make sure */
-		    debug(5, "comm_select: FD %d lifetime expire: %d : Handler closed the socket.\n",
+		    debug(5, 5, "checkLifetimes: FD %d lifetime expire: %d : Handler closed the socket.\n",
 			fd, lft);
 		    /* just to make sure here */
 		    comm_cleanup_fd_entry(fd);
 		}
 	    } else {
 		/* no handle. do full comm_close */
-		debug(5, "comm_select: FD %d lifetime expire: %d < %d : No handler to close the socket.\n comm_select will do.\n",
-		    fd, lft, cached_curtime);
+		debug(5, 5, "checkLifetimes: FD %d lifetime expire: %d < %d : No handler to close the socket.\n comm_select will do.\n",
+		    fd, lft, squid_curtime);
 		comm_close(fd);
 	    }
 	}
@@ -1236,7 +1075,7 @@ static void Reserve_More_FDs()
 	RESERVED_FD = RESERVED_FD + 1;
     } else if (RESERVED_FD == getMaxFD() - 64) {
 	RESERVED_FD = RESERVED_FD + 1;
-	debug(0, "Don't you have a tiny open-file table size of %d\n",
+	debug(5, 0, "Don't you have a tiny open-file table size of %d\n",
 	    getMaxFD() - RESERVED_FD);
     }
 }
@@ -1246,7 +1085,7 @@ int fd_of_first_client(e)
 {
     int fd;
 
-    fd = store_mem_obj(e, fd_of_first_client);
+    fd = e->mem_obj->fd_of_first_client;
 
     if (fd > 0) {
 	if (e == fd_table[fd].store_entry) {
