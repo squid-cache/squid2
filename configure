@@ -581,7 +581,7 @@ fi
 
 
 
-# From configure.in Revision: 1.159.2.3 
+# From configure.in Revision: 1.159.2.4 
 ac_aux_dir=
 for ac_dir in cfgaux $srcdir/cfgaux; do
   if test -f $ac_dir/install-sh; then
@@ -4504,6 +4504,38 @@ else
 	echo "         to use the IRIX C compiler instead."
 	sleep 10
 fi
+
+echo $ac_n "checking for working statvfs() interface""... $ac_c" 1>&6
+echo "configure:4510: checking for working statvfs() interface" >&5
+cat > conftest.$ac_ext <<EOF
+#line 4512 "configure"
+#include "confdefs.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/statvfs.h>
+
+int main() {
+
+struct statvfs sfs;
+sfs.f_blocks = sfs.f_bfree = sfs.f_frsize = 
+sfs.f_files = sfs.f_ffree = 0;
+statvfs("/tmp", &sfs);
+
+; return 0; }
+EOF
+if { (eval echo configure:4529: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  ac_cv_func_statvfs=no
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  ac_cv_func_statvfs=yes
+fi
+rm -f conftest*
+echo "$ac_t""$ac_cv_func_statvfs" 1>&6
 
 XTRA_OBJS=''
 if test "$ac_cv_lib_malloc_main" = "yes" ; then
