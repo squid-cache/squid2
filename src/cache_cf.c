@@ -508,6 +508,10 @@ parseCacheHostLine(void)
 	    weight = atoi(token + 7);
 	} else if (!strncasecmp(token, "ttl=", 4)) {
 	    mcast_ttl = atoi(token + 4);
+	    if (mcast_ttl < 0)
+		mcast_ttl = 0;
+	    if (mcast_ttl > 128)
+		mcast_ttl = 128;
 	} else if (!strncasecmp(token, "default", 7)) {
 	    options |= NEIGHBOR_DEFAULT_PARENT;
 	} else if (!strncasecmp(token, "round-robin", 11)) {
