@@ -244,6 +244,7 @@ request_t *MainRequest = NULL;
 list_t *cmd_msg = NULL;
 
 static int process_request _PARAMS((request_t *));
+static int write_with_timeout _PARAMS((int fd, char *buf, int len));
 
 static char *state_str[] =
 {
@@ -380,7 +381,7 @@ void fail(r)
 	    fprintf(fp, "MIME-Version: 1.0\r\n");
 	    fprintf(fp, "Server: Squid %s\r\n", SQUID_VERSION);
 	    fprintf(fp, "Content-Type: text/html\r\n");
-	    fprintf(fp, "Content-Length: %d\r\n", (int) strlen(htmlbuf));
+	    /*fprintf(fp, "Content-Length: %d\r\n", (int) strlen(htmlbuf)); */
 	    fprintf(fp, "\r\n");
 	}
 	fputs(htmlbuf, fp);
@@ -399,6 +400,10 @@ void fail(r)
 	}
 	fputs(html_trailer(), fp);
 	fclose(fp);
+	if (r->flags & F_HTTPIFY) {
+	    Debug(26, 9, ("Writing Marker to FD %d\n", r->cfd));
+	    write_with_timeout(r->cfd, MAGIC_MARKER, MAGIC_MARKER_SZ);
+	}
     } else if (r->errmsg) {
 	errorlog("%s\n\t<URL:%s>\n", r->errmsg, r->url);
     }
