@@ -326,6 +326,10 @@ aio_queue_request(aio_request_t * requestp)
     static int last_warn = 0;
     int i;
 
+    /* Mark it as not executed (failing result, no error) */
+    requestp->ret = -1;
+    requestp->err = 0;
+    /* Queue it on the request queue */
     if (request_queue_head == NULL) {
 	request_queue_head = requestp;
 	request_queue_tail = requestp;
@@ -335,8 +339,10 @@ aio_queue_request(aio_request_t * requestp)
     }
     requestp->next = NULL;
     request_queue_len += 1;
+    /* Poll done threads if needed */
     if (wait_threads == NULL)
 	aio_poll_threads();
+    /* Warn if out of threads */
     if (request_queue_len > (NUMTHREADS << 1)) {
 	if (squid_curtime > (last_warn + 15)) {
 	    debug(43, 1) ("aio_queue_request: WARNING - Request queue growing\n."
@@ -436,6 +442,16 @@ aio_cleanup_request(aio_request_t * requestp)
 	    xmemcpy(requestp->statp, requestp->tmpstatp, sizeof(struct stat));
 	xfree(requestp->tmpstatp);
     case _AIO_OP_OPEN:
+	if(cancelled && requestp->ret >= 0)
+	    /* The open() was cancelled but completed */
+	    close(requestp->ret);
+	xfree(requestp->path);
+	break;
+    case _AIO_OP_CLOSE:
+	if(cancelled && requestp->ret < 0)
+	    /* The close() was cancelled and never got executed */
+	    close(requestp->fd);
+	break;
     case _AIO_OP_UNLINK:
     case _AIO_OP_OPENDIR:
 	xfree(requestp->path);
