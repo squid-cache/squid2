@@ -129,13 +129,13 @@
 
 extern char *getfullhostname _PARAMS((void));
 extern char *mkhttpdlogtime _PARAMS((time_t *));
-extern char *mkrfc850 _PARAMS((time_t));
+extern char *mkrfc1123 _PARAMS((time_t));
 extern char *uudecode _PARAMS((char *));
 extern char *xstrdup _PARAMS((char *));
 extern char *xstrdup _PARAMS((char *));
 extern char *xstrerror _PARAMS((void));
 extern int tvSubMsec _PARAMS((struct timeval, struct timeval));
-extern time_t parse_rfc850 _PARAMS((char *str));
+extern time_t parse_rfc1123 _PARAMS((char *str));
 extern void *xcalloc _PARAMS((int, size_t));
 extern void *xmalloc _PARAMS((size_t));
 extern void *xrealloc _PARAMS((void *, size_t));

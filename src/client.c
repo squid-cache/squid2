@@ -208,7 +208,7 @@ main(int argc, char *argv[])
     sprintf(buf, "Accept: */*\r\n");
     strcat(msg, buf);
     if (ims) {
-	sprintf(buf, "If-Modified-Since: %s\r\n", mkrfc850(ims));
+	sprintf(buf, "If-Modified-Since: %s\r\n", mkrfc1123(ims));
 	strcat(msg, buf);
     }
     sprintf(buf, "\r\n");

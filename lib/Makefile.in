@@ -23,7 +23,7 @@ RM		= @RM@
 LIBOBJS		= @LIBOBJS@
 
 INCLUDE		= -I../include -I$(srcdir)/../include
-UTILOBJS	= rfc850.o \
+UTILOBJS	= rfc1123.o \
 		  rfc1738.o \
 		  util.o \
 		  getfullhostname.o \

@@ -168,7 +168,7 @@ make_month(char *s)
 
 
 time_t
-parse_rfc850(char *str)
+parse_rfc1123(char *str)
 {
     char *s;
     struct tm tm;
@@ -252,7 +252,7 @@ parse_rfc850(char *str)
 }
 
 char *
-mkrfc850(time_t t)
+mkrfc1123(time_t t)
 {
     static char buf[128];
 
@@ -312,10 +312,10 @@ main()
     time_t t, pt;
 
     t = time(NULL);
-    x = mkrfc850(t);
+    x = mkrfc1123(t);
     printf("HTTP Time: %s\n", x);
 
-    pt = parse_rfc850(x);
+    pt = parse_rfc1123(x);
     printf("Parsed: %d vs. %d\n", pt, t);
 }
 

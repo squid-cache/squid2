@@ -218,13 +218,13 @@ ttlSet(StoreEntry * entry)
 
     /* these are case-insensitive compares */
     if (reply->last_modified[0]) {
-	if ((x = parse_rfc850(reply->last_modified)) > -1) {
+	if ((x = parse_rfc1123(reply->last_modified)) > -1) {
 	    last_modified = x;
 	    flags |= TTL_LASTMOD;
 	}
     }
     if (reply->date[0]) {
-	if ((x = parse_rfc850(reply->date)) > -1) {
+	if ((x = parse_rfc1123(reply->date)) > -1) {
 	    their_date = x;
 	    flags |= TTL_SERVERDATE;
 	}
@@ -238,14 +238,14 @@ ttlSet(StoreEntry * entry)
 	 * "expires immediately."
 	 */
 	flags |= TTL_EXPIRES;
-	expire = ((x = parse_rfc850(reply->expires)) > -1) ? x : served_date;
+	expire = ((x = parse_rfc1123(reply->expires)) > -1) ? x : served_date;
     }
     if (last_modified > -1)
-	debug(22, 5, "ttlSet: Last-Modified: %s\n", mkrfc850(last_modified));
+	debug(22, 5, "ttlSet: Last-Modified: %s\n", mkrfc1123(last_modified));
     if (expire > -1)
-	debug(22, 5, "ttlSet:       Expires: %s\n", mkrfc850(expire));
+	debug(22, 5, "ttlSet:       Expires: %s\n", mkrfc1123(expire));
     if (their_date > -1)
-	debug(22, 5, "ttlSet:   Server-Date: %s\n", mkrfc850(their_date));
+	debug(22, 5, "ttlSet:   Server-Date: %s\n", mkrfc1123(their_date));
 
     if (expire > -1) {
 	ttl = (expire - squid_curtime);
