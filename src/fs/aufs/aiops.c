@@ -147,6 +147,7 @@ static struct {
     NULL, &done_requests.head
 };
 static int done_fd = 0;
+static int done_fd_read = 0;
 static int done_signalled = 0;
 static pthread_attr_t globattr;
 #if HAVE_SCHED_H
@@ -226,9 +227,8 @@ squidaio_xstrfree(char *str)
 static void
 squidaio_fdhandler(int fd, void *data)
 {
-    /* The actual pipe data is dealt with in squidaio_poll_done(),
-     * called once per comm loop
-     */
+    char junk[256];
+    read(done_fd_read, junk, sizeof(junk));
     commSetSelect(fd, COMM_SELECT_READ, squidaio_fdhandler, NULL, 0);
 }
 
@@ -283,6 +283,7 @@ squidaio_init(void)
     /* Initialize done pipe signal */
     pipe(done_pipe);
     done_fd = done_pipe[1];
+    done_fd_read = done_pipe[0];
     fd_open(done_pipe[0], FD_PIPE, "async-io completetion event: main");
     fd_open(done_pipe[1], FD_PIPE, "async-io completetion event: threads");
     commSetNonBlocking(done_pipe[0]);
@@ -830,7 +831,7 @@ squidaio_poll_done(void)
     if (request == NULL && !polled) {
 	if (done_signalled) {
 	    char junk[256];
-	    read(done_fd, junk, sizeof(junk));
+	    read(done_fd_read, junk, sizeof(junk));
 	    done_signalled = 0;
 	}
 	squidaio_poll_queues();
