@@ -618,7 +618,7 @@ httpAppendRequestHeader(char *hdr, const char *line, size_t * sz, size_t max)
     if (n >= max)
 	return;
     debug(11, 5, "httpAppendRequestHeader: %s\n", line);
-    strcat(hdr + (*sz), line);
+    strcpy(hdr + (*sz), line);
     strcat(hdr + (*sz), crlf);
     *sz = n;
 }
