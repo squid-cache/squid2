@@ -167,6 +167,7 @@ clientAccessCheck(void *data)
     clientHttpRequest *http = data;
     if (checkAccelOnly(http)) {
 	/* deny proxy requests in accel_only mode */
+	debug(33, 1) ("clientAccessCheck: proxy request denied in accel_only mode\n");
 	clientAccessCheckDone(ACCESS_DENIED, http);
 	return;
     }
