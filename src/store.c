@@ -2004,6 +2004,7 @@ storeWriteCleanLogs(int reopen)
 	    continue;
 	}
 	if ((++n & 0x3FFF) == 0) {
+	    getCurrentTime();
 	    debug(20, 1) ("  %7d lines written so far.\n", n);
 	}
     }
