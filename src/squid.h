@@ -170,6 +170,10 @@
 #define assert(X) ((void)0)
 #endif
 
+#if defined(__QNX__)
+#include <unix.h>
+#endif
+
 /*
  * We require poll.h before using poll().  If the symbols used
  * by poll() are defined elsewhere, we will need to make this

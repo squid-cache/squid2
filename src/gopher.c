@@ -273,8 +273,13 @@ gopher_url_parser(const char *url, char *host, int *port, char *type_id, char *r
     (*port) = 0;
     (*type_id) = 0;
 
-    t = sscanf(url, "%[a-zA-Z]://%[^/]/%c%s", proto, hostbuf,
-	type_id, request);
+    t = sscanf(url,
+#if defined(__QNX__)
+	"%[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]://%[^/]/%c%s",
+#else
+	"%[a-zA-Z]://%[^/]/%c%s",
+#endif
+	proto, hostbuf, type_id, request);
     if ((t < 2) || strcasecmp(proto, "gopher")) {
 	return -1;
     } else if (t == 2) {
