@@ -825,6 +825,8 @@ storeMaintainSwapSpace(void *datanotused)
 	if (scanned >= max_scan)
 	    break;
 	age = heap_peepminkey(store_heap);
+	if (age < storeReplacementThreshold())
+	    break;
 	e = heap_extractmin(store_heap);
 	e->node = NULL;		/* no longer in the heap */
 	scanned++;
@@ -1169,8 +1171,24 @@ storeCheckExpired(const StoreEntry * e)
 
 #if HEAP_REPLACEMENT
 /*
- * The non-LRU cache replacement policies do not use LRU referenceAge
+ * storeReplacementThreshold
+ *
  */
+heap_key
+storeReplacementThreshold(void)
+{
+    double x;
+    x = (double) (store_swap_high - store_swap_size) / (store_swap_high - store_swap_low);
+    x = x * 2.0 - 1.0;
+    if (x < -2.0)
+	x = -2.0;
+    else if (x > 2.0)
+	x = 2.0;
+    if (x > 0.0)
+	return pow(1000000.0, x) - 1.0;
+    else
+	return -1.0 * pow(1000000.0, -x) + 1.0;
+}
 #else
 /*
  * storeExpiredReferenceAge
