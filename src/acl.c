@@ -1353,7 +1353,9 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	return aclMatchRegex(ae->data, checklist->browser);
 	/* NOTREACHED */
     case ACL_PROXY_AUTH:
-	if (!r->flags.accelerated) {
+	if (NULL == r) {
+	    return -1;
+	} else if (!r->flags.accelerated) {
 	    /* Proxy authorization on proxy requests */
 	    header = httpHeaderGetStr(&checklist->request->header,
 		HDR_PROXY_AUTHORIZATION);

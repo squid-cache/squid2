@@ -529,8 +529,10 @@ sslPeerSelectComplete(FwdServer * fs, void *data)
     }
 #if DELAY_POOLS
     /* no point using the delayIsNoDelay stuff since ssl is nice and simple */
-    if (g && g->options.no_delay)
+    if (g && g->options.no_delay && sslState->delay_id) {
+	delayUnregisterDelayIdPtr(&sslState->delay_id);
 	sslState->delay_id = 0;
+    }
 #endif
     commConnectStart(sslState->server.fd,
 	sslState->host,

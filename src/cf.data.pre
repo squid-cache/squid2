@@ -2514,7 +2514,7 @@ DOC_END
 
 NAME: snmp_incoming_address
 TYPE: address
-LOC: Config.Addrs.snmp_outgoing
+LOC: Config.Addrs.snmp_incoming
 DEFAULT: 0.0.0.0
 IFDEF: SQUID_SNMP
 DOC_NONE

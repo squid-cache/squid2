@@ -165,6 +165,8 @@ delayRegisterDelayIdPtr(delay_id * loc)
     hash_link *lnk;
     if (!delay_id_ptr_hash)
 	return;
+    if (*loc == 0)
+	return;
     lnk = xmalloc(sizeof(hash_link));
     lnk->key = (char *) loc;
     hash_join(delay_id_ptr_hash, lnk);
@@ -627,6 +629,7 @@ delaySetStoreClient(StoreEntry * e, void *data, delay_id delay_id)
     store_client *sc = storeClientListSearch(e->mem_obj, data);
     assert(sc != NULL);
     sc->delay_id = delay_id;
+    delayRegisterDelayIdPtr(&sc->delay_id);
 }
 
 static void

@@ -724,7 +724,9 @@ watch_child(char *argv[])
 #endif
     for (i = 0; i < Squid_MaxFD; i++)
 	close(i);
+#if NOT_NEEDED
     umask(0);
+#endif
     for (;;) {
 	if ((pid = fork()) == 0) {
 	    /* child */

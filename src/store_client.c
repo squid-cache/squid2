@@ -132,7 +132,6 @@ storeClientListAdd(StoreEntry * e, void *data)
     *T = sc;
 #if DELAY_POOLS
     sc->delay_id = 0;
-    delayRegisterDelayIdPtr(&sc->delay_id);
 #endif
 }
 
