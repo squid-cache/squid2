@@ -1,4 +1,4 @@
-Changes to squid-1.1.13 (July 10, 1997):
+Changes to squid-1.1.14 (July 11, 1997):
 
 	- Another try at log_url crap.  Added icpState->log_url
 	  member.  Set mem_obj->log_url in new_MemObject() which
