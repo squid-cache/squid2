@@ -169,6 +169,7 @@ static struct {
     char *pidFilename;
     char *visibleHostname;
     char *ftpUser;
+    char *errHtmlText;
     struct {
 	char *host;
 	u_short port;
@@ -237,6 +238,7 @@ static struct {
 #define DefaultEffectiveUser	(char *)NULL	/* default NONE */
 #define DefaultEffectiveGroup	(char *)NULL	/* default NONE */
 #define DefaultAppendDomain	(char *)NULL	/* default NONE */
+#define DefaultErrHtmlText	(char *)NULL    /* default NONE */
 
 #define DefaultDebugOptions	"ALL,1"		/* All sections at level 1 */
 #define DefaultAccelHost	(char *)NULL	/* default NONE */
@@ -1070,7 +1072,6 @@ static void parseLocalDomainLine()
     }
 }
 
-
 static void parseInsideFirewallLine()
 {
     char *token;
@@ -1194,6 +1195,13 @@ static void parseAnnounceToLine()
 	return;
     safe_free(Config.Announce.file);
     Config.Announce.file = xstrdup(token);
+}
+
+static void parseErrHtmlLine()
+{
+    char *token;
+    if ((token = strtok(NULL, "")))
+	Config.errHtmlText = xstrdup(token);
 }
 
 
@@ -1490,6 +1498,9 @@ int parseConfigFile(file_name)
 
 	else if (!strcmp(token, "announce_to"))
 	    parseAnnounceToLine();
+
+	else if (!strcmp(token, "err_html_text"))
+	    parseErrHtmlLine();
 
 	/* If unknown, treat as a comment line */
 	else {
@@ -1819,7 +1830,9 @@ u_short setIcpPortNum(port)
 {
     return (Config.Port.icp = port);
 }
-
+char *getErrHtmlText() {
+    return Config.errHtmlText ? Config.errHtmlText : "";
+}
 
 static char *safe_xstrdup(p)
      char *p;
@@ -1849,6 +1862,7 @@ static void configFreeMemory()
     safe_free(Config.ftpUser);
     safe_free(Config.Announce.host);
     safe_free(Config.Announce.file);
+    safe_free(Config.errHtmlText);
     wordlistDestroy(&Config.cache_dirs);
     wordlistDestroy(&Config.http_stoplist);
     wordlistDestroy(&Config.gopher_stoplist);
@@ -1903,6 +1917,7 @@ static void configSetFactoryDefaults()
     Config.effectiveUser = safe_xstrdup(DefaultEffectiveUser);
     Config.effectiveGroup = safe_xstrdup(DefaultEffectiveGroup);
     Config.appendDomain = safe_xstrdup(DefaultAppendDomain);
+    Config.errHtmlText = safe_xstrdup(DefaultErrHtmlText);
 
     Config.Port.http = DefaultHttpPortNum;
     Config.Port.icp = DefaultIcpPortNum;
