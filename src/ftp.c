@@ -248,7 +248,7 @@ ftpTimeout(int fd, void *data)
 	ftpState->data.fd = -1;
     }
     comm_close(ftpState->ctrl.fd);
-    ftpState->ctrl.fd = -1;
+    /* don't modify ftpState here, it has been freed */
 }
 
 static void
