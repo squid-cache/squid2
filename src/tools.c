@@ -366,7 +366,6 @@ normal_shutdown(void)
     storeFreeMemory();
     dnsFreeMemory();
     redirectFreeMemory();
-    errorpageFreeMemory();
     stmemFreeMemory();
     netdbFreeMemory();
     ipcacheFreeMemory();
