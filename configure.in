@@ -380,9 +380,6 @@ done
 AC_SUBST(STORE_MODULES)
 AC_SUBST(STORE_MODULE_SUBDIRS)
 
-if test "$with_pthreads"; then
-    CFLAGS="$CFLAGS -D_REENTRANT"
-fi
 dnl --enable-heap-replacement compability option
 AC_ARG_ENABLE(heap-replacement,
 [  --enable-heap-replacement
