@@ -693,6 +693,8 @@ fqdncache_dnsDispatch(dnsserver_t * dns, fqdncache_entry * f)
 void
 fqdncache_init(void)
 {
+    if (fqdn_table)
+	return;
     debug(35, 3, "Initializing FQDN Cache...\n");
     memset(&FqdncacheStats, '\0', sizeof(FqdncacheStats));
     /* small hash table */
