@@ -212,6 +212,7 @@
 
 #include "ansiproto.h"
 #include "util.h"
+#include "snprintf.h"
 
 extern int h_errno;
 

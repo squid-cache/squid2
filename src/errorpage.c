@@ -132,7 +132,7 @@ errorConvert(char token, ErrorState * err)
 	p=buf;
 	break;
     case 'E':
-	snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->errno,xbstrerror(err->errno));
+	snprintf(buf, CVT_BUF_SZ, "(%d) %s", err->errno, strerror(err->errno));
 	break;
     case 'w':
 	snprintf(buf, CVT_BUF_SZ, "%s",Config.adminEmail);

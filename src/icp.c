@@ -134,17 +134,7 @@ static const char *const crlf = "\r\n";
 
 #define ICP_SENDMOREDATA_BUF SM_PAGE_SIZE
 
-#define ICP_OP_ADD    0
-#define ICP_OP_DEL    1
-
 #define REQUEST_BUF_SIZE 4096
-
-typedef struct icp_ctrl_t {
-    clientHttpRequest *http;
-    StoreEntry *entry;
-    int fd;
-    struct icp_ctrl_t *next;
-} icp_ctrl_t;
 
 /* Local functions */
 
@@ -161,14 +151,12 @@ static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
 static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
 static void *icpCreateHitObjMessage _PARAMS((icp_opcode, int, const char *, int, int, StoreEntry *));
 #endif
-static int icpProcessRequestControl _PARAMS((void *, int));
 static void CheckQuickAbort _PARAMS((clientHttpRequest *));
 static void checkFailureRatio _PARAMS((log_type, hier_code));
 static void icpHandleIcpV2 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpHandleIcpV3 _PARAMS((int, struct sockaddr_in, char *, int));
 static void icpLogIcp _PARAMS((icpUdpData *));
 static void icpProcessMISS _PARAMS((int, clientHttpRequest *));
-static SIH icpProcessRequestComplete;
 static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, size_t));
 size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
 static clientHttpRequest *parseHttpRequest _PARAMS((ConnStateData *, method_t *, int *, char **, size_t *));
@@ -232,7 +220,6 @@ httpRequestFree(void *data)
     request_t *request = http->request;
     MemObject *mem = NULL;
     debug(12, 3) ("httpRequestFree: %s\n", entry ? entry->url : "no store entry");
-    icpProcessRequestControl(http, ICP_OP_DEL);
     if (!icpCheckTransferDone(http)) {
 	CheckQuickAbort(http);
 	entry = http->entry;	/* reset, IMS might have changed it */
@@ -647,7 +634,7 @@ icpSendMoreData(void *data, char *buf, ssize_t size)
 	    *p = '\0';
 	    writelen = p - buf;
 	    /* force end */
-	    http->out.offset = entry->mem_obj->e_current_len;
+	    http->out.offset = entry->mem_obj->inmem_hi;
 	}
     }
     if (writelen == 0) {
@@ -820,7 +807,6 @@ icpHandleIMSComplete(int fd, char *buf_unused, int size, int errflag, void *data
 void
 icpProcessRequest(int fd, clientHttpRequest * http)
 {
-    icp_ctrl_t *ctrlp;
     char *url = http->url;
     const char *pubkey = NULL;
     StoreEntry *entry = NULL;
@@ -912,97 +898,13 @@ icpProcessRequest(int fd, clientHttpRequest * http)
     } else {
 	http->log_type = LOG_TCP_HIT;
     }
-
-    ctrlp = xmalloc(sizeof(icp_ctrl_t));
-    ctrlp->http = http;
-    ctrlp->entry = entry;
-    ctrlp->fd = fd;
-    icpProcessRequestControl(ctrlp, ICP_OP_ADD);
-
     debug(12, 4) ("icpProcessRequest: %s for '%s'\n",
 	log_tags[http->log_type],
 	http->url);
-
     if (entry) {
 	storeLockObject(entry);
-	storeSwapInStart(entry, icpProcessRequestComplete, ctrlp);
-    } else
-	icpProcessRequestComplete(ctrlp, 0);
-}
-
-
-/* We have to maintain a state of what's outstanding because a race
- * condition occurs when a request comes to open a file and the abort
- * request comes in before the file is openned.  In this case, the
- * clientHttpRequest will be freed.  That is not wholly bad, what is bad
- * is when another bit of code grabs the space malloc'ed for the
- * clientHttpRequest and scribbles in it, then we're in trouble! */
-
-static int
-icpProcessRequestControl(void *data, int operation)
-{
-    static icp_ctrl_t *list = NULL;
-    icp_ctrl_t *curr, *prev;
-    icp_ctrl_t *ctrlp;
-    if (operation == ICP_OP_ADD) {
-	ctrlp = data;
-	ctrlp->next = list;
-	list = ctrlp;
-	return 1;
-    } else if (operation == ICP_OP_DEL) {
-	prev = NULL;
-	for (curr = list; curr != NULL; prev = curr, curr = curr->next)
-	    if (curr->http == data)
-		break;
-	if (curr == NULL)
-	    return 0;
-	if (prev == NULL)
-	    list = curr->next;
-	else
-	    prev->next = curr->next;
-	return 1;
-    }
-    fatal_dump("icpProcessRequestControl: bad operation");
-    return 0;
-}
-
-
-static void
-icpProcessRequestComplete(void *data, int status)
-{
-    icp_ctrl_t *ctrlp = data;
-    clientHttpRequest *http = ctrlp->http;
-    StoreEntry *entry = ctrlp->entry;
-    int fd = ctrlp->fd;
-    debug(12, 3) ("icpProcessRequestComplete: '%s'\n", http->url);
-    if (icpProcessRequestControl(http, ICP_OP_DEL) == 0) {
-	if (entry) {
-	    if (status < 0)
-		entry->lock_count++;
-	    else
-		file_close(entry->mem_obj->swapin_fd);
-	}
-	safe_free(ctrlp);
-	return;
-    }
-    safe_free(ctrlp);
-    /* The following status < 0 check grabs an UGLY race condition.  If
-     * an operation aborts while the open is not complete AND file_open
-     * failed then storeLockObjectComplete would have decremented the
-     * lock count when it shouldn't have.  It will have already been
-     * done by httpRequestFree. */
-    if (entry && status < 0) {
-	http->log_type = LOG_TCP_SWAPFAIL_MISS;
-	assert(store_rebuilding);
-	if (!store_rebuilding)
-	    debug(12, 1) ("Swapin Failure: '%s', %s\n",
-		entry->url,
-		storeSwapFullPath(entry->swap_file_number, NULL));
-	storeRelease(entry);
-	entry = NULL;
-    }
-    if (entry)
 	storeClientListAdd(entry, http);
+    }
     http->entry = entry;	/* Save a reference to the object */
     http->out.offset = 0;
     switch (http->log_type) {
@@ -2077,7 +1979,7 @@ CheckQuickAbort2(const clientHttpRequest * http)
     if (http->entry->mem_obj == NULL)
 	return 1;
     expectlen = http->entry->mem_obj->reply->content_length;
-    curlen = http->entry->mem_obj->e_current_len;
+    curlen = http->entry->mem_obj->inmem_hi;
     minlen = Config.quickAbort.min;
     if (minlen < 0)
 	/* disabled */
