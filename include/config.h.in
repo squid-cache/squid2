@@ -33,18 +33,6 @@
 #include "autoconf.h"	/* For GNU autoconf variables */
 #include "version.h"
 
-/*
- *  XFER_TIMEOUT is the number of seconds that liburl will wait on a read()
- *  before giving up.
- */
-#ifndef XFER_TIMEOUT
-#define XFER_TIMEOUT    120     /* 2 minutes */
-#endif
-
-#ifndef USE_ASYNC_IO
-#define USE_ASYNC_IO 0
-#endif
-
 /****************************************************************************
  *--------------------------------------------------------------------------*
  * DO *NOT* MAKE ANY CHANGES below here unless you know what you're doing...*
