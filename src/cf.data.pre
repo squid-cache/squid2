@@ -1060,7 +1060,7 @@ DOC_END
 NAME: request_body_max_size
 COMMENT: (KB)
 TYPE: b_size_t
-DEFAULT: 100 KB
+DEFAULT: 1 MB
 LOC: Config.maxRequestBodySize
 DOC_START
 	This specifies the maximum size for an HTTP request body.
@@ -1069,7 +1069,7 @@ DOC_START
 	than this limit receives an "Invalid Request" error message.
 	If you set this parameter to a zero, there will be no limit
 	imposed.
-request_body_max_size 100 KB
+request_body_max_size 1 MB
 DOC_END
 
 NAME: reply_body_max_size
