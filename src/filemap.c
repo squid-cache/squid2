@@ -203,6 +203,15 @@ filemapFreeMemory(fileMap * fm)
     safe_free(fm);
 }
 
+void
+filemapCopy(fileMap * old, fileMap * new)
+{
+    assert(old->max_n_files <= new->max_n_files);
+    assert(0 == new->n_files_in_map);
+    xmemcpy(new->file_map, old->file_map, old->nwords * sizeof(unsigned long));
+    new->n_files_in_map = old->n_files_in_map;
+}
+
 #ifdef TEST
 
 #define TEST_SIZE 1<<16
