@@ -97,13 +97,13 @@ static struct {
 #define DefaultSwapHighWaterMark 90	/* 90% */
 #define DefaultSwapLowWaterMark  75	/* 75% */
 
-#define DefaultFtpDefaultTtl	(7 * 24 * 60 * 60)	/* 1 week */
+#define DefaultFtpDefaultTtl	(3 * 24 * 60 * 60)	/* 3 days */
 #define DefaultFtpMaxObjSize	(4 << 20)	/* 4 MB */
-#define DefaultGopherDefaultTtl	(7 * 24 * 60 * 60)	/* 1 week */
+#define DefaultGopherDefaultTtl	(3 * 24 * 60 * 60)	/* 3 days */
 #define DefaultGopherMaxObjSize	(4 << 20)	/* 4 MB */
-#define DefaultHttpDefaultTtl	(7 * 24 * 60 * 60)	/* 1 week */
+#define DefaultHttpDefaultTtl	(3 * 24 * 60 * 60)	/* 3 days */
 #define DefaultHttpMaxObjSize	(4 << 20)	/* 4 MB */
-#define DefaultWaisDefaultTtl	(7 * 24 * 60 * 60)	/* 1 week */
+#define DefaultWaisDefaultTtl	(3 * 24 * 60 * 60)	/* 3 days */
 #define DefaultWaisMaxObjSize	(4 << 20)	/* 4 MB */
 #define DefaultWaisRelayHost	(char *)NULL
 #define DefaultWaisRelayPort	0
