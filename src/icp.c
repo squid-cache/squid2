@@ -121,8 +121,8 @@ static void icpFreeBufOrPage(icpState)
 
 
 /* This is a handler normally called by comm_close() */
-int icpStateFree(fdunused, icpState)
-     int fdunused;
+int icpStateFree(fd, icpState)
+     int fd;
      icpStateData *icpState;
 {
     int size = 0;
