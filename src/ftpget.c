@@ -301,6 +301,7 @@ static int o_neg_ttl = 300;	/* negative TTL, default 5 min */
 static int o_httpify = 0;	/* convert to HTTP */
 static int o_showpass = 1;	/* Show password in generated URLs */
 static int o_showlogin = 1;	/* Show login info in generated URLs */
+static const char *o_mime_type = DEFAULT_MIME_TYPE;	/* for unknown files */
 static const char *o_iconprefix = "internal-";	/* URL prefix for icons */
 static const char *o_iconsuffix = "";	/* URL suffix for icons */
 static int o_list_width = 32;	/* size of filenames in directory list */
@@ -873,7 +874,7 @@ mime_get_type(ftp_request_t * r)
 	r->mime_type = xstrdup("text/html");
 	return;
     }
-    type = DEFAULT_MIME_TYPE;
+    type = o_mime_type;
 
     if ((t = strrchr(r->path, '/')))
 	filename = xstrdup(t + 1);
@@ -2515,6 +2516,7 @@ usage(int argcount)
     fprintf(stderr, "\t-r num[:delay]  Max restart attempts and retry delay\n");
     fprintf(stderr, "\t-t seconds      Idle timeout\n");
     fprintf(stderr, "\t-n seconds      Negative TTL\n");
+    fprintf(stderr, "\t-m type/subtype default for unknown objects\n");
     fprintf(stderr, "\t-p path         Icon URL prefix\n");
     fprintf(stderr, "\t-s .ext         Icon URL suffix\n");
     fprintf(stderr, "\t-h              Convert to HTTP\n");
@@ -2622,7 +2624,7 @@ main(int argc, char *argv[])
 
     xstrncpy(visible_hostname, getfullhostname(), SMALLBUFSIZ);
 
-    while ((c = getopt(argc, argv, "AC:D:G:H:P:RS:Wab:c:hl:n:o:p:r:s:t:vw:")) != -1) {
+    while ((c = getopt(argc, argv, "AC:D:G:H:P:RS:Wab:c:hl:m:n:o:p:r:s:t:vw:")) != -1) {
 	switch (c) {
 	case 'A':
 	    o_showlogin = 0;
@@ -2680,6 +2682,9 @@ main(int argc, char *argv[])
 		o_login_ret = j;
 	    if (k)
 		o_login_del = k;
+	    break;
+	case 'm':
+	    o_mime_type = xstrdup(optarg);
 	    break;
 	case 'n':
 	    o_neg_ttl = atoi(optarg);
