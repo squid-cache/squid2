@@ -411,25 +411,31 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
     assert(header_start && header_end);
     debug(55, 7) ("parsing hdr: (%p)\n%s\n", hdr, getStringPrefix(header_start, header_end));
     HttpHeaderStats[hdr->owner].parsedCount++;
-    /* commonn format headers are "<name>:[ws]<value>" lines delimited by <CRLF> */
+    if (memchr(header_start, '\0', header_end - header_start)) {
+	debug(55, 1) ("WARNING: HTTP header contains NULL characters '%s'\n",
+	    getStringPrefix(header_start, header_end));
+	return NULL;
+    }
+    /* common format headers are "<name>:[ws]<value>" lines delimited by <CRLF>.
+     * continuation lines start with a (single) space or tab */
     while (field_start < header_end) {
 	const char *field_end;
 	const char *field_ptr = field_start;
 	do {
-	    field_end = field_ptr = field_ptr + strcspn(field_ptr, "\r\n");
-	    /* skip CRLF */
-	    if (*field_ptr == '\r')
-		field_ptr++;
-	    if (*field_ptr == '\n')
-		field_ptr++;
-	}
-	while (*field_ptr == ' ' || *field_ptr == '\t');
-	if (!*field_end || field_end > header_end)
-	    return httpHeaderReset(hdr);	/* missing <CRLF> */
+	    field_ptr = memchr(field_ptr, '\n', header_end - field_ptr);
+	    if (!field_ptr)
+		return httpHeaderReset(hdr);	/* missing <LF> */
+	    field_ptr++;	/* Move to next line */
+	} while (field_ptr < header_end && (*field_ptr == ' ' || *field_ptr == '\t'));
+	field_end = field_ptr;
+	if (field_end > field_start && field_end[-1] == '\r')
+	    field_end--;
+	if (field_start == field_end)
+	    break;		/* blank line */
 	e = httpHeaderEntryParseCreate(field_start, field_end);
 	if (NULL == e) {
 	    debug(55, 1) ("WARNING: unparseable HTTP header field near '%s'\n",
-		getStringPrefix(field_start, field_end));
+		getStringPrefix(field_start, header_end));
 	    return httpHeaderReset(hdr);
 	} else if (e->id == HDR_CONTENT_LENGTH && (e2 = httpHeaderFindEntry(hdr, e->id)) != NULL) {
 	    if (strCmp(e->value, strBuf(e2->value)) != 0) {
@@ -446,12 +452,7 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	} else {
 	    httpHeaderAddEntry(hdr, e);
 	}
-	field_start = field_end;
-	/* skip CRLF */
-	if (*field_start == '\r')
-	    field_start++;
-	if (*field_start == '\n')
-	    field_start++;
+	field_start = field_ptr;
     }
     return 1;			/* even if no fields where found, it is a valid header */
 }
@@ -1062,7 +1063,7 @@ httpHeaderEntryParseCreate(const char *field_start, const char *field_end)
     HttpHeaderEntry *e;
     int id;
     /* note: name_start == field_start */
-    const char *name_end = strchr(field_start, ':');
+    const char *name_end = memchr(field_start, ':', field_end - field_start);
     int name_len = name_end ? name_end - field_start : 0;
     const char *value_start = field_start + name_len + 1;	/* skip ':' */
     /* note: value_end == field_end */
@@ -1101,6 +1102,8 @@ httpHeaderEntryParseCreate(const char *field_start, const char *field_end)
     /* trim field value */
     while (value_start < field_end && xisspace(*value_start))
 	value_start++;
+    while (value_start < field_end && xisspace(field_end[-1]))
+	field_end--;
     if (field_end - value_start > 65536) {
 	/* String has a 64K limit */
 	debug(55, 1) ("WARNING: ignoring '%s' header of %d bytes\n",
