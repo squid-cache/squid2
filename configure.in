@@ -65,7 +65,7 @@ if test -z "$CACHE_ICP_PORT"; then
 	CACHE_ICP_PORT="3130"
 fi
 
-dnl Subsitutions
+dnl Substitutions
 AC_DEFINE_UNQUOTED(CACHE_HTTP_PORT, $CACHE_HTTP_PORT)
 AC_DEFINE_UNQUOTED(CACHE_ICP_PORT, $CACHE_ICP_PORT)
 
@@ -371,10 +371,10 @@ done
 AC_SUBST(STORE_MODULES)
 AC_SUBST(STORE_MODULE_SUBDIRS)
 
-dnl --enable-heap-replacement compability option
+dnl --enable-heap-replacement compatibility option
 AC_ARG_ENABLE(heap-replacement,
 [  --enable-heap-replacement
-                          Backwards compability option. Please use the
+                          Backwards compatibility option. Please use the
 			  new --enable-removal-policies directive instead.],
 [ if test "$enableval" = "yes" ; then
     echo "--enable-heap-replacement is obsolete. please use the new"
@@ -870,7 +870,7 @@ dnl Select basic auth scheme helpers to build
 BASIC_AUTH_HELPERS=""
 AC_ARG_ENABLE(auth-modules,
 [  --enable-auth-modules=\"list of helpers\"
-                          Backwards compability alias for
+                          Backwards compatibility alias for
                           --enable-basic-auth-helpers],
 [ echo "--enable-auth-modules is obsolete. Please use the new"
   echo "option --enable-basic-auth-helpers"
