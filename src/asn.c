@@ -265,7 +265,7 @@ asHandleReply(void *data, char *buf, ssize_t size)
     asState->seen = asState->offset + size;
     asState->offset += (s - buf);
     debug(53, 3) ("asState->seen = %ld, asState->offset = %ld\n",
-	(long int)asState->seen, (long int)asState->offset);
+	(long int) asState->seen, (long int) asState->offset);
     if (e->store_status == STORE_PENDING) {
 	debug(53, 3) ("asHandleReply: store_status == STORE_PENDING: %s\n", storeUrl(e));
 	storeClientCopy(asState->sc,

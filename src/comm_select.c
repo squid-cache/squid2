@@ -521,7 +521,7 @@ comm_poll(int msec)
 	return COMM_OK;
     }
     while (timeout > current_dtime);
-    debug(5, 8) ("comm_poll: time out: %ld.\n", (long int)squid_curtime);
+    debug(5, 8) ("comm_poll: time out: %ld.\n", (long int) squid_curtime);
     return COMM_TIMEOUT;
 }
 

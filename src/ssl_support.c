@@ -162,7 +162,7 @@ static struct ssl_option {
     }
 };
 
-static long 
+static long
 ssl_parse_options(const char *options)
 {
     long op = SSL_OP_ALL;

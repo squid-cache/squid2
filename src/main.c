@@ -705,7 +705,7 @@ main(int argc, char **argv)
 	    debug(1, 1) ("Preparing for shutdown after %d requests\n",
 		statCounter.client_http.requests);
 	    debug(1, 1) ("Waiting %d seconds for active connections to finish\n",
-		(int)wait);
+		(int) wait);
 	    do_shutdown = 0;
 	    shutting_down = 1;
 	    serverConnectionsClose();
