@@ -65,7 +65,9 @@ httpStateFree(int fd, void *data)
     if (httpState == NULL)
 	return;
     if (httpState->body_buf) {
-	clientAbortBody(httpState->orig_request);
+	if (httpState->orig_request->body_connection) {
+	    clientAbortBody(httpState->orig_request);
+	}
 	if (httpState->body_buf) {
 	    memFree(httpState->body_buf, MEM_8K_BUF);
 	    httpState->body_buf = NULL;
