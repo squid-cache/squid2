@@ -691,7 +691,7 @@ httpBuildRequestHeader(request_t * request,
 	snprintf(ybuf, YBUF_SZ, "Host: %s", orig_request->host);
 	if (orig_request->port != urlDefaultPort(orig_request->protocol)) {
 	    int l = strlen(ybuf);
-	    snprintf(ybuf+l, YBUF_SZ-l, ":%d", (int) orig_request->port);
+	    snprintf(ybuf + l, YBUF_SZ - l, ":%d", (int) orig_request->port);
 	}
 	httpAppendRequestHeader(hdr_out, ybuf, &len, out_sz, 1);
     }

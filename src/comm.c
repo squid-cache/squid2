@@ -1480,4 +1480,5 @@ commSetConnectTimeout(int fd, time_t timeout)
     fde *F = &fd_table[fd];
     F->connect_timeout = timeout;
 }
+
 #endif

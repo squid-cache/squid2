@@ -676,8 +676,8 @@ storeMaintainSwapSpace(void *datanotused)
 	     * LRU age will go to zero.
 	     */
 	    if (memInUse(MEM_STOREENTRY) > max_scan) {
-	        dlinkDelete(&e->lru, &store_list);
-	        dlinkAdd(e, &e->lru, &store_list);
+		dlinkDelete(&e->lru, &store_list);
+		dlinkAdd(e, &e->lru, &store_list);
 	    }
 	    locked++;
 	} else if (storeCheckExpired(e, 1)) {

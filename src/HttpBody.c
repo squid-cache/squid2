@@ -73,7 +73,7 @@ httpBodySet(HttpBody * body, const char *buf, int size, FREE * freefunc)
 	freefunc = &xfree;
     } else {
 	/* @?@ @?@ Fix this cast: we should probably have two httpBodySet()s */
-	body->buf = (char*)buf;
+	body->buf = (char *) buf;
     }
     body->freefunc = freefunc;
     body->size = size;

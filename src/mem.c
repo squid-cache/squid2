@@ -41,6 +41,7 @@ static const struct {
     const char *name;
     size_t obj_size;
 } StrPoolsAttrs[mem_str_pool_count] = {
+
     {
 	"Short Strings", 36,
     },				/* to fit rfc1123 and similar */

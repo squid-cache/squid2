@@ -185,7 +185,7 @@ httpHeaderParseSize(const char *start, size_t * value)
  * parses a given string then packs compiled headers and compares the result
  * with the original, reports discrepancies
  */
-void 
+void
 httpHeaderTestParser(const char *hstr)
 {
     static int bug_count = 0;
