@@ -909,7 +909,6 @@ dnl Check for library functions
 AC_CHECK_FUNCS(\
 	bcopy \
 	crypt \
-	drand48 \
 	fchmod \
 	getdtablesize \
 	getpagesize \
@@ -943,7 +942,6 @@ AC_CHECK_FUNCS(\
 	srandom \
 	sysconf \
 	syslog \
-	tempnam \
 	timegm \
 	vsnprintf \
 )
