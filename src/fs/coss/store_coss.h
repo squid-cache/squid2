@@ -12,6 +12,25 @@
 #define COSS_ALLOC_ALLOCATE		1
 #define COSS_ALLOC_REALLOC		2
 
+struct _coss_stats {
+    int stripes;
+    struct {
+	int alloc;
+	int realloc;
+	int collisions;
+    } alloc;
+    int disk_overflows;
+    int stripe_overflows;
+    int open_mem_hits;
+    int open_mem_misses;
+    struct {
+	int ops;
+	int success;
+	int fail;
+    } open, create, close, unlink, read, write, stripe_write;
+};
+
+
 struct _cossmembuf {
     dlink_node node;
     size_t diskstart;		/* in blocks */
@@ -89,5 +108,7 @@ extern STSYNC storeCossSync;
 extern void storeCossAdd(SwapDir *, StoreEntry *);
 extern void storeCossRemove(SwapDir *, StoreEntry *);
 extern void storeCossStartMembuf(SwapDir * SD);
+
+extern struct _coss_stats coss_stats;
 
 #endif
