@@ -504,7 +504,7 @@ httpReadReply(int fd, void *data)
 	}
 	storeAppend(entry, buf, len);
 #ifdef OPTIMISTIC_IO
-	if (entry->store_status == STORE_ABORTED) {
+	if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	    /*
 	     * the above storeAppend() call could ABORT this entry,
 	     * in that case, the server FD should already be closed.

@@ -301,7 +301,7 @@ statObjects(void *data)
 	storeUnlockObject(state->sentry);
 	cbdataFree(state);
 	return;
-    } else if (state->sentry->store_status == STORE_ABORTED) {
+    } else if (EBIT_TEST(state->sentry->flags, ENTRY_ABORTED)) {
 	storeUnlockObject(state->sentry);
 	cbdataFree(state);
 	return;

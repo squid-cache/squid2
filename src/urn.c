@@ -191,7 +191,7 @@ urnHandleReply(void *data, char *buf, ssize_t size)
     int urlcnt = 0;
 
     debug(52, 3) ("urnHandleReply: Called with size=%d.\n", size);
-    if (urlres_e->store_status == STORE_ABORTED) {
+    if (EBIT_TEST(urlres_e->flags, ENTRY_ABORTED)) {
 	memFree(buf, MEM_4K_BUF);
 	return;
     }

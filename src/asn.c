@@ -221,7 +221,7 @@ asHandleReply(void *data, char *buf, ssize_t size)
     char *s;
     char *t;
     debug(53, 3) ("asHandleReply: Called with size=%d\n", size);
-    if (e->store_status == STORE_ABORTED) {
+    if (EBIT_TEST(e->flags, ENTRY_ABORTED)) {
 	memFree(buf, MEM_4K_BUF);
 	asStateFree(asState);
 	return;

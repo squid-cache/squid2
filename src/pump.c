@@ -205,8 +205,8 @@ pumpServerCopyComplete(int fd, char *bufnotused, size_t size, int errflag, void 
 	pumpClose(p);
 	return;
     }
-    if (p->request_entry->store_status == STORE_ABORTED) {
-	debug(61, 5) ("pumpServerCopyComplete: STORE_ABORTED\n");
+    if (EBIT_TEST(p->request_entry->flags, ENTRY_ABORTED)) {
+	debug(61, 5) ("pumpServerCopyComplete: ENTRY_ABORTED\n");
 	pumpClose(p);
 	return;
     }

@@ -647,7 +647,6 @@ extern void peerDigestStatsReport(const PeerDigest * pd, StoreEntry * e);
 extern void fwdStart(int, StoreEntry *, request_t *, struct in_addr);
 extern DEFER fwdCheckDeferRead;
 extern void fwdFail(FwdState *, int, http_status, int);
-extern STABH fwdAbort;
 extern void fwdUnregister(int fd, FwdState *);
 extern void fwdComplete(FwdState * fwdState);
 extern void fwdInit(void);

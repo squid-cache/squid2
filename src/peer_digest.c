@@ -540,7 +540,7 @@ peerDigestFetchedEnough(DigestFetchState * fetch, char *buf, ssize_t size, const
 	    reason = "swap failure";
 	else if (!fetch->entry)
 	    reason = "swap aborted?!";
-	else if (fetch->entry->store_status == STORE_ABORTED)
+	else if (EBIT_TEST(fetch->entry->flags, ENTRY_ABORTED))
 	    reason = "swap aborted";
     }
     /* continue checking (maybe-successful eof case) */

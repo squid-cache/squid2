@@ -141,7 +141,7 @@ storeCheckSwapOut(StoreEntry * e)
     debug(20, 7) ("storeCheckSwapOut: %s\n", storeUrl(e));
     debug(20, 7) ("storeCheckSwapOut: store_status = %s\n",
 	storeStatusStr[e->store_status]);
-    if (e->store_status == STORE_ABORTED) {
+    if (EBIT_TEST(e->flags, ENTRY_ABORTED)) {
 	assert(EBIT_TEST(e->flags, RELEASE_REQUEST));
 	storeSwapOutFileClose(e);
 	return;

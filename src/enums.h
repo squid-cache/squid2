@@ -339,8 +339,7 @@ enum {
 
 enum {
     STORE_OK,
-    STORE_PENDING,
-    STORE_ABORTED
+    STORE_PENDING
 };
 
 enum {
@@ -447,7 +446,8 @@ enum {
     ENTRY_FWD_HDR_WAIT,
     ENTRY_NEGCACHED,
     ENTRY_VALIDATED,
-    ENTRY_BAD_LENGTH
+    ENTRY_BAD_LENGTH,
+    ENTRY_ABORTED
 };
 
 typedef enum {
