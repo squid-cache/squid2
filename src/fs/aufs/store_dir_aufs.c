@@ -1120,6 +1120,31 @@ storeAufsDirCloseTmpSwapLog(SwapDir * sd)
     debug(47, 3) ("Cache Dir #%d log opened on FD %d\n", sd->index, fd);
 }
 
+static void
+storeSwapLogDataFree(void *s)
+{
+    memFree(s, MEM_SWAP_LOG_DATA);
+}
+
+static void
+storeAufsWriteSwapLogheader(int fd)
+{
+    storeSwapLogHeader *hdr = memAllocate(MEM_SWAP_LOG_DATA);
+    hdr->op = SWAP_LOG_VERSION;
+    hdr->version = 1;
+    hdr->record_size = sizeof(storeSwapLogData);
+    /* The header size is a full log record to keep some level of backward
+     * compatibility even if the actual header is smaller
+     */
+    file_write(fd,
+	-1,
+	hdr,
+	sizeof(storeSwapLogData),
+	NULL,
+	NULL,
+	(FREE *) storeSwapLogDataFree);
+}
+
 static FILE *
 storeAufsDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
 {
@@ -1131,10 +1156,6 @@ storeAufsDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
     struct stat clean_sb;
     FILE *fp;
     int fd;
-    union {
-	storeSwapLogHeader hdr;
-	storeSwapLogData _data;
-    } hd;
     if (stat(swaplog_path, &log_sb) < 0) {
 	debug(47, 1) ("Cache Dir #%d: No log file\n", sd->index);
 	safe_free(swaplog_path);
@@ -1152,15 +1173,8 @@ storeAufsDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
 	debug(50, 1) ("%s: %s\n", new_path, xstrerror());
 	fatal("storeDirOpenTmpSwapLog: Failed to open swap log.");
     }
-    memset(&hd, 0, sizeof(hd));
-    hd.hdr.op = SWAP_LOG_VERSION;
-    hd.hdr.version = 1;
-    hd.hdr.record_size = sizeof(storeSwapLogData);
-    if (write(fd, &hd, sizeof(hd)) != sizeof(hd)) {
-	debug(50, 1) ("%s: %s\n", new_path, xstrerror());
-	fatal("storeDirOpenTmpSwapLog: Failed to write swap log header.");
-    }
     aioinfo->swaplog_fd = fd;
+    storeAufsWriteSwapLogheader(fd);
     /* open a read-only stream of the old log */
     fp = fopen(swaplog_path, "r");
     if (fp == NULL) {
@@ -1204,10 +1218,6 @@ static int
 storeAufsDirWriteCleanStart(SwapDir * sd)
 {
     struct _clean_state *state = xcalloc(1, sizeof(*state));
-    union {
-	storeSwapLogHeader hdr;
-	storeSwapLogData _data;
-    } hd;
 #if HAVE_FCHMOD
     struct stat sb;
 #endif
@@ -1224,14 +1234,7 @@ storeAufsDirWriteCleanStart(SwapDir * sd)
 	xfree(state);
 	return -1;
     }
-    memset(&hd, 0, sizeof(hd));
-    hd.hdr.op = SWAP_LOG_VERSION;
-    hd.hdr.version = 1;
-    hd.hdr.record_size = sizeof(storeSwapLogData);
-    if (write(state->fd, &hd, sizeof(hd)) != sizeof(hd)) {
-	debug(50, 1) ("%s: %s\n", state->new, xstrerror());
-	fatal("storeAufsDirWriteCleanStart: Failed to write swap log header.");
-    }
+    storeAufsWriteSwapLogheader(state->fd);
     state->cur = xstrdup(storeAufsDirSwapLogFile(sd, NULL));
     state->cln = xstrdup(storeAufsDirSwapLogFile(sd, ".last-clean"));
     state->outbuf = xcalloc(CLEAN_BUF_SZ, 1);
@@ -1357,12 +1360,6 @@ storeAufsDirWriteCleanDone(SwapDir * sd)
     safe_free(state);
     sd->log.clean.state = NULL;
     sd->log.clean.write = NULL;
-}
-
-static void
-storeSwapLogDataFree(void *s)
-{
-    memFree(s, MEM_SWAP_LOG_DATA);
 }
 
 static void
