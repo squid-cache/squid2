@@ -591,7 +591,7 @@ int comm_select(sec, failtime)
 	    continue;
 
 	debug(5, num ? 5 : 8, "comm_select: %d sockets ready at %d\n",
-	    num, squid_curtime);
+	    num, (int) squid_curtime);
 
 	/* Check lifetime and timeout handlers ONCE each second.
 	 * Replaces brain-dead check every time through the loop! */
