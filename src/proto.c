@@ -248,7 +248,7 @@ protoDispatchDNSHandle(int unused1, ipcache_addrs * ia, void *data)
 	if (entry->swap_status != NO_SWAP)
 	    fatal_dump("protoDispatchDNSHandle: bad swap_status");
 	entry->ping_status = PING_WAITING;
-	comm_set_select_handler_plus_timeout(protoData->fd,
+	commSetSelect(protoData->fd,
 	    COMM_SELECT_TIMEOUT,
 	    (PF) getFromDefaultSource,
 	    (void *) entry,
@@ -424,7 +424,7 @@ protoCancelTimeout(int fd, StoreEntry * entry)
 	fatal_dump(NULL);
     }
     /* cancel the timeout handler */
-    comm_set_select_handler_plus_timeout(fd,
+    commSetSelect(fd,
 	COMM_SELECT_TIMEOUT,
 	NULL,
 	NULL,

@@ -883,10 +883,10 @@ icpUdpReply(int fd, icpUdpData * queue)
     int result = COMM_OK;
     int x;
     /* Disable handler, in case of errors. */
-    comm_set_select_handler(fd,
+    commSetSelect(fd,
 	COMM_SELECT_WRITE,
-	0,
-	0);
+	NULL,
+	NULL, 0);
     while ((queue = UdpQueueHead)) {
 	debug(12, 5, "icpUdpReply: FD %d sending %d bytes to %s port %d\n",
 	    fd,
@@ -912,10 +912,10 @@ icpUdpReply(int fd, icpUdpData * queue)
     }
     /* Reinstate handler if needed */
     if (UdpQueueHead) {
-	comm_set_select_handler(fd,
+	commSetSelect(fd,
 	    COMM_SELECT_WRITE,
 	    (PF) icpUdpReply,
-	    (void *) UdpQueueHead);
+	    (void *) UdpQueueHead, 0);
     }
     return result;
 }
@@ -987,10 +987,10 @@ icpUdpSend(int fd,
 	IcpOpcodeStr[opcode],
 	url);
     AppendUdp(data);
-    comm_set_select_handler(fd,
+    commSetSelect(fd,
 	COMM_SELECT_WRITE,
 	(PF) icpUdpReply,
-	(void *) UdpQueueHead);
+	(void *) UdpQueueHead, 0);
     return COMM_OK;
 }
 
@@ -1069,10 +1069,10 @@ icpUdpSendEntry(int fd,
 	IcpOpcodeStr[opcode],
 	url);
     AppendUdp(data);
-    comm_set_select_handler(fd,
+    commSetSelect(fd,
 	COMM_SELECT_WRITE,
 	(PF) icpUdpReply,
-	(void *) UdpQueueHead);
+	(void *) UdpQueueHead, 0);
 }
 
 static void
@@ -1413,7 +1413,7 @@ icpHandleUdp(int sock, void *not_used)
     len = comm_udp_recv(sock, buf, SQUID_UDP_SO_RCVBUF - 1, &from, &from_len);
     if (len < 0) {
 	debug(12, 1, "icpHandleUdp: FD %d: error receiving.\n", sock);
-	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
+	commSetSelect(sock, COMM_SELECT_READ, icpHandleUdp, NULL, 0);
 	return;
     }
     buf[len] = '\0';
@@ -1427,7 +1427,7 @@ icpHandleUdp(int sock, void *not_used)
     if (len < sizeof(icp_common_t)) {
 	debug(12, 4, "icpHandleUdp: Bad sized UDP packet ignored. %d < %d\n",
 	    len, sizeof(icp_common_t));
-	comm_set_select_handler(sock, COMM_SELECT_READ, icpHandleUdp, 0);
+	commSetSelect(sock, COMM_SELECT_READ, icpHandleUdp, NULL, 0);
 	return;
     }
     headerp = (icp_common_t *) (void *) buf;
@@ -1440,10 +1440,10 @@ icpHandleUdp(int sock, void *not_used)
 	    icp_version,
 	    inet_ntoa(from.sin_addr),
 	    ntohs(from.sin_port));
-    comm_set_select_handler(sock,
+    commSetSelect(sock,
 	COMM_SELECT_READ,
 	icpHandleUdp,
-	0);
+	NULL, 0);
 }
 
 static char *
@@ -1796,7 +1796,7 @@ asciiHandleConn(int sock, void *notused)
     if ((fd = comm_accept(sock, &peer, &me)) < 0) {
 	debug(12, 1, "asciiHandleConn: FD %d: accept failure: %s\n",
 	    sock, xstrerror());
-	comm_set_select_handler(sock, COMM_SELECT_READ, asciiHandleConn, 0);
+	commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
 	return;
     }
     /* set the hardwired lifetime */
@@ -1818,10 +1818,10 @@ asciiHandleConn(int sock, void *notused)
     icpState->fd = fd;
     fd_note(fd, inet_ntoa(icpState->log_addr));
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
-    comm_set_select_handler(fd,
+    commSetSelect(fd,
 	COMM_SELECT_LIFETIME,
 	(PF) asciiConnLifetimeHandle,
-	(void *) icpState);
+	(void *) icpState, 0);
     comm_add_close_handler(fd,
 	(PF) icpStateFree,
 	(void *) icpState);
@@ -1832,10 +1832,10 @@ asciiHandleConn(int sock, void *notused)
 	1,			/* handle immed */
 	asciiProcessInput,
 	(void *) icpState);
-    comm_set_select_handler(sock,
+    commSetSelect(sock,
 	COMM_SELECT_READ,
 	asciiHandleConn,
-	0);
+	NULL, 0);
     if (Config.identLookup) {
 	identStart(-1, icpState);
     }
@@ -1922,10 +1922,10 @@ icpDetectClientClose(int fd, icpStateData * icpState)
     if (n > 0) {
 	debug(12, 0, "icpDetectClientClose: FD %d, %d unexpected bytes\n",
 	    fd, n);
-	comm_set_select_handler(fd,
+	commSetSelect(fd,
 	    COMM_SELECT_READ,
 	    (PF) icpDetectClientClose,
-	    (void *) icpState);
+	    (void *) icpState, 0);
     } else if (n < 0) {
 	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
 	debug(12, 5, "--> URL '%s'\n", icpState->url);

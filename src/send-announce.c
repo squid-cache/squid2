@@ -86,8 +86,8 @@ send_announce(void)
     qdata->address.sin_port = htons(port);
     qdata->address.sin_addr = ia->in_addrs[0];
     AppendUdp(qdata);
-    comm_set_select_handler(theOutIcpConnection,
+    commSetSelect(theOutIcpConnection,
 	COMM_SELECT_WRITE,
 	(PF) icpUdpReply,
-	(void *) qdata);
+	(void *) qdata, 0);
 }

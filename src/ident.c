@@ -88,10 +88,10 @@ identConnectDone(int fd, int status, void *data)
 	identRequestComplete,
 	(void *) icpState,
 	NULL);
-    comm_set_select_handler(fd,
+    commSetSelect(fd,
 	COMM_SELECT_READ,
 	(PF) identReadReply,
-	(void *) icpState);
+	(void *) icpState, 0);
 }
 
 static void

@@ -191,8 +191,7 @@ extern int comm_open _PARAMS((int, int, struct in_addr, u_short port, int, char 
 extern u_short comm_local_port _PARAMS((int fd));
 extern int comm_select _PARAMS((time_t));
 extern int comm_set_fd_lifetime _PARAMS((int fd, int lifetime));
-extern void comm_set_select_handler _PARAMS((int fd, unsigned int type, PF, void *));
-extern void comm_set_select_handler_plus_timeout _PARAMS((int, unsigned int, PF, void *, time_t));
+extern void commSetSelect _PARAMS((int, unsigned int, PF, void *, time_t));
 extern void comm_add_close_handler _PARAMS((int fd, PF, void *));
 extern void comm_remove_close_handler _PARAMS((int fd, PF, void *));
 extern int comm_set_mcast_ttl _PARAMS((int, int));
