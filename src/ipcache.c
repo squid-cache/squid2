@@ -49,7 +49,7 @@ struct _ipcache_entry {
     char *error_message;
     struct timeval request_time;
     dlink_node lru;
-    unsigned char locks;
+    unsigned short locks;
     struct {
 	unsigned int negcached:1;
     } flags;

@@ -53,7 +53,7 @@ struct _fqdncache_entry {
     char *error_message;
     struct timeval request_time;
     dlink_node lru;
-    unsigned char locks;
+    unsigned short locks;
     struct {
 	unsigned int negcached:1;
     } flags;
@@ -500,10 +500,7 @@ fqdncacheLockEntry(fqdncache_entry * f)
 static void
 fqdncacheUnlockEntry(fqdncache_entry * f)
 {
-    if (f->locks == 0) {
-	debug_trap("fqdncacheUnlockEntry: Entry has no locks");
-	return;
-    }
+    assert(f->locks > 0);
     f->locks--;
     if (fqdncacheExpiredEntry(f))
 	fqdncacheRelease(f);
