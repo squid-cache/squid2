@@ -151,6 +151,7 @@ extern char *rfc1738_escape _PARAMS((const char *));
 void malloc_statistics _PARAMS((void (*)_PARAMS((int, int, void *)), void *));
 #endif
 
-extern int safe_inet_addr _PARAMS((const char *, struct in_addr *));
+typedef struct in_addr SIA;
+extern int safe_inet_addr _PARAMS((const char *, SIA *));
 
 #endif /* ndef _UTIL_H_ */
