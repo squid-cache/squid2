@@ -788,22 +788,12 @@ peer_Inst(oid * name, snint * len, mib_tree_entry * current, oid_ParseFn ** Fn)
 	instance[*len + 3] = *cp++;
 	*len += 4;
     } else {
-	debug(49, 5) ("peer_Inst: name : \n");
-	snmpDebugOid(6, name, *len);
-	laddr = xmalloc(sizeof(laddr));
-	memset(laddr, '\0', sizeof(laddr));
-	cp = (u_char *) & (laddr->s_addr);
-	cp[0] = name[*len - 4];
-	cp[1] = name[*len - 3];
-	cp[2] = name[*len - 2];
-	cp[3] = name[*len - 1];
+	laddr = oid2addr(&name[*len - 4]);
 	host_addr = inet_ntoa(*laddr);
 	last_addr = xmalloc(strlen(host_addr));
 	strncpy(last_addr, host_addr, strlen(host_addr));
 	current_addr = inet_ntoa(peers->in_addr.sin_addr);
-	debug(49, 5) ("peer_Inst: %s %s\n", current_addr, last_addr);
 	while ((peers) && (strncmp(last_addr, current_addr, strlen(current_addr)))) {
-	    debug(49, 5) ("peer_Inst: %s %s\n", current_addr, last_addr);
 	    if (peers->next) {
 		peers = peers->next;
 		current_addr = inet_ntoa(peers->in_addr.sin_addr);
@@ -812,7 +802,6 @@ peer_Inst(oid * name, snint * len, mib_tree_entry * current, oid_ParseFn ** Fn)
 	    }
 	}
 	xfree(last_addr);
-	xfree(cp);
 	if (peers) {
 	    if (peers->next) {
 		peers = peers->next;
@@ -835,7 +824,7 @@ peer_Inst(oid * name, snint * len, mib_tree_entry * current, oid_ParseFn ** Fn)
 }
 
 oid *
-client_Inst(oid * name, snint * len, mib_tree_entry * current, oid_ParseFn **Fn)
+client_Inst(oid * name, snint * len, mib_tree_entry * current, oid_ParseFn ** Fn)
 {
     oid *instance = NULL;
     u_char *cp = NULL;
@@ -844,32 +833,26 @@ client_Inst(oid * name, snint * len, mib_tree_entry * current, oid_ParseFn **Fn)
     if (*len <= current->len) {
 	instance = xmalloc(sizeof(name) * (*len + 4));
 	xmemcpy(instance, name, (sizeof(name) * *len));
-	laddr  = client_entry(NULL);
-	if(laddr){
+	laddr = client_entry(NULL);
+	if (laddr) {
 	    cp = (u_char *) & (laddr->s_addr);
-            instance[*len] = *cp++;
-            instance[*len + 1] = *cp++;
-            instance[*len + 2] = *cp++;
-            instance[*len + 3] = *cp++;
-            *len += 4;
+	    instance[*len] = *cp++;
+	    instance[*len + 1] = *cp++;
+	    instance[*len + 2] = *cp++;
+	    instance[*len + 3] = *cp++;
+	    *len += 4;
 	}
     } else {
-	laddr = xmalloc(sizeof(laddr));
-	cp = (u_char *) & (laddr->s_addr);
-	cp[0] = name[*len - 4];
-        cp[1] = name[*len - 3];
-        cp[2] = name[*len - 2];
-        cp[3] = name[*len - 1];
-	laddr  = client_entry(laddr);
-	xfree(cp);
-	if(laddr){
+	laddr = oid2addr(&name[*len - 4]);
+	laddr = client_entry(laddr);
+	if (laddr) {
 	    instance = xmalloc(sizeof(name) * (*len));
 	    xmemcpy(instance, name, (sizeof(name) * *len));
 	    cp = (u_char *) & (laddr->s_addr);
 	    instance[*len - 4] = *cp++;
-            instance[*len - 3] = *cp++;
-            instance[*len - 2] = *cp++;
-            instance[*len - 1] = *cp++;
+	    instance[*len - 3] = *cp++;
+	    instance[*len - 2] = *cp++;
+	    instance[*len - 1] = *cp++;
 	}
     }
     *Fn = current->parsefunction;
