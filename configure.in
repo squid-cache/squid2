@@ -201,11 +201,11 @@ AC_ARG_ENABLE(acltree,
                           Use tree function to store ACL lists],
 [ case "$enableval" in
   splay)
-  	echo "ACL lists using BIN trees"
+  	echo "ACL lists using SPLAY trees"
   	AC_DEFINE(USE_SPLAY_TREE)
       	;;
   yes|bin)
-  	echo "ACL lists using SPLAY trees"
+  	echo "ACL lists using BIN trees"
   	AC_DEFINE(USE_BIN_TREE)
 	;;
   esac
