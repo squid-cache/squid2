@@ -1,0 +1,292 @@
+static char rcsid[] = "$Id$";
+/*
+ *  log.c - Logging facilities for Essence system.
+ *
+ *  Darren Hardy, hardy@cs.colorado.edu, February 1994
+ *
+ *  ----------------------------------------------------------------------
+ *  Copyright (c) 1994, 1995.  All rights reserved.
+ *  
+ *    The Harvest software was developed by the Internet Research Task
+ *    Force Research Group on Resource Discovery (IRTF-RD):
+ *  
+ *          Mic Bowman of Transarc Corporation.
+ *          Peter Danzig of the University of Southern California.
+ *          Darren R. Hardy of the University of Colorado at Boulder.
+ *          Udi Manber of the University of Arizona.
+ *          Michael F. Schwartz of the University of Colorado at Boulder.
+ *          Duane Wessels of the University of Colorado at Boulder.
+ *  
+ *    This copyright notice applies to software in the Harvest
+ *    ``src/'' directory only.  Users should consult the individual
+ *    copyright notices in the ``components/'' subdirectories for
+ *    copyright information about other software bundled with the
+ *    Harvest source code distribution.
+ *  
+ *  TERMS OF USE
+ *    
+ *    The Harvest software may be used and re-distributed without
+ *    charge, provided that the software origin and research team are
+ *    cited in any use of the system.  Most commonly this is
+ *    accomplished by including a link to the Harvest Home Page
+ *    (http://harvest.cs.colorado.edu/) from the query page of any
+ *    Broker you deploy, as well as in the query result pages.  These
+ *    links are generated automatically by the standard Broker
+ *    software distribution.
+ *    
+ *    The Harvest software is provided ``as is'', without express or
+ *    implied warranty, and with no support nor obligation to assist
+ *    in its use, correction, modification or enhancement.  We assume
+ *    no liability with respect to the infringement of copyrights,
+ *    trade secrets, or any patents, and are not responsible for
+ *    consequential damages.  Proper use of the Harvest software is
+ *    entirely the responsibility of the user.
+ *  
+ *  DERIVATIVE WORKS
+ *  
+ *    Users may make derivative works from the Harvest software, subject 
+ *    to the following constraints:
+ *  
+ *      - You must include the above copyright notice and these 
+ *        accompanying paragraphs in all forms of derivative works, 
+ *        and any documentation and other materials related to such 
+ *        distribution and use acknowledge that the software was 
+ *        developed at the above institutions.
+ *  
+ *      - You must notify IRTF-RD regarding your distribution of 
+ *        the derivative work.
+ *  
+ *      - You must clearly notify users that your are distributing 
+ *        a modified version and not the original Harvest software.
+ *  
+ *      - Any derivative product is also subject to these copyright 
+ *        and use restrictions.
+ *  
+ *    Note that the Harvest software is NOT in the public domain.  We
+ *    retain copyright, as specified above.
+ *  
+ *  HISTORY OF FREE SOFTWARE STATUS
+ *  
+ *    Originally we required sites to license the software in cases
+ *    where they were going to build commercial products/services
+ *    around Harvest.  In June 1995 we changed this policy.  We now
+ *    allow people to use the core Harvest software (the code found in
+ *    the Harvest ``src/'' directory) for free.  We made this change
+ *    in the interest of encouraging the widest possible deployment of
+ *    the technology.  The Harvest software is really a reference
+ *    implementation of a set of protocols and formats, some of which
+ *    we intend to standardize.  We encourage commercial
+ *    re-implementations of code complying to this set of standards.  
+ *  
+ */
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+#if defined(__STRICT_ANSI__)
+#include <stdarg.h>
+#else
+#include <varargs.h>
+#endif
+#include "util.h"
+
+/* Local functions */
+static char *standard_msg();
+
+/* Local variables */
+static FILE *fp_log = NULL;
+static FILE *fp_errs = NULL;
+static int pid;
+static char *pname = NULL;
+static char lbuf[2048];
+
+/*
+ *  init_log() - Initializes the logging routines.  Log() prints to 
+ *  FILE *a, and errorlog() prints to FILE *b;
+ */
+void init_log(a, b)
+     FILE *a, *b;
+{
+    fp_log = a;
+    fp_errs = b;
+    pid = getpid();
+    pname = NULL;
+    if (fp_log)
+	setbuf(fp_log, NULL);
+    if (fp_errs)
+	setbuf(fp_errs, NULL);
+}
+
+void init_log3(pn, a, b)
+     char *pn;
+     FILE *a, *b;
+{
+    fp_log = a;
+    fp_errs = b;
+    pid = getpid();
+    pname = xstrdup(pn);
+    if ((int) strlen(pname) > 8)
+	*(pname + 8) = '\0';
+    if (fp_log)
+	setbuf(fp_log, NULL);
+    if (fp_errs)
+	setbuf(fp_errs, NULL);
+}
+
+/*
+ *  Log() - used like printf(3).  Prints message to stdout.
+ */
+#if defined(__STRICT_ANSI__)
+void Log(char *fmt,...)
+{
+    va_list ap;
+
+    if (fp_log == NULL)
+	return;
+
+    va_start(ap, fmt);
+#else
+void Log(va_alist)
+     va_dcl
+{
+    va_list ap;
+    char *fmt;
+
+    if (fp_log == NULL)
+	return;
+
+    va_start(ap);
+    fmt = va_arg(ap, char *);
+#endif /* __STRICT_ANSI__ */
+    if (fp_log == NULL)
+	return;
+
+    lbuf[0] = '\0';
+    vsprintf(lbuf, fmt, ap);
+    va_end(ap);
+    fprintf (fp_log, "%s: %s", standard_msg(), lbuf);
+}
+
+/*
+ *  errorlog() - used like printf(3).  Prints error message to stderr.
+ */
+#if defined(__STRICT_ANSI__)
+void errorlog(char *fmt,...)
+{
+    va_list ap;
+
+    if (fp_errs == NULL)
+	return;
+
+    va_start(ap, fmt);
+#else
+void errorlog(va_alist)
+     va_dcl
+{
+    va_list ap;
+    char *fmt;
+
+    if (fp_errs == NULL)
+	return;
+
+    va_start(ap);
+    fmt = va_arg(ap, char *);
+#endif /* __STRICT_ANSI__ */
+
+    if (fp_errs == NULL)
+	return;
+
+    lbuf[0] = '\0';
+    vsprintf(lbuf, fmt, ap);
+    va_end(ap);
+    fprintf(fp_errs, "%s: ERROR: %s", standard_msg(), lbuf);
+}
+
+/*
+ *  fatal() - used like printf(3).  Prints error message to stderr and exits
+ */
+#if defined(__STRICT_ANSI__)
+void fatal(char *fmt,...)
+{
+    va_list ap;
+
+    if (fp_errs == NULL)
+	exit(1);
+
+    va_start(ap, fmt);
+#else
+void fatal(va_alist)
+     va_dcl
+{
+    va_list ap;
+    char *fmt;
+
+    if (fp_errs == NULL)
+	exit(1);
+
+    va_start(ap);
+    fmt = va_arg(ap, char *);
+#endif /* __STRICT_ANSI__ */
+
+    if (fp_errs == NULL)
+	exit(1);
+
+    lbuf[0] = '\0';
+    vsprintf(lbuf, fmt, ap);
+    va_end(ap);
+    fprintf(fp_errs, "%s: FATAL: %s", standard_msg(), lbuf);
+    exit(1);
+}
+
+/*
+ *  log_errno() - Same as perror(); doesn't print when errno == 0
+ */
+void log_errno(s)
+     char *s;
+{
+    if (errno != 0)
+	errorlog("%s: %s\n", s, strerror(errno));
+}
+
+/*
+ *  log_errno2() - Same as perror(); doesn't print when errno == 0
+ */
+void log_errno2(file, line, s)
+     char *file;
+     int line;
+     char *s;
+{
+    if (errno != 0)
+	errorlog("%s [%d]: %s: %s\n", file, line, s, strerror(errno));
+}
+
+
+/*
+ *  fatal_errno() - Same as perror()
+ */
+void fatal_errno(s)
+     char *s;
+{
+    fatal("%s: %s\n", s, strerror(errno));
+}
+
+/*
+ *  standard_msg() - Prints the standard pid and timestamp
+ */
+static char *standard_msg()
+{
+    time_t t;
+    static char buf[BUFSIZ];
+
+    t = time(NULL);
+    buf[0] = '\0';
+    if (pname != NULL)
+	sprintf(buf, "[%s] %8.8s", mkhttpdlogtime(&t), pname);
+    else
+	sprintf(buf, "[%s] %8d", mkhttpdlogtime(&t), pid);
+    return buf;
+}

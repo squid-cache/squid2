@@ -1,0 +1,178 @@
+/*
+ *  config.h - Master configuration file for the Harvest system.
+ * 
+ *  Darren Hardy, hardy@cs.colorado.edu, July 1994
+ *
+ *  $Id$
+ *
+ *  ----------------------------------------------------------------------
+ *  Copyright (c) 1994, 1995.  All rights reserved.
+ *  
+ *          Mic Bowman of Transarc Corporation.
+ *          Peter Danzig of the University of Southern California.
+ *          Darren R. Hardy of the University of Colorado at Boulder.
+ *          Udi Manber of the University of Arizona.
+ *          Michael F. Schwartz of the University of Colorado at Boulder. 
+ *          Duane Wessels of the University of Colorado at Boulder. 
+ *  
+ *  This copyright notice applies to all code in Harvest other than
+ *  subsystems developed elsewhere, which contain other copyright notices
+ *  in their source text.
+ *  
+ *  The Harvest software was developed by the Internet Research Task
+ *  Force Research Group on Resource Discovery (IRTF-RD).  The Harvest
+ *  software may be used for academic, research, government, and internal
+ *  business purposes without charge.  If you wish to sell or distribute
+ *  the Harvest software to commercial clients or partners, you must
+ *  license the software.  See
+ *  http://harvest.cs.colorado.edu/harvest/copyright,licensing.html#licensing.
+ *  
+ *  The Harvest software is provided ``as is'', without express or
+ *  implied warranty, and with no support nor obligation to assist in its
+ *  use, correction, modification or enhancement.  We assume no liability
+ *  with respect to the infringement of copyrights, trade secrets, or any
+ *  patents, and are not responsible for consequential damages.  Proper
+ *  use of the Harvest software is entirely the responsibility of the user.
+ *  
+ *  For those who are using Harvest for non-commercial purposes, you may
+ *  make derivative works, subject to the following constraints:
+ *  
+ *  - You must include the above copyright notice and these accompanying 
+ *    paragraphs in all forms of derivative works, and any documentation 
+ *    and other materials related to such distribution and use acknowledge 
+ *    that the software was developed at the above institutions.
+ *  
+ *  - You must notify IRTF-RD regarding your distribution of the 
+ *    derivative work.
+ *  
+ *  - You must clearly notify users that your are distributing a modified 
+ *    version and not the original Harvest software.
+ *  
+ *  - Any derivative product is also subject to the restrictions of the 
+ *    copyright, including distribution and use limitations.
+ */
+#ifndef _CONFIG_H_
+#define _CONFIG_H_
+
+#include "autoconf.h"	/* For GNU autoconf variables */
+#include "paths.h"	/* For GNU autoconf program/subst variables */
+#include "version.h"
+
+/*
+ *  USE_TMPDIR - default temporary directory into which files are extracted.
+ */
+#ifndef USE_TMPDIR
+#define USE_TMPDIR	"/tmp"
+#endif
+
+/*
+ *  XFER_TIMEOUT is the number of seconds that liburl will wait on a read()
+ *  before giving up.
+ */
+#ifndef XFER_TIMEOUT
+#define XFER_TIMEOUT    120     /* 2 minutes */
+#endif
+
+/****************************************************************************
+ *--------------------------------------------------------------------------*
+ * DO *NOT* MAKE ANY CHANGES below here unless you know what you're doing...*
+ *--------------------------------------------------------------------------*
+ ****************************************************************************/
+
+/* 
+ *  NO_STRDUP - define if standard C library doesn't have strdup(3).
+ */
+#ifndef NO_STRDUP
+#ifndef HAVE_STRDUP
+#define NO_STRDUP
+#endif
+#endif
+
+/* 
+ *  NO_STRERROR - define if standard C library doesn't have strerror(3).
+ */
+#ifndef NO_STRERROR
+#ifndef HAVE_STRERROR
+#define NO_STRERROR
+#endif
+#endif
+
+#ifdef USE_POSIX_REGEX
+#ifndef USE_RE_SYNTAX
+#define USE_RE_SYNTAX	REG_EXTENDED	/* default Syntax */
+#endif
+#endif
+
+#ifndef BLKDEV_IOSIZE
+#include <sys/param.h>		/* try to find it... */
+#endif
+#ifdef BLKDEV_IOSIZE
+#define MIN_XFER BLKDEV_IOSIZE	/* minimum number of bytes per disk xfer */
+#else
+#define MIN_XFER 512		/* make reasonable guess */
+#endif
+
+#ifndef BUFSIZ
+#include <stdio.h>		/* try to find it... */
+#ifndef BUFSIZ
+#define BUFSIZ  4096		/* make reasonable guess */
+#endif
+#endif
+
+#if defined(SYSTYPE_SYSV) || defined(__svr4__) || defined(SYSTYPE_SVR4) || defined(__SYSTYPE_SVR4__)
+#define _SQUID_SYSV_
+#else
+#define _SQUID_BSD_
+#endif
+
+/* define the _SQUID_TYPE_ based on a guess of the OS */
+#if defined(__sun__)				/* SUN */
+#define _SQUID_SUN_
+#if defined(_SQUID_SYSV_)			/* SOLARIS */
+#define _SQUID_SOLARIS_
+#else						/* SUNOS */
+#define _SQUID_SUNOS_
+#endif
+#elif defined(__hpux)                           /* HP-UX - SysV-like? */
+#define _SQUID_HPUX_
+#define _SQUID_SYSV_
+#elif defined(__osf__)                          /* OSF/1 */
+#define _SQUID_OSF_
+#elif defined(__ultrix)				/* Ultrix */
+#define _SQUID_ULTRIX_
+#elif defined(_AIX)                          	/* AIX */
+#define _SQUID_AIX_
+#elif defined(__linux__)                        /* Linux */
+#define _SQUID_LINUX_
+#elif defined(__FreeBSD__)			/* FreeBSD */
+#define _SQUID_FREEBSD_
+#elif defined(__sgi__)				/* SGI */
+#define _SQUID_SGI_
+#endif
+
+#if !defined(USE_MALLINFO) && !defined(__linux__) && !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__ultrix)
+#define USE_MALLINFO 1
+#endif
+
+#if !defined(USE_MALLOPT) && defined(sun)
+#define USE_MALLOPT 1
+#endif
+
+#if !defined(CACHE_HTTP_PORT)
+#define CACHE_HTTP_PORT 3128
+#endif
+
+#if !defined(CACHE_ICP_PORT)
+#define CACHE_ICP_PORT 3130
+#endif
+
+#if !defined(CACHEMGR_HOSTNAME)
+#define CACHEMGR_HOSTNAME ""
+#endif
+
+#undef _SQUID_SYSV_SIGNALS_
+#if defined(_SQUID_SYSV_) || defined(_SQUID_LINUX_)
+#define  _SQUID_SYSV_SIGNALS_
+#endif
+
+#endif /* _CONFIG_H_ */

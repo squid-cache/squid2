@@ -1,0 +1,458 @@
+$Id$
+
+                            TABLE OF CONTENTS
+
+		C version of ftpget
+		HUP signal rotates log files
+		Querying neighbors based on URL domains
+		Dealing with file descriptor shortages
+		Multiple swap directories
+		Separate IP ACLs for proxy and httpd-accel
+		Command line option (-D) to disable DNS tests
+		Periodic garbage collection disabled by default.
+		Firewalls
+		Description of server selection algorithm
+		Description of neighbor resolution algorithm
+		The CGI cache manager interface
+		Virtual host support
+		Fast reload mode
+		Dealing with cache stalls under SunOS 4.1.x
+		New UDP-based cache announcement service
+		Other additions to cache configuration file
+			* ascii_port and udp_port
+			* proxy-only
+			* connect_timeout
+			* neighbor_timeout
+		Cached-1.5 pre-announcement
+		
+		Thanks and acknowledgements
+
+========================================================================
+
+    C version of ftpget
+    -------------------
+
+	The 'ftpget' program has been rewritten in C.  The Perl version
+	caused core-dumps for a number of users.  The C version is
+	more reliable and efficient.
+
+    HUP signal rotates log files
+    ----------------------------
+
+	Sending the cached process a HUP signal "rotates" the log
+	files.  Each active log file is closed and then renamed with a
+	digit extension.  The configuration parameter rotate_number
+	specifies how many rotated log files to keep.  If set to zero,
+	the log files are simply closed and re-opened, allowing them to
+	be renamed manually.
+
+    Querying neighbors based on URL domains
+    ---------------------------------------
+
+	By default the cache queries all neighbors (and parents) for
+	requested objects which it does not already have.  It is now
+	possible to selectively query neighbors based on the domain name
+	of the requested URL.  This is done with the 'cache_host_domain'
+	directive in the configuration file.  The usage is:
+
+		cache_host_domain  neighbor-name  domain [domain...]
+		cache_host_domain  neighbor-name  !domain [domain...]
+
+	The 'neighbor-name' must match the host name of a neighbor
+	previously specified with a 'cache_host' line.  The same
+	'neighbor-name' may appear on multiple 'cache_host_domain'
+	lines.
+
+	It is possible to specify that a neighbor should be queried only
+	when the domain matches, or when it does not match (by
+	prepending a !  to the domain).
+
+	The order of listed domains is important.  The action of the
+	first domain to match is taken.  ("action" means "do query" for
+	'domain' and "do not query" for '!domain').  If the URL does not
+	match any listed domains, the default action is the opposite of
+	the last one.
+
+	For example, assume your cache was running inside an
+	organization named "this.org."  Requests for URLs inside the
+	domain should be forwarded to other caches inside the this.org,
+	but not up to the parent cache running outside of this.org.
+	Similarly, for URLs outside of this.org there is no need to
+	query the inside neighbors.  The configuration would look like:
+
+		cache_host neighbor N1.this.org 3128 3130
+		cache_host neighbor N2.this.org 3128 3130
+		cache_host parent   P1.foo.net  3128 3130
+
+		cache_host_domain   N1.this.org	    this.org
+		cache_host_domain   N2.this.org	    this.org
+		cache_host_domain   P1.foo.net	    !this.org
+
+    Dealing with file descriptor shortages
+    -------------------------------------
+
+	An extremely busy cache may occasionally run out of file
+	descriptors.  This is especially a problem on SunOS where each
+	process is limited to 256 FDs.  Additionally some Unix kernels
+	seem to be slow in recycling socket FDs even though they
+	received a proper close().  For that reason the cache process
+	and the kernel have different values for the number of available
+	FDs.
+
+	Running out of FDs causes real problems for active objects (e.g.
+	swapping the object to disk will fail).  For this reason we now
+	start denying new client connections when the cache calculates
+	that only 64 FDs are available.  For each socket(), accept(), and 
+	open() failures then the number of reserved FDs is increased by
+        1, to a limit of MAXFD-64.
+
+    Multiple swap directories
+    -------------------------
+
+	The cache now supports having multiple 'cache_dir' directories.
+	The cache objects will be saved in each directory in round-robin
+	fashion.  For example, if the configuration file contained
+
+		cache_dir    /bigdisk1/cache
+		cache_dir    /bigdisk2/cache
+
+	Then the first four objects would be saved as
+
+		/bigdisk1/cache/01/1
+		/bigdisk2/cache/01/2
+		/bigdisk1/cache/02/3
+		/bigdisk2/cache/02/4
+
+	The parameter cache_swap specifies the total, maximum disk space
+	to use for swap files, not the amount to use for each swap
+	directory.
+
+    Separate IP ACLs for proxy and httpd-accel
+    ------------------------------------------
+
+	When 'httpd_accel_with_proxy on' is in the config file, the cached
+	process can handle both proxy and httpd-accel requests at the
+	same time.  However, there was only a single IP address
+	access list to control client access to both types of requests.
+
+	It is now possible to have separate IP ACLs for proxy and
+	httpd-accel requests.  The configuration file supports
+	six directives for specifying IP ACLs:
+
+		proxy_allow
+		proxy_deny
+		accel_allow
+		accel_deny
+		manager_allow
+		manager_deny
+
+	If no address are given for the accel ACL then it defaults to
+	be the same as the proxy ACL.
+
+    Command line option (-D) to disable DNS tests
+    ---------------------------------------------
+
+	Upon startup the cache queries a handful of well known Internet
+	host names to ensure that the host name resolver (i.e.  DNS) is
+	working properly.  This may be undesirable for sites behind
+	firewalls or those with very slow links to the greater Internet.
+	It is now possible to disable these DNS tests with a -D option
+	on the cached command line.
+
+
+    Periodic garbage collection disabled by default
+    -----------------------------------------------
+
+	The parameter 'clean_rate' determines how often the cache should
+	perform a full garbage collection.  This involves removing all
+	expired objects and reclaiming disk space.
+
+	For very large caches it will take a significant amount of time
+	to garbage collect on every object.  During this time processing
+	of cache requests from users is suspended.  For this
+	reason, full garbage collection is now disabled by default.
+
+	The preferred method of garbage collection is to check only a
+	small number of objects approximately every second.  If you have
+	used previous versions of the cache, Please check your cache
+	configuration file and make sure the clean_rate parameter is
+	really what you want.
+
+
+
+    Firewalls
+    ---------
+
+	A number of changes have been made so that cached works 
+	better behind a firewall.  If you want to run cached
+	behind (i.e. "inside", but not *on*) a firewall then you
+	should use these configuration parameters:
+
+	cache_host:		This should point to your proxy server
+				running on the firewall host.
+
+	inside_firewall:	A list of domains which are inside your
+				firewall.  If a URL-host does not match
+				one of these domains, the request will
+				be forwarded to a parent cache.
+
+	local_domain:		A list of domains which the cache can
+				connect directly to.  If a URL-host
+				matches one of these domains, we never
+				query the parents or neighbors.
+
+	single_parent_bypass:	If you have only one parent cache (and
+				no neighbor caches), then it may make
+				sense for you to set this to 'yes'.
+				When behind a firewall, and there is
+				only one parent, it makes little sense
+				to query the parent, wait for the reply,
+				and then fetch the object from the
+				parent regardless whether the reply is
+				HIT or MISS.
+
+
+    Description of server selection algorithm
+    -----------------------------------------
+
+	When cached recieves a request for an object not already in
+	its cache, it must decide where the object should be fetched
+	from.  In general, an object might be fetched from a cache
+	neighbor, cache parent, or the source site (URL-host).
+
+	Below is a flow chart of sorts, which describes how cached
+	will choose the site to fetch the object from.
+
+        Is the URL-host beyond our firewall?
+                |             |
+                No           Yes->  Query the hierarchy,
+                |                   No DNS lookup for URL-host.
+                |
+        Is the object uncachable, or
+        is URL-host one of the local domains?
+                |             |
+                No           Yes->  Fetch the object directly
+                |                   from the URL-host.
+                |
+        Is there a local_ip list?
+                |             |
+                No           Yes->  Do a DNS lookup for URL-host
+                |                   so we can check it in the list.
+                |
+        Would we Query any parents/neighbors for this URL?
+        (i.e., check the cache_host_domain restrictions).
+                |             | 
+                Yes           No->  Fetch directly from URL-host
+                |
+        Would we ping only a single parent,
+        and not also ping the source host,
+        and is single_parent_bypass on?
+                |             |
+                No            Yes->  Fetch directly from the
+                |                    single parent cache.
+                |
+                +----------------->  Query the hierarchy, do a 
+                                     DNS lookup for URL-host.
+
+
+    Description of neighbor resolution algorithm
+    --------------------------------------------
+
+	* Query all neighbors and parents, subject to cache_host_domain
+	  configuration.
+	* Query the source site if 'source_ping on' and the URL-host is
+	  not beyond a firewall.
+	* If the object is uncachable (e.g. cgi-bin scripts), do not
+	  query the neighbors and parents.  Instead just request it
+	  from the first allowable parent.
+
+	The cache will begin fetching the object as soon as one of the
+	following occurs:
+
+	* a HIT message is received.
+	* all query replies (i.e. MISSes) arrive.
+	* the 'neighbor_timeout' timeout occurs (default
+	  two seconds).
+
+	At this point, the object will be retrieved from one of the
+	following, in order:
+
+        * The first neighbor or parent to reply with a HIT message.
+          NOTE: the source host always returns a HIT if queried.
+        * The first parent to reply with a MISS message.
+        * The source server if it is not beyond a firewall.
+        * The single-parent for the URL-host, if appropriate.
+        * If none of the above apply, an error message is generated.
+
+
+    The CGI cache manager interface
+    -------------------------------
+
+	Versions prior to v1.4 included a tcl/tk cache manager program.
+	That program has been dropped from the distribution due to its
+	difficulty to install and maintain.  We now provide a CGI
+	program which can be used to monitor the cache process.
+
+	This program is installed as $prefix/cgi-bin/cachemgr.cgi.  To
+	enable it from your httpd server, you should either copy the
+	executable to your httpd's cgi-bin directory, make a symbolic
+	link, or configure your http to enable running CGI scripts from
+	$prefix/cgi-bin.  Don't forget to ensure that the httpd process
+	has permission to execute the file.
+
+	Note that security is essentially defeated with the cachemgr.cgi
+	program.  The configuration parameters manager_allow and
+	manager_deny specify which IP addresses may make cache manager
+	reqeusts.  With the CGI program, the requests will be coming
+	from the httpd server host.  So anyone with access to the CGI
+	program will also have access to the cache manager functions.
+	Most of these functions are harmless and provide only very
+	general information.  Very paranoid administrators may wish to
+	totally disable cache manager access to their cache.
+
+	In order to shut down the cache from the CGI program a password
+	must be provided.  The password is taken from the /etc/passwd
+	file for the user 'cache'.  If there is no user 'cache' in the
+	system password file, then the cache cannot be shut down from
+	the cachemgr.cgi program.
+
+	Note that the "shutdown" command causes the current cache
+	process to exit.  If the RunCache script is running, another
+	cache process will be automatically restarted.
+
+
+    Virtual host support
+    --------------------
+
+	The cache supports a simple form a virtual host operation
+	for the httpd-accelerator mode.  When the -V command line
+	option is given, incoming requests are rewritten with the
+	IP address of the local socket.  For example, the request
+
+		/index.html
+
+	might be rewritten as
+
+		http://172.16.0.1/index.html
+
+	If -V is given, then the 'http_accel'configuration parameters 
+	are ignored.
+
+
+    Fast restart mode
+    ----------------
+
+	The cache now supports a fast restart mode.  The ability to
+	perform a fast reload depends on the swap log file being
+	"clean" when the cache last exited.  A clean log file gets
+	written when:
+		- the cached process is killed with a SIGTERM
+		  or SIGINT signal.
+		- the process exits due to a "Segmentation Violation"
+		  or "Bus Error" and the -C command line option
+		  was not given.
+
+	A fast restart means that the cache does not call stat(2)
+	for each swap file on disk.  It assumes that the swap files
+	have not been removed or modified since the swap log was
+	last written.
+
+	The first time you start the v1.4 cache, it will not be possible
+	to do a fast restart (but the disk files will be preserved).
+	This is because the swap log file now includes the object size
+	as a fifth field for each object.
+
+
+    Dealing with cache stalls under SunOS 4.1.x
+    -------------------------------------------
+
+	SunOS has a 5 connection listen limit which is insufficient
+	under high workload.  You can patch your kernel to increase this
+	to a reasonable number.  Instructions are outlined in
+	http://excalibur.usc.edu/cachedoc/sunos.txt
+
+
+    New UDP-based cache announcement service
+    ----------------------------------------
+
+	In version 1.3, the cache would send an email message to
+	cache_tracker@cs.colorado.edu to announce itself.  The email
+	code has been removed for a couple of reasons.  To take its
+	place, we provide an external, UDP-based announcement program
+	('send-announcement').
+
+	The announcement is disabled by default.  To enable it, change
+	the value of 'cache_announce' in your configuration file.
+
+	This service is provided to help Harvest cache administrators
+	locate one another in order to join or create cache hierarchies.
+	For more information see the Web page at
+	http://www.nlanr.net/Cache/Tracker/
+
+
+    Other additions to cache configuration file
+    -------------------------------------------
+
+	* ascii_port
+        * udp_port 
+
+	  The "Ascii" and "UDP" ports can now be specified in the
+	  configuration file with 'ascii_port' and 'udp_port'.  Values
+	  given with -a and -u command line options will override those
+	  in the configuration file.
+
+	* proxy-only
+
+	  This has been added as an option to the 'cache_host'
+	  instruction.  Previously, we used 'neighbor_cache_obj' to
+	  enable or disable the local caching of objects fetched from
+	  all neighbors.  With 'proxy-only' it is possible to disable
+	  local caching of objects fetched for specific neighbors or
+	  parents.
+
+	* connect_timeout
+
+	  Some systems (notably Linux) can not be relied upon to
+	  properly time out connect(2) requests.  This parameter can be
+	  used to force pending connections to close before the
+	  operating system timeout occurs.
+
+	* neighbor_timeout
+
+	  Previously this timeout was hardcoded as two seconds.  It is
+	  how long to wait for ICP replies to arrive before we start
+	  fetching an object from the source.
+
+
+    Cached-1.5 Pre-Announcement
+    ---------------------------
+
+	The next version of the cache will support
+
+		1) GET If-Modified-Since requests hierarchically, and
+		   intelligently use neighbors and parents.
+		2) A multiplexing mode for getting around
+		   file-descriptor limits
+		3) Better logging
+		4) Dynamic neighbor and parent installation
+		5) Decreased meta-data size
+		6) Storage manager extended to handle big objects 
+		7) Redirection and stop lists
+		8) Double peak-load performance 
+
+
+    Thanks and Acknowledgements
+    ---------------------------
+
+	The Harvest team would especially like to thank the following
+	individuals for providing extensive feedback and testing:
+
+	Johannes Demel <demel@edvz.tuwien.ac.at>
+	Michael Fischer <mfischer@aol.net>
+	Martin Hamilton <martin@mrrl.lut.ac.uk>
+	Joe Meadows <jem7049@nobs.ca.boeing.com>
+	Patrick Michael Kane <modus@asimov.net>
+	Donald Neal <d.neal@waikato.ac.nz>
+	Henrik Nordstrom <henrik.nordstrom@ida.his.se>
+	Anthony Rumble <arumble@mpx.com.au>
+	Mark Thomas <Mark@Misty.com>
