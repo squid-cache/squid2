@@ -210,8 +210,6 @@ fwdConnectTimeout(int fd, void *data)
 	err->request = requestLink(fwdState->request);
 	err->xerrno = ETIMEDOUT;
 	fwdFail(fwdState, err);
-	if (fwdState->servers->peer)
-	    peerConnectFailed(fwdState->servers->peer);
     }
     comm_close(fd);
 }
