@@ -291,7 +291,8 @@ typedef enum {
     SOURCE_FASTEST,
     ROUNDROBIN_PARENT,
 #if USE_CACHE_DIGESTS
-    CACHE_DIGEST_HIT,
+    CD_PARENT_HIT,
+    CD_SIBLING_HIT,
 #endif
 #if USE_CARP
     CARP,
@@ -459,7 +460,7 @@ enum {
     ENTRY_VALIDATED,
     ENTRY_BAD_LENGTH,
     ENTRY_ABORTED,
-    ENTRY_DONT_LOG 	/* hack for gross 'Pump' entries */
+    ENTRY_DONT_LOG		/* hack for gross 'Pump' entries */
 };
 
 typedef enum {

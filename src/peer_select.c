@@ -52,7 +52,8 @@ const char *hier_strings[] =
     "SOURCE_FASTEST",
     "ROUNDROBIN_PARENT",
 #if USE_CACHE_DIGESTS
-    "CACHE_DIGEST_HIT",
+    "CD_PARENT_HIT",
+    "CD_SIBLING_HIT",
 #endif
 #if USE_CARP
     "CARP",
@@ -310,7 +311,10 @@ peerGetSomeNeighbor(ps_state * ps)
     }
 #if USE_CACHE_DIGESTS
     if ((p = neighborsDigestSelect(request, entry))) {
-	code = CACHE_DIGEST_HIT;
+	if (neighborType(p, request) == PEER_PARENT)
+	    code = CD_PARENT_HIT;
+	else
+	    code = CD_SIBLING_HIT;
     } else
 #endif
 #if USE_CARP
