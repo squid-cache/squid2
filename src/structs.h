@@ -1078,8 +1078,8 @@ struct _clientHttpRequest {
 	char *location;
     } redirect;
     dlink_node active;
-    char norm_reqbuf[HTTP_REQBUF_SZ]; /* For 'normal requests' */
-    char ims_reqbuf[HTTP_REQBUF_SZ];  /* For 'ims' requests */
+    char norm_reqbuf[HTTP_REQBUF_SZ];	/* For 'normal requests' */
+    char ims_reqbuf[HTTP_REQBUF_SZ];	/* For 'ims' requests */
     char *reqbuf;
     int reqofs;
     int reqsize;

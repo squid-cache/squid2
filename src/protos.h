@@ -1048,7 +1048,7 @@ extern store_client *storeClientListSearch(const MemObject * mem, void *data);
 #endif
 extern store_client *storeClientListAdd(StoreEntry * e, void *data);
 extern void storeClientCopyOld(store_client *, StoreEntry *, off_t, off_t, size_t, char *, STCB *, void *);
-extern void storeClientCopy(store_client *, StoreEntry * , off_t, size_t, char *, STCB *, void *);
+extern void storeClientCopy(store_client *, StoreEntry *, off_t, size_t, char *, STCB *, void *);
 extern int storeClientCopyPending(store_client *, StoreEntry * e, void *data);
 extern int storeUnregister(store_client * sc, StoreEntry * e, void *data);
 extern off_t storeLowestMemReaderOffset(const StoreEntry * entry);
