@@ -125,6 +125,7 @@ static const HttpHeaderFieldAttrs HeadersAttrs[] =
     {"X-Cache", HDR_X_CACHE, ftStr},
     {"X-Cache-Lookup", HDR_X_CACHE_LOOKUP, ftStr},
     {"X-Forwarded-For", HDR_X_FORWARDED_FOR, ftStr},
+    {"X-Squid-Error", HDR_X_SQUID_ERROR, ftStr},
     {"Other:", HDR_OTHER, ftStr}	/* ':' will not allow matches */
 };
 static HttpHeaderFieldInfo *Headers = NULL;
@@ -182,7 +183,8 @@ static http_hdr_type ReplyHeadersArr[] =
     HDR_MIME_VERSION, HDR_PUBLIC, HDR_RETRY_AFTER, HDR_SERVER, HDR_SET_COOKIE,
     HDR_VARY,
     HDR_WARNING, HDR_PROXY_CONNECTION, HDR_X_CACHE,
-    HDR_X_CACHE_LOOKUP
+    HDR_X_CACHE_LOOKUP,
+    HDR_X_SQUID_ERROR
 };
 
 static HttpHeaderMask RequestHeadersMask;	/* set run-time using RequestHeaders */
