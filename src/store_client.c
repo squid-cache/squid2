@@ -408,10 +408,12 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 	switch (t->type) {
 	case STORE_META_KEY:
 	    assert(t->length == MD5_DIGEST_CHARS);
-	    if (memcmp(t->value, e->key, MD5_DIGEST_CHARS)) {
+	    if (!EBIT_TEST(e->flags, KEY_PRIVATE) &&
+		    memcmp(t->value, e->key, MD5_DIGEST_CHARS)) {
 		debug(20, 1) ("WARNING: swapin MD5 mismatch\n");
 		debug(20, 1) ("\t%s\n", storeKeyText(t->value));
 		debug(20, 1) ("\t%s\n", storeKeyText(e->key));
+		swap_object_ok = 0;
 	    }
 	    break;
 	case STORE_META_URL:
