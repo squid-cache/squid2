@@ -329,6 +329,8 @@ struct rusage {
 #include "cache_snmp.h"
 #endif
 
+#include "hash.h"
+
 #include "defines.h"
 #include "enums.h"
 #include "typedefs.h"
