@@ -237,25 +237,6 @@ checkFailureRatio(log_type rcode, hier_code hcode)
     fail_ratio = 0.8;		/* reset to something less than 1.0 */
 }
 
-static void
-checkDirectFailure(log_type lcode, request_t *r)
-{
-    struct _hierarchyLogData *hierData = &r->hierarchy;
-    if (hierData == NULL)
-	return;
-    if (hierData->code != HIER_DIRECT)
-	return;
-    switch(lcode) {
-    case ERR_DNS_FAIL:
-    case ERR_CONNECT_FAIL:
-    case ERR_READ_ERROR:
-	netdbDeleteHostNetwork(r->host);
-	break;
-    default:
-	break;
-    }
-}
-
 /* This is a handler normally called by comm_close() */
 static void
 icpStateFree(int fd, void *data)
@@ -316,7 +297,6 @@ icpStateFree(int fd, void *data)
 	comm_close(icpState->ident.fd);
     checkFailureRatio(icpState->log_type,
 	hierData ? hierData->code : HIER_NONE);
-    checkDirectFailure(icpState->log_type, icpState->request);
     safe_free(icpState->inbuf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
@@ -1234,6 +1214,8 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     icp_common_t *reply;
     int src_rtt = 0;
     u_num32 flags = 0;
+    int rtt = 0;
+    int hops = 0;
 
     header.opcode = headerp->opcode;
     header.version = headerp->version;
@@ -1265,14 +1247,16 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    }
 	    break;
 	}
+	/* The peer is allowed to use this cache */
 	if (header.flags & ICP_FLAG_SRC_RTT) {
-	    int rtt = netdbHostRtt(icp_request->host);
-	    int hops = netdbHostHops(icp_request->host);
+	    rtt = netdbHostRtt(icp_request->host);
+	    hops = netdbHostHops(icp_request->host);
 	    src_rtt = ((hops & 0xFFFF) << 16) | (rtt & 0xFFFF);
 	    if (rtt)
 		flags |= ICP_FLAG_SRC_RTT;
+	    else
+		netdbPingSite(icp_request->host);
 	}
-	/* The peer is allowed to use this cache */
 	entry = storeGet(storeGeneratePublicKey(url, METHOD_GET));
 	debug(12, 5, "icpHandleIcpV2: OPCODE %s\n", IcpOpcodeStr[header.opcode]);
 	if (icpCheckUdpHit(entry, icp_request)) {
@@ -1295,11 +1279,18 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 		break;
 	    }
 	}
+	if (Config.Options.test_reachability && rtt == 0) {
+	    if ((rtt = netdbHostRtt(icp_request->host)) == 0)
+		netdbPingSite(icp_request->host);
+	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
 	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, flags, url, header.reqnum, src_rtt);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
+	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, flags, url, header.reqnum, src_rtt);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
+	} else if (Config.Options.test_reachability && rtt == 0) {
 	    reply = icpCreateMessage(ICP_OP_MISS_NOFETCH, flags, url, header.reqnum, src_rtt);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS_NOFETCH, icp_request->protocol);
 	} else {
