@@ -17,7 +17,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
-#ifndef _SQUID_FREEBSD_		/* "Obsolete" Markus Stumpf <maex@Space.NET> */
+#if !defined(_SQUID_FREEBSD_) && !defined(_SQUID_NEXT_)
+/* "Obsolete" Markus Stumpf <maex@Space.NET> */
 #include <malloc.h>
 #endif
 #include <memory.h>
@@ -101,6 +102,9 @@ typedef unsigned long u_num32;
 
 #include "GNUregex.h"
 #include "ansihelp.h"
+
+typedef void (*SIH) _PARAMS((int, void *)); /* swap in */
+
 #include "cache_cf.h"
 #include "comm.h"
 #include "debug.h"

@@ -20,6 +20,12 @@
 #endif
 #include "util.h"
 
+#ifdef _SQUID_NEXT_
+typedef int pid_t;
+extern pid_t getpid _PARAMS((void));
+#endif
+
+
 /* Local functions */
 static char *standard_msg _PARAMS((void));
 
