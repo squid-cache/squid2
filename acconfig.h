@@ -9,3 +9,5 @@
 /* Define if signal handlers must be reset after invocation */
 #undef RESET_SIGNAL_HANDLER
 
+/* Maximum number of open filedescriptors */
+#undef SQUID_FD_SETSIZE
