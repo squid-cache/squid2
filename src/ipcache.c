@@ -1068,9 +1068,9 @@ void ipcacheOpenServers()
 
     /* free old structures if present */
     if (dns_child_table) {
-	for (i=0; i<NChildrenAlloc; i++)
-		safe_free(dns_child_table[i]->ip_inbuf);
-    	safe_free(dns_child_table);
+	for (i = 0; i < NChildrenAlloc; i++)
+	    safe_free(dns_child_table[i]->ip_inbuf);
+	safe_free(dns_child_table);
     }
     dns_child_table = (dnsserver_entry **) xcalloc(N, sizeof(dnsserver_entry));
     NChildrenAlloc = N;

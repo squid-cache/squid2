@@ -77,7 +77,7 @@
 #endif
 
 #ifndef BUFSIZ
-#define BUFSIZ  4096            /* make reasonable guess */
+#define BUFSIZ  4096		/* make reasonable guess */
 #endif
 
 typedef struct sentry StoreEntry;
