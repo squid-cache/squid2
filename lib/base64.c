@@ -40,7 +40,6 @@ base64_decode(const char *p)
 {
     static char result[BASE64_RESULT_SZ];
     int j;
-    unsigned int k;
     int c;
     long val;
     if (!p)
@@ -48,8 +47,8 @@ base64_decode(const char *p)
     if (!base64_initialized)
 	base64_init();
     val = c = 0;
-    for (j = 0; *p && j + 3 < BASE64_RESULT_SZ; p++) {
-	k = (int) *p % BASE64_VALUE_SZ;
+    for (j = 0; *p && j + 4 < BASE64_RESULT_SZ; p++) {
+	unsigned int k = ((unsigned char) *p) % BASE64_VALUE_SZ;
 	if (base64_value[k] < 0)
 	    continue;
 	val <<= 6;
@@ -82,7 +81,7 @@ base64_encode(const char *decoded_str)
     if (!base64_initialized)
 	base64_init();
 
-    while ((c = *decoded_str++) && out_cnt < sizeof(result) - 1) {
+    while ((c = (unsigned char) *decoded_str++) && out_cnt < sizeof(result) - 5) {
 	bits += c;
 	char_count++;
 	if (char_count == 3) {
