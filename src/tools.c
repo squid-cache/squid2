@@ -1021,3 +1021,76 @@ parseEtcHosts(void)
 	wordlistDestroy(&hosts);
     }
 }
+
+/*
+ * Similar to strtok, but has some rudimentary knowledge
+ * of quoting
+ */
+static char *
+strwordtok(char *buf, char **t)
+{
+    unsigned char *word = NULL;
+    unsigned char *p = (unsigned char *) buf;
+    unsigned char *d;
+    unsigned char ch;
+    int quoted = 0;
+    if (!p)
+	p = (unsigned char *) *t;
+    if (!p)
+	goto error;
+    while (*p && isspace(*p))
+	p++;
+    if (!*p)
+	goto error;
+    word = d = p;
+    while ((ch = *p)) {
+	switch (ch) {
+	case '\\':
+	    p++;
+	    *d++ = ch = *p;
+	    if (ch)
+		p++;
+	    break;
+	case '"':
+	    quoted = !quoted;
+	    p++;
+	default:
+	    if (!quoted && isspace(*p)) {
+		p++;
+		goto done;
+	    }
+	    *d++ = *p++;
+	    break;
+	}
+    }
+  done:
+    *d++ = '\0';
+  error:
+    *t = (char *) p;
+    return (char *) word;
+}
+
+/*
+ * Inverse of strwordtok. Quotes a word if needed
+ */
+static void
+strwordquote(MemBuf * mb, const char *str)
+{
+    int quoted = 0;
+    if (strchr(str, ' ')) {
+	quoted = 1;
+	memBufAppend(mb, "\"", 1);
+    }
+    while (*str) {
+	int l = strcspn(str, "\"\\");
+	memBufAppend(mb, str, l);
+	str += l;
+	while (*str == '"' || *str == '\\') {
+	    memBufAppend(mb, "\\", 1);
+	    memBufAppend(mb, str, 1);
+	    str++;
+	}
+    }
+    if (quoted)
+	memBufAppend(mb, "\"", 1);
+}

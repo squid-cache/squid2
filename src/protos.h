@@ -1169,6 +1169,9 @@ extern int xrename(const char *from, const char *to);
 extern int isPowTen(int);
 extern void parseEtcHosts(void);
 
+static void strwordquote(MemBuf * mb, const char *str);
+void strwordquote(MemBuf * mb, const char *str);
+
 #if USE_HTCP
 extern void htcpInit(void);
 extern void htcpQuery(StoreEntry * e, request_t * req, peer * p);
@@ -1344,5 +1347,6 @@ typedef void EAH(void *data, void *result);
 extern void externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * handler, void *data);
 extern void externalAclInit(void);
 extern void externalAclShutdown(void);
+extern char *strtokFile(void);
 
 #endif /* SQUID_PROTOS_H */
