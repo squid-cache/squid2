@@ -107,11 +107,7 @@
 
 #include "squid.h"
 
-static int protoCantFetchObject _PARAMS((int, StoreEntry *, char *));
 static int protoNotImplemented _PARAMS((int, const char *, StoreEntry *));
-static int protoDNSError _PARAMS((int, StoreEntry *));
-static void protoDataFree _PARAMS((int, void *));
-static void protoDispatchDNSHandle _PARAMS((int, const ipcache_addrs *, void *));
 
 char *IcpOpcodeStr[] =
 {
@@ -142,41 +138,10 @@ char *IcpOpcodeStr[] =
     "ICP_END"
 };
 
-#if DELAY_HACK
-extern int _delay_fetch;
-#endif
-
-static void
-protoDataFree(int fdunused, void *data)
-{
-    protodispatch_data *protoData = data;
-    requestUnlink(protoData->request);
-    safe_free(protoData);
-}
-
-/* called when DNS lookup is done by ipcache. */
-static void
-protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
-{
-    protodispatch_data *protoData = (protodispatch_data *) data;
-    StoreEntry *entry = protoData->entry;
-    request_t *req = protoData->request;
-    int fd = protoData->fd;
-    /* NOTE: We get here after a DNS lookup, whether or not the
-     * lookup was successful.  Even if the URL hostname is bad,
-     * we might still ping the hierarchy */
-    BIT_RESET(entry->flag, IP_LOOKUP_PENDING);
-    comm_remove_close_handler(protoData->fd, protoDataFree, protoData);
-    protoDataFree(protoData->fd, protoData);
-    protoData = NULL;
-    peerSelect(fd, req, entry);
-}
-
 void
-protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
+protoDispatch(int fd, StoreEntry * entry, request_t * request)
 {
-    protodispatch_data *protoData = NULL;
-    debug(17, 3, "protoDispatch: '%s'\n", url);
+    debug(17, 3, "protoDispatch: '%s'\n", entry->url);
     entry->mem_obj->request = requestLink(request);
     if (request->protocol == PROTO_CACHEOBJ) {
 	protoStart(fd, entry, NULL, request);
@@ -186,22 +151,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	protoStart(fd, entry, NULL, request);
 	return;
     }
-    if (!Config.firewall_ip_list && !Config.local_ip_list) {
-	peerSelect(fd, request, entry);
-	return;
-    }
-    protoData = xcalloc(1, sizeof(protodispatch_data));
-    protoData->fd = fd;
-    protoData->entry = entry;
-    protoData->request = requestLink(request);
-    comm_add_close_handler(fd,
-	protoDataFree,
-	(void *) protoData);
-    BIT_SET(entry->flag, IP_LOOKUP_PENDING);
-    ipcache_nbgethostbyname(request->host,
-	fd,
-	protoDispatchDNSHandle,
-	(void *) protoData);
+    peerSelect(fd, request, entry);
 }
 
 int
@@ -256,63 +206,6 @@ protoCancelTimeout(int fd, StoreEntry * entry)
 	0);
 }
 
-/*
- *  Called from comm_select() if neighbor pings timeout
- *  or from neighborsUdpAck() if all neighbors miss.
- */
-int
-getFromDefaultSource(int fd, StoreEntry * entry)
-{
-    peer *e = NULL;
-    char *url = NULL;
-    request_t *request = entry->mem_obj->request;
-
-    url = entry->url;
-
-    /* if fd != 0 then we were called from comm_select() because the
-     * timeout occured.  Otherwise we were called from neighborsUdpAck(). */
-
-    if (fd) {
-	entry->ping_status = PING_TIMEOUT;
-	debug(17, 5, "getFromDefaultSource: Timeout occured pinging for '%s'\n",
-	    url);
-    }
-    /* Check if someone forgot to disable the read timer */
-    if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))
-	fatal_dump("getFromDefaultSource: object already being fetched");
-    if ((e = entry->mem_obj->e_pings_first_miss)) {
-	hierarchyNote(request, HIER_FIRST_PARENT_MISS, fd, e->host);
-	return protoStart(fd, entry, e, request);
-    }
-    if (matchInsideFirewall(request->host)) {
-	if (ipcache_gethostbyname(request->host, 0) == NULL)
-	    return protoDNSError(fd, entry);
-	hierarchyNote(request, HIER_DIRECT, fd, request->host);
-	return protoStart(fd, entry, NULL, request);
-    }
-    if ((e = getDefaultParent(request))) {
-	hierarchyNote(request, HIER_DEFAULT_PARENT, fd, e->host);
-	return protoStart(fd, entry, e, request);
-    }
-    if ((e = getSingleParent(request))) {
-	hierarchyNote(request, HIER_SINGLE_PARENT, fd, e->host);
-	return protoStart(fd, entry, e, request);
-    }
-    if ((e = getRoundRobinParent(request))) {
-	hierarchyNote(request, HIER_ROUNDROBIN_PARENT, fd, e->host);
-	return protoStart(fd, entry, e, request);
-    }
-    if ((e = getFirstUpParent(request))) {
-	hierarchyNote(request, HIER_FIRSTUP_PARENT, fd, e->host);
-	return protoStart(fd, entry, e, request);
-    }
-    hierarchyNote(request, HIER_NO_DIRECT_FAIL, fd, request->host);
-    protoCancelTimeout(fd, entry);
-    protoCantFetchObject(fd, entry,
-	"No ICP replies received and the host is beyond the firewall.");
-    return 0;
-}
-
 int
 protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 {
@@ -361,34 +254,10 @@ protoNotImplemented(int fd, const char *url, StoreEntry * entry)
 
     buf[0] = '\0';
     if (httpd_accel_mode)
-	strcpy(buf, "cached is running in HTTPD accelerator mode, so it does not allow the normal URL syntax.");
+	strcpy(buf, "Squid is running in HTTPD accelerator mode, so it does not allow the normal URL syntax.");
     else
 	sprintf(buf, "Your URL may be incorrect: '%s'\n", url);
 
     squid_error_entry(entry, ERR_NOT_IMPLEMENTED, NULL);
-    return 0;
-}
-
-static int
-protoCantFetchObject(int fd, StoreEntry * entry, char *reason)
-{
-    LOCAL_ARRAY(char, buf, 2048);
-
-    debug(17, 1, "protoCantFetchObject: FD %d %s\n", fd, reason);
-    debug(17, 1, "--> '%s'\n", entry->url);
-
-    buf[0] = '\0';
-    sprintf(buf, "%s\n\nThe cache administrator may need to double-check the cache configuration.",
-	reason);
-    squid_error_entry(entry, ERR_CANNOT_FETCH, buf);
-    return 0;
-}
-
-static int
-protoDNSError(int fd, StoreEntry * entry)
-{
-    debug(17, 2, "protoDNSError: FD %d '%s'\n", fd, entry->url);
-    protoCancelTimeout(fd, entry);
-    squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
     return 0;
 }

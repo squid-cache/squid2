@@ -35,5 +35,7 @@ extern void peerSelect _PARAMS((int fd, request_t *, StoreEntry *));
 extern int peerSelectDirect _PARAMS((request_t *));
 extern peer *peerGetSomeParent _PARAMS((request_t *, hier_code *));
 extern int matchInsideFirewall _PARAMS((const char *));
+extern void peerPingTimeout _PARAMS((int fd, void *data));
+extern void peerSelectInit _PARAMS((void));
 
 #endif /* PEER_SELECT_H */

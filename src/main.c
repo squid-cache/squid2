@@ -455,6 +455,7 @@ serverConnectionsOpen(void)
     clientdbInit();
     icmpOpen();
     netdbInit();
+    peerSelectInit();
 }
 
 void

@@ -490,18 +490,10 @@ passStart(int fd,
 	COMM_SELECT_READ,
 	NULL,
 	NULL, 0);
-    if (Config.firewall_ip_list) {
-	/* must look up IP address */
-	ipcache_nbgethostbyname(passState->host,
-	    passState->server.fd,
-	    passSelectNeighbor,
-	    passState);
-    } else {
-	/* can decide now */
-	passSelectNeighbor(passState->server.fd,
-	    NULL,
-	    (void *) passState);
-    }
+    ipcache_nbgethostbyname(passState->host,
+        passState->server.fd,
+        passSelectNeighbor,
+        passState);
     return COMM_OK;
 }
 

@@ -147,11 +147,6 @@ char *log_tags[] =
     "ERR_PROXY_DENIED"
 };
 
-#if DELAY_HACK
-int _delay_fetch;
-
-#endif
-
 static icpUdpData *UdpQueueHead = NULL;
 static icpUdpData *UdpQueueTail = NULL;
 
@@ -925,7 +920,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     memset((char *) &ch, '\0', sizeof(aclCheck_t));
     ch.src_addr = icpState->peer.sin_addr;
     ch.request = requestLink(icpState->request);
-    answer = aclCheck(MISSAccessList, &ch);
+    answer = aclCheck(Config.accessList.MISS, &ch);
     requestUnlink(ch.request);
     if (answer == 0) {
 	icpState->http_code = 400;
@@ -955,7 +950,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
     icpState->out_offset = 0;
     /* Register with storage manager to receive updates when data comes in. */
     storeRegister(entry, fd, icpHandleStore, (void *) icpState);
-    protoDispatch(fd, url, icpState->entry, icpState->request);
+    protoDispatch(fd, icpState->entry, icpState->request);
     return;
 }
 
@@ -1214,7 +1209,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	checklist.src_addr = from.sin_addr;
 	checklist.request = icp_request;
-	allow = aclCheck(ICPAccessList, &checklist);
+	allow = aclCheck(Config.accessList.ICP, &checklist);
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV2: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);
@@ -1362,7 +1357,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	checklist.src_addr = from.sin_addr;
 	checklist.request = icp_request;
-	allow = aclCheck(ICPAccessList, &checklist);
+	allow = aclCheck(Config.accessList.ICP, &checklist);
 	if (!allow) {
 	    debug(12, 2, "icpHandleIcpV3: Access Denied for %s by %s.\n",
 		inet_ntoa(from.sin_addr), AclMatchedName);

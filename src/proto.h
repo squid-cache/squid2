@@ -265,28 +265,11 @@ typedef struct icp_message_s icp_message_t;
 #define ICP_VERSION_3		3
 #define ICP_VERSION_CURRENT	ICP_VERSION_2
 
-#if 0
-extern int icp_proto_errno;	/* operation errors */
-extern int icp_hit _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, u_num32 size));
-extern int icp_miss _PARAMS((int sock, u_num32 reqnum, u_num32 * auth));
-extern int icp_error _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, unsigned short errcode, char *errstr));
-extern int icp_databegin _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, u_num32 ttl, u_num32 timestamp, char *data));
-extern int icp_data _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, char *data));
-extern int icp_dataend _PARAMS((int sock, u_num32 reqnum, u_num32 * auth, char *data));
-#endif
-
-typedef struct _protodispatch_data {
-    int fd;
-    StoreEntry *entry;
-    request_t *request;
-} protodispatch_data;
-
-extern void protoDispatch _PARAMS((int, char *, StoreEntry *, request_t *));
+extern void protoDispatch _PARAMS((int, StoreEntry *, request_t *));
 extern int protoUnregister _PARAMS((int fd,
 	StoreEntry *,
 	request_t *,
 	struct in_addr));
-extern int getFromDefaultSource _PARAMS((int, StoreEntry *));
 extern int protoStart _PARAMS((int, StoreEntry *, peer *, request_t *));
 extern void protoCancelTimeout _PARAMS((int fd, StoreEntry *));
 
