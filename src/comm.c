@@ -33,9 +33,9 @@ FD_ENTRY *fd_table = NULL;	/* also used in disk.c */
 static void checkTimeouts _PARAMS((void));
 static void checkLifetimes _PARAMS((void));
 static void Reserve_More_FDs _PARAMS((void));
-static int commSetReuseAddr _PARAMS((int));
+static void commSetReuseAddr _PARAMS((int));
 static int examine_select _PARAMS((fd_set *, fd_set *, fd_set *));
-static int commSetNoLinger _PARAMS((int));
+static void commSetNoLinger _PARAMS((int));
 static void comm_select_incoming _PARAMS((void));
 static int commBind _PARAMS((int s, struct in_addr, u_short port));
 
@@ -130,10 +130,7 @@ int comm_open(io_type, addr, port, note)
 	}
     }
     if (port > 0) {
-	if (commSetNoLinger(new_socket) < 0) {
-	    debug(5, 0, "comm_open: failed to turn off SO_LINGER: %s\n",
-		xstrerror());
-	}
+	commSetNoLinger(new_socket);
 	if (do_reuse)
 	    commSetReuseAddr(new_socket);
     }
@@ -142,25 +139,12 @@ int comm_open(io_type, addr, port, note)
 	    return COMM_ERROR;
     conn->local_port = port;
 
-    if (io_type & COMM_NONBLOCKING) {
-	/*
-	 * Set up the flag NOT to have the socket to wait for message from
-	 * network forever, but to return -1 when no message is coming in.
-	 */
-#if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
-	if (fcntl(new_socket, F_SETFL, O_NONBLOCK)) {
-	    debug(5, 0, "comm_open: FD %d: Failure to set O_NONBLOCK: %s\n",
-		new_socket, xstrerror());
-	    return (COMM_ERROR);
-	}
-#else
-	if (fcntl(new_socket, F_SETFL, O_NDELAY)) {
-	    debug(5, 0, "comm_open: FD %d: Failure to set O_NDELAY: %s\n",
-		new_socket, xstrerror());
-	    return (COMM_ERROR);
-	}
-#endif /* O_NONBLOCK */
-    }
+    if (io_type & COMM_NONBLOCKING)
+	if (commSetNonBlocking(new_socket) == COMM_ERROR)
+	    return COMM_ERROR;
+#ifdef TCP_NODELAY
+	commSetTcpNoDelay(new_socket);
+#endif
     conn->comm_type = io_type;
     return new_socket;
 }
@@ -183,57 +167,6 @@ int comm_listen(sock)
 	return x;
     }
     return sock;
-}
-
-#ifndef UNIX_PATH_MAX
-#define UNIX_PATH_MAX 100
-#endif
-
-int comm_connect_unix(sock, path)
-     int sock;
-     char *path;
-{
-    static struct sockaddr_un to_addr;
-    int len;
-    int x;
-    int status = COMM_OK;
-    FD_ENTRY *conn = &fd_table[sock];
-
-    memset(&to_addr, '\0', sizeof(to_addr));
-    to_addr.sun_family = AF_UNIX;
-    strncpy(to_addr.sun_path, path, UNIX_PATH_MAX);
-
-    if (connect(sock, (struct sockaddr *) &to_addr, SUN_LEN(&to_addr)) < 0) {
-	switch (errno) {
-	case EALREADY:
-	    return COMM_ERROR;
-	    /* NOTREACHED */
-	case EINPROGRESS:
-	    status = EINPROGRESS;
-	    break;
-	case EISCONN:
-	    status = COMM_OK;
-	    break;
-	case EINVAL:
-	    len = sizeof(x);
-	    if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &x, &len) >= 0)
-		errno = x;
-	default:
-	    debug(5, 1, "comm_connect_unix: %s: socket failure: %s.\n",
-		path,
-		xstrerror());
-	    return COMM_ERROR;
-	}
-    }
-    /* set the lifetime for this client */
-    if (status == COMM_OK) {
-	(void) comm_set_fd_lifetime(sock, getClientLifetime());
-    } else if (status == EINPROGRESS) {
-	(void) comm_set_fd_lifetime(sock, getConnectTimeout());
-    }
-    /* Add new socket to list of open sockets. */
-    conn->sender = 1;
-    return status;
 }
 
 /* Connect SOCK to specified DEST_PORT at DEST_HOST. */
@@ -845,54 +778,52 @@ void comm_remove_close_handler(fd, handler, data)
     safe_free(p);
 }
 
-static int commSetNoLinger(fd)
+static void commSetNoLinger(fd)
      int fd;
 {
     struct linger L;
-
     L.l_onoff = 0;		/* off */
     L.l_linger = 0;
-
     debug(5, 10, "commSetNoLinger: turning off SO_LINGER on FD %d\n", fd);
-    return setsockopt(fd, SOL_SOCKET, SO_LINGER, (char *) &L, sizeof(L));
+    if (setsockopt(fd, SOL_SOCKET, SO_LINGER, (char *) &L, sizeof(L)) < 0)
+	debug(5, 0, "commSetNoLinger: FD %d: %s\n", fd, xstrerror());
 }
 
-static int commSetReuseAddr(fd)
+static void commSetReuseAddr(fd)
      int fd;
 {
     int on = 1;
-    int rc;
-
     debug(5, 10, "commSetReuseAddr: turning on SO_REUSEADDR on FD %d\n", fd);
-    rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
-    if (rc < 0)
-	debug(5, 1, "commSetReuseAddr: FD=%d: %s\n", fd, xstrerror());
-    return rc;
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)) < 0)
+	debug(5, 1, "commSetReuseAddr: FD %d: %s\n", fd, xstrerror());
 }
+
+#ifdef TCP_NODELAY
+static void commSetTcpNoDelay(fd)
+     int fd;
+{
+    int on = 1;
+    if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *) &on, sizeof(on)) < 0)
+	debug(5, 1, "commSetTcpNoDelay: FD %d: %s\n", fd, xstrerror());
+}
+#endif
 
 int commSetNonBlocking(fd)
      int fd;
 {
-    debug(5, 10, "commSetNonBlocking: setting FD %d to non-blocking i/o.\n",
-	fd);
-    /*
-     * Set up the flag NOT to have the socket to wait for message from
-     * network forever, but to return -1 when no message is coming in.
-     */
-
 #if defined(O_NONBLOCK) && !defined(_SQUID_SUNOS_) && !defined(_SQUID_SOLARIS_)
     if (fcntl(fd, F_SETFL, O_NONBLOCK)) {
 	debug(5, 0, "comm_open: FD %d: error setting O_NONBLOCK: %s\n",
 	    fd, xstrerror());
-	return (COMM_ERROR);
+	return COMM_ERROR;
     }
 #else
     if (fcntl(fd, F_SETFL, O_NDELAY)) {
 	debug(5, 0, "comm_open: FD %d: error setting O_NDELAY: %s\n",
 	    fd, xstrerror());
-	return (COMM_ERROR);
+	return COMM_ERROR;
     }
-#endif /* HPUX */
+#endif
     return 0;
 }
 
