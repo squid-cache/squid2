@@ -76,6 +76,7 @@ static int event_queued = 0;
 static OBJH idnsStats;
 static void idnsAddNameserver(const char *buf);
 static void idnsFreeNameservers(void);
+static void idnsParseNameservers(void);
 static void idnsParseResolvConf(void);
 static void idnsSendQuery(idns_query * q);
 static int idnsFromKnownNameserver(struct sockaddr_in *from);
@@ -105,7 +106,7 @@ idnsAddNameserver(const char *buf)
     nameservers[nns].S.sin_family = AF_INET;
     nameservers[nns].S.sin_port = htons(DOMAIN_PORT);
     nameservers[nns].S.sin_addr.s_addr = inet_addr(buf);
-    debug(78, 1) ("idnsAddNameserver: Added nameserver #%d: %s\n",
+    debug(78, 3) ("idnsAddNameserver: Added nameserver #%d: %s\n",
 	nns, inet_ntoa(nameservers[nns].S.sin_addr));
     nns++;
 }
@@ -115,6 +116,16 @@ idnsFreeNameservers(void)
 {
     safe_free(nameservers);
     nns = nns_alloc = 0;
+}
+
+static void
+idnsParseNameservers(void)
+{
+    wordlist *w;
+    for (w = Config.dns_nameservers; w; w = w->next) {
+	debug(78, 1) ("Adding nameserver %s from squid.conf\n", w->key);
+	idnsAddNameserver(w->key);
+    }
 }
 
 static void
@@ -138,7 +149,7 @@ idnsParseResolvConf(void)
 	t = strtok(NULL, w_space);
 	if (t == NULL)
 	    continue;;
-	debug(78, 1) ("idnsParseResolvConf: nameserver %s\n", t);
+	debug(78, 1) ("Adding nameserver %s from %s\n", t, _PATH_RESOLV_CONF);
 	idnsAddNameserver(t);
     }
     fclose(fp);
@@ -382,7 +393,9 @@ idnsInit(void)
 	    fatal("Could not create a DNS socket");
 	debug(78, 1) ("DNS Socket created on FD %d\n", DnsSocket);
     }
-    if (nns == 0)
+    if (0 == nns)
+	idnsParseNameservers();
+    if (0 == nns)
 	idnsParseResolvConf();
     if (!init) {
 	memDataInit(MEM_IDNS_QUERY, "idns_query", sizeof(idns_query), 0);
