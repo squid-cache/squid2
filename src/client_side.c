@@ -2582,7 +2582,7 @@ clientReadRequest(int fd, void *data)
 	    break;
 	/* Limit the number of concurrent requests to 2 */
 	for (H = &conn->chr, nrequests = 0; *H; H = &(*H)->next, nrequests++);
-	if (nrequests >= 2) {
+	if (nrequests >= (Config.onoff.pipeline_prefetch ? 2 : 1)) {
 	    debug(33, 3) ("clientReadRequest: FD %d max concurrent requests reached\n", fd);
 	    debug(33, 5) ("clientReadRequest: FD %d defering new request until one is done\n", fd);
 	    conn->defer.until = squid_curtime + 100;	/* Reset when a request is complete */

@@ -3228,6 +3228,16 @@ DOC_START
 	disable persistent connections with clients and/or servers.
 DOC_END
 
+NAME: pipeline_prefetch
+TYPE: onoff
+LOC: Config.onoff.pipeline_prefetch
+DEFAULT: on
+DOC_START
+	To boost the performance of pipelined requests to closer
+	match that of a non-proxied environment Squid tries to fetch
+	up to two requests in parallell from a pipeline.
+DOC_END
+
 NAME: extension_methods
 TYPE: wordlist
 LOC: Config.ext_methods
