@@ -108,5 +108,15 @@ for Applied Network Research and members of the Web Caching community.
 <tag>reference_age</tag>This has been removed - starting with Squid-2.4 this directive have had no effect and has now been fully removed to avoid confusion.
 <tag>siteselect_timeout</tag>This has been removed - it is not referenced anywhere in the source code.
 </descrip>
+
+<sect>Known limitations
+
+<P>There is a few limitations to this version of Squid that we hope to correct in a later release
+
+<descrip>
+<tag>deny_info</tag>deny_info only works for http_access, not for the acls listen in http_reply_access 
+<tag>authentication</tag>The proxy authentication acl types only works in http_access and partially in delay_access, not the other acl driven directives (tcp_outoing_address, redirect_access, cache_peer_access, ...)
+</descrip>
+
 </article>
 
