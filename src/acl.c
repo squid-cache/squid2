@@ -374,11 +374,13 @@ aclParseIpList(void *curlist)
     char *t = NULL;
     splayNode **Top = curlist;
     struct _acl_ip_data *q = NULL;
+    struct _acl_ip_data *next = NULL;
     while ((t = strtokFile())) {
-	q = aclParseIpData(t);
-	while (q != NULL) {
+	next = aclParseIpData(t);
+	while ((q = next) != NULL) {
+	    next = q->next;
+	    q->next = NULL;
 	    *Top = splay_insert(q, *Top, aclIpNetworkCompare);
-	    q = q->next;
 	}
     }
 }
