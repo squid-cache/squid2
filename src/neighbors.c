@@ -936,7 +936,8 @@ peerDNSConfigure(const ipcache_addrs * ia, void *data)
     if (p->type == PEER_MULTICAST)
 	peerCountMcastPeersSchedule(p, 10);
     if (p->type != PEER_MULTICAST)
-	eventAddIsh("netdbExchangeStart", netdbExchangeStart, p, 30.0, 1);
+	if (!EBIT_TEST(p->options, NEIGHBOR_NO_NETDB_EXCHANGE))
+	    eventAddIsh("netdbExchangeStart", netdbExchangeStart, p, 30.0, 1);
 }
 
 static void

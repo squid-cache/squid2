@@ -781,6 +781,8 @@ parse_peer(peer ** head)
 	} else if (!strncasecmp(token, "htcp", 4)) {
 	    EBIT_SET(p->options, NEIGHBOR_HTCP);
 #endif
+	} else if (!strncasecmp(token, "no-netdb-exchange", 17)) {
+	    EBIT_SET(p->options, NEIGHBOR_NO_NETDB_EXCHANGE);
 	} else {
 	    debug(3, 0) ("parse_peer: token='%s'\n", token);
 	    self_destruct();
