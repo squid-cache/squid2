@@ -2386,6 +2386,7 @@ clientReadRequest(int fd, void *data)
 		err = errorCon(ERR_UNSUP_REQ, HTTP_NOT_IMPLEMENTED);
 		err->src_addr = conn->peer.sin_addr;
 		err->request = requestLink(request);
+		request->flags.proxy_keepalive = 0;
 		http->al.http.code = err->http_status;
 		http->entry = clientCreateStoreEntry(http, request->method, null_request_flags);
 		errorAppendEntry(http->entry, err);
@@ -2431,7 +2432,9 @@ clientReadRequest(int fd, void *data)
 		 */
 		if (request->body_sz < cont_len)
 		    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
-		if (cont_len > Config.maxRequestBodySize) {
+		if (cont_len < 0)
+		    (void) 0;
+		else if (cont_len > Config.maxRequestBodySize) {
 		    err = errorCon(ERR_TOO_BIG, HTTP_REQUEST_ENTITY_TOO_LARGE);
 		    err->request = requestLink(request);
 		    http->entry = clientCreateStoreEntry(http,
