@@ -182,6 +182,7 @@ static void icpHandleAbort _PARAMS((int fd, StoreEntry *, void *));
 static int icpCheckUdpHit _PARAMS((StoreEntry *, request_t * request));
 static int icpCheckUdpHitObj _PARAMS((StoreEntry * e, request_t * r, icp_common_t * h, int len));
 static void icpStateFree _PARAMS((int fd, void *data));
+static int icpCheckTransferDone _PARAMS((icpStateData *));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -278,7 +279,7 @@ icpStateFree(int fd, void *data)
 	    icpState->log_type,
 	    ntohs(icpState->me.sin_port));
     }
-    if (icpState->ident.fd)
+    if (icpState->ident.fd > -1)
 	comm_close(icpState->ident.fd);
     checkFailureRatio(icpState->log_type,
 	hierData ? hierData->code : HIER_NONE);
@@ -578,6 +579,11 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    icpState->offset);
 	if (BIT_TEST(icpState->request->flags, REQ_PROXY_KEEPALIVE)) {
 	    commCallCloseHandlers(fd);
+	    commSetSelect(fd,
+		COMM_SELECT_READ,
+		NULL,
+		NULL,
+		0);
 	    icpDetectNewRequest(fd);
 	} else {
 	    comm_close(fd);
@@ -1607,31 +1613,6 @@ parseHttpRequest(icpStateData * icpState)
     debug(12, 5, "parseHttpRequest: Request Header is\n%s\n",
 	icpState->request_hdr);
 
-#ifdef DONT
-    if (icpState->method == METHOD_POST || icpState->method == METHOD_PUT) {
-	/* Expect Content-Length: and POST data after the headers */
-	if ((t = mime_get_header(req_hdr, "Content-Length")) == NULL) {
-	    debug(12, 2, "POST without Content-Length\n");
-	    xfree(inbuf);
-	    return -1;
-	}
-	content_length = atoi(t);
-	debug(12, 3, "parseHttpRequest: Expecting POST/PUT Content-Length of %d\n",
-	    content_length);
-	if (!(post_data = mime_headers_end(req_hdr))) {
-	    debug(12, 1, "parseHttpRequest: Can't find end of headers in POST/PUT request?\n");
-	    xfree(inbuf);
-	    return 0;		/* not a complete request */
-	}
-	post_sz = icpState->offset - (post_data - inbuf);
-	debug(12, 3, "parseHttpRequest: Found POST/PUT Content-Length of %d\n",
-	    post_sz);
-	if (post_sz < content_length) {
-	    xfree(inbuf);
-	    return 0;
-	}
-    }
-#endif
     /* Assign icpState->url */
     if ((t = strchr(url, '\n')))	/* remove NL */
 	*t = '\0';
@@ -1955,30 +1936,59 @@ CheckQuickAbort(icpStateData * icpState)
     icpState->log_type = ERR_CLIENT_ABORT;
 }
 
+static int
+icpCheckTransferDone(icpStateData *icpState)
+{
+    StoreEntry *entry = icpState->entry;
+    MemObject *mem = NULL;
+    if (entry == NULL)
+	return 0;
+    if (entry->store_status != STORE_PENDING)
+	if (icpState->offset == entry->object_len)
+	    return 1;
+    if ((mem = entry->mem_obj) == NULL)
+	return 0;
+    if (mem->reply->content_length == 0)
+	return 0;
+    if (icpState->offset >= mem->reply->content_length)
+	return 1;
+    return 0;
+}
+
 void
 icpDetectClientClose(int fd, void *data)
 {
-    icpStateData *icpState = data;
+    icpStateData *icpState = icpState;
     LOCAL_ARRAY(char, buf, 256);
     int n;
     int x;
     StoreEntry *entry = icpState->entry;
     errno = 0;
-    n = read(fd, buf, 256);
-    if (n > 0) {
+
+    if (icpCheckTransferDone(icpState)) {
+	/* All data has been delivered */
+	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
+	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
+	    HTTPCacheInfo->proto_id(entry->url),
+	    icpState->offset);
+	comm_close(fd);
+    } else if ((n = read(fd, buf, 256)) > 0) {
 	debug(12, 0, "icpDetectClientClose: FD %d, %d unexpected bytes\n",
 	    fd, n);
 	commSetSelect(fd,
 	    COMM_SELECT_READ,
-	    (PF) icpDetectClientClose,
-	    (void *) icpState, 0);
+	    icpDetectClientClose,
+	    (void *) icpState,
+	    0);
     } else if (n < 0) {
 	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
 	debug(12, 5, "--> URL '%s'\n", icpState->url);
 	if (errno == ECONNRESET)
-	    debug(50, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
+	    debug(50, 2, "icpDetectClientClose: ERROR %s: %s\n",
+		fd_table[fd].ipaddr, xstrerror());
 	else if (errno)
-	    debug(50, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
+	    debug(50, 1, "icpDetectClientClose: ERROR %s: %s\n",
+		fd_table[fd].ipaddr, xstrerror());
 	commCancelRWHandler(fd);
 	CheckQuickAbort(icpState);
 	if (entry) {
@@ -1993,14 +2003,6 @@ icpDetectClientClose(int fd, void *data)
 	    icpState->peer.sin_addr);
 	if (x == 0)
 	    comm_close(fd);
-    } else if (entry != NULL && icpState->offset == entry->object_len &&
-	entry->store_status != STORE_PENDING) {
-	/* All data has been delivered */
-	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
-	HTTPCacheInfo->proto_touchobject(HTTPCacheInfo,
-	    HTTPCacheInfo->proto_id(entry->url),
-	    icpState->offset);
-	comm_close(fd);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d closed?\n", fd);
 	comm_set_stall(fd, 10);	/* check again in 10 seconds */
