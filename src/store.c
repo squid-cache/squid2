@@ -1941,6 +1941,7 @@ storeClientCopy(StoreEntry * e,
     MemObject *mem = e->mem_obj;
     struct _store_client *sc;
     static int recurse_detect = 0;
+    assert(e->store_status != STORE_ABORTED);
     assert(recurse_detect < 3);	/* could == 1 for IMS not modified's */
     debug(20, 3) ("storeClientCopy: %s, seen %d, want %d, size %d, cb %p, cbdata %p\n",
 	e->key,
@@ -1957,6 +1958,7 @@ storeClientCopy(StoreEntry * e,
     sc->copy_buf = buf;
     sc->copy_size = size;
     sc->copy_offset = copy_offset;
+    assert(seen_offset <= mem->inmem_hi || e->store_status != STORE_PENDING);
     if (e->store_status == STORE_PENDING && seen_offset == mem->inmem_hi) {
 	/* client has already seen this, wait for more */
 	debug(20, 3) ("storeClientCopy: Waiting for more\n");
