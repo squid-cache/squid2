@@ -1538,7 +1538,6 @@ clientReadRequest(int fd, void *data)
     int parser_return_code = 0;
     int k;
     request_t *request = NULL;
-    char *tmp;
     int size;
     method_t method;
     clientHttpRequest *http = NULL;
