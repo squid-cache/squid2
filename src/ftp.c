@@ -327,9 +327,10 @@ ftpLoginParser(const char *login, FtpStateData * ftpState, int escaped)
     if ((s = strchr(ftpState->user, ':'))) {
 	*s = 0;
 	xstrncpy(ftpState->password, s + 1, MAX_URL);
-	if (escaped)
+	if (escaped) {
 	    rfc1738_unescape(ftpState->password);
-	ftpState->password_url = 1;
+	    ftpState->password_url = 1;
+	}
     } else {
 	xstrncpy(ftpState->password, null_string, MAX_URL);
     }
@@ -2443,7 +2444,10 @@ ftpFailedErrorMessage(FtpStateData * ftpState, err_type error)
 	case SENT_USER:
 	case SENT_PASS:
 	    if (ftpState->ctrl.replycode > 500)
-		err = errorCon(ERR_FTP_FORBIDDEN, HTTP_FORBIDDEN);
+		if (ftpState->password_url)
+		    err = errorCon(ERR_FTP_FORBIDDEN, HTTP_FORBIDDEN);
+		else
+		    err = errorCon(ERR_FTP_FORBIDDEN, HTTP_UNAUTHORIZED);
 	    else if (ftpState->ctrl.replycode == 421)
 		err = errorCon(ERR_FTP_UNAVAILABLE, HTTP_SERVICE_UNAVAILABLE);
 	    break;
