@@ -3,7 +3,7 @@ Changes to squid-2.5.STABLE9 (24 Feb 2005)
 	- [Medium] Don't retry requests on 403 errors (Bug #1210)
 	- [Minor] Ignore invalid FQDN DNS responses (Bug #1222)
 	- [Minor] cache_peer related memory leaks on reconfigure (Bug #1246)
-	- [Cosmetic] Ajusted to build cleanly with GCC-4 (Bug #1211)
+	- [Cosmetic] Adjusted to build cleanly with GCC-4 (Bug #1211)
 	- [Minor] relaxed_header_parser extended to work around even more
 	  broken web servers (Bug #1242)
 	- [Minor] FTP gatewaying URLs cleaned up slightly, mainly to work
@@ -49,10 +49,10 @@ Changes to squid-2.5.STABLE8 (11 Feb 2005)
 	- [Minor] Internal DNS sometimes truncates host names in reverse
 	  (PTR) lookups (Bug #1136)
 	- [Minor Security] Add sanity checks on LDAP user names (Bug #1187)
-	- [Security] Harden Squid agains HTTP request smuggling attacks
+	- [Security] Harden Squid against HTTP request smuggling attacks
 	- [Minor] Icon URLs fails in non-anonymous FTP directory listings is
 	  short_icon_urls is on (Bug #1203)
-	- [Security] Harden Squid agains HTTP response splitting attacks
+	- [Security] Harden Squid against HTTP response splitting attacks
 	  (Bug #1200)
 	- [Medium security] Buffer overflow in WCCP recvfrom() call
 	  (Bug #1217)
@@ -95,7 +95,7 @@ Changes to squid-2.5.STABLE7 (11 Oct 2004)
 	- [Medium] Segfaults and other strange crashes when using heap
 	  policies. (Bug #1009)
 	- [Minor] Supplementary group memberships not set (Bug #1021)
-	- [Cosmetic] ERR_TOO_BIG Portugese translation
+	- [Cosmetic] ERR_TOO_BIG Portuguese translation
 	- [Minor] external_acl does not handle newlines (Bug #1038)
 	- [Major] NTLM authentication denial of service when using msnt_auth
 	  or fake_auth (Bug #1045)
@@ -115,7 +115,7 @@ Changes to squid-2.5.STABLE7 (11 Oct 2004)
 	  (Bug #1074)
 	- [Cosmetic] Limit internal send/receive buffer sizes (Bug #1075)
 	- [Medium] New acl types to match arbitrary HTTP headers. In addition
-	  the http_header_access & replace directivess now support arbitrary
+	  the http_header_access & replace directives now support arbitrary
 	  headers and not only the well known ones. (Bug #961)
 	- [Cosmetic] ncsa_auth now accepts Window formatted password files
 	  (Bug #1078)
@@ -137,7 +137,7 @@ Changes to squid-2.5.STABLE6 (9 Jul 2004)
 	- Bug #937: NTLM assertion error "srv->flags.reserved"
 	- Bug #935: squid_ldap_auth can be confused by the use of reserved
 	  characters
-	- Helper queue warnings inprecice on the number of helpers required
+	- Helper queue warnings imprecise on the number of helpers required
 	- squid_ldap_auth TLS mode works correctly again
 	- Bug #940, #305: pkg-config support for finding correct OpenSSL
 	  compile flags
