@@ -1078,10 +1078,6 @@ ftpStart(FwdState * fwd)
 	    snprintf(realm, 8192, "ftp %s port %d",
 		ftpState->user, request->port);
 	}
-	/* eject any old cached object */
-	key = storeKeyPublic(entry->mem_obj->url, entry->mem_obj->method);
-	if ((pe = storeGet(key)) != NULL)
-	    storeRelease(pe);
 	/* create reply */
 	reply = entry->mem_obj->reply;
 	assert(reply != NULL);
