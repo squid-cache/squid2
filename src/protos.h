@@ -978,7 +978,7 @@ extern void storeRebuildComplete(struct _store_rebuild_data *);
 /*
  * store_swapin.c
  */
-extern storeIOState *storeSwapInStart(StoreEntry *);
+extern void storeSwapInStart(store_client *);
 
 /*
  * store_swapout.c
