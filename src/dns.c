@@ -110,6 +110,7 @@ snmp_netDnsFn(variable_list * Var, snint * ErrP)
 	    1]);
     snmpDebugOid(5, Var->name, Var->name_length);
     *ErrP = SNMP_ERR_NOERROR;
+#if USE_DNSSERVERS
     switch (Var->name[LEN_SQ_NET + 1]) {
     case DNS_REQ:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
@@ -130,6 +131,11 @@ snmp_netDnsFn(variable_list * Var, snint * ErrP)
 	*ErrP = SNMP_ERR_NOSUCHNAME;
 	break;
     }
+#else
+    Answer = snmp_var_new_integer(Var->name, Var->name_length,
+	0,
+	SMI_COUNTER32);
+#endif
     return Answer;
 }
 #endif /*SQUID_SNMP */
