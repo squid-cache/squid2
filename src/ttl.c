@@ -176,13 +176,13 @@ time_t ttlSet(entry)
 
     /* these are case-insensitive compares */
     if (reply->last_modified[0]) {
-	if ((x = parse_rfc850(reply->last_modified)) > 0) {
+	if ((x = parse_rfc850(reply->last_modified)) > -1) {
 	    last_modified = x;
 	    flags |= TTL_LASTMOD;
 	}
     }
     if (reply->date[0]) {
-	if ((x = parse_rfc850(reply->date)) > 0) {
+	if ((x = parse_rfc850(reply->date)) > -1) {
 	    their_date = x;
 	    flags |= TTL_SERVERDATE;
 	}
@@ -196,13 +196,13 @@ time_t ttlSet(entry)
 	 * "expires immediately."
 	 */
 	flags |= TTL_EXPIRES;
-	expire = ((x = parse_rfc850(reply->expires)) > 0) ? x : now;
+	expire = ((x = parse_rfc850(reply->expires)) > -1) ? x : now;
     }
-    if (last_modified > 0)
+    if (last_modified > -1)
 	debug(22, 5, "ttlSet: Last-Modified: %s\n", mkrfc850(&last_modified));
-    if (expire > 0)
+    if (expire > -1)
 	debug(22, 5, "ttlSet:       Expires: %s\n", mkrfc850(&expire));
-    if (their_date > 0)
+    if (their_date > -1)
 	debug(22, 5, "ttlSet:   Server-Date: %s\n", mkrfc850(&their_date));
 
     if (expire > 0) {
@@ -240,6 +240,9 @@ time_t ttlSet(entry)
 	    flags |= TTL_MATCHED;
 	}
     }
+
+    if (last_modified == -1)
+	last_modified = their_date;
 
     /* Return a TTL that is a percent of the object's age if a last-mod
      * was given for the object. */
