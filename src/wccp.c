@@ -52,7 +52,7 @@ struct wccp_here_i_am_t {
     int type;
     int version;
     int revision;
-    char hash[WCCP_HASH_SIZE];	/* XXX where is hash[] used? */
+    char hash[WCCP_HASH_SIZE];
     int reserved;
     int id;
 };
@@ -60,7 +60,7 @@ struct wccp_here_i_am_t {
 struct wccp_cache_entry_t {
     struct in_addr ip_addr;
     int revision;
-    char hash[WCCP_HASH_SIZE];	/* XXX where is hash[] used? */
+    char hash[WCCP_HASH_SIZE];
     int reserved;
 };
 
@@ -103,13 +103,16 @@ void
 wccpInit(void)
 {
     debug(80, 5) ("wccpInit: Called\n");
+    if (eventFind(wccpHereIam, NULL))
+	return;
     memset(&wccp_here_i_am, '\0', sizeof(wccp_here_i_am));
     wccp_here_i_am.type = htonl(WCCP_HERE_I_AM);
     wccp_here_i_am.version = htonl(WCCP_VERSION);
     wccp_here_i_am.revision = htonl(WCCP_REVISION);
     change = 1;
     if (Config.Wccp.router.s_addr != any_addr.s_addr)
-	eventAdd("wccpHereIam", wccpHereIam, NULL, 10.0, 1);
+	if (!eventFind(wccpHereIam, NULL))
+	    eventAdd("wccpHereIam", wccpHereIam, NULL, 10.0, 1);
 }
 
 void
@@ -119,7 +122,7 @@ wccpConnectionOpen(void)
     struct sockaddr_in router, local;
     int local_len, router_len;
     debug(80, 5) ("wccpConnectionOpen: Called\n");
-    if (Config.Wccp.router.s_addr == inet_addr("0.0.0.0")) {
+    if (Config.Wccp.router.s_addr == any_addr.s_addr) {
 	debug(1, 1) ("WCCP Disabled.\n");
 	return;
     }
@@ -249,7 +252,6 @@ wccpLowestIP(void)
 {
     int loop;
     for (loop = 0; loop < ntohl(wccp_i_see_you.number); loop++) {
-	/* XXX is this comparison in network or host byte order */
 	if (wccp_i_see_you.wccp_cache_entry[loop].ip_addr.s_addr < local_ip.s_addr)
 	    return 0;
     }
@@ -267,7 +269,8 @@ wccpHereIam(void *voidnotused)
 	sizeof(wccp_here_i_am),
 	0);
 
-    eventAdd("wccpHereIam", wccpHereIam, NULL, 10.0, 1);
+    if (!eventFind(wccpHereIam, NULL))
+	eventAdd("wccpHereIam", wccpHereIam, NULL, 10.0, 1);
 }
 
 static void
@@ -299,7 +302,6 @@ wccpAssignBuckets(void *voidnotused)
 	    &wccp_i_see_you.wccp_cache_entry[loop].ip_addr.s_addr,
 	    sizeof(*caches));
 	for (loop_buckets = 0; loop_buckets < number_buckets; loop_buckets++) {
-	    /* XXX why is this a for loop??? */
 	    buckets[bucket++] = loop;
 	}
     }
@@ -318,7 +320,6 @@ wccpAssignBuckets(void *voidnotused)
 	buf,
 	offset,
 	0);
-    /* XXX do you care if send() fails? */
     change = 0;
     xfree(caches);
     xfree(buf);

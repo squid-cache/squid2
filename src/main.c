@@ -349,6 +349,9 @@ mainReconfigure(void)
 #endif
     redirectInit();
     authenticateInit();
+#if USE_WCCP
+    wccpInit();
+#endif
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0) {
 	if (!Config2.Accel.on || Config.onoff.accel_with_proxy)
