@@ -319,7 +319,7 @@ install-pinger:
 
 clean: 
 	-rm -rf *.o *pure_* core $(PROGS) $(UTILS) $(CGIPROGS) $(SUID_UTILS)
-	-rm -f cf_gen cf_parser.c cf.data globals.c
+	-rm -f cf_gen cf_parser.c cf.data globals.c string_arrays.c
 
 distclean:	clean
 	-rm -f Makefile squid.conf squid.conf.pre
