@@ -180,7 +180,7 @@ typedef void PF(int, void *);
 typedef void DRCB(int fd, const char *buf, int size, int errflag, void *data);
 typedef void DWCB(int, int, size_t, void *);
 typedef void FQDNH(const char *, void *);
-typedef void IDCB(void *);
+typedef void IDCB(const char *ident, void *data);
 typedef void IPH(const ipcache_addrs *, void *);
 typedef void IRCB(peer *, peer_t, protocol_t, void *, void *data);
 typedef void PSC(FwdServer *, void *);

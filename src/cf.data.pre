@@ -1351,6 +1351,18 @@ DOC_START
 pconn_timeout 120 seconds
 DOC_END
 
+NAME: ident_timeout
+TYPE: time_t
+LOC: Config.Timeout.ident
+DEFAULT: 10 seconds
+DOC_START
+	Maximum time to wait for IDENT requests.  If this is too high,
+	and you enabled 'ident_lookup', then you might be susceptible
+	to denial-of-service by having many ident requests going at
+	once.
+ident_timeout 10 seconds
+DOC_END
+
 
 NAME: shutdown_lifetime
 COMMENT: time-units
