@@ -6,8 +6,8 @@
 
 #include "squid.h"
 
-#define HTTP_DELETE_GAP   (64*1024)
-#define READBUFSIZ	4096
+#define READBUFSIZ	(1<<14)
+#define HTTP_DELETE_GAP   (1<<18)
 
 typedef struct _httpdata {
     StoreEntry *entry;
@@ -237,37 +237,34 @@ static void httpReadReply(fd, data)
     StoreEntry *entry = NULL;
 
     entry = data->entry;
-    if (entry->flag & DELETE_BEHIND) {
-	if (storeClientWaiting(entry)) {
-	    /* check if we want to defer reading */
-	    clen = entry->mem_obj->e_current_len;
-	    off = entry->mem_obj->e_lowest_offset;
-	    if ((clen - off) > HTTP_DELETE_GAP) {
-		debug(11, 3, "httpReadReply: Read deferred for Object: %s\n",
-		    entry->url);
-		debug(11, 3, "                Current Gap: %d bytes\n", clen - off);
-		/* reschedule, so it will be automatically reactivated
-		 * when Gap is big enough. */
-		comm_set_select_handler(fd,
-		    COMM_SELECT_READ,
-		    (PF) httpReadReply,
-		    (void *) data);
-		/* don't install read timeout until we are below the GAP */
-		comm_set_select_handler_plus_timeout(fd,
-		    COMM_SELECT_TIMEOUT,
-		    (PF) NULL,
-		    (void *) NULL,
-		    (time_t) 0);
-		/* dont try reading again for a while */
-		comm_set_stall(fd, getStallDelay());
-		return;
-	    }
-	} else {
-	    /* we can terminate connection right now */
-	    squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
-	    comm_close(fd);
-	    return;
-	}
+    if (entry->flag & DELETE_BEHIND && !storeClientWaiting(entry)) {
+	/* we can terminate connection right now */
+	squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
+	comm_close(fd);
+	return;
+    }
+    /* check if we want to defer reading */
+    clen = entry->mem_obj->e_current_len;
+    off = storeGetLowestReaderOffset(entry);
+    if ((clen - off) > HTTP_DELETE_GAP) {
+	debug(11, 3, "httpReadReply: Read deferred for Object: %s\n",
+	    entry->url);
+	debug(11, 3, "                Current Gap: %d bytes\n", clen - off);
+	/* reschedule, so it will be automatically reactivated
+	 * when Gap is big enough. */
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    (PF) httpReadReply,
+	    (void *) data);
+	/* don't install read timeout until we are below the GAP */
+	comm_set_select_handler_plus_timeout(fd,
+	    COMM_SELECT_TIMEOUT,
+	    (PF) NULL,
+	    (void *) NULL,
+	    (time_t) 0);
+	/* dont try reading again for a while */
+	comm_set_stall(fd, getStallDelay());
+	return;
     }
     errno = 0;
     len = read(fd, buf, READBUFSIZ);
@@ -310,8 +307,7 @@ static void httpReadReply(fd, data)
 	comm_set_select_handler_plus_timeout(fd,
 	    COMM_SELECT_TIMEOUT,
 	    (PF) httpReadReplyTimeout,
-	    (void *) data,
-	    getReadTimeout());
+	    (void *) data, getReadTimeout());
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
 	/* append the last bit of info we get */
 	storeAppend(entry, buf, len);

@@ -796,47 +796,46 @@ int storeUnregister(e, fd)
     return freed;
 }
 
+int storeGetLowestReaderOffset(entry)
+     StoreEntry *entry;
+{
+    MemObject *m = entry->mem_obj;
+    int lowest = m->e_current_len;
+    int i;
+    for (i = 0; i < m->client_list_size; i++) {
+	if (m->client_list[i] == NULL)
+	    continue;
+	if (m->client_list[i]->last_offset < lowest)
+	    lowest = m->client_list[i]->last_offset;
+    }
+    return lowest;
+}
+
+
 /* Call to delete behind upto "target lowest offset"
- * also, it update e_lowest_offset.
- */
+ * also, update e_lowest_offset  */
 void storeDeleteBehind(e)
      StoreEntry *e;
 {
+    MemObject *m = e->mem_obj;
     int free_up_to;
     int target_offset;
-    int n_client = 0;
-    int i;
 
     debug(20, 3, "storeDeleteBehind: Object: %s\n", e->key);
-    debug(20, 3, "storeDeleteBehind:\tOriginal Lowest Offset: %d \n", e->mem_obj->e_lowest_offset);
+    debug(20, 3, "storeDeleteBehind: Original Lowest Offset: %d\n",
+	m->e_lowest_offset);
 
-    free_up_to = e->mem_obj->e_lowest_offset;
-    target_offset = 0;
+    free_up_to = m->e_lowest_offset;
+    target_offset = storeGetLowestReaderOffset(e);
 
-    for (i = 0; i < e->mem_obj->client_list_size; ++i) {
-	if (e->mem_obj->client_list[i] == NULL)
-	    continue;
-	if (((e->mem_obj->client_list[i]->last_offset < target_offset) ||
-		(target_offset == 0))) {
-	    n_client++;
-	    target_offset = e->mem_obj->client_list[i]->last_offset;
-	}
-    }
-
-    if (n_client == 0) {
-	debug(20, 3, "storeDeleteBehind:\tThere is no client in the list.\n");
-	debug(20, 3, "\t\tTry to delete as fast as possible.\n");
-	target_offset = e->mem_obj->e_current_len;
-    }
-    debug(20, 3, "storeDeleteBehind:\tThe target offset is : %d\n", target_offset);
+    debug(20, 3, "storeDeleteBehind: target offset: %d\n", target_offset);
     if (target_offset) {
-	free_up_to = (int) e->mem_obj->data->mem_free_data_upto(e->mem_obj->data,
-	    target_offset);
-	debug(20, 3, "                   Object is freed upto : %d\n", free_up_to);
-	store_mem_size -= free_up_to - e->mem_obj->e_lowest_offset;
+	free_up_to = (int) m->data->mem_free_data_upto(m->data, target_offset);
+	debug(20, 3, "--> Object is freed upto : %d\n", free_up_to);
+	store_mem_size -= free_up_to - m->e_lowest_offset;
     }
-    debug(20, 3, "storeDeleteBehind:\tOutgoing Lowest Offset : %d\n", free_up_to);
-    e->mem_obj->e_lowest_offset = free_up_to;
+    debug(20, 3, "storeDeleteBehind: New lowest offset: %d\n", free_up_to);
+    m->e_lowest_offset = free_up_to;
 }
 
 /* Call handlers waiting for  data to be appended to E. */

@@ -204,5 +204,6 @@ extern void storeExpireNow _PARAMS((StoreEntry *));
 extern void storeReleaseRequest _PARAMS((StoreEntry *));
 extern void storeRotateLog _PARAMS((void));
 extern unsigned int getKeyCounter _PARAMS((void));
+extern int storeGetLowestReaderOffset _PARAMS((StoreEntry *));
 
 #endif
