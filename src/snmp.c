@@ -194,7 +194,7 @@ struct variable4 cacheperf_vars[] =
     {PERF_PROTOSTAT_TRNFRB, COUNTER, RONLY, var_protostat_entry, 4,
 	{2, 1, 1, 9}},
 #endif
-    {PERF_PROTOSTAT_AGGR_CLHTTP, COUNTER, RONLY, var_aggreg_entry, 3,
+    {PERF_PROTOSTAT_AGGR_HTTP_REQ, COUNTER, RONLY, var_aggreg_entry, 3,
 	{2, 2, 1}},
     {PERF_PROTOSTAT_AGGR_ICP_S, COUNTER, RONLY, var_aggreg_entry, 3,
 	{2, 2, 2}},
@@ -202,6 +202,18 @@ struct variable4 cacheperf_vars[] =
 	{2, 2, 3}},
     {PERF_PROTOSTAT_AGGR_CURSWAP, COUNTER, RONLY, var_aggreg_entry, 3,
 	{2, 2, 4}},
+    {PERF_PROTOSTAT_AGGR_HTTP_HITS, COUNTER, RONLY, var_aggreg_entry, 3,
+        {2, 2, 5}},
+    {PERF_PROTOSTAT_AGGR_HTTP_ERRORS, COUNTER, RONLY, var_aggreg_entry, 3,
+        {2, 2, 6}},
+    {PERF_PROTOSTAT_AGGR_ICP_SKB, COUNTER, RONLY, var_aggreg_entry, 3,
+        {2, 2, 7}},
+    {PERF_PROTOSTAT_AGGR_ICP_RKB, COUNTER, RONLY, var_aggreg_entry, 3,
+        {2, 2, 8}},
+    {PERF_PROTOSTAT_AGGR_KBYTES_IN, COUNTER, RONLY, var_aggreg_entry, 3,
+        {2, 2, 9}},
+    {PERF_PROTOSTAT_AGGR_KBYTES_OUT, COUNTER, RONLY, var_aggreg_entry, 3,
+        {2, 2, 10}},
     {PERF_PEERSTAT_ID, INTEGER, RONLY, var_perfsys_entry, 4,
 	{3, 1, 1, 1}},
     {PERF_PEERSTAT_SENT, INTEGER, RONLY, var_perfsys_entry, 4,
@@ -1166,15 +1178,33 @@ var_aggreg_entry(struct variable * vp, oid * name, int *length, int exact,
     *var_len = sizeof(long);
 
     switch (vp->magic) {
-    case PERF_PROTOSTAT_AGGR_CLHTTP:
+    case PERF_PROTOSTAT_AGGR_HTTP_REQ:
 	long_return = (long) Counter.client_http.requests;
 	return (u_char *) & long_return;
+    case PERF_PROTOSTAT_AGGR_HTTP_HITS:
+        long_return = (long) Counter.client_http.hits;
+        return (u_char *) & long_return;
+    case PERF_PROTOSTAT_AGGR_HTTP_ERRORS:
+        long_return = (long) Counter.client_http.errors;
+        return (u_char *) & long_return;
     case PERF_PROTOSTAT_AGGR_ICP_S:
 	long_return = (long) Counter.icp.pkts_sent;
 	return (u_char *) & long_return;
     case PERF_PROTOSTAT_AGGR_ICP_R:
 	long_return = (long) Counter.icp.pkts_recv;
 	return (u_char *) & long_return;
+    case PERF_PROTOSTAT_AGGR_ICP_SKB:
+        long_return = (long) Counter.icp.kbytes_sent.kb;
+        return (u_char *) & long_return;
+    case PERF_PROTOSTAT_AGGR_ICP_RKB:
+        long_return = (long) Counter.icp.kbytes_recv.kb;
+        return (u_char *) & long_return;
+    case PERF_PROTOSTAT_AGGR_KBYTES_IN:
+        long_return = (long) Counter.client_http.kbytes_in.kb;
+        return (u_char *) & long_return;
+    case PERF_PROTOSTAT_AGGR_KBYTES_OUT:
+        long_return = (long) Counter.client_http.kbytes_out.kb;
+        return (u_char *) & long_return;
     case PERF_PROTOSTAT_AGGR_CURSWAP:
 	long_return = (long) store_swap_size;
 	return (u_char *) & long_return;
