@@ -233,6 +233,7 @@ struct SquidConfig {
     wordlist *mcast_group_list;
     wordlist *inside_firewall_list;
     wordlist *dns_testname_list;
+    relist   *cache_stop_relist;
     ip_acl *local_ip_list;
     ip_acl *firewall_ip_list;
     struct {
