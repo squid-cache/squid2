@@ -140,6 +140,7 @@ urlInitialize(void)
     assert(0 < matchDomainName("zzz.com", "foo.com"));
     assert(0 > matchDomainName("aaa.com", "foo.com"));
     assert(0 == matchDomainName("FOO.com", "foo.COM"));
+    assert(0 < matchDomainName("x-foo.com", ".foo.com"));
     /* more cases? */
 }
 
@@ -472,6 +473,15 @@ matchDomainName(const char *h, const char *d)
     /*
      * We found different characters in the same position (from the end).
      */
+    /*
+     * If one of those character is '.' then its special.  In order
+     * for splay tree sorting to work properly, "x-foo.com" must
+     * be greater than ".foo.com" even though '-' is less than '.'.
+     */
+    if ('.' == d[dl])
+	return 1;
+    if ('.' == h[hl])
+	return -1;
     return (xtolower(h[hl]) - xtolower(d[dl]));
 }
 
