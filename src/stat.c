@@ -590,10 +590,6 @@ server_list(const cacheinfo * obj, StoreEntry * sentry)
 		e->stats.counts[op],
 		percent(e->stats.counts[op], e->stats.pings_acked));
 	}
-	if (e->last_fail_time) {
-	    storeAppendPrintf(sentry, "{Last failed connect() at: %s}\n",
-		mkhttpdlogtime(&(e->last_fail_time)));
-	}
 	storeAppendPrintf(sentry, "{DOMAIN LIST: ");
 	for (d = e->pinglist; d; d = d->next) {
 	    if (d->do_ping)
