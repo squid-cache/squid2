@@ -225,7 +225,7 @@ wccpHandleUdp(int sock, void *not_used)
 
     len = recvfrom(sock,
 	(void *) &wccp_i_see_you,
-	WCCP_RESPONSE_SIZE,
+	sizeof(wccp_i_see_you),
 	0,
 	(struct sockaddr *) &from,
 	&from_len);
