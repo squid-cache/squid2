@@ -749,6 +749,16 @@ AC_ARG_ENABLE(linux-netfilter,
   fi
 ])
 
+dnl Enable Large file support
+AC_ARG_ENABLE(large-files,
+[  --enable-large-files    Enable support for large files (>2GB). Still
+                          experimental.],
+[ if test "$enableval" = "yes" ; then
+	echo "Large file support enabled"
+	CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=64"
+  fi
+])
+
 AM_CONDITIONAL(MAKE_LEAKFINDER, false)
 dnl Enable Leak Finding Functions
 AC_ARG_ENABLE(leakfinder,
