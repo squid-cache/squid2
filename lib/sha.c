@@ -19,9 +19,9 @@
 
 /* SHA f()-functions */
 
-#define f1(x,y,z)	((x & y) | (~x & z))
+#define f1(x,y,z)	(z ^ (x & (y ^ z)))
 #define f2(x,y,z)	(x ^ y ^ z)
-#define f3(x,y,z)	((x & y) | (x & z) | (y & z))
+#define f3(x,y,z)	((x & y) | (z & (x | y)))
 #define f4(x,y,z)	(x ^ y ^ z)
 
 /* SHA constants */
