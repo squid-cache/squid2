@@ -440,7 +440,24 @@ errorConvert(char token, ErrorState * err)
 	p = r ? ProtocolStr[r->protocol] : "[unkown protocol]";
 	break;
     case 'R':
-	p = err->request_hdrs ? err->request_hdrs : "[no request]";
+	if (NULL != r) {
+	    MemBuf mb;
+	    Packer p;
+	    memBufDefInit(&mb);
+	    memBufPrintf(&mb, "%s %s HTTP/%3.1f\n",
+		RequestMethodStr[r->method],
+		strLen(r->urlpath) ? strBuf(r->urlpath) : "/",
+		(double) r->http_ver);
+	    packerToMemInit(&p, &mb);
+	    httpHeaderPackInto(&r->header, &p);
+	    packerClean(&p);
+	    xstrncpy(buf, mb.buf, CVT_BUF_SZ);
+	    memBufClean(&mb);
+	} else if (err->request_hdrs) {
+	    p = err->request_hdrs;
+	} else {
+	    p = "[no request]";
+	}
 	break;
     case 's':
 	p = full_appname_string;
