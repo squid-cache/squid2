@@ -1406,7 +1406,6 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	*status = -1;
 	return http;
     }
-debug(0,0)("URI=%s\n", url);
     debug(12, 5) ("parseHttpRequest: Request is '%s'\n", url);
 
     token = strtok(NULL, null_string);
@@ -1499,7 +1498,6 @@ debug(0,0)("URI=%s\n", url);
 	/* URL may be rewritten later, so make extra room */
 	url_sz = strlen(url) + Config.appendDomainLen + 5;
 	http->uri = xcalloc(url_sz, 1);
-debug(0,0)("URI=%s\n", url);
 	strcpy(http->uri, url);
 	http->accel = 0;
     }
