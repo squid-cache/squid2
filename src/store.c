@@ -289,7 +289,7 @@ storeGetPublic(const char *uri, const method_t method)
 	key = storeKeyPublicOld(uri, method);
 	e = storeGet(key);
     }
-    return storeGet(key);
+    return e;
 }
 
 static int
