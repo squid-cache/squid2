@@ -300,7 +300,7 @@ $(ICON1):
 	@$(SHELL) "$(srcdir)/icons.shar"
 
 icons.shar:
-	shar --no-timestamp $(ICON1) $(ICON2) > $@
+	shar $(ICON1) $(ICON2) > $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
