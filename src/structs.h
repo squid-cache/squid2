@@ -1486,7 +1486,6 @@ struct _SwapDir {
     int max_size;
     char *path;
     int index;			/* This entry's index into the swapDirs array */
-    int suggest;
     ssize_t max_objsize;
     RemovalPolicy *repl;
     int removals;
