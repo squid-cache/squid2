@@ -1421,6 +1421,8 @@ static void CheckQuickAbort(astm)
 {
     if (!getQuickAbort())
 	return;
+    if (astm->entry == NULL)
+	return;
     if (BIT_TEST(astm->flags, REQ_PUBLIC))
 	return;
     if (astm->entry->lock_count != 1)
