@@ -72,6 +72,7 @@ fwdStateFree(FwdState * fwdState)
 	if (e->mem_obj->inmem_hi == 0) {
 	    assert(fwdState->err);
 	    errorAppendEntry(e, fwdState->err);
+	    fwdState->err = NULL;
 	} else {
 	    EBIT_CLR(e->flags, ENTRY_FWD_HDR_WAIT);
 	    storeComplete(e);
@@ -83,6 +84,8 @@ fwdStateFree(FwdState * fwdState)
     fwdServersFree(&fwdState->servers);
     requestUnlink(fwdState->request);
     fwdState->request = NULL;
+    if (fwdState->err)
+	errorStateFree(fwdState->err);
     storeUnregisterAbort(e);
     storeUnlockObject(e);
     fwdState->entry = NULL;
