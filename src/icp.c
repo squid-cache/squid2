@@ -212,6 +212,7 @@ static int icpStateFree(fd, icpState)
     int size = 0;
     int http_code = 0;
     int elapsed_msec;
+    hier_code hier_code = HIER_NONE;
 
     if (!icpState)
 	return 1;
@@ -228,6 +229,8 @@ static int icpStateFree(fd, icpState)
 	http_code = icpState->http_code;
     }
     elapsed_msec = tvSubMsec(icpState->start, current_time);
+    if (icpState->request)
+	hier_code = icpState->request->hierarchy_code;
     CacheInfo->log_append(CacheInfo,
 	icpState->url,
 	inet_ntoa(icpState->peer.sin_addr),
@@ -236,7 +239,7 @@ static int icpStateFree(fd, icpState)
 	RequestMethodStr[icpState->method],
 	http_code,
 	elapsed_msec,
-	icpState->request->hierarchy_code);
+	hier_code);
     safe_free(icpState->inbuf);
     meta_data.misc -= icpState->inbufsize;
     safe_free(icpState->url);
