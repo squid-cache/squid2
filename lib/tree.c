@@ -62,7 +62,7 @@ tree_srch(tree ** ppr_tree, BTREE_CMP * pfi_compare, void *p_user)
     if (t) {
 	i_comp = (*pfi_compare) (p_user, t->data);
 	if (i_comp > 0)
-	    return tree_srch(&t->right pfi_compare, p_user);
+	    return tree_srch(&t->right, pfi_compare, p_user);
 	if (i_comp < 0)
 	    return tree_srch(&t->left, pfi_compare, p_user);
 	/* not higher, not lower... this must be the one.  */
