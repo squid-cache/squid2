@@ -40,7 +40,7 @@ typedef struct {
 } CacheDigestStats;
 
 /* local functions */
-static void cacheDigestHashKey(int bit_count, const char *key);
+static void cacheDigestHashKey(int bit_count, const cache_key *key);
 
 /* configuration params */
 static const int BitsPerEntry = 4;
@@ -184,7 +184,7 @@ cacheDigestReport(CacheDigest *cd, const char *label, StoreEntry * e)
 }
 
 static void
-cacheDigestHashKey(int bit_count, const char *key)
+cacheDigestHashKey(int bit_count, const cache_key *key)
 {
     /* get four hashed values */
     memcpy(hashed_keys, key, sizeof(hashed_keys));
