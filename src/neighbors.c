@@ -762,7 +762,7 @@ neighborsUdpAck(const cache_key * key, icp_common_t * header, const struct socka
 	return;
     }
     if (entry->ping_status != PING_WAITING) {
-	debug(15, 2) ("neighborsUdpAck: Unexpected %s for %s\n",
+	debug(15, 2) ("neighborsUdpAck: Late %s for %s\n",
 	    opcode_d, storeKeyText(key));
 	neighborCountIgnored(p);
 	return;
