@@ -8,6 +8,7 @@ Changes to squid-1.novm.9 ():
 	- Removed offset arg from storeClientListAdd.
 	- Removed hunks of UNUSED and OLD code.
 	- merged squid-1.1.9 changes.
+	- removed icpHandleAbort(); just close the socket already.
 
 Changes to squid-1.1.9 (March 30, 1997):
 
