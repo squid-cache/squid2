@@ -351,10 +351,13 @@ sslTimeout(int fd, void *data)
 {
     SslStateData *sslState = data;
     debug(26, 3) ("sslTimeout: FD %d\n", fd);
+    /* temporary lock to save our own feets (comm_close -> sslClientClosed -> Free) */
+    cbdataLock(sslState);
     if (sslState->client.fd > -1)
 	comm_close(sslState->client.fd);
     if (sslState->server.fd > -1)
 	comm_close(sslState->server.fd);
+    cbdataUnlock(sslState);
 }
 
 static void
