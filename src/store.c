@@ -283,9 +283,9 @@ new_MemObject(void)
 {
     MemObject *mem = get_free_mem_obj();
     mem->reply = xcalloc(1, sizeof(struct _http_reply));
-    mem->reply->date = -1;
-    mem->reply->expires = -1;
-    mem->reply->last_modified = -1;
+    mem->reply->date = -2;
+    mem->reply->expires = -2;
+    mem->reply->last_modified = -2;
     meta_data.mem_obj_count++;
     meta_data.misc += sizeof(struct _http_reply);
     debug(20, 3, "new_MemObject: returning %p\n", mem);
