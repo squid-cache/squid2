@@ -537,14 +537,14 @@ static int aclMatchEndOfWord(data, word)
 {
     int offset;
     if (word == NULL)
-      return 0;
+	return 0;
     debug(28, 3, "aclMatchEndOfWord: checking '%s'\n", word);
-    for(;data;data=data->next) {
-      debug(28, 3, "aclMatchEndOfWord: looking for '%s'\n", data->key);
-      if ((offset = strlen(word) - strlen(data->key)) < 0)
-          continue;
-      if (strcmp(word + offset, data->key)==0)
-          return 1;
+    for (; data; data = data->next) {
+	debug(28, 3, "aclMatchEndOfWord: looking for '%s'\n", data->key);
+	if ((offset = strlen(word) - strlen(data->key)) < 0)
+	    continue;
+	if (strcmp(word + offset, data->key) == 0)
+	    return 1;
     }
     return 0;
 }

@@ -169,8 +169,8 @@ char *storeToString(e)
 	strcat(stsbuf, tmpbuf);
 	return stsbuf;
     }
-	sprintf(tmpbuf, "MemObject: 0x%p\n****************\n", e->mem_obj);
-	strcat(stsbuf, tmpbuf);
+    sprintf(tmpbuf, "MemObject: 0x%p\n****************\n", e->mem_obj);
+    strcat(stsbuf, tmpbuf);
 
     if (!e->mem_obj->mime_hdr) {
 	sprintf(tmpbuf, "MimeHdr: NULL.\n");

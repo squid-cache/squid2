@@ -241,9 +241,9 @@ void sig_child(sig)
 
     do {
 #ifdef _SQUID_NEXT_
-        pid = wait3(&status, WNOHANG, NULL);
+	pid = wait3(&status, WNOHANG, NULL);
 #else
-        pid = waitpid(-1, &status, WNOHANG);
+	pid = waitpid(-1, &status, WNOHANG);
 #endif
 	debug(21, 3, "sig_child: Ate pid %d\n", pid);
     } while (pid > 0 || (pid < 0 && errno == EINTR));
@@ -357,8 +357,8 @@ void writePidFile()
     pid_fp = fopen(f, "w");
     leave_suid();
     if (pid_fp != NULL) {
-        fprintf(pid_fp, "%d\n", (int) getpid());
-        fclose(pid_fp);
+	fprintf(pid_fp, "%d\n", (int) getpid());
+	fclose(pid_fp);
     } else {
 	debug(21, 0, "WARNING: Could not write pid file\n");
 	debug(21, 0, "         %s: %s\n", f, xstrerror());

@@ -1334,11 +1334,11 @@ void stat_ipcache_get(sentry, obj)
 
     sprintf(buffer, "{dnsservers use histogram:}\n{\n");
     storeAppend(sentry, buffer, strlen(buffer));
-    for (i=0; i<getDnsChildren(); i++) {
-        sprintf(buffer, "{dnsserver #%d: %d}\n",
-		i+1,
-		IpcacheStats.dnsserver_hist[i]);
-        storeAppend(sentry, buffer, strlen(buffer));
+    for (i = 0; i < getDnsChildren(); i++) {
+	sprintf(buffer, "{dnsserver #%d: %d}\n",
+	    i + 1,
+	    IpcacheStats.dnsserver_hist[i]);
+	storeAppend(sentry, buffer, strlen(buffer));
     }
     sprintf(buffer, "}\n");
     storeAppend(sentry, buffer, strlen(buffer));
