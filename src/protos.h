@@ -1057,7 +1057,7 @@ extern request_t *urlParse(method_t, char *);
 extern const char *urlCanonical(request_t *);
 extern char *urlRInternal(const char *host, u_short port, const char *dir, const char *name);
 extern char *urlInternal(const char *dir, const char *name);
-extern int matchDomainName(const char *d, const char *h);
+extern int matchDomainName(const char *host, const char *domain);
 extern int urlCheckRequest(const request_t *);
 extern int urlDefaultPort(protocol_t p);
 extern char *urlCanonicalClean(const request_t *);

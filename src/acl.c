@@ -1979,7 +1979,7 @@ aclHostDomainCompare(const void *a, const void *b)
 {
     const char *h = a;
     const char *d = b;
-    return matchDomainName(d, h);
+    return matchDomainName(h, d);
 }
 
 /* compare two network specs
