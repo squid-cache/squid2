@@ -272,7 +272,7 @@ asHandleReply(void *data, char *buf, ssize_t size)
 	    e,
 	    asState->seen,
 	    asState->offset,
-	    SM_PAGE_SIZE,
+	    4096,
 	    buf,
 	    asHandleReply,
 	    asState);
@@ -282,7 +282,7 @@ asHandleReply(void *data, char *buf, ssize_t size)
 	    e,
 	    asState->seen,
 	    asState->offset,
-	    SM_PAGE_SIZE,
+	    4096,
 	    buf,
 	    asHandleReply,
 	    asState);
