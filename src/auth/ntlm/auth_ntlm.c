@@ -930,7 +930,6 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
     auth_user_t *auth_user;
     ntlm_request_t *ntlm_request;
     ntlm_user_t *ntlm_user;
-    void *srv;
     LOCAL_ARRAY(char, ntlmhash, NTLM_CHALLENGE_SZ * 2);
     /* get header */
     proxy_auth = httpHeaderGetStr(&request->header, type);
