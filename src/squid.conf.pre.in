@@ -810,7 +810,7 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	'ignore-domain' is a domain name for which authorization will
 #	*not* be required.
 #
-#proxy_auth_file /dev/null
+#proxy_auth /dev/null
 
 #  TAG: err_html_text
 #	HTML text to include in error messages.  Make this a "mailto"
