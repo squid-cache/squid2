@@ -5,7 +5,7 @@
  */
 #include "squid.h"
 
-#define  CONNECT_BUFSIZE     4096
+#define  CONNECT_BUFSIZE     (1<<14)
 #define  CONNECT_DELETE_GAP  (64*1024)
 #define  ConnectMaxObjSize   (4 << 20)	/* 4 MB */
 
@@ -32,18 +32,25 @@ static void connectConnected _PARAMS((int fd, ConnectData * data));
 static void connectConnInProgress _PARAMS((int fd, ConnectData * data));
 
 /* This will be called when socket lifetime is expired. */
-static void connectLifetimeExpire(fd, data)
-     int fd;
+static void connectLifetimeExpire(rfd, data)
+     int rfd;
      ConnectData *data;
 {
-    debug(26, 4, "connectLifeTimeExpire: FD %d: <URL:%s>\n", fd, data->entry->url);
-    comm_close(fd);
+    StoreEntry *entry = data->entry;
+    debug(26, 4, "connectLifeTimeExpire: FD %d: <URL:%s>\n",
+	rfd, entry->url);
+    squid_error_entry(entry, ERR_LIFETIME_EXP, NULL);
+    comm_set_select_handler(rfd,
+	COMM_SELECT_READ | COMM_SELECT_WRITE,
+	NULL,
+	NULL);
+    comm_close(rfd);
 }
 
 /* This will be called when data is ready to be read from fd.  Read until
  * error or connection closed. */
-static void connectReadRemote(fd, data)
-     int fd;
+static void connectReadRemote(rfd, data)
+     int rfd;
      ConnectData *data;
 {
     static char buf[CONNECT_BUFSIZE];
@@ -60,7 +67,7 @@ static void connectReadRemote(fd, data)
 		    entry->mem_obj->e_current_len -
 		    entry->mem_obj->e_lowest_offset);
 		/* reschedule, so it will automatically reactivated when Gap is big enough. */
-		comm_set_select_handler(fd,
+		comm_set_select_handler(rfd,
 		    COMM_SELECT_READ,
 		    (PF) connectReadRemote,
 		    (void *) data);
@@ -69,23 +76,24 @@ static void connectReadRemote(fd, data)
 	} else {
 	    /* we can terminate connection right now */
 	    squid_error_entry(entry, ERR_NO_CLIENTS_BIG_OBJ, NULL);
-	    comm_close(fd);
+	    comm_close(rfd);
 	    return;
 	}
     }
-    len = read(fd, buf, CONNECT_BUFSIZE);
-    debug(26, 5, "connectReadRemote FD %d read len:%d\n", fd, len);
+    len = read(rfd, buf, CONNECT_BUFSIZE);
+    debug(26, 5, "connectReadRemote FD %d read len:%d\n", rfd, len);
 
     if (len < 0) {
-	debug(26, 1, "connectReadRemote: FD %d: read failure: %s.\n", fd, xstrerror());
+	debug(26, 1, "connectReadRemote: FD %d: read failure: %s.\n",
+	    rfd, xstrerror());
 	if (errno == EAGAIN || errno == EWOULDBLOCK) {
 	    /* reinstall handlers */
 	    /* XXX This may loop forever */
-	    comm_set_select_handler(fd,
+	    comm_set_select_handler(rfd,
 		COMM_SELECT_READ,
 		(PF) connectReadRemote,
 		(void *) data);
-	    comm_set_select_handler_plus_timeout(fd,
+	    comm_set_select_handler_plus_timeout(rfd,
 		COMM_SELECT_TIMEOUT,
 		(PF) connectReadTimeout,
 		(void *) data,
@@ -94,40 +102,35 @@ static void connectReadRemote(fd, data)
 	    BIT_RESET(entry->flag, CACHABLE);
 	    storeReleaseRequest(entry);
 	    squid_error_entry(entry, ERR_READ_ERROR, xstrerror());
-	    comm_close(fd);
+	    comm_close(rfd);
 	}
     } else if (len == 0 && entry->mem_obj->e_current_len == 0) {
 	squid_error_entry(entry,
 	    ERR_ZERO_SIZE_OBJECT,
 	    errno ? xstrerror() : NULL);
-	comm_close(fd);
+	comm_close(rfd);
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */
 	storeExpireNow(entry);
 	storeComplete(entry);
-	comm_close(fd);
+	comm_close(rfd);
     } else if (((entry->mem_obj->e_current_len + len) > ConnectMaxObjSize) &&
 	!(entry->flag & DELETE_BEHIND)) {
 	/*  accept data, but start to delete behind it */
 	storeStartDeleteBehind(entry);
 	storeAppend(entry, buf, len);
-	comm_set_select_handler(fd,
+	comm_set_select_handler(rfd,
 	    COMM_SELECT_READ,
 	    (PF) connectReadRemote,
 	    (void *) data);
     } else {
 	storeAppend(entry, buf, len);
-	comm_set_select_handler_plus_timeout(data->client,
+	comm_set_select_handler_plus_timeout(rfd,
 	    COMM_SELECT_TIMEOUT,
 	    (PF) connectReadTimeout,
 	    (void *) data,
 	    data->timeout);
-	comm_set_select_handler_plus_timeout(data->remote,
-	    COMM_SELECT_TIMEOUT,
-	    (PF) connectReadTimeout,
-	    (void *) data,
-	    data->timeout);
-	comm_set_select_handler(fd,
+	comm_set_select_handler(rfd,
 	    COMM_SELECT_READ,
 	    (PF) connectReadRemote,
 	    (void *) data);
@@ -135,19 +138,19 @@ static void connectReadRemote(fd, data)
 }
 
 /* This will be called when connect completes. Write request. */
-static void connectSendRemote(fd, data)
-     int fd;
+static void connectSendRemote(rfd, data)
+     int rfd;
      ConnectData *data;
 {
     int len;
 
-    debug(26, 5, "connectSendRemote FD %d\n", fd);
+    debug(26, 5, "connectSendRemote FD %d\n", rfd);
 
-    len = write(fd, data->buf + data->offset, data->len - data->offset);
+    len = write(rfd, data->buf + data->offset, data->len - data->offset);
     if (len < 0) {
 	debug(26, 2, "connectSendRemote: FD %d: write failure: %s.\n",
-	    fd, xstrerror());
-	comm_close(fd);
+	    rfd, xstrerror());
+	comm_close(rfd);
 	return;
     }
     if ((data->offset += len) >= data->len) {
@@ -165,27 +168,22 @@ static void connectSendRemote(fd, data)
     }
 }
 
-static void connectReadClient(fd, data)
-     int fd;
+static void connectReadClient(cfd, data)
+     int cfd;
      ConnectData *data;
 {
-    data->len = read(fd, data->buf, CONNECT_BUFSIZE);
-    debug(26, 2, "connectReadClient FD: %d read len: %d\n", fd, data->len);
+    data->len = read(cfd, data->buf, CONNECT_BUFSIZE);
+    debug(26, 2, "connectReadClient FD: %d read len: %d\n", cfd, data->len);
     if (data->len <= 0) {
 	if (data->len < 0)
 	    debug(26, 2, "connectReadClient: FD %d: read failure: %s.\n",
-		fd, xstrerror());
-	comm_close(fd);
+		cfd, xstrerror());
+	comm_close(cfd);
 	return;
     }
     if (!fdstat_isopen(data->remote))
 	fatal_dump("connectReadClient called after remote side closed\n");
     data->offset = 0;
-    comm_set_select_handler_plus_timeout(data->client,
-	COMM_SELECT_TIMEOUT,
-	(PF) connectReadTimeout,
-	(void *) data,
-	data->timeout);
     comm_set_select_handler_plus_timeout(data->remote,
 	COMM_SELECT_TIMEOUT,
 	(PF) connectReadTimeout,
@@ -197,38 +195,53 @@ static void connectReadClient(fd, data)
 	(void *) data);
 }
 
-static void connectReadTimeout(fd, data)
-     int fd;
+static void connectReadTimeout(rfd, data)
+     int rfd;
      ConnectData *data;
 {
+    if (rfd != data->remote)
+	fatal_dump("connectReadTimeout: FD mismatch!\n");
+    debug(26, 3, "connectReadTimeout: FD %d\n", rfd);
     squid_error_entry(data->entry, ERR_READ_TIMEOUT, NULL);
-    comm_close(fd);
+    comm_set_select_handler(data->remote,
+	COMM_SELECT_READ | COMM_SELECT_WRITE,
+	NULL,
+	NULL);
+    /* no matter which side times out, close the server side */
+    comm_close(rfd);
 }
 
-static void connectConnected(fd, data)
-     int fd;
+static void connectConnected(rfd, data)
+     int rfd;
      ConnectData *data;
 {
-    debug(26, 3, "connectConnected: FD %d data=%p\n", fd, data);
+    debug(26, 3, "connectConnected: FD %d data=%p\n", rfd, data);
     storeAppend(data->entry, conn_established, strlen(conn_established));
-    comm_set_fd_lifetime(fd, -1);	/* disable lifetime DPW */
-    comm_set_select_handler_plus_timeout(data->remote, COMM_SELECT_TIMEOUT,
-	(PF) connectReadTimeout, (void *) data, data->timeout);
-    comm_set_select_handler(data->remote, COMM_SELECT_READ,
-	(PF) connectReadRemote, (void *) data);
-    comm_set_select_handler_plus_timeout(data->client, COMM_SELECT_TIMEOUT,
-	(PF) connectReadTimeout, (void *) data, data->timeout);
-    comm_set_select_handler(data->client, COMM_SELECT_READ,
-	(PF) connectReadClient, (void *) data);
+    comm_set_fd_lifetime(rfd, -1);	/* disable lifetime */
+    comm_set_select_handler_plus_timeout(data->remote,
+	COMM_SELECT_TIMEOUT,
+	(PF) connectReadTimeout,
+	(void *) data,
+	data->timeout);
+    comm_set_select_handler(data->remote,
+	COMM_SELECT_READ,
+	(PF) connectReadRemote,
+	(void *) data);
+    comm_set_select_handler(data->client,
+	COMM_SELECT_READ,
+	(PF) connectReadClient,
+	(void *) data);
 }
 
 
-static int connectStateFree(fd, connectState)
-     int fd;
+static int connectStateFree(rfd, connectState)
+     int rfd;
      ConnectData *connectState;
 {
     if (connectState == NULL)
 	return 1;
+    if (rfd != connectState->remote)
+	fatal_dump("connectStateFree: FD mismatch!\n");
     comm_set_select_handler(connectState->client,
 	COMM_SELECT_READ,
 	NULL,
@@ -238,38 +251,33 @@ static int connectStateFree(fd, connectState)
     return 0;
 }
 
-static void connectConnInProgress(fd, data)
-     int fd;
+static void connectConnInProgress(rfd, data)
+     int rfd;
      ConnectData *data;
 {
     request_t *req = data->request;
-    debug(26, 5, "connectConnInProgress: FD %d data=%p\n", fd, data);
+    debug(26, 5, "connectConnInProgress: FD %d data=%p\n", rfd, data);
 
-    if (comm_connect(fd, req->host, req->port) != COMM_OK) {
-	debug(26, 5, "connectConnInProgress: FD %d: %s", fd, xstrerror());
+    if (comm_connect(rfd, req->host, req->port) != COMM_OK) {
+	debug(26, 5, "connectConnInProgress: FD %d: %s", rfd, xstrerror());
 	switch (errno) {
 #if EINPROGRESS != EALREADY
 	case EINPROGRESS:
 #endif
 	case EALREADY:
 	    /* We are not connectedd yet. schedule this handler again */
-	    comm_set_select_handler(fd, COMM_SELECT_WRITE,
+	    comm_set_select_handler(rfd, COMM_SELECT_WRITE,
 		(PF) connectConnInProgress,
 		(void *) data);
 	    return;
-	case EISCONN:
-	    /* We are connected (doesn't comm_connect return
-	     * COMM_OK on EISCONN?)
-	     */
-	    break;
 	default:
 	    squid_error_entry(data->entry, ERR_CONNECT_FAIL, xstrerror());
-	    comm_close(fd);
+	    comm_close(rfd);
 	    return;
 	}
     }
     /* We are now fully connected */
-    connectConnected(fd, data);
+    connectConnected(rfd, data);
     return;
 }
 
