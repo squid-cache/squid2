@@ -393,7 +393,7 @@ diskHandleRead(int fd, void *data)
 	ctrlp);
 #else
     if (F->disk.offset != ctrl_dat->offset) {
-	debug(6, 1) ("diskHandleRead: FD %d seeking to offset %d\n",
+	debug(6, 3) ("diskHandleRead: FD %d seeking to offset %d\n",
 	    fd, (int) ctrl_dat->offset);
 	lseek(fd, ctrl_dat->offset, SEEK_SET);	/* XXX ignore return? */
 	F->disk.offset = ctrl_dat->offset;
