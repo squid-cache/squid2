@@ -51,7 +51,7 @@ storeCleanSubSubDir(int index, char *path)
     int L1 = Config.cacheSwap.swapDirs[dirn].l1;
     int L2 = Config.cacheSwap.swapDirs[dirn].l2;
     snprintf(path, SQUID_MAXPATHLEN, "%s/%02X/%02X",
-        Config.cacheSwap.swapDirs[dirn].path,
+	Config.cacheSwap.swapDirs[dirn].path,
 	(index / nd) % L1,
 	((index / nd) / L1) % L2);
     return path;

@@ -68,7 +68,7 @@ static wordlist *aclDumpWordList(wordlist * data);
 static wordlist *aclDumpProtoList(void *data);
 static wordlist *aclDumpMethodList(void *data);
 static wordlist *aclDumpProxyAuth(void *data);
-static wordlist * aclDumpUnimplemented(void);
+static wordlist *aclDumpUnimplemented(void);
 
 #if USE_ARP_ACL
 static int checkARP(u_long ip, char *eth);

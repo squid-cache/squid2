@@ -94,7 +94,7 @@ storeSwapSubSubDir(int fn, char *fullpath)
     return fullpath;
 }
 
-static void 
+static void
 storeCreateDirectory(const char *path, int lvl)
 {
     struct stat st;
