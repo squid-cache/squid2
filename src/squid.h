@@ -59,6 +59,7 @@
  */
 
 #if FD_SETSIZE < SQUID_MAXFD
+#undef SQUID_MAXFD
 #define SQUID_MAXFD FD_SETSIZE
 #endif
 
@@ -342,6 +343,7 @@ extern int opt_udp_hit_obj;	/* main.c */
 extern int opt_mem_pools;	/* main.c */
 extern int opt_forwarded_for;	/* main.c */
 extern int opt_accel_uses_host;	/* main.c */
+extern char ThisCache[];	/* main.c */
 
 /* Prototypes and definitions which don't really deserve a seaprate
  * include file */
