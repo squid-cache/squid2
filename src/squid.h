@@ -308,9 +308,6 @@ struct rusage {
 #include "md5.h"
 
 #ifdef SQUID_SNMP
-#include "snmp.h"
-#include "snmp_impl.h"
-#include "snmp_vars.h"
 #include "cache_snmp.h"
 #endif
 
