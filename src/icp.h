@@ -141,16 +141,6 @@ typedef enum {
 #define ERR_MIN ERR_READ_TIMEOUT
 #define ERR_MAX ERR_ZERO_SIZE_OBJECT
 
-/* bitfields for the icpStateData 'flags' element */
-#define		REQ_HTML	0x01
-#define		REQ_NOCACHE	0x02
-#define		REQ_IMS		0x04
-#define		REQ_AUTH	0x08
-#define		REQ_CACHABLE	0x10
-#define 	REQ_ACCEL	0x20
-#define 	REQ_HIERARCHICAL 0x40
-#define 	REQ_LOOPDETECT  0x80
-
 typedef struct wwd {
     struct sockaddr_in address;
     char *msg;

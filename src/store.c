@@ -724,8 +724,6 @@ StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
     e->method = method;
     if (req_hdr)
 	mem->mime_hdr = xstrdup(req_hdr);
-    if (BIT_TEST(flags, REQ_NOCACHE))
-	BIT_SET(e->flag, REFRESH_REQUEST);
     if (BIT_TEST(flags, REQ_CACHABLE)) {
 	BIT_SET(e->flag, ENTRY_CACHABLE);
 	BIT_RESET(e->flag, RELEASE_REQUEST);

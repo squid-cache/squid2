@@ -65,7 +65,18 @@ struct _request {
     char urlpath[MAX_URL + 1];
     int link_count;		/* free when zero */
     hier_code hierarchy_code;
+    int flags;
 };
+
+/* bitfields for the flags member */
+#define		REQ_HTML	0x01
+#define		REQ_NOCACHE	0x02
+#define		REQ_IMS		0x04
+#define		REQ_AUTH	0x08
+#define		REQ_CACHABLE	0x10
+#define 	REQ_ACCEL	0x20
+#define 	REQ_HIERARCHICAL 0x40
+#define 	REQ_LOOPDETECT  0x80
 
 extern char *url_convert_hex _PARAMS((char *org_url, int allocate));
 extern char *url_escape _PARAMS((char *url));

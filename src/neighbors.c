@@ -234,6 +234,8 @@ static int edgeWouldBePinged(e, request)
     int do_ping = 1;
     struct _acl_list *a = NULL;
 
+    if (e->type == EDGE_SIBLING && BIT_TEST(request->flags, REQ_NOCACHE))
+	return 0;
     if (e->domains == NULL && e->acls == NULL)
 	return do_ping;
     do_ping = 0;
@@ -261,24 +263,24 @@ edge *getSingleParent(request, n)
     if (n == NULL && friends->n_parent < 1)
 	return NULL;
     for (e = friends->edges_head; e; e = e->next) {
-	if (edgeWouldBePinged(e, request)) {
-	    count++;
-	    if (e->type != EDGE_PARENT) {
-		/* we matched a neighbor, not a parent.  There
-		 * can be no single parent */
-		if (n == NULL)
-		    return NULL;
-		continue;
-	    }
-	    if (p) {
-		/* already have a parent, this makes the second,
-		 * so there can be no single parent */
-		if (n == NULL)
-		    return NULL;
-		continue;
-	    }
-	    p = e;
+	if (!edgeWouldBePinged(e, request))
+	    continue;
+	count++;
+	if (e->type != EDGE_PARENT) {
+	    /* we matched a neighbor, not a parent.  There
+	     * can be no single parent */
+	    if (n == NULL)
+		return NULL;
+	    continue;
 	}
+	if (p) {
+	    /* already have a parent, this makes the second,
+	     * so there can be no single parent */
+	    if (n == NULL)
+		return NULL;
+	    continue;
+	}
+	p = e;
     }
     /* Ok, all done checking the edges.  If only one parent matched, then
      * p will already point to it */
@@ -508,7 +510,7 @@ int neighborsUdpPing(proto)
 
 	/* Don't resolve refreshes through neighbors because we don't resolve
 	 * misses through neighbors */
-	if (e->type == EDGE_SIBLING && entry->flag & REFRESH_REQUEST)
+	if (e->type == EDGE_SIBLING && BIT_TEST(proto->request->flags, REQ_NOCACHE))
 	    continue;
 
 	/* skip any cache where we failed to connect() w/in the last 60s */
@@ -537,7 +539,7 @@ int neighborsUdpPing(proto)
 		url,
 		&echo_hdr,
 		&e->in_addr,
-		entry->flag,
+		proto->request->flags,
 		ICP_OP_DECHO,
 		LOG_TAG_NONE);
 	} else {
@@ -546,7 +548,7 @@ int neighborsUdpPing(proto)
 		url,
 		&e->header,
 		&e->in_addr,
-		entry->flag,
+		proto->request->flags,
 		ICP_OP_QUERY,
 		LOG_TAG_NONE);
 	}
@@ -590,7 +592,7 @@ int neighborsUdpPing(proto)
 		url,
 		&echo_hdr,
 		&to_addr,
-		entry->flag,
+		proto->request->flags,
 		ICP_OP_SECHO,
 		LOG_TAG_NONE);
 	} else {

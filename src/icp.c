@@ -267,16 +267,17 @@ static void icpParseRequestHeaders(icpState)
 {
     char *request_hdr = icpState->request_hdr;
     char *t = NULL;
+    request_t *request = icpState->request;
     if (mime_get_header(request_hdr, "If-Modified-Since"))
-	BIT_SET(icpState->flags, REQ_IMS);
+	BIT_SET(request->flags, REQ_IMS);
     if ((t = mime_get_header(request_hdr, "Pragma"))) {
 	if (!strcasecmp(t, "no-cache"))
-	    BIT_SET(icpState->flags, REQ_NOCACHE);
+	    BIT_SET(request->flags, REQ_NOCACHE);
     }
     if (mime_get_header(request_hdr, "Authorization"))
-	BIT_SET(icpState->flags, REQ_AUTH);
+	BIT_SET(request->flags, REQ_AUTH);
     if (strstr(request_hdr, ForwardedBy))
-	BIT_SET(icpState->flags, REQ_LOOPDETECT);
+	BIT_SET(request->flags, REQ_LOOPDETECT);
 }
 
 static int icpCachable(icpState)
@@ -285,7 +286,7 @@ static int icpCachable(icpState)
     char *request = icpState->url;
     request_t *req = icpState->request;
     method_t method = req->method;
-    if (BIT_TEST(icpState->flags, REQ_AUTH))
+    if (BIT_TEST(icpState->request->flags, REQ_AUTH))
 	return 0;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(request, method);
@@ -306,33 +307,33 @@ static int icpCachable(icpState)
 static int icpHierarchical(icpState)
      icpStateData *icpState;
 {
-    char *request = icpState->url;
-    request_t *req = icpState->request;
-    method_t method = req->method;
+    char *url = icpState->url;
+    request_t *request = icpState->request;
+    method_t method = request->method;
     wordlist *p = NULL;
     /* IMS needs a private key, so we can use the hierarchy for IMS only
      * if our neighbors support private keys */
-    if (BIT_TEST(icpState->flags, REQ_IMS) && !neighbors_do_private_keys)
+    if (BIT_TEST(request->flags, REQ_IMS) && !neighbors_do_private_keys)
 	return 0;
-    if (BIT_TEST(icpState->flags, REQ_AUTH))
+    if (BIT_TEST(request->flags, REQ_AUTH))
 	return 0;
     if (method != METHOD_GET)
 	return 0;
     /* scan hierarchy_stoplist */
     for (p = getHierarchyStoplist(); p; p = p->next)
-	if (strstr(request, p->key))
+	if (strstr(url, p->key))
 	    return 0;
-    if (BIT_TEST(icpState->flags, REQ_LOOPDETECT))
+    if (BIT_TEST(request->flags, REQ_LOOPDETECT))
 	return 0;
-    if (req->protocol == PROTO_HTTP)
-	return httpCachable(request, method);
-    if (req->protocol == PROTO_FTP)
-	return ftpCachable(request);
-    if (req->protocol == PROTO_GOPHER)
-	return gopherCachable(request);
-    if (req->protocol == PROTO_WAIS)
+    if (request->protocol == PROTO_HTTP)
+	return httpCachable(url, method);
+    if (request->protocol == PROTO_FTP)
+	return ftpCachable(url);
+    if (request->protocol == PROTO_GOPHER)
+	return gopherCachable(url);
+    if (request->protocol == PROTO_WAIS)
 	return 0;
-    if (req->protocol == PROTO_CACHEOBJ)
+    if (request->protocol == PROTO_CACHEOBJ)
 	return 0;
     return 1;
 }
@@ -658,6 +659,7 @@ static void icp_hit_or_miss(fd, icpState)
     char *url = icpState->url;
     char *pubkey = NULL;
     StoreEntry *entry = NULL;
+    request_t *request = icpState->request;
 
     debug(12, 4, "icp_hit_or_miss: %s <URL:%s>\n",
 	RequestMethodStr[icpState->method],
@@ -672,16 +674,16 @@ static void icp_hit_or_miss(fd, icpState)
 	return;
     }
     if (icpCachable(icpState))
-	BIT_SET(icpState->flags, REQ_CACHABLE);
+	BIT_SET(request->flags, REQ_CACHABLE);
     if (icpHierarchical(icpState))
-	BIT_SET(icpState->flags, REQ_HIERARCHICAL);
+	BIT_SET(request->flags, REQ_HIERARCHICAL);
 
     debug(12, 5, "icp_hit_or_miss: REQ_NOCACHE = %s\n",
-	BIT_TEST(icpState->flags, REQ_NOCACHE) ? "SET" : "NOT SET");
+	BIT_TEST(request->flags, REQ_NOCACHE) ? "SET" : "NOT SET");
     debug(12, 5, "icp_hit_or_miss: REQ_CACHABLE = %s\n",
-	BIT_TEST(icpState->flags, REQ_CACHABLE) ? "SET" : "NOT SET");
+	BIT_TEST(request->flags, REQ_CACHABLE) ? "SET" : "NOT SET");
     debug(12, 5, "icp_hit_or_miss: REQ_HIERARCHICAL = %s\n",
-	BIT_TEST(icpState->flags, REQ_HIERARCHICAL) ? "SET" : "NOT SET");
+	BIT_TEST(request->flags, REQ_HIERARCHICAL) ? "SET" : "NOT SET");
 
     /* XXX hmm, should we check for IFMODSINCE and USER_REFRESH before
      * TCP_MISS?  It is possible to get IMS header for objects
@@ -697,13 +699,13 @@ static void icp_hit_or_miss(fd, icpState)
 	storeRelease(entry);
 	entry = NULL;
 	icpState->log_type = LOG_TCP_EXPIRED;
-    } else if (BIT_TEST(icpState->flags, REQ_NOCACHE)) {
+    } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
 	/* IMS+NOCACHE should not eject valid object */
-	if (!BIT_TEST(icpState->flags, REQ_IMS))
+	if (!BIT_TEST(request->flags, REQ_IMS))
 	    storeRelease(entry);
 	entry = NULL;
 	icpState->log_type = LOG_TCP_USER_REFRESH;
-    } else if (BIT_TEST(icpState->flags, REQ_IMS)) {
+    } else if (BIT_TEST(request->flags, REQ_IMS)) {
 	/* A cached IMS request */
 	icpState->log_type = LOG_TCP_IFMODSINCE;
     } else {
@@ -801,7 +803,7 @@ static int icpProcessMISS(fd, icpState)
     }
     entry = storeCreateEntry(url,
 	request_hdr,
-	icpState->flags,
+	icpState->request->flags,
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
 
@@ -894,7 +896,7 @@ int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode)
      char *url;
      icp_common_t *reqheaderp;
      struct sockaddr_in *to;
-     int flags;			/* StoreEntry->flags */
+     int flags;			/* request->flags */
      icp_opcode opcode;
      log_type logcode;
 {
@@ -930,7 +932,7 @@ int icpUdpSend(fd, url, reqheaderp, to, flags, opcode, logcode)
     headerp->version = ICP_VERSION_CURRENT;
     headerp->length = htons(buf_len);
     headerp->reqnum = htonl(reqheaderp->reqnum);
-    if (opcode == ICP_OP_QUERY && !BIT_TEST(flags, REFRESH_REQUEST)
+    if (opcode == ICP_OP_QUERY && !BIT_TEST(flags, REQ_NOCACHE)
 	&& opt_udp_hit_obj)
 	headerp->flags = htonl(ICP_FLAG_HIT_OBJ);
     headerp->pad = 0;
@@ -1465,7 +1467,7 @@ static int parseHttpRequest(icpState)
 {
     char *inbuf = NULL;
     char *method = NULL;
-    char *request = NULL;
+    char *url = NULL;
     char *req_hdr = NULL;
     static char http_ver[32];
     char *token = NULL;
@@ -1477,6 +1479,7 @@ static int parseHttpRequest(icpState)
     int req_hdr_sz;
     int post_sz;
     int len;
+    request_t *request = icpState->request;
 
     /* Make sure a complete line has been received */
     if (strchr(icpState->inbuf, '\n') == NULL) {
@@ -1502,15 +1505,15 @@ static int parseHttpRequest(icpState)
 	return -1;
     }
     debug(12, 5, "parseHttpRequest: Method is '%s'\n", method);
-    BIT_SET(icpState->flags, REQ_HTML);
+    BIT_SET(request->flags, REQ_HTML);
 
     /* look for URL */
-    if ((request = strtok(NULL, "\r\n\t ")) == NULL) {
+    if ((url = strtok(NULL, "\r\n\t ")) == NULL) {
 	debug(12, 1, "parseHttpRequest: Missing URL\n");
 	xfree(inbuf);
 	return -1;
     }
-    debug(12, 5, "parseHttpRequest: Request is '%s'\n", request);
+    debug(12, 5, "parseHttpRequest: Request is '%s'\n", url);
 
     token = strtok(NULL, "");
     for (t = token; t && *t && *t != '\n' && *t != '\r'; t++);
@@ -1564,18 +1567,18 @@ static int parseHttpRequest(icpState)
 	}
     }
     /* Assign icpState->url */
-    if ((t = strchr(request, '\n')))	/* remove NL */
+    if ((t = strchr(url, '\n')))	/* remove NL */
 	*t = '\0';
-    if ((t = strchr(request, '\r')))	/* remove CR */
+    if ((t = strchr(url, '\r')))	/* remove CR */
 	*t = '\0';
-    if ((t = strchr(request, '#')))	/* remove HTML anchors */
+    if ((t = strchr(url, '#')))	/* remove HTML anchors */
 	*t = '\0';
 
     if ((ad = getAppendDomain())) {
-	if ((t = do_append_domain(request, ad))) {
+	if ((t = do_append_domain(url, ad))) {
 	    if (free_request)
-		safe_free(request);
-	    request = t;
+		safe_free(url);
+	    url = t;
 	    free_request = 1;
 	    /* NOTE: We don't have to free the old request pointer
 	     * because it points to inside inbuf. But
@@ -1584,33 +1587,33 @@ static int parseHttpRequest(icpState)
 	}
     }
     /* see if we running in httpd_accel_mode, if so got to convert it to URL */
-    if (httpd_accel_mode && *request == '/') {
+    if (httpd_accel_mode && *url == '/') {
 	if (!vhost_mode) {
 	    /* prepend the accel prefix */
 	    icpState->url = xcalloc(strlen(getAccelPrefix()) +
-		strlen(request) +
+		strlen(url) +
 		1, 1);
-	    sprintf(icpState->url, "%s%s", getAccelPrefix(), request);
+	    sprintf(icpState->url, "%s%s", getAccelPrefix(), url);
 	} else {
 	    /* Put the local socket IP address as the hostname */
-	    icpState->url = xcalloc(strlen(request) + 24, 1);
+	    icpState->url = xcalloc(strlen(url) + 24, 1);
 	    sprintf(icpState->url, "http://%s:%d%s",
 		inet_ntoa(icpState->me.sin_addr),
 		getAccelPort(),
-		request);
+		url);
 	    debug(12, 5, "VHOST REWRITE: '%s'\n", icpState->url);
 	}
-	BIT_SET(icpState->flags, REQ_ACCEL);
+	BIT_SET(request->flags, REQ_ACCEL);
     } else {
 	/* URL may be rewritten later, so make extra room */
-	icpState->url = xcalloc(strlen(request) + 5, 1);
-	strcpy(icpState->url, request);
-	BIT_RESET(icpState->flags, REQ_ACCEL);
+	icpState->url = xcalloc(strlen(url) + 5, 1);
+	strcpy(icpState->url, url);
+	BIT_RESET(request->flags, REQ_ACCEL);
     }
 
     debug(12, 5, "parseHttpRequest: Complete request received\n");
     if (free_request)
-	safe_free(request);
+	safe_free(url);
     xfree(inbuf);
     return 1;
 }
@@ -1621,7 +1624,7 @@ static int icpAccessCheck(icpState)
     request_t *r = icpState->request;
     if (httpd_accel_mode && !getAccelWithProxy() && r->protocol != PROTO_CACHEOBJ) {
 	/* this cache is an httpd accelerator ONLY */
-	if (!BIT_TEST(icpState->flags, REQ_ACCEL))
+	if (!BIT_TEST(icpState->request->flags, REQ_ACCEL))
 	    return 0;
     }
     return aclCheck(HTTPAccessList, icpState->peer.sin_addr, r);
@@ -1882,7 +1885,7 @@ static void CheckQuickAbort(icpState)
     if (icpState->entry->store_status == STORE_OK)
 	return;
     if (!getQuickAbort() &&
-	BIT_TEST(icpState->flags, REQ_CACHABLE) &&
+	BIT_TEST(icpState->request->flags, REQ_CACHABLE) &&
 	!BIT_TEST(icpState->entry->flag, KEY_PRIVATE))
 	return;
     BIT_SET(icpState->entry->flag, CLIENT_ABORT_REQUEST);
