@@ -218,7 +218,7 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
     } else if (request->protocol == PROTO_FTP) {
 	ftpStart(request, entry);
     } else if (request->protocol == PROTO_WAIS) {
-	waisStart(request->method, entry);
+	waisStart(request, entry);
     } else if (request->protocol == PROTO_CACHEOBJ) {
 	objcacheStart(fd, entry);
     } else if (request->method == METHOD_CONNECT) {

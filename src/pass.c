@@ -366,11 +366,11 @@ void
 passStart(int fd,
     const char *url,
     request_t * request,
-    char *buf,
-    int buflen,
     int *size_ptr)
 {
     /* Create state structure. */
+    char *buf = request->headers;
+    size_t buflen = request->headers_sz;
     PassStateData *passState = NULL;
     int sock;
     char *msg = NULL;

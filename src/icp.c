@@ -190,6 +190,7 @@ static void icpProcessMISS _PARAMS((int, clientHttpRequest *));
 static SIH icpProcessRequestComplete;
 static void clientAppendReplyHeader _PARAMS((char *, const char *, size_t *, size_t));
 size_t clientBuildReplyHeader _PARAMS((clientHttpRequest *, char *, size_t *, char *, size_t));
+static clientHttpRequest * parseHttpRequest _PARAMS((ConnStateData *, method_t *, int *, char **, size_t *));
 
 /*
  * This function is designed to serve a fairly specific purpose.
@@ -252,6 +253,7 @@ httpRequestFree(void *data)
     const char *content_type = NULL;
     method_t method = METHOD_NONE;
     StoreEntry *entry = http->entry;
+    request_t *request = http->request;
     debug(12, 3, "httpRequestFree: %s\n", entry ? entry->url : "no store entry");
     icpProcessRequestControl(http, ICP_OP_DEL);
     if (!icpCheckTransferDone(http)) {
@@ -261,7 +263,7 @@ httpRequestFree(void *data)
 		storeReleaseRequest(entry);
 	    storeUnregister(entry, http);
 	}
-	protoUnregister(entry, http->request, conn->peer.sin_addr);
+	protoUnregister(entry, request, conn->peer.sin_addr);
     }
     assert(http->log_type < ERR_MAX);
     if (entry) {
@@ -273,9 +275,9 @@ httpRequestFree(void *data)
 	http_code = http->http_code;
     }
     elapsed_msec = tvSubMsec(http->start, current_time);
-    if (http->request) {
-	hierData = &http->request->hierarchy;
-	method = http->request->method;
+    if (request) {
+	hierData = &request->hierarchy;
+	method = request->method;
     }
     if (http->out.size || http->log_type) {
 	HTTPCacheInfo->log_append(HTTPCacheInfo,
@@ -289,12 +291,12 @@ httpRequestFree(void *data)
 	    conn->ident.ident,
 	    hierData,
 #if LOG_FULL_HEADERS
-	    http->request_hdr,
+	    request->headers,
 	    http->reply_hdr,
 #endif /* LOG_FULL_HEADERS */
 	    content_type);
 	HTTPCacheInfo->proto_count(HTTPCacheInfo,
-	    http->request ? http->request->protocol : PROTO_NONE,
+	    request ? request->protocol : PROTO_NONE,
 	    http->log_type);
 	clientdbUpdate(conn->peer.sin_addr, http->log_type, PROTO_HTTP);
     }
@@ -305,7 +307,6 @@ httpRequestFree(void *data)
     checkFailureRatio(http->log_type,
 	hierData ? hierData->code : HIER_NONE);
     safe_free(http->url);
-    safe_free(http->request_hdr);
 #if LOG_FULL_HEADERS
     safe_free(http->reply_hdr);
 #endif /* LOG_FULL_HEADERS */
@@ -360,9 +361,9 @@ connStateFree(int fd, void *data)
 void
 icpParseRequestHeaders(clientHttpRequest * http)
 {
-    char *request_hdr = http->request_hdr;
-    char *t = NULL;
     request_t *request = http->request;
+    char *request_hdr = request->headers;
+    char *t = NULL;
     request->ims = -2;
     request->imslen = -1;
     if ((t = mime_get_header(request_hdr, "If-Modified-Since"))) {
@@ -411,24 +412,24 @@ icpParseRequestHeaders(clientHttpRequest * http)
 static int
 icpCachable(clientHttpRequest * http)
 {
-    const char *request = http->url;
+    const char *url = http->url;
     request_t *req = http->request;
     method_t method = req->method;
     const wordlist *p;
     if (BIT_TEST(http->request->flags, REQ_AUTH))
 	return 0;
     for (p = Config.cache_stoplist; p; p = p->next) {
-	if (strstr(request, p->key))
+	if (strstr(url, p->key))
 	    return 0;
     }
     if (Config.cache_stop_relist)
-	if (aclMatchRegex(Config.cache_stop_relist, request))
+	if (aclMatchRegex(Config.cache_stop_relist, url))
 	    return 0;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(method);
     /* FTP is always cachable */
     if (req->protocol == PROTO_GOPHER)
-	return gopherCachable(request);
+	return gopherCachable(url);
     if (req->protocol == PROTO_WAIS)
 	return 0;
     if (method == METHOD_CONNECT)
@@ -885,11 +886,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	url);
     if (http->request->method == METHOD_CONNECT) {
 	http->log_type = LOG_TCP_MISS;
-	sslStart(fd,
-	    url,
-	    http->request,
-	    http->request_hdr,
-	    &http->out.size);
+	sslStart(fd, url, http->request, &http->out.size);
 	return;
     } else if (request->method == METHOD_PURGE) {
 	clientPurgeRequest(http);
@@ -908,12 +905,7 @@ icpProcessRequest(int fd, clientHttpRequest * http)
 	/* yes, continue */
     } else if (request->method != METHOD_GET) {
 	http->log_type = LOG_TCP_MISS;
-	passStart(fd,
-	    url,
-	    http->request,
-	    http->request_hdr,
-	    http->header_sz,
-	    &http->out.size);
+	passStart(fd, url, http->request, &http->out.size);
 	return;
     }
     if (icpCachable(http))
@@ -1049,6 +1041,7 @@ icpProcessRequestComplete(void *data, int status)
      * done by httpRequestFree. */
     if (entry && status < 0) {
 	http->log_type = LOG_TCP_SWAPFAIL_MISS;
+	assert(store_rebuilding);
 	if (!store_rebuilding)
 	    debug(12, 1, "Swapin Failure: '%s', %s\n",
 		entry->url,
@@ -1096,7 +1089,7 @@ static void
 icpProcessMISS(int fd, clientHttpRequest * http)
 {
     char *url = http->url;
-    char *request_hdr = http->request_hdr;
+    char *request_hdr = http->request->headers;
     StoreEntry *entry = NULL;
     aclCheck_t ch;
     int answer;
@@ -1723,7 +1716,8 @@ icpHandleUdp(int sock, void *not_used)
  *    1 on success
  */
 static clientHttpRequest *
-parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status)
+parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
+	char **headers_p, size_t *headers_sz_p)
 {
     char *inbuf = NULL;
     char *mstr = NULL;
@@ -1810,13 +1804,11 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status)
     http->conn = conn;
     http->start = current_time;
     http->req_sz = req_sz;
-    http->header_sz = header_sz;
-    http->request_hdr = xmalloc(header_sz + 1);
-    xmemcpy(http->request_hdr, req_hdr, header_sz);
-    *(http->request_hdr + header_sz) = '\0';
+    *headers_sz_p = header_sz;
+    *headers_p = xmalloc(header_sz + 1);
+    xmemcpy(*headers_p, req_hdr, header_sz);
 
-    debug(12, 5, "parseHttpRequest: Request Header is\n%s\n",
-	http->request_hdr);
+    debug(12, 5, "parseHttpRequest: Request Header is\n%s\n", *headers_p);
 
     /* Assign http->url */
     if ((t = strchr(url, '\n')))	/* remove NL */
@@ -1892,6 +1884,8 @@ clientReadRequest(int fd, void *data)
     method_t method;
     clientHttpRequest *http = NULL;
     clientHttpRequest **H = NULL;
+    char *headers;
+    size_t headers_sz;
 
     len = conn->in.size - conn->in.offset - 1;
     debug(12, 4, "clientReadRequest: FD %d: reading request...\n", fd);
@@ -1917,7 +1911,11 @@ clientReadRequest(int fd, void *data)
     conn->in.buf[conn->in.offset] = '\0';	/* Terminate the string */
 
     while (conn->in.offset > 0) {
-	http = parseHttpRequest(conn, &method, &parser_return_code);
+	http = parseHttpRequest(conn,
+		&method,
+		&parser_return_code,
+		&headers,
+		&headers_sz);
 	if (http) {
 	    assert(http->req_sz > 0);
 	    conn->in.offset -= http->req_sz;
@@ -1962,6 +1960,8 @@ clientReadRequest(int fd, void *data)
 		return;
 	    }
 	    http->request = requestLink(request);
+	    request->headers = headers;
+	    request->headers_sz = headers_sz;
 	    clientAccessCheck(http);
 	    /* break here for NON-GET because most likely there is a
 	       reqeust body following and we don't want to parse it

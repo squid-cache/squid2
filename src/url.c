@@ -314,6 +314,7 @@ requestUnlink(request_t * request)
     if (request->link_count)
 	return;
     safe_free(request->hierarchy.host);
+    safe_free(request->headers);
     put_free_request_t(request);
 }
 

@@ -178,9 +178,7 @@ typedef struct _clientHttpRequest {
 	int offset;
 	int size;
     } out;
-    char *request_hdr;
     size_t req_sz;
-    size_t header_sz;
     size_t body_sz;
     StoreEntry *entry;
     StoreEntry *old_entry;

@@ -114,7 +114,7 @@ clientAccessCheck(void *data)
 	clientAccessCheckDone(0, http);
 	return;
     }
-    browser = mime_get_header(http->request_hdr, "User-Agent");
+    browser = mime_get_header(http->request->headers, "User-Agent");
     http->acl_checklist = aclChecklistCreate(Config.accessList.HTTP,
 	http->request,
 	conn->peer.sin_addr,
@@ -515,7 +515,7 @@ clientConstructTraceEcho(clientHttpRequest * http)
     httpBuildRequestHeader(http->request,
 	http->request,
 	NULL,			/* entry */
-	http->request_hdr,
+	http->request->headers,
 	NULL,			/* in_len */
 	buf + len,
 	8192 - len,

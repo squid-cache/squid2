@@ -393,7 +393,7 @@ commConnectHandle(int fd, void *data)
 	break;
     default:
 	if (commRetryConnect(fd, connectState)) {
-	    debug(5, 1, "Retrying connection to %s: %s\n",
+	    debug(5, 3, "Retrying connection to %s: %s\n",
 		connectState->host, xstrerror());
 	    connectState->S.sin_addr.s_addr = 0;
 	    ipcacheCycleAddr(connectState->host);
