@@ -332,7 +332,6 @@ decode_addr(const char *asc, struct in_addr *addr, struct in_addr *mask)
     default:
 	debug(28, 0) ("decode_addr: Invalid IP address '%s'\n", asc);
 	return 0;		/* This is not valid address */
-	break;
     }
 
     if (mask != NULL) {		/* mask == NULL if called to decode a netmask */

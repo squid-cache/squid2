@@ -379,6 +379,7 @@ typedef enum {
 } protocol_t;
 
 typedef enum {
+    HTTP_STATUS_NONE = 0,
     HTTP_CONTINUE = 100,
     HTTP_SWITCHING_PROTOCOLS = 101,
     HTTP_OK = 200,
@@ -419,7 +420,7 @@ typedef enum {
     HTTP_INVALID_HEADER = 600	/* Squid header parsing error */
 } http_status;
 
-enum {
+typedef enum {
     PD_INITED,			/* initialized */
     PD_USABLE,			/* ready to use */
     PD_REQUESTED,		/* we are in the process of receiving a [fresh] digest */

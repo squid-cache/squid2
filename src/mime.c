@@ -441,7 +441,7 @@ mimeLoadIconFile(const char *icon)
     assert(e != NULL);
     e->mem_obj->request = requestLink(urlParse(METHOD_GET, url));
     httpReplyReset(e->mem_obj->reply);
-    httpReplySetHeaders(e->mem_obj->reply, 1.0, 200, NULL,
+    httpReplySetHeaders(e->mem_obj->reply, 1.0, HTTP_OK, NULL,
 	type, (int) sb.st_size, sb.st_mtime, squid_curtime + 86400);
     httpReplySwapOut(e->mem_obj->reply, e);
     /* read the file into the buffer and append it to store */

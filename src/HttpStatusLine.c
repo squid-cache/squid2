@@ -42,13 +42,13 @@ const char *HttpStatusLineFormat = "HTTP/%3.1f %3d %s\r\n";
 void
 httpStatusLineInit(HttpStatusLine * sline)
 {
-    httpStatusLineSet(sline, 0.0, 0, NULL);
+    httpStatusLineSet(sline, 0.0, HTTP_STATUS_NONE, NULL);
 }
 
 void
 httpStatusLineClean(HttpStatusLine * sline)
 {
-    httpStatusLineSet(sline, 0.0, 500, NULL);
+    httpStatusLineSet(sline, 0.0, HTTP_INTERNAL_SERVER_ERROR, NULL);
 }
 
 /* set values */
