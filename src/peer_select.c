@@ -210,6 +210,7 @@ peerSelectCallback(ps_state * psstate, peer * p)
 	    eventDelete(peerPingTimeout, psstate);
 	entry->ping_status = PING_DONE;
     }
+    psstate->icp.stop = current_time;
     if (cbdataValid(data))
 	psstate->callback(p, data);
     cbdataUnlock(data);

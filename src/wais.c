@@ -173,7 +173,10 @@ waisReadReply(int fd, void *data)
     clen = entry->mem_obj->inmem_hi;
     off = storeLowestMemReaderOffset(entry);
     len = read(fd, buf, 4096);
-    fd_bytes(fd, len, FD_READ);
+    if (len > 0) {
+	fd_bytes(fd, len, FD_READ);
+	kb_incr(&Counter.server.kbytes_in, len);
+    }
     debug(24, 5) ("waisReadReply: FD %d read len:%d\n", fd, len);
     if (len > 0) {
 	commSetTimeout(fd, Config.Timeout.read, NULL, NULL);
@@ -229,6 +232,10 @@ waisSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
     StoreEntry *entry = waisState->entry;
     debug(24, 5) ("waisSendComplete: FD %d size: %d errflag: %d\n",
 	fd, size, errflag);
+    if (size > 0) {
+	fd_bytes(fd, size, FD_WRITE);
+	kb_incr(&Counter.server.kbytes_out, size);
+    }
     if (errflag == COMM_ERR_CLOSING)
 	return;
     if (errflag) {

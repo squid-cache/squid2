@@ -46,7 +46,7 @@ const char *log_tags[] =
     "TCP_REFRESH_HIT",
     "TCP_REF_FAIL_HIT",
     "TCP_REFRESH_MISS",
-    "TCP_CLIENT_REFRESH",
+    "TCP_CLIENT_REFRESH_MISS",
     "TCP_IMS_HIT",
     "TCP_IMS_MISS",
     "TCP_SWAPFAIL_MISS",
