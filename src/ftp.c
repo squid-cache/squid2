@@ -2227,7 +2227,26 @@ ftpFail(FtpStateData * ftpState)
 	    break;
 	}
     }
-    err = errorCon(ERR_FTP_FAILURE, HTTP_INTERNAL_SERVER_ERROR);
+    /* Translate FTP errors into HTTP errors */
+    err = NULL;
+    switch (ftpState->state) {
+    case SENT_USER:
+    case SENT_PASS:
+	if (ftpState->ctrl.replycode > 500)
+	    err = errorCon(ERR_FTP_FORBIDDEN, HTTP_FORBIDDEN);
+	else if (ftpState->ctrl.replycode == 421)
+	    err = errorCon(ERR_FTP_UNAVAILABLE, HTTP_SERVICE_UNAVAILABLE);
+	break;
+    case SENT_CWD:
+    case SENT_RETR:
+	if (ftpState->ctrl.replycode == 550)
+	    err = errorCon(ERR_FTP_NOT_FOUND, HTTP_NOT_FOUND);
+	break;
+    default:
+	break;
+    }
+    if (err == NULL)
+	err = errorCon(ERR_FTP_FAILURE, HTTP_BAD_GATEWAY);
     err->request = requestLink(ftpState->request);
     err->ftp_server_msg = ftpState->ctrl.message;
     if (ftpState->old_request)
