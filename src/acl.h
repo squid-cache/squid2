@@ -28,6 +28,7 @@
  */
 
 #define ACL_NAME_SZ 32
+#define BROWSERNAMELEN 128
 
 typedef enum {
     ACL_NONE,
@@ -42,6 +43,7 @@ typedef enum {
     ACL_USER,
     ACL_PROTO,
     ACL_METHOD,
+    ACL_BROWSER,
     ACL_ENUM_MAX
 } squid_acl;
 
@@ -121,6 +123,7 @@ struct _aclCheck_t {
     char src_fqdn[SQUIDHOSTNAMELEN];
     request_t *request;
     char ident[ICP_IDENT_SZ];
+    char browser[BROWSERNAMELEN];
     acl_lookup_state state[ACL_ENUM_MAX];
 };
 

@@ -646,7 +646,7 @@ request_size 100
 # acl aclname acltype string1 ...
 #
 # acltype is one of src dst srcdomain dstdomain url_pattern urlpath_pattern
-#	            time port proto method
+#	            time port proto method browser
 # 
 # acl aclname src      ip-address/netmask ... (clients IP address)
 # acl aclname src      addr1/mask1-addr2/mask2 ... (range of addresses)
@@ -668,6 +668,7 @@ request_size 100
 # acl aclname port     80 70 21 ...
 # acl aclname proto    HTTP FTP ...
 # acl aclname method   GET POST ...
+# acl aclname browser  regexp
 
 acl manager proto cache_object
 acl localhost src 127.0.0.1/255.255.255.255
