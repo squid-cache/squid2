@@ -15,7 +15,7 @@ typedef enum {
     AUTHENTICATE_STATE_RESPONSE,
     AUTHENTICATE_STATE_DONE,
     AUTHENTICATE_STATE_FAILED
-} auth_state_t;                 /* connection level auth state */
+} auth_state_t;			/* connection level auth state */
 
 /* Generic */
 typedef struct {
@@ -60,6 +60,7 @@ struct _auth_ntlm_config {
     wordlist *authenticate;
     int challengeuses;
     time_t challengelifetime;
+    int use_ntlm_negotiate;
 };
 
 typedef struct _ntlm_user ntlm_user_t;

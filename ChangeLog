@@ -46,6 +46,8 @@ Changes to squid-2.5.STABLE5 (not yet released):
 	- Bug #887: LDAP helper -Z (TLS) option does not work
 	- Bug #877: Squid doesn't follow telnet protocol on FTP control
 	  connections
+	- Bug #908: Random auth popups and account lockouts when using ntlm
+	- Support for NTLM_NEGOTIATE exchanges with ntlm helpers
 
 Changes to squid-2.5.STABLE4 (15 Sep 2003):
 

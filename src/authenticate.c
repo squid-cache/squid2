@@ -463,6 +463,7 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
 	}
 	return AUTH_ACL_CHALLENGE;
     }
+#if 0
     /* 
      * Is this an already authenticated connection with a new auth header?
      * No check for function required in the if: its compulsory for conn based 
@@ -487,6 +488,7 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
 	/* Set the connection auth type */
 	conn->auth_type = AUTH_UNKNOWN;
     }
+#endif
     /* we have a proxy auth header and as far as we know this connection has
      * not had bungled connection oriented authentication happen on it. */
     debug(28, 9) ("authenticateAuthenticate: header %s.\n", proxy_auth ? proxy_auth : NULL);

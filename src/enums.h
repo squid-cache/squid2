@@ -529,14 +529,6 @@ typedef enum {
     AUTH_BROKEN			/* known type, but broken data */
 } auth_type_t;
 
-/* stateful helper callback response codes */
-typedef enum {
-    S_HELPER_UNKNOWN,
-    S_HELPER_RESERVE,
-    S_HELPER_RELEASE,
-    S_HELPER_DEFER
-} stateful_helper_callback_t;
-
 /* stateful helper reservation info */
 typedef enum {
     S_HELPER_FREE,		/* available for requests */

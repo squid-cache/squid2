@@ -1439,6 +1439,24 @@ DOC_START
 	AND the number of reused challenges.
 	auth_param ntlm max_challenge_lifetime 2 minutes
 
+	"use_ntlm_negotiate" on|off
+	Enables support for NTLM NEGOTIATE packet exchanges with the
+	helper. The configured ntlm authenticator must be able to handle
+	NTLM NEGOTIATE packet, see the authenticator's documentation for
+	more details.
+	This is required for support of NTLMv2 and a number of other
+	negotiable options, and also makes it more likely the negotiation
+	is successful.
+	Enabling this parameter will also solve problems encountered when
+	NT domain policies restrict users to access only certain
+	workstations. When this is off, all users must be allowed to log
+	on the proxy servers too, or they'll get "invalid workstation"
+	errors - and access denied - when trying to use Squid's services.
+	Use of ntlm NEGOTIATE is incompatible with challenge reuse, so 
+	enabling this parameter will OVERRIDE the max_challenge_reuses and
+	max_challenge_lifetime parameters and set them to 0.
+	auth_param ntlm use_ntlm_negotiate off
+
 NOCOMMENT_START
 #Recommended minimum configuration:
 #auth_param digest program <uncomment and complete this line>
@@ -1451,6 +1469,7 @@ NOCOMMENT_START
 #auth_param ntlm children 5
 #auth_param ntlm max_challenge_reuses 0
 #auth_param ntlm max_challenge_lifetime 2 minutes
+#auth_param ntlm use_ntlm_negotiate off
 #auth_param basic program <uncomment and complete this line>
 auth_param basic children 5
 auth_param basic realm Squid proxy-caching web server

@@ -2002,8 +2002,6 @@ struct _helper_request {
 struct _helper_stateful_request {
     char *buf;
     HLPSCB *callback;
-    int placeholder;		/* if 1, this is a dummy request waiting for a stateful helper
-				 * to become available for deferred requests.*/
     void *data;
 };
 
@@ -2021,6 +2019,7 @@ struct _helper {
 	int requests;
 	int replies;
 	int queue_size;
+	int max_queue_size;
 	int avg_svc_time;
     } stats;
     time_t last_restart;
@@ -2036,12 +2035,13 @@ struct _helper_stateful {
     int ipc_type;
     MemPool *datapool;
     HLPSAVAIL *IsAvailable;
-    HLPSONEQ *OnEmptyQueue;
+    HLPSRESET *Reset;
     time_t last_queue_warn;
     struct {
 	int requests;
 	int replies;
 	int queue_size;
+	int max_queue_size;
 	int avg_svc_time;
     } stats;
     time_t last_restart;
@@ -2083,7 +2083,6 @@ struct _helper_stateful_server {
     struct timeval dispatch_time;
     struct timeval answer_time;
     dlink_node link;
-    dlink_list queue;
     statefulhelper *parent;
     helper_stateful_request *request;
     struct _helper_stateful_flags {
@@ -2091,16 +2090,13 @@ struct _helper_stateful_server {
 	unsigned int busy:1;
 	unsigned int closing:1;
 	unsigned int shutdown:1;
-	stateful_helper_reserve_t reserved;
+	unsigned int reserved:1;
     } flags;
     struct {
 	int uses;
 	int submits;
 	int releases;
-	int deferbyfunc;
-	int deferbycb;
     } stats;
-    int deferred_requests;	/* current number of deferred requests */
     void *data;			/* State data used by the calling routines */
 };
 

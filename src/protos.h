@@ -1274,7 +1274,7 @@ extern void helperStatefulFree(statefulhelper *);
 extern void helperStatefulReset(helper_stateful_server * srv);
 extern void helperStatefulReleaseServer(helper_stateful_server * srv);
 extern void *helperStatefulServerGetData(helper_stateful_server * srv);
-extern helper_stateful_server *helperStatefulDefer(statefulhelper *);
+extern helper_stateful_server *helperStatefulGetServer(statefulhelper *);
 
 
 
