@@ -1,3 +1,16 @@
+Changes to squid-1.1.20 (January 9, 1998):
+
+	- Changed default 'average_object_size' to 13 KB.
+	- Changed number of allocated file numbers to twice
+	  the number estimated.
+	- Changed file_map_allocate() to not coredump when the filemap
+	  list becomes full.  Instead, a warning is logged and new
+	  objects will not be saved until some swap files become
+	  available.
+	- Year-2000 fixes (Arjan de Vet).
+	- Fixed netdbSendPing() bug; we never handled the case when a
+	  hostname's IP address changes from one network to another.
+
 Changes to squid-1.1.19 (December 18, 1997):
 
 	- Applied David Luyer's TCP retry algorithm: Give a parent (or
