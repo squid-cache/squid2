@@ -269,8 +269,8 @@ ipcacheParse(const char *inbuf)
     i.expires = squid_curtime;
     i.status = IP_NEGATIVE_CACHED;
     if (inbuf == NULL) {
-        debug(14, 1) ("ipcacheParse: Got <NULL> reply\n");
-        return &i;
+	debug(14, 1) ("ipcacheParse: Got <NULL> reply\n");
+	return &i;
     }
     xstrncpy(buf, inbuf, DNS_INBUF_SZ);
     debug(14, 5) ("ipcacheParse: parsing:%s\n", buf);

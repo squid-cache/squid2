@@ -57,9 +57,9 @@ redirectHandleReply(void *data, char *reply)
     char *t;
     debug(29, 5) ("redirectHandleRead: {%s}\n", reply ? reply : "<NULL>");
     if (reply) {
-        if ((t = strchr(reply, ' ')))
+	if ((t = strchr(reply, ' ')))
 	    *t = '\0';
-        if (*reply == '\0')
+	if (*reply == '\0')
 	    reply = NULL;
     }
     valid = cbdataValid(r->data);

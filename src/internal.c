@@ -110,4 +110,3 @@ internalHostname(void)
     Tolower(host);
     return host;
 }
-

@@ -234,8 +234,8 @@ fqdncacheParse(const char *inbuf)
     f.expires = squid_curtime;
     f.status = FQDN_NEGATIVE_CACHED;
     if (inbuf == NULL) {
-        debug(35, 1) ("fqdncacheParse: Got <NULL> reply\n");
-        return &f;
+	debug(35, 1) ("fqdncacheParse: Got <NULL> reply\n");
+	return &f;
     }
     token = strtok(buf, w_space);
     if (NULL == token) {

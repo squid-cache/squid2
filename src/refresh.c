@@ -268,8 +268,8 @@ int
 refreshCheckDigest(const StoreEntry * entry, time_t delta)
 {
     return refreshCheck(entry,
-	entry->mem_obj ? entry->mem_obj->request : NULL, 
-	delta, 
+	entry->mem_obj ? entry->mem_obj->request : NULL,
+	delta,
 	&refreshCounts[rcCDigest]);
 }
 

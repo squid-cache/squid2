@@ -89,9 +89,9 @@ static const HttpHeaderFieldAttrs HeadersAttrs[] =
     {"Expires", HDR_EXPIRES, ftDate_1123},
     {"From", HDR_FROM, ftStr},
     {"Host", HDR_HOST, ftStr},
-    {"If-Match", HDR_IF_MATCH, ftStr}, /* for now */
+    {"If-Match", HDR_IF_MATCH, ftStr},	/* for now */
     {"If-Modified-Since", HDR_IF_MODIFIED_SINCE, ftDate_1123},
-    {"If-None-Match", HDR_IF_NONE_MATCH, ftStr}, /* for now */
+    {"If-None-Match", HDR_IF_NONE_MATCH, ftStr},	/* for now */
     {"If-Range", HDR_IF_RANGE, ftDate_1123_or_ETag},
     {"Last-Modified", HDR_LAST_MODIFIED, ftDate_1123},
     {"Link", HDR_LINK, ftStr},
@@ -187,7 +187,7 @@ static http_hdr_type ReplyHeadersArr[] =
 static HttpHeaderMask RequestHeadersMask;	/* set run-time using RequestHeaders */
 static http_hdr_type RequestHeadersArr[] =
 {
-    HDR_AUTHORIZATION, HDR_FROM, HDR_HOST, 
+    HDR_AUTHORIZATION, HDR_FROM, HDR_HOST,
     HDR_IF_MATCH, HDR_IF_MODIFIED_SINCE, HDR_IF_NONE_MATCH,
     HDR_IF_RANGE, HDR_MAX_FORWARDS, HDR_PROXY_CONNECTION,
     HDR_PROXY_AUTHORIZATION, HDR_RANGE, HDR_REFERER, HDR_REQUEST_RANGE,

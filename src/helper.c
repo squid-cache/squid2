@@ -276,7 +276,7 @@ helperHandleRead(int fd, void *data)
 	if (srv->flags.shutdown)
 	    comm_close(srv->wfd);
 	else
-            helperKickQueue(hlp);
+	    helperKickQueue(hlp);
     } else {
 	commSetSelect(srv->rfd, COMM_SELECT_READ, helperHandleRead, srv, 0);
     }

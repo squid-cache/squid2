@@ -982,6 +982,7 @@ struct _PeerDigest {
 	kb_t kbytes_recv;
     } stats;
 };
+
 #endif
 
 struct _peer {
