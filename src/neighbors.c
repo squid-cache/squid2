@@ -815,6 +815,7 @@ void neighbors_init()
 	    friends->n_neighbor++;
 	    e->type = EDGE_SIBLING;
 	}
+	safe_free(t->type);
 
 	/* Append edge */
 	if (!friends->edges_head)
