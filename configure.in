@@ -33,7 +33,7 @@ REGEXLIB=''	# -lregex
 LIBREGEX=''	# libregex.a
 
 dnl Check for pkg-config
-AC_PATH_PROG(PKGCONFIG, pkg-config, /usr/bin/false)
+AC_PATH_PROG(PKGCONFIG, pkg-config, false)
 
 dnl find out the exe extension for this platform. If it's not empty, use it for CGI's as well.
 AC_EXEEXT
