@@ -11,4 +11,4 @@ EXTRA_DIST = \
 	patches/winbind_nss_config.patch
 INCLUDES = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
     -I$(top_srcdir)/src
-LDADD = -L$(top_builddir)/lib -lmiscutil -lntlmauth -lm
+LDADD = -L$(top_builddir)/lib -lmiscutil -lntlmauth $(XTRA_LIBS)
