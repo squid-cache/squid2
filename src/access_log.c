@@ -170,7 +170,7 @@ accessLogSquid(AccessLogEntry * al, MemBuf * mb)
 {
     const char *client = NULL;
     if (Config.onoff.log_fqdn)
-	client = fqdncache_gethostbyaddr(al->cache.caddr, 0);
+	client = fqdncache_gethostbyaddr(al->cache.caddr, FQDN_LOOKUP_IF_MISS);
     if (client == NULL)
 	client = inet_ntoa(al->cache.caddr);
     memBufPrintf(mb, "%9d.%03d %6d %s %s/%03d %d %s %s %s %s%s/%s %s",
