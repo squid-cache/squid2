@@ -1455,7 +1455,7 @@ clientSendMoreData(void *data, StoreIOBuffer result)
 	    context->flags.complete = 1;
 	/* REMOVE ME: Only useful for two node streams */
 	assert(result.offset - context->headers_sz == ((clientStreamNode *) http->client_stream.tail->data)->readBuffer.offset);
-	tempBuffer.offset = result.offset;
+	tempBuffer.offset = result.offset - context->headers_sz;
 	tempBuffer.length = result.length;
 	tempBuffer.data = buf;
 	clientStreamCallback(http->client_stream.head->data, http, NULL,
