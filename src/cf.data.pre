@@ -862,14 +862,14 @@ DOC_START
 DOC_END
 
 
-NAME: cache_swap_log
+NAME: cache_swap_log cache_swap_state
 TYPE: string
 LOC: Config.Log.swap
 DEFAULT: none
 DOC_START
-	Location for the cache "swap.log."  This log file holds the
-	metadata of objects saved on disk.  It is used to rebuild the
-	cache during startup.  Normally this file resides in each
+	Location for the cache "swap.state" file. This log file holds
+	the metadata of objects saved on disk.  It is used to rebuild
+	the cache during startup.  Normally this file resides in each
 	'cache_dir' directory, but you may specify an alternate
 	pathname here.  Note you must give a full filename, not just
 	a directory. Since this is the index for the whole object
