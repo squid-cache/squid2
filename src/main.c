@@ -360,6 +360,7 @@ serverConnectionsClose(void)
 #ifdef SQUID_SNMP
     snmpConnectionShutdown();
 #endif
+    asnFreeMemory();
 }
 
 static void
@@ -377,13 +378,11 @@ mainReconfigure(void)
     snmpConnectionClose();
 #endif
     dnsShutdownServers();
-    asnFreeMemory();
     redirectShutdownServers();
     storeDirCloseSwapLogs();
     errorFree();
     parseConfigFile(ConfigFile);
     _db_init(Config.Log.log, Config.debugOptions);
-    asnAclInitialize(Config.aclList);	/* reload network->AS database */
     ipcache_restart();		/* clear stuck entries */
     fqdncache_restart();	/* sigh, fqdncache too */
     errorInitialize();		/* reload error pages */
@@ -482,7 +481,6 @@ mainInitialize(void)
 	cachemgrInit();
 	statInit();
 	storeInit();
-	asnAclInitialize(Config.aclList);
 	if (Config.effectiveUser) {
 	    /* we were probably started as root, so cd to a swap
 	     * directory in case we dump core */

@@ -88,6 +88,7 @@ static CNCB whoisConnectDone;
 static PF whoisReadReply;
 static STCB asHandleReply;
 static int destroyRadixNode(struct radix_node *rn, void *w);
+static void asnAclInitialize(acl * acls);
 
 static void destroyRadixNodeInfo(as_info *);
 
@@ -129,7 +130,7 @@ asnMatchIp(void *data, struct in_addr addr)
     return 0;
 }
 
-void
+static void
 asnAclInitialize(acl * acls)
 {
     acl *a;
@@ -152,6 +153,7 @@ asnInit(void)
     max_keylen = 40;
     rn_init();
     rn_inithead((void **) &AS_tree_head, 8);
+    asnAclInitialize(Config.aclList);
 }
 
 void
