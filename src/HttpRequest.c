@@ -169,7 +169,7 @@ requestReadBody(request_t * request, char *buf, size_t size, CBCB * callback, vo
 	if (cbdataValid(request->body_reader_data)) {
 	    request->body_reader(request, buf, size, callback, cbdata);
 	} else {
-	    debug(0, 0) ("requestReadBody: Aborted\n");
+	    debug(73, 1) ("requestReadBody: Aborted\n");
 	    request->body_reader = NULL;
 	    cbdataUnlock(request->body_reader_data);
 	    request->body_reader_data = NULL;
@@ -186,6 +186,13 @@ requestAbortBody(request_t * request)
     if (!request)
 	return;
     if (request->body_reader) {
-	requestReadBody(request, NULL, -1, NULL, NULL);
+	if (cbdataValid(request->body_reader_data)) {
+	    request->body_reader(request, NULL, -1, NULL, NULL);
+	} else {
+	    debug(73, 2) ("requestAbortBody: Aborted\n");
+	    request->body_reader = NULL;
+	    cbdataUnlock(request->body_reader_data);
+	    request->body_reader_data = NULL;
+	}
     }
 }
