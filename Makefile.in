@@ -149,11 +149,10 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	install-exec-recursive installdirs-recursive install-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = README ./include/autoconf.h.in ./include/stamp-h.in \
-	COPYING ChangeLog INSTALL Makefile.am Makefile.in TODO \
-	acconfig.h acinclude.m4 aclocal.m4 cfgaux/compile \
-	cfgaux/config.guess cfgaux/config.sub cfgaux/depcomp \
-	cfgaux/install-sh cfgaux/missing cfgaux/mkinstalldirs configure \
-	configure.in
+	COPYING ChangeLog INSTALL Makefile.am Makefile.in acconfig.h \
+	acinclude.m4 aclocal.m4 cfgaux/compile cfgaux/config.guess \
+	cfgaux/config.sub cfgaux/depcomp cfgaux/install-sh \
+	cfgaux/missing cfgaux/mkinstalldirs configure configure.in
 all: all-recursive
 
 .SUFFIXES:
