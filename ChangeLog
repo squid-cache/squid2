@@ -7,6 +7,13 @@ Changes to squid-1.1.8 (February @@@, 1997):
 	- Made send_announce non-blocking.
 	- Force release of negative-cached objects upon receipt of
 	  no-cache request.
+	- Ignore ACLs which fail to parse.
+	- Added 'proxy_auth_ignore' regular expression list (Andreas
+	  Lamprecht).
+	- Changed how failed TCP connections affects peer up/down
+	  status.  Now retry TCP connections at regular intervals in the
+	  background and don't mark the peer as 'up' until a connection
+	  succeeds.
 
 Changes to squid-1.1.7 (February 25, 1997):
 
