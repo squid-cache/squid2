@@ -1101,7 +1101,6 @@ void stat_ipcache_get(sentry)
     ipcache_entry *i = NULL;
     int k;
     int ttl;
-    char status;
 
     if (!ip_table)
 	return;
@@ -1139,12 +1138,12 @@ void stat_ipcache_get(sentry)
     storeAppendPrintf(sentry, "{IP Cache Contents:\n\n");
 
     for (i = ipcache_GetFirst(); i; i = ipcache_GetNext()) {
-	ttl = (i->ttl - squid_curtime + i->lastref);
-	status = ipcache_status_char[i->status];
-	if (status == 'P')
+	if (i->status == IP_PENDING || i->status == IP_DISPATCHED)
 	    ttl = 0;
+	else
+	    ttl = (i->ttl - squid_curtime + i->lastref);
 	storeAppendPrintf(sentry, " {%s %c %d %d",
-	    i->name, status, ttl, i->addr_count);
+	    i->name, ipcache_status_char[i->status], ttl, i->addr_count);
 	for (k = 0; k < (int) i->addr_count; k++) {
 	    struct in_addr addr;
 	    xmemcpy(&addr, i->entry.h_addr_list[k], i->entry.h_length);
@@ -1156,9 +1155,9 @@ void stat_ipcache_get(sentry)
 	if (i->entry.h_name && strncmp(i->name, i->entry.h_name, MAX_LINELEN)) {
 	    storeAppendPrintf(sentry, " %s", i->entry.h_name);
 	}
-	storeAppendPrintf(sentry, "}\n");
+	storeAppendPrintf(sentry, close_bracket);
     }
-    storeAppendPrintf(sentry, "}\n");
+    storeAppendPrintf(sentry, close_bracket);
 }
 
 void ipcacheShutdownServers()
