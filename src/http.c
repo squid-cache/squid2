@@ -340,6 +340,12 @@ void httpProcessReplyHeader(httpState, buf, size)
 		httpMakePublic(entry);
 	    else if (*reply->expires)
 		httpMakePublic(entry);
+	    else if (entry->mem_obj->request->protocol != PROTO_HTTP)
+		/* XXX Remove this check after a while.  DW 8/21/96
+		 * We won't keep some FTP objects from neighbors running
+		 * 1.0.8 or earlier because their ftpget's don't 
+		 * add a Date: field */
+		httpMakePublic(entry);
 	    else
 		httpMakePrivate(entry);
 	    break;
