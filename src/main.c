@@ -52,7 +52,7 @@ static void mainParseOptions(argc, argv)
     extern char *optarg;
     int c;
 
-    while ((c = getopt(argc, argv, "vCDRVbsif:a:p:u:m:zh?")) != -1) {
+    while ((c = getopt(argc, argv, "vCDRVUbsif:a:p:u:m:zh?")) != -1) {
 	switch (c) {
 	case 'v':
 	    printf("Squid Cache: Version %s\n", version_string);
