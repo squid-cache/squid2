@@ -263,7 +263,7 @@ peerSelectFoo(ps_state * ps)
 	} else {
 	    ps->direct = DIRECT_MAYBE;
 	}
-	debug(44, 3) ("ps: direct = %s\n",
+	debug(44, 3) ("peerSelectFoo: direct = %s\n",
 	    DirectStr[ps->direct]);
     }
     if (entry->ping_status == PING_NONE) {
