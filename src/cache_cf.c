@@ -1017,7 +1017,6 @@ parse_cachedir(cacheSwap * swap)
     sd->max_objsize = maxobjsize;
     /* defaults in case fs implementation fails to set these */
     sd->fs.blksize = 1024;
-    sd->fs.kperblk = 1;
     swap->n_configured++;
     /* Update the max object size */
     update_maxobjsize();
