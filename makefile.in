@@ -1,25 +1,18 @@
 # $Id$
 #
 
-#### Start of system configuration section. ####
-
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
 CC		= @CC@
-
 INSTALL		= @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA	= @INSTALL_DATA@
 SHELL		= /bin/sh
 
-CFLAGS		= -g
-LDFLAGS		= -g
-
 # Where to install
 prefix		= /usr/local/squid
 exec_prefix	= ${prefix}
-bindir		= $(exec_prefix)/bin
 
 SUBDIRS		= lib scripts src
 

@@ -12,6 +12,8 @@ AC_CONFIG_HEADER(include/autoconf.h)
 AC_REVISION($Revision$)dnl
 AC_PREFIX_DEFAULT(/usr/local/squid)
 
+AC_CANONICAL_HOST
+
 dnl Build a copy of prefix
 
 if test -n "$prefix"; then
