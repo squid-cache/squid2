@@ -1064,10 +1064,16 @@ void ipcacheOpenServers()
     int i;
     int dnssocket;
     static char fd_note_buf[FD_ASCII_NOTE_SZ];
+    static int NChildrenAlloc = 0;
 
-    /* start up companion process */
-    safe_free(dns_child_table);
+    /* free old structures if present */
+    if (dns_child_table) {
+	for (i=0; i<NChildrenAlloc; i++)
+		safe_free(dns_child_table[i]->ip_inbuf);
+    	safe_free(dns_child_table);
+    }
     dns_child_table = (dnsserver_entry **) xcalloc(N, sizeof(dnsserver_entry));
+    NChildrenAlloc = N;
     dns_child_alive = 0;
     debug(14, 1, "ipcacheOpenServers: Starting %d 'dns_server' processes\n", N);
     for (i = 0; i < N; i++) {
