@@ -467,6 +467,11 @@ storeCossDirWriteCleanStart(SwapDir * sd)
     CossInfo *cs = (CossInfo *) sd->fsdata;
     struct _clean_state *state = xcalloc(1, sizeof(*state));
     struct stat sb;
+    state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC);
+    if (state->fd < 0) {
+	xfree(state);
+	return -1;
+    }
     sd->log.clean.write = NULL;
     sd->log.clean.state = NULL;
     state->cur = xstrdup(storeCossDirSwapLogFile(sd, NULL));
@@ -476,9 +481,6 @@ storeCossDirWriteCleanStart(SwapDir * sd)
     state->outbuf_offset = 0;
     unlink(state->new);
     unlink(state->cln);
-    state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC);
-    if (state->fd < 0)
-	return -1;
     state->current = cs->index.tail;
     debug(20, 3) ("storeCOssDirWriteCleanLogs: opened %s, FD %d\n",
 	state->new, state->fd);
