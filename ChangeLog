@@ -27,6 +27,10 @@ Changes to Squid-2.3.DEVEL2 ():
 	- Added 'hostname_aliases' option to detect internal requests
 	  (cache digests) when a cache has more than one hostname
 	  in use.
+	- Async I/O NUMTHREADS now configurable with --enable-async-io=N
+	  (Henrik Nordstrom).
+	- Added queue length to async I/O cachemgr stats (Henrik Nordstrom).
+	- Added OPTIONS request method.
 
 Changes to Squid-2.3.DEVEL1 ():
 
