@@ -378,6 +378,7 @@ struct _SquidConfig {
 	int size;
     } fqdncache;
     int minDirectHops;
+    int minDirectRtt;
     cachemgr_passwd *passwd_list;
     struct {
 	int objectsPerBucket;

@@ -2247,6 +2247,14 @@ DOC_START
 	which are no more than this many hops away.
 DOC_END
 
+NAME: minimum_direct_rtt
+TYPE: int
+DEFAULT: 400
+LOC: Config.minDirectRtt
+DOC_START
+	If using the ICMP pinging stuff, do direct fetches for sites
+	which are no more than this many rtt milliseconds away.
+DOC_END
 
 NAME: cachemgr_passwd
 TYPE: cachemgrpasswd
