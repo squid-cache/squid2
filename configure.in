@@ -1591,6 +1591,7 @@ AC_CHECK_FUNCS(\
 	fchmod \
 	getdtablesize \
 	getpagesize \
+	getpass \
 	getrusage \
 	getspnam \
 	lrand48 \
