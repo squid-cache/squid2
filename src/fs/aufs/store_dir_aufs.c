@@ -1346,6 +1346,7 @@ storeAufsDirMaintain(SwapDir * SD)
 	removed++;
 	storeRelease(e);
     }
+    walker->Done(walker);
     debug(20, (removed ? 2 : 3)) ("storeUfsDirMaintain: %s removed %d/%d f=%.03f max_scan=%d\n",
 	SD->path, removed, max_remove, f, max_scan);
 }
