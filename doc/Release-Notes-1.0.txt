@@ -9,7 +9,7 @@ TABLE OF CONTENTS:
 	Proper parsing of HTTP reply codes
 	Support for If-Modified-Since GET
 	Improvements to the access log
-	New -U command line option
+	Unlinking swap files on restart and the -U option
 	Changes to debugging
 	New Access Control scheme
 	Using SIGHUP to reconfigure the cache
@@ -89,16 +89,137 @@ hard-coded:
 The HTTP codes are now logged to "access.log" in the native format 
 (ie with 'emulate_httpd_log off').
 
+
+Support for If-Modified-Since GET
 ==============================================================================
+Squid supports IMS GET retrievals, but not through any neighbor caches.
+Whenever an IMS GET request is received, Squid will bypass the cache
+hierarchy and fetch the object on its own.
+
+
+Improvements to the access log
 ==============================================================================
+The "access.log" file has been improved in a number of ways.  There is now
+only one log entry per client request and the size is always correct. 
+The format is now
+
+   timestamp  elapsed  src-address  type/code  size  method  URL
+
+	- timestamp:	When the request is completed with millisecond
+			resolution
+	- elapsed:	elapsed time of the request, in milliseconds
+	- src-address: 	IP address of the requesting client
+	- type:		An indiciation of how the request was handled
+			by the cache.  These are described further below
+	- code: 	The HTTP reply code when available.  For ICP
+			requests this is always "000."  If the reply code
+			was not given, it will be logged as "555."
+	- size:		For TCP requests, the amount of data written
+			to the client.  For UDP requests, the size
+			of the request.  (in bytes)
+	- method:	The request method (GET, POST, etc).
+	- URL		The URL of the request
+
+Access Log Types:
+
+"TCP_" refers to requests on the HTTP port (3128)
+
+	TCP_HIT		A valid copy of the requested object was in the cache
+	TCP_MISS	The requested object was not in the cache
+	TCP_EXPIRED	The object was in the cache, but it had expired
+	TCP_REFRESH	The user forced a refresh ("reload")
+	TCP_IFMODSINCE	An If-Modified-Since GET request.
+	TCP_SWAPFAIL	The object was believed to be in the cache,
+			but could not be accessed.
+	TCP_DENIED	Access was denied for this request
+
+"UDP_" refers to requests on the ICP port (3130)
+
+	UDP_HIT		A valid copy of the requested object was in the cache
+	UDP_MISS	The requested object was not in the cache
+	UDP_DENIED	Access was denied for this request
+
+
+Metadata reloads in the background
 ==============================================================================
+Upon restart, Squid automatically loads cache metadata in the
+background.  It will be able to service new requests immediately.  As
+new objects are added, there may be some "clashes" with old objects
+using the same swap file on disk.  In these cases you may see a message
+in the cache logfile about "Active clash."  This means the old object
+has been discarded since it was replaced by a new object.
+
+
+Unlinking swap files on restart and the -U option
 ==============================================================================
+When the cache reloads object metadata from disk some of the objects
+will be expired or otherwise invalid.  In the interest of speed, these
+invalid objects will not be removed from the filesystem by default.  They
+will eventually be overwritten by new objects as enter the cache and
+get saved to disk.
+
+The -U option can be used to actually remove the invalid objects from
+disk.  
+
+In addition, the -z option will not cause 'rm -rf [0-9][0-9]' to be
+executed unless the -U option is also given.  
+
+When swap files are not removed during restart there internal counters
+for disk space taken will not match the actual disk space used.  If you
+have a large cache or plenty of extra disk space, this should not be a
+problem.  However, if space is an issue, you may want to use the -U
+option at the cost of a slower restart.
+
+
+Changes to debugging
 ==============================================================================
+Squid has a flexible debugging scheme.  You can enable more debugging
+for certain functions and less for others.  For example if you needed
+to figure out why your access controls were behaving strangely, you 
+could enable debugging for section 28 at level 9.  Currently, each
+section corresponds to separate source code file:
+
+	main.c:              Section 1
+	cache_cf.c:          Section 3
+	errorpage.c:         Section 4
+	comm.c:              Section 5
+	disk.c:              Section 6
+	fdstat.c:            Section 7
+	filemap.c:           Section 8
+	ftp.c:               Section 9
+	gopher.c:            Section 10
+	http.c:              Section 11
+	icp.c:               Section 12
+	icp_lib.c:           Section 13
+	ipcache.c:           Section 14
+	neighbors.c:         Section 15
+	objcache.c:          Section 16
+	proto.c:             Section 17
+	stat.c:              Section 18
+	stmem.c:             Section 19
+	store.c:             Section 20
+	tools.c:             Section 21
+	ttl.c:               Section 22
+	url.c:               Section 23
+	wais.c:              Section 24
+	mime.c:              Section 25
+	connect.c:           Section 26
+	send-announce.c:     Section 27
+	acl.c:               Section 28
+
+Debugging levels are set in the configuration file with the 'debug_options'
+line.  For example:
+
+	debug_options ALL,1 28,9 22,5
+
+
+New Access Control scheme
 ==============================================================================
+Using SIGHUP to reconfigure the cache
 ==============================================================================
+ftpget server
 ==============================================================================
+Changes to cache shutdown
 ==============================================================================
-==============================================================================
-==============================================================================
-==============================================================================
+Assigning weights to cache neighbors
 ==============================================================================
