@@ -144,7 +144,7 @@ int aioFileReadComplete(fd, data)
      int fd;
      void *data;
 {
-     dread_ctrl *ctrl_dat = data;
+    dread_ctrl *ctrl_dat = data;
     int rc;
     struct aiocb *aio = &file_table[fd].aio_cb;
 
