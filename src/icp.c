@@ -287,16 +287,12 @@ httpRequestFree(void *data)
 	HTTPCacheInfo->proto_count(HTTPCacheInfo,
 	    http->request ? http->request->protocol : PROTO_NONE,
 	    http->log_type);
-	clientdbUpdate(conn->peer.sin_addr,
-	    http->log_type,
-	    ntohs(conn->me.sin_port));
+	clientdbUpdate(conn->peer.sin_addr, http->log_type, PROTO_HTTP);
     }
     if (http->redirect_state == REDIRECT_PENDING)
 	redirectUnregister(http->url, http);
-    if (http->acl_checklist) {
-	debug(0, 0, "connStateFree: calling aclChecklistFree()\n");
+    if (http->acl_checklist)
 	aclChecklistFree(http->acl_checklist);
-    }
     checkFailureRatio(http->log_type,
 	hierData ? hierData->code : HIER_NONE);
     safe_free(http->in.buf);
@@ -337,20 +333,18 @@ connStateFree(int fd, void *data)
 {
     ConnStateData *connState = data;
     clientHttpRequest *http;
-    debug(0, 0, "connStateFree: FD %d\n", fd);
+    debug(12, 3, "connStateFree: FD %d\n", fd);
     if (connState == NULL)
 	fatal_dump("connStateFree: connState == NULL");
     while ((http = connState->chr)) {
 	connState->chr = http->next;
 	httpRequestFree(http);
     }
-    if (fd_table[fd].rwstate) {
-	debug(0, 0, "connStateFree: calling commCancelWriteHandler()\n");
+    if (fd_table[fd].rwstate)
 	commCancelWriteHandler(fd);
-    }
     if (connState->ident.fd > -1)
 	comm_close(connState->ident.fd);
-    debug(0, 0, "connStateFree: FD %d handled %d requests\n",
+    debug(12, 1, "connStateFree: FD %d handled %d requests\n",
 	fd, connState->nrequests);
     safe_free(connState);
 }
@@ -559,7 +553,7 @@ clientBuildReplyHeader(clientHttpRequest * http,
     size_t l;
     end = mime_headers_end(hdr_in);
     if (end == NULL) {
-	debug(0, 0, "clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
+	debug(12, 1, "clientBuildReplyHeader: DIDN'T FIND END-OF-HEADERS\n");
 	return 0;
     }
     for (t = hdr_in; t < end; t += strcspn(t, crlf), t += strspn(t, crlf)) {
@@ -739,7 +733,6 @@ clientWriteComplete(int fd, char *buf, int size, int errflag, void *data)
 	    http->request->protocol,
 	    http->out.size);
 	if (http->entry->mem_obj->reply->content_length <= 0) {
-	    debug(0, 0, "clientWriteComplete: closing FD %d; no content-length\n", fd);
 	    comm_close(fd);
 	} else if (BIT_TEST(http->request->flags, REQ_PROXY_KEEPALIVE)) {
 	    conn = http->conn;
@@ -1103,9 +1096,7 @@ icpLogIcp(icpUdpData * queue)
     ICPCacheInfo->proto_count(ICPCacheInfo,
 	queue->proto,
 	queue->logcode);
-    clientdbUpdate(queue->address.sin_addr,
-	queue->logcode,
-	Config.Port.icp);
+    clientdbUpdate(queue->address.sin_addr, queue->logcode, PROTO_ICP);
     if (!Config.Options.log_udp)
 	return;
     HTTPCacheInfo->log_append(HTTPCacheInfo,
@@ -1837,7 +1828,6 @@ clientReadRequest(int fd, void *data)
     fd_bytes(fd, size, FD_READ);
 
     if (size == 0) {
-	http->conn->nrequests--;
 	comm_close(fd);
 	return;
     } else if (size < 0) {
@@ -1850,7 +1840,6 @@ clientReadRequest(int fd, void *data)
 		0);
 	} else {
 	    debug(50, 2, "clientReadRequest: FD %d: %s\n", fd, xstrerror());
-	    http->conn->nrequests--;
 	    comm_close(fd);
 	}
 	return;
@@ -1860,6 +1849,7 @@ clientReadRequest(int fd, void *data)
 
     parser_return_code = parseHttpRequest(http, &method);
     if (parser_return_code == 1) {
+        http->conn->nrequests++;
 	commSetTimeout(fd, Config.Timeout.lifetime, NULL, NULL);
 	if ((request = urlParse(method, http->url)) == NULL) {
 	    debug(12, 5, "Invalid URL: %s\n", http->url);
@@ -1958,11 +1948,14 @@ requestTimeout(int fd, void *data)
 	 * callback and close the FD */
 	commCancelWriteHandler(fd);
 	comm_close(fd);
+    } else if (http->conn->nrequests) {
+	/* assume its a persistent connection; just close it */
+	comm_close(fd);
     } else {
 	/* Send an error message if nothing has been sent yet */
 	icpSendERROR(fd,
 	    ERR_LIFETIME_EXP,
-	    "Client Lifetime Expired",
+	    "Request Timeout.\n",
 	    http,
 	    504);
     }
@@ -1970,23 +1963,27 @@ requestTimeout(int fd, void *data)
 
 /* Handle a new connection on ascii input socket. */
 void
-asciiHandleConn(int sock, void *notused)
+httpAccept(int sock, void *notused)
 {
     int fd = -1;
     ConnStateData *connState = NULL;
     struct sockaddr_in peer;
     struct sockaddr_in me;
+    if (!fdstat_are_n_free_fd(RESERVED_FD)) {
+	debug(12,0,"WARNING: Near FD limit, delaying new connections\n");
+	comm_set_stall(sock, 1);
+    }
     memset(&peer, '\0', sizeof(struct sockaddr_in));
     memset(&me, '\0', sizeof(struct sockaddr_in));
-    commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
+    commSetSelect(sock, COMM_SELECT_READ, httpAccept, NULL, 0);
     if ((fd = comm_accept(sock, &peer, &me)) < 0) {
-	debug(50, 1, "asciiHandleConn: FD %d: accept failure: %s\n",
+	debug(50, 1, "httpAccept: FD %d: accept failure: %s\n",
 	    sock, xstrerror());
 	return;
     }
     if (vizSock > -1)
 	vizHackSendPkt(&peer, 1);
-    debug(12, 4, "asciiHandleConn: FD %d: accepted\n", fd);
+    debug(12, 4, "httpAccept: FD %d: accepted\n", fd);
     connState = xcalloc(1, sizeof(ConnStateData));
     connState->peer = peer;
     connState->log_addr = peer.sin_addr;
@@ -2157,7 +2154,6 @@ icpDetectNewRequest(int fd, void *data)
     clientHttpRequest *http;
     clientHttpRequest **H;
     ntcpconn++;
-    connState->nrequests++;
     if (vizSock > -1)
 	vizHackSendPkt(&connState->peer, 1);
     if (fd != connState->fd)
@@ -2171,7 +2167,7 @@ icpDetectNewRequest(int fd, void *data)
     http->conn = connState;
     meta_data.misc += ASCII_INBUF_BLOCKSIZE;
     fd_note(fd, "Reading Request");
-    commSetTimeout(fd, Config.Timeout.read, requestTimeout, http);
+    commSetTimeout(fd, Config.Timeout.request, requestTimeout, http);
     commSetSelect(fd,
 	COMM_SELECT_READ,
 	clientReadRequest,

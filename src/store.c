@@ -1335,6 +1335,7 @@ storeSwapOutStartComplete(void *data, int fd)
     debug(20, 5, "storeSwapOutStart: Begin SwapOut '%s' to FD %d FILE %s.\n",
 	e->url, fd, swapfilename);
     e->swap_file_number = swapno;
+    debug(20,5, "swap_file_number=%08X\n", e->swap_file_number);
     e->swap_status = SWAPPING_OUT;
     mem->swap_offset = 0;
     mem->e_swap_buf = get_free_8k_page();

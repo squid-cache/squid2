@@ -54,6 +54,7 @@ typedef enum {
     PROTO_GOPHER,
     PROTO_WAIS,
     PROTO_CACHEOBJ,
+    PROTO_ICP,
     PROTO_MAX
 } protocol_t;
 

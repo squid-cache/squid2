@@ -436,6 +436,14 @@ cache_stoplist cgi-bin ?
 #
 #emulate_httpd_log off
 
+#TAG: mime_table
+#
+#	Pathname to Squid's MIME table which has the format
+#
+#	    regex content-type icon content-encoding transfer-mode
+#
+#mime_table @DEFAULT_MIME_TABLE@
+
 #  TAG: log_mime_hdrs
 #	The Cache can record both the request and the response
 #	MIME headers for each HTTP transaction.  The headers are
@@ -693,12 +701,31 @@ debug_options ALL,1
 #connect_timeout 120 seconds
 
 #  TAG: read_timeout (in minutes)         
-#	An active connection will be aborted after read_timeout minutes
-#	of no activity on that connection (i.e., assume the remote server
-#	or network connection died after the connection was established).
-#	The default is 15 minutes.
+#	The read_timeout is applied on server-side connections.  After
+#	each successful read(), the timeout will be extended by this
+#	amount.  If no data is read again after this amount of time,
+#	the request is aborted and logged with ERR_READ_TIMEOUT.  The
+#	default is 15 minutes.
 #
 #read_timeout 15 minutes
+
+#  TAG: defer_timeout (in minutes)         
+#	If your clients are behind slow (e.g. PPP/SLIP) connections,
+#	then data may come in from the server-side faster than it can
+#	be written to the client-side.  When the server side gets too
+#	far ahead of the client-side, subsequent reads will be deferred
+#	until the client catches up.  This timeout determines how long
+#	to wait while in "deferred read mode." The default is one
+#	hour.
+#
+#defer_timeout 60 minutes
+
+#  TAG: request_timeout
+#	How long to wait for an HTTP request after connection
+#	establishment.  For persistent connections, wait this long
+#	after the previous request completes.
+#
+#defer_timeout 30 seconds
 
 #  TAG: client_lifetime (in minutes)         
 #	The maximum amount of time that a client (browser) is allowed to
@@ -706,16 +733,17 @@ debug_options ALL,1
 #	from having alot of sockets (and hence file descriptors) tied up
 #	in a CLOSE_WAIT state from remote clients that go away without
 #	properly shutting down (either because of a network failure or
-#	because of a poor client implementation).  The default is three
-#	hours, 20 minutes.
+#	because of a poor client implementation).  The default is one
+#	day, 1440 minutes.
 #
-#	NOTE:  The default value is designed with low-speed client
-#	connections in mind.  200 minutes should be plenty of time to
-#	transfer a 10M file at 1k/sec.  If you have high-speed client
-#	connectivity, or occasionally run out of file descriptors,
-#	we suggest you lower this value appropriately.
+#	NOTE:  The default value is intended to be much larger than any
+#	client would ever need to be connected to your cache.  You
+#	should probably change client_lifetime only as a last resort.
+#	If you seem to have many client connections tying up
+#	filedescriptors, we recommend first tuning the read_timeout,
+#	defer_timeout, and quick_abort values.
 #
-#client_lifetime 200 minutes
+#client_lifetime 1 day
 
 #  TAG: shutdown_lifetime (in seconds)
 #
@@ -723,7 +751,7 @@ debug_options ALL,1
 #	"shutdown pending" mode until all active sockets are closed.
 #	This value is the lifetime to set for all open descriptors
 #	during shutdown mode.  Any active clients after this many
-#	seconds will receive a 'lifetime expire' message
+#	seconds will receive a 'timeout' message.
 #
 #shutdown_lifetime 30 seconds
 

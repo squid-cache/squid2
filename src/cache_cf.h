@@ -108,6 +108,7 @@
 
 #define DefaultDnsChildrenMax		32	/* 32 processes */
 #define DefaultRedirectChildrenMax	32	/* 32 processes */
+#define MAXHTTPPORTS			12
 
 typedef struct _wordlist {
     char *key;
@@ -154,12 +155,14 @@ struct SquidConfig {
 	int defer;
 	int lifetime;
 	int connect;
+	int request;
     } Timeout;
     int shutdownLifetime;
     int cleanRate;
     int maxRequestSize;
     struct {
-	u_short http;
+	u_short http[MAXHTTPPORTS];
+	int n_http;
 	u_short icp;
     } Port;
     struct {
@@ -211,6 +214,7 @@ struct SquidConfig {
     size_t appendDomainLen;
     char *volatile debugOptions;
     char *pidFilename;
+    char *mimeTablePathname;
     char *visibleHostname;
     char *ftpUser;
     char *errHtmlText;

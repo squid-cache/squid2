@@ -116,9 +116,11 @@ typedef struct _ext_table_entry {
 
 extern char *mime_get_header _PARAMS((const char *mime, const char *header));
 extern char *mime_headers_end _PARAMS((const char *mime));
-extern int mime_headers_size _PARAMS((const char *mime));
-extern const ext_table_entry *mime_ext_to_type _PARAMS((const char *extension));
 extern int mk_mime_hdr _PARAMS((char *result, const char *type, int size, time_t ttl, time_t lmt));
-
+extern void mimeInit _PARAMS((char *filename));
+extern char *mimeGetContentEncoding _PARAMS((const char *fn));
+extern char *mimeGetContentType _PARAMS((const char *fn));
+extern char *mimeGetIcon _PARAMS((const char *fn));
+extern char mimeGetTransferMode _PARAMS((const char *fn));
 
 #endif /* MIME_H */

@@ -171,13 +171,15 @@
  */
 
 #include "squid.h"
-#include "mime_table.h"
 
 static char *proxy_host = NULL;
+const char *const version_string = SQUID_VERSION;
 
 #ifndef HAVE_GETOPT_H
 extern int optind;
 #endif
+
+extern void (*failure_notify) _PARAMS((const char *));
 
 /* Junk so we can link with debug.o */
 int opt_syslog_enable = 0;
@@ -200,7 +202,7 @@ struct SquidConfig Config;
 #define F_HDRSENT	0x02
 #define F_ISDIR		0x04
 #define F_NOERRS	0x08
-#define F_TRYDIR	0x10
+#define F_UNUSED10	0x10
 #define F_NEEDACCEPT	0x20
 #define F_USEBASE	0x40
 #define F_BASEDIR	0x80
@@ -223,14 +225,10 @@ typedef enum {
     MDTM_OK,
     SIZE_OK,
     PORT_OK,
-    PASV_OK,
     PASV_FAIL,
     CWD_OK,
-#ifdef TRY_CWD_FIRST
     CWD_FAIL,
-#else
     RETR_FAIL,
-#endif
     REST_OK,
     TRANSFER_BEGIN,
     DATA_TRANSFER,
@@ -245,7 +243,6 @@ typedef struct _ftp_request {
     char *host;
     u_short port;
     char *path;
-    char *type;
     char *user;
     char *pass;
     char *url_escaped;
@@ -322,7 +319,6 @@ static const char *dots_fill _PARAMS((size_t));
 static const char *http_time _PARAMS((time_t));
 static const char *html_trailer _PARAMS((void));
 static char *htmlize_list_entry _PARAMS((const char *, ftp_request_t *));
-static char *mime_get_icon _PARAMS((const char *));
 static int accept_with_timeout _PARAMS((int, struct sockaddr *, int *));
 static int check_data_rate _PARAMS((int));
 static int connect_with_timeout _PARAMS((int, struct sockaddr_in *, int));
@@ -358,7 +354,6 @@ static void cleanup_path _PARAMS((ftp_request_t *));
 static void close_dfd _PARAMS((ftp_request_t *));
 static void fail _PARAMS((ftp_request_t *));
 static void generic_sig_handler _PARAMS((int));
-static void mime_get_type _PARAMS((ftp_request_t * r));
 static void send_success_hdr _PARAMS((ftp_request_t *));
 static void sigchld_handler _PARAMS((int));
 static void try_readme _PARAMS((ftp_request_t *));
@@ -404,14 +399,10 @@ static const char *state_str[] =
     "MDTM_OK",
     "SIZE_OK",
     "PORT_OK",
-    "PASV_OK",
     "PASV_FAIL",
     "CWD_OK",
-#ifdef TRY_CWD_FIRST
     "CWD_FAIL",
-#else
     "RETR_FAIL",
-#endif
     "REST_OK",
     "TRANSFER_BEGIN",
     "DATA_TRANSFER",
@@ -456,12 +447,21 @@ The following FTP error was encountered:\n\
 <P>\n\
 \n"
 
+static void
+panic(const char *msg)
+{
+    fprintf(stderr, "FATAL: %s\n", msg);
+    fflush(stderr);
+    abort();
+}
+
+
 static const char *
 html_trailer(void)
 {
     static char buf[SMALLBUFSIZ];
 
-    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n</BODY></HTML>\n", http_time((time_t) NULL), SQUID_VERSION, visible_hostname);
+    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n</BODY></HTML>\n", http_time((time_t) NULL), version_string, visible_hostname);
     return buf;
 }
 
@@ -526,7 +526,7 @@ fail(ftp_request_t * r)
 	    fprintf(fp, "Date: %s\r\n", http_time(time(NULL)));
 	    fprintf(fp, "Expires: %s\r\n", http_time(expire_time));
 	    fprintf(fp, "MIME-Version: 1.0\r\n");
-	    fprintf(fp, "Server: Squid %s\r\n", SQUID_VERSION);
+	    fprintf(fp, "Server: Squid %s\r\n", version_string);
 	    fprintf(fp, "Content-Type: text/html\r\n");
 	    /*fprintf(fp, "Content-Length: %d\r\n", (int) strlen(htmlbuf)); */
 	    fprintf(fp, "\r\n");
@@ -860,106 +860,26 @@ static void
 mime_get_type(ftp_request_t * r)
 {
     char *filename = NULL;
-    char *ext = NULL;
     char *t = NULL;
     const char *type = NULL;
     const char *enc = NULL;
-    int i;
-
     if (r->flags & F_ISDIR) {
 	r->mime_type = xstrdup("text/html");
 	return;
     }
-    type = o_mime_type;
-
-    if ((t = strrchr(r->path, '/')))
-	filename = xstrdup(t + 1);
-    else
-	filename = xstrdup(r->path);
-
-    if (!(t = strrchr(filename, '.')))
-	goto mime_get_type_done;
-    ext = xstrdup(t + 1);
-    for (i = 0; i < EXT_TABLE_LEN; i++) {
-	if (!strcmp(ext, ext_mime_table[i].name)) {
-	    type = ext_mime_table[i].mime_type;
-	    enc = ext_mime_table[i].mime_encoding;
-	    break;
-	}
-    }
-    if (i == EXT_TABLE_LEN) {
-	for (i = 0; i < EXT_TABLE_LEN; i++) {
-	    if (!strcasecmp(ext, ext_mime_table[i].name)) {
-		type = ext_mime_table[i].mime_type;
-		enc = ext_mime_table[i].mime_encoding;
-		break;
-	    }
-	}
-    }
-    /* now check for another extension */
-
-    *t = '\0';
-    if (!(t = strrchr(filename, '.')))
-	goto mime_get_type_done;
-    xfree(ext);
-    ext = xstrdup(t + 1);
-    for (i = 0; i < EXT_TABLE_LEN; i++) {
-	if (!strcmp(ext, ext_mime_table[i].name)) {
-	    type = ext_mime_table[i].mime_type;
-	    break;
-	}
-    }
-    if (i == EXT_TABLE_LEN) {
-	for (i = 0; i < EXT_TABLE_LEN; i++) {
-	    if (!strcasecmp(ext, ext_mime_table[i].name)) {
-		type = ext_mime_table[i].mime_type;
-		break;
-	    }
-	}
-    }
-  mime_get_type_done:
-    xfree(filename);
-    xfree(ext);
-    r->mime_type = xstrdup(type);
-    if (enc)
-	r->mime_enc = xstrdup(enc);
+    filename = (t = strrchr(r->path, '/')) ? t + 1 : r->path;
+    enc = mimeGetContentEncoding(filename);
+    type = mimeGetContentType(filename);
+    r->mime_type = xstrdup(type ? type : DEFAULT_MIME_TYPE);
+    r->mime_enc = enc ? xstrdup(enc) : NULL;
 }
 
 static char *
 mime_get_icon(const char *name)
 {
-    char *ext = NULL;
-    const char *t = NULL;
-    int i = 0;
-
-    if (name == NULL)
-	return xstrdup("unknown");
-    if (!(t = strrchr(name, '.')))
-	return xstrdup("unknown");
-    ext = xstrdup(t + 1);
-    debug(38, 3, "mime_get_icon: ext = '%s'\n", ext);
-    for (i = 0; i < EXT_TABLE_LEN; i++) {
-	if (!strcmp(ext, ext_mime_table[i].name)) {
-	    debug(38, 3, "mime_get_icon: matched entry #%d\n", i);
-	    debug(38, 3, "mime_get_icon: returning '%s'\n",
-		ext_mime_table[i].icon);
-	    xfree(ext);
-	    return xstrdup(ext_mime_table[i].icon);
-	    /* NOTREACHED */
-	}
-    }
-    if (i == EXT_TABLE_LEN) {
-	for (i = 0; i < EXT_TABLE_LEN; i++) {
-	    if (!strcasecmp(ext, ext_mime_table[i].name)) {
-		debug(38, 3, "mime_get_icon: matched entry #%d\n", i);
-		debug(38, 3, "mime_get_icon: returning '%s'\n",
-		    ext_mime_table[i].icon);
-		xfree(ext);
-		return xstrdup(ext_mime_table[i].icon);
-		/* NOTREACHED */
-	    }
-	}
-    }
+    char *icon = NULL;
+    if (name && (icon = mimeGetIcon(name)))
+	return xstrdup(icon);
     return xstrdup("unknown");
 }
 
@@ -996,7 +916,7 @@ send_success_hdr(ftp_request_t * r)
     fprintf(fp, "HTTP/1.0 200 Gatewaying\r\n");
     fprintf(fp, "Date: %s\r\n", http_time(time(NULL)));
     fprintf(fp, "MIME-Version: 1.0\r\n");
-    fprintf(fp, "Server: Squid %s\r\n", SQUID_VERSION);
+    fprintf(fp, "Server: Squid %s\r\n", version_string);
     if (r->mime_type)
 	fprintf(fp, "Content-Type: %s\r\n", r->mime_type);
     if (r->size > 0)
@@ -1358,10 +1278,11 @@ static state_t
 do_type(ftp_request_t * r)
 {
     int code;
-
-    sprintf(cbuf, "TYPE %c", *(r->type));
+    char *t = strrchr(r->path, '/');
+    char *filename = t ? t + 1 : r->path;
+    char mode = mimeGetTransferMode(filename);
+    sprintf(cbuf, "TYPE %c", mode);
     SEND_CBUF;
-
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code == 200)
 	    return TYPE_OK;
@@ -1577,29 +1498,29 @@ static state_t
 do_cwd(ftp_request_t * r)
 {
     int code;
-
-    debug(38, 9, "do_cwd: \"%s\"\n", r->path);
-
+    char *path;
+    char *d;
+    char *oldpath;
     if (r->flags & F_BASEDIR)
 	return CWD_OK;
-
-    sprintf(cbuf, "CWD %s", r->path);
-    SEND_CBUF;
-
-    if ((code = read_reply(r->sfd)) > 0) {
+    path = xstrdup(r->path);
+    for (d = strtok(path, "/"); d; d = strtok(NULL, "/")) {
+	debug(38, 7, "do_cwd: %s\n", d);
+	sprintf(cbuf, "CWD %s", d);
+	SEND_CBUF;
+	code = read_reply(r->sfd);
 	if (code >= 200 && code < 300)
-	    return CWD_OK;
-#ifdef TRY_CWD_FIRST
-	if (!(r->flags & F_ISDIR))
-	    return CWD_FAIL;
-#endif
+	    continue;
+	oldpath = r->path;
+	r->path = xstrdup(oldpath + (d - path));
+	xfree(oldpath);
 	r->errmsg = xstrdup(server_reply_msg);
-	r->rc = 10;
-	return FAIL_HARD;
+	xfree(path);
+	r->rc = code < 0 ? 4 : 10;
+	return code < 0 ? FAIL_SOFT : CWD_FAIL;
     }
-    r->errmsg = xstrdup(server_reply_msg);
-    r->rc = code < 0 ? 4 : 5;
-    return FAIL_SOFT;
+    xfree(path);
+    return CWD_OK;
 }
 
 static state_t
@@ -1637,19 +1558,9 @@ do_retr(ftp_request_t * r)
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code >= 100 && code < 200)
 	    return TRANSFER_BEGIN;
-#ifdef TRY_CWD_FIRST
-	if (code == 550) {
-	    r->errmsg = xstrdup(server_reply_msg);
-	    r->rc = 10;
-	    return FAIL_HARD;
-	}
-#else
-	if (r->flags & F_TRYDIR)
-	    return RETR_FAIL;
 	r->errmsg = xstrdup(server_reply_msg);
 	r->rc = 10;
 	return FAIL_HARD;
-#endif
     }
     r->errmsg = xstrdup(server_reply_msg);
     r->rc = code < 0 ? 4 : 5;
@@ -2055,11 +1966,7 @@ try_readme(ftp_request_t * r)
     } else {
 	readme->dfd = -1;
     }
-#ifdef TRY_CWD_FIRST
-    readme->state = CWD_FAIL;
-#else
     readme->state = SIZE_OK;
-#endif
     readme->flags = F_NOERRS;
 
     process_request(readme);
@@ -2105,7 +2012,7 @@ htmlify_listing(ftp_request_t * r)
 
     stamp = time(NULL);
     fprintf(wfp, "<!-- HTML listing generated by Squid %s -->\n",
-	SQUID_VERSION);
+	version_string);
     fprintf(wfp, "<!-- %s -->\n", http_time(stamp));
     fprintf(wfp, "<HTML><HEAD><TITLE>\n");
     fprintf(wfp, "FTP Directory: %s\n", r->title_url);
@@ -2176,7 +2083,7 @@ htmlify_listing(ftp_request_t * r)
     }
     fprintf(wfp, "<ADDRESS>\n");
     fprintf(wfp, "Generated %s, by %s/%s@%s\n",
-	http_time(stamp), progname, SQUID_VERSION, visible_hostname);
+	http_time(stamp), progname, version_string, visible_hostname);
     fprintf(wfp, "</ADDRESS></BODY></HTML>\n");
     fclose(wfp);
 
@@ -2242,20 +2149,7 @@ process_request(ftp_request_t * r)
 	    }
 	    break;
 	case TYPE_OK:
-	    if (r->flags & F_ISDIR)
-		r->state = do_cwd(r);
-	    else
-		r->state = do_mdtm(r);
-	    break;
-	case MDTM_OK:
-	    r->state = do_size(r);
-	    break;
-	case SIZE_OK:
-#ifdef TRY_CWD_FIRST
 	    r->state = do_cwd(r);
-#else
-	    r->state = do_pasv(r);
-#endif
 	    break;
 	case CWD_OK:
 	    if (!(r->flags & F_ISDIR))
@@ -2278,25 +2172,28 @@ process_request(ftp_request_t * r)
 	    }
 	    r->state = do_pasv(r);
 	    break;
-#ifdef TRY_CWD_FIRST
 	case CWD_FAIL:
+	    r->flags &= ~F_ISDIR;
+	    r->state = do_mdtm(r);
+	    break;
+	case MDTM_OK:
+	    r->state = do_size(r);
+	    break;
+	case SIZE_OK:
 	    r->state = do_pasv(r);
 	    break;
-#else
-	case RETR_FAIL:
-	    r->state = do_cwd(r);
-	    break;
-#endif
 	case PASV_FAIL:
 	    /* fallback to PORT */
 	    r->state = do_port(r);
 	    break;
 	case PORT_OK:
-	case PASV_OK:
 	    r->state = r->flags & F_ISDIR ? do_list(r) : do_rest(r);
 	    break;
 	case REST_OK:
 	    r->state = do_retr(r);
+	    break;
+	case RETR_FAIL:
+	    r->state = do_list(r);
 	    break;
 	case TRANSFER_BEGIN:
 	    if (r->flags & F_HTTPIFY)
@@ -2577,7 +2474,7 @@ main(int argc, char *argv[])
     struct in_addr ip;
     const struct hostent *hp = NULL;
     int c;
-
+    failure_notify = panic;
     safe_inet_addr("255.255.255.255", &no_addr);
     fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
@@ -2586,11 +2483,11 @@ main(int argc, char *argv[])
 	progname = xstrdup(argv[0]);
     if ((t = getenv("SQUID_DEBUG")))
 	debug_args = xstrdup(t);
+    if ((t = getenv("SQUID_MIME_TABLE")))
+	mimeInit(t);
     getCurrentTime();
     starttime = current_time;
     _db_init(NULL, debug_args);
-
-
 #ifdef NSIG
     for (i = 1; i < NSIG; i++) {
 #else
@@ -2615,9 +2512,7 @@ main(int argc, char *argv[])
 	    break;
 	}
     }
-
     xstrncpy(visible_hostname, getfullhostname(), SMALLBUFSIZ);
-
     while ((c = getopt(argc, argv, "AC:D:G:H:P:RS:Wab:c:hl:m:n:o:p:r:s:t:vw:")) != -1) {
 	switch (c) {
 	case 'A':
@@ -2711,7 +2606,7 @@ main(int argc, char *argv[])
 		o_rest_del = k;
 	    break;
 	case 'v':
-	    printf("%s version %s\n", progname, SQUID_VERSION);
+	    printf("%s version %s\n", progname, version_string);
 	    exit(0);
 	    /* NOTREACHED */
 	case 'w':
@@ -2747,7 +2642,6 @@ main(int argc, char *argv[])
     r->cfd = 1;
     r->host = xstrdup(argv[1]);
     r->path = xstrdup(argv[2]);
-    r->type = xstrdup(argv[3]);
     r->user = xstrdup(argv[4]);
     r->pass = xstrdup(argv[5]);
     r->port = port;
@@ -2756,14 +2650,9 @@ main(int argc, char *argv[])
     r->size = -1;
     r->state = BEGIN;
     r->flags |= o_httpify ? F_HTTPIFY : 0;
-    r->flags |= F_TRYDIR;
     r->flags |= F_USEBASE;
     r->rest_implemented = 1;
 
-    if (*(r->type) != 'A' && *(r->type) != 'I') {
-	debug(38, 0, "ftpget: Invalid transfer type: %s\n", r->type);
-	usage(argc);
-    }
     cleanup_path(r);
     rfc1738_unescape(r->host);
     rfc1738_unescape(r->path);

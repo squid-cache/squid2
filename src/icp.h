@@ -222,7 +222,7 @@ extern void icpUdpSend _PARAMS((int fd,
 	log_type,
 	protocol_t));
 extern PF icpHandleUdp;
-extern PF asciiHandleConn;
+extern PF httpAccept;
 extern void icpSendERROR _PARAMS((int fd,
 	log_type errorCode,
 	const char *text,

@@ -63,7 +63,7 @@ send_announce(int fd, const ipcache_addrs * ia, void *data)
     strcat(sndbuf, tbuf);
     sprintf(tbuf, "Running on %s %d %d\n",
 	getMyHostname(),
-	Config.Port.http,
+	Config.Port.http[0],
 	Config.Port.icp);
     strcat(sndbuf, tbuf);
     if (Config.adminEmail) {
