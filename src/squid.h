@@ -134,6 +134,13 @@
 #define BUFSIZ  4096		/* make reasonable guess */
 #endif
 
+#ifndef SA_RESTART
+#define SA_RESTART 0
+#endif
+#ifndef SA_NODEFER
+#define SA_NODEFER 0
+#endif
+
 typedef struct sentry StoreEntry;
 typedef struct mem_hdr *mem_ptr;
 typedef struct _edge edge;
