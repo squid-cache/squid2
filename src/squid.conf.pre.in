@@ -24,6 +24,11 @@
 #	    bind_address localhost
 #	    bind_address www-slip.my.domain
 
+#  TAG: outbound_address
+#	Use this to force outgoing/client sockets to bind to a specific
+#	IP address (interface) instead of the default.
+#outbound_address 10.0.0.1
+
 
 # OPTIONS WHICH AFFECT THE NEIGHBOR SELECTION ALGORITHM
 #-----------------------------------------------------------------------------

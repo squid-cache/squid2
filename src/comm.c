@@ -182,12 +182,21 @@ int comm_open(io_type, port, note)
 	}
     }
     if (port) {
+	/* An inbound socket */
 	for (p = getBindAddrList(); p; p = p->next) {
 	    if (do_bind(new_socket, p->key, port) == COMM_OK)
 		break;
 	    if (p->next == NULL)
 		return COMM_ERROR;
 	}
+    } else {
+	/* An outbound socket */
+	for (p = getHomeAddr(); p; p = p->next) {
+            if (do_bind(new_socket, p->key, 0) == COMM_OK)
+                break;
+            if (p->next == NULL)
+                return COMM_ERROR;
+        }
     }
     conn->local_port = port;
 

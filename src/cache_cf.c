@@ -79,6 +79,7 @@ static struct {
     wordlist *gopher_stoplist;
     wordlist *ftp_stoplist;
     wordlist *bind_addr_list;
+    wordlist *outbound_addr_list;
     wordlist *local_domain_list;
     wordlist *inside_firewall_list;
     wordlist *dns_testname_list;
@@ -894,6 +895,16 @@ static void parseBindAddressLine()
     wordlistAdd(&Config.bind_addr_list, token);
 }
 
+static void parseOutboundAddressLine()
+{
+    char *token;
+    token = strtok(NULL, w_space);
+    if (token == NULL)
+	self_destruct();
+    debug(3, 1, "parseOutboundAddressLine: adding %s\n", token);
+    wordlistAdd(&Config.outbound_addr_list, token);
+}
+
 static void parseLocalDomainFile(fname)
      char *fname;
 {
@@ -1301,6 +1312,10 @@ int parseConfigFile(file_name)
 	else if (!strcmp(token, "bind_address"))
 	    parseBindAddressLine();
 
+	/* Parse a bind_address line */
+	else if (!strcmp(token, "outbound_address"))
+	    parseOutboundAddressLine();
+
 	/* Parse a ascii_port line */
 	else if (!strcmp(token, "ascii_port"))
 	    parseAsciiPortLine();
@@ -1640,6 +1655,10 @@ wordlist *getBindAddrList()
 {
     return Config.bind_addr_list;
 }
+wordlist *getOutboundAddrList()
+{
+    return Config.outbound_addr_list;
+}
 
 u_short setAsciiPortNum(port)
      u_short port;
@@ -1686,6 +1705,7 @@ static void configFreeMemory()
     wordlistDestroy(&Config.gopher_stoplist);
     wordlistDestroy(&Config.ftp_stoplist);
     wordlistDestroy(&Config.bind_addr_list);
+    wordlistDestroy(&Config.outbound_addr_list);
     wordlistDestroy(&Config.local_domain_list);
     wordlistDestroy(&Config.inside_firewall_list);
     wordlistDestroy(&Config.dns_testname_list);

@@ -118,6 +118,7 @@ extern u_short setUdpPortNum _PARAMS((int));
 extern void intlistDestroy _PARAMS((intlist **));
 extern void wordlistDestroy _PARAMS((wordlist **));
 wordlist *getBindAddrList _PARAMS((void));
+wordlist *getOutboundAddrList _PARAMS((void));
 wordlist *getCacheDirs _PARAMS((void));
 wordlist *getDnsTestnameList _PARAMS((void));
 wordlist *getFtpStoplist _PARAMS((void));
