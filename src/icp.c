@@ -219,12 +219,14 @@ static int icpStateFree(fd, icpState)
     if (icpState->log_type < LOG_TAG_NONE || icpState->log_type > ERR_ZERO_SIZE_OBJECT)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
-	size = icpState->entry->mem_obj->e_current_len;
+	if (icpState->entry->mem_obj)
+	    size = icpState->entry->mem_obj->e_current_len;
     } else {
 	size = icpState->size;	/* hack added for CONNECT objects */
     }
     if (icpState->entry) {
-	http_code = icpState->entry->mem_obj->reply->code;
+	if (icpState->entry->mem_obj)
+	    http_code = icpState->entry->mem_obj->reply->code;
     } else {
 	http_code = icpState->http_code;
     }
