@@ -201,7 +201,13 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     header.reqnum = ntohl(header.reqnum);
     header.flags = ntohl(header.flags);
     header.pad = ntohl(header.pad);
-
+    /*
+     * Length field should match the number of bytes read
+     */
+    if (len != header.length) {
+	debug(12, 3) ("icpHandleIcpV2: ICP message is too small\n");
+	return;
+    }
     switch (header.opcode) {
     case ICP_QUERY:
 	/* We have a valid packet */
