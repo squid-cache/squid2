@@ -44,3 +44,8 @@
 
 /* Define if we should use GNU regex */
 #undef USE_GNUREGEX
+
+/*
+ * setresuid() may be broken on some Linuxes
+ */
+#undef HAVE_SETRESUID
