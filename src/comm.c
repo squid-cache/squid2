@@ -780,7 +780,7 @@ int comm_select(sec, failtime)
 void comm_set_select_handler(fd, type, handler, client_data)
      int fd;
      unsigned int type;
-     int (*handler) ();
+     PF handler;
      void *client_data;
 {
     comm_set_select_handler_plus_timeout(fd, type, handler, client_data, 0);
@@ -789,7 +789,7 @@ void comm_set_select_handler(fd, type, handler, client_data)
 void comm_set_select_handler_plus_timeout(fd, type, handler, client_data, timeout)
      int fd;
      unsigned int type;
-     int (*handler) ();
+     PF handler;
      void *client_data;
      time_t timeout;
 {
@@ -851,7 +851,7 @@ int comm_get_select_handler(fd, type, handler_ptr, client_data_ptr)
 
 void comm_add_close_handler(fd, handler, data)
      int fd;
-     int (*handler) ();
+     PF handler;
      void *data;
 {
     struct close_handler *new = xmalloc(sizeof(*new));
@@ -866,7 +866,7 @@ void comm_add_close_handler(fd, handler, data)
 
 void comm_remove_close_handler(fd, handler, data)
      int fd;
-     int (*handler) ();
+     PF handler;
      void *data;
 {
     struct close_handler *p, *last = NULL;
