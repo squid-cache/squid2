@@ -64,8 +64,10 @@ static const struct {
     {
 	ERR_SQUID_SIGNATURE,
 	    "\n<BR clear=\"all\">\n"
-	    "<HR noshade size=1>\n"
+	    "<HR noshade size=\"1px\">\n"
+	    "<ADDRESS>\n"
 	    "Generated %T by %h (%s)\n"
+	    "</ADDRESS>\n"
 	    "</BODY></HTML>\n"
     },
     {
@@ -391,7 +393,6 @@ errorStateFree(ErrorState * err)
 /*
  * B - URL with FTP %2f hack                    x
  * c - Squid error code                         x
- * d - seconds elapsed since request received   x
  * e - errno                                    x
  * E - strerror()                               x
  * f - FTP request line                         x
