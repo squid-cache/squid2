@@ -290,10 +290,10 @@ passReadTimeout(int fd, void *data)
 static void
 passAppendHeader(const char *buf, PassStateData * passState)
 {
-	debug(39, 3, "passAppendHeader: '%s'\n", buf);
-	strcat(passState->client.buf + passState->client.len, buf);
-	strcat(passState->client.buf + passState->client.len, crlf);
-	passState->client.len += strlen(buf) + 2;
+    debug(39, 3, "passAppendHeader: '%s'\n", buf);
+    strcat(passState->client.buf + passState->client.len, buf);
+    strcat(passState->client.buf + passState->client.len, crlf);
+    passState->client.len += strlen(buf) + 2;
 }
 
 static int
@@ -302,6 +302,7 @@ passParseHeaders(PassStateData * passState)
     char *ybuf = NULL;
     char *xbuf = NULL;
     char *viabuf = NULL;
+    char *fwdbuf = NULL;
     char *t = NULL;
     char *s = NULL;
     char *end;
@@ -333,6 +334,12 @@ passParseHeaders(PassStateData * passState)
 	    strcat(viabuf, ", ");
 	    continue;
 	}
+	if (strncasecmp(t, "X-Forwarded-For:", 16) == 0) {
+	    fwdbuf = get_free_4k_page();
+	    xstrncpy(fwdbuf, t, 4096);
+	    strcat(fwdbuf, ", ");
+	    continue;
+	}
 	l = strcspn(t, crlf) + 1;
 	if (l > 4096)
 	    l = 4096;
@@ -359,10 +366,24 @@ passParseHeaders(PassStateData * passState)
     put_free_4k_page(viabuf);
     put_free_4k_page(ybuf);
     viabuf = ybuf = NULL;
+    /* Append to X-Forwarded-For: */
+    if (fwdbuf == NULL) {
+	fwdbuf = get_free_4k_page();
+	strcpy(fwdbuf, "X-Forwarded-For: ");
+    }
+    ybuf = get_free_4k_page();
+    if (!opt_forwarded_for)
+	strcat(fwdbuf, "unknown");
+    else
+	strcat(fwdbuf, fd_table[passState->client.fd].ipaddr);
+    passAppendHeader(fwdbuf, passState);
+    put_free_4k_page(fwdbuf);
+    put_free_4k_page(ybuf);
+    fwdbuf = ybuf = NULL;
     if (!saw_host) {
 	ybuf = get_free_4k_page();
 	sprintf(ybuf, "Host: %s", passState->request->host);
-        passAppendHeader(ybuf, passState);
+	passAppendHeader(ybuf, passState);
 	put_free_4k_page(ybuf);
     }
     passAppendHeader(null_string, passState);
@@ -386,7 +407,7 @@ passConnected(int fd, void *data)
     }
     passState->client.len = strlen(passState->client.buf);
     hdr_len = passParseHeaders(passState);
-    debug(39,3,"Appending %d bytes of content\n", passState->buflen - hdr_len);
+    debug(39, 3, "Appending %d bytes of content\n", passState->buflen - hdr_len);
     memcpy(passState->client.buf + passState->client.len,
 	passState->buf + hdr_len,
 	passState->buflen - hdr_len);
