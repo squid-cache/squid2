@@ -316,6 +316,7 @@ commConnectCallback(ConnectStateData * cs, comm_err_t status)
     commConnectFree(fd, cs);
     if (cbdataReferenceValid(cbdata))
 	callback(fd, status, cbdata);
+    cbdataReferenceDone(cbdata);
 }
 
 static void
