@@ -106,6 +106,8 @@
 
 #include "squid.h"
 
+static void hash_next_bucket(hash_table * hid);
+
 unsigned int
 hash_string(const void *data, unsigned int size)
 {
@@ -235,28 +237,23 @@ hash_lookup(hash_table * hid, const void *k)
     return NULL;
 }
 
+static void
+hash_next_bucket(hash_table * hid)
+{
+    while (hid->next == NULL && ++hid->current_slot < hid->size)
+	hid->next = hid->buckets[hid->current_slot];
+}
+
 /*
- *  hash_first - returns the first item in the hash table 'hid'.
- *  Otherwise, returns NULL on error.
+ *  hash_first - initializes the hash table for the hash_next()
+ *  function.
  */
 void
 hash_first(hash_table * hid)
 {
-    int i;
     assert(NULL == hid->next);
-    /*
-     * Find the first non-empty bucket
-     */
-    for (i = 0; i < hid->size; i++) {
-	if (NULL == hid->buckets[i])
-	    continue;
-	hid->current_slot = i;
-	hid->next = hid->buckets[i];
-    }
-    /*
-     * its okay to reach here without setting hid->next to something,
-     * it just means the table is empty
-     */
+    hid->current_slot = 0;
+    hash_next_bucket(hid);
 }
 
 /*
@@ -268,22 +265,12 @@ hash_first(hash_table * hid)
 void *
 hash_next(hash_table * hid)
 {
-    hash_link *this = hid->next;	/* we'll return this one */
+    hash_link *this = hid->next;
     if (NULL == this)
-	return NULL;			/* last one */
+	return NULL;
     hid->next = this->next;
-    if (NULL == hid->next) {
-	/*
-	 * we're at the end of a bucket, find next non-empty bucket
-	 */
-        int i;
-        for (i = hid->current_slot + 1; i < hid->size; i++) {
-	    if (NULL == hid->buckets[i])
-	        continue;
-	    hid->current_slot = i;
-	    hid->next = hid->buckets[i];
-	}
-    }
+    if (NULL == hid->next)
+	hash_next_bucket(hid);
     return this;
 }
 
@@ -306,8 +293,11 @@ hash_remove_link(hash_table * hid, hash_link * hl)
 	if (*P != hl)
 	    continue;
 	*P = hl->next;
-	if (hid->next == hl)
+	if (hid->next == hl) {
 	    hid->next = hl->next;
+	    if (NULL == hid->next)
+		hash_next_bucket(hid);
+	}
 	hid->count--;
 	return;
     }
