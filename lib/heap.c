@@ -176,6 +176,12 @@ heap_delete(heap * hp, heap_node * elm)
     heap_extractlast(hp);
 
     if (hp->last > 0) {
+	/*
+	 * I got some weird coredump that had a very large
+	 * value for lastNode->id.		-DW 99/10/08
+	 */
+	assert(lastNode->id <= heap_nodes(hp));
+	assert(Parent(lastNode->id) <= heap_nodes(hp));
 	if (lastNode->key < hp->nodes[Parent(lastNode->id)]->key)
 	    _heap_ify_up(hp, lastNode);		/* COOL! */
 	_heap_ify_down(hp, lastNode);
