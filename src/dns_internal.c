@@ -83,6 +83,7 @@ static idns_query *idnsFindQuery(unsigned short id);
 static void idnsGrokReply(const char *buf, size_t sz);
 static PF idnsRead;
 static EVH idnsCheckQueue;
+static void idnsTickleQueue(void);
 
 static void
 idnsAddNameserver(const char *buf)
@@ -173,6 +174,17 @@ idnsStats(StoreEntry * sentry)
 }
 
 static void
+idnsTickleQueue(void)
+{
+    if (event_queued)
+	return;
+    if (NULL == lru_list.tail)
+	return;
+    eventAdd("idnsCheckQueue", idnsCheckQueue, NULL, 1.0, 1);
+    event_queued = 1;
+}
+
+static void
 idnsSendQuery(idns_query * q)
 {
     int x;
@@ -202,10 +214,7 @@ idnsSendQuery(idns_query * q)
     q->sent_t = current_time;
     nameservers[ns].nqueries++;
     dlinkAdd(q, &q->lru, &lru_list);
-    if (!event_queued) {
-	eventAdd("idnsCheckQueue", idnsCheckQueue, NULL, 1.0, 1);
-	event_queued = 1;
-    }
+    idnsTickleQueue();
 }
 
 static int
@@ -353,6 +362,7 @@ idnsCheckQueue(void *unused)
 	    memFree(q, MEM_IDNS_QUERY);
 	}
     }
+    idnsTickleQueue();
 }
 
 /* ====================================================================== */
