@@ -29,7 +29,7 @@ typedef struct _diomsg {
     int shm_offset;
 } diomsg;
 
-static const int msg_snd_rcv_sz = sizeof(diomsg) - sizeof(int);
+static const int msg_snd_rcv_sz = sizeof(diomsg) - sizeof(mtyp_t);
 
 #if DISKD_DAEMON
 
