@@ -1161,9 +1161,11 @@ static void icpHandleIcpV2(fd, from, buf, len)
 	} else if (entry->lock_count == 0) {
 	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for Entry without locks.\n",
 		IcpOpcodeStr[header.opcode]);
+	} else if (entry->ping_status != PING_WAITING) {
+	    debug(12, 3, "icpHandleIcpV2: Ignoring %s for %s Entry.\n",
+		IcpOpcodeStr[header.opcode],
+		pingStatusStr[entry->ping_status]);
 	} else {
-	    if (entry->swap_status != NO_SWAP)
-		fatal_dump("icpHandleIcpV2: bad swap_status");
 	    neighborsUdpAck(fd,
 		url,
 		&header,
@@ -1670,13 +1672,13 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 		    fd_table[fd].ipaddr,
 		    icpState->http_code,
 		    NULL));
-	    icpState->ptr_to_4k_page = NULL;
 	    comm_write(fd,
 		icpState->buf,
 		strlen(icpState->buf),
 		30,
 		icpSendERRORComplete,
-		(void *) icpState);
+		(void *) icpState,
+		xfree);
 	    return;
 	}
 	icpState->request = requestLink(request);
@@ -1694,7 +1696,7 @@ static void asciiProcessInput(fd, buf, size, flag, data)
 		debug(12, 0, "-->     max size = %d\n", Config.maxRequestSize);
 		debug(12, 0, "--> icpState->offset = %d\n", icpState->offset);
 		icpSendERROR(fd,
-		    ICP_ERROR_INTERNAL,
+		    ERR_INVALID_REQ,
 		    "error reading request",
 		    icpState,
 		    400);
