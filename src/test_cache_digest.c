@@ -538,7 +538,7 @@ main(int argc, char *argv[])
 	fis[i-1] = fileIteratorCreate(argv[i], swapStateReader);
     /* check that all files were found */
     for (i = 0; i < fi_count; ++i)
-	if (fis[i]) return -2;
+	if (!fis[i]) return -2;
     /* read prefix to get start-up contents of the peer cache */
     ready_time = -1;
     for (i = 1; i < fi_count; ++i) {
