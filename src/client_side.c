@@ -1622,8 +1622,9 @@ clientProcessRequest2(clientHttpRequest * http)
 	ipcacheReleaseInvalid(r->host);
 	return LOG_TCP_CLIENT_REFRESH_MISS;
     } else if (r->range && httpHdrRangeWillBeComplex(r->range)) {
-	/* some clients break if we return "200 OK" for a Range request
-	 * and we _will_ return 200 if ranges happen to bee too complex */
+	/* Some clients break if we return "200 OK" for a Range request.
+	 * We would have to return "200 OK" for a _complex_ Range request
+	 * that is also a HIT. Thus, let's prevent HITs on complex Range requests */
 	http->entry = NULL;
 	return LOG_TCP_MISS;
     } else {
