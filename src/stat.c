@@ -822,9 +822,10 @@ statAvgTick(void *notused)
 
     if ((NCountHist % COUNT_INTERVAL) == 0) {
 	/* we have an hours worth of readings.  store previous hour */
-	StatCounters *p = &CountHourHist[0];
-	StatCounters *t = &CountHourHist[1];
+	StatCounters *t = &CountHourHist[0];
+	StatCounters *p = &CountHourHist[1];
 	StatCounters *c = &CountHist[N_COUNT_HIST];
+	statCountersClean(CountHourHist + N_COUNT_HOUR_HIST - 1);
 	xmemmove(p, t, (N_COUNT_HOUR_HIST - 1) * sizeof(StatCounters));
 	statCountersCopy(t, c);
 	NCountHourHist++;
