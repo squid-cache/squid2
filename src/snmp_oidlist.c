@@ -394,6 +394,7 @@ meshPtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     /* XXX should be smarter than that */
     peer *pp = NULL;
     peer *p = Config.peers;
+    debug(49, 6) ("meshPtblGetNextFn: called\n");
     while (p) {
 	numPeers++;
 	if (p->in_addr.sin_addr.s_addr > max_addr) {
@@ -402,11 +403,15 @@ meshPtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
 	}
 	p = p->next;
     }
-    addr2oid(pp->in_addr.sin_addr, &mibTail[LEN_SQ_MESH + 3]);
+    if(pp != NULL){
+    	addr2oid(pp->in_addr.sin_addr, &mibTail[LEN_SQ_MESH + 3]);
 
-    ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
-	mibRoot, mibRootLen, meshPtblGetRowFn, 4, mibTail, snmp_meshPtblFn,
-	LEN_SQ_MESH + 7, LEN_SQ_MESH + 2);
+    	ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
+		mibRoot, mibRootLen, meshPtblGetRowFn, 4, mibTail, snmp_meshPtblFn,
+		LEN_SQ_MESH + 7, LEN_SQ_MESH + 2);
+    }else{
+	ret = NULL;
+    }
     return ret;
 }
 
@@ -420,6 +425,7 @@ meshCtblGetNextFn(oid * Src, snint SrcLen, oid ** Dest, snint * DestLen)
     {SQ_MESH, MESH_CTBL, 1, MESH_CTBL_END - 1, 0, 0, 0, 0};
     oid_ParseFn *ret;
 
+    debug(49, 6) ("meshCtblGetNextFn: called\n");
     addr2oid(*gen_getMax(), &mibTail[LEN_SQ_MESH + 3]);
 
     ret = genericGetNextFn(Src, SrcLen, Dest, DestLen,
