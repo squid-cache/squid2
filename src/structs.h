@@ -282,7 +282,7 @@ struct _SquidConfig {
     char *effectiveGroup;
     struct {
 	char *dnsserver;
-	char *redirect;
+	wordlist *redirect;
 	wordlist *authenticate;
 	char *pinger;
 	char *unlinkd;

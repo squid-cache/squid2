@@ -931,7 +931,7 @@ DOC_END
 
 
 NAME: redirect_program
-TYPE: string
+TYPE: wordlist
 LOC: Config.Program.redirect
 DEFAULT: none
 DOC_START
