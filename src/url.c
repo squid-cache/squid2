@@ -20,6 +20,7 @@ char *ProtocolStr[] =
     "NONE",
     "http",
     "ftp",
+    "gopher",
     "wais",
     "cache_object",
 #ifdef NEED_PROTO_CONNECT
