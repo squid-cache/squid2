@@ -326,7 +326,7 @@ extern int httpHdrRangeCanonize(HttpHdrRange * range, size_t clen);
 /* other */
 extern String httpHdrRangeBoundaryStr(clientHttpRequest * http);
 extern int httpHdrRangeIsComplex(const HttpHdrRange * range);
-
+extern int httpHdrRangeWillBeComplex(const HttpHdrRange * range);
 
 /* Http Content Range Header Field */
 extern HttpHdrContRange *httpHdrContRangeCreate();
