@@ -413,7 +413,9 @@ mainInitialize(void)
     httpReplyInitModule();	/* must go before accepting replies */
     errorInitialize();
     accessLogInit();
+#if USE_IDENT
     identInit();
+#endif
 #ifdef SQUID_SNMP
     snmpInit();
 #endif

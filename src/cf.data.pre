@@ -759,6 +759,7 @@ DOC_END
 
 NAME: ident_lookup_access
 TYPE: acl_access
+IFDEF: USE_IDENT
 DEFAULT: none
 LOC: Config.accessList.identLookup
 DOC_START
@@ -1361,6 +1362,7 @@ DOC_END
 
 NAME: ident_timeout
 TYPE: time_t
+IFDEF: USE_IDENT
 LOC: Config.Timeout.ident
 DEFAULT: 10 seconds
 DOC_START

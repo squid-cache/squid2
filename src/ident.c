@@ -35,6 +35,8 @@
 
 #include "squid.h"
 
+#if USE_IDENT
+
 #define IDENT_PORT 113
 #define IDENT_KEY_SZ 50
 
@@ -235,3 +237,5 @@ identInit(void)
 	hashPrime(Squid_MaxFD / 8),
 	hash4);
 }
+
+#endif

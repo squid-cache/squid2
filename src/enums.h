@@ -97,7 +97,9 @@ typedef enum {
     ACL_URLPATH_REGEX,
     ACL_URL_REGEX,
     ACL_URL_PORT,
+#if USE_IDENT
     ACL_IDENT,
+#endif
     ACL_PROTO,
     ACL_METHOD,
     ACL_BROWSER,
