@@ -1,9 +1,13 @@
+Changes to squid-1.0.2 (July 16, 1996):
+
 	- Fixed HTTP code in access.log for TCP_IFMODSINCE requests.
 	- Fixed SSL to not read again until previous write is complete.
 	- Added CPU usage percentage in cachemgr 'info' output.
 	- Fixed bug when removing a neighbor.  Forgetting to decrement
 	  friends->n causes a duplicate ICP query to be sent in
 	  neighborsUdpPing().
+	- Increased some MAX_URL sized character buffers to prevent
+	  overflows.
 
 Changes to squid-1.0.1 (July 8, 1996):
 
