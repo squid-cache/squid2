@@ -269,6 +269,7 @@ struct SquidConfig {
     struct {
 	int log_udp;
 	int enable_purge;
+	int res_defnames;
     } Options;
 };
 

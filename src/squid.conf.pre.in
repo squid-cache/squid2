@@ -532,6 +532,15 @@ debug_options ALL,1
 #
 #dns_children 5
 
+#  TAG: dns_defnames
+#	Normally the 'dnsserver' disables the RES_DEFNAMES resolver
+#	option (see res_init(3)).  This prevents caches in a hierarchy
+#	from interpreting single-component hostnames locally.  To allow
+#	dnsserver to handle single-component names, enable this
+#	option.
+#
+#dns_defnames off
+
 #  TAG: redirect_program 
 #	Specify the location of the executable for the URL redirector.
 #	Currently, you must provide your own redirector program.

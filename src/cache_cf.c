@@ -1214,6 +1214,8 @@ parseConfigFile(const char *file_name)
 
 	else if (!strcmp(token, "dns_children"))
 	    parseIntegerValue(&Config.dnsChildren);
+	else if (!strcmp(token, "dns_defnames"))
+	    parseOnOff(&Config.Options.res_defnames);
 
 	else if (!strcmp(token, "redirect_program"))
 	    parsePathname(&Config.Program.redirect);
