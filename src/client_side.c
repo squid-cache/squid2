@@ -1467,7 +1467,9 @@ clientProcessRequest2(clientHttpRequest * http)
     const cache_key *key = storeKeyPublic(http->uri, r->method);
     StoreEntry *e;
     e = http->entry = storeGet(key);
+#if SQUID_PEER_DIGEST
     http->lookup_type = e ? "HIT" : "MISS";
+#endif
     if (!e) {
 	/* this object isn't in the cache */
 	return LOG_TCP_MISS;
