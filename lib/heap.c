@@ -452,7 +452,6 @@ _heap_grow(heap * hp)
     hp->nodes = newNodes;
 #endif
     hp->size = newSize;
-    u
 }
 
 
