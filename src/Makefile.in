@@ -33,7 +33,7 @@ XTRA_OBJS 	= @XTRA_OBJS@
 SHELL		= /bin/sh
 
 
-INCLUDE		= -I. -I$(srcdir)/../include	# MUST use -I. first
+INCLUDE		= -I. -I../include -I$(srcdir)/../include
 CFLAGS 		= $(STD_CFLAGS) $(XTRA_CFLAGS) $(INCLUDE) $(DEFINES)
 LDFLAGS         = $(STD_LDFLAGS)
 LIBS		= -L../lib -lregex -lutil $(XTRA_LIBS)

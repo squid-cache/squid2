@@ -20,7 +20,7 @@ STD_LDFLAGS	= @STD_LDFLAGS@
 XTRA_LIBS	= @XTRA_LIBS@
 XTRA_CFLAGS     = @XTRA_CFLAGS@
 
-INCLUDE		= -I$(srcdir)/../include
+INCLUDE		= -I../include -I$(srcdir)/../include
 UTILOBJS	= rfc850.o \
 		  rfc1738.o \
 		  util.o \
