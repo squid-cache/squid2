@@ -1802,8 +1802,19 @@ ftpAppendSuccessHeader(FtpStateData * ftpState)
     if (EBIT_TEST(ftpState->flags, FTP_ISDIR)) {
 	mime_type = "text/html";
     } else {
-	mime_type = mimeGetContentType(filename);
-	mime_enc = mimeGetContentEncoding(filename);
+	switch (ftpState->typecode) {
+	case 'I':
+	    mime_type = "application/octet-stream";
+	    mime_enc = mimeGetContentEncoding(filename);
+	    break;
+	case 'A':
+	    mime_type = "text/plain";
+	    break;
+	default:
+	    mime_type = mimeGetContentType(filename);
+	    mime_enc = mimeGetContentEncoding(filename);
+	    break;
+	}
     }
     storeBuffer(e);
     storeAppendPrintf(e, "HTTP/1.0 200 Gatewaying\r\n");
