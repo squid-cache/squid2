@@ -126,7 +126,7 @@ carpSelectParent(request_t * request)
 	combined_hash += combined_hash * 0x62531965;
 	combined_hash = ROTATE_LEFT(combined_hash, 21);
 	combined_hash = combined_hash * tp->carp.load_multiplier;
-	debug(39, 3) ("carpSelectParent: %s combined_hash %d\n",
+	debug(39, 3) ("carpSelectParent: %s combined_hash %ld\n",
 	    tp->host, combined_hash);
 	if ((combined_hash > high_score) && neighborUp(tp)) {
 	    p = tp;
