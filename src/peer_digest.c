@@ -261,14 +261,8 @@ peerDigestRequest(peer * p)
     }
 #else
     assert(!req->header.len);
-    {
-	HttpHdrCc *cc = httpHdrCcCreate();
-	EBIT_SET(cc->mask, CC_ONLY_IF_CACHED);
-	httpHeaderPutStr(&req->header, HDR_ACCEPT, StoreDigestMimeStr);
-	httpHeaderPutStr(&req->header, HDR_ACCEPT, "text/html");
-	httpHeaderPutCc(&req->header, cc);
-	httpHdrCcDestroy(cc);
-    }
+    httpHeaderPutStr(&req->header, HDR_ACCEPT, StoreDigestMimeStr);
+    httpHeaderPutStr(&req->header, HDR_ACCEPT, "text/html");
 #endif
     /* create fetch state structure */
     fetch = memAllocate(MEM_DIGEST_FETCH_STATE);
