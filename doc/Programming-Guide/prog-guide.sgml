@@ -2423,9 +2423,9 @@ line, separated by a space:
 <USERNAME> <PASSWORD>
 </verb>
 <p>
-The authentication module process reads username, password
-pairs on stdin and returns either ``OK'' or ``ERR'' for
-each line.
+The authentication module process reads username, password pairs
+on stdin and returns either ``OK'' or ``ERR'' on stdout for
+each input line.
 
 <p>
 The following simple perl script demonstrates how the
@@ -2435,7 +2435,7 @@ and allows any user that uses the password ``Sekrit'':
 
 <verb>
 #!/usr/bin/perl -w
-$|=1;
+$|=1;		# no buffering, important!
 while (<>) {
         chop;
         ($u,$p) = split;
