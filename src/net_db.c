@@ -399,7 +399,7 @@ netdbReloadState(void)
 	    continue;
 	N.last_use_time = (time_t) atoi(t);
 	n = xcalloc(1, sizeof(netdbEntry));
-	memcpy(n, &N, sizeof(netdbEntry));
+	xmemcpy(n, &N, sizeof(netdbEntry));
 	netdbHashInsert(n, addr);
 	while ((t = strtok(NULL, w_space)) != NULL)
 	    netdbHashLink(n, t);
