@@ -398,7 +398,7 @@ install-pinger:
 clean: 
 	-rm -rf *.o *pure_* core $(PROGS) $(UTILS) $(CGIPROGS) $(SUID_UTILS)
 	-rm -f cf_gen cf_gen_defines.h cf_parser.c cf.data globals.c string_arrays.c
-	-rm -f store_modules.c
+	-rm -f store_modules.c repl_modules.c
 	@for dir in $(SUBDIRS); do \
 		echo "Making $@ in $$dir..."; \
 		(cd $$dir ; $(MAKE) $(MFLAGS) prefix="$(prefix)" $@) || exit 1; \
