@@ -449,30 +449,6 @@ storeSetMemStatus(StoreEntry * e, mem_status_t status)
 
 /* -------------------------------------------------------------------------- */
 
-#ifdef OLD_CODE
-static char *
-time_describe(time_t t)
-{
-    LOCAL_ARRAY(char, buf, 128);
-    if (t < 60) {
-	sprintf(buf, "%ds", (int) t);
-    } else if (t < 3600) {
-	sprintf(buf, "%dm", (int) t / 60);
-    } else if (t < 86400) {
-	sprintf(buf, "%dh", (int) t / 3600);
-    } else if (t < 604800) {
-	sprintf(buf, "%dD", (int) t / 86400);
-    } else if (t < 2592000) {
-	sprintf(buf, "%dW", (int) t / 604800);
-    } else if (t < 31536000) {
-	sprintf(buf, "%dM", (int) t / 2592000);
-    } else {
-	sprintf(buf, "%dY", (int) t / 31536000);
-    }
-    return buf;
-}
-#endif
-
 static void
 storeLog(int tag, const StoreEntry * e)
 {
@@ -484,7 +460,8 @@ storeLog(int tag, const StoreEntry * e)
     if (mem == NULL)
 	return;
     if (mem->log_url == NULL) {
-	debug_trap("NULL log_url");
+	debug(20,1,"storeLog: NULL log_url for %s\n", e->url);
+	storeMemObjectDump(mem);
 	mem->log_url = xstrdup(e->url);
     }
     reply = mem->reply;
@@ -2948,8 +2925,73 @@ storeSetLogUrl(StoreEntry * entry, request_t * request)
     MemObject *mem = entry->mem_obj;
     if (mem == NULL)
 	fatal_dump("NULL entry->mem_obj");
-    if (request->login[0] == '\0')
+    if (request == NULL)
+	mem->log_url = xstrdup(entry->url);
+    else if (request->login[0] == '\0')
 	mem->log_url = xstrdup(entry->url);
     else
 	mem->log_url = xstrdup(urlNoLogin(request, NULL));
 }
+
+void
+storeMemObjectDump(MemObject * mem)
+{
+    debug(20, 1, "MemObject->mime_hdr: %p %s\n",
+	mem->mime_hdr,
+	checkNullString(mem->mime_hdr));
+    debug(20, 1, "MemObject->data: %p\n",
+	mem->data);
+    debug(20, 1, "MemObject->e_swap_buf: %p %s\n",
+	mem->e_swap_buf,
+	checkNullString(mem->e_swap_buf));
+    debug(20, 1, "MemObject->e_pings_first_miss: %p\n",
+	mem->e_pings_first_miss);
+    debug(20, 1, "MemObject->w_rtt: %d\n",
+	mem->w_rtt);
+    debug(20, 1, "MemObject->e_pings_closest_parent: %p\n",
+	mem->e_pings_closest_parent);
+    debug(20, 1, "MemObject->p_rtt: %d\n",
+	mem->p_rtt);
+    debug(20, 1, "MemObject->start_ping: %d.%06d\n",
+	mem->start_ping.tv_sec,
+	mem->start_ping.tv_usec);
+    debug(20, 1, "MemObject->e_swap_buf_len: %d\n",
+	mem->e_swap_buf_len);
+    debug(20, 1, "MemObject->e_pings_n_pings: %d\n",
+	mem->e_pings_n_pings);
+    debug(20, 1, "MemObject->e_pings_n_acks: %d\n",
+	mem->e_pings_n_acks);
+    debug(20, 1, "MemObject->pending_list_size: %d\n",
+	mem->pending_list_size);
+    debug(20, 1, "MemObject->e_abort_msg: %p %s\n",
+	mem->e_abort_msg,
+	checkNullString(mem->e_abort_msg));
+    debug(20, 1, "MemObject->abort_code: %d %s\n",
+	mem->abort_code, log_tags[mem->abort_code]);
+    debug(20, 1, "MemObject->e_current_len: %d\n",
+	mem->e_current_len);
+    debug(20, 1, "MemObject->e_lowest_offset: %d\n",
+	mem->e_lowest_offset);
+    debug(20, 1, "MemObject->clients: %p\n",
+	mem->clients);
+    debug(20, 1, "MemObject->nclients: %d\n",
+	mem->nclients);
+    debug(20, 1, "MemObject->swapin_fd: %d\n",
+	mem->swapin_fd);
+    debug(20, 1, "MemObject->swapout_fd: %d\n",
+	mem->swapout_fd);
+    debug(20, 1, "MemObject->reply: %p\n",
+	mem->reply);
+    debug(20, 1, "MemObject->request: %p\n",
+	mem->request);
+    debug(20, 1, "MemObject->swapin_complete_handler: %p\n",
+	mem->swapin_complete_handler);
+    debug(20, 1, "MemObject->swapin_complete_data: %p\n",
+	mem->swapin_complete_data);
+    debug(20, 1, "MemObject->mime_hdr_sz: %d\n",
+	mem->mime_hdr_sz);
+    debug(20, 1, "MemObject->log_url: %p %s\n",
+	mem->log_url,
+	checkNullString(mem->log_url));
+}
+

@@ -1330,6 +1330,8 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	    header.opcode, inet_ntoa(from.sin_addr));
 	break;
     }
+    if (entry->mem_obj && entry->mem_obj->log_url == NULL)
+	storeSetLogUrl(entry, icp_request);
     if (icp_request)
 	put_free_request_t(icp_request);
 }
@@ -1635,21 +1637,6 @@ parseHttpRequest(icpStateData * icpState)
 	*t = '\0';
     if ((t = strchr(url, '#')))	/* remove HTML anchors */
 	*t = '\0';
-
-#ifdef OLD_CODE
-    if (Config.appendDomain) {
-	if ((t = do_append_domain(url, Config.appendDomain))) {
-	    if (free_request)
-		safe_free(url);
-	    url = t;
-	    free_request = 1;
-	    /* NOTE: We don't have to free the old request pointer
-	     * because it points to inside inbuf. But
-	     * do_append_domain() allocates new memory so set a flag
-	     * if the request should be freed later. */
-	}
-    }
-#endif
     /* see if we running in httpd_accel_mode, if so got to convert it to URL */
     if (httpd_accel_mode && *url == '/') {
 	/* prepend the accel prefix */

@@ -164,10 +164,6 @@ static int logReadHandler _PARAMS((int, const char *, int, log_read_data_t *));
 static int squidReadHandler _PARAMS((int, const char *, int, squid_read_data_t *));
 static int memoryAccounted _PARAMS((void));
 
-#ifdef UNUSED_CODE
-static int mallinfoTotal _PARAMS((void));
-#endif
-
 #ifdef XMALLOC_STATISTICS
 static void info_get_mallstat _PARAMS((int, int, StoreEntry *));
 #endif
@@ -331,10 +327,6 @@ describeFlags(const StoreEntry * entry)
     int flags = (int) entry->flag;
     char *t;
     buf[0] = '\0';
-#ifdef OLD_CODE
-    if (BIT_TEST(flags, IP_LOOKUP_PENDING))
-	strcat(buf, "IP,");
-#endif
     if (BIT_TEST(flags, DELETE_BEHIND))
 	strcat(buf, "DB,");
     if (BIT_TEST(flags, CLIENT_ABORT_REQUEST))
@@ -714,20 +706,6 @@ memoryAccounted(void)
                  meta_data.client_info * client_info_sz +
                  meta_data.misc;
 }
-
-#ifdef UNUSED_CODE
-static int
-mallinfoTotal(void)
-{
-    int total = 0;
-#if HAVE_MALLINFO
-    struct mallinfo mp;
-    mp = mallinfo();
-    total = mp.arena;
-#endif
-    return total;
-}
-#endif
 
 static void
 info_get(const cacheinfo * obj, StoreEntry * sentry)

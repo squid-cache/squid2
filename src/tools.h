@@ -126,6 +126,7 @@ extern void squid_signal _PARAMS((int sig, void (*func) _PARAMS((int)), int flag
 extern pid_t readPidFile _PARAMS((void));
 extern void _debug_trap _PARAMS((const char *message));
 extern struct in_addr inaddrFromHostent _PARAMS((const struct hostent * hp));
+extern char *checkNullString _PARAMS((char *));
 
 extern int do_mallinfo;
 extern time_t squid_curtime;
