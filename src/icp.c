@@ -170,8 +170,13 @@ int icpCachable(icpState)
 	return gopherCachable(request);
     if (!strncasecmp(request, "wais://", 7))
 	return 0;
+#ifdef NEED_PROTO_CONNECT
     if (!strncasecmp(request, "connect://", 10))
 	return 0;
+#else
+    if (method == METHOD_CONNECT)
+	return 0;
+#endif
     if (!strncasecmp(request, "cache_object://", 15))
 	return 0;
     return 1;
@@ -1127,6 +1132,7 @@ int parseHttpRequest(icpState)
     }
     /* Assign icpState->url */
 
+#ifdef NEED_PROTO_CONNECT
     if (icpState->method == METHOD_CONNECT) {
 	/* Prepend the host name with connect:// on CONNECT */
 	t = xcalloc(strlen(request) + 12, 1);
@@ -1137,6 +1143,7 @@ int parseHttpRequest(icpState)
 	request = t;
 	free_request = 1;
     }
+#endif
     if ((t = strchr(request, '\n')))	/* remove NL */
 	*t = '\0';
     if ((t = strchr(request, '\r')))	/* remove CR */
@@ -1197,22 +1204,29 @@ static int check_valid_url(fd, astm)
     static char urlpath[MAX_URL];
     static char portbuf[32];
     char *t = NULL;
-    protocol_t protocol;
-    int port;
+    protocol_t protocol = PROTO_NONE;
+    int port = 0;
     proto[0] = host[0] = urlpath[0] = '\0';
-    if (sscanf(astm->url, "%[^:]://%[^/]%s", proto, host, urlpath) < 2)
-	return ERR_INVALID_URL;
-    for (t = host; *t; t++)
-	*t = tolower(*t);
-    protocol = urlParseProtocol(proto);
-    port = urlDefaultPort(protocol);
-    if ((t = strchr(host, ':'))) {
-	*t = '\0';
-	port = atoi(t + 1);
+
+    if (astm->method == METHOD_CONNECT) {
+	if (sscanf(astm->url, "%[^:]:%d", host, &port) < 1)
+	    return ERR_INVALID_URL;
+    } else {
+	if (sscanf(astm->url, "%[^:]://%[^/]%s", proto, host, urlpath) < 2)
+	    return ERR_INVALID_URL;
+	for (t = host; *t; t++)
+	    *t = tolower(*t);
+	protocol = urlParseProtocol(proto);
+	port = urlDefaultPort(protocol);
+	if ((t = strchr(host, ':'))) {
+	    *t = '\0';
+	    port = atoi(t + 1);
+	}
+	portbuf[0] = '\0';
+	if (port > 0 && port != urlDefaultPort(protocol))
+	    sprintf(portbuf, ":%d", port);
+	sprintf(astm->url, "%s://%s%s%s", proto, host, portbuf, urlpath);
     }
-    portbuf[0] = '\0';
-    if (port > 0 && port != urlDefaultPort(protocol))
-	sprintf(portbuf, ":%d", port);
 
     if (!aclCheck(HTTPAccessList,
 	    astm->peer.sin_addr,
@@ -1222,7 +1236,6 @@ static int check_valid_url(fd, astm)
 	    port,
 	    urlpath))
 	return LOG_TCP_DENIED;
-    sprintf(astm->url, "%s://%s%s%s", proto, host, portbuf, urlpath);
     return 0;
 }
 
@@ -1286,52 +1299,52 @@ void asciiProcessInput(fd, buf, size, flag, astm)
 
     parser_return_code = parseHttpRequest(astm);
     if (parser_return_code == 1) {
-	switch (check_valid_url(fd, astm)) {
-	case ERR_INVALID_URL:
-	    debug(12, 5, "Invalid URL: %s\n", astm->url);
-	    astm->log_type = ERR_INVALID_URL;
-	    astm->http_code = 400;
-	    astm->buf = xstrdup(cached_error_url(astm->url,
-		    astm->method,
-		    ERR_INVALID_URL,
-		    fd_table[fd].ipaddr,
-		    astm->http_code,
-		    NULL));
-	    astm->ptr_to_4k_page = NULL;
-	    icpWrite(fd,
-		astm->buf,
-		strlen(astm->buf),
-		30,
-		icpSendERRORComplete,
-		(void *) astm);
-	    break;
-	case LOG_TCP_DENIED:
-	    debug(12, 5, "Access Denied: %s\n", astm->url);
-	    astm->log_type = LOG_TCP_DENIED;
-	    astm->http_code = 403;
-	    astm->buf = xstrdup(access_denied_msg(astm->http_code,
-		    astm->method,
-		    astm->url,
-		    fd_table[fd].ipaddr));
-	    astm->ptr_to_4k_page = NULL;
-	    icpWrite(fd,
-		astm->buf,
-		strlen(tmp_error_buf),
-		30,
-		icpSendERRORComplete,
-		(void *) astm);
-	    astm->log_type = LOG_TCP_DENIED;
-	    break;
-	default:
-	    /* The request is good, let's go... */
-	    sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
-		fd_note(fd, 0),
-		RequestMethodStr[astm->method],
-		astm->url);
-	    fd_note(fd, client_msg);
-	    icp_hit_or_miss(fd, astm);
-	    break;
-	}
+        switch (check_valid_url(fd, astm)) {
+        case ERR_INVALID_URL:
+            debug(12, 5, "Invalid URL: %s\n", astm->url);
+            astm->log_type = ERR_INVALID_URL;
+            astm->http_code = 400;
+            astm->buf = xstrdup(cached_error_url(astm->url,
+                    astm->method,
+                    ERR_INVALID_URL,
+                    fd_table[fd].ipaddr,
+                    astm->http_code,
+                    NULL));
+            astm->ptr_to_4k_page = NULL;
+            icpWrite(fd,
+                astm->buf,
+                strlen(astm->buf),
+                30,
+                icpSendERRORComplete,
+                (void *) astm);
+            break;
+        case LOG_TCP_DENIED:
+            debug(12, 5, "Access Denied: %s\n", astm->url);
+            astm->log_type = LOG_TCP_DENIED;
+            astm->http_code = 403;
+            astm->buf = xstrdup(access_denied_msg(astm->http_code,
+                    astm->method,
+                    astm->url,
+                    fd_table[fd].ipaddr));
+            astm->ptr_to_4k_page = NULL;
+            icpWrite(fd,
+                astm->buf,
+                strlen(tmp_error_buf),
+                30,
+                icpSendERRORComplete,
+                (void *) astm);
+            astm->log_type = LOG_TCP_DENIED;
+            break;
+        default:
+            /* The request is good, let's go... */
+            sprintf(client_msg, "%16.16s %-4.4s %-40.40s",
+                fd_note(fd, 0),
+                RequestMethodStr[astm->method],
+                astm->url);
+            fd_note(fd, client_msg);
+            icp_hit_or_miss(fd, astm);
+            break;
+        }
     } else if (parser_return_code == 0) {
 	/*
 	 *    Partial request received; reschedule until parseAsciiUrl()

@@ -26,7 +26,7 @@ typedef struct {
 
 static char conn_established[] = "HTTP/1.0 200 Connection established\r\n\r\n";
 
-static int connect_url_parser _PARAMS((char *url, char *host, int *port, char *request));
+static int connect_url_parser _PARAMS((char *url, ConnectData *));
 static void connectLifetimeExpire _PARAMS((int fd, ConnectData * data));
 static void connectReadRemote _PARAMS((int fd, ConnectData * data));
 static void connectReadTimeout _PARAMS((int fd, ConnectData * data));
@@ -38,36 +38,22 @@ static void connectCloseAndFree _PARAMS((int fd, ConnectData * data));
 
 extern intlist *connect_port_list;
 
-static int connect_url_parser(url, host, port, request)
+static int connect_url_parser(url, connectData)
      char *url;
-     char *host;
-     int *port;
-     char *request;
+     ConnectData *connectData;
 {
-    static char hostbuf[MAX_URL];
-    static char atypebuf[MAX_URL];
-    int t;
-    intlist *p = NULL;
-
+    char *host = connectData->host;
+    char *t = NULL;
     /* initialize everything */
-    (*port) = 0;
-    atypebuf[0] = hostbuf[0] = request[0] = host[0] = '\0';
-
-    t = sscanf(url, "%[a-zA-Z]://%[^/]%s", atypebuf, hostbuf, request);
-    if ((t < 2) || (strcasecmp(atypebuf, "connect") != 0)) {
-	return -1;
-    } else if (t == 2) {
-	strcpy(request, "/");
+    connectData->port = CONNECT_PORT;
+    strncpy(host, url, SQUIDHOSTNAMELEN);
+    if ((t = strchr(host, ':')) && *(t + 1) != '\0') {
+	*t = '\0';
+	connectData->port = atoi(t + 1);
     }
-    if (sscanf(hostbuf, "%[^:]:%d", host, port) < 2)
-	(*port) = CONNECT_PORT;
-    else {
-	for (p = connect_port_list; p; p = p->next) {
-	    if (*port == p->i)
-		return 0;
-	}
+    /* Fail if port is not in list of approved ports */
+    if (!aclMatchInteger(connect_port_list, connectData->port))
 	return -1;
-    }
     return 0;
 }
 
@@ -332,7 +318,7 @@ int connectStart(fd, url, method, mime_hdr, entry)
     data->timeout = getReadTimeout();
 
     /* Parse url. */
-    if (connect_url_parser(url, data->host, &data->port, data->buf)) {
+    if (connect_url_parser(url, data)) {
 	cached_error_entry(entry, ERR_INVALID_URL, NULL);
 	safe_free(data);
 	return COMM_ERROR;

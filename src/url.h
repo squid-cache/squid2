@@ -20,12 +20,13 @@ typedef enum {
     PROTO_GOPHER,
     PROTO_WAIS,
     PROTO_CACHEOBJ,
-    PROTO_CONNECT,
+#ifdef NEED_PROTO_CONNECT
+    PROTO_CONNECT
+#endif
     PROTO_MAX
 } protocol_t;
 
 extern char *ProtocolStr[];
-
 
 #define MAX_URL  (ICP_MAX_URL)
 

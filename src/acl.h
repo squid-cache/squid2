@@ -70,6 +70,8 @@ extern void aclDestroyAccessList _PARAMS((struct _acl_access ** list));
 extern void aclDestroyAcls _PARAMS((void));
 extern void aclParseAccessLine _PARAMS((struct _acl_access **));
 extern void aclParseAclLine _PARAMS((void));
+extern int aclMatchInteger _PARAMS((intlist *, int));
+
 
 extern struct _acl_access *HTTPAccessList;
 extern struct _acl_access *ICPAccessList;

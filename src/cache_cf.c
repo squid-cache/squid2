@@ -154,12 +154,12 @@ extern char *config_file;
 intlist snews =
 {
     563,
-    NULL,
+    NULL
 };
 intlist https =
 {
     443,
-    &snews,
+    &snews
 };
 intlist *connect_port_list = &https;
 
