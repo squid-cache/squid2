@@ -115,7 +115,7 @@ void clientAccessCheck(icpState, handler)
 	icpState->aclChecklist->request = requestLink(icpState->request);
     }
 #if USE_PROXY_AUTH
-    if (clientProxyAuthCheck == 0) {
+    if (clientProxyAuthCheck(icpState) == 0) {
 	char *wbuf = NULL;
 	int fd = icpState->fd;
 	debug(33, 4, "Proxy Denied: %s\n", icpState->url);
