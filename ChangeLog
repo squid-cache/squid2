@@ -127,3 +127,4 @@ Changes to squid-1.0.beta6:
 	- Added -m Method option to `client'.
 	- Fixed ftpget server bug with missing trailing slash.
 	- Removed 'connect_ports' from config, use general ACLs instead.
+	- Changed requested listen queue length to 1/4 of getMaxFD().
