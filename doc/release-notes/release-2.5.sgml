@@ -239,9 +239,10 @@ name="ChangeLog"> file for details.
 	<item>Squid now respects the Telnet protocol on connections to FTP
 	servers. The ftp_telnet_protocol directice can be used to revert back
 	to the old incorrect implementation.
-	<item>Several NTLM related bugfixes and improvements, fixing the problem
+	<item>Several NTLM related bugfixes and improvements fixing the problem
 	of random auth popups and account lockouts. Support for the NEGOTIATE
-	NTLM packet is also added to allow Samba-3 to negotiate the use of NTLMv2.
+	NTLM packet is also added to allow Samba-3.0.2 or later to negotiate the
+	use of NTLMv2.
 	<item>a large number of minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE4"
 	name="squid-2.5.STABLE4 patches"> and the <url url="ChangeLog"
