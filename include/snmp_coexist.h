@@ -34,11 +34,11 @@
 extern "C" {
 #endif
 
-int snmp_coexist_V2toV1(struct snmp_pdu *);
-int snmp_coexist_V1toV2(struct snmp_pdu *);
+    int snmp_coexist_V2toV1(struct snmp_pdu *);
+    int snmp_coexist_V1toV2(struct snmp_pdu *);
 
 #ifdef __cplusplus
 }
-#endif
 
-#endif /* _SNMP_COEXISTANCE_H_ */
+#endif
+#endif				/* _SNMP_COEXISTANCE_H_ */

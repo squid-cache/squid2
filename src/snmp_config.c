@@ -1,3 +1,57 @@
+/*
+ * $Id$
+ *
+ * DEBUG: section 49     SNMP Interface
+ * AUTHOR: Kostas Anagnostakis
+ *
+ * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
+ * --------------------------------------------------------
+ *
+ *  Squid is the result of efforts by numerous individuals from the
+ *  Internet community.  Development is led by Duane Wessels of the
+ *  National Laboratory for Applied Network Research and funded by
+ *  the National Science Foundation.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  
+ */
+
+/***********************************************************
+        Copyright 1989 by Carnegie Mellon University
+
+                      All Rights Reserved
+
+Permission to use, copy, modify, and distribute this software and its 
+documentation for any purpose and without fee is hereby granted, 
+provided that the above copyright notice appear in all copies and that
+both that copyright notice and this permission notice appear in 
+supporting documentation, and that the name of CMU not be
+used in advertising or publicity pertaining to distribution of the
+software without specific, written prior permission.  
+
+CMU DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
+ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
+CMU BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR
+ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+SOFTWARE.
+******************************************************************/
+
+
+
 #include "squid.h"
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -8,12 +62,10 @@
 #include <stdlib.h>
 #endif
 
-#include "mib.h"
 #include "snmp.h"
 #include "snmp_impl.h"
 #include "asn1.h"
 #include "snmp_api.h"
-#include "snmp_client.h"
 
 #define USEC_QOS_AUTH 4
 #define USEC_QOS_PRIV 5
@@ -45,7 +97,7 @@ gettoken(tokenptr)
 
 
 void
-tokenize(char *line, char **tokens, int max_tokens)
+snmpTokenize(char *line, char **tokens, int max_tokens)
 {
     int i;
     char *tokenptr;
@@ -61,7 +113,7 @@ tokenize(char *line, char **tokens, int max_tokens)
 }
 
 int
-create_view(tokens)
+snmpCreateView(tokens)
      char *tokens[];
 {
     static int nextview = 1;
@@ -69,11 +121,11 @@ create_view(tokens)
     viewEntry *new, *prev = 0;
 
     if (tokens[3][0] == 0 || tokens[4][0] != 0) {
-	debug(49, 0) ("create_view: bad view line, line %d\n", linenumber);
+	debug(49, 0) ("snmpCreateView: bad view line, line %d\n", linenumber);
 	return -1;
     }
     if (strlen(tokens[1]) > (sizeof(vp->viewName) - 1)) {
-	debug(49, 0) ("create_view:view name too long, line %d\n", linenumber);
+	debug(49, 0) ("snmpCreateView:view name too long, line %d\n", linenumber);
 	return -1;
     }
     for (vp = Config.Snmp.views; vp; prev = vp, vp = vp->next) {
@@ -118,7 +170,7 @@ find_view(name)
 }
 
 int
-create_user(tokens)
+snmpCreateUser(tokens)
      char *tokens[];
 {
     usecEntry *up;
@@ -128,11 +180,11 @@ create_user(tokens)
     int i;
 
     if (tokens[5][0] == 0 || tokens[6][0] != 0) {
-	debug(49, 0) ("create_user: bad user line, line %d\n", linenumber);
+	debug(49, 0) ("snmpCreateUser: bad user line, line %d\n", linenumber);
 	return -1;
     }
     if (strlen(tokens[1]) > (sizeof(up->userName) - 1)) {
-	debug(49, 0) ("create_user: user name too long, line %d\n", linenumber);
+	debug(49, 0) ("snmpCreateUser: user name too long, line %d\n", linenumber);
 	return -1;
     }
     for (up = Config.Snmp.users; up; prev = up, up = up->next) {
@@ -141,7 +193,7 @@ create_user(tokens)
     }
 
     if (up) {
-	debug(49, 0) ("create_user: user '%s' already defined\n", tokens[1]);
+	debug(49, 0) ("snmpCreateUser: user '%s' already defined\n", tokens[1]);
 	return -1;
     }
     new = (usecEntry *) xcalloc(1, sizeof(usecEntry));
@@ -158,7 +210,7 @@ create_user(tokens)
     new->authWriteView = find_view(tokens[4]);
     if (new->noauthReadView < 0 || new->noauthWriteView < 0
 	|| new->authReadView < 0 || new->authWriteView < 0) {
-	debug(49, 0) ("create_user: unknown view name referenced, line %d\n", linenumber);
+	debug(49, 0) ("snmpCreateUser: unknown view name referenced, line %d\n", linenumber);
 	return -1;
     }
     start = cp = tokens[5];
@@ -168,7 +220,7 @@ create_user(tokens)
     strncpy((char *) new->userName, start, cp - start);
 
     if (new->userLen == 0) {
-	debug(49, 0) ("create_user: user name invalid, line %d\n", linenumber);
+	debug(49, 0) ("snmpCreateUser: user name invalid, line %d\n", linenumber);
 	return -1;
     }
     /* look for authKey */
@@ -181,13 +233,13 @@ create_user(tokens)
 	cp++;
     if ((cp - start > 2) && (strncmp(start, "0x", 2) == 0)) {
 	if (cp - start != 34) {
-	    debug(49, 0) ("create_user: auth key not 16 octets\n");
+	    debug(49, 0) ("snmpCreateUser: auth key not 16 octets\n");
 	    return -1;
 	}
 	start += 2;
 	for (i = 0; i < 16; i++) {
 	    if (sscanf(start, "%2x", &ch) != 1) {
-		debug(49, 0) ("create_user: auth key contains non hex digits\n");
+		debug(49, 0) ("snmpCreateUser: auth key contains non hex digits\n");
 		return -1;
 	    }
 	    start += 2;
@@ -207,13 +259,13 @@ create_user(tokens)
 	cp++;
     if ((cp - start > 2) && (strncmp(start, "0x", 2) == 0)) {
 	if (cp - start != 34) {
-	    debug(49, 0) ("create_user: priv key not 16 octets\n");
+	    debug(49, 0) ("snmpCreateUser: priv key not 16 octets\n");
 	    return -1;
 	}
 	start += 2;
 	for (i = 0; i < 16; i++) {
 	    if (sscanf(start, "%2x", &ch) != 1) {
-		debug(49, 0) ("create_user: priv key contains non hex digits\n");
+		debug(49, 0) ("snmpCreateUser: priv key contains non hex digits\n");
 		return -1;
 	    }
 	    new->privKey[i] = ch;
@@ -227,17 +279,16 @@ create_user(tokens)
 }
 
 int
-create_community(char **tokens)
+snmpCreateCommunity(char **tokens)
 {
     communityEntry *cp;
     communityEntry *new, *prev = 0;
-    debug(49, 3) ("Called create_community (HEY code)\n");
     if (tokens[3][0] == 0 || tokens[4][0] != 0) {
-	debug(49, 5) ("create_community: bad community line, line %d\n", linenumber);
+	debug(49, 5) ("snmpCreateCommunity: bad community line, line %d\n", linenumber);
 	return -1;
     }
     if (strlen(tokens[1]) > (sizeof(cp->name) - 1)) {
-	debug(49, 5) ("create_community: community name too long, line %d\n",
+	debug(49, 5) ("snmpCreateCommunity: community name too long, line %d\n",
 	    linenumber);
 	return -1;
     }
@@ -247,18 +298,18 @@ create_community(char **tokens)
     }
 
     if (cp) {
-	debug(49, 0) ("create_community: community '%s' already defined\n",
+	debug(49, 0) ("snmpCreateCommunity: community '%s' already defined\n",
 	    tokens[1]);
 	return -1;
     }
-    debug(49, 5) ("Adding %s\n", tokens[1]);
+    debug(49, 5) ("snmpCreateCommunity: Adding %s\n", tokens[1]);
     new = (communityEntry *) xcalloc(1, sizeof(communityEntry));
     memset(new, 0, sizeof(communityEntry));
     xstrncpy(new->name, tokens[1], 32);
     new->readView = find_view(tokens[2]);
     new->writeView = find_view(tokens[3]);
     if (new->readView < 0 || new->writeView < 0) {
-	debug(49, 0) ("create_community: unknown view name referenced, line %d\n",
+	debug(49, 0) ("snmpCreateCommunity: unknown view name referenced, line %d\n",
 	    linenumber);
 	return -1;
     }
@@ -267,22 +318,21 @@ create_community(char **tokens)
     } else {
 	Config.Snmp.communities = new;
     }
-    debug(49, 5) ("create_community: Everything ok!\n");
     return 0;
 }
 
 int
-default_auth()
+snmpDefaultAuth()
 {
     char *tokens[10];
     char *t;
     t = xstrdup("view $$INTERNAL$$ .1.3.6.1.6.3.6.1 included");
-    tokenize(t, tokens, 10);
-    maintenanceView = create_view(tokens);
+    snmpTokenize(t, tokens, 10);
+    maintenanceView = snmpCreateView(tokens);
     xfree(t);
     t = xstrdup("view $$INTERNAL$$ .1.3.6.1.6.3.1.1.1 included");
-    tokenize(t, tokens, 10);
-    create_view(tokens);
+    snmpTokenize(t, tokens, 10);
+    snmpCreateView(tokens);
     xfree(t);
     return 0;
 }

@@ -59,10 +59,10 @@
 extern "C" {
 #endif
 
-  char *snmp_errstring(int);
+    char *snmp_errstring(int);
 
 #ifdef __cplusplus
 }
-#endif
 
-#endif /* _SNMP_ERROR_H_ */
+#endif
+#endif				/* _SNMP_ERROR_H_ */
