@@ -106,6 +106,10 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
     squid_off_t on_disk = -1;
     int swapout_able = storeSwapOutAble(e);
 
+    /* Don't pollute the disk with icons and other special entries */
+    if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
+	return -1;
+
     if (!swapout_able) {
 	/* Stop writing to disk */
 	storeReleaseRequest(e);
@@ -396,9 +400,6 @@ storeSwapOutAble(const StoreEntry * e)
 	if (e->mem_obj->swapout.queue_offset == e->mem_obj->inmem_hi)
 	    return 1;
     if (e->mem_obj->inmem_lo > 0)
-	return 0;
-    /* Don't pollute the disk with icons and other special entries */
-    if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
 	return 0;
     return 1;
 }
