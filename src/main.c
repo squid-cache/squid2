@@ -1006,9 +1006,9 @@ SquidShutdown(void *unused)
 #endif
 #if !XMALLOC_TRACE
     if (opt_no_daemon) {
-	file_close(0);
-	file_close(1);
-	file_close(2);
+	fd_close(0);
+	fd_close(1);
+	fd_close(2);
     }
 #endif
     fdDumpOpen();
