@@ -942,6 +942,8 @@ static void
 peerRefreshDNS(void *data)
 {
     peer *p = NULL;
+    if (eventFind(peerRefreshDNS, NULL))
+	return;
     if (!data && 0 == stat5minClientRequests()) {
 	/* no recent client traffic, wait a bit */
 	eventAddIsh("peerRefreshDNS", peerRefreshDNS, NULL, 180.0, 1);
