@@ -314,6 +314,7 @@ fwdDispatch(FwdState * fwdState)
     assert(fwdState->server_fd > -1);
     if (fwdState->servers && (p = fwdState->servers->peer)) {
 	p->stats.fetches++;
+	fwdState->request->peer_login = p->login;
 	httpStart(fwdState);
     } else {
 	switch (request->protocol) {
