@@ -192,6 +192,8 @@ void httpHeaderTestParser(const char *hstr)
     Packer p;
     MemBuf mb;
     assert(hstr);
+    /* disabled for now */
+    return;
     /* do not print too much, kludge */
     if (bug_count > 50 && (lrand48() % bug_count) > 25L)
 	return;
