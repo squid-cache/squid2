@@ -661,6 +661,63 @@ httpHeaderGetByName(const HttpHeader * hdr, const char *name)
     return result;
 }
 
+/*
+ * returns a pointer to a specified entry if any 
+ * note that we return one entry so it does not make much sense to ask for
+ * "list" headers
+ */
+String
+httpHeaderGetByNameListMember(const HttpHeader * hdr, const char *name, const char *member, const char separator)
+{
+    String result = StringNull;
+    String header;
+    const char *pos = NULL;
+    const char *item;
+    int ilen;
+    int mlen = strlen(member);
+
+    assert(hdr);
+    assert(name);
+
+    header = httpHeaderGetByName(hdr, name);
+
+    while (strListGetItem(&header, separator, &item, &ilen, &pos)) {
+	if (strncmp(item, member, mlen) == 0 && item[mlen] == '=') {
+	    stringAppend(&result, item + mlen + 1, ilen - mlen - 1);
+	    break;
+	}
+    }
+    return result;
+}
+
+/*
+ * returns a the value of the specified list member, if any.
+ */
+String
+httpHeaderGetListMember(const HttpHeader * hdr, http_hdr_type id, const char *member, const char separator)
+{
+    String result = StringNull;
+    String header;
+    const char *pos = NULL;
+    const char *item;
+    int ilen;
+    int mlen = strlen(member);
+
+    assert(hdr);
+    assert(id >= 0);
+
+    header = httpHeaderGetStrOrList(hdr, id);
+
+    while (strListGetItem(&header, separator, &item, &ilen, &pos)) {
+	if (strncmp(item, member, mlen) == 0 && item[mlen] == '=') {
+	    stringAppend(&result, item + mlen + 1, ilen - mlen - 1);
+	    break;
+	}
+    }
+    stringClean(&header);
+    return result;
+}
+
 /* test if a field is present */
 int
 httpHeaderHas(const HttpHeader * hdr, http_hdr_type id)
