@@ -77,7 +77,7 @@ heap_key HeapKeyGen_StoreEntry_LFUDA(void *entry, double age)
 	tie = 1.0 - exp((double) (e->lastref - squid_curtime) / 86400.0);
     key = age + (double) e->refcount - tie;
     debug(81, 3) ("HeapKeyGen_StoreEntry_LFUDA: %s refcnt=%ld lastref=%ld age=%f tie=%f -> %f\n",
-	    storeKeyText(e->key), e->refcount, e->lastref, age, tie, key);
+	    storeKeyText(e->hash.key), e->refcount, e->lastref, age, tie, key);
     if (e->mem_obj && e->mem_obj->url)
 	debug(81, 3) ("HeapKeyGen_StoreEntry_LFUDA: url=%s\n",
 	    e->mem_obj->url);
@@ -112,7 +112,7 @@ heap_key HeapKeyGen_StoreEntry_GDSF(void *entry, double age)
     double tie = (e->lastref > 1) ? (1.0 / e->lastref) : 1.0;
     key = age + ((double) e->refcount / size) - tie;
     debug(81, 3) ("HeapKeyGen_StoreEntry_GDSF: %s size=%f refcnt=%ld lastref=%ld age=%f tie=%f -> %f\n",
-	    storeKeyText(e->key), size, e->refcount, e->lastref, age, tie, key);
+	    storeKeyText(e->hash.key), size, e->refcount, e->lastref, age, tie, key);
     if (e->mem_obj && e->mem_obj->url)
 	debug(81, 3) ("HeapKeyGen_StoreEntry_GDSF: url=%s\n",
 	    e->mem_obj->url);
@@ -130,7 +130,7 @@ heap_key HeapKeyGen_StoreEntry_LRU(void *entry, double age)
 {
     StoreEntry *e = entry;
     debug(81, 3) ("HeapKeyGen_StoreEntry_LRU: %s age=%f lastref=%f\n",
-	    storeKeyText(e->key), age, (double)e->lastref);
+	    storeKeyText(e->hash.key), age, (double)e->lastref);
     if (e->mem_obj && e->mem_obj->url)
 	debug(81, 3) ("HeapKeyGen_StoreEntry_LRU: url=%s\n",
 	    e->mem_obj->url);
