@@ -465,6 +465,7 @@ struct _store_check_cachable_hist {
 	int too_big;
 	int private_key;
 	int too_many_open_files;
+	int too_many_open_fds;
 	int lru_age_too_low;
     } no;
     struct {
@@ -513,6 +514,9 @@ storeCheckCachable(StoreEntry * e)
     } else if (storeTooManyDiskFilesOpen()) {
 	debug(20, 2) ("storeCheckCachable: NO: too many disk files open\n");
 	store_check_cachable_hist.no.too_many_open_files++;
+    } else if (fdNFree() < RESERVED_FD) {
+	debug(20, 2) ("storeCheckCachable: NO: too FD's open\n");
+	store_check_cachable_hist.no.too_many_open_fds++;
     } else if (storeExpiredReferenceAge() < 300) {
 	debug(20, 2) ("storeCheckCachable: NO: LRU Age = %d\n",
 	    storeExpiredReferenceAge());
@@ -547,6 +551,8 @@ storeCheckCachableStats(StoreEntry * sentry)
 	store_check_cachable_hist.no.private_key);
     storeAppendPrintf(sentry, "no.too_many_open_files\t%d\n",
 	store_check_cachable_hist.no.too_many_open_files);
+    storeAppendPrintf(sentry, "no.too_many_open_fds\t%d\n",
+	store_check_cachable_hist.no.too_many_open_fds);
     storeAppendPrintf(sentry, "no.lru_age_too_low\t%d\n",
 	store_check_cachable_hist.no.lru_age_too_low);
     storeAppendPrintf(sentry, "yes.default\t%d\n",
