@@ -3924,7 +3924,10 @@ DOC_START
 	even if not explicitly forbidden.
 
 	Set this directive to on if you have clients which insists
-	on sending request entities in GET or HEAD requests.
+	on sending request entities in GET or HEAD requests. But be warned
+	that there is server software (both proxies and web servers) which
+	can fail to properly process this kind of request which may make you
+	vulnerable to cache pollution attacks if enabled.
 DOC_END
 
 NAME: high_response_time_warning
