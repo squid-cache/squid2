@@ -1727,8 +1727,10 @@ static void icpDetectClientClose(fd, icpState)
     debug(12,1,"--> URL '%s'\n", icpState->url);
     if (n < 0)
         debug(12, 1, "--> ERROR %s\n", xstrerror());
-    /* Clean up client side statemachine */
+    CheckQuickAbort(icpState);
     entry = icpState->entry;
+    if (entry && icpState->url)
+	protoUndispatch(fd, icpState->url, entry, icpState->request);
     icpFreeBufOrPage(icpState);
     comm_close(fd);
     if (entry) {
