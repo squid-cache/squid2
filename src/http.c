@@ -581,6 +581,7 @@ static void httpSendRequest(fd, httpState)
     char *buf = NULL;
     char *t = NULL;
     char *post_buf = NULL;
+    int post_buf_sz = 0;
     static char *crlf = "\r\n";
     static char *VIA_PROXY_TEXT = "via Squid Cache version";
     int len = 0;
@@ -592,12 +593,15 @@ static void httpSendRequest(fd, httpState)
     debug(11, 5, "httpSendRequest: FD %d: httpState %p.\n", fd, httpState);
     buflen = strlen(Method) + strlen(req->urlpath);
     if (httpState->req_hdr)
-	buflen += strlen(httpState->req_hdr);
+	buflen += httpState->req_hdr_sz + 1;
     buflen += 512;		/* lots of extra */
 
     if ((req->method == METHOD_POST || req->method == METHOD_PUT) && httpState->req_hdr) {
 	if ((t = mime_headers_end(httpState->req_hdr))) {
-	    post_buf = xstrdup(t);
+	    post_buf_sz = httpState->req_hdr_sz - (t - httpState->req_hdr);
+	    post_buf = xmalloc(post_buf_sz + 1);
+	    xmemcpy(post_buf, t, post_buf_sz);
+	    *(post_buf + post_buf_sz) = '\0';
 	    *t = '\0';
 	}
     }
@@ -654,8 +658,8 @@ static void httpSendRequest(fd, httpState)
     strcat(buf, crlf);
     len += 2;
     if (post_buf) {
-	strcat(buf, post_buf);
-	len += strlen(post_buf);
+	xmemcpy(buf + len, post_buf, post_buf_sz);
+	len += post_buf_sz;
 	xfree(post_buf);
     }
     debug(11, 6, "httpSendRequest: FD %d: buf '%s'\n", fd, buf);
@@ -725,6 +729,7 @@ int proxyhttpStart(e, url, entry)
     httpState = xcalloc(1, sizeof(HttpStateData));
     storeLockObject(httpState->entry = entry, NULL, NULL);
     httpState->req_hdr = entry->mem_obj->mime_hdr;
+    httpState->req_hdr_sz = entry->mem_obj->mime_hdr_sz;
     request = get_free_request_t();
     httpState->request = requestLink(request);
     httpState->neighbor = e;
@@ -788,11 +793,12 @@ static int httpConnect(fd, hp, data)
     return COMM_OK;
 }
 
-int httpStart(unusedfd, url, request, req_hdr, entry)
+int httpStart(unusedfd, url, request, req_hdr, req_hdr_sz, entry)
      int unusedfd;
      char *url;
      request_t *request;
      char *req_hdr;
+     int req_hdr_sz;
      StoreEntry *entry;
 {
     /* Create state structure. */
@@ -813,6 +819,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
     httpState = xcalloc(1, sizeof(HttpStateData));
     storeLockObject(httpState->entry = entry, NULL, NULL);
     httpState->req_hdr = req_hdr;
+    httpState->req_hdr_sz = req_hdr_sz;
     httpState->request = requestLink(request);
     comm_add_close_handler(sock,
 	(PF) httpStateFree,

@@ -151,6 +151,7 @@ typedef struct iwd {
     method_t method;		/* GET, POST, ... */
     request_t *request;		/* Parsed URL ... */
     char *request_hdr;		/* Mime header */
+    int req_hdr_sz;
     StoreEntry *entry;
     long offset;
     int log_type;
@@ -862,6 +863,7 @@ static int icpProcessMISS(fd, icpState)
     }
     entry = storeCreateEntry(url,
 	request_hdr,
+	icpState->req_hdr_sz,
 	icpState->request->flags,
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
@@ -1591,25 +1593,25 @@ static int parseHttpRequest(icpState)
 
     token = strtok(NULL, "");
     for (t = token; t && *t && *t != '\n' && *t != '\r'; t++);
-    if (t == NULL || *t == '\0' || t == token) {
-	debug(12, 3, "parseHttpRequest: Missing HTTP identifier\n");
-	xfree(inbuf);
-	return -1;
+    if (t && *t && t != token) {
+        len = (int) (t - token);
+        memset(http_ver, '\0', 32);
+        strncpy(http_ver, token, len < 31 ? len : 31);
+    } else {
+	strcpy(http_ver, "HTTP/0.9");
     }
-    len = (int) (t - token);
-    memset(http_ver, '\0', 32);
-    strncpy(http_ver, token, len < 31 ? len : 31);
     debug(12, 5, "parseHttpRequest: HTTP version is '%s'\n", http_ver);
 
     req_hdr = t;
     req_hdr_sz = icpState->offset - (req_hdr - inbuf);
 
     /* Check if headers are received */
-    if (!mime_headers_end(req_hdr)) {
+    if (req_hdr == NULL || !mime_headers_end(req_hdr)) {
 	xfree(inbuf);
 	return 0;		/* not a complete request */
     }
     /* Ok, all headers are received */
+    icpState->req_hdr_sz = req_hdr_sz;
     icpState->request_hdr = xmalloc(req_hdr_sz + 1);
     xmemcpy(icpState->request_hdr, req_hdr, req_hdr_sz);
     *(icpState->request_hdr + req_hdr_sz) = '\0';

@@ -696,9 +696,10 @@ void storeSetPublicKey(e)
     storeHashInsert(e);
 }
 
-StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
+StoreEntry *storeCreateEntry(url, req_hdr, req_hdr_sz, flags, method)
      char *url;
      char *req_hdr;
+     int req_hdr_sz;
      int flags;
      method_t method;
 {
@@ -714,8 +715,12 @@ StoreEntry *storeCreateEntry(url, req_hdr, flags, method)
     e->url = xstrdup(url);
     meta_data.url_strings += strlen(url);
     e->method = method;
-    if (req_hdr)
-	mem->mime_hdr = xstrdup(req_hdr);
+    if (req_hdr) {
+	mem->mime_hdr_sz = req_hdr_sz;
+	mem->mime_hdr = xmalloc(req_hdr_sz + 1);
+	xmemcpy(mem->mime_hdr, req_hdr, req_hdr_sz);
+	*(mem->mime_hdr + req_hdr_sz) = '\0';
+    }
     if (BIT_TEST(flags, REQ_CACHABLE)) {
 	BIT_SET(e->flag, ENTRY_CACHABLE);
 	BIT_RESET(e->flag, RELEASE_REQUEST);

@@ -129,6 +129,7 @@ typedef struct {
     StoreEntry *entry;
     request_t *request;
     char *req_hdr;
+    int req_hdr_sz;
     int buf_type;		/* BUF_TYPE_8K or BUF_TYPE_MALLOC */
     char *reqbuf;		/* Holds the HTTP request being sent to
 				 * the neighbor/origin server. */
@@ -142,7 +143,7 @@ typedef struct {
 
 extern int httpCachable _PARAMS((char *, int));
 extern int proxyhttpStart _PARAMS((edge *, char *, StoreEntry *));
-extern int httpStart _PARAMS((int, char *, request_t *, char *, StoreEntry *));
+extern int httpStart _PARAMS((int, char *, request_t *, char *, int, StoreEntry *));
 extern void httpParseHeaders _PARAMS((char *, struct _http_reply *));
 extern void httpProcessReplyHeader _PARAMS((HttpStateData *, char *, int));
 extern void httpReplyHeaderStats _PARAMS((StoreEntry *));

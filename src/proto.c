@@ -505,6 +505,7 @@ int getFromCache(fd, entry, e, request)
 {
     char *url = entry->url;
     char *request_hdr = entry->mem_obj->mime_hdr;
+    int request_hdr_sz = entry->mem_obj->mime_hdr_sz;
 
     debug(17, 5, "getFromCache: FD %d <URL:%s>\n", fd, entry->url);
     debug(17, 5, "getFromCache: --> type = %s\n",
@@ -525,7 +526,7 @@ int getFromCache(fd, entry, e, request)
 	e->stats.fetches++;
 	return proxyhttpStart(e, url, entry);
     } else if (request->protocol == PROTO_HTTP) {
-	return httpStart(fd, url, request, request_hdr, entry);
+	return httpStart(fd, url, request, request_hdr, request_hdr_sz, entry);
     } else if (request->protocol == PROTO_GOPHER) {
 	return gopherStart(fd, url, entry);
     } else if (request->protocol == PROTO_FTP) {

@@ -187,6 +187,7 @@ typedef struct _MemObject {
     request_t *request;
     SIH swapin_complete_handler;
     void *swapin_complete_data;
+    int mime_hdr_sz;
 } MemObject;
 
 typedef enum {
@@ -257,7 +258,7 @@ typedef struct pentry {
 } PendingEntry;
 
 extern StoreEntry *storeGet _PARAMS((char *));
-extern StoreEntry *storeCreateEntry _PARAMS((char *, char *, int, method_t));
+extern StoreEntry *storeCreateEntry _PARAMS((char *, char *, int, int, method_t));
 extern void storeSetPublicKey _PARAMS((StoreEntry *));
 extern void storeSetPrivateKey _PARAMS((StoreEntry *));
 extern StoreEntry *storeGetFirst _PARAMS((void));
