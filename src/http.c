@@ -200,6 +200,7 @@ void httpReadReply(fd, data)
 	    return;
 	}
     }
+    errno = 0;
     len = read(fd, buf, READBUFSIZ);
     debug(5, "httpReadReply: FD %d: len %d.\n", fd, len);
 
@@ -215,6 +216,14 @@ void httpReadReply(fd, data)
 	    sprintf(tmp_error_buf, "\n<p>Warning: The Remote Server sent RESET at the end of transmission.\n");
 	    storeAppend(entry, tmp_error_buf, strlen(tmp_error_buf));
 	    storeComplete(entry);
+#ifdef POSSIBLE_FIX
+	} else if (errno == EAGAIN || errno == EWOULDBLOCK) {
+	    /* reinstall handlers */
+	    comm_set_select_handler(fd, COMM_SELECT_READ,
+		(PF) httpReadReply, (caddr_t) data);
+	    comm_set_select_handler_plus_timeout(fd, COMM_SELECT_TIMEOUT,
+		(PF) httpReadReplyTimeout, (caddr_t) data, getReadTimeout());
+#endif
 	} else {
 	    cached_error_entry(entry, ERR_READ_ERROR, xstrerror());
 	}
