@@ -55,6 +55,8 @@ storeLog(int tag, const StoreEntry * e)
 	return;
     if (mem == NULL)
 	return;
+    if (EBIT_TEST(e->flags, ENTRY_DONT_LOG))
+	return;
     if (mem->log_url == NULL) {
 	debug(20, 1) ("storeLog: NULL log_url for %s\n", mem->url);
 	storeMemObjectDump(mem);

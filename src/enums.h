@@ -457,7 +457,8 @@ enum {
     ENTRY_NEGCACHED,
     ENTRY_VALIDATED,
     ENTRY_BAD_LENGTH,
-    ENTRY_ABORTED
+    ENTRY_ABORTED,
+    ENTRY_DONT_LOG 	/* hack for gross 'Pump' entries */
 };
 
 typedef enum {
