@@ -196,5 +196,6 @@ extern double xpercent(double part, double whole);
 extern int xpercentInt(double part, double whole);
 extern double xdiv(double nom, double denom);
 
+extern const char *xitoa(int num);
 
 #endif /* ndef _UTIL_H_ */

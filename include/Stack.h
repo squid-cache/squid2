@@ -37,7 +37,7 @@ struct _Stack {
     size_t capacity;
 
     /* protected, do not use these, use interface functions instead */
-    size_t count;
+    int count;
     void **items;
 };
 
