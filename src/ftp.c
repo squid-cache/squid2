@@ -2264,6 +2264,8 @@ static void
 ftpDataWriteCallback(int fd, char *buf, size_t size, int err, void *data)
 {
     FtpStateData *ftpState = (FtpStateData *) data;
+    if (err == COMM_ERR_CLOSING)
+	return;
     if (!err) {
 	/* Shedule the rest of the request */
 	clientReadBody(ftpState->request, ftpState->data.buf, ftpState->data.size, ftpRequestBody, ftpState);
