@@ -39,7 +39,7 @@ UTILOBJS	= rfc1123.o \
 		  Stack.o \
 		  hash.o \
 		  heap.o \
-                  html.o \
+                  html_quote.o \
 		  $(LIBOBJS)
 REGEXOBJS	= GNUregex.o
 DLMALLOCOBJS	= dlmalloc.o
