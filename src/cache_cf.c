@@ -775,7 +775,6 @@ parse_peer(peer ** head)
     while (*head != NULL)
 	head = &(*head)->next;
     *head = p;
-    cbdataLock(p);
     Config.npeers++;
 }
 
@@ -785,7 +784,6 @@ free_peer(peer ** P)
     peer *p;
     while ((p = *P) != NULL) {
 	*P = p->next;
-	cbdataUnlock(p);
 	cbdataFree(p);
     }
     Config.npeers = 0;
