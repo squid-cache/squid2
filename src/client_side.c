@@ -148,7 +148,7 @@ clientConstructProxyAuthReply(clientHttpRequest * http)
 	HTTP_PROXY_AUTHENTICATION_REQUIRED,
 	"text/html",
 	strlen(content),
-	-1,
+	0,
 	squid_curtime);
     snprintf(buf, 8192, "%s%s\r\n%s",
 	hdr,
