@@ -247,7 +247,7 @@ ntlmDecodeAuth(struct ntlm_authenticate *auth, char *buf, size_t size)
 
 
 int
-main()
+main(int argc, char *argv[])
 {
     char buf[256];
     char user[256];
