@@ -915,8 +915,9 @@ clientCachable(clientHttpRequest * http)
      * is ALLOW, so we require 'no_cache DENY foo' in squid.conf
      * to indicate uncachable objects.
      */
-    if (!aclCheckFast(Config.accessList.noCache, &ch))
-	return 0;
+    if (Config.accessList.noCache)
+	if (!aclCheckFast(Config.accessList.noCache, &ch))
+	    return 0;
     if (req->protocol == PROTO_HTTP)
 	return httpCachable(method);
     /* FTP is always cachable */
