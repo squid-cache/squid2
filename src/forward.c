@@ -391,8 +391,8 @@ fwdConnectStart(void *data)
 	ftimeout = 5;
     if (ftimeout < ctimeout)
 	ctimeout = ftimeout;
-    if (fwdCheckRetriable(fwdState)) {
-	if ((fd = pconnPop(host, port)) >= 0) {
+    if ((fd = pconnPop(host, port)) >= 0) {
+	if (fwdCheckRetriable(fwdState)) {
 	    debug(17, 3) ("fwdConnectStart: reusing pconn FD %d\n", fd);
 	    fwdState->server_fd = fd;
 	    fwdState->n_tries++;
@@ -401,6 +401,12 @@ fwdConnectStart(void *data)
 	    comm_add_close_handler(fd, fwdServerClosed, fwdState);
 	    fwdConnectDone(fd, COMM_OK, fwdState);
 	    return;
+	} else {
+	    /* Discard the persistent connection to not cause
+	     * a imbalance in number of conenctions open if there
+	     * is a lot of POST requests
+	     */
+	    comm_close(fd);
 	}
     }
 #if URL_CHECKSUM_DEBUG
