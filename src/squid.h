@@ -39,20 +39,25 @@
  * NetBSD is another.  So here we increase FD_SETSIZE to our
  * configure-discovered maximum *before* any system includes.
  */
+#define CHANGE_FD_SETSIZE 1
 
-/*
- * Linux (2.x only?) always defines FD_SETSIZE in <linux/time.h> so
- * we get in trouble if we try to increase it.  barf.
- */
-
+/* Cannot increase FD_SETSIZE on Linux */
 #if defined(_SQUID_LINUX_)
-	/* Cannot increase FD_SETSIZE on Linux */
-#elif defined(_SQUID_FREEBSD_) && __FreeBSD_version__ < 220000
-	/* Cannot increase FD_SETSIZE on FreeBSD before 2.2.0 */
-	/* Marian Durkovic <marian@svf.stuba.sk> */
-	/* Peter Wemm <peter@spinner.DIALix.COM> */
-#elif SQUID_MAXFD > FD_SETSIZE
-	/* Increase FD_SETSIZE if SQUID_MAXFD is bigger */
+#define CHANGE_FD_SETSIZE 0
+#endif
+
+/* Cannot increase FD_SETSIZE on FreeBSD before 2.2.0, causes select(2)
+ * to return EINVAL. */
+/* Marian Durkovic <marian@svf.stuba.sk> */
+/* Peter Wemm <peter@spinner.DIALix.COM> */
+#if defined(_SQUID_FREEBSD_)
+#include <osreldate.h>
+#if __FreeBSD_version__ < 220000
+#define CHANGE_FD_SETSIZE 0
+#endif
+
+/* Increase FD_SETSIZE if SQUID_MAXFD is bigger */
+#if CHANGE_FD_SETSIZE && SQUID_MAXFD > FD_SETSIZE
 #define FD_SETSIZE SQUID_MAXFD
 #endif
 
