@@ -218,6 +218,8 @@ httpCachableReply(HttpStateData * httpState)
 	return 0;
     if (EBIT_TEST(cc_mask, CC_NO_CACHE))
 	return 0;
+    if (EBIT_TEST(cc_mask, CC_NO_STORE))
+	return 0;
     if (EBIT_TEST(httpState->request->flags, REQ_AUTH))
 	if (!EBIT_TEST(cc_mask, CC_PROXY_REVALIDATE))
 	    return 0;
