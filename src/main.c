@@ -988,8 +988,8 @@ SquidShutdown(void *unused)
     fwdUninit();
 #endif
     storeDirSync();		/* Flush log close */
-#if PURIFY || XMALLOC_TRACE
     storeFsDone();
+#if PURIFY || XMALLOC_TRACE
     configFreeMemory();
     storeFreeMemory();
     /*stmemFreeMemory(); */
