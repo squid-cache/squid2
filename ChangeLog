@@ -53,6 +53,8 @@ Changes to squid-2.5.STABLE3 ():
 	  and two new digest options have been added (check_nonce_count
 	  and post_workaround) to allow workarounds to other quite bad
 	  browser bugs if needed.
+	- Bug #644: digest authentication fails on requests with one
+	  or more comma in the requested URL
 
 Changes to squid-2.5.STABLE2 (Mars 17, 2003):
 
