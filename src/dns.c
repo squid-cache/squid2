@@ -196,7 +196,13 @@ dnsOpenServer(const char *command)
     dup2(fd, 1);
     dup2(fileno(debug_log), 2);
     fclose(debug_log);
-    close(fd);
+    /*
+     * Solaris pthreads seems to close FD 0 upon fork(), so don't close
+     * this FD if its 0, 1, or 2.
+     * -- Michael O'Reilly <michael@metal.iinet.net.au>
+     */
+    if (fd > 2)
+        close(fd);
     close(cfd);
     if (Config.onoff.res_defnames)
 	execlp(command, "(dnsserver)", "-D", NULL);
