@@ -4,6 +4,9 @@
 # configure has not been run, or if a Makefile.am in a non-configured directory
 # has been updated
 
+# Autotool versions required
+acver="2.13"
+amver="1.5"
 
 bootstrap() {
   if "$@"; then
@@ -20,14 +23,14 @@ bootstrap() {
 mkdir -p cfgaux
 
 # Adjust paths of required autool packages
-acver="213"
-if autoconf --version | grep -q 2.13; then
+if autoconf --version | grep -q $acver; then
   acver=""
 fi
-amver="15"
-if automake --version | grep -q 1.5; then
+if automake --version | grep -q $amver; then
   amver=""
 fi
+acver=`echo $acver | sed -e 's/\.//'`
+amver=`echo $amver | sed -e 's/\.//'`
 
 # Bootstrap the autotool subsystems
 bootstrap aclocal$amver
