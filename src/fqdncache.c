@@ -366,11 +366,8 @@ fqdncache_create(const char *name)
 static void
 fqdncache_add_to_hash(fqdncache_entry * f)
 {
-    if (hash_join(fqdn_table, (hash_link *) f)) {
-	debug(35, 1) ("fqdncache_add_to_hash: Cannot add %s (%p) to hash table %d.\n",
-	    f->name, f, fqdn_table);
-    }
     debug(35, 5) ("fqdncache_add_to_hash: name <%s>\n", f->name);
+    hash_join(fqdn_table, (hash_link *) f);
 }
 
 static void
