@@ -11,7 +11,7 @@ AC_INIT
 AC_PREREQ(2.53)
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_AUX_DIR(cfgaux)
-AM_INIT_AUTOMAKE(squid, 2.6-DEVEL-autoconf25)
+AM_INIT_AUTOMAKE(squid, 2.6-DEVEL)
 AM_CONFIG_HEADER(include/autoconf.h)
 AC_REVISION($Revision$)dnl
 AC_PREFIX_DEFAULT(/usr/local/squid)
