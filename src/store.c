@@ -1075,10 +1075,7 @@ static int storeSwapInStart(e, swapin_complete_handler, swapin_complete_data)
 
     path = storeSwapFullPath(e->swap_file_number, NULL);
     if ((fd = file_open(path, NULL, O_RDONLY)) < 0) {
-	debug(20, 0, "storeSwapInStart: Unable to open swapfile: %s\n",
-	    path);
-	debug(20, 0, "storeSwapInStart: --> for <URL:%s>\n",
-	    e->url);
+	debug(20, 0, "storeSwapInStart: Failed for '%s'\n", e->url);
 	storeSetMemStatus(e, NOT_IN_MEMORY);
 	/* Invoke a store abort that should free the memory object */
 	return -1;
