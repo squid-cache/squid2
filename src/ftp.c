@@ -1880,7 +1880,6 @@ ftpAcceptDataConnection(int fd, void *data)
 	comm_close(ftpState->ctrl.fd);
 	return;
     }
-
     fd = comm_accept(fd, &my_peer, &me);
     if (fd < 0) {
 	debug(9, 1) ("ftpHandleDataAccept: comm_accept(%d): %s", fd, xstrerror());

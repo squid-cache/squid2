@@ -1725,7 +1725,7 @@ dump_uri_whitespace(StoreEntry * entry, const char *name, int var)
 }
 
 static void
-free_removalpolicy(RemovalPolicySettings **settings)
+free_removalpolicy(RemovalPolicySettings ** settings)
 {
     if (!*settings)
 	return;
@@ -1736,7 +1736,7 @@ free_removalpolicy(RemovalPolicySettings **settings)
 }
 
 static void
-parse_removalpolicy(RemovalPolicySettings **settings)
+parse_removalpolicy(RemovalPolicySettings ** settings)
 {
     if (*settings)
 	free_removalpolicy(settings);
@@ -1746,7 +1746,7 @@ parse_removalpolicy(RemovalPolicySettings **settings)
 }
 
 static void
-dump_removalpolicy(StoreEntry * entry, const char *name, RemovalPolicySettings *settings)
+dump_removalpolicy(StoreEntry * entry, const char *name, RemovalPolicySettings * settings)
 {
     wordlist *args;
     storeAppendPrintf(entry, "%s %s", name, settings->type);
@@ -1756,7 +1756,7 @@ dump_removalpolicy(StoreEntry * entry, const char *name, RemovalPolicySettings *
 	args = args->next;
     }
 }
-    
+
 
 #include "cf_parser.c"
 
@@ -1859,5 +1859,3 @@ requirePathnameExists(const char *name, const char *path)
     if (stat(path, &sb) < 0)
 	fatalf("%s: %s", path, xstrerror());
 }
-
-

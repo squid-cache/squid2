@@ -308,5 +308,5 @@ typedef unsigned int delay_id;
 typedef struct _htcpReplyData htcpReplyData;
 #endif
 
-typedef RemovalPolicy *REMOVALPOLICYCREATE(wordlist *args);
+typedef RemovalPolicy *REMOVALPOLICYCREATE(wordlist * args);
 #endif /* _TYPEDEFS_H_ */
