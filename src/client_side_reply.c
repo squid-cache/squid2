@@ -1504,10 +1504,8 @@ clientSendMoreData(void *data, StoreIOBuffer result)
 	    3)
 	    ("clientSendMoreData: Appending %d bytes after %d bytes of headers\n",
 	    (int) body_size, rep->hdr_sz);
-	ch = aclChecklistCreate(Config.accessList.reply, http->request, NULL);
+	ch = clientAclChecklistCreate(Config.accessList.reply, http->request, NULL);
 	ch->reply = rep;
-	if (http->conn)
-	    ch->conn = cbdataReference(http->conn);	/* acl.c frees */
 	rv = aclCheckFast(Config.accessList.reply, ch);
 	aclChecklistFree(ch);
 	ch = NULL;
