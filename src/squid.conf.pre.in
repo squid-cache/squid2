@@ -389,11 +389,11 @@ gopher_stop   ?
 #
 #	The defaults are:
 #
-# Access Type    Max Object Size    TTL (note: 10080 minute = 1 week)
+# Access Type    Max Object Size    TTL (note: 4320 minutes = 3 days)
 # ---------      ----------------   -----------
-#gopher                  4            10080 
-#http                    4            10080 
-#ftp                     4            10080 
+#gopher                  4            4320 
+#http                    4            4320 
+#ftp                     4            4320 
 
 #  TAG: wais_relay
 #	Relay WAIS request to host (1st arg) at port (2 arg).  
@@ -438,6 +438,13 @@ request_size 100
 #	TTL for the object, the default TTL from the preceeding section
 #	will be used.
 #
+#	The following line represents the default behaviour.  Objects with
+#	Last-Modified time are cached for 20% of their age, up to three
+#	days.  Otherwise, an object will be cached for three days
+#	by default.
+#
+#	ttl_pattern    .                   4320        20%       4320
+#
 #	Examples:
 #
 #	                                              Calculate TTL as
@@ -449,6 +456,7 @@ request_size 100
 #ttl_pattern    ^ftp://                    10080        20%      43200
 #ttl_pattern    \.gif$                      2880        50%      43200
 #ttl_pattern    /cgi-bin/                      0         0%      43200
+
 
 #  TAG: quick_abort
 #	By default the cache continues to retrieve objects from
