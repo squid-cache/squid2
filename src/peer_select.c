@@ -219,14 +219,14 @@ peerCheckNetdbDirect(ps_state * psstate)
     if (p == NULL)
 	return 0;
     myrtt = netdbHostRtt(psstate->request->host);
-debug(44, 3) ("peerCheckNetdbDirect: MY RTT = %d\n", myrtt);
-debug(44, 3) ("peerCheckNetdbDirect: closest_parent_miss RTT = %d\n",
+    debug(44, 3) ("peerCheckNetdbDirect: MY RTT = %d\n", myrtt);
+    debug(44, 3) ("peerCheckNetdbDirect: closest_parent_miss RTT = %d\n",
 	psstate->icp.p_rtt);
     if (myrtt && myrtt < psstate->icp.p_rtt)
 	return 1;
     myhops = netdbHostHops(psstate->request->host);
-debug(44, 3) ("peerCheckNetdbDirect: MY hops = %d\n", myhops);
-debug(44, 3) ("peerCheckNetdbDirect: minimum_direct_hops = %d\n",
+    debug(44, 3) ("peerCheckNetdbDirect: MY hops = %d\n", myhops);
+    debug(44, 3) ("peerCheckNetdbDirect: minimum_direct_hops = %d\n",
 	Config.minDirectHops);
     if (myhops && myhops <= Config.minDirectHops)
 	return 1;

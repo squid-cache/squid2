@@ -151,7 +151,7 @@ clientAccessCheckDone(int answer, void *data)
 	    err->redirect_url = xstrdup(redirectUrl);
 	} else {
 	    /* NOTE: don't use HTTP_UNAUTHORIZED because then the
-	       stupid browser wants us to authenticate */
+	     * stupid browser wants us to authenticate */
 	    err->http_status = HTTP_FORBIDDEN;
 	}
 	errorSend(fd, err);

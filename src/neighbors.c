@@ -947,7 +947,7 @@ peerCountMcastPeersDone(void *data)
 }
 
 static void
-peerCountHandleIcpReply(peer * p, peer_t type, icp_common_t *hdr, void *data)
+peerCountHandleIcpReply(peer * p, peer_t type, icp_common_t * hdr, void *data)
 {
     ps_state *psstate = data;
     psstate->icp.n_recv++;
