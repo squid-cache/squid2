@@ -1218,9 +1218,11 @@ clientProcessRequest(clientHttpRequest * http)
 	url);
     if (r->method == METHOD_CONNECT) {
 	http->log_type = LOG_TCP_MISS;
-	return sslStart(fd, url, r, &http->out.size);
+	sslStart(fd, url, r, &http->out.size);
+	return;
     } else if (r->method == METHOD_PURGE) {
-	return clientPurgeRequest(http);
+	clientPurgeRequest(http);
+	return;
     } else if (r->method == METHOD_TRACE) {
 	if (r->max_forwards == 0) {
 	    http->entry = clientCreateStoreEntry(http, r->method, 0);
@@ -1243,10 +1245,12 @@ clientProcessRequest(clientHttpRequest * http)
 	(void) 0;		/* fallthrough */
     } else if (r->method == METHOD_POST) {
 	http->log_type = LOG_TCP_MISS;
-	return passStart(fd, url, r, &http->out.size);
+	passStart(fd, url, r, &http->out.size);
+	return;
     } else if (r->method == METHOD_PUT) {
 	http->log_type = LOG_TCP_MISS;
-	return passStart(fd, url, r, &http->out.size);
+	passStart(fd, url, r, &http->out.size);
+	return;
     }
     http->log_type = clientProcessRequest2(http);
     debug(12, 4) ("clientProcessRequest: %s for '%s'\n",
