@@ -285,7 +285,7 @@ snmp_prfSysFn(variable_list * Var, snint * ErrP)
     case PERF_SYS_CURUNLREQ:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
 	    (snint) statCounter.unlink.requests,
-	    SMI_COUNTER32);
+	    SMI_GAUGE32);
 	break;
     case PERF_SYS_CURUNUSED_FD:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
@@ -300,7 +300,7 @@ snmp_prfSysFn(variable_list * Var, snint * ErrP)
     case PERF_SYS_NUMOBJCNT:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
 	    (snint) memInUse(MEM_STOREENTRY),
-	    SMI_COUNTER32);
+	    SMI_GAUGE32);
 	break;
     default:
 	*ErrP = SNMP_ERR_NOSUCHNAME;
@@ -390,12 +390,12 @@ snmp_prfProtoFn(variable_list * Var, snint * ErrP)
 	case PERF_PROTOSTAT_AGGR_CURSWAP:
 	    Answer = snmp_var_new_integer(Var->name, Var->name_length,
 		(snint) store_swap_size,
-		SMI_COUNTER32);
+		SMI_GAUGE32);
 	    break;
 	case PERF_PROTOSTAT_AGGR_CLIENTS:
 	    Answer = snmp_var_new_integer(Var->name, Var->name_length,
 		(snint) statCounter.client_http.clients,
-		SMI_COUNTER32);
+		SMI_GAUGE32);
 	    break;
 	default:
 	    *ErrP = SNMP_ERR_NOSUCHNAME;
