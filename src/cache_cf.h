@@ -168,7 +168,6 @@ struct SquidConfig {
     int ageMaxDefault;
     int cleanRate;
     int maxRequestSize;
-    double hotVmFactor;
     struct {
 	u_short http;
 	u_short icp;
@@ -248,6 +247,7 @@ struct SquidConfig {
 	int low;
 	int high;
     } ipcache;
+    int maxHotvmObjSize;
 };
 
 extern struct SquidConfig Config;

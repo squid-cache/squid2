@@ -783,19 +783,13 @@ icp_access  allow  all
 #	and as a proxy, change this to 'on'.
 #httpd_accel_with_proxy off
 
-#  TAG: cache_hot_vm_factor
-#	This parameter is only used when the cache is running strictly
-#	in httpd_accel mode.  In this case the cache keeps a number of
-#	objects entirely in memory.  We keep 'hot_vm_factor' such
-#	objects for each megabyte of cache_mem.  So, the number of
-#	number of hot_vm objects is calculated as
+#  TAG: max_hotvm_obj_size
+#	This is the maximum object size to keep saved in memory for
+#	fast access.  Objects larger than this will not be kept in
+#	fully in memory.  To disable ``Hot VM'' objects, set this to
+#	zero.  The default is 12k.
 #
-#		hot_vm_count = cache_mem * hot_vm_factor / 1048576
-#
-#	The default is 0.0, which disables hot_vm objects.  The suggested
-#	value for httpd_accel_mode is 12.5.
-#
-#cache_hot_vm_factor 0.0
+#max_hotvm_obj_size 12288
 
 
 # MISCELLANEOUS
