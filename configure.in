@@ -42,7 +42,7 @@ if test -z "$LDFLAGS"; then
 	LDFLAGS="-g"
 fi
 
-PREST_CFLAGS="$CFLAGS"
+PRESET_CFLAGS="$CFLAGS"
 
 dnl Check for GNU cc
 AC_PROG_CC
@@ -492,10 +492,11 @@ if test "$HAVE_LIBMALLOC" = "yes" ; then
 fi
 AC_SUBST(XTRA_OBJS)
 
-XTRA_LIBS="$LIBS"
-LIBS=''
+if test -z "$XTRA_LIBS"; then
+	XTRA_LIBS="$LIBS"
+	LIBS=''
+fi
 AC_SUBST(XTRA_LIBS)
-
 
 dnl Clean up after OSF/1 core dump bug
 rm -f core 
