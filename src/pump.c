@@ -417,6 +417,15 @@ pumpMethod(method_t method)
     switch (method) {
     case METHOD_POST:
     case METHOD_PUT:
+#ifndef RFC_2518
+    case METHOD_PROPFIND:
+    case METHOD_PROPPATCH:
+    case METHOD_MKCOL:
+    case METHOD_COPY:
+    case METHOD_MOVE:
+    case METHOD_LOCK:
+    case METHOD_UNLOCK:
+#endif
 	return 1;
 	break;
     default:

@@ -364,6 +364,15 @@ enum {
     METHOD_CONNECT,		/* 101 */
     METHOD_TRACE,		/* 110 */
     METHOD_PURGE,		/* 111 */
+#ifndef RFC_2518
+    METHOD_PROPFIND,
+    METHOD_PROPPATCH,
+    METHOD_MKCOL,
+    METHOD_COPY,
+    METHOD_MOVE,
+    METHOD_LOCK,
+    METHOD_UNLOCK,
+#endif
     METHOD_ENUM_END
 };
 typedef unsigned int method_t;
