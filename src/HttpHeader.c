@@ -431,7 +431,7 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	    if (field_end > this_line && field_end[-1] == '\r') {
 		field_end--;	/* Ignore CR LF */
 		/* Ignore CR CR LF in relaxed mode */
-		if (Config.onoff.relaxed_header_parser && field_end > this_line && field_end[-1] == '\r')
+		if (Config.onoff.relaxed_header_parser && field_end > this_line + 1 && field_end[-1] == '\r')
 		    field_end--;
 	    }
 	    /* Barf on stray CR characters */

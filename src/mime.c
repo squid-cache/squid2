@@ -118,7 +118,7 @@ size_t
 headersEnd(const char *mime, size_t l)
 {
     size_t e = 0;
-    int state = 0;
+    int state = 1;
     while (e < l && state < 3) {
 	switch (state) {
 	case 0:
@@ -134,9 +134,7 @@ headersEnd(const char *mime, size_t l)
 		state = 0;
 	    break;
 	case 2:
-	    if ('\r' == mime[e])	/* ignore repeated CR */
-		(void) 0;
-	    else if ('\n' == mime[e])
+	    if ('\n' == mime[e])
 		state = 3;
 	    else
 		state = 0;
