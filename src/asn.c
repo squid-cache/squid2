@@ -181,7 +181,7 @@ asnCacheStart(int as)
     assert(NULL != req);
     asState->request = requestLink(req);
     if ((e = storeGet(k)) == NULL) {
-	e = storeCreateEntry(asres, asres, 0, METHOD_GET);
+	e = storeCreateEntry(asres, asres, null_request_flags, METHOD_GET);
 	storeClientListAdd(e, asState);
 	fwdStart(-1, e, asState->request, any_addr);
     } else {
