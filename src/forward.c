@@ -62,16 +62,6 @@ fwdServerFree(FwdServer * fs)
 }
 
 static void
-fwdServersFree(FwdServer ** FS)
-{
-    FwdServer *fs;
-    while ((fs = *FS)) {
-	*FS = fs->next;
-	fwdServerFree(fs);
-    }
-}
-
-static void
 fwdStateFree(FwdState * fwdState)
 {
     StoreEntry *e = fwdState->entry;
@@ -384,6 +374,16 @@ fwdReforward(FwdState * fwdState)
 }
 
 /* PUBLIC FUNCTIONS */
+
+void
+fwdServersFree(FwdServer ** FS)
+{
+    FwdServer *fs;
+    while ((fs = *FS)) {
+	*FS = fs->next;
+	fwdServerFree(fs);
+    }
+}
 
 void
 fwdStart(int fd, StoreEntry * e, request_t * r, struct in_addr client_addr,
