@@ -43,6 +43,7 @@
 static time_t peerDigestIncDelay(const PeerDigest * pd);
 static time_t peerDigestNewDelay(const StoreEntry * e);
 static void peerDigestSetCheck(PeerDigest * pd, time_t delay);
+static void peerDigestClean(PeerDigest *);
 static EVH peerDigestCheck;
 static void peerDigestRequest(PeerDigest * pd);
 static STCB peerDigestFetchReply;
