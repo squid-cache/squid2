@@ -19,7 +19,6 @@ static char *log_tags[] =
     "TCP_REFRESH",
     "TCP_IFMODSINCE",
     "TCP_SWAPFAIL",
-    "TCP_BLOCK",
     "TCP_DENIED",
     "UDP_HIT",
     "UDP_MISS",
@@ -38,7 +37,6 @@ static char *log_tags[] =
     "ERR_CANNOT_FETCH",
     "ERR_NO_RELAY",
     "ERR_DISK_IO",
-    "ERR_URL_BLOCKED",
     "ERR_ZERO_SIZE_OBJECT"
 };
 

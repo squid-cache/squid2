@@ -1,95 +1,47 @@
-/* 
- *  $Id$
- *
- *  File:         icp.h
- *  Description:  Declarations of public binary protocol handlers.
- *  Author:       John Noll, USC
- *  Created:      Wed Mar 30 19:06:15 1994
- *  Language:     C++
- **********************************************************************
- *  Copyright (c) 1994, 1995.  All rights reserved.
- *  
- *    The Harvest software was developed by the Internet Research Task
- *    Force Research Group on Resource Discovery (IRTF-RD):
- *  
- *          Mic Bowman of Transarc Corporation.
- *          Peter Danzig of the University of Southern California.
- *          Darren R. Hardy of the University of Colorado at Boulder.
- *          Udi Manber of the University of Arizona.
- *          Michael F. Schwartz of the University of Colorado at Boulder.
- *          Duane Wessels of the University of Colorado at Boulder.
- *  
- *    This copyright notice applies to software in the Harvest
- *    ``src/'' directory only.  Users should consult the individual
- *    copyright notices in the ``components/'' subdirectories for
- *    copyright information about other software bundled with the
- *    Harvest source code distribution.
- *  
- *  TERMS OF USE
- *    
- *    The Harvest software may be used and re-distributed without
- *    charge, provided that the software origin and research team are
- *    cited in any use of the system.  Most commonly this is
- *    accomplished by including a link to the Harvest Home Page
- *    (http://harvest.cs.colorado.edu/) from the query page of any
- *    Broker you deploy, as well as in the query result pages.  These
- *    links are generated automatically by the standard Broker
- *    software distribution.
- *    
- *    The Harvest software is provided ``as is'', without express or
- *    implied warranty, and with no support nor obligation to assist
- *    in its use, correction, modification or enhancement.  We assume
- *    no liability with respect to the infringement of copyrights,
- *    trade secrets, or any patents, and are not responsible for
- *    consequential damages.  Proper use of the Harvest software is
- *    entirely the responsibility of the user.
- *  
- *  DERIVATIVE WORKS
- *  
- *    Users may make derivative works from the Harvest software, subject 
- *    to the following constraints:
- *  
- *      - You must include the above copyright notice and these 
- *        accompanying paragraphs in all forms of derivative works, 
- *        and any documentation and other materials related to such 
- *        distribution and use acknowledge that the software was 
- *        developed at the above institutions.
- *  
- *      - You must notify IRTF-RD regarding your distribution of 
- *        the derivative work.
- *  
- *      - You must clearly notify users that your are distributing 
- *        a modified version and not the original Harvest software.
- *  
- *      - Any derivative product is also subject to these copyright 
- *        and use restrictions.
- *  
- *    Note that the Harvest software is NOT in the public domain.  We
- *    retain copyright, as specified above.
- *  
- *  HISTORY OF FREE SOFTWARE STATUS
- *  
- *    Originally we required sites to license the software in cases
- *    where they were going to build commercial products/services
- *    around Harvest.  In June 1995 we changed this policy.  We now
- *    allow people to use the core Harvest software (the code found in
- *    the Harvest ``src/'' directory) for free.  We made this change
- *    in the interest of encouraging the widest possible deployment of
- *    the technology.  The Harvest software is really a reference
- *    implementation of a set of protocols and formats, some of which
- *    we intend to standardize.  We encourage commercial
- *    re-implementations of code complying to this set of standards.  
- *  
- *  
- */
+/* $Id$ */
+
 #ifndef ICP_H
 #define ICP_H
 
-#include "ansihelp.h"
+typedef enum {
+    LOG_TAG_MIN,		/* 0 */
+    LOG_TCP_HIT,		/* 1 */
+    LOG_TCP_MISS,		/* 2 */
+    LOG_TCP_EXPIRED,		/* 3 */
+    LOG_TCP_USER_REFRESH,	/* 4 */
+    LOG_TCP_IFMODSINCE,		/* 5 */
+    LOG_TCP_SWAPIN_FAIL,	/* 6 */
+    LOG_TCP_DENIED,		/* 7 */
+    LOG_UDP_HIT,		/* 8 */
+    LOG_UDP_MISS,		/* 9 */
+    LOG_UDP_DENIED,		/* 10 */
+    ERR_READ_TIMEOUT,		/* 11 */
+    ERR_LIFETIME_EXP,		/* 12 */
+    ERR_NO_CLIENTS_BIG_OBJ,	/* 13 */
+    ERR_READ_ERROR,		/* 14 */
+    ERR_CLIENT_ABORT,		/* 15 */
+    ERR_CONNECT_FAIL,		/* 16 */
+    ERR_INVALID_REQ,		/* 17 */
+    ERR_INVALID_URL,		/* 18 */
+    ERR_NO_FDS,			/* 19 */
+    ERR_DNS_FAIL,		/* 20 */
+    ERR_NOT_IMPLEMENTED,	/* 21 */
+    ERR_CANNOT_FETCH,		/* 22 */
+    ERR_NO_RELAY,		/* 23 */
+    ERR_DISK_IO,		/* 24 */
+    ERR_ZERO_SIZE_OBJECT	/* 25 */
+} log_type;
 
-extern int icpHandleTcp _PARAMS((int sock, caddr_t data));
-extern int icpHandleUdp _PARAMS((int sock, caddr_t data));
-extern int asciiHandleConn _PARAMS((int sock, caddr_t data));
+#define ERR_MIN ERR_READ_TIMEOUT
+#define ERR_MAX ERR_ZERO_SIZE_OBJECT
+
+/* bitfields for the icpStateData 'flags' element */
+#define		REQ_HTML	0x01
+#define		REQ_NOCACHE	0x02
+#define		REQ_IMS		0x04
+#define		REQ_AUTH	0x08
+#define		REQ_PUBLIC	0x10
+#define 	REQ_ACCEL	0x20
 
 typedef struct wwd {
     struct sockaddr_in address;
@@ -98,6 +50,15 @@ typedef struct wwd {
     struct wwd *next;
 } icpUdpData;
 
-char *icpWrite();
+extern char *icpWrite _PARAMS((int, char *, int, int, void (*handler) (), void *));
+extern int icpUdpSend _PARAMS((int, char *, icp_common_t *, struct sockaddr_in *, icp_opcode));
+
+extern int icpHandleUdp _PARAMS((int sock, void *data));
+extern int asciiHandleConn _PARAMS((int sock, void *data));
+extern void AppendUdp _PARAMS((icpUdpData *));
+
+extern int neighbors_do_private_keys;
+extern char *IcpOpcodeStr[];
+extern int icpUdpReply _PARAMS((int fd, icpUdpData * queue));
 
 #endif
