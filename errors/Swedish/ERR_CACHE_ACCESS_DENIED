@@ -27,5 +27,5 @@ från denna cache tills det att Ni har autentifierat Er.
 Explorer 3.0, eller en HTTP/1.1 kompatibel läsare för att detta skall fungera.
 Vänligen kontakta <A HREF="mailto:%w">cacheadministratorn</a> om Ni har svårigh
 eter
-med att autentifiera Er själv, eller <A HREF="http://%h/cgi-bin/chpasswd.cgi\">byt</a> Ert lösenord.
+med att autentifiera Er själv, eller <A HREF="http://%h/cgi-bin/chpasswd.cgi">byt</a> Ert lösenord.
 </P>
