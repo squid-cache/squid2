@@ -775,7 +775,7 @@ aclParseAclLine(acl ** head)
 	break;
 #if USE_IDENT
     case ACL_IDENT:
-	aclParseWordList(&A->data);
+	aclParseProxyAuthList(&A->data);
 	break;
     case ACL_IDENT_REGEX:
 	aclParseRegexList(&A->data);
@@ -1983,7 +1983,7 @@ aclDestroyAcls(acl ** head)
 #endif
 #if USE_IDENT
 	case ACL_IDENT:
-	    wordlistDestroy((wordlist **) & a->data);
+	    aclFreeProxyAuthData(a->data);
 	    break;
 #endif
 	case ACL_PROXY_AUTH:
@@ -2330,7 +2330,7 @@ aclDumpGeneric(const acl * a)
 #endif
 #if USE_IDENT
     case ACL_IDENT:
-	return wordlistDup(a->data);
+	return aclDumpProxyAuthList(a->data);
 	break;
     case ACL_IDENT_REGEX:
 	return aclDumpRegexList(a->data);
