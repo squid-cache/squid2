@@ -19,7 +19,10 @@
  * in the Makefiles, wich is done automatically by configure.
  *
  */
-@ TOP @
+
+#ifndef __CONFIGURE_H__
+#define __CONFIGURE_H__
+@TOP@
 /* $Id$ */
 
 /*********************************
@@ -290,3 +293,25 @@
  * Enable support for Transparent Proxy on Linux 2.4 systems
  */
 #undef LINUX_NETFILTER
+
+/*
+ * Known-size intgers
+ */
+
+#undef int16_t
+
+#undef u_int16_t
+
+#undef int32_t
+
+#undef u_int32_t
+
+#undef int64_t
+
+#undef u_int64_t
+
+
+
+@BOTTOM@
+
+#endif /* __CONFIGURE_H__ */
