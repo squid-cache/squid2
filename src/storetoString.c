@@ -258,7 +258,7 @@ char *storeToString(e)
     }
     strcat(stsbuf, tmpbuf);
 
-    sprintf(tmpbuf, "Method: %s", RequestMethodStr[e->method]);
+    sprintf(tmpbuf, "Method: %s\n", RequestMethodStr[e->method]);
     strcat(stsbuf, tmpbuf);
 
     sprintf(tmpbuf, "RefCount: %u\n", e->refcount);
