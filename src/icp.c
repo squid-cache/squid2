@@ -428,7 +428,8 @@ static int icpGetHeadersForIMS(fd, icpState)
     int length;
 
     if (max_len <= 0) {
-	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n", entry->key ? entry->key : entry->url);
+	debug(12, 1, "icpGetHeadersForIMS: To much headers '%s'\n",
+		entry->key ? entry->key : entry->url);
 	icpFreeBufOrPage(icpState);
 	icpState->offset = 0;
 	return icpProcessMISS(fd, icpState);
@@ -448,17 +449,15 @@ static int icpGetHeadersForIMS(fd, icpState)
     /* Headers is no longer needed (they are parsed) */
     icpFreeBufOrPage(icpState);
 
-    if (!IMS_hdr) {
+    if (!IMS_hdr)
 	fatal_dump("icpGetHeadersForIMS: Cant find IMS header in request\n");
-    }
     /* Restart the object from the beginning */
     icpState->offset = 0;
 
     /* Only objects with statuscode==200 can be "Not modified" */
     /* XXX: Should we ignore this? */
-    if (entry->mem_obj->reply->code != 200) {
+    if (entry->mem_obj->reply->code != 200)
 	return icpProcessMISS(fd, icpState);
-    }
     p = strtok(IMS_hdr, ";");
     IMS = parse_rfc850(p);
     IMS_length = -1;
@@ -593,9 +592,8 @@ static void icp_hit_or_miss(fd, icpState)
 	icpState->log_type = LOG_TCP_EXPIRED;
     } else if (BIT_TEST(icpState->flags, REQ_NOCACHE)) {
 	/* IMS+NOCACHE should not eject valid object */
-	if (!BIT_TEST(icpState->flags, REQ_IMS)) {
+	if (!BIT_TEST(icpState->flags, REQ_IMS))
 	    storeRelease(entry);
-	}
 	entry = NULL;
 	icpState->log_type = LOG_TCP_USER_REFRESH;
     } else if (BIT_TEST(icpState->flags, REQ_IMS)) {
