@@ -693,7 +693,11 @@ httpAppendRequestHeader(char *hdr, const char *line, size_t * sz, size_t max)
     if (n >= max)
 	return;
 #ifdef USE_ANONYMIZER
-    if (!httpAnonSearchHeaderField(http_anon_allowed_header, line)) {
+#ifdef USE_PARANOID_ANONYMIZER
+    if (httpAnonSearchHeaderField(http_anon_allowed_header, line) == NULL) {
+#else
+    if (httpAnonSearchHeaderField(http_anon_denied_header, line) == NULL) {
+#endif
 	debug(11, 5, "httpAppendRequestHeader: removed for anonymity: <%s>\n",
 	    line);
 	return;
