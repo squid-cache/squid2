@@ -220,7 +220,6 @@ peerAllowedToUse(const peer * e, request_t * request)
     int do_ping = 1;
     const struct _acl_list *a = NULL;
     aclCheck_t checklist;
-
     if (BIT_TEST(request->flags, REQ_NOCACHE))
 	if (neighborType(e, request) == PEER_SIBLING)
 	    return 0;
@@ -287,6 +286,7 @@ neighborsCount(request_t * request)
     for (e = Peers.peers_head; e; e = e->next)
 	if (peerWouldBePinged(e, request))
 	    count++;
+    debug(15, 3, "neighborsCount: %d\n", count);
     return count;
 }
 
@@ -304,6 +304,7 @@ getSingleParent(request_t * request)
 	    return NULL;	/* oops, found second parent */
 	p = e;
     }
+    debug(15, 3, "getSingleParent: returning %s\n", p ? p->host : "NULL");
     return p;
 }
 
@@ -316,8 +317,10 @@ getFirstUpParent(request_t * request)
 	    continue;
 	if (neighborType(e, request) != PEER_PARENT)
 	    continue;
-	if (peerHTTPOkay(e, request))
-	    return e;
+	if (!peerHTTPOkay(e, request))
+	    continue;
+	debug(15, 3, "getRoundRobinParent: returning %s\n", e ? e->host : "NULL");
+	return e;
     }
     return NULL;
 }
@@ -340,6 +343,7 @@ getRoundRobinParent(request_t * request)
     }
     if (f)
 	f->rr_count++;
+    debug(15, 3, "getRoundRobinParent: returning %s\n", e ? e->host : "NULL");
     return f;
 }
 
@@ -354,6 +358,7 @@ getDefaultParent(request_t * request)
 	    continue;
 	if (!peerHTTPOkay(e, request))
 	    continue;
+	debug(15, 3, "getDefaultParent: returning %s\n", e->host);
 	return e;
     }
     return NULL;
@@ -641,15 +646,15 @@ neighborsUdpAck(int fd, const char *url, icp_common_t * header, const struct soc
 	neighborCountIgnored(e, opcode);
 	return;
     }
-    if (BIT_TEST(e->options, NEIGHBOR_MCAST_RESPONDER)) {
+    debug(15, 3, "neighborsUdpAck: %s for '%s' from %s \n",
+	opcode_d, url, e ? e->host : "source");
+    mem->e_pings_n_acks++;
+    if (e && BIT_TEST(e->options, NEIGHBOR_MCAST_RESPONDER)) {
 	if (!peerHTTPOkay(e, mem->request)) {
 	    neighborCountIgnored(e, opcode);
 	    return;
 	}
     }
-    debug(15, 3, "neighborsUdpAck: %s for '%s' from %s \n",
-	opcode_d, url, e ? e->host : "source");
-    mem->e_pings_n_acks++;
     if (e)
 	ntype = neighborType(e, mem->request);
     if (opcode == ICP_OP_SECHO) {
@@ -924,6 +929,10 @@ parseNeighborType(const char *s)
 int
 neighborUp(const peer * e)
 {
+    debug(15, 3, "neighborUp: peer %s, ack_deficit=%d, last_fail_time=%d sec ago\n",
+	e->host,
+	e->stats.ack_deficit,
+	squid_curtime - e->last_fail_time);
     if (e->last_fail_time)
 	if (squid_curtime - e->last_fail_time < (time_t) 60)
 	    return 0;
