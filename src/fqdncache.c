@@ -248,7 +248,7 @@ fqdncache_purgelru(void *notused)
     dlink_node *prev = NULL;
     fqdncache_entry *f;
     int removed = 0;
-    eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 10);
+    eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 10, 1);
     for (m = lru_list.tail; m; m = prev) {
 	if (memInUse(MEM_FQDNCACHE_ENTRY) < fqdncache_low)
 	    break;

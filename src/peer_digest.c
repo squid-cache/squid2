@@ -142,7 +142,7 @@ peerDigestDelay(peer * p, int disable, time_t delay)
 	    disable ? "disabling" : "delaying",
 	    p->host ? p->host : "<null>",
 	    delay, mkrfc1123(squid_curtime + delay));
-	eventAdd("peerDigestValidate", peerDigestValidate, p, delay);
+	eventAdd("peerDigestValidate", peerDigestValidate, p, delay, 1);
     } else {
 	assert(disable);
 	debug(72, 2) ("peerDigestDisable: disabling peer %s for good\n",

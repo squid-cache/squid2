@@ -316,7 +316,7 @@ peerSelectFoo(ps_state * psstate)
 	    eventAdd("peerPingTimeout",
 		peerPingTimeout,
 		psstate,
-		Config.neighborTimeout);
+		Config.neighborTimeout, 0);
 	    return;
 	}
     }

@@ -657,7 +657,7 @@ storeMaintainSwapSpace(void *datanotused)
     int max_scan;
     int max_remove;
     static time_t last_warn_time = 0;
-    eventAdd("storeMaintainSwapSpace", storeMaintainSwapSpace, NULL, 1);
+    eventAdd("storeMaintainSwapSpace", storeMaintainSwapSpace, NULL, 1, 1);
     /* We can't delete objects while rebuilding swap */
     if (store_rebuilding)
 	return;
