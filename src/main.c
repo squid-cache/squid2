@@ -480,6 +480,7 @@ mainInitialize(void)
 	do_mallinfo = 1;
 	mimeInit(Config.mimeTablePathname);
 	pconnInit();
+	eventInit();
     }
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0 && (!Config2.Accel.on || Config.onoff.accel_with_proxy))
