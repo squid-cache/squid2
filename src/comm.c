@@ -464,7 +464,7 @@ int comm_close(fd)
      int fd;
 {
     FD_ENTRY *conn = NULL;
-    struct close_handler *close_handler;
+    struct close_handler *ch = NULL;
 
     if (fd < 0)
 	return -1;
@@ -483,11 +483,11 @@ int comm_close(fd)
     /* update fdstat */
     fdstat_close(fd);
     /* Call close handlers */
-    for (close_handler = conn->close_handler; close_handler; close_handler = conn->close_handler) {
-	debug(5, 7, "comm_close: calling handler %p\n", close_handler->handler);
-	conn->close_handler = close_handler->next;
-	close_handler->handler(fd, close_handler->data);
-	safe_free(close_handler);
+    for (ch = conn->close_handler; ch; ch = conn->close_handler) {
+	debug(5, 7, "comm_close: calling handler %p\n", ch->handler);
+	conn->close_handler = ch->next;
+	ch->handler(fd, ch->data);
+	safe_free(ch);
     }
     memset(conn, '\0', sizeof(FD_ENTRY));
     return close(fd);
@@ -1040,15 +1040,14 @@ static int examine_select(readfds, writefds, exceptfds)
 	    if (num < 0) {
 		f = &fd_table[fd];
 		debug(5, 0, "WARNING: FD %d has handlers, but it's invalid.\n", fd);
-		debug(5, 0, "lifetm:%p tmout:%p read:%p write:%p expt:%p",
+		debug(5, 0, "lifetm:%p tmout:%p read:%p write:%p expt:%p\n",
 		    f->lifetime_handler,
 		    f->timeout_handler,
 		    f->read_handler,
 		    f->write_handler,
 		    f->except_handler);
 		for (close_handler = f->close_handler; close_handler; close_handler = close_handler->next)
-		    debug(5, 0, " close:%p", close_handler->handler);
-		debug(5, 0, "\n");
+		    debug(5, 0, " close handler: %p\n", close_handler->handler);
 		if (f->close_handler) {
 		    for (close_handler = f->close_handler; close_handler; close_handler = close_handler->next) {
 			next = close_handler->next;
