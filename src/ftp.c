@@ -653,7 +653,7 @@ static int ftp_open_pipe(p1, p2, p3, p4, p5, type, cpid, opts)
     execvp(p1, argv);
     perror(p1);
     _exit(1);
-    /* NOTREACHED */
+    return (0); /* NOTREACHED */
 }
 
 /*
