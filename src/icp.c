@@ -524,8 +524,8 @@ icpHandleStore(int fd, StoreEntry * entry, void *data)
     debug(12, 5, "icpHandleStore: FD %d: off %d: '%s'\n",
 	fd, icpState->offset, entry->url);
     if (entry->store_status == STORE_ABORTED) {
-	debug(12, 3, "icpHandleStore: abort_code=%d\n",
-	    entry->mem_obj->abort_code);
+	debug(44, 3, "icpHandleStore: abort_code=%d url='%s'\n",
+	    entry->mem_obj->abort_code, entry->url);
 	icpSendERROR(fd,
 	    entry->mem_obj->abort_code,
 	    entry->mem_obj->e_abort_msg,
