@@ -502,99 +502,26 @@ debug_options ALL,1
 #  TAG: refresh_pattern		# case sensitive
 #  TAG: refresh_pattern/i	# case insensitive
 #
-
-	Selection of refresh times based on URL regular expressions
-	(syntax is the POSIX standard).  Regular expressions are
-	case-sensitive with 'refresh_pattern' and case-insensitive with
-	'refresh_pattern/i'.
-
-	When there is a request for an object in the cache, we check
-	the timestamps to see if it is fresh enough.  To
-	accomplish this, we calculate these values:
-
-	'AGE' is how much the object has aged *since* it was retrieved:
-
-		AGE = NOW - OBJECT_DATE
-
-	'LM_AGE' is how old the object was *when* it was retrieved:
-
-		LM_AGE = OBJECT_DATE - LAST_MODIFIED_TIME
-
-	'LM_FACTOR' is the ratio of AGE to LM_AGE:
-
-		LM_FACTOR = AGE / LM_AGE
-
-	Additionally, the object may have an EXPIRES value from
-	the HTTP reply header.
-
-	Each 'refresh_pattern' line has three values:
-		MIN_AGE
-		PERCENT
-		MAX_AGE
-
-	A cached object is considered "fresh" if it meets one of these
-	criteria:
-
-		1) AGE <= MIN_AGE, or
-		2) NOW <= EXPIRES, and
-		   AGE < MAX_AGE, and
-		   LM_FACTOR < PERCENT
-
-	Or, putting it differently, an object is considered "stale" if:
-
-		1) AGE > MIN_AGE, and
-		2) NOW > EXPIRES, or
-		   AGE >= MAX_AGE, or
-		   LM_FACTOR >= PERCENT
-		
-
-#	The list of URL patterns are searched in the order listed here.
-#	All patterns in the list are checked and the last match is used.
-#	There are two ways to specify the TTL: an absolute value, and
-#	as a percentage of the object's age.
+#	usage: refresh_pattern regex min percent max
 #
-#	The percentage factor is listed last on the line and may be
-#	omitted.   If the value is positive (non-zero) and the object
-#	metadata includes a last-modified timestamp, the TTL will be set as
-#	the given percent of the difference between current time and
-#	the last-modified time.  The number following the percentage
-#	is an upper limit on the TTL.  The default is 43200 minutes, or
-#	30 days.  This means that no object whose TTL is set by this
-#	method will remain in the cache for longer than 30 days.
+#	min and max are specified in MINUTES.
+#	percent is an integer number.
 #
-#	If the percentage factor is not used (for example when an object
-#	has no last-modified timestamp) the absolute TTL value will
-#	be checked instead.  If the absolute value is non-negative,
-#	it will be used.
+#	Please see the file doc/Release-Notes-1.1.txt for a full
+#	description of Squid's refresh algorithm.  Basically a
+#	cached object is:
 #
-#	A negative absolute TTL value in conjunction with a positive
-#	percentage factor has the effect that the TTL is set from 
-#	the pattern match only if a last-modified timestamp is present.
+#		FRESH if age < min
+#		STALE if expires < now
+#		STALE if age > max
+#		FRESH if lm-factor < percent
 #
-#	If neither the absolute TTL or percentage factor result in a
-#	TTL for the object, the default TTL from the preceeding section
-#	will be used.
+#	The refresh_pattern lines are checked in the order listed here.
+#	The first entry which matches is used.  If none of the entries
+#	match, then the default will be used.
 #
-#	The following line represents the default behaviour.  Objects with
-#	Last-Modified time are cached for 20% of their age, up to three
-#	days.  Otherwise, an object will be cached for three days
-#	by default.
-#
-#
-# EXAMPLES:
-#	                                              Calculate TTL as
-#	                                Absolute      this percentage of
-#	        Regular Expression      TTL in        the object's age
-#	        matching URLs           minutes       %age   Max (minutes)
-# ---------     ---------------------   -----------   ------ ------------
-#ttl_pattern        ^http://                1440        20%      43200
-#ttl_pattern        ^ftp://                10080        20%      43200
-#ttl_pattern/i      \.gif$                  2880        50%      43200
-#ttl_pattern        /cgi-bin/                  0         0%      43200
-#
-# DEFAULTS:
-#
-#ttl_pattern        .                       4320        20%       4320
+#Default:
+#refresh_pattern 	.	0 20% 4320
 
 
 #  TAG: quick_abort
