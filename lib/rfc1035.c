@@ -543,6 +543,20 @@ rfc1035BuildPTRQuery(const struct in_addr addr, char *buf, size_t * szp)
     return h.id;
 }
 
+/*
+ * We're going to retry a former query, but we
+ * just need a new ID for it.  Lucky for us ID
+ * is the first field in the message buffer.
+ */
+unsigned short
+rfc1035RetryQuery(char *buf)
+{
+    unsigned short qid = rfc1035Qid();
+    unsigned short s = htons(qid);
+    memcpy(buf, &s, sizeof(s));
+    return qid;
+}
+
 #if DRIVER
 #include <sys/socket.h>
 #include <sys/time.h>

@@ -58,6 +58,7 @@ extern unsigned short rfc1035BuildAQuery(const char *hostname,
 extern unsigned short rfc1035BuildPTRQuery(const struct in_addr,
     char *buf,
     size_t * szp);
+extern unsigned short rfc1035RetryQuery(char *);
 extern int rfc1035AnswersUnpack(const char *buf,
     size_t sz,
     rfc1035_rr ** records,
