@@ -287,7 +287,7 @@ diskHandleWriteComplete(int fd, void *data, int len, int errcode)
 	debug(50, 0) ("KARMA: (%d, %d, %d FD %d)\n",
 	    q->buf_offset, q->len, len, fd);
 	debug(50, 0) ("KARMA: desc %s, type %d, open %d, flags 0x%x\n",
-	    F->desc, F->type, F->open, F->flags);
+	    F->desc, F->type, F->flags.open, F->flags);
 	debug(50, 0) ("KARMA: (%d, %d)\n", p->buf_offset, p->len);
 	len = -1;
 	errcode = EFAULT;
