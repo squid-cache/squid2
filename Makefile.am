@@ -17,7 +17,7 @@ dist-hook:
 	    || exit 1; \
 	    cp -p $(srcdir)/$$subdir/*.h  $(distdir)/$$subdir \
 	      || exit 1; \
-	    rm $(distdir)/$$subdir/autoconf.h; \
+	    rm -f $(distdir)/$$subdir/autoconf.h; \
 	  fi; \
 	done
 
