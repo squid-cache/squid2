@@ -171,7 +171,7 @@ mail_warranty(void)
 static void
 dumpMallocStats(FILE * f)
 {
-#if HAVE_MSTATS
+#if HAVE_MSTATS && HAVE_GNUMALLOC_H
     struct mstats ms = mstats();
     fprintf(f, "\ttotal space in arena:  %6d KB\n",
 	ms.bytes_total >> 10);
