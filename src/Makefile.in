@@ -90,7 +90,9 @@ OBJS	 	= \
 		http.o \
 		http-anon.o \
 		HttpStatusLine.o \
+		HttpHdrCc.o \
 		HttpHeader.o \
+		HttpHeaderTools.o \
 		HttpBody.o \
 		HttpReply.o \
 		icmp.o \
