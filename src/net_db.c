@@ -356,6 +356,7 @@ netdbReloadState(void)
     if (fp == NULL)
 	return;
     while (fgets(buf, 4095, fp)) {
+	memset(&N, '\0', sizeof(netdbEntry));
 	if ((t = strtok(buf, w_space)) == NULL)
 	    continue;
 	if ((addr.s_addr = inet_addr(t)) == inaddr_none)

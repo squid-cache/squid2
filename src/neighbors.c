@@ -999,6 +999,8 @@ peerDestroy(peer * e)
     safe_free(e);
 }
 
+/* XXX There are FMR bugs here.  The peer structure might be freed
+   during a reconfigure while this lookup is pending */
 static void
 peerDNSConfigure(int fd, const ipcache_addrs * ia, void *data)
 {
