@@ -918,7 +918,7 @@ peerCheckConnectDone(int fd, int status, void *data)
     peer *p = data;
     if (status == COMM_OK) {
 	p->tcp_up = PEER_TCP_MAGIC_COUNT;
-	debug(15, 0) ("TCP connection to %s/%d succeeded\n",
+	debug(15, 1) ("TCP connection to %s/%d succeeded\n",
 	    p->host, p->http_port);
     } else {
 	eventAdd("peerCheckConnect", peerCheckConnect, p, 60.0, 1);
@@ -932,7 +932,7 @@ peerCheckConnectStart(peer * p)
 {
     if (!p->tcp_up)
 	return;
-    debug(15, 0) ("TCP connection to %s/%d failed\n", p->host, p->http_port);
+    debug(15, 1) ("TCP connection to %s/%d failed\n", p->host, p->http_port);
     p->tcp_up--;
     if (p->tcp_up != (PEER_TCP_MAGIC_COUNT - 1))
 	return;
