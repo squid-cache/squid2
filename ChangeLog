@@ -150,3 +150,6 @@ changes to beta7
 	- Changed 'server_list' output.  Added RTT, Fetches, Hits, Misses,
 	  and percents.
 	- Fixed setuid bug causing some logs to be owned by root.
+	- Fixed virtual host mode (-V option)
+	- Added read(2) instrumentation for HTTP and FTP.
+	- Lint cleanup
