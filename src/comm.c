@@ -455,6 +455,8 @@ commConnectHandle(int fd, void *data)
     default:
 	cs->tries++;
 	ipcacheMarkBadAddr(cs->host, cs->S.sin_addr);
+	if (Config.onoff.test_reachability)
+	    netdbDeleteAddrNetwork(cs->S.sin_addr);
 	if (commRetryConnect(cs)) {
 	    cs->locks++;
 	    ipcache_nbgethostbyname(cs->host, commConnectDnsHandle, cs);
