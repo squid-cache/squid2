@@ -185,12 +185,14 @@ static int icpStateFree(fd, icpState)
     if (icpState->log_type < LOG_TAG_NONE || icpState->log_type > ERR_ZERO_SIZE_OBJECT)
 	fatal_dump("icpStateFree: icpState->log_type out of range.");
     if (icpState->entry) {
-	size = icpState->entry->mem_obj->e_current_len;
+	if (icpState->entry->mem_obj)
+	    size = icpState->entry->mem_obj->e_current_len;
     } else {
 	size = icpState->size;	/* hack added for CONNECT objects */
     }
     if (icpState->entry) {
-	http_code = icpState->entry->mem_obj->reply->code;
+	if (icpState->entry->mem_obj)
+	    http_code = icpState->entry->mem_obj->reply->code;
     } else {
 	http_code = icpState->http_code;
     }
@@ -1791,7 +1793,7 @@ static void CheckQuickAbort(icpState)
 {
     if (icpState->entry == NULL)
 	return;
-    if (icpState->entry->lock_count != 1)
+    if (storePendingNClients(icpState->entry) > 1)
 	return;
     if (icpState->entry->store_status == STORE_OK)
 	return;
@@ -1811,6 +1813,7 @@ void icpDetectClientClose(fd, icpState)
     LOCAL_ARRAY(char, buf, 256);
     int n;
     StoreEntry *entry = icpState->entry;
+    errno = 0;
     n = read(fd, buf, 256);
     if (n > 0) {
 	debug(12, 0, "icpDetectClientClose: FD %d, %d unexpected bytes\n",
@@ -1819,9 +1822,7 @@ void icpDetectClientClose(fd, icpState)
 	    COMM_SELECT_READ,
 	    (PF) icpDetectClientClose,
 	    (void *) icpState);
-	return;
-    }
-    if (n == 0 && entry != NULL && icpState->offset == entry->object_len &&
+    } else if (n == 0 && entry != NULL && icpState->offset == entry->object_len &&
 	entry->store_status != STORE_PENDING) {
 	/* All data has been delivered */
 	debug(12, 5, "icpDetectClientClose: FD %d end of transmission\n", fd);
@@ -1829,19 +1830,22 @@ void icpDetectClientClose(fd, icpState)
 	    icpState->request->protocol,
 	    icpState->offset);
 	comm_close(fd);
+    } else if (n == 0 && write(fd, "", 0) == 0) {
+	/* XXX Assume write(2) of zero bytes won't block! */
+	/* the other side called shutdown(2) on the socket? */
+	/* just disable read handler */
+	debug(12, 1, "icpDetectClientClose: FD %d Peer issued TCP half-close\n", fd);
+	comm_set_select_handler(fd,
+	    COMM_SELECT_READ,
+	    NULL,
+	    NULL);
     } else {
 	debug(12, 5, "icpDetectClientClose: FD %d\n", fd);
 	debug(12, 5, "--> URL '%s'\n", icpState->url);
-	if (n < 0) {
-	    switch (errno) {
-	    case ECONNRESET:
-		debug(12, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
-		break;
-	    default:
-		debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
-		break;
-	    }
-	}
+	if (errno == ECONNRESET)
+	    debug(12, 2, "icpDetectClientClose: ERROR %s\n", xstrerror());
+	else if (errno)
+	    debug(12, 1, "icpDetectClientClose: ERROR %s\n", xstrerror());
 	CheckQuickAbort(icpState);
 	protoUnregister(fd, entry, icpState->request, icpState->peer.sin_addr);
 	if (entry && entry->ping_status == PING_WAITING)
