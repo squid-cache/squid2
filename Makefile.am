@@ -8,6 +8,7 @@ DIST_SUBDIRS	= lib snmplib scripts src icons errors contrib doc helpers
 SUBDIRS		= lib @makesnmplib@ scripts src icons errors doc helpers
 
 DISTCLEANFILES = include/stamp-h include/stamp-h[0-9]*
+DEFAULT_PINGER		= $(libexecdir)/pinger$(EXEEXT)
 
 dist-hook:
 	@ for subdir in "include"; do \
@@ -35,5 +36,5 @@ EXTRA_DIST = \
 	bootstrap.sh
 
 install-pinger:
-	chown root $(libexecdir)/pinger$(EXEEXT)
-	chmod 4711 $(libexecdir)/pinger$(EXEEXT)
+	chown root $(DEFAULT_PINGER) 
+	chmod 4711 $(DEFAULT_PINGER)
