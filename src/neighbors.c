@@ -579,7 +579,7 @@ peerDigestLookup(peer * p, request_t * request, StoreEntry * entry)
 	debug(15, 5) ("peerDigestLookup: !initialized\n");
 	if (!EBIT_TEST(p->digest.flags, PD_INIT_PENDING)) {
 	    EBIT_SET(p->digest.flags, PD_INIT_PENDING);
-	    eventAdd("peerDigestInit", peerDigestInit, p, 0.0, 1);
+	    eventAdd("peerDigestInit", peerDigestInit, p, 0.001, 1);
 	}
 	return LOOKUP_NONE;
     } else {

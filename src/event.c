@@ -49,6 +49,7 @@ eventAdd(const char *name, EVH * func, void *arg, double when, int weight)
 {
     struct ev_entry *event = xcalloc(1, sizeof(struct ev_entry));
     struct ev_entry **E;
+    assert(when > 0.0);
     event->func = func;
     event->arg = arg;
     event->name = name;
