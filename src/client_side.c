@@ -1999,6 +1999,11 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	     * continue...
 	     */
 	    http->flags.done_copying = 1;
+	    /*
+	     * And as this is a malformed HTTP reply we cannot keep
+	     * the connection persistent
+	     */
+	    http->request->flags.proxy_keepalive = 0;
 	}
     }
     /* write headers and/or body if any */
