@@ -166,6 +166,8 @@ peerWouldBePinged(const peer * p, request_t * request)
 	return 0;
     if (p->n_addresses == 0)
 	return 0;
+    if (p->icp.port == 0)
+	return 0;
     /* the case below seems strange, but can happen if the
      * URL host is on the other side of a firewall */
     if (p->type == PEER_SIBLING)
