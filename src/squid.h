@@ -27,7 +27,7 @@
 #endif
 #if HAVE_FCNTL_H
 #include <fcntl.h>
-#ENDIF
+#endif
 #if HAVE_GRP_H
 #include <grp.h>
 #endif
