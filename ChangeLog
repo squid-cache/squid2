@@ -60,7 +60,9 @@ Changes to squid-2.5.STABLE4 (not yet released):
 	- Bug #638: assertion error if using proxy_auth in delay_access
 	- Bug #756: segmentation fault if using ntlm proxy_auth in delay_access
 	- external_acl_type concurrency= option replaced by children= to
-	  prepare for Squid-3 upgrades. Old syntax still accepted.
+	  prepare for Squid-3 upgrades. Old syntax still accepted for the
+	  duration of the Squid-2.5 release.
+	- winbind helpers less noisy in cache.log on restarts/shutdown.
 
 Changes to squid-2.5.STABLE3 (25 May 2003):
 
