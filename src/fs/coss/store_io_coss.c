@@ -92,13 +92,13 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
     assert(which != COSS_ALLOC_NOTIFY);
 
     /* Check if we have overflowed the disk .. */
-    if ((cs->current_offset + allocsize) > (SD->max_size << 10)) {
+    if ((cs->current_offset + allocsize) > ((off_t) SD->max_size << 10)) {
 	/*
 	 * tried to allocate past the end of the disk, so wrap
 	 * back to the beginning
 	 */
 	cs->current_membuf->flags.full = 1;
-	cs->current_membuf->diskend = cs->current_offset - 1;
+	cs->current_membuf->diskend = cs->current_offset;
 	storeCossMaybeWriteMemBuf(SD, cs->current_membuf);
 	cs->current_offset = 0;	/* wrap back to beginning */
 	debug(79, 2) ("storeCossAllocate: wrap to 0\n");
@@ -107,12 +107,12 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	cs->current_membuf = newmb;
 
 	/* Check if we have overflowed the MemBuf */
-    } else if ((cs->current_offset + allocsize) > cs->current_membuf->diskend) {
+    } else if ((cs->current_offset + allocsize) >= cs->current_membuf->diskend) {
 	/*
 	 * Skip the blank space at the end of the stripe. start over.
 	 */
 	cs->current_membuf->flags.full = 1;
-	cs->current_offset = cs->current_membuf->diskend + 1;
+	cs->current_offset = cs->current_membuf->diskend;
 	storeCossMaybeWriteMemBuf(SD, cs->current_membuf);
 	debug(79, 2) ("storeCossAllocate: New offset - %ld\n",
 	    (long int) cs->current_offset);
@@ -300,7 +300,6 @@ storeCossRead(SwapDir * SD, storeIOState * sio, char *buf, size_t size, off_t of
     cstate->requestoffset = offset;
     if (cstate->readbuffer == NULL) {
 	p = storeCossMemPointerFromDiskOffset(SD, storeCossFilenoToDiskOffset(sio->swap_filen, cs), NULL);
-	/* Remember we need to translate the block offset to a disk offset! */
 	a_file_read(&cs->aq, cs->fd,
 	    p,
 	    sio->st_size,
@@ -407,7 +406,7 @@ storeCossMemPointerFromDiskOffset(SwapDir * SD, size_t offset, CossMemBuf ** mb)
 
     for (m = cs->membufs.head; m; m = m->next) {
 	t = m->data;
-	if ((offset >= t->diskstart) && (offset <= t->diskend)) {
+	if ((offset >= t->diskstart) && (offset < t->diskend)) {
 	    if (mb)
 		*mb = t;
 	    return &t->buffer[offset - t->diskstart];
@@ -428,7 +427,7 @@ storeCossFilenoToMembuf(SwapDir * SD, sfileno s)
     off_t o = storeCossFilenoToDiskOffset(s, cs);
     for (m = cs->membufs.head; m; m = m->next) {
 	t = m->data;
-	if ((o >= t->diskstart) && (o <= t->diskend))
+	if ((o >= t->diskstart) && (o < t->diskend))
 	    break;
     }
     assert(t);
@@ -506,7 +505,6 @@ storeCossWriteMemBuf(SwapDir * SD, CossMemBuf * t)
     debug(79, 3) ("storeCossWriteMemBuf: offset %ld, len %ld\n",
 	(long int) t->diskstart, (long int) (t->diskend - t->diskstart));
     t->flags.writing = 1;
-    /* Remember that diskstart/diskend are block offsets! */
     a_file_write(&cs->aq, cs->fd, t->diskstart, &t->buffer,
 	t->diskend - t->diskstart, storeCossWriteMemBufDone, t, NULL);
 }
@@ -541,7 +539,7 @@ storeCossCreateMemBuf(SwapDir * SD, size_t start,
     newmb->diskstart = start;
     debug(79, 3) ("storeCossCreateMemBuf: creating new membuf at %ld\n", (long int) newmb->diskstart);
     debug(79, 3) ("storeCossCreateMemBuf: at %p\n", newmb);
-    newmb->diskend = newmb->diskstart + COSS_MEMBUF_SZ - 1;
+    newmb->diskend = newmb->diskstart + COSS_MEMBUF_SZ;
     newmb->flags.full = 0;
     newmb->flags.writing = 0;
     newmb->lockcount = 0;
@@ -566,8 +564,7 @@ storeCossCreateMemBuf(SwapDir * SD, size_t start,
 	o = storeCossFilenoToDiskOffset(e->swap_filen, cs);
 	if (curfn == e->swap_filen)
 	    *collision = 1;	/* Mark an object alloc collision */
-	if ((o >= newmb->diskstart) &&
-	    (o <= newmb->diskend)) {
+	if ((o >= newmb->diskstart) && (o < newmb->diskend)) {
 	    storeRelease(e);
 	    numreleased++;
 	} else
