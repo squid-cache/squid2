@@ -153,6 +153,9 @@ case "${UNAME_MACHINE}:${UNAME_SYSTEM}:${UNAME_RELEASE}:${UNAME_VERSION}" in
     *:IRIX*:*:*)
 	echo mips-sgi-irix`echo ${UNAME_RELEASE}|sed -e 's/-/_/g'`
 	exit 0 ;;
+    R[34]*:UNIX_System_V:*:*|R[34]*:UNIX_SV:*:*)
+	echo mips-necews-svr4
+	exit 0 ;;
    ????????:AIX?:[12].1:2)   # AIX 2.2.1 or AIX 2.1.1 is RT/PC AIX.
 	echo romp-ibm-aix      # uname -m gives an 8 hex-code CPU id
 	exit 0 ;;              # Note that: echo "'`uname -s`'" gives 'AIX '

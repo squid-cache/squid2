@@ -169,16 +169,14 @@ extern int neighbors_do_private_keys;
 extern char *IcpOpcodeStr[];
 extern int icpUdpReply _PARAMS((int fd, icpUdpData * queue));
 
-#endif
 
 #define ICP_IDENT_SZ 63
-
-typedef struct {
+typedef struct iwd {
     icp_common_t header;	/* Allows access to previous header */
     char *url;
     char *inbuf;
     int inbufsize;
-    int method;			/* GET, POST, ... */
+    method_t method;		/* GET, POST, ... */
     request_t *request;		/* Parsed URL ... */
     char *request_hdr;		/* Mime header */
     StoreEntry *entry;
@@ -191,7 +189,9 @@ typedef struct {
     char *buf;
     struct timeval start;
     int flags;
-    char ident[ICP_IDENT_SZ + 1];
+    int size;			/* hack for CONNECT which doesnt use sentry */
+    char ident[ICP_IDENT_SZ+1];
     int ident_fd;
-    int size;
 } icpStateData;
+
+#endif /* ICP_H */

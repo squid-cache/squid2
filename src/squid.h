@@ -253,6 +253,7 @@ extern char version_string[];	/* main.c */
 extern char appname[];		/* main.c */
 extern struct in_addr local_addr;	/* main.c */
 extern char localhost[];
+extern struct in_addr any_addr;	/* comm.c */
 
 
 /* Prototypes and definitions which don't really deserve a seaprate

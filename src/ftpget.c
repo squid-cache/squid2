@@ -1,4 +1,107 @@
-/* $Id$ */
+/*
+ * $Id$
+ *
+ * DEBUG: section 0     FTP Retrieval
+ * AUTHOR: Harvest Derived
+ *
+ * SQUID Internet Object Cache  http://www.nlanr.net/Squid/
+ * --------------------------------------------------------
+ *
+ *  Squid is the result of efforts by numerous individuals from the
+ *  Internet community.  Development is led by Duane Wessels of the
+ *  National Laboratory for Applied Network Research and funded by
+ *  the National Science Foundation.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  
+ */
+
+/*
+ * Copyright (c) 1994, 1995.  All rights reserved.
+ *  
+ *   The Harvest software was developed by the Internet Research Task
+ *   Force Research Group on Resource Discovery (IRTF-RD):
+ *  
+ *         Mic Bowman of Transarc Corporation.
+ *         Peter Danzig of the University of Southern California.
+ *         Darren R. Hardy of the University of Colorado at Boulder.
+ *         Udi Manber of the University of Arizona.
+ *         Michael F. Schwartz of the University of Colorado at Boulder.
+ *         Duane Wessels of the University of Colorado at Boulder.
+ *  
+ *   This copyright notice applies to software in the Harvest
+ *   ``src/'' directory only.  Users should consult the individual
+ *   copyright notices in the ``components/'' subdirectories for
+ *   copyright information about other software bundled with the
+ *   Harvest source code distribution.
+ *  
+ * TERMS OF USE
+ *   
+ *   The Harvest software may be used and re-distributed without
+ *   charge, provided that the software origin and research team are
+ *   cited in any use of the system.  Most commonly this is
+ *   accomplished by including a link to the Harvest Home Page
+ *   (http://harvest.cs.colorado.edu/) from the query page of any
+ *   Broker you deploy, as well as in the query result pages.  These
+ *   links are generated automatically by the standard Broker
+ *   software distribution.
+ *   
+ *   The Harvest software is provided ``as is'', without express or
+ *   implied warranty, and with no support nor obligation to assist
+ *   in its use, correction, modification or enhancement.  We assume
+ *   no liability with respect to the infringement of copyrights,
+ *   trade secrets, or any patents, and are not responsible for
+ *   consequential damages.  Proper use of the Harvest software is
+ *   entirely the responsibility of the user.
+ *  
+ * DERIVATIVE WORKS
+ *  
+ *   Users may make derivative works from the Harvest software, subject 
+ *   to the following constraints:
+ *  
+ *     - You must include the above copyright notice and these 
+ *       accompanying paragraphs in all forms of derivative works, 
+ *       and any documentation and other materials related to such 
+ *       distribution and use acknowledge that the software was 
+ *       developed at the above institutions.
+ *  
+ *     - You must notify IRTF-RD regarding your distribution of 
+ *       the derivative work.
+ *  
+ *     - You must clearly notify users that your are distributing 
+ *       a modified version and not the original Harvest software.
+ *  
+ *     - Any derivative product is also subject to these copyright 
+ *       and use restrictions.
+ *  
+ *   Note that the Harvest software is NOT in the public domain.  We
+ *   retain copyright, as specified above.
+ *  
+ * HISTORY OF FREE SOFTWARE STATUS
+ *  
+ *   Originally we required sites to license the software in cases
+ *   where they were going to build commercial products/services
+ *   around Harvest.  In June 1995 we changed this policy.  We now
+ *   allow people to use the core Harvest software (the code found in
+ *   the Harvest ``src/'' directory) for free.  We made this change
+ *   in the interest of encouraging the widest possible deployment of
+ *   the technology.  The Harvest software is really a reference
+ *   implementation of a set of protocols and formats, some of which
+ *   we intend to standardize.  We encourage commercial
+ *   re-implementations of code complying to this set of standards.  
+ */
 
 /*
  *    NOTES
@@ -67,37 +170,73 @@
  *      
  */
 
-
 #include "config.h"
 
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#if HAVE_STDIO_H
 #include <stdio.h>
+#endif
+#if HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#if HAVE_ERRNO_H
 #include <errno.h>
+#endif
+#if HAVE_STRING_H
 #include <string.h>
+#endif
+#if HAVE_STRINGS_H
+#include <strings.h>
+#endif
+#if HAVE_SIGNAL_H
 #include <signal.h>
+#endif
+#if HAVE_TIME_H
 #include <time.h>
+#endif
+#if HAVE_SYS_TIME_H
 #include <sys/time.h>		/* for select(2) */
-#ifdef HAVE_SYS_SELECT_H
+#endif
+#if HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#if HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+#if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
+#endif
+#if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#if HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#if HAVE_ARPA_INET_H
 #include <arpa/inet.h>
-
+#endif
+#if HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
+#if HAVE_LIBC_H
+#include <libc.h>
+#endif
 #if HAVE_BSTRING_H
 #include <bstring.h>
 #endif
 
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-
 #include "util.h"
+#if !HAVE_TEMPNAM
+#include "tempnam.h"
+#endif
 
 #ifndef BUFSIZ
 #define BUFSIZ 4096
@@ -133,6 +272,11 @@ typedef struct _ext_table_entry {
 #define F_USEBASE	0x40
 #define F_BASEDIR	0x80
 
+#if !defined(SUN_LEN)
+#define SUN_LEN(su) \
+        (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
+#endif
+
 typedef enum {
     BEGIN,
     PARSE_OK,
@@ -164,13 +308,9 @@ typedef enum {
     FAIL_HARD			/* do cache these */
 } state_t;
 
-#define DFD_TYPE_NONE 0
-#define DFD_TYPE_PASV 1
-#define DFD_TYPE_PORT 2
-
 typedef struct _request {
     char *host;
-    int port;
+    u_short port;
     char *path;
     char *type;
     char *user;
@@ -181,7 +321,6 @@ typedef struct _request {
     int cfd;
     int sfd;
     int dfd;
-    int dfd_type;
     int conn_att;
     int login_att;
     state_t state;
@@ -229,13 +368,13 @@ char *o_iconprefix = "internal-";	/* URL prefix for icons */
 char *o_iconsuffix = "";	/* URL suffix for icons */
 int o_list_width = 32;		/* size of filenames in directory list */
 int o_list_wrap = 0;		/* wrap long directory names ? */
-int o_conn_min = 0x4000;	/* min. port number to use */
-int o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
+u_short o_conn_min = 0x4000;	/* min. port number to use */
+u_short o_conn_max = 0x3fff + 0x4000;	/* max. port number to use */
+char *socket_pathname = NULL;
 
 #define SMALLBUFSIZ 1024
 #define MIDBUFSIZ 2048
 #define BIGBUFSIZ 8192
-#define READBUFSIZ SMALLBUFSIZ
 
 
 /*
@@ -249,6 +388,7 @@ char *server_reply_msg = NULL;
 struct sockaddr_in ifc_addr;
 static time_t last_alarm_set = 0;
 request_t *MainRequest = NULL;
+char visible_hostname[SMALLBUFSIZ];
 
 /* This linked list holds the "continuation" lines before the final
  * reply code line is sent for a FTP command */
@@ -327,7 +467,7 @@ char *html_trailer()
 {
     static char buf[SMALLBUFSIZ];
 
-    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n </BODY></HTML>\n", http_time((time_t) NULL), SQUID_VERSION, getfullhostname());
+    sprintf(buf, "<HR><ADDRESS>\nGenerated %s, by squid-ftpget/%s@%s\n</ADDRESS>\n </BODY></HTML>\n", http_time((time_t) NULL), SQUID_VERSION, visible_hostname);
     return buf;
 }
 
@@ -427,6 +567,8 @@ void generic_sig_handler(sig)
 {
     static char buf[SMALLBUFSIZ];
 
+    if (socket_pathname)
+	unlink(socket_pathname);
     sprintf(buf, "Received signal %d, exiting.\n", sig);
     errorlog(buf);
     if (MainRequest == NULL)
@@ -454,14 +596,20 @@ state_t request_timeout(r)
 void sigchld_handler(sig)
      int sig;
 {
+#if defined(_SQUID_NEXT_) && !defined(_POSIX_SOURCE)
+    union wait status;
+#else
     int status;
+#endif
     int pid;
 
+#if defined(_SQUID_NEXT_) && !defined(_POSIX_SOURCE)
+    if ((pid = wait4(0, &status, WNOHANG, NULL)) > 0)
+#else
     if ((pid = waitpid(0, &status, WNOHANG)) > 0)
-	Debug(26, 5, ("sigchld_handler: Ate pid %d\n", pid));
-#if RESET_SIGNAL_HANDLER
-    signal(sig, sigchld_handler);
 #endif
+	Debug(26, 5, ("sigchld_handler: Ate pid %d\n", pid));
+    signal(sig, sigchld_handler);
 }
 
 static int write_with_timeout(fd, buf, sz)
@@ -486,8 +634,14 @@ static int write_with_timeout(fd, buf, sz)
 	Debug(26, 7, ("write_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec));
 	x = select(fd + 1, &R, &W, NULL, &tv);
 	Debug(26, 7, ("write_with_timeout: select returned %d\n", x));
-	if (x < 0)
+	if (x < 0) {
+	    if (errno == EWOULDBLOCK)
+		continue;
+	    if (errno == EAGAIN)
+		continue;
+	    /* anything else, fail */
 	    return x;
+	}
 	if (x == 0)		/* timeout */
 	    return READ_TIMEOUT;
 	if (FD_ISSET(0, &R))
@@ -515,21 +669,29 @@ int read_with_timeout(fd, buf, sz)
     int x;
     fd_set R;
     struct timeval tv;
-    tv.tv_sec = o_timeout;
-    tv.tv_usec = 0;
-    FD_ZERO(&R);
-    FD_SET(fd, &R);
-    FD_SET(0, &R);
-    last_alarm_set = time(NULL);
-    Debug(26, 3, ("read_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec));
-    x = select(fd + 1, &R, NULL, NULL, &tv);
-    if (x < 0)
-	return x;
-    if (x == 0)			/* timeout */
-	return READ_TIMEOUT;
-    if (FD_ISSET(0, &R))
-	exit(1);		/* XXX very ungraceful! */
-    return read(fd, buf, sz);
+    for (;;) {
+	tv.tv_sec = o_timeout;
+	tv.tv_usec = 0;
+	FD_ZERO(&R);
+	FD_SET(fd, &R);
+	FD_SET(0, &R);
+	last_alarm_set = time(NULL);
+	Debug(26, 3, ("read_with_timeout: FD %d, %d seconds\n", fd, tv.tv_sec));
+	x = select(fd + 1, &R, NULL, NULL, &tv);
+	if (x < 0) {
+	    if (errno == EWOULDBLOCK)
+		continue;
+	    if (errno == EAGAIN)
+		continue;
+	    /* anything else, fail */
+	    return x;
+	}
+	if (x == 0)		/* timeout */
+	    return READ_TIMEOUT;
+	if (FD_ISSET(0, &R))
+	    exit(1);		/* XXX very ungraceful! */
+	return read(fd, buf, sz);
+    }
 }
 
 /* read until newline, sz, or timeout */
@@ -552,8 +714,14 @@ int readline_with_timeout(fd, buf, sz)
 	FD_SET(0, &R);
 	last_alarm_set = time(NULL);
 	x = select(fd + 1, &R, NULL, NULL, &tv);
-	if (x < 0)
+	if (x < 0) {
+	    if (errno == EWOULDBLOCK)
+		continue;
+	    if (errno == EAGAIN)
+		continue;
+	    /* anything else, fail */
 	    return x;
+	}
 	if (x == 0)		/* timeout */
 	    return READ_TIMEOUT;
 	if (FD_ISSET(0, &R))
@@ -619,8 +787,14 @@ int connect_with_timeout2(fd, S, len)
 	Debug(26, 7, ("select returned: %d\n", x));
 	if (x == 0)
 	    return READ_TIMEOUT;
-	if (x < 0)
+	if (x < 0) {
+	    if (errno == EWOULDBLOCK)
+		continue;
+	    if (errno == EAGAIN)
+		continue;
+	    /* anything else, fail */
 	    return x;
+	}
 	if (FD_ISSET(0, &R))
 	    exit(1);
     }
@@ -653,22 +827,30 @@ int accept_with_timeout(fd, S, len)
     int x;
     fd_set R;
     struct timeval tv;
-    tv.tv_sec = o_timeout;
-    tv.tv_usec = 0;
-    FD_ZERO(&R);
-    FD_SET(fd, &R);
-    FD_SET(0, &R);
-    last_alarm_set = time(NULL);
-    Debug(26, 7, ("accept_with_timeout: selecting on FD %d\n", fd));
-    x = select(fd + 1, &R, NULL, NULL, &tv);
-    Debug(26, 7, ("select returned: %d\n", x));
-    if (x == 0)
-	return READ_TIMEOUT;
-    if (x < 0)
-	return x;
-    if (FD_ISSET(0, &R))
-	exit(1);
-    return accept(fd, (struct sockaddr *) S, len);
+    for (;;) {
+	tv.tv_sec = o_timeout;
+	tv.tv_usec = 0;
+	FD_ZERO(&R);
+	FD_SET(fd, &R);
+	FD_SET(0, &R);
+	last_alarm_set = time(NULL);
+	Debug(26, 7, ("accept_with_timeout: selecting on FD %d\n", fd));
+	x = select(fd + 1, &R, NULL, NULL, &tv);
+	Debug(26, 7, ("select returned: %d\n", x));
+	if (x == 0)
+	    return READ_TIMEOUT;
+	if (x < 0) {
+	    if (errno == EWOULDBLOCK)
+		continue;
+	    if (errno == EAGAIN)
+		continue;
+	    return x;
+	}
+	if (FD_ISSET(0, &R))
+	    exit(1);
+	return accept(fd, (struct sockaddr *) S, len);
+    }
+    /* NOTREACHED */
 }
 
 
@@ -754,6 +936,8 @@ char *mime_get_icon(name)
     char *t = NULL;
     int i = 0;
 
+    if (name == NULL)
+	return xstrdup("unknown");
     if (!(t = strrchr(name, '.')))
 	return xstrdup("unknown");
     ext = xstrdup(t + 1);
@@ -867,7 +1051,7 @@ int read_reply(fd)
 	else
 	    quit = (buf[2] >= '0' && buf[2] <= '9' && buf[3] == ' ');
 	if (!quit) {
-	    l = (list_t *) xmalloc(sizeof(list_t));
+	    l = xmalloc(sizeof(list_t));
 	    l->ptr = xstrdup(&buf[4]);
 	    l->next = NULL;
 	    *Tail = l;
@@ -900,7 +1084,7 @@ int send_cmd(fd, buf)
     int x;
 
     len = strlen(buf) + 2;
-    xbuf = (char *) xmalloc(len + 1);
+    xbuf = xmalloc(len + 1);
     sprintf(xbuf, "%s\r\n", buf);
     Debug(26, 1, ("send_cmd: %s\n", buf));
     x = write_with_timeout(fd, xbuf, len);
@@ -944,11 +1128,51 @@ time_t parse_iso3307_time(buf)
 
 #define SEND_CBUF \
         if (send_cmd(r->sfd, cbuf) < 0) { \
-                r->errmsg = (char *) xmalloc (SMALLBUFSIZ); \
+                r->errmsg = xmalloc (SMALLBUFSIZ); \
                 sprintf(r->errmsg, "Failed to send '%s'", cbuf); \
                 r->rc = 4; \
                 return FAIL_SOFT; \
         }
+
+/*
+ *  close_dfd()
+ *  Close any open data channel
+ */
+void close_dfd(r)
+     request_t *r;
+{
+    if (r->dfd >= 0)
+	close(r->dfd);
+    r->flags &= ~F_NEEDACCEPT;
+    r->dfd = -1;
+}
+
+/*
+ *  is_dfd_open()
+ *  Check if a data channel is already open
+ */
+int is_dfd_open(r)
+     request_t *r;
+{
+    if (r->dfd >= 0 && !(r->flags & F_NEEDACCEPT)) {
+	fd_set R;
+	struct timeval tv;
+	FD_ZERO(&R);
+	FD_SET(r->dfd, &R);
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
+	    Debug(26, 3, ("Data channel already connected (FD=%d)\n", r->dfd));
+	    return 1;
+	} else {
+	    Debug(26, 2, ("Data channel closed by server (%s)\n", xstrerror()));
+	}
+    } else if (r->dfd >= 0) {
+	Debug(26, 2, ("Data socket not connected, closing\n"));
+    }
+    close_dfd(r);
+    return 0;
+}
 
 /*
  *  parse_request()
@@ -963,8 +1187,8 @@ state_t parse_request(r)
      request_t *r;
 {
     Debug(26, 1, ("parse_request: looking up '%s'\n", r->host));
-    if (get_host(r->host) == (Host *) NULL) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+    if (get_host(r->host) == NULL) {
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "Unknown host: %s", r->host);
 	r->rc = 10;
 	return FAIL_HARD;
@@ -993,13 +1217,13 @@ state_t do_connect(r)
     Debug(26, 1, ("do_connect: connect attempt #%d to '%s'\n",
 	    r->conn_att, r->host));
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
 	r->rc = 2;
 	return FAIL_CONNECT;
     }
     h = get_host(r->host);
-    memcpy(&(S.sin_addr.s_addr), h->ipaddr, h->addrlen);
+    xmemcpy(&(S.sin_addr.s_addr), h->ipaddr, h->addrlen);
     S.sin_family = AF_INET;
     S.sin_port = htons(r->port);
 
@@ -1009,7 +1233,7 @@ state_t do_connect(r)
 	return FAIL_CONNECT;
     }
     if (x < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s (port %d): %s",
 	    r->host, r->port, xstrerror());
 	r->rc = 3;
@@ -1040,6 +1264,10 @@ state_t read_welcome(r)
 {
     int code;
 
+#ifdef PASVONLY
+    r->login_att++;
+#endif /* PASVONLY */
+
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code == 220)
 	    return SERVICE_READY;
@@ -1065,7 +1293,9 @@ state_t do_user(r)
 {
     int code;
 
+#ifndef PASVONLY
     r->login_att++;
+#endif /* PASVONLY */
 
     sprintf(cbuf, "USER %s", r->user);
     SEND_CBUF;
@@ -1175,29 +1405,14 @@ state_t do_port(r)
     struct sockaddr_in S;
     unsigned int naddr;
     int tries = 0;
-    int port = 0;
+    u_short port = 0;
     static int init = 0;
 
-    if (r->dfd >= 0 && r->dfd_type == DFD_TYPE_PORT) {
-	fd_set R;
-	struct timeval tv;
-	FD_ZERO(&R);
-	FD_SET(r->dfd, &R);
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
-	    Debug(26, 3, ("do_port: FD %d Already connected\n", r->dfd));
-	    r->flags |= F_NEEDACCEPT;
-	    return PORT_OK;
-	} else {
-	    Debug(26, 2, ("Data connection closed by server (%s)\n", xstrerror()));
-	    close(r->dfd);
-	    r->dfd = -1;
-	    r->dfd_type = DFD_TYPE_NONE;
-	}
-    }
+    if (is_dfd_open(r))
+	return PORT_OK;
+
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
@@ -1205,16 +1420,18 @@ state_t do_port(r)
     S = ifc_addr;
     S.sin_family = AF_INET;
 
+#if !defined(PASVONLY)
+
     if (!init) {
 	init = 1;
-#if defined(HAVE_SRAND48)
+#if HAVE_SRAND48
 	srand48(time(NULL));
 #else
 	srand(time(NULL));
 #endif
     }
     for (;;) {
-#if defined(HAVE_LRAND48)
+#if HAVE_LRAND48
 	port = (lrand48() % (o_conn_max - o_conn_min)) + o_conn_min;
 #else
 	port = (rand() % (o_conn_max - o_conn_min)) + o_conn_min;
@@ -1224,14 +1441,28 @@ state_t do_port(r)
 	    break;
 	if (++tries < 10)
 	    continue;
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "bind: %s", xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
     }
+#else
+    {
+	port = 0;
+	S.sin_port = htons(port);
+	if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
+	    r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	    sprintf(r->errmsg, "bind: %s", xstrerror());
+	    r->rc = 2;
+	    return FAIL_SOFT;
+	}
+	port = ntohs(S.sin_port);
+    }
+#endif /* PASVONLY */
+
 
     if (listen(sock, 1) < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "listen: %s", xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
@@ -1250,7 +1481,6 @@ state_t do_port(r)
     if ((code = read_reply(r->sfd)) > 0) {
 	if (code == 200) {
 	    r->dfd = sock;
-	    r->dfd_type = DFD_TYPE_PORT;
 	    r->flags |= F_NEEDACCEPT;
 	    return PORT_OK;
 	}
@@ -1266,7 +1496,7 @@ state_t do_pasv(r)
     int code;
     int sock;
     struct sockaddr_in S;
-    int port = 0;
+    u_short port = 0;
     int n;
     int h1, h2, h3, h4;
     int p1, p2;
@@ -1278,27 +1508,12 @@ state_t do_pasv(r)
     if (!pasv_supported)
 	return PASV_FAIL;
 
-    if (r->dfd >= 0 && r->dfd_type == DFD_TYPE_PASV) {
-	fd_set R;
-	struct timeval tv;
-	FD_ZERO(&R);
-	FD_SET(r->dfd, &R);
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	if (select(r->dfd + 1, &R, NULL, NULL, &tv) == 0) {
-	    Debug(26, 3, ("do_pasv: FD %d Already connected\n", r->dfd));
-	    return PORT_OK;
-	} else {
-	    Debug(26, 2, ("Data connection closed by server (%s)\n", xstrerror()));
-	    close(r->dfd);
-	    r->dfd = -1;
-	    r->dfd_type = DFD_TYPE_NONE;
-	}
-    }
-    r->flags &= ~F_NEEDACCEPT;
+    /* If there already are a open data connection, use that */
+    if (is_dfd_open(r))
+	return PORT_OK;
 
     if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "socket: %s", xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
@@ -1329,13 +1544,12 @@ state_t do_pasv(r)
     S.sin_port = htons(port = ((p1 << 8) + p2));
 
     if (connect_with_timeout(sock, &S, sizeof(S)) < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "%s, port %d: %s", junk, port, xstrerror());
 	r->rc = 2;
 	return FAIL_SOFT;
     }
     r->dfd = sock;
-    r->dfd_type = DFD_TYPE_PASV;
     return PORT_OK;
 }
 
@@ -1356,7 +1570,7 @@ state_t do_cwd(r)
 	if (code >= 200 && code < 300)
 	    return CWD_OK;
 #ifdef TRY_CWD_FIRST
-	if (!r->flags & F_ISDIR)
+	if (!(r->flags & F_ISDIR))
 	    return CWD_FAIL;
 #endif
 	r->errmsg = xstrdup(server_reply_msg);
@@ -1473,16 +1687,13 @@ state_t do_accept(r)
     if (sock == READ_TIMEOUT)
 	return request_timeout(r);
     if (sock < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "accept: %s", xstrerror());
 	r->rc = 3;
 	return FAIL_SOFT;
     }
-    r->flags &= ~F_NEEDACCEPT;
-    if (r->dfd >= 0)
-	close(r->dfd);
+    close_dfd(r);
     r->dfd = sock;
-    r->dfd_type = DFD_TYPE_PORT;
     return DATA_TRANSFER;
 }
 
@@ -1491,28 +1702,20 @@ state_t read_data(r)
 {
     int code;
     int n;
-    static char buf[READBUFSIZ];
+    static char buf[SQUID_TCP_SO_RCVBUF];
     int x;
 
-    n = read_with_timeout(r->dfd, buf, READBUFSIZ);
+    n = read_with_timeout(r->dfd, buf, SQUID_TCP_SO_RCVBUF);
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
     } else if (n < 0) {
-	if (r->dfd >= 0) {
-	    close(r->dfd);
-	    r->dfd = -1;
-	    r->dfd_type = DFD_TYPE_NONE;
-	}
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	close_dfd(r);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
     } else if (n == 0) {
-	if (r->dfd >= 0) {
-	    close(r->dfd);
-	    r->dfd = -1;
-	    r->dfd_type = DFD_TYPE_NONE;
-	}
+	close_dfd(r);
 	if ((code = read_reply(r->sfd)) > 0) {
 	    if (code == 226)
 		return TRANSFER_DONE;
@@ -1525,7 +1728,7 @@ state_t read_data(r)
     if (x == READ_TIMEOUT)
 	return request_timeout(r);
     if (x < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "write: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
@@ -1571,8 +1774,7 @@ parts_t *parse_entry(buf)
     if (*buf == '\0')
 	return NULL;
 
-    p = (parts_t *) xmalloc(sizeof(parts_t));
-    memset(p, '\0', sizeof(parts_t));
+    p = xcalloc(1, sizeof(parts_t));
 
     n_tokens = 0;
     for (i = 0; i < MAX_TOKENS; i++)
@@ -1668,9 +1870,9 @@ char *htmlize_list_entry(line, r)
     char *ename = NULL;
     parts_t *parts = NULL;
 
-    link = (char *) xmalloc(MIDBUFSIZ);
-    icon = (char *) xmalloc(MIDBUFSIZ);
-    html = (char *) xmalloc(BIGBUFSIZ);
+    link = xmalloc(MIDBUFSIZ);
+    icon = xmalloc(MIDBUFSIZ);
+    html = xmalloc(BIGBUFSIZ);
 
     /* check .. as special case */
     if (!strcmp(line, "..")) {
@@ -1772,15 +1974,16 @@ void try_readme(r)
 	xfree(tfname);
 	return;
     }
-    readme = (request_t *) xmalloc(sizeof(request_t));
-    memset(readme, '\0', sizeof(request_t));
-
+    readme = xcalloc(1, sizeof(request_t));
     readme->path = xstrdup("README");
     readme->cfd = fd;
     readme->sfd = r->sfd;
-    readme->dfd = r->dfd;
-    r->dfd = -1;
-    r->dfd_type = DFD_TYPE_NONE;
+    if (is_dfd_open(r)) {
+	readme->dfd = r->dfd;
+	r->dfd = -1;
+    } else {
+	readme->dfd = -1;
+    }
 #ifdef TRY_CWD_FIRST
     readme->state = CWD_FAIL;
 #else
@@ -1793,13 +1996,10 @@ void try_readme(r)
 	close(readme->cfd);
 	readme->cfd = -1;
     }
-    if (readme->dfd >= 0) {
-	if (r->dfd == -1)
-	    r->dfd = readme->dfd;
-	else
-	    close(readme->dfd);
+    if (is_dfd_open(readme)) {
+	close_dfd(r);
+	r->dfd = readme->dfd;
 	readme->dfd = -1;
-	readme->dfd_type = DFD_TYPE_NONE;
     }
     fp = fopen(tfname, "r");
     unlink(tfname);
@@ -1862,11 +2062,9 @@ state_t htmlify_listing(r)
     fprintf(wfp, "FTP Directory: %s\n", r->title_url);
     fprintf(wfp, "</H2>\n");
     fprintf(wfp, "<PRE>\n");
-    if (!(r->flags & F_BASEDIR)) {
-	if ((t = htmlize_list_entry("..", r))) {
-	    fputs(t, wfp);
-	    xfree(t);
-	}
+    if ((t = htmlize_list_entry("..", r))) {
+	fputs(t, wfp);
+	xfree(t);
     }
     while ((n = readline_with_timeout(r->dfd, buf, BIGBUFSIZ)) > 0) {
 	Debug(26, 1, ("Input: %s", buf));
@@ -1881,15 +2079,11 @@ state_t htmlify_listing(r)
 	    xfree(t);
 	}
     }
-    if (r->dfd >= 0) {
-	close(r->dfd);
-	r->dfd = -1;
-	r->dfd_type = DFD_TYPE_NONE;
-    }
+    close_dfd(r);
     if (n == READ_TIMEOUT) {
 	return request_timeout(r);
     } else if (n < 0) {
-	r->errmsg = (char *) xmalloc(SMALLBUFSIZ);
+	r->errmsg = xmalloc(SMALLBUFSIZ);
 	sprintf(r->errmsg, "read: %s", xstrerror());
 	r->rc = 4;
 	return FAIL_SOFT;
@@ -1907,7 +2101,7 @@ state_t htmlify_listing(r)
     }
     fprintf(wfp, "<ADDRESS>\n");
     fprintf(wfp, "Generated %s, by %s/%s@%s\n",
-	http_time(stamp), progname, SQUID_VERSION, getfullhostname());
+	http_time(stamp), progname, SQUID_VERSION, visible_hostname);
     fprintf(wfp, "</ADDRESS>\n");
     fclose(wfp);
 
@@ -1923,7 +2117,7 @@ state_t htmlify_listing(r)
 static int process_request(r)
      request_t *r;
 {
-    if (r == (request_t *) NULL)
+    if (r == NULL)
 	return 1;
 
     for (;;) {
@@ -2061,9 +2255,6 @@ static int process_request(r)
 	    }
 	    break;
 	case FAIL_SOFT:
-	    fail(r);
-	    return (r->rc);
-	    /* NOTREACHED */
 	case FAIL_HARD:
 	    fail(r);
 	    return (r->rc);
@@ -2136,14 +2327,13 @@ void cleanup_path(r)
 }
 
 #define MAX_ARGS 64
-int ftpget_srv_mode(port)
-     int port;
+int ftpget_srv_mode(arg)
+     char *arg;
 {
     /* Accept connections on localhost:port.  For each request,
      * parse into args and exec ftpget. */
     int sock;
     int c;
-    struct sockaddr_in S;
     fd_set R;
     char *args[MAX_ARGS];
     char *t = NULL;
@@ -2152,54 +2342,41 @@ int ftpget_srv_mode(port)
     static char *w_space = " \t\n\r";
     static char buf[BUFSIZ];
     int buflen;
+    int flags;
 
+#if HAVE_SETSID
     setsid();			/* become session leader */
-
-    if ((sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-	log_errno2(__FILE__, __LINE__, "socket");
-	exit(1);
-    }
-    if (fcntl(sock, F_SETFD, 1) < 0) {
-	Debug(26, 0, ("ftpget_srv_mode: FD %d: failed to set close-on-exec flag: %s\n",
-		sock, xstrerror()));
-    }
-    i = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &i, sizeof(int));
-    memset((char *) &S, '\0', sizeof(S));
-    S.sin_addr.s_addr = inet_addr("127.0.0.1");
-    S.sin_port = htons(port);
-    S.sin_family = AF_INET;
-    Debug(26, 1, ("Binding to %s, port %d\n",
-	    inet_ntoa(S.sin_addr),
-	    ntohs(S.sin_port)));
-    if (bind(sock, (struct sockaddr *) &S, sizeof(S)) < 0) {
-	log_errno2(__FILE__, __LINE__, "bind");
-	sleep(5);		/* sleep here so that the cache will restart us */
-	exit(1);
-    }
-    if (listen(sock, 50) < 0) {
-	log_errno2(__FILE__, __LINE__, "listen");
-	exit(1);
-    }
+#elif HAVE_SETPGRP
+    setpgrp(getpid(), 0);
+#endif
+    sock = 3;
     for (;;) {
 	FD_ZERO(&R);
 	FD_SET(0, &R);
 	FD_SET(sock, &R);
 	if (select(sock + 1, &R, NULL, NULL, NULL) < 0) {
+	    if (errno == EWOULDBLOCK)
+		continue;
+	    if (errno == EAGAIN)
+		continue;
 	    if (errno == EINTR)
 		continue;
 	    log_errno2(__FILE__, __LINE__, "select");
-	    continue;
+	    return 1;
 	}
 	if (FD_ISSET(0, &R)) {
 	    /* exit server mode if any activity on stdin */
 	    close(sock);
+	    if (socket_pathname)
+		unlink(socket_pathname);
 	    return 0;
 	}
 	if (!FD_ISSET(sock, &R))
 	    continue;
 	if ((c = accept(sock, NULL, 0)) < 0) {
 	    log_errno2(__FILE__, __LINE__, "accept");
+	    if (socket_pathname)
+		unlink(socket_pathname);
 	    exit(1);
 	}
 	if (fork()) {
@@ -2209,9 +2386,20 @@ int ftpget_srv_mode(port)
 	}
 	buflen = 0;
 	memset(buf, '\0', BUFSIZ);
+	if ((flags = fcntl(c, F_GETFL, 0)) < 0)
+	    log_errno2(__FILE__, __LINE__, "fcntl F_GETFL");
+#ifdef O_NONBLOCK
+	flags &= ~O_NONBLOCK;
+#endif
+#ifdef O_NDELAY
+	flags &= ~O_NDELAY;
+#endif
+	if (fcntl(c, F_SETFL, flags) < 0)
+	    log_errno2(__FILE__, __LINE__, "fcntl F_SETFL");
 	do {
 	    if ((n = read(c, &buf[buflen], BUFSIZ - buflen - 1)) <= 0) {
-		log_errno2(__FILE__, __LINE__, "read");
+		if (n < 0)
+		    log_errno2(__FILE__, __LINE__, "read");
 		close(c);
 		_exit(1);
 	    }
@@ -2236,7 +2424,7 @@ int ftpget_srv_mode(port)
 	log_errno2(__FILE__, __LINE__, fullprogname);
 	_exit(1);
     }
-    return 1;
+    /* NOTREACHED */
 }
 
 void usage(argcount)
@@ -2255,6 +2443,7 @@ void usage(argcount)
     fprintf(stderr, "\t-p path         Icon URL prefix\n");
     fprintf(stderr, "\t-s .ext         Icon URL suffix\n");
     fprintf(stderr, "\t-h              Convert to HTTP\n");
+    fprintf(stderr, "\t-H hostname     Visible hostname\n");
     fprintf(stderr, "\t-R              DON'T get README file\n");
     fprintf(stderr, "\t-w chars        Filename width in directory listing\n");
     fprintf(stderr, "\t-W              Wrap long filenames\n");
@@ -2263,7 +2452,7 @@ void usage(argcount)
     fprintf(stderr, "\t-P port         FTP Port number\n");
     fprintf(stderr, "\t-v              Version\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "usage: %s -S port\n", progname);
+    fprintf(stderr, "usage: %s -S\n", progname);
     exit(1);
 }
 
@@ -2278,7 +2467,7 @@ int main(argc, argv)
     int i;
     int len;
     int j, k;
-    int port = FTP_PORT;
+    u_short port = FTP_PORT;
 
     fullprogname = xstrdup(argv[0]);
     if ((t = strrchr(argv[0], '/'))) {
@@ -2313,6 +2502,8 @@ int main(argc, argv)
 	}
     }
 
+    strcpy(visible_hostname, getfullhostname());
+
     for (argc--, argv++; argc > 0 && **argv == '-'; argc--, argv++) {
 	Debug(26, 7, ("processing arg '%s'\n", *argv));
 	if (!strcmp(*argv, "-"))
@@ -2328,11 +2519,8 @@ int main(argc, argv)
 	    if (--argc < 1)
 		usage(argc);
 	    argv++;
-	    j = atoi(*argv);
-	    Debug(26, 1, ("argv=%s j=%d\n", *argv, j));
-	    if (j > 0)
-		return (ftpget_srv_mode(j));
-	    usage(argc);
+	    return (ftpget_srv_mode(*argv));
+	    /* NOTREACHED */
 	} else if (!strcmp(*argv, "-t")) {
 	    if (--argc < 1)
 		usage(argc);
@@ -2362,6 +2550,12 @@ int main(argc, argv)
 		usage(argc);
 	    argv++;
 	    o_iconprefix = xstrdup(*argv);
+	    continue;
+	} else if (!strcmp(*argv, "-H")) {
+	    if (--argc < 1)
+		usage(argc);
+	    argv++;
+	    strcpy(visible_hostname, *argv);
 	    continue;
 	} else if (!strcmp(*argv, "-s")) {
 	    if (--argc < 1)
@@ -2404,7 +2598,7 @@ int main(argc, argv)
 	    continue;
 	} else if (!strcmp(*argv, "-C")) {
 	    if (--argc < 1)
-		usage();
+		usage(argc);
 	    argv++;
 	    j = k = 0;
 	    sscanf(*argv, "%d:%d", &j, &k);
@@ -2438,8 +2632,7 @@ int main(argc, argv)
 	fprintf(stderr, "Wrong number of arguments left (%d)\n", argc);
 	usage(argc);
     }
-    r = (request_t *) xmalloc(sizeof(request_t));
-    memset(r, '\0', sizeof(request_t));
+    r = xcalloc(1, sizeof(request_t));
 
     if (strcmp(argv[0], "-") == 0) {
 	r->cfd = 1;
@@ -2455,7 +2648,6 @@ int main(argc, argv)
     r->port = port;
     r->sfd = -1;
     r->dfd = -1;
-    r->dfd_type = DFD_TYPE_NONE;
     r->size = -1;
     r->state = BEGIN;
     r->flags |= o_httpify ? F_HTTPIFY : 0;
@@ -2471,8 +2663,8 @@ int main(argc, argv)
 
     len = 15 + strlen(r->user) + strlen(r->pass) + strlen(r->host)
 	+ strlen(r->path);
-    r->url = (char *) xmalloc(len);
-    r->title_url = (char *) xmalloc(len);
+    r->url = xmalloc(len);
+    r->title_url = xmalloc(len);
 
     *r->url = '\0';
     strcat(r->url, "ftp://");
@@ -2500,7 +2692,7 @@ int main(argc, argv)
 
     /* Make a copy of the escaped URL with some room to grow at the end */
     t = rfc1738_escape(r->url);
-    r->url_escaped = (char *) xmalloc(strlen(t) + 10);
+    r->url_escaped = xmalloc(strlen(t) + 10);
     strcpy(r->url_escaped, t);
 
     rc = process_request(MainRequest = r);
@@ -2510,8 +2702,7 @@ int main(argc, argv)
 	close(r->sfd);
     if (r->cfd >= 0)
 	close(r->cfd);
-    if (r->dfd >= 0)
-	close(r->dfd);
+    close_dfd(r);
     close(0);
     close(1);
     exit(rc);

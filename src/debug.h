@@ -127,4 +127,6 @@ extern void _db_print();
 
 #define safe_free(x)	if (x) { xxfree(x); x = NULL; }
 
+extern void _db_rotate_log _PARAMS((void));
+
 #endif /* _DEBUG_H_ */

@@ -3,26 +3,44 @@
 # $Id$
 #
 
-#  TAG: ascii_port
+#  TAG: http_port
 #	The port number where cached will listen for HTTP client
 #	requests.  Default is 3128, for httpd-accel mode use port 80.
 #	May be overridden with -a on the command line.
-#ascii_port @CACHE_HTTP_PORT@
+#http_port @CACHE_HTTP_PORT@
 
-#  TAG: udp_port
+#  TAG: icp_port
 #	The port number where cached will listen for ICP requests from
-#	neighbor caches.  Default is 3130.  To disable use "-1".
+#	neighbor caches.  Default is 3130.  To disable use "0".
 #	May be overridden with -u on the command line.
-#udp_port @CACHE_ICP_PORT@
+#icp_port @CACHE_ICP_PORT@
 
-#  TAG: bind_address
-#	Use this to force the cache to listen on a specific IP address
-#	(interface) instead of listening on all addresses.  Either
-#	an IP address or hostname can be given.  For example:
+#  TAG: tcp_incoming_address
+#  TAG: tcp_outgoing_address
+#  TAG: udp_incoming_address
+#  TAG: udp_outgoing_address
 #
-#	    bind_address 172.16.1.1
-#	    bind_address localhost
-#	    bind_address www-slip.my.domain
+#	Usage: tcp_incoming_address 10.20.30.40
+#	       udp_outgoing_address fully.qualified.domain.name
+#
+#	These tags have replaced 'bind_address' and 'outbound_address'
+#	to provide more control for multihomed hosts.
+#
+#	tcp_incoming_address	is used for the HTTP socket which accepts
+#				connections from clients and other caches.
+#	tcp_outgoing_address	is used for connections made to remote
+#				servers and other caches.
+#	udp_incoming_address	is used for the ICP socket receiving packets
+#				from other caches.
+#	udp_outgoing_address	is used for ICP packets sent out to other
+#				caches.
+#
+#	The defaults behaviour is to not bind to any specific address.
+#
+#tcp_incoming_address 0.0.0.0
+#tcp_outgoing_address 0.0.0.0
+#udp_incoming_address 0.0.0.0
+#udp_outgoing_address 0.0.0.0
 
 
 # OPTIONS WHICH AFFECT THE NEIGHBOR SELECTION ALGORITHM
@@ -31,11 +49,11 @@
 #  TAG: cache_host 
 #	To specify other caches in a hierarchy, use the format:
 #
-#	    hostname type ascii_port udp_port
+#	    hostname type http_port icp_port
 #
 #   For example,
 #
-#	#                                        proxy  udp
+#	#                                        proxy  icp
 #	#          hostname             type     port   port  options
 #	#          -------------------- -------- ----- -----  -----------
 #	cache_host bigserver.usc.edu    parent    3128  3130  [proxy-only]
@@ -47,9 +65,9 @@
 #	proxy_port:  The port number where the cache listens for proxy
 #	             requests.
 #
-#	  udp_port:  Used for querying neighbor/parent caches about
+#	  icp_port:  Used for querying neighbor/parent caches about
 #	             objects.  To have a non-ICP neighbor/parent
-#	             specify '7' for the udp port and make sure the
+#	             specify '7' for the ICP port and make sure the
 #	             neighbor/parent machine has the UDP echo port
 #	             enabled in its /etc/inetd.conf file.
 #
@@ -89,6 +107,8 @@
 #		* Cache hosts with no domain restrictions are queried
 #		  for all requests.
 #		* There are no defaults.
+#		* There is also a 'cache_host_acl' tag in the ACL
+#		  section.
 
 #  TAG:	inside_firewall
 #	This tag specifies a list of domains inside your Internet
@@ -186,6 +206,17 @@
 #	timeout is two seconds.
 #
 #neighbor_timeout 2
+
+#  TAG: hierarchy_stoplist
+#	A list of words which, if found in a URL, cause the object to
+#	be handled directly by this cache.  In other words, use this
+#	to not query neighbor caches for certain objects.  You may
+#	list this option multiple times.
+#
+#	NOTE: this option will partially replace 'http_stop' etc, in a
+#	future release.
+#
+#hierarchy_stoplist
 
 # OPTIONS WHICH AFFECT THE CACHE SIZE
 #-----------------------------------------------------------------------------
@@ -286,6 +317,19 @@
 debug_options ALL,1
 
 
+#	A pathname to write the process-id to.  There is no default.
+#pid_filename /tmp/squid.pid
+
+#  TAG: debug_options
+#	Logging options are set as section,level where each source file
+#	is assigned a unique section.  Lower levels result in less
+#	output,  Full debugging (level 9) can result in a very large
+#	log file, so be careful.  The magic word "ALL" sets debugging
+#	levels for all sections.  We recommend normally running with
+#	"ALL,1".
+#debug_options ALL,1
+
+
 # OPTIONS FOR EXTERNAL SUPPORT PROGRAMS
 #-----------------------------------------------------------------------------
 
@@ -293,7 +337,7 @@ debug_options ALL,1
 #	Where to find the 'ftpget' program that retrieves FTP data (HTTP
 #	and Gopher protocol support are built into the cache).  
 #
-cache_ftp_program @DEFAULT_FTPGET@
+#cache_ftp_program @DEFAULT_FTPGET@
 
 #  TAG: cache_ftp_options
 #	Options for the 'ftpget' program.  Please run 'ftpget' without
@@ -337,6 +381,10 @@ cache_ftp_program @DEFAULT_FTPGET@
 #	Stoplist for URL's.  URL's which contain these strings will be
 #	never be saved in the cache.
 #
+#	NOTE: these options will be removed in a future release, their
+#	functionality will be more appropriately provided by 'ttl_pattern'
+#	and 'hierarchy_stoplist'.
+#
 http_stop     /cgi-bin/
 http_stop     ?
 gopher_stop   ?
@@ -354,11 +402,11 @@ gopher_stop   ?
 #
 #	The defaults are:
 #
-# Access Type    Max Object Size    TTL (note: 10080 minute = 1 week)
+# Access Type    Max Object Size    TTL (note: 4320 minutes = 3 days)
 # ---------      ----------------   -----------
-#gopher                  4            10080 
-#http                    4            10080 
-#ftp                     4            10080 
+#gopher                  4            4320 
+#http                    4            4320 
+#ftp                     4            4320 
 
 #  TAG: wais_relay
 #	Relay WAIS request to host (1st arg) at port (2 arg).  
@@ -402,6 +450,13 @@ request_size 100
 #	If neither the absolute TTL or percentage factor result in a
 #	TTL for the object, the default TTL from the preceeding section
 #	will be used.
+#
+#	The following line represents the default behaviour.  Objects with
+#	Last-Modified time are cached for 20% of their age, up to three
+#	days.  Otherwise, an object will be cached for three days
+#	by default.
+#
+#	ttl_pattern    .                   4320        20%       4320
 #
 #	Examples:
 #
@@ -530,6 +585,9 @@ acl manager proto cache_object
 acl localhost src 127.0.0.1/255.255.255.255
 acl all src 0.0.0.0/0.0.0.0
 
+acl SSL_ports port 443 563
+acl CONNECT method CONNECT
+
 # Allowing or Denying access based on defined access lists
 #
 # Access to the HTTP port:
@@ -540,6 +598,7 @@ acl all src 0.0.0.0/0.0.0.0
 
 # Only allow access to the cache manager functions from the local host.
 http_access deny manager !localhost
+http_access deny CONNECT !SSL_ports
 
 # Allow everything else
 http_access allow  all
@@ -547,14 +606,28 @@ http_access allow  all
 # Reply to all ICP queries we receive
 icp_access  allow  all
 
+#  TAG: cache_host_acl
+#	Just like 'cache_host_domain' but provides more flexibility by
+#	using ACL's.
+#
+#		cache_host_domain cache-host	[!]aclname ...
+#
+#	NOTE:	* Any number of ACL's may be given for a cache-host,
+#		  either on the same or separate lines.
+#		* When multiple ACL's are given for a particular
+#		  cache-host, the first matched ACL is applied.
+#		* Cache hosts with no domain or ACL restrictions arequeried
+#		  queried for all requests.
+#		* There are no defaults.
+
 # ADMINISTRATIVE PARAMETERS
 #-----------------------------------------------------------------------------
 
 #  TAG: cache_mgr 
 #	Email-address of local cache manager who will receive
-#	mail if the cache dies.  The default is not to send mail.
+#	mail if the cache dies.  The default is "webmaster."
 #
-#cache_mgr your.name@your.domain.com
+#cache_mgr webmaster
 
 #  TAG: cache_effective_user
 #	If the cache is run as root, it will change its effective/real
@@ -589,8 +662,8 @@ icp_access  allow  all
 #	The announcement message includes your hostname, plus the
 #	following information from this configuration file:
 #
-#		ascii_port
-#		udp_port
+#		http_port
+#		icp_port
 #		cache_mgr
 #
 #	All current information is processed regularly and made
@@ -641,10 +714,10 @@ icp_access  allow  all
 #
 #		hot_vm_count = cache_mem * hot_vm_factor / 1048576
 #
-#	The default is 0, which disables hot_vm objects.  The suggested
+#	The default is 0.0, which disables hot_vm objects.  The suggested
 #	value for httpd_accel_mode is 12.5.
 #
-#cache_hot_vm_factor 0
+#cache_hot_vm_factor 0.0
 
 
 # MISCELLANEOUS
@@ -659,11 +732,11 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 
 #  TAG: logfile_rotate #
 #	Specifies the number of logfile rotations to make upon receiving
-#	a HUP signal.  The default is 10, which will rotate with
+#	a USR1 signal.  The default is 10, which will rotate with
 #	extensions 0 through 9.  Setting logfile_rotate to 0 will
 #	disable the rotation, but the logfiles are still closed and
 #	re-opened.  This will enable you to rename the logfiles yourself
-#	just before sending a HUP signal to the cached process.
+#	just before sending a USR1 signal to the cached process.
 #
 #logfile_rotate 10
 
@@ -672,8 +745,3 @@ dns_testnames internic.net usc.edu cs.colorado.edu mit.edu yale.edu
 #	append_domain must begin with a period.
 #
 #append_domain .yourdomain.com
-
-#  TAG: connect_port
-#       The port number(s) where cached will listen allow outbound CONNECT
-#       (SSL).  The defaults are 443 (https) and 563 (snews).
-#connect_ports 443 563

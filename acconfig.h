@@ -6,8 +6,23 @@
 /* Define if struct mallinfo has mxfast member */
 #undef HAVE_EXT_MALLINFO
 
-/* Define if signal handlers must be reset after invocation */
-#undef RESET_SIGNAL_HANDLER
-
 /* Maximum number of open filedescriptors */
 #undef SQUID_FD_SETSIZE
+
+/* UDP send buffer size */
+#undef SQUID_UDP_SO_SNDBUF
+
+/* UDP receive buffer size */
+#undef SQUID_UDP_SO_RCVBUF
+
+/* TCP send buffer size */
+#undef SQUID_TCP_SO_SNDBUF
+
+/* TCP receive buffer size */
+#undef SQUID_TCP_SO_RCVBUF
+
+/* Host type from configure */
+#undef CONFIG_HOST_TYPE
+
+/* If we need to declare sys_errlist[] as external */
+#undef NEED_SYS_ERRLIST

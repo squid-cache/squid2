@@ -16,6 +16,8 @@ exec_prefix	= @exec_prefix@
 
 SUBDIRS		= lib scripts src
 
+noargs: all
+
 all install clean: 
 	@for dir in $(SUBDIRS); do \
 		echo "Making $@ in $$dir..."; \
