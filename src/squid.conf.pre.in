@@ -1038,5 +1038,14 @@ minimum_direct_hops 4
 #
 #swap_level2_dirs 256
 
-store_objects_per_bucket 50
-store_avg_object_size 20
+#  TAG: store_avg_object_size
+#	Average object size, used to estimate number of objects your
+#	cache can hold.  See doc/Release-Notes-1.1.txt.  The default is
+#	20K.
+#store_avg_object_size 20
+
+#  TAG: store_objects_per_bucket 50
+#	Target number of objects per bucket in the store hash table.
+#	Lowering this value increases the total number of buckets and
+#	also the storage maintenance rate.  The default is 50.
+#store_objects_per_bucket 50
