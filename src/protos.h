@@ -983,6 +983,7 @@ extern int asnMatchIp(void *, struct in_addr);
 extern void asnInit(void);
 extern void asnFreeMemory(void);
 extern void dlinkAdd(void *data, dlink_node *, dlink_list *);
+extern void dlinkAddTail(void *data, dlink_node *, dlink_list *);
 extern void dlinkDelete(dlink_node * m, dlink_list * list);
 extern void kb_incr(kb_t *, size_t);
 extern double gb_to_double(const gb_t *);

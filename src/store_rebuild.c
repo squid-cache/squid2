@@ -595,10 +595,10 @@ storeCleanup(void *datanotused)
 	e = (StoreEntry *) link_ptr;
 	if (EBIT_TEST(e->flag, ENTRY_VALIDATED))
 	    continue;
-	if (EBIT_TEST(e->flag, RELEASE_REQUEST)) {
-	    storeRelease(e);
-	    continue;
-	}
+	/*
+	 * Calling storeRelease() has no effect because we're
+	 * still in 'store_rebuilding' state
+	 */
 	if (e->swap_file_number < 0)
 	    continue;
 	if (opt_store_doublecheck) {
