@@ -791,7 +791,6 @@ struct _clientHttpRequest {
     char *uri;
     char *log_uri;
     struct {
-	char *buf;
 	off_t offset;
 	size_t size;
     } out;
@@ -839,7 +838,6 @@ struct _ConnStateData {
 	int state;
 	void *callback_data;
     } ident;
-    CommWriteStateData *commWriteState;
     int nrequests;
     int persistent;
     struct {
