@@ -439,6 +439,7 @@ struct _SquidConfig {
     } mcast_miss;
 #endif
     HttpHeaderMask anonymize_headers;
+    char *coredump_dir;
 };
 
 struct _SquidConfig2 {

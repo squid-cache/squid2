@@ -2787,4 +2787,15 @@ DOC_START
 strip_query_terms on
 DOC_END
 
+NAME: coredump_dir
+TYPE: string
+LOC: Config.coredump_dir
+DEFAULT: none
+DOC_START
+	By default Squid leaves core files in the first cache_dir
+	directory.  If you set 'coredump_dir' to a directory
+	that exists, Squid will chdir() to that directory at startup
+	and coredump files will be left there.
+DOC_END
+
 EOF
