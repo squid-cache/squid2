@@ -244,7 +244,7 @@ int waisStart(unusedfd, url, method, mime_hdr, entry)
 	return COMM_ERROR;
     }
     /* Create socket. */
-    sock = comm_open(COMM_NONBLOCKING, 0, 0, url);
+    sock = comm_open(COMM_NONBLOCKING, 0, url);
     if (sock == COMM_ERROR) {
 	debug(24, 4, "waisStart: Failed because we're out of sockets.\n");
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());

@@ -122,7 +122,6 @@ void serverConnectionsOpen()
     /* Open server ports */
     theAsciiConnection = comm_open(COMM_NONBLOCKING,
 	getAsciiPortNum(),
-	0,
 	"Ascii Port");
     if (theAsciiConnection < 0) {
 	fatal("Cannot open ascii Port");
@@ -140,7 +139,6 @@ void serverConnectionsOpen()
 	if (getUdpPortNum() > 0) {
 	    theUdpConnection = comm_open(COMM_NONBLOCKING | COMM_DGRAM,
 		getUdpPortNum(),
-		0,
 		"Ping Port");
 	    if (theUdpConnection < 0)
 		fatal("Cannot open UDP Port");

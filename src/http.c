@@ -521,7 +521,7 @@ int proxyhttpStart(e, url, entry)
 	storeStartDeleteBehind(entry);
 
     /* Create socket. */
-    sock = comm_open(COMM_NONBLOCKING, 0, 0, url);
+    sock = comm_open(COMM_NONBLOCKING, 0, url);
     if (sock == COMM_ERROR) {
 	debug(11, 4, "proxyhttpStart: Failed because we're out of sockets.\n");
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
@@ -595,7 +595,7 @@ int httpStart(unusedfd, url, request, req_hdr, entry)
     debug(11, 10, "httpStart: req_hdr '%s'\n", req_hdr);
 
     /* Create socket. */
-    sock = comm_open(COMM_NONBLOCKING, 0, 0, url);
+    sock = comm_open(COMM_NONBLOCKING, 0, url);
     if (sock == COMM_ERROR) {
 	debug(11, 4, "httpStart: Failed because we're out of sockets.\n");
 	squid_error_entry(entry, ERR_NO_FDS, xstrerror());
