@@ -122,7 +122,6 @@ typedef struct _ipcache_entry {
     /* first two items must be equivalent to hash_link in hash.h */
     char *name;
     struct _ipcache_entry *next;
-    time_t timestamp;
     time_t lastref;
     time_t ttl;
     unsigned char addr_count;
