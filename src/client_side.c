@@ -1231,6 +1231,18 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	debug(33, 3) ("clientBuildReplyHeader: can't keep-alive, unknown body size\n");
 	request->flags.proxy_keepalive = 0;
     }
+    /* Append Via */
+    {
+	LOCAL_ARRAY(char, bbuf, MAX_URL + 32);
+	String strVia = httpHeaderGetList(hdr, HDR_VIA);
+	snprintf(bbuf, sizeof(bbuf), "%d.%d %s",
+	    rep->sline.version.major,
+	    rep->sline.version.minor, ThisCache);
+	strListAdd(&strVia, bbuf, ',');
+	httpHeaderDelById(hdr, HDR_VIA);
+	httpHeaderPutStr(hdr, HDR_VIA, strBuf(strVia));
+	stringClean(&strVia);
+    }
     /* Signal keep-alive if needed */
     httpHeaderPutStr(hdr,
 	http->flags.accel ? HDR_CONNECTION : HDR_PROXY_CONNECTION,

@@ -2733,6 +2733,15 @@ DOC_START
 	reduced memory thrashing in your malloc library.
 DOC_END
 
+NAME: via
+COMMENT: on|off
+DEFAULT: on
+LOC: Config.onoff.via
+DOC_START
+	If set (default), Squid will include a Via header in requests and
+	replies as required by RFC2616.
+DOC_END
+
 NAME: forwarded_for
 COMMENT: on|off
 TYPE: onoff
