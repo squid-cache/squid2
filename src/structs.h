@@ -536,6 +536,7 @@ struct _SquidConfig {
 	int log_ip_on_direct;
 	int authenticateIpTTLStrict;
 	int ie_refresh;
+	int pipeline_prefetch;
     } onoff;
     acl *aclList;
     struct {
