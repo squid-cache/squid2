@@ -339,7 +339,7 @@ refreshIsCachable(const StoreEntry * entry)
     if (entry->mem_obj == NULL)
 	/* no mem_obj? */
 	return 1;
-    if (entry->mem_obj->reply)
+    if (entry->mem_obj->reply == NULL)
 	/* no reply? */
 	return 1;
     if (entry->mem_obj->reply->content_length == 0)
