@@ -352,3 +352,18 @@ idnsALookup(const char *name, IDNSCB * callback, void *data)
     q->start_t = current_time;
     idnsSendQuery(q);
 }
+
+void
+idnsPTRLookup(const struct in_addr addr, IDNSCB * callback, void *data)
+{
+    idns_query *q = memAllocate(MEM_IDNS_QUERY);
+    q->sz = sizeof(q->buf);
+    q->id = rfc1035BuildPTRQuery(addr, q->buf, &q->sz);
+    debug(78, 3) ("idnsPTRLookup: buf is %d bytes for %s, id = %#hx\n",
+	(int) q->sz, inet_ntoa(addr), q->id);
+    q->callback = callback;
+    q->callback_data = data;
+    cbdataLock(q->callback_data);
+    q->start_t = current_time;
+    idnsSendQuery(q);
+}
