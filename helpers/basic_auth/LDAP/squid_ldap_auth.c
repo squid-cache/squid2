@@ -324,6 +324,8 @@ checkLDAP(LDAP * ld, char *userid, char *password)
 		 */
 	    } else {
 		fprintf(stderr, "squid_ldap_auth: WARNING, LDAP search error '%s'\n", ldap_err2string(rc));
+		ldap_msgfree(res);
+		return 1;
 	    }
 	}
 	entry = ldap_first_entry(ld, res);
