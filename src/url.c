@@ -305,6 +305,9 @@ urlParse(method_t method, char *url)
     /* remove trailing dots from hostnames */
     while ((l = strlen(host)) > 0 && host[--l] == '.')
 	host[l] = '\0';
+    /* remove duplicate dots */
+    while ((t = strstr(host, "..")))
+	xmemmove(t, t + 1, strlen(t));
     if (Config.appendDomain && !strchr(host, '.'))
 	strncat(host, Config.appendDomain, SQUIDHOSTNAMELEN);
     if (port == 0) {
