@@ -630,11 +630,11 @@ comm_set_stall(int fd, int delta)
 static void
 comm_select_incoming(void)
 {
-    int fd = 0;
+    int fd;
     int fds[4];
     struct pollfd pfds[4];
     unsigned long N = 0;
-    unsigned long i = 0;
+    unsigned long i, nfds;
     int dopoll = 0;
     PF hdl = NULL;
     if (theInIcpConnection >= 0)
@@ -644,38 +644,36 @@ comm_select_incoming(void)
 	    fds[N++] = theOutIcpConnection;
     if (theHttpConnection >= 0 && fdstat_are_n_free_fd(RESERVED_FD))
 	fds[N++] = theHttpConnection;
-    fds[N++] = 0;
-    for (i = 0; i < N; i++) {
+    for (i = nfds = 0; i < N; i++) {
+	int events;
 	fd = fds[i];
-	pfds[i].events = 0;
-	pfds[i].revents = 0;
-	pfds[i].fd = fd;
-	if (fd_table[fd].read_handler) {
-	    pfds[i].events |= POLLRDNORM;
-	    dopoll++;
+	events = 0;
+	if (fd_table[fd].read_handler)
+	    events |= POLLRDNORM;
+	if (fd_table[fd].write_handler)
+	    events |= POLLWRNORM;
+	if (events) {
+	    pfds[nfds].fd = fd;
+	    pfds[nfds].events = events;
+	    pfds[nfds].revents = 0;
+	    nfds++;
 	}
-	if (fd_table[fd].write_handler) {
-	    pfds[i].events |= POLLWRNORM;
-	    dopoll++;
-	}
-	if (pfds[i].events == 0)
-	    pfds[i].fd = -1;
     }
-    if (!dopoll)
+    if (!nfds)
 	return;
-    if (poll(pfds, N, 0) < 1)
+    if (poll(pfds, nfds, 0) < 1)
 	return;
     getCurrentTime();
-    for (i = 0; i < N; i++) {
-	if ((pfds[i].revents == 0) || (pfds[i].fd == -1))
+    for (i = 0; i < nfds; i++) {
+	int revents;
+	if (((revents = pfds[i].revents) == 0) || ((fd = pfds[i].fd) == -1))
 	    continue;
-	fd = fds[i];
-	if (pfds[i].revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR)) {
+	if (revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR)) {
 	    hdl = fd_table[fd].read_handler;
 	    fd_table[fd].read_handler = 0;
 	    hdl(fd, fd_table[fd].read_data);
 	}
-	if (pfds[i].revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR)) {
+	if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR)) {
 	    hdl = fd_table[fd].write_handler;
 	    fd_table[fd].write_handler = 0;
 	    hdl(fd, fd_table[fd].write_data);
@@ -753,15 +751,11 @@ comm_select(time_t sec)
     int i;
     int maxfd;
     unsigned long nfds;
-    int incnfd;
     int num;
     int httpindex;
     static time_t last_timeout = 0;
-    int poll_time = 0;
+    int poll_time;
     time_t timeout;
-    struct close_handler *ch = NULL;
-    struct close_handler *next = NULL;
-    FD_ENTRY *f = NULL;
     /* assume all process are very fast (less than 1 second). Call
      * time() only once */
     getCurrentTime();
@@ -788,23 +782,19 @@ comm_select(time_t sec)
 	maxfd = Biggest_FD + 1;
 	httpindex = -1;
 	for (i = 0; i < maxfd; i++) {
-	    pfds[nfds].fd = -1;
-	    pfds[nfds].events = 0;
+	    int events;
+	    events = 0;
 	    /* Check each open socket for a handler. */
-	    incnfd = 0;
-	    if (fd_table[i].read_handler && fd_table[i].stall_until <= squid_curtime) {
-		pfds[nfds].events |= POLLRDNORM;
-		pfds[nfds].fd = i;
-		incnfd = 1;
-	    }
-	    if (fd_table[i].write_handler) {
-		pfds[nfds].events |= POLLWRNORM;
-		pfds[nfds].fd = i;
-		incnfd = 1;
-	    }
-	    if (incnfd == 1) {
+	    if (fd_table[i].read_handler && fd_table[i].stall_until <= squid_curtime)
+		events |= POLLRDNORM;
+	    if (fd_table[i].write_handler)
+		events |= POLLWRNORM;
+	    if (events) {
 		if (i == theHttpConnection)
 		    httpindex = nfds;
+		pfds[nfds].fd = i;
+		pfds[nfds].events = events;
+		pfds[nfds].revents = 0;
 		nfds++;
 	    }
 	}
@@ -813,8 +803,6 @@ comm_select(time_t sec)
 	    pfds[httpindex].fd = -1;
 	    pfds[httpindex].events = 0;
 	}
-	pfds[nfds].fd = -1;	/* just in case */
-	pfds[nfds].events = 0;
 	if (shutdown_pending || reread_pending)
 	    debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
 	if (nfds == 0)
@@ -858,8 +846,8 @@ comm_select(time_t sec)
 	 * more frequently to minimize losses due to the 5 connect 
 	 * limit in SunOS */
 	for (i = 0; i < nfds; i++) {
-	    fd = pfds[i].fd;
-	    if ((fd == -1) || (pfds[i].revents == 0))
+	    int revents;
+	    if (((revents = pfds[i].revents) == 0) || ((fd = pfds[i].fd) == -1))
 		continue;
 	    /*
 	     * Admit more connections quickly until we hit the hard limit.
@@ -872,7 +860,7 @@ comm_select(time_t sec)
 		continue;
 	    if (fd == theHttpConnection)
 		continue;
-	    if (pfds[i].revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR)) {
+	    if (revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR)) {
 		debug(5, 6, "comm_select: FD %d ready for reading\n", fd);
 		if (fd_table[fd].read_handler) {
 		    hdl = fd_table[fd].read_handler;
@@ -881,7 +869,7 @@ comm_select(time_t sec)
 		    comm_select_incoming();
 		}
 	    }
-	    if (pfds[i].revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR)) {
+	    if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR)) {
 		debug(5, 5, "comm_select: FD %d ready for writing\n", fd);
 		if (fd_table[fd].write_handler) {
 		    hdl = fd_table[fd].write_handler;
@@ -890,8 +878,10 @@ comm_select(time_t sec)
 		    comm_select_incoming();
 		}
 	    }
-	    if (pfds[i].revents & POLLNVAL) {
-		f = &fd_table[fd];
+	    if (revents & POLLNVAL) {
+		struct close_handler *ch;
+		struct close_handler *next;
+		FD_ENTRY *f = &fd_table[fd];
 		debug(5, 0, "WARNING: FD %d has handlers, but it's invalid.\n", fd);
 		debug(5, 0, "FD %d is a %s\n", fd, fdstatTypeStr[fdstatGetType(fd)]);
 		debug(5, 0, "--> %s\n", fd_note(fd, NULL));
