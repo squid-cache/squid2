@@ -1315,6 +1315,11 @@ DOC_START
 	"nonce_max_count" number
 	Specifies the maximum number of times a given nonce can be used.
 
+	"nonce_strictness" on|off
+	Determines if squid requires increment-by-1 behaviour for nonce counts 
+	(on - the default), or strictly incrementing (off - for use when useragents
+	generate nonce counts that occasionally miss 1 (ie, 1,2,4,6)).
+
 	=== NTLM scheme options follow ===
 
 	"program" cmdline

@@ -94,6 +94,7 @@ extern int GetInteger(void);
 
 /* extra functions from cache_cf.c useful for lib modules */
 extern void parse_int(int *var);
+extern void parse_onoff(int *var);
 extern void parse_eol(char *volatile *var);
 extern void parse_wordlist(wordlist ** list);
 extern void requirePathnameExists(const char *name, const char *path);
