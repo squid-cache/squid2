@@ -46,6 +46,7 @@ typedef struct {
     time_t timeout;
     int *size_ptr;		/* pointer to size in an icpStateData for logging */
     int proxying;
+    int ip_lookup_pending;
 } SslStateData;
 
 static const char *const conn_established = "HTTP/1.0 200 Connection established\r\n\r\n";
@@ -117,6 +118,8 @@ sslStateFree(int fd, void *data)
     safe_free(sslState->client.buf);
     xfree(sslState->url);
     requestUnlink(sslState->request);
+    if (sslState->ip_lookup_pending)
+	ipcache_unregister(sslState->host, sslState->server.fd);
     safe_free(sslState);
 }
 
@@ -322,6 +325,7 @@ sslConnect(int fd, const ipcache_addrs * ia, void *data)
     SslStateData *sslState = data;
     request_t *request = sslState->request;
     char *buf = NULL;
+    sslState->ip_lookup_pending = 0;
     if (ia == NULL) {
 	debug(26, 4, "sslConnect: Unknown host: %s\n", sslState->host);
 	buf = squid_error_url(sslState->url,
@@ -444,14 +448,19 @@ sslStart(int fd, const char *url, request_t * request, char *mime_hdr, int *size
 	(void *) sslState);
 
     if (Config.sslProxy) {
-	ipcache_nbgethostbyname(request->host,
+	sslState->host = request->host;
+	/* set sslState->host = request->host so that we can
+	   cancel it later if needed */
+	sslState->ip_lookup_pending = 1;
+	ipcache_nbgethostbyname(sslState->host,
 	    sslState->server.fd,
 	    sslSelectNeighbor,
 	    sslState);
     } else {
 	sslState->host = request->host;
 	sslState->port = request->port;
-	ipcache_nbgethostbyname(request->host,
+	sslState->ip_lookup_pending = 1;
+	ipcache_nbgethostbyname(sslState->host,
 	    sslState->server.fd,
 	    sslConnect,
 	    sslState);
@@ -487,6 +496,7 @@ sslSelectNeighbor(int fd, const ipcache_addrs * ia, void *data)
     peer *e = NULL;
     peer *g = NULL;
     int fw_ip_match = IP_ALLOW;
+    sslState->ip_lookup_pending = 0;
     if (ia && Config.firewall_ip_list)
 	fw_ip_match = ip_access_check(ia->in_addrs[ia->cur], Config.firewall_ip_list);
     if (matchInsideFirewall(request->host)) {
@@ -517,6 +527,7 @@ sslSelectNeighbor(int fd, const ipcache_addrs * ia, void *data)
     } else {
 	sslState->port = CACHE_HTTP_PORT;
     }
+    sslState->ip_lookup_pending = 1;
     ipcache_nbgethostbyname(sslState->host,
 	sslState->server.fd,
 	sslConnect,

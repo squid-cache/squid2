@@ -44,6 +44,7 @@ static void
 clientLookupDstIPDone(int fd, const ipcache_addrs * ia, void *data)
 {
     icpStateData *icpState = data;
+    icpState->ip_lookup_pending = 0;
     debug(33, 5, "clientLookupDstIPDone: FD %d, '%s'\n",
 	fd,
 	icpState->url);
@@ -190,6 +191,7 @@ clientAccessCheck(icpStateData * icpState, void (*handler) (icpStateData *, int)
 	answer = aclCheck(HTTPAccessList, ch);
 	if (ch->state[ACL_DST_IP] == ACL_LOOKUP_NEED) {
 	    ch->state[ACL_DST_IP] = ACL_LOOKUP_PENDING;		/* first */
+	    icpState->ip_lookup_pending = 1;
 	    ipcache_nbgethostbyname(icpState->request->host,
 		icpState->fd,
 		clientLookupDstIPDone,

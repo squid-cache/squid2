@@ -223,6 +223,8 @@ httpStateFree(int fd, void *data)
 	put_free_8k_page(httpState->reply_hdr);
 	httpState->reply_hdr = NULL;
     }
+    if (httpState->ip_lookup_pending)
+	ipcache_unregister(httpState->request->host, httpState->fd);
     requestUnlink(httpState->request);
     requestUnlink(httpState->orig_request);
     xfree(httpState);
@@ -914,8 +916,9 @@ proxyhttpStart(const char *url,
     request->port = e->http_port;
     xstrncpy(request->urlpath, url, MAX_URL);
     BIT_SET(request->flags, REQ_PROXYING);
+    httpState->ip_lookup_pending = 1;
     ipcache_nbgethostbyname(request->host,
-	sock,
+	httpState->fd,
 	httpConnect,
 	httpState);
     return COMM_OK;
@@ -927,6 +930,7 @@ httpConnect(int fd, const ipcache_addrs * ia, void *data)
     HttpStateData *httpState = data;
     request_t *request = httpState->request;
     StoreEntry *entry = httpState->entry;
+    httpState->ip_lookup_pending = 0;
     if (ia == NULL) {
 	debug(11, 4, "httpConnect: Unknown host: %s\n", request->host);
 	squid_error_entry(entry, ERR_DNS_FAIL, dns_error_message);
@@ -996,11 +1000,13 @@ httpStart(char *url,
     httpState->req_hdr = req_hdr;
     httpState->req_hdr_sz = req_hdr_sz;
     httpState->request = requestLink(request);
-    comm_add_close_handler(sock,
+    httpState->fd = sock;
+    comm_add_close_handler(httpState->fd,
 	httpStateFree,
 	(void *) httpState);
+    httpState->ip_lookup_pending = 1;
     ipcache_nbgethostbyname(request->host,
-	sock,
+	httpState->fd,
 	httpConnect,
 	httpState);
     return COMM_OK;

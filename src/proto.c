@@ -162,6 +162,8 @@ extern int _delay_fetch;
 static void
 protoDataFree(int fdunused, protodispatch_data * protoData)
 {
+    if (protoData->ip_lookup_pending)
+	ipcache_unregister(protoData->request->host, protoData->fd);
     requestUnlink(protoData->request);
     safe_free(protoData);
 }
@@ -180,8 +182,7 @@ protoDispatchDNSHandle(int unused1, const ipcache_addrs * ia, void *data)
      * lookup was successful.  Even if the URL hostname is bad,
      * we might still ping the hierarchy */
 
-    BIT_RESET(entry->flag, IP_LOOKUP_PENDING);
-
+    protoData->ip_lookup_pending = 0;
     if (protoData->direct_fetch == DIRECT_YES) {
 	if (ia == NULL) {
 	    protoDNSError(protoData->fd, entry);
@@ -343,7 +344,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	/* Have to look up the url address so we can compare it */
 	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
-	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
+        protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -359,7 +360,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     } else if (matchLocalDomain(request->host) || !protoData->hierarchical) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
-	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
+        protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -367,7 +368,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
     } else if (protoData->n_peers == 0) {
 	/* will fetch from source */
 	protoData->direct_fetch = DIRECT_YES;
-	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
+        protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -376,7 +377,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	/* Have to look up the url address so we can compare it */
 	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
-	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
+        protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -392,7 +393,7 @@ protoDispatch(int fd, char *url, StoreEntry * entry, request_t * request)
 	/* will use ping resolution */
 	protoData->source_ping = Config.sourcePing;
 	protoData->direct_fetch = DIRECT_MAYBE;
-	BIT_SET(entry->flag, IP_LOOKUP_PENDING);
+        protoData->ip_lookup_pending = 1;
 	ipcache_nbgethostbyname(request->host,
 	    fd,
 	    protoDispatchDNSHandle,
@@ -405,7 +406,6 @@ int
 protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr src_addr)
 {
     char *url = entry ? entry->url : NULL;
-    char *host = request ? request->host : NULL;
     protocol_t proto = request ? request->protocol : PROTO_NONE;
     debug(17, 5, "protoUnregister FD %d '%s'\n", fd, url ? url : "NULL");
     if (proto == PROTO_CACHEOBJ)
@@ -414,8 +414,6 @@ protoUnregister(int fd, StoreEntry * entry, request_t * request, struct in_addr 
 	redirectUnregister(url, fd);
     if (src_addr.s_addr != no_addr.s_addr)
 	fqdncacheUnregister(src_addr, fd);
-    if (host)
-	ipcache_unregister(host, fd);
     if (entry == NULL)
 	return 0;
     if (BIT_TEST(entry->flag, ENTRY_DISPATCHED))

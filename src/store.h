@@ -139,7 +139,9 @@
 #define DELAY_SENDING 		(1<<3)
 #define CLIENT_ABORT_REQUEST 	(1<<2)
 #define DELETE_BEHIND   	(1<<1)
+#ifdef OLD_CODE
 #define IP_LOOKUP_PENDING      	(1<<0)
+#endif
 
 
 typedef void (*PIF) (int, StoreEntry *, void *);

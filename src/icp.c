@@ -308,6 +308,8 @@ icpStateFree(int fd, void *data)
 	storeUnlockObject(icpState->old_entry);
 	icpState->old_entry = NULL;
     }
+    if (icpState->ip_lookup_pending)
+	ipcache_unregister(icpState->request->host, icpState->fd);
     requestUnlink(icpState->request);
     if (icpState->aclChecklist) {
 	debug(12, 0, "icpStateFree: still have aclChecklist!\n");
