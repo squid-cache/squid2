@@ -1021,6 +1021,7 @@ netdbBinaryExchange(StoreEntry * s)
     }
     assert(0 == i);
     storeBufferFlush(s);
+    memFree(MEM_4K_BUF, buf);
 #else
     httpReplyReset(reply);
     httpReplySetHeaders(reply, 1.0, HTTP_BAD_REQUEST, "Bad Request",
