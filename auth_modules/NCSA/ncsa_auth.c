@@ -123,12 +123,12 @@ main(int argc, char **argv)
 	    }
 	}
 	if ((user = strtok(buf, " ")) == NULL) {
-		printf("ERR\n");
-		continue;
+	    printf("ERR\n");
+	    continue;
 	}
 	if ((passwd = strtok(NULL, "")) == NULL) {
-		printf("ERR\n");
-		continue;
+	    printf("ERR\n");
+	    continue;
 	}
 	u = hash_lookup(hash, user);
 	if (u == NULL) {

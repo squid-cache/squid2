@@ -59,8 +59,7 @@ extern "C" {
 }
 
 #endif
-#define MAX_NAME_LEN	64	/* number of subid's in a objid *//*      *RFC 1902:Structure of Management Information for SNMPv2      *
-      *Defined Types
+#define MAX_NAME_LEN	64	/* number of subid's in a objid *//*      *RFC 1902:Structure of Management Information for SNMPv2      *      *Defined Types
 *
       */
 #define SMI_INTEGER     ASN_INTEGER

@@ -38,9 +38,9 @@ typedef Array Stack;
 #define stackInit arrayInit
 #define stackClean arrayClean
 #define stackDestroy arrayDestroy
-extern void *stackPop(Stack *s);
+extern void *stackPop(Stack * s);
 #define stackPush arrayAppend
 #define stackPrePush arrayPreAppend
-extern void *stackTop(Stack *s);
+extern void *stackTop(Stack * s);
 
 #endif /* ndef _STACK_H_ */

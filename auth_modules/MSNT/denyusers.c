@@ -49,7 +49,7 @@ extern int Check_ifuserallowed(char *);
  * Logs any messages to the syslog daemon.
  */
 
-int 
+int
 Read_denyusers()
 {
     FILE *DFile;		/* Denied user file pointer */
@@ -123,7 +123,7 @@ Read_denyusers()
  * user list. Returns 0 if the user was not found, and 1 if they were.
  */
 
-int 
+int
 Check_ifuserdenied(char *ConnectingUser)
 {
     static char CUBuf[NAMELEN + 1];
@@ -163,7 +163,7 @@ Check_ifuserdenied(char *ConnectingUser)
  * This function is called by the SIGHUP signal handler.
  */
 
-void 
+void
 Check_fordenychange()
 {
     struct stat ChkBuf;		/* Stat data buffer */
@@ -200,7 +200,7 @@ Check_fordenychange()
  * Else return 0.
  */
 
-int 
+int
 Check_user(char *ConnectingUser)
 {
     if (Check_ifuserdenied(ConnectingUser) == 1)
@@ -218,7 +218,7 @@ Check_user(char *ConnectingUser)
  * It is also run after every 60 seconds, at the next request.
  */
 
-void 
+void
 Check_forchange()
 {
     Check_fordenychange();
@@ -231,7 +231,7 @@ Check_forchange()
  * denied user file. If longer than one minute hasn't passed, return.
  */
 
-void 
+void
 Checktimer()
 {
     static time_t Lasttime;	/* The last time the timer was checked */

@@ -1576,7 +1576,6 @@ regex_compile(pattern, size, syntax, bufp)
 		    else
 			return REG_ERPAREN;
 		}
-
 	      handle_close:
 		if (fixup_alt_jump) {	/* Push a dummy failure point at the end of the
 					 * alternative for a possible future
@@ -1595,7 +1594,6 @@ regex_compile(pattern, size, syntax, bufp)
 		    else
 			return REG_ERPAREN;
 		}
-
 		/* Since we just checked for an empty stack above, this
 		 * ``can't happen''.  */
 		assert(compile_stack.avail != 0);

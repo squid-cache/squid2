@@ -79,11 +79,11 @@ extern "C" {
 }
 
 #endif				/*
-				 * * RFC 1905: Protocol Operations for SNMPv2
-				 * *
-				 * * RFC 1157: A Simple Network Management Protocol (SNMP)
-				 * *
-				 * * PDU Types
+				 * * * RFC 1905: Protocol Operations for SNMPv2
+				 * * *
+				 * * * RFC 1157: A Simple Network Management Protocol (SNMP)
+				 * * *
+				 * * * PDU Types
 				 */
 #define SNMP_PDU_GET	    (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x0)
 #define SNMP_PDU_GETNEXT    (ASN_CONTEXT | ASN_CONSTRUCTOR | 0x1)
@@ -99,11 +99,11 @@ extern "C" {
 #define SNMP_DEFAULT_ERRINDEX	    -1
 #define SNMP_DEFAULT_ADDRESS	    0
 #define SNMP_DEFAULT_REQID	    0	/*
-					 * * RFC 1907: Management Information Base for SNMPv2
-					 * *
-					 * * RFC 1157: A Simple Network Management Protocol (SNMP)
-					 * *
-					 * * Trap Types
+					 * * * RFC 1907: Management Information Base for SNMPv2
+					 * * *
+					 * * * RFC 1157: A Simple Network Management Protocol (SNMP)
+					 * * *
+					 * * * Trap Types
 					 */
 #define SNMP_TRAP_COLDSTART             (0x0)
 #define SNMP_TRAP_WARMSTART             (0x1)

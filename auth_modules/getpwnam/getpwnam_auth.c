@@ -44,7 +44,7 @@
 #define ERR    "ERR\n"
 #define OK     "OK\n"
 
-int 
+int
 main()
 {
     char buf[256];

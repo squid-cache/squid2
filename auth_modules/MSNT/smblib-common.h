@@ -1,27 +1,27 @@
 /* UNIX SMBlib NetBIOS implementation
-
-   Version 1.0
-   SMBlib Common Defines
-
-   Copyright (C) Richard Sharpe 1996
-
-*/
+ * 
+ * Version 1.0
+ * SMBlib Common Defines
+ * 
+ * Copyright (C) Richard Sharpe 1996
+ * 
+ */
 
 /*
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-   
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
 
 /* To get the error class we want the first 8 bits */
 /* Because we just grab 4bytes from the SMB header, we have to re-order */
@@ -76,7 +76,7 @@
 
 /* Server errors ... */
 
-#define SMBV_error          0x01         /* Generic error */
+#define SMBV_error          0x01	/* Generic error */
 #define SMBV_badpw          0x02
 #define SMBV_badtype        0x03
 #define SMBV_access         0x04
@@ -141,12 +141,12 @@
 
 /* Define the protocol types ... */
 
-#define SMB_P_Unknown      -1        /* Hmmm, is this smart? */
+#define SMB_P_Unknown      -1	/* Hmmm, is this smart? */
 #define SMB_P_Core         0
 #define SMB_P_CorePlus     1
 #define SMB_P_DOSLanMan1   2
 #define SMB_P_LanMan1      3
-#define SMB_P_DOSLanMan2   4 
+#define SMB_P_DOSLanMan2   4
 #define SMB_P_LanMan2      5
 #define SMB_P_DOSLanMan2_1 6
 #define SMB_P_LanMan2_1    7
@@ -161,28 +161,28 @@
 /* SMBlibE_ values >1 indicate local from SMBlib code errors?              */
 
 #define SMBlibE_Success 0
-#define SMBlibE_Remote  1    /* Remote error, get more info from con        */
+#define SMBlibE_Remote  1	/* Remote error, get more info from con        */
 #define SMBlibE_BAD     -1
-#define SMBlibE_LowerLayer 2 /* Lower layer error                           */
-#define SMBlibE_NotImpl 3    /* Function not yet implemented                */
-#define SMBlibE_ProtLow 4    /* Protocol negotiated does not support req    */
-#define SMBlibE_NoSpace 5    /* No space to allocate a structure            */
-#define SMBlibE_BadParam 6   /* Bad parameters                              */
-#define SMBlibE_NegNoProt 7  /* None of our protocols was liked             */
-#define SMBlibE_SendFailed 8 /* Sending an SMB failed                       */
-#define SMBlibE_RecvFailed 9 /* Receiving an SMB failed                     */
-#define SMBlibE_GuestOnly 10 /* Logged in as guest                          */
-#define SMBlibE_CallFailed 11 /* Call remote end failed                     */
-#define SMBlibE_ProtUnknown 12 /* Protocol unknown                          */
-#define SMBlibE_NoSuchMsg  13 /* Keep this up to date                       */
+#define SMBlibE_LowerLayer 2	/* Lower layer error                           */
+#define SMBlibE_NotImpl 3	/* Function not yet implemented                */
+#define SMBlibE_ProtLow 4	/* Protocol negotiated does not support req    */
+#define SMBlibE_NoSpace 5	/* No space to allocate a structure            */
+#define SMBlibE_BadParam 6	/* Bad parameters                              */
+#define SMBlibE_NegNoProt 7	/* None of our protocols was liked             */
+#define SMBlibE_SendFailed 8	/* Sending an SMB failed                       */
+#define SMBlibE_RecvFailed 9	/* Receiving an SMB failed                     */
+#define SMBlibE_GuestOnly 10	/* Logged in as guest                          */
+#define SMBlibE_CallFailed 11	/* Call remote end failed                     */
+#define SMBlibE_ProtUnknown 12	/* Protocol unknown                          */
+#define SMBlibE_NoSuchMsg  13	/* Keep this up to date                       */
 
-typedef struct {                       /* A structure for a Dirent */
+typedef struct {		/* A structure for a Dirent */
 
-  unsigned char resume_key[21];        /* Don't touch this          */
-  unsigned char file_attributes;       /* Attributes of file        */
-  unsigned int date_time;              /* date and time of last mod */
-  unsigned int size;
-  char filename[13];                   /* The name of the file      */
+    unsigned char resume_key[21];	/* Don't touch this          */
+    unsigned char file_attributes;	/* Attributes of file        */
+    unsigned int date_time;	/* date and time of last mod */
+    unsigned int size;
+    char filename[13];		/* The name of the file      */
 
 } SMB_CP_dirent;
 
