@@ -33,7 +33,6 @@
 #include "squid.h"
 
 static QS rev_int_sort;
-static char *storeCleanSubSubDir(int index, char *);
 
 static int
 rev_int_sort(const void *A, const void *B)
@@ -41,20 +40,6 @@ rev_int_sort(const void *A, const void *B)
     const int *i1 = A;
     const int *i2 = B;
     return *i2 - *i1;
-}
-
-static char *
-storeCleanSubSubDir(int index, char *path)
-{
-    int nd = Config.cacheSwap.n_configured;
-    int dirn = index % nd;
-    int L1 = Config.cacheSwap.swapDirs[dirn].l1;
-    int L2 = Config.cacheSwap.swapDirs[dirn].l2;
-    snprintf(path, SQUID_MAXPATHLEN, "%s/%02X/%02X",
-	Config.cacheSwap.swapDirs[dirn].path,
-	(index / nd) % L1,
-	((index / nd) / L1) % L2);
-    return path;
 }
 
 void
@@ -69,10 +54,19 @@ storeDirClean(void *datanotused)
     int swapfileno;
     int n = 0;
     int k = 0;
+    int N0, N1, N2;
+    int D0, D1, D2;
     eventAdd("storeDirClean", storeDirClean, NULL, 15);
     if (store_rebuilding)
 	return;
-    storeCleanSubSubDir(swap_index, p1);
+    N0 = Config.cacheSwap.n_configured;
+    D0 = swap_index % N0;
+    N1 = Config.cacheSwap.swapDirs[D0].l1;
+    D1 = (swap_index / N0) % N1;
+    N2 = Config.cacheSwap.swapDirs[D0].l2;
+    D2 = ((swap_index / N0) / N1) % N2;
+    snprintf(p1, SQUID_MAXPATHLEN, "%s/%02X/%02X",
+	Config.cacheSwap.swapDirs[D0].path, D1, D2);
     debug(36, 3) ("storeDirClean: Cleaning directory %s\n", p1);
     dp = opendir(p1);
     if (dp == NULL) {
@@ -91,7 +85,8 @@ storeDirClean(void *datanotused)
 	    continue;
 	if (storeDirValidFileno(swapfileno))
 	    if (storeDirMapBitTest(swapfileno))
-		continue;
+		if (storeFilenoBelongsHere(swapfileno, D0, D1, D2))
+		    continue;
 	files[k++] = swapfileno;
     }
     closedir(dp);

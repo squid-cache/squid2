@@ -94,6 +94,33 @@ storeSwapSubSubDir(int fn, char *fullpath)
     return fullpath;
 }
 
+/*
+ * Does swapfile number 'fn' belong in cachedir #F0,
+ * level1 dir #F1, level2 dir #F2?
+ *
+ * This is called by storeDirClean(), but placed here because
+ * the algorithm needs to match storeSwapSubSubDir().
+ */
+int
+storeFilenoBelongsHere(int fn, int F0, int F1, int F2)
+{
+    int D0, D1, D2;
+    int L1, L2;
+    int filn = fn & SWAP_FILE_MASK;
+    D0 = (fn >> SWAP_DIR_SHIFT) % Config.cacheSwap.n_configured;
+    if (F0 != D0)
+	return 0;
+    L1 = Config.cacheSwap.swapDirs[D0].l1;
+    L2 = Config.cacheSwap.swapDirs[D0].l2;
+    D1 = ((filn / L2) / L2) % L1;
+    if (F1 != D1)
+	return 0;
+    D2 = (filn / L2) % L2;
+    if (F2 != D2)
+	return 0;
+    return 1;
+}
+
 static void
 storeCreateDirectory(const char *path, int lvl)
 {
