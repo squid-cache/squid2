@@ -3116,7 +3116,7 @@ NAME: digest_swapout_chunk_size
 IFDEF: USE_CACHE_DIGESTS
 TYPE: int
 LOC: Config.digest.swapout_chunk_size
-DEFAULT: SM_PAGE_SIZE
+DEFAULT: 4096
 DOC_START
 	This is the number of bytes of the Cache Digest to write to
 	disk at a time.  It defaults to 4096 (4KB), the Squid default
@@ -3129,7 +3129,7 @@ NAME: digest_rebuild_chunk_percentage
 IFDEF: USE_CACHE_DIGESTS
 TYPE: int
 LOC: Config.digest.rebuild_chunk_percentage
-DEFAULT: 
+DEFAULT: 10
 DOC_START
 	This is the portion (where 0 < portion <= 100) of the Cache Digest
 	to be scanned at a time.  By default it is set to 10 (10%) of
