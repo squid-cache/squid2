@@ -237,9 +237,6 @@ objcacheStart(int fd, const char *url, StoreEntry * entry)
     debug(16, 3, "objectcacheStart: '%s'\n", url);
     if ((data = objcache_url_parser(url)) == NULL) {
 	squid_error_entry(entry, ERR_INVALID_REQ, "Invalid objcache syntax.\n");
-	entry->expires = squid_curtime + STAT_TTL;
-	safe_free(data);
-	InvokeHandlers(entry);
 	return COMM_ERROR;
     }
     data->reply_fd = fd;
@@ -252,8 +249,7 @@ objcacheStart(int fd, const char *url, StoreEntry * entry)
     if (objcache_CheckPassword(data) != 0) {
 	debug(16, 1, "WARNING: Incorrect Cachemgr Password!\n");
 	squid_error_entry(entry, ERR_INVALID_REQ, BADPassword);
-	entry->expires = squid_curtime + STAT_TTL;
-	InvokeHandlers(entry);
+	safe_free(data);
 	return COMM_ERROR;
     }
     /* retrieve object requested */
