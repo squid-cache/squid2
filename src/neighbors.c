@@ -739,7 +739,7 @@ void neighbors_init()
 
     for (t = Neighbor_cf; t; t = next) {
 	next = t->next;
-	if (!strcmp(t->host, me) && t->http_port == getAsciiPortNum()) {
+	if (!strcmp(t->host, me) && t->http_port == getHttpPortNum()) {
 	    debug(15, 0, "neighbors_init: skipping cache_host %s %s %d %d\n",
 		t->type, t->host, t->http_port, t->icp_port);
 	    continue;

@@ -32,8 +32,8 @@ void send_announce()
     strcat(sndbuf, tbuf);
     sprintf(tbuf, "Running on %s %d %d\n",
 	getMyHostname(),
-	getAsciiPortNum(),
-	getUdpPortNum());
+	getHttpPortNum(),
+	getIcpPortNum());
     strcat(sndbuf, tbuf);
     if (getAdminEmail()) {
 	sprintf(tbuf, "cache_admin: %s\n", getAdminEmail());
@@ -61,7 +61,7 @@ void send_announce()
     qdata->address.sin_port = htons(port);
     memcpy(&qdata->address.sin_addr, hp->h_addr_list[0], hp->h_length);
     AppendUdp(qdata);
-    comm_set_select_handler(theUdpConnection,
+    comm_set_select_handler(theIcpConnection,
 	COMM_SELECT_WRITE,
 	(PF) icpUdpReply,
 	(void *) qdata);

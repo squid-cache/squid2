@@ -253,7 +253,7 @@ static int icpSendERROR(fd, errorCode, msg, icpState)
 	icpSendERRORComplete(fd, (char *) NULL, 0, 1, icpState);
 	return COMM_ERROR;
     }
-    if (port != getAsciiPortNum()) {
+    if (port != getHttpPortNum()) {
 	sprintf(tmp_error_buf, "icpSendERROR: FD %d unexpected port %hd.",
 	    fd, port);
 	fatal_dump(tmp_error_buf);

@@ -6,8 +6,8 @@
 
 time_t squid_starttime = 0;
 time_t next_cleaning = 0;
-int theAsciiConnection = -1;
-int theUdpConnection = -1;
+int theHttpConnection = -1;
+int theIcpConnection = -1;
 int do_reuse = 1;
 int opt_unlink_on_reload = 0;
 int opt_reload_hit_only = 0;	/* only UDP_HIT during store relaod */
@@ -23,8 +23,8 @@ char *appname = "squid";
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) _PARAMS((char *));
 
-static int asciiPortNumOverride = 1;
-static int udpPortNumOverride = 1;	/* Want to detect "-u 0" */
+static int httpPortNumOverride = 1;
+static int icpPortNumOverride = 1;	/* Want to detect "-u 0" */
 #if MALLOC_DBG
 static int malloc_debug_level = 0;
 #endif
@@ -79,7 +79,7 @@ static void mainParseOptions(argc, argv)
 	    opt_reload_hit_only = 1;
 	    break;
 	case 'a':
-	    asciiPortNumOverride = atoi(optarg);
+	    httpPortNumOverride = atoi(optarg);
 	    break;
 	case 'b':
 	    unbuffered_logs = 0;
@@ -102,9 +102,9 @@ static void mainParseOptions(argc, argv)
 	    syslog_enable = 0;
 	    break;
 	case 'u':
-	    udpPortNumOverride = atoi(optarg);
-	    if (udpPortNumOverride < 0)
-		udpPortNumOverride = 0;
+	    icpPortNumOverride = atoi(optarg);
+	    if (icpPortNumOverride < 0)
+		icpPortNumOverride = 0;
 	    break;
 	case 'v':
 	    printf("Squid Cache: Version %s\n", version_string);
@@ -127,35 +127,35 @@ void serverConnectionsOpen()
     enter_suid();
 
     /* Open server ports */
-    theAsciiConnection = comm_open(COMM_NONBLOCKING,
-	getAsciiPortNum(),
-	"Ascii Port");
-    if (theAsciiConnection < 0) {
-	fatal("Cannot open ascii Port");
+    theHttpConnection = comm_open(COMM_NONBLOCKING,
+	getHttpPortNum(),
+	"HTTP Port");
+    if (theHttpConnection < 0) {
+	fatal("Cannot open http Port");
     }
-    fd_note(theAsciiConnection, "HTTP (Ascii) socket");
-    comm_listen(theAsciiConnection);
-    comm_set_select_handler(theAsciiConnection,
+    fd_note(theHttpConnection, "HTTP socket");
+    comm_listen(theHttpConnection);
+    comm_set_select_handler(theHttpConnection,
 	COMM_SELECT_READ,
 	asciiHandleConn,
 	0);
     debug(1, 1, "Accepting HTTP (ASCII) connections on FD %d.\n",
-	theAsciiConnection);
+	theHttpConnection);
 
     if (!httpd_accel_mode || getAccelWithProxy()) {
-	if (getUdpPortNum() > 0) {
-	    theUdpConnection = comm_open(COMM_NONBLOCKING | COMM_DGRAM,
-		getUdpPortNum(),
+	if (getIcpPortNum() > 0) {
+	    theIcpConnection = comm_open(COMM_NONBLOCKING | COMM_DGRAM,
+		getIcpPortNum(),
 		"Ping Port");
-	    if (theUdpConnection < 0)
+	    if (theIcpConnection < 0)
 		fatal("Cannot open UDP Port");
-	    fd_note(theUdpConnection, "ICP (UDP) socket");
-	    comm_set_select_handler(theUdpConnection,
+	    fd_note(theIcpConnection, "ICP (UDP) socket");
+	    comm_set_select_handler(theIcpConnection,
 		COMM_SELECT_READ,
 		icpHandleUdp,
 		0);
 	    debug(1, 1, "Accepting ICP (UDP) connections on FD %d.\n",
-		theUdpConnection);
+		theIcpConnection);
 	}
     }
     /* And restore our priviliges to normal */
@@ -164,27 +164,27 @@ void serverConnectionsOpen()
 
 void serverConnectionsClose()
 {
-    if (theAsciiConnection >= 0) {
-	debug(21, 1, "FD %d Closing Ascii connection\n",
-	    theAsciiConnection);
-	comm_close(theAsciiConnection);
-	comm_set_select_handler(theAsciiConnection,
+    if (theHttpConnection >= 0) {
+	debug(21, 1, "FD %d Closing HTTP connection\n",
+	    theHttpConnection);
+	comm_close(theHttpConnection);
+	comm_set_select_handler(theHttpConnection,
 	    COMM_SELECT_READ,
 	    NULL,
 	    0);
-	theAsciiConnection = -1;
+	theHttpConnection = -1;
     }
-    if (theUdpConnection >= 0) {
-	debug(21, 1, "FD %d Closing Udp connection\n",
-	    theUdpConnection);
+    if (theIcpConnection >= 0) {
+	debug(21, 1, "FD %d Closing ICP connection\n",
+	    theIcpConnection);
 	/* Dont actually close it, just disable the read handler */
 	/* so we can still transmit while shutdown pending */
-	/* comm_close(theUdpConnection); */
-	comm_set_select_handler(theUdpConnection,
+	/* comm_close(theIcpConnection); */
+	comm_set_select_handler(theIcpConnection,
 	    COMM_SELECT_READ,
 	    NULL,
 	    0);
-	/* theUdpConnection = -1; */
+	/* theIcpConnection = -1; */
     }
 }
 
@@ -200,8 +200,8 @@ static void mainReinitialize()
     ipcacheOpenServers();
     serverConnectionsOpen();
     (void) ftpInitialize();
-    if (theUdpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
-	neighbors_open(theUdpConnection);
+    if (theIcpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
+	neighbors_open(theIcpConnection);
     debug(1, 0, "Ready to serve requests.\n");
 }
 
@@ -223,10 +223,10 @@ static void mainInitialize()
 
     leave_suid();		/* Run as non privilegied user */
 
-    if (asciiPortNumOverride != 1)
-	setAsciiPortNum((u_short) asciiPortNumOverride);
-    if (udpPortNumOverride != 1)
-	setUdpPortNum((u_short) udpPortNumOverride);
+    if (httpPortNumOverride != 1)
+	setHttpPortNum((u_short) httpPortNumOverride);
+    if (icpPortNumOverride != 1)
+	setIcpPortNum((u_short) icpPortNumOverride);
 
     _db_init(getCacheLogFile(), getDebugOptions());
     fdstat_open(fileno(debug_log), LOG);
@@ -269,8 +269,8 @@ static void mainInitialize()
 	do_mallinfo = 1;
     }
     serverConnectionsOpen();
-    if (theUdpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
-	neighbors_open(theUdpConnection);
+    if (theIcpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
+	neighbors_open(theIcpConnection);
 
     signal(SIGUSR1, rotate_logs);
     signal(SIGUSR2, sigusr2_handle);
@@ -384,9 +384,9 @@ int main(argc, argv)
 	    break;
 	case COMM_SHUTDOWN:
 	    /* delayed close so we can transmit while shutdown pending */
-	    if (theUdpConnection > 0) {
-		comm_close(theUdpConnection);
-		theUdpConnection = -1;
+	    if (theIcpConnection > 0) {
+		comm_close(theIcpConnection);
+		theIcpConnection = -1;
 	    }
 	    if (shutdown_pending) {
 		normal_shutdown();

@@ -3,17 +3,17 @@
 # $Id$
 #
 
-#  TAG: ascii_port
+#  TAG: http_port
 #	The port number where cached will listen for HTTP client
 #	requests.  Default is 3128, for httpd-accel mode use port 80.
 #	May be overridden with -a on the command line.
-#ascii_port @CACHE_HTTP_PORT@
+#http_port @CACHE_HTTP_PORT@
 
-#  TAG: udp_port
+#  TAG: icp_port
 #	The port number where cached will listen for ICP requests from
 #	neighbor caches.  Default is 3130.  To disable use "0".
 #	May be overridden with -u on the command line.
-#udp_port @CACHE_ICP_PORT@
+#icp_port @CACHE_ICP_PORT@
 
 #  TAG: bind_address
 #	Use this to force the cache to listen on a specific IP address
@@ -23,6 +23,10 @@
 #	    bind_address 172.16.1.1
 #	    bind_address localhost
 #	    bind_address www-slip.my.domain
+tcp_incoming_address 0.0.0.0
+tcp_outgoing_address 0.0.0.0
+udp_incoming_address 0.0.0.0
+udp_outgoing_address 0.0.0.0
 
 #  TAG: outbound_address
 #	Use this to force outgoing/client sockets to bind to a specific
@@ -36,11 +40,11 @@
 #  TAG: cache_host 
 #	To specify other caches in a hierarchy, use the format:
 #
-#	    hostname type ascii_port udp_port
+#	    hostname type http_port icp_port
 #
 #   For example,
 #
-#	#                                        proxy  udp
+#	#                                        proxy  icp
 #	#          hostname             type     port   port  options
 #	#          -------------------- -------- ----- -----  -----------
 #	cache_host bigserver.usc.edu    parent    3128  3130  [proxy-only]
@@ -52,9 +56,9 @@
 #	proxy_port:  The port number where the cache listens for proxy
 #	             requests.
 #
-#	  udp_port:  Used for querying neighbor/parent caches about
+#	  icp_port:  Used for querying neighbor/parent caches about
 #	             objects.  To have a non-ICP neighbor/parent
-#	             specify '7' for the udp port and make sure the
+#	             specify '7' for the ICP port and make sure the
 #	             neighbor/parent machine has the UDP echo port
 #	             enabled in its /etc/inetd.conf file.
 #
@@ -613,8 +617,8 @@ icp_access  allow  all
 #	The announcement message includes your hostname, plus the
 #	following information from this configuration file:
 #
-#		ascii_port
-#		udp_port
+#		http_port
+#		icp_port
 #		cache_mgr
 #
 #	All current information is processed regularly and made

@@ -481,10 +481,10 @@ static void httpSendRequest(fd, httpState)
 	cfd = httpState->entry->mem_obj->fd_of_first_client;
     if (cfd < 0) {
 	sprintf(ybuf, "Forwarded: by http://%s:%d/\r\n",
-	    getMyHostname(), getAsciiPortNum());
+	    getMyHostname(), getHttpPortNum());
     } else {
 	sprintf(ybuf, "Forwarded: by http://%s:%d/ for %s\r\n",
-	    getMyHostname(), getAsciiPortNum(), fd_table[cfd].ipaddr);
+	    getMyHostname(), getHttpPortNum(), fd_table[cfd].ipaddr);
     }
     strcat(buf, ybuf);
     len += strlen(ybuf);

@@ -604,10 +604,10 @@ static void comm_select_incoming()
     FD_ZERO(&read_mask);
     FD_ZERO(&write_mask);
 
-    if (theAsciiConnection >= 0 && fdstat_are_n_free_fd(RESERVED_FD))
-	fds[N++] = theAsciiConnection;
-    if (theUdpConnection >= 0)
-	fds[N++] = theUdpConnection;
+    if (theHttpConnection >= 0 && fdstat_are_n_free_fd(RESERVED_FD))
+	fds[N++] = theHttpConnection;
+    if (theIcpConnection >= 0)
+	fds[N++] = theIcpConnection;
     fds[N++] = 0;
 
     for (i = 0; i < N; i++) {
@@ -694,7 +694,7 @@ int comm_select(sec, failtime)
 	    }
 	}
 	if (!fdstat_are_n_free_fd(RESERVED_FD)) {
-	    FD_CLR(theAsciiConnection, &readfds);
+	    FD_CLR(theHttpConnection, &readfds);
 	}
 	if (shutdown_pending || reread_pending) {
 	    debug(5, 2, "comm_select: Still waiting on %d FDs\n", nfds);
@@ -752,7 +752,7 @@ int comm_select(sec, failtime)
 	     */
 	    comm_select_incoming();
 
-	    if ((fd == theUdpConnection) || (fd == theAsciiConnection))
+	    if ((fd == theIcpConnection) || (fd == theHttpConnection))
 		continue;
 
 	    if (FD_ISSET(fd, &readfds)) {

@@ -671,7 +671,7 @@ int ftpInitialize()
     memset(ftpget_socket_path, '\0', 128);
     strncpy(ftpget_socket_path, tempnam(NULL, "ftpget"), 127);
 #else
-    ftpget_port = CACHE_FTP_PORT + getAsciiPortNum();
+    ftpget_port = CACHE_FTP_PORT + getHttpPortNum();
 #endif
 
     if (pipe(squid_to_ftpget) < 0) {

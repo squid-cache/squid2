@@ -33,8 +33,8 @@ static struct {
     int maxRequestSize;
     double hotVmFactor;
     struct {
-	u_short ascii;
-	u_short udp;
+	u_short http;
+	u_short icp;
     } Port;
     struct {
 	char *log;
@@ -117,8 +117,8 @@ static struct {
 #define DefaultMaxRequestSize	(100 << 10)	/* 100Kb */
 #define DefaultHotVmFactor	0.0	/* disabled */
 
-#define DefaultAsciiPortNum	CACHE_HTTP_PORT
-#define DefaultUdpPortNum	CACHE_ICP_PORT
+#define DefaultHttpPortNum	CACHE_HTTP_PORT
+#define DefaultIcpPortNum	CACHE_ICP_PORT
 
 #define DefaultCacheLogFile	DEFAULT_CACHE_LOG
 #define DefaultAccessLogFile	DEFAULT_ACCESS_LOG
@@ -379,8 +379,8 @@ static void parseCacheHostLine()
     char *type = NULL;
     char *hostname = NULL;
     char *token = NULL;
-    u_short ascii_port = CACHE_HTTP_PORT;
-    u_short udp_port = CACHE_ICP_PORT;
+    u_short http_port = CACHE_HTTP_PORT;
+    u_short icp_port = CACHE_ICP_PORT;
     int proxy_only = 0;
     int weight = 1;
     int i;
@@ -392,9 +392,9 @@ static void parseCacheHostLine()
 	self_destruct();
 
     GetInteger(i);
-    ascii_port = (u_short) i;
+    http_port = (u_short) i;
     GetInteger(i);
-    udp_port = (u_short) i;
+    icp_port = (u_short) i;
     while ((token = strtok(NULL, w_space))) {
 	if (!strcasecmp(token, "proxy-only")) {
 	    proxy_only = 1;
@@ -407,7 +407,7 @@ static void parseCacheHostLine()
     }
     if (weight < 1)
 	weight = 1;
-    neighbors_cf_add(hostname, type, ascii_port, udp_port, proxy_only, weight);
+    neighbors_cf_add(hostname, type, http_port, icp_port, proxy_only, weight);
 }
 
 static void parseHostDomainLine()
@@ -974,24 +974,24 @@ static void parseDnsTestnameLine()
     }
 }
 
-static void parseAsciiPortLine()
+static void parseHttpPortLine()
 {
     char *token;
     int i;
     GetInteger(i);
     if (i < 0)
 	i = 0;
-    Config.Port.ascii = (u_short) i;
+    Config.Port.http = (u_short) i;
 }
 
-static void parseUdpPortLine()
+static void parseIcpPortLine()
 {
     char *token;
     int i;
     GetInteger(i);
     if (i < 0)
 	i = 0;
-    Config.Port.udp = (u_short) i;
+    Config.Port.icp = (u_short) i;
 }
 
 static void parseNeighborTimeout()
@@ -1329,13 +1329,13 @@ int parseConfigFile(file_name)
 	else if (!strcmp(token, "outbound_address"))
 	    parseOutboundAddressLine();
 
-	/* Parse a ascii_port line */
-	else if (!strcmp(token, "ascii_port"))
-	    parseAsciiPortLine();
+	/* Parse a http_port line */
+	else if (!strcmp(token, "http_port") || !strcmp(token, "ascii_port"))
+	    parseHttpPortLine();
 
-	/* Parse a udp_port line */
-	else if (!strcmp(token, "udp_port"))
-	    parseUdpPortLine();
+	/* Parse a icp_port line */
+	else if (!strcmp(token, "icp_port") || !strcmp(token, "udp_port"))
+	    parseIcpPortLine();
 
 	else if (!strcmp(token, "inside_firewall"))
 	    parseInsideFirewallLine();
@@ -1561,13 +1561,13 @@ char *getCacheLogFile()
 {
     return Config.Log.log;
 }
-u_short getAsciiPortNum()
+u_short getHttpPortNum()
 {
-    return Config.Port.ascii;
+    return Config.Port.http;
 }
-u_short getUdpPortNum()
+u_short getIcpPortNum()
 {
-    return Config.Port.udp;
+    return Config.Port.icp;
 }
 char *getDnsProgram()
 {
@@ -1674,15 +1674,15 @@ struct in_addr getOutboundAddr()
     return Config.outbound_addr;
 }
 
-u_short setAsciiPortNum(port)
+u_short setHttpPortNum(port)
      u_short port;
 {
-    return (Config.Port.ascii = port);
+    return (Config.Port.http = port);
 }
-u_short setUdpPortNum(port)
+u_short setIcpPortNum(port)
      u_short port;
 {
-    return (Config.Port.udp = port);
+    return (Config.Port.icp = port);
 }
 
 
@@ -1769,8 +1769,8 @@ static void configSetFactoryDefaults()
     Config.effectiveGroup = safe_xstrdup(DefaultEffectiveGroup);
     Config.appendDomain = safe_xstrdup(DefaultAppendDomain);
 
-    Config.Port.ascii = DefaultAsciiPortNum;
-    Config.Port.udp = DefaultUdpPortNum;
+    Config.Port.http = DefaultHttpPortNum;
+    Config.Port.icp = DefaultIcpPortNum;
     Config.Log.log = safe_xstrdup(DefaultCacheLogFile);
     Config.Log.access = safe_xstrdup(DefaultAccessLogFile);
     Config.Log.hierarchy = safe_xstrdup(DefaultHierarchyLogFile);
