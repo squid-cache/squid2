@@ -179,6 +179,9 @@ protoStart(int fd, StoreEntry * entry, peer * e, request_t * request)
 	case PROTO_CACHEOBJ:
 	    objcacheStart(fd, entry);
 	    break;
+	case PROTO_URN:
+	     urnStart(request, entry);
+	     break;
 	default:
 	    if (request->method == METHOD_CONNECT) {
 		ErrorState *err;
@@ -223,14 +226,10 @@ protoDispatch(int fd, StoreEntry * entry, request_t * request)
     pctrl_t *pctrl;
     debug(17, 3) ("protoDispatch: '%s'\n", storeUrl(entry));
     entry->mem_obj->request = requestLink(request);
-    if (request->protocol == PROTO_CACHEOBJ) {
-	protoStart(fd, entry, NULL, request);
-	return;
-    }
-    if (request->protocol == PROTO_WAIS) {
-	protoStart(fd, entry, NULL, request);
-	return;
-    }
+    if (request->protocol == PROTO_CACHEOBJ)
+	return protoStart(fd, entry, NULL, request);
+    else if (request->protocol == PROTO_WAIS)
+	return protoStart(fd, entry, NULL, request);
     pctrl = xcalloc(1, sizeof(pctrl_t));
     cbdataAdd(pctrl);
     pctrl->entry = entry;

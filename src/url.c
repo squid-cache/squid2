@@ -51,6 +51,8 @@ const char *ProtocolStr[] =
     "gopher",
     "wais",
     "cache_object",
+    "icp",
+    "urn",
     "TOTAL"
 };
 
@@ -103,6 +105,7 @@ urlInitialize(void)
 	url_acceptable[i] = 0;
     for (; *good; good++)
 	url_acceptable[(unsigned int) *good] = 1;
+	assert(sizeof(ProtocolStr) == (PROTO_MAX + 1) * sizeof(char *));
 }
 
 
