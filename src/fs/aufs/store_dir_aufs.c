@@ -144,7 +144,7 @@ storeAufsDirReconfigure(SwapDir * sd, int index, char *path)
 void
 storeAufsDirDump(StoreEntry * entry, SwapDir * s)
 {
-    commonUfsDirDump (entry, s);
+    commonUfsDirDump(entry, s);
     dump_cachedir_options(entry, options, s);
 }
 
