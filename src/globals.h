@@ -64,7 +64,7 @@ extern int opt_mem_pools;	/* 1 */
 extern int opt_reload_hit_only;	/* 0 */
 extern int opt_syslog_enable;	/* 0 */
 extern int opt_udp_hit_obj;	/* 0 */
-extern int opt_zap_disk_store;	/* 0 */
+extern int opt_create_swap_dirs;	/* 0 */
 extern int syslog_enable;	/* 0 */
 extern int theInIcpConnection;	/* -1 */
 extern int theOutIcpConnection;	/* -1 */
