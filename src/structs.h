@@ -1117,6 +1117,7 @@ struct _peer {
     struct in_addr addresses[10];
     int n_addresses;
     int rr_count;
+    int rr_lastcount;
     peer *next;
     int test_fd;
 #if USE_CARP

@@ -1037,6 +1037,7 @@ parse_peer(peer ** head)
 	head = &(*head)->next;
     *head = p;
     Config.npeers++;
+    peerClearRR(p);
 }
 
 static void
