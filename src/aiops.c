@@ -160,7 +160,11 @@ aio_init(void)
 
     pthread_attr_init(&globattr);
 #if HAVE_PTHREAD_ATTR_SETSCOPE
-    pthread_attr_setscope(&globattr, PTHREAD_SCOPE_SYSTEM);
+    /* 
+     * Erik Hofman <erik.hofman@a1.nl> suggests PTHREAD_SCOPE_PROCESS
+     * instead of PTHREAD_SCOPE_SYSTEM, esp for IRIX.
+     */
+    pthread_attr_setscope(&globattr, PTHREAD_SCOPE_PROCESS);
 #endif
     globsched.sched_priority = 1;
     main_thread = pthread_self();
