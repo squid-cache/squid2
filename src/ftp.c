@@ -1044,8 +1044,6 @@ ftpStart(FwdState * fwd)
     const char *url = storeUrl(entry);
     FtpStateData *ftpState;
     HttpReply *reply;
-    StoreEntry *pe = NULL;
-    const cache_key *key = NULL;
 
     CBDATA_INIT_TYPE(FtpStateData);
     ftpState = CBDATA_ALLOC(FtpStateData, NULL);
