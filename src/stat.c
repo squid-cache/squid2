@@ -168,7 +168,7 @@ void stat_objects_get(obj, sentry, vm_or_not)
 	    obj_size = entry->mem_obj->e_current_len;
 	tempbuf[0] = '\0';
 	sprintf(tempbuf, "{ %s %d %s %s %s %s %d %d %s %s }\n",
-	    entry->key,
+	    entry->url,
 	    obj_size,
 	    elapsed_time(entry, (int) entry->timestamp, space),
 	    flags_describe(entry),
