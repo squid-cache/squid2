@@ -282,7 +282,7 @@ storeGet(const cache_key * key)
 StoreEntry *
 storeGetPublic(const char *uri, const method_t method)
 {
-    cache_key *key;
+    const cache_key *key;
     StoreEntry *e;
     key = storeKeyPublic(uri, method);
     e = storeGet(key);
