@@ -121,6 +121,7 @@ typedef enum {
     ACL_SNMP_COMMUNITY,
     ACL_NETDB_SRC_RTT,
     ACL_MAXCONN,
+    ACL_REQ_MIME_TYPE,
     ACL_ENUM_MAX
 } squid_acl;
 
