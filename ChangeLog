@@ -10,6 +10,7 @@ Changes to squid-1.1.16 (August 25, 1997):
 	- Changed ftpget to check for whitespace in Windows listings
 	  (R. Scott Bailey).
 	- Fixed long URL coredump problem from the new 'log_url' scheme.
+	- PROXY_AUTH passwd security fix (David Luyer).
 
 Changes to squid-1.1.15 (August 11, 1997):
 
