@@ -126,7 +126,7 @@ char *log_tags[] =
     "UDP_MISS",
     "UDP_DENIED",
     "UDP_INVALID",
-    "UDP_RELOADING",
+    "UDP_MISSNOFETCH",
     "ERR_READ_TIMEOUT",
     "ERR_LIFETIME_EXP",
     "ERR_NO_CLIENTS_BIG_OBJ",
@@ -190,8 +190,7 @@ static void icpProcessRequestComplete _PARAMS((void *, int));
  * the rest of the world.  Here we try to detect frequent failures which
  * make the cache unusable (e.g. DNS lookup and connect() failures).  If
  * the failure:success ratio goes above 1.0 then we go into "hit only"
- * mode where we only return UDP_HIT or UDP_RELOADING.  (UDP_RELOADING
- * isn't quite the appropriate term but it gets the job done).  Neighbors
+ * mode where we only return UDP_HIT or UDP_MISSNOFETCH.  Neighbors
  * will only fetch HITs from us if they are using the ICP protocol.  We
  * stay in this mode for 5 minutes.
  * 
@@ -1242,11 +1241,11 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (store_rebuilding == STORE_REBUILDING_FAST && opt_reload_hit_only) {
-	    reply = icpCreateMessage(ICP_OP_RELOADING, flags, url, header.reqnum, netdb_gunk);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, icp_request->protocol);
+	    reply = icpCreateMessage(ICP_OP_MISSNOFETCH, flags, url, header.reqnum, netdb_gunk);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISSNOFETCH, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
-	    reply = icpCreateMessage(ICP_OP_RELOADING, flags, url, header.reqnum, netdb_gunk);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, icp_request->protocol);
+	    reply = icpCreateMessage(ICP_OP_MISSNOFETCH, flags, url, header.reqnum, netdb_gunk);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISSNOFETCH, icp_request->protocol);
 	} else {
 	    reply = icpCreateMessage(ICP_OP_MISS, flags, url, header.reqnum, netdb_gunk);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS, icp_request->protocol);
@@ -1259,7 +1258,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     case ICP_OP_DECHO:
     case ICP_OP_MISS:
     case ICP_OP_DENIED:
-    case ICP_OP_RELOADING:
+    case ICP_OP_MISSNOFETCH:
 	if (neighbors_do_private_keys && header.reqnum == 0) {
 	    debug(12, 0, "icpHandleIcpV2: Neighbor %s returned reqnum = 0\n",
 		inet_ntoa(from.sin_addr));
@@ -1372,11 +1371,11 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
 	}
 	/* if store is rebuilding, return a UDP_HIT, but not a MISS */
 	if (opt_reload_hit_only && store_rebuilding == STORE_REBUILDING_FAST) {
-	    reply = icpCreateMessage(ICP_OP_RELOADING, 0, url, header.reqnum, 0);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, icp_request->protocol);
+	    reply = icpCreateMessage(ICP_OP_MISSNOFETCH, 0, url, header.reqnum, 0);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISSNOFETCH, icp_request->protocol);
 	} else if (hit_only_mode_until > squid_curtime) {
-	    reply = icpCreateMessage(ICP_OP_RELOADING, 0, url, header.reqnum, 0);
-	    icpUdpSend(fd, &from, reply, LOG_UDP_RELOADING, icp_request->protocol);
+	    reply = icpCreateMessage(ICP_OP_MISSNOFETCH, 0, url, header.reqnum, 0);
+	    icpUdpSend(fd, &from, reply, LOG_UDP_MISSNOFETCH, icp_request->protocol);
 	} else {
 	    reply = icpCreateMessage(ICP_OP_MISS, 0, url, header.reqnum, 0);
 	    icpUdpSend(fd, &from, reply, LOG_UDP_MISS, icp_request->protocol);

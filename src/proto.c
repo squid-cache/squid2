@@ -107,7 +107,15 @@
 
 #include "squid.h"
 
+typedef struct {
+    int fd;
+    StoreEntry *entry;
+    request_t *request;
+} pctrl_t;
+
 static int protoNotImplemented _PARAMS((StoreEntry *));
+static void protoDispatchComplete _PARAMS((peer * p, void *data));
+static void protoDispatchFail _PARAMS((peer * p, void *data));
 
 char *IcpOpcodeStr[] =
 {
@@ -132,7 +140,7 @@ char *IcpOpcodeStr[] =
     "ICP_OP_UNUSED6",
     "ICP_OP_UNUSED7",
     "ICP_OP_UNUSED8",
-    "ICP_RELOADING",		/* access denied while store is reloading */
+    "ICP_MISSNOFETCH",		/* access denied while store is reloading */
     "ICP_DENIED",
     "ICP_HIT_OBJ",
     "ICP_END"
@@ -141,6 +149,7 @@ char *IcpOpcodeStr[] =
 void
 protoDispatch(int fd, StoreEntry * entry, request_t * request)
 {
+    pctrl_t *pctrl;
     debug(17, 3, "protoDispatch: '%s'\n", entry->url);
     entry->mem_obj->request = requestLink(request);
     if (request->protocol == PROTO_CACHEOBJ) {
@@ -151,7 +160,33 @@ protoDispatch(int fd, StoreEntry * entry, request_t * request)
 	protoStart(fd, entry, NULL, request);
 	return;
     }
-    peerSelect(fd, request, entry);
+    pctrl = xcalloc(1, sizeof(pctrl_t));
+    pctrl->entry = entry;
+    pctrl->fd = fd;
+    pctrl->request = requestLink(request);
+    peerSelect(request,
+	entry,
+	protoDispatchComplete,
+	protoDispatchFail,
+	pctrl);
+}
+
+static void
+protoDispatchComplete(peer * p, void *data)
+{
+    pctrl_t *pctrl = data;
+    protoStart(pctrl->fd, pctrl->entry, p, pctrl->request);
+    requestUnlink(pctrl->request);
+    xfree(pctrl);
+}
+
+static void
+protoDispatchFail(peer * p, void *data)
+{
+    pctrl_t *pctrl = data;
+    squid_error_entry(pctrl->entry, ERR_CANNOT_FETCH, NULL);
+    requestUnlink(pctrl->request);
+    xfree(pctrl);
 }
 
 int

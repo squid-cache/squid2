@@ -141,6 +141,7 @@
 
 
 typedef void (*PIF) (int, StoreEntry *, void *);
+typedef void (*IRCB) _PARAMS((peer *, icp_opcode, void *data));
 
 /* keep track each client receiving data from that particular StoreEntry */
 struct _store_client {
@@ -156,12 +157,8 @@ struct _MemObject {
     char *mime_hdr;		/* Mime header info */
     mem_ptr data;
     char *e_swap_buf;
-    peer *e_pings_first_miss;
     int w_rtt;			/* weighted RTT in msec */
-    struct timeval start_ping;
     int e_swap_buf_len;
-    unsigned char e_pings_n_pings;
-    unsigned char e_pings_n_acks;
     unsigned char pending_list_size;
     char *e_abort_msg;
     log_type abort_code;
@@ -175,6 +172,8 @@ struct _MemObject {
     struct _http_reply *reply;
     request_t *request;
     int mime_hdr_sz;
+    IRCB icp_reply_callback;
+    void *ircb_data;
 };
 
 enum {

@@ -118,7 +118,7 @@ typedef enum {
     HIER_SINGLE_PARENT,
     HIER_FIRSTUP_PARENT,
     HIER_NO_PARENT_DIRECT,
-    HIER_FIRST_PARENT_MISS,
+    HIER_BEST_PARENT_MISS,
     HIER_NO_DIRECT_FAIL,
     HIER_SOURCE_FASTEST,
     HIER_SIBLING_UDP_HIT_OBJ,
@@ -200,7 +200,7 @@ extern peer *getFirstUpParent _PARAMS((request_t *));
 extern peer *getNextPeer _PARAMS((peer *));
 extern peer *getSingleParent _PARAMS((request_t *));
 extern int neighborsCount _PARAMS((request_t *));
-extern int neighborsUdpPing _PARAMS((request_t *, StoreEntry *));
+extern int neighborsUdpPing _PARAMS((request_t *, StoreEntry *, int *exprep));
 extern void neighborAddDomainPing _PARAMS((const char *, const char *));
 extern void neighborAddDomainType _PARAMS((const char *, const char *, const char *));
 extern void neighborAddAcl _PARAMS((const char *, const char *));
