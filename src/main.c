@@ -157,12 +157,14 @@ void serverConnectionsClose()
     if (theUdpConnection >= 0) {
 	debug(21, 1, "FD %d Closing Udp connection\n",
 	    theUdpConnection);
-	comm_close(theUdpConnection);
+	/* Dont actually close it, just disable the read handler */
+	/* so we can still transmit while shutdown pending */
+	/* comm_close(theUdpConnection); */
 	comm_set_select_handler(theUdpConnection,
 	    COMM_SELECT_READ,
 	    NULL,
 	    0);
-	theUdpConnection = -1;
+	/* theUdpConnection = -1; */
     }
 }
 
@@ -338,6 +340,11 @@ int main(argc, argv)
 	    /* house keeping */
 	    break;
 	case COMM_SHUTDOWN:
+	    /* delayed close so we can transmit while shutdown pending */
+	    if (theUdpConnection > 0) {
+		comm_close (theUdpConnection);
+		theUdpConnection = -1;
+	    }
 	    if (shutdown_pending) {
 		normal_shutdown();
 		exit(0);
