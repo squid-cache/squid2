@@ -544,6 +544,7 @@ main(int argc, char **argv)
     int errcount = 0;
     int n;			/* # of GC'd objects */
     time_t loop_delay;
+    mode_t oldmask;
 
     debug_log = stderr;
     if (FD_SETSIZE < Squid_MaxFD)
@@ -564,6 +565,16 @@ main(int argc, char **argv)
     mallopt(M_NLBLKS, 32);
 #endif
 #endif /* HAVE_MALLOPT */
+
+    /*
+     * The plan here is to set the umask to 007 (deny others for
+     * read,write,execute), but only if the umask is not already
+     * set.  Unfortunately, there is no way to get the current
+     * umask value without setting it.
+     */
+    oldmask = umask(S_IRWXO);
+    if (oldmask)
+	umask(oldmask);
 
     memset(&local_addr, '\0', sizeof(struct in_addr));
     safe_inet_addr(localhost, &local_addr);
@@ -747,9 +758,6 @@ watch_child(char *argv[])
 #endif
     for (i = 0; i < Squid_MaxFD; i++)
 	close(i);
-#if NOT_NEEDED
-    umask(0);
-#endif
     for (;;) {
 	if ((pid = fork()) == 0) {
 	    /* child */
