@@ -338,7 +338,7 @@ urlClean(char *dirty)
 
 
 request_t *
-requestLink(const request_t * request)
+requestLink(request_t * request)
 {
     request->link_count++;
     return request;
