@@ -18,6 +18,8 @@ typedef struct _FDENTRY {
 
 static FDENTRY *fd_stat_tab = NULL;
 
+static void fdstat_update _PARAMS((int fd, File_Desc_Status status));
+
 File_Desc_Type fdstatGetType(fd)
      int fd;
 {
@@ -69,7 +71,7 @@ int fdstat_init(preopen)
 }
 
 /* call for updating the current biggest fd */
-void fdstat_update(fd, status)
+static void fdstat_update(fd, status)
      int fd;
      File_Desc_Status status;
 {
