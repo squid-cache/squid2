@@ -32,6 +32,17 @@
  *
  */
 
+struct _dlink_node {
+    void *data;
+    dlink_node *prev;
+    dlink_node *next;
+};
+
+struct _dlink_list {
+    dlink_node *head;
+    dlink_node *tail;
+};
+
 struct _acl_ip_data {
     struct in_addr addr1;	/* if addr2 non-zero then its a range */
     struct in_addr addr2;
@@ -787,6 +798,7 @@ struct _clientHttpRequest {
 	http_status status;
 	char *location;
     } redirect;
+    dlink_node active;
 };
 
 struct _ConnStateData {
@@ -814,17 +826,6 @@ struct _ConnStateData {
 	int n;
 	time_t until;
     } defer;
-};
-
-struct _dlink_node {
-    void *data;
-    dlink_node *prev;
-    dlink_node *next;
-};
-
-struct _dlink_list {
-    dlink_node *head;
-    dlink_node *tail;
 };
 
 struct _ipcache_addrs {

@@ -123,6 +123,7 @@ extern double current_dtime;
 extern int store_hash_buckets;	/* 0 */
 extern hash_table *store_table;	/* NULL */
 extern dlink_list store_list;
+extern dlink_list ClientActiveRequests;
 extern const String StringNull;	/* { 0, 0, NULL } */
 extern const MemBuf MemBufNull;	/* MemBufNULL */
 extern int hot_obj_count;	/* 0 */
