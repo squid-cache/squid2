@@ -302,7 +302,7 @@ helperStatefulDefer(statefulhelper * hlp)
     dlink_node *n;
     helper_stateful_server *srv = NULL, *rv = NULL;
     if (hlp == NULL) {
-	debug(84, 3) ("helperStatefulReserve: hlp == NULL\n");
+	debug(84, 3) ("helperStatefulDefer: hlp == NULL\n");
 	return NULL;
     }
     debug(84, 5) ("helperStatefulDefer: Running servers %d.\n", hlp->n_running);
@@ -310,10 +310,12 @@ helperStatefulDefer(statefulhelper * hlp)
 	debug(84, 1) ("helperStatefulDefer: No running servers!. \n");
 	return NULL;
     }
-    srv = StatefulGetFirstAvailable(hlp);
-    /* all currently busy:loop through servers and find server with the shortest queue */
-    rv = srv;
-    if (rv == NULL)
+    rv = srv = StatefulGetFirstAvailable(hlp);
+    if (rv == NULL) {
+	/*
+	 * all currently busy; loop through servers and find server
+	 * with the shortest queue
+	 */
 	for (n = hlp->servers.head; n != NULL; n = n->next) {
 	    srv = n->data;
 	    if (srv->flags.reserved == S_HELPER_RESERVED)
@@ -327,6 +329,7 @@ helperStatefulDefer(statefulhelper * hlp)
 		continue;
 	    rv = srv;
 	}
+    }
     if (rv == NULL) {
 	debug(84, 1) ("helperStatefulDefer: None available.\n");
 	return NULL;
@@ -407,6 +410,8 @@ helperStats(StoreEntry * sentry, helper * hlp)
     helper_server *srv;
     dlink_node *link;
     double tt;
+    storeAppendPrintf(sentry, "program: %s\n",
+	hlp->cmdline->key);
     storeAppendPrintf(sentry, "number running: %d of %d\n",
 	hlp->n_running, hlp->n_to_start);
     storeAppendPrintf(sentry, "requests sent: %d\n",
@@ -468,7 +473,7 @@ helperStatefulStats(StoreEntry * sentry, statefulhelper * hlp)
     storeAppendPrintf(sentry, "avg service time: %d msec\n",
 	hlp->stats.avg_svc_time);
     storeAppendPrintf(sentry, "\n");
-    storeAppendPrintf(sentry, "%7s\t%7s\t%7s\t%11s\t%s\t%7s\t%7s\t%7s\t%7s\n",
+    storeAppendPrintf(sentry, "%7s\t%7s\t%7s\t%11s\t%20s\t%s\t%7s\t%7s\t%7s\n",
 	"#",
 	"FD",
 	"PID",
@@ -481,7 +486,7 @@ helperStatefulStats(StoreEntry * sentry, statefulhelper * hlp)
     for (link = hlp->servers.head; link; link = link->next) {
 	srv = link->data;
 	tt = 0.001 * tvSubMsec(srv->dispatch_time, current_time);
-	storeAppendPrintf(sentry, "%7d\t%7d\t%7d\t%11d\t%11d\t%c%c%c%c%c%c\t%7.3f\t%7d\t%s\n",
+	storeAppendPrintf(sentry, "%7d\t%7d\t%7d\t%11d\t%20d\t%c%c%c%c%c%c\t%7.3f\t%7d\t%s\n",
 	    srv->index + 1,
 	    srv->rfd,
 	    srv->pid,
