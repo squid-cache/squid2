@@ -2098,6 +2098,8 @@ clientReadRequest(int fd, void *data)
 	    &parser_return_code,
 	    &prefix,
 	    &req_line_sz);
+	if (!http)
+	    safe_free(prefix);
 	if (http) {
 	    assert(http->req_sz > 0);
 	    conn->in.offset -= http->req_sz;
@@ -2119,6 +2121,7 @@ clientReadRequest(int fd, void *data)
 		err->request_hdrs = xstrdup(conn->in.buf);
 		http->entry = clientCreateStoreEntry(http, method, 0);
 		errorAppendEntry(http->entry, err);
+		safe_free(prefix);
 		break;
 	    }
 	    if ((request = urlParse(method, http->uri)) == NULL) {
@@ -2151,6 +2154,7 @@ clientReadRequest(int fd, void *data)
 		    }
 		}
 	    }
+	    safe_free(prefix);
 	    safe_free(http->log_uri);
 	    http->log_uri = xstrdup(urlCanonicalClean(request));
 	    request->client_addr = conn->peer.sin_addr;
