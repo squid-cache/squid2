@@ -106,9 +106,7 @@ icmpRecv(int unused1, void *unused2)
 }
 
 static void
-icmpQueueSend(pingerEchoData * pkt,
-    int len,
-    FREE *free_func;
+icmpQueueSend(pingerEchoData * pkt, int len, FREE *free_func)
 {
     icmpQueueData *q = NULL;
     icmpQueueData **H = NULL;
