@@ -160,7 +160,7 @@ memPoolMeterReport(const MemPoolMeter * pm, size_t obj_size,
     int alloc_count, int inuse_count, int idle_count, StoreEntry * e)
 {
     assert(pm);
-    storeAppendPrintf(e, "%d\t %d\t %d\t %.2f\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\n",
+    storeAppendPrintf(e, "%d\t %d\t %d\t %.2f\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\t %d\n",
     /* alloc */
 	alloc_count,
 	toKB(obj_size * pm->alloc.level),
@@ -179,8 +179,8 @@ memPoolMeterReport(const MemPoolMeter * pm, size_t obj_size,
     /* (int)rint(xpercent(pm->idle.level, pm->alloc.level)), */
     /* saved */
 	xpercentInt(pm->saved.count, mem_traffic_volume.count),
-	xpercentInt(obj_size * gb_to_double(&pm->saved), gb_to_double(&mem_traffic_volume)));
-    /* (int)rint(xpercent(obj_size * pm->saved.level, mem_traffic_volume))); */
+	xpercentInt(obj_size * gb_to_double(&pm->saved), gb_to_double(&mem_traffic_volume)),
+	xpercentInt(pm->saved.count, pm->total.count));
 }
 
 /* MemMeter */
@@ -227,6 +227,8 @@ memPoolAlloc(MemPool * pool)
 {
     assert(pool);
     memMeterInc(pool->meter.inuse);
+    gb_inc(&pool->meter.total, 1);
+    gb_inc(&TheMeter.total, pool->obj_size);
     memMeterAdd(TheMeter.inuse, pool->obj_size);
     gb_inc(&mem_traffic_volume, pool->obj_size);
     if (pool->pstack.count) {
@@ -338,12 +340,13 @@ memReport(StoreEntry * e)
     storeAppendPrintf(e, "Current memory usage:\n");
     /* heading */
     storeAppendPrintf(e, "Pool\t Obj Size\t"
-	"Allocated\t\t\t\t\t In Use\t\t\t\t Idle\t\t\t Allocations Saved\t\t\n"
+	"Allocated\t\t\t\t\t In Use\t\t\t\t Idle\t\t\t Allocations Saved\t\t Hit Rate\t\n"
 	" \t (bytes)\t"
 	"(#)\t (KB)\t high (KB)\t high (hrs)\t impact (%%total)\t"
 	"(#)\t (KB)\t high (KB)\t portion (%%alloc)\t"
 	"(#)\t (KB)\t high (KB)\t"
-	"(%%number)\t (%%volume)"
+	"(%%number)\t (%%volume)\t"
+	"(%%number)"
 	"\n");
     /* main table */
     for (i = 0; i < Pools.count; i++) {

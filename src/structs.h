@@ -1538,6 +1538,7 @@ struct _MemPoolMeter {
     MemMeter inuse;
     MemMeter idle;
     gb_t saved;
+    gb_t total;
 };
 
 /* a pool is a [growing] space for objects of the same size */
