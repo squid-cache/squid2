@@ -43,6 +43,9 @@
 /* Define if you have the getdtablesize function.  */
 #undef HAVE_GETDTABLESIZE
 
+/* Define if you have the getrusage function.  */
+#undef HAVE_GETRUSAGE
+
 /* Define if you have the mallinfo function.  */
 #undef HAVE_MALLINFO
 
@@ -100,11 +103,17 @@
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
 
+/* Define if you have the <libc.h> header file.  */
+#undef HAVE_LIBC_H
+
 /* Define if you have the <memory.h> header file.  */
 #undef HAVE_MEMORY_H
 
 /* Define if you have the <ndir.h> header file.  */
 #undef HAVE_NDIR_H
+
+/* Define if you have the <netdb.h> header file.  */
+#undef HAVE_NETDB_H
 
 /* Define if you have the <netinet/in.h> header file.  */
 #undef HAVE_NETINET_IN_H

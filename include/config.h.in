@@ -58,11 +58,8 @@
 #define _SQUID_FREEBSD_
 #elif defined(__sgi__)				/* SGI */
 #define _SQUID_SGI_
-#endif
-
-#undef _SQUID_SYSV_SIGNALS_
-#if defined(_SQUID_SYSV_) || defined(_SQUID_LINUX_)
-#define  _SQUID_SYSV_SIGNALS_
+#elif defined(__NeXT__)
+#define _SQUID_NEXT_
 #endif
 
 #if !defined(CACHE_HTTP_PORT)
