@@ -630,7 +630,7 @@ comm_select_incoming(void)
     if (theInIcpConnection >= 0)
 	fds[N++] = theInIcpConnection;
     if (theInIcpConnection != theOutIcpConnection)
-        if (theOutIcpConnection >= 0)
+	if (theOutIcpConnection >= 0)
 	    fds[N++] = theOutIcpConnection;
     if (theHttpConnection >= 0 && fdstat_are_n_free_fd(RESERVED_FD))
 	fds[N++] = theHttpConnection;

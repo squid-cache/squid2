@@ -200,10 +200,10 @@ clientAccessCheck(icpStateData * icpState, void (*handler) (icpStateData *, int)
 	    ch->state[ACL_DST_DOMAIN] = ACL_LOOKUP_PENDING;	/* first */
 	    ia = ipcacheCheckNumeric(icpState->request->host);
 	    if (ia != NULL)
-	    fqdncache_nbgethostbyaddr(ia->in_addrs[0],
-		icpState->fd,
-		clientLookupDstFQDNDone,
-		icpState);
+		fqdncache_nbgethostbyaddr(ia->in_addrs[0],
+		    icpState->fd,
+		    clientLookupDstFQDNDone,
+		    icpState);
 	    return;
 	}
     }

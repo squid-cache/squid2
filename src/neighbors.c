@@ -111,7 +111,7 @@ static edge *whichEdge _PARAMS((const struct sockaddr_in * from));
 static void neighborAlive _PARAMS((edge *, const MemObject *, const icp_common_t *));
 static void neighborCountIgnored _PARAMS((edge * e, icp_opcode op_unused));
 static neighbor_t parseNeighborType _PARAMS((const char *s));
-static char * neighborTypeStr _PARAMS((edge * e));
+static char *neighborTypeStr _PARAMS((edge * e));
 
 static icp_common_t echo_hdr;
 static u_short echo_port;
