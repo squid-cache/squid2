@@ -318,14 +318,16 @@ static void
 idnsCheckQueue(void *unused)
 {
     dlink_node *n;
+    dlink_node *p = NULL;
     idns_query *q;
     event_queued = 0;
-    for (n = lru_list.tail; n; n = n->prev) {
+    for (n = lru_list.tail; n; n = p) {
 	q = n->data;
 	if (tvSubDsec(q->sent_t, current_time) < 5.0)
 	    break;
 	debug(78, 3) ("idnsCheckQueue: ID %#04x timeout\n",
 	    q->id);
+	p = n->prev;
 	dlinkDelete(&q->lru, &lru_list);
 	if (q->nsends < IDNS_MAX_TRIES) {
 	    idnsSendQuery(q);
