@@ -344,14 +344,14 @@ ipcacheParse(rfc1035_rr * answers, int nr)
     i.expires = squid_curtime;
     i.status = IP_NEGATIVE_CACHED;
     if (nr < 0) {
-	debug(14, 1) ("ipcacheParse: Lookup failed (error %d)\n",
+	debug(14, 3) ("ipcacheParse: Lookup failed (error %d)\n",
 	    rfc1035_errno);
 	assert(rfc1035_error_message);
 	i.error_message = xstrdup(rfc1035_error_message);
 	return &i;
     }
     if (nr == 0) {
-	debug(14, 1) ("ipcacheParse: No DNS records\n");
+	debug(14, 3) ("ipcacheParse: No DNS records\n");
 	i.error_message = xstrdup("No DNS records");
 	return &i;
     }
