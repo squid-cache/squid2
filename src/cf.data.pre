@@ -355,6 +355,20 @@ DOC_START
 icp_query_timeout 0
 DOC_END
 
+NAME: maximum_icp_query_timeout
+COMMENT: (msec)
+DEFAULT: 2000
+TYPE: int
+LOC: Config.Timeout.icp_query_max
+DOC_START
+	When you use the dynamic ICP query timeout (by setting
+	'icp_query_timeout' to zero) you might want to place an
+	upper limit on the timeout value.
+
+	If 'icp_query_timeout' is set to zero, this value is ignored.
+icp_query_timeout 2000
+DOC_END
+
 NAME: mcast_icp_query_timeout
 COMMENT: (msec)
 DEFAULT: 2000
