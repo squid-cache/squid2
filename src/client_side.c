@@ -73,7 +73,7 @@ static void
 clientLookupDstFQDNDone(int fd, const char *fqdn, void *data)
 {
     icpStateData *icpState = data;
-    debug(33, 0, "clientLookupDstFQDNDone: FD %d, '%s', FQDN %s\n",
+    debug(33, 5, "clientLookupDstFQDNDone: FD %d, '%s', FQDN %s\n",
 	fd,
 	icpState->url,
 	fqdn ? fqdn : "NULL");
