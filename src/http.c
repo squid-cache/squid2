@@ -744,7 +744,8 @@ httpReadReply(int fd, void *data)
 		    if ((len < 0 && !ignoreErrno(errno)) || len == 0) {
 			keep_alive = 0;
 		    } else if (len > 0) {
-			debug(11, 1) ("httpReadReply: Excess data from \"%s %s\"\n",
+			debug(11, Config.onoff.relaxed_header_parser <= 0 || keep_alive ? 1 : 2)
+			    ("httpReadReply: Excess data from \"%s %s\"\n",
 			    RequestMethodStr[httpState->orig_request->method],
 			    storeUrl(entry));
 			storeAppend(entry, buf, len);
@@ -782,7 +783,8 @@ httpReadReply(int fd, void *data)
 	    return;
 	case -1:
 	    /* Server is nasty on us. Shut down */
-	    debug(11, 1) ("httpReadReply: Excess data from \"%s %s\"\n",
+	    debug(11, Config.onoff.relaxed_header_parser <= 0 || entry->mem_obj->reply->keep_alive ? 1 : 2)
+		("httpReadReply: Excess data from \"%s %s\"\n",
 		RequestMethodStr[httpState->orig_request->method],
 		storeUrl(entry));
 	    fwdComplete(httpState->fwd);
