@@ -47,6 +47,12 @@ void *
 stackPop(Stack * s)
 {
     assert(s);
-    assert(s->count);
-    return s->items[--s->count];
+    return s->count ? s->items[--s->count] : NULL;
+}
+
+void *
+stackTop(Stack *s)
+{
+    assert(s);
+    return s->count ? s->items[s->count-1] : NULL;
 }

@@ -41,5 +41,6 @@ typedef Array Stack;
 extern void *stackPop(Stack *s);
 #define stackPush arrayAppend
 #define stackPrePush arrayPreAppend
+extern void *stackTop(Stack *s);
 
 #endif /* ndef _STACK_H_ */
