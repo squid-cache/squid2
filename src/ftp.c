@@ -2450,8 +2450,10 @@ ftpSendReply(FtpStateData * ftpState)
 	err->ftp.request = xstrdup(ftpState->ctrl.last_command);
     if (ftpState->old_reply)
 	err->ftp.reply = xstrdup(ftpState->old_reply);
-    else
+    else if (ftpState->ctrl.last_reply)
 	err->ftp.reply = xstrdup(ftpState->ctrl.last_reply);
+    else
+	err->ftp.reply = xstrdup("");
     errorAppendEntry(ftpState->entry, err);
     storeBufferFlush(ftpState->entry);
     ftpSendQuit(ftpState);
