@@ -161,8 +161,7 @@ typedef struct fde {
     char ascii_note[FD_ASCII_NOTE_SZ];
     unsigned int comm_type;
     time_t stall_until;		/* don't select for read until this time reached */
-    RWStateData *rstate;	/* State data for comm_read */
-    RWStateData *wstate;	/* State data for comm_write */
+    RWStateData *rwstate;	/* State data for comm_read/comm_write */
 } FD_ENTRY;
 
 extern FD_ENTRY *fd_table;
