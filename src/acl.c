@@ -1070,6 +1070,7 @@ aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
     const request_t *r = checklist->request;
     const ipcache_addrs *ia = NULL;
     const char *fqdn = NULL;
+    char *esc_buf;
     int k;
     if (!acl)
 	return 0;
@@ -1127,10 +1128,18 @@ aclMatchAcl(struct _acl *acl, aclCheck_t * checklist)
 	return aclMatchTime(acl->data, squid_curtime);
 	/* NOTREACHED */
     case ACL_URLPATH_REGEX:
-	return aclMatchRegex(acl->data, r->urlpath);
+	esc_buf = xstrdup(r->urlpath);
+	rfc1738_unescape(esc_buf);
+	k = aclMatchRegex(acl->data, esc_buf);
+	safe_free(esc_buf);
+	return k;
 	/* NOTREACHED */
     case ACL_URL_REGEX:
-	return aclMatchRegex(acl->data, urlCanonical(r, NULL));
+	esc_buf = xstrdup(urlCanonical(r, NULL));
+	rfc1738_unescape(esc_buf);
+	k = aclMatchRegex(acl->data, esc_buf);
+	safe_free(esc_buf);
+	return k;
 	/* NOTREACHED */
     case ACL_URL_PORT:
 	return aclMatchInteger(acl->data, r->port);
