@@ -284,7 +284,7 @@ gopherToHTML(GopherStateData * gopherState, char *inbuf, int len)
     char *host = NULL;
     char *port = NULL;
     char *escaped_selector = NULL;
-    char *icon_url = NULL;
+    const char *icon_url = NULL;
     char gtype;
     StoreEntry *entry = NULL;
 
