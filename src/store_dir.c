@@ -334,7 +334,8 @@ storeDirOpenSwapLogs(void)
     SwapDir *sd;
     for (dirn = 0; dirn < Config.cacheSwap.n_configured; dirn++) {
 	sd = &Config.cacheSwap.swapDirs[dirn];
-	sd->log.open(sd);
+	if (sd->log.open)
+	    sd->log.open(sd);
     }
 }
 
@@ -345,7 +346,8 @@ storeDirCloseSwapLogs(void)
     SwapDir *sd;
     for (dirn = 0; dirn < Config.cacheSwap.n_configured; dirn++) {
 	sd = &Config.cacheSwap.swapDirs[dirn];
-	sd->log.close(sd);
+	if (sd->log.close)
+	    sd->log.close(sd);
     }
 }
 
