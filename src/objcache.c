@@ -112,7 +112,6 @@
 typedef struct objcache_ds {
     StoreEntry *entry;
     char passwd[OBJCACHE_MAX_PASSWD_SZ + 1];
-    int reply_fd;
     objcache_op op;
 } ObjectCacheData;
 
@@ -289,7 +288,6 @@ objcacheStart(int fd, StoreEntry * entry)
 	entry->expires = squid_curtime;
 	return;
     }
-    data->reply_fd = fd;
     data->entry = entry;
     entry->expires = squid_curtime;
     debug(16, 1) ("CACHEMGR: %s requesting '%s'\n",
