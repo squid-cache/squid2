@@ -2298,13 +2298,12 @@ DOC_START
 
 	If the cache is run as root, it will change its effective/real
 	UID/GID to the UID/GID specified below.  The default is to
-	change to UID to nobody and GID to the default group of nobody.
+	change to UID to nobody and to leave the GID unchanged.
 
-	If Squid is not started as root, the default is to keep the
-	current UID/GID, and only the GID can be changed to any of
-	the groups the user starting Squid is member of.  Note that if
-	Squid is not started as root then you cannot set http_port to
-	a value lower than 1024.
+	If Squid is not started as root, the UID/GID is not changed
+	and these directives are ignored.  Note that if Squid is
+	not started as root then you cannot set http_port to a value
+	lower than 1024.
 DOC_END
 
 
