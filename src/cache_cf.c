@@ -149,7 +149,7 @@ static struct {
 #define DefaultAnnounceHost	"sd.cache.nlanr.net"
 #define DefaultAnnouncePort	3131
 #define DefaultAnnounceFile	(char *)NULL	/* default NONE */
-#define DefaultAnnounceRate	86400	/* every 24 hours */
+#define DefaultAnnounceRate	0	/* Default off */
 
 ip_acl *local_ip_list = NULL;
 
