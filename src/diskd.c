@@ -331,7 +331,7 @@ main(int argc, char *argv[])
 #elif USE_DISKD
 
 /*
- * DEBUG 79
+ * DEBUG: section 81  Diskd Interface functions
  */
 
 static int sent_count = 0;
@@ -369,7 +369,7 @@ storeDiskdOpen(sfileno f, mode_t mode, STIOCB * callback, void *callback_data)
     char *buf;
     int shm_offset;
     SwapDir *sd = swapDirFromFileno(f);
-    debug(78, 3) ("storeDiskdOpen: fileno %08X, mode %d\n", f, mode);
+    debug(81, 3) ("storeDiskdOpen: fileno %08X, mode %d\n", f, mode);
     if (sd->u.diskd.away > MAGIC1)
 	return NULL;
     assert(mode == O_RDONLY || mode == O_WRONLY);
@@ -406,7 +406,7 @@ void
 storeDiskdClose(storeIOState * sio)
 {
     int x;
-    debug(78, 3) ("storeDiskdClose: fileno %08X\n", sio->swap_file_number);
+    debug(81, 3) ("storeDiskdClose: fileno %08X\n", sio->swap_file_number);
     x = storeDiskdSend(_MQD_CLOSE,
 	swapDirFromFileno(sio->swap_file_number),
 	sio->type.diskd.id,
@@ -435,7 +435,7 @@ storeDiskdRead(storeIOState * sio, char *buf, size_t size, off_t offset, STRCB *
     sio->read.callback_data = their_data;
     sio->type.diskd.read_buf = buf;	/* the one passed from above */
     cbdataLock(sio->read.callback_data);
-    debug(78, 3) ("storeDiskdRead: fileno %08X\n", sio->swap_file_number);
+    debug(81, 3) ("storeDiskdRead: fileno %08X\n", sio->swap_file_number);
     sio->offset = offset;
     sio->type.diskd.flags.reading = 1;
     rbuf = storeDiskdShmGet(sd, &shm_offset);
@@ -461,7 +461,7 @@ storeDiskdWrite(storeIOState * sio, char *buf, size_t size, off_t offset, FREE *
     char *sbuf;
     int shm_offset;
     SwapDir *sd = swapDirFromFileno(sio->swap_file_number);
-    debug(78, 3) ("storeDiskdWrite: fileno %08X\n", sio->swap_file_number);
+    debug(81, 3) ("storeDiskdWrite: fileno %08X\n", sio->swap_file_number);
     if (!cbdataValid(sio)) {
 	free_func(buf);
 	return;
@@ -491,7 +491,7 @@ storeDiskdUnlink(sfileno f)
     int shm_offset;
     char *buf;
     SwapDir *sd = swapDirFromFileno(f);
-    debug(78, 3) ("storeDiskdUnlink: fileno %08X\n", f);
+    debug(81, 3) ("storeDiskdUnlink: fileno %08X\n", f);
     buf = storeDiskdShmGet(sd, &shm_offset);
     storeUfsFullPath(f, buf);
     x = storeDiskdSend(_MQD_UNLINK,
@@ -570,7 +570,7 @@ storeDiskdInit(SwapDir * sd)
     fd_note(sd->u.diskd.wfd, "squid -> diskd");
     commSetTimeout(sd->u.diskd.wfd, -1, NULL, NULL);
     commSetNonBlocking(sd->u.diskd.wfd);
-    debug(79, 1) ("diskd started\n");
+    debug(81, 1) ("diskd started\n");
 }
 
 void
@@ -580,14 +580,14 @@ storeDiskdReadQueue(void)
     int i;
     static time_t last_report = 0;
     static int record_away = 0;
-    static int record_shmbuf = 0; 
+    static int record_shmbuf = 0;
     if (sent_count - recv_count > record_away) {
 	record_away = sent_count - recv_count;
 	record_shmbuf = shmbuf_count;
     }
     if (squid_curtime - last_report > 10) {
 	if (record_away)
-	    debug(79, 1) ("DISKD: %d msgs away, %d shmbufs in use\n",
+	    debug(81, 1) ("DISKD: %d msgs away, %d shmbufs in use\n",
 		record_away, record_shmbuf);
 	last_report = squid_curtime;
 	record_away = record_shmbuf = 0;
@@ -608,7 +608,7 @@ storeDiskdOpenDone(diomsg * M)
 {
     storeIOState *sio = M->callback_data;
     Counter.syscalls.disk.opens++;
-    debug(79, 3) ("storeDiskdOpenDone: fileno %08x status %d\n",
+    debug(81, 3) ("storeDiskdOpenDone: fileno %08x status %d\n",
 	sio->swap_file_number, M->status);
     if (M->status < 0) {
 	storeDiskdIOCallback(sio, DISK_ERROR);
@@ -620,7 +620,7 @@ storeDiskdCloseDone(diomsg * M)
 {
     storeIOState *sio = M->callback_data;
     Counter.syscalls.disk.closes++;
-    debug(79, 3) ("storeDiskdCloseDone: fileno %08x status %d\n",
+    debug(81, 3) ("storeDiskdCloseDone: fileno %08x status %d\n",
 	sio->swap_file_number, M->status);
     if (M->status < 0) {
 	storeDiskdIOCallback(sio, DISK_ERROR);
@@ -644,7 +644,7 @@ storeDiskdReadDone(diomsg * M)
     sio->type.diskd.flags.reading = 0;
     valid = cbdataValid(sio->read.callback_data);
     cbdataUnlock(sio->read.callback_data);
-    debug(79, 3) ("storeDiskdReadDone: fileno %08x status %d\n",
+    debug(81, 3) ("storeDiskdReadDone: fileno %08x status %d\n",
 	sio->swap_file_number, M->status);
     if (M->status < 0) {
 	storeDiskdIOCallback(sio, DISK_ERROR);
@@ -668,7 +668,7 @@ storeDiskdWriteDone(diomsg * M)
     storeIOState *sio = M->callback_data;
     Counter.syscalls.disk.writes++;
     sio->type.diskd.flags.writing = 0;
-    debug(79, 3) ("storeDiskdWriteDone: fileno %08x status %d\n",
+    debug(81, 3) ("storeDiskdWriteDone: fileno %08x status %d\n",
 	sio->swap_file_number, M->status);
     if (M->status < 0) {
 	storeDiskdIOCallback(sio, DISK_ERROR);
@@ -680,7 +680,7 @@ storeDiskdWriteDone(diomsg * M)
 static void
 storeDiskdUnlinkDone(diomsg * M)
 {
-    debug(79, 3) ("storeDiskdUnlinkDone: fileno %08x status %d\n",
+    debug(81, 3) ("storeDiskdUnlinkDone: fileno %08x status %d\n",
 	M->id, M->status);
     Counter.syscalls.disk.unlinks++;
 }
@@ -692,7 +692,7 @@ storeDiskdHandle(diomsg * M)
     if (M->callback_data)
 	cbdataUnlock(M->callback_data);
     if (!valid) {
-	debug(79, 3) ("storeDiskdHandle: Invalid callback_data %p\n",
+	debug(81, 3) ("storeDiskdHandle: Invalid callback_data %p\n",
 	    M->callback_data);
 	/*
 	 * The read operation has its own callback.  If we don't
@@ -731,7 +731,7 @@ static void
 storeDiskdIOCallback(storeIOState * sio, int errflag)
 {
     int valid = cbdataValid(sio->callback_data);
-    debug(79, 3) ("storeUfsIOCallback: errflag=%d\n", errflag);
+    debug(81, 3) ("storeUfsIOCallback: errflag=%d\n", errflag);
     cbdataUnlock(sio->callback_data);
     if (valid)
 	sio->callback(sio->callback_data, errflag, sio);
@@ -764,7 +764,7 @@ storeDiskdSend(int mtype, SwapDir * sd, int id, storeIOState * sio, int size, in
 	assert(++send_errors < 100);
     }
     if (sd->u.diskd.away > MAGIC2) {
-	debug(79, 3) ("%d msgs away!  Trying to read queue...\n", sd->u.diskd.away);
+	debug(81, 3) ("%d msgs away!  Trying to read queue...\n", sd->u.diskd.away);
 	storeDiskdReadIndividualQueue(sd);
     }
     return x;
@@ -807,7 +807,7 @@ storeDiskdReadIndividualQueue(SwapDir * sd)
 	if (x < 0)
 	    break;
 	if (x != msg_snd_rcv_sz) {
-	    debug(79, 1) ("storeDiskdReadIndividualQueue: msgget returns %d\n", x);
+	    debug(81, 1) ("storeDiskdReadIndividualQueue: msgget returns %d\n", x);
 	    break;
 	}
 	recv_count++;
