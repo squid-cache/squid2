@@ -200,7 +200,7 @@ const char *
 storeEntryFlags(const StoreEntry * entry)
 {
     LOCAL_ARRAY(char, buf, 256);
-    int flags = (int) entry->flag;
+    int flags = (int) entry->flags;
     char *t;
     buf[0] = '\0';
     if (EBIT_TEST(flags, ENTRY_SPECIAL))
