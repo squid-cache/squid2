@@ -62,7 +62,10 @@ static int parseTimeUnits(const char *unit);
 static void parseTimeLine(time_t * tptr, const char *units);
 static void parse_string(char **);
 static void parse_wordlist(wordlist **);
+#if SQUID_SNMP
+/* sigh, stringlist is only used for SNMP stuff now */
 static void parse_stringlist(wordlist **);
+#endif
 static void default_all(void);
 static void defaults_if_none(void);
 static int parse_line(char *);
@@ -1268,6 +1271,7 @@ parse_wordlist(wordlist ** list)
 	wordlistAdd(list, token);
 }
 
+#if SQUID_SNMP
 static void
 parse_stringlist(wordlist ** list)
 {
@@ -1277,6 +1281,7 @@ parse_stringlist(wordlist ** list)
 }
 #define free_stringlist free_wordlist
 #define dump_stringlist dump_wordlist
+#endif /* SQUID_SNMP */
 
 #define free_wordlist wordlistDestroy
 
