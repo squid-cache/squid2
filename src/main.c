@@ -409,10 +409,8 @@ static void mainInitialize()
 	CONFIG_HOST_TYPE);
     debug(1, 1, "With %d file descriptors available\n", FD_SETSIZE);
 
-    if (first_time) {
+    if (first_time)
 	disk_init();		/* disk_init must go before ipcache_init() */
-	writePidFile();		/* write PID file */
-    }
     ipcache_init();
     neighbors_init();
     (void) ftpInitialize();
@@ -443,6 +441,9 @@ static void mainInitialize()
     serverConnectionsOpen();
     if (theOutIcpConnection >= 0 && (!httpd_accel_mode || getAccelWithProxy()))
 	neighbors_open(theOutIcpConnection);
+
+    if (first_time)
+	writePidFile();		/* write PID file */
 
     squid_signal(SIGUSR1, rotate_logs, SA_RESTART);
     squid_signal(SIGUSR2, sigusr2_handle, SA_RESTART);
