@@ -174,7 +174,7 @@ void ttlSet(entry)
     time_t expire = -1;
     time_t their_date = -1;
     time_t x = 0;
-    time_t now = 0;
+    time_t served_date = -1;
     time_t ttl = 0;
     time_t default_ttl = 0;
     ttl_t *t = NULL;
@@ -202,7 +202,7 @@ void ttlSet(entry)
 	    flags |= TTL_SERVERDATE;
 	}
     }
-    now = their_date > 0 ? their_date : squid_curtime;
+    served_date = their_date > -1 ? their_date : squid_curtime;
 
     if (reply->expires[0]) {
 	/*
@@ -211,7 +211,7 @@ void ttlSet(entry)
 	 * "expires immediately."
 	 */
 	flags |= TTL_EXPIRES;
-	expire = ((x = parse_rfc850(reply->expires)) > -1) ? x : now;
+	expire = ((x = parse_rfc850(reply->expires)) > -1) ? x : served_date;
     }
     if (last_modified > -1)
 	debug(22, 5, "ttlSet: Last-Modified: %s\n", mkrfc850(&last_modified));
@@ -220,10 +220,8 @@ void ttlSet(entry)
     if (their_date > -1)
 	debug(22, 5, "ttlSet:   Server-Date: %s\n", mkrfc850(&their_date));
 
-    if (expire > 0) {
-	ttl = (expire - now);
-	if (ttl < 0)
-	    ttl = 0;
+    if (expire > -1) {
+	ttl = (expire - squid_curtime);
 	debug(22, 4, "ttlSet: [%c%c%c%c%c%c%c] %6.2lf days %s\n",
 	    flags & TTL_EXPIRES ? 'E' : '.',
 	    flags & TTL_SERVERDATE ? 'S' : '.',
@@ -233,8 +231,8 @@ void ttlSet(entry)
 	    flags & TTL_ABSOLUTE ? 'A' : '.',
 	    flags & TTL_DEFAULT ? 'D' : '.',
 	    (double) ttl / 86400, entry->url);
-	entry->expires = squid_curtime + ttl;
-	entry->lastmod = last_modified > 0 ? last_modified : squid_curtime;
+	entry->expires = expire;
+	entry->lastmod = last_modified > -1 ? last_modified : served_date;
 	return;
     }
     /*  Calculate default TTL for later use */
@@ -256,14 +254,11 @@ void ttlSet(entry)
 	}
     }
 
-    if (last_modified == -1)
-	last_modified = their_date;
-
     /* Return a TTL that is a percent of the object's age if a last-mod
      * was given for the object. */
 
-    if (match && match->pct_age && last_modified > 0) {
-	d = (double) (now - last_modified) * match->pct_age / 100;
+    if (match && match->pct_age && last_modified > -1) {
+	d = (double) (served_date - last_modified) * match->pct_age / 100;
 	ttl = (time_t) d;
 	if (ttl > match->age_max)	/* place upper limit on */
 	    ttl = match->age_max;	/* ttls set from %-of-age */
@@ -273,16 +268,16 @@ void ttlSet(entry)
 	 * 'abs_ttl' is negative). */
 	ttl = match->abs_ttl;
 	flags |= TTL_ABSOLUTE;
-    } else if (!match && last_modified > 0) {
+    } else if (!match && last_modified > -1) {
 	/* No match, use 20% of age if we have last-modified.
 	 * But limit this to the default TTL. */
-	ttl = ((now - last_modified) * DEFAULT_AGE_PERCENT);
+	ttl = ((served_date - last_modified) * DEFAULT_AGE_PERCENT);
 	flags |= TTL_PCTAGE;
 	if (ttl > default_ttl)
 	    ttl = default_ttl;
     } else {
-	/* No last-modified, use the defaults */
-	ttl = default_ttl;
+	/* Take deffault TTL from when the object was served */
+	ttl = served_date + default_ttl - squid_curtime;
 	flags |= TTL_DEFAULT;
     }
 
@@ -297,5 +292,5 @@ void ttlSet(entry)
 	(double) ttl / 86400, entry->url);
 
     entry->expires = squid_curtime + ttl;
-    entry->lastmod = last_modified > 0 ? last_modified : squid_curtime;
+    entry->lastmod = last_modified > -1 ? last_modified : served_date;
 }
