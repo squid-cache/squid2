@@ -1195,9 +1195,12 @@ int icpHandleUdp(sock, not_used)
 	if ((entry = storeGet(key)) == NULL) {
 	    debug(12, 3, "icpHandleUdp: Ignoring %s for NULL Entry.\n",
 		IcpOpcodeStr[header.opcode]);
-	    break;
+	} else if (entry->lock_count == 0) {
+	    debug(12, 3, "icpHandleUdp: Ignoring %s for Entry without locks.\n",
+		IcpOpcodeStr[header.opcode]);
+	} else {
+	    neighborsUdpAck(sock, url, &header, &from, entry, data, (int) data_sz);
 	}
-	neighborsUdpAck(sock, url, &header, &from, entry, data, (int) data_sz);
 	break;
 
     default:
