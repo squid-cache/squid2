@@ -252,8 +252,11 @@ netdbSendPing(int fdunused, const ipcache_addrs * ia, void *data)
 	debug(37, 3, "netdbSendPing: NOTE: %s moved from %s to %s\n",
 	    hostname, n->network, na->network);
 	x = (net_db_name *) hash_lookup(host_table, hostname);
-	if (x == NULL)
-	    fatal_dump("netdbSendPing: net_db_name list bug");
+	if (x == NULL) {
+	    debug(37,1)("netdbSendPing: net_db_name list bug: %s not found", hostname);
+	    xfree(hostname);
+	    return;
+	}
 	/* remove net_db_name from 'network n' linked list */
 	for (X = &n->hosts; *X; X = &(*X)->next) {
 	    if (*X == x) {
