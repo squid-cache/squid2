@@ -18,7 +18,7 @@
 #if HAVE_TIME_H
 #include <time.h>
 #endif
-#if HAVE_SYS_TYPES_H
+#if HAVE_SYS/TYPES_H
 #include <sys/types.h>
 #endif
 #if HAVE_SYS_STAT_H
