@@ -1029,7 +1029,7 @@ parse_peer(peer ** head)
     peer *p;
     int i;
     sockaddr_in_list *s;
-    const char *me = null_string;	/* XXX */
+    const char *me = getMyHostname();
     p = memAllocate(MEM_PEER);
     p->http_port = CACHE_HTTP_PORT;
     p->icp.port = CACHE_ICP_PORT;
@@ -1049,9 +1049,11 @@ parse_peer(peer ** head)
 	for (s = Config.Sockaddr.http; s; s = s->next) {
 	    if (p->http_port != ntohs(s->s.sin_port))
 		continue;
-	    debug(15, 0) ("parse_peer: Peer looks like myself: %s %s/%d/%d\n",
-		p->type, p->host, p->http_port, p->icp.port);
-	    self_destruct();
+	    debug(15, 1) ("parse_peer: Peer looks like myself: Ignoring %s %s/%d/%d\n",
+		neighborTypeStr(p), p->host, p->http_port, p->icp.port);
+	    xfree(p->host);
+	    memFree(p, MEM_PEER);
+	    return;
 	}
     }
     while ((token = strtok(NULL, w_space))) {
