@@ -274,6 +274,7 @@ extern char appname[];		/* main.c */
 extern struct in_addr local_addr;	/* main.c */
 extern char localhost[];
 extern struct in_addr any_addr;	/* comm.c */
+extern struct in_addr no_addr;	/* comm.c */
 extern int do_redirect;		/* redirect.c */
 
 

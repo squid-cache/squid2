@@ -117,6 +117,7 @@
 
 int RESERVED_FD = 64;
 struct in_addr any_addr;
+struct in_addr no_addr;
 
 #define min(x,y) ((x)<(y)? (x) : (y))
 #define max(a,b) ((a)>(b)? (a) : (b))
@@ -1029,7 +1030,8 @@ int comm_init()
     meta_data.misc += FD_SETSIZE * sizeof(int);
     zero_tv.tv_sec = 0;
     zero_tv.tv_usec = 0;
-    any_addr.s_addr = inet_addr("0.0.0.0");
+    any_addr.s_addr = INADDR_ANY;
+    no_addr.s_addr = INADDR_NONE;
     return 0;
 }
 
