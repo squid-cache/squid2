@@ -110,7 +110,11 @@ typedef unsigned long u_num32;
 #include "ttl.h"
 #include "url.h"
 #include "storetoString.h"
+#include "http.h"
 #include "ftp.h"
+#include "gopher.h"
+#include "wais.h"
+#include "objcache.h"
 #include "util.h"
 
 extern time_t cached_starttime;	/* main.c */
