@@ -42,6 +42,7 @@ Changes to Squid-2.3.STABLE1 (Jan 9, 2000):
 
 Changes to Squid-2.3.DEVEL3 ():
 
+	- Added MSNT auth module from Antonino Iannella.
 	- Added --enable-underscores configure option.  This allows
 	  Squid to accept hostnames with underscores in them.  Your
 	  DNS resolver may still complain about them, however.
