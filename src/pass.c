@@ -467,7 +467,7 @@ passStart(int fd,
 	/* must look up IP address */
 	ipcache_nbgethostbyname(passState->host,
 	    passState->server.fd,
-	    passConnect,
+	    passSelectNeighbor,
 	    passState);
     } else {
 	/* can decide now */
