@@ -238,11 +238,13 @@ esac
 
 dnl Check for library functions
 AC_CHECK_FUNCS(\
+	bcopy \
 	getdtablesize \
 	getrusage \
 	lrand48 \
 	mallinfo \
 	mallopt \
+	memmove \
 	regcomp \
 	regexec \
 	regfree \

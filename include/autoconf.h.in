@@ -58,6 +58,9 @@
 /* The number of bytes in a long.  */
 #undef SIZEOF_LONG
 
+/* Define if you have the bcopy function.  */
+#undef HAVE_BCOPY
+
 /* Define if you have the getdtablesize function.  */
 #undef HAVE_GETDTABLESIZE
 
@@ -72,6 +75,9 @@
 
 /* Define if you have the mallopt function.  */
 #undef HAVE_MALLOPT
+
+/* Define if you have the memmove function.  */
+#undef HAVE_MEMMOVE
 
 /* Define if you have the regcomp function.  */
 #undef HAVE_REGCOMP
