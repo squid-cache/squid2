@@ -554,11 +554,10 @@ rfc1035AnswersUnpack(const char *buf,
 	    return -rfc1035_unpack_error;
 	}
     }
-    i = (int) hdr.ancount;
-    if (i == 0)
+    if (hdr.ancount == 0)
 	return 0;
-    recs = calloc(i, sizeof(*recs));
-    while (i--) {
+    recs = calloc((int)hdr.ancount, sizeof(*recs));
+    for (i = 0; i < (int)hdr.ancount; i++) {
 	if (off >= sz) {	/* corrupt packet */
 	    RFC1035_UNPACK_DEBUG;
 	    break;
