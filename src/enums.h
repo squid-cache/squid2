@@ -212,6 +212,7 @@ typedef enum {
     HDR_PROXY_CONNECTION,
     HDR_PUBLIC,
     HDR_RANGE,
+    HDR_REQUEST_RANGE,          /* some clients use this, sigh */
     HDR_REFERER,
     HDR_RETRY_AFTER,
     HDR_SERVER,
