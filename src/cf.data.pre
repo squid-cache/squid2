@@ -274,6 +274,8 @@ DOC_START
 		     digest-url=url
 		     allow-miss
 		     max-conn
+		     htcp
+		     carp-load-factor
 
 		     use 'proxy-only' to specify that objects fetched
 		     from this cache should not be saved locally.
@@ -363,7 +365,17 @@ DOC_START
 		     use 'max-conn' to limit the amount of connections Squid
 		     may open to this peer.
 
-	NOTE: non-ICP neighbors must be specified as 'parent'.
+		     use 'htcp' to send HTCP, instead of ICP, queries
+		     to the neighbor.  You probably also want to
+		     set the "icp port" to 4827 instead of 3130.
+
+		     use 'carp-load-factor=f' to define a parent
+		     cache as one participating in a CARP array.
+		     The 'f' values for all CARP parents must add
+		     up to 1.0.
+		 
+
+	NOTE: non-ICP/HTCP neighbors must be specified as 'parent'.
 DOC_END
 
 NAME: cache_peer_domain cache_host_domain
