@@ -226,7 +226,7 @@ parseConfigFile(const char *file_name)
     char *token = NULL;
     char *tmp_line;
     int err_count = 0;
-    free_all();
+    configFreeMemory();
     default_all();
     if ((fp = fopen(file_name, "r")) == NULL)
 	fatalf("Unable to open configuration file: %s: %s",
@@ -2182,6 +2182,7 @@ check_null_https_port_list(const https_port_list * s)
 void
 configFreeMemory(void)
 {
+    safe_free(Config2.Accel.prefix);
     free_all();
 }
 
