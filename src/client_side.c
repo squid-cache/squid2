@@ -2232,11 +2232,11 @@ clientReadRequest(int fd, void *data)
 	    }
 	    if (!http->flags.internal) {
 		if (internalCheck(strBuf(request->urlpath))) {
-		    if (0 == strcasecmp(request->host, getMyHostname())) {
+		    if (0 == strcasecmp(request->host, internalHostname())) {
 			if (request->port == Config.Port.http->i)
 			    http->flags.internal = 1;
 		    } else if (internalStaticCheck(strBuf(request->urlpath))) {
-			xstrncpy(request->host, getMyHostname(), SQUIDHOSTNAMELEN);
+			xstrncpy(request->host, internalHostname(), SQUIDHOSTNAMELEN);
 			request->port = Config.Port.http->i;
 			http->flags.internal = 1;
 		    }
