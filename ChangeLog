@@ -13,6 +13,18 @@ Changes to squid-2.5.STABLE3 ():
 	  missing WWW-Authenticate
 	- Bug #605: Segmentation fault in idnsGrokReply() on certain
 	  platforms
+	- Fixes to build properly on AIX 5
+	- Bug #574: wb_group updated to version 1.1 to make group names
+	  case insensitive and correct a segfault issue in the helper
+	- SNMP mib updates to make cacheNumObjCount,
+	  cacheCurrentUnlinkRequests, cacheCurrentSwapSize and cacheClients
+	  correctly report as gauges (was reporting as counters).
+	- Woraround for --enable-ssl Kerberos issue on RedHat 9
+	- Bug #579: Close and repopen log files on "squid -k reconfigure"
+	- Bug #598: squid_ldap_auth could segfault if LDAP server is
+	  unavailable
+	- Bug #609,#612: msntauth helper fixes in dealing with large
+ 	  or non-existing allow/deny user files.
 
 Changes to squid-2.5.STABLE2 (Mars 17, 2003):
 
