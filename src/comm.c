@@ -602,7 +602,7 @@ comm_lingering_close(int fd)
 {
 #if USE_SSL
     if (fd_table[fd].ssl)
-	SSL_shutdown(fd_table[fd].ssl);
+	ssl_shutdown_method(fd);
 #endif
     if (shutdown(fd, 1) < 0) {
 	comm_close(fd);
@@ -633,7 +633,7 @@ comm_close(int fd)
     F->flags.closing = 1;
 #if USE_SSL
     if (F->ssl)
-	SSL_shutdown(F->ssl);
+	ssl_shutdown_method(fd);
 #endif
     CommWriteStateCallbackAndFree(fd, COMM_ERR_CLOSING);
     commCallCloseHandlers(fd);

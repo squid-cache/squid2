@@ -3491,7 +3491,7 @@ clientHttpsConnectionsOpen(void)
 	    continue;
 	CBDATA_INIT_TYPE(https_port_data);
 	https_port = cbdataAlloc(https_port_data);
-	https_port->sslContext = sslLoadCert(s->cert, s->key);
+	https_port->sslContext = sslCreateContext(s->cert, s->key, s->version, s->cipher, s->options);
 	comm_listen(fd);
 	commSetSelect(fd, COMM_SELECT_READ, httpsAccept, https_port, 0);
 	commSetDefer(fd, httpAcceptDefer, NULL);

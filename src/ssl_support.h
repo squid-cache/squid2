@@ -43,8 +43,9 @@
 #include <openssl/err.h>
 #endif
 
-SSL_CTX *sslLoadCert(const char *certfile, const char *keyfile);
+SSL_CTX *sslCreateContext(const char *certfile, const char *keyfile, int version, const char *cipher, const char *options);
 int ssl_read_method(int, char *, int);
 int ssl_write_method(int, const char *, int);
+void ssl_shutdown_method(int);
 
 #endif /* SQUID_SSL_SUPPORT_H */
