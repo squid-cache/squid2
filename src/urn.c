@@ -56,8 +56,15 @@ urnFindMinRtt(wordlist * urls, method_t m, int *rtt_ret)
     int rtt;
     wordlist *w;
     wordlist *min_w = NULL;
+    int urlcnt = 0;
     debug(52, 3) ("urnFindMinRtt\n");
     assert(urls != NULL);
+    for (w = urls; w; w = w->next)
+	urlcnt++;
+    if (urlcnt == 1) {
+	debug(52, 3) ("Only one URL - return it!\n");
+	return(urls);
+    }
     for (w = urls; w; w = w->next) {
 	r = urlParse(m, w->key);
 	if (r == NULL)
