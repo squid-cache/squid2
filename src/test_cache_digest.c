@@ -436,7 +436,7 @@ accessLogReader(FileIterator * fi)
  * strcmp(hier, "SSL_PARENT_MISS") &&
  * strcmp(hier, "DEFAULT_PARENT");
  */
-    memcpy(entry->key, storeKeyPublic(url, method_id), sizeof(entry->key));
+    xmemcpy(entry->key, storeKeyPublic(url, method_id), sizeof(entry->key));
     /*fprintf(stdout, "%s:%d: %s %s %s %s\n",
      * fname, count, method, storeKeyText(entry->key), url, hier); */
     return frOk;

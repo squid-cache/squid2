@@ -970,7 +970,7 @@ statCountersCopy(StatCounters * dest, const StatCounters * orig)
 {
     assert(dest && orig);
     /* this should take care of all the fields, but "special" ones */
-    memcpy(dest, orig, sizeof(*dest));
+    xmemcpy(dest, orig, sizeof(*dest));
     /* prepare space where to copy special entries */
     statCountersInitSpecial(dest);
     /* now handle special cases */
