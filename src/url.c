@@ -43,7 +43,7 @@ const char *RequestMethodStr[] =
     "PURGE"
 };
 
-static char *ProtocolStr[] =
+const char *ProtocolStr[] =
 {
     "NONE",
     "http",
