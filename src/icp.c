@@ -113,10 +113,10 @@ char *log_tags[] =
     "NONE",
     "TCP_HIT",
     "TCP_MISS",
-    "TCP_EXPIRED_HIT",
-    "TCP_EXP_FAIL_HIT",
-    "TCP_EXPIRED_MISS",
-    "TCP_REFRESH",
+    "TCP_REFRESH_HIT",
+    "TCP_REF_FAIL_HIT",
+    "TCP_REFRESH_MISS",
+    "TCP_CLIENT_REFRESH",
     "TCP_IMS_HIT",
     "TCP_IMS_MISS",
     "TCP_SWAPFAIL",
@@ -389,8 +389,12 @@ icpSendERRORComplete(int fd, char *buf, int size, int errflag, void *data)
 }
 
 /* Send ERROR message. */
-int
-icpSendERROR(int fd, log_type errorCode, char *text, icpStateData * icpState, int httpCode)
+void
+icpSendERROR(int fd,
+    log_type errorCode,
+    char *text,
+    icpStateData * icpState,
+    int httpCode)
 {
     int buf_len = 0;
     u_short port = 0;
@@ -401,20 +405,19 @@ icpSendERROR(int fd, log_type errorCode, char *text, icpStateData * icpState, in
 	errorCode, port, text);
 
     if (port == 0) {
-	/* This file descriptor isn't bound to a socket anymore.
-	 * It probably timed out. */
-	debug(12, 2, "icpSendERROR: COMM_ERROR text: %80.80s\n", text);
 	comm_close(fd);
-	return COMM_ERROR;
+	return;
     }
-    if (port != Config.Port.http) {
-	sprintf(tmp_error_buf, "icpSendERROR: FD %d unexpected port %hd.",
-	    fd, port);
-	fatal_dump(tmp_error_buf);
-    }
+    if (port != Config.Port.http)
+	fatal_dump("icpSendERROR: Bad port");
     icpState->log_type = errorCode;
     icpState->http_code = httpCode;
-    /* Error message for the ascii port */
+    if (icpState->entry && icpState->entry->mem_obj) {
+	if (icpState->entry->mem_obj->e_current_len > 0) {
+	    comm_close(fd);
+	    return;
+	}
+    }
     buf_len = strlen(text);
     buf_len = buf_len > 4095 ? 4095 : buf_len;
     buf = get_free_4k_page();
@@ -427,7 +430,6 @@ icpSendERROR(int fd, log_type errorCode, char *text, icpStateData * icpState, in
 	icpSendERRORComplete,
 	(void *) icpState,
 	put_free_4k_page);
-    return COMM_OK;
 }
 
 #if LOG_FULL_HEADERS
@@ -747,12 +749,12 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	    storeRelease(entry);
 	ipcacheReleaseInvalid(icpState->request->host);
 	entry = NULL;
-	icpState->log_type = LOG_TCP_USER_REFRESH;
+	icpState->log_type = LOG_TCP_CLIENT_REFRESH;
     } else if (refreshCheck(entry, request)) {
 	/* The object is in the cache, but it needs to be validated.  Use
-	 * LOG_TCP_EXPIRED_MISS for the time being, maybe change it to
+	 * LOG_TCP_REFRESH_MISS for the time being, maybe change it to
 	 * _HIT later in icpHandleIMSReply() */
-	icpState->log_type = LOG_TCP_EXPIRED_MISS;
+	icpState->log_type = LOG_TCP_REFRESH_MISS;
     } else if (BIT_TEST(request->flags, REQ_IMS)) {
 	/* User-initiated IMS request for something we think is valid */
 	icpState->log_type = LOG_TCP_IMS_MISS;
@@ -766,6 +768,8 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	entry = NULL;
 	icpState->log_type = LOG_TCP_SWAPIN_FAIL;
     }
+    if (entry)
+	storeClientListAdd(entry, fd, 0);
     icpState->entry = entry;	/* Save a reference to the object */
     icpState->offset = 0;
 
@@ -783,7 +787,7 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	memset(icpState->buf, '\0', 8192);
 	icpGetHeadersForIMS(fd, icpState);
 	break;
-    case LOG_TCP_EXPIRED_MISS:
+    case LOG_TCP_REFRESH_MISS:
 	icpProcessExpired(fd, icpState);
 	break;
     default:
@@ -837,6 +841,7 @@ icpProcessMISS(int fd, icpStateData * icpState)
 	icpState->request->flags,
 	icpState->method);
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
+    storeClientListAdd(entry, fd, 0);
 
     entry->refcount++;		/* MISS CASE */
     entry->mem_obj->fd_of_first_client = fd;
@@ -1802,6 +1807,8 @@ asciiHandleConn(int sock, void *notused)
     struct sockaddr_in peer;
     struct sockaddr_in me;
 
+    memset((char *) &peer, '\0', sizeof(struct sockaddr_in));
+    memset((char *) &me, '\0', sizeof(struct sockaddr_in));
     commSetSelect(sock, COMM_SELECT_READ, asciiHandleConn, NULL, 0);
     if ((fd = comm_accept(sock, &peer, &me)) < 0) {
 	debug(12, 1, "asciiHandleConn: FD %d: accept failure: %s\n",

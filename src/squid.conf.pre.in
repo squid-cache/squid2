@@ -325,6 +325,12 @@ cache_stoplist cgi-bin ?
 #cache_mem_low 75
 #cache_mem_high 90
 
+#  TAG: maximum_object_size
+#	Objects larger than this size will NOT be saved on disk.  The
+#	value is specified in kilobytes, and the default is 4MB.
+#
+#maximum_object_size 4096
+
 #  TAG: ipcache_size (number of entries)
 #  TAG: ipcache_low  (percent)
 #  TAG: ipcache_high (percent)
@@ -482,36 +488,16 @@ debug_options ALL,1
 # OPTIONS FOR TUNING THE CACHE
 #-----------------------------------------------------------------------------
 
-#  TAG: ftp, gopher, http
-#	Object size limits (in MB) and default TTLs (in minutes) 
-#	per access type.
-#
-#	You cannot have a max object size that is greater than
-#	cache_mem.  We recommend that max object sizes are no greater
-#	than (cache_mem / 4).
-#
-#	Objects greater than max-obj-size will be proxied, but not
-#	cached.  
-#
-#	The defaults are:
-#
-# Access Type    Max Object Size    TTL (note: 4320 minutes = 3 days)
-# ---------      ----------------   -----------
-#gopher                  4            4320 
-#http                    4            4320 
-#ftp                     4            4320 
-
 #  TAG: wais_relay
 #	Relay WAIS request to host (1st arg) at port (2 arg).  
-#	Third argument is max object size.
-#wais_relay localhost 8000 4
+#wais_relay localhost 8000
 
 #  TAG: request_size
 #	Maximum allowed request size in kilobytes.  If people are using
 #	POST to upload files, then set this to the largest acceptable
 #	filesize plus a few extra kbytes.
 #
-request_size 100
+#request_size 100
 
 #  TAG: refresh_pattern		# case sensitive
 #  TAG: refresh_pattern/i	# case insensitive

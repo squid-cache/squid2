@@ -551,7 +551,7 @@ neighborAlive(edge * e, MemObject * mem, icp_common_t * header)
     }
 }
 
-static void 
+static void
 neighborCountIgnored(edge * e, icp_opcode op_unused)
 {
     if (e == NULL)

@@ -141,14 +141,8 @@ struct SquidConfig {
 	int maxSize;
 	int highWaterMark;
 	int lowWaterMark;
-    } Mem, Swap;
+    } Mem , Swap;
     struct {
-	int maxObjSize;
-	int defaultTtl;
-    } Gopher, Http, Ftp;
-    struct {
-	int maxObjSize;
-	int defaultTtl;
 	char *relayHost;
 	u_short relayPort;
     } Wais;
@@ -254,7 +248,8 @@ struct SquidConfig {
     struct {
 	int objectsPerBucket;
 	int avgObjectSize;
-    } storeHash;
+	int maxObjectSize;
+    } Store;
 };
 
 extern struct SquidConfig Config;

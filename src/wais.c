@@ -253,20 +253,6 @@ waisReadReply(int fd, WaisStateData * waisState)
 	entry->expires = squid_curtime;
 	storeComplete(entry);
 	comm_close(fd);
-    } else if (((entry->mem_obj->e_current_len + len) > Config.Wais.maxObjSize) &&
-	!(entry->flag & DELETE_BEHIND)) {
-	/*  accept data, but start to delete behind it */
-	storeStartDeleteBehind(entry);
-	storeAppend(entry, buf, len);
-	commSetSelect(fd,
-	    COMM_SELECT_READ,
-	    (PF) waisReadReply,
-	    (void *) waisState, 0);
-	commSetSelect(fd,
-	    COMM_SELECT_TIMEOUT,
-	    (PF) waisReadReplyTimeout,
-	    (void *) waisState,
-	    Config.readTimeout);
     } else {
 	storeAppend(entry, buf, len);
 	commSetSelect(fd,

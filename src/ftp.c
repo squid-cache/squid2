@@ -363,15 +363,6 @@ ftpReadReply(int fd, FtpStateData * data)
 	/* update fdstat and fdtable */
 	storeComplete(entry);
 	comm_close(fd);
-    } else if (((entry->mem_obj->e_current_len + len) > Config.Ftp.maxObjSize) &&
-	!(entry->flag & DELETE_BEHIND)) {
-	/*  accept data, but start to delete behind it */
-	storeStartDeleteBehind(entry);
-	storeAppend(entry, buf, len);
-	commSetSelect(fd,
-	    COMM_SELECT_READ,
-	    (PF) ftpReadReply,
-	    (void *) data, 0);
     } else if (entry->flag & CLIENT_ABORT_REQUEST) {
 	/* append the last bit of info we get */
 	storeAppend(entry, buf, len);

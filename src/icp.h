@@ -109,10 +109,10 @@ typedef enum {
     LOG_TAG_NONE,		/* 0 */
     LOG_TCP_HIT,		/* 1 */
     LOG_TCP_MISS,		/* 2 */
-    LOG_TCP_EXPIRED_HIT,	/* 3 */
-    LOG_TCP_EXPIRED_FAIL_HIT,	/* 4 */
-    LOG_TCP_EXPIRED_MISS,	/* 5 */
-    LOG_TCP_USER_REFRESH,	/* 6 */
+    LOG_TCP_REFRESH_HIT,	/* 3 */
+    LOG_TCP_REFRESH_FAIL_HIT,	/* 4 */
+    LOG_TCP_REFRESH_MISS,	/* 5 */
+    LOG_TCP_CLIENT_REFRESH,	/* 6 */
     LOG_TCP_IMS_HIT,		/* 7 */
     LOG_TCP_IMS_MISS,		/* 8 */
     LOG_TCP_SWAPIN_FAIL,	/* 9 */
@@ -211,7 +211,7 @@ extern int icpUdpSend _PARAMS((int,
 	protocol_t));
 extern void icpHandleUdp _PARAMS((int sock, void *data));
 extern void asciiHandleConn _PARAMS((int sock, void *data));
-extern int icpSendERROR _PARAMS((int fd,
+extern void icpSendERROR _PARAMS((int fd,
 	log_type errorCode,
 	char *text,
 	icpStateData *,
