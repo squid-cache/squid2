@@ -68,6 +68,8 @@
  */
 
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -79,11 +81,14 @@
 #include <unistd.h>
 #include <time.h>
 
+#if HAVE_BSTRING_H
+#include <bstring.h>
+#endif
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "config.h"
 #include "util.h"
 
 char *rfc1738_escape();

@@ -56,6 +56,7 @@ extern void fatal_dump _PARAMS((char *));
 extern void fatal _PARAMS((char *));
 extern void kill_zombie();
 extern int ftpInitialize _PARAMS((void));
+extern int getMaxFD _PARAMS((void));
 
 static int asciiPortNumOverride = 0;
 static int binaryPortNumOverride = 0;
