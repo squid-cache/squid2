@@ -24,6 +24,8 @@ Changes to squid-1.1.11 (June XX, 1997):
 	- Added 'icp_hit_stale' option.
 	- Don't check for other filename extensions if an FTP URL
 	  ends with .txt (Ed Knowles).
+	- Relocated ERR_NO_CLIENT_BIG_OBJ check to eliminate incorrect
+	  (but harmless) error message.
 
 Changes to squid-1.1.10 (April 24, 1997):
 
