@@ -256,3 +256,8 @@
  * Allow underscores in host names
  */
 #undef ALLOW_HOSTNAME_UNDERSCORES
+
+/*
+ * Use DISKD
+ */
+#undef USE_DISKD
