@@ -755,6 +755,13 @@ icpProcessRequest(int fd, icpStateData * icpState)
     if ((entry = storeGet(pubkey)) == NULL) {
 	/* this object isn't in the cache */
 	icpState->log_type = LOG_TCP_MISS;
+    } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
+	/* IMS+NOCACHE should not eject valid object */
+	if (!BIT_TEST(request->flags, REQ_IMS))
+	    storeRelease(entry);
+	ipcacheReleaseInvalid(icpState->request->host);
+	entry = NULL;
+	icpState->log_type = LOG_TCP_CLIENT_REFRESH;
     } else if (BIT_TEST(entry->flag, ENTRY_NEGCACHED)) {
 	/* found a negative-cached object, check when it expires */
 	if (entry->expires < squid_curtime) {
@@ -764,13 +771,6 @@ icpProcessRequest(int fd, icpStateData * icpState)
 	} else {
 	    icpState->log_type = LOG_TCP_HIT;
 	}
-    } else if (BIT_TEST(request->flags, REQ_NOCACHE)) {
-	/* IMS+NOCACHE should not eject valid object */
-	if (!BIT_TEST(request->flags, REQ_IMS))
-	    storeRelease(entry);
-	ipcacheReleaseInvalid(icpState->request->host);
-	entry = NULL;
-	icpState->log_type = LOG_TCP_CLIENT_REFRESH;
     } else if (refreshCheck(entry, request)) {
 	/* The object is in the cache, but it needs to be validated.  Use
 	 * LOG_TCP_REFRESH_MISS for the time being, maybe change it to
