@@ -25,6 +25,10 @@ Changes to squid-2.5.STABLE3 ():
 	  unavailable
 	- Bug #609,#612: msntauth helper fixes in dealing with large
  	  or non-existing allow/deny user files.
+	- Bug #620: acl ident REQUIRED matches even if the ident lookup fails
+	- Bug #432: reply_body_max_size fails with ident or proxy_auth acls
+	  and also fails to block large objects where the content-length
+	  is not known
 
 Changes to squid-2.5.STABLE2 (Mars 17, 2003):
 
