@@ -598,6 +598,8 @@ storeUnlockObject(StoreEntry * e)
 #endif
 	e->store_status = STORE_ABORTED;
     }
+    if (storePendingNClients(e) > 0)
+	debug_trap("storeUnlockObject: unlocked entry with pending clients\n");
     if (BIT_TEST(e->flag, RELEASE_REQUEST)) {
 	storeRelease(e);
     } else if (BIT_TEST(e->flag, ABORT_MSG_PENDING)) {
@@ -2192,6 +2194,8 @@ storeClientListAdd(StoreEntry * e, int fd, int last_offset)
 	    mem->clients[i].fd = -1;
     }
     for (i = 0; i < mem->nclients; i++) {
+	if (mem->clients[i].fd == fd)
+	    return i;		/* its already here */
 	if (mem->clients[i].fd == -1)
 	    break;
     }
@@ -2807,7 +2811,7 @@ storeExpiredReferenceAge(void)
 	return 0;
     x = (double) (store_swap_high - store_swap_size) / (store_swap_high - store_swap_low);
     x = x < 0.0 ? 0.0 : x > 1.0 ? 1.0 : x;
-    z = pow(Config.referenceAge, x);
+    z = pow((double) Config.referenceAge, x);
     age = (time_t) (z * 60.0);
     if (age < 60)
 	age = 60;
