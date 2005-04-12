@@ -1299,6 +1299,11 @@ DOC_START
 	login credentials if the request is being denied by a proxy_auth
 	type acl.
 
+	WARNING: authenitcation can't be used in a transparently intercepting
+	proxy as the client then thinks it is talking to an origin server and
+	not the proxy. This is a limitation of bending the TCP/IP protocol to
+	transparently intercepting port 80, not a limitation in Squid.
+
 	=== Parameters for the basic scheme follow. ===
 
 	"program" cmdline
