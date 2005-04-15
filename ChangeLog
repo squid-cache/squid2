@@ -18,8 +18,8 @@ Changes to squid-2.5.STABLE10 (not yet released)
 	  platforms (Bug #1256)
 	- [Cosmetic] Compiler warnings if pid_t is not an int (Bug #1257)
 	- [Cosmetic] Incorrect use of ctype functions (Bug #1259)
-	- [Cosmetic] Peer digest fetch initiated even if peer not allowed
-	  to be used for the request (Bug #1261)
+	- [Cosmetic] Defer digest fetch if the peer is not allowed to be used
+	  (Bug #1261)
 	- [Minor] Duplicate content-length headers logged incorrectly or
 	  not cleaned up properly (Bug #1262)
 	- [Cosmetic] Extend relaxed_header_parser to work around "excess
@@ -30,6 +30,15 @@ Changes to squid-2.5.STABLE10 (not yet released)
 	  password (Bug #1171)
 	- [Minor] CONNECT requests truncated if client side disconnects first
 	  (Bug #1269)
+	- [Minor] --disable-hostname-checks configure option did not work
+	- [Cosmetic] LDAP helpers adjusted to compile with SUN LDAP SDK
+	- [Cosmetic] aufs warning about open event filedescriptors on shutdown
+	- [Medium] Failed to process requests for files larger than 2GB in size
+	- [Cosmetic] rename() related cleanup
+	- [Cosmetic] New cachemgr pending_objects and client_objects actions
+	- [Cosmetic] external acls requiring authentication did not request
+	  new credentials on access denials like proxy_auth does.
+	- [Cosmeic] Syslog facility now configurable via command line options.
 	
 Changes to squid-2.5.STABLE9 (24 Feb 2005)
 
