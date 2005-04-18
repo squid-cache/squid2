@@ -298,7 +298,7 @@ sslWriteServer(int fd, void *data)
 	kb_incr(&statCounter.server.all.kbytes_out, len);
 	kb_incr(&statCounter.server.other.kbytes_out, len);
 	/* increment total object size */
-	if (sslState->size_ptr)
+	if (sslState->size_ptr && sslState->client.fd != -1)
 #if SIZEOF_SQUID_OFF_T <= 4
 	    if (*sslState->size_ptr < 0x7FFF0000)
 #endif
