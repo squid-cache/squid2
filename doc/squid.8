@@ -8,6 +8,8 @@ squid \- proxy caching server
 [
 .B \-dhsvzCDFNRVYX
 ] [
+.BI \-l " facility"
+] [
 .BI \-f " config-file"
 ] [
 \-[
@@ -75,6 +77,8 @@ Parse configuration file, then send signal to running copy
 (except -k parse) and exit.
 .IP -s
 Enable logging to syslog.
+.IP "-l facility"
+Use specified syslog facility. implies -s
 .IP "-u port"
 Specify ICP port number (default: 3130), disable with 0.
 .IP -v
