@@ -1034,6 +1034,7 @@ extern void storeSwapInStart(store_client *);
 extern void storeSwapOut(StoreEntry * e);
 extern void storeSwapOutFileClose(StoreEntry * e);
 extern int /* swapout_able */ storeSwapOutMaintainMemObject(StoreEntry * e);
+extern squid_off_t storeSwapOutObjectBytesOnDisk(const MemObject * mem);
 
 /*
  * store_client.c

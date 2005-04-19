@@ -340,7 +340,7 @@ storeClientFileRead(store_client * sc)
 	    sc);
     } else {
 	if (sc->entry->swap_status == SWAPOUT_WRITING)
-	    assert(storeOffset(mem->swapout.sio) > sc->copy_offset + mem->swap_hdr_sz);
+	    assert(storeSwapOutObjectBytesOnDisk(mem) > sc->copy_offset);
 	storeRead(sc->swapin_sio,
 	    sc->copy_buf,
 	    sc->copy_size,

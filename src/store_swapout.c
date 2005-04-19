@@ -135,8 +135,11 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
 	new_mem_lo = mem->inmem_lo;
     /* The -1 makes sure the page isn't freed until storeSwapOut has
      * walked to the next page. (mem->swapout.memnode) */
-    if (swapout_able && mem->swapout.queue_offset - 1 < new_mem_lo)
-	new_mem_lo = mem->swapout.queue_offset - 1;
+    if (e->mem_obj->swapout.sio) {
+	squid_off_t on_disk = storeSwapOutObjectBytesOnDisk(e->mem_obj);
+	if (on_disk - 1 < new_mem_lo)
+	    new_mem_lo = on_disk - 1;
+    }
     if (new_mem_lo < mem->inmem_lo)
 	new_mem_lo = mem->inmem_lo;
     if (mem->inmem_lo != new_mem_lo)
@@ -340,7 +343,34 @@ storeSwapOutFileClosed(void *data, int errflag, storeIOState * sio)
     debug(20, 3) ("storeSwapOutFileClosed: %s:%d\n", __FILE__, __LINE__);
     mem->swapout.sio = NULL;
     cbdataUnlock(sio);
+    storeSwapOutMaintainMemObject(e);
     storeUnlockObject(e);
+}
+
+/*
+ * How much of the object data is on the disk?
+ */
+squid_off_t
+storeSwapOutObjectBytesOnDisk(const MemObject * mem)
+{
+    /*
+     * NOTE: storeOffset() represents the disk file size,
+     * not the amount of object data on disk.
+     * 
+     * If we don't have at least 'swap_hdr_sz' bytes
+     * then none of the object data is on disk.
+     *
+     * This should still be safe if swap_hdr_sz == 0,
+     * meaning we haven't even opened the swapout file
+     * yet.
+     */
+    off_t nwritten;
+    if (mem->swapout.sio == NULL)
+	return mem->swapout.queue_offset;
+    nwritten = storeOffset(mem->swapout.sio);
+    if (nwritten <= mem->swap_hdr_sz)
+	return 0;
+    return nwritten - mem->swap_hdr_sz;
 }
 
 /*
