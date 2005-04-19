@@ -2298,7 +2298,7 @@ DEFAULT_IF_NONE: deny all
 LOC: Config.accessList.identLookup
 DOC_START
 	A list of ACL elements which, if matched, cause an ident
-	(RFC 931) lookup to be performed for this request.  For
+	(RFC931) lookup to be performed for this request.  For
 	example, you might choose to always perform ident lookups
 	for your main multi-user Unix boxes, but not for your Macs
 	and PCs.  By default, ident lookups are not performed for
@@ -2336,12 +2336,13 @@ DOC_START
 	tcp_outgoing_tos 0x20 good_service_net
 
 	TOS/DSCP values really only have local significance - so you should
-	know what you're specifying. For more, see RFC 2474 and 
+	know what you're specifying. For more information, see RFC2474 and 
+	RFC3260.
 
-	The TOS/DSCP byte must be exactly that - a byte, value  0 - 255, or
+	The TOS/DSCP byte must be exactly that - a octet value  0 - 255, or
 	"default" to use whatever default your host has. Note that in
 	practice often only values 0 - 63 is useable as the two highest bits
-	have been redefined for use by ECN (RFC2168).
+	have been redefined for use by ECN (RFC3168).
 
 	Processing proceeds in the order specified, and stops at first fully
 	matching line.
@@ -3641,7 +3642,7 @@ DOC_START
 	Some HTTP servers has broken implementations of PUT/POST,
 	and rely on an extra CRLF pair sent by some WWW clients.
 
-	Quote from RFC 2068 section 4.1 on this matter:
+	Quote from RFC2068 section 4.1 on this matter:
 
 	  Note: certain buggy HTTP/1.0 client implementations generate an
 	  extra CRLF's after a POST request. To restate what is explicitly
