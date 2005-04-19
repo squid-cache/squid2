@@ -479,7 +479,7 @@ struct _clean_state {
     char *new;
     char *cln;
     char *outbuf;
-    off_t outbuf_offset;
+    int outbuf_offset;
     int fd;
     dlink_node *current;
 };
