@@ -192,8 +192,8 @@ libmiscutil_a_AR = $(AR) cru
 libmiscutil_a_DEPENDENCIES = @LIBOBJS@
 @NEED_OWN_MD5_TRUE@am__objects_1 = md5.$(OBJEXT)
 @NEED_OWN_MD5_FALSE@am__objects_1 =
-@NEED_OWN_SNPRINTF_TRUE@am__objects_2 = snprintf.$(OBJEXT)
 @NEED_OWN_SNPRINTF_FALSE@am__objects_2 =
+@NEED_OWN_SNPRINTF_TRUE@am__objects_2 = snprintf.$(OBJEXT)
 am_libmiscutil_a_OBJECTS = Array.$(OBJEXT) base64.$(OBJEXT) \
 	getfullhostname.$(OBJEXT) hash.$(OBJEXT) heap.$(OBJEXT) \
 	html_quote.$(OBJEXT) iso3307.$(OBJEXT) $(am__objects_1) \
