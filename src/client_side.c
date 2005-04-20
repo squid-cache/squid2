@@ -2728,15 +2728,101 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     }
     /* see if we running in Config2.Accel.on, if so got to convert it to URL */
     else if (Config2.Accel.on && *url == '/') {
+	int vport;
+	if (vhost_mode) {
+#if IPF_TRANSPARENT
+	    natLookup.nl_inport = http->conn->me.sin_port;
+	    natLookup.nl_outport = http->conn->peer.sin_port;
+	    natLookup.nl_inip = http->conn->me.sin_addr;
+	    natLookup.nl_outip = http->conn->peer.sin_addr;
+	    natLookup.nl_flags = IPN_TCP;
+	    if (natfd < 0) {
+		int save_errno;
+		enter_suid();
+#ifdef IPL_NAME
+		natfd = open(IPL_NAME, O_RDONLY, 0);
+#else
+		natfd = open(IPL_NAT, O_RDONLY, 0);
+#endif
+		save_errno = errno;
+		leave_suid();
+		errno = save_errno;
+	    }
+	    if (natfd < 0) {
+		debug(50, 1) ("parseHttpRequest: NAT open failed: %s\n",
+		    xstrerror());
+		dlinkDelete(&http->active, &ClientActiveRequests);
+		xfree(http->uri);
+		cbdataFree(http);
+		xfree(inbuf);
+	    } else {
+		/*
+		 * IP-Filter changed the type for SIOCGNATL between
+		 * 3.3 and 3.4.  It also changed the cmd value for
+		 * SIOCGNATL, so at least we can detect it.  We could
+		 * put something in configure and use ifdefs here, but
+		 * this seems simpler.
+		 */
+		if (63 == siocgnatl_cmd) {
+		    struct natlookup *nlp = &natLookup;
+		    x = ioctl(natfd, SIOCGNATL, &nlp);
+		} else {
+		    x = ioctl(natfd, SIOCGNATL, &natLookup);
+		}
+		if (x < 0) {
+		    if (errno != ESRCH) {
+			debug(50, 1) ("parseHttpRequest: NAT lookup failed: ioctl(SIOCGNATL)\n");
+			close(natfd);
+			natfd = -1;
+			dlinkDelete(&http->active, &ClientActiveRequests);
+			xfree(http->uri);
+			cbdataFree(http);
+			xfree(inbuf);
+		    }
+		} else {
+		    conn->me.sin_port = natLookup.nl_realport;
+		    http->conn->me.sin_addr = natLookup.nl_realip;
+		}
+	    }
+#elif PF_TRANSPARENT
+	    if (pffd < 0)
+		pffd = open("/dev/pf", O_RDWR);
+	    if (pffd < 0) {
+		debug(50, 1) ("parseHttpRequest: PF open failed: %s\n",
+		    xstrerror());
+		return parseHttpRequestAbort(conn, "error:pf-open-failed");
+	    }
+	    memset(&nl, 0, sizeof(struct pfioc_natlook));
+	    nl.saddr.v4.s_addr = http->conn->peer.sin_addr.s_addr;
+	    nl.sport = http->conn->peer.sin_port;
+	    nl.daddr.v4.s_addr = http->conn->me.sin_addr.s_addr;
+	    nl.dport = http->conn->me.sin_port;
+	    nl.af = AF_INET;
+	    nl.proto = IPPROTO_TCP;
+	    nl.direction = PF_OUT;
+	    if (ioctl(pffd, DIOCNATLOOK, &nl)) {
+		if (errno != ENOENT) {
+		    debug(50, 1) ("parseHttpRequest: PF lookup failed: ioctl(DIOCNATLOOK)\n");
+		    close(pffd);
+		    pffd = -1;
+		}
+	    } else {
+		conn->me.sin_port = nl.rdport;
+		http->conn->me.sin_addr = nl.rdaddr.v4;
+	    }
+#elif LINUX_NETFILTER
+	    /* If the call fails the address structure will be unchanged */
+	    getsockopt(conn->fd, SOL_IP, SO_ORIGINAL_DST, &conn->me, &sock_sz);
+#endif
+	}
+	if (vport_mode)
+	    vport = (int) ntohs(http->conn->me.sin_port);
+	else
+	    vport = (int) Config.Accel.port;
 	/* prepend the accel prefix */
 	if (Config.onoff.accel_uses_host_header && (t = mime_get_header(req_hdr, "Host"))) {
-	    int vport;
 	    char *q;
 	    const char *protocol_name = "http";
-	    if (vport_mode)
-		vport = (int) ntohs(http->conn->me.sin_port);
-	    else
-		vport = (int) Config.Accel.port;
 	    /* If a Host: header was specified, use it to build the URL 
 	     * instead of the one in the Config file. */
 	    /*
@@ -2765,118 +2851,15 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	    snprintf(http->uri, url_sz, "%s://%s:%d%s",
 		protocol_name, t, vport, url);
 	} else if (vhost_mode) {
-	    int vport;
 	    /* Put the local socket IP address as the hostname */
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen;
 	    http->uri = xcalloc(url_sz, 1);
-	    if (vport_mode)
-		vport = (int) ntohs(http->conn->me.sin_port);
-	    else
-		vport = (int) Config.Accel.port;
-#if IPF_TRANSPARENT
-	    natLookup.nl_inport = http->conn->me.sin_port;
-	    natLookup.nl_outport = http->conn->peer.sin_port;
-	    natLookup.nl_inip = http->conn->me.sin_addr;
-	    natLookup.nl_outip = http->conn->peer.sin_addr;
-	    natLookup.nl_flags = IPN_TCP;
-	    if (natfd < 0) {
-		int save_errno;
-		enter_suid();
-		natfd = open(IPL_NAT, O_RDONLY, 0);
-		save_errno = errno;
-		leave_suid();
-		errno = save_errno;
-	    }
-	    if (natfd < 0) {
-		debug(50, 1) ("parseHttpRequest: NAT open failed: %s\n",
-		    xstrerror());
-		dlinkDelete(&http->active, &ClientActiveRequests);
-		xfree(http->uri);
-		cbdataFree(http);
-		xfree(inbuf);
-		return parseHttpRequestAbort(conn, "error:nat-open-failed");
-	    }
-	    /*
-	     * IP-Filter changed the type for SIOCGNATL between
-	     * 3.3 and 3.4.  It also changed the cmd value for
-	     * SIOCGNATL, so at least we can detect it.  We could
-	     * put something in configure and use ifdefs here, but
-	     * this seems simpler.
-	     */
-	    if (63 == siocgnatl_cmd) {
-		struct natlookup *nlp = &natLookup;
-		x = ioctl(natfd, SIOCGNATL, &nlp);
-	    } else {
-		x = ioctl(natfd, SIOCGNATL, &natLookup);
-	    }
-	    if (x < 0) {
-		if (errno != ESRCH) {
-		    debug(50, 1) ("parseHttpRequest: NAT lookup failed: ioctl(SIOCGNATL)\n");
-		    close(natfd);
-		    natfd = -1;
-		    dlinkDelete(&http->active, &ClientActiveRequests);
-		    xfree(http->uri);
-		    cbdataFree(http);
-		    xfree(inbuf);
-		    return parseHttpRequestAbort(conn, "error:nat-lookup-failed");
-		} else
-		    snprintf(http->uri, url_sz, "http://%s:%d%s",
-			inet_ntoa(http->conn->me.sin_addr),
-			vport, url);
-	    } else {
-		if (vport_mode)
-		    vport = ntohs(natLookup.nl_realport);
-		snprintf(http->uri, url_sz, "http://%s:%d%s",
-		    inet_ntoa(natLookup.nl_realip),
-		    vport, url);
-	    }
-#elif PF_TRANSPARENT
-	    if (pffd < 0)
-		pffd = open("/dev/pf", O_RDWR);
-	    if (pffd < 0) {
-		debug(50, 1) ("parseHttpRequest: PF open failed: %s\n",
-		    xstrerror());
-		return parseHttpRequestAbort(conn, "error:pf-open-failed");
-	    }
-	    memset(&nl, 0, sizeof(struct pfioc_natlook));
-	    nl.saddr.v4.s_addr = http->conn->peer.sin_addr.s_addr;
-	    nl.sport = http->conn->peer.sin_port;
-	    nl.daddr.v4.s_addr = http->conn->me.sin_addr.s_addr;
-	    nl.dport = http->conn->me.sin_port;
-	    nl.af = AF_INET;
-	    nl.proto = IPPROTO_TCP;
-	    nl.direction = PF_OUT;
-	    if (ioctl(pffd, DIOCNATLOOK, &nl)) {
-		if (errno != ENOENT) {
-		    debug(50, 1) ("parseHttpRequest: PF lookup failed: ioctl(DIOCNATLOOK)\n");
-		    close(pffd);
-		    pffd = -1;
-		    return parseHttpRequestAbort(conn, "error:pf-lookup-failed");
-		} else
-		    snprintf(http->uri, url_sz, "http://%s:%d%s",
-			inet_ntoa(http->conn->me.sin_addr),
-			vport, url);
-	    } else
-		snprintf(http->uri, url_sz, "http://%s:%d%s",
-		    inet_ntoa(nl.rdaddr.v4),
-		    ntohs(nl.rdport), url);
-#else
-#if LINUX_NETFILTER
-	    /* If the call fails the address structure will be unchanged */
-	    getsockopt(conn->fd, SOL_IP, SO_ORIGINAL_DST, &conn->me, &sock_sz);
-	    debug(33, 5) ("parseHttpRequest: addr = %s\n", inet_ntoa(conn->me.sin_addr));
-	    if (vport_mode)
-		vport = (int) ntohs(http->conn->me.sin_port);
-#endif
 	    snprintf(http->uri, url_sz, "http://%s:%d%s",
 		inet_ntoa(http->conn->me.sin_addr),
 		vport, url);
-#endif
 	    debug(33, 5) ("VHOST REWRITE: '%s'\n", http->uri);
 	} else if (vport_mode) {
-	    int vport;
 	    const char *protocol_name = "http";
-	    vport = (int) ntohs(http->conn->me.sin_port);
 	    url_sz = strlen(url) + 32 + Config.appendDomainLen +
 		strlen(Config.Accel.host);
 	    http->uri = xcalloc(url_sz, 1);
