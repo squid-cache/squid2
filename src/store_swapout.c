@@ -135,7 +135,7 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
 	new_mem_lo = mem->inmem_lo;
     /* The -1 makes sure the page isn't freed until storeSwapOut has
      * walked to the next page. (mem->swapout.memnode) */
-    if (e->mem_obj->swapout.sio) {
+    if (swapout_able) {
 	squid_off_t on_disk = storeSwapOutObjectBytesOnDisk(e->mem_obj);
 	if (on_disk - 1 < new_mem_lo)
 	    new_mem_lo = on_disk - 1;
