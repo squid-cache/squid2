@@ -664,7 +664,7 @@ main(int argc, char **argv)
 	cbdataInit();
 	eventInit();		/* eventInit() is required for config parsing */
 	storeFsInit();		/* required for config parsing */
-	authenticateSchemeInit();	/* required for config parsign */
+	authenticateSchemeInit();	/* required for config parsing */
 	parse_err = parseConfigFile(ConfigFile);
 
 	if (opt_parse_cfg_only)
