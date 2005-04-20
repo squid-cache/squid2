@@ -165,5 +165,6 @@ extern char *WIN32_OS_string;	/* NULL */
 #if HAVE_SBRK
 extern void *sbrk_start;	/* 0 */
 #endif
+extern int opt_send_signal;	/* -1 */
 
 #endif /* SQUID_GLOBALS_H */

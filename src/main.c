@@ -38,7 +38,6 @@
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) (const char *);
 
-static int opt_send_signal = -1;
 static int opt_no_daemon = 0;
 static int opt_parse_cfg_only = 0;
 static char *opt_syslog_facility = NULL;

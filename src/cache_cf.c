@@ -297,11 +297,13 @@ parseConfigFile(const char *file_name)
     }
     fclose(fp);
     defaults_if_none();
-    configDoConfigure();
-    cachemgrRegister("config",
-	"Current Squid Configuration",
-	dump_config,
-	1, 1);
+    if (opt_send_signal == -1) {
+	configDoConfigure();
+	cachemgrRegister("config",
+	    "Current Squid Configuration",
+	    dump_config,
+	    1, 1);
+    }
     return err_count;
 }
 
