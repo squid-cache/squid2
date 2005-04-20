@@ -412,6 +412,7 @@ errorStateFree(ErrorState * err)
 #define CVT_BUF_SZ 512
 
 /*
+ * a - User identity                            x
  * B - URL with FTP %2f hack                    x
  * c - Squid error code                         x
  * e - errno                                    x
@@ -449,6 +450,12 @@ errorConvert(char token, ErrorState * err)
 
     memBufReset(&mb);
     switch (token) {
+    case 'a':
+	if (r->auth_user_request)
+	    p = authenticateUserRequestUsername(r->auth_user_request);
+	if (!p)
+	    p = "-";
+	break;
     case 'B':
 	p = r ? ftpUrlWith2f(r) : "[no URL]";
 	break;
