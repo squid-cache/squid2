@@ -281,6 +281,8 @@ parseConfigFile(const char *file_name)
 	config_lineno++;
 	if ((token = strchr(config_input_line, '\n')))
 	    *token = '\0';
+	if ((token = strchr(config_input_line, '\r')))
+	    *token = '\0';
 	if (config_input_line[0] == '#')
 	    continue;
 	if (config_input_line[0] == '\0')
