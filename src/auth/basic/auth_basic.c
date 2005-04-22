@@ -270,7 +270,7 @@ authenticateBasicHandleReply(void *data, char *reply)
     debug(29, 9) ("authenticateBasicHandleReply: {%s}\n", reply ? reply : "<NULL>");
     if (reply) {
 	if ((t = strchr(reply, ' ')))
-	    *t = '\0';
+	    *t++ = '\0';
 	if (*reply == '\0')
 	    reply = NULL;
     }
@@ -280,8 +280,12 @@ authenticateBasicHandleReply(void *data, char *reply)
     basic_auth = auth_user->scheme_data;
     if (reply && (strncasecmp(reply, "OK", 2) == 0))
 	basic_auth->flags.credentials_ok = 1;
-    else
+    else {
 	basic_auth->flags.credentials_ok = 3;
+	safe_free(r->auth_user_request->message);
+	if (t && *t)
+	    r->auth_user_request->message = xstrdup(t);
+    }
     basic_auth->credentials_checkedtime = squid_curtime;
     valid = cbdataValid(r->data);
     if (valid)

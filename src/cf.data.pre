@@ -1309,7 +1309,8 @@ DOC_START
 	"program" cmdline
 	Specify the command for the external authenticator.  Such a program
 	reads a line containing "username password" and replies "OK" or
-	"ERR" in an endless loop.
+	"ERR" in an endless loop. "ERR" responses may optionally be followed
+	by a error description available as %m in the returned error page.
 
 	By default, the basic authentication sheme is not used unless a
 	program is specified.
@@ -1362,6 +1363,8 @@ DOC_START
 	reads a line containing "username":"realm" and replies with the
 	appropriate H(A1) value base64 encoded or ERR if the user (or his H(A1)
 	hash) does not exists.  See rfc 2616 for the definition of H(A1).
+	"ERR" responses may optionally be followed by a error description
+	available as %m in the returned error page.
 
 	By default, the digest authentication scheme is not used unless a
 	program is specified.
