@@ -869,6 +869,7 @@ struct _HttpHdrCc {
     int max_age;
     int s_maxage;
     int max_stale;
+    String other;
 };
 
 /* http byte-range-spec */
