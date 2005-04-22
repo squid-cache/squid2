@@ -617,12 +617,19 @@ readPidFile(void)
 {
     FILE *pid_fp = NULL;
     const char *f = Config.pidFilename;
+    char *chroot_f = NULL;
     pid_t pid = -1;
     int i;
 
     if (f == NULL || !strcmp(Config.pidFilename, "none")) {
 	fprintf(stderr, "%s: ERROR: No pid file name defined\n", appname);
 	exit(1);
+    }
+    if (Config.chroot_dir && geteuid() == 0) {
+	int len = strlen(Config.chroot_dir) + 1 + strlen(f) + 1;
+	chroot_f = xmalloc(len);
+	snprintf(chroot_f, len, "%s/%s", Config.chroot_dir, f);
+	f = chroot_f;
     }
     pid_fp = fopen(f, "r");
     if (pid_fp != NULL) {
@@ -637,6 +644,7 @@ readPidFile(void)
 	    exit(1);
 	}
     }
+    safe_free(chroot_f);
     return pid;
 }
 
