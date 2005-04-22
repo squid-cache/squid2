@@ -367,6 +367,9 @@ name="ChangeLog"> file for details.
        	behaviour
 	<item>Abort on misconfigured http_access rules to prevent unexpected
 	results from partial configuration
+	<item>FTP directory listings corrected again (broken by 2.5.STABLE9)
+	<item>Support for proxying huge objects greater than 2GB in size
+	<item>IP-Filter 4.0 support in --enable-ipf-transparent
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE9"
 	name="squid-2.5.STABLE9 patches"> and the <url url="ChangeLog"

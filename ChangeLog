@@ -38,7 +38,15 @@ Changes to squid-2.5.STABLE10 (not yet released)
 	- [Cosmetic] New cachemgr pending_objects and client_objects actions
 	- [Cosmetic] external acls requiring authentication did not request
 	  new credentials on access denials like proxy_auth does.
-	- [Cosmeic] Syslog facility now configurable via command line options.
+	- [Cosmetic] Syslog facility now configurable via command line options.
+	- [Cosmetic] New %a error page template code expanding into the
+	  authenticated user name. (Bug #798)
+	- [Minor] IP-Filter 4.0 support in --enable-ipf-transparent
+	- [Minor] Support interception of multiple ports
+	- [Cosmetic] Allow "squid -k ..." to run even if the local hostname
+	  can not be determined (Bug #1196)
+	- [Cosmetic] Configuration file parser now handles DOS/Windows formatted
+	  configuration files with CRLF lineendings proper.
 	
 Changes to squid-2.5.STABLE9 (24 Feb 2005)
 
