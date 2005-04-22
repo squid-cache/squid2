@@ -4,7 +4,7 @@ Changes to squid-2.5.STABLE10 (not yet released)
 	  Set-Cookie specifications
 	- [Minor] Fails to parse D.J.  Bernstein's FTP EPLF ftp listing
           format and PASV resposes (Bug #1252)
-	- [Minor] BASE HREF missing on ftp directory URLs without /
+	- [Medium] BASE HREF missing on ftp directory URLs without /
 	  (Bug #1253)
 	- [Minor security] confusing http_access results on configuration
 	  error (Bug #1255)
