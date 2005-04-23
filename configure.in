@@ -1267,6 +1267,7 @@ AC_CHECK_HEADERS( \
 	errno.h \
 	execinfo.h \
 	fcntl.h \
+	fnmatch.h \
 	getopt.h \
 	gnumalloc.h \
 	grp.h \

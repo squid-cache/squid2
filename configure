@@ -4031,6 +4031,7 @@ for ac_hdr in \
 	errno.h \
 	execinfo.h \
 	fcntl.h \
+	fnmatch.h \
 	getopt.h \
 	gnumalloc.h \
 	grp.h \

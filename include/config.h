@@ -130,6 +130,8 @@
 
 #if !defined(CACHEMGR_HOSTNAME)
 #define CACHEMGR_HOSTNAME ""
+#else
+#define CACHEMGR_HOSTNAME_DEFINED 1
 #endif
 
 #if SQUID_UDP_SO_SNDBUF > 16384

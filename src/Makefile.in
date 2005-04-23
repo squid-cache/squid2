@@ -186,6 +186,7 @@ cf_gen_SOURCES = cf_gen.c defines.h
 nodist_cf_gen_HEADER = cf_gen_defines.h
 squidclient_SOURCES = client.c
 cachemgr__CGIEXT__SOURCES = cachemgr.c
+cachemgr__CGIEXT__CFLAGS = -DDEFAULT_CACHEMGR_CONFIG=\"$(DEFAULT_CACHEMGR_CONFIG)\" $(AM_CFLAGS)
 
 EXTRA_squid_SOURCES = \
 	delay_pools.c \
@@ -370,11 +371,13 @@ EXTRA_DIST = \
 	store_modules.sh \
 	repl_modules.sh \
 	mib.txt \
+	cachemgr.conf \
 	mime.conf.default
 
 
 DEFAULT_PREFIX = $(prefix)
 DEFAULT_CONFIG_FILE = $(sysconfdir)/squid.conf
+DEFAULT_CACHEMGR_CONFIG = $(sysconfdir)/cachemgr.conf
 DEFAULT_MIME_TABLE = $(sysconfdir)/mime.conf
 DEFAULT_DNSSERVER = $(libexecdir)/`echo dnsserver | sed '$(transform);s/$$/$(EXEEXT)/'`
 DEFAULT_LOG_PREFIX = $(localstatedir)/logs
@@ -440,7 +443,7 @@ sbin_PROGRAMS = squid$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS) $(libexec_PROGRAMS) $(noinst_PROGRAMS) \
 	$(sbin_PROGRAMS)
 
-am_cachemgr__CGIEXT__OBJECTS = cachemgr.$(OBJEXT)
+am_cachemgr__CGIEXT__OBJECTS = cachemgr__CGIEXT_-cachemgr.$(OBJEXT)
 cachemgr__CGIEXT__OBJECTS = $(am_cachemgr__CGIEXT__OBJECTS)
 cachemgr__CGIEXT__LDADD = $(LDADD)
 cachemgr__CGIEXT__DEPENDENCIES =
@@ -541,7 +544,8 @@ depcomp = $(SHELL) $(top_srcdir)/cfgaux/depcomp
 @AMDEP_TRUE@	$(DEPDIR)/access_log.Po $(DEPDIR)/acl.Po \
 @AMDEP_TRUE@	$(DEPDIR)/asn.Po $(DEPDIR)/auth_modules.Po \
 @AMDEP_TRUE@	$(DEPDIR)/authenticate.Po $(DEPDIR)/cache_cf.Po \
-@AMDEP_TRUE@	$(DEPDIR)/cache_manager.Po $(DEPDIR)/cachemgr.Po \
+@AMDEP_TRUE@	$(DEPDIR)/cache_manager.Po \
+@AMDEP_TRUE@	$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po \
 @AMDEP_TRUE@	$(DEPDIR)/carp.Po $(DEPDIR)/cbdata.Po \
 @AMDEP_TRUE@	$(DEPDIR)/cf_gen.Po $(DEPDIR)/client.Po \
 @AMDEP_TRUE@	$(DEPDIR)/client_db.Po $(DEPDIR)/client_side.Po \
@@ -611,7 +615,7 @@ all: $(BUILT_SOURCES)
 .SUFFIXES: .c .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  src/Makefile
+	  $(AUTOMAKE) --gnu  src/Makefile
 Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && \
 	  CONFIG_HEADERS= CONFIG_LINKS= \
@@ -688,6 +692,7 @@ uninstall-sbinPROGRAMS:
 
 clean-sbinPROGRAMS:
 	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
+cachemgr__CGIEXT_-cachemgr.$(OBJEXT): cachemgr.c
 cachemgr$(CGIEXT)$(EXEEXT): $(cachemgr__CGIEXT__OBJECTS) $(cachemgr__CGIEXT__DEPENDENCIES) 
 	@rm -f cachemgr$(CGIEXT)$(EXEEXT)
 	$(LINK) $(cachemgr__CGIEXT__LDFLAGS) $(cachemgr__CGIEXT__OBJECTS) $(cachemgr__CGIEXT__LDADD) $(LIBS)
@@ -740,7 +745,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/authenticate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cache_cf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cache_manager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cachemgr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/carp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cbdata.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cf_gen.Po@am__quote@
@@ -835,6 +840,18 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(COMPILE) -c `cygpath -w $<`
+
+cachemgr__CGIEXT_-cachemgr.o: cachemgr.c
+@AMDEP_TRUE@	source='cachemgr.c' object='cachemgr__CGIEXT_-cachemgr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po' tmpdepfile='$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cachemgr__CGIEXT__CFLAGS) $(CFLAGS) -c -o cachemgr__CGIEXT_-cachemgr.o `test -f cachemgr.c || echo '$(srcdir)/'`cachemgr.c
+
+cachemgr__CGIEXT_-cachemgr.obj: cachemgr.c
+@AMDEP_TRUE@	source='cachemgr.c' object='cachemgr__CGIEXT_-cachemgr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po' tmpdepfile='$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cachemgr__CGIEXT__CFLAGS) $(CFLAGS) -c -o cachemgr__CGIEXT_-cachemgr.obj `cygpath -w cachemgr.c`
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 install-dataDATA: $(data_DATA)
@@ -1164,6 +1181,12 @@ install-data-local: install-sysconfDATA install-dataDATA
 	else \
 	        echo "$(INSTALL_DATA) squid.conf.default $(DESTDIR)$(DEFAULT_CONFIG_FILE)"; \
 	        $(INSTALL_DATA) squid.conf.default $(DESTDIR)$(DEFAULT_CONFIG_FILE); \
+	fi
+	@if test -f $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG) ; then \
+	        echo "$@ will not overwrite existing $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG)" ; \
+	else \
+	        echo "$(INSTALL_DATA) $(srcdir)/cachemgr.conf $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG)"; \
+	        $(INSTALL_DATA) $(srcdir)/cachemgr.conf $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG); \
 	fi
 	$(mkinstalldirs) $(DESTDIR)$(DEFAULT_LOG_PREFIX)
 
