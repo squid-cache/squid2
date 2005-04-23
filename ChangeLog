@@ -47,6 +47,14 @@ Changes to squid-2.5.STABLE10 (not yet released)
 	  can not be determined (Bug #1196)
 	- [Cosmetic] Configuration file parser now handles DOS/Windows formatted
 	  configuration files with CRLF lineendings proper.
+	- [Minor] Unrecognized Cache-Control directives now forwarded properly
+	  (Bug #414)
+	- [Minor] Authentication helpers now returns useable information
+	  in the %m error page macro on failed authentication (Bug #1223)
+	- [Minor] pid file management corrected in chroot use (Bug #1157)
+	- [Minor Security] Fix for CVE-1999-0710: cachemgr malicouse use.
+	  cachemgr.cgi now reads a config file telling which proxy servers
+	  it can administer.
 	
 Changes to squid-2.5.STABLE9 (24 Feb 2005)
 

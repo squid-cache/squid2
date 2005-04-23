@@ -370,6 +370,13 @@ name="ChangeLog"> file for details.
 	<item>FTP directory listings corrected again (broken by 2.5.STABLE9)
 	<item>Support for proxying huge objects greater than 2GB in size
 	<item>IP-Filter 4.0 support in --enable-ipf-transparent
+	<item>cachemgr.cgi now uses a configuration controlling which servers
+	may be managed. This to prevent abuse of the program. See <tt>&gt;prefix&lt/etc/cachemgr.conf</tt>
+	for details. The configuration is read first from the current directory
+	(normally where you installed cachemgr.cgi) and if not found there from
+	<tt>&gt;prefix&lt;/etc/cachemgr.conf</tt>. If neither is found only access
+	to localhost and the full server name is provided, or the cachemgr default
+	host if specified to configure.
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE9"
 	name="squid-2.5.STABLE9 patches"> and the <url url="ChangeLog"
