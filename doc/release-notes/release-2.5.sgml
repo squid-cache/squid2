@@ -130,18 +130,15 @@ management of timeouts while connecting to origin servers or peers
 
 <sect>Known issues and limitations
 
-<P>There is a few known issues and limitations in this version of Squid which we hope to correct in a later release
+<P>There is a few known issues in this version of Squid which we hope to correct in a later release
 
 <descrip>
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=761" name="#761"></tag>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1193" name="#1193"></tag>Interception fails if intercepting multiple ports and Squid is not listening on the same ports
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1094" name="#1094"></tag>cachemgr.cgi should have a built-in access control layer to prevent malicious use
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=649" name="#649"></tag>Problems refreshing pages stored with 'vary' information
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=779" name="#779"></tag>users going above their allowed IP count no longer logged in cache.log
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1204" name="#1204"></tag>FTP listings uses "BASE HREF" much more than it needs to
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=888" name="#888"></tag>ntlm_user_pool assertion error on shutdown
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1223" name="#1223"></tag>Authentication could be more informative on why a login failed
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1227" name="#1227"></tag>Syslog facility should not be hardcoded to "local4"
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1275" name="#1275"></tag>Squid internal icons served up with slightly incorrect HTTP headers
 </descrip>
 
 
