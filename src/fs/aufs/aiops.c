@@ -250,7 +250,7 @@ static void
 squidaio_fdhandler(int fd, void *data)
 {
     char junk[256];
-    read(done_fd_read, junk, sizeof(junk));
+    FD_READ_METHOD(done_fd_read, junk, sizeof(junk));
     commSetSelect(fd, COMM_SELECT_READ, squidaio_fdhandler, NULL, 0);
 }
 
@@ -462,7 +462,7 @@ squidaio_thread_loop(void *ptr)
 	pthread_mutex_unlock(&done_queue.mutex);
 	if (!done_signalled) {
 	    done_signalled = 1;
-	    write(done_fd, "!", 1);
+	    FD_WRITE_METHOD(done_fd, "!", 1);
 	}
 	threadp->requests++;
     }				/* while forever */
@@ -861,7 +861,7 @@ squidaio_poll_done(void)
     if (request == NULL && !polled) {
 	if (done_signalled) {
 	    char junk[256];
-	    read(done_fd_read, junk, sizeof(junk));
+	    FD_READ_METHOD(done_fd_read, junk, sizeof(junk));
 	    done_signalled = 0;
 	}
 	squidaio_poll_queues();
@@ -932,5 +932,21 @@ squidaio_debug(squidaio_request_t * request)
 	break;
     default:
 	break;
+    }
+}
+
+void
+squidaio_stats(StoreEntry * sentry)
+{
+    squidaio_thread_t *threadp;
+    int i;
+
+    storeAppendPrintf(sentry, "\n\nThreads Status:\n");
+    storeAppendPrintf(sentry, "#\tID\t# Requests\n");
+
+    threadp = threads;
+    for (i = 0; i < squidaio_nthreads; i++) {
+	storeAppendPrintf(sentry, "%i\t0x%lx\t%ld\n", i + 1, (unsigned long) threadp->thread, threadp->requests);
+	threadp = threadp->next;
     }
 }

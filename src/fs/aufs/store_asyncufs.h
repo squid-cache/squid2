@@ -58,6 +58,7 @@ int squidaio_sync(void);
 int squidaio_get_queue_len(void);
 void *squidaio_xmalloc(int size);
 void squidaio_xfree(void *p, int size);
+void squidaio_stats(StoreEntry *);
 
 void aioInit(void);
 void aioDone(void);
