@@ -135,7 +135,7 @@
 #include "snprintf.h"
 
 #ifndef DEFAULT_CACHEMGR_CONFIG
-#define DEFAULT_CACHEMGR_CONFIG "/etc/squid/cahemgr.conf"
+#define DEFAULT_CACHEMGR_CONFIG "/etc/squid/cachemgr.conf"
 #endif
 
 typedef struct {
