@@ -859,9 +859,11 @@ check_target_acl(const char *hostname, int port)
 #endif
 	if ((token = strtok(NULL, ":")) != NULL) {
 	    int i;
-	    if (sscanf(token, "%d", &i) != 1)
+	    if (strcmp(token, "*") == 0);	/* Wildcard port specification */
+	    else if (strcasecmp(token, "any") == 0);	/* Wildcard port specification */
+	    else if (sscanf(token, "%d", &i) != 1)
 		continue;
-	    if (i != port)
+	    else if (i != port)
 		continue;
 	} else if (port != CACHE_HTTP_PORT)
 	    continue;
