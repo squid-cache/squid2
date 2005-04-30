@@ -102,13 +102,18 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
     MemObject *mem = e->mem_obj;
     squid_off_t lowest_offset;
     squid_off_t new_mem_lo;
-    int swapout_able = storeSwapOutAble(e);
+    int swapout_able;
 
     /* Don't pollute the disk with icons and other special entries */
     if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
 	return -1;
 
-    if (!swapout_able) {
+    /* Don't even attempt to free data from hot-cached objects */
+    if (e->mem_status == IN_MEMORY)
+	return 1;
+
+    swapout_able = storeSwapOutAble(e);
+    if (!swapout_able && EBIT_TEST(e->flags, ENTRY_CACHABLE)) {
 	/* Stop writing to disk */
 	storeReleaseRequest(e);
 	if (e->mem_obj->swapout.sio != NULL)
@@ -121,11 +126,7 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
     lowest_offset = storeLowestMemReaderOffset(e);
     debug(20, 7) ("storeSwapOut: lowest_offset = %" PRINTF_OFF_T "\n",
 	lowest_offset);
-    /*
-     * Careful.  lowest_offset can be greater than inmem_hi, such
-     * as in the case of a range request.
-     */
-    if (mem->inmem_hi < lowest_offset)
+    if (!swapout_able)
 	new_mem_lo = lowest_offset;
     else if (mem->inmem_hi > Config.Store.maxInMemObjSize)
 	new_mem_lo = lowest_offset;
@@ -134,8 +135,8 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
     else
 	new_mem_lo = mem->inmem_lo;
     /* The -1 makes sure the page isn't freed until storeSwapOut has
-     * walked to the next page. (mem->swapout.memnode) */
-    if (swapout_able) {
+     * walked to the next page. (mem->swapout.memnode->next) */
+    if (swapout_able && new_mem_lo) {
 	squid_off_t on_disk = storeSwapOutObjectBytesOnDisk(e->mem_obj);
 	if (on_disk - 1 < new_mem_lo)
 	    new_mem_lo = on_disk - 1;
@@ -144,6 +145,7 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
 	new_mem_lo = mem->inmem_lo;
     if (mem->inmem_lo != new_mem_lo)
 	mem->inmem_lo = stmemFreeDataUpto(&mem->data_hdr, new_mem_lo);
+
     return swapout_able;
 }
 
