@@ -374,6 +374,7 @@ name="ChangeLog"> file for details.
 	<tt>&gt;prefix&lt;/etc/cachemgr.conf</tt>. If neither is found only access
 	to localhost and the full server name is provided, or the cachemgr default
 	host if specified to configure.
+	<item>SNMPv2 support fixed
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE9"
 	name="squid-2.5.STABLE9 patches"> and the <url url="ChangeLog"
