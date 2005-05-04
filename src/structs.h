@@ -249,6 +249,7 @@ struct _snmp_request_t {
     struct snmp_pdu *PDU;
     aclCheck_t *acl_checklist;
     u_char *community;
+    struct snmp_session session;
 };
 
 #endif
