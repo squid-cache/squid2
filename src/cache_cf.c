@@ -2490,6 +2490,8 @@ parse_https_port_list(https_port_list ** head)
 	    s->key = xstrdup(token + 4);
 	} else if (strncmp(token, "version=", 8) == 0) {
 	    s->version = atoi(token + 8);
+	    if (s->version < 1 || s->version > 4)
+		self_destruct();
 	} else if (strncmp(token, "options=", 8) == 0) {
 	    safe_free(s->options);
 	    s->options = xstrdup(token + 8);
