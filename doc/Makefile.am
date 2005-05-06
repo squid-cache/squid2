@@ -19,10 +19,10 @@ SUBSTITUTE=sed "\
 	"
 
 squid.8: squid.8.in Makefile
-	$(SUBSTITUTE) < $< > $@
+	$(SUBSTITUTE) < squid.8.in > $@
 
 cachemgr.cgi.8: cachemgr.cgi.8.in Makefile
-	$(SUBSTITUTE) < $< > $@
+	$(SUBSTITUTE) < cachemgr.cgi.8.in > $@
 
 man_MANS = \
 	squid.8 \
