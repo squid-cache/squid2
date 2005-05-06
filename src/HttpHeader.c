@@ -1145,8 +1145,8 @@ httpHeaderEntryParseCreate(const char *field_start, const char *field_end)
     /* do we have a valid field name within this field? */
     if (!name_len || name_end > field_end)
 	return NULL;
-    if (name_len > 65536) {
-	/* String has a 64K limit */
+    if (name_len > 65534) {
+	/* String must be LESS THAN 64K and it adds a terminating NULL */
 	debug(55, 1) ("WARNING: ignoring header name of %d bytes\n", name_len);
 	return NULL;
     }
@@ -1177,8 +1177,8 @@ httpHeaderEntryParseCreate(const char *field_start, const char *field_end)
 	value_start++;
     while (value_start < field_end && xisspace(field_end[-1]))
 	field_end--;
-    if (field_end - value_start > 65536) {
-	/* String has a 64K limit */
+    if (field_end - value_start > 65534) {
+	/* String must be LESS THAN 64K and it adds a terminating NULL */
 	debug(55, 1) ("WARNING: ignoring '%s' header of %d bytes\n",
 	    strBuf(e->name), (int) (field_end - value_start));
 	if (e->id == HDR_OTHER)
