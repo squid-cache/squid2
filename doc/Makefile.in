@@ -315,10 +315,10 @@ uninstall-man: uninstall-man8
 
 
 squid.8: squid.8.in Makefile
-	$(SUBSTITUTE) < $< > $@
+	$(SUBSTITUTE) < squid.8.in > $@
 
 cachemgr.cgi.8: cachemgr.cgi.8.in Makefile
-	$(SUBSTITUTE) < $< > $@
+	$(SUBSTITUTE) < cachemgr.cgi.8.in > $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
