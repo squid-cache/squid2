@@ -3056,10 +3056,9 @@ aclMatchArp(void *dataptr, struct in_addr c)
     for (next = buf; next < lim; next += rtm->rtm_msglen) {
 	rtm = (struct rt_msghdr *) next;
 	sin = (struct sockaddr_inarp *) (rtm + 1);
-	/*sdl = (struct sockaddr_dl *) (sin + 1); */
 #define ROUNDUP(a) \
         ((a) > 0 ? (1 + (((a) - 1) | (sizeof(long) - 1))) : sizeof(long))
-	(char *) sdl = (char *) sin + ROUNDUP(sin->sin_len);
+	sdl = (struct sockaddr_dl *) ((char *) sin + ROUNDUP(sin->sin_len));
 	if (c.s_addr == sin->sin_addr.s_addr) {
 	    if (sdl->sdl_alen) {
 		arpReq.arp_ha.sa_len = sizeof(struct sockaddr);
@@ -3198,8 +3197,9 @@ aclDumpArpListWalkee(void *node, void *state)
     while (*W != NULL)
 	W = &(*W)->next;
     snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x",
-	arp->eth[0], arp->eth[1], arp->eth[2], arp->eth[3],
-	arp->eth[4], arp->eth[5]);
+	arp->eth[0] & 0xff, arp->eth[1] & 0xff,
+	arp->eth[2] & 0xff, arp->eth[3] & 0xff,
+	arp->eth[4] & 0xff, arp->eth[5] & 0xff);
     wordlistAdd(state, buf);
 }
 
