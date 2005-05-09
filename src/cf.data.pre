@@ -2024,8 +2024,8 @@ DOC_START
 	acl aclname srcdom_regex [-i] xxx ...   # regex matching client name
 	acl aclname dstdom_regex [-i] xxx ...   # regex matching server
 	  # For dstdomain and dstdom_regex  a reverse lookup is tried if a IP
-	  # based URL is used. The name "none" is used if the reverse lookup
-	  # fails.
+	  # based URL is used and no match is found. The name "none" is used
+	  # if the reverse lookup fails.
 
 	acl aclname time     [day-abbrevs]  [h1:m1-h2:m2]
 	    day-abbrevs:

@@ -1623,8 +1623,10 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	}
 	/* NOTREACHED */
     case ACL_DST_DOMAIN:
+	if (aclMatchDomainList(&ae->data, r->host))
+	    return 1;
 	if ((ia = ipcacheCheckNumeric(r->host)) == NULL)
-	    return aclMatchDomainList(&ae->data, r->host);
+	    return 0;
 	fqdn = fqdncache_gethostbyaddr(ia->in_addrs[0], FQDN_LOOKUP_IF_MISS);
 	if (fqdn)
 	    return aclMatchDomainList(&ae->data, fqdn);
@@ -1649,8 +1651,10 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	return aclMatchDomainList(&ae->data, "none");
 	/* NOTREACHED */
     case ACL_DST_DOM_REGEX:
+	if (aclMatchRegex(ae->data, r->host))
+	    return 1;
 	if ((ia = ipcacheCheckNumeric(r->host)) == NULL)
-	    return aclMatchRegex(ae->data, r->host);
+	    return 0;
 	fqdn = fqdncache_gethostbyaddr(ia->in_addrs[0], FQDN_LOOKUP_IF_MISS);
 	if (fqdn)
 	    return aclMatchRegex(ae->data, fqdn);
