@@ -113,7 +113,7 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
 	return 1;
 
     swapout_able = storeSwapOutAble(e);
-    if (!swapout_able && EBIT_TEST(e->flags, ENTRY_CACHABLE)) {
+    if (!swapout_able) {
 	/* Stop writing to disk */
 	storeReleaseRequest(e);
 	if (e->mem_obj->swapout.sio != NULL)
