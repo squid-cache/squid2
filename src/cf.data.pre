@@ -3080,8 +3080,9 @@ DOC_START
 	Usage: always_direct allow|deny [!]aclname ...
 
 	Here you can use ACL elements to specify requests which should
-	ALWAYS be forwarded directly to origin servers.  For example,
-	to always directly forward requests for local servers use
+	ALWAYS be forwarded by Squid to the origin servers without using
+	any peers.  For example, to always directly forward requests for
+	local servers ignoring any parents or siblings you may have use
 	something like:
 
 		acl local-servers dstdomain my.domain.net
@@ -3102,6 +3103,15 @@ DOC_START
 		acl local-servers dstdomain  .foo.net
 		always_direct deny local-external
 		always_direct allow local-servers
+
+	NOTE: If your goal is to make the client forward the request
+	directly to the origin server bypassing Squid then this needs
+	to be done in the client configuration. Squid configuration
+	can only tell Squid how Squid should fetch the object.
+
+	NOTE: This directive is not related to caching. The replies
+	is cached as usual even if you use always_direct. To not cache
+	the replies see no_cache.
 
 	This option replaces some v1.1 options such as local_domain
 	and local_ip.
