@@ -371,10 +371,13 @@ name="ChangeLog"> file for details.
 	may be managed. This to prevent abuse of the program. See <tt>&gt;prefix&lt/etc/cachemgr.conf</tt>
 	for details. The configuration is read first from the current directory
 	(normally where you installed cachemgr.cgi) and if not found there from
+	<item>The internal DNS client has been hardened against spoofing of DNS
+	responses.
 	<tt>&gt;prefix&lt;/etc/cachemgr.conf</tt>. If neither is found only access
 	to localhost and the full server name is provided, or the cachemgr default
 	host if specified to configure.
-	<item>SNMPv2 support fixed
+	<item>The SNMP agent now supports the use of SNMPv2, and has a few
+	other related minor bugfixes.
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE9"
 	name="squid-2.5.STABLE9 patches"> and the <url url="ChangeLog"

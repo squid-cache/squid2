@@ -57,7 +57,10 @@ Changes to squid-2.5.STABLE10 (not yet released)
 	  it can administer.
 	- [Minor] aufs statistics improvements
 	- [Minor] SNMP bugfixes and support for SNMPv2(c) (Bug #1288, #1299)
-	- [Minor] Romanian error pages updated
+	- [Minor] ARP acl documentation and cachemgr config dump corrections
+	- [Minor] dstdomain/dstdom_regex acls now allow matching of numeric
+	  hostnames in addition to the reverse lookup of the domain name.
+	- [Security] Internal DNS client hardened against spoofing
 	
 Changes to squid-2.5.STABLE9 (24 Feb 2005)
 
