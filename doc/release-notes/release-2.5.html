@@ -403,12 +403,12 @@ results from partial configuration</LI>
 <LI>cachemgr.cgi now uses a configuration controlling which servers
 may be managed. This to prevent abuse of the program. See <CODE>&gt;prefix&lt;/etc/cachemgr.conf</CODE>
 for details. The configuration is read first from the current directory
-(normally where you installed cachemgr.cgi) and if not found there from</LI>
-<LI>The internal DNS client has been hardened against spoofing of DNS
-responses.
+(normally where you installed cachemgr.cgi) and if not found there from
 <CODE>&gt;prefix&lt;/etc/cachemgr.conf</CODE>. If neither is found only access
 to localhost and the full server name is provided, or the cachemgr default
 host if specified to configure.</LI>
+<LI>The internal DNS client has been hardened against spoofing of DNS
+responses.</LI>
 <LI>The SNMP agent now supports the use of SNMPv2, and has a few
 other related minor bugfixes.</LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
