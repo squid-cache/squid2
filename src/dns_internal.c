@@ -451,11 +451,13 @@ idnsQueryID(void)
     while (idnsFindQuery(id)) {
 	id++;
 
-	if (id == first_id)
+	if (id == first_id) {
+	    debug(78, 1) ("idnsQueryID: Warning, too many pending DNS requests\n");
 	    break;
+	}
     }
 
-    return squid_random() & 0xFFFF;
+    return id;
 }
 
 
