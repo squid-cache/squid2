@@ -523,11 +523,22 @@ rfc1035MessageDestroy(rfc1035_message * msg)
 int
 rfc1035QueryCompare(const rfc1035_query * a, const rfc1035_query * b)
 {
+    char *na = a->name, *nb = b->name;
     if (a->qtype != b->qtype)
 	return 1;
     if (a->qclass != b->qclass)
 	return 1;
-    return strcmp(a->name, b->name);
+    while(*na == *nb && *na) {
+	na++;
+    	nb++;
+    }
+    if (!*nb && !*na)
+	return 0;
+    if (!na[0] && nb[0] == '.' && !nb[1])
+	return 0;
+    if (!nb[0] && na[0] == '.' && !na[1])
+	return 0;
+    return 1;
 }
 
 /*
@@ -561,12 +572,6 @@ rfc1035MessageUnpack(const char *buf,
     }
     rfc1035_errno = 0;
     rfc1035_error_message = NULL;
-    if (msg->rcode) {
-	RFC1035_UNPACK_DEBUG;
-	rfc1035SetErrno((int) msg->rcode);
-	xfree(msg);
-	return -rfc1035_errno;
-    }
     i = (int) msg->qdcount;
     if (i != 1) {
 	/* This can not be an answer to our queries.. */
@@ -585,6 +590,11 @@ rfc1035MessageUnpack(const char *buf,
 	}
     }
     *answer = msg;
+    if (msg->rcode) {
+	RFC1035_UNPACK_DEBUG;
+	rfc1035SetErrno((int) msg->rcode);
+	return -rfc1035_errno;
+    }
     if (msg->ancount == 0)
 	return 0;
     recs = msg->answer = xcalloc((int) msg->ancount, sizeof(*recs));
