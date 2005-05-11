@@ -368,7 +368,7 @@ name="ChangeLog"> file for details.
 	<item>Support for proxying huge objects greater than 2GB in size
 	<item>IP-Filter 4.0 support in --enable-ipf-transparent
 	<item>cachemgr.cgi now uses a configuration controlling which servers
-	may be managed. This to prevent abuse of the program. See <tt>&gt;prefix&lt/etc/cachemgr.conf</tt>
+	may be managed. This to prevent abuse of the program. See <tt>&lt;prefix&gt;/etc/cachemgr.conf</tt>
 	for details. The configuration is read first from the current directory
 	(normally where you installed cachemgr.cgi) and if not found there from
 	<tt>&lt;prefix&gt;/etc/cachemgr.conf</tt>. If neither is found only access
