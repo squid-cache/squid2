@@ -523,22 +523,24 @@ rfc1035MessageDestroy(rfc1035_message * msg)
 int
 rfc1035QueryCompare(const rfc1035_query * a, const rfc1035_query * b)
 {
-    char *na = a->name, *nb = b->name;
+    size_t la, lb;
     if (a->qtype != b->qtype)
 	return 1;
     if (a->qclass != b->qclass)
 	return 1;
-    while(*na == *nb && *na) {
-	na++;
-    	nb++;
+    la = strlen(a->name);
+    lb = strlen(b->name);
+    if (la != lb) {
+	/* Trim root label(s) */
+	while (la > 0 && a->name[la - 1] == '.')
+	    la--;
+	while (lb > 0 && b->name[lb - 1] == '.')
+	    lb--;
     }
-    if (!*nb && !*na)
-	return 0;
-    if (!na[0] && nb[0] == '.' && !nb[1])
-	return 0;
-    if (!nb[0] && na[0] == '.' && !na[1])
-	return 0;
-    return 1;
+    if (la != lb)
+	return 1;
+
+    return strncasecmp(a->name, b->name, la);
 }
 
 /*
