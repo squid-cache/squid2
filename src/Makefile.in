@@ -77,7 +77,6 @@ CC = @CC@
 CGIEXT = @CGIEXT@
 CPP = @CPP@
 CRYPTLIB = @CRYPTLIB@
-CXX = @CXX@
 DEPDIR = @DEPDIR@
 DIGEST_AUTH_HELPERS = @DIGEST_AUTH_HELPERS@
 ERR_DEFAULT_LANGUAGE = @ERR_DEFAULT_LANGUAGE@
@@ -88,6 +87,8 @@ FALSE = @FALSE@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LIBDLMALLOC = @LIBDLMALLOC@
 LIBREGEX = @LIBREGEX@
+LIBSASL = @LIBSASL@
+LIB_LBER = @LIB_LBER@
 LIB_MALLOC = @LIB_MALLOC@
 LN = @LN@
 LN_S = @LN_S@
@@ -96,15 +97,16 @@ MKDIR = @MKDIR@
 MV = @MV@
 NTLM_AUTH_HELPERS = @NTLM_AUTH_HELPERS@
 OBJEXT = @OBJEXT@
-OPT_DEFAULT_HOSTS = @OPT_DEFAULT_HOSTS@
 PACKAGE = @PACKAGE@
 PERL = @PERL@
+PKGCONFIG = @PKGCONFIG@
 RANLIB = @RANLIB@
 REGEXLIB = @REGEXLIB@
 REPL_LIBS = @REPL_LIBS@
 REPL_OBJS = @REPL_OBJS@
 REPL_POLICIES = @REPL_POLICIES@
 RM = @RM@
+SAMBASOURCES = @SAMBASOURCES@
 SH = @SH@
 SNMPLIB = @SNMPLIB@
 SSLLIB = @SSLLIB@
@@ -132,9 +134,6 @@ makesnmplib = @makesnmplib@
 @USE_DELAY_POOLS_TRUE@DELAY_POOL_SOURCE = delay_pools.c
 @USE_DELAY_POOLS_FALSE@DELAY_POOL_SOURCE = 
 
-@ENABLE_XPROF_STATS_TRUE@XPROF_STATS_SOURCE = ProfStats.c
-@ENABLE_XPROF_STATS_FALSE@XPROF_STATS_SOURCE = 
-
 @ENABLE_HTCP_TRUE@HTCPSOURCE = htcp.c
 
 @MAKE_LEAKFINDER_TRUE@LEAKFINDERSOURCE = leakfinder.c
@@ -153,8 +152,6 @@ makesnmplib = @makesnmplib@
 
 @ENABLE_WIN32SPECIFIC_TRUE@WIN32SOURCE = win32.c
 @ENABLE_WIN32SPECIFIC_FALSE@WIN32SOURCE = 
-
-AM_CFLAGS = -Werror -Wall
 
 SUBDIRS = fs repl auth
 
@@ -189,6 +186,7 @@ cf_gen_SOURCES = cf_gen.c defines.h
 nodist_cf_gen_HEADER = cf_gen_defines.h
 squidclient_SOURCES = client.c
 cachemgr__CGIEXT__SOURCES = cachemgr.c
+cachemgr__CGIEXT__CFLAGS = -DDEFAULT_CACHEMGR_CONFIG=\"$(DEFAULT_CACHEMGR_CONFIG)\" $(AM_CFLAGS)
 
 EXTRA_squid_SOURCES = \
 	delay_pools.c \
@@ -217,15 +215,8 @@ squid_SOURCES = \
 	cbdata.c \
 	client_db.c \
 	client_side.c \
-	client_side_reply.c \
-	client_side_request.c \
-	client_side_request.h \
-	clientStream.c \
-	clientStream.h \
 	comm.c \
 	comm_select.c \
-	comm_poll.c \
-	comm_kqueue.c \
 	debug.c \
 	defines.h \
 	$(DELAY_POOL_SOURCE) \
@@ -263,19 +254,17 @@ squid_SOURCES = \
 	internal.c \
 	ipc.c \
 	ipcache.c \
-	IPInterception.c \
-	IPInterception.h \
 	$(LEAKFINDERSOURCE) \
 	logfile.c \
 	main.c \
 	mem.c \
+	MemPool.c \
 	MemBuf.c \
 	mime.c \
 	multicast.c \
 	neighbors.c \
 	net_db.c \
 	Packer.c \
-	$(XPROF_STATS_SOURCE) \
 	pconn.c \
 	peer_digest.c \
 	peer_select.c \
@@ -294,9 +283,7 @@ squid_SOURCES = \
 	stmem.c \
 	store.c \
 	store_io.c \
-	StoreIOBuffer.h \
 	store_client.c \
-	StoreClient.h \
 	store_digest.c \
 	store_dir.c \
 	store_key_md5.c \
@@ -308,8 +295,6 @@ squid_SOURCES = \
 	structs.h \
 	tools.c \
 	typedefs.h \
-	ufscommon.c \
-	ufscommon.h \
 	$(UNLINKDSOURCE) \
 	url.c \
 	urn.c \
@@ -343,7 +328,6 @@ squid_LDADD = \
 	-lmiscutil \
 	@XTRA_LIBS@
 
-squid_DEPENDENCIES = $(top_builddir)/lib/libmiscutil.a
 
 unlinkd_SOURCES = 
 unlinkd_LDADD = unlinkd-daemon.o
@@ -387,26 +371,27 @@ EXTRA_DIST = \
 	store_modules.sh \
 	repl_modules.sh \
 	mib.txt \
+	cachemgr.conf \
 	mime.conf.default
 
 
 DEFAULT_PREFIX = $(prefix)
 DEFAULT_CONFIG_FILE = $(sysconfdir)/squid.conf
+DEFAULT_CACHEMGR_CONFIG = $(sysconfdir)/cachemgr.conf
 DEFAULT_MIME_TABLE = $(sysconfdir)/mime.conf
-DEFAULT_DNSSERVER = $(libexecdir)/dnsserver$(EXEEXT)
+DEFAULT_DNSSERVER = $(libexecdir)/`echo dnsserver | sed '$(transform);s/$$/$(EXEEXT)/'`
 DEFAULT_LOG_PREFIX = $(localstatedir)/logs
 DEFAULT_CACHE_LOG = $(DEFAULT_LOG_PREFIX)/cache.log
 DEFAULT_ACCESS_LOG = $(DEFAULT_LOG_PREFIX)/access.log
 DEFAULT_STORE_LOG = $(DEFAULT_LOG_PREFIX)/store.log
 DEFAULT_PID_FILE = $(DEFAULT_LOG_PREFIX)/squid.pid
 DEFAULT_SWAP_DIR = $(localstatedir)/cache
-DEFAULT_PINGER = $(libexecdir)/pinger$(EXEEXT)
-DEFAULT_UNLINKD = $(libexecdir)/unlinkd$(EXEEXT)
-DEFAULT_DISKD = $(libexecdir)/diskd$(EXEEXT)
+DEFAULT_PINGER = $(libexecdir)/`echo pinger | sed '$(transform);s/$$/$(EXEEXT)/'`
+DEFAULT_UNLINKD = $(libexecdir)/`echo unlinkd | sed '$(transform);s/$$/$(EXEEXT)/'`
+DEFAULT_DISKD = $(libexecdir)/`echo diskd | sed '$(transform);s/$$/$(EXEEXT)/'`
 DEFAULT_ICON_DIR = $(datadir)/icons
 DEFAULT_ERROR_DIR = $(datadir)/errors/@ERR_DEFAULT_LANGUAGE@
 DEFAULT_MIB_PATH = $(datadir)/mib.txt
-DEFAULT_HOSTS = @OPT_DEFAULT_HOSTS@
 
 DEFS = @DEFS@ -DDEFAULT_CONFIG_FILE=\"$(DEFAULT_CONFIG_FILE)\"
 
@@ -458,7 +443,7 @@ sbin_PROGRAMS = squid$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS) $(libexec_PROGRAMS) $(noinst_PROGRAMS) \
 	$(sbin_PROGRAMS)
 
-am_cachemgr__CGIEXT__OBJECTS = cachemgr.$(OBJEXT)
+am_cachemgr__CGIEXT__OBJECTS = cachemgr__CGIEXT_-cachemgr.$(OBJEXT)
 cachemgr__CGIEXT__OBJECTS = $(am_cachemgr__CGIEXT__OBJECTS)
 cachemgr__CGIEXT__LDADD = $(LDADD)
 cachemgr__CGIEXT__DEPENDENCIES =
@@ -479,62 +464,59 @@ pinger_OBJECTS = $(am_pinger_OBJECTS) $(nodist_pinger_OBJECTS)
 pinger_LDADD = $(LDADD)
 pinger_DEPENDENCIES =
 pinger_LDFLAGS =
-@USE_DELAY_POOLS_FALSE@am__objects_4 =
-@USE_DELAY_POOLS_TRUE@am__objects_4 = delay_pools.$(OBJEXT)
-@USE_DNSSERVER_FALSE@am__objects_5 = dns_internal.$(OBJEXT)
-@USE_DNSSERVER_TRUE@am__objects_5 = dns.$(OBJEXT)
-@ENABLE_HTCP_TRUE@am__objects_6 = htcp.$(OBJEXT)
-@MAKE_LEAKFINDER_TRUE@am__objects_7 = leakfinder.$(OBJEXT)
-@MAKE_LEAKFINDER_FALSE@am__objects_7 =
-@ENABLE_XPROF_STATS_TRUE@am__objects_3 = ProfStats.$(OBJEXT)
-@ENABLE_XPROF_STATS_FALSE@am__objects_3 =
-@USE_SNMP_TRUE@am__objects_8 = snmp_core.$(OBJEXT) snmp_agent.$(OBJEXT)
-@USE_SNMP_FALSE@am__objects_8 =
-@ENABLE_SSL_FALSE@am__objects_9 =
-@ENABLE_SSL_TRUE@am__objects_9 = ssl_support.$(OBJEXT)
-@ENABLE_UNLINKD_TRUE@am__objects_10 = unlinkd.$(OBJEXT)
-@ENABLE_UNLINKD_FALSE@am__objects_10 =
-@ENABLE_WIN32SPECIFIC_FALSE@am__objects_11 =
-@ENABLE_WIN32SPECIFIC_TRUE@am__objects_11 = win32.$(OBJEXT)
+@USE_DELAY_POOLS_TRUE@am__objects_3 = delay_pools.$(OBJEXT)
+@USE_DELAY_POOLS_FALSE@am__objects_3 =
+@USE_DNSSERVER_FALSE@am__objects_4 = dns_internal.$(OBJEXT)
+@USE_DNSSERVER_TRUE@am__objects_4 = dns.$(OBJEXT)
+@ENABLE_HTCP_TRUE@am__objects_5 = htcp.$(OBJEXT)
+@MAKE_LEAKFINDER_FALSE@am__objects_6 =
+@MAKE_LEAKFINDER_TRUE@am__objects_6 = leakfinder.$(OBJEXT)
+@USE_SNMP_TRUE@am__objects_7 = snmp_core.$(OBJEXT) snmp_agent.$(OBJEXT)
+@USE_SNMP_FALSE@am__objects_7 =
+@ENABLE_SSL_TRUE@am__objects_8 = ssl_support.$(OBJEXT)
+@ENABLE_SSL_FALSE@am__objects_8 =
+@ENABLE_UNLINKD_FALSE@am__objects_9 =
+@ENABLE_UNLINKD_TRUE@am__objects_9 = unlinkd.$(OBJEXT)
+@ENABLE_WIN32SPECIFIC_TRUE@am__objects_10 = win32.$(OBJEXT)
+@ENABLE_WIN32SPECIFIC_FALSE@am__objects_10 =
 am_squid_OBJECTS = access_log.$(OBJEXT) acl.$(OBJEXT) asn.$(OBJEXT) \
 	authenticate.$(OBJEXT) cache_cf.$(OBJEXT) CacheDigest.$(OBJEXT) \
 	cache_manager.$(OBJEXT) carp.$(OBJEXT) cbdata.$(OBJEXT) \
-	client_db.$(OBJEXT) client_side.$(OBJEXT) \
-	client_side_reply.$(OBJEXT) client_side_request.$(OBJEXT) \
-	clientStream.$(OBJEXT) comm.$(OBJEXT) comm_select.$(OBJEXT) \
-	comm_poll.$(OBJEXT) comm_kqueue.$(OBJEXT) debug.$(OBJEXT) \
-	$(am__objects_4) disk.$(OBJEXT) $(am__objects_5) \
-	errorpage.$(OBJEXT) ETag.$(OBJEXT) event.$(OBJEXT) \
-	external_acl.$(OBJEXT) fd.$(OBJEXT) filemap.$(OBJEXT) \
-	forward.$(OBJEXT) fqdncache.$(OBJEXT) ftp.$(OBJEXT) \
-	gopher.$(OBJEXT) helper.$(OBJEXT) $(am__objects_6) \
-	http.$(OBJEXT) HttpStatusLine.$(OBJEXT) HttpHdrCc.$(OBJEXT) \
+	client_db.$(OBJEXT) client_side.$(OBJEXT) comm.$(OBJEXT) \
+	comm_select.$(OBJEXT) debug.$(OBJEXT) $(am__objects_3) \
+	disk.$(OBJEXT) $(am__objects_4) errorpage.$(OBJEXT) \
+	ETag.$(OBJEXT) event.$(OBJEXT) external_acl.$(OBJEXT) \
+	fd.$(OBJEXT) filemap.$(OBJEXT) forward.$(OBJEXT) \
+	fqdncache.$(OBJEXT) ftp.$(OBJEXT) gopher.$(OBJEXT) \
+	helper.$(OBJEXT) $(am__objects_5) http.$(OBJEXT) \
+	HttpStatusLine.$(OBJEXT) HttpHdrCc.$(OBJEXT) \
 	HttpHdrRange.$(OBJEXT) HttpHdrContRange.$(OBJEXT) \
 	HttpHeader.$(OBJEXT) HttpHeaderTools.$(OBJEXT) \
 	HttpBody.$(OBJEXT) HttpMsg.$(OBJEXT) HttpReply.$(OBJEXT) \
 	HttpRequest.$(OBJEXT) icmp.$(OBJEXT) icp_v2.$(OBJEXT) \
 	icp_v3.$(OBJEXT) ident.$(OBJEXT) internal.$(OBJEXT) \
-	ipc.$(OBJEXT) ipcache.$(OBJEXT) IPInterception.$(OBJEXT) \
-	$(am__objects_7) logfile.$(OBJEXT) main.$(OBJEXT) mem.$(OBJEXT) \
-	MemBuf.$(OBJEXT) mime.$(OBJEXT) multicast.$(OBJEXT) \
-	neighbors.$(OBJEXT) net_db.$(OBJEXT) Packer.$(OBJEXT) \
-	$(am__objects_3) pconn.$(OBJEXT) peer_digest.$(OBJEXT) \
+	ipc.$(OBJEXT) ipcache.$(OBJEXT) $(am__objects_6) \
+	logfile.$(OBJEXT) main.$(OBJEXT) mem.$(OBJEXT) \
+	MemPool.$(OBJEXT) MemBuf.$(OBJEXT) mime.$(OBJEXT) \
+	multicast.$(OBJEXT) neighbors.$(OBJEXT) net_db.$(OBJEXT) \
+	Packer.$(OBJEXT) pconn.$(OBJEXT) peer_digest.$(OBJEXT) \
 	peer_select.$(OBJEXT) redirect.$(OBJEXT) referer.$(OBJEXT) \
-	refresh.$(OBJEXT) send-announce.$(OBJEXT) $(am__objects_8) \
-	ssl.$(OBJEXT) $(am__objects_9) stat.$(OBJEXT) \
+	refresh.$(OBJEXT) send-announce.$(OBJEXT) $(am__objects_7) \
+	ssl.$(OBJEXT) $(am__objects_8) stat.$(OBJEXT) \
 	StatHist.$(OBJEXT) String.$(OBJEXT) stmem.$(OBJEXT) \
 	store.$(OBJEXT) store_io.$(OBJEXT) store_client.$(OBJEXT) \
 	store_digest.$(OBJEXT) store_dir.$(OBJEXT) \
 	store_key_md5.$(OBJEXT) store_log.$(OBJEXT) \
 	store_rebuild.$(OBJEXT) store_swapin.$(OBJEXT) \
 	store_swapmeta.$(OBJEXT) store_swapout.$(OBJEXT) \
-	tools.$(OBJEXT) ufscommon.$(OBJEXT) $(am__objects_10) \
-	url.$(OBJEXT) urn.$(OBJEXT) useragent.$(OBJEXT) wais.$(OBJEXT) \
-	wccp.$(OBJEXT) whois.$(OBJEXT) $(am__objects_11)
+	tools.$(OBJEXT) $(am__objects_9) url.$(OBJEXT) urn.$(OBJEXT) \
+	useragent.$(OBJEXT) wais.$(OBJEXT) wccp.$(OBJEXT) \
+	whois.$(OBJEXT) $(am__objects_10)
 nodist_squid_OBJECTS = repl_modules.$(OBJEXT) auth_modules.$(OBJEXT) \
 	store_modules.$(OBJEXT) globals.$(OBJEXT) \
 	string_arrays.$(OBJEXT)
 squid_OBJECTS = $(am_squid_OBJECTS) $(nodist_squid_OBJECTS)
+squid_DEPENDENCIES =
 squid_LDFLAGS =
 am_squidclient_OBJECTS = client.$(OBJEXT)
 squidclient_OBJECTS = $(am_squidclient_OBJECTS)
@@ -556,43 +538,39 @@ depcomp = $(SHELL) $(top_srcdir)/cfgaux/depcomp
 @AMDEP_TRUE@	$(DEPDIR)/HttpHdrRange.Po $(DEPDIR)/HttpHeader.Po \
 @AMDEP_TRUE@	$(DEPDIR)/HttpHeaderTools.Po $(DEPDIR)/HttpMsg.Po \
 @AMDEP_TRUE@	$(DEPDIR)/HttpReply.Po $(DEPDIR)/HttpRequest.Po \
-@AMDEP_TRUE@	$(DEPDIR)/HttpStatusLine.Po \
-@AMDEP_TRUE@	$(DEPDIR)/IPInterception.Po $(DEPDIR)/MemBuf.Po \
-@AMDEP_TRUE@	$(DEPDIR)/Packer.Po $(DEPDIR)/ProfStats.Po \
+@AMDEP_TRUE@	$(DEPDIR)/HttpStatusLine.Po $(DEPDIR)/MemBuf.Po \
+@AMDEP_TRUE@	$(DEPDIR)/MemPool.Po $(DEPDIR)/Packer.Po \
 @AMDEP_TRUE@	$(DEPDIR)/StatHist.Po $(DEPDIR)/String.Po \
 @AMDEP_TRUE@	$(DEPDIR)/access_log.Po $(DEPDIR)/acl.Po \
 @AMDEP_TRUE@	$(DEPDIR)/asn.Po $(DEPDIR)/auth_modules.Po \
 @AMDEP_TRUE@	$(DEPDIR)/authenticate.Po $(DEPDIR)/cache_cf.Po \
-@AMDEP_TRUE@	$(DEPDIR)/cache_manager.Po $(DEPDIR)/cachemgr.Po \
+@AMDEP_TRUE@	$(DEPDIR)/cache_manager.Po \
+@AMDEP_TRUE@	$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po \
 @AMDEP_TRUE@	$(DEPDIR)/carp.Po $(DEPDIR)/cbdata.Po \
 @AMDEP_TRUE@	$(DEPDIR)/cf_gen.Po $(DEPDIR)/client.Po \
-@AMDEP_TRUE@	$(DEPDIR)/clientStream.Po $(DEPDIR)/client_db.Po \
-@AMDEP_TRUE@	$(DEPDIR)/client_side.Po \
-@AMDEP_TRUE@	$(DEPDIR)/client_side_reply.Po \
-@AMDEP_TRUE@	$(DEPDIR)/client_side_request.Po $(DEPDIR)/comm.Po \
-@AMDEP_TRUE@	$(DEPDIR)/comm_kqueue.Po $(DEPDIR)/comm_poll.Po \
-@AMDEP_TRUE@	$(DEPDIR)/comm_select.Po $(DEPDIR)/debug.Po \
-@AMDEP_TRUE@	$(DEPDIR)/delay_pools.Po $(DEPDIR)/disk.Po \
-@AMDEP_TRUE@	$(DEPDIR)/dns.Po $(DEPDIR)/dns_internal.Po \
-@AMDEP_TRUE@	$(DEPDIR)/dnsserver.Po $(DEPDIR)/errorpage.Po \
-@AMDEP_TRUE@	$(DEPDIR)/event.Po $(DEPDIR)/external_acl.Po \
-@AMDEP_TRUE@	$(DEPDIR)/fd.Po $(DEPDIR)/filemap.Po \
-@AMDEP_TRUE@	$(DEPDIR)/forward.Po $(DEPDIR)/fqdncache.Po \
-@AMDEP_TRUE@	$(DEPDIR)/ftp.Po $(DEPDIR)/globals.Po \
-@AMDEP_TRUE@	$(DEPDIR)/gopher.Po $(DEPDIR)/helper.Po \
-@AMDEP_TRUE@	$(DEPDIR)/htcp.Po $(DEPDIR)/http.Po \
-@AMDEP_TRUE@	$(DEPDIR)/icmp.Po $(DEPDIR)/icp_v2.Po \
-@AMDEP_TRUE@	$(DEPDIR)/icp_v3.Po $(DEPDIR)/ident.Po \
-@AMDEP_TRUE@	$(DEPDIR)/internal.Po $(DEPDIR)/ipc.Po \
-@AMDEP_TRUE@	$(DEPDIR)/ipcache.Po $(DEPDIR)/leakfinder.Po \
-@AMDEP_TRUE@	$(DEPDIR)/logfile.Po $(DEPDIR)/main.Po \
-@AMDEP_TRUE@	$(DEPDIR)/mem.Po $(DEPDIR)/mime.Po \
-@AMDEP_TRUE@	$(DEPDIR)/multicast.Po $(DEPDIR)/neighbors.Po \
-@AMDEP_TRUE@	$(DEPDIR)/net_db.Po $(DEPDIR)/pconn.Po \
-@AMDEP_TRUE@	$(DEPDIR)/peer_digest.Po $(DEPDIR)/peer_select.Po \
-@AMDEP_TRUE@	$(DEPDIR)/pinger.Po $(DEPDIR)/redirect.Po \
-@AMDEP_TRUE@	$(DEPDIR)/referer.Po $(DEPDIR)/refresh.Po \
-@AMDEP_TRUE@	$(DEPDIR)/repl_modules.Po \
+@AMDEP_TRUE@	$(DEPDIR)/client_db.Po $(DEPDIR)/client_side.Po \
+@AMDEP_TRUE@	$(DEPDIR)/comm.Po $(DEPDIR)/comm_select.Po \
+@AMDEP_TRUE@	$(DEPDIR)/debug.Po $(DEPDIR)/delay_pools.Po \
+@AMDEP_TRUE@	$(DEPDIR)/disk.Po $(DEPDIR)/dns.Po \
+@AMDEP_TRUE@	$(DEPDIR)/dns_internal.Po $(DEPDIR)/dnsserver.Po \
+@AMDEP_TRUE@	$(DEPDIR)/errorpage.Po $(DEPDIR)/event.Po \
+@AMDEP_TRUE@	$(DEPDIR)/external_acl.Po $(DEPDIR)/fd.Po \
+@AMDEP_TRUE@	$(DEPDIR)/filemap.Po $(DEPDIR)/forward.Po \
+@AMDEP_TRUE@	$(DEPDIR)/fqdncache.Po $(DEPDIR)/ftp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/globals.Po $(DEPDIR)/gopher.Po \
+@AMDEP_TRUE@	$(DEPDIR)/helper.Po $(DEPDIR)/htcp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/http.Po $(DEPDIR)/icmp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/icp_v2.Po $(DEPDIR)/icp_v3.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ident.Po $(DEPDIR)/internal.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ipc.Po $(DEPDIR)/ipcache.Po \
+@AMDEP_TRUE@	$(DEPDIR)/leakfinder.Po $(DEPDIR)/logfile.Po \
+@AMDEP_TRUE@	$(DEPDIR)/main.Po $(DEPDIR)/mem.Po \
+@AMDEP_TRUE@	$(DEPDIR)/mime.Po $(DEPDIR)/multicast.Po \
+@AMDEP_TRUE@	$(DEPDIR)/neighbors.Po $(DEPDIR)/net_db.Po \
+@AMDEP_TRUE@	$(DEPDIR)/pconn.Po $(DEPDIR)/peer_digest.Po \
+@AMDEP_TRUE@	$(DEPDIR)/peer_select.Po $(DEPDIR)/pinger.Po \
+@AMDEP_TRUE@	$(DEPDIR)/redirect.Po $(DEPDIR)/referer.Po \
+@AMDEP_TRUE@	$(DEPDIR)/refresh.Po $(DEPDIR)/repl_modules.Po \
 @AMDEP_TRUE@	$(DEPDIR)/send-announce.Po $(DEPDIR)/snmp_agent.Po \
 @AMDEP_TRUE@	$(DEPDIR)/snmp_core.Po $(DEPDIR)/ssl.Po \
 @AMDEP_TRUE@	$(DEPDIR)/ssl_support.Po $(DEPDIR)/stat.Po \
@@ -606,11 +584,10 @@ depcomp = $(SHELL) $(top_srcdir)/cfgaux/depcomp
 @AMDEP_TRUE@	$(DEPDIR)/store_swapmeta.Po \
 @AMDEP_TRUE@	$(DEPDIR)/store_swapout.Po \
 @AMDEP_TRUE@	$(DEPDIR)/string_arrays.Po $(DEPDIR)/tools.Po \
-@AMDEP_TRUE@	$(DEPDIR)/ufscommon.Po $(DEPDIR)/unlinkd.Po \
-@AMDEP_TRUE@	$(DEPDIR)/url.Po $(DEPDIR)/urn.Po \
-@AMDEP_TRUE@	$(DEPDIR)/useragent.Po $(DEPDIR)/wais.Po \
-@AMDEP_TRUE@	$(DEPDIR)/wccp.Po $(DEPDIR)/whois.Po \
-@AMDEP_TRUE@	$(DEPDIR)/win32.Po
+@AMDEP_TRUE@	$(DEPDIR)/unlinkd.Po $(DEPDIR)/url.Po \
+@AMDEP_TRUE@	$(DEPDIR)/urn.Po $(DEPDIR)/useragent.Po \
+@AMDEP_TRUE@	$(DEPDIR)/wais.Po $(DEPDIR)/wccp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/whois.Po $(DEPDIR)/win32.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -715,6 +692,7 @@ uninstall-sbinPROGRAMS:
 
 clean-sbinPROGRAMS:
 	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
+cachemgr__CGIEXT_-cachemgr.$(OBJEXT): cachemgr.c
 cachemgr$(CGIEXT)$(EXEEXT): $(cachemgr__CGIEXT__OBJECTS) $(cachemgr__CGIEXT__DEPENDENCIES) 
 	@rm -f cachemgr$(CGIEXT)$(EXEEXT)
 	$(LINK) $(cachemgr__CGIEXT__LDFLAGS) $(cachemgr__CGIEXT__OBJECTS) $(cachemgr__CGIEXT__LDADD) $(LIBS)
@@ -755,10 +733,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/HttpReply.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/HttpRequest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/HttpStatusLine.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/IPInterception.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/MemBuf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/MemPool.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/Packer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ProfStats.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/StatHist.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/String.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/access_log.Po@am__quote@
@@ -768,19 +745,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/authenticate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cache_cf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cache_manager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cachemgr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/carp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cbdata.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cf_gen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/client.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/clientStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/client_db.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/client_side.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/client_side_reply.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/client_side_request.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/comm.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/comm_kqueue.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/comm_poll.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/comm_select.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/debug.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/delay_pools.Po@am__quote@
@@ -845,7 +817,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/store_swapout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/string_arrays.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/tools.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ufscommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/unlinkd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/url.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/urn.Po@am__quote@
@@ -869,6 +840,18 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(COMPILE) -c `cygpath -w $<`
+
+cachemgr__CGIEXT_-cachemgr.o: cachemgr.c
+@AMDEP_TRUE@	source='cachemgr.c' object='cachemgr__CGIEXT_-cachemgr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po' tmpdepfile='$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cachemgr__CGIEXT__CFLAGS) $(CFLAGS) -c -o cachemgr__CGIEXT_-cachemgr.o `test -f cachemgr.c || echo '$(srcdir)/'`cachemgr.c
+
+cachemgr__CGIEXT_-cachemgr.obj: cachemgr.c
+@AMDEP_TRUE@	source='cachemgr.c' object='cachemgr__CGIEXT_-cachemgr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po' tmpdepfile='$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cachemgr__CGIEXT__CFLAGS) $(CFLAGS) -c -o cachemgr__CGIEXT_-cachemgr.obj `cygpath -w cachemgr.c`
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 install-dataDATA: $(data_DATA)
@@ -1174,8 +1157,7 @@ cf.data: cf.data.pre Makefile
 	s%@DEFAULT_ICON_DIR@%$(DEFAULT_ICON_DIR)%g;\
 	s%@DEFAULT_MIB_PATH@%$(DEFAULT_MIB_PATH)%g;\
 	s%@DEFAULT_ERROR_DIR@%$(DEFAULT_ERROR_DIR)%g;\
-	s%@DEFAULT_PREFIX@%$(DEFAULT_PREFIX)%g;\
-	s%@DEFAULT_HOSTS@%$(DEFAULT_HOSTS)%g;"\
+	s%@DEFAULT_PREFIX@%$(DEFAULT_PREFIX)%g;"\
 	< $(srcdir)/cf.data.pre >$@
 
 store_modules.c: store_modules.sh Makefile
@@ -1199,6 +1181,12 @@ install-data-local: install-sysconfDATA install-dataDATA
 	else \
 	        echo "$(INSTALL_DATA) squid.conf.default $(DESTDIR)$(DEFAULT_CONFIG_FILE)"; \
 	        $(INSTALL_DATA) squid.conf.default $(DESTDIR)$(DEFAULT_CONFIG_FILE); \
+	fi
+	@if test -f $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG) ; then \
+	        echo "$@ will not overwrite existing $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG)" ; \
+	else \
+	        echo "$(INSTALL_DATA) $(srcdir)/cachemgr.conf $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG)"; \
+	        $(INSTALL_DATA) $(srcdir)/cachemgr.conf $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG); \
 	fi
 	$(mkinstalldirs) $(DESTDIR)$(DEFAULT_LOG_PREFIX)
 

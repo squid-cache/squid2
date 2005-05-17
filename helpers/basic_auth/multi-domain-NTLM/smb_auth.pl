@@ -38,11 +38,12 @@ use Authen::Smb;
 
 $|=1;
 while (<>) {
-	if (! m;([^\\]+)(\\|/|%2f|%5c)(\S+)\s(.*); ) { #parse the line
+	chomp;
+	if (! m;^(\S+)(/|%5c)(\S+)\s(\S+)$; ) { #parse the line
 		print "ERR\n";
 		next;
 	}
-        $domain=$1;
+	$domain=$1;
 	$user=$3;
 	$pass=$4;
 	$domain =~ s/%([0-9a-f][0-9a-f])/pack("H2",$1)/gie;

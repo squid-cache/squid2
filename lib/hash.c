@@ -61,7 +61,6 @@
 
 #include "hash.h"
 #include "util.h"
-#include "profiling.h"
 
 static void hash_next_bucket(hash_table * hid);
 
@@ -184,17 +183,13 @@ hash_lookup(hash_table * hid, const void *k)
 {
     hash_link *walker;
     int b;
-    PROF_start(hash_lookup);
     assert(k != NULL);
     b = hid->hash(k, hid->size);
     for (walker = hid->buckets[b]; walker != NULL; walker = walker->next) {
-	if ((hid->cmp) (k, walker->key) == 0) {
-	    PROF_stop(hash_lookup);
+	if ((hid->cmp) (k, walker->key) == 0)
 	    return (walker);
-	}
 	assert(walker != walker->next);
     }
-    PROF_stop(hash_lookup);
     return NULL;
 }
 

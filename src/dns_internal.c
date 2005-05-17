@@ -54,6 +54,8 @@ typedef struct _idns_query idns_query;
 typedef struct _ns ns;
 
 struct _idns_query {
+    hash_link hash;
+    rfc1035_query query;
     char buf[512];
     size_t sz;
     unsigned short id;
@@ -64,6 +66,9 @@ struct _idns_query {
     IDNSCB *callback;
     void *callback_data;
     int attempt;
+    const char *error;
+    int rcode;
+    idns_query *queue;
 };
 
 struct _ns {
@@ -78,6 +83,7 @@ static int nns = 0;
 static int nns_alloc = 0;
 static dlink_list lru_list;
 static int event_queued = 0;
+static hash_table *idns_lookup_hash = NULL;
 
 static OBJH idnsStats;
 static void idnsAddNameserver(const char *buf);
@@ -274,8 +280,7 @@ idnsParseWIN32Registry(void)
 				t, &Size);
 			    token = strtok((char *) t, ", ");
 			    while (token) {
-				debug(78,
-				    1) ("Adding nameserver %s from Registry\n",
+				debug(78, 1) ("Adding nameserver %s from Registry\n",
 				    token);
 				idnsAddNameserver(token);
 				token = strtok(NULL, ", ");
@@ -437,53 +442,99 @@ idnsFindQuery(unsigned short id)
     return NULL;
 }
 
+static unsigned short
+idnsQueryID(void)
+{
+    unsigned short id = squid_random() & 0xFFFF;
+    unsigned short first_id = id;
+
+    while (idnsFindQuery(id)) {
+	id++;
+
+	if (id == first_id) {
+	    debug(78, 1) ("idnsQueryID: Warning, too many pending DNS requests\n");
+	    break;
+	}
+    }
+
+    return id;
+}
+
+
+static void
+idnsCallback(idns_query * q, rfc1035_rr * answers, int n, const char *error)
+{
+    int valid;
+    valid = cbdataValid(q->callback_data);
+    cbdataUnlock(q->callback_data);
+    if (valid)
+	q->callback(q->callback_data, answers, n, error);
+    while (q->queue) {
+	idns_query *q2 = q->queue;
+	q->queue = q2->queue;
+	valid = cbdataValid(q2->callback_data);
+	cbdataUnlock(q2->callback_data);
+	if (valid)
+	    q2->callback(q2->callback_data, answers, n, error);
+	memFree(q2, MEM_IDNS_QUERY);
+    }
+    if (q->hash.key) {
+	hash_remove_link(idns_lookup_hash, &q->hash);
+	q->hash.key = NULL;
+    }
+}
+
 static void
 idnsGrokReply(const char *buf, size_t sz)
 {
     int n;
-    rfc1035_rr *answers = NULL;
-    unsigned short rid = 0xFFFF;
+    rfc1035_message *message = NULL;
     idns_query *q;
-    IDNSCB *callback;
-    void *cbdata;
-    n = rfc1035AnswersUnpack(buf,
+    n = rfc1035MessageUnpack(buf,
 	sz,
-	&answers,
-	&rid);
-    debug(78, 3) ("idnsGrokReply: ID %#hx, %d answers\n", rid, n);
-    if (rid == 0xFFFF) {
-	debug(78, 1) ("idnsGrokReply: Unknown error\n");
-	/* XXX leak answers? */
+	&message);
+    if (message == NULL) {
+	debug(78, 2) ("idnsGrokReply: Malformed DNS response\n");
 	return;
     }
-    q = idnsFindQuery(rid);
+    debug(78, 3) ("idnsGrokReply: ID %#hx, %d answers\n", message->id, n);
+
+    q = idnsFindQuery(message->id);
+
     if (q == NULL) {
 	debug(78, 3) ("idnsGrokReply: Late response\n");
-	rfc1035RRDestroy(answers, n);
+	rfc1035MessageDestroy(message);
+	return;
+    }
+    if (rfc1035QueryCompare(&q->query, message->query) != 0) {
+	debug(78, 3) ("idnsGrokReply: Query mismatch (%s != %s)\n", q->query.name, message->query->name);
+	rfc1035MessageDestroy(message);
 	return;
     }
     dlinkDelete(&q->lru, &lru_list);
     idnsRcodeCount(n, q->attempt);
+    q->error = NULL;
     if (n < 0) {
-	debug(78, 3) ("idnsGrokReply: error %d\n", rfc1035_errno);
-	if (-2 == n && ++q->attempt < MAX_ATTEMPT) {
+	debug(78, 3) ("idnsGrokReply: error %s (%d)\n", rfc1035_error_message, rfc1035_errno);
+	q->error = rfc1035_error_message;
+	q->rcode = -n;
+	if (q->rcode == 2 && ++q->attempt < MAX_ATTEMPT) {
 	    /*
 	     * RCODE 2 is "Server failure - The name server was
 	     * unable to process this query due to a problem with
 	     * the name server."
 	     */
-	    assert(NULL == answers);
+	    rfc1035MessageDestroy(message);
 	    q->start_t = current_time;
-	    q->id = rfc1035RetryQuery(q->buf);
+	    q->id = idnsQueryID();
+	    rfc1035SetQueryID(q->buf, q->id);
 	    idnsSendQuery(q);
 	    return;
 	}
     }
-    callback = q->callback;
-    q->callback = NULL;
-    if (cbdataReferenceValidDone(q->callback_data, &cbdata))
-	callback(cbdata, answers, n);
-    rfc1035RRDestroy(answers, n);
+    idnsCallback(q, message->answer, n, q->error);
+    rfc1035MessageDestroy(message);
+
     memFree(q, MEM_IDNS_QUERY);
 }
 
@@ -501,7 +552,7 @@ idnsRead(int fd, void *data)
 	from_len = sizeof(from);
 	memset(&from, '\0', from_len);
 	statCounter.syscalls.sock.recvfroms++;
-	len = recvfrom(fd, rbuf, 512, 0, (struct sockaddr *) &from, &from_len);
+	len = recvfrom(fd, rbuf, sizeof(rbuf), 0, (struct sockaddr *) &from, &from_len);
 	if (len == 0)
 	    break;
 	if (len < 0) {
@@ -537,23 +588,6 @@ idnsRead(int fd, void *data)
 	    }
 	    continue;
 	}
-	if (len > 512) {
-	    /*
-	     * Check for non-conforming replies.  RFC 1035 says
-	     * DNS/UDP messages must be 512 octets or less.  If we
-	     * get one that is too large, we generate a warning
-	     * and then pretend that we only got 512 octets.  This
-	     * should prevent the rfc1035.c code from reading past
-	     * the end of our buffer.
-	     */
-	    static int other_large_pkts = 0;
-	    int x;
-	    x = (ns < 0) ? ++other_large_pkts : ++nameservers[ns].large_pkts;
-	    if (isPowTen(x))
-		debug(78, 1) ("WARNING: Got %d large DNS replies from %s\n",
-		    x, inet_ntoa(from.sin_addr));
-	    len = 512;
-	}
 	idnsGrokReply(rbuf, len);
     }
     if (lru_list.head)
@@ -572,7 +606,7 @@ idnsCheckQueue(void *unused)
 	    /* name servers went away; reconfiguring or shutting down */
 	    break;
 	q = n->data;
-	if (tvSubDsec(q->sent_t, current_time) < Config.Timeout.idns_retransmit * (1 << q->nsends % nns))
+	if (tvSubDsec(q->sent_t, current_time) < Config.Timeout.idns_retransmit * 1 << ((q->nsends - 1) / nns))
 	    break;
 	debug(78, 3) ("idnsCheckQueue: ID %#04x timeout\n",
 	    q->id);
@@ -581,15 +615,13 @@ idnsCheckQueue(void *unused)
 	if (tvSubDsec(q->start_t, current_time) < Config.Timeout.idns_query) {
 	    idnsSendQuery(q);
 	} else {
-	    IDNSCB *callback;
-	    void *cbdata;
 	    debug(78, 2) ("idnsCheckQueue: ID %x: giving up after %d tries and %5.1f seconds\n",
 		(int) q->id, q->nsends,
 		tvSubDsec(q->start_t, current_time));
-	    callback = q->callback;
-	    q->callback = NULL;
-	    if (cbdataReferenceValidDone(q->callback_data, &cbdata))
-		callback(cbdata, NULL, 0);
+	    if (q->rcode != 0)
+		idnsCallback(q, NULL, -q->rcode, q->error);
+	    else
+		idnsCallback(q, NULL, -16, "Timeout");
 	    memFree(q, MEM_IDNS_QUERY);
 	}
     }
@@ -650,20 +682,23 @@ idnsInit(void)
     if (0 == nns)
 	idnsParseWIN32Registry();
 #endif
-    if (0 == nns)
-	fatal("Could not find any nameservers.\n"
+    if (0 == nns) {
+	debug(78, 1) ("Warning: Could not find any nameservers. Trying to use localhost\n");
 #if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
-	    "       Please check your TCP-IP settings or /etc/resolv.conf file\n"
+	debug(78, 1) ("Please check your TCP-IP settings or /etc/resolv.conf file\n");
 #else
-	    "       Please check your /etc/resolv.conf file\n"
+	debug(78, 1) ("Please check your /etc/resolv.conf file\n");
 #endif
-	    "       or use the 'dns_nameservers' option in squid.conf.");
+	debug(78, 1) ("or use the 'dns_nameservers' option in squid.conf.\n");
+	idnsAddNameserver("127.0.0.1");
+    }
     if (!init) {
 	memDataInit(MEM_IDNS_QUERY, "idns_query", sizeof(idns_query), 0);
 	cachemgrRegister("idns",
 	    "Internal DNS Statistics",
 	    idnsStats, 0, 1);
 	memset(RcodeMatrix, '\0', sizeof(RcodeMatrix));
+	idns_lookup_hash = hash_create((HASHCMP *) strcmp, 103, hash_string);
 	init++;
     }
 }
@@ -678,37 +713,77 @@ idnsShutdown(void)
     idnsFreeNameservers();
 }
 
+static int
+idnsCachedLookup(const char *key, IDNSCB * callback, void *data)
+{
+    idns_query *q;
+    idns_query *old = hash_lookup(idns_lookup_hash, key);
+    if (!old)
+	return 0;
+    q = memAllocate(MEM_IDNS_QUERY);
+    q->callback = callback;
+    q->callback_data = data;
+    cbdataLock(q->callback_data);
+    q->queue = old->queue;
+    old->queue = q;
+    return 1;
+}
+
+static void
+idnsCacheQuery(idns_query * q)
+{
+    q->hash.key = q->query.name;
+    hash_join(idns_lookup_hash, &q->hash);
+}
+
 void
 idnsALookup(const char *name, IDNSCB * callback, void *data)
 {
-    idns_query *q = memAllocate(MEM_IDNS_QUERY);
-    q->sz = sizeof(q->buf);
-    q->id = rfc1035BuildAQuery(name, q->buf, &q->sz);
-    if (0 == q->id) {
+    idns_query *q;
+    if (idnsCachedLookup(name, callback, data))
+	return;
+    q = memAllocate(MEM_IDNS_QUERY);
+    q->id = idnsQueryID();
+    q->sz = rfc1035BuildAQuery(name, q->buf, sizeof(q->buf), q->id, &q->query);
+    if (q->sz < 0) {
 	/* problem with query data -- query not sent */
-	callback(data, NULL, 0);
+	callback(data, NULL, 0, "Internal error");
 	memFree(q, MEM_IDNS_QUERY);
 	return;
     }
     debug(78, 3) ("idnsALookup: buf is %d bytes for %s, id = %#hx\n",
 	(int) q->sz, name, q->id);
     q->callback = callback;
-    q->callback_data = cbdataReference(data);
+    q->callback_data = data;
+    cbdataLock(q->callback_data);
     q->start_t = current_time;
+    idnsCacheQuery(q);
     idnsSendQuery(q);
 }
 
 void
 idnsPTRLookup(const struct in_addr addr, IDNSCB * callback, void *data)
 {
-    idns_query *q = memAllocate(MEM_IDNS_QUERY);
-    q->sz = sizeof(q->buf);
-    q->id = rfc1035BuildPTRQuery(addr, q->buf, &q->sz);
+    idns_query *q;
+    const char *ip = inet_ntoa(addr);
+    if (idnsCachedLookup(ip, callback, data))
+	return;
+    q = memAllocate(MEM_IDNS_QUERY);
+    q->id = idnsQueryID();
+    q->sz = rfc1035BuildPTRQuery(addr, q->buf, sizeof(q->buf), q->id, &q->query);
     debug(78, 3) ("idnsPTRLookup: buf is %d bytes for %s, id = %#hx\n",
-	(int) q->sz, inet_ntoa(addr), q->id);
+	(int) q->sz, ip, q->id);
+    if (q->sz < 0) {
+	/* problem with query data -- query not sent */
+	callback(data, NULL, 0, "Internal error");
+	memFree(q, MEM_IDNS_QUERY);
+	return;
+    }
     q->callback = callback;
-    q->callback_data = cbdataReference(data);
+    q->callback_data = data;
+    cbdataLock(q->callback_data);
     q->start_t = current_time;
+    idnsCacheQuery(q);
     idnsSendQuery(q);
 }
 
@@ -741,7 +816,7 @@ snmp_netIdnsFn(variable_list * Var, snint * ErrP)
 	break;
     case DNS_SERVERS:
 	Answer = snmp_var_new_integer(Var->name, Var->name_length,
-	    nns,
+	    0,
 	    SMI_COUNTER32);
 	break;
     default:

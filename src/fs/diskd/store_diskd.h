@@ -7,8 +7,6 @@
 #ifndef __STORE_DISKD_H__
 #define __STORE_DISKD_H__
 
-#include "ufscommon.h"
-
 /*
  * magic2 is the point at which we start blocking on msgsnd/msgrcv.
  * If a queue has magic2 (or more) messages away, then we read the
@@ -18,8 +16,11 @@
  */
 
 struct _diskdinfo_t {
-    /* MUST BE FIRST */
-    squidufsinfo_t commondata;
+    int swaplog_fd;
+    int l1;
+    int l2;
+    fileMap *map;
+    int suggest;
     int smsgid;
     int rmsgid;
     int wfd;
@@ -28,7 +29,6 @@ struct _diskdinfo_t {
 	char *buf;
 	char *inuse_map;
 	int id;
-	int nbufs;
     } shm;
     int magic1;
     int magic2;
@@ -59,7 +59,7 @@ typedef struct _diomsg {
     int seq_no;
     void *callback_data;
     int size;
-    int offset;
+    off_t offset;
     int status;
     int shm_offset;
 } diomsg;
@@ -89,8 +89,14 @@ static const int msg_snd_rcv_sz = sizeof(diomsg) - sizeof(mtyp_t);
 /* The diskd_state memory pool */
 extern MemPool *diskd_state_pool;
 
-extern void storeDiskdShmPut(SwapDir *, off_t);
-extern void *storeDiskdShmGet(SwapDir *, off_t *);
+extern void storeDiskdDirMapBitReset(SwapDir *, sfileno);
+extern int storeDiskdDirMapBitAllocate(SwapDir *);
+extern char *storeDiskdDirFullPath(SwapDir * SD, sfileno filn, char *fullpath);
+extern void storeDiskdDirUnlinkFile(SwapDir *, sfileno);
+extern void storeDiskdDirReplAdd(SwapDir *, StoreEntry *);
+extern void storeDiskdDirReplRemove(StoreEntry *);
+extern void storeDiskdShmPut(SwapDir *, int);
+extern void *storeDiskdShmGet(SwapDir *, int *);
 extern void storeDiskdHandle(diomsg * M);
 extern int storeDiskdDirCallback(SwapDir *);
 
@@ -105,6 +111,11 @@ extern STOBJREAD storeDiskdRead;
 extern STOBJWRITE storeDiskdWrite;
 extern STOBJUNLINK storeDiskdUnlink;
 
+/*
+ * SHMBUFS is the number of shared memory buffers to allocate for
+ * Each SwapDir.
+ */
+#define SHMBUFS 96
 #define SHMBUF_BLKSZ SM_PAGE_SIZE
 
 extern diskd_stats_t diskd_stats;

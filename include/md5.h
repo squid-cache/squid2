@@ -52,7 +52,7 @@
  * documentation and/or software.
  */
 
-#include "config.h"
+#include "squid_types.h"
 
 /* MD5 context. */
 typedef struct {

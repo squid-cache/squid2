@@ -43,6 +43,10 @@
 static void
 authenticateStateFree(authenticateStateData * r)
 {
+    if (r->auth_user_request) {
+	authenticateAuthUserRequestUnlock(r->auth_user_request);
+	r->auth_user_request = NULL;
+    }
     cbdataFree(r);
 }
 
@@ -120,7 +124,7 @@ authBasicDone(void)
 	helperFree(basicauthenticators);
     basicauthenticators = NULL;
     if (basic_data_pool) {
-	memPoolDestroy(&basic_data_pool);
+	memPoolDestroy(basic_data_pool);
 	basic_data_pool = NULL;
     }
     debug(29, 2) ("authBasicDone: Basic authentication Shutdown.\n");
@@ -212,7 +216,7 @@ authenticateBasicDirection(auth_user_request_t * auth_user_request)
     case 2:			/* paused while waiting for a username:password check on another request */
 	return -1;
     case 3:			/* authentication process failed. */
-	return -2;
+	return 0;
     }
     return -2;
 }
@@ -261,12 +265,12 @@ authenticateBasicHandleReply(void *data, char *reply)
     auth_user_t *auth_user;
     basic_data *basic_auth;
     auth_basic_queue_node *tmpnode;
+    int valid;
     char *t = NULL;
-    void *cbdata;
     debug(29, 9) ("authenticateBasicHandleReply: {%s}\n", reply ? reply : "<NULL>");
     if (reply) {
 	if ((t = strchr(reply, ' ')))
-	    *t = '\0';
+	    *t++ = '\0';
 	if (*reply == '\0')
 	    reply = NULL;
     }
@@ -276,16 +280,23 @@ authenticateBasicHandleReply(void *data, char *reply)
     basic_auth = auth_user->scheme_data;
     if (reply && (strncasecmp(reply, "OK", 2) == 0))
 	basic_auth->flags.credentials_ok = 1;
-    else
+    else {
 	basic_auth->flags.credentials_ok = 3;
+	safe_free(r->auth_user_request->message);
+	if (t && *t)
+	    r->auth_user_request->message = xstrdup(t);
+    }
     basic_auth->credentials_checkedtime = squid_curtime;
-    if (cbdataReferenceValidDone(r->data, &cbdata))
-	r->handler(cbdata, NULL);
-    cbdataReferenceDone(r->data);
+    valid = cbdataValid(r->data);
+    if (valid)
+	r->handler(r->data, NULL);
+    cbdataUnlock(r->data);
     while (basic_auth->auth_queue) {
 	tmpnode = basic_auth->auth_queue->next;
-	if (cbdataReferenceValidDone(basic_auth->auth_queue->data, &cbdata))
-	    basic_auth->auth_queue->handler(cbdata, NULL);
+	valid = cbdataValid(basic_auth->auth_queue->data);
+	if (valid)
+	    basic_auth->auth_queue->handler(basic_auth->auth_queue->data, NULL);
+	cbdataUnlock(basic_auth->auth_queue->data);
 	xfree(basic_auth->auth_queue);
 	basic_auth->auth_queue = tmpnode;
     }
@@ -302,10 +313,11 @@ authBasicCfgDump(StoreEntry * entry, const char *name, authScheme * scheme)
 	storeAppendPrintf(entry, " %s", list->key);
 	list = list->next;
     }
-    storeAppendPrintf(entry, "\n%s %s realm %s\n%s %s children %d\n%s %s credentialsttl %d seconds\n",
+    storeAppendPrintf(entry, "\n%s %s realm %s\n%s %s children %d\n%s %s credentialsttl %d seconds\n%s %s casesensitive %s\n",
 	name, "basic", config->basicAuthRealm,
 	name, "basic", config->authenticateChildren,
-	name, "basic", (int) config->credentialsTTL);
+	name, "basic", (int) config->credentialsTTL,
+	name, "basic", config->casesensitive ? "on" : "off");
 
 }
 
@@ -318,6 +330,7 @@ authBasicParse(authScheme * scheme, int n_configured, char *param_str)
 	scheme->scheme_data = xmalloc(sizeof(auth_basic_config));
 	memset(scheme->scheme_data, 0, sizeof(auth_basic_config));
 	basicConfig = scheme->scheme_data;
+	basicConfig->basicAuthRealm = xstrdup("Squid proxy-caching web server");
 	basicConfig->authenticateChildren = 5;
 	basicConfig->credentialsTTL = 2 * 60 * 60;	/* two hours */
     }
@@ -333,6 +346,8 @@ authBasicParse(authScheme * scheme, int n_configured, char *param_str)
 	parse_eol(&basicConfig->basicAuthRealm);
     } else if (strcasecmp(param_str, "credentialsttl") == 0) {
 	parse_time_t(&basicConfig->credentialsTTL);
+    } else if (strcasecmp(param_str, "casesensitive") == 0) {
+	parse_onoff(&basicConfig->casesensitive);
     } else {
 	debug(28, 0) ("unrecognised basic auth scheme parameter '%s'\n", param_str);
     }
@@ -413,7 +428,7 @@ authenticateBasicDecodeAuth(auth_user_request_t * auth_user_request, const char 
 
     /* decode the username */
     /* trim BASIC from string */
-    while (!xisspace(*proxy_auth))
+    while (xisgraph(*proxy_auth))
 	proxy_auth++;
 
     local_basic.passwd = NULL;
@@ -431,10 +446,14 @@ authenticateBasicDecodeAuth(auth_user_request_t * auth_user_request, const char 
      * Don't allow NL or CR in the credentials.
      * Oezguer Kesim <oec@codeblau.de>
      */
-    strtok(cleartext, "\r\n");
     debug(29, 9) ("authenticateBasicDecodeAuth: cleartext = '%s'\n", cleartext);
-    local_basic.username = xstrndup(cleartext, USER_IDENT_SZ);
-    xfree(cleartext);
+    if (strcspn(cleartext, "\r\n") != strlen(cleartext)) {
+	debug(29, 1) ("authenticateBasicDecodeAuth: bad characters in authorization header '%s'\n",
+	    proxy_auth);
+	xfree(cleartext);
+	return;
+    }
+    local_basic.username = cleartext;
     if ((cleartext = strchr(local_basic.username, ':')) != NULL)
 	*(cleartext)++ = '\0';
     local_basic.passwd = cleartext;
@@ -478,6 +497,8 @@ authenticateBasicDecodeAuth(auth_user_request_t * auth_user_request, const char 
 	local_basic.passwd = xstrndup(cleartext, USER_IDENT_SZ);
     }
 
+    if (!basicConfig->casesensitive)
+	Tolower(local_basic.username);
     /* now lookup and see if we have a matching auth_user structure in memory. */
 
     if ((auth_user = authBasicAuthUserFindUsername(local_basic.username)) == NULL) {
@@ -540,7 +561,7 @@ authBasicInit(authScheme * scheme)
 	    basicauthenticators = helperCreate("basicauthenticator");
 	basicauthenticators->cmdline = basicConfig->authenticate;
 	basicauthenticators->n_to_start = basicConfig->authenticateChildren;
-	basicauthenticators->ipc_type = IPC_STREAM;
+	basicauthenticators->ipc_type = IPC_TCP_SOCKET;
 	helperOpenServers(basicauthenticators);
 	if (!init) {
 	    cachemgrRegister("basicauthenticator",
@@ -580,15 +601,17 @@ authenticateBasicStart(auth_user_request_t * auth_user_request, RH * handler, vo
 	/* save the details */
 	node->next = basic_auth->auth_queue;
 	basic_auth->auth_queue = node;
-	node->auth_user_request = auth_user_request;
 	node->handler = handler;
-	node->data = cbdataReference(data);
+	node->data = data;
+	cbdataLock(data);
 	return;
     } else {
 	r = cbdataAlloc(authenticateStateData);
 	r->handler = handler;
-	r->data = cbdataReference(data);
+	cbdataLock(data);
+	r->data = data;
 	r->auth_user_request = auth_user_request;
+	authenticateAuthUserRequestLock(r->auth_user_request);
 	/* mark the user as haveing verification in progress */
 	basic_auth->flags.credentials_ok = 2;
 	xstrncpy(user, rfc1738_escape(basic_auth->username), sizeof(user));

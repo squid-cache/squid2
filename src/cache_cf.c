@@ -78,12 +78,12 @@ static void parse_string(char **);
 static void default_all(void);
 static void defaults_if_none(void);
 static int parse_line(char *);
-static void parseBytesLine(size_t * bptr, const char *units);
+static void parseBytesLine(squid_off_t * bptr, const char *units);
 static size_t parseBytesUnits(const char *unit);
 static void free_all(void);
 void requirePathnameExists(const char *name, const char *path);
 static OBJH dump_config;
-#if HTTP_VIOLATIONS
+#ifdef HTTP_VIOLATIONS
 static void dump_http_header_access(StoreEntry * entry, const char *name, header_mangler header[]);
 static void parse_http_header_access(header_mangler header[]);
 static void free_http_header_access(header_mangler header[]);
@@ -97,9 +97,7 @@ static void free_denyinfo(acl_deny_info_list ** var);
 static void parse_sockaddr_in_list(sockaddr_in_list **);
 static void dump_sockaddr_in_list(StoreEntry *, const char *, const sockaddr_in_list *);
 static void free_sockaddr_in_list(sockaddr_in_list **);
-#if 0
 static int check_null_sockaddr_in_list(const sockaddr_in_list *);
-#endif
 #if USE_SSL
 static void parse_https_port_list(https_port_list **);
 static void dump_https_port_list(StoreEntry *, const char *, const https_port_list *);
@@ -112,6 +110,7 @@ static int check_null_https_port_list(const https_port_list *);
 void
 self_destruct(void)
 {
+    shutting_down = 1;
     fatalf("Bungled %s line %d: %s",
 	cfg_filename, config_lineno, config_input_line);
 }
@@ -202,44 +201,45 @@ intlistFind(intlist * list, int i)
     return 0;
 }
 
+
 /*
- * These functions is the same as atoi/l/f, except that they check for errors
+ * Use this #define in all the parse*() functions.  Assumes char *token is
+ * defined
  */
-
-static long
-xatol(const char *token)
-{
-    char *end;
-    long ret = strtol(token, &end, 10);
-    if (ret == 0 && end == token)
-	self_destruct();
-    return ret;
-}
-
-static int
-xatoi(const char *token)
-{
-    return xatol(token);
-}
-
-static double
-xatof(const char *token)
-{
-    char *end;
-    double ret = strtod(token, &end);
-    if (ret == 0 && end == token)
-	self_destruct();
-    return ret;
-}
 
 int
 GetInteger(void)
 {
     char *token = strtok(NULL, w_space);
+    char *end;
     int i;
+    double d;
     if (token == NULL)
 	self_destruct();
-    if (sscanf(token, "%d", &i) != 1)
+    i = strtol(token, &end, 0);
+    d = strtod(token, NULL);
+    if (d > INT_MAX || end == token)
+	self_destruct();
+    return i;
+}
+
+static squid_off_t
+GetOffT(void)
+{
+    char *token = strtok(NULL, w_space);
+    char *end;
+    squid_off_t i;
+    if (token == NULL)
+	self_destruct();
+    i = strto_off_t(token, &end, 0);
+#if SIZEOF_SQUID_OFF_T <= 4
+    {
+	double d = strtod(token, NULL);
+	if (d > INT_MAX)
+	    end = token;
+    }
+#endif
+    if (end == token)
 	self_destruct();
     return i;
 }
@@ -248,7 +248,7 @@ static void
 update_maxobjsize(void)
 {
     int i;
-    ssize_t ms = -1;
+    squid_off_t ms = -1;
 
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
 	if (Config.cacheSwap.swapDirs[i].max_objsize > ms)
@@ -264,25 +264,16 @@ parseConfigFile(const char *file_name)
     char *token = NULL;
     char *tmp_line;
     int err_count = 0;
-    int is_pipe = 0;
     configFreeMemory();
     default_all();
-    if (file_name[0] == '!' || file_name[0] == '|') {
-	fp = popen(file_name + 1, "r");
-	is_pipe = 1;
-    } else {
-	fp = fopen(file_name, "r");
-    }
-    if (fp == NULL)
+    if ((fp = fopen(file_name, "r")) == NULL)
 	fatalf("Unable to open configuration file: %s: %s",
 	    file_name, xstrerror());
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_CYGWIN_)
     setmode(fileno(fp), O_TEXT);
 #endif
     cfg_filename = file_name;
-    if (is_pipe)
-	cfg_filename = file_name + 1;
-    else if ((token = strrchr(cfg_filename, '/')))
+    if ((token = strrchr(cfg_filename, '/')))
 	cfg_filename = token + 1;
     memset(config_input_line, '\0', BUFSIZ);
     config_lineno = 0;
@@ -290,30 +281,8 @@ parseConfigFile(const char *file_name)
 	config_lineno++;
 	if ((token = strchr(config_input_line, '\n')))
 	    *token = '\0';
-	if (strncmp(config_input_line, "#line ", 6) == 0) {
-	    static char new_file_name[1024];
-	    static char *file;
-	    static char new_lineno;
-	    token = config_input_line + 6;
-	    new_lineno = strtol(token, &file, 0) - 1;
-	    if (file == token)
-		continue;	/* Not a valid #line directive, may be a comment */
-	    while (*file && isspace((unsigned char) *file))
-		file++;
-	    if (*file) {
-		if (*file != '"')
-		    continue;	/* Not a valid #line directive, may be a comment */
-		xstrncpy(new_file_name, file + 1, sizeof(new_file_name));
-		if ((token = strchr(new_file_name, '"')))
-		    *token = '\0';
-		cfg_filename = new_file_name;
-#if PROBABLY_NOT_WANTED_HERE
-		if ((token = strrchr(cfg_filename, '/')))
-		    cfg_filename = token + 1;
-#endif
-	    }
-	    config_lineno = new_lineno;
-	}
+	if ((token = strchr(config_input_line, '\r')))
+	    *token = '\0';
 	if (config_input_line[0] == '#')
 	    continue;
 	if (config_input_line[0] == '\0')
@@ -321,27 +290,22 @@ parseConfigFile(const char *file_name)
 	debug(3, 5) ("Processing: '%s'\n", config_input_line);
 	tmp_line = xstrdup(config_input_line);
 	if (!parse_line(tmp_line)) {
-	    debug(3, 0) ("parseConfigFile: '%s' line %d unrecognized: '%s'\n",
-		cfg_filename,
+	    debug(3, 0) ("parseConfigFile: line %d unrecognized: '%s'\n",
 		config_lineno,
 		config_input_line);
 	    err_count++;
 	}
 	safe_free(tmp_line);
     }
-    if (is_pipe) {
-	int ret = pclose(fp);
-	if (ret != 0)
-	    fatalf("parseConfigFile: '%s' failed with exit code %d\n", file_name, ret);
-    } else {
-	fclose(fp);
-    }
+    fclose(fp);
     defaults_if_none();
-    configDoConfigure();
-    cachemgrRegister("config",
-	"Current Squid Configuration",
-	dump_config,
-	1, 1);
+    if (opt_send_signal == -1) {
+	configDoConfigure();
+	cachemgrRegister("config",
+	    "Current Squid Configuration",
+	    dump_config,
+	    1, 1);
+    }
     return err_count;
 }
 
@@ -394,15 +358,19 @@ configDoConfigure(void)
 	if (Config.Accel.port == 0)
 	    vport_mode = 1;
     }
-    snprintf(ThisCache, sizeof(ThisCache), "%s (%s)",
+    if (Config.Sockaddr.http == NULL)
+	fatal("No http_port specified!");
+    snprintf(ThisCache, sizeof(ThisCache), "%s:%d (%s)",
 	uniqueHostname(),
+	(int) ntohs(Config.Sockaddr.http->s.sin_port),
 	full_appname_string);
     /*
      * the extra space is for loop detection in client_side.c -- we search
      * for substrings in the Via header.
      */
-    snprintf(ThisCache2, sizeof(ThisCache), " %s (%s)",
+    snprintf(ThisCache2, sizeof(ThisCache), " %s:%d (%s)",
 	uniqueHostname(),
+	(int) ntohs(Config.Sockaddr.http->s.sin_port),
 	full_appname_string);
     if (!Config.udpMaxHitObjsz || Config.udpMaxHitObjsz > SQUID_UDP_SO_SNDBUF)
 	Config.udpMaxHitObjsz = SQUID_UDP_SO_SNDBUF;
@@ -412,8 +380,6 @@ configDoConfigure(void)
 	Config.appendDomainLen = 0;
     safe_free(debug_options)
 	debug_options = xstrdup(Config.debugOptions);
-    if (Config.retry.timeout < 5)
-	fatal("minimum_retry_timeout must be at least 5 seconds");
     if (Config.retry.maxtries > 10)
 	fatal("maximum_single_addr_tries cannot be larger than 10");
     if (Config.retry.maxtries < 1) {
@@ -448,18 +414,12 @@ configDoConfigure(void)
 	}
     }
 #endif
-#if !HTTP_VIOLATIONS
-    Config.onoff.via = 1;
-#else
-    if (!Config.onoff.via)
-	debug(22, 1) ("WARNING: HTTP requires the use of Via\n");
-#endif
     if (Config.Wais.relayHost) {
-	if (Config.Wais._peer)
-	    cbdataFree(Config.Wais._peer);
-	Config.Wais._peer = cbdataAlloc(peer);
-	Config.Wais._peer->host = xstrdup(Config.Wais.relayHost);
-	Config.Wais._peer->http_port = Config.Wais.relayPort;
+	if (Config.Wais.peer)
+	    cbdataFree(Config.Wais.peer);
+	Config.Wais.peer = cbdataAlloc(peer);
+	Config.Wais.peer->host = xstrdup(Config.Wais.relayHost);
+	Config.Wais.peer->http_port = Config.Wais.relayPort;
     }
     if (aclPurgeMethodInUse(Config.accessList.http))
 	Config2.onoff.enable_purge = 1;
@@ -501,6 +461,34 @@ configDoConfigure(void)
 	    debug(22, 0) ("WARNING: 'maxconn' ACL (%s) won't work with client_db disabled\n", a->name);
 	}
     }
+    if (Config.negativeDnsTtl <= 0) {
+	debug(22, 0) ("WARNING: resetting negative_dns_ttl to 1 second\n");
+	Config.negativeDnsTtl = 1;
+    }
+    if (Config.positiveDnsTtl < Config.negativeDnsTtl) {
+	debug(22, 0) ("NOTICE: positive_dns_ttl must be larger than negative_dns_ttl. Resetting negative_dns_ttl to match\n");
+	Config.positiveDnsTtl = Config.negativeDnsTtl;
+    }
+#if SIZEOF_SQUID_FILE_SZ <= 4
+#if SIZEOF_SQUID_OFF_T <= 4
+    if (Config.Store.maxObjectSize > 0x7FFF0000) {
+	debug(22, 0) ("NOTICE: maximum_object_size limited to %d KB due to hardware limitations\n", 0x7FFF0000 / 1024);
+	Config.Store.maxObjectSize = 0x7FFF0000;
+    }
+#elif SIZEOF_OFF_T <= 4
+    if (Config.Store.maxObjectSize > 0xFFFF0000) {
+	debug(22, 0) ("NOTICE: maximum_object_size limited to %d KB due to OS limitations\n", 0xFFFF0000 / 1024);
+	Config.Store.maxObjectSize = 0xFFFF0000;
+    }
+#else
+    if (Config.Store.maxObjectSize > 0xFFFF0000) {
+	debug(22, 0) ("NOTICE: maximum_object_size limited to %d KB to keep compatibility with existing cache\n", 0xFFFF0000 / 1024);
+	Config.Store.maxObjectSize = 0xFFFF0000;
+    }
+#endif
+#endif
+    if (Config.Store.maxInMemObjSize > 8 * 1024 * 1024)
+	debug(22, 0) ("WARNING: Very large maximum_object_size_in_memory settings can have negative impact on performance\n");
 }
 
 /* Parse a time specification from the config file.  Store the
@@ -516,7 +504,7 @@ parseTimeLine(time_t * tptr, const char *units)
 	self_destruct();
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
-    d = xatof(token);
+    d = atof(token);
     m = u;			/* default to 'units' if none specified */
     if (0 == d)
 	(void) 0;
@@ -554,17 +542,21 @@ parseTimeUnits(const char *unit)
 }
 
 static void
-parseBytesLine(size_t * bptr, const char *units)
+parseBytesLine(squid_off_t * bptr, const char *units)
 {
     char *token;
     double d;
-    size_t m;
-    size_t u;
+    squid_off_t m;
+    squid_off_t u;
     if ((u = parseBytesUnits(units)) == 0)
 	self_destruct();
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
-    d = xatof(token);
+    if (strcmp(token, "none") == 0 || strcmp(token, "-1") == 0) {
+	*bptr = (squid_off_t) - 1;
+	return;
+    }
+    d = atof(token);
     m = u;			/* default to 'units' if none specified */
     if (0.0 == d)
 	(void) 0;
@@ -574,6 +566,8 @@ parseBytesLine(size_t * bptr, const char *units)
     else if ((m = parseBytesUnits(token)) == 0)
 	self_destruct();
     *bptr = m * d / u;
+    if ((double) *bptr * 2 != m * d / u * 2)
+	self_destruct();
 }
 
 static size_t
@@ -636,7 +630,7 @@ dump_acl_list(StoreEntry * entry, acl_list * head)
     for (l = head; l; l = l->next) {
 	storeAppendPrintf(entry, " %s%s",
 	    l->op ? null_string : "!",
-	    l->_acl->name);
+	    l->acl->name);
     }
 }
 
@@ -648,7 +642,7 @@ dump_acl_access(StoreEntry * entry, const char *name, acl_access * head)
 	storeAppendPrintf(entry, "%s %s",
 	    name,
 	    l->allow ? "Allow" : "Deny");
-	dump_acl_list(entry, l->aclList);
+	dump_acl_list(entry, l->acl_list);
 	storeAppendPrintf(entry, "\n");
     }
 }
@@ -704,7 +698,7 @@ dump_acl_address(StoreEntry * entry, const char *name, acl_address * head)
 	    storeAppendPrintf(entry, "%s %s", name, inet_ntoa(l->addr));
 	else
 	    storeAppendPrintf(entry, "%s autoselect", name);
-	dump_acl_list(entry, l->aclList);
+	dump_acl_list(entry, l->acl_list);
 	storeAppendPrintf(entry, "\n");
     }
 }
@@ -713,7 +707,7 @@ static void
 freed_acl_address(void *data)
 {
     acl_address *l = data;
-    aclDestroyAclList(&l->aclList);
+    aclDestroyAclList(&l->acl_list);
 }
 
 static void
@@ -724,7 +718,7 @@ parse_acl_address(acl_address ** head)
     CBDATA_INIT_TYPE_FREECB(acl_address, freed_acl_address);
     l = cbdataAlloc(acl_address);
     parse_address(&l->addr);
-    aclParseAclList(&l->aclList);
+    aclParseAclList(&l->acl_list);
     while (*tail)
 	tail = &(*tail)->next;
     *tail = l;
@@ -751,7 +745,7 @@ dump_acl_tos(StoreEntry * entry, const char *name, acl_tos * head)
 	    storeAppendPrintf(entry, "%s 0x%02X", name, l->tos);
 	else
 	    storeAppendPrintf(entry, "%s none", name);
-	dump_acl_list(entry, l->aclList);
+	dump_acl_list(entry, l->acl_list);
 	storeAppendPrintf(entry, "\n");
     }
 }
@@ -760,7 +754,7 @@ static void
 freed_acl_tos(void *data)
 {
     acl_tos *l = data;
-    aclDestroyAclList(&l->aclList);
+    aclDestroyAclList(&l->acl_list);
 }
 
 static void
@@ -780,7 +774,7 @@ parse_acl_tos(acl_tos ** head)
     CBDATA_INIT_TYPE_FREECB(acl_tos, freed_acl_tos);
     l = cbdataAlloc(acl_tos);
     l->tos = tos;
-    aclParseAclList(&l->aclList);
+    aclParseAclList(&l->acl_list);
     while (*tail)
 	tail = &(*tail)->next;
     *tail = l;
@@ -968,17 +962,25 @@ parse_delay_pool_access(delayConfig * cfg)
 }
 #endif
 
-#if HTTP_VIOLATIONS
+#ifdef HTTP_VIOLATIONS
 static void
 dump_http_header_access(StoreEntry * entry, const char *name, header_mangler header[])
 {
     int i;
+    header_mangler *other;
     for (i = 0; i < HDR_ENUM_END; i++) {
-	if (header[i].access_list != NULL) {
-	    storeAppendPrintf(entry, "%s ", name);
-	    dump_acl_access(entry, httpHeaderNameById(i),
-		header[i].access_list);
-	}
+	if (header[i].access_list == NULL)
+	    continue;
+	storeAppendPrintf(entry, "%s ", name);
+	dump_acl_access(entry, httpHeaderNameById(i),
+	    header[i].access_list);
+    }
+    for (other = header[HDR_OTHER].next; other; other = other->next) {
+	if (other->access_list == NULL)
+	    continue;
+	storeAppendPrintf(entry, "%s ", name);
+	dump_acl_access(entry, other->name,
+	    other->access_list);
     }
 }
 
@@ -1000,9 +1002,16 @@ parse_http_header_access(header_mangler header[])
     else if (strcmp(t, "Other") == 0)
 	id = HDR_OTHER;
     else if (id == -1) {
-	debug(3, 0) ("%s line %d: %s\n",
-	    cfg_filename, config_lineno, config_input_line);
-	debug(3, 0) ("parse_http_header_access: unknown header name %s.\n", t);
+	header_mangler *hdr = header[HDR_OTHER].next;
+	while (hdr && strcasecmp(hdr->name, t) != 0)
+	    hdr = hdr->next;
+	if (!hdr) {
+	    hdr = xcalloc(1, sizeof *hdr);
+	    hdr->name = xstrdup(t);
+	    hdr->next = header[HDR_OTHER].next;
+	    header[HDR_OTHER].next = hdr;
+	}
+	parse_acl_access(&hdr->access_list);
 	return;
     }
     if (id != HDR_ENUM_END) {
@@ -1024,8 +1033,21 @@ static void
 free_http_header_access(header_mangler header[])
 {
     int i;
+    header_mangler **hdrp;
     for (i = 0; i < HDR_ENUM_END; i++) {
 	free_acl_access(&header[i].access_list);
+    }
+    hdrp = &header[HDR_OTHER].next;
+    while (*hdrp) {
+	header_mangler *hdr = *hdrp;
+	free_acl_access(&hdr->access_list);
+	if (!hdr->replacement) {
+	    *hdrp = hdr->next;
+	    safe_free(hdr->name);
+	    safe_free(hdr);
+	} else {
+	    hdrp = &hdr->next;
+	}
     }
 }
 
@@ -1034,11 +1056,17 @@ dump_http_header_replace(StoreEntry * entry, const char *name, header_mangler
     header[])
 {
     int i;
+    header_mangler *other;
     for (i = 0; i < HDR_ENUM_END; i++) {
 	if (NULL == header[i].replacement)
 	    continue;
 	storeAppendPrintf(entry, "%s %s %s\n", name, httpHeaderNameById(i),
 	    header[i].replacement);
+    }
+    for (other = header[HDR_OTHER].next; other; other = other->next) {
+	if (other->replacement == NULL)
+	    continue;
+	storeAppendPrintf(entry, "%s %s %s\n", name, other->name, other->replacement);
     }
 }
 
@@ -1060,10 +1088,18 @@ parse_http_header_replace(header_mangler header[])
     else if (strcmp(t, "Other") == 0)
 	id = HDR_OTHER;
     else if (id == -1) {
-	debug(3, 0) ("%s line %d: %s\n",
-	    cfg_filename, config_lineno, config_input_line);
-	debug(3, 0) ("parse_http_header_replace: unknown header name %s.\n",
-	    t);
+	header_mangler *hdr = header[HDR_OTHER].next;
+	while (hdr && strcasecmp(hdr->name, t) != 0)
+	    hdr = hdr->next;
+	if (!hdr) {
+	    hdr = xcalloc(1, sizeof *hdr);
+	    hdr->name = xstrdup(t);
+	    hdr->next = header[HDR_OTHER].next;
+	    header[HDR_OTHER].next = hdr;
+	}
+	if (hdr->replacement != NULL)
+	    safe_free(hdr->replacement);
+	hdr->replacement = xstrdup(t + strlen(t) + 1);
 	return;
     }
     if (id != HDR_ENUM_END) {
@@ -1083,9 +1119,22 @@ static void
 free_http_header_replace(header_mangler header[])
 {
     int i;
+    header_mangler **hdrp;
     for (i = 0; i < HDR_ENUM_END; i++) {
 	if (header[i].replacement != NULL)
 	    safe_free(header[i].replacement);
+    }
+    hdrp = &header[HDR_OTHER].next;
+    while (*hdrp) {
+	header_mangler *hdr = *hdrp;
+	free_acl_access(&hdr->access_list);
+	if (!hdr->access_list) {
+	    *hdrp = hdr->next;
+	    safe_free(hdr->name);
+	    safe_free(hdr);
+	} else {
+	    hdrp = &hdr->next;
+	}
     }
 }
 #endif
@@ -1308,7 +1357,7 @@ parse_cachedir_option_readonly(SwapDir * sd, const char *option, const char *val
 {
     int read_only = 0;
     if (value)
-	read_only = xatoi(value);
+	read_only = atoi(value);
     else
 	read_only = 1;
     sd->flags.read_only = read_only;
@@ -1324,12 +1373,12 @@ dump_cachedir_option_readonly(StoreEntry * e, const char *option, SwapDir * sd)
 static void
 parse_cachedir_option_maxsize(SwapDir * sd, const char *option, const char *value, int reconfiguring)
 {
-    ssize_t size;
+    squid_off_t size;
 
     if (!value)
 	self_destruct();
 
-    size = xatoi(value);
+    size = strto_off_t(value, NULL, 10);
 
     if (reconfiguring && sd->max_objsize != size)
 	debug(3, 1) ("Cache dir '%s' max object size now %ld\n", sd->path, (long int) size);
@@ -1469,7 +1518,6 @@ parse_peer(peer ** head)
     p->http_port = CACHE_HTTP_PORT;
     p->icp.port = CACHE_ICP_PORT;
     p->weight = 1;
-    p->basetime = 0;
     p->stats.logged_state = PEER_ALIVE;
     if ((token = strtok(NULL, w_space)) == NULL)
 	self_destruct();
@@ -1486,20 +1534,16 @@ parse_peer(peer ** head)
 	    p->options.proxy_only = 1;
 	} else if (!strcasecmp(token, "no-query")) {
 	    p->options.no_query = 1;
-	} else if (!strcasecmp(token, "background-ping")) {
-	    p->options.background_ping = 1;
 	} else if (!strcasecmp(token, "no-digest")) {
 	    p->options.no_digest = 1;
 	} else if (!strcasecmp(token, "multicast-responder")) {
 	    p->options.mcast_responder = 1;
 	} else if (!strncasecmp(token, "weight=", 7)) {
-	    p->weight = xatoi(token + 7);
-	} else if (!strncasecmp(token, "basetime=", 9)) {
-	    p->basetime = xatoi(token + 9);
+	    p->weight = atoi(token + 7);
 	} else if (!strcasecmp(token, "closest-only")) {
 	    p->options.closest_only = 1;
 	} else if (!strncasecmp(token, "ttl=", 4)) {
-	    p->mcast.ttl = xatoi(token + 4);
+	    p->mcast.ttl = atoi(token + 4);
 	    if (p->mcast.ttl < 0)
 		p->mcast.ttl = 0;
 	    if (p->mcast.ttl > 128)
@@ -1508,8 +1552,6 @@ parse_peer(peer ** head)
 	    p->options.default_parent = 1;
 	} else if (!strcasecmp(token, "round-robin")) {
 	    p->options.roundrobin = 1;
-	} else if (!strcasecmp(token, "weighted-round-robin")) {
-	    p->options.weighted_roundrobin = 1;
 #if USE_HTCP
 	} else if (!strcasecmp(token, "htcp")) {
 	    p->options.htcp = 1;
@@ -1517,10 +1559,11 @@ parse_peer(peer ** head)
 	} else if (!strcasecmp(token, "no-netdb-exchange")) {
 	    p->options.no_netdb_exchange = 1;
 #if USE_CARP
-	} else if (!strcasecmp(token, "carp")) {
+	} else if (!strncasecmp(token, "carp-load-factor=", 17)) {
 	    if (p->type != PEER_PARENT)
-		fatalf("parse_peer: non-parent carp peer %s/%d\n", p->host, p->http_port);
-	    p->options.carp = 1;
+		debug(3, 0) ("parse_peer: Ignoring carp-load-factor for non-parent %s/%d\n", p->host, p->http_port);
+	    else
+		p->carp.load_factor = atof(token + 17);
 #endif
 #if DELAY_POOLS
 	} else if (!strcasecmp(token, "no-delay")) {
@@ -1530,7 +1573,7 @@ parse_peer(peer ** head)
 	    p->login = xstrdup(token + 6);
 	    rfc1738_unescape(p->login);
 	} else if (!strncasecmp(token, "connect-timeout=", 16)) {
-	    p->connect_timeout = xatoi(token + 16);
+	    p->connect_timeout = atoi(token + 16);
 #if USE_CACHE_DIGESTS
 	} else if (!strncasecmp(token, "digest-url=", 11)) {
 	    p->digest_url = xstrdup(token + 11);
@@ -1538,7 +1581,7 @@ parse_peer(peer ** head)
 	} else if (!strcasecmp(token, "allow-miss")) {
 	    p->options.allow_miss = 1;
 	} else if (!strncasecmp(token, "max-conn=", 9)) {
-	    p->max_conn = xatoi(token + 9);
+	    p->max_conn = atoi(token + 9);
 	} else {
 	    debug(3, 0) ("parse_peer: token='%s'\n", token);
 	    self_destruct();
@@ -1549,13 +1592,21 @@ parse_peer(peer ** head)
     p->icp.version = ICP_VERSION_CURRENT;
     p->tcp_up = PEER_TCP_MAGIC_COUNT;
     p->test_fd = -1;
+#if USE_CARP
+#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
+    if (p->carp.load_factor) {
+	/* calculate this peers hash for use in CARP */
+	p->carp.hash = 0;
+	for (token = p->host; *token != 0; token++)
+	    p->carp.hash += ROTATE_LEFT(p->carp.hash, 19) + (unsigned int) *token;
+	p->carp.hash += p->carp.hash * 0x62531965;
+	p->carp.hash = ROTATE_LEFT(p->carp.hash, 21);
+    }
+#endif
 #if USE_CACHE_DIGESTS
     if (!p->options.no_digest) {
-	/* XXX This looks odd.. who has the original pointer
-	 * then?
-	 */
-	PeerDigest *pd = peerDigestCreate(p);
-	p->digest = cbdataReference(pd);
+	p->digest = peerDigestCreate(p);
+	cbdataLock(p->digest);	/* so we know when/if digest disappears */
     }
 #endif
     while (*head != NULL)
@@ -1572,7 +1623,12 @@ free_peer(peer ** P)
     while ((p = *P) != NULL) {
 	*P = p->next;
 #if USE_CACHE_DIGESTS
-	cbdataReferenceDone(p->digest);
+	if (p->digest) {
+	    PeerDigest *pd = p->digest;
+	    p->digest = NULL;
+	    peerDigestNotePeerGone(pd);
+	    cbdataUnlock(pd);
+	}
 #endif
 	cbdataFree(p);
     }
@@ -1838,8 +1894,36 @@ parse_onoff(int *var)
 }
 
 #define free_onoff free_int
-#define dump_eol dump_string
-#define free_eol free_string
+
+static void
+dump_tristate(StoreEntry * entry, const char *name, int var)
+{
+    const char *state;
+    if (var > 0)
+	state = "on";
+    else if (var < 0)
+	state = "warn";
+    else
+	state = "off";
+    storeAppendPrintf(entry, "%s %s\n", name, state);
+}
+
+static void
+parse_tristate(int *var)
+{
+    char *token = strtok(NULL, w_space);
+
+    if (token == NULL)
+	self_destruct();
+    if (!strcasecmp(token, "on") || !strcasecmp(token, "enable"))
+	*var = 1;
+    else if (!strcasecmp(token, "warn"))
+	*var = -1;
+    else
+	*var = 0;
+}
+
+#define free_tristate free_int
 
 static void
 dump_refreshpattern(StoreEntry * entry, const char *name, refresh_t * head)
@@ -2017,6 +2101,10 @@ parse_eol(char *volatile *var)
     *var = xstrdup((char *) token);
 }
 
+#define dump_eol dump_string
+#define free_eol free_string
+
+
 static void
 dump_time_t(StoreEntry * entry, const char *name, time_t var)
 {
@@ -2035,34 +2123,29 @@ free_time_t(time_t * var)
     *var = 0;
 }
 
+#if UNUSED_CODE
 static void
-dump_size_t(StoreEntry * entry, const char *name, size_t var)
+dump_size_t(StoreEntry * entry, const char *name, squid_off_t var)
 {
-    storeAppendPrintf(entry, "%s %d\n", name, (int) var);
+    storeAppendPrintf(entry, "%s %" PRINTF_OFF_T "\n", name, var);
+}
+
+#endif
+
+static void
+dump_b_size_t(StoreEntry * entry, const char *name, squid_off_t var)
+{
+    storeAppendPrintf(entry, "%s %" PRINTF_OFF_T " %s\n", name, var, B_BYTES_STR);
 }
 
 static void
-dump_b_size_t(StoreEntry * entry, const char *name, size_t var)
+dump_kb_size_t(StoreEntry * entry, const char *name, squid_off_t var)
 {
-    storeAppendPrintf(entry, "%s %d %s\n", name, (int) var, B_BYTES_STR);
+    storeAppendPrintf(entry, "%s %" PRINTF_OFF_T " %s\n", name, var, B_KBYTES_STR);
 }
 
 static void
-dump_kb_size_t(StoreEntry * entry, const char *name, size_t var)
-{
-    storeAppendPrintf(entry, "%s %d %s\n", name, (int) var, B_KBYTES_STR);
-}
-
-static void
-parse_size_t(size_t * var)
-{
-    int i;
-    i = GetInteger();
-    *var = (size_t) i;
-}
-
-static void
-parse_b_size_t(size_t * var)
+parse_b_size_t(squid_off_t * var)
 {
     parseBytesLine(var, B_BYTES_STR);
 }
@@ -2075,7 +2158,7 @@ parse_body_size_t(dlink_list * bodylist)
     body_size *bs;
     CBDATA_INIT_TYPE(body_size);
     bs = cbdataAlloc(body_size);
-    parse_size_t(&bs->maxsize);
+    bs->maxsize = GetOffT();
     aclParseAccessLine(&bs->access_list);
 
     dlinkAddTail(bs, &bs->node, bodylist);
@@ -2090,12 +2173,12 @@ dump_body_size_t(StoreEntry * entry, const char *name, dlink_list bodylist)
 	acl_list *l;
 	acl_access *head = bs->access_list;
 	while (head != NULL) {
-	    storeAppendPrintf(entry, "%s %ld %s", name, (long int) bs->maxsize,
+	    storeAppendPrintf(entry, "%s %" PRINTF_OFF_T " %s", name, bs->maxsize,
 		head->allow ? "Allow" : "Deny");
-	    for (l = head->aclList; l != NULL; l = l->next) {
+	    for (l = head->acl_list; l != NULL; l = l->next) {
 		storeAppendPrintf(entry, " %s%s",
 		    l->op ? null_string : "!",
-		    l->_acl->name);
+		    l->acl->name);
 	    }
 	    storeAppendPrintf(entry, "\n");
 	    head = head->next;
@@ -2127,13 +2210,13 @@ check_null_body_size_t(dlink_list bodylist)
 
 
 static void
-parse_kb_size_t(size_t * var)
+parse_kb_size_t(squid_off_t * var)
 {
     parseBytesLine(var, B_KBYTES_STR);
 }
 
 static void
-free_size_t(size_t * var)
+free_size_t(squid_off_t * var)
 {
     *var = 0;
 }
@@ -2292,50 +2375,43 @@ parseNeighborType(const char *s)
     return PEER_SIBLING;
 }
 
-void
-parse_sockaddr_in_list_token(sockaddr_in_list ** head, char *token)
+static void
+parse_sockaddr_in_list(sockaddr_in_list ** head)
 {
+    char *token;
     char *t;
     char *host;
     const struct hostent *hp;
     unsigned short port;
     sockaddr_in_list *s;
-
-    host = NULL;
-    port = 0;
-    if ((t = strchr(token, ':'))) {
-	/* host:port */
-	host = token;
-	*t = '\0';
-	port = (unsigned short) xatoi(t + 1);
-	if (0 == port)
-	    self_destruct();
-    } else if ((port = xatoi(token)) > 0) {
-	/* port */
-    } else {
-	self_destruct();
-    }
-    s = xcalloc(1, sizeof(*s));
-    s->s.sin_port = htons(port);
-    if (NULL == host)
-	s->s.sin_addr = any_addr;
-    else if (1 == safe_inet_addr(host, &s->s.sin_addr))
-	(void) 0;
-    else if ((hp = gethostbyname(host)))	/* dont use ipcache */
-	s->s.sin_addr = inaddrFromHostent(hp);
-    else
-	self_destruct();
-    while (*head)
-	head = &(*head)->next;
-    *head = s;
-}
-
-static void
-parse_sockaddr_in_list(sockaddr_in_list ** head)
-{
-    char *token;
     while ((token = strtok(NULL, w_space))) {
-	parse_sockaddr_in_list_token(head, token);
+	host = NULL;
+	port = 0;
+	if ((t = strchr(token, ':'))) {
+	    /* host:port */
+	    host = token;
+	    *t = '\0';
+	    port = (unsigned short) atoi(t + 1);
+	    if (0 == port)
+		self_destruct();
+	} else if ((port = atoi(token)) > 0) {
+	    /* port */
+	} else {
+	    self_destruct();
+	}
+	s = xcalloc(1, sizeof(*s));
+	s->s.sin_port = htons(port);
+	if (NULL == host)
+	    s->s.sin_addr = any_addr;
+	else if (1 == safe_inet_addr(host, &s->s.sin_addr))
+	    (void) 0;
+	else if ((hp = gethostbyname(host)))	/* dont use ipcache */
+	    s->s.sin_addr = inaddrFromHostent(hp);
+	else
+	    self_destruct();
+	while (*head)
+	    head = &(*head)->next;
+	*head = s;
     }
 }
 
@@ -2361,13 +2437,11 @@ free_sockaddr_in_list(sockaddr_in_list ** head)
     }
 }
 
-#if 0
 static int
 check_null_sockaddr_in_list(const sockaddr_in_list * s)
 {
     return NULL == s;
 }
-#endif
 
 #if USE_SSL
 static void
@@ -2388,10 +2462,10 @@ parse_https_port_list(https_port_list ** head)
 	/* host:port */
 	host = token;
 	*t = '\0';
-	port = (unsigned short) xatoi(t + 1);
+	port = (unsigned short) atoi(t + 1);
 	if (0 == port)
 	    self_destruct();
-    } else if ((port = xatoi(token)) > 0) {
+    } else if ((port = atoi(token)) > 0) {
 	/* port */
     } else {
 	self_destruct();
@@ -2415,7 +2489,9 @@ parse_https_port_list(https_port_list ** head)
 	    safe_free(s->key);
 	    s->key = xstrdup(token + 4);
 	} else if (strncmp(token, "version=", 8) == 0) {
-	    s->version = xatoi(token + 8);
+	    s->version = atoi(token + 8);
+	    if (s->version < 1 || s->version > 4)
+		self_destruct();
 	} else if (strncmp(token, "options=", 8) == 0) {
 	    safe_free(s->options);
 	    s->options = xstrdup(token + 8);

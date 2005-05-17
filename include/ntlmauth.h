@@ -54,7 +54,7 @@
 #define SQUID_NTLMAUTH_H
 
 /* int*_t */
-#include "config.h"
+#include "squid_types.h"
 
 /* All of this cruft is little endian */
 #ifdef WORDS_BIGENDIAN
@@ -140,7 +140,6 @@ typedef struct _ntlmhdr {
 typedef struct _ntlm_negotiate {
     char signature[8];		/* "NTLMSSP" */
     int32_t type;		/* LSWAP(0x1) */
-    ntlmhdr hdr;		/* NTLM header */
     u_int32_t flags;		/* Request flags */
     strhdr domain;		/* Domain we wish to authenticate in */
     strhdr workstation;		/* Client workstation name */
@@ -174,7 +173,7 @@ typedef struct _ntlm_authenticate {
 } ntlm_authenticate;
 
 const char *ntlm_make_challenge(char *domain, char *domain_controller,
-    char *challenge_nonce, int challenge_nonce_len);
+    unsigned char *challenge_nonce, int challenge_nonce_len);
 lstring ntlm_fetch_string(char *packet, int32_t length, strhdr * str);
 void ntlm_add_to_payload(char *payload, int *payload_length,
     strhdr * hdr, char *toadd,

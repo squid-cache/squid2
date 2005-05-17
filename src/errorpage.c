@@ -90,7 +90,6 @@ static const char *errorFindHardText(err_type type);
 static ErrorDynamicPageInfo *errorDynamicPageInfoCreate(int id, const char *page_name);
 static void errorDynamicPageInfoDestroy(ErrorDynamicPageInfo * info);
 static MemBuf errorBuildContent(ErrorState * err);
-static int errorDump(ErrorState * err, MemBuf * mb);
 static const char *errorConvert(char token, ErrorState * err);
 static CWCB errorSendComplete;
 
@@ -193,7 +192,7 @@ errorTryLoadText(const char *page_name, const char *dir)
 	text = NULL;
     }
     file_close(fd);
-    if (strstr(text, "%s") == NULL)
+    if (text && strstr(text, "%s") == NULL)
 	strcat(text, "%S");	/* add signature */
     return text;
 }
@@ -266,7 +265,7 @@ errorCon(err_type type, http_status status)
     err = cbdataAlloc(ErrorState);
     err->page_id = type;	/* has to be reset manually if needed */
     err->type = type;
-    err->httpStatus = status;
+    err->http_status = status;
     return err;
 }
 
@@ -358,7 +357,7 @@ errorSend(int fd, ErrorState * err)
      * the client side for logging and error tracking.
      */
     if (err->request)
-	err->request->errType = err->type;
+	err->request->err_type = err->type;
     /* moved in front of errorBuildBuf @?@ */
     err->flags.flag_cbdata = 1;
     rep = errorBuildReply(err);
@@ -376,7 +375,7 @@ errorSend(int fd, ErrorState * err)
  *            closeing the FD, otherwise we do it ourseves.
  */
 static void
-errorSendComplete(int fd, char *bufnotused, size_t size, comm_err_t errflag, void *data)
+errorSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 {
     ErrorState *err = data;
     debug(4, 3) ("errorSendComplete: FD %d, size=%ld\n", fd, (long int) size);
@@ -410,77 +409,12 @@ errorStateFree(ErrorState * err)
     cbdataFree(err);
 }
 
-static int
-errorDump(ErrorState * err, MemBuf * mb)
-{
-    request_t *r = err->request;
-    MemBuf str = MemBufNULL;
-    const char *p = NULL;	/* takes priority over mb if set */
-    memBufReset(&str);
-    /* email subject line */
-    memBufPrintf(&str, "CacheErrorInfo - %s", errorPageName(err->type));
-    memBufPrintf(mb, "?subject=%s", rfc1738_escape_part(str.buf));
-    memBufReset(&str);
-    /* email body */
-    memBufPrintf(&str, "CacheHost: %s\r\n", getMyHostname());
-    /* - Err Msgs */
-    memBufPrintf(&str, "ErrPage: %s\r\n", errorPageName(err->type));
-    if (err->xerrno) {
-	memBufPrintf(&str, "Err: (%d) %s\r\n", err->xerrno, strerror(err->xerrno));
-    } else {
-	memBufPrintf(&str, "Err: [none]\r\n");
-    }
-    if (authenticateAuthUserRequestMessage(err->auth_user_request)) {
-	memBufPrintf(&str, "extAuth ErrMsg: %s\r\n", authenticateAuthUserRequestMessage(err->auth_user_request));
-    }
-    if (err->dnsserver_msg) {
-	memBufPrintf(&str, "DNS Server ErrMsg: %s\r\n", err->dnsserver_msg);
-    }
-    /* - TimeStamp */
-    memBufPrintf(&str, "TimeStamp: %s\r\n\r\n", mkrfc1123(squid_curtime));
-    /* - IP stuff */
-    memBufPrintf(&str, "ClientIP: %s\r\n", inet_ntoa(err->src_addr));
-    if (err->host) {
-	memBufPrintf(&str, "ServerIP: %s\r\n", err->host);
-    }
-    memBufPrintf(&str, "\r\n");
-    /* - HTTP stuff */
-    memBufPrintf(&str, "HTTP Request:\r\n");
-    if (NULL != r) {
-	Packer p;
-	memBufPrintf(&str, "%s %s HTTP/%d.%d\n",
-	    RequestMethodStr[r->method],
-	    strLen(r->urlpath) ? strBuf(r->urlpath) : "/",
-	    r->http_ver.major, r->http_ver.minor);
-	packerToMemInit(&p, &str);
-	httpHeaderPackInto(&r->header, &p);
-	packerClean(&p);
-    } else if (err->request_hdrs) {
-	p = err->request_hdrs;
-    } else {
-	p = "[none]";
-    }
-    memBufPrintf(&str, "\r\n");
-    /* - FTP stuff */
-    if (err->ftp.request) {
-	memBufPrintf(&str, "FTP Request: %s\r\n", err->ftp.request);
-	memBufPrintf(&str, "FTP Reply: %s\r\n", err->ftp.reply);
-	memBufPrintf(&str, "FTP Msg: ");
-	wordlistCat(err->ftp.server_msg, &str);
-	memBufPrintf(&str, "\r\n");
-    }
-    memBufPrintf(&str, "\r\n");
-    memBufPrintf(mb, "&body=%s", rfc1738_escape_part(str.buf));
-    memBufClean(&str);
-    return 0;
-}
-
 #define CVT_BUF_SZ 512
 
 /*
+ * a - User identity                            x
  * B - URL with FTP %2f hack                    x
  * c - Squid error code                         x
- * d - seconds elapsed since request received   x
  * e - errno                                    x
  * E - strerror()                               x
  * f - FTP request line                         x
@@ -503,7 +437,6 @@ errorDump(ErrorState * err, MemBuf * mb)
  * U - URL without password                     x
  * u - URL with password                        x
  * w - cachemgr email address                   x
- * W - error data (to be included in the mailto links)
  * z - dns server error message                 x
  */
 
@@ -517,6 +450,12 @@ errorConvert(char token, ErrorState * err)
 
     memBufReset(&mb);
     switch (token) {
+    case 'a':
+	if (r->auth_user_request)
+	    p = authenticateUserRequestUsername(r->auth_user_request);
+	if (!p)
+	    p = "-";
+	break;
     case 'B':
 	p = r ? ftpUrlWith2f(r) : "[no URL]";
 	break;
@@ -641,10 +580,6 @@ errorConvert(char token, ErrorState * err)
 	else
 	    p = "[unknown]";
 	break;
-    case 'W':
-	if (Config.adminEmail && Config.onoff.emailErrData)
-	    errorDump(err, &mb);
-	break;
     case 'z':
 	if (err->dnsserver_msg)
 	    p = err->dnsserver_msg;
@@ -656,6 +591,7 @@ errorConvert(char token, ErrorState * err)
 	break;
     default:
 	memBufPrintf(&mb, "%%%c", token);
+	do_quote = 0;
 	break;
     }
     if (!p)
@@ -678,13 +614,15 @@ errorBuildReply(ErrorState * err)
     httpBuildVersion(&version, 1, 0);
     if (strchr(name, ':')) {
 	/* Redirection */
-	char *quoted_url = rfc1738_escape_part(errorConvert('u', err));
 	httpReplySetHeaders(rep, version, HTTP_MOVED_TEMPORARILY, NULL, "text/html", 0, 0, squid_curtime);
-	httpHeaderPutStrf(&rep->header, HDR_LOCATION, name, quoted_url);
-	httpHeaderPutStrf(&rep->header, HDR_X_SQUID_ERROR, "%d %s\n", err->httpStatus, "Access Denied");
+	if (err->request) {
+	    char *quoted_url = rfc1738_escape_part(urlCanonical(err->request));
+	    httpHeaderPutStrf(&rep->header, HDR_LOCATION, name, quoted_url);
+	}
+	httpHeaderPutStrf(&rep->header, HDR_X_SQUID_ERROR, "%d %s\n", err->http_status, "Access Denied");
     } else {
 	MemBuf content = errorBuildContent(err);
-	httpReplySetHeaders(rep, version, err->httpStatus, NULL, "text/html", content.size, 0, squid_curtime);
+	httpReplySetHeaders(rep, version, err->http_status, NULL, "text/html", content.size, 0, squid_curtime);
 	/*
 	 * include some information for downstream caches. Implicit
 	 * replaceable content. This isn't quite sufficient. xerrno is not

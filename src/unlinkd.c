@@ -139,6 +139,7 @@ unlinkdUnlink(const char *path)
 	return;
     }
     statCounter.unlink.requests++;
+    statCounter.syscalls.disk.unlinks++;
     queuelen++;
 }
 
@@ -163,11 +164,10 @@ unlinkdInit(void)
     struct timeval slp;
     args[0] = "(unlinkd)";
     args[1] = NULL;
-#if USE_POLL && defined(_SQUID_OSF_)
+#if HAVE_POLL && defined(_SQUID_OSF_)
     /* pipes and poll() don't get along on DUNIX -DW */
-    x = ipcCreate(IPC_STREAM,
+    x = ipcCreate(IPC_TCP_SOCKET,
 #else
-    /* We currently need to use FIFO.. see below */
     x = ipcCreate(IPC_FIFO,
 #endif
 	Config.Program.unlinkd,

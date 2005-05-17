@@ -66,7 +66,7 @@ section 59    auto-growing Memory Buffer with printf
 section 60    Packer: A uniform interface to store-like modules
 section 61    Redirector
 section 62    Generic Histogram
-section 63    -
+section 63    Low Level Memory Pool Management
 section 64    HTTP Range Header
 section 65    HTTP Cache Control Header
 section 66    HTTP Header Tools
@@ -88,7 +88,3 @@ section 81    Cache Store
 section 82    External ACL
 section 83    SSL accelerator support
 section 84    Helper process maintenance
-section 85    Client side request management - after parsing, before caching
-section 87    client side stream management
-section 88    Client side reply management - from store to stream
-section 89    NAT / IP Interception

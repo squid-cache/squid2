@@ -58,7 +58,7 @@ base64_decode(const char *p)
 	if (++c < 4)
 	    continue;
 	/* One quantum of four encoding characters/24 bit */
-	result[j++] = (val >> 16) & 0xff;	/* High 8 bits */
+	result[j++] = val >> 16;	/* High 8 bits */
 	result[j++] = (val >> 8) & 0xff;	/* Mid 8 bits */
 	result[j++] = val & 0xff;	/* Low 8 bits */
 	val = c = 0;

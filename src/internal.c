@@ -96,7 +96,7 @@ internalRemoteUri(const char *host, u_short port, const char *dir, const char *n
 {
     static MemBuf mb = MemBufNULL;
     static char lc_host[SQUIDHOSTNAMELEN];
-    assert(host && name);
+    assert(host && port && name);
     /* convert host name to lower case */
     xstrncpy(lc_host, host, SQUIDHOSTNAMELEN - 1);
     Tolower(lc_host);
@@ -111,7 +111,7 @@ internalRemoteUri(const char *host, u_short port, const char *dir, const char *n
     memBufReset(&mb);
     memBufPrintf(&mb, "http://%s", lc_host);
     /* append port if not default */
-    if (port && port != urlDefaultPort(PROTO_HTTP))
+    if (port != urlDefaultPort(PROTO_HTTP))
 	memBufPrintf(&mb, ":%d", port);
     if (dir)
 	memBufPrintf(&mb, "%s", dir);
@@ -127,7 +127,7 @@ char *
 internalLocalUri(const char *dir, const char *name)
 {
     return internalRemoteUri(getMyHostname(),
-	getMyPort(), dir, name);
+	ntohs(Config.Sockaddr.http->s.sin_port), dir, name);
 }
 
 const char *

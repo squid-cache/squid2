@@ -52,7 +52,9 @@ static int
 storeCleanupDoubleCheck(StoreEntry * e)
 {
     SwapDir *SD = &Config.cacheSwap.swapDirs[e->swap_dirn];
-    return (SD->dblcheck(SD, e));
+    if (SD->dblcheck)
+	return (SD->dblcheck(SD, e));
+    return 0;
 }
 
 static void

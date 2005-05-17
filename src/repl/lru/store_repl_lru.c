@@ -281,10 +281,8 @@ createRemovalPolicy_lru(wordlist * args)
     /* no arguments expected or understood */
     assert(!args);
     /* Initialize */
-    if (!lru_node_pool) {
+    if (!lru_node_pool)
 	lru_node_pool = memPoolCreate("LRU policy node", sizeof(LruNode));
-	memPoolSetChunkSize(lru_node_pool, 512 * 1024);
-    }
     /* Allocate the needed structures */
     lru_data = xcalloc(1, sizeof(*lru_data));
     policy = cbdataAlloc(RemovalPolicy);

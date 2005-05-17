@@ -4,6 +4,7 @@ if [ $# -ne 1 -a $# -ne 2 ]; then
 	exit 1
 fi
 package=squid
+module=squid
 rev=`echo $1 | sed -e "s/^${package}-//"`
 name=${package}-${rev}
 tag=`echo ${name} | tr a-z.- A-Z__`
@@ -19,14 +20,14 @@ export CVSROOT
 rm -rf $name.tar.gz $tmpdir
 trap "rm -rf $tmpdir" 0
 
-cvs -Q export -d $tmpdir -r $tag $package
+cvs -Q export -d $tmpdir -r $tag $module
 if [ ! -f $tmpdir/configure ]; then
-	echo "ERROR! Tag $tag not found in $package"
+	echo "ERROR! Tag $tag not found in $module"
 fi
 
 cd $tmpdir
-eval `grep ^VERSION= configure | sed -e 's/-CVS$//'`
-eval `grep ^PACKAGE= configure`
+eval `grep "^ *VERSION=" configure | sed -e 's/-CVS//'`
+eval `grep "^ *PACKAGE=" configure`
 if [ ${name} != ${PACKAGE}-${VERSION} ]; then
 	echo "ERROR! The version numbers does not match!"
 	echo "${name} != ${PACKAGE}-${VERSION}"
@@ -50,13 +51,23 @@ EOS
 make dist-all
 
 cd $startdir
-cp -p $tmpdir/${name}.tar.gz	$dst
-cp -p $tmpdir/${name}.tar.bz2	$dst
-cp -p $tmpdir/CONTRIBUTORS	$dst/CONTRIBUTORS.txt
-cp -p $tmpdir/COPYING		$dst/COPYING.txt
-cp -p $tmpdir/COPYRIGHT		$dst/COPYRIGHT.txt
-cp -p $tmpdir/CREDITS		$dst/CREDITS.txt
-cp -p $tmpdir/ChangeLog		$dst/ChangeLog.txt
+inst() {
+rm -f $2
+cp -p $1 $2
+chmod 444 $2
+}
+inst $tmpdir/${name}.tar.gz	$dst/${name}.tar.gz
+inst $tmpdir/${name}.tar.bz2	$dst/${name}.tar.bz2
+inst $tmpdir/CONTRIBUTORS	$dst/CONTRIBUTORS.txt
+inst $tmpdir/COPYING		$dst/COPYING.txt
+inst $tmpdir/COPYRIGHT		$dst/COPYRIGHT.txt
+inst $tmpdir/CREDITS		$dst/CREDITS.txt
+inst $tmpdir/ChangeLog		$dst/ChangeLog.txt
 if [ -f $tmpdir/doc/release-notes/release-$RELEASE.html ]; then
-    cp -p $tmpdir/doc/release-notes/release-$RELEASE.html $dst/RELEASENOTES.html
+    cat $tmpdir/doc/release-notes/release-$RELEASE.html | sed -e '
+	s/"ChangeLog"/"ChangeLog.txt"/g;
+    ' > $tmpdir/RELEASENOTES.html
+    touch -r $tmpdir/doc/release-notes/release-$RELEASE.html $tmpdir/RELEASENOTES.html
+    inst $tmpdir/RELEASENOTES.html $dst/${name}-RELEASENOTES.html
+    ln -sf ${name}-RELEASENOTES.html $dst/RELEASENOTES.html
 fi

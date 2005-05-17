@@ -7,16 +7,21 @@
 #ifndef __STORE_ASYNCUFS_H__
 #define __STORE_ASYNCUFS_H__
 
-#ifdef AUFS_IO_THREADS
-#define NUMTHREADS AUFS_IO_THREADS
-#else
-#define NUMTHREADS (Config.cacheSwap.n_configured*16)
-#endif
+extern int n_asyncufs_dirs;
+extern int squidaio_nthreads;
+extern int squidaio_magic1;
+extern int squidaio_magic2;
+
+/* Base number of threads if not specified to configure.
+ * Weighted by number of directories (see aiops.c) */
+#define THREAD_FACTOR 16
 
 /* Queue limit where swapouts are deferred (load calculation) */
-#define MAGIC1 (NUMTHREADS*Config.cacheSwap.n_configured*5)
+#define MAGIC1_FACTOR 10
+#define MAGIC1 squidaio_magic1
 /* Queue limit where swapins are deferred (open/create fails) */
-#define MAGIC2 (NUMTHREADS*Config.cacheSwap.n_configured*20)
+#define MAGIC2_FACTOR 20
+#define MAGIC2 squidaio_magic2
 
 /* Which operations to run async */
 #define ASYNC_OPEN 1
@@ -25,23 +30,9 @@
 #define ASYNC_WRITE 0
 #define ASYNC_READ 1
 
-enum _squidaio_request_type {
-    _AIO_OP_NONE = 0,
-    _AIO_OP_OPEN,
-    _AIO_OP_READ,
-    _AIO_OP_WRITE,
-    _AIO_OP_CLOSE,
-    _AIO_OP_UNLINK,
-    _AIO_OP_TRUNCATE,
-    _AIO_OP_OPENDIR,
-    _AIO_OP_STAT
-};
-typedef enum _squidaio_request_type squidaio_request_type;
-
 struct _squidaio_result_t {
     int aio_return;
     int aio_errno;
-    enum _squidaio_request_type result_type;
     void *_data;		/* Internal housekeeping */
     void *data;			/* Available to the caller */
 };
@@ -50,6 +41,8 @@ typedef struct _squidaio_result_t squidaio_result_t;
 
 typedef void AIOCB(int fd, void *cbdata, const char *buf, int aio_return, int aio_errno);
 
+void squidaio_init(void);
+void squidaio_shutdown(void);
 int squidaio_cancel(squidaio_result_t *);
 int squidaio_open(const char *, int, mode_t, squidaio_result_t *);
 int squidaio_read(int, char *, int, off_t, int, squidaio_result_t *);
@@ -65,20 +58,29 @@ int squidaio_sync(void);
 int squidaio_get_queue_len(void);
 void *squidaio_xmalloc(int size);
 void squidaio_xfree(void *p, int size);
+void squidaio_stats(StoreEntry *);
 
 void aioInit(void);
 void aioDone(void);
 void aioCancel(int);
 void aioOpen(const char *, int, mode_t, AIOCB *, void *);
 void aioClose(int);
-void aioWrite(int, int offset, char *, int size, AIOCB *, void *, FREE *);
-void aioRead(int, int offset, int size, AIOCB *, void *);
+void aioWrite(int, off_t offset, char *, int size, AIOCB *, void *, FREE *);
+void aioRead(int, off_t offset, int size, AIOCB *, void *);
 void aioStat(char *, struct stat *, AIOCB *, void *);
 void aioUnlink(const char *, AIOCB *, void *);
 void aioTruncate(const char *, off_t length, AIOCB *, void *);
 int aioCheckCallbacks(SwapDir *);
 void aioSync(SwapDir *);
 int aioQueueSize(void);
+
+struct _squidaioinfo_t {
+    int swaplog_fd;
+    int l1;
+    int l2;
+    fileMap *map;
+    int suggest;
+};
 
 struct _squidaiostate_t {
     int fd;
@@ -87,8 +89,9 @@ struct _squidaiostate_t {
 	unsigned int reading:1;
 	unsigned int writing:1;
 	unsigned int opening:1;
+#if !ASYNC_WRITE
 	unsigned int write_kicking:1;
-	unsigned int read_kicking:1;
+#endif
 	unsigned int inreaddone:1;
     } flags;
     char *read_buf;
@@ -111,12 +114,21 @@ struct _queued_read {
     void *callback_data;
 };
 
+typedef struct _squidaioinfo_t squidaioinfo_t;
 typedef struct _squidaiostate_t squidaiostate_t;
 
 /* The squidaio_state memory pools */
 extern MemPool *squidaio_state_pool;
 extern MemPool *aufs_qread_pool;
 extern MemPool *aufs_qwrite_pool;
+
+extern void storeAufsDirMapBitReset(SwapDir *, sfileno);
+extern int storeAufsDirMapBitAllocate(SwapDir *);
+
+extern char *storeAufsDirFullPath(SwapDir * SD, sfileno filn, char *fullpath);
+extern void storeAufsDirUnlinkFile(SwapDir *, sfileno);
+extern void storeAufsDirReplAdd(SwapDir * SD, StoreEntry *);
+extern void storeAufsDirReplRemove(StoreEntry *);
 
 /*
  * Store IO stuff

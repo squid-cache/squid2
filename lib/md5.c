@@ -30,11 +30,13 @@
  * documentation and/or software.
  */
 
-#include "md5.h"
+#include "config.h"
 
 #if HAVE_STRING_H
 #include <string.h>
 #endif
+
+#include "md5.h"
 
 /*
  * Constants for MD5Transform routine.

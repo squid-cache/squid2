@@ -38,8 +38,8 @@
 /************* END CONFIGURATION *************/
 
 /* Debugging stuff */
-extern char *myname;
-static char *__foo;
+extern const char *myname;
+static const char *__foo;
 extern pid_t mypid;
 extern char debug_enabled;
 
@@ -50,7 +50,7 @@ extern char debug_enabled;
 #endif
 
 #ifdef __GNUC__     /* this is really a gcc-ism */
-#define warn(X...)  fprintf(stderr,"%s[%d](%s:%d): ", myname, mypid, \
+#define warn(X...)  fprintf(stderr,"%s[%ld](%s:%d): ", myname, (long)mypid, \
                     ((__foo=strrchr(__FILE__,'/'))==NULL?__FILE__:__foo+1),\
                     __LINE__);\
                     fprintf(stderr,X)

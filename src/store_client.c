@@ -34,9 +34,6 @@
  */
 
 #include "squid.h"
-#include "StoreClient.h"
-
-CBDATA_TYPE(store_client);
 
 /*
  * NOTE: 'Header' refers to the swapfile metadata header.
@@ -53,28 +50,36 @@ static store_client_t storeClientType(StoreEntry *);
 static int CheckQuickAbort2(StoreEntry * entry);
 static void CheckQuickAbort(StoreEntry * entry);
 
+/* check if there is any client waiting for this object at all */
+/* return 1 if there is at least one client */
+int
+storeClientWaiting(const StoreEntry * e)
+{
+    MemObject *mem = e->mem_obj;
+    dlink_node *node;
+    store_client *sc;
+    for (node = mem->clients.head; node; node = node->next) {
+	sc = node->data;
+	if (sc->callback_data != NULL)
+	    return 1;
+    }
+    return 0;
+}
+
 #if STORE_CLIENT_LIST_DEBUG
-static store_client *
+store_client *
 storeClientListSearch(const MemObject * mem, void *data)
 {
     dlink_node *node;
     store_client *sc = NULL;
     for (node = mem->clients.head; node; node = node->next) {
 	sc = node->data;
-	if (sc->owner == data)
+	if (sc->callback_data == data)
 	    return sc;
     }
     return NULL;
 }
-
-int
-storeClientIsThisAClient(store_client * sc, void *someClient)
-{
-    return sc->owner == someClient;
-}
-
 #endif
-
 
 static store_client_t
 storeClientType(StoreEntry * e)
@@ -128,19 +133,14 @@ storeClientListAdd(StoreEntry * e, void *data)
 #endif
     e->refcount++;
     mem->nclients++;
-    CBDATA_INIT_TYPE(store_client);
     sc = cbdataAlloc(store_client);
-#if STORE_CLIENT_LIST_DEBUG
-    sc->owner = cbdataReference(data);
-#endif
-    sc->cmp_offset = 0;
+    cbdataLock(data);		/* locked while we point to it */
+    sc->callback_data = data;
+    sc->seen_offset = 0;
+    sc->copy_offset = 0;
     sc->flags.disk_io_pending = 0;
     sc->entry = e;
     sc->type = storeClientType(e);
-    if (sc->type == STORE_DISK_CLIENT)
-	/* assert we'll be able to get the data we want */
-	/* maybe we should open swapin_fd here */
-	assert(e->swap_filen > -1 || storeSwapOutAble(e));
     dlinkAdd(sc, &sc->node, &mem->clients);
 #if DELAY_POOLS
     sc->delay_id = 0;
@@ -152,21 +152,12 @@ static void
 storeClientCallback(store_client * sc, ssize_t sz)
 {
     STCB *callback = sc->callback;
-    void *cbdata;
-    StoreIOBuffer result =
-    {
-	{0}, sz, 0, sc->copyInto.data};
-    if (sz < 0) {
-	result.flags.error = 1;
-	result.length = 0;
-    }
-    result.offset = sc->cmp_offset;
+    char *buf = sc->copy_buf;
     assert(sc->callback);
-    sc->cmp_offset = sc->copyInto.offset + sz;
     sc->callback = NULL;
-    sc->copyInto.data = NULL;
-    if (cbdataReferenceValidDone(sc->callback_data, &cbdata))
-	callback(cbdata, result);
+    sc->copy_buf = NULL;
+    if (cbdataValid(sc->callback_data))
+	callback(sc->callback_data, buf, sz);
 }
 
 static void
@@ -184,15 +175,19 @@ storeClientCopyEvent(void *data)
 void
 storeClientCopy(store_client * sc,
     StoreEntry * e,
-    StoreIOBuffer copyInto,
+    squid_off_t seen_offset,
+    squid_off_t copy_offset,
+    size_t size,
+    char *buf,
     STCB * callback,
     void *data)
 {
     assert(!EBIT_TEST(e->flags, ENTRY_ABORTED));
-    debug(20, 3) ("storeClientCopy: %s, from %lu, for length %d, cb %p, cbdata %p\n",
+    debug(20, 3) ("storeClientCopy: %s, seen %" PRINTF_OFF_T ", want %" PRINTF_OFF_T ", size %d, cb %p, cbdata %p\n",
 	storeKeyText(e->hash.key),
-	(unsigned long) copyInto.offset,
-	copyInto.length,
+	seen_offset,
+	copy_offset,
+	(int) size,
 	callback,
 	data);
     assert(sc != NULL);
@@ -201,13 +196,11 @@ storeClientCopy(store_client * sc,
 #endif
     assert(sc->callback == NULL);
     assert(sc->entry == e);
-    assert(sc->cmp_offset == copyInto.offset);
+    sc->seen_offset = seen_offset;
     sc->callback = callback;
-    sc->callback_data = cbdataReference(data);
-    sc->copyInto.data = copyInto.data;
-    sc->copyInto.length = copyInto.length;
-    sc->copyInto.offset = copyInto.offset;
-
+    sc->copy_buf = buf;
+    sc->copy_size = size;
+    sc->copy_offset = copy_offset;
     storeClientCopy2(e, sc);
 }
 
@@ -223,12 +216,12 @@ storeClientCopy(store_client * sc,
 static int
 storeClientNoMoreToSend(StoreEntry * e, store_client * sc)
 {
-    ssize_t len;
+    squid_off_t len;
     if (e->store_status == STORE_PENDING)
 	return 0;
     if ((len = objectLen(e)) < 0)
 	return 0;
-    if (sc->copyInto.offset < len)
+    if (sc->copy_offset < len)
 	return 0;
     return 1;
 }
@@ -236,9 +229,8 @@ storeClientNoMoreToSend(StoreEntry * e, store_client * sc)
 static void
 storeClientCopy2(StoreEntry * e, store_client * sc)
 {
-    if (sc->flags.copy_event_pending) {
+    if (sc->flags.copy_event_pending)
 	return;
-    }
     if (EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT)) {
 	debug(20, 5) ("storeClientCopy2: returning because ENTRY_FWD_HDR_WAIT set\n");
 	return;
@@ -249,6 +241,7 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
 	eventAdd("storeClientCopyEvent", storeClientCopyEvent, sc, 0.0, 0);
 	return;
     }
+    cbdataLock(sc);		/* ick, prevent sc from getting freed */
     sc->flags.store_copying = 1;
     debug(20, 3) ("storeClientCopy2: %s\n", storeKeyText(e->hash.key));
     assert(sc->callback != NULL);
@@ -259,31 +252,24 @@ storeClientCopy2(StoreEntry * e, store_client * sc)
      * if the server-side aborts, we want to give the client(s)
      * everything we got before the abort condition occurred.
      */
-    /* Warning: storeClientCopy3 may indirectly free sc in callbacks,
-     * hence the cbdata reference to keep it active for the duration of
-     * this function
-     */
-    cbdataInternalLock(sc);
     storeClientCopy3(e, sc);
     sc->flags.store_copying = 0;
-    cbdataInternalUnlock(sc);
+    cbdataUnlock(sc);		/* ick, allow sc to be freed */
 }
 
 static void
 storeClientCopy3(StoreEntry * e, store_client * sc)
 {
     MemObject *mem = e->mem_obj;
-    size_t sz;
-
-    debug(33, 5) ("co: %lu, hi: %ld\n", (unsigned long) sc->copyInto.offset, (long int) mem->inmem_hi);
+    ssize_t sz;
 
     if (storeClientNoMoreToSend(e, sc)) {
 	/* There is no more to send! */
 	storeClientCallback(sc, 0);
 	return;
     }
-    /* Check that we actually have data */
-    if (e->store_status == STORE_PENDING && sc->copyInto.offset >= mem->inmem_hi) {
+    if (e->store_status == STORE_PENDING && sc->seen_offset >= mem->inmem_hi) {
+	/* client has already seen this, wait for more */
 	debug(20, 3) ("storeClientCopy3: Waiting for more\n");
 	return;
     }
@@ -298,7 +284,6 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
      * is clientCacheHit) so that we can fall back to a cache miss
      * if needed.
      */
-
     if (STORE_DISK_CLIENT == sc->type && NULL == sc->swapin_sio) {
 	debug(20, 3) ("storeClientCopy3: Need to open swap in file\n");
 	/* gotta open the swapin file */
@@ -322,12 +307,13 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
 	    return;
 	}
     }
-    if (sc->copyInto.offset >= mem->inmem_lo && sc->copyInto.offset < mem->inmem_hi) {
+    if (sc->copy_offset >= mem->inmem_lo && sc->copy_offset < mem->inmem_hi) {
 	/* What the client wants is in memory */
-	/* Old style */
-	debug(20, 3) ("storeClientCopy3: Copying normal from memory\n");
-	sz = stmemCopy(&mem->data_hdr, sc->copyInto.offset, sc->copyInto.data,
-	    sc->copyInto.length);
+	debug(20, 3) ("storeClientCopy3: Copying from memory\n");
+	sz = stmemCopy(&mem->data_hdr,
+	    sc->copy_offset, sc->copy_buf, sc->copy_size);
+	if (EBIT_TEST(e->flags, RELEASE_REQUEST))
+	    storeSwapOutMaintainMemObject(e);
 	storeClientCallback(sc, sz);
 	return;
     }
@@ -342,24 +328,23 @@ static void
 storeClientFileRead(store_client * sc)
 {
     MemObject *mem = sc->entry->mem_obj;
-
     assert(sc->callback != NULL);
     assert(!sc->flags.disk_io_pending);
     sc->flags.disk_io_pending = 1;
     if (mem->swap_hdr_sz == 0) {
 	storeRead(sc->swapin_sio,
-	    sc->copyInto.data,
-	    sc->copyInto.length,
+	    sc->copy_buf,
+	    sc->copy_size,
 	    0,
 	    storeClientReadHeader,
 	    sc);
     } else {
 	if (sc->entry->swap_status == SWAPOUT_WRITING)
-	    assert(storeOffset(mem->swapout.sio) > sc->copyInto.offset + mem->swap_hdr_sz);
+	    assert(storeSwapOutObjectBytesOnDisk(mem) > sc->copy_offset);
 	storeRead(sc->swapin_sio,
-	    sc->copyInto.data,
-	    sc->copyInto.length,
-	    sc->copyInto.offset + mem->swap_hdr_sz,
+	    sc->copy_buf,
+	    sc->copy_size,
+	    sc->copy_offset + mem->swap_hdr_sz,
 	    storeClientReadBody,
 	    sc);
     }
@@ -374,8 +359,8 @@ storeClientReadBody(void *data, const char *buf, ssize_t len)
     sc->flags.disk_io_pending = 0;
     assert(sc->callback != NULL);
     debug(20, 3) ("storeClientReadBody: len %d\n", (int) len);
-    if (sc->copyInto.offset == 0 && len > 0 && mem->reply->sline.status == 0)
-	httpReplyParse(mem->reply, sc->copyInto.data, headersEnd(sc->copyInto.data, len));
+    if (sc->copy_offset == 0 && len > 0 && mem->reply->sline.status == 0)
+	httpReplyParse(mem->reply, sc->copy_buf, headersEnd(sc->copy_buf, len));
     storeClientCallback(sc, len);
 }
 
@@ -444,6 +429,7 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 	    }
 	    break;
 	case STORE_META_STD:
+	case STORE_META_STD_LFS:
 	    break;
 	case STORE_META_VARY_HEADERS:
 	    if (mem->vary_headers) {
@@ -471,17 +457,17 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
      * it to them, otherwise schedule another read.
      */
     body_sz = len - swap_hdr_sz;
-    if (sc->copyInto.offset < body_sz) {
+    if (sc->copy_offset < body_sz) {
 	/*
 	 * we have (part of) what they want
 	 */
-	copy_sz = XMIN(sc->copyInto.length, body_sz);
+	copy_sz = XMIN(sc->copy_size, body_sz);
 	debug(20, 3) ("storeClientReadHeader: copying %d bytes of body\n",
 	    (int) copy_sz);
-	xmemmove(sc->copyInto.data, sc->copyInto.data + swap_hdr_sz, copy_sz);
-	if (sc->copyInto.offset == 0 && len > 0 && mem->reply->sline.status == 0)
-	    httpReplyParse(mem->reply, sc->copyInto.data,
-		headersEnd(sc->copyInto.data, copy_sz));
+	xmemmove(sc->copy_buf, sc->copy_buf + swap_hdr_sz, copy_sz);
+	if (sc->copy_offset == 0 && len > 0 && mem->reply->sline.status == 0)
+	    httpReplyParse(mem->reply, sc->copy_buf,
+		headersEnd(sc->copy_buf, copy_sz));
 	storeClientCallback(sc, copy_sz);
 	return;
     }
@@ -498,14 +484,9 @@ storeClientCopyPending(store_client * sc, StoreEntry * e, void *data)
 #if STORE_CLIENT_LIST_DEBUG
     assert(sc == storeClientListSearch(e->mem_obj, data));
 #endif
-#ifndef SILLY_CODE
-    assert(sc);
-#endif
     assert(sc->entry == e);
-#if SILLY_CODE
     if (sc == NULL)
 	return 0;
-#endif
     if (sc->callback == NULL)
 	return 0;
     return 1;
@@ -529,20 +510,14 @@ storeUnregister(store_client * sc, StoreEntry * e, void *data)
 	return 0;
     if (mem->clients.head == NULL)
 	return 0;
-    if (sc == mem->clients.head->data) {
-	/*
-	 * If we are unregistering the _first_ client for this
-	 * entry, then we have to reset the client FD to -1.
-	 */
-	mem->fd = -1;
-    }
     dlinkDelete(&sc->node, &mem->clients);
     mem->nclients--;
     if (e->store_status == STORE_OK && e->swap_status != SWAPOUT_DONE)
 	storeSwapOut(e);
     if (sc->swapin_sio) {
 	storeClose(sc->swapin_sio);
-	cbdataReferenceDone(sc->swapin_sio);
+	cbdataUnlock(sc->swapin_sio);
+	sc->swapin_sio = NULL;
 	statCounter.swap.ins++;
     }
     if (NULL != sc->callback) {
@@ -554,21 +529,22 @@ storeUnregister(store_client * sc, StoreEntry * e, void *data)
 #if DELAY_POOLS
     delayUnregisterDelayIdPtr(&sc->delay_id);
 #endif
-#if STORE_CLIENT_LIST_DEBUG
-    cbdataReferenceDone(sc->owner);
-#endif
+    cbdataUnlock(sc->callback_data);	/* we're done with it now */
+    /*assert(!sc->flags.disk_io_pending); */
     cbdataFree(sc);
     assert(e->lock_count > 0);
+    storeSwapOutMaintainMemObject(e);
     if (mem->nclients == 0)
 	CheckQuickAbort(e);
     return 1;
 }
 
-off_t
+squid_off_t
 storeLowestMemReaderOffset(const StoreEntry * entry)
 {
     const MemObject *mem = entry->mem_obj;
-    off_t lowest = mem->inmem_hi + 1;
+    squid_off_t lowest = mem->inmem_hi + 1;
+    squid_off_t highest = -1;
     store_client *sc;
     dlink_node *nx = NULL;
     dlink_node *node;
@@ -576,14 +552,17 @@ storeLowestMemReaderOffset(const StoreEntry * entry)
     for (node = mem->clients.head; node; node = nx) {
 	sc = node->data;
 	nx = node->next;
-	if (sc->type != STORE_MEM_CLIENT)
+	if (sc->callback_data == NULL)	/* open slot */
 	    continue;
-	if (sc->type == STORE_DISK_CLIENT)
-	    if (NULL != sc->swapin_sio)
-		continue;
-	if (sc->copyInto.offset < lowest)
-	    lowest = sc->copyInto.offset;
+	if (sc->copy_offset > highest)
+	    highest = sc->copy_offset;
+	if (mem->swapout.sio != NULL && sc->type != STORE_MEM_CLIENT)
+	    continue;
+	if (sc->copy_offset < lowest)
+	    lowest = sc->copy_offset;
     }
+    if (highest < lowest && highest >= 0)
+	return highest;
     return lowest;
 }
 
@@ -626,9 +605,9 @@ storePendingNClients(const StoreEntry * e)
 static int
 CheckQuickAbort2(StoreEntry * entry)
 {
-    int curlen;
-    int minlen;
-    int expectlen;
+    squid_off_t curlen;
+    squid_off_t minlen;
+    squid_off_t expectlen;
     MemObject *mem = entry->mem_obj;
     assert(mem);
     debug(20, 3) ("CheckQuickAbort2: entry=%p, mem=%p\n", entry, mem);
@@ -641,8 +620,8 @@ CheckQuickAbort2(StoreEntry * entry)
 	return 1;
     }
     expectlen = mem->reply->content_length + mem->reply->hdr_sz;
-    curlen = (int) mem->inmem_hi;
-    minlen = (int) Config.quickAbort.min << 10;
+    curlen = mem->inmem_hi;
+    minlen = Config.quickAbort.min << 10;
     if (minlen < 0) {
 	debug(20, 3) ("CheckQuickAbort2: NO disabled\n");
 	return 0;
@@ -686,25 +665,4 @@ CheckQuickAbort(StoreEntry * entry)
 	return;
     statCounter.aborted_requests++;
     storeAbort(entry);
-}
-
-void
-storeClientDumpStats(store_client * thisClient, StoreEntry * output, int clientNumber)
-{
-    if (thisClient->callback_data == NULL)
-	return;
-    storeAppendPrintf(output, "\tClient #%d, %p\n", clientNumber, thisClient->callback_data);
-    storeAppendPrintf(output, "\t\tcopy_offset: %lu\n",
-	(unsigned long) thisClient->copyInto.offset);
-    storeAppendPrintf(output, "\t\tcopy_size: %d\n",
-	(int) thisClient->copyInto.length);
-    storeAppendPrintf(output, "\t\tflags:");
-    if (thisClient->flags.disk_io_pending)
-	storeAppendPrintf(output, " disk_io_pending");
-    if (thisClient->flags.store_copying)
-	storeAppendPrintf(output, " store_copying");
-    if (thisClient->flags.copy_event_pending)
-	storeAppendPrintf(output, " copy_event_pending");
-    storeAppendPrintf(output, "\n");
-
 }

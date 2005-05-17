@@ -119,10 +119,6 @@ whoisReadReply(int fd, void *data)
 	    comm_close(fd);
 	}
     } else {
-	storeTimestampsSet(entry);
-	storeBufferFlush(entry);
-	if (!EBIT_TEST(entry->flags, RELEASE_REQUEST))
-	    storeSetPublicKey(entry);
 	fwdComplete(p->fwd);
 	debug(75, 3) ("whoisReadReply: Done: %s\n", storeUrl(entry));
 	comm_close(fd);

@@ -38,7 +38,7 @@
 static void
 stringInitBuf(String * s, size_t sz)
 {
-    s->buf = memAllocString(sz, &sz);
+    s->buf = memAllocBuf(sz, &sz);
     assert(sz < 65536);
     s->size = sz;
 }
@@ -77,7 +77,7 @@ stringClean(String * s)
 {
     assert(s);
     if (s->buf)
-	memFreeString(s->size, s->buf);
+	memFreeBuf(s->size, s->buf);
     *s = StringNull;
 }
 

@@ -72,7 +72,6 @@ CC = @CC@
 CGIEXT = @CGIEXT@
 CPP = @CPP@
 CRYPTLIB = @CRYPTLIB@
-CXX = @CXX@
 DEPDIR = @DEPDIR@
 DIGEST_AUTH_HELPERS = @DIGEST_AUTH_HELPERS@
 ERR_DEFAULT_LANGUAGE = @ERR_DEFAULT_LANGUAGE@
@@ -83,6 +82,8 @@ FALSE = @FALSE@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LIBDLMALLOC = @LIBDLMALLOC@
 LIBREGEX = @LIBREGEX@
+LIBSASL = @LIBSASL@
+LIB_LBER = @LIB_LBER@
 LIB_MALLOC = @LIB_MALLOC@
 LN = @LN@
 LN_S = @LN_S@
@@ -91,15 +92,16 @@ MKDIR = @MKDIR@
 MV = @MV@
 NTLM_AUTH_HELPERS = @NTLM_AUTH_HELPERS@
 OBJEXT = @OBJEXT@
-OPT_DEFAULT_HOSTS = @OPT_DEFAULT_HOSTS@
 PACKAGE = @PACKAGE@
 PERL = @PERL@
+PKGCONFIG = @PKGCONFIG@
 RANLIB = @RANLIB@
 REGEXLIB = @REGEXLIB@
 REPL_LIBS = @REPL_LIBS@
 REPL_OBJS = @REPL_OBJS@
 REPL_POLICIES = @REPL_POLICIES@
 RM = @RM@
+SAMBASOURCES = @SAMBASOURCES@
 SH = @SH@
 SNMPLIB = @SNMPLIB@
 SSLLIB = @SSLLIB@
@@ -148,7 +150,7 @@ ICON2 = anthony-bomb.gif \
 icondir = $(datadir)/icons
 icon_DATA = $(ICON1) $(ICON2)
 EXTRA_DIST = $(ICON1) $(ICON2) icons.shar
-DISTCLEANFILES = $(ICON1) $(ICON2)
+DISTCLEANFILES = 
 subdir = icons
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/autoconf.h
@@ -292,10 +294,14 @@ uninstall-am: uninstall-iconDATA uninstall-info-am
 $(ICON2): $(ICON1)
 
 $(ICON1):
-	@$(SHELL) "$(srcdir)/icons.shar"
+	@if [ ! -f "$(srcdir)/$(ICON1)" ]; then \
+	    $(SHELL) "$(srcdir)/icons.shar" ; \
+	    touch -r "$(srcdir)/icons.shar" *.gif ; \
+	fi
 
-icons.shar:
-	shar --no-timestamp $(ICON1) $(ICON2) > $@
+update-icons.shar:
+	shar --no-timestamp $(ICON1) $(ICON2) > $@ 2>/dev/null || \
+	shar $(ICON1) $(ICON2) > $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

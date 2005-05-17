@@ -97,19 +97,19 @@ icpCreateMessage(
     int buf_len;
     buf_len = sizeof(icp_common_t) + strlen(url) + 1;
     if (opcode == ICP_QUERY)
-	buf_len += sizeof(u_int32_t);
+	buf_len += sizeof(u_num32);
     buf = xcalloc(buf_len, 1);
     headerp = (icp_common_t *) (void *) buf;
     headerp->opcode = (char) opcode;
     headerp->version = ICP_VERSION_CURRENT;
-    headerp->length = (u_int16_t) htons(buf_len);
+    headerp->length = (u_short) htons(buf_len);
     headerp->reqnum = htonl(reqnum);
     headerp->flags = htonl(flags);
     headerp->pad = htonl(pad);
     headerp->shostid = theOutICPAddr.s_addr;
     urloffset = buf + sizeof(icp_common_t);
     if (opcode == ICP_QUERY)
-	urloffset += sizeof(u_int32_t);
+	urloffset += sizeof(u_num32);
     xmemcpy(urloffset, url, strlen(url));
     return buf;
 }
@@ -190,7 +190,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     aclCheck_t checklist;
     icp_common_t *reply;
     int src_rtt = 0;
-    u_int32_t flags = 0;
+    u_num32 flags = 0;
     int rtt = 0;
     int hops = 0;
     xmemcpy(&header, buf, sizeof(icp_common_t));
@@ -211,7 +211,7 @@ icpHandleIcpV2(int fd, struct sockaddr_in from, char *buf, int len)
     switch (header.opcode) {
     case ICP_QUERY:
 	/* We have a valid packet */
-	url = buf + sizeof(icp_common_t) + sizeof(u_int32_t);
+	url = buf + sizeof(icp_common_t) + sizeof(u_num32);
 	if (strpbrk(url, w_space)) {
 	    url = rfc1738_escape(url);
 	    reply = icpCreateMessage(ICP_ERR, 0, url, header.reqnum, 0);
@@ -401,7 +401,7 @@ icpHandleUdp(int sock, void *data)
 void
 icpConnectionsOpen(void)
 {
-    u_int16_t port;
+    u_short port;
     struct in_addr addr;
     struct sockaddr_in xaddr;
     int x;

@@ -66,7 +66,7 @@
 #if HAVE_ASSERT_H
 #include <assert.h>
 #endif
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_CYGWIN_)
 #include <io.h>
 #endif
 #if HAVE_FCNTL_H
@@ -158,7 +158,7 @@ main(int argc, char *argv[])
 	perror(input_filename);
 	exit(1);
     }
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_CYGWIN_)
     setmode(fileno(fp), O_TEXT);
 #endif
     state = sSTART;
@@ -345,7 +345,7 @@ main(int argc, char *argv[])
 	perror(output_filename);
 	exit(1);
     }
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_CYGWIN_)
     setmode(fileno(fp), O_TEXT);
 #endif
     fprintf(fp,
@@ -370,7 +370,7 @@ main(int argc, char *argv[])
 	perror(conf_filename);
 	exit(1);
     }
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_CYGWIN_)
     setmode(fileno(fp), O_TEXT);
 #endif
     gen_conf(entries, fp);

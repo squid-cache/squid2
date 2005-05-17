@@ -37,6 +37,62 @@
 
 #include "config.h"
 
+/*
+ * On some systems, FD_SETSIZE is set to something lower than the
+ * actual number of files which can be opened.  IRIX is one case,
+ * NetBSD is another.  So here we increase FD_SETSIZE to our
+ * configure-discovered maximum *before* any system includes.
+ */
+#define CHANGE_FD_SETSIZE 1
+
+/*
+ * Cannot increase FD_SETSIZE on Linux, but we can increase __FD_SETSIZE
+ * with glibc 2.2 (or later? remains to be seen). We do this by including
+ * bits/types.h which defines __FD_SETSIZE first, then we redefine
+ * __FD_SETSIZE. Ofcourse a user program may NEVER include bits/whatever.h
+ * directly, so this is a dirty hack!
+ */
+#if defined(_SQUID_LINUX_)
+#undef CHANGE_FD_SETSIZE
+#define CHANGE_FD_SETSIZE 0
+#include <features.h>
+#if (__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 2)
+#if SQUID_MAXFD > DEFAULT_FD_SETSIZE
+#include <bits/types.h>
+#undef __FD_SETSIZE
+#define __FD_SETSIZE SQUID_MAXFD
+#endif
+#endif
+#endif
+
+/*
+ * Cannot increase FD_SETSIZE on FreeBSD before 2.2.0, causes select(2)
+ * to return EINVAL.
+ * --Marian Durkovic <marian@svf.stuba.sk>
+ * --Peter Wemm <peter@spinner.DIALix.COM>
+ */
+#if defined(_SQUID_FREEBSD_)
+#include <osreldate.h>
+#if __FreeBSD_version < 220000
+#undef CHANGE_FD_SETSIZE
+#define CHANGE_FD_SETSIZE 0
+#endif
+#endif
+
+/*
+ * Trying to redefine CHANGE_FD_SETSIZE causes a slew of warnings
+ * on Mac OS X Server.
+ */
+#if defined(_SQUID_APPLE_)
+#undef CHANGE_FD_SETSIZE
+#define CHANGE_FD_SETSIZE 0
+#endif
+
+/* Increase FD_SETSIZE if SQUID_MAXFD is bigger */
+#if CHANGE_FD_SETSIZE && SQUID_MAXFD > DEFAULT_FD_SETSIZE
+#define FD_SETSIZE SQUID_MAXFD
+#endif
+
 #if PURIFY
 #define assert(EX) ((void)0)
 #elif defined(NODEBUG)
@@ -46,6 +102,12 @@
 #else
 #define assert(EX)  ((EX)?((void)0):xassert("EX", __FILE__, __LINE__))
 #endif
+
+
+/* 32 bit integer compatability */
+#include "squid_types.h"
+#define num32 int32_t
+#define u_num32 u_int32_t
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -146,7 +208,7 @@
 #if HAVE_LIMITS_H
 #include <limits.h>
 #endif
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_CYGWIN_)
 #include <io.h>
 #endif
 
@@ -290,6 +352,12 @@ struct rusage {
 #define LOCAL_ARRAY(type,name,size) static type name[size]
 #endif
 
+#if CBDATA_DEBUG
+#define cbdataAlloc(a,b)	cbdataAllocDbg(a,b,__FILE__,__LINE__)
+#define cbdataLock(a)		cbdataLockDbg(a,__FILE__,__LINE__)
+#define cbdataUnlock(a)		cbdataUnlockDbg(a,__FILE__,__LINE__)
+#endif
+
 #if USE_LEAKFINDER
 #define leakAdd(p) leakAddFL(p,__FILE__,__LINE__)
 #define leakTouch(p) leakTouchFL(p,__FILE__,__LINE__)
@@ -335,16 +403,14 @@ struct rusage {
 #include "hash.h"
 #include "rfc1035.h"
 
-
 #include "defines.h"
 #include "enums.h"
 #include "typedefs.h"
-#include "util.h"
-#include "profiling.h"
-#include "MemPool.h"
 #include "structs.h"
 #include "protos.h"
 #include "globals.h"
+
+#include "util.h"
 
 #if !HAVE_TEMPNAM
 #include "tempnam.h"
@@ -352,6 +418,10 @@ struct rusage {
 
 #if !HAVE_SNPRINTF
 #include "snprintf.h"
+#endif
+
+#if !HAVE_INITGROUPS
+#include "initgroups.h"
 #endif
 
 #define XMIN(x,y) ((x)<(y)? (x) : (y))
@@ -410,5 +480,13 @@ struct rusage {
 
 #define FD_READ_METHOD(fd, buf, len) (*fd_table[fd].read_method)(fd, buf, len)
 #define FD_WRITE_METHOD(fd, buf, len) (*fd_table[fd].write_method)(fd, buf, len)
+
+/*
+ * Trap attempts to build large file cache support without support for
+ * large objects
+ */
+#if LARGE_CACHE_FILES && SIZEOF_SQUID_OFF_T <= 4
+#error Your platform does not support large integers. Can not build with --enable-large-cache-files
+#endif
 
 #endif /* SQUID_H */

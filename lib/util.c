@@ -36,7 +36,6 @@
 #define _etext etext
 
 #include "config.h"
-#include "profiling.h"
 
 #if HAVE_STDIO_H
 #include <stdio.h>
@@ -428,14 +427,10 @@ xmalloc(size_t sz)
 {
     void *p;
 
-    PROF_start(xmalloc);
     if (sz < 1)
 	sz = 1;
 
-    PROF_start(malloc);
-    p = malloc(sz);
-    PROF_stop(malloc);
-    if (p == NULL) {
+    if ((p = malloc(sz)) == NULL) {
 	if (failure_notify) {
 	    snprintf(msg, 128, "xmalloc: Unable to allocate %d bytes!\n",
 		(int) sz);
@@ -458,7 +453,6 @@ xmalloc(size_t sz)
     if (tracefp)
 	fprintf(tracefp, "m:%d:%p\n", sz, p);
 #endif
-    PROF_stop(xmalloc);
     return (p);
 }
 
@@ -468,7 +462,6 @@ xmalloc(size_t sz)
 void
 xfree(void *s)
 {
-    PROF_start(xfree);
 #if XMALLOC_TRACE
     xmalloc_show_trace(s, -1);
 #endif
@@ -483,7 +476,6 @@ xfree(void *s)
     if (tracefp && s)
 	fprintf(tracefp, "f:%p\n", s);
 #endif
-    PROF_stop(xfree);
 }
 
 /* xxfree() - like xfree(), but we already know s != NULL */
@@ -491,7 +483,6 @@ void
 xxfree(const void *s_const)
 {
     void *s = (void *) s_const;
-    PROF_start(xxfree);
 #if XMALLOC_TRACE
     xmalloc_show_trace(s, -1);
 #endif
@@ -503,7 +494,6 @@ xxfree(const void *s_const)
     if (tracefp && s)
 	fprintf(tracefp, "f:%p\n", s);
 #endif
-    PROF_stop(xxfree);
 }
 
 /*
@@ -515,7 +505,6 @@ xrealloc(void *s, size_t sz)
 {
     void *p;
 
-    PROF_start(xrealloc);
 #if XMALLOC_TRACE
     xmalloc_show_trace(s, -1);
 #endif
@@ -549,7 +538,6 @@ xrealloc(void *s, size_t sz)
     if (tracefp)		/* new ptr, old ptr, new size */
 	fprintf(tracefp, "r:%p:%p:%d\n", p, s, sz);
 #endif
-    PROF_stop(xrealloc);
     return (p);
 }
 
@@ -562,15 +550,11 @@ xcalloc(size_t n, size_t sz)
 {
     void *p;
 
-    PROF_start(xcalloc);
     if (n < 1)
 	n = 1;
     if (sz < 1)
 	sz = 1;
-    PROF_start(calloc);
-    p = calloc(n, sz);
-    PROF_stop(calloc);
-    if (p == NULL) {
+    if ((p = calloc(n, sz)) == NULL) {
 	if (failure_notify) {
 	    snprintf(msg, 128, "xcalloc: Unable to allocate %u blocks of %u bytes!\n",
 		(unsigned int) n, (unsigned int) sz);
@@ -593,7 +577,6 @@ xcalloc(size_t n, size_t sz)
     if (tracefp)
 	fprintf(tracefp, "c:%u:%u:%p\n", (unsigned int) n, (unsigned int) sz, p);
 #endif
-    PROF_stop(xcalloc);
     return (p);
 }
 
@@ -605,8 +588,6 @@ char *
 xstrdup(const char *s)
 {
     size_t sz;
-    void *p;
-    PROF_start(xstrdup);
     if (s == NULL) {
 	if (failure_notify) {
 	    (*failure_notify) ("xstrdup: tried to dup a NULL pointer!\n");
@@ -617,9 +598,7 @@ xstrdup(const char *s)
     }
     /* copy string, including terminating character */
     sz = strlen(s) + 1;
-    p = memcpy(xmalloc(sz), s, sz);
-    PROF_stop(xstrdup);
-    return p;
+    return memcpy(xmalloc(sz), s, sz);
 }
 
 /*
@@ -629,16 +608,12 @@ char *
 xstrndup(const char *s, size_t n)
 {
     size_t sz;
-    void *p;
-    PROF_start(xstrndup);
     assert(s);
     assert(n);
     sz = strlen(s) + 1;
     if (sz > n)
 	sz = n;
-    p = xstrncpy(xmalloc(sz), s, sz);
-    PROF_stop(xstrndup);
-    return p;
+    return xstrncpy(xmalloc(sz), s, sz);
 }
 
 /*
@@ -651,11 +626,11 @@ xstrerror(void)
     static char strerror_buf[BUFSIZ];
 
     snprintf(strerror_buf, BUFSIZ, "%s", strerror(errno));
-
-    if (strerror_buf)
+   
+    if (strerror_buf) 
 	snprintf(xstrerror_buf, BUFSIZ, "(%d) %s", errno, strerror_buf);
     else
-	snprintf(xstrerror_buf, BUFSIZ, "(%d) Unknown", errno);
+        snprintf(xstrerror_buf, BUFSIZ, "(%d) Unknown", errno); 
     return xstrerror_buf;
 }
 
@@ -699,14 +674,12 @@ char *
 xstrncpy(char *dst, const char *src, size_t n)
 {
     char *r = dst;
-    PROF_start(xstrncpy);
     if (!n || !dst)
 	return dst;
     if (src)
 	while (--n != 0 && *src != '\0')
 	    *dst++ = *src++;
     *dst = '\0';
-    PROF_stop(xstrncpy);
     return r;
 }
 
@@ -715,14 +688,12 @@ size_t
 xcountws(const char *str)
 {
     size_t count = 0;
-    PROF_start(xcountws);
     if (str) {
 	while (xisspace(*str)) {
 	    str++;
 	    count++;
 	}
     }
-    PROF_stop(xcountws);
     return count;
 }
 
@@ -767,54 +738,4 @@ default_failure_notify(const char *message)
     write(2, message, strlen(message));
     write(2, "\n", 1);
     abort();
-}
-
-void
-gb_flush(gb_t * g)
-{
-    g->gb += (g->bytes >> 30);
-    g->bytes &= (1 << 30) - 1;
-}
-
-double
-gb_to_double(const gb_t * g)
-{
-    return ((double) g->gb) * ((double) (1 << 30)) + ((double) g->bytes);
-}
-
-const char *
-double_to_str(char *buf, int buf_size, double value)
-{
-    /* select format */
-    if (value < 1e9)
-	snprintf(buf, buf_size, "%.2f MB", value / 1e6);
-    else if (value < 1e12)
-	snprintf(buf, buf_size, "%.3f GB", value / 1e9);
-    else
-	snprintf(buf, buf_size, "%.4f TB", value / 1e12);
-    return buf;
-}
-
-const char *
-gb_to_str(const gb_t * g)
-{
-    /*
-     * it is often convenient to call gb_to_str several times for _one_ printf
-     */
-#define max_cc_calls 5
-    typedef char GbBuf[32];
-    static GbBuf bufs[max_cc_calls];
-    static int call_id = 0;
-    double value = gb_to_double(g);
-    char *buf = bufs[call_id++];
-    if (call_id >= max_cc_calls)
-	call_id = 0;
-    /* select format */
-    if (value < 1e9)
-	snprintf(buf, sizeof(GbBuf), "%.2f MB", value / 1e6);
-    else if (value < 1e12)
-	snprintf(buf, sizeof(GbBuf), "%.2f GB", value / 1e9);
-    else
-	snprintf(buf, sizeof(GbBuf), "%.2f TB", value / 1e12);
-    return buf;
 }

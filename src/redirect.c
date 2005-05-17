@@ -55,8 +55,8 @@ static void
 redirectHandleReply(void *data, char *reply)
 {
     redirectStateData *r = data;
+    int valid;
     char *t;
-    void *cbdata;
     debug(61, 5) ("redirectHandleRead: {%s}\n", reply ? reply : "<NULL>");
     if (reply) {
 	if ((t = strchr(reply, ' ')))
@@ -64,8 +64,10 @@ redirectHandleReply(void *data, char *reply)
 	if (*reply == '\0')
 	    reply = NULL;
     }
-    if (cbdataReferenceValidDone(r->data, &cbdata))
-	r->handler(cbdata, reply);
+    valid = cbdataValid(r->data);
+    cbdataUnlock(r->data);
+    if (valid)
+	r->handler(r->data, reply);
     redirectStateFree(r);
 }
 
@@ -98,23 +100,6 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
     assert(http);
     assert(handler);
     debug(61, 5) ("redirectStart: '%s'\n", http->uri);
-    if (Config.Program.redirect == NULL) {
-	handler(data, NULL);
-	return;
-    }
-    if (Config.accessList.redirector) {
-	aclCheck_t ch;
-	memset(&ch, '\0', sizeof(ch));
-	ch.src_addr = http->conn->peer.sin_addr;
-	ch.my_addr = http->conn->me.sin_addr;
-	ch.my_port = ntohs(http->conn->me.sin_port);
-	ch.request = http->request;
-	if (!aclCheckFast(Config.accessList.redirector, &ch)) {
-	    /* denied -- bypass redirector */
-	    handler(data, NULL);
-	    return;
-	}
-    }
     if (Config.onoff.redirector_bypass && redirectors->stats.queue_size) {
 	/* Skip redirector if there is one request queued */
 	n_bypassed++;
@@ -133,14 +118,15 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
     }
     r->method_s = RequestMethodStr[http->request->method];
     r->handler = handler;
-    r->data = cbdataReference(data);
+    r->data = data;
+    cbdataLock(r->data);
     if ((fqdn = fqdncache_gethostbyaddr(r->client_addr, 0)) == NULL)
 	fqdn = dash_str;
     snprintf(buf, 8192, "%s %s/%s %s %s\n",
 	r->orig_url,
 	inet_ntoa(r->client_addr),
 	fqdn,
-	r->client_ident,
+	r->client_ident[0] ? rfc1738_escape(r->client_ident) : dash_str,
 	r->method_s);
     helperSubmit(redirectors, buf, redirectHandleReply, r);
 }
@@ -155,7 +141,7 @@ redirectInit(void)
 	redirectors = helperCreate("redirector");
     redirectors->cmdline = Config.Program.redirect;
     redirectors->n_to_start = Config.redirectChildren;
-    redirectors->ipc_type = IPC_STREAM;
+    redirectors->ipc_type = IPC_TCP_SOCKET;
     helperOpenServers(redirectors);
     if (!init) {
 	cachemgrRegister("redirector",

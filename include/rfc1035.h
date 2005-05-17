@@ -46,28 +46,56 @@
 #endif
 
 /* rfc1035 - DNS */
-#define RFC1035_MAXHOSTNAMESZ 128
+#define RFC1035_MAXHOSTNAMESZ 250
 typedef struct _rfc1035_rr rfc1035_rr;
 struct _rfc1035_rr {
     char name[RFC1035_MAXHOSTNAMESZ];
     unsigned short type;
-    unsigned short _class;
+    unsigned short class;
     unsigned int ttl;
     unsigned short rdlength;
     char *rdata;
 };
-extern unsigned short rfc1035BuildAQuery(const char *hostname,
+typedef struct _rfc1035_query rfc1035_query;
+struct _rfc1035_query {
+    char name[RFC1035_MAXHOSTNAMESZ];
+    unsigned short qtype;
+    unsigned short qclass;
+};
+typedef struct _rfc1035_message rfc1035_message;
+struct _rfc1035_message {
+    unsigned short id;
+    unsigned int qr:1;
+    unsigned int opcode:4;
+    unsigned int aa:1;
+    unsigned int tc:1;
+    unsigned int rd:1;
+    unsigned int ra:1;
+    unsigned int rcode:4;
+    unsigned short qdcount;
+    unsigned short ancount;
+    unsigned short nscount;
+    unsigned short arcount;
+    rfc1035_query *query;
+    rfc1035_rr *answer;
+};
+
+extern ssize_t rfc1035BuildAQuery(const char *hostname,
     char *buf,
-    size_t * szp);
-extern unsigned short rfc1035BuildPTRQuery(const struct in_addr,
-    char *buf,
-    size_t * szp);
-extern unsigned short rfc1035RetryQuery(char *);
-extern int rfc1035AnswersUnpack(const char *buf,
     size_t sz,
-    rfc1035_rr ** records,
-    unsigned short *id);
-extern void rfc1035RRDestroy(rfc1035_rr * rr, int n);
+    unsigned short qid,
+    rfc1035_query * query);
+extern ssize_t rfc1035BuildPTRQuery(const struct in_addr,
+    char *buf,
+    size_t sz,
+    unsigned short qid,
+    rfc1035_query * query);
+extern void rfc1035SetQueryID(char *, unsigned short qid);
+extern int rfc1035MessageUnpack(const char *buf,
+    size_t sz,
+    rfc1035_message ** answer);
+extern int rfc1035QueryCompare(const rfc1035_query *, const rfc1035_query *);
+extern void rfc1035MessageDestroy(rfc1035_message * message);
 extern int rfc1035_errno;
 extern const char *rfc1035_error_message;
 

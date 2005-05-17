@@ -120,181 +120,28 @@
  *  the return codes of programs in if statements.  These options
  *  need to be overridden.
  */
+#ifndef socklen_t
+#define socklen_t int
 #endif
-
-/* FD_SETSIZE must be redefined before including sys/types.h */
-
-/*
- * On some systems, FD_SETSIZE is set to something lower than the
- * actual number of files which can be opened.  IRIX is one case,
- * NetBSD is another.  So here we increase FD_SETSIZE to our
- * configure-discovered maximum *before* any system includes.
- */
-#define CHANGE_FD_SETSIZE 1
-
-/*
- * Cannot increase FD_SETSIZE on Linux, but we can increase __FD_SETSIZE
- * with glibc 2.2 (or later? remains to be seen). We do this by including
- * bits/types.h which defines __FD_SETSIZE first, then we redefine
- * __FD_SETSIZE. Ofcourse a user program may NEVER include bits/whatever.h
- * directly, so this is a dirty hack!
- */
-#if defined(_SQUID_LINUX_)
-#undef CHANGE_FD_SETSIZE
-#define CHANGE_FD_SETSIZE 0
-#include <features.h>
-#if (__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 2)
-#if SQUID_MAXFD > DEFAULT_FD_SETSIZE
-#include <bits/types.h>
-#undef __FD_SETSIZE
-#define __FD_SETSIZE SQUID_MAXFD
+#ifndef fd_mask
+#define fd_mask unsigned long
 #endif
-#endif
-#endif
-
-/*
- * Cannot increase FD_SETSIZE on FreeBSD before 2.2.0, causes select(2)
- * to return EINVAL.
- * --Marian Durkovic <marian@svf.stuba.sk>
- * --Peter Wemm <peter@spinner.DIALix.COM>
- */
-#if defined(_SQUID_FREEBSD_)
-#include <osreldate.h>
-#if __FreeBSD_version < 220000
-#undef CHANGE_FD_SETSIZE
-#define CHANGE_FD_SETSIZE 0
-#endif
-#endif
-
-/*
- * Trying to redefine CHANGE_FD_SETSIZE causes a slew of warnings
- * on Mac OS X Server.
- */
-#if defined(_SQUID_APPLE_)
-#undef CHANGE_FD_SETSIZE
-#define CHANGE_FD_SETSIZE 0
-#endif
-
-/* Increase FD_SETSIZE if SQUID_MAXFD is bigger */
-#if CHANGE_FD_SETSIZE && SQUID_MAXFD > DEFAULT_FD_SETSIZE
-#define FD_SETSIZE SQUID_MAXFD
-#endif
-
-
-
-/* Typedefs for missing entries on a system */
-
-#include "squid_types.h"
-
-/* int16_t */
-#ifndef HAVE_INT16_T
-#if HAVE_SHORT && SIZEOF_SHORT == 2
-typedef short int16_t;
-#elif HAVE_INT && SIZEOF_INT == 2
-typedef int int16_t;
-#else
-#error NO 16 bit signed type available
-#endif
-#endif
-
-/* u_int16_t */
-#ifndef HAVE_U_INT16_T
-#if HAVE_UINT16_T
-typedef uint16_t u_int16_t;
-#else
-typedef unsigned int16_t u_int16_t;
-#endif
-#endif
-
-/* int32_t */
-#ifndef HAVE_INT32_T
-#if HAVE_INT && SIZEOF_INT == 4
-typedef int int32_t;
-#elif HAVE_LONG && SIZEOF_LONG == 4
-typedef long int32_t;
-#else
-#error NO 32 bit signed type available
-#endif
-#endif
-
-/* u_int32_t */
-#ifndef HAVE_U_INT32_T
-#if HAVE_UINT32_T
-typedef uint32_t u_int32_t;
-#else
-typedef unsigned int32_t u_int32_t;
-#endif
-#endif
-
-/* int64_t */
-#ifndef HAVE_INT64_T
-#if HAVE___INT64
-typedef __int64 int64_t;
-#elif HAVE_LONG && SIZEOF_LONG == 8
-typedef long int64_t;
-#elif HAVE_LONG_LONG && SIZEOF_LONG_LONG == 8
-typedef long long int64_t;
-#else
-#error NO 64 bit signed type available
-#endif
-#endif
-
-/* u_int64_t */
-#ifndef HAVE_U_INT64_T
-#if HAVE_UINT64_T
-typedef uint64_t u_int64_t;
-#else
-typedef unsigned int64_t u_int64_t;
-#endif
-#endif
-
-
-#ifndef HAVE_PID_T
-typedef int pid_t;
-#endif
-
-#ifndef HAVE_SIZE_T
-typedef unsigned int size_t;
-#endif
-
-#ifndef HAVE_SSIZE_T
-typedef int ssize_t;
-#endif
-
-#ifndef HAVE_OFF_T
-typedef int off_t;
-#endif
-
-#ifndef HAVE_MODE_T
-typedef unsigned short mode_t;
-#endif
-
-#ifndef HAVE_FD_MASK
-typedef unsigned long fd_mask;
-#endif
-
-#ifndef HAVE_SOCKLEN_T
-typedef int socklen_t;
-#endif
-
-#ifndef HAVE_MTYP_T
-typedef long mtyp_t;
 #endif
 
 #if !defined(CACHEMGR_HOSTNAME)
 #define CACHEMGR_HOSTNAME ""
+#else
+#define CACHEMGR_HOSTNAME_DEFINED 1
 #endif
 
-#if SQUID_DETECT_UDP_SO_SNDBUF > 16384
+#if SQUID_UDP_SO_SNDBUF > 16384
+#undef SQUID_UDP_SO_SNDBUF
 #define SQUID_UDP_SO_SNDBUF 16384
-#else
-#define SQUID_UDP_SO_SNDBUF SQUID_DETECT_UDP_SO_SNDBUF
 #endif
 
-#if SQUID_DETECT_UDP_SO_RCVBUF > 16384
+#if SQUID_UDP_SO_RCVBUF > 16384
+#undef SQUID_UDP_SO_RCVBUF
 #define SQUID_UDP_SO_RCVBUF 16384
-#else
-#define SQUID_UDP_SO_RCVBUF SQUID_DETECT_UDP_SO_RCVBUF
 #endif
 
 #ifdef HAVE_MEMCPY
@@ -317,7 +164,10 @@ typedef long mtyp_t;
 #define xisdigit(x) isdigit((unsigned char)x)
 #define xisascii(x) isascii((unsigned char)x)
 #define xislower(x) islower((unsigned char)x)
+#define xisupper(x) isupper((unsigned char)x)
 #define xisalpha(x) isalpha((unsigned char)x)
+#define xisalnum(x) isalnum((unsigned char)x)
+#define xisgraph(x) isgraph((unsigned char)x)
 
 #if HAVE_RANDOM
 #define squid_random random

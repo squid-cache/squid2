@@ -43,7 +43,7 @@
 static const char *const crlf = "\r\n";
 
 static CWCB httpSendComplete;
-static CWCB httpSendRequestEntity;
+static CWCB httpSendRequestEntry;
 
 static PF httpReadReply;
 static void httpSendRequest(HttpStateData *);
@@ -54,12 +54,6 @@ static void httpMakePrivate(StoreEntry *);
 static void httpMakePublic(StoreEntry *);
 static int httpCachableReply(HttpStateData *);
 static void httpMaybeRemovePublic(StoreEntry *, http_status);
-static mb_size_t httpBuildRequestPrefix(request_t * request,
-    request_t * orig_request,
-    StoreEntry * entry,
-    MemBuf * mb,
-    http_state_flags);
-static void httpProcessReplyHeader(HttpStateData *, const char *, int);
 
 static void
 httpStateFree(int fd, void *data)
@@ -70,10 +64,16 @@ httpStateFree(int fd, void *data)
 #endif
     if (httpState == NULL)
 	return;
+    if (httpState->body_buf) {
+	requestAbortBody(httpState->orig_request);
+	if (httpState->body_buf) {
+	    memFree(httpState->body_buf, MEM_8K_BUF);
+	    httpState->body_buf = NULL;
+	}
+    }
     storeUnlockObject(httpState->entry);
-    if (httpState->reply_hdr) {
-	memFree(httpState->reply_hdr, MEM_8K_BUF);
-	httpState->reply_hdr = NULL;
+    if (!memBufIsNull(&httpState->reply_hdr)) {
+	memBufClean(&httpState->reply_hdr);
     }
     requestUnlink(httpState->request);
     requestUnlink(httpState->orig_request);
@@ -216,10 +216,6 @@ httpMaybeRemovePublic(StoreEntry * e, http_status status)
 	    storeRelease(pe);
 	}
 	break;
-    default:
-	/* Keep GCC happy. The methods above are all mutating HTTP methods 
-	 */
-	break;
     }
 }
 
@@ -281,7 +277,7 @@ httpCachableReply(HttpStateData * httpState)
 	    return 1;
 	else if (rep->last_modified > -1)
 	    return 1;
-	else if (!httpState->_peer)
+	else if (!httpState->peer)
 	    return 1;
 	/* @?@ (here and 302): invalid expires header compiles to squid_curtime */
 	else if (rep->expires > -1)
@@ -321,6 +317,7 @@ httpCachableReply(HttpStateData * httpState)
     case HTTP_UNAUTHORIZED:
     case HTTP_PROXY_AUTHENTICATION_REQUIRED:
     case HTTP_INVALID_HEADER:	/* Squid header parsing error */
+    case HTTP_HEADER_TOO_LARGE:
     default:			/* Unknown status code */
 	return 0;
 	/* NOTREACHED */
@@ -351,6 +348,13 @@ httpMakeVaryMark(request_t * request, HttpReply * reply)
 	char *name = xmalloc(ilen + 1);
 	xstrncpy(name, item, ilen + 1);
 	Tolower(name);
+	if (strcmp(name, "*") == 0) {
+	    /* Can not handle "Vary: *" withtout ETag support */
+	    safe_free(name);
+	    stringClean(&vary);
+	    stringClean(&vstr);
+	    break;
+	}
 	strListAdd(&vstr, name, ',');
 	hdr = httpHeaderGetByName(&request->header, name);
 	safe_free(name);
@@ -365,6 +369,7 @@ httpMakeVaryMark(request_t * request, HttpReply * reply)
     }
     stringClean(&vary);
 #if X_ACCELERATOR_VARY
+    pos = NULL;
     vary = httpHeaderGetList(&reply->header, HDR_X_ACCELERATOR_VARY);
     while (strListGetItem(&vary, ',', &item, &ilen, &pos)) {
 	char *name = xmalloc(ilen + 1);
@@ -389,84 +394,103 @@ httpMakeVaryMark(request_t * request, HttpReply * reply)
 }
 
 /* rewrite this later using new interfaces @?@ */
-void
+static void
 httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 {
-    char *t = NULL;
     StoreEntry *entry = httpState->entry;
-    int room;
     size_t hdr_len;
+    size_t hdr_size;
     HttpReply *reply = entry->mem_obj->reply;
-    Ctx ctx;
+    Ctx ctx = ctx_enter(entry->mem_obj->url);
     debug(11, 3) ("httpProcessReplyHeader: key '%s'\n",
 	storeKeyText(entry->hash.key));
-    if (httpState->reply_hdr == NULL)
-	httpState->reply_hdr = memAllocate(MEM_8K_BUF);
+    if (memBufIsNull(&httpState->reply_hdr))
+	memBufDefInit(&httpState->reply_hdr);
     assert(httpState->reply_hdr_state == 0);
-    hdr_len = httpState->reply_hdr_size;
-    room = 8191 - hdr_len;
-    xmemcpy(httpState->reply_hdr + hdr_len, buf, room < size ? room : size);
-    hdr_len += room < size ? room : size;
-    httpState->reply_hdr[hdr_len] = '\0';
-    httpState->reply_hdr_size = hdr_len;
-    if (hdr_len > 4 && strncmp(httpState->reply_hdr, "HTTP/", 5)) {
-	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr);
+    memBufAppend(&httpState->reply_hdr, buf, size);
+    hdr_len = httpState->reply_hdr.size;
+    if (hdr_len > 4 && strncmp(httpState->reply_hdr.buf, "HTTP/", 5)) {
+	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr.buf);
 	httpState->reply_hdr_state += 2;
+	memBufClean(&httpState->reply_hdr);
+	httpBuildVersion(&reply->sline.version, 0, 9);
 	reply->sline.status = HTTP_INVALID_HEADER;
+	ctx_exit(ctx);
 	return;
     }
-    t = httpState->reply_hdr + hdr_len;
-    /* headers can be incomplete only if object still arriving */
-    if (!httpState->eof) {
-	size_t k = headersEnd(httpState->reply_hdr, 8192);
-	if (0 == k)
-	    return;		/* headers not complete */
-	t = httpState->reply_hdr + k;
+    hdr_size = headersEnd(httpState->reply_hdr.buf, hdr_len);
+    if (hdr_size)
+	hdr_len = hdr_size;
+    if (hdr_len > Config.maxReplyHeaderSize) {
+	debug(11, 1) ("httpProcessReplyHeader: Too large reply header\n");
+	if (!memBufIsNull(&httpState->reply_hdr))
+	    memBufClean(&httpState->reply_hdr);
+	reply->sline.status = HTTP_HEADER_TOO_LARGE;
+	httpState->reply_hdr_state += 2;
+	ctx_exit(ctx);
+	return;
     }
-    *t = '\0';
+    /* headers can be incomplete only if object still arriving */
+    if (!hdr_size) {
+	if (httpState->eof)
+	    hdr_size = hdr_len;
+	else {
+	    ctx_exit(ctx);
+	    return;		/* headers not complete */
+	}
+    }
+    /* Cut away any excess body data (only needed for debug?) */
+    memBufAppend(&httpState->reply_hdr, "\0", 1);
+    httpState->reply_hdr.buf[hdr_size] = '\0';
     httpState->reply_hdr_state++;
     assert(httpState->reply_hdr_state == 1);
-    ctx = ctx_enter(entry->mem_obj->url);
     httpState->reply_hdr_state++;
     debug(11, 9) ("GOT HTTP REPLY HDR:\n---------\n%s\n----------\n",
-	httpState->reply_hdr);
+	httpState->reply_hdr.buf);
     /* Parse headers into reply structure */
     /* what happens if we fail to parse here? */
-    httpReplyParse(reply, httpState->reply_hdr, hdr_len);
+    httpReplyParse(reply, httpState->reply_hdr.buf, hdr_size);
+    if (reply->sline.status >= HTTP_INVALID_HEADER) {
+	debug(11, 3) ("httpProcessReplyHeader: Non-HTTP-compliant header: '%s'\n", httpState->reply_hdr.buf);
+	memBufClean(&httpState->reply_hdr);
+	ctx_exit(ctx);
+	return;
+    }
     storeTimestampsSet(entry);
     /* Check if object is cacheable or not based on reply code */
     debug(11, 3) ("httpProcessReplyHeader: HTTP CODE: %d\n", reply->sline.status);
     if (neighbors_do_private_keys)
 	httpMaybeRemovePublic(entry, reply->sline.status);
+    if (httpHeaderHas(&reply->header, HDR_VARY)
+#if X_ACCELERATOR_VARY
+	|| httpHeaderHas(&reply->header, HDR_X_ACCELERATOR_VARY)
+#endif
+	) {
+	const char *vary = httpMakeVaryMark(httpState->orig_request, reply);
+	if (!vary) {
+	    httpMakePrivate(entry);
+	    goto no_cache;
+	}
+	entry->mem_obj->vary_headers = xstrdup(vary);
+    }
     switch (httpCachableReply(httpState)) {
     case 1:
-	if (httpHeaderHas(&reply->header, HDR_VARY)
-#if X_ACCELERATOR_VARY
-	    || httpHeaderHas(&reply->header, HDR_X_ACCELERATOR_VARY)
-#endif
-	    ) {
-	    const char *vary = httpMakeVaryMark(httpState->orig_request, reply);
-	    if (vary) {
-		entry->mem_obj->vary_headers = xstrdup(vary);
-		/* Kill the old base object if a change in variance is detected */
-		httpMakePublic(entry);
-	    } else {
-		httpMakePrivate(entry);
-	    }
-	} else {
-	    httpMakePublic(entry);
-	}
+	httpMakePublic(entry);
 	break;
     case 0:
 	httpMakePrivate(entry);
 	break;
     case -1:
-	httpCacheNegatively(entry);
+	if (Config.negativeTtl > 0)
+	    httpCacheNegatively(entry);
+	else
+	    httpMakePrivate(entry);
 	break;
     default:
 	assert(0);
 	break;
     }
+  no_cache:
     if (reply->cache_control) {
 	if (EBIT_TEST(reply->cache_control->mask, CC_PROXY_REVALIDATE))
 	    EBIT_SET(entry->flags, ENTRY_REVALIDATE);
@@ -474,12 +498,19 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
 	    EBIT_SET(entry->flags, ENTRY_REVALIDATE);
     }
     if (httpState->flags.keepalive)
-	if (httpState->_peer)
-	    httpState->_peer->stats.n_keepalives_sent++;
-    if (reply->keep_alive)
-	if (httpState->_peer)
-	    httpState->_peer->stats.n_keepalives_recv++;
-    if (reply->date > -1 && !httpState->_peer) {
+	if (httpState->peer)
+	    httpState->peer->stats.n_keepalives_sent++;
+    if (reply->keep_alive) {
+	if (httpState->peer)
+	    httpState->peer->stats.n_keepalives_recv++;
+	if (Config.onoff.detect_broken_server_pconns && httpReplyBodySize(httpState->request->method, reply) == -1) {
+	    debug(11, 1) ("httpProcessReplyHeader: Impossible keep-alive header from '%s'\n", storeUrl(entry));
+	    debug(11, 2) ("GOT HTTP REPLY HDR:\n---------\n%s\n----------\n",
+		httpState->reply_hdr.buf);
+	    httpState->flags.keepalive_broken = 1;
+	}
+    }
+    if (reply->date > -1 && !httpState->peer) {
 	int skew = abs(reply->date - squid_curtime);
 	if (skew > 86400)
 	    debug(11, 3) ("%s's clock is skewed by %d seconds!\n",
@@ -497,42 +528,25 @@ httpPconnTransferDone(HttpStateData * httpState)
     /* return 1 if we got the last of the data on a persistent connection */
     MemObject *mem = httpState->entry->mem_obj;
     HttpReply *reply = mem->reply;
-    int clen;
+    squid_off_t clen;
     debug(11, 3) ("httpPconnTransferDone: FD %d\n", httpState->fd);
-    /*
-     * If we didn't send a keep-alive request header, then this
-     * can not be a persistent connection.
-     */
-    if (!httpState->flags.keepalive)
-	return 0;
-    /*
-     * What does the reply have to say about keep-alive?
-     */
-    /*
-     * XXX BUG?
-     * If the origin server (HTTP/1.0) does not send a keep-alive
-     * header, but keeps the connection open anyway, what happens?
-     * We'll return here and http.c waits for an EOF before changing
-     * store_status to STORE_OK.   Combine this with ENTRY_FWD_HDR_WAIT
-     * and an error status code, and we might have to wait until
-     * the server times out the socket.
-     */
-    if (!reply->keep_alive)
-	return 0;
-    debug(11, 5) ("httpPconnTransferDone: content_length=%d\n",
+    debug(11, 5) ("httpPconnTransferDone: content_length=%" PRINTF_OFF_T "\n",
 	reply->content_length);
     /* If we haven't seen the end of reply headers, we are not done */
     if (httpState->reply_hdr_state < 2)
 	return 0;
     clen = httpReplyBodySize(httpState->request->method, reply);
-    /* If there is no message body, we can be persistent */
-    if (0 == clen)
-	return 1;
     /* If the body size is unknown we must wait for EOF */
     if (clen < 0)
 	return 0;
+    /* Barf if we got more than we asked for */
+    if (mem->inmem_hi > clen + reply->hdr_sz)
+	return -1;
+    /* If there is no message body, we can be persistent */
+    if (0 == clen)
+	return 1;
     /* If the body size is known, we must wait until we've gotten all of it.  */
-    if (mem->inmem_hi < reply->content_length + reply->hdr_sz)
+    if (mem->inmem_hi < clen + reply->hdr_sz)
 	return 0;
     /* We got it all */
     return 1;
@@ -581,18 +595,18 @@ httpReadReply(int fd, void *data)
 #endif
 	kb_incr(&statCounter.server.all.kbytes_in, len);
 	kb_incr(&statCounter.server.http.kbytes_in, len);
-	commSetTimeout(fd, Config.Timeout.read, NULL, NULL);
 	IOStats.Http.reads++;
 	for (clen = len - 1, bin = 0; clen; bin++)
 	    clen >>= 1;
 	IOStats.Http.read_hist[bin]++;
     }
-    if (!httpState->reply_hdr && len > 0) {
+    if (!httpState->reply_hdr.size && len > 0 && fd_table[fd].uses > 1) {
 	/* Skip whitespace */
 	while (len > 0 && xisspace(*buf))
 	    xmemmove(buf, buf + 1, len--);
 	if (len == 0) {
 	    /* Continue to read... */
+	    /* Timeout NOT increased. This whitespace was from previous reply */
 	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 	    return;
 	}
@@ -604,7 +618,7 @@ httpReadReply(int fd, void *data)
 	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 	} else if (entry->mem_obj->inmem_hi == 0) {
 	    ErrorState *err;
-	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
+	    err = errorCon(ERR_READ_ERROR, HTTP_BAD_GATEWAY);
 	    err->request = requestLink((request_t *) request);
 	    err->xerrno = errno;
 	    fwdFail(httpState->fwd, err);
@@ -614,7 +628,7 @@ httpReadReply(int fd, void *data)
 	}
     } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {
 	ErrorState *err;
-	err = errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_SERVICE_UNAVAILABLE);
+	err = errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_BAD_GATEWAY);
 	err->xerrno = errno;
 	err->request = requestLink((request_t *) request);
 	fwdFail(httpState->fwd, err);
@@ -631,13 +645,51 @@ httpReadReply(int fd, void *data)
 	     * we want to process the reply headers.
 	     */
 	    httpProcessReplyHeader(httpState, buf, len);
-	fwdComplete(httpState->fwd);
+	if (entry->mem_obj->reply->sline.status == HTTP_HEADER_TOO_LARGE) {
+	    ErrorState *err;
+	    storeEntryReset(entry);
+	    err = errorCon(ERR_TOO_BIG, HTTP_BAD_GATEWAY);
+	    err->request = requestLink((request_t *) request);
+	    fwdFail(httpState->fwd, err);
+	    httpState->fwd->flags.dont_retry = 1;
+	} else if (entry->mem_obj->reply->sline.status == HTTP_INVALID_HEADER && !(entry->mem_obj->reply->sline.version.major == 0 && entry->mem_obj->reply->sline.version.minor == 9)) {
+	    ErrorState *err;
+	    storeEntryReset(entry);
+	    err = errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY);
+	    err->request = requestLink((request_t *) request);
+	    fwdFail(httpState->fwd, err);
+	    httpState->fwd->flags.dont_retry = 1;
+	} else {
+	    fwdComplete(httpState->fwd);
+	}
 	comm_close(fd);
+	return;
     } else {
 	if (httpState->reply_hdr_state < 2) {
 	    httpProcessReplyHeader(httpState, buf, len);
 	    if (httpState->reply_hdr_state == 2) {
 		http_status s = entry->mem_obj->reply->sline.status;
+		if (s == HTTP_HEADER_TOO_LARGE) {
+		    ErrorState *err;
+		    debug(11, 1) ("WARNING: %s:%d: HTTP header too large\n", __FILE__, __LINE__);
+		    storeEntryReset(entry);
+		    err = errorCon(ERR_TOO_BIG, HTTP_BAD_GATEWAY);
+		    err->request = requestLink((request_t *) request);
+		    fwdFail(httpState->fwd, err);
+		    httpState->fwd->flags.dont_retry = 1;
+		    comm_close(fd);
+		    return;
+		}
+		if (s == HTTP_INVALID_HEADER && !(entry->mem_obj->reply->sline.version.major == 0 && entry->mem_obj->reply->sline.version.minor == 9)) {
+		    ErrorState *err;
+		    storeEntryReset(entry);
+		    err = errorCon(ERR_INVALID_RESP, HTTP_BAD_GATEWAY);
+		    err->request = requestLink((request_t *) request);
+		    fwdFail(httpState->fwd, err);
+		    httpState->fwd->flags.dont_retry = 1;
+		    comm_close(fd);
+		    return;
+		}
 #if WIP_FWD_LOG
 		fwdStatus(httpState->fwd, s);
 #endif
@@ -656,24 +708,91 @@ httpReadReply(int fd, void *data)
 	     * in that case, the server FD should already be closed.
 	     * there's nothing for us to do.
 	     */
-	    (void) 0;
-	} else if (httpPconnTransferDone(httpState)) {
-	    /* yes we have to clear all these! */
-	    commSetDefer(fd, NULL, NULL);
-	    commSetTimeout(fd, -1, NULL, NULL);
-	    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
+	    return;
+	}
+	switch (httpPconnTransferDone(httpState)) {
+	case 1:
+	    {
+		int keep_alive = 1;
+		/*
+		 * If we didn't send a keep-alive request header, then this
+		 * can not be a persistent connection.
+		 */
+		if (!httpState->flags.keepalive)
+		    keep_alive = 0;
+		/*
+		 * If we haven't sent the whole request then this can not be a persistent
+		 * connection.
+		 */
+		if (!httpState->flags.request_sent) {
+		    debug(11, 1) ("httpReadReply: Request not yet fully sent \"%s %s\"\n",
+			RequestMethodStr[httpState->orig_request->method],
+			storeUrl(entry));
+		    keep_alive = 0;
+		}
+		/*
+		 * What does the reply have to say about keep-alive?
+		 */
+		if (!entry->mem_obj->reply->keep_alive)
+		    keep_alive = 0;
+		/*
+		 * Verify that the connection is clean
+		 */
+		if (len == read_sz) {
+		    statCounter.syscalls.sock.reads++;
+		    len = FD_READ_METHOD(fd, buf, SQUID_TCP_SO_RCVBUF);
+		    if ((len < 0 && !ignoreErrno(errno)) || len == 0) {
+			keep_alive = 0;
+		    } else if (len > 0) {
+			debug(11, Config.onoff.relaxed_header_parser <= 0 || keep_alive ? 1 : 2)
+			    ("httpReadReply: Excess data from \"%s %s\"\n",
+			    RequestMethodStr[httpState->orig_request->method],
+			    storeUrl(entry));
+			storeAppend(entry, buf, len);
+			keep_alive = 0;
+		    }
+		}
+		if (keep_alive) {
+		    /* yes we have to clear all these! */
+		    commSetDefer(fd, NULL, NULL);
+		    commSetTimeout(fd, -1, NULL, NULL);
+		    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 #if DELAY_POOLS
-	    delayClearNoDelay(fd);
+		    delayClearNoDelay(fd);
 #endif
-	    comm_remove_close_handler(fd, httpStateFree, httpState);
-	    fwdUnregister(fd, httpState->fwd);
-	    pconnPush(fd, request->host, request->port);
-	    fwdComplete(httpState->fwd);
-	    httpState->fd = -1;
-	    httpStateFree(fd, httpState);
-	} else {
-	    /* Wait for EOF condition */
+		    comm_remove_close_handler(fd, httpStateFree, httpState);
+		    fwdUnregister(fd, httpState->fwd);
+		    pconnPush(fd, request->host, request->port);
+		    fwdComplete(httpState->fwd);
+		    httpState->fd = -1;
+		    httpStateFree(fd, httpState);
+		} else {
+		    fwdComplete(httpState->fwd);
+		    comm_close(fd);
+		}
+	    }
+	    return;
+	case 0:
+	    /* Wait for more data or EOF condition */
+	    if (httpState->flags.keepalive_broken) {
+		commSetTimeout(fd, 10, NULL, NULL);
+	    } else {
+		commSetTimeout(fd, Config.Timeout.read, NULL, NULL);
+	    }
 	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
+	    return;
+	case -1:
+	    /* Server is nasty on us. Shut down */
+	    debug(11, Config.onoff.relaxed_header_parser <= 0 || entry->mem_obj->reply->keep_alive ? 1 : 2)
+		("httpReadReply: Excess data from \"%s %s\"\n",
+		RequestMethodStr[httpState->orig_request->method],
+		storeUrl(entry));
+	    fwdComplete(httpState->fwd);
+	    comm_close(fd);
+	    return;
+	default:
+	    fatal("Unexpected httpPconnTransferDone() status\n");
+	    break;
 	}
     }
 }
@@ -681,7 +800,7 @@ httpReadReply(int fd, void *data)
 /* This will be called when request write is complete. Schedule read of
  * reply. */
 static void
-httpSendComplete(int fd, char *bufnotused, size_t size, comm_err_t errflag, void *data)
+httpSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 {
     HttpStateData *httpState = data;
     StoreEntry *entry = httpState->entry;
@@ -699,15 +818,15 @@ httpSendComplete(int fd, char *bufnotused, size_t size, comm_err_t errflag, void
     if (errflag == COMM_ERR_CLOSING)
 	return;
     if (errflag) {
-	err = errorCon(ERR_WRITE_ERROR, HTTP_INTERNAL_SERVER_ERROR);
-	err->xerrno = errno;
-	err->request = requestLink(httpState->orig_request);
-	errorAppendEntry(entry, err);
+	if (entry->mem_obj->inmem_hi == 0) {
+	    err = errorCon(ERR_WRITE_ERROR, HTTP_BAD_GATEWAY);
+	    err->xerrno = errno;
+	    err->request = requestLink(httpState->orig_request);
+	    errorAppendEntry(entry, err);
+	}
 	comm_close(fd);
 	return;
     } else {
-	/* Schedule read reply. */
-	commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
 	/*
 	 * Set the read timeout here because it hasn't been set yet.
 	 * We only set the read timeout after the request has been
@@ -719,6 +838,7 @@ httpSendComplete(int fd, char *bufnotused, size_t size, comm_err_t errflag, void
 	commSetTimeout(fd, Config.Timeout.read, httpTimeout, httpState);
 	commSetDefer(fd, fwdCheckDeferRead, entry);
     }
+    httpState->flags.request_sent = 1;
 }
 
 /*
@@ -738,13 +858,36 @@ httpBuildRequestHeader(request_t * request,
     LOCAL_ARRAY(char, bbuf, BBUF_SZ);
     String strConnection = StringNull;
     const HttpHeader *hdr_in = &orig_request->header;
+    int we_do_ranges;
     const HttpHeaderEntry *e;
+    String strVia;
     String strFwd;
     HttpHeaderPos pos = HttpHeaderInitPos;
     httpHeaderInit(hdr_out, hoRequest);
     /* append our IMS header */
     if (request->lastmod > -1 && request->method == METHOD_GET)
 	httpHeaderPutTime(hdr_out, HDR_IF_MODIFIED_SINCE, request->lastmod);
+
+    /* decide if we want to do Ranges ourselves 
+     * (and fetch the whole object now)
+     * We want to handle Ranges ourselves iff
+     *    - we can actually parse client Range specs
+     *    - the specs are expected to be simple enough (e.g. no out-of-order ranges)
+     *    - reply will be cachable
+     * (If the reply will be uncachable we have to throw it away after 
+     *  serving this request, so it is better to forward ranges to 
+     *  the server and fetch only the requested content) 
+     */
+    if (NULL == orig_request->range)
+	we_do_ranges = 0;
+    else if (!orig_request->flags.cachable)
+	we_do_ranges = 0;
+    else if (httpHdrRangeOffsetLimit(orig_request->range))
+	we_do_ranges = 0;
+    else
+	we_do_ranges = 1;
+    debug(11, 8) ("httpBuildRequestHeader: range specs: %p, cachable: %d; we_do_ranges: %d\n",
+	orig_request->range, orig_request->flags.cachable, we_do_ranges);
 
     strConnection = httpHeaderGetList(hdr_in, HDR_CONNECTION);
     while ((e = httpHeaderGetEntry(hdr_in, &pos))) {
@@ -781,15 +924,22 @@ httpBuildRequestHeader(request_t * request,
 	    break;
 	case HDR_HOST:
 	    /*
-	     * Normally Squid does not copy the Host: header from
-	     * a client request into the forwarded request headers.
-	     * However, there is one case when we do: If the URL
+	     * Normally Squid rewrites the Host: header.
+	     * However, there is one case when we don't: If the URL
 	     * went through our redirector and the admin configured
 	     * 'redir_rewrites_host' to be off.
 	     */
-	    if (request->flags.redirected)
-		if (!Config.onoff.redir_rewrites_host)
-		    httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+	    if (request->flags.redirected && !Config.onoff.redir_rewrites_host)
+		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+	    else {
+		/* use port# only if not default */
+		if (orig_request->port == urlDefaultPort(orig_request->protocol)) {
+		    httpHeaderPutStr(hdr_out, HDR_HOST, orig_request->host);
+		} else {
+		    httpHeaderPutStrf(hdr_out, HDR_HOST, "%s:%d",
+			orig_request->host, (int) orig_request->port);
+		}
+	    }
 	    break;
 	case HDR_IF_MODIFIED_SINCE:
 	    /* append unless we added our own;
@@ -805,13 +955,15 @@ httpBuildRequestHeader(request_t * request,
 		    httpHeaderPutInt(hdr_out, HDR_MAX_FORWARDS, hops - 1);
 	    }
 	    break;
-	case HDR_VIA:
-	    /* If Via is disabled then forward any received header as-is */
-	    if (!Config.onoff.via)
+	case HDR_RANGE:
+	case HDR_IF_RANGE:
+	case HDR_REQUEST_RANGE:
+	    if (!we_do_ranges)
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
 	    break;
 	case HDR_PROXY_CONNECTION:
 	case HDR_CONNECTION:
+	case HDR_VIA:
 	case HDR_X_FORWARDED_FOR:
 	case HDR_CACHE_CONTROL:
 	    /* append these after the loop if needed */
@@ -823,21 +975,19 @@ httpBuildRequestHeader(request_t * request,
     }
 
     /* append Via */
-    if (Config.onoff.via) {
-	String strVia = httpHeaderGetList(hdr_in, HDR_VIA);
-	snprintf(bbuf, BBUF_SZ, "%d.%d %s",
-	    orig_request->http_ver.major,
-	    orig_request->http_ver.minor, ThisCache);
-	strListAdd(&strVia, bbuf, ',');
-	httpHeaderPutStr(hdr_out, HDR_VIA, strBuf(strVia));
-	stringClean(&strVia);
-    }
+    strVia = httpHeaderGetList(hdr_in, HDR_VIA);
+    snprintf(bbuf, BBUF_SZ, "%d.%d %s",
+	orig_request->http_ver.major,
+	orig_request->http_ver.minor, ThisCache);
+    strListAdd(&strVia, bbuf, ',');
+    httpHeaderPutStr(hdr_out, HDR_VIA, strBuf(strVia));
+    stringClean(&strVia);
+
     /* append X-Forwarded-For */
     strFwd = httpHeaderGetList(hdr_in, HDR_X_FORWARDED_FOR);
-    if (opt_forwarded_for && orig_request->client_addr.s_addr != no_addr.s_addr)
-	strListAdd(&strFwd, inet_ntoa(orig_request->client_addr), ',');
-    else
-	strListAdd(&strFwd, "unknown", ',');
+    strListAdd(&strFwd,
+	(((orig_request->client_addr.s_addr != no_addr.s_addr) && opt_forwarded_for) ?
+	    inet_ntoa(orig_request->client_addr) : "unknown"), ',');
     httpHeaderPutStr(hdr_out, HDR_X_FORWARDED_FOR, strBuf(strFwd));
     stringClean(&strFwd);
 
@@ -887,6 +1037,10 @@ httpBuildRequestHeader(request_t * request,
 	    if (strLen(request->urlpath))
 		assert(strstr(url, strBuf(request->urlpath)));
 	}
+	/* Set no-cache if determined needed but not found */
+	if (orig_request->flags.nocache && !httpHeaderHas(hdr_in, HDR_PRAGMA))
+	    EBIT_SET(cc->mask, CC_NO_CACHE);
+	/* Enforce sibling relations */
 	if (flags.only_if_cached)
 	    EBIT_SET(cc->mask, CC_ONLY_IF_CACHED);
 	httpHeaderPutCc(hdr_out, cc);
@@ -901,13 +1055,13 @@ httpBuildRequestHeader(request_t * request,
 	}
     }
     /* Now mangle the headers. */
-    httpHdrMangleList(hdr_out, request);
+    httpHdrMangleList(hdr_out, orig_request);
     stringClean(&strConnection);
 }
 
 /* build request prefix and append it to a given MemBuf; 
  * return the length of the prefix */
-mb_size_t
+int
 httpBuildRequestPrefix(request_t * request,
     request_t * orig_request,
     StoreEntry * entry,
@@ -939,13 +1093,18 @@ httpSendRequest(HttpStateData * httpState)
     MemBuf mb;
     request_t *req = httpState->request;
     StoreEntry *entry = httpState->entry;
-    peer *p = httpState->_peer;
+    peer *p = httpState->peer;
     CWCB *sendHeaderDone;
+    int fd = httpState->fd;
 
-    debug(11, 5) ("httpSendRequest: FD %d: httpState %p.\n", httpState->fd, httpState);
+    debug(11, 5) ("httpSendRequest: FD %d: httpState %p.\n", fd, httpState);
 
-    if (httpState->orig_request->body_connection)
-	sendHeaderDone = httpSendRequestEntity;
+    /* Schedule read reply. (but no timeout set until request fully sent) */
+    commSetTimeout(fd, Config.Timeout.lifetime, httpTimeout, httpState);
+    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);
+
+    if (httpState->orig_request->body_reader)
+	sendHeaderDone = httpSendRequestEntry;
     else
 	sendHeaderDone = httpSendComplete;
 
@@ -964,9 +1123,9 @@ httpSendRequest(HttpStateData * httpState)
 	httpState->flags.keepalive = 1;
     else if ((double) p->stats.n_keepalives_recv / (double) p->stats.n_keepalives_sent > 0.50)
 	httpState->flags.keepalive = 1;
-    if (httpState->_peer)
-	if (neighborType(httpState->_peer, httpState->request) == PEER_SIBLING &&
-	    !httpState->_peer->options.allow_miss)
+    if (httpState->peer)
+	if (neighborType(httpState->peer, httpState->request) == PEER_SIBLING &&
+	    !httpState->peer->options.allow_miss)
 	    httpState->flags.only_if_cached = 1;
     memBufDefInit(&mb);
     httpBuildRequestPrefix(req,
@@ -974,8 +1133,8 @@ httpSendRequest(HttpStateData * httpState)
 	entry,
 	&mb,
 	httpState->flags);
-    debug(11, 6) ("httpSendRequest: FD %d:\n%s\n", httpState->fd, mb.buf);
-    comm_write_mbuf(httpState->fd, mb, sendHeaderDone, httpState);
+    debug(11, 6) ("httpSendRequest: FD %d:\n%s\n", fd, mb.buf);
+    comm_write_mbuf(fd, mb, sendHeaderDone, httpState);
 }
 
 void
@@ -994,12 +1153,12 @@ httpStart(FwdState * fwd)
     httpState->entry = fwd->entry;
     httpState->fd = fd;
     if (fwd->servers)
-	httpState->_peer = fwd->servers->_peer;		/* might be NULL */
-    if (httpState->_peer) {
+	httpState->peer = fwd->servers->peer;	/* might be NULL */
+    if (httpState->peer) {
 	proxy_req = requestCreate(orig_req->method,
 	    PROTO_NONE, storeUrl(httpState->entry));
-	xstrncpy(proxy_req->host, httpState->_peer->host, SQUIDHOSTNAMELEN);
-	proxy_req->port = httpState->_peer->http_port;
+	xstrncpy(proxy_req->host, httpState->peer->host, SQUIDHOSTNAMELEN);
+	proxy_req->port = httpState->peer->http_port;
 	proxy_req->flags = orig_req->flags;
 	proxy_req->lastmod = orig_req->lastmod;
 	httpState->request = requestLink(proxy_req);
@@ -1010,11 +1169,11 @@ httpStart(FwdState * fwd)
 	 * We might end up getting the object from somewhere else if,
 	 * for example, the request to this neighbor fails.
 	 */
-	if (httpState->_peer->options.proxy_only)
+	if (httpState->peer->options.proxy_only)
 	    storeReleaseRequest(httpState->entry);
 #if DELAY_POOLS
 	assert(delayIsNoDelay(fd) == 0);
-	if (httpState->_peer->options.no_delay)
+	if (httpState->peer->options.no_delay)
 	    delaySetNoDelay(fd);
 #endif
     } else {
@@ -1036,36 +1195,63 @@ httpStart(FwdState * fwd)
 }
 
 static void
-httpSendRequestEntityDone(int fd, void *data)
+httpSendRequestEntryDone(int fd, void *data)
 {
     HttpStateData *httpState = data;
     aclCheck_t ch;
-    debug(11, 5) ("httpSendRequestEntityDone: FD %d\n",
+    debug(11, 5) ("httpSendRequestEntryDone: FD %d\n",
 	fd);
     memset(&ch, '\0', sizeof(ch));
     ch.request = httpState->request;
     if (!Config.accessList.brokenPosts) {
-	debug(11, 5) ("httpSendRequestEntityDone: No brokenPosts list\n");
+	debug(11, 5) ("httpSendRequestEntryDone: No brokenPosts list\n");
 	httpSendComplete(fd, NULL, 0, 0, data);
     } else if (!aclCheckFast(Config.accessList.brokenPosts, &ch)) {
-	debug(11, 5) ("httpSendRequestEntityDone: didn't match brokenPosts\n");
+	debug(11, 5) ("httpSendRequestEntryDone: didn't match brokenPosts\n");
 	httpSendComplete(fd, NULL, 0, 0, data);
     } else {
-	debug(11, 2) ("httpSendRequestEntityDone: matched brokenPosts\n");
+	debug(11, 2) ("httpSendRequestEntryDone: matched brokenPosts\n");
 	comm_write(fd, "\r\n", 2, httpSendComplete, data, NULL);
     }
 }
 
 static void
-httpRequestBodyHandler(char *buf, size_t size, void *data)
+httpRequestBodyHandler2(void *data)
 {
     HttpStateData *httpState = (HttpStateData *) data;
+    char *buf = httpState->body_buf;
+    httpState->body_buf = NULL;
+    comm_write(httpState->fd, buf, httpState->body_buf_sz, httpSendRequestEntry, data, memFree8K);
+}
+
+static void
+httpRequestBodyHandler(char *buf, ssize_t size, void *data)
+{
+    HttpStateData *httpState = (HttpStateData *) data;
+    httpState->body_buf = NULL;
     if (size > 0) {
-	comm_write(httpState->fd, buf, size, httpSendRequestEntity, data, memFree8K);
+	if (httpState->reply_hdr_state >= 2 && !httpState->flags.abuse_detected) {
+	    httpState->flags.abuse_detected = 1;
+	    debug(11, 1) ("httpSendRequestEntryDone: Likely proxy abuse detected '%s' -> '%s'\n",
+		inet_ntoa(httpState->orig_request->client_addr),
+		storeUrl(httpState->entry));
+	    if (httpState->entry->mem_obj->reply->sline.status == HTTP_INVALID_HEADER) {
+		memFree8K(buf);
+		comm_close(httpState->fd);
+		return;
+	    }
+	    httpState->body_buf = buf;
+	    httpState->body_buf_sz = size;
+	    /* Give response some time to propagate before sending rest
+	     * of request in case of error */
+	    eventAdd("POST delay on response", httpRequestBodyHandler2, httpState, 2.0, 1);
+	    return;
+	}
+	comm_write(httpState->fd, buf, size, httpSendRequestEntry, data, memFree8K);
     } else if (size == 0) {
 	/* End of body */
 	memFree8K(buf);
-	httpSendRequestEntityDone(httpState->fd, data);
+	httpSendRequestEntryDone(httpState->fd, data);
     } else {
 	/* Failed to get whole body, probably aborted */
 	memFree8K(buf);
@@ -1074,12 +1260,12 @@ httpRequestBodyHandler(char *buf, size_t size, void *data)
 }
 
 static void
-httpSendRequestEntity(int fd, char *bufnotused, size_t size, comm_err_t errflag, void *data)
+httpSendRequestEntry(int fd, char *bufnotused, size_t size, int errflag, void *data)
 {
     HttpStateData *httpState = data;
     StoreEntry *entry = httpState->entry;
     ErrorState *err;
-    debug(11, 5) ("httpSendRequestEntity: FD %d: size %d: errflag %d.\n",
+    debug(11, 5) ("httpSendRequestEntry: FD %d: size %d: errflag %d.\n",
 	fd, (int) size, errflag);
     if (size > 0) {
 	fd_bytes(fd, size, FD_WRITE);
@@ -1089,10 +1275,12 @@ httpSendRequestEntity(int fd, char *bufnotused, size_t size, comm_err_t errflag,
     if (errflag == COMM_ERR_CLOSING)
 	return;
     if (errflag) {
-	err = errorCon(ERR_WRITE_ERROR, HTTP_INTERNAL_SERVER_ERROR);
-	err->xerrno = errno;
-	err->request = requestLink(httpState->orig_request);
-	errorAppendEntry(entry, err);
+	if (entry->mem_obj->inmem_hi == 0) {
+	    err = errorCon(ERR_WRITE_ERROR, HTTP_BAD_GATEWAY);
+	    err->xerrno = errno;
+	    err->request = requestLink(httpState->orig_request);
+	    errorAppendEntry(entry, err);
+	}
 	comm_close(fd);
 	return;
     }
@@ -1100,7 +1288,8 @@ httpSendRequestEntity(int fd, char *bufnotused, size_t size, comm_err_t errflag,
 	comm_close(fd);
 	return;
     }
-    clientReadBody(httpState->orig_request, memAllocate(MEM_8K_BUF), 8192, httpRequestBodyHandler, httpState);
+    httpState->body_buf = memAllocate(MEM_8K_BUF);
+    requestReadBody(httpState->orig_request, httpState->body_buf, 8192, httpRequestBodyHandler, httpState);
 }
 
 void

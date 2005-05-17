@@ -72,8 +72,8 @@ int SMB_Logon_Server(SMB_Handle_Type Con_Handle, char *UserName, char *PassWord,
 
 
 #define ENCODED_PASS_LEN 24
-static char challenge[NONCE_LEN];
-static char lmencoded_empty_pass[ENCODED_PASS_LEN],
+static unsigned char challenge[NONCE_LEN];
+static unsigned char lmencoded_empty_pass[ENCODED_PASS_LEN],
 	ntencoded_empty_pass[ENCODED_PASS_LEN];
 SMB_Handle_Type handle = NULL;
 
@@ -139,8 +139,8 @@ init_challenge(char *domain, char *domain_controller)
 	return 3;
     }
     memcpy(challenge, handle->Encrypt_Key, NONCE_LEN);
-		SMBencrypt("",challenge,lmencoded_empty_pass);
-		SMBNTencrypt("",challenge,ntencoded_empty_pass);
+		SMBencrypt((unsigned char *)"",challenge,lmencoded_empty_pass);
+		SMBNTencrypt((unsigned char *)"",challenge,ntencoded_empty_pass);
     return 0;
 }
 
@@ -161,7 +161,10 @@ make_challenge(char *domain, char *domain_controller)
 #define min(A,B) (A<B?A:B)
 
 int ntlm_errno;
-static char credentials[1024];	/* we can afford to waste */
+#define MAX_USERNAME_LEN 255
+#define MAX_DOMAIN_LEN 255
+#define MAX_PASSWD_LEN 31
+static char credentials[MAX_USERNAME_LEN+MAX_DOMAIN_LEN+2];	/* we can afford to waste */
 
 
 /* Fetches the user's credentials from the challenge.
@@ -197,7 +200,7 @@ char *
 ntlm_check_auth(ntlm_authenticate * auth, int auth_length)
 {
     int rv;
-    char pass[25] /*, encrypted_pass[40] */;
+    char pass[MAX_PASSWD_LEN+1];
     char *domain = credentials;
     char *user;
     lstring tmp;
@@ -215,6 +218,11 @@ ntlm_check_auth(ntlm_authenticate * auth, int auth_length)
 	ntlm_errno = NTLM_LOGON_ERROR;
 	return NULL;
     }
+    if (tmp.l > MAX_DOMAIN_LEN) {
+	debug("Domain string exceeds %d bytes, rejecting\n", MAX_DOMAIN_LEN);
+	ntlm_errno = NTLM_LOGON_ERROR;
+	return NULL;
+    }
     memcpy(domain, tmp.str, tmp.l);
     user = domain + tmp.l;
     *user++ = '\0';
@@ -226,20 +234,30 @@ ntlm_check_auth(ntlm_authenticate * auth, int auth_length)
 	ntlm_errno = NTLM_LOGON_ERROR;
 	return NULL;
     }
+    if (tmp.l > MAX_USERNAME_LEN) {
+	debug("Username string exceeds %d bytes, rejecting\n", MAX_USERNAME_LEN);
+	ntlm_errno = NTLM_LOGON_ERROR;
+	return NULL;
+    }
     memcpy(user, tmp.str, tmp.l);
     *(user + tmp.l) = '\0';
 
 		
-		/* Authenticating against the NT response doesn't seem to work... */
+    /* Authenticating against the NT response doesn't seem to work... */
     tmp = ntlm_fetch_string((char *) auth, auth_length, &auth->lmresponse);
     if (tmp.str == NULL || tmp.l == 0) {
 	fprintf(stderr, "No auth at all. Returning no-auth\n");
 	ntlm_errno = NTLM_LOGON_ERROR;
 	return NULL;
     }
-		
+    if (tmp.l > MAX_PASSWD_LEN) {
+	debug("Password string exceeds %d bytes, rejecting\n", MAX_PASSWD_LEN);
+	ntlm_errno = NTLM_LOGON_ERROR;
+	return NULL;
+    }
+
     memcpy(pass, tmp.str, tmp.l);
-    pass[25] = '\0';
+    pass[min(MAX_PASSWD_LEN,tmp.l)] = '\0';
 
 #if 1
 		debug ("Empty LM pass detection: user: '%s', ours:'%s', his: '%s'"

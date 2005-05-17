@@ -73,7 +73,6 @@ CC = @CC@
 CGIEXT = @CGIEXT@
 CPP = @CPP@
 CRYPTLIB = @CRYPTLIB@
-CXX = @CXX@
 DEPDIR = @DEPDIR@
 DIGEST_AUTH_HELPERS = @DIGEST_AUTH_HELPERS@
 ERR_DEFAULT_LANGUAGE = @ERR_DEFAULT_LANGUAGE@
@@ -84,6 +83,8 @@ FALSE = @FALSE@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LIBDLMALLOC = @LIBDLMALLOC@
 LIBREGEX = @LIBREGEX@
+LIBSASL = @LIBSASL@
+LIB_LBER = @LIB_LBER@
 LIB_MALLOC = @LIB_MALLOC@
 LN = @LN@
 LN_S = @LN_S@
@@ -92,15 +93,16 @@ MKDIR = @MKDIR@
 MV = @MV@
 NTLM_AUTH_HELPERS = @NTLM_AUTH_HELPERS@
 OBJEXT = @OBJEXT@
-OPT_DEFAULT_HOSTS = @OPT_DEFAULT_HOSTS@
 PACKAGE = @PACKAGE@
 PERL = @PERL@
+PKGCONFIG = @PKGCONFIG@
 RANLIB = @RANLIB@
 REGEXLIB = @REGEXLIB@
 REPL_LIBS = @REPL_LIBS@
 REPL_OBJS = @REPL_OBJS@
 REPL_POLICIES = @REPL_POLICIES@
 RM = @RM@
+SAMBASOURCES = @SAMBASOURCES@
 SH = @SH@
 SNMPLIB = @SNMPLIB@
 SSLLIB = @SSLLIB@
@@ -138,6 +140,7 @@ LANGUAGES = \
 		Italian \
 		Japanese \
 		Korean \
+		Lithuanian \
 		Polish \
 		Portuguese \
 		Romanian \
@@ -149,7 +152,7 @@ LANGUAGES = \
 		Spanish \
 		Swedish \
 		Traditional_Chinese \
-		Turkish 
+		Turkish
 
 subdir = errors
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
@@ -271,7 +274,7 @@ uninstall-am: uninstall-info-am uninstall-local
 	uninstall-info-am uninstall-local
 
 
-install-data-local: 
+install-data-local:
 	@for l in $(INSTALL_LANGUAGES); do \
 		$(mkinstalldirs) $(DESTDIR)$(DEFAULT_ERROR_DIR)/$$l && \
 		for f in $(srcdir)/$$l/ERR_*; do \
@@ -314,10 +317,14 @@ dist-hook:
 	    test -d $(distdir)/$$lang \
 	    || mkdir $(distdir)/$$lang \
 	    || exit 1; \
-	    cp -p $(srcdir)/$$lang/ERR_*  $(distdir)/$$lang \
+	    cp -p $(srcdir)/$$lang/ERR_* $(distdir)/$$lang \
+	    || exit 1; \
+	    if test -f $(srcdir)/$$lang/README; then \
+	      cp -p $(srcdir)/$$lang/README $(distdir)/$$lang \
 	      || exit 1; \
+	    fi; \
 	  fi; \
-	done		
+	done
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

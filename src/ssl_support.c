@@ -5,17 +5,17 @@
  * AUTHOR: Benno Rice
  * DEBUG: section 83    SSL accelerator support
  *
- * SQUID Internet Object Cache  http://squid.nlanr.net/Squid/
+ * SQUID Web Proxy Cache          http://www.squid-cache.org/
  * ----------------------------------------------------------
  *
- *  Squid is the result of efforts by numerous individuals from the
- *  Internet community.  Development is led by Duane Wessels of the
- *  National Laboratory for Applied Network Research and funded by the
- *  National Science Foundation.  Squid is Copyrighted (C) 1998 by
- *  Duane Wessels and the University of California San Diego.  Please
- *  see the COPYRIGHT file for full details.  Squid incorporates
- *  software developed and/or copyrighted by other sources.  Please see
- *  the CREDITS file for full details.
+ *  Squid is the result of efforts by numerous individuals from
+ *  the Internet community; see the CONTRIBUTORS file for full
+ *  details.   Many organizations have provided support for Squid's
+ *  development; see the SPONSORS file for full details.  Squid is
+ *  Copyrighted (C) 2001 by the Regents of the University of
+ *  California; see the COPYRIGHT file for full details.  Squid
+ *  incorporates software developed and/or copyrighted by other
+ *  sources; see the CREDITS file for full details.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -91,69 +91,116 @@ static struct ssl_option {
     long value;
 } ssl_options[] = {
 
+#ifdef SSL_OP_MICROSOFT_SESS_ID_BUG
     {
 	"MICROSOFT_SESS_ID_BUG", SSL_OP_MICROSOFT_SESS_ID_BUG
     },
+#endif
+#ifdef SSL_OP_NETSCAPE_CHALLENGE_BUG
     {
 	"NETSCAPE_CHALLENGE_BUG", SSL_OP_NETSCAPE_CHALLENGE_BUG
     },
+#endif
+#ifdef SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG
     {
 	"NETSCAPE_REUSE_CIPHER_CHANGE_BUG", SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG
     },
+#endif
+#ifdef SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG
     {
 	"SSLREF2_REUSE_CERT_TYPE_BUG", SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG
     },
+#endif
+#ifdef SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER
     {
 	"MICROSOFT_BIG_SSLV3_BUFFER", SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER
     },
+#endif
+#ifdef SSL_OP_MSIE_SSLV2_RSA_PADDING
     {
 	"MSIE_SSLV2_RSA_PADDING", SSL_OP_MSIE_SSLV2_RSA_PADDING
     },
+#endif
+#ifdef SSL_OP_SSLEAY_080_CLIENT_DH_BUG
     {
 	"SSLEAY_080_CLIENT_DH_BUG", SSL_OP_SSLEAY_080_CLIENT_DH_BUG
     },
+#endif
+#ifdef SSL_OP_TLS_D5_BUG
     {
 	"TLS_D5_BUG", SSL_OP_TLS_D5_BUG
     },
+#endif
+#ifdef SSL_OP_TLS_BLOCK_PADDING_BUG
     {
 	"TLS_BLOCK_PADDING_BUG", SSL_OP_TLS_BLOCK_PADDING_BUG
     },
+#endif
+#ifdef SSL_OP_TLS_ROLLBACK_BUG
     {
 	"TLS_ROLLBACK_BUG", SSL_OP_TLS_ROLLBACK_BUG
     },
-    {
-	"SINGLE_DH_USE", SSL_OP_SINGLE_DH_USE
-    },
-    {
-	"EPHEMERAL_RSA", SSL_OP_EPHEMERAL_RSA
-    },
-    {
-	"PKCS1_CHECK_1", SSL_OP_PKCS1_CHECK_1
-    },
-    {
-	"PKCS1_CHECK_2", SSL_OP_PKCS1_CHECK_2
-    },
-    {
-	"NETSCAPE_CA_DN_BUG", SSL_OP_NETSCAPE_CA_DN_BUG
-    },
-    {
-	"NON_EXPORT_FIRST", SSL_OP_NON_EXPORT_FIRST
-    },
-    {
-	"NETSCAPE_DEMO_CIPHER_CHANGE_BUG", SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG
-    },
+#endif
+#ifdef SSL_OP_ALL
     {
 	"ALL", SSL_OP_ALL
     },
+#endif
+#ifdef SSL_OP_SINGLE_DH_USE
+    {
+	"SINGLE_DH_USE", SSL_OP_SINGLE_DH_USE
+    },
+#endif
+#ifdef SSL_OP_EPHEMERAL_RSA
+    {
+	"EPHEMERAL_RSA", SSL_OP_EPHEMERAL_RSA
+    },
+#endif
+#ifdef SSL_OP_PKCS1_CHECK_1
+    {
+	"PKCS1_CHECK_1", SSL_OP_PKCS1_CHECK_1
+    },
+#endif
+#ifdef SSL_OP_PKCS1_CHECK_2
+    {
+	"PKCS1_CHECK_2", SSL_OP_PKCS1_CHECK_2
+    },
+#endif
+#ifdef SSL_OP_NETSCAPE_CA_DN_BUG
+    {
+	"NETSCAPE_CA_DN_BUG", SSL_OP_NETSCAPE_CA_DN_BUG
+    },
+#endif
+#ifdef SSL_OP_NON_EXPORT_FIRST
+    {
+	"NON_EXPORT_FIRST", SSL_OP_NON_EXPORT_FIRST
+    },
+#endif
+#ifdef SSL_OP_CIPHER_SERVER_PREFERENCE
+    {
+	"CIPHER_SERVER_PREFERENCE", SSL_OP_CIPHER_SERVER_PREFERENCE
+    },
+#endif
+#ifdef SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG
+    {
+	"NETSCAPE_DEMO_CIPHER_CHANGE_BUG", SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG
+    },
+#endif
+#ifdef SSL_OP_NO_SSLv2
     {
 	"NO_SSLv2", SSL_OP_NO_SSLv2
     },
+#endif
+#ifdef SSL_OP_NO_SSLv3
     {
 	"NO_SSLv3", SSL_OP_NO_SSLv3
     },
+#endif
+#ifdef SSL_OP_NO_TLSv1
     {
 	"NO_TLSv1", SSL_OP_NO_TLSv1
     },
+#endif
     {
 	"", 0
     },

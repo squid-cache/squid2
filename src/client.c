@@ -224,7 +224,7 @@ main(int argc, char *argv[])
 		xstrerror());
 	    exit(-1);
 	}
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_CYGWIN_)
 	setmode(put_fd, O_BINARY);
 #endif
 	fstat(put_fd, &sb);
@@ -262,7 +262,7 @@ main(int argc, char *argv[])
 	    exit(1);
 	}
 	snprintf(buf, BUFSIZ, "%s:%s", user, password);
-	snprintf(buf, BUFSIZ, "Proxy-Authorization: Basic %s\n", base64_encode(buf));
+	snprintf(buf, BUFSIZ, "Proxy-Authorization: Basic %s\r\n", base64_encode(buf));
 	strcat(msg, buf);
     }
     if (www_user) {
@@ -277,7 +277,7 @@ main(int argc, char *argv[])
 	    exit(1);
 	}
 	snprintf(buf, BUFSIZ, "%s:%s", user, password);
-	snprintf(buf, BUFSIZ, "Authorization: Basic %s\n", base64_encode(buf));
+	snprintf(buf, BUFSIZ, "Authorization: Basic %s\r\n", base64_encode(buf));
 	strcat(msg, buf);
     }
     if (keep_alive) {
@@ -311,7 +311,7 @@ main(int argc, char *argv[])
     }
     loops = ping ? pcount : 1;
     for (i = 0; loops == 0 || i < loops; i++) {
-	int fsize = 0;
+	squid_off_t fsize = 0;
 	/* Connect to the server */
 	if ((conn = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	    perror("client: socket");
@@ -321,7 +321,7 @@ main(int argc, char *argv[])
 	    perror("client: bind");
 	    exit(1);
 	}
-	if (client_comm_connect(conn, hostname, port, ping ? &tv1 : NULL) < 0) {
+	if (client_comm_connect(conn, hostname, port, (ping || opt_verbose) ? &tv1 : NULL) < 0) {
 	    if (errno == 0) {
 		fprintf(stderr, "client: ERROR: Cannot connect to %s:%d: Host unknown.\n", hostname, port);
 	    } else {
@@ -365,7 +365,7 @@ main(int argc, char *argv[])
 	if (interrupted)
 	    break;
 
-	if (ping) {
+	if (ping || opt_verbose) {
 	    struct tm *tmp;
 	    time_t t2s;
 	    long elapsed_msec;
@@ -374,18 +374,19 @@ main(int argc, char *argv[])
 	    elapsed_msec = tvSubMsec(tv1, tv2);
 	    t2s = tv2.tv_sec;
 	    tmp = localtime(&t2s);
-	    fprintf(stderr, "%d-%02d-%02d %02d:%02d:%02d [%d]: %ld.%03ld secs, %f KB/s\n",
+	    fprintf(stderr, "%d-%02d-%02d %02d:%02d:%02d [%d]: %ld.%03ld secs, %f KB/s (%" PRINTF_OFF_T "KB)\n",
 		tmp->tm_year + 1900, tmp->tm_mon + 1, tmp->tm_mday,
 		tmp->tm_hour, tmp->tm_min, tmp->tm_sec, i + 1,
 		elapsed_msec / 1000, elapsed_msec % 1000,
-		elapsed_msec ? (double) fsize / elapsed_msec : -1.0);
+		elapsed_msec ? (double) fsize / elapsed_msec * 1000 / 1024 : -1.0,
+		(fsize + 1023) / 1024);
 	    if (i == 0 || elapsed_msec < ping_min)
 		ping_min = elapsed_msec;
 	    if (i == 0 || elapsed_msec > ping_max)
 		ping_max = elapsed_msec;
 	    ping_sum += elapsed_msec;
 	    /* Delay until next "ping_int" boundary */
-	    if ((loops == 0 || i + 1 < loops) && elapsed_msec < ping_int) {
+	    if (ping && (loops == 0 || i + 1 < loops) && elapsed_msec < ping_int) {
 		struct timeval tvs;
 		long msec_left = ping_int - elapsed_msec;
 

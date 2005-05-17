@@ -63,13 +63,13 @@ static char *storeCossDirSwapLogFile(SwapDir *, const char *);
 static EVH storeCossRebuildFromSwapLog;
 static StoreEntry *storeCossAddDiskRestore(SwapDir * SD, const cache_key * key,
     int file_number,
-    size_t swap_file_sz,
+    squid_file_sz swap_file_sz,
     time_t expires,
     time_t timestamp,
     time_t lastref,
     time_t lastmod,
-    u_int32_t refcount,
-    u_int16_t flags,
+    u_num32 refcount,
+    u_short flags,
     int clean);
 static void storeCossDirRebuild(SwapDir * sd);
 static void storeCossDirCloseTmpSwapLog(SwapDir * sd);
@@ -89,9 +89,20 @@ static STFSPARSE storeCossDirParse;
 static STFSRECONFIGURE storeCossDirReconfigure;
 static STDUMP storeCossDirDump;
 static STCALLBACK storeCossDirCallback;
+static void storeCossDirParseBlkSize(SwapDir *, const char *, const char *, int);
+static void storeCossDirDumpBlkSize(StoreEntry *, const char *, SwapDir *);
+static OBJH storeCossStats;
 
 /* The "only" externally visible function */
 STSETUP storeFsSetup_coss;
+
+static struct cache_dir_option options[] =
+{
+    {"block-size", storeCossDirParseBlkSize, storeCossDirDumpBlkSize},
+    {NULL, NULL}
+};
+
+struct _coss_stats coss_stats;
 
 static char *
 storeCossDirSwapLogFile(SwapDir * sd, const char *ext)
@@ -130,12 +141,12 @@ storeCossDirOpenSwapLog(SwapDir * sd)
     char *path;
     int fd;
     path = storeCossDirSwapLogFile(sd, NULL);
-    fd = file_open(path, O_WRONLY | O_CREAT | O_BINARY);
+    fd = file_open(path, O_WRONLY | O_CREAT);
     if (fd < 0) {
-	debug(47, 1) ("%s: %s\n", path, xstrerror());
+	debug(79, 1) ("%s: %s\n", path, xstrerror());
 	fatal("storeCossDirOpenSwapLog: Failed to open swap log.");
     }
-    debug(47, 3) ("Cache COSS Dir #%d log opened on FD %d\n", sd->index, fd);
+    debug(79, 3) ("Cache COSS Dir #%d log opened on FD %d\n", sd->index, fd);
     cs->swaplog_fd = fd;
 }
 
@@ -146,7 +157,7 @@ storeCossDirCloseSwapLog(SwapDir * sd)
     if (cs->swaplog_fd < 0)	/* not open */
 	return;
     file_close(cs->swaplog_fd);
-    debug(47, 3) ("Cache COSS Dir #%d log closed on FD %d\n",
+    debug(79, 3) ("Cache COSS Dir #%d log closed on FD %d\n",
 	sd->index, cs->swaplog_fd);
     cs->swaplog_fd = -1;
 }
@@ -160,11 +171,17 @@ storeCossDirInit(SwapDir * sd)
     storeCossDirRebuild(sd);
     cs->fd = file_open(sd->path, O_RDWR | O_CREAT);
     if (cs->fd < 0) {
-	debug(47, 1) ("%s: %s\n", sd->path, xstrerror());
-	fatal("storeCossDirInit: Failed to open a COSS directory.");
+	debug(79, 1) ("%s: %s\n", sd->path, xstrerror());
+	fatal("storeCossDirInit: Failed to open a COSS file.");
     }
     n_coss_dirs++;
-    (void) storeDirGetBlkSize(sd->path, &sd->fs.blksize);
+    /*
+     * fs.blksize is normally determined by calling statvfs() etc,
+     * but we just set it here.  It is used in accounting the
+     * total store size, and is reported in cachemgr 'storedir'
+     * page.
+     */
+    sd->fs.blksize = 1 << cs->blksz_bits;
 }
 
 void
@@ -214,7 +231,7 @@ storeCossRebuildFromSwapLog(void *data)
     /* load a number of objects per invocation */
     for (count = 0; count < rb->speed; count++) {
 	if (fread(&s, ss, 1, rb->log) != 1) {
-	    debug(47, 1) ("Done reading %s swaplog (%d entries)\n",
+	    debug(79, 1) ("Done reading %s swaplog (%d entries)\n",
 		rb->sd->path, rb->n_read);
 	    fclose(rb->log);
 	    rb->log = NULL;
@@ -226,7 +243,7 @@ storeCossRebuildFromSwapLog(void *data)
 	    continue;
 	if (s.op >= SWAP_LOG_MAX)
 	    continue;
-	debug(47, 3) ("storeCossRebuildFromSwapLog: %s %s %08X\n",
+	debug(20, 3) ("storeCossRebuildFromSwapLog: %s %s %08X\n",
 	    swap_log_op_str[(int) s.op],
 	    storeKeyText(s.key),
 	    s.swap_filen);
@@ -257,7 +274,7 @@ storeCossRebuildFromSwapLog(void *data)
 	} else {
 	    x = log(++rb->counts.bad_log_op) / log(10.0);
 	    if (0.0 == x - (double) (int) x)
-		debug(47, 1) ("WARNING: %d invalid swap log entries found\n",
+		debug(20, 1) ("WARNING: %d invalid swap log entries found\n",
 		    rb->counts.bad_log_op);
 	    rb->counts.invalid++;
 	    continue;
@@ -301,17 +318,17 @@ storeCossRebuildFromSwapLog(void *data)
 static StoreEntry *
 storeCossAddDiskRestore(SwapDir * SD, const cache_key * key,
     int file_number,
-    size_t swap_file_sz,
+    squid_file_sz swap_file_sz,
     time_t expires,
     time_t timestamp,
     time_t lastref,
     time_t lastmod,
-    u_int32_t refcount,
-    u_int16_t flags,
+    u_num32 refcount,
+    u_short flags,
     int clean)
 {
     StoreEntry *e = NULL;
-    debug(47, 5) ("storeCossAddDiskRestore: %s, fileno=%08X\n", storeKeyText(key), file_number);
+    debug(20, 5) ("storeCossAddDiskRestore: %s, fileno=%08X\n", storeKeyText(key), file_number);
     /* if you call this you'd better be sure file_number is not 
      * already in use! */
     e = new_StoreEntry(STORE_ENTRY_WITHOUT_MEMOBJ, NULL, NULL);
@@ -335,7 +352,10 @@ storeCossAddDiskRestore(SwapDir * SD, const cache_key * key,
     EBIT_CLR(e->flags, ENTRY_VALIDATED);
     storeHashInsert(e, key);	/* do it after we clear KEY_PRIVATE */
     storeCossAdd(SD, e);
+#if USE_COSS_ALLOC_NOTIFY
     e->swap_filen = storeCossAllocate(SD, e, COSS_ALLOC_NOTIFY);
+#endif
+    assert(e->swap_filen >= 0);
     return e;
 }
 
@@ -359,7 +379,7 @@ storeCossDirRebuild(SwapDir * sd)
      * we'll use storeCossRebuildFromSwapLog().
      */
     fp = storeCossDirOpenTmpSwapLog(sd, &clean, &zero);
-    debug(47, 1) ("Rebuilding COSS storage in %s (%s)\n",
+    debug(20, 1) ("Rebuilding COSS storage in %s (%s)\n",
 	sd->path, clean ? "CLEAN" : "DIRTY");
     rb->log = fp;
     store_dirs_rebuilding++;
@@ -391,16 +411,10 @@ storeCossDirCloseTmpSwapLog(SwapDir * sd)
     char *new_path = xstrdup(storeCossDirSwapLogFile(sd, ".new"));
     int fd;
     file_close(cs->swaplog_fd);
-#if defined (_SQUID_OS2_) || defined (_SQUID_CYGWIN_)
-    if (unlink(swaplog_path) < 0) {
-	debug(50, 0) ("%s: %s\n", swaplog_path, xstrerror());
-	fatal("storeCossDirCloseTmpSwapLog: unlink failed");
-    }
-#endif
     if (xrename(new_path, swaplog_path) < 0) {
 	fatal("storeCossDirCloseTmpSwapLog: rename failed");
     }
-    fd = file_open(swaplog_path, O_WRONLY | O_CREAT | O_BINARY);
+    fd = file_open(swaplog_path, O_WRONLY | O_CREAT);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", swaplog_path, xstrerror());
 	fatal("storeCossDirCloseTmpSwapLog: Failed to open swap log.");
@@ -423,7 +437,7 @@ storeCossDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
     FILE *fp;
     int fd;
     if (stat(swaplog_path, &log_sb) < 0) {
-	debug(50, 1) ("Cache COSS Dir #%d: No log file\n", sd->index);
+	debug(47, 1) ("Cache COSS Dir #%d: No log file\n", sd->index);
 	safe_free(swaplog_path);
 	safe_free(clean_path);
 	safe_free(new_path);
@@ -434,14 +448,14 @@ storeCossDirOpenTmpSwapLog(SwapDir * sd, int *clean_flag, int *zero_flag)
     if (cs->swaplog_fd >= 0)
 	file_close(cs->swaplog_fd);
     /* open a write-only FD for the new log */
-    fd = file_open(new_path, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
+    fd = file_open(new_path, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0) {
 	debug(50, 1) ("%s: %s\n", new_path, xstrerror());
 	fatal("storeDirOpenTmpSwapLog: Failed to open swap log.");
     }
     cs->swaplog_fd = fd;
     /* open a read-only stream of the old log */
-    fp = fopen(swaplog_path, "rb");
+    fp = fopen(swaplog_path, "r");
     if (fp == NULL) {
 	debug(50, 0) ("%s: %s\n", swaplog_path, xstrerror());
 	fatal("Failed to open swap log for reading");
@@ -465,7 +479,7 @@ struct _clean_state {
     char *new;
     char *cln;
     char *outbuf;
-    off_t outbuf_offset;
+    int outbuf_offset;
     int fd;
     dlink_node *current;
 };
@@ -485,7 +499,7 @@ storeCossDirWriteCleanStart(SwapDir * sd)
     struct stat sb;
 #endif
     state->new = xstrdup(storeCossDirSwapLogFile(sd, ".clean"));
-    state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
+    state->fd = file_open(state->new, O_WRONLY | O_CREAT | O_TRUNC);
     if (state->fd < 0) {
 	xfree(state->new);
 	xfree(state);
@@ -499,7 +513,7 @@ storeCossDirWriteCleanStart(SwapDir * sd)
     state->outbuf_offset = 0;
     unlink(state->cln);
     state->current = cs->index.tail;
-    debug(50, 3) ("storeCOssDirWriteCleanLogs: opened %s, FD %d\n",
+    debug(20, 3) ("storeCOssDirWriteCleanLogs: opened %s, FD %d\n",
 	state->new, state->fd);
 #if HAVE_FCHMOD
     if (stat(state->cur, &sb) == 0)
@@ -552,7 +566,7 @@ storeCossDirWriteCleanEntry(SwapDir * sd, const StoreEntry * e)
 	if (FD_WRITE_METHOD(state->fd, state->outbuf, state->outbuf_offset) < 0) {
 	    debug(50, 0) ("storeCossDirWriteCleanLogs: %s: write: %s\n",
 		state->new, xstrerror());
-	    debug(50, 0) ("storeCossDirWriteCleanLogs: Current swap logfile not replaced.\n");
+	    debug(20, 0) ("storeCossDirWriteCleanLogs: Current swap logfile not replaced.\n");
 	    file_close(state->fd);
 	    state->fd = -1;
 	    unlink(state->new);
@@ -568,7 +582,6 @@ storeCossDirWriteCleanEntry(SwapDir * sd, const StoreEntry * e)
 static void
 storeCossDirWriteCleanDone(SwapDir * sd)
 {
-    int fd;
     struct _clean_state *state = sd->log.clean.state;
     if (NULL == state)
 	return;
@@ -577,7 +590,7 @@ storeCossDirWriteCleanDone(SwapDir * sd)
     if (FD_WRITE_METHOD(state->fd, state->outbuf, state->outbuf_offset) < 0) {
 	debug(50, 0) ("storeCossDirWriteCleanLogs: %s: write: %s\n",
 	    state->new, xstrerror());
-	debug(50, 0) ("storeCossDirWriteCleanLogs: Current swap logfile "
+	debug(20, 0) ("storeCossDirWriteCleanLogs: Current swap logfile "
 	    "not replaced.\n");
 	file_close(state->fd);
 	state->fd = -1;
@@ -589,26 +602,21 @@ storeCossDirWriteCleanDone(SwapDir * sd)
      * so we have to close before renaming.
      */
     storeCossDirCloseSwapLog(sd);
-    /* save the fd value for a later test */
-    fd = state->fd;
     /* rename */
     if (state->fd >= 0) {
-#if defined(_SQUID_OS2_) || defined (_SQUID_CYGWIN_)
+#ifdef _SQUID_OS2_
 	file_close(state->fd);
 	state->fd = -1;
-	if (unlink(state->cur) < 0)
-	    debug(50, 0) ("storeCossDirWriteCleanLogs: unlinkd failed: %s, %s\n",
-		xstrerror(), state->cur);
 #endif
 	xrename(state->new, state->cur);
     }
     /* touch a timestamp file if we're not still validating */
     if (store_dirs_rebuilding)
 	(void) 0;
-    else if (fd < 0)
+    else if (state->fd < 0)
 	(void) 0;
     else
-	file_close(file_open(state->cln, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY));
+	file_close(file_open(state->cln, O_WRONLY | O_CREAT | O_TRUNC));
     /* close */
     safe_free(state->cur);
     safe_free(state->new);
@@ -745,6 +753,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     unsigned int i;
     unsigned int size;
     CossInfo *cs;
+    off_t max_offset;
 
     i = GetInteger();
     size = i << 10;		/* Mbytes to Kbytes */
@@ -799,11 +808,27 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     cs->current_membuf = NULL;
     cs->index.head = NULL;
     cs->index.tail = NULL;
+    cs->blksz_bits = 9;		/* default block size = 512 */
+    cs->blksz_mask = (1 << cs->blksz_bits) - 1;
 
-    parse_cachedir_options(sd, NULL, 0);
+    parse_cachedir_options(sd, options, 0);
     /* Enforce maxobjsize being set to something */
     if (sd->max_objsize == -1)
 	fatal("COSS requires max-size to be set to something other than -1!\n");
+    if (sd->max_objsize > COSS_MEMBUF_SZ)
+	fatalf("COSS max-size option must be less than COSS_MEMBUF_SZ (%d)\n", COSS_MEMBUF_SZ);
+    /*
+     * check that we won't overflow sfileno later.  0xFFFFFF is the
+     * largest possible sfileno, assuming sfileno is a 25-bit
+     * signed integer, as defined in structs.h.
+     */
+    max_offset = (off_t) 0xFFFFFF << cs->blksz_bits;
+    if (sd->max_size > (unsigned long) (max_offset >> 10)) {
+	debug(47, 0) ("COSS block-size = %d bytes\n", 1 << cs->blksz_bits);
+	debug(47, 0) ("COSS largest file offset = %lu KB\n", (unsigned long) max_offset >> 10);
+	debug(47, 0) ("COSS cache_dir size = %d KB\n", sd->max_size);
+	fatal("COSS cache_dir size exceeds largest offset\n");
+    }
 }
 
 
@@ -824,7 +849,7 @@ storeCossDirReconfigure(SwapDir * sd, int index, char *path)
 	debug(3, 1) ("Cache COSS dir '%s' size changed to %d KB\n", path, size);
 	sd->max_size = size;
     }
-    parse_cachedir_options(sd, NULL, 1);
+    parse_cachedir_options(sd, options, 1);
     /* Enforce maxobjsize being set to something */
     if (sd->max_objsize == -1)
 	fatal("COSS requires max-size to be set to something other than -1!\n");
@@ -836,6 +861,42 @@ storeCossDirDump(StoreEntry * entry, SwapDir * s)
     storeAppendPrintf(entry, " %d",
 	s->max_size >> 20);
     dump_cachedir_options(entry, NULL, s);
+}
+
+static void
+storeCossDirParseBlkSize(SwapDir * sd, const char *name, const char *value, int reconfiguring)
+{
+    CossInfo *cs = sd->fsdata;
+    int blksz = atoi(value);
+    int check;
+    int nbits;
+    if (blksz == (1 << cs->blksz_bits))
+	/* no change */
+	return;
+    if (reconfiguring) {
+	debug(47, 0) ("WARNING: cannot change COSS block-size while Squid is running\n");
+	return;
+    }
+    nbits = 0;
+    check = blksz;
+    while (check > 1) {
+	nbits++;
+	check >>= 1;
+    }
+    check = 1 << nbits;
+    if (check != blksz)
+	fatal("COSS block-size must be a power of 2\n");
+    if (nbits > 13)
+	fatal("COSS block-size must be 8192 or smaller\n");
+    cs->blksz_bits = nbits;
+    cs->blksz_mask = (1 << cs->blksz_bits) - 1;
+}
+
+static void
+storeCossDirDumpBlkSize(StoreEntry * e, const char *option, SwapDir * sd)
+{
+    CossInfo *cs = sd->fsdata;
+    storeAppendPrintf(e, " block-size=%d", 1 << cs->blksz_bits);
 }
 
 #if OLD_UNUSED_CODE
@@ -885,9 +946,39 @@ storeCossDirPick(void)
 static void
 storeCossDirDone(void)
 {
-    memPoolDestroy(&coss_state_pool);
-/*  memPoolDestroy(&coss_index_pool);  XXX Should be here? */
+    memPoolDestroy(coss_state_pool);
     coss_initialised = 0;
+}
+
+static void
+storeCossStats(StoreEntry * sentry)
+{
+    const char *tbl_fmt = "%10s %10d %10d %10d\n";
+    storeAppendPrintf(sentry, "\n                   OPS     SUCCESS        FAIL\n");
+    storeAppendPrintf(sentry, tbl_fmt,
+	"open", coss_stats.open.ops, coss_stats.open.success, coss_stats.open.fail);
+    storeAppendPrintf(sentry, tbl_fmt,
+	"create", coss_stats.create.ops, coss_stats.create.success, coss_stats.create.fail);
+    storeAppendPrintf(sentry, tbl_fmt,
+	"close", coss_stats.close.ops, coss_stats.close.success, coss_stats.close.fail);
+    storeAppendPrintf(sentry, tbl_fmt,
+	"unlink", coss_stats.unlink.ops, coss_stats.unlink.success, coss_stats.unlink.fail);
+    storeAppendPrintf(sentry, tbl_fmt,
+	"read", coss_stats.read.ops, coss_stats.read.success, coss_stats.read.fail);
+    storeAppendPrintf(sentry, tbl_fmt,
+	"write", coss_stats.write.ops, coss_stats.write.success, coss_stats.write.fail);
+    storeAppendPrintf(sentry, tbl_fmt,
+	"s_write", coss_stats.stripe_write.ops, coss_stats.stripe_write.success, coss_stats.stripe_write.fail);
+
+    storeAppendPrintf(sentry, "\n");
+    storeAppendPrintf(sentry, "stripes:          %d\n", coss_stats.stripes);
+    storeAppendPrintf(sentry, "alloc.alloc:      %d\n", coss_stats.alloc.alloc);
+    storeAppendPrintf(sentry, "alloc.realloc:    %d\n", coss_stats.alloc.realloc);
+    storeAppendPrintf(sentry, "alloc.collisions: %d\n", coss_stats.alloc.collisions);
+    storeAppendPrintf(sentry, "disk_overflows:   %d\n", coss_stats.disk_overflows);
+    storeAppendPrintf(sentry, "stripe_overflows: %d\n", coss_stats.stripe_overflows);
+    storeAppendPrintf(sentry, "open_mem_hits:    %d\n", coss_stats.open_mem_hits);
+    storeAppendPrintf(sentry, "open_mem_misses:  %d\n", coss_stats.open_mem_misses);
 }
 
 void
@@ -900,5 +991,6 @@ storeFsSetup_coss(storefs_entry_t * storefs)
     storefs->donefunc = storeCossDirDone;
     coss_state_pool = memPoolCreate("COSS IO State data", sizeof(CossState));
     coss_index_pool = memPoolCreate("COSS index data", sizeof(CossIndexNode));
+    cachemgrRegister("coss", "COSS Stats", storeCossStats, 0, 1);
     coss_initialised = 1;
 }

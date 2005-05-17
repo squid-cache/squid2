@@ -7,8 +7,9 @@
 # Autotool versions preferred. To override either edit the script
 # to match the versions you want to use, or set the variables on
 # the command line like "env acver=.. amver=... ./bootstrap.sh"
-acversions="${acver:-2.53 2.52}"
-amversions="${amver:-1.6 1.5}"
+
+acversions="${acver:-2.13}"
+amversions="${amver:-1.5}"
 
 check_version()
 {
@@ -51,6 +52,13 @@ bootstrap() {
   fi
 }
 
+fixmakefiles() {
+  bad_files="`find . -name Makefile.in | xargs grep -l "AR = ar"`"
+  if [ -n "$bad_files" ]; then
+    perl -i -p -e 's/^/#/ if /^AR = ar/' $bad_files
+  fi
+}
+
 # Make sure cfgaux exists
 mkdir -p cfgaux
 
@@ -60,12 +68,9 @@ acver=`find_version autoconf ${acversions}`
 
 # Bootstrap the autotool subsystems
 bootstrap aclocal$amver
-#workaround for Automake 1.5
-if grep m4_regex aclocal.m4 >/dev/null; then
-    perl -i.bak -p -e 's/m4_patsubst/m4_bpatsubst/g; s/m4_regexp/m4_bregexp/g;' aclocal.m4
-fi
 bootstrap autoheader$acver
 bootstrap automake$amver --foreign --add-missing
+fixmakefiles
 bootstrap autoconf$acver
 
 echo "Autotool bootstrapping complete."

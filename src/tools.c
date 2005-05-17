@@ -132,25 +132,25 @@ dumpMallocStats(void)
 	return;
     mp = mallinfo();
     fprintf(debug_log, "Memory usage for %s via mallinfo():\n", appname);
-    fprintf(debug_log, "\ttotal space in arena:  %6d KB\n",
-	mp.arena >> 10);
-    fprintf(debug_log, "\tOrdinary blocks:       %6d KB %6d blks\n",
-	mp.uordblks >> 10, mp.ordblks);
-    fprintf(debug_log, "\tSmall blocks:          %6d KB %6d blks\n",
-	mp.usmblks >> 10, mp.smblks);
-    fprintf(debug_log, "\tHolding blocks:        %6d KB %6d blks\n",
-	mp.hblkhd >> 10, mp.hblks);
-    fprintf(debug_log, "\tFree Small blocks:     %6d KB\n",
-	mp.fsmblks >> 10);
-    fprintf(debug_log, "\tFree Ordinary blocks:  %6d KB\n",
-	mp.fordblks >> 10);
+    fprintf(debug_log, "\ttotal space in arena:  %6ld KB\n",
+	(long int) mp.arena >> 10);
+    fprintf(debug_log, "\tOrdinary blocks:       %6ld KB %6ld blks\n",
+	(long int) mp.uordblks >> 10, (long int) mp.ordblks);
+    fprintf(debug_log, "\tSmall blocks:          %6ld KB %6ld blks\n",
+	(long int) mp.usmblks >> 10, (long int) mp.smblks);
+    fprintf(debug_log, "\tHolding blocks:        %6ld KB %6ld blks\n",
+	(long int) mp.hblkhd >> 10, (long int) mp.hblks);
+    fprintf(debug_log, "\tFree Small blocks:     %6ld KB\n",
+	(long int) mp.fsmblks >> 10);
+    fprintf(debug_log, "\tFree Ordinary blocks:  %6ld KB\n",
+	(long int) mp.fordblks >> 10);
     t = mp.uordblks + mp.usmblks + mp.hblkhd;
     fprintf(debug_log, "\tTotal in use:          %6d KB %d%%\n",
 	t >> 10, percent(t, mp.arena));
     t = mp.fsmblks + mp.fordblks;
     fprintf(debug_log, "\tTotal free:            %6d KB %d%%\n",
 	t >> 10, percent(t, mp.arena));
-#if HAVE_STRUCT_MALLINFO_MXFAST
+#if HAVE_EXT_MALLINFO
     fprintf(debug_log, "\tmax size of small blocks:\t%d\n",
 	mp.mxfast);
     fprintf(debug_log, "\tnumber of small blocks in a holding block:\t%d\n",
@@ -163,7 +163,7 @@ dumpMallocStats(void)
 	mp.allocated);
     fprintf(debug_log, "\tbytes used in maintaining the free tree:\t%d\n",
 	mp.treeoverhead);
-#endif /* HAVE_STRUCT_MALLINFO_MXFAST */
+#endif /* HAVE_EXT_MALLINFO */
 #endif /* HAVE_MALLINFO */
 }
 
@@ -205,6 +205,8 @@ rusage_maxrss(struct rusage *r)
 #elif defined(_SQUID_SGI_)
     return r->ru_maxrss;
 #elif defined(_SQUID_OSF_)
+    return r->ru_maxrss;
+#elif defined(_SQUID_AIX_)
     return r->ru_maxrss;
 #elif defined(BSD4_4)
     return r->ru_maxrss;
@@ -339,8 +341,10 @@ fatal_common(const char *message)
     fprintf(debug_log, "Squid Cache (Version %s): Terminated abnormally.\n",
 	version_string);
     fflush(debug_log);
-    PrintRusage();
-    dumpMallocStats();
+    if (!shutting_down) {
+	PrintRusage();
+	dumpMallocStats();
+    }
 }
 
 /* fatal */
@@ -355,7 +359,7 @@ fatal(const char *message)
 	storeDirWriteCleanLogs(0);
     fatal_common(message);
     if (shutting_down)
-	exit(0);
+	exit(1);
     else
 	abort();
 }
@@ -443,32 +447,24 @@ getMyHostname(void)
     LOCAL_ARRAY(char, host, SQUIDHOSTNAMELEN + 1);
     static int present = 0;
     const struct hostent *h = NULL;
-    struct in_addr sa;
     if (Config.visibleHostname != NULL)
 	return Config.visibleHostname;
     if (present)
 	return host;
     host[0] = '\0';
-    memcpy(&sa, &any_addr, sizeof(sa));
-    if (Config.Sockaddr.http && sa.s_addr == any_addr.s_addr)
-	memcpy(&sa, &Config.Sockaddr.http->s.sin_addr, sizeof(sa));
-#if USE_SSL
-    if (Config.Sockaddr.https && sa.s_addr == any_addr.s_addr)
-	memcpy(&sa, &Config.Sockaddr.https->s.sin_addr, sizeof(sa));
-#endif
-    /*
-     * If the first http_port address has a specific address, try a
-     * reverse DNS lookup on it.
-     */
-    if (sa.s_addr != any_addr.s_addr) {
-	h = gethostbyaddr((char *) &sa,
-	    sizeof(sa), AF_INET);
+    if (Config.Sockaddr.http->s.sin_addr.s_addr != any_addr.s_addr) {
+	/*
+	 * If the first http_port address has a specific address, try a
+	 * reverse DNS lookup on it.
+	 */
+	h = gethostbyaddr((char *) &Config.Sockaddr.http->s.sin_addr,
+	    sizeof(Config.Sockaddr.http->s.sin_addr), AF_INET);
 	if (h != NULL) {
 	    /* DNS lookup successful */
 	    /* use the official name from DNS lookup */
 	    xstrncpy(host, h->h_name, SQUIDHOSTNAMELEN);
 	    debug(50, 4) ("getMyHostname: resolved %s to '%s'\n",
-		inet_ntoa(sa),
+		inet_ntoa(Config.Sockaddr.http->s.sin_addr),
 		host);
 	    present = 1;
 	    if (strchr(host, '.'))
@@ -476,7 +472,7 @@ getMyHostname(void)
 
 	}
 	debug(50, 1) ("WARNING: failed to resolve %s to a fully qualified hostname\n",
-	    inet_ntoa(sa));
+	    inet_ntoa(Config.Sockaddr.http->s.sin_addr));
     }
     /*
      * Get the host name and store it in host to return
@@ -522,18 +518,29 @@ void
 leave_suid(void)
 {
     debug(21, 3) ("leave_suid: PID %d called\n", (int) getpid());
+    if (Config.effectiveGroup) {
+#if HAVE_SETGROUPS
+	setgroups(1, &Config2.effectiveGroupID);
+#endif
+	if (setgid(Config2.effectiveGroupID) < 0)
+	    debug(50, 0) ("ALERT: setgid: %s\n", xstrerror());
+    }
     if (geteuid() != 0)
 	return;
     /* Started as a root, check suid option */
     if (Config.effectiveUser == NULL)
 	return;
-#if HAVE_SETGROUPS
-    setgroups(1, &Config2.effectiveGroupID);
-#endif
-    if (setgid(Config2.effectiveGroupID) < 0)
-	debug(50, 0) ("ALERT: setgid: %s\n", xstrerror());
     debug(21, 3) ("leave_suid: PID %d giving up root, becoming '%s'\n",
 	(int) getpid(), Config.effectiveUser);
+    if (!Config.effectiveGroup) {
+	if (setgid(Config2.effectiveGroupID) < 0)
+	    debug(50, 0) ("ALERT: setgid: %s\n", xstrerror());
+	if (initgroups(Config.effectiveUser, Config2.effectiveGroupID) < 0) {
+	    debug(50, 0) ("ALERT: initgroups: unable to set groups for User %s "
+		"and Group %u", Config.effectiveUser,
+		(unsigned) Config2.effectiveGroupID);
+	}
+    }
 #if HAVE_SETRESUID
     if (setresuid(Config2.effectiveUserID, Config2.effectiveUserID, 0) < 0)
 	debug(50, 0) ("ALERT: setresuid: %s\n", xstrerror());
@@ -610,12 +617,19 @@ readPidFile(void)
 {
     FILE *pid_fp = NULL;
     const char *f = Config.pidFilename;
+    char *chroot_f = NULL;
     pid_t pid = -1;
     int i;
 
     if (f == NULL || !strcmp(Config.pidFilename, "none")) {
 	fprintf(stderr, "%s: ERROR: No pid file name defined\n", appname);
 	exit(1);
+    }
+    if (Config.chroot_dir && geteuid() == 0) {
+	int len = strlen(Config.chroot_dir) + 1 + strlen(f) + 1;
+	chroot_f = xmalloc(len);
+	snprintf(chroot_f, len, "%s/%s", Config.chroot_dir, f);
+	f = chroot_f;
     }
     pid_fp = fopen(f, "r");
     if (pid_fp != NULL) {
@@ -630,6 +644,7 @@ readPidFile(void)
 	    exit(1);
 	}
     }
+    safe_free(chroot_f);
     return pid;
 }
 
@@ -807,21 +822,6 @@ dlinkAdd(void *data, dlink_node * m, dlink_list * list)
 }
 
 void
-dlinkAddAfter(void *data, dlink_node * m, dlink_node * n, dlink_list * list)
-{
-    m->data = data;
-    m->prev = n;
-    m->next = n->next;
-    if (n->next)
-	n->next->prev = m;
-    else {
-	assert(list->tail == n);
-	list->tail = m;
-    }
-    n->next = m;
-}
-
-void
 dlinkAddTail(void *data, dlink_node * m, dlink_list * list)
 {
     m->data = data;
@@ -849,11 +849,48 @@ dlinkDelete(dlink_node * m, dlink_list * list)
 }
 
 void
-kb_incr(kb_t * k, size_t v)
+kb_incr(kb_t * k, squid_off_t v)
 {
     k->bytes += v;
     k->kb += (k->bytes >> 10);
     k->bytes &= 0x3FF;
+}
+
+void
+gb_flush(gb_t * g)
+{
+    g->gb += (g->bytes >> 30);
+    g->bytes &= (1 << 30) - 1;
+}
+
+double
+gb_to_double(const gb_t * g)
+{
+    return ((double) g->gb) * ((double) (1 << 30)) + ((double) g->bytes);
+}
+
+const char *
+gb_to_str(const gb_t * g)
+{
+    /*
+     * it is often convenient to call gb_to_str several times for _one_ printf
+     */
+#define max_cc_calls 5
+    typedef char GbBuf[32];
+    static GbBuf bufs[max_cc_calls];
+    static int call_id = 0;
+    double value = gb_to_double(g);
+    char *buf = bufs[call_id++];
+    if (call_id >= max_cc_calls)
+	call_id = 0;
+    /* select format */
+    if (value < 1e9)
+	snprintf(buf, sizeof(GbBuf), "%.2f MB", value / 1e6);
+    else if (value < 1e12)
+	snprintf(buf, sizeof(GbBuf), "%.2f GB", value / 1e9);
+    else
+	snprintf(buf, sizeof(GbBuf), "%.2f TB", value / 1e12);
+    return buf;
 }
 
 void
@@ -910,7 +947,7 @@ int
 xrename(const char *from, const char *to)
 {
     debug(21, 2) ("xrename: renaming %s to %s\n", from, to);
-#ifdef _SQUID_MSWIN_
+#if defined(_SQUID_OS2_) || defined(_SQUID_CYGWIN_) || defined(_SQUID_MSWIN_)
     remove(to);
 #endif
     if (0 == rename(from, to))
@@ -974,6 +1011,7 @@ parseEtcHosts(void)
 	char *addr;
 	if (buf[0] == '#')	/* MS-windows likes to add comments */
 	    continue;
+	strtok(buf, "#");	/* chop everything following a comment marker */
 	lt = buf;
 	addr = buf;
 	debug(1, 5) ("etc_hosts: line is '%s'\n", buf);
@@ -1009,19 +1047,7 @@ parseEtcHosts(void)
       skip:
 	wordlistDestroy(&hosts);
     }
-}
-
-int
-getMyPort(void)
-{
-    if (Config.Sockaddr.http)
-	return ntohs(Config.Sockaddr.http->s.sin_port);
-#if USE_SSL
-    if (Config.Sockaddr.https)
-	return ntohs(Config.Sockaddr.https->s.sin_port);
-#endif
-    fatal("No port defined");
-    return 0;			/* NOT REACHED */
+    fclose(fp);
 }
 
 /*
@@ -1049,7 +1075,18 @@ strwordtok(char *buf, char **t)
 	switch (ch) {
 	case '\\':
 	    p++;
-	    *d++ = ch = *p;
+	    switch (*p) {
+	    case 'n':
+		ch = '\n';
+		break;
+	    case 'r':
+		ch = '\r';
+		break;
+	    default:
+		ch = *p;
+		break;
+	    }
+	    *d++ = ch;
 	    if (ch)
 		p++;
 	    break;
@@ -1088,10 +1125,22 @@ strwordquote(MemBuf * mb, const char *str)
 	int l = strcspn(str, "\"\\");
 	memBufAppend(mb, str, l);
 	str += l;
-	while (*str == '"' || *str == '\\') {
+	switch (*str) {
+	case '\n':
+	    memBufAppend(mb, "\\n", 2);
+	    str++;
+	    break;
+	case '\r':
+	    memBufAppend(mb, "\\r", 2);
+	    str++;
+	    break;
+	case '\0':
+	    break;
+	default:
 	    memBufAppend(mb, "\\", 1);
 	    memBufAppend(mb, str, 1);
 	    str++;
+	    break;
 	}
     }
     if (quoted)

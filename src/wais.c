@@ -162,7 +162,7 @@ waisReadReply(int fd, void *data)
 /* This will be called when request write is complete. Schedule read of
  * reply. */
 static void
-waisSendComplete(int fd, char *bufnotused, size_t size, comm_err_t errflag, void *data)
+waisSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 {
     WaisStateData *waisState = data;
     StoreEntry *entry = waisState->entry;

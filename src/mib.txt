@@ -1,7 +1,6 @@
+-- SQUID-MIB  { iso org(3) dod(6) internet(1) private(4) enterprises(1) 3495 }
+
 SQUID-MIB DEFINITIONS ::= BEGIN
-
-enterprises OBJECT IDENTIFIER ::= { iso org(3) dod(6) internet(1) private(4) 1 }
-
 --
 -- $Id$
 --
@@ -213,7 +212,7 @@ squid MODULE-IDENTITY
         ::= { cacheSysPerf 6 }
 
 	cacheNumObjCount OBJECT-TYPE
-                SYNTAX Counter32
+                SYNTAX Gauge32
 		MAX-ACCESS read-only
                 STATUS  current
                 DESCRIPTION
@@ -367,7 +366,7 @@ squid MODULE-IDENTITY
         ::= { cacheProtoAggregateStats 13 }
 
 	cacheCurrentSwapSize OBJECT-TYPE
-                SYNTAX Counter32
+                SYNTAX Gauge32
                 MAX-ACCESS read-only
                 STATUS current
 		DESCRIPTION
@@ -375,7 +374,7 @@ squid MODULE-IDENTITY
         ::= { cacheProtoAggregateStats 14 }
 
        cacheClients OBJECT-TYPE
-                SYNTAX Counter32
+                SYNTAX Gauge32
                 MAX-ACCESS read-only
                 STATUS current
 		DESCRIPTION

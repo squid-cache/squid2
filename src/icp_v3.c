@@ -65,7 +65,7 @@ icpHandleIcpV3(int fd, struct sockaddr_in from, char *buf, int len)
     switch (header.opcode) {
     case ICP_QUERY:
 	/* We have a valid packet */
-	url = buf + sizeof(icp_common_t) + sizeof(u_int32_t);
+	url = buf + sizeof(icp_common_t) + sizeof(u_num32);
 	if (strpbrk(url, w_space)) {
 	    url = rfc1738_escape(url);
 	    reply = icpCreateMessage(ICP_ERR, 0, url, header.reqnum, 0);

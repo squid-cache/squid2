@@ -41,7 +41,6 @@ struct _pconn {
     int nfds_alloc;
     int nfds;
 };
-typedef struct _pconn pconn;
 
 #define PCONN_FDS_SZ	8	/* pconn set size, increase for better memcache hit rate */
 #define PCONN_HIST_SZ (1<<16)
@@ -56,10 +55,8 @@ static struct _pconn *pconnNew(const char *key);
 static void pconnDelete(struct _pconn *p);
 static void pconnRemoveFD(struct _pconn *p, int fd);
 static OBJH pconnHistDump;
+static MemPool *pconn_data_pool = NULL;
 static MemPool *pconn_fds_pool = NULL;
-CBDATA_TYPE(pconn);
-
-
 
 static const char *
 pconnKey(const char *host, u_short port)
@@ -72,9 +69,7 @@ pconnKey(const char *host, u_short port)
 static struct _pconn *
 pconnNew(const char *key)
 {
-    pconn *p;
-    CBDATA_INIT_TYPE(pconn);
-    p = cbdataAlloc(pconn);
+    struct _pconn *p = memPoolAlloc(pconn_data_pool);
     p->hash.key = xstrdup(key);
     p->nfds_alloc = PCONN_FDS_SZ;
     p->fds = memPoolAlloc(pconn_fds_pool);
@@ -93,18 +88,18 @@ pconnDelete(struct _pconn *p)
     else
 	xfree(p->fds);
     xfree(p->hash.key);
-    cbdataFree(p);
+    memPoolFree(pconn_data_pool, p);
 }
 
 static void
 pconnRemoveFD(struct _pconn *p, int fd)
 {
     int i;
-    for (i = 0; i < p->nfds; i++) {
+    for (i = p->nfds - 1; i >= 0; i--) {
 	if (p->fds[i] == fd)
 	    break;
     }
-    assert(i < p->nfds);
+    assert(i >= 0);
     debug(48, 3) ("pconnRemoveFD: found FD %d at index %d\n", fd, i);
     for (; i < p->nfds - 1; i++)
 	p->fds[i] = p->fds[i + 1];
@@ -179,6 +174,7 @@ pconnInit(void)
 	client_pconn_hist[i] = 0;
 	server_pconn_hist[i] = 0;
     }
+    pconn_data_pool = memPoolCreate("pconn_data", sizeof(struct _pconn));
     pconn_fds_pool = memPoolCreate("pconn_fds", PCONN_FDS_SZ * sizeof(int));
 
     cachemgrRegister("pconn",
@@ -194,7 +190,7 @@ pconnPush(int fd, const char *host, u_short port)
     int *old;
     LOCAL_ARRAY(char, key, SQUIDHOSTNAMELEN + 10);
     LOCAL_ARRAY(char, desc, FD_DESC_SZ);
-    if (fdNFree() < (RESERVED_FD << 1)) {
+    if (fdUsageHigh()) {
 	debug(48, 3) ("pconnPush: Not many unused FDs\n");
 	comm_close(fd);
 	return;
@@ -239,7 +235,7 @@ pconnPop(const char *host, u_short port)
     if (hptr != NULL) {
 	p = (struct _pconn *) hptr;
 	assert(p->nfds > 0);
-	fd = p->fds[0];
+	fd = p->fds[p->nfds - 1];
 	pconnRemoveFD(p, fd);
 	commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
 	commSetTimeout(fd, -1, NULL, NULL);

@@ -38,9 +38,10 @@
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) (const char *);
 
-static int opt_send_signal = -1;
 static int opt_no_daemon = 0;
 static int opt_parse_cfg_only = 0;
+static char *opt_syslog_facility = NULL;
+static int httpPortNumOverride = 1;
 static int icpPortNumOverride = 1;	/* Want to detect "-u 0" */
 static int configured_once = 0;
 #if MALLOC_DBG
@@ -54,6 +55,9 @@ static void mainRotate(void);
 static void mainReconfigure(void);
 static SIGHDLR rotate_logs;
 static SIGHDLR reconfigure;
+#if ALARM_UPDATES_TIME
+static SIGHDLR time_tick;
+#endif
 static void mainInitialize(void);
 static void usage(void);
 static void mainParseOptions(int, char **);
@@ -79,7 +83,7 @@ static void
 usage(void)
 {
     fprintf(stderr,
-	"Usage: %s [-dhsvzCDFNRVYX] [-f config-file] [-[au] port] [-k signal]\n"
+	"Usage: %s [-dhvzCDFNRVYX] [-s | -l facility] [-f config-file] [-[au] port] [-k signal]\n"
 	"       -a port   Specify HTTP port number (default: %d).\n"
 	"       -d level  Write debugging to stderr also.\n"
 	"       -f file   Use given config-file instead of\n"
@@ -88,7 +92,8 @@ usage(void)
 	"       -k reconfigure|rotate|shutdown|interrupt|kill|debug|check|parse\n"
 	"                 Parse configuration file, then send signal to \n"
 	"                 running copy (except -k parse) and exit.\n"
-	"       -s        Enable logging to syslog.\n"
+	"       -s | -l facility\n"
+	"                 Enable logging to syslog.\n"
 	"       -u port   Specify ICP port number (default: %d), disable with 0.\n"
 	"       -v        Print version.\n"
 	"       -z        Create swap directories\n"
@@ -111,7 +116,7 @@ mainParseOptions(int argc, char *argv[])
     extern char *optarg;
     int c;
 
-    while ((c = getopt(argc, argv, "CDFNRSVYXa:d:f:hk:m::su:vz?")) != -1) {
+    while ((c = getopt(argc, argv, "CDFNRSVYXa:d:f:hk:m::sl:u:vz?")) != -1) {
 	switch (c) {
 	case 'C':
 	    opt_catch_signals = 0;
@@ -142,7 +147,7 @@ mainParseOptions(int argc, char *argv[])
 	    opt_reload_hit_only = 1;
 	    break;
 	case 'a':
-	    parse_sockaddr_in_list_token(&Config.Sockaddr.http, optarg);
+	    httpPortNumOverride = atoi(optarg);
 	    break;
 	case 'd':
 	    opt_debug_stderr = atoi(optarg);
@@ -201,9 +206,11 @@ mainParseOptions(int argc, char *argv[])
 		fatal("Need to configure --enable-xmalloc-debug-trace to use -m option");
 #endif
 	    }
+	case 'l':
+	    opt_syslog_facility = xstrdup(optarg);
 	case 's':
 #if HAVE_SYSLOG
-	    opt_syslog_enable = 1;
+	    _db_set_syslog(opt_syslog_facility);
 	    break;
 #else
 	    fatal("Logging to syslog not available on this platform");
@@ -239,6 +246,19 @@ rotate_logs(int sig)
 #endif
 }
 
+#if ALARM_UPDATES_TIME
+static void
+time_tick(int sig)
+{
+    getCurrentTime();
+    alarm(1);
+#if !HAVE_SIGACTION
+    signal(sig, time_tick);
+#endif
+}
+
+#endif
+
 /* ARGSUSED */
 static void
 reconfigure(int sig)
@@ -255,9 +275,9 @@ shut_down(int sig)
     do_shutdown = sig == SIGINT ? -1 : 1;
 #ifdef KILL_PARENT_OPT
     if (getppid() > 1) {
-	debug(1, 1) ("Killing RunCache, pid %d\n", getppid());
+	debug(1, 1) ("Killing RunCache, pid %ld\n", (long) getppid());
 	if (kill(getppid(), sig) < 0)
-	    debug(1, 1) ("kill %d: %s\n", getppid(), xstrerror());
+	    debug(1, 1) ("kill %ld: %s\n", (long) getppid(), xstrerror());
     }
 #endif
 #if SA_RESETHAND == 0
@@ -312,7 +332,7 @@ serverConnectionsClose(void)
 static void
 mainReconfigure(void)
 {
-    debug(1, 1) ("Restarting Squid Cache (version %s)...\n", version_string);
+    debug(1, 1) ("Reconfiguring Squid Cache (version %s)...\n", version_string);
     reconfiguring = 1;
     /* Already called serverConnectionsClose and ipcacheShutdownServers() */
     serverConnectionsClose();
@@ -335,6 +355,10 @@ mainReconfigure(void)
     authenticateShutdown();
     externalAclShutdown();
     storeDirCloseSwapLogs();
+    storeLogClose();
+    accessLogClose();
+    useragentLogClose();
+    refererCloseLog();
     errorClean();
     enter_suid();		/* root to read config file */
     parseConfigFile(ConfigFile);
@@ -345,6 +369,10 @@ mainReconfigure(void)
     fqdncache_restart();	/* sigh, fqdncache too */
     parseEtcHosts();
     errorInitialize();		/* reload error pages */
+    accessLogInit();
+    storeLogOpen();
+    useragentOpenLog();
+    refererOpenLog();
 #if USE_DNSSERVERS
     dnsInit();
 #else
@@ -365,6 +393,7 @@ mainReconfigure(void)
     }
     storeDirOpenSwapLogs();
     mimeInit(Config.mimeTablePathname);
+    eventCleanup();
     writePidFile();		/* write PID file */
     debug(1, 1) ("Ready to serve requests.\n");
     reconfiguring = 0;
@@ -451,6 +480,9 @@ mainInitialize(void)
     squid_signal(SIGCHLD, sig_child, SA_NODEFER | SA_RESTART);
 
     setEffectiveUser();
+    assert(Config.Sockaddr.http);
+    if (httpPortNumOverride != 1)
+	Config.Sockaddr.http->s.sin_port = htons(httpPortNumOverride);
     if (icpPortNumOverride != 1)
 	Config.Port.icp = (u_short) icpPortNumOverride;
 
@@ -538,6 +570,10 @@ mainInitialize(void)
     squid_signal(SIGHUP, reconfigure, SA_RESTART);
     squid_signal(SIGTERM, shut_down, SA_NODEFER | SA_RESETHAND | SA_RESTART);
     squid_signal(SIGINT, shut_down, SA_NODEFER | SA_RESETHAND | SA_RESTART);
+#if ALARM_UPDATES_TIME
+    squid_signal(SIGALRM, time_tick, SA_RESTART);
+    alarm(1);
+#endif
     memCheckInit();
     debug(1, 1) ("Ready to serve requests.\n");
     if (!configured_once) {
@@ -546,10 +582,6 @@ mainInitialize(void)
 	    eventAdd("start_announce", start_announce, NULL, 3600.0, 1);
 	eventAdd("ipcache_purgelru", ipcache_purgelru, NULL, 10.0, 1);
 	eventAdd("fqdncache_purgelru", fqdncache_purgelru, NULL, 15.0, 1);
-#if USE_XPROF_STATS
-	eventAdd("cpuProfiling", xprof_event, NULL, 1.0, 1);
-#endif
-	eventAdd("memPoolCleanIdlePools", memPoolCleanIdlePools, NULL, 15.0, 1);
     }
     configured_once = 1;
 }
@@ -558,7 +590,6 @@ int
 main(int argc, char **argv)
 {
     int errcount = 0;
-    int n;			/* # of GC'd objects */
     int loop_delay;
     mode_t oldmask;
 #if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
@@ -632,7 +663,7 @@ main(int argc, char **argv)
 	cbdataInit();
 	eventInit();		/* eventInit() is required for config parsing */
 	storeFsInit();		/* required for config parsing */
-	authenticateSchemeInit();	/* required for config parsign */
+	authenticateSchemeInit();	/* required for config parsing */
 	parse_err = parseConfigFile(ConfigFile);
 
 	if (opt_parse_cfg_only)
@@ -673,10 +704,6 @@ main(int argc, char **argv)
 	watch_child(argv);
     setMaxFD();
 
-    if (opt_catch_signals)
-	for (n = Squid_MaxFD; n > 2; n--)
-	    close(n);
-
     /* init comm module */
     comm_init();
     comm_select_init();
@@ -706,19 +733,16 @@ main(int argc, char **argv)
 	    do_shutdown = 0;
 	    shutting_down = 1;
 	    serverConnectionsClose();
-#if USE_DNSSERVERS
-	    dnsShutdown();
-#else
-	    idnsShutdown();
-#endif
-	    redirectShutdown();
-	    externalAclShutdown();
 	    eventAdd("SquidShutdown", SquidShutdown, NULL, (double) (wait + 1), 1);
 	}
 	eventRun();
 	if ((loop_delay = eventNextTime()) < 0)
 	    loop_delay = 0;
+#if HAVE_POLL
+	switch (comm_poll(loop_delay)) {
+#else
 	switch (comm_select(loop_delay)) {
+#endif
 	case COMM_OK:
 	    errcount = 0;	/* reset if successful */
 	    break;
@@ -787,7 +811,7 @@ mainStartScript(const char *prog)
     xstrncpy(&script[sl], squid_start_script, MAXPATHLEN - sl);
     if ((cpid = fork()) == 0) {
 	/* child */
-	execl(script, squid_start_script, 0);
+	execl(script, squid_start_script, NULL);
 	_exit(0);
     } else {
 	do {
@@ -807,12 +831,16 @@ checkRunningPid(void)
 {
     pid_t pid;
     debug_log = stderr;
+    if (strcmp(Config.pidFilename, "none") == 0) {
+	debug(0, 1) ("No pid_filename specified. Trusting you know what you are doing.\n");
+	return 0;
+    }
     pid = readPidFile();
     if (pid < 2)
 	return 0;
     if (kill(pid, 0) < 0)
 	return 0;
-    debug(0, 0) ("Squid is already running!  Process ID %d\n", pid);
+    debug(0, 0) ("Squid is already running!  Process ID %ld\n", (long int) pid);
     return 1;
 }
 
@@ -829,7 +857,9 @@ watch_child(char *argv[])
     int status;
 #endif
     pid_t pid;
+#ifdef TIOCNOTTY
     int i;
+#endif
     int nullfd;
     if (*(argv[0]) == '(')
 	return;
@@ -856,14 +886,13 @@ watch_child(char *argv[])
      */
     /* Connect stdio to /dev/null in daemon mode */
     nullfd = open("/dev/null", O_RDWR | O_TEXT);
+    if (nullfd < 0)
+	fatalf("/dev/null: %s\n", xstrerror());
     dup2(nullfd, 0);
     if (opt_debug_stderr < 0) {
 	dup2(nullfd, 1);
 	dup2(nullfd, 2);
     }
-    /* Close all else */
-    for (i = 3; i < Squid_MaxFD; i++)
-	close(i);
     for (;;) {
 	mainStartScript(argv[0]);
 	if ((pid = fork()) == 0) {
@@ -926,6 +955,13 @@ static void
 SquidShutdown(void *unused)
 {
     debug(1, 1) ("Shutting down...\n");
+#if USE_DNSSERVERS
+    dnsShutdown();
+#else
+    idnsShutdown();
+#endif
+    redirectShutdown();
+    externalAclShutdown();
     icpConnectionClose();
 #if USE_HTCP
     htcpSocketClose();
@@ -955,8 +991,8 @@ SquidShutdown(void *unused)
     fwdUninit();
 #endif
     storeDirSync();		/* Flush log close */
-#if PURIFY || XMALLOC_TRACE
     storeFsDone();
+#if PURIFY || XMALLOC_TRACE
     configFreeMemory();
     storeFreeMemory();
     /*stmemFreeMemory(); */
@@ -973,9 +1009,9 @@ SquidShutdown(void *unused)
 #endif
 #if !XMALLOC_TRACE
     if (opt_no_daemon) {
-	file_close(0);
-	file_close(1);
-	file_close(2);
+	fd_close(0);
+	fd_close(1);
+	fd_close(2);
     }
 #endif
     fdDumpOpen();

@@ -56,6 +56,16 @@
 
 #define MAXHTTPPORTS			128
 
+#define COMM_OK		  (0)
+#define COMM_ERROR	 (-1)
+#define COMM_NOMESSAGE	 (-3)
+#define COMM_TIMEOUT	 (-4)
+#define COMM_SHUTDOWN	 (-5)
+#define COMM_INPROGRESS  (-6)
+#define COMM_ERR_CONNECT (-7)
+#define COMM_ERR_DNS     (-8)
+#define COMM_ERR_CLOSING (-9)
+
 /* Select types. */
 #define COMM_SELECT_READ   (0x1)
 #define COMM_SELECT_WRITE  (0x2)
@@ -136,7 +146,6 @@
 #define LOG_DISABLE 0
 
 #define SM_PAGE_SIZE 4096
-#define MAX_CLIENT_BUF_SZ 4096
 
 #define EBIT_SET(flag, bit) 	((void)((flag) |= ((1L<<(bit)))))
 #define EBIT_CLR(flag, bit) 	((void)((flag) &= ~((1L<<(bit)))))
@@ -156,7 +165,6 @@
 
 #define PEER_MAX_ADDRESSES 10
 #define RTT_AV_FACTOR      50
-#define RTT_BACKGROUND_AV_FACTOR      25	/* Background pings need a smaller factor since they are sent less frequently */
 
 #define PEER_DEAD 0
 #define PEER_ALIVE 1
@@ -168,6 +176,8 @@
 #if !defined(ERROR_BUF_SZ) && defined(MAX_URL)
 #define ERROR_BUF_SZ (MAX_URL << 2)
 #endif
+
+#define READ_AHEAD_GAP		(1<<14)
 
 #if SQUID_SNMP
 #define VIEWINCLUDED    1
@@ -182,16 +192,6 @@
 #define IPC_TCP_SOCKET 1
 #define IPC_UDP_SOCKET 2
 #define IPC_FIFO 3
-#define IPC_UNIX_STREAM 4
-#define IPC_UNIX_DGRAM 5
-
-#if HAVE_SOCKETPAIR && defined (AF_UNIX)
-#define IPC_STREAM IPC_UNIX_STREAM
-#define IPC_DGRAM IPC_UNIX_DGRAM
-#else
-#define IPC_STREAM IPC_TCP_SOCKET
-#define IPC_DGRAM IPC_UDP_SOCKET
-#endif
 
 #define STORE_META_KEY STORE_META_KEY_MD5
 
@@ -200,7 +200,8 @@
 #define SwapMetaType(x) (char)x[0]
 #define SwapMetaSize(x) &x[sizeof(char)]
 #define SwapMetaData(x) &x[STORE_META_TLD_START]
-#define STORE_HDR_METASIZE (4*sizeof(time_t)+2*sizeof(u_short)+sizeof(size_t))
+#define STORE_HDR_METASIZE (4*sizeof(time_t)+2*sizeof(u_short)+sizeof(squid_file_sz))
+#define STORE_HDR_METASIZE_OLD (4*sizeof(time_t)+2*sizeof(u_short)+sizeof(size_t))
 
 #define STORE_ENTRY_WITH_MEMOBJ		1
 #define STORE_ENTRY_WITHOUT_MEMOBJ	0
@@ -222,6 +223,10 @@
 #define DEFAULT_SQUID_ERROR_DIR "/usr/local/squid/etc/errors"
 #endif
 
+/* gb_type operations */
+#define gb_flush_limit (0x3FFFFFFF)
+#define gb_inc(gb, delta) { if ((gb)->bytes > gb_flush_limit || delta > gb_flush_limit) gb_flush(gb); (gb)->bytes += delta; (gb)->count++; }
+
 /* iteration for HttpHdrRange */
 #define HttpHdrRangeInitPos (-1)
 
@@ -232,7 +237,7 @@
 #define countof(arr) (sizeof(arr)/sizeof(*arr))
 
 /* to initialize static variables (see also MemBufNull) */
-#define MemBufNULL { NULL, 0, 0, 0, 0 }
+#define MemBufNULL { NULL, 0, 0, 0, NULL }
 
 /*
  * Max number of ICP messages to receive per call to icpHandleUdp
@@ -267,6 +272,8 @@
  */
 #define PEER_TCP_MAGIC_COUNT 10
 
+#define CLIENT_SOCK_SZ 4096
+
 #define URI_WHITESPACE_STRIP 0
 #define URI_WHITESPACE_ALLOW 1
 #define URI_WHITESPACE_ENCODE 2
@@ -278,23 +285,12 @@
 #endif
 
 /* cbdata macros */
-#if CBDATA_DEBUG
-#define cbdataAlloc(type)	((type *)cbdataInternalAllocDbg(CBDATA_##type,__FILE__,__LINE__))
-#define cbdataFree(var)		do {if (var) {cbdataInternalFreeDbg(var,__FILE__,__LINE__); var = NULL;}} while(0)
-#define cbdataInternalLock(a)		cbdataInternalLockDbg(a,__FILE__,__LINE__)
-#define cbdataInternalUnlock(a)		cbdataInternalUnlockDbg(a,__FILE__,__LINE__)
-#define cbdataReferenceValidDone(var, ptr) cbdataInternalReferenceDoneValidDbg((void **)&(var), (ptr), __FILE__,__LINE__)
-#else
 #define cbdataAlloc(type) ((type *)cbdataInternalAlloc(CBDATA_##type))
-#define cbdataFree(var)		do {if (var) {cbdataInternalFree(var); var = NULL;}} while(0)
-#define cbdataReferenceValidDone(var, ptr) cbdataInternalReferenceDoneValid((void **)&(var), (ptr))
-#endif
-#define cbdataReference(var)	(cbdataInternalLock(var), var)
-#define cbdataReferenceDone(var) do {if (var) {cbdataInternalUnlock(var); var = NULL;}} while(0)
+#define cbdataFree(var) (var = (var != NULL ? cbdataInternalFree(var): NULL))
 #define CBDATA_TYPE(type)	static cbdata_type CBDATA_##type = 0
 #define CBDATA_GLOBAL_TYPE(type)	cbdata_type CBDATA_##type
-#define CBDATA_INIT_TYPE(type)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataInternalAddType(CBDATA_##type, #type, sizeof(type), NULL)))
-#define CBDATA_INIT_TYPE_FREECB(type, free_func)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataInternalAddType(CBDATA_##type, #type, sizeof(type), free_func)))
+#define CBDATA_INIT_TYPE(type)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataAddType(CBDATA_##type, #type, sizeof(type), NULL)))
+#define CBDATA_INIT_TYPE_FREECB(type, free_func)	(CBDATA_##type ? 0 : (CBDATA_##type = cbdataAddType(CBDATA_##type, #type, sizeof(type), free_func)))
 
 #ifndef O_TEXT
 #define O_TEXT 0
@@ -312,5 +308,4 @@
 #define FILE_MODE(x) ((x)&(O_RDONLY|O_WRONLY|O_RDWR))
 #endif
 
-#define	HTTP_REQBUF_SZ	4096
 #endif /* SQUID_DEFINES_H */

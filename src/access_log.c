@@ -147,10 +147,10 @@ log_quote(const char *header)
 #endif
 	    if (c <= 0x1F
 		|| c >= 0x7F
+		|| c == '%'
 #if OLD_LOG_MIME
 		|| c == '"'
 		|| c == '#'
-		|| c == '%'
 		|| c == ';'
 		|| c == '<'
 		|| c == '>'
@@ -210,6 +210,7 @@ username_quote(const char *header)
 	    *buf_cursor++ = 'n';
 	} else if (c <= 0x1F
 		|| c >= 0x7F
+		|| c == '%'
 	    || c == ' ') {
 	    *buf_cursor++ = '%';
 	    i = c * 2;
@@ -228,6 +229,8 @@ accessLogFormatName(const char *name)
 {
     if (NULL == name)
 	return NULL;
+    if (name[0] == '\0')
+	return NULL;
     return username_quote(name);
 }
 
@@ -242,15 +245,15 @@ accessLogSquid(AccessLogEntry * al)
 	client = inet_ntoa(al->cache.caddr);
     user = accessLogFormatName(al->cache.authuser ?
 	al->cache.authuser : al->cache.rfc931);
-    logfilePrintf(logfile, "%9d.%03d %6d %s %s/%03d %ld %s %s %s %s%s/%s %s",
-	(int) current_time.tv_sec,
+    logfilePrintf(logfile, "%9ld.%03d %6d %s %s/%03d %" PRINTF_OFF_T " %s %s %s %s%s/%s %s",
+	(long int) current_time.tv_sec,
 	(int) current_time.tv_usec / 1000,
 	al->cache.msec,
 	client,
 	log_tags[al->cache.code],
 	al->http.code,
-	(long int) al->cache.size,
-	al->_private.method_str,
+	al->cache.size,
+	al->private.method_str,
 	al->url,
 	user && *user ? user : dash_str,
 	al->hier.ping.timedout ? "TIMEOUT_" : "",
@@ -271,16 +274,16 @@ accessLogCommon(AccessLogEntry * al)
 	client = inet_ntoa(al->cache.caddr);
     user1 = accessLogFormatName(al->cache.authuser);
     user2 = accessLogFormatName(al->cache.rfc931);
-    logfilePrintf(logfile, "%s %s %s [%s] \"%s %s HTTP/%d.%d\" %d %ld %s:%s",
+    logfilePrintf(logfile, "%s %s %s [%s] \"%s %s HTTP/%d.%d\" %d %" PRINTF_OFF_T " %s:%s",
 	client,
 	user2 ? user2 : dash_str,
 	user1 ? user1 : dash_str,
 	mkhttpdlogtime(&squid_curtime),
-	al->_private.method_str,
+	al->private.method_str,
 	al->url,
 	al->http.version.major, al->http.version.minor,
 	al->http.code,
-	(long int) al->cache.size,
+	al->cache.size,
 	log_tags[al->cache.code],
 	hier_strings[al->hier.code]);
     safe_free(user1);
@@ -297,9 +300,9 @@ accessLogLog(AccessLogEntry * al)
     if (!al->http.content_type || *al->http.content_type == '\0')
 	al->http.content_type = dash_str;
     if (al->icp.opcode)
-	al->_private.method_str = icp_opcode_str[al->icp.opcode];
+	al->private.method_str = icp_opcode_str[al->icp.opcode];
     else
-	al->_private.method_str = RequestMethodStr[al->http.method];
+	al->private.method_str = RequestMethodStr[al->http.method];
     if (al->hier.host[0] == '\0')
 	xstrncpy(al->hier.host, dash_str, SQUIDHOSTNAMELEN);
 
@@ -386,7 +389,7 @@ accessLogInit(void)
     logfile = logfileOpen(Config.Log.access, MAX_URL << 1, 1);
     LogfileStatus = LOG_ENABLE;
 #if HEADERS_LOG
-    headerslog = logfileOpen("/usr/local/squid/logs/headers.log", 512);
+    headerslog = logfileOpen("/usr/local/squid/logs/headers.log", MAX_URL << 1, 0);
     assert(NULL != headerslog);
 #endif
 #if FORW_VIA_DB
@@ -605,32 +608,3 @@ headersLog(int cs, int pq, method_t m, void *data)
 }
 
 #endif
-
-void
-accessLogFreeMemory(AccessLogEntry * aLogEntry)
-{
-    safe_free(aLogEntry->headers.request);
-    safe_free(aLogEntry->headers.reply);
-    safe_free(aLogEntry->cache.authuser);
-}
-
-int
-logTypeIsATcpHit(log_type code)
-{
-    /* this should be a bitmap for better optimization */
-    if (code == LOG_TCP_HIT)
-	return 1;
-    if (code == LOG_TCP_IMS_HIT)
-	return 1;
-    if (code == LOG_TCP_REFRESH_FAIL_HIT)
-	return 1;
-    if (code == LOG_TCP_REFRESH_HIT)
-	return 1;
-    if (code == LOG_TCP_NEGATIVE_HIT)
-	return 1;
-    if (code == LOG_TCP_MEM_HIT)
-	return 1;
-    if (code == LOG_TCP_OFFLINE_HIT)
-	return 1;
-    return 0;
-}

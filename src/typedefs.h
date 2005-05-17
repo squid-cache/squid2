@@ -41,10 +41,36 @@ typedef unsigned int swap_status_t;
 typedef signed int sfileno;
 typedef signed int sdirno;
 
+#if SIZEOF_INT64_T > SIZEOF_LONG && defined(PRId64) && defined(INT64_MAX) && HAVE_STRTOLL
+typedef int64_t squid_off_t;
+#define SIZEOF_SQUID_OFF_T SIZEOF_INT64_T
+#define PRINTF_OFF_T PRId64
+#define strto_off_t (int64_t)strtoll
+#else
+typedef long squid_off_t;
+#define SIZEOF_SQUID_OFF_T SIZEOF_LONG
+#define PRINTF_OFF_T "ld"
+#define strto_off_t strtol
+#endif
+
+#if LARGE_CACHE_FILES
+typedef squid_off_t squid_file_sz;
+#define SIZEOF_SQUID_FILE_SZ SIZEOF_SQUID_OFF_T
+#else
+typedef size_t squid_file_sz;
+#define SIZEOF_SQUID_FILE_SZ SIZEOF_SIZE_T
+#endif
+
 typedef struct {
-    size_t bytes;
-    size_t kb;
+    squid_off_t bytes;
+    squid_off_t kb;
 } kb_t;
+
+typedef struct {
+    size_t count;
+    size_t bytes;
+    size_t gb;
+} gb_t;
 
 /*
  * grep '^struct' structs.h \
@@ -60,17 +86,18 @@ typedef struct _auth_user_request_t auth_user_request_t;
 typedef struct _auth_user_hash_pointer auth_user_hash_pointer;
 typedef struct _auth_user_ip_t auth_user_ip_t;
 typedef struct _acl_proxy_auth_match_cache acl_proxy_auth_match_cache;
+typedef struct _acl_hdr_data acl_hdr_data;
 typedef struct _authscheme_entry authscheme_entry_t;
 typedef struct _authScheme authScheme;
 typedef struct _acl_user_data acl_user_data;
 typedef struct _acl_user_ip_data acl_user_ip_data;
 typedef struct _acl_arp_data acl_arp_data;
+typedef struct _acl acl;
 typedef struct _acl_snmp_comm acl_snmp_comm;
 typedef struct _acl_list acl_list;
 typedef struct _acl_access acl_access;
 typedef struct _acl_address acl_address;
 typedef struct _acl_tos acl_tos;
-typedef struct _acl acl;
 typedef struct _aclCheck_t aclCheck_t;
 typedef struct _wordlist wordlist;
 typedef struct _intlist intlist;
@@ -83,7 +110,6 @@ typedef struct _SquidConfig SquidConfig;
 typedef struct _SquidConfig2 SquidConfig2;
 typedef struct _close_handler close_handler;
 typedef struct _dread_ctrl dread_ctrl;
-typedef struct _dnsserver_t dnsserver_t;
 typedef struct _dwrite_q dwrite_q;
 typedef struct _ETag ETag;
 typedef struct _fde fde;
@@ -97,8 +123,6 @@ typedef struct _HttpHdrCc HttpHdrCc;
 typedef struct _HttpHdrRangeSpec HttpHdrRangeSpec;
 typedef struct _HttpHdrRange HttpHdrRange;
 typedef struct _HttpHdrRangeIter HttpHdrRangeIter;
-typedef struct _HttpHdrSc HttpHdrSc;
-typedef struct _HttpHdrScTarget HttpHdrScTarget;
 typedef struct _HttpHdrContRange HttpHdrContRange;
 typedef struct _TimeOrTag TimeOrTag;
 typedef struct _HttpHeaderEntry HttpHeaderEntry;
@@ -155,10 +179,15 @@ typedef struct _dlink_list dlink_list;
 typedef struct _StatCounters StatCounters;
 typedef struct _tlv tlv;
 typedef struct _storeSwapLogData storeSwapLogData;
+typedef struct _storeSwapLogDataOld storeSwapLogDataOld;
+typedef struct _storeSwapLogHeader storeSwapLogHeader;
 typedef struct _authConfig authConfig;
 typedef struct _cacheSwap cacheSwap;
 typedef struct _StatHist StatHist;
 typedef struct _String String;
+typedef struct _MemMeter MemMeter;
+typedef struct _MemPoolMeter MemPoolMeter;
+typedef struct _MemPool MemPool;
 typedef struct _ClientInfo ClientInfo;
 typedef struct _cd_guess_stats cd_guess_stats;
 typedef struct _CacheDigest CacheDigest;
@@ -185,6 +214,7 @@ typedef struct _RemovalPolicyWalker RemovalPolicyWalker;
 typedef struct _RemovalPurgeWalker RemovalPurgeWalker;
 typedef struct _RemovalPolicyNode RemovalPolicyNode;
 typedef struct _RemovalPolicySettings RemovalPolicySettings;
+
 typedef struct _http_version_t http_version_t;
 
 #if SQUID_SNMP
@@ -198,8 +228,8 @@ typedef struct _delaySpecSet delaySpecSet;
 typedef struct _delaySpec delaySpec;
 #endif
 
-typedef void CWCB(int fd, char *, size_t size, comm_err_t flag, void *data);
-typedef void CNCB(int fd, comm_err_t status, void *);
+typedef void CWCB(int fd, char *, size_t size, int flag, void *data);
+typedef void CNCB(int fd, int status, void *);
 
 typedef void FREE(void *);
 typedef void CBDUNL(void *);
@@ -226,7 +256,8 @@ typedef void UH(void *data, wordlist *);
 typedef int DEFER(int fd, void *data);
 typedef int READ_HANDLER(int, char *, int);
 typedef int WRITE_HANDLER(int, const char *, int);
-typedef void CBCB(char *buf, size_t size, void *data);
+typedef void CBCB(char *buf, ssize_t size, void *data);
+typedef void BODY_HANDLER(request_t * req, char *, size_t, CBCB *, void *);
 
 typedef void STIOCB(void *their_data, int errflag, storeIOState *);
 typedef void STFNCB(void *their_data, int errflag, storeIOState *);
@@ -234,17 +265,18 @@ typedef void STRCB(void *their_data, const char *buf, ssize_t len);
 
 typedef void SIH(storeIOState *, void *);	/* swap in */
 typedef int QS(const void *, const void *);	/* qsort */
+typedef void STCB(void *, char *, ssize_t);	/* store callback */
 typedef void STABH(void *);
 typedef void ERCB(int fd, void *, size_t);
 typedef void OBJH(StoreEntry *);
 typedef void SIGHDLR(int sig);
 typedef void STVLDCB(void *, int, int);
 typedef void HLPCB(void *, char *buf);
-typedef stateful_helper_callback_t HLPSCB(void *, void *lastserver, char *buf);
+typedef void HLPSCB(void *, void *lastserver, char *buf);
 typedef int HLPSAVAIL(void *);
-typedef void HLPSONEQ(void *);
+typedef void HLPSRESET(void *);
 typedef void HLPCMDOPTS(int *argc, char **argv);
-typedef void IDNSCB(void *, rfc1035_rr *, int);
+typedef void IDNSCB(void *, rfc1035_rr *, int, const char *);
 
 typedef void STINIT(SwapDir *);
 typedef void STNEWFS(SwapDir *);
@@ -264,8 +296,8 @@ typedef void STSYNC(SwapDir *);
 typedef storeIOState *STOBJCREATE(SwapDir *, StoreEntry *, STFNCB *, STIOCB *, void *);
 typedef storeIOState *STOBJOPEN(SwapDir *, StoreEntry *, STFNCB *, STIOCB *, void *);
 typedef void STOBJCLOSE(SwapDir *, storeIOState *);
-typedef void STOBJREAD(SwapDir *, storeIOState *, char *, size_t, off_t, STRCB *, void *);
-typedef void STOBJWRITE(SwapDir *, storeIOState *, char *, size_t, off_t, FREE *);
+typedef void STOBJREAD(SwapDir *, storeIOState *, char *, size_t, squid_off_t, STRCB *, void *);
+typedef void STOBJWRITE(SwapDir *, storeIOState *, char *, size_t, squid_off_t, FREE *);
 typedef void STOBJUNLINK(SwapDir *, StoreEntry *);
 
 typedef void STLOGOPEN(SwapDir *);
@@ -311,7 +343,7 @@ typedef void AUTHSSTATS(StoreEntry *);
 typedef const char *AUTHSCONNLASTHEADER(auth_user_request_t *);
 
 /* append/vprintf's for Packer */
-typedef void (*append_f) (void *, const char *buf, int size);
+typedef void (*append_f) (void *, const char *buf, size_t size);
 #if STDC_HEADERS
 typedef void (*vprintf_f) (void *, const char *fmt, va_list args);
 #else
@@ -325,13 +357,13 @@ typedef unsigned char cache_key;
 typedef int Ctx;
 
 /* in case we want to change it later */
-typedef ssize_t mb_size_t;
+typedef int mb_size_t;
 
 /* iteration for HttpHdrRange */
 typedef int HttpHdrRangePos;
 
 /*iteration for headers; use HttpHeaderPos as opaque type, do not interpret */
-typedef ssize_t HttpHeaderPos;
+typedef int HttpHeaderPos;
 
 /* big mask for http headers */
 typedef char HttpHeaderMask[8];

@@ -110,15 +110,6 @@ html_quote(const char *string)
 		break;
 	    }
 	}
-	/* Encode control chars just to be on the safe side, and make
-	 * sure all 8-bit characters are encoded to protect from buggy
-	 * clients
-	 */
-	if (!escape && (ch <= 0x1F || ch >= 0x7f) && ch != '\n' && ch != '\r' && ch != '\t') {
-	    static char dec_encoded[7];
-	    snprintf(dec_encoded, sizeof dec_encoded, "&#%3d;", (int) ch);
-	    escape = dec_encoded;
-	}
 	if (escape) {
 	    /* Ok, An escaped form was found above. Use it */
 	    strncpy(dst, escape, 6);

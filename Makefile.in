@@ -73,7 +73,6 @@ CC = @CC@
 CGIEXT = @CGIEXT@
 CPP = @CPP@
 CRYPTLIB = @CRYPTLIB@
-CXX = @CXX@
 DEPDIR = @DEPDIR@
 DIGEST_AUTH_HELPERS = @DIGEST_AUTH_HELPERS@
 ERR_DEFAULT_LANGUAGE = @ERR_DEFAULT_LANGUAGE@
@@ -84,6 +83,8 @@ FALSE = @FALSE@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LIBDLMALLOC = @LIBDLMALLOC@
 LIBREGEX = @LIBREGEX@
+LIBSASL = @LIBSASL@
+LIB_LBER = @LIB_LBER@
 LIB_MALLOC = @LIB_MALLOC@
 LN = @LN@
 LN_S = @LN_S@
@@ -92,15 +93,16 @@ MKDIR = @MKDIR@
 MV = @MV@
 NTLM_AUTH_HELPERS = @NTLM_AUTH_HELPERS@
 OBJEXT = @OBJEXT@
-OPT_DEFAULT_HOSTS = @OPT_DEFAULT_HOSTS@
 PACKAGE = @PACKAGE@
 PERL = @PERL@
+PKGCONFIG = @PKGCONFIG@
 RANLIB = @RANLIB@
 REGEXLIB = @REGEXLIB@
 REPL_LIBS = @REPL_LIBS@
 REPL_OBJS = @REPL_OBJS@
 REPL_POLICIES = @REPL_POLICIES@
 RM = @RM@
+SAMBASOURCES = @SAMBASOURCES@
 SH = @SH@
 SNMPLIB = @SNMPLIB@
 SSLLIB = @SSLLIB@
@@ -122,7 +124,7 @@ DIST_SUBDIRS = lib snmplib scripts src icons errors contrib doc helpers
 SUBDIRS = lib @makesnmplib@ scripts src icons errors doc helpers
 
 DISTCLEANFILES = include/stamp-h include/stamp-h[0-9]*
-DEFAULT_PINGER = $(libexecdir)/pinger$(EXEEXT)
+DEFAULT_PINGER = $(libexecdir)/`echo pinger | sed '$(transform);s/$$/$(EXEEXT)/'`
 
 EXTRA_DIST = \
 	ChangeLog \
@@ -134,7 +136,8 @@ EXTRA_DIST = \
 	QUICKSTART \
 	README \
 	SPONSORS \
-	bootstrap.sh
+	bootstrap.sh \
+	include/samba/README.txt
 
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -148,7 +151,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	install-exec-recursive installdirs-recursive install-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = README ./include/autoconf.h.in ./include/stamp-h.in \
-	COPYING ChangeLog INSTALL Makefile.am Makefile.in TODO \
+	COPYING ChangeLog INSTALL Makefile.am Makefile.in acconfig.h \
 	acinclude.m4 aclocal.m4 cfgaux/compile cfgaux/config.guess \
 	cfgaux/config.sub cfgaux/depcomp cfgaux/install-sh \
 	cfgaux/missing cfgaux/mkinstalldirs configure configure.in
@@ -187,7 +190,7 @@ $(srcdir)/./include/autoconf.h.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/./include/st
 		rm -f $(srcdir)/./include/stamp-h.in; \
 		$(MAKE) $(srcdir)/./include/stamp-h.in; \
 	else :; fi
-$(srcdir)/./include/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/./include/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) $(top_srcdir)/acconfig.h
 	@rm -f $(srcdir)/./include/stamp-h.in $(srcdir)/./include/stamp-h.inT
 	@echo timestamp > $(srcdir)/./include/stamp-h.inT 2> /dev/null
 	cd $(top_srcdir) && $(AUTOHEADER)
@@ -300,7 +303,7 @@ GZIP_ENV = --best
 distdir: $(DISTFILES)
 	-chmod -R a+w $(distdir) >/dev/null 2>&1; rm -rf $(distdir)
 	mkdir $(distdir)
-	$(mkinstalldirs) $(distdir)/./include $(distdir)/cfgaux $(distdir)/scripts
+	$(mkinstalldirs) $(distdir)/./include $(distdir)/cfgaux $(distdir)/include/samba $(distdir)/scripts
 	@for file in $(DISTFILES); do \
 	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
 	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
@@ -466,7 +469,7 @@ uninstall-info: uninstall-info-recursive
 
 
 dist-hook:
-	@ for subdir in "include"; do \
+	@ for subdir in include include/samba/nsswitch; do \
 	  if test "$$subdir" = .; then :; else \
 	    test -d $(distdir)/$$subdir \
 	    || mkdir $(distdir)/$$subdir \

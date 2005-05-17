@@ -143,13 +143,14 @@ peerSelect(request_t * request,
     psstate->request = requestLink(request);
     psstate->entry = entry;
     psstate->callback = callback;
-    psstate->callback_data = cbdataReference(callback_data);
+    psstate->callback_data = callback_data;
     psstate->direct = DIRECT_UNKNOWN;
 #if USE_CACHE_DIGESTS
     request->hier.peer_select_start = current_time;
 #endif
     if (psstate->entry)
 	storeLockObject(psstate->entry);
+    cbdataLock(callback_data);
     peerSelectFoo(psstate);
 }
 
@@ -178,8 +179,7 @@ peerSelectCallback(ps_state * psstate)
 {
     StoreEntry *entry = psstate->entry;
     FwdServer *fs = psstate->servers;
-    PSC *callback;
-    void *cbdata;
+    void *data = psstate->callback_data;
     if (entry) {
 	debug(44, 3) ("peerSelectCallback: %s\n", storeUrl(entry));
 	if (entry->ping_status == PING_WAITING)
@@ -194,12 +194,11 @@ peerSelectCallback(ps_state * psstate)
     }
     psstate->ping.stop = current_time;
     psstate->request->hier.ping = psstate->ping;
-    callback = psstate->callback;
-    psstate->callback = NULL;
-    if (cbdataReferenceValidDone(psstate->callback_data, &cbdata)) {
+    if (cbdataValid(data)) {
 	psstate->servers = NULL;
-	callback(fs, cbdata);
+	psstate->callback(fs, data);
     }
+    cbdataUnlock(data);
     peerSelectStateFree(psstate);
 }
 
@@ -334,6 +333,11 @@ peerGetSomeNeighbor(ps_state * ps)
 	    code = CD_SIBLING_HIT;
     } else
 #endif
+#if USE_CARP
+    if ((p = carpSelectParent(request))) {
+	code = CARP;
+    } else
+#endif
     if ((p = netdbClosestParent(request))) {
 	code = CLOSEST_PARENT;
     } else if (peerSelectIcpPing(request, ps->direct, entry)) {
@@ -421,7 +425,7 @@ peerGetSomeDirect(ps_state * ps)
 	return;
     if (ps->request->protocol == PROTO_WAIS)
 	/* Its not really DIRECT, now is it? */
-	peerAddFwdServer(&ps->servers, Config.Wais._peer, DIRECT);
+	peerAddFwdServer(&ps->servers, Config.Wais.peer, DIRECT);
     else
 	peerAddFwdServer(&ps->servers, NULL, DIRECT);
 }
@@ -439,13 +443,7 @@ peerGetSomeParent(ps_state * ps)
 	return;
     if ((p = getDefaultParent(request))) {
 	code = DEFAULT_PARENT;
-#if USE_CARP
-    } else if ((p = carpSelectParent(request))) {
-	code = CARP;
-#endif
     } else if ((p = getRoundRobinParent(request))) {
-	code = ROUNDROBIN_PARENT;
-    } else if ((p = getWeightedRoundRobinParent(request))) {
 	code = ROUNDROBIN_PARENT;
     } else if ((p = getFirstUpParent(request))) {
 	code = FIRSTUP_PARENT;
@@ -494,10 +492,10 @@ peerPingTimeout(void *data)
     StoreEntry *entry = psstate->entry;
     if (entry)
 	debug(44, 3) ("peerPingTimeout: '%s'\n", storeUrl(entry));
-    if (!cbdataReferenceValid(psstate->callback_data)) {
+    if (!cbdataValid(psstate->callback_data)) {
 	/* request aborted */
 	entry->ping_status = PING_DONE;
-	cbdataReferenceDone(psstate->callback_data);
+	cbdataUnlock(psstate->callback_data);
 	peerSelectStateFree(psstate);
 	return;
     }
@@ -536,9 +534,7 @@ peerIcpParentMiss(peer * p, icp_common_t * header, ps_state * ps)
     /* set FIRST_MISS if there is no CLOSEST parent */
     if (ps->closest_parent_miss.sin_addr.s_addr != any_addr.s_addr)
 	return;
-    rtt = (tvSubMsec(ps->ping.start, current_time) - p->basetime) / p->weight;
-    if (rtt < 1)
-	rtt = 1;
+    rtt = tvSubMsec(ps->ping.start, current_time) / p->weight;
     if (ps->first_parent_miss.sin_addr.s_addr == any_addr.s_addr ||
 	rtt < ps->ping.w_rtt) {
 	ps->first_parent_miss = p->in_addr;
@@ -626,9 +622,7 @@ peerHtcpParentMiss(peer * p, htcpReplyData * htcp, ps_state * ps)
     /* set FIRST_MISS if there is no CLOSEST parent */
     if (ps->closest_parent_miss.sin_addr.s_addr != any_addr.s_addr)
 	return;
-    rtt = (tvSubMsec(ps->ping.start, current_time) - p->basetime) / p->weight;
-    if (rtt < 1)
-	rtt = 1;
+    rtt = tvSubMsec(ps->ping.start, current_time) / p->weight;
     if (ps->first_parent_miss.sin_addr.s_addr == any_addr.s_addr ||
 	rtt < ps->ping.w_rtt) {
 	ps->first_parent_miss = p->in_addr;
@@ -657,8 +651,9 @@ peerAddFwdServer(FwdServer ** FS, peer * p, hier_code code)
     debug(44, 5) ("peerAddFwdServer: adding %s %s\n",
 	p ? p->host : "DIRECT",
 	hier_strings[code]);
-    fs->_peer = cbdataReference(p);
+    fs->peer = p;
     fs->code = code;
+    cbdataLock(fs->peer);
     while (*FS)
 	FS = &(*FS)->next;
     *FS = fs;

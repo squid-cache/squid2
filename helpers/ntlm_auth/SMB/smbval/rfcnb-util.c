@@ -24,7 +24,6 @@
  */
 
 #include <string.h>
-#include <malloc.h>
 
 #include "std-includes.h"
 #include "rfcnb-priv.h"
@@ -385,7 +384,7 @@ RFCNB_IP_Connect(struct in_addr Dest_IP, int port)
 	RFCNB_saved_errno = errno;
 	return (RFCNBE_Bad);
     }
-    bzero((char *) &Socket, sizeof(Socket));
+    memset((char *) &Socket, 0, sizeof(Socket));
     memcpy((char *) &Socket.sin_addr, (char *) &Dest_IP, sizeof(Dest_IP));
 
     Socket.sin_port = htons(port);
