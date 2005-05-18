@@ -397,7 +397,7 @@ extern int strListIsSubstr(const String * list, const char *s, char del);
 extern int strListGetItem(const String * str, char del, const char **item, int *ilen, const char **pos);
 extern const char *getStringPrefix(const char *str, const char *end);
 extern int httpHeaderParseInt(const char *start, int *val);
-extern squid_off_t httpHeaderParseSize(const char *start, squid_off_t * sz);
+extern int httpHeaderParseSize(const char *start, squid_off_t * sz);
 extern int httpHeaderReset(HttpHeader * hdr);
 #if STDC_HEADERS
 extern void
