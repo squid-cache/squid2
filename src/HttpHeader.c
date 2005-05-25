@@ -475,9 +475,25 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	}
 	if (e->id == HDR_CONTENT_LENGTH && (e2 = httpHeaderFindEntry(hdr, e->id)) != NULL) {
 	    if (strCmp(e->value, strBuf(e2->value)) != 0) {
-		debug(55, 1) ("WARNING: found two conflicting content-length headers in {%s}\n", getStringPrefix(header_start, header_end));
-		httpHeaderEntryDestroy(e);
-		return httpHeaderReset(hdr);
+		squid_off_t l1, l2;
+		debug(55, Config.onoff.relaxed_header_parser <= 0 ? 1 : 2) ("WARNING: found two conflicting content-length headers in {%s}\n", getStringPrefix(header_start, header_end));
+		if (!Config.onoff.relaxed_header_parser) {
+		    httpHeaderEntryDestroy(e);
+		    return httpHeaderReset(hdr);
+		}
+		if (!httpHeaderParseSize(strBuf(e->value), &l1)) {
+		    debug(55, 1) ("WARNING: Unparseable content-length '%s'\n", strBuf(e->value));
+		    httpHeaderEntryDestroy(e);
+		    continue;
+		} else if (!httpHeaderParseSize(strBuf(e2->value), &l2)) {
+		    debug(55, 1) ("WARNING: Unparseable content-length '%s'\n", strBuf(e2->value));
+		    httpHeaderDelById(hdr, e2->id);
+		} else if (l1 > l2) {
+		    httpHeaderDelById(hdr, e2->id);
+		} else {
+		    httpHeaderEntryDestroy(e);
+		    continue;
+		}
 	    } else {
 		debug(55, Config.onoff.relaxed_header_parser <= 0 ? 1 : 2)
 		    ("NOTICE: found double content-length header\n");
