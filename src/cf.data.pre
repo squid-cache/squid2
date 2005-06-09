@@ -3241,6 +3241,20 @@ DOC_START
 	@DEFAULT_ICON_DIR@
 DOC_END
 
+NAME: global_internal_static
+TYPE: onoff
+LOC: Config.onoff.global_internal_static
+DEFAULT: on
+DOC_START
+	This directive controls is Squid should intercept all requests for
+	/squid-internal-static/ no matter which host the URL is requesting
+	(default on setting), or if nothing special should be done for
+	such URLs (off setting). The purpose of this directive is to make
+	icons etc work better in complex cache hierarchies where it may
+	not always be possible for all corners in the cache mesh to reach
+	the server generating a directory listing.
+DOC_END
+
 NAME: short_icon_urls
 TYPE: onoff
 LOC: Config.icons.use_short_names

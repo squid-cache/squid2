@@ -424,6 +424,7 @@ extern int httpHeaderHas(const HttpHeader * hdr, http_hdr_type type);
 extern void httpHeaderPutInt(HttpHeader * hdr, http_hdr_type type, int number);
 extern void httpHeaderPutSize(HttpHeader * hdr, http_hdr_type type, squid_off_t number);
 extern void httpHeaderPutTime(HttpHeader * hdr, http_hdr_type type, time_t htime);
+extern void httpHeaderInsertTime(HttpHeader * hdr, int pos, http_hdr_type type, time_t htime);
 extern void httpHeaderPutStr(HttpHeader * hdr, http_hdr_type type, const char *str);
 extern void httpHeaderPutAuth(HttpHeader * hdr, const char *auth_scheme, const char *realm);
 extern void httpHeaderPutCc(HttpHeader * hdr, const HttpHdrCc * cc);
@@ -453,6 +454,7 @@ extern void httpHeaderDelAt(HttpHeader * hdr, HttpHeaderPos pos);
 extern HttpHeaderEntry *httpHeaderGetEntry(const HttpHeader * hdr, HttpHeaderPos * pos);
 extern HttpHeaderEntry *httpHeaderFindEntry(const HttpHeader * hdr, http_hdr_type id);
 extern void httpHeaderAddEntry(HttpHeader * hdr, HttpHeaderEntry * e);
+extern void httpHeaderInsertEntry(HttpHeader * hdr, HttpHeaderEntry * e, int pos);
 extern HttpHeaderEntry *httpHeaderEntryClone(const HttpHeaderEntry * e);
 extern void httpHeaderEntryPackInto(const HttpHeaderEntry * e, Packer * p);
 /* store report about current header usage and other stats */

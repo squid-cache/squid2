@@ -680,6 +680,26 @@ httpHeaderAddEntry(HttpHeader * hdr, HttpHeaderEntry * e)
     hdr->len += strLen(e->name) + 2 + strLen(e->value) + 2;
 }
 
+/* inserts an entry at the given position; 
+ * does not call httpHeaderEntryClone() so one should not reuse "*e"
+ */
+void
+httpHeaderInsertEntry(HttpHeader * hdr, HttpHeaderEntry * e, int pos)
+{
+    assert(hdr && e);
+    assert_eid(e->id);
+
+    debug(55, 7) ("%p adding entry: %d at %d\n",
+	hdr, e->id, hdr->entries.count);
+    if (CBIT_TEST(hdr->mask, e->id))
+	Headers[e->id].stat.repCount++;
+    else
+	CBIT_SET(hdr->mask, e->id);
+    arrayInsert(&hdr->entries, e, pos);
+    /* increment header length, allow for ": " and crlf */
+    hdr->len += strLen(e->name) + 2 + strLen(e->value) + 2;
+}
+
 /* return a list of entries with the same id separated by ',' and ws */
 String
 httpHeaderGetList(const HttpHeader * hdr, http_hdr_type id)
@@ -847,6 +867,15 @@ httpHeaderPutTime(HttpHeader * hdr, http_hdr_type id, time_t htime)
     assert(Headers[id].type == ftDate_1123);	/* must be of an appropriate type */
     assert(htime >= 0);
     httpHeaderAddEntry(hdr, httpHeaderEntryCreate(id, NULL, mkrfc1123(htime)));
+}
+
+void
+httpHeaderInsertTime(HttpHeader * hdr, int pos, http_hdr_type id, time_t htime)
+{
+    assert_eid(id);
+    assert(Headers[id].type == ftDate_1123);	/* must be of an appropriate type */
+    assert(htime >= 0);
+    httpHeaderInsertEntry(hdr, httpHeaderEntryCreate(id, NULL, mkrfc1123(htime)), pos);
 }
 
 void

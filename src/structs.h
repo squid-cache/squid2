@@ -609,6 +609,7 @@ struct _SquidConfig {
 	int relaxed_header_parser;
 	int accel_uses_host_header;
 	int accel_no_pmtu_disc;
+	int global_internal_static;
     } onoff;
     acl *aclList;
     struct {

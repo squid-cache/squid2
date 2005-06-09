@@ -1404,7 +1404,10 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	    (void) 0;
 	else if (http->entry->timestamp < 0)
 	    (void) 0;
-	else if (http->entry->timestamp < squid_curtime)
+	if (EBIT_TEST(http->entry->flags, ENTRY_SPECIAL)) {
+	    httpHeaderDelById(hdr, HDR_DATE);
+	    httpHeaderInsertTime(hdr, 0, HDR_DATE, squid_curtime);
+	} else if (http->entry->timestamp < squid_curtime)
 	    httpHeaderPutInt(hdr, HDR_AGE,
 		squid_curtime - http->entry->timestamp);
     }
@@ -2719,11 +2722,10 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 	*t = '\0';
 #endif
 
-    /* handle internal objects */
-    if (internalCheck(url)) {
+    /* handle direct internal objects */
+    if (!Config2.Accel.on && internalCheck(url)) {
 	/* prepend our name & port */
 	http->uri = xstrdup(internalLocalUri(NULL, url));
-	http->flags.internal = 1;
 	http->flags.accel = 1;
     }
     /* see if we running in Config2.Accel.on, if so got to convert it to URL */
@@ -3099,7 +3101,7 @@ clientReadRequest(int fd, void *data)
 		    if (internalHostnameIs(request->host) &&
 			request->port == ntohs(Config.Sockaddr.http->s.sin_port)) {
 			http->flags.internal = 1;
-		    } else if (internalStaticCheck(strBuf(request->urlpath))) {
+		    } else if (Config.onoff.global_internal_static && internalStaticCheck(strBuf(request->urlpath))) {
 			xstrncpy(request->host, internalHostname(), SQUIDHOSTNAMELEN);
 			request->port = ntohs(Config.Sockaddr.http->s.sin_port);
 			http->flags.internal = 1;

@@ -95,6 +95,19 @@ arrayAppend(Array * a, void *obj)
     a->items[a->count++] = obj;
 }
 
+void arrayInsert(Array *a, void *obj, int position)
+{
+    assert(a);
+    if (a->count >= a->capacity)
+	arrayGrow(a, a->count + 1);
+    if (position > a->count)
+	position = a->count;
+    if (position < a->count)
+	memmove(&a->items[position + 1], &a->items[position], (a->count - position) * sizeof(void *));
+    a->items[position] = obj;
+    a->count++;
+}
+
 /* if you are going to append a known and large number of items, call this first */
 void
 arrayPreAppend(Array * a, int app_count)
