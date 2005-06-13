@@ -38,7 +38,6 @@
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) (const char *);
 
-static int opt_no_daemon = 0;
 static int opt_parse_cfg_only = 0;
 static char *opt_syslog_facility = NULL;
 static int httpPortNumOverride = 1;
@@ -687,6 +686,7 @@ main(int argc, char **argv)
 	if (Config.chroot_dir && chroot(Config.chroot_dir)) {
 	    fatal("failed to chroot");
 	}
+	no_suid();
 	sendSignal();
 	/* NOTREACHED */
     }
