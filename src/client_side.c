@@ -2732,6 +2732,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     else if (Config2.Accel.on && *url == '/') {
 	int vport;
 	if (vhost_mode) {
+	    static time_t last_reported = 0;
 #if IPF_TRANSPARENT
 	    natLookup.nl_inport = http->conn->me.sin_port;
 	    natLookup.nl_outport = http->conn->peer.sin_port;
@@ -2751,12 +2752,10 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		errno = save_errno;
 	    }
 	    if (natfd < 0) {
-		debug(50, 1) ("parseHttpRequest: NAT open failed: %s\n",
-		    xstrerror());
-		dlinkDelete(&http->active, &ClientActiveRequests);
-		xfree(http->uri);
-		cbdataFree(http);
-		xfree(inbuf);
+		if (squid_curtime - last_reported > 60) {
+		    debug(50, 1) ("parseHttpRequest: NAT open failed: %s\n", xstrerror());
+		    last_reported = squid_curtime;
+		}
 	    } else {
 		/*
 		 * IP-Filter changed the type for SIOCGNATL between
@@ -2773,48 +2772,57 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		}
 		if (x < 0) {
 		    if (errno != ESRCH) {
-			debug(50, 1) ("parseHttpRequest: NAT lookup failed: ioctl(SIOCGNATL)\n");
+			if (squid_curtime - last_reported > 60) {
+			    debug(50, 1) ("parseHttpRequest: NAT lookup failed: ioctl(SIOCGNATL): %s\n", xstrerror());
+			    last_reported = squid_curtime;
+			}
 			close(natfd);
 			natfd = -1;
-			dlinkDelete(&http->active, &ClientActiveRequests);
-			xfree(http->uri);
-			cbdataFree(http);
-			xfree(inbuf);
 		    }
 		} else {
 		    conn->me.sin_port = natLookup.nl_realport;
-		    http->conn->me.sin_addr = natLookup.nl_realip;
+		    conn->me.sin_addr = natLookup.nl_realip;
 		}
 	    }
 #elif PF_TRANSPARENT
 	    if (pffd < 0)
 		pffd = open("/dev/pf", O_RDWR);
 	    if (pffd < 0) {
-		debug(50, 1) ("parseHttpRequest: PF open failed: %s\n",
-		    xstrerror());
-		return parseHttpRequestAbort(conn, "error:pf-open-failed");
-	    }
-	    memset(&nl, 0, sizeof(struct pfioc_natlook));
-	    nl.saddr.v4.s_addr = http->conn->peer.sin_addr.s_addr;
-	    nl.sport = http->conn->peer.sin_port;
-	    nl.daddr.v4.s_addr = http->conn->me.sin_addr.s_addr;
-	    nl.dport = http->conn->me.sin_port;
-	    nl.af = AF_INET;
-	    nl.proto = IPPROTO_TCP;
-	    nl.direction = PF_OUT;
-	    if (ioctl(pffd, DIOCNATLOOK, &nl)) {
-		if (errno != ENOENT) {
-		    debug(50, 1) ("parseHttpRequest: PF lookup failed: ioctl(DIOCNATLOOK)\n");
-		    close(pffd);
-		    pffd = -1;
+		if (squid_curtime - last_reported > 60) {
+		    debug(50, 1) ("parseHttpRequest: PF open failed: %s\n", xstrerror());
+		    last_reported = squid_curtime;
 		}
 	    } else {
-		conn->me.sin_port = nl.rdport;
-		http->conn->me.sin_addr = nl.rdaddr.v4;
+		memset(&nl, 0, sizeof(struct pfioc_natlook));
+		nl.saddr.v4.s_addr = http->conn->peer.sin_addr.s_addr;
+		nl.sport = http->conn->peer.sin_port;
+		nl.daddr.v4.s_addr = http->conn->me.sin_addr.s_addr;
+		nl.dport = http->conn->me.sin_port;
+		nl.af = AF_INET;
+		nl.proto = IPPROTO_TCP;
+		nl.direction = PF_OUT;
+		if (ioctl(pffd, DIOCNATLOOK, &nl)) {
+		    if (errno != ENOENT) {
+			if (squid_curtime - last_reported > 60) {
+			    debug(50, 1) ("parseHttpRequest: PF lookup failed: ioctl(DIOCNATLOOK): %s\n", xstrerror());
+			    last_reported = squid_curtime;
+			}
+			close(pffd);
+			pffd = -1;
+		    }
+		} else {
+		    conn->me.sin_port = nl.rdport;
+		    conn->me.sin_addr = nl.rdaddr.v4;
+		}
 	    }
 #elif LINUX_NETFILTER
 	    /* If the call fails the address structure will be unchanged */
-	    getsockopt(conn->fd, SOL_IP, SO_ORIGINAL_DST, &conn->me, &sock_sz);
+	    if (getsockopt(conn->fd, SOL_IP, SO_ORIGINAL_DST, &conn->me, &sock_sz) != 0) {
+		if (squid_curtime - last_reported > 60) {
+		    debug(50, 1) ("parseHttpRequest: NF getsockopt(SO_ORIGINAL_DST) failed: %s\n", xstrerror());
+		    last_reported = squid_curtime;
+		}
+	    }
 #endif
 	}
 	if (vport_mode)
