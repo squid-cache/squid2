@@ -357,6 +357,7 @@ clientRedirectDone(void *data, char *result)
 	new_request->client_addr = old_request->client_addr;
 	new_request->my_addr = old_request->my_addr;
 	new_request->my_port = old_request->my_port;
+	new_request->flags = old_request->flags;
 	new_request->flags.redirected = 1;
 	if (old_request->auth_user_request) {
 	    new_request->auth_user_request = old_request->auth_user_request;
@@ -369,7 +370,6 @@ clientRedirectDone(void *data, char *result)
 	    old_request->body_reader_data = NULL;
 	}
 	new_request->content_length = old_request->content_length;
-	new_request->flags.proxy_keepalive = old_request->flags.proxy_keepalive;
 	requestUnlink(old_request);
 	http->request = requestLink(new_request);
     }
