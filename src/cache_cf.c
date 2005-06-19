@@ -1300,45 +1300,27 @@ parse_cachedir(cacheSwap * swap)
     if ((path_str = strtok(NULL, w_space)) == NULL)
 	self_destruct();
 
-    /*
-     * This bit of code is a little strange.
-     * See, if we find a path and type match for a given line, then
-     * as long as we're reconfiguring, we can just call its reconfigure
-     * function. No harm there.
-     *
-     * Trouble is, if we find a path match, but not a type match, we have
-     * a dilemma - we could gracefully shut down the fs, kill it, and
-     * create a new one of a new type in its place, BUT at this stage the
-     * fs is meant to be the *NEW* one, and so things go very strange. :-)
-     *
-     * So, we'll assume the person isn't going to change the fs type for now,
-     * and XXX later on we will make sure that its picked up.
-     *
-     * (moving around cache_dir lines will be looked at later in a little
-     * more sane detail..)
-     */
+    fs = find_fstype(type_str);
+    if (fs < 0)
+	self_destruct();
 
+    /* reconfigure existing dir */
     for (i = 0; i < swap->n_configured; i++) {
-	if (0 == strcasecmp(path_str, swap->swapDirs[i].path)) {
-	    /* This is a little weird, you'll appreciate it later */
-	    fs = find_fstype(type_str);
-	    if (fs < 0) {
-		fatalf("Unknown cache_dir type '%s'\n", type_str);
-	    }
+	if ((strcasecmp(path_str, swap->swapDirs[i].path) == 0)) {
 	    sd = swap->swapDirs + i;
+	    if (sd->type != storefs_list[fs].typestr) {
+		debug(3, 0) ("ERROR: Can't change type of existing cache_dir %s %s to %s. Restart required\n", sd->type, sd->path, type_str);
+		return;
+	    }
 	    storefs_list[fs].reconfigurefunc(sd, i, path_str);
 	    update_maxobjsize();
 	    return;
 	}
     }
 
+    /* new cache_dir */
     assert(swap->n_configured < 63);	/* 7 bits, signed */
 
-    fs = find_fstype(type_str);
-    if (fs < 0) {
-	/* If we get here, we didn't find a matching cache_dir type */
-	fatalf("Unknown cache_dir type '%s'\n", type_str);
-    }
     allocate_new_swapdir(swap);
     sd = swap->swapDirs + swap->n_configured;
     sd->type = storefs_list[fs].typestr;
