@@ -410,7 +410,7 @@ ftpListingStart(FtpStateData * ftpState)
 	    storeAppendPrintf(e, "/");
 	    storeAppendPrintf(e, "\">");
 	    rfc1738_unescape(url + j);
-	    storeAppendPrintf(e, "%s", html_quote(url + k));
+	    storeAppendPrintf(e, "%s", html_quote(url + j));
 	    safe_free(url);
 	    storeAppendPrintf(e, "</A>");
 	}
