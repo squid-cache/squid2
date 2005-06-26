@@ -1,3 +1,26 @@
+Changes to squid-2.5.STABLE11 (not yet released)
+
+	- [Minor] Workaround for servers sending double content-length headers
+	  (Bug #1305)
+	- [Cosmetic] Updated Spanish error messages by Nicolas Ruiz
+	- [Cosmetic] Date header corrected on internal objects (icons etc)
+	  (Bug #1275)
+	- [Minor] squid -k fails in combination with chroot after patch for
+	  bug 1157 (Bug #1307)
+	- [Cosmetic] Segmentation fault if compiled with
+	  --enable-ipf-transparent but denied access to the NAT device.
+	  (Bug #1313)
+	- [Minor] httpd_accel_signle_host incompatible with redireection
+	  (Bug #1314)
+	- [Minor] squid -k reconfigure internal corruption if the type of
+	  a cache_dir is changed (Bug #1308)
+	- [Minor] SNMP GETNEXT fails if the given OID is outside the Squid MIB
+	  (Bug #1317)
+	- [Minor] Title in FTP listings somewhat messed up after previous
+	  patch for bug 1220 (Bug #1220)
+	- [Minor] FTP listings uses "BASE HREF" much more than it needs to,
+	  confusing authentication. (Bug #1204)
+
 Changes to squid-2.5.STABLE10 (17 May 2005)
 
 	- [Minor Security] Fix race condition in relation to old Netscape
