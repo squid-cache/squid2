@@ -2732,8 +2732,8 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
     else if (Config2.Accel.on && *url == '/') {
 	int vport;
 	if (vhost_mode) {
-	    static time_t last_reported = 0;
 #if IPF_TRANSPARENT
+	    static time_t last_reported = 0;
 	    natLookup.nl_inport = http->conn->me.sin_port;
 	    natLookup.nl_outport = http->conn->peer.sin_port;
 	    natLookup.nl_inip = http->conn->me.sin_addr;
@@ -2785,6 +2785,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		}
 	    }
 #elif PF_TRANSPARENT
+	    static time_t last_reported = 0;
 	    if (pffd < 0)
 		pffd = open("/dev/pf", O_RDWR);
 	    if (pffd < 0) {
@@ -2816,6 +2817,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 		}
 	    }
 #elif LINUX_NETFILTER
+	    static time_t last_reported = 0;
 	    /* If the call fails the address structure will be unchanged */
 	    if (getsockopt(conn->fd, SOL_IP, SO_ORIGINAL_DST, &conn->me, &sock_sz) != 0) {
 		if (squid_curtime - last_reported > 60) {
