@@ -403,7 +403,7 @@ gen_default(Entry * head, FILE * fp)
 	"\tconfig_lineno = 0;\n"
 	);
     for (entry = head; entry != NULL; entry = entry->next) {
-	assert(entry->name);
+	assert(entry->name != NULL);
 	assert(entry != entry->next);
 
 	if (!strcmp(entry->name, "comment"))
@@ -418,7 +418,7 @@ gen_default(Entry * head, FILE * fp)
 	    rc |= 1;
 	    continue;
 	}
-	assert(entry->default_value);
+	assert(entry->default_value != NULL);
 	if (entry->ifdef)
 	    fprintf(fp, "#if %s\n", entry->ifdef);
 	if (strcmp(entry->default_value, "none") == 0) {
@@ -447,8 +447,8 @@ gen_default_if_none(Entry * head, FILE * fp)
 	"{\n"
 	);
     for (entry = head; entry != NULL; entry = entry->next) {
-	assert(entry->name);
-	assert(entry->loc);
+	assert(entry->name != NULL);
+	assert(entry->loc != NULL);
 	if (entry->default_if_none == NULL)
 	    continue;
 	if (entry->ifdef)
@@ -498,7 +498,7 @@ gen_parse(Entry * head, FILE * fp)
 	alias = entry->alias;
       next_alias:
 	fprintf(fp, "\telse if (!strcmp(token, \"%s\"))\n", name);
-	assert(entry->loc);
+	assert(entry->loc != NULL);
 	if (strcmp(entry->loc, "none") == 0) {
 	    fprintf(fp,
 		"\t\tparse_%s();\n",
@@ -538,7 +538,7 @@ gen_dump(Entry * head, FILE * fp)
 	"{\n"
 	);
     for (entry = head; entry != NULL; entry = entry->next) {
-	assert(entry->loc);
+	assert(entry->loc != NULL);
 	if (strcmp(entry->loc, "none") == 0)
 	    continue;
 	if (strcmp(entry->name, "comment") == 0)
@@ -565,7 +565,7 @@ gen_free(Entry * head, FILE * fp)
 	"{\n"
 	);
     for (entry = head; entry != NULL; entry = entry->next) {
-	assert(entry->loc);
+	assert(entry->loc != NULL);
 	if (strcmp(entry->loc, "none") == 0)
 	    continue;
 	if (strcmp(entry->name, "comment") == 0)
@@ -588,7 +588,7 @@ defined(char *name)
     if (!name)
 	return 1;
     for (i = 0; strcmp(defines[i].name, name) != 0; i++) {
-	assert(defines[i].name);
+	assert(defines[i].name != NULL);
     }
     return defines[i].defined;
 }
@@ -597,9 +597,9 @@ static const char *
 available_if(char *name)
 {
     int i = 0;
-    assert(name);
+    assert(name != NULL);
     for (i = 0; strcmp(defines[i].name, name) != 0; i++) {
-	assert(defines[i].name);
+	assert(defines[i].name != NULL);
     }
     return defines[i].enable;
 }

@@ -127,7 +127,7 @@ strwordtok(char *buf, char **t)
 
 static int strCaseCmp (const char *s1, const char *s2)
 {
-    while (*s1 && toupper (*s1) == toupper (*s2)) s1++, s2++;
+    while (*s1 && xtoupper (*s1) == xtoupper (*s2)) s1++, s2++;
     return *s1 - *s2;
 }
 

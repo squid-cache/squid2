@@ -50,13 +50,13 @@
 void *
 stackPop(Stack * s)
 {
-    assert(s);
+    assert(s != NULL);
     return s->count ? s->items[--s->count] : NULL;
 }
 
 void *
 stackTop(Stack * s)
 {
-    assert(s);
+    assert(s != NULL);
     return s->count ? s->items[s->count - 1] : NULL;
 }

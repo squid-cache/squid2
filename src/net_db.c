@@ -556,7 +556,7 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
     if (0 == ex->used) {
 	/* skip reply headers */
 	if ((hdr_sz = headersEnd(p, size))) {
-	    debug(38, 5) ("netdbExchangeHandleReply: hdr_sz = %d\n", hdr_sz);
+	    debug(38, 5) ("netdbExchangeHandleReply: hdr_sz = %ld\n", (long int) hdr_sz);
 	    rep = ex->e->mem_obj->reply;
 	    if (0 == rep->sline.status)
 		httpReplyParse(rep, buf, hdr_sz);
@@ -574,11 +574,11 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
 	    size = 0;
 	}
     }
-    debug(38, 5) ("netdbExchangeHandleReply: start parsing loop, size = %d\n",
-	size);
+    debug(38, 5) ("netdbExchangeHandleReply: start parsing loop, size = %ld\n",
+	(long int) size);
     while (size >= rec_sz) {
-	debug(38, 5) ("netdbExchangeHandleReply: in parsing loop, size = %d\n",
-	    size);
+	debug(38, 5) ("netdbExchangeHandleReply: in parsing loop, size = %ld\n",
+	    (long int) size);
 	addr.s_addr = any_addr.s_addr;
 	hops = rtt = 0.0;
 	for (o = 0; o < rec_sz;) {
