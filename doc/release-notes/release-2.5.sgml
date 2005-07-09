@@ -151,7 +151,6 @@ management of timeouts while connecting to origin servers or peers
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=581" name="#581"></tag>acl max_user_ip and multiple authentication schemes
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=528" name="#528"></tag>miss_access fails on "slow" acl types such as dst.
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=513" name="#513"></tag>squid -F is starting server sockets to early
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=518" name="#518"></tag>wb_auth fails on TRU64 and probably other 64 bit platforms
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=500" name="#500"></tag>delay_pools stops working on -k reconfigure
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=457" name="#457"></tag>does not handle swap.state corruption properly
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=410" name="#410"></tag>unstable if runs out of disk space
