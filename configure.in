@@ -786,16 +786,13 @@ AC_ARG_WITH(build-environment,
                           XBS5_LP64_OFF64        64 bits (legacy)
                           XBS5_LPBIG_OFFBIG      large pointers and files (legacy)
                           default                The default for your OS],
-[ case "$enableval" in
+[ case "$withval" in
   yes|no)
 	echo "--with-build-environment expects a build environment string as used by getconf"
 	exit 1
 	;;
-  _*)
-	buildmodel="$enableval"
-	;;
   *)
-	buildmodel="_$enableval"
+	buildmodel="$withval"
 	;;
   esac
 ])
@@ -813,8 +810,14 @@ if test $needlargefiles && test -z "$buildmodel"; then
 		CFLAGS="-D_FILE_OFFSET_BITS=64 $CFLAGS"
 	fi
 fi
-if test -n "$buildmodel" && test "$buildmodel" != "_default"; then
+if test -n "$buildmodel" && test "$buildmodel" != "default"; then
 	echo "Using $buildmodel build environment"
+	if test "`getconf _$buildmodel 2>/dev/null || true`" = 1 || test "`getconf $buildmodel 2>/dev/null || true`" ; then
+	    : # All fine
+	else
+	    echo "ERROR: Build environment $buildmodel not known to getconf."
+	    exit 1
+	fi
 	CFLAGS="`getconf ${buildmodel}_CFLAGS` $CFLAGS"
 	LIBS="`getconf ${buildmodel}_LIBS` $LIBS"
 	LDFLAGS="`getconf ${buildmodel}_LDFLAGS` $LDFLAGS"
