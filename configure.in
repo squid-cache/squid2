@@ -21,6 +21,7 @@ if test -z "$LDFLAGS"; then
 fi
 
 PRESET_CFLAGS="$CFLAGS"
+PRESET_LDFLAGS="$LDFLAGS"
 
 dnl Check for GNU cc
 AC_PROG_CC
