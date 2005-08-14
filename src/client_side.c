@@ -46,6 +46,20 @@
 #elif HAVE_NETINET_IP_FIL_COMPAT_H
 #include <netinet/ip_fil_compat.h>
 #elif HAVE_IP_COMPAT_H
+/* SG - 14 Aug 2005
+ * Workaround needed to allow the build of both ipfilter and ARP acl
+ * support on Solaris x86.
+ * 
+ * Some defines, like
+ * #define free +
+ * are used in squid.h to block misuse of standard malloc routines
+ * where the Squid versions should be used. This pollutes the C/C++
+ * token namespace crashing any structures or classes having members
+ * of the same names.
+ */
+#ifdef _SQUID_SOLARIS_
+#undef free
+#endif
 #include <ip_compat.h>
 #elif HAVE_NETINET_IP_COMPAT_H
 #include <netinet/ip_compat.h>
