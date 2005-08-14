@@ -480,6 +480,7 @@ struct _SquidConfig {
 	int rotateNumber;
     } Log;
     char *adminEmail;
+    char *EmailProgram;
     char *effectiveUser;
     char *effectiveGroup;
     struct {

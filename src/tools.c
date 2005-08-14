@@ -110,7 +110,7 @@ mail_warranty(void)
     fprintf(fp, "To: %s\n", Config.adminEmail);
     fprintf(fp, "Subject: %s\n", dead_msg());
     fclose(fp);
-    snprintf(command, 256, "mail %s < %s", Config.adminEmail, filename);
+    snprintf(command, 256, "%s %s < %s", Config.EmailProgram, Config.adminEmail, filename);
     system(command);		/* XXX should avoid system(3) */
     unlink(filename);
 }
