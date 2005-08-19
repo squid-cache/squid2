@@ -41,11 +41,6 @@
 #endif
 #include <netinet/tcp.h>
 #include <net/if.h>
-#if HAVE_IP_FIL_COMPAT_H
-#include <ip_fil_compat.h>
-#elif HAVE_NETINET_IP_FIL_COMPAT_H
-#include <netinet/ip_fil_compat.h>
-#elif HAVE_IP_COMPAT_H
 /* SG - 14 Aug 2005
  * Workaround needed to allow the build of both ipfilter and ARP acl
  * support on Solaris x86.
@@ -60,6 +55,11 @@
 #ifdef _SQUID_SOLARIS_
 #undef free
 #endif
+#if HAVE_IP_FIL_COMPAT_H
+#include <ip_fil_compat.h>
+#elif HAVE_NETINET_IP_FIL_COMPAT_H
+#include <netinet/ip_fil_compat.h>
+#elif HAVE_IP_COMPAT_H
 #include <ip_compat.h>
 #elif HAVE_NETINET_IP_COMPAT_H
 #include <netinet/ip_compat.h>
