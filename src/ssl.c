@@ -106,6 +106,8 @@ sslClientClosed(int fd, void *data)
     sslState->client.fd = -1;
     if (sslState->server.fd == -1)
 	sslStateFree(sslState);
+    else if (!sslState->connected)
+	comm_close(sslState->server.fd);
 }
 
 static void
