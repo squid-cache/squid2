@@ -1621,6 +1621,7 @@ struct _request_flags {
     unsigned int internal:1;
     unsigned int body_sent:1;
     unsigned int reset_tcp:1;
+    unsigned int must_keepalive:1;
 };
 
 struct _link_list {

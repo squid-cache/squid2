@@ -1091,9 +1091,7 @@ clientSetKeepaliveFlag(clientHttpRequest * http)
 	request->http_ver.major, request->http_ver.minor);
     debug(33, 3) ("clientSetKeepaliveFlag: method = %s\n",
 	RequestMethodStr[request->method]);
-    if (!Config.onoff.client_pconns)
-	request->flags.proxy_keepalive = 0;
-    else {
+    {
 	http_version_t http_ver;
 	httpBuildVersion(&http_ver, 1, 0);	/* we are HTTP/1.0, no matter what the client requests... */
 	if (httpMsgIsPersistent(http_ver, req_hdr))
@@ -1458,10 +1456,12 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	debug(33, 3) ("clientBuildReplyHeader: can't keep-alive, unknown body size\n");
 	request->flags.proxy_keepalive = 0;
     }
-    if (fdUsageHigh()) {
+    if (fdUsageHigh() && !request->flags.must_keepalive) {
 	debug(33, 3) ("clientBuildReplyHeader: Not many unused FDs, can't keep-alive\n");
 	request->flags.proxy_keepalive = 0;
     }
+    if (!Config.onoff.client_pconns && !request->flags.must_keepalive)
+	request->flags.proxy_keepalive = 0;
     /* Signal keep-alive if needed */
     httpHeaderPutStr(hdr,
 	http->flags.accel ? HDR_CONNECTION : HDR_PROXY_CONNECTION,

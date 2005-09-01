@@ -332,6 +332,8 @@ static void
 authenticateNTLMFixErrorHeader(auth_user_request_t * auth_user_request, HttpReply * rep, http_hdr_type type, request_t * request)
 {
     ntlm_request_t *ntlm_request;
+    if (!request->flags.proxy_keepalive)
+	return;
     if (ntlmConfig->authenticate) {
 	/* New request, no user details */
 	if (auth_user_request == NULL) {
@@ -360,6 +362,7 @@ authenticateNTLMFixErrorHeader(auth_user_request_t * auth_user_request, HttpRepl
 		/* pass the challenge to the client */
 		debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM %s'\n", type, ntlm_request->authchallenge);
 		httpHeaderPutStrf(&rep->header, type, "NTLM %s", ntlm_request->authchallenge);
+		request->flags.must_keepalive = 1;
 		break;
 	    default:
 		debug(29, 0) ("authenticateNTLMFixErrorHeader: state %d.\n", ntlm_request->auth_state);
