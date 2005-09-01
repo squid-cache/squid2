@@ -2279,7 +2279,7 @@ ftpReadTransferDone(FtpStateData * ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debug(9, 3) ("This is ftpReadTransferDone\n");
-    if (code == 226) {
+    if (code == 226 || code == 250) {
 	/* Connection closed; retrieval done. */
 	if (ftpState->flags.html_header_sent)
 	    ftpListingFinish(ftpState);
@@ -2345,7 +2345,7 @@ ftpWriteTransferDone(FtpStateData * ftpState)
 {
     int code = ftpState->ctrl.replycode;
     debug(9, 3) ("This is ftpWriteTransferDone\n");
-    if (code != 226) {
+    if (!(code == 226 || code == 250)) {
 	debug(9, 1) ("ftpReadTransferDone: Got code %d after sending data\n",
 	    code);
 	ftpFailed(ftpState, ERR_FTP_PUT_ERROR);
@@ -2521,7 +2521,7 @@ ftpSendReply(FtpStateData * ftpState)
 	storeUrl(ftpState->entry), code);
     if (cbdataValid(ftpState))
 	debug(9, 5) ("ftpSendReply: ftpState (%p) is valid!\n", ftpState);
-    if (code == 226) {
+    if (code == 226 || code == 250) {
 	err_code = (ftpState->mdtm > 0) ? ERR_FTP_PUT_MODIFIED : ERR_FTP_PUT_CREATED;
 	http_code = (ftpState->mdtm > 0) ? HTTP_ACCEPTED : HTTP_CREATED;
     } else if (code == 227) {
