@@ -236,7 +236,6 @@ fwdConnectDone(int server_fd, int status, void *data)
 	    request->host);
 	err = errorCon(ERR_DNS_FAIL, HTTP_SERVICE_UNAVAILABLE);
 	err->dnsserver_msg = xstrdup(dns_error_message);
-	err->request = requestLink(request);
 	fwdFail(fwdState, err);
 	comm_close(server_fd);
     } else if (status != COMM_OK) {
@@ -250,7 +249,6 @@ fwdConnectDone(int server_fd, int status, void *data)
 	    err->host = xstrdup(request->host);
 	    err->port = request->port;
 	}
-	err->request = requestLink(request);
 	fwdFail(fwdState, err);
 	if (fs->peer)
 	    peerConnectFailed(fs->peer);
@@ -282,7 +280,6 @@ fwdConnectTimeout(int fd, void *data)
     assert(fd == fwdState->server_fd);
     if (entry->mem_obj->inmem_hi == 0) {
 	err = errorCon(ERR_CONNECT_FAIL, HTTP_GATEWAY_TIMEOUT);
-	err->request = requestLink(fwdState->request);
 	err->xerrno = ETIMEDOUT;
 	fwdFail(fwdState, err);
 	/*
@@ -420,7 +417,6 @@ fwdConnectStart(void *data)
 	debug(50, 4) ("fwdConnectStart: %s\n", xstrerror());
 	err = errorCon(ERR_SOCKET_FAILURE, HTTP_INTERNAL_SERVER_ERROR);
 	err->xerrno = errno;
-	err->request = requestLink(fwdState->request);
 	fwdFail(fwdState, err);
 	fwdStateFree(fwdState);
 	return;
@@ -466,7 +462,6 @@ fwdStartFail(FwdState * fwdState)
     ErrorState *err;
     debug(17, 3) ("fwdStartFail: %s\n", storeUrl(fwdState->entry));
     err = errorCon(ERR_CANNOT_FORWARD, HTTP_SERVICE_UNAVAILABLE);
-    err->request = requestLink(fwdState->request);
     err->xerrno = errno;
     fwdFail(fwdState, err);
     fwdStateFree(fwdState);
@@ -525,7 +520,6 @@ fwdDispatch(FwdState * fwdState)
 	    debug(17, 1) ("fwdDispatch: Cannot retrieve '%s'\n",
 		storeUrl(entry));
 	    err = errorCon(ERR_UNSUP_REQ, HTTP_BAD_REQUEST);
-	    err->request = requestLink(request);
 	    fwdFail(fwdState, err);
 	    /*
 	     * Force a persistent connection to be closed because
@@ -710,7 +704,6 @@ fwdCheckDeferRead(int fd, void *data)
 void
 fwdFail(FwdState * fwdState, ErrorState * errorState)
 {
-    assert(EBIT_TEST(fwdState->entry->flags, ENTRY_FWD_HDR_WAIT));
     debug(17, 3) ("fwdFail: %s \"%s\"\n\t%s\n",
 	err_type_str[errorState->type],
 	httpStatusString(errorState->http_status),
@@ -718,6 +711,8 @@ fwdFail(FwdState * fwdState, ErrorState * errorState)
     if (fwdState->err)
 	errorStateFree(fwdState->err);
     fwdState->err = errorState;
+    if (!errorState->request)
+	errorState->request = requestLink(fwdState->request);
 }
 
 /*

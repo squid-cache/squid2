@@ -603,12 +603,8 @@ gopherTimeout(int fd, void *data)
     GopherStateData *gopherState = data;
     StoreEntry *entry = gopherState->entry;
     debug(10, 4) ("gopherTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
-    if (entry->store_status == STORE_PENDING) {
-	if (entry->mem_obj->inmem_hi == 0) {
-	    fwdFail(gopherState->fwdState,
-		errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
-	}
-    }
+    fwdFail(gopherState->fwdState,
+	errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
     comm_close(fd);
 }
 
@@ -660,22 +656,15 @@ gopherReadReply(int fd, void *data)
 	debug(50, 1) ("gopherReadReply: error reading: %s\n", xstrerror());
 	if (ignoreErrno(errno)) {
 	    commSetSelect(fd, COMM_SELECT_READ, gopherReadReply, data, 0);
-	} else if (entry->mem_obj->inmem_hi == 0) {
+	} else {
 	    ErrorState *err;
 	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
 	    err->xerrno = errno;
-	    err->url = xstrdup(storeUrl(entry));
-	    errorAppendEntry(entry, err);
-	    comm_close(fd);
-	} else {
+	    fwdFail(gopherState->fwdState, err);
 	    comm_close(fd);
 	}
     } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {
-	ErrorState *err;
-	err = errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_SERVICE_UNAVAILABLE);
-	err->xerrno = errno;
-	err->url = xstrdup(gopherState->request);
-	errorAppendEntry(entry, err);
+	fwdFail(gopherState->fwdState, errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_SERVICE_UNAVAILABLE));
 	comm_close(fd);
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */
@@ -717,12 +706,12 @@ gopherSendComplete(int fd, char *buf, size_t size, int errflag, void *data)
     }
     if (errflag) {
 	ErrorState *err;
-	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
+	err = errorCon(ERR_WRITE_ERROR, HTTP_BAD_GATEWAY);
 	err->xerrno = errno;
 	err->host = xstrdup(gopherState->req->host);
 	err->port = gopherState->req->port;
 	err->url = xstrdup(storeUrl(entry));
-	errorAppendEntry(entry, err);
+	fwdFail(gopherState->fwdState, err);
 	comm_close(fd);
 	if (buf)
 	    memFree(buf, MEM_4K_BUF);	/* Allocated by gopherSendRequest. */
@@ -815,16 +804,6 @@ gopherStart(FwdState * fwdState)
     /* Parse url. */
     gopher_request_parse(fwdState->request,
 	&gopherState->type_id, gopherState->request);
-#if OLD_PARSE_ERROR_CODE
-    if (...) {
-	ErrorState *err;
-	err = errorCon(ERR_INVALID_URL, HTTP_BAD_REQUEST);
-	err->url = xstrdup(storeUrl(entry));
-	errorAppendEntry(entry, err);
-	gopherStateFree(-1, gopherState);
-	return;
-    }
-#endif
     comm_add_close_handler(fd, gopherStateFree, gopherState);
     if (((gopherState->type_id == GOPHER_INDEX) || (gopherState->type_id == GOPHER_CSO))
 	&& (strchr(gopherState->request, '?') == NULL)) {

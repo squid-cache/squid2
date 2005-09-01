@@ -2491,7 +2491,6 @@ ftpFailedErrorMessage(FtpStateData * ftpState, err_type error)
     if (err == NULL)
 	err = errorCon(ERR_FTP_FAILURE, HTTP_BAD_GATEWAY);
     err->xerrno = errno;
-    err->request = requestLink(ftpState->request);
     err->ftp.server_msg = ftpState->ctrl.message;
     ftpState->ctrl.message = NULL;
     if (ftpState->old_request)

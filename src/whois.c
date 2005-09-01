@@ -109,13 +109,11 @@ whoisReadReply(int fd, void *data)
 	    fd, xstrerror());
 	if (ignoreErrno(errno)) {
 	    commSetSelect(fd, COMM_SELECT_READ, whoisReadReply, p, Config.Timeout.read);
-	} else if (mem->inmem_hi == 0) {
+	} else {
 	    ErrorState *err;
 	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
 	    err->xerrno = errno;
 	    fwdFail(p->fwd, err);
-	    comm_close(fd);
-	} else {
 	    comm_close(fd);
 	}
     } else {

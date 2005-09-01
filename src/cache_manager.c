@@ -201,6 +201,7 @@ cachemgrStart(int fd, request_t * request, StoreEntry * entry)
     if ((mgr = cachemgrParseUrl(storeUrl(entry))) == NULL) {
 	err = errorCon(ERR_INVALID_URL, HTTP_NOT_FOUND);
 	err->url = xstrdup(storeUrl(entry));
+	err->request = requestLink(request);
 	errorAppendEntry(entry, err);
 	entry->expires = squid_curtime;
 	return;
