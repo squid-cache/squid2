@@ -251,8 +251,7 @@ cachemgrStart(int fd, request_t * request, StoreEntry * entry)
     /* retrieve object requested */
     a = cachemgrFindAction(mgr->action);
     assert(a != NULL);
-    if (a->flags.atomic)
-	storeBuffer(entry);
+    storeBuffer(entry);
     {
 	http_version_t version;
 	HttpReply *rep = entry->mem_obj->reply;
@@ -270,10 +269,9 @@ cachemgrStart(int fd, request_t * request, StoreEntry * entry)
 	httpReplySwapOut(rep, entry);
     }
     a->handler(entry);
-    if (a->flags.atomic) {
-	storeBufferFlush(entry);
+    storeBufferFlush(entry);
+    if (a->flags.atomic)
 	storeComplete(entry);
-    }
     cachemgrStateFree(mgr);
 }
 

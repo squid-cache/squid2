@@ -97,12 +97,19 @@ whoisReadReply(int fd, void *data)
     debug(75, 3) ("whoisReadReply: FD %d read %d bytes\n", fd, len);
     debug(75, 5) ("{%s}\n", buf);
     if (len > 0) {
-	if (0 == mem->inmem_hi)
-	    mem->reply->sline.status = HTTP_OK;
+	if (0 == mem->inmem_hi) {
+	    http_reply *reply = mem->reply;
+	    http_version_t version;
+	    storeBuffer(entry);
+	    httpBuildVersion(&version, 1, 0);
+	    httpReplySetHeaders(reply, version, HTTP_OK, "Gatewaying", "text/plain", -1, -1, -2);
+	    httpReplySwapOut(reply, entry);
+	}
 	fd_bytes(fd, len, FD_READ);
 	kb_incr(&statCounter.server.all.kbytes_in, len);
 	kb_incr(&statCounter.server.http.kbytes_in, len);
 	storeAppend(entry, buf, len);
+	storeBufferFlush(entry);
 	commSetSelect(fd, COMM_SELECT_READ, whoisReadReply, p, Config.Timeout.read);
     } else if (len < 0) {
 	debug(50, 2) ("whoisReadReply: FD %d: read failure: %s.\n",
