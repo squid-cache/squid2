@@ -839,7 +839,7 @@ struct _MemBuf {
 struct _Packer {
     /* protected, use interface functions instead */
     append_f append;
-    vprintf_f vprintf;
+    vprintf_f packer_vprintf;
     void *real_handle;		/* first parameter to real append and vprintf */
 };
 
