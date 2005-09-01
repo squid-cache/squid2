@@ -90,7 +90,7 @@ statHistInit(StatHist * H, int capacity, hbase_f * val_in, hbase_f * val_out, do
     /* a max value should go into the last bin */
     assert(statHistBin(H, max) == H->capacity - 1);
     /* it is hard to test val_out, here is a crude test */
-    assert(((int) floor(0.99L + statHistVal(H, 0) - min)) == 0);
+    assert(((int) floor(0.99 + statHistVal(H, 0) - min)) == 0);
 }
 
 void
