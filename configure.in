@@ -822,6 +822,22 @@ if test -n "$buildmodel" && test "$buildmodel" != "default"; then
 	CFLAGS="`getconf ${buildmodel}_CFLAGS` $CFLAGS"
 	LIBS="`getconf ${buildmodel}_LIBS` $LIBS"
 	LDFLAGS="`getconf ${buildmodel}_LDFLAGS` $LDFLAGS"
+dnl
+dnl On Solaris getconf returns for CFLAGS -Xa and -Usun options, but:
+dnl   -Xa is supported only by Sun cc, so we need to remove it when using gcc
+dnl   The 'sun' define is needed by ipfilter includes, so we must remove -Usun
+	case "$host" in
+	    *-solaris*)
+    		if test "$GCC" = "yes"; then
+		    echo "Removing -Xa for gcc on $host"
+		    CFLAGS="`echo $CFLAGS | sed -e 's/-Xa//'`"
+		fi
+   	        echo "Removing -Usun for gcc on $host"
+		CFLAGS="`echo $CFLAGS | sed -e 's/-Usun//'`"
+		;;
+	    *)
+	        ;;
+	esac
 fi
 
 AM_CONDITIONAL(MAKE_LEAKFINDER, false)
@@ -1934,6 +1950,17 @@ if test "$IPF_TRANSPARENT" = "no" ; then
     echo "WARNING: Cannot find necessary IP-Filter header files"
     echo "         Transparent Proxy support WILL NOT be enabled"
     sleep 10
+elif test "$IPF_TRANSPARENT" = "yes" ; then
+dnl On Solaris Ipfilter includes expect that SOLARIS2 is defined with the
+dnl Solaris minor version (8, 9, 10, ...)
+    case "$host" in
+	*-solaris*)
+	    solrev=`uname -r | sh -c 'IFS=. read j n x; echo $n'`
+	    CFLAGS="-DSOLARIS2=$solrev $CFLAGS" 
+	    ;;
+	*)
+	    ;;
+     esac
 fi
 
 dnl PF support requires a header file.
