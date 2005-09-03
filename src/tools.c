@@ -106,7 +106,10 @@ mail_warranty(void)
     if ((fp = fopen(filename, "w")) == NULL)
 	return;
 #endif
-    fprintf(fp, "From: %s\n", appname);
+    if (Config.EmailFrom)
+	fprintf(fp, "From: %s\n", Config.EmailFrom);
+    else
+	fprintf(fp, "From: %s@%s\n", appname, uniqueHostname());
     fprintf(fp, "To: %s\n", Config.adminEmail);
     fprintf(fp, "Subject: %s\n", dead_msg());
     fclose(fp);

@@ -2444,6 +2444,18 @@ DOC_START
 DOC_END
 
 
+NAME: mail_from
+TYPE: string
+DEFAULT: none
+LOC: Config.EmailFrom
+DOC_START
+	From: email-address for mail sent when the cache dies.
+	The default is to use 'appname@unique_hostname'.
+	Default appname value is "squid", can be changed into 
+	src/globals.h before building squid.
+DOC_END
+
+
 NAME: mail_program
 TYPE: eol
 DEFAULT: mail
