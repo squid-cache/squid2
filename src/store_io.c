@@ -20,7 +20,7 @@ OBJH storeIOStats;
 storeIOState *
 storeCreate(StoreEntry * e, STIOCB * file_callback, STIOCB * close_callback, void *callback_data)
 {
-    size_t objsize;
+    squid_off_t objsize;
     sdirno dirn;
     SwapDir *SD;
     storeIOState *sio;
