@@ -180,7 +180,8 @@ typedef enum {
 
 /* recognized or "known" header fields; @?@ add more! */
 typedef enum {
-    HDR_ACCEPT,
+    HDR_UNKNOWN = -1,
+    HDR_ACCEPT = 0,
     HDR_ACCEPT_CHARSET,
     HDR_ACCEPT_ENCODING,
     HDR_ACCEPT_LANGUAGE,
