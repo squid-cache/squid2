@@ -506,6 +506,9 @@
 /* Define if you have the poll function.  */
 #undef HAVE_POLL
 
+/* Define if you have the prctl function.  */
+#undef HAVE_PRCTL
+
 /* Define if you have the pthread_attr_setschedparam function.  */
 #undef HAVE_PTHREAD_ATTR_SETSCHEDPARAM
 
@@ -793,6 +796,9 @@
 
 /* Define if you have the <sys/param.h> header file.  */
 #undef HAVE_SYS_PARAM_H
+
+/* Define if you have the <sys/prctl.h> header file.  */
+#undef HAVE_SYS_PRCTL_H
 
 /* Define if you have the <sys/resource.h> header file.  */
 #undef HAVE_SYS_RESOURCE_H
