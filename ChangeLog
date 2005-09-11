@@ -20,6 +20,36 @@ Changes to squid-2.5.STABLE11 (not yet released)
 	  patch for bug 1220 (Bug #1220)
 	- [Minor] FTP listings uses "BASE HREF" much more than it needs to,
 	  confusing authentication. (Bug #1204)
+	- [Minor] winfo_group.pl only looked for the first group if multiple
+	  groups were defined in the same acl. (Bug #1333)
+	- [Cosmetic] Compiler warnings on some 64-bit platforms (Bug #1316)
+	- [Cosmetic] Removed some debug output from wb_ntlm_atuh (Bug #518)
+	- [Cosmetic] The new --with-build-environment=... option doesn't work
+	- [Cosmetic] New 'mail_program' configuration option in squid.conf
+	- [Minor] Fails to compile with ip-filter and ARP support on Solaris
+	  x86 (Bug #199)
+	- [Major] Segmentation fault in sslConnectTimeout (Bug #1355)
+	- [Medium] assertion failed in StatHist.c:93  (Bug #1325)
+	- [Minor] More chroot_dir and squid -k reconfigure issues (Bug #1331)
+	- [Cosmetic] Invalid URLs in error messages when failing to connect
+	  to peer, and a few other inconsistent error messages (Bug #1342)
+	- [Cosmetic] Fails to compile with glibc -D_FORTIFY_SOURCE=2
+	  (Bug #1344)
+	- [Minor] Some odd FTP servers respond with 250 where 226 is expected
+	  (Bug #1348)
+	- [Cosmetic] Greek translation of error messages (Bug #1351)
+	- [Major] Assertion failed store_status == STORE_PENDING (Bug #1368)
+	- [Minor] squid_ldap_auth -U does not work (Bug #1370)
+	- [Minor] SNMP cacheClientTable fails on "long" IP addresses
+	  (Bug #1375)
+	- [Minor] Solaris Sparc + IP-Filter compile error (Bug #1374)
+	- [Minor] E-mail sent when cache dies is blocked from many antispam
+	  rules (Bug #1380)
+	- [Minor] LDAP helpers does not work with TLS (-Z option) (Bug #1389)
+	- [Cosmetic] Incorrect store dir selection debug message on objects
+	  larger than 2Gigabyte (Bug #1343)
+	- [Cosmetic] header_id enum misused as an signed integer (Bug #1343)
+	- [Coemetic] Allow leaving core dumps when started as root (Bug #1335)
 
 Changes to squid-2.5.STABLE10 (17 May 2005)
 

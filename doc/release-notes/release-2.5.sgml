@@ -383,5 +383,19 @@ name="ChangeLog"> file for details.
 	name="ChangeLog"> file for details.
 </itemize>
 
+<sect>Key changes squid-2.5.STABLE10 to 2.5.STABLE11:
+
+<p>
+<itemize>
+	<item>Segmentation fault in sslConnectTimeout
+	<item>Assertion failed StatHist.c:93
+	<item>Assertion failed store_status == STORE_PENDING
+	<item>Clients could bypass delay pools settings by faking a cache hit
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE10"
+	name="squid-2.5.STABLE10 patches"> and the <url url="ChangeLog"
+	name="ChangeLog"> file for details.
+</itemize>
+
 </article>
 
