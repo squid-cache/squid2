@@ -1337,6 +1337,7 @@ AC_CHECK_HEADERS( \
 	sys/mount.h \
 	sys/msg.h \
 	sys/param.h \
+	sys/prctl.h \
 	sys/resource.h \
 	sys/select.h\
 	sys/socket.h \
@@ -1814,6 +1815,7 @@ AC_CHECK_FUNCS(\
 	mktime \
 	mstats \
 	poll \
+	prctl \
 	pthread_attr_setscope \
 	pthread_setschedparam \
 	pthread_attr_setschedparam \

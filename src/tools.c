@@ -35,6 +35,10 @@
 
 #include "squid.h"
 
+#if HAVE_SYS_PRCTL_H
+#include <sys/prctl.h>
+#endif
+
 #define DEAD_MSG "\
 The Squid Cache (version %s) died.\n\
 \n\
@@ -557,6 +561,11 @@ leave_suid(void)
     if (setuid(Config2.effectiveUserID) < 0)
 	debug(50, 0) ("ALERT: setuid: %s\n", xstrerror());
 #endif
+#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
+    /* Set Linux DUMPABLE flag */
+    if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1) != 0)
+	debug(50, 0) ("ALERT: prctl: %s\n", xstrerror());
+#endif
 }
 
 /* Enter a privilegied section */
@@ -568,6 +577,11 @@ enter_suid(void)
     setresuid(-1, 0, -1);
 #else
     setuid(0);
+#endif
+#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
+    /* Set Linux DUMPABLE flag */
+    if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1) != 0)
+	debug(50, 0) ("ALERT: prctl: %s\n", xstrerror());
 #endif
 }
 
@@ -588,6 +602,11 @@ no_suid(void)
     setuid(0);
     if (setuid(uid) < 0)
 	debug(50, 1) ("no_suid: setuid: %s\n", xstrerror());
+#endif
+#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
+    /* Set Linux DUMPABLE flag */
+    if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1) != 0)
+	debug(50, 0) ("ALERT: prctl: %s\n", xstrerror());
 #endif
 }
 
