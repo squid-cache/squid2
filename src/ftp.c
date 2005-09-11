@@ -924,8 +924,7 @@ ftpDataRead(int fd, void *data)
     StoreEntry *entry = ftpState->entry;
     size_t read_sz;
 #if DELAY_POOLS
-    MemObject *mem = entry->mem_obj;
-    delay_id delay_id = delayMostBytesAllowed(mem);
+    delay_id delay_id;
 #endif
     assert(fd == ftpState->data.fd);
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
@@ -935,7 +934,7 @@ ftpDataRead(int fd, void *data)
     errno = 0;
     read_sz = ftpState->data.size - ftpState->data.offset;
 #if DELAY_POOLS
-    read_sz = delayBytesWanted(delay_id, 1, read_sz);
+    delay_id = delayMostBytesAllowed(entry->mem_obj, &read_sz);
 #endif
     memset(ftpState->data.buf + ftpState->data.offset, '\0', read_sz);
     statCounter.syscalls.sock.reads++;

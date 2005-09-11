@@ -652,8 +652,6 @@ delayMostBytesWanted(const MemObject * mem, int max)
 	sc = (store_client *) node->data;
 	if (sc->callback_data == NULL)	/* open slot */
 	    continue;
-	if (sc->type != STORE_MEM_CLIENT)
-	    continue;
 	i = delayBytesWanted(sc->delay_id, i, max);
 	found = 1;
     }
@@ -661,7 +659,7 @@ delayMostBytesWanted(const MemObject * mem, int max)
 }
 
 delay_id
-delayMostBytesAllowed(const MemObject * mem)
+delayMostBytesAllowed(const MemObject * mem, size_t * read_sz)
 {
     int j;
     int jmax = -1;
@@ -672,14 +670,14 @@ delayMostBytesAllowed(const MemObject * mem)
 	sc = (store_client *) node->data;
 	if (sc->callback_data == NULL)	/* open slot */
 	    continue;
-	if (sc->type != STORE_MEM_CLIENT)
-	    continue;
-	j = delayBytesWanted(sc->delay_id, 0, SQUID_TCP_SO_RCVBUF);
+	j = delayBytesWanted(sc->delay_id, 0, INT_MAX);
 	if (j > jmax) {
 	    jmax = j;
 	    d = sc->delay_id;
 	}
     }
+    if (jmax >= 0 && jmax < (int) *read_sz)
+	*read_sz = (size_t) jmax;
     return d;
 }
 

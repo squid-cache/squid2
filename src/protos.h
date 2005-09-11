@@ -1246,7 +1246,7 @@ extern EVH delayPoolsUpdate;
 extern int delayBytesWanted(delay_id d, int min, int max);
 extern void delayBytesIn(delay_id, int qty);
 extern int delayMostBytesWanted(const MemObject * mem, int max);
-extern delay_id delayMostBytesAllowed(const MemObject * mem);
+extern delay_id delayMostBytesAllowed(const MemObject * mem, size_t * bytes);
 extern void delaySetStoreClient(store_client * sc, delay_id delay_id);
 extern void delayRegisterDelayIdPtr(delay_id * loc);
 extern void delayUnregisterDelayIdPtr(delay_id * loc);

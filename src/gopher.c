@@ -621,7 +621,7 @@ gopherReadReply(int fd, void *data)
     int bin;
     size_t read_sz;
 #if DELAY_POOLS
-    delay_id delay_id = delayMostBytesAllowed(entry->mem_obj);
+    delay_id delay_id;
 #endif
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	comm_close(fd);
@@ -631,7 +631,7 @@ gopherReadReply(int fd, void *data)
     buf = memAllocate(MEM_4K_BUF);
     read_sz = 4096 - 1;		/* leave room for termination */
 #if DELAY_POOLS
-    read_sz = delayBytesWanted(delay_id, 1, read_sz);
+    delay_id = delayMostBytesAllowed(entry->mem_obj, &read_sz);
 #endif
     /* leave one space for \0 in gopherToHTML */
     statCounter.syscalls.sock.reads++;

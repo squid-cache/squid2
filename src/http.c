@@ -563,26 +563,23 @@ httpReadReply(int fd, void *data)
     int len;
     int bin;
     int clen;
-    size_t read_sz;
+    size_t read_sz = SQUID_TCP_SO_RCVBUF;
 #if DELAY_POOLS
     delay_id delay_id;
-
-    /* special "if" only for http (for nodelay proxy conns) */
-    if (delayIsNoDelay(fd))
-	delay_id = 0;
-    else
-	delay_id = delayMostBytesAllowed(entry->mem_obj);
 #endif
+
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	comm_close(fd);
 	return;
     }
-    /* check if we want to defer reading */
-    errno = 0;
-    read_sz = SQUID_TCP_SO_RCVBUF;
 #if DELAY_POOLS
-    read_sz = delayBytesWanted(delay_id, 1, read_sz);
+    /* special "if" only for http (for nodelay proxy conns) */
+    if (delayIsNoDelay(fd))
+	delay_id = 0;
+    else
+	delay_id = delayMostBytesAllowed(entry->mem_obj, &read_sz);
 #endif
+    errno = 0;
     statCounter.syscalls.sock.reads++;
     len = FD_READ_METHOD(fd, buf, read_sz);
     debug(11, 5) ("httpReadReply: FD %d: len %d.\n", fd, len);

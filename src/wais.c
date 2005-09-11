@@ -89,7 +89,7 @@ waisReadReply(int fd, void *data)
     int bin;
     size_t read_sz;
 #if DELAY_POOLS
-    delay_id delay_id = delayMostBytesAllowed(entry->mem_obj);
+    delay_id delay_id;
 #endif
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	comm_close(fd);
@@ -98,7 +98,7 @@ waisReadReply(int fd, void *data)
     errno = 0;
     read_sz = 4096;
 #if DELAY_POOLS
-    read_sz = delayBytesWanted(delay_id, 1, read_sz);
+    delay_id = delayMostBytesAllowed(entry->mem_obj, &read_sz);
 #endif
     statCounter.syscalls.sock.reads++;
     len = FD_READ_METHOD(fd, buf, read_sz);
