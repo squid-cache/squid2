@@ -1299,6 +1299,7 @@ AC_CHECK_HEADERS( \
 	ip_fil_compat.h \
 	ip_fil.h \
 	ip_nat.h \
+	ipl.h \
 	libc.h \
 	limits.h \
 	linux/netfilter_ipv4.h \
@@ -1316,6 +1317,7 @@ AC_CHECK_HEADERS( \
 	netinet/ip_fil_compat.h \
 	netinet/ip_fil.h \
 	netinet/ip_nat.h \
+	netinet/ipl.h \
 	openssl/err.h \
 	openssl/md5.h \
 	openssl/ssl.h \
