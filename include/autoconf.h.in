@@ -659,6 +659,9 @@
 /* Define if you have the <ip_nat.h> header file.  */
 #undef HAVE_IP_NAT_H
 
+/* Define if you have the <ipl.h> header file.  */
+#undef HAVE_IPL_H
+
 /* Define if you have the <libc.h> header file.  */
 #undef HAVE_LIBC_H
 
@@ -709,6 +712,9 @@
 
 /* Define if you have the <netinet/ip_nat.h> header file.  */
 #undef HAVE_NETINET_IP_NAT_H
+
+/* Define if you have the <netinet/ipl.h> header file.  */
+#undef HAVE_NETINET_IPL_H
 
 /* Define if you have the <netinet/tcp.h> header file.  */
 #undef HAVE_NETINET_TCP_H
