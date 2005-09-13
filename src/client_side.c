@@ -2609,10 +2609,11 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 #if IPF_TRANSPARENT
     struct natlookup natLookup;
     static int natfd = -1;
-    static int siocgnatl_cmd = SIOCGNATL & 0xff;
     int x;
 #if defined(IPFILTER_VERSION) && (IPFILTER_VERSION >= 4000027)
     struct ipfobj obj;
+#else
+    static int siocgnatl_cmd = SIOCGNATL & 0xff;
 #endif
 #endif
 #if PF_TRANSPARENT
