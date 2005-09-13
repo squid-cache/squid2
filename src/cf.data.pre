@@ -2440,7 +2440,7 @@ DEFAULT: webmaster
 LOC: Config.adminEmail
 DOC_START
 	Email-address of local cache manager who will receive
-	mail if the cache dies.  The default is "webmaster."
+	mail if the cache dies. The default is "webmaster".
 DOC_END
 
 
