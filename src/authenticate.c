@@ -502,6 +502,16 @@ authenticateAuthenticate(auth_user_request_t ** auth_user_request, http_hdr_type
     if (*auth_user_request == NULL) {
 	debug(28, 9) ("authenticateAuthenticate: This is a new checklist test on FD:%d\n",
 	    conn ? conn->fd : -1);
+	if (!request->auth_user_request && conn && conn->auth_user_request) {
+	    int id = authenticateAuthSchemeId(proxy_auth) + 1;
+	    if (!conn->auth_user_request->auth_user || conn->auth_user_request->auth_user->auth_module != id) {
+		debug(28, 1) ("authenticateAuthenticate: Unexpected change of authentication scheme from '%s' to '%s' (client %s)\n",
+		    authscheme_list[conn->auth_user_request->auth_user->auth_module - 1].typestr, proxy_auth, inet_ntoa(src_addr));
+		authenticateAuthUserRequestUnlock(conn->auth_user_request);
+		conn->auth_user_request = NULL;
+		conn->auth_type = AUTH_UNKNOWN;
+	    }
+	}
 	if ((!request->auth_user_request)
 	    && (!conn || conn->auth_type == AUTH_UNKNOWN)) {
 	    /* beginning of a new request check */
