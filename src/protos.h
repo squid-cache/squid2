@@ -507,7 +507,7 @@ extern request_t *requestLink(request_t *);
 extern void requestUnlink(request_t *);
 extern int httpRequestParseHeader(request_t * req, const char *parse_start);
 extern void httpRequestSwapOut(const request_t * req, StoreEntry * e);
-extern void httpRequestPack(const request_t * req, Packer * p);
+extern void httpRequestPackDebug(request_t * req, Packer * p);
 extern int httpRequestPrefixLen(const request_t * req);
 extern int httpRequestHdrAllowed(const HttpHeaderEntry * e, String * strConnection);
 extern int httpRequestHdrAllowedByName(http_hdr_type id);

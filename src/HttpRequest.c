@@ -98,19 +98,8 @@ httpRequestParseHeader(request_t * req, const char *parse_start)
     return httpHeaderParse(&req->header, blk_start, blk_end);
 }
 
-/* swaps out request using httpRequestPack */
-void
-httpRequestSwapOut(const request_t * req, StoreEntry * e)
-{
-    Packer p;
-    assert(req && e);
-    packerToStoreInit(&p, e);
-    httpRequestPack(req, &p);
-    packerClean(&p);
-}
-
 /* packs request-line and headers, appends <crlf> terminator */
-void
+static void
 httpRequestPack(const request_t * req, Packer * p)
 {
     assert(req && p);
@@ -121,6 +110,37 @@ httpRequestPack(const request_t * req, Packer * p)
     httpHeaderPackInto(&req->header, p);
     /* trailer */
     packerAppend(p, "\r\n", 2);
+}
+
+/* packs debug info, canonical request-line and headers, appends <crlf> terminator */
+void
+httpRequestPackDebug(request_t * req, Packer * p)
+{
+    assert(req && p);
+    /* Client info */
+    packerPrintf(p, "Client: %s ", inet_ntoa(req->client_addr));
+    packerPrintf(p, "http_port: %s:%d", inet_ntoa(req->my_addr), req->my_port);
+    if (req->auth_user_request && authenticateUserRequestUsername(req->auth_user_request))
+	packerPrintf(p, "user: %s", authenticateUserRequestUsername(req->auth_user_request));
+    packerPrintf(p, "\n");
+    /* pack request-line */
+    packerPrintf(p, "%s %s HTTP/%d.%d\r\n",
+	RequestMethodStr[req->method], urlCanonical(req), req->http_ver.major, req->http_ver.minor);
+    /* headers */
+    httpHeaderPackInto(&req->header, p);
+    /* trailer */
+    packerAppend(p, "\r\n", 2);
+}
+
+/* swaps out request using httpRequestPack */
+void
+httpRequestSwapOut(const request_t * req, StoreEntry * e)
+{
+    Packer p;
+    assert(req && e);
+    packerToStoreInit(&p, e);
+    httpRequestPack(req, &p);
+    packerClean(&p);
 }
 
 #if UNUSED_CODE

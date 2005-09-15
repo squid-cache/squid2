@@ -1041,7 +1041,7 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	 */
 	if (strListIsSubstr(&s, ThisCache2, ',')) {
 	    debugObj(33, 1, "WARNING: Forwarding loop detected for:\n",
-		request, (ObjPackMethod) & httpRequestPack);
+		request, (ObjPackMethod) & httpRequestPackDebug);
 	    request->flags.loopdetect = 1;
 	}
 #if FORW_VIA_DB
@@ -2186,6 +2186,9 @@ clientKeepaliveNextRequest(clientHttpRequest * http)
 	 * this request is in progress, maybe doing an ACL or a redirect,
 	 * execution will resume after the operation completes.
 	 */
+	/* if it was a pipelined CONNECT kick it alive here */
+	if (http->request->method == METHOD_CONNECT)
+	    clientAccessCheck(http);
     } else {
 	debug(33, 2) ("clientKeepaliveNextRequest: FD %d Sending next\n",
 	    conn->fd);
@@ -3213,7 +3216,13 @@ clientReadRequest(int fd, void *data)
 	    if (request->method == METHOD_CONNECT) {
 		/* Stop reading requests... */
 		commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
-		clientAccessCheck(http);
+		if (conn->chr == http)
+		    clientAccessCheck(http);
+		else {
+		    debug(33, 1) ("WARNING: pipelined CONNECT request seen from %s\n", inet_ntoa(http->conn->peer.sin_addr));
+		    debugObj(33, 1, "Previous request:\n", conn->chr->request, (ObjPackMethod) & httpRequestPackDebug);
+		    debugObj(33, 1, "This request:\n", request, (ObjPackMethod) & httpRequestPackDebug);
+		}
 		break;
 	    } else {
 		clientAccessCheck(http);
