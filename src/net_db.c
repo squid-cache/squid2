@@ -571,7 +571,13 @@ netdbExchangeHandleReply(void *data, char *buf, ssize_t size)
 	    size -= hdr_sz;
 	    p += hdr_sz;
 	} else {
-	    size = 0;
+	    if (size >= ex->buf_sz) {
+		debug(38, 3) ("netdbExchangeHandleReply: Too big HTTP header, aborting\n");
+		netdbExchangeDone(ex);
+		return;
+	    } else {
+		size = 0;
+	    }
 	}
     }
     debug(38, 5) ("netdbExchangeHandleReply: start parsing loop, size = %ld\n",

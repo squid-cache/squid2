@@ -564,7 +564,7 @@ leave_suid(void)
 #if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
     /* Set Linux DUMPABLE flag */
     if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1) != 0)
-	debug(50, 0) ("ALERT: prctl: %s\n", xstrerror());
+	debug(50, 2) ("prctl: %s\n", xstrerror());
 #endif
 }
 
@@ -581,7 +581,7 @@ enter_suid(void)
 #if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
     /* Set Linux DUMPABLE flag */
     if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1) != 0)
-	debug(50, 0) ("ALERT: prctl: %s\n", xstrerror());
+	debug(50, 2) ("prctl: %s\n", xstrerror());
 #endif
 }
 
@@ -606,7 +606,7 @@ no_suid(void)
 #if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
     /* Set Linux DUMPABLE flag */
     if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1) != 0)
-	debug(50, 0) ("ALERT: prctl: %s\n", xstrerror());
+	debug(50, 2) ("prctl: %s\n", xstrerror());
 #endif
 }
 
