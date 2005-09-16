@@ -191,21 +191,6 @@ authNTLMParse(authScheme * scheme, int n_configured, char *param_str)
     } else {
 	debug(28, 0) ("unrecognised ntlm auth scheme parameter '%s'\n", param_str);
     }
-    /*
-     * disable client side request pipelining. There is a race with
-     * NTLM when the client sends a second request on an NTLM
-     * connection before the authenticate challenge is sent. With
-     * this patch, the client may fail to authenticate, but squid's
-     * state will be preserved.  Caveats: this should be a post-parse
-     * test, but that can wait for the modular parser to be integrated.
-     */
-    if (ntlmConfig->authenticate && Config.onoff.pipeline_prefetch != 0)
-	Config.onoff.pipeline_prefetch = 0;
-
-    if (ntlmConfig->use_ntlm_negotiate && ntlmConfig->challengeuses > 0) {
-	debug(28, 1) ("challenge reuses incompatible with use_ntlm_negotiate. Disabling challenge reuse\n");
-	ntlmConfig->challengeuses = 0;
-    }
 }
 
 
@@ -241,6 +226,21 @@ authNTLMInit(authScheme * scheme)
 {
     static int ntlminit = 0;
     if (ntlmConfig->authenticate) {
+	/*
+	 * disable client side request pipelining. There is a race with
+	 * NTLM when the client sends a second request on an NTLM
+	 * connection before the authenticate challenge is sent. With
+	 * this patch, the client may fail to authenticate, but squid's
+	 * state will be preserved.
+	 */
+	if (ntlmConfig->authenticate && Config.onoff.pipeline_prefetch != 0) {
+	    debug(28, 1) ("pipeline prefetching incompatile with NTLM authentication. Disabling pipeline_prefetch\n");
+	    Config.onoff.pipeline_prefetch = 0;
+	}
+	if (ntlmConfig->use_ntlm_negotiate && ntlmConfig->challengeuses > 0) {
+	    debug(28, 1) ("challenge reuses incompatible with use_ntlm_negotiate. Disabling challenge reuse\n");
+	    ntlmConfig->challengeuses = 0;
+	}
 	if (!ntlm_helper_state_pool)
 	    ntlm_helper_state_pool = memPoolCreate("NTLM Helper State data", sizeof(ntlm_helper_state_t));
 	if (!ntlm_user_pool)
