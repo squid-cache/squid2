@@ -126,6 +126,7 @@ management of timeouts while connecting to origin servers or peers
 <tag>acl req_hdr/resp_hdr</tag>New acl types in 2.5.STABLE7 to match arbitrary HTTP headers, useful to block certain malware/spyware etc.
 <tag>relaxed_http_parser</tag>New directive in 2.5.STABLE8 to control how strict the HTTP parser should be.
 <tag>retry_on_error</tag>New directive in 2.5.STABLE9 to aggressive retry requests on errors (was the default in earlier versions)
+<tag>acl dst</tag>No longer matches invalid hosts. Was previously using the IP address "255.255.255.255" on invalid hosts.
 </descrip>
 
 <sect>Known issues and limitations
@@ -391,6 +392,11 @@ name="ChangeLog"> file for details.
 	<item>Assertion failed StatHist.c:93
 	<item>Assertion failed store_status == STORE_PENDING
 	<item>Clients could bypass delay pools settings by faking a cache hit
+        <item>Odd results was seen on pipelined CONNECT requests
+        <item>Squid crashing with "FATAL: Incorrect scheme in auth header" 
+          when using NTLM authentication.
+        <item>dst acl changed to not match invalid hosts
+
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE10"
 	name="squid-2.5.STABLE10 patches"> and the <url url="ChangeLog"

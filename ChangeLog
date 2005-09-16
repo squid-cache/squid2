@@ -49,7 +49,17 @@ Changes to squid-2.5.STABLE11 (not yet released)
 	- [Cosmetic] Incorrect store dir selection debug message on objects
 	  larger than 2Gigabyte (Bug #1343)
 	- [Cosmetic] header_id enum misused as an signed integer (Bug #1343)
-	- [Coemetic] Allow leaving core dumps when started as root (Bug #1335)
+	- [Cosmetic] Allow leaving core dumps when started as root (Bug #1335)
+	- [Medium] Clients could bypass delay_pool settings by faking a cache
+	  hit request (Bug #500)
+	- [Minor] IP-Filter 4.X support (Bug #1378)
+	- [Medium] Odd results on pipelined CONNECT requests
+	- [Major] Squid crashing with "FATAL: Incorrect scheme in auth header"
+	  when using NTLM authentication.
+	- [Cosmetic] Odd results when pipeline_prefetch is combined with NTLM
+	  authentication (bug #1396)
+	- [Minor] invalid host was processed as IP 255.255.255.255 in dst acl
+	  (Bug #1394)
 
 Changes to squid-2.5.STABLE10 (17 May 2005)
 
