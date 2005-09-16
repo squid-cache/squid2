@@ -1619,7 +1619,7 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	    checklist->state[ACL_DST_IP] = ACL_LOOKUP_NEEDED;
 	    return 0;
 	} else {
-	    return aclMatchIp(&ae->data, no_addr);
+	    return 0;
 	}
 	/* NOTREACHED */
     case ACL_DST_DOMAIN:
