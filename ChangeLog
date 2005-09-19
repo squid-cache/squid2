@@ -60,6 +60,8 @@ Changes to squid-2.5.STABLE11 (not yet released)
 	  authentication (bug #1396)
 	- [Minor] invalid host was processed as IP 255.255.255.255 in dst acl
 	  (Bug #1394)
+	- [Cosmetic] New --with-maxfd=N configure option to override build
+          time filedescriptor limit test
 
 Changes to squid-2.5.STABLE10 (17 May 2005)
 

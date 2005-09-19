@@ -396,6 +396,8 @@ name="ChangeLog"> file for details.
         <item>Squid crashing with "FATAL: Incorrect scheme in auth header" 
           when using NTLM authentication.
         <item>dst acl changed to not match invalid hosts
+	<item>New --with-maxfd=N configure option to override build time
+	filedescriptor limit test
 
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE10"
