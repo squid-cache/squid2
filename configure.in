@@ -2073,6 +2073,24 @@ DEFAULT_FD_SETSIZE=256)
 AC_MSG_RESULT($DEFAULT_FD_SETSIZE)
 AC_DEFINE_UNQUOTED(DEFAULT_FD_SETSIZE, $DEFAULT_FD_SETSIZE)
 
+AC_ARG_WITH(maxfd,
+[  --with-maxfd=N          Override maximum number of filedescriptors. Useful
+                          if you build as another user who is not privileged
+                          to use the number of filedescriptors you want the
+                          resulting binary to support],
+[ case $withval in
+  [[0-9]]*)
+    SQUID_MAXFD=$withval
+    echo "Maximum filedescriptors set to $SQUID_MAXFD"
+    ;;
+  *)
+    echo "ERROR: Invalid --with-maxfd argument"
+    exit 1
+    ;;
+  esac
+])
+if test -z "$SQUID_MAXFD"; then
+
 dnl Not cached since people are likely to tune this
 AC_MSG_CHECKING(Maximum number of filedescriptors we can open)
 dnl damn! FreeBSD's pthreads breaks dup2().
@@ -2144,6 +2162,7 @@ SQUID_MAXFD=`cat conftestval`,
 SQUID_MAXFD=256,
 SQUID_MAXFD=256)
 AC_MSG_RESULT($SQUID_MAXFD)
+fi # --with-maxfd SQUID_MAXFD
 AC_DEFINE_UNQUOTED(SQUID_MAXFD, $SQUID_MAXFD)
 if test "$SQUID_MAXFD" -lt 512 ; then
     echo "WARNING: $SQUID_MAXFD may not be enough filedescriptors if your"
