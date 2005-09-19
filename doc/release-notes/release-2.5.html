@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.16">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
  <TITLE>Squid 2.5.STABLE11 release notes</TITLE>
 </HEAD>
 <BODY>
@@ -149,17 +149,36 @@ management of timeouts while connecting to origin servers or peers</P>
 <P>
 <DL>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c->locks > 0" when using diskd</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=649">#649</A></B><DD><P>Problems refreshing pages stored with 'vary' information</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=779">#779</A></B><DD><P>users going above their allowed IP count no longer logged in cache.log</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1204">#1204</A></B><DD><P>FTP listings uses "BASE HREF" much more than it needs to</P>
-<DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=888">#888</A></B><DD><P>ntlm_user_pool assertion error on shutdown</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1275">#1275</A></B><DD><P>Squid internal icons served up with slightly incorrect HTTP headers</P>
+<DT><B>Ipfilter 4.x issues</B><DD><P>
+<UL>
+<LI>Running configure --enable-ipf-transparent on an HP Tru64 5.1B system with ipfilter 4.x installed, the following error can occur:
+<PRE>
+      checking if IP-Filter header files are installed... no
+      WARNING: Cannot find necessary IP-Filter header files
+               Transparent Proxy support WILL NOT be enabled
+</PRE>
+
+To fix the problem first check if the ip_fil.h, ip_compat.h, ip_nat.h and ipl.h files are present in
+/usr/include/netinet and copy them from ipfilter source tree if needed.
+Don't forget to fix files permission and ownership after the copy.<BR>
+If the error still persist, run configure making it skip the ip_compat.h test:<BR>
+<PRE>
+    env ac_cv_header_netinet_ip_compat_h=yes ./configure --enable-ipf-transparent
+</PRE>
+</LI>
+<LI>On Sun Solaris 10, ipfilter 4.0.22 is provided with the OS, but related include files (ip_fil.h, ip_compat.h, ip_nat.h, ipl.h) are missing.<BR>
+Before running configure --enable-ipf-transparent, they must be downloaded from the
+<A HREF="http://cvs.opensolaris.org/source/xref/usr/src/common/ipf/">OpenSolaris Web Site</A>
+in the /usr/include local directory. Don't forget to fix files permission and ownership after the download.</LI>
+</UL>
+</P>
 </DL>
 </P>
 
@@ -170,8 +189,6 @@ management of timeouts while connecting to origin servers or peers</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059">#1059</A></B><DD><P>mime.conf and referenced icons must be within chroot</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1033">#1033</A></B><DD><P>CARP ignores cache_peer_access and cache_peer_domain</P>
-<DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=692">#692</A></B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=581">#581</A></B><DD><P>acl max_user_ip and multiple authentication schemes</P>
@@ -179,8 +196,6 @@ management of timeouts while connecting to origin servers or peers</P>
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=528">#528</A></B><DD><P>miss_access fails on "slow" acl types such as dst.</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=513">#513</A></B><DD><P>squid -F is starting server sockets to early</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=500">#500</A></B><DD><P>delay_pools stops working on -k reconfigure</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=457">#457</A></B><DD><P>does not handle swap.state corruption properly</P>
 <DT><B>Bug 
@@ -400,10 +415,10 @@ results from partial configuration</LI>
 <LI>Support for proxying huge objects greater than 2GB in size</LI>
 <LI>IP-Filter 4.0 support in --enable-ipf-transparent</LI>
 <LI>cachemgr.cgi now uses a configuration controlling which servers
-may be managed. This to prevent abuse of the program. See <CODE>&lt;prefix&gt;/etc/cachemgr.conf</CODE>
+may be managed. This to prevent abuse of the program. See <CODE>&lt;prefix>/etc/cachemgr.conf</CODE>
 for details. The configuration is read first from the current directory
 (normally where you installed cachemgr.cgi) and if not found there from
-<CODE>&lt;prefix&gt;/etc/cachemgr.conf</CODE>. If neither is found only access
+<CODE>&lt;prefix>/etc/cachemgr.conf</CODE>. If neither is found only access
 to localhost and the full server name is provided, or the cachemgr default
 host if specified to configure.</LI>
 <LI>The internal DNS client has been hardened against spoofing of DNS

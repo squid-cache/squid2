@@ -137,9 +137,25 @@ management of timeouts while connecting to origin servers or peers
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=761" name="#761"></tag>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=649" name="#649"></tag>Problems refreshing pages stored with 'vary' information
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=779" name="#779"></tag>users going above their allowed IP count no longer logged in cache.log
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1204" name="#1204"></tag>FTP listings uses "BASE HREF" much more than it needs to
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=888" name="#888"></tag>ntlm_user_pool assertion error on shutdown
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1275" name="#1275"></tag>Squid internal icons served up with slightly incorrect HTTP headers
+<tag>Ipfilter 4.x issues</tag>
+<itemize>
+    <item>Running configure --enable-ipf-transparent on an HP Tru64 5.1B system with ipfilter 4.x installed, the following error can occur:
+    <verb>
+      checking if IP-Filter header files are installed... no
+      WARNING: Cannot find necessary IP-Filter header files
+               Transparent Proxy support WILL NOT be enabled</verb>
+    To fix the problem first check if the ip_fil.h, ip_compat.h, ip_nat.h and ipl.h files are present in
+    /usr/include/netinet and copy them from ipfilter source tree if needed.
+    Don't forget to fix files permission and ownership after the copy.<newline>
+    If the error still persist, run configure making it skip the ip_compat.h test:<newline>
+    <verb>
+    env ac_cv_header_netinet_ip_compat_h=yes ./configure --enable-ipf-transparent</verb>
+    <item>On Sun Solaris 10, ipfilter 4.0.22 is provided with the OS, but related include files (ip_fil.h, ip_compat.h, ip_nat.h, ipl.h) are missing.<newline>
+      Before running configure --enable-ipf-transparent, they must be downloaded from the
+      <url url="http://cvs.opensolaris.org/source/xref/usr/src/common/ipf/" name="OpenSolaris Web Site">
+      in the /usr/include local directory. Don't forget to fix files permission and ownership after the download.
+</itemize>
 </descrip>
 
 
@@ -147,12 +163,10 @@ management of timeouts while connecting to origin servers or peers
 
 <descrip>
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059" name="#1059"></tag>mime.conf and referenced icons must be within chroot
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1033" name="#1033"></tag>CARP ignores cache_peer_access and cache_peer_domain
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=692" name="#692"></tag>tcp_outgoing_address using an ident ACL does not work
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=581" name="#581"></tag>acl max_user_ip and multiple authentication schemes
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=528" name="#528"></tag>miss_access fails on "slow" acl types such as dst.
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=513" name="#513"></tag>squid -F is starting server sockets to early
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=500" name="#500"></tag>delay_pools stops working on -k reconfigure
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=457" name="#457"></tag>does not handle swap.state corruption properly
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=410" name="#410"></tag>unstable if runs out of disk space
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=355" name="#355"></tag>diskd may appear slow on low loads
