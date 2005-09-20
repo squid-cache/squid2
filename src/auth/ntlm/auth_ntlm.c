@@ -986,12 +986,7 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	/* do a cache lookup here. If it matches it's a successful ntlm 
 	 * challenge - release the helper and use the existing auth_user 
 	 * details. */
-	if (strncmp("NTLM ", proxy_auth, 5) == 0) {
-	    ntlm_request->ntlmauthenticate = xstrdup(proxy_auth);
-	} else {
-	    fatal("Incorrect scheme in auth header\n");
-	    /* TODO: more fault tolerance.. reset the auth scheme here */
-	}
+	ntlm_request->ntlmauthenticate = xstrdup(proxy_auth);
 	/* normal case with challenge reuses disabled */
 	if (ntlmConfig->challengeuses == 0) {
 	    /* verify with the ntlm helper */
