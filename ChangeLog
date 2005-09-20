@@ -61,7 +61,8 @@ Changes to squid-2.5.STABLE11 (not yet released)
 	- [Minor] invalid host was processed as IP 255.255.255.255 in dst acl
 	  (Bug #1394)
 	- [Cosmetic] New --with-maxfd=N configure option to override build
-          time filedescriptor limit test
+	  time filedescriptor limit test
+	- [Minor] Added support for Windows code name "Longhorn" on Cygwin.
 
 Changes to squid-2.5.STABLE10 (17 May 2005)
 

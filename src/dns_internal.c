@@ -235,6 +235,7 @@ idnsParseWIN32Registry(void)
     case _WIN_OS_WIN2K:
     case _WIN_OS_WINXP:
     case _WIN_OS_WINNET:
+    case _WIN_OS_WINLON:
 	/* get nameservers from the Windows 2000 registry */
 	/* search all interfaces for DNS server addresses */
 	if (RegOpenKey(HKEY_LOCAL_MACHINE,
