@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.16">
  <TITLE>Squid 2.5.STABLE11 release notes</TITLE>
 </HEAD>
 <BODY>
@@ -149,7 +149,7 @@ management of timeouts while connecting to origin servers or peers</P>
 <P>
 <DL>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c->locks > 0" when using diskd</P>
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=761">#761</A></B><DD><P>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=649">#649</A></B><DD><P>Problems refreshing pages stored with 'vary' information</P>
 <DT><B>Bug 
@@ -202,6 +202,8 @@ in the /usr/include local directory. Don't forget to fix files permission and ow
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=410">#410</A></B><DD><P>unstable if runs out of disk space</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=355">#355</A></B><DD><P>diskd may appear slow on low loads</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=219">#219</A></B><DD><P>delay_pools stops working on -k reconfigure</P>
 </DL>
 </P>
 
@@ -415,10 +417,10 @@ results from partial configuration</LI>
 <LI>Support for proxying huge objects greater than 2GB in size</LI>
 <LI>IP-Filter 4.0 support in --enable-ipf-transparent</LI>
 <LI>cachemgr.cgi now uses a configuration controlling which servers
-may be managed. This to prevent abuse of the program. See <CODE>&lt;prefix>/etc/cachemgr.conf</CODE>
+may be managed. This to prevent abuse of the program. See <CODE>&lt;prefix&gt;/etc/cachemgr.conf</CODE>
 for details. The configuration is read first from the current directory
 (normally where you installed cachemgr.cgi) and if not found there from
-<CODE>&lt;prefix>/etc/cachemgr.conf</CODE>. If neither is found only access
+<CODE>&lt;prefix&gt;/etc/cachemgr.conf</CODE>. If neither is found only access
 to localhost and the full server name is provided, or the cachemgr default
 host if specified to configure.</LI>
 <LI>The internal DNS client has been hardened against spoofing of DNS

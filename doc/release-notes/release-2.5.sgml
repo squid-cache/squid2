@@ -170,6 +170,7 @@ management of timeouts while connecting to origin servers or peers
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=457" name="#457"></tag>does not handle swap.state corruption properly
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=410" name="#410"></tag>unstable if runs out of disk space
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=355" name="#355"></tag>diskd may appear slow on low loads
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=219" name="#219"></tag>delay_pools stops working on -k reconfigure
 </descrip>
 
 <sect>Key changes squid-2.5.STABLE1 to 2.5.STABLE2:
