@@ -410,7 +410,7 @@ name="ChangeLog"> file for details.
         <item>Odd results was seen on pipelined CONNECT requests
         <item>Squid crashing with "FATAL: Incorrect scheme in auth header" 
           when using NTLM authentication.
-        <item>dst acl changed to not match invalid hosts
+        <item>dst acl changed to not match invalid hosts as 255.255.255.255
 	<item>New --with-maxfd=N configure option to override build time
 	filedescriptor limit test
 
