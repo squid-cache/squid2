@@ -1,4 +1,4 @@
-Changes to squid-2.5.STABLE11 (not yet released)
+Changes to squid-2.5.STABLE11 (22 Sep 2005)
 
 	- [Minor] Workaround for servers sending double content-length headers
 	  (Bug #1305)

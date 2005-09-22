@@ -9,7 +9,7 @@ dnl
 dnl
 AC_INIT(src/main.c)
 AC_CONFIG_AUX_DIR(cfgaux)
-AM_INIT_AUTOMAKE(squid, 2.5.STABLE11-RC2-CVS)
+AM_INIT_AUTOMAKE(squid, 2.5.STABLE11-CVS)
 AM_CONFIG_HEADER(include/autoconf.h)
 AC_REVISION($Revision$)dnl
 AC_PREFIX_DEFAULT(/usr/local/squid)
