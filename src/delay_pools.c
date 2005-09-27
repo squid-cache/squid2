@@ -676,8 +676,11 @@ delayMostBytesAllowed(const MemObject * mem, size_t * read_sz)
 	    d = sc->delay_id;
 	}
     }
-    if (jmax >= 0 && jmax < (int) *read_sz)
+    if (jmax >= 0 && jmax < (int) *read_sz) {
+	if (jmax == 0)
+	    jmax = 1;
 	*read_sz = (size_t) jmax;
+    }
     return d;
 }
 
