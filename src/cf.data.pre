@@ -56,7 +56,7 @@ COMMENT_END
 NAME: http_port ascii_port
 TYPE: sockaddr_in_list
 DEFAULT: none
-DEFAULT_IF_NONE: 3128
+DEFAULT_IF_NONE: @DEFAULT_HTTP_PORT@
 LOC: Config.Sockaddr.http
 DOC_START
 	Usage:	port
@@ -145,7 +145,7 @@ DOC_END
 
 NAME: icp_port udp_port
 TYPE: ushort
-DEFAULT: 3130
+DEFAULT: @DEFAULT_ICP_PORT@
 LOC: Config.Port.icp
 DOC_START
 	The port number where Squid sends and receives ICP queries to
