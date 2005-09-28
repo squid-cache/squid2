@@ -187,7 +187,7 @@ squid_ldap_set_referrals(LDAP * ld, int referrals)
     else
 	ld->ld_options &= ~LDAP_OPT_REFERRALS;
 }
-static void 
+static void
 squid_ldap_set_timelimit(LDAP * ld, int timelimit)
 {
     ld->ld_timelimit = timelimit;
@@ -259,7 +259,7 @@ open_ldap_connection(const char *ldapServer, int port)
     }
     if (use_tls) {
 #ifdef LDAP_OPT_X_TLS
-        if (version != LDAP_VERSION3) {
+	if (version != LDAP_VERSION3) {
 	    fprintf(stderr, "TLS requires LDAP version 3\n");
 	    exit(1);
 	} else if (ldap_start_tls_s(ld, NULL, NULL) != LDAP_SUCCESS) {
@@ -282,12 +282,12 @@ open_ldap_connection(const char *ldapServer, int port)
 static int
 validUsername(const char *user)
 {
-    const unsigned char *p = (const unsigned char *)user;
+    const unsigned char *p = (const unsigned char *) user;
 
     /* Leading whitespace? */
     if (isspace(p[0]))
 	return 0;
-    while(p[0] && p[1]) {
+    while (p[0] && p[1]) {
 	if (isspace(p[0])) {
 	    /* More than one consequitive space? */
 	    if (isspace(p[1]))
@@ -581,17 +581,23 @@ ldap_escape_value(char *escaped, int size, const char *src)
     return n;
 }
 
+/* Check the userid & password.
+ * Return 0 on success, 1 on failure
+ */
 static int
 checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const char *ldapServer, int port)
 {
     char dn[256];
     int ret = 0;
     LDAP *bind_ld = NULL;
+    int rc;
 
     if (!*password) {
 	/* LDAP can't bind with a blank password. Seen as "anonymous"
 	 * and always granted access
 	 */
+	if (debug)
+	    fprintf(stderr, "Blank password given\n");
 	return 1;
     }
     if (searchfilter) {
@@ -599,9 +605,9 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
 	char escaped_login[256];
 	LDAPMessage *res = NULL;
 	LDAPMessage *entry;
-	char *searchattr[] = {LDAP_NO_ATTRS, NULL};
+	char *searchattr[] =
+	{LDAP_NO_ATTRS, NULL};
 	char *userdn;
-	int rc;
 	LDAP *search_ld = persistent_ld;
 
 	if (!search_ld)
@@ -625,6 +631,8 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
 		/* Everything is fine. This is expected when referrals
 		 * are disabled.
 		 */
+		if (debug)
+		    fprintf(stderr, "noreferrals && rc == LDAP_PARTIAL_RESULTS\n");
 	    } else {
 		fprintf(stderr, PROGRAM_NAME ": WARNING, LDAP search error '%s'\n", ldap_err2string(rc));
 #if defined(NETSCAPE_SSL)
@@ -639,6 +647,8 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
 	}
 	entry = ldap_first_entry(search_ld, res);
 	if (!entry) {
+	    if (debug)
+		fprintf(stderr, "Ldap search returned nothing\n");
 	    ret = 1;
 	    goto search_done;
 	}
@@ -690,7 +700,7 @@ checkLDAP(LDAP * persistent_ld, const char *userid, const char *password, const 
     return ret;
 }
 
-int 
+int
 readSecret(const char *filename)
 {
     char buf[BUFSIZ];
