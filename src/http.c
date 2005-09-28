@@ -738,7 +738,10 @@ httpReadReply(int fd, void *data)
 #endif
 		    comm_remove_close_handler(fd, httpStateFree, httpState);
 		    fwdUnregister(fd, httpState->fwd);
-		    pconnPush(fd, request->host, request->port);
+		    if (request->flags.accelerated && Config.Accel.single_host && Config.Accel.host)
+			pconnPush(fd, Config.Accel.host, Config.Accel.port);
+		    else
+			pconnPush(fd, request->host, request->port);
 		    fwdComplete(httpState->fwd);
 		    httpState->fd = -1;
 		    httpStateFree(fd, httpState);
