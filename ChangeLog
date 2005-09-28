@@ -1,3 +1,18 @@
+Changes to squid-2.5.STABLE12 (Not yet released)
+
+	- [Minor] CNAME based DNS addresses could get cached for longer
+	  than intended
+	- [Cosmetic] Setting CACHE_HTTP_PORT to configure was only partially
+	  implemented, effectively ignored.
+	- [Minor] httpd_accel_single_host breaks in combination with
+	  server_persistent_connections
+	- [Cosmetic] Add additinal tracing to squid_ldap_auth making
+	  diagnostics easier on squid_ldap_auth configuration errors
+	- [Cosmetic] Document that tcp_outgoing_* works badly in combination
+	  with server_persistent_connections
+	- [Major] Error introduced in 2.5.STABLE11 causing truncated responses
+	  when using delay pools
+	
 Changes to squid-2.5.STABLE11 (22 Sep 2005)
 
 	- [Minor] Workaround for servers sending double content-length headers
