@@ -440,6 +440,8 @@ configDoConfigure(void)
 		    Config.effectiveUser);
 	    Config2.effectiveUserID = pwd->pw_uid;
 	    Config2.effectiveGroupID = pwd->pw_gid;
+	    if (pwd->pw_dir && *pwd->pw_dir)
+		setenv("HOME", pwd->pw_dir);
 	}
     } else {
 	Config2.effectiveUserID = geteuid();
