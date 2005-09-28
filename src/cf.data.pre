@@ -2359,6 +2359,11 @@ DOC_START
 
 	Processing proceeds in the order specified, and stops at first fully
 	matching line.
+
+	Note: The use of this directive using client dependent ACLs is
+	incompatible with the use of server side persistent connetions. To
+	ensure correct results it is best to set server_persisten_connections
+	to off when using this directive in such configurations.
 DOC_END
 
 NAME: tcp_outgoing_address
@@ -2385,6 +2390,11 @@ DOC_START
 
 	Processing proceeds in the order specified, and stops at first fully
 	matching line.
+
+	Note: The use of this directive using client dependent ACLs is
+	incompatible with the use of server side persistent connetions. To
+	ensure correct results it is best to set server_persisten_connections
+	to off when using this directive in such configurations.
 DOC_END
 
 NAME: reply_header_max_size
