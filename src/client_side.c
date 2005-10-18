@@ -2749,7 +2749,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
 #endif
 
     /* handle direct internal objects */
-    if (!Config2.Accel.on && internalCheck(url)) {
+    if ((!Config2.Accel.on || Config.onoff.global_internal_static) && internalCheck(url)) {
 	/* prepend our name & port */
 	http->uri = xstrdup(internalLocalUri(NULL, url));
 	http->flags.accel = 1;
@@ -3145,8 +3145,8 @@ clientReadRequest(int fd, void *data)
 	    request->flags.accelerated = http->flags.accel;
 	    if (!http->flags.internal) {
 		if (internalCheck(strBuf(request->urlpath))) {
-		    if (internalHostnameIs(request->host) &&
-			request->port == ntohs(Config.Sockaddr.http->s.sin_port)) {
+		    if (internalHostnameIs(request->host)) {
+			request->port = ntohs(Config.Sockaddr.http->s.sin_port);
 			http->flags.internal = 1;
 		    } else if (Config.onoff.global_internal_static && internalStaticCheck(strBuf(request->urlpath))) {
 			xstrncpy(request->host, internalHostname(), SQUIDHOSTNAMELEN);
