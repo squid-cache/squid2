@@ -364,8 +364,7 @@ clientRedirectDone(void *data, char *result)
 	    } else {
 		debug(33, 1) ("clientRedirectDone: bad input: %s\n", result);
 	    }
-	}
-	if (strcmp(result, http->uri))
+	} else if (strcmp(result, http->uri))
 	    new_request = urlParse(old_request->method, result);
     }
     if (new_request) {
@@ -2450,7 +2449,7 @@ clientProcessRequest(clientHttpRequest * http)
     debug(33, 4) ("clientProcessRequest: %s '%s'\n",
 	RequestMethodStr[r->method],
 	url);
-    if (r->method == METHOD_CONNECT) {
+    if (r->method == METHOD_CONNECT && !http->redirect.status) {
 	http->log_type = LOG_TCP_MISS;
 	sslStart(http, &http->out.size, &http->al.http.code);
 	return;
