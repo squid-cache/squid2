@@ -425,6 +425,8 @@ name="ChangeLog"> file for details.
 <p>
 <itemize>
 	<item>Truncated responses when using delay pools
+	<item>Set-Cookie lost on cache revalidations
+	<item>Segmentation fault in rfc1738_do_escape
 
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE11"
