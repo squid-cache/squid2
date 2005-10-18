@@ -1027,7 +1027,7 @@ fi
 
 # Define the identity of the package.
 PACKAGE=squid
-VERSION=2.5.STABLE12-RC1-CVS
+VERSION=2.5.STABLE12-RC2-CVS
 cat >> confdefs.h <<EOF
 #define PACKAGE "$PACKAGE"
 EOF
