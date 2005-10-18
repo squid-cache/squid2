@@ -2513,6 +2513,7 @@ clientProcessMiss(clientHttpRequest * http)
     ErrorState *err = NULL;
     debug(33, 4) ("clientProcessMiss: '%s %s'\n",
 	RequestMethodStr[r->method], url);
+    http->flags.hit = 0;
     /*
      * We might have a left-over StoreEntry from a failed cache hit
      * or IMS request.
