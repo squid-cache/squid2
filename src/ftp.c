@@ -438,7 +438,7 @@ ftpListingFinish(FtpStateData * ftpState)
     storeAppendPrintf(e, "</PRE>\n");
     if (ftpState->flags.listformat_unknown && !ftpState->flags.tried_nlst) {
 	storeAppendPrintf(e, "<A HREF=\"%s/;type=d\">[As plain directory]</A>\n",
-	    ftpState->flags.dir_slash ? rfc1738_escape_part(ftpState->filepath) : ".");
+	    ftpState->flags.dir_slash ? rfc1738_escape_part(ftpState->old_filepath) : ".");
     } else if (ftpState->typecode == 'D') {
 	const char *path = ftpState->flags.dir_slash ? ftpState->filepath : ".";
 	storeAppendPrintf(e, "<A HREF=\"%s/\">[As extended directory]</A>\n", html_quote(path));
@@ -714,12 +714,23 @@ ftpHtmlifyListEntry(const char *line, FtpStateData * ftpState)
 		"%2f/",
 		"Root Directory");
 	} else if (ftpState->flags.no_dotdot && !ftpState->flags.root_dir) {
+	    char *url;
 	    /* Normal directory where last component is / or ..  */
 	    strcpy(href, "%2e%2e/");
 	    strcpy(text, "Parent Directory");
-	    snprintf(link, 2048, "(<A HREF=\"%s\">%s</A>)",
-		!ftpState->flags.dir_slash ? "../" : "./",
-		"Back");
+	    if (ftpState->flags.dir_slash) {
+		url = xstrdup("./");
+	    } else {
+		const char *title = strBuf(ftpState->title_url);
+		int k = 6 + strcspn(&title[6], "/");
+		char *t;
+		url = xstrdup(title + k);
+		t = url + strlen(url) - 2;
+		while (t > url && *t != '/')
+		    *t-- = '\0';
+	    }
+	    snprintf(link, 2048, "(<A HREF=\"%s\">%s</A>)", url, "Back");
+	    safe_free(url);
 	} else {		/* NO_DOTDOT && ROOT_DIR */
 	    /* "UNIX Root" directory */
 	    strcpy(href, "/");
@@ -1053,6 +1064,8 @@ ftpCheckUrlpath(FtpStateData * ftpState)
 	ftpState->flags.isdir = 1;
 	if (l == 1)
 	    ftpState->flags.root_dir = 1;
+    } else {
+	ftpState->flags.dir_slash = 1;
     }
 }
 
@@ -1668,11 +1681,10 @@ ftpGetFile(FtpStateData * ftpState)
 static void
 ftpListDir(FtpStateData * ftpState)
 {
-    if (!ftpState->flags.isdir) {
+    if (ftpState->flags.dir_slash) {
 	debug(9, 3) ("Directory path did not end in /\n");
 	strCat(ftpState->title_url, "/");
 	ftpState->flags.isdir = 1;
-	ftpState->flags.dir_slash = 1;
     }
     ftpSendPasv(ftpState);
 }
