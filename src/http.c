@@ -841,7 +841,7 @@ httpBuildRequestHeader(request_t * request,
     HttpHeaderPos pos = HttpHeaderInitPos;
     httpHeaderInit(hdr_out, hoRequest);
     /* append our IMS header */
-    if (request->lastmod > -1 && request->method == METHOD_GET)
+    if (request->lastmod > -1)
 	httpHeaderPutTime(hdr_out, HDR_IF_MODIFIED_SINCE, request->lastmod);
 
     /* decide if we want to do Ranges ourselves 
