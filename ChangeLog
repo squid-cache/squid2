@@ -1,4 +1,4 @@
-Changes to squid-2.5.STABLE12 (Not yet released)
+Changes to squid-2.5.STABLE12 (22 Oct 2005)
 
 	- [Major] Error introduced in 2.5.STABLE11 causing truncated responses
 	  when using delay pools (Bug #1405)
@@ -23,6 +23,8 @@ Changes to squid-2.5.STABLE12 (Not yet released)
 	- [Minor] Incorrect handling of Set-Cookie on cache refreshes (Bug
 	  #1419)
 	- [Major] Segmentation fault crash in rfc1738_do_escape (Bug #1426)
+	- [Minor] Delay pools class 3 fails on clients in network 255
+	  (Bug #1431)
 	
 Changes to squid-2.5.STABLE11 (22 Sep 2005)
 
