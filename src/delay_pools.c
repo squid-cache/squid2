@@ -375,6 +375,7 @@ delayClient(clientHttpRequest * http)
 	    delay_data[pool].class3->network[255] =
 		(int) (((double) Config.Delay.rates[pool]->network.max_bytes *
 		    Config.Delay.initial) / 100);
+	    delay_data[pool].class3->individual_map[i][0] = 255;
 	}
     } else {
 	for (i = 0; i < NET_MAP_SZ; i++) {
@@ -490,7 +491,7 @@ delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
      * this loop starts at 0 or 255 and ends at 254 unless terminated earlier
      * by finding the end of the map.  note as above that 255 + 1 = 0.
      */
-    for (i = (class3->network_255_used ? 0 : 255);; ++i) {
+    for (i = (class3->network_255_used ? 255 : 0);; ++i) {
 	if (i != 255 && class3->network_map[i] == 255)
 	    return;
 	if (individual_restore_bytes != -incr) {
