@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <HTML>
 <HEAD>
- <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.16">
- <TITLE>Squid 2.5 release notes</TITLE>
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
+ <TITLE>Squid 2.5.STABLE12 release notes</TITLE>
 </HEAD>
 <BODY>
-<H1>Squid 2.5 release notes</H1>
+<H1>Squid 2.5.STABLE12 release notes</H1>
 
 <H2>Squid Developers</H2>$Id$
 <HR>
@@ -139,6 +139,7 @@ management of timeouts while connecting to origin servers or peers</P>
 <DT><B>acl req_hdr/resp_hdr</B><DD><P>New acl types in 2.5.STABLE7 to match arbitrary HTTP headers, useful to block certain malware/spyware etc.</P>
 <DT><B>relaxed_http_parser</B><DD><P>New directive in 2.5.STABLE8 to control how strict the HTTP parser should be.</P>
 <DT><B>retry_on_error</B><DD><P>New directive in 2.5.STABLE9 to aggressive retry requests on errors (was the default in earlier versions)</P>
+<DT><B>acl dst</B><DD><P>No longer matches invalid hosts. Was previously using the IP address "255.255.255.255" on invalid hosts.</P>
 </DL>
 </P>
 
@@ -154,11 +155,30 @@ management of timeouts while connecting to origin servers or peers</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=779">#779</A></B><DD><P>users going above their allowed IP count no longer logged in cache.log</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1204">#1204</A></B><DD><P>FTP listings uses "BASE HREF" much more than it needs to</P>
-<DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=888">#888</A></B><DD><P>ntlm_user_pool assertion error on shutdown</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1275">#1275</A></B><DD><P>Squid internal icons served up with slightly incorrect HTTP headers</P>
+<DT><B>Ipfilter 4.x issues</B><DD><P>
+<UL>
+<LI>Running configure --enable-ipf-transparent on an HP Tru64 5.1B system with ipfilter 4.x installed, the following error can occur:
+<PRE>
+      checking if IP-Filter header files are installed... no
+      WARNING: Cannot find necessary IP-Filter header files
+               Transparent Proxy support WILL NOT be enabled
+</PRE>
+
+To fix the problem first check if the ip_fil.h, ip_compat.h, ip_nat.h and ipl.h files are present in
+/usr/include/netinet and copy them from ipfilter source tree if needed.
+Don't forget to fix files permission and ownership after the copy.<BR>
+If the error still persist, run configure making it skip the ip_compat.h test:<BR>
+<PRE>
+    env ac_cv_header_netinet_ip_compat_h=yes ./configure --enable-ipf-transparent
+</PRE>
+</LI>
+<LI>On Sun Solaris 10, ipfilter 4.0.22 is provided with the OS, but related include files (ip_fil.h, ip_compat.h, ip_nat.h, ipl.h) are missing.<BR>
+Before running configure --enable-ipf-transparent, they must be downloaded from the
+<A HREF="http://cvs.opensolaris.org/source/xref/usr/src/common/ipf/">OpenSolaris Web Site</A>
+in the /usr/include local directory. Don't forget to fix files permission and ownership after the download.</LI>
+</UL>
+</P>
 </DL>
 </P>
 
@@ -169,8 +189,6 @@ management of timeouts while connecting to origin servers or peers</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1059">#1059</A></B><DD><P>mime.conf and referenced icons must be within chroot</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1033">#1033</A></B><DD><P>CARP ignores cache_peer_access and cache_peer_domain</P>
-<DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=692">#692</A></B><DD><P>tcp_outgoing_address using an ident ACL does not work</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=581">#581</A></B><DD><P>acl max_user_ip and multiple authentication schemes</P>
@@ -179,15 +197,13 @@ management of timeouts while connecting to origin servers or peers</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=513">#513</A></B><DD><P>squid -F is starting server sockets to early</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=518">#518</A></B><DD><P>wb_auth fails on TRU64 and probably other 64 bit platforms</P>
-<DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=500">#500</A></B><DD><P>delay_pools stops working on -k reconfigure</P>
-<DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=457">#457</A></B><DD><P>does not handle swap.state corruption properly</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=410">#410</A></B><DD><P>unstable if runs out of disk space</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=355">#355</A></B><DD><P>diskd may appear slow on low loads</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=219">#219</A></B><DD><P>delay_pools stops working on -k reconfigure</P>
 </DL>
 </P>
 
@@ -413,6 +429,41 @@ responses.</LI>
 other related minor bugfixes.</LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE9">squid-2.5.STABLE9 patches</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s13">13. Key changes squid-2.5.STABLE10 to 2.5.STABLE11:</A></H2>
+
+<P>
+<UL>
+<LI>Segmentation fault in sslConnectTimeout</LI>
+<LI>Assertion failed StatHist.c:93</LI>
+<LI>Assertion failed store_status == STORE_PENDING</LI>
+<LI>Clients could bypass delay pools settings by faking a cache hit</LI>
+<LI>Odd results was seen on pipelined CONNECT requests</LI>
+<LI>Squid crashing with "FATAL: Incorrect scheme in auth header" 
+when using NTLM authentication.</LI>
+<LI>dst acl changed to not match invalid hosts as 255.255.255.255</LI>
+<LI>New --with-maxfd=N configure option to override build time
+filedescriptor limit test
+</LI>
+<LI>a number of other minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE10">squid-2.5.STABLE10 patches</A> and the 
+<A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
+</UL>
+</P>
+
+<H2><A NAME="s14">14. Key changes squid-2.5.STABLE11 to 2.5.STABLE12:</A></H2>
+
+<P>
+<UL>
+<LI>Truncated responses when using delay pools</LI>
+<LI>Set-Cookie lost on cache revalidations</LI>
+<LI>Segmentation fault in rfc1738_do_escape
+</LI>
+<LI>a number of other minor and cosmetic bugfixes. See the list of 
+<A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE11">squid-2.5.STABLE11 patches</A> and the 
 <A HREF="ChangeLog">ChangeLog</A> file for details.</LI>
 </UL>
 </P>

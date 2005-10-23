@@ -375,6 +375,7 @@ delayClient(clientHttpRequest * http)
 	    delay_data[pool].class3->network[255] =
 		(int) (((double) Config.Delay.rates[pool]->network.max_bytes *
 		    Config.Delay.initial) / 100);
+	    delay_data[pool].class3->individual_map[i][0] = 255;
 	}
     } else {
 	for (i = 0; i < NET_MAP_SZ; i++) {
@@ -490,7 +491,7 @@ delayUpdateClass3(class3DelayPool * class3, delaySpecSet * rates, int incr)
      * this loop starts at 0 or 255 and ends at 254 unless terminated earlier
      * by finding the end of the map.  note as above that 255 + 1 = 0.
      */
-    for (i = (class3->network_255_used ? 0 : 255);; ++i) {
+    for (i = (class3->network_255_used ? 255 : 0);; ++i) {
 	if (i != 255 && class3->network_map[i] == 255)
 	    return;
 	if (individual_restore_bytes != -incr) {
@@ -652,8 +653,6 @@ delayMostBytesWanted(const MemObject * mem, int max)
 	sc = (store_client *) node->data;
 	if (sc->callback_data == NULL)	/* open slot */
 	    continue;
-	if (sc->type != STORE_MEM_CLIENT)
-	    continue;
 	i = delayBytesWanted(sc->delay_id, i, max);
 	found = 1;
     }
@@ -661,7 +660,7 @@ delayMostBytesWanted(const MemObject * mem, int max)
 }
 
 delay_id
-delayMostBytesAllowed(const MemObject * mem)
+delayMostBytesAllowed(const MemObject * mem, size_t * read_sz)
 {
     int j;
     int jmax = -1;
@@ -672,13 +671,16 @@ delayMostBytesAllowed(const MemObject * mem)
 	sc = (store_client *) node->data;
 	if (sc->callback_data == NULL)	/* open slot */
 	    continue;
-	if (sc->type != STORE_MEM_CLIENT)
-	    continue;
-	j = delayBytesWanted(sc->delay_id, 0, SQUID_TCP_SO_RCVBUF);
+	j = delayBytesWanted(sc->delay_id, 0, INT_MAX);
 	if (j > jmax) {
 	    jmax = j;
 	    d = sc->delay_id;
 	}
+    }
+    if (jmax >= 0 && jmax < (int) *read_sz) {
+	if (jmax == 0)
+	    jmax = 1;
+	*read_sz = (size_t) jmax;
     }
     return d;
 }

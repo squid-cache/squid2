@@ -608,7 +608,7 @@ char *
 xstrndup(const char *s, size_t n)
 {
     size_t sz;
-    assert(s);
+    assert(s != NULL);
     assert(n);
     sz = strlen(s) + 1;
     if (sz > n)

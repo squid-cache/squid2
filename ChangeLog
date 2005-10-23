@@ -1,3 +1,97 @@
+Changes to squid-2.5.STABLE12 (22 Oct 2005)
+
+	- [Major] Error introduced in 2.5.STABLE11 causing truncated responses
+	  when using delay pools (Bug #1405)
+	- [Cosmetic] Document that tcp_outgoing_* works badly in combination
+	  with server_persistent_connections (Bug #454)
+	- [Cosmetic] Add additinal tracing to squid_ldap_auth making
+	  diagnostics easier on squid_ldap_auth configuration errors
+	  (Bug #1395)
+	- [Minor] $HOME not set when started as root (Bug #1401)
+	- [Minor] httpd_accel_single_host breaks in combination with
+	  server_persistent_connections (Bug #1402)
+	- [Cosmetic] Setting CACHE_HTTP_PORT to configure was only partially
+	  implemented, effectively ignored. (Bug #1403)
+	- [Minor] CNAME based DNS addresses could get cached for longer
+	  than intended (Bug #1404)
+	- [Minor] Incorrect handling of squid-internal-dynamic/netdb exchanges
+	  in transparently intercepting proxies (Bug #1410).
+	- [Minor] Cache revalidations on HEAD requests causing poor cache
+	  hit ratio (Bug #1411).
+	- [Minor] Not possible to send 302 redirects via a redirector in
+	  response to CONNECT requests (bug #1412)
+	- [Minor] Incorrect handling of Set-Cookie on cache refreshes (Bug
+	  #1419)
+	- [Major] Segmentation fault crash in rfc1738_do_escape (Bug #1426)
+	- [Minor] Delay pools class 3 fails on clients in network 255
+	  (Bug #1431)
+	
+Changes to squid-2.5.STABLE11 (22 Sep 2005)
+
+	- [Minor] Workaround for servers sending double content-length headers
+	  (Bug #1305)
+	- [Cosmetic] Updated Spanish error messages by Nicolas Ruiz
+	- [Cosmetic] Date header corrected on internal objects (icons etc)
+	  (Bug #1275)
+	- [Minor] squid -k fails in combination with chroot after patch for
+	  bug 1157 (Bug #1307)
+	- [Cosmetic] Segmentation fault if compiled with
+	  --enable-ipf-transparent but denied access to the NAT device.
+	  (Bug #1313)
+	- [Minor] httpd_accel_signle_host incompatible with redireection
+	  (Bug #1314)
+	- [Minor] squid -k reconfigure internal corruption if the type of
+	  a cache_dir is changed (Bug #1308)
+	- [Minor] SNMP GETNEXT fails if the given OID is outside the Squid MIB
+	  (Bug #1317)
+	- [Minor] Title in FTP listings somewhat messed up after previous
+	  patch for bug 1220 (Bug #1220)
+	- [Minor] FTP listings uses "BASE HREF" much more than it needs to,
+	  confusing authentication. (Bug #1204)
+	- [Minor] winfo_group.pl only looked for the first group if multiple
+	  groups were defined in the same acl. (Bug #1333)
+	- [Cosmetic] Compiler warnings on some 64-bit platforms (Bug #1316)
+	- [Cosmetic] Removed some debug output from wb_ntlm_atuh (Bug #518)
+	- [Cosmetic] The new --with-build-environment=... option doesn't work
+	- [Cosmetic] New 'mail_program' configuration option in squid.conf
+	- [Minor] Fails to compile with ip-filter and ARP support on Solaris
+	  x86 (Bug #199)
+	- [Major] Segmentation fault in sslConnectTimeout (Bug #1355)
+	- [Medium] assertion failed in StatHist.c:93  (Bug #1325)
+	- [Minor] More chroot_dir and squid -k reconfigure issues (Bug #1331)
+	- [Cosmetic] Invalid URLs in error messages when failing to connect
+	  to peer, and a few other inconsistent error messages (Bug #1342)
+	- [Cosmetic] Fails to compile with glibc -D_FORTIFY_SOURCE=2
+	  (Bug #1344)
+	- [Minor] Some odd FTP servers respond with 250 where 226 is expected
+	  (Bug #1348)
+	- [Cosmetic] Greek translation of error messages (Bug #1351)
+	- [Major] Assertion failed store_status == STORE_PENDING (Bug #1368)
+	- [Minor] squid_ldap_auth -U does not work (Bug #1370)
+	- [Minor] SNMP cacheClientTable fails on "long" IP addresses
+	  (Bug #1375)
+	- [Minor] Solaris Sparc + IP-Filter compile error (Bug #1374)
+	- [Minor] E-mail sent when cache dies is blocked from many antispam
+	  rules (Bug #1380)
+	- [Minor] LDAP helpers does not work with TLS (-Z option) (Bug #1389)
+	- [Cosmetic] Incorrect store dir selection debug message on objects
+	  larger than 2Gigabyte (Bug #1343)
+	- [Cosmetic] header_id enum misused as an signed integer (Bug #1343)
+	- [Cosmetic] Allow leaving core dumps when started as root (Bug #1335)
+	- [Medium] Clients could bypass delay_pool settings by faking a cache
+	  hit request (Bug #500)
+	- [Minor] IP-Filter 4.X support (Bug #1378)
+	- [Medium] Odd results on pipelined CONNECT requests
+	- [Major] Squid crashing with "FATAL: Incorrect scheme in auth header"
+	  when using NTLM authentication.
+	- [Cosmetic] Odd results when pipeline_prefetch is combined with NTLM
+	  authentication (bug #1396)
+	- [Minor] invalid host was processed as IP 255.255.255.255 in dst acl
+	  (Bug #1394)
+	- [Cosmetic] New --with-maxfd=N configure option to override build
+	  time filedescriptor limit test
+	- [Minor] Added support for Windows code name "Longhorn" on Cygwin.
+
 Changes to squid-2.5.STABLE10 (17 May 2005)
 
 	- [Minor Security] Fix race condition in relation to old Netscape

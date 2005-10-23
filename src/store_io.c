@@ -20,7 +20,7 @@ OBJH storeIOStats;
 storeIOState *
 storeCreate(StoreEntry * e, STIOCB * file_callback, STIOCB * close_callback, void *callback_data)
 {
-    size_t objsize;
+    squid_off_t objsize;
     sdirno dirn;
     SwapDir *SD;
     storeIOState *sio;
@@ -41,7 +41,7 @@ storeCreate(StoreEntry * e, STIOCB * file_callback, STIOCB * close_callback, voi
 	store_io_stats.create.select_fail++;
 	return NULL;
     }
-    debug(20, 2) ("storeCreate: Selected dir '%d' for obj size '%ld'\n", dirn, (long int) objsize);
+    debug(20, 2) ("storeCreate: Selected dir '%d' for obj size '%" PRINTF_OFF_T "'\n", dirn, objsize);
     SD = &Config.cacheSwap.swapDirs[dirn];
 
     /* Now that we have a fs to use, call its storeCreate function */

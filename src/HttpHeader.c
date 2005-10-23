@@ -475,9 +475,25 @@ httpHeaderParse(HttpHeader * hdr, const char *header_start, const char *header_e
 	}
 	if (e->id == HDR_CONTENT_LENGTH && (e2 = httpHeaderFindEntry(hdr, e->id)) != NULL) {
 	    if (strCmp(e->value, strBuf(e2->value)) != 0) {
-		debug(55, 1) ("WARNING: found two conflicting content-length headers in {%s}\n", getStringPrefix(header_start, header_end));
-		httpHeaderEntryDestroy(e);
-		return httpHeaderReset(hdr);
+		squid_off_t l1, l2;
+		debug(55, Config.onoff.relaxed_header_parser <= 0 ? 1 : 2) ("WARNING: found two conflicting content-length headers in {%s}\n", getStringPrefix(header_start, header_end));
+		if (!Config.onoff.relaxed_header_parser) {
+		    httpHeaderEntryDestroy(e);
+		    return httpHeaderReset(hdr);
+		}
+		if (!httpHeaderParseSize(strBuf(e->value), &l1)) {
+		    debug(55, 1) ("WARNING: Unparseable content-length '%s'\n", strBuf(e->value));
+		    httpHeaderEntryDestroy(e);
+		    continue;
+		} else if (!httpHeaderParseSize(strBuf(e2->value), &l2)) {
+		    debug(55, 1) ("WARNING: Unparseable content-length '%s'\n", strBuf(e2->value));
+		    httpHeaderDelById(hdr, e2->id);
+		} else if (l1 > l2) {
+		    httpHeaderDelById(hdr, e2->id);
+		} else {
+		    httpHeaderEntryDestroy(e);
+		    continue;
+		}
 	    } else {
 		debug(55, Config.onoff.relaxed_header_parser <= 0 ? 1 : 2)
 		    ("NOTICE: found double content-length header\n");
@@ -664,6 +680,26 @@ httpHeaderAddEntry(HttpHeader * hdr, HttpHeaderEntry * e)
     hdr->len += strLen(e->name) + 2 + strLen(e->value) + 2;
 }
 
+/* inserts an entry at the given position; 
+ * does not call httpHeaderEntryClone() so one should not reuse "*e"
+ */
+void
+httpHeaderInsertEntry(HttpHeader * hdr, HttpHeaderEntry * e, int pos)
+{
+    assert(hdr && e);
+    assert_eid(e->id);
+
+    debug(55, 7) ("%p adding entry: %d at %d\n",
+	hdr, e->id, hdr->entries.count);
+    if (CBIT_TEST(hdr->mask, e->id))
+	Headers[e->id].stat.repCount++;
+    else
+	CBIT_SET(hdr->mask, e->id);
+    arrayInsert(&hdr->entries, e, pos);
+    /* increment header length, allow for ": " and crlf */
+    hdr->len += strLen(e->name) + 2 + strLen(e->value) + 2;
+}
+
 /* return a list of entries with the same id separated by ',' and ws */
 String
 httpHeaderGetList(const HttpHeader * hdr, http_hdr_type id)
@@ -831,6 +867,15 @@ httpHeaderPutTime(HttpHeader * hdr, http_hdr_type id, time_t htime)
     assert(Headers[id].type == ftDate_1123);	/* must be of an appropriate type */
     assert(htime >= 0);
     httpHeaderAddEntry(hdr, httpHeaderEntryCreate(id, NULL, mkrfc1123(htime)));
+}
+
+void
+httpHeaderInsertTime(HttpHeader * hdr, int pos, http_hdr_type id, time_t htime)
+{
+    assert_eid(id);
+    assert(Headers[id].type == ftDate_1123);	/* must be of an appropriate type */
+    assert(htime >= 0);
+    httpHeaderInsertEntry(hdr, httpHeaderEntryCreate(id, NULL, mkrfc1123(htime)), pos);
 }
 
 void

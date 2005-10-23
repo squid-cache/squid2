@@ -69,6 +69,8 @@ AUTH_MODULES = @AUTH_MODULES@
 AUTH_OBJS = @AUTH_OBJS@
 AWK = @AWK@
 BASIC_AUTH_HELPERS = @BASIC_AUTH_HELPERS@
+CACHE_HTTP_PORT = @CACHE_HTTP_PORT@
+CACHE_ICP_PORT = @CACHE_ICP_PORT@
 CC = @CC@
 CGIEXT = @CGIEXT@
 CPP = @CPP@
@@ -135,6 +137,7 @@ LANGUAGES = \
 		Finnish \
 		French \
 		German \
+		Greek \
 		Hebrew \
 		Hungarian \
 		Italian \

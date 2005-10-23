@@ -1232,9 +1232,11 @@ storeBuffer(StoreEntry * e)
 void
 storeBufferFlush(StoreEntry * e)
 {
-    EBIT_CLR(e->flags, DELAY_SENDING);
-    InvokeHandlers(e);
-    storeSwapOut(e);
+    if (EBIT_TEST(e->flags, DELAY_SENDING)) {
+	EBIT_CLR(e->flags, DELAY_SENDING);
+	InvokeHandlers(e);
+	storeSwapOut(e);
+    }
 }
 
 squid_off_t

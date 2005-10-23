@@ -15,6 +15,9 @@
 #   2002-07-05 Jerry Murdock <jmurdock@itraktech.com>
 #		Initial release
 #
+#   2005-06-28 Arno Streuli <astreuli@gmail.com>
+#               Add multi group check
+
 
 # external_acl uses shell style lines in it's protocol
 require 'shellwords.pl';
@@ -47,8 +50,12 @@ sub check {
 while (<STDIN>) {
         chop;
 	&debug ("Got $_ from squid");
-        ($user, $group) = &shellwords;
-	$ans = &check($user, $group);
+	($user, @groups) = &shellwords;
+	# test for each group squid send in it's request
+	foreach $group (@groups) {
+		$ans = &check($user, $group);
+		last if $ans eq "OK";
+	}
 	&debug ("Sending $ans to squid");
 	print "$ans\n";
 }

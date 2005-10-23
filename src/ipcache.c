@@ -353,18 +353,19 @@ ipcacheParse(ipcache_entry * i, rfc1035_rr * answers, int nr, const char *error_
     i->addrs.in_addrs = xcalloc(na, sizeof(struct in_addr));
     i->addrs.bad_mask = xcalloc(na, sizeof(unsigned char));
     for (j = 0, k = 0; k < nr; k++) {
-	if (answers[k].type != RFC1035_TYPE_A)
-	    continue;
 	if (answers[k].class != RFC1035_CLASS_IN)
 	    continue;
-	if (answers[k].rdlength != 4)
+	if (answers[k].type == RFC1035_TYPE_A) {
+	    if (answers[k].rdlength != 4)
+		continue;
+	    xmemcpy(&i->addrs.in_addrs[j++], answers[k].rdata, 4);
+	    debug(14, 3) ("ipcacheParse: #%d %s\n",
+		j - 1,
+		inet_ntoa(i->addrs.in_addrs[j - 1]));
+	} else if (answers[k].type != RFC1035_TYPE_CNAME)
 	    continue;
 	if (ttl == 0 || ttl > answers[k].ttl)
 	    ttl = answers[k].ttl;
-	xmemcpy(&i->addrs.in_addrs[j++], answers[k].rdata, 4);
-	debug(14, 3) ("ipcacheParse: #%d %s\n",
-	    j - 1,
-	    inet_ntoa(i->addrs.in_addrs[j - 1]));
     }
     i->addrs.count = (unsigned char) na;
     if (ttl == 0 || ttl > Config.positiveDnsTtl)

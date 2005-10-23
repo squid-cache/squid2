@@ -299,19 +299,20 @@ fqdncacheParse(fqdncache_entry * f, rfc1035_rr * answers, int nr, const char *er
     debug(35, 3) ("fqdncacheParse: %d answers for '%s'\n", nr, name);
     assert(answers);
     for (k = 0; k < nr; k++) {
-	if (answers[k].type != RFC1035_TYPE_PTR)
-	    continue;
 	if (answers[k].class != RFC1035_CLASS_IN)
 	    continue;
-	if (!answers[k].rdata[0]) {
-	    debug(35, 2) ("fqdncacheParse: blank PTR record for '%s'\n", name);
+	if (answers[k].type == RFC1035_TYPE_PTR) {
+	    if (!answers[k].rdata[0]) {
+		debug(35, 2) ("fqdncacheParse: blank PTR record for '%s'\n", name);
+		continue;
+	    }
+	    if (strchr(answers[k].rdata, ' ')) {
+		debug(35, 2) ("fqdncacheParse: invalid PTR record '%s' for '%s'\n", answers[k].rdata, name);
+		continue;
+	    }
+	    f->names[f->name_count++] = xstrdup(answers[k].rdata);
+	} else if (answers[k].type != RFC1035_TYPE_CNAME)
 	    continue;
-	}
-	if (strchr(answers[k].rdata, ' ')) {
-	    debug(35, 2) ("fqdncacheParse: invalid PTR record '%s' for '%s'\n", answers[k].rdata, name);
-	    continue;
-	}
-	f->names[f->name_count++] = xstrdup(answers[k].rdata);
 	if (ttl == 0 || answers[k].ttl < ttl)
 	    ttl = answers[k].ttl;
 	if (f->name_count >= FQDN_MAX_NAMES)

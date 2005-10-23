@@ -108,7 +108,7 @@ packerToStoreInit(Packer * p, StoreEntry * e)
 {
     assert(p && e);
     p->append = (append_f) store_append;
-    p->vprintf = (vprintf_f) store_vprintf;
+    p->packer_vprintf = (vprintf_f) store_vprintf;
     p->real_handle = e;
 }
 
@@ -118,7 +118,7 @@ packerToMemInit(Packer * p, MemBuf * mb)
 {
     assert(p && mb);
     p->append = (append_f) memBuf_append;
-    p->vprintf = (vprintf_f) memBuf_vprintf;
+    p->packer_vprintf = (vprintf_f) memBuf_vprintf;
     p->real_handle = mb;
 }
 
@@ -129,7 +129,7 @@ packerClean(Packer * p)
     assert(p);
     /* it is not really necessary to do this, but, just in case... */
     p->append = NULL;
-    p->vprintf = NULL;
+    p->packer_vprintf = NULL;
     p->real_handle = NULL;
 }
 
@@ -161,7 +161,7 @@ packerPrintf(va_alist)
     fmt = va_arg(args, char *);
 #endif
     assert(p);
-    assert(p->real_handle && p->vprintf);
-    p->vprintf(p->real_handle, fmt, args);
+    assert(p->real_handle && p->packer_vprintf);
+    p->packer_vprintf(p->real_handle, fmt, args);
     va_end(args);
 }

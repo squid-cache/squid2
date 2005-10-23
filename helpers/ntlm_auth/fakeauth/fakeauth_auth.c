@@ -57,7 +57,7 @@ lc(char *string)
     char *p = string;
     char c;
     while ((c = *p)) {
-	*p = tolower(c);
+	*p = xtolower(c);
 	p++;
     }
 }

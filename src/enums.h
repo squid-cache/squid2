@@ -180,7 +180,8 @@ typedef enum {
 
 /* recognized or "known" header fields; @?@ add more! */
 typedef enum {
-    HDR_ACCEPT,
+    HDR_UNKNOWN = -1,
+    HDR_ACCEPT = 0,
     HDR_ACCEPT_CHARSET,
     HDR_ACCEPT_ENCODING,
     HDR_ACCEPT_LANGUAGE,
@@ -734,7 +735,8 @@ enum {
     _WIN_OS_WINNT,
     _WIN_OS_WIN2K,
     _WIN_OS_WINXP,
-    _WIN_OS_WINNET
+    _WIN_OS_WINNET,
+    _WIN_OS_WINLON
 };
 
 #endif

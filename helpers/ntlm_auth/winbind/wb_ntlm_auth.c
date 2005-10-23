@@ -87,7 +87,7 @@ lc(char *string)
 {
     char *p = string, c;
     while ((c = *p)) {
-	*p = tolower(c);
+	*p = xtolower(c);
 	p++;
     }
 }
@@ -97,7 +97,7 @@ uc(char *string)
 {
     char *p = string, c;
     while ((c = *p)) {
-	*p = toupper(c);
+	*p = xtoupper(c);
 	p++;
     }
 }
@@ -117,22 +117,20 @@ init_random()
     if (have_urandom == DONTKNOW) {
 	int result = 0;
 	struct stat st;
+	unsigned int seed;
+	struct timeval t;
+	gettimeofday(&t, NULL);
+	seed = squid_random() * getpid() * t.tv_sec * t.tv_usec;
+	squid_srandom(seed);
 	result = stat(ENTROPY_SOURCE, &st);
 	if (result != 0 || !(S_ISCHR(st.st_mode) || S_ISBLK(st.st_mode))) {
 	    debug("Entropy source " ENTROPY_SOURCE " is unavailable\n");
 	    have_urandom = NO;
-	}
-	if ((urandom_file = fopen(ENTROPY_SOURCE, "r")) == NULL) {
-	    unsigned int seed;
-	    struct timeval t;
+	} else if ((urandom_file = fopen(ENTROPY_SOURCE, "r")) == NULL) {
 	    warn("Can't open entropy source " ENTROPY_SOURCE "\n");
 	    have_urandom = NO;
-	    gettimeofday(&t, NULL);
-	    seed = squid_random() * getpid() * t.tv_sec * t.tv_usec;
-	    squid_srandom(seed);
-	} else {
+	} else
 	    have_urandom = YES;
-	}
     }
 }
 
@@ -349,7 +347,7 @@ get_winbind_domain(void)
     domain = strdup(response.data.domain_name);
     uc(domain);
 
-    warn("target domain is %s\n", domain);
+    debug("target domain is %s\n", domain);
     return domain;
 }
 

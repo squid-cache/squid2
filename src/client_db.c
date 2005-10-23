@@ -328,7 +328,7 @@ variable_list *
 snmp_meshCtblFn(variable_list * Var, snint * ErrP)
 {
     variable_list *Answer = NULL;
-    static char key[15];
+    static char key[16];
     ClientInfo *c = NULL;
     int aggr = 0;
     log_type l;

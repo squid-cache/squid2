@@ -35,6 +35,10 @@
 
 #include "squid.h"
 
+#if HAVE_SYS_PRCTL_H
+#include <sys/prctl.h>
+#endif
+
 #define DEAD_MSG "\
 The Squid Cache (version %s) died.\n\
 \n\
@@ -106,11 +110,14 @@ mail_warranty(void)
     if ((fp = fopen(filename, "w")) == NULL)
 	return;
 #endif
-    fprintf(fp, "From: %s\n", appname);
+    if (Config.EmailFrom)
+	fprintf(fp, "From: %s\n", Config.EmailFrom);
+    else
+	fprintf(fp, "From: %s@%s\n", appname, uniqueHostname());
     fprintf(fp, "To: %s\n", Config.adminEmail);
     fprintf(fp, "Subject: %s\n", dead_msg());
     fclose(fp);
-    snprintf(command, 256, "mail %s < %s", Config.adminEmail, filename);
+    snprintf(command, 256, "%s %s < %s", Config.EmailProgram, Config.adminEmail, filename);
     system(command);		/* XXX should avoid system(3) */
     unlink(filename);
 }
@@ -491,7 +498,10 @@ getMyHostname(void)
 	if (strchr(host, '.'))
 	    return host;
     }
-    fatal("Could not determine fully qualified hostname.  Please set 'visible_hostname'\n");
+    if (opt_send_signal == -1)
+	fatal("Could not determine fully qualified hostname.  Please set 'visible_hostname'\n");
+    else
+	return ("localhost");
     return NULL;		/* keep compiler happy */
 }
 
@@ -551,6 +561,11 @@ leave_suid(void)
     if (setuid(Config2.effectiveUserID) < 0)
 	debug(50, 0) ("ALERT: setuid: %s\n", xstrerror());
 #endif
+#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
+    /* Set Linux DUMPABLE flag */
+    if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1) != 0)
+	debug(50, 2) ("prctl: %s\n", xstrerror());
+#endif
 }
 
 /* Enter a privilegied section */
@@ -562,6 +577,11 @@ enter_suid(void)
     setresuid(-1, 0, -1);
 #else
     setuid(0);
+#endif
+#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
+    /* Set Linux DUMPABLE flag */
+    if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1) != 0)
+	debug(50, 2) ("prctl: %s\n", xstrerror());
 #endif
 }
 
@@ -582,6 +602,11 @@ no_suid(void)
     setuid(0);
     if (setuid(uid) < 0)
 	debug(50, 1) ("no_suid: setuid: %s\n", xstrerror());
+#endif
+#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
+    /* Set Linux DUMPABLE flag */
+    if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1) != 0)
+	debug(50, 2) ("prctl: %s\n", xstrerror());
 #endif
 }
 

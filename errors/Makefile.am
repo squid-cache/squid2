@@ -22,6 +22,7 @@ LANGUAGES	= \
 		Finnish \
 		French \
 		German \
+		Greek \
 		Hebrew \
 		Hungarian \
 		Italian \

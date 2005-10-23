@@ -70,10 +70,8 @@ waisTimeout(int fd, void *data)
     StoreEntry *entry = waisState->entry;
     debug(24, 4) ("waisTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
     if (entry->store_status == STORE_PENDING) {
-	if (entry->mem_obj->inmem_hi == 0) {
-	    fwdFail(waisState->fwd,
-		errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
-	}
+	fwdFail(waisState->fwd,
+	    errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
     }
     comm_close(fd);
 }
@@ -91,7 +89,7 @@ waisReadReply(int fd, void *data)
     int bin;
     size_t read_sz;
 #if DELAY_POOLS
-    delay_id delay_id = delayMostBytesAllowed(entry->mem_obj);
+    delay_id delay_id;
 #endif
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	comm_close(fd);
@@ -100,7 +98,7 @@ waisReadReply(int fd, void *data)
     errno = 0;
     read_sz = 4096;
 #if DELAY_POOLS
-    read_sz = delayBytesWanted(delay_id, 1, read_sz);
+    delay_id = delayMostBytesAllowed(entry->mem_obj, &read_sz);
 #endif
     statCounter.syscalls.sock.reads++;
     len = FD_READ_METHOD(fd, buf, read_sz);
@@ -130,20 +128,13 @@ waisReadReply(int fd, void *data)
 		waisReadReply, waisState, 0);
 	} else {
 	    ErrorState *err;
-	    EBIT_CLR(entry->flags, ENTRY_CACHABLE);
-	    storeReleaseRequest(entry);
 	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
 	    err->xerrno = errno;
-	    err->request = requestLink(waisState->request);
-	    errorAppendEntry(entry, err);
+	    fwdFail(waisState->fwd, err);
 	    comm_close(fd);
 	}
     } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {
-	ErrorState *err;
-	err = errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_SERVICE_UNAVAILABLE);
-	err->xerrno = errno;
-	err->request = requestLink(waisState->request);
-	errorAppendEntry(entry, err);
+	fwdFail(waisState->fwd, errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_SERVICE_UNAVAILABLE));
 	comm_close(fd);
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */
@@ -179,8 +170,7 @@ waisSendComplete(int fd, char *bufnotused, size_t size, int errflag, void *data)
 	ErrorState *err;
 	err = errorCon(ERR_WRITE_ERROR, HTTP_SERVICE_UNAVAILABLE);
 	err->xerrno = errno;
-	err->request = requestLink(waisState->request);
-	errorAppendEntry(entry, err);
+	fwdFail(waisState->fwd, err);
 	comm_close(fd);
     } else {
 	/* Schedule read reply. */

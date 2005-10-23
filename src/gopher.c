@@ -603,12 +603,8 @@ gopherTimeout(int fd, void *data)
     GopherStateData *gopherState = data;
     StoreEntry *entry = gopherState->entry;
     debug(10, 4) ("gopherTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
-    if (entry->store_status == STORE_PENDING) {
-	if (entry->mem_obj->inmem_hi == 0) {
-	    fwdFail(gopherState->fwdState,
-		errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
-	}
-    }
+    fwdFail(gopherState->fwdState,
+	errorCon(ERR_READ_TIMEOUT, HTTP_GATEWAY_TIMEOUT));
     comm_close(fd);
 }
 
@@ -625,7 +621,7 @@ gopherReadReply(int fd, void *data)
     int bin;
     size_t read_sz;
 #if DELAY_POOLS
-    delay_id delay_id = delayMostBytesAllowed(entry->mem_obj);
+    delay_id delay_id;
 #endif
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
 	comm_close(fd);
@@ -635,7 +631,7 @@ gopherReadReply(int fd, void *data)
     buf = memAllocate(MEM_4K_BUF);
     read_sz = 4096 - 1;		/* leave room for termination */
 #if DELAY_POOLS
-    read_sz = delayBytesWanted(delay_id, 1, read_sz);
+    delay_id = delayMostBytesAllowed(entry->mem_obj, &read_sz);
 #endif
     /* leave one space for \0 in gopherToHTML */
     statCounter.syscalls.sock.reads++;
@@ -660,22 +656,15 @@ gopherReadReply(int fd, void *data)
 	debug(50, 1) ("gopherReadReply: error reading: %s\n", xstrerror());
 	if (ignoreErrno(errno)) {
 	    commSetSelect(fd, COMM_SELECT_READ, gopherReadReply, data, 0);
-	} else if (entry->mem_obj->inmem_hi == 0) {
+	} else {
 	    ErrorState *err;
 	    err = errorCon(ERR_READ_ERROR, HTTP_INTERNAL_SERVER_ERROR);
 	    err->xerrno = errno;
-	    err->url = xstrdup(storeUrl(entry));
-	    errorAppendEntry(entry, err);
-	    comm_close(fd);
-	} else {
+	    fwdFail(gopherState->fwdState, err);
 	    comm_close(fd);
 	}
     } else if (len == 0 && entry->mem_obj->inmem_hi == 0) {
-	ErrorState *err;
-	err = errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_SERVICE_UNAVAILABLE);
-	err->xerrno = errno;
-	err->url = xstrdup(gopherState->request);
-	errorAppendEntry(entry, err);
+	fwdFail(gopherState->fwdState, errorCon(ERR_ZERO_SIZE_OBJECT, HTTP_SERVICE_UNAVAILABLE));
 	comm_close(fd);
     } else if (len == 0) {
 	/* Connection closed; retrieval done. */
@@ -717,12 +706,12 @@ gopherSendComplete(int fd, char *buf, size_t size, int errflag, void *data)
     }
     if (errflag) {
 	ErrorState *err;
-	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
+	err = errorCon(ERR_WRITE_ERROR, HTTP_BAD_GATEWAY);
 	err->xerrno = errno;
 	err->host = xstrdup(gopherState->req->host);
 	err->port = gopherState->req->port;
 	err->url = xstrdup(storeUrl(entry));
-	errorAppendEntry(entry, err);
+	fwdFail(gopherState->fwdState, err);
 	comm_close(fd);
 	if (buf)
 	    memFree(buf, MEM_4K_BUF);	/* Allocated by gopherSendRequest. */
@@ -732,29 +721,28 @@ gopherSendComplete(int fd, char *buf, size_t size, int errflag, void *data)
      * OK. We successfully reach remote site.  Start MIME typing
      * stuff.  Do it anyway even though request is not HTML type.
      */
+    storeBuffer(entry);
     gopherMimeCreate(gopherState);
     switch (gopherState->type_id) {
     case GOPHER_DIRECTORY:
 	/* we got to convert it first */
-	storeBuffer(entry);
 	gopherState->conversion = HTML_DIR;
 	gopherState->HTML_header_added = 0;
 	break;
     case GOPHER_INDEX:
 	/* we got to convert it first */
-	storeBuffer(entry);
 	gopherState->conversion = HTML_INDEX_RESULT;
 	gopherState->HTML_header_added = 0;
 	break;
     case GOPHER_CSO:
 	/* we got to convert it first */
-	storeBuffer(entry);
 	gopherState->conversion = HTML_CSO_RESULT;
 	gopherState->cso_recno = 0;
 	gopherState->HTML_header_added = 0;
 	break;
     default:
 	gopherState->conversion = NORMAL;
+	storeBufferFlush(entry);
     }
     /* Schedule read reply. */
     commSetSelect(fd, COMM_SELECT_READ, gopherReadReply, gopherState, 0);
@@ -815,16 +803,6 @@ gopherStart(FwdState * fwdState)
     /* Parse url. */
     gopher_request_parse(fwdState->request,
 	&gopherState->type_id, gopherState->request);
-#if OLD_PARSE_ERROR_CODE
-    if (...) {
-	ErrorState *err;
-	err = errorCon(ERR_INVALID_URL, HTTP_BAD_REQUEST);
-	err->url = xstrdup(storeUrl(entry));
-	errorAppendEntry(entry, err);
-	gopherStateFree(-1, gopherState);
-	return;
-    }
-#endif
     comm_add_close_handler(fd, gopherStateFree, gopherState);
     if (((gopherState->type_id == GOPHER_INDEX) || (gopherState->type_id == GOPHER_CSO))
 	&& (strchr(gopherState->request, '?') == NULL)) {

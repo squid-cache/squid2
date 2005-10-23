@@ -9,7 +9,7 @@ dnl
 dnl
 AC_INIT(src/main.c)
 AC_CONFIG_AUX_DIR(cfgaux)
-AM_INIT_AUTOMAKE(squid, 2.5.STABLE10-CVS)
+AM_INIT_AUTOMAKE(squid, 2.5.STABLE12-CVS)
 AM_CONFIG_HEADER(include/autoconf.h)
 AC_REVISION($Revision$)dnl
 AC_PREFIX_DEFAULT(/usr/local/squid)
@@ -21,6 +21,7 @@ if test -z "$LDFLAGS"; then
 fi
 
 PRESET_CFLAGS="$CFLAGS"
+PRESET_LDFLAGS="$LDFLAGS"
 
 dnl Check for GNU cc
 AC_PROG_CC
@@ -67,7 +68,9 @@ fi
 
 dnl Substitutions
 AC_DEFINE_UNQUOTED(CACHE_HTTP_PORT, $CACHE_HTTP_PORT)
+AC_SUBST(CACHE_HTTP_PORT)
 AC_DEFINE_UNQUOTED(CACHE_ICP_PORT, $CACHE_ICP_PORT)
+AC_SUBST(CACHE_ICP_PORT)
 
 AC_DEFINE_UNQUOTED(CONFIG_HOST_TYPE, "$host")
 
@@ -786,16 +789,13 @@ AC_ARG_WITH(build-environment,
                           XBS5_LP64_OFF64        64 bits (legacy)
                           XBS5_LPBIG_OFFBIG      large pointers and files (legacy)
                           default                The default for your OS],
-[ case "$enableval" in
+[ case "$withval" in
   yes|no)
 	echo "--with-build-environment expects a build environment string as used by getconf"
 	exit 1
 	;;
-  _*)
-	buildmodel="$enableval"
-	;;
   *)
-	buildmodel="_$enableval"
+	buildmodel="$withval"
 	;;
   esac
 ])
@@ -813,11 +813,33 @@ if test $needlargefiles && test -z "$buildmodel"; then
 		CFLAGS="-D_FILE_OFFSET_BITS=64 $CFLAGS"
 	fi
 fi
-if test -n "$buildmodel" && test "$buildmodel" != "_default"; then
+if test -n "$buildmodel" && test "$buildmodel" != "default"; then
 	echo "Using $buildmodel build environment"
+	if test "`getconf _$buildmodel 2>/dev/null || true`" = 1 || test "`getconf $buildmodel 2>/dev/null || true`" ; then
+	    : # All fine
+	else
+	    echo "ERROR: Build environment $buildmodel not known to getconf."
+	    exit 1
+	fi
 	CFLAGS="`getconf ${buildmodel}_CFLAGS` $CFLAGS"
 	LIBS="`getconf ${buildmodel}_LIBS` $LIBS"
 	LDFLAGS="`getconf ${buildmodel}_LDFLAGS` $LDFLAGS"
+dnl
+dnl On Solaris getconf returns for CFLAGS -Xa and -Usun options, but:
+dnl   -Xa is supported only by Sun cc, so we need to remove it when using gcc
+dnl   The 'sun' define is needed by ipfilter includes, so we must remove -Usun
+	case "$host" in
+	    *-solaris*)
+    		if test "$GCC" = "yes"; then
+		    echo "Removing -Xa for gcc on $host"
+		    CFLAGS="`echo $CFLAGS | sed -e 's/-Xa//'`"
+		fi
+   	        echo "Removing -Usun for gcc on $host"
+		CFLAGS="`echo $CFLAGS | sed -e 's/-Usun//'`"
+		;;
+	    *)
+	        ;;
+	esac
 fi
 
 AM_CONDITIONAL(MAKE_LEAKFINDER, false)
@@ -1279,6 +1301,7 @@ AC_CHECK_HEADERS( \
 	ip_fil_compat.h \
 	ip_fil.h \
 	ip_nat.h \
+	ipl.h \
 	libc.h \
 	limits.h \
 	linux/netfilter_ipv4.h \
@@ -1296,6 +1319,7 @@ AC_CHECK_HEADERS( \
 	netinet/ip_fil_compat.h \
 	netinet/ip_fil.h \
 	netinet/ip_nat.h \
+	netinet/ipl.h \
 	openssl/err.h \
 	openssl/md5.h \
 	openssl/ssl.h \
@@ -1317,6 +1341,7 @@ AC_CHECK_HEADERS( \
 	sys/mount.h \
 	sys/msg.h \
 	sys/param.h \
+	sys/prctl.h \
 	sys/resource.h \
 	sys/select.h\
 	sys/socket.h \
@@ -1794,6 +1819,7 @@ AC_CHECK_FUNCS(\
 	mktime \
 	mstats \
 	poll \
+	prctl \
 	pthread_attr_setscope \
 	pthread_setschedparam \
 	pthread_attr_setschedparam \
@@ -1930,6 +1956,17 @@ if test "$IPF_TRANSPARENT" = "no" ; then
     echo "WARNING: Cannot find necessary IP-Filter header files"
     echo "         Transparent Proxy support WILL NOT be enabled"
     sleep 10
+elif test "$IPF_TRANSPARENT" = "yes" ; then
+dnl On Solaris Ipfilter includes expect that SOLARIS2 is defined with the
+dnl Solaris minor version (8, 9, 10, ...)
+    case "$host" in
+	*-solaris*)
+	    solrev=`uname -r | sh -c 'IFS=. read j n x; echo $n'`
+	    CFLAGS="-DSOLARIS2=$solrev $CFLAGS" 
+	    ;;
+	*)
+	    ;;
+     esac
 fi
 
 dnl PF support requires a header file.
@@ -2038,6 +2075,24 @@ DEFAULT_FD_SETSIZE=256)
 AC_MSG_RESULT($DEFAULT_FD_SETSIZE)
 AC_DEFINE_UNQUOTED(DEFAULT_FD_SETSIZE, $DEFAULT_FD_SETSIZE)
 
+AC_ARG_WITH(maxfd,
+[  --with-maxfd=N          Override maximum number of filedescriptors. Useful
+                          if you build as another user who is not privileged
+                          to use the number of filedescriptors you want the
+                          resulting binary to support],
+[ case $withval in
+  [[0-9]]*)
+    SQUID_MAXFD=$withval
+    echo "Maximum filedescriptors set to $SQUID_MAXFD"
+    ;;
+  *)
+    echo "ERROR: Invalid --with-maxfd argument"
+    exit 1
+    ;;
+  esac
+])
+if test -z "$SQUID_MAXFD"; then
+
 dnl Not cached since people are likely to tune this
 AC_MSG_CHECKING(Maximum number of filedescriptors we can open)
 dnl damn! FreeBSD's pthreads breaks dup2().
@@ -2109,6 +2164,7 @@ SQUID_MAXFD=`cat conftestval`,
 SQUID_MAXFD=256,
 SQUID_MAXFD=256)
 AC_MSG_RESULT($SQUID_MAXFD)
+fi # --with-maxfd SQUID_MAXFD
 AC_DEFINE_UNQUOTED(SQUID_MAXFD, $SQUID_MAXFD)
 if test "$SQUID_MAXFD" -lt 512 ; then
     echo "WARNING: $SQUID_MAXFD may not be enough filedescriptors if your"

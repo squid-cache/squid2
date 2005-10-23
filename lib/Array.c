@@ -65,14 +65,14 @@ arrayCreate(void)
 void
 arrayInit(Array * a)
 {
-    assert(a);
+    assert(a != NULL);
     memset(a, 0, sizeof(Array));
 }
 
 void
 arrayClean(Array * a)
 {
-    assert(a);
+    assert(a != NULL);
     /* could also warn if some objects are left */
     xfree(a->items);
     a->items = NULL;
@@ -81,7 +81,7 @@ arrayClean(Array * a)
 void
 arrayDestroy(Array * a)
 {
-    assert(a);
+    assert(a != NULL);
     arrayClean(a);
     xfree(a);
 }
@@ -89,17 +89,30 @@ arrayDestroy(Array * a)
 void
 arrayAppend(Array * a, void *obj)
 {
-    assert(a);
+    assert(a != NULL);
     if (a->count >= a->capacity)
 	arrayGrow(a, a->count + 1);
     a->items[a->count++] = obj;
+}
+
+void arrayInsert(Array *a, void *obj, int position)
+{
+    assert(a != NULL);
+    if (a->count >= a->capacity)
+	arrayGrow(a, a->count + 1);
+    if (position > a->count)
+	position = a->count;
+    if (position < a->count)
+	memmove(&a->items[position + 1], &a->items[position], (a->count - position) * sizeof(void *));
+    a->items[position] = obj;
+    a->count++;
 }
 
 /* if you are going to append a known and large number of items, call this first */
 void
 arrayPreAppend(Array * a, int app_count)
 {
-    assert(a);
+    assert(a != NULL);
     if (a->count + app_count > a->capacity)
 	arrayGrow(a, a->count + app_count);
 }

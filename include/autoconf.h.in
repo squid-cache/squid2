@@ -506,6 +506,9 @@
 /* Define if you have the poll function.  */
 #undef HAVE_POLL
 
+/* Define if you have the prctl function.  */
+#undef HAVE_PRCTL
+
 /* Define if you have the pthread_attr_setschedparam function.  */
 #undef HAVE_PTHREAD_ATTR_SETSCHEDPARAM
 
@@ -656,6 +659,9 @@
 /* Define if you have the <ip_nat.h> header file.  */
 #undef HAVE_IP_NAT_H
 
+/* Define if you have the <ipl.h> header file.  */
+#undef HAVE_IPL_H
+
 /* Define if you have the <libc.h> header file.  */
 #undef HAVE_LIBC_H
 
@@ -706,6 +712,9 @@
 
 /* Define if you have the <netinet/ip_nat.h> header file.  */
 #undef HAVE_NETINET_IP_NAT_H
+
+/* Define if you have the <netinet/ipl.h> header file.  */
+#undef HAVE_NETINET_IPL_H
 
 /* Define if you have the <netinet/tcp.h> header file.  */
 #undef HAVE_NETINET_TCP_H
@@ -793,6 +802,9 @@
 
 /* Define if you have the <sys/param.h> header file.  */
 #undef HAVE_SYS_PARAM_H
+
+/* Define if you have the <sys/prctl.h> header file.  */
+#undef HAVE_SYS_PRCTL_H
 
 /* Define if you have the <sys/resource.h> header file.  */
 #undef HAVE_SYS_RESOURCE_H

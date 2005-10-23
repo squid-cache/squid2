@@ -191,21 +191,6 @@ authNTLMParse(authScheme * scheme, int n_configured, char *param_str)
     } else {
 	debug(28, 0) ("unrecognised ntlm auth scheme parameter '%s'\n", param_str);
     }
-    /*
-     * disable client side request pipelining. There is a race with
-     * NTLM when the client sends a second request on an NTLM
-     * connection before the authenticate challenge is sent. With
-     * this patch, the client may fail to authenticate, but squid's
-     * state will be preserved.  Caveats: this should be a post-parse
-     * test, but that can wait for the modular parser to be integrated.
-     */
-    if (ntlmConfig->authenticate && Config.onoff.pipeline_prefetch != 0)
-	Config.onoff.pipeline_prefetch = 0;
-
-    if (ntlmConfig->use_ntlm_negotiate && ntlmConfig->challengeuses > 0) {
-	debug(28, 1) ("challenge reuses incompatible with use_ntlm_negotiate. Disabling challenge reuse\n");
-	ntlmConfig->challengeuses = 0;
-    }
 }
 
 
@@ -241,6 +226,21 @@ authNTLMInit(authScheme * scheme)
 {
     static int ntlminit = 0;
     if (ntlmConfig->authenticate) {
+	/*
+	 * disable client side request pipelining. There is a race with
+	 * NTLM when the client sends a second request on an NTLM
+	 * connection before the authenticate challenge is sent. With
+	 * this patch, the client may fail to authenticate, but squid's
+	 * state will be preserved.
+	 */
+	if (ntlmConfig->authenticate && Config.onoff.pipeline_prefetch != 0) {
+	    debug(28, 1) ("pipeline prefetching incompatile with NTLM authentication. Disabling pipeline_prefetch\n");
+	    Config.onoff.pipeline_prefetch = 0;
+	}
+	if (ntlmConfig->use_ntlm_negotiate && ntlmConfig->challengeuses > 0) {
+	    debug(28, 1) ("challenge reuses incompatible with use_ntlm_negotiate. Disabling challenge reuse\n");
+	    ntlmConfig->challengeuses = 0;
+	}
 	if (!ntlm_helper_state_pool)
 	    ntlm_helper_state_pool = memPoolCreate("NTLM Helper State data", sizeof(ntlm_helper_state_t));
 	if (!ntlm_user_pool)
@@ -332,6 +332,8 @@ static void
 authenticateNTLMFixErrorHeader(auth_user_request_t * auth_user_request, HttpReply * rep, http_hdr_type type, request_t * request)
 {
     ntlm_request_t *ntlm_request;
+    if (!request->flags.proxy_keepalive)
+	return;
     if (ntlmConfig->authenticate) {
 	/* New request, no user details */
 	if (auth_user_request == NULL) {
@@ -360,6 +362,7 @@ authenticateNTLMFixErrorHeader(auth_user_request_t * auth_user_request, HttpRepl
 		/* pass the challenge to the client */
 		debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM %s'\n", type, ntlm_request->authchallenge);
 		httpHeaderPutStrf(&rep->header, type, "NTLM %s", ntlm_request->authchallenge);
+		request->flags.must_keepalive = 1;
 		break;
 	    default:
 		debug(29, 0) ("authenticateNTLMFixErrorHeader: state %d.\n", ntlm_request->auth_state);
@@ -983,12 +986,7 @@ authenticateNTLMAuthenticateUser(auth_user_request_t * auth_user_request, reques
 	/* do a cache lookup here. If it matches it's a successful ntlm 
 	 * challenge - release the helper and use the existing auth_user 
 	 * details. */
-	if (strncmp("NTLM ", proxy_auth, 5) == 0) {
-	    ntlm_request->ntlmauthenticate = xstrdup(proxy_auth);
-	} else {
-	    fatal("Incorrect scheme in auth header\n");
-	    /* TODO: more fault tolerance.. reset the auth scheme here */
-	}
+	ntlm_request->ntlmauthenticate = xstrdup(proxy_auth);
 	/* normal case with challenge reuses disabled */
 	if (ntlmConfig->challengeuses == 0) {
 	    /* verify with the ntlm helper */

@@ -480,6 +480,8 @@ struct _SquidConfig {
 	int rotateNumber;
     } Log;
     char *adminEmail;
+    char *EmailFrom;
+    char *EmailProgram;
     char *effectiveUser;
     char *effectiveGroup;
     struct {
@@ -609,6 +611,7 @@ struct _SquidConfig {
 	int relaxed_header_parser;
 	int accel_uses_host_header;
 	int accel_no_pmtu_disc;
+	int global_internal_static;
     } onoff;
     acl *aclList;
     struct {
@@ -837,7 +840,7 @@ struct _MemBuf {
 struct _Packer {
     /* protected, use interface functions instead */
     append_f append;
-    vprintf_f vprintf;
+    vprintf_f packer_vprintf;
     void *real_handle;		/* first parameter to real append and vprintf */
 };
 
@@ -1619,6 +1622,7 @@ struct _request_flags {
     unsigned int internal:1;
     unsigned int body_sent:1;
     unsigned int reset_tcp:1;
+    unsigned int must_keepalive:1;
 };
 
 struct _link_list {

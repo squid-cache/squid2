@@ -316,7 +316,7 @@ httpHeaderParseInt(const char *start, int *value)
     return 1;
 }
 
-squid_off_t
+int
 httpHeaderParseSize(const char *start, squid_off_t * value)
 {
     squid_off_t v;

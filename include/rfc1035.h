@@ -100,6 +100,7 @@ extern int rfc1035_errno;
 extern const char *rfc1035_error_message;
 
 #define RFC1035_TYPE_A 1
+#define RFC1035_TYPE_CNAME 5
 #define RFC1035_TYPE_PTR 12
 #define RFC1035_CLASS_IN 1
 

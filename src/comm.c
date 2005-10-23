@@ -794,7 +794,7 @@ commSetNonBlocking(int fd)
     int nonblocking = TRUE;
     if (fd_table[fd].type != FD_PIPE) {
 	if (ioctl(fd, FIONBIO, &nonblocking) < 0) {
-	    debug(50, 0) ("commSetNonBlocking: FD %d: %s %D\n", fd, xstrerror(), fd_table[fd].type);
+	    debug(50, 0) ("commSetNonBlocking: FD %d: %s %u\n", fd, xstrerror(), fd_table[fd].type);
 	    return COMM_ERROR;
 	}
     } else {
