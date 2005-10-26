@@ -138,7 +138,10 @@ management of timeouts while connecting to origin servers or peers
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=649" name="#649"></tag>Problems refreshing pages stored with 'vary' information
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=779" name="#779"></tag>users going above their allowed IP count no longer logged in cache.log
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=888" name="#888"></tag>ntlm_user_pool assertion error on shutdown
-<tag>Ipfilter 4.x issues</tag>
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420" name="#1420"></tag>302 responses with an Expires header is always cached
+</descrip>
+
+<P>Ipfilter 4.x compile problem on HP Tru64
 <itemize>
     <item>Running configure --enable-ipf-transparent on an HP Tru64 5.1B system with ipfilter 4.x installed, the following error can occur:
     <verb>
@@ -156,7 +159,6 @@ management of timeouts while connecting to origin servers or peers
       <url url="http://cvs.opensolaris.org/source/xref/usr/src/common/ipf/" name="OpenSolaris Web Site">
       in the /usr/include local directory. Don't forget to fix files permission and ownership after the download.
 </itemize>
-</descrip>
 
 
 <P>In addition there is a set of limitations in this version of Squid which we hope to correct later

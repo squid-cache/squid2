@@ -156,7 +156,12 @@ management of timeouts while connecting to origin servers or peers</P>
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=779">#779</A></B><DD><P>users going above their allowed IP count no longer logged in cache.log</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=888">#888</A></B><DD><P>ntlm_user_pool assertion error on shutdown</P>
-<DT><B>Ipfilter 4.x issues</B><DD><P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420">#1420</A></B><DD><P>302 responses with an Expires header is always cached</P>
+</DL>
+</P>
+
+<P>Ipfilter 4.x compile problem on HP Tru64
 <UL>
 <LI>Running configure --enable-ipf-transparent on an HP Tru64 5.1B system with ipfilter 4.x installed, the following error can occur:
 <PRE>
@@ -178,8 +183,6 @@ Before running configure --enable-ipf-transparent, they must be downloaded from 
 <A HREF="http://cvs.opensolaris.org/source/xref/usr/src/common/ipf/">OpenSolaris Web Site</A>
 in the /usr/include local directory. Don't forget to fix files permission and ownership after the download.</LI>
 </UL>
-</P>
-</DL>
 </P>
 
 
