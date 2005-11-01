@@ -402,7 +402,7 @@ accessLogInit(void)
 	mcast_miss_to.sin_port = htons(Config.mcast_miss.port);
 	mcast_miss_to.sin_addr.s_addr = Config.mcast_miss.addr.s_addr;
 	mcast_miss_fd = comm_open(SOCK_DGRAM,
-	    0,
+	    IPPROTO_UDP,
 	    Config.Addrs.udp_incoming,
 	    Config.mcast_miss.port,
 	    COMM_NONBLOCKING,

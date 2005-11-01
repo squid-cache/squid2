@@ -1786,7 +1786,7 @@ ftpSendPasv(FtpStateData * ftpState)
     }
     /* Open data channel with the same local address as control channel */
     fd = comm_open(SOCK_STREAM,
-	0,
+	IPPROTO_TCP,
 	addr.sin_addr,
 	0,
 	COMM_NONBLOCKING,
@@ -1926,7 +1926,7 @@ ftpOpenListenSocket(FtpStateData * ftpState, int fallback)
 	port = ntohs(addr.sin_port);
     }
     fd = comm_open(SOCK_STREAM,
-	0,
+	IPPROTO_TCP,
 	addr.sin_addr,
 	port,
 	COMM_NONBLOCKING | (fallback ? COMM_REUSEADDR : 0),

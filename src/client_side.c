@@ -3808,7 +3808,7 @@ clientHttpConnectionsOpen(void)
 	}
 	enter_suid();
 	fd = comm_open(SOCK_STREAM,
-	    0,
+	    IPPROTO_TCP,
 	    s->s.sin_addr,
 	    ntohs(s->s.sin_port),
 	    COMM_NONBLOCKING,
@@ -3846,7 +3846,7 @@ clientHttpsConnectionsOpen(void)
 	}
 	enter_suid();
 	fd = comm_open(SOCK_STREAM,
-	    0,
+	    IPPROTO_TCP,
 	    s->s.sin_addr,
 	    ntohs(s->s.sin_port),
 	    COMM_NONBLOCKING,

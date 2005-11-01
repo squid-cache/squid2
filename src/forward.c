@@ -407,7 +407,7 @@ fwdConnectStart(void *data)
     debug(17, 3) ("fwdConnectStart: got addr %s, tos %d\n",
 	inet_ntoa(outgoing), tos);
     fd = comm_openex(SOCK_STREAM,
-	0,
+	IPPROTO_TCP,
 	outgoing,
 	0,
 	COMM_NONBLOCKING,

@@ -481,6 +481,14 @@ struct rusage {
 #define FD_READ_METHOD(fd, buf, len) (*fd_table[fd].read_method)(fd, buf, len)
 #define FD_WRITE_METHOD(fd, buf, len) (*fd_table[fd].write_method)(fd, buf, len)
 
+#ifndef IPPROTO_UDP
+#define IPPROTO_UDP 0
+#endif
+
+#ifndef IPPROTO_TCP
+#define IPPROTO_TCP 0
+#endif
+
 /*
  * Trap attempts to build large file cache support without support for
  * large objects

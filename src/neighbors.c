@@ -1099,7 +1099,7 @@ peerProbeConnect(peer * p)
 	return ret;		/* probe already running */
     if (squid_curtime - p->stats.last_connect_probe == 0)
 	return ret;		/* don't probe to often */
-    fd = comm_open(SOCK_STREAM, 0, getOutgoingAddr(NULL),
+    fd = comm_open(SOCK_STREAM, IPPROTO_TCP, getOutgoingAddr(NULL),
 	0, COMM_NONBLOCKING, p->host);
     if (fd < 0)
 	return ret;

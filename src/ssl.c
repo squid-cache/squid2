@@ -520,7 +520,7 @@ sslStart(clientHttpRequest * http, squid_off_t * size_ptr, int *status_ptr)
     statCounter.server.other.requests++;
     /* Create socket. */
     sock = comm_openex(SOCK_STREAM,
-	0,
+	IPPROTO_TCP,
 	getOutgoingAddr(request),
 	0,
 	COMM_NONBLOCKING,

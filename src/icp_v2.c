@@ -413,7 +413,7 @@ icpConnectionsOpen(void)
 	return;
     enter_suid();
     theInIcpConnection = comm_open(SOCK_DGRAM,
-	0,
+	IPPROTO_UDP,
 	Config.Addrs.udp_incoming,
 	port,
 	COMM_NONBLOCKING,
@@ -434,7 +434,7 @@ icpConnectionsOpen(void)
     if ((addr = Config.Addrs.udp_outgoing).s_addr != no_addr.s_addr) {
 	enter_suid();
 	theOutIcpConnection = comm_open(SOCK_DGRAM,
-	    0,
+	    IPPROTO_UDP,
 	    addr,
 	    port,
 	    COMM_NONBLOCKING,

@@ -205,7 +205,7 @@ identStart(struct sockaddr_in *me, struct sockaddr_in *my_peer, IDCB * callback,
 	return;
     }
     fd = comm_open(SOCK_STREAM,
-	0,
+	IPPROTO_TCP,
 	me->sin_addr,
 	0,
 	COMM_NONBLOCKING,

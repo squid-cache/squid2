@@ -84,26 +84,26 @@ ipcCreate(int type, const char *prog, const char *const args[], const char *name
 	*wfd = -1;
     if (type == IPC_TCP_SOCKET) {
 	crfd = cwfd = comm_open(SOCK_STREAM,
-	    0,
+	    IPPROTO_TCP,
 	    local_addr,
 	    0,
 	    COMM_NOCLOEXEC,
 	    name);
 	prfd = pwfd = comm_open(SOCK_STREAM,
-	    0,			/* protocol */
+	    IPPROTO_TCP,	/* protocol */
 	    local_addr,
 	    0,			/* port */
 	    0,			/* blocking */
 	    name);
     } else if (type == IPC_UDP_SOCKET) {
 	crfd = cwfd = comm_open(SOCK_DGRAM,
-	    0,
+	    IPPROTO_UDP,
 	    local_addr,
 	    0,
 	    COMM_NOCLOEXEC,
 	    name);
 	prfd = pwfd = comm_open(SOCK_DGRAM,
-	    0,
+	    IPPROTO_UDP,
 	    local_addr,
 	    0,
 	    0,
