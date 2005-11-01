@@ -1172,23 +1172,26 @@ DOC_END
 
 NAME: hosts_file
 TYPE: string
-DEFAULT: /etc/hosts
+DEFAULT: @DEFAULT_HOSTS@
 LOC: Config.etcHostsPath
 DOC_START
 	Location of the host-local IP name-address associations
-	database.  Most Operating Systems have such a file: under
-	Un*X it's by default in /etc/hosts.  MS-Windows NT/2000 places
-	it in %SystemRoot%(by default
-	c:\winnt)\system32\drivers\etc\hosts, while Windows 9x/ME
-	places it in %windir%(usually c:\windows)\hosts
+	database. Most Operating Systems have such a file: under
+	Un*X it's by default in /etc/hosts. Windows NT family
+	places it in %SystemRoot%\system32\drivers\etc\hosts,
+	while Windows 9x/ME places it in %windir%\hosts.
+	The default %SystemRoot% value is OS dependent:
+	- Windows NT/2000: c:\winnt
+	- Windows XP/2003: c:\windows
+	The default %windir% value on 9x/ME is usually c:\windows.
 
 	The file contains newline-separated definitions, in the
 	form ip_address_in_dotted_form name [name ...] names are
-	whitespace-separated.  lines beginning with an hash (#)
+	whitespace-separated. Lines beginning with an hash (#)
 	character are comments.
 
 	The file is checked at startup and upon configuration.  If
-	set to 'none', it won't be checked.  If append_domain is
+	set to 'none', it won't be checked. If append_domain is
 	used, that domain will be added to domain-local (i.e. not
 	containing any dot character) host definitions.
 DOC_END

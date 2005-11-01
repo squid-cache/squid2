@@ -291,6 +291,7 @@ DEFAULT_DISKD		= $(libexecdir)/`echo diskd | sed '$(transform);s/$$/$(EXEEXT)/'`
 DEFAULT_ICON_DIR	= $(datadir)/icons
 DEFAULT_ERROR_DIR	= $(datadir)/errors/@ERR_DEFAULT_LANGUAGE@
 DEFAULT_MIB_PATH	= $(datadir)/mib.txt
+DEFAULT_HOSTS		= @OPT_DEFAULT_HOSTS@
 
 DEFS = @DEFS@ -DDEFAULT_CONFIG_FILE=\"$(DEFAULT_CONFIG_FILE)\"
 
@@ -342,7 +343,8 @@ cf.data: cf.data.pre Makefile
 	s%@DEFAULT_ICON_DIR@%$(DEFAULT_ICON_DIR)%g;\
 	s%@DEFAULT_MIB_PATH@%$(DEFAULT_MIB_PATH)%g;\
 	s%@DEFAULT_ERROR_DIR@%$(DEFAULT_ERROR_DIR)%g;\
-	s%@DEFAULT_PREFIX@%$(DEFAULT_PREFIX)%g;"\
+	s%@DEFAULT_PREFIX@%$(DEFAULT_PREFIX)%g;\
+	s%@DEFAULT_HOSTS@%$(DEFAULT_HOSTS)%g;"\
 	< $(srcdir)/cf.data.pre >$@
 
 store_modules.c: store_modules.sh Makefile
