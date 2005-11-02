@@ -86,7 +86,8 @@ libexec_PROGRAMS = \
 	$(UNLINKD) \
 	cachemgr$(CGIEXT)
 
-cf_gen_SOURCES = cf_gen.c defines.h
+cf_gen_SOURCES = cf_gen.c defines.h debug.c
+nodist_cf_gen_SOURCES = globals.c
 nodist_cf_gen_HEADER = cf_gen_defines.h
 cf_gen.$(OBJEXT): cf_gen_defines.h
 squidclient_SOURCES = client.c

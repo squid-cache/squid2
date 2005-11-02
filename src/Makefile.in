@@ -184,7 +184,8 @@ libexec_PROGRAMS = \
 	cachemgr$(CGIEXT)
 
 
-cf_gen_SOURCES = cf_gen.c defines.h
+cf_gen_SOURCES = cf_gen.c defines.h debug.c
+nodist_cf_gen_SOURCES = globals.c
 nodist_cf_gen_HEADER = cf_gen_defines.h
 squidclient_SOURCES = client.c
 cachemgr__CGIEXT__SOURCES = cachemgr.c
@@ -452,8 +453,9 @@ cachemgr__CGIEXT__OBJECTS = $(am_cachemgr__CGIEXT__OBJECTS)
 cachemgr__CGIEXT__LDADD = $(LDADD)
 cachemgr__CGIEXT__DEPENDENCIES =
 cachemgr__CGIEXT__LDFLAGS =
-am_cf_gen_OBJECTS = cf_gen.$(OBJEXT)
-cf_gen_OBJECTS = $(am_cf_gen_OBJECTS)
+am_cf_gen_OBJECTS = cf_gen.$(OBJEXT) debug.$(OBJEXT)
+nodist_cf_gen_OBJECTS = globals.$(OBJEXT)
+cf_gen_OBJECTS = $(am_cf_gen_OBJECTS) $(nodist_cf_gen_OBJECTS)
 cf_gen_LDADD = $(LDADD)
 cf_gen_DEPENDENCIES =
 cf_gen_LDFLAGS =
@@ -610,7 +612,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = Makefile.am Makefile.in
 DIST_SUBDIRS = $(SUBDIRS)
-SOURCES = $(cachemgr__CGIEXT__SOURCES) $(cf_gen_SOURCES) dnsserver.c $(pinger_SOURCES) $(nodist_pinger_SOURCES) $(squid_SOURCES) $(EXTRA_squid_SOURCES) $(nodist_squid_SOURCES) $(squidclient_SOURCES) $(unlinkd_SOURCES)
+SOURCES = $(cachemgr__CGIEXT__SOURCES) $(cf_gen_SOURCES) $(nodist_cf_gen_SOURCES) dnsserver.c $(pinger_SOURCES) $(nodist_pinger_SOURCES) $(squid_SOURCES) $(EXTRA_squid_SOURCES) $(nodist_squid_SOURCES) $(squidclient_SOURCES) $(unlinkd_SOURCES)
 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
