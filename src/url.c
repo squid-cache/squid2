@@ -63,6 +63,7 @@ const char *RequestMethodStr[] =
     "SUBSCRIBE",
     "UNSUBSCRIBE",
     "POLL",
+    "REPORT",
     "%EXT00",
     "%EXT01",
     "%EXT02",
