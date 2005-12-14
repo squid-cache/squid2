@@ -1,3 +1,7 @@
+Changes
+
+	- --enable-default-hostsfile configure option
+
 Changes to squid-2.5.STABLE12 (22 Oct 2005)
 
 	- [Major] Error introduced in 2.5.STABLE11 causing truncated responses
