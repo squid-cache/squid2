@@ -941,6 +941,9 @@ squidaio_stats(StoreEntry * sentry)
     squidaio_thread_t *threadp;
     int i;
 
+    if (!squidaio_initialised)
+	return;
+
     storeAppendPrintf(sentry, "\n\nThreads Status:\n");
     storeAppendPrintf(sentry, "#\tID\t# Requests\n");
 
