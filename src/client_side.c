@@ -859,7 +859,10 @@ httpRequestFree(void *data)
 	http->al.icp.opcode = ICP_INVALID;
 	http->al.url = http->log_uri;
 	debug(33, 9) ("httpRequestFree: al.url='%s'\n", http->al.url);
-	if (mem) {
+	if (http->reply) {
+	    http->al.http.code = http->reply->sline.status;
+	    http->al.http.content_type = strBuf(http->reply->content_type);
+	} else if (mem) {
 	    http->al.http.code = mem->reply->sline.status;
 	    http->al.http.content_type = strBuf(mem->reply->content_type);
 	}
@@ -918,6 +921,8 @@ httpRequestFree(void *data)
 	storeUnlockObject(e);
     }
     requestUnlink(http->request);
+    if (http->reply)
+	httpReplyDestroy(http->reply);
     assert(http != http->next);
     assert(http->conn->chr != NULL);
     /* Unlink us from the clients request list */
@@ -1963,7 +1968,6 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
     StoreEntry *entry = http->entry;
     ConnStateData *conn = http->conn;
     int fd = conn->fd;
-    HttpReply *rep = NULL;
     const char *body_buf = buf;
     squid_off_t body_size = size;
     MemBuf mb;
@@ -2001,8 +2005,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	return;
     }
     if (http->out.offset == 0) {
-	rep = clientBuildReply(http, buf, size);
-	if (rep) {
+	http->reply = clientBuildReply(http, buf, size);
+	if (http->reply) {
 	    aclCheck_t *ch;
 	    int rv;
 	    if (Config.onoff.log_mime_hdrs) {
@@ -2013,8 +2017,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    xstrncpy(http->al.headers.reply, buf, k);
 		}
 	    }
-	    clientMaxBodySize(http->request, http, rep);
-	    if (http->log_type != LOG_TCP_DENIED && clientReplyBodyTooLarge(http, rep->content_length)) {
+	    clientMaxBodySize(http->request, http, http->reply);
+	    if (http->log_type != LOG_TCP_DENIED && clientReplyBodyTooLarge(http, http->reply->content_length)) {
 		ErrorState *err = errorCon(ERR_TOO_BIG, HTTP_FORBIDDEN);
 		err->request = requestLink(http->request);
 		storeUnregister(http->sc, http->entry, http);
@@ -2024,19 +2028,20 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		http->entry = clientCreateStoreEntry(http, http->request->method,
 		    null_request_flags);
 		errorAppendEntry(http->entry, err);
-		httpReplyDestroy(rep);
+		httpReplyDestroy(http->reply);
+		http->reply = NULL;
 		memFree(buf, MEM_CLIENT_SOCK_BUF);
 		return;
 	    }
-	    body_size = size - rep->hdr_sz;
+	    body_size = size - http->reply->hdr_sz;
 	    assert(body_size >= 0);
-	    body_buf = buf + rep->hdr_sz;
-	    http->range_iter.prefix_size = rep->hdr_sz;
+	    body_buf = buf + http->reply->hdr_sz;
+	    http->range_iter.prefix_size = http->reply->hdr_sz;
 	    debug(33, 3) ("clientSendMoreData: Appending %d bytes after %d bytes of headers\n",
-		(int) body_size, rep->hdr_sz);
-	    if (http->log_type != LOG_TCP_DENIED && !clientAlwaysAllowResponse(rep->sline.status)) {
+		(int) body_size, http->reply->hdr_sz);
+	    if (http->log_type != LOG_TCP_DENIED && !clientAlwaysAllowResponse(http->reply->sline.status)) {
 		ch = clientAclChecklistCreate(Config.accessList.reply, http);
-		ch->reply = rep;
+		ch->reply = http->reply;
 		rv = aclCheckFast(Config.accessList.reply, ch);
 		aclChecklistFree(ch);
 		ch = NULL;
@@ -2059,7 +2064,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    http->entry = clientCreateStoreEntry(http, http->request->method,
 			null_request_flags);
 		    errorAppendEntry(http->entry, err);
-		    httpReplyDestroy(rep);
+		    httpReplyDestroy(http->reply);
+		    http->reply = NULL;
 		    memFree(buf, MEM_CLIENT_SOCK_BUF);
 		    return;
 		}
@@ -2069,14 +2075,14 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	http->range_iter.pos = HttpHdrRangeInitPos;
     } else if (!http->request->range) {
 	/* Avoid copying to MemBuf for non-range requests */
-	/* Note, if we're here, then 'rep' is known to be NULL */
+	/* Note, if we're here, then 'http->reply' is known to be NULL */
 	http->out.offset += body_size;
 	comm_write(fd, buf, size, clientWriteBodyComplete, http, NULL);
 	/* NULL because clientWriteBodyComplete frees it */
 	return;
     }
     if (http->request->method == METHOD_HEAD) {
-	if (rep) {
+	if (http->reply) {
 	    /* do not forward body for HEAD replies */
 	    body_size = 0;
 	    http->flags.done_copying = 1;
@@ -2098,17 +2104,15 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	}
     }
     /* write headers and/or body if any */
-    assert(rep || (body_buf && body_size));
+    assert(http->reply || (body_buf && body_size));
     /* init mb; put status line and headers if any */
-    if (rep) {
-	mb = httpReplyPack(rep);
-	http->out.offset += rep->hdr_sz;
-	check_size += rep->hdr_sz;
+    if (http->reply) {
+	mb = httpReplyPack(http->reply);
+	http->out.offset += http->reply->hdr_sz;
+	check_size += http->reply->hdr_sz;
 #if HEADERS_LOG
-	headersLog(0, 0, http->request->method, rep);
+	headersLog(0, 0, http->request->method, http->reply);
 #endif
-	httpReplyDestroy(rep);
-	rep = NULL;
     } else {
 	memBufDefInit(&mb);
     }
@@ -2444,7 +2448,6 @@ clientProcessRequest(clientHttpRequest * http)
 {
     char *url = http->uri;
     request_t *r = http->request;
-    HttpReply *rep;
     http_version_t version;
     debug(33, 4) ("clientProcessRequest: %s '%s'\n",
 	RequestMethodStr[r->method],
@@ -2458,6 +2461,7 @@ clientProcessRequest(clientHttpRequest * http)
 	return;
     } else if (r->method == METHOD_TRACE) {
 	if (r->max_forwards == 0) {
+	    HttpReply *rep;
 	    http->log_type = LOG_TCP_HIT;
 	    http->entry = clientCreateStoreEntry(http, r->method, null_request_flags);
 	    storeReleaseRequest(http->entry);

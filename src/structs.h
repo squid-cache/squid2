@@ -1073,6 +1073,12 @@ struct _clientHttpRequest {
 	squid_off_t offset;
 	squid_off_t size;
     } out;
+    HttpReply *reply;		/* it is important for clientHttpRequest
+				 * to have its own HttpReply for
+				 * logging, especially in cases
+				 * where the reply headers sent to
+				 * the client are different than
+				 * those received from the origin server. */
     HttpHdrRangeIter range_iter;	/* data for iterating thru range specs */
     size_t req_sz;		/* raw request size on input, not current request size */
     StoreEntry *entry;
