@@ -3224,6 +3224,8 @@ DOC_START
 		header_access Allow allow all
 		header_access Authorization allow all
 		header_access WWW-Authenticate allow all
+		header_access Proxy-Authorization allow all
+		header_access Proxy-Authenticate allow all
 		header_access Cache-Control allow all
 		header_access Content-Encoding allow all
 		header_access Content-Length allow all
