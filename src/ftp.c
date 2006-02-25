@@ -556,7 +556,7 @@ ftpListParseParts(const char *buf, struct _ftp_flags flags)
 		t += strlen(tbuf) + 1;
 	    }
 	    p->name = xstrdup(t);
-	    if ((t = strstr(p->name, " -> "))) {
+	    if (p->type == 'l' && (t = strstr(p->name, " -> "))) {
 		*t = '\0';
 		p->link = xstrdup(t + 4);
 	    }
