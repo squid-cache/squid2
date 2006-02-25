@@ -2331,7 +2331,11 @@ ftpDataWriteCallback(int fd, char *buf, size_t size, int err, void *data)
 	return;
     if (!err) {
 	/* Shedule the rest of the request */
-	requestReadBody(ftpState->request, ftpState->data.buf, ftpState->data.size, ftpRequestBody, ftpState);
+	commSetSelect(fd,
+	    COMM_SELECT_WRITE,
+	    ftpDataWrite,
+	    ftpState,
+	    Config.Timeout.read);
     } else {
 	debug(9, 1) ("ftpDataWriteCallback: write error: %s\n", xstrerror());
 	ftpFailed(ftpState, ERR_WRITE_ERROR);
