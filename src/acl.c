@@ -724,16 +724,16 @@ aclParseUserList(void **current)
     splayNode *Top = NULL;
 
     debug(28, 2) ("aclParseUserList: parsing user list\n");
+    if (*current == NULL) {
+	debug(28, 3) ("aclParseUserList: current is null. Creating\n");
+	*current = memAllocate(MEM_ACL_USER_DATA);
+    }
     t = strtokFile();
     if (!t) {
 	debug(28, 2) ("aclParseUserList: No data defined\n");
 	return;
     }
     debug(28, 5) ("aclParseUserList: First token is %s\n", t);
-    if (*current == NULL) {
-	debug(28, 3) ("aclParseUserList: current is null. Creating\n");
-	*current = memAllocate(MEM_ACL_USER_DATA);
-    }
     data = *current;
     Top = data->names;
     if (strcmp("-i", t) == 0) {
