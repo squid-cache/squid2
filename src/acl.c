@@ -1715,6 +1715,8 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     case ACL_IDENT:
 	if (checklist->rfc931[0]) {
 	    return aclMatchUser(ae->data, checklist->rfc931);
+	} else if (checklist->conn && checklist->conn->rfc931[0]) {
+	    return aclMatchUser(ae->data, checklist->conn->rfc931);
 	} else {
 	    checklist->state[ACL_IDENT] = ACL_LOOKUP_NEEDED;
 	    return 0;
@@ -1723,6 +1725,8 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     case ACL_IDENT_REGEX:
 	if (checklist->rfc931[0]) {
 	    return aclMatchRegex(ae->data, checklist->rfc931);
+	} else if (checklist->conn && checklist->conn->rfc931[0]) {
+	    return aclMatchRegex(ae->data, checklist->conn->rfc931);
 	} else {
 	    checklist->state[ACL_IDENT] = ACL_LOOKUP_NEEDED;
 	    return 0;
