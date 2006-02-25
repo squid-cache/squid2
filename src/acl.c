@@ -2260,7 +2260,7 @@ aclDestroyAcls(acl ** head)
 	    break;
 #if SQUID_SNMP
 	case ACL_SNMP_COMMUNITY:
-	    wordlistDestroy((wordlist **) & a->data);
+	    wordlistDestroy((wordlist **) (void *) &a->data);
 	    break;
 #endif
 #if USE_IDENT
@@ -2301,7 +2301,7 @@ aclDestroyAcls(acl ** head)
 	case ACL_NETDB_SRC_RTT:
 #endif
 	case ACL_MAXCONN:
-	    intlistDestroy((intlist **) & a->data);
+	    intlistDestroy((intlist **) (void *) &a->data);
 	    break;
 	case ACL_MAX_USER_IP:
 	    aclDestroyUserMaxIP(&a->data);

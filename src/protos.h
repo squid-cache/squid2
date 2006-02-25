@@ -388,7 +388,7 @@ extern int httpHeaderIdByName(const char *name, int name_len, const HttpHeaderFi
 extern int httpHeaderIdByNameDef(const char *name, int name_len);
 extern const char *httpHeaderNameById(int id);
 extern void httpHeaderMaskInit(HttpHeaderMask * mask, int value);
-extern void httpHeaderCalcMask(HttpHeaderMask * mask, const int *enums, int count);
+extern void httpHeaderCalcMask(HttpHeaderMask * mask, const http_hdr_type * enums, int count);
 extern int httpHeaderHasConnDir(const HttpHeader * hdr, const char *directive);
 extern void httpHeaderAddContRange(HttpHeader *, HttpHdrRangeSpec, squid_off_t);
 extern void strListAdd(String * str, const char *item, char del);

@@ -86,7 +86,7 @@ httpHeaderMaskInit(HttpHeaderMask * mask, int value)
 
 /* calculates a bit mask of a given array; does not reset mask! */
 void
-httpHeaderCalcMask(HttpHeaderMask * mask, const int *enums, int count)
+httpHeaderCalcMask(HttpHeaderMask * mask, const http_hdr_type * enums, int count)
 {
     int i;
     assert(mask && enums);

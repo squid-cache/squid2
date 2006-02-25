@@ -82,6 +82,8 @@
  *             - Allow full filter specifications in -f
  */
 
+#define LDAP_DEPRECATED 1
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
