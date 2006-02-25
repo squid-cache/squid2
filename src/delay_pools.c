@@ -162,10 +162,11 @@ delayIdZero(void *hlink)
 void
 delayFreeDelayData(unsigned short pools)
 {
-    safe_free(delay_data);
-    memory_used -= pools * sizeof(*delay_data);
     if (!delay_id_ptr_hash)
 	return;
+    eventDelete(delayPoolsUpdate, NULL);
+    safe_free(delay_data);
+    memory_used -= pools * sizeof(*delay_data);
     hashFreeItems(delay_id_ptr_hash, delayIdZero);
     hashFreeMemory(delay_id_ptr_hash);
     delay_id_ptr_hash = NULL;
