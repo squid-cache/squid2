@@ -1321,8 +1321,6 @@ clientBuildRangeHeader(clientHttpRequest * http, HttpReply * rep)
 	debug(33, 3) ("clientBuildRangeHeader: range spec count: %d virgin clen: %" PRINTF_OFF_T "\n",
 	    spec_count, rep->content_length);
 	assert(spec_count > 0);
-	/* ETags should not be returned with Partial Content replies? */
-	httpHeaderDelById(hdr, HDR_ETAG);
 	/* append appropriate header(s) */
 	if (spec_count == 1) {
 	    HttpHdrRangePos pos = HttpHdrRangeInitPos;
@@ -2106,7 +2104,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
     /* write headers and/or body if any */
     assert(http->reply || (body_buf && body_size));
     /* init mb; put status line and headers if any */
-    if (http->reply) {
+    if (http->reply && http->out.offset == 0) {
 	mb = httpReplyPack(http->reply);
 	http->out.offset += http->reply->hdr_sz;
 	check_size += http->reply->hdr_sz;
