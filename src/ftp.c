@@ -534,7 +534,7 @@ ftpListParseParts(const char *buf, struct _ftp_flags flags)
 	    continue;
 	if (regexec(&scan_ftp_integer, day, 0, NULL, 0) != 0)
 	    continue;
-	if (regexec(&scan_ftp_time, day, 0, NULL, 0) != 0)	/* Yr | hh:mm */
+	if (regexec(&scan_ftp_time, year, 0, NULL, 0) != 0)	/* Yr | hh:mm */
 	    continue;
 	snprintf(tbuf, 128, "%s %2s %5s",
 	    month, day, year);
