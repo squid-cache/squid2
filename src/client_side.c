@@ -1467,6 +1467,10 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 	debug(33, 3) ("clientBuildReplyHeader: Not many unused FDs, can't keep-alive\n");
 	request->flags.proxy_keepalive = 0;
     }
+    if (!Config.onoff.error_pconns && rep->sline.status >= 400 && !request->flags.must_keepalive) {
+	debug(33, 3) ("clientBuildReplyHeader: Error, don't keep-alive\n");
+	request->flags.proxy_keepalive = 0;
+    }
     if (!Config.onoff.client_pconns && !request->flags.must_keepalive)
 	request->flags.proxy_keepalive = 0;
     /* Signal keep-alive if needed */

@@ -598,6 +598,7 @@ struct _SquidConfig {
 	int ignore_unknown_nameservers;
 	int client_pconns;
 	int server_pconns;
+	int error_pconns;
 #if USE_CACHE_DIGESTS
 	int digest_generation;
 #endif

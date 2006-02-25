@@ -3960,6 +3960,16 @@ DOC_START
 	disable persistent connections with clients and/or servers.
 DOC_END
 
+NAME: persistent_connection_after_error
+TYPE: onoff
+LOC: Config.onoff.error_pconns
+DEFAULT: off
+DOC_START
+	With this directive the use of persistent connections after
+	HTTP errors can be disabled. Useful if you have clients
+	who fail to handle errors on persistent connections proper.
+DOC_END
+
 NAME: detect_broken_pconn
 TYPE: onoff
 LOC: Config.onoff.detect_broken_server_pconns
