@@ -1384,8 +1384,6 @@ aclMatchUserMaxIP(void *data, auth_user_request_t * auth_user_request,
     if (authenticateAuthUserRequestIPCount(auth_user_request) <= acldata->max)
 	return 0;
 
-    debug(28, 1) ("aclMatchUserMaxIP: user '%s' tries to use too many IP addresses (max %d allowed)!\n", authenticateUserRequestUsername(auth_user_request), aclData->max);
-
     /* this is a match */
     if (acldata->flags.strict) {
 	/*
