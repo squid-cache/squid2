@@ -859,7 +859,10 @@ httpRequestFree(void *data)
 	http->al.icp.opcode = ICP_INVALID;
 	http->al.url = http->log_uri;
 	debug(33, 9) ("httpRequestFree: al.url='%s'\n", http->al.url);
-	if (mem) {
+	if (http->reply) {
+	    http->al.http.code = http->reply->sline.status;
+	    http->al.http.content_type = strBuf(http->reply->content_type);
+	} else if (mem) {
 	    http->al.http.code = mem->reply->sline.status;
 	    http->al.http.content_type = strBuf(mem->reply->content_type);
 	}
@@ -918,6 +921,8 @@ httpRequestFree(void *data)
 	storeUnlockObject(e);
     }
     requestUnlink(http->request);
+    if (http->reply)
+	httpReplyDestroy(http->reply);
     assert(http != http->next);
     assert(http->conn->chr != NULL);
     /* Unlink us from the clients request list */
@@ -2003,7 +2008,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	return;
     }
     if (http->out.offset == 0) {
-	rep = clientBuildReply(http, buf, size);
+	rep = http->reply = clientBuildReply(http, buf, size);
 	if (rep) {
 	    aclCheck_t *ch;
 	    int rv;
@@ -2026,7 +2031,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		http->entry = clientCreateStoreEntry(http, http->request->method,
 		    null_request_flags);
 		errorAppendEntry(http->entry, err);
-		httpReplyDestroy(rep);
+		httpReplyDestroy(http->reply);
+		http->reply = NULL;
 		memFree(buf, MEM_CLIENT_SOCK_BUF);
 		return;
 	    }
@@ -2061,7 +2067,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    http->entry = clientCreateStoreEntry(http, http->request->method,
 			null_request_flags);
 		    errorAppendEntry(http->entry, err);
-		    httpReplyDestroy(rep);
+		    httpReplyDestroy(http->reply);
+		    http->reply = NULL;
 		    memFree(buf, MEM_CLIENT_SOCK_BUF);
 		    return;
 		}
@@ -2109,7 +2116,6 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 #if HEADERS_LOG
 	headersLog(0, 0, http->request->method, rep);
 #endif
-	httpReplyDestroy(rep);
 	rep = NULL;
     } else {
 	memBufDefInit(&mb);
