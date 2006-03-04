@@ -859,7 +859,7 @@ httpRequestFree(void *data)
 	http->al.icp.opcode = ICP_INVALID;
 	http->al.url = http->log_uri;
 	debug(33, 9) ("httpRequestFree: al.url='%s'\n", http->al.url);
-	if (http->reply) {
+	if (http->reply && http->log_type != LOG_TCP_DENIED) {
 	    http->al.http.code = http->reply->sline.status;
 	    http->al.http.content_type = strBuf(http->reply->content_type);
 	} else if (mem) {
