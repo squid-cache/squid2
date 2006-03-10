@@ -1,4 +1,43 @@
-	- [Minor] Added WebDAV REPORT method to know HTTP methods list
+Changes to squid-2.5.STABLE12 (12 Mar 2006)
+	- [Minor] Fails to compile on Solaris and some other platforms
+	  with undefined reference to setenv (Bug #1435)
+	- [Cosmetic] Added WebDAV REPORT method to know HTTP methods list
+	- [Minor] Squid ntlm_auth (not the Samba provided one) giving
+	  odd results if --enable-ntlm-fail-open is used (Bug #1022)
+	- [Minor] wbinfo_group.pl doesn't work with Samba 3.0.21 and later
+	  (Bug #1472)
+	- [Minor] Squid crash when asyncio function counters url accessed
+	  from Cachemgr CGI (Bug #1464)
+	- [Cosmetic] Linix compile warning about prctl called with too few
+ 	  arguments (Bug #1483)
+	- [Minor] Wrong timezone declaration for 64 bit Irix (Bug #1479)
+	- [Minor] Some 206 responses logged incorrectly (Bug #1511)
+	- [Minor] Issues in processing ranges on objects &gt;2GB (Bug #437)
+	- [Cosmetic] Segmentation fault on empty proxy_auth ACLs (Bug #1414)
+	- [Minor] Ident access lists don't work in delay_access statements
+	  (Bug #1428)
+	- [Minor] Some clients support NTLM even if not initially negotiating
+	  persistent connections (Bug #1447)
+	- [Medium] 504 Gateway Time-out on FTP uploads (Bug #1459)
+	- [Medium] delay pools given too much bandwidht after "-k reconfigure"
+	  (Bug #1481)
+	- [Cosmetic] New persistent_connection_after_error configuration
+	  directive (Bug #1482)
+	- [Cosmetic] Hangs at 100% CPU if /dev/null is not accessible (Bug
+	  #1484)
+	- [Minor] Fails to compile on Fedora Core 5 test 2 x86_64 (Bug #1492)
+	- [Cosmetic] Typo in ftp.c (Bug #1507)
+	- [Cosmetic] Error in FTP listings of files with -&gt; in their name
+	  (Bug #1508)
+	- [Cosmetic] With Squid-2.5 there is no more the DUPLICATE IP logging
+ 	  in cache.log (Bug #779)
+	- [Minor] Fails to process long host names (Bug #1434)
+	- [Cosmetic] Azerbaijani errors translation (Bug #1454)
+	- [Cosmetic] misleading error message message for bad/unresolveable
+	  cache_peer name (Bug #1504)
+	- [Cosmetic] confusing statistics on stateful helpers (NTLM auth)
+	  (Bug #1506)
+	- [Major] connstate memory leak (Bug #1522)
 
 Changes to squid-2.5.STABLE12 (22 Oct 2005)
 

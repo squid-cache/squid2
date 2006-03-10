@@ -436,5 +436,19 @@ name="ChangeLog"> file for details.
 	name="ChangeLog"> file for details.
 </itemize>
 
+<sect>Key changes squid-2.5.STABLE12 to 2.5.STABLE13:
+
+<p>
+<itemize>
+	<item>connstate related memory leak plugged
+	<item>ftp upload issues fixed
+	<item>delay pools working better on -k reconfigure
+
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE12"
+	name="squid-2.5.STABLE12 patches"> and the <url url="ChangeLog"
+	name="ChangeLog"> file for details.
+</itemize>
+
 </article>
 
