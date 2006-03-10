@@ -3406,7 +3406,7 @@ clientAbortBody(request_t * request)
     CBCB *callback;
     void *cbdata;
     int valid;
-    if (!cbdataValid(conn))
+    if (!conn || !cbdataValid(conn))
 	return;
     if (!conn->body.callback || conn->body.request != request)
 	return;
