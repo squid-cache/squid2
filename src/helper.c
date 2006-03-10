@@ -378,7 +378,6 @@ helperStats(StoreEntry * sentry, helper * hlp)
 	    srv->request ? log_quote(srv->request->buf) : "(none)");
     }
     storeAppendPrintf(sentry, "\nFlags key:\n\n");
-    storeAppendPrintf(sentry, "   A = ALIVE\n");
     storeAppendPrintf(sentry, "   B = BUSY\n");
     storeAppendPrintf(sentry, "   C = CLOSING\n");
     storeAppendPrintf(sentry, "   S = SHUTDOWN\n");
@@ -398,8 +397,8 @@ helperStatefulStats(StoreEntry * sentry, statefulhelper * hlp)
 	hlp->stats.replies);
     storeAppendPrintf(sentry, "queue length: %d\n",
 	hlp->stats.queue_size);
-    storeAppendPrintf(sentry, "avg service time: %d msec\n",
-	hlp->stats.avg_svc_time);
+    storeAppendPrintf(sentry, "avg service time: %.2f msec\n",
+	(double) hlp->stats.avg_svc_time / 1000.0);
     storeAppendPrintf(sentry, "\n");
     storeAppendPrintf(sentry, "%7s\t%7s\t%7s\t%11s\t%s\t%7s\t%7s\t%7s\n",
 	"#",
@@ -412,7 +411,8 @@ helperStatefulStats(StoreEntry * sentry, statefulhelper * hlp)
 	"Request");
     for (link = hlp->servers.head; link; link = link->next) {
 	srv = link->data;
-	tt = 0.001 * tvSubMsec(srv->dispatch_time, current_time);
+	tt = 0.001 * tvSubMsec(srv->dispatch_time,
+	    srv->flags.busy ? current_time : srv->answer_time);
 	storeAppendPrintf(sentry, "%7d\t%7d\t%7d\t%11d\t%c%c%c%c\t%7.3f\t%7d\t%s\n",
 	    srv->index + 1,
 	    srv->rfd,
@@ -427,12 +427,10 @@ helperStatefulStats(StoreEntry * sentry, statefulhelper * hlp)
 	    srv->request ? log_quote(srv->request->buf) : "(none)");
     }
     storeAppendPrintf(sentry, "\nFlags key:\n\n");
-    storeAppendPrintf(sentry, "   A = ALIVE\n");
     storeAppendPrintf(sentry, "   B = BUSY\n");
     storeAppendPrintf(sentry, "   C = CLOSING\n");
     storeAppendPrintf(sentry, "   R = RESERVED or DEFERRED\n");
     storeAppendPrintf(sentry, "   S = SHUTDOWN\n");
-    storeAppendPrintf(sentry, "   P = PLACEHOLDER\n");
 }
 
 void
@@ -734,9 +732,10 @@ helperStatefulHandleRead(int fd, void *data)
 	srv->offset = 0;
 	srv->request = NULL;
 	hlp->stats.replies++;
+	srv->answer_time = current_time;
 	hlp->stats.avg_svc_time =
 	    intAverage(hlp->stats.avg_svc_time,
-	    tvSubMsec(srv->dispatch_time, current_time),
+	    tvSubUsec(srv->dispatch_time, current_time),
 	    hlp->stats.replies, REDIRECT_AV_FACTOR);
 	if (cbdataValid(r->data)) {
 	    r->callback(r->data, srv, srv->buf);
