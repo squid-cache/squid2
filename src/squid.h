@@ -285,11 +285,7 @@
 #include <math.h>
 #endif
 
-#if !defined(MAXHOSTNAMELEN) || (MAXHOSTNAMELEN < 128)
-#define SQUIDHOSTNAMELEN 128
-#else
-#define SQUIDHOSTNAMELEN MAXHOSTNAMELEN
-#endif
+#define SQUIDHOSTNAMELEN 256
 
 #define SQUID_MAXPATHLEN 256
 #ifndef MAXPATHLEN
