@@ -397,7 +397,6 @@ errorStateFree(ErrorState * err)
     requestUnlink(err->request);
     safe_free(err->redirect_url);
     safe_free(err->url);
-    safe_free(err->host);
     safe_free(err->dnsserver_msg);
     safe_free(err->request_hdrs);
     wordlistDestroy(&err->ftp.server_msg);
@@ -493,14 +492,20 @@ errorConvert(char token, ErrorState * err)
 	memBufPrintf(&mb, "%s", getMyHostname());
 	break;
     case 'H':
-	p = r ? r->host : "[unknown host]";
+	if (r) {
+	    if (r->hier.host)
+		p = r->hier.host;
+	    else
+		p = r->host;
+	} else
+	    p = "[unknown host]";
 	break;
     case 'i':
 	memBufPrintf(&mb, "%s", inet_ntoa(err->src_addr));
 	break;
     case 'I':
-	if (err->host) {
-	    memBufPrintf(&mb, "%s", err->host);
+	if (r && r->hier.host) {
+	    memBufPrintf(&mb, "%s", r->hier.host);
 	} else
 	    p = "[unknown]";
 	break;

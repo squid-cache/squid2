@@ -1730,7 +1730,6 @@ struct _ErrorState {
     request_t *request;
     char *url;
     int xerrno;
-    char *host;
     u_short port;
     char *dnsserver_msg;
     time_t ttl;
