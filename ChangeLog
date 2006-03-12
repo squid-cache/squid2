@@ -27,7 +27,7 @@ Changes to squid-2.5.STABLE12 (12 Mar 2006)
 	  #1484)
 	- [Minor] Fails to compile on Fedora Core 5 test 2 x86_64 (Bug #1492)
 	- [Cosmetic] Typo in ftp.c (Bug #1507)
-	- [Cosmetic] Error in FTP listings of files with -&gt; in their name
+	- [Cosmetic] Error in FTP listings of files with -> in their name
 	  (Bug #1508)
 	- [Cosmetic] With Squid-2.5 there is no more the DUPLICATE IP logging
  	  in cache.log (Bug #779)
