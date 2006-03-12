@@ -140,6 +140,7 @@ management of timeouts while connecting to origin servers or peers</P>
 <DT><B>relaxed_http_parser</B><DD><P>New directive in 2.5.STABLE8 to control how strict the HTTP parser should be.</P>
 <DT><B>retry_on_error</B><DD><P>New directive in 2.5.STABLE9 to aggressive retry requests on errors (was the default in earlier versions)</P>
 <DT><B>acl dst</B><DD><P>No longer matches invalid hosts. Was previously using the IP address "255.255.255.255" on invalid hosts.</P>
+<DT><B>persistent_connection_after_error</B><DD><P>New directive in 2.5.STABLE13 to allow disabling the use of persistent connections after error pages (access denied etc).</P>
 </DL>
 </P>
 
@@ -153,11 +154,11 @@ management of timeouts while connecting to origin servers or peers</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=649">#649</A></B><DD><P>Problems refreshing pages stored with 'vary' information</P>
 <DT><B>Bug 
-<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=779">#779</A></B><DD><P>users going above their allowed IP count no longer logged in cache.log</P>
-<DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=888">#888</A></B><DD><P>ntlm_user_pool assertion error on shutdown</P>
 <DT><B>Bug 
 <A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420">#1420</A></B><DD><P>302 responses with an Expires header is always cached</P>
+<DT><B>Bug 
+<A HREF="http://www.squid-cache.org/bugs/show_bug.cgi?id=1500">#1500</A></B><DD><P>diskd related memory corruption under heavy load</P>
 </DL>
 </P>
 
@@ -477,7 +478,8 @@ filedescriptor limit test
 <UL>
 <LI>connstate related memory leak plugged</LI>
 <LI>ftp upload issues fixed</LI>
-<LI>delay pools working better on -k reconfigure
+<LI>delay pools working better on -k reconfigure</LI>
+<LI>error pages translated to Azerbaijani
 </LI>
 <LI>a number of other minor and cosmetic bugfixes. See the list of 
 <A HREF="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE12">squid-2.5.STABLE12 patches</A> and the 

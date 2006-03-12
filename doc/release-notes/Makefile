@@ -1,6 +1,11 @@
 DOC	= release-2.5
 
-all: $(DOC).html $(DOC).ps
+all: html
+
+.PHONY: html ps
+
+html: $(DOC).html
+ps: $(DOC).ps
 
 $(DOC).ps: $(DOC).sgml
 	linuxdoc -B latex -o ps $(DOC)
