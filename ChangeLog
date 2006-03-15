@@ -12,7 +12,7 @@ Changes to squid-2.5.STABLE12 (12 Mar 2006)
  	  arguments (Bug #1483)
 	- [Minor] Wrong timezone declaration for 64 bit Irix (Bug #1479)
 	- [Minor] Some 206 responses logged incorrectly (Bug #1511)
-	- [Minor] Issues in processing ranges on objects &gt;2GB (Bug #437)
+	- [Minor] Issues in processing ranges on objects >2GB (Bug #437)
 	- [Cosmetic] Segmentation fault on empty proxy_auth ACLs (Bug #1414)
 	- [Minor] Ident access lists don't work in delay_access statements
 	  (Bug #1428)
