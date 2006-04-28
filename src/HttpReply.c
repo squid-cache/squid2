@@ -64,7 +64,7 @@ void
 httpReplyInitModule(void)
 {
     httpHeaderMaskInit(&Denied304HeadersMask, 0);
-    httpHeaderCalcMask(&Denied304HeadersMask, (const int *) Denied304HeadersArr, countof(Denied304HeadersArr));
+    httpHeaderCalcMask(&Denied304HeadersMask, Denied304HeadersArr, countof(Denied304HeadersArr));
 }
 
 

@@ -534,7 +534,7 @@ ftpListParseParts(const char *buf, struct _ftp_flags flags)
 	    continue;
 	if (regexec(&scan_ftp_integer, day, 0, NULL, 0) != 0)
 	    continue;
-	if (regexec(&scan_ftp_time, day, 0, NULL, 0) != 0)	/* Yr | hh:mm */
+	if (regexec(&scan_ftp_time, year, 0, NULL, 0) != 0)	/* Yr | hh:mm */
 	    continue;
 	snprintf(tbuf, 128, "%s %2s %5s",
 	    month, day, year);
@@ -556,7 +556,7 @@ ftpListParseParts(const char *buf, struct _ftp_flags flags)
 		t += strlen(tbuf) + 1;
 	    }
 	    p->name = xstrdup(t);
-	    if ((t = strstr(p->name, " -> "))) {
+	    if (p->type == 'l' && (t = strstr(p->name, " -> "))) {
 		*t = '\0';
 		p->link = xstrdup(t + 4);
 	    }
@@ -2331,7 +2331,11 @@ ftpDataWriteCallback(int fd, char *buf, size_t size, int err, void *data)
 	return;
     if (!err) {
 	/* Shedule the rest of the request */
-	requestReadBody(ftpState->request, ftpState->data.buf, ftpState->data.size, ftpRequestBody, ftpState);
+	commSetSelect(fd,
+	    COMM_SELECT_WRITE,
+	    ftpDataWrite,
+	    ftpState,
+	    Config.Timeout.read);
     } else {
 	debug(9, 1) ("ftpDataWriteCallback: write error: %s\n", xstrerror());
 	ftpFailed(ftpState, ERR_WRITE_ERROR);

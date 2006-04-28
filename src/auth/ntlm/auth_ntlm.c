@@ -332,8 +332,6 @@ static void
 authenticateNTLMFixErrorHeader(auth_user_request_t * auth_user_request, HttpReply * rep, http_hdr_type type, request_t * request)
 {
     ntlm_request_t *ntlm_request;
-    if (!request->flags.proxy_keepalive)
-	return;
     if (ntlmConfig->authenticate) {
 	/* New request, no user details */
 	if (auth_user_request == NULL) {

@@ -127,6 +127,7 @@ management of timeouts while connecting to origin servers or peers
 <tag>relaxed_http_parser</tag>New directive in 2.5.STABLE8 to control how strict the HTTP parser should be.
 <tag>retry_on_error</tag>New directive in 2.5.STABLE9 to aggressive retry requests on errors (was the default in earlier versions)
 <tag>acl dst</tag>No longer matches invalid hosts. Was previously using the IP address "255.255.255.255" on invalid hosts.
+<tag>persistent_connection_after_error</tag>New directive in 2.5.STABLE13 to allow disabling the use of persistent connections after error pages (access denied etc).
 </descrip>
 
 <sect>Known issues and limitations
@@ -136,9 +137,12 @@ management of timeouts while connecting to origin servers or peers
 <descrip>
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=761" name="#761"></tag>assertion failed: cbdata.c:249: "c-&gt;locks &gt; 0" when using diskd
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=649" name="#649"></tag>Problems refreshing pages stored with 'vary' information
-<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=779" name="#779"></tag>users going above their allowed IP count no longer logged in cache.log
 <tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=888" name="#888"></tag>ntlm_user_pool assertion error on shutdown
-<tag>Ipfilter 4.x issues</tag>
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1420" name="#1420"></tag>302 responses with an Expires header is always cached
+<tag>Bug <url url="http://www.squid-cache.org/bugs/show_bug.cgi?id=1500" name="#1500"></tag>diskd related memory corruption under heavy load
+</descrip>
+
+<P>Ipfilter 4.x compile problem on HP Tru64
 <itemize>
     <item>Running configure --enable-ipf-transparent on an HP Tru64 5.1B system with ipfilter 4.x installed, the following error can occur:
     <verb>
@@ -156,7 +160,6 @@ management of timeouts while connecting to origin servers or peers
       <url url="http://cvs.opensolaris.org/source/xref/usr/src/common/ipf/" name="OpenSolaris Web Site">
       in the /usr/include local directory. Don't forget to fix files permission and ownership after the download.
 </itemize>
-</descrip>
 
 
 <P>In addition there is a set of limitations in this version of Squid which we hope to correct later
@@ -431,6 +434,21 @@ name="ChangeLog"> file for details.
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE11"
 	name="squid-2.5.STABLE11 patches"> and the <url url="ChangeLog"
+	name="ChangeLog"> file for details.
+</itemize>
+
+<sect>Key changes squid-2.5.STABLE12 to 2.5.STABLE13:
+
+<p>
+<itemize>
+	<item>connstate related memory leak plugged
+	<item>ftp upload issues fixed
+	<item>delay pools working better on -k reconfigure
+	<item>error pages translated to Azerbaijani
+
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE12"
+	name="squid-2.5.STABLE12 patches"> and the <url url="ChangeLog"
 	name="ChangeLog"> file for details.
 </itemize>
 

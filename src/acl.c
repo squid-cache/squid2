@@ -724,16 +724,16 @@ aclParseUserList(void **current)
     splayNode *Top = NULL;
 
     debug(28, 2) ("aclParseUserList: parsing user list\n");
+    if (*current == NULL) {
+	debug(28, 3) ("aclParseUserList: current is null. Creating\n");
+	*current = memAllocate(MEM_ACL_USER_DATA);
+    }
     t = strtokFile();
     if (!t) {
 	debug(28, 2) ("aclParseUserList: No data defined\n");
 	return;
     }
     debug(28, 5) ("aclParseUserList: First token is %s\n", t);
-    if (*current == NULL) {
-	debug(28, 3) ("aclParseUserList: current is null. Creating\n");
-	*current = memAllocate(MEM_ACL_USER_DATA);
-    }
     data = *current;
     Top = data->names;
     if (strcmp("-i", t) == 0) {
@@ -1384,6 +1384,8 @@ aclMatchUserMaxIP(void *data, auth_user_request_t * auth_user_request,
     if (authenticateAuthUserRequestIPCount(auth_user_request) <= acldata->max)
 	return 0;
 
+    debug(28, 1) ("aclMatchUserMaxIP: user '%s' tries to use too many IP addresses (max %d allowed)!\n", authenticateUserRequestUsername(auth_user_request), acldata->max);
+
     /* this is a match */
     if (acldata->flags.strict) {
 	/*
@@ -1715,6 +1717,8 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     case ACL_IDENT:
 	if (checklist->rfc931[0]) {
 	    return aclMatchUser(ae->data, checklist->rfc931);
+	} else if (checklist->conn && checklist->conn->rfc931[0]) {
+	    return aclMatchUser(ae->data, checklist->conn->rfc931);
 	} else {
 	    checklist->state[ACL_IDENT] = ACL_LOOKUP_NEEDED;
 	    return 0;
@@ -1723,6 +1727,8 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     case ACL_IDENT_REGEX:
 	if (checklist->rfc931[0]) {
 	    return aclMatchRegex(ae->data, checklist->rfc931);
+	} else if (checklist->conn && checklist->conn->rfc931[0]) {
+	    return aclMatchRegex(ae->data, checklist->conn->rfc931);
 	} else {
 	    checklist->state[ACL_IDENT] = ACL_LOOKUP_NEEDED;
 	    return 0;
@@ -2256,7 +2262,7 @@ aclDestroyAcls(acl ** head)
 	    break;
 #if SQUID_SNMP
 	case ACL_SNMP_COMMUNITY:
-	    wordlistDestroy((wordlist **) & a->data);
+	    wordlistDestroy((wordlist **) (void *) &a->data);
 	    break;
 #endif
 #if USE_IDENT
@@ -2297,7 +2303,7 @@ aclDestroyAcls(acl ** head)
 	case ACL_NETDB_SRC_RTT:
 #endif
 	case ACL_MAXCONN:
-	    intlistDestroy((intlist **) & a->data);
+	    intlistDestroy((intlist **) (void *) &a->data);
 	    break;
 	case ACL_MAX_USER_IP:
 	    aclDestroyUserMaxIP(&a->data);

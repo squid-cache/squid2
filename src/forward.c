@@ -224,6 +224,8 @@ fwdConnectDone(int server_fd, int status, void *data)
     assert(current != fwdState);
     current = fwdState;
     assert(fwdState->server_fd == server_fd);
+    if (Config.onoff.log_ip_on_direct && status != COMM_ERR_DNS && fs->code == DIRECT)
+	hierarchyNote(&fwdState->request->hier, fs->code, fd_table[server_fd].ipaddr);
     if (status == COMM_ERR_DNS) {
 	/*
 	 * Only set the dont_retry flag if the DNS lookup fails on
@@ -242,25 +244,12 @@ fwdConnectDone(int server_fd, int status, void *data)
 	assert(fs);
 	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
 	err->xerrno = errno;
-	if (fs->peer) {
-	    err->host = xstrdup(fs->peer->host);
-	    err->port = fs->peer->http_port;
-	} else {
-	    err->host = xstrdup(request->host);
-	    err->port = request->port;
-	}
 	fwdFail(fwdState, err);
 	if (fs->peer)
 	    peerConnectFailed(fs->peer);
 	comm_close(server_fd);
     } else {
 	debug(17, 3) ("fwdConnectDone: FD %d: '%s'\n", server_fd, storeUrl(fwdState->entry));
-	if (fs->peer)
-	    hierarchyNote(&fwdState->request->hier, fs->code, fs->peer->host);
-	else if (Config.onoff.log_ip_on_direct)
-	    hierarchyNote(&fwdState->request->hier, fs->code, fd_table[server_fd].ipaddr);
-	else
-	    hierarchyNote(&fwdState->request->hier, fs->code, request->host);
 	fd_note(server_fd, storeUrl(fwdState->entry));
 	fd_table[server_fd].uses++;
 	if (fs->peer)
@@ -275,9 +264,12 @@ fwdConnectTimeout(int fd, void *data)
 {
     FwdState *fwdState = data;
     StoreEntry *entry = fwdState->entry;
+    FwdServer *fs = fwdState->servers;
     ErrorState *err;
     debug(17, 2) ("fwdConnectTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
     assert(fd == fwdState->server_fd);
+    if (Config.onoff.log_ip_on_direct && fs->code == DIRECT && fd_table[fd].ipaddr[0])
+	hierarchyNote(&fwdState->request->hier, fs->code, fd_table[fd].ipaddr);
     if (entry->mem_obj->inmem_hi == 0) {
 	err = errorCon(ERR_CONNECT_FAIL, HTTP_GATEWAY_TIMEOUT);
 	err->xerrno = ETIMEDOUT;
@@ -440,6 +432,10 @@ fwdConnectStart(void *data)
 	ctimeout,
 	fwdConnectTimeout,
 	fwdState);
+    if (fs->peer)
+	hierarchyNote(&fwdState->request->hier, fs->code, fs->peer->host);
+    else
+	hierarchyNote(&fwdState->request->hier, fs->code, fwdState->request->host);
     commConnectStart(fd, host, port, fwdConnectDone, fwdState);
 }
 

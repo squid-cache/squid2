@@ -98,7 +98,7 @@ internalRemoteUri(const char *host, u_short port, const char *dir, const char *n
     static char lc_host[SQUIDHOSTNAMELEN];
     assert(host && port && name);
     /* convert host name to lower case */
-    xstrncpy(lc_host, host, SQUIDHOSTNAMELEN - 1);
+    xstrncpy(lc_host, host, SQUIDHOSTNAMELEN);
     Tolower(lc_host);
     /*
      * append the domain in order to mirror the requests with appended

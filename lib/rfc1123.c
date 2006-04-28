@@ -229,6 +229,7 @@ parse_rfc1123(const char *str)
 #elif defined (_timezone)
 #elif defined(_SQUID_AIX_)
 #elif defined(_SQUID_CYGWIN_)
+#elif defined(_SQUID_SGI_)
 #else
 	extern long timezone;
 #endif

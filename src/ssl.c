@@ -428,7 +428,6 @@ sslConnectDone(int fd, int status, void *data)
 	err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
 	*sslState->status_ptr = HTTP_SERVICE_UNAVAILABLE;
 	err->xerrno = errno;
-	err->host = xstrdup(sslState->host);
 	err->port = sslState->port;
 	err->request = requestLink(request);
 	err->callback = sslErrorComplete;
@@ -469,7 +468,6 @@ sslConnectTimeout(int fd, void *data)
     err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
     *sslState->status_ptr = HTTP_SERVICE_UNAVAILABLE;
     err->xerrno = ETIMEDOUT;
-    err->host = xstrdup(sslState->host);
     err->port = sslState->port;
     err->request = requestLink(request);
     err->callback = sslErrorComplete;

@@ -62,7 +62,7 @@
 #define size_min(a,b) ((a) <= (b) ? (a) : (b))
 #define size_diff(a,b) ((a) >= (b) ? ((a)-(b)) : 0)
 static HttpHdrRangeSpec *httpHdrRangeSpecDup(const HttpHdrRangeSpec * spec);
-static int httpHdrRangeSpecCanonize(HttpHdrRangeSpec * spec, size_t clen);
+static int httpHdrRangeSpecCanonize(HttpHdrRangeSpec * spec, squid_off_t clen);
 static void httpHdrRangeSpecPackInto(const HttpHdrRangeSpec * spec, Packer * p);
 
 /* globals */
@@ -149,7 +149,7 @@ httpHdrRangeSpecPackInto(const HttpHdrRangeSpec * spec, Packer * p)
  * range is valid if its intersection with [0,length-1] is not empty
  */
 static int
-httpHdrRangeSpecCanonize(HttpHdrRangeSpec * spec, size_t clen)
+httpHdrRangeSpecCanonize(HttpHdrRangeSpec * spec, squid_off_t clen)
 {
     debug(64, 5) ("httpHdrRangeSpecCanonize: have: [%" PRINTF_OFF_T ", %" PRINTF_OFF_T ") len: %" PRINTF_OFF_T "\n",
 	spec->offset, spec->offset + spec->length, spec->length);
@@ -175,8 +175,8 @@ httpHdrRangeSpecMergeWith(HttpHdrRangeSpec * recep, const HttpHdrRangeSpec * don
     int merged = 0;
 #if MERGING_BREAKS_NOTHING
     /* Note: this code works, but some clients may not like its effects */
-    size_t rhs = recep->offset + recep->length;		/* no -1 ! */
-    const size_t donor_rhs = donor->offset + donor->length;	/* no -1 ! */
+    squid_off_t rhs = recep->offset + recep->length;	/* no -1 ! */
+    const squid_off_t donor_rhs = donor->offset + donor->length;	/* no -1 ! */
     assert(known_spec(recep->offset));
     assert(known_spec(donor->offset));
     assert(recep->length > 0);
@@ -312,7 +312,7 @@ httpHdrRangeCanonize(HttpHdrRange * range, squid_off_t clen)
     assert(range);
     assert(clen >= 0);
     stackInit(&goods);
-    debug(64, 3) ("httpHdrRangeCanonize: started with %d specs, clen: %ld\n", range->specs.count, (long int) clen);
+    debug(64, 3) ("httpHdrRangeCanonize: started with %d specs, clen: %" PRINTF_OFF_T "\n", range->specs.count, clen);
 
     /* canonize each entry and destroy bad ones if any */
     while ((spec = httpHdrRangeGetSpec(range, &pos))) {
@@ -375,7 +375,7 @@ httpHdrRangeIsComplex(const HttpHdrRange * range)
 {
     HttpHdrRangePos pos = HttpHdrRangeInitPos;
     const HttpHdrRangeSpec *spec;
-    size_t offset = 0;
+    squid_off_t offset = 0;
     assert(range);
     /* check that all rangers are in "strong" order */
     while ((spec = httpHdrRangeGetSpec(range, &pos))) {
@@ -395,7 +395,7 @@ httpHdrRangeWillBeComplex(const HttpHdrRange * range)
 {
     HttpHdrRangePos pos = HttpHdrRangeInitPos;
     const HttpHdrRangeSpec *spec;
-    size_t offset = 0;
+    squid_off_t offset = 0;
     assert(range);
     /* check that all rangers are in "strong" order, */
     /* as far as we can tell without the content length */

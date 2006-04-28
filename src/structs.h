@@ -598,6 +598,7 @@ struct _SquidConfig {
 	int ignore_unknown_nameservers;
 	int client_pconns;
 	int server_pconns;
+	int error_pconns;
 #if USE_CACHE_DIGESTS
 	int digest_generation;
 #endif
@@ -1073,6 +1074,12 @@ struct _clientHttpRequest {
 	squid_off_t offset;
 	squid_off_t size;
     } out;
+    HttpReply *reply;		/* it is important for clientHttpRequest
+				 * to have its own HttpReply for
+				 * logging, especially in cases
+				 * where the reply headers sent to
+				 * the client are different than
+				 * those received from the origin server. */
     HttpHdrRangeIter range_iter;	/* data for iterating thru range specs */
     size_t req_sz;		/* raw request size on input, not current request size */
     StoreEntry *entry;
@@ -1723,7 +1730,6 @@ struct _ErrorState {
     request_t *request;
     char *url;
     int xerrno;
-    char *host;
     u_short port;
     char *dnsserver_msg;
     time_t ttl;

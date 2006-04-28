@@ -859,7 +859,10 @@ httpRequestFree(void *data)
 	http->al.icp.opcode = ICP_INVALID;
 	http->al.url = http->log_uri;
 	debug(33, 9) ("httpRequestFree: al.url='%s'\n", http->al.url);
-	if (mem) {
+	if (http->reply && http->log_type != LOG_TCP_DENIED) {
+	    http->al.http.code = http->reply->sline.status;
+	    http->al.http.content_type = strBuf(http->reply->content_type);
+	} else if (mem) {
 	    http->al.http.code = mem->reply->sline.status;
 	    http->al.http.content_type = strBuf(mem->reply->content_type);
 	}
@@ -918,6 +921,8 @@ httpRequestFree(void *data)
 	storeUnlockObject(e);
     }
     requestUnlink(http->request);
+    if (http->reply)
+	httpReplyDestroy(http->reply);
     assert(http != http->next);
     assert(http->conn->chr != NULL);
     /* Unlink us from the clients request list */
@@ -1316,8 +1321,6 @@ clientBuildRangeHeader(clientHttpRequest * http, HttpReply * rep)
 	debug(33, 3) ("clientBuildRangeHeader: range spec count: %d virgin clen: %" PRINTF_OFF_T "\n",
 	    spec_count, rep->content_length);
 	assert(spec_count > 0);
-	/* ETags should not be returned with Partial Content replies? */
-	httpHeaderDelById(hdr, HDR_ETAG);
 	/* append appropriate header(s) */
 	if (spec_count == 1) {
 	    HttpHdrRangePos pos = HttpHdrRangeInitPos;
@@ -1462,6 +1465,10 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
     }
     if (fdUsageHigh() && !request->flags.must_keepalive) {
 	debug(33, 3) ("clientBuildReplyHeader: Not many unused FDs, can't keep-alive\n");
+	request->flags.proxy_keepalive = 0;
+    }
+    if (!Config.onoff.error_pconns && rep->sline.status >= 400 && !request->flags.must_keepalive) {
+	debug(33, 3) ("clientBuildReplyHeader: Error, don't keep-alive\n");
 	request->flags.proxy_keepalive = 0;
     }
     if (!Config.onoff.client_pconns && !request->flags.must_keepalive)
@@ -2001,7 +2008,7 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 	return;
     }
     if (http->out.offset == 0) {
-	rep = clientBuildReply(http, buf, size);
+	rep = http->reply = clientBuildReply(http, buf, size);
 	if (rep) {
 	    aclCheck_t *ch;
 	    int rv;
@@ -2024,7 +2031,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		http->entry = clientCreateStoreEntry(http, http->request->method,
 		    null_request_flags);
 		errorAppendEntry(http->entry, err);
-		httpReplyDestroy(rep);
+		httpReplyDestroy(http->reply);
+		http->reply = NULL;
 		memFree(buf, MEM_CLIENT_SOCK_BUF);
 		return;
 	    }
@@ -2059,7 +2067,8 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    http->entry = clientCreateStoreEntry(http, http->request->method,
 			null_request_flags);
 		    errorAppendEntry(http->entry, err);
-		    httpReplyDestroy(rep);
+		    httpReplyDestroy(http->reply);
+		    http->reply = NULL;
 		    memFree(buf, MEM_CLIENT_SOCK_BUF);
 		    return;
 		}
@@ -2107,7 +2116,6 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 #if HEADERS_LOG
 	headersLog(0, 0, http->request->method, rep);
 #endif
-	httpReplyDestroy(rep);
 	rep = NULL;
     } else {
 	memBufDefInit(&mb);
@@ -3398,7 +3406,7 @@ clientAbortBody(request_t * request)
     CBCB *callback;
     void *cbdata;
     int valid;
-    if (!cbdataValid(conn))
+    if (!conn || !cbdataValid(conn))
 	return;
     if (!conn->body.callback || conn->body.request != request)
 	return;
