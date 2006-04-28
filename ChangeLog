@@ -1,4 +1,4 @@
-Changes to squid-2.5.STABLE12 (12 Mar 2006)
+Changes to squid-2.5.STABLE13 (12 Mar 2006)
 	- [Minor] Fails to compile on Solaris and some other platforms
 	  with undefined reference to setenv (Bug #1435)
 	- [Cosmetic] Added WebDAV REPORT method to know HTTP methods list
