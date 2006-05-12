@@ -93,9 +93,7 @@
 #define FD_SETSIZE SQUID_MAXFD
 #endif
 
-#if PURIFY
-#define assert(EX) ((void)0)
-#elif defined(NODEBUG)
+#if defined(NODEBUG)
 #define assert(EX) ((void)0)
 #elif STDC_HEADERS
 #define assert(EX)  ((EX)?((void)0):xassert( # EX , __FILE__, __LINE__))
