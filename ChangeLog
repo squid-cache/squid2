@@ -2,6 +2,15 @@ Changes to squid-2.6 (not yet released)
 
 	- --enable-default-hostsfile configure option
 
+Changes to squid-2.5.STABLE14 (not yet released)
+	- [Minor] icons not displayed when visible_hostname is a
+	  short hostname (witout domain). (Bug #1532)
+	- [Medium] Memleak in HTCP client code (default disabled)
+	  (Bug #1553)
+	- [Major] memory leak in ident processing (Bug #1557)
+	- [Medium] Memory leak in header processing related to external_acl
+	  header detail format tag
+
 Changes to squid-2.5.STABLE13 (12 Mar 2006)
 	- [Minor] Fails to compile on Solaris and some other platforms
 	  with undefined reference to setenv (Bug #1435)
