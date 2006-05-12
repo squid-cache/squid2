@@ -45,16 +45,7 @@
 #endif
 
 #if !defined(SQUIDHOSTNAMELEN)
-#include <sys/param.h>
-#ifndef _SQUID_NETDB_H_		/* need protection on NEXTSTEP */
-#define _SQUID_NETDB_H_
-#include <netdb.h>
-#endif
-#if !defined(MAXHOSTNAMELEN) || (MAXHOSTNAMELEN < 128)
-#define SQUIDHOSTNAMELEN 128
-#else
-#define SQUIDHOSTNAMELEN MAXHOSTNAMELEN
-#endif
+#define SQUIDHOSTNAMELEN 256
 #endif
 
 #if defined(_SQUID_FREEBSD_)
