@@ -798,6 +798,7 @@ httpHeaderGetByNameListMember(const HttpHeader * hdr, const char *name, const ch
 	    break;
 	}
     }
+    stringClean(&header);
     return result;
 }
 
