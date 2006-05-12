@@ -598,6 +598,9 @@ htcpTstReply(htcpDataHeader * dhdr, StoreEntry * e, htcpSpecifier * spec, struct
 	packerClean(&p);
     }
     pkt = htcpBuildPacket(&stuff, &pktlen);
+    safe_free(stuff.D.resp_hdrs);
+    safe_free(stuff.D.entity_hdrs);
+    safe_free(stuff.D.cache_hdrs);
     if (pkt == NULL) {
 	debug(31, 0) ("htcpTstReply: htcpBuildPacket() failed\n");
 	return;
