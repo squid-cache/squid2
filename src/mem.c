@@ -101,6 +101,21 @@ memStats(StoreEntry * sentry)
     memReport(sentry);
     memStringStats(sentry);
     storeBufferFlush(sentry);
+#if WITH_VALGRIND
+    if (RUNNING_ON_VALGRIND) {
+	long int leaked = 0, dubious = 0, reachable = 0, suppressed = 0;
+	storeAppendPrintf(sentry, "Valgrind Report:\n");
+	storeAppendPrintf(sentry, "Type\tAmount\n");
+	debug(13, 1) ("Asking valgrind for memleaks\n");
+	VALGRIND_DO_LEAK_CHECK;
+	debug(13, 1) ("Getting valgrind statistics\n");
+	VALGRIND_COUNT_LEAKS(leaked, dubious, reachable, suppressed);
+	storeAppendPrintf(sentry, "Leaked\t%ld\n", leaked);
+	storeAppendPrintf(sentry, "Dubious\t%ld\n", dubious);
+	storeAppendPrintf(sentry, "Reachable\t%ld\n", reachable);
+	storeAppendPrintf(sentry, "Suppressed\t%ld\n", suppressed);
+    }
+#endif
 }
 
 

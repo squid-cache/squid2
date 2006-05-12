@@ -66,9 +66,16 @@
 
 #include "squid.h"
 
+#if WITH_VALGRIND
+#define HASHED_CBDATA 1
+#endif
+
 static int cbdataCount = 0;
 
 typedef struct _cbdata {
+#if HASHED_CBDATA
+    hash_link hash;
+#endif
     int valid;
     int locks;
     int type;
@@ -77,14 +84,23 @@ typedef struct _cbdata {
     int line;
 #endif
     void *y;			/* cookie used while debugging */
+#if !HASHED_CBDATA
     union {
 	void *pointer;
 	double double_float;
 	int integer;
     } data;
+#endif
 } cbdata;
 
 static OBJH cbdataDump;
+
+#if HASHED_CBDATA
+static MemPool *cbdata_pool = NULL;
+static hash_table *cbdata_htable = NULL;
+static HASHCMP cbdata_cmp;
+static HASHHASH cbdata_hash;
+#endif
 
 struct {
     MemPool *pool;
@@ -92,7 +108,22 @@ struct {
 }     *cbdata_index = NULL;
 int cbdata_types = 0;
 
+#if HASHED_CBDATA
+static int
+cbdata_cmp(const void *p1, const void *p2)
+{
+    return (char *) p1 - (char *) p2;
+}
+
+static unsigned int
+cbdata_hash(const void *p, unsigned int mod)
+{
+    return ((unsigned long) p >> 8) % mod;
+}
+
+#else
 #define OFFSET_OF(type, member) ((int)(char *)&((type *)0L)->member)
+#endif
 
 void
 cbdataInitType(cbdata_type type, const char *name, int size, FREE * free_func)
@@ -108,8 +139,12 @@ cbdataInitType(cbdata_type type, const char *name, int size, FREE * free_func)
 	return;
     label = xmalloc(strlen(name) + 20);
     snprintf(label, strlen(name) + 20, "cbdata %s (%d)", name, (int) type);
+#if !HASHED_CBDATA
     assert(OFFSET_OF(cbdata, data) == (sizeof(cbdata) - sizeof(((cbdata *) NULL)->data)));
     cbdata_index[type].pool = memPoolCreate(label, size + OFFSET_OF(cbdata, data));
+#else
+    cbdata_index[type].pool = memPoolCreate(label, size);
+#endif
     cbdata_index[type].free_func = free_func;
 }
 
@@ -150,7 +185,13 @@ cbdataInit(void)
     CREATE_CBDATA(RemovalPolicyWalker);
     CREATE_CBDATA(RemovalPurgeWalker);
     CREATE_CBDATA(store_client);
+#if HASHED_CBDATA
+    cbdata_pool = memPoolCreate("cbdata", sizeof(cbdata));
+    cbdata_htable = hash_create(cbdata_cmp, 1 << 12, cbdata_hash);
+#endif
 }
+
+#define CBDATA_COOKIE(p) ((void *)((unsigned long)(p) ^ 0xDEADBEEF))
 
 void *
 #if CBDATA_DEBUG
@@ -159,20 +200,29 @@ cbdataInternalAllocDbg(cbdata_type type, const char *file, int line)
 cbdataInternalAlloc(cbdata_type type)
 #endif
 {
-    cbdata *p;
+    cbdata *c;
+    void *p;
     assert(type > 0 && type < cbdata_types);
+#if HASHED_CBDATA
+    c = memPoolAlloc(cbdata_pool);
     p = memPoolAlloc(cbdata_index[type].pool);
-    p->type = type;
-    p->valid = 1;
-    p->locks = 0;
-#if CBDATA_DEBUG
-    p->file = file;
-    p->line = line;
+    c->hash.key = p;
+    hash_join(cbdata_htable, &c->hash);
+#else
+    c = memPoolAlloc(cbdata_index[type].pool);
+    p = (void *) &c->data;
 #endif
-    p->y = p;
+    c->type = type;
+    c->valid = 1;
+    c->locks = 0;
+#if CBDATA_DEBUG
+    c->file = file;
+    c->line = line;
+#endif
+    c->y = CBDATA_COOKIE(p);
     cbdataCount++;
 
-    return (void *) &p->data;
+    return p;
 }
 
 void *
@@ -181,8 +231,12 @@ cbdataInternalFree(void *p)
     cbdata *c;
     FREE *free_func;
     debug(45, 3) ("cbdataFree: %p\n", p);
+#if HASHED_CBDATA
+    c = (cbdata *) hash_lookup(cbdata_htable, p);
+#else
     c = (cbdata *) (((char *) p) - OFFSET_OF(cbdata, data));
-    assert(c->y == c);
+#endif
+    assert(c->y == CBDATA_COOKIE(p));
     assert(c->valid);
     c->valid = 0;
     if (c->locks) {
@@ -191,11 +245,18 @@ cbdataInternalFree(void *p)
 	return NULL;
     }
     cbdataCount--;
+    c->y = NULL;
     debug(45, 3) ("cbdataFree: Freeing %p\n", p);
     free_func = cbdata_index[c->type].free_func;
     if (free_func)
 	free_func((void *) p);
+#if HASHED_CBDATA
+    hash_remove_link(cbdata_htable, &c->hash);
+    memPoolFree(cbdata_index[c->type].pool, p);
+    memPoolFree(cbdata_pool, c);
+#else
     memPoolFree(cbdata_index[c->type].pool, c);
+#endif
     return NULL;
 }
 
@@ -204,8 +265,14 @@ cbdataLocked(const void *p)
 {
     cbdata *c;
     assert(p);
+#if HASHED_CBDATA
+    c = (cbdata *) hash_lookup(cbdata_htable, p);
+#else
     c = (cbdata *) (((char *) p) - OFFSET_OF(cbdata, data));
-    assert(c->y == c);
+#endif
+    assert(c->y == CBDATA_COOKIE(p));
+    assert(c->locks || c->valid);
+
     debug(45, 3) ("cbdataLocked: %p = %d\n", p, c->locks);
     assert(c != NULL);
     return c->locks;
@@ -221,8 +288,13 @@ cbdataLock(const void *p)
     cbdata *c;
     if (p == NULL)
 	return;
+#if HASHED_CBDATA
+    c = (cbdata *) hash_lookup(cbdata_htable, p);
+#else
     c = (cbdata *) (((char *) p) - OFFSET_OF(cbdata, data));
-    assert(c->y == c);
+#endif
+    assert(c->y == CBDATA_COOKIE(p));
+    assert(c->locks || c->valid);
     debug(45, 3) ("cbdataLock: %p\n", p);
     assert(c != NULL);
     c->locks++;
@@ -243,10 +315,13 @@ cbdataUnlock(const void *p)
     FREE *free_func;
     if (p == NULL)
 	return;
-    c = (cbdata *) (((char *) p) - OFFSET_OF(cbdata, data));
-    assert(c->y == c);
     debug(45, 3) ("cbdataUnlock: %p\n", p);
-    assert(c != NULL);
+#if HASHED_CBDATA
+    c = (cbdata *) hash_lookup(cbdata_htable, p);
+#else
+    c = (cbdata *) (((char *) p) - OFFSET_OF(cbdata, data));
+#endif
+    assert(c->y == CBDATA_COOKIE(p));
     assert(c->locks > 0);
     c->locks--;
 #if CBDATA_DEBUG
@@ -260,7 +335,13 @@ cbdataUnlock(const void *p)
     free_func = cbdata_index[c->type].free_func;
     if (free_func)
 	free_func((void *) p);
+#if HASHED_CBDATA
+    hash_remove_link(cbdata_htable, &c->hash);
+    memPoolFree(cbdata_index[c->type].pool, (void *) p);
+    memPoolFree(cbdata_pool, c);
+#else
     memPoolFree(cbdata_index[c->type].pool, c);
+#endif
 }
 
 int
@@ -270,8 +351,12 @@ cbdataValid(const void *p)
     if (p == NULL)
 	return 1;		/* A NULL pointer cannot become invalid */
     debug(45, 3) ("cbdataValid: %p\n", p);
+#if HASHED_CBDATA
+    c = (cbdata *) hash_lookup(cbdata_htable, p);
+#else
     c = (cbdata *) (((char *) p) - OFFSET_OF(cbdata, data));
-    assert(c->y == c);
+#endif
+    assert(c->y == CBDATA_COOKIE(p));
     assert(c->locks > 0);
     return c->valid;
 }

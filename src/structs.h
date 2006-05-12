@@ -1961,6 +1961,9 @@ struct _MemPoolMeter {
 struct _MemPool {
     const char *label;
     size_t obj_size;
+#if DEBUG_MEMPOOL
+    size_t real_obj_size;	/* with alignment */
+#endif
     Stack pstack;		/* stack for free pointers */
     MemPoolMeter meter;
 };

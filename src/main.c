@@ -995,7 +995,7 @@ SquidShutdown(void *unused)
 #endif
     storeDirSync();		/* Flush log close */
     storeFsDone();
-#if PURIFY || XMALLOC_TRACE
+#if LEAK_CHECK_MODE
     configFreeMemory();
     storeFreeMemory();
     /*stmemFreeMemory(); */

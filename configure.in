@@ -250,6 +250,35 @@ dnl     AC_DEFINE(XMALLOC_DEBUG)
 dnl   fi
 dnl ])
 
+valgrind=
+AC_ARG_WITH(valgrind-debug,
+[  --with-valgrind-debug   Include debug instrumentation for use with valgrind],
+[ case $withval in
+  yes)
+	valgrind=1
+	;;
+  no)
+	valgrind=
+  	;;
+  *)
+  	CPPFLAGS="$CPPFLAGS -I${enableval}/include"
+	valgrind=1
+	;;
+  esac
+  if test $valgrind; then
+	AC_DEFINE(WITH_VALGRIND, 1, [Valgrind memory debugger support])
+	echo "Valgrind debug support enabled"
+  fi
+])
+
+valgrind=
+AC_ARG_ENABLE(mempool-debug,
+[  --enable-mempool-debug  Include MemPool debug verifications])
+if test "$enable_mempool_debug" = yes; then
+	AC_DEFINE(DEBUG_MEMPOOL, 1, [MemPool debug verifications])
+	echo "Mempool debug checks enabled"
+fi
+
 AC_ARG_ENABLE(xmalloc-statistics,
 [  --enable-xmalloc-statistics
                           Show malloc statistics in status page],
