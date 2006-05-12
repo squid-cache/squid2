@@ -49,7 +49,9 @@ Changes to squid-2.5.STABLE12 (22 Oct 2005)
 	  when using delay pools (Bug #1405)
 	- [Cosmetic] Document that tcp_outgoing_* works badly in combination
 	  with server_persistent_connections (Bug #454)
-	- [Cosmetic] Add additinal tracing to squid_ldap_auth making diagnostics easier on squid_ldap_auth configuration errors (Bug #1395)
+	- [Cosmetic] Add additinal tracing to squid_ldap_auth making
+	  diagnostics easier on squid_ldap_auth configuration errors
+	  (Bug #1395)
 	- [Minor] $HOME not set when started as root (Bug #1401)
 	- [Minor] httpd_accel_single_host breaks in combination with
 	  server_persistent_connections (Bug #1402)
