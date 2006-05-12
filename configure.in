@@ -1669,7 +1669,8 @@ fi
 dnl Check for librt
 dnl We use AIO in the coss store
 if test "$with_aio" = "yes"; then
-    AC_CHECK_LIB(rt, aio_read)
+    dnl On some systems POSIX AIO functions are in libaio
+    AC_CHECK_LIB(rt, aio_read,,AC_CHECK_LIB(aio, aio_read))
 fi
 
 dnl -lintl is needed on SCO version 3.2v4.2 for strftime()
