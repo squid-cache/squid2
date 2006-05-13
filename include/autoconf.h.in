@@ -902,6 +902,12 @@
 /* Version number of package */
 #undef VERSION
 
+/* Valgrind memory debugger support */
+#undef WITH_VALGRIND
+
+/* MemPool debug verifications */
+#undef DEBUG_MEMPOOL
+
 /* Support large cache files > 2GB */
 #undef LARGE_CACHE_FILES
 
