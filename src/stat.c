@@ -1477,6 +1477,16 @@ statClientRequests(StoreEntry * s)
 	    (long int) http->start.tv_sec,
 	    (int) http->start.tv_usec,
 	    tvSubDsec(http->start, current_time));
+	if (http->request->auth_user_request) {
+	    const char *p = NULL;
+
+	    p = authenticateUserRequestUsername(http->request->auth_user_request);
+
+	    if (!p)
+		p = "-";
+
+	    storeAppendPrintf(s, "username %s\n", p);
+	}
 #if DELAY_POOLS
 	storeAppendPrintf(s, "delay_pool %d\n", delayClient(http) >> 16);
 #endif
