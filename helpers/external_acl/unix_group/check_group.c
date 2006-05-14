@@ -61,7 +61,7 @@
 
 #define BUFSIZE 8192		/* the stdin buffer size */
 #define MAX_GROUP 10		/* maximum number of groups specified 
-				 * on the command line */
+				 * * on the command line */
 
 
 /*
@@ -166,7 +166,7 @@ validate_user_gr(char *username, char *groupname)
 static void
 usage(char *program)
 {
-    fprintf(stderr, "Usage: %s -g group1 [-g group2 ...] [-p]\n\n",
+    fprintf(stderr, "Usage: %s -g group1 [-g group2 ...] [-p] [-s]\n\n",
 	program);
     fprintf(stderr, "-g group\n");
     fprintf(stderr,
@@ -175,23 +175,28 @@ usage(char *program)
 	"			be allowed to authenticate.\n");
     fprintf(stderr,
 	"-p			Verify primary user group as well\n");
+    fprintf(stderr,
+	"-s			Strip NT domain from usernames\n");
 }
 
 
 int
 main(int argc, char *argv[])
 {
-    char *user, *p, *t;
+    char *user, *suser, *p, *t;
     char buf[BUFSIZE];
     char *grents[MAX_GROUP];
-    int check_pw = 0, ch, i = 0, j = 0;
+    int check_pw = 0, ch, i = 0, j = 0, strip_dm = 0;
 
     /* make standard output line buffered */
     setvbuf(stdout, NULL, _IOLBF, 0);
 
     /* get user options */
-    while ((ch = getopt(argc, argv, "pg:")) != -1) {
+    while ((ch = getopt(argc, argv, "spg:")) != -1) {
 	switch (ch) {
+	case 's':
+	    strip_dm = 1;
+	    break;
 	case 'p':
 	    check_pw = 1;
 	    break;
@@ -242,6 +247,13 @@ main(int argc, char *argv[])
 	    goto error;
 	} else {
 	    user = p;
+	    if (user && strip_dm) {
+		suser = strchr(user, '\\');
+		if (!suser)
+		    suser = strchr(user, '/');
+		if (suser && suser[1])
+		    user = suser + 1;
+	    }
 	    /* check groups supplied by Squid */
 	    while ((p = strwordtok(NULL, &t)) != NULL) {
 		if (check_pw == 1)
@@ -262,7 +274,7 @@ main(int argc, char *argv[])
 	if (j > 0) {
 	    printf("OK\n");
 	} else {
-error:
+	  error:
 	    printf("ERR\n");
 	}
     }
