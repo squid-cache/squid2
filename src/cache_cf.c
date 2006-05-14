@@ -262,7 +262,9 @@ parseConfigFile(const char *file_name)
 {
     FILE *fp = NULL;
     char *token = NULL;
-    char *tmp_line;
+    char *tmp_line = NULL;
+    int tmp_line_len = 0;
+    size_t config_input_line_len;
     int err_count = 0;
     configFreeMemory();
     default_all();
@@ -287,8 +289,18 @@ parseConfigFile(const char *file_name)
 	    continue;
 	if (config_input_line[0] == '\0')
 	    continue;
-	debug(3, 5) ("Processing: '%s'\n", config_input_line);
-	tmp_line = xstrdup(config_input_line);
+
+	config_input_line_len = strlen(config_input_line);
+	tmp_line = (char *) xrealloc(tmp_line, tmp_line_len + config_input_line_len + 1);
+	strcpy(tmp_line + tmp_line_len, config_input_line);
+	tmp_line_len += config_input_line_len;
+
+	if (tmp_line[tmp_line_len - 1] == '\\') {
+	    debug(3, 5) ("parseConfigFile: tmp_line='%s'\n", tmp_line);
+	    tmp_line[--tmp_line_len] = '\0';
+	    continue;
+	}
+	debug(3, 5) ("Processing: '%s'\n", tmp_line);
 	if (!parse_line(tmp_line)) {
 	    debug(3, 0) ("parseConfigFile: line %d unrecognized: '%s'\n",
 		config_lineno,
@@ -296,6 +308,7 @@ parseConfigFile(const char *file_name)
 	    err_count++;
 	}
 	safe_free(tmp_line);
+	tmp_line_len = 0;
     }
     fclose(fp);
     defaults_if_none();
