@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 <article>
-<title>Squid 2.5.STABLE12 release notes</title>
+<title>Squid 2.5.STABLE14 release notes</title>
 <author>Squid Developers</author>
 <date>$Id$</date>
 
@@ -449,6 +449,17 @@ name="ChangeLog"> file for details.
 	<item>a number of other minor and cosmetic bugfixes. See the list of <url
 	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE12"
 	name="squid-2.5.STABLE12 patches"> and the <url url="ChangeLog"
+	name="ChangeLog"> file for details.
+</itemize>
+
+<sect>Key changes squid-2.5.STABLE13 to 2.5.STABLE14:
+
+<p>
+<itemize>
+	<item>Several memory leaks plugged in ident, htcp and external_acl
+	<item>a number of other minor and cosmetic bugfixes. See the list of <url
+	url="http://www.squid-cache.org/Versions/v2/2.5/bugs/#STABLE13"
+	name="squid-2.5.STABLE13 patches"> and the <url url="ChangeLog"
 	name="ChangeLog"> file for details.
 </itemize>
 
