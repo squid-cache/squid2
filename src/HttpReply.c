@@ -238,7 +238,7 @@ httpReplySetHeaders(HttpReply * reply, http_version_t ver, http_status status, c
     assert(reply);
     httpStatusLineSet(&reply->sline, ver, status, reason);
     hdr = &reply->header;
-    httpHeaderPutStr(hdr, HDR_SERVER, full_appname_string);
+    httpHeaderPutStr(hdr, HDR_SERVER, visible_appname_string);
     httpHeaderPutStr(hdr, HDR_MIME_VERSION, "1.0");
     httpHeaderPutTime(hdr, HDR_DATE, squid_curtime);
     if (ctype) {

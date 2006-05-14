@@ -2516,6 +2516,16 @@ DOC_START
 DOC_END
 
 
+NAME: httpd_suppress_version_string
+COMMENT: on|off
+TYPE: onoff
+DEFAULT: off
+LOC: Config.onoff.httpd_suppress_version_string
+DOC_START
+	Suppress Squid version string info in HTTP headers and HTML error pages.
+DOC_END
+
+
 NAME: visible_hostname
 TYPE: string
 LOC: Config.visibleHostname

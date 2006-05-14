@@ -549,7 +549,7 @@ errorConvert(char token, ErrorState * err)
 	}
 	break;
     case 's':
-	p = full_appname_string;
+	p = visible_appname_string;
 	break;
     case 'S':
 	/* signature may contain %-escapes, recursion */

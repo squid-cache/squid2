@@ -483,6 +483,7 @@ struct _SquidConfig {
     char *EmailFrom;
     char *EmailProgram;
     char *effectiveUser;
+    char *visible_appname_string;
     char *effectiveGroup;
     struct {
 #if USE_DNSSERVERS
@@ -613,6 +614,7 @@ struct _SquidConfig {
 	int accel_uses_host_header;
 	int accel_no_pmtu_disc;
 	int global_internal_static;
+	int httpd_suppress_version_string;
     } onoff;
     acl *aclList;
     struct {

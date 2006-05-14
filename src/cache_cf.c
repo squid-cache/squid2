@@ -345,6 +345,10 @@ configDoConfigure(void)
 	Config.Announce.period = 86400 * 365;	/* one year */
 	Config.onoff.announce = 0;
     }
+    if (Config.onoff.httpd_suppress_version_string)
+	visible_appname_string = (char *) appname_string;
+    else
+	visible_appname_string = (char *) full_appname_string;
 #if USE_DNSSERVERS
     if (Config.dnsChildren < 1)
 	fatal("No dnsservers allocated");
@@ -376,7 +380,7 @@ configDoConfigure(void)
     snprintf(ThisCache, sizeof(ThisCache), "%s:%d (%s)",
 	uniqueHostname(),
 	(int) ntohs(Config.Sockaddr.http->s.sin_port),
-	full_appname_string);
+	visible_appname_string);
     /*
      * the extra space is for loop detection in client_side.c -- we search
      * for substrings in the Via header.
@@ -384,7 +388,7 @@ configDoConfigure(void)
     snprintf(ThisCache2, sizeof(ThisCache), " %s:%d (%s)",
 	uniqueHostname(),
 	(int) ntohs(Config.Sockaddr.http->s.sin_port),
-	full_appname_string);
+	visible_appname_string);
     if (!Config.udpMaxHitObjsz || Config.udpMaxHitObjsz > SQUID_UDP_SO_SNDBUF)
 	Config.udpMaxHitObjsz = SQUID_UDP_SO_SNDBUF;
     if (Config.appendDomain)
