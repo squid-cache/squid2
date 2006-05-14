@@ -152,6 +152,15 @@ squid MODULE-IDENTITY
 
 -- end of  cacheStorageConfig group
 
+	cacheUniqName OBJECT-TYPE
+		SYNTAX DisplayString
+		MAX-ACCESS read-only
+                STATUS current
+                DESCRIPTION
+                        " Cache unique host name "
+	::= { cacheConfig 6 }
+
+
 --
 -- performance group { squid 3 }
 --

@@ -134,6 +134,13 @@ snmp_confFn(variable_list * Var, snint * ErrP)
 	Answer->val_len = strlen(cp);
 	Answer->val.string = (u_char *) xstrdup(cp);
 	break;
+    case CONF_UNIQNAME:
+	Answer = snmp_var_new(Var->name, Var->name_length);
+	cp = uniqueHostname();
+	Answer->type = ASN_OCTET_STR;
+	Answer->val_len = strlen(cp);
+	Answer->val.string = (u_char *) xstrdup(cp);
+	break;
     default:
 	*ErrP = SNMP_ERR_NOSUCHNAME;
 	break;

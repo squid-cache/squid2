@@ -79,6 +79,7 @@ enum {
     CONF_VERSION_ID,
     CONF_LOG_FAC,
     CONF_STORAGE,
+    CONF_UNIQNAME,
     CONF_END
 };
 
