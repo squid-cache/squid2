@@ -34,11 +34,14 @@
 #ifndef SQUID_PROTOS_H
 #define SQUID_PROTOS_H
 
-extern void accessLogLog(AccessLogEntry *);
+extern void accessLogLog(AccessLogEntry *, aclCheck_t * checklist);
 extern void accessLogRotate(void);
 extern void accessLogClose(void);
 extern void accessLogInit(void);
 extern const char *accessLogTime(time_t);
+extern int accessLogParseLogFormat(logformat_token ** fmt, char *def);
+extern void accessLogDumpLogFormat(StoreEntry * entry, const char *name, logformat * definitions);
+extern void accessLogFreeLogFormat(logformat_token ** fmt);
 extern void hierarchyNote(HierarchyLogEntry *, hier_code, const char *);
 #if FORW_VIA_DB
 extern void fvdbCountVia(const char *key);

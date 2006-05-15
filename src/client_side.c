@@ -871,14 +871,18 @@ httpRequestFree(void *data)
 	http->al.cache.code = http->log_type;
 	http->al.cache.msec = tvSubMsec(http->start, current_time);
 	if (request) {
-	    Packer p;
-	    MemBuf mb;
-	    memBufDefInit(&mb);
-	    packerToMemInit(&p, &mb);
-	    httpHeaderPackInto(&request->header, &p);
+	    if (Config.onoff.log_mime_hdrs) {
+		Packer p;
+		MemBuf mb;
+		memBufDefInit(&mb);
+		packerToMemInit(&p, &mb);
+		httpHeaderPackInto(&request->header, &p);
+		http->al.headers.request = xstrdup(mb.buf);
+		packerClean(&p);
+		memBufClean(&mb);
+	    }
 	    http->al.http.method = request->method;
 	    http->al.http.version = request->http_ver;
-	    http->al.headers.request = xstrdup(mb.buf);
 	    http->al.hier = request->hier;
 	    if (request->auth_user_request) {
 		if (authenticateUserRequestUsername(request->auth_user_request))
@@ -888,12 +892,17 @@ httpRequestFree(void *data)
 	    }
 	    if (conn->rfc931[0])
 		http->al.cache.rfc931 = conn->rfc931;
-	    packerClean(&p);
-	    memBufClean(&mb);
 	}
-	accessLogLog(&http->al);
-	clientUpdateCounters(http);
-	clientdbUpdate(conn->peer.sin_addr, http->log_type, PROTO_HTTP, http->out.size);
+	http->al.request = request;
+	if (!http->acl_checklist)
+	    http->acl_checklist = clientAclChecklistCreate(Config.accessList.http, http);
+	http->acl_checklist->reply = http->reply;
+	if (!Config.accessList.log || aclCheckFast(Config.accessList.log, http->acl_checklist)) {
+	    http->al.reply = http->reply;
+	    accessLogLog(&http->al, http->acl_checklist);
+	    clientUpdateCounters(http);
+	    clientdbUpdate(conn->peer.sin_addr, http->log_type, PROTO_HTTP, http->out.size);
+	}
     }
     if (http->acl_checklist)
 	aclChecklistFree(http->acl_checklist);
@@ -904,6 +913,7 @@ httpRequestFree(void *data)
     safe_free(http->al.headers.request);
     safe_free(http->al.headers.reply);
     safe_free(http->al.cache.authuser);
+    http->al.request = NULL;
     safe_free(http->redirect.location);
     stringClean(&http->range_iter.boundary);
     if ((e = http->entry)) {
@@ -2031,8 +2041,6 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		http->entry = clientCreateStoreEntry(http, http->request->method,
 		    null_request_flags);
 		errorAppendEntry(http->entry, err);
-		httpReplyDestroy(http->reply);
-		http->reply = NULL;
 		memFree(buf, MEM_CLIENT_SOCK_BUF);
 		return;
 	    }
@@ -2067,8 +2075,6 @@ clientSendMoreData(void *data, char *buf, ssize_t size)
 		    http->entry = clientCreateStoreEntry(http, http->request->method,
 			null_request_flags);
 		    errorAppendEntry(http->entry, err);
-		    httpReplyDestroy(http->reply);
-		    http->reply = NULL;
 		    memFree(buf, MEM_CLIENT_SOCK_BUF);
 		    return;
 		}

@@ -476,7 +476,6 @@ struct _SquidConfig {
     char *as_whois_server;
     struct {
 	char *log;
-	char *access;
 	char *store;
 	char *swap;
 #if USE_USERAGENT_LOG
@@ -488,6 +487,8 @@ struct _SquidConfig {
 #if WIP_FWD_LOG
 	char *forward;
 #endif
+	logformat *logformats;
+	customlog *accesslogs;
 	int rotateNumber;
     } Log;
     char *adminEmail;
@@ -636,6 +637,7 @@ struct _SquidConfig {
 	acl_access *AlwaysDirect;
 	acl_access *ASlists;
 	acl_access *noCache;
+	acl_access *log;
 #if SQUID_SNMP
 	acl_access *snmp;
 #endif
@@ -1074,6 +1076,8 @@ struct _AccessLogEntry {
 	const char *method_str;
     } private;
     HierarchyLogEntry hier;
+    HttpReply *reply;
+    request_t *request;
 };
 
 struct _clientHttpRequest {
@@ -2226,8 +2230,32 @@ struct _Logfile {
     size_t bufsz;
     ssize_t offset;
     struct {
-	unsigned int fatal:1;
+	unsigned int fatal;
+	unsigned int syslog;
     } flags;
+    int syslog_priority;
+};
+
+struct _logformat {
+    char *name;
+    logformat_token *format;
+    logformat *next;
+};
+
+struct _customlog {
+    char *filename;
+    acl_list *aclList;
+    logformat *logFormat;
+    Logfile *logfile;
+    customlog *next;
+    enum {
+	CLF_UNKNOWN,
+	CLF_AUTO,
+	CLF_CUSTOM,
+	CLF_SQUID,
+	CLF_COMMON,
+	CLF_NONE
+    } type;
 };
 
 struct cache_dir_option {

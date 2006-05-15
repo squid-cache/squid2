@@ -36,36 +36,125 @@
 
 static void logfileWriteWrapper(Logfile * lf, const void *buf, size_t len);
 
+#if HAVE_SYSLOG
+struct syslog_symbol_t {
+    const char *name;
+    int value;
+};
+
+static int
+syslog_ntoa(const char *s)
+{
+#define syslog_symbol(a) #a, a
+    static syslog_symbol_t _symbols[] =
+    {
+#ifdef LOG_AUTHPRIV
+	{syslog_symbol(LOG_AUTHPRIV)},
+#endif
+#ifdef LOG_DAEMON
+	{syslog_symbol(LOG_DAEMON)},
+#endif
+#ifdef LOG_LOCAL0
+	{syslog_symbol(LOG_LOCAL0)},
+#endif
+#ifdef LOG_LOCAL1
+	{syslog_symbol(LOG_LOCAL1)},
+#endif
+#ifdef LOG_LOCAL2
+	{syslog_symbol(LOG_LOCAL2)},
+#endif
+#ifdef LOG_LOCAL3
+	{syslog_symbol(LOG_LOCAL3)},
+#endif
+#ifdef LOG_LOCAL4
+	{syslog_symbol(LOG_LOCAL4)},
+#endif
+#ifdef LOG_LOCAL5
+	{syslog_symbol(LOG_LOCAL5)},
+#endif
+#ifdef LOG_LOCAL6
+	{syslog_symbol(LOG_LOCAL6)},
+#endif
+#ifdef LOG_LOCAL7
+	{syslog_symbol(LOG_LOCAL7)},
+#endif
+#ifdef LOG_USER
+	{syslog_symbol(LOG_USER)},
+#endif
+#ifdef LOG_ERR
+	{syslog_symbol(LOG_ERR)},
+#endif
+#ifdef LOG_WARNING
+	{syslog_symbol(LOG_WARNING)},
+#endif
+#ifdef LOG_NOTICE
+	{syslog_symbol(LOG_NOTICE)},
+#endif
+#ifdef LOG_INFO
+	{syslog_symbol(LOG_INFO)},
+#endif
+#ifdef LOG_DEBUG
+	{syslog_symbol(LOG_DEBUG)},
+#endif
+	{NULL, 0}
+    };
+    for (syslog_symbol_t * p = _symbols; p->name != NULL; ++p)
+	if (!strcmp(s, p->name) || !strcmp(s, p->name + 4))
+	    return p->value;
+    return 0;
+}
+
+#define PRIORITY_MASK (LOG_ERR | LOG_WARNING | LOG_NOTICE | LOG_INFO | LOG_DEBUG)
+#endif /* HAVE_SYSLOG */
+
 Logfile *
 logfileOpen(const char *path, size_t bufsz, int fatal_flag)
 {
-    int fd;
-    Logfile *lf;
-    fd = file_open(path, O_WRONLY | O_CREAT | O_TEXT);
-    if (DISK_ERROR == fd) {
-	if (ENOENT == errno && fatal_flag) {
-	    fatalf("Cannot open '%s' because\n"
-		"\tthe parent directory does not exist.\n"
-		"\tPlease create the directory.\n", path);
-	} else if (EACCES == errno && fatal_flag) {
-	    fatalf("Cannot open '%s' for writing.\n"
-		"\tThe parent directory must be writeable by the\n"
-		"\tuser '%s', which is the cache_effective_user\n"
-		"\tset in squid.conf.", path, Config.effectiveUser);
-	} else {
-	    debug(50, 1) ("logfileOpen: %s: %s\n", path, xstrerror());
-	    return NULL;
+    Logfile *lf = xcalloc(1, sizeof(*lf));
+    xstrncpy(lf->path, path, MAXPATHLEN);
+#if HAVE_SYSLOG
+    if (strcmp(path, "syslog") == 0 || strncmp(path, "syslog:", 7) == 0) {
+	lf->flags.syslog = 1;
+	lf->fd = -1;
+	if (path[6] != '\0') {
+	    char *priority = path + 7;
+	    char *facility = strchr(priority, '|');
+	    if (facility) {
+		*facility++ = '\0';
+		lf->syslog_priority |= syslog_ntoa(facility);
+	    }
+	    lf->syslog_priority |= syslog_ntoa(priority);
+	}
+	if (lf->syslog_priority & PRIORITY_MASK == 0)
+	    lf->syslog_priority |= LOG_INFO;
+    } else
+#endif
+    {
+	int fd = file_open(path, O_WRONLY | O_CREAT | O_TEXT);
+	if (DISK_ERROR == fd) {
+	    if (ENOENT == errno && fatal_flag) {
+		fatalf("Cannot open '%s' because\n"
+		    "\tthe parent directory does not exist.\n"
+		    "\tPlease create the directory.\n", path);
+	    } else if (EACCES == errno && fatal_flag) {
+		fatalf("Cannot open '%s' for writing.\n"
+		    "\tThe parent directory must be writeable by the\n"
+		    "\tuser '%s', which is the cache_effective_user\n"
+		    "\tset in squid.conf.", path, Config.effectiveUser);
+	    } else {
+		debug(50, 1) ("logfileOpen: %s: %s\n", path, xstrerror());
+		safe_free(lf);
+		return NULL;
+	    }
+	}
+	lf->fd = fd;
+	if (bufsz > 0) {
+	    lf->buf = xmalloc(bufsz);
+	    lf->bufsz = bufsz;
 	}
     }
-    lf = xcalloc(1, sizeof(*lf));
-    lf->fd = fd;
     if (fatal_flag)
 	lf->flags.fatal = 1;
-    xstrncpy(lf->path, path, MAXPATHLEN);
-    if (bufsz > 0) {
-	lf->buf = xmalloc(bufsz);
-	lf->bufsz = bufsz;
-    }
     return lf;
 }
 
@@ -73,7 +162,8 @@ void
 logfileClose(Logfile * lf)
 {
     logfileFlush(lf);
-    file_close(lf->fd);
+    if (lf->fd >= 0)
+	file_close(lf->fd);
     if (lf->buf)
 	xfree(lf->buf);
     xfree(lf);
@@ -89,6 +179,8 @@ logfileRotate(Logfile * lf)
     char from[MAXPATHLEN];
     char to[MAXPATHLEN];
     assert(lf->path);
+    if (lf->flags.syslog)
+	return;
 #ifdef S_ISREG
     if (stat(lf->path, &sb) == 0)
 	if (S_ISREG(sb.st_mode) == 0)
@@ -120,6 +212,12 @@ logfileRotate(Logfile * lf)
 void
 logfileWrite(Logfile * lf, void *buf, size_t len)
 {
+#if HAVE_SYSLOG
+    if (lf->flags.syslog) {
+	syslog(lf->syslog_priority, "%s", (char *) buf);
+	return;
+    }
+#endif
     if (0 == lf->bufsz) {
 	/* buffering disabled */
 	logfileWriteWrapper(lf, buf, len);

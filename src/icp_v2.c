@@ -63,7 +63,7 @@ icpLogIcp(struct in_addr caddr, log_type logcode, int len, const char *url, int 
     al.cache.size = len;
     al.cache.code = logcode;
     al.cache.msec = delay;
-    accessLogLog(&al);
+    accessLogLog(&al, NULL);
 }
 
 void
