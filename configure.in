@@ -2538,6 +2538,7 @@ AC_OUTPUT([\
 	src/auth/basic/Makefile \
 	src/auth/digest/Makefile \
 	src/auth/ntlm/Makefile \
+	src/auth/negotiate/Makefile \
 	contrib/Makefile \
 	snmplib/Makefile \
 	icons/Makefile \

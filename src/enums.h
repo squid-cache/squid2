@@ -534,6 +534,7 @@ typedef enum {
     AUTH_BASIC,
     AUTH_NTLM,
     AUTH_DIGEST,
+    AUTH_NEGOTIATE,
     AUTH_BROKEN			/* known type, but broken data */
 } auth_type_t;
 

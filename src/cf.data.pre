@@ -1332,11 +1332,11 @@ DOC_START
 	auth_param basic program @DEFAULT_PREFIX@/libexec/ncsa_auth @DEFAULT_PREFIX@/etc/passwd
 
 	"children" numberofchildren
-	The number of authenticator processes to spawn.
-	If you start too few Squid will have to wait for them to process a
-	backlog of usercode/password verifications, slowing it down. When
-	password verifications are done via a (slow) network you are likely to
-	need lots of authenticator processes.
+	The number of authenticator processes to spawn. If you start too few 
+	squid will have to wait for them to process a backlog of credential
+	verifications, slowing it down. When credential verifications are
+	done via a (slow) network you are likely to need lots of
+	authenticator processes.
 	auth_param basic children 5
 
 	"realm" realmstring
@@ -1388,11 +1388,11 @@ DOC_START
 
 
 	"children" numberofchildren
-	The number of authenticator processes to spawn (no default). If you
-	start too few Squid will have to wait for them to process a backlog of
-	H(A1) calculations, slowing it down.  When the H(A1) calculations are
-	done via a (slow) network you are likely to need lots of authenticator
-	processes.
+	The number of authenticator processes to spawn. If you start too few 
+	squid will have to wait for them to process a backlog of credential
+	verifications, slowing it down. When credential verifications are
+	done via a (slow) network you are likely to need lots of
+	authenticator processes.
 	auth_param digest children 5
 
 	"realm" realmstring
@@ -1449,26 +1449,12 @@ DOC_START
 	auth_param ntlm program /path/to/samba/bin/ntlm_auth --helper-protocol=squid-2.5-ntlmssp
 
 	"children" numberofchildren
-	The number of authenticator processes to spawn (no default). If you
-	start too few Squid will have to wait for them to process a backlog
-	of credential verifications, slowing it down. When credential
-	verifications are done via a (slow) network you are likely to need
-	lots of authenticator processes.
+	The number of authenticator processes to spawn. If you start too few 
+	squid will have to wait for them to process a backlog of credential
+	verifications, slowing it down. When credential verifications are
+	done via a (slow) network you are likely to need lots of
+	authenticator processes.
 	auth_param ntlm children 5
-
-	"max_challenge_reuses" number
-	The maximum number of times a challenge given by a ntlm authentication
-	helper can be reused. Increasing this number increases your exposure
-	to replay attacks on your network. 0 (the default) means use the
-	challenge is used only once. See also the max_ntlm_challenge_lifetime
-	directive if enabling challenge reuses.
-	auth_param ntlm max_challenge_reuses 0
-
-	"max_challenge_lifetime" timespan
-	The maximum time period a ntlm challenge is reused over. The
-	actual period will be the minimum of this time AND the number of
-	reused challenges.
-	auth_param ntlm max_challenge_lifetime 2 minutes
 
 	"use_ntlm_negotiate" on|off
 	Enables support for NTLM NEGOTIATE packet exchanges with the helper.
@@ -1484,29 +1470,67 @@ DOC_START
 	all users must be allowed to log on the proxy servers too, or they'll
 	get "invalid workstation" errors - and access denied - when trying to
 	use Squid's services.
-	Use of ntlm NEGOTIATE is incompatible with challenge reuse, so
-	enabling this parameter will OVERRIDE the max_challenge_reuses and
-	max_challenge_lifetime parameters and set them to 0.
-	auth_param ntlm use_ntlm_negotiate off
+	auth_param ntlm use_ntlm_negotiate on
+
+	"keep_alive" on|off
+	This option enables the use of keep-alive on the initial
+	authentication request. It has been reported some versions of MSIE
+	have problems if this is enabled, but performance will be increased
+	if enabled.
+
+	auth_param ntlm keep_alive on
+
+	=== Negotiate scheme options follow ===
+
+	"program" cmdline
+	Specify the command for the external Negotiate authenticator. Such a
+	program participates in the SPNEGO exchanges between Squid and the
+	client and reads commands according to the Squid ntlmssp helper
+	protocol. See helpers/ntlm_auth/ for details. Recommended SPNEGO
+	authenticator is ntlm_auth from Samba-4.X.
+
+	By default, the Negotiate authentication scheme is not used unless a
+	program is specified.
+
+	auth_param negotiate program /path/to/samba/bin/ntlm_auth --helper-protocol=gss-spnego
+
+	"children" numberofchildren
+	The number of authenticator processes to spawn. If you start too few 
+	squid will have to wait for them to process a backlog of credential
+	verifications, slowing it down. When credential verifications are
+	done via a (slow) network you are likely to need lots of
+	authenticator processes.
+	auth_param negotiate children 5
+
+	"keep_alive" on|off
+	If you experience problems with PUT/POST requests when using the
+	Negotiate authentication scheme then you can try setting this to
+	off. This will cause Squid to forcibly close the connection on
+	the initial requests where the browser asks which schemes are
+	supported by the proxy.
+
+	auth_param negotiate keep_alive on
 
 NOCOMMENT_START
-#Recommended minimum configuration:
+#Recommended minimum configuration per scheme:
+#auth_param negotiate program <uncomment and complete this line to activate>
+#auth_param negotiate children 5
+#auth_param negotiate keep_alive on
+#auth_param ntlm program <uncomment and complete this line to activate>
+#auth_param ntlm children 5
+#auth_param ntlm use_ntlm_negotiate on
+#auth_param ntlm keep_alive on
 #auth_param digest program <uncomment and complete this line>
 #auth_param digest children 5
 #auth_param digest realm Squid proxy-caching web server
 #auth_param digest nonce_garbage_interval 5 minutes
 #auth_param digest nonce_max_duration 30 minutes
 #auth_param digest nonce_max_count 50
-#auth_param ntlm program <uncomment and complete this line to activate>
-#auth_param ntlm children 5
-#auth_param ntlm max_challenge_reuses 0
-#auth_param ntlm max_challenge_lifetime 2 minutes
-#auth_param ntlm use_ntlm_negotiate off
 #auth_param basic program <uncomment and complete this line>
-auth_param basic children 5
-auth_param basic realm Squid proxy-caching web server
-auth_param basic credentialsttl 2 hours
-auth_param basic casesensitive off
+#auth_param basic children 5
+#auth_param basic realm Squid proxy-caching web server
+#auth_param basic credentialsttl 2 hours
+#auth_param basic casesensitive off
 NOCOMMENT_END
 DOC_END
 

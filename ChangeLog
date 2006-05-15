@@ -6,6 +6,8 @@ Changes to squid-2.6 (not yet released)
 	- Added multi-line capability in squid.conf
 	- Added new httpd_suppress_version_string configuration directive
 	- WCCPv2 support
+	- Negotiate authentication scheme support
+	- NTLM authentication scheme rewritten
 
 Changes to squid-2.5.STABLE14 (not yet released)
 	- [Minor] icons not displayed when visible_hostname is a

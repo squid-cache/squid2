@@ -1,10 +1,10 @@
 /*
- * auth_ntlm.h
- * Internal declarations for the ntlm auth module
+ * auth_negotiate.h
+ * Internal declarations for the negotiate auth module
  */
 
-#ifndef __AUTH_NTLM_H__
-#define __AUTH_NTLM_H__
+#ifndef __AUTH_Negotiate_H__
+#define __AUTH_Negotiate_H__
 
 #define DefaultAuthenticateChildrenMax  32	/* 32 processes */
 
@@ -24,12 +24,12 @@ typedef struct {
     RH *handler;
 } authenticateStateData;
 
-struct _ntlm_user {
+struct _negotiate_user {
     /* what username did this connection get? */
     char *username;
 };
 
-struct _ntlm_request {
+struct _negotiate_request {
     /*we need to store the helper server between requests */
     helper_stateful_server *authserver;
     /* how far through the authentication process are we? */
@@ -45,15 +45,14 @@ struct _ntlm_request {
 };
 
 /* configuration runtime data */
-struct _auth_ntlm_config {
+struct _auth_negotiate_config {
     int authenticateChildren;
     int keep_alive;
-    int use_ntlm_negotiate;
     wordlist *authenticate;
 };
 
-typedef struct _ntlm_user ntlm_user_t;
-typedef struct _ntlm_request ntlm_request_t;
-typedef struct _auth_ntlm_config auth_ntlm_config;
+typedef struct _negotiate_user negotiate_user_t;
+typedef struct _negotiate_request negotiate_request_t;
+typedef struct _auth_negotiate_config auth_negotiate_config;
 
 #endif
