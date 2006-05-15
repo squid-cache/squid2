@@ -291,7 +291,7 @@ typedef enum {
 
 typedef enum {
     HIER_NONE,
-    DIRECT,
+    HIER_DIRECT,
     SIBLING_HIT,
     PARENT_HIT,
     DEFAULT_PARENT,
