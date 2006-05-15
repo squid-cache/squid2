@@ -299,41 +299,47 @@ static void
 authenticateNTLMFixErrorHeader(auth_user_request_t * auth_user_request, HttpReply * rep, http_hdr_type type, request_t * request)
 {
     ntlm_request_t *ntlm_request;
-    if (ntlmConfig->authenticate) {
-	/* New request, no user details */
-	if (auth_user_request == NULL) {
-	    debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM'\n", type);
-	    httpHeaderPutStrf(&rep->header, type, "NTLM");
+    if (!request->flags.proxy_keepalive)
+	return;
+    if (!ntlmConfig->authenticate)
+	return;
+    /* New request, no user details */
+    if (auth_user_request == NULL) {
+	debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM'\n", type);
+	httpHeaderPutStrf(&rep->header, type, "NTLM");
+	if (!ntlmConfig->keep_alive) {
 	    /* drop the connection */
 	    httpHeaderDelByName(&rep->header, "keep-alive");
-	    /* NTLM has problems if the initial connection is not dropped
-	     * I haven't checked the RFC compliance of this hack - RBCollins */
 	    request->flags.proxy_keepalive = 0;
-	} else {
-	    ntlm_request = auth_user_request->scheme_data;
-	    switch (ntlm_request->auth_state) {
-	    case AUTHENTICATE_STATE_NONE:
-	    case AUTHENTICATE_STATE_FAILED:
-		debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM'\n", type);
-		httpHeaderPutStrf(&rep->header, type, "NTLM");
-		/* drop the connection */
-		httpHeaderDelByName(&rep->header, "keep-alive");
-		/* NTLM has problems if the initial connection is not dropped
-		 * I haven't checked the RFC compliance of this hack - RBCollins */
-		request->flags.proxy_keepalive = 0;
-		break;
-	    case AUTHENTICATE_STATE_CHALLENGE:
-		/* we are 'waiting' for a response */
-		/* pass the challenge to the client */
-		debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM %s'\n", type, ntlm_request->authchallenge);
-		httpHeaderPutStrf(&rep->header, type, "NTLM %s", ntlm_request->authchallenge);
-		request->flags.must_keepalive = 1;
-		break;
-	    default:
-		debug(29, 0) ("authenticateNTLMFixErrorHeader: state %d.\n", ntlm_request->auth_state);
-		fatal("unexpected state in AuthenticateNTLMFixErrorHeader.\n");
-	    }
 	}
+	return;
+    }
+    ntlm_request = auth_user_request->scheme_data;
+    switch (ntlm_request->auth_state) {
+    case AUTHENTICATE_STATE_NONE:
+    case AUTHENTICATE_STATE_FAILED:
+	debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM'\n", type);
+	httpHeaderPutStrf(&rep->header, type, "NTLM");
+	/* drop the connection */
+	httpHeaderDelByName(&rep->header, "keep-alive");
+	request->flags.proxy_keepalive = 0;
+	break;
+    case AUTHENTICATE_STATE_NEGOTIATE:
+	/* we are 'waiting' for a response from the client */
+	/* pass the blob to the client */
+	debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM %s'\n", type, ntlm_request->server_blob);
+	httpHeaderPutStrf(&rep->header, type, "NTLM %s", ntlm_request->server_blob);
+	safe_free(ntlm_request->server_blob);
+	request->flags.must_keepalive = 1;
+	break;
+    case AUTHENTICATE_STATE_FINISHED:
+	/* Special case when authentication finished, but not allowed by ACL */
+	debug(29, 9) ("authenticateNTLMFixErrorHeader: Sending type:%d header: 'NTLM'\n", type);
+	httpHeaderPutStrf(&rep->header, type, "NTLM");
+	break;
+    default:
+	debug(29, 0) ("authenticateNTLMFixErrorHeader: state %d.\n", ntlm_request->auth_state);
+	fatal("unexpected state in AuthenticateNTLMFixErrorHeader.\n");
     }
 }
 
