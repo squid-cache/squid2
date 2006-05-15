@@ -3435,9 +3435,15 @@ TYPE: address
 LOC: Config.Wccp.router
 DEFAULT: 0.0.0.0
 IFDEF: USE_WCCP
+DOC_NONE
+NAME: wccp2_router
+TYPE: sockaddr_in_list
+LOC: Config.Wccp2.router
+DEFAULT: 0.0.0.0:2048
+IFDEF: USE_WCCPv2
 DOC_START
 	Use this option to define your WCCP ``home'' router for
-	Squid.   Setting the 'wccp_router' to 0.0.0.0 (the default)
+	Squid.   Setting the 'wccp_router' to 0.0.0.0:2048 (the default)
 	disables WCCP.
 DOC_END
 
@@ -3446,10 +3452,113 @@ TYPE: int
 LOC: Config.Wccp.version
 DEFAULT: 4
 IFDEF: USE_WCCP
+DOC_NONE
+NAME: wccp2_version
+TYPE: int
+LOC: Config.Wccp2.version
+DEFAULT: 4
+IFDEF: USE_WCCPv2
 DOC_START
 	According to some users, Cisco IOS 11.2 only supports WCCP
 	version 3.  If you're using that version of IOS, change
 	this value to 3.
+DOC_END
+
+NAME: wccp2_forwarding_method
+TYPE: int
+LOC: Config.Wccp2.forwarding_method
+DEFAULT: 1
+IFDEF: USE_WCCPv2
+DOC_START
+	WCCP2 allows the setting of forwarding methods between the 
+	router/switch and the cache.  Valid values are as follows:
+	1 - GRE encapsulation
+	2 - L2 redirect (forward the packet)
+
+	Currently (as of IOS 12.3) cisco routers only support GRE.
+	Cisco switches support the l2 redirect assignment.
+DOC_END
+
+NAME: wccp2_return_method
+TYPE: int
+LOC: Config.Wccp2.return_method
+DEFAULT: 1
+IFDEF: USE_WCCPv2
+DOC_START
+	WCCP2 allows the setting of return methods between the 
+	router/switch and the cache for packets that the cache
+	decides not to handle.  Valid values are as follows:
+	1 - GRE encapsulation
+	2 - L2 redirect (forward the packet)
+
+	Currently (as of IOS 12.3) cisco routers only support GRE.
+	Cisco switches support the l2 redirect assignment.
+
+	If the "ip wccp redirect exclude in" command has been 
+	enabled on the cache interface, then it is still safe for
+	the proxy server to use a l2 redirect method even if this
+	option is set to GRE.
+DOC_END
+
+NAME: wccp2_service
+TYPE: wccp2_service
+LOC: Config.Wccp2.info
+DEFAULT: none
+IFDEF: USE_WCCPv2
+DOC_START
+	WCCP2 allows for multiple traffic services. There are two
+	types: "standard" and "dynamic". The standard type defines
+	one service id - http (id 0). The dynamic service ids can be from
+	51 to 255 inclusive.  In order to use a dynamic service id
+	one must define the type of traffic to be redirected; this is done
+	using the wccp2_service_info option.
+
+	The "standard" type does not require a wccp2_service_info option - just
+	the service id will suffice.
+
+	MD5 service authentication can be enabled by adding "password=<password>" 
+	to the end of this service declaration.
+
+	Examples:
+
+	wccp2_service standard 0	# for the 'web-cache' standard service
+	wccp2_service dynamic 80	# a dynamic service type which will be
+					# fleshed out with subsequent options.
+	wccp2_service standard 0 password=foo
+
+DOC_END
+
+NAME: wccp2_service_info
+TYPE: wccp2_service_info
+LOC: Config.Wccp2.info
+DEFAULT: none
+IFDEF: USE_WCCPv2
+DOC_START
+	Dynamic WCCPv2 services require further information to define the
+	traffic you wish to have diverted.
+
+	The format is:
+
+	wccp2_service_info <id> proto=<protocol> flags=<flag>,<flag>..
+	    priority=<priority> ports=<port>,<port>..
+
+	The relevant WCCPv2 flags:
+	+ src_ip_hash, dst_ip_hash
+	+ source_port_hash, dest_port_hash
+	+ ports_defined, ports_source
+	+ src_ip_alt_hash, dst_ip_alt_hash
+	+ src_port_alt_hash, dst_port_alt_hash
+
+	The port list can be one to eight entries. Specifying no ports is
+	currently valid but may result in a confused router.
+
+	Example:
+
+	wccp2_service_info 80 proto=tcp flags=src_ip_hash,ports_source
+	    priority=240 ports=80
+
+	Note: the service id must have been defined by a previous
+	'wccp2_service dynamic <id> entry.
 DOC_END
 
 NAME: wccp_incoming_address
@@ -3463,6 +3572,18 @@ TYPE: address
 LOC: Config.Wccp.outgoing
 DEFAULT: 255.255.255.255
 IFDEF: USE_WCCP
+DOC_NONE
+NAME: wccp2_incoming_address
+TYPE: address
+LOC: Config.Wccp2.incoming
+DEFAULT: 0.0.0.0
+IFDEF: USE_WCCPv2
+DOC_NONE
+NAME: wccp2_outgoing_address
+TYPE: address
+LOC: Config.Wccp2.outgoing
+DEFAULT: 255.255.255.255
+IFDEF: USE_WCCPv2
 DOC_START
         wccp_incoming_address   Use this option if you require WCCP
 				messages to be received on only one

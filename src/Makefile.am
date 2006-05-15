@@ -206,6 +206,7 @@ squid_SOURCES = \
 	useragent.c \
 	wais.c \
 	wccp.c \
+	wccp2.c \
 	whois.c \
 	$(WIN32SOURCE)
 

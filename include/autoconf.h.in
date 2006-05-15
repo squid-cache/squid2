@@ -149,9 +149,14 @@
 #undef SQUID_SNMP
 
 /*
- * Define to enable WCCP
+ * Define to enable WCCP V1
  */
 #define USE_WCCP 1
+
+/*
+ * Define to enable WCCPv2
+ */
+#define	USE_WCCPv2	1
 
 /*
  * Define this to include code which lets you specify access control

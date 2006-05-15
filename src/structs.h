@@ -462,6 +462,17 @@ struct _SquidConfig {
 	int version;
     } Wccp;
 #endif
+#if USE_WCCPv2
+    struct {
+	sockaddr_in_list *router;
+	struct in_addr incoming;
+	struct in_addr outgoing;
+	int version;
+	int forwarding_method;
+	int return_method;
+	void *info;
+    } Wccp2;
+#endif
     char *as_whois_server;
     struct {
 	char *log;
