@@ -1747,7 +1747,6 @@ struct _ErrorState {
     request_t *request;
     char *url;
     int xerrno;
-    u_short port;
     char *dnsserver_msg;
     time_t ttl;
     struct in_addr src_addr;
