@@ -154,9 +154,9 @@
 #define USE_WCCP 1
 
 /*
- * Define to enable WCCPv2
+ * Define to enable WCCP V2
  */
-#define	USE_WCCPv2	1
+#undef USE_WCCPv2
 
 /*
  * Define this to include code which lets you specify access control
