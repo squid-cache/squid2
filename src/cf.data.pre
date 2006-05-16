@@ -1413,6 +1413,16 @@ DOC_START
 	and other system resources.
 DOC_END
 
+NAME: url_rewrite_concurrency redirect_concurrency
+TYPE: int
+DEFAULT: 0
+LOC: Config.Program.url_rewrite.concurrency
+DOC_START
+	The number of requests each redirector helper can handle in
+	parallell. Defaults to 0 which indicates that the redirector
+	is a old-style singlethreaded redirector.
+DOC_END
+
 NAME: url_rewrite_host_header redirect_rewrites_host_header
 TYPE: onoff
 DEFAULT: on
@@ -1466,6 +1476,16 @@ DOC_START
 	too few Squid will have to wait for them to process a backlog of
 	URLs, slowing it down. If you start too many they will use RAM
 	and other system resources.
+DOC_END
+
+NAME: location_rewrite_concurrency
+TYPE: int
+DEFAULT: 0
+LOC: Config.Program.location_rewrite.concurrencty
+DOC_START
+	The number of requests each Location rewriter helper can handle in
+	parallell. Defaults to 0 which indicates that the helper
+	is a old-style singlethreaded helper.
 DOC_END
 
 NAME: location_rewrite_access
@@ -1793,9 +1813,11 @@ DOC_START
 	  negative_ttl=n
 	  		TTL for cached negative lookups (default same
 	  		as ttl)
-	  children=n	Concurrency level / number of processes spawn
-			to service external acl lookups of this type.
+	  children=n	number of processes spawn to service external acl
+			lookups of this type.
 			Note: see compatibility note below
+	  concurrency=n	concurrency level per process. Use 0 for simple helpers
+			who can only process a single request at a time.
 	  cache=n	result cache size, 0 is unbounded (default)
 	  protocol=3.0	Use URL-escaped strings instead of quoting
 
@@ -1830,8 +1852,11 @@ DOC_START
 
 	Defined keywords:
 
-	  user=		The users name (login)
-	  error=	Error description (only defined for ERR results)
+	  user=		The users name (login also understood)
+	  message=	Error message or similar used as %o in error messages
+	  		(error also understood)
+	  log=		String to be logged in access.log. Available as
+			%ea in logformat specifications
 
 	Keyword values need to be enclosed in quotes if they may contain
 	whitespace, or the whitespace escaped using \. Any quotes or \

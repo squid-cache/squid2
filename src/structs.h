@@ -522,10 +522,12 @@ struct _SquidConfig {
 	struct {
 	    wordlist *command;
 	    int children;
+	    int concurrency;
 	} url_rewrite;
 	struct {
 	    wordlist *command;
 	    int children;
+	    int concurrency;
 	} location_rewrite;
 #if USE_ICMP
 	char *pinger;
@@ -2106,12 +2108,14 @@ struct _helper_request {
     char *buf;
     HLPCB *callback;
     void *data;
+    struct timeval dispatch_time;
 };
 
 struct _helper_stateful_request {
     char *buf;
     HLPSCB *callback;
     void *data;
+    struct timeval dispatch_time;
 };
 
 
@@ -2124,6 +2128,7 @@ struct _helper {
     int n_running;
     int n_active;
     int ipc_type;
+    int concurrency;
     time_t last_queue_warn;
     struct {
 	int requests;
@@ -2144,6 +2149,7 @@ struct _helper_stateful {
     int n_running;
     int n_active;
     int ipc_type;
+    int concurrency;
     MemPool *datapool;
     HLPSAVAIL *IsAvailable;
     HLPSRESET *Reset;
@@ -2163,21 +2169,21 @@ struct _helper_server {
     int pid;
     int rfd;
     int wfd;
-    char *buf;
-    size_t buf_sz;
-    int offset;
-    struct timeval dispatch_time;
-    struct timeval answer_time;
+    MemBuf wqueue;
+    char *rbuf;
+    size_t rbuf_sz;
+    int roffset;
     dlink_node link;
     helper *parent;
-    helper_request *request;
+    helper_request **requests;
     struct _helper_flags {
-	unsigned int busy:1;
+	unsigned int writing:1;
 	unsigned int closing:1;
 	unsigned int shutdown:1;
     } flags;
     struct {
 	int uses;
+	unsigned int pending;
     } stats;
 };
 

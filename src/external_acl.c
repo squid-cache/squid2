@@ -45,8 +45,8 @@
 #ifndef DEFAULT_EXTERNAL_ACL_TTL
 #define DEFAULT_EXTERNAL_ACL_TTL 1 * 60 * 60
 #endif
-#ifndef DEFAULT_EXTERNAL_ACL_CONCURRENCY
-#define DEFAULT_EXTERNAL_ACL_CONCURRENCY 5
+#ifndef DEFAULT_EXTERNAL_ACL_CHILDREN
+#define DEFAULT_EXTERNAL_ACL_CHILDREN 5
 #endif
 
 typedef struct _external_acl_format external_acl_format;
@@ -82,6 +82,7 @@ struct _external_acl {
     external_acl_format *format;
     wordlist *cmdline;
     int children;
+    int concurrency;
     helper *helper;
     hash_table *cache;
     dlink_list lru_list;
@@ -167,7 +168,7 @@ parse_externalAclHelper(external_acl ** list)
 
     a->ttl = DEFAULT_EXTERNAL_ACL_TTL;
     a->negative_ttl = -1;
-    a->children = DEFAULT_EXTERNAL_ACL_CONCURRENCY;
+    a->children = DEFAULT_EXTERNAL_ACL_CHILDREN;
 
     token = strtok(NULL, w_space);
     if (!token)
@@ -185,7 +186,7 @@ parse_externalAclHelper(external_acl ** list)
 	} else if (strncmp(token, "children=", 9) == 0) {
 	    a->children = atoi(token + 9);
 	} else if (strncmp(token, "concurrency=", 12) == 0) {
-	    a->children = atoi(token + 12);
+	    a->concurrency = atoi(token + 12);
 	} else if (strncmp(token, "cache=", 6) == 0) {
 	    a->cache_size = atoi(token + 6);
 	} else if (strcmp(token, "protocol=2.5") == 0) {
@@ -303,8 +304,10 @@ dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl
 	    storeAppendPrintf(sentry, " ttl=%d", node->ttl);
 	if (node->negative_ttl != node->ttl)
 	    storeAppendPrintf(sentry, " negative_ttl=%d", node->negative_ttl);
-	if (node->children != DEFAULT_EXTERNAL_ACL_CONCURRENCY)
-	    storeAppendPrintf(sentry, " concurrency=%d", node->children);
+	if (node->children != DEFAULT_EXTERNAL_ACL_CHILDREN)
+	    storeAppendPrintf(sentry, " children=%d", node->children);
+	if (node->concurrency)
+	    storeAppendPrintf(sentry, " concurrency=%d", node->concurrency);
 	for (format = node->format; format; format = format->next) {
 	    switch (format->type) {
 	    case EXT_ACL_HEADER:
@@ -871,6 +874,7 @@ externalAclInit(void)
 	    p->helper = helperCreate(p->name);
 	p->helper->cmdline = p->cmdline;
 	p->helper->n_to_start = p->children;
+	p->helper->concurrency = p->concurrency;
 	p->helper->ipc_type = IPC_STREAM;
 	helperOpenServers(p->helper);
     }

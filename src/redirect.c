@@ -143,6 +143,7 @@ redirectInit(void)
 	redirectors = helperCreate("url_rewriter");
     redirectors->cmdline = Config.Program.url_rewrite.command;
     redirectors->n_to_start = Config.Program.url_rewrite.children;
+    redirectors->concurrency = Config.Program.url_rewrite.concurrency;
     redirectors->ipc_type = IPC_STREAM;
     helperOpenServers(redirectors);
     if (!init) {
