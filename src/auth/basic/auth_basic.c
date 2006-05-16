@@ -561,7 +561,7 @@ authBasicInit(authScheme * scheme)
 	    basicauthenticators = helperCreate("basicauthenticator");
 	basicauthenticators->cmdline = basicConfig->authenticate;
 	basicauthenticators->n_to_start = basicConfig->authenticateChildren;
-	basicauthenticators->ipc_type = IPC_TCP_SOCKET;
+	basicauthenticators->ipc_type = IPC_STREAM;
 	helperOpenServers(basicauthenticators);
 	if (!init) {
 	    cachemgrRegister("basicauthenticator",

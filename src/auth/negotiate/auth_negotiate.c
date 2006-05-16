@@ -224,7 +224,7 @@ authNegotiateInit(authScheme * scheme)
 	    negotiateauthenticators = helperStatefulCreate("negotiateauthenticator");
 	negotiateauthenticators->cmdline = negotiateConfig->authenticate;
 	negotiateauthenticators->n_to_start = negotiateConfig->authenticateChildren;
-	negotiateauthenticators->ipc_type = IPC_TCP_SOCKET;
+	negotiateauthenticators->ipc_type = IPC_STREAM;
 	helperStatefulOpenServers(negotiateauthenticators);
 	if (!negotiateinit) {
 	    cachemgrRegister("negotiateauthenticator",

@@ -224,7 +224,7 @@ authNTLMInit(authScheme * scheme)
 	    ntlmauthenticators = helperStatefulCreate("ntlmauthenticator");
 	ntlmauthenticators->cmdline = ntlmConfig->authenticate;
 	ntlmauthenticators->n_to_start = ntlmConfig->authenticateChildren;
-	ntlmauthenticators->ipc_type = IPC_TCP_SOCKET;
+	ntlmauthenticators->ipc_type = IPC_STREAM;
 	helperStatefulOpenServers(ntlmauthenticators);
 	if (!ntlminit) {
 	    cachemgrRegister("ntlmauthenticator",

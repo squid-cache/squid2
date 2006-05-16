@@ -871,7 +871,7 @@ externalAclInit(void)
 	    p->helper = helperCreate(p->name);
 	p->helper->cmdline = p->cmdline;
 	p->helper->n_to_start = p->children;
-	p->helper->ipc_type = IPC_TCP_SOCKET;
+	p->helper->ipc_type = IPC_STREAM;
 	helperOpenServers(p->helper);
     }
     if (firstTimeInit) {

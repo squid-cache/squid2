@@ -166,8 +166,9 @@ unlinkdInit(void)
     args[1] = NULL;
 #if HAVE_POLL && defined(_SQUID_OSF_)
     /* pipes and poll() don't get along on DUNIX -DW */
-    x = ipcCreate(IPC_TCP_SOCKET,
+    x = ipcCreate(IPC_STREAM,
 #else
+    /* We currently need to use FIFO.. see below */
     x = ipcCreate(IPC_FIFO,
 #endif
 	Config.Program.unlinkd,

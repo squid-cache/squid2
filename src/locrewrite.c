@@ -137,7 +137,7 @@ locationRewriteInit(void)
 	locrewriters = helperCreate("location_rewriter");
     locrewriters->cmdline = Config.Program.location_rewrite.command;
     locrewriters->n_to_start = Config.Program.location_rewrite.children;
-    locrewriters->ipc_type = IPC_TCP_SOCKET;
+    locrewriters->ipc_type = IPC_STREAM;
     helperOpenServers(locrewriters);
     if (!init) {
 	cachemgrRegister("location_rewriter",
