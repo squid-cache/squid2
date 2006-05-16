@@ -36,7 +36,7 @@
 
 #include "squid.h"
 
-#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (((sizeof(unsigned long)*8)-(n)))))
+#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> ((32-(n)))))
 
 static int n_userhash_peers = 0;
 static peer **userhash_peers = NULL;

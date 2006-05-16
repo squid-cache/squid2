@@ -1383,7 +1383,7 @@ struct _peer {
     int max_conn;
     struct {
 	char *url;
-	ssize_t min, max;
+	int min, max;
 	int interval;
 	int timeout;
 	int state;

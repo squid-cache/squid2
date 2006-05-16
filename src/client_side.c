@@ -3836,7 +3836,7 @@ clientNatLookup(ConnStateData * conn)
 static int
 clientNatLookup(ConnStateData * conn)
 {
-    size_t sock_sz = sizeof(conn->me);
+    socklen_t sock_sz = sizeof(conn->me);
     struct in_addr orig_addr = conn->me.sin_addr;
     static time_t last_reported = 0;
     /* If the call fails the address structure will be unchanged */
