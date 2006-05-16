@@ -345,7 +345,9 @@ fwdConnectStart(void *data)
     ErrorState *err;
     FwdServer *fs = fwdState->servers;
     const char *host;
+    const char *name;
     unsigned short port;
+    const char *domain = NULL;
     int ctimeout;
     int ftimeout = Config.Timeout.forward - (squid_curtime - fwdState->start);
     struct in_addr outgoing;
@@ -355,16 +357,14 @@ fwdConnectStart(void *data)
     debug(17, 3) ("fwdConnectStart: %s\n", url);
     if (fs->peer) {
 	host = fs->peer->host;
+	name = fs->peer->name;
 	port = fs->peer->http_port;
+	if (fs->peer->options.originserver)
+	    domain = fwdState->request->host;
 	ctimeout = fs->peer->connect_timeout > 0 ? fs->peer->connect_timeout
 	    : Config.Timeout.peer_connect;
-    } else if (fwdState->request->flags.accelerated &&
-	Config.Accel.single_host && Config.Accel.host) {
-	host = Config.Accel.host;
-	port = Config.Accel.port;
-	ctimeout = Config.Timeout.connect;
     } else {
-	host = fwdState->request->host;
+	host = name = fwdState->request->host;
 	port = fwdState->request->port;
 	ctimeout = Config.Timeout.connect;
     }
@@ -372,7 +372,7 @@ fwdConnectStart(void *data)
 	ftimeout = 5;
     if (ftimeout < ctimeout)
 	ctimeout = ftimeout;
-    if ((fd = pconnPop(host, port)) >= 0) {
+    if ((fd = pconnPop(host, port, domain)) >= 0) {
 	if (fwdCheckRetriable(fwdState)) {
 	    debug(17, 3) ("fwdConnectStart: reusing pconn FD %d\n", fd);
 	    fwdState->server_fd = fd;
@@ -488,9 +488,11 @@ fwdDispatch(FwdState * fwdState)
     if (fwdState->servers && (p = fwdState->servers->peer)) {
 	p->stats.fetches++;
 	fwdState->request->peer_login = p->login;
+	fwdState->request->peer_domain = p->domain;
 	httpStart(fwdState);
     } else {
 	fwdState->request->peer_login = NULL;
+	fwdState->request->peer_domain = NULL;
 	switch (request->protocol) {
 	case PROTO_HTTP:
 	    httpStart(fwdState);
@@ -578,6 +580,29 @@ fwdServersFree(FwdServer ** FS)
 	*FS = fs->next;
 	fwdServerFree(fs);
     }
+}
+
+void
+fwdStartPeer(peer * p, StoreEntry * e, request_t * r)
+{
+    FwdState *fwdState;
+    FwdServer *peer = NULL;
+    debug(17, 3) ("fwdStartPeer: '%s'\n", storeUrl(e));
+    e->mem_obj->request = requestLink(r);
+#if URL_CHECKSUM_DEBUG
+    assert(e->mem_obj->chksum == url_checksum(e->mem_obj->url));
+#endif
+    fwdState = cbdataAlloc(FwdState);
+    fwdState->entry = e;
+    fwdState->client_fd = -1;
+    fwdState->server_fd = -1;
+    fwdState->request = requestLink(r);
+    fwdState->start = squid_curtime;
+    storeLockObject(e);
+    EBIT_SET(e->flags, ENTRY_FWD_HDR_WAIT);
+    storeRegisterAbort(e, fwdAbort, fwdState);
+    peerAddFwdServer(&peer, p, DIRECT);
+    fwdStartComplete(peer, fwdState);
 }
 
 void

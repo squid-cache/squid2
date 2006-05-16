@@ -124,6 +124,8 @@ enum {				/* cachePeerTable */
     MESH_PTBL_IGN,
     MESH_PTBL_KEEPAL_S,
     MESH_PTBL_KEEPAL_R,
+    MESH_PTBL_INDEX,
+    MESH_PTBL_HOST,
     MESH_PTBL_END
 };
 

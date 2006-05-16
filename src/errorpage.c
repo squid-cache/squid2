@@ -214,7 +214,7 @@ errorDynamicPageInfoDestroy(ErrorDynamicPageInfo * info)
     xfree(info);
 }
 
-static int
+int
 errorPageId(const char *page_name)
 {
     int i;
@@ -248,8 +248,7 @@ errorPageName(int pageId)
     if (pageId >= ERR_NONE && pageId < ERR_MAX)		/* common case */
 	return err_type_str[pageId];
     if (pageId >= ERR_MAX && pageId - ERR_MAX < ErrorDynamicPages.count)
-	return ((ErrorDynamicPageInfo *) ErrorDynamicPages.
-	    items[pageId - ERR_MAX])->page_name;
+	return ((ErrorDynamicPageInfo *) ErrorDynamicPages.items[pageId - ERR_MAX])->page_name;
     return "ERR_UNKNOWN";	/* should not happen */
 }
 

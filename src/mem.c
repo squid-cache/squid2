@@ -215,6 +215,7 @@ memInit(void)
     memDataInit(MEM_ACL_LIST, "acl_list", sizeof(acl_list), 0);
     memDataInit(MEM_ACL_NAME_LIST, "acl_name_list", sizeof(acl_name_list), 0);
     memDataInit(MEM_ACL_TIME_DATA, "acl_time_data", sizeof(acl_time_data), 0);
+    memDataInit(MEM_ACL_REQUEST_TYPE, "acl_request_type", sizeof(acl_request_type), 0);
     memDataInit(MEM_AUTH_USER_T, "auth_user_t",
 	sizeof(auth_user_t), 0);
     memDataInit(MEM_AUTH_USER_HASH, "auth_user_hash_pointer",

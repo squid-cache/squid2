@@ -115,6 +115,7 @@ typedef enum {
     ACL_IDENT,
     ACL_IDENT_REGEX,
 #endif
+    ACL_TYPE,
     ACL_PROTO,
     ACL_METHOD,
     ACL_BROWSER,
@@ -140,6 +141,7 @@ typedef enum {
     ACL_MAX_USER_IP,
     ACL_EXTERNAL,
     ACL_URLLOGIN,
+    ACL_URLGROUP,
     ACL_ENUM_MAX
 } squid_acl;
 
@@ -245,6 +247,8 @@ typedef enum {
 #if X_ACCELERATOR_VARY
     HDR_X_ACCELERATOR_VARY,
 #endif
+    HDR_X_ERROR_URL,		/* errormap, requested URL */
+    HDR_X_ERROR_STATUS,		/* errormap, received HTTP status line */
     HDR_OTHER,
     HDR_ENUM_END
 } http_hdr_type;
@@ -312,6 +316,8 @@ typedef enum {
     CARP,
 #endif
     ANY_OLD_PARENT,
+    USERHASH_PARENT,
+    SOURCEHASH_PARENT,
     HIER_MAX
 } hier_code;
 
@@ -568,6 +574,7 @@ typedef enum {
     MEM_ACL_IP_DATA,
     MEM_ACL_LIST,
     MEM_ACL_NAME_LIST,
+    MEM_ACL_REQUEST_TYPE,
     MEM_AUTH_USER_T,
     MEM_AUTH_USER_HASH,
     MEM_ACL_PROXY_AUTH_MATCH,

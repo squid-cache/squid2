@@ -738,10 +738,14 @@ httpReadReply(int fd, void *data)
 #endif
 		    comm_remove_close_handler(fd, httpStateFree, httpState);
 		    fwdUnregister(fd, httpState->fwd);
-		    if (request->flags.accelerated && Config.Accel.single_host && Config.Accel.host)
-			pconnPush(fd, Config.Accel.host, Config.Accel.port);
-		    else
-			pconnPush(fd, request->host, request->port);
+		    if (httpState->peer) {
+			if (httpState->peer->options.originserver)
+			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, httpState->orig_request->host);
+			else
+			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, NULL);
+		    } else {
+			pconnPush(fd, request->host, request->port, NULL);
+		    }
 		    fwdComplete(httpState->fwd);
 		    httpState->fd = -1;
 		    httpStateFree(fd, httpState);
@@ -836,7 +840,6 @@ httpBuildRequestHeader(request_t * request,
     const HttpHeader *hdr_in = &orig_request->header;
     int we_do_ranges;
     const HttpHeaderEntry *e;
-    String strVia;
     String strFwd;
     HttpHeaderPos pos = HttpHeaderInitPos;
     httpHeaderInit(hdr_out, hoRequest);
@@ -879,24 +882,23 @@ httpBuildRequestHeader(request_t * request,
 	    /* Only pass on proxy authentication to peers for which
 	     * authentication forwarding is explicitly enabled
 	     */
-	    if (request->flags.proxying && orig_request->peer_login &&
-		strcmp(orig_request->peer_login, "PASS") == 0) {
+	    if (flags.proxying && orig_request->peer_login && strcmp(orig_request->peer_login, "PASS") == 0) {
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
 	    }
 	    break;
 	case HDR_AUTHORIZATION:
-	    /* Pass on WWW authentication even if used locally. If this is
-	     * not wanted in an accelerator then the header can be removed
-	     * using the anonymization functions
+	    /* Pass on WWW authentication.
 	     */
-	    httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
-	    /* XXX Some accelerators might want to strip the header
-	     * and regard the reply as cacheable, but authentication
-	     * is not normally enabled for accelerators without reading
-	     * the code, so there is not much use in adding logics here
-	     * without first defining the concept of having authentication
-	     * in the accelerator...
-	     */
+	    if (!flags.originpeer) {
+		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+	    } else {
+		/* In accelerators, only forward authentication if enabled
+		 * (see also below for proxy->server authentication)
+		 */
+		if (orig_request->peer_login && (strcmp(orig_request->peer_login, "PASS") == 0 || strcmp(orig_request->peer_login, "PROXYPASS") == 0)) {
+		    httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+		}
+	    }
 	    break;
 	case HDR_HOST:
 	    /*
@@ -905,7 +907,9 @@ httpBuildRequestHeader(request_t * request,
 	     * went through our redirector and the admin configured
 	     * 'redir_rewrites_host' to be off.
 	     */
-	    if (request->flags.redirected && !Config.onoff.redir_rewrites_host)
+	    if (orig_request->peer_domain)
+		httpHeaderPutStr(hdr_out, HDR_HOST, orig_request->peer_domain);
+	    else if (request->flags.redirected && !Config.onoff.redir_rewrites_host)
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
 	    else {
 		/* use port# only if not default */
@@ -937,9 +941,13 @@ httpBuildRequestHeader(request_t * request,
 	    if (!we_do_ranges)
 		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
 	    break;
+	case HDR_VIA:
+	    /* If Via is disabled then forward any received header as-is */
+	    if (!Config.onoff.via)
+		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+	    break;
 	case HDR_PROXY_CONNECTION:
 	case HDR_CONNECTION:
-	case HDR_VIA:
 	case HDR_X_FORWARDED_FOR:
 	case HDR_CACHE_CONTROL:
 	    /* append these after the loop if needed */
@@ -951,14 +959,15 @@ httpBuildRequestHeader(request_t * request,
     }
 
     /* append Via */
-    strVia = httpHeaderGetList(hdr_in, HDR_VIA);
-    snprintf(bbuf, BBUF_SZ, "%d.%d %s",
-	orig_request->http_ver.major,
-	orig_request->http_ver.minor, ThisCache);
-    strListAdd(&strVia, bbuf, ',');
-    httpHeaderPutStr(hdr_out, HDR_VIA, strBuf(strVia));
-    stringClean(&strVia);
-
+    if (Config.onoff.via) {
+	String strVia = httpHeaderGetList(hdr_in, HDR_VIA);
+	snprintf(bbuf, BBUF_SZ, "%d.%d %s",
+	    orig_request->http_ver.major,
+	    orig_request->http_ver.minor, ThisCache);
+	strListAdd(&strVia, bbuf, ',');
+	httpHeaderPutStr(hdr_out, HDR_VIA, strBuf(strVia));
+	stringClean(&strVia);
+    }
     /* append X-Forwarded-For */
     strFwd = httpHeaderGetList(hdr_in, HDR_X_FORWARDED_FOR);
     strListAdd(&strFwd,
@@ -969,8 +978,10 @@ httpBuildRequestHeader(request_t * request,
 
     /* append Host if not there already */
     if (!httpHeaderHas(hdr_out, HDR_HOST)) {
-	/* use port# only if not default */
-	if (orig_request->port == urlDefaultPort(orig_request->protocol)) {
+	if (orig_request->peer_domain) {
+	    httpHeaderPutStr(hdr_out, HDR_HOST, orig_request->peer_domain);
+	} else if (orig_request->port == urlDefaultPort(orig_request->protocol)) {
+	    /* use port# only if not default */
 	    httpHeaderPutStr(hdr_out, HDR_HOST, orig_request->host);
 	} else {
 	    httpHeaderPutStrf(hdr_out, HDR_HOST, "%s:%d",
@@ -986,8 +997,7 @@ httpBuildRequestHeader(request_t * request,
     }
     /* append Proxy-Authorization if configured for peer, and proxying */
     if (request->flags.proxying && orig_request->peer_login &&
-	!httpHeaderHas(hdr_out, HDR_PROXY_AUTHORIZATION) &&
-	strcmp(orig_request->peer_login, "PASS") != 0) {
+	!httpHeaderHas(hdr_out, HDR_PROXY_AUTHORIZATION)) {
 	if (*orig_request->peer_login == '*') {
 	    /* Special mode, to pass the username to the upstream cache */
 	    char loginbuf[256];
@@ -997,8 +1007,38 @@ httpBuildRequestHeader(request_t * request,
 	    snprintf(loginbuf, sizeof(loginbuf), "%s%s", username, orig_request->peer_login + 1);
 	    httpHeaderPutStrf(hdr_out, HDR_PROXY_AUTHORIZATION, "Basic %s",
 		base64_encode(loginbuf));
+	} else if (strcmp(orig_request->peer_login, "PASS") == 0) {
+	    /* Nothing to do */
+	} else if (strcmp(orig_request->peer_login, "PROXYPASS") == 0) {
+	    /* Nothing to do */
 	} else {
 	    httpHeaderPutStrf(hdr_out, HDR_PROXY_AUTHORIZATION, "Basic %s",
+		base64_encode(orig_request->peer_login));
+	}
+    }
+    /* append WWW-Authorization if configured for peer */
+    if (flags.originpeer && orig_request->peer_login &&
+	!httpHeaderHas(hdr_out, HDR_AUTHORIZATION)) {
+	if (strcmp(orig_request->peer_login, "PASS") == 0) {
+	    /* No credentials to forward.. (should have been done above if available) */
+	} else if (strcmp(orig_request->peer_login, "PROXYPASS") == 0) {
+	    /* Special mode, convert proxy authentication to WWW authentication */
+	    const char *auth = httpHeaderGetStr(hdr_in, HDR_PROXY_AUTHORIZATION);
+	    if (auth && strncasecmp(auth, "basic ", 6) == 0) {
+		httpHeaderPutStr(hdr_out, HDR_AUTHORIZATION, auth);
+	    }
+	} else if (*orig_request->peer_login == '*') {
+	    /* Special mode, to pass the username to the upstream cache */
+	    char loginbuf[256];
+	    const char *username = "-";
+	    if (orig_request->auth_user_request)
+		username = authenticateUserRequestUsername(orig_request->auth_user_request);
+	    snprintf(loginbuf, sizeof(loginbuf), "%s%s", username, orig_request->peer_login + 1);
+	    httpHeaderPutStrf(hdr_out, HDR_AUTHORIZATION, "Basic %s",
+		base64_encode(loginbuf));
+	} else {
+	    /* Fixed login string */
+	    httpHeaderPutStrf(hdr_out, HDR_AUTHORIZATION, "Basic %s",
 		base64_encode(orig_request->peer_login));
 	}
     }
@@ -1084,10 +1124,15 @@ httpSendRequest(HttpStateData * httpState)
     else
 	sendHeaderDone = httpSendComplete;
 
-    if (p != NULL)
-	httpState->flags.proxying = 1;
-    else
+    if (p != NULL) {
+	if (p->options.originserver)
+	    httpState->flags.originpeer = 1;
+	else
+	    httpState->flags.proxying = 1;
+    } else {
 	httpState->flags.proxying = 0;
+	httpState->flags.originpeer = 0;
+    }
     /*
      * Is keep-alive okay for all request methods?
      */
@@ -1131,8 +1176,13 @@ httpStart(FwdState * fwd)
     if (fwd->servers)
 	httpState->peer = fwd->servers->peer;	/* might be NULL */
     if (httpState->peer) {
+	const char *url;
+	if (httpState->peer->options.originserver)
+	    url = strBuf(orig_req->urlpath);
+	else
+	    url = storeUrl(httpState->entry);
 	proxy_req = requestCreate(orig_req->method,
-	    PROTO_NONE, storeUrl(httpState->entry));
+	    PROTO_NONE, url);
 	xstrncpy(proxy_req->host, httpState->peer->host, SQUIDHOSTNAMELEN);
 	proxy_req->port = httpState->peer->http_port;
 	proxy_req->flags = orig_req->flags;

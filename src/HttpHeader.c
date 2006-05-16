@@ -130,6 +130,8 @@ static const HttpHeaderFieldAttrs HeadersAttrs[] =
 #if X_ACCELERATOR_VARY
     {"X-Accelerator-Vary", HDR_X_ACCELERATOR_VARY, ftStr},
 #endif
+    {"X-Error-URL", HDR_X_ERROR_URL, ftStr},
+    {"X-Error-Status", HDR_X_ERROR_STATUS, ftInt},
     {"Other:", HDR_OTHER, ftStr}	/* ':' will not allow matches */
 };
 static HttpHeaderFieldInfo *Headers = NULL;

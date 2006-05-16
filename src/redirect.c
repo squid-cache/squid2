@@ -96,6 +96,7 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
     ConnStateData *conn = http->conn;
     redirectStateData *r = NULL;
     const char *fqdn;
+    char *urlgroup = conn->port->urlgroup;
     char buf[8192];
     assert(http);
     assert(handler);
@@ -122,12 +123,13 @@ redirectStart(clientHttpRequest * http, RH * handler, void *data)
     cbdataLock(r->data);
     if ((fqdn = fqdncache_gethostbyaddr(r->client_addr, 0)) == NULL)
 	fqdn = dash_str;
-    snprintf(buf, 8192, "%s %s/%s %s %s\n",
+    snprintf(buf, 8192, "%s %s/%s %s %s %s\n",
 	r->orig_url,
 	inet_ntoa(r->client_addr),
 	fqdn,
 	r->client_ident[0] ? rfc1738_escape(r->client_ident) : dash_str,
-	r->method_s);
+	r->method_s,
+	urlgroup ? urlgroup : "-");
     helperSubmit(redirectors, buf, redirectHandleReply, r);
 }
 
@@ -135,17 +137,17 @@ void
 redirectInit(void)
 {
     static int init = 0;
-    if (!Config.Program.redirect)
+    if (!Config.Program.url_rewrite.command)
 	return;
     if (redirectors == NULL)
-	redirectors = helperCreate("redirector");
-    redirectors->cmdline = Config.Program.redirect;
-    redirectors->n_to_start = Config.redirectChildren;
+	redirectors = helperCreate("url_rewriter");
+    redirectors->cmdline = Config.Program.url_rewrite.command;
+    redirectors->n_to_start = Config.Program.url_rewrite.children;
     redirectors->ipc_type = IPC_TCP_SOCKET;
     helperOpenServers(redirectors);
     if (!init) {
-	cachemgrRegister("redirector",
-	    "URL Redirector Stats",
+	cachemgrRegister("url_rewriter",
+	    "URL Rewriter Stats",
 	    redirectStats, 0, 1);
 	init = 1;
 	CBDATA_INIT_TYPE(redirectStateData);

@@ -336,20 +336,38 @@ struct _relist {
     relist *next;
 };
 
+struct _acl_request_type {
+    unsigned int accelerated:1;
+    unsigned int internal:1;
+};
+
 struct _sockaddr_in_list {
     struct sockaddr_in s;
     sockaddr_in_list *next;
 };
 
+struct _http_port_list {
+    http_port_list *next;
+    struct sockaddr_in s;
+    char *protocol;		/* protocol name */
+    char *name;			/* visible name */
+    char *defaultsite;		/* default web site */
+    char *urlgroup;		/* default urlgroup */
+    unsigned int transparent:1;	/* transparent proxy */
+    unsigned int accel:1;	/* HTTP accelerator */
+    unsigned int vhost:1;	/* uses host header */
+    unsigned int vport:1;	/* virtual port support */
+};
+
 #if USE_SSL
 struct _https_port_list {
-    https_port_list *next;
-    struct sockaddr_in s;
+    http_port_list http;	/* must be first */
     char *cert;
     char *key;
     int version;
     char *cipher;
     char *options;
+    SSL_CTX *sslContext;
 };
 
 #endif
@@ -443,7 +461,7 @@ struct _SquidConfig {
 #endif
     } Port;
     struct {
-	sockaddr_in_list *http;
+	http_port_list *http;
 #if USE_SSL
 	https_port_list *https;
 #endif
@@ -501,7 +519,14 @@ struct _SquidConfig {
 #if USE_DNSSERVERS
 	char *dnsserver;
 #endif
-	wordlist *redirect;
+	struct {
+	    wordlist *command;
+	    int children;
+	} url_rewrite;
+	struct {
+	    wordlist *command;
+	    int children;
+	} location_rewrite;
 #if USE_ICMP
 	char *pinger;
 #endif
@@ -513,15 +538,9 @@ struct _SquidConfig {
 #if USE_DNSSERVERS
     int dnsChildren;
 #endif
-    int redirectChildren;
     time_t authenticateGCInterval;
     time_t authenticateTTL;
     time_t authenticateIpTTL;
-    struct {
-	int single_host;
-	char *host;
-	u_short port;
-    } Accel;
     char *appendDomain;
     int appendDomainLen;
     char *debugOptions;
@@ -595,7 +614,6 @@ struct _SquidConfig {
 	int log_mime_hdrs;
 	int log_fqdn;
 	int announce;
-	int accel_with_proxy;
 	int mem_pools;
 	int test_reachability;
 	int half_closed_clients;
@@ -623,14 +641,15 @@ struct _SquidConfig {
 	int detect_broken_server_pconns;
 	int balance_on_multiple_ip;
 	int relaxed_header_parser;
-	int accel_uses_host_header;
 	int accel_no_pmtu_disc;
 	int global_internal_static;
 	int httpd_suppress_version_string;
+	int via;
     } onoff;
     acl *aclList;
     struct {
 	acl_access *http;
+	acl_access *http2;
 	acl_access *icp;
 	acl_access *miss;
 	acl_access *NeverDirect;
@@ -645,7 +664,8 @@ struct _SquidConfig {
 #if USE_IDENT
 	acl_access *identLookup;
 #endif
-	acl_access *redirector;
+	acl_access *url_rewrite;
+	acl_access *location_rewrite;
 	acl_access *reply;
 	acl_address *outgoing_address;
 	acl_tos *outgoing_tos;
@@ -730,13 +750,10 @@ struct _SquidConfig {
     char *store_dir_select_algorithm;
     int sleep_after_fork;	/* microseconds */
     external_acl *externalAclHelperList;
+    errormap *errorMapList;
 };
 
 struct _SquidConfig2 {
-    struct {
-	char *prefix;
-	int on;
-    } Accel;
     struct {
 	int enable_purge;
     } onoff;
@@ -996,6 +1013,7 @@ struct _http_state_flags {
     unsigned int keepalive_broken:1;
     unsigned int abuse_detected:1;
     unsigned int request_sent:1;
+    unsigned int originpeer:1;
 };
 
 struct _HttpStateData {
@@ -1083,6 +1101,7 @@ struct _AccessLogEntry {
 struct _clientHttpRequest {
     ConnStateData *conn;
     request_t *request;		/* Parsed URL ... */
+    request_t *orig_request;	/* Parsed URL ... */
     store_client *sc;		/* The store_client we're using */
     store_client *old_sc;	/* ... for entry to be validated */
     char *uri;
@@ -1156,6 +1175,8 @@ struct _ConnStateData {
 	int n;
 	time_t until;
     } defer;
+    http_port_list *port;
+    int transparent;
 };
 
 struct _ipcache_addrs {
@@ -1259,6 +1280,7 @@ struct _PeerDigest {
 #endif
 
 struct _peer {
+    char *name;
     char *host;
     peer_t type;
     struct sockaddr_in in_addr;
@@ -1310,6 +1332,9 @@ struct _peer {
 	unsigned int no_delay:1;
 #endif
 	unsigned int allow_miss:1;
+	unsigned int originserver:1;
+	unsigned int userhash:1;
+	unsigned int sourcehash:1;
     } options;
     int weight;
     struct {
@@ -1341,9 +1366,29 @@ struct _peer {
 	float load_factor;
     } carp;
 #endif
+    struct {
+	unsigned int hash;
+	double load_multiplier;
+	double load_factor;
+    } userhash;
+    struct {
+	unsigned int hash;
+	double load_multiplier;
+	double load_factor;
+    } sourcehash;
     char *login;		/* Proxy authorization */
     time_t connect_timeout;
     int max_conn;
+    struct {
+	char *url;
+	ssize_t min, max;
+	int interval;
+	int timeout;
+	int state;
+	time_t last;
+	PeerMonitor *data;
+    } monitor;
+    char *domain;		/* Forced domain */
 };
 
 struct _net_db_name {
@@ -1635,7 +1680,7 @@ struct _request_flags {
     unsigned int hierarchical:1;
     unsigned int loopdetect:1;
     unsigned int proxy_keepalive:1;
-    unsigned int proxying:1;
+    unsigned int proxying:1;	/* this should be killed, also in httpstateflags */
     unsigned int refresh:1;
     unsigned int redirected:1;
     unsigned int need_validation:1;
@@ -1702,6 +1747,8 @@ struct _request_t {
     char *peer_login;		/* Configured peer login:password */
     time_t lastmod;		/* Used on refreshes */
     const char *vary_headers;	/* Used when varying entities are detected. Changes how the store key is calculated */
+    char *urlgroup;		/* urlgroup, returned by redirectors */
+    char *peer_domain;		/* Configured peer forceddomain */
     BODY_HANDLER *body_reader;
     void *body_reader_data;
 };
@@ -2261,6 +2308,17 @@ struct cache_dir_option {
     const char *name;
     void (*parse) (SwapDir * sd, const char *option, const char *value, int reconfiguring);
     void (*dump) (StoreEntry * e, const char *option, SwapDir * sd);
+};
+
+struct error_map_entry {
+    struct error_map_entry *next;
+    char *value;
+    int status;
+};
+struct _errormap {
+    errormap *next;
+    char *url;
+    struct error_map_entry *map;
 };
 
 #endif /* SQUID_STRUCTS_H */

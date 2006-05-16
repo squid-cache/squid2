@@ -49,7 +49,7 @@ int server_pconn_hist[PCONN_HIST_SZ];
 
 static PF pconnRead;
 static PF pconnTimeout;
-static const char *pconnKey(const char *host, u_short port);
+static const char *pconnKey(const char *host, u_short port, const char *domain);
 static hash_table *table = NULL;
 static struct _pconn *pconnNew(const char *key);
 static void pconnDelete(struct _pconn *p);
@@ -59,10 +59,13 @@ static MemPool *pconn_data_pool = NULL;
 static MemPool *pconn_fds_pool = NULL;
 
 static const char *
-pconnKey(const char *host, u_short port)
+pconnKey(const char *host, u_short port, const char *domain)
 {
     LOCAL_ARRAY(char, buf, SQUIDHOSTNAMELEN + 10);
-    snprintf(buf, SQUIDHOSTNAMELEN + 10, "%s.%d", host, (int) port);
+    if (domain)
+	snprintf(buf, SQUIDHOSTNAMELEN + 10, "%s:%d/%s", host, (int) port, domain);
+    else
+	snprintf(buf, SQUIDHOSTNAMELEN + 10, "%s:%d", host, (int) port);
     return buf;
 }
 
@@ -184,11 +187,11 @@ pconnInit(void)
 }
 
 void
-pconnPush(int fd, const char *host, u_short port)
+pconnPush(int fd, const char *host, u_short port, const char *domain)
 {
     struct _pconn *p;
     int *old;
-    LOCAL_ARRAY(char, key, SQUIDHOSTNAMELEN + 10);
+    const char *key;
     LOCAL_ARRAY(char, desc, FD_DESC_SZ);
     if (fdUsageHigh()) {
 	debug(48, 3) ("pconnPush: Not many unused FDs\n");
@@ -199,7 +202,7 @@ pconnPush(int fd, const char *host, u_short port)
 	return;
     }
     assert(table != NULL);
-    strcpy(key, pconnKey(host, port));
+    key = pconnKey(host, port, domain);
     p = (struct _pconn *) hash_lookup(table, key);
     if (p == NULL)
 	p = pconnNew(key);
@@ -223,14 +226,14 @@ pconnPush(int fd, const char *host, u_short port)
 }
 
 int
-pconnPop(const char *host, u_short port)
+pconnPop(const char *host, u_short port, const char *domain)
 {
     struct _pconn *p;
     hash_link *hptr;
     int fd = -1;
-    LOCAL_ARRAY(char, key, SQUIDHOSTNAMELEN + 10);
+    const char *key;
     assert(table != NULL);
-    strcpy(key, pconnKey(host, port));
+    key = pconnKey(host, port, domain);
     hptr = hash_lookup(table, key);
     if (hptr != NULL) {
 	p = (struct _pconn *) hptr;

@@ -407,6 +407,11 @@
  */
 #undef X_ACCELERATOR_VARY
 
+/*
+ * Enable authentication support in accelerators
+ */
+#undef AUTH_ON_ACCELERATION
+
 @BOTTOM@
 
 #endif /* __CONFIGURE_H__ */

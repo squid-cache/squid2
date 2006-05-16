@@ -131,6 +131,7 @@ squid_SOURCES = \
 	errorpage.c \
 	ETag.c \
 	event.c \
+	errormap.c \
 	external_acl.c \
 	fd.c \
 	filemap.c \
@@ -160,6 +161,7 @@ squid_SOURCES = \
 	ipc.c \
 	ipcache.c \
 	$(LEAKFINDERSOURCE) \
+	locrewrite.c \
 	logfile.c \
 	main.c \
 	mem.c \
@@ -172,7 +174,10 @@ squid_SOURCES = \
 	Packer.c \
 	pconn.c \
 	peer_digest.c \
+	peer_monitor.c \
 	peer_select.c \
+	peer_sourcehash.c \
+	peer_userhash.c \
 	protos.h \
 	redirect.c \
 	referer.c \

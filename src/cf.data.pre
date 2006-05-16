@@ -54,14 +54,14 @@ COMMENT_START
 COMMENT_END
 
 NAME: http_port ascii_port
-TYPE: sockaddr_in_list
+TYPE: http_port_list
 DEFAULT: none
 DEFAULT_IF_NONE: @DEFAULT_HTTP_PORT@
 LOC: Config.Sockaddr.http
 DOC_START
-	Usage:	port
-		hostname:port
-		1.2.3.4:port
+	Usage:	port [options]
+		hostname:port [options]
+		1.2.3.4:port [options]
 
 	The socket addresses where Squid will listen for HTTP client
 	requests.  You may specify multiple socket addresses.
@@ -82,6 +82,19 @@ DOC_START
 	address, however.
 
 	You may specify multiple socket addresses on multiple lines.
+
+	options are:
+		transparent	Support for transparent proxies
+		vhost		Accelerator using Host directive
+		vport		Accelerator with IP virtual host support
+		vport=		As above, but uses specified port number
+				rather than the http_port number.
+		defaultsite=	Main web site name for accelerators.
+		urlgroup=	Default urlgroup to mark requests
+				with (see also acl urlgroup and
+				url_rewrite_program)
+		protocol=	Protocol to reconstruct accelerated
+				requests with. Defaults to http.
 
 	If you run Squid on a dual-homed machine with an internal
 	and an external interface we recommend you to specify the
@@ -108,6 +121,15 @@ DOC_START
 	each with their own SSL certificate and/or options.
 
 	Options:
+
+	   defaultsite=	The name of the https site presented on
+			this port.
+
+	   urlgroup=	Default urlgroup to mark requests with (see
+			also acl urlgroup and url_rewrite_program)
+
+	   protocol=	Protocol to reconstruct accelerated requests
+			with. Defaults to https.
 
 	   cert=	Path to SSL certificate (PEM format)
 
@@ -276,6 +298,16 @@ DOC_START
 		     max-conn
 		     htcp
 		     carp-load-factor
+		     originserver
+		     userhash
+		     sourcehash
+		     name=xxx
+		     monitorurl=url
+		     monitorsize=sizespec
+		     monitorinterval=seconds
+		     monitortimeout=seconds
+		     group=name
+		     forceddomain=name
 
 		     use 'proxy-only' to specify objects fetched
 		     from this cache should not be saved locally.
@@ -373,7 +405,42 @@ DOC_START
 		     cache as one participating in a CARP array.
 		     The 'f' values for all CARP parents must add
 		     up to 1.0.
+		 
+		     'originserver' causes this parent peer to be contacted as
+		     a origin server. Meant to be used in accelerator setups.
 
+		     use 'userhash' to load-balance amongs a set of parents
+		     based on the client proxy_auth or ident username.
+
+		     use 'sourcehash' to load-balanse amongs a set of parents
+		     based on the client source ip.
+
+		     use 'name=xxx' if you have multiple peers on the same
+		     host but different ports. This name can then be used to
+		     differentiate the peers in cache_peer_access and similar
+		     directives.
+
+		     use 'monitorurl=url' to have periodically request a given
+		     URL from the peer, and only concider the peer as alive
+		     if this monitoring is successful (default none)
+
+		     use 'monitorsize=min[-max]' to limit the size range of 
+		     'monitorurl' replies considered valid. Defaults to 0 to
+		     accept any size replies as valid.
+
+		     use 'monitorinterval=seconds' to change frequency of
+		     how often the peer is monitored with 'monitorurl'
+		     (default 300 for a 5 minute interval). If set to 0
+		     then monitoring is disabled even if a URL is defined.
+
+		     use 'monitortimeout=seconds' to change the timeout of
+		     'monitorurl'. Defaults to 'monitorinterval'.
+
+		     use 'forceddomain=name' to forcibly set the Host header
+		     of requests forwarded to this peer. Useful in accelerator
+		     setups where the server (peer) expects a certain domain
+		     name and using redirectors to feed this domainname
+		     is not feasible.
 
 	NOTE: non-ICP/HTCP neighbors must be specified as 'parent'.
 DOC_END
@@ -1309,22 +1376,36 @@ DOC_START
 DOC_END
 
 
-NAME: redirect_program
+NAME: url_rewrite_program redirect_program
 TYPE: wordlist
-LOC: Config.Program.redirect
+LOC: Config.Program.url_rewrite.command
 DEFAULT: none
 DOC_START
-	Specify the location of the executable for the URL redirector.
+	Specify the location of the executable for the URL rewriter.
 	Since they can perform almost any function there isn't one included.
-	See the FAQ (section 15) for information on how to write one.
-	By default, a redirector is not used.
+
+	For each requested URL rewriter will receive on line with the format
+
+	URL <SP> client_ip "/" fqdn <SP> user <SP> method <SP> urlgroup <NL>
+
+	And the rewriter may return a rewritten URL. The other components of
+	the request line does not need to be returned (ignored if they are).
+
+	The rewriter can also indicate that a client-side redirect should
+	be performed to the new URL. This is done by prefixing the returned
+	URL with "301:" (moved permanently) or 302: (moved temporarily).
+	
+	It can also return a "urlgroup" that can subsequently be matched
+	in cache_peer_access and similar ACL driven rules. An urlgroup is
+	returned by prefixing the returned url with "!urlgroup!"
+
+	By default, a URL rewriter is not used.
 DOC_END
 
-
-NAME: redirect_children
+NAME: url_rewrite_children redirect_children
 TYPE: int
 DEFAULT: 5
-LOC: Config.redirectChildren
+LOC: Config.Program.url_rewrite.children
 DOC_START
 	The number of redirector processes to spawn. If you start
 	too few Squid will have to wait for them to process a backlog of
@@ -1332,7 +1413,7 @@ DOC_START
 	and other system resources.
 DOC_END
 
-NAME: redirect_rewrites_host_header
+NAME: url_rewrite_host_header redirect_rewrites_host_header
 TYPE: onoff
 DEFAULT: on
 LOC: Config.onoff.redir_rewrites_host
@@ -1340,17 +1421,63 @@ DOC_START
 	By default Squid rewrites any Host: header in redirected
 	requests.  If you are running an accelerator this may
 	not be a wanted effect of a redirector.
+
+	WARNING: Entries are cached on the result of the URL rewriting
+	process, so be careful if you have domain-virtual hosts.
 DOC_END
 
-NAME: redirector_access
+NAME: url_rewrite_access redirector_access
 TYPE: acl_access
 DEFAULT: none
-LOC: Config.accessList.redirector
+LOC: Config.accessList.url_rewrite
 DOC_START
 	If defined, this access list specifies which requests are
 	sent to the redirector processes.  By default all requests
 	are sent.
 DOC_END
+
+NAME: location_rewrite_program
+TYPE: wordlist
+LOC: Config.Program.location_rewrite.command
+DEFAULT: none
+DOC_START
+	Specify the location of the executable for the Location rewriter,
+	used to rewrite server generated redirects. Usually used in
+	conjunction with a url_rewrite_program
+
+	For each Location header received the location rewriter will receive
+	one line with the format:
+
+	   location URL <SP> requested URL <SP> urlgroup <NL>
+
+	And the rewriter may return a rewritten Location URL or a blank line.
+	The other components of the request line does not need to be returned
+	(ignored if they are).
+
+	By default, a Location rewriter is not used.
+DOC_END
+
+NAME: location_rewrite_children
+TYPE: int
+DEFAULT: 5
+LOC: Config.Program.location_rewrite.children
+DOC_START
+	The number of location rewriting processes to spawn. If you start
+	too few Squid will have to wait for them to process a backlog of
+	URLs, slowing it down. If you start too many they will use RAM
+	and other system resources.
+DOC_END
+
+NAME: location_rewrite_access
+TYPE: acl_access
+DEFAULT: none
+LOC: Config.accessList.location_rewrite
+DOC_START
+	If defined, this access list specifies which requests are
+	sent to the location rewriting processes.  By default all Location
+	headers are sent.
+DOC_END
+
 
 NAME: auth_param
 TYPE: authparam
@@ -2246,6 +2373,9 @@ DOC_START
 	  # external ACL lookup via a helper class defined by the
 	  # external_acl_type directive.
 
+	acl urlgroup group1 ...
+	  # match against the urlgroup as indicated by redirectors
+
 Examples:
 acl macaddress arp 09:00:2b:23:45:67
 acl myexample dst_as 1241
@@ -2324,6 +2454,17 @@ http_access deny CONNECT !SSL_ports
 # And finally deny all other access to this proxy
 http_access deny all
 NOCOMMENT_END
+DOC_END
+
+NAME: http_access2
+TYPE: acl_access
+LOC: Config.accessList.http2
+DEFAULT: none
+DOC_START
+	Allowing or Denying access based on defined access lists
+
+	Identical to http_access, but runs after redirectors. If not set
+	then only http_access is used.
 DOC_END
 
 NAME: http_reply_access
@@ -2748,89 +2889,6 @@ COMMENT_START
  -----------------------------------------------------------------------------
 COMMENT_END
 
-NAME: httpd_accel_host
-TYPE: string
-LOC: Config.Accel.host
-DEFAULT: none
-DOC_NONE
-
-NAME: httpd_accel_port
-TYPE: ushort
-LOC: Config.Accel.port
-DEFAULT: 80
-DOC_START
-	If you want to run Squid as an httpd accelerator, define the
-	host name and port number where the real HTTP server is.
-
-	If you want IP based virtual host support specify the
-	hostname as "virtual". This will make Squid use the IP address
-	where it accepted the request as hostname in the URL.
-
-	If you want virtual port support specify the port as "0".
-
-	NOTE: enabling httpd_accel_host disables proxy-caching and
-	ICP.  If you want these features enabled also, set
-	the 'httpd_accel_with_proxy' option.
-DOC_END
-
-NAME: httpd_accel_single_host
-COMMENT: on|off
-TYPE: onoff
-LOC: Config.Accel.single_host
-DEFAULT: off
-DOC_START
-	If you are running Squid as an accelerator and have a single backend
-	server set this to on. This causes Squid to forward the request
-	to this server, regardless of what any redirectors or Host headers
-	say.
-
-	Leave this at off if you have multiple backend servers, and use a
-	redirector (or host table or private DNS) to map the requests to the
-	appropriate backend servers. Note that the mapping needs to be a
-	1-1 mapping between requested and backend (from redirector) domain
-	names or caching will fail, as caching is performed using the
-	URL returned from the redirector.
-
-	See also redirect_rewrites_host_header.
-DOC_END
-
-NAME: httpd_accel_with_proxy
-COMMENT: on|off
-TYPE: onoff
-DEFAULT: off
-LOC: Config.onoff.accel_with_proxy
-DOC_START
-	If you want to use Squid as both a local httpd accelerator
-	and as a proxy, change this to 'on'. Note however your
-	proxy users may have trouble to reach the accelerated domains
-	unless their browsers are configured not to use this proxy for
-	those domains (for example via the no_proxy browser configuration
-	setting)
-DOC_END
-
-NAME: httpd_accel_uses_host_header
-COMMENT: on|off
-TYPE: onoff
-DEFAULT: off
-LOC: Config.onoff.accel_uses_host_header
-DOC_START
-	HTTP/1.1 requests include a Host: header which is basically the
-	hostname from the URL.  The Host: header is used for domain based
-	virtual hosts. If your accelerator needs to provide domain based
-	virtual hosts on the same IP address you will need to turn this
-	on.
-
-	Note Squid does NOT check the value of the Host header matches
-	any of your accelerated server, so it may open a big security hole
-	unless you take care to set up access controls proper.  We recommend
-	this option remain disabled unless you are sure of what you
-	are doing.
-
-	However, you will need to enable this option if you run Squid
-	as a transparent proxy.  Otherwise, virtual servers which
-	require the Host: header will not be properly cached.
-DOC_END
-
 NAME: httpd_accel_no_pmtu_disc
 COMMENT: on|off
 TYPE: onoff
@@ -2913,6 +2971,45 @@ DOC_START
 	the default buffer size.
 DOC_END
 
+NAME: error_map
+TYPE: errormap
+LOC: Config.errorMapList
+DEFAULT: none
+DOC_START
+	Map errors to custom messages
+
+	    error_map message_url http_status ...
+
+	http_status ... is a list of HTTP status codes or Squid error
+	messages.
+
+	Use in accelerators to substitute the error messages returned
+	by servers with other custom errors. 
+
+	    error_map http://your.server/error/404.shtml 404
+	
+	Requests for error messages is a GET request for the configured
+	URL with the following special headers
+
+	    X-Error-Status:	The received HTTP status code (i.e. 404)
+	    X-Request-URI:	The requested URI where the error occurred
+	
+	In Addition the following headers are forwarded from the client
+	request:
+	    
+	    User-Agent, Cookie, X-Forwarded-For, Via, Authorization,
+	    Accept, Referer
+	
+	And the following headers from the server reply:
+
+	    Server, Via, Location, Content-Location
+	
+	The reply returned to the client will carry the original HTTP
+	headers from the real error message, but with the reply body
+	of the configured error message.
+
+DOC_END
+
 NAME: err_html_text
 TYPE: eol
 LOC: Config.errHtmlText
@@ -2927,7 +3024,6 @@ DOC_START
 	Wherever you want the 'err_html_text' line to appear,
 	insert a %L tag in the error template file.
 DOC_END
-
 
 NAME: deny_info
 TYPE: denyinfo
@@ -2995,6 +3091,16 @@ DOC_START
 	reduced memory thrashing in your malloc library.
 DOC_END
 
+NAME: via
+COMMENT: on|off
+TYPE: onoff
+DEFAULT: on
+LOC: Config.onoff.via
+DOC_START
+	If set (default), Squid will include a Via header in requests and
+	replies.
+DOC_END
+
 NAME: forwarded_for
 COMMENT: on|off
 TYPE: onoff
@@ -3011,6 +3117,7 @@ DOC_START
 
 		X-Forwarded-For: unknown
 DOC_END
+
 
 NAME: log_icp_queries
 COMMENT: on|off

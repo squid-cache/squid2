@@ -686,7 +686,7 @@ squid MODULE-IDENTITY
 			  the peer caches, complete with info "
         ::= { cacheMesh 1 }
 
-	cachePeerEntry OBJECT-TYPE
+	OLDcachePeerEntry OBJECT-TYPE
 		SYNTAX CachePeerEntry
 		MAX-ACCESS not-accessible
 		STATUS current
@@ -695,7 +695,18 @@ squid MODULE-IDENTITY
 		INDEX 	{ cachePeerAddr }
 	::= { cachePeerTable 1 }
 
+	cachePeerEntry OBJECT-TYPE
+		SYNTAX CachePeerEntry
+		MAX-ACCESS not-accessible
+		STATUS current
+		DESCRIPTION
+			" An entry in cachePeerTable "
+		INDEX 	{ cachePeerIndex }
+	::= { cachePeerTable 2 }
+
 	CachePeerEntry ::= SEQUENCE {
+	  cachePeerIndex	Integer32,
+	  cachePeerHost		DisplayString,
 	  cachePeerName		DisplayString,
 	  cachePeerAddr  	IpAddress,
 	  cachePeerPortHttp 	Integer32 (1..65535),
@@ -816,6 +827,22 @@ squid MODULE-IDENTITY
 		DESCRIPTION
 			" Number of keepalives received "
         ::= { cachePeerEntry 13 }
+
+        cachePeerIndex OBJECT-TYPE
+                SYNTAX Integer32
+                MAX-ACCESS read-only
+                STATUS current
+		DESCRIPTION
+			" Reference Index for each peer "
+        ::= { cachePeerEntry 14 }
+
+	cachePeerHost OBJECT-TYPE
+		SYNTAX DisplayString
+		MAX-ACCESS read-only
+		STATUS current
+		DESCRIPTION
+			  " The FQDN name for the peer cache "
+	::= { cachePeerEntry 15 }
 
 ---
 --- Table of cache's clients, with statistics. Children caches can be identified

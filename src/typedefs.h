@@ -92,6 +92,7 @@ typedef struct _authScheme authScheme;
 typedef struct _acl_user_data acl_user_data;
 typedef struct _acl_user_ip_data acl_user_ip_data;
 typedef struct _acl_arp_data acl_arp_data;
+typedef struct _acl_request_type acl_request_type;
 typedef struct _acl acl;
 typedef struct _acl_snmp_comm acl_snmp_comm;
 typedef struct _acl_list acl_list;
@@ -105,6 +106,7 @@ typedef struct _intrange intrange;
 typedef struct _ushortlist ushortlist;
 typedef struct _relist relist;
 typedef struct _sockaddr_in_list sockaddr_in_list;
+typedef struct _http_port_list http_port_list;
 typedef struct _https_port_list https_port_list;
 typedef struct _SquidConfig SquidConfig;
 typedef struct _SquidConfig2 SquidConfig2;
@@ -217,6 +219,8 @@ typedef struct _RemovalPolicyWalker RemovalPolicyWalker;
 typedef struct _RemovalPurgeWalker RemovalPurgeWalker;
 typedef struct _RemovalPolicyNode RemovalPolicyNode;
 typedef struct _RemovalPolicySettings RemovalPolicySettings;
+typedef struct _errormap errormap;
+typedef struct _PeerMonitor PeerMonitor;
 
 typedef struct _http_version_t http_version_t;
 
@@ -388,5 +392,7 @@ typedef int STDIRSELECT(const StoreEntry *);
 
 typedef struct _external_acl external_acl;
 typedef struct _external_acl_entry external_acl_entry;
+
+typedef void ERRMAPCB(StoreEntry *, int body_offset, squid_off_t content_length, void *data);
 
 #endif /* SQUID_TYPEDEFS_H */

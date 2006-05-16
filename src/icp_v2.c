@@ -407,8 +407,6 @@ icpConnectionsOpen(void)
     int x;
     socklen_t len;
     wordlist *s;
-    if (Config2.Accel.on && !Config.onoff.accel_with_proxy)
-	return;
     if ((port = Config.Port.icp) <= 0)
 	return;
     enter_suid();

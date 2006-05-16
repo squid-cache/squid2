@@ -61,6 +61,7 @@ requestDestroy(request_t * req)
 	authenticateAuthUserRequestUnlock(req->auth_user_request);
     safe_free(req->canonical);
     safe_free(req->vary_headers);
+    safe_free(req->urlgroup);
     stringClean(&req->urlpath);
     httpHeaderClean(&req->header);
     if (req->cache_control)

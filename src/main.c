@@ -136,7 +136,14 @@ mainParseOptions(int argc, char *argv[])
 	    opt_store_doublecheck = 1;
 	    break;
 	case 'V':
-	    vhost_mode = 1;
+	    if (Config.Sockaddr.http)
+		Config.Sockaddr.http->vhost = 1;
+#if USE_SSL
+	    else if (Config.Sockaddr.https)
+		Config.Sockaddr.https->http.vhost = 1;
+#endif
+	    else
+		fatal("No http_port specified\n");
 	    break;
 	case 'X':
 	    /* force full debugging */
@@ -310,6 +317,9 @@ serverConnectionsOpen(void)
 #if USE_CARP
     carpInit();
 #endif
+    peerSourceHashInit();
+    peerUserHashInit();
+    peerMonitorInit();
 }
 
 void
@@ -360,6 +370,7 @@ mainReconfigure(void)
     idnsShutdown();
 #endif
     redirectShutdown();
+    locationRewriteShutdown();
     authenticateShutdown();
     externalAclShutdown();
     storeDirCloseSwapLogs();
@@ -387,6 +398,7 @@ mainReconfigure(void)
     idnsInit();
 #endif
     redirectInit();
+    locationRewriteInit();
     authenticateInit(&Config.authConfig);
     externalAclInit();
 #if USE_WCCP
@@ -396,18 +408,14 @@ mainReconfigure(void)
     wccp2Init();
 #endif
     serverConnectionsOpen();
-    if (theOutIcpConnection >= 0) {
-	if (!Config2.Accel.on || Config.onoff.accel_with_proxy)
-	    neighbors_open(theOutIcpConnection);
-	else
-	    debug(1, 1) ("ICP port disabled in httpd_accelerator mode\n");
-    }
+    neighbors_init();
     storeDirOpenSwapLogs();
     mimeInit(Config.mimeTablePathname);
     eventCleanup();
     writePidFile();		/* write PID file */
     debug(1, 1) ("Ready to serve requests.\n");
     reconfiguring = 0;
+    peerMonitorInit();
 }
 
 static void
@@ -418,6 +426,7 @@ mainRotate(void)
     dnsShutdown();
 #endif
     redirectShutdown();
+    locationRewriteShutdown();
     authenticateShutdown();
     externalAclShutdown();
     _db_rotate_log();		/* cache.log */
@@ -434,6 +443,7 @@ mainRotate(void)
     dnsInit();
 #endif
     redirectInit();
+    locationRewriteInit();
     authenticateInit(&Config.authConfig);
     externalAclInit();
 }
@@ -519,6 +529,8 @@ mainInitialize(void)
     idnsInit();
 #endif
     redirectInit();
+    locationRewriteInit();
+    errorMapInit();
     authenticateInit(&Config.authConfig);
     externalAclInit();
     useragentOpenLog();
@@ -563,12 +575,7 @@ mainInitialize(void)
     wccp2Init();
 #endif
     serverConnectionsOpen();
-    if (theOutIcpConnection >= 0) {
-	if (!Config2.Accel.on || Config.onoff.accel_with_proxy)
-	    neighbors_open(theOutIcpConnection);
-	else
-	    debug(1, 1) ("ICP port disabled in httpd_accelerator mode\n");
-    }
+    neighbors_init();
     if (Config.chroot_dir)
 	no_suid();
     if (!configured_once)
@@ -980,6 +987,7 @@ SquidShutdown(void *unused)
 #endif
     redirectShutdown();
     externalAclShutdown();
+    locationRewriteShutdown();
     icpConnectionClose();
 #if USE_HTCP
     htcpSocketClose();

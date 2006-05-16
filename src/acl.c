@@ -40,9 +40,7 @@ static void aclParseDomainList(void *curlist);
 static void aclParseUserList(void **current);
 static void aclParseIpList(void *curlist);
 static void aclParseIntlist(void *curlist);
-#if SQUID_SNMP
 static void aclParseWordList(void *curlist);
-#endif
 static void aclParseProtoList(void *curlist);
 static void aclParseMethodList(void *curlist);
 static void aclParseTimeSpec(void *curlist);
@@ -58,9 +56,7 @@ static int aclMatchUser(void *proxyauth_acl, char *user);
 static int aclMatchIp(void *dataptr, struct in_addr c);
 static int aclMatchDomainList(void *dataptr, const char *);
 static int aclMatchIntegerRange(intrange * data, int i);
-#if SQUID_SNMP
 static int aclMatchWordList(wordlist *, const char *);
-#endif
 static void aclParseUserMaxIP(void *data);
 static void aclDestroyUserMaxIP(void *data);
 static wordlist *aclDumpUserMaxIP(void *data);
@@ -144,6 +140,8 @@ aclStrToType(const char *s)
     if (!strcmp(s, "ident_regex"))
 	return ACL_IDENT_REGEX;
 #endif
+    if (!strncmp(s, "type", 5))
+	return ACL_TYPE;
     if (!strncmp(s, "proto", 5))
 	return ACL_PROTO;
     if (!strcmp(s, "method"))
@@ -186,6 +184,8 @@ aclStrToType(const char *s)
 	return ACL_EXTERNAL;
     if (!strcmp(s, "urllogin"))
 	return ACL_URLLOGIN;
+    if (!strcmp(s, "urlgroup"))
+	return ACL_URLGROUP;
     return ACL_NONE;
 }
 
@@ -224,6 +224,8 @@ aclTypeToStr(squid_acl type)
     if (type == ACL_IDENT_REGEX)
 	return "ident_regex";
 #endif
+    if (type == ACL_TYPE)
+	return "type";
     if (type == ACL_PROTO)
 	return "proto";
     if (type == ACL_METHOD)
@@ -266,6 +268,8 @@ aclTypeToStr(squid_acl type)
 	return "external";
     if (type == ACL_URLLOGIN)
 	return "urllogin";
+    if (type == ACL_URLGROUP)
+	return "urlgroup";
     return "ERROR";
 }
 
@@ -343,6 +347,36 @@ aclParseMethodList(void *curlist)
 	q->i = (int) urlParseMethod(t);
 	*(Tail) = q;
 	Tail = &q->next;
+    }
+}
+
+static void
+aclParseType(void *current)
+{
+    acl_request_type **p = current;
+    acl_request_type *type;
+    char *t = NULL;
+    if (!*p)
+	*p = memAllocate(MEM_ACL_REQUEST_TYPE);
+    type = *p;
+    while ((t = strtokFile())) {
+	if (strcmp(t, "accelerated") == 0) {
+	    type->accelerated = 1;
+	    continue;
+	}
+	if (strcmp(t, "accel") == 0) {
+	    type->accelerated = 1;
+	    continue;
+	}
+	if (strcmp(t, "internal") == 0) {
+	    type->internal = 1;
+	    continue;
+	}
+	if (strcmp(t, "auth") == 0) {
+	    type->internal = 1;
+	    continue;
+	}
+	fatalf("unknown acl type argument '%s'\n", t);
     }
 }
 
@@ -706,7 +740,6 @@ aclDumpHeader(acl_hdr_data * hd)
     return W;
 }
 
-#if SQUID_SNMP
 static void
 aclParseWordList(void *curlist)
 {
@@ -714,7 +747,6 @@ aclParseWordList(void *curlist)
     while ((t = strtokFile()))
 	wordlistAdd(curlist, t);
 }
-#endif
 
 static void
 aclParseUserList(void **current)
@@ -878,6 +910,9 @@ aclParseAclLine(acl ** head)
 	aclParseRegexList(&A->data);
 	break;
 #endif
+    case ACL_TYPE:
+	aclParseType(&A->data);
+	break;
     case ACL_PROTO:
 	aclParseProtoList(&A->data);
 	break;
@@ -922,6 +957,9 @@ aclParseAclLine(acl ** head)
 #endif
     case ACL_EXTERNAL:
 	aclParseExternal(&A->data);
+	break;
+    case ACL_URLGROUP:
+	aclParseWordList(&A->data);
 	break;
     case ACL_NONE:
     case ACL_ENUM_MAX:
@@ -1493,7 +1531,6 @@ aclMatchTime(acl_time_data * data, time_t when)
     return 0;
 }
 
-#if SQUID_SNMP
 static int
 aclMatchWordList(wordlist * w, const char *word)
 {
@@ -1506,7 +1543,16 @@ aclMatchWordList(wordlist * w, const char *word)
     }
     return 0;
 }
-#endif
+
+static int
+aclMatchType(acl_request_type * type, request_t * request)
+{
+    if (type->accelerated && request->flags.accelerated)
+	return 1;
+    if (type->internal && request->flags.internal)
+	return 1;
+    return 0;
+}
 
 int
 aclAuthenticated(aclCheck_t * checklist)
@@ -1578,6 +1624,7 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
     case ACL_DST_IP:
     case ACL_MAX_USER_IP:
     case ACL_METHOD:
+    case ACL_TYPE:
     case ACL_PROTO:
     case ACL_PROXY_AUTH:
     case ACL_PROXY_AUTH_REGEX:
@@ -1735,6 +1782,8 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	}
 	/* NOTREACHED */
 #endif
+    case ACL_TYPE:
+	return aclMatchType(ae->data, r);
     case ACL_PROTO:
 	return aclMatchInteger(ae->data, r->protocol);
 	/* NOTREACHED */
@@ -1823,6 +1872,11 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	/* NOTREACHED */
     case ACL_EXTERNAL:
 	return aclMatchExternal(ae->data, checklist);
+	/* NOTREACHED */
+    case ACL_URLGROUP:
+	if (!checklist->request->urlgroup)
+	    return 0;
+	return aclMatchWordList(ae->data, checklist->request->urlgroup);
 	/* NOTREACHED */
     case ACL_NONE:
     case ACL_ENUM_MAX:
@@ -2238,6 +2292,11 @@ aclFreeUserData(void *data)
     memFree(d, MEM_ACL_USER_DATA);
 }
 
+static void
+aclDestroyType(acl_request_type * type)
+{
+    memFree(type, MEM_ACL_REQUEST_TYPE);
+}
 
 void
 aclDestroyAcls(acl ** head)
@@ -2291,6 +2350,9 @@ aclDestroyAcls(acl ** head)
 	case ACL_REQ_MIME_TYPE:
 	    aclDestroyRegexList(a->data);
 	    break;
+	case ACL_TYPE:
+	    aclDestroyType(a->data);
+	    break;
 	case ACL_REP_HEADER:
 	case ACL_REQ_HEADER:
 	    aclDestroyHeader(a->data);
@@ -2314,6 +2376,9 @@ aclDestroyAcls(acl ** head)
 	    break;
 	case ACL_EXTERNAL:
 	    aclDestroyExternal(&a->data);
+	    break;
+	case ACL_URLGROUP:
+	    wordlistDestroy((wordlist **) & a->data);
 	    break;
 	case ACL_NONE:
 	case ACL_ENUM_MAX:
@@ -2673,6 +2738,17 @@ aclDumpMethodList(intlist * data)
     return W;
 }
 
+static wordlist *
+aclDumpType(acl_request_type * type)
+{
+    wordlist *W = NULL;
+    if (type->accelerated)
+	wordlistAdd(&W, "accelerated");
+    if (type->internal)
+	wordlistAdd(&W, "internal");
+    return W;
+}
+
 wordlist *
 aclDumpGeneric(const acl * a)
 {
@@ -2722,6 +2798,8 @@ aclDumpGeneric(const acl * a)
     case ACL_URL_PORT:
     case ACL_MY_PORT:
 	return aclDumpIntRangeList(a->data);
+    case ACL_TYPE:
+	return aclDumpType(a->data);
     case ACL_PROTO:
 	return aclDumpProtoList(a->data);
     case ACL_METHOD:
@@ -2732,6 +2810,8 @@ aclDumpGeneric(const acl * a)
 #endif
     case ACL_EXTERNAL:
 	return aclDumpExternal(a->data);
+    case ACL_URLGROUP:
+	return wordlistDup(a->data);
     case ACL_NONE:
     case ACL_ENUM_MAX:
 	break;

@@ -59,6 +59,8 @@ const char *hier_strings[] =
     "CARP",
 #endif
     "ANY_PARENT",
+    "USERHASH_PARENT",
+    "SOURCEHASH_PARENT",
     "INVALID CODE"
 };
 
@@ -90,7 +92,6 @@ static void peerGetSomeNeighborReplies(ps_state *);
 static void peerGetSomeDirect(ps_state *);
 static void peerGetSomeParent(ps_state *);
 static void peerGetAllParents(ps_state *);
-static void peerAddFwdServer(FwdServer **, peer *, hier_code);
 
 static void
 peerSelectStateFree(ps_state * psstate)
@@ -443,6 +444,10 @@ peerGetSomeParent(ps_state * ps)
 	return;
     if ((p = getDefaultParent(request))) {
 	code = DEFAULT_PARENT;
+    } else if ((p = peerUserHashSelectParent(request))) {
+	code = USERHASH_PARENT;
+    } else if ((p = peerSourceHashSelectParent(request))) {
+	code = SOURCEHASH_PARENT;
     } else if ((p = getRoundRobinParent(request))) {
 	code = ROUNDROBIN_PARENT;
     } else if ((p = getFirstUpParent(request))) {
@@ -644,7 +649,7 @@ peerHandlePingReply(peer * p, peer_t type, protocol_t proto, void *pingdata, voi
 	debug(44, 1) ("peerHandlePingReply: unknown protocol_t %d\n", (int) proto);
 }
 
-static void
+void
 peerAddFwdServer(FwdServer ** FS, peer * p, hier_code code)
 {
     FwdServer *fs = memAllocate(MEM_FWD_SERVER);

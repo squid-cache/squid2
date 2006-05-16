@@ -661,7 +661,7 @@ extern int neighborsUdpPing(request_t *,
 extern void neighborAddAcl(const char *, const char *);
 extern void neighborsUdpAck(const cache_key *, icp_common_t *, const struct sockaddr_in *);
 extern void neighborAdd(const char *, const char *, int, int, int, int, int);
-extern void neighbors_open(int);
+extern void neighbors_init(void);
 extern peer *peerFindByName(const char *);
 extern peer *peerFindByNameAndPort(const char *, unsigned short);
 extern peer *getDefaultParent(request_t * request);
@@ -684,6 +684,7 @@ extern peer *whichPeer(const struct sockaddr_in *from);
 #if USE_HTCP
 extern void neighborsHtcpReply(const cache_key *, htcpReplyData *, const struct sockaddr_in *);
 #endif
+extern void peerAddFwdServer(FwdServer ** FS, peer * p, hier_code code);
 
 extern void netdbInit(void);
 extern void netdbHandlePingReply(const struct sockaddr_in *from, int hops, int rtt);
@@ -716,6 +717,7 @@ extern void peerDigestStatsReport(const PeerDigest * pd, StoreEntry * e);
 
 /* forward.c */
 extern void fwdStart(int, StoreEntry *, request_t *);
+extern void fwdStartPeer(peer *, StoreEntry *, request_t *);
 extern DEFER fwdCheckDeferRead;
 extern void fwdFail(FwdState *, ErrorState *);
 extern void fwdUnregister(int fd, FwdState *);
@@ -736,6 +738,10 @@ extern void urnStart(request_t *, StoreEntry *);
 extern void redirectStart(clientHttpRequest *, RH *, void *);
 extern void redirectInit(void);
 extern void redirectShutdown(void);
+
+extern void locationRewriteStart(HttpReply *, clientHttpRequest *, RH *, void *);
+extern void locationRewriteInit(void);
+extern void locationRewriteShutdown(void);
 
 /* auth_modules.c */
 extern void authSchemeSetup(void);
@@ -1142,9 +1148,10 @@ extern void errorAppendEntry(StoreEntry *, ErrorState *);
 extern void errorStateFree(ErrorState * err);
 extern int errorReservePageId(const char *page_name);
 extern ErrorState *errorCon(err_type type, http_status);
+extern int errorPageId(const char *page_name);
 
-extern void pconnPush(int, const char *host, u_short port);
-extern int pconnPop(const char *host, u_short port);
+extern void pconnPush(int, const char *host, u_short port, const char *domain);
+extern int pconnPop(const char *host, u_short port, const char *domain);
 extern void pconnInit(void);
 
 extern int asnMatchIp(void *, struct in_addr);
@@ -1239,6 +1246,11 @@ extern int internalHostnameIs(const char *);
 extern void carpInit(void);
 extern peer *carpSelectParent(request_t *);
 #endif
+
+extern void peerUserHashInit(void);
+extern peer *peerUserHashSelectParent(request_t *);
+extern void peerSourceHashInit(void);
+extern peer *peerSourceHashSelectParent(request_t *);
 
 #if DELAY_POOLS
 extern void delayPoolsInit(void);
@@ -1360,5 +1372,13 @@ extern void parse_wccp2_service_info(void *v);
 extern void free_wccp2_service_info(void *v);
 extern void dump_wccp2_service_info(StoreEntry * e, const char *label, void *v);
 #endif
+
+/* peer_monitor.c */
+extern void peerMonitorInit(void);
+extern void peerMonitorNow(peer *);
+
+/* errormap.c */
+extern void errorMapInit(void);
+extern int errorMapStart(const errormap * map, request_t * req, HttpReply * reply, const char *aclname, ERRMAPCB * callback, void *data);
 
 #endif /* SQUID_PROTOS_H */
