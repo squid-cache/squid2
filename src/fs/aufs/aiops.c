@@ -282,6 +282,9 @@ squidaio_init(void)
     pthread_attr_setschedparam(&globattr, &globsched);
 #endif
 
+    /* Give each thread a smaller 256KB stack, should be more than sufficient */
+    pthread_attr_setstacksize(&globattr, 256 * 1024);
+
     /* Initialize request queue */
     if (pthread_mutex_init(&(request_queue.mutex), NULL))
 	fatal("Failed to create mutex");
