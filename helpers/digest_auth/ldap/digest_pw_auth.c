@@ -31,22 +31,14 @@
  */
 
 #include "digest_common.h"
-#include "text_backend.h"
-#define PROGRAM_NAME "digest_pw_auth"
+#include "ldap_backend.h"
+#define PROGRAM_NAME "digest_ldap_auth"
 
-
-void
-usage()
-{
-    fprintf(stderr, "\n\t\tYou need at least to specify the backend database\n");
-    fprintf(stderr, "\t\t%s -D LDAP or file\n", PROGRAM_NAME);
-    exit(1);
-}
 
 void
 GetHHA1(RequestData * requestData)
 {
-    TextHHA1(requestData);
+    LDAPHHA1(requestData);
 }
 
 static void
@@ -92,7 +84,10 @@ DoOneRequest(char *buf)
 void
 ProcessArguments(int argc, char **argv)
 {
-    TextArguments(argc, argv);
+    int i;
+    i = LDAPArguments(argc, argv);
+    if (i)
+	exit(i);
 }
 
 int

@@ -3,5 +3,5 @@
 #  $Id$
 #
 
-DIST_SUBDIRS	= password
+DIST_SUBDIRS	= password ldap
 SUBDIRS		= @DIGEST_AUTH_HELPERS@

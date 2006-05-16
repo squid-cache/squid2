@@ -13,6 +13,8 @@ Changes to squid-2.6 (not yet released)
 	- Access logging via syslog
 	- Reverse proxy enhancements, with new cache_peer based forwarding
 	  model.
+	- LDAP based Digest helper (Note: not true LDAP integration, just using
+	  LDAP for storage of the Digest hashes)
 
 Changes to squid-2.5.STABLE14 (not yet released)
 	- [Minor] icons not displayed when visible_hostname is a
