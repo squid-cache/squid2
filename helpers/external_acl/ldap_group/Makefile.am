@@ -11,4 +11,4 @@ man_MANS 		= squid_ldap_group.8
 EXTRA_DIST		= squid_ldap_group.8
 squid_ldap_group_SOURCES	= squid_ldap_group.c
 
-LDADD = -lldap $(LIB_LBER) $(XTRA_LIBS)
+LDADD = $(LIB_LDAP) $(LIB_LBER) $(XTRA_LIBS)
