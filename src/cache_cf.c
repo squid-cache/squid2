@@ -102,12 +102,10 @@ static void free_http_header_replace(header_mangler * header);
 static void parse_denyinfo(acl_deny_info_list ** var);
 static void dump_denyinfo(StoreEntry * entry, const char *name, acl_deny_info_list * var);
 static void free_denyinfo(acl_deny_info_list ** var);
-#if CURRENTLY_UNUSED
 static void parse_sockaddr_in_list(sockaddr_in_list **);
 static void dump_sockaddr_in_list(StoreEntry *, const char *, const sockaddr_in_list *);
 static void free_sockaddr_in_list(sockaddr_in_list **);
 static int check_null_sockaddr_in_list(const sockaddr_in_list *);
-#endif /* CURRENTLY_UNUSED */
 static void parse_http_port_list(http_port_list **);
 static void dump_http_port_list(StoreEntry *, const char *, const http_port_list *);
 static void free_http_port_list(http_port_list **);
@@ -2482,10 +2480,6 @@ parseNeighborType(const char *s)
     return PEER_SIBLING;
 }
 
-#if CURRENTLY_UNUSED
-/* This code was previously used by http_port. Left as it really should
- * be used by icp_port and htcp_port
- */
 static void
 parse_sockaddr_in_list(sockaddr_in_list ** head)
 {
@@ -2553,7 +2547,6 @@ check_null_sockaddr_in_list(const sockaddr_in_list * s)
 {
     return NULL == s;
 }
-#endif /* CURRENTLY_UNUSED */
 
 static void
 parse_http_port_specification(http_port_list * s, char *token)
