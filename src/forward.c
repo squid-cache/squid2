@@ -224,7 +224,7 @@ fwdConnectDone(int server_fd, int status, void *data)
     assert(current != fwdState);
     current = fwdState;
     assert(fwdState->server_fd == server_fd);
-    if (Config.onoff.log_ip_on_direct && status != COMM_ERR_DNS && fs->code == DIRECT)
+    if (Config.onoff.log_ip_on_direct && status != COMM_ERR_DNS && fs->code == HIER_DIRECT)
 	hierarchyNote(&fwdState->request->hier, fs->code, fd_table[server_fd].ipaddr);
     if (status == COMM_ERR_DNS) {
 	/*
@@ -268,7 +268,7 @@ fwdConnectTimeout(int fd, void *data)
     ErrorState *err;
     debug(17, 2) ("fwdConnectTimeout: FD %d: '%s'\n", fd, storeUrl(entry));
     assert(fd == fwdState->server_fd);
-    if (Config.onoff.log_ip_on_direct && fs->code == DIRECT && fd_table[fd].ipaddr[0])
+    if (Config.onoff.log_ip_on_direct && fs->code == HIER_DIRECT && fd_table[fd].ipaddr[0])
 	hierarchyNote(&fwdState->request->hier, fs->code, fd_table[fd].ipaddr);
     if (entry->mem_obj->inmem_hi == 0) {
 	err = errorCon(ERR_CONNECT_FAIL, HTTP_GATEWAY_TIMEOUT);
@@ -601,7 +601,7 @@ fwdStartPeer(peer * p, StoreEntry * e, request_t * r)
     storeLockObject(e);
     EBIT_SET(e->flags, ENTRY_FWD_HDR_WAIT);
     storeRegisterAbort(e, fwdAbort, fwdState);
-    peerAddFwdServer(&peer, p, DIRECT);
+    peerAddFwdServer(&peer, p, HIER_DIRECT);
     fwdStartComplete(peer, fwdState);
 }
 
