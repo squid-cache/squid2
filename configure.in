@@ -510,13 +510,11 @@ AC_ARG_ENABLE(wccp,
   fi
 ])      
 
-AM_CONDITIONAL(USE_WCCPv2, false)
 AC_ARG_ENABLE(wccpv2,
 [  --enable-wccpv2          Enable Web Cache Coordination V2 Protocol],
 [ if test "$enableval" = "yes" ; then
     echo "Web Cache Coordination V2 Protocol enabled"
     AC_DEFINE(USE_WCCPv2, 1)
-    AM_CONDITIONAL(USE_WCCPv2, true)
   fi
 ])
  
