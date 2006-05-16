@@ -318,7 +318,7 @@ wccp2InitServices(void)
     debug(80, 5) ("wccp2InitServices: called\n");
 }
 
-void
+static void
 wccp2_update_service(struct wccp2_service_list_t *srv, int service,
     int service_id, int service_priority, int service_proto, int service_flags,
     int ports[])
@@ -364,7 +364,7 @@ wccp2_add_service_list(int service, int service_id, int service_priority,
     wccp2_service_list_head = wccp2_service_list_ptr;
 }
 
-struct wccp2_service_list_t *
+static struct wccp2_service_list_t *
 wccp2_get_service_by_id(int service, int service_id)
 {
     struct wccp2_service_list_t *p;
@@ -384,7 +384,7 @@ wccp2_get_service_by_id(int service, int service_id)
  *
  * Returns: 1 if we set it, 0 if not (eg, no security section, or non-md5)
  */
-char
+static char
 wccp2_update_md5_security(char *password, char *ptr, char *packet, int len)
 {
     u_int8_t md5_digest[16];
@@ -425,7 +425,7 @@ wccp2_update_md5_security(char *password, char *ptr, char *packet, int len)
 /*
  * Check the given WCCP2 packet against the given password.
  */
-char
+static char
 wccp2_check_security(struct wccp2_service_list_t *srv, char *security, char *packet, int len)
 {
     struct wccp2_security_md5_t *ws = (struct wccp2_security_md5_t *) security;
@@ -479,10 +479,7 @@ wccp2Init(void)
 
     /* Calculate the number of routers configured in the config file */
     for (s = Config.Wccp2.router; s; s = s->next) {
-	if (s->s.sin_addr.s_addr != any_addr.s_addr) {
-	    /* Increment the counter */
-	    wccp2_numrouters++;
-	}
+	wccp2_numrouters++;
     }
     if (wccp2_numrouters == 0) {
 	return;
@@ -1398,7 +1395,7 @@ parse_wccp2_service_flags(char *flags)
     return retflag;
 }
 
-void
+static void
 parse_wccp2_service_ports(char *options, int portlist[])
 {
     int i = 0;
