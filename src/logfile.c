@@ -37,16 +37,16 @@
 static void logfileWriteWrapper(Logfile * lf, const void *buf, size_t len);
 
 #if HAVE_SYSLOG
-struct syslog_symbol_t {
+typedef struct {
     const char *name;
     int value;
-};
+} syslog_symbol_t;
 
 static int
 syslog_ntoa(const char *s)
 {
 #define syslog_symbol(a) #a, a
-    static syslog_symbol_t _symbols[] =
+    static syslog_symbol_t symbols[] =
     {
 #ifdef LOG_AUTHPRIV
 	{syslog_symbol(LOG_AUTHPRIV)},
@@ -98,7 +98,9 @@ syslog_ntoa(const char *s)
 #endif
 	{NULL, 0}
     };
-    for (syslog_symbol_t * p = _symbols; p->name != NULL; ++p)
+    syslog_symbol_t *p;
+
+    for (p = symbols; p->name != NULL; ++p)
 	if (!strcmp(s, p->name) || !strcmp(s, p->name + 4))
 	    return p->value;
     return 0;
@@ -117,15 +119,15 @@ logfileOpen(const char *path, size_t bufsz, int fatal_flag)
 	lf->flags.syslog = 1;
 	lf->fd = -1;
 	if (path[6] != '\0') {
-	    char *priority = path + 7;
-	    char *facility = strchr(priority, '|');
+	    const char *priority = path + 7;
+	    char *facility = (char *) strchr(priority, '|');
 	    if (facility) {
 		*facility++ = '\0';
 		lf->syslog_priority |= syslog_ntoa(facility);
 	    }
 	    lf->syslog_priority |= syslog_ntoa(priority);
 	}
-	if (lf->syslog_priority & PRIORITY_MASK == 0)
+	if ((lf->syslog_priority & PRIORITY_MASK) == 0)
 	    lf->syslog_priority |= LOG_INFO;
     } else
 #endif
