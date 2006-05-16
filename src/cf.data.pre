@@ -1481,7 +1481,7 @@ DOC_END
 NAME: location_rewrite_concurrency
 TYPE: int
 DEFAULT: 0
-LOC: Config.Program.location_rewrite.concurrencty
+LOC: Config.Program.location_rewrite.concurrency
 DOC_START
 	The number of requests each Location rewriter helper can handle in
 	parallell. Defaults to 0 which indicates that the helper
