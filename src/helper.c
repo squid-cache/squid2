@@ -702,7 +702,7 @@ helperHandleRead(int fd, void *data)
 	int i = 0;
 	/* end of reply found */
 	debug(84, 3) ("helperHandleRead: end of reply found: %s\n", srv->rbuf);
-	if (t > srv->buf && t[-1] == '\r')
+	if (t > srv->rbuf && t[-1] == '\r')
 	    t[-1] = '\0';
 	*t++ = '\0';
 	if (hlp->concurrency) {
