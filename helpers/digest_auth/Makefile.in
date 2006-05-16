@@ -123,7 +123,7 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 makesnmplib = @makesnmplib@
 
-DIST_SUBDIRS = password
+DIST_SUBDIRS = password ldap
 SUBDIRS = @DIGEST_AUTH_HELPERS@
 subdir = helpers/digest_auth
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
