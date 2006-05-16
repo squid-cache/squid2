@@ -1362,6 +1362,8 @@ extern void externalAclInit(void);
 extern void externalAclShutdown(void);
 extern int externalAclRequiresAuth(void *acl_data);
 extern char *strtokFile(void);
+const char *externalAclMessage(external_acl_entry * entry);
+
 
 #if USE_WCCPv2
 extern void parse_wccp2_service(void *v);

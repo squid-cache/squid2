@@ -454,6 +454,8 @@ clientRedirectDone(void *data, char *result)
 	    old_request->body_reader_data = NULL;
 	}
 	new_request->content_length = old_request->content_length;
+	if (strBuf(old_request->extacl_log))
+	    new_request->log = stringDup(&old_request->extacl_log);
 	requestUnlink(old_request);
 	http->request = requestLink(new_request);
     } else {

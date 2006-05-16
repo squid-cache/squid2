@@ -67,7 +67,8 @@ struct _external_acl_entry {
     int result;
     time_t date;
     char *user;
-    char *error;
+    char *message;
+    char *log;
     external_acl *def;
 };
 
@@ -106,6 +107,7 @@ struct _external_acl_format {
 	EXT_ACL_DST,
 	EXT_ACL_PROTO,
 	EXT_ACL_PORT,
+	EXT_ACL_PATH,
 	EXT_ACL_METHOD,
 	EXT_ACL_HEADER,
 	EXT_ACL_HEADER_MEMBER,
@@ -265,6 +267,8 @@ parse_externalAclHelper(external_acl ** list)
 	    format->type = EXT_ACL_PROTO;
 	else if (strcmp(token, "%PORT") == 0)
 	    format->type = EXT_ACL_PORT;
+	else if (strcmp(token, "%PATH") == 0)
+	    format->type = EXT_ACL_PATH;
 	else if (strcmp(token, "%METHOD") == 0)
 	    format->type = EXT_ACL_METHOD;
 	else {
@@ -330,6 +334,7 @@ dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl
 		DUMP_EXT_ACL_TYPE(DST);
 		DUMP_EXT_ACL_TYPE(PROTO);
 		DUMP_EXT_ACL_TYPE(PORT);
+		DUMP_EXT_ACL_TYPE(PATH);
 		DUMP_EXT_ACL_TYPE(METHOD);
 	    }
 	}
@@ -465,6 +470,8 @@ aclMatchExternal(void *data, aclCheck_t * ch)
     }
     external_acl_cache_touch(acl->def, entry);
     result = entry->result;
+    external_acl_message = entry->message;
+
     debug(82, 2) ("aclMatchExternal: %s = %d\n", acl->def->name, result);
     /* FIXME: This should allocate it's own storage in the request. This
      * piggy backs on ident, and may fail if there is child proxies..
@@ -475,6 +482,8 @@ aclMatchExternal(void *data, aclCheck_t * ch)
 	if (cbdataValid(ch->conn))
 	    xstrncpy(ch->conn->rfc931, entry->user, USER_IDENT_SZ);
     }
+    if (entry->log)
+	stringReset(&ch->request->extacl_log, entry->log);
     return result;
 }
 
@@ -547,6 +556,9 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	    snprintf(buf, sizeof(buf), "%d", request->port);
 	    str = buf;
 	    break;
+	case EXT_ACL_PATH:
+	    str = strBuf(request->urlpath);
+	    break;
 	case EXT_ACL_METHOD:
 	    str = RequestMethodStr[request->method];
 	    break;
@@ -612,11 +624,12 @@ free_external_acl_entry(void *data)
     external_acl_entry *entry = data;
     safe_free(entry->hash.key);
     safe_free(entry->user);
-    safe_free(entry->error);
+    safe_free(entry->message);
+    safe_free(entry->log);
 }
 
 static external_acl_entry *
-external_acl_cache_add(external_acl * def, const char *key, int result, char *user, char *error)
+external_acl_cache_add(external_acl * def, const char *key, int result, char *user, char *message, char *log)
 {
     external_acl_entry *entry = hash_lookup(def->cache, key);
     debug(82, 2) ("external_acl_cache_add: Adding '%s' = %d\n", key, result);
@@ -625,11 +638,14 @@ external_acl_cache_add(external_acl * def, const char *key, int result, char *us
 	entry->date = squid_curtime;
 	entry->result = result;
 	safe_free(entry->user);
-	safe_free(entry->error);
+	safe_free(entry->message);
+	safe_free(entry->log);
 	if (user)
 	    entry->user = xstrdup(user);
-	if (error)
-	    entry->error = xstrdup(error);
+	if (message)
+	    entry->message = xstrdup(message);
+	if (log)
+	    entry->log = xstrdup(log);
 	external_acl_cache_touch(def, entry);
 	return entry;
     }
@@ -643,8 +659,10 @@ external_acl_cache_add(external_acl * def, const char *key, int result, char *us
     entry->result = result;
     if (user)
 	entry->user = xstrdup(user);
-    if (error)
-	entry->error = xstrdup(error);
+    if (message)
+	entry->message = xstrdup(message);
+    if (log)
+	entry->log = xstrdup(log);
     entry->def = def;
     hash_join(def->cache, &entry->hash);
     dlinkAdd(entry, &entry->lru, &def->lru_list);
@@ -687,11 +705,7 @@ free_externalAclState(void *data)
 
 /*
  * The helper program receives queries on stdin, one
- * per line, and must return the result on on stdout as
- *   OK user="Users login name"
- * on success, and
- *   ERR error="Description of the error"
- * on error (the user/error options are optional)
+ * per line, and must return the result on on stdout
  *
  * General result syntax:
  *
@@ -700,7 +714,8 @@ free_externalAclState(void *data)
  * Keywords:
  *
  *   user=        The users name (login)
- *   error=       Error description (only defined for ERR results)
+ *   message=     Message describing the reason
+ *   log=         A string to be used in access logging
  *
  * Other keywords may be added to the protocol later
  *
@@ -720,7 +735,8 @@ externalAclHandleReply(void *data, char *reply)
     char *value;
     char *t;
     char *user = NULL;
-    char *error = NULL;
+    char *message = NULL;
+    char *log = NULL;
     external_acl_entry *entry = NULL;
 
     debug(82, 2) ("externalAclHandleReply: reply=\"%s\"\n", reply);
@@ -738,15 +754,21 @@ externalAclHandleReply(void *data, char *reply)
 		    rfc1738_unescape(value);
 		if (strcmp(token, "user") == 0)
 		    user = value;
+		else if (strcmp(token, "login") == 0)
+		    user = value;
 		else if (strcmp(token, "error") == 0)
-		    error = value;
+		    message = value;
+		else if (strcmp(token, "message") == 0)
+		    message = value;
+		else if (strcmp(token, "log") == 0)
+		    log = value;
 	    }
 	}
     }
     dlinkDelete(&state->list, &state->def->queue);
     if (cbdataValid(state->def)) {
 	if (reply)
-	    entry = external_acl_cache_add(state->def, state->key, result, user, error);
+	    entry = external_acl_cache_add(state->def, state->key, result, user, message, log);
 	else {
 	    external_acl_entry *oldentry = hash_lookup(state->def->cache, state->key);
 	    if (oldentry)
@@ -757,6 +779,11 @@ externalAclHandleReply(void *data, char *reply)
 	cbdataUnlock(state->def);
 	state->def = NULL;
 
+	if (entry)
+	    external_acl_message = entry->message;
+	else
+	    external_acl_message = NULL;
+
 	if (cbdataValid(state->callback_data))
 	    state->callback(state->callback_data, entry);
 	cbdataUnlock(state->callback_data);
@@ -766,6 +793,12 @@ externalAclHandleReply(void *data, char *reply)
 	cbdataFree(state);
 	state = next;
     } while (state);
+}
+
+const char *
+externalAclMessage(external_acl_entry * entry)
+{
+    return entry->message;
 }
 
 void
@@ -789,6 +822,7 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
     key = makeExternalAclKey(ch, acl);
     if (!key) {
 	debug(82, 1) ("externalAclLookup: lookup in '%s', prerequisit failure\n", def->name);
+	external_acl_message = "MISSING REQUIRED INFORMATION";
 	callback(callback_data, NULL);
 	return;
     }
@@ -816,6 +850,7 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
 	} else {
 	    /* There is a cached valid result.. use it */
 	    /* This should not really happen, but what the heck.. */
+	    external_acl_message = entry->message;
 	    callback(callback_data, entry);
 	    cbdataFree(state);
 	    return;
@@ -823,11 +858,10 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
     }
     /* Check for queue overload */
     if (def->helper->stats.queue_size >= def->helper->n_running) {
-	int result = -1;
 	external_acl_entry *entry = hash_lookup(def->cache, key);
 	debug(82, 1) ("externalAclLookup: '%s' queue overload\n", def->name);
 	if (entry)
-	    result = entry->result;
+	    external_acl_message = entry->message;
 	cbdataFree(state);
 	callback(callback_data, entry);
 	return;
@@ -836,7 +870,7 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
     memBufDefInit(&buf);
     memBufPrintf(&buf, "%s\n", key);
     helperSubmit(def->helper, buf.buf, externalAclHandleReply, state);
-    external_acl_cache_add(def, key, -1, NULL, NULL);
+    external_acl_cache_add(def, key, -1, NULL, NULL, NULL);
     dlinkAdd(state, &state->list, &def->queue);
     memBufClean(&buf);
 }

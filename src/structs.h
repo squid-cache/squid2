@@ -1753,6 +1753,8 @@ struct _request_t {
     char *peer_domain;		/* Configured peer forceddomain */
     BODY_HANDLER *body_reader;
     void *body_reader_data;
+#define HAVE_EXTACL_LOG 1
+    String extacl_log;		/* String to be used for access.log purposes */
 };
 
 struct _cachemgr_passwd {

@@ -162,6 +162,7 @@ extern int incoming_sockets_accepted;
 extern unsigned int WIN32_OS_version;	/* 0 */
 extern char *WIN32_OS_string;	/* NULL */
 #endif
+extern const char *external_acl_message;	/* NULL */
 #if HAVE_SBRK
 extern void *sbrk_start;	/* 0 */
 #endif
