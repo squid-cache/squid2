@@ -1482,17 +1482,14 @@ DOC_END
 
 NAME: dns_defnames
 COMMENT: on|off
-IFDEF: USE_DNSSERVERS
 TYPE: onoff
 DEFAULT: off
 LOC: Config.onoff.res_defnames
-IFDEF: USE_DNSSERVERS
 DOC_START
-	Normally the 'dnsserver' disables the RES_DEFNAMES resolver
-	option (see res_init(3)).  This prevents caches in a hierarchy
+        Normally the RES_DEFNAMES resolver option is disabled
+        (see res_init(3)).  This prevents caches in a hierarchy
 	from interpreting single-component hostnames locally.  To allow
-	dnsserver to handle single-component names, enable this
-	option.
+        Squid to handle single-component names, enable this option.
 DOC_END
 
 NAME: dns_nameservers

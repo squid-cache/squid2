@@ -619,9 +619,7 @@ struct _SquidConfig {
     } Netdb;
     struct {
 	int log_udp;
-#if USE_DNSSERVERS
 	int res_defnames;
-#endif
 	int anonymizer;
 	int client_db;
 	int query_icmp;

@@ -35,15 +35,42 @@
 
 #include "squid.h"
 
+#include "config.h"
+
+#if HAVE_ARPA_NAMESER_H
+#include <arpa/nameser.h>
+#endif
+#if HAVE_RESOLV_H
+#include <resolv.h>
+#endif
+
 #if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
 #include <windows.h>
 #endif
-#ifndef _PATH_RESOLV_CONF
-#define _PATH_RESOLV_CONF "/etc/resolv.conf"
+#ifndef _PATH_RESCONF
+#define _PATH_RESCONF "/etc/resolv.conf"
 #endif
-#ifndef DOMAIN_PORT
-#define DOMAIN_PORT 53
+#ifndef NS_DEFAULTPORT
+#define NS_DEFAULTPORT 53
 #endif
+
+#ifndef NS_MAXDNAME
+#define NS_MAXDNAME 1025
+#endif
+
+#ifndef MAXDNSRCH
+#define MAXDNSRCH 6
+#endif
+
+#ifndef RES_MAXNDOTS
+#define RES_MAXNDOTS 15
+#endif
+
+/* The buffer size required to store the maximum allowed search path */
+#ifndef RESOLV_BUFSZ
+#define RESOLV_BUFSZ NS_MAXDNAME * MAXDNSRCH + sizeof("search ") + 1
+#endif
+
 
 #define IDNS_MAX_TRIES 20
 #define MAX_RCODE 6
@@ -53,10 +80,14 @@ static int RcodeMatrix[MAX_RCODE][MAX_ATTEMPT];
 typedef struct _idns_query idns_query;
 typedef struct _ns ns;
 
+typedef struct _sp sp;
+
 struct _idns_query {
     hash_link hash;
     rfc1035_query query;
-    char buf[512];
+    char buf[RESOLV_BUFSZ];
+    char name[NS_MAXDNAME + 1];
+    char orig[NS_MAXDNAME + 1];
     size_t sz;
     unsigned short id;
     int nsends;
@@ -69,6 +100,8 @@ struct _idns_query {
     const char *error;
     int rcode;
     idns_query *queue;
+    unsigned short domain;
+    unsigned short do_searchpath;
 };
 
 struct _ns {
@@ -78,21 +111,33 @@ struct _ns {
     int large_pkts;
 };
 
+struct _sp {
+    char domain[NS_MAXDNAME];
+    int queries;
+};
+
 static ns *nameservers = NULL;
+static sp *searchpath = NULL;
 static int nns = 0;
 static int nns_alloc = 0;
+static int npc = 0;
+static int npc_alloc = 0;
+static int ndots = 1;
 static dlink_list lru_list;
 static int event_queued = 0;
 static hash_table *idns_lookup_hash = NULL;
 
 static OBJH idnsStats;
 static void idnsAddNameserver(const char *buf);
+static void idnsAddPathComponent(const char *buf);
 static void idnsFreeNameservers(void);
+static void idnsFreeSearchpath(void);
 static void idnsParseNameservers(void);
 static void idnsParseResolvConf(void);
 #if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
 static void idnsParseWIN32Registry(void);
 #endif
+static void idnsCacheQuery(idns_query * q);
 static void idnsSendQuery(idns_query * q);
 static int idnsFromKnownNameserver(struct sockaddr_in *from);
 static idns_query *idnsFindQuery(unsigned short id);
@@ -130,7 +175,7 @@ idnsAddNameserver(const char *buf)
     }
     assert(nns < nns_alloc);
     nameservers[nns].S.sin_family = AF_INET;
-    nameservers[nns].S.sin_port = htons(DOMAIN_PORT);
+    nameservers[nns].S.sin_port = htons(NS_DEFAULTPORT);
     nameservers[nns].S.sin_addr.s_addr = A.s_addr;
     debug(78, 3) ("idnsAddNameserver: Added nameserver #%d: %s\n",
 	nns, inet_ntoa(nameservers[nns].S.sin_addr));
@@ -138,11 +183,43 @@ idnsAddNameserver(const char *buf)
 }
 
 static void
+idnsAddPathComponent(const char *buf)
+{
+    if (npc == npc_alloc) {
+	int oldalloc = npc_alloc;
+	sp *oldptr = searchpath;
+	if (0 == npc_alloc)
+	    npc_alloc = 2;
+	else
+	    npc_alloc <<= 1;
+	searchpath = (sp *) xcalloc(npc_alloc, sizeof(*searchpath));
+	if (oldptr && oldalloc)
+	    xmemcpy(searchpath, oldptr, oldalloc * sizeof(*searchpath));
+	if (oldptr)
+	    safe_free(oldptr);
+    }
+    assert(npc < npc_alloc);
+    strcpy(searchpath[npc].domain, buf);
+    debug(78, 3) ("idnsAddPathComponent: Added domain #%d: %s\n",
+	npc, searchpath[npc].domain);
+    npc++;
+}
+
+
+static void
 idnsFreeNameservers(void)
 {
     safe_free(nameservers);
     nns = nns_alloc = 0;
 }
+
+static void
+idnsFreeSearchpath(void)
+{
+    safe_free(searchpath);
+    npc = npc_alloc = 0;
+}
+
 
 static void
 idnsParseNameservers(void)
@@ -158,27 +235,49 @@ static void
 idnsParseResolvConf(void)
 {
     FILE *fp;
-    char buf[512];
+    char buf[RESOLV_BUFSZ];
     char *t;
-    fp = fopen(_PATH_RESOLV_CONF, "r");
+    fp = fopen(_PATH_RESCONF, "r");
     if (fp == NULL) {
-	debug(78, 1) ("%s: %s\n", _PATH_RESOLV_CONF, xstrerror());
+	debug(78, 1) ("%s: %s\n", _PATH_RESCONF, xstrerror());
 	return;
     }
 #if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
     setmode(fileno(fp), O_TEXT);
 #endif
-    while (fgets(buf, 512, fp)) {
+    while (fgets(buf, RESOLV_BUFSZ, fp)) {
 	t = strtok(buf, w_space);
-	if (NULL == t)
+	if (NULL == t) {
 	    continue;
-	if (strcasecmp(t, "nameserver"))
-	    continue;
-	t = strtok(NULL, w_space);
-	if (t == NULL)
-	    continue;
-	debug(78, 1) ("Adding nameserver %s from %s\n", t, _PATH_RESOLV_CONF);
-	idnsAddNameserver(t);
+	} else if (strcasecmp(t, "nameserver") == 0) {
+	    t = strtok(NULL, w_space);
+	    if (NULL == t)
+		continue;
+	    debug(78, 1) ("Adding nameserver %s from %s\n", t, _PATH_RESCONF);
+	    idnsAddNameserver(t);
+	} else if (strcasecmp(t, "search") == 0) {
+	    while (NULL != t) {
+		t = strtok(NULL, w_space);
+		if (NULL == t)
+		    continue;
+		debug(78, 1) ("Adding domain %s from %s\n", t, _PATH_RESCONF);
+		idnsAddPathComponent(t);
+	    }
+	} else if (strcasecmp(t, "options") == 0) {
+	    while (NULL != t) {
+		t = strtok(NULL, w_space);
+		if (NULL == t)
+		    continue;
+		if (strncmp(t, "ndots:", 6) != 0) {
+		    ndots = atoi(t + 6);
+		    if (ndots < 1)
+			ndots = 1;
+		    if (ndots > RES_MAXNDOTS)
+			ndots = RES_MAXNDOTS;
+		    debug(78, 1) ("Adding ndots %d from %s\n", ndots, _PATH_RESCONF);
+		}
+	    }
+	}
     }
     fclose(fp);
 }
@@ -532,6 +631,29 @@ idnsGrokReply(const char *buf, size_t sz)
 	    idnsSendQuery(q);
 	    return;
 	}
+	if (q->rcode == 3 && q->do_searchpath && q->attempt < MAX_ATTEMPT) {
+	    assert(NULL == message->answer);
+	    strcpy(q->name, q->orig);
+	    if (q->domain < npc) {
+		strcat(q->name, ".");
+		strcat(q->name, searchpath[q->domain].domain);
+		debug(78, 3) ("idnsGrokReply: searchpath used for %s\n",
+		    q->name);
+		q->domain++;
+	    } else {
+		q->attempt++;
+	    }
+	    rfc1035MessageDestroy(message);
+	    q->start_t = current_time;
+	    q->id = idnsQueryID();
+	    rfc1035SetQueryID(q->buf, q->id);
+	    q->sz = rfc1035BuildAQuery(q->name, q->buf, sizeof(q->buf), q->id,
+		&q->query);
+
+	    idnsCacheQuery(q);
+	    idnsSendQuery(q);
+	    return;
+	}
     }
     idnsCallback(q, message->answer, n, q->error);
     rfc1035MessageDestroy(message);
@@ -712,6 +834,7 @@ idnsShutdown(void)
     comm_close(DnsSocket);
     DnsSocket = -1;
     idnsFreeNameservers();
+    idnsFreeSearchpath();
 }
 
 static int
@@ -740,12 +863,37 @@ idnsCacheQuery(idns_query * q)
 void
 idnsALookup(const char *name, IDNSCB * callback, void *data)
 {
+    unsigned int i;
+    int nd = 0;
     idns_query *q;
     if (idnsCachedLookup(name, callback, data))
 	return;
     q = memAllocate(MEM_IDNS_QUERY);
     q->id = idnsQueryID();
-    q->sz = rfc1035BuildAQuery(name, q->buf, sizeof(q->buf), q->id, &q->query);
+
+    for (i = 0; i < strlen(name); i++) {
+	if (name[i] == '.') {
+	    nd++;
+	}
+    }
+
+    if (Config.onoff.res_defnames && npc > 0 && name[strlen(name) - 1] != '.') {
+	q->do_searchpath = 1;
+    } else {
+	q->do_searchpath = 0;
+    }
+    strcpy(q->orig, name);
+    strcpy(q->name, q->orig);
+    if (q->do_searchpath && nd < ndots) {
+	q->domain = 0;
+	strcat(q->name, ".");
+	strcat(q->name, searchpath[q->domain].domain);
+	debug(78, 3) ("idnsALookup: searchpath used for %s\n",
+	    q->name);
+    }
+    q->sz = rfc1035BuildAQuery(q->name, q->buf, sizeof(q->buf), q->id,
+	&q->query);
+
     if (q->sz < 0) {
 	/* problem with query data -- query not sent */
 	callback(data, NULL, 0, "Internal error");
@@ -753,7 +901,7 @@ idnsALookup(const char *name, IDNSCB * callback, void *data)
 	return;
     }
     debug(78, 3) ("idnsALookup: buf is %d bytes for %s, id = %#hx\n",
-	(int) q->sz, name, q->id);
+	(int) q->sz, q->name, q->id);
     q->callback = callback;
     q->callback_data = data;
     cbdataLock(q->callback_data);
