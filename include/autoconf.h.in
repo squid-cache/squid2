@@ -738,6 +738,9 @@
 /* Define if you have the <nss_common.h> header file.  */
 #undef HAVE_NSS_COMMON_H
 
+/* Define if you have the <openssl/engine.h> header file.  */
+#undef HAVE_OPENSSL_ENGINE_H
+
 /* Define if you have the <openssl/err.h> header file.  */
 #undef HAVE_OPENSSL_ERR_H
 
