@@ -585,6 +585,12 @@ AC_ARG_ENABLE(arp-acl,
 	    ;;
 	*-freebsd*)
 	    ;;
+	*-cygwin*)
+        LIBS="$LIBS -liphlpapi"
+	    ;;
+	*-mingw*)
+        LIBS="$LIBS -liphlpapi"
+	    ;;
 	*)
 	    echo "WARNING: ARP ACL support probably won't work on $host."
 	    sleep 10

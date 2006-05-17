@@ -2869,6 +2869,19 @@ aclPurgeMethodInUse(acl_access * a)
  *       Solaris code by R. Gancarz <radekg@solaris.elektrownia-lagisza.com.pl>
  */
 
+#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_CYGWIN_
+#include <windows.h>
+#endif
+
+struct arpreq {
+    struct sockaddr arp_pa;	/* protocol address */
+    struct sockaddr arp_ha;	/* hardware address */
+    int arp_flags;		/* flags */
+};
+
+#include <Iphlpapi.h>
+#else
 #ifdef _SQUID_SOLARIS_
 #include <sys/sockio.h>
 #else
@@ -2887,6 +2900,7 @@ aclPurgeMethodInUse(acl_access * a)
 #endif
 #if HAVE_NETINET_IF_ETHER_H
 #include <netinet/if_ether.h>
+#endif
 #endif
 
 /*
@@ -3171,6 +3185,54 @@ aclMatchArp(void *dataptr, struct in_addr c)
     debug(28, 3) ("aclMatchArp: '%s' %s\n",
 	inet_ntoa(c), splayLastResult ? "NOT found" : "found");
     return (0 == splayLastResult);
+#elif defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+
+    DWORD dwNetTable = 0;
+    DWORD ipNetTableLen = 0;
+    PMIB_IPNETTABLE NetTable = NULL;
+    DWORD i;
+    splayNode **Top = dataptr;
+    struct arpreq arpReq;
+
+    /* Get size of Windows ARP table */
+    if (GetIpNetTable(NetTable, &ipNetTableLen, FALSE) != ERROR_INSUFFICIENT_BUFFER) {
+	debug(28, 0) ("Can't estimate ARP table size!\n");
+	return 0;
+    }
+    /* Allocate space for ARP table and assign pointers */
+    if ((NetTable = (PMIB_IPNETTABLE) xmalloc(ipNetTableLen)) == NULL) {
+	debug(28, 0) ("Can't allocate temporary ARP table!\n");
+	return 0;
+    }
+    /* Get actual ARP table */
+    if ((dwNetTable = GetIpNetTable(NetTable, &ipNetTableLen, FALSE)) != NO_ERROR) {
+	debug(28, 0) ("Can't retrieve ARP table!\n");
+	xfree(NetTable);
+	return 0;
+    }
+    /* Find MAC address from net table */
+    for (i = 0; i < NetTable->dwNumEntries; i++) {
+	if ((c.s_addr == NetTable->table[i].dwAddr) && (NetTable->table[i].dwType > 2)) {
+	    arpReq.arp_ha.sa_family = AF_UNSPEC;
+	    memcpy(arpReq.arp_ha.sa_data, NetTable->table[i].bPhysAddr, NetTable[i].table->dwPhysAddrLen);
+	}
+    }
+    xfree(NetTable);
+    if (arpReq.arp_ha.sa_data[0] == 0 && arpReq.arp_ha.sa_data[1] == 0 &&
+	arpReq.arp_ha.sa_data[2] == 0 && arpReq.arp_ha.sa_data[3] == 0 &&
+	arpReq.arp_ha.sa_data[4] == 0 && arpReq.arp_ha.sa_data[5] == 0)
+	return 0;
+    debug(28, 4) ("Got address %02x:%02x:%02x:%02x:%02x:%02x\n",
+	arpReq.arp_ha.sa_data[0] & 0xff, arpReq.arp_ha.sa_data[1] & 0xff,
+	arpReq.arp_ha.sa_data[2] & 0xff, arpReq.arp_ha.sa_data[3] & 0xff,
+	arpReq.arp_ha.sa_data[4] & 0xff, arpReq.arp_ha.sa_data[5] & 0xff);
+
+    /* Do lookup */
+    *Top = splay_splay(&arpReq.arp_ha.sa_data, *Top, aclArpCompare);
+
+    debug(28, 3) ("aclMatchArp: '%s' %s\n",
+	inet_ntoa(c), splayLastResult ? "NOT found" : "found");
+    return (0 == splayLastResult);
 #else
     WRITE ME;
 #endif
@@ -3209,6 +3271,21 @@ aclArpCompare(const void *a, const void *b)
     if (d1[5] != d2[5])
 	return (d1[5] > d2[5]) ? 1 : -1;
 #elif defined(_SQUID_FREEBSD_)
+    const unsigned char *d1 = a;
+    const unsigned char *d2 = b;
+    if (d1[0] != d2[0])
+	return (d1[0] > d2[0]) ? 1 : -1;
+    if (d1[1] != d2[1])
+	return (d1[1] > d2[1]) ? 1 : -1;
+    if (d1[2] != d2[2])
+	return (d1[2] > d2[2]) ? 1 : -1;
+    if (d1[3] != d2[3])
+	return (d1[3] > d2[3]) ? 1 : -1;
+    if (d1[4] != d2[4])
+	return (d1[4] > d2[4]) ? 1 : -1;
+    if (d1[5] != d2[5])
+	return (d1[5] > d2[5]) ? 1 : -1;
+#elif defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
     const unsigned char *d1 = a;
     const unsigned char *d2 = b;
     if (d1[0] != d2[0])
