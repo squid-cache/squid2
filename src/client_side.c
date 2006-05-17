@@ -4277,7 +4277,7 @@ clientHttpsConnectionsOpen(void)
 	    continue;
 	}
 	fd = comm_open(SOCK_STREAM,
-	    0,
+	    IPPROTO_TCP,
 	    s->http.s.sin_addr,
 	    ntohs(s->http.s.sin_port),
 	    COMM_NONBLOCKING,
