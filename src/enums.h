@@ -141,6 +141,10 @@ typedef enum {
     ACL_MAX_USER_IP,
     ACL_EXTERNAL,
     ACL_URLLOGIN,
+#if USE_SSL
+    ACL_USER_CERT,
+    ACL_CA_CERT,
+#endif
     ACL_URLGROUP,
     ACL_ENUM_MAX
 } squid_acl;
@@ -249,6 +253,7 @@ typedef enum {
 #endif
     HDR_X_ERROR_URL,		/* errormap, requested URL */
     HDR_X_ERROR_STATUS,		/* errormap, received HTTP status line */
+    HDR_FRONT_END_HTTPS,
     HDR_OTHER,
     HDR_ENUM_END
 } http_hdr_type;
@@ -618,6 +623,9 @@ typedef enum {
     MEM_TLV,
     MEM_SWAP_LOG_DATA,
     MEM_CLIENT_REQ_BUF,
+#if USE_SSL
+    MEM_ACL_CERT_DATA,
+#endif
     MEM_MAX
 } mem_type;
 
@@ -749,5 +757,16 @@ enum {
 };
 
 #endif
+
+/*
+ * Special case pending filedescriptors. Set in fd_table[fd].read/write_pending
+ */
+typedef enum {
+    COMM_PENDING_NORMAL,	/* No special processing required */
+    COMM_PENDING_WANTS_READ,	/* need to read, no matter what commSetSelect indicates */
+    COMM_PENDING_WANTS_WRITE,	/* need to write, no matter what commSetSelect indicates */
+    COMM_PENDING_NOW		/* needs to be called again, without needing to wait for readiness
+				 * for example when data is already buffered etc */
+} comm_pending;
 
 #endif /* SQUID_ENUMS_H */

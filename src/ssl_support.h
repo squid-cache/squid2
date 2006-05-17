@@ -42,10 +42,21 @@
 #if HAVE_OPENSSL_ERR_H
 #include <openssl/err.h>
 #endif
+#if HAVE_OPENSSL_ENGINE_H
+#include <openssl/engine.h>
+#endif
 
-SSL_CTX *sslCreateContext(const char *certfile, const char *keyfile, int version, const char *cipher, const char *options);
+SSL_CTX *sslCreateServerContext(const char *certfile, const char *keyfile, int version, const char *cipher, const char *options, const char *flags, const char *clientCA, const char *CAfile, const char *CApath, const char *CRLfile, const char *dhpath, const char *context);
+SSL_CTX *sslCreateClientContext(const char *certfile, const char *keyfile, int version, const char *cipher, const char *options, const char *flags, const char *CAfile, const char *CApath, const char *CRLfile);
 int ssl_read_method(int, char *, int);
 int ssl_write_method(int, const char *, int);
-void ssl_shutdown_method(int);
+int ssl_shutdown_method(int);
+int ssl_verify_domain(const char *host, SSL *);
+
+const char *sslGetUserEmail(SSL * ssl);
+const char *sslGetUserAttribute(SSL * ssl, const char *attribute);
+const char *sslGetCAAttribute(SSL * ssl, const char *attribute);
+const char *sslGetUserCertificatePEM(SSL * ssl);
+const char *sslGetUserCertificateChainPEM(SSL * ssl);
 
 #endif /* SQUID_SSL_SUPPORT_H */

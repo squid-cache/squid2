@@ -152,6 +152,9 @@ static void clientAccessCheckDone2(int answer, void *data);
 static void clientAccessCheck2(void *data);
 static BODY_HANDLER clientReadBody;
 static void clientAbortBody(request_t * req);
+#if USE_SSL
+static void httpsAcceptSSL(ConnStateData * connState, SSL_CTX * sslContext);
+#endif
 
 #if USE_IDENT
 static void
@@ -968,6 +971,9 @@ httpRequestFree(void *data)
 	    if (conn->rfc931[0])
 		http->al.cache.rfc931 = conn->rfc931;
 	}
+#if USE_SSL
+	http->al.cache.ssluser = sslGetUserEmail(fd_table[conn->fd].ssl);
+#endif
 	http->al.request = request;
 	if (!http->acl_checklist)
 	    http->acl_checklist = clientAclChecklistCreate(Config.accessList.http, http);
@@ -2829,7 +2835,15 @@ clientProcessRequest(clientHttpRequest * http)
 	url);
     if (r->method == METHOD_CONNECT && !http->redirect.status) {
 	http->log_type = LOG_TCP_MISS;
-	sslStart(http, &http->out.size, &http->al.http.code);
+#if USE_SSL && SSL_CONNECT_INTERCEPT
+	if (Config.Sockaddr.https) {
+	    static const char ok[] = "HTTP/1.0 200 Established\r\n\r\n";
+	    write(http->conn->fd, ok, strlen(ok));
+	    httpsAcceptSSL(http->conn, Config.Sockaddr.https->sslContext);
+	    httpRequestFree(http);
+	} else
+#endif
+	    sslStart(http, &http->out.size, &http->al.http.code);
 	return;
     } else if (r->method == METHOD_PURGE) {
 	clientPurgeRequest(http);
@@ -3116,7 +3130,7 @@ parseHttpRequest(ConnStateData * conn, method_t * method_p, int *status,
   accel:{
 	int vhost = conn->port->vhost || conn->port->transparent;
 	int vport = conn->port->vport || conn->transparent;
-	if (internalCheck(url)) {
+	if ((Config.onoff.global_internal_static || conn->transparent) && internalCheck(url)) {
 	    /* prepend our name & port */
 	    http->uri = xstrdup(internalLocalUri(NULL, url));
 	    http->flags.internal = 1;
@@ -3988,38 +4002,102 @@ clientNegotiateSSL(int fd, void *data)
 {
     ConnStateData *conn = data;
     X509 *client_cert;
+    SSL *ssl = fd_table[fd].ssl;
     int ret;
 
-    if ((ret = SSL_accept(fd_table[fd].ssl)) <= 0) {
-	if (BIO_sock_should_retry(ret)) {
+    if ((ret = SSL_accept(ssl)) <= 0) {
+	int ssl_error = SSL_get_error(ssl, ret);
+	switch (ssl_error) {
+	case SSL_ERROR_WANT_READ:
 	    commSetSelect(fd, COMM_SELECT_READ, clientNegotiateSSL, conn, 0);
 	    return;
+	case SSL_ERROR_WANT_WRITE:
+	    commSetSelect(fd, COMM_SELECT_WRITE, clientNegotiateSSL, conn, 0);
+	    return;
+	case SSL_ERROR_SYSCALL:
+	    if (ret == 0) {
+		debug(83, 2) ("clientNegotiateSSL: Error negotiating SSL connection on FD %d: Aborted by client\n", fd);
+		comm_close(fd);
+		return;
+	    } else {
+		int hard = 1;
+		if (errno == ECONNRESET)
+		    hard = 0;
+		debug(83, hard ? 1 : 2) ("clientNegotiateSSL: Error negotiating SSL connection on FD %d: %s (%d)\n",
+		    fd, strerror(errno), errno);
+		comm_close(fd);
+		return;
+	    }
+	case SSL_ERROR_ZERO_RETURN:
+	    debug(83, 1) ("clientNegotiateSSL: Error negotiating SSL connection on FD %d: Closed by client\n", fd);
+	    comm_close(fd);
+	    return;
+	default:
+	    debug(83, 1) ("clientNegotiateSSL: Error negotiating SSL connection on FD %d: %s (%d/%d)\n",
+		fd, ERR_error_string(ERR_get_error(), NULL), ssl_error, ret);
+	    comm_close(fd);
+	    return;
 	}
-	ret = ERR_get_error();
-	if (ret) {
-	    debug(83, 1) ("clientNegotiateSSL: Error negotiating SSL connection on FD %d: %s\n",
-		fd, ERR_error_string(ret, NULL));
-	}
-	comm_close(fd);
-	return;
+	/* NOTREACHED */
     }
-    debug(83, 5) ("clientNegotiateSSL: FD %d negotiated cipher %s\n", fd,
-	SSL_get_cipher(fd_table[fd].ssl));
+    fd_table[fd].read_pending = COMM_PENDING_NOW;
+    if (SSL_session_reused(ssl)) {
+	debug(83, 2) ("clientNegotiateSSL: Session %p reused on FD %d (%s:%d)\n", SSL_get_session(ssl), fd, fd_table[fd].ipaddr, (int) fd_table[fd].remote_port);
+    } else {
+	if (do_debug(83, 4)) {
+	    /* Write out the SSL session details.. actually the call below, but
+	     * OpenSSL headers do strange typecasts confusing GCC.. */
+	    /* PEM_write_SSL_SESSION(debug_log, SSL_get_session(ssl)); */
+#if defined(OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x0090708FL
+	    PEM_ASN1_write((i2d_of_void *) i2d_SSL_SESSION, PEM_STRING_SSL_SESSION, debug_log, (char *) SSL_get_session(ssl), NULL, NULL, 0, NULL, NULL);
+#else
+	    PEM_ASN1_write(i2d_SSL_SESSION, PEM_STRING_SSL_SESSION, debug_log, (char *) SSL_get_session(ssl), NULL, NULL, 0, NULL, NULL);
+#endif
+	    /* Note: This does not automatically fflush the log file.. */
+	}
+	debug(83, 2) ("clientNegotiateSSL: New session %p on FD %d (%s:%d)\n", SSL_get_session(ssl), fd, fd_table[fd].ipaddr, (int) fd_table[fd].remote_port);
+    }
+    debug(83, 3) ("clientNegotiateSSL: FD %d negotiated cipher %s\n", fd,
+	SSL_get_cipher(ssl));
 
-    client_cert = SSL_get_peer_certificate(fd_table[fd].ssl);
+    client_cert = SSL_get_peer_certificate(ssl);
     if (client_cert != NULL) {
-	debug(83, 5) ("clientNegotiateSSL: FD %d client certificate: subject: %s\n", fd,
+	debug(83, 3) ("clientNegotiateSSL: FD %d client certificate: subject: %s\n", fd,
 	    X509_NAME_oneline(X509_get_subject_name(client_cert), 0, 0));
 
-	debug(83, 5) ("clientNegotiateSSL: FD %d client certificate: issuer: %s\n", fd,
+	debug(83, 3) ("clientNegotiateSSL: FD %d client certificate: issuer: %s\n", fd,
 	    X509_NAME_oneline(X509_get_issuer_name(client_cert), 0, 0));
 
 	X509_free(client_cert);
     } else {
 	debug(83, 5) ("clientNegotiateSSL: FD %d has no certificate.\n", fd);
     }
+    clientReadRequest(fd, conn);
+}
 
-    commSetSelect(fd, COMM_SELECT_READ, clientReadRequest, conn, 0);
+static void
+httpsAcceptSSL(ConnStateData * connState, SSL_CTX * sslContext)
+{
+    SSL *ssl;
+    fde *F;
+    int fd = connState->fd;
+    if ((ssl = SSL_new(sslContext)) == NULL) {
+	int ssl_error = ERR_get_error();
+	debug(83, 1) ("httpsAccept: Error allocating handle: %s\n",
+	    ERR_error_string(ssl_error, NULL));
+	comm_close(fd);
+	return;
+    }
+    SSL_set_fd(ssl, fd);
+    F = &fd_table[fd];
+    F->ssl = ssl;
+    F->read_method = &ssl_read_method;
+    F->write_method = &ssl_write_method;
+    debug(50, 5) ("httpsAcceptSSL: FD %d: starting SSL negotiation.\n", fd);
+    fd_note(fd, "client https connect");
+
+    commSetSelect(fd, COMM_SELECT_READ, clientNegotiateSSL, connState, 0);
+    commSetDefer(fd, clientReadDefer, connState);
 }
 
 /* handle a new HTTPS connection */
@@ -4027,20 +4105,17 @@ static void
 httpsAccept(int sock, void *data)
 {
     https_port_list *s = data;
-    SSL_CTX *sslContext = s->sslContext;
     int fd = -1;
-    fde *F;
     ConnStateData *connState = NULL;
     struct sockaddr_in peer;
     struct sockaddr_in me;
     int max = INCOMING_HTTP_MAX;
-    SSL *ssl;
-    int ssl_error;
 #if USE_IDENT
     static aclCheck_t identChecklist;
 #endif
     commSetSelect(sock, COMM_SELECT_READ, httpsAccept, s, 0);
     while (max-- && !httpAcceptDefer(sock, NULL)) {
+	fde *F;
 	memset(&peer, '\0', sizeof(struct sockaddr_in));
 	memset(&me, '\0', sizeof(struct sockaddr_in));
 	if ((fd = comm_accept(sock, &peer, &me)) < 0) {
@@ -4049,21 +4124,8 @@ httpsAccept(int sock, void *data)
 		    sock, xstrerror());
 	    break;
 	}
-	if ((ssl = SSL_new(sslContext)) == NULL) {
-	    ssl_error = ERR_get_error();
-	    debug(83, 1) ("httpsAccept: Error allocating handle: %s\n",
-		ERR_error_string(ssl_error, NULL));
-	    break;
-	}
-	SSL_set_fd(ssl, fd);
 	F = &fd_table[fd];
-	F->ssl = ssl;
-	F->read_method = &ssl_read_method;
-	F->write_method = &ssl_write_method;
 	debug(33, 4) ("httpsAccept: FD %d: accepted port %d client %s:%d\n", fd, F->local_port, F->ipaddr, F->remote_port);
-	debug(50, 5) ("httpsAccept: FD %d: starting SSL negotiation.\n", fd);
-	fd_note(fd, "client https connect");
-
 	connState = cbdataAlloc(ConnStateData);
 	connState->port = (http_port_list *) s;
 	cbdataLock(connState->port);
@@ -4089,10 +4151,9 @@ httpsAccept(int sock, void *data)
 	if (aclCheckFast(Config.accessList.identLookup, &identChecklist))
 	    identStart(&me, &peer, clientIdentDone, connState);
 #endif
-	commSetSelect(fd, COMM_SELECT_READ, clientNegotiateSSL, connState, 0);
-	commSetDefer(fd, clientReadDefer, connState);
 	clientdbEstablished(peer.sin_addr, 1);
 	incoming_sockets_accepted++;
+	httpsAcceptSSL(connState, s->sslContext);
     }
 }
 
@@ -4270,12 +4331,9 @@ clientHttpsConnectionsOpen(void)
 	    debug(1, 1) ("         The limit is %d\n", MAXHTTPPORTS);
 	    continue;
 	}
-	enter_suid();
-	s->sslContext = sslCreateContext(s->cert, s->key, s->version, s->cipher, s->options);
-	if (!s->sslContext) {
-	    leave_suid();
+	if (!s->sslContext)
 	    continue;
-	}
+	enter_suid();
 	fd = comm_open(SOCK_STREAM,
 	    IPPROTO_TCP,
 	    s->http.s.sin_addr,

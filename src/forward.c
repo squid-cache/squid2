@@ -213,16 +213,116 @@ fwdServerClosed(int fd, void *data)
     fwdStateFree(fwdState);
 }
 
+#if USE_SSL
+static void
+fwdNegotiateSSL(int fd, void *data)
+{
+    FwdState *fwdState = data;
+    FwdServer *fs = fwdState->servers;
+    SSL *ssl = fd_table[fd].ssl;
+    int ret;
+    ErrorState *err;
+    request_t *request = fwdState->request;
+
+    errno = 0;
+    ERR_clear_error();
+    if ((ret = SSL_connect(ssl)) <= 0) {
+	int ssl_error = SSL_get_error(ssl, ret);
+	switch (ssl_error) {
+	case SSL_ERROR_WANT_READ:
+	    commSetSelect(fd, COMM_SELECT_READ, fwdNegotiateSSL, fwdState, 0);
+	    return;
+	case SSL_ERROR_WANT_WRITE:
+	    commSetSelect(fd, COMM_SELECT_WRITE, fwdNegotiateSSL, fwdState, 0);
+	    return;
+	default:
+	    debug(81, 1) ("fwdNegotiateSSL: Error negotiating SSL connection on FD %d: %s (%d/%d/%d)\n", fd, ERR_error_string(ERR_get_error(), NULL), ssl_error, ret, errno);
+	    err = errorCon(ERR_CONNECT_FAIL, HTTP_SERVICE_UNAVAILABLE);
+#ifdef EPROTO
+	    err->xerrno = EPROTO;
+#else
+	    err->xerrno = EACCES;
+#endif
+	    err->request = requestLink(request);
+	    fwdFail(fwdState, err);
+	    if (fs->peer) {
+		peerConnectFailed(fs->peer);
+		fs->peer->stats.conn_open--;
+	    }
+	    comm_close(fd);
+	    return;
+	}
+    }
+    if (fs->peer && !SSL_session_reused(ssl)) {
+	if (fs->peer->sslSession)
+	    SSL_SESSION_free(fs->peer->sslSession);
+	fs->peer->sslSession = SSL_get1_session(ssl);
+    }
+#if NOT_YET
+    if (verify_domain) {
+	char *host;
+	STACK_OF(GENERAL_NAME) * altnames;
+	if (fs->peer) {
+	    if (fs->peer->ssldomain)
+		host = fs->peer->ssldomain;
+	    else
+		host = fs->peer->host;
+	} else {
+	    host = fs->request->host;
+	}
+	if (!ssl_verify_domain(host, ssl)) {
+	    debug(17, 1) ("Warning: SSL certificate does not match host name '%s'\n", host);
+	}
+    }
+#endif
+    fwdDispatch(fwdState);
+}
+
+static void
+fwdInitiateSSL(FwdState * fwdState)
+{
+    FwdServer *fs = fwdState->servers;
+    int fd = fwdState->server_fd;
+    SSL *ssl;
+    SSL_CTX *sslContext = NULL;
+    peer *peer = fs->peer;
+    if (peer) {
+	assert(peer->use_ssl);
+	sslContext = peer->sslContext;
+    } else {
+	sslContext = Config.ssl_client.sslContext;
+    }
+    assert(sslContext);
+    if ((ssl = SSL_new(sslContext)) == NULL) {
+	ErrorState *err;
+	debug(83, 1) ("fwdInitiateSSL: Error allocating handle: %s\n",
+	    ERR_error_string(ERR_get_error(), NULL));
+	err = errorCon(ERR_SOCKET_FAILURE, HTTP_INTERNAL_SERVER_ERROR);
+	err->xerrno = errno;
+	err->request = requestLink(fwdState->request);
+	fwdFail(fwdState, err);
+	fwdStateFree(fwdState);
+	return;
+    }
+    SSL_set_fd(ssl, fd);
+    if (peer) {
+	if (peer->sslSession)
+	    SSL_set_session(ssl, peer->sslSession);
+    }
+    fd_table[fd].ssl = ssl;
+    fd_table[fd].read_method = &ssl_read_method;
+    fd_table[fd].write_method = &ssl_write_method;
+    fwdNegotiateSSL(fd, fwdState);
+}
+#endif
+
 static void
 fwdConnectDone(int server_fd, int status, void *data)
 {
     FwdState *fwdState = data;
-    static FwdState *current = NULL;
     FwdServer *fs = fwdState->servers;
     ErrorState *err;
     request_t *request = fwdState->request;
-    assert(current != fwdState);
-    current = fwdState;
     assert(fwdState->server_fd == server_fd);
     if (Config.onoff.log_ip_on_direct && status != COMM_ERR_DNS && fs->code == HIER_DIRECT)
 	hierarchyNote(&fwdState->request->hier, fs->code, fd_table[server_fd].ipaddr);
@@ -254,9 +354,15 @@ fwdConnectDone(int server_fd, int status, void *data)
 	fd_table[server_fd].uses++;
 	if (fs->peer)
 	    peerConnectSucceded(fs->peer);
+#if USE_SSL
+	if ((fs->peer && fs->peer->use_ssl) ||
+	    (!fs->peer && request->protocol == PROTO_HTTPS)) {
+	    fwdInitiateSSL(fwdState);
+	    return;
+	}
+#endif
 	fwdDispatch(fwdState);
     }
-    current = NULL;
 }
 
 static void
@@ -372,7 +478,7 @@ fwdConnectStart(void *data)
 	ftimeout = 5;
     if (ftimeout < ctimeout)
 	ctimeout = ftimeout;
-    if ((fd = pconnPop(host, port, domain)) >= 0) {
+    if ((fd = pconnPop(name, port, domain)) >= 0) {
 	if (fwdCheckRetriable(fwdState)) {
 	    debug(17, 3) ("fwdConnectStart: reusing pconn FD %d\n", fd);
 	    fwdState->server_fd = fd;
@@ -380,7 +486,7 @@ fwdConnectStart(void *data)
 	    if (!fs->peer)
 		fwdState->origin_tries++;
 	    comm_add_close_handler(fd, fwdServerClosed, fwdState);
-	    fwdConnectDone(fd, COMM_OK, fwdState);
+	    fwdDispatch(fwdState);
 	    return;
 	} else {
 	    /* Discard the persistent connection to not cause
@@ -470,21 +576,22 @@ fwdDispatch(FwdState * fwdState)
     request_t *request = fwdState->request;
     StoreEntry *entry = fwdState->entry;
     ErrorState *err;
+    int server_fd = fwdState->server_fd;
     debug(17, 3) ("fwdDispatch: FD %d: Fetching '%s %s'\n",
 	fwdState->client_fd,
 	RequestMethodStr[request->method],
 	storeUrl(entry));
-    /*assert(!EBIT_TEST(entry->flags, ENTRY_DISPATCHED)); */
-    assert(entry->ping_status != PING_WAITING);
-    assert(entry->lock_count);
-    EBIT_SET(entry->flags, ENTRY_DISPATCHED);
-    netdbPingSite(request->host);
     /*
      * Assert that server_fd is set.  This is to guarantee that fwdState
      * is attached to something and will be deallocated when server_fd
      * is closed.
      */
-    assert(fwdState->server_fd > -1);
+    assert(server_fd > -1);
+    /*assert(!EBIT_TEST(entry->flags, ENTRY_DISPATCHED)); */
+    assert(entry->ping_status != PING_WAITING);
+    assert(entry->lock_count);
+    EBIT_SET(entry->flags, ENTRY_DISPATCHED);
+    netdbPingSite(request->host);
     if (fwdState->servers && (p = fwdState->servers->peer)) {
 	p->stats.fetches++;
 	fwdState->request->peer_login = p->login;
@@ -494,6 +601,11 @@ fwdDispatch(FwdState * fwdState)
 	fwdState->request->peer_login = NULL;
 	fwdState->request->peer_domain = NULL;
 	switch (request->protocol) {
+#if USE_SSL
+	case PROTO_HTTPS:
+	    httpStart(fwdState);
+	    break;
+#endif
 	case PROTO_HTTP:
 	    httpStart(fwdState);
 	    break;

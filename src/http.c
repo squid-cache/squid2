@@ -952,6 +952,10 @@ httpBuildRequestHeader(request_t * request,
 	case HDR_CACHE_CONTROL:
 	    /* append these after the loop if needed */
 	    break;
+	case HDR_FRONT_END_HTTPS:
+	    if (!flags.front_end_https)
+		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+	    break;
 	default:
 	    /* pass on all other header fields */
 	    httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
@@ -1070,6 +1074,11 @@ httpBuildRequestHeader(request_t * request,
 	    httpHeaderPutStr(hdr_out, HDR_CONNECTION, "keep-alive");
 	}
     }
+    /* append Front-End-Https */
+    if (flags.front_end_https) {
+	if (flags.front_end_https == 1 || request->protocol == PROTO_HTTPS)
+	    httpHeaderPutStr(hdr_out, HDR_FRONT_END_HTTPS, "On");
+    }
     /* Now mangle the headers. */
     httpHdrMangleList(hdr_out, orig_request);
     stringClean(&strConnection);
@@ -1144,10 +1153,12 @@ httpSendRequest(HttpStateData * httpState)
 	httpState->flags.keepalive = 1;
     else if ((double) p->stats.n_keepalives_recv / (double) p->stats.n_keepalives_sent > 0.50)
 	httpState->flags.keepalive = 1;
-    if (httpState->peer)
+    if (httpState->peer) {
 	if (neighborType(httpState->peer, httpState->request) == PEER_SIBLING &&
 	    !httpState->peer->options.allow_miss)
 	    httpState->flags.only_if_cached = 1;
+	httpState->flags.front_end_https = httpState->peer->front_end_https;
+    }
     memBufDefInit(&mb);
     httpBuildRequestPrefix(req,
 	httpState->orig_request,
@@ -1182,7 +1193,7 @@ httpStart(FwdState * fwd)
 	else
 	    url = storeUrl(httpState->entry);
 	proxy_req = requestCreate(orig_req->method,
-	    PROTO_NONE, url);
+	    orig_req->protocol, url);
 	xstrncpy(proxy_req->host, httpState->peer->host, SQUIDHOSTNAMELEN);
 	proxy_req->port = httpState->peer->http_port;
 	proxy_req->flags = orig_req->flags;

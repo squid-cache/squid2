@@ -48,6 +48,14 @@ struct _dlink_list {
     dlink_node *tail;
 };
 
+#if USE_SSL
+struct _acl_cert_data {
+    splayNode *values;
+    char *attribute;
+};
+
+#endif
+
 struct _acl_user_data {
     splayNode *names;
     struct {
@@ -367,6 +375,13 @@ struct _https_port_list {
     int version;
     char *cipher;
     char *options;
+    char *clientca;
+    char *cafile;
+    char *capath;
+    char *crlfile;
+    char *dhfile;
+    char *sslflags;
+    char *sslcontext;
     SSL_CTX *sslContext;
 };
 
@@ -536,6 +551,9 @@ struct _SquidConfig {
 	char *unlinkd;
 #endif
 	char *diskd;
+#if USE_SSL
+	char *ssl_password;
+#endif
     } Program;
 #if USE_DNSSERVERS
     int dnsChildren;
@@ -741,6 +759,7 @@ struct _SquidConfig {
 #if USE_SSL
     struct {
 	int unclean_shutdown;
+	char *ssl_engine;
     } SSL;
 #endif
     wordlist *ext_methods;
@@ -753,6 +772,20 @@ struct _SquidConfig {
     int sleep_after_fork;	/* microseconds */
     external_acl *externalAclHelperList;
     errormap *errorMapList;
+#if USE_SSL
+    struct {
+	char *cert;
+	char *key;
+	int version;
+	char *options;
+	char *cipher;
+	char *cafile;
+	char *capath;
+	char *crlfile;
+	char *flags;
+	SSL_CTX *sslContext;
+    } ssl_client;
+#endif
 };
 
 struct _SquidConfig2 {
@@ -818,8 +851,9 @@ struct _fde {
 	unsigned int called_connect:1;
 	unsigned int nodelay:1;
 	unsigned int close_on_exec:1;
-	unsigned int read_pending:1;
     } flags;
+    comm_pending read_pending;
+    comm_pending write_pending;
     squid_off_t bytes_read;
     squid_off_t bytes_written;
     int uses;			/* ie # req's over persistent conn */
@@ -846,7 +880,6 @@ struct _fde {
     WRITE_HANDLER *write_method;
 #if USE_SSL
     SSL *ssl;
-    int ssl_shutdown:1;
 #endif
 };
 
@@ -1015,6 +1048,7 @@ struct _http_state_flags {
     unsigned int keepalive_broken:1;
     unsigned int abuse_detected:1;
     unsigned int request_sent:1;
+    unsigned int front_end_https:2;
     unsigned int originpeer:1;
 };
 
@@ -1087,6 +1121,9 @@ struct _AccessLogEntry {
 	int msec;
 	const char *rfc931;
 	const char *authuser;
+#if USE_SSL
+	const char *ssluser;
+#endif
     } cache;
     struct {
 	char *request;
@@ -1391,6 +1428,22 @@ struct _peer {
 	PeerMonitor *data;
     } monitor;
     char *domain;		/* Forced domain */
+#if USE_SSL
+    int use_ssl;
+    char *sslcert;
+    char *sslkey;
+    int sslversion;
+    char *ssloptions;
+    char *sslcipher;
+    char *sslcafile;
+    char *sslcapath;
+    char *sslcrlfile;
+    char *sslflags;
+    char *ssldomain;
+    SSL_CTX *sslContext;
+    SSL_SESSION *sslSession;
+#endif
+    int front_end_https;
 };
 
 struct _net_db_name {

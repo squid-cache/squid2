@@ -521,6 +521,9 @@ configDoConfigure(void)
 #endif
     if (Config.Store.maxInMemObjSize > 8 * 1024 * 1024)
 	debug(22, 0) ("WARNING: Very large maximum_object_size_in_memory settings can have negative impact on performance\n");
+#if USE_SSL
+    Config.ssl_client.sslContext = sslCreateClientContext(Config.ssl_client.cert, Config.ssl_client.key, Config.ssl_client.version, Config.ssl_client.cipher, Config.ssl_client.options, Config.ssl_client.flags, Config.ssl_client.cafile, Config.ssl_client.capath, Config.ssl_client.crlfile);
+#endif
 }
 
 /* Parse a time specification from the config file.  Store the
@@ -1629,6 +1632,45 @@ parse_peer(peer ** head)
 	    safe_free(p->domain);
 	    if (token[13])
 		p->domain = xstrdup(token + 13);
+#if USE_SSL
+	} else if (strcmp(token, "ssl") == 0) {
+	    p->use_ssl = 1;
+	} else if (strncmp(token, "sslcert=", 8) == 0) {
+	    safe_free(p->sslcert);
+	    p->sslcert = xstrdup(token + 8);
+	} else if (strncmp(token, "sslkey=", 7) == 0) {
+	    safe_free(p->sslkey);
+	    p->sslkey = xstrdup(token + 7);
+	} else if (strncmp(token, "sslversion=", 11) == 0) {
+	    p->sslversion = atoi(token + 11);
+	} else if (strncmp(token, "ssloptions=", 11) == 0) {
+	    safe_free(p->ssloptions);
+	    p->ssloptions = xstrdup(token + 11);
+	} else if (strncmp(token, "sslcipher=", 10) == 0) {
+	    safe_free(p->sslcipher);
+	    p->sslcipher = xstrdup(token + 10);
+	} else if (strncmp(token, "sslcafile=", 10) == 0) {
+	    safe_free(p->sslcafile);
+	    p->sslcafile = xstrdup(token + 10);
+	} else if (strncmp(token, "sslcapath=", 10) == 0) {
+	    safe_free(p->sslcapath);
+	    p->sslcapath = xstrdup(token + 10);
+	} else if (strncmp(token, "sslcrlfile=", 11) == 0) {
+	    safe_free(p->sslcrlfile);
+	    p->sslcrlfile = xstrdup(token + 11);
+	} else if (strncmp(token, "sslflags=", 9) == 0) {
+	    safe_free(p->sslflags);
+	    p->sslflags = xstrdup(token + 9);
+	} else if (strncmp(token, "ssldomain=", 10) == 0) {
+	    safe_free(p->ssldomain);
+	    p->ssldomain = xstrdup(token + 10);
+#endif
+	} else if (strcmp(token, "front-end-https") == 0) {
+	    p->front_end_https = 1;
+	} else if (strcmp(token, "front-end-https=on") == 0) {
+	    p->front_end_https = 1;
+	} else if (strcmp(token, "front-end-https=auto") == 0) {
+	    p->front_end_https = 2;
 	} else {
 	    debug(3, 0) ("parse_peer: token='%s'\n", token);
 	    self_destruct();
@@ -1656,6 +1698,11 @@ parse_peer(peer ** head)
     if (!p->options.no_digest) {
 	p->digest = peerDigestCreate(p);
 	cbdataLock(p->digest);	/* so we know when/if digest disappears */
+    }
+#endif
+#if USE_SSL
+    if (p->use_ssl) {
+	p->sslContext = sslCreateClientContext(p->sslcert, p->sslkey, p->sslversion, p->sslcipher, p->ssloptions, p->sslflags, p->sslcafile, p->sslcapath, p->sslcrlfile);
     }
 #endif
     while (*head != NULL)
@@ -2729,12 +2776,38 @@ parse_https_port_list(https_port_list ** head)
 	} else if (strncmp(token, "cipher=", 7) == 0) {
 	    safe_free(s->cipher);
 	    s->cipher = xstrdup(token + 7);
+	} else if (strncmp(token, "clientca=", 9) == 0) {
+	    safe_free(s->clientca);
+	    s->clientca = xstrdup(token + 9);
+	} else if (strncmp(token, "cafile=", 7) == 0) {
+	    safe_free(s->cafile);
+	    s->cafile = xstrdup(token + 7);
+	} else if (strncmp(token, "capath=", 7) == 0) {
+	    safe_free(s->capath);
+	    s->capath = xstrdup(token + 7);
+	} else if (strncmp(token, "crlfile=", 8) == 0) {
+	    safe_free(s->crlfile);
+	    s->crlfile = xstrdup(token + 8);
+	} else if (strncmp(token, "dhparams=", 9) == 0) {
+	    safe_free(s->dhfile);
+	    s->dhfile = xstrdup(token + 9);
+	} else if (strncmp(token, "sslflags=", 9) == 0) {
+	    safe_free(s->sslflags);
+	    s->sslflags = xstrdup(token + 9);
+	} else if (strncmp(token, "sslcontext=", 11) == 0) {
+	    safe_free(s->sslcontext);
+	    s->sslcontext = xstrdup(token + 11);
 	} else {
 	    parse_http_port_option(&s->http, token);
 	}
     }
     while (*head)
 	head = (https_port_list **) (&(*head)->http.next);
+    s->sslContext = sslCreateServerContext(s->cert, s->key, s->version, s->cipher, s->options, s->sslflags, s->clientca, s->cafile, s->capath, s->crlfile, s->dhfile, s->sslcontext);
+#if WE_DONT_CARE_ABOUT_THIS_ERROR
+    if (!s->sslContext)
+	self_destruct();
+#endif
     *head = s;
 }
 
@@ -2753,6 +2826,16 @@ dump_https_port_list(StoreEntry * e, const char *n, const https_port_list * s)
 	    storeAppendPrintf(e, " options=%s", s->options);
 	if (s->cipher)
 	    storeAppendPrintf(e, " cipher=%s", s->cipher);
+	if (s->cafile)
+	    storeAppendPrintf(e, " cafile=%s", s->cafile);
+	if (s->capath)
+	    storeAppendPrintf(e, " capath=%s", s->capath);
+	if (s->crlfile)
+	    storeAppendPrintf(e, " crlfile=%s", s->crlfile);
+	if (s->dhfile)
+	    storeAppendPrintf(e, " dhparams=%s", s->dhfile);
+	if (s->sslflags)
+	    storeAppendPrintf(e, " sslflags=%s", s->sslflags);
 	storeAppendPrintf(e, "\n");
 	s = (https_port_list *) s->http.next;
     }

@@ -89,6 +89,9 @@ typedef struct _acl_proxy_auth_match_cache acl_proxy_auth_match_cache;
 typedef struct _acl_hdr_data acl_hdr_data;
 typedef struct _authscheme_entry authscheme_entry_t;
 typedef struct _authScheme authScheme;
+#if USE_SSL
+typedef struct _acl_cert_data acl_cert_data;
+#endif
 typedef struct _acl_user_data acl_user_data;
 typedef struct _acl_user_ip_data acl_user_ip_data;
 typedef struct _acl_arp_data acl_arp_data;
@@ -373,7 +376,7 @@ typedef int HttpHdrRangePos;
 typedef int HttpHeaderPos;
 
 /* big mask for http headers */
-typedef char HttpHeaderMask[8];
+typedef char HttpHeaderMask[(HDR_ENUM_END + 7) / 8];
 
 /* a common objPackInto interface; used by debugObj */
 typedef void (*ObjPackMethod) (void *obj, Packer * p);

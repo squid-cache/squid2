@@ -17,6 +17,8 @@ Changes to squid-2.6 (not yet released)
 	  LDAP for storage of the Digest hashes)
 	- Improved helper communication protocol
 	- External ACL improvements. %PATH, log= (more to come before release)
+	- Improved SSL support with hardware offload, client certificate
+	  support (primitive), chained certificates and numerous bug fixes
 
 Changes to squid-2.5.STABLE14 (not yet released)
 	- [Minor] icons not displayed when visible_hostname is a

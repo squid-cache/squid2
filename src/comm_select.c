@@ -312,7 +312,6 @@ comm_poll(int msec)
 #if DELAY_POOLS
     fd_set slowfds;
 #endif
-    PF *hdl = NULL;
     int fd;
     unsigned int i;
     unsigned int maxfd;
@@ -349,31 +348,62 @@ comm_poll(int msec)
 	    events = 0;
 	    /* Check each open socket for a handler. */
 	    if (fd_table[i].read_handler) {
+		int dopoll = 1;
 		switch (commDeferRead(i)) {
 		case 0:
-		    events |= POLLRDNORM;
 		    break;
 		case 1:
+		    dopoll = 0;
 		    break;
 #if DELAY_POOLS
 		case -1:
-		    events |= POLLRDNORM;
 		    FD_SET(i, &slowfds);
 		    break;
 #endif
 		default:
 		    fatalf("bad return value from commDeferRead(FD %d)\n", i);
+		    /* NOTREACHED */
+		}
+		if (dopoll) {
+		    switch (fd_table[i].read_pending) {
+		    case COMM_PENDING_NORMAL:
+			events |= POLLRDNORM;
+			break;
+		    case COMM_PENDING_WANTS_WRITE:
+			events |= POLLWRNORM;
+			break;
+		    case COMM_PENDING_WANTS_READ:
+			events |= POLLRDNORM;
+			break;
+		    case COMM_PENDING_NOW:
+			events |= POLLRDNORM;
+			npending++;
+			break;
+		    }
 		}
 	    }
-	    if (fd_table[i].write_handler)
-		events |= POLLWRNORM;
+	    if (fd_table[i].write_handler) {
+		switch (fd_table[i].write_pending) {
+		case COMM_PENDING_NORMAL:
+		    events |= POLLWRNORM;
+		    break;
+		case COMM_PENDING_WANTS_WRITE:
+		    events |= POLLWRNORM;
+		    break;
+		case COMM_PENDING_WANTS_READ:
+		    events |= POLLRDNORM;
+		    break;
+		case COMM_PENDING_NOW:
+		    events |= POLLWRNORM;
+		    npending++;
+		    break;
+		}
+	    }
 	    if (events) {
 		pfds[nfds].fd = i;
 		pfds[nfds].events = events;
 		pfds[nfds].revents = 0;
 		nfds++;
-		if ((events & POLLRDNORM) && fd_table[i].flags.read_pending)
-		    npending++;
 	    }
 	}
 	if (nfds == 0) {
@@ -384,14 +414,10 @@ comm_poll(int msec)
 	    msec = 0;
 	if (msec > MAX_POLL_TIME)
 	    msec = MAX_POLL_TIME;
-	for (;;) {
-	    statCounter.syscalls.polls++;
-	    num = poll(pfds, nfds, msec);
-	    statCounter.select_loops++;
-	    if (num >= 0 || npending > 0)
-		break;
-	    if (ignoreErrno(errno))
-		continue;
+	statCounter.syscalls.polls++;
+	num = poll(pfds, nfds, msec);
+	statCounter.select_loops++;
+	if (num < 0 && !ignoreErrno(errno)) {
 	    debug(5, 0) ("comm_poll: poll failure: %s\n", xstrerror());
 	    assert(errno != EINVAL);
 	    return COMM_ERROR;
@@ -415,8 +441,30 @@ comm_poll(int msec)
 	    fd = pfds[i].fd;
 	    if (fd == -1)
 		continue;
-	    if (fd_table[fd].flags.read_pending)
+	    switch (fd_table[fd].read_pending) {
+	    case COMM_PENDING_NORMAL:
+	    case COMM_PENDING_WANTS_READ:
+		break;
+	    case COMM_PENDING_WANTS_WRITE:
+		if (pfds[i].revents & (POLLOUT | POLLWRNORM))
+		    revents |= POLLIN;
+		break;
+	    case COMM_PENDING_NOW:
 		revents |= POLLIN;
+		break;
+	    }
+	    switch (fd_table[fd].write_pending) {
+	    case COMM_PENDING_NORMAL:
+	    case COMM_PENDING_WANTS_WRITE:
+		break;
+	    case COMM_PENDING_WANTS_READ:
+		if (pfds[i].revents & (POLLIN | POLLRDNORM))
+		    revents |= POLLOUT;
+		break;
+	    case COMM_PENDING_NOW:
+		revents |= POLLOUT;
+		break;
+	    }
 	    if (revents == 0)
 		continue;
 	    if (fdIsIcp(fd)) {
@@ -433,15 +481,17 @@ comm_poll(int msec)
 	    }
 	    F = &fd_table[fd];
 	    if (revents & (POLLRDNORM | POLLIN | POLLHUP | POLLERR)) {
+		PF *hdl = F->read_handler;
 		debug(5, 6) ("comm_poll: FD %d ready for reading\n", fd);
-		if (NULL == (hdl = F->read_handler))
-		    (void) 0;
+		if (hdl == NULL)
+		    (void) 0;	/* Nothing to do */
 #if DELAY_POOLS
 		else if (FD_ISSET(fd, &slowfds))
 		    commAddSlowFd(fd);
 #endif
 		else {
 		    F->read_handler = NULL;
+		    F->read_pending = COMM_PENDING_NORMAL;
 		    hdl(fd, F->read_data);
 		    statCounter.select_fds++;
 		    if (commCheckICPIncoming)
@@ -453,9 +503,11 @@ comm_poll(int msec)
 		}
 	    }
 	    if (revents & (POLLWRNORM | POLLOUT | POLLHUP | POLLERR)) {
+		PF *hdl = F->write_handler;
 		debug(5, 5) ("comm_poll: FD %d ready for writing\n", fd);
-		if ((hdl = F->write_handler)) {
+		if (hdl != NULL) {
 		    F->write_handler = NULL;
+		    F->write_pending = COMM_PENDING_NORMAL;
 		    hdl(fd, F->write_data);
 		    statCounter.select_fds++;
 		    if (commCheckICPIncoming)
@@ -500,9 +552,11 @@ comm_poll(int msec)
 #if DELAY_POOLS
 	while ((fd = commGetSlowFd()) != -1) {
 	    fde *F = &fd_table[fd];
+	    PF *hdl = F->read_handler;
 	    debug(5, 6) ("comm_select: slow FD %d selected for reading\n", fd);
-	    if ((hdl = F->read_handler)) {
+	    if (hdl != NULL) {
 		F->read_handler = NULL;
+		F->read_pending = COMM_PENDING_NORMAL;
 		hdl(fd, F->read_data);
 		statCounter.select_fds++;
 		if (commCheckICPIncoming)
