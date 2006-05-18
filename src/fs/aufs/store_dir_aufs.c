@@ -1592,7 +1592,7 @@ storeAufsDirMaintain(SwapDir * SD)
  * object is able to be stored on this filesystem. AUFS filesystems will
  * happily store anything as long as the LRU time isn't too small.
  */
-char
+int
 storeAufsDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
     return 1;

@@ -692,7 +692,7 @@ storeCossDirShutdown(SwapDir * SD)
  * not store everything. We don't check for maxobjsize here since its
  * done by the upper layers.
  */
-char
+int
 storeCossDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
     /* Check if the object is a special object, we can't cache these */

@@ -1815,7 +1815,7 @@ storeDiskdDirMaintain(SwapDir * SD)
  * object is able to be stored on this filesystem. DISKD filesystems will
  * happily store anything as long as the LRU time isn't too small.
  */
-char
+int
 storeDiskdDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
     diskdinfo_t *diskdinfo = SD->fsdata;

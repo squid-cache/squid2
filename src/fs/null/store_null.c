@@ -87,7 +87,7 @@ storeNullDirRebuildComplete(void *unused)
     storeRebuildComplete(&counts);
 }
 
-static char
+static int
 storeNullDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
     return 0;

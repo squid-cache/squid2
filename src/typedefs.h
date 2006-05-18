@@ -296,7 +296,7 @@ typedef int STDBLCHECK(SwapDir *, StoreEntry *);
 typedef void STSTATFS(SwapDir *, StoreEntry *);
 typedef void STMAINTAINFS(SwapDir *);
 typedef int STCHECKLOADAV(SwapDir *, store_op_t op);
-typedef char STCHECKOBJ(SwapDir *, const StoreEntry *);
+typedef int STCHECKOBJ(SwapDir *, const StoreEntry *);
 typedef void STREFOBJ(SwapDir *, StoreEntry *);
 typedef void STUNREFOBJ(SwapDir *, StoreEntry *);
 typedef void STSETUP(storefs_entry_t *);
