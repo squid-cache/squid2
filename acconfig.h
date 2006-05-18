@@ -412,6 +412,11 @@
  */
 #undef AUTH_ON_ACCELERATION
 
+/*
+ * Supports epoll
+ */
+#undef HAVE_EPOLL
+
 @BOTTOM@
 
 #endif /* __CONFIGURE_H__ */

@@ -234,6 +234,7 @@ squid_LDADD = \
 	@SNMPLIB@ \
 	@LIB_MALLOC@ \
 	@SSLLIB@ \
+	@LIB_EPOLL@ \
 	-lmiscutil \
 	@XTRA_LIBS@
 

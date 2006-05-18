@@ -143,9 +143,24 @@ storeSwapOutMaintainMemObject(StoreEntry * e)
     }
     if (new_mem_lo < mem->inmem_lo)
 	new_mem_lo = mem->inmem_lo;
-    if (mem->inmem_lo != new_mem_lo)
+    if (mem->inmem_lo != new_mem_lo) {
 	mem->inmem_lo = stmemFreeDataUpto(&mem->data_hdr, new_mem_lo);
 
+	/* If ENTRY_DEFER_READ is set, then the client side will continue to
+	 * flush until it has less than READ_AHEAD_GAP bytes in memory */
+	if (EBIT_TEST(e->flags, ENTRY_DEFER_READ)) {
+
+	    if (mem->inmem_hi - mem->inmem_lo <= READ_AHEAD_GAP) {
+		EBIT_CLR(e->flags, ENTRY_DEFER_READ);
+#if HAVE_EPOLL
+		if (mem->serverfd != 0) {
+		    commResumeFD(mem->serverfd);
+		    mem->serverfd = 0;
+		}
+#endif
+	    }
+	}
+    }
     return swapout_able;
 }
 

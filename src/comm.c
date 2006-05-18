@@ -374,6 +374,11 @@ commResetFD(ConnectStateData * cs)
     if (F->flags.nodelay)
 	commSetTcpNoDelay(cs->fd);
 #endif
+
+#if HAVE_EPOLL
+    // If we are using epoll(), we need to make sure that this fd will be polled
+    commSetSelect(cs->fd, 0, NULL, NULL, 0);
+#endif
     if (Config.tcpRcvBufsz > 0)
 	commSetTcpRcvbuf(cs->fd, Config.tcpRcvBufsz);
     return 1;
@@ -770,6 +775,8 @@ commSetDefer(int fd, DEFER * func, void *data)
     F->defer_data = data;
 }
 
+/* Epoll redefines this function in comm_select.c */
+#if !HAVE_EPOLL
 void
 commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
 {
@@ -790,6 +797,7 @@ commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t
     if (timeout)
 	F->timeout = squid_curtime + timeout;
 }
+#endif
 
 void
 comm_add_close_handler(int fd, PF * handler, void *data)

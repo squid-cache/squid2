@@ -36,6 +36,8 @@
 
 static int MAX_POLL_TIME = 1000;	/* see also comm_quick_poll_required() */
 
+#if !HAVE_EPOLL
+
 #ifndef        howmany
 #define howmany(x, y)   (((x)+((y)-1))/(y))
 #endif
@@ -131,15 +133,6 @@ static int incoming_http_interval = 16 << INCOMING_FACTOR;
 #define commCheckICPIncoming (++icp_io_events > (incoming_icp_interval>> INCOMING_FACTOR))
 #define commCheckDNSIncoming (++dns_io_events > (incoming_dns_interval>> INCOMING_FACTOR))
 #define commCheckHTTPIncoming (++http_io_events > (incoming_http_interval>> INCOMING_FACTOR))
-
-static int
-commDeferRead(int fd)
-{
-    fde *F = &fd_table[fd];
-    if (F->defer_check == NULL)
-	return 0;
-    return F->defer_check(fd, F->defer_data);
-}
 
 static int
 fdIsIcp(int fd)
@@ -1078,33 +1071,6 @@ examine_select(fd_set * readfds, fd_set * writefds)
 #endif
 
 static void
-checkTimeouts(void)
-{
-    int fd;
-    fde *F = NULL;
-    PF *callback;
-    for (fd = 0; fd <= Biggest_FD; fd++) {
-	F = &fd_table[fd];
-	if (!F->flags.open)
-	    continue;
-	if (F->timeout == 0)
-	    continue;
-	if (F->timeout > squid_curtime)
-	    continue;
-	debug(5, 5) ("checkTimeouts: FD %d Expired\n", fd);
-	if (F->timeout_handler) {
-	    debug(5, 5) ("checkTimeouts: FD %d: Call timeout handler\n", fd);
-	    callback = F->timeout_handler;
-	    F->timeout_handler = NULL;
-	    callback(fd, F->timeout_data);
-	} else {
-	    debug(5, 5) ("checkTimeouts: FD %d: Forcing comm_close()\n", fd);
-	    comm_close(fd);
-	}
-    }
-}
-
-static void
 commIncomingStats(StoreEntry * sentry)
 {
     StatCounters *f = &statCounter;
@@ -1159,6 +1125,419 @@ commUpdateWriteBits(int fd, PF * handler)
 	nwritefds--;
     }
 }
+
+#else /* HAVE_EPOLL */
+/* epoll structs */
+static int kdpfd;
+static struct epoll_event *pevents;
+
+/* Array to keep track of backed off filedescriptors */
+static int backoff_fds[FD_SETSIZE];
+
+static void checkTimeouts(void);
+static int commDeferRead(int fd);
+
+static const char *
+epolltype_atoi(int x)
+{
+    switch (x) {
+
+    case EPOLL_CTL_ADD:
+	return "EPOLL_CTL_ADD";
+
+    case EPOLL_CTL_DEL:
+	return "EPOLL_CTL_DEL";
+
+    case EPOLL_CTL_MOD:
+	return "EPOLL_CTL_MOD";
+
+    default:
+	return "UNKNOWN_EPOLLCTL_OP";
+    }
+}
+
+/* Bring all fds back online */
+void
+commEpollBackon()
+{
+    fde *F;
+    int i;
+    int fd;
+    int j = 0;
+
+    for (i = 0; i < FD_SETSIZE; i++) {
+	if (backoff_fds[i]) {
+	    /* record the fd and zero the descriptor */
+	    fd = backoff_fds[i];
+	    F = &fd_table[fd];
+	    backoff_fds[i] = 0;
+
+	    /* If the fd is no longer backed off, ignore */
+	    if (!(F->epoll_backoff)) {
+		continue;
+	    }
+	    /* If the fd is still meant to be backed off, add it to the start of
+	     * the list and continue */
+	    if (commDeferRead(fd) == 1) {
+		backoff_fds[j++] = fd;
+		continue;
+	    }
+	    debug(5, 4) ("commEpollBackon: fd=%d\n", fd);
+
+	    /* Resume operations for this fd */
+	    commResumeFD(fd);
+	} else {
+	    /* Once we hit a non-backed off FD, we can break */
+	    break;
+	}
+    }
+}
+
+
+/* Back off on the next epoll for the given fd */
+void
+commEpollBackoff(int fd)
+{
+    commDeferFD(fd);
+}
+
+/* Defer reads from this fd */
+void
+commDeferFD(int fd)
+{
+    fde *F = &fd_table[fd];
+    struct epoll_event ev;
+    int epoll_ctl_type = 0;
+    int i;
+
+    /* Return if the fd is already backed off */
+    if (F->epoll_backoff) {
+	return;
+    }
+    for (i = 0; i < FD_SETSIZE; i++) {
+	if (!(backoff_fds[i]) || (backoff_fds[i] == fd)) {
+	    break;
+	}
+    }
+
+    /* die if we have no fd (very unlikely), if the fd has no existing epoll 
+     * state, if we are given a bad fd, or if the fd is not open. */
+    assert(i < FD_SETSIZE);
+    assert(F->epoll_state);
+    assert(fd >= 0);
+    assert(F->flags.open);
+
+    /* set up ev struct */
+    ev.events = 0;
+    ev.data.fd = fd;
+
+    /* If we were only waiting for reads, delete the fd, otherwise remove the 
+     * read event */
+    if (F->epoll_state == (EPOLLIN | EPOLLHUP | EPOLLERR)) {
+	epoll_ctl_type = EPOLL_CTL_DEL;
+    } else {
+	epoll_ctl_type = EPOLL_CTL_MOD;
+	ev.events = (F->epoll_state - EPOLLIN);
+    }
+    debug(5, 5) ("commDeferFD: epoll_ctl_type=%s, fd=%d epoll_state=%d\n", epolltype_atoi(epoll_ctl_type), fd, F->epoll_state);
+
+    if (epoll_ctl(kdpfd, epoll_ctl_type, fd, &ev) < 0) {
+	/* If an error occurs, log it */
+	debug(5, 1) ("commDeferFD: epoll_ctl(,%s,,): failed on fd=%d: %s\n", epolltype_atoi(epoll_ctl_type), fd, xstrerror());
+    } else {
+	backoff_fds[i] = fd;
+	F->epoll_backoff = 1;
+	F->epoll_state = ev.events;
+    }
+}
+
+/* Resume reading from the given fd */
+void
+commResumeFD(int fd)
+{
+    struct epoll_event ev;
+    int epoll_ctl_type = 0;
+    fde *F;
+
+    F = &fd_table[fd];
+
+    /* If the fd has been modified, do nothing and remove the flag */
+    if (!(F->read_handler) || !(F->epoll_backoff)) {
+	debug(5, 2) ("commResumeFD: fd=%d ignoring read_handler=%p, epoll_backoff=%d\n", fd, F->read_handler, F->epoll_backoff);
+	F->epoll_backoff = 0;
+	return;
+    }
+    /* we need to re-add the fd to the epoll list with EPOLLIN set */
+    ev.events = F->epoll_state | EPOLLIN | EPOLLHUP | EPOLLERR;
+    ev.data.fd = fd;
+
+    /* If epoll_state is not set, then this fd is only waiting for
+     * reads, and needs adding, otherwise we mod it to add  EPOLLIN */
+    if (!(F->epoll_state)) {
+	epoll_ctl_type = EPOLL_CTL_ADD;
+    } else {
+	epoll_ctl_type = EPOLL_CTL_MOD;
+    }
+    debug(5, 5) ("commResumeFD: epoll_ctl_type=%s, fd=%d\n", epolltype_atoi(epoll_ctl_type), fd);
+
+    /* Try and add the fd back into the epoll struct */
+    if (epoll_ctl(kdpfd, epoll_ctl_type, fd, &ev) < 0) {
+	/* If an error occurs, log */
+	debug(5, 1) ("commResumeFD: epoll_ctl(,%s,,): failed on fd=%d: %s\n", epolltype_atoi(epoll_ctl_type), fd, xstrerror());
+    } else {
+	F->epoll_backoff = 0;
+	F->epoll_state = ev.events;
+    }
+}
+void
+comm_select_init()
+{
+    int i;
+    pevents = (struct epoll_event *) xmalloc(SQUID_MAXFD * sizeof(struct epoll_event));
+    if (!pevents) {
+	fatalf("comm_select_init: xmalloc() failed: %s\n", xstrerror());
+    }
+    kdpfd = epoll_create(SQUID_MAXFD);
+
+    if (kdpfd < 0) {
+	fatalf("comm_select_init: epoll_create(): %s\n", xstrerror());
+    }
+    for (i = 0; i < FD_SETSIZE; i++) {
+	backoff_fds[i] = 0;
+    }
+}
+
+void
+commUpdateReadBits(int fd, PF * handler)
+{
+    /* Not imlpemented */
+}
+
+void
+commUpdateWriteBits(int fd, PF * handler)
+{
+    /* Not imlpemented */
+}
+
+void
+commSetSelect(int fd, unsigned int type, PF * handler, void *client_data, time_t timeout)
+{
+    fde *F = &fd_table[fd];
+    int epoll_ctl_type = 0;
+    struct epoll_event ev;
+
+    assert(fd >= 0);
+    assert(F->flags.open);
+    debug(5, 8) ("commSetSelect(fd=%d,type=%u,handler=%p,client_data=%p,timeout=%ld)\n", fd, type, handler, client_data, timeout);
+
+    ev.events = 0;
+    ev.data.fd = fd;
+
+    if (type & COMM_SELECT_READ) {
+	/* Only add the epoll event if the fd is not backed off */
+	if (handler && !(F->epoll_backoff)) {
+	    ev.events |= EPOLLIN;
+	}
+	F->read_handler = handler;
+	F->read_data = client_data;
+
+	// Otherwise, use previously stored value if the fd is not backed off
+    } else if ((F->epoll_state & EPOLLIN) && (F->read_handler) && !(F->epoll_backoff)) {
+	ev.events |= EPOLLIN;
+    }
+    if (type & COMM_SELECT_WRITE) {
+	if (handler) {
+	    ev.events |= EPOLLOUT;
+	}
+	F->write_handler = handler;
+	F->write_data = client_data;
+
+	// Otherwise, use previously stored value
+    } else if ((F->epoll_state & EPOLLOUT) && (F->write_handler)) {
+	ev.events |= EPOLLOUT;
+    }
+    if (ev.events) {
+	ev.events |= EPOLLHUP | EPOLLERR;
+    }
+    /* If the type is 0, force adding the fd to the epoll set */
+    if (!(type)) {
+	F->epoll_state = 0;
+    }
+    if (ev.events != F->epoll_state) {
+	// If the struct is already in epoll MOD or DEL, else ADD
+	if (F->epoll_state) {
+	    epoll_ctl_type = ev.events ? EPOLL_CTL_MOD : EPOLL_CTL_DEL;
+	} else {
+	    epoll_ctl_type = EPOLL_CTL_ADD;
+	}
+
+	/* Update the state */
+	F->epoll_state = ev.events;
+
+	if (epoll_ctl(kdpfd, epoll_ctl_type, fd, &ev) < 0) {
+	    debug(5, 1) ("commSetSelect: epoll_ctl(%s): failed on fd=%d: %s\n",
+		epolltype_atoi(epoll_ctl_type), fd, xstrerror());
+	}
+    }
+    if (timeout)
+	F->timeout = squid_curtime + timeout;
+}
+
+int
+comm_epoll(int msec)
+{
+    struct timespec ts;
+    static time_t last_timeout = 0;
+    int i;
+    int num;
+    int fd;
+    fde *F;
+    PF *hdl;
+    struct epoll_event *cevents;
+    double timeout = current_dtime + (msec / 1000.0);
+
+    if (msec > MAX_POLL_TIME)
+	msec = MAX_POLL_TIME;
+
+    debug(50, 3) ("comm_epoll: timeout %d\n", msec);
+
+    do {
+#if !ALARM_UPDATES_TIME
+	double start;
+	getCurrentTime();
+	start = current_dtime;
+#endif
+	ts.tv_sec = msec / 1000;
+	ts.tv_nsec = (msec % 1000) * 1000;
+
+	/* Check timeouts once per second */
+	if (last_timeout < squid_curtime) {
+	    last_timeout = squid_curtime;
+	    checkTimeouts();
+
+	    /* bring backed off connections back online */
+	    commEpollBackon();
+	}
+	/* Check for disk io callbacks */
+	storeDirCallback();
+
+	for (;;) {
+	    statCounter.syscalls.polls++;
+	    num = epoll_wait(kdpfd, pevents, SQUID_MAXFD, msec);
+	    statCounter.select_loops++;
+
+	    if (num >= 0)
+		break;
+
+	    if (ignoreErrno(errno))
+		break;
+
+	    debug(5, 0) ("comm_epoll: epoll failure: %s\n", xstrerror());
+
+	    return COMM_ERROR;
+	}
+
+	statHistCount(&statCounter.select_fds_hist, num);
+
+	if (num <= 0)
+	    continue;
+
+	for (i = 0, cevents = pevents; i < num; i++, cevents++) {
+	    fd = cevents->data.fd;
+	    F = &fd_table[fd];
+	    debug(5, 8) ("comm_epoll(): got fd=%d events=%x monitoring=%x F->read_handler=%p F->write_handler=%p\n"
+		,fd, cevents->events, F->epoll_state, F->read_handler, F->write_handler);
+	    if (cevents->events & (EPOLLIN | EPOLLHUP | EPOLLERR)) {
+		if ((hdl = F->read_handler) != NULL) {
+		    // If the descriptor is meant to be deferred, don't handle
+		    if (commDeferRead(fd) == 1) {
+			if (!(F->epoll_backoff)) {
+			    debug(5, 1) ("comm_epoll(): WARNING defer handler for fd=%d (desc=%s) does not call commDeferFD() - backing off manually\n", fd, F->desc);
+			    commEpollBackoff(fd);
+			}
+			goto WRITE_EVENT;
+		    }
+		    debug(5, 8) ("comm_epoll(): Calling read handler on fd=%d\n", fd);
+		    F->read_handler = NULL;
+		    hdl(fd, F->read_data);
+		    statCounter.select_fds++;
+		    if ((F->read_handler == NULL) && (F->flags.open)) {
+			commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
+		    }
+		} else if (cevents->events & EPOLLIN) {
+		    debug(5, 2) ("comm_epoll(): no read handler for fd=%d", fd);
+		    if (F->flags.open) {
+			commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
+		    }
+		}
+	    }
+	  WRITE_EVENT:
+	    if (cevents->events & (EPOLLOUT | EPOLLHUP | EPOLLERR)) {
+		if ((hdl = F->write_handler) != NULL) {
+		    debug(5, 8) ("comm_epoll(): Calling write handler on fd=%d\n", fd);
+		    F->write_handler = NULL;
+		    hdl(fd, F->write_data);
+		    statCounter.select_fds++;
+		    if ((F->write_handler == NULL) && (F->flags.open)) {
+			commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
+		    }
+		} else if (cevents->events & EPOLLOUT) {
+		    debug(5, 2) ("comm_epoll(): no write handler for fd=%d\n", fd);
+		    if (F->flags.open) {
+			commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
+		    }
+		}
+	    }
+	}
+#if !ALARM_UPDATES_TIME
+	getCurrentTime();
+	statCounter.select_time += (current_dtime - start);
+#endif
+	return COMM_OK;
+    }
+    while (timeout > current_dtime);
+
+    debug(5, 8) ("comm_epoll: time out: %ld.\n", (long int) squid_curtime);
+    return COMM_TIMEOUT;
+}
+#endif /* HAVE_EPOLL  */
+
+static int
+commDeferRead(int fd)
+{
+    fde *F = &fd_table[fd];
+    if (F->defer_check == NULL)
+	return 0;
+    return F->defer_check(fd, F->defer_data);
+}
+
+static void
+checkTimeouts(void)
+{
+    int fd;
+    fde *F = NULL;
+    PF *callback;
+    for (fd = 0; fd <= Biggest_FD; fd++) {
+	F = &fd_table[fd];
+	if (!F->flags.open)
+	    continue;
+	if (F->timeout == 0)
+	    continue;
+	if (F->timeout > squid_curtime)
+	    continue;
+	debug(5, 5) ("checkTimeouts: FD %d Expired\n", fd);
+	if (F->timeout_handler) {
+	    debug(5, 5) ("checkTimeouts: FD %d: Call timeout handler\n", fd);
+	    callback = F->timeout_handler;
+	    F->timeout_handler = NULL;
+	    callback(fd, F->timeout_data);
+	} else {
+	    debug(5, 5) ("checkTimeouts: FD %d: Forcing comm_close()\n", fd);
+	    comm_close(fd);
+	}
+    }
+}
+
 
 /* Called by async-io or diskd to speed up the polling */
 void

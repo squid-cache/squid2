@@ -84,6 +84,11 @@ fd_close(int fd)
 	assert(F->write_handler == NULL);
     }
     debug(51, 3) ("fd_close FD %d %s\n", fd, F->desc);
+#if HAVE_EPOLL
+    /* the epoll code needs to update the descriptor before flags.ope is 0 */
+    commSetSelect(fd, COMM_SELECT_READ, NULL, NULL, 0);
+    commSetSelect(fd, COMM_SELECT_WRITE, NULL, NULL, 0);
+#endif
     F->flags.open = 0;
     fdUpdateBiggest(fd, 0);
     Number_FD--;

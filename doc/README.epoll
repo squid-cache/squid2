@@ -1,0 +1,26 @@
+This version of squid has a patch applied to allow epoll to be enabled.
+In order to do this, you must use the "--disable-poll --disable-select
+--enable-epoll" options to the configure script.
+
+Epoll is an interface introduced during the development of the 2.6 linux
+kernel, and it allows servers to scale their performance linearly as the
+number of clients increases.  A good descripton of epoll can be found at:
+http://lse.sourceforge.net/epoll/index.html
+
+Epoll is useful for improving the performance of very busy servers.
+It should be used on all linux (and any other supported) systems in favour
+of poll or select.
+
+The epoll patch does produce some debug output as part of it's normal
+operation.  These messages will look like:
+<date + time>| storeClientCopy3: <URL> - clearing ENTRY_DEFER_READ
+
+Thes messages indicate that squid has sent all in-memory data to all clients,
+but the connection to the server is in a "deferred" state (ie no more data will
+be read).  This should never happen, but it does.
+
+It is safe to edit the src/store_client.c file and change the debug line from
+"debug(20, 1)..." to "debug(20, 3)..."
+
+TODO:
+It would be nice to find out what circumstances cause the above debug messages.

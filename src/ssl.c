@@ -132,14 +132,18 @@ sslStateFree(SslStateData * sslState)
 
 #if DELAY_POOLS
 static int
-sslDeferServerRead(int fdnotused, void *data)
+sslDeferServerRead(int fd, void *data)
 {
     SslStateData *s = data;
     int i = delayBytesWanted(s->delay_id, 0, INT_MAX);
     if (i == INT_MAX)
 	return 0;
-    if (i == 0)
+    if (i == 0) {
+#if HAVE_EPOLL
+	commDeferFD(fd);
+#endif
 	return 1;
+    }
     return -1;
 }
 #endif

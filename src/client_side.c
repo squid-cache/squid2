@@ -3213,10 +3213,29 @@ clientReadDefer(int fd, void *data)
 {
     fde *F = &fd_table[fd];
     ConnStateData *conn = data;
-    if (conn->body.size_left && !F->flags.socket_eof)
-	return conn->in.offset >= conn->in.size - 1;
-    else
-	return conn->defer.until > squid_curtime;
+    if (conn->body.size_left && !F->flags.socket_eof) {
+	if (conn->in.offset >= conn->in.size - 1) {
+#if HAVE_EPOLL
+	    /* The commResumeFD function is called in this file */
+	    conn->in.clientfd = fd;
+	    commDeferFD(fd);
+#endif
+	    return 1;
+	} else {
+	    return 0;
+	}
+    } else {
+	if (conn->defer.until > squid_curtime) {
+#if HAVE_EPOLL
+	    /* This is a second resolution timer, so commEpollBackon will 
+	     * handle the resume for this defer call */
+	    commDeferFD(fd);
+#endif
+	    return 1;
+	} else {
+	    return 0;
+	}
+    }
 }
 
 static void
@@ -3622,6 +3641,15 @@ clientProcessBody(ConnStateData * conn)
 	conn->body.size_left -= size;
 	/* Move any remaining data */
 	conn->in.offset -= size;
+#if HAVE_EPOLL
+	/* Resume the fd if necessary */
+	if (conn->in.clientfd) {
+	    if (conn->in.offset < conn->in.size - 1) {
+		commResumeFD(conn->in.clientfd);
+		conn->in.clientfd = 0;
+	    }
+	}
+#endif
 	if (conn->in.offset > 0)
 	    xmemmove(conn->in.buf, conn->in.buf + size, conn->in.offset);
 	/* Remove request link if this is the last part of the body, as

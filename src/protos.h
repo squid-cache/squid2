@@ -162,6 +162,10 @@ extern int comm_open(int, int, struct in_addr, u_short port, int, const char *no
 extern int comm_openex(int, int, struct in_addr, u_short, int, unsigned char TOS, const char *);
 extern u_short comm_local_port(int fd);
 
+#if HAVE_EPOLL
+extern void commDeferFD(int fd);
+extern void commResumeFD(int fd);
+#endif
 extern void commSetSelect(int, unsigned int, PF *, void *, time_t);
 extern void comm_add_close_handler(int fd, PF *, void *);
 extern void comm_remove_close_handler(int fd, PF *, void *);
@@ -184,7 +188,9 @@ extern void commCloseAllSockets(void);
  * comm_select.c
  */
 extern void comm_select_init(void);
-#if HAVE_POLL
+#if HAVE_EPOLL
+extern int comm_epoll(int);
+#elif HAVE_POLL
 extern int comm_poll(int);
 #else
 extern int comm_select(int);

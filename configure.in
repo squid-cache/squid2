@@ -760,6 +760,26 @@ AC_ARG_ENABLE(poll,
   esac
 ])
 
+dnl Enable epoll()
+AC_ARG_ENABLE(epoll,
+[  --enable-epoll          Enable epoll() instead of poll() or select().  
+                          epoll() is best where available, but must be 
+                          explicitly set at the moment.
+  --disable-epoll          Disable the use of epoll().],
+[ 
+  case "$enableval" in
+  yes)
+    echo "Forcing epoll() to be enabled"
+    ac_cv_func_epoll='yes'
+    ac_cv_func_poll='no'
+    ;;
+  no)
+    echo "Forcing epoll() to be disabled"
+    ac_cv_func_epoll='no'
+    ;;
+  esac
+])
+
 dnl Disable HTTP violations
 AC_ARG_ENABLE(http-violations,
 [  --disable-http-violations
@@ -1747,6 +1767,21 @@ if test "$with_aio" = "yes"; then
     dnl On some systems POSIX AIO functions are in libaio
     AC_CHECK_LIB(rt, aio_read,,AC_CHECK_LIB(aio, aio_read))
 fi
+
+LIB_EPOLL=''
+dnl Check for libepoll
+if test "$ac_cv_func_epoll" = "yes"; then
+    AC_CHECK_FUNCS(epoll_ctl,[AC_DEFINE_UNQUOTED(HAVE_EPOLL, 1)],
+	[AC_CHECK_LIB(epoll, epoll_ctl,[AC_DEFINE_UNQUOTED(HAVE_EPOLL, 1)] LIB_EPOLL="-lepoll",
+	    [echo "Error - no epoll found";
+	     echo "Try running 'sh ./scripts/get_epoll-lib.sh'";
+	     echo "then run configure again";
+	     exit -1],
+	    [-L ./lib]
+	)]
+    )
+fi
+AC_SUBST(LIB_EPOLL)
 
 dnl -lintl is needed on SCO version 3.2v4.2 for strftime()
 dnl Robert Side <rside@aiinc.bc.ca>

@@ -809,8 +809,13 @@ fwdCheckDeferRead(int fd, void *data)
 	(void) 0;
     else {
 	int i = delayMostBytesWanted(mem, INT_MAX);
-	if (0 == i)
+	if (0 == i) {
+#if HAVE_EPOLL
+	    mem->serverfd = fd;
+	    commDeferFD(fd);
+#endif
 	    return 1;
+	}
 	/* was: rc = -(rc != INT_MAX); */
 	else if (INT_MAX == i)
 	    rc = 0;
@@ -818,6 +823,8 @@ fwdCheckDeferRead(int fd, void *data)
 	    rc = -1;
     }
 #endif
+    if (EBIT_TEST(e->flags, ENTRY_DEFER_READ))
+	return 1;
     if (EBIT_TEST(e->flags, ENTRY_FWD_HDR_WAIT))
 	return rc;
     if (EBIT_TEST(e->flags, RELEASE_REQUEST)) {
@@ -826,11 +833,23 @@ fwdCheckDeferRead(int fd, void *data)
 	 * is disk clients pending on a too large object being fetched and a
 	 * few other corner cases.
 	 */
-	if (mem->inmem_hi - mem->inmem_lo > SM_PAGE_SIZE + Config.Store.maxInMemObjSize + READ_AHEAD_GAP)
+	if (fd >= 0 && mem->inmem_hi - mem->inmem_lo > SM_PAGE_SIZE + Config.Store.maxInMemObjSize + READ_AHEAD_GAP) {
+	    EBIT_SET(e->flags, ENTRY_DEFER_READ);
+#if HAVE_EPOLL
+	    mem->serverfd = fd;
+	    commDeferFD(fd);
+#endif
 	    return 1;
+	}
     }
-    if (mem->inmem_hi - storeLowestMemReaderOffset(e) > READ_AHEAD_GAP)
+    if (fd >= 0 && mem->inmem_hi - storeLowestMemReaderOffset(e) > READ_AHEAD_GAP) {
+	EBIT_SET(e->flags, ENTRY_DEFER_READ);
+#if HAVE_EPOLL
+	mem->serverfd = fd;
+	commDeferFD(fd);
+#endif
 	return 1;
+    }
     return rc;
 }
 

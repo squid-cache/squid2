@@ -201,6 +201,12 @@ storeClientCopy(store_client * sc,
     sc->copy_buf = buf;
     sc->copy_size = size;
     sc->copy_offset = copy_offset;
+    /* If the read is being deferred, run swapout in case this client has the 
+     * lowest seen_offset. storeSwapOut() frees the memory and clears the 
+     * ENTRY_DEFER_READ bit if necessary */
+    if (EBIT_TEST(e->flags, ENTRY_DEFER_READ)) {
+	storeSwapOut(e);
+    }
     storeClientCopy2(e, sc);
 }
 
@@ -271,6 +277,21 @@ storeClientCopy3(StoreEntry * e, store_client * sc)
     if (e->store_status == STORE_PENDING && sc->seen_offset >= mem->inmem_hi) {
 	/* client has already seen this, wait for more */
 	debug(20, 3) ("storeClientCopy3: Waiting for more\n");
+
+	/* If the read is backed off and all clients have seen all the data in
+	 * memory, re-poll the fd */
+	if ((EBIT_TEST(e->flags, ENTRY_DEFER_READ)) &&
+	    (storeLowestMemReaderOffset(e) == mem->inmem_hi)) {
+	    debug(20, 3) ("storeClientCopy3: %s - clearing ENTRY_DEFER_READ\n", e->mem_obj->url);
+	    /* Clear the flag and re-poll the fd */
+	    EBIT_CLR(e->flags, ENTRY_DEFER_READ);
+#if HAVE_EPOLL
+	    if (mem->serverfd != 0) {
+		commResumeFD(mem->serverfd);
+		mem->serverfd = 0;
+	    }
+#endif
+	}
 	return;
     }
     /*

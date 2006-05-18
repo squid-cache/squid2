@@ -258,6 +258,10 @@
 #endif /* HAVE_POLL_H */
 #endif /* HAVE_POLL */
 
+#if HAVE_EPOLL
+#include <sys/epoll.h>
+#endif
+
 #if defined(HAVE_STDARG_H)
 #include <stdarg.h>
 #define HAVE_STDARGS		/* let's hope that works everywhere (mj) */
