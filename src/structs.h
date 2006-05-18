@@ -1772,6 +1772,7 @@ struct _storeIOState {
     mode_t mode;
     squid_off_t st_size;	/* do stat(2) after read open */
     squid_off_t offset;		/* current on-disk offset pointer */
+    squid_off_t write_offset;	/* current storeWrite offset pointer */
     STFNCB *file_callback;	/* called on delayed sfileno assignments */
     STIOCB *callback;
     void *callback_data;

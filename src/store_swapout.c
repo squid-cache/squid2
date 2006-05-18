@@ -78,7 +78,7 @@ storeSwapOutStart(StoreEntry * e)
     e->swap_dirn = mem->swapout.sio->swap_dirn;
     /* write out the swap metadata */
     cbdataLock(mem->swapout.sio);
-    storeWrite(mem->swapout.sio, buf, mem->swap_hdr_sz, 0, xfree);
+    storeWrite(mem->swapout.sio, buf, mem->swap_hdr_sz, xfree);
 }
 
 static void
@@ -285,7 +285,7 @@ storeSwapOut(StoreEntry * e)
 	debug(20, 3) ("storeSwapOut: swapping out %d bytes from %" PRINTF_OFF_T "\n",
 	    (int) swap_buf_len, mem->swapout.queue_offset);
 	mem->swapout.queue_offset += swap_buf_len;
-	storeWrite(mem->swapout.sio, stmemNodeGet(mem->swapout.memnode), swap_buf_len, -1, stmemNodeFree);
+	storeWrite(mem->swapout.sio, stmemNodeGet(mem->swapout.memnode), swap_buf_len, stmemNodeFree);
 	/* the storeWrite() call might generate an error */
 	if (e->swap_status != SWAPOUT_WRITING)
 	    break;

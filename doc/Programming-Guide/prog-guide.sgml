@@ -1254,7 +1254,7 @@ Squid consists of the following major components
 
 	<P>
 	<tt/storeCreate/ is called to store the given <em/StoreEntry/ in
-	a storage directory.
+	a storage directory for writing.
 
 	<P>
 	<tt/callback/ is a function that will be called either when
@@ -1280,7 +1280,7 @@ Squid consists of the following major components
 
 	<P>
 	<tt/storeOpen/ is called to open the given <em/StoreEntry/ from
-	the storage directory it resides on.
+	the storage directory it resides on for reading.
 
 	<P>
 	<tt/callback/ is a function that will be called either when
@@ -1323,7 +1323,7 @@ Squid consists of the following major components
         <P>
 <verb>
 	void
-	storeWrite(storeIOState *sio, char *buf, size_t size, off_t offset, FREE *free_func)
+	storeWrite(storeIOState *sio, char *buf, size_t size, FREE *free_func)
 </verb>
 
 	<P>
@@ -1338,8 +1338,10 @@ Squid consists of the following major components
 	<P>
 	If a write operation fails, the filesystem layer notifies the
 	calling module by calling the <em/STIOCB/ callback with an
-	error status code.
+	error status code and the sio is closed.
 
+	<P>
+	Only sequential writes is supported, starting at offset 0.
 
 <sect2>storeUnlink()
 
@@ -1386,9 +1388,9 @@ Squid consists of the following major components
 
 	<P>
 	The <em/stiocb/ function is passed as a parameter to
-	<tt/storeOpen()/.  The filesystem layer calls <em/stiocb/
-	either when an I/O error occurs, or when the disk
-	object is closed.
+	<tt/storeOpen()/ &amp; <tt/storeCreate()/.  The filesystem
+	layer calls this callback when the disk object is closed,
+	either normally by storeClose() or due to I/O error.
 
 	<P>
 	<em/errorflag/ is one of the following:

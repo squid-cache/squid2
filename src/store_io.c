@@ -104,9 +104,11 @@ storeRead(storeIOState * sio, char *buf, size_t size, squid_off_t offset, STRCB 
 }
 
 void
-storeWrite(storeIOState * sio, char *buf, size_t size, squid_off_t offset, FREE * free_func)
+storeWrite(storeIOState * sio, char *buf, size_t size, FREE * free_func)
 {
     SwapDir *SD = &Config.cacheSwap.swapDirs[sio->swap_dirn];
+    squid_off_t offset = sio->write_offset;
+    sio->write_offset += size;
     SD->obj.write(SD, sio, buf, size, offset, free_func);
 }
 
