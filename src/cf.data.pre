@@ -2296,6 +2296,32 @@ DOC_START
 	client requested. (default)
 DOC_END
 
+NAME: collapsed_forwarding
+COMMENT: (on|off)
+TYPE: onoff
+LOC: Config.onoff.collapsed_forwarding
+DEFAULT: off
+DOC_START
+	This option enables multiple requests for the same URI to be
+	processed as one request. Normally disabled to avoid increased
+	latency on dynamic content, but there can be benefit from enabling
+	this in accelerator setups where the web servers are the bottleneck
+	and reliable and returns mostly cacheable information.
+DOC_END
+
+NAME: refresh_stale_hit
+COMMENT: (time)
+TYPE: time_t
+DEFAULT: 0 seconds
+LOC: Config.refresh_stale_window
+DOC_START
+	This option changes the refresh algorithm to allow concurrent
+	requests while an object is being refreshed to be processed as
+	cache hits if the object expired less than X seconds ago. Default
+	is 0 to disable this feature. This option is mostly interesiting
+	in accelerator setups where a few objects is accessed very
+	frequently.
+DOC_END
 
 COMMENT_START
  TIMEOUTS

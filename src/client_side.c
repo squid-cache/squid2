@@ -503,6 +503,7 @@ clientProcessExpired(void *data)
     clientHttpRequest *http = data;
     char *url = http->uri;
     StoreEntry *entry = NULL;
+    int hit = 0;
     debug(33, 3) ("clientProcessExpired: '%s'\n", http->uri);
     assert(http->entry->lastmod >= 0);
     /*
@@ -523,10 +524,37 @@ clientProcessExpired(void *data)
      * freed from memory before we need to access it.
      */
     assert(http->sc->callback_data == http);
-    entry = storeCreateEntry(url,
-	http->log_uri,
-	http->request->flags,
-	http->request->method);
+    if (http->entry->mem_obj && http->entry->mem_obj->ims_entry) {
+	entry = http->entry->mem_obj->ims_entry;
+	debug(33, 5) ("clientProcessExpired: collapsed request\n");
+	if (EBIT_TEST(entry->flags, ENTRY_ABORTED)) {
+	    debug(33, 1) ("clientProcessExpired: collapsed request ABORTED!\n");
+	    entry = NULL;
+	} else if (http->entry->mem_obj->refresh_timestamp + 30 < squid_curtime) {
+	    debug(33, 1) ("clientProcessExpired: collapsed request STALE!\n");
+	    entry = NULL;
+	}
+	if (entry) {
+	    storeLockObject(entry);
+	    hit = 1;
+	} else {
+	    storeUnlockObject(http->entry->mem_obj->ims_entry);
+	    http->entry->mem_obj->ims_entry = NULL;
+	}
+    }
+    if (!entry) {
+	entry = storeCreateEntry(url,
+	    http->log_uri,
+	    http->request->flags,
+	    http->request->method);
+	if (http->entry->mem_obj) {
+	    http->entry->mem_obj->refresh_timestamp = squid_curtime;
+	    if (Config.onoff.collapsed_forwarding) {
+		http->entry->mem_obj->ims_entry = entry;
+		storeLockObject(http->entry->mem_obj->ims_entry);
+	    }
+	}
+    }
     /* NOTE, don't call storeLockObject(), storeCreateEntry() does it */
     http->sc = storeClientListAdd(entry, http);
 #if DELAY_POOLS
@@ -537,7 +565,8 @@ clientProcessExpired(void *data)
     debug(33, 5) ("clientProcessExpired: lastmod %ld\n", (long int) entry->lastmod);
     http->entry = entry;
     http->out.offset = 0;
-    fwdStart(http->conn->fd, http->entry, http->request);
+    if (!hit)
+	fwdStart(http->conn->fd, http->entry, http->request);
     /* Register with storage manager to receive updates when data comes in. */
     if (EBIT_TEST(entry->flags, ENTRY_ABORTED))
 	debug(33, 0) ("clientProcessExpired: found ENTRY_ABORTED object\n");
@@ -600,6 +629,10 @@ clientHandleIMSReply(void *data, char *buf, ssize_t size)
     int recopy = 1;
     http_status status;
     debug(33, 3) ("clientHandleIMSReply: %s, %ld bytes\n", url, (long int) size);
+    if (http->old_entry && http->old_entry->mem_obj && http->old_entry->mem_obj->ims_entry) {
+	storeUnlockObject(http->old_entry->mem_obj->ims_entry);
+	http->old_entry->mem_obj->ims_entry = NULL;
+    }
     if (entry == NULL) {
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
 	return;
@@ -997,6 +1030,10 @@ httpRequestFree(void *data)
     http->al.request = NULL;
     safe_free(http->redirect.location);
     stringClean(&http->range_iter.boundary);
+    if (http->old_entry && http->old_entry->mem_obj && http->old_entry->mem_obj->ims_entry && http->old_entry->mem_obj->ims_entry == http->entry) {
+	storeUnlockObject(http->old_entry->mem_obj->ims_entry);
+	http->old_entry->mem_obj->ims_entry = NULL;
+    }
     if ((e = http->entry)) {
 	http->entry = NULL;
 	storeUnregister(http->sc, e, http);
@@ -1740,7 +1777,13 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    http->log_type = LOG_TCP_MISS;
 	    clientProcessMiss(http);
 	}
-    } else if (!Config.onoff.offline && refreshCheckHTTP(e, r) && !http->flags.internal) {
+	return;
+    }
+    if (Config.refresh_stale_window > 0 && e->mem_obj && e->mem_obj->refresh_timestamp + Config.refresh_stale_window > squid_curtime && !refreshCheckHTTPStale(e, r)) {
+	debug(33, 2) ("clientProcessHit: refresh_stale HIT\n");
+	goto hit;
+    }
+    if (!Config.onoff.offline && refreshCheckHTTP(e, r) && !http->flags.internal) {
 	debug(33, 5) ("clientCacheHit: in refreshCheck() block\n");
 	/*
 	 * We hold a stale copy; it needs to be validated
@@ -1783,7 +1826,10 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    clientProcessMiss(http);
 	}
 	memFree(buf, MEM_CLIENT_SOCK_BUF);
-    } else if (r->flags.ims) {
+	return;
+    }
+  hit:
+    if (r->flags.ims) {
 	/*
 	 * Handle If-Modified-Since requests from the client
 	 */
@@ -1816,18 +1862,18 @@ clientCacheHit(void *data, char *buf, ssize_t size)
 	    memBufClean(&mb);
 	    storeComplete(e);
 	}
-    } else {
-	/*
-	 * plain ol' cache hit
-	 */
-	if (e->store_status != STORE_OK)
-	    http->log_type = LOG_TCP_MISS;
-	else if (e->mem_status == IN_MEMORY)
-	    http->log_type = LOG_TCP_MEM_HIT;
-	else if (Config.onoff.offline)
-	    http->log_type = LOG_TCP_OFFLINE_HIT;
-	clientSendMoreHeaderData(data, buf, size);
+	return;
     }
+    /*
+     * plain ol' cache hit
+     */
+    if (e->store_status != STORE_OK)
+	http->log_type = LOG_TCP_MISS;
+    else if (e->mem_status == IN_MEMORY)
+	http->log_type = LOG_TCP_MEM_HIT;
+    else if (Config.onoff.offline)
+	http->log_type = LOG_TCP_OFFLINE_HIT;
+    clientSendMoreHeaderData(data, buf, size);
 }
 
 /* put terminating boundary for multiparts */
@@ -2875,6 +2921,10 @@ clientProcessRequest(clientHttpRequest * http)
     http->out.offset = 0;
     if (NULL != http->entry) {
 	storeLockObject(http->entry);
+	if (http->entry->store_status == STORE_PENDING && http->entry->mem_obj) {
+	    if (http->entry->mem_obj->request)
+		r->hier = http->entry->mem_obj->request->hier;
+	}
 	storeCreateMemObject(http->entry, http->uri, http->log_uri);
 	http->entry->mem_obj->method = r->method;
 	http->sc = storeClientListAdd(http->entry, http);
@@ -2916,6 +2966,9 @@ clientProcessMiss(clientHttpRequest * http)
 	    debug(33, 0) ("\tlog_type = %s\n", log_tags[http->log_type]);
 	    storeEntryDump(http->entry, 1);
 	}
+	/* touch timestamp for refresh_stale_hit */
+	if (http->entry->mem_obj)
+	    http->entry->mem_obj->refresh_timestamp = squid_curtime;
 	storeUnregister(http->sc, http->entry, http);
 	http->sc = NULL;
 	storeUnlockObject(http->entry);
@@ -2944,6 +2997,10 @@ clientProcessMiss(clientHttpRequest * http)
     }
     assert(http->out.offset == 0);
     http->entry = clientCreateStoreEntry(http, r->method, r->flags);
+    if (Config.onoff.collapsed_forwarding && r->flags.cachable && !r->flags.need_validation && (r->method = METHOD_GET || r->method == METHOD_HEAD)) {
+	http->entry->mem_obj->refresh_timestamp = squid_curtime;
+	storeSetPublicKey(http->entry);
+    }
     if (http->redirect.status) {
 	HttpReply *rep = httpReplyCreate();
 #if LOG_TCP_REDIRECTS

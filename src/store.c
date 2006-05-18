@@ -161,6 +161,10 @@ destroy_MemObject(StoreEntry * e)
      */
     assert(mem->clients.head == NULL);
 #endif
+    if (mem->ims_entry) {
+	storeUnlockObject(mem->ims_entry);
+	mem->ims_entry = NULL;
+    }
     httpReplyDestroy(mem->reply);
     requestUnlink(mem->request);
     mem->request = NULL;
@@ -521,6 +525,7 @@ storeAppend(StoreEntry * e, const char *buf, int len)
     assert(mem != NULL);
     assert(len >= 0);
     assert(e->store_status == STORE_PENDING);
+    mem->refresh_timestamp = squid_curtime;
     if (len) {
 	debug(20, 5) ("storeAppend: appending %d bytes for '%s'\n",
 	    len,
@@ -1066,6 +1071,10 @@ storeEntryValidToSend(StoreEntry * e)
 	    return 0;
     if (EBIT_TEST(e->flags, ENTRY_ABORTED))
 	return 0;
+    /* Entries which seem to have got stuck is not valid to send to new clients */
+    if (e->store_status == STORE_PENDING)
+	if (!e->mem_obj || e->mem_obj->refresh_timestamp + 30 < squid_curtime)
+	    return 0;
     return 1;
 }
 

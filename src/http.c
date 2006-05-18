@@ -457,7 +457,7 @@ httpProcessReplyHeader(HttpStateData * httpState, const char *buf, int size)
     storeTimestampsSet(entry);
     /* Check if object is cacheable or not based on reply code */
     debug(11, 3) ("httpProcessReplyHeader: HTTP CODE: %d\n", reply->sline.status);
-    if (neighbors_do_private_keys)
+    if (neighbors_do_private_keys && !Config.onoff.collapsed_forwarding)
 	httpMaybeRemovePublic(entry, reply->sline.status);
     if (httpHeaderHas(&reply->header, HDR_VARY)
 #if X_ACCELERATOR_VARY
@@ -935,6 +935,10 @@ httpBuildRequestHeader(request_t * request,
 		    httpHeaderPutInt(hdr_out, HDR_MAX_FORWARDS, hops - 1);
 	    }
 	    break;
+	case HDR_X_FORWARDED_FOR:
+	    if (!opt_forwarded_for)
+		httpHeaderAddEntry(hdr_out, httpHeaderEntryClone(e));
+	    break;
 	case HDR_RANGE:
 	case HDR_IF_RANGE:
 	case HDR_REQUEST_RANGE:
@@ -948,7 +952,6 @@ httpBuildRequestHeader(request_t * request,
 	    break;
 	case HDR_PROXY_CONNECTION:
 	case HDR_CONNECTION:
-	case HDR_X_FORWARDED_FOR:
 	case HDR_CACHE_CONTROL:
 	    /* append these after the loop if needed */
 	    break;
@@ -973,13 +976,14 @@ httpBuildRequestHeader(request_t * request,
 	stringClean(&strVia);
     }
     /* append X-Forwarded-For */
-    strFwd = httpHeaderGetList(hdr_in, HDR_X_FORWARDED_FOR);
-    strListAdd(&strFwd,
-	(((orig_request->client_addr.s_addr != no_addr.s_addr) && opt_forwarded_for) ?
-	    inet_ntoa(orig_request->client_addr) : "unknown"), ',');
-    httpHeaderPutStr(hdr_out, HDR_X_FORWARDED_FOR, strBuf(strFwd));
-    stringClean(&strFwd);
-
+    if (opt_forwarded_for) {
+	strFwd = httpHeaderGetList(hdr_in, HDR_X_FORWARDED_FOR);
+	strListAdd(&strFwd,
+	    (((orig_request->client_addr.s_addr != no_addr.s_addr) && opt_forwarded_for) ?
+		inet_ntoa(orig_request->client_addr) : "unknown"), ',');
+	httpHeaderPutStr(hdr_out, HDR_X_FORWARDED_FOR, strBuf(strFwd));
+	stringClean(&strFwd);
+    }
     /* append Host if not there already */
     if (!httpHeaderHas(hdr_out, HDR_HOST)) {
 	if (orig_request->peer_domain) {

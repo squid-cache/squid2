@@ -592,6 +592,7 @@ fwdDispatch(FwdState * fwdState)
     assert(entry->lock_count);
     EBIT_SET(entry->flags, ENTRY_DISPATCHED);
     netdbPingSite(request->host);
+    entry->mem_obj->refresh_timestamp = squid_curtime;
     if (fwdState->servers && (p = fwdState->servers->peer)) {
 	p->stats.fetches++;
 	fwdState->request->peer_login = p->login;
