@@ -84,6 +84,7 @@ static STLOGCLOSE storeCossDirCloseSwapLog;
 static STLOGWRITE storeCossDirSwapLog;
 static STNEWFS storeCossDirNewfs;
 static STCHECKOBJ storeCossDirCheckObj;
+static STCHECKLOADAV storeCossDirCheckLoadAv;
 static STFREE storeCossDirShutdown;
 static STFSPARSE storeCossDirParse;
 static STFSRECONFIGURE storeCossDirReconfigure;
