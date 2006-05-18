@@ -691,17 +691,21 @@ storeCossDirShutdown(SwapDir * SD)
  * not store everything. We don't check for maxobjsize here since its
  * done by the upper layers.
  */
-int
+char
 storeCossDirCheckObj(SwapDir * SD, const StoreEntry * e)
+{
+    /* Check if the object is a special object, we can't cache these */
+    if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
+	return 0;
+    return 1;
+}
+
+int
+storeCossDirCheckLoadAv(SwapDir * SD, store_op_t op)
 {
     CossInfo *cs = (CossInfo *) SD->fsdata;
     int loadav;
 
-    /* Check if the object is a special object, we can't cache these */
-    if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
-	return -1;
-
-    /* Otherwise, we're ok */
     /* Return load, cs->aq.aq_numpending out of MAX_ASYNCOP */
     loadav = cs->aq.aq_numpending * 1000 / MAX_ASYNCOP;
     return loadav;
@@ -780,6 +784,7 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     sd->statfs = storeCossDirStats;
     sd->maintainfs = NULL;
     sd->checkobj = storeCossDirCheckObj;
+    sd->checkload = storeCossDirCheckLoadAv;
     sd->refobj = NULL;		/* LRU is done in storeCossRead */
     sd->unrefobj = NULL;
     sd->callback = storeCossDirCallback;

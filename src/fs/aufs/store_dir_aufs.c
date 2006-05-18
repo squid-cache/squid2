@@ -106,6 +106,7 @@ static STNEWFS storeAufsDirNewfs;
 static STDUMP storeAufsDirDump;
 static STMAINTAINFS storeAufsDirMaintain;
 static STCHECKOBJ storeAufsDirCheckObj;
+static STCHECKLOADAV storeAufsDirCheckLoadAv;
 static STREFOBJ storeAufsDirRefObj;
 static STUNREFOBJ storeAufsDirUnrefObj;
 static QS rev_int_sort;
@@ -1591,25 +1592,22 @@ storeAufsDirMaintain(SwapDir * SD)
  * object is able to be stored on this filesystem. AUFS filesystems will
  * happily store anything as long as the LRU time isn't too small.
  */
-int
+char
 storeAufsDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
-    int loadav;
-    int ql;
+    return 1;
+}
 
-#if OLD_UNUSED_CODE
-    if (storeAufsDirExpiredReferenceAge(SD) < 300) {
-	debug(47, 3) ("storeAufsDirCheckObj: NO: LRU Age = %d\n",
-	    storeAufsDirExpiredReferenceAge(SD));
-	/* store_check_cachable_hist.no.lru_age_too_low++; */
-	return -1;
-    }
-#endif
+int
+storeAufsDirCheckLoadAv(SwapDir * SD, store_op_t op)
+{
+    int loadav, ql;
+
     ql = aioQueueSize();
-    if (ql == 0)
-	loadav = 0;
+    if (ql == 0) {
+	return 1;
+    }
     loadav = ql * 1000 / MAGIC1;
-    debug(47, 9) ("storeAufsDirCheckObj: load=%d\n", loadav);
     return loadav;
 }
 
@@ -1896,6 +1894,7 @@ storeAufsDirParse(SwapDir * sd, int index, char *path)
     sd->statfs = storeAufsDirStats;
     sd->maintainfs = storeAufsDirMaintain;
     sd->checkobj = storeAufsDirCheckObj;
+    sd->checkload = storeAufsDirCheckLoadAv;
     sd->refobj = storeAufsDirRefObj;
     sd->unrefobj = storeAufsDirUnrefObj;
     sd->callback = aioCheckCallbacks;

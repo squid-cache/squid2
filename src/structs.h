@@ -1704,6 +1704,7 @@ struct _SwapDir {
     STSTATFS *statfs;		/* Dump fs statistics */
     STMAINTAINFS *maintainfs;	/* Replacement maintainence */
     STCHECKOBJ *checkobj;	/* Check if the fs will store an object */
+    STCHECKLOADAV *checkload;	/* Check if the fs is getting overloaded .. */
     /* These two are notifications */
     STREFOBJ *refobj;		/* Reference this object */
     STUNREFOBJ *unrefobj;	/* Unreference this object */

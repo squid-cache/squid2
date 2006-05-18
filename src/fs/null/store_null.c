@@ -87,8 +87,17 @@ storeNullDirRebuildComplete(void *unused)
     storeRebuildComplete(&counts);
 }
 
-static int
+static char
 storeNullDirCheckObj(SwapDir * SD, const StoreEntry * e)
+{
+    return 0;
+}
+
+/*
+ * We should never, in theory, see an open/create, but just in case..
+ */
+static int
+storeNullDirCheckLoadAv(SwapDir * SD, store_op_t op)
 {
     return -1;
 }
@@ -113,6 +122,7 @@ storeNullDirParse(SwapDir * sd, int index, char *path)
     sd->statfs = storeNullDirStats;
     sd->init = storeNullDirInit;
     sd->checkobj = storeNullDirCheckObj;
+    sd->checkload = storeNullDirCheckLoadAv;
     sd->log.clean.start = storeNullDirWriteCleanStart;
     sd->log.clean.done = storeNullDirWriteCleanDone;
     parse_cachedir_options(sd, NULL, 0);

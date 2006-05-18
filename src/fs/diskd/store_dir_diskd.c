@@ -110,6 +110,7 @@ static STNEWFS storeDiskdDirNewfs;
 static STDUMP storeDiskdDirDump;
 static STMAINTAINFS storeDiskdDirMaintain;
 static STCHECKOBJ storeDiskdDirCheckObj;
+static STCHECKLOADAV storeDiskdDirCheckLoadAv;
 static STREFOBJ storeDiskdDirRefObj;
 static STUNREFOBJ storeDiskdDirUnrefObj;
 static QS rev_int_sort;
@@ -1814,15 +1815,24 @@ storeDiskdDirMaintain(SwapDir * SD)
  * object is able to be stored on this filesystem. DISKD filesystems will
  * happily store anything as long as the LRU time isn't too small.
  */
-int
+char
 storeDiskdDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
     diskdinfo_t *diskdinfo = SD->fsdata;
     /* Check the queue length */
     if (diskdinfo->away >= diskdinfo->magic1)
-	return -1;
+	return 0;
+    return 1;
+}
+
+int
+storeDiskdDirCheckLoadAv(SwapDir * SD, store_op_t op)
+{
+    diskdinfo_t *diskdinfo = SD->fsdata;
     /* Calculate the storedir load relative to magic2 on a scale of 0 .. 1000 */
     /* the parse function guarantees magic2 is positivie */
+    if (diskdinfo->away >= diskdinfo->magic1)
+	return -1;
     return diskdinfo->away * 1000 / diskdinfo->magic2;
 }
 
@@ -2194,6 +2204,7 @@ storeDiskdDirParse(SwapDir * sd, int index, char *path)
     sd->statfs = storeDiskdDirStats;
     sd->maintainfs = storeDiskdDirMaintain;
     sd->checkobj = storeDiskdDirCheckObj;
+    sd->checkload = storeDiskdDirCheckLoadAv;
     sd->refobj = storeDiskdDirRefObj;
     sd->unrefobj = storeDiskdDirUnrefObj;
     sd->callback = storeDiskdDirCallback;

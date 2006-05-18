@@ -1,0 +1,37 @@
+
+The disk load calculation code has been modified slightly - it now
+attempts to shed load during both periods of extraordinarily busy
+disk activity.
+
+Each filesystem implements slightly different semantics for knowing
+when its busy:
+
+* aufs: doesn't have a concept of 'per-storedir' IO as the thread
+  pool is shared between all aufs storedir; loadav is the number
+  of currently busy threads out of the number of maximum threads.
+
+* ufs: since it is synchronous the "busy" heuristic is simply the
+  number of currently open files in the storedir. This allows for
+  the usage of the storedirs to be relatively even but it doesn't
+  help manage disk load.
+
+* diskd: each storedir has its own SYSV SHM/MSG queue; so the load
+  average is calculated based on the number of currently queued
+  messages compared to magic1 and magic2.
+
+* coss: each coss storedir has its own async-io queue (currently
+  128 entries deep); load average the percentage of these in use
+
+* null: the cache is always busy.
+
+The main problem with this; Squid will invalidate cached objects
+if there's a problem swapping them in; so heavy disk load can cause
+both your hit rate to drop and your cache to start losing objects.
+
+This isn't easily solvable! We'd need to be able to compare what
+we've retrieved against what we have (kind of like an IMS) to see
+whether we've fetched something "fresher". If we have then we should
+invalidate what we have in the cache. If the object we've fetched is
+just as fresh as what we have in the cache then we should hold onto
+our cached object. This will require a little more thought.
+

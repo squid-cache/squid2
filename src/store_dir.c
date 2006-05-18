@@ -156,7 +156,10 @@ storeDirSelectSwapDirRoundRobin(const StoreEntry * e)
 	if (!storeDirValidSwapDirSize(dirn, objsize))
 	    continue;
 	/* check for error or overload condition */
-	load = sd->checkobj(sd, e);
+	if (sd->checkobj(sd, e) == 0) {
+	    continue;
+	}
+	load = sd->checkload(sd, ST_OP_CREATE);
 	if (load < 0 || load > 1000) {
 	    continue;
 	}
@@ -197,7 +200,10 @@ storeDirSelectSwapDirLeastLoad(const StoreEntry * e)
     for (i = 0; i < Config.cacheSwap.n_configured; i++) {
 	SD = &Config.cacheSwap.swapDirs[i];
 	SD->flags.selected = 0;
-	load = SD->checkobj(SD, e);
+	if (SD->checkobj(SD, e) == 0) {
+	    continue;
+	}
+	load = SD->checkload(SD, ST_OP_CREATE);
 	if (load < 0 || load > 1000) {
 	    continue;
 	}

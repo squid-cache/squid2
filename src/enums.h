@@ -770,4 +770,10 @@ typedef enum {
 				 * for example when data is already buffered etc */
 } comm_pending;
 
+typedef enum {
+    ST_OP_NONE,
+    ST_OP_OPEN,
+    ST_OP_CREATE
+} store_op_t;
+
 #endif /* SQUID_ENUMS_H */
