@@ -675,6 +675,7 @@ comm_close_finish(int fd)
     statCounter.syscalls.sock.closes++;
 }
 
+#if USE_SSL
 static inline void
 comm_close_ssl_finish(int fd)
 {
@@ -702,6 +703,8 @@ comm_close_ssl_timeout(int fd, void *unused)
     debug(50, 1) ("comm_close_ssl: FD %d: timeout\n", fd);
     comm_close_ssl_finish(fd);
 }
+
+#endif
 
 void
 comm_close(int fd)
