@@ -3891,7 +3891,6 @@ NAME: wccp2_router
 TYPE: sockaddr_in_list
 LOC: Config.Wccp2.router
 DEFAULT: none
-DEFAULT_IF_NONE: none
 IFDEF: USE_WCCPv2
 DOC_START
 	Use this option to define your WCCP ``home'' router for

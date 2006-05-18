@@ -105,7 +105,9 @@ static void free_denyinfo(acl_deny_info_list ** var);
 static void parse_sockaddr_in_list(sockaddr_in_list **);
 static void dump_sockaddr_in_list(StoreEntry *, const char *, const sockaddr_in_list *);
 static void free_sockaddr_in_list(sockaddr_in_list **);
+#if UNUSED_CODE
 static int check_null_sockaddr_in_list(const sockaddr_in_list *);
+#endif
 static void parse_http_port_list(http_port_list **);
 static void dump_http_port_list(StoreEntry *, const char *, const http_port_list *);
 static void free_http_port_list(http_port_list **);
@@ -2589,11 +2591,13 @@ free_sockaddr_in_list(sockaddr_in_list ** head)
     }
 }
 
+#if UNUSED_CODE
 static int
 check_null_sockaddr_in_list(const sockaddr_in_list * s)
 {
     return NULL == s;
 }
+#endif
 
 static void
 parse_http_port_specification(http_port_list * s, char *token)
