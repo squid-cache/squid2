@@ -2535,8 +2535,9 @@ parse_sockaddr_in_list(sockaddr_in_list ** head)
     char *token;
     char *t;
     char *host;
+    char *tmp;
     const struct hostent *hp;
-    unsigned short port;
+    unsigned short port = 0;
     sockaddr_in_list *s;
     while ((token = strtok(NULL, w_space))) {
 	host = NULL;
@@ -2548,10 +2549,11 @@ parse_sockaddr_in_list(sockaddr_in_list ** head)
 	    port = (unsigned short) atoi(t + 1);
 	    if (0 == port)
 		self_destruct();
-	} else if ((port = atoi(token)) > 0) {
+	} else if ((port = strtol(token, &tmp, 10)), !*tmp) {
 	    /* port */
 	} else {
-	    self_destruct();
+	    host = token;
+	    port = 0;
 	}
 	s = xcalloc(1, sizeof(*s));
 	s->s.sin_port = htons(port);

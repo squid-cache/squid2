@@ -479,7 +479,10 @@ wccp2Init(void)
 
     /* Calculate the number of routers configured in the config file */
     for (s = Config.Wccp2.router; s; s = s->next) {
-	wccp2_numrouters++;
+	if (s->s.sin_addr.s_addr != any_addr.s_addr) {
+	    /* Increment the counter */
+	    wccp2_numrouters++;
+	}
     }
     if (wccp2_numrouters == 0) {
 	return;
