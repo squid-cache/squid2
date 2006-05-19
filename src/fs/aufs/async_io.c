@@ -35,7 +35,7 @@
  */
 
 #include "squid.h"
-#include "store_asyncufs.h"
+#include "async_io.h"
 
 #define _AIO_OPEN	0
 #define _AIO_READ	1

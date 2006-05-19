@@ -37,7 +37,7 @@
 #endif
 
 #include "squid.h"
-#include "store_asyncufs.h"
+#include "async_io.h"
 
 #include	<stdio.h>
 #include	<sys/types.h>

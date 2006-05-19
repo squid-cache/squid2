@@ -35,6 +35,7 @@
 
 #include "squid.h"
 
+#include "async_io.h"
 #include "store_asyncufs.h"
 
 #define DefaultLevelOneDirs     16
