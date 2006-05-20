@@ -101,7 +101,6 @@ storeSwapMetaPack(tlv * tlv_list, int *length)
     buflen += sizeof(int);	/* size of header to follow */
     for (t = tlv_list; t; t = t->next)
 	buflen += sizeof(char) + sizeof(int) + t->length;
-    buflen++;			/* STORE_META_END */
     buf = xmalloc(buflen);
     buf[j++] = (char) STORE_META_OK;
     xmemcpy(&buf[j], &buflen, sizeof(int));
@@ -113,7 +112,6 @@ storeSwapMetaPack(tlv * tlv_list, int *length)
 	xmemcpy(&buf[j], t->value, t->length);
 	j += t->length;
     }
-    buf[j++] = (char) STORE_META_END;
     assert((int) j == buflen);
     *length = buflen;
     return buf;
@@ -140,7 +138,7 @@ storeSwapMetaUnpack(const char *buf, int *hdr_len)
      */
     if (buflen <= (sizeof(char) + sizeof(int)))
 	    return NULL;
-    while (buflen - j > (sizeof(char) + sizeof(int))) {
+    while (buflen - j >= (sizeof(char) + sizeof(int))) {
 	type = buf[j++];
 	/* VOID is reserved, but allow some slack for new types.. */
 	if (type <= STORE_META_VOID || type > STORE_META_END + 10) {
