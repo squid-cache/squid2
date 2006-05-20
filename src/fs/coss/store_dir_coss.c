@@ -86,6 +86,7 @@ static STLOGCLOSE storeCossDirCloseSwapLog;
 static STLOGWRITE storeCossDirSwapLog;
 static STNEWFS storeCossDirNewfs;
 static STCHECKOBJ storeCossDirCheckObj;
+static STCHECKLOADAV storeCossDirCheckLoadAv;
 static STFREE storeCossDirShutdown;
 static STFSPARSE storeCossDirParse;
 static STFSRECONFIGURE storeCossDirReconfigure;
@@ -173,7 +174,7 @@ storeCossDirInit(SwapDir * sd)
 
     /* COSS is pretty useless without 64 bit file offsets */
     if (sizeof(off_t) < 8) {
-	fatalf("COSS will not function without large file support (off_t is %d bytes long. Please reconsider recompiling squid with --with-large-files and --enable-large-cache-files\n", sizeof(off_t));
+	fatalf("COSS will not function without large file support (off_t is %d bytes long. Please reconsider recompiling squid with --with-large-files\n", (int) sizeof(off_t));
     }
 #if USE_AUFSOPS
     aioInit();
@@ -204,7 +205,9 @@ storeCossRemove(SwapDir * sd, StoreEntry * e)
 {
     CossInfo *cs = (CossInfo *) sd->fsdata;
     int stripe;
-    //debug(1, 1) ("storeCossRemove: %x: %d/%d\n", e, (int) e->swap_dirn, (e) e->swap_filen);
+#if 0
+    debug(1, 1) ("storeCossRemove: %x: %d/%d\n", e, (int) e->swap_dirn, (e) e->swap_filen);
+#endif
     CossIndexNode *coss_node = e->repl.data;
     assert(sd->index == e->swap_dirn);
     assert(e->swap_filen >= 0);
@@ -1053,7 +1056,7 @@ storeDirCoss_ParseStripeBuffer(RebuildState * rb)
 		break;
 	    case STORE_META_OBJSIZE:
 		l = t->value;
-		debug(47, 3) ("Size: %lld (len %d)\n", *l, t->length);
+		debug(47, 3) ("Size: %" PRINTF_OFF_T " (len %d)\n", *l, t->length);
 		break;
 	    case STORE_META_KEY:
 		assert(t->length == MD5_DIGEST_CHARS);
@@ -1121,7 +1124,7 @@ storeDirCoss_ParseStripeBuffer(RebuildState * rb)
 	    tmpe.swap_file_sz = len;
 	}
 	if (tmpe.swap_file_sz != len) {
-	    debug(47, 3) ("COSS: %s: stripe %d: file size mismatch (%d != %d)\n", SD->path, cs->rebuild.curstripe, (int) tmpe.swap_file_sz, (int) len);
+	    debug(47, 3) ("COSS: %s: stripe %d: file size mismatch (%" PRINTF_OFF_T " != %" PRINTF_OFF_T ")\n", SD->path, cs->rebuild.curstripe, tmpe.swap_file_sz, len);
 	    goto nextobject;
 	}
 	if (EBIT_TEST(tmpe.flags, KEY_PRIVATE)) {
@@ -1232,7 +1235,7 @@ storeCoss_ConsiderStoreEntry(RebuildState * rb, const cache_key * key, StoreEntr
 
     /* Fresher? Its a new object: deallocate the old one, reallocate the new one */
     if (e->lastref > oe->lastref) {
-	debug(47, 3) ("COSS: fresher object for filen %d found (%d -> %d)\n", oe->swap_filen, (int) oe->timestamp, (int) e->timestamp);
+	debug(47, 3) ("COSS: fresher object for filen %d found (%ld -> %ld)\n", oe->swap_filen, (long int) oe->timestamp, (long int) e->timestamp);
 	rb->cosscounts.fresher++;
 	storeCoss_DeleteStoreEntry(rb, key, oe);
 	oe = NULL;

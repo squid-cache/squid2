@@ -158,7 +158,7 @@ storeCossAllocate(SwapDir * SD, const StoreEntry * e, int which)
 	cs->current_offset = ((cs->current_offset + cs->blksz_mask) >> cs->blksz_bits) << cs->blksz_bits;
 	f = storeCossDiskOffsetToFileno(retofs, cs);
 	assert(f >= 0 && f <= 0xffffff);
-	debug(79, 3) ("storeCossAllocate: offset %lld, filen: %d\n", retofs, f);
+	debug(79, 3) ("storeCossAllocate: offset %lld, filen: %d\n", (long long int) retofs, f);
 	return f;
     } else {
 	coss_stats.alloc.collisions++;
@@ -551,7 +551,7 @@ storeCossWriteMemBuf(SwapDir * SD, CossMemBuf * t)
     /* XXX The last stripe, for now, ain't the coss stripe size for some reason */
     /* XXX This may cause problems later on; worry about figuring it out later on */
     //assert(t->diskend - t->diskstart == COSS_MEMBUF_SZ);
-    debug(79, 3) ("aioWrite: FD %d: disk start: %llu, size %llu\n", cs->fd, t->diskstart, t->diskend - t->diskstart);
+    debug(79, 3) ("aioWrite: FD %d: disk start: %llu, size %llu\n", cs->fd, (long long int) t->diskstart, (long long int) t->diskend - t->diskstart);
     aioWrite(cs->fd, t->diskstart, &(t->buffer[0]), t->diskend - t->diskstart, storeCossWriteMemBufDone, t, NULL);
 #else
     a_file_write(&cs->aq, cs->fd, t->diskstart, &t->buffer,
@@ -819,10 +819,10 @@ storeCossNewPendingRelocate(CossInfo * cs, storeIOState * sio, sfileno original_
     p = storeCossMemPointerFromDiskOffset(cs, storeCossFilenoToDiskOffset(new_filen, cs), NULL);
     pr->p = p;
     disk_offset = storeCossFilenoToDiskOffset(original_filen, cs);
-    debug(79, 3) ("COSS Pending Relocate: size %d, disk_offset %llu\n", (int) sio->e->swap_file_sz, disk_offset);
+    debug(79, 3) ("COSS Pending Relocate: size %" PRINTF_OFF_T ", disk_offset %llu\n", (squid_off_t) sio->e->swap_file_sz, (long long int) disk_offset);
 #if USE_AUFSOPS
     /* NOTE: the damned buffer isn't passed into aioRead! */
-    debug(79, 3) ("COSS: aioRead: FD %d, from %d -> %d, offset %llu, len: %d\n", cs->fd, pr->original_filen, pr->new_filen, disk_offset, pr->len);
+    debug(79, 3) ("COSS: aioRead: FD %d, from %d -> %d, offset %llu, len: %ld\n", cs->fd, pr->original_filen, pr->new_filen, (long long int) disk_offset, (long int) pr->len);
     aioRead(cs->fd, (off_t) disk_offset, pr->len, storeCossCompletePendingReloc, pr);
 #else
     a_file_read(&cs->aq, cs->fd,
@@ -1023,7 +1023,7 @@ storeCossKickReadOp(CossInfo * cs, CossReadOp * op)
 }
 
 static void
-membufsPrint(StoreEntry * e, CossMemBuf * t, char *prefix)
+membufsPrint(StoreEntry * e, CossMemBuf * t, const char *prefix)
 {
     storeAppendPrintf(e, "%s: %d, lockcount: %d, numobjects %d, flags: %s,%s,%s\n",
 	prefix, t->stripe, t->lockcount, t->numobjs,
