@@ -623,7 +623,6 @@ typedef enum {
     MEM_EVENT,
     MEM_TLV,
     MEM_SWAP_LOG_DATA,
-    MEM_CLIENT_REQ_BUF,
 #if USE_SSL
     MEM_ACL_CERT_DATA,
 #endif

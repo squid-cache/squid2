@@ -249,7 +249,7 @@
 #define countof(arr) (sizeof(arr)/sizeof(*arr))
 
 /* to initialize static variables (see also MemBufNull) */
-#define MemBufNULL { NULL, 0, 0, 0, NULL }
+#define MemBufNULL { NULL, 0, 0, 0, 0 }
 
 /*
  * Max number of ICP messages to receive per call to icpHandleUdp
