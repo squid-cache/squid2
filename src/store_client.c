@@ -441,7 +441,7 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 	    }
 	    break;
 	default:
-	    debug(20, 1) ("WARNING: got unused STORE_META type %d\n", t->type);
+	    debug(20, 2) ("WARNING: got unused STORE_META type %d\n", t->type);
 	    break;
 	}
     }
