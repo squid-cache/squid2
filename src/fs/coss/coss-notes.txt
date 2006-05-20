@@ -121,3 +121,11 @@ Adrian's code has this comment:
 However, COSS_ALLOC_NOTIFY was still present in the store_dir_coss.c
 rebuild routines.  To avoid assertions during rebuild, I commented
 out the storeCossAllocate(SD, e, COSS_ALLOC_NOTIFY) call.
+
+-- Notes: Adrian Chadd, 9/May/2006
+
+* The types used by COSS have been modified to support Large file support,
+  at least under Linux. One can compile with --with-large-files to make
+  sure the right options have been enabled. no compile or run-time checks
+  are currently made to ensure the code has been compiled to support
+  large filesystems.. at least yet.

@@ -644,6 +644,7 @@ enum {
     STORE_META_VALID,
     STORE_META_VARY_HEADERS,	/* Stores Vary request headers */
     STORE_META_STD_LFS,		/* standard metadata in lfs format */
+    STORE_META_OBJSIZE,		/* object size, if its known */
     STORE_META_END
 };
 

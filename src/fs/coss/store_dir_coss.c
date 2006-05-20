@@ -39,6 +39,10 @@
 #include "async_io.h"
 #include "store_coss.h"
 
+#if USE_AUFSOPS
+#include "../aufs/async_io.h"
+#endif
+
 #define STORE_META_BUFSZ 4096
 
 int n_coss_dirs = 0;
@@ -46,31 +50,29 @@ int n_coss_dirs = 0;
 int coss_initialised = 0;
 MemPool *coss_state_pool = NULL;
 MemPool *coss_index_pool = NULL;
+MemPool *coss_realloc_pool = NULL;
+MemPool *coss_op_pool = NULL;
 
 typedef struct _RebuildState RebuildState;
 struct _RebuildState {
     SwapDir *sd;
     int n_read;
     FILE *log;
-    int speed;
+    int report_interval;
+    int report_current;
     struct {
 	unsigned int clean:1;
     } flags;
     struct _store_rebuild_data counts;
+    struct {
+	int new;
+	int reloc;
+	int fresher;
+	int unknown;
+    } cosscounts;
 };
 
 static char *storeCossDirSwapLogFile(SwapDir *, const char *);
-static EVH storeCossRebuildFromSwapLog;
-static StoreEntry *storeCossAddDiskRestore(SwapDir * SD, const cache_key * key,
-    int file_number,
-    squid_file_sz swap_file_sz,
-    time_t expires,
-    time_t timestamp,
-    time_t lastref,
-    time_t lastmod,
-    u_num32 refcount,
-    u_short flags,
-    int clean);
 static void storeCossDirRebuild(SwapDir * sd);
 static void storeCossDirCloseTmpSwapLog(SwapDir * sd);
 static FILE *storeCossDirOpenTmpSwapLog(SwapDir *, int *, int *);
@@ -84,7 +86,6 @@ static STLOGCLOSE storeCossDirCloseSwapLog;
 static STLOGWRITE storeCossDirSwapLog;
 static STNEWFS storeCossDirNewfs;
 static STCHECKOBJ storeCossDirCheckObj;
-static STCHECKLOADAV storeCossDirCheckLoadAv;
 static STFREE storeCossDirShutdown;
 static STFSPARSE storeCossDirParse;
 static STFSRECONFIGURE storeCossDirReconfigure;
@@ -93,6 +94,8 @@ static STCALLBACK storeCossDirCallback;
 static void storeCossDirParseBlkSize(SwapDir *, const char *, const char *, int);
 static void storeCossDirDumpBlkSize(StoreEntry *, const char *, SwapDir *);
 static OBJH storeCossStats;
+
+static void storeDirCoss_StartDiskRebuild(RebuildState * rb);
 
 /* The "only" externally visible function */
 STSETUP storeFsSetup_coss;
@@ -167,14 +170,24 @@ static void
 storeCossDirInit(SwapDir * sd)
 {
     CossInfo *cs = (CossInfo *) sd->fsdata;
+
+    /* COSS is pretty useless without 64 bit file offsets */
+    if (sizeof(off_t) < 8) {
+	fatalf("COSS will not function without large file support (off_t is %d bytes long. Please reconsider recompiling squid with --with-large-files and --enable-large-cache-files\n", sizeof(off_t));
+    }
+#if USE_AUFSOPS
+    aioInit();
+    squidaio_init();
+#else
     a_file_setupqueue(&cs->aq);
-    storeCossDirOpenSwapLog(sd);
-    storeCossDirRebuild(sd);
+#endif
     cs->fd = file_open(sd->path, O_RDWR | O_CREAT);
     if (cs->fd < 0) {
 	debug(79, 1) ("%s: %s\n", sd->path, xstrerror());
 	fatal("storeCossDirInit: Failed to open a COSS file.");
     }
+    storeCossDirOpenSwapLog(sd);
+    storeCossDirRebuild(sd);
     n_coss_dirs++;
     /*
      * fs.blksize is normally determined by calling statvfs() etc,
@@ -183,27 +196,37 @@ storeCossDirInit(SwapDir * sd)
      * page.
      */
     sd->fs.blksize = 1 << cs->blksz_bits;
+    comm_quick_poll_required();
 }
 
 void
 storeCossRemove(SwapDir * sd, StoreEntry * e)
 {
     CossInfo *cs = (CossInfo *) sd->fsdata;
+    int stripe;
+    //debug(1, 1) ("storeCossRemove: %x: %d/%d\n", e, (int) e->swap_dirn, (e) e->swap_filen);
     CossIndexNode *coss_node = e->repl.data;
+    assert(sd->index == e->swap_dirn);
+    assert(e->swap_filen >= 0);
     e->repl.data = NULL;
-    dlinkDelete(&coss_node->node, &cs->index);
+    stripe = storeCossFilenoToStripe(cs, e->swap_filen);
+    dlinkDelete(&coss_node->node, &cs->stripes[stripe].objlist);
     memPoolFree(coss_index_pool, coss_node);
     cs->count -= 1;
 }
 
 void
-storeCossAdd(SwapDir * sd, StoreEntry * e)
+storeCossAdd(SwapDir * sd, StoreEntry * e, int curstripe)
 {
     CossInfo *cs = (CossInfo *) sd->fsdata;
+    CossStripe *cstripe = &cs->stripes[curstripe];
     CossIndexNode *coss_node = memPoolAlloc(coss_index_pool);
     assert(!e->repl.data);
+    assert(sd->index == e->swap_dirn);
+    /* Make sure the object exists in the current stripe, it should do! */
+    assert(curstripe == storeCossFilenoToStripe(cs, e->swap_filen));
     e->repl.data = coss_node;
-    dlinkAdd(e, &coss_node->node, &cs->index);
+    dlinkAddTail(e, &coss_node->node, &cstripe->objlist);
     cs->count += 1;
 }
 
@@ -211,153 +234,17 @@ static void
 storeCossRebuildComplete(void *data)
 {
     RebuildState *rb = data;
-    SwapDir *sd = rb->sd;
-    storeCossStartMembuf(sd);
+    SwapDir *SD = rb->sd;
+    CossInfo *cs = SD->fsdata;
+    storeCossStartMembuf(SD);
     store_dirs_rebuilding--;
-    storeCossDirCloseTmpSwapLog(rb->sd);
+    storeCossDirCloseTmpSwapLog(SD);
     storeRebuildComplete(&rb->counts);
+    debug(47, 1) ("COSS: %s: Rebuild Completed\n", SD->path);
+    cs->rebuild.rebuilding = 0;
+    debug(47, 1) ("  %d objects scanned, %d objects relocated, %d objects fresher, %d objects ignored\n",
+	rb->counts.scancount, rb->cosscounts.reloc, rb->cosscounts.fresher, rb->cosscounts.unknown);
     cbdataFree(rb);
-}
-
-static void
-storeCossRebuildFromSwapLog(void *data)
-{
-    RebuildState *rb = data;
-    StoreEntry *e = NULL;
-    storeSwapLogData s;
-    size_t ss = sizeof(storeSwapLogData);
-    int count;
-    double x;
-    assert(rb != NULL);
-    /* load a number of objects per invocation */
-    for (count = 0; count < rb->speed; count++) {
-	if (fread(&s, ss, 1, rb->log) != 1) {
-	    debug(79, 1) ("Done reading %s swaplog (%d entries)\n",
-		rb->sd->path, rb->n_read);
-	    fclose(rb->log);
-	    rb->log = NULL;
-	    storeCossRebuildComplete(rb);
-	    return;
-	}
-	rb->n_read++;
-	if (s.op <= SWAP_LOG_NOP)
-	    continue;
-	if (s.op >= SWAP_LOG_MAX)
-	    continue;
-	debug(20, 3) ("storeCossRebuildFromSwapLog: %s %s %08X\n",
-	    swap_log_op_str[(int) s.op],
-	    storeKeyText(s.key),
-	    s.swap_filen);
-	if (s.op == SWAP_LOG_ADD) {
-	    (void) 0;
-	} else if (s.op == SWAP_LOG_DEL) {
-	    /* Delete unless we already have a newer copy */
-	    if ((e = storeGet(s.key)) != NULL && s.lastref > e->lastref) {
-		/*
-		 * Make sure we don't unlink the file, it might be
-		 * in use by a subsequent entry.  Also note that
-		 * we don't have to subtract from store_swap_size
-		 * because adding to store_swap_size happens in
-		 * the cleanup procedure.
-		 */
-		storeExpireNow(e);
-		storeReleaseRequest(e);
-		if (e->swap_filen > -1) {
-		    e->swap_filen = -1;
-		}
-		storeRelease(e);
-		/* Fake an unlink here, this is a bad hack :( */
-		storeCossRemove(rb->sd, e);
-		rb->counts.objcount--;
-		rb->counts.cancelcount++;
-	    }
-	    continue;
-	} else {
-	    x = log(++rb->counts.bad_log_op) / log(10.0);
-	    if (0.0 == x - (double) (int) x)
-		debug(20, 1) ("WARNING: %d invalid swap log entries found\n",
-		    rb->counts.bad_log_op);
-	    rb->counts.invalid++;
-	    continue;
-	}
-	if ((++rb->counts.scancount & 0xFFF) == 0) {
-	    struct stat sb;
-	    if (0 == fstat(fileno(rb->log), &sb))
-		storeRebuildProgress(rb->sd->index,
-		    (int) sb.st_size / ss, rb->n_read);
-	}
-	if (EBIT_TEST(s.flags, KEY_PRIVATE)) {
-	    rb->counts.badflags++;
-	    continue;
-	}
-	e = storeGet(s.key);
-	if (e) {
-	    /* key already exists, current entry is newer */
-	    /* keep old, ignore new */
-	    rb->counts.dupcount++;
-	    continue;
-	}
-	/* update store_swap_size */
-	rb->counts.objcount++;
-	e = storeCossAddDiskRestore(rb->sd, s.key,
-	    s.swap_filen,
-	    s.swap_file_sz,
-	    s.expires,
-	    s.timestamp,
-	    s.lastref,
-	    s.lastmod,
-	    s.refcount,
-	    s.flags,
-	    (int) rb->flags.clean);
-	storeDirSwapLog(e, SWAP_LOG_ADD);
-    }
-    eventAdd("storeCossRebuild", storeCossRebuildFromSwapLog, rb, 0.0, 1);
-}
-
-/* Add a new object to the cache with empty memory copy and pointer to disk
- * use to rebuild store from disk. */
-static StoreEntry *
-storeCossAddDiskRestore(SwapDir * SD, const cache_key * key,
-    int file_number,
-    squid_file_sz swap_file_sz,
-    time_t expires,
-    time_t timestamp,
-    time_t lastref,
-    time_t lastmod,
-    u_num32 refcount,
-    u_short flags,
-    int clean)
-{
-    StoreEntry *e = NULL;
-    debug(20, 5) ("storeCossAddDiskRestore: %s, fileno=%08X\n", storeKeyText(key), file_number);
-    /* if you call this you'd better be sure file_number is not 
-     * already in use! */
-    e = new_StoreEntry(STORE_ENTRY_WITHOUT_MEMOBJ, NULL, NULL);
-    e->store_status = STORE_OK;
-    e->swap_dirn = SD->index;
-    storeSetMemStatus(e, NOT_IN_MEMORY);
-    e->swap_status = SWAPOUT_DONE;
-    e->swap_filen = file_number;
-    e->swap_file_sz = swap_file_sz;
-    e->lock_count = 0;
-    e->lastref = lastref;
-    e->timestamp = timestamp;
-    e->expires = expires;
-    e->lastmod = lastmod;
-    e->refcount = refcount;
-    e->flags = flags;
-    EBIT_SET(e->flags, ENTRY_CACHABLE);
-    EBIT_CLR(e->flags, RELEASE_REQUEST);
-    EBIT_CLR(e->flags, KEY_PRIVATE);
-    e->ping_status = PING_NONE;
-    EBIT_CLR(e->flags, ENTRY_VALIDATED);
-    storeHashInsert(e, key);	/* do it after we clear KEY_PRIVATE */
-    storeCossAdd(SD, e);
-#if USE_COSS_ALLOC_NOTIFY
-    e->swap_filen = storeCossAllocate(SD, e, COSS_ALLOC_NOTIFY);
-#endif
-    assert(e->swap_filen >= 0);
-    return e;
 }
 
 CBDATA_TYPE(RebuildState);
@@ -368,40 +255,15 @@ storeCossDirRebuild(SwapDir * sd)
     int clean = 0;
     int zero = 0;
     FILE *fp;
-    EVH *func = NULL;
     CBDATA_INIT_TYPE(RebuildState);
     rb = cbdataAlloc(RebuildState);
     rb->sd = sd;
-    rb->speed = opt_foreground_rebuild ? 1 << 30 : 50;
-    func = storeCossRebuildFromSwapLog;
     rb->flags.clean = (unsigned int) clean;
-    /*
-     * If the swap.state file exists in the cache_dir, then
-     * we'll use storeCossRebuildFromSwapLog().
-     */
     fp = storeCossDirOpenTmpSwapLog(sd, &clean, &zero);
-    debug(20, 1) ("Rebuilding COSS storage in %s (%s)\n",
-	sd->path, clean ? "CLEAN" : "DIRTY");
-    rb->log = fp;
+    fclose(fp);
+    debug(20, 1) ("Rebuilding COSS storage in %s (DIRTY)\n", sd->path);
     store_dirs_rebuilding++;
-    if (!clean || fp == NULL) {
-	/* COSS cannot yet rebuild from a dirty state. If the log
-	 * is dirty then the COSS contents is thrown away.
-	 * Why? I guess it is because some contents will be lost,
-	 * and COSS cannot verify this..
-	 */
-	if (fp != NULL)
-	    fclose(fp);
-	/*
-	 * XXX Make sure we don't trigger an assertion if this is the first
-	 * storedir, since if we are, this call will cause storeRebuildComplete
-	 * to prematurely complete the rebuild process, and then some other
-	 * storedir will try to rebuild and eventually die.
-	 */
-	eventAdd("storeCossRebuildComplete", storeCossRebuildComplete, rb, 0.0, 0);
-	return;
-    }
-    eventAdd("storeCossRebuild", func, rb, 0.0, 1);
+    storeDirCoss_StartDiskRebuild(rb);
 }
 
 static void
@@ -494,7 +356,7 @@ struct _clean_state {
 static int
 storeCossDirWriteCleanStart(SwapDir * sd)
 {
-    CossInfo *cs = (CossInfo *) sd->fsdata;
+    //CossInfo *cs = (CossInfo *) sd->fsdata;
     struct _clean_state *state = xcalloc(1, sizeof(*state));
 #if HAVE_FCHMOD
     struct stat sb;
@@ -513,7 +375,6 @@ storeCossDirWriteCleanStart(SwapDir * sd)
     state->outbuf = xcalloc(CLEAN_BUF_SZ, 1);
     state->outbuf_offset = 0;
     unlink(state->cln);
-    state->current = cs->index.tail;
     debug(20, 3) ("storeCOssDirWriteCleanLogs: opened %s, FD %d\n",
 	state->new, state->fd);
 #if HAVE_FCHMOD
@@ -671,9 +532,15 @@ static void
 storeCossDirShutdown(SwapDir * SD)
 {
     CossInfo *cs = (CossInfo *) SD->fsdata;
+    debug(47, 1) ("COSS: %s: syncing\n", SD->path);
 
+#if USE_AUFSOPS
+    aioSync(SD);
+#endif
     storeCossSync(SD);		/* This'll call a_file_syncqueue() */
+#if !USE_AUFSOPS
     a_file_closequeue(&cs->aq);
+#endif
     file_close(cs->fd);
     cs->fd = -1;
 
@@ -695,8 +562,11 @@ storeCossDirShutdown(SwapDir * SD)
 int
 storeCossDirCheckObj(SwapDir * SD, const StoreEntry * e)
 {
+    CossInfo *cs = SD->fsdata;
     /* Check if the object is a special object, we can't cache these */
     if (EBIT_TEST(e->flags, ENTRY_SPECIAL))
+	return 0;
+    if (cs->rebuild.rebuilding == 1)
 	return 0;
     return 1;
 }
@@ -704,12 +574,26 @@ storeCossDirCheckObj(SwapDir * SD, const StoreEntry * e)
 int
 storeCossDirCheckLoadAv(SwapDir * SD, store_op_t op)
 {
+#if !USE_AUFSOPS
     CossInfo *cs = (CossInfo *) SD->fsdata;
+#else
+    int ql = 0;
+#endif
     int loadav;
 
     /* Return load, cs->aq.aq_numpending out of MAX_ASYNCOP */
+#if USE_AUFSOPS
+    ql = aioQueueSize();
+    if (ql == 0)
+	loadav = 0;
+    else
+	loadav = ql * 1000 / MAGIC1;
+    debug(47, 9) ("storeAufsDirCheckObj: load=%d\n", loadav);
+    return loadav;
+#else
     loadav = cs->aq.aq_numpending * 1000 / MAX_ASYNCOP;
     return loadav;
+#endif
 }
 
 
@@ -720,8 +604,13 @@ static int
 storeCossDirCallback(SwapDir * SD)
 {
     CossInfo *cs = (CossInfo *) SD->fsdata;
-
+    storeCossFreeDeadMemBufs(cs);
+#if USE_AUFSOPS
+    /* I believe this call, at the present, checks all callbacks for all SDs, not just ours */
+    return aioCheckCallbacks(SD);
+#else
     return a_file_callback(&cs->aq);
+#endif
 }
 
 /* ========== LOCAL FUNCTIONS ABOVE, GLOBAL FUNCTIONS BELOW ========== */
@@ -743,13 +632,17 @@ storeCossDirStats(SwapDir * SD, StoreEntry * sentry)
 	SD->map->n_files_in_map, SD->map->max_n_files,
 	percent(SD->map->n_files_in_map, SD->map->max_n_files));
 #endif
+#if !USE_AUFSOPS
     storeAppendPrintf(sentry, "Pending operations: %d out of %d\n", cs->aq.aq_numpending, MAX_ASYNCOP);
+#endif
     storeAppendPrintf(sentry, "Flags:");
     if (SD->flags.selected)
 	storeAppendPrintf(sentry, " SELECTED");
     if (SD->flags.read_only)
 	storeAppendPrintf(sentry, " READ-ONLY");
     storeAppendPrintf(sentry, "\n");
+    storeAppendPrintf(sentry, "Pending Relocations: %d\n", cs->pending_reloc_count);
+    membufsDump(cs, sentry);
 }
 
 static void
@@ -812,8 +705,6 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
     cs->numcollisions = 0;
     cs->membufs.head = cs->membufs.tail = NULL;		/* set when the rebuild completes */
     cs->current_membuf = NULL;
-    cs->index.head = NULL;
-    cs->index.tail = NULL;
     cs->blksz_bits = 9;		/* default block size = 512 */
     cs->blksz_mask = (1 << cs->blksz_bits) - 1;
 
@@ -835,8 +726,21 @@ storeCossDirParse(SwapDir * sd, int index, char *path)
 	debug(47, 0) ("COSS cache_dir size = %d KB\n", sd->max_size);
 	fatal("COSS cache_dir size exceeds largest offset\n");
     }
-}
+    /* XXX todo checks */
 
+    /* Ensure that off_t range can cover the max_size */
+
+    /* Ensure that the max size IS a multiple of the membuf size, or things
+     * will get very fruity near the end of the disk. */
+    cs->numstripes = (off_t) (((off_t) sd->max_size) << 10) / COSS_MEMBUF_SZ;
+    debug(47, 0) ("COSS: number of stripes: %d of %d bytes each\n", cs->numstripes, COSS_MEMBUF_SZ);
+    cs->stripes = xcalloc(cs->numstripes, sizeof(struct _cossstripe));
+    for (i = 0; i < cs->numstripes; i++) {
+	cs->stripes[i].id = i;
+	cs->stripes[i].membuf = NULL;
+	cs->stripes[i].numdiskobjs = -1;
+    }
+}
 
 static void
 storeCossDirReconfigure(SwapDir * sd, int index, char *path)
@@ -975,9 +879,9 @@ storeCossStats(StoreEntry * sentry)
 	"write", coss_stats.write.ops, coss_stats.write.success, coss_stats.write.fail);
     storeAppendPrintf(sentry, tbl_fmt,
 	"s_write", coss_stats.stripe_write.ops, coss_stats.stripe_write.success, coss_stats.stripe_write.fail);
-
     storeAppendPrintf(sentry, "\n");
     storeAppendPrintf(sentry, "stripes:          %d\n", coss_stats.stripes);
+    storeAppendPrintf(sentry, "dead_stripes:     %d\n", coss_stats.dead_stripes);
     storeAppendPrintf(sentry, "alloc.alloc:      %d\n", coss_stats.alloc.alloc);
     storeAppendPrintf(sentry, "alloc.realloc:    %d\n", coss_stats.alloc.realloc);
     storeAppendPrintf(sentry, "alloc.collisions: %d\n", coss_stats.alloc.collisions);
@@ -997,6 +901,356 @@ storeFsSetup_coss(storefs_entry_t * storefs)
     storefs->donefunc = storeCossDirDone;
     coss_state_pool = memPoolCreate("COSS IO State data", sizeof(CossState));
     coss_index_pool = memPoolCreate("COSS index data", sizeof(CossIndexNode));
+    coss_realloc_pool = memPoolCreate("COSS pending realloc", sizeof(CossPendingReloc));
+    coss_op_pool = memPoolCreate("COSS pending operation", sizeof(CossReadOp));
     cachemgrRegister("coss", "COSS Stats", storeCossStats, 0, 1);
     coss_initialised = 1;
+}
+
+/* New storedir rebuilding code! */
+
+static void storeDirCoss_ReadStripe(RebuildState * rb);
+static void storeDirCoss_ParseStripeBuffer(RebuildState * rb);
+static void storeCoss_ConsiderStoreEntry(RebuildState * rb, const cache_key * key, StoreEntry * e);
+
+#if USE_AUFSOPS
+static void
+storeDirCoss_ReadStripeComplete(int fd, void *my_data, const char *buf, int aio_return, int aio_errno)
+#else
+static void
+storeDirCoss_ReadStripeComplete(int fd, const char *buf, int r_len, int r_errflag, void *my_data)
+#endif
+{
+    RebuildState *rb = my_data;
+    SwapDir *SD = rb->sd;
+    CossInfo *cs = SD->fsdata;
+#if USE_AUFSOPS
+    int r_errflag;
+    int r_len;
+    r_len = aio_return;
+    if (aio_errno)
+	r_errflag = aio_errno == ENOSPC ? DISK_NO_SPACE_LEFT : DISK_ERROR;
+    else
+	r_errflag = DISK_OK;
+    xmemcpy(cs->rebuild.buf, buf, r_len);
+#endif
+
+    debug(47, 2) ("COSS: %s: stripe %d, read %d bytes, status %d\n", SD->path, cs->rebuild.curstripe, r_len, r_errflag);
+    cs->rebuild.reading = 0;
+    if (r_errflag != DISK_OK) {
+	debug(47, 2) ("COSS: %s: stripe %d: error! Ignoring objects in this stripe.\n", SD->path, cs->rebuild.curstripe);
+	goto nextstripe;
+    }
+    cs->rebuild.buflen = r_len;
+    /* parse the stripe contents */
+    /* 
+     * XXX note: the read should be put before the parsing so they can happen
+     * simultaneously. This'll require some code-shifting so the read buffer
+     * and parse buffer are different. This might speed up the read speed;
+     * the disk throughput isn't being reached at the present.
+     */
+    storeDirCoss_ParseStripeBuffer(rb);
+
+  nextstripe:
+    cs->rebuild.curstripe++;
+    if (cs->rebuild.curstripe >= cs->numstripes) {
+	/* Completed the rebuild - move onto the next phase */
+	debug(47, 2) ("COSS: %s: completed reading the stripes.\n", SD->path);
+	storeCossRebuildComplete(rb);
+	return;
+    } else {
+	/* Next stripe */
+	storeDirCoss_ReadStripe(rb);
+    }
+}
+
+static void
+storeDirCoss_ReadStripe(RebuildState * rb)
+{
+    SwapDir *SD = rb->sd;
+    CossInfo *cs = SD->fsdata;
+
+    assert(cs->rebuild.reading == 0);
+    cs->rebuild.reading = 1;
+    /* Use POSIX AIO for now */
+    debug(47, 2) ("COSS: %s: reading stripe %d\n", SD->path, cs->rebuild.curstripe);
+    if (cs->rebuild.curstripe > rb->report_current) {
+	debug(47, 1) ("COSS: %s: Rebuilding (%d %% completed - %d/%d stripes)\n", SD->path,
+	    cs->rebuild.curstripe * 100 / cs->numstripes, cs->rebuild.curstripe, cs->numstripes);
+	rb->report_current += rb->report_interval;
+    }
+#if USE_AUFSOPS
+    /* XXX this should be a prime candidate to use a modified aioRead which doesn't malloc a damned buffer */
+    aioRead(cs->fd, cs->rebuild.curstripe * COSS_MEMBUF_SZ, COSS_MEMBUF_SZ, storeDirCoss_ReadStripeComplete, rb);
+#else
+    a_file_read(&cs->aq, cs->fd, cs->rebuild.buf, COSS_MEMBUF_SZ, cs->rebuild.curstripe * COSS_MEMBUF_SZ, storeDirCoss_ReadStripeComplete, rb);
+#endif
+}
+
+static void
+storeDirCoss_StartDiskRebuild(RebuildState * rb)
+{
+    SwapDir *SD = rb->sd;
+    CossInfo *cs = SD->fsdata;
+    assert(cs->rebuild.rebuilding == 0);
+    assert(cs->numstripes > 0);
+    assert(cs->rebuild.buf == NULL);
+    assert(cs->fd >= 0);
+    cs->rebuild.rebuilding = 1;
+    cs->rebuild.curstripe = 0;
+    cs->rebuild.buf = xmalloc(COSS_MEMBUF_SZ);
+    rb->report_interval = cs->numstripes / COSS_REPORT_INTERVAL;
+    rb->report_current = 0;
+    debug(47, 2) ("COSS: %s: Beginning disk rebuild.\n", SD->path);
+    storeDirCoss_ReadStripe(rb);
+}
+
+/*
+ * Take a stripe and attempt to place objects into it
+ */
+static void
+storeDirCoss_ParseStripeBuffer(RebuildState * rb)
+{
+    SwapDir *SD = rb->sd;
+    CossInfo *cs = SD->fsdata;
+    tlv *t, *tlv_list;
+    int j = 0;
+    int bl = 0;
+    int tmp;
+    squid_off_t *l, len;
+    int blocksize = cs->blksz_mask + 1;
+    StoreEntry tmpe;
+    cache_key key[MD5_DIGEST_CHARS];
+    sfileno filen;
+
+    assert(cs->rebuild.rebuilding == 1);
+    assert(cs->numstripes > 0);
+    assert(cs->rebuild.buf != NULL);
+
+    if (cs->rebuild.buflen == 0) {
+	debug(47, 3) ("COSS: %s: stripe %d: read 0 bytes, skipping stripe\n", SD->path, cs->rebuild.curstripe);
+	return;
+    }
+    while (j < cs->rebuild.buflen) {
+	l = NULL;
+	bl = 0;
+	/* XXX there's no bounds checking on the buffer being passed into storeSwapMetaUnpack! */
+	tlv_list = storeSwapMetaUnpack(cs->rebuild.buf + j, &bl);
+	if (tlv_list == NULL) {
+	    debug(47, 3) ("COSS: %s: stripe %d: offset %d gives NULL swapmeta data; end of stripe\n", SD->path, cs->rebuild.curstripe, j);
+	    return;
+	}
+	filen = (off_t) j / (off_t) blocksize + (off_t) ((off_t) cs->rebuild.curstripe * (off_t) COSS_MEMBUF_SZ / (off_t) blocksize);
+	debug(47, 3) ("COSS: %s: stripe %d: filen %d: header size %d\n", SD->path, cs->rebuild.curstripe, filen, bl);
+
+	/* COSS objects will have an object size written into the metadata */
+	bzero(&tmpe, sizeof(tmpe));
+	bzero(key, sizeof(key));
+	for (t = tlv_list; t; t = t->next) {
+	    switch (t->type) {
+	    case STORE_META_URL:
+		debug(47, 3) ("    URL: %s\n", (char *) t->value);
+		break;
+	    case STORE_META_OBJSIZE:
+		l = t->value;
+		debug(47, 3) ("Size: %lld (len %d)\n", *l, t->length);
+		break;
+	    case STORE_META_KEY:
+		assert(t->length == MD5_DIGEST_CHARS);
+		xmemcpy(key, t->value, MD5_DIGEST_CHARS);
+		break;
+#if SIZEOF_SQUID_FILE_SZ == SIZEOF_SIZE_T
+	    case STORE_META_STD:
+		assert(t->length == STORE_HDR_METASIZE);
+		xmemcpy(&tmpe.timestamp, t->value, STORE_HDR_METASIZE);
+		break;
+#else
+	    case STORE_META_STD_LFS:
+		assert(t->length == STORE_HDR_METASIZE);
+		xmemcpy(&tmpe.timestamp, t->value, STORE_HDR_METASIZE);
+		break;
+	    case STORE_META_STD:
+		assert(t->length == STORE_HDR_METASIZE_OLD);
+		{
+		    struct {
+			time_t timestamp;
+			time_t lastref;
+			time_t expires;
+			time_t lastmod;
+			size_t swap_file_sz;
+			u_short refcount;
+			u_short flags;
+		    }     *tmp = t->value;
+		    assert(sizeof(*tmp) == STORE_HDR_METASIZE_OLD);
+		    tmpe.timestamp = tmp->timestamp;
+		    tmpe.lastref = tmp->lastref;
+		    tmpe.expires = tmp->expires;
+		    tmpe.lastmod = tmp->lastmod;
+		    tmpe.swap_file_sz = tmp->swap_file_sz;
+		    tmpe.refcount = tmp->refcount;
+		    tmpe.flags = tmp->flags;
+		}
+		break;
+#endif
+	    }
+	}
+	/* Make sure we have an object; if we don't then it may be an indication of trouble */
+	if (l == NULL) {
+	    debug(47, 3) ("COSS: %s: stripe %d: Object with no size; end of stripe\n", SD->path, cs->rebuild.curstripe);
+	    storeSwapTLVFree(tlv_list);
+	    return;
+	}
+	len = *l;
+	/* Finally, make sure there's enough data left in this stripe to satisfy the object
+	 * we've just been informed about
+	 */
+	if (cs->rebuild.buflen - j < len) {
+	    debug(47, 3) ("COSS: %s: stripe %d: Not enough data in this stripe for this object, bye bye.\n", SD->path, cs->rebuild.curstripe);
+	    storeSwapTLVFree(tlv_list);
+	    return;
+	}
+	/* Houston, we have an object */
+	if (storeKeyNull(key)) {
+	    debug(47, 3) ("COSS: %s: stripe %d: null data, next!\n", SD->path, cs->rebuild.curstripe);
+	    goto nextobject;
+	}
+	rb->counts.scancount++;
+	tmpe.hash.key = key;
+	/* Check sizes */
+	if (tmpe.swap_file_sz == 0) {
+	    tmpe.swap_file_sz = len;
+	}
+	if (tmpe.swap_file_sz != len) {
+	    debug(47, 3) ("COSS: %s: stripe %d: file size mismatch (%d != %d)\n", SD->path, cs->rebuild.curstripe, (int) tmpe.swap_file_sz, (int) len);
+	    goto nextobject;
+	}
+	if (EBIT_TEST(tmpe.flags, KEY_PRIVATE)) {
+	    debug(47, 3) ("COSS: %s: stripe %d: private key flag set, ignoring.\n", SD->path, cs->rebuild.curstripe);
+	    rb->counts.badflags++;
+	    goto nextobject;
+	}
+	/* Time to consider the object! */
+	tmpe.swap_filen = filen;
+	tmpe.swap_dirn = SD->index;
+	storeCoss_ConsiderStoreEntry(rb, key, &tmpe);
+
+      nextobject:
+	/* Free the TLV data */
+	storeSwapTLVFree(tlv_list);
+	tlv_list = NULL;
+
+	/* Now, advance to the next block-aligned offset after this object */
+	j = j + len + bl;
+	/* And now, the blocksize! */
+	tmp = j / blocksize;
+	tmp = (tmp + 1) * blocksize;
+	j = tmp;
+    }
+}
+
+
+static void
+storeCoss_AddStoreEntry(RebuildState * rb, const cache_key * key, StoreEntry * e)
+{
+    StoreEntry *ne;
+    SwapDir *SD = rb->sd;
+    CossInfo *cs = SD->fsdata;
+    rb->counts.objcount++;
+    /* The Passed-in store entry is temporary; don't bloody use it directly! */
+    assert(e->swap_dirn == SD->index);
+    ne = new_StoreEntry(STORE_ENTRY_WITHOUT_MEMOBJ, NULL, NULL);
+    ne->store_status = STORE_OK;
+    storeSetMemStatus(ne, NOT_IN_MEMORY);
+    ne->swap_status = SWAPOUT_DONE;
+    ne->swap_filen = e->swap_filen;
+    ne->swap_dirn = SD->index;
+    ne->swap_file_sz = e->swap_file_sz;
+    ne->lock_count = 0;
+    ne->lastref = e->lastref;
+    ne->timestamp = e->timestamp;
+    ne->expires = e->expires;
+    ne->lastmod = e->lastmod;
+    ne->refcount = e->refcount;
+    ne->flags = e->flags;
+    EBIT_SET(ne->flags, ENTRY_CACHABLE);
+    EBIT_CLR(ne->flags, RELEASE_REQUEST);
+    EBIT_CLR(ne->flags, KEY_PRIVATE);
+    ne->ping_status = PING_NONE;
+    EBIT_CLR(ne->flags, ENTRY_VALIDATED);
+    storeHashInsert(ne, key);	/* do it after we clear KEY_PRIVATE */
+    storeCossAdd(SD, ne, cs->rebuild.curstripe);
+    storeEntryDump(ne, 5);
+    assert(ne->repl.data != NULL);
+    assert(e->repl.data == NULL);
+}
+
+static void
+storeCoss_DeleteStoreEntry(RebuildState * rb, const cache_key * key, StoreEntry * e)
+{
+    assert(rb->counts.objcount >= 0);
+    rb->counts.objcount--;
+    assert(e->swap_dirn >= 0);
+    storeCossRemove(INDEXSD(e->swap_dirn), e);
+    e->swap_filen = -1;
+    storeExpireNow(e);
+    storeReleaseRequest(e);
+    storeRelease(e);
+}
+
+/*
+ * Consider inserting the given StoreEntry into the given
+ * COSS directory.
+ *
+ * The rules for doing this is reasonably simple:
+ *
+ * If the object doesn't exist in the cache then we simply
+ * add it to the current stripe list
+ *
+ * If the object does exist in the cache then we compare
+ * "freshness"; if the newer object is fresher then we
+ * remove it from its stripe and re-add it to the current
+ * stripe.
+ */
+static void
+storeCoss_ConsiderStoreEntry(RebuildState * rb, const cache_key * key, StoreEntry * e)
+{
+    StoreEntry *oe;
+
+    /* Check for clashes */
+    oe = storeGet(key);
+    if (oe == NULL) {
+	rb->cosscounts.new++;
+	/* no clash! woo, can add and forget */
+	storeCoss_AddStoreEntry(rb, key, e);
+	return;
+    }
+    /* This isn't valid - its possible we have a fresher object in another store */
+    /* unlike the UFS-based stores we don't "delete" the disk object when we
+     * have deleted the object; its one of the annoying things about COSS. */
+    //assert(oe->swap_dirn == SD->index);
+    /* Dang, its a clash. See if its fresher */
+
+    /* Fresher? Its a new object: deallocate the old one, reallocate the new one */
+    if (e->lastref > oe->lastref) {
+	debug(47, 3) ("COSS: fresher object for filen %d found (%d -> %d)\n", oe->swap_filen, (int) oe->timestamp, (int) e->timestamp);
+	rb->cosscounts.fresher++;
+	storeCoss_DeleteStoreEntry(rb, key, oe);
+	oe = NULL;
+	storeCoss_AddStoreEntry(rb, key, e);
+	return;
+    }
+    /*
+     * Not fresher? Its the same object then we /should/ probably relocate it; I'm
+     * not sure what should be done here.
+     */
+    if (oe->timestamp == e->timestamp && oe->expires == e->expires) {
+	debug(47, 3) ("COSS: filen %d -> %d (since they're the same!)\n", oe->swap_filen, e->swap_filen);
+	rb->cosscounts.reloc++;
+	storeCoss_DeleteStoreEntry(rb, key, oe);
+	oe = NULL;
+	storeCoss_AddStoreEntry(rb, key, e);
+	return;
+    }
+    debug(47, 3) ("COSS: filen %d: ignoring this one for some reason\n", e->swap_filen);
+    rb->cosscounts.unknown++;
 }

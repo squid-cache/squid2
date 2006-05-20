@@ -61,6 +61,7 @@ a_file_read(async_queue_t * q, int fd, void *buf, int req_len, off_t offset,
     async_queue_entry_t *qe;
 
     assert(q->aq_state == AQ_STATE_SETUP);
+    assert(offset >= 0);
 
     /* Find a free slot */
     slot = a_file_findslot(q);
@@ -109,6 +110,7 @@ a_file_write(async_queue_t * q, int fd, off_t offset, void *buf, int len,
     async_queue_entry_t *qe;
 
     assert(q->aq_state == AQ_STATE_SETUP);
+    assert(offset >= 0);
 
     /* Find a free slot */
     slot = a_file_findslot(q);
@@ -195,6 +197,9 @@ a_file_callback(async_queue_t * q)
 		buf = aqe->aq_e_buf;
 		fd = aqe->aq_e_fd;
 		type = aqe->aq_e_type;
+
+		/* debugging assert */
+		assert(reterr == 0);
 
 		/* Free slot */
 		memset(aqe, 0, sizeof(async_queue_entry_t));

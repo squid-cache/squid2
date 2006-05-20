@@ -449,6 +449,8 @@ storeClientReadHeader(void *data, const char *buf, ssize_t len)
 		break;
 	    }
 	    break;
+	case STORE_META_OBJSIZE:
+	    break;
 	case STORE_META_STD:
 	case STORE_META_STD_LFS:
 	    break;
