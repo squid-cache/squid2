@@ -8,6 +8,11 @@ SNPRINTFSOURCE=snprintf.c
 else
 SNPRINTFSOURCE=
 endif
+if NEED_OWN_STRSEP
+STRSEPSOURCE=strsep.c
+else
+STRSEPSOURCE=
+endif
 if NEED_OWN_MD5
 MD5SOURCE=md5.c
 else
@@ -24,7 +29,8 @@ noinst_LIBRARIES = \
 	@LIBREGEX@
 EXTRA_libmiscutil_a_SOURCES = \
 	md5.c \
-	snprintf.c
+	snprintf.c \
+	strsep.c
 libmiscutil_a_SOURCES = \
 	Array.c \
 	base64.c \
@@ -43,6 +49,7 @@ libmiscutil_a_SOURCES = \
 	$(SNPRINTFSOURCE) \
 	splay.c \
 	Stack.c \
+	$(STRSEPSOURCE) \
 	stub_memaccount.c \
 	util.c \
 	uudecode.c

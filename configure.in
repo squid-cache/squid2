@@ -1967,6 +1967,7 @@ AC_CHECK_FUNCS(\
 	srand48 \
 	srandom \
 	statfs \
+	strsep \
 	strtoll \
 	sysconf \
 	syslog \
@@ -1999,6 +2000,11 @@ fi
 AM_CONDITIONAL(NEED_OWN_SNPRINTF, false)
 if test "$ac_cv_func_snprintf" = "no" || test "$ac_cv_func_vsnprintf" = "no" ; then
   AM_CONDITIONAL(NEED_OWN_SNPRINTF, true)
+fi
+
+AM_CONDITIONAL(NEED_OWN_STRSEP, false)
+if test "$ac_cv_func_strsep" = "no" ; then
+  AM_CONDITIONAL(NEED_OWN_STRSEP, true)
 fi
 
 dnl
