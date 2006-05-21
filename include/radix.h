@@ -153,6 +153,8 @@ extern struct squid_radix_node *squid_rn_newpair(void *, int, struct squid_radix
 extern struct squid_radix_node *squid_rn_search(void *, struct squid_radix_node *);
 extern struct squid_radix_node *squid_rn_search_m(void *, struct squid_radix_node *, void *);
 extern struct squid_radix_node *squid_rn_lookup(void *, void *, struct squid_radix_node_head *);
+#ifndef min
 #define min(x,y) ((x)<(y)? (x) : (y))
+#endif
 
 #endif /* SQUID_RADIX_H */
