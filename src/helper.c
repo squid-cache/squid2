@@ -106,9 +106,7 @@ helperOpenServers(helper * hlp)
 	srv->index = k;
 	srv->rfd = rfd;
 	srv->wfd = wfd;
-	/* XXX srv->rbuf should really be a memAllocBuf(), but thisis 2.5.. */
-	srv->rbuf = memAllocate(MEM_8K_BUF);
-	srv->rbuf_sz = 8192;
+	srv->rbuf = memAllocBuf(8192, &srv->rbuf_sz);
 	srv->roffset = 0;
 	srv->requests = xcalloc(hlp->concurrency ? hlp->concurrency : 1, sizeof(*srv->requests));
 	srv->parent = hlp;
@@ -578,8 +576,7 @@ helperServerFree(int fd, void *data)
 	concurrency = 1;
     assert(srv->rfd == fd);
     if (srv->rbuf) {
-	/* XXX srv->rbuf should really be a memAllocBuf(), but thisis 2.5.. */
-	memFree(srv->rbuf, MEM_8K_BUF);
+	memFreeBuf(srv->rbuf, srv->rbuf_sz);
 	srv->rbuf = NULL;
     }
     if (!memBufIsNull(&srv->wqueue))
@@ -668,7 +665,7 @@ helperHandleRead(int fd, void *data)
     assert(fd == srv->rfd);
     assert(cbdataValid(data));
     statCounter.syscalls.sock.reads++;
-    /* XXX srv->rbuf should really be a memAllocBuf(), but thisis 2.5.. */
+    /* XXX srv->rbuf should be reallocated if needed.. and start out quite small (not fixed 8KB as now..) */
     assert(srv->roffset < srv->rbuf_sz);
     len = FD_READ_METHOD(fd, srv->rbuf + srv->roffset, srv->rbuf_sz - srv->roffset - 1);
     fd_bytes(fd, len, FD_READ);
