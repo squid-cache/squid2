@@ -126,6 +126,8 @@ makesnmplib = @makesnmplib@
 
 @NEED_OWN_SNPRINTF_TRUE@SNPRINTFSOURCE = snprintf.c
 @NEED_OWN_SNPRINTF_FALSE@SNPRINTFSOURCE = 
+@NEED_OWN_STRSEP_TRUE@STRSEPSOURCE = strsep.c
+@NEED_OWN_STRSEP_FALSE@STRSEPSOURCE = 
 @NEED_OWN_MD5_TRUE@MD5SOURCE = md5.c
 @NEED_OWN_MD5_FALSE@MD5SOURCE = 
 
@@ -141,7 +143,8 @@ noinst_LIBRARIES = \
 
 EXTRA_libmiscutil_a_SOURCES = \
 	md5.c \
-	snprintf.c
+	snprintf.c \
+	strsep.c
 
 libmiscutil_a_SOURCES = \
 	Array.c \
@@ -161,6 +164,7 @@ libmiscutil_a_SOURCES = \
 	$(SNPRINTFSOURCE) \
 	splay.c \
 	Stack.c \
+	$(STRSEPSOURCE) \
 	stub_memaccount.c \
 	util.c \
 	uudecode.c
@@ -199,13 +203,16 @@ libmiscutil_a_DEPENDENCIES = @LIBOBJS@
 @NEED_OWN_MD5_FALSE@am__objects_1 =
 @NEED_OWN_SNPRINTF_FALSE@am__objects_2 =
 @NEED_OWN_SNPRINTF_TRUE@am__objects_2 = snprintf.$(OBJEXT)
+@NEED_OWN_STRSEP_TRUE@am__objects_3 = strsep.$(OBJEXT)
+@NEED_OWN_STRSEP_FALSE@am__objects_3 =
 am_libmiscutil_a_OBJECTS = Array.$(OBJEXT) base64.$(OBJEXT) \
 	getfullhostname.$(OBJEXT) hash.$(OBJEXT) heap.$(OBJEXT) \
 	html_quote.$(OBJEXT) iso3307.$(OBJEXT) $(am__objects_1) \
 	radix.$(OBJEXT) rfc1035.$(OBJEXT) rfc1123.$(OBJEXT) \
 	rfc1738.$(OBJEXT) rfc2617.$(OBJEXT) safe_inet_addr.$(OBJEXT) \
 	$(am__objects_2) splay.$(OBJEXT) Stack.$(OBJEXT) \
-	stub_memaccount.$(OBJEXT) util.$(OBJEXT) uudecode.$(OBJEXT)
+	$(am__objects_3) stub_memaccount.$(OBJEXT) util.$(OBJEXT) \
+	uudecode.$(OBJEXT)
 libmiscutil_a_OBJECTS = $(am_libmiscutil_a_OBJECTS)
 libntlmauth_a_AR = $(AR) cru
 libntlmauth_a_DEPENDENCIES = @LIBOBJS@
@@ -234,8 +241,9 @@ depcomp = $(SHELL) $(top_srcdir)/cfgaux/depcomp
 @AMDEP_TRUE@	$(DEPDIR)/rfc1738.Po $(DEPDIR)/rfc2617.Po \
 @AMDEP_TRUE@	$(DEPDIR)/safe_inet_addr.Po $(DEPDIR)/snprintf.Po \
 @AMDEP_TRUE@	$(DEPDIR)/splay.Po $(DEPDIR)/strerror.Po \
-@AMDEP_TRUE@	$(DEPDIR)/stub_memaccount.Po $(DEPDIR)/tempnam.Po \
-@AMDEP_TRUE@	$(DEPDIR)/util.Po $(DEPDIR)/uudecode.Po
+@AMDEP_TRUE@	$(DEPDIR)/strsep.Po $(DEPDIR)/stub_memaccount.Po \
+@AMDEP_TRUE@	$(DEPDIR)/tempnam.Po $(DEPDIR)/util.Po \
+@AMDEP_TRUE@	$(DEPDIR)/uudecode.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -311,6 +319,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/snprintf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/splay.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strerror.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/strsep.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/stub_memaccount.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/tempnam.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/util.Po@am__quote@

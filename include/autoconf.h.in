@@ -599,6 +599,9 @@
 /* Define if you have the strerror function.  */
 #undef HAVE_STRERROR
 
+/* Define if you have the strsep function.  */
+#undef HAVE_STRSEP
+
 /* Define if you have the strtoll function.  */
 #undef HAVE_STRTOLL
 
