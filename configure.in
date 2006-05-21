@@ -2675,6 +2675,7 @@ AC_OUTPUT([\
 	helpers/ntlm_auth/SMB/Makefile \
 	helpers/ntlm_auth/SMB/smbval/Makefile \
 	helpers/ntlm_auth/winbind/Makefile \
+	helpers/negotiate_auth/Makefile \
 	helpers/external_acl/Makefile \
 	helpers/external_acl/ip_user/Makefile \
 	helpers/external_acl/ldap_group/Makefile \
