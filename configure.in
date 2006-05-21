@@ -1190,6 +1190,41 @@ if test -n "$DIGEST_AUTH_HELPERS"; then
 fi
 AC_SUBST(DIGEST_AUTH_HELPERS)
 
+dnl Select negotiate auth scheme helpers to build
+NEGOTIATE_AUTH_HELPERS=
+AC_ARG_ENABLE(negotiate-auth-helpers,
+[  --enable-negotiate-auth-helpers=\"list of helpers\"
+                          This option selects which negotiate scheme authentication
+                          helpers to build and install as part of the normal build
+                          process. For a list of available helpers see the
+                          helpers/negotiate_auth directory.],
+[ case "$enableval" in
+  yes)
+    for helper in $srcdir/helpers/negotiate_auth/*; do
+        if test -f $helper/Makefile.in; then
+            NEGOTIATE_AUTH_HELPERS="$NEGOTIATE_AUTH_HELPERS `basename $helper`"
+        fi
+    done
+    ;;
+  no)
+    ;;
+  *)
+    NEGOTIATE_AUTH_HELPERS="`echo $enableval| sed -e 's/,/ /g;s/  */ /g'`"
+  esac
+])
+if test -n "$NEGOTIATE_AUTH_HELPERS"; then
+    for helper in $NEGOTIATE_AUTH_HELPERS; do
+	if test -f $srcdir/helpers/negotiate_auth/$helper/Makefile.in; then
+		:
+	else
+		echo "ERROR: negotiate auth helper $helper does not exists"
+		exit 1
+	fi
+    done
+    echo "Negotiate auth helpers built: $NEGOTIATE_AUTH_HELPERS"
+fi
+AC_SUBST(NEGOTIATE_AUTH_HELPERS)
+
 dnl Enable "NTLM fail open"
 AC_ARG_ENABLE(ntlm-fail-open,
 [  --enable-ntlm-fail-open Enable NTLM fail open, where a helper that fails one of the
