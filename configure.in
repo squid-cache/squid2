@@ -1271,23 +1271,6 @@ fi
 AC_SUBST(EXTERNAL_ACL_HELPERS)
 
 
-SAMBASOURCES='$(top_srcdir)/include/samba'
-AC_ARG_WITH(samba-sources,
-[  --with-samba-sources=/path/to/samba-source-tree
-                          Path where the correct Samba source files can be
-			  found while building winbind helpers. (defaults to
-			  use internal copies of the headers from Samba-2.2.7)
-			  ],
-[ if test -f $withval/source/nsswitch/winbind_nss_config.h; then
-	echo "Using Samba sources from $withval"
-	SAMBASOURCES="$withval/source"
-    else
-	echo "ERROR: Cannot find Samba sources at $withval"
-	exit 1
-    fi
-])
-AC_SUBST(SAMBASOURCES)
-
 dnl Check for Cyrus SASL
 if test "$require_sasl" = "yes"; then
 	AC_CHECK_HEADERS(sasl/sasl.h sasl.h)
@@ -2665,7 +2648,6 @@ AC_OUTPUT([\
 	helpers/basic_auth/getpwnam/Makefile \
 	helpers/basic_auth/multi-domain-NTLM/Makefile \
 	helpers/basic_auth/SASL/Makefile \
-	helpers/basic_auth/winbind/Makefile \
 	helpers/digest_auth/Makefile \
 	helpers/digest_auth/password/Makefile \
 	helpers/digest_auth/ldap/Makefile \
@@ -2674,12 +2656,10 @@ AC_OUTPUT([\
 	helpers/ntlm_auth/no_check/Makefile \
 	helpers/ntlm_auth/SMB/Makefile \
 	helpers/ntlm_auth/SMB/smbval/Makefile \
-	helpers/ntlm_auth/winbind/Makefile \
 	helpers/negotiate_auth/Makefile \
 	helpers/external_acl/Makefile \
 	helpers/external_acl/ip_user/Makefile \
 	helpers/external_acl/ldap_group/Makefile \
 	helpers/external_acl/unix_group/Makefile \
 	helpers/external_acl/wbinfo_group/Makefile \
-	helpers/external_acl/winbind_group/Makefile \
 ])
