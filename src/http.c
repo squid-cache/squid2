@@ -607,7 +607,7 @@ httpReadReply(int fd, void *data)
 	}
     }
     if (len < 0) {
-	debug(50, 2) ("httpReadReply: FD %d: read failure: %s.\n",
+	debug(11, 2) ("httpReadReply: FD %d: read failure: %s.\n",
 	    fd, xstrerror());
 	if (ignoreErrno(errno)) {
 	    commSetSelect(fd, COMM_SELECT_READ, httpReadReply, httpState, 0);

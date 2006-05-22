@@ -804,7 +804,7 @@ comm_select(int msec)
 		break;
 	    if (ignoreErrno(errno))
 		break;
-	    debug(50, 0) ("comm_select: select failure: %s\n",
+	    debug(5, 0) ("comm_select: select failure: %s\n",
 		xstrerror());
 	    examine_select(&readfds, &writefds);
 	    return COMM_ERROR;
