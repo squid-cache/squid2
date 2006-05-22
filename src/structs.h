@@ -1820,6 +1820,7 @@ struct _request_t {
     struct in_addr client_addr;
     struct in_addr my_addr;
     unsigned short my_port;
+    unsigned short client_port;
     HttpHeader header;
     squid_off_t content_length;
     HierarchyLogEntry hier;

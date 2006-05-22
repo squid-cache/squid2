@@ -55,6 +55,7 @@ typedef struct _external_acl_data external_acl_data;
 static char *makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data);
 static void external_acl_cache_delete(external_acl * def, external_acl_entry * entry);
 static int external_acl_entry_expired(external_acl * def, external_acl_entry * entry);
+static int external_acl_grace_expired(external_acl * def, external_acl_entry * entry);
 static void external_acl_cache_touch(external_acl * def, external_acl_entry * entry);
 
 /*******************************************************************
@@ -80,6 +81,7 @@ struct _external_acl {
     external_acl *next;
     int ttl;
     int negative_ttl;
+    int grace;
     char *name;
     external_acl_format *format;
     wordlist *cmdline;
@@ -106,6 +108,9 @@ struct _external_acl_format {
 	EXT_ACL_IDENT,
 #endif
 	EXT_ACL_SRC,
+	EXT_ACL_SRCPORT,
+	EXT_ACL_MYADDR,
+	EXT_ACL_MYPORT,
 	EXT_ACL_DST,
 	EXT_ACL_PROTO,
 	EXT_ACL_PORT,
@@ -209,6 +214,8 @@ parse_externalAclHelper(external_acl ** list)
 	    a->quote = QUOTE_METHOD_URL;
 	} else if (strcmp(token, "quote=shell") == 0) {
 	    a->quote = QUOTE_METHOD_SHELL;
+	} else if (strncmp(token, "grace=", 6) == 0) {
+	    a->grace = atoi(token + 6);
 	} else {
 	    break;
 	}
@@ -271,6 +278,12 @@ parse_externalAclHelper(external_acl ** list)
 #endif
 	else if (strcmp(token, "%SRC") == 0)
 	    format->type = EXT_ACL_SRC;
+	else if (strcmp(token, "%SRCPORT") == 0)
+	    format->type = EXT_ACL_SRCPORT;
+	else if (strcmp(token, "%MYADDR") == 0)
+	    format->type = EXT_ACL_MYADDR;
+	else if (strcmp(token, "%MYPORT") == 0)
+	    format->type = EXT_ACL_MYPORT;
 	else if (strcmp(token, "%DST") == 0)
 	    format->type = EXT_ACL_DST;
 	else if (strcmp(token, "%PROTO") == 0)
@@ -333,10 +346,14 @@ dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl
 	    storeAppendPrintf(sentry, " ttl=%d", node->ttl);
 	if (node->negative_ttl != node->ttl)
 	    storeAppendPrintf(sentry, " negative_ttl=%d", node->negative_ttl);
+	if (node->grace)
+	    storeAppendPrintf(sentry, " grace=%d", node->grace);
 	if (node->children != DEFAULT_EXTERNAL_ACL_CHILDREN)
 	    storeAppendPrintf(sentry, " children=%d", node->children);
 	if (node->concurrency)
 	    storeAppendPrintf(sentry, " concurrency=%d", node->concurrency);
+	if (node->cache_size)
+	    storeAppendPrintf(sentry, " cache=%d", node->cache_size);
 	for (format = node->format; format; format = format->next) {
 	    switch (format->type) {
 	    case EXT_ACL_HEADER:
@@ -356,6 +373,9 @@ dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl
 		DUMP_EXT_ACL_TYPE(IDENT);
 #endif
 		DUMP_EXT_ACL_TYPE(SRC);
+		DUMP_EXT_ACL_TYPE(SRCPORT);
+		DUMP_EXT_ACL_TYPE(MYADDR);
+		DUMP_EXT_ACL_TYPE(MYPORT);
 		DUMP_EXT_ACL_TYPE(DST);
 		DUMP_EXT_ACL_TYPE(PROTO);
 		DUMP_EXT_ACL_TYPE(PORT);
@@ -500,19 +520,21 @@ aclMatchExternal(void *data, aclCheck_t * ch)
     }
     if (!entry) {
 	entry = hash_lookup(acl->def->cache, key);
-	if (entry && external_acl_entry_expired(acl->def, entry)) {
-	    /* Expired entry, ignore */
-	    debug(82, 2) ("external_acl_cache_lookup: '%s' = expired\n", key);
-	    entry = NULL;
+	if (!entry || external_acl_grace_expired(acl->def, entry)) {
+	    debug(82, 2) ("aclMatchExternal: %s(\"%s\") = lookup needed\n", acl->def->name, key);
+	    if (acl->def->helper->stats.queue_size <= acl->def->helper->n_running) {
+		ch->state[ACL_EXTERNAL] = ACL_LOOKUP_NEEDED;
+		return -1;
+	    } else {
+		if (!entry) {
+		    debug(82, 1) ("aclMatchExternal: '%s' queue overload. Request rejected '%s'.\n", acl->def->name, key);
+		    return -1;
+		} else {
+		    debug(82, 1) ("aclMatchExternal: '%s' queue overload. Using stale result. '%s'\n", acl->def->name, key);
+		    /* Fall thru to processing below */
+		}
+	    }
 	}
-    }
-    if (!entry || entry->result == -1) {
-	debug(82, 2) ("aclMatchExternal: %s(\"%s\") = lookup needed\n", acl->def->name, key);
-	if (acl->def->helper->stats.queue_size >= acl->def->helper->n_running)
-	    debug(82, 1) ("aclMatchExternal: '%s' queue overload. Request rejected.\n", acl->def->name);
-	else
-	    ch->state[ACL_EXTERNAL] = ACL_LOOKUP_NEEDED;
-	return -1;
     }
     external_acl_cache_touch(acl->def, entry);
     result = entry->result;
@@ -590,6 +612,17 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 #endif
 	case EXT_ACL_SRC:
 	    str = inet_ntoa(ch->src_addr);
+	    break;
+	case EXT_ACL_SRCPORT:
+	    snprintf(buf, sizeof(buf), "%d", request->client_port);
+	    str = buf;
+	    break;
+	case EXT_ACL_MYADDR:
+	    str = inet_ntoa(request->my_addr);
+	    break;
+	case EXT_ACL_MYPORT:
+	    snprintf(buf, sizeof(buf), "%d", request->my_port);
+	    str = buf;
 	    break;
 	case EXT_ACL_DST:
 	    str = request->host;
@@ -695,6 +728,18 @@ static int
 external_acl_entry_expired(external_acl * def, external_acl_entry * entry)
 {
     if (entry->date + (entry->result == 1 ? def->ttl : def->negative_ttl) < squid_curtime)
+	return 1;
+    else
+	return 0;
+}
+
+static int
+external_acl_grace_expired(external_acl * def, external_acl_entry * entry)
+{
+    int ttl;
+    ttl = entry->result == 1 ? def->ttl : def->negative_ttl;
+    ttl = (ttl * (100 - def->grace)) / 100;
+    if (entry->date + ttl < squid_curtime)
 	return 1;
     else
 	return 0;
@@ -876,7 +921,7 @@ externalAclHandleReply(void *data, char *reply)
 	else
 	    external_acl_message = NULL;
 
-	if (cbdataValid(state->callback_data))
+	if (state->callback && cbdataValid(state->callback_data))
 	    state->callback(state->callback_data, entry);
 	cbdataUnlock(state->callback_data);
 	state->callback_data = NULL;
@@ -902,6 +947,10 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
     const char *key;
     external_acl_entry *entry;
     externalAclState *state;
+    dlink_node *node;
+    externalAclState *oldstate = NULL;
+    int graceful = 0;
+
     if (acl->def->require_auth) {
 	int ti;
 	/* Make sure the user is authenticated */
@@ -920,51 +969,66 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
     }
     debug(82, 2) ("externalAclLookup: lookup in '%s' for '%s'\n", def->name, key);
     entry = hash_lookup(def->cache, key);
-    state = cbdataAlloc(externalAclState);
-    state->def = def;
-    cbdataLock(state->def);
-    state->callback = callback;
-    state->callback_data = callback_data;
-    state->key = xstrdup(key);
-    cbdataLock(state->callback_data);
-    if (entry && !external_acl_entry_expired(def, entry)) {
-	if (entry->result == -1) {
-	    /* There is a pending lookup. Hook into it */
-	    dlink_node *node;
-	    for (node = def->queue.head; node; node = node->next) {
-		externalAclState *oldstate = node->data;
-		if (strcmp(state->key, oldstate->key) == 0) {
-		    state->queue = oldstate->queue;
-		    oldstate->queue = state;
-		    return;
-		}
-	    }
-	} else {
-	    /* There is a cached valid result.. use it */
-	    /* This should not really happen, but what the heck.. */
-	    external_acl_message = entry->message;
-	    callback(callback_data, entry);
-	    cbdataFree(state);
-	    return;
+    if (entry && external_acl_entry_expired(def, entry))
+	entry = NULL;
+
+    /* Check for a pending lookup to hook into */
+    for (node = def->queue.head; node; node = node->next) {
+	externalAclState *oldstatetmp = node->data;
+	if (strcmp(key, oldstatetmp->key) == 0) {
+	    oldstate = oldstatetmp;
+	    break;
 	}
     }
-    /* Check for queue overload */
-    if (def->helper->stats.queue_size >= def->helper->n_running) {
-	external_acl_entry *entry = hash_lookup(def->cache, key);
-	debug(82, 1) ("externalAclLookup: '%s' queue overload\n", def->name);
-	if (entry)
-	    external_acl_message = entry->message;
-	cbdataFree(state);
+
+    /* No need to refresh a already pending lookup during grace period */
+    if (entry && external_acl_grace_expired(def, entry)) {
+	if (oldstate) {
+	    callback(callback_data, entry);
+	    return;
+	} else {
+	    graceful = 1;
+	}
+    }
+    if (!graceful && entry && !external_acl_grace_expired(def, entry)) {
+	/* Should not really happen, but why not.. */
 	callback(callback_data, entry);
 	return;
     }
-    /* Send it off to the helper */
-    memBufDefInit(&buf);
-    memBufPrintf(&buf, "%s\n", key);
-    helperSubmit(def->helper, buf.buf, externalAclHandleReply, state);
-    external_acl_cache_add(def, key, -1, NULL, NULL, NULL, NULL);
-    dlinkAdd(state, &state->list, &def->queue);
-    memBufClean(&buf);
+    /* No pending lookup found. Sumbit to helper */
+    state = cbdataAlloc(externalAclState);
+    state->def = def;
+    cbdataLock(state->def);
+    state->key = xstrdup(key);
+    if (!graceful) {
+	state->callback = callback;
+	state->callback_data = callback_data;
+	cbdataLock(state->callback_data);
+    }
+    if (oldstate) {
+	/* Hook into pending lookup */
+	state->queue = oldstate->queue;
+	oldstate->queue = state;
+    } else {
+	/* Check for queue overload */
+	if (def->helper->stats.queue_size >= def->helper->n_running) {
+	    debug(82, 1) ("externalAclLookup: '%s' queue overload\n", def->name);
+	    cbdataFree(state);
+	    callback(callback_data, entry);
+	    return;
+	}
+	/* Send it off to the helper */
+	memBufDefInit(&buf);
+	memBufPrintf(&buf, "%s\n", key);
+	helperSubmit(def->helper, buf.buf, externalAclHandleReply, state);
+	dlinkAdd(state, &state->list, &def->queue);
+	memBufClean(&buf);
+    }
+    if (graceful) {
+	/* No need to wait during grace period */
+	callback(callback_data, entry);
+	return;
+    }
 }
 
 int

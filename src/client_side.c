@@ -445,6 +445,7 @@ clientRedirectDone(void *data, char *result)
 	new_request->client_port = old_request->client_port;
 	new_request->my_addr = old_request->my_addr;
 	new_request->my_port = old_request->my_port;
+	new_request->client_port = old_request->client_port;
 	new_request->flags = old_request->flags;
 	new_request->flags.redirected = 1;
 	if (old_request->auth_user_request) {
@@ -3516,6 +3517,7 @@ clientReadRequest(int fd, void *data)
 	    request->client_port = conn->peer.sin_port;
 	    request->my_addr = conn->me.sin_addr;
 	    request->my_port = ntohs(conn->me.sin_port);
+	    request->client_port = ntohs(conn->peer.sin_port);
 	    request->http_ver = http->http_ver;
 	    if (!urlCheckRequest(request) ||
 		httpHeaderHas(&request->header, HDR_TRANSFER_ENCODING)) {

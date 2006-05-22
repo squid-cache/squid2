@@ -2014,6 +2014,9 @@ DOC_START
 	  concurrency=n	concurrency level per process. Use 0 for simple helpers
 			who can only process a single request at a time.
 	  cache=n	result cache size, 0 is unbounded (default)
+ 	  grace=	Percentage remaining of TTL where a refresh of a
+ 	  		cached entry should be initiated without needing to
+ 			wait for a new reply. (default 0 for no grace period)
 	  protocol=2.5  Compatibility mode for Squid-2.5 external acl helpers
 
 	FORMAT specifications
@@ -2021,10 +2024,13 @@ DOC_START
 	  %LOGIN	Authenticated user login name
 	  %IDENT	Ident user name
 	  %SRC		Client IP
+	  %SRCPORT	Client source port
 	  %DST		Requested host
 	  %PROTO	Requested protocol
 	  %PORT		Requested port
 	  %METHOD	Request method
+	  %MYADDR	Squid interface address
+	  %MYPORT	Squid http_port number
 	  %PATH		Requested URL-path (including query-string if any)
  	  %USER_CERT	SSL User certificate in PEM format
  	  %USER_CERTCHAIN SSL User certificate chain in PEM format
