@@ -435,7 +435,7 @@ netdbReloadState(void)
      * Solaris bugs, its a bad idea.  fopen can fail if more than
      * 256 FDs are open.
      */
-    fd = file_open(path, O_RDONLY | O_TEXT);
+    fd = file_open(path, O_RDONLY | O_BINARY);
     if (fd < 0)
 	return;
     if (fstat(fd, &sb) < 0) {
