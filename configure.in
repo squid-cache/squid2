@@ -1831,10 +1831,24 @@ AC_SUBST(LIB_LBER)
 dnl Check for libdb
 DBLIB=
 dnl 1.85
-AC_CHECK_LIB(db, dbopen, [LIB_DB="-ldb"])
-dnl more current ones..
-AC_CHECK_LIB(db, db_open, [LIB_DB="-ldb"])
-AC_CHECK_LIB(db, __db185_open, [LIB_DB="-ldb"])
+AC_CACHE_CHECK(if dbopen needs -ldb,ac_cv_dbopen_libdb, [
+  AC_TRY_COMPILE([
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif
+#if HAVE_DB_185_H
+#include <db_185.h>
+#elif HAVE_DB_H
+#include <db.h>
+#endif],
+    [dbopen((void *)0L, 0, 0, DB_HASH, (void *)0L)],
+    LIB_DB="-ldb"
+    ac_cv_dbopen_libdb="yes",
+    ac_cv_dbopen_libdb="no")
+])
 AC_SUBST(LIB_DB)
 
 dnl System-specific library modifications
