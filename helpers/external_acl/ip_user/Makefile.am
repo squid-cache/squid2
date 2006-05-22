@@ -24,7 +24,5 @@ EXTRA_DIST = \
 
 # sysconf_DATA = 
 
-LDADD	= @XTRA_LIBS@
-
-INCLUDES      = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
-		-I$(top_srcdir)/src/
+LDADD		= -L$(top_builddir)/lib -lmiscutil @XTRA_LIBS@
+INCLUDES	= -I. -I$(top_builddir)/include -I$(top_srcdir)/include

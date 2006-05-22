@@ -12,8 +12,14 @@
 #   Jerry Murdock <jmurdock@itraktech.com>
 #
 # Version history:
+#   2005-12-26 Guido Serassio <guido.serassio@acmeconsulting.it>
+#               Add '-d' command line debugging option
+#
 #   2005-12-24 Guido Serassio <guido.serassio@acmeconsulting.it>
 #               Fix for wbinfo from Samba 3.0.21
+#
+#   2004-08-15 Henrik Nordstrom <hno@squid-cache.org>
+#		Helper protocol changed to URL escaped in Squid-3.0
 #
 #   2005-06-28 Arno Streuli <astreuli@gmail.com>
 #               Add multi group check
@@ -22,15 +28,16 @@
 #		Initial release
 
 
-# external_acl uses shell style lines in it's protocol
-require 'shellwords.pl';
+#
+# Globals
+#
+use vars qw/ %opt /;
 
 # Disable output buffering
 $|=1;           
 
 sub debug {
-	# Uncomment this to enable debugging
-	#print STDERR "@_\n";
+	print STDERR "@_\n" if $opt{d};
 }
 
 #
@@ -48,17 +55,44 @@ sub check {
 }
 
 #
+# Command line options processing
+#
+sub init()
+{
+    use Getopt::Std;
+    my $opt_string = 'hd';
+    getopts( "$opt_string", \%opt ) or usage();
+    usage() if $opt{h};
+}
+
+#
+# Message about this program and how to use it
+#
+sub usage()
+{
+	print "Usage: wbinfo_group.pl -dh\n";
+	print "\t-d enable debugging\n";
+	print "\t-h print the help\n";
+	exit;
+}
+
+init();
+print STDERR "Debugging mode ON.\n" if $opt{d};
+
+#
 # Main loop
 #
 while (<STDIN>) {
         chop;
 	&debug ("Got $_ from squid");
-	($user, @groups) = &shellwords;
-	# test for each group squid send in it's request
-	foreach $group (@groups) {
-		$ans = &check($user, $group);
-		last if $ans eq "OK";
-	}
+        ($user, @groups) = split(/\s+/);
+	$user =~ s/%([0-9a-fA-F][0-9a-fA-F])/pack("c",hex($1))/eg;
+ 	# test for each group squid send in it's request
+ 	foreach $group (@groups) {
+		$group =~ s/%([0-9a-fA-F][0-9a-fA-F])/pack("c",hex($1))/eg;
+ 		$ans = &check($user, $group);
+ 		last if $ans eq "OK";
+ 	}
 	&debug ("Sending $ans to squid");
 	print "$ans\n";
 }
