@@ -345,6 +345,11 @@
  */
 #undef LINUX_NETFILTER
 
+/* 
+ * Enable real Transparent Proxy support for Netfilter TPROXY.
+ */
+#undef LINUX_TPROXY
+
 /*
  * Do we have unix sockets? (required for the winbind ntlm helper
  */

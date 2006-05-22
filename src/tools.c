@@ -34,6 +34,11 @@
  */
 
 #include "squid.h"
+#if LINUX_TPROXY
+#include <linux/capability.h>
+#undef __FD_SETSIZE
+#define __FD_SETSIZE SQUID_MAXFD
+#endif
 
 #if HAVE_SYS_PRCTL_H
 #include <sys/prctl.h>
@@ -565,6 +570,23 @@ leave_suid(void)
     /* Set Linux DUMPABLE flag */
     if (Config.coredump_dir && prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) != 0)
 	debug(50, 2) ("prctl: %s\n", xstrerror());
+#endif
+#if LINUX_TPROXY
+    if (Config.onoff.linux_tproxy) {
+	cap_user_header_t head = (cap_user_header_t) xcalloc(1, sizeof(cap_user_header_t));
+	cap_user_data_t cap = (cap_user_data_t) xcalloc(1, sizeof(cap_user_data_t));
+
+	head->version = _LINUX_CAPABILITY_VERSION;
+	head->pid = 0;
+	cap->inheritable = cap->permitted = cap->effective = (1 << CAP_NET_ADMIN) + (1 << CAP_NET_BIND_SERVICE) + (1 << CAP_NET_BROADCAST);
+	if (capset(head, cap) != 0) {
+	    xfree(head);
+	    xfree(cap);
+	    fatal("Error giving up capabilities");
+	}
+	xfree(head);
+	xfree(cap);
+    }
 #endif
 }
 

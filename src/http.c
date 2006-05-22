@@ -564,6 +564,8 @@ httpReadReply(int fd, void *data)
     int bin;
     int clen;
     size_t read_sz = SQUID_TCP_SO_RCVBUF;
+    struct in_addr *client_addr = NULL;
+    u_short client_port = 0;
 #if DELAY_POOLS
     delay_id delay_id;
 #endif
@@ -579,6 +581,7 @@ httpReadReply(int fd, void *data)
     else
 	delay_id = delayMostBytesAllowed(entry->mem_obj, &read_sz);
 #endif
+
     errno = 0;
     statCounter.syscalls.sock.reads++;
     len = FD_READ_METHOD(fd, buf, read_sz);
@@ -729,6 +732,16 @@ httpReadReply(int fd, void *data)
 		    }
 		}
 		if (keep_alive) {
+		    if (httpState->request->flags.pinned) {
+			client_addr = &httpState->request->client_addr;
+			client_port = httpState->request->client_port;
+		    }
+#if LINUX_TPROXY
+		    else if ((Config.onoff.linux_tproxy) &&
+			((httpState->request->my_port == Config.tproxy_port) || (Config.tproxy_port == 0))) {
+			client_addr = &httpState->request->client_addr;
+		    }
+#endif
 		    /* yes we have to clear all these! */
 		    commSetDefer(fd, NULL, NULL);
 		    commSetTimeout(fd, -1, NULL, NULL);
@@ -740,11 +753,11 @@ httpReadReply(int fd, void *data)
 		    fwdUnregister(fd, httpState->fwd);
 		    if (httpState->peer) {
 			if (httpState->peer->options.originserver)
-			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, httpState->orig_request->host);
+			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, httpState->orig_request->host, client_addr, client_port);
 			else
-			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, NULL);
+			    pconnPush(fd, httpState->peer->name, httpState->peer->http_port, NULL, client_addr, client_port);
 		    } else {
-			pconnPush(fd, request->host, request->port, NULL);
+			pconnPush(fd, request->host, request->port, NULL, client_addr, client_port);
 		    }
 		    fwdComplete(httpState->fwd);
 		    httpState->fd = -1;

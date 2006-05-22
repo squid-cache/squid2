@@ -664,7 +664,13 @@ struct _SquidConfig {
 	int global_internal_static;
 	int httpd_suppress_version_string;
 	int via;
+#if LINUX_NETFILTER
+	int linux_tproxy;
+#endif
     } onoff;
+#if LINUX_TPROXY
+    u_short tproxy_port;
+#endif
     acl *aclList;
     struct {
 	acl_access *http;
@@ -1218,6 +1224,7 @@ struct _ConnStateData {
     struct in_addr log_addr;
     char rfc931[USER_IDENT_SZ];
     int nrequests;
+    int pinned;			/* Is this connection pinned */
     struct {
 	int n;
 	time_t until;
@@ -1762,6 +1769,7 @@ struct _request_flags {
     unsigned int body_sent:1;
     unsigned int reset_tcp:1;
     unsigned int must_keepalive:1;
+    unsigned int pinned:1;	/* If set, this request is tightly tied to a client-side connection */
 };
 
 struct _link_list {
@@ -1808,6 +1816,7 @@ struct _request_t {
     int imslen;
     int max_forwards;
     /* these in_addr's could probably be sockaddr_in's */
+    in_port_t client_port;
     struct in_addr client_addr;
     struct in_addr my_addr;
     unsigned short my_port;
@@ -2158,6 +2167,9 @@ struct _FwdState {
 	unsigned int dont_retry:1;
 	unsigned int ftp_pasv_failed:1;
     } flags;
+#if LINUX_NETFILTER
+    struct sockaddr_in src;
+#endif
 };
 
 #if USE_HTCP

@@ -34,6 +34,12 @@
  */
 
 #include "squid.h"
+#ifdef LINUX_TPROXY
+#include <linux/capability.h>
+#include <sys/prctl.h>
+#undef __FD_SETSIZE
+#define __FD_SETSIZE SQUID_MAXFD
+#endif
 
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) (const char *);
@@ -451,6 +457,13 @@ mainRotate(void)
 static void
 setEffectiveUser(void)
 {
+#if LINUX_TPROXY
+    if (Config.onoff.linux_tproxy) {
+	if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0)) {
+	    debug(0, 1) ("Error - tproxy support requires capability setting which has failed.  Continuing without tproxy support\n");
+	}
+    }
+#endif
     leave_suid();		/* Run as non privilegied user */
 #ifdef _SQUID_OS2_
     return;

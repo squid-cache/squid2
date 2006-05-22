@@ -36,6 +36,13 @@
 
 #include "squid.h"
 
+#if LINUX_NETFILTER
+#include <linux/netfilter_ipv4.h>
+#endif
+#if LINUX_TPROXY
+#include <linux/netfilter_ipv4/ip_tproxy.h>
+#endif
+
 static PSC fwdStartComplete;
 static void fwdDispatch(FwdState *);
 static void fwdConnectStart(void *);	/* should be same as EVH */
@@ -149,6 +156,11 @@ fwdCheckRetry(FwdState * fwdState)
 static int
 fwdCheckRetriable(FwdState * fwdState)
 {
+    /* If the conneciton is pinned, we want to allow the re-use of this fd
+     * regardless of method */
+    if (fwdState->request->flags.pinned)
+	return 1;
+
     /* If there is a request body then Squid can only try once
      * even if the method is indempotent
      */
@@ -458,6 +470,10 @@ fwdConnectStart(void *data)
     int ftimeout = Config.Timeout.forward - (squid_curtime - fwdState->start);
     struct in_addr outgoing;
     unsigned short tos;
+#if LINUX_TPROXY
+    struct in_tproxy itp;
+#endif
+
     assert(fs);
     assert(fwdState->server_fd == -1);
     debug(17, 3) ("fwdConnectStart: %s\n", url);
@@ -478,7 +494,15 @@ fwdConnectStart(void *data)
 	ftimeout = 5;
     if (ftimeout < ctimeout)
 	ctimeout = ftimeout;
-    if ((fd = pconnPop(name, port, domain)) >= 0) {
+    if (fwdState->request->flags.pinned)
+	fd = pconnPop(name, port, domain, &fwdState->request->client_addr, fwdState->request->client_port);
+#if LINUX_TPROXY
+    if (fd == -1 && (Config.onoff.linux_tproxy) &&
+	((fwdState->request->my_port == Config.tproxy_port) || (Config.tproxy_port == 0)))
+	fd = pconnPop(name, port, domain, &fwdState->request->client_addr, 0);
+#endif
+    if (fd == -1) {
+	fd = pconnPop(name, port, domain, NULL, 0);
 	if (fwdCheckRetriable(fwdState)) {
 	    debug(17, 3) ("fwdConnectStart: reusing pconn FD %d\n", fd);
 	    fwdState->server_fd = fd;
@@ -538,10 +562,38 @@ fwdConnectStart(void *data)
 	ctimeout,
 	fwdConnectTimeout,
 	fwdState);
-    if (fs->peer)
+    if (fs->peer) {
 	hierarchyNote(&fwdState->request->hier, fs->code, fs->peer->host);
-    else
+    } else {
+#if LINUX_TPROXY
+	if (Config.onoff.linux_tproxy &&
+	    ((fwdState->request->my_port == Config.tproxy_port) || (Config.tproxy_port == 0))) {
+
+	    itp.v.addr.faddr.s_addr = fwdState->src.sin_addr.s_addr;
+	    itp.v.addr.fport = 0;
+
+	    /* If these syscalls fail then we just fallback to connecting
+	     * normally by simply ignoring the errors...
+	     */
+	    itp.op = TPROXY_ASSIGN;
+	    if (setsockopt(fd, SOL_IP, IP_TPROXY, &itp, sizeof(itp)) == -1) {
+		debug(20, 1) ("tproxy ip=%s,0x%x,port=%d ERROR ASSIGN\n",
+		    inet_ntoa(itp.v.addr.faddr),
+		    itp.v.addr.faddr.s_addr,
+		    itp.v.addr.fport);
+	    } else {
+		itp.op = TPROXY_FLAGS;
+		itp.v.flags = ITP_CONNECT;
+		if (setsockopt(fd, SOL_IP, IP_TPROXY, &itp, sizeof(itp)) == -1) {
+		    debug(20, 1) ("tproxy ip=%x,port=%d ERROR CONNECT\n",
+			itp.v.addr.faddr.s_addr,
+			itp.v.addr.fport);
+		}
+	    }
+	}
+#endif
 	hierarchyNote(&fwdState->request->hier, fs->code, fwdState->request->host);
+    }
     commConnectStart(fd, host, port, fwdConnectDone, fwdState);
 }
 
@@ -786,6 +838,15 @@ fwdStart(int fd, StoreEntry * e, request_t * r)
     fwdState->server_fd = -1;
     fwdState->request = requestLink(r);
     fwdState->start = squid_curtime;
+
+#if LINUX_TPROXY
+    /* If we need to transparently proxy the request
+     * then we need the client source address and port */
+    fwdState->src.sin_family = AF_INET;
+    fwdState->src.sin_addr = r->client_addr;
+    fwdState->src.sin_port = r->client_port;
+#endif
+
     storeLockObject(e);
     EBIT_SET(e->flags, ENTRY_FWD_HDR_WAIT);
     storeRegisterAbort(e, fwdAbort, fwdState);
@@ -812,8 +873,10 @@ fwdCheckDeferRead(int fd, void *data)
 	int i = delayMostBytesWanted(mem, INT_MAX);
 	if (0 == i) {
 #if HAVE_EPOLL
-	    mem->serverfd = fd;
-	    commDeferFD(fd);
+	    if (fd >= 0) {
+		mem->serverfd = fd;
+		commDeferFD(fd);
+	    }
 #endif
 	    return 1;
 	}
@@ -835,8 +898,8 @@ fwdCheckDeferRead(int fd, void *data)
 	 * few other corner cases.
 	 */
 	if (fd >= 0 && mem->inmem_hi - mem->inmem_lo > SM_PAGE_SIZE + Config.Store.maxInMemObjSize + READ_AHEAD_GAP) {
-	    EBIT_SET(e->flags, ENTRY_DEFER_READ);
 #if HAVE_EPOLL
+	    EBIT_SET(e->flags, ENTRY_DEFER_READ);
 	    mem->serverfd = fd;
 	    commDeferFD(fd);
 #endif

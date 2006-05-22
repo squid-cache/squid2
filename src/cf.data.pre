@@ -4783,4 +4783,41 @@ DOC_START
 	If set to "off" then such HTTP errors will cause the request
 	or response to be rejected.
 DOC_END
+NAME: linux_tproxy
+IFDEF: LINUX_TPROXY
+COMMENT: on|off
+TYPE: onoff
+LOC: Config.onoff.linux_tproxy
+DEFAULT: off
+DOC_START
+	If you have Linux 2.4 with netfilter and TPROXY support and you
+	have compiled squid with the correct options then you can enable
+	this option to allow squid to spoof the source address of
+	outgoing connections to servers so that they see connections from
+	the original client IP addresses. Enable this only if you know
+	what you are doing. You will need to set a valid
+	tcp_outgoing_address.
+DOC_END
+
+NAME: tproxy_port
+IFDEF: LINUX_TPROXY
+TYPE: ushort
+LOC: Config.tproxy_port
+DEFAULT: 0
+DOC_START
+	If you have enabled the linux_tproxy option, this will decide when squid
+	will spoof the source IP address.  If this option is set to "0" (default)
+	squid will spoof the source address for every connection.  If this option 
+	is set to any other value, then squid will only spoof the client address
+	if the connection to the proxy server is made on the specified poert.
+
+	ie.  If you have an iptables rule as follows:
+	iptables -t tproxy -A PREROUTING -m tcp --dport 80 -j TPROXY --on-port 90
+
+	Then setting this option to 90 will allow the transparent connections made
+	to squid's port 90 to have the source ip spoofed.  If a client has specified
+	their proxy settings, and are using another port on the squid server (ie 3128)
+	then squid will nt spoof the source address.
+DOC_END
+
 EOF

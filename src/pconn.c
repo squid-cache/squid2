@@ -49,7 +49,7 @@ int server_pconn_hist[PCONN_HIST_SZ];
 
 static PF pconnRead;
 static PF pconnTimeout;
-static const char *pconnKey(const char *host, u_short port, const char *domain);
+static int pconnKey(char *buf, const char *host, u_short port, const char *domain, struct in_addr *client_address, u_short client_port);
 static hash_table *table = NULL;
 static struct _pconn *pconnNew(const char *key);
 static void pconnDelete(struct _pconn *p);
@@ -58,15 +58,22 @@ static OBJH pconnHistDump;
 static MemPool *pconn_data_pool = NULL;
 static MemPool *pconn_fds_pool = NULL;
 
-static const char *
-pconnKey(const char *host, u_short port, const char *domain)
+#define	PCONN_KEYLEN	(SQUIDHOSTNAMELEN + 30)
+
+static int
+pconnKey(char *buf, const char *host, u_short port, const char *domain,
+    struct in_addr *client_address, u_short client_port)
 {
-    LOCAL_ARRAY(char, buf, SQUIDHOSTNAMELEN + 10);
-    if (domain)
-	snprintf(buf, SQUIDHOSTNAMELEN + 10, "%s:%d/%s", host, (int) port, domain);
+    if (domain && client_address)
+	return snprintf(buf, PCONN_KEYLEN, "%s.%d:%s.%d/%s", host, (int) port,
+	    inet_ntoa(*client_address), (int) client_port, domain);
+    else if (domain && (!client_address))
+	return snprintf(buf, PCONN_KEYLEN, "%s.%d/%s", host, (int) port, domain);
+    else if ((!domain) && client_address)
+	return snprintf(buf, PCONN_KEYLEN, "%s.%d:%s.%d", host, (int) port,
+	    inet_ntoa(*client_address), (int) client_port);
     else
-	snprintf(buf, SQUIDHOSTNAMELEN + 10, "%s:%d", host, (int) port);
-    return buf;
+	return snprintf(buf, PCONN_KEYLEN, "%s:%d", host, (int) port);
 }
 
 static struct _pconn *
@@ -187,12 +194,12 @@ pconnInit(void)
 }
 
 void
-pconnPush(int fd, const char *host, u_short port, const char *domain)
+pconnPush(int fd, const char *host, u_short port, const char *domain, struct in_addr *client_address, u_short client_port)
 {
     struct _pconn *p;
     int *old;
-    const char *key;
     LOCAL_ARRAY(char, desc, FD_DESC_SZ);
+    LOCAL_ARRAY(char, key, PCONN_KEYLEN);
     if (fdUsageHigh()) {
 	debug(48, 3) ("pconnPush: Not many unused FDs\n");
 	comm_close(fd);
@@ -202,7 +209,7 @@ pconnPush(int fd, const char *host, u_short port, const char *domain)
 	return;
     }
     assert(table != NULL);
-    key = pconnKey(host, port, domain);
+    pconnKey(key, host, port, domain, client_address, client_port);
     p = (struct _pconn *) hash_lookup(table, key);
     if (p == NULL)
 	p = pconnNew(key);
@@ -226,15 +233,13 @@ pconnPush(int fd, const char *host, u_short port, const char *domain)
 }
 
 int
-pconnPop(const char *host, u_short port, const char *domain)
+pconnPop(const char *host, u_short port, const char *domain, struct in_addr *client_address, u_short client_port)
 {
     struct _pconn *p;
     hash_link *hptr;
     int fd = -1;
-    const char *key;
     assert(table != NULL);
-    key = pconnKey(host, port, domain);
-    hptr = hash_lookup(table, key);
+    hptr = pconnLookup(host, port, domain, client_address, client_port);
     if (hptr != NULL) {
 	p = (struct _pconn *) hptr;
 	assert(p->nfds > 0);
@@ -244,6 +249,15 @@ pconnPop(const char *host, u_short port, const char *domain)
 	commSetTimeout(fd, -1, NULL, NULL);
     }
     return fd;
+}
+
+hash_link *
+pconnLookup(const char *peer, u_short port, const char *domain, struct in_addr * client_address, u_short client_port)
+{
+    LOCAL_ARRAY(char, key, PCONN_KEYLEN);
+    assert(table != NULL);
+    pconnKey(key, peer, port, domain, client_address, client_port);
+    return hash_lookup(table, key);
 }
 
 void

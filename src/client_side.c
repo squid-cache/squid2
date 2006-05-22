@@ -442,6 +442,7 @@ clientRedirectDone(void *data, char *result)
 	new_request->http_ver = old_request->http_ver;
 	httpHeaderAppend(&new_request->header, &old_request->header);
 	new_request->client_addr = old_request->client_addr;
+	new_request->client_port = old_request->client_port;
 	new_request->my_addr = old_request->my_addr;
 	new_request->my_port = old_request->my_port;
 	new_request->flags = old_request->flags;
@@ -1165,9 +1166,15 @@ clientInterpretRequestHeaders(clientHttpRequest * http)
 	if (request->range)
 	    request->flags.range = 1;
     }
+    /* If any connection has been pinned to this client, force keep alive */
+    if (http->conn->pinned) {
+	request->flags.must_keepalive = 1;
+	request->flags.auth = 1;
+	request->flags.pinned = 1;
+    }
     if (httpHeaderHas(req_hdr, HDR_AUTHORIZATION))
 	request->flags.auth = 1;
-    if (request->login[0] != '\0')
+    else if (request->login[0] != '\0')
 	request->flags.auth = 1;
     if (httpHeaderHas(req_hdr, HDR_VIA)) {
 	String s = httpHeaderGetList(req_hdr, HDR_VIA);
@@ -1575,8 +1582,17 @@ clientBuildReplyHeader(clientHttpRequest * http, HttpReply * rep)
 			(value[4] == '\0' || value[4] == ' '))
 		    ||
 		    (strncasecmp(value, "Negotiate", 9) == 0 &&
-			(value[9] == '\0' || value[9] == ' ')))
-		    httpHeaderDelAt(hdr, pos);
+			(value[9] == '\0' || value[9] == ' '))) {
+
+		    if (!request->flags.accelerated) {
+			httpHeaderPutStr(hdr, HDR_PROXY_SUPPORT, "Session-Based-Authentication");
+			httpHeaderPutStr(hdr, HDR_CONNECTION, "Proxy-support");
+		    }
+		    request->flags.pinned = 1;
+		    request->flags.must_keepalive = 1;
+		    http->conn->pinned = 1;
+		    break;
+		}
 	    }
 	}
     }
@@ -3497,6 +3513,7 @@ clientReadRequest(int fd, void *data)
 	    safe_free(http->log_uri);
 	    http->log_uri = xstrdup(urlCanonicalClean(request));
 	    request->client_addr = conn->peer.sin_addr;
+	    request->client_port = conn->peer.sin_port;
 	    request->my_addr = conn->me.sin_addr;
 	    request->my_port = ntohs(conn->me.sin_port);
 	    request->http_ver = http->http_ver;
