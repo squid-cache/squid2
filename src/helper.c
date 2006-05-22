@@ -576,7 +576,7 @@ helperServerFree(int fd, void *data)
 	concurrency = 1;
     assert(srv->rfd == fd);
     if (srv->rbuf) {
-	memFreeBuf(srv->rbuf, srv->rbuf_sz);
+	memFreeBuf(srv->rbuf_sz, srv->rbuf);
 	srv->rbuf = NULL;
     }
     if (!memBufIsNull(&srv->wqueue))
