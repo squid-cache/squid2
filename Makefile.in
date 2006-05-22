@@ -86,6 +86,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LIBDLMALLOC = @LIBDLMALLOC@
 LIBREGEX = @LIBREGEX@
 LIBSASL = @LIBSASL@
+LIB_DB = @LIB_DB@
 LIB_EPOLL = @LIB_EPOLL@
 LIB_LBER = @LIB_LBER@
 LIB_LDAP = @LIB_LDAP@
@@ -108,7 +109,6 @@ REPL_LIBS = @REPL_LIBS@
 REPL_OBJS = @REPL_OBJS@
 REPL_POLICIES = @REPL_POLICIES@
 RM = @RM@
-SAMBASOURCES = @SAMBASOURCES@
 SH = @SH@
 SNMPLIB = @SNMPLIB@
 SSLLIB = @SSLLIB@
@@ -142,8 +142,7 @@ EXTRA_DIST = \
 	QUICKSTART \
 	README \
 	SPONSORS \
-	bootstrap.sh \
-	include/samba/README.txt
+	bootstrap.sh
 
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -309,7 +308,7 @@ GZIP_ENV = --best
 distdir: $(DISTFILES)
 	-chmod -R a+w $(distdir) >/dev/null 2>&1; rm -rf $(distdir)
 	mkdir $(distdir)
-	$(mkinstalldirs) $(distdir)/./include $(distdir)/cfgaux $(distdir)/include/samba $(distdir)/scripts
+	$(mkinstalldirs) $(distdir)/./include $(distdir)/cfgaux $(distdir)/scripts
 	@for file in $(DISTFILES); do \
 	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
 	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
@@ -475,7 +474,7 @@ uninstall-info: uninstall-info-recursive
 
 
 dist-hook:
-	@ for subdir in include include/samba/nsswitch; do \
+	@ for subdir in include; do \
 	  if test "$$subdir" = .; then :; else \
 	    test -d $(distdir)/$$subdir \
 	    || mkdir $(distdir)/$$subdir \

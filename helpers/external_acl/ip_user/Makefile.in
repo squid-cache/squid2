@@ -90,6 +90,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LIBDLMALLOC = @LIBDLMALLOC@
 LIBREGEX = @LIBREGEX@
 LIBSASL = @LIBSASL@
+LIB_DB = @LIB_DB@
 LIB_EPOLL = @LIB_EPOLL@
 LIB_LBER = @LIB_LBER@
 LIB_LDAP = @LIB_LDAP@
@@ -112,7 +113,6 @@ REPL_LIBS = @REPL_LIBS@
 REPL_OBJS = @REPL_OBJS@
 REPL_POLICIES = @REPL_POLICIES@
 RM = @RM@
-SAMBASOURCES = @SAMBASOURCES@
 SH = @SH@
 SNMPLIB = @SNMPLIB@
 SSLLIB = @SSLLIB@
@@ -147,11 +147,8 @@ EXTRA_DIST = \
 
 
 # sysconf_DATA = 
-LDADD = @XTRA_LIBS@
-
-INCLUDES = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
-		-I$(top_srcdir)/src/
-
+LDADD = -L$(top_builddir)/lib -lmiscutil @XTRA_LIBS@
+INCLUDES = -I. -I$(top_builddir)/include -I$(top_srcdir)/include
 subdir = helpers/external_acl/ip_user
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/autoconf.h
