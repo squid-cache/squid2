@@ -186,7 +186,7 @@ parse_externalAclHelper(external_acl ** list)
     if (!token)
 	self_destruct();
     a->name = xstrdup(token);
-    a->quote = QUOTE_METHOD_SHELL;
+    a->quote = QUOTE_METHOD_URL;
 
     token = strtok(NULL, w_space);
     /* Parse options */

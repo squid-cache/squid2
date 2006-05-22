@@ -2014,7 +2014,7 @@ DOC_START
 	  concurrency=n	concurrency level per process. Use 0 for simple helpers
 			who can only process a single request at a time.
 	  cache=n	result cache size, 0 is unbounded (default)
-	  protocol=3.0	Use URL-escaped strings instead of quoting
+	  protocol=2.5  Compatibility mode for Squid-2.5 external acl helpers
 
 	FORMAT specifications
 
