@@ -1824,6 +1824,8 @@ struct _request_t {
     void *body_reader_data;
 #define HAVE_EXTACL_LOG 1
     String extacl_log;		/* String to be used for access.log purposes */
+    const char *extacl_user;	/* User name returned by extacl lookup */
+    const char *extacl_passwd;	/* Password returned by extacl lookup */
 };
 
 struct _cachemgr_passwd {

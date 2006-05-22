@@ -459,6 +459,10 @@ clientRedirectDone(void *data, char *result)
 	new_request->content_length = old_request->content_length;
 	if (strBuf(old_request->extacl_log))
 	    new_request->extacl_log = stringDup(&old_request->extacl_log);
+	if (old_request->extacl_user)
+	    new_request->extacl_user = xstrdup(old_request->extacl_user);
+	if (old_request->extacl_passwd)
+	    new_request->extacl_passwd = xstrdup(old_request->extacl_passwd);
 	requestUnlink(old_request);
 	http->request = requestLink(new_request);
     } else {
@@ -1000,6 +1004,8 @@ httpRequestFree(void *data)
 		    http->al.cache.authuser = xstrdup(authenticateUserRequestUsername(request->auth_user_request));
 		authenticateAuthUserRequestUnlock(request->auth_user_request);
 		request->auth_user_request = NULL;
+	    } else if (request->extacl_user) {
+		http->al.cache.authuser = xstrdup(request->extacl_user);
 	    }
 	    if (conn->rfc931[0])
 		http->al.cache.rfc931 = conn->rfc931;

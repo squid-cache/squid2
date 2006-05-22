@@ -200,6 +200,10 @@ aclStrToType(const char *s)
 #endif
     if (!strcmp(s, "urlgroup"))
 	return ACL_URLGROUP;
+    if (!strcmp(s, "ext_user"))
+	return ACL_EXTUSER;
+    if (!strcmp(s, "ext_user_regex"))
+	return ACL_EXTUSER_REGEX;
     return ACL_NONE;
 }
 
@@ -290,6 +294,10 @@ aclTypeToStr(squid_acl type)
 #endif
     if (type == ACL_URLGROUP)
 	return "urlgroup";
+    if (type == ACL_EXTUSER)
+	return "ext_user";
+    if (type == ACL_EXTUSER_REGEX)
+	return "ext_user_regex";
     return "ERROR";
 }
 
@@ -1072,6 +1080,12 @@ aclParseAclLine(acl ** head)
 	aclParseCertList(&A->data);
 	break;
 #endif
+    case ACL_EXTUSER:
+	aclParseUserList(&A->data);
+	break;
+    case ACL_EXTUSER_REGEX:
+	aclParseRegexList(&A->data);
+	break;
     case ACL_NONE:
     case ACL_ENUM_MAX:
 	fatal("Bad ACL type");
@@ -1997,6 +2011,20 @@ aclMatchAcl(acl * ae, aclCheck_t * checklist)
 	return aclMatchCACert(ae->data, checklist);
 	/* NOTREACHED */
 #endif
+    case ACL_EXTUSER:
+	if (checklist->request->extacl_user) {
+	    return aclMatchUser(ae->data, (char *) checklist->request->extacl_user);
+	} else {
+	    return -1;
+	}
+	/* NOTREACHED */
+    case ACL_EXTUSER_REGEX:
+	if (checklist->request->extacl_user) {
+	    return aclMatchRegex(ae->data, checklist->request->extacl_user);
+	} else {
+	    return -1;
+	}
+	/* NOTREACHED */
     case ACL_NONE:
     case ACL_ENUM_MAX:
 	break;
@@ -2449,6 +2477,7 @@ aclDestroyAcls(acl ** head)
 	    break;
 #endif
 	case ACL_PROXY_AUTH:
+	case ACL_EXTUSER:
 	    aclFreeUserData(a->data);
 	    break;
 	case ACL_TIME:
@@ -2467,6 +2496,7 @@ aclDestroyAcls(acl ** head)
 	case ACL_DST_DOM_REGEX:
 	case ACL_REP_MIME_TYPE:
 	case ACL_REQ_MIME_TYPE:
+	case ACL_EXTUSER_REGEX:
 	    aclDestroyRegexList(a->data);
 	    break;
 	case ACL_TYPE:
@@ -2942,6 +2972,10 @@ aclDumpGeneric(const acl * a)
     case ACL_CA_CERT:
 	return aclDumpCertList(a->data);
 #endif
+    case ACL_EXTUSER:
+	return aclDumpUserList(a->data);
+    case ACL_EXTUSER_REGEX:
+	return aclDumpRegexList(a->data);
     case ACL_NONE:
     case ACL_ENUM_MAX:
 	break;

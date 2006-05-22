@@ -67,6 +67,7 @@ struct _external_acl_entry {
     int result;
     time_t date;
     char *user;
+    char *passwd;
     char *message;
     char *log;
     external_acl *def;
@@ -120,6 +121,7 @@ struct _external_acl_format {
 	EXT_ACL_USER_CERT_RAW,
 	EXT_ACL_USER_CERTCHAIN_RAW,
 #endif
+	EXT_ACL_EXT_USER,
 	EXT_ACL_END
     } type;
     external_acl_format *next;
@@ -292,6 +294,8 @@ parse_externalAclHelper(external_acl ** list)
 	    format->header = xstrdup(token + 9);
 	}
 #endif
+	else if (strcmp(token, "%EXT_USER") == 0)
+	    format->type = EXT_ACL_EXT_USER;
 	else {
 	    self_destruct();
 	}
@@ -357,6 +361,7 @@ dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl
 		DUMP_EXT_ACL_TYPE(PORT);
 		DUMP_EXT_ACL_TYPE(PATH);
 		DUMP_EXT_ACL_TYPE(METHOD);
+		DUMP_EXT_ACL_TYPE(EXT_USER);
 #if USE_SSL
 	    case EXT_ACL_USER_CERT_RAW:
 		storeAppendPrintf(sentry, " %%USER_CERT");
@@ -461,8 +466,10 @@ aclMatchExternal(void *data, aclCheck_t * ch)
     int result;
     external_acl_entry *entry = NULL;
     external_acl_data *acl = data;
+    request_t *request;
     const char *key = "";
     debug(82, 9) ("aclMatchExternal: acl=\"%s\"\n", acl->def->name);
+    request = ch->request;
     if (ch->extacl_entry) {
 	entry = ch->extacl_entry;
 	if (!cbdataValid(entry))
@@ -512,14 +519,13 @@ aclMatchExternal(void *data, aclCheck_t * ch)
     external_acl_message = entry->message;
 
     debug(82, 2) ("aclMatchExternal: %s = %d\n", acl->def->name, result);
-    /* FIXME: This should allocate it's own storage in the request. This
-     * piggy backs on ident, and may fail if there is child proxies..
-     * Register the username for logging purposes
-     */
     if (entry->user) {
-	xstrncpy(ch->rfc931, entry->user, USER_IDENT_SZ);
-	if (cbdataValid(ch->conn))
-	    xstrncpy(ch->conn->rfc931, entry->user, USER_IDENT_SZ);
+	safe_free(request->extacl_user);
+	request->extacl_user = xstrdup(entry->user);
+    }
+    if (entry->passwd) {
+	safe_free(request->extacl_passwd);
+	request->extacl_passwd = xstrdup(entry->passwd);
     }
     if (entry->log)
 	stringReset(&ch->request->extacl_log, entry->log);
@@ -647,6 +653,9 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	    }
 	    break;
 #endif
+	case EXT_ACL_EXT_USER:
+	    str = request->extacl_user;
+	    break;
 	case EXT_ACL_UNKNOWN:
 	case EXT_ACL_END:
 	    fatal("unknown external_acl format error");
@@ -702,7 +711,7 @@ free_external_acl_entry(void *data)
 }
 
 static external_acl_entry *
-external_acl_cache_add(external_acl * def, const char *key, int result, char *user, char *message, char *log)
+external_acl_cache_add(external_acl * def, const char *key, int result, char *user, char *passwd, char *message, char *log)
 {
     external_acl_entry *entry = hash_lookup(def->cache, key);
     debug(82, 2) ("external_acl_cache_add: Adding '%s' = %d\n", key, result);
@@ -711,12 +720,15 @@ external_acl_cache_add(external_acl * def, const char *key, int result, char *us
 	entry->date = squid_curtime;
 	entry->result = result;
 	safe_free(entry->user);
-	safe_free(entry->message);
-	safe_free(entry->log);
 	if (user)
 	    entry->user = xstrdup(user);
+	safe_free(entry->passwd);
+	if (passwd)
+	    entry->passwd = xstrdup(passwd);
+	safe_free(entry->message);
 	if (message)
 	    entry->message = xstrdup(message);
+	safe_free(entry->log);
 	if (log)
 	    entry->log = xstrdup(log);
 	external_acl_cache_touch(def, entry);
@@ -732,6 +744,8 @@ external_acl_cache_add(external_acl * def, const char *key, int result, char *us
     entry->result = result;
     if (user)
 	entry->user = xstrdup(user);
+    if (passwd)
+	entry->passwd = xstrdup(passwd);
     if (message)
 	entry->message = xstrdup(message);
     if (log)
@@ -808,6 +822,7 @@ externalAclHandleReply(void *data, char *reply)
     char *value;
     char *t;
     char *user = NULL;
+    char *passwd = NULL;
     char *message = NULL;
     char *log = NULL;
     external_acl_entry *entry = NULL;
@@ -835,13 +850,17 @@ externalAclHandleReply(void *data, char *reply)
 		    message = value;
 		else if (strcmp(token, "log") == 0)
 		    log = value;
+		else if (strcmp(token, "password") == 0)
+		    passwd = value;
+		else if (strcmp(token, "passwd") == 0)
+		    passwd = value;
 	    }
 	}
     }
     dlinkDelete(&state->list, &state->def->queue);
     if (cbdataValid(state->def)) {
 	if (reply)
-	    entry = external_acl_cache_add(state->def, state->key, result, user, message, log);
+	    entry = external_acl_cache_add(state->def, state->key, result, user, passwd, message, log);
 	else {
 	    external_acl_entry *oldentry = hash_lookup(state->def->cache, state->key);
 	    if (oldentry)
@@ -943,7 +962,7 @@ externalAclLookup(aclCheck_t * ch, void *acl_data, EAH * callback, void *callbac
     memBufDefInit(&buf);
     memBufPrintf(&buf, "%s\n", key);
     helperSubmit(def->helper, buf.buf, externalAclHandleReply, state);
-    external_acl_cache_add(def, key, -1, NULL, NULL, NULL);
+    external_acl_cache_add(def, key, -1, NULL, NULL, NULL, NULL);
     dlinkAdd(state, &state->list, &def->queue);
     memBufClean(&buf);
 }

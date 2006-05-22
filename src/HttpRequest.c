@@ -62,6 +62,8 @@ requestDestroy(request_t * req)
     safe_free(req->canonical);
     safe_free(req->vary_headers);
     safe_free(req->urlgroup);
+    safe_free(req->extacl_user);
+    safe_free(req->extacl_passwd);
     stringClean(&req->urlpath);
     httpHeaderClean(&req->header);
     if (req->cache_control)

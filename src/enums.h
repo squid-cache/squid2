@@ -146,6 +146,8 @@ typedef enum {
     ACL_CA_CERT,
 #endif
     ACL_URLGROUP,
+    ACL_EXTUSER,
+    ACL_EXTUSER_REGEX,
     ACL_ENUM_MAX
 } squid_acl;
 

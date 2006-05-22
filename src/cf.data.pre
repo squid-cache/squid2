@@ -2053,6 +2053,7 @@ DOC_START
 	Defined keywords:
 
 	  user=		The users name (login also understood)
+	  password=	The users password (for PROXYPASS login= cache_peer)
 	  message=	Error message or similar used as %o in error messages
 	  		(error also understood)
 	  log=		String to be logged in access.log. Available as
@@ -2635,6 +2636,10 @@ DOC_START
 	  # match against attributes a users issuing CA SSL certificate
 	  # attribute is one of DN/C/O/CN/L/ST
 
+	acl aclname ext_user       username ...
+	acl aclname ext_user_regex [-i] pattern ...
+	  # string match on username returned by external acl
+	  # use REQUIRED to accept any user name.
 Examples:
 acl macaddress arp 09:00:2b:23:45:67
 acl myexample dst_as 1241
