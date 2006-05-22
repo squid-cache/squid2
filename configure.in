@@ -1826,6 +1826,15 @@ esac
 AC_SUBST(LIB_LDAP)
 AC_SUBST(LIB_LBER)
 
+dnl Check for libdb
+DBLIB=
+dnl 1.85
+AC_CHECK_LIB(db, dbopen, [LIB_DB="-ldb"])
+dnl more current ones..
+AC_CHECK_LIB(db, db_open, [LIB_DB="-ldb"])
+AC_CHECK_LIB(db, __db185_open, [LIB_DB="-ldb"])
+AC_SUBST(LIB_DB)
+
 dnl System-specific library modifications
 dnl
 case "$host" in
