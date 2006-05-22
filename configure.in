@@ -2660,6 +2660,7 @@ AC_OUTPUT([\
 	helpers/external_acl/Makefile \
 	helpers/external_acl/ip_user/Makefile \
 	helpers/external_acl/ldap_group/Makefile \
+	helpers/external_acl/session/Makefile \
 	helpers/external_acl/unix_group/Makefile \
 	helpers/external_acl/wbinfo_group/Makefile \
 ])
