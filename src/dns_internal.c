@@ -35,6 +35,11 @@
 
 #include "squid.h"
 
+/* MS VisualStudio Projects are monolitich, so we need the following
+ * #ifndef to exclude the internal DNS code from compile process when
+ * using External DNS process.
+ */
+#ifndef USE_DNSSERVERS
 #include "config.h"
 
 #if HAVE_ARPA_NAMESER_H
@@ -133,9 +138,12 @@ static void idnsAddPathComponent(const char *buf);
 static void idnsFreeNameservers(void);
 static void idnsFreeSearchpath(void);
 static void idnsParseNameservers(void);
+#ifndef _SQUID_MSWIN_
 static void idnsParseResolvConf(void);
+#endif
 #ifdef _SQUID_WIN32_
 static void idnsParseWIN32Registry(void);
+static void idnsParseWIN32SearchList(const char *);
 #endif
 static void idnsCacheQuery(idns_query * q);
 static void idnsSendQuery(idns_query * q);
@@ -231,6 +239,7 @@ idnsParseNameservers(void)
     }
 }
 
+#ifndef _SQUID_MSWIN_
 static void
 idnsParseResolvConf(void)
 {
@@ -281,8 +290,42 @@ idnsParseResolvConf(void)
     }
     fclose(fp);
 }
+#endif
 
 #ifdef _SQUID_WIN32_
+static void
+idnsParseWIN32SearchList(const char *Separator)
+{
+    BYTE *t;
+    char *token;
+    HKEY hndKey;
+
+    if (RegOpenKey(HKEY_LOCAL_MACHINE,
+	    "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters",
+	    &hndKey) == ERROR_SUCCESS) {
+	DWORD Type = 0;
+	DWORD Size = 0;
+	LONG Result;
+	Result =
+	    RegQueryValueEx(hndKey, "SearchList", NULL, &Type, NULL,
+	    &Size);
+
+	if (Result == ERROR_SUCCESS && Size) {
+	    t = (unsigned char *) xmalloc(Size);
+	    RegQueryValueEx(hndKey, "SearchList", NULL, &Type, t,
+		&Size);
+	    token = strtok((char *) t, Separator);
+
+	    while (token) {
+		idnsAddPathComponent(token);
+		debug(78, 1,) ("Adding domain %s from Registry\n", token);
+		token = strtok(NULL, Separator);
+	    }
+	}
+	RegCloseKey(hndKey);
+    }
+}
+
 static void
 idnsParseWIN32Registry(void)
 {
@@ -330,6 +373,7 @@ idnsParseWIN32Registry(void)
 	    }
 	    RegCloseKey(hndKey);
 	}
+	idnsParseWIN32SearchList(" ");
 	break;
     case _WIN_OS_WIN2K:
     case _WIN_OS_WINXP:
@@ -392,6 +436,7 @@ idnsParseWIN32Registry(void)
 	    }
 	    RegCloseKey(hndKey);
 	}
+	idnsParseWIN32SearchList(", ");
 	break;
     case _WIN_OS_WIN95:
     case _WIN_OS_WIN98:
@@ -464,6 +509,12 @@ idnsStats(StoreEntry * sentry)
 	storeAppendPrintf(sentry, "%5d", j);
 	for (i = 0; i < MAX_ATTEMPT; i++)
 	    storeAppendPrintf(sentry, " %8d", RcodeMatrix[j][i]);
+	storeAppendPrintf(sentry, "\n");
+    }
+    if (npc) {
+	storeAppendPrintf(sentry, "\nSearch list:\n");
+	for (i = 0; i < npc; i++)
+	    storeAppendPrintf(sentry, "%s\n", searchpath[i].domain);
 	storeAppendPrintf(sentry, "\n");
     }
 }
@@ -975,3 +1026,4 @@ snmp_netIdnsFn(variable_list * Var, snint * ErrP)
     return Answer;
 }
 #endif /*SQUID_SNMP */
+#endif /* USE_DNSSERVERS */
