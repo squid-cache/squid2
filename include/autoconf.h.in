@@ -363,6 +363,11 @@
  */
 #undef LINUX_NETFILTER
 
+/* 
+ * Enable real Transparent Proxy support for Netfilter TPROXY.
+ */
+#undef LINUX_TPROXY
+
 /*
  * Do we have unix sockets? (required for the winbind ntlm helper
  */
@@ -700,6 +705,9 @@
 
 /* Define if you have the <linux/netfilter_ipv4.h> header file.  */
 #undef HAVE_LINUX_NETFILTER_IPV4_H
+
+/* Define if you have the <linux/netfilter_ipv4/ip_tproxy.h> header file.  */
+#undef HAVE_LINUX_NETFILTER_IPV4_IP_TPROXY_H
 
 /* Define if you have the <malloc.h> header file.  */
 #undef HAVE_MALLOC_H
