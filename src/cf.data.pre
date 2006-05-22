@@ -2042,6 +2042,9 @@ DOC_START
 	  		HTTP request header list member using ; as
 	  		list separator. ; can be any non-alphanumeric
 			character.
+	 %ACL		The ACL name
+	 %DATA		The ACL arguments. If not used then any arguments
+	 		is automatically added at the end
 
 	In addition, any string specified in the referencing acl will
 	also be included in the helper request line, after the specified

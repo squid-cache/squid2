@@ -1360,7 +1360,7 @@ extern void WIN32_Exit(void);
 extern void parse_externalAclHelper(external_acl **);
 extern void dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl *);
 extern void free_externalAclHelper(external_acl **);
-extern void aclParseExternal(void *curlist);
+extern void aclParseExternal(void *curlist, const char *name);
 extern void aclDestroyExternal(void **curlust);
 extern int aclMatchExternal(void *dataptr, aclCheck_t * ch);
 extern wordlist *aclDumpExternal(void *dataptr);

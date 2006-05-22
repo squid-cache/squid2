@@ -127,6 +127,8 @@ struct _external_acl_format {
 	EXT_ACL_USER_CERTCHAIN_RAW,
 #endif
 	EXT_ACL_EXT_USER,
+	EXT_ACL_ACL,
+	EXT_ACL_DATA,
 	EXT_ACL_END
     } type;
     external_acl_format *next;
@@ -309,6 +311,10 @@ parse_externalAclHelper(external_acl ** list)
 #endif
 	else if (strcmp(token, "%EXT_USER") == 0)
 	    format->type = EXT_ACL_EXT_USER;
+	else if (strcmp(token, "%ACL") == 0)
+	    format->type = EXT_ACL_ACL;
+	else if (strcmp(token, "%DATA") == 0)
+	    format->type = EXT_ACL_DATA;
 	else {
 	    self_destruct();
 	}
@@ -396,6 +402,8 @@ dump_externalAclHelper(StoreEntry * sentry, const char *name, const external_acl
 		storeAppendPrintf(sentry, " %%CA_CERT_%s", format->header);
 		break;
 #endif
+		DUMP_EXT_ACL_TYPE(ACL);
+		DUMP_EXT_ACL_TYPE(DATA);
 	    case EXT_ACL_UNKNOWN:
 	    case EXT_ACL_END:
 		fatal("unknown external_acl format error");
@@ -438,6 +446,7 @@ find_externalAclHelper(const char *name)
 
 struct _external_acl_data {
     external_acl *def;
+    const char *name;
     wordlist *arguments;
 };
 
@@ -452,7 +461,7 @@ free_external_acl_data(void *data)
 }
 
 void
-aclParseExternal(void *dataptr)
+aclParseExternal(void *dataptr, const char *name)
 {
     external_acl_data **datap = dataptr;
     external_acl_data *data;
@@ -464,6 +473,7 @@ aclParseExternal(void *dataptr)
     token = strtok(NULL, w_space);
     if (!token)
 	self_destruct();
+    data->name = name;
     data->def = find_externalAclHelper(token);
     cbdataLock(data->def);
     if (!data->def)
@@ -595,6 +605,7 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
     request_t *request = ch->request;
     String sb = StringNull;
     memBufReset(&mb);
+    int data_used = 0;
     for (format = acl_data->def->format; format; format = format->next) {
 	const char *str = NULL;
 	switch (format->type) {
@@ -689,6 +700,29 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	case EXT_ACL_EXT_USER:
 	    str = request->extacl_user;
 	    break;
+	case EXT_ACL_DATA:
+	    data_used = 1;
+	    for (arg = acl_data->arguments; arg; arg = arg->next) {
+		if (arg != acl_data->arguments)
+		    stringAppend(&sb, " ", 1);
+		if (acl_data->def->quote == QUOTE_METHOD_URL) {
+		    const char *quoted = rfc1738_escape(arg->key);
+		    stringAppend(&sb, quoted, strlen(quoted));
+		} else {
+		    static MemBuf mb2 = MemBufNULL;
+		    strwordquote(&mb2, arg->key);
+		    stringAppend(&sb, mb2.buf, mb2.size);
+		    memBufClean(&mb2);
+		}
+		first = 0;
+	    }
+	    str = strBuf(sb);
+	    break;
+
+	case EXT_ACL_ACL:
+	    str = acl_data->name;
+	    break;
+
 	case EXT_ACL_UNKNOWN:
 	case EXT_ACL_END:
 	    fatal("unknown external_acl format error");
@@ -710,16 +744,18 @@ makeExternalAclKey(aclCheck_t * ch, external_acl_data * acl_data)
 	stringClean(&sb);
 	first = 0;
     }
-    for (arg = acl_data->arguments; arg; arg = arg->next) {
-	if (!first)
-	    memBufAppend(&mb, " ", 1);
-	if (acl_data->def->quote == QUOTE_METHOD_URL) {
-	    const char *quoted = rfc1738_escape(arg->key);
-	    memBufAppend(&mb, quoted, strlen(quoted));
-	} else {
-	    strwordquote(&mb, arg->key);
+    if (!data_used) {
+	for (arg = acl_data->arguments; arg; arg = arg->next) {
+	    if (!first)
+		memBufAppend(&mb, " ", 1);
+	    if (acl_data->def->quote == QUOTE_METHOD_URL) {
+		const char *quoted = rfc1738_escape(arg->key);
+		memBufAppend(&mb, quoted, strlen(quoted));
+	    } else {
+		strwordquote(&mb, arg->key);
+	    }
+	    first = 0;
 	}
-	first = 0;
     }
     return mb.buf;
 }

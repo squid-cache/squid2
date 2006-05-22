@@ -1069,7 +1069,7 @@ aclParseAclLine(acl ** head)
 	break;
 #endif
     case ACL_EXTERNAL:
-	aclParseExternal(&A->data);
+	aclParseExternal(&A->data, A->name);
 	break;
     case ACL_URLGROUP:
 	aclParseWordList(&A->data);
