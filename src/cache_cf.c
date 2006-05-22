@@ -285,7 +285,7 @@ parseConfigFile(const char *file_name)
     if ((fp = fopen(file_name, "r")) == NULL)
 	fatalf("Unable to open configuration file: %s: %s",
 	    file_name, xstrerror());
-#if defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
     setmode(fileno(fp), O_TEXT);
 #endif
     cfg_filename = file_name;
@@ -2915,7 +2915,7 @@ strtokFile(void)
 		debug(28, 0) ("strtokFile: %s not found\n", fn);
 		return (NULL);
 	    }
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
 	    setmode(fileno(wordFile), O_TEXT);
 #endif
 	    fromFile = 1;

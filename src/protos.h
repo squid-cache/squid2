@@ -1348,9 +1348,9 @@ extern StatCounters *snmpStatGet(int);
 /* Vary support functions */
 int varyEvaluateMatch(StoreEntry * entry, request_t * req);
 
-/* CygWin & Windows NT Port */
+/* Windows Port */
 /* win32.c */
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
 extern int WIN32_Subsystem_Init(void);
 extern void WIN32_Exit(void);
 #endif

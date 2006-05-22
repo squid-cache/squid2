@@ -44,7 +44,7 @@
 #include <resolv.h>
 #endif
 
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
 #include <windows.h>
 #endif
 #ifndef _PATH_RESCONF
@@ -134,7 +134,7 @@ static void idnsFreeNameservers(void);
 static void idnsFreeSearchpath(void);
 static void idnsParseNameservers(void);
 static void idnsParseResolvConf(void);
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
 static void idnsParseWIN32Registry(void);
 #endif
 static void idnsCacheQuery(idns_query * q);
@@ -242,7 +242,7 @@ idnsParseResolvConf(void)
 	debug(78, 1) ("%s: %s\n", _PATH_RESCONF, xstrerror());
 	return;
     }
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#if defined(_SQUID_CYGWIN_)
     setmode(fileno(fp), O_TEXT);
 #endif
     while (fgets(buf, RESOLV_BUFSZ, fp)) {
@@ -282,7 +282,7 @@ idnsParseResolvConf(void)
     fclose(fp);
 }
 
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
 static void
 idnsParseWIN32Registry(void)
 {
@@ -801,13 +801,13 @@ idnsInit(void)
     if (0 == nns)
 	idnsParseResolvConf();
 #endif
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
     if (0 == nns)
 	idnsParseWIN32Registry();
 #endif
     if (0 == nns) {
 	debug(78, 1) ("Warning: Could not find any nameservers. Trying to use localhost\n");
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
 	debug(78, 1) ("Please check your TCP-IP settings or /etc/resolv.conf file\n");
 #else
 	debug(78, 1) ("Please check your /etc/resolv.conf file\n");

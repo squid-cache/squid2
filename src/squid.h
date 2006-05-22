@@ -214,7 +214,7 @@
 #if HAVE_LIMITS_H
 #include <limits.h>
 #endif
-#if defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
 #include <io.h>
 #endif
 

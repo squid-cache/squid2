@@ -302,7 +302,7 @@ mimeInit(char *filename)
 	debug(25, 1) ("mimeInit: %s: %s\n", filename, xstrerror());
 	return;
     }
-#if defined (_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
     setmode(fileno(fp), O_TEXT);
 #endif
     mimeFreeMemory();

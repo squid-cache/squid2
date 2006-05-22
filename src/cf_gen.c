@@ -134,7 +134,7 @@ main(int argc, char *argv[])
 	perror(input_filename);
 	exit(1);
     }
-#if defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
     setmode(fileno(fp), O_TEXT);
 #endif
     state = sSTART;
@@ -321,7 +321,7 @@ main(int argc, char *argv[])
 	perror(output_filename);
 	exit(1);
     }
-#if defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
     setmode(fileno(fp), O_TEXT);
 #endif
     fprintf(fp,
@@ -346,7 +346,7 @@ main(int argc, char *argv[])
 	perror(conf_filename);
 	exit(1);
     }
-#if defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
     setmode(fileno(fp), O_TEXT);
 #endif
     gen_conf(entries, fp);

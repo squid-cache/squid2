@@ -229,6 +229,7 @@ parse_rfc1123(const char *str)
 #elif defined (_timezone)
 #elif defined(_SQUID_AIX_)
 #elif defined(_SQUID_CYGWIN_)
+#elif defined(_SQUID_MSWIN_)
 #elif defined(_SQUID_SGI_)
 #else
 	extern long timezone;
@@ -239,7 +240,7 @@ parse_rfc1123(const char *str)
 	 */
 	if (tm->tm_isdst > 0)
 	    dst = -3600;
-#if defined ( _timezone) || defined(_SQUID_CYGWIN_)
+#if defined ( _timezone) || defined(_SQUID_WIN32_)
 	t -= (_timezone + dst);
 #else
 	t -= (timezone + dst);

@@ -224,7 +224,7 @@ main(int argc, char *argv[])
 		xstrerror());
 	    exit(-1);
 	}
-#if defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
 	setmode(put_fd, O_BINARY);
 #endif
 	fstat(put_fd, &sb);

@@ -613,7 +613,7 @@ main(int argc, char **argv)
     int errcount = 0;
     int loop_delay;
     mode_t oldmask;
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
     int WIN32_init_err;
 #endif
 
@@ -625,7 +625,7 @@ main(int argc, char **argv)
     if (FD_SETSIZE < Squid_MaxFD)
 	Squid_MaxFD = FD_SETSIZE;
 
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
     if ((WIN32_init_err = WIN32_Subsystem_Init()))
 	return WIN32_init_err;
 #endif

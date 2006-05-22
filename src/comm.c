@@ -872,7 +872,7 @@ commSetNonBlocking(int fd)
 {
     int flags;
     int dummy = 0;
-#ifdef _SQUID_CYGWIN_
+#ifdef _SQUID_WIN32_
     int nonblocking = TRUE;
     if (fd_table[fd].type != FD_PIPE) {
 	if (ioctl(fd, FIONBIO, &nonblocking) < 0) {

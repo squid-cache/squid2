@@ -3033,7 +3033,7 @@ aclPurgeMethodInUse(acl_access * a)
  *       Solaris code by R. Gancarz <radekg@solaris.elektrownia-lagisza.com.pl>
  */
 
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
 #ifdef _SQUID_CYGWIN_
 #include <windows.h>
 #endif
@@ -3349,7 +3349,7 @@ aclMatchArp(void *dataptr, struct in_addr c)
     debug(28, 3) ("aclMatchArp: '%s' %s\n",
 	inet_ntoa(c), splayLastResult ? "NOT found" : "found");
     return (0 == splayLastResult);
-#elif defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#elif defined(_SQUID_WIN32_)
 
     DWORD dwNetTable = 0;
     DWORD ipNetTableLen = 0;
@@ -3449,7 +3449,7 @@ aclArpCompare(const void *a, const void *b)
 	return (d1[4] > d2[4]) ? 1 : -1;
     if (d1[5] != d2[5])
 	return (d1[5] > d2[5]) ? 1 : -1;
-#elif defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+#elif defined(_SQUID_WIN32_)
     const unsigned char *d1 = a;
     const unsigned char *d2 = b;
     if (d1[0] != d2[0])

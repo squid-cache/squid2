@@ -741,8 +741,8 @@ enum {
     VARY_CANCEL
 };
 
-/* CygWin & Windows NT Port */
-#if defined(_SQUID_MSWIN_) || defined(_SQUID_CYGWIN_)
+/* Windows Port */
+#ifdef _SQUID_WIN32_
 /*
  * Supported Windows OS types codes
  */

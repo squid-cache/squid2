@@ -1335,7 +1335,7 @@ storeUfsDirWriteCleanDone(SwapDir * sd)
     fd = state->fd;
     /* rename */
     if (state->fd >= 0) {
-#if defined(_SQUID_OS2_) || defined(_SQUID_CYGWIN_) || defined(_SQUID_MSWIN_)
+#if defined(_SQUID_OS2_) || defined(_SQUID_WIN32_)
 	file_close(state->fd);
 	state->fd = -1;
 #endif

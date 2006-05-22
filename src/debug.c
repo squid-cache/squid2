@@ -180,7 +180,7 @@ debugOpenLog(const char *logfile)
 	fflush(stderr);
 	debug_log = stderr;
     }
-#if defined(_SQUID_CYGWIN_)
+#ifdef _SQUID_WIN32_
     setmode(fileno(debug_log), O_TEXT);
 #endif
 }
