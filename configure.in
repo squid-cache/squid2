@@ -1478,7 +1478,9 @@ AC_CHECK_HEADERS( \
 	inttypes.h \
 	grp.h \
 	nss_common.h \
-	nss.h
+	nss.h \
+	db.h \
+	db_185.h
 )
 
 AC_C_CONST
