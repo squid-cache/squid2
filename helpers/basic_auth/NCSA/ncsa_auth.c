@@ -126,14 +126,13 @@ main(int argc, char **argv)
 		change_time = sb.st_mtime;
 	    }
 	}
-	if ((user = strtok(buf, " ")) == NULL) {
+	user = buf;
+	passwd = strchr(buf, ' ');
+	if (!passwd) {
 	    printf("ERR\n");
 	    continue;
 	}
-	if ((passwd = strtok(NULL, "")) == NULL) {
-	    printf("ERR\n");
-	    continue;
-	}
+	*passwd++ = '\0';
 	rfc1738_unescape(user);
 	rfc1738_unescape(passwd);
 	u = hash_lookup(hash, user);

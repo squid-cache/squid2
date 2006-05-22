@@ -1781,6 +1781,11 @@ DOC_START
 	makes a big difference for user_max_ip ACL processing and similar.
 	auth_param basic casesensitive off
 
+	"blankpassword" on|off
+	Specifies if blank passwords should be supported. Defaults to off
+	as there is multiple authentication backends which handles blank
+	passwords as "guest" access.
+
 	=== Parameters for the digest scheme follow ===
 
 	"program" cmdline

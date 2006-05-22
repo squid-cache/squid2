@@ -313,11 +313,12 @@ authBasicCfgDump(StoreEntry * entry, const char *name, authScheme * scheme)
 	storeAppendPrintf(entry, " %s", list->key);
 	list = list->next;
     }
-    storeAppendPrintf(entry, "\n%s %s realm %s\n%s %s children %d\n%s %s credentialsttl %d seconds\n%s %s casesensitive %s\n",
+    storeAppendPrintf(entry, "\n%s %s realm %s\n%s %s children %d\n%s %s credentialsttl %d seconds\n%s %s casesensitive %s\n%s %s blankpassword %s\n",
 	name, "basic", config->basicAuthRealm,
 	name, "basic", config->authenticateChildren,
 	name, "basic", (int) config->credentialsTTL,
-	name, "basic", config->casesensitive ? "on" : "off");
+	name, "basic", config->casesensitive ? "on" : "off",
+	name, "basic", config->blankpassword ? "on" : "off");
 
 }
 
@@ -348,6 +349,8 @@ authBasicParse(authScheme * scheme, int n_configured, char *param_str)
 	parse_time_t(&basicConfig->credentialsTTL);
     } else if (strcasecmp(param_str, "casesensitive") == 0) {
 	parse_onoff(&basicConfig->casesensitive);
+    } else if (strcasecmp(param_str, "blankpassword") == 0) {
+	parse_onoff(&basicConfig->blankpassword);
     } else {
 	debug(28, 0) ("unrecognised basic auth scheme parameter '%s'\n", param_str);
     }
@@ -462,7 +465,7 @@ authenticateBasicDecodeAuth(auth_user_request_t * auth_user_request, const char 
 	    proxy_auth);
 	local_basic.passwd = NULL;
 	auth_user_request->message = xstrdup("no password was present in the HTTP [proxy-]authorization header. This is most likely a browser bug");
-    } else if (*cleartext == '\0') {
+    } else if (*cleartext == '\0' && !basicConfig->blankpassword) {
 	debug(29, 4) ("authenticateBasicDecodeAuth: Disallowing empty password,"
 	    "user is '%s'\n", local_basic.username);
 	local_basic.passwd = NULL;
