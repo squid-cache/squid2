@@ -210,6 +210,12 @@ main(int argc, char *argv[])
 		break;
 	    }
     }
+#ifdef _SQUID_MSWIN_
+    {
+	WSADATA wsaData;
+	WSAStartup(2, &wsaData);
+    }
+#endif
     /* Build the HTTP request */
     if (strncmp(url, "mgr:", 4) == 0) {
 	char *t = xstrdup(url + 4);
@@ -344,7 +350,11 @@ main(int argc, char *argv[])
 	if (put_file) {
 	    int x;
 	    lseek(put_fd, 0, SEEK_SET);
+#ifdef _SQUID_MSWIN_
+	    while ((x = read(put_fd, buf, sizeof(buf))) > 0) {
+#else
 	    while ((x = myread(put_fd, buf, sizeof(buf))) > 0) {
+#endif
 		x = mywrite(conn, buf, x);
 		total_bytes += x;
 		if (x <= 0)
@@ -355,11 +365,17 @@ main(int argc, char *argv[])
 	}
 	/* Read the data */
 
+#ifdef _SQUID_MSWIN_
+	setmode(1, O_BINARY);
+#endif
 	while ((len = myread(conn, buf, sizeof(buf))) > 0) {
 	    fsize += len;
 	    if (to_stdout)
 		fwrite(buf, len, 1, stdout);
 	}
+#ifdef _SQUID_MSWIN_
+	setmode(1, O_TEXT);
+#endif
 	(void) close(conn);	/* done with socket */
 
 	if (interrupted)
@@ -493,13 +509,21 @@ set_our_signal(void)
 static ssize_t
 myread(int fd, void *buf, size_t len)
 {
+#ifndef _SQUID_MSWIN_
     alarm(io_timeout);
     return read(fd, buf, len);
+#else
+    return recv(fd, buf, len, 0);
+#endif
 }
 
 static ssize_t
 mywrite(int fd, void *buf, size_t len)
 {
+#ifndef _SQUID_MSWIN_
     alarm(io_timeout);
     return write(fd, buf, len);
+#else
+    return send(fd, buf, len, 0);
+#endif
 }
