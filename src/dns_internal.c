@@ -318,7 +318,7 @@ idnsParseWIN32SearchList(const char *Separator)
 
 	    while (token) {
 		idnsAddPathComponent(token);
-		debug(78, 1,) ("Adding domain %s from Registry\n", token);
+		debug(78, 1) ("Adding domain %s from Registry\n", token);
 		token = strtok(NULL, Separator);
 	    }
 	}
