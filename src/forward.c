@@ -501,8 +501,7 @@ fwdConnectStart(void *data)
 	((fwdState->request->my_port == Config.tproxy_port) || (Config.tproxy_port == 0)))
 	fd = pconnPop(name, port, domain, &fwdState->request->client_addr, 0);
 #endif
-    if (fd == -1) {
-	fd = pconnPop(name, port, domain, NULL, 0);
+    if (fd == -1 && (fd = pconnPop(name, port, domain, NULL, 0)) >= 0) {
 	if (fwdCheckRetriable(fwdState)) {
 	    debug(17, 3) ("fwdConnectStart: reusing pconn FD %d\n", fd);
 	    fwdState->server_fd = fd;
