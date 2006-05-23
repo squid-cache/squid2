@@ -24,14 +24,14 @@ Changes to squid-2.6 (not yet released)
 	- DNS search list improvements: added support for Windows DNS search
 	  list and display of search list in DNS stats
 
-Changes to squid-2.5.STABLE14 (not yet released)
+Changes to squid-2.5.STABLE14 (20 May 2006)
 	- [Minor] icons not displayed when visible_hostname is a
-	  short hostname (witout domain). (Bug #1532)
+	  short hostname (without domain). (Bug #1532)
 	- [Medium] Memleak in HTCP client code (default disabled)
 	  (Bug #1553)
 	- [Major] memory leak in ident processing (Bug #1557)
 	- [Medium] Memory leak in header processing related to external_acl
-	  header detail format tag
+	  header detail format tag (Bug #1564)
 
 Changes to squid-2.5.STABLE13 (12 Mar 2006)
 	- [Minor] Fails to compile on Solaris and some other platforms
