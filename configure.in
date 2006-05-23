@@ -67,14 +67,14 @@ if test -z "$CACHE_ICP_PORT"; then
 fi
 
 dnl Substitutions
-AC_DEFINE_UNQUOTED(CACHE_HTTP_PORT, $CACHE_HTTP_PORT)
+AC_DEFINE_UNQUOTED(CACHE_HTTP_PORT, $CACHE_HTTP_PORT, [What default TCP port to use for HTTP listening?])
 AC_SUBST(CACHE_HTTP_PORT)
-AC_DEFINE_UNQUOTED(CACHE_ICP_PORT, $CACHE_ICP_PORT)
+AC_DEFINE_UNQUOTED(CACHE_ICP_PORT, $CACHE_ICP_PORT, [What default UDP port to use for ICP listening?])
 AC_SUBST(CACHE_ICP_PORT)
 
-AC_DEFINE_UNQUOTED(CONFIG_HOST_TYPE, "$host")
+AC_DEFINE_UNQUOTED(CONFIG_HOST_TYPE, "$host", [Host type from configure])
 
-AC_DEFINE_UNQUOTED(SQUID_CONFIGURE_OPTIONS, "$ac_configure_args")
+AC_DEFINE_UNQUOTED(SQUID_CONFIGURE_OPTIONS, "$ac_configure_args", [configure command line used to configure Squid])
 
 dnl Gerben Wierda <Gerben_Wierda@RnA.nl>
 case "$host" in
@@ -234,7 +234,7 @@ dnl AC_ARG_ENABLE(xmalloc-debug,
 dnl [  --enable-xmalloc-debug  Do some simple malloc debugging],
 dnl [ if test "$enableval" = "yes" ; then
 dnl     echo "Malloc debugging enabled"
-dnl     AC_DEFINE(XMALLOC_DEBUG)
+dnl     AC_DEFINE(XMALLOC_DEBUG, 1, [Define to do simple malloc debugging])
 dnl   fi
 dnl ])
 
@@ -245,8 +245,8 @@ dnl [  --enable-xmalloc-debug-trace
 dnl                           Detailed trace of memory allocations],
 dnl [ if test "$enableval" = "yes" ; then
 dnl     echo "Malloc debug trace enabled"
-dnl     AC_DEFINE(XMALLOC_TRACE)
-dnl     AC_DEFINE(XMALLOC_DEBUG)
+dnl     AC_DEFINE(XMALLOC_TRACE, 1, [Define to have a detailed trace of memory allocations])
+dnl     AC_DEFINE(XMALLOC_DEBUG, 1, [Define to do simple malloc debugging])
 dnl   fi
 dnl ])
 
@@ -284,7 +284,7 @@ AC_ARG_ENABLE(xmalloc-statistics,
                           Show malloc statistics in status page],
 [ if test "$enableval" = "yes" ; then
     echo "Malloc statistics enabled"
-    AC_DEFINE(XMALLOC_STATISTICS)
+    AC_DEFINE(XMALLOC_STATISTICS, 1, [Define to have malloc statistics])
   fi
 ])
 
@@ -292,7 +292,7 @@ AC_ARG_ENABLE(carp,
 [  --enable-carp           Enable CARP support],
 [ if test "$enableval" = "yes" ; then
     echo "CARP support enabled"
-    AC_DEFINE(USE_CARP)
+    AC_DEFINE(USE_CARP, 1, [Cache Array Routing Protocol])
   fi
 ])
 
@@ -333,7 +333,7 @@ AC_ARG_WITH(aufs-threads,
 ])
 if test "$aufs_io_threads"; then
     echo "With $aufs_io_threads aufs threads"
-    AC_DEFINE_UNQUOTED(AUFS_IO_THREADS,$aufs_io_threads)
+    AC_DEFINE_UNQUOTED(AUFS_IO_THREADS, $aufs_io_threads, [Defines how many threads aufs uses for I/O])
 fi
 
 AC_ARG_WITH(pthreads,
@@ -459,7 +459,14 @@ AC_ARG_ENABLE(icmp,
 [  --enable-icmp           Enable ICMP pinging],
 [ if test "$enableval" = "yes" ; then
     echo "ICMP enabled"
-    AC_DEFINE(USE_ICMP)
+    AC_DEFINE(USE_ICMP, 1, [If you want to use Squid's ICMP features (highly recommended!) then
+	define this.  When USE_ICMP is defined, Squid will send ICMP pings
+	to origin server sites.  This information is used in numerous ways:
+	- Sent in ICP replies so neighbor caches know how close
+	  you are to the source.
+	- For finding the closest instance of a URN.
+	- With the 'test_reachability' option.  Squid will return
+	  ICP_OP_MISS_NOFETCH for sites which it cannot ping.])
     AM_CONDITIONAL(ENABLE_PINGER, true)
   fi
 ])
@@ -469,7 +476,7 @@ AC_ARG_ENABLE(delay-pools,
 [  --enable-delay-pools    Enable delay pools to limit bandwidth usage],
 [ if test "$enableval" = "yes" ; then
     echo "Delay pools enabled"
-    AC_DEFINE(DELAY_POOLS)
+    AC_DEFINE(DELAY_POOLS, 1, [Traffic management via "delay pools".])
     AM_CONDITIONAL(USE_DELAY_POOLS, true)
   fi
 ])
@@ -480,7 +487,7 @@ dnl AC_ARG_ENABLE(mem-gen-trace,
 dnl [  --enable-mem-gen-trace  Do trace of memory stuff],
 dnl [ if test "$enableval" = "yes" ; then
 dnl     echo "Memory trace (to file) enabled"
-dnl     AC_DEFINE(MEM_GEN_TRACE)
+dnl     AC_DEFINE(MEM_GEN_TRACE, 1, [Define for log file trace of mem alloc/free])
 dnl   fi    
 dnl ])     
 
@@ -488,7 +495,8 @@ AC_ARG_ENABLE(useragent-log,
 [  --enable-useragent-log  Enable logging of User-Agent header],
 [ if test "$enableval" = "yes" ; then
     echo "User-Agent logging enabled"
-    AC_DEFINE(USE_USERAGENT_LOG)
+    AC_DEFINE(USE_USERAGENT_LOG, 1, [If you want to log User-Agent request header values, define this.
+	By default, they are written to useragent.log in the Squid log directory.])
   fi
 ])
 
@@ -496,7 +504,8 @@ AC_ARG_ENABLE(referer-log,
 [  --enable-referer-log    Enable logging of Referer header],
 [ if test "$enableval" = "yes" ; then
     echo "Referer logging enabled"
-    AC_DEFINE(USE_REFERER_LOG)
+    AC_DEFINE(USE_REFERER_LOG, 1, [If you want to log Referer request header values, define this.
+	By default, they are written to referer.log in the Squid log directory.])
   fi
 ])
 
@@ -504,7 +513,7 @@ AC_ARG_ENABLE(wccp,
 [  --disable-wccp          Disable Web Cache Coordination V1 Protocol],
 [ if test "$enableval" = "no" ; then
     echo "Web Cache Coordination V1 Protocol disabled"
-    AC_DEFINE(USE_WCCP, 0)
+    AC_DEFINE(USE_WCCP, 0, [Define to enable WCCP])
   else
     AC_DEFINE(USE_WCCP, 1)
   fi
@@ -514,7 +523,7 @@ AC_ARG_ENABLE(wccpv2,
 [  --enable-wccpv2          Enable Web Cache Coordination V2 Protocol],
 [ if test "$enableval" = "yes" ; then
     echo "Web Cache Coordination V2 Protocol enabled"
-    AC_DEFINE(USE_WCCPv2, 1)
+    AC_DEFINE(USE_WCCPv2, 1, [Define to enable WCCP V2])
   fi
 ])
  
@@ -525,7 +534,8 @@ AC_ARG_ENABLE(kill-parent-hack,
                           Kill parent on shutdown],
 [ if test "$enableval" = "yes" ; then
     echo "Kill parent on shutdown"
-    AC_DEFINE(KILL_PARENT_OPT)
+    AC_DEFINE(KILL_PARENT_OPT, 1, [A dangerous feature which causes Squid to kill its parent process
+	(presumably the RunCache script) upon receipt of SIGTERM or SIGINT.  Use with caution.])
   fi
 ])
 
@@ -534,7 +544,7 @@ AC_ARG_ENABLE(snmp,
 [  --enable-snmp           Enable SNMP monitoring],
 [ if test "$enableval" = "yes" ; then
     echo "SNMP monitoring enabled"
-    AC_DEFINE(SQUID_SNMP)
+    AC_DEFINE(SQUID_SNMP, 1, [Define to enable SNMP monitoring of Squid])
     SNMPLIB='-L../snmplib -lsnmp'
     AM_CONDITIONAL(USE_SNMP, true)
     SNMP_MAKEFILE=./snmplib/Makefile
@@ -552,7 +562,11 @@ dnl AC_ARG_ENABLE(time-hack,
 dnl [  --enable-time-hack      Update internal timestamp only once per second],
 dnl [ if test "$enableval" = "yes" ; then
 dnl     echo "Update internal timestamp only once per second"
-dnl     AC_DEFINE(ALARM_UPDATES_TIME)
+dnl     AC_DEFINE(ALARM_UPDATES_TIME, 1, [Squid frequently calls gettimeofday() for accurate timestamping.
+dnl	If you are concerned that gettimeofday() is called too often, and
+dnl	could be causing performance degradation, then you can define
+dnl	ALARM_UPDATES_TIME and cause Squid's clock to be updated at regular
+dnl	intervals (one second) with ALARM signals.])
 dnl   fi
 dnl ])
 
@@ -561,14 +575,16 @@ AC_ARG_ENABLE(cachemgr-hostname,
                           Make cachemgr.cgi default to this host],
 [  case $enableval in
    yes)
-       AC_DEFINE(CACHEMGR_HOSTNAME,[getfullhostname()])
+       AC_DEFINE(CACHEMGR_HOSTNAME, [getfullhostname()], [If you are upset that the cachemgr.cgi form comes up with the hostname
+	field blank, then define this to getfullhostname()])
        echo "Cachemgr default hostname == host where cachemgr runs"
        ;;
    no)
        : # Nothing to do..
        ;;
    *)
-       AC_DEFINE_UNQUOTED(CACHEMGR_HOSTNAME,"${enableval}")
+       AC_DEFINE_UNQUOTED(CACHEMGR_HOSTNAME, "${enableval}", [If you are upset that the cachemgr.cgi form comes up with the hostname
+	field blank, then define this to getfullhostname()])
        echo "Cachemgr default hostname set to ${enableval}"
        ;;
    esac
@@ -596,7 +612,9 @@ AC_ARG_ENABLE(arp-acl,
 	    sleep 10
 	    ;;
      esac
-     AC_DEFINE(USE_ARP_ACL)
+     AC_DEFINE(USE_ARP_ACL, 1, [Define this to include code which lets you specify access control
+	elements based on ethernet hardware addresses.  This code uses
+	functions found in 4.4 BSD derviations (e.g. FreeBSD, ?).])
    fi
 ])
 
@@ -605,7 +623,7 @@ AC_ARG_ENABLE(htcp,
 [  --enable-htcp           Enable HTCP protocol],
 [ if test "$enableval" = "yes" ; then
     echo "HTCP enabled"
-    AC_DEFINE(USE_HTCP)
+    AC_DEFINE(USE_HTCP, 1, [Define this to include code for the Hypertext Cache Protocol (HTCP)])
     AM_CONDITIONAL(ENABLE_HTCP, true)
   fi
 ])
@@ -619,7 +637,7 @@ AC_ARG_ENABLE(ssl,
 [  --enable-ssl            Enable ssl gatewaying support using OpenSSL],
 [ if test "$enableval" != "no"; then
     echo "SSL gatewaying using OpenSSL enabled"
-    AC_DEFINE(USE_SSL)
+    AC_DEFINE(USE_SSL, 1, [Define this to include code for SSL encryption.])
     AM_CONDITIONAL(ENABLE_SSL, true)
     SSLLIB='-lssl -lcrypto'
     USE_OPENSSL=1
@@ -653,7 +671,9 @@ AC_ARG_WITH(openssl,
 
 if test -n "$USE_OPENSSL"; then
   echo "Using OpenSSL MD5 implementation"
-  AC_DEFINE(USE_OPENSSL)
+  AC_DEFINE(USE_OPENSSL, 1, [Define this to make use of the OpenSSL libraries for
+	MD5 calculation rather than Squid's own MD5 implementation
+	or if building with SSL encryption (USE_SSL)])
   AM_CONDITIONAL(NEED_OWN_MD5, false)
   if test -z "$SSLLIB"; then
     SSLLIB="-lcrypto" # for MD5 routines
@@ -670,7 +690,7 @@ AC_ARG_ENABLE(forw-via-db,
 [  --enable-forw-via-db    Enable Forw/Via database],
 [ if test "$enableval" = "yes" ; then
     echo "FORW-VIA enabled"
-    AC_DEFINE(FORW_VIA_DB)
+    AC_DEFINE(FORW_VIA_DB, 1, [Enable Forw/Via database])
   fi
 ])
 
@@ -679,7 +699,8 @@ AC_ARG_ENABLE(cache-digests,
                           see http://www.squid-cache.org/FAQ/FAQ-16.html],
 [ if test "$enableval" = "yes" ; then
     echo "USE_CACHE_DIGESTS enabled"
-    AC_DEFINE(USE_CACHE_DIGESTS)
+    AC_DEFINE(USE_CACHE_DIGESTS, 1, [Use Cache Digests for locating objects in neighbor caches.  This
+	code is still semi-experimental.])
   fi
 ])
 
@@ -688,7 +709,7 @@ AC_ARG_ENABLE(auth-on-acceleration,
                           Enable authentication in accelerators],
 [ if test "$enableval" = "yes" ; then
     echo "AUTH_ON_ACCELERATION enabled"
-    AC_DEFINE(AUTH_ON_ACCELERATION)
+    AC_DEFINE(AUTH_ON_ACCELERATION, 1, [Enable authentication support in accelerators])
   fi
 ])
 
@@ -735,7 +756,7 @@ AC_ARG_WITH(coss-membuf-size,
 [  --with-coss-membuf-size COSS membuf size (default 1048576 bytes) ],
 [  if test "$with_coss_membuf_size"; then
       echo "Setting COSS membuf size to $with_coss_membuf_size bytes"
-      AC_DEFINE_UNQUOTED(COSS_MEMBUF_SZ, $with_coss_membuf_size)
+      AC_DEFINE_UNQUOTED(COSS_MEMBUF_SZ, $with_coss_membuf_size, [Define if you want to set the COSS membuf size])
    fi
 ])
 
@@ -787,7 +808,7 @@ AC_ARG_ENABLE(http-violations,
                           violate the HTTP protocol specification.],
 [ if test "$enableval" = "no" ; then
     echo "Disabling HTTP Violations"
-    AC_DEFINE(HTTP_VIOLATIONS, 0)
+    AC_DEFINE(HTTP_VIOLATIONS, 0, [By default (for now anyway) Squid includes options which allows the cache administrator to violate the HTTP protocol specification in terms of cache behaviour.  Setting this to '0' will disable such code.])
   else
     AC_DEFINE(HTTP_VIOLATIONS, 1)
   fi
@@ -800,7 +821,9 @@ AC_ARG_ENABLE(ipf-transparent,
                           using IP-Filter network address redirection.],
 [ if test "$enableval" = "yes" ; then
 	echo "IP-Filter Transparent Proxy enabled"
-	AC_DEFINE(IPF_TRANSPARENT)
+	AC_DEFINE(IPF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using IP-Filter
+	address redirection. This provides "masquerading" support for non
+	Linux system.])
 	IPF_TRANSPARENT="yes"
   fi
 ])
@@ -812,7 +835,8 @@ AC_ARG_ENABLE(pf-transparent,
                           using PF network address redirection.],
 [ if test "$enableval" = "yes" ; then
 	echo "PF Transparent Proxy enabled"
-	AC_DEFINE(PF_TRANSPARENT)
+	AC_DEFINE(PF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using PF address
+	redirection. This provides "masquerading" support for OpenBSD.])
 	PF_TRANSPARENT="yes"
   fi
 ])
@@ -823,7 +847,7 @@ AC_ARG_ENABLE(linux-netfilter,
                           Enable Transparent Proxy support for Linux 2.4.],
 [ if test "$enableval" = "yes" ; then
 	echo "Linux-Netfilter Transparent Proxy enabled"
-	AC_DEFINE(LINUX_NETFILTER)
+	AC_DEFINE(LINUX_NETFILTER, 1, [Enable support for Transparent Proxy on Linux 2.4 systems])
 	LINUX_NETFILTER="yes"
   fi
 ])
@@ -922,7 +946,7 @@ AC_ARG_ENABLE(linux-tproxy,
                           Enable real Transparent Proxy support for Netfilter TPROXY.],
 [ if test "$enableval" = "yes" ; then
 	echo "Linux Netfilter/TPROXY enabled"
-	AC_DEFINE(LINUX_TPROXY)
+	AC_DEFINE(LINUX_TPROXY, 1, [Enable real Transparent Proxy support for Netfilter TPROXY.])
 	LINUX_TPROXY="yes"
   fi
 ])
@@ -937,7 +961,7 @@ AC_ARG_ENABLE(leakfinder,
 			  Useful for hackers only.],
 [ if test "$enableval" = "yes" ; then
 	echo "Leak-Finding enabled"
-	AC_DEFINE(USE_LEAKFINDER)
+	AC_DEFINE(USE_LEAKFINDER, 1, [Enable code for assiting in finding memory leaks.  Hacker stuff only.])
 	USE_LEAKFINDER="yes"
 	AM_CONDITIONAL(MAKE_LEAKFINDER, true)
   fi
@@ -949,7 +973,7 @@ AC_ARG_ENABLE(ident-lookups,
                           Ident (RFC 931) lookups.],
 [ if test "$enableval" = "no" ; then
     echo "Disabling Ident Lookups"
-    AC_DEFINE(USE_IDENT, 0)
+    AC_DEFINE(USE_IDENT, 0, [Compile in support for Ident (RFC 931) lookups?  Enabled by default.])
   else
     AC_DEFINE(USE_IDENT, 1)
   fi
@@ -967,7 +991,8 @@ AC_ARG_ENABLE(internal-dns,
   fi
 ])
 if test "$use_dnsserver" = "yes"; then
-    AC_DEFINE(USE_DNSSERVERS)
+    AC_DEFINE(USE_DNSSERVERS, 1, [If --disable-internal-dns was given to configure, then we'll use
+	the dnsserver processes instead.])
     AM_CONDITIONAL(USE_DNSSERVER, true)
 fi
 
@@ -979,7 +1004,7 @@ AC_ARG_ENABLE(truncate,
                           filesystem inodes than unlink..],
 [ if test "$enableval" = "yes" ; then
     echo "Enabling truncate instead of unlink"
-    AC_DEFINE(USE_TRUNCATE)
+    AC_DEFINE(USE_TRUNCATE, 1, [Do we want to use truncate(2) or unlink(2)?])
   fi
 ])
 
@@ -1013,7 +1038,7 @@ AC_ARG_ENABLE(underscores,
                           does not reject _ in hostnames...],
 [ if test "$enableval" = "yes" ; then
     echo "Enabling the use of underscores in host names"
-    AC_DEFINE(ALLOW_HOSTNAME_UNDERSCORES, 1)
+    AC_DEFINE(ALLOW_HOSTNAME_UNDERSCORES, 1, [Allow underscores in host names])
   fi
 ])
 
@@ -1242,7 +1267,7 @@ AC_ARG_ENABLE(ntlm-fail-open,
                           Authentication steps can allow squid to still authenticate
                           the user.],
 [ if test "$enableval" = "yes" ; then
-    AC_DEFINE(NTLM_FAIL_OPEN)
+    AC_DEFINE(NTLM_FAIL_OPEN, 1, [Define if NTLM is allowed to fail gracefully when a helper has problems])
   fi
 ])
 
@@ -1315,7 +1340,8 @@ AC_ARG_ENABLE(unlinkd,
 ])
 if test "$use_unlinkd" = "yes"; then
     echo "unlinkd enabled"
-    AC_DEFINE(USE_UNLINKD)
+    AC_DEFINE(USE_UNLINKD, 1, [Define this if unlinkd is required
+	(strongly recommended for ufs storage type)])
     AM_CONDITIONAL(ENABLE_UNLINKD, true)
 else
     echo "unlinkd disabled"
@@ -1327,7 +1353,7 @@ AC_ARG_ENABLE(stacktraces,
 [  --enable-stacktraces    Enable automatic call backtrace on fatal errors],
 [ if test "$enableval" = "yes" ; then
     echo "Enabling automatic stack backtraces on fatal errors"
-    AC_DEFINE(PRINT_STACK_TRACE, 1)
+    AC_DEFINE(PRINT_STACK_TRACE, 1, [Print stacktraces on fatal errors])
   fi
 ])
 
@@ -1341,7 +1367,7 @@ AC_ARG_ENABLE(x_accelerator_vary,
                           that adds custom HTTP headers to the requests.],
 [ if test "$enableval" = "yes" ; then
     echo "Enabling support for X-Accelerator-Vary"
-    AC_DEFINE(X_ACCELERATOR_VARY, 1)
+    AC_DEFINE(X_ACCELERATOR_VARY, 1, [Enable support for the X-Accelerator-Vary HTTP header])
   fi
 ])
 
@@ -1406,7 +1432,11 @@ dnl Check for headers
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 
+dnl Check for headers. sys/types.h and stddef.h and limits must be first (see below)
 AC_CHECK_HEADERS( \
+	sys/types.h \
+	stddef.h \
+	limits.h \
 	arpa/inet.h \
 	arpa/nameser.h \
 	assert.h \
@@ -1426,7 +1456,6 @@ AC_CHECK_HEADERS( \
 	ip_nat.h \
 	ipl.h \
 	libc.h \
-	limits.h \
 	linux/netfilter_ipv4.h \
 	linux/netfilter_ipv4/ip_tproxy.h \
 	malloc.h \
@@ -1455,7 +1484,6 @@ AC_CHECK_HEADERS( \
 	sched.h \
 	signal.h \
 	stdarg.h \
-	stddef.h \
 	stdio.h \
 	stdlib.h \
 	string.h \
@@ -1475,7 +1503,6 @@ AC_CHECK_HEADERS( \
 	syscall.h \
 	sys/syscall.h \
 	sys/time.h \
-	sys/types.h \
 	sys/un.h \
 	sys/vfs.h \
 	sys/wait.h \
@@ -1493,7 +1520,17 @@ AC_CHECK_HEADERS( \
 	nss.h \
 	db.h \
 	db_185.h
-)
+,,,[
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#if HAVE_STDDEF_H
+#include <stddef.h>
+#endif
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif
+])
 
 AC_C_CONST
 AC_C_BIGENDIAN
@@ -1505,7 +1542,7 @@ AC_CACHE_CHECK(if ANSI prototypes work,ac_cv_have_ansi_prototypes, [
     ac_cv_have_ansi_prototypes="no")
 ])
 if test $ac_cv_have_ansi_prototypes = "yes" ; then
-  AC_DEFINE(HAVE_ANSI_PROTOTYPES)
+  AC_DEFINE(HAVE_ANSI_PROTOTYPES, 1, [Define if your compiler supports prototyping])
 fi
 
 AC_CACHE_CHECK(for tm->tm_gmtoff,ac_cv_have_tm_gmoff, [
@@ -1517,7 +1554,7 @@ AC_CACHE_CHECK(for tm->tm_gmtoff,ac_cv_have_tm_gmoff, [
     ac_cv_have_tm_gmoff="no")
 ])
 if test $ac_cv_have_tm_gmoff = "yes" ; then
-  AC_DEFINE(HAVE_TM_GMTOFF)
+  AC_DEFINE(HAVE_TM_GMTOFF, 1, [Define if struct tm has tm_gmtoff member])
 fi
 
 AC_CACHE_CHECK(for struct mallinfo,ac_cv_have_struct_mallinfo, [
@@ -1538,7 +1575,7 @@ AC_CACHE_CHECK(for struct mallinfo,ac_cv_have_struct_mallinfo, [
     ac_cv_have_struct_mallinfo="no")
 ])
 if test $ac_cv_have_struct_mallinfo = "yes" ; then
-  AC_DEFINE(HAVE_STRUCT_MALLINFO)
+  AC_DEFINE(HAVE_STRUCT_MALLINFO, 1, [we check for the existance of struct mallinfo])
 fi
 
 AC_CACHE_CHECK(for extended mallinfo,ac_cv_have_ext_mallinfo, [
@@ -1550,7 +1587,7 @@ AC_CACHE_CHECK(for extended mallinfo,ac_cv_have_ext_mallinfo, [
     ac_cv_have_ext_mallinfo="no")
 ])
 if test $ac_cv_have_ext_mallinfo = "yes" ; then
-  AC_DEFINE(HAVE_EXT_MALLINFO)
+  AC_DEFINE(HAVE_EXT_MALLINFO, 1, [Define if struct mallinfo has mxfast member])
 fi
 
 AC_CACHE_CHECK(for struct rusage,ac_cv_have_struct_rusage, [
@@ -1566,7 +1603,7 @@ AC_CACHE_CHECK(for struct rusage,ac_cv_have_struct_rusage, [
     ac_cv_have_struct_rusage="no")
 ])
 if test $ac_cv_have_struct_rusage = "yes" ; then
-  AC_DEFINE(HAVE_STRUCT_RUSAGE)
+  AC_DEFINE(HAVE_STRUCT_RUSAGE, 1, [Define if you have struct rusage])
 fi
 
 AC_CACHE_CHECK(for ip->ip_hl, ac_cv_have_ip_hl, [
@@ -1588,7 +1625,7 @@ AC_CACHE_CHECK(for ip->ip_hl, ac_cv_have_ip_hl, [
     ac_cv_have_ip_hl="no")
 ])
 if test $ac_cv_have_ip_hl = "yes" ; then
-  AC_DEFINE(HAVE_IP_HL)
+  AC_DEFINE(HAVE_IP_HL, 1, [Define if struct ip has ip_hl member])
 fi
 
 dnl Check for typedefs
@@ -1659,7 +1696,7 @@ AC_CHECK_TYPE(pid_t, int)
 AC_CHECK_TYPE(size_t, unsigned int)
 AC_CHECK_TYPE(ssize_t, int)
 AC_CHECK_TYPE(off_t, int)
-AC_CHECK_TYPE(mode_t, u_short)
+AC_CHECK_TYPE(mode_t, unsigned short)
 AC_CHECK_TYPE(fd_mask, int)
 
 AC_CHECK_SIZEOF_SYSTYPE(off_t, 4)
@@ -1681,7 +1718,9 @@ AC_CACHE_CHECK(for socklen_t, ac_cv_type_socklen_t, [
     ac_cv_type_socklen_t=no)
 ])
 if test $ac_cv_type_socklen_t = no; then
-  AC_DEFINE(socklen_t, int)
+  AC_DEFINE(socklen_t, int, [This makes warnings go away.  If you have socklen_t defined in your
+	/usr/include files, then this should remain undef'd.  Otherwise it
+	should be defined to int.])
 fi
 
 dnl Check for mtyp_t in some headers
@@ -1693,7 +1732,7 @@ AC_CACHE_CHECK(for mtyp_t, ac_cv_type_mtyp_t, [
     ac_cv_type_mtyp_t=no)
 ])
 if test $ac_cv_type_mtyp_t = no; then
-  AC_DEFINE(mtyp_t, long)
+  AC_DEFINE(mtyp_t, long, [message type for message queues])
  fi
 
 dnl Check for needed libraries
@@ -1714,7 +1753,7 @@ AC_CACHE_CHECK([for unix domain sockets],squid_cv_unixsocket, [
 ],
         squid_cv_unixsocket=yes,squid_cv_unixsocket=no)])
 if test x"$squid_cv_unixsocket" = x"yes"; then
-   AC_DEFINE(HAVE_UNIXSOCKET)
+   AC_DEFINE(HAVE_UNIXSOCKET, 1, [Do we have unix sockets? (required for the winbind ntlm helper])
 fi
 dnl end rip
 
@@ -1803,8 +1842,8 @@ fi
 LIB_EPOLL=''
 dnl Check for libepoll
 if test "$ac_cv_func_epoll" = "yes"; then
-    AC_CHECK_FUNCS(epoll_ctl,[AC_DEFINE_UNQUOTED(HAVE_EPOLL, 1)],
-	[AC_CHECK_LIB(epoll, epoll_ctl,[AC_DEFINE_UNQUOTED(HAVE_EPOLL, 1)] LIB_EPOLL="-lepoll",
+    AC_CHECK_FUNCS(epoll_ctl,[AC_DEFINE_UNQUOTED(HAVE_EPOLL, 1, [Supports epoll])],
+	[AC_CHECK_LIB(epoll, epoll_ctl,[AC_DEFINE_UNQUOTED(HAVE_EPOLL, 1, [Supports epoll])] LIB_EPOLL="-lepoll",
 	    [echo "Error - no epoll found";
 	     echo "Try running 'sh ./scripts/get_epoll-lib.sh'";
 	     echo "then run configure again";
@@ -1907,13 +1946,13 @@ dnl during compile.
 		;;
 	*m88k*)
 		CFLAGS="$CFLAGS -D_SQUID_MOTOROLA_"
-		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
+		AC_DEFINE(GETTIMEOFDAY_NO_TZP, 1, [If gettimeofday is known to take only one argument])
 		;;
 	[*-*-solaris2.[0-4]])
-		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
+		AC_DEFINE(GETTIMEOFDAY_NO_TZP, 1, [If gettimeofday is known to take only one argument])
 		;;
 	[*-sony-newsos[56]*])
-		AC_DEFINE(GETTIMEOFDAY_NO_TZP)
+		AC_DEFINE(GETTIMEOFDAY_NO_TZP, 1, [If gettimeofday is known to take only one argument])
 		;;
 esac
 
@@ -2053,7 +2092,9 @@ AC_CACHE_CHECK(if setresuid is implemented, ac_cv_func_setresuid,
   ],ac_cv_func_setresuid="yes",ac_cv_func_setresuid="no")
 )
 if test "$ac_cv_func_setresuid" = "yes" ; then
-  AC_DEFINE(HAVE_SETRESUID)
+  AC_DEFINE(HAVE_SETRESUID, 1, [Yay! Another Linux brokenness.  Its not good enough to know that
+	setresuid() exists, because RedHat 5.0 declare setresuid() but
+	doesn't implement it.])
 fi
 
 AM_CONDITIONAL(NEED_OWN_SNPRINTF, false)
@@ -2087,7 +2128,7 @@ AC_CACHE_CHECK(if va_copy is implemented, ac_cv_func_va_copy,
       ],ac_cv_func_va_copy="yes",ac_cv_func_va_copy="no")
 )
 if test "$ac_cv_func_va_copy" = "yes" ; then
-  AC_DEFINE(HAVE_VA_COPY)
+  AC_DEFINE(HAVE_VA_COPY, 1, [Some systems dont have va_copy])
 fi
 
 dnl
@@ -2111,7 +2152,7 @@ AC_CACHE_CHECK(if __va_copy is implemented, ac_cv_func___va_copy,
       ],ac_cv_func___va_copy="yes",ac_cv_func___va_copy="no")
 )
 if test "$ac_cv_func___va_copy" = "yes" ; then
-  AC_DEFINE(HAVE___VA_COPY)
+  AC_DEFINE(HAVE___VA_COPY, 1, [Some systems support __va_copy])
 fi
 
 dnl IP-Filter support requires ipf header files. These aren't
@@ -2129,15 +2170,21 @@ if test "$IPF_TRANSPARENT" ; then
        test "$ac_cv_header_ip_fil_h" = "yes" &&
        test "$ac_cv_header_ip_nat_h" = "yes" ; then
         IPF_TRANSPARENT="yes"
-        AC_DEFINE(IPF_TRANSPARENT, 1)
+        AC_DEFINE(IPF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using IP-Filter
+	address redirection. This provides "masquerading" support for non
+	Linux system.])
     elif test "$have_ipfilter_compat_header" = "yes" &&
          test "$ac_cv_header_netinet_ip_fil_h" = "yes" &&
          test "$ac_cv_header_netinet_ip_nat_h" = "yes" ; then
         IPF_TRANSPARENT="yes"
-        AC_DEFINE(IPF_TRANSPARENT, 1)
+        AC_DEFINE(IPF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using IP-Filter
+	address redirection. This provides "masquerading" support for non
+	Linux system.])
     else
         IPF_TRANSPARENT="no"
-        AC_DEFINE(IPF_TRANSPARENT, 0)
+        AC_DEFINE(IPF_TRANSPARENT, 0, [Enable support for Transparent Proxy on systems using IP-Filter
+	address redirection. This provides "masquerading" support for non
+	Linux system.])
     fi
     AC_MSG_RESULT($IPF_TRANSPARENT)
 fi 
@@ -2164,10 +2211,12 @@ if test "$PF_TRANSPARENT" ; then
     # hold on to your hats...
     if test "$ac_cv_header_net_pfvar_h" = "yes"; then
         PF_TRANSPARENT="yes"
-        AC_DEFINE(PF_TRANSPARENT, 1)
+        AC_DEFINE(PF_TRANSPARENT, 1, [Enable support for Transparent Proxy on systems using PF address
+	redirection. This provides "masquerading" support for OpenBSD.])
     else
         PF_TRANSPARENT="no"
-        AC_DEFINE(PF_TRANSPARENT, 0)
+        AC_DEFINE(PF_TRANSPARENT, 0, [Enable support for Transparent Proxy on systems using PF address
+	redirection. This provides "masquerading" support for OpenBSD.])
     fi
     AC_MSG_RESULT($PF_TRANSPARENT)
 fi
@@ -2184,10 +2233,10 @@ if test "$LINUX_NETFILTER" ; then
     # hold on to your hats...
     if test "$ac_cv_header_linux_netfilter_ipv4_h" = "yes"; then
         LINUX_NETFILTER="yes"
-        AC_DEFINE(LINUX_NETFILTER, 1)
+        AC_DEFINE(LINUX_NETFILTER, 1, [Enable support for Transparent Proxy on Linux 2.4 systems])
     else
         LINUX_NETFILTER="no"
-        AC_DEFINE(LINUX_NETFILTER, 0)
+        AC_DEFINE(LINUX_NETFILTER, 0, [Enable support for Transparent Proxy on Linux 2.4 systems])
     fi
     AC_MSG_RESULT($LINUX_NETFILTER)
 fi 
@@ -2204,10 +2253,10 @@ if test "$LINUX_TPROXY" ; then
     # hold on to your hats...
     if test "$ac_cv_header_linux_netfilter_ipv4_ip_tproxy_h" = "yes"; then
         LINUX_TPROXY="yes"
-        AC_DEFINE(LINUX_TPROXY, 1)
+        AC_DEFINE(LINUX_TPROXY, 1, [Enable real Transparent Proxy support for Netfilter TPROXY.])
     else
         LINUX_TPROXY="no"
-        AC_DEFINE(LINUX_TPROXY, 0)
+        AC_DEFINE(LINUX_TPROXY, 0, [Enable real Transparent Proxy support for Netfilter TPROXY.])
     fi
     AC_MSG_RESULT($LINUX_TPROXY)
 fi
@@ -2243,7 +2292,7 @@ AC_MSG_RESULT($USE_GNUREGEX)
 if test "$USE_GNUREGEX" = "yes"; then
 	REGEXLIB="-lregex"
 	LIBREGEX="libregex.a"
-	AC_DEFINE(USE_GNUREGEX)
+	AC_DEFINE(USE_GNUREGEX, 1, [Define if we should use GNU regex])
 fi
 AC_SUBST(REGEXLIB)
 AC_SUBST(LIBREGEX)
@@ -2283,7 +2332,7 @@ DEFAULT_FD_SETSIZE=`cat conftestval`,
 DEFAULT_FD_SETSIZE=256,
 DEFAULT_FD_SETSIZE=256)
 AC_MSG_RESULT($DEFAULT_FD_SETSIZE)
-AC_DEFINE_UNQUOTED(DEFAULT_FD_SETSIZE, $DEFAULT_FD_SETSIZE)
+AC_DEFINE_UNQUOTED(DEFAULT_FD_SETSIZE, $DEFAULT_FD_SETSIZE, [Default FD_SETSIZE value])
 
 AC_ARG_WITH(maxfd,
 [  --with-maxfd=N          Override maximum number of filedescriptors. Useful
@@ -2375,7 +2424,7 @@ SQUID_MAXFD=256,
 SQUID_MAXFD=256)
 AC_MSG_RESULT($SQUID_MAXFD)
 fi # --with-maxfd SQUID_MAXFD
-AC_DEFINE_UNQUOTED(SQUID_MAXFD, $SQUID_MAXFD)
+AC_DEFINE_UNQUOTED(SQUID_MAXFD, $SQUID_MAXFD, [Maximum number of open filedescriptors])
 if test "$SQUID_MAXFD" -lt 512 ; then
     echo "WARNING: $SQUID_MAXFD may not be enough filedescriptors if your"
     echo "         cache will be very busy.  Please see the FAQ page"
@@ -2409,7 +2458,7 @@ SQUID_UDP_SO_SNDBUF=`cat conftestval`,
 SQUID_UDP_SO_SNDBUF=16384,
 SQUID_UDP_SO_SNDBUF=16384)
 AC_MSG_RESULT($SQUID_UDP_SO_SNDBUF)
-AC_DEFINE_UNQUOTED(SQUID_UDP_SO_SNDBUF, $SQUID_UDP_SO_SNDBUF)
+AC_DEFINE_UNQUOTED(SQUID_UDP_SO_SNDBUF, $SQUID_UDP_SO_SNDBUF, [UDP send buffer size])
 
 dnl Not cached since people are likely to tune this
 AC_MSG_CHECKING(Default UDP receive buffer size)
@@ -2435,7 +2484,7 @@ SQUID_UDP_SO_RCVBUF=`cat conftestval`,
 SQUID_UDP_SO_RCVBUF=16384,
 SQUID_UDP_SO_RCVBUF=16384)
 AC_MSG_RESULT($SQUID_UDP_SO_RCVBUF)
-AC_DEFINE_UNQUOTED(SQUID_UDP_SO_RCVBUF, $SQUID_UDP_SO_RCVBUF)
+AC_DEFINE_UNQUOTED(SQUID_UDP_SO_RCVBUF, $SQUID_UDP_SO_RCVBUF, [UDP receive buffer size])
 
 dnl Not cached since people are likely to tune this
 AC_MSG_CHECKING(Default TCP send buffer size)
@@ -2465,7 +2514,7 @@ if test $SQUID_TCP_SO_SNDBUF -gt 32768; then
     echo "Limiting send buffer size to 32K"
     SQUID_TCP_SO_SNDBUF=32768
 fi
-AC_DEFINE_UNQUOTED(SQUID_TCP_SO_SNDBUF, $SQUID_TCP_SO_SNDBUF)
+AC_DEFINE_UNQUOTED(SQUID_TCP_SO_SNDBUF, $SQUID_TCP_SO_SNDBUF, [TCP send buffer size])
 
 dnl Not cached since people are likely to tune this
 AC_MSG_CHECKING(Default TCP receive buffer size)
@@ -2495,21 +2544,21 @@ if test $SQUID_TCP_SO_RCVBUF -gt 65535; then
     echo "Limiting receive buffer size to 64K"
     SQUID_TCP_SO_RCVBUF=65535
 fi
-AC_DEFINE_UNQUOTED(SQUID_TCP_SO_RCVBUF, $SQUID_TCP_SO_RCVBUF)
+AC_DEFINE_UNQUOTED(SQUID_TCP_SO_RCVBUF, $SQUID_TCP_SO_RCVBUF, [TCP receive buffer size])
 AC_CACHE_CHECK(if sys_errlist is already defined, ac_cv_needs_sys_errlist,
   AC_TRY_COMPILE([#include <stdio.h>],[char *s = sys_errlist;],
     ac_cv_needs_sys_errlist="no",
     ac_cv_needs_sys_errlist="yes")
 )
 if test "$ac_cv_needs_sys_errlist" = "yes" ; then
-  AC_DEFINE(NEED_SYS_ERRLIST)
+  AC_DEFINE(NEED_SYS_ERRLIST, 1, [If we need to declare sys_errlist[] as external])
 fi
 
 dnl Not cached since people are likely to change this
 AC_MSG_CHECKING(for libresolv _dns_ttl_ hack)
 AC_TRY_LINK(extern int _dns_ttl_;,return _dns_ttl_;,
 [AC_MSG_RESULT(yes)
-AC_DEFINE(LIBRESOLV_DNS_TTL_HACK)],
+AC_DEFINE(LIBRESOLV_DNS_TTL_HACK, 1, [If libresolv.a has been hacked to export _dns_ttl_])],
 AC_MSG_RESULT(no))
 
 AC_MSG_CHECKING(if inet_ntoa() actually works)
@@ -2537,7 +2586,9 @@ if test "$INET_NTOA_RESULT" = "1.2.3.4" ; then
 else
 	AC_MSG_RESULT("no")
 	echo "Will use our own inet_ntoa()."
-	LIBOBJS="$LIBOBJS inet_ntoa.o"
+	# autoconf-2.13 needs the lines below switched
+#	LIBOBJS="$LIBOBJS inet_ntoa.o"
+	AC_LIBOBJ(inet_ntoa)
 #	echo "WARNING: This looks bad, and probably prevents Squid from working."
 #	echo "         If you're on IRIX and using GCC 2.8, you probably need"
 #	echo "         to use the IRIX C compiler instead."
@@ -2562,7 +2613,7 @@ statvfs("/tmp", &sfs);
   ac_cv_func_statvfs=no)
 AC_MSG_RESULT($ac_cv_func_statvfs)
 if test "$ac_cv_func_statvfs" = "yes" ; then
-  AC_DEFINE(HAVE_STATVFS)
+  AC_DEFINE(HAVE_STATVFS, 1, [If your system has statvfs(), and if it actually works!])
 fi
 fi
 
@@ -2588,7 +2639,7 @@ AC_TRY_COMPILE([
 ac_cv_have_res_nsaddr_list="yes",
 ac_cv_have_res_nsaddr_list="no"))
 if test $ac_cv_have_res_nsaddr_list = "yes" ; then
-  AC_DEFINE(HAVE_RES_NSADDR_LIST)
+  AC_DEFINE(HAVE_RES_NSADDR_LIST, 1, [If _res structure has nsaddr_list member])
 fi
 
 if test $ac_cv_have_res_nsaddr_list = "no" ; then
@@ -2614,7 +2665,7 @@ AC_TRY_COMPILE([
 ac_cv_have_res_ns_list="yes",
 ac_cv_have_res_ns_list="no"))
 if test $ac_cv_have_res_ns_list = "yes" ; then
-  AC_DEFINE(HAVE_RES_NS_LIST)
+  AC_DEFINE(HAVE_RES_NS_LIST, 1, [If _res structure has ns_list member])
 fi
 fi
 

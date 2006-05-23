@@ -34,7 +34,11 @@
 #ifndef SQUID_CONFIG_H
 #define SQUID_CONFIG_H
 
+#ifndef AUTOCONF_H
+#define AUTOCONF_H 1
 #include "autoconf.h"		/* For GNU autoconf variables */
+#endif
+
 #include "version.h"
 
 /****************************************************************************

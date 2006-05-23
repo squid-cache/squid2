@@ -53,7 +53,10 @@
 #ifndef SQUID_TYPES_H
 #define SQUID_TYPES_H
 
+#ifndef AUTOCONF_H
+#define AUTOCONF_H 1
 #include "autoconf.h"
+#endif
 
 /* This should be in synch with what we have in acinclude.m4 */
 #if STDC_HEADERS

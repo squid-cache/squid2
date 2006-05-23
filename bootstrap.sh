@@ -7,9 +7,10 @@
 # Autotool versions preferred. To override either edit the script
 # to match the versions you want to use, or set the variables on
 # the command line like "env acver=.. amver=... ./bootstrap.sh"
-
-acversions="${acver:-2.13}"
-amversions="${amver:-1.5}"
+acversions="${acver:-2.59 2.57 2.53 2.52}"
+amversions="${amver:-1.9 1.7 1.6 1.5}"
+ltversions="${ltver:-1.5 1.4}"
+SUBDIRS=""
 
 check_version()
 {
@@ -52,25 +53,62 @@ bootstrap() {
   fi
 }
 
-fixmakefiles() {
-  bad_files="`find . -name Makefile.in | xargs grep -l "AR = ar"`"
-  if [ -n "$bad_files" ]; then
-    perl -i -p -e 's/^/#/ if /^AR = ar/' $bad_files
-  fi
-}
-
-# Make sure cfgaux exists
-mkdir -p cfgaux
-
 # Adjust paths of required autool packages
 amver=`find_version automake ${amversions}`
 acver=`find_version autoconf ${acversions}`
+ltver=`find_version libtool ${ltversions}`
 
-# Bootstrap the autotool subsystems
-bootstrap aclocal$amver
-bootstrap autoheader$acver
-bootstrap automake$amver --foreign --add-missing
-fixmakefiles
-bootstrap autoconf$acver
+# Set environment variable to tell automake which autoconf to use.
+AUTOCONF="autoconf${acver}" ; export AUTOCONF
+
+echo "automake : $amver"
+echo "autoconfg: $acver"
+echo "libtool  : $ltver"
+
+for dir in "" $SUBDIRS; do
+    if [ -z "$dir" ] || [ -d $dir ]; then
+	if (
+	echo "Bootstrapping $dir"
+	cd ./$dir
+	if [ -n "$dir" ] && [ -f bootstrap.sh ]; then
+	    ./bootstrap.sh
+	elif [ ! -f $dir/configure ]; then
+	    # Make sure cfgaux exists
+	    mkdir -p cfgaux
+
+	    # Bootstrap the autotool subsystems
+	    bootstrap aclocal$amver
+	    bootstrap autoheader$acver
+	    bootstrap libtoolize$ltver --force --copy --automake
+	    bootstrap automake$amver --foreign --add-missing --copy -f
+	    bootstrap autoconf$acver --force
+	fi ); then
+	    : # OK
+	else
+	    exit 1
+	fi
+    fi
+done
+
+# Fixup autoconf recursion using --silent/--quiet option
+# autoconf should inherit this option whe recursing into subdirectories
+# but it currently doesn't for some reason.
+if grep ac_sub_configure_args configure >/dev/null; then
+  if grep  "ac_sub_configure_args" configure | grep quiet >/dev/null; then
+    : # OK
+  else
+    echo "Fixing configure recursion"
+    ed -s configure <<'EOS' >/dev/null || true
+/ac_sub_configure_args=/
++1
+i
+  # Add --quiet option if used
+  test "$silent" = yes &&
+    ac_sub_configure_args="$ac_sub_configure_args --quiet"
+.
+w
+EOS
+  fi
+fi
 
 echo "Autotool bootstrapping complete."
