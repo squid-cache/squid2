@@ -24,7 +24,7 @@ EXTRA_DIST = \
 	coss/coss-notes.txt
 
 INCLUDES      = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
-	-I$(top_srcdir)/src/
+	-I$(top_srcdir)/src
 
 ## targets below to emulate distributed makefiles
 aufs/all: libaufs.a

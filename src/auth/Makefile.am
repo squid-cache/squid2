@@ -16,4 +16,4 @@ libntlm_a_SOURCES	= ntlm/auth_ntlm.c ntlm/auth_ntlm.h
 libnegotiate_a_SOURCES	= negotiate/auth_negotiate.c negotiate/auth_negotiate.h
 
 INCLUDES      = -I. -I$(top_builddir)/include -I$(top_srcdir)/include \
-	-I$(top_srcdir)/src/
+	-I$(top_srcdir)/src
