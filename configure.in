@@ -509,15 +509,17 @@ AC_ARG_ENABLE(referer-log,
   fi
 ])
 
+USE_WCCP=1
 AC_ARG_ENABLE(wccp,  
 [  --disable-wccp          Disable Web Cache Coordination V1 Protocol],
 [ if test "$enableval" = "no" ; then
     echo "Web Cache Coordination V1 Protocol disabled"
-    AC_DEFINE(USE_WCCP, 0, [Define to enable WCCP])
-  else
-    AC_DEFINE(USE_WCCP, 1)
+    USE_WCCP=0
   fi
 ])      
+if test USE_WCCP = 1; then
+    AC_DEFINE(USE_WCCP, 1, [Define to enable WCCP])
+fi
 
 AC_ARG_ENABLE(wccpv2,
 [  --enable-wccpv2          Enable Web Cache Coordination V2 Protocol],
@@ -802,17 +804,19 @@ AC_ARG_ENABLE(epoll,
 ])
 
 dnl Disable HTTP violations
+HTTP_VIOLATIONS=1
 AC_ARG_ENABLE(http-violations,
 [  --disable-http-violations
                           This allows you to remove code which is known to
                           violate the HTTP protocol specification.],
 [ if test "$enableval" = "no" ; then
     echo "Disabling HTTP Violations"
-    AC_DEFINE(HTTP_VIOLATIONS, 0, [By default (for now anyway) Squid includes options which allows the cache administrator to violate the HTTP protocol specification in terms of cache behaviour.  Setting this to '0' will disable such code.])
-  else
-    AC_DEFINE(HTTP_VIOLATIONS, 1)
+    HTTP_VIOLATIONS=0
   fi
 ])
+if test $HTTP_VIOLATIONS = 1; then
+    AC_DEFINE(HTTP_VIOLATIONS, 1, [By default (for now anyway) Squid includes options which allows the cache administrator to violate the HTTP protocol specification in terms of cache behaviour.  Setting this to '0' will disable such code.])
+fi
 
 dnl Enable IP-Filter Transparent Proxy
 AC_ARG_ENABLE(ipf-transparent,
@@ -967,17 +971,19 @@ AC_ARG_ENABLE(leakfinder,
   fi
 ])
 
+USE_IDENT=1
 AC_ARG_ENABLE(ident-lookups,
 [  --disable-ident-lookups
                           This allows you to remove code that performs
                           Ident (RFC 931) lookups.],
 [ if test "$enableval" = "no" ; then
     echo "Disabling Ident Lookups"
-    AC_DEFINE(USE_IDENT, 0, [Compile in support for Ident (RFC 931) lookups?  Enabled by default.])
-  else
-    AC_DEFINE(USE_IDENT, 1)
+    USE_IDENT=0
   fi
 ])
+if test $USE_IDENT = 1; then
+    AC_DEFINE(USE_IDENT, 1, [Compile in support for Ident (RFC 931) lookups?  Enabled by default.])
+fi
 
 AM_CONDITIONAL(USE_DNSSERVER, false)
 use_dnsserver=
