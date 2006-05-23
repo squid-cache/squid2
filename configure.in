@@ -2776,4 +2776,5 @@ AC_OUTPUT([\
 	helpers/external_acl/session/Makefile \
 	helpers/external_acl/unix_group/Makefile \
 	helpers/external_acl/wbinfo_group/Makefile \
+	tools/Makefile \
 ])

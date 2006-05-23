@@ -48,9 +48,7 @@ host_triplet = @host@
 EXTRA_PROGRAMS = unlinkd$(EXEEXT) pinger$(EXEEXT) dnsserver$(EXEEXT)
 noinst_PROGRAMS = cf_gen$(EXEEXT)
 sbin_PROGRAMS = squid$(EXEEXT)
-bin_PROGRAMS = squidclient$(EXEEXT)
-libexec_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
-	cachemgr$(CGIEXT)$(EXEEXT)
+libexec_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -61,21 +59,14 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(SHELL) $(top_srcdir)/cfgaux/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/autoconf.h
 CONFIG_CLEAN_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libexecdir)" \
-	"$(DESTDIR)$(sbindir)" "$(DESTDIR)$(datadir)" \
-	"$(DESTDIR)$(sysconfdir)"
-binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 @ENABLE_PINGER_TRUE@am__EXEEXT_1 = pinger$(EXEEXT)
 @USE_DNSSERVER_TRUE@am__EXEEXT_2 = dnsserver$(EXEEXT)
 @ENABLE_UNLINKD_TRUE@am__EXEEXT_3 = unlinkd$(EXEEXT)
+am__installdirs = "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(sbindir)" \
+	"$(DESTDIR)$(datadir)" "$(DESTDIR)$(sysconfdir)"
 libexecPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
-PROGRAMS = $(bin_PROGRAMS) $(libexec_PROGRAMS) $(noinst_PROGRAMS) \
-	$(sbin_PROGRAMS)
-am_cachemgr__CGIEXT__OBJECTS = cachemgr__CGIEXT_-cachemgr.$(OBJEXT)
-cachemgr__CGIEXT__OBJECTS = $(am_cachemgr__CGIEXT__OBJECTS)
-cachemgr__CGIEXT__LDADD = $(LDADD)
-cachemgr__CGIEXT__DEPENDENCIES =
+PROGRAMS = $(libexec_PROGRAMS) $(noinst_PROGRAMS) $(sbin_PROGRAMS)
 am_cf_gen_OBJECTS = cf_gen.$(OBJEXT) debug.$(OBJEXT)
 nodist_cf_gen_OBJECTS = globals.$(OBJEXT)
 cf_gen_OBJECTS = $(am_cf_gen_OBJECTS) $(nodist_cf_gen_OBJECTS)
@@ -161,10 +152,6 @@ nodist_squid_OBJECTS = repl_modules.$(OBJEXT) auth_modules.$(OBJEXT) \
 	string_arrays.$(OBJEXT)
 squid_OBJECTS = $(am_squid_OBJECTS) $(nodist_squid_OBJECTS)
 squid_DEPENDENCIES =
-am_squidclient_OBJECTS = client.$(OBJEXT)
-squidclient_OBJECTS = $(am_squidclient_OBJECTS)
-squidclient_LDADD = $(LDADD)
-squidclient_DEPENDENCIES =
 am_unlinkd_OBJECTS =
 unlinkd_OBJECTS = $(am_unlinkd_OBJECTS)
 unlinkd_DEPENDENCIES = unlinkd-daemon.o
@@ -175,14 +162,12 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(cachemgr__CGIEXT__SOURCES) $(cf_gen_SOURCES) \
-	$(nodist_cf_gen_SOURCES) dnsserver.c $(pinger_SOURCES) \
-	$(nodist_pinger_SOURCES) $(squid_SOURCES) \
+SOURCES = $(cf_gen_SOURCES) $(nodist_cf_gen_SOURCES) dnsserver.c \
+	$(pinger_SOURCES) $(nodist_pinger_SOURCES) $(squid_SOURCES) \
 	$(EXTRA_squid_SOURCES) $(nodist_squid_SOURCES) \
-	$(squidclient_SOURCES) $(unlinkd_SOURCES)
-DIST_SOURCES = $(cachemgr__CGIEXT__SOURCES) $(cf_gen_SOURCES) \
-	dnsserver.c $(pinger_SOURCES) $(am__squid_SOURCES_DIST) \
-	$(EXTRA_squid_SOURCES) $(squidclient_SOURCES) \
+	$(unlinkd_SOURCES)
+DIST_SOURCES = $(cf_gen_SOURCES) dnsserver.c $(pinger_SOURCES) \
+	$(am__squid_SOURCES_DIST) $(EXTRA_squid_SOURCES) \
 	$(unlinkd_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
@@ -386,9 +371,6 @@ INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/include -I$(top_srcdir)/include
 cf_gen_SOURCES = cf_gen.c defines.h debug.c
 nodist_cf_gen_SOURCES = globals.c
 nodist_cf_gen_HEADER = cf_gen_defines.h
-squidclient_SOURCES = client.c
-cachemgr__CGIEXT__SOURCES = cachemgr.c
-cachemgr__CGIEXT__CFLAGS = -DDEFAULT_CACHEMGR_CONFIG=\"$(DEFAULT_CACHEMGR_CONFIG)\" $(AM_CFLAGS)
 EXTRA_squid_SOURCES = \
 	delay_pools.c \
 	dns.c \
@@ -568,14 +550,12 @@ EXTRA_DIST = \
 	store_modules.sh \
 	repl_modules.sh \
 	mib.txt \
-	cachemgr.conf \
 	mime.conf.default
 
 DEFAULT_HTTP_PORT = @CACHE_HTTP_PORT@
 DEFAULT_ICP_PORT = @CACHE_ICP_PORT@
 DEFAULT_PREFIX = $(prefix)
 DEFAULT_CONFIG_FILE = $(sysconfdir)/squid.conf
-DEFAULT_CACHEMGR_CONFIG = $(sysconfdir)/cachemgr.conf
 DEFAULT_MIME_TABLE = $(sysconfdir)/mime.conf
 DEFAULT_DNSSERVER = $(libexecdir)/`echo dnsserver | sed '$(transform);s/$$/$(EXEEXT)/'`
 DEFAULT_LOG_PREFIX = $(localstatedir)/logs
@@ -634,29 +614,6 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-install-binPROGRAMS: $(bin_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  if test -f $$p \
-	  ; then \
-	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(binPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(bindir)/$$f'"; \
-	   $(INSTALL_PROGRAM_ENV) $(binPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(bindir)/$$f" || exit 1; \
-	  else :; fi; \
-	done
-
-uninstall-binPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
-	  echo " rm -f '$(DESTDIR)$(bindir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(bindir)/$$f"; \
-	done
-
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 install-libexecPROGRAMS: $(libexec_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(libexecdir)" || $(mkdir_p) "$(DESTDIR)$(libexecdir)"
@@ -706,9 +663,6 @@ uninstall-sbinPROGRAMS:
 
 clean-sbinPROGRAMS:
 	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
-cachemgr$(CGIEXT)$(EXEEXT): $(cachemgr__CGIEXT__OBJECTS) $(cachemgr__CGIEXT__DEPENDENCIES) 
-	@rm -f cachemgr$(CGIEXT)$(EXEEXT)
-	$(LINK) $(cachemgr__CGIEXT__LDFLAGS) $(cachemgr__CGIEXT__OBJECTS) $(cachemgr__CGIEXT__LDADD) $(LIBS)
 cf_gen$(EXEEXT): $(cf_gen_OBJECTS) $(cf_gen_DEPENDENCIES) 
 	@rm -f cf_gen$(EXEEXT)
 	$(LINK) $(cf_gen_LDFLAGS) $(cf_gen_OBJECTS) $(cf_gen_LDADD) $(LIBS)
@@ -721,9 +675,6 @@ pinger$(EXEEXT): $(pinger_OBJECTS) $(pinger_DEPENDENCIES)
 squid$(EXEEXT): $(squid_OBJECTS) $(squid_DEPENDENCIES) 
 	@rm -f squid$(EXEEXT)
 	$(LINK) $(squid_LDFLAGS) $(squid_OBJECTS) $(squid_LDADD) $(LIBS)
-squidclient$(EXEEXT): $(squidclient_OBJECTS) $(squidclient_DEPENDENCIES) 
-	@rm -f squidclient$(EXEEXT)
-	$(LINK) $(squidclient_LDFLAGS) $(squidclient_OBJECTS) $(squidclient_LDADD) $(LIBS)
 unlinkd$(EXEEXT): $(unlinkd_OBJECTS) $(unlinkd_DEPENDENCIES) 
 	@rm -f unlinkd$(EXEEXT)
 	$(LINK) $(unlinkd_LDFLAGS) $(unlinkd_OBJECTS) $(unlinkd_LDADD) $(LIBS)
@@ -758,11 +709,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/authenticate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cache_cf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cache_manager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/carp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cbdata.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cf_gen.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client_db.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/client_side.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comm.Po@am__quote@
@@ -858,20 +807,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
-
-cachemgr__CGIEXT_-cachemgr.o: cachemgr.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cachemgr__CGIEXT__CFLAGS) $(CFLAGS) -MT cachemgr__CGIEXT_-cachemgr.o -MD -MP -MF "$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Tpo" -c -o cachemgr__CGIEXT_-cachemgr.o `test -f 'cachemgr.c' || echo '$(srcdir)/'`cachemgr.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Tpo" "$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po"; else rm -f "$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cachemgr.c' object='cachemgr__CGIEXT_-cachemgr.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cachemgr__CGIEXT__CFLAGS) $(CFLAGS) -c -o cachemgr__CGIEXT_-cachemgr.o `test -f 'cachemgr.c' || echo '$(srcdir)/'`cachemgr.c
-
-cachemgr__CGIEXT_-cachemgr.obj: cachemgr.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cachemgr__CGIEXT__CFLAGS) $(CFLAGS) -MT cachemgr__CGIEXT_-cachemgr.obj -MD -MP -MF "$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Tpo" -c -o cachemgr__CGIEXT_-cachemgr.obj `if test -f 'cachemgr.c'; then $(CYGPATH_W) 'cachemgr.c'; else $(CYGPATH_W) '$(srcdir)/cachemgr.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Tpo" "$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Po"; else rm -f "$(DEPDIR)/cachemgr__CGIEXT_-cachemgr.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='cachemgr.c' object='cachemgr__CGIEXT_-cachemgr.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cachemgr__CGIEXT__CFLAGS) $(CFLAGS) -c -o cachemgr__CGIEXT_-cachemgr.obj `if test -f 'cachemgr.c'; then $(CYGPATH_W) 'cachemgr.c'; else $(CYGPATH_W) '$(srcdir)/cachemgr.c'; fi`
 uninstall-info-am:
 install-dataDATA: $(data_DATA)
 	@$(NORMAL_INSTALL)
@@ -1088,7 +1023,7 @@ check: $(BUILT_SOURCES)
 all-am: Makefile $(PROGRAMS) $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(datadir)" "$(DESTDIR)$(sysconfdir)"; do \
+	for dir in "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(datadir)" "$(DESTDIR)$(sysconfdir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -1120,8 +1055,8 @@ maintainer-clean-generic:
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-recursive
 
-clean-am: clean-binPROGRAMS clean-generic clean-libexecPROGRAMS \
-	clean-noinstPROGRAMS clean-sbinPROGRAMS mostlyclean-am
+clean-am: clean-generic clean-libexecPROGRAMS clean-noinstPROGRAMS \
+	clean-sbinPROGRAMS mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -rf ./$(DEPDIR)
@@ -1141,8 +1076,8 @@ info-am:
 
 install-data-am: install-data-local install-dataDATA
 
-install-exec-am: install-binPROGRAMS install-libexecPROGRAMS \
-	install-sbinPROGRAMS install-sysconfDATA
+install-exec-am: install-libexecPROGRAMS install-sbinPROGRAMS \
+	install-sysconfDATA
 
 install-info: install-info-recursive
 
@@ -1167,28 +1102,27 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-dataDATA \
-	uninstall-info-am uninstall-libexecPROGRAMS uninstall-local \
+uninstall-am: uninstall-dataDATA uninstall-info-am \
+	uninstall-libexecPROGRAMS uninstall-local \
 	uninstall-sbinPROGRAMS uninstall-sysconfDATA
 
 uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am check check-am \
-	clean clean-binPROGRAMS clean-generic clean-libexecPROGRAMS \
-	clean-noinstPROGRAMS clean-recursive clean-sbinPROGRAMS ctags \
-	ctags-recursive distclean distclean-compile distclean-generic \
+	clean clean-generic clean-libexecPROGRAMS clean-noinstPROGRAMS \
+	clean-recursive clean-sbinPROGRAMS ctags ctags-recursive \
+	distclean distclean-compile distclean-generic \
 	distclean-recursive distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-binPROGRAMS \
-	install-data install-data-am install-data-local \
-	install-dataDATA install-exec install-exec-am install-info \
-	install-info-am install-libexecPROGRAMS install-man \
-	install-sbinPROGRAMS install-strip install-sysconfDATA \
-	installcheck installcheck-am installdirs installdirs-am \
-	maintainer-clean maintainer-clean-generic \
-	maintainer-clean-recursive mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-recursive pdf pdf-am ps ps-am \
-	tags tags-recursive uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-dataDATA uninstall-info-am \
+	html-am info info-am install install-am install-data \
+	install-data-am install-data-local install-dataDATA \
+	install-exec install-exec-am install-info install-info-am \
+	install-libexecPROGRAMS install-man install-sbinPROGRAMS \
+	install-strip install-sysconfDATA installcheck installcheck-am \
+	installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic maintainer-clean-recursive \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-recursive pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-dataDATA uninstall-info-am \
 	uninstall-libexecPROGRAMS uninstall-local \
 	uninstall-sbinPROGRAMS uninstall-sysconfDATA
 
@@ -1265,12 +1199,6 @@ install-data-local: install-sysconfDATA install-dataDATA
 	else \
 	        echo "$(INSTALL_DATA) squid.conf.default $(DESTDIR)$(DEFAULT_CONFIG_FILE)"; \
 	        $(INSTALL_DATA) squid.conf.default $(DESTDIR)$(DEFAULT_CONFIG_FILE); \
-	fi
-	@if test -f $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG) ; then \
-	        echo "$@ will not overwrite existing $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG)" ; \
-	else \
-	        echo "$(INSTALL_DATA) $(srcdir)/cachemgr.conf $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG)"; \
-	        $(INSTALL_DATA) $(srcdir)/cachemgr.conf $(DESTDIR)$(DEFAULT_CACHEMGR_CONFIG); \
 	fi
 	$(mkinstalldirs) $(DESTDIR)$(DEFAULT_LOG_PREFIX)
 
