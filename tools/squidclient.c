@@ -82,25 +82,32 @@
 #define BUFSIZ 8192
 #endif
 
+#if SIZEOF_INT64_T > SIZEOF_LONG && defined(PRId64) && defined(INT64_MAX) && HAVE_STRTOLL
+typedef int64_t squid_off_t;
+#define SIZEOF_SQUID_OFF_T SIZEOF_INT64_T
+#define PRINTF_OFF_T PRId64
+#define strto_off_t (int64_t)strtoll
+#else
+typedef long squid_off_t;
+#define SIZEOF_SQUID_OFF_T SIZEOF_LONG
+#define PRINTF_OFF_T "ld"
+#define strto_off_t strtol
+#endif
+
 typedef void SIGHDLR(int sig);
 
 /* Local functions */
 static int client_comm_bind(int, const char *);
-
 static int client_comm_connect(int, const char *, u_short, struct timeval *);
 static void usage(const char *progname);
-
 static int Now(struct timeval *);
 static SIGHDLR catchSignal;
 static SIGHDLR pipe_handler;
 static void set_our_signal(void);
-#ifndef _SQUID_MSWIN_
 static ssize_t myread(int fd, void *buf, size_t len);
 static ssize_t mywrite(int fd, void *buf, size_t len);
-#endif
 static int put_fd;
 static char *put_file = NULL;
-
 static struct stat sb;
 int total_bytes = 0;
 int io_timeout = 120;
@@ -145,13 +152,12 @@ main(int argc, char *argv[])
     int opt_noaccept = 0;
     int opt_verbose = 0;
     const char *hostname, *localhost;
-    char url[BUFSIZ], msg[49152], buf[BUFSIZ];
-    char extra_hdrs[32768];
+    char url[BUFSIZ], msg[BUFSIZ], buf[BUFSIZ];
+    char extra_hdrs[BUFSIZ];
     const char *method = "GET";
     extern char *optarg;
     time_t ims = 0;
     int max_forwards = -1;
-
     struct timeval tv1, tv2;
     int i = 0, loops;
     long ping_int;
@@ -177,127 +183,85 @@ main(int argc, char *argv[])
     } else if (argc >= 2) {
 	strncpy(url, argv[argc - 1], BUFSIZ);
 	url[BUFSIZ - 1] = '\0';
-
 	if (url[0] == '-')
 	    usage(argv[0]);
-
 	while ((c = getopt(argc, argv, "ah:l:P:i:km:p:rsvt:g:p:I:H:T:u:U:w:W:?")) != -1)
 	    switch (c) {
-
 	    case 'a':
 		opt_noaccept = 1;
 		break;
-
 	    case 'h':		/* remote host */
-
 		if (optarg != NULL)
 		    hostname = optarg;
-
 		break;
-
 	    case 'l':		/* local host */
 		if (optarg != NULL)
 		    localhost = optarg;
-
 		break;
-
 	    case 's':		/* silent */
 		to_stdout = 0;
-
 		break;
-
 	    case 'k':		/* backward compat */
 		keep_alive = 1;
-
 		break;
-
 	    case 'r':		/* reload */
 		reload = 1;
-
 		break;
-
 	    case 'p':		/* port number */
 		sscanf(optarg, "%d", &port);
-
 		if (port < 1)
 		    port = CACHE_HTTP_PORT;	/* default */
-
 		break;
-
 	    case 'P':
 		put_file = xstrdup(optarg);
-
 		break;
-
 	    case 'i':		/* IMS */
 		ims = (time_t) atoi(optarg);
-
 		break;
-
 	    case 'm':
 		method = xstrdup(optarg);
-
 		break;
-
 	    case 't':
 		method = xstrdup("TRACE");
-
 		max_forwards = atoi(optarg);
-
 		break;
-
 	    case 'g':
 		ping = 1;
-
 		pcount = atoi(optarg);
-
 		to_stdout = 0;
-
 		break;
-
 	    case 'I':
 		if ((ping_int = atoi(optarg) * 1000) <= 0)
 		    usage(argv[0]);
-
 		break;
-
 	    case 'H':
 		if (strlen(optarg)) {
 		    char *t;
 		    strncpy(extra_hdrs, optarg, sizeof(extra_hdrs));
-
 		    while ((t = strstr(extra_hdrs, "\\n")))
 			*t = '\r', *(t + 1) = '\n';
 		}
 		break;
-
 	    case 'T':
 		io_timeout = atoi(optarg);
 		break;
-
 	    case 'u':
 		proxy_user = optarg;
 		break;
-
 	    case 'w':
 		proxy_password = optarg;
 		break;
-
 	    case 'U':
 		www_user = optarg;
 		break;
-
 	    case 'W':
 		www_password = optarg;
 		break;
-
 	    case 'v':
 		/* undocumented: may increase verb-level by giving more -v's */
 		opt_verbose++;
 		break;
-
 	    case '?':		/* usage */
-
 	    default:
 		usage(argv[0]);
 		break;
@@ -318,7 +282,6 @@ main(int argc, char *argv[])
     if (put_file) {
 	put_fd = open(put_file, O_RDONLY);
 	set_our_signal();
-
 	if (put_fd < 0) {
 	    fprintf(stderr, "%s: can't open file (%s)\n", argv[0],
 		xstrerror());
@@ -326,13 +289,10 @@ main(int argc, char *argv[])
 	}
 #ifdef _SQUID_WIN32_
 	setmode(put_fd, O_BINARY);
-
 #endif
-
 	fstat(put_fd, &sb);
     }
     snprintf(msg, BUFSIZ, "%s %s HTTP/1.0\r\n", method, url);
-
     if (reload) {
 	snprintf(buf, BUFSIZ, "Pragma: no-cache\r\n");
 	strcat(msg, buf);
@@ -357,12 +317,9 @@ main(int argc, char *argv[])
 	char *user = proxy_user;
 	char *password = proxy_password;
 #if HAVE_GETPASS
-
 	if (!password)
 	    password = getpass("Proxy password: ");
-
 #endif
-
 	if (!password) {
 	    fprintf(stderr, "ERROR: Proxy password missing\n");
 	    exit(1);
@@ -375,12 +332,9 @@ main(int argc, char *argv[])
 	char *user = www_user;
 	char *password = www_password;
 #if HAVE_GETPASS
-
 	if (!password)
 	    password = getpass("WWW password: ");
-
 #endif
-
 	if (!password) {
 	    fprintf(stderr, "ERROR: WWW password missing\n");
 	    exit(1);
@@ -394,7 +348,6 @@ main(int argc, char *argv[])
 	    snprintf(buf, BUFSIZ, "Proxy-Connection: keep-alive\r\n");
 	else
 	    snprintf(buf, BUFSIZ, "Connection: keep-alive\r\n");
-
 	strcat(msg, buf);
     }
     strcat(msg, extra_hdrs);
@@ -406,9 +359,7 @@ main(int argc, char *argv[])
 
     if (ping) {
 #if HAVE_SIGACTION
-
 	struct sigaction sa, osa;
-
 	if (sigaction(SIGINT, NULL, &osa) == 0 && osa.sa_handler == SIG_DFL) {
 	    sa.sa_handler = catchSignal;
 	    sa.sa_flags = 0;
@@ -416,20 +367,15 @@ main(int argc, char *argv[])
 	    (void) sigaction(SIGINT, &sa, NULL);
 	}
 #else
-	void (*osig) (int);
-
+	void (*osig) ();
 	if ((osig = signal(SIGINT, catchSignal)) != SIG_DFL)
 	    (void) signal(SIGINT, osig);
-
 #endif
-
     }
     loops = ping ? pcount : 1;
-
     for (i = 0; loops == 0 || i < loops; i++) {
-	int fsize = 0;
+	squid_off_t fsize = 0;
 	/* Connect to the server */
-
 	if ((conn = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 	    perror("client: socket");
 	    exit(1);
@@ -438,7 +384,7 @@ main(int argc, char *argv[])
 	    perror("client: bind");
 	    exit(1);
 	}
-	if (client_comm_connect(conn, hostname, port, ping ? &tv1 : NULL) < 0) {
+	if (client_comm_connect(conn, hostname, port, (ping || opt_verbose) ? &tv1 : NULL) < 0) {
 	    if (errno == 0) {
 		fprintf(stderr, "client: ERROR: Cannot connect to %s:%d: Host unknown.\n", hostname, port);
 	    } else {
@@ -447,23 +393,14 @@ main(int argc, char *argv[])
 		    hostname, port);
 		perror(tbuf);
 	    }
-
 	    exit(1);
 	}
 	/* Send the HTTP request */
-#ifdef _SQUID_MSWIN_
-	bytesWritten = send(conn, (const void *) msg, strlen(msg), 0);
-
-#else
-
 	bytesWritten = mywrite(conn, msg, strlen(msg));
-
-#endif
-
 	if (bytesWritten < 0) {
 	    perror("client: ERROR: write");
 	    exit(1);
-	} else if ((unsigned) bytesWritten != strlen(msg)) {
+	} else if (bytesWritten != strlen(msg)) {
 	    fprintf(stderr, "client: ERROR: Cannot send request?: %s\n", msg);
 	    exit(1);
 	}
@@ -471,21 +408,15 @@ main(int argc, char *argv[])
 	    int x;
 	    lseek(put_fd, 0, SEEK_SET);
 #ifdef _SQUID_MSWIN_
-
 	    while ((x = read(put_fd, buf, sizeof(buf))) > 0) {
-		x = write(conn, buf, x);
 #else
-
 	    while ((x = myread(put_fd, buf, sizeof(buf))) > 0) {
-		x = mywrite(conn, buf, x);
 #endif
-
+		x = mywrite(conn, buf, x);
 		total_bytes += x;
-
 		if (x <= 0)
 		    break;
 	    }
-
 	    if (x != 0)
 		fprintf(stderr, "client: ERROR: Cannot send file.\n");
 	}
@@ -493,30 +424,21 @@ main(int argc, char *argv[])
 
 #ifdef _SQUID_MSWIN_
 	setmode(1, O_BINARY);
-
-	while ((len = recv(conn, (void *) buf, sizeof(buf), 0)) > 0) {
-#else
-
-	while ((len = myread(conn, buf, sizeof(buf))) > 0) {
 #endif
+	while ((len = myread(conn, buf, sizeof(buf))) > 0) {
 	    fsize += len;
-
 	    if (to_stdout)
 		fwrite(buf, len, 1, stdout);
 	}
-
 #ifdef _SQUID_MSWIN_
 	setmode(1, O_TEXT);
-
 #endif
-
 	(void) close(conn);	/* done with socket */
 
 	if (interrupted)
 	    break;
 
-	if (ping) {
-
+	if (ping || opt_verbose) {
 	    struct tm *tmp;
 	    time_t t2s;
 	    long elapsed_msec;
@@ -525,23 +447,19 @@ main(int argc, char *argv[])
 	    elapsed_msec = tvSubMsec(tv1, tv2);
 	    t2s = tv2.tv_sec;
 	    tmp = localtime(&t2s);
-	    fprintf(stderr, "%d-%02d-%02d %02d:%02d:%02d [%d]: %ld.%03ld secs, %f KB/s\n",
+	    fprintf(stderr, "%d-%02d-%02d %02d:%02d:%02d [%d]: %ld.%03ld secs, %f KB/s (%" PRINTF_OFF_T "KB)\n",
 		tmp->tm_year + 1900, tmp->tm_mon + 1, tmp->tm_mday,
 		tmp->tm_hour, tmp->tm_min, tmp->tm_sec, i + 1,
 		elapsed_msec / 1000, elapsed_msec % 1000,
-		elapsed_msec ? (double) fsize / elapsed_msec : -1.0);
-
+		elapsed_msec ? (double) fsize / elapsed_msec * 1000 / 1024 : -1.0,
+		(fsize + 1023) / 1024);
 	    if (i == 0 || elapsed_msec < ping_min)
 		ping_min = elapsed_msec;
-
 	    if (i == 0 || elapsed_msec > ping_max)
 		ping_max = elapsed_msec;
-
 	    ping_sum += elapsed_msec;
-
 	    /* Delay until next "ping_int" boundary */
-	    if ((loops == 0 || i + 1 < loops) && elapsed_msec < ping_int) {
-
+	    if (ping && (loops == 0 || i + 1 < loops) && elapsed_msec < ping_int) {
 		struct timeval tvs;
 		long msec_left = ping_int - elapsed_msec;
 
@@ -567,13 +485,10 @@ main(int argc, char *argv[])
 static int
 client_comm_bind(int sock, const char *local_host)
 {
-
     static const struct hostent *hp = NULL;
-
     static struct sockaddr_in from_addr;
 
     /* Set up the source socket address from which to send. */
-
     if (hp == NULL) {
 	from_addr.sin_family = AF_INET;
 
@@ -589,13 +504,10 @@ client_comm_bind(int sock, const char *local_host)
 static int
 client_comm_connect(int sock, const char *dest_host, u_short dest_port, struct timeval *tvp)
 {
-
     static const struct hostent *hp = NULL;
-
     static struct sockaddr_in to_addr;
 
     /* Set up the destination socket address for message to send to. */
-
     if (hp == NULL) {
 	to_addr.sin_family = AF_INET;
 
@@ -607,7 +519,6 @@ client_comm_connect(int sock, const char *dest_host, u_short dest_port, struct t
     }
     if (tvp)
 	(void) Now(tvp);
-
     return connect(sock, (struct sockaddr *) &to_addr, sizeof(struct sockaddr_in));
 }
 
@@ -617,7 +528,6 @@ Now(struct timeval *tp)
 #if GETTIMEOFDAY_NO_TZP
     return gettimeofday(tp);
 #else
-
     return gettimeofday(tp, NULL);
 #endif
 }				/* ARGSUSED */
@@ -639,36 +549,38 @@ static void
 set_our_signal(void)
 {
 #if HAVE_SIGACTION
-
     struct sigaction sa;
     sa.sa_handler = pipe_handler;
     sa.sa_flags = SA_RESTART;
     sigemptyset(&sa.sa_mask);
-
     if (sigaction(SIGPIPE, &sa, NULL) < 0) {
 	fprintf(stderr, "Cannot set PIPE signal.\n");
 	exit(-1);
     }
 #else
     signal(SIGPIPE, pipe_handler);
-
 #endif
 
 }
 
-#ifndef _SQUID_MSWIN_
 static ssize_t
 myread(int fd, void *buf, size_t len)
 {
+#ifndef _SQUID_MSWIN_
     alarm(io_timeout);
     return read(fd, buf, len);
+#else
+    return recv(fd, buf, len, 0);
+#endif
 }
 
 static ssize_t
 mywrite(int fd, void *buf, size_t len)
 {
+#ifndef _SQUID_MSWIN_
     alarm(io_timeout);
     return write(fd, buf, len);
-}
-
+#else
+    return send(fd, buf, len, 0);
 #endif
+}
