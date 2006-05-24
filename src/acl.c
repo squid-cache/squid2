@@ -2527,7 +2527,7 @@ aclDestroyAcls(acl ** head)
 	    aclDestroyExternal(&a->data);
 	    break;
 	case ACL_URLGROUP:
-	    wordlistDestroy((wordlist **) & a->data);
+	    wordlistDestroy((wordlist **) (void *) &a->data);
 	    break;
 #if USE_SSL
 	case ACL_USER_CERT:
