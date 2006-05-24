@@ -443,7 +443,7 @@ wccp2_check_security(struct wccp2_service_list_t *srv, char *security, char *pac
     }
     if (srv->wccp2_security_type != WCCP2_MD5_SECURITY) {
 	debug(80, 1) ("wccp2_check_security: invalid security option\n");
-	return 1;
+	return 0;
     }
     /* If execution makes it here then we have an MD5 security */
 
@@ -513,7 +513,7 @@ wccp2Init(void)
 	} else {
 	    fatalf("Bad WCCP2 security type\n");
 	}
-	wccp2_here_i_am_header.length += sizeof(struct wccp2_security_md5_t);
+	wccp2_here_i_am_header.length += wccp2_security_md5.security_length + 4;
 	assert(wccp2_here_i_am_header.length <= WCCP_RESPONSE_SIZE);
 	wccp2_security_md5.security_type = htons(WCCP2_SECURITY_INFO);
 	service_list_ptr->security_info = (struct wccp2_security_md5_t *) ptr;
@@ -649,7 +649,8 @@ wccp2ConnectionOpen(void)
 
     debug(80, 5) ("wccp2ConnectionOpen: Called\n");
     if (wccp2_numrouters == 0) {
-	debug(80, 1) ("WCCPv2 Disabled.\n");
+	debug(80, 2) ("WCCPv2 Disabled.\n");
+	return;
     }
     theInWccp2Connection = comm_open(SOCK_DGRAM,
 	0,
