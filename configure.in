@@ -1397,6 +1397,7 @@ case "$host" in
 esac
 
 dnl Check for programs
+AC_PROG_EGREP
 AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_RANLIB

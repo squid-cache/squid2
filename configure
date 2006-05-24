@@ -5541,6 +5541,21 @@ case "$host" in
 	;;
 esac
 
+echo "$as_me:$LINENO: checking for egrep" >&5
+echo $ECHO_N "checking for egrep... $ECHO_C" >&6
+if test "${ac_cv_prog_egrep+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  if echo a | (grep -E '(a|b)') >/dev/null 2>&1
+    then ac_cv_prog_egrep='grep -E'
+    else ac_cv_prog_egrep='egrep'
+    fi
+fi
+echo "$as_me:$LINENO: result: $ac_cv_prog_egrep" >&5
+echo "${ECHO_T}$ac_cv_prog_egrep" >&6
+ EGREP=$ac_cv_prog_egrep
+
+
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -9924,7 +9939,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(__int64));
+  fprintf(f, "%d\n", (int)sizeof(__int64));
   return(0);
 }
 
@@ -9997,7 +10012,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(int16_t));
+  fprintf(f, "%d\n", (int)sizeof(int16_t));
   return(0);
 }
 
@@ -10070,7 +10085,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(uint16_t));
+  fprintf(f, "%d\n", (int)sizeof(uint16_t));
   return(0);
 }
 
@@ -10143,7 +10158,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(u_int16_t));
+  fprintf(f, "%d\n", (int)sizeof(u_int16_t));
   return(0);
 }
 
@@ -10216,7 +10231,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(int32_t));
+  fprintf(f, "%d\n", (int)sizeof(int32_t));
   return(0);
 }
 
@@ -10289,7 +10304,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(uint32_t));
+  fprintf(f, "%d\n", (int)sizeof(uint32_t));
   return(0);
 }
 
@@ -10362,7 +10377,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(u_int32_t));
+  fprintf(f, "%d\n", (int)sizeof(u_int32_t));
   return(0);
 }
 
@@ -10435,7 +10450,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(int64_t));
+  fprintf(f, "%d\n", (int)sizeof(int64_t));
   return(0);
 }
 
@@ -10508,7 +10523,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(uint64_t));
+  fprintf(f, "%d\n", (int)sizeof(uint64_t));
   return(0);
 }
 
@@ -10581,7 +10596,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(u_int64_t));
+  fprintf(f, "%d\n", (int)sizeof(u_int64_t));
   return(0);
 }
 
@@ -11939,7 +11954,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(off_t));
+  fprintf(f, "%d\n", (int)sizeof(off_t));
   return(0);
 }
 
@@ -12008,7 +12023,7 @@ int main()
 {
   FILE *f=fopen("conftestval", "w");
   if (!f) return(1);
-  fprintf(f, "%d\n", sizeof(size_t));
+  fprintf(f, "%d\n", (int)sizeof(size_t));
   return(0);
 }
 
