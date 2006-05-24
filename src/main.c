@@ -55,11 +55,6 @@ void WINAPI WIN32_svcHandler(DWORD);
 /* for error reporting from xmalloc and friends */
 extern void (*failure_notify) (const char *);
 
-#if defined(USE_WIN32_SERVICE) && defined(_SQUID_WIN32_)
-static int opt_no_daemon = 1;
-#else
-static int opt_no_daemon = 0;
-#endif
 static int opt_parse_cfg_only = 0;
 static char *opt_syslog_facility = NULL;
 static int httpPortNumOverride = 1;
